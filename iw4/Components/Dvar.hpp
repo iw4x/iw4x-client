@@ -31,6 +31,6 @@ namespace Components
 		const char* GetName() { return "Dvar"; };
 
 	private:
-
+		static Game::dvar_t* RegisterName(const char* name, const char* default, Game::dvar_flag flag, const char* description);
 	};
 }

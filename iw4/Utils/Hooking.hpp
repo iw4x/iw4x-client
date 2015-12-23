@@ -85,6 +85,7 @@ namespace Utils
 
 		void* Place;
 		void* Stub;
+		void* Original;
 		char Buffer[5];
 		bool UseJump;
 

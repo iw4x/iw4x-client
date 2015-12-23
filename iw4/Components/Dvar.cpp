@@ -12,6 +12,10 @@ namespace Components
 		}
 	}
 
+	template <> Game::dvar_t* Dvar::Var::Get()
+	{
+		return this->dvar;
+	}
 	template <> char* Dvar::Var::Get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING && this->dvar->current.string)
@@ -21,12 +25,10 @@ namespace Components
 
 		return "";
 	}
-
 	template <> const char* Dvar::Var::Get()
 	{
 		return this->Get<char*>();
 	}
-
 	template <> int Dvar::Var::Get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
@@ -36,7 +38,6 @@ namespace Components
 
 		return 0;
 	}
-
 	template <> float Dvar::Var::Get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
@@ -46,7 +47,6 @@ namespace Components
 
 		return 0;
 	}
-
 	template <> float* Dvar::Var::Get()
 	{
 		static float val[4] = { 0 };
@@ -58,7 +58,6 @@ namespace Components
 
 		return val;
 	}
-
 	template <> bool Dvar::Var::Get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
@@ -73,7 +72,6 @@ namespace Components
 	{
 		this->Set(reinterpret_cast<const char*>(string));
 	}
-
 	void Dvar::Var::Set(const char* string)
 	{
 		if (this->dvar && this->dvar->name)
@@ -81,12 +79,10 @@ namespace Components
 			Game::Dvar_SetCommand(this->dvar->name, string);
 		}
 	}
-
 	void Dvar::Var::Set(std::string string)
 	{
 		this->Set(string.data());
 	}
-
 	void Dvar::Var::Set(int integer)
 	{
 		if (this->dvar && this->dvar->name)
@@ -94,7 +90,6 @@ namespace Components
 			Game::Dvar_SetCommand(this->dvar->name, Utils::VA("%i", integer));
 		}
 	}
-
 	void Dvar::Var::Set(float value)
 	{
 		if (this->dvar && this->dvar->name)
@@ -107,10 +102,16 @@ namespace Components
 	{
 		return Game::Dvar_RegisterBool(name, value, flag, description);
 	}
-
 	template<> static Dvar::Var Dvar::Var::Register(const char* name, const char* value, Game::dvar_flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterString(name, value, flag, description);
+	}
+
+	Game::dvar_t* Dvar::RegisterName(const char* name, const char* default, Game::dvar_flag flag, const char* description)
+	{
+		// TODO: Register string dvars here
+
+		return Dvar::Var::Register<const char*>(name, "Unknown Soldier", (Game::dvar_flag)(flag | Game::dvar_flag::DVAR_FLAG_SAVED), description).Get<Game::dvar_t*>();
 	}
 
 	Dvar::Dvar()
@@ -125,7 +126,7 @@ namespace Components
 		static float cgFov90 = 90.0f;
 		Utils::Hook::Set<float*>(0x4F8E28, &cgFov90);
 
-		//Dvar::Var::Register<bool>("zob", true, Game::dvar_flag::DVAR_FLAG_NONE, "test dvar");
-		//Dvar::Var::Register<const char*>("zob2", "test", Game::dvar_flag::DVAR_FLAG_NONE, "test dvar3");
+		// Hook dvar 'name' registration
+		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).Install()->Quick();
 	}
 }

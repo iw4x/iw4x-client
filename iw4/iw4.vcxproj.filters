@@ -92,6 +92,12 @@
     <ClCompile Include="Components\RawFiles.cpp">
       <Filter>Source\Components\Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Components\Materials.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Renderer.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Steam\Interfaces\SteamUser.hpp">
@@ -158,6 +164,12 @@
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
     <ClInclude Include="Components\RawFiles.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Materials.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Renderer.hpp">
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
   </ItemGroup>

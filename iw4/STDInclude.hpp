@@ -4,6 +4,7 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <map>
 #include <mutex>

@@ -56,8 +56,10 @@
     <ClInclude Include="Components\Console.hpp" />
     <ClInclude Include="Components\Dvar.hpp" />
     <ClInclude Include="Components\Loader.hpp" />
+    <ClInclude Include="Components\Materials.hpp" />
     <ClInclude Include="Components\QuickPatch.hpp" />
     <ClInclude Include="Components\RawFiles.hpp" />
+    <ClInclude Include="Components\Renderer.hpp" />
     <ClInclude Include="Components\Window.hpp" />
     <ClInclude Include="Game\Functions.hpp" />
     <ClInclude Include="Game\Structs.hpp" />
@@ -80,8 +82,10 @@
     <ClCompile Include="Components\Console.cpp" />
     <ClCompile Include="Components\Dvar.cpp" />
     <ClCompile Include="Components\Loader.cpp" />
+    <ClCompile Include="Components\Materials.cpp" />
     <ClCompile Include="Components\QuickPatch.cpp" />
     <ClCompile Include="Components\RawFiles.cpp" />
+    <ClCompile Include="Components\Renderer.cpp" />
     <ClCompile Include="Components\Window.cpp" />
     <ClCompile Include="Game\Functions.cpp" />
     <ClCompile Include="Steam\Interfaces\SteamFriends.cpp" />

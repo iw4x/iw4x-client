@@ -24,6 +24,8 @@ namespace Utils
 		Hook::Place = place;
 		Hook::Stub = stub;
 
+		Hook::Original = (char*)Hook::Place + 5 + *(DWORD*)((DWORD)Hook::Place + 1);
+
 		return this;
 	}
 
