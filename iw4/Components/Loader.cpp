@@ -12,6 +12,8 @@ namespace Components
 		Loader::Register(new Command());
 		Loader::Register(new Console());
 		Loader::Register(new RawFiles());
+		Loader::Register(new Renderer());
+		Loader::Register(new Materials());
 		Loader::Register(new QuickPatch());
 	}
 

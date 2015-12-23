@@ -2,6 +2,8 @@
 
 namespace Components
 {
+	Dvar::Var Colors::NewColors;
+
 	void Colors::Strip(const char* in, char* out, int max)
 	{
 		max--;
@@ -62,22 +64,49 @@ namespace Components
 		return buffer;
 	}
 
+	void Colors::UpdateColorTable()
+	{
+		static int LastState = 2;
+		static DWORD DefaultTable[8] = { 0 };
+		DWORD* gColorTable = (DWORD*)0x78DC70;
+
+		if (LastState == 2)
+		{
+			memcpy(DefaultTable, gColorTable, sizeof(DefaultTable));
+		}
+
+		if (Colors::NewColors.Get<bool>() && (0xF & (int)Colors::NewColors.Get<bool>()) != LastState)
+		{
+			// Apply NTA's W² colors :3 (slightly modified though^^)
+			gColorTable[1] = RGB(255, 49, 49);
+			gColorTable[2] = RGB(134, 192, 0);
+			gColorTable[3] = RGB(255, 173, 34);
+			gColorTable[4] = RGB(0, 135, 193);
+			gColorTable[5] = RGB(32, 197, 255);
+			gColorTable[6] = RGB(151, 80, 221);
+
+			LastState = Colors::NewColors.Get<bool>();
+		}
+		else if (!Colors::NewColors.Get<bool>() && (0xF & (int)Colors::NewColors.Get<bool>()) != LastState)
+		{
+			memcpy(gColorTable, DefaultTable, sizeof(DefaultTable));
+
+			LastState = Colors::NewColors.Get<bool>();
+		}
+	}
+
 	Colors::Colors()
 	{
-		DWORD* color_table = (DWORD*)0x78DC70;
-
-		// Apply NTA's W² colors :3 (slightly modified though^^)
-		color_table[1] = RGB(255, 49, 49);
-		color_table[2] = RGB(134, 192, 0);
-		color_table[3] = RGB(255, 173, 34);
-		color_table[4] = RGB(0, 135, 193);
-		color_table[5] = RGB(32, 197, 255);
-		color_table[6] = RGB(151, 80, 221);
-
 		// Allow colored names ingame
 		Utils::Hook(0x5D8B40, Colors::ClientUserinfoChanged, HOOK_JUMP).Install()->Quick();
 
 		// Though, don't apply that to overhead names.
 		Utils::Hook(0x581932, Colors::CL_GetClientName, HOOK_CALL).Install()->Quick();
+
+		// Set frame handler
+		Renderer::OnFrame(Colors::UpdateColorTable);
+
+		// Register dvar
+		Colors::NewColors = Dvar::Var::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare² color code style.");
 	}
 }

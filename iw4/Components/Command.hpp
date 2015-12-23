@@ -1,6 +1,3 @@
-#define Q_IsColorString( p )  ( ( p ) && *( p ) == '^' && *( ( p ) + 1 ) && isdigit( *( ( p ) + 1 ) ) ) // ^[0-9]
-
-
 namespace Components
 {
 	class Command : public Component

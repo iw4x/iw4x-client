@@ -26,4 +26,6 @@ namespace Components
 #include "Command.hpp"
 #include "Console.hpp"
 #include "RawFiles.hpp"
+#include "Renderer.hpp"
+#include "Materials.hpp"
 #include "QuickPatch.hpp"
