@@ -3,6 +3,18 @@ namespace Game
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* name, void(*callback), cmd_function_t* data, char);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 
+	typedef void(__cdecl * Com_Error_t)(int type, char* message, ...);
+	extern Com_Error_t Com_Error;
+
+	typedef void(__cdecl * Com_Printf_t)(int, const char*, ...);
+	extern Com_Printf_t Com_Printf;
+
+	typedef int(__cdecl * Com_Milliseconds_t)(void);
+	extern Com_Milliseconds_t Com_Milliseconds;
+
+	typedef XAssetHeader (__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* filename);
+	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
+
 	typedef int(__cdecl * DB_GetXAssetSizeHandler_t)();
 	extern DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers;
 

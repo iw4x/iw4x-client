@@ -21,7 +21,9 @@ namespace Components
 }
 
 #include "Dvar.hpp"
+#include "Menus.hpp"
 #include "Colors.hpp"
+#include "Logger.hpp"
 #include "Window.hpp"
 #include "Command.hpp"
 #include "Console.hpp"
@@ -29,3 +31,5 @@ namespace Components
 #include "Renderer.hpp"
 #include "Materials.hpp"
 #include "QuickPatch.hpp"
+#include "AssetHandler.hpp"
+#include "MusicalTalent.hpp"

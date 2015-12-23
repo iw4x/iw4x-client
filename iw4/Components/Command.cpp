@@ -5,7 +5,7 @@ namespace Components
 	std::vector<Game::cmd_function_t*> Command::Functions;
 	std::map<std::string, Command::Callback> Command::FunctionMap;
 
-	const char* Command::Params::operator[](size_t index)
+	char* Command::Params::operator[](size_t index)
 	{
 		if (index >= this->Length()) 
 		{

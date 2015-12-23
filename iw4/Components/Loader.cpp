@@ -7,7 +7,9 @@ namespace Components
 	void Loader::Initialize()
 	{
 		Loader::Register(new Dvar());
+		Loader::Register(new Menus());
 		Loader::Register(new Colors());
+		Loader::Register(new Logger());
 		Loader::Register(new Window());
 		Loader::Register(new Command());
 		Loader::Register(new Console());
@@ -15,13 +17,15 @@ namespace Components
 		Loader::Register(new Renderer());
 		Loader::Register(new Materials());
 		Loader::Register(new QuickPatch());
+		Loader::Register(new AssetHandler());
+		Loader::Register(new MusicalTalent());
 	}
 
 	void Loader::Uninitialize()
 	{
 		for (auto component : Loader::Components)
 		{
-			OutputDebugStringA(Utils::VA("Unregistering component: %s", component->GetName()));
+			Logger::Print("Unregistering component: %s", component->GetName());
 			delete component;
 		}
 
@@ -32,7 +36,7 @@ namespace Components
 	{
 		if (component)
 		{
-			OutputDebugStringA(Utils::VA("Component registered: %s", component->GetName()));
+			Logger::Print("Component registered: %s", component->GetName());
 			Loader::Components.push_back(component);
 		}
 	}

@@ -48,6 +48,8 @@ namespace Game
 		ASSET_TYPE_MAX = 43
 	} XAssetType;
 
+	typedef void *XAssetHeader; // Temporary
+
 	typedef enum
 	{
 		DVAR_FLAG_NONE = 0x0,			//no flags
@@ -120,4 +122,26 @@ namespace Game
 	{
 		char pad[24];
 	} cmd_function_t;
+
+	typedef struct
+	{
+		char type;
+		char pad[3];
+		const char* folder;
+		const char* file;
+	} StreamFile;
+
+	typedef struct
+	{
+		char pad[20];
+		StreamFile* stream;
+		char pad2[76];
+	} snd_alias_t;
+
+	typedef struct
+	{
+		const char* name;
+		snd_alias_t* aliases;
+		int numAliases;
+	} snd_alias_list_t;
 }

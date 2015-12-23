@@ -98,6 +98,18 @@
     <ClCompile Include="Components\Renderer.cpp">
       <Filter>Source\Components\Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Components\Menus.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Logger.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\AssetHandler.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\MusicalTalent.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Steam\Interfaces\SteamUser.hpp">
@@ -170,6 +182,18 @@
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
     <ClInclude Include="Components\Renderer.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Menus.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Logger.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\AssetHandler.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\MusicalTalent.hpp">
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
   </ItemGroup>

@@ -38,6 +38,16 @@ namespace Components
 		// fs_basegame
 		Utils::Hook::Set<char*>(0x6431D1, "data");
 
+		// Disable UPNP
+		Utils::Hook::Nop(0x60BE24, 5);
+
+		// disable the IWNet IP detection (default 'got ipdetect' flag to 1)
+		Utils::Hook::Set<BYTE>(0x649D6F0, 1);
+
+		// Fix stats sleeping
+		Utils::Hook::Set<BYTE>(0x6832BA, 0xEB);
+		Utils::Hook::Set<BYTE>(0x4BD190, 0xC3);
+
 		// Why?
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, 2400);
 	}

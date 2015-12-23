@@ -9,7 +9,7 @@ namespace Components
 			Params(DWORD id) : CommandId(id) {};
 			Params(const Params &obj) { this->CommandId = obj.CommandId; };
 
-			const char* operator[](size_t index);
+			char* operator[](size_t index);
 			size_t Length();
 
 		private:

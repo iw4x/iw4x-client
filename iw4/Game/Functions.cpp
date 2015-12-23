@@ -4,6 +4,11 @@ namespace Game
 {
 	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;
 
+	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
+	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
+	Com_Milliseconds_t Com_Milliseconds = (Com_Milliseconds_t)0x42A660;
+
+	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
 	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x799488;
 
 	Dvar_RegisterBool_t Dvar_RegisterBool = (Dvar_RegisterBool_t)0x4CE1A0;
