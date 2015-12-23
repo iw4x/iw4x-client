@@ -116,16 +116,16 @@ namespace Components
 	Dvar::Dvar()
 	{
 		// set flags of cg_drawFPS to archive
-		*(BYTE*)0x4F8F69 |= Game::dvar_flag::DVAR_FLAG_SAVED;
+		Utils::Hook::Or<BYTE>(0x4F8F69, Game::dvar_flag::DVAR_FLAG_SAVED);
 
 		// un-cheat cg_fov and add archive flags
-		*(BYTE*)0x4F8E35 ^= Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED;
+		Utils::Hook::Xor<BYTE>(0x4F8E35, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
 
 		// set cg_fov max to 90.0
 		static float cgFov90 = 90.0f;
-		*(DWORD*)0x4F8E28 = (DWORD)&cgFov90;
+		Utils::Hook::Set<float*>(0x4F8E28, &cgFov90);
 
-		Dvar::Var::Register<bool>("zob", true, Game::dvar_flag::DVAR_FLAG_NONE, "test dvar");
+		//Dvar::Var::Register<bool>("zob", true, Game::dvar_flag::DVAR_FLAG_NONE, "test dvar");
 		//Dvar::Var::Register<const char*>("zob2", "test", Game::dvar_flag::DVAR_FLAG_NONE, "test dvar3");
 	}
 }

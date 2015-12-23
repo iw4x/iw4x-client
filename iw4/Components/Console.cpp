@@ -5,8 +5,7 @@ namespace Components
 	void Console::ToggleConsole()
 	{
 		// possibly cls.keyCatchers?
-		DWORD catcher = 0xB2C538;
-		Utils::Hook::Set<DWORD>(catcher, Utils::Hook::Get<DWORD>(catcher) ^ 1);
+		Utils::Hook::Xor<DWORD>(0xB2C538, 1);
 
 		// g_consoleField
 		Game::Field_Clear((void*)0xA1B6B0);

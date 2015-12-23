@@ -1,9 +1,10 @@
 #include "STDInclude.hpp"
 
-Utils::Hook EntryPointHook;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
+	static Utils::Hook EntryPointHook;
+
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		FreeConsole();
@@ -16,6 +17,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			EntryPointHook.Uninstall();
 			Components::Loader::Initialize();
 			__asm jmp EntryPointHook.Place
+
 		}))->Install();
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)

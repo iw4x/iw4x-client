@@ -36,6 +36,39 @@ namespace Utils
 			return Set<T>((void*)place, value);
 		}
 
+		template <typename T> static void Xor(void* place, T value)
+		{
+			*(T*)place ^= value;
+			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
+		}
+
+		template <typename T> static void Xor(DWORD place, T value)
+		{
+			return Xor<T>((void*)place, value);
+		}
+
+		template <typename T> static void Or(void* place, T value)
+		{
+			*(T*)place |= value;
+			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
+		}
+
+		template <typename T> static void Or(DWORD place, T value)
+		{
+			return Or<T>((void*)place, value);
+		}
+
+		template <typename T> static void And(void* place, T value)
+		{
+			*(T*)place &= value;
+			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
+		}
+
+		template <typename T> static void And(DWORD place, T value)
+		{
+			return And<T>((void*)place, value);
+		}
+
 		template <typename T> static T Get(void* place)
 		{
 			return *(T*)place;
