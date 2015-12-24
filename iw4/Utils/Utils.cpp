@@ -24,4 +24,9 @@ namespace Utils
 		std::transform(input.begin(), input.end(), input.begin(), ::tolower);
 		return input;
 	}
+
+	bool EndsWith(const char* heystack, const char* needle)
+	{
+		return (strstr(heystack, needle) == (heystack + strlen(heystack) - strlen(needle)));
+	}
 }

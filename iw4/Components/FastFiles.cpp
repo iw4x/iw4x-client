@@ -33,7 +33,7 @@ namespace Components
 			std::string absoluteFile = Utils::VA("%s\\%s%s", dir, path.data(), file);
 
 			// No ".ff" appended, append it manually
-			if (strstr(file, ".ff") != (file + strlen(file) - 3))
+			if (!Utils::EndsWith(file, ".ff"))
 			{
 				absoluteFile.append(".ff");
 			}

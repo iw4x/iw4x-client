@@ -32,6 +32,9 @@ namespace Components
 		static void FreeMenuList(Game::MenuList* menuList);
 		static void FreeMenu(Game::menuDef_t* menudef);
 
+		static void RemoveMenu(Game::menuDef_t* menudef);
+		static void RemoveMenuList(Game::MenuList* menuList);
+
 		static void FreeEverything();
 
 		// Ugly!

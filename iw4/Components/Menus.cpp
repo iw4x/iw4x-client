@@ -321,13 +321,17 @@ namespace Components
 	{
 		// Do i need to free expressions and strings?
 		// Or does the game take care of it?
+		// Seems like it does...
 
 		if (menudef->items)
 		{
-			for (int i = 0; i < menudef->itemCount; i++)
-			{
-				Game::Menu_FreeItemMemory(menudef->items[i]);
-			}
+			// Seems like this is obsolete as well,
+			// as the game handles the memory
+
+			//for (int i = 0; i < menudef->itemCount; i++)
+			//{
+			//	Game::Menu_FreeItemMemory(menudef->items[i]);
+			//}
 
 			free(menudef->items);
 		}
@@ -350,6 +354,39 @@ namespace Components
 			}
 
 			free(menuList);
+		}
+	}
+
+	void Menus::RemoveMenu(Game::menuDef_t* menudef)
+	{
+		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end(); i++)
+		{
+			if ((*i) == menudef)
+			{
+				Menus::FreeMenu(menudef);
+				Menus::MenuList.erase(i);
+				break;
+			}
+		}
+	}
+
+	void Menus::RemoveMenuList(Game::MenuList* menuList)
+	{
+		if (!menuList) return;
+
+		for (auto i = Menus::MenuListList.begin(); i != Menus::MenuListList.end(); i++)
+		{
+			if ((*i)->name == menuList->name)
+			{
+				for (auto j = 0; j < menuList->menuCount; j++)
+				{
+					Menus::RemoveMenu(menuList->menus[j]);
+				}
+
+				Menus::FreeMenuList(menuList);
+				Menus::MenuListList.erase(i);
+				break;
+			}
 		}
 	}
 
@@ -377,10 +414,14 @@ namespace Components
 		// Check if we already loaded it
 		for (auto menuList : Menus::MenuListList)
 		{
-			if (!strcmp(menuList->name, filename))
+			if (!_stricmp(menuList->name, filename))
 			{
-				header.menuList = menuList;
-				return header;
+				// Free it!
+				// Seems like the game deallocated half of it :P
+				Menus::RemoveMenuList(menuList);
+				break;
+				//header.menuList = menuList;
+				//return header;
 			}
 		}
 
@@ -389,7 +430,11 @@ namespace Components
 		
 		if (menuList)
 		{
-			header.menuList = Menus::LoadMenuList(menuList);
+			// Don't parse scriptmenus for now!
+			if (!Utils::EndsWith(filename, ".menu"))
+			{
+				header.menuList = Menus::LoadMenuList(menuList);
+			}
 		}
 
 		return header;
@@ -398,6 +443,7 @@ namespace Components
 	Menus::Menus()
 	{
 		AssetHandler::On(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
+		//Utils::Hook(0x63FE80, Menus::MenuFileLoad, HOOK_JUMP).Install()->Quick();
 
 		// disable the 2 new tokens in ItemParse_rect
 		Utils::Hook::Set<BYTE>(0x640693, 0xEB);
@@ -418,23 +464,25 @@ namespace Components
 
 		Command::Add("reloadmenus", [] (Command::Params params)
 		{
-			if (Game::CL_IsCgameInitialized())
-			{
-				Logger::Print("Realoading menus in-game is not allowed!\n");
-				return;
-			}
-
 			// Close all menus
 			Game::Menus_CloseAll(0x62E2858);
 
 			// Free custom menus
 			Menus::FreeEverything();
 			
-			// Reinitialize ui context
-			((void(*)())0x401700)();
+			// Only disconnect if in-game, context is updated automatically!
+			if (Game::CL_IsCgameInitialized())
+			{
+				Game::Cbuf_AddText(0, "disconnect\n");
+			}
+			else
+			{
+				// Reinitialize ui context
+				((void(*)())0x401700)();
 
-			// Reopen main menu
-			Game::Menus_OpenByName(0x62E2858, "main_text");
+				// Reopen main menu
+				Game::Menus_OpenByName(0x62E2858, "main_text");
+			}
 		});
 	}
 
