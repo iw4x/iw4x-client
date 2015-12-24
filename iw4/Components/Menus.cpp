@@ -397,8 +397,23 @@ namespace Components
 
 		Command::Add("reloadmenus", [] (Command::Params params)
 		{
+			if (Game::CL_IsCgameInitialized())
+			{
+				Logger::Print("Realoading menus in-game is not allowed!\n");
+				return;
+			}
+
+			// Close all menus
+			Game::Menus_CloseAll(0x62E2858);
+
+			// Free custom menus
 			Menus::FreeEverything();
-			// TODO: Refresh ui context?
+			
+			// Reinitialize ui context
+			((void(*)())0x401700)();
+
+			// Reopen main menu
+			Game::Menus_OpenByName(0x62E2858, "main_text");
 		});
 	}
 

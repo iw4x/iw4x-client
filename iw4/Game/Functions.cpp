@@ -2,7 +2,12 @@
 
 namespace Game
 {
+	Cbuf_AddText_t Cbuf_AddText = (Cbuf_AddText_t)0x404B20;
+
+	CL_IsCgameInitialized_t CL_IsCgameInitialized = (CL_IsCgameInitialized_t)0x43EB20;
+
 	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;
+	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = (Cmd_ExecuteSingleCommand_t)0x609540;
 
 	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
 	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
@@ -32,6 +37,7 @@ namespace Game
 	FS_FreeFile_t FS_FreeFile = (FS_FreeFile_t)0x4416B0;
 	FS_ReadFile_t FS_ReadFile = (FS_ReadFile_t)0x4F4B90;
 
+	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
 	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
 
 	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;

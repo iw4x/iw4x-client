@@ -1,7 +1,16 @@
 namespace Game
 {
+	typedef void(__cdecl * Cbuf_AddText_t)(int a1, const char* cmd);
+	extern Cbuf_AddText_t Cbuf_AddText;
+
+	typedef int(__cdecl * CL_IsCgameInitialized_t)();
+	extern CL_IsCgameInitialized_t CL_IsCgameInitialized;
+
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* name, void(*callback), cmd_function_t* data, char);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
+
+	typedef void(__cdecl * Cmd_ExecuteSingleCommand_t)(int controller, int a2, const char* cmd);
+	extern Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand;
 
 	typedef void(__cdecl * Com_Error_t)(int type, char* message, ...);
 	extern Com_Error_t Com_Error;
@@ -65,6 +74,9 @@ namespace Game
 
 	typedef int(__cdecl * FS_ReadFile_t)(const char* path, char** buffer);
 	extern FS_ReadFile_t FS_ReadFile;
+
+	typedef void(__cdecl * Menus_CloseAll_t)(/*UiContext **/int dc);
+	extern Menus_CloseAll_t Menus_CloseAll;
 
 	typedef int(__cdecl * Menus_OpenByName_t)(/*UiContext **/int dc, const char *p);
 	extern Menus_OpenByName_t Menus_OpenByName;
