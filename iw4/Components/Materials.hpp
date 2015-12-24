@@ -7,6 +7,7 @@ namespace Components
 		~Materials();
 		const char* GetName() { return "Materials"; };
 
+	private:
 		static Utils::Hook ImageVersionCheckHook;
 		static void ImageVersionCheck();
 	};

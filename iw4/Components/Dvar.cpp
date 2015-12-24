@@ -122,6 +122,9 @@ namespace Components
 		// un-cheat cg_fov and add archive flags
 		Utils::Hook::Xor<BYTE>(0x4F8E35, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
 
+		// set flags of cg_drawFPS to archive
+		Utils::Hook::Or<BYTE>(0x4F8F69, Game::dvar_flag::DVAR_FLAG_SAVED);
+
 		// set cg_fov max to 90.0
 		static float cgFov90 = 90.0f;
 		Utils::Hook::Set<float*>(0x4F8E28, &cgFov90);

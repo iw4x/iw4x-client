@@ -11,9 +11,11 @@ namespace Components
 
 	Game::XAssetHeader MusicalTalent::ManipulateAliases(Game::XAssetType type, const char* filename)
 	{
+		Game::XAssetHeader header = { 0 };
+
 		if (MusicalTalent::SoundAliasList.find(Utils::StrToLower(filename)) != MusicalTalent::SoundAliasList.end())
 		{
-			Game::snd_alias_list_t* aliases = (Game::snd_alias_list_t*)Game::DB_FindXAssetHeader(type, filename);
+			Game::snd_alias_list_t* aliases = Game::DB_FindXAssetHeader(type, filename).aliasList;
 
 			if (aliases)
 			{
@@ -22,11 +24,11 @@ namespace Components
 					aliases->aliases->stream->file = MusicalTalent::SoundAliasList[Utils::StrToLower(filename)];
 				}
 
-				return aliases;
+				header.aliasList = aliases;
 			}
 		}
 
-		return NULL;
+		return header;
 	}
 
 	MusicalTalent::MusicalTalent()

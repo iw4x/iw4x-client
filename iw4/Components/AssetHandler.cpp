@@ -7,8 +7,9 @@ namespace Components
 
 	Game::XAssetHeader AssetHandler::FindAsset(Game::XAssetType type, const char* filename)
 	{
-		Game::XAssetHeader header = nullptr;
+		Game::XAssetHeader header = { 0 };
 
+		// Allow call DB_FindXAssetHeader within the hook
 		AssetHandler::BypassState = true;
 
 		if (AssetHandler::TypeCallbacks.find(type) != AssetHandler::TypeCallbacks.end())
@@ -16,6 +17,7 @@ namespace Components
 			header = AssetHandler::TypeCallbacks[type](type, filename);
 		}
 
+		// Disallow calling DB_FindXAssetHeader ;)
 		AssetHandler::BypassState = false;
 
 		return header;

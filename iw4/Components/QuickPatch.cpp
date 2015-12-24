@@ -38,6 +38,9 @@ namespace Components
 		// fs_basegame
 		Utils::Hook::Set<char*>(0x6431D1, "data");
 
+		// remove limit on IWD file loading
+		Utils::Hook::Set<BYTE>(0x642BF3, 0xEB);
+
 		// Disable UPNP
 		Utils::Hook::Nop(0x60BE24, 5);
 
@@ -47,6 +50,9 @@ namespace Components
 		// Fix stats sleeping
 		Utils::Hook::Set<BYTE>(0x6832BA, 0xEB);
 		Utils::Hook::Set<BYTE>(0x4BD190, 0xC3);
+
+		// default sv_pure to 0
+		Utils::Hook::Set<BYTE>(0x4D3A74, 0);
 
 		// Why?
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, 2400);

@@ -15,7 +15,9 @@ namespace Components
 		Loader::Register(new Console());
 		Loader::Register(new RawFiles());
 		Loader::Register(new Renderer());
+		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
+		Loader::Register(new FileSystem());
 		Loader::Register(new QuickPatch());
 		Loader::Register(new AssetHandler());
 		Loader::Register(new MusicalTalent());

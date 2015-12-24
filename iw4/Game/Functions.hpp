@@ -18,6 +18,9 @@ namespace Game
 	typedef int(__cdecl * DB_GetXAssetSizeHandler_t)();
 	extern DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers;
 
+	typedef void(*DB_LoadXAssets_t)(XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
+	extern DB_LoadXAssets_t DB_LoadXAssets;
+
 	typedef dvar_t* (__cdecl * Dvar_RegisterBool_t)(const char* name, bool default, int flags, const char* description);
 	extern Dvar_RegisterBool_t Dvar_RegisterBool;
 
@@ -54,8 +57,32 @@ namespace Game
 	typedef void(__cdecl * Field_Clear_t)(void* field);
 	extern Field_Clear_t Field_Clear;
 
+	typedef void(__cdecl * FreeMemory_t)(void* buffer);
+	extern FreeMemory_t FreeMemory;
+
+	typedef void(__cdecl * FS_FreeFile_t)(void* buffer);
+	extern FS_FreeFile_t FS_FreeFile;
+
+	typedef int(__cdecl * FS_ReadFile_t)(const char* path, char** buffer);
+	extern FS_ReadFile_t FS_ReadFile;
+
+	typedef int(__cdecl * Menus_OpenByName_t)(/*UiContext **/int dc, const char *p);
+	extern Menus_OpenByName_t Menus_OpenByName;
+
 	typedef void* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
+
+	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
+	extern Script_Alloc_t Script_Alloc;
+
+	typedef void(__cdecl * Script_SetupTokens_t)(script_t* script, void* tokens);
+	extern Script_SetupTokens_t Script_SetupTokens;
+
+	typedef int(__cdecl * Script_CleanString_t)(char* buffer);
+	extern Script_CleanString_t Script_CleanString;
+
+	typedef const char * (__cdecl * Win_GetLanguage_t)();
+	extern Win_GetLanguage_t Win_GetLanguage;
 
 	extern void** DB_XAssetPool;
 	extern unsigned int* g_poolSize;
@@ -63,6 +90,9 @@ namespace Game
 	extern DWORD* cmd_id;
 	extern DWORD* cmd_argc;
 	extern char*** cmd_argv;
+
+	extern source_t **sourceFiles;
+	extern keywordHash_t **menuParseKeywordHash;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 }

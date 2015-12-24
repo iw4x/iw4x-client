@@ -110,6 +110,12 @@
     <ClCompile Include="Components\MusicalTalent.cpp">
       <Filter>Source\Components\Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Components\FastFiles.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\FileSystem.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Steam\Interfaces\SteamUser.hpp">
@@ -194,6 +200,12 @@
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
     <ClInclude Include="Components\MusicalTalent.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\FastFiles.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\FileSystem.hpp">
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
   </ItemGroup>
