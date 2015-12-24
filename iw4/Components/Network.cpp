@@ -110,20 +110,27 @@ namespace Components
 		// Install packet deploy hook
 		Utils::Hook::Set<int>(0x5AA715, (DWORD)Network::DeployPacketStub - 0x5AA713 - 6);
 
-// 		Network::Handle("infoResponse", [] (Address address, Game::msg_t* message)
-// 		{
-// 			OutputDebugStringA(Utils::VA("Inforesponse received: %s!", address.GetString()));
-// 		});
-// 
-// 		Network::Handle("getInfo", [] (Address address, Game::msg_t* message)
-// 		{
-// 			OutputDebugStringA(Utils::VA("getinfo received: %s!", address.GetString()));
-// 		});
-// 
-// 		Command::Add("zob", [] (Command::Params params)
-// 		{
-// 			Network::Send(Game::NS_CLIENT, Network::Address("localhost:28960"), "getinfo xxx\n");
-// 		});
+		Network::Handle("infoResponse", [] (Address address, Game::msg_t* message)
+		{
+			OutputDebugStringA(Utils::VA("Inforesponse received: %s %s!", address.GetString(), message->data));
+		});
+
+		Network::Handle("getInfo", [] (Address address, Game::msg_t* message)
+		{
+			OutputDebugStringA(Utils::VA("getinfo received: %s!", address.GetString()));
+
+			Utils::InfoString info;
+			info.Set("mapname", "mp_rust");
+			info.Set("gamename", "tdm");
+			info.Set("testKey", "testVal");
+
+			Network::Send(Game::NS_CLIENT, address, Utils::VA("infoResponse\n%s\n", info.Build().data()));
+		});
+
+		Command::Add("zob", [] (Command::Params params)
+		{
+			Network::Send(Game::NS_CLIENT, Network::Address("localhost:28960"), "getinfo xxx\n");
+		});
 	}
 
 	Network::~Network()
