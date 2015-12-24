@@ -27,6 +27,7 @@ namespace Components
 #include "Window.hpp"
 #include "Command.hpp"
 #include "Console.hpp"
+#include "Network.hpp"
 #include "RawFiles.hpp"
 #include "Renderer.hpp"
 #include "FastFiles.hpp"

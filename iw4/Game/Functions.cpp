@@ -40,7 +40,13 @@ namespace Game
 	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
 	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
 
+	NET_AdrToString_t NET_AdrToString = (NET_AdrToString_t)0x469880;
+	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
+	NET_StringToAdr_t NET_StringToAdr = (NET_StringToAdr_t)0x409010;
+
 	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;
+
+	sendOOB_t OOBPrint = (sendOOB_t)0x4AEF00;
 
 	PC_ReadToken_t PC_ReadToken = (PC_ReadToken_t)0x4ACCD0;
 	PC_SourceError_t PC_SourceError = (PC_SourceError_t)0x467A00;
@@ -78,5 +84,12 @@ namespace Game
 			mov eax, 63D880h
 			call eax
 		}
+	}
+
+	void OOBPrintT(int type, netadr_t netadr, const char* message)
+	{
+		int* adr = (int*)&netadr;
+
+		OOBPrint(type, *adr, *(adr + 1), *(adr + 2), 0xFFFFFFFF, *(adr + 4), message);
 	}
 }

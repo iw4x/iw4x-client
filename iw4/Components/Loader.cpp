@@ -13,6 +13,7 @@ namespace Components
 		Loader::Register(new Window());
 		Loader::Register(new Command());
 		Loader::Register(new Console());
+		Loader::Register(new Network());
 		Loader::Register(new RawFiles());
 		Loader::Register(new Renderer());
 		Loader::Register(new FastFiles());

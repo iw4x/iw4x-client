@@ -63,6 +63,7 @@
     <ClInclude Include="Components\Materials.hpp" />
     <ClInclude Include="Components\Menus.hpp" />
     <ClInclude Include="Components\MusicalTalent.hpp" />
+    <ClInclude Include="Components\Network.hpp" />
     <ClInclude Include="Components\QuickPatch.hpp" />
     <ClInclude Include="Components\RawFiles.hpp" />
     <ClInclude Include="Components\Renderer.hpp" />
@@ -95,6 +96,7 @@
     <ClCompile Include="Components\Materials.cpp" />
     <ClCompile Include="Components\Menus.cpp" />
     <ClCompile Include="Components\MusicalTalent.cpp" />
+    <ClCompile Include="Components\Network.cpp" />
     <ClCompile Include="Components\QuickPatch.cpp" />
     <ClCompile Include="Components\RawFiles.cpp" />
     <ClCompile Include="Components\Renderer.cpp" />

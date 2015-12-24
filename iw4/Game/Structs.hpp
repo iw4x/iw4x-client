@@ -602,6 +602,42 @@ namespace Game
 		menuDef_t **menus;
 	};
 
+	typedef enum 
+	{
+		NA_BOT,
+		NA_BAD,					// an address lookup failed
+		NA_LOOPBACK,
+		NA_BROADCAST,
+		NA_IP,
+		NA_IP6, // custom type
+	} netadrtype_t;
+
+	typedef enum 
+	{
+		NS_CLIENT,
+		NS_SERVER
+	} netsrc_t;
+
+	typedef struct 
+	{
+		netadrtype_t type;
+		BYTE ip[4];
+		unsigned short	port;
+		BYTE	ipx[10];
+	} netadr_t;
+
+	typedef struct
+	{
+		int unknown1;
+		int unknown2;
+		char* data;
+		int unknown3;
+		int maxsize; // 16
+		int cursize;
+		int unknown4;
+		int readcount; // 28
+	} msg_t;
+
 	// Q3TA precompiler code
 
 	//undef if binary numbers of the form 0b... or 0B... are not allowed

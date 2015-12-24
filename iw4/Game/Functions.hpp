@@ -81,8 +81,20 @@ namespace Game
 	typedef int(__cdecl * Menus_OpenByName_t)(/*UiContext **/int dc, const char *p);
 	extern Menus_OpenByName_t Menus_OpenByName;
 
+	typedef const char* (__cdecl * NET_AdrToString_t)(netadr_t adr);
+	extern NET_AdrToString_t NET_AdrToString;
+
+	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t, netadr_t);
+	extern NET_CompareAdr_t NET_CompareAdr;
+
+	typedef bool(__cdecl * NET_StringToAdr_t)(const char*, netadr_t*);
+	extern NET_StringToAdr_t NET_StringToAdr;
+
 	typedef void* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
+
+	typedef void(__cdecl* sendOOB_t)(int, int, int, int, int, int, const char*);
+	extern sendOOB_t OOBPrint;
 
 	typedef int(__cdecl * PC_ReadToken_t)(source_t*, token_t*);
 	extern PC_ReadToken_t PC_ReadToken;
@@ -114,4 +126,5 @@ namespace Game
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
+	void OOBPrintT(int type, netadr_t netadr, const char* message);
 }
