@@ -69,4 +69,14 @@ namespace Game
 		g_poolSize[type] = newSize;
 		return poolEntry;
 	}
+
+	void Menu_FreeItemMemory(Game::itemDef_t* item)
+	{
+		__asm
+		{
+			mov edi, item
+			mov eax, 63D880h
+			call eax
+		}
+	}
 }

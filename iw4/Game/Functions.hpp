@@ -113,4 +113,5 @@ namespace Game
 	extern keywordHash_t **menuParseKeywordHash;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
+	void Menu_FreeItemMemory(Game::itemDef_t* item);
 }

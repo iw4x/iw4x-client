@@ -27,7 +27,6 @@ namespace Components
 
 		static Game::menuDef_t* ParseMenu(int handle);
 
-		static void FreeMenuScript(Game::script_t* script);
 		static void FreeMenuSource(int handle);
 
 		static void FreeMenuList(Game::MenuList* menuList);

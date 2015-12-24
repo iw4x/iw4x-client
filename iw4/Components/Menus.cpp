@@ -272,18 +272,13 @@ namespace Components
 		return newList;
 	}
 
-	void Menus::FreeMenuScript(Game::script_t* script)
-	{
-		Game::FreeMemory(script);
-	}
-
 	void Menus::FreeMenuSource(int handle)
 	{
 		if (!Menus::IsValidSourceHandle(handle)) return;
 
 		Game::script_t *script;
-// 		Game::token_t *token;
-// 		Game::define_t *define;
+ 		Game::token_t *token;
+ 		Game::define_t *define;
 		Game::indent_t *indent;
 		Game::source_t *source = Game::sourceFiles[handle];
 
@@ -291,7 +286,21 @@ namespace Components
 		{
 			script = source->scriptstack;
 			source->scriptstack = source->scriptstack->next;
-			Menus::FreeMenuScript(script);
+			Game::FreeMemory(script);
+		}
+
+		while (source->tokens)
+		{
+			token = source->tokens;
+			source->tokens = source->tokens->next;
+			Game::FreeMemory(token);
+		}
+
+		while (source->defines)
+		{
+			define = source->defines;
+			source->defines = source->defines->next;
+			Game::FreeMemory(define);
 		}
 
 		while (source->indentstack)
@@ -310,7 +319,19 @@ namespace Components
 
 	void Menus::FreeMenu(Game::menuDef_t* menudef)
 	{
-		if (menudef->items) free(menudef->items);
+		// Do i need to free expressions and strings?
+		// Or does the game take care of it?
+
+		if (menudef->items)
+		{
+			for (int i = 0; i < menudef->itemCount; i++)
+			{
+				Game::Menu_FreeItemMemory(menudef->items[i]);
+			}
+
+			free(menudef->items);
+		}
+
 		free(menudef);
 	}
 
