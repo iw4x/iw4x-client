@@ -109,7 +109,7 @@ namespace Components
 
 	Game::menuDef_t* Menus::ParseMenu(int handle)
 	{
-		Game::menuDef_t* menu = (Game::menuDef_t*)calloc(1, 2048); // FIXME: tentative size
+		Game::menuDef_t* menu = (Game::menuDef_t*)calloc(1, sizeof(Game::menuDef_t));
 		menu->items = (Game::itemDef_t**)calloc(512, sizeof(Game::itemDef_t*));
 		Menus::MenuList.push_back(menu);
 
