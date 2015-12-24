@@ -15,11 +15,17 @@ namespace Components
 
 		static Game::XAssetHeader MenuFileLoad(Game::XAssetType type, const char* filename);
 		static Game::MenuList* LoadMenuList(Game::MenuList* menuList);
-		static Game::menuDef_t* LoadMenu(Game::menuDef_t* menudef);
+		static std::vector<Game::menuDef_t*> LoadMenu(Game::menuDef_t* menudef);
 
-		static Game::script_t* LoadMenuScript(std::string buffer);
-		static int LoadMenuSource(std::string buffer);
+		static Game::script_t* LoadMenuScript(const char* name, std::string buffer);
+		static int LoadMenuSource(const char* name, std::string buffer);
+
 		static int ReserveSourceHandle();
+		static bool IsValidSourceHandle(int handle);
+
+		static int ReadToken(int handle, Game::pc_token_t *pc_token);
+
+		static Game::menuDef_t* ParseMenu(int handle);
 
 		static void FreeMenuScript(Game::script_t* script);
 		static void FreeMenuSource(int handle);
@@ -28,5 +34,8 @@ namespace Components
 		static void FreeMenu(Game::menuDef_t* menudef);
 
 		static void FreeEverything();
+
+		// Ugly!
+		static int KeywordHash(char* key);
 	};
 }

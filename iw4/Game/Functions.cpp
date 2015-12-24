@@ -36,6 +36,9 @@ namespace Game
 
 	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;
 
+	PC_ReadToken_t PC_ReadToken = (PC_ReadToken_t)0x4ACCD0;
+	PC_SourceError_t PC_SourceError = (PC_SourceError_t)0x467A00;
+
 	Script_Alloc_t Script_Alloc = (Script_Alloc_t)0x422E70;
 	Script_SetupTokens_t Script_SetupTokens = (Script_SetupTokens_t)0x4E6950;
 	Script_CleanString_t Script_CleanString = (Script_CleanString_t)0x498220;

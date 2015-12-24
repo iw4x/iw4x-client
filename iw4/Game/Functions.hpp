@@ -72,6 +72,12 @@ namespace Game
 	typedef void* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
 
+	typedef int(__cdecl * PC_ReadToken_t)(source_t*, token_t*);
+	extern PC_ReadToken_t PC_ReadToken;
+
+	typedef void(__cdecl * PC_SourceError_t)(int, const char*, ...);
+	extern PC_SourceError_t PC_SourceError;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 
