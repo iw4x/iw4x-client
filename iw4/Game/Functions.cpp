@@ -67,6 +67,9 @@ namespace Game
 	source_t **sourceFiles = (source_t **)0x7C4A98;
 	keywordHash_t **menuParseKeywordHash = (keywordHash_t **)0x63AE928;
 
+	int* svs_numclients = (int*)0x31D938C;
+	client_t* svs_clients = (client_t*)0x31D9390;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();

@@ -5,6 +5,7 @@ namespace Utils
 	bool EndsWith(const char* heystack, const char* needle);
 	std::vector<std::string> Explode(const std::string& str, const std::string& delimiters);
 	void Replace(std::string &string, std::string find, std::string replace);
+	unsigned int OneAtATime(char *key, size_t len);
 
 	class InfoString
 	{

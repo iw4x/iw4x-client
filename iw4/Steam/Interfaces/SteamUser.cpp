@@ -15,7 +15,16 @@ namespace Steam
 	SteamID User::GetSteamID()
 	{
 		SteamID id;
-		id.m_Bits = 0x110000100000000 | 0x1337;
+
+		DATA_BLOB DataIn;
+		DATA_BLOB DataOut;
+
+		DataIn.pbData = (BYTE *)"AAAAAAAAAA";
+		DataIn.cbData = 10;
+
+		CryptProtectData(&DataIn, NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &DataOut);
+
+		id.m_Bits = 0x110000100000000 | ::Utils::OneAtATime((char*)DataOut.pbData, 52);
 		return id;
 	}
 

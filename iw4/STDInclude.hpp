@@ -5,6 +5,9 @@
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
+#include <wincrypt.h>
+
+#pragma comment(lib, "Crypt32.lib")
 
 #include <map>
 #include <mutex>

@@ -638,6 +638,45 @@ namespace Game
 		int readcount; // 28
 	} msg_t;
 
+#pragma pack(push, 1)
+	typedef struct client_s
+	{
+		// 0
+		int state;
+		// 4
+		char pad[36];
+		// 40
+		netadr_t adr;
+		// 60
+		char pad1[1568];
+		// 1628
+		char connectInfoString[1024];
+		// 2652
+		char pad2[133192];
+		// 135844
+		char name[16];
+		// 135860
+		char pad3[12];
+		// 135872
+		int snapNum;
+		// 135876
+		int pad4;
+		// 135880
+		short ping;
+		// 135882
+		//char pad5[142390];
+		char pad5[133158];
+		// 269040
+		int isBot;
+		// 269044
+		char pad6[9228];
+		// 278272
+		__int64 steamid;
+		// 278280
+		char pad7[403592];
+	} client_t;
+#pragma pack(pop)
+
 	// Q3TA precompiler code
 
 	//undef if binary numbers of the form 0b... or 0B... are not allowed
