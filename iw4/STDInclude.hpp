@@ -6,7 +6,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <wincrypt.h>
+#include <time.h>
+#include <timeapi.h>
 
+#pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Crypt32.lib")
 
 #include <map>
@@ -14,6 +17,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <sstream>
+#include <utility>
 
 #include "Game\Structs.hpp"
 #include "Game\Functions.hpp"

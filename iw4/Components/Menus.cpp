@@ -116,7 +116,7 @@ namespace Components
 		Game::pc_token_t token;
 		Game::keywordHash_t *key;
 
-		if (!Menus::ReadToken(handle, &token) || token.string[0] != '{')
+		if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] != '{')
 		{
 			return menu;
 		}
@@ -125,7 +125,7 @@ namespace Components
 		{
 			ZeroMemory(&token, sizeof(token));
 
-			if (!Menus::ReadToken(handle, &token)) 
+			if (!Game::PC_ReadTokenHandle(handle, &token))
 			{
 				Game::PC_SourceError(handle, "end of file inside menu\n");
 				break; // Fail
@@ -153,38 +153,9 @@ namespace Components
 			}
 		}
 
+		OutputDebugStringA(Utils::VA("%X %s", menu->window.name, menu->window.name));
+
 		return menu;
-	}
-
-	int Menus::ReadToken(int handle, Game::pc_token_t *pc_token)
-	{
-		Game::token_t token;
-		int ret;
-
-		if (!Menus::IsValidSourceHandle(handle)) return 0;
-
-		ret = Game::PC_ReadToken(Game::sourceFiles[handle], &token);
-		strcpy(pc_token->string, token.string);
-		pc_token->type = token.type;
-		pc_token->subtype = token.subtype;
-		pc_token->intvalue = token.intvalue;
-		pc_token->floatvalue = (float)token.floatvalue;
-
-		if (pc_token->type == TT_STRING)
-		{
-			// StripDoubleQuotes
-			char *string = pc_token->string;
-			if (*string == '\"')
-			{
-				strcpy(string, string + 1);
-			}
-			if (string[strlen(string) - 1] == '\"')
-			{
-				string[strlen(string) - 1] = '\0';
-			}
-		}
-
-		return ret;
 	}
 
 	std::vector<Game::menuDef_t*> Menus::LoadMenu(Game::menuDef_t* menudef)
@@ -206,14 +177,14 @@ namespace Components
 			{
 				ZeroMemory(&token, sizeof(token));
 
-				if (!Menus::ReadToken(handle, &token) || token.string[0] == '}')
+				if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] == '}')
 				{
 					break;
 				}
 
 				if (!_stricmp(token.string, "loadmenu"))
 				{
-					Menus::ReadToken(handle, &token);
+					Game::PC_ReadTokenHandle(handle, &token);
 
 					// Ugly, but does the job ;)
 					Game::menuDef_t _temp;
@@ -250,6 +221,11 @@ namespace Components
 
 		for (int i = 0; i < menuList->menuCount; i++)
 		{
+			if (!menuList->menus[i])
+			{
+				continue;
+			}
+
 			std::vector<Game::menuDef_t*> newMenus = Menus::LoadMenu(menuList->menus[i]);
 
 			for (auto newMenu : newMenus)
@@ -409,19 +385,16 @@ namespace Components
 
 	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, const char* filename)
 	{
-		Game::XAssetHeader header = { 0 };
+ 		Game::XAssetHeader header = { 0 };
 
 		// Check if we already loaded it
 		for (auto menuList : Menus::MenuListList)
 		{
 			if (!_stricmp(menuList->name, filename))
 			{
-				// Free it!
-				// Seems like the game deallocated half of it :P
+				// Free it, seems like the game deallocated it
 				Menus::RemoveMenuList(menuList);
 				break;
-				//header.menuList = menuList;
-				//return header;
 			}
 		}
 
@@ -431,7 +404,7 @@ namespace Components
 		if (menuList)
 		{
 			// Don't parse scriptmenus for now!
-			if (!Utils::EndsWith(filename, ".menu"))
+			if (strcmp(menuList->menus[0]->window.name, "default_menu") && !Utils::EndsWith(filename, ".menu"))
 			{
 				header.menuList = Menus::LoadMenuList(menuList);
 			}
@@ -440,16 +413,30 @@ namespace Components
 		return header;
 	}
 
+	void Menus::AddMenuListHook(int dc, Game::MenuList *menuList, int close)
+	{
+		Game::MenuList* menus = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENUFILE, "ui_mp/menus.txt").menuList;
+
+		Game::UI_AddMenuList(dc, menus, close);
+		Game::UI_AddMenuList(dc, menuList, close);
+	}
+
 	Menus::Menus()
 	{
 		AssetHandler::On(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
 		//Utils::Hook(0x63FE80, Menus::MenuFileLoad, HOOK_JUMP).Install()->Quick();
+
+		// Load menus ingame
+		//Utils::Hook(0x41C178, Menus::AddMenuListHook, HOOK_CALL).Install()->Quick();
 
 		// disable the 2 new tokens in ItemParse_rect
 		Utils::Hook::Set<BYTE>(0x640693, 0xEB);
 
 		// don't load ASSET_TYPE_MENU assets for every menu (might cause patch menus to fail)
 		Utils::Hook::Nop(0x453406, 5);
+
+		//make Com_Error and similar go back to main_text instead of menu_xboxlive.
+		strcpy((char*)0x6FC790, "main_text");
 
 		Command::Add("openmenu", [] (Command::Params params)
 		{

@@ -5,5 +5,8 @@ namespace Components
 	public:
 		QuickPatch();
 		const char* GetName() { return "QuickPatch"; };
+
+	private:
+		static _int64* GetStatsID();
 	};
 }

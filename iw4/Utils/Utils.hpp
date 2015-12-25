@@ -3,7 +3,7 @@ namespace Utils
 	const char *VA(const char *fmt, ...);
 	std::string StrToLower(std::string input);
 	bool EndsWith(const char* heystack, const char* needle);
-	std::vector<std::string> Explode(const std::string& str, const std::string& delimiters);
+	std::vector<std::string> Explode(const std::string& str, char delim);
 	void Replace(std::string &string, std::string find, std::string replace);
 	unsigned int OneAtATime(char *key, size_t len);
 
@@ -17,6 +17,8 @@ namespace Utils
 		std::string Get(std::string key);
 
 		std::string Build();
+
+		void Dump();
 
 	private:
 		std::map<std::string, std::string> KeyValuePairs;

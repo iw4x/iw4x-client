@@ -24,7 +24,7 @@ namespace Components
 			Game::netadr_t address;
 		};
 
-		typedef void(*Callback)(Address address, Game::msg_t* message);
+		typedef void(*Callback)(Address address, std::string data);
 
 		Network();
 		~Network();

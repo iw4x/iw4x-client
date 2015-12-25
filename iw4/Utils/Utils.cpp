@@ -30,22 +30,17 @@ namespace Utils
 		return (strstr(heystack, needle) == (heystack + strlen(heystack) - strlen(needle)));
 	}
 
-	std::vector<std::string> Explode(const std::string& str, const std::string& delimiters)
+	std::vector<std::string> Explode(const std::string& str, char delim)
 	{
-		std::vector<std::string> tokens;
+		std::vector<std::string> result;
+		std::istringstream iss(str);
 
-		auto subStrBeginPos = str.find_first_not_of(delimiters, 0);
-		auto subStrEndPos = str.find_first_of(delimiters, subStrBeginPos);
-
-		while (std::string::npos != subStrBeginPos || std::string::npos != subStrEndPos)
+		for (std::string token; std::getline(iss, token, delim);)
 		{
-			tokens.push_back(str.substr(subStrBeginPos, subStrEndPos - subStrBeginPos));
-
-			subStrBeginPos = str.find_first_not_of(delimiters, subStrEndPos);
-			subStrEndPos = str.find_first_of(delimiters, subStrBeginPos);
+			result.push_back(std::move(token));
 		}
 
-		return tokens;
+		return result;
 	}
 
 	void Replace(std::string &string, std::string find, std::string replace)
@@ -109,9 +104,17 @@ namespace Utils
 		return infoString;
 	}
 
+	void InfoString::Dump()
+	{
+		for (auto i = this->KeyValuePairs.begin(); i != this->KeyValuePairs.end(); i++)
+		{
+			OutputDebugStringA(Utils::VA("%s: %s", i->first.data(), i->second.data()));
+		}
+	}
+
 	void InfoString::Parse(std::string buffer)
 	{
-		std::vector<std::string> KeyValues = Utils::Explode(buffer, "\\");
+		std::vector<std::string> KeyValues = Utils::Explode(buffer, '\\');
 
 		for (unsigned int i = 0; i < (KeyValues.size() - 1); i+=2)
 		{

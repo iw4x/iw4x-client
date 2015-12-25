@@ -8,7 +8,9 @@ namespace Components
 
 		if (!this->dvar)
 		{
-			// Register the dvar?
+			// Quick-register the dvar
+			Game::SetConsole(dvarName.data(), "");
+			this->dvar = Game::Dvar_FindVar(dvarName.data());
 		}
 	}
 

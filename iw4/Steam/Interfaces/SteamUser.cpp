@@ -14,17 +14,16 @@ namespace Steam
 
 	SteamID User::GetSteamID()
 	{
+		static int subId = 0;
+
 		SteamID id;
 
-		DATA_BLOB DataIn;
-		DATA_BLOB DataOut;
+		if (!subId)
+		{
+			subId = (Game::Com_Milliseconds() + timeGetTime());
+		}
 
-		DataIn.pbData = (BYTE *)"AAAAAAAAAA";
-		DataIn.cbData = 10;
-
-		CryptProtectData(&DataIn, NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &DataOut);
-
-		id.m_Bits = 0x110000100000000 | ::Utils::OneAtATime((char*)DataOut.pbData, 52);
+		id.m_Bits = 0x110000100000000 | subId;
 		return id;
 	}
 

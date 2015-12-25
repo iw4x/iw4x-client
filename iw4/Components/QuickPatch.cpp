@@ -2,6 +2,12 @@
 
 namespace Components
 {
+	__int64* QuickPatch::GetStatsID()
+	{
+		static __int64 id = 0x110000100001337;
+		return &id;
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// remove system pre-init stuff (improper quit, disk full)
@@ -53,6 +59,16 @@ namespace Components
 
 		// default sv_pure to 0
 		Utils::Hook::Set<BYTE>(0x4D3A74, 0);
+
+		// Force debug logging
+		Utils::Hook::Nop(0x4AA89F, 2);
+		Utils::Hook::Nop(0x4AA8A1, 6);
+
+		// Patch stats steamid
+		Utils::Hook::Nop(0x682EBF, 20);
+		Utils::Hook::Nop(0x6830B1, 20);
+		Utils::Hook(0x682EBF, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x6830B1, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
 
 		// Why?
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, 2400);

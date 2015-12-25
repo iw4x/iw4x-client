@@ -60,7 +60,8 @@ namespace Components
 	{
 		if (Network::PacketHandlers.find(Network::SelectedPacket) != Network::PacketHandlers.end())
 		{
-			Network::PacketHandlers[Network::SelectedPacket](from, msg);
+			size_t offset = Network::SelectedPacket.size() + 4 + 1;
+			Network::PacketHandlers[Network::SelectedPacket](from, std::string(msg->data + offset, msg->cursize - offset));
 		}
 		else
 		{
@@ -109,48 +110,6 @@ namespace Components
 
 		// Install packet deploy hook
 		Utils::Hook::Set<int>(0x5AA715, (DWORD)Network::DeployPacketStub - 0x5AA713 - 6);
-
-		Network::Handle("infoResponse", [] (Address address, Game::msg_t* message)
-		{
-			OutputDebugStringA(Utils::VA("Inforesponse received: %s %s!", address.GetString(), message->data));
-		});
-
-		Network::Handle("getInfo", [] (Address address, Game::msg_t* message)
-		{
-			OutputDebugStringA(Utils::VA("getinfo received: %s!", address.GetString()));
-
-			int clientCount = 0;
-
-			for (int i = 0; i < *Game::svs_numclients; i++)
-			{
-				if (Game::svs_clients[i].state >= 3)
-				{
-					clientCount++;
-				}
-			}
-
-			auto data = std::string(message->data);
-			auto challenge = data.substr(data.find_first_of(" \n") + 1);
-			challenge = challenge.substr(0, challenge.find_first_of(" \n"));
-
-			Utils::InfoString info;
-			info.Set("challenge",     challenge.data()); // TODO: Fill!
-			info.Set("gamename",      "IW4");
-			info.Set("hostname",      Dvar::Var("sv_hostname").Get<const char*>());
-			info.Set("mapname",       Dvar::Var("mapname").Get<const char*>());
-			info.Set("gametype",      Dvar::Var("g_gametype").Get<const char*>());
-			info.Set("fs_game",       Dvar::Var("fs_game").Get<const char*>());
-			info.Set("xuid",          Utils::VA("%llX", Steam::SteamUser()->GetSteamID().m_Bits));
-			info.Set("clients",       Utils::VA("%i", clientCount));
-			info.Set("sv_maxclients", Utils::VA("%i", *Game::svs_numclients));
-
-			Network::Send(Game::NS_CLIENT, address, Utils::VA("infoResponse\n%s\n", info.Build().data()));
-		});
-
-		Command::Add("zob", [] (Command::Params params)
-		{
-			Network::Send(Game::NS_CLIENT, Network::Address("localhost:28960"), "getinfo xxx\n");
-		});
 	}
 
 	Network::~Network()

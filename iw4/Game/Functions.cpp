@@ -5,6 +5,7 @@ namespace Game
 	Cbuf_AddText_t Cbuf_AddText = (Cbuf_AddText_t)0x404B20;
 
 	CL_IsCgameInitialized_t CL_IsCgameInitialized = (CL_IsCgameInitialized_t)0x43EB20;
+	CL_ConnectFromParty_t CL_ConnectFromParty = (CL_ConnectFromParty_t)0x433D30;
 
 	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;
 	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = (Cmd_ExecuteSingleCommand_t)0x609540;
@@ -34,8 +35,23 @@ namespace Game
 
 	FreeMemory_t FreeMemory = (FreeMemory_t)0x4D6640;
 
+	FS_FileExists_t FS_FileExists = (FS_FileExists_t)0x4DEFA0;
 	FS_FreeFile_t FS_FreeFile = (FS_FreeFile_t)0x4416B0;
 	FS_ReadFile_t FS_ReadFile = (FS_ReadFile_t)0x4F4B90;
+	FS_ListFiles_t FS_ListFiles = (FS_ListFiles_t)0x441BB0;
+	FS_FreeFileList_t FS_FreeFileList = (FS_FreeFileList_t)0x4A5DE0;
+	FS_FOpenFileAppend_t FS_FOpenFileAppend = (FS_FOpenFileAppend_t)0x410BB0;
+	FS_FOpenFileAppend_t FS_FOpenFileWrite = (FS_FOpenFileAppend_t)0x4BA530;
+	FS_FOpenFileRead_t FS_FOpenFileRead = (FS_FOpenFileRead_t)0x46CBF0;
+	FS_FCloseFile_t FS_FCloseFile = (FS_FCloseFile_t)0x462000;
+	FS_WriteFile_t FS_WriteFile = (FS_WriteFile_t)0x426450;
+	FS_Write_t FS_Write = (FS_Write_t)0x4C06E0;
+	FS_Read_t FS_Read = (FS_Read_t)0x4A04C0;
+	FS_Seek_t FS_Seek = (FS_Seek_t)0x4A63D0;
+	FS_FTell_t FS_FTell = (FS_FTell_t)0x4E6760;
+	FS_Remove_t FS_Remove = (FS_Remove_t)0x4660F0;
+	FS_Restart_t FS_Restart = (FS_Restart_t)0x461A50;
+	FS_BuildPathToFile_t FS_BuildPathToFile = (FS_BuildPathToFile_t)0x4702C0;
 
 	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
 	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
@@ -49,11 +65,16 @@ namespace Game
 	sendOOB_t OOBPrint = (sendOOB_t)0x4AEF00;
 
 	PC_ReadToken_t PC_ReadToken = (PC_ReadToken_t)0x4ACCD0;
+	PC_ReadTokenHandle_t PC_ReadTokenHandle = (PC_ReadTokenHandle_t)0x4D2060;
 	PC_SourceError_t PC_SourceError = (PC_SourceError_t)0x467A00;
 
 	Script_Alloc_t Script_Alloc = (Script_Alloc_t)0x422E70;
 	Script_SetupTokens_t Script_SetupTokens = (Script_SetupTokens_t)0x4E6950;
 	Script_CleanString_t Script_CleanString = (Script_CleanString_t)0x498220;
+
+	SetConsole_t SetConsole = (SetConsole_t)0x44F060;
+
+	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 
 	Win_GetLanguage_t Win_GetLanguage = (Win_GetLanguage_t)0x45CBA0;
 

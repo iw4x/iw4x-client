@@ -8,6 +8,7 @@ namespace Components
 	{
 		Loader::Register(new Dvar());
 		Loader::Register(new Menus());
+		Loader::Register(new Party());
 		Loader::Register(new Colors());
 		Loader::Register(new Logger());
 		Loader::Register(new Window());

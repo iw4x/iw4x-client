@@ -28,6 +28,7 @@ namespace Components
 #include "Command.hpp"
 #include "Console.hpp"
 #include "Network.hpp"
+#include "Party.hpp" // Destroys the order, but requires network classes :D
 #include "RawFiles.hpp"
 #include "Renderer.hpp"
 #include "FastFiles.hpp"

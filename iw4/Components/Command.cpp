@@ -36,6 +36,20 @@ namespace Components
 		Game::Cmd_AddCommand(name, Command::MainCallback, Command::Allocate(), 0);
 	}
 
+	void Command::Execute(std::string command, bool sync)
+	{
+		command.append("\n"); // Make sure it's terminated
+
+		if (sync)
+		{
+			Game::Cmd_ExecuteSingleCommand(0, 0, command.data());
+		}
+		else
+		{
+			Game::Cbuf_AddText(0, command.data());
+		}
+	}
+
 	Game::cmd_function_t* Command::Allocate()
 	{
 		Game::cmd_function_t* cmd = new Game::cmd_function_t;

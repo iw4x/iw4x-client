@@ -10,6 +10,7 @@ namespace Components
 			Var(const Var &obj) { this->dvar = obj.dvar; };
 			Var(Game::dvar_t* _dvar) : dvar(_dvar) {};
 			Var(std::string dvarName);
+			Var(std::string dvarName, std::string value);
 
 			template<typename T> T Get();
 

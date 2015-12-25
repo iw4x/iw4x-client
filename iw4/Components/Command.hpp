@@ -23,7 +23,8 @@ namespace Components
 		const char* GetName() { return "Command"; };
 
 		static void Add(const char* name, Callback callback);
-		static int ArgCount();
+
+		static void Execute(std::string command, bool sync = true);
 
 	private:
 		static Game::cmd_function_t* Allocate();

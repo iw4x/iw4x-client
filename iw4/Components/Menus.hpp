@@ -9,6 +9,8 @@ namespace Components
 		~Menus();
 		const char* GetName() { return "Menus"; };
 
+		static void FreeEverything();
+
 	private:
 		static std::vector<Game::menuDef_t*> MenuList;
 		static std::vector<Game::MenuList*> MenuListList;
@@ -23,8 +25,6 @@ namespace Components
 		static int ReserveSourceHandle();
 		static bool IsValidSourceHandle(int handle);
 
-		static int ReadToken(int handle, Game::pc_token_t *pc_token);
-
 		static Game::menuDef_t* ParseMenu(int handle);
 
 		static void FreeMenuSource(int handle);
@@ -35,7 +35,7 @@ namespace Components
 		static void RemoveMenu(Game::menuDef_t* menudef);
 		static void RemoveMenuList(Game::MenuList* menuList);
 
-		static void FreeEverything();
+		static void AddMenuListHook(int dc, Game::MenuList *menuList, int close);
 
 		// Ugly!
 		static int KeywordHash(char* key);
