@@ -91,6 +91,8 @@ namespace Game
 	int* svs_numclients = (int*)0x31D938C;
 	client_t* svs_clients = (client_t*)0x31D9390;
 
+	UiContext *uiContext = (UiContext *)0x62E2858;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();

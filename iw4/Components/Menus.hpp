@@ -35,7 +35,9 @@ namespace Components
 		static void RemoveMenu(Game::menuDef_t* menudef);
 		static void RemoveMenuList(Game::MenuList* menuList);
 
-		static void AddMenuListHook(int dc, Game::MenuList *menuList, int close);
+		static void AddMenuListHook(Game::UiContext *dc, Game::MenuList *menuList, int close);
+
+		static Game::menuDef_t* FindMenuByName(Game::UiContext* dc, const char* name);
 
 		// Ugly!
 		static int KeywordHash(char* key);

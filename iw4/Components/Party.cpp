@@ -116,7 +116,7 @@ namespace Components
 					else
 					{
 						Dvar::Var("xblive_privatematch").Set(1);
-						Game::Menus_CloseAll(0x62E2858);
+						Game::Menus_CloseAll(Game::uiContext);
 
 						char xnaddr[32];
 						Game::CL_ConnectFromParty(0, xnaddr, *address.Get(), 0, 0, info.Get("mapname").data(), info.Get("gametype").data());

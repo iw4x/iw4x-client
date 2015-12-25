@@ -413,7 +413,7 @@ namespace Components
 		return header;
 	}
 
-	void Menus::AddMenuListHook(int dc, Game::MenuList *menuList, int close)
+	void Menus::AddMenuListHook(Game::UiContext *dc, Game::MenuList *menuList, int close)
 	{
 		Game::MenuList* menus = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENUFILE, "ui_mp/menus.txt").menuList;
 
@@ -421,13 +421,37 @@ namespace Components
 		Game::UI_AddMenuList(dc, menuList, close);
 	}
 
+	Game::menuDef_t* Menus::FindMenuByName(Game::UiContext* dc, const char* name)
+	{
+		for (int i = 0; i < dc->menuCount; i++)
+		{
+			Game::menuDef_t* menu = dc->Menus[i];
+			if (menu && menu->window.name && !IsBadReadPtr(menu->window.name, 1)) // Sanity checks
+			{
+				if (!_strnicmp(name, menu->window.name, 0x7FFFFFFF))
+				{
+					return menu;
+				}
+			}
+			else
+			{
+				// TODO: Remove menu from stack and free if custom menu
+			}
+		}
+
+		return nullptr;
+	}
+
 	Menus::Menus()
 	{
 		AssetHandler::On(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
 		//Utils::Hook(0x63FE80, Menus::MenuFileLoad, HOOK_JUMP).Install()->Quick();
 
+		// Custom Menus_FindByName
+		Utils::Hook(0x487240, Menus::FindMenuByName, HOOK_JUMP).Install()->Quick();
+
 		// Load menus ingame
-		//Utils::Hook(0x41C178, Menus::AddMenuListHook, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x41C178, Menus::AddMenuListHook, HOOK_CALL).Install()->Quick();
 
 		// disable the 2 new tokens in ItemParse_rect
 		Utils::Hook::Set<BYTE>(0x640693, 0xEB);
@@ -446,13 +470,13 @@ namespace Components
 				return;
 			}
 
-			Game::Menus_OpenByName(0x62E2858, params[1]);
+			Game::Menus_OpenByName(Game::uiContext, params[1]);
 		});
 
 		Command::Add("reloadmenus", [] (Command::Params params)
 		{
 			// Close all menus
-			Game::Menus_CloseAll(0x62E2858);
+			Game::Menus_CloseAll(Game::uiContext);
 
 			// Free custom menus
 			Menus::FreeEverything();
@@ -468,7 +492,7 @@ namespace Components
 				((void(*)())0x401700)();
 
 				// Reopen main menu
-				Game::Menus_OpenByName(0x62E2858, "main_text");
+				Game::Menus_OpenByName(Game::uiContext, "main_text");
 			}
 		});
 	}

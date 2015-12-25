@@ -804,6 +804,54 @@ namespace Game
 		//struct keywordHash_s *next;
 	} keywordHash_t;
 
+	enum UILocalVarType
+	{
+		UILOCALVAR_INT = 0x0,
+		UILOCALVAR_FLOAT = 0x1,
+		UILOCALVAR_STRING = 0x2,
+	};
+
+	struct UILocalVar
+	{
+		UILocalVarType type;
+		const char *name;
+		union
+		{
+			int integer;
+			float value;
+			const char *string;
+		};
+	};
+
+	struct UILocalVarContext
+	{
+		UILocalVar table[256];
+	};
+
+	struct UiContext
+	{
+// 		int localClientNum;
+// 		float bias;
+// 		int realTime;
+// 		int frameTime;
+// 		int cursorx;
+// 		int cursory;
+// 		int debug;
+// 		int screenWidth;
+// 		int screenHeight;
+// 		float screenAspect;
+// 		float FPS;
+// 		float blurRadiusOut;
+		char pad[56];
+		menuDef_t *Menus[512];
+		char pad2[512];
+		int menuCount;
+		// Unsure if below is correct
+		menuDef_t *menuStack[16];
+		int openMenuCount;
+		UILocalVarContext localVars;
+	};
+
 	union XAssetHeader
 	{
 		void *data;

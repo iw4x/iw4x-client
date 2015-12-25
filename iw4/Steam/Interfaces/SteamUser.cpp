@@ -20,7 +20,13 @@ namespace Steam
 
 		if (!subId)
 		{
-			subId = (Game::Com_Milliseconds() + timeGetTime());
+			DATA_BLOB Data[2];
+			Data[0].pbData = (BYTE *)"AAAAAAAAAA";
+			Data[0].cbData = 10;
+
+			CryptProtectData(&Data[0], NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &Data[1]);
+
+			subId = ::Utils::OneAtATime((char*)Data[1].pbData, 52); //(Game::Com_Milliseconds() + timeGetTime());
 		}
 
 		id.m_Bits = 0x110000100000000 | subId;

@@ -121,10 +121,10 @@ namespace Game
 	typedef int(__cdecl * FS_BuildPathToFile_t)(const char*, const char*, const char*, char**);
 	extern FS_BuildPathToFile_t FS_BuildPathToFile;
 
-	typedef void(__cdecl * Menus_CloseAll_t)(/*UiContext **/int dc);
+	typedef void(__cdecl * Menus_CloseAll_t)(UiContext *dc);
 	extern Menus_CloseAll_t Menus_CloseAll;
 
-	typedef int(__cdecl * Menus_OpenByName_t)(/*UiContext **/int dc, const char *p);
+	typedef int(__cdecl * Menus_OpenByName_t)(UiContext *dc, const char *p);
 	extern Menus_OpenByName_t Menus_OpenByName;
 
 	typedef const char* (__cdecl * NET_AdrToString_t)(netadr_t adr);
@@ -163,7 +163,7 @@ namespace Game
 	typedef void(__cdecl * SetConsole_t)(const char* cvar, const char* value);
 	extern SetConsole_t SetConsole;
 
-	typedef void(__cdecl * UI_AddMenuList_t)(/*UiContext **/int dc, MenuList *menuList, int close);
+	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
 
 	typedef const char * (__cdecl * Win_GetLanguage_t)();
@@ -181,6 +181,8 @@ namespace Game
 
 	extern source_t **sourceFiles;
 	extern keywordHash_t **menuParseKeywordHash;
+
+	extern UiContext *uiContext;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
