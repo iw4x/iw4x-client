@@ -59,6 +59,7 @@
     <ClInclude Include="Components\FastFiles.hpp" />
     <ClInclude Include="Components\FileSystem.hpp" />
     <ClInclude Include="Components\Loader.hpp" />
+    <ClInclude Include="Components\Localization.hpp" />
     <ClInclude Include="Components\Logger.hpp" />
     <ClInclude Include="Components\Materials.hpp" />
     <ClInclude Include="Components\Menus.hpp" />
@@ -93,6 +94,7 @@
     <ClCompile Include="Components\FastFiles.cpp" />
     <ClCompile Include="Components\FileSystem.cpp" />
     <ClCompile Include="Components\Loader.cpp" />
+    <ClCompile Include="Components\Localization.cpp" />
     <ClCompile Include="Components\Logger.cpp" />
     <ClCompile Include="Components\Materials.cpp" />
     <ClCompile Include="Components\Menus.cpp" />

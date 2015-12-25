@@ -852,6 +852,12 @@ namespace Game
 		UILocalVarContext localVars;
 	};
 
+	struct localizedEntry_s
+	{
+		const char* value;
+		const char* name;
+	};
+
 	union XAssetHeader
 	{
 		void *data;
@@ -859,5 +865,6 @@ namespace Game
 		menuDef_t *menu;
 		Material *material;
 		snd_alias_list_t *aliasList;
+		localizedEntry_s *localize;
 	};
 }

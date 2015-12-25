@@ -122,6 +122,9 @@
     <ClCompile Include="Components\Party.cpp">
       <Filter>Source\Components\Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Components\Localization.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Steam\Interfaces\SteamUser.hpp">
@@ -218,6 +221,9 @@
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
     <ClInclude Include="Components\Party.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Localization.hpp">
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
   </ItemGroup>

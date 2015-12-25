@@ -36,4 +36,5 @@ namespace Components
 #include "FileSystem.hpp"
 #include "QuickPatch.hpp"
 #include "AssetHandler.hpp"
+#include "Localization.hpp"
 #include "MusicalTalent.hpp"

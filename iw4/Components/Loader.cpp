@@ -22,6 +22,7 @@ namespace Components
 		Loader::Register(new FileSystem());
 		Loader::Register(new QuickPatch());
 		Loader::Register(new AssetHandler());
+		Loader::Register(new Localization());
 		Loader::Register(new MusicalTalent());
 	}
 
