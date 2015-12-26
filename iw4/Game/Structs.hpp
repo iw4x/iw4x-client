@@ -880,4 +880,14 @@ namespace Game
 		XAssetType type;
 		XAssetHeader header;
 	};
+
+	struct XAssetEntry
+	{
+		XAsset asset;
+		char zoneIndex;
+		bool inuse;
+		unsigned __int16 nextHash;
+		unsigned __int16 nextOverride;
+		unsigned __int16 usageFrame;
+	};
 }

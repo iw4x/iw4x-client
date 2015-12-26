@@ -114,12 +114,12 @@ namespace Components
 		}
 	}
 
-	void AssetHandler::On(Game::XAssetType type, AssetHandler::Callback callback)
+	void AssetHandler::OnFind(Game::XAssetType type, AssetHandler::Callback callback)
 	{
 		AssetHandler::TypeCallbacks[type] = callback;
 	}
 
-	void AssetHandler::Restrict(RestrictCallback callback)
+	void AssetHandler::OnLoad(RestrictCallback callback)
 	{
 		AssetHandler::RestrictCallbacks.push_back(callback);
 	}

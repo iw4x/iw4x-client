@@ -442,7 +442,7 @@ namespace Components
 
 	Menus::Menus()
 	{
-		AssetHandler::On(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
 		//Utils::Hook(0x63FE80, Menus::MenuFileLoad, HOOK_JUMP).Install()->Quick();
 
 		// Custom Menus_FindByName

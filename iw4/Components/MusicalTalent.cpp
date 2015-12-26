@@ -33,7 +33,7 @@ namespace Components
 
 	MusicalTalent::MusicalTalent()
 	{
-		AssetHandler::On(Game::XAssetType::ASSET_TYPE_SOUND, MusicalTalent::ManipulateAliases);
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_SOUND, MusicalTalent::ManipulateAliases);
 
 		MusicalTalent::Replace("music_mainmenu_mp", "hz_boneyard_intro_LR_1.mp3");
 	}

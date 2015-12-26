@@ -16,9 +16,10 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <sstream>
 #include <utility>
+#include <algorithm>
+#include <regex>
 
 #include "Game\Structs.hpp"
 #include "Game\Functions.hpp"

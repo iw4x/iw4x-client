@@ -10,8 +10,11 @@ namespace Components
 		~AssetHandler();
 		const char* GetName() { return "AssetHandler"; };
 
-		static void On(Game::XAssetType type, Callback callback);
-		static void Restrict(RestrictCallback callback);
+		static void OnFind(Game::XAssetType type, Callback callback);
+		static void OnLoad(RestrictCallback callback);
+
+		static const bool Restrict;
+		static const bool Load;
 
 	private:
 		static bool BypassState;
