@@ -53,6 +53,18 @@ namespace Components
 		FastFiles::ZonePaths.push_back(path);
 	}
 
+	std::string FastFiles::Current()
+	{
+		const char* file = (Utils::Hook::Get<char*>(0x112A680) + 4);
+
+		if ((int)file == 4)
+		{
+			return "";
+		}
+
+		return file;
+	}
+
 	FastFiles::FastFiles()
 	{
 		// Redirect zone paths
@@ -61,6 +73,27 @@ namespace Components
 		// Allow dlc ui zone loading
 		Utils::Hook(0x506BC7, FastFiles::LoadDLCUIZones, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).Install()->Quick();
+
+		// basic checks (hash jumps, both normal and playlist)
+		Utils::Hook::Nop(0x5B97A3, 2);
+		Utils::Hook::Nop(0x5BA493, 2);
+
+		Utils::Hook::Nop(0x5B991C, 2);
+		Utils::Hook::Nop(0x5BA60C, 2);
+
+		Utils::Hook::Nop(0x5B97B4, 2);
+		Utils::Hook::Nop(0x5BA4A4, 2);
+
+		// allow loading of IWffu (unsigned) files
+		Utils::Hook::Set<BYTE>(0x4158D9, 0xEB); // main function
+		Utils::Hook::Nop(0x4A1D97, 2); // DB_AuthLoad_InflateInit
+
+		// some other, unknown, check
+		Utils::Hook::Set<BYTE>(0x5B9912, 0xB8);
+		Utils::Hook::Set<DWORD>(0x5B9913, 1);
+
+		Utils::Hook::Set<BYTE>(0x5BA602, 0xB8);
+		Utils::Hook::Set<DWORD>(0x5BA603, 1);
 
 		// Add custom zone paths
 		FastFiles::AddZonePath("zone\\patch\\");

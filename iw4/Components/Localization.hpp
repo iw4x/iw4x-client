@@ -12,5 +12,6 @@ namespace Components
 
 	private:
 		static std::map<std::string, std::string> LocalizeMap;
+		static Dvar::Var UseLocalization;
 	};
 }

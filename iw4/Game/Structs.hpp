@@ -858,6 +858,12 @@ namespace Game
 		const char* name;
 	};
 
+	struct MapEnts
+	{
+		const char* name;
+		const char* entitystring;
+	};
+
 	union XAssetHeader
 	{
 		void *data;
@@ -866,5 +872,12 @@ namespace Game
 		Material *material;
 		snd_alias_list_t *aliasList;
 		localizedEntry_s *localize;
+		MapEnts* mapEnts;
+	};
+
+	struct XAsset
+	{
+		XAssetType type;
+		XAssetHeader header;
 	};
 }

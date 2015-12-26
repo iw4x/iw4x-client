@@ -4,6 +4,7 @@ namespace Components
 {
 	bool AssetHandler::BypassState = false;
 	std::map<Game::XAssetType, AssetHandler::Callback> AssetHandler::TypeCallbacks;
+	std::vector<AssetHandler::RestrictCallback> AssetHandler::RestrictCallbacks;
 
 	Game::XAssetHeader AssetHandler::FindAsset(Game::XAssetType type, const char* filename)
 	{
@@ -60,7 +61,6 @@ namespace Components
 			jmp eax
 
 		finishFound:
-
 			pop edi
 			pop esi
 			pop ebp
@@ -70,14 +70,65 @@ namespace Components
 		}
 	}
 
+	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)
+	{
+		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
+		if (!name) return false;
+
+		for (auto callback : AssetHandler::RestrictCallbacks)
+		{
+			if (!callback(type, *asset, name))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	void __declspec(naked) AssetHandler::AddAssetStub()
+	{
+		__asm
+		{
+			push [esp + 8]
+			push [esp + 8]
+			call AssetHandler::IsAssetEligible
+			add esp, 08h
+
+			test al, al
+			jz doNotLoad
+
+// 			push [esp + 8]
+// 			push [esp + 8]
+// 			call DoBeforeLoadAsset
+// 			add esp, 08h
+
+			mov eax, [esp + 8]
+			sub esp, 14h
+			mov ecx, 5BB657h
+			jmp ecx
+
+		doNotLoad:
+			mov eax, [esp + 8]
+			retn
+		}
+	}
+
 	void AssetHandler::On(Game::XAssetType type, AssetHandler::Callback callback)
 	{
 		AssetHandler::TypeCallbacks[type] = callback;
 	}
 
+	void AssetHandler::Restrict(RestrictCallback callback)
+	{
+		AssetHandler::RestrictCallbacks.push_back(callback);
+	}
+
 	AssetHandler::AssetHandler()
 	{
 		Utils::Hook(Game::DB_FindXAssetHeader, AssetHandler::FindAssetStub).Install()->Quick();
+
+		Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).Install()->Quick();
 	}
 
 	AssetHandler::~AssetHandler()

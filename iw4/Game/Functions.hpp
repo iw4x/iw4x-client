@@ -27,6 +27,9 @@ namespace Game
 	typedef XAssetHeader (__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* filename);
 	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 
+	typedef const char* (__cdecl * DB_GetXAssetNameHandler_t)(Game::XAssetHeader* asset);
+	extern DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers;
+
 	typedef int(__cdecl * DB_GetXAssetSizeHandler_t)();
 	extern DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers;
 

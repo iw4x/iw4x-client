@@ -8,6 +8,7 @@ namespace Components
 		const char* GetName() { return "FastFiles"; };
 
 		static void AddZonePath(std::string path);
+		static std::string Current();
 
 	private:
 		static std::vector<std::string> ZonePaths;

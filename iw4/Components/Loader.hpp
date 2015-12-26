@@ -21,6 +21,7 @@ namespace Components
 }
 
 #include "Dvar.hpp"
+#include "Maps.hpp"
 #include "Menus.hpp"
 #include "Colors.hpp"
 #include "Logger.hpp"

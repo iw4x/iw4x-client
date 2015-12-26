@@ -61,6 +61,7 @@
     <ClInclude Include="Components\Loader.hpp" />
     <ClInclude Include="Components\Localization.hpp" />
     <ClInclude Include="Components\Logger.hpp" />
+    <ClInclude Include="Components\Maps.hpp" />
     <ClInclude Include="Components\Materials.hpp" />
     <ClInclude Include="Components\Menus.hpp" />
     <ClInclude Include="Components\MusicalTalent.hpp" />
@@ -96,6 +97,7 @@
     <ClCompile Include="Components\Loader.cpp" />
     <ClCompile Include="Components\Localization.cpp" />
     <ClCompile Include="Components\Logger.cpp" />
+    <ClCompile Include="Components\Maps.cpp" />
     <ClCompile Include="Components\Materials.cpp" />
     <ClCompile Include="Components\Menus.cpp" />
     <ClCompile Include="Components\MusicalTalent.cpp" />

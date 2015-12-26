@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	Dvar::Var Localization::UseLocalization;
 	std::map<std::string, std::string> Localization::LocalizeMap;
 
 	void Localization::Set(const char* key, const char* value)
@@ -11,6 +12,8 @@ namespace Components
 
 	const char* Localization::Get(const char* key)
 	{
+		if (!Localization::UseLocalization.Get<bool>()) return key;
+
 		if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
 		{
 			return Localization::LocalizeMap[key].data();
@@ -30,7 +33,8 @@ namespace Components
 	{
 		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).Install()->Quick();
 
-		Localization::Set("MENU_MULTIPLAYER_CAPS", "^5Fotze");
+		//Localization::Set("MENU_MULTIPLAYER_CAPS", "^5Fotze");
+		Localization::UseLocalization = Dvar::Var::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
 	}
 
 	Localization::~Localization()

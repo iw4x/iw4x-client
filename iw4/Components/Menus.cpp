@@ -153,8 +153,6 @@ namespace Components
 			}
 		}
 
-		OutputDebugStringA(Utils::VA("%X %s", menu->window.name, menu->window.name));
-
 		return menu;
 	}
 

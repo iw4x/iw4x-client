@@ -69,8 +69,5 @@ namespace Components
 		Utils::Hook::Nop(0x6830B1, 20);
 		Utils::Hook(0x682EBF, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x6830B1, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
-
-		// Why?
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, 2400);
 	}
 }
