@@ -13,6 +13,7 @@ namespace Components
 		Loader::Register(new Menus());
 		Loader::Register(new Party());
 		Loader::Register(new Colors());
+		Loader::Register(new Feeder());
 		Loader::Register(new Logger());
 		Loader::Register(new Window());
 		Loader::Register(new Command());

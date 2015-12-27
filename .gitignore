@@ -56,8 +56,7 @@ Temporary Items
 *.suo
 
 # Additional stuff
-Release
-iw4/Release
+Normal
 
 # IDA
 # =========================

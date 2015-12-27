@@ -24,6 +24,7 @@ namespace Components
 #include "Maps.hpp"
 #include "Menus.hpp"
 #include "Colors.hpp"
+#include "Feeder.hpp"
 #include "Logger.hpp"
 #include "Window.hpp"
 #include "Command.hpp"
