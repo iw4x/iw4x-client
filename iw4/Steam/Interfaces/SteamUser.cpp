@@ -20,11 +20,11 @@ namespace Steam
 
 		if (!subId)
 		{
-			if (Components::Dedicated::IsDedicated())
+			if (Components::Dedicated::IsDedicated()) // Dedi guid
 			{
-				subId = 0xDED1CADE;
+				subId = -0xDED1CADE;
 			}
-			else if (Components::Singleton::IsFirstInstance())
+			else if (Components::Singleton::IsFirstInstance()) // Hardware guid
 			{
 				DATA_BLOB Data[2];
 				Data[0].pbData = (BYTE *)"AAAAAAAAAA";
@@ -34,7 +34,7 @@ namespace Steam
 
 				subId = ::Utils::OneAtATime((char*)Data[1].pbData, 52);
 			}
-			else
+			else // Random guid
 			{
 				subId = (Game::Com_Milliseconds() + timeGetTime());
 			}
