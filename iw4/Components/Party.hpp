@@ -24,5 +24,9 @@ namespace Components
 		static std::map<uint64_t, Network::Address> LobbyMap;
 
 		static SteamID GenerateLobbyId();
+
+		static Game::dvar_t* RegisterMinPlayers(const char* name, int value, int min, int max, Game::dvar_flag flag, const char* description);
+
+		static void ConnectError(std::string message);
 	};
 }

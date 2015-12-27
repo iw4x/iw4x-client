@@ -56,6 +56,18 @@ namespace Components
 		}
 	}
 
+	void Party::ConnectError(std::string message)
+	{
+		Command::Execute("closemenu popup_reconnectingtoparty");
+		Dvar::Var("partyend_reason").Set(message);
+		Command::Execute("openmenu menu_xboxlive_partyended");
+	}
+
+	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int value, int min, int max, Game::dvar_flag flag, const char* description)
+	{
+		return Dvar::Register<int>(name, 1, 1, max, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED | flag, description).Get<Game::dvar_t*>();
+	}
+
 	Party::Party()
 	{
 		// various changes to SV_DirectConnect-y stuff to allow non-party joinees
@@ -91,11 +103,16 @@ namespace Components
 
 		// functions checking party heartbeat timeouts, cause random issues
 		Utils::Hook::Nop(0x4E532D, 5);
-		Utils::Hook::Nop(0x4CAA5D, 5); 
 
 		// Steam_JoinLobby call causes migration
 		Utils::Hook::Nop(0x5AF851, 5);
 		Utils::Hook::Set<BYTE>(0x5AF85B, 0xEB);
+
+		// Allow xpartygo in public lobbies
+		Utils::Hook::Set<BYTE>(0x5A969E, 0xEB);
+
+		// Patch party_minplayers to 1 and protect it
+		Utils::Hook(0x4D5D51, Party::RegisterMinPlayers, HOOK_CALL).Install()->Quick();
 
 		Command::Add("connect", [] (Command::Params params)
 		{
@@ -107,28 +124,6 @@ namespace Components
 			Party::Connect(Network::Address(params[1]));
 		});
 
-		Command::Add("connect2", [] (Command::Params params)
-		{
-			if (params.Length() < 2)
-			{
-				return;
-			}
-
-			Network::Address address(params[1]);
-
-			SteamID id = Party::GenerateLobbyId();
-
-			Party::LobbyMap[id.Bits] = address;
-
-			OutputDebugStringA(Utils::VA("Mapping %llX -> %s", id.Bits, address.GetString()));
-
-			Game::Steam_JoinLobby(id, 0);
-
-			// Callback not registered on first try
-			// TODO: Fix :D
-			if (Party::LobbyMap.size() <= 1) Game::Steam_JoinLobby(id, 0); 
-		});
-
 		Renderer::OnFrame([] ()
 		{
 			if (!Party::Container.Valid) return;
@@ -136,10 +131,7 @@ namespace Components
 			if ((Game::Com_Milliseconds() - Party::Container.JoinTime) > 5000)
 			{
 				Party::Container.Valid = false;
-
-				Command::Execute("closemenu popup_reconnectingtoparty");
-				Dvar::Var("partyend_reason").Set("Server connection timed out.");
-				Command::Execute("openmenu menu_xboxlive_partyended");
+				Party::ConnectError("Server connection timed out.");
 			}
 		});
 
@@ -167,6 +159,24 @@ namespace Components
 			info.Set("clients", Utils::VA("%i", clientCount));
 			info.Set("sv_maxclients", Utils::VA("%i", *Game::svs_numclients));
 
+			// Set matchtype
+			// 0 - No match, connecting not possible
+			// 1 - Party, use Steam_JoinLobby to connect
+			// 2 - Match, use CL_ConnectFromParty to connect
+
+			if (Dvar::Var("party_host").Get<bool>()) // Party hosting
+			{
+				info.Set("matchtype", "1");
+			}
+			else if (Dvar::Var("sv_running").Get<bool>()) // Match hosting
+			{
+				info.Set("matchtype", "2");
+			}
+			else
+			{
+				info.Set("matchtype", "0");
+			}
+
 			Network::Send(Game::NS_CLIENT, address, Utils::VA("infoResponse\n%s\n", info.Build().data()));
 		});
 
@@ -182,34 +192,57 @@ namespace Components
 
 					Utils::InfoString info(data);
 
-					OutputDebugStringA(data.data());
+					int matchType = atoi(info.Get("matchtype").data());
 
 					if (info.Get("challenge") != Party::Container.Challenge)
 					{
-						OutputDebugStringA(Utils::VA("\"%s\" vs. \"%s\"", info.Get("challenge").data(), Party::Container.Challenge.data()));
-						Command::Execute("closemenu popup_reconnectingtoparty");
-						Dvar::Var("partyend_reason").Set("Invalid join response: Challenge mismatch.");
-						Command::Execute("openmenu menu_xboxlive_partyended");
+						Party::ConnectError("Invalid join response: Challenge mismatch.");
 					}
-					else if (atoi(info.Get("clients").data()) >= atoi(info.Get("sv_maxclients").data()))
+					else if (matchType < 0 || 2 < matchType)
 					{
-						Command::Execute("closemenu popup_reconnectingtoparty");
-						Dvar::Var("partyend_reason").Set("@EXE_SERVERISFULL");
-						Command::Execute("openmenu menu_xboxlive_partyended");
+						Party::ConnectError("Invalid join response: Unknown matchtype");
 					}
-					else if (info.Get("mapname") == "" || info.Get("gametype") == "")
+					else if (!matchType)
 					{
-						Command::Execute("closemenu popup_reconnectingtoparty");
-						Dvar::Var("partyend_reason").Set("Invalid map or gametype.");
-						Command::Execute("openmenu menu_xboxlive_partyended");
+						Party::ConnectError("Server is not hosting a match.");
+					}
+					// Connect 
+					else if (matchType == 1) // Party
+					{
+						SteamID id = Party::GenerateLobbyId();
+
+						Party::LobbyMap[id.Bits] = address;
+
+						Game::Steam_JoinLobby(id, 0);
+
+						// Callback not registered on first try
+						// TODO: Fix :D
+						if (Party::LobbyMap.size() <= 1) Game::Steam_JoinLobby(id, 0);
+					}
+					else if (matchType == 2) // Match
+					{
+						if (atoi(info.Get("clients").data()) >= atoi(info.Get("sv_maxclients").data()))
+						{
+							Party::ConnectError("@EXE_SERVERISFULL");
+						}
+						if (info.Get("mapname") == "" || info.Get("gametype") == "")
+						{
+							Party::ConnectError("Invalid map or gametype.");
+						}
+						else
+						{
+
+							Dvar::Var("xblive_privatematch").Set(1);
+							Game::Menus_CloseAll(Game::uiContext);
+
+							char xnaddr[32];
+							Game::CL_ConnectFromParty(0, xnaddr, *address.Get(), 0, 0, info.Get("mapname").data(), info.Get("gametype").data());
+						}
 					}
 					else
 					{
-						Dvar::Var("xblive_privatematch").Set(1);
-						Game::Menus_CloseAll(Game::uiContext);
-
-						char xnaddr[32];
-						Game::CL_ConnectFromParty(0, xnaddr, *address.Get(), 0, 0, info.Get("mapname").data(), info.Get("gametype").data());
+						// WAT?
+						OutputDebugStringA("WAT?");
 					}
 				}
 			}
