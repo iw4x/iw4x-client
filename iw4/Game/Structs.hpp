@@ -890,4 +890,30 @@ namespace Game
 		unsigned __int16 nextOverride;
 		unsigned __int16 usageFrame;
 	};
+
+	struct XNKID
+	{
+		char ab[8];
+	};
+
+	struct XNADDR
+	{
+		in_addr ina;
+		in_addr inaOnline;
+		unsigned __int16 wPortOnline;
+		char abEnet[6];
+		char abOnline[20];
+	};
+
+	struct XNKEY
+	{
+		char ab[16];
+	};
+
+	struct _XSESSION_INFO
+	{
+		XNKID sessionID;
+		XNADDR hostAddress;
+		XNKEY keyExchangeKey;
+	};
 }

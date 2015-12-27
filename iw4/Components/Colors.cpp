@@ -107,6 +107,6 @@ namespace Components
 		Renderer::OnFrame(Colors::UpdateColorTable);
 
 		// Register dvar
-		Colors::NewColors = Dvar::Var::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare² color code style.");
+		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare² color code style.");
 	}
 }

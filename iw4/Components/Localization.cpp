@@ -34,7 +34,7 @@ namespace Components
 		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).Install()->Quick();
 
 		//Localization::Set("MENU_MULTIPLAYER_CAPS", "^5Fotze");
-		Localization::UseLocalization = Dvar::Var::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
+		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
 	}
 
 	Localization::~Localization()

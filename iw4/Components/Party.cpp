@@ -3,6 +3,19 @@
 namespace Components
 {
 	Party::JoinContainer Party::Container;
+	std::map<uint64_t, Network::Address> Party::LobbyMap;
+
+	SteamID Party::GenerateLobbyId()
+	{
+		SteamID id;
+
+		id.m_comp.m_unAccountID = Game::Com_Milliseconds();
+		id.m_comp.m_EUniverse = 1;
+		id.m_comp.m_EAccountType = 8;
+		id.m_comp.m_unAccountInstance = 0x40000;
+
+		return id;
+	}
 
 	void Party::Connect(Network::Address target)
 	{
@@ -14,6 +27,42 @@ namespace Components
 		Network::Send(Game::NS_CLIENT, Party::Container.Target, Utils::VA("getinfo %s\n", Party::Container.Challenge.data()));
 
 		Command::Execute("openmenu popup_reconnectingtoparty");
+	}
+
+	const char* Party::GetLobbyInfo(SteamID lobby, std::string key)
+	{
+		if (Party::LobbyMap.find(lobby.m_Bits) != Party::LobbyMap.end())
+		{
+			Network::Address address = Party::LobbyMap[lobby.m_Bits];
+
+			if (key == "addr")
+			{
+				return Utils::VA("%d", address.Get()->ip[0] | (address.Get()->ip[1] << 8) | (address.Get()->ip[2] << 16) | (address.Get()->ip[3] << 24));
+			}
+			else if (key =="port")
+			{
+				return Utils::VA("%d", htons(address.GetPort()));
+			}
+		}
+
+		return "212";
+	}
+
+	void Party::RemoveLobby(SteamID lobby)
+	{
+		if (Party::LobbyMap.find(lobby.m_Bits) != Party::LobbyMap.end())
+		{
+			Party::LobbyMap.erase(Party::LobbyMap.find(lobby.m_Bits));
+		}
+	}
+
+	Game::netadr_t* PartyHost_GetMemberAddressBySlotInState(int unk, void *party, const int slot)
+	{
+		Game::netadr_t* addr = Game::PartyHost_GetMemberAddressBySlot(unk, party, slot);
+
+		OutputDebugStringA(Network::Address(addr).GetString());
+
+		return addr;
 	}
 
 	Party::Party()
@@ -29,6 +78,36 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x5AC2CF, 0xEB); // CL_ParseGamestate
 		Utils::Hook::Set<BYTE>(0x5AC2C3, 0xEB); // CL_ParseGamestate
 
+		// AnonymousAddRequest
+		Utils::Hook::Set<BYTE>(0x5B5E18, 0xEB);
+		Utils::Hook::Set<BYTE>(0x5B5E64, 0xEB);
+		Utils::Hook::Nop(0x5B5E5C, 2);
+
+		// HandleClientHandshake
+		Utils::Hook::Set<BYTE>(0x5B6EA5, 0xEB);
+		Utils::Hook::Set<BYTE>(0x5B6EF3, 0xEB);
+		Utils::Hook::Nop(0x5B6EEB, 2);
+
+		// Allow local connections
+		Utils::Hook::Set<BYTE>(0x4D43DA, 0xEB);
+
+		// LobbyID mismatch
+		Utils::Hook::Nop(0x4E50D6, 2);
+		Utils::Hook::Set<BYTE>(0x4E50DA, 0xEB);
+
+		// causes 'does current Steam lobby match' calls in Steam_JoinLobby to be ignored
+		Utils::Hook::Set<BYTE>(0x49D007, 0xEB);
+
+		// functions checking party heartbeat timeouts, cause random issues
+		Utils::Hook::Nop(0x4E532D, 5);
+		Utils::Hook::Nop(0x4CAA5D, 5); 
+
+		// Steam_JoinLobby call causes migration
+		Utils::Hook::Nop(0x5AF851, 5);
+		Utils::Hook::Set<BYTE>(0x5AF85B, 0xEB);
+
+		Utils::Hook(0x5B5544, PartyHost_GetMemberAddressBySlotInState, HOOK_CALL).Install()->Quick();
+
 		Command::Add("connect", [] (Command::Params params)
 		{
 			if (params.Length() < 2)
@@ -37,6 +116,28 @@ namespace Components
 			}
 
 			Party::Connect(Network::Address(params[1]));
+		});
+
+		Command::Add("connect2", [] (Command::Params params)
+		{
+			if (params.Length() < 2)
+			{
+				return;
+			}
+
+			Network::Address address(params[1]);
+
+			SteamID id = Party::GenerateLobbyId();
+
+			Party::LobbyMap[id.m_Bits] = address;
+
+			OutputDebugStringA(Utils::VA("Mapping %llX -> %s", id.m_Bits, address.GetString()));
+
+			Game::Steam_JoinLobby(id, 0);
+
+			// Callback not registered on first try
+			// TODO: Fix :D
+			if (Party::LobbyMap.size() <= 1) Game::Steam_JoinLobby(id, 0); 
 		});
 
 		Renderer::OnFrame([] ()
@@ -128,6 +229,6 @@ namespace Components
 
 	Party::~Party()
 	{
-
+		Party::LobbyMap.clear();
 	}
 }

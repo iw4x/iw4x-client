@@ -4,5 +4,6 @@
     <LocalDebuggerCommand>iw4m.exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>D:\Games\SteamLibrary\steamapps\common\Call of Duty Modern Warfare 2\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>+set dedicated 0</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

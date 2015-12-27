@@ -24,7 +24,6 @@ namespace Steam
 
 	unsigned __int64 Matchmaking::RequestLobbyList()
 	{
-		// TODO: Implement
 		return 0;
 	}
 
@@ -51,18 +50,42 @@ namespace Steam
 
 	unsigned __int64 Matchmaking::CreateLobby(int eLobbyType, int cMaxMembers)
 	{
-		// TODO: Implement
-		return 0;
+		uint64_t result = Callbacks::RegisterCall();
+		LobbyCreated* retvals = new LobbyCreated;
+		SteamID id;
+		
+		id.m_comp.m_unAccountID = 1337132;
+		id.m_comp.m_EUniverse = 1;
+		id.m_comp.m_EAccountType = 8;
+		id.m_comp.m_unAccountInstance = 0x40000;
+
+		retvals->m_eResult = 1;
+		retvals->m_ulSteamIDLobby = id;
+
+		Callbacks::ReturnCall(retvals, sizeof(LobbyCreated), LobbyCreated::CallbackID, result);
+
+		Matchmaking::JoinLobby(id);
+
+		return result;
 	}
 
 	unsigned __int64 Matchmaking::JoinLobby(SteamID steamIDLobby)
 	{
-		// TODO: Implement
-		return 0;
+		uint64_t result = Callbacks::RegisterCall();
+		LobbyEnter* retvals = new LobbyEnter;
+		retvals->m_bLocked = false;
+		retvals->m_EChatRoomEnterResponse = 1;
+		retvals->m_rgfChatPermissions = 0xFFFFFFFF;
+		retvals->m_ulSteamIDLobby = steamIDLobby;
+
+		Callbacks::ReturnCall(retvals, sizeof(LobbyEnter), LobbyEnter::CallbackID, result);
+
+		return result;
 	}
 
 	void Matchmaking::LeaveLobby(SteamID steamIDLobby)
 	{
+		Components::Party::RemoveLobby(steamIDLobby);
 	}
 
 	bool Matchmaking::InviteUserToLobby(SteamID steamIDLobby, SteamID steamIDInvitee)
@@ -77,12 +100,12 @@ namespace Steam
 
 	SteamID Matchmaking::GetLobbyMemberByIndex(SteamID steamIDLobby, int iMember)
 	{
-		return SteamID();
+		return SteamUser()->GetSteamID();
 	}
 
 	const char *Matchmaking::GetLobbyData(SteamID steamIDLobby, const char *pchKey)
 	{
-		return "";
+		return Components::Party::GetLobbyInfo(steamIDLobby, pchKey);
 	}
 
 	bool Matchmaking::SetLobbyData(SteamID steamIDLobby, const char *pchKey, const char *pchValue)
@@ -160,7 +183,7 @@ namespace Steam
 
 	SteamID Matchmaking::GetLobbyOwner(SteamID steamIDLobby)
 	{
-		return SteamID();
+		return SteamUser()->GetSteamID();
 	}
 
 	bool Matchmaking::SetLobbyOwner(SteamID steamIDLobby, SteamID steamIDNewOwner)

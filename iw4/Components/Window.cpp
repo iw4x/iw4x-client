@@ -21,7 +21,7 @@ namespace Components
 	Window::Window()
 	{
 		// Borderless window
-		Window::NoBorder = Dvar::Var::Register<bool>("r_noborder", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Do not use a border in windowed mode");
+		Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Do not use a border in windowed mode");
 		Utils::Hook(0x507643, Window::StyleHookStub, HOOK_CALL).Install()->Quick();
 	}
 }

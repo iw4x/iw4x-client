@@ -139,6 +139,12 @@ namespace Game
 	typedef bool(__cdecl * NET_StringToAdr_t)(const char*, netadr_t*);
 	extern NET_StringToAdr_t NET_StringToAdr;
 
+	typedef void(__cdecl * Live_MPAcceptInvite_t)(_XSESSION_INFO *hostInfo, const int controllerIndex, bool fromGameInvite);
+	extern Live_MPAcceptInvite_t Live_MPAcceptInvite;
+
+	typedef void(*LoadInitialFF_t)(void);
+	extern LoadInitialFF_t LoadInitialFF;
+
 	typedef void* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
 
@@ -154,6 +160,9 @@ namespace Game
 	typedef void(__cdecl * PC_SourceError_t)(int, const char*, ...);
 	extern PC_SourceError_t PC_SourceError;
 
+	typedef netadr_t *(__cdecl * PartyHost_GetMemberAddressBySlot_t)(int unk, void *party, const int slot);
+	extern PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 
@@ -165,6 +174,9 @@ namespace Game
 
 	typedef void(__cdecl * SetConsole_t)(const char* cvar, const char* value);
 	extern SetConsole_t SetConsole;
+
+	typedef void(__cdecl * Steam_JoinLobby_t)(SteamID, char);
+	extern Steam_JoinLobby_t Steam_JoinLobby;
 
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;

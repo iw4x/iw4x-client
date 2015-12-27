@@ -8,9 +8,11 @@
 #include <wincrypt.h>
 #include <time.h>
 #include <timeapi.h>
+#include <WinSock2.h>
 
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Crypt32.lib")
+#pragma comment(lib, "Ws2_32.lib")
 
 #include <map>
 #include <mutex>
@@ -21,12 +23,12 @@
 #include <algorithm>
 #include <regex>
 
-#include "Game\Structs.hpp"
-#include "Game\Functions.hpp"
-
 #include "Utils\Utils.hpp"
 #include "Utils\Hooking.hpp"
 
 #include "Steam\Steam.hpp"
+
+#include "Game\Structs.hpp"
+#include "Game\Functions.hpp"
 
 #include "Components\Loader.hpp"

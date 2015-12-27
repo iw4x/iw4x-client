@@ -100,20 +100,32 @@ namespace Components
 		}
 	}
 
-	template<> static Dvar::Var Dvar::Var::Register(const char* name, bool value, Game::dvar_flag flag, const char* description)
+	void Dvar::Var::SetRaw(int integer)
 	{
-		return Game::Dvar_RegisterBool(name, value, flag, description);
+		if (this->dvar)
+		{
+			this->dvar->current.integer = integer;
+		}
 	}
-	template<> static Dvar::Var Dvar::Var::Register(const char* name, const char* value, Game::dvar_flag flag, const char* description)
+
+	template<> static Dvar::Var Dvar::Register(const char* name, bool value, Dvar::Flag flag, const char* description)
 	{
-		return Game::Dvar_RegisterString(name, value, flag, description);
+		return Game::Dvar_RegisterBool(name, value, flag.val, description);
+	}
+	template<> static Dvar::Var Dvar::Register(const char* name, const char* value, Dvar::Flag flag, const char* description)
+	{
+		return Game::Dvar_RegisterString(name, value, flag.val, description);
+	}
+	template<> static Dvar::Var Dvar::Register(const char* name, int value, int min, int max, Dvar::Flag flag, const char* description)
+	{
+		return Game::Dvar_RegisterInt(name, value, min, max, flag.val, description);
 	}
 
 	Game::dvar_t* Dvar::RegisterName(const char* name, const char* default, Game::dvar_flag flag, const char* description)
 	{
 		// TODO: Register string dvars here
 
-		return Dvar::Var::Register<const char*>(name, "Unknown Soldier", (Game::dvar_flag)(flag | Game::dvar_flag::DVAR_FLAG_SAVED), description).Get<Game::dvar_t*>();
+		return Dvar::Register<const char*>(name, "Unknown Soldier", Dvar::Flag(flag | Game::dvar_flag::DVAR_FLAG_SAVED).val, description).Get<Game::dvar_t*>();
 	}
 
 	Dvar::Dvar()

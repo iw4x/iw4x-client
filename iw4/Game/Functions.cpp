@@ -61,6 +61,9 @@ namespace Game
 	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
 	NET_StringToAdr_t NET_StringToAdr = (NET_StringToAdr_t)0x409010;
 
+	Live_MPAcceptInvite_t Live_MPAcceptInvite = (Live_MPAcceptInvite_t)0x420A6D;
+
+	LoadInitialFF_t LoadInitialFF = (LoadInitialFF_t)0x506AC0;
 	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;
 
 	sendOOB_t OOBPrint = (sendOOB_t)0x4AEF00;
@@ -69,11 +72,15 @@ namespace Game
 	PC_ReadTokenHandle_t PC_ReadTokenHandle = (PC_ReadTokenHandle_t)0x4D2060;
 	PC_SourceError_t PC_SourceError = (PC_SourceError_t)0x467A00;
 
+	PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = (PartyHost_GetMemberAddressBySlot_t)0x44E100;
+
 	Script_Alloc_t Script_Alloc = (Script_Alloc_t)0x422E70;
 	Script_SetupTokens_t Script_SetupTokens = (Script_SetupTokens_t)0x4E6950;
 	Script_CleanString_t Script_CleanString = (Script_CleanString_t)0x498220;
 
 	SetConsole_t SetConsole = (SetConsole_t)0x44F060;
+
+	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
 
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 

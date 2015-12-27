@@ -39,6 +39,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;IW4_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -55,6 +56,7 @@
     <ClInclude Include="Components\Colors.hpp" />
     <ClInclude Include="Components\Command.hpp" />
     <ClInclude Include="Components\Console.hpp" />
+    <ClInclude Include="Components\Dedicated.hpp" />
     <ClInclude Include="Components\Dvar.hpp" />
     <ClInclude Include="Components\FastFiles.hpp" />
     <ClInclude Include="Components\FileSystem.hpp" />
@@ -91,6 +93,7 @@
     <ClCompile Include="Components\Colors.cpp" />
     <ClCompile Include="Components\Command.cpp" />
     <ClCompile Include="Components\Console.cpp" />
+    <ClCompile Include="Components\Dedicated.cpp" />
     <ClCompile Include="Components\Dvar.cpp" />
     <ClCompile Include="Components\FastFiles.cpp" />
     <ClCompile Include="Components\FileSystem.cpp" />

@@ -26,7 +26,7 @@ namespace Steam
 
 			CryptProtectData(&Data[0], NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &Data[1]);
 
-			subId = ::Utils::OneAtATime((char*)Data[1].pbData, 52); //(Game::Com_Milliseconds() + timeGetTime());
+			subId = /*::Utils::OneAtATime((char*)Data[1].pbData, 52); */(Game::Com_Milliseconds() + timeGetTime());
 		}
 
 		id.m_Bits = 0x110000100000000 | subId;

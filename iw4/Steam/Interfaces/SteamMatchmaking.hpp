@@ -1,5 +1,24 @@
 namespace Steam
 {
+	struct LobbyCreated
+	{
+		enum { CallbackID = 513 };
+
+		int m_eResult;
+		int m_pad;
+		SteamID m_ulSteamIDLobby;
+	};
+
+	struct LobbyEnter
+	{
+		enum { CallbackID = 504 };
+
+		SteamID m_ulSteamIDLobby;
+		int m_rgfChatPermissions;
+		bool m_bLocked;
+		int m_EChatRoomEnterResponse;
+	};
+
 	class Matchmaking
 	{
 	public:

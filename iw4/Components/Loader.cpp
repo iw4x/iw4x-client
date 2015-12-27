@@ -18,6 +18,7 @@ namespace Components
 		Loader::Register(new Network());
 		Loader::Register(new RawFiles());
 		Loader::Register(new Renderer());
+		Loader::Register(new Dedicated());
 		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
 		Loader::Register(new FileSystem());

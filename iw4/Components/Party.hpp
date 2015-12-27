@@ -8,6 +8,8 @@ namespace Components
 		const char* GetName() { return "Party"; };
 
 		static void Connect(Network::Address target);
+		static const char* GetLobbyInfo(SteamID lobby, std::string key);
+		static void RemoveLobby(SteamID lobby);
 
 	private:
 		struct JoinContainer
@@ -19,5 +21,8 @@ namespace Components
 		};
 
 		static JoinContainer Container;
+		static std::map<uint64_t, Network::Address> LobbyMap;
+
+		static SteamID GenerateLobbyId();
 	};
 }

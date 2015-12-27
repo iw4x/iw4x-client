@@ -22,6 +22,15 @@ namespace Utils
 		void* GetAddress();
 		void Quick();
 
+		template <typename T> static T Call(DWORD function)
+		{
+			__asm
+			{
+				mov eax, function
+				call eax
+			}
+		}
+
 		static void Nop(void* place, size_t length);
 		static void Nop(DWORD place, size_t length);
 

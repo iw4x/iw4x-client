@@ -32,6 +32,7 @@ namespace Components
 #include "Party.hpp" // Destroys the order, but requires network classes :D
 #include "RawFiles.hpp"
 #include "Renderer.hpp"
+#include "Dedicated.hpp"
 #include "FastFiles.hpp"
 #include "Materials.hpp"
 #include "FileSystem.hpp"

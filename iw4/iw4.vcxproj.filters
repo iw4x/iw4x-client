@@ -128,6 +128,9 @@
     <ClCompile Include="Components\Maps.cpp">
       <Filter>Source\Components\Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Components\Dedicated.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Steam\Interfaces\SteamUser.hpp">
@@ -230,6 +233,9 @@
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
     <ClInclude Include="Components\Maps.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Dedicated.hpp">
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
   </ItemGroup>
