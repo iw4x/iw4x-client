@@ -81,7 +81,7 @@ namespace Game
 	typedef int(__cdecl * FS_ReadFile_t)(const char* path, char** buffer);
 	extern FS_ReadFile_t FS_ReadFile;
 
-	typedef char** (__cdecl * FS_ListFiles_t)(char* path, char* extension, int noclue, int* amount);
+	typedef char** (__cdecl * FS_ListFiles_t)(const char *path, const char *extension, FsListBehavior_e behavior, int *numfiles, int allocTrackType);
 	extern FS_ListFiles_t FS_ListFiles;
 
 	typedef void(__cdecl * FS_FreeFileList_t)(char** list);

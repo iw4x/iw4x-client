@@ -29,7 +29,7 @@ namespace Steam
 			subId = /*::Utils::OneAtATime((char*)Data[1].pbData, 52); */(Game::Com_Milliseconds() + timeGetTime());
 		}
 
-		id.m_Bits = 0x110000100000000 | subId;
+		id.Bits = 0x110000100000000 | subId;
 		return id;
 	}
 

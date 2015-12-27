@@ -602,6 +602,12 @@ namespace Game
 		menuDef_t **menus;
 	};
 
+	enum FsListBehavior_e
+	{
+		FS_LIST_PURE_ONLY = 0x0,
+		FS_LIST_ALL = 0x1,
+	};
+
 	typedef enum 
 	{
 		NA_BOT,

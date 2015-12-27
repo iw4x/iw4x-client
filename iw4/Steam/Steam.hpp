@@ -4,15 +4,15 @@
 
 typedef union
 {
-	struct SteamIDComponent_t
+	struct
 	{
-		unsigned int 		m_unAccountID : 32;
-		unsigned int		m_unAccountInstance : 20;
-		unsigned int		m_EAccountType : 4;
-		int					m_EUniverse : 8;
-	} m_comp;
+		unsigned int AccountID : 32;
+		unsigned int AccountInstance : 20;
+		unsigned int AccountType : 4;
+		int          Universe : 8;
+	};
 
-	unsigned long long m_Bits;
+	unsigned long long Bits;
 } SteamID;
 
 #include "Interfaces\SteamUser.hpp"

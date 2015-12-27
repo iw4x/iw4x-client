@@ -54,10 +54,10 @@ namespace Steam
 		LobbyCreated* retvals = new LobbyCreated;
 		SteamID id;
 		
-		id.m_comp.m_unAccountID = 1337132;
-		id.m_comp.m_EUniverse = 1;
-		id.m_comp.m_EAccountType = 8;
-		id.m_comp.m_unAccountInstance = 0x40000;
+		id.AccountID = 1337132;
+		id.Universe = 1;
+		id.AccountType = 8;
+		id.AccountInstance = 0x40000;
 
 		retvals->m_eResult = 1;
 		retvals->m_ulSteamIDLobby = id;

@@ -9,10 +9,10 @@ namespace Components
 	{
 		SteamID id;
 
-		id.m_comp.m_unAccountID = Game::Com_Milliseconds();
-		id.m_comp.m_EUniverse = 1;
-		id.m_comp.m_EAccountType = 8;
-		id.m_comp.m_unAccountInstance = 0x40000;
+		id.AccountID = Game::Com_Milliseconds();
+		id.Universe = 1;
+		id.AccountType = 8;
+		id.AccountInstance = 0x40000;
 
 		return id;
 	}
@@ -31,9 +31,9 @@ namespace Components
 
 	const char* Party::GetLobbyInfo(SteamID lobby, std::string key)
 	{
-		if (Party::LobbyMap.find(lobby.m_Bits) != Party::LobbyMap.end())
+		if (Party::LobbyMap.find(lobby.Bits) != Party::LobbyMap.end())
 		{
-			Network::Address address = Party::LobbyMap[lobby.m_Bits];
+			Network::Address address = Party::LobbyMap[lobby.Bits];
 
 			if (key == "addr")
 			{
@@ -50,19 +50,10 @@ namespace Components
 
 	void Party::RemoveLobby(SteamID lobby)
 	{
-		if (Party::LobbyMap.find(lobby.m_Bits) != Party::LobbyMap.end())
+		if (Party::LobbyMap.find(lobby.Bits) != Party::LobbyMap.end())
 		{
-			Party::LobbyMap.erase(Party::LobbyMap.find(lobby.m_Bits));
+			Party::LobbyMap.erase(Party::LobbyMap.find(lobby.Bits));
 		}
-	}
-
-	Game::netadr_t* PartyHost_GetMemberAddressBySlotInState(int unk, void *party, const int slot)
-	{
-		Game::netadr_t* addr = Game::PartyHost_GetMemberAddressBySlot(unk, party, slot);
-
-		OutputDebugStringA(Network::Address(addr).GetString());
-
-		return addr;
 	}
 
 	Party::Party()
@@ -106,8 +97,6 @@ namespace Components
 		Utils::Hook::Nop(0x5AF851, 5);
 		Utils::Hook::Set<BYTE>(0x5AF85B, 0xEB);
 
-		Utils::Hook(0x5B5544, PartyHost_GetMemberAddressBySlotInState, HOOK_CALL).Install()->Quick();
-
 		Command::Add("connect", [] (Command::Params params)
 		{
 			if (params.Length() < 2)
@@ -129,9 +118,9 @@ namespace Components
 
 			SteamID id = Party::GenerateLobbyId();
 
-			Party::LobbyMap[id.m_Bits] = address;
+			Party::LobbyMap[id.Bits] = address;
 
-			OutputDebugStringA(Utils::VA("Mapping %llX -> %s", id.m_Bits, address.GetString()));
+			OutputDebugStringA(Utils::VA("Mapping %llX -> %s", id.Bits, address.GetString()));
 
 			Game::Steam_JoinLobby(id, 0);
 
@@ -174,7 +163,7 @@ namespace Components
 			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 			info.Set("gametype", Dvar::Var("g_gametype").Get<const char*>());
 			info.Set("fs_game", Dvar::Var("fs_game").Get<const char*>());
-			info.Set("xuid", Utils::VA("%llX", Steam::SteamUser()->GetSteamID().m_Bits));
+			info.Set("xuid", Utils::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
 			info.Set("clients", Utils::VA("%i", clientCount));
 			info.Set("sv_maxclients", Utils::VA("%i", *Game::svs_numclients));
 

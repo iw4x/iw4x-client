@@ -2,6 +2,12 @@
 
 namespace Components
 {
+	char** Console::GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType)
+	{
+		if (path == (char*)0xBAADF00D) return nullptr;
+		return Game::FS_ListFiles(path, extension, behavior, numfiles, allocTrackType);
+	}
+
 	void Console::ToggleConsole()
 	{
 		// possibly cls.keyCatchers?
@@ -25,5 +31,8 @@ namespace Components
 		// Internal console
 		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x4F65A5, Console::ToggleConsole, HOOK_JUMP).Install()->Quick();
+
+		// Check for bad food ;)
+		Utils::Hook(0x4CB9F4, Console::GetAutoCompleteFileList, HOOK_CALL).Install()->Quick();
 	}
 }

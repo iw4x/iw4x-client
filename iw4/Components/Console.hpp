@@ -8,5 +8,6 @@ namespace Components
 
 	private:
 		static void ToggleConsole();
+		static char** GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType);
 	};
 }

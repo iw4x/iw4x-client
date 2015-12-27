@@ -8,6 +8,7 @@ namespace Components
 		public:
 			Params(DWORD id) : CommandId(id) {};
 			Params(const Params &obj) { this->CommandId = obj.CommandId; };
+			Params() : Params(*Game::cmd_id) {};
 
 			char* operator[](size_t index);
 			size_t Length();
