@@ -6,6 +6,8 @@ namespace Components
 
 	void Loader::Initialize()
 	{
+		Loader::Register(new Dedicated());
+
 		Loader::Register(new Dvar());
 		Loader::Register(new Maps());
 		Loader::Register(new Menus());
@@ -18,9 +20,9 @@ namespace Components
 		Loader::Register(new Network());
 		Loader::Register(new RawFiles());
 		Loader::Register(new Renderer());
-		Loader::Register(new Dedicated());
 		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
+		Loader::Register(new Singleton());
 		Loader::Register(new FileSystem());
 		Loader::Register(new QuickPatch());
 		Loader::Register(new AssetHandler());

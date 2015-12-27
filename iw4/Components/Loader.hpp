@@ -35,6 +35,7 @@ namespace Components
 #include "Dedicated.hpp"
 #include "FastFiles.hpp"
 #include "Materials.hpp"
+#include "Singleton.hpp"
 #include "FileSystem.hpp"
 #include "QuickPatch.hpp"
 #include "AssetHandler.hpp"

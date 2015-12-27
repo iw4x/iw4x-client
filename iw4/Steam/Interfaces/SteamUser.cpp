@@ -20,13 +20,24 @@ namespace Steam
 
 		if (!subId)
 		{
-			DATA_BLOB Data[2];
-			Data[0].pbData = (BYTE *)"AAAAAAAAAA";
-			Data[0].cbData = 10;
+			if (Components::Dedicated::IsDedicated())
+			{
+				subId = 0xDED1CADE;
+			}
+			else if (Components::Singleton::IsFirstInstance())
+			{
+				DATA_BLOB Data[2];
+				Data[0].pbData = (BYTE *)"AAAAAAAAAA";
+				Data[0].cbData = 10;
 
-			CryptProtectData(&Data[0], NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &Data[1]);
+				CryptProtectData(&Data[0], NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &Data[1]);
 
-			subId = /*::Utils::OneAtATime((char*)Data[1].pbData, 52); */(Game::Com_Milliseconds() + timeGetTime());
+				subId = ::Utils::OneAtATime((char*)Data[1].pbData, 52);
+			}
+			else
+			{
+				subId = (Game::Com_Milliseconds() + timeGetTime());
+			}
 		}
 
 		id.Bits = 0x110000100000000 | subId;
