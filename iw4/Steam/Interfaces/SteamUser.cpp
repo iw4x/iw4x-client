@@ -22,7 +22,7 @@ namespace Steam
 		{
 			if (Components::Dedicated::IsDedicated()) // Dedi guid
 			{
-				subId = -0xDED1CADE;
+				subId = ~0xDED1CADE;
 			}
 			else if (Components::Singleton::IsFirstInstance()) // Hardware guid
 			{
