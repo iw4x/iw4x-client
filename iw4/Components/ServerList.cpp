@@ -71,27 +71,26 @@ namespace Components
 		ServerList::RefreshContainer.Servers.clear();
 		ServerList::RefreshContainer.Mutex.unlock();
 
+		ServerList::RefreshContainer.SendCount = 0;
+		ServerList::RefreshContainer.SentCount = 0;
+
 		int masterPort = Dvar::Var("masterPort").Get<int>();
 		const char* masterServerName = Dvar::Var("masterServerName").Get<const char*>();
 
 		ServerList::RefreshContainer.Host = Network::Address(Utils::VA("%s:%u", masterServerName, masterPort));
 
-		ServerList::RefreshContainer.AwaitingList = true;
-
-		Network::Send(ServerList::RefreshContainer.Host, "getservers IW4 145 full empty");
+		//Network::Send(ServerList::RefreshContainer.Host, "getservers IW4 145 full empty");
+		Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
 	}
 
 	void ServerList::Insert(Network::Address address, Utils::InfoString info)
 	{
-		// Do not enter any new servers, if we are awaiting a new list from the master
-		if (ServerList::RefreshContainer.AwaitingList) return;
-
 		ServerList::RefreshContainer.Mutex.lock();
 
 		for (auto i = ServerList::RefreshContainer.Servers.begin(); i != ServerList::RefreshContainer.Servers.end(); i++)
 		{
 			// Our desired server
-			if (i->Target == address)
+			if (i->Target == address && i->Sent)
 			{
 				// Challenge did not match
 				if (i->Challenge != info.Get("challenge"))
@@ -115,12 +114,56 @@ namespace Components
 				server.Ping = (Game::Com_Milliseconds() - i->SendTime);
 				server.Addr = address;
 
+				// Check if already inserted and remove
+				for (auto j = ServerList::OnlineList.begin(); j != ServerList::OnlineList.end(); j++)
+				{
+					if (j->Addr == address)
+					{
+						ServerList::OnlineList.erase(j);
+						break;
+					}
+				}
+
 				ServerList::OnlineList.push_back(server);
 
 				ServerList::RefreshContainer.Servers.erase(i);
 
 				break;
 			}
+		}
+
+		Logger::Print("Current server count: %d\n", ServerList::OnlineList.size());
+
+		ServerList::RefreshContainer.Mutex.unlock();
+	}
+
+	void ServerList::Frame()
+	{
+		ServerList::RefreshContainer.Mutex.lock();
+
+		// Send requests to 10 servers each frame
+		int SendServers = 10;
+		
+		for (unsigned int i = 0; i < ServerList::RefreshContainer.Servers.size(); i++)
+		{
+			ServerList::Container::ServerContainer* server = &ServerList::RefreshContainer.Servers[i];
+			if (server->Sent) continue;
+
+			// Found server we can send a request to
+			server->Sent = true;
+			SendServers--;
+
+			server->SendTime = Game::Com_Milliseconds();
+			server->Challenge = Utils::VA("%d", server->SendTime);
+
+			ServerList::RefreshContainer.SentCount++;
+
+			Network::Send(server->Target, Utils::VA("getinfo %s\n", server->Challenge.data()));
+
+			// Display in the menu, like in COD4
+			//Logger::Print("Sent %d/%d\n", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount);
+
+			if (SendServers <= 0) break;
 		}
 
 		ServerList::RefreshContainer.Mutex.unlock();
@@ -132,14 +175,19 @@ namespace Components
 
 		Network::Handle("getServersResponse", [] (Network::Address address, std::string data)
 		{
-			if (!ServerList::RefreshContainer.AwaitingList) return; // Only parse if we are awaiting a list
 			if (ServerList::RefreshContainer.Host != address) return; // Only parse from host we sent to
-
-			ServerList::RefreshContainer.AwaitingList = false;
 
 			ServerList::RefreshContainer.Mutex.lock();
 
-			ServerList::MasterEntry* entry = (ServerList::MasterEntry*)data.data();
+			int offset = 0;
+			ServerList::MasterEntry* entry = nullptr;
+
+			// Find first entry
+			do 
+			{
+				entry = (ServerList::MasterEntry*)(data.data() + offset++);
+			}
+			while (!entry->HasSeparator() && !entry->IsEndToken());
 
 			for (int i = 0; !entry[i].IsEndToken() && entry[i].HasSeparator(); i++)
 			{
@@ -149,14 +197,24 @@ namespace Components
 				serverAddr.Get()->type = Game::NA_IP;
 
 				ServerList::Container::ServerContainer container;
-				container.SendTime = Game::Com_Milliseconds();
-				container.Challenge = Utils::VA("%d", container.SendTime);
-				container.Sent = true;
+				container.Sent = false;
 				container.Target = serverAddr;
 
-				ServerList::RefreshContainer.Servers.push_back(container);
+				bool alreadyInserted = false;
+				for (auto &server : ServerList::RefreshContainer.Servers)
+				{
+					if (server.Target == container.Target)
+					{
+						alreadyInserted = true;
+						break;
+					}
+				}
 
-				Network::Send(container.Target, Utils::VA("getinfo %s\n", container.Challenge.data()));
+				if (!alreadyInserted)
+				{
+					ServerList::RefreshContainer.Servers.push_back(container);
+					ServerList::RefreshContainer.SendCount++;
+				}
 			}
 
 			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.Servers.size());
@@ -165,7 +223,7 @@ namespace Components
 		});
 
 		// Set default masterServerName + port and save it 
-		Utils::Hook::Set<const char*>(0x60AD92, "localhost");
+		//Utils::Hook::Set<const char*>(0x60AD92, "localhost");
 		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_FLAG_SAVED); // masterServerName
 		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_FLAG_SAVED); // masterPort
 
@@ -185,6 +243,9 @@ namespace Components
 		{
 			Logger::Print("Server list sorting by token: %d\n", token.Get<int>());
 		});
+
+		// Add frame callback
+		Renderer::OnFrame(ServerList::Frame);
 	}
 
 	ServerList::~ServerList()

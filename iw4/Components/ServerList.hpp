@@ -49,8 +49,8 @@ namespace Components
 
 			bool IsEndToken()
 			{
-				// End of transmission token
-				return (Token[0] == 'E' && Token[1] == 'O' && Token[2] == 'T');
+				// End of transmission or file token
+				return (Token[0] == 'E' && Token[1] == 'O' && (Token[2] == 'T' || Token[2] == 'F'));
 			}
 
 			bool HasSeparator()
@@ -70,7 +70,8 @@ namespace Components
 				Network::Address Target;
 			};
 
-			bool AwaitingList;
+			int SentCount;
+			int SendCount;
 			Network::Address Host;
 			std::vector<ServerContainer> Servers;
 			std::mutex Mutex;
@@ -79,6 +80,8 @@ namespace Components
 		static int GetServerCount();
 		static const char* GetServerText(int index, int column);
 		static void SelectServer(int index);
+
+		static void Frame();
 
 		static unsigned int CurrentServer;
 		static Container RefreshContainer;
