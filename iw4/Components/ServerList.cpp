@@ -84,8 +84,8 @@ namespace Components
 
 		Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
 
-		//Network::Send(ServerList::RefreshContainer.Host, "getservers IW4 145 full empty");
-		Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
+		Network::Send(ServerList::RefreshContainer.Host, "getservers IW4 145 full empty");
+		//Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
 	}
 
 	void ServerList::Insert(Network::Address address, Utils::InfoString info)
