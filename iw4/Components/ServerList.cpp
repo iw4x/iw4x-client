@@ -74,10 +74,15 @@ namespace Components
 		ServerList::RefreshContainer.SendCount = 0;
 		ServerList::RefreshContainer.SentCount = 0;
 
+		ServerList::RefreshContainer.AwatingList = true;
+		ServerList::RefreshContainer.AwaitTime = Game::Com_Milliseconds();
+
 		int masterPort = Dvar::Var("masterPort").Get<int>();
 		const char* masterServerName = Dvar::Var("masterServerName").Get<const char*>();
 
 		ServerList::RefreshContainer.Host = Network::Address(Utils::VA("%s:%u", masterServerName, masterPort));
+
+		Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
 
 		//Network::Send(ServerList::RefreshContainer.Host, "getservers IW4 145 full empty");
 		Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
@@ -132,14 +137,23 @@ namespace Components
 			}
 		}
 
-		Logger::Print("Current server count: %d\n", ServerList::OnlineList.size());
-
 		ServerList::RefreshContainer.Mutex.unlock();
 	}
 
 	void ServerList::Frame()
 	{
 		ServerList::RefreshContainer.Mutex.lock();
+
+		if (ServerList::RefreshContainer.AwatingList)
+		{
+			// Check if we haven't got a response within 10 seconds
+			if (Game::Com_Milliseconds() - ServerList::RefreshContainer.AwaitTime > 5000)
+			{
+				ServerList::RefreshContainer.AwatingList = false;
+
+				Logger::Print("We haven't received a response from the master within %d seconds!\n", (Game::Com_Milliseconds() - ServerList::RefreshContainer.AwaitTime) / 1000);
+			}
+		}
 
 		// Send requests to 10 servers each frame
 		int SendServers = 10;
@@ -177,9 +191,12 @@ namespace Components
 		{
 			if (ServerList::RefreshContainer.Host != address) return; // Only parse from host we sent to
 
+			ServerList::RefreshContainer.AwatingList = false;
+
 			ServerList::RefreshContainer.Mutex.lock();
 
 			int offset = 0;
+			int count = ServerList::RefreshContainer.Servers.size();
 			ServerList::MasterEntry* entry = nullptr;
 
 			// Find first entry
@@ -217,13 +234,13 @@ namespace Components
 				}
 			}
 
-			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.Servers.size());
+			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.Servers.size() - count);
 
 			ServerList::RefreshContainer.Mutex.unlock();
 		});
 
 		// Set default masterServerName + port and save it 
-		//Utils::Hook::Set<const char*>(0x60AD92, "localhost");
+		Utils::Hook::Set<const char*>(0x60AD92, "localhost");
 		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_FLAG_SAVED); // masterServerName
 		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_FLAG_SAVED); // masterPort
 

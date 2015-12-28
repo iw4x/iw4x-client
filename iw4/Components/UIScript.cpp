@@ -82,7 +82,7 @@ namespace Components
 			call UIScript::RunMenuScript
 			add esp, 8h
 
-			test eax, eax
+			test al, al
 			jz continue
 
 			// if returned

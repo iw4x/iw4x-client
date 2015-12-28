@@ -59,7 +59,7 @@ namespace Components
 
 			call UIFeeder::SetItemSelection
 
-			test eax, eax
+			test al, al
 			jz continue
 
 			retn
@@ -142,7 +142,7 @@ namespace Components
 			call UIFeeder::CheckFeeder
 			pop ebx
 
-			test eax, eax
+			test al, al
 			jz continueOriginal
 
 			// Get current milliseconds
@@ -200,7 +200,7 @@ namespace Components
 
 			call UIFeeder::CheckFeeder
 
-			test eax, eax
+			test al, al
 			jnz continue
 
 			mov[edi + 130h], esi
@@ -220,7 +220,7 @@ namespace Components
 
 			call UIFeeder::CheckFeeder
 
-			test eax, eax
+			test al, al
 			jnz continue
 
 			mov eax, 4C25D0h
@@ -240,7 +240,7 @@ namespace Components
 
 			call UIFeeder::CheckFeeder
 
-			test eax, eax
+			test al, al
 			jnz continue
 
 			mov eax, 685E10h

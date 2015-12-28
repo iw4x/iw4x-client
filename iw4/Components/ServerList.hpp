@@ -70,8 +70,12 @@ namespace Components
 				Network::Address Target;
 			};
 
+			bool AwatingList;
+			int AwaitTime;
+
 			int SentCount;
 			int SendCount;
+
 			Network::Address Host;
 			std::vector<ServerContainer> Servers;
 			std::mutex Mutex;
