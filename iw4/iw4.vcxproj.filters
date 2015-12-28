@@ -137,6 +137,9 @@
     <ClCompile Include="Components\Feeder.cpp">
       <Filter>Source\Components\Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Components\ServerList.cpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Steam\Interfaces\SteamUser.hpp">
@@ -248,6 +251,9 @@
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
     <ClInclude Include="Components\Feeder.hpp">
+      <Filter>Source\Components\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\ServerList.hpp">
       <Filter>Source\Components\Modules</Filter>
     </ClInclude>
   </ItemGroup>

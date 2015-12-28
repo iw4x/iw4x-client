@@ -24,7 +24,7 @@ namespace Components
 		Party::Container.Target = target;
 		Party::Container.Challenge = Utils::VA("%X", Party::Container.JoinTime);
 
-		Network::Send(Game::NS_CLIENT, Party::Container.Target, Utils::VA("getinfo %s\n", Party::Container.Challenge.data()));
+		Network::Send(Party::Container.Target, Utils::VA("getinfo %s\n", Party::Container.Challenge.data()));
 
 		Command::Execute("openmenu popup_reconnectingtoparty");
 	}
@@ -177,11 +177,14 @@ namespace Components
 				info.Set("matchtype", "0");
 			}
 
-			Network::Send(Game::NS_CLIENT, address, Utils::VA("infoResponse\n%s\n", info.Build().data()));
+			Network::Send(address, Utils::VA("infoResponse\n%s\n", info.Build().data()));
 		});
 
 		Network::Handle("infoResponse", [] (Network::Address address, std::string data)
 		{
+			OutputDebugStringA(data.data());
+			Utils::InfoString info(data);
+
 			// Handle connection
 			if (Party::Container.Valid)
 			{
@@ -189,8 +192,6 @@ namespace Components
 				{
 					// Invalidate handler for future packets
 					Party::Container.Valid = false;
-
-					Utils::InfoString info(data);
 
 					int matchType = atoi(info.Get("matchtype").data());
 
@@ -246,6 +247,8 @@ namespace Components
 					}
 				}
 			}
+
+			ServerList::Insert(address, info);
 		});
 	}
 

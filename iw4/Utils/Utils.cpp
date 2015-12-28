@@ -37,7 +37,15 @@ namespace Utils
 
 		for (std::string token; std::getline(iss, token, delim);)
 		{
-			result.push_back(std::move(token));
+			std::string _entry = std::move(token);
+
+			// Remove trailing 0x0 bytes
+			while (_entry.size() && !_entry[_entry.size() - 1])
+			{
+				_entry = _entry.substr(0, _entry.size() - 1);
+			}
+
+			result.push_back(_entry);
 		}
 
 		return result;
@@ -114,6 +122,11 @@ namespace Utils
 
 	void InfoString::Parse(std::string buffer)
 	{
+		if (buffer[0] == '\\')
+		{
+			buffer = buffer.substr(1);
+		}
+
 		std::vector<std::string> KeyValues = Utils::Explode(buffer, '\\');
 
 		for (unsigned int i = 0; i < (KeyValues.size() - 1); i+=2)

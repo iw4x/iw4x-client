@@ -66,6 +66,9 @@ namespace Game
 	LoadInitialFF_t LoadInitialFF = (LoadInitialFF_t)0x506AC0;
 	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;
 
+	LocalizeString_t LocalizeString = (LocalizeString_t)0x4FB010;
+	LocalizeMapString_t LocalizeMapString = (LocalizeMapString_t)0x44BB30;
+
 	sendOOB_t OOBPrint = (sendOOB_t)0x4AEF00;
 
 	PC_ReadToken_t PC_ReadToken = (PC_ReadToken_t)0x4ACCD0;
@@ -101,6 +104,12 @@ namespace Game
 
 	UiContext *uiContext = (UiContext *)0x62E2858;
 
+	int* arenaCount = (int*)0x62E6930;
+	mapArena_t* arenas = (mapArena_t*)0x62E6934;
+
+	int* gameTypeCount = (int*)0x62E50A0;
+	gameTypeName_t* gameTypes = (gameTypeName_t*)0x62E50A4;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
@@ -125,5 +134,44 @@ namespace Game
 		int* adr = (int*)&netadr;
 
 		OOBPrint(type, *adr, *(adr + 1), *(adr + 2), 0xFFFFFFFF, *(adr + 4), message);
+	}
+
+	const char* UI_LocalizeMapName(const char* mapName)
+	{
+		for (int i = 0; i < *arenaCount; i++)
+		{
+			if (!_stricmp(arenas[i].mapName, mapName))
+			{
+				char* uiName = &arenas[i].uiName[0];
+				if ((uiName[0] == 'M' && uiName[1] == 'P') || (uiName[0] == 'P' && uiName[1] == 'A')) // MPUI/PATCH
+				{
+					char* name = LocalizeMapString(uiName);
+					return name;
+				}
+
+				return uiName;
+			}
+		}
+
+		return mapName;
+	}
+
+	const char* UI_LocalizeGameType(const char* gameType)
+	{
+		if (gameType == 0 || *gameType == '\0')
+		{
+			return "";
+		}
+
+		for (int i = 0; i < *gameTypeCount; i++)
+		{
+			if (!_stricmp(gameTypes[i].gameType, gameType))
+			{
+				char* name = LocalizeMapString(gameTypes[i].uiName);
+				return name;
+			}
+		}
+
+		return gameType;
 	}
 }

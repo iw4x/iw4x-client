@@ -276,8 +276,6 @@ namespace Components
 
 		// some thing overwriting feeder 2's data
 		Utils::Hook::Set<BYTE>(0x4A06A9, 0xEB);
-
-		Feeder::Add(2.0f, [] () { return 10; }, [] (int index, int column) { return Utils::VA("%d : %d", index, column); }, [] (int index){});
 	}
 
 	Feeder::~Feeder()

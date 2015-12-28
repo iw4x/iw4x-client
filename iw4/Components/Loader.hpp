@@ -39,6 +39,7 @@ namespace Components
 #include "Singleton.hpp"
 #include "FileSystem.hpp"
 #include "QuickPatch.hpp"
+#include "ServerList.hpp"
 #include "AssetHandler.hpp"
 #include "Localization.hpp"
 #include "MusicalTalent.hpp"

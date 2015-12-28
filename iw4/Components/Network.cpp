@@ -21,6 +21,14 @@ namespace Components
 	{
 		return this->address.port;
 	}
+	void Network::Address::SetIP(DWORD ip)
+	{
+		*(DWORD*)this->address.ip = ip;
+	}
+	DWORD Network::Address::GetIP()
+	{
+		return *(DWORD*)this->address.ip;
+	}
 	Game::netadr_t* Network::Address::Get()
 	{
 		return &this->address;
@@ -38,6 +46,11 @@ namespace Components
 	void Network::Send(Game::netsrc_t type, Address target, std::string data)
 	{
 		Game::OOBPrintT(type, *target.Get(), data.data());
+	}
+
+	void Network::Send(Address target, std::string data)
+	{
+		Network::Send(Game::netsrc_t::NS_CLIENT, target, data);
 	}
 
 	int Network::PacketInterceptionHandler(const char* packet)

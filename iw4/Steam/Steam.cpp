@@ -23,8 +23,6 @@ namespace Steam
 
 	void Callbacks::RegisterCallResult(uint64_t call, Callbacks::Base* result)
 	{
-		OutputDebugStringA(::Utils::VA("Registering result: %d", result->GetICallback()));
-
 		Callbacks::ResultHandlers[call] = result;
 	}
 

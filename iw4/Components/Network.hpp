@@ -16,6 +16,10 @@ namespace Components
 
 			void SetPort(unsigned short port);
 			unsigned short GetPort();
+
+			void SetIP(DWORD ip);
+			DWORD GetIP();
+
 			Game::netadr_t* Get();
 			const char* GetString();
 
@@ -31,6 +35,7 @@ namespace Components
 		const char* GetName() { return "Network"; };
 
 		static void Handle(std::string packet, Callback callback);
+		static void Send(Address target, std::string data);
 		static void Send(Game::netsrc_t type, Address target, std::string data);
 
 	private:

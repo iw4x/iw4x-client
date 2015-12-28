@@ -148,6 +148,12 @@ namespace Game
 	typedef void* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
 
+	typedef char* (__cdecl * LocalizeString_t)(char*, char*);
+	extern LocalizeString_t LocalizeString;
+
+	typedef char* (__cdecl * LocalizeMapString_t)(char*);
+	extern LocalizeMapString_t LocalizeMapString;
+
 	typedef void(__cdecl* sendOOB_t)(int, int, int, int, int, int, const char*);
 	extern sendOOB_t OOBPrint;
 
@@ -199,7 +205,15 @@ namespace Game
 
 	extern UiContext *uiContext;
 
+	extern int* arenaCount;
+	extern mapArena_t* arenas;
+
+	extern int* gameTypeCount;
+	extern gameTypeName_t* gameTypes;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	void OOBPrintT(int type, netadr_t netadr, const char* message);
+	const char* UI_LocalizeMapName(const char* mapName);
+	const char* UI_LocalizeGameType(const char* gameType);
 }

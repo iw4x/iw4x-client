@@ -28,7 +28,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Normal|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>iw4m</TargetName>
+    <TargetName>iw4x</TargetName>
     <OutDir>$(SolutionDir)$(Configuration)\Bin\</OutDir>
     <IntDir>$(SolutionDir)$(Configuration)\Obj\</IntDir>
   </PropertyGroup>
@@ -75,6 +75,7 @@
     <ClInclude Include="Components\QuickPatch.hpp" />
     <ClInclude Include="Components\RawFiles.hpp" />
     <ClInclude Include="Components\Renderer.hpp" />
+    <ClInclude Include="Components\ServerList.hpp" />
     <ClInclude Include="Components\Singleton.hpp" />
     <ClInclude Include="Components\Window.hpp" />
     <ClInclude Include="Game\Functions.hpp" />
@@ -114,6 +115,7 @@
     <ClCompile Include="Components\QuickPatch.cpp" />
     <ClCompile Include="Components\RawFiles.cpp" />
     <ClCompile Include="Components\Renderer.cpp" />
+    <ClCompile Include="Components\ServerList.cpp" />
     <ClCompile Include="Components\Singleton.cpp" />
     <ClCompile Include="Components\Window.cpp" />
     <ClCompile Include="Game\Functions.cpp" />

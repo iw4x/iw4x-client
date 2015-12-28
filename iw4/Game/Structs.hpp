@@ -922,4 +922,17 @@ namespace Game
 		XNADDR hostAddress;
 		XNKEY keyExchangeKey;
 	};
+
+	struct mapArena_t
+	{
+		char uiName[32];
+		char mapName[16];
+		char pad[2768];
+	};
+
+	struct gameTypeName_t
+	{
+		char gameType[12];
+		char uiName[32];
+	};
 }
