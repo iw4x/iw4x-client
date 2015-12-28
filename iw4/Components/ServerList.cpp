@@ -139,40 +139,27 @@ namespace Components
 
 			ServerList::RefreshContainer.Mutex.lock();
 
-			// Is this safe? If server ip/port is encoded as '\', it might fail
-			// TODO: Rather parse six bytes and skip the seventh
-			auto servers = Utils::Explode(data, '\\');
+			ServerList::MasterEntry* entry = (ServerList::MasterEntry*)data.data();
 
-			if (servers.size())
+			for (int i = 0; !entry[i].IsEndToken() && entry[i].HasSeparator(); i++)
 			{
-				if (servers[servers.size() - 1] == "EOT")
-				{
-					Logger::Print("We got an invalid response from the master. Trying to parse it anyways...\n");
-				}
+				Network::Address serverAddr = address;
+				serverAddr.SetIP(entry[i].IP);
+				serverAddr.SetPort(entry[i].Port);
+				serverAddr.Get()->type = Game::NA_IP;
 
-				for (unsigned int i = 0; i < servers.size() - 1; i++)
-				{
-					const char* server = servers[i].data();
+				ServerList::Container::ServerContainer container;
+				container.SendTime = Game::Com_Milliseconds();
+				container.Challenge = Utils::VA("%d", container.SendTime);
+				container.Sent = true;
+				container.Target = serverAddr;
 
-					DWORD ip = *(DWORD*)server;
-					uint16_t port = *(uint16_t*)(server + 4);
+				ServerList::RefreshContainer.Servers.push_back(container);
 
-					Network::Address serverAddr = address;
-					serverAddr.SetIP(ip);
-					serverAddr.SetPort(port);
-					serverAddr.Get()->type = Game::NA_IP;
-
-					ServerList::Container::ServerContainer container;
-					container.SendTime = Game::Com_Milliseconds();
-					container.Challenge = Utils::VA("%d", container.SendTime);
-					container.Sent = true;
-					container.Target = serverAddr;
-
-					ServerList::RefreshContainer.Servers.push_back(container);
-					
-					Network::Send(container.Target, Utils::VA("getinfo %s\n", container.Challenge.data()));
-				}
+				Network::Send(container.Target, Utils::VA("getinfo %s\n", container.Challenge.data()));
 			}
+
+			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.Servers.size());
 
 			ServerList::RefreshContainer.Mutex.unlock();
 		});

@@ -37,6 +37,29 @@ namespace Components
 			Ping,
 		};
 
+#pragma pack(push, 1)
+		union MasterEntry
+		{
+			char Token[7];
+			struct
+			{
+				uint32_t IP;
+				uint16_t Port;
+			};
+
+			bool IsEndToken()
+			{
+				// End of transmission token
+				return (Token[0] == 'E' && Token[1] == 'O' && Token[2] == 'T');
+			}
+
+			bool HasSeparator()
+			{
+				return (Token[6] == '\\');
+			}
+		};
+#pragma pack(pop)
+
 		struct Container
 		{
 			struct ServerContainer
