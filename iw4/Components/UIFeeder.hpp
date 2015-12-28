@@ -1,6 +1,6 @@
 namespace Components
 {
-	class Feeder : public Component
+	class UIFeeder : public Component
 	{
 	public:
 		typedef int(__cdecl * GetItemCount_t)();
@@ -14,16 +14,16 @@ namespace Components
 			Select_t Select;
 		};
 
-		Feeder();
-		~Feeder();
-		const char* GetName() { return "Feeder"; };
+		UIFeeder();
+		~UIFeeder();
+		const char* GetName() { return "UIFeeder"; };
 
 		static void Add(float feeder, GetItemCount_t itemCountCb, GetItemText_t itemTextCb, Select_t selectCb);
 
 	private:
 		struct Container
 		{
-			float Num;
+			float Feeder;
 			int Index;
 			int Column;
 		};

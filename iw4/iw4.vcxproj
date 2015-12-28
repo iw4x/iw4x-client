@@ -61,7 +61,6 @@
     <ClInclude Include="Components\Dedicated.hpp" />
     <ClInclude Include="Components\Dvar.hpp" />
     <ClInclude Include="Components\FastFiles.hpp" />
-    <ClInclude Include="Components\Feeder.hpp" />
     <ClInclude Include="Components\FileSystem.hpp" />
     <ClInclude Include="Components\Loader.hpp" />
     <ClInclude Include="Components\Localization.hpp" />
@@ -77,6 +76,8 @@
     <ClInclude Include="Components\Renderer.hpp" />
     <ClInclude Include="Components\ServerList.hpp" />
     <ClInclude Include="Components\Singleton.hpp" />
+    <ClInclude Include="Components\UIFeeder.hpp" />
+    <ClInclude Include="Components\UIScript.hpp" />
     <ClInclude Include="Components\Window.hpp" />
     <ClInclude Include="Game\Functions.hpp" />
     <ClInclude Include="Game\Structs.hpp" />
@@ -101,7 +102,6 @@
     <ClCompile Include="Components\Dedicated.cpp" />
     <ClCompile Include="Components\Dvar.cpp" />
     <ClCompile Include="Components\FastFiles.cpp" />
-    <ClCompile Include="Components\Feeder.cpp" />
     <ClCompile Include="Components\FileSystem.cpp" />
     <ClCompile Include="Components\Loader.cpp" />
     <ClCompile Include="Components\Localization.cpp" />
@@ -117,6 +117,8 @@
     <ClCompile Include="Components\Renderer.cpp" />
     <ClCompile Include="Components\ServerList.cpp" />
     <ClCompile Include="Components\Singleton.cpp" />
+    <ClCompile Include="Components\UIFeeder.cpp" />
+    <ClCompile Include="Components\UIScript.cpp" />
     <ClCompile Include="Components\Window.cpp" />
     <ClCompile Include="Game\Functions.cpp" />
     <ClCompile Include="Steam\Interfaces\SteamFriends.cpp" />

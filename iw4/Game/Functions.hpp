@@ -24,6 +24,9 @@ namespace Game
 	typedef int(__cdecl * Com_Milliseconds_t)(void);
 	extern Com_Milliseconds_t Com_Milliseconds;
 
+	typedef char* (__cdecl * Com_ParseExt_t)(const char**);
+	extern Com_ParseExt_t Com_ParseExt;
+
 	typedef XAssetHeader (__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* filename);
 	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 

@@ -12,13 +12,13 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		DWORD oldProtect;
 		VirtualProtect(GetModuleHandle(NULL), 0x6C73000, PAGE_EXECUTE_READWRITE, &oldProtect);
 
-		EntryPointHook.Initialize(0x6BAC0F, static_cast<void __declspec(naked)(*)()>([] ()
+		EntryPointHook.Initialize(0x6BAC0F, [] ()
 		{
 			EntryPointHook.Uninstall();
 			Components::Loader::Initialize();
 			__asm jmp EntryPointHook.Place
 
-		}))->Install();
+		})->Install();
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{

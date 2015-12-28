@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	int ServerList::CurrentServer = 0;
+	unsigned int ServerList::CurrentServer = 0;
 	ServerList::Container ServerList::RefreshContainer;
 	std::vector<ServerList::ServerInfo> ServerList::OnlineList;
 
@@ -13,7 +13,7 @@ namespace Components
 
 	const char* ServerList::GetServerText(int index, int column)
 	{
-		if (index >= (int)ServerList::OnlineList.size()) return "";
+		if ((unsigned int)index >= ServerList::OnlineList.size()) return "";
 
 		ServerList::ServerInfo* Server = &ServerList::OnlineList[index];
 
@@ -60,7 +60,7 @@ namespace Components
 
 	void ServerList::SelectServer(int index)
 	{
-		ServerList::CurrentServer = index;
+		ServerList::CurrentServer = (unsigned int)index;
 	}
 
 	void ServerList::Refresh()
@@ -113,6 +113,7 @@ namespace Components
 				server.MaxClients = atoi(info.Get("sv_maxclients").data());
 				server.Password = 0; // No info yet
 				server.Ping = (Game::Com_Milliseconds() - i->SendTime);
+				server.Addr = address;
 
 				ServerList::OnlineList.push_back(server);
 
@@ -128,9 +129,6 @@ namespace Components
 	ServerList::ServerList()
 	{
 		ServerList::OnlineList.clear();
-
-		// Add server list feeder
-		Feeder::Add(2.0f, ServerList::GetServerCount, ServerList::GetServerText, ServerList::SelectServer);
 
 		Network::Handle("getServersResponse", [] (Network::Address address, std::string data)
 		{
@@ -179,13 +177,27 @@ namespace Components
 			ServerList::RefreshContainer.Mutex.unlock();
 		});
 
-		Command::Add("refreshList", [] (Command::Params params)
-		{
-			ServerList::Refresh();
-		});
+		// Set default masterServerName + port and save it 
+		Utils::Hook::Set<const char*>(0x60AD92, "localhost");
+		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_FLAG_SAVED); // masterServerName
+		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_FLAG_SAVED); // masterPort
 
-		// Temporary overwriting
-		strcpy((char*)0x6D9CBC, "localhost");
+		// Add server list feeder
+		UIFeeder::Add(2.0f, ServerList::GetServerCount, ServerList::GetServerText, ServerList::SelectServer);
+
+		// Add required UIScripts
+		UIScript::Add("RefreshServers", ServerList::Refresh);
+		UIScript::Add("JoinServer", [] ()
+		{
+			if (ServerList::OnlineList.size() > ServerList::CurrentServer)
+			{
+				Party::Connect(ServerList::OnlineList[ServerList::CurrentServer].Addr);
+			}
+		});
+		UIScript::Add("ServerSort", [] (UIScript::Token token)
+		{
+			Logger::Print("Server list sorting by token: %d\n", token.Get<int>());
+		});
 	}
 
 	ServerList::~ServerList()

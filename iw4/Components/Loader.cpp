@@ -13,7 +13,6 @@ namespace Components
 		Loader::Register(new Menus());
 		Loader::Register(new Party());
 		Loader::Register(new Colors());
-		Loader::Register(new Feeder());
 		Loader::Register(new Logger());
 		Loader::Register(new Window());
 		Loader::Register(new Command());
@@ -21,6 +20,8 @@ namespace Components
 		Loader::Register(new Network());
 		Loader::Register(new RawFiles());
 		Loader::Register(new Renderer());
+		Loader::Register(new UIFeeder());
+		Loader::Register(new UIScript());
 		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
 		Loader::Register(new Singleton());

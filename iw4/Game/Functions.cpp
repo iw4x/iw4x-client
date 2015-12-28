@@ -13,6 +13,7 @@ namespace Game
 	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
 	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
 	Com_Milliseconds_t Com_Milliseconds = (Com_Milliseconds_t)0x42A660;
+	Com_ParseExt_t Com_ParseExt = (Com_ParseExt_t)0x474D60;
 
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
 	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = (DB_GetXAssetNameHandler_t*)0x799328;

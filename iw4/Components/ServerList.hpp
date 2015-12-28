@@ -57,7 +57,7 @@ namespace Components
 		static const char* GetServerText(int index, int column);
 		static void SelectServer(int index);
 
-		static int CurrentServer;
+		static unsigned int CurrentServer;
 		static Container RefreshContainer;
 		static std::vector<ServerInfo> OnlineList;
 	};

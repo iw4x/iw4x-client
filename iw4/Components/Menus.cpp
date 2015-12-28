@@ -24,11 +24,11 @@ namespace Components
 		return i;
 	}
 
-	Game::script_t* Menus::LoadMenuScript(const char* name, std::string buffer)
+	Game::script_t* Menus::LoadMenuScript(std::string name, std::string buffer)
 	{
 		Game::script_t* script = Game::Script_Alloc(sizeof(Game::script_t) + 1 + buffer.length());
 
-		strcpy_s(script->filename, sizeof(script->filename), name);
+		strcpy_s(script->filename, sizeof(script->filename), name.data());
 		script->buffer = (char*)(script + 1);
 
 		*((char*)(script + 1) + buffer.length()) = '\0';
@@ -51,7 +51,7 @@ namespace Components
 		return script;
 	}
 
-	int Menus::LoadMenuSource(const char* name, std::string buffer)
+	int Menus::LoadMenuSource(std::string name, std::string buffer)
 	{
 		int handle = Menus::ReserveSourceHandle();
 		if (!Menus::IsValidSourceHandle(handle)) return 0; // No free source slot!
@@ -156,54 +156,55 @@ namespace Components
 		return menu;
 	}
 
-	std::vector<Game::menuDef_t*> Menus::LoadMenu(Game::menuDef_t* menudef)
+	std::vector<Game::menuDef_t*> Menus::LoadMenu(std::string menu)
 	{
 		std::vector<Game::menuDef_t*> menus;
-		FileSystem::File menuFile(Utils::VA("ui_mp\\%s.menu", menudef->window.name));
+		FileSystem::File menuFile(menu);
 
 		if (menuFile.Exists())
 		{
 			Game::pc_token_t token;
-			int handle = Menus::LoadMenuSource(menudef->window.name, menuFile.GetBuffer());
-			if (!Menus::IsValidSourceHandle(handle))
+			int handle = Menus::LoadMenuSource(menu, menuFile.GetBuffer());
+
+			if (Menus::IsValidSourceHandle(handle))
 			{
-				menus.push_back(menudef);
-				return menus;
-			}
-
-			while (true)
-			{
-				ZeroMemory(&token, sizeof(token));
-
-				if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] == '}')
+				while (true)
 				{
-					break;
-				}
+					ZeroMemory(&token, sizeof(token));
 
-				if (!_stricmp(token.string, "loadmenu"))
-				{
-					Game::PC_ReadTokenHandle(handle, &token);
-
-					// Ugly, but does the job ;)
-					Game::menuDef_t _temp;
-					_temp.window.name = token.string;
-
-					std::vector<Game::menuDef_t*> newMenus = Menus::LoadMenu(&_temp);
-
-					for (auto newMenu : newMenus)
+					if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] == '}')
 					{
-						menus.push_back(newMenu);
+						break;
+					}
+
+					if (!_stricmp(token.string, "loadmenu"))
+					{
+						Game::PC_ReadTokenHandle(handle, &token);
+
+						std::vector<Game::menuDef_t*> newMenus = Menus::LoadMenu(Utils::VA("ui_mp\\%s.menu", token.string));
+
+						for (auto newMenu : newMenus)
+						{
+							menus.push_back(newMenu);
+						}
+					}
+
+					if (!_stricmp(token.string, "menudef"))
+					{
+						menus.push_back(Menus::ParseMenu(handle));
 					}
 				}
 
-				if (!_stricmp(token.string, "menudef"))
-				{
-					menus.push_back(Menus::ParseMenu(handle));
-				}
+				Menus::FreeMenuSource(handle);
 			}
-
-			Menus::FreeMenuSource(handle);
 		}
+
+		return menus;
+	}
+
+	std::vector<Game::menuDef_t*> Menus::LoadMenu(Game::menuDef_t* menudef)
+	{
+		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(Utils::VA("ui_mp\\%s.menu", menudef->window.name));
 
 		if (!menus.size())
 		{
@@ -211,6 +212,25 @@ namespace Components
 		}
 
 		return menus;
+	}
+
+	Game::MenuList* Menus::LoadScriptMenu(const char* menu)
+	{
+		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(menu);
+		if (!menus.size()) return nullptr;
+
+		// Allocate new menu list
+		Game::MenuList* newList = (Game::MenuList*)calloc(1, sizeof(Game::MenuList));
+		newList->name = _strdup(menu);
+		newList->menus = (Game::menuDef_t **)calloc(menus.size(), sizeof(Game::menuDef_t *));
+		newList->menuCount = menus.size();
+
+		// Copy new menus
+		memcpy(newList->menus, menus.data(), menus.size() * sizeof(Game::menuDef_t *));
+
+		Menus::MenuListList.push_back(newList);
+
+		return newList;
 	}
 
 	Game::MenuList* Menus::LoadMenuList(Game::MenuList* menuList)
@@ -401,8 +421,21 @@ namespace Components
 		
 		if (menuList)
 		{
-			// Don't parse scriptmenus for now!
-			if (strcmp(menuList->menus[0]->window.name, "default_menu") && !Utils::EndsWith(filename, ".menu"))
+			// Parse scriptmenus!
+			if (!strcmp(menuList->menus[0]->window.name, "default_menu") || Utils::EndsWith(filename, ".menu"))
+			{
+				if (FileSystem::File(filename).Exists())
+				{
+					header.menuList = Menus::LoadScriptMenu(filename);
+
+					// Reset, if we didn't find scriptmenus
+					if (!header.menuList)
+					{
+						header.menuList = menuList;
+					}
+				}
+			}
+			else
 			{
 				header.menuList = Menus::LoadMenuList(menuList);
 			}

@@ -182,7 +182,6 @@ namespace Components
 
 		Network::Handle("infoResponse", [] (Network::Address address, std::string data)
 		{
-			OutputDebugStringA(data.data());
 			Utils::InfoString info(data);
 
 			// Handle connection
@@ -198,10 +197,6 @@ namespace Components
 					if (info.Get("challenge") != Party::Container.Challenge)
 					{
 						Party::ConnectError("Invalid join response: Challenge mismatch.");
-					}
-					else if (matchType < 0 || 2 < matchType)
-					{
-						Party::ConnectError("Invalid join response: Unknown matchtype");
 					}
 					else if (!matchType)
 					{
@@ -242,8 +237,7 @@ namespace Components
 					}
 					else
 					{
-						// WAT?
-						OutputDebugStringA("WAT?");
+						Party::ConnectError("Invalid join response: Unknown matchtype");
 					}
 				}
 			}

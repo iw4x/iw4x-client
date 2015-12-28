@@ -10,6 +10,11 @@ namespace Utils
 		}
 	}
 
+	Hook* Hook::Initialize(DWORD place, void(*stub)(), bool useJump)
+	{
+		return Hook::Initialize(place, (void*)stub, useJump);
+	}
+
 	Hook* Hook::Initialize(DWORD place, void* stub, bool useJump)
 	{
 		return Hook::Initialize((void*)place, stub, useJump);
