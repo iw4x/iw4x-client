@@ -28,6 +28,75 @@ namespace Components
 		Utils::Hook::Call<void>(0x4F84C0);
 	}
 
+	void Dedicated::MapRotate()
+	{
+		Logger::Print("Rotating map...\n");
+
+		// if nothing, just restart
+		if (!Dvar::Var("sv_mapRotation").Get<std::string>().size())
+		{
+			Logger::Print("No rotation defined, restarting map.\n");
+			Command::Execute(Utils::VA("map %s", Dvar::Var("mapname").Get<const char*>()), true);
+			return;
+		}
+
+		// first, check if the string contains nothing
+		if (!Dvar::Var("sv_mapRotationCurrent").Get<std::string>().size())
+		{
+			Logger::Print("Current map rotation has finished, reloading...\n");
+			Dvar::Var("sv_mapRotationCurrent").Set(Dvar::Var("sv_mapRotation").Get<const char*>());
+		}
+
+		std::string rotation = Dvar::Var("sv_mapRotationCurrent").Get<std::string>();
+
+		// Ignores " for now, too lazy to implement
+		auto tokens = Utils::Explode(rotation, ' ');
+
+		for (unsigned int i = 0; i < (tokens.size() - 1); i += 2)
+		{
+			if (i + 1 >= tokens.size())
+			{
+				Dvar::Var("sv_mapRotationCurrent").Set("");
+				Command::Execute("map_rotate", true);
+				return;
+			}
+
+			std::string key = tokens[i];
+			std::string value = tokens[i + 1];
+
+			if (key == "map")
+			{
+				// Rebuild map rotation string
+				rotation.clear();
+				for (unsigned int j = (i + 2); j < tokens.size(); j++)
+				{
+					if (j != (i + 2)) rotation += " ";
+					rotation += tokens[j];
+				}
+
+				Dvar::Var("sv_mapRotationCurrent").Set(rotation);
+
+				Logger::Print("Loading new map: %s\n", value.data());
+				Command::Execute(Utils::VA("map %s", value.data()), true);
+				break;
+			}
+			else if (key == "gametype")
+			{
+				Logger::Print("Applying new gametype: %s\n", value.data());
+				Dvar::Var("g_gametype").Set(value);
+			}
+			else if (key == "fs_game")
+			{
+				Logger::Print("Applying new mod: %s\n", value.data());
+				Dvar::Var("fs_game").Set(value);
+			}
+			else
+			{
+				Logger::Print("Unsupported maprotation key '%s', motherfucker!\n", key.data());
+			}
+		}
+	}
+
 	Dedicated::Dedicated()
 	{
 		Dedicated::Dedi = Dvar::Register<int>("dedicated", 0, 0, 2, Game::dvar_flag::DVAR_FLAG_SERVERINFO | Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED, "Start as dedicated");
@@ -86,6 +155,9 @@ namespace Components
 			Utils::Hook::Nop(0x4B4EEF, 5);          // same as above
 			Utils::Hook::Nop(0x64CF77, 5);          // function detecting video card, causes Direct3DCreate9 to be called
 			Utils::Hook::Nop(0x60BC52, 0x15);       // recommended settings check
+
+			// Map rotation
+			Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
 
 			// isHost script call return 0
 			Utils::Hook::Set<DWORD>(0x5DEC04, 0);

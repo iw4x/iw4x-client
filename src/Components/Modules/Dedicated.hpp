@@ -11,6 +11,8 @@ namespace Components
 	private:
 		static Dvar::Var Dedi;
 
+		static void MapRotate();
+
 		static void InitDedicatedServer();
 	};
 }

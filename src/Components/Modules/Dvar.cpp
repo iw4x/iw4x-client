@@ -69,6 +69,10 @@ namespace Components
 
 		return false;
 	}
+	template <> std::string Dvar::Var::Get()
+	{
+		return this->Get<const char*>();
+	}
 
 	void Dvar::Var::Set(char* string)
 	{
