@@ -887,6 +887,12 @@ namespace Game
 		XAssetHeader header;
 	};
 
+	struct XBlock
+	{
+		char *data;
+		unsigned int size;
+	};
+
 	struct XAssetEntry
 	{
 		XAsset asset;

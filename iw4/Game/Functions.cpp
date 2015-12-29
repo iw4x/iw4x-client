@@ -111,6 +111,8 @@ namespace Game
 	int* gameTypeCount = (int*)0x62E50A0;
 	gameTypeName_t* gameTypes = (gameTypeName_t*)0x62E50A4;
 
+	XBlock** g_streamBlocks = (XBlock**)0x16E554C;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();

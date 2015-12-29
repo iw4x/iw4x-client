@@ -13,8 +13,7 @@ namespace Components
 		static void OnFind(Game::XAssetType type, Callback callback);
 		static void OnLoad(RestrictCallback callback);
 
-		static const bool Restrict;
-		static const bool Load;
+		static void Relocate(void* start, void* to, DWORD size = 4);
 
 	private:
 		static bool BypassState;
@@ -24,7 +23,11 @@ namespace Components
 		static void FindAssetStub();
 		static void AddAssetStub();
 
+		static void OffsetToAlias(FastFiles::Offset* offset);
+
 		static std::map<Game::XAssetType, Callback> TypeCallbacks;
 		static std::vector<RestrictCallback> RestrictCallbacks;
+
+		static std::map<void*, void*> Relocations;
 	};
 }

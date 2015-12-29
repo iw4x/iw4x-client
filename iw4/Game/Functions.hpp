@@ -214,6 +214,8 @@ namespace Game
 	extern int* gameTypeCount;
 	extern gameTypeName_t* gameTypes;
 
+	extern XBlock** g_streamBlocks;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	void OOBPrintT(int type, netadr_t netadr, const char* message);

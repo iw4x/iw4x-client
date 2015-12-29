@@ -6,6 +6,8 @@ namespace Components
 	std::map<Game::XAssetType, AssetHandler::Callback> AssetHandler::TypeCallbacks;
 	std::vector<AssetHandler::RestrictCallback> AssetHandler::RestrictCallbacks;
 
+	std::map<void*, void*> AssetHandler::Relocations;
+
 	Game::XAssetHeader AssetHandler::FindAsset(Game::XAssetType type, const char* filename)
 	{
 		Game::XAssetHeader header = { 0 };
@@ -98,11 +100,6 @@ namespace Components
 			test al, al
 			jz doNotLoad
 
-// 			push [esp + 8]
-// 			push [esp + 8]
-// 			call DoBeforeLoadAsset
-// 			add esp, 08h
-
 			mov eax, [esp + 8]
 			sub esp, 14h
 			mov ecx, 5BB657h
@@ -124,10 +121,33 @@ namespace Components
 		AssetHandler::RestrictCallbacks.push_back(callback);
 	}
 
+	void AssetHandler::Relocate(void* start, void* to, DWORD size)
+	{
+		for (DWORD i = 0; i < size; i += 4)
+		{
+			AssetHandler::Relocations[reinterpret_cast<char*>(start) + i] = reinterpret_cast<char*>(to) + i;
+		}
+	}
+
+	void AssetHandler::OffsetToAlias(FastFiles::Offset* offset)
+	{
+		offset->fullPointer = *reinterpret_cast<void**>((*Game::g_streamBlocks)[offset->GetDecrementedStream()].data + offset->GetDecrementedPointer());
+
+		if (AssetHandler::Relocations.find(offset->fullPointer) != AssetHandler::Relocations.end())
+		{
+			offset->fullPointer = AssetHandler::Relocations[offset->fullPointer];
+		}
+	}
+
 	AssetHandler::AssetHandler()
 	{
+		// DB_FindXAssetHeader
 		Utils::Hook(Game::DB_FindXAssetHeader, AssetHandler::FindAssetStub).Install()->Quick();
 
+		// DB_ConvertOffsetToAlias
+		Utils::Hook(0x4FDFA0, AssetHandler::OffsetToAlias, HOOK_JUMP).Install()->Quick();
+
+		// DB_AddXAsset
 		Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).Install()->Quick();
 	}
 
