@@ -24,7 +24,6 @@ namespace Components
 		Loader::Register(new UIScript());
 		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
-		Loader::Register(new ConnectProtocol());
 		Loader::Register(new Singleton());
 		Loader::Register(new FileSystem());
 		Loader::Register(new QuickPatch());
@@ -32,6 +31,7 @@ namespace Components
 		Loader::Register(new AssetHandler());
 		Loader::Register(new Localization());
 		Loader::Register(new MusicalTalent());
+		Loader::Register(new ConnectProtocol());
 	}
 
 	void Loader::Uninitialize()
