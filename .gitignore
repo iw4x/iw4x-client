@@ -57,7 +57,7 @@ Temporary Items
 
 # Additional stuff
 build
-premake5.exe
+#premake5.exe
 
 # IDA
 # =========================
