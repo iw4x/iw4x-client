@@ -2,9 +2,9 @@
 
 namespace Components
 {
-	HWND Window::MainWindow;
 	Dvar::Var Window::NoBorder;
-	BOOL Window::CursorVisible;
+	HWND Window::MainWindow = 0;
+	BOOL Window::CursorVisible = TRUE;
 
 	void __declspec(naked) Window::StyleHookStub()
 	{
