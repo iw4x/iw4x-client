@@ -10,6 +10,17 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
+		// protocol version (workaround for hacks)
+		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
+
+		// protocol command
+		Utils::Hook::Set<int>(0x4D36A9, PROTOCOL);
+		Utils::Hook::Set<int>(0x4D36AE, PROTOCOL);
+		Utils::Hook::Set<int>(0x4D36B3, PROTOCOL);
+
+		// internal version is 99, most servers should accept it
+		Utils::Hook::Set<int>(0x463C61, 208);
+
 		// remove system pre-init stuff (improper quit, disk full)
 		Utils::Hook::Set<BYTE>(0x411350, 0xC3);
 

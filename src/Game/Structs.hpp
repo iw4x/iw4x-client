@@ -1,3 +1,5 @@
+#define PROTOCOL 0x92
+
 namespace Game
 {
 	typedef enum
