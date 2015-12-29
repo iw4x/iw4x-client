@@ -24,6 +24,7 @@ namespace Components
 		Loader::Register(new UIScript());
 		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
+		Loader::Register(new ConnectProtocol());
 		Loader::Register(new Singleton());
 		Loader::Register(new FileSystem());
 		Loader::Register(new QuickPatch());

@@ -44,3 +44,4 @@ namespace Components
 #include "Modules\AssetHandler.hpp"
 #include "Modules\Localization.hpp"
 #include "Modules\MusicalTalent.hpp"
+#include "Modules\ConnectProtocol.hpp"
