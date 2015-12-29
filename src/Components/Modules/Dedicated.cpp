@@ -31,6 +31,12 @@ namespace Components
 
 	void Dedicated::MapRotate()
 	{
+		if (Dvar::Var("party_host").Get<bool>())
+		{
+			Logger::Print("Not performing map rotation as we are hosting a party!\n");
+			return;
+		}
+
 		Logger::Print("Rotating map...\n");
 
 		// if nothing, just restart
