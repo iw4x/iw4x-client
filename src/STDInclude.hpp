@@ -10,10 +10,6 @@
 #include <timeapi.h>
 #include <WinSock2.h>
 
-#pragma comment(lib, "Winmm.lib")
-#pragma comment(lib, "Crypt32.lib")
-#pragma comment(lib, "Ws2_32.lib")
-
 #include <map>
 #include <mutex>
 #include <string>
@@ -32,3 +28,8 @@
 #include "Game\Functions.hpp"
 
 #include "Components\Loader.hpp"
+
+// Libraries
+#pragma comment(lib, "Winmm.lib")
+#pragma comment(lib, "Crypt32.lib")
+#pragma comment(lib, "Ws2_32.lib")
