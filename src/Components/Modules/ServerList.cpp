@@ -84,7 +84,7 @@ namespace Components
 
 		Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
 
-		Network::Send(ServerList::RefreshContainer.Host, "getservers IW4 145 full empty");
+		Network::Send(ServerList::RefreshContainer.Host, Utils::VA("getservers IW4 %i full empty", PROTOCOL));
 		//Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
 	}
 
@@ -129,7 +129,10 @@ namespace Components
 					}
 				}
 
-				ServerList::OnlineList.push_back(server);
+				if (server.MatchType)
+				{
+					ServerList::OnlineList.push_back(server);
+				}
 
 				ServerList::RefreshContainer.Servers.erase(i);
 

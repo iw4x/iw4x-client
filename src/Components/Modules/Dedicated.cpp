@@ -3,6 +3,7 @@
 namespace Components
 {
 	Dvar::Var Dedicated::Dedi;
+	std::vector<Dedicated::Callback> Dedicated::FrameCallbacks;
 
 	bool Dedicated::IsDedicated()
 	{
@@ -97,6 +98,37 @@ namespace Components
 		}
 	}
 
+	void Dedicated::Heartbeat()
+	{
+		int masterPort = Dvar::Var("masterPort").Get<int>();
+		const char* masterServerName = Dvar::Var("masterServerName").Get<const char*>();
+
+		Network::Address master(Utils::VA("%s:%u", masterServerName, masterPort));
+
+		Logger::Print("Sending heartbeat to master: %s:%u\n", masterServerName, masterPort);
+
+		Network::Send(master, Utils::VA("heartbeat %s\n", "IW4"));
+	}
+
+	void Dedicated::OnFrame(Dedicated::Callback callback)
+	{
+		Dedicated::FrameCallbacks.push_back(callback);
+	}
+
+	void Dedicated::FrameStub()
+	{
+		for (auto callback : Dedicated::FrameCallbacks)
+		{
+			callback();
+		}
+
+		__asm
+		{
+			mov eax, 5A8E80h
+			call eax
+		}
+	}
+
 	Dedicated::Dedicated()
 	{
 		Dedicated::Dedi = Dvar::Register<int>("dedicated", 0, 0, 2, Game::dvar_flag::DVAR_FLAG_SERVERINFO | Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED, "Start as dedicated");
@@ -159,11 +191,11 @@ namespace Components
 			// Map rotation
 			Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
 
+			// Dedicated frame handler
+			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).Install()->Quick();
+
 			// isHost script call return 0
 			Utils::Hook::Set<DWORD>(0x5DEC04, 0);
-
-			// map_rotate func
-			//*(DWORD*)0x4152E8 = (DWORD)SV_MapRotate_f;
 
 			// sv_network_fps max 1000, and uncheat
 			Utils::Hook::Set<BYTE>(0x4D3C67, 0); // ?
@@ -180,6 +212,23 @@ namespace Components
 
 			// stop saving a config_mp.cfg
 			Utils::Hook::Set<BYTE>(0x60B240, 0xC3);
+
+			// Heartbeats
+			Dedicated::OnFrame([] ()
+			{
+				static int LastHeartbeat = 0;
+
+				if (Dvar::Var("sv_maxclients").Get<int>() > 0 && !LastHeartbeat || (Game::Com_Milliseconds() - LastHeartbeat) > 120 * 1000)
+				{
+					LastHeartbeat = Game::Com_Milliseconds();
+					Dedicated::Heartbeat();
+				}
+			});
 		}
+	}
+
+	Dedicated::~Dedicated()
+	{
+		Dedicated::FrameCallbacks.clear();
 	}
 }

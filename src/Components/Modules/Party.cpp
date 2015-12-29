@@ -140,7 +140,14 @@ namespace Components
 		{
 			int clientCount = 0;
 
-			for (int i = 0; i < *Game::svs_numclients; i++)
+			int maxClients = *Game::svs_numclients;
+
+			if (!maxClients)
+			{
+				maxClients = Dvar::Var("sv_maxclients").Get<int>();
+			}
+
+			for (int i = 0; i < maxClients; i++)
 			{
 				if (Game::svs_clients[i].state >= 3)
 				{
@@ -157,7 +164,9 @@ namespace Components
 			info.Set("fs_game", Dvar::Var("fs_game").Get<const char*>());
 			info.Set("xuid", Utils::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
 			info.Set("clients", Utils::VA("%i", clientCount));
-			info.Set("sv_maxclients", Utils::VA("%i", *Game::svs_numclients));
+			info.Set("sv_maxclients", Utils::VA("%i", maxClients));
+			info.Set("protocol", Utils::VA("%i", PROTOCOL));
+			info.Set("checksum", Utils::VA("%d", Game::Com_Milliseconds()));
 
 			// Set matchtype
 			// 0 - No match, connecting not possible
@@ -177,7 +186,7 @@ namespace Components
 				info.Set("matchtype", "0");
 			}
 
-			Network::Send(address, Utils::VA("infoResponse\n%s\n", info.Build().data()));
+			Network::Send(address, Utils::VA("infoResponse\n\\%s\n", info.Build().data()));
 		});
 
 		Network::Handle("infoResponse", [] (Network::Address address, std::string data)

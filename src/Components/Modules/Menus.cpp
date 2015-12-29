@@ -475,6 +475,8 @@ namespace Components
 
 	Menus::Menus()
 	{
+		if (Dedicated::IsDedicated()) return;
+
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
 		//Utils::Hook(0x63FE80, Menus::MenuFileLoad, HOOK_JUMP).Install()->Quick();
 
