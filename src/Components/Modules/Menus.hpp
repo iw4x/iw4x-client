@@ -11,9 +11,12 @@ namespace Components
 
 		static void FreeEverything();
 
+		static void Add(std::string menu);
+
 	private:
 		static std::vector<Game::menuDef_t*> MenuList;
 		static std::vector<Game::MenuList*> MenuListList;
+		static std::vector<std::string> CustomMenus;
 
 		static Game::XAssetHeader MenuFileLoad(Game::XAssetType type, const char* filename);
 		static Game::MenuList* LoadMenuList(Game::MenuList* menuList);

@@ -33,9 +33,13 @@ namespace Components
 	{
 		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).Install()->Quick();
 
-		//Localization::Set("MENU_MULTIPLAYER_CAPS", "^5Fotze");
-
 		Localization::Set("MENU_SEARCHINGFORGAMES_100MS", "");
+		Localization::Set("MP_SEARCHING_FOR_PLAYER", "Waiting");
+		Localization::Set("MENU_WAITING_FOR_MORE_PLAYERS_TEAMS", "Waiting for more players to balance teams");
+
+		// Don't perform non-english localization here, do it in fastfiles instead
+		//Localization::Set("MP_SEARCHING_FOR_PLAYER", "Warte");
+		//Localization::Set("MENU_WAITING_FOR_MORE_PLAYERS_TEAMS", "Auf weitere Spieler zum Teamausgleich warten");
 
 		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
 	}

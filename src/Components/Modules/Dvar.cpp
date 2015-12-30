@@ -129,18 +129,6 @@ namespace Components
 	{
 		// TODO: Register string dvars here
 
-		// TODO: Support multiple languages here and find a better place for this. :/
-		if (std::string(Game::Win_GetLanguage()) == "german")
-		{
-			Localization::Set("MP_SEARCHING_FOR_PLAYER", "Warte");
-			Localization::Set("MENU_WAITING_FOR_MORE_PLAYERS_TEAMS", "Auf weitere Spieler zum Teamausgleich warten");
-		}
-		else
-		{
-			Localization::Set("MP_SEARCHING_FOR_PLAYER", "Waiting");
-			Localization::Set("MENU_WAITING_FOR_MORE_PLAYERS_TEAMS", "Waiting for more players to balance teams");
-		}
-
 		return Dvar::Register<const char*>(name, "Unknown Soldier", Dvar::Flag(flag | Game::dvar_flag::DVAR_FLAG_SAVED).val, description).Get<Game::dvar_t*>();
 	}
 

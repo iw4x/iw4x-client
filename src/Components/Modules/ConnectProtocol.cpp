@@ -257,7 +257,7 @@ namespace Components
 		*substr2 = 0;
 		////DBG(("Connecting to: %s", substr));
 
-		Game::Cbuf_AddText(0, Utils::VA("connect %s;", substr));
+		Command::Execute(Utils::VA("connect %s;", substr), false);
 	}
 
 	BOOL ConnectProtocol::InvokeConnect()
@@ -321,12 +321,11 @@ namespace Components
 	ConnectProtocol::ConnectProtocol()
 	{
 		ConnectProtocol::InstallProtocol();
-
 	}
 
 
 	//Send Connect Command to running iw4x instance
-	BOOL CALLBACK enumWindowsProc(__in  HWND hWnd, __in  LPARAM lParam) {
+	BOOL CALLBACK ConnectProtocol::EnumWindowsProc(__in  HWND hWnd, __in  LPARAM lParam) {
 
 		DWORD id = GetWindowThreadProcessId(hWnd, &id);
 		DWORD id2 = GetWindowThreadProcessId(FindWindowFromProcessId(proc_id), &id2);
@@ -353,7 +352,7 @@ namespace Components
 		return TRUE;
 	}
 
-	BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam) {
+	BOOL CALLBACK ConnectProtocol::EnumChildProc(HWND hwnd, LPARAM lParam) {
 		char buffer[256];
 
 		GetClassName(hwnd, (LPSTR)buffer, 255);
@@ -375,7 +374,7 @@ namespace Components
 		HWND hWnd;
 	};
 
-	BOOL CALLBACK EnumProc(HWND hWnd, LPARAM lParam) {
+	BOOL CALLBACK ConnectProtocol::EnumProc(HWND hWnd, LPARAM lParam) {
 		// Retrieve storage location for communication data
 		EnumData& ed = *(EnumData*)lParam;
 		DWORD dwProcessId = 0x0;
@@ -395,7 +394,7 @@ namespace Components
 		return TRUE;
 	}
 
-	void FindEditHandle(__in_z LPCTSTR lpcszFileName)
+	void ConnectProtocol::FindEditHandle(__in_z LPCTSTR lpcszFileName)
 	{
 		LPDWORD lpdwProcessIds;
 		LPTSTR  lpszBaseName;
@@ -425,7 +424,7 @@ namespace Components
 									dwProcessId = lpdwProcessIds[i];
 									CloseHandle(hProcess);
 									proc_id = dwProcessId;
-									EnumWindows(enumWindowsProc, NULL);
+									EnumWindows(EnumWindowsProc, NULL);
 									if (con_in != NULL)
 									{
 										break;
@@ -445,7 +444,7 @@ namespace Components
 		//return dwProcessId; 
 	}
 	// Main entry
-	HWND FindWindowFromProcessId(DWORD dwProcessId) {
+	HWND ConnectProtocol::FindWindowFromProcessId(DWORD dwProcessId) {
 		EnumData ed = { dwProcessId };
 		if (!EnumWindows(EnumProc, (LPARAM)&ed) &&
 			(GetLastError() == ERROR_SUCCESS)) {
@@ -454,7 +453,7 @@ namespace Components
 		return NULL;
 	}
 	// Helper method for convenience
-	HWND FindWindowFromProcess(HANDLE hProcess) {
+	HWND ConnectProtocol::FindWindowFromProcess(HANDLE hProcess) {
 		return FindWindowFromProcessId(GetProcessId(hProcess));
 	}
 }

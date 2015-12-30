@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	std::vector<std::string> Menus::CustomMenus;
 	std::vector<Game::menuDef_t*> Menus::MenuList;
 	std::vector<Game::MenuList*> Menus::MenuListList;
 
@@ -181,12 +182,7 @@ namespace Components
 					{
 						Game::PC_ReadTokenHandle(handle, &token);
 
-						std::vector<Game::menuDef_t*> newMenus = Menus::LoadMenu(Utils::VA("ui_mp\\%s.menu", token.string));
-
-						for (auto newMenu : newMenus)
-						{
-							menus.push_back(newMenu);
-						}
+						Utils::Merge(menus, Menus::LoadMenu(Utils::VA("ui_mp\\%s.menu", token.string)));
 					}
 
 					if (!_stricmp(token.string, "menudef"))
@@ -244,22 +240,16 @@ namespace Components
 				continue;
 			}
 
-			std::vector<Game::menuDef_t*> newMenus = Menus::LoadMenu(menuList->menus[i]);
-
-			for (auto newMenu : newMenus)
-			{
-				menus.push_back(newMenu);
-			}
+			Utils::Merge(menus, Menus::LoadMenu(menuList->menus[i]));
 		}
 
-		// TODO: beautify
-		if (!_stricmp(menuList->name, "ui_mp/code.txt"))
+		// Load custom menus
+		if (std::string(menuList->name) == "ui_mp/code.txt")
 		{
-			std::vector<Game::menuDef_t*> _menus = Menus::LoadMenu("ui_mp/theater_menu.menu");
-			std::vector<Game::menuDef_t*> _menus2 = Menus::LoadMenu("ui_mp/pc_options_multi.menu");
-
-			for (auto newMenu : _menus) { menus.push_back(newMenu); }
-			for (auto newMenu : _menus2) { menus.push_back(newMenu); }
+			for (auto menu : Menus::CustomMenus)
+			{
+				Utils::Merge(menus, Menus::LoadMenu(menu));
+			}
 		}
 
 		// Allocate new menu list
@@ -483,6 +473,11 @@ namespace Components
 		return nullptr;
 	}
 
+	void Menus::Add(std::string menu)
+	{
+		Menus::CustomMenus.push_back(menu);
+	}
+
 	Menus::Menus()
 	{
 		if (Dedicated::IsDedicated()) return;
@@ -538,10 +533,15 @@ namespace Components
 				Game::Menus_OpenByName(Game::uiContext, "main_text");
 			}
 		});
+
+		// Define custom menus here
+		Menus::Add("ui_mp/theater_menu.menu");
+		Menus::Add("ui_mp/pc_options_multi.menu");
 	}
 
 	Menus::~Menus()
 	{
+		Menus::CustomMenus.clear();
 		Menus::FreeEverything();
 	}
 }

@@ -139,21 +139,19 @@ namespace Components
 		Network::Handle("getInfo", [] (Network::Address address, std::string data)
 		{
 			int clientCount = 0;
+			int maxclientCount = *Game::svs_numclients;
+			if (!maxclientCount) maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
 
-			int maxClients = *Game::svs_numclients;
-
-			if (!maxClients)
-			{
-				maxClients = Dvar::Var("sv_maxclients").Get<int>();
-			}
-
-			for (int i = 0; i < maxClients; i++)
+			for (int i = 0; i < maxclientCount; i++)
 			{
 				if (Game::svs_clients[i].state >= 3)
 				{
 					clientCount++;
 				}
 			}
+
+			// Ensure line break
+			data.append("\n");
 
 			Utils::InfoString info;
 			info.Set("challenge", data.substr(0, data.find_first_of("\n")).data());
@@ -164,7 +162,7 @@ namespace Components
 			info.Set("fs_game", Dvar::Var("fs_game").Get<const char*>());
 			info.Set("xuid", Utils::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
 			info.Set("clients", Utils::VA("%i", clientCount));
-			info.Set("sv_maxclients", Utils::VA("%i", maxClients));
+			info.Set("sv_maxclients", Utils::VA("%i", maxclientCount));
 			info.Set("protocol", Utils::VA("%i", PROTOCOL));
 			info.Set("checksum", Utils::VA("%d", Game::Com_Milliseconds()));
 

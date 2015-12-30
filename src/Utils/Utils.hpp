@@ -25,4 +25,12 @@ namespace Utils
 		std::map<std::string, std::string> KeyValuePairs;
 		void Parse(std::string buffer);
 	};
+
+	template <typename T> void Merge(std::vector<T> &target, std::vector<T> &source)
+	{
+		for (auto &entry : source)
+		{
+			target.push_back(entry);
+		}
+	}
 }
