@@ -38,7 +38,6 @@ namespace Components
 		Localization::Set("MENU_WAITING_FOR_MORE_PLAYERS_TEAMS", "Waiting for more players to balance teams");
 		Localization::Set("MENU_MOTD", "News");
 		Localization::Set("MENU_MOTD_CAPS", "NEWS");
-		Localization::Set("MPUI_MOTD_TEXT", "Welcome to ReactIW4 Multiplayer!");
 		Localization::Set("MENU_MODS", "Mods");
 		Localization::Set("MENU_MODS_CAPS", "MODS");
 		Localization::Set("MPUI_DESC_MODS", "Browse your Mods.");
