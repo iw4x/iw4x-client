@@ -8,7 +8,7 @@ namespace Utils
 	class Hook
 	{
 	public:
-		Hook() : Place(nullptr), Stub(nullptr), Initialized(false), Installed(false), UseJump(false) { ZeroMemory(Hook::Buffer, sizeof(Hook::Buffer)); }
+		Hook() : Place(nullptr), Stub(nullptr), Initialized(false), Installed(false), UseJump(false), Protection(0) { ZeroMemory(Hook::Buffer, sizeof(Hook::Buffer)); }
 		Hook(void* place, void* stub, bool useJump = true) : Hook() { Hook::Initialize(place, stub, useJump); }
 		Hook(DWORD place, void* stub, bool useJump = true) : Hook((void*)place, stub, useJump) {}
 
@@ -31,6 +31,12 @@ namespace Utils
 				call eax
 			}
 		}
+
+		static void SetString(void* place, const char* string, size_t length);
+		static void SetString(DWORD place, const char* string, size_t length);
+
+		static void SetString(void* place, const char* string);
+		static void SetString(DWORD place, const char* string);
 
 		static void Nop(void* place, size_t length);
 		static void Nop(DWORD place, size_t length);
@@ -98,6 +104,8 @@ namespace Utils
 		void* Original;
 		char Buffer[5];
 		bool UseJump;
+
+		DWORD Protection;
 
 		std::mutex StateMutex;
 	};

@@ -6,6 +6,8 @@ namespace Components
 
 	void Colors::Strip(const char* in, char* out, int max)
 	{
+		if (!in || !out) return;
+
 		max--;
 		int current = 0;
 		while (*in != 0 && current < max)
@@ -18,9 +20,9 @@ namespace Components
 			}
 			else
 			{
-				*in++;
+				in++;
 			}
-			*in++;
+			in++;
 		}
 		*out = '\0';
 	}

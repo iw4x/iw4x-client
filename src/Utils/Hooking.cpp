@@ -46,8 +46,8 @@ namespace Utils
 
 		Hook::Installed = true;
 
-		DWORD d;
-		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &d);
+		DWORD d = 1;
+		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
 		memcpy(Hook::Buffer, Hook::Place, sizeof(Hook::Buffer));
 
 		char* Code = (char*)Hook::Place;
@@ -56,7 +56,7 @@ namespace Utils
 
 		*(size_t*)&Code[1] = (size_t)Hook::Stub - ((size_t)Hook::Place + 5);
 
-		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), d, &d);
+		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
 
 		FlushInstructionCache(GetCurrentProcess(), Hook::Place, sizeof(Hook::Buffer));
 
@@ -85,12 +85,11 @@ namespace Utils
 
 		Hook::Installed = false;
 
-		DWORD d;
-		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &d);
+		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
 		
 		memcpy(Hook::Place, Hook::Buffer, sizeof(Hook::Buffer));
 
-		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), d, &d);
+		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
 
 		FlushInstructionCache(GetCurrentProcess(), Hook::Place, sizeof(Hook::Buffer));
 
@@ -112,5 +111,25 @@ namespace Utils
 	void Hook::Nop(DWORD place, size_t length)
 	{ 
 		Nop((void*)place, length);
+	}
+
+	void Hook::SetString(void* place, const char* string, size_t length)
+	{
+		strncpy((char*)place, string, length);
+	}
+
+	void Hook::SetString(DWORD place, const char* string, size_t length)
+	{
+		Hook::SetString((void*)place, string, length);
+	}
+
+	void Hook::SetString(void* place, const char* string)
+	{
+		Hook::SetString(place, string, strlen((char*)place));
+	}
+
+	void Hook::SetString(DWORD place, const char* string)
+	{
+		Hook::SetString((void*)place, string);
 	}
 }
