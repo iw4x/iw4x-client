@@ -10,5 +10,8 @@ namespace Components
 	private:
 		static Utils::Hook ImageVersionCheckHook;
 		static void ImageVersionCheck();
+
+		static Game::Material* VerifyMaterial(Game::Material* material);
+		static void DrawMaterialStub();
 	};
 }
