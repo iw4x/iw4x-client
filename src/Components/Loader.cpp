@@ -10,6 +10,7 @@ namespace Components
 
 		Loader::Register(new Dvar());
 		Loader::Register(new Maps());
+		Loader::Register(new News());
 		Loader::Register(new Menus());
 		Loader::Register(new Party());
 		Loader::Register(new Colors());

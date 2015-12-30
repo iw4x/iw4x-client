@@ -108,10 +108,6 @@ namespace Components
 		// Enable commandline arguments
 		Utils::Hook::Set<BYTE>(0x464AE4, 0xEB);
 
-		// MOTD
-		Utils::Hook::Nop(0x60BF24, 5);
-		Utils::Hook::Set<char*>(0x4053CB, "Welcome to ReactIW4x Multiplayer!");
-
 		// remove limit on IWD file loading
 		Utils::Hook::Set<BYTE>(0x642BF3, 0xEB);
 

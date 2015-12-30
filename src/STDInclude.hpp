@@ -20,6 +20,7 @@
 #include <regex>
 
 #include "Utils\Utils.hpp"
+#include "Utils\WebIO.hpp"
 #include "Utils\Hooking.hpp"
 
 #include "Steam\Steam.hpp"
