@@ -69,6 +69,11 @@ namespace Components
 		script->next = NULL;
 
 		source = (Game::source_t *)calloc(1, sizeof(Game::source_t));
+		if (!source)
+		{
+			Game::FreeMemory(script);
+			return 0;
+		}
 
 		strncpy(source->filename, "string", 64);
 		source->scriptstack = script;
@@ -111,7 +116,15 @@ namespace Components
 	Game::menuDef_t* Menus::ParseMenu(int handle)
 	{
 		Game::menuDef_t* menu = (Game::menuDef_t*)calloc(1, sizeof(Game::menuDef_t));
+		if (!menu) return nullptr;
+
 		menu->items = (Game::itemDef_t**)calloc(512, sizeof(Game::itemDef_t*));
+		if (!menu->items) 
+		{
+			free(menu);
+			return nullptr;
+		}
+
 		Menus::MenuList.push_back(menu);
 
 		Game::pc_token_t token;
@@ -187,7 +200,8 @@ namespace Components
 
 					if (!_stricmp(token.string, "menudef"))
 					{
-						menus.push_back(Menus::ParseMenu(handle));
+						Game::menuDef_t* menudef = Menus::ParseMenu(handle);
+						if (menudef) menus.push_back(menudef);
 					}
 				}
 
@@ -217,8 +231,16 @@ namespace Components
 
 		// Allocate new menu list
 		Game::MenuList* newList = (Game::MenuList*)calloc(1, sizeof(Game::MenuList));
-		newList->name = _strdup(menu);
+		if (!newList) return nullptr;
+
 		newList->menus = (Game::menuDef_t **)calloc(menus.size(), sizeof(Game::menuDef_t *));
+		if (!newList->menus)
+		{
+			free(newList);
+			return nullptr;
+		}
+
+		newList->name = _strdup(menu);
 		newList->menuCount = menus.size();
 
 		// Copy new menus
@@ -254,8 +276,16 @@ namespace Components
 
 		// Allocate new menu list
 		Game::MenuList* newList = (Game::MenuList*)calloc(1, sizeof(Game::MenuList));
-		newList->name = _strdup(menuList->name);
+		if (!newList) return menuList;
+
 		newList->menus = (Game::menuDef_t **)calloc(menus.size(), sizeof(Game::menuDef_t *));
+		if (!newList->menus)
+		{
+			free(newList);
+			return menuList;
+		}
+
+		newList->name = _strdup(menuList->name);
 		newList->menuCount = menus.size();
 
 		// Copy new menus
@@ -335,20 +365,22 @@ namespace Components
 
 	void Menus::FreeMenuList(Game::MenuList* menuList)
 	{
-		if (menuList)
+		if (!menuList) return;
+
+		// Keep our compiler happy
+		Game::MenuList list = { menuList->name, menuList->menuCount, menuList->menus };
+
+		if (list.name)
 		{
-			if (menuList->name)
-			{
-				free((void*)menuList->name);
-			}
-
-			if (menuList->menus)
-			{
-				free(menuList->menus);
-			}
-
-			free(menuList);
+			free(list.name);
 		}
+
+		if (list.menus)
+		{
+			free(list.menus);
+		}
+
+		free(menuList);
 	}
 
 	void Menus::RemoveMenu(Game::menuDef_t* menudef)
@@ -498,7 +530,7 @@ namespace Components
 		Utils::Hook::Nop(0x453406, 5);
 
 		//make Com_Error and similar go back to main_text instead of menu_xboxlive.
-		strcpy((char*)0x6FC790, "main_text");
+		Utils::Hook::SetString(0x6FC790, "main_text");
 
 		Command::Add("openmenu", [] (Command::Params params)
 		{

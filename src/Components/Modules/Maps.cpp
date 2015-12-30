@@ -12,6 +12,8 @@ namespace Components
 
 	void Maps::LoadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
 	{
+		if (!zoneInfo) return;
+
 		Maps::CurrentDependencies.clear();
 		for (auto i = Maps::DependencyList.begin(); i != Maps::DependencyList.end(); i++)
 		{
@@ -24,19 +26,25 @@ namespace Components
 			}
 		}
 
-		Game::XZoneInfo* data = new Game::XZoneInfo[zoneCount + Maps::CurrentDependencies.size()];
-		memcpy(data, zoneInfo, sizeof(Game::XZoneInfo) * zoneCount);
+		std::vector<Game::XZoneInfo> data;
+
+		for (unsigned int i = 0; i < zoneCount; i++)
+		{
+			data.push_back(zoneInfo[i]);
+		}
 
 		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); i++)
 		{
-			data[zoneCount + i].name = (&Maps::CurrentDependencies[i])->data();
-			data[zoneCount + i].allocFlags = data->allocFlags;
-			data[zoneCount + i].freeFlags = data->freeFlags;
+			Game::XZoneInfo info;
+
+			info.name = (&Maps::CurrentDependencies[i])->data();
+			info.allocFlags = zoneInfo->allocFlags;
+			info.freeFlags = zoneInfo->freeFlags;
+
+			data.push_back(info);
 		}
 
-		Game::DB_LoadXAssets(data, zoneCount + Maps::CurrentDependencies.size(), sync);
-
-		delete[] data;
+		Game::DB_LoadXAssets(data.data(), data.size(), sync);
 	}
 
 	bool Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const char* name)

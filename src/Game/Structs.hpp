@@ -599,7 +599,7 @@ namespace Game
 
 	struct MenuList
 	{
-		const char *name;
+		char *name;
 		int menuCount;
 		menuDef_t **menus;
 	};

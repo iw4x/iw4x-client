@@ -102,7 +102,6 @@ namespace Components
 		// increase font sizes for chat on higher resolutions
 		static float float13 = 13.0f;
 		static float float10 = 10.0f;
-
 		Utils::Hook::Set<float*>(0x5814AE, &float13);
 		Utils::Hook::Set<float*>(0x5814C8, &float10);
 
@@ -134,7 +133,7 @@ namespace Components
 		Utils::Hook::Nop(0x4AA8A1, 6);
 
 		// Rename stat file - TODO: beautify
-		strcpy((char*)0x71C048, "iw4x.stat");
+		Utils::Hook::SetString(0x71C048, "iw4x.stat");
 
 		// Patch stats steamid
 		Utils::Hook::Nop(0x682EBF, 20);
