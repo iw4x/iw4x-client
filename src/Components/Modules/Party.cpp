@@ -112,7 +112,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x5A969E, 0xEB);
 
 		// Patch party_minplayers to 1 and protect it
-		Utils::Hook(0x4D5D51, Party::RegisterMinPlayers, HOOK_CALL).Install()->Quick();
+		//Utils::Hook(0x4D5D51, Party::RegisterMinPlayers, HOOK_CALL).Install()->Quick();
 
 		Command::Add("connect", [] (Command::Params params)
 		{

@@ -252,6 +252,16 @@ namespace Components
 			}
 		}
 
+		// TODO: beautify
+		if (!_stricmp(menuList->name, "ui_mp/code.txt"))
+		{
+			std::vector<Game::menuDef_t*> _menus = Menus::LoadMenu("ui_mp/theater_menu.menu");
+			std::vector<Game::menuDef_t*> _menus2 = Menus::LoadMenu("ui_mp/pc_options_multi.menu");
+
+			for (auto newMenu : _menus) { menus.push_back(newMenu); }
+			for (auto newMenu : _menus2) { menus.push_back(newMenu); }
+		}
+
 		// Allocate new menu list
 		Game::MenuList* newList = (Game::MenuList*)calloc(1, sizeof(Game::MenuList));
 		newList->name = _strdup(menuList->name);
