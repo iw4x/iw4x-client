@@ -25,8 +25,8 @@ namespace Components
 		// External console
 		Utils::Hook::Nop(0x60BB58, 11);
 
-		// Console '%s: %s> ' string
-		Utils::Hook::Set<char*>(0x5A44B4, "IW4x > ");
+		// Console '%s: %s> ' string - TODO: add buildnumber here
+		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: r123> ");
 
 		// Internal console
 		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).Install()->Quick();

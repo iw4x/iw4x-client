@@ -72,6 +72,43 @@ namespace Components
 		// fs_basegame
 		Utils::Hook::Set<char*>(0x6431D1, "data");
 
+		// UI version string - TODO: add buildnumber here
+		Utils::Hook::Set<char*>(0x43F73B, "iw4x IW4x: r123");
+
+		// console version string
+		Utils::Hook::Set<char*>(0x4B12BB, "iw4x IW4x r123 (built " __DATE__ " " __TIME__ ")");
+
+		// version string
+		Utils::Hook::Set<char*>(0x60BD56, "iw4x.IW4x (r123)");
+
+		// console title
+		Utils::Hook::Set<char*>(0x4289E8, "iw4x IW4x (r123): Console");
+
+		// window title
+		Utils::Hook::Set<char*>(0x5076A0, "iw4x IW4x: Multiplayer");
+
+		// sv_hostname
+		Utils::Hook::Set<char*>(0x4D378B, "IW4Host");
+
+		// shortversion
+		Utils::Hook::Set<char*>(0x60BD91, "4.2.123");
+
+		// console logo
+		Utils::Hook::Set<char*>(0x428A66, "data/images/logo.bmp");
+
+		// splash logo
+		Utils::Hook::Set<char*>(0x475F9E, "data/images/splash.bmp");
+
+		// increase font sizes for chat on higher resolutions
+		static float float13 = 13.0f;
+		static float float10 = 10.0f;
+
+		Utils::Hook::Set<float*>(0x5814AE, &float13);
+		Utils::Hook::Set<float*>(0x5814C8, &float10);
+
+		// Enable commandline arguments
+		Utils::Hook::Set<BYTE>(0x464AE4, 0xEB);
+
 		// remove limit on IWD file loading
 		Utils::Hook::Set<BYTE>(0x642BF3, 0xEB);
 
@@ -91,6 +128,9 @@ namespace Components
 		// Force debug logging
 		Utils::Hook::Nop(0x4AA89F, 2);
 		Utils::Hook::Nop(0x4AA8A1, 6);
+
+		// Rename stat file - TODO: beautify
+		strcpy((char*)0x71C048, "iw4x.stat");
 
 		// Patch stats steamid
 		Utils::Hook::Nop(0x682EBF, 20);
