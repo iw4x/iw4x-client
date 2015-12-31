@@ -5,6 +5,11 @@ newoption {
 	value = "PATH"
 }
 
+newoption {
+	trigger = "no-new-structure",
+	description = "Do not use new virtual path structure (separating headers and source files)."
+}
+
 newaction {
 	trigger = "generate-buildinfo",
 	description = "Sets up build information file like version.h.",
@@ -52,9 +57,14 @@ solution "iw4x"
 			defines { "NDEBUG" }
 			flags { "Optimize", "MultiProcessorCompile", "Symbols" }
 
+		if not _OPTIONS["no-new-structure"] then
+			vpaths {
+				["Headers/*"] = "src/**.hpp",
+				["Sources/*"] = {"src/**.cpp"}
+			}
+		end
+
 		vpaths {
-			["Headers/*"] = "src/**.hpp",
-			["Sources/*"] = {"src/**.cpp"},
 			["Docs/*"] = {"**.txt","**.md"}
 		}
 
