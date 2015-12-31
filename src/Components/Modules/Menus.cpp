@@ -160,7 +160,7 @@ namespace Components
 				continue;
 			}
 
-			if (!key->func((Game::itemDef_t*)menu, handle)) 
+			if (!key->func(menu, handle)) 
 			{
 				Game::PC_SourceError(handle, "couldn't parse menu keyword %s", token.string);
 				break; // Fail
@@ -266,7 +266,7 @@ namespace Components
 		}
 
 		// Load custom menus
-		if (std::string(menuList->name) == "ui_mp/code.txt")
+		if (std::string(menuList->name) == "ui_mp/menus.txt")
 		{
 			for (auto menu : Menus::CustomMenus)
 			{

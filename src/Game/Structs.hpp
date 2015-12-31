@@ -808,7 +808,7 @@ namespace Game
 	typedef struct keywordHash_s
 	{
 		char *keyword;
-		bool(*func)(itemDef_t *item, int handle);
+		bool(*func)(menuDef_t *item, int handle);
 		//struct keywordHash_s *next;
 	} keywordHash_t;
 
