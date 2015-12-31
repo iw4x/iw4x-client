@@ -12,6 +12,7 @@ namespace Game
 
 	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
 	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
+	Com_PrintMessage_t Com_PrintMessage = (Com_PrintMessage_t)0x4AA830;
 	Com_Milliseconds_t Com_Milliseconds = (Com_Milliseconds_t)0x42A660;
 	Com_ParseExt_t Com_ParseExt = (Com_ParseExt_t)0x474D60;
 
@@ -85,6 +86,8 @@ namespace Game
 	SetConsole_t SetConsole = (SetConsole_t)0x44F060;
 
 	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
+
+	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
 
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 	UI_DrawHandlePic_t UI_DrawHandlePic = (UI_DrawHandlePic_t)0x4D0EA0;

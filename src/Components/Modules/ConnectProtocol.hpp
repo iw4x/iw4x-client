@@ -4,6 +4,8 @@ namespace Components
 	{
 	public:
 		ConnectProtocol();
+		const char* GetName() { return "ConnectProtocol"; };
+
 		void EvaluateProtocol();
 		static BOOL InvokeConnect();
 

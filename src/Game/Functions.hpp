@@ -21,6 +21,9 @@ namespace Game
 	typedef void(__cdecl * Com_Printf_t)(int, const char*, ...);
 	extern Com_Printf_t Com_Printf;
 
+	typedef void(__cdecl * Com_PrintMessage_t)(int, const char*, char);
+	extern Com_PrintMessage_t Com_PrintMessage;
+
 	typedef int(__cdecl * Com_Milliseconds_t)(void);
 	extern Com_Milliseconds_t Com_Milliseconds;
 
@@ -186,6 +189,9 @@ namespace Game
 
 	typedef void(__cdecl * Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;
+
+	typedef bool(__cdecl * Sys_IsMainThread_t)();
+	extern Sys_IsMainThread_t Sys_IsMainThread;
 
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;

@@ -18,6 +18,7 @@
 #include <utility>
 #include <algorithm>
 #include <regex>
+#include <thread>
 
 #include <version.hpp>
 

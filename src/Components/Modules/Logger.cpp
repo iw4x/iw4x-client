@@ -2,6 +2,9 @@
 
 namespace Components
 {
+	std::mutex Logger::MessageMutex;
+	std::vector<std::string> Logger::MessageQueue;
+
 	bool Logger::IsConsoleReady()
 	{
 		return (IsWindow(*(HWND*)0x64A3288) != FALSE);
@@ -18,7 +21,14 @@ namespace Components
 
 		if (Logger::IsConsoleReady())
 		{
-			Game::Com_Printf(0, "%s", buffer);
+			if (!Game::Sys_IsMainThread())
+			{
+				Logger::EnqueueMessage(buffer);
+			}
+			else
+			{
+				Game::Com_PrintMessage(0, buffer, 0);
+			}
 		}
 		else
 		{
@@ -50,8 +60,43 @@ namespace Components
 		Game::Com_Error(2, "%s", buffer);
 	}
 
+	void Logger::Frame()
+	{
+		Logger::MessageMutex.lock();
+
+		for (unsigned int i = 0; i < Logger::MessageQueue.size(); i++)
+		{
+			if (Logger::IsConsoleReady())
+			{
+				Game::Com_PrintMessage(0, Logger::MessageQueue[i].data(), 0);
+			}
+			else
+			{
+				OutputDebugStringA(Logger::MessageQueue[i].data());
+			}
+		}
+
+		Logger::MessageQueue.clear();
+		Logger::MessageMutex.unlock();
+	}
+
+	void Logger::EnqueueMessage(std::string message)
+	{
+		Logger::MessageMutex.lock();
+		Logger::MessageQueue.push_back(message);
+		Logger::MessageMutex.unlock();
+	}
+
 	Logger::Logger()
 	{
+		Renderer::OnFrame(Logger::Frame); // Client
+		Dedicated::OnFrame(Logger::Frame); // Dedi
+	}
 
+	Logger::~Logger()
+	{
+		Logger::MessageMutex.lock();
+		Logger::MessageQueue.clear();
+		Logger::MessageMutex.unlock();
 	}
 }

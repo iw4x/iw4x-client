@@ -29,6 +29,7 @@ namespace Components
 #include "Modules\Window.hpp"
 #include "Modules\Command.hpp"
 #include "Modules\Console.hpp"
+#include "Modules\IPCPipe.hpp"
 #include "Modules\Network.hpp"
 #include "Modules\Party.hpp" // Destroys the order, but requires network classes :D
 #include "Modules\RawFiles.hpp"

@@ -7,6 +7,7 @@ namespace Components
 	void Loader::Initialize()
 	{
 		Loader::Register(new Dedicated());
+		Loader::Register(new Singleton());
 
 		Loader::Register(new Dvar());
 		Loader::Register(new Maps());
@@ -18,6 +19,7 @@ namespace Components
 		Loader::Register(new Window());
 		Loader::Register(new Command());
 		Loader::Register(new Console());
+		Loader::Register(new IPCPipe());
 		Loader::Register(new Network());
 		Loader::Register(new RawFiles());
 		Loader::Register(new Renderer());
@@ -25,7 +27,6 @@ namespace Components
 		Loader::Register(new UIScript());
 		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
-		Loader::Register(new Singleton());
 		Loader::Register(new FileSystem());
 		Loader::Register(new QuickPatch());
 		Loader::Register(new ServerList());
