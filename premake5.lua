@@ -1,7 +1,8 @@
 -- Option to allow copying the DLL file to a custom folder after build
 newoption {
 	trigger = "copy-to",
-	description = "Optionally copy the DLL to a custom folder after build, define the path here if wanted."
+	description = "Optional, copy the DLL to a custom folder after build, define the path here if wanted.",
+	value = "PATH"
 }
 
 solution "iw4x"
