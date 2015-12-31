@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <regex>
 
+#include <version.hpp>
+
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"
 #include "Utils\Hooking.hpp"
