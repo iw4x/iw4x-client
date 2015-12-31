@@ -72,17 +72,17 @@ namespace Components
 		// fs_basegame
 		Utils::Hook::Set<char*>(0x6431D1, "data");
 
-		// UI version string - TODO: add buildnumber here
-		Utils::Hook::Set<char*>(0x43F73B, "iw4x IW4x: r123");
+		// UI version string
+		Utils::Hook::Set<char*>(0x43F73B, "iw4x IW4x: r" REVISION_STR);
 
 		// console version string
-		Utils::Hook::Set<char*>(0x4B12BB, "iw4x IW4x r123 (built " __DATE__ " " __TIME__ ")");
+		Utils::Hook::Set<char*>(0x4B12BB, "iw4x IW4x r" REVISION_STR " (built " __DATE__ " " __TIME__ ")");
 
 		// version string
-		Utils::Hook::Set<char*>(0x60BD56, "iw4x.IW4x (r123)");
+		Utils::Hook::Set<char*>(0x60BD56, "iw4x IW4x (r" REVISION_STR ")");
 
 		// console title
-		Utils::Hook::Set<char*>(0x4289E8, "iw4x IW4x (r123): Console");
+		Utils::Hook::Set<char*>(0x4289E8, "iw4x IW4x (r" REVISION_STR "): Console");
 
 		// window title
 		Utils::Hook::Set<char*>(0x5076A0, "iw4x IW4x: Multiplayer");
@@ -91,7 +91,7 @@ namespace Components
 		Utils::Hook::Set<char*>(0x4D378B, "IW4Host");
 
 		// shortversion
-		Utils::Hook::Set<char*>(0x60BD91, "4.2.123");
+		Utils::Hook::Set<char*>(0x60BD91, VERSION_STR);
 
 		// console logo
 		Utils::Hook::Set<char*>(0x428A66, "data/images/logo.bmp");
