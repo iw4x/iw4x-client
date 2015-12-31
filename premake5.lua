@@ -12,7 +12,7 @@ solution "iw4x"
 		kind "SharedLib"
 		language "C++"
 		files { "./src/**.hpp", "./src/**.cpp" }
-		--toolset "v120" -- Compatibility for users
+		toolset "msc" -- only support Microsoft's compiler
 
 		configuration "Normal"
 			defines { "NDEBUG" }
