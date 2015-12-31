@@ -3,6 +3,8 @@
 namespace Components
 {
 	Dvar::Var Window::NoBorder;
+	Dvar::Var Window::NativeCursor;
+
 	HWND Window::MainWindow = 0;
 	BOOL Window::CursorVisible = TRUE;
 
@@ -20,14 +22,21 @@ namespace Components
 		__asm retn
 	}
 
-	void Window::DrawCursorStub()
+	void Window::DrawCursorStub(void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Game::Material *material)
 	{
-		Window::CursorVisible = TRUE;
+		if (Window::NativeCursor.Get<bool>())
+		{
+			Window::CursorVisible = TRUE;
+		}
+		else
+		{
+			Game::UI_DrawHandlePic(scrPlace, x, y, w, h, horzAlign, vertAlign, color, material);
+		}
 	}
 
 	int WINAPI Window::ShowCursorHook(BOOL show)
 	{
-		if (GetForegroundWindow() == Window::MainWindow)
+		if (Window::NativeCursor.Get<bool>() && GetForegroundWindow() == Window::MainWindow)
 		{
 			static int count = 0;
 			(show ? ++count : --count);
@@ -53,6 +62,8 @@ namespace Components
 	{
 		// Borderless window
 		Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Do not use a border in windowed mode");
+		Window::NativeCursor = Dvar::Register<bool>("ui_nativeCursor", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display native cursor");
+
 		Utils::Hook(0x507643, Window::StyleHookStub, HOOK_CALL).Install()->Quick();
 
 		// Main window creation
@@ -65,7 +76,7 @@ namespace Components
 		// Draw the cursor if necessary
 		Renderer::OnFrame([] ()
 		{
-			if (GetForegroundWindow() == Window::MainWindow)
+			if (Window::NativeCursor.Get<bool>() && GetForegroundWindow() == Window::MainWindow)
 			{
 				int value = 0;
 

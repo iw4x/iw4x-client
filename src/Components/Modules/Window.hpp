@@ -7,13 +7,14 @@ namespace Components
 		const char* GetName() { return "Window"; };
 
 		static Dvar::Var NoBorder;
+		static Dvar::Var NativeCursor;
 		static void Window::StyleHookStub();
 
 	private:
 		static BOOL CursorVisible;
 
 		static int WINAPI ShowCursorHook(BOOL show);
-		static void DrawCursorStub();
+		static void DrawCursorStub(void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Game::Material *material);
 
 		static HWND MainWindow;
 

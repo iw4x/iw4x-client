@@ -87,6 +87,7 @@ namespace Game
 	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
 
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
+	UI_DrawHandlePic_t UI_DrawHandlePic = (UI_DrawHandlePic_t)0x4D0EA0;
 
 	Win_GetLanguage_t Win_GetLanguage = (Win_GetLanguage_t)0x45CBA0;
 
