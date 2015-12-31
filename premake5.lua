@@ -19,6 +19,12 @@ solution "iw4x"
 			defines { "NDEBUG" }
 			flags { "Optimize", "MultiProcessorCompile", "Symbols" }
 
+		vpaths {
+			["Headers/*"] = "src/**.hpp",
+			["Sources/*"] = {"src/**.cpp"},
+			["Docs/*"] = {"**.txt","**.md"}
+		}
+
 		if _OPTIONS["copy-to"] then
 			saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
 			postbuildcommands {
