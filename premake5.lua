@@ -20,7 +20,7 @@ newaction {
 		proc:close()
 
 		-- get old version number from version.hpp if any
-		local oldRevNumber = -1
+		local oldRevNumber = "(none)"
 		local oldVersionHeader = io.open(wks.location .. "/version.hpp", "r")
 		if oldVersionHeader ~=nil then
 			local oldVersionHeaderContent = assert(oldVersionHeader:read('*a'))
