@@ -157,14 +157,21 @@ namespace Components
 			info.Set("challenge", data.substr(0, data.find_first_of("\n")).data());
 			info.Set("gamename", "IW4");
 			info.Set("hostname", Dvar::Var("sv_hostname").Get<const char*>());
-			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 			info.Set("gametype", Dvar::Var("g_gametype").Get<const char*>());
 			info.Set("fs_game", Dvar::Var("fs_game").Get<const char*>());
 			info.Set("xuid", Utils::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
 			info.Set("clients", Utils::VA("%i", clientCount));
 			info.Set("sv_maxclients", Utils::VA("%i", maxclientCount));
 			info.Set("protocol", Utils::VA("%i", PROTOCOL));
+			info.Set("shortversion", VERSION_STR);
 			info.Set("checksum", Utils::VA("%d", Game::Com_Milliseconds()));
+			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
+
+			// Ensure mapname is set
+			if (!info.Get("mapname").size())
+			{
+				info.Set("mapname", Dvar::Var("ui_mapname").Get<const char*>());
+			}
 
 			// Set matchtype
 			// 0 - No match, connecting not possible

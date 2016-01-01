@@ -45,25 +45,16 @@ namespace Components
 		}
 	}
 
-	char* Colors::CL_GetClientName(int a1, int a2, char* buffer, size_t _length)
+	char* Colors::GetClientName(int localClientNum, int index, char *buf, size_t size)
 	{
-		__asm
-		{
-			push _length
-			push buffer
-			push a2
-			push a1
-			mov eax, 4563D0h
-			call eax
-			add esp, 10h
-		}
+		Game::CL_GetClientName(localClientNum, index, buf, size);
 
 		// Remove the colors
 		char tempBuffer[100] = { 0 };
-		Colors::Strip(buffer, tempBuffer, _length);
-		strncpy(buffer, tempBuffer, _length);
+		Colors::Strip(buf, tempBuffer, size);
+		strncpy(buf, tempBuffer, size);
 
-		return buffer;
+		return buf;
 	}
 
 	void Colors::UpdateColorTable()
@@ -103,7 +94,7 @@ namespace Components
 		Utils::Hook(0x5D8B40, Colors::ClientUserinfoChanged, HOOK_JUMP).Install()->Quick();
 
 		// Though, don't apply that to overhead names.
-		Utils::Hook(0x581932, Colors::CL_GetClientName, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x581932, Colors::GetClientName, HOOK_CALL).Install()->Quick();
 
 		// Set frame handler
 		Renderer::OnFrame(Colors::UpdateColorTable);

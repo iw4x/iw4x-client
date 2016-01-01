@@ -8,10 +8,11 @@ namespace Components
 		Colors();
 		const char* GetName() { return "Colors"; };
 
+	private:
 		static Dvar::Var NewColors;
 
 		static void ClientUserinfoChanged(int length);
-		static char* CL_GetClientName(int a1, int a2, char* buffer, size_t _length);
+		static char* GetClientName(int localClientNum, int index, char *buf, size_t size);
 
 		static void UpdateColorTable();
 

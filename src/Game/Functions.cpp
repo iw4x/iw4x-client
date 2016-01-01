@@ -4,6 +4,7 @@ namespace Game
 {
 	Cbuf_AddText_t Cbuf_AddText = (Cbuf_AddText_t)0x404B20;
 
+	CL_GetClientName_t CL_GetClientName = (CL_GetClientName_t)0x4563D0;
 	CL_IsCgameInitialized_t CL_IsCgameInitialized = (CL_IsCgameInitialized_t)0x43EB20;
 	CL_ConnectFromParty_t CL_ConnectFromParty = (CL_ConnectFromParty_t)0x433D30;
 

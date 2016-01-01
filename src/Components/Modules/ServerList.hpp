@@ -11,6 +11,7 @@ namespace Components
 			std::string Mapname;
 			std::string Gametype;
 			std::string Mod;
+			std::string Shortversion;
 			int Clients;
 			int MaxClients;
 			bool Password;

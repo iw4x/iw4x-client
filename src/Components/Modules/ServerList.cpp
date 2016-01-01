@@ -106,11 +106,14 @@ namespace Components
 					break;
 				}
 
-				// TODO: Implement deeper check like version and game
+				// Remove server from queue
+				ServerList::RefreshContainer.Servers.erase(i);
+
 				ServerInfo server;
 				server.Hostname = info.Get("hostname");
 				server.Mapname = info.Get("mapname");
 				server.Gametype = info.Get("gametype");
+				server.Shortversion = info.Get("shortversion");
 				server.Mod = info.Get("fs_game");
 				server.MatchType = atoi(info.Get("matchtype").data());
 				server.Clients = atoi(info.Get("clients").data());
@@ -129,12 +132,10 @@ namespace Components
 					}
 				}
 
-				if (server.MatchType)
+				if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
 				{
 					ServerList::OnlineList.push_back(server);
 				}
-
-				ServerList::RefreshContainer.Servers.erase(i);
 
 				break;
 			}
