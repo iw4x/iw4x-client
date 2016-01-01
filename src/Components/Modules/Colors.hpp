@@ -8,6 +8,8 @@ namespace Components
 		Colors();
 		const char* GetName() { return "Colors"; };
 
+		static void Strip(const char* in, char* out, int max);
+
 	private:
 		static Dvar::Var NewColors;
 
@@ -15,7 +17,5 @@ namespace Components
 		static char* GetClientName(int localClientNum, int index, char *buf, size_t size);
 
 		static void UpdateColorTable();
-
-		static void Strip(const char* in, char* out, int max);
 	};
 }

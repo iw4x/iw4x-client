@@ -17,6 +17,9 @@
 #include <sstream>
 #include <utility>
 #include <algorithm>
+#include <functional> 
+#include <cctype>
+#include <locale>
 #include <regex>
 #include <thread>
 
