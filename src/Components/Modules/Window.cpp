@@ -8,6 +8,59 @@ namespace Components
 	HWND Window::MainWindow = 0;
 	BOOL Window::CursorVisible = TRUE;
 
+	int Window::Width()
+	{
+		return Window::Width(Window::MainWindow);
+	}
+
+	int Window::Height()
+	{
+		return Window::Height(Window::MainWindow);
+	}
+
+	int Window::Width(HWND window)
+	{
+		RECT rect;
+		Window::Dimension(window, &rect);
+		return (rect.right - rect.left);
+	}
+
+	int Window::Height(HWND window)
+	{
+		RECT rect;
+		Window::Dimension(window, &rect);
+		return (rect.bottom - rect.top);
+	}
+
+	void Window::Dimension(RECT* rect)
+	{
+		Window::Dimension(Window::MainWindow, rect);
+	}
+
+	void Window::Dimension(HWND window, RECT* rect)
+	{
+		if (rect)
+		{
+			ZeroMemory(rect, sizeof(RECT));
+
+			if (window && IsWindow(window))
+			{
+				GetWindowRect(window, rect);
+			}
+		}
+	}
+
+	bool Window::IsCursorWithin(HWND window)
+	{
+		RECT rect;
+		POINT point;
+		Window::Dimension(window, &rect);
+
+		GetCursorPos(&point);
+
+		return ((point.x - rect.left) > 0 && (point.y - rect.top) > 0 && (rect.right - point.x) > 0 && (rect.bottom - point.y) > 0);
+	}
+
 	void __declspec(naked) Window::StyleHookStub()
 	{
 		if (Window::NoBorder.Get<bool>())
@@ -36,7 +89,7 @@ namespace Components
 
 	int WINAPI Window::ShowCursorHook(BOOL show)
 	{
-		if (Window::NativeCursor.Get<bool>() && GetForegroundWindow() == Window::MainWindow)
+		if (Window::NativeCursor.Get<bool>() && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 		{
 			static int count = 0;
 			(show ? ++count : --count);
@@ -76,7 +129,7 @@ namespace Components
 		// Draw the cursor if necessary
 		Renderer::OnFrame([] ()
 		{
-			if (Window::NativeCursor.Get<bool>() && GetForegroundWindow() == Window::MainWindow)
+			if (Window::NativeCursor.Get<bool>() && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 			{
 				int value = 0;
 
