@@ -30,7 +30,7 @@ namespace Steam
 				Data[0].pbData = (BYTE *)"AAAAAAAAAA";
 				Data[0].cbData = 10;
 
-				CryptProtectData(&Data[0], NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &Data[1]);
+				CryptProtectData(Data, NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &Data[1]);
 
 				subId = ::Utils::OneAtATime((char*)Data[1].pbData, 52);
 			}
