@@ -46,11 +46,13 @@ namespace Components
 		Localization::Set("MPUI_DESC_THEATER", "View your played matches.");
 		Localization::Set("MENU_FOV", "Field of View");
 		Localization::Set("MENU_NOBORDER", "Disable Window Border");
+		Localization::Set("MENU_NATIVECURSOR", "Display native cursor");
 		Localization::Set("MENU_MAXPACKETS", "Max. Packets per frame");
 		Localization::Set("MENU_SNAPS", "Snapshot rate");
 		Localization::Set("MENU_LAGOMETER", "Show Lagometer");
 		Localization::Set("MENU_DRAWFPS", "Show FPS");
 		Localization::Set("MENU_FPSLABELS", "Show FPS Labels");
+		Localization::Set("MENU_NEWCOLORS", "Use new color codes");
 		Localization::Set("MPUI_DESC_OPTIONS", "Set your game options.");
 		Localization::Set("MPUI_DESC_QUIT", "Quit the game.");
 
