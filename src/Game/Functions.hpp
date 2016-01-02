@@ -151,6 +151,9 @@ namespace Game
 	typedef void(__cdecl * Live_MPAcceptInvite_t)(_XSESSION_INFO *hostInfo, const int controllerIndex, bool fromGameInvite);
 	extern Live_MPAcceptInvite_t Live_MPAcceptInvite;
 
+	typedef void(__cdecl * Live_ParsePlaylists_t)(const char* data);
+	extern Live_ParsePlaylists_t Live_ParsePlaylists;
+
 	typedef void(*LoadInitialFF_t)(void);
 	extern LoadInitialFF_t LoadInitialFF;
 

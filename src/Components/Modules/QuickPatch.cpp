@@ -28,35 +28,6 @@ namespace Components
 		Utils::Hook::Nop(0x451145, 5);
 		Utils::Hook::Set<BYTE>(0x45114C, 0xEB);
 
-		// Apply new playlist
-		char* playlist = "mp_playlists_dlc2";
-		Utils::Hook::Set<char*>(0x494803, playlist);
-		Utils::Hook::Set<char*>(0x4C6EC1, playlist);
-		Utils::Hook::Set<char*>(0x4CF7F9, playlist);
-		Utils::Hook::Set<char*>(0x4D6E63, playlist);
-		Utils::Hook::Set<char*>(0x4D7358, playlist);
-		Utils::Hook::Set<char*>(0x4D73C8, playlist);
-		Utils::Hook::Set<char*>(0x4F4EA1, playlist);
-		Utils::Hook::Set<char*>(0x4D47FB, "mp_playlists_dlc2.ff");
-		Utils::Hook::Set<char*>(0x60B06E, "playlists.patch2");
-
-		// disable playlist download function
-		Utils::Hook::Set<BYTE>(0x4D4790, 0xC3);
-
-		// disable playlist.ff loading function
-		//Utils::Hook::Set<BYTE>(0x4D6E60, 0xC3);
-
-		// Load playlist, but don't delete it
-		Utils::Hook::Nop(0x4D6EBB, 5);
-		Utils::Hook::Nop(0x4D6E67, 5);
-		Utils::Hook::Nop(0x4D6E71, 2);
-
-		// playlist dvar 'validity check'
-		Utils::Hook::Set<BYTE>(0x4B1170, 0xC3);
-
-		//Got playlists is true
-		//Utils::Hook::Set<bool>(0x1AD3680, true);
-
 		// LSP disabled
 		Utils::Hook::Set<BYTE>(0x435950, 0xC3); // LSP HELLO
 		Utils::Hook::Set<BYTE>(0x49C220, 0xC3); // We wanted to send a logging packet, but we haven't connected to LSP!

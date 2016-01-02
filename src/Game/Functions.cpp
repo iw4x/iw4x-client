@@ -65,6 +65,7 @@ namespace Game
 	NET_StringToAdr_t NET_StringToAdr = (NET_StringToAdr_t)0x409010;
 
 	Live_MPAcceptInvite_t Live_MPAcceptInvite = (Live_MPAcceptInvite_t)0x420A6D;
+	Live_ParsePlaylists_t Live_ParsePlaylists = (Live_ParsePlaylists_t)0x4295A0;
 
 	LoadInitialFF_t LoadInitialFF = (LoadInitialFF_t)0x506AC0;
 	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;

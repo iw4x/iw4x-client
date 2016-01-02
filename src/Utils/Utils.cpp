@@ -1,7 +1,7 @@
 #include "..\STDInclude.hpp"
 
 #define VA_BUFFER_COUNT		4
-#define VA_BUFFER_SIZE		4096
+#define VA_BUFFER_SIZE		65536
 
 namespace Utils
 {
@@ -13,7 +13,7 @@ namespace Utils
 		va_list ap;
 		va_start(ap, fmt);
 		char* dest = g_vaBuffer[g_vaNextBufferIndex];
-		vsprintf_s(g_vaBuffer[g_vaNextBufferIndex], fmt, ap);
+		vsnprintf(g_vaBuffer[g_vaNextBufferIndex], VA_BUFFER_SIZE, fmt, ap);
 		g_vaNextBufferIndex = (g_vaNextBufferIndex + 1) % VA_BUFFER_COUNT;
 		va_end(ap);
 		return dest;

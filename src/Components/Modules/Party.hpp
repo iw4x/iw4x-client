@@ -7,9 +7,13 @@ namespace Components
 		~Party();
 		const char* GetName() { return "Party"; };
 
+		static Network::Address Target();
 		static void Connect(Network::Address target);
 		static const char* GetLobbyInfo(SteamID lobby, std::string key);
 		static void RemoveLobby(SteamID lobby);
+
+		static bool PlaylistAwaiting();
+		static void PlaylistContinue();
 
 	private:
 		struct JoinContainer
@@ -18,6 +22,10 @@ namespace Components
 			std::string Challenge;
 			DWORD JoinTime;
 			bool Valid;
+
+			// Party-specific stuff
+			DWORD RequestTime;
+			bool AwaitingPlaylist;
 		};
 
 		static JoinContainer Container;

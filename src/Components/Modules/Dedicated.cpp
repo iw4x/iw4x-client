@@ -129,11 +129,7 @@ namespace Components
 			callback();
 		}
 
-		__asm
-		{
-			mov eax, 5A8E80h
-			call eax
-		}
+		Utils::Hook::Call<void>(0x5A8E80);
 	}
 
 	Dedicated::Dedicated()
@@ -230,6 +226,13 @@ namespace Components
 					LastHeartbeat = Game::Com_Milliseconds();
 					Dedicated::Heartbeat();
 				}
+			});
+
+			// Wrap xstartprivatematch
+			Command::Add("lobby_start", [] (Command::Params params)
+			{
+				Playlist::LoadPlaylist();
+				Command::Execute("xstartprivatematch", false);
 			});
 		}
 	}

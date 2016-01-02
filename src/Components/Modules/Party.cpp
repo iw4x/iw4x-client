@@ -17,9 +17,15 @@ namespace Components
 		return id;
 	}
 
+	Network::Address Party::Target()
+	{
+		return Party::Container.Target;
+	}
+
 	void Party::Connect(Network::Address target)
 	{
 		Party::Container.Valid = true;
+		Party::Container.AwaitingPlaylist = false;
 		Party::Container.JoinTime = Game::Com_Milliseconds();
 		Party::Container.Target = target;
 		Party::Container.Challenge = Utils::VA("%X", Party::Container.JoinTime);
@@ -66,6 +72,26 @@ namespace Components
 	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int value, int min, int max, Game::dvar_flag flag, const char* description)
 	{
 		return Dvar::Register<int>(name, 1, 1, max, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED | flag, description).Get<Game::dvar_t*>();
+	}
+
+	bool Party::PlaylistAwaiting()
+	{
+		return Party::Container.AwaitingPlaylist;
+	}
+
+	void Party::PlaylistContinue()
+	{
+		Party::Container.AwaitingPlaylist = false;
+
+		SteamID id = Party::GenerateLobbyId();
+
+		Party::LobbyMap[id.Bits] = Party::Container.Target;
+
+		Game::Steam_JoinLobby(id, 0);
+
+		// Callback not registered on first try
+		// TODO: Fix :D
+		if (Party::LobbyMap.size() <= 1) Game::Steam_JoinLobby(id, 0);
 	}
 
 	Party::Party()
@@ -126,12 +152,22 @@ namespace Components
 
 		Renderer::OnFrame([] ()
 		{
-			if (!Party::Container.Valid) return;
-
-			if ((Game::Com_Milliseconds() - Party::Container.JoinTime) > 5000)
+			if (Party::Container.Valid)
 			{
-				Party::Container.Valid = false;
-				Party::ConnectError("Server connection timed out.");
+				if ((Game::Com_Milliseconds() - Party::Container.JoinTime) > 5000)
+				{
+					Party::Container.Valid = false;
+					Party::ConnectError("Server connection timed out.");
+				}
+			}
+			
+			if (Party::Container.AwaitingPlaylist)
+			{
+				if ((Game::Com_Milliseconds() - Party::Container.RequestTime) > 5000)
+				{
+					Party::Container.AwaitingPlaylist = false;
+					Party::ConnectError("Playlist request timed out.");
+				}
 			}
 		});
 
@@ -219,15 +255,10 @@ namespace Components
 					// Connect 
 					else if (matchType == 1) // Party
 					{
-						SteamID id = Party::GenerateLobbyId();
-
-						Party::LobbyMap[id.Bits] = address;
-
-						Game::Steam_JoinLobby(id, 0);
-
-						// Callback not registered on first try
-						// TODO: Fix :D
-						if (Party::LobbyMap.size() <= 1) Game::Steam_JoinLobby(id, 0);
+						// Send playlist request
+						Party::Container.RequestTime = Game::Com_Milliseconds();
+						Party::Container.AwaitingPlaylist = true;
+						Network::Send(address, "getplaylist\n");
 					}
 					else if (matchType == 2) // Match
 					{
