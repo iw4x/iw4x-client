@@ -27,14 +27,8 @@ namespace Components
 	DWORD Playlist::StorePlaylistStub(const char** buffer)
 	{
 		Playlist::CurrentPlaylistBuffer = *buffer;
-		//return Utils::Hook::Call<DWORD>(0x4C0350);
-		__asm
-		{
-			push buffer
-			mov eax, 4C0350h
-			call eax
-			add esp, 4h
-		}
+
+		return Utils::Hook::Call<DWORD(const char**)>(0x4C0350)(buffer);
 	}
 
 	void Playlist::PlaylistRequest(Network::Address address, std::string data)

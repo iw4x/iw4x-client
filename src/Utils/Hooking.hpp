@@ -23,13 +23,9 @@ namespace Utils
 		void* GetAddress();
 		void Quick();
 
-		template <typename T> static T Call(DWORD function)
+		template <typename T> static std::function<T> Call(DWORD function)
 		{
-			__asm
-			{
-				mov eax, function
-				call eax
-			}
+			return std::function<T>((T*)function);
 		}
 
 		static void SetString(void* place, const char* string, size_t length);

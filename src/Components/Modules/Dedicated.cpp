@@ -26,7 +26,7 @@ namespace Components
 		memcpy((void*)0x66E1CB0, &fastfiles, sizeof(fastfiles));
 		Game::LoadInitialFF();
 
-		Utils::Hook::Call<void>(0x4F84C0);
+		Utils::Hook::Call<void()>(0x4F84C0)();
 	}
 
 	void Dedicated::MapRotate()
@@ -129,7 +129,7 @@ namespace Components
 			callback();
 		}
 
-		Utils::Hook::Call<void>(0x5A8E80);
+		Utils::Hook::Call<void()>(0x5A8E80)();
 	}
 
 	Dedicated::Dedicated()
