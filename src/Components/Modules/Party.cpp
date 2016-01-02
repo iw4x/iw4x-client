@@ -81,6 +81,9 @@ namespace Components
 
 	void Party::PlaylistContinue()
 	{
+		// Ensure we can join
+		*Game::g_lobbyCreateInProgress = false;
+
 		Party::Container.AwaitingPlaylist = false;
 
 		SteamID id = Party::GenerateLobbyId();

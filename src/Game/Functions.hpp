@@ -231,6 +231,8 @@ namespace Game
 
 	extern XBlock** g_streamBlocks;
 
+	extern bool* g_lobbyCreateInProgress;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	void OOBPrintT(int type, netadr_t netadr, const char* message);

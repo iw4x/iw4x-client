@@ -119,6 +119,8 @@ namespace Game
 
 	XBlock** g_streamBlocks = (XBlock**)0x16E554C;
 
+	bool* g_lobbyCreateInProgress = (bool*)0x66C9BC2;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
