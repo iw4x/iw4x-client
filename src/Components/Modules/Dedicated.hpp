@@ -22,5 +22,8 @@ namespace Components
 		static void MapRotate();
 		static void FrameStub();
 		static void InitDedicatedServer();
+
+		static void PostInitialization();
+		static void PostInitializationStub();
 	};
 }

@@ -29,6 +29,33 @@ namespace Components
 		Utils::Hook::Call<void()>(0x4F84C0)();
 	}
 
+	void Dedicated::PostInitialization()
+	{
+		Command::Execute("exec autoexec.cfg");
+		Command::Execute("onlinegame 1");
+		Command::Execute("exec default_xboxlive.cfg");
+		Command::Execute("xblive_rankedmatch 1");
+		Command::Execute("xblive_privatematch 0");
+		//Command::Execute("xstartprivatematch");
+		Command::Execute("sv_network_fps 1000");
+		Command::Execute("com_maxfps 125");
+
+		// Process command line?
+		Utils::Hook::Call<void()>(0x60C3D0)();
+	}
+
+	void __declspec(naked) Dedicated::PostInitializationStub()
+	{
+		__asm
+		{
+			call Dedicated::PostInitialization
+
+			// Start Com_EvenLoop
+			mov eax, 43D140h
+			jmp eax
+		}
+	}
+
 	void Dedicated::MapRotate()
 	{
 		if (Dvar::Var("party_host").Get<bool>())
@@ -196,6 +223,9 @@ namespace Components
 
 			// Dedicated frame handler
 			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).Install()->Quick();
+
+			// Post initialization point
+			Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).Install()->Quick();
 
 			// isHost script call return 0
 			Utils::Hook::Set<DWORD>(0x5DEC04, 0);
