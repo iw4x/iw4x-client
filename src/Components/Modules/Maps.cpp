@@ -27,11 +27,7 @@ namespace Components
 		}
 
 		std::vector<Game::XZoneInfo> data;
-
-		for (unsigned int i = 0; i < zoneCount; i++)
-		{
-			data.push_back(zoneInfo[i]);
-		}
+		Utils::Merge(data, zoneInfo, zoneCount);
 
 		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); i++)
 		{

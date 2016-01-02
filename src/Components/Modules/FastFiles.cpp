@@ -6,22 +6,18 @@ namespace Components
 
 	void FastFiles::LoadDLCUIZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
 	{
-		Game::XZoneInfo* data = new Game::XZoneInfo[zoneCount + 2];
-		memcpy(data, zoneInfo, sizeof(Game::XZoneInfo) * zoneCount);
+		std::vector<Game::XZoneInfo> data;
+		Utils::Merge(data, zoneInfo, zoneCount);
 
-		data[zoneCount].name = "dlc1_ui_mp";
-		data[zoneCount].allocFlags = 2;
-		data[zoneCount].freeFlags = 0;
-		zoneCount++;
+		Game::XZoneInfo info = { nullptr, 2, 0 };
 
-		data[zoneCount].name = "dlc2_ui_mp";
-		data[zoneCount].allocFlags = 2;
-		data[zoneCount].freeFlags = 0;
-		zoneCount++;
+		info.name = "dlc1_ui_mp";
+		data.push_back(info);
 
-		Game::DB_LoadXAssets(data, zoneCount, sync);
+		info.name = "dlc2_ui_mp";
+		data.push_back(info);
 
-		delete[] data;
+		Game::DB_LoadXAssets(data.data(), data.size(), sync);
 	}
 
 	const char* FastFiles::GetZoneLocation(const char* file)

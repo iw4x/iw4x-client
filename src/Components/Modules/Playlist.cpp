@@ -27,7 +27,6 @@ namespace Components
 	DWORD Playlist::StorePlaylistStub(const char** buffer)
 	{
 		Playlist::CurrentPlaylistBuffer = *buffer;
-
 		return Utils::Hook::Call<DWORD(const char**)>(0x4C0350)(buffer);
 	}
 
@@ -84,7 +83,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4B1170, 0xC3);
 
 		// disable playlist checking
-		Utils::Hook::Set<BYTE>(0x5B69E9, 0xEB);// too new
+		Utils::Hook::Set<BYTE>(0x5B69E9, 0xEB); // too new
 		Utils::Hook::Set<BYTE>(0x5B696E, 0xEB); // too old
 
 		//Got playlists is true
