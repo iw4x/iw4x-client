@@ -90,7 +90,7 @@ namespace Components
 
 		static void Frame();
 
-		static void SortListByKey(int key);
+		static void SortList();
 
 		static ServerInfo* GetServer(int index);
 

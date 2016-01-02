@@ -154,7 +154,7 @@ namespace Components
 					int index = ServerList::OnlineList.size();
 					ServerList::OnlineList.push_back(server);
 					ServerList::VisibleList.push_back(index);
-					ServerList::SortListByKey(ServerList::SortKey);
+					ServerList::SortList();
 				}
 
 				break;
@@ -164,11 +164,8 @@ namespace Components
 		ServerList::RefreshContainer.Mutex.unlock();
 	}
 
-	void ServerList::SortListByKey(int key)
+	void ServerList::SortList()
 	{
-		static int column = 0;
-		column = key;
-
 		qsort(ServerList::VisibleList.data(), ServerList::VisibleList.size(), sizeof(int), [] (const void* first, const void* second)
 		{
 			int server1 = *(int*)first;
@@ -184,17 +181,17 @@ namespace Components
 			if (!info2) return -1;
 
 			// Numerical comparisons
-			if (column == ServerList::Column::Ping)
+			if (ServerList::SortKey == ServerList::Column::Ping)
 			{
 				return ((info1->Ping - info2->Ping) * (ServerList::SortAsc ? 1 : -1));
 			}
-			else if (column == ServerList::Column::Players)
+			else if (ServerList::SortKey == ServerList::Column::Players)
 			{
 				return ((info1->Clients - info2->Clients) * (ServerList::SortAsc ? 1 : -1));
 			}
 
-			std::string text1 = Colors::Strip(ServerList::GetServerText(info1, column));
-			std::string text2 = Colors::Strip(ServerList::GetServerText(info2, column));
+			std::string text1 = Colors::Strip(ServerList::GetServerText(info1, ServerList::SortKey));
+			std::string text2 = Colors::Strip(ServerList::GetServerText(info2, ServerList::SortKey));
 
 			// ASCII-based comparison
 			return (text1.compare(text2) * (ServerList::SortAsc ? 1 : -1));
@@ -346,7 +343,7 @@ namespace Components
 			}
 
 			Logger::Print("Sorting server list by token: %d\n", ServerList::SortKey);
-			ServerList::SortListByKey(ServerList::SortKey);
+			ServerList::SortList();
 		});
 
 		// Add frame callback
