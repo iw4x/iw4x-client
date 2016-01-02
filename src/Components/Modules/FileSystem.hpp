@@ -23,5 +23,8 @@ namespace Components
 
 		FileSystem();
 		const char* GetName() { return "FileSystem"; };
+
+	private:
+		static int ExecIsFSStub(const char* execFilename);
 	};
 }

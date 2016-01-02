@@ -23,8 +23,18 @@ namespace Components
 		}
 	}
 
+	int FileSystem::ExecIsFSStub(const char* execFilename)
+	{
+		return !File(execFilename).Exists();
+	}
+
 	FileSystem::FileSystem()
 	{
+		// Filesystem config checks
+		Utils::Hook(0x6098FD, FileSystem::ExecIsFSStub, HOOK_CALL).Install()->Quick();
 
+		// exec whitelist removal (YAYFINITY WARD)
+		Utils::Hook::Nop(0x609685, 5);
+		Utils::Hook::Nop(0x60968C, 2);
 	}
 }

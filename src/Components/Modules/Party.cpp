@@ -272,7 +272,6 @@ namespace Components
 						}
 						else
 						{
-
 							Dvar::Var("xblive_privatematch").Set(1);
 							Game::Menus_CloseAll(Game::uiContext);
 
