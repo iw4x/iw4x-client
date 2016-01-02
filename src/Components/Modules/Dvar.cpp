@@ -138,10 +138,8 @@ namespace Components
 			// Don't perform any checks if name didn't change
 			if (name == lastValidName) return;
 
-			char saneName[64] = { 0 };
-			Colors::Strip(Utils::Trim(name).data(), saneName, sizeof(saneName));
-
-			if (strlen(saneName) < 3 || (saneName[0] == '[' && saneName[1] == '{'))
+			std::string saneName = Colors::Strip(Utils::Trim(name));
+			if (saneName.size() < 3 || (saneName[0] == '[' && saneName[1] == '{'))
 			{
 				Logger::Print("Username '%s' is invalid. It must at least be 3 characters long and not appear empty!\n", name.data());
 				Dvar::Var("name").Set(lastValidName);

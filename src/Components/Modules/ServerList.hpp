@@ -3,10 +3,11 @@ namespace Components
 	class ServerList : public Component
 	{
 	public:
+		typedef int(SortCallback)(const void*, const void*);
+
 		struct ServerInfo
 		{
 			Network::Address Addr;
-			bool Visible;
 			std::string Hostname;
 			std::string Mapname;
 			std::string Gametype;
@@ -84,12 +85,21 @@ namespace Components
 
 		static int GetServerCount();
 		static const char* GetServerText(int index, int column);
+		static const char* GetServerText(ServerInfo* server, int column);
 		static void SelectServer(int index);
 
 		static void Frame();
 
+		static void SortListByKey(int key);
+
+		static ServerInfo* GetServer(int index);
+
+		static int SortKey;
+		static bool SortAsc;
+
 		static unsigned int CurrentServer;
 		static Container RefreshContainer;
 		static std::vector<ServerInfo> OnlineList;
+		static std::vector<int> VisibleList;
 	};
 }

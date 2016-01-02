@@ -27,6 +27,13 @@ namespace Components
 		*out = '\0';
 	}
 
+	std::string Colors::Strip(std::string in)
+	{
+		char buffer[1000] = { 0 }; // Should be more than enough
+		Colors::Strip(in.data(), buffer, sizeof(buffer));
+		return std::string(buffer);
+	}
+
 	void __declspec(naked) Colors::ClientUserinfoChanged(int length)
 	{
 		__asm

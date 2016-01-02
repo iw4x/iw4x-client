@@ -2,56 +2,62 @@
 
 namespace Components
 {
+	bool ServerList::SortAsc = true;
+	int ServerList::SortKey = ServerList::Column::Ping;
 	unsigned int ServerList::CurrentServer = 0;
 	ServerList::Container ServerList::RefreshContainer;
 	std::vector<ServerList::ServerInfo> ServerList::OnlineList;
+	std::vector<int> ServerList::VisibleList;
 
 	int ServerList::GetServerCount()
 	{
-		return ServerList::OnlineList.size();
+		return (int)ServerList::VisibleList.size();
 	}
 
 	const char* ServerList::GetServerText(int index, int column)
 	{
-		if ((unsigned int)index >= ServerList::OnlineList.size()) return "";
+		return ServerList::GetServerText(ServerList::GetServer(index), column);
+	}
 
-		ServerList::ServerInfo* Server = &ServerList::OnlineList[index];
+	const char* ServerList::GetServerText(ServerList::ServerInfo* server, int column)
+	{
+		if (!server) return "";
 
 		switch (column)
 		{
 			case Column::Password:
 			{
-				return (Server->Password ? "X" : "");
+				return (server->Password ? "X" : "");
 			}
 
 			case Column::Hostname:
 			{
-				return Server->Hostname.data();
+				return server->Hostname.data();
 			}
 
 			case Column::Mapname:
 			{
-				return  Game::UI_LocalizeMapName(Server->Mapname.data());
+				return  Game::UI_LocalizeMapName(server->Mapname.data());
 			}
 
 			case Column::Players:
 			{
-				return Utils::VA("%i (%i)", Server->Clients, Server->MaxClients);
+				return Utils::VA("%i (%i)", server->Clients, server->MaxClients);
 			}
 
 			case Column::Gametype:
 			{
-				if (Server->Mod != "")
+				if (server->Mod != "")
 				{
-					return (Server->Mod.data() + 5);
+					return (server->Mod.data() + 5);
 				}
 
-				return Game::UI_LocalizeGameType(Server->Gametype.data());
+				return Game::UI_LocalizeGameType(server->Gametype.data());
 			}
 
 			case Column::Ping:
 			{
-				return Utils::VA("%i", Server->Ping);
+				return Utils::VA("%i", server->Ping);
 			}
 		}
 
@@ -66,6 +72,7 @@ namespace Components
 	void ServerList::Refresh()
 	{
 		ServerList::OnlineList.clear();
+		ServerList::VisibleList.clear();
 
 		ServerList::RefreshContainer.Mutex.lock();
 		ServerList::RefreshContainer.Servers.clear();
@@ -123,7 +130,8 @@ namespace Components
 				server.Addr = address;
 
 				// Check if already inserted and remove
-				for (auto j = ServerList::OnlineList.begin(); j != ServerList::OnlineList.end(); j++)
+				int k = 0;
+				for (auto j = ServerList::OnlineList.begin(); j != ServerList::OnlineList.end(); j++, k++)
 				{
 					if (j->Addr == address)
 					{
@@ -132,9 +140,21 @@ namespace Components
 					}
 				}
 
+				// Also remove from visible list
+				for (auto j = ServerList::VisibleList.begin(); j != ServerList::VisibleList.end(); j++)
+				{
+					if (*j == k)
+					{
+						ServerList::VisibleList.erase(j);
+					}
+				}
+
 				if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
 				{
+					int index = ServerList::OnlineList.size();
 					ServerList::OnlineList.push_back(server);
+					ServerList::VisibleList.push_back(index);
+					ServerList::SortListByKey(ServerList::SortKey);
 				}
 
 				break;
@@ -142,6 +162,56 @@ namespace Components
 		}
 
 		ServerList::RefreshContainer.Mutex.unlock();
+	}
+
+	void ServerList::SortListByKey(int key)
+	{
+		static int column = 0;
+		column = key;
+
+		qsort(ServerList::VisibleList.data(), ServerList::VisibleList.size(), sizeof(int), [] (const void* first, const void* second)
+		{
+			int server1 = *(int*)first;
+			int server2 = *(int*)second;
+
+			ServerInfo* info1 = nullptr;
+			ServerInfo* info2 = nullptr;
+
+			if (ServerList::OnlineList.size() > (unsigned int)server1) info1 = &ServerList::OnlineList[server1];
+			if (ServerList::OnlineList.size() > (unsigned int)server2) info2 = &ServerList::OnlineList[server2];
+
+			if (!info1) return 1;
+			if (!info2) return -1;
+
+			// Numerical comparisons
+			if (column == ServerList::Column::Ping)
+			{
+				return ((info1->Ping - info2->Ping) * (ServerList::SortAsc ? 1 : -1));
+			}
+			else if (column == ServerList::Column::Players)
+			{
+				return ((info1->Clients - info2->Clients) * (ServerList::SortAsc ? 1 : -1));
+			}
+
+			std::string text1 = Colors::Strip(ServerList::GetServerText(info1, column));
+			std::string text2 = Colors::Strip(ServerList::GetServerText(info2, column));
+
+			// ASCII-based comparison
+			return (text1.compare(text2) * (ServerList::SortAsc ? 1 : -1));
+		});
+	}
+
+	ServerList::ServerInfo* ServerList::GetServer(int index)
+	{
+		if (ServerList::VisibleList.size() > (unsigned int)index)
+		{
+			if (ServerList::OnlineList.size() > (unsigned int)ServerList::VisibleList[index])
+			{
+				return &ServerList::OnlineList[ServerList::VisibleList[index]];
+			}
+		}
+
+		return nullptr;
 	}
 
 	void ServerList::Frame()
@@ -190,6 +260,7 @@ namespace Components
 	ServerList::ServerList()
 	{
 		ServerList::OnlineList.clear();
+		ServerList::VisibleList.clear();
 
 		Network::Handle("getServersResponse", [] (Network::Address address, std::string data)
 		{
@@ -244,7 +315,7 @@ namespace Components
 		});
 
 		// Set default masterServerName + port and save it 
-		Utils::Hook::Set<const char*>(0x60AD92, "localhost");
+		Utils::Hook::Set<char*>(0x60AD92, "localhost");
 		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_FLAG_SAVED); // masterServerName
 		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_FLAG_SAVED); // masterPort
 
@@ -255,14 +326,27 @@ namespace Components
 		UIScript::Add("RefreshServers", ServerList::Refresh);
 		UIScript::Add("JoinServer", [] ()
 		{
-			if (ServerList::OnlineList.size() > ServerList::CurrentServer)
+			if (ServerList::GetServer(ServerList::CurrentServer))
 			{
-				Party::Connect(ServerList::OnlineList[ServerList::CurrentServer].Addr);
+				Party::Connect(ServerList::GetServer(ServerList::CurrentServer)->Addr);
 			}
 		});
 		UIScript::Add("ServerSort", [] (UIScript::Token token)
 		{
-			Logger::Print("Server list sorting by token: %d\n", token.Get<int>());
+			int key = token.Get<int>();
+
+			if (ServerList::SortKey == key)
+			{
+				ServerList::SortAsc = !ServerList::SortAsc;
+			}
+			else
+			{
+				ServerList::SortKey = key;
+				ServerList::SortAsc = true;
+			}
+
+			Logger::Print("Sorting server list by token: %d\n", ServerList::SortKey);
+			ServerList::SortListByKey(ServerList::SortKey);
 		});
 
 		// Add frame callback
@@ -272,5 +356,6 @@ namespace Components
 	ServerList::~ServerList()
 	{
 		ServerList::OnlineList.clear();
+		ServerList::VisibleList.clear();
 	}
 }

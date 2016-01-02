@@ -9,6 +9,7 @@ namespace Components
 		const char* GetName() { return "Colors"; };
 
 		static void Strip(const char* in, char* out, int max);
+		static std::string Strip(std::string in);
 
 	private:
 		static Dvar::Var NewColors;
