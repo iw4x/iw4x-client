@@ -79,6 +79,8 @@ namespace Game
 	PC_ReadTokenHandle_t PC_ReadTokenHandle = (PC_ReadTokenHandle_t)0x4D2060;
 	PC_SourceError_t PC_SourceError = (PC_SourceError_t)0x467A00;
 
+	Party_GetMaxPlayers_t Party_GetMaxPlayers = (Party_GetMaxPlayers_t)0x4F5D60;
+	PartyHost_CountMembers_t PartyHost_CountMembers = (PartyHost_CountMembers_t)0x497330;
 	PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = (PartyHost_GetMemberAddressBySlot_t)0x44E100;
 
 	Script_Alloc_t Script_Alloc = (Script_Alloc_t)0x422E70;
@@ -120,6 +122,8 @@ namespace Game
 	XBlock** g_streamBlocks = (XBlock**)0x16E554C;
 
 	bool* g_lobbyCreateInProgress = (bool*)0x66C9BC2;
+	party_t** partyIngame = (party_t**)0x1081C00;
+	PartyData_s** partyData = (PartyData_s**)0x107E500;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{

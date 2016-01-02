@@ -178,6 +178,12 @@ namespace Game
 	typedef void(__cdecl * PC_SourceError_t)(int, const char*, ...);
 	extern PC_SourceError_t PC_SourceError;
 
+	typedef int(__cdecl * Party_GetMaxPlayers_t)(party_s* party);
+	extern Party_GetMaxPlayers_t Party_GetMaxPlayers;
+
+	typedef int(__cdecl * PartyHost_CountMembers_t)(PartyData_s* party);
+	extern PartyHost_CountMembers_t PartyHost_CountMembers;
+
 	typedef netadr_t *(__cdecl * PartyHost_GetMemberAddressBySlot_t)(int unk, void *party, const int slot);
 	extern PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot;
 
@@ -232,6 +238,8 @@ namespace Game
 	extern XBlock** g_streamBlocks;
 
 	extern bool* g_lobbyCreateInProgress;
+	extern party_t** partyIngame;
+	extern PartyData_s** partyData;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);

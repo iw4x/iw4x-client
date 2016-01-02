@@ -943,4 +943,16 @@ namespace Game
 		char gameType[12];
 		char uiName[32];
 	};
+
+	typedef struct party_s
+	{
+		BYTE pad1[544];
+		int privateSlots;
+		int publicSlots;
+	} party_t;
+
+	typedef struct PartyData_s
+	{
+		DWORD unk;
+	} PartyData_t;
 }

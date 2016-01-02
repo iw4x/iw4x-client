@@ -179,14 +179,22 @@ namespace Components
 		{
 			int clientCount = 0;
 			int maxclientCount = *Game::svs_numclients;
-			if (!maxclientCount) maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
 
-			for (int i = 0; i < maxclientCount; i++)
+			if (maxclientCount)
 			{
-				if (Game::svs_clients[i].state >= 3)
+				for (int i = 0; i < maxclientCount; i++)
 				{
-					clientCount++;
+					if (Game::svs_clients[i].state >= 3)
+					{
+						clientCount++;
+					}
 				}
+			}
+			else
+			{
+				//maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
+				maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
+				clientCount = Game::PartyHost_CountMembers((Game::PartyData_s*)0x1081C00);
 			}
 
 			// Ensure line break
