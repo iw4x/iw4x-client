@@ -3,7 +3,7 @@
 
 namespace Components
 {
-    #define MAX_PROCESSES 1024
+#define MAX_PROCESSES 1024
 
 	int evaluated = 0;
 	//Declarations SendMessage stuff
@@ -16,29 +16,50 @@ namespace Components
 		LPCTSTR sk = TEXT("SOFTWARE\\Classes\\iw4x\\shell\\open\\command");
 		LPCTSTR data = "URL:iw4x Protocol";
 		LPCTSTR value = TEXT("URL Protocol");
-		HMODULE hModule = GetModuleHandle(NULL);
-		char ownPth[MAX_PATH];
-		char workdir[MAX_PATH];
-		char regred[MAX_PATH];
+		char ownPth[MAX_PATH] = {0};
+		char workdir[MAX_PATH] = {0};
+		char regred[MAX_PATH] = {0};
 		DWORD dwsize = MAX_PATH;
-
+		HMODULE hModule = GetModuleHandle(NULL);
 		if (hModule != NULL)
 		{
-			GetModuleFileName(hModule, ownPth, (sizeof(ownPth)));
-			GetModuleFileName(hModule, workdir, (sizeof(workdir)));
-			//////DBG(("EXE Path: %s", ownPth));
+			
+			if (GetModuleFileName(hModule, ownPth, MAX_PATH) == ERROR)
+			{
+				OutputDebugString("ownPth = Error");
+				return false;
+			}
+			
+			if (GetModuleFileName(hModule, workdir, MAX_PATH) == ERROR)
+			{
+				OutputDebugString("workdir = Error");
+				return false;
+			}
+			else
+			{
+				char* endPtr = strstr(workdir, "iw4x.exe");
+				if (endPtr != NULL)
+				{
+					*endPtr = 0;
+				}
+				else
+				{
+					
+					return false;
+				}
+			}
+			//OutputDebugString(Utils::VA("EXE Path: %s", ownPth));
 		}
 		else
 		{
-			//////DBG("Cant get executable path");
+			//OutputDebugString(Utils::VA("Cant get executable path"));
 			return false;
 		}
 
-		char* endPtr = strstr(workdir, "iw4x.exe");
-		*endPtr = 0;
 
-		////DBG(("EXE Path: %s", ownPth));
-		////DBG(("EXE Path2: %s", workdir));
+
+		/*OutputDebugString(Utils::VA("EXE Path: %s", ownPth));
+		OutputDebugString(Utils::VA("EXE Path2: %s", workdir));*/
 
 		SetCurrentDirectory(workdir);
 
@@ -50,7 +71,16 @@ namespace Components
 			if (openRes == ERROR_SUCCESS)
 			{
 				char* endPt = strstr(regred, "\" \"%1\"");
-				*endPt = 0;
+				if (endPt != NULL)
+				{
+					*endPt = 0;
+				}
+				else
+				{
+					OutputDebugString("endPt = Null");
+					return false;
+				}
+
 
 				char* regredPtr = regred;
 				regredPtr++;
@@ -62,16 +92,25 @@ namespace Components
 				if (strcmp(regredPtr, ownPth))
 				{
 					////DBG("Protocol changed, reinstall");
+					//sk = TEXT("SOFTWARE\\Classes\\iw4x");
+					//openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS, &hKey);
+					//if (openRes == ERROR_SUCCESS)
+					//{
+					//	////DBG("Protocol is corrupted, reinstall");
+					//	RegDeleteKey(hKey, 0);
+					//	RegCloseKey(hKey);
+
+					//}
 					sk = TEXT("SOFTWARE\\Classes\\iw4x");
-					openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS, &hKey);
-					if (openRes == ERROR_SUCCESS)
+					openRes = RegDeleteKey(HKEY_CURRENT_USER, sk);
+					if (openRes != ERROR_SUCCESS)
 					{
 						////DBG("Protocol is corrupted, reinstall");
-						RegDeleteKey(hKey, 0);
-						RegCloseKey(hKey);
+						
+						//RegCloseKey(hKey);
+
 
 					}
-
 				}
 				else{
 					////DBG("Protocol is already installed");
@@ -79,30 +118,41 @@ namespace Components
 				}
 			}
 			else{
-				openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS, &hKey);
-				if (openRes == ERROR_SUCCESS)
+				//openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS, &hKey);
+				//if (openRes == ERROR_SUCCESS)
+				//{
+				//	////DBG("Protocol is corrupted, reinstall");
+				//	RegDeleteKey(hKey, 0);
+				//	RegCloseKey(hKey);
+
+				//}
+				sk = TEXT("SOFTWARE\\Classes\\iw4x");
+				openRes = RegDeleteKey(HKEY_CURRENT_USER, sk);
+				if (openRes != ERROR_SUCCESS)
 				{
 					////DBG("Protocol is corrupted, reinstall");
-					RegDeleteKey(hKey, 0);
-					RegCloseKey(hKey);
+					
+					//RegCloseKey(hKey);
+
 
 				}
 
 			}
 
-			/*////DBG("Protocol is already installed");
-			return true;*/
+			//////DBG("Protocol is already installed");
+			//return true;
 
 		}
 		else
 		{
 			sk = TEXT("SOFTWARE\\Classes\\iw4x");
-			openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS, &hKey);
-			if (openRes == ERROR_SUCCESS)
+			openRes = RegDeleteKey(HKEY_CURRENT_USER, sk);
+			if (openRes != ERROR_SUCCESS)
 			{
 				////DBG("Protocol is corrupted, reinstall");
-				RegDeleteKey(hKey, 0);
-				RegCloseKey(hKey);
+				//return false;
+				//RegCloseKey(hKey);
+
 
 			}
 		}
@@ -176,14 +226,14 @@ namespace Components
 										else
 										{
 											////DBG("Error creating Key shell\\open\\command");
-											RegCloseKey(hKey);
+											//RegCloseKey(hKey);
 											return false;
 										}
 									}
 									else
 									{
 										////DBG("Error opening SOFTWARE\\Classes\\iw3mp");
-										RegCloseKey(hKey);
+										//RegCloseKey(hKey);
 										return false;
 									}
 								}
@@ -204,7 +254,7 @@ namespace Components
 						else
 						{
 							////DBG("Error creating subkey DefaultIcon");
-							RegCloseKey(hKey);
+							//RegCloseKey(hKey);
 							return false;
 						}
 					}
@@ -225,7 +275,7 @@ namespace Components
 			else
 			{
 				////DBG("Error creating key SOFTWARE\\Classes\\iw3mp");
-				RegCloseKey(hKey);
+				//RegCloseKey(hKey);
 				return false;
 			}
 		}
@@ -242,22 +292,37 @@ namespace Components
 	{
 		if (evaluated) return;
 		evaluated = 1;
-
-		char* args = GetCommandLineA();
+		OutputDebugString("Evaluated = 1");
+		char* args = GetCommandLine();
+		OutputDebugString("GetCommandLine");
 		char* substr = strstr(args, "iw4x://");
 
 		if (!substr || substr == args)
 		{
+			OutputDebugString("substr==args");
+			OutputDebugString(substr);
+			OutputDebugString("substr==args");
+			OutputDebugString(args);
 			return;
 		}
 
 
-		substr += 8;
+		substr += 7;
 		char* substr2 = strstr(substr, "/");
-		*substr2 = 0;
-		////DBG(("Connecting to: %s", substr));
+		if (substr2 != NULL)
+		{
+			*substr2 = 0;
+		}
+		else
+		{
+			OutputDebugString("substr2 = NULL");
+			return;
+		}
 
-		Command::Execute(Utils::VA("connect %s;", substr), false);
+		////DBG(("Connecting to: %s", substr));
+		OutputDebugString(Utils::VA("connect %s", substr));
+		
+		Command::Execute(Utils::VA("connect %s;", substr), true);
 	}
 
 	BOOL ConnectProtocol::InvokeConnect()
@@ -279,10 +344,18 @@ namespace Components
 			//Now we have to get the Window Handle of the Console and the Handle of the Input field
 			////DBG("The Game is already running");
 			FindEditHandle("iw4x.exe");
-			
+
 			substr += 7;
 			char* substr2 = strstr(substr, "/");
-			*substr2 = 0;
+			if (substr2 != NULL)
+			{
+				*substr2 = 0;
+			}
+			else
+			{
+				return false;
+			}
+
 			if (proc_id != 0)
 			{
 
@@ -301,7 +374,7 @@ namespace Components
 
 			////DBG("Exit this Instance");
 			return TRUE;
-			
+
 		}
 		else
 		{
@@ -320,7 +393,9 @@ namespace Components
 
 	ConnectProtocol::ConnectProtocol()
 	{
+		OutputDebugString("Installing Protocol");
 		ConnectProtocol::InstallProtocol();
+		ConnectProtocol::EvaluateProtocol();
 	}
 
 
