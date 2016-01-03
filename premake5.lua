@@ -25,6 +25,10 @@ newaction {
 		if oldVersionHeader ~=nil then
 			local oldVersionHeaderContent = assert(oldVersionHeader:read('*a'))
 			oldRevNumber = string.match(oldVersionHeaderContent, "#define REVISION (%d+)")
+			if oldRevNumber = nil then
+				-- old version.hpp format?
+				oldRevNumber = "(none)"
+			end
 		end
 
 		-- generate version.hpp with a revision number if not equal
