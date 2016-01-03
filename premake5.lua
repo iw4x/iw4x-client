@@ -48,7 +48,7 @@ newaction {
 
 solution "iw4x"
 	location ("./build")
-	configurations { "Normal" }
+	configurations { "Normal", "Debug", "Release" }
 
 	project "iw4x"
 		kind "SharedLib"
@@ -56,6 +56,10 @@ solution "iw4x"
 		files { "./src/**.hpp", "./src/**.cpp" }
 		includedirs { "%{prj.location}" }
 		architecture "x32"
+		configmap {
+			["Debug"] = "Normal",
+			["Release"] = "Normal"
+		}
 
 		-- Allow newer Microsoft toolsets but fall back to VS2013
 		if _ACTION == "vs2015" then
