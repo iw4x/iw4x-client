@@ -11,9 +11,10 @@ namespace Components
 
 		static void LoadPlaylist();
 
+		static std::string ReceivedPlaylistBuffer;
+
 	private:
 		static std::string CurrentPlaylistBuffer;
-
 		static DWORD StorePlaylistStub(const char** buffer);
 
 		static void PlaylistRequest(Network::Address address, std::string data);

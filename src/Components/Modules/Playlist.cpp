@@ -3,6 +3,7 @@
 namespace Components
 {
 	std::string Playlist::CurrentPlaylistBuffer;
+	std::string Playlist::ReceivedPlaylistBuffer;
 
 	void Playlist::LoadPlaylist()
 	{
@@ -33,7 +34,24 @@ namespace Components
 	void Playlist::PlaylistRequest(Network::Address address, std::string data)
 	{
 		Logger::Print("Received playlist request, sending currently stored buffer.\n");
-		Network::Send(address, std::string("playlistresponse\n") + Playlist::CurrentPlaylistBuffer);
+
+		// Split playlist data
+		unsigned int maxPacketSize = 1000;
+		unsigned int maxBytes = Playlist::CurrentPlaylistBuffer.size();
+
+		for (unsigned int i = 0; i < maxBytes; i += maxPacketSize)
+		{
+			unsigned int sendBytes = min(maxPacketSize, maxBytes - i);
+			unsigned int sentBytes = i + sendBytes;
+
+			std::string data;
+			data.append(reinterpret_cast<char*>(&sentBytes), 4); // Sent bytes
+			data.append(reinterpret_cast<char*>(&maxBytes), 4); // Max bytes
+
+			data.append(Playlist::CurrentPlaylistBuffer.data() + i, sendBytes);
+
+			Network::SendRaw(address, std::string("playlistresponse\n") + data);
+		}
 	}
 
 	void Playlist::PlaylistReponse(Network::Address address, std::string data)
@@ -42,9 +60,43 @@ namespace Components
 		{
 			if (address == Party::Target())
 			{
-				Logger::Print("Received playlist response, loading and continuing connection.\n");
-				Game::Live_ParsePlaylists(data.data());
-				Party::PlaylistContinue();
+				if (data.size() <= 8)
+				{
+					Party::PlaylistError(Utils::VA("Received playlist response, but it is invalid."));
+					Playlist::ReceivedPlaylistBuffer.clear();
+					return;
+				}
+				else
+				{
+					unsigned int sentBytes = *(unsigned int*)(data.data() + 0);
+					unsigned int maxBytes = *(unsigned int*)(data.data() + 4);
+
+					// Clear current buffer, if we receive a new packet
+					if (data.size() - 8 == sentBytes) Playlist::ReceivedPlaylistBuffer.clear();
+
+					// Append received data
+					Playlist::ReceivedPlaylistBuffer.append(data.data() + 8, data.size() - 8);
+
+					if (Playlist::ReceivedPlaylistBuffer.size() != sentBytes)
+					{
+						Party::PlaylistError(Utils::VA("Received playlist data, but it seems invalid: %d != %d", sentBytes, Playlist::ReceivedPlaylistBuffer.size()));
+						Playlist::ReceivedPlaylistBuffer.clear();
+						return;
+					}
+					else
+					{
+						Logger::Print("Received playlist data: %d/%d (%d%%)\n", sentBytes, maxBytes, ((100 * sentBytes) / maxBytes));
+					}
+
+					if (Playlist::ReceivedPlaylistBuffer.size() == maxBytes)
+					{
+						Logger::Print("Received playlist response, loading and continuing connection.\n");
+						Game::Live_ParsePlaylists(Playlist::ReceivedPlaylistBuffer.data());
+						Party::PlaylistContinue();
+
+						Playlist::ReceivedPlaylistBuffer.clear();
+					}
+				}
 			}
 			else
 			{
@@ -99,5 +151,6 @@ namespace Components
 	Playlist::~Playlist()
 	{
 		Playlist::CurrentPlaylistBuffer.clear();
+		Playlist::ReceivedPlaylistBuffer.clear();
 	}
 }

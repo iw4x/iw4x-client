@@ -29,10 +29,31 @@ namespace Components
 		return key;
 	}
 
+	void __stdcall Localization::SetStringStub(const char* key, const char* value, bool isEnglish)
+	{
+		Localization::Set(key, value);
+	}
+
+	DWORD Localization::SELoadLanguageStub()
+	{
+		//'official' iw4m localized strings
+		Game::SE_Load("localizedstrings/iw4m.str", 0);
+
+		return Utils::Hook::Call<DWORD()>(0x629E20)();
+	}
+
 	Localization::Localization()
 	{
+		// Resolving hook
 		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).Install()->Quick();
 
+		// Set loading entry point
+		Utils::Hook(0x41D859, Localization::SELoadLanguageStub, HOOK_CALL).Install()->Quick();
+
+		// Overwrite SetString
+		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).Install()->Quick();
+
+		// TODO: Get rid of those!
 		Localization::Set("MENU_SEARCHINGFORGAMES_100MS", "");
 		Localization::Set("MP_SEARCHING_FOR_PLAYER", "Waiting");
 		Localization::Set("MENU_WAITING_FOR_MORE_PLAYERS_TEAMS", "Waiting for more players to balance teams");
@@ -58,10 +79,6 @@ namespace Components
 
 		Localization::Set("PLATFORM_REFRESH_LIST", "Refresh List ^0- ^3F5");
 		Localization::Set("PLATFORM_REFRESH_LIST_CAPS", "REFRESH LIST ^0- ^3F5");
-
-		// Don't perform non-english localization here, do it in fastfiles instead
-		//Localization::Set("MP_SEARCHING_FOR_PLAYER", "Warte");
-		//Localization::Set("MENU_WAITING_FOR_MORE_PLAYERS_TEAMS", "Auf weitere Spieler zum Teamausgleich warten");
 
 		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
 	}

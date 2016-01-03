@@ -15,11 +15,11 @@ namespace Components
 	}
 	void Network::Address::SetPort(unsigned short port)
 	{
-		this->address.port = port;
+		this->address.port = htons(port);
 	};
 	unsigned short Network::Address::GetPort()
 	{
-		return this->address.port;
+		return ntohs(this->address.port);
 	}
 	void Network::Address::SetIP(DWORD ip)
 	{
@@ -28,6 +28,14 @@ namespace Components
 	DWORD Network::Address::GetIP()
 	{
 		return *(DWORD*)this->address.ip;
+	}
+	void Network::Address::SetType(Game::netadrtype_t type)
+	{
+		this->address.type = type;
+	}
+	Game::netadrtype_t Network::Address::GetType()
+	{
+		return this->address.type;
 	}
 	Game::netadr_t* Network::Address::Get()
 	{
@@ -53,6 +61,47 @@ namespace Components
 		Network::Send(Game::netsrc_t::NS_CLIENT, target, data);
 	}
 
+	void Network::SendRaw(Game::netsrc_t type, Address target, std::string data)
+	{
+		DWORD header = 0xFFFFFFFF;
+
+		std::string rawData;
+		rawData.append(reinterpret_cast<char*>(&header), 4);
+		rawData.append(data.begin(), data.end());
+		rawData.append("\0", 1);
+
+		Game::OOBPrintRaw(type, *target.Get(), rawData.data(), rawData.size());
+	}
+
+	void Network::SendRaw(Address target, std::string data)
+	{
+		Network::SendRaw(Game::netsrc_t::NS_CLIENT, target, data);
+	}
+
+	void Network::Broadcast(unsigned short port, std::string data)
+	{
+		Address target;
+
+		target.SetPort(port);
+		target.SetIP(INADDR_BROADCAST);
+		target.SetType(Game::netadrtype_t::NA_BROADCAST);
+
+		Network::SendRaw(Game::netsrc_t::NS_CLIENT, target, data);
+	}
+
+	void Network::BroadcastRange(unsigned int min, unsigned int max, std::string data)
+	{
+		for (unsigned int i = min; i < max; i++)
+		{
+			Network::Broadcast((unsigned short)(i & 0xFFFF), data);
+		}
+	}
+
+	void Network::BroadcastAll(std::string data)
+	{
+		Network::BroadcastRange(100, 65536, data);
+	}
+
 	int Network::PacketInterceptionHandler(const char* packet)
 	{
 		// Check if custom handler exists
@@ -74,7 +123,13 @@ namespace Components
 		if (Network::PacketHandlers.find(Network::SelectedPacket) != Network::PacketHandlers.end())
 		{
 			size_t offset = Network::SelectedPacket.size() + 4 + 1;
-			Network::PacketHandlers[Network::SelectedPacket](from, std::string(msg->data + offset, msg->cursize - offset));
+
+			std::string data(msg->data + offset, msg->cursize - offset);
+
+			// Remove trailing 0x00 byte
+			if (data.size() && !data[data.size() - 1]) data.pop_back();
+
+			Network::PacketHandlers[Network::SelectedPacket](from, data);
 		}
 		else
 		{

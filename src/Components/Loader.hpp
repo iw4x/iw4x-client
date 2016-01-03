@@ -38,6 +38,7 @@ namespace Components
 #include "Modules\UIFeeder.hpp"
 #include "Modules\UIScript.hpp"
 #include "Modules\Dedicated.hpp"
+#include "Modules\Discovery.hpp"
 #include "Modules\FastFiles.hpp"
 #include "Modules\Materials.hpp"
 #include "Modules\Singleton.hpp"

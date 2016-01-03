@@ -70,8 +70,9 @@ namespace Components
 		// splash logo
 		Utils::Hook::Set<char*>(0x475F9E, "data/images/splash.bmp");
 
-		// Numeric ping
+		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
+		Utils::Hook::Set<BYTE>(0x45888C, Game::dvar_flag::DVAR_FLAG_CHEAT);
 
 		// increase font sizes for chat on higher resolutions
 		static float float13 = 13.0f;

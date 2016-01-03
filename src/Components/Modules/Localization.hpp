@@ -13,5 +13,8 @@ namespace Components
 	private:
 		static std::map<std::string, std::string> LocalizeMap;
 		static Dvar::Var UseLocalization;
+
+		static void __stdcall SetStringStub(const char* key, const char* value, bool isEnglish);
+		static DWORD SELoadLanguageStub();
 	};
 }
