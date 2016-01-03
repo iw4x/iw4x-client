@@ -36,11 +36,12 @@ namespace Components
 		Logger::Print("Received playlist request, sending currently stored buffer.\n");
 
 		// Split playlist data
+		int maxPacketSize = 1000;
 		unsigned int maxBytes = Playlist::CurrentPlaylistBuffer.size();
 
-		for (unsigned int i = 0; i < maxBytes; i += 2000)
+		for (unsigned int i = 0; i < maxBytes; i += maxPacketSize)
 		{
-			unsigned int sendBytes = min(2000, maxBytes - i);
+			unsigned int sendBytes = min(maxPacketSize, maxBytes - i);
 			unsigned int sentBytes = i + sendBytes;
 
 			std::string data;
