@@ -59,17 +59,8 @@ namespace Components
 
 	Playlist::Playlist()
 	{
-		// Apply new playlist
-		char* playlist = "mp_playlists_dlc2";
-		Utils::Hook::Set<char*>(0x494803, playlist);
-		Utils::Hook::Set<char*>(0x4C6EC1, playlist);
-		Utils::Hook::Set<char*>(0x4CF7F9, playlist);
-		Utils::Hook::Set<char*>(0x4D6E63, playlist);
-		Utils::Hook::Set<char*>(0x4D7358, playlist);
-		Utils::Hook::Set<char*>(0x4D73C8, playlist);
-		Utils::Hook::Set<char*>(0x4F4EA1, playlist);
-		Utils::Hook::Set<char*>(0x4D47FB, "mp_playlists_dlc2.ff");
-		Utils::Hook::Set<char*>(0x60B06E, "playlists.patch2");
+		// Default playlists
+		Utils::Hook::Set<char*>(0x60B06E, "playlists_default.info");
 
 		// disable playlist download function
 		Utils::Hook::Set<BYTE>(0x4D4790, 0xC3);
@@ -92,7 +83,7 @@ namespace Components
 		// Store playlist buffer on load
 		Utils::Hook(0x42961C, Playlist::StorePlaylistStub, HOOK_CALL).Install()->Quick();
 
-		if (Dedicated::IsDedicated())
+		//if (Dedicated::IsDedicated())
 		{
 			// Custom playlist loading
 			Utils::Hook(0x420B5A, Playlist::LoadPlaylist, HOOK_JUMP).Install()->Quick();
