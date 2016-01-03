@@ -76,6 +76,8 @@ namespace Game
 	sendOOB_t OOBPrint = (sendOOB_t)0x4AEF00;
 	sendOOBRaw_t OOBPrintRawData = (sendOOBRaw_t)0x60FDC0;
 
+	SE_Load_t SE_Load = (SE_Load_t)0x502A30;
+
 	PC_ReadToken_t PC_ReadToken = (PC_ReadToken_t)0x4ACCD0;
 	PC_ReadTokenHandle_t PC_ReadTokenHandle = (PC_ReadTokenHandle_t)0x4D2060;
 	PC_SourceError_t PC_SourceError = (PC_SourceError_t)0x467A00;

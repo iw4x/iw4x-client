@@ -172,6 +172,9 @@ namespace Game
 	typedef void(__cdecl* sendOOBRaw_t)(int, size_t, const char*, int, int, int, int, int);
 	extern sendOOBRaw_t OOBPrintRawData;
 
+	typedef char* (__cdecl * SE_Load_t)(char* file, int Unk);
+	extern SE_Load_t SE_Load;
+
 	typedef int(__cdecl * PC_ReadToken_t)(source_t*, token_t*);
 	extern PC_ReadToken_t PC_ReadToken;
 
