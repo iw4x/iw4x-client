@@ -152,6 +152,7 @@ namespace Components
 
 		// Allow xpartygo in public lobbies
 		Utils::Hook::Set<BYTE>(0x5A969E, 0xEB);
+		Utils::Hook::Nop(0x5A96BE, 2);
 
 		// Always open lobby menu when connecting
 		// It's not possible to entirely patch it via code 
@@ -166,9 +167,9 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x487BB2, 0xEB);
 
 		// Force xblive_privatematch 0 and rename it
-		Utils::Hook::Set<BYTE>(0x420A6A, 4);
+		//Utils::Hook::Set<BYTE>(0x420A6A, 4);
 		Utils::Hook::Set<BYTE>(0x420A6C, 0);
-		Utils::Hook::Set<char*>(0x420A6E, "xblive_privatematch2");
+		Utils::Hook::Set<char*>(0x420A6E, "xblive_privateserver");
 
 		// Enable XP Bar
 		Utils::Hook(0x62A2A7, Party::UIDvarIntStub, HOOK_CALL).Install()->Quick();

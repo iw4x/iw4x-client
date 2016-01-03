@@ -36,6 +36,7 @@ namespace Components
 		Command::Execute("exec default_xboxlive.cfg");
 		Command::Execute("xblive_rankedmatch 1");
 		Command::Execute("xblive_privatematch 1");
+		Command::Execute("xblive_privateserver 0");
 		Command::Execute("xstartprivatematch");
 		//Command::Execute("xstartlobby");
 		Command::Execute("sv_network_fps 1000");

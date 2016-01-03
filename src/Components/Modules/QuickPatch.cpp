@@ -70,6 +70,9 @@ namespace Components
 		// splash logo
 		Utils::Hook::Set<char*>(0x475F9E, "data/images/splash.bmp");
 
+		// Numeric ping
+		Utils::Hook::Set<BYTE>(0x45888E, 1);
+
 		// increase font sizes for chat on higher resolutions
 		static float float13 = 13.0f;
 		static float float10 = 10.0f;
