@@ -56,6 +56,9 @@ namespace Components
 		Localization::Set("MPUI_DESC_OPTIONS", "Set your game options.");
 		Localization::Set("MPUI_DESC_QUIT", "Quit the game.");
 
+		Localization::Set("PLATFORM_REFRESH_LIST", "Refresh List ^0- ^3F5");
+		Localization::Set("PLATFORM_REFRESH_LIST_CAPS", "REFRESH LIST ^0- ^3F5");
+
 		// Don't perform non-english localization here, do it in fastfiles instead
 		//Localization::Set("MP_SEARCHING_FOR_PLAYER", "Warte");
 		//Localization::Set("MENU_WAITING_FOR_MORE_PLAYERS_TEAMS", "Auf weitere Spieler zum Teamausgleich warten");
