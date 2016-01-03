@@ -55,8 +55,14 @@ solution "iw4x"
 		language "C++"
 		files { "./src/**.hpp", "./src/**.cpp" }
 		includedirs { "%{prj.location}" }
-		toolset "msc" -- only support Microsoft's compiler
 		architecture "x32"
+
+		-- Allow newer Microsoft toolsets but fall back to VS2013
+		if _ACTION == "vs2015" then
+			toolset "msc-140"
+		else
+			toolset "msc-120"
+		end
 
 		configuration "Normal"
 			defines { "NDEBUG" }
