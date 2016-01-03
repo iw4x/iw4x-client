@@ -173,6 +173,12 @@ namespace Components
 		// Enable XP Bar
 		Utils::Hook(0x62A2A7, Party::UIDvarIntStub, HOOK_CALL).Install()->Quick();
 
+		// Set NAT to open
+		Utils::Hook::Set<int>(0x79D898, 1);
+
+		// Disable host migration
+		Utils::Hook::Set<BYTE>(0x5B58B2, 0xEB);
+
 		// Fix xstartlobby
 		//Utils::Hook::Set<BYTE>(0x5B71CD, 0xEB);
 
