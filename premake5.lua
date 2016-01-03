@@ -59,7 +59,8 @@ solution "iw4x"
 
 		configuration "Normal"
 			defines { "NDEBUG" }
-			flags { "Optimize", "MultiProcessorCompile", "Symbols" }
+			flags { "MultiProcessorCompile", "Symbols" }
+			optimize "on"
 
 		if not _OPTIONS["no-new-structure"] then
 			vpaths {
