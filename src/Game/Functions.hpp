@@ -145,6 +145,9 @@ namespace Game
 	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t, netadr_t);
 	extern NET_CompareAdr_t NET_CompareAdr;
 
+	typedef bool(__cdecl * NET_IsLocalAddress_t)(netadr_t);
+	extern NET_IsLocalAddress_t NET_IsLocalAddress;
+
 	typedef bool(__cdecl * NET_StringToAdr_t)(const char*, netadr_t*);
 	extern NET_StringToAdr_t NET_StringToAdr;
 
@@ -246,6 +249,9 @@ namespace Game
 	extern bool* g_lobbyCreateInProgress;
 	extern party_t** partyIngame;
 	extern PartyData_s** partyData;
+
+	extern int* numIP;
+	extern netIP_t* localIP;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);

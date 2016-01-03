@@ -62,6 +62,7 @@ namespace Game
 
 	NET_AdrToString_t NET_AdrToString = (NET_AdrToString_t)0x469880;
 	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
+	NET_IsLocalAddress_t NET_IsLocalAddress = (NET_IsLocalAddress_t)0x402BD0;
 	NET_StringToAdr_t NET_StringToAdr = (NET_StringToAdr_t)0x409010;
 
 	Live_MPAcceptInvite_t Live_MPAcceptInvite = (Live_MPAcceptInvite_t)0x420A6D;
@@ -127,6 +128,9 @@ namespace Game
 	bool* g_lobbyCreateInProgress = (bool*)0x66C9BC2;
 	party_t** partyIngame = (party_t**)0x1081C00;
 	PartyData_s** partyData = (PartyData_s**)0x107E500;
+
+	int* numIP = (int*)0x64A1E68;
+	netIP_t* localIP = (netIP_t*)0x64A1E28;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{

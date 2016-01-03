@@ -23,6 +23,7 @@ namespace Components
 #include "Modules\Dvar.hpp"
 #include "Modules\Maps.hpp"
 #include "Modules\News.hpp"
+#include "Modules\Flags.hpp"
 #include "Modules\Menus.hpp"
 #include "Modules\Colors.hpp"
 #include "Modules\Logger.hpp"

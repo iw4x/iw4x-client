@@ -26,7 +26,12 @@ namespace Components
 		const char* GetName() { return "ServerList"; };
 
 		static void Refresh();
+		static void InsertRequest(Network::Address address, bool accquireMutex = true);
 		static void Insert(Network::Address address, Utils::InfoString info);
+
+		static bool IsFavouriteList();
+		static bool IsOfflineList();
+		static bool IsOnlineList();
 
 	private:
 		enum Column
@@ -93,13 +98,18 @@ namespace Components
 		static void SortList();
 
 		static ServerInfo* GetServer(int index);
+		static std::vector<ServerInfo>& GetList();
 
 		static int SortKey;
 		static bool SortAsc;
 
 		static unsigned int CurrentServer;
 		static Container RefreshContainer;
+
 		static std::vector<ServerInfo> OnlineList;
+		static std::vector<ServerInfo> OfflineList;
+		static std::vector<ServerInfo> FavouriteList;
+
 		static std::vector<int> VisibleList;
 	};
 }

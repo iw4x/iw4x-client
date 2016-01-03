@@ -6,5 +6,7 @@ namespace Components
 		Discovery();
 		~Discovery();
 		const char* GetName() { return "Discovery"; };
+
+		static void Perform();
 	};
 }

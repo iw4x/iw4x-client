@@ -8,6 +8,7 @@
 #include <wincrypt.h>
 #include <time.h>
 #include <timeapi.h>
+#include <shellapi.h>
 #include <WinSock2.h>
 
 #include <map>
@@ -22,6 +23,7 @@
 #include <locale>
 #include <regex>
 #include <thread>
+#include <future>
 
 #include <version.hpp>
 

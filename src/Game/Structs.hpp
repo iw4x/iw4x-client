@@ -626,10 +626,16 @@ namespace Game
 		NS_SERVER
 	} netsrc_t;
 
+	typedef union
+	{
+		BYTE bytes[4];
+		DWORD full;
+	} netIP_t;
+
 	typedef struct 
 	{
 		netadrtype_t type;
-		BYTE ip[4];
+		netIP_t ip;
 		unsigned short	port;
 		BYTE	ipx[10];
 	} netadr_t;

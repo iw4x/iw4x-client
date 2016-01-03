@@ -7,7 +7,7 @@ namespace Components
 
 	bool Dedicated::IsDedicated()
 	{
-		return (Dedicated::Dedi.Get<int>() != 0);
+		return Flags::HasFlag("dedicated");
 	}
 
 	void Dedicated::InitDedicatedServer()
@@ -23,7 +23,7 @@ namespace Components
 			"patch_mp"
 		};
 
-		memcpy((void*)0x66E1CB0, &fastfiles, sizeof(fastfiles));
+		memcpy(reinterpret_cast<void*>(0x66E1CB0), &fastfiles, sizeof(fastfiles));
 		Game::LoadInitialFF();
 
 		Utils::Hook::Call<void()>(0x4F84C0)();
@@ -163,32 +163,10 @@ namespace Components
 
 	Dedicated::Dedicated()
 	{
-		Dedicated::Dedi = Dvar::Register<int>("dedicated", 0, 0, 2, Game::dvar_flag::DVAR_FLAG_SERVERINFO | Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED, "Start as dedicated");
-
-		// TODO: Beautify!
-		char* cmd = GetCommandLineA();
-		char* value = strstr(cmd, " dedicated");
-
-		if (value)
-		{
-			value += 10;
-
-			while (*value == ' ' || *value == '"')
-				value++;
-
-			char num[2] = { 0, 0 };
-			num[0] = *value;
-
-			int dediVal = atoi(num);
-
-			if (dediVal && dediVal < 3)
-			{
-				Dedicated::Dedi.SetRaw(dediVal);
-			}
-		}
-
 		if (Dedicated::IsDedicated())
 		{
+			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't register at the master server");
+
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).Install()->Quick();
 
 			Utils::Hook::Set<BYTE>(0x683370, 0xC3); // steam sometimes doesn't like the server

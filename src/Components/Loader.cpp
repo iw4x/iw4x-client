@@ -6,7 +6,7 @@ namespace Components
 
 	void Loader::Initialize()
 	{
-		Loader::Register(new Dedicated());
+		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
 
 		Loader::Register(new Dvar());
@@ -26,8 +26,9 @@ namespace Components
 		Loader::Register(new Renderer());
 		Loader::Register(new UIFeeder());
 		Loader::Register(new UIScript());
-		Loader::Register(new FastFiles());
+		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());
+		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
 		Loader::Register(new FileSystem());
 		Loader::Register(new QuickPatch());

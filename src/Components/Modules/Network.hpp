@@ -18,7 +18,8 @@ namespace Components
 			unsigned short GetPort();
 
 			void SetIP(DWORD ip);
-			DWORD GetIP();
+			void SetIP(Game::netIP_t ip);
+			Game::netIP_t GetIP();
 
 			void SetType(Game::netadrtype_t type);
 			Game::netadrtype_t GetType();
@@ -26,6 +27,8 @@ namespace Components
 			Game::netadr_t* Get();
 			const char* GetString();
 
+			bool IsLocal();
+			bool IsSelf();
 
 		private:
 			Game::netadr_t address;

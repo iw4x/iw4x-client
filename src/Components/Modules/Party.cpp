@@ -43,11 +43,11 @@ namespace Components
 
 			if (key == "addr")
 			{
-				return Utils::VA("%d", address.Get()->ip[0] | (address.Get()->ip[1] << 8) | (address.Get()->ip[2] << 16) | (address.Get()->ip[3] << 24));
+				return Utils::VA("%d", address.GetIP().full);
 			}
 			else if (key =="port")
 			{
-				return Utils::VA("%d", htons(address.GetPort()));
+				return Utils::VA("%d", address.GetPort());
 			}
 		}
 
@@ -228,7 +228,6 @@ namespace Components
 		// Basic info handler
 		Network::Handle("getInfo", [] (Network::Address address, std::string data)
 		{
-			OutputDebugStringA(Utils::VA("Received inforequest from: %s", address.GetString()));
 			int clientCount = 0;
 			int maxclientCount = *Game::svs_numclients;
 
@@ -295,7 +294,6 @@ namespace Components
 
 		Network::Handle("infoResponse", [] (Network::Address address, std::string data)
 		{
-			OutputDebugStringA(Utils::VA("Received inforesponse from: %s", address.GetString()));
 			Utils::InfoString info(data);
 
 			// Handle connection

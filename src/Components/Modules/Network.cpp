@@ -23,11 +23,15 @@ namespace Components
 	}
 	void Network::Address::SetIP(DWORD ip)
 	{
-		*(DWORD*)this->address.ip = ip;
+		this->address.ip.full = ip;
 	}
-	DWORD Network::Address::GetIP()
+	void Network::Address::SetIP(Game::netIP_t ip)
 	{
-		return *(DWORD*)this->address.ip;
+		this->address.ip = ip;
+	}
+	Game::netIP_t Network::Address::GetIP()
+	{
+		return this->address.ip;
 	}
 	void Network::Address::SetType(Game::netadrtype_t type)
 	{
@@ -44,6 +48,38 @@ namespace Components
 	const char* Network::Address::GetString()
 	{
 		return Game::NET_AdrToString(this->address);
+	}
+	bool Network::Address::IsLocal()
+	{
+		// According to: https://en.wikipedia.org/wiki/Private_network
+
+		// 10.X.X.X
+		if (this->GetIP().bytes[0] == 10) return true;
+
+		// 192.168.X.X
+		if (this->GetIP().bytes[0] == 192 && this->GetIP().bytes[1] == 168) return true;
+
+		// 172.16.X.X - 172.31.X.X
+		if (this->GetIP().bytes[0] == 172 && (this->GetIP().bytes[1] >= 16) && (this->GetIP().bytes[1] < 32)) return true;
+
+		// TODO: Maybe check for matching localIPs and subnet mask
+
+		return false;
+	}
+	bool Network::Address::IsSelf()
+	{
+		if (Game::NET_IsLocalAddress(this->address)) return true; // Loopback
+		if (this->GetPort() != (Dvar::Var("net_port").Get<int>() & 0xFFFF)) return false; // Port not equal
+
+		for (int i = 0; i < *Game::numIP; i++)
+		{
+			if (this->GetIP().full == Game::localIP[i].full)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	void Network::Handle(std::string packet, Network::Callback callback)
@@ -107,7 +143,14 @@ namespace Components
 		// Check if custom handler exists
 		for (auto i = Network::PacketHandlers.begin(); i != Network::PacketHandlers.end(); i++)
 		{
-			if (!_strnicmp(i->first.data(), packet, i->first.size()))
+			std::string packetCommand = packet;
+			auto pos = packetCommand.find_first_of("\n ");
+			if (pos != std::string::npos)
+			{
+				packetCommand = packetCommand.substr(0, pos);
+			}
+
+			if (Utils::StrToLower(i->first) == Utils::StrToLower(packetCommand))
 			{
 				Network::SelectedPacket = i->first;
 				return 0;

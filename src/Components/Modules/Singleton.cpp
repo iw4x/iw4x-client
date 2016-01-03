@@ -25,7 +25,7 @@ namespace Components
 			else
 			{
 				//No connect command was provided, continuing with normal processing.
-				if (!Singleton::FirstInstance && MessageBoxA(0, "Do you want to start a second instance?", "Game already running", MB_ICONEXCLAMATION | MB_YESNO) == IDNO)
+				if (!Singleton::FirstInstance && MessageBoxA(0, "Do you want to start another instance?", "Game already running", MB_ICONEXCLAMATION | MB_YESNO) == IDNO)
 				{
 					ExitProcess(0);
 				}

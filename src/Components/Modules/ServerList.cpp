@@ -4,10 +4,48 @@ namespace Components
 {
 	bool ServerList::SortAsc = true;
 	int ServerList::SortKey = ServerList::Column::Ping;
+
 	unsigned int ServerList::CurrentServer = 0;
 	ServerList::Container ServerList::RefreshContainer;
+
 	std::vector<ServerList::ServerInfo> ServerList::OnlineList;
+	std::vector<ServerList::ServerInfo> ServerList::OfflineList;
+	std::vector<ServerList::ServerInfo> ServerList::FavouriteList;
+
 	std::vector<int> ServerList::VisibleList;
+
+	std::vector<ServerList::ServerInfo>& ServerList::GetList()
+	{
+		int source = Dvar::Var("ui_netSource").Get<int>();
+
+		if (ServerList::IsFavouriteList())
+		{
+			return ServerList::FavouriteList;
+		}
+		else if (ServerList::IsOfflineList())
+		{
+			return ServerList::OfflineList;
+		}
+		else
+		{
+			return ServerList::OnlineList;
+		}
+	}
+
+	bool ServerList::IsFavouriteList()
+	{
+		return (Dvar::Var("ui_netSource").Get<int>() == 2);
+	}
+
+	bool ServerList::IsOfflineList()
+	{
+		return (Dvar::Var("ui_netSource").Get<int>() == 0);
+	}
+
+	bool ServerList::IsOnlineList()
+	{
+		return (Dvar::Var("ui_netSource").Get<int>() == 1);
+	}
 
 	int ServerList::GetServerCount()
 	{
@@ -71,7 +109,10 @@ namespace Components
 
 	void ServerList::Refresh()
 	{
-		ServerList::OnlineList.clear();
+// 		ServerList::OnlineList.clear();
+// 		ServerList::OfflineList.clear();
+// 		ServerList::FavouriteList.clear();
+		ServerList::GetList().clear();
 		ServerList::VisibleList.clear();
 
 		ServerList::RefreshContainer.Mutex.lock();
@@ -81,18 +122,56 @@ namespace Components
 		ServerList::RefreshContainer.SendCount = 0;
 		ServerList::RefreshContainer.SentCount = 0;
 
-		ServerList::RefreshContainer.AwatingList = true;
-		ServerList::RefreshContainer.AwaitTime = Game::Com_Milliseconds();
+		if (ServerList::IsOfflineList())
+		{
+			Discovery::Perform();
+		}
+		else if (ServerList::IsOnlineList())
+		{
+			ServerList::RefreshContainer.AwatingList = true;
+			ServerList::RefreshContainer.AwaitTime = Game::Com_Milliseconds();
 
-		int masterPort = Dvar::Var("masterPort").Get<int>();
-		const char* masterServerName = Dvar::Var("masterServerName").Get<const char*>();
+			int masterPort = Dvar::Var("masterPort").Get<int>();
+			const char* masterServerName = Dvar::Var("masterServerName").Get<const char*>();
 
-		ServerList::RefreshContainer.Host = Network::Address(Utils::VA("%s:%u", masterServerName, masterPort));
+			ServerList::RefreshContainer.Host = Network::Address(Utils::VA("%s:%u", masterServerName, masterPort));
 
-		Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
+			Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
 
-		Network::Send(ServerList::RefreshContainer.Host, Utils::VA("getservers IW4 %i full empty", PROTOCOL));
-		//Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
+			Network::Send(ServerList::RefreshContainer.Host, Utils::VA("getservers IW4 %i full empty", PROTOCOL));
+			//Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
+		}
+		else if (ServerList::IsFavouriteList())
+		{
+			// TODO: Whatever
+		}
+	}
+
+	void ServerList::InsertRequest(Network::Address address, bool accquireMutex)
+	{
+		if (accquireMutex) ServerList::RefreshContainer.Mutex.lock();
+
+		ServerList::Container::ServerContainer container;
+		container.Sent = false;
+		container.Target = address;
+
+		bool alreadyInserted = false;
+		for (auto &server : ServerList::RefreshContainer.Servers)
+		{
+			if (server.Target == container.Target)
+			{
+				alreadyInserted = true;
+				break;
+			}
+		}
+
+		if (!alreadyInserted)
+		{
+			ServerList::RefreshContainer.Servers.push_back(container);
+			ServerList::RefreshContainer.SendCount++;
+		}
+
+		if (accquireMutex) ServerList::RefreshContainer.Mutex.unlock();
 	}
 
 	void ServerList::Insert(Network::Address address, Utils::InfoString info)
@@ -131,11 +210,11 @@ namespace Components
 
 				// Check if already inserted and remove
 				int k = 0;
-				for (auto j = ServerList::OnlineList.begin(); j != ServerList::OnlineList.end(); j++, k++)
+				for (auto j = ServerList::GetList().begin(); j != ServerList::GetList().end(); j++, k++)
 				{
 					if (j->Addr == address)
 					{
-						ServerList::OnlineList.erase(j);
+						ServerList::GetList().erase(j);
 						break;
 					}
 				}
@@ -151,10 +230,12 @@ namespace Components
 
 				if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
 				{
-					int index = ServerList::OnlineList.size();
-					ServerList::OnlineList.push_back(server);
+					int index = ServerList::GetList().size();
+					ServerList::GetList().push_back(server);
 					ServerList::VisibleList.push_back(index);
 					ServerList::SortList();
+
+					OutputDebugStringA(Utils::VA("Inserted with IP: %s", server.Addr.GetString()));
 				}
 
 				break;
@@ -202,9 +283,9 @@ namespace Components
 	{
 		if (ServerList::VisibleList.size() > (unsigned int)index)
 		{
-			if (ServerList::OnlineList.size() > (unsigned int)ServerList::VisibleList[index])
+			if (ServerList::GetList().size() > (unsigned int)ServerList::VisibleList[index])
 			{
-				return &ServerList::OnlineList[ServerList::VisibleList[index]];
+				return &ServerList::GetList()[ServerList::VisibleList[index]];
 			}
 		}
 
@@ -286,27 +367,9 @@ namespace Components
 				Network::Address serverAddr = address;
 				serverAddr.SetIP(entry[i].IP);
 				serverAddr.SetPort(ntohs(entry[i].Port));
-				serverAddr.Get()->type = Game::NA_IP;
+				serverAddr.SetType(Game::NA_IP);
 
-				ServerList::Container::ServerContainer container;
-				container.Sent = false;
-				container.Target = serverAddr;
-
-				bool alreadyInserted = false;
-				for (auto &server : ServerList::RefreshContainer.Servers)
-				{
-					if (server.Target == container.Target)
-					{
-						alreadyInserted = true;
-						break;
-					}
-				}
-
-				if (!alreadyInserted)
-				{
-					ServerList::RefreshContainer.Servers.push_back(container);
-					ServerList::RefreshContainer.SendCount++;
-				}
+				ServerList::InsertRequest(serverAddr, false);
 			}
 
 			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.Servers.size() - count);
@@ -356,6 +419,8 @@ namespace Components
 	ServerList::~ServerList()
 	{
 		ServerList::OnlineList.clear();
+		ServerList::OfflineList.clear();
+		ServerList::FavouriteList.clear();
 		ServerList::VisibleList.clear();
 	}
 }
