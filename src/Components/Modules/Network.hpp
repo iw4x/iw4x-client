@@ -20,6 +20,9 @@ namespace Components
 			void SetIP(DWORD ip);
 			DWORD GetIP();
 
+			void SetType(Game::netadrtype_t type);
+			Game::netadrtype_t GetType();
+
 			Game::netadr_t* Get();
 			const char* GetString();
 
@@ -43,6 +46,10 @@ namespace Components
 		// Allows sending binary data
 		static void SendRaw(Address target, std::string data);
 		static void SendRaw(Game::netsrc_t type, Address target, std::string data);
+
+		static void Broadcast(unsigned short port, std::string data);
+		static void BroadcastRange(unsigned int min, unsigned int max, std::string data);
+		static void BroadcastAll(std::string data);
 
 	private:
 		static std::string SelectedPacket;

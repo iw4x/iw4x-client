@@ -27,6 +27,7 @@ namespace Components
 		Loader::Register(new UIFeeder());
 		Loader::Register(new UIScript());
 		Loader::Register(new FastFiles());
+		Loader::Register(new Discovery());
 		Loader::Register(new Materials());
 		Loader::Register(new FileSystem());
 		Loader::Register(new QuickPatch());

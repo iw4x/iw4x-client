@@ -15,11 +15,11 @@ namespace Components
 	}
 	void Network::Address::SetPort(unsigned short port)
 	{
-		this->address.port = port;
+		this->address.port = htons(port);
 	};
 	unsigned short Network::Address::GetPort()
 	{
-		return this->address.port;
+		return ntohs(this->address.port);
 	}
 	void Network::Address::SetIP(DWORD ip)
 	{
@@ -28,6 +28,14 @@ namespace Components
 	DWORD Network::Address::GetIP()
 	{
 		return *(DWORD*)this->address.ip;
+	}
+	void Network::Address::SetType(Game::netadrtype_t type)
+	{
+		this->address.type = type;
+	}
+	Game::netadrtype_t Network::Address::GetType()
+	{
+		return this->address.type;
 	}
 	Game::netadr_t* Network::Address::Get()
 	{
@@ -68,6 +76,30 @@ namespace Components
 	void Network::SendRaw(Address target, std::string data)
 	{
 		Network::SendRaw(Game::netsrc_t::NS_CLIENT, target, data);
+	}
+
+	void Network::Broadcast(unsigned short port, std::string data)
+	{
+		Address target;
+
+		target.SetPort(port);
+		target.SetIP(INADDR_BROADCAST);
+		target.SetType(Game::netadrtype_t::NA_BROADCAST);
+
+		Network::SendRaw(Game::netsrc_t::NS_CLIENT, target, data);
+	}
+
+	void Network::BroadcastRange(unsigned int min, unsigned int max, std::string data)
+	{
+		for (unsigned int i = min; i < max; i++)
+		{
+			Network::Broadcast((unsigned short)(i & 0xFFFF), data);
+		}
+	}
+
+	void Network::BroadcastAll(std::string data)
+	{
+		Network::BroadcastRange(100, 65536, data);
 	}
 
 	int Network::PacketInterceptionHandler(const char* packet)

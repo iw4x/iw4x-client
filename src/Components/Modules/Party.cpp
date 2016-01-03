@@ -228,6 +228,7 @@ namespace Components
 		// Basic info handler
 		Network::Handle("getInfo", [] (Network::Address address, std::string data)
 		{
+			OutputDebugStringA(Utils::VA("Received inforequest from: %s", address.GetString()));
 			int clientCount = 0;
 			int maxclientCount = *Game::svs_numclients;
 
@@ -294,6 +295,7 @@ namespace Components
 
 		Network::Handle("infoResponse", [] (Network::Address address, std::string data)
 		{
+			OutputDebugStringA(Utils::VA("Received inforesponse from: %s", address.GetString()));
 			Utils::InfoString info(data);
 
 			// Handle connection

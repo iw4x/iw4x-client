@@ -36,7 +36,7 @@ namespace Components
 		Logger::Print("Received playlist request, sending currently stored buffer.\n");
 
 		// Split playlist data
-		int maxPacketSize = 1000;
+		unsigned int maxPacketSize = 1000;
 		unsigned int maxBytes = Playlist::CurrentPlaylistBuffer.size();
 
 		for (unsigned int i = 0; i < maxBytes; i += maxPacketSize)

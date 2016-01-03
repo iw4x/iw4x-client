@@ -247,6 +247,7 @@ namespace Components
 
 			// Display in the menu, like in COD4
 			//Logger::Print("Sent %d/%d\n", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount);
+			Localization::Set("MPUI_SERVERQUERIED", Utils::VA("Queried: %d/%d", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount));
 
 			if (SendServers <= 0) break;
 		}
@@ -258,6 +259,8 @@ namespace Components
 	{
 		ServerList::OnlineList.clear();
 		ServerList::VisibleList.clear();
+
+		Localization::Set("MPUI_SERVERQUERIED", "Queried: 0/0");
 
 		Network::Handle("getServersResponse", [] (Network::Address address, std::string data)
 		{
