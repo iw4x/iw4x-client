@@ -285,7 +285,7 @@ namespace Components
 			{
 				Network::Address serverAddr = address;
 				serverAddr.SetIP(entry[i].IP);
-				serverAddr.SetPort(entry[i].Port);
+				serverAddr.SetPort(ntohs(entry[i].Port));
 				serverAddr.Get()->type = Game::NA_IP;
 
 				ServerList::Container::ServerContainer container;
