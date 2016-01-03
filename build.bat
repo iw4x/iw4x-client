@@ -21,6 +21,6 @@ endlocal
 exit /B 1
 
 :build
-msbuild /nologo /m /v:m /p:Configuration=Normal /p:Platform=Win32 build\iw4x.sln
+msbuild /nologo /m /v:m %* build\iw4x.sln
 endlocal
 exit /B %ERRORLEVEL%
