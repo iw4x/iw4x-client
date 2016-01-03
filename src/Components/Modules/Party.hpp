@@ -14,6 +14,7 @@ namespace Components
 
 		static bool PlaylistAwaiting();
 		static void PlaylistContinue();
+		static void PlaylistError(std::string error);
 
 	private:
 		struct JoinContainer

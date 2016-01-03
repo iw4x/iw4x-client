@@ -169,6 +169,9 @@ namespace Game
 	typedef void(__cdecl* sendOOB_t)(int, int, int, int, int, int, const char*);
 	extern sendOOB_t OOBPrint;
 
+	typedef void(__cdecl* sendOOBRaw_t)(int, size_t, const char*, int, int, int, int, int);
+	extern sendOOBRaw_t OOBPrintRawData;
+
 	typedef int(__cdecl * PC_ReadToken_t)(source_t*, token_t*);
 	extern PC_ReadToken_t PC_ReadToken;
 
@@ -244,6 +247,7 @@ namespace Game
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	void OOBPrintT(int type, netadr_t netadr, const char* message);
+	void OOBPrintRaw(int type, netadr_t netadr, const char* message, size_t length);
 	const char* UI_LocalizeMapName(const char* mapName);
 	const char* UI_LocalizeGameType(const char* gameType);
 }

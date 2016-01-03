@@ -53,6 +53,23 @@ namespace Components
 		Network::Send(Game::netsrc_t::NS_CLIENT, target, data);
 	}
 
+	void Network::SendRaw(Game::netsrc_t type, Address target, std::string data)
+	{
+		DWORD header = 0xFFFFFFFF;
+
+		std::string rawData;
+		rawData.append(reinterpret_cast<char*>(&header), 4);
+		rawData.append(data.begin(), data.end());
+		rawData.append("\0", 1);
+
+		Game::OOBPrintRaw(type, *target.Get(), rawData.data(), rawData.size());
+	}
+
+	void Network::SendRaw(Address target, std::string data)
+	{
+		Network::SendRaw(Game::netsrc_t::NS_CLIENT, target, data);
+	}
+
 	int Network::PacketInterceptionHandler(const char* packet)
 	{
 		// Check if custom handler exists
@@ -74,7 +91,13 @@ namespace Components
 		if (Network::PacketHandlers.find(Network::SelectedPacket) != Network::PacketHandlers.end())
 		{
 			size_t offset = Network::SelectedPacket.size() + 4 + 1;
-			Network::PacketHandlers[Network::SelectedPacket](from, std::string(msg->data + offset, msg->cursize - offset));
+
+			std::string data(msg->data + offset, msg->cursize - offset);
+
+			// Remove trailing 0x00 byte
+			if (data.size() && !data[data.size() - 1]) data.pop_back();
+
+			Network::PacketHandlers[Network::SelectedPacket](from, data);
 		}
 		else
 		{
