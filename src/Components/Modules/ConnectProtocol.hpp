@@ -6,7 +6,7 @@ namespace Components
 		ConnectProtocol();
 		const char* GetName() { return "ConnectProtocol"; };
 
-		void EvaluateProtocol();
+		static void EvaluateProtocol();
 		static BOOL InvokeConnect();
 
 	private:
