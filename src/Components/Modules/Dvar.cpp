@@ -2,6 +2,8 @@
 
 namespace Components
 {
+	std::vector<Dvar::Callback> Dvar::RegistrationCallbacks;
+
 	Dvar::Var::Var(std::string dvarName) : Var()
 	{
 		this->dvar = Game::Dvar_FindVar(dvarName.data());
@@ -125,9 +127,18 @@ namespace Components
 		return Game::Dvar_RegisterInt(name, value, min, max, flag.val, description);
 	}
 
+	void Dvar::OnInit(Dvar::Callback callback)
+	{
+		Dvar::RegistrationCallbacks.push_back(callback);
+	}
+
 	Game::dvar_t* Dvar::RegisterName(const char* name, const char* default, Game::dvar_flag flag, const char* description)
 	{
-		// TODO: Register string dvars here
+		// Run callbacks
+		for (auto callback : Dvar::RegistrationCallbacks)
+		{
+			callback();
+		}
 
 		// Name watcher
 		Renderer::OnFrame([] ()
@@ -170,5 +181,10 @@ namespace Components
 
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).Install()->Quick();
+	}
+
+	Dvar::~Dvar()
+	{
+		Dvar::RegistrationCallbacks.clear();
 	}
 }

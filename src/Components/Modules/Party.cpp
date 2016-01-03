@@ -97,8 +97,21 @@ namespace Components
 		if (Party::LobbyMap.size() <= 1) Game::Steam_JoinLobby(id, 0);
 	}
 
+	DWORD Party::UIDvarIntStub(char* dvar)
+	{
+		if (!_stricmp(dvar, "onlinegame"))
+		{
+			return 0x649E660;
+		}
+
+		return Utils::Hook::Call<DWORD(char*)>(0x4D5390)(dvar);
+	}
+
 	Party::Party()
 	{
+		Dvar::Register<bool>("party_enable", false, Game::dvar_flag::DVAR_FLAG_NONE, "Enable party system");
+		Dvar::Register<bool>("xblive_privatematch", true, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED, "").Get<Game::dvar_t*>();
+
 		// various changes to SV_DirectConnect-y stuff to allow non-party joinees
 		Utils::Hook::Set<WORD>(0x460D96, 0x90E9);
 		Utils::Hook::Set<BYTE>(0x460F0A, 0xEB);
@@ -139,6 +152,29 @@ namespace Components
 
 		// Allow xpartygo in public lobbies
 		Utils::Hook::Set<BYTE>(0x5A969E, 0xEB);
+
+		// Always open lobby menu when connecting
+		// It's not possible to entirely patch it via code 
+		//Utils::Hook::Set<BYTE>(0x5B1698, 0xEB);
+		//Utils::Hook::Nop(0x5029F2, 6);
+		//Utils::Hook::SetString(0x70573C, "menu_xboxlive_lobby");
+
+		// Disallow selecting team in private match
+		//Utils::Hook::Nop(0x5B2BD8, 6);
+
+		// Force teams, even if not private match
+		Utils::Hook::Set<BYTE>(0x487BB2, 0xEB);
+
+		// Force xblive_privatematch 0 and rename it
+		Utils::Hook::Set<BYTE>(0x420A6A, 4);
+		Utils::Hook::Set<BYTE>(0x420A6C, 0);
+		Utils::Hook::Set<char*>(0x420A6E, "xblive_privatematch2");
+
+		// Enable XP Bar
+		Utils::Hook(0x62A2A7, Party::UIDvarIntStub, HOOK_CALL).Install()->Quick();
+
+		// Fix xstartlobby
+		//Utils::Hook::Set<BYTE>(0x5B71CD, 0xEB);
 
 		// Patch party_minplayers to 1 and protect it
 		//Utils::Hook(0x4D5D51, Party::RegisterMinPlayers, HOOK_CALL).Install()->Quick();
@@ -225,7 +261,7 @@ namespace Components
 			// 1 - Party, use Steam_JoinLobby to connect
 			// 2 - Match, use CL_ConnectFromParty to connect
 
-			if (Dvar::Var("party_host").Get<bool>()) // Party hosting
+			if (Dvar::Var("party_enable").Get<bool>() && Dvar::Var("party_host").Get<bool>()) // Party hosting
 			{
 				info.Set("matchtype", "1");
 			}

@@ -36,5 +36,7 @@ namespace Components
 		static Game::dvar_t* RegisterMinPlayers(const char* name, int value, int min, int max, Game::dvar_flag flag, const char* description);
 
 		static void ConnectError(std::string message);
+
+		static DWORD UIDvarIntStub(char* dvar);
 	};
 }

@@ -35,13 +35,14 @@ namespace Components
 		Command::Execute("onlinegame 1");
 		Command::Execute("exec default_xboxlive.cfg");
 		Command::Execute("xblive_rankedmatch 1");
-		Command::Execute("xblive_privatematch 0");
-		//Command::Execute("xstartprivatematch");
+		Command::Execute("xblive_privatematch 1");
+		Command::Execute("xstartprivatematch");
+		//Command::Execute("xstartlobby");
 		Command::Execute("sv_network_fps 1000");
 		Command::Execute("com_maxfps 125");
 
 		// Process command line?
-		Utils::Hook::Call<void()>(0x60C3D0)();
+		//Utils::Hook::Call<void()>(0x60C3D0)();
 	}
 
 	void __declspec(naked) Dedicated::PostInitializationStub()
@@ -58,7 +59,7 @@ namespace Components
 
 	void Dedicated::MapRotate()
 	{
-		if (Dvar::Var("party_host").Get<bool>())
+		if (Dvar::Var("party_enable").Get<bool>() && Dvar::Var("party_host").Get<bool>())
 		{
 			Logger::Print("Not performing map rotation as we are hosting a party!\n");
 			return;
@@ -256,13 +257,6 @@ namespace Components
 					LastHeartbeat = Game::Com_Milliseconds();
 					Dedicated::Heartbeat();
 				}
-			});
-
-			// Wrap xstartprivatematch
-			Command::Add("lobby_start", [] (Command::Params params)
-			{
-				Playlist::LoadPlaylist();
-				Command::Execute("xstartprivatematch", false);
 			});
 		}
 	}
