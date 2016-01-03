@@ -56,6 +56,7 @@ solution "iw4x"
 		files { "./src/**.hpp", "./src/**.cpp" }
 		includedirs { "%{prj.location}" }
 		toolset "msc" -- only support Microsoft's compiler
+		architecture "x32"
 
 		configuration "Normal"
 			defines { "NDEBUG" }
