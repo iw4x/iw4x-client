@@ -140,17 +140,19 @@ namespace Components
 
 	int Network::PacketInterceptionHandler(const char* packet)
 	{
+		std::string packetCommand = packet;
+		auto pos = packetCommand.find_first_of("\\\n ");
+		if (pos != std::string::npos)
+		{
+			packetCommand = packetCommand.substr(0, pos);
+		}
+
+		packetCommand = Utils::StrToLower(packetCommand);
+
 		// Check if custom handler exists
 		for (auto i = Network::PacketHandlers.begin(); i != Network::PacketHandlers.end(); i++)
 		{
-			std::string packetCommand = packet;
-			auto pos = packetCommand.find_first_of("\n ");
-			if (pos != std::string::npos)
-			{
-				packetCommand = packetCommand.substr(0, pos);
-			}
-
-			if (Utils::StrToLower(i->first) == Utils::StrToLower(packetCommand))
+			if (Utils::StrToLower(i->first) == packetCommand)
 			{
 				Network::SelectedPacket = i->first;
 				return 0;

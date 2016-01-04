@@ -29,7 +29,6 @@ namespace Components
 			if (wFlag[0] == L'-')
 			{
 				Flags::EnabledFlags.push_back(std::string(++wFlag.begin(), wFlag.end()));
-				OutputDebugStringA(Flags::EnabledFlags[Flags::EnabledFlags.size() - 1].data());
 			}
 		}
 	}

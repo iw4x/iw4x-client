@@ -163,9 +163,9 @@ namespace Components
 		}
 	}
 
-	void ServerList::InsertRequest(Network::Address address, bool accquireMutex)
+	void ServerList::InsertRequest(Network::Address address, bool acquireMutex)
 	{
-		if (accquireMutex) ServerList::RefreshContainer.Mutex.lock();
+		if (acquireMutex) ServerList::RefreshContainer.Mutex.lock();
 
 		ServerList::Container::ServerContainer container;
 		container.Sent = false;
@@ -187,7 +187,7 @@ namespace Components
 			ServerList::RefreshContainer.SendCount++;
 		}
 
-		if (accquireMutex) ServerList::RefreshContainer.Mutex.unlock();
+		if (acquireMutex) ServerList::RefreshContainer.Mutex.unlock();
 	}
 
 	void ServerList::Insert(Network::Address address, Utils::InfoString info)
@@ -250,8 +250,6 @@ namespace Components
 					ServerList::GetList().push_back(server);
 					ServerList::VisibleList.push_back(index);
 					ServerList::SortList();
-
-					OutputDebugStringA(Utils::VA("Inserted with IP: %s", server.Addr.GetString()));
 				}
 
 				break;
@@ -310,7 +308,7 @@ namespace Components
 
 	void ServerList::Frame()
 	{
-		ServerList::RefreshContainer.Mutex.lock();
+		if (!ServerList::RefreshContainer.Mutex.try_lock()) return;
 
 		if (ServerList::RefreshContainer.AwatingList)
 		{
