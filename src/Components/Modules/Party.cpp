@@ -262,6 +262,8 @@ namespace Components
 			info.Set("shortversion", VERSION_STR);
 			info.Set("checksum", Utils::VA("%d", Game::Com_Milliseconds()));
 			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
+			info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
+			info.Set("hc", (Dvar::Var("g_hardcore").Get<bool>() ? "1" : "0"));
 
 			// Ensure mapname is set
 			if (!info.Get("mapname").size())

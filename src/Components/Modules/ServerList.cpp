@@ -126,6 +126,8 @@ namespace Components
 
 	void ServerList::Refresh()
 	{
+		Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
+
 // 		ServerList::OnlineList.clear();
 // 		ServerList::OfflineList.clear();
 // 		ServerList::FavouriteList.clear();
@@ -218,7 +220,8 @@ namespace Components
 				server.MatchType = atoi(info.Get("matchtype").data());
 				server.Clients = atoi(info.Get("clients").data());
 				server.MaxClients = atoi(info.Get("sv_maxclients").data());
-				server.Password = 0; // No info yet
+				server.Password = (atoi(info.Get("isPrivate").data()) != 0);
+				server.Hardcore = (atoi(info.Get("hc").data()) != 0);
 				server.Ping = (Game::Com_Milliseconds() - i->SendTime);
 				server.Addr = address;
 
@@ -342,8 +345,7 @@ namespace Components
 			Network::Send(server->Target, Utils::VA("getinfo %s\n", server->Challenge.data()));
 
 			// Display in the menu, like in COD4
-			//Logger::Print("Sent %d/%d\n", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount);
-			Localization::Set("MPUI_SERVERQUERIED", Utils::VA("Queried: %d/%d", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount));
+			Localization::Set("MPUI_SERVERQUERIED", Utils::VA("Sent requests: %d/%d", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount));
 
 			if (SendServers <= 0) break;
 		}
@@ -372,7 +374,7 @@ namespace Components
 		ServerList::OnlineList.clear();
 		ServerList::VisibleList.clear();
 
-		Localization::Set("MPUI_SERVERQUERIED", "Queried: 0/0");
+		Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 
 		Network::Handle("getServersResponse", [] (Network::Address address, std::string data)
 		{

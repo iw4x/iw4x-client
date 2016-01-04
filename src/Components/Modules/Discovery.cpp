@@ -28,7 +28,7 @@ namespace Components
 					Discovery::DiscoveryContainer.Challenge = Utils::VA("%d", Game::Com_Milliseconds());
 
 					//Network::BroadcastAll("discovery\n");
-					Network::BroadcastRange(28960, 38960, Utils::VA("discovery\n%s", Discovery::DiscoveryContainer.Challenge.data()));
+					Network::BroadcastRange(25000, 35000, Utils::VA("discovery\n%s", Discovery::DiscoveryContainer.Challenge.data()));
 
 					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Com_Milliseconds() - start);
 
