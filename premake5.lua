@@ -47,7 +47,7 @@ newaction {
 	end
 }
 
-solution "iw4x"
+workspace "iw4x"
 	location ("./build")
 	configurations { "Normal", "Debug", "DebugStatic", "Release", "ReleaseStatic" }
 
