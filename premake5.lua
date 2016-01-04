@@ -51,6 +51,9 @@ solution "iw4x"
 	location ("./build")
 	configurations { "Normal", "Debug", "DebugStatic", "Release", "ReleaseStatic" }
 
+	-- VS 2015 toolset only
+	toolset "msc-140"
+
 	project "iw4x"
 		kind "SharedLib"
 		language "C++"
@@ -61,12 +64,6 @@ solution "iw4x"
 			["Normal"] = "Debug"
 		}
 
-		-- Allow newer Microsoft toolsets but fall back to VS2013
-		if _ACTION == "vs2015" then
-			toolset "msc-140"
-		else
-			toolset "msc-120"
-		end
 
 		if not _OPTIONS["no-new-structure"] then
 			vpaths {
