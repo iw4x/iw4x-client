@@ -36,5 +36,8 @@ namespace Components
 		// exec whitelist removal (YAYFINITY WARD)
 		Utils::Hook::Nop(0x609685, 5);
 		Utils::Hook::Nop(0x60968C, 2);
+
+		// ignore 'no iwd files found in main'
+		Utils::Hook::Nop(0x642A4B, 5);
 	}
 }
