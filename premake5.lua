@@ -1,3 +1,4 @@
+
 -- Option to allow copying the DLL file to a custom folder after build
 newoption {
 	trigger = "copy-to",
@@ -48,7 +49,7 @@ newaction {
 
 solution "iw4x"
 	location ("./build")
-	configurations { "Normal", "Debug", "Release" }
+	configurations { "Normal", "Debug", "DebugStatic", "Release", "ReleaseStatic" }
 
 	project "iw4x"
 		kind "SharedLib"
@@ -57,8 +58,7 @@ solution "iw4x"
 		includedirs { "%{prj.location}" }
 		architecture "x32"
 		configmap {
-			["Debug"] = "Normal",
-			["Release"] = "Normal"
+			["Normal"] = "Debug"
 		}
 
 		-- Allow newer Microsoft toolsets but fall back to VS2013
@@ -68,10 +68,25 @@ solution "iw4x"
 			toolset "msc-120"
 		end
 
-		configuration "Normal"
+		configuration "Debug"
+			defines { "DEBUG" }
+			flags { "MultiProcessorCompile", "Symbols", "UndefinedIndentifiers", "No64BitChecks" }
+			optimize "Debug"
+
+		configuration "DebugStatic"
 			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols" }
-			optimize "on"
+			flags { "MultiProcessorCompile", "Symbols", "UndefinedIndentifiers", "StaticRuntime", "No64BitChecks" }
+			optimize "Debug"
+
+		configuration "Release"
+			defines { "NDEBUG" }
+			flags { "MultiProcessorCompile", "Symbols", "UndefinedIndentifiers", "LinkTimeOptimization", "No64BitChecks" }
+			optimize "Full"
+
+		configuration "ReleaseStatic"
+			defines { "NDEBUG" }
+			flags { "MultiProcessorCompile", "Symbols", "UndefinedIndentifiers", "LinkTimeOptimization", "StaticRuntime", "No64BitChecks" }
+			optimize "Full"
 
 		if not _OPTIONS["no-new-structure"] then
 			vpaths {
