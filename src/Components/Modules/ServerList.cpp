@@ -68,6 +68,11 @@ namespace Components
 				return (server->Password ? "X" : "");
 			}
 
+			case Column::Matchtype:
+			{
+				return ((server->MatchType == 1) ? "L" : "D");
+			}
+
 			case Column::Hostname:
 			{
 				return server->Hostname.data();
@@ -85,12 +90,17 @@ namespace Components
 
 			case Column::Gametype:
 			{
+				return Game::UI_LocalizeGameType(server->Gametype.data());
+			}
+
+			case Column::Mod:
+			{
 				if (server->Mod != "")
 				{
 					return (server->Mod.data() + 5);
 				}
 
-				return Game::UI_LocalizeGameType(server->Gametype.data());
+				return "";
 			}
 
 			case Column::Ping:
@@ -105,6 +115,12 @@ namespace Components
 	void ServerList::SelectServer(int index)
 	{
 		ServerList::CurrentServer = (unsigned int)index;
+	}
+
+	void ServerList::RefreshVisibleList()
+	{
+		// TODO: Update the list
+		ServerList::Refresh();
 	}
 
 	void ServerList::Refresh()
@@ -255,8 +271,8 @@ namespace Components
 			ServerInfo* info1 = nullptr;
 			ServerInfo* info2 = nullptr;
 
-			if (ServerList::OnlineList.size() > (unsigned int)server1) info1 = &ServerList::OnlineList[server1];
-			if (ServerList::OnlineList.size() > (unsigned int)server2) info2 = &ServerList::OnlineList[server2];
+			if (ServerList::GetList().size() > (unsigned int)server1) info1 = &ServerList::GetList()[server1];
+			if (ServerList::GetList().size() > (unsigned int)server2) info2 = &ServerList::GetList()[server2];
 
 			if (!info1) return 1;
 			if (!info2) return -1;
@@ -336,6 +352,22 @@ namespace Components
 		ServerList::RefreshContainer.Mutex.unlock();
 	}
 
+	void ServerList::UpdateSource()
+	{
+		Dvar::Var netSource("ui_netSource");
+
+		int source = netSource.Get<int>();
+
+		if (++source > netSource.Get<Game::dvar_t*>()->max.i)
+		{
+			source = 0;
+		}
+
+		netSource.Set(source);
+
+		ServerList::RefreshVisibleList();
+	}
+
 	ServerList::ServerList()
 	{
 		ServerList::OnlineList.clear();
@@ -411,6 +443,10 @@ namespace Components
 			Logger::Print("Sorting server list by token: %d\n", ServerList::SortKey);
 			ServerList::SortList();
 		});
+
+		// Add required ownerDraws
+		UIScript::AddOwnerDraw(220, ServerList::UpdateSource);
+		//UIScript::AddOwnerDraw(253, ServerList_ClickHandler_GameType);
 
 		// Add frame callback
 		Renderer::OnFrame(ServerList::Frame);

@@ -29,11 +29,14 @@ namespace Components
 		static void Add(std::string name, Callback callback);
 		static void Add(std::string name, CallbackRaw callback);
 
-	private:
+		static void AddOwnerDraw(int ownerdraw, CallbackRaw callback);
 
+	private:
+		static void OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key);
 		static bool RunMenuScript(const char* name, const char** args);
 		static void RunMenuScriptStub();
 
 		static std::map<std::string, Callback> UIScripts;
+		static std::map<int, CallbackRaw> UIOwnerDraws;
 	};
 }

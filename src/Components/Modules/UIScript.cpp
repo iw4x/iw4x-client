@@ -3,6 +3,7 @@
 namespace Components
 {
 	std::map<std::string, UIScript::Callback> UIScript::UIScripts;
+	std::map<int, UIScript::CallbackRaw> UIScript::UIOwnerDraws;
 
 	template<> int UIScript::Token::Get()
 	{
@@ -57,6 +58,11 @@ namespace Components
 		UIScript::Add(name, reinterpret_cast<UIScript::Callback>(callback));
 	}
 
+	void UIScript::AddOwnerDraw(int ownerdraw, UIScript::CallbackRaw callback)
+	{
+		UIScript::UIOwnerDraws[ownerdraw] = callback;
+	}
+
 	bool UIScript::RunMenuScript(const char* name, const char** args)
 	{
 		if (UIScript::UIScripts.find(name) != UIScript::UIScripts.end())
@@ -66,6 +72,22 @@ namespace Components
 		}
 
 		return false;
+	}
+
+	void UIScript::OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key)
+	{
+		if (key == 200 || key == 201) //mouse buttons
+		{
+			for (auto i = UIScript::UIOwnerDraws.begin(); i != UIScript::UIOwnerDraws.end(); i++)
+			{
+				if (i->first == ownerDraw)
+				{
+					i->second();
+				}
+			}
+		}
+
+		Utils::Hook::Call<void(int, int, float*, int)>(0x4F58A0)(ownerDraw, flags, special, key);
 	}
 
 	void __declspec(naked) UIScript::RunMenuScriptStub()
@@ -101,10 +123,14 @@ namespace Components
 	{
 		// Install handler
 		Utils::Hook::Set<int>(0x45EC5B, (DWORD)UIScript::RunMenuScriptStub - 0x45EC59 - 6);
+
+		// Install ownerdraw handler
+		Utils::Hook(0x63D233, UIScript::OwnerDrawHandleKeyStub, HOOK_CALL).Install()->Quick();
 	}
 
 	UIScript::~UIScript()
 	{
 		UIScript::UIScripts.clear();
+		UIScript::UIOwnerDraws.clear();
 	}
 }

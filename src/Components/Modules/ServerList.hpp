@@ -26,6 +26,7 @@ namespace Components
 		const char* GetName() { return "ServerList"; };
 
 		static void Refresh();
+		static void RefreshVisibleList();
 		static void InsertRequest(Network::Address address, bool accquireMutex = true);
 		static void Insert(Network::Address address, Utils::InfoString info);
 
@@ -37,10 +38,12 @@ namespace Components
 		enum Column
 		{
 			Password,
+			Matchtype,
 			Hostname,
 			Mapname,
 			Players,
 			Gametype,
+			Mod,
 			Ping,
 		};
 
@@ -92,6 +95,8 @@ namespace Components
 		static const char* GetServerText(int index, int column);
 		static const char* GetServerText(ServerInfo* server, int column);
 		static void SelectServer(int index);
+
+		static void UpdateSource();
 
 		static void Frame();
 
