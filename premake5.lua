@@ -127,7 +127,7 @@ workspace "iw4x"
 		-- zlib
 		project "zlib"
 			language "C"
-			defines { "_CRT_SECURE_NO_DEPRECATE" }
+			defines { "ZLIB_DLL", "_CRT_SECURE_NO_DEPRECATE" }
 
 			files
 			{
@@ -141,3 +141,4 @@ workspace "iw4x"
 			kind "SharedLib"
 			configuration "*Static"
 				kind "StaticLib"
+				removedefines { "ZLIB_DLL" }
