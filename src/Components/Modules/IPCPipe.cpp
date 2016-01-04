@@ -207,6 +207,8 @@ namespace Components
 
 	IPCPipe::IPCPipe()
 	{
+		if (Dedicated::IsDedicated()) return;
+
 		// Server pipe
 		IPCPipe::ServerPipe = new Pipe();
 		IPCPipe::ServerPipe->OnConnect(IPCPipe::ConnectClient);

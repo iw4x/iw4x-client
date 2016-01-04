@@ -24,6 +24,7 @@
 #include <regex>
 #include <thread>
 #include <chrono>
+#include <future>
 
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"

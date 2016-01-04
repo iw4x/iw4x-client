@@ -6,18 +6,20 @@ namespace Components
 		ConnectProtocol();
 		const char* GetName() { return "ConnectProtocol"; };
 
-		static void EvaluateProtocol();
-		static BOOL InvokeConnect();
+		static bool Evaluated();
+		static bool Used();
 
 	private:
-		static bool InstallProtocol();
+		struct Container
+		{
+			bool Evaluated;
+			bool Invoked;
+			std::string ConnectString;
+		};
 
-		//Additional Functions for InvokeConnect
-		static void FindEditHandle(__in_z LPCTSTR lpcszFileName);
-		static BOOL CALLBACK EnumProc(HWND hWnd, LPARAM lParam);
-		static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
-		static BOOL CALLBACK EnumWindowsProc(__in  HWND hWnd, __in  LPARAM lParam);
-		static HWND FindWindowFromProcessId(DWORD dwProcessId);
-		static HWND FindWindowFromProcess(HANDLE hProcess);
+		static Container ConnectContainer;
+
+		static void EvaluateProtocol();
+		static bool InstallProtocol();
 	};
 }
