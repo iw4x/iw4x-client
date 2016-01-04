@@ -9,6 +9,41 @@ namespace Components
 		return &id;
 	}
 
+	void QuickPatch::UnlockStats()
+	{
+		Command::Execute("setPlayerData prestige 10");
+		Command::Execute("setPlayerData experience 2516000");
+		Command::Execute("setPlayerData iconUnlocked cardicon_prestige10_02 1");
+
+		// Unlock challenges
+		Game::StringTable* challengeTable = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_STRINGTABLE, "mp/allchallengestable.csv").stringTable;
+
+		if (challengeTable)
+		{
+			for (int i = 0; i < challengeTable->rowCount; i++)
+			{
+				// Find challenge
+				const char* challenge = Game::TabeLookup(challengeTable, i, 0);
+
+				int maxState = 0;
+				int maxProgress = 0;
+
+				// Find correct tier and progress
+				for (int j = 0; j < 10; j++)
+				{
+					int progress = atoi(Game::TabeLookup(challengeTable, i, 6 + j * 2));
+					if (!progress )break;
+
+					maxState = j + 2;
+					maxProgress = progress;
+				}
+
+				Command::Execute(Utils::VA("setPlayerData challengeState %s %d", challenge, maxState));
+				Command::Execute(Utils::VA("setPlayerData challengeProgress %s %d", challenge, maxProgress));
+			}
+		}
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// protocol version (workaround for hacks)
@@ -112,5 +147,10 @@ namespace Components
 		Utils::Hook::Nop(0x6830B1, 20);
 		Utils::Hook(0x682EBF, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x6830B1, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
+
+		Command::Add("unlockstats", [] (Command::Params params)
+		{
+			QuickPatch::UnlockStats();
+		});
 	}
 }

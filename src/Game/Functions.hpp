@@ -257,6 +257,7 @@ namespace Game
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	void OOBPrintT(int type, netadr_t netadr, const char* message);
 	void OOBPrintRaw(int type, netadr_t netadr, const char* message, size_t length);
+	const char* TabeLookup(StringTable* stringtable, int row, int column);
 	const char* UI_LocalizeMapName(const char* mapName);
 	const char* UI_LocalizeGameType(const char* gameType);
 }

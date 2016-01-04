@@ -878,6 +878,20 @@ namespace Game
 		const char* entitystring;
 	};
 
+	struct StringTableCell
+	{
+		const char *string;
+		int hash;
+	};
+
+	struct StringTable
+	{
+		const char *name;
+		int columnCount;
+		int rowCount;
+		StringTableCell *values;
+	};
+
 	union XAssetHeader
 	{
 		void *data;
@@ -886,6 +900,7 @@ namespace Game
 		Material *material;
 		snd_alias_list_t *aliasList;
 		localizedEntry_s *localize;
+		StringTable *stringTable;
 		MapEnts* mapEnts;
 	};
 
