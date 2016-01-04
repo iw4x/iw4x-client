@@ -48,7 +48,9 @@ newaction {
 }
 
 workspace "iw4x"
-	location ("./build")
+	location "./build"
+	objdir "%{wks.location}/obj"
+	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
 	configurations { "Normal", "Debug", "DebugStatic", "Release", "ReleaseStatic" }
 
 	-- VS 2015 toolset only
@@ -85,8 +87,8 @@ workspace "iw4x"
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
 			vpaths {
-				["Headers/*"] = "src/**.hpp",
-				["Sources/*"] = {"src/**.cpp"}
+				["Headers/*"] = "./src/**.hpp",
+				["Sources/*"] = {"./src/**.cpp"}
 			}
 		end
 
