@@ -24,7 +24,10 @@ namespace Components
 	Console::Console()
 	{
 		// External console
-		Utils::Hook::Nop(0x60BB58, 11);
+		if (Flags::HasFlag("console") || Dedicated::IsDedicated())
+		{
+			Utils::Hook::Nop(0x60BB58, 11);
+		}
 
 		// Console '%s: %s> ' string
 		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: r" REVISION_STR "> ");
