@@ -54,6 +54,26 @@ solution "iw4x"
 	-- VS 2015 toolset only
 	toolset "msc-140"
 
+	configuration "Debug"
+		defines { "DEBUG" }
+		flags { "MultiProcessorCompile", "Symbols", "No64BitChecks" }
+		optimize "Debug"
+
+	configuration "DebugStatic"
+		defines { "NDEBUG" }
+		flags { "MultiProcessorCompile", "Symbols", "No64BitChecks", "StaticRuntime" }
+		optimize "Debug"
+
+	configuration "Release"
+		defines { "NDEBUG" }
+		flags { "MultiProcessorCompile", "Symbols", "LinkTimeOptimization", "No64BitChecks" }
+		optimize "Full"
+
+	configuration "ReleaseStatic"
+		defines { "NDEBUG" }
+		flags { "MultiProcessorCompile", "Symbols", "LinkTimeOptimization", "No64BitChecks", "StaticRuntime" }
+		optimize "Full"
+
 	project "iw4x"
 		kind "SharedLib"
 		language "C++"
@@ -65,6 +85,7 @@ solution "iw4x"
 		}
 
 
+		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
 			vpaths {
 				["Headers/*"] = "src/**.hpp",
@@ -76,11 +97,13 @@ solution "iw4x"
 			["Docs/*"] = {"**.txt","**.md"}
 		}
 
+		-- Pre-build
 		prebuildcommands {
 			"cd %{_MAIN_SCRIPT_DIR}",
 			"premake5 generate-buildinfo"
 		}
 
+		-- Post-build
 		if _OPTIONS["copy-to"] then
 			saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
 			postbuildcommands {
@@ -88,22 +111,24 @@ solution "iw4x"
 			}
 		end
 
+		-- Specific configurations
 		configuration "Debug"
 			defines { "DEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "UndefinedIdentifiers", "No64BitChecks" }
+			flags { "UndefinedIdentifiers" }
 			optimize "Debug"
 
 		configuration "DebugStatic"
 			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "UndefinedIdentifiers", "StaticRuntime", "No64BitChecks" }
+			flags { "UndefinedIdentifiers" }
 			optimize "Debug"
 
 		configuration "Release"
 			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "FatalCompileWarnings", "UndefinedIdentifiers", "LinkTimeOptimization", "No64BitChecks" }
+			flags { "FatalCompileWarnings", "UndefinedIdentifiers" }
 			optimize "Full"
 
 		configuration "ReleaseStatic"
 			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "FatalCompileWarnings", "UndefinedIdentifiers", "LinkTimeOptimization", "StaticRuntime", "No64BitChecks" }
+			flags { "FatalCompileWarnings", "UndefinedIdentifiers" }
 			optimize "Full"
+
