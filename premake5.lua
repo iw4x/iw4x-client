@@ -54,25 +54,19 @@ workspace "iw4x"
 	-- VS 2015 toolset only
 	toolset "msc-140"
 
-	configuration "Debug"
-		defines { "DEBUG" }
-		flags { "MultiProcessorCompile", "Symbols", "No64BitChecks" }
-		optimize "Debug"
 
-	configuration "DebugStatic"
-		defines { "NDEBUG" }
-		flags { "MultiProcessorCompile", "Symbols", "No64BitChecks", "StaticRuntime" }
-		optimize "Debug"
-
-	configuration "Release"
+	configuration "Release*"
 		defines { "NDEBUG" }
 		flags { "MultiProcessorCompile", "Symbols", "LinkTimeOptimization", "No64BitChecks" }
 		optimize "Full"
 
-	configuration "ReleaseStatic"
-		defines { "NDEBUG" }
-		flags { "MultiProcessorCompile", "Symbols", "LinkTimeOptimization", "No64BitChecks", "StaticRuntime" }
-		optimize "Full"
+	configuration "Debug*"
+		defines { "DEBUG" }
+		flags { "MultiProcessorCompile", "Symbols", "No64BitChecks" }
+		optimize "Debug"
+
+	configuration "*Static"
+		flags { "StaticRuntime" }
 
 	project "iw4x"
 		kind "SharedLib"
@@ -112,23 +106,9 @@ workspace "iw4x"
 		end
 
 		-- Specific configurations
-		configuration "Debug"
-			defines { "DEBUG" }
-			flags { "UndefinedIdentifiers" }
-			optimize "Debug"
+		flags { "UndefinedIdentifiers" }
 
-		configuration "DebugStatic"
-			defines { "NDEBUG" }
-			flags { "UndefinedIdentifiers" }
-			optimize "Debug"
+		configuration "Release*"
+			flags { "FatalCompileWarnings" }
 
-		configuration "Release"
-			defines { "NDEBUG" }
-			flags { "FatalCompileWarnings", "UndefinedIdentifiers" }
-			optimize "Full"
-
-		configuration "ReleaseStatic"
-			defines { "NDEBUG" }
-			flags { "FatalCompileWarnings", "UndefinedIdentifiers" }
-			optimize "Full"
 
