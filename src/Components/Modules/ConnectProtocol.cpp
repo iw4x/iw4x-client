@@ -218,7 +218,7 @@ namespace Components
 
 		// Fire protocol handlers
 		// Make sure this happens after the pipe-initialization!
-		if (!Singleton::IsFirstInstance())
+		if (!Singleton::IsFirstInstance() && ConnectProtocol::Used())
 		{
 			IPCPipe::Write("connect", ConnectProtocol::ConnectContainer.ConnectString);
 			ExitProcess(0);

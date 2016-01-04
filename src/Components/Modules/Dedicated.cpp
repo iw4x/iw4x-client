@@ -163,6 +163,9 @@ namespace Components
 
 	Dedicated::Dedicated()
 	{
+		// Map rotation
+		Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
+
 		if (Dedicated::IsDedicated())
 		{
 			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't register at the master server");
@@ -197,9 +200,6 @@ namespace Components
 			Utils::Hook::Nop(0x4B4EEF, 5);          // same as above
 			Utils::Hook::Nop(0x64CF77, 5);          // function detecting video card, causes Direct3DCreate9 to be called
 			Utils::Hook::Nop(0x60BC52, 0x15);       // recommended settings check
-
-			// Map rotation
-			Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
 
 			// Dedicated frame handler
 			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).Install()->Quick();
