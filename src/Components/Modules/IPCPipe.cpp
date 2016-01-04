@@ -102,7 +102,7 @@ namespace Components
 		//*this->PipeFile = 0;
 		//*this->PipeName = 0;
 
-		if (INVALID_HANDLE_VALUE != this->hPipe)
+		if (this->hPipe && INVALID_HANDLE_VALUE != this->hPipe)
 		{
 			if (this->mType == IPCTYPE_SERVER) DisconnectNamedPipe(this->hPipe);
 
@@ -137,7 +137,7 @@ namespace Components
 
 	void Pipe::ReceiveThread(Pipe* pipe)
 	{
-		if (!pipe || pipe->mType != IPCTYPE_SERVER || pipe->hPipe == INVALID_HANDLE_VALUE) return;
+		if (!pipe || pipe->mType != IPCTYPE_SERVER || pipe->hPipe == INVALID_HANDLE_VALUE || !pipe->hPipe) return;
 
 		if (ConnectNamedPipe(pipe->hPipe, NULL) == FALSE)
 		{
@@ -150,7 +150,7 @@ namespace Components
 
 		DWORD cbBytes;
 
-		while (pipe->mThreadAttached && pipe->hPipe != INVALID_HANDLE_VALUE)
+		while (pipe->mThreadAttached && pipe->hPipe && pipe->hPipe != INVALID_HANDLE_VALUE)
 		{
 			BOOL bResult = ReadFile(pipe->hPipe, &pipe->mPacket, sizeof(pipe->mPacket), &cbBytes, NULL);
 
