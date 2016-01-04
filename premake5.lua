@@ -68,26 +68,6 @@ solution "iw4x"
 			toolset "msc-120"
 		end
 
-		configuration "Debug"
-			defines { "DEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "UndefinedIdentifiers", "No64BitChecks" }
-			optimize "Debug"
-
-		configuration "DebugStatic"
-			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "UndefinedIdentifiers", "StaticRuntime", "No64BitChecks" }
-			optimize "Debug"
-
-		configuration "Release"
-			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "FatalCompileWarnings", "UndefinedIdentifiers", "LinkTimeOptimization", "No64BitChecks" }
-			optimize "Full"
-
-		configuration "ReleaseStatic"
-			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "FatalCompileWarnings", "UndefinedIdentifiers", "LinkTimeOptimization", "StaticRuntime", "No64BitChecks" }
-			optimize "Full"
-
 		if not _OPTIONS["no-new-structure"] then
 			vpaths {
 				["Headers/*"] = "src/**.hpp",
@@ -110,3 +90,23 @@ solution "iw4x"
 				"copy /y \"$(TargetPath)\" \"" .. saneCopyToPath .. "\""
 			}
 		end
+
+		configuration "Debug"
+			defines { "DEBUG" }
+			flags { "MultiProcessorCompile", "Symbols", "UndefinedIdentifiers", "No64BitChecks" }
+			optimize "Debug"
+
+		configuration "DebugStatic"
+			defines { "NDEBUG" }
+			flags { "MultiProcessorCompile", "Symbols", "UndefinedIdentifiers", "StaticRuntime", "No64BitChecks" }
+			optimize "Debug"
+
+		configuration "Release"
+			defines { "NDEBUG" }
+			flags { "MultiProcessorCompile", "Symbols", "FatalCompileWarnings", "UndefinedIdentifiers", "LinkTimeOptimization", "No64BitChecks" }
+			optimize "Full"
+
+		configuration "ReleaseStatic"
+			defines { "NDEBUG" }
+			flags { "MultiProcessorCompile", "Symbols", "FatalCompileWarnings", "UndefinedIdentifiers", "LinkTimeOptimization", "StaticRuntime", "No64BitChecks" }
+			optimize "Full"
