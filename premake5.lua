@@ -106,7 +106,7 @@ workspace "iw4x"
 		if _OPTIONS["copy-to"] then
 			saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
 			postbuildcommands {
-				"copy /y \"$(TargetPath)\" \"" .. saneCopyToPath .. "\""
+				"{COPY} \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\""
 			}
 		end
 
