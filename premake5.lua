@@ -80,12 +80,12 @@ solution "iw4x"
 
 		configuration "Release"
 			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "UndefinedIndentifiers", "LinkTimeOptimization", "No64BitChecks" }
+			flags { "MultiProcessorCompile", "Symbols", "FatalCompileWarnings", "UndefinedIdentifiers", "LinkTimeOptimization", "No64BitChecks" }
 			optimize "Full"
 
 		configuration "ReleaseStatic"
 			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "UndefinedIndentifiers", "LinkTimeOptimization", "StaticRuntime", "No64BitChecks" }
+			flags { "MultiProcessorCompile", "Symbols", "FatalCompileWarnings", "UndefinedIdentifiers", "LinkTimeOptimization", "StaticRuntime", "No64BitChecks" }
 			optimize "Full"
 
 		if not _OPTIONS["no-new-structure"] then
