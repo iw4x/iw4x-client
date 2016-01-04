@@ -1,4 +1,4 @@
-#include "..\STDInclude.hpp"
+#include "STDInclude.hpp"
 
 #define VA_BUFFER_COUNT		4
 #define VA_BUFFER_SIZE		65536

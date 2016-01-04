@@ -72,12 +72,15 @@ workspace "iw4x"
 		kind "SharedLib"
 		language "C++"
 		files { "./src/**.hpp", "./src/**.cpp" }
-		includedirs { "%{prj.location}" }
+		includedirs { "%{prj.location}", "./src" }
 		architecture "x32"
 		configmap {
 			["Normal"] = "Debug"
 		}
 
+		-- Pre-compiled header
+		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
+		pchsource "src/STDInclude.cpp" -- real path
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then

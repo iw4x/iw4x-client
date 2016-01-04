@@ -1,4 +1,4 @@
-#include "..\..\STDInclude.hpp"
+#include "STDInclude.hpp"
 #include "..\..\Utils\Versioning.hpp"
 
 namespace Components
