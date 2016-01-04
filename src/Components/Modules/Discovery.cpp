@@ -24,8 +24,12 @@ namespace Components
 					int start = Game::Com_Milliseconds();
 
 					Logger::Print("Starting local server discovery...\n");
+
+					Discovery::DiscoveryContainer.Challenge = Utils::VA("%d", Game::Com_Milliseconds());
+
 					//Network::BroadcastAll("discovery\n");
-					Network::BroadcastRange(28960, 38960, "discovery\n");
+					Network::BroadcastRange(28960, 38960, Utils::VA("discovery\n%s", Discovery::DiscoveryContainer.Challenge.data()));
+
 					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Com_Milliseconds() - start);
 
 					Discovery::DiscoveryContainer.Perform = false;
@@ -46,7 +50,7 @@ namespace Components
 			}
 
 			Logger::Print("Received discovery request from %s\n", address.GetString());
-			Network::Send(address, "discoveryResponse\n");
+			Network::Send(address, Utils::VA("discoveryResponse\n%s", data.data()));
 		});
 
 		Network::Handle("discoveryResponse", [] (Network::Address address, std::string data)
@@ -59,7 +63,13 @@ namespace Components
 				return;
 			}
 
-			Logger::Print("Received discovery response from %s\n", address.GetString());
+			if (Utils::ParseChallenge(data) != Discovery::DiscoveryContainer.Challenge)
+			{
+				Logger::Print("Received discovery with invalid challenge from: %s\n", address.GetString());
+				return;
+			}
+
+			Logger::Print("Received discovery response from: %s\n", address.GetString());
 
 			if (ServerList::IsOfflineList())
 			{

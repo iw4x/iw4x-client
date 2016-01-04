@@ -90,7 +90,7 @@ namespace Components
 
 					if (Playlist::ReceivedPlaylistBuffer.size() == maxBytes)
 					{
-						Logger::Print("Received playlist response, loading and continuing connection.\n");
+						Logger::Print("Received playlist, loading and continuing connection...\n");
 						Game::Live_ParsePlaylists(Playlist::ReceivedPlaylistBuffer.data());
 						Party::PlaylistContinue();
 

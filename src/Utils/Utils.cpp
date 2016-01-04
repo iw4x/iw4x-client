@@ -97,6 +97,13 @@ namespace Utils
 		return LTrim(RTrim(s));
 	}
 
+	std::string ParseChallenge(std::string data)
+	{
+		// Ensure line break
+		data.append("\n");
+		return data.substr(0, data.find_first_of("\n")).data();
+	}
+
 	// Infostring class
 	void InfoString::Set(std::string key, std::string value)
 	{

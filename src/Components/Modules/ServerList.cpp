@@ -457,5 +457,10 @@ namespace Components
 		ServerList::OfflineList.clear();
 		ServerList::FavouriteList.clear();
 		ServerList::VisibleList.clear();
+
+		ServerList::RefreshContainer.Mutex.lock();
+		ServerList::RefreshContainer.AwatingList = false;
+		ServerList::RefreshContainer.Servers.clear();
+		ServerList::RefreshContainer.Mutex.unlock();
 	}
 }

@@ -10,6 +10,8 @@ namespace Utils
 	std::string &RTrim(std::string &s);
 	std::string &Trim(std::string &s);
 
+	std::string ParseChallenge(std::string data);
+
 	class InfoString
 	{
 	public:

@@ -249,11 +249,8 @@ namespace Components
 				clientCount = Game::PartyHost_CountMembers((Game::PartyData_s*)0x1081C00);
 			}
 
-			// Ensure line break
-			data.append("\n");
-
 			Utils::InfoString info;
-			info.Set("challenge", data.substr(0, data.find_first_of("\n")).data());
+			info.Set("challenge", Utils::ParseChallenge(data));
 			info.Set("gamename", "IW4");
 			info.Set("hostname", Dvar::Var("sv_hostname").Get<const char*>());
 			info.Set("gametype", Dvar::Var("g_gametype").Get<const char*>());
