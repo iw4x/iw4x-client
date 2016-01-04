@@ -26,9 +26,13 @@
 #include <chrono>
 #include <future>
 
+#define ZLIB_CONST
+#include <zlib.h>
+
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"
 #include "Utils\Hooking.hpp"
+#include "Utils\Compression.hpp"
 
 #include "Steam\Steam.hpp"
 

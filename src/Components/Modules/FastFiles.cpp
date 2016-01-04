@@ -17,6 +17,9 @@ namespace Components
 		info.name = "dlc2_ui_mp";
 		data.push_back(info);
 
+		info.name = "penis";
+		data.push_back(info);
+
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);
 	}
 
