@@ -1,0 +1,8 @@
+[submodule "tools/premake/github-package"]
+	path = tools/premake/github-package
+	url = https://github.com/mversluys/premake-github-package.git
+	branch = master
+[submodule "deps/zlib"]
+	path = deps/zlib
+	url = https://github.com/madler/zlib.git
+	branch = master

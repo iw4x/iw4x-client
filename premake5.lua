@@ -56,6 +56,8 @@ workspace "iw4x"
 	-- VS 2015 toolset only
 	toolset "msc-140"
 
+	configuration "windows"
+		defines {"_WINDOWS"}
 
 	configuration "Release*"
 		defines { "NDEBUG" }
@@ -83,6 +85,10 @@ workspace "iw4x"
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
+
+		-- Dependency on zlib
+		links { "zlib" }
+		includedirs { "./deps/zlib" }
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
@@ -116,4 +122,22 @@ workspace "iw4x"
 		configuration "Release*"
 			flags { "FatalCompileWarnings" }
 
+	group "External dependencies"
 
+		-- zlib
+		project "zlib"
+			language "C"
+			defines { "_CRT_SECURE_NO_DEPRECATE" }
+
+			files
+			{
+				"./deps/zlib/*.h",
+				"./deps/zlib/*.c"
+			}
+
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			kind "SharedLib"
+			configuration "*Static"
+				kind "StaticLib"
