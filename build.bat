@@ -1,4 +1,7 @@
 @echo off & setlocal
+
+cd %~dp0
+
 if exist "%VS140COMNTOOLS%\vsvars32.bat" call "%VS140COMNTOOLS%\vsvars32.bat"
 msbuild /version >NUL 2>NUL
 if errorlevel 0 goto:build
@@ -21,6 +24,9 @@ endlocal
 exit /B 1
 
 :build
+set PLATFORM=Win32
+set CONFIGURATION=ReleaseStatic
+if not exist build\iw4x.sln call generate
 msbuild /nologo /m /v:m %* build\iw4x.sln
 endlocal
 exit /B %ERRORLEVEL%
