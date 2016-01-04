@@ -208,9 +208,6 @@ namespace Components
 					break;
 				}
 
-				// Remove server from queue
-				ServerList::RefreshContainer.Servers.erase(i);
-
 				ServerInfo server;
 				server.Hostname = info.Get("hostname");
 				server.Mapname = info.Get("mapname");
@@ -223,6 +220,9 @@ namespace Components
 				server.Password = 0; // No info yet
 				server.Ping = (Game::Com_Milliseconds() - i->SendTime);
 				server.Addr = address;
+
+				// Remove server from queue
+				ServerList::RefreshContainer.Servers.erase(i);
 
 				// Check if already inserted and remove
 				int k = 0;

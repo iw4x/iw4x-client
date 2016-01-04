@@ -23,7 +23,7 @@
 #include <locale>
 #include <regex>
 #include <thread>
-#include <future>
+#include <chrono>
 
 #include <version.hpp>
 
