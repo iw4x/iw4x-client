@@ -67,25 +67,22 @@ namespace Components
 		LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x\\shell\\open\\command", 0, KEY_ALL_ACCESS, &hKey);
 		if (openRes == ERROR_SUCCESS)
 		{
-			//Insert Check of the Key Value here, so the protocol will work even if the game was moved.
+			// Check if the game has been moved.
 			openRes = RegQueryValueEx(hKey, 0, 0, 0, reinterpret_cast<BYTE*>(regred), &dwsize);
 			if (openRes == ERROR_SUCCESS)
 			{
-				char* endPt = strstr(regred, "\" \"%1\"");
-				if (endPt != NULL)
+				char* endPtr = strstr(regred, "\" \"%1\"");
+				if (endPtr != NULL)
 				{
-					*endPt = 0;
+					*endPtr = 0;
 				}
 				else
 				{
 					return false;
 				}
 
-				char* regredPtr = regred;
-				regredPtr++;
-
 				RegCloseKey(hKey);
-				if (strcmp(regredPtr, ownPth))
+				if (strcmp(regred + 1, ownPth))
 				{
 					openRes = RegDeleteKey(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
 				}
@@ -179,26 +176,22 @@ namespace Components
 		if (ConnectProtocol::ConnectContainer.Evaluated) return;
 		ConnectProtocol::ConnectContainer.Evaluated = true;
 
-		char* args = GetCommandLine();
-		char* substr = strstr(args, "iw4x://");
+		std::string cmdLine = GetCommandLine();
 
-		if (!substr || substr == args)
-		{
-			return;
-		}
+		auto pos = cmdLine.find("iw4x://");
 
-		substr += 7;
-		char* substr2 = strstr(substr, "/");
-		if (substr2 != NULL)
+		if (pos != std::string::npos)
 		{
-			*substr2 = 0;
-		}
-		else
-		{
-			return;
-		}
+			cmdLine = cmdLine.substr(pos + 7);
+			pos = cmdLine.find_first_of("/");
 
-		ConnectProtocol::ConnectContainer.ConnectString = substr;
+			if (pos != std::string::npos)
+			{
+				cmdLine = cmdLine.substr(0, pos);
+			}
+
+			ConnectProtocol::ConnectContainer.ConnectString = cmdLine;
+		}
 	}
 
 	ConnectProtocol::ConnectProtocol()
