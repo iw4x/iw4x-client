@@ -70,12 +70,12 @@ solution "iw4x"
 
 		configuration "Debug"
 			defines { "DEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "UndefinedIndentifiers", "No64BitChecks" }
+			flags { "MultiProcessorCompile", "Symbols", "UndefinedIdentifiers", "No64BitChecks" }
 			optimize "Debug"
 
 		configuration "DebugStatic"
 			defines { "NDEBUG" }
-			flags { "MultiProcessorCompile", "Symbols", "UndefinedIndentifiers", "StaticRuntime", "No64BitChecks" }
+			flags { "MultiProcessorCompile", "Symbols", "UndefinedIdentifiers", "StaticRuntime", "No64BitChecks" }
 			optimize "Debug"
 
 		configuration "Release"
