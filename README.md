@@ -2,7 +2,7 @@
 
 ## How to compile
 
-- Run `premake5 vs2013` (build with VS2013) or `premake5 vs2015` (with VS2015). We use VS2013 for compatibility reasons.
+- Run `premake5 vs2015` or use the delivered `generate.bat`.
 - Build via solution file in `build\iw4x.sln`. (You can use the `build.bat` script to do it quick and easy.)
 
 ## Premake arguments
