@@ -87,8 +87,8 @@ workspace "iw4x"
 		pchsource "src/STDInclude.cpp" -- real path
 
 		-- Dependency on zlib
-		links { "zlib" }
-		includedirs { "./deps/zlib" }
+		links { "zlib", "json11" }
+		includedirs { "./deps/zlib", "./deps/json11" }
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
@@ -142,3 +142,23 @@ workspace "iw4x"
 			configuration "*Static"
 				kind "StaticLib"
 				removedefines { "ZLIB_DLL" }
+				
+				
+		-- json11
+		project "json11"
+			language "C++"
+
+			files
+			{
+				"./deps/json11/*.cpp",
+				"./deps/json11/*.hpp"
+			}
+			
+			-- remove dropbox's testing code
+			removefiles { "./deps/json11/test.cpp" }
+
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			-- always build as static lib, as json11 doesn't export anything
+			kind "StaticLib"

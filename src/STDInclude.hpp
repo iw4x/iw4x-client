@@ -26,8 +26,10 @@
 #include <chrono>
 #include <future>
 
+// Submodules
 #define ZLIB_CONST
 #include <zlib.h>
+#include <json11.hpp>
 
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"
