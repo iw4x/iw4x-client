@@ -166,7 +166,7 @@ namespace Components
 		// Map rotation
 		Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
 
-		if (Dedicated::IsDedicated())
+		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled()) // Run zonebuilder as dedi :P
 		{
 			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't register at the master server");
 
@@ -201,12 +201,6 @@ namespace Components
 			Utils::Hook::Nop(0x64CF77, 5);          // function detecting video card, causes Direct3DCreate9 to be called
 			Utils::Hook::Nop(0x60BC52, 0x15);       // recommended settings check
 
-			// Dedicated frame handler
-			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).Install()->Quick();
-
-			// Post initialization point
-			Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).Install()->Quick();
-
 			// isHost script call return 0
 			Utils::Hook::Set<DWORD>(0x5DEC04, 0);
 
@@ -226,17 +220,26 @@ namespace Components
 			// stop saving a config_mp.cfg
 			Utils::Hook::Set<BYTE>(0x60B240, 0xC3);
 
-			// Heartbeats
-			Dedicated::OnFrame([] ()
-			{
-				static int LastHeartbeat = 0;
+			// Dedicated frame handler
+			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).Install()->Quick();
 
-				if (Dvar::Var("sv_maxclients").Get<int>() > 0 && !LastHeartbeat || (Game::Com_Milliseconds() - LastHeartbeat) > 120 * 1000)
+			if (!ZoneBuilder::IsEnabled())
+			{
+				// Post initialization point
+				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).Install()->Quick();
+
+				// Heartbeats
+				Dedicated::OnFrame([] ()
 				{
-					LastHeartbeat = Game::Com_Milliseconds();
-					Dedicated::Heartbeat();
-				}
-			});
+					static int LastHeartbeat = 0;
+
+					if (Dvar::Var("sv_maxclients").Get<int>() > 0 && !LastHeartbeat || (Game::Com_Milliseconds() - LastHeartbeat) > 120 * 1000)
+					{
+						LastHeartbeat = Game::Com_Milliseconds();
+						Dedicated::Heartbeat();
+					}
+				});
+			}
 		}
 	}
 

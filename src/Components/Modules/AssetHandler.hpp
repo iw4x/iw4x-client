@@ -23,7 +23,7 @@ namespace Components
 		static void FindAssetStub();
 		static void AddAssetStub();
 
-		static void OffsetToAlias(FastFiles::Offset* offset);
+		static void OffsetToAlias(Utils::Stream::Offset* offset);
 
 		static std::map<Game::XAssetType, Callback> TypeCallbacks;
 		static std::vector<RestrictCallback> RestrictCallbacks;

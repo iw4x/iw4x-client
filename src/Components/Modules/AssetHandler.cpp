@@ -129,13 +129,13 @@ namespace Components
 		}
 	}
 
-	void AssetHandler::OffsetToAlias(FastFiles::Offset* offset)
+	void AssetHandler::OffsetToAlias(Utils::Stream::Offset* offset)
 	{
-		offset->fullPointer = *reinterpret_cast<void**>((*Game::g_streamBlocks)[offset->GetDecrementedStream()].data + offset->GetDecrementedPointer());
+		offset->pointer = *reinterpret_cast<void**>((*Game::g_streamBlocks)[offset->GetUnpackedBlock()].data + offset->GetUnpackedOffset());
 
-		if (AssetHandler::Relocations.find(offset->fullPointer) != AssetHandler::Relocations.end())
+		if (AssetHandler::Relocations.find(offset->pointer) != AssetHandler::Relocations.end())
 		{
-			offset->fullPointer = AssetHandler::Relocations[offset->fullPointer];
+			offset->pointer = AssetHandler::Relocations[offset->pointer];
 		}
 	}
 

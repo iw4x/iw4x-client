@@ -42,6 +42,9 @@ namespace Game
 	typedef int(__cdecl * DB_GetXAssetSizeHandler_t)();
 	extern DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers;
 
+	typedef const char *(__cdecl * DB_GetXAssetTypeName_t)(XAssetType type);
+	extern DB_GetXAssetTypeName_t DB_GetXAssetTypeName;
+
 	typedef void(*DB_LoadXAssets_t)(XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 	extern DB_LoadXAssets_t DB_LoadXAssets;
 
@@ -208,6 +211,9 @@ namespace Game
 	typedef void(__cdecl * SetConsole_t)(const char* cvar, const char* value);
 	extern SetConsole_t SetConsole;
 
+	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short);
+	extern SL_ConvertToString_t SL_ConvertToString;
+
 	typedef void(__cdecl * Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;
 
@@ -260,4 +266,7 @@ namespace Game
 	const char* TabeLookup(StringTable* stringtable, int row, int column);
 	const char* UI_LocalizeMapName(const char* mapName);
 	const char* UI_LocalizeGameType(const char* gameType);
+
+	const char *DB_GetXAssetName(XAsset *asset);
+	XAssetType DB_GetXAssetNameType(const char* name);
 }

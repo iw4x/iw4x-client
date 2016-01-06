@@ -104,6 +104,55 @@ namespace Utils
 		return data.substr(0, data.find_first_of("\n")).data();
 	}
 
+	// TODO: Use modern file reading methods
+	bool FileExists(std::string file)
+	{
+		FILE* fp;
+		fopen_s(&fp, file.data(), "r");
+
+		if (fp)
+		{
+			fclose(fp);
+			return true;
+		}
+
+		return false;
+	}
+
+	void WriteFile(std::string file, std::string data)
+	{
+		std::ofstream stream(file, std::ios::binary);
+		stream.write(data.data(), data.size());
+		stream.close();
+	}
+
+	std::string ReadFile(std::string file)
+	{
+		std::string buffer;
+
+		if (FileExists(file))
+		{
+			std::ifstream stream(file, std::ios::binary);
+			std::streamsize size = 0;
+
+			stream.seekg(0, std::ios::end);
+			size = stream.tellg();
+			stream.seekg(0, std::ios::beg);
+
+			if (size > -1)
+			{
+				buffer.clear();
+				buffer.resize((uint32_t)size);
+
+				stream.read((char *)buffer.data(), size);
+			}
+
+			stream.close();
+		}
+
+		return buffer;
+	}
+
 	// Infostring class
 	void InfoString::Set(std::string key, std::string value)
 	{

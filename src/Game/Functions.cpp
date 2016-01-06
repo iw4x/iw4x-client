@@ -20,6 +20,7 @@ namespace Game
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
 	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = (DB_GetXAssetNameHandler_t*)0x799328;
 	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x799488;
+	DB_GetXAssetTypeName_t DB_GetXAssetTypeName = (DB_GetXAssetTypeName_t)0x4CFCF0;
 	DB_LoadXAssets_t DB_LoadXAssets = (DB_LoadXAssets_t)0x4E5930;
 
 	Dvar_RegisterBool_t Dvar_RegisterBool = (Dvar_RegisterBool_t)0x4CE1A0;
@@ -92,6 +93,8 @@ namespace Game
 	Script_CleanString_t Script_CleanString = (Script_CleanString_t)0x498220;
 
 	SetConsole_t SetConsole = (SetConsole_t)0x44F060;
+
+	SL_ConvertToString_t SL_ConvertToString = (SL_ConvertToString_t)0x4EC1D0;
 
 	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
 
@@ -212,5 +215,25 @@ namespace Game
 		}
 
 		return gameType;
+	}
+
+	const char *DB_GetXAssetName(XAsset *asset)
+	{
+		if (!asset) return "";
+		return DB_GetXAssetNameHandlers[asset->type](&asset->header);
+	}
+
+	XAssetType DB_GetXAssetNameType(const char* name)
+	{
+		for (int i = 0; i < ASSET_TYPE_COUNT; i++)
+		{
+			XAssetType type = (XAssetType)i;
+			if (!_stricmp(DB_GetXAssetTypeName(type), name))
+			{
+				return type;
+			}
+		}
+
+		return ASSET_TYPE_INVALID;
 	}
 }

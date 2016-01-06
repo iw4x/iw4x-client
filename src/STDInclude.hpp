@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <fstream>
 #include <utility>
 #include <algorithm>
 #include <functional> 
@@ -31,6 +32,7 @@
 #include <zlib.h>
 #include <json11.hpp>
 
+#include "Utils\CSV.hpp"
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"
 #include "Utils\Hooking.hpp"
@@ -40,6 +42,8 @@
 
 #include "Game\Structs.hpp"
 #include "Game\Functions.hpp"
+
+#include "Utils\Stream.hpp"
 
 #include "Components\Loader.hpp"
 

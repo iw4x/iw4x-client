@@ -47,7 +47,9 @@ namespace Game
 		ASSET_TYPE_TRACER = 40,
 		ASSET_TYPE_VEHICLE = 41,
 		ASSET_TYPE_ADDON_MAP_ENTS = 42,
-		ASSET_TYPE_MAX = 43
+
+		ASSET_TYPE_COUNT,
+		ASSET_TYPE_INVALID = -1,
 	} XAssetType;
 
 	typedef enum
@@ -892,6 +894,14 @@ namespace Game
 		StringTableCell *values;
 	};
 
+	struct RawFile
+	{
+		const char* name;
+		int sizeCompressed;
+		int sizeUnCompressed;
+		char * compressedData;
+	};
+
 	union XAssetHeader
 	{
 		void *data;
@@ -902,6 +912,7 @@ namespace Game
 		localizedEntry_s *localize;
 		StringTable *stringTable;
 		MapEnts* mapEnts;
+		RawFile* rawfile;
 	};
 
 	struct XAsset
@@ -924,6 +935,81 @@ namespace Game
 		unsigned __int16 nextHash;
 		unsigned __int16 nextOverride;
 		unsigned __int16 usageFrame;
+	};
+
+	enum XFileLanguage : uint8_t
+	{
+		XLANG_NONE = 0x00,
+		XLANG_ENGLISH = 0x01,
+		XLANG_FRENCH = 0x02,
+		XLANG_GERMAN = 0x03,
+		XLANG_ITALIAN = 0x04,
+		XLANG_SPANISH = 0x05,
+		XLANG_BRITISH = 0x06,
+		XLANG_RUSSIAN = 0x07,
+		XLANG_POLISH = 0x08,
+		XLANG_KOREAN = 0x09,
+		XLANG_TAIWANESE = 0x0A,
+		XLANG_JAPANESE = 0x0B,
+		XLANG_CHINESE = 0x0C,
+		XLANG_THAI = 0x0D,
+		XLANG_LEET = 0x0E, // Wat?
+		XLANG_CZECH = 0x0F,
+	};
+
+#pragma pack(push, 1)
+	struct  XFileHeader
+	{
+		uint64_t magic;
+		uint32_t version;
+		XFileLanguage language;
+		DWORD highDateTime;
+		DWORD lowDateTime;
+	};
+#pragma pack(pop)
+
+	enum XFILE_BLOCK_TYPES
+	{
+		XFILE_BLOCK_TEMP = 0x0,
+		XFILE_BLOCK_PHYSICAL = 0x1,
+		XFILE_BLOCK_RUNTIME = 0x2,
+		XFILE_BLOCK_VIRTUAL = 0x3,
+		XFILE_BLOCK_LARGE = 0x4,
+
+		// Those are probably incorrect
+		XFILE_BLOCK_CALLBACK,
+		XFILE_BLOCK_VERTEX,
+		XFILE_BLOCK_INDEX,
+
+		MAX_XFILE_COUNT,
+
+		XFILE_BLOCK_INVALID = -1
+	};
+
+	struct XFile
+	{
+		unsigned int size;
+		unsigned int externalSize;
+		unsigned int blockSize[MAX_XFILE_COUNT];
+	};
+
+	struct ScriptStringList
+	{
+		int count;
+		const char **strings;
+	};
+
+	struct XAssetList
+	{
+		ScriptStringList stringList;
+		int assetCount;
+		Game::XAsset *assets;
+	};
+
+	struct ZoneHeader
+	{
+		XFile xFile;
+		XAssetList assetList;
 	};
 
 	struct XNKID

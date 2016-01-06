@@ -24,7 +24,7 @@ namespace Components
 	Console::Console()
 	{
 		// External console
-		if (Flags::HasFlag("console") || Dedicated::IsDedicated())
+		if (Flags::HasFlag("console") || Dedicated::IsDedicated() || ZoneBuilder::IsEnabled())
 		{
 			Utils::Hook::Nop(0x60BB58, 11);
 		}
