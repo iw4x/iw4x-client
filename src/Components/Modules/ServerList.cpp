@@ -199,8 +199,8 @@ namespace Components
 
 			Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
 
-			//Network::Send(ServerList::RefreshContainer.Host, Utils::VA("getservers IW4 %i full empty", PROTOCOL));
-			Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
+			Network::Send(ServerList::RefreshContainer.Host, Utils::VA("getservers IW4 %i full empty", PROTOCOL));
+			//Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
 		}
 		else if (ServerList::IsFavouriteList())
 		{
@@ -290,7 +290,7 @@ namespace Components
 					}
 				}
 
-				//if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
+				if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
 				{
 					ServerList::GetList().push_back(server);
 					ServerList::RefreshVisibleList();
