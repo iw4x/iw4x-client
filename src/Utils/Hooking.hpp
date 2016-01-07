@@ -28,6 +28,11 @@ namespace Utils
 			return std::function<T>((T*)function);
 		}
 
+		template <typename T> static std::function<T> Call(FARPROC function)
+		{
+			return Call<T>((DWORD)function);
+		}
+
 		static void SetString(void* place, const char* string, size_t length);
 		static void SetString(DWORD place, const char* string, size_t length);
 

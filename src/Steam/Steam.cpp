@@ -3,6 +3,8 @@
 
 namespace Steam
 {
+	HMODULE Overlay = 0;
+
 	uint64_t Callbacks::CallID = 0;
 	std::map<uint64_t, bool> Callbacks::Calls;
 	std::map<uint64_t, Callbacks::Base*> Callbacks::ResultHandlers;
@@ -70,6 +72,24 @@ namespace Steam
 	{
 		bool SteamAPI_Init()
 		{
+			Overlay = GetModuleHandleA("gameoverlayrenderer.dll");
+
+			if (!Overlay)
+			{
+				HKEY hRegKey;
+				char steamPath[MAX_PATH] = { 0 };
+				if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hRegKey) == ERROR_SUCCESS)
+				{
+					DWORD dwLength = sizeof(steamPath);
+					RegQueryValueExA(hRegKey, "InstallPath", NULL, NULL, (BYTE*)steamPath, &dwLength);
+					RegCloseKey(hRegKey);
+
+					SetDllDirectory(steamPath);
+				}
+
+				Overlay = LoadLibraryA(::Utils::VA("%s\\%s", steamPath, "gameoverlayrenderer.dll"));
+			}
+
 			return true;
 		}
 

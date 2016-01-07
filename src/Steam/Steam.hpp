@@ -88,4 +88,6 @@ namespace Steam
 	STEAM_EXPORT Steam::RemoteStorage* SteamRemoteStorage();
 	STEAM_EXPORT Steam::User* SteamUser();
 	STEAM_EXPORT Steam::Utils* SteamUtils();
+
+	extern HMODULE Overlay;
 }

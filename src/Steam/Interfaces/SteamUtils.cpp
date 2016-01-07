@@ -54,6 +54,11 @@ namespace Steam
 
 	void Utils::SetOverlayNotificationPosition(int eNotificationPosition)
 	{
+		if (Steam::Overlay)
+		{
+			FARPROC setPosition = GetProcAddress(Steam::Overlay, "SetNotificationPosition");
+			::Utils::Hook::Call<void(int)>(setPosition)(eNotificationPosition);
+		}
 	}
 
 	bool Utils::IsAPICallCompleted(unsigned __int64 hSteamAPICall, bool *pbFailed)
