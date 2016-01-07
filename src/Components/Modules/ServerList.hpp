@@ -97,6 +97,7 @@ namespace Components
 		static void SelectServer(int index);
 
 		static void UpdateSource();
+		static void UpdateGameType();
 
 		static void Frame();
 

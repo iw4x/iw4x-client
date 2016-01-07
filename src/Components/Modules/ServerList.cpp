@@ -120,8 +120,50 @@ namespace Components
 
 	void ServerList::RefreshVisibleList()
 	{
-		// TODO: Update the list
-		ServerList::Refresh();
+		ServerList::VisibleList.clear();
+
+		auto list = ServerList::GetList();
+
+		// Refresh entirely, if there is no entry in the list
+		if (!list.size())
+		{
+			ServerList::Refresh();
+			return;
+		}
+
+		bool ui_browserShowFull     = Dvar::Var("ui_browserShowFull").Get<bool>();
+		bool ui_browserShowEmpty    = Dvar::Var("ui_browserShowEmpty").Get<bool>();
+		int ui_browserShowHardcore  = Dvar::Var("ui_browserKillcam").Get<int>();
+		int ui_browserShowPassword  = Dvar::Var("ui_browserShowPassword").Get<int>();
+		int ui_browserMod           = Dvar::Var("ui_browserMod").Get<int>();
+		int ui_joinGametype         = Dvar::Var("ui_joinGametype").Get<int>();
+
+		for (unsigned int i = 0; i < list.size(); i++)
+		{
+			ServerList::ServerInfo* info = &list[i];
+
+			// Filter full servers
+			if (!ui_browserShowFull && info->Clients >= info->MaxClients) continue;
+
+			// Filter empty servers
+			if (!ui_browserShowEmpty && info->Clients <= 0) continue;
+
+			// Filter hardcore servers
+			if ((ui_browserShowHardcore == 0 && info->Hardcore) || (ui_browserShowHardcore == 1 && !info->Hardcore)) continue;
+
+			// Filter servers with password
+			if ((ui_browserShowPassword == 0 && info->Password) || (ui_browserShowPassword == 1 && !info->Password)) continue;
+
+			// Don't show modded servers
+			if ((ui_browserMod == 0 && info->Mod.size()) || (ui_browserMod == 1 && !info->Mod.size())) continue;
+
+			// Filter by gametype
+			if (ui_joinGametype > 0 && (ui_joinGametype -1) < *Game::gameTypeCount  && Game::gameTypes[(ui_joinGametype - 1)].gameType != info->Gametype) continue;
+
+			ServerList::VisibleList.push_back(i);
+		}
+
+		ServerList::SortList();
 	}
 
 	void ServerList::Refresh()
@@ -157,8 +199,8 @@ namespace Components
 
 			Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
 
-			Network::Send(ServerList::RefreshContainer.Host, Utils::VA("getservers IW4 %i full empty", PROTOCOL));
-			//Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
+			//Network::Send(ServerList::RefreshContainer.Host, Utils::VA("getservers IW4 %i full empty", PROTOCOL));
+			Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
 		}
 		else if (ServerList::IsFavouriteList())
 		{
@@ -248,12 +290,10 @@ namespace Components
 					}
 				}
 
-				if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
+				//if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
 				{
-					int index = ServerList::GetList().size();
 					ServerList::GetList().push_back(server);
-					ServerList::VisibleList.push_back(index);
-					ServerList::SortList();
+					ServerList::RefreshVisibleList();
 				}
 
 				break;
@@ -369,6 +409,22 @@ namespace Components
 		ServerList::RefreshVisibleList();
 	}
 
+	void ServerList::UpdateGameType()
+	{
+		Dvar::Var joinGametype("ui_joinGametype");
+
+		int gametype = joinGametype.Get<int>();
+
+		if (++gametype > *Game::gameTypeCount)
+		{
+			gametype = 0;
+		}
+
+		joinGametype.Set(gametype);
+
+		ServerList::RefreshVisibleList();
+	}
+
 	ServerList::ServerList()
 	{
 		ServerList::OnlineList.clear();
@@ -419,6 +475,9 @@ namespace Components
 		UIFeeder::Add(2.0f, ServerList::GetServerCount, ServerList::GetServerText, ServerList::SelectServer);
 
 		// Add required UIScripts
+		UIScript::Add("UpdateFilter", ServerList::RefreshVisibleList);
+		UIScript::Add("RefreshFilter", ServerList::RefreshVisibleList); // TODO: Re-query the servers
+
 		UIScript::Add("RefreshServers", ServerList::Refresh);
 		UIScript::Add("JoinServer", [] ()
 		{
@@ -447,7 +506,7 @@ namespace Components
 
 		// Add required ownerDraws
 		UIScript::AddOwnerDraw(220, ServerList::UpdateSource);
-		//UIScript::AddOwnerDraw(253, ServerList_ClickHandler_GameType);
+		UIScript::AddOwnerDraw(253, ServerList::UpdateGameType);
 
 		// Add frame callback
 		Renderer::OnFrame(ServerList::Frame);
