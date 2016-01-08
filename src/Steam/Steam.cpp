@@ -85,9 +85,9 @@ namespace Steam
 					RegCloseKey(hRegKey);
 
 					SetDllDirectory(steamPath);
-				}
 
-				Overlay = LoadLibraryA(::Utils::VA("%s\\%s", steamPath, "gameoverlayrenderer.dll"));
+					Overlay = LoadLibraryA(::Utils::VA("%s\\%s", steamPath, "gameoverlayrenderer.dll"));
+				}
 			}
 
 			return true;

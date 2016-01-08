@@ -33,6 +33,12 @@ namespace Steam
 				CryptProtectData(Data, NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &Data[1]);
 
 				subId = ::Utils::OneAtATime((char*)Data[1].pbData, 52);
+
+				if (!subId)
+				{
+					Components::Logger::Print("Hardware-based GUID generation failed!\n");
+					subId = (Game::Com_Milliseconds() + timeGetTime());
+				}
 			}
 			else // Random guid
 			{
