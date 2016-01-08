@@ -82,6 +82,8 @@ namespace Components
 
 	void Party::PlaylistContinue()
 	{
+		Dvar::Var("xblive_privateserver").Set(false);
+
 		// Ensure we can join
 		*Game::g_lobbyCreateInProgress = false;
 
@@ -118,7 +120,7 @@ namespace Components
 
 	Party::Party()
 	{
-		Dvar::Register<bool>("party_enable", false, Game::dvar_flag::DVAR_FLAG_NONE, "Enable party system");
+		static Game::dvar_t* partyEnable = Dvar::Register<bool>("party_enable", false, Game::dvar_flag::DVAR_FLAG_NONE, "Enable party system").Get<Game::dvar_t*>();
 		Dvar::Register<bool>("xblive_privatematch", true, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED, "").Get<Game::dvar_t*>();
 
 		// various changes to SV_DirectConnect-y stuff to allow non-party joinees
@@ -188,6 +190,16 @@ namespace Components
 
 		// Disable host migration
 		Utils::Hook::Set<BYTE>(0x5B58B2, 0xEB);
+
+		// Patch playlist stuff for non-party behavior
+		Utils::Hook::Set<Game::dvar_t**>(0x4A4093, &partyEnable);
+		Utils::Hook::Set<Game::dvar_t**>(0x4573F1, &partyEnable);
+		Utils::Hook::Set<Game::dvar_t**>(0x5B1A0C, &partyEnable);
+
+		// Invert corresponding jumps
+		Utils::Hook::Xor<BYTE>(0x4A409B, 1);
+		Utils::Hook::Xor<BYTE>(0x4573FA, 1);
+		Utils::Hook::Xor<BYTE>(0x5B1A17, 1);
 
 		// Fix xstartlobby
 		//Utils::Hook::Set<BYTE>(0x5B71CD, 0xEB);
@@ -341,6 +353,8 @@ namespace Components
 						}
 						else
 						{
+							Dvar::Var("xblive_privateserver").Set(true);
+
 							Game::Menus_CloseAll(Game::uiContext);
 
 							char xnaddr[32];

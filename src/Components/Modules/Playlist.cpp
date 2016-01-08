@@ -10,6 +10,16 @@ namespace Components
 		// Check if playlist already loaded
 		if (Utils::Hook::Get<bool>(0x1AD3680)) return;
 
+		// Don't load playlists when dedi and no party
+		if (Dedicated::IsDedicated() && !Dvar::Var("party_enable").Get<bool>())
+		{
+			Utils::Hook::Set<bool>(0x1AD3680, true); // Set received to true
+			Dvar::Var("xblive_privateserver").Set(true);
+			return;
+		}
+
+		Dvar::Var("xblive_privateserver").Set(false);
+
 		std::string playlistFilename = Dvar::Var("playlistFilename").Get<char*>();
 		FileSystem::File playlist(playlistFilename);
 

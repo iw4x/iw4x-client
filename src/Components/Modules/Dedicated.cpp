@@ -43,7 +43,7 @@ namespace Components
 		Command::Execute("com_maxfps 125");
 
 		// Process command line?
-		//Utils::Hook::Call<void()>(0x60C3D0)();
+		Utils::Hook::Call<void()>(0x60C3D0)();
 	}
 
 	void __declspec(naked) Dedicated::PostInitializationStub()
