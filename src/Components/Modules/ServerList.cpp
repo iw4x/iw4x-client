@@ -521,8 +521,11 @@ namespace Components
 		ServerList::OnlineList.clear();
 		ServerList::VisibleList.clear();
 
-		Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_FLAG_NONE, "Wether a server has been selected in the serverlist");
-		Dvar::Register<bool>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "Map of the selected server");
+		Dvar::OnInit([] ()
+		{
+			Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_FLAG_NONE, "Wether a server has been selected in the serverlist");
+			Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "Map of the selected server");
+		});
 
 		Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 
