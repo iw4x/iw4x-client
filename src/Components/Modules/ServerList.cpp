@@ -55,7 +55,14 @@ namespace Components
 
 	const char* ServerList::GetServerText(int index, int column)
 	{
-		return ServerList::GetServerText(ServerList::GetServer(index), column);
+		ServerList::ServerInfo* info = ServerList::GetServer(index);
+
+		if (info)
+		{
+			return ServerList::GetServerText(info, column);
+		}
+
+		return "";
 	}
 
 	const char* ServerList::GetServerText(ServerList::ServerInfo* server, int column)
@@ -116,10 +123,24 @@ namespace Components
 	void ServerList::SelectServer(int index)
 	{
 		ServerList::CurrentServer = (unsigned int)index;
+
+		ServerList::ServerInfo* info = ServerList::GetCurrentServer();
+
+		if (info)
+		{
+			Dvar::Var("ui_serverSelected").Set(true);
+			Dvar::Var("ui_serverSelectedMap").Set(info->Mapname);
+		}
+		else
+		{
+			Dvar::Var("ui_serverSelected").Set(false);
+		}
 	}
 
 	void ServerList::RefreshVisibleList()
 	{
+		Dvar::Var("ui_serverSelected").Set(false);
+
 		ServerList::VisibleList.clear();
 
 		auto list = ServerList::GetList();
@@ -168,6 +189,7 @@ namespace Components
 
 	void ServerList::Refresh()
 	{
+		Dvar::Var("ui_serverSelected").Set(false);
 		Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 
 // 		ServerList::OnlineList.clear();
@@ -175,7 +197,6 @@ namespace Components
 // 		ServerList::FavouriteList.clear();
 		ServerList::GetList().clear();
 		ServerList::VisibleList.clear();
-
 		ServerList::RefreshContainer.Mutex.lock();
 		ServerList::RefreshContainer.Servers.clear();
 		ServerList::RefreshContainer.Mutex.unlock();
@@ -500,6 +521,9 @@ namespace Components
 		ServerList::OnlineList.clear();
 		ServerList::VisibleList.clear();
 
+		Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_FLAG_NONE, "Wether a server has been selected in the serverlist");
+		Dvar::Register<bool>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "Map of the selected server");
+
 		Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 
 		Network::Handle("getServersResponse", [] (Network::Address address, std::string data)
@@ -551,9 +575,11 @@ namespace Components
 		UIScript::Add("RefreshServers", ServerList::Refresh);
 		UIScript::Add("JoinServer", [] ()
 		{
-			if (ServerList::GetServer(ServerList::CurrentServer))
+			ServerList::ServerInfo* info = ServerList::GetServer(ServerList::CurrentServer);
+
+			if (info)
 			{
-				Party::Connect(ServerList::GetServer(ServerList::CurrentServer)->Addr);
+				Party::Connect(info->Addr);
 			}
 		});
 		UIScript::Add("ServerSort", [] (UIScript::Token token)
@@ -576,7 +602,11 @@ namespace Components
 		UIScript::Add("CreateListFavorite", [] ()
 		{
 			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
-			ServerList::StoreFavourite(info->Addr.GetString());
+
+			if (info)
+			{
+				ServerList::StoreFavourite(info->Addr.GetString());
+			}
 		});
 		UIScript::Add("CreateFavorite", [] ()
 		{
