@@ -105,6 +105,9 @@ namespace Components
 
 		static void SortList();
 
+		static void LoadFavourties();
+		static void StoreFavourite(std::string server);
+
 		static ServerInfo* GetServer(int index);
 		static std::vector<ServerInfo>& GetList();
 

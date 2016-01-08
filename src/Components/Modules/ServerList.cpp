@@ -204,7 +204,65 @@ namespace Components
 		}
 		else if (ServerList::IsFavouriteList())
 		{
-			// TODO: Whatever
+			ServerList::LoadFavourties();
+		}
+	}
+
+	void ServerList::StoreFavourite(std::string server)
+	{
+		//json11::Json::parse()
+		std::vector<std::string> servers;
+
+		if (Utils::FileExists("players/favourites.json"))
+		{
+			std::string data = Utils::ReadFile("players/favourites.json");
+			json11::Json object = json11::Json::parse(data, data);
+
+			if (!object.is_array())
+			{
+				Logger::Print("Favourites storage file is invalid!\n");
+				return;
+			}
+
+			auto storedServers = object.array_items();
+
+			for (unsigned int i = 0; i < storedServers.size(); i++)
+			{
+				if (!storedServers[i].is_string()) continue;
+				if (storedServers[i].string_value() == server) return;
+
+				servers.push_back(storedServers[i].string_value());
+			}
+		}
+
+		servers.push_back(server);
+
+		json11::Json data = json11::Json(servers);
+		Utils::WriteFile("players/favourites.json", data.dump());
+	}
+
+	void ServerList::LoadFavourties()
+	{
+		if (ServerList::IsFavouriteList() && Utils::FileExists("players/favourites.json"))
+		{
+			ServerList::GetList().clear();
+
+			std::string data = Utils::ReadFile("players/favourites.json");
+			json11::Json object = json11::Json::parse(data, data);
+
+			if (!object.is_array())
+			{
+				Logger::Print("Favourites storage file is invalid!\n");
+				return;
+			}
+
+			auto servers = object.array_items();
+
+			for (unsigned int i = 0; i < servers.size(); i++)
+			{
+				if(!servers[i].is_string()) continue;
+				ServerList::InsertRequest(servers[i].string_value(), true);
+			}
 		}
 	}
 
@@ -507,6 +565,15 @@ namespace Components
 
 			Logger::Print("Sorting server list by token: %d\n", ServerList::SortKey);
 			ServerList::SortList();
+		});
+		UIScript::Add("CreateListFavorite", [] ()
+		{
+			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
+			ServerList::StoreFavourite(info->Addr.GetString());
+		});
+		UIScript::Add("CreateFavorite", [] ()
+		{
+			ServerList::StoreFavourite(Dvar::Var("ui_favoriteAddress").Get<std::string>());
 		});
 
 		// Add required ownerDraws
