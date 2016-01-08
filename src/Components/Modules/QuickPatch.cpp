@@ -80,10 +80,10 @@ namespace Components
 		Utils::Hook::Set<char*>(0x6431D1, "data");
 
 		// UI version string
-		Utils::Hook::Set<char*>(0x43F73B, "iw4x IW4x: r" REVISION_STR);
+		Utils::Hook::Set<char*>(0x43F73B, "iw4x IW4x: r" REVISION_STR "-" MILESTONE);
 
 		// console version string
-		Utils::Hook::Set<char*>(0x4B12BB, "iw4x IW4x r" REVISION_STR " (built " __DATE__ " " __TIME__ ")");
+		Utils::Hook::Set<char*>(0x4B12BB, "iw4x IW4x r" REVISION_STR "-" MILESTONE " (built " __DATE__ " " __TIME__ ")");
 
 		// version string
 		Utils::Hook::Set<char*>(0x60BD56, "iw4x IW4x (r" REVISION_STR ")");
