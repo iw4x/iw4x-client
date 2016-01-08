@@ -80,7 +80,7 @@ namespace Components
 
 			case Column::Matchtype:
 			{
-				return ((server->MatchType == 1) ? "L" : "D");
+				return ((server->MatchType == 1) ? "P" : "M");
 			}
 
 			case Column::Hostname:
