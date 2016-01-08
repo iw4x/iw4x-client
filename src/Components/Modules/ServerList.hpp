@@ -109,7 +109,7 @@ namespace Components
 		static void StoreFavourite(std::string server);
 
 		static ServerInfo* GetServer(int index);
-		static std::vector<ServerInfo>& GetList();
+		static std::vector<ServerInfo>* GetList();
 
 		static int SortKey;
 		static bool SortAsc;

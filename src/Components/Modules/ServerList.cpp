@@ -15,22 +15,24 @@ namespace Components
 
 	std::vector<int> ServerList::VisibleList;
 
-	std::vector<ServerList::ServerInfo>& ServerList::GetList()
+	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{
 		int source = Dvar::Var("ui_netSource").Get<int>();
 
-		if (ServerList::IsFavouriteList())
+		if (ServerList::IsOnlineList())
 		{
-			return ServerList::FavouriteList;
+			return &ServerList::OnlineList;
 		}
 		else if (ServerList::IsOfflineList())
 		{
-			return ServerList::OfflineList;
+			return &ServerList::OfflineList;
 		}
-		else
+		else if (ServerList::IsFavouriteList())
 		{
-			return ServerList::OnlineList;
+			return &ServerList::FavouriteList;
 		}
+
+		return nullptr;
 	}
 
 	bool ServerList::IsFavouriteList()
@@ -144,9 +146,10 @@ namespace Components
 		ServerList::VisibleList.clear();
 
 		auto list = ServerList::GetList();
+		if (!list) return;
 
 		// Refresh entirely, if there is no entry in the list
-		if (!list.size())
+		if (!list->size())
 		{
 			ServerList::Refresh();
 			return;
@@ -159,9 +162,9 @@ namespace Components
 		int ui_browserMod           = Dvar::Var("ui_browserMod").Get<int>();
 		int ui_joinGametype         = Dvar::Var("ui_joinGametype").Get<int>();
 
-		for (unsigned int i = 0; i < list.size(); i++)
+		for (unsigned int i = 0; i < list->size(); i++)
 		{
-			ServerList::ServerInfo* info = &list[i];
+			ServerList::ServerInfo* info = &(*list)[i];
 
 			// Filter full servers
 			if (!ui_browserShowFull && info->Clients >= info->MaxClients) continue;
@@ -195,7 +198,10 @@ namespace Components
 // 		ServerList::OnlineList.clear();
 // 		ServerList::OfflineList.clear();
 // 		ServerList::FavouriteList.clear();
-		ServerList::GetList().clear();
+
+		auto list = ServerList::GetList();
+		if (list) list->clear();
+
 		ServerList::VisibleList.clear();
 		ServerList::RefreshContainer.Mutex.lock();
 		ServerList::RefreshContainer.Servers.clear();
@@ -272,7 +278,8 @@ namespace Components
 	{
 		if (ServerList::IsFavouriteList() && Utils::FileExists("players/favourites.json"))
 		{
-			ServerList::GetList().clear();
+			auto list = ServerList::GetList();
+			if (list) list->clear();
 
 			std::string data = Utils::ReadFile("players/favourites.json");
 			json11::Json object = json11::Json::parse(data, data);
@@ -357,12 +364,15 @@ namespace Components
 				ServerList::RefreshContainer.Servers.erase(i);
 
 				// Check if already inserted and remove
+				auto list = ServerList::GetList();
+				if (!list) return;
+
 				int k = 0;
-				for (auto j = ServerList::GetList().begin(); j != ServerList::GetList().end(); j++, k++)
+				for (auto j = list->begin(); j != list->end(); j++, k++)
 				{
 					if (j->Addr == address)
 					{
-						ServerList::GetList().erase(j);
+						list->erase(j);
 						break;
 					}
 				}
@@ -378,8 +388,13 @@ namespace Components
 
 				if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
 				{
-					ServerList::GetList().push_back(server);
-					ServerList::RefreshVisibleList();
+					auto list = ServerList::GetList();
+
+					if (list)
+					{
+						list->push_back(server);
+						ServerList::RefreshVisibleList();
+					}
 				}
 
 				break;
@@ -404,8 +419,11 @@ namespace Components
 			ServerInfo* info1 = nullptr;
 			ServerInfo* info2 = nullptr;
 
-			if (ServerList::GetList().size() > (unsigned int)server1) info1 = &ServerList::GetList()[server1];
-			if (ServerList::GetList().size() > (unsigned int)server2) info2 = &ServerList::GetList()[server2];
+			auto list = ServerList::GetList();
+			if (!list) return 0;
+
+			if (list->size() > (unsigned int)server1) info1 = &(*list)[server1];
+			if (list->size() > (unsigned int)server2) info2 = &(*list)[server2];
 
 			if (!info1) return 1;
 			if (!info2) return -1;
@@ -432,9 +450,12 @@ namespace Components
 	{
 		if (ServerList::VisibleList.size() > (unsigned int)index)
 		{
-			if (ServerList::GetList().size() > (unsigned int)ServerList::VisibleList[index])
+			auto list = ServerList::GetList();
+			if (!list) return nullptr;
+
+			if (list->size() > (unsigned int)ServerList::VisibleList[index])
 			{
-				return &ServerList::GetList()[ServerList::VisibleList[index]];
+				return &(*list)[ServerList::VisibleList[index]];
 			}
 		}
 
