@@ -266,7 +266,7 @@ namespace Components
 		}
 
 		// Load custom menus
-		if (std::string(menuList->name) == "ui_mp/menus.txt")
+		if (std::string(menuList->name) == "ui_mp/code.txt") // Should be menus, but code is loaded ingame
 		{
 			for (auto menu : Menus::CustomMenus)
 			{
@@ -478,7 +478,7 @@ namespace Components
 
 	void Menus::AddMenuListHook(Game::UiContext *dc, Game::MenuList *menuList, int close)
 	{
-		Game::MenuList* menus = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENUFILE, "ui_mp/menus.txt").menuList;
+		Game::MenuList* menus = Game::UI_LoadMenus("ui_mp/menus.txt", 3);
 
 		Game::UI_AddMenuList(dc, menus, close);
 		Game::UI_AddMenuList(dc, menuList, close);

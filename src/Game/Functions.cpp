@@ -105,6 +105,7 @@ namespace Game
 	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
 
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
+	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;
 	UI_DrawHandlePic_t UI_DrawHandlePic = (UI_DrawHandlePic_t)0x4D0EA0;
 
 	Win_GetLanguage_t Win_GetLanguage = (Win_GetLanguage_t)0x45CBA0;

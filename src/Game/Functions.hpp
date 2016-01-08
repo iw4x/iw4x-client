@@ -232,6 +232,9 @@ namespace Game
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
 
+	typedef MenuList *(__cdecl * UI_LoadMenus_t)(const char *menuFile, int imageTrack);
+	extern UI_LoadMenus_t UI_LoadMenus;
+
 	typedef void(__cdecl * UI_DrawHandlePic_t)(/*ScreenPlacement*/void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Material *material);
 	extern UI_DrawHandlePic_t UI_DrawHandlePic;
 
