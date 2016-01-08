@@ -30,6 +30,8 @@ namespace Components
 		static void InsertRequest(Network::Address address, bool acquireMutex = true);
 		static void Insert(Network::Address address, Utils::InfoString info);
 
+		static ServerInfo* GetCurrentServer();
+
 		static bool IsFavouriteList();
 		static bool IsOfflineList();
 		static bool IsOnlineList();

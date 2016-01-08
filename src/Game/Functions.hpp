@@ -78,6 +78,9 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_FindVar_t)(const char *dvarName);
 	extern Dvar_FindVar_t Dvar_FindVar;
 
+	typedef char* (__cdecl* Dvar_InfoString_Big_t)(int typeMask);
+	extern Dvar_InfoString_Big_t Dvar_InfoString_Big;
+
 	typedef dvar_t* (__cdecl * Dvar_SetCommand_t)(const char* name, const char* value);
 	extern Dvar_SetCommand_t Dvar_SetCommand;
 
@@ -199,6 +202,9 @@ namespace Game
 	typedef netadr_t *(__cdecl * PartyHost_GetMemberAddressBySlot_t)(int unk, void *party, const int slot);
 	extern PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot;
 
+	typedef const char *(__cdecl * PartyHost_GetMemberName_t)(PartyData_s* party, const int clientNum);
+	extern PartyHost_GetMemberName_t PartyHost_GetMemberName;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 
@@ -216,6 +222,9 @@ namespace Game
 
 	typedef void(__cdecl * Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;
+
+	typedef int(__cdecl* SV_GameClientNum_Score_t)(int clientID);
+	extern SV_GameClientNum_Score_t SV_GameClientNum_Score;
 
 	typedef bool(__cdecl * Sys_IsMainThread_t)();
 	extern Sys_IsMainThread_t Sys_IsMainThread;

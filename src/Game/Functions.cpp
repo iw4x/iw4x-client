@@ -34,6 +34,7 @@ namespace Game
 	Dvar_RegisterColor_t Dvar_RegisterColor = (Dvar_RegisterColor_t)0x471500;
 
 	Dvar_FindVar_t Dvar_FindVar = (Dvar_FindVar_t)0x4D5390;
+	Dvar_InfoString_Big_t Dvar_InfoString_Big = (Dvar_InfoString_Big_t)0x4D98A0;
 	Dvar_SetCommand_t Dvar_SetCommand = (Dvar_SetCommand_t)0x4EE430;
 
 	Field_Clear_t Field_Clear = (Field_Clear_t)0x437EB0;
@@ -87,6 +88,7 @@ namespace Game
 	Party_GetMaxPlayers_t Party_GetMaxPlayers = (Party_GetMaxPlayers_t)0x4F5D60;
 	PartyHost_CountMembers_t PartyHost_CountMembers = (PartyHost_CountMembers_t)0x497330;
 	PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = (PartyHost_GetMemberAddressBySlot_t)0x44E100;
+	PartyHost_GetMemberName_t PartyHost_GetMemberName = (PartyHost_GetMemberName_t)0x44BE90;
 
 	Script_Alloc_t Script_Alloc = (Script_Alloc_t)0x422E70;
 	Script_SetupTokens_t Script_SetupTokens = (Script_SetupTokens_t)0x4E6950;
@@ -97,6 +99,8 @@ namespace Game
 	SL_ConvertToString_t SL_ConvertToString = (SL_ConvertToString_t)0x4EC1D0;
 
 	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
+
+	SV_GameClientNum_Score_t SV_GameClientNum_Score = (SV_GameClientNum_Score_t)0x469AC0;
 
 	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
 

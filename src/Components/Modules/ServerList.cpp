@@ -303,6 +303,11 @@ namespace Components
 		ServerList::RefreshContainer.Mutex.unlock();
 	}
 
+	ServerList::ServerInfo* ServerList::GetCurrentServer()
+	{
+		return ServerList::GetServer(ServerList::CurrentServer);
+	}
+
 	void ServerList::SortList()
 	{
 		qsort(ServerList::VisibleList.data(), ServerList::VisibleList.size(), sizeof(int), [] (const void* first, const void* second)

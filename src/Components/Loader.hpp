@@ -45,6 +45,7 @@ namespace Components
 #include "Modules\Singleton.hpp"
 #include "Modules\FileSystem.hpp"
 #include "Modules\QuickPatch.hpp"
+#include "Modules\ServerInfo.hpp"
 #include "Modules\ServerList.hpp"
 #include "Modules\ZoneBuilder.hpp"
 #include "Modules\AssetHandler.hpp"
