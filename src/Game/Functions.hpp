@@ -281,4 +281,6 @@ namespace Game
 
 	const char *DB_GetXAssetName(XAsset *asset);
 	XAssetType DB_GetXAssetNameType(const char* name);
+
+	void MessageBox(std::string message, std::string title);
 }

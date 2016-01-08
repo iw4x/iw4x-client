@@ -241,4 +241,11 @@ namespace Game
 
 		return ASSET_TYPE_INVALID;
 	}
+
+	void MessageBox(std::string message, std::string title)
+	{
+		SetConsole("com_errorMessage", message.data());
+		SetConsole("com_errorTitle", title.data());
+		Cbuf_AddText(0, "openmenu error_popmenu_lobby");
+	}
 }

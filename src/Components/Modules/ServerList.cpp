@@ -221,6 +221,7 @@ namespace Components
 			if (!object.is_array())
 			{
 				Logger::Print("Favourites storage file is invalid!\n");
+				Game::MessageBox("Favourites storage file is invalid!", "Error");
 				return;
 			}
 
@@ -229,7 +230,11 @@ namespace Components
 			for (unsigned int i = 0; i < storedServers.size(); i++)
 			{
 				if (!storedServers[i].is_string()) continue;
-				if (storedServers[i].string_value() == server) return;
+				if (storedServers[i].string_value() == server)
+				{
+					Game::MessageBox("Server already marked as favourite.", "Error");
+					return;
+				}
 
 				servers.push_back(storedServers[i].string_value());
 			}
@@ -239,6 +244,7 @@ namespace Components
 
 		json11::Json data = json11::Json(servers);
 		Utils::WriteFile("players/favourites.json", data.dump());
+		Game::MessageBox("Server added to favourites.", "Success");
 	}
 
 	void ServerList::LoadFavourties()
@@ -253,6 +259,7 @@ namespace Components
 			if (!object.is_array())
 			{
 				Logger::Print("Favourites storage file is invalid!\n");
+				Game::MessageBox("Favourites storage file is invalid!", "Error");
 				return;
 			}
 
