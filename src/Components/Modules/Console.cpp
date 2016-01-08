@@ -5,7 +5,7 @@ namespace Components
 {
 	char** Console::GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType)
 	{
-		if (path == (char*)0xBAADF00D || IsBadReadPtr(path, 1)) return nullptr;
+		if (path == (char*)0xBAADF00D || path == (char*)0xCDCDCDCD || IsBadReadPtr(path, 1)) return nullptr;
 		return Game::FS_ListFiles(path, extension, behavior, numfiles, allocTrackType);
 	}
 
