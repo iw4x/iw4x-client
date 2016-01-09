@@ -1,5 +1,4 @@
 #include "STDInclude.hpp"
-#include "..\..\Utils\Versioning.hpp"
 
 // Stuff causes warnings
 #pragma warning(push)

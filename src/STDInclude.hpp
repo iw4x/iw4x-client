@@ -32,6 +32,9 @@
 #include <zlib.h>
 #include <json11.hpp>
 
+// Version number
+#include <version.hpp>
+
 #include "Utils\CSV.hpp"
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"
@@ -51,3 +54,13 @@
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Ws2_32.lib")
+
+// Revision number
+#define STRINGIZE_(x) #x
+#define STRINGIZE(x) STRINGIZE_(x)
+
+#define MILESTONE "alpha"
+
+#define REVISION_STR STRINGIZE(REVISION)
+#define VERSION 4,2,REVISION
+#define VERSION_STR "4.2." REVISION_STR
