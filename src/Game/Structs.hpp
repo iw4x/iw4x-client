@@ -644,14 +644,16 @@ namespace Game
 
 	typedef struct
 	{
-		int unknown1;
-		int unknown2;
-		char* data;
-		int unknown3;
-		int maxsize; // 16
+		int overflowed;
+		int readOnly;
+		char *data;
+		char *splitData;
+		int maxsize;
 		int cursize;
-		int unknown4;
-		int readcount; // 28
+		int splitSize;
+		int readcount;
+		int bit;
+		int lastEntityRef;
 	} msg_t;
 
 #pragma pack(push, 1)

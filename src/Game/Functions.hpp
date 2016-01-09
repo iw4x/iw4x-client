@@ -145,6 +145,45 @@ namespace Game
 	typedef int(__cdecl * Menus_OpenByName_t)(UiContext *dc, const char *p);
 	extern Menus_OpenByName_t Menus_OpenByName;
 
+	typedef void(__cdecl * MSG_Init_t)(void* msg, void* data, int maxsize);
+	extern MSG_Init_t MSG_Init;
+
+	typedef int(__cdecl * MSG_ReadData_t)(msg_t* msg, char*, size_t);
+	extern MSG_ReadData_t MSG_ReadData;
+
+	typedef int(__cdecl * MSG_ReadLong_t)(msg_t* msg);
+	extern MSG_ReadLong_t MSG_ReadLong;
+
+	typedef short(__cdecl * MSG_ReadShort_t)(msg_t* msg);
+	extern MSG_ReadShort_t MSG_ReadShort;
+
+	typedef __int64(__cdecl * MSG_ReadInt64_t)(msg_t* msg);
+	extern MSG_ReadInt64_t MSG_ReadInt64;
+
+	typedef char* (__cdecl * MSG_ReadString_t)(msg_t*);
+	extern MSG_ReadString_t MSG_ReadString;
+
+	typedef void(__cdecl * MSG_WriteByte_t)(msg_t* msg, unsigned char);
+	extern MSG_WriteByte_t MSG_WriteByte;
+
+	typedef void(__cdecl * MSG_WriteData_t)(msg_t* msg, char*, size_t);
+	extern MSG_WriteData_t MSG_WriteData;
+
+	typedef void(__cdecl * MSG_WriteLong_t)(msg_t* msg, int);
+	extern MSG_WriteLong_t MSG_WriteLong;
+
+	typedef int(__cdecl * MSG_WriteBitsCompress_t)(bool trainHuffman, const char *from, char *to, int size);
+	extern MSG_WriteBitsCompress_t MSG_WriteBitsCompress;
+
+	typedef short(__cdecl * MSG_ReadShort_t)(msg_t* msg);
+	extern MSG_ReadShort_t MSG_ReadShort;
+
+	typedef __int64(__cdecl * MSG_ReadInt64_t)(msg_t* msg);
+	extern MSG_ReadInt64_t MSG_ReadInt64;
+
+	typedef int(__cdecl * MSG_ReadByte_t)(msg_t* msg);
+	extern MSG_ReadByte_t MSG_ReadByte;
+
 	typedef const char* (__cdecl * NET_AdrToString_t)(netadr_t adr);
 	extern NET_AdrToString_t NET_AdrToString;
 
@@ -270,6 +309,10 @@ namespace Game
 
 	extern int* numIP;
 	extern netIP_t* localIP;
+
+	extern int* demoFile;
+	extern int* demoPlaying;
+	extern int* serverMessageSequence;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);

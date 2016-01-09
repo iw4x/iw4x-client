@@ -62,6 +62,18 @@ namespace Game
 	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
 	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
 
+	MSG_Init_t MSG_Init = (MSG_Init_t)0x45FCA0;
+	MSG_ReadData_t MSG_ReadData = (MSG_ReadData_t)0x4527C0;
+	MSG_ReadLong_t MSG_ReadLong = (MSG_ReadLong_t)0x4C9550;
+	MSG_ReadShort_t MSG_ReadShort = (MSG_ReadShort_t)0x40BDD0;
+	MSG_ReadInt64_t MSG_ReadInt64 = (MSG_ReadInt64_t)0x4F1850;
+	MSG_ReadString_t MSG_ReadString = (MSG_ReadString_t)0x60E2B0;
+	MSG_WriteByte_t MSG_WriteByte = (MSG_WriteByte_t)0x48C520;
+	MSG_WriteData_t MSG_WriteData = (MSG_WriteData_t)0x4F4120;
+	MSG_WriteLong_t MSG_WriteLong = (MSG_WriteLong_t)0x41CA20;
+	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = (MSG_WriteBitsCompress_t)0x4319D0;
+	MSG_ReadByte_t MSG_ReadByte = (MSG_ReadByte_t)0x4C1C20;
+
 	NET_AdrToString_t NET_AdrToString = (NET_AdrToString_t)0x469880;
 	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
 	NET_IsLocalAddress_t NET_IsLocalAddress = (NET_IsLocalAddress_t)0x402BD0;
@@ -139,6 +151,10 @@ namespace Game
 
 	int* numIP = (int*)0x64A1E68;
 	netIP_t* localIP = (netIP_t*)0x64A1E28;
+
+	int* demoFile = (int*)0xA5EA1C;
+	int* demoPlaying = (int*)0xA5EA0C;
+	int* serverMessageSequence = (int*)0xA3E9B4;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{

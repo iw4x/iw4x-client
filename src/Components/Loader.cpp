@@ -21,6 +21,7 @@ namespace Components
 		Loader::Register(new Console());
 		Loader::Register(new IPCPipe());
 		Loader::Register(new Network());
+		Loader::Register(new Theatre());
 		Loader::Register(new Download());
 		Loader::Register(new Playlist());
 		Loader::Register(new RawFiles());
