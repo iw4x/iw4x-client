@@ -5,7 +5,7 @@ namespace Utils
 	bool EndsWith(const char* heystack, const char* needle);
 	std::vector<std::string> Explode(const std::string& str, char delim);
 	void Replace(std::string &string, std::string find, std::string replace);
-	unsigned int OneAtATime(char *key, size_t len);
+	unsigned int OneAtATime(const char *key, size_t len);
 	std::string &LTrim(std::string &s);
 	std::string &RTrim(std::string &s);
 	std::string &Trim(std::string &s);

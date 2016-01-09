@@ -33,6 +33,7 @@ namespace Components
 #include "Modules\IPCPipe.hpp"
 #include "Modules\Network.hpp"
 #include "Modules\Party.hpp" // Destroys the order, but requires network classes :D
+#include "Modules\Download.hpp"
 #include "Modules\Playlist.hpp"
 #include "Modules\RawFiles.hpp"
 #include "Modules\Renderer.hpp"

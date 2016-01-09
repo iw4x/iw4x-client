@@ -62,7 +62,7 @@ namespace Utils
 		}
 	}
 
-	unsigned int OneAtATime(char *key, size_t len)
+	unsigned int OneAtATime(const char *key, size_t len)
 	{
 		unsigned int hash, i;
 		for (hash = i = 0; i < len; ++i)
