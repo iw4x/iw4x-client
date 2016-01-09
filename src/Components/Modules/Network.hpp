@@ -55,6 +55,7 @@ namespace Components
 		static void BroadcastAll(std::string data);
 
 	private:
+		static SOCKET TcpSocket;
 		static std::string SelectedPacket;
 		static std::map<std::string, Callback> PacketHandlers;
 		static int PacketInterceptionHandler(const char* packet);

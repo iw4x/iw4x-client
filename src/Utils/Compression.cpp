@@ -44,8 +44,44 @@ namespace Utils
 
 		std::string ZLib::Decompress(std::string data)
 		{
-			//#error "Not implemented yet!"
-			return data;
+			z_stream stream;
+			ZeroMemory(&stream, sizeof(stream));
+			std::string buffer;
+
+			if (inflateInit(&stream) != Z_OK)
+			{
+				return buffer;
+			}
+
+			int ret = 0;
+			uint8_t dest[CHUNK] = { 0 };
+			const char* dataPtr = data.data();
+
+			do 
+			{
+				stream.avail_in = min(CHUNK, data.size() - (dataPtr - data.data()));
+				stream.next_in = reinterpret_cast<const uint8_t*>(dataPtr);
+
+				do 
+				{
+					stream.avail_out = CHUNK;
+					stream.next_out = dest;
+
+					ret = inflate(&stream, Z_NO_FLUSH);
+					if (ret == Z_STREAM_ERROR)
+					{
+						inflateEnd(&stream);
+					}
+					
+					buffer.append(reinterpret_cast<const char*>(dest), CHUNK - stream.avail_out);
+
+				} while (stream.avail_out == 0);
+
+			} while (ret != Z_STREAM_END);
+
+			inflateEnd(&stream);
+
+			return buffer;
 		}
 	};
 }

@@ -45,23 +45,34 @@ namespace Components
 	{
 		Logger::Print("Received playlist request, sending currently stored buffer.\n");
 
-		// Split playlist data
-		unsigned int maxPacketSize = 1000;
-		unsigned int maxBytes = Playlist::CurrentPlaylistBuffer.size();
+// 		// Split playlist data
+// 		unsigned int maxPacketSize = 1000;
+// 		unsigned int maxBytes = Playlist::CurrentPlaylistBuffer.size();
+// 
+// 		for (unsigned int i = 0; i < maxBytes; i += maxPacketSize)
+// 		{
+// 			unsigned int sendBytes = min(maxPacketSize, maxBytes - i);
+// 			unsigned int sentBytes = i + sendBytes;
+// 
+// 			std::string data;
+// 			data.append(reinterpret_cast<char*>(&sentBytes), 4); // Sent bytes
+// 			data.append(reinterpret_cast<char*>(&maxBytes), 4); // Max bytes
+// 
+// 			data.append(Playlist::CurrentPlaylistBuffer.data() + i, sendBytes);
+// 
+// 			Network::SendRaw(address, std::string("playlistresponse\n") + data);
+// 		}
 
-		for (unsigned int i = 0; i < maxBytes; i += maxPacketSize)
-		{
-			unsigned int sendBytes = min(maxPacketSize, maxBytes - i);
-			unsigned int sentBytes = i + sendBytes;
+		std::string compressedList = Utils::Compression::ZLib::Compress(Playlist::CurrentPlaylistBuffer);
+		unsigned int size = compressedList.size();
+		unsigned int hash = Utils::OneAtATime(compressedList.data(), compressedList.size());
 
-			std::string data;
-			data.append(reinterpret_cast<char*>(&sentBytes), 4); // Sent bytes
-			data.append(reinterpret_cast<char*>(&maxBytes), 4); // Max bytes
+		std::string response = "playlistresponse\n";
+		response.append(reinterpret_cast<char*>(&hash), 4);
+		response.append(reinterpret_cast<char*>(&size), 4);
+		response.append(compressedList);
 
-			data.append(Playlist::CurrentPlaylistBuffer.data() + i, sendBytes);
-
-			Network::SendRaw(address, std::string("playlistresponse\n") + data);
-		}
+		Network::SendRaw(address, response);
 	}
 
 	void Playlist::PlaylistReponse(Network::Address address, std::string data)
@@ -78,34 +89,59 @@ namespace Components
 				}
 				else
 				{
-					unsigned int sentBytes = *(unsigned int*)(data.data() + 0);
-					unsigned int maxBytes = *(unsigned int*)(data.data() + 4);
+// 					unsigned int sentBytes = *(unsigned int*)(data.data() + 0);
+// 					unsigned int maxBytes = *(unsigned int*)(data.data() + 4);
+// 
+// 					// Clear current buffer, if we receive a new packet
+// 					if (data.size() - 8 == sentBytes) Playlist::ReceivedPlaylistBuffer.clear();
+// 
+// 					// Append received data
+// 					Playlist::ReceivedPlaylistBuffer.append(data.data() + 8, data.size() - 8);
+// 
+// 					if (Playlist::ReceivedPlaylistBuffer.size() != sentBytes)
+// 					{
+// 						Party::PlaylistError(Utils::VA("Received playlist data, but it seems invalid: %d != %d", sentBytes, Playlist::ReceivedPlaylistBuffer.size()));
+// 						Playlist::ReceivedPlaylistBuffer.clear();
+// 						return;
+// 					}
+// 					else
+// 					{
+// 						Logger::Print("Received playlist data: %d/%d (%d%%)\n", sentBytes, maxBytes, ((100 * sentBytes) / maxBytes));
+// 					}
+// 
+// 					if (Playlist::ReceivedPlaylistBuffer.size() == maxBytes)
+// 					{
+// 						Logger::Print("Received playlist, loading and continuing connection...\n");
+// 						Game::Live_ParsePlaylists(Playlist::ReceivedPlaylistBuffer.data());
+// 						Party::PlaylistContinue();
+// 
+// 						Playlist::ReceivedPlaylistBuffer.clear();
+// 					}
 
-					// Clear current buffer, if we receive a new packet
-					if (data.size() - 8 == sentBytes) Playlist::ReceivedPlaylistBuffer.clear();
+					unsigned int hash = *(unsigned int*)data.data();
+					unsigned int length = *(unsigned int*)(data.data() + 4);
 
-					// Append received data
-					Playlist::ReceivedPlaylistBuffer.append(data.data() + 8, data.size() - 8);
-
-					if (Playlist::ReceivedPlaylistBuffer.size() != sentBytes)
+					if (length > (data.size() - 8))
 					{
-						Party::PlaylistError(Utils::VA("Received playlist data, but it seems invalid: %d != %d", sentBytes, Playlist::ReceivedPlaylistBuffer.size()));
+						Party::PlaylistError(Utils::VA("Received playlist response, but it is too short."));
 						Playlist::ReceivedPlaylistBuffer.clear();
 						return;
 					}
-					else
-					{
-						Logger::Print("Received playlist data: %d/%d (%d%%)\n", sentBytes, maxBytes, ((100 * sentBytes) / maxBytes));
-					}
 
-					if (Playlist::ReceivedPlaylistBuffer.size() == maxBytes)
-					{
-						Logger::Print("Received playlist, loading and continuing connection...\n");
-						Game::Live_ParsePlaylists(Playlist::ReceivedPlaylistBuffer.data());
-						Party::PlaylistContinue();
+					unsigned int hash2 = Utils::OneAtATime(data.data() + 8, length);
+					std::string compressedData(data.data() + 8, length);
+					Playlist::ReceivedPlaylistBuffer = Utils::Compression::ZLib::Decompress(compressedData);
 
+					if (hash2 != hash)
+					{
+						Party::PlaylistError(Utils::VA("Received playlist response, but the checksum did not match (%d != %d).", hash, hash2));
 						Playlist::ReceivedPlaylistBuffer.clear();
+						return;
 					}
+
+ 						Logger::Print("Received playlist, loading and continuing connection...\n");
+ 						Game::Live_ParsePlaylists(Playlist::ReceivedPlaylistBuffer.data());
+ 						Party::PlaylistContinue();
 				}
 			}
 			else

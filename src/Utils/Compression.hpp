@@ -1,3 +1,5 @@
+#define CHUNK 16384
+
 namespace Utils
 {
 	namespace Compression

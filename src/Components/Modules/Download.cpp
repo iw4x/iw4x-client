@@ -131,20 +131,23 @@ namespace Components
 
 	void Download::PacketResponse(Network::Address target, std::string data)
 	{
+		//Logger::Print("Packet incoming!\n");
 		if (data.size() < sizeof(Download::Container::Packet)) return; // Drop invalid packets, if they were important, we'll re-request them later
 		Download::Container::Packet* packet = (Download::Container::Packet*)data.data();
-
+		//Logger::Print("Reading data!\n");
 		if (data.size() < (sizeof(Download::Container::Packet) + packet->length)) return; // Again, drop invalid packets
-
+		//Logger::Print("Finding corresponding download!\n");
 		auto download = Download::FindClientDownload(packet->id);
 
 		if (download && download->target == target)
 		{
+			//Logger::Print("Parsing packet!\n");
 			download->lastPing = Game::Com_Milliseconds();
 			std::string packetData(data.data() + sizeof(Download::Container::Packet), packet->length);
 
 			if (packet->hash == Utils::OneAtATime(packetData.data(), packetData.size()))
 			{
+				//Logger::Print("Packet added!\n");
 				download->parts[packet->partId] = packetData;
 
 				if (Download::HasReceivedAllPackets(download))
@@ -152,6 +155,10 @@ namespace Components
 					download->successCallback(download->id, Download::AssembleBuffer(download));
 					Download::RemoveClientDownload(download->id);
 				}
+			}
+			else
+			{
+				Logger::Print("Hash invalid!\n");
 			}
 		}
 	}
@@ -176,6 +183,7 @@ namespace Components
 			{
 				download->lastPing = Game::Com_Milliseconds();
 				download->acknowledged = true;
+				Logger::Print("Client acknowledged!\n");
 			}
 		}
 	}
@@ -208,10 +216,9 @@ namespace Components
 		download.lastPing = Game::Com_Milliseconds();
 		download.maxParts = 0;
 
-		// Generate random 40kb buffer
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 1000000; i++)
 		{
-			download.buffer.append(Utils::VA("%i", i));
+			download.buffer.append("1234567890");
 		}
 
 		download.maxParts = download.buffer.size() / PACKET_SIZE;
@@ -251,6 +258,8 @@ namespace Components
 	{
 		if (packets.size())
 		{
+			download->lastPing = Game::Com_Milliseconds();
+
 			std::string data = "dlMissRequest\n";
 			data.append(reinterpret_cast<char*>(&download->id), sizeof(int));
 
@@ -280,7 +289,7 @@ namespace Components
 
 	void Download::SendPacket(Download::Container::DownloadSV* download, int packet)
 	{
-		if (!download || packet < download->maxParts) return;
+		if (!download || packet >= download->maxParts) return;
 		download->lastPing = Game::Com_Milliseconds();
 		download->sentParts.push_back(packet);
 
@@ -316,7 +325,7 @@ namespace Components
 				}
 
 				// Request missing parts
-				if ((Game::Com_Milliseconds() - i->lastPing) > DOWNLOAD_TIMEOUT)
+				if (i->acknowledged && (Game::Com_Milliseconds() - i->lastPing) > DOWNLOAD_TIMEOUT)
 				{
 					std::vector<int> missingPackets;
 					for (int j = 0; j < i->maxParts; j++)
@@ -326,6 +335,8 @@ namespace Components
 							missingPackets.push_back(j);
 						}
 					}
+
+					Download::RequestMissingPackets(&*i, missingPackets);
 				}
 			}
 		}
@@ -341,10 +352,11 @@ namespace Components
 				}
 
 				int packets = 0;
-				for (int j = 0; j < i->maxParts && packets <= FRAME_PACKET_LIMIT; j++)
+				for (int j = 0; j < i->maxParts && packets <= FRAME_PACKET_LIMIT && i->acknowledged; j++)
 				{
 					if (!Download::HasSentPacket(&*i, j))
 					{
+						//Logger::Print("Sending packet...\n");
 						Download::SendPacket(&*i, j);
 						packets++;
 					}
@@ -406,7 +418,7 @@ namespace Components
 			Logger::Print("Requesting!\n");
 			Download::Get(Network::Address("192.168.0.23:28960"), "test", [] (int id, std::string data)
 			{
-				Logger::Print("Download succeeded!\n");
+				Logger::Print("Download succeeded %d!\n", Game::Com_Milliseconds() - (Download::FindClientDownload(id)->startTime));
 			}, [] (int id)
 			{
 				Logger::Print("Download failed!\n");

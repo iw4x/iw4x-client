@@ -1,4 +1,4 @@
-#define FRAME_PACKET_LIMIT 10
+#define FRAME_PACKET_LIMIT 20
 #define DOWNLOAD_TIMEOUT 2500
 #define PACKET_SIZE 1000
 
@@ -7,13 +7,6 @@ namespace Components
 	class Download : public Component
 	{
 	public:
-		Download();
-		~Download();
-		const char* GetName() { return "Download"; };
-
-		static int Get(Network::Address target, std::string file, std::function<void(int, std::string)> successCallback, std::function<void(int)> failureCallback);
-
-	private:
 		struct Container
 		{
 			struct DownloadCL
@@ -61,6 +54,16 @@ namespace Components
 			std::vector<DownloadSV> ServerDownloads;
 		};
 
+		Download();
+		~Download();
+		const char* GetName() { return "Download"; };
+
+		static int Get(Network::Address target, std::string file, std::function<void(int, std::string)> successCallback, std::function<void(int)> failureCallback);
+
+		static Container::DownloadCL* FindClientDownload(int id);
+		static Container::DownloadSV* FindServerDownload(int id);
+
+	private:
 		static void Frame();
 		static Container DataContainer;
 
@@ -74,9 +77,6 @@ namespace Components
 		static void DownloadRequest(Network::Address target, std::string data);
 
 		// Helper functions
-		static Container::DownloadCL* FindClientDownload(int id);
-		static Container::DownloadSV* FindServerDownload(int id);
-
 		static void RemoveClientDownload(int id);
 		static void RemoveServerDownload(int id);
 
