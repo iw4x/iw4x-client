@@ -50,11 +50,11 @@ namespace Utils
 
 			if (inflateInit(&stream) != Z_OK)
 			{
-				return buffer;
+				return "";
 			}
 
 			int ret = 0;
-			uint8_t dest[CHUNK] = { 0 };
+			uint8_t* dest = new uint8_t[CHUNK];
 			const char* dataPtr = data.data();
 
 			do 
@@ -71,6 +71,8 @@ namespace Utils
 					if (ret == Z_STREAM_ERROR)
 					{
 						inflateEnd(&stream);
+						delete[] dest;
+						return "";
 					}
 					
 					buffer.append(reinterpret_cast<const char*>(dest), CHUNK - stream.avail_out);
@@ -80,6 +82,8 @@ namespace Utils
 			} while (ret != Z_STREAM_END);
 
 			inflateEnd(&stream);
+
+			delete[] dest;
 
 			return buffer;
 		}
