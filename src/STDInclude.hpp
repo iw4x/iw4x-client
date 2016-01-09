@@ -59,7 +59,7 @@
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
 
-#define MILESTONE "alpha"
+#define MILESTONE "beta"
 
 #define REVISION_STR STRINGIZE(REVISION)
 #define VERSION 4,2,REVISION
