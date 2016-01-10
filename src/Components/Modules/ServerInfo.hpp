@@ -17,7 +17,7 @@ namespace Components
 				std::string Name;
 			};
 
-			int CurrentPlayer;
+			unsigned int CurrentPlayer;
 			std::vector<Player> PlayerList;
 			Network::Address Target;
 		};
@@ -26,8 +26,8 @@ namespace Components
 
 		static void ServerStatus();
 
-		static int GetPlayerCount();
-		static const char* GetPlayerText(int index, int column);
-		static void SelectPlayer(int index);
+		static unsigned int GetPlayerCount();
+		static const char* GetPlayerText(unsigned int index, int column);
+		static void SelectPlayer(unsigned int index);
 	};
 }

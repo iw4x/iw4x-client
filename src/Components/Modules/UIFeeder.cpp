@@ -20,7 +20,7 @@ namespace Components
 		return nullptr;
 	}
 
-	int UIFeeder::GetItemCount()
+	unsigned int UIFeeder::GetItemCount()
 	{
 		if (UIFeeder::Feeders.find(UIFeeder::Current.Feeder) != UIFeeder::Feeders.end())
 		{
@@ -65,7 +65,7 @@ namespace Components
 			retn
 
 		continue:
-			fld ds : 739FD0h
+			fld ds:739FD0h
 
 			mov eax, 4C25D6h
 			jmp eax

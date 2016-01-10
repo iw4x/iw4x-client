@@ -23,6 +23,57 @@ namespace Components
 		}
 	}
 
+	void FileSystem::FileWriter::Write(std::string data)
+	{
+		if (this->Handle)
+		{
+			Game::FS_Write(data.data(), data.size(), this->Handle);
+		}
+	}
+
+	void FileSystem::FileWriter::Open()
+	{
+		this->Handle = Game::FS_FOpenFileWrite(this->FilePath.data());
+	}
+
+	void FileSystem::FileWriter::Close()
+	{
+		if (this->Handle)
+		{
+			Game::FS_FCloseFile(this->Handle);
+		}
+	}
+
+	std::vector<std::string> FileSystem::GetFileList(std::string path, std::string extension)
+	{
+		std::vector<std::string> fileList;
+
+		int numFiles = 0;
+		char** files = Game::FS_ListFiles(path.data(), extension.data(), Game::FS_LIST_PURE_ONLY, &numFiles, 0);
+
+		if (files)
+		{
+			for (int i = 0; i < numFiles; i++)
+			{
+				if (files[i])
+				{
+					fileList.push_back(files[i]);
+				}
+			}
+
+			Game::FS_FreeFileList(files);
+		}
+
+		return fileList;
+	}
+
+	void FileSystem::DeleteFile(std::string folder, std::string file)
+	{
+		char path[MAX_PATH] = { 0 };
+		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").Get<const char*>(), (char*)0x63D0BB8, Utils::VA("%s/%s", folder.data(), file.data()), (char**)&path);
+		Game::FS_Remove(path);
+	}
+
 	int FileSystem::ExecIsFSStub(const char* execFilename)
 	{
 		return !File(execFilename).Exists();

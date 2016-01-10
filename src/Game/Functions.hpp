@@ -102,7 +102,7 @@ namespace Game
 	typedef void(__cdecl * FS_FreeFileList_t)(char** list);
 	extern FS_FreeFileList_t FS_FreeFileList;
 
-	typedef int(__cdecl * FS_FOpenFileAppend_t)(char* file);
+	typedef int(__cdecl * FS_FOpenFileAppend_t)(const char* file);
 	extern FS_FOpenFileAppend_t FS_FOpenFileAppend;
 	extern FS_FOpenFileAppend_t FS_FOpenFileWrite;
 
@@ -118,7 +118,7 @@ namespace Game
 	typedef bool(__cdecl * FS_WriteFile_t)(char* filename, char* folder, void* buffer, int size);
 	extern FS_WriteFile_t FS_WriteFile;
 
-	typedef int(__cdecl * FS_Write_t)(void* buffer, size_t size, int file);
+	typedef int(__cdecl * FS_Write_t)(const void* buffer, size_t size, int file);
 	extern FS_Write_t FS_Write;
 
 	typedef int(__cdecl * FS_Read_t)(void* buffer, size_t size, int file);

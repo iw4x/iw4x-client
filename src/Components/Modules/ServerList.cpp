@@ -12,7 +12,7 @@ namespace Components
 	std::vector<ServerList::ServerInfo> ServerList::OfflineList;
 	std::vector<ServerList::ServerInfo> ServerList::FavouriteList;
 
-	std::vector<int> ServerList::VisibleList;
+	std::vector<unsigned int> ServerList::VisibleList;
 
 	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{
@@ -49,12 +49,12 @@ namespace Components
 		return (Dvar::Var("ui_netSource").Get<int>() == 1);
 	}
 
-	int ServerList::GetServerCount()
+	unsigned int ServerList::GetServerCount()
 	{
-		return (int)ServerList::VisibleList.size();
+		return ServerList::VisibleList.size();
 	}
 
-	const char* ServerList::GetServerText(int index, int column)
+	const char* ServerList::GetServerText(unsigned int index, int column)
 	{
 		ServerList::ServerInfo* info = ServerList::GetServer(index);
 
@@ -121,9 +121,9 @@ namespace Components
 		return "";
 	}
 
-	void ServerList::SelectServer(int index)
+	void ServerList::SelectServer(unsigned int index)
 	{
-		ServerList::CurrentServer = (unsigned int)index;
+		ServerList::CurrentServer = index;
 
 		ServerList::ServerInfo* info = ServerList::GetCurrentServer();
 
@@ -412,8 +412,8 @@ namespace Components
 	{
 		qsort(ServerList::VisibleList.data(), ServerList::VisibleList.size(), sizeof(int), [] (const void* first, const void* second)
 		{
-			int server1 = *(int*)first;
-			int server2 = *(int*)second;
+			unsigned int server1 = *(unsigned int*)first;
+			unsigned int server2 = *(unsigned int*)second;
 
 			ServerInfo* info1 = nullptr;
 			ServerInfo* info2 = nullptr;
@@ -421,8 +421,8 @@ namespace Components
 			auto list = ServerList::GetList();
 			if (!list) return 0;
 
-			if (list->size() > (unsigned int)server1) info1 = &(*list)[server1];
-			if (list->size() > (unsigned int)server2) info2 = &(*list)[server2];
+			if (list->size() > server1) info1 = &(*list)[server1];
+			if (list->size() > server2) info2 = &(*list)[server2];
 
 			if (!info1) return 1;
 			if (!info2) return -1;
@@ -445,14 +445,14 @@ namespace Components
 		});
 	}
 
-	ServerList::ServerInfo* ServerList::GetServer(int index)
+	ServerList::ServerInfo* ServerList::GetServer(unsigned int index)
 	{
-		if (ServerList::VisibleList.size() > (unsigned int)index)
+		if (ServerList::VisibleList.size() > index)
 		{
 			auto list = ServerList::GetList();
 			if (!list) return nullptr;
 
-			if (list->size() > (unsigned int)ServerList::VisibleList[index])
+			if (list->size() > ServerList::VisibleList[index])
 			{
 				return &(*list)[ServerList::VisibleList[index]];
 			}

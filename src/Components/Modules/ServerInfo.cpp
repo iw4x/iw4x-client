@@ -4,14 +4,14 @@ namespace Components
 {
 	ServerInfo::Container ServerInfo::PlayerContainer;
 
-	int ServerInfo::GetPlayerCount()
+	unsigned int ServerInfo::GetPlayerCount()
 	{
 		return ServerInfo::PlayerContainer.PlayerList.size();
 	}
 
-	const char* ServerInfo::GetPlayerText(int index, int column)
+	const char* ServerInfo::GetPlayerText(unsigned int index, int column)
 	{
-		if ((unsigned int)index < ServerInfo::PlayerContainer.PlayerList.size())
+		if (index < ServerInfo::PlayerContainer.PlayerList.size())
 		{
 			switch (column)
 			{
@@ -32,7 +32,7 @@ namespace Components
 		return "";
 	}
 
-	void ServerInfo::SelectPlayer(int index)
+	void ServerInfo::SelectPlayer(unsigned int index)
 	{
 		ServerInfo::PlayerContainer.CurrentPlayer = index;
 	}
