@@ -263,14 +263,67 @@ namespace Components
 			Dvar::Var("ui_demo_mapname").Set(info.Mapname);
 			Dvar::Var("ui_demo_mapname_localized").Set(Game::UI_LocalizeMapName(info.Mapname.data()));
 			Dvar::Var("ui_demo_gametype").Set(Game::UI_LocalizeGameType(info.Gametype.data()));
-			Dvar::Var("ui_demo_length").Set(info.Length); // TODO: Parse as readable string
+			Dvar::Var("ui_demo_length").Set(Utils::FormatTimeSpan(info.Length)); // TODO: Parse as readable string
 			Dvar::Var("ui_demo_author").Set(info.Author);
 			Dvar::Var("ui_demo_date").Set(std::asctime(std::localtime(&info.TimeStamp)));
 		}
 	}
 
+	uint32_t Theatre::InitCGameStub()
+	{
+		if (Dvar::Var("cl_autoRecord").Get<bool>() && !*Game::demoPlaying)
+		{
+			std::vector<std::string> files;
+			std::vector<std::string> demos = FileSystem::GetFileList("demos/", "dm_13");
+
+			for (auto demo : demos)
+			{
+				if (Utils::StartsWith(demo, "auto_"))
+				{
+					files.push_back(demo);
+				}
+			}
+
+			int numDel = files.size() - Dvar::Var("cl_demosKeep").Get<int>();
+
+			for (int i = 0; i < numDel; i++)
+			{
+				Logger::Print("Deleting old demo %s\n", files[i].data());
+				FileSystem::DeleteFile("demos", files[i].data());
+				FileSystem::DeleteFile("demos", Utils::VA("%s.json", files[i].data()));
+			}
+
+			Command::Execute(Utils::VA("record auto_%I64d", time(0)), true);
+		}
+
+		return Utils::Hook::Call<DWORD()>(0x42BBB0)();
+	}
+
+	void Theatre::MapChangeStub()
+	{
+		if (*Game::demoRecording)
+		{
+			Command::Execute("stoprecord", true);
+		}
+
+		Utils::Hook::Call<void()>(0x464A60)();
+	}
+
+	void Theatre::MapChangeSVStub(char* a1, char* a2)
+	{
+		if (*Game::demoRecording)
+		{
+			Command::Execute("stoprecord", true);
+		}
+
+		Utils::Hook::Call<void(char*, char*)>(0x487C50)(a1, a2);
+	}
+
 	Theatre::Theatre()
 	{
+		Dvar::Register<bool>("cl_autoRecord", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Automatically record games.");
+		Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::dvar_flag::DVAR_FLAG_SAVED, "How many demos to keep with autorecord.");
+
 		Utils::Hook(0x5A8370, Theatre::GamestateWriteStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x5A85D2, Theatre::RecordGamestateStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x5ABE36, Theatre::BaselineStoreStub, HOOK_JUMP).Install()->Quick();
@@ -282,6 +335,11 @@ namespace Components
 		// Hook commands to enforce metadata generation
 		Utils::Hook(0x5A82AE, Theatre::RecordStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x5A8156, Theatre::StopRecordStub, HOOK_CALL).Install()->Quick();
+
+		// Autorecording
+		Utils::Hook(0x5A1D6A, Theatre::InitCGameStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4A712A, Theatre::MapChangeStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5AA91C, Theatre::MapChangeSVStub, HOOK_CALL).Install()->Quick();
 
 		// UIScripts
 		UIScript::Add("loadDemos", Theatre::LoadDemos);

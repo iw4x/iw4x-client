@@ -25,9 +25,9 @@ namespace Utils
 		return input;
 	}
 
-	bool EndsWith(const char* heystack, const char* needle)
+	bool EndsWith(const char* haystack, const char* needle)
 	{
-		return (strstr(heystack, needle) == (heystack + strlen(heystack) - strlen(needle)));
+		return (strstr(haystack, needle) == (haystack + strlen(haystack) - strlen(needle)));
 	}
 
 	std::vector<std::string> Explode(const std::string& str, char delim)
@@ -60,6 +60,11 @@ namespace Utils
 			string = string.replace(nPos, find.length(), replace);
 			nPos += replace.length();
 		}
+	}
+
+	bool StartsWith(std::string haystack, std::string needle)
+	{
+		return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data(), needle.size()));
 	}
 
 	unsigned int OneAtATime(const char *key, size_t len)
@@ -95,6 +100,17 @@ namespace Utils
 	std::string &Trim(std::string &s)
 	{
 		return LTrim(RTrim(s));
+	}
+
+	std::string FormatTimeSpan(int milliseconds)
+	{
+		int secondsTotal = milliseconds / 1000;
+		int seconds = secondsTotal % 60;
+		int minutesTotal = secondsTotal / 60;
+		int minutes = minutesTotal % 60;
+		int hoursTotal = minutesTotal / 60;
+
+		return Utils::VA("%02d:%02d:%02d", hoursTotal, minutes, seconds);
 	}
 
 	std::string ParseChallenge(std::string data)

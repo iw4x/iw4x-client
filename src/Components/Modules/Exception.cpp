@@ -17,7 +17,7 @@ namespace Components
 
 		_time64(&time);
 		ltime = _localtime64(&time);
-		strftime(filename, sizeof(filename) - 1, "iw4m-" VERSION_STR "-%Y%m%d%H%M%S.dmp", ltime);
+		strftime(filename, sizeof(filename) - 1, "iw4x-" VERSION_STR "-%Y%m%d%H%M%S.dmp", ltime);
 
 		HANDLE hFile = CreateFile(filename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 

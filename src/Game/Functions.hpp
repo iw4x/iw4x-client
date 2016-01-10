@@ -312,6 +312,7 @@ namespace Game
 
 	extern int* demoFile;
 	extern int* demoPlaying;
+	extern int* demoRecording;
 	extern int* serverMessageSequence;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);

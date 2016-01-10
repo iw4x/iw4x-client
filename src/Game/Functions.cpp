@@ -154,6 +154,7 @@ namespace Game
 
 	int* demoFile = (int*)0xA5EA1C;
 	int* demoPlaying = (int*)0xA5EA0C;
+	int* demoRecording = (int*)0xA5EA08;
 	int* serverMessageSequence = (int*)0xA3E9B4;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
