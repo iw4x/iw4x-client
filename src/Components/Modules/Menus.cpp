@@ -569,6 +569,7 @@ namespace Components
 		// Define custom menus here
 		Menus::Add("ui_mp/theater_menu.menu");
 		Menus::Add("ui_mp/pc_options_multi.menu");
+		Menus::Add("ui_mp/pc_options_game.menu");
 	}
 
 	Menus::~Menus()
