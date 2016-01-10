@@ -85,8 +85,6 @@ namespace Components
 
 		std::string rotation = Dvar::Var("sv_mapRotationCurrent").Get<std::string>();
 
-		// Ignores " for now, too lazy to implement
-		// TODO: Implement!
 		auto tokens = Utils::Explode(rotation, ' ');
 
 		for (unsigned int i = 0; i < (tokens.size() - 1); i += 2)
@@ -121,11 +119,6 @@ namespace Components
 			{
 				Logger::Print("Applying new gametype: %s\n", value.data());
 				Dvar::Var("g_gametype").Set(value);
-			}
-			else if (key == "fs_game")
-			{
-				Logger::Print("Applying new mod: %s\n", value.data());
-				Dvar::Var("fs_game").Set(value);
 			}
 			else
 			{

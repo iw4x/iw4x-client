@@ -7,12 +7,51 @@ namespace Components
 		const char* GetName() { return "Theatre"; };
 
 	private:
+		struct Container
+		{
+			struct DemoInfo
+			{
+				std::string Name;
+				std::string Mapname;
+				std::string Gametype;
+				std::string Author;
+				int Length;
+				std::time_t TimeStamp;
+
+				json11::Json to_json() const
+				{
+					return json11::Json::object
+					{
+						{ "mapname", Mapname },
+						{ "gametype", Gametype },
+						{ "author", Author },
+						{ "length", Length },
+						{ "timestamp", Utils::VA("%lld", TimeStamp) } //Ugly, but prevents information loss
+					};
+				}
+			};
+
+			DemoInfo CurrentInfo;
+			unsigned int CurrentSelection;
+			std::vector<DemoInfo> Demos;
+		};
+
+		static Container DemoContainer;
+
 		static char BaselineSnapshot[131072];
 		static PBYTE BaselineSnapshotMsg;
 		static int BaselineSnapshotMsgLen;
 		static int BaselineSnapshotMsgOff;
 
 		static void WriteBaseline();
+
+		static void LoadDemos();
+		static void DeleteDemo();
+		static void PlayDemo();
+
+		static unsigned int GetDemoCount();
+		static const char* GetDemoText(unsigned int item, int column);
+		static void SelectDemo(unsigned int index);
 
 		static void GamestateWriteStub(Game::msg_t* msg, char byte);
 		static void RecordGamestateStub();
@@ -21,5 +60,8 @@ namespace Components
 		static void AdjustTimeDeltaStub();
 		static void ServerTimedOutStub();
 		static void UISetActiveMenuStub();
+
+		static void RecordStub(int channel, char* message, char* file);
+		static void StopRecordStub(int channel, char* message);
 	};
 }

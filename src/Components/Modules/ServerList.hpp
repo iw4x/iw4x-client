@@ -93,10 +93,10 @@ namespace Components
 			std::mutex Mutex;
 		};
 
-		static int GetServerCount();
-		static const char* GetServerText(int index, int column);
+		static unsigned int GetServerCount();
+		static const char* GetServerText(unsigned int index, int column);
 		static const char* GetServerText(ServerInfo* server, int column);
-		static void SelectServer(int index);
+		static void SelectServer(unsigned int index);
 
 		static void UpdateSource();
 		static void UpdateGameType();
@@ -108,7 +108,7 @@ namespace Components
 		static void LoadFavourties();
 		static void StoreFavourite(std::string server);
 
-		static ServerInfo* GetServer(int index);
+		static ServerInfo* GetServer(unsigned int index);
 		static std::vector<ServerInfo>* GetList();
 
 		static int SortKey;
@@ -121,6 +121,6 @@ namespace Components
 		static std::vector<ServerInfo> OfflineList;
 		static std::vector<ServerInfo> FavouriteList;
 
-		static std::vector<int> VisibleList;
+		static std::vector<unsigned int> VisibleList;
 	};
 }

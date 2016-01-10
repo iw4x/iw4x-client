@@ -3,9 +3,9 @@ namespace Components
 	class UIFeeder : public Component
 	{
 	public:
-		typedef int(__cdecl * GetItemCount_t)();
-		typedef const char* (__cdecl * GetItemText_t)(int index, int column);
-		typedef void(__cdecl * Select_t)(int index);
+		typedef unsigned int(__cdecl * GetItemCount_t)();
+		typedef const char* (__cdecl * GetItemText_t)(unsigned int index, int column);
+		typedef void(__cdecl * Select_t)(unsigned int index);
 
 		struct Callbacks
 		{
@@ -31,7 +31,7 @@ namespace Components
 		static Container Current;
 
 		static void GetItemCountStub();
-		static int GetItemCount();
+		static unsigned int GetItemCount();
 
 		static void GetItemTextStub();
 		static const char* GetItemText();
