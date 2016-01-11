@@ -179,6 +179,10 @@ namespace Components
 		static float cgFov90 = 90.0f;
 		Utils::Hook::Set<float*>(0x4F8E28, &cgFov90);
 
+		// set max volume to 1
+		static float volume = 1.0f;
+		Utils::Hook::Set<float*>(0x408078, &volume);
+
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).Install()->Quick();
 	}

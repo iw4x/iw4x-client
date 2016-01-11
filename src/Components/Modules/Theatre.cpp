@@ -222,6 +222,7 @@ namespace Components
 			FileSystem::DeleteFile("demos", info.Name + ".dm_13.json");
 
 			// Reset our ui_demo_* dvars here, because the theater menu needs it.
+			// Resetting them has no use, as they don't have any default value!
 			Command::Execute("reset ui_demo_mapname", true);
 			Command::Execute("reset ui_demo_mapname_localized", true);
 			Command::Execute("reset ui_demo_gametype", true);
@@ -271,7 +272,7 @@ namespace Components
 			Dvar::Var("ui_demo_mapname").Set(info.Mapname);
 			Dvar::Var("ui_demo_mapname_localized").Set(Game::UI_LocalizeMapName(info.Mapname.data()));
 			Dvar::Var("ui_demo_gametype").Set(Game::UI_LocalizeGameType(info.Gametype.data()));
-			Dvar::Var("ui_demo_length").Set(Utils::FormatTimeSpan(info.Length)); // TODO: Parse as readable string
+			Dvar::Var("ui_demo_length").Set(Utils::FormatTimeSpan(info.Length));
 			Dvar::Var("ui_demo_author").Set(info.Author);
 			Dvar::Var("ui_demo_date").Set(std::asctime(std::localtime(&info.TimeStamp)));
 		}
@@ -363,5 +364,11 @@ namespace Components
 		// Change font size
 		Utils::Hook::Set<BYTE>(0x5AC854, 2);
 		Utils::Hook::Set<BYTE>(0x5AC85A, 2);
+
+// 		Command::Add("democycle", [] (Command::Params params)
+// 		{
+// 			// Cmd_FollowCycle_f
+// 			Utils::Hook::Call<void(Game::gentity_t*, int)>(0x458ED0)(Game::g_entities, -1);
+// 		});
 	}
 }

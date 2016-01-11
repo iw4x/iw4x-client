@@ -656,6 +656,26 @@ namespace Game
 		int lastEntityRef;
 	} msg_t;
 
+	typedef struct gclient_s 
+	{
+		unsigned char pad[12764];
+		unsigned int team;
+		char pad2[1164];
+	} gclient_t;
+
+	typedef struct gentity_s 
+	{
+		unsigned char pad[312]; // 0
+		float origin[3]; // 312
+		float angles[3]; // 324
+		char pad2[8];
+		gclient_t* client; // 344
+		unsigned char pad3[28];
+		short classname;
+		short pad4;
+		unsigned char pad5[248];
+	} gentity_t;
+
 #pragma pack(push, 1)
 	typedef struct client_s
 	{

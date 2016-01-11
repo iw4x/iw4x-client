@@ -157,6 +157,8 @@ namespace Game
 	int* demoRecording = (int*)0xA5EA08;
 	int* serverMessageSequence = (int*)0xA3E9B4;
 
+	gentity_t* g_entities = (gentity_t*)0x18835D8;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();

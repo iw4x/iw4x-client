@@ -315,6 +315,8 @@ namespace Game
 	extern int* demoRecording;
 	extern int* serverMessageSequence;
 
+	extern gentity_t* g_entities;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	void OOBPrintT(int type, netadr_t netadr, const char* message);
