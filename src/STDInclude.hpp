@@ -10,6 +10,7 @@
 #include <timeapi.h>
 #include <shellapi.h>
 #include <WinSock2.h>
+#include <d3d9.h>
 
 #include <map>
 #include <mutex>
@@ -54,6 +55,7 @@
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "d3d9.lib")
 
 // Revision number
 #define STRINGIZE_(x) #x

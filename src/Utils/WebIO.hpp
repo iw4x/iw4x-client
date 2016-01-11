@@ -46,6 +46,8 @@ namespace Utils
 		std::string Get(std::string url);
 		std::string Get();
 
+		WebIO* SetTimeout(DWORD mseconds);
+
 		// FTP
 		bool Connect();
 		void Disconnect(); // Not necessary
@@ -93,6 +95,8 @@ namespace Utils
 		HINTERNET m_hSession;
 		HINTERNET m_hConnect;
 		HINTERNET m_hFile;
+
+		DWORD m_timeout;
 
 		std::string BuildPostBody(WebIO::Params params);
 

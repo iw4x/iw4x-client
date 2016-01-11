@@ -9,7 +9,7 @@ namespace Utils
 		WebIO::SetURL(url);
 	}
 
-	WebIO::WebIO(std::string useragent)
+	WebIO::WebIO(std::string useragent) : m_timeout(5000) // 5 seconds timeout by default
 	{
 		WebIO::OpenSession(useragent);
 	}
@@ -187,23 +187,42 @@ namespace Utils
 		const char* password = (WebIO::m_password.size() ? WebIO::m_password.c_str() : NULL);
 		WebIO::m_hConnect = InternetConnect(WebIO::m_hSession, WebIO::m_sUrl.server.c_str(), wPort, username, password, dwService, dwFlag, 0);
 
-		return (WebIO::m_hConnect != INVALID_HANDLE_VALUE);
+		return (WebIO::m_hConnect && WebIO::m_hConnect != INVALID_HANDLE_VALUE);
 	}
 
 	void WebIO::CloseConnection()
 	{
-		InternetCloseHandle(WebIO::m_hFile);
-		InternetCloseHandle(WebIO::m_hConnect);
+		if (WebIO::m_hFile && WebIO::m_hFile != INVALID_HANDLE_VALUE) InternetCloseHandle(WebIO::m_hFile);
+		if (WebIO::m_hConnect && WebIO::m_hConnect != INVALID_HANDLE_VALUE) InternetCloseHandle(WebIO::m_hConnect);
+	}
+
+	WebIO* WebIO::SetTimeout(DWORD mseconds)
+	{
+		this->m_timeout = mseconds;
+		return this;
 	}
 
 	std::string WebIO::Execute(const char* command, std::string body)
 	{
-		WebIO::OpenConnection();
+		if (!WebIO::OpenConnection()) return "";
 
 		const char *acceptTypes[] = { "application/x-www-form-urlencoded", nullptr };
 
 		DWORD dwFlag = INTERNET_FLAG_RELOAD | (WebIO::IsSecuredConnection() ? INTERNET_FLAG_SECURE : 0);
+
+		// This doesn't seem to actually do anything, half of those options don't even seem to be implemented.
+		// Good job microsoft... ( https://msdn.microsoft.com/en-us/library/windows/desktop/aa385328%28v=vs.85%29.aspx )
+		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_CONNECT_TIMEOUT, &m_timeout, sizeof(m_timeout));
+		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_RECEIVE_TIMEOUT, &m_timeout, sizeof(m_timeout));
+		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_SEND_TIMEOUT, &m_timeout, sizeof(m_timeout));
+
 		WebIO::m_hFile = HttpOpenRequest(WebIO::m_hConnect, command, WebIO::m_sUrl.document.c_str(), NULL, NULL, acceptTypes, dwFlag, 0);
+
+		if (!WebIO::m_hFile || WebIO::m_hFile == INVALID_HANDLE_VALUE)
+		{
+			WebIO::CloseConnection();
+			return "";
+		}
 
 		const char* headers = "Content-type: application/x-www-form-urlencoded";
 		HttpSendRequest(WebIO::m_hFile, headers, strlen(headers), (char*)body.c_str(), body.size() + 1);
