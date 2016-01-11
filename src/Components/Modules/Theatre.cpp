@@ -221,6 +221,14 @@ namespace Components
 			FileSystem::DeleteFile("demos", info.Name + ".dm_13");
 			FileSystem::DeleteFile("demos", info.Name + ".dm_13.json");
 
+			// Reset our ui_demo_* dvars here, because the theater menu needs it.
+			Command::Execute("reset ui_demo_mapname", true);
+			Command::Execute("reset ui_demo_mapname_localized", true);
+			Command::Execute("reset ui_demo_gametype", true);
+			Command::Execute("reset ui_demo_author", true);
+			Command::Execute("reset ui_demo_length", true);
+			Command::Execute("reset ui_demo_date", true);
+
 			// Reload demos
 			Theatre::LoadDemos();
 		}
