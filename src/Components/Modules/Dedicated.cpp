@@ -60,6 +60,12 @@ namespace Components
 
 	void Dedicated::MapRotate()
 	{
+		if (!Dedicated::IsDedicated() && Dvar::Var("sv_dontrotate").Get<bool>())
+		{
+			Dvar::Var("sv_dontrotate").SetRaw(0);
+			return;
+		}
+
 		if (Dvar::Var("party_enable").Get<bool>() && Dvar::Var("party_host").Get<bool>())
 		{
 			Logger::Print("Not performing map rotation as we are hosting a party!\n");
@@ -158,6 +164,7 @@ namespace Components
 	{
 		// Map rotation
 		Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
+		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_FLAG_CHEAT, "");
 
 		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled()) // Run zonebuilder as dedi :P
 		{
