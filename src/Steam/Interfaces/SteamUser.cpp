@@ -44,6 +44,8 @@ namespace Steam
 			{
 				subId = (Game::Com_Milliseconds() + timeGetTime());
 			}
+
+			subId &= ~0x80000000; // Ensure it's positive
 		}
 
 		id.Bits = 0x110000100000000 | subId;
