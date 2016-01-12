@@ -39,6 +39,7 @@
 #include "Utils\CSV.hpp"
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"
+#include "Utils\Memory.hpp"
 #include "Utils\Hooking.hpp"
 #include "Utils\Compression.hpp"
 

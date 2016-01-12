@@ -68,7 +68,7 @@ namespace Components
 
 		script->next = NULL;
 
-		source = (Game::source_t *)calloc(1, sizeof(Game::source_t));
+		source = Utils::Memory::AllocateArray<Game::source_t>(1);
 		if (!source)
 		{
 			Game::FreeMemory(script);
@@ -81,7 +81,7 @@ namespace Components
 		source->defines = NULL;
 		source->indentstack = NULL;
 		source->skip = 0;
-		source->definehash = (Game::define_t**)calloc(1, 4096);
+		source->definehash = (Game::define_t**)Utils::Memory::Allocate(4096);
 
 		Game::sourceFiles[handle] = source;
 
@@ -115,13 +115,13 @@ namespace Components
 
 	Game::menuDef_t* Menus::ParseMenu(int handle)
 	{
-		Game::menuDef_t* menu = (Game::menuDef_t*)calloc(1, sizeof(Game::menuDef_t));
+		Game::menuDef_t* menu = Utils::Memory::AllocateArray<Game::menuDef_t>(1);
 		if (!menu) return nullptr;
 
-		menu->items = (Game::itemDef_t**)calloc(512, sizeof(Game::itemDef_t*));
+		menu->items = Utils::Memory::AllocateArray<Game::itemDef_t*>(512);
 		if (!menu->items) 
 		{
-			free(menu);
+			Utils::Memory::Free(menu);
 			return nullptr;
 		}
 
@@ -230,17 +230,17 @@ namespace Components
 		if (!menus.size()) return nullptr;
 
 		// Allocate new menu list
-		Game::MenuList* newList = (Game::MenuList*)calloc(1, sizeof(Game::MenuList));
+		Game::MenuList* newList = Utils::Memory::AllocateArray<Game::MenuList>(1);
 		if (!newList) return nullptr;
 
-		newList->menus = (Game::menuDef_t **)calloc(menus.size(), sizeof(Game::menuDef_t *));
+		newList->menus = Utils::Memory::AllocateArray<Game::menuDef_t*>(menus.size());
 		if (!newList->menus)
 		{
-			free(newList);
+			Utils::Memory::Free(newList);
 			return nullptr;
 		}
 
-		newList->name = _strdup(menu);
+		newList->name = Utils::Memory::DuplicateString(menu);
 		newList->menuCount = menus.size();
 
 		// Copy new menus
@@ -275,17 +275,17 @@ namespace Components
 		}
 
 		// Allocate new menu list
-		Game::MenuList* newList = (Game::MenuList*)calloc(1, sizeof(Game::MenuList));
+		Game::MenuList* newList = Utils::Memory::AllocateArray<Game::MenuList>(1);
 		if (!newList) return menuList;
 
-		newList->menus = (Game::menuDef_t **)calloc(menus.size(), sizeof(Game::menuDef_t *));
+		newList->menus = Utils::Memory::AllocateArray<Game::menuDef_t*>(menus.size());
 		if (!newList->menus)
 		{
-			free(newList);
+			Utils::Memory::Free(newList);
 			return menuList;
 		}
 
-		newList->name = _strdup(menuList->name);
+		newList->name = Utils::Memory::DuplicateString(menuList->name);
 		newList->menuCount = menus.size();
 
 		// Copy new menus
@@ -331,12 +331,12 @@ namespace Components
 		{
 			indent = source->indentstack;
 			source->indentstack = source->indentstack->next;
-			free(indent);
+			Utils::Memory::Free(indent);
 		}
 
-		if (source->definehash) free(source->definehash);
+		if (source->definehash) Utils::Memory::Free(source->definehash);
 
-		free(source);
+		Utils::Memory::Free(source);
 
 		Game::sourceFiles[handle] = nullptr;
 	}
@@ -357,10 +357,10 @@ namespace Components
 			//	Game::Menu_FreeItemMemory(menudef->items[i]);
 			//}
 
-			free(menudef->items);
+			Utils::Memory::Free(menudef->items);
 		}
 
-		free(menudef);
+		Utils::Memory::Free(menudef);
 	}
 
 	void Menus::FreeMenuList(Game::MenuList* menuList)
@@ -372,15 +372,15 @@ namespace Components
 
 		if (list.name)
 		{
-			free(list.name);
+			Utils::Memory::Free(list.name);
 		}
 
 		if (list.menus)
 		{
-			free(list.menus);
+			Utils::Memory::Free(list.menus);
 		}
 
-		free(menuList);
+		Utils::Memory::Free(menuList);
 	}
 
 	void Menus::RemoveMenu(Game::menuDef_t* menudef)

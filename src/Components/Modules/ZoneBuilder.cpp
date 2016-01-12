@@ -15,7 +15,7 @@ namespace Components
 
 	ZoneBuilder::Zone::~Zone()
 	{
-		//Assets::Patches::DeleteTemporaryLocalizeEntries();
+		Localization::ClearTemp();
 
 		ZoneBuilder::Zone::Assets.clear();
 		ZoneBuilder::Zone::ScriptStrings.clear();
@@ -33,14 +33,6 @@ namespace Components
 
 		Logger::Print("link...");
 		if (!ZoneBuilder::Zone::LoadAssets()) return;
-
-		Game::RawFile* rawFile = new Game::RawFile;
-		rawFile->name = "zob.cfg";
-		rawFile->compressedData = "map mp_rust";
-		rawFile->sizeUnCompressed = strlen(rawFile->compressedData) + 1;
-		rawFile->sizeCompressed = 0;
-
-		Assets.push_back({ Game::XAssetType::ASSET_TYPE_RAWFILE, rawFile });
 
 		ZoneBuilder::Zone::AddBranding();
 
@@ -89,11 +81,11 @@ namespace Components
 			{
 				if (DataMap.GetColumns(i) > 2)
 				{
-// 					if (DataMap.GetElementAt(i, 0) == "localize")
-// 					{
-// 						Assets::Patches::AddTemporaryLocalizeEntry(DataMap.GetElementAt(i, 1), DataMap.GetElementAt(i, 2));
-// 					}
-// 					else
+					if (DataMap.GetElementAt(i, 0) == "localize")
+					{
+						Localization::SetTemp(DataMap.GetElementAt(i, 1), DataMap.GetElementAt(i, 2));
+					}
+					else
 					{
 						ZoneBuilder::Zone::RenameAsset(Game::DB_GetXAssetNameType(DataMap.GetElementAt(i, 0).data()), DataMap.GetElementAt(i, 1), DataMap.GetElementAt(i, 2));
 					}
@@ -139,7 +131,7 @@ namespace Components
 		asset.header = assetHeader;
 
 		// Handle script strings and referenced assets
-		//Assets::Mark(&asset, this);
+		AssetHandler::ZoneMark(asset, this);
 
 		ZoneBuilder::Zone::Assets.push_back(asset);
 		return true;
@@ -248,7 +240,7 @@ namespace Components
 												   // So scriptString loading for NULL scriptStrings from fastfile results in a NULL scriptString.
 												   // That's the reason why the count is incremented by 1, if scriptStrings are available.
 
-												   // Write ScriptString pointer table
+			// Write ScriptString pointer table
 			for (size_t i = 0; i < ZoneBuilder::Zone::ScriptStrings.size(); i++)
 			{
 				ZoneBuilder::Zone::Buffer.SaveMax(4);
@@ -266,7 +258,8 @@ namespace Components
 		// Align buffer (4 bytes) to get correct offsets for pointers
 		ZoneBuilder::Zone::Buffer.Align(Utils::Stream::ALIGN_4);
 		ZoneBuilder::Zone::IndexStart = ZoneBuilder::Zone::Buffer.GetBlockSize(Game::XFILE_BLOCK_VIRTUAL); // Mark AssetTable offset
-																							// AssetTable
+
+		// AssetTable
 		for (auto asset : Assets)
 		{
 			Game::XAsset entry;
@@ -280,44 +273,9 @@ namespace Components
 		for (auto asset : Assets)
 		{
 			ZoneBuilder::Zone::Buffer.PushBlock(Game::XFILE_BLOCK_TEMP);
-			
-			if (asset.type == Game::XAssetType::ASSET_TYPE_RAWFILE)
-			{
-				Game::RawFile* _asset = asset.header.rawfile;
-				Game::RawFile* dest = (Game::RawFile*)ZoneBuilder::Zone::Buffer.At();
-				ZoneBuilder::Zone::Buffer.Save(_asset, sizeof(Game::RawFile));
 
-				ZoneBuilder::Zone::Buffer.PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+			AssetHandler::ZoneSave(asset, this);
 
-				if (_asset->name)
-				{ 
-					ZoneBuilder::Zone::Buffer.SaveString(_asset->name);
-					dest->name = (char *)-1;
-				}
-
-				if (_asset->compressedData)
-				{
-					if (_asset->sizeCompressed)
-					{
-						ZoneBuilder::Zone::Buffer.SaveString(_asset->compressedData, _asset->sizeCompressed);
-					}
-					else
-					{
-						ZoneBuilder::Zone::Buffer.SaveString(_asset->compressedData, _asset->sizeUnCompressed);
-					}
-
-					dest->compressedData = (char*)-1;
-				}
-
-				ZoneBuilder::Zone::Buffer.PopBlock();
-			}
-			else
-			{
-				Logger::Error("Wat?");
-			}
-
-			//Assets::Save(asset, this);
-			
 			ZoneBuilder::Zone::Buffer.PopBlock();
 		}
 
@@ -327,7 +285,7 @@ namespace Components
 		header->size = ZoneBuilder::Zone::Buffer.Length() - sizeof(Game::XFile); // Write correct data size
 		header->externalSize = 0; // ? 
 
-																// Write stream sizes
+		// Write stream sizes
 		for (int i = 0; i < Game::MAX_XFILE_COUNT; i++)
 		{
 			header->blockSize[i] = ZoneBuilder::Zone::Buffer.GetBlockSize((Game::XFILE_BLOCK_TYPES)i);
@@ -463,6 +421,16 @@ namespace Components
 		static_assert(sizeof(Game::XFile) == 40, "Invalid XFile structure!");
 		static_assert(Game::MAX_XFILE_COUNT == 8, "XFile block enum is invalid!");
 
+		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, const char* name)
+		{
+			if (FastFiles::Current() == "penis")
+			{
+				OutputDebugStringA(name);
+			}
+
+			return true;
+		});
+
 		if (ZoneBuilder::IsEnabled())
 		{
 			Command::Add("build", [] (Command::Params params)
@@ -476,6 +444,6 @@ namespace Components
 			});
 		}
 
-		//Utils::Hook(0x60B4AC, TestZoneLoading, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4546DF, TestZoneLoading, HOOK_CALL).Install()->Quick();
 	}
 }

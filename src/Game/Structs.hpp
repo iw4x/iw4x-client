@@ -890,7 +890,7 @@ namespace Game
 		UILocalVarContext localVars;
 	};
 
-	struct localizedEntry_s
+	struct LocalizedEntry
 	{
 		const char* value;
 		const char* name;
@@ -931,7 +931,7 @@ namespace Game
 		menuDef_t *menu;
 		Material *material;
 		snd_alias_list_t *aliasList;
-		localizedEntry_s *localize;
+		LocalizedEntry *localize;
 		StringTable *stringTable;
 		MapEnts* mapEnts;
 		RawFile* rawfile;

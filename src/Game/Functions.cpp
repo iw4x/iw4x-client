@@ -164,7 +164,7 @@ namespace Game
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
-		void* poolEntry = new char[newSize * elSize];
+		void* poolEntry = Utils::Memory::Allocate(newSize * elSize);
 		DB_XAssetPool[type] = poolEntry;
 		g_poolSize[type] = newSize;
 		return poolEntry;

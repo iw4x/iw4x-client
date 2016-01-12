@@ -6,38 +6,19 @@ namespace Utils
 	{
 		std::string ZLib::Compress(std::string data)
 		{
-			z_stream stream;
-			ZeroMemory(&stream, sizeof(stream));
+			unsigned long length = (data.size() * 2);
+			char* buffer = Utils::Memory::AllocateArray<char>(length);
 
-			char* buffer = new char[data.size() * 2];
-
-			if (deflateInit(&stream, Z_BEST_COMPRESSION) != Z_OK) 
-			{ 
-				delete[] buffer;
-				return "";
-			}
-
-			stream.next_out = reinterpret_cast<uint8_t*>(buffer);
-			stream.next_in = reinterpret_cast<const uint8_t*>(data.data());
-			stream.avail_out = data.size() * 2;
-			stream.avail_in = data.size();
-
-			if (deflate(&stream, Z_FINISH) != Z_STREAM_END)
-			{ 
-				delete[] buffer;
-				return "";
-			}
-
-			if (deflateEnd(&stream) != Z_OK)
+			if (compress2((Bytef*)buffer, &length, (Bytef*)data.data(), data.size(), Z_BEST_COMPRESSION) != Z_OK)
 			{
-				delete[] buffer;
+				Utils::Memory::Free(buffer);
 				return "";
 			}
 
 			data.clear();
-			data.append(buffer, stream.total_out);
+			data.append(buffer, length);
 
-			delete[] buffer;
+			Utils::Memory::Free(buffer);
 
 			return data;
 		}
@@ -54,7 +35,7 @@ namespace Utils
 			}
 
 			int ret = 0;
-			uint8_t* dest = new uint8_t[CHUNK];
+			uint8_t* dest = Utils::Memory::AllocateArray<uint8_t>(CHUNK);
 			const char* dataPtr = data.data();
 
 			do 
@@ -71,7 +52,7 @@ namespace Utils
 					if (ret == Z_STREAM_ERROR)
 					{
 						inflateEnd(&stream);
-						delete[] dest;
+						Utils::Memory::Free(dest);
 						return "";
 					}
 					
@@ -83,7 +64,7 @@ namespace Utils
 
 			inflateEnd(&stream);
 
-			delete[] dest;
+			Utils::Memory::Free(dest);
 
 			return buffer;
 		}

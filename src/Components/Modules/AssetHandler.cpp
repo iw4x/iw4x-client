@@ -3,10 +3,28 @@
 namespace Components
 {
 	bool AssetHandler::BypassState = false;
+	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, AssetHandler::Callback> AssetHandler::TypeCallbacks;
 	std::vector<AssetHandler::RestrictCallback> AssetHandler::RestrictCallbacks;
 
 	std::map<void*, void*> AssetHandler::Relocations;
+
+	void AssetHandler::RegisterInterface(IAsset* iAsset)
+	{
+		if (!iAsset) return;
+		if (iAsset->GetType() == Game::XAssetType::ASSET_TYPE_INVALID)
+		{
+			delete iAsset;
+			return;
+		}
+
+		if (AssetHandler::AssetInterfaces.find(iAsset->GetType()) != AssetHandler::AssetInterfaces.end())
+		{
+			delete AssetHandler::AssetInterfaces[iAsset->GetType()];
+		}
+
+		AssetHandler::AssetInterfaces[iAsset->GetType()] = iAsset;
+	}
 
 	Game::XAssetHeader AssetHandler::FindAsset(Game::XAssetType type, const char* filename)
 	{
@@ -139,6 +157,30 @@ namespace Components
 		}
 	}
 
+	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)
+	{
+		if (AssetHandler::AssetInterfaces.find(asset.type) != AssetHandler::AssetInterfaces.end())
+		{
+			AssetHandler::AssetInterfaces[asset.type]->Save(asset.header, builder);
+		}
+		else
+		{
+			Logger::Error("No interface for type '%s'!", Game::DB_GetXAssetTypeName(asset.type));
+		}
+	}
+
+	void AssetHandler::ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder)
+	{
+		if (AssetHandler::AssetInterfaces.find(asset.type) != AssetHandler::AssetInterfaces.end())
+		{
+			AssetHandler::AssetInterfaces[asset.type]->Mark(asset.header, builder);
+		}
+		else
+		{
+			Logger::Error("No interface for type '%s'!", Game::DB_GetXAssetTypeName(asset.type));
+		}
+	}
+
 	AssetHandler::AssetHandler()
 	{
 		// DB_FindXAssetHeader
@@ -149,10 +191,20 @@ namespace Components
 
 		// DB_AddXAsset
 		Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).Install()->Quick();
+
+		// Register asset interfaces
+		AssetHandler::RegisterInterface(new Assets::IRawFile());
+		AssetHandler::RegisterInterface(new Assets::ILocalizedEntry());
 	}
 
 	AssetHandler::~AssetHandler()
 	{
+		for (auto i = AssetHandler::AssetInterfaces.begin(); i != AssetHandler::AssetInterfaces.end(); i++)
+		{
+			delete i->second;
+		}
+
+		AssetHandler::AssetInterfaces.clear();
 		AssetHandler::TypeCallbacks.clear();
 	}
 }

@@ -3,30 +3,102 @@
 namespace Components
 {
 	Dvar::Var Localization::UseLocalization;
-	std::map<std::string, std::string> Localization::LocalizeMap;
+	std::map<std::string, Game::LocalizedEntry*> Localization::LocalizeMap;
+	std::map<std::string, Game::LocalizedEntry*> Localization::TempLocalizeMap;
 
 	void Localization::Set(const char* key, const char* value)
 	{
-		Localization::LocalizeMap[key] = value;
+		Game::LocalizedEntry* entry = Utils::Memory::AllocateArray<Game::LocalizedEntry>(1);
+		if (!entry) return;
+
+		entry->name = Utils::Memory::DuplicateString(key);
+		if (!entry->name)
+		{
+			Utils::Memory::Free(entry);
+			return;
+		}
+
+		entry->value = Utils::Memory::DuplicateString(value);
+		if (!entry->value)
+		{
+			Utils::Memory::Free(entry->name);
+			Utils::Memory::Free(entry);
+			return;
+		}
+
+		Localization::LocalizeMap[key] = entry;
 	}
 
 	const char* Localization::Get(const char* key)
 	{
 		if (!Localization::UseLocalization.Get<bool>()) return key;
 
-		if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
+		Game::LocalizedEntry* entry = nullptr;
+
+		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
 		{
-			return Localization::LocalizeMap[key].data();
+			entry = Localization::TempLocalizeMap[key];
+		}
+		else if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
+		{
+			entry = Localization::LocalizeMap[key];
 		}
 
-		Game::localizedEntry_s* entry = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_LOCALIZE, key).localize;
+		if (!entry || !entry->value) entry = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_LOCALIZE, key).localize;
 
-		if (entry)
+		if (entry && entry->value)
 		{
 			return entry->value;
 		}
 
 		return key;
+	}
+
+	void Localization::SetTemp(std::string key, std::string value)
+	{
+		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
+		{
+			Game::LocalizedEntry* entry = Localization::TempLocalizeMap[key];
+			if(entry->value) Utils::Memory::Free(entry->value);
+			entry->value = Utils::Memory::DuplicateString(value);
+		}
+		else
+		{
+			Game::LocalizedEntry* entry = Utils::Memory::AllocateArray<Game::LocalizedEntry>(1);
+			if (!entry) return;
+
+			entry->name = Utils::Memory::DuplicateString(key);
+			if (!entry->name)
+			{
+				Utils::Memory::Free(entry);
+				return;
+			}
+
+			entry->value = Utils::Memory::DuplicateString(value);
+			if (!entry->value)
+			{
+				Utils::Memory::Free(entry->name);
+				Utils::Memory::Free(entry);
+				return;
+			}
+
+			Localization::TempLocalizeMap[key] = entry;
+		}
+	}
+
+	void Localization::ClearTemp()
+	{
+		for (auto i = Localization::TempLocalizeMap.begin(); i != Localization::TempLocalizeMap.end(); i++)
+		{
+			if (i->second)
+			{
+				if (i->second->name)  Utils::Memory::Free(i->second->name);
+				if (i->second->value) Utils::Memory::Free(i->second->value);
+				Utils::Memory::Free(i->second);
+			}
+		}
+
+		Localization::TempLocalizeMap.clear();
 	}
 
 	void __stdcall Localization::SetStringStub(const char* key, const char* value, bool isEnglish)
@@ -44,6 +116,22 @@ namespace Components
 
 	Localization::Localization()
 	{
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE, [] (Game::XAssetType, const char* filename)
+		{
+			Game::XAssetHeader header = { 0 };
+
+			if (Localization::TempLocalizeMap.find(filename) != Localization::TempLocalizeMap.end())
+			{
+				header.localize = Localization::TempLocalizeMap[filename];
+			}
+			else if (Localization::LocalizeMap.find(filename) != Localization::LocalizeMap.end())
+			{
+				header.localize = Localization::LocalizeMap[filename];
+			}
+
+			return header;
+		});
+
 		// Resolving hook
 		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).Install()->Quick();
 
@@ -85,6 +173,18 @@ namespace Components
 
 	Localization::~Localization()
 	{
+		Localization::ClearTemp();
+
+		for (auto i = Localization::LocalizeMap.begin(); i != Localization::LocalizeMap.end(); i++)
+		{
+			if (i->second)
+			{
+				if (i->second->name)  Utils::Memory::Free(i->second->name);
+				if (i->second->value) Utils::Memory::Free(i->second->value);
+				Utils::Memory::Free(i->second);
+			}
+		}
+
 		Localization::LocalizeMap.clear();
 	}
 }
