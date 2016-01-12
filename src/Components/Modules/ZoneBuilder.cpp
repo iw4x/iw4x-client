@@ -444,6 +444,6 @@ namespace Components
 			});
 		}
 
-		Utils::Hook(0x4546DF, TestZoneLoading, HOOK_CALL).Install()->Quick();
+		//Utils::Hook(0x4546DF, TestZoneLoading, HOOK_CALL).Install()->Quick();
 	}
 }
