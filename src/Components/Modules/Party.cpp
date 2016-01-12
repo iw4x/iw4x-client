@@ -215,6 +215,10 @@ namespace Components
 
 			Party::Connect(Network::Address(params[1]));
 		});
+		Command::Add("reconnect", [] (Command::Params params)
+		{
+			Party::Connect(Party::Container.Target);
+		});
 
 		Renderer::OnFrame([] ()
 		{
