@@ -2,9 +2,9 @@
 
 namespace Utils
 {
-	CSV::CSV(std::string file)
+	CSV::CSV(std::string file, bool isFile)
 	{
-		CSV::Parse(file);
+		CSV::Parse(file, isFile);
 	}
 
 	CSV::~CSV()
@@ -37,6 +37,18 @@ namespace Utils
 		return 0;
 	}
 
+	int CSV::GetColumns()
+	{
+		int count = 0;
+
+		for (int i = 0; i < CSV::GetRows(); i++)
+		{
+			count = max(CSV::GetColumns(i), count);
+		}
+
+		return count;
+	}
+
 	std::string CSV::GetElementAt(size_t row, size_t column)
 	{
 		if (CSV::DataMap.size() > row)
@@ -52,11 +64,19 @@ namespace Utils
 		return "";
 	}
 
-	void CSV::Parse(std::string file)
+	void CSV::Parse(std::string file, bool isFile)
 	{
-		if (!Utils::FileExists(file)) return;
+		std::string buffer;
 
-		std::string buffer = Utils::ReadFile(file);
+		if (isFile)
+		{
+			if (!Utils::FileExists(file)) return;
+			buffer = Utils::ReadFile(file);
+		}
+		else
+		{
+			buffer = file;
+		}
 		
 		if (buffer.size())
 		{
@@ -74,7 +94,7 @@ namespace Utils
 		bool isString = false;
 		std::string element;
 		std::vector<std::string> _row;
-		char tempStr[2] = { 0, 0 };
+		char tempStr = 0;
 
 		for (unsigned int i = 0; i < row.size(); i++)
 		{
@@ -91,7 +111,7 @@ namespace Utils
 			}
 			else if (i < (row.size() - 1) && row[i] == '\\' &&row[i + 1] == '"' && isString) // Handle quotes in strings as \"
 			{
-				tempStr[0] = '"';
+				tempStr = '"';
 				++i;
 			}
 			else if (!isString && (row[i] == '\n' || row[i] == '\x0D' || row[i] == '\x0A' || row[i] == '\t'))
@@ -105,10 +125,10 @@ namespace Utils
 			}
 			else
 			{
-				tempStr[0] = row[i];
+				tempStr = row[i];
 			}
 
-			element.append(tempStr);
+			element.append(&tempStr, 1);
 		}
 
 		// Push last element

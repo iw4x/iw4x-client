@@ -39,6 +39,7 @@ namespace Components
 		Loader::Register(new QuickPatch());
 		Loader::Register(new ServerInfo());
 		Loader::Register(new ServerList());
+		Loader::Register(new StringTable());
 		Loader::Register(new ZoneBuilder());
 		Loader::Register(new AssetHandler());
 		Loader::Register(new Localization());
