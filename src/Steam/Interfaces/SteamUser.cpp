@@ -14,7 +14,7 @@ namespace Steam
 
 	SteamID User::GetSteamID()
 	{
-		static int subId = 0;
+		static unsigned int subId = 0;
 
 		SteamID id;
 
@@ -22,7 +22,7 @@ namespace Steam
 		{
 			if (Components::Dedicated::IsDedicated()) // Dedi guid
 			{
-				subId = ~0xDED1CADE;
+				subId = ~0xDED1CA7E;
 			}
 			else if (Components::Singleton::IsFirstInstance()) // Hardware guid
 			{
