@@ -76,7 +76,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);
 
 		// fs_basegame
-		Utils::Hook::Set<char*>(0x6431D1, "data");
+		Utils::Hook::Set<char*>(0x6431D1, "data2");
 
 		// UI version string
 		Utils::Hook::Set<char*>(0x43F73B, "iw4x IW4x: r" REVISION_STR "-" MILESTONE);
