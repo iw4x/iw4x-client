@@ -11,6 +11,7 @@ namespace Utils
 		Hook() : Place(nullptr), Stub(nullptr), Initialized(false), Installed(false), UseJump(false), Protection(0) { ZeroMemory(Hook::Buffer, sizeof(Hook::Buffer)); }
 		Hook(void* place, void* stub, bool useJump = true) : Hook() { Hook::Initialize(place, stub, useJump); }
 		Hook(DWORD place, void* stub, bool useJump = true) : Hook((void*)place, stub, useJump) {}
+		Hook(DWORD place, DWORD stub, bool useJump = true) : Hook((void*)place, (void*)stub, useJump) {}
 
 		~Hook();
 

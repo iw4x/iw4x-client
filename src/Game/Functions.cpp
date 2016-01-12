@@ -2,6 +2,8 @@
 
 namespace Game
 {
+	BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj = (BG_LoadWeaponDef_LoadObj_t)0x57B5F0;
+
 	Cbuf_AddText_t Cbuf_AddText = (Cbuf_AddText_t)0x404B20;
 
 	CL_GetClientName_t CL_GetClientName = (CL_GetClientName_t)0x4563D0;

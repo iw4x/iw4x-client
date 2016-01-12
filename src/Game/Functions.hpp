@@ -1,6 +1,9 @@
 namespace Game
 {
-	typedef void(__cdecl * Cbuf_AddText_t)(int a1, const char* cmd);
+	typedef void*(__cdecl * BG_LoadWeaponDef_LoadObj_t)(const char* filename);
+	extern BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj;
+
+	typedef void(__cdecl * Cbuf_AddText_t)(int localClientNum, const char *text);
 	extern Cbuf_AddText_t Cbuf_AddText;
 
 	typedef char*(__cdecl * CL_GetClientName_t)(int localClientNum, int index, char *buf, size_t size);
