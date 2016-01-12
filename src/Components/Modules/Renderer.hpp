@@ -9,6 +9,9 @@ namespace Components
 		~Renderer();
 		const char* GetName() { return "Renderer"; };
 
+		static int Width();
+		static int Height();
+
 		static void OnFrame(Callback callback);
 
 	private:

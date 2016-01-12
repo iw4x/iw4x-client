@@ -247,6 +247,18 @@ namespace Game
 	typedef const char *(__cdecl * PartyHost_GetMemberName_t)(PartyData_s* party, const int clientNum);
 	extern PartyHost_GetMemberName_t PartyHost_GetMemberName;
 
+	typedef Font_s* (__cdecl * R_RegisterFont_t)(const char* asset);
+	extern R_RegisterFont_t R_RegisterFont;
+
+	typedef void(__cdecl * R_AddCmdDrawText_t)(const char *text, int maxChars, Font_s *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
+	extern R_AddCmdDrawText_t R_AddCmdDrawText;
+
+	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, void* material);
+	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;
+
+	typedef int(__cdecl * R_TextWidth_t)(const char* text, int maxlength, void* font);
+	extern R_TextWidth_t R_TextWidth;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 

@@ -27,6 +27,16 @@ namespace Components
 		Renderer::FrameCallbacks.push_back(callback);
 	}
 
+	int Renderer::Width()
+	{
+		return Utils::Hook::Get<int>(0x66E1C68);
+	}
+
+	int Renderer::Height()
+	{
+		return Utils::Hook::Get<int>(0x66E1C6C);
+	}
+
 	Renderer::Renderer()
 	{
 		// Frame hook

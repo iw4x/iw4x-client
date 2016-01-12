@@ -104,6 +104,11 @@ namespace Game
 	PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = (PartyHost_GetMemberAddressBySlot_t)0x44E100;
 	PartyHost_GetMemberName_t PartyHost_GetMemberName = (PartyHost_GetMemberName_t)0x44BE90;
 
+	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = (R_AddCmdDrawStretchPic_t)0x509770;
+	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x505670;
+	R_AddCmdDrawText_t R_AddCmdDrawText = (R_AddCmdDrawText_t)0x509D80;
+	R_TextWidth_t R_TextWidth = (R_TextWidth_t)0x5056C0;
+
 	Script_Alloc_t Script_Alloc = (Script_Alloc_t)0x422E70;
 	Script_SetupTokens_t Script_SetupTokens = (Script_SetupTokens_t)0x4E6950;
 	Script_CleanString_t Script_CleanString = (Script_CleanString_t)0x498220;

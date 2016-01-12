@@ -924,6 +924,31 @@ namespace Game
 		char * compressedData;
 	};
 
+	typedef struct fontEntry_s
+	{
+		unsigned short character;
+		unsigned char padLeft;
+		unsigned char padTop;
+		unsigned char padRight;
+		unsigned char width;
+		unsigned char height;
+		unsigned char const0;
+		float uvLeft;
+		float uvTop;
+		float uvRight;
+		float uvBottom;
+	} fontEntry_t;
+
+	typedef struct Font_s
+	{
+		char* name;
+		int size;
+		int entries;
+		Material* image;
+		Material* glowImage;
+		fontEntry_t* characters;
+	} Font;
+
 	union XAssetHeader
 	{
 		void *data;
@@ -935,6 +960,7 @@ namespace Game
 		StringTable *stringTable;
 		MapEnts* mapEnts;
 		RawFile* rawfile;
+		Font* font;
 	};
 
 	struct XAsset

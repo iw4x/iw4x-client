@@ -63,6 +63,8 @@ namespace Components
 
 	FastFiles::FastFiles()
 	{
+		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display current loaded zone.");
+
 		// Redirect zone paths
 		Utils::Hook(0x44DA90, FastFiles::GetZoneLocation, HOOK_JUMP).Install()->Quick();
 
@@ -94,6 +96,15 @@ namespace Components
 		// Add custom zone paths
 		FastFiles::AddZonePath("zone\\patch\\");
 		FastFiles::AddZonePath("zone\\dlc\\");
+
+		Renderer::OnFrame([] ()
+		{
+			if (!FastFiles::Current().size() || !Dvar::Var("ui_zoneDebug").Get<bool>()) return;
+
+			Game::Font_s* font = Game::R_RegisterFont("fonts/consoleFont"); // Inlining that seems to skip xpos, no idea why xD
+			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
+			Game::R_AddCmdDrawText(Utils::VA("Loading FastFile: %s", FastFiles::Current().data()), 0x7FFFFFFF, font, 5.0f, (float)(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, 0);
+		});
 	}
 
 	FastFiles::~FastFiles()
