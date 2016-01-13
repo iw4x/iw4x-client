@@ -71,6 +71,7 @@ namespace Components
 
 		// Don't delete config files if corrupted
 		Utils::Hook::Set<BYTE>(0x47DCB3, 0xEB);
+		Utils::Hook::Set<BYTE>(0x4402B6, 0);
 
 		// hopefully allow alt-tab during game, used at least in alt-enter handling
 		Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);

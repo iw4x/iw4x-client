@@ -222,13 +222,12 @@ namespace Components
 			FileSystem::DeleteFile("demos", info.Name + ".dm_13.json");
 
 			// Reset our ui_demo_* dvars here, because the theater menu needs it.
-			// Resetting them has no use, as they don't have any default value!
-			Command::Execute("reset ui_demo_mapname", true);
-			Command::Execute("reset ui_demo_mapname_localized", true);
-			Command::Execute("reset ui_demo_gametype", true);
-			Command::Execute("reset ui_demo_author", true);
-			Command::Execute("reset ui_demo_length", true);
-			Command::Execute("reset ui_demo_date", true);
+			Dvar::Var("ui_demo_mapname").Set("");
+			Dvar::Var("ui_demo_mapname_localized").Set("");
+			Dvar::Var("ui_demo_gametype").Set("");
+			Dvar::Var("ui_demo_length").Set("");
+			Dvar::Var("ui_demo_author").Set("");
+			Dvar::Var("ui_demo_date").Set("");
 
 			// Reload demos
 			Theatre::LoadDemos();

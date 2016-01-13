@@ -949,6 +949,99 @@ namespace Game
 		fontEntry_t* characters;
 	} Font;
 
+	typedef enum
+	{
+		STRUCTURED_DATA_INT = 0,
+		STRUCTURED_DATA_BYTE = 1,
+		STRUCTURED_DATA_BOOL = 2,
+		STRUCTURED_DATA_STRING = 3,
+		STRUCTURED_DATA_ENUM = 4,
+		STRUCTURED_DATA_STRUCT = 5,
+		STRUCTURED_DATA_INDEXEDARR = 6,
+		STRUCTURED_DATA_ENUMARR = 7,
+		STRUCTURED_DATA_FLOAT = 8,
+		STRUCTURED_DATA_SHORT = 9
+	} structuredDataType_t;
+
+	typedef struct
+	{
+		structuredDataType_t type;
+		union
+		{
+			int index;
+		};
+		int offset;
+	} structuredDataItem_t;
+
+	typedef struct
+	{
+		const char* name;
+		structuredDataItem_t item;
+	} structuredDataChild_t;
+
+	typedef struct
+	{
+		int numChildren;
+		structuredDataChild_t* children;
+		int unknown1;
+		int unknown2;
+	} structuredDataStruct_t;
+
+	typedef struct
+	{
+		int enumIndex;
+		structuredDataItem_t item;
+	} structuredDataEnumArray_t;
+
+	typedef struct
+	{
+		const char* key;
+		int index;
+	} structuredDataEnumIndex_t;
+
+	typedef struct
+	{
+		int numIndices;
+		int unknown;
+		structuredDataEnumIndex_t* indices;
+	} structuredDataEnum_t;
+
+	typedef struct
+	{
+		int numItems;
+		structuredDataItem_t item;
+	} structuredDataIndexedArray_t;
+
+	typedef struct
+	{
+		int version;
+		unsigned int hash;
+		int numEnums;
+		structuredDataEnum_t* enums;
+		int numStructs;
+		structuredDataStruct_t* structs;
+		int numIndexedArrays;
+		structuredDataIndexedArray_t* indexedArrays;
+		int numEnumArrays;
+		structuredDataEnumArray_t* enumArrays;
+		structuredDataItem_t rootItem;
+	} structuredData_t;
+
+	typedef struct
+	{
+		const char* name;
+		int unknown;
+		structuredData_t* data;
+	} structuredDataDef_t;
+
+	typedef struct
+	{
+		structuredData_t* data;
+		structuredDataItem_t* item;
+		int offset;
+		int error;
+	} structuredDataFindState_t;
+
 	union XAssetHeader
 	{
 		void *data;
@@ -961,6 +1054,7 @@ namespace Game
 		MapEnts* mapEnts;
 		RawFile* rawfile;
 		Font* font;
+		structuredDataDef_t* structuredData;
 	};
 
 	struct XAsset

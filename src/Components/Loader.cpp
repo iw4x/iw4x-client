@@ -44,6 +44,7 @@ namespace Components
 		Loader::Register(new AssetHandler());
 		Loader::Register(new Localization());
 		Loader::Register(new MusicalTalent());
+		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
 	}
 
