@@ -3,8 +3,8 @@
 namespace Components
 {
 	std::vector<std::string> Menus::CustomMenus;
-	std::vector<Game::menuDef_t*> Menus::MenuList;
-	std::vector<Game::MenuList*> Menus::MenuListList;
+	std::map<std::string, Game::menuDef_t*> Menus::MenuList;
+	std::map<std::string, Game::MenuList*> Menus::MenuListList;
 
 	int Menus::ReserveSourceHandle()
 	{
@@ -125,14 +125,14 @@ namespace Components
 			return nullptr;
 		}
 
-		Menus::MenuList.push_back(menu);
-
 		Game::pc_token_t token;
 		Game::keywordHash_t *key;
 
 		if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] != '{')
 		{
-			return menu;
+			Utils::Memory::Free(menu->items);
+			Utils::Memory::Free(menu);
+			return nullptr;
 		}
 
 		while (true) 
@@ -166,6 +166,9 @@ namespace Components
 				break; // Fail
 			}
 		}
+
+		Menus::RemoveMenu(menu->window.name);
+		Menus::MenuList[menu->window.name] = menu;
 
 		return menu;
 	}
@@ -246,7 +249,8 @@ namespace Components
 		// Copy new menus
 		memcpy(newList->menus, menus.data(), menus.size() * sizeof(Game::menuDef_t *));
 
-		Menus::MenuListList.push_back(newList);
+		Menus::RemoveMenuList(newList->name);
+		Menus::MenuListList[newList->name] = newList;
 
 		return newList;
 	}
@@ -291,7 +295,8 @@ namespace Components
 		// Copy new menus
 		memcpy(newList->menus, menus.data(), menus.size() * sizeof(Game::menuDef_t *));
 
-		Menus::MenuListList.push_back(newList);
+		Menus::RemoveMenuList(newList->name);
+		Menus::MenuListList[newList->name] = newList;
 
 		return newList;
 	}
@@ -383,11 +388,21 @@ namespace Components
 		Utils::Memory::Free(menuList);
 	}
 
+	void Menus::RemoveMenu(std::string menu)
+	{
+		auto i = Menus::MenuList.find(menu);
+		if(i != Menus::MenuList.end())
+		{
+			if (i->second) Menus::FreeMenu(i->second);
+			Menus::MenuList.erase(i);
+		}
+	}
+
 	void Menus::RemoveMenu(Game::menuDef_t* menudef)
 	{
 		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end(); i++)
 		{
-			if ((*i) == menudef)
+			if (i->second == menudef)
 			{
 				Menus::FreeMenu(menudef);
 				Menus::MenuList.erase(i);
@@ -396,57 +411,68 @@ namespace Components
 		}
 	}
 
-	void Menus::RemoveMenuList(Game::MenuList* menuList)
+	void Menus::RemoveMenuList(std::string menuList)
 	{
-		if (!menuList) return;
-
-		for (auto i = Menus::MenuListList.begin(); i != Menus::MenuListList.end(); i++)
+		auto i = Menus::MenuListList.find(menuList);
+		if (i != Menus::MenuListList.end())
 		{
-			if ((*i)->name == menuList->name)
+			if (i->second)
 			{
-				for (auto j = 0; j < menuList->menuCount; j++)
+				for (auto j = 0; j < i->second->menuCount; j++)
 				{
-					Menus::RemoveMenu(menuList->menus[j]);
+					Menus::RemoveMenu(i->second->menus[j]);
 				}
 
-				Menus::FreeMenuList(menuList);
-				Menus::MenuListList.erase(i);
-				break;
+				Menus::FreeMenuList(i->second);
 			}
+
+			Menus::MenuListList.erase(i);
 		}
+	}
+
+	void Menus::RemoveMenuList(Game::MenuList* menuList)
+	{
+		if (!menuList || !menuList->name) return;
+		Menus::RemoveMenuList(menuList->name);
 	}
 
 	void Menus::FreeEverything()
 	{
-		for (auto menu : Menus::MenuList)
+		for (auto i = Menus::MenuListList.begin(); i != Menus::MenuListList.end(); i++)
 		{
-			Menus::FreeMenu(menu);
-		}
-
-		Menus::MenuList.clear();
-
-		for (auto menuList : Menus::MenuListList)
-		{
-			Menus::FreeMenuList(menuList);
+			Menus::FreeMenuList(i->second);
 		}
 
 		Menus::MenuListList.clear();
+
+		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end(); i++)
+		{
+			Menus::FreeMenu(i->second);
+		}
+
+		Menus::MenuList.clear();
+	}
+
+	Game::XAssetHeader Menus::MenuLoad(Game::XAssetType type, const char* filename)
+	{
+		Game::XAssetHeader header = { 0 };
+
+		header.menu = Menus::FindMenuByName(Game::uiContext, filename);
+
+		if (!header.menu)
+		{
+			OutputDebugStringA("Oh snap!");
+		}
+
+		return header;
 	}
 
 	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, const char* filename)
 	{
  		Game::XAssetHeader header = { 0 };
 
-		// Check if we already loaded it
-		for (auto menuList : Menus::MenuListList)
-		{
-			if (!_stricmp(menuList->name, filename))
-			{
-				// Free it, seems like the game deallocated it
-				Menus::RemoveMenuList(menuList);
-				break;
-			}
-		}
+		// Check if we already loaded it and free it, seems like the game deallocated it
+		Menus::RemoveMenuList(Menus::MenuListList[filename]);
 
 		Game::MenuList* menuList = Game::DB_FindXAssetHeader(type, filename).menuList;
 		header.menuList = menuList;
@@ -514,8 +540,12 @@ namespace Components
 	{
 		if (Dedicated::IsDedicated()) return;
 
+		// Ensure everything is zero'ed
+		Menus::FreeEverything();
+
+		// Intercept asset finding
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, Menus::MenuLoad);
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
-		//Utils::Hook(0x63FE80, Menus::MenuFileLoad, HOOK_JUMP).Install()->Quick();
 
 		// Custom Menus_FindByName
 		Utils::Hook(0x487240, Menus::FindMenuByName, HOOK_JUMP).Install()->Quick();

@@ -63,6 +63,8 @@ namespace Game
 
 	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
 	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
+	Menu_IsVisible_t Menu_IsVisible = (Menu_IsVisible_t)0x4D77D0;
+	Menus_MenuIsInStack_t Menus_MenuIsInStack = (Menus_MenuIsInStack_t)0x47ACB0;
 
 	MSG_Init_t MSG_Init = (MSG_Init_t)0x45FCA0;
 	MSG_ReadData_t MSG_ReadData = (MSG_ReadData_t)0x4527C0;

@@ -148,6 +148,12 @@ namespace Game
 	typedef int(__cdecl * Menus_OpenByName_t)(UiContext *dc, const char *p);
 	extern Menus_OpenByName_t Menus_OpenByName;
 
+	typedef int(__cdecl * Menu_IsVisible_t)(UiContext *dc, menuDef_t *menu);
+	extern Menu_IsVisible_t Menu_IsVisible;
+
+	typedef int(__cdecl * Menus_MenuIsInStack_t)(UiContext *dc, menuDef_t *menu);
+	extern Menus_MenuIsInStack_t Menus_MenuIsInStack;
+
 	typedef void(__cdecl * MSG_Init_t)(void* msg, void* data, int maxsize);
 	extern MSG_Init_t MSG_Init;
 
