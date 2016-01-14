@@ -151,7 +151,7 @@ namespace Game
 	typedef bool(__cdecl * Menu_IsVisible_t)(UiContext *dc, menuDef_t *menu);
 	extern Menu_IsVisible_t Menu_IsVisible;
 
-	typedef int(__cdecl * Menus_MenuIsInStack_t)(UiContext *dc, menuDef_t *menu);
+	typedef bool(__cdecl * Menus_MenuIsInStack_t)(UiContext *dc, menuDef_t *menu);
 	extern Menus_MenuIsInStack_t Menus_MenuIsInStack;
 
 	typedef void(__cdecl * MSG_Init_t)(void* msg, void* data, int maxsize);
