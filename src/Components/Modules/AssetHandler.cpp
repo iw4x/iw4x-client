@@ -181,6 +181,17 @@ namespace Components
 		}
 	}
 
+	Game::XAssetHeader AssetHandler::FindOriginalAsset(Game::XAssetType type, const char* filename)
+	{
+		Game::XAssetHeader header = { 0 };
+
+		AssetHandler::BypassState = true;
+		header = Game::DB_FindXAssetHeader(type, filename);
+		AssetHandler::BypassState = false;
+
+		return header;
+	}
+
 	AssetHandler::AssetHandler()
 	{
 		// DB_FindXAssetHeader

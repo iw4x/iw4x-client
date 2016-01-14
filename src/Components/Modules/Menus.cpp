@@ -455,16 +455,7 @@ namespace Components
 
 	Game::XAssetHeader Menus::MenuLoad(Game::XAssetType type, const char* filename)
 	{
-		Game::XAssetHeader header = { 0 };
-
-		header.menu = Menus::FindMenuByName(Game::uiContext, filename);
-
-		if (!header.menu)
-		{
-			OutputDebugStringA("Oh snap!");
-		}
-
-		return header;
+		return { Menus::FindMenuByName(Game::uiContext, filename) };
 	}
 
 	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, const char* filename)
@@ -510,6 +501,31 @@ namespace Components
 		Game::UI_AddMenuList(dc, menuList, close);
 	}
 
+	void Menus::RemoveFromStack(Game::UiContext *dc, Game::menuDef_t *menu)
+	{
+		// Search menu in stack
+		int i = 0;
+		for (; i < dc->menuCount; i++)
+		{
+			if (dc->Menus[i] == menu)
+			{
+				break;
+			}
+		}
+
+		// Remove from stack
+		if (i < dc->menuCount)
+		{
+			for (; i < dc->menuCount - 1; i++)
+			{
+				dc->Menus[i] = dc->Menus[i + 1];
+			}
+
+			// Clear last menu
+			dc->Menus[--dc->menuCount] = 0;
+		}
+	}
+
 	Game::menuDef_t* Menus::FindMenuByName(Game::UiContext* dc, const char* name)
 	{
 		for (int i = 0; i < dc->menuCount; i++)
@@ -531,6 +547,29 @@ namespace Components
 		return nullptr;
 	}
 
+	bool Menus::IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu)
+	{
+		if (menu && menu->window.name)
+		{
+			if (std::string(menu->window.name) == "connect") // Check if we're supposed to draw the loadscreen
+			{
+				Game::menuDef_t* originalConnect = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, "connect").menu;
+
+				if (originalConnect == menu) // Check if we draw the original loadscreen
+				{
+					if (Menus::MenuList.find("connect") != Menus::MenuList.end()) // Check if we have a custom loadscreen, to prevent drawing the original one ontop
+					{
+						Menus::RemoveFromStack(dc, menu);
+						return false;
+					}
+				}
+			}
+		}
+
+		return Game::Menu_IsVisible(dc, menu);
+	}
+
+
 	void Menus::Add(std::string menu)
 	{
 		Menus::CustomMenus.push_back(menu);
@@ -546,6 +585,12 @@ namespace Components
 		// Intercept asset finding
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, Menus::MenuLoad);
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
+
+		// Don't open connect menu
+		Utils::Hook::Nop(0x428E48, 5);
+
+		// Intercept menu painting
+		Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).Install()->Quick();
 
 		// Custom Menus_FindByName
 		Utils::Hook(0x487240, Menus::FindMenuByName, HOOK_JUMP).Install()->Quick();

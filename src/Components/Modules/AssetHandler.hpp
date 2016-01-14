@@ -28,6 +28,8 @@ namespace Components
 		static void ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder);
 		static void ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder);
 
+		static Game::XAssetHeader FindOriginalAsset(Game::XAssetType type, const char* filename);
+
 	private:
 		static bool BypassState;
 
