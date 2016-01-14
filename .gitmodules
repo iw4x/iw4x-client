@@ -5,3 +5,6 @@
 [submodule "deps/json11"]
 	path = deps/json11
 	url = https://github.com/dropbox/json11.git
+[submodule "deps/asio"]
+	path = deps/asio
+	url = https://github.com/chriskohlhoff/asio.git

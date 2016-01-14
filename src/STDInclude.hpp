@@ -30,7 +30,9 @@
 
 // Submodules
 #define ZLIB_CONST
+#define ASIO_STANDALONE
 #include <zlib.h>
+#include <asio.hpp>
 #include <json11.hpp>
 
 // Version number

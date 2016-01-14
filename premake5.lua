@@ -86,9 +86,9 @@ workspace "iw4x"
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
 
-		-- Dependency on zlib
+		-- Dependency on zlib, json11 and asio
 		links { "zlib", "json11" }
-		includedirs { "./deps/zlib", "./deps/json11" }
+		includedirs { "./deps/zlib", "./deps/json11", "./deps/asio/asio/include"  }
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
