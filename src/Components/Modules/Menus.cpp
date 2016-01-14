@@ -526,6 +526,61 @@ namespace Components
 		}
 	}
 
+	void __declspec(naked) Menus::OpenMenuStub()
+	{
+		__asm
+		{
+			// Menu
+			mov eax, [esp + 8h]
+			push eax
+
+			// Context
+			mov eax, [esp + 8h]
+			push eax
+
+			call Menus::IsMenuAllowed
+			add esp, 8h
+
+			test al, al
+			jnz continue
+
+			retn
+
+		continue:
+			push ecx
+			mov [esp], 0
+			mov eax, 4B72F8h
+			jmp eax
+		}
+	}
+
+	void __declspec(naked) Menus::CloseMenuStub()
+	{
+		__asm
+		{
+			// Menu
+			mov eax, [esp + 8h]
+			push eax
+
+			// Context
+			mov eax, [esp + 8h]
+			push eax
+
+			call Menus::IsMenuAllowed
+			add esp, 8h
+
+			test al, al
+			jnz continue
+
+			retn
+
+		continue:
+			sub esp, 17Ch
+			mov eax, 430D56h
+			jmp eax
+		}
+	}
+
 	Game::menuDef_t* Menus::FindMenuByName(Game::UiContext* dc, const char* name)
 	{
 		for (int i = 0; i < dc->menuCount; i++)
@@ -547,9 +602,9 @@ namespace Components
 		return nullptr;
 	}
 
-	bool Menus::IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu)
+	bool Menus::IsMenuAllowed(Game::UiContext *dc, Game::menuDef_t *menu)
 	{
-		if (menu && menu->window.name)
+		if (menu && menu->window.name && !IsBadReadPtr(menu->window.name, 1))
 		{
 			if (std::string(menu->window.name) == "connect") // Check if we're supposed to draw the loadscreen
 			{
@@ -564,11 +619,18 @@ namespace Components
 					}
 				}
 			}
+
+			return true;
 		}
 
-		return Game::Menu_IsVisible(dc, menu);
+		Menus::RemoveFromStack(dc, menu);
+		return false;
 	}
 
+	bool Menus::IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu)
+	{
+		return (Menus::IsMenuAllowed(dc, menu) && Game::Menu_IsVisible(dc, menu));
+	}
 
 	void Menus::Add(std::string menu)
 	{
@@ -591,6 +653,12 @@ namespace Components
 
 		// Intercept menu painting
 		Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).Install()->Quick();
+
+		// Intercept menu closing
+		Utils::Hook(0x430D50, Menus::CloseMenuStub, HOOK_JUMP).Install()->Quick();
+
+		// Intercept menu opening
+		Utils::Hook(0x4B72F0, Menus::OpenMenuStub, HOOK_JUMP).Install()->Quick();
 
 		// Custom Menus_FindByName
 		Utils::Hook(0x487240, Menus::FindMenuByName, HOOK_JUMP).Install()->Quick();

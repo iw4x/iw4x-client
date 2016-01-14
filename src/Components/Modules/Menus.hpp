@@ -49,7 +49,11 @@ namespace Components
 		static Game::menuDef_t* FindMenuByName(Game::UiContext* dc, const char* name);
 		static void RemoveFromStack(Game::UiContext *dc, Game::menuDef_t *menu);
 
+		static bool IsMenuAllowed(Game::UiContext *dc, Game::menuDef_t *menu);
 		static bool IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu);
+
+		static void OpenMenuStub();
+		static void CloseMenuStub();
 
 		// Ugly!
 		static int KeywordHash(char* key);
