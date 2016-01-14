@@ -610,14 +610,11 @@ namespace Components
 			auto newMenus = Menus::LoadMenu(name);
 			if (newMenus.size()) newMenu = newMenus[0];
 
-			OutputDebugString(Utils::VA("Reloaded: %s", name.data()));
-
 			// Now replace the destroyed menu with the new one in the stack
 			for (int i = 0; i < dc->menuCount; i++)
 			{
 				if (dc->Menus[i] == menu)
 				{
-					OutputDebugString(Utils::VA("Replaced: %s", name.data()));
 					dc->Menus[i] = newMenu;
 				}
 			}
@@ -727,7 +724,7 @@ namespace Components
 		Utils::Hook(0x487240, Menus::FindMenuByName, HOOK_JUMP).Install()->Quick();
 
 		// Load menus ingame
-		Utils::Hook(0x41C178, Menus::AddMenuListHook, HOOK_CALL).Install()->Quick();
+		//Utils::Hook(0x41C178, Menus::AddMenuListHook, HOOK_CALL).Install()->Quick();
 
 		// disable the 2 new tokens in ItemParse_rect
 		Utils::Hook::Set<BYTE>(0x640693, 0xEB);
