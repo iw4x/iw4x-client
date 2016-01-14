@@ -495,6 +495,8 @@ namespace Components
 
 	void Menus::AddMenuListHook(Game::UiContext *dc, Game::MenuList *menuList, int close)
 	{
+		Menus::ReloadStack(dc);
+
 		Game::MenuList* menus = Game::UI_LoadMenus("ui_mp/menus.txt", 3);
 
 		Game::UI_AddMenuList(dc, menus, close);
@@ -581,6 +583,67 @@ namespace Components
 		}
 	}
 
+	bool Menus::ReloadMenu(Game::UiContext *dc, Game::menuDef_t *menu)
+	{
+		// Find the name of our destroyed menu
+		std::string name;
+		auto i = Menus::MenuList.begin();
+		for (; i != Menus::MenuList.end(); i++)
+		{
+			if (i->second == menu)
+			{
+				name = i->first;
+				break;
+			}
+		}
+
+		// We have found it, so we can remove and reload it
+		if (i != Menus::MenuList.end())
+		{
+			Menus::FreeMenu(menu);
+			Menus::MenuList.erase(i);
+
+			// Load original menu, in case we can't reload a custom one
+			Game::menuDef_t* newMenu = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, name.data()).menu;
+
+			// Try reloading our custom menu
+			auto newMenus = Menus::LoadMenu(name);
+			if (newMenus.size()) newMenu = newMenus[0];
+
+			OutputDebugString(Utils::VA("Reloaded: %s", name.data()));
+
+			// Now replace the destroyed menu with the new one in the stack
+			for (int i = 0; i < dc->menuCount; i++)
+			{
+				if (dc->Menus[i] == menu)
+				{
+					OutputDebugString(Utils::VA("Replaced: %s", name.data()));
+					dc->Menus[i] = newMenu;
+				}
+			}
+
+			return true;
+		}
+		else
+		{
+			Menus::RemoveFromStack(dc, menu);
+		}
+
+		return false;
+	}
+
+	void Menus::ReloadStack(Game::UiContext *dc)
+	{
+		for (int i = 0; i < dc->menuCount; i++)
+		{
+			Game::menuDef_t* menu = dc->Menus[i];
+			if (menu && menu->window.name && IsBadReadPtr(menu->window.name, 1)) // Sanity checks
+			{
+				Menus::ReloadMenu(dc, menu);
+			}
+		}
+	}
+
 	Game::menuDef_t* Menus::FindMenuByName(Game::UiContext* dc, const char* name)
 	{
 		for (int i = 0; i < dc->menuCount; i++)
@@ -595,7 +658,7 @@ namespace Components
 			}
 			else
 			{
-				// TODO: Remove menu from stack and free if custom menu
+				Menus::ReloadMenu(dc, menu);
 			}
 		}
 
@@ -623,7 +686,7 @@ namespace Components
 			return true;
 		}
 
-		Menus::RemoveFromStack(dc, menu);
+		Menus::ReloadMenu(dc, menu);
 		return false;
 	}
 

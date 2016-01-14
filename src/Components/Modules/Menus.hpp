@@ -55,6 +55,9 @@ namespace Components
 		static void OpenMenuStub();
 		static void CloseMenuStub();
 
+		static void ReloadStack(Game::UiContext *dc);
+		static bool ReloadMenu(Game::UiContext *dc, Game::menuDef_t *menu);
+
 		// Ugly!
 		static int KeywordHash(char* key);
 	};
