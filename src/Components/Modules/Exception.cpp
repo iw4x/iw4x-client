@@ -54,7 +54,7 @@ namespace Components
 		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
 #endif
 
-		Command::Add("stressTest", [] (Command::Params params)
+		Command::Add("mapTest", [] (Command::Params params)
 		{
 			std::string command;
 			for (int i = 0;; i++)
