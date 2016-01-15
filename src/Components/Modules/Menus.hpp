@@ -1,4 +1,5 @@
 #define MAX_SOURCEFILES	64
+#undef LoadMenu
 
 namespace Components
 {
@@ -32,7 +33,7 @@ namespace Components
 		static int ReserveSourceHandle();
 		static bool IsValidSourceHandle(int handle);
 
-		static Game::menuDef_t* ParseMenu(int handle);
+		static Game::menuDef_t* ParseMenu(std::string name, int handle);
 
 		static void FreeMenuSource(int handle);
 
@@ -44,19 +45,12 @@ namespace Components
 		static void RemoveMenuList(std::string menuList);
 		static void RemoveMenuList(Game::MenuList* menuList);
 
-		static void AddMenuListHook(Game::UiContext *dc, Game::MenuList *menuList, int close);
-
-		static Game::menuDef_t* FindMenuByName(Game::UiContext* dc, const char* name);
-		static void RemoveFromStack(Game::UiContext *dc, Game::menuDef_t *menu);
-
-		static bool IsMenuAllowed(Game::UiContext *dc, Game::menuDef_t *menu);
 		static bool IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu);
 
-		static void OpenMenuStub();
-		static void CloseMenuStub();
+		static void RemoveMenuFromContext(Game::UiContext *dc, Game::menuDef_t *menu);
 
-		static void ReloadStack(Game::UiContext *dc);
-		static bool ReloadMenu(Game::UiContext *dc, Game::menuDef_t *menu);
+		static void ReinitializeMenusStub();
+		static void RefreshMenus();
 
 		// Ugly!
 		static int KeywordHash(char* key);

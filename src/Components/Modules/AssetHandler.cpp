@@ -185,9 +185,11 @@ namespace Components
 	{
 		Game::XAssetHeader header = { 0 };
 
+		bool OriginalState = AssetHandler::BypassState;
+
 		AssetHandler::BypassState = true;
 		header = Game::DB_FindXAssetHeader(type, filename);
-		AssetHandler::BypassState = false;
+		if(!OriginalState) AssetHandler::BypassState = false;
 
 		return header;
 	}

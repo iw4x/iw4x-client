@@ -148,6 +148,9 @@ namespace Game
 	typedef int(__cdecl * Menus_OpenByName_t)(UiContext *dc, const char *p);
 	extern Menus_OpenByName_t Menus_OpenByName;
 
+	typedef menuDef_t *(__cdecl * Menus_FindByName_t)(UiContext *dc, const char *name);
+	extern Menus_FindByName_t Menus_FindByName;
+
 	typedef bool(__cdecl * Menu_IsVisible_t)(UiContext *dc, menuDef_t *menu);
 	extern Menu_IsVisible_t Menu_IsVisible;
 

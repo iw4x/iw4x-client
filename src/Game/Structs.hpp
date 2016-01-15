@@ -881,7 +881,7 @@ namespace Game
 // 		float FPS;
 // 		float blurRadiusOut;
 		char pad[56];
-		menuDef_t *Menus[512];
+		menuDef_t *menus[512];
 		char pad2[512];
 		int menuCount;
 		// Unsure if below is correct
