@@ -33,7 +33,7 @@ namespace Components
 		static int ReserveSourceHandle();
 		static bool IsValidSourceHandle(int handle);
 
-		static Game::menuDef_t* ParseMenu(std::string name, int handle);
+		static Game::menuDef_t* ParseMenu(int handle);
 
 		static void FreeMenuSource(int handle);
 
@@ -48,9 +48,6 @@ namespace Components
 		static bool IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu);
 
 		static void RemoveMenuFromContext(Game::UiContext *dc, Game::menuDef_t *menu);
-
-		static void ReinitializeMenusStub();
-		static void RefreshMenus();
 
 		// Ugly!
 		static int KeywordHash(char* key);

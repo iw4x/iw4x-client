@@ -113,7 +113,7 @@ namespace Components
 		return var;
 	}
 
-	Game::menuDef_t* Menus::ParseMenu(std::string name, int handle)
+	Game::menuDef_t* Menus::ParseMenu(int handle)
 	{
 		Game::menuDef_t* menu = Utils::Memory::AllocateArray<Game::menuDef_t>(1);
 		if (!menu) return nullptr;
@@ -167,8 +167,8 @@ namespace Components
 			}
 		}
 
-		Menus::RemoveMenu(name);
-		Menus::MenuList[name] = menu;
+		Menus::RemoveMenu(menu->window.name);
+		Menus::MenuList[menu->window.name] = menu;
 
 		return menu;
 	}
@@ -206,10 +206,7 @@ namespace Components
 
 					if (!_stricmp(token.string, "menudef"))
 					{
-						std::string name = menu;
-						if (menus.size()) name += Utils::VA("_%d", menus.size()); // Append its id inside the menufile, to keep track of it for later reloading
-
-						Game::menuDef_t* menudef = Menus::ParseMenu(name, handle);
+						Game::menuDef_t* menudef = Menus::ParseMenu(handle);
 						if (menudef) menus.push_back(menudef);
 					}
 				}
@@ -471,8 +468,18 @@ namespace Components
 		Game::MenuList* menuList = Game::DB_FindXAssetHeader(type, filename).menuList;
 		header.menuList = menuList;
 
-		// Free the last menulist, as we have to rebuild it with the new menus
-		Menus::RemoveMenuList(filename);
+		// Free the last menulist and ui context, as we have to rebuild it with the new menus
+		if (Menus::MenuListList.find(filename) != Menus::MenuListList.end())
+		{
+			Game::MenuList* list = Menus::MenuListList[filename];
+
+			for (int i = 0; list && list->menus && i < list->menuCount; i++)
+			{
+				Menus::RemoveMenuFromContext(Game::uiContext, list->menus[i]);
+			}
+
+			Menus::RemoveMenuList(filename);
+		}
 		
 		if (menuList)
 		{
@@ -499,112 +506,6 @@ namespace Components
 		return header;
 	}
 
-	void Menus::RefreshMenus()
-	{
-// 		std::map<std::string, Game::menuDef_t*> BrokenMenuList = Menus::MenuList;
-// 		std::map<Game::menuDef_t*, Game::menuDef_t*> RemappedMenus;
-// 
-// 		if (!BrokenMenuList.size()) return;
-// 
-// 		for (auto &i = BrokenMenuList.begin(); i != BrokenMenuList.end(); i++)
-// 		{
-// 			Menus::RemoveMenu(i->second);
-// 			auto menus = Menus::LoadMenu(i->first.data());
-// 
-// 			if (!menus.size())
-// 			{
-// 				RemappedMenus[i->second] = nullptr; // Remap old menu to NULL, this might initially have been a menu inside a menu
-// 			}
-// 			else
-// 			{
-// 				RemappedMenus[i->second] = menus[0]; // Remap old menu to new menu
-// 			}
-// 		}
-// 
-// 		// Correct map for menus inside menus ;)
-// 		for (auto &i = RemappedMenus.begin(); i != RemappedMenus.end(); i++)
-// 		{
-// 			if (!i->second) // Menu is NULL, that means it was probably stored inside another one
-// 			{
-// 				// Find its name first
-// 				std::string name;
-// 				for (auto j = BrokenMenuList.begin(); j != BrokenMenuList.end(); j++)
-// 				{
-// 					if (i->first == j->second)
-// 					{
-// 						name = j->first;
-// 						break;
-// 					}
-// 				}
-// 
-// 				// Unable to find the name
-// 				// It's actually not possible that this happens!
-// 				if (!name.size()) break;
-// 
-// 				// Now find the new by its name
-// 				for (auto j = Menus::MenuList.begin(); j != Menus::MenuList.end(); j++)
-// 				{
-// 					// We have found it, insert it into the map
-// 					if (j->first == name) 
-// 					{
-// 						i->second = j->second;
-// 						break;
-// 					}
-// 				}
-// 
-// 				// No corresponding menu has been found, try loading the original one
-// 				if (!i->second)
-// 				{
-// 					i->second = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, name.data()).menu;
-// 				}
-// 			}
-// 		}
-// 
-// 		// Replace the menus in the ui context
-// 		for (int i = 0; i < Game::uiContext->menuCount; i++)
-// 		{
-// 			auto mapEntry = RemappedMenus.find(Game::uiContext->menus[i]);
-// 
-// 			if (mapEntry != RemappedMenus.end())
-// 			{
-// 				Game::uiContext->menus[i] = mapEntry->second;
-// 			}
-// 		}
-// 
-// 		// Replace menus in our menulist list :P
-// 		for (auto &i = Menus::MenuListList.begin(); i != Menus::MenuListList.end(); i++)
-// 		{
-// 			Game::MenuList* list = i->second;
-// 
-// 			if (list && list->menus)
-// 			{
-// 				for (int j = 0; j < list->menuCount; j++)
-// 				{
-// 					auto mapEntry = RemappedMenus.find(list->menus[j]);
-// 
-// 					if (mapEntry != RemappedMenus.end())
-// 					{
-// 						list->menus[j] = mapEntry->second;
-// 					}
-// 				}
-// 			}
-// 		}
-
-		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end();i++)
-		{
-			Menus::RemoveMenuFromContext(Game::uiContext, i->second);
-		}
-
-		Menus::FreeEverything();
-	}
-
-	void Menus::ReinitializeMenusStub()
-	{
-		Menus::RefreshMenus();
-
-		Utils::Hook::Call<void()>(0x401700)();
-	}
-
 	bool Menus::IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu)
 	{
 		std::string _connect = "connect";
@@ -617,13 +518,9 @@ namespace Components
 
 				if (originalConnect == menu) // Check if we draw the original loadscreen
 				{
-					//if (Menus::MenuList.find("connect") != Menus::MenuList.end()) // Check if we have a custom loadscreen, to prevent drawing the original one ontop
-					for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end();i++)
+					if (Menus::MenuList.find("connect") != Menus::MenuList.end()) // Check if we have a custom loadscreen, to prevent drawing the original one ontop
 					{
-						if (i->second && i->second->window.name && i->second->window.name == _connect) // We have a custom connect menu, don't display the game's
-						{
-							return false;
-						}
+						return false;
 					}
 				}
 			}
@@ -678,9 +575,6 @@ namespace Components
 
 		// Intercept menu painting
 		Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).Install()->Quick();
-
-		// Reinitialize ui
-		Utils::Hook(0x4A58C3, Menus::ReinitializeMenusStub, HOOK_CALL).Install()->Quick();
 
 		// disable the 2 new tokens in ItemParse_rect
 		Utils::Hook::Set<BYTE>(0x640693, 0xEB);
