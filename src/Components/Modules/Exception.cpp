@@ -49,7 +49,25 @@ namespace Components
 
 	Exception::Exception()
 	{
+#ifndef DEBUG
 		Utils::Hook::Set(0x6D70AC, Exception::SetUnhandledExceptionFilterStub);
 		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
+#endif
+
+		Command::Add("stressTest", [] (Command::Params params)
+		{
+			std::string command;
+			for (int i = 0;; i++)
+			{
+				char* mapname = (char*)0x7471D0 + 40 * i;
+				if (!*mapname) break;
+
+				if(i % 2) command.append(Utils::VA("wait 500;disconnect;wait 500;", mapname)); // Test a disconnect
+				else command.append(Utils::VA("wait 500;", mapname));                          // Test direct map switch
+				command.append(Utils::VA("map %s;", mapname));
+			}
+
+			Command::Execute(command, false);
+		});
 	}
 }

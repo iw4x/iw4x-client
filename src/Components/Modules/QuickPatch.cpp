@@ -139,6 +139,33 @@ namespace Components
 		Utils::Hook::Nop(0x4AA89F, 2);
 		Utils::Hook::Nop(0x4AA8A1, 6);
 
+		// remove activeAction execution (exploit in mods)
+		Utils::Hook::Set<BYTE>(0x5A1D43, 0xEB);
+
+		// disable bind protection
+		Utils::Hook::Set<BYTE>(0x4DACA2, 0xEB);
+
+		// require Windows 5
+		Utils::Hook::Set<BYTE>(0x467ADF, 5);
+		Utils::Hook::Set<char>(0x6DF5D6, '5');
+
+		// disable 'ignoring asset' notices
+		Utils::Hook::Nop(0x5BB902, 5);
+
+		// disable migration_dvarErrors
+		Utils::Hook::Set<BYTE>(0x60BDA7, 0);
+
+		// allow joining 'developer 1' servers
+		Utils::Hook::Set<BYTE>(0x478BA2, 0xEB);
+
+		// fs_game fixes
+		Utils::Hook::Nop(0x4A5D74, 2); // remove fs_game profiles
+		Utils::Hook::Set<BYTE>(0x4081FD, 0xEB); // defaultweapon
+
+		// Filter log (initially com_logFilter, but I don't see why that dvar is needed)
+		Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
+		Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
+
 		// intro stuff
 		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
 		Utils::Hook::Set<char*>(0x60BED2, "unskippablecinematic IW_logo\n");

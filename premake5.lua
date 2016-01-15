@@ -51,7 +51,7 @@ workspace "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
-	configurations { "Normal", "Debug", "DebugStatic", "Release", "ReleaseStatic" }
+	configurations { "Debug", "DebugStatic", "Release", "ReleaseStatic" }
 
 	-- VS 2015 toolset only
 	toolset "msc-140"
@@ -78,9 +78,6 @@ workspace "iw4x"
 		files { "./src/**.hpp", "./src/**.cpp" }
 		includedirs { "%{prj.location}", "./src" }
 		architecture "x32"
-		configmap {
-			["Normal"] = "Debug"
-		}
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives

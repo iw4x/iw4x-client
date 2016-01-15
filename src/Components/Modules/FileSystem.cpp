@@ -90,5 +90,8 @@ namespace Components
 
 		// ignore 'no iwd files found in main'
 		Utils::Hook::Nop(0x642A4B, 5);
+
+		// Ignore bad magic, when trying to free hunk when it's already cleared
+		Utils::Hook::Set<WORD>(0x49AACE, 0xC35E);
 	}
 }
