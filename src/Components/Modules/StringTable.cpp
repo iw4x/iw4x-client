@@ -86,6 +86,9 @@ namespace Components
 
 	StringTable::~StringTable()
 	{
+		// Disable StringTable loading until our StructuredData handler is finished!
+		return;
+
 		for (auto i = StringTable::StringTableMap.begin(); i != StringTable::StringTableMap.end(); i++)
 		{
 			Game::StringTable* table = i->second;
