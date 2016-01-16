@@ -20,7 +20,7 @@ namespace Components
 		static std::vector<std::string> CustomMenus;
 
 		static Game::XAssetHeader MenuLoad(Game::XAssetType type, const char* filename);
-		static Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, const char* filename);
+		static Game::XAssetHeader MenuFileLoad(Game::XAssetType type, const char* filename);
 
 		static Game::MenuList* LoadMenuList(Game::MenuList* menuList);
 		static Game::MenuList* LoadScriptMenu(const char* menu);
@@ -44,6 +44,8 @@ namespace Components
 		static void RemoveMenu(Game::menuDef_t* menudef);
 		static void RemoveMenuList(std::string menuList);
 		static void RemoveMenuList(Game::MenuList* menuList);
+
+		static void OverrideMenu(Game::menuDef_t *menu);
 
 		static bool IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu);
 

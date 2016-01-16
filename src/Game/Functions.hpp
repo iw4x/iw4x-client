@@ -57,14 +57,14 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_RegisterFloat_t)(const char* name, float default, float min, float max, int flags, const char* description);
 	extern Dvar_RegisterFloat_t Dvar_RegisterFloat;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterFloat2_t)(const char* name, float defx, float defy, float min, float max, int flags, const char* description);
-	extern Dvar_RegisterFloat2_t Dvar_RegisterFloat2;
+	typedef dvar_t* (__cdecl * Dvar_RegisterVec2_t)(const char* name, float defx, float defy, float min, float max, int flags, const char* description);
+	extern Dvar_RegisterVec2_t Dvar_RegisterVec2;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterFloat3_t)(const char* name, float defx, float defy, float defz, float min, float max, int flags, const char* description);
-	extern Dvar_RegisterFloat3_t Dvar_RegisterFloat3;
+	typedef dvar_t* (__cdecl * Dvar_RegisterVec3_t)(const char* name, float defx, float defy, float defz, float min, float max, int flags, const char* description);
+	extern Dvar_RegisterVec3_t Dvar_RegisterVec3;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterFloat4_t)(const char* name, float defx, float defy, float defz, float defw, float min, float max, int flags, const char* description);
-	extern Dvar_RegisterFloat4_t Dvar_RegisterFloat4;
+	typedef dvar_t* (__cdecl * Dvar_RegisterVec4_t)(const char* name, float defx, float defy, float defz, float defw, float min, float max, int flags, const char* description);
+	extern Dvar_RegisterVec4_t Dvar_RegisterVec4;
 
 	typedef dvar_t* (__cdecl * Dvar_RegisterInt_t)(const char* name, int default, int min, int max, int flags, const char* description);
 	extern Dvar_RegisterInt_t Dvar_RegisterInt;

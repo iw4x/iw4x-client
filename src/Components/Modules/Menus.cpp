@@ -167,6 +167,7 @@ namespace Components
 			}
 		}
 
+		Menus::OverrideMenu(menu);
 		Menus::RemoveMenu(menu->window.name);
 		Menus::MenuList[menu->window.name] = menu;
 
@@ -224,7 +225,17 @@ namespace Components
 
 		if (!menus.size())
 		{
-			menus.push_back(menudef);
+			// Try loading the original menu, if we can't load our custom one
+			Game::menuDef_t* originalMenu = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, menudef->window.name).menu;
+
+			if (originalMenu)
+			{
+				menus.push_back(originalMenu);
+			}
+			else
+			{
+				menus.push_back(menudef);
+			}
 		}
 
 		return menus;
@@ -285,7 +296,8 @@ namespace Components
 		Game::MenuList* newList = Utils::Memory::AllocateArray<Game::MenuList>(1);
 		if (!newList) return menuList;
 
-		newList->menus = Utils::Memory::AllocateArray<Game::menuDef_t*>(menus.size());
+		size_t size = menus.size();
+		newList->menus = Utils::Memory::AllocateArray<Game::menuDef_t*>(size);
 		if (!newList->menus)
 		{
 			Utils::Memory::Free(newList);
@@ -293,10 +305,10 @@ namespace Components
 		}
 
 		newList->name = Utils::Memory::DuplicateString(menuList->name);
-		newList->menuCount = menus.size();
+		newList->menuCount = size;
 
 		// Copy new menus
-		memcpy(newList->menus, menus.data(), menus.size() * sizeof(Game::menuDef_t *));
+		memcpy(newList->menus, menus.data(), size * sizeof(Game::menuDef_t *));
 
 		Menus::RemoveMenuList(newList->name);
 		Menus::MenuListList[newList->name] = newList;
@@ -433,6 +445,52 @@ namespace Components
 		}
 	}
 
+	// This is actually a really important function
+	// It checks if we have already loaded the menu we passed and replaces its instances in memory
+	// Due to deallocating the old menu, the game might crash on not being able to handle its old instance
+	// So we need to override it in our menu lists and the game's ui context
+	// EDIT: We might also remove the old instances inside RemoveMenu
+	// EDIT2: Removing old instances without having a menu to replace them with might leave a nullptr
+	void Menus::OverrideMenu(Game::menuDef_t *menu)
+	{
+		if (!menu || !menu->window.name) return;
+		std::string name = menu->window.name;
+
+		// Find the old menu
+		auto i = Menus::MenuList.find(name);
+		if (i != Menus::MenuList.end())
+		{
+			// We have found it, *yay*
+			Game::menuDef_t* oldMenu = i->second;
+
+			// Replace every old instance with our new one in the ui context
+			for (int i = 0; i < Game::uiContext->menuCount; i++)
+			{
+				if (Game::uiContext->menus[i] == oldMenu)
+				{
+					Game::uiContext->menus[i] = menu;
+				}
+			}
+
+			// Replace every old instance with our new one in our menu lists
+			for (auto i = Menus::MenuListList.begin(); i != Menus::MenuListList.end(); i++)
+			{
+				Game::MenuList* list = i->second;
+
+				if (list && list->menus)
+				{
+					for (int i = 0; i < list->menuCount; i++)
+					{
+						if (list->menus[i] == oldMenu)
+						{
+							list->menus[i] = menu;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	void Menus::RemoveMenuList(Game::MenuList* menuList)
 	{
 		if (!menuList || !menuList->name) return;
@@ -503,6 +561,13 @@ namespace Components
 			}
 		}
 
+		for (int i = 0; i < header.menuList->menuCount; i++)
+		{
+			OutputDebugString(Utils::VA("Menu: %d\t%X\t%s",i + Game::uiContext->menuCount, header.menuList->menus[i], header.menuList->menus[i]->window.name));
+		}
+
+		OutputDebugString(Utils::VA("Loaded menus: %d", header.menuList->menuCount));
+
 		return header;
 	}
 
@@ -570,6 +635,29 @@ namespace Components
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, Menus::MenuLoad);
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
 
+		// Reinitialize ui
+		Utils::Hook(0x4BA5C8, static_cast<void(*)(Game::UiContext*, Game::menuDef_t*)>([] (Game::UiContext* context, Game::menuDef_t* menu)
+		{
+			if (menu->window.name == (char*)0xDDDDDDDD)
+			{
+				OutputDebugString("Going to crash!");
+				for (int i = 0; i < context->menuCount; i++)
+				{
+					if(menu == context->menus[i]) OutputDebugString(Utils::VA("Menu crash: %d %X", i, menu));
+				}
+
+				//return;
+			}
+			static bool displayed = false;
+			if (!displayed)
+			{
+				displayed = true;
+				OutputDebugString(Utils::VA("Current menus: %d", context->menuCount));
+			}
+
+			Utils::Hook::Call<void(Game::UiContext*, Game::menuDef_t*)>(0x430D50)(context, menu);
+		}), HOOK_CALL).Install()->Quick();
+
 		// Don't open connect menu
 		Utils::Hook::Nop(0x428E48, 5);
 
@@ -612,7 +700,7 @@ namespace Components
 			else
 			{
 				// Reinitialize ui context
-				((void(*)())0x401700)();
+				Utils::Hook::Call<void()>(0x401700)();
 
 				// Reopen main menu
 				Game::Menus_OpenByName(Game::uiContext, "main_text");

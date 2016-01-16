@@ -1,7 +1,11 @@
 #define PROTOCOL 0x92
 
+// This allows us to compile our structures in IDA, for easier reversing :3
+#ifdef __cplusplus
 namespace Game
 {
+#endif
+
 	typedef enum
 	{
 		ASSET_TYPE_PHYSPRESET = 0,
@@ -115,7 +119,7 @@ namespace Game
 		char			pad2[3]; //13:15
 		dvar_value_t	current; //16:31
 		dvar_value_t	latched; //32:47
-		dvar_value_t	default; //48:64
+		dvar_value_t	_default; //48:64
 		dvar_maxmin_t min; //65:67
 		dvar_maxmin_t max; //68:72 woooo
 	} dvar_t;
@@ -270,7 +274,7 @@ namespace Game
 
 	union entryInternalData
 	{
-		operationEnum op;
+		//operationEnum op;
 		Operand operand;
 	};
 
@@ -1079,7 +1083,7 @@ namespace Game
 		unsigned __int16 usageFrame;
 	};
 
-	enum XFileLanguage : uint8_t
+	enum XFileLanguage : unsigned char
 	{
 		XLANG_NONE = 0x00,
 		XLANG_ENGLISH = 0x01,
@@ -1102,8 +1106,8 @@ namespace Game
 #pragma pack(push, 1)
 	struct  XFileHeader
 	{
-		uint64_t magic;
-		uint32_t version;
+		unsigned __int64 magic;
+		unsigned int version;
 		XFileLanguage language;
 		DWORD highDateTime;
 		DWORD lowDateTime;
@@ -1145,7 +1149,7 @@ namespace Game
 	{
 		ScriptStringList stringList;
 		int assetCount;
-		Game::XAsset *assets;
+		XAsset *assets;
 	};
 
 	struct ZoneHeader
@@ -1204,4 +1208,7 @@ namespace Game
 	{
 		DWORD unk;
 	} PartyData_t;
+	
+#ifdef __cplusplus
 }
+#endif
