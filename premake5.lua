@@ -84,8 +84,8 @@ workspace "iw4x"
 		pchsource "src/STDInclude.cpp" -- real path
 
 		-- Dependency on zlib, json11 and asio
-		links { "zlib", "json11" }
-		includedirs { "./deps/zlib", "./deps/json11", "./deps/asio/asio/include"  }
+		links { "zlib", "json11", "pdcurses" }
+		includedirs { "./deps/zlib", "./deps/json11", "./deps/pdcurses", "./deps/asio/asio/include"  }
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
@@ -158,4 +158,21 @@ workspace "iw4x"
 			warnings "Off"
 
 			-- always build as static lib, as json11 doesn't export anything
+			kind "StaticLib"
+			
+			
+		-- pdcurses
+		project "pdcurses"
+			language "C++"
+			includedirs { "./deps/pdcurses/"  }
+
+			files
+			{
+				"./deps/pdcurses/pdcurses/*.c"
+			}
+
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			-- always build as static lib, as pdcurses doesn't export anything
 			kind "StaticLib"

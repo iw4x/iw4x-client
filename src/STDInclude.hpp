@@ -29,11 +29,17 @@
 #include <future>
 
 // Submodules
+#pragma warning(push)
+#pragma warning(disable: 4005)
+
 #define ZLIB_CONST
 #define ASIO_STANDALONE
 #include <zlib.h>
+#include <curses.h>
 //#include <asio.hpp>
 #include <json11.hpp>
+
+#pragma warning(pop)
 
 // Version number
 #include <version.hpp>
