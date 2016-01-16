@@ -67,6 +67,9 @@ namespace Components
 
 	StringTable::StringTable()
 	{
+		// Disable StringTable loading until our StructuredData handler is finished!
+		return;
+
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [] (Game::XAssetType, const char* filename)
 		{
 			Game::XAssetHeader header = { 0 };
@@ -86,9 +89,6 @@ namespace Components
 
 	StringTable::~StringTable()
 	{
-		// Disable StringTable loading until our StructuredData handler is finished!
-		return;
-
 		for (auto i = StringTable::StringTableMap.begin(); i != StringTable::StringTableMap.end(); i++)
 		{
 			Game::StringTable* table = i->second;
