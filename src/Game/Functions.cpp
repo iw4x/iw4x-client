@@ -111,6 +111,7 @@ namespace Game
 	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x505670;
 	R_AddCmdDrawText_t R_AddCmdDrawText = (R_AddCmdDrawText_t)0x509D80;
 	R_TextWidth_t R_TextWidth = (R_TextWidth_t)0x5056C0;
+	R_TextHeight_t R_TextHeight = (R_TextHeight_t)0x505770;
 
 	Script_Alloc_t Script_Alloc = (Script_Alloc_t)0x422E70;
 	Script_SetupTokens_t Script_SetupTokens = (Script_SetupTokens_t)0x4E6950;

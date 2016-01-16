@@ -265,8 +265,11 @@ namespace Game
 	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, void* material);
 	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;
 
-	typedef int(__cdecl * R_TextWidth_t)(const char* text, int maxlength, void* font);
+	typedef int(__cdecl * R_TextWidth_t)(const char* text, int maxlength, Font_s* font);
 	extern R_TextWidth_t R_TextWidth;
+
+	typedef int(__cdecl * R_TextHeight_t)(Font_s* font);
+	extern R_TextHeight_t R_TextHeight;
 
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
