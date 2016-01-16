@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+﻿#include "STDInclude.hpp"
 
 namespace Components
 {
@@ -22,6 +22,60 @@ namespace Components
 
 	Console::Console()
 	{
+// 		if (!Dedicated::IsDedicated())
+// 		{
+// 			FreeConsole();
+// 			return;
+// 		}
+// 
+// 		initscr();
+// 		raw();
+// 		noecho();
+// 
+// 		// patch functions
+// #define WIDTH 80
+// #define HEIGHT 25
+// #define OUTPUT_HEIGHT 250
+// #define OUTPUT_MAX_TOP (OUTPUT_HEIGHT - (HEIGHT - 2))
+// 
+// 		WINDOW* outputWindow = newpad(OUTPUT_HEIGHT, WIDTH);
+// 		WINDOW* inputWindow = newwin(1, WIDTH, HEIGHT - 1, 0);
+// 		WINDOW* infoWindow = newwin(1, WIDTH, 0, 0);
+// 
+// 		scrollok(outputWindow, true);
+// 		scrollok(inputWindow, true);
+// 		nodelay(inputWindow, true);
+// 		keypad(inputWindow, true);
+// 
+// 		if (has_colors())
+// 		{
+// 			start_color();
+// 			init_pair(1, COLOR_BLACK, COLOR_WHITE);
+// 			init_pair(2, COLOR_WHITE, COLOR_BLACK);
+// 			init_pair(3, COLOR_RED, COLOR_BLACK);
+// 			init_pair(4, COLOR_GREEN, COLOR_BLACK);
+// 			init_pair(5, COLOR_YELLOW, COLOR_BLACK);
+// 			init_pair(6, COLOR_BLUE, COLOR_BLACK);
+// 			init_pair(7, COLOR_CYAN, COLOR_BLACK);
+// 			init_pair(8, COLOR_RED, COLOR_BLACK);
+// 			init_pair(9, COLOR_WHITE, COLOR_BLACK);
+// 			init_pair(10, COLOR_WHITE, COLOR_BLACK);
+// 			//init_pair(2, COLOR_WHITE, COLOR_BLACK);
+// 		}
+// 
+// 		wbkgd(infoWindow, COLOR_PAIR(1));
+// 
+// 		wrefresh(infoWindow);
+// 		//wrefresh(outputWindow);
+// 		wrefresh(inputWindow);
+// 
+// 		//prefresh(outputWindow, (currentOutputTop >= 1) ? currentOutputTop - 1 : 0, 0, 1, 0, HEIGHT - 2, WIDTH);
+// 
+// 		waddch(outputWindow, 'g');
+// 		waddch(outputWindow, 'i');
+// 
+// 		prefresh(outputWindow, 0, 0, 1, 0, HEIGHT - 2, WIDTH);
+
 		// External console
 		if (Flags::HasFlag("console") || Dedicated::IsDedicated() || ZoneBuilder::IsEnabled())
 		{

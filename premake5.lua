@@ -168,7 +168,8 @@ workspace "iw4x"
 
 			files
 			{
-				"./deps/pdcurses/pdcurses/*.c"
+				"./deps/pdcurses/pdcurses/*.c",
+				"./deps/pdcurses/win32/*.c"
 			}
 
 			-- not our code, ignore POSIX usage warnings for now
