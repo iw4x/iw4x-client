@@ -561,13 +561,6 @@ namespace Components
 			}
 		}
 
-		for (int i = 0; i < header.menuList->menuCount; i++)
-		{
-			OutputDebugString(Utils::VA("Menu: %d\t%X\t%s",i + Game::uiContext->menuCount, header.menuList->menus[i], header.menuList->menus[i]->window.name));
-		}
-
-		OutputDebugString(Utils::VA("Loaded menus: %d", header.menuList->menuCount));
-
 		return header;
 	}
 
@@ -634,29 +627,6 @@ namespace Components
 		// Intercept asset finding
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, Menus::MenuLoad);
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
-
-		// Reinitialize ui
-		Utils::Hook(0x4BA5C8, static_cast<void(*)(Game::UiContext*, Game::menuDef_t*)>([] (Game::UiContext* context, Game::menuDef_t* menu)
-		{
-			if (menu->window.name == (char*)0xDDDDDDDD)
-			{
-				OutputDebugString("Going to crash!");
-				for (int i = 0; i < context->menuCount; i++)
-				{
-					if(menu == context->menus[i]) OutputDebugString(Utils::VA("Menu crash: %d %X", i, menu));
-				}
-
-				//return;
-			}
-			static bool displayed = false;
-			if (!displayed)
-			{
-				displayed = true;
-				OutputDebugString(Utils::VA("Current menus: %d", context->menuCount));
-			}
-
-			Utils::Hook::Call<void(Game::UiContext*, Game::menuDef_t*)>(0x430D50)(context, menu);
-		}), HOOK_CALL).Install()->Quick();
 
 		// Don't open connect menu
 		Utils::Hook::Nop(0x428E48, 5);
