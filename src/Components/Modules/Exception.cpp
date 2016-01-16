@@ -65,14 +65,25 @@ namespace Components
 		Command::Add("mapTest", [] (Command::Params params)
 		{
 			std::string command;
-			for (int i = 0;; i++)
+
+			int max = (params.Length() >= 2 ? atoi(params[1]) : 16), current = 0;
+
+			for (int i =0;;)
 			{
 				char* mapname = (char*)0x7471D0 + 40 * i;
-				if (!*mapname) break;
+				if (!*mapname)
+				{
+					i = 0;
+					continue;
+				}
 
-				if(i % 2) command.append(Utils::VA("wait 500;disconnect;wait 500;", mapname)); // Test a disconnect
-				else command.append(Utils::VA("wait 500;", mapname));                          // Test direct map switch
+				if(!(i % 2)) command.append(Utils::VA("wait 250;disconnect;wait 750;", mapname)); // Test a disconnect
+				else command.append(Utils::VA("wait 500;", mapname));                            // Test direct map switch
 				command.append(Utils::VA("map %s;", mapname));
+
+				i++, current++;
+
+				if (current >= max) break;
 			}
 
 			Command::Execute(command, false);
