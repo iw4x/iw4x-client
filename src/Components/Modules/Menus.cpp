@@ -451,6 +451,7 @@ namespace Components
 	// So we need to override it in our menu lists and the game's ui context
 	// EDIT: We might also remove the old instances inside RemoveMenu
 	// EDIT2: Removing old instances without having a menu to replace them with might leave a nullptr
+	// EDIT3: Wouldn't it be better to check if the new menu we're trying to load has already been loaded and not was not deallocated and return that one instead of loading a new one?
 	void Menus::OverrideMenu(Game::menuDef_t *menu)
 	{
 		if (!menu || !menu->window.name) return;
