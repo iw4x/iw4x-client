@@ -401,7 +401,7 @@ namespace Components
 
 	bool ZoneBuilder::IsEnabled()
 	{
-		return Flags::HasFlag("zonebuilder");
+		return (Flags::HasFlag("zonebuilder") && !Dedicated::IsDedicated());
 	}
 
 	// TODO: Remove and replace with loadzone command
