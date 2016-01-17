@@ -119,7 +119,7 @@ namespace Components
 
 	Party::Party()
 	{
-		static Game::dvar_t* partyEnable = Dvar::Register<bool>("party_enable", false, Game::dvar_flag::DVAR_FLAG_NONE, "Enable party system").Get<Game::dvar_t*>();
+		static Game::dvar_t* partyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsDedicated(), Game::dvar_flag::DVAR_FLAG_NONE, "Enable party system").Get<Game::dvar_t*>();
 		Dvar::Register<bool>("xblive_privatematch", true, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED, "").Get<Game::dvar_t*>();
 
 		// various changes to SV_DirectConnect-y stuff to allow non-party joinees

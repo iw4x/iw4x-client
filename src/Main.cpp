@@ -7,8 +7,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
-		FreeConsole();
-
 		DWORD oldProtect;
 		VirtualProtect(GetModuleHandle(NULL), 0x6C73000, PAGE_EXECUTE_READWRITE, &oldProtect);
 

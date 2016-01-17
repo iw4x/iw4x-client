@@ -29,14 +29,22 @@
 #include <future>
 
 // Submodules
+// Ignore the warnings, it's no our code!
 #pragma warning(push)
 #pragma warning(disable: 4005)
+#pragma warning(disable: 6001)
+#pragma warning(disable: 6011)
+#pragma warning(disable: 6031)
+#pragma warning(disable: 6255)
+#pragma warning(disable: 6258)
+#pragma warning(disable: 6386)
+#pragma warning(disable: 6387)
 
 #define ZLIB_CONST
 #define ASIO_STANDALONE
 #include <zlib.h>
 #include <curses.h>
-//#include <asio.hpp>
+#include <asio.hpp>
 #include <json11.hpp>
 
 #pragma warning(pop)
