@@ -12,6 +12,20 @@ newoption {
 }
 
 newaction {
+	trigger = "version",
+	description = "Returns the version string for the current commit of the source code.",
+	onWorkspace = function(wks)
+		-- get revision number via git
+		local proc = assert(io.popen("git rev-list --count HEAD", "r"))
+		local revNumber = assert(proc:read('*a')):gsub("%s+", "")
+		proc:close()
+
+		print(revNumber)
+		os.exit(0)
+	end
+}
+
+newaction {
 	trigger = "generate-buildinfo",
 	description = "Sets up build information file like version.h.",
 	onWorkspace = function(wks)
