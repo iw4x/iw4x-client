@@ -91,7 +91,7 @@ workspace "iw4x"
 		language "C++"
 		files { "./src/**.hpp", "./src/**.cpp" }
 		includedirs { "%{prj.location}", "./src" }
-		architecture "x32"
+		architecture "x86"
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
