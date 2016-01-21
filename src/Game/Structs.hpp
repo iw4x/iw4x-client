@@ -6,6 +6,11 @@ namespace Game
 {
 #endif
 
+	typedef float vec_t;
+	typedef vec_t vec2_t[2];
+	typedef vec_t vec3_t[3];
+	typedef vec_t vec4_t[4];
+
 	typedef enum
 	{
 		ASSET_TYPE_PHYSPRESET = 0,
@@ -102,7 +107,7 @@ namespace Game
 		float	vec2[2];
 		float	vec3[3];
 		float	vec4[4];
-		BYTE	color[4]; //to get float: multiply by 0.003921568859368563 - BaberZz
+		unsigned char	color[4]; //to get float: multiply by 0.003921568859368563 - BaberZz
 		//__int64 integer64; only in Tx
 	};
 	union dvar_maxmin_t {
@@ -158,18 +163,160 @@ namespace Game
 		int freeFlags;
 	} XZoneInfo;
 
-
-
-	typedef float vec_t;
-	typedef vec_t vec4_t[4];
 	struct expression_s;
 	struct statement_s;
 	struct menuDef_t;
 	enum operationEnum;
 
+
+	struct GfxImageLoadDef // actually a IDirect3DTexture* but this is easier
+	{
+		char mipLevels;
+		char flags;
+		short dimensions[3];
+		int format; // usually the compression Magic
+		int dataSize; // set to zero to load from IWD
+					  //char * data; 
+	};
+
+	struct GfxImage
+	{
+		GfxImageLoadDef * /*Direct3DTexture9**/ texture;
+		char mapType; // 5 is cube, 4 is 3d, 3 is 2d
+		char semantic;
+		char category;
+		char flags;
+		int cardMemory;
+		int dataLen1;
+		int dataLen2;
+		short height;
+		short width;
+		short depth;
+		bool loaded;
+		char pad;
+		char* name;
+	};
+
+	struct water_t
+	{
+		float floatTime;
+		float *H0X;		// Count = M * N
+		float *H0Y;		// Count = M * N
+		float *wTerm;		// Count = M * N
+		int M;
+		int N;
+		float Lx;
+		float Lz;
+		float gravity;
+		float windvel;
+		float winddir[2];
+		float amplitude;
+		float codeConstant[4];
+		GfxImage *image;
+	};
+
+	union MaterialTextureDefInfo
+	{
+		GfxImage *image;	// MaterialTextureDef->semantic != SEMANTIC_WATER_MAP
+		water_t *water;		// MaterialTextureDef->semantic == SEMANTIC_WATER_MAP
+	};
+
+	struct MaterialTextureDef
+	{
+		unsigned int nameHash;
+		char nameStart;
+		char nameEnd;
+		char sampleState;
+		char semantic;
+		MaterialTextureDefInfo info;
+	};
+
+	struct ShaderArgumentDef
+	{
+		short type;
+		short dest;
+		short paramID;
+		short more;
+	};
+
+	struct VertexDecl
+	{
+		const char* name;
+		int unknown;
+		char pad[28];
+		/*IDirect3DVertexDeclaration9**/void* declarations[16];
+	};
+
+	struct PixelShader
+	{
+		const char* name;
+		/*IDirect3DPixelShader9*/void* shader;
+		DWORD* bytecode;
+		int codeLen;
+	};
+
+	struct VertexShader
+	{
+		const char* name;
+		void * /*IDirect3DVertexShader9**/ shader;
+		DWORD* bytecode;
+		int codeLen;
+	};
+
+	struct MaterialPass
+	{
+		VertexDecl* vertexDecl;
+		VertexShader* vertexShader;
+		PixelShader* pixelShader;
+		char argCount1;
+		char argCount2;
+		char argCount3;
+		char unk;
+		ShaderArgumentDef* argumentDef;
+	};
+
+	struct MaterialTechnique
+	{
+		char* name;
+		short pad2;
+		short numPasses;
+		MaterialPass passes[1];
+	};
+
+	struct MaterialTechniqueSet
+	{
+		const char* name;
+		char pad[4];
+		MaterialTechniqueSet* remappedTechniques;
+		MaterialTechnique* techniques[48];
+	};
+
+	struct MaterialConstantDef
+	{
+		int nameHash;
+		char name[12];
+		vec4_t literal;
+	};
+
 	struct Material
 	{
 		const char *name;
+		char gameFlags;
+		char sortKey;
+		char textureAtlasRowCount;
+		char textureAtlasColumnCount;
+		char drawSurf[12];
+		int surfaceTypeBits;
+		char stateBitsEntry[48];
+		char textureCount;
+		char constantCount;
+		char stateBitsCount;
+		char stateFlags;
+		char cameraRegion;
+		MaterialTechniqueSet *techniqueSet;
+		MaterialTextureDef *textureTable;
+		MaterialConstantDef *constantTable;
+		void *stateBitTable;
 	};
 
 	struct keyname_t
@@ -634,7 +781,7 @@ namespace Game
 
 	typedef union
 	{
-		BYTE bytes[4];
+		unsigned char bytes[4];
 		DWORD full;
 	} netIP_t;
 
@@ -643,7 +790,7 @@ namespace Game
 		netadrtype_t type;
 		netIP_t ip;
 		unsigned short	port;
-		BYTE	ipx[10];
+		unsigned char	ipx[10];
 	} netadr_t;
 
 	typedef struct
@@ -928,7 +1075,7 @@ namespace Game
 		char * compressedData;
 	};
 
-	typedef struct fontEntry_s
+	struct FontEntry
 	{
 		unsigned short character;
 		unsigned char padLeft;
@@ -941,17 +1088,17 @@ namespace Game
 		float uvTop;
 		float uvRight;
 		float uvBottom;
-	} fontEntry_t;
+	};
 
-	typedef struct Font_s
+	struct Font
 	{
 		char* name;
 		int size;
 		int entries;
 		Material* image;
 		Material* glowImage;
-		fontEntry_t* characters;
-	} Font;
+		FontEntry* characters;
+	};
 
 	typedef enum
 	{
@@ -1199,7 +1346,7 @@ namespace Game
 
 	typedef struct party_s
 	{
-		BYTE pad1[544];
+		unsigned char pad1[544];
 		int privateSlots;
 		int publicSlots;
 	} party_t;

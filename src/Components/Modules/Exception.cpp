@@ -53,7 +53,7 @@ namespace Components
 		// Display DEBUG branding, so we know we're on a debug build
 		Renderer::OnFrame([] ()
 		{
-			Game::Font_s* font = Game::R_RegisterFont("fonts/normalFont");
+			Game::Font* font = Game::R_RegisterFont("fonts/normalFont");
 			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 			Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, 0);
 		});

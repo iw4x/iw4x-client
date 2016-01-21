@@ -36,7 +36,7 @@ namespace Game
 	typedef char* (__cdecl * Com_ParseExt_t)(const char**);
 	extern Com_ParseExt_t Com_ParseExt;
 
-	typedef XAssetHeader (__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* filename);
+	typedef XAssetHeader (__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* name);
 	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 
 	typedef const char* (__cdecl * DB_GetXAssetNameHandler_t)(Game::XAssetHeader* asset);
@@ -157,10 +157,10 @@ namespace Game
 	typedef bool(__cdecl * Menus_MenuIsInStack_t)(UiContext *dc, menuDef_t *menu);
 	extern Menus_MenuIsInStack_t Menus_MenuIsInStack;
 
-	typedef void(__cdecl * MSG_Init_t)(void* msg, void* data, int maxsize);
+	typedef void(__cdecl * MSG_Init_t)(msg_t *buf, char *data, int length);
 	extern MSG_Init_t MSG_Init;
 
-	typedef int(__cdecl * MSG_ReadData_t)(msg_t* msg, char*, size_t);
+	typedef void(__cdecl * MSG_ReadData_t)(msg_t *msg, void *data, int len);
 	extern MSG_ReadData_t MSG_ReadData;
 
 	typedef int(__cdecl * MSG_ReadLong_t)(msg_t* msg);
@@ -175,7 +175,10 @@ namespace Game
 	typedef char* (__cdecl * MSG_ReadString_t)(msg_t*);
 	extern MSG_ReadString_t MSG_ReadString;
 
-	typedef void(__cdecl * MSG_WriteByte_t)(msg_t* msg, unsigned char);
+	typedef int(__cdecl * MSG_ReadByte_t)(msg_t* msg);
+	extern MSG_ReadByte_t MSG_ReadByte;
+
+	typedef void(__cdecl * MSG_WriteByte_t)(msg_t* msg, unsigned char c);
 	extern MSG_WriteByte_t MSG_WriteByte;
 
 	typedef void(__cdecl * MSG_WriteData_t)(msg_t* msg, char*, size_t);
@@ -186,15 +189,6 @@ namespace Game
 
 	typedef int(__cdecl * MSG_WriteBitsCompress_t)(bool trainHuffman, const char *from, char *to, int size);
 	extern MSG_WriteBitsCompress_t MSG_WriteBitsCompress;
-
-	typedef short(__cdecl * MSG_ReadShort_t)(msg_t* msg);
-	extern MSG_ReadShort_t MSG_ReadShort;
-
-	typedef __int64(__cdecl * MSG_ReadInt64_t)(msg_t* msg);
-	extern MSG_ReadInt64_t MSG_ReadInt64;
-
-	typedef int(__cdecl * MSG_ReadByte_t)(msg_t* msg);
-	extern MSG_ReadByte_t MSG_ReadByte;
 
 	typedef const char* (__cdecl * NET_AdrToString_t)(netadr_t adr);
 	extern NET_AdrToString_t NET_AdrToString;
@@ -256,19 +250,19 @@ namespace Game
 	typedef const char *(__cdecl * PartyHost_GetMemberName_t)(PartyData_s* party, const int clientNum);
 	extern PartyHost_GetMemberName_t PartyHost_GetMemberName;
 
-	typedef Font_s* (__cdecl * R_RegisterFont_t)(const char* asset);
+	typedef Font* (__cdecl * R_RegisterFont_t)(const char* asset);
 	extern R_RegisterFont_t R_RegisterFont;
 
-	typedef void(__cdecl * R_AddCmdDrawText_t)(const char *text, int maxChars, Font_s *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
+	typedef void(__cdecl * R_AddCmdDrawText_t)(const char *text, int maxChars, Font *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
 	extern R_AddCmdDrawText_t R_AddCmdDrawText;
 
 	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, void* material);
 	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;
 
-	typedef int(__cdecl * R_TextWidth_t)(const char* text, int maxlength, Font_s* font);
+	typedef int(__cdecl * R_TextWidth_t)(const char* text, int maxlength, Font* font);
 	extern R_TextWidth_t R_TextWidth;
 
-	typedef int(__cdecl * R_TextHeight_t)(Font_s* font);
+	typedef int(__cdecl * R_TextHeight_t)(Font* font);
 	extern R_TextHeight_t R_TextHeight;
 
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
