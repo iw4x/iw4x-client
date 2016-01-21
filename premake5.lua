@@ -66,6 +66,8 @@ workspace "iw4x"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
 	configurations { "Debug", "DebugStatic", "Release", "ReleaseStatic" }
+	architecture "x32"
+	platforms "x86"
 
 	-- VS 2015 toolset only
 	toolset "msc-140"
@@ -91,8 +93,6 @@ workspace "iw4x"
 		language "C++"
 		files { "./src/**.hpp", "./src/**.cpp" }
 		includedirs { "%{prj.location}", "./src" }
-		architecture "x32"
-		platforms "x86"
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
