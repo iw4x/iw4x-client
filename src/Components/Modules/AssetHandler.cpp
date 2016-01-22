@@ -9,6 +9,8 @@ namespace Components
 
 	std::map<void*, void*> AssetHandler::Relocations;
 
+	std::map<std::string, Game::XAssetHeader> AssetHandler::TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
+
 	void AssetHandler::RegisterInterface(IAsset* iAsset)
 	{
 		if (!iAsset) return;
@@ -24,6 +26,19 @@ namespace Components
 		}
 
 		AssetHandler::AssetInterfaces[iAsset->GetType()] = iAsset;
+	}
+
+	void AssetHandler::ClearTemporaryAssets()
+	{
+		for (int i = 0; i < Game::XAssetType::ASSET_TYPE_COUNT; i++)
+		{
+			AssetHandler::TemporaryAssets[i].clear();
+		}
+	}
+
+	void AssetHandler::StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset)
+	{
+		AssetHandler::TemporaryAssets[type][Game::DB_GetXAssetNameHandlers[type](&asset)] = asset;
 	}
 
 	Game::XAssetHeader AssetHandler::FindAsset(Game::XAssetType type, const char* filename)
@@ -184,6 +199,14 @@ namespace Components
 	Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder)
 	{
 		Game::XAssetHeader header = { 0 };
+		if (type >= Game::XAssetType::ASSET_TYPE_COUNT) return header;
+
+		auto tempPool = &AssetHandler::TemporaryAssets[type];
+		auto entry = tempPool->find(filename);
+		if (entry != tempPool->end())
+		{
+			return { entry->second };
+		}
 
 		if (AssetHandler::AssetInterfaces.find(type) != AssetHandler::AssetInterfaces.end())
 		{
@@ -213,6 +236,8 @@ namespace Components
 
 	AssetHandler::AssetHandler()
 	{
+		AssetHandler::ClearTemporaryAssets();
+
 		// DB_FindXAssetHeader
 		Utils::Hook(Game::DB_FindXAssetHeader, AssetHandler::FindAssetStub).Install()->Quick();
 
@@ -235,6 +260,8 @@ namespace Components
 
 	AssetHandler::~AssetHandler()
 	{
+		ClearTemporaryAssets();
+
 		for (auto i = AssetHandler::AssetInterfaces.begin(); i != AssetHandler::AssetInterfaces.end(); i++)
 		{
 			delete i->second;

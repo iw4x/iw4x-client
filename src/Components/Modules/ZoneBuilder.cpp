@@ -15,6 +15,7 @@ namespace Components
 
 	ZoneBuilder::Zone::~Zone()
 	{
+		AssetHandler::ClearTemporaryAssets();
 		Localization::ClearTemp();
 
 		ZoneBuilder::Zone::LoadedAssets.clear();
@@ -447,6 +448,9 @@ namespace Components
 
 			// Prevent destroying textures
 			Utils::Hook::Set<BYTE>(0x51F03D, 0xEB);
+
+			// Don't create default assets
+			Utils::Hook::Set<BYTE>(0x407BAA, 0xEB);
 
 			Command::Add("buildzone", [] (Command::Params params)
 			{

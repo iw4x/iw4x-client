@@ -66,6 +66,7 @@ namespace Assets
 				Game::MaterialTextureDef textureDef;
 
 				textureDef.semantic = 0; // No water image
+				textureDef.sampleState = -30;
 				textureDef.nameEnd = map.string_value().data()[map.string_value().size() - 1];
 				textureDef.nameStart = map.string_value().data()[0];
 				textureDef.nameHash = Game::R_HashString(map.string_value().data());
@@ -97,6 +98,7 @@ namespace Assets
 			material->textureCount = (char)textureList.size() & 0xFF;
 		}
 
+		Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, { material });
 		header->material = material;
 	}
 

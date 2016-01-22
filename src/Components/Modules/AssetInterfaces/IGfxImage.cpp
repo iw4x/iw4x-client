@@ -14,18 +14,59 @@ namespace Assets
 			return;
 		}
 
-		image->semantic = 0;
-		image->category = 3;
+		image->name = builder->GetAllocator()->DuplicateString(name);
+		image->semantic = 2;
+		image->category = 0;
 		image->cardMemory = 0;
 
-		Game::Image_LoadFromFileWithReader(image, (Game::Reader_t)0x46CBF0);
-
-		// Free our image when done building zone
-		builder->GetAllocator()->Reference(image, [] (void*data)
+		image->texture = builder->GetAllocator()->AllocateArray<Game::GfxImageLoadDef>();
+		if (!image->texture)
 		{
-			Game::Image_Release((Game::GfxImage*)data);
-		});
+			Components::Logger::Error("Failed to allocate GfxImageLoadDef structure!");
+			return;
+		}
 
+		Components::FileSystem::File iwi(Utils::VA("images/%s.iwi", name.data()));
+
+		if (!iwi.Exists())
+		{
+			Components::Logger::Error("Loading image '%s' failed!", iwi.GetName());
+			return;
+		}
+
+		const Game::GfxImageFileHeader* iwiHeader = reinterpret_cast<const Game::GfxImageFileHeader*>(iwi.GetBuffer().data());
+
+		image->mapType = 3;
+		image->dataLen1 = iwiHeader->fileSizeForPicmip[0] - 32;
+		image->dataLen2 = iwiHeader->fileSizeForPicmip[0] - 32;
+
+		// TODO: Check tag
+		image->texture->dimensions[0] = iwiHeader->dimensions[0]; // Width
+		image->texture->dimensions[1] = iwiHeader->dimensions[1]; // Height
+		image->texture->dimensions[2] = iwiHeader->dimensions[2]; // Depth
+		image->texture->flags = 0;//iwiHeader->flags;
+		image->texture->mipLevels = 0;
+
+		switch (iwiHeader->format)
+		{
+		case Game::IWI_COMPRESSION::IWI_ARGB:
+			image->texture->format = 21;
+			break;
+		case Game::IWI_COMPRESSION::IWI_RGB8:
+			image->texture->format = 20;
+			break;
+		case Game::IWI_COMPRESSION::IWI_DXT1:
+			image->texture->format = 0x31545844;
+			break;
+		case Game::IWI_COMPRESSION::IWI_DXT3:
+			image->texture->format = 0x33545844;
+			break;
+		case Game::IWI_COMPRESSION::IWI_DXT5:
+			image->texture->format = 0x35545844;
+			break;
+		}
+
+		Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_IMAGE, { image });
 		header->image = image;
 	}
 

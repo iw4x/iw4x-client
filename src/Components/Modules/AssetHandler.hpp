@@ -31,6 +31,9 @@ namespace Components
 		static Game::XAssetHeader FindOriginalAsset(Game::XAssetType type, const char* filename);
 		static Game::XAssetHeader FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder);
 
+		static void ClearTemporaryAssets();
+		static void StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset);
+
 	private:
 		static bool BypassState;
 
@@ -42,6 +45,8 @@ namespace Components
 		static void AddAssetStub();
 
 		static void OffsetToAlias(Utils::Stream::Offset* offset);
+
+		static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
 		static std::map<Game::XAssetType, IAsset*> AssetInterfaces;
 		static std::map<Game::XAssetType, Callback> TypeCallbacks;

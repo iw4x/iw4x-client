@@ -168,6 +168,25 @@ namespace Game
 	struct menuDef_t;
 	enum operationEnum;
 
+	enum IWI_COMPRESSION
+	{
+		IWI_INVALID = 0x0,
+		IWI_ARGB = 0x1,
+		IWI_RGB8 = 0x2,
+		IWI_DXT1 = 0xB,
+		IWI_DXT3 = 0xC,
+		IWI_DXT5 = 0xD,
+	};
+
+	struct GfxImageFileHeader
+	{
+		char tag[3];
+		char version;
+		int flags;
+		char format;
+		short dimensions[3];
+		int fileSizeForPicmip[4];
+	};
 
 	struct GfxImageLoadDef // actually a IDirect3DTexture* but this is easier
 	{
