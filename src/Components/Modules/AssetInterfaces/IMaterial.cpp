@@ -45,6 +45,32 @@ namespace Assets
 		memcpy(material, baseMaterial, sizeof(Game::Material));
 		material->name = builder->GetAllocator()->DuplicateString(name);
 
+		material->textureAtlasRowCount = 0;
+		material->textureAtlasColumnCount = 0;
+
+		// Load animation frames
+		auto anims = infoData["anims"];
+		if (anims.is_array())
+		{
+			auto animCoords = anims.array_items();
+
+			if (animCoords.size() >= 2)
+			{
+				auto animCoordX = animCoords[0];
+				auto animCoordY = animCoords[1];
+
+				if (animCoordX.is_number())
+				{
+					material->textureAtlasColumnCount = (char)animCoordX.number_value() & 0xFF;
+				}
+
+				if (animCoordY.is_number())
+				{
+					material->textureAtlasRowCount = (char)animCoordY.number_value() & 0xFF;
+				}
+			}
+		}
+
 		// Load referenced textures
 		auto textures = infoData["textures"];
 		if (textures.is_array())

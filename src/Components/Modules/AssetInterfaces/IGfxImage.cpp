@@ -30,7 +30,7 @@ namespace Assets
 
 		if (!iwi.Exists())
 		{
-			Components::Logger::Error("Loading image '%s' failed!", iwi.GetName());
+			Components::Logger::Error("Loading image '%s' failed!", iwi.GetName().data());
 			return;
 		}
 
