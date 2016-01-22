@@ -4,6 +4,8 @@ namespace Assets
 {
 	void ILocalizedEntry::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
+		Assert_AssetStruct(Game::LocalizedEntry, 8);
+
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::LocalizedEntry* asset = header.localize;
 		Game::LocalizedEntry* dest = (Game::LocalizedEntry*)buffer->At();
@@ -19,7 +21,7 @@ namespace Assets
 
 		if (asset->name)
 		{
-			buffer->SaveString(asset->name);
+			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
 			dest->name = (char *)-1;
 		}
 

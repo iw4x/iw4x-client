@@ -55,7 +55,7 @@ namespace Components
 			std::string ZoneName;
 			Utils::CSV DataMap;
 
-			std::vector<Game::XAsset> Assets;
+			std::vector<Game::XAsset> LoadedAssets;
 			std::vector<std::string> ScriptStrings;
 			std::map<unsigned short, unsigned int> ScriptStringMap;
 			std::map<std::string, std::string> RenameMap[Game::XAssetType::ASSET_TYPE_COUNT];

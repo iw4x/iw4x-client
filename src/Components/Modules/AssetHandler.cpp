@@ -207,7 +207,13 @@ namespace Components
 
 		// Register asset interfaces
 		AssetHandler::RegisterInterface(new Assets::IRawFile());
+		AssetHandler::RegisterInterface(new Assets::IGfxImage());
+		AssetHandler::RegisterInterface(new Assets::IMaterial());
 		AssetHandler::RegisterInterface(new Assets::ILocalizedEntry());
+		AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());
+		AssetHandler::RegisterInterface(new Assets::IMaterialTechniqueSet());
+		AssetHandler::RegisterInterface(new Assets::IMaterialVertexShader());
+		AssetHandler::RegisterInterface(new Assets::IMaterialVertexDeclaration());
 	}
 
 	AssetHandler::~AssetHandler()

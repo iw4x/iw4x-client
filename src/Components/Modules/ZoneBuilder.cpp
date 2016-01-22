@@ -17,7 +17,7 @@ namespace Components
 	{
 		Localization::ClearTemp();
 
-		ZoneBuilder::Zone::Assets.clear();
+		ZoneBuilder::Zone::LoadedAssets.clear();
 		ZoneBuilder::Zone::ScriptStrings.clear();
 		ZoneBuilder::Zone::ScriptStringMap.clear();
 	}
@@ -133,15 +133,15 @@ namespace Components
 		// Handle script strings and referenced assets
 		AssetHandler::ZoneMark(asset, this);
 
-		ZoneBuilder::Zone::Assets.push_back(asset);
+		ZoneBuilder::Zone::LoadedAssets.push_back(asset);
 		return true;
 	}
 
 	int ZoneBuilder::Zone::FindAsset(Game::XAssetType type, const char* name)
 	{
-		for (unsigned int i = 0; i < ZoneBuilder::Zone::Assets.size(); i++)
+		for (unsigned int i = 0; i < ZoneBuilder::Zone::LoadedAssets.size(); i++)
 		{
-			Game::XAsset* asset = &ZoneBuilder::Zone::Assets[i];
+			Game::XAsset* asset = &ZoneBuilder::Zone::LoadedAssets[i];
 
 			if (asset->type != type) continue;
 
@@ -158,9 +158,9 @@ namespace Components
 
 	Game::XAsset* ZoneBuilder::Zone::GetAsset(int index)
 	{
-		if ((uint32_t)index < ZoneBuilder::Zone::Assets.size())
+		if ((uint32_t)index < ZoneBuilder::Zone::LoadedAssets.size())
 		{
-			return &ZoneBuilder::Zone::Assets[index];
+			return &ZoneBuilder::Zone::LoadedAssets[index];
 		}
 
 		return nullptr;
@@ -211,14 +211,14 @@ namespace Components
 		Utils::WriteFile(outFile, outBuffer);
 
 		Logger::Print("done.\n");
-		Logger::Print("Zone '%s' written with %d assets\n", outFile.c_str(), ZoneBuilder::Zone::Assets.size());
+		Logger::Print("Zone '%s' written with %d assets\n", outFile.c_str(), ZoneBuilder::Zone::LoadedAssets.size());
 	}
 
 	void ZoneBuilder::Zone::SaveData()
 	{
 		// Add header
 		Game::ZoneHeader zoneHeader = { 0 };
-		zoneHeader.assetList.assetCount = Assets.size();
+		zoneHeader.assetList.assetCount = ZoneBuilder::Zone::LoadedAssets.size();
 		zoneHeader.assetList.assets = (Game::XAsset *)-1;
 
 		// Increment ScriptStrings count (for empty script string) if available
@@ -260,7 +260,7 @@ namespace Components
 		ZoneBuilder::Zone::IndexStart = ZoneBuilder::Zone::Buffer.GetBlockSize(Game::XFILE_BLOCK_VIRTUAL); // Mark AssetTable offset
 
 		// AssetTable
-		for (auto asset : Assets)
+		for (auto asset : ZoneBuilder::Zone::LoadedAssets)
 		{
 			Game::XAsset entry;
 			entry.type = asset.type;
@@ -270,9 +270,10 @@ namespace Components
 		}
 
 		// Assets
-		for (auto asset : Assets)
+		for (auto asset : ZoneBuilder::Zone::LoadedAssets)
 		{
 			ZoneBuilder::Zone::Buffer.PushBlock(Game::XFILE_BLOCK_TEMP);
+			ZoneBuilder::Zone::Buffer.Align(Utils::Stream::ALIGN_4);
 
 			AssetHandler::ZoneSave(asset, this);
 
@@ -304,7 +305,7 @@ namespace Components
 
 		Game::XAssetHeader header = { &branding };
 		Game::XAsset brandingAsset = { Game::XAssetType::ASSET_TYPE_RAWFILE, header };
-		Assets.push_back(brandingAsset);
+		ZoneBuilder::Zone::LoadedAssets.push_back(brandingAsset);
 	}
 
 	// Check if the given pointer has already been mapped
@@ -430,9 +431,24 @@ namespace Components
 
 			return true;
 		});
-
+		
 		if (ZoneBuilder::IsEnabled())
 		{
+			// Prevent loading textures (preserves loaddef)
+			Utils::Hook::Set<BYTE>(0x51F4E0, 0xC3);
+
+			//r_loadForrenderer = 0 
+			Utils::Hook::Set<BYTE>(0x519DDF, 0);
+
+			//r_delayloadimage retn
+			Utils::Hook::Set<BYTE>(0x51F450, 0xC3);
+
+			// r_registerDvars hack
+			Utils::Hook::Set<BYTE>(0x51B1CD, 0xC3);
+
+			// Prevent destroying textures
+			Utils::Hook::Set<BYTE>(0x51F03D, 0xEB);
+
 			Command::Add("build", [] (Command::Params params)
 			{
 				if (params.Length() < 2) return;
@@ -442,8 +458,34 @@ namespace Components
 
 				Zone(zoneName).Build();
 			});
-		}
 
+			Command::Add("listassets", [] (Command::Params params)
+			{
+				if (params.Length() < 2) return;
+				Game::XAssetType type = Game::DB_GetXAssetNameType(params[1]);
+
+				if (type != Game::XAssetType::ASSET_TYPE_INVALID)
+				{
+					Game::DB_EnumXAssets(type, [] (Game::XAssetHeader header, void* data)
+					{
+						Logger::Print("%s\n", Game::DB_GetXAssetNameHandlers[*(Game::XAssetType*)data](&header));
+					}, &type, false);
+				}
+			});
+		}
+		//else
 		//Utils::Hook(0x4546DF, TestZoneLoading, HOOK_CALL).Install()->Quick();
+
+		Command::Add("loadzone", [] (Command::Params params)
+		{
+			if (params.Length() < 2) return;
+			
+			Game::XZoneInfo info;
+			info.name = params[1];
+			info.allocFlags = 0x01000000;
+			info.freeFlags = 0;
+
+			Game::DB_LoadXAssets(&info, 1, true);
+		});
 	}
 }

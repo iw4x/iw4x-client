@@ -176,7 +176,7 @@ namespace Game
 		short dimensions[3];
 		int format; // usually the compression Magic
 		int dataSize; // set to zero to load from IWD
-					  //char * data; 
+		char data[1]; 
 	};
 
 	struct GfxImage
@@ -202,7 +202,7 @@ namespace Game
 		float floatTime;
 		float *H0X;		// Count = M * N
 		float *H0Y;		// Count = M * N
-		float *wTerm;		// Count = M * N
+		//float *wTerm;		// Count = M * N
 		int M;
 		int N;
 		float Lx;
@@ -214,6 +214,8 @@ namespace Game
 		float codeConstant[4];
 		GfxImage *image;
 	};
+
+	#define SEMANTIC_WATER_MAP 11
 
 	union MaterialTextureDefInfo
 	{
@@ -239,7 +241,7 @@ namespace Game
 		short more;
 	};
 
-	struct VertexDecl
+	struct MaterialVertexDeclaration
 	{
 		const char* name;
 		int unknown;
@@ -247,27 +249,39 @@ namespace Game
 		/*IDirect3DVertexDeclaration9**/void* declarations[16];
 	};
 
-	struct PixelShader
+	struct GfxPixelShaderLoadDef
 	{
-		const char* name;
-		/*IDirect3DPixelShader9*/void* shader;
-		DWORD* bytecode;
-		int codeLen;
+		char *cachedPart;
+		char *physicalPart;
+		unsigned __int16 cachedPartSize;
+		unsigned __int16 physicalPartSize;
 	};
 
-	struct VertexShader
+	struct MaterialPixelShader
 	{
 		const char* name;
-		void * /*IDirect3DVertexShader9**/ shader;
-		DWORD* bytecode;
-		int codeLen;
+		GfxPixelShaderLoadDef loadDef;
+	};
+
+	struct GfxVertexShaderLoadDef
+	{
+		char *cachedPart;
+		char *physicalPart;
+		unsigned __int16 cachedPartSize;
+		unsigned __int16 physicalPartSize;
+	};
+
+	struct MaterialVertexShader
+	{
+		const char* name;
+		GfxVertexShaderLoadDef loadDef;
 	};
 
 	struct MaterialPass
 	{
-		VertexDecl* vertexDecl;
-		VertexShader* vertexShader;
-		PixelShader* pixelShader;
+		MaterialVertexDeclaration* vertexDecl;
+		MaterialVertexShader* vertexShader;
+		MaterialPixelShader* pixelShader;
 		char argCount1;
 		char argCount2;
 		char argCount3;
@@ -1204,7 +1218,12 @@ namespace Game
 		StringTable *stringTable;
 		MapEnts* mapEnts;
 		RawFile* rawfile;
+		GfxImage* image;
 		Font* font;
+		MaterialTechniqueSet *materialTechset;
+		MaterialVertexDeclaration *vertexDecl;
+		MaterialVertexShader *vertexShader;
+		MaterialPixelShader *pixelShader;
 		structuredDataDef_t* structuredData;
 	};
 

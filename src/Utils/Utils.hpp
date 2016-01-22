@@ -1,3 +1,5 @@
+#define ARR_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
 namespace Utils
 {
 	const char *VA(const char *fmt, ...);

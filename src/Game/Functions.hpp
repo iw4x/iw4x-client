@@ -36,6 +36,9 @@ namespace Game
 	typedef char* (__cdecl * Com_ParseExt_t)(const char**);
 	extern Com_ParseExt_t Com_ParseExt;
 
+	typedef void(__cdecl * DB_EnumXAssets_t)(XAssetType type, void(*)(XAssetHeader, void *), void* userdata, bool overrides);
+	extern DB_EnumXAssets_t DB_EnumXAssets;
+
 	typedef XAssetHeader (__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* name);
 	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 

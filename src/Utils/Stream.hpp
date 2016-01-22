@@ -34,6 +34,10 @@ namespace Utils
 		char* Save(const void * _str, size_t size, size_t count = 1);
 		char* Save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count);
 		char* Save(Game::XFILE_BLOCK_TYPES stream, int value, size_t count);
+		template <typename T> char* SaveArray(T* array, size_t count)
+		{
+			return Save(array, sizeof(T), count);
+		}
 
 		char* SaveString(std::string string);
 		char* SaveString(const char* string);
