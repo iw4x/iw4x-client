@@ -13,6 +13,9 @@ namespace Components
 
 	Discovery::Discovery()
 	{
+		Dvar::Register<int>("net_discoveryPortRangeMin", 25000, 0, 65535, Game::dvar_flag::DVAR_FLAG_SAVED, "Minimum scan range port for local server discovery");
+		Dvar::Register<int>("net_discoveryPortRangeMax", 35000, 1, 65536, Game::dvar_flag::DVAR_FLAG_SAVED, "Maximum scan range port for local server discovery");
+
 		Discovery::DiscoveryContainer.Perform = false;
 		Discovery::DiscoveryContainer.Terminate = false;
 		Discovery::DiscoveryContainer.Thread = new std::thread([] ()
@@ -28,7 +31,9 @@ namespace Components
 					Discovery::DiscoveryContainer.Challenge = Utils::VA("%d", Game::Com_Milliseconds());
 
 					//Network::BroadcastAll("discovery\n");
-					Network::BroadcastRange(25000, 35000, Utils::VA("discovery\n%s", Discovery::DiscoveryContainer.Challenge.data()));
+					unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").Get<unsigned int>();
+					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").Get<unsigned int>();
+					Network::BroadcastRange(minPort, maxPort, Utils::VA("discovery\n%s", Discovery::DiscoveryContainer.Challenge.data()));
 
 					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Com_Milliseconds() - start);
 

@@ -59,73 +59,100 @@ namespace Assets
 		{
 			Assert_AssetStruct(Game::MaterialTextureDef, 12);
 
-			buffer->Align(Utils::Stream::ALIGN_4);
-
-			Game::MaterialTextureDef* destTextureTable = (Game::MaterialTextureDef*)buffer->At();
-			buffer->SaveArray(asset->textureTable, asset->textureCount);
-
-			for (char i = 0; i < asset->textureCount; i++)
+			// Pointer/Offset insertion is untested, but it worked in T6, so I think it's fine
+			if (builder->HasPointer(asset->textureTable))
 			{
-				Game::MaterialTextureDef* destTextureDef = &destTextureTable[i];
-				Game::MaterialTextureDef* textureDef = &asset->textureTable[i];
+				dest->textureTable = builder->GetPointer(asset->textureTable);
+			}
+			else
+			{
+				buffer->Align(Utils::Stream::ALIGN_4);
+				builder->StorePointer(asset->textureTable);
 
-				if (textureDef->semantic == SEMANTIC_WATER_MAP)
+				Game::MaterialTextureDef* destTextureTable = (Game::MaterialTextureDef*)buffer->At();
+				buffer->SaveArray(asset->textureTable, asset->textureCount);
+
+				for (char i = 0; i < asset->textureCount; i++)
 				{
-					Assert_AssetStruct(Game::water_t, 68);
+					Game::MaterialTextureDef* destTextureDef = &destTextureTable[i];
+					Game::MaterialTextureDef* textureDef = &asset->textureTable[i];
 
-					Game::water_t* destWater = (Game::water_t*)buffer->At();
-					Game::water_t* water = textureDef->info.water;
-
-					if (water)
+					if (textureDef->semantic == SEMANTIC_WATER_MAP)
 					{
-						buffer->Align(Utils::Stream::ALIGN_4);
-						buffer->Save(water, sizeof(Game::water_t));
-						destTextureDef->info.water = (Game::water_t *)-1;
+						Assert_AssetStruct(Game::water_t, 68);
 
-						// Save_water_t
-						if (water->H0X)
+						Game::water_t* destWater = (Game::water_t*)buffer->At();
+						Game::water_t* water = textureDef->info.water;
+
+						if (water)
 						{
 							buffer->Align(Utils::Stream::ALIGN_4);
-							buffer->Save(water->H0X, 8, water->M * water->N);
-							destWater->H0X = (float *)-1;
-						}
+							buffer->Save(water, sizeof(Game::water_t));
+							destTextureDef->info.water = (Game::water_t *) - 1;
 
-						if (water->H0Y)
-						{
-							buffer->Align(Utils::Stream::ALIGN_4);
-							buffer->Save(water->H0Y, 4, water->M * water->N);
-							destWater->H0Y = (float *)-1;
-						}
+							// Save_water_t
+							if (water->H0X)
+							{
+								buffer->Align(Utils::Stream::ALIGN_4);
+								buffer->Save(water->H0X, 8, water->M * water->N);
+								destWater->H0X = (float *)-1;
+							}
 
-						if (water->image)
-						{
-							destWater->image = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, water->image->name).image;
+							if (water->H0Y)
+							{
+								buffer->Align(Utils::Stream::ALIGN_4);
+								buffer->Save(water->H0Y, 4, water->M * water->N);
+								destWater->H0Y = (float *)-1;
+							}
+
+							if (water->image)
+							{
+								destWater->image = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, water->image->name).image;
+							}
 						}
 					}
+					else if (textureDef->info.image)
+					{
+						destTextureDef->info.image = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, textureDef->info.image->name).image;
+					}
 				}
-				else if(textureDef->info.image)
-				{
-					destTextureDef->info.image = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, textureDef->info.image->name).image;
-				}
-			}
 
-			dest->textureTable = (Game::MaterialTextureDef*)-1;
+				dest->textureTable = (Game::MaterialTextureDef*) - 1;
+			}
 		}
 
 		if (asset->constantTable)
 		{
 			Assert_AssetStruct(Game::MaterialConstantDef, 32);
 
-			buffer->Align(Utils::Stream::ALIGN_16);
-			buffer->SaveArray(asset->constantTable, asset->constantCount);
-			dest->constantTable = (Game::MaterialConstantDef *)-1;
+			if (builder->HasPointer(asset->constantTable))
+			{
+				dest->constantTable = builder->GetPointer(asset->constantTable);
+			}
+			else
+			{
+				buffer->Align(Utils::Stream::ALIGN_16);
+				builder->StorePointer(asset->constantTable);
+
+				buffer->SaveArray(asset->constantTable, asset->constantCount);
+				dest->constantTable = (Game::MaterialConstantDef *) - 1;
+			}
 		}
 
 		if (asset->stateBitTable)
 		{
-			buffer->Align(Utils::Stream::ALIGN_4);
-			buffer->Save(asset->stateBitTable, 8, asset->stateBitsCount);
-			dest->stateBitTable = (void *)-1;
+			if (builder->HasPointer(asset->stateBitTable))
+			{
+				dest->stateBitTable = builder->GetPointer(asset->stateBitTable);
+			}
+			else
+			{
+				buffer->Align(Utils::Stream::ALIGN_4);
+				builder->StorePointer(asset->stateBitTable);
+
+				buffer->Save(asset->stateBitTable, 8, asset->stateBitsCount);
+				dest->stateBitTable = (void *)-1;
+			}
 		}
 
 		buffer->PopBlock();

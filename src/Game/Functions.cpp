@@ -121,6 +121,7 @@ namespace Game
 	SetConsole_t SetConsole = (SetConsole_t)0x44F060;
 
 	SL_ConvertToString_t SL_ConvertToString = (SL_ConvertToString_t)0x4EC1D0;
+	SL_GetString_t SL_GetString = (SL_GetString_t)0x4CDC10;
 
 	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
 

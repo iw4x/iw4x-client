@@ -330,6 +330,11 @@ namespace Components
 		ZoneBuilder::Zone::PointerMap[pointer] = ZoneBuilder::Zone::Buffer.GetPackedOffset();
 	}
 
+	int ZoneBuilder::Zone::AddScriptString(std::string str)
+	{
+		return ZoneBuilder::Zone::AddScriptString(Game::SL_GetString(str.data(), 0));
+	}
+
 	// Mark a scriptString for writing and map it.
 	int ZoneBuilder::Zone::AddScriptString(unsigned short gameIndex)
 	{
@@ -405,17 +410,6 @@ namespace Components
 		return (Flags::HasFlag("zonebuilder") && !Dedicated::IsDedicated());
 	}
 
-	// TODO: Remove and replace with loadzone command
-	void TestZoneLoading(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
-	{
-		std::vector<Game::XZoneInfo> data;
-		Utils::Merge(data, zoneInfo, zoneCount);
-
-		data.push_back({ "penis", zoneInfo->allocFlags, zoneInfo->freeFlags });
-
-		Game::DB_LoadXAssets(data.data(), data.size(), sync);
-	}
-
 	ZoneBuilder::ZoneBuilder()
 	{
 		static_assert(sizeof(Game::XFileHeader) == 21, "Invalid XFileHeader structure!");
@@ -449,7 +443,7 @@ namespace Components
 			// Prevent destroying textures
 			Utils::Hook::Set<BYTE>(0x51F03D, 0xEB);
 
-			Command::Add("build", [] (Command::Params params)
+			Command::Add("buildzone", [] (Command::Params params)
 			{
 				if (params.Length() < 2) return;
 
@@ -473,19 +467,5 @@ namespace Components
 				}
 			});
 		}
-		//else
-		//Utils::Hook(0x4546DF, TestZoneLoading, HOOK_CALL).Install()->Quick();
-
-		Command::Add("loadzone", [] (Command::Params params)
-		{
-			if (params.Length() < 2) return;
-			
-			Game::XZoneInfo info;
-			info.name = params[1];
-			info.allocFlags = 0x01000000;
-			info.freeFlags = 0;
-
-			Game::DB_LoadXAssets(&info, 1, true);
-		});
 	}
 }

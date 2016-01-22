@@ -105,6 +105,18 @@ namespace Components
 			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
 			Game::R_AddCmdDrawText(Utils::VA("Loading FastFile: %s", FastFiles::Current().data()), 0x7FFFFFFF, font, 5.0f, (float)(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, 0);
 		});
+
+		Command::Add("loadzone", [] (Command::Params params)
+		{
+			if (params.Length() < 2) return;
+
+			Game::XZoneInfo info;
+			info.name = params[1];
+			info.allocFlags = 0x01000000;
+			info.freeFlags = 0;
+
+			Game::DB_LoadXAssets(&info, 1, true);
+		});
 	}
 
 	FastFiles::~FastFiles()

@@ -42,6 +42,10 @@ namespace Components
 
 		return 0;
 	}
+	template <> unsigned int Dvar::Var::Get()
+	{
+		return (unsigned int)this->Get<int>();
+	}
 	template <> float Dvar::Var::Get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)

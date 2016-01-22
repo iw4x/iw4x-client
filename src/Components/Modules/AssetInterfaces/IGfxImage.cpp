@@ -2,16 +2,6 @@
 
 namespace Assets
 {
-	void IGfxImage::Save_GfxImageLoadDef(Components::ZoneBuilder::Zone* builder, const char* name)
-	{
-		Game::GfxImageLoadDef loadDef;
-		ZeroMemory(&loadDef, sizeof(loadDef));
-
-		Utils::Stream* buffer = builder->GetBuffer();
-
-
-	}
-
 	void IGfxImage::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Assert_AssetStruct(Game::GfxImage, 32);

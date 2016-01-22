@@ -280,8 +280,11 @@ namespace Game
 	typedef void(__cdecl * SetConsole_t)(const char* cvar, const char* value);
 	extern SetConsole_t SetConsole;
 
-	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short);
+	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
 	extern SL_ConvertToString_t SL_ConvertToString;
+
+	typedef short(__cdecl * SL_GetString_t)(const char *str, unsigned int user);
+	extern SL_GetString_t SL_GetString;
 
 	typedef void(__cdecl * Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;

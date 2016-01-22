@@ -29,6 +29,7 @@ namespace Components
 			bool LoadAsset(Game::XAssetType type, std::string name);
 
 			int AddScriptString(unsigned short gameIndex);
+			int AddScriptString(std::string str);
 			int FindScriptString(std::string str);
 
 			void MapScriptString(unsigned short* gameIndex);
