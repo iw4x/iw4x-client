@@ -124,7 +124,6 @@ namespace Assets
 			material->textureCount = (char)textureList.size() & 0xFF;
 		}
 
-		Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, { material });
 		header->material = material;
 	}
 

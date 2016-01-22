@@ -211,6 +211,11 @@ namespace Components
 		if (AssetHandler::AssetInterfaces.find(type) != AssetHandler::AssetInterfaces.end())
 		{
 			AssetHandler::AssetInterfaces[type]->Load(&header, filename, builder);
+
+			if (header.data)
+			{
+				Components::AssetHandler::StoreTemporaryAsset(type, header);
+			}
 		}
 
 		if (!header.data)

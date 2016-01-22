@@ -66,7 +66,6 @@ namespace Assets
 			break;
 		}
 
-		Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_IMAGE, { image });
 		header->image = image;
 	}
 
