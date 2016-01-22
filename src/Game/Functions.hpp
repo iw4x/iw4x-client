@@ -145,6 +145,13 @@ namespace Game
 	typedef int(__cdecl * FS_BuildPathToFile_t)(const char*, const char*, const char*, char**);
 	extern FS_BuildPathToFile_t FS_BuildPathToFile;
 
+	typedef int(__cdecl * Reader_t)(char const*, int *);
+	typedef bool(__cdecl * Image_LoadFromFileWithReader_t)(GfxImage* image, Reader_t reader);
+	extern Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader;
+
+	typedef void(__cdecl * Image_Release_t)(GfxImage* image);
+	extern Image_Release_t Image_Release;
+
 	typedef void(__cdecl * Menus_CloseAll_t)(UiContext *dc);
 	extern Menus_CloseAll_t Menus_CloseAll;
 
@@ -356,4 +363,6 @@ namespace Game
 	XAssetType DB_GetXAssetNameType(const char* name);
 
 	void MessageBox(std::string message, std::string title);
+
+	unsigned int R_HashString(const char* string);
 }

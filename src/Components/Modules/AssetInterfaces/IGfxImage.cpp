@@ -2,6 +2,33 @@
 
 namespace Assets
 {
+	void IGfxImage::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	{
+		Game::GfxImage* image = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_IMAGE, name.data()).image;
+		if (image) return; // TODO: Check for default?
+
+		image = builder->GetAllocator()->AllocateArray<Game::GfxImage>();
+		if (!image)
+		{
+			Components::Logger::Error("Failed to allocate GfxImage structure!");
+			return;
+		}
+
+		image->semantic = 0;
+		image->category = 3;
+		image->cardMemory = 0;
+
+		Game::Image_LoadFromFileWithReader(image, (Game::Reader_t)0x46CBF0);
+
+		// Free our image when done building zone
+		builder->GetAllocator()->Reference(image, [] (void*data)
+		{
+			Game::Image_Release((Game::GfxImage*)data);
+		});
+
+		header->image = image;
+	}
+
 	void IGfxImage::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Assert_AssetStruct(Game::GfxImage, 32);

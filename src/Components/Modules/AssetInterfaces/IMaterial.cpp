@@ -2,6 +2,104 @@
 
 namespace Assets
 {
+	void IMaterial::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	{
+		Components::FileSystem::File materialInfo(Utils::VA("materials/%s.json", name.data()));
+
+		if (!materialInfo.Exists()) return;
+
+		std::string errors;
+		json11::Json infoData = json11::Json::parse(materialInfo.GetBuffer(), errors);
+
+		if (!infoData.is_object())
+		{
+			Components::Logger::Error("Failed to load material information for %s!", name.data());
+			return;
+		}
+
+		auto base = infoData["base"];
+
+		if (!base.is_string())
+		{
+			Components::Logger::Error("No valid material base provided for %s!", name.data());
+			return;
+		}
+
+		Game::Material* baseMaterial = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, base.string_value().data()).material;
+
+		if (!baseMaterial) // TODO: Maybe check if default asset? Maybe not? You could still want to use the default one as base!?
+		{
+			Components::Logger::Error("Basematerial '%s' not found for %s!", base.string_value().data(), name.data());
+			return;
+		}
+
+		Game::Material* material = builder->GetAllocator()->AllocateArray<Game::Material>();
+
+		if (!material)
+		{
+			Components::Logger::Error("Failed to allocate material structure!");
+			return;
+		}
+
+		// Copy base material to our structure
+		memcpy(material, baseMaterial, sizeof(Game::Material));
+		material->name = builder->GetAllocator()->DuplicateString(name);
+
+		// Load referenced textures
+		auto textures = infoData["textures"];
+		if (textures.is_array())
+		{
+			std::vector<Game::MaterialTextureDef> textureList;
+
+			for (auto texture : textures.array_items())
+			{
+				if (!texture.is_array()) continue;
+				if (textureList.size() >= 0xFF) break;
+
+				auto textureInfo = texture.array_items();
+				if (textureInfo.size() < 2) continue;
+
+				auto map = textureInfo[0];
+				auto image = textureInfo[1];
+				if(!map.is_string() || !image.is_string()) continue;
+
+				Game::MaterialTextureDef textureDef;
+
+				textureDef.semantic = 0; // No water image
+				textureDef.nameEnd = map.string_value().data()[map.string_value().size() - 1];
+				textureDef.nameStart = map.string_value().data()[0];
+				textureDef.nameHash = Game::R_HashString(map.string_value().data());
+
+				textureDef.info.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, image.string_value(), builder).image;
+
+				textureList.push_back(textureDef);
+			}
+
+			if (textureList.size())
+			{
+				Game::MaterialTextureDef* textureTable = builder->GetAllocator()->AllocateArray<Game::MaterialTextureDef>(textureList.size());
+
+				if (!textureTable)
+				{
+					Components::Logger::Error("Failed to allocate texture table!");
+					return;
+				}
+
+				memcpy(textureTable, textureList.data(), sizeof(Game::MaterialTextureDef) * textureList.size());
+
+				material->textureTable = textureTable;
+			}
+			else
+			{
+				material->textureTable = 0;
+			}
+
+			material->textureCount = (char)textureList.size() & 0xFF;
+		}
+
+		header->material = material;
+	}
+
 	void IMaterial::Mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::Material* asset = header.material;

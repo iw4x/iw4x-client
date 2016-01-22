@@ -62,6 +62,9 @@ namespace Game
 	FS_Restart_t FS_Restart = (FS_Restart_t)0x461A50;
 	FS_BuildPathToFile_t FS_BuildPathToFile = (FS_BuildPathToFile_t)0x4702C0;
 
+	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = (Image_LoadFromFileWithReader_t)0x53ABF0;
+	Image_Release_t Image_Release = (Image_Release_t)0x51F010;
+
 	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
 	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
 	Menus_FindByName_t Menus_FindByName = (Menus_FindByName_t)0x487240;
@@ -279,5 +282,18 @@ namespace Game
 		SetConsole("com_errorMessage", message.data());
 		SetConsole("com_errorTitle", title.data());
 		Cbuf_AddText(0, "openmenu error_popmenu_lobby");
+	}
+
+	unsigned int R_HashString(const char* string)
+	{
+		unsigned int hash = 0;
+
+		while (*string)
+		{
+			hash = (*string | 0x20) ^ (33 * hash);
+			string++;
+		}
+
+		return hash;
 	}
 }

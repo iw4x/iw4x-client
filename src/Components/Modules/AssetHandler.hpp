@@ -10,7 +10,7 @@ namespace Components
 			virtual void Mark(Game::XAssetHeader header, ZoneBuilder::Zone* builder) { /*ErrorTypeNotSupported(this);*/ };
 			virtual void Save(Game::XAssetHeader header, ZoneBuilder::Zone* builder) { /*ErrorTypeNotSupported(this);*/ };
 			virtual void Dump(Game::XAssetHeader header) { /*ErrorTypeNotSupported(this);*/ };
-			virtual void Load(Game::XAssetHeader* header, std::string name) { /*ErrorTypeNotSupported(this);*/ };
+			virtual void Load(Game::XAssetHeader* header, std::string name, ZoneBuilder::Zone* builder) { /*ErrorTypeNotSupported(this);*/ };
 		};
 
 		typedef Game::XAssetHeader(*Callback)(Game::XAssetType, const char*);
@@ -29,6 +29,7 @@ namespace Components
 		static void ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder);
 
 		static Game::XAssetHeader FindOriginalAsset(Game::XAssetType type, const char* filename);
+		static Game::XAssetHeader FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder);
 
 	private:
 		static bool BypassState;

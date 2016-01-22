@@ -27,6 +27,11 @@ namespace Components
 		return &Buffer;
 	}
 
+	Utils::Memory::Allocator* ZoneBuilder::Zone::GetAllocator()
+	{
+		return &MemAllocator;
+	}
+
 	void ZoneBuilder::Zone::Zone::Build()
 	{
 		ZoneBuilder::Zone::LoadFastFiles();
@@ -118,7 +123,7 @@ namespace Components
 			return false;
 		}
 
-		Game::XAssetHeader assetHeader = Game::DB_FindXAssetHeader(type, name.data());
+		Game::XAssetHeader assetHeader = AssetHandler::FindAssetForZone(type, name, this);
 
 		if (!assetHeader.data)
 		{

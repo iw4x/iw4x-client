@@ -15,6 +15,7 @@ namespace Components
 			void Build();
 
 			Utils::Stream* GetBuffer();
+			Utils::Memory::Allocator* GetAllocator();
 
 			bool HasPointer(const void* pointer);
 			void StorePointer(const void* pointer);
@@ -55,6 +56,8 @@ namespace Components
 
 			std::string ZoneName;
 			Utils::CSV DataMap;
+
+			Utils::Memory::Allocator MemAllocator;
 
 			std::vector<Game::XAsset> LoadedAssets;
 			std::vector<std::string> ScriptStrings;

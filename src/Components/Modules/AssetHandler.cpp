@@ -181,6 +181,23 @@ namespace Components
 		}
 	}
 
+	Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder)
+	{
+		Game::XAssetHeader header = { 0 };
+
+		if (AssetHandler::AssetInterfaces.find(type) != AssetHandler::AssetInterfaces.end())
+		{
+			AssetHandler::AssetInterfaces[type]->Load(&header, filename, builder);
+		}
+
+		if (!header.data)
+		{
+			header = Game::DB_FindXAssetHeader(type, filename.data());
+		}
+
+		return header;
+	}
+
 	Game::XAssetHeader AssetHandler::FindOriginalAsset(Game::XAssetType type, const char* filename)
 	{
 		Game::XAssetHeader header = { 0 };
