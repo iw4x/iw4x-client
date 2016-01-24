@@ -5,7 +5,6 @@ namespace Components
 	Theatre::Container Theatre::DemoContainer;
 
 	char Theatre::BaselineSnapshot[131072] = { 0 };
-	PBYTE Theatre::BaselineSnapshotMsg = 0;
 	int Theatre::BaselineSnapshotMsgLen;
 	int Theatre::BaselineSnapshotMsgOff;
 
@@ -21,20 +20,24 @@ namespace Components
 		Game::FS_Write(&sequence, 4, *Game::demoFile);
 	}
 
-	void __declspec(naked) Theatre::BaselineStoreStub()
+	void Theatre::StoreBaseline(PBYTE snapshotMsg)
 	{
-		// Store snapshot message
-		__asm mov Theatre::BaselineSnapshotMsg, edi
-
 		// Store offset and length
-		Theatre::BaselineSnapshotMsgLen = *reinterpret_cast<int*>(Theatre::BaselineSnapshotMsg + 20);
-		Theatre::BaselineSnapshotMsgOff = *reinterpret_cast<int*>(Theatre::BaselineSnapshotMsg + 28) - 7;
+		Theatre::BaselineSnapshotMsgLen = *reinterpret_cast<int*>(snapshotMsg + 20);
+		Theatre::BaselineSnapshotMsgOff = *reinterpret_cast<int*>(snapshotMsg + 28) - 7;
 
 		// Copy to our snapshot buffer
-		memcpy(Theatre::BaselineSnapshot, *reinterpret_cast<DWORD**>(Theatre::BaselineSnapshotMsg + 8), *reinterpret_cast<DWORD*>(Theatre::BaselineSnapshotMsg + 20));
+		memcpy(Theatre::BaselineSnapshot, *reinterpret_cast<DWORD**>(snapshotMsg + 8), *reinterpret_cast<DWORD*>(snapshotMsg + 20));
+	}
 
-		__asm
+	void __declspec(naked) Theatre::BaselineStoreStub()
+	{
+		_asm
 		{
+			push edi
+			call Theatre::StoreBaseline
+			pop edi
+
 			mov edx, 5ABEF5h
 			jmp edx
 		}

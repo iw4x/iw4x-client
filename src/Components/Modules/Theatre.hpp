@@ -39,11 +39,11 @@ namespace Components
 		static Container DemoContainer;
 
 		static char BaselineSnapshot[131072];
-		static PBYTE BaselineSnapshotMsg;
 		static int BaselineSnapshotMsgLen;
 		static int BaselineSnapshotMsgOff;
 
 		static void WriteBaseline();
+		static void StoreBaseline(PBYTE snapshotMsg);
 
 		static void LoadDemos();
 		static void DeleteDemo();
