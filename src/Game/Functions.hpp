@@ -212,6 +212,12 @@ namespace Game
 	typedef bool(__cdecl * NET_StringToAdr_t)(const char*, netadr_t*);
 	extern NET_StringToAdr_t NET_StringToAdr;
 
+	typedef void(__cdecl* NET_OutOfBandPrint_t)(netsrc_t sock, netadr_t adr, const char *data);
+	extern NET_OutOfBandPrint_t NET_OutOfBandPrint;
+
+	typedef void(__cdecl* NET_OutOfBandData_t)(netsrc_t sock, netadr_t adr, const char *format, int len);
+	extern NET_OutOfBandData_t NET_OutOfBandData;
+
 	typedef void(__cdecl * Live_MPAcceptInvite_t)(_XSESSION_INFO *hostInfo, const int controllerIndex, bool fromGameInvite);
 	extern Live_MPAcceptInvite_t Live_MPAcceptInvite;
 
@@ -229,12 +235,6 @@ namespace Game
 
 	typedef char* (__cdecl * LocalizeMapString_t)(char*);
 	extern LocalizeMapString_t LocalizeMapString;
-
-	typedef void(__cdecl* sendOOB_t)(int, int, int, int, int, int, const char*);
-	extern sendOOB_t OOBPrint;
-
-	typedef void(__cdecl* sendOOBRaw_t)(int, size_t, const char*, int, int, int, int, int);
-	extern sendOOBRaw_t OOBPrintRawData;
 
 	typedef char* (__cdecl * SE_Load_t)(char* file, int Unk);
 	extern SE_Load_t SE_Load;
@@ -302,6 +302,9 @@ namespace Game
 	typedef bool(__cdecl * Sys_IsMainThread_t)();
 	extern Sys_IsMainThread_t Sys_IsMainThread;
 
+	typedef bool(__cdecl * Sys_SendPacket_t)(netsrc_t sock, size_t len, const char *format, netadr_t adr);
+	extern Sys_SendPacket_t Sys_SendPacket;
+
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
 
@@ -353,8 +356,6 @@ namespace Game
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
-	void OOBPrintT(int type, netadr_t netadr, const char* message);
-	void OOBPrintRaw(int type, netadr_t netadr, const char* message, size_t length);
 	const char* TabeLookup(StringTable* stringtable, int row, int column);
 	const char* UI_LocalizeMapName(const char* mapName);
 	const char* UI_LocalizeGameType(const char* gameType);

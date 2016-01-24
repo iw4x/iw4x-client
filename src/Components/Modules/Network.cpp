@@ -89,7 +89,7 @@ namespace Components
 
 	void Network::Send(Game::netsrc_t type, Address target, std::string data)
 	{
-		Game::OOBPrintT(type, *target.Get(), data.data());
+		Game::NET_OutOfBandPrint(type, *target.Get(), data.data());
 	}
 
 	void Network::Send(Address target, std::string data)
@@ -106,7 +106,9 @@ namespace Components
 		rawData.append(data.begin(), data.end());
 		rawData.append("\0", 1);
 
-		Game::OOBPrintRaw(type, *target.Get(), rawData.data(), rawData.size());
+		// NET_OutOfBandData doesn't seem to work properly
+		//Game::NET_OutOfBandData(type, *target.Get(), data.data(), data.size());
+		Game::Sys_SendPacket(type, rawData.size(), rawData.data(), *target.Get());
 	}
 
 	void Network::SendRaw(Address target, std::string data)
@@ -214,6 +216,8 @@ namespace Components
 
 	Network::Network()
 	{
+		Assert_Size(Game::netadr_t, 20);
+
 		// maximum size in NET_OutOfBandPrint
 		Utils::Hook::Set<DWORD>(0x4AEF08, 0x1FFFC);
 		Utils::Hook::Set<DWORD>(0x4AEFA3, 0x1FFFC);

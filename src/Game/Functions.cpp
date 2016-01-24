@@ -88,6 +88,8 @@ namespace Game
 	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
 	NET_IsLocalAddress_t NET_IsLocalAddress = (NET_IsLocalAddress_t)0x402BD0;
 	NET_StringToAdr_t NET_StringToAdr = (NET_StringToAdr_t)0x409010;
+	NET_OutOfBandPrint_t NET_OutOfBandPrint = (NET_OutOfBandPrint_t)0x4AEF00;
+	NET_OutOfBandData_t NET_OutOfBandData = (NET_OutOfBandData_t)0x49C7E0;
 
 	Live_MPAcceptInvite_t Live_MPAcceptInvite = (Live_MPAcceptInvite_t)0x420A6D;
 	Live_ParsePlaylists_t Live_ParsePlaylists = (Live_ParsePlaylists_t)0x4295A0;
@@ -97,9 +99,6 @@ namespace Game
 
 	LocalizeString_t LocalizeString = (LocalizeString_t)0x4FB010;
 	LocalizeMapString_t LocalizeMapString = (LocalizeMapString_t)0x44BB30;
-
-	sendOOB_t OOBPrint = (sendOOB_t)0x4AEF00;
-	sendOOBRaw_t OOBPrintRawData = (sendOOBRaw_t)0x60FDC0;
 
 	SE_Load_t SE_Load = (SE_Load_t)0x502A30;
 
@@ -132,6 +131,7 @@ namespace Game
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = (SV_GameClientNum_Score_t)0x469AC0;
 
 	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
+	Sys_SendPacket_t Sys_SendPacket = (Sys_SendPacket_t)0x60FDC0;
 
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;
@@ -203,20 +203,6 @@ namespace Game
 		if (!value) value = "";
 
 		return value;
-	}
-
-	void OOBPrintT(int type, netadr_t netadr, const char* message)
-	{
-		int* adr = reinterpret_cast<int*>(&netadr);
-
-		OOBPrint(type, adr[0], adr[1], adr[2], 0xFFFFFFFF, adr[4], message);
-	}
-
-	void OOBPrintRaw(int type, netadr_t netadr, const char* message, size_t length)
-	{
-		int* adr = reinterpret_cast<int*>(&netadr);
-
-		OOBPrintRawData(type, length, message, adr[0], adr[1], adr[2], 0xFFFFFFFF, adr[4]);
 	}
 
 	const char* UI_LocalizeMapName(const char* mapName)

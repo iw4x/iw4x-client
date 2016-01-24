@@ -822,8 +822,8 @@ namespace Game
 	{
 		netadrtype_t type;
 		netIP_t ip;
-		unsigned short	port;
-		unsigned char	ipx[10];
+		unsigned short port;
+		unsigned char ipx[8];
 	} netadr_t;
 
 	typedef struct
