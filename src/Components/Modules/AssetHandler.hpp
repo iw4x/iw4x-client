@@ -56,8 +56,6 @@ namespace Components
 	};
 }
 
-#define Assert_AssetStruct(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure is invalid.");
-
 #include "AssetInterfaces\IRawFile.hpp"
 #include "AssetInterfaces\IGfxImage.hpp"
 #include "AssetInterfaces\IMaterial.hpp"

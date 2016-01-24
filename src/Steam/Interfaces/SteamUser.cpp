@@ -32,7 +32,7 @@ namespace Steam
 
 				CryptProtectData(Data, NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &Data[1]);
 
-				subId = ::Utils::OneAtATime((char*)Data[1].pbData, 52);
+				subId = ::Utils::OneAtATime(reinterpret_cast<char*>(Data[1].pbData), 52);
 
 				if (!subId)
 				{

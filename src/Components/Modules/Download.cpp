@@ -198,7 +198,7 @@ namespace Components
 		{
 			while ((data.size() % 4) >= 4)
 			{
-				Download::MarkPacketAsDirty(download, *(int*)data.data());
+				Download::MarkPacketAsDirty(download, *reinterpret_cast<int*>(const_cast<char*>(data.data())));
 				data = data.substr(4);
 			}
 		}
@@ -265,7 +265,7 @@ namespace Components
 
 			for (auto &packet : packets)
 			{
-				data.append((char*)&packet, sizeof(int));
+				data.append(reinterpret_cast<char*>(&packet), sizeof(int));
 			}
 
 			Network::SendRaw(download->target, data);
@@ -305,7 +305,7 @@ namespace Components
 		packetContainer.hash = Utils::OneAtATime(data.data(), data.size());
 
 		std::string response = "dlPacketResponse\n";
-		response.append((char*)&packetContainer, sizeof(packetContainer));
+		response.append(reinterpret_cast<char*>(&packetContainer), sizeof(packetContainer));
 		response.append(data);
 
 		Network::SendRaw(download->target, response);
@@ -381,7 +381,7 @@ namespace Components
 		Download::DataContainer.ClientDownloads.push_back(download);
 
 		std::string response = "dlRequest\n";
-		response.append((char*)&download.id, sizeof(int));
+		response.append(reinterpret_cast<char*>(&download.id), sizeof(int));
 		response.append(file);
 
 		Network::SendRaw(target, response);
@@ -391,8 +391,7 @@ namespace Components
 
 	Download::Download()
 	{
-		return;
-
+#ifdef ENABLE_EXPERIMENTAL_UDP_DOWNLOAD
 		// Frame handlers
 		if (Dedicated::IsDedicated())
 		{
@@ -424,6 +423,7 @@ namespace Components
 				Logger::Print("Download failed!\n");
 			});
 		});
+#endif
 	}
 
 	Download::~Download()

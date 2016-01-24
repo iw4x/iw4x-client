@@ -158,12 +158,14 @@ namespace Components
 	{
 		for (DWORD i = 0; i < size; i += 4)
 		{
+			// Reinterpret cast is fine here, as we are working with low-level pointers (due to the relocation hook)
 			AssetHandler::Relocations[reinterpret_cast<char*>(start) + i] = reinterpret_cast<char*>(to) + i;
 		}
 	}
 
 	void AssetHandler::OffsetToAlias(Utils::Stream::Offset* offset)
 	{
+		// Same here, reinterpret the value, as we're operating inside the game's environment
 		offset->pointer = *reinterpret_cast<void**>((*Game::g_streamBlocks)[offset->GetUnpackedBlock()].data + offset->GetUnpackedOffset());
 
 		if (AssetHandler::Relocations.find(offset->pointer) != AssetHandler::Relocations.end())

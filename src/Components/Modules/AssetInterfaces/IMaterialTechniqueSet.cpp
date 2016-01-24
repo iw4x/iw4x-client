@@ -12,9 +12,9 @@ namespace Assets
 
 			if (!technique) continue;
 
-			for (short i = 0; i < technique->numPasses; i++)
+			for (short j = 0; j < technique->numPasses; j++)
 			{
-				Game::MaterialPass* pass = &technique->passes[i];
+				Game::MaterialPass* pass = &technique->passes[j];
 
 				if (pass->vertexDecl)
 				{
@@ -36,11 +36,11 @@ namespace Assets
 
 	void IMaterialTechniqueSet::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_AssetStruct(Game::MaterialTechniqueSet, 204);
+		Assert_Size(Game::MaterialTechniqueSet, 204);
 
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::MaterialTechniqueSet* asset = header.materialTechset;
-		Game::MaterialTechniqueSet* dest = (Game::MaterialTechniqueSet*)buffer->At();
+		Game::MaterialTechniqueSet* dest = buffer->Dest<Game::MaterialTechniqueSet>();
 		buffer->Save(asset, sizeof(Game::MaterialTechniqueSet));
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
@@ -48,7 +48,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = (char *)-1;
+			dest->name = reinterpret_cast<char*>(-1);
 		}
 
 		// Save_MaterialTechniquePtrArray
@@ -70,16 +70,16 @@ namespace Assets
 					buffer->Align(Utils::Stream::ALIGN_4);
 					builder->StorePointer(technique);
 
-					Game::MaterialTechnique* destTechnique = (Game::MaterialTechnique*)buffer->At();
+					Game::MaterialTechnique* destTechnique = buffer->Dest<Game::MaterialTechnique>();
 					buffer->Save(technique, 8);
 
 					// Save_MaterialPassArray
-					for (short i = 0; i < technique->numPasses; i++)
+					for (short j = 0; j < technique->numPasses; j++)
 					{
-						Assert_AssetStruct(Game::MaterialPass, 20);
+						Assert_Size(Game::MaterialPass, 20);
 
-						Game::MaterialPass* destPass = (Game::MaterialPass*)buffer->At();
-						Game::MaterialPass* pass = &technique->passes[i];
+						Game::MaterialPass* destPass = buffer->Dest<Game::MaterialPass>();
+						Game::MaterialPass* pass = &technique->passes[j];
 						buffer->Save(pass, sizeof(Game::MaterialPass));
 
 						if (pass->vertexDecl)
@@ -101,7 +101,7 @@ namespace Assets
 						{
 							buffer->Align(Utils::Stream::ALIGN_4);
 							buffer->SaveArray(pass->argumentDef, pass->argCount1 + pass->argCount2 + pass->argCount3);
-							destPass->argumentDef = (Game::ShaderArgumentDef*) - 1;
+							destPass->argumentDef = reinterpret_cast<Game::ShaderArgumentDef*>(-1);
 						}
 					}
 
@@ -115,8 +115,8 @@ namespace Assets
 						buffer->SaveString("");
 					}
 
-					destTechnique->name = (char*)-1;
-					dest->techniques[i] = (Game::MaterialTechnique*) - 1;
+					destTechnique->name = reinterpret_cast<char*>(-1);
+					dest->techniques[i] = reinterpret_cast<Game::MaterialTechnique*>(-1);
 				}
 			}
 		}

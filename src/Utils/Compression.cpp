@@ -9,7 +9,7 @@ namespace Utils
 			unsigned long length = (data.size() * 2);
 			char* buffer = Utils::Memory::AllocateArray<char>(length);
 
-			if (compress2((Bytef*)buffer, &length, (Bytef*)data.data(), data.size(), Z_BEST_COMPRESSION) != Z_OK)
+			if (compress2(reinterpret_cast<Bytef*>(buffer), &length, reinterpret_cast<Bytef*>(const_cast<char*>(data.data())), data.size(), Z_BEST_COMPRESSION) != Z_OK)
 			{
 				Utils::Memory::Free(buffer);
 				return "";

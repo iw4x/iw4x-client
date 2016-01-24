@@ -7,7 +7,7 @@ namespace Components
 	void FastFiles::LoadDLCUIZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
 	{
 		std::vector<Game::XZoneInfo> data;
-		Utils::Merge(data, zoneInfo, zoneCount);
+		Utils::Merge(&data, zoneInfo, zoneCount);
 
 		Game::XZoneInfo info = { nullptr, 2, 0 };
 
@@ -53,7 +53,7 @@ namespace Components
 	{
 		const char* file = (Utils::Hook::Get<char*>(0x112A680) + 4);
 
-		if ((int)file == 4)
+		if (file == reinterpret_cast<char*>(4))
 		{
 			return "";
 		}
@@ -103,7 +103,7 @@ namespace Components
 
 			Game::Font* font = Game::R_RegisterFont("fonts/consoleFont"); // Inlining that seems to skip xpos, no idea why xD
 			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
-			Game::R_AddCmdDrawText(Utils::VA("Loading FastFile: %s", FastFiles::Current().data()), 0x7FFFFFFF, font, 5.0f, (float)(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, 0);
+			Game::R_AddCmdDrawText(Utils::VA("Loading FastFile: %s", FastFiles::Current().data()), 0x7FFFFFFF, font, 5.0f, static_cast<float>(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, 0);
 		});
 
 		Command::Add("loadzone", [] (Command::Params params)

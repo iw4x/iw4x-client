@@ -59,8 +59,12 @@ namespace Utils
 
 		DWORD GetPackedOffset();
 
-		char* At();
 		char* Data();
+		char* At();
+		template <typename T> T* Dest()
+		{
+			return reinterpret_cast<T*>(this->At());
+		}
 
 		void ToBuffer(std::string& outBuffer);
 		std::string ToBuffer();
@@ -102,16 +106,16 @@ namespace Utils
 
 			uint32_t GetUnpackedOffset()
 			{
-				Offset offset = *this;
-				offset.packed--;
-				return offset.offset;
+				Offset lOffset = *this;
+				lOffset.packed--;
+				return lOffset.offset;
 			};
 
 			int GetUnpackedBlock()
 			{
-				Offset offset = *this;
-				offset.packed--;
-				return offset.block;
+				Offset lOffset = *this;
+				lOffset.packed--;
+				return lOffset.block;
 			};
 		};
 	};

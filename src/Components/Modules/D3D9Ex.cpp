@@ -715,7 +715,7 @@ namespace Components
 	HRESULT __stdcall D3D9Ex::D3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface)
 	{
 		HRESULT hres = m_pIDirect3D9->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface);
-		*ppReturnedDeviceInterface = (new D3D9Ex::D3D9Device(*ppReturnedDeviceInterface));
+		*ppReturnedDeviceInterface = new D3D9Ex::D3D9Device(*ppReturnedDeviceInterface);
 		return hres;
 	}
 

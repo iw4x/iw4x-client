@@ -23,7 +23,7 @@ namespace Components
 			template<typename T>
 			T* GetPointer(const T* pointer) { return reinterpret_cast<T*>(SafeGetPointer(pointer)); }
 
-			int FindAsset(Game::XAssetType type, const char* name);
+			int FindAsset(Game::XAssetType type, std::string name);
 			Game::XAsset* GetAsset(int index);
 			uint32_t GetAssetOffset(int index);
 			Game::XAssetHeader RequireAsset(Game::XAssetType type, const char* name);

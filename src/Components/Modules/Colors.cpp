@@ -57,9 +57,7 @@ namespace Components
 		Game::CL_GetClientName(localClientNum, index, buf, size);
 
 		// Remove the colors
-		char tempBuffer[100] = { 0 };
-		Colors::Strip(buf, tempBuffer, size);
-		strncpy(buf, tempBuffer, size);
+		strncpy(buf, Colors::Strip(buf).data(), size);
 
 		return buf;
 	}
@@ -75,7 +73,7 @@ namespace Components
 			memcpy(DefaultTable, gColorTable, sizeof(DefaultTable));
 		}
 
-		if (Colors::NewColors.Get<bool>() && (0xF & (int)Colors::NewColors.Get<bool>()) != LastState)
+		if (Colors::NewColors.Get<bool>() && (0xF & static_cast<int>(Colors::NewColors.Get<bool>())) != LastState)
 		{
 			// Apply NTA's W² colors :3 (slightly modified though^^)
 			gColorTable[1] = RGB(255, 49, 49);
@@ -87,7 +85,7 @@ namespace Components
 
 			LastState = Colors::NewColors.Get<bool>();
 		}
-		else if (!Colors::NewColors.Get<bool>() && (0xF & (int)Colors::NewColors.Get<bool>()) != LastState)
+		else if (!Colors::NewColors.Get<bool>() && (0xF & static_cast<int>(Colors::NewColors.Get<bool>())) != LastState)
 		{
 			memcpy(gColorTable, DefaultTable, sizeof(DefaultTable));
 

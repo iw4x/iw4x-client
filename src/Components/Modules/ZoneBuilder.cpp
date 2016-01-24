@@ -116,7 +116,7 @@ namespace Components
 	{
 		Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 
-		if (ZoneBuilder::Zone::FindAsset(type, name.c_str()) != -1) return true;
+		if (ZoneBuilder::Zone::FindAsset(type, name) != -1) return true;
 
 		if (type == Game::XAssetType::ASSET_TYPE_INVALID || type >= Game::XAssetType::ASSET_TYPE_COUNT)
 		{
@@ -143,7 +143,7 @@ namespace Components
 		return true;
 	}
 
-	int ZoneBuilder::Zone::FindAsset(Game::XAssetType type, const char* name)
+	int ZoneBuilder::Zone::FindAsset(Game::XAssetType type, std::string name)
 	{
 		for (unsigned int i = 0; i < ZoneBuilder::Zone::LoadedAssets.size(); i++)
 		{
@@ -151,9 +151,9 @@ namespace Components
 
 			if (asset->type != type) continue;
 
-			const char* _name = DB_GetXAssetName(asset);
+			const char* assetName = DB_GetXAssetName(asset);
 
-			if (_name && !strcmp(name, _name)) // Match case!
+			if (name == assetName)
 			{
 				return i;
 			}
@@ -183,13 +183,13 @@ namespace Components
 	Game::XAssetHeader ZoneBuilder::Zone::RequireAsset(Game::XAssetType type, const char* name)
 	{
 		Game::XAssetHeader header;
-		header.data = (void*)-1;
+		header.data = reinterpret_cast<void*>(-1);
 
 		int assetIndex = ZoneBuilder::Zone::FindAsset(type, name);
 
 		if (assetIndex != -1)
 		{
-			header.data = (void*)ZoneBuilder::Zone::GetAssetOffset(assetIndex);
+			header.data = reinterpret_cast<void*>(ZoneBuilder::Zone::GetAssetOffset(assetIndex));
 		}
 		else
 		{
@@ -225,13 +225,13 @@ namespace Components
 		// Add header
 		Game::ZoneHeader zoneHeader = { 0 };
 		zoneHeader.assetList.assetCount = ZoneBuilder::Zone::LoadedAssets.size();
-		zoneHeader.assetList.assets = (Game::XAsset *)-1;
+		zoneHeader.assetList.assets = reinterpret_cast<Game::XAsset*>(-1);
 
 		// Increment ScriptStrings count (for empty script string) if available
 		if (ZoneBuilder::Zone::ScriptStrings.size())
 		{
 			zoneHeader.assetList.stringList.count = ZoneBuilder::Zone::ScriptStrings.size() + 1;
-			zoneHeader.assetList.stringList.strings = (const char**)-1;
+			zoneHeader.assetList.stringList.strings = reinterpret_cast<const char**>(-1);
 		}
 
 		// Write header
@@ -270,7 +270,7 @@ namespace Components
 		{
 			Game::XAsset entry;
 			entry.type = asset.type;
-			entry.header.data = (void*)-1;
+			entry.header.data = reinterpret_cast<void*>(-1);
 
 			ZoneBuilder::Zone::Buffer.Save(&entry, sizeof(Game::XAsset));
 		}
@@ -288,7 +288,7 @@ namespace Components
 
 		// Adapt header
 		ZoneBuilder::Zone::Buffer.EnterCriticalSection();
-		Game::XFile* header = (Game::XFile*)ZoneBuilder::Zone::Buffer.Data();
+		Game::XFile* header = reinterpret_cast<Game::XFile*>(ZoneBuilder::Zone::Buffer.Data());
 		header->size = ZoneBuilder::Zone::Buffer.Length() - sizeof(Game::XFile); // Write correct data size
 		header->externalSize = 0; // ? 
 

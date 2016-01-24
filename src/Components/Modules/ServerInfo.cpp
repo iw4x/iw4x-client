@@ -148,7 +148,7 @@ namespace Components
 				else
 				{
 					// Score and ping are irrelevant
-					const char* namePtr = Game::PartyHost_GetMemberName((Game::PartyData_s*)0x1081C00, i);
+					const char* namePtr = Game::PartyHost_GetMemberName(reinterpret_cast<Game::PartyData_t*>(0x1081C00), i);
 					if (!namePtr || !namePtr[0]) continue;
 
 					name = namePtr;

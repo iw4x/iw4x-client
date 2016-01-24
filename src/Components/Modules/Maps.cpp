@@ -27,7 +27,7 @@ namespace Components
 		}
 
 		std::vector<Game::XZoneInfo> data;
-		Utils::Merge(data, zoneInfo, zoneCount);
+		Utils::Merge(&data, zoneInfo, zoneCount);
 
 		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); i++)
 		{
@@ -155,7 +155,7 @@ namespace Components
 		// Intercept map zone loading
 		Utils::Hook(0x42C2AF, Maps::LoadMapZones, HOOK_CALL).Install()->Quick();
 
-		Maps::WorldSP = reinterpret_cast<char*>(Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1)) + 52; // Skip name and other padding to reach world data
+		Maps::WorldSP = static_cast<char*>(Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1)) + 52; // Skip name and other padding to reach world data
 		Maps::WorldMP = Utils::Hook::Get<char*>(0x4D90B7); 
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);

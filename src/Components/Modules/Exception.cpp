@@ -70,7 +70,7 @@ namespace Components
 
 			for (int i =0;;)
 			{
-				char* mapname = (char*)0x7471D0 + 40 * i;
+				char* mapname = reinterpret_cast<char*>(0x7471D0) + 40 * i;
 				if (!*mapname)
 				{
 					i = 0;

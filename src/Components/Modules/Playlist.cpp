@@ -72,8 +72,8 @@ namespace Components
 				else
 				{
 					// Read hash and length
-					unsigned int hash = *(unsigned int*)data.data();
-					unsigned int length = *(unsigned int*)(data.data() + 4);
+					unsigned int hash = *reinterpret_cast<unsigned int*>(const_cast<char*>(data.data()));
+					unsigned int length = *reinterpret_cast<unsigned int*>(const_cast<char*>(data.data() + 4));
 
 					// Verify length
 					if (length > (data.size() - 8))

@@ -27,11 +27,11 @@ namespace Components
 		__asm mov Theatre::BaselineSnapshotMsg, edi
 
 		// Store offset and length
-		Theatre::BaselineSnapshotMsgLen = *(int*)(Theatre::BaselineSnapshotMsg + 20);
-		Theatre::BaselineSnapshotMsgOff = *(int*)(Theatre::BaselineSnapshotMsg + 28) - 7;
+		Theatre::BaselineSnapshotMsgLen = *reinterpret_cast<int*>(Theatre::BaselineSnapshotMsg + 20);
+		Theatre::BaselineSnapshotMsgOff = *reinterpret_cast<int*>(Theatre::BaselineSnapshotMsg + 28) - 7;
 
 		// Copy to our snapshot buffer
-		memcpy(Theatre::BaselineSnapshot, *(DWORD**)(Theatre::BaselineSnapshotMsg + 8), *(DWORD*)(Theatre::BaselineSnapshotMsg + 20));
+		memcpy(Theatre::BaselineSnapshot, *reinterpret_cast<DWORD**>(Theatre::BaselineSnapshotMsg + 8), *reinterpret_cast<DWORD*>(Theatre::BaselineSnapshotMsg + 20));
 
 		__asm
 		{

@@ -32,7 +32,7 @@ namespace Utils
 		return Stream::Buffer.capacity();
 	}
 
-	char* Stream::Save(const void * _str, size_t size, size_t count)
+	char* Stream::Save(const void* _str, size_t size, size_t count)
 	{
 		return Stream::Save(Stream::GetCurrentBlock(), _str, size, count);
 	}
@@ -50,7 +50,7 @@ namespace Utils
 			__debugbreak();
 		}
 
-		Stream::Buffer.append((char*)_str, size * count);
+		Stream::Buffer.append(static_cast<const char*>(_str), size * count);
 
 		if (Stream::Data() != data && Stream::IsCriticalSection())
 		{
@@ -123,7 +123,7 @@ namespace Utils
 
 	char* Stream::SaveMax(size_t count)
 	{
-		return Stream::SaveByte(-1, count);
+		return Stream::SaveByte(static_cast<unsigned char>(-1), count);
 	}
 
 	void Stream::Align(Stream::Alignment align)
@@ -185,12 +185,12 @@ namespace Utils
 
 	char* Stream::At()
 	{
-		return (char*)(Stream::Data() + Stream::Length());
+		return reinterpret_cast<char*>(Stream::Data() + Stream::Length());
 	}
 
 	char* Stream::Data()
 	{
-		return (char*)Stream::Buffer.data();
+		return const_cast<char*>(Stream::Buffer.data());
 	}
 
 	unsigned int Stream::GetBlockSize(Game::XFILE_BLOCK_TYPES stream)

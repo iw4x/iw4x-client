@@ -28,6 +28,6 @@ namespace Utils
 
 	void Memory::Free(const void* data)
 	{
-		Memory::Free((void*)data);
+		Memory::Free(const_cast<void*>(data));
 	}
 }

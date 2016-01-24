@@ -12,12 +12,12 @@ namespace Utils
 
 	Hook* Hook::Initialize(DWORD place, void(*stub)(), bool useJump)
 	{
-		return Hook::Initialize(place, (void*)stub, useJump);
+		return Hook::Initialize(place, reinterpret_cast<void*>(stub), useJump);
 	}
 
 	Hook* Hook::Initialize(DWORD place, void* stub, bool useJump)
 	{
-		return Hook::Initialize((void*)place, stub, useJump);
+		return Hook::Initialize(reinterpret_cast<void*>(place), stub, useJump);
 	}
 
 	Hook* Hook::Initialize(void* place, void* stub, bool useJump)
@@ -29,7 +29,7 @@ namespace Utils
 		Hook::Place = place;
 		Hook::Stub = stub;
 
-		Hook::Original = (char*)Hook::Place + 5 + *(DWORD*)((DWORD)Hook::Place + 1);
+		Hook::Original = static_cast<char*>(Hook::Place) + 5 + *reinterpret_cast<DWORD*>((static_cast<char*>(Hook::Place) + 1));
 
 		return this;
 	}
@@ -46,15 +46,14 @@ namespace Utils
 
 		Hook::Installed = true;
 
-		DWORD d = 1;
 		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
 		memcpy(Hook::Buffer, Hook::Place, sizeof(Hook::Buffer));
 
-		char* Code = (char*)Hook::Place;
+		char* code = static_cast<char*>(Hook::Place);
 
-		*Code = (char)(Hook::UseJump ? 0xE9 : 0xE8);
+		*code = static_cast<char>(Hook::UseJump ? 0xE9 : 0xE8);
 
-		*(size_t*)&Code[1] = (size_t)Hook::Stub - ((size_t)Hook::Place + 5);
+		*reinterpret_cast<size_t*>(code + 1) = reinterpret_cast<size_t>(Hook::Stub) - (reinterpret_cast<size_t>(Hook::Place) + 5);
 
 		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
 
@@ -110,26 +109,26 @@ namespace Utils
 
 	void Hook::Nop(DWORD place, size_t length)
 	{ 
-		Nop((void*)place, length);
+		Nop(reinterpret_cast<void*>(place), length);
 	}
 
 	void Hook::SetString(void* place, const char* string, size_t length)
 	{
-		strncpy((char*)place, string, length);
+		strncpy(static_cast<char*>(place), string, length);
 	}
 
 	void Hook::SetString(DWORD place, const char* string, size_t length)
 	{
-		Hook::SetString((void*)place, string, length);
+		Hook::SetString(reinterpret_cast<void*>(place), string, length);
 	}
 
 	void Hook::SetString(void* place, const char* string)
 	{
-		Hook::SetString(place, string, strlen((char*)place));
+		Hook::SetString(place, string, strlen(static_cast<char*>(place)));
 	}
 
 	void Hook::SetString(DWORD place, const char* string)
 	{
-		Hook::SetString((void*)place, string);
+		Hook::SetString(reinterpret_cast<void*>(place), string);
 	}
 }

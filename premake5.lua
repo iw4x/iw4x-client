@@ -130,7 +130,7 @@ workspace "iw4x"
 		end
 
 		-- Specific configurations
-		flags { "UndefinedIdentifiers" }
+		flags { "UndefinedIdentifiers", "ExtraWarnings" }
 
 		configuration "Release*"
 			flags { "FatalCompileWarnings" }

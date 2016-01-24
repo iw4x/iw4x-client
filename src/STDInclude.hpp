@@ -1,4 +1,8 @@
 #pragma once
+
+// Disable irrelevant warnings
+#pragma warning(disable: 4100) // Unreferenced parameter (steam has to have them and other stubs as well, due to their calling convention)
+
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 
@@ -83,3 +87,5 @@
 #define REVISION_STR STRINGIZE(REVISION)
 #define VERSION 4,2,REVISION
 #define VERSION_STR "4.2." REVISION_STR
+
+#define Assert_Size(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.");

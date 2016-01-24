@@ -68,7 +68,7 @@ namespace Components
 	StringTable::StringTable()
 	{
 		// Disable StringTable loading until our StructuredData handler is finished!
-		return;
+#ifdef ENABLE_STRINGTABLES
 
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [] (Game::XAssetType, const char* filename)
 		{
@@ -85,6 +85,7 @@ namespace Components
 
 			return header;
 		});
+#endif
 	}
 
 	StringTable::~StringTable()
@@ -96,11 +97,11 @@ namespace Components
 			{
 				if (table->values)
 				{
-					for (int i = 0; i < table->rowCount * table->columnCount; i++)
+					for (int j = 0; j < table->rowCount * table->columnCount; j++)
 					{
-						if (table->values[i].string)
+						if (table->values[j].string)
 						{
-							Utils::Memory::Free(table->values[i].string);
+							Utils::Memory::Free(table->values[j].string);
 						}
 					}
 

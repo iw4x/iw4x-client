@@ -70,7 +70,7 @@ namespace Components
 	void FileSystem::DeleteFile(std::string folder, std::string file)
 	{
 		char path[MAX_PATH] = { 0 };
-		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").Get<const char*>(), (char*)0x63D0BB8, Utils::VA("%s/%s", folder.data(), file.data()), (char**)&path);
+		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").Get<const char*>(),reinterpret_cast<char*>(0x63D0BB8), Utils::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
 		Game::FS_Remove(path);
 	}
 

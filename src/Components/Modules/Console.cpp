@@ -21,7 +21,7 @@ namespace Components
 
 	char** Console::GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType)
 	{
-		if (path == (char*)0xBAADF00D || path == (char*)0xCDCDCDCD || IsBadReadPtr(path, 1)) return nullptr;
+		if (path == reinterpret_cast<char*>(0xBAADF00D) || path == reinterpret_cast<char*>(0xCDCDCDCD) || IsBadReadPtr(path, 1)) return nullptr;
 		return Game::FS_ListFiles(path, extension, behavior, numfiles, allocTrackType);
 	}
 
@@ -118,7 +118,7 @@ namespace Components
 			Console::HasConsole = true;
 		}
 
-		int currentTime = (int)GetTickCount64(); // Make our compiler happy
+		int currentTime = static_cast<int>(GetTickCount64()); // Make our compiler happy
 		if ((currentTime - Console::LastRefresh) > 250)
 		{
 			Console::RefreshOutput();
@@ -187,7 +187,7 @@ namespace Components
 				Console::LineBufferIndex--;
 				Console::LineBuffer[Console::LineBufferIndex] = '\0';
 
-				wprintw(Console::InputWindow, "%c %c", (char)c, (char)c);
+				wprintw(Console::InputWindow, "%c %c", static_cast<char>(c), static_cast<char>(c));
 				wrefresh(Console::InputWindow);
 			}
 			break;
@@ -221,9 +221,9 @@ namespace Components
 				// temporary workaround , find out what overwrites our index later on
 				//consoleLineBufferIndex = strlen(consoleLineBuffer);
 
-				Console::LineBuffer[Console::LineBufferIndex++] = (char)c;
+				Console::LineBuffer[Console::LineBufferIndex++] = static_cast<char>(c);
 				Console::LineBuffer[Console::LineBufferIndex] = '\0';
-				wprintw(Console::InputWindow, "%c", (char)c);
+				wprintw(Console::InputWindow, "%c", static_cast<char>(c));
 				wrefresh(Console::InputWindow);
 			}
 			break;
@@ -312,7 +312,10 @@ namespace Components
 
 		if (IsDebuggerPresent())
 		{
-			while (true) Sleep(5000);
+			while (true)
+			{
+				Sleep(5000);
+			}
 		}
 
 		TerminateProcess(GetCurrentProcess(), 0xDEADDEAD);
@@ -350,7 +353,7 @@ namespace Components
 
 		wattron(Console::OutputWindow, COLOR_PAIR(9));
 
-		int currentTime = (int)GetTickCount64(); // Make our compiler happy
+		int currentTime = static_cast<int>(GetTickCount64()); // Make our compiler happy
 
 		if (!Console::HasConsole)
 		{
@@ -366,7 +369,7 @@ namespace Components
 	Console::Console()
 	{
 		// External console
-		if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, untile the native one is adapted.
+		if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
 		{
 			FreeConsole();
 			Utils::Hook::Nop(0x60BB58, 11);

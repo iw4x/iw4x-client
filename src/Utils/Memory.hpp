@@ -46,7 +46,7 @@ namespace Utils
 			}
 			template <typename T> T* AllocateArray(size_t count = 1)
 			{
-				return (T*)this->Allocate(count * sizeof(T));
+				return static_cast<T*>(this->Allocate(count * sizeof(T)));
 			}
 
 			char* DuplicateString(std::string string)
@@ -64,7 +64,7 @@ namespace Utils
 		static void* Allocate(size_t length);
 		template <typename T> static T* AllocateArray(size_t count = 1)
 		{
-			return (T*)Allocate(count * sizeof(T));
+			return static_cast<T*>(Allocate(count * sizeof(T)));
 		}
 
 		static char* DuplicateString(std::string string);

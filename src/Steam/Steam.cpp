@@ -81,7 +81,7 @@ namespace Steam
 				if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hRegKey) == ERROR_SUCCESS)
 				{
 					DWORD dwLength = sizeof(steamPath);
-					RegQueryValueExA(hRegKey, "InstallPath", NULL, NULL, (BYTE*)steamPath, &dwLength);
+					RegQueryValueExA(hRegKey, "InstallPath", NULL, NULL, reinterpret_cast<BYTE*>(steamPath), &dwLength);
 					RegCloseKey(hRegKey);
 
 					SetDllDirectory(steamPath);

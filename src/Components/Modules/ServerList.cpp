@@ -16,8 +16,6 @@ namespace Components
 
 	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{
-		int source = Dvar::Var("ui_netSource").Get<int>();
-
 		if (ServerList::IsOnlineList())
 		{
 			return &ServerList::OnlineList;
@@ -366,7 +364,7 @@ namespace Components
 				auto list = ServerList::GetList();
 				if (!list) return;
 
-				int k = 0;
+				unsigned int k = 0;
 				for (auto j = list->begin(); j != list->end(); j++, k++)
 				{
 					if (j->Addr == address)
@@ -387,11 +385,11 @@ namespace Components
 
 				if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
 				{
-					auto list = ServerList::GetList();
+					auto lList = ServerList::GetList();
 
-					if (list)
+					if (lList)
 					{
-						list->push_back(server);
+						lList->push_back(server);
 						ServerList::RefreshVisibleList();
 					}
 				}
@@ -412,8 +410,8 @@ namespace Components
 	{
 		qsort(ServerList::VisibleList.data(), ServerList::VisibleList.size(), sizeof(int), [] (const void* first, const void* second)
 		{
-			unsigned int server1 = *(unsigned int*)first;
-			unsigned int server2 = *(unsigned int*)second;
+			const unsigned int server1 = *static_cast<const unsigned int*>(first);
+			const unsigned int server2 = *static_cast<const unsigned int*>(second);
 
 			ServerInfo* info1 = nullptr;
 			ServerInfo* info2 = nullptr;

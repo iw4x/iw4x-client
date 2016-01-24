@@ -25,7 +25,7 @@ namespace Utils
 
 	void WebIO::OpenSession(std::string useragent)
 	{
-		WebIO::m_hSession = InternetOpen(useragent.c_str(), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+		WebIO::m_hSession = InternetOpen(useragent.data(), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
 	}
 
 	void WebIO::CloseSession()
@@ -56,14 +56,14 @@ namespace Utils
 
 		PARSEDURLA pURL;
 		pURL.cbSize = sizeof(pURL);
-		ParseURLA(url.c_str(), &pURL);
+		ParseURLA(url.data(), &pURL);
 
 		// Parse protocol
 		if (pURL.cchProtocol && pURL.cchProtocol != 0xCCCCCCCC && pURL.pszProtocol)
 		{
 			for (UINT i = 0; i < pURL.cchProtocol; i++)
 			{
-				char lChar = tolower(pURL.pszProtocol[i]);
+				char lChar = static_cast<char>(tolower(pURL.pszProtocol[i]));
 				WebIO::m_sUrl.protocol.append(&lChar, 1);
 			}
 		}
@@ -183,9 +183,9 @@ namespace Utils
 			wPort = INTERNET_DEFAULT_HTTPS_PORT;
 		}
 
-		const char* username = (WebIO::m_username.size() ? WebIO::m_username.c_str() : NULL);
-		const char* password = (WebIO::m_password.size() ? WebIO::m_password.c_str() : NULL);
-		WebIO::m_hConnect = InternetConnect(WebIO::m_hSession, WebIO::m_sUrl.server.c_str(), wPort, username, password, dwService, dwFlag, 0);
+		const char* username = (WebIO::m_username.size() ? WebIO::m_username.data() : NULL);
+		const char* password = (WebIO::m_password.size() ? WebIO::m_password.data() : NULL);
+		WebIO::m_hConnect = InternetConnect(WebIO::m_hSession, WebIO::m_sUrl.server.data(), wPort, username, password, dwService, dwFlag, 0);
 
 		return (WebIO::m_hConnect && WebIO::m_hConnect != INVALID_HANDLE_VALUE);
 	}
@@ -216,7 +216,7 @@ namespace Utils
 		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_RECEIVE_TIMEOUT, &m_timeout, sizeof(m_timeout));
 		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_SEND_TIMEOUT, &m_timeout, sizeof(m_timeout));
 
-		WebIO::m_hFile = HttpOpenRequest(WebIO::m_hConnect, command, WebIO::m_sUrl.document.c_str(), NULL, NULL, acceptTypes, dwFlag, 0);
+		WebIO::m_hFile = HttpOpenRequest(WebIO::m_hConnect, command, WebIO::m_sUrl.document.data(), NULL, NULL, acceptTypes, dwFlag, 0);
 
 		if (!WebIO::m_hFile || WebIO::m_hFile == INVALID_HANDLE_VALUE)
 		{
@@ -225,7 +225,7 @@ namespace Utils
 		}
 
 		const char* headers = "Content-type: application/x-www-form-urlencoded";
-		HttpSendRequest(WebIO::m_hFile, headers, strlen(headers), (char*)body.c_str(), body.size() + 1);
+		HttpSendRequest(WebIO::m_hFile, headers, strlen(headers), const_cast<char*>(body.data()), body.size() + 1);
 
 		std::string returnBuffer;
 
@@ -260,7 +260,7 @@ namespace Utils
 
 	bool WebIO::SetDirectory(std::string directory)
 	{
-		return (FtpSetCurrentDirectoryA(WebIO::m_hConnect, directory.c_str()) == TRUE);
+		return (FtpSetCurrentDirectoryA(WebIO::m_hConnect, directory.data()) == TRUE);
 	}
 
 	bool WebIO::SetRelativeDirectory(std::string directory)
@@ -273,7 +273,7 @@ namespace Utils
 			WebIO::FormatPath(currentDir, true);
 
 			char path[MAX_PATH] = { 0 };
-			PathCombineA(path, currentDir.c_str(), directory.c_str());
+			PathCombineA(path, currentDir.data(), directory.data());
 
 			std::string newPath(path);
 			WebIO::FormatPath(newPath, false);
@@ -320,7 +320,7 @@ namespace Utils
 
 	bool WebIO::CreateDirectory(std::string directory)
 	{
-		return (FtpCreateDirectoryA(WebIO::m_hConnect, directory.c_str()) == TRUE);
+		return (FtpCreateDirectoryA(WebIO::m_hConnect, directory.data()) == TRUE);
 	}
 
 	// Recursively delete a directory
@@ -341,12 +341,12 @@ namespace Utils
 
 		WebIO::SetDirectory(tempDir);
 
-		return (FtpRemoveDirectoryA(WebIO::m_hConnect, directory.c_str()) == TRUE);
+		return (FtpRemoveDirectoryA(WebIO::m_hConnect, directory.data()) == TRUE);
 	}
 
 	bool WebIO::RenameDirectory(std::string directory, std::string newDir)
 	{
-		return (FtpRenameFileA(WebIO::m_hConnect, directory.c_str(), newDir.c_str()) == TRUE); // According to the internetz, this should work
+		return (FtpRenameFileA(WebIO::m_hConnect, directory.data(), newDir.data()) == TRUE); // According to the internetz, this should work
 	}
 
 	bool WebIO::ListElements(std::string directory, std::vector<std::string> &list, bool files)
@@ -399,33 +399,33 @@ namespace Utils
 
 	bool WebIO::UploadFile(std::string file, std::string localfile)
 	{
-		return (FtpPutFileA(WebIO::m_hConnect, localfile.c_str(), file.c_str(), FTP_TRANSFER_TYPE_BINARY, NULL) == TRUE);
+		return (FtpPutFileA(WebIO::m_hConnect, localfile.data(), file.data(), FTP_TRANSFER_TYPE_BINARY, NULL) == TRUE);
 	}
 
 	bool WebIO::DeleteFile(std::string file)
 	{
-		return (FtpDeleteFileA(WebIO::m_hConnect, file.c_str()) == TRUE);
+		return (FtpDeleteFileA(WebIO::m_hConnect, file.data()) == TRUE);
 	}
 
 	bool WebIO::RenameFile(std::string file, std::string newFile)
 	{
-		return (FtpRenameFileA(WebIO::m_hConnect, file.c_str(), newFile.c_str()) == TRUE);
+		return (FtpRenameFileA(WebIO::m_hConnect, file.data(), newFile.data()) == TRUE);
 	}
 
 	bool WebIO::DownloadFile(std::string file, std::string localfile)
 	{
-		return (FtpGetFileA(WebIO::m_hConnect, file.c_str(), localfile.c_str(), FALSE, NULL, FTP_TRANSFER_TYPE_BINARY, 0) == TRUE);
+		return (FtpGetFileA(WebIO::m_hConnect, file.data(), localfile.data(), FALSE, NULL, FTP_TRANSFER_TYPE_BINARY, 0) == TRUE);
 	}
 
 	bool WebIO::UploadFileData(std::string file, std::string data)
 	{
 		bool result = false;
-		WebIO::m_hFile = FtpOpenFileA(WebIO::m_hConnect, file.c_str(), GENERIC_WRITE, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
+		WebIO::m_hFile = FtpOpenFileA(WebIO::m_hConnect, file.data(), GENERIC_WRITE, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
 
 		if (WebIO::m_hFile)
 		{
 			DWORD size = 0;
-			if (InternetWriteFile(WebIO::m_hFile, data.c_str(), data.size(), &size) == TRUE)
+			if (InternetWriteFile(WebIO::m_hFile, data.data(), data.size(), &size) == TRUE)
 			{
 				result = (size == data.size());
 			}
@@ -440,7 +440,7 @@ namespace Utils
 	{
 		data.clear();
 
-		WebIO::m_hFile = FtpOpenFileA(WebIO::m_hConnect, file.c_str(), GENERIC_READ, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
+		WebIO::m_hFile = FtpOpenFileA(WebIO::m_hConnect, file.data(), GENERIC_READ, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
 
 		if (WebIO::m_hFile)
 		{

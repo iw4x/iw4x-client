@@ -129,7 +129,7 @@ namespace Components
 	{
 		for (unsigned int i = min; i < max; i++)
 		{
-			Network::Broadcast((unsigned short)(i & 0xFFFF), data);
+			Network::Broadcast(static_cast<unsigned short>(i & 0xFFFF), data);
 		}
 	}
 

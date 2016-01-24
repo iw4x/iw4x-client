@@ -2,6 +2,7 @@
 
 namespace Game
 {
+	// C-Style casts are fine here, that's where we're doing our dirty stuff anyways...
 	BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj = (BG_LoadWeaponDef_LoadObj_t)0x57B5F0;
 
 	Cbuf_AddText_t Cbuf_AddText = (Cbuf_AddText_t)0x404B20;
@@ -206,16 +207,16 @@ namespace Game
 
 	void OOBPrintT(int type, netadr_t netadr, const char* message)
 	{
-		int* adr = (int*)&netadr;
+		int* adr = reinterpret_cast<int*>(&netadr);
 
-		OOBPrint(type, *adr, *(adr + 1), *(adr + 2), 0xFFFFFFFF, *(adr + 4), message);
+		OOBPrint(type, adr[0], adr[1], adr[2], 0xFFFFFFFF, adr[4], message);
 	}
 
 	void OOBPrintRaw(int type, netadr_t netadr, const char* message, size_t length)
 	{
-		int* adr = (int*)&netadr;
+		int* adr = reinterpret_cast<int*>(&netadr);
 
-		OOBPrintRawData(type, length, message, *adr, *(adr + 1), *(adr + 2), 0xFFFFFFFF, *(adr + 4));
+		OOBPrintRawData(type, length, message, adr[0], adr[1], adr[2], 0xFFFFFFFF, adr[4]);
 	}
 
 	const char* UI_LocalizeMapName(const char* mapName)
@@ -267,7 +268,7 @@ namespace Game
 	{
 		for (int i = 0; i < ASSET_TYPE_COUNT; i++)
 		{
-			XAssetType type = (XAssetType)i;
+			XAssetType type = static_cast<XAssetType>(i);
 			if (!_stricmp(DB_GetXAssetTypeName(type), name))
 			{
 				return type;

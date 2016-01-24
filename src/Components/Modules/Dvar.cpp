@@ -44,7 +44,7 @@ namespace Components
 	}
 	template <> unsigned int Dvar::Var::Get()
 	{
-		return (unsigned int)this->Get<int>();
+		return static_cast<unsigned int>(this->Get<int>());
 	}
 	template <> float Dvar::Var::Get()
 	{
@@ -82,7 +82,7 @@ namespace Components
 
 	void Dvar::Var::Set(char* string)
 	{
-		this->Set(reinterpret_cast<const char*>(string));
+		this->Set(const_cast<const char*>(string));
 	}
 	void Dvar::Var::Set(const char* string)
 	{

@@ -30,9 +30,9 @@ namespace Components
 		Game::script_t* script = Game::Script_Alloc(sizeof(Game::script_t) + 1 + buffer.length());
 
 		strcpy_s(script->filename, sizeof(script->filename), name.data());
-		script->buffer = (char*)(script + 1);
+		script->buffer = reinterpret_cast<char*>(script + 1);
 
-		*((char*)(script + 1) + buffer.length()) = '\0';
+		*(script->buffer + buffer.length()) = '\0';
 
 		script->script_p = script->buffer;
 		script->lastscript_p = script->buffer;
@@ -42,8 +42,8 @@ namespace Components
 		script->lastline = 1;
 		script->tokenavailable = 0;
 
-		Game::Script_SetupTokens(script, (void*)0x797F80);
-		script->punctuations = (Game::punctuation_t*)0x797F80;
+		Game::Script_SetupTokens(script, reinterpret_cast<char*>(0x797F80));
+		script->punctuations = reinterpret_cast<Game::punctuation_t*>(0x797F80);
 
 		strcpy(script->buffer, buffer.data());
 
@@ -202,7 +202,7 @@ namespace Components
 					{
 						Game::PC_ReadTokenHandle(handle, &token);
 
-						Utils::Merge(menus, Menus::LoadMenu(Utils::VA("ui_mp\\%s.menu", token.string)));
+						Utils::Merge(&menus, Menus::LoadMenu(Utils::VA("ui_mp\\%s.menu", token.string)));
 					}
 
 					if (!_stricmp(token.string, "menudef"))
@@ -280,7 +280,7 @@ namespace Components
 				continue;
 			}
 
-			Utils::Merge(menus, Menus::LoadMenu(menuList->menus[i]));
+			Utils::Merge(&menus, Menus::LoadMenu(menuList->menus[i]));
 		}
 
 		// Load custom menus
@@ -288,7 +288,7 @@ namespace Components
 		{
 			for (auto menu : Menus::CustomMenus)
 			{
-				Utils::Merge(menus, Menus::LoadMenu(menu));
+				Utils::Merge(&menus, Menus::LoadMenu(menu));
 			}
 		}
 
@@ -465,26 +465,26 @@ namespace Components
 			Game::menuDef_t* oldMenu = i->second;
 
 			// Replace every old instance with our new one in the ui context
-			for (int i = 0; i < Game::uiContext->menuCount; i++)
+			for (int j = 0; j < Game::uiContext->menuCount; j++)
 			{
-				if (Game::uiContext->menus[i] == oldMenu)
+				if (Game::uiContext->menus[j] == oldMenu)
 				{
-					Game::uiContext->menus[i] = menu;
+					Game::uiContext->menus[j] = menu;
 				}
 			}
 
 			// Replace every old instance with our new one in our menu lists
-			for (auto i = Menus::MenuListList.begin(); i != Menus::MenuListList.end(); i++)
+			for (auto j = Menus::MenuListList.begin(); j != Menus::MenuListList.end(); j++)
 			{
-				Game::MenuList* list = i->second;
+				Game::MenuList* list = j->second;
 
 				if (list && list->menus)
 				{
-					for (int i = 0; i < list->menuCount; i++)
+					for (int k = 0; k < list->menuCount; k++)
 					{
-						if (list->menus[i] == oldMenu)
+						if (list->menus[k] == oldMenu)
 						{
-							list->menus[i] = menu;
+							list->menus[k] = menu;
 						}
 					}
 				}

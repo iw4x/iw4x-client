@@ -4,11 +4,11 @@ namespace Assets
 {
 	void IRawFile::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_AssetStruct(Game::RawFile, 16);
+		Assert_Size(Game::RawFile, 16);
 
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::RawFile* asset = header.rawfile;
-		Game::RawFile* dest = (Game::RawFile*)buffer->At();
+		Game::RawFile* dest = buffer->Dest<Game::RawFile>();
 		buffer->Save(asset, sizeof(Game::RawFile));
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
@@ -16,7 +16,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = (char *)-1;
+			dest->name = reinterpret_cast<char*>(-1);
 		}
 
 		if (asset->compressedData)
@@ -30,7 +30,7 @@ namespace Assets
 				buffer->SaveString(asset->compressedData, asset->sizeUnCompressed);
 			}
 
-			dest->compressedData = (char*)-1;
+			dest->compressedData = reinterpret_cast<char*>(-1);
 		}
 
 		buffer->PopBlock();

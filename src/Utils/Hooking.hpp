@@ -10,9 +10,9 @@ namespace Utils
 	public:
 		Hook() : Place(nullptr), Stub(nullptr), Initialized(false), Installed(false), UseJump(false), Protection(0) { ZeroMemory(Hook::Buffer, sizeof(Hook::Buffer)); }
 		Hook(void* place, void* stub, bool useJump = true) : Hook() { Hook::Initialize(place, stub, useJump); }
-		Hook(DWORD place, void* stub, bool useJump = true) : Hook((void*)place, stub, useJump) {}
-		Hook(DWORD place, DWORD stub, bool useJump = true) : Hook((void*)place, (void*)stub, useJump) {}
-		Hook(DWORD place, void(*stub)(), bool useJump = true) : Hook((void*)place, (void*)stub, useJump) {}
+		Hook(DWORD place, void* stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
+		Hook(DWORD place, DWORD stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
+		Hook(DWORD place, void(*stub)(), bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
 
 		~Hook();
 
@@ -27,12 +27,12 @@ namespace Utils
 
 		template <typename T> static std::function<T> Call(DWORD function)
 		{
-			return std::function<T>((T*)function);
+			return std::function<T>(reinterpret_cast<T*>(function));
 		}
 
 		template <typename T> static std::function<T> Call(FARPROC function)
 		{
-			return Call<T>((DWORD)function);
+			return Call<T>(reinterpret_cast<DWORD>(function));
 		}
 
 		static void SetString(void* place, const char* string, size_t length);
@@ -46,56 +46,56 @@ namespace Utils
 
 		template <typename T> static void Set(void* place, T value)
 		{
-			*(T*)place = value;
+			*static_cast<T*>(place) = value;
 			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
 		}
 
 		template <typename T> static void Set(DWORD place, T value)
 		{
-			return Set<T>((void*)place, value);
+			return Set<T>(reinterpret_cast<void*>(place), value);
 		}
 
 		template <typename T> static void Xor(void* place, T value)
 		{
-			*(T*)place ^= value;
+			*static_cast<T*>(place) ^= value;
 			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
 		}
 
 		template <typename T> static void Xor(DWORD place, T value)
 		{
-			return Xor<T>((void*)place, value);
+			return Xor<T>(reinterpret_cast<void*>(place), value);
 		}
 
 		template <typename T> static void Or(void* place, T value)
 		{
-			*(T*)place |= value;
+			*static_cast<T*>(place) |= value;
 			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
 		}
 
 		template <typename T> static void Or(DWORD place, T value)
 		{
-			return Or<T>((void*)place, value);
+			return Or<T>(reinterpret_cast<void*>(place), value);
 		}
 
 		template <typename T> static void And(void* place, T value)
 		{
-			*(T*)place &= value;
+			*static_cast<T*>(place) &= value;
 			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
 		}
 
 		template <typename T> static void And(DWORD place, T value)
 		{
-			return And<T>((void*)place, value);
+			return And<T>(reinterpret_cast<void*>(place), value);
 		}
 
 		template <typename T> static T Get(void* place)
 		{
-			return *(T*)place;
+			return *static_cast<T*>(place);
 		}
 
 		template <typename T> static T Get(DWORD place)
 		{
-			return Get<T>((void*)place);
+			return Get<T>(reinterpret_cast<void*>(place));
 		}
 
 	private:
