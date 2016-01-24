@@ -3,7 +3,7 @@
 namespace Components
 {
 
-	ZoneBuilder::Zone::Zone(std::string name) : DataMap("zone_source/" + name + ".csv"), ZoneName(name), IndexStart(0),
+	ZoneBuilder::Zone::Zone(std::string name) : DataMap("zone_source/" + name + ".csv"), ZoneName(name), IndexStart(0), Branding { 0 },
 
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
@@ -307,9 +307,9 @@ namespace Components
 	void ZoneBuilder::Zone::AddBranding()
 	{
 		char* data = "FastFile built using iw4x IW4 ZoneTool!";
-		branding = { ZoneBuilder::Zone::ZoneName.data(), (int)strlen(data), 0, data };
+		ZoneBuilder::Zone::Branding = { ZoneBuilder::Zone::ZoneName.data(), (int)strlen(data), 0, data };
 
-		Game::XAssetHeader header = { &branding };
+		Game::XAssetHeader header = { &Branding };
 		Game::XAsset brandingAsset = { Game::XAssetType::ASSET_TYPE_RAWFILE, header };
 		ZoneBuilder::Zone::LoadedAssets.push_back(brandingAsset);
 	}

@@ -65,7 +65,7 @@ namespace Components
 			std::map<std::string, std::string> RenameMap[Game::XAssetType::ASSET_TYPE_COUNT];
 			std::map<const void*, uint32_t> PointerMap;
 
-			Game::RawFile branding;
+			Game::RawFile Branding;
 		};
 
 		ZoneBuilder();

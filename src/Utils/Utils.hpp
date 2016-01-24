@@ -24,8 +24,8 @@ namespace Utils
 	{
 	public:
 		InfoString() {};
-		InfoString(std::string buffer) :InfoString() { this->Parse(buffer); };
-		InfoString(const InfoString &obj) { this->KeyValuePairs = obj.KeyValuePairs; };
+		InfoString(std::string buffer) : InfoString() { this->Parse(buffer); };
+		InfoString(const InfoString &obj) : KeyValuePairs(obj.KeyValuePairs) {};
 
 		void Set(std::string key, std::string value);
 		std::string Get(std::string key);

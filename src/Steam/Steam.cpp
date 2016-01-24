@@ -61,7 +61,7 @@ namespace Steam
 
 			if (result.data)
 			{
-				delete[] result.data;
+				::Utils::Memory::Free(result.data);
 			}
 		}
 
@@ -77,9 +77,9 @@ namespace Steam
 			if (!Overlay)
 			{
 				HKEY hRegKey;
-				char steamPath[MAX_PATH] = { 0 };
 				if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hRegKey) == ERROR_SUCCESS)
 				{
+					char steamPath[MAX_PATH] = { 0 };
 					DWORD dwLength = sizeof(steamPath);
 					RegQueryValueExA(hRegKey, "InstallPath", NULL, NULL, reinterpret_cast<BYTE*>(steamPath), &dwLength);
 					RegCloseKey(hRegKey);

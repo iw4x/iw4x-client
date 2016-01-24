@@ -28,7 +28,6 @@ namespace Components
 
 		char ownPth[MAX_PATH] = { 0 };
 		char workdir[MAX_PATH] = { 0 };
-		char regred[MAX_PATH] = { 0 };
 
 		DWORD dwsize = MAX_PATH;
 		HMODULE hModule = GetModuleHandle(NULL);
@@ -67,6 +66,8 @@ namespace Components
 		LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x\\shell\\open\\command", 0, KEY_ALL_ACCESS, &hKey);
 		if (openRes == ERROR_SUCCESS)
 		{
+			char regred[MAX_PATH] = { 0 };
+
 			// Check if the game has been moved.
 			openRes = RegQueryValueEx(hKey, 0, 0, 0, reinterpret_cast<BYTE*>(regred), &dwsize);
 			if (openRes == ERROR_SUCCESS)

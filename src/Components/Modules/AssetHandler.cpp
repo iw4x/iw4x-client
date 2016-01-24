@@ -230,12 +230,10 @@ namespace Components
 
 	Game::XAssetHeader AssetHandler::FindOriginalAsset(Game::XAssetType type, const char* filename)
 	{
-		Game::XAssetHeader header = { 0 };
-
 		bool OriginalState = AssetHandler::BypassState;
 
 		AssetHandler::BypassState = true;
-		header = Game::DB_FindXAssetHeader(type, filename);
+		Game::XAssetHeader header = Game::DB_FindXAssetHeader(type, filename);
 		if(!OriginalState) AssetHandler::BypassState = false;
 
 		return header;

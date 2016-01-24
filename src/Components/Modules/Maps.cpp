@@ -92,7 +92,7 @@ namespace Components
 		{
 			std::regex _(expression);
 		}
-		catch (std::exception e)
+		catch (const std::exception e)
 		{
 			MessageBoxA(0, Utils::VA("Invalid regular expression: %s", expression.data()), "Warning", MB_ICONEXCLAMATION);
 			return;

@@ -10,7 +10,7 @@ namespace Components
 			Address(std::string addrString);
 			Address(Game::netadr_t addr) : address(addr) {}
 			Address(Game::netadr_t* addr) : Address(*addr) {}
-			Address(const Address& obj) { this->address = obj.address; };
+			Address(const Address& obj) : address(obj.address) {};
 			bool operator!=(const Address &obj) { return !(*this == obj); };
 			bool operator==(const Address &obj);
 

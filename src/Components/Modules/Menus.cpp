@@ -126,8 +126,6 @@ namespace Components
 		}
 
 		Game::pc_token_t token;
-		Game::keywordHash_t *key;
-
 		if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] != '{')
 		{
 			Utils::Memory::Free(menu->items);
@@ -152,7 +150,7 @@ namespace Components
 
 			int idx = Menus::KeywordHash(token.string);
 
-			key = Game::menuParseKeywordHash[idx];
+			Game::keywordHash_t* key = Game::menuParseKeywordHash[idx];
 
 			if (!key) 
 			{
@@ -186,9 +184,6 @@ namespace Components
 
 			if (Menus::IsValidSourceHandle(handle))
 			{
-				// Sanitize event name
-				std::string menuName = menu;
-
 				while (true)
 				{
 					ZeroMemory(&token, sizeof(token));
@@ -320,36 +315,32 @@ namespace Components
 	{
 		if (!Menus::IsValidSourceHandle(handle)) return;
 
-		Game::script_t *script;
- 		Game::token_t *token;
- 		Game::define_t *define;
-		Game::indent_t *indent;
 		Game::source_t *source = Game::sourceFiles[handle];
 
 		while (source->scriptstack)
 		{
-			script = source->scriptstack;
+			Game::script_t* script = source->scriptstack;
 			source->scriptstack = source->scriptstack->next;
 			Game::FreeMemory(script);
 		}
 
 		while (source->tokens)
 		{
-			token = source->tokens;
+			Game::token_t* token = source->tokens;
 			source->tokens = source->tokens->next;
 			Game::FreeMemory(token);
 		}
 
 		while (source->defines)
 		{
-			define = source->defines;
+			Game::define_t* define = source->defines;
 			source->defines = source->defines->next;
 			Game::FreeMemory(define);
 		}
 
 		while (source->indentstack)
 		{
-			indent = source->indentstack;
+			Game::indent_t* indent = source->indentstack;
 			source->indentstack = source->indentstack->next;
 			Utils::Memory::Free(indent);
 		}
