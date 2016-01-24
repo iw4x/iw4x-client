@@ -109,7 +109,7 @@ namespace Components
 			{
 				// Rebuild map rotation string
 				rotation.clear();
-				for (unsigned int j = (i + 2); j < tokens.size(); j++)
+				for (unsigned int j = (i + 2); j < tokens.size(); ++j)
 				{
 					if (j != (i + 2)) rotation += " ";
 					rotation += tokens[j];

@@ -6,13 +6,13 @@ namespace Assets
 	{
 		Game::MaterialTechniqueSet* asset = header.materialTechset;
 
-		for (int i = 0; i < ARR_SIZE(Game::MaterialTechniqueSet::techniques); i++)
+		for (int i = 0; i < ARR_SIZE(Game::MaterialTechniqueSet::techniques); ++i)
 		{
 			Game::MaterialTechnique* technique = asset->techniques[i];
 
 			if (!technique) continue;
 
-			for (short j = 0; j < technique->numPasses; j++)
+			for (short j = 0; j < technique->numPasses; ++j)
 			{
 				Game::MaterialPass* pass = &technique->passes[j];
 
@@ -54,7 +54,7 @@ namespace Assets
 		// Save_MaterialTechniquePtrArray
 		static_assert(ARR_SIZE(Game::MaterialTechniqueSet::techniques) == 48, "Techniques array invalid!");
 
-		for (int i = 0; i < ARR_SIZE(Game::MaterialTechniqueSet::techniques); i++)
+		for (int i = 0; i < ARR_SIZE(Game::MaterialTechniqueSet::techniques); ++i)
 		{
 			Game::MaterialTechnique* technique = asset->techniques[i];
 
@@ -74,7 +74,7 @@ namespace Assets
 					buffer->Save(technique, 8);
 
 					// Save_MaterialPassArray
-					for (short j = 0; j < technique->numPasses; j++)
+					for (short j = 0; j < technique->numPasses; ++j)
 					{
 						Assert_Size(Game::MaterialPass, 20);
 

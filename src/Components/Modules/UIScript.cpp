@@ -78,7 +78,7 @@ namespace Components
 	{
 		if (key == 200 || key == 201) //mouse buttons
 		{
-			for (auto i = UIScript::UIOwnerDraws.begin(); i != UIScript::UIOwnerDraws.end(); i++)
+			for (auto i = UIScript::UIOwnerDraws.begin(); i != UIScript::UIOwnerDraws.end(); ++i)
 			{
 				if (i->first == ownerDraw)
 				{

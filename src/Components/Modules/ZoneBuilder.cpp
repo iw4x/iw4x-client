@@ -52,7 +52,7 @@ namespace Components
 	void ZoneBuilder::Zone::LoadFastFiles()
 	{
 		Logger::Print("Loading required FastFiles...\n");
-		for (int i = 0; i < DataMap.GetRows(); i++)
+		for (int i = 0; i < DataMap.GetRows(); ++i)
 		{
 			if (DataMap.GetElementAt(i, 0) == "require")
 			{
@@ -81,7 +81,7 @@ namespace Components
 
 	bool ZoneBuilder::Zone::LoadAssets()
 	{
-		for (int i = 0; i < DataMap.GetRows(); i++)
+		for (int i = 0; i < DataMap.GetRows(); ++i)
 		{
 			if (DataMap.GetElementAt(i, 0) != "require")
 			{
@@ -145,7 +145,7 @@ namespace Components
 
 	int ZoneBuilder::Zone::FindAsset(Game::XAssetType type, std::string name)
 	{
-		for (unsigned int i = 0; i < ZoneBuilder::Zone::LoadedAssets.size(); i++)
+		for (unsigned int i = 0; i < ZoneBuilder::Zone::LoadedAssets.size(); ++i)
 		{
 			Game::XAsset* asset = &ZoneBuilder::Zone::LoadedAssets[i];
 
@@ -247,7 +247,7 @@ namespace Components
 												   // That's the reason why the count is incremented by 1, if scriptStrings are available.
 
 			// Write ScriptString pointer table
-			for (size_t i = 0; i < ZoneBuilder::Zone::ScriptStrings.size(); i++)
+			for (size_t i = 0; i < ZoneBuilder::Zone::ScriptStrings.size(); ++i)
 			{
 				ZoneBuilder::Zone::Buffer.SaveMax(4);
 			}
@@ -293,7 +293,7 @@ namespace Components
 		header->externalSize = 0; // ? 
 
 		// Write stream sizes
-		for (int i = 0; i < Game::MAX_XFILE_COUNT; i++)
+		for (int i = 0; i < Game::MAX_XFILE_COUNT; ++i)
 		{
 			header->blockSize[i] = ZoneBuilder::Zone::Buffer.GetBlockSize((Game::XFILE_BLOCK_TYPES)i);
 		}

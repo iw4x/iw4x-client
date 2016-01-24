@@ -61,7 +61,7 @@ namespace Utils
 		// Parse protocol
 		if (pURL.cchProtocol && pURL.cchProtocol != 0xCCCCCCCC && pURL.pszProtocol)
 		{
-			for (UINT i = 0; i < pURL.cchProtocol; i++)
+			for (UINT i = 0; i < pURL.cchProtocol; ++i)
 			{
 				char lChar = static_cast<char>(tolower(pURL.pszProtocol[i]));
 				WebIO::m_sUrl.protocol.append(&lChar, 1);
@@ -116,7 +116,7 @@ namespace Utils
 	{
 		std::string body;
 
-		for (auto param = params.begin(); param != params.end(); param++)
+		for (auto param = params.begin(); param != params.end(); ++param)
 		{
 			std::string key = param->first;
 			std::string value = param->second;

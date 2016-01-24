@@ -67,7 +67,7 @@ namespace Utils
 	{
 		auto ret = Stream::Length();
 
-		for (size_t i = 0; i < count; i++)
+		for (size_t i = 0; i < count; ++i)
 		{
 			Stream::Save(stream, &value, 4, 1);
 		}
@@ -108,7 +108,7 @@ namespace Utils
 	{
 		auto ret = Stream::Length();
 
-		for (size_t i = 0; i < count; i++)
+		for (size_t i = 0; i < count; ++i)
 		{
 			Stream::Save(&byte, 1);
 		}

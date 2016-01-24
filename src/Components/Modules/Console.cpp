@@ -48,7 +48,7 @@ namespace Components
 
 		if (maxclientCount)
 		{
-			for (int i = 0; i < maxclientCount; i++)
+			for (int i = 0; i < maxclientCount; ++i)
 			{
 				if (Game::svs_clients[i].state >= 3)
 				{

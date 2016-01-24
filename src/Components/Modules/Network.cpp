@@ -71,7 +71,7 @@ namespace Components
 		if (Game::NET_IsLocalAddress(this->address)) return true; // Loopback
 		if (this->GetPort() != (Dvar::Var("net_port").Get<int>() & 0xFFFF)) return false; // Port not equal
 
-		for (int i = 0; i < *Game::numIP; i++)
+		for (int i = 0; i < *Game::numIP; ++i)
 		{
 			if (this->GetIP().full == Game::localIP[i].full)
 			{
@@ -129,7 +129,7 @@ namespace Components
 
 	void Network::BroadcastRange(unsigned int min, unsigned int max, std::string data)
 	{
-		for (unsigned int i = min; i < max; i++)
+		for (unsigned int i = min; i < max; ++i)
 		{
 			Network::Broadcast(static_cast<unsigned short>(i & 0xFFFF), data);
 		}
@@ -152,7 +152,7 @@ namespace Components
 		packetCommand = Utils::StrToLower(packetCommand);
 
 		// Check if custom handler exists
-		for (auto i = Network::PacketHandlers.begin(); i != Network::PacketHandlers.end(); i++)
+		for (auto i = Network::PacketHandlers.begin(); i != Network::PacketHandlers.end(); ++i)
 		{
 			if (Utils::StrToLower(i->first) == packetCommand)
 			{

@@ -64,7 +64,7 @@ namespace Components
 	{
 		Logger::MessageMutex.lock();
 
-		for (unsigned int i = 0; i < Logger::MessageQueue.size(); i++)
+		for (unsigned int i = 0; i < Logger::MessageQueue.size(); ++i)
 		{
 			if (Logger::IsConsoleReady())
 			{

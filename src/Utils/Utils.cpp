@@ -191,7 +191,7 @@ namespace Utils
 
 		bool first = true;
 
-		for (auto i = this->KeyValuePairs.begin(); i != this->KeyValuePairs.end(); i++)
+		for (auto i = this->KeyValuePairs.begin(); i != this->KeyValuePairs.end(); ++i)
 		{
 			if (first) first = false;
 			else infoString.append("\\");
@@ -206,7 +206,7 @@ namespace Utils
 
 	void InfoString::Dump()
 	{
-		for (auto i = this->KeyValuePairs.begin(); i != this->KeyValuePairs.end(); i++)
+		for (auto i = this->KeyValuePairs.begin(); i != this->KeyValuePairs.end(); ++i)
 		{
 			OutputDebugStringA(Utils::VA("%s: %s", i->first.data(), i->second.data()));
 		}

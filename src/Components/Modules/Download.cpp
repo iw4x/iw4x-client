@@ -32,7 +32,7 @@ namespace Components
 
 	void Download::RemoveClientDownload(int id)
 	{
-		for (auto i = Download::DataContainer.ClientDownloads.begin(); i != Download::DataContainer.ClientDownloads.end(); i++)
+		for (auto i = Download::DataContainer.ClientDownloads.begin(); i != Download::DataContainer.ClientDownloads.end(); ++i)
 		{
 			if (i->id == id)
 			{
@@ -44,7 +44,7 @@ namespace Components
 
 	void Download::RemoveServerDownload(int id)
 	{
-		for (auto i = Download::DataContainer.ServerDownloads.begin(); i != Download::DataContainer.ServerDownloads.end(); i++)
+		for (auto i = Download::DataContainer.ServerDownloads.begin(); i != Download::DataContainer.ServerDownloads.end(); ++i)
 		{
 			if (i->id == id)
 			{
@@ -71,7 +71,7 @@ namespace Components
 	{
 		if (download->parts.size())
 		{
-			for (auto i = download->parts.begin(); i != download->parts.end(); i++)
+			for (auto i = download->parts.begin(); i != download->parts.end(); ++i)
 			{
 				if (i->first == packet)
 				{
@@ -85,7 +85,7 @@ namespace Components
 
 	bool Download::HasReceivedAllPackets(Download::Container::DownloadCL* download)
 	{
-		for (int i = 0; i < download->maxParts; i++)
+		for (int i = 0; i < download->maxParts; ++i)
 		{
 			if (!Download::HasReceivedPacket(download, i))
 			{
@@ -216,7 +216,7 @@ namespace Components
 		download.lastPing = Game::Com_Milliseconds();
 		download.maxParts = 0;
 
-		for (int i = 0; i < 1000000; i++)
+		for (int i = 0; i < 1000000; ++i)
 		{
 			download.buffer.append("1234567890");
 		}
@@ -245,7 +245,7 @@ namespace Components
 	{
 		std::string buffer;
 
-		for (int i = 0; i < download->maxParts; i++)
+		for (int i = 0; i < download->maxParts; ++i)
 		{
 			if (!Download::HasReceivedPacket(download, i)) return "";
 			buffer.append(download->parts[i]);
@@ -276,7 +276,7 @@ namespace Components
 	{
 		if (download->sentParts.size())
 		{
-			for (auto i = download->sentParts.begin(); i != download->sentParts.end(); i++)
+			for (auto i = download->sentParts.begin(); i != download->sentParts.end(); ++i)
 			{
 				if (*i == packet)
 				{
@@ -315,7 +315,7 @@ namespace Components
 	{
 		if (Download::DataContainer.ClientDownloads.size())
 		{
-			for (auto i = Download::DataContainer.ClientDownloads.begin(); i != Download::DataContainer.ClientDownloads.end(); i++)
+			for (auto i = Download::DataContainer.ClientDownloads.begin(); i != Download::DataContainer.ClientDownloads.end(); ++i)
 			{
 				if ((Game::Com_Milliseconds() - i->lastPing) > (DOWNLOAD_TIMEOUT * 2))
 				{
@@ -328,7 +328,7 @@ namespace Components
 				if (i->acknowledged && (Game::Com_Milliseconds() - i->lastPing) > DOWNLOAD_TIMEOUT)
 				{
 					std::vector<int> missingPackets;
-					for (int j = 0; j < i->maxParts; j++)
+					for (int j = 0; j < i->maxParts; ++j)
 					{
 						if (!Download::HasReceivedPacket(&*i, j))
 						{
@@ -343,7 +343,7 @@ namespace Components
 
 		if (Download::DataContainer.ServerDownloads.size())
 		{
-			for (auto i = Download::DataContainer.ServerDownloads.begin(); i != Download::DataContainer.ServerDownloads.end(); i++)
+			for (auto i = Download::DataContainer.ServerDownloads.begin(); i != Download::DataContainer.ServerDownloads.end(); ++i)
 			{
 				if ((Game::Com_Milliseconds() - i->lastPing) > (DOWNLOAD_TIMEOUT * 3))
 				{
@@ -352,7 +352,7 @@ namespace Components
 				}
 
 				int packets = 0;
-				for (int j = 0; j < i->maxParts && packets <= FRAME_PACKET_LIMIT && i->acknowledged; j++)
+				for (int j = 0; j < i->maxParts && packets <= FRAME_PACKET_LIMIT && i->acknowledged; ++j)
 				{
 					if (!Download::HasSentPacket(&*i, j))
 					{

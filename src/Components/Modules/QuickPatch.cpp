@@ -19,7 +19,7 @@ namespace Components
 
 		if (challengeTable)
 		{
-			for (int i = 0; i < challengeTable->rowCount; i++)
+			for (int i = 0; i < challengeTable->rowCount; ++i)
 			{
 				// Find challenge
 				const char* challenge = Game::TabeLookup(challengeTable, i, 0);
@@ -28,7 +28,7 @@ namespace Components
 				int maxProgress = 0;
 
 				// Find correct tier and progress
-				for (int j = 0; j < 10; j++)
+				for (int j = 0; j < 10; ++j)
 				{
 					int progress = atoi(Game::TabeLookup(challengeTable, i, 6 + j * 2));
 					if (!progress )break;

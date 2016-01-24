@@ -43,9 +43,9 @@ namespace Components
 					return nullptr;
 				}
 
-				for (int i = 0; i < table->rowCount; i++)
+				for (int i = 0; i < table->rowCount; ++i)
 				{
-					for (int j = 0; j < table->columnCount; j++)
+					for (int j = 0; j < table->columnCount; ++j)
 					{
 						Game::StringTableCell* cell = &table->values[i * table->columnCount + j];
 						cell->hash = StringTable::Hash(parsedTable.GetElementAt(i, j).data());
@@ -90,14 +90,14 @@ namespace Components
 
 	StringTable::~StringTable()
 	{
-		for (auto i = StringTable::StringTableMap.begin(); i != StringTable::StringTableMap.end(); i++)
+		for (auto i = StringTable::StringTableMap.begin(); i != StringTable::StringTableMap.end(); ++i)
 		{
 			Game::StringTable* table = i->second;
 			if (table)
 			{
 				if (table->values)
 				{
-					for (int j = 0; j < table->rowCount * table->columnCount; j++)
+					for (int j = 0; j < table->rowCount * table->columnCount; ++j)
 					{
 						if (table->values[j].string)
 						{

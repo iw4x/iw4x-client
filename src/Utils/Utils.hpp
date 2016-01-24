@@ -43,7 +43,7 @@ namespace Utils
 	{
 		if (source)
 		{
-			for (size_t i = 0; i < length; i++)
+			for (size_t i = 0; i < length; ++i)
 			{
 				target->push_back(source[i]);
 			}

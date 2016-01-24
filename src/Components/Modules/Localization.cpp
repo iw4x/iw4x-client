@@ -88,7 +88,7 @@ namespace Components
 
 	void Localization::ClearTemp()
 	{
-		for (auto i = Localization::TempLocalizeMap.begin(); i != Localization::TempLocalizeMap.end(); i++)
+		for (auto i = Localization::TempLocalizeMap.begin(); i != Localization::TempLocalizeMap.end(); ++i)
 		{
 			if (i->second)
 			{
@@ -175,7 +175,7 @@ namespace Components
 	{
 		Localization::ClearTemp();
 
-		for (auto i = Localization::LocalizeMap.begin(); i != Localization::LocalizeMap.end(); i++)
+		for (auto i = Localization::LocalizeMap.begin(); i != Localization::LocalizeMap.end(); ++i)
 		{
 			if (i->second)
 			{

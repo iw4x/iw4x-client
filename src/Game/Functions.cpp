@@ -207,7 +207,7 @@ namespace Game
 
 	const char* UI_LocalizeMapName(const char* mapName)
 	{
-		for (int i = 0; i < *arenaCount; i++)
+		for (int i = 0; i < *arenaCount; ++i)
 		{
 			if (!_stricmp(arenas[i].mapName, mapName))
 			{
@@ -232,7 +232,7 @@ namespace Game
 			return "";
 		}
 
-		for (int i = 0; i < *gameTypeCount; i++)
+		for (int i = 0; i < *gameTypeCount; ++i)
 		{
 			if (!_stricmp(gameTypes[i].gameType, gameType))
 			{
@@ -252,7 +252,7 @@ namespace Game
 
 	XAssetType DB_GetXAssetNameType(const char* name)
 	{
-		for (int i = 0; i < ASSET_TYPE_COUNT; i++)
+		for (int i = 0; i < ASSET_TYPE_COUNT; ++i)
 		{
 			XAssetType type = static_cast<XAssetType>(i);
 			if (!_stricmp(DB_GetXAssetTypeName(type), name))

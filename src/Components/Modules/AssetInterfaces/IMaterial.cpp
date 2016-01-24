@@ -138,7 +138,7 @@ namespace Assets
 
 		if (asset->textureTable)
 		{
-			for (char i = 0; i < asset->textureCount; i++)
+			for (char i = 0; i < asset->textureCount; ++i)
 			{
 				if (asset->textureTable[i].info.image)
 				{
@@ -197,7 +197,7 @@ namespace Assets
 				Game::MaterialTextureDef* destTextureTable = buffer->Dest<Game::MaterialTextureDef>();
 				buffer->SaveArray(asset->textureTable, asset->textureCount);
 
-				for (char i = 0; i < asset->textureCount; i++)
+				for (char i = 0; i < asset->textureCount; ++i)
 				{
 					Game::MaterialTextureDef* destTextureDef = &destTextureTable[i];
 					Game::MaterialTextureDef* textureDef = &asset->textureTable[i];

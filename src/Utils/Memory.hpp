@@ -15,7 +15,7 @@ namespace Utils
 			}
 			~Allocator() 
 			{
-				for (auto i = this->RefMemory.begin(); i != this->RefMemory.end(); i++)
+				for (auto i = this->RefMemory.begin(); i != this->RefMemory.end(); ++i)
 				{
 					if (i->first && i->second)
 					{

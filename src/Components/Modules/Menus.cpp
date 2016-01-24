@@ -10,7 +10,7 @@ namespace Components
 	{
 		// Check if a free slot is available
 		int i = 1;
-		for (; i < MAX_SOURCEFILES; i++)
+		for (; i < MAX_SOURCEFILES; ++i)
 		{
 			if (!Game::sourceFiles[i])
 				break;
@@ -273,7 +273,7 @@ namespace Components
 	{
 		std::vector<Game::menuDef_t*> menus;
 
-		for (int i = 0; i < menuList->menuCount; i++)
+		for (int i = 0; i < menuList->menuCount; ++i)
 		{
 			if (!menuList->menus[i])
 			{
@@ -372,7 +372,7 @@ namespace Components
 			// Seems like this is obsolete as well,
 			// as the game handles the memory
 
-			//for (int i = 0; i < menudef->itemCount; i++)
+			//for (int i = 0; i < menudef->itemCount; ++i)
 			//{
 			//	Game::Menu_FreeItemMemory(menudef->items[i]);
 			//}
@@ -415,7 +415,7 @@ namespace Components
 
 	void Menus::RemoveMenu(Game::menuDef_t* menudef)
 	{
-		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end(); i++)
+		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end(); ++i)
 		{
 			if (i->second == menudef)
 			{
@@ -433,7 +433,7 @@ namespace Components
 		{
 			if (i->second)
 			{
-				for (auto j = 0; j < i->second->menuCount; j++)
+				for (auto j = 0; j < i->second->menuCount; ++j)
 				{
 					Menus::RemoveMenu(i->second->menus[j]);
 				}
@@ -465,7 +465,7 @@ namespace Components
 			Game::menuDef_t* oldMenu = i->second;
 
 			// Replace every old instance with our new one in the ui context
-			for (int j = 0; j < Game::uiContext->menuCount; j++)
+			for (int j = 0; j < Game::uiContext->menuCount; ++j)
 			{
 				if (Game::uiContext->menus[j] == oldMenu)
 				{
@@ -474,13 +474,13 @@ namespace Components
 			}
 
 			// Replace every old instance with our new one in our menu lists
-			for (auto j = Menus::MenuListList.begin(); j != Menus::MenuListList.end(); j++)
+			for (auto j = Menus::MenuListList.begin(); j != Menus::MenuListList.end(); ++j)
 			{
 				Game::MenuList* list = j->second;
 
 				if (list && list->menus)
 				{
-					for (int k = 0; k < list->menuCount; k++)
+					for (int k = 0; k < list->menuCount; ++k)
 					{
 						if (list->menus[k] == oldMenu)
 						{
@@ -500,14 +500,14 @@ namespace Components
 
 	void Menus::FreeEverything()
 	{
-		for (auto i = Menus::MenuListList.begin(); i != Menus::MenuListList.end(); i++)
+		for (auto i = Menus::MenuListList.begin(); i != Menus::MenuListList.end(); ++i)
 		{
 			Menus::FreeMenuList(i->second);
 		}
 
 		Menus::MenuListList.clear();
 
-		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end(); i++)
+		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end(); ++i)
 		{
 			Menus::FreeMenu(i->second);
 		}
@@ -532,7 +532,7 @@ namespace Components
 		{
 			Game::MenuList* list = Menus::MenuListList[filename];
 
-			for (int i = 0; list && list->menus && i < list->menuCount; i++)
+			for (int i = 0; list && list->menus && i < list->menuCount; ++i)
 			{
 				Menus::RemoveMenuFromContext(Game::uiContext, list->menus[i]);
 			}
@@ -592,7 +592,7 @@ namespace Components
 	{
 		// Search menu in context
 		int i = 0;
-		for (; i < dc->menuCount; i++)
+		for (; i < dc->menuCount; ++i)
 		{
 			if (dc->menus[i] == menu)
 			{
@@ -603,7 +603,7 @@ namespace Components
 		// Remove from stack
 		if (i < dc->menuCount)
 		{
-			for (; i < dc->menuCount - 1; i++)
+			for (; i < dc->menuCount - 1; ++i)
 			{
 				dc->menus[i] = dc->menus[i + 1];
 			}

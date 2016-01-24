@@ -159,7 +159,7 @@ namespace Components
 		int ui_browserMod           = Dvar::Var("ui_browserMod").Get<int>();
 		int ui_joinGametype         = Dvar::Var("ui_joinGametype").Get<int>();
 
-		for (unsigned int i = 0; i < list->size(); i++)
+		for (unsigned int i = 0; i < list->size(); ++i)
 		{
 			ServerList::ServerInfo* info = &(*list)[i];
 
@@ -251,7 +251,7 @@ namespace Components
 
 			auto storedServers = object.array_items();
 
-			for (unsigned int i = 0; i < storedServers.size(); i++)
+			for (unsigned int i = 0; i < storedServers.size(); ++i)
 			{
 				if (!storedServers[i].is_string()) continue;
 				if (storedServers[i].string_value() == server)
@@ -290,7 +290,7 @@ namespace Components
 
 			auto servers = object.array_items();
 
-			for (unsigned int i = 0; i < servers.size(); i++)
+			for (unsigned int i = 0; i < servers.size(); ++i)
 			{
 				if(!servers[i].is_string()) continue;
 				ServerList::InsertRequest(servers[i].string_value(), true);
@@ -329,7 +329,7 @@ namespace Components
 	{
 		ServerList::RefreshContainer.Mutex.lock();
 
-		for (auto i = ServerList::RefreshContainer.Servers.begin(); i != ServerList::RefreshContainer.Servers.end(); i++)
+		for (auto i = ServerList::RefreshContainer.Servers.begin(); i != ServerList::RefreshContainer.Servers.end(); ++i)
 		{
 			// Our desired server
 			if (i->Target == address && i->Sent)
@@ -365,7 +365,7 @@ namespace Components
 				if (!list) return;
 
 				unsigned int k = 0;
-				for (auto j = list->begin(); j != list->end(); j++, k++)
+				for (auto j = list->begin(); j != list->end(); ++j, ++k)
 				{
 					if (j->Addr == address)
 					{
@@ -375,7 +375,7 @@ namespace Components
 				}
 
 				// Also remove from visible list
-				for (auto j = ServerList::VisibleList.begin(); j != ServerList::VisibleList.end(); j++)
+				for (auto j = ServerList::VisibleList.begin(); j != ServerList::VisibleList.end(); ++j)
 				{
 					if (*j == k)
 					{
@@ -477,7 +477,7 @@ namespace Components
 		// Send requests to 10 servers each frame
 		int SendServers = 10;
 		
-		for (unsigned int i = 0; i < ServerList::RefreshContainer.Servers.size(); i++)
+		for (unsigned int i = 0; i < ServerList::RefreshContainer.Servers.size(); ++i)
 		{
 			ServerList::Container::ServerContainer* server = &ServerList::RefreshContainer.Servers[i];
 			if (server->Sent) continue;
@@ -566,7 +566,7 @@ namespace Components
 			}
 			while (!entry->HasSeparator() && !entry->IsEndToken());
 
-			for (int i = 0; !entry[i].IsEndToken() && entry[i].HasSeparator(); i++)
+			for (int i = 0; !entry[i].IsEndToken() && entry[i].HasSeparator(); ++i)
 			{
 				Network::Address serverAddr = address;
 				serverAddr.SetIP(entry[i].IP);

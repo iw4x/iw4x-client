@@ -131,7 +131,7 @@ namespace Components
 
 			std::string playerList;
 
-			for (int i = 0; i < maxclientCount; i++) // Maybe choose 18 here? 
+			for (int i = 0; i < maxclientCount; ++i) // Maybe choose 18 here? 
 			{
 				int score = 0;
 				int ping = 0;
@@ -205,7 +205,7 @@ namespace Components
 
 				if (lines.size() <= 1) return;
 
-				for (unsigned int i = 1; i < lines.size(); i++)
+				for (unsigned int i = 1; i < lines.size(); ++i)
 				{
 					ServerInfo::Container::Player player;
 

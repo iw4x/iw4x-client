@@ -297,7 +297,7 @@ namespace Components
 
 			int numDel = files.size() - Dvar::Var("cl_demosKeep").Get<int>();
 
-			for (int i = 0; i < numDel; i++)
+			for (int i = 0; i < numDel; ++i)
 			{
 				Logger::Print("Deleting old demo %s\n", files[i].data());
 				FileSystem::DeleteFile("demos", files[i].data());

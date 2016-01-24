@@ -30,7 +30,7 @@ namespace Components
 
 	void AssetHandler::ClearTemporaryAssets()
 	{
-		for (int i = 0; i < Game::XAssetType::ASSET_TYPE_COUNT; i++)
+		for (int i = 0; i < Game::XAssetType::ASSET_TYPE_COUNT; ++i)
 		{
 			AssetHandler::TemporaryAssets[i].clear();
 		}
@@ -269,7 +269,7 @@ namespace Components
 	{
 		ClearTemporaryAssets();
 
-		for (auto i = AssetHandler::AssetInterfaces.begin(); i != AssetHandler::AssetInterfaces.end(); i++)
+		for (auto i = AssetHandler::AssetInterfaces.begin(); i != AssetHandler::AssetInterfaces.end(); ++i)
 		{
 			delete i->second;
 		}

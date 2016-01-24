@@ -23,7 +23,7 @@ namespace Components
 		LPCWSTR commandLine = GetCommandLineW();
 		LPWSTR* argv = CommandLineToArgvW(commandLine, &numArgs);
 
-		for (int i = 0; i < numArgs;i++)
+		for (int i = 0; i < numArgs; ++i)
 		{
 			std::wstring wFlag = argv[i];
 			if (wFlag[0] == L'-')

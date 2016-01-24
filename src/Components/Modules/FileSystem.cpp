@@ -53,7 +53,7 @@ namespace Components
 
 		if (files)
 		{
-			for (int i = 0; i < numFiles; i++)
+			for (int i = 0; i < numFiles; ++i)
 			{
 				if (files[i])
 				{

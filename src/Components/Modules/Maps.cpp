@@ -15,7 +15,7 @@ namespace Components
 		if (!zoneInfo) return;
 
 		Maps::CurrentDependencies.clear();
-		for (auto i = Maps::DependencyList.begin(); i != Maps::DependencyList.end(); i++)
+		for (auto i = Maps::DependencyList.begin(); i != Maps::DependencyList.end(); ++i)
 		{
 			if (std::regex_match(zoneInfo->name, std::regex(i->first)))
 			{
@@ -29,7 +29,7 @@ namespace Components
 		std::vector<Game::XZoneInfo> data;
 		Utils::Merge(&data, zoneInfo, zoneCount);
 
-		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); i++)
+		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); ++i)
 		{
 			Game::XZoneInfo info;
 
