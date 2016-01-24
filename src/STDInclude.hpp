@@ -88,4 +88,4 @@
 #define VERSION 4,2,REVISION
 #define VERSION_STR "4.2." REVISION_STR
 
-#define Assert_Size(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.");
+#define Assert_Size(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
