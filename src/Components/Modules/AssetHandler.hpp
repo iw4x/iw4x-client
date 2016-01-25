@@ -56,9 +56,13 @@ namespace Components
 	};
 }
 
+#include "AssetInterfaces\IXModel.hpp"
 #include "AssetInterfaces\IRawFile.hpp"
 #include "AssetInterfaces\IGfxImage.hpp"
 #include "AssetInterfaces\IMaterial.hpp"
+#include "AssetInterfaces\IPhysPreset.hpp"
+#include "AssetInterfaces\IPhysCollmap.hpp"
+#include "AssetInterfaces\IXModelSurfs.hpp"
 #include "AssetInterfaces\ILocalizedEntry.hpp"
 #include "AssetInterfaces\IMaterialPixelShader.hpp"
 #include "AssetInterfaces\IMaterialTechniqueSet.hpp"

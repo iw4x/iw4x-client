@@ -1,0 +1,184 @@
+#include <STDInclude.hpp>
+
+namespace Assets
+{
+	void IXModel::Mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	{
+		Game::XModel* asset = header.model;
+
+		if (asset->boneNames)
+		{
+			for (char i = 0; i < asset->numBones; ++i)
+			{
+				builder->AddScriptString(asset->boneNames[i]);
+			}
+		}
+
+		for (int i = 0; i < 4; ++i)
+		{
+			if (asset->lods[i].surfaces)
+			{
+				builder->LoadAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name);
+			}
+		}
+
+		if (asset->physPreset)
+		{
+			builder->LoadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset->name);
+		}
+
+		if (asset->physPreset)
+		{
+			builder->LoadAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap->name);
+		}
+	}
+
+	void IXModel::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	{
+		Assert_Size(Game::XModel, 304);
+
+		Utils::Stream* buffer = builder->GetBuffer();
+		Game::XModel* asset = header.model;
+		Game::XModel* dest = buffer->Dest<Game::XModel>();
+		buffer->Save(asset, sizeof(Game::XModel));
+
+		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+
+		if (asset->name)
+		{
+			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
+			dest->name = reinterpret_cast<char*>(-1);
+		}
+
+		if (asset->boneNames)
+		{
+			buffer->Align(Utils::Stream::ALIGN_2);
+
+			unsigned short* destBoneNames = buffer->Dest<unsigned short>();
+			buffer->SaveArray(asset->boneNames, asset->numBones);
+			
+			for (char i = 0; i < asset->numBones; ++i)
+			{
+				builder->MapScriptString(&destBoneNames[i]);
+			}
+
+			dest->boneNames = reinterpret_cast<short*>(-1);
+		}
+
+		if (asset->parentList)
+		{
+			buffer->Save(asset->parentList, asset->numBones - asset->numRootBones);
+			dest->parentList = reinterpret_cast<char*>(-1);
+		}
+
+		if (asset->tagAngles)
+		{
+			Assert_Size(Game::XModelAngle, 8);
+
+			buffer->Align(Utils::Stream::ALIGN_2);
+			buffer->Save(asset->tagAngles, sizeof(Game::XModelAngle), asset->numBones - asset->numRootBones);
+			dest->tagAngles = reinterpret_cast<Game::XModelAngle*>(-1);
+		}
+
+		if (asset->tagPositions)
+		{
+			Assert_Size(Game::XModelTagPos, 12);
+
+			buffer->Align(Utils::Stream::ALIGN_4);
+			buffer->Save(asset->tagPositions, sizeof(Game::XModelTagPos), asset->numBones - asset->numRootBones);
+			dest->tagPositions = reinterpret_cast<Game::XModelTagPos*>(-1);
+		}
+
+		if (asset->partClassification)
+		{
+			buffer->Save(asset->partClassification,asset->numBones);
+			dest->partClassification = reinterpret_cast<char*>(-1);
+		}
+
+		if (asset->animMatrix)
+		{
+			Assert_Size(Game::DObjAnimMat, 32);
+
+			buffer->Align(Utils::Stream::ALIGN_4);
+			buffer->Save(asset->animMatrix, sizeof(Game::DObjAnimMat), asset->numBones);
+			dest->animMatrix = reinterpret_cast<Game::DObjAnimMat*>(-1);
+		}
+
+		if (asset->materials)
+		{
+			buffer->Align(Utils::Stream::ALIGN_4);
+
+			Game::Material** destMaterials = buffer->Dest<Game::Material*>();
+			buffer->Save(asset->materials, sizeof(Game::Material*), asset->numSurfaces);
+
+			for (char i = 0; i < asset->numSurfaces; ++i)
+			{
+				if (asset->materials[i])
+				{
+					destMaterials[i] = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materials[i]->name).material;
+				}
+			}
+
+			dest->materials = reinterpret_cast<Game::Material**>(-1);
+		}
+
+		// Save_XModelLodInfoArray()
+		{
+			Assert_Size(Game::XModelLodInfo, 44);
+
+			for (int i = 0; i < 4; ++i)
+			{
+				if (asset->lods[i].surfaces)
+				{
+					dest->lods[i].surfaces = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name).surfaces;
+				}
+			}
+		}
+
+		// Save_XModelCollSurfArray
+		if (asset->colSurf)
+		{
+			Assert_Size(Game::XModelCollSurf, 44);
+
+			buffer->Align(Utils::Stream::ALIGN_4);
+
+			Game::XModelCollSurf* destColSurfs = buffer->Dest<Game::XModelCollSurf>();
+			buffer->Save(asset->colSurf, asset->numColSurfs);
+
+			for (int i = 0; i < asset->numColSurfs; ++i)
+			{
+				Game::XModelCollSurf* destColSurf = &destColSurfs[i];
+				Game::XModelCollSurf* colSurf = &asset->colSurf[i];
+
+				if (colSurf->tris)
+				{
+					buffer->Align(Utils::Stream::ALIGN_4);
+					buffer->Save(colSurf->tris, 48, colSurf->count);
+					destColSurf->tris = reinterpret_cast<void*>(-1);
+				}
+			}
+
+			dest->colSurf = reinterpret_cast<Game::XModelCollSurf*>(-1);
+		}
+
+		if (asset->boneInfo)
+		{
+			buffer->Align(Utils::Stream::ALIGN_4);
+
+			buffer->Save(asset->boneInfo, 28, asset->numBones);
+			dest->boneInfo = reinterpret_cast<char*>(-1);
+		}
+
+		if (asset->physPreset)
+		{
+			dest->physPreset = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset->name).physPreset;
+		}
+
+		if (asset->physPreset)
+		{
+			dest->physPreset = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap->name).physPreset;
+		}
+
+		buffer->PopBlock();
+	}
+}

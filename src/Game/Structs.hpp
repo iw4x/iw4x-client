@@ -1226,6 +1226,204 @@ namespace Game
 		int error;
 	} structuredDataFindState_t;
 
+	struct XModelAngle
+	{
+		short x;
+		short y;
+		short z;
+		short base; // defines the 90-degree point for the shorts
+	};
+
+	struct XModelTagPos
+	{
+		float x;
+		float y;
+		float z;
+	};
+
+	struct XSurfaceCollisionTree
+	{
+		char pad[24];
+		int numNode;
+		char* node; // el size 16
+		int numLeaf;
+		short* leaf;
+	};
+
+	struct XRigidVertList
+	{
+		int pad;
+		int pad2;
+		XSurfaceCollisionTree* entry;
+	};
+
+	struct GfxPackedVertex
+	{
+		float x;
+		float y;
+		float z;
+		DWORD color;
+		WORD texCoords[2];
+		float normal[3];
+	};
+
+	struct Face
+	{
+		unsigned short v1;
+		unsigned short v2;
+		unsigned short v3;
+	};
+
+	struct XSurface
+	{
+		short pad; // +0
+		unsigned short numVertices; // +2
+		unsigned short numPrimitives; // +4
+		unsigned char streamHandle; // something to do with buffers, +6
+		char pad2; // +7
+		int pad3; // +8
+		Face* indexBuffer; // +12
+		short blendNum1; // +16
+		short blendNum2; // +18
+		short blendNum3; // +20
+		short blendNum4; // +22
+		char* blendInfo; // +24
+		GfxPackedVertex* vertexBuffer; // +28
+		int numCT; // +32
+		XRigidVertList* ct; // +36
+		char pad5[24]; // +40
+					   // pad5 matches XModelSurfaces pad
+					   // total size, 64
+	};
+
+	struct XModelSurfs
+	{
+		const char* name;
+		XSurface* surfaces;
+		int numSurfaces;
+		char pad[24];
+	};
+
+	struct XModelLodInfo
+	{
+		char pad[8];
+		XModelSurfs* surfaces;
+		char pad2[32];
+	};
+
+	struct cplane_t
+	{
+		vec3_t a;
+		float dist;
+		int type;
+	};
+
+	struct cbrushside_t
+	{
+		cplane_t* side;
+		short texInfo;
+		short dispInfo;
+	};
+
+	struct cbrushWrapper_t
+	{
+		short count;
+		cbrushside_t* brushSide;
+		char * brushEdge;
+		char pad[24];
+	};
+
+#pragma pack(push, 4)
+	struct BrushWrapper
+	{
+		float mins[3];
+		float maxs[3];
+		cbrushWrapper_t brush;
+		int totalEdgeCount;
+		cplane_t *planes;
+	};
+#pragma pack(pop)
+
+	struct PhysGeomInfo
+	{
+		BrushWrapper *brush;
+		int type;
+		float orientation[3][3];
+		float offset[3];
+		float halfLengths[3];
+	};
+
+	struct PhysMass
+	{
+		float centerOfMass[3];
+		float momentsOfInertia[3];
+		float productsOfInertia[3];
+	};
+
+	struct PhysCollmap
+	{
+		const char * name;
+		unsigned int count;
+		PhysGeomInfo *geoms;
+		char unknown[0x18];
+		PhysMass mass;
+	};
+
+	struct DObjAnimMat
+	{
+		float quat[4];
+		float trans[3];
+		float transWeight;
+	};
+
+	struct XModelCollSurf
+	{
+		void* tris; // +0, sizeof 48
+		int count; // +4
+		char pad[36]; // +8
+	}; // +44
+
+	struct PhysPreset
+	{
+		const char *name;
+		int type;
+		float mass;
+		float bounce;
+		float friction;
+		float bulletForceScale;
+		float explosiveForceScale;
+		const char *sndAliasPrefix;
+		float piecesSpreadFraction;
+		float piecesUpwardVelocity;
+		bool tempDefaultToCylinder;
+	};
+
+	struct XModel
+	{
+		char* name; // +0
+		char numBones; // +4
+		char numRootBones; // +5
+		char numSurfaces; // +6
+		char pad2; // +7
+		char pad3[28]; // +8
+		short* boneNames; // +36
+		char* parentList; // +40
+		XModelAngle* tagAngles; // +44, element size 8
+		XModelTagPos* tagPositions; // +48, element size 12
+		char* partClassification; // +52
+		DObjAnimMat* animMatrix; // +56, element size 32
+		Material** materials; // +60
+		XModelLodInfo lods[4]; // +64
+		int pad4; // +240
+		XModelCollSurf* colSurf; // +244
+		int numColSurfs; // +248
+		int pad6;
+		char* boneInfo; // bone count, +256, element size 28
+		char pad5[36];
+		PhysPreset* physPreset;
+		PhysCollmap* physCollmap;
+	}; // total size 304
+
 	union XAssetHeader
 	{
 		void *data;
@@ -1244,6 +1442,10 @@ namespace Game
 		MaterialVertexShader *vertexShader;
 		MaterialPixelShader *pixelShader;
 		structuredDataDef_t* structuredData;
+		XModel* model;
+		PhysPreset* physPreset;
+		PhysCollmap* physCollmap;
+		XModelSurfs* surfaces;
 	};
 
 	struct XAsset
