@@ -181,6 +181,10 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x420A6C, 0);
 		Utils::Hook::Set<char*>(0x420A6E, "xblive_privateserver");
 
+		// Remove migration shutdown, it causes crashes and will be destroyed when erroring anyways
+		Utils::Hook::Nop(0x5A8E1C, 12);
+		Utils::Hook::Nop(0x5A8E33, 11);
+
 		// Enable XP Bar
 		Utils::Hook(0x62A2A7, Party::UIDvarIntStub, HOOK_CALL).Install()->Quick();
 
