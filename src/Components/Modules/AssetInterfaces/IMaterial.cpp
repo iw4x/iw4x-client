@@ -61,12 +61,12 @@ namespace Assets
 
 				if (animCoordX.is_number())
 				{
-					material->textureAtlasColumnCount = (char)animCoordX.number_value() & 0xFF;
+					material->textureAtlasColumnCount = static_cast<char>(animCoordX.number_value()) & 0xFF;
 				}
 
 				if (animCoordY.is_number())
 				{
-					material->textureAtlasRowCount = (char)animCoordY.number_value() & 0xFF;
+					material->textureAtlasRowCount = static_cast<char>(animCoordY.number_value()) & 0xFF;
 				}
 			}
 		}
@@ -121,7 +121,7 @@ namespace Assets
 				material->textureTable = 0;
 			}
 
-			material->textureCount = (char)textureList.size() & 0xFF;
+			material->textureCount = static_cast<char>(textureList.size()) & 0xFF;
 		}
 
 		header->material = material;
