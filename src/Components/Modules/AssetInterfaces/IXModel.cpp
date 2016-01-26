@@ -14,21 +14,8 @@ namespace Assets
 			}
 		}
 
-		//asset->numBones = 0;
-		//asset->numRootBones = 0;
-		//asset->boneNames = 0;
-		//asset->parentList = 0;
-		//asset->tagAngles = 0;
-		//asset->tagPositions = 0;
-		//asset->animMatrix = 0;
-		//asset->colSurf = 0;
-		//asset->partClassification = 0;
-
 		if (asset->materials)
 		{
-			//asset->materials = 0;
-			//asset->numSurfaces = 0;
-
 			for (char i = 0; i < asset->numSurfaces; ++i)
 			{
 				if (asset->materials[i])

@@ -61,6 +61,7 @@ namespace Components
 #include "AssetInterfaces\IGfxImage.hpp"
 #include "AssetInterfaces\IMaterial.hpp"
 #include "AssetInterfaces\IPhysPreset.hpp"
+#include "AssetInterfaces\IXAnimParts.hpp"
 #include "AssetInterfaces\IPhysCollmap.hpp"
 #include "AssetInterfaces\IXModelSurfs.hpp"
 #include "AssetInterfaces\ILocalizedEntry.hpp"

@@ -20,8 +20,11 @@ namespace Components
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);
 
 #ifdef DEBUG
-		info = { "penis", 1, 0 };
-		Game::DB_LoadXAssets(&info, 1, 1);
+		if (!ZoneBuilder::IsEnabled())
+		{
+			info = { "penis", 1, 0 };
+			Game::DB_LoadXAssets(&info, 1, 1);
+		}
 #endif
 	}
 
