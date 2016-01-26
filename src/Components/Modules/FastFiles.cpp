@@ -20,14 +20,6 @@ namespace Components
 		data.push_back({ "weapons_mp", 1, 0 });
 
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);
-
-#ifdef DEBUG
-		if (!ZoneBuilder::IsEnabled())
-		{
-			info = { "penis", 1, 0 };
-			Game::DB_LoadXAssets(&info, 1, 1);
-		}
-#endif
 	}
 
 	const char* FastFiles::GetZoneLocation(const char* file)

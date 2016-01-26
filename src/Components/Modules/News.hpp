@@ -4,10 +4,10 @@ namespace Components
 	{
 	public:
 		News();
+		~News();
 		const char* GetName() { return "News"; };
 
 	private:
-		static std::string Motd;
-		static const char* GetMotd();
+		static std::thread* Thread;
 	};
 }
