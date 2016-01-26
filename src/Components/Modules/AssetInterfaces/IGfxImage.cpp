@@ -40,30 +40,47 @@ namespace Assets
 		image->dataLen1 = iwiHeader->fileSizeForPicmip[0] - 32;
 		image->dataLen2 = iwiHeader->fileSizeForPicmip[0] - 32;
 
-		// TODO: Check tag
-		image->texture->dimensions[0] = iwiHeader->dimensions[0]; // Width
-		image->texture->dimensions[1] = iwiHeader->dimensions[1]; // Height
-		image->texture->dimensions[2] = iwiHeader->dimensions[2]; // Depth
-		image->texture->flags = 0;//iwiHeader->flags;
+		if (std::memcmp(iwiHeader->tag, "IWi", 3))
+		{
+			Components::Logger::Error("Image is not a valid IWi!");
+			return;
+		}
+
+		memcpy(image->texture->dimensions, iwiHeader->dimensions, 6);
+		image->texture->flags = 0;
 		image->texture->mipLevels = 0;
 
 		switch (iwiHeader->format)
 		{
-		case Game::IWI_COMPRESSION::IWI_ARGB:
-			image->texture->format = 21;
-			break;
-		case Game::IWI_COMPRESSION::IWI_RGB8:
-			image->texture->format = 20;
-			break;
-		case Game::IWI_COMPRESSION::IWI_DXT1:
-			image->texture->format = 0x31545844;
-			break;
-		case Game::IWI_COMPRESSION::IWI_DXT3:
-			image->texture->format = 0x33545844;
-			break;
-		case Game::IWI_COMPRESSION::IWI_DXT5:
-			image->texture->format = 0x35545844;
-			break;
+			case Game::IWI_COMPRESSION::IWI_ARGB:
+			{
+				image->texture->format = 21;
+				break;
+			}
+
+			case Game::IWI_COMPRESSION::IWI_RGB8:
+			{
+				image->texture->format = 20;
+				break;
+			}
+
+			case Game::IWI_COMPRESSION::IWI_DXT1:
+			{
+				image->texture->format = 0x31545844;
+				break;
+			}
+
+			case Game::IWI_COMPRESSION::IWI_DXT3:
+			{
+				image->texture->format = 0x33545844;
+				break;
+			}
+
+			case Game::IWI_COMPRESSION::IWI_DXT5:
+			{
+				image->texture->format = 0x35545844;
+				break;
+			}
 		}
 
 		header->image = image;

@@ -14,11 +14,39 @@ namespace Assets
 			}
 		}
 
+		//asset->numBones = 0;
+		//asset->numRootBones = 0;
+		//asset->boneNames = 0;
+		//asset->parentList = 0;
+		//asset->tagAngles = 0;
+		//asset->tagPositions = 0;
+		//asset->animMatrix = 0;
+		//asset->colSurf = 0;
+		//asset->partClassification = 0;
+
+		if (asset->materials)
+		{
+			//asset->materials = 0;
+			//asset->numSurfaces = 0;
+
+			for (char i = 0; i < asset->numSurfaces; ++i)
+			{
+				if (asset->materials[i])
+				{
+					//Components::Logger::Print("%s\n", asset->materials[i]->name);
+					builder->LoadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materials[i]->name);
+				}
+			}
+		}
+
 		for (int i = 0; i < 4; ++i)
 		{
 			if (asset->lods[i].surfaces)
 			{
-				builder->LoadAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name);
+				// We're not supposed to include xmodelsurfs as standalone asset
+				//builder->LoadAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name);
+
+				IXModelSurfs().Mark({ asset->lods[i].surfaces }, builder);
 			}
 		}
 
@@ -27,7 +55,7 @@ namespace Assets
 			builder->LoadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset->name);
 		}
 
-		if (asset->physPreset)
+		if (asset->physCollmap)
 		{
 			builder->LoadAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap->name);
 		}
@@ -122,7 +150,7 @@ namespace Assets
 			dest->materials = reinterpret_cast<Game::Material**>(-1);
 		}
 
-		// Save_XModelLodInfoArray()
+		// Save_XModelLodInfoArray
 		{
 			Assert_Size(Game::XModelLodInfo, 44);
 
@@ -130,7 +158,11 @@ namespace Assets
 			{
 				if (asset->lods[i].surfaces)
 				{
-					dest->lods[i].surfaces = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name).surfaces;
+					// Requiring this asset is not possible, as it has to be loaded after the model
+					//dest->lods[i].surfaces = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name).surfaces;
+
+					IXModelSurfs().Save({ asset->lods[i].surfaces }, builder);
+					dest->lods[i].surfaces = reinterpret_cast<Game::XModelSurfs*>(-1);
 				}
 			}
 		}
@@ -143,7 +175,7 @@ namespace Assets
 			buffer->Align(Utils::Stream::ALIGN_4);
 
 			Game::XModelCollSurf* destColSurfs = buffer->Dest<Game::XModelCollSurf>();
-			buffer->Save(asset->colSurf, asset->numColSurfs);
+			buffer->SaveArray(asset->colSurf, asset->numColSurfs);
 
 			for (int i = 0; i < asset->numColSurfs; ++i)
 			{
@@ -174,9 +206,9 @@ namespace Assets
 			dest->physPreset = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset->name).physPreset;
 		}
 
-		if (asset->physPreset)
+		if (asset->physCollmap)
 		{
-			dest->physPreset = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap->name).physPreset;
+			dest->physCollmap = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap->name).physCollmap;
 		}
 
 		buffer->PopBlock();

@@ -18,6 +18,11 @@ namespace Components
 		data.push_back(info);
 
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);
+
+#ifdef DEBUG
+		info = { "penis", 1, 0 };
+		Game::DB_LoadXAssets(&info, 1, 1);
+#endif
 	}
 
 	const char* FastFiles::GetZoneLocation(const char* file)
@@ -112,7 +117,7 @@ namespace Components
 
 			Game::XZoneInfo info;
 			info.name = params[1];
-			info.allocFlags = 0x01000000;
+			info.allocFlags = 1;//0x01000000;
 			info.freeFlags = 0;
 
 			Game::DB_LoadXAssets(&info, 1, true);

@@ -105,17 +105,12 @@ namespace Assets
 						}
 					}
 
-					// We absolutely have to write something here!
 					if (technique->name)
 					{
 						buffer->SaveString(technique->name);
-					}
-					else
-					{
-						buffer->SaveString("");
+						destTechnique->name = reinterpret_cast<char*>(-1);
 					}
 
-					destTechnique->name = reinterpret_cast<char*>(-1);
 					dest->techniques[i] = reinterpret_cast<Game::MaterialTechnique*>(-1);
 				}
 			}

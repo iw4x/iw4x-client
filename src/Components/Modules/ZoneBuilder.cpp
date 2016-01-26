@@ -37,15 +37,15 @@ namespace Components
 	{
 		ZoneBuilder::Zone::LoadFastFiles();
 
-		Logger::Print("link...");
+		Logger::Print("Linking assets...\n");
 		if (!ZoneBuilder::Zone::LoadAssets()) return;
 
 		ZoneBuilder::Zone::AddBranding();
 
-		Logger::Print("save...");
+		Logger::Print("Saving...\n");
 		ZoneBuilder::Zone::SaveData();
 
-		Logger::Print("compress...");
+		Logger::Print("Compressing...\n");
 		ZoneBuilder::Zone::WriteZone();
 	}
 
@@ -281,6 +281,11 @@ namespace Components
 			ZoneBuilder::Zone::Buffer.PushBlock(Game::XFILE_BLOCK_TEMP);
 			ZoneBuilder::Zone::Buffer.Align(Utils::Stream::ALIGN_4);
 
+#ifdef DEBUG
+			Components::Logger::Print("Saving (%s): %s\n", Game::DB_GetXAssetTypeName(asset.type), Game::DB_GetXAssetName(&asset));
+#endif
+
+			ZoneBuilder::Zone::Store(asset.header);
 			AssetHandler::ZoneSave(asset, this);
 
 			ZoneBuilder::Zone::Buffer.PopBlock();
@@ -411,6 +416,14 @@ namespace Components
 		return asset;
 	}
 
+	void ZoneBuilder::Zone::Store(Game::XAssetHeader header)
+	{
+		if (!ZoneBuilder::Zone::HasPointer(header.data)) // We should never have to restore a pointer, so this expression should always resolve into false
+		{
+			ZoneBuilder::Zone::StorePointer(header.data);
+		}
+	}
+
 	bool ZoneBuilder::IsEnabled()
 	{
 		return (Flags::HasFlag("zonebuilder") && !Dedicated::IsDedicated());
@@ -457,7 +470,7 @@ namespace Components
 				if (params.Length() < 2) return;
 
 				std::string zoneName = params[1];
-				Logger::Print("Building zone '%s'...", zoneName.data());
+				Logger::Print("Building zone '%s'...\n", zoneName.data());
 
 				Zone(zoneName).Build();
 			});

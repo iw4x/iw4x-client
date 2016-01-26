@@ -21,7 +21,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		// Ensure we're working with our desired binary
-		if (Utils::Hook::Get<DWORD>(0x6BAC0F) != 0xF44EE8)
+		if (Utils::Hook::Get<DWORD>(0x4C0FFF) != 0x6824748B)
 		{
 			return FALSE;
 		}

@@ -38,6 +38,8 @@ namespace Components
 			void RenameAsset(Game::XAssetType type, std::string asset, std::string newName);
 			std::string GetAssetName(Game::XAssetType type, std::string asset);
 
+			void Store(Game::XAssetHeader header);
+
 		private:
 			void LoadFastFiles();
 

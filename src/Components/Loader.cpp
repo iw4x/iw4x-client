@@ -52,7 +52,7 @@ namespace Components
 	{
 		for (auto component : Loader::Components)
 		{
-			Logger::Print("Unregistering component: %s", component->GetName());
+			Logger::Print("Unregistering component: %s\n", component->GetName());
 			delete component;
 		}
 
@@ -63,7 +63,7 @@ namespace Components
 	{
 		if (component)
 		{
-			Logger::Print("Component registered: %s", component->GetName());
+			Logger::Print("Component registered: %s\n", component->GetName());
 			Loader::Components.push_back(component);
 		}
 	}
