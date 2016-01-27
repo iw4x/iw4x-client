@@ -2,6 +2,25 @@
 
 namespace Assets
 {
+	void IRawFile::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	{
+		Components::FileSystem::File rawFile(name);
+
+		if (rawFile.Exists())
+		{
+			Game::RawFile* asset = builder->GetAllocator()->AllocateArray<Game::RawFile>();
+
+			std::string data = Utils::Compression::ZLib::Compress(rawFile.GetBuffer());
+
+			asset->name = builder->GetAllocator()->DuplicateString(name);
+			asset->compressedData = builder->GetAllocator()->DuplicateString(data);
+			asset->sizeCompressed = data.size() + 1;
+			asset->sizeUnCompressed = 0;
+
+			header->rawfile = asset;
+		}
+	}
+
 	void IRawFile::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Assert_Size(Game::RawFile, 16);
@@ -23,11 +42,11 @@ namespace Assets
 		{
 			if (asset->sizeCompressed)
 			{
-				buffer->SaveString(asset->compressedData, asset->sizeCompressed);
+				buffer->Save(asset->compressedData, asset->sizeCompressed);
 			}
 			else
 			{
-				buffer->SaveString(asset->compressedData, asset->sizeUnCompressed);
+				buffer->Save(asset->compressedData, asset->sizeUnCompressed + 1);
 			}
 
 			dest->compressedData = reinterpret_cast<char*>(-1);
