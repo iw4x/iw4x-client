@@ -17,7 +17,8 @@ namespace Components
 		info.name = "dlc2_ui_mp";
 		data.push_back(info);
 
-		data.push_back({ "weapons_mp", 1, 0 });
+		// Don't load it for now
+		//data.push_back({ "weapons_mp", 1, 0 });
 
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);
 	}
