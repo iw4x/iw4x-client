@@ -40,6 +40,13 @@ namespace Components
 			data.push_back(info);
 		}
 
+		// Load patch files
+		std::string patchZone = Utils::VA("patch_%s", zoneInfo->name);
+		if (FastFiles::Exists(patchZone))
+		{
+			data.push_back({ patchZone.data(), zoneInfo->allocFlags, zoneInfo->freeFlags });
+		}
+
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);
 	}
 

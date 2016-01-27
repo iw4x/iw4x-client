@@ -10,6 +10,8 @@ namespace Components
 		static void AddZonePath(std::string path);
 		static std::string Current();
 
+		static bool Exists(std::string file);
+
 	private:
 		static std::vector<std::string> ZonePaths;
 		static const char* GetZoneLocation(const char* file);

@@ -17,10 +17,27 @@ namespace Components
 		info.name = "dlc2_ui_mp";
 		data.push_back(info);
 
-		// Don't load it for now
-		//data.push_back({ "weapons_mp", 1, 0 });
+		// Load custom weapons, if present (force that later on)
+		if (FastFiles::Exists("weapons_mp"))
+		{
+			data.push_back({ "weapons_mp", 1, 0 });
+		}
 
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);
+	}
+
+	// Name is a bit weird, due to FasFileS and ExistS :P
+	bool FastFiles::Exists(std::string file)
+	{
+		std::string path = FastFiles::GetZoneLocation(file.data());
+		path.append(file);
+
+		if (!Utils::EndsWith(path.data(), ".ff"))
+		{
+			path.append(".ff");
+		}
+
+		return (GetFileAttributes(path.data()) != INVALID_FILE_ATTRIBUTES);
 	}
 
 	const char* FastFiles::GetZoneLocation(const char* file)
@@ -32,7 +49,7 @@ namespace Components
 			std::string absoluteFile = Utils::VA("%s\\%s%s", dir, path.data(), file);
 
 			// No ".ff" appended, append it manually
-			if (!Utils::EndsWith(file, ".ff"))
+			if (!Utils::EndsWith(absoluteFile.data(), ".ff"))
 			{
 				absoluteFile.append(".ff");
 			}
