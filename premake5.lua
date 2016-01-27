@@ -191,5 +191,6 @@ workspace "iw4x"
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
 
-			-- always build as static lib, as pdcurses doesn't export anything
-			kind "StaticLib"
+			kind "SharedLib"
+			configuration "*Static"
+				kind "StaticLib"
