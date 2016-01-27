@@ -220,6 +220,9 @@ namespace Components
 			// stop saving a config_mp.cfg
 			Utils::Hook::Set<BYTE>(0x60B240, 0xC3);
 
+			// don't load the config
+			Utils::Hook::Set<BYTE>(0x4B4D19, 0xEB);
+
 			// Dedicated frame handler
 			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).Install()->Quick();
 
