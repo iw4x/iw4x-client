@@ -11,6 +11,12 @@ namespace Components
 
 	Singleton::Singleton()
 	{
+		if (Flags::HasFlag("version"))
+		{
+			printf("iw4x IW4x r" REVISION_STR "-" MILESTONE " (built " __DATE__ " " __TIME__ ")\n");
+			ExitProcess(0);
+		}
+
 		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled()) return;
 
 		Singleton::FirstInstance = (CreateMutex(NULL, FALSE, "iw4x_mutex") && GetLastError() != ERROR_ALREADY_EXISTS);
