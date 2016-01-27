@@ -12,9 +12,12 @@ namespace Components
 
 		static bool Exists(std::string file);
 
+		static void LoadLocalizeZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
+
 	private:
 		static std::vector<std::string> ZonePaths;
 		static const char* GetZoneLocation(const char* file);
-		static void LoadDLCUIZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
+		static void LoadInitialZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
+		static void LoadDLCUIZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);	
 	};
 }

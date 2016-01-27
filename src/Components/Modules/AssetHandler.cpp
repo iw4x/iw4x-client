@@ -223,6 +223,7 @@ namespace Components
 		if (!header.data)
 		{
 			header = Game::DB_FindXAssetHeader(type, filename.data());
+			Components::AssetHandler::StoreTemporaryAsset(type, header); // Might increase efficiency...
 		}
 
 		return header;

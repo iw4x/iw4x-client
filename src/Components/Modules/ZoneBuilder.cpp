@@ -89,7 +89,10 @@ namespace Components
 				{
 					if (DataMap.GetElementAt(i, 0) == "localize")
 					{
-						Localization::SetTemp(DataMap.GetElementAt(i, 1), DataMap.GetElementAt(i, 2));
+						std::string stringOverride = DataMap.GetElementAt(i, 2);
+						Utils::Replace(stringOverride, "\\n", "\n");
+
+						Localization::SetTemp(DataMap.GetElementAt(i, 1), stringOverride);
 					}
 					else
 					{
@@ -437,10 +440,28 @@ namespace Components
 
 		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, const char* name)
 		{
-			if (FastFiles::Current() == "penis")
-			{
-				OutputDebugStringA(name);
-			}
+// 			static void* blocTable = 0;
+// 
+// 			if (FastFiles::Current() == "iw4x_ui_mp" && type == Game::XAssetType::ASSET_TYPE_MATERIAL)
+// 			{
+// 				if (std::string(name) == "preview_mp_bloc")
+// 				{
+// 					blocTable = asset.material->stateBitTable;
+// 				}
+// 				else if (blocTable)
+// 				{
+// 					void* thisTable = asset.material->stateBitTable;
+// 
+// 					if (thisTable != blocTable)
+// 					{
+// 						OutputDebugStringA("DIFF!");
+// 					}
+// 					else
+// 					{
+// 						OutputDebugStringA("YAY!");
+// 					}
+// 				}
+// 			}
 
 			return true;
 		});

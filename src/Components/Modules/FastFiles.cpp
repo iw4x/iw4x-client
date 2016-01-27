@@ -4,6 +4,22 @@ namespace Components
 {
 	std::vector<std::string> FastFiles::ZonePaths;
 
+	// This has to be called only once, when the game starts
+	void FastFiles::LoadInitialZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
+	{
+		std::vector<Game::XZoneInfo> data;
+		Utils::Merge(&data, zoneInfo, zoneCount);
+
+		// Load custom weapons, if present (force that later on)
+		if (FastFiles::Exists("weapons_mp"))
+		{
+			data.push_back({ "weapons_mp", 1, 0 });
+		}
+
+		return FastFiles::LoadDLCUIZones(data.data(), data.size(), sync);
+	}
+
+	// This has to be called every time the cgame is reinitialized
 	void FastFiles::LoadDLCUIZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
 	{
 		std::vector<Game::XZoneInfo> data;
@@ -11,17 +27,45 @@ namespace Components
 
 		Game::XZoneInfo info = { nullptr, 2, 0 };
 
-		info.name = "dlc1_ui_mp";
-		data.push_back(info);
-
-		info.name = "dlc2_ui_mp";
-		data.push_back(info);
-
-		// Load custom weapons, if present (force that later on)
-		if (FastFiles::Exists("weapons_mp"))
+		// Custom ui stuff
+		if (FastFiles::Exists("iw4x_ui_mp"))
 		{
-			data.push_back({ "weapons_mp", 1, 0 });
+			info.name = "iw4x_ui_mp";
+			data.push_back(info);
 		}
+		else // Fallback
+		{
+			info.name = "dlc1_ui_mp";
+			data.push_back(info);
+
+			info.name = "dlc2_ui_mp";
+			data.push_back(info);
+		}
+
+		return FastFiles::LoadLocalizeZones(data.data(), data.size(), sync);
+	}
+
+	// This has to be called every time fastfiles are loaded :D
+	void FastFiles::LoadLocalizeZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
+	{
+		std::vector<Game::XZoneInfo> data;
+		Utils::Merge(&data, zoneInfo, zoneCount);
+
+		Game::XZoneInfo info = { nullptr, 4, 0 };
+
+		// Not sure how they should be loaded :S
+		std::string langZone = Utils::VA("localized_iw4x_%s", Game::Win_GetLanguage());
+
+		if (FastFiles::Exists(langZone))
+		{
+			info.name = langZone.data();
+		}
+		else if (FastFiles::Exists("localized_iw4x_english")) // Fallback
+		{
+			info.name = "localized_iw4x_english";
+		}
+
+		data.push_back(info);
 
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);
 	}
@@ -89,7 +133,7 @@ namespace Components
 		Utils::Hook(0x44DA90, FastFiles::GetZoneLocation, HOOK_JUMP).Install()->Quick();
 
 		// Allow dlc ui zone loading
-		Utils::Hook(0x506BC7, FastFiles::LoadDLCUIZones, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x506BC7, FastFiles::LoadInitialZones, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).Install()->Quick();
 
 		// basic checks (hash jumps, both normal and playlist)

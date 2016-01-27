@@ -47,7 +47,7 @@ namespace Components
 			data.push_back({ patchZone.data(), zoneInfo->allocFlags, zoneInfo->freeFlags });
 		}
 
-		Game::DB_LoadXAssets(data.data(), data.size(), sync);
+		return FastFiles::LoadLocalizeZones(data.data(), data.size(), sync);
 	}
 
 	bool Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const char* name)

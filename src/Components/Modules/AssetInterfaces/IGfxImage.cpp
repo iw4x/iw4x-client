@@ -103,6 +103,8 @@ namespace Assets
 			dest->name = reinterpret_cast<char*>(-1);
 		}
 
+		buffer->PushBlock(Game::XFILE_BLOCK_TEMP);
+
 		if (asset->texture)
 		{
 			buffer->Align(Utils::Stream::ALIGN_4);
@@ -116,6 +118,7 @@ namespace Assets
 			dest->texture = reinterpret_cast<Game::GfxImageLoadDef*>(-1);
 		}
 
+		buffer->PopBlock();
 		buffer->PopBlock();
 	}
 }
