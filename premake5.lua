@@ -179,7 +179,7 @@ workspace "iw4x"
 			
 		-- pdcurses
 		project "pdcurses"
-			language "C++"
+			language "C"
 			includedirs { "./deps/pdcurses/"  }
 
 			files
@@ -191,6 +191,5 @@ workspace "iw4x"
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
 
-			kind "SharedLib"
-			configuration "*Static"
-				kind "StaticLib"
+			-- always build as static lib, as pdcurses doesn't export anything
+			kind "StaticLib"
