@@ -10,14 +10,17 @@ namespace Assets
 		{
 			Game::RawFile* asset = builder->GetAllocator()->AllocateArray<Game::RawFile>();
 
-			std::string data = Utils::Compression::ZLib::Compress(rawFile.GetBuffer());
+			if (asset)
+			{
+				//std::string data = Utils::Compression::ZLib::Compress(rawFile.GetBuffer());
 
-			asset->name = builder->GetAllocator()->DuplicateString(name);
-			asset->compressedData = builder->GetAllocator()->DuplicateString(data);
-			asset->sizeCompressed = data.size() + 1;
-			asset->sizeUnCompressed = 0;
+				asset->name = builder->GetAllocator()->DuplicateString(name);
+				asset->compressedData = builder->GetAllocator()->DuplicateString(rawFile.GetBuffer());
+				asset->sizeCompressed = 0;//data.size();
+				asset->sizeUnCompressed = rawFile.GetBuffer().size();
 
-			header->rawfile = asset;
+				header->rawfile = asset;
+			}
 		}
 	}
 
