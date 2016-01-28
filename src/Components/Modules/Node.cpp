@@ -27,10 +27,13 @@ namespace Components
 
 		for (auto entry : Node::Nodes)
 		{
-			Node::AddressEntry thisAddress;
-			thisAddress.fromNetAddress(entry.address);
+			if (entry.state == Node::STATE_VALID)
+			{
+				Node::AddressEntry thisAddress;
+				thisAddress.fromNetAddress(entry.address);
 
-			entries.push_back(thisAddress);
+				entries.push_back(thisAddress);
+			}
 		}
 
 		std::string nodeStream(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
@@ -121,7 +124,7 @@ namespace Components
 
 		for (auto entry : Node::Nodes)
 		{
-			if (entry.state != Node::STATE_INVALID) // Only send valid nodes, or shall we send invalid ones as well?
+			if (entry.state == Node::STATE_VALID) // Only send valid nodes, or shall we send invalid ones as well?
 			{
 				Node::AddressEntry thisAddress;
 				thisAddress.fromNetAddress(entry.address);
@@ -187,6 +190,52 @@ namespace Components
 		}
 	}
 
+	void Node::DeleteInvalidNodes()
+	{
+		std::vector<Node::NodeEntry> cleanNodes;
+
+		for (auto node : Node::Nodes)
+		{
+			if (node.state != Node::STATE_INVALID)
+			{
+				cleanNodes.push_back(node);
+			}
+			else
+			{
+				Logger::Print("Removing invalid node %s\n", node.address.GetString());
+			}
+		}
+
+		if (cleanNodes.size() != Node::Nodes.size())
+		{
+			Node::Nodes.clear();
+			Utils::Merge(&Node::Nodes, cleanNodes);
+		}
+	}
+
+	void Node::DeleteInvalidDedis()
+	{
+		std::vector<Node::DediEntry> cleanDedis;
+
+		for (auto dedi : Node::Dedis)
+		{
+			if (dedi.state != Node::STATE_INVALID)
+			{
+				cleanDedis.push_back(dedi);
+			}
+			else
+			{
+				Logger::Print("Removing invalid dedi %s\n", dedi.address.GetString());
+			}
+		}
+
+		if (cleanDedis.size() != Node::Dedis.size())
+		{
+			Node::Dedis.clear();
+			Utils::Merge(&Node::Dedis, cleanDedis);
+		}
+	}
+
 	Node::Node()
 	{
 //#ifdef USE_NODE_STUFF
@@ -205,7 +254,7 @@ namespace Components
 			{
 				for (auto node : Node::Nodes)
 				{
-					Network::Send(node.address, "heartbeatDeadline\n");
+					Network::Send(node.address, "deadline\n");
 				}
 			});
 		}
@@ -271,16 +320,25 @@ namespace Components
 			Node::AddDedi(address, true);
 		});
 
-		Network::Handle("heartbeatDeadline", [] (Network::Address address, std::string data)
+		Network::Handle("deadline", [] (Network::Address address, std::string data)
 		{
+			Logger::Print("Invalidation message received from %s\n", address.GetString());
+
 			for (auto &dedi : Node::Dedis)
 			{
 				if (dedi.address == address)
 				{
-					Logger::Print("Dedi invalidation message received from %s\n", address.GetString());
-
 					dedi.state = Node::STATE_INVALID;
 					dedi.endTime = Game::Com_Milliseconds();
+				}
+			}
+
+			for (auto &node : Node::Nodes)
+			{
+				if (node.address == address)
+				{
+					node.state = Node::STATE_INVALID;
+					node.endTime = Game::Com_Milliseconds();
 				}
 			}
 		});
@@ -363,6 +421,9 @@ namespace Components
 					dedi.state = Node::STATE_INVALID;
 				}
 			}
+
+			Node::DeleteInvalidNodes();
+			Node::DeleteInvalidDedis();
 
 			count = 0;
 		});

@@ -1,5 +1,5 @@
-#define HEARTBEAT_DEADLINE 1000 * 3 * 10   // Invalidate servers after 10 minutes without heartbeat
-#define HEARTBEAT_INTERVAL 1000 * 10 * 1   // Send heartbeats to each node every 3 minutes
+#define HEARTBEAT_DEADLINE 1000 * 60 * 10  // Invalidate servers after 10 minutes without heartbeat
+#define HEARTBEAT_INTERVAL 1000 * 60 * 3   // Send heartbeats to each node every 3 minutes
 
 #define NODE_VALIDITY_EXPIRE 1000 * 60 * 2 // Revalidate nodes after 2 minutes
 #define DEDI_VALIDITY_EXPIRE 1000 * 60 * 2 // Revalidate dedis after 2 minutes
@@ -60,7 +60,7 @@ namespace Components
 				Network::Address address;
 
 				address.SetIP(this->ip);
-				address.SetPort(ntohs(this->port));
+				address.SetPort(this->port);
 				address.SetType(Game::netadrtype_t::NA_IP);
 
 				return address;
@@ -69,7 +69,7 @@ namespace Components
 			void fromNetAddress(Network::Address address)
 			{
 				this->ip = address.GetIP();
-				this->port = htons(address.GetPort());
+				this->port = address.GetPort();
 			}
 		};
 #pragma pack(pop)
@@ -85,5 +85,8 @@ namespace Components
 
 		static void SendNodeList(Network::Address target);
 		static void SendDediList(Network::Address target);
+
+		static void DeleteInvalidNodes();
+		static void DeleteInvalidDedis();
 	};
 }

@@ -15,11 +15,11 @@ namespace Components
 	}
 	void Network::Address::SetPort(unsigned short port)
 	{
-		this->address.port = htons(port);
+		this->address.port = ntohs(port);
 	};
 	unsigned short Network::Address::GetPort()
 	{
-		return ntohs(this->address.port);
+		return htons(this->address.port);
 	}
 	void Network::Address::SetIP(DWORD ip)
 	{
