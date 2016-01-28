@@ -11,3 +11,6 @@
 [submodule "deps/pdcurses"]
 	path = deps/pdcurses
 	url = git://git.code.sf.net/p/pdcurses/code
+[submodule "deps/libtomcrypt"]
+	path = deps/libtomcrypt
+	url = https://github.com/libtom/libtomcrypt

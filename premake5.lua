@@ -100,8 +100,15 @@ workspace "iw4x"
 		buildoptions { "-Zm200" } -- allocate ~150mb memory for the precompiled header. This should be enough, increase if necessary
 
 		-- Dependency on zlib, json11 and asio
-		links { "zlib", "json11", "pdcurses" }
-		includedirs { "./deps/zlib", "./deps/json11", "./deps/pdcurses", "./deps/asio/asio/include"  }
+		links { "zlib", "json11", "pdcurses", "libtomcrypt" }
+		includedirs 
+		{ 
+			"./deps/zlib",
+			"./deps/json11", 
+			"./deps/pdcurses", 
+			"./deps/asio/asio/include",
+			"./deps/libtomcrypt/src/headers",
+		}
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
@@ -187,6 +194,27 @@ workspace "iw4x"
 				"./deps/pdcurses/pdcurses/*.c",
 				"./deps/pdcurses/win32/*.c"
 			}
+
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			-- always build as static lib, as pdcurses doesn't export anything
+			kind "StaticLib"
+
+		-- libtomcrypt
+		project "libtomcrypt"
+			language "C"
+			defines { "_LIB", "LTC_SOURCE" }
+			includedirs { "./deps/libtomcrypt/src/headers"  }
+
+			files
+			{
+				"./deps/libtomcrypt/src/**.c",
+				"./deps/libtomcrypt/src/**.h"
+			}
+			
+			-- remove ocb3 code
+			removefiles { "./deps/libtomcrypt/src/encauth/ocb3/**.c" }
 
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
