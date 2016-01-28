@@ -2,10 +2,27 @@
 
 namespace Components
 {
-	__int64* QuickPatch::GetStatsID()
+	std::vector<QuickPatch::Callback> QuickPatch::ShutdownCallbacks;
+
+	int64_t* QuickPatch::GetStatsID()
 	{
-		static __int64 id = 0x110000100001337;
+		static int64_t id = 0x110000100001337;
 		return &id;
+	}
+
+	void QuickPatch::OnShutdown(QuickPatch::Callback callback)
+	{
+		QuickPatch::ShutdownCallbacks.push_back(callback);
+	}
+
+	void QuickPatch::ShutdownStub(int channel, const char* message)
+	{
+		Game::Com_Printf(0, message);
+
+		for (auto callback : QuickPatch::ShutdownCallbacks)
+		{
+			if (callback) callback();
+		}
 	}
 
 	void QuickPatch::UnlockStats()
@@ -171,6 +188,8 @@ namespace Components
 		Utils::Hook::Set<char*>(0x60BED2, "unskippablecinematic IW_logo\n");
 		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset intro dvar
 
+		Utils::Hook(0x4D4007, QuickPatch::ShutdownStub, HOOK_CALL).Install()->Quick();
+
 		// Rename stat file - TODO: beautify
 		Utils::Hook::SetString(0x71C048, "iw4x.stat");
 
@@ -184,5 +203,10 @@ namespace Components
 		{
 			QuickPatch::UnlockStats();
 		});
+	}
+
+	QuickPatch::~QuickPatch()
+	{
+		QuickPatch::ShutdownCallbacks.clear();
 	}
 }

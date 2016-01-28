@@ -375,6 +375,7 @@ namespace Components
 				}
 			}
 
+			Node::ValidateDedi(address, info);
 			ServerList::Insert(address, info);
 		});
 	}

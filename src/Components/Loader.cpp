@@ -51,6 +51,7 @@ namespace Components
 
 	void Loader::Uninitialize()
 	{
+		std::reverse(Loader::Components.begin(), Loader::Components.end());
 		for (auto component : Loader::Components)
 		{
 			Logger::Print("Unregistering component: %s\n", component->GetName());

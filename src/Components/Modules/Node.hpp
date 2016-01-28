@@ -1,3 +1,16 @@
+#define HEARTBEAT_DEADLINE 1000 * 3 * 10   // Invalidate servers after 10 minutes without heartbeat
+#define HEARTBEAT_INTERVAL 1000 * 10 * 1   // Send heartbeats to each node every 3 minutes
+
+#define NODE_VALIDITY_EXPIRE 1000 * 60 * 2 // Revalidate nodes after 2 minutes
+#define DEDI_VALIDITY_EXPIRE 1000 * 60 * 2 // Revalidate dedis after 2 minutes
+
+#define NODE_QUERY_TIMEOUT 1000 * 30 * 1   // Invalidate nodes after 30 seconds without query response
+#define DEDI_QUERY_TIMEOUT 1000 * 10 * 1   // Invalidate dedis after 10 seconds without query response
+
+#define HEARTBEATS_FRAME_LIMIT 1           // Limit of heartbeats sent to nodes per frame
+#define NODE_FRAME_QUERY_LIMIT 1           // Limit of nodes to be queried per frame
+#define DEDI_FRAME_QUERY_LIMIT 1           // Limit of dedis to be queried per frame
+
 namespace Components
 {
 	class Node : public Component
@@ -6,6 +19,8 @@ namespace Components
 		Node();
 		~Node();
 		const char* GetName() { return "Node"; };
+
+		static void ValidateDedi(Network::Address address, Utils::InfoString info);
 
 	private:
 		enum EntryState
@@ -22,11 +37,13 @@ namespace Components
 			EntryState state;
 			int startTime;
 			int endTime;
+			int lastHeartbeat;
 		};
 
 		struct DediEntry
 		{
 			Network::Address address;
+			std::string challenge;
 			EntryState state;
 			int startTime;
 			int endTime;
@@ -61,13 +78,10 @@ namespace Components
 		static std::vector<DediEntry> Dedis;
 
 		static void LoadNodes();
-		static void LoadDedis();
-
 		static void StoreNodes();
-		static void StoreDedis();
 
 		static void AddNode(Network::Address address, bool valid = false);
-		static void AddDedi(Network::Address address);
+		static void AddDedi(Network::Address address, bool dirty = false);
 
 		static void SendNodeList(Network::Address target);
 		static void SendDediList(Network::Address target);

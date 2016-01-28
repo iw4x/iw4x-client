@@ -138,8 +138,12 @@ namespace Utils
 	void WriteFile(std::string file, std::string data)
 	{
 		std::ofstream stream(file, std::ios::binary);
-		stream.write(data.data(), data.size());
-		stream.close();
+
+		if (stream.is_open())
+		{
+			stream.write(data.data(), data.size());
+			stream.close();
+		}
 	}
 
 	std::string ReadFile(std::string file)

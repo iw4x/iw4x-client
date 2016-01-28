@@ -7,46 +7,50 @@ namespace Components
 
 	void Node::LoadNodes()
 	{
-		std::string nodes = Utils::ReadFile("nodes.txt");
-		auto list = Utils::Explode(nodes, '\n');
+		std::string nodes = Utils::ReadFile("players/nodes.dat");
 
-		for (auto entry : list)
+		// Invalid
+		if (!nodes.size() || nodes.size() % 6) return;
+
+		unsigned int size = (nodes.size() / sizeof(Node::AddressEntry));
+
+		Node::AddressEntry* addresses = reinterpret_cast<Node::AddressEntry*>(const_cast<char*>(nodes.data()));
+		for (unsigned int i = 0; i < size; ++i)
 		{
-			Network::Address addr(entry);
-			Node::AddNode(addr);
+			Node::AddNode(addresses[i].toNetAddress());
 		}
-	}
-
-	void Node::LoadDedis()
-	{
-		
 	}
 
 	void Node::StoreNodes()
 	{
-		std::string nodes;
+		std::vector<Node::AddressEntry> entries;
 
-		for (auto node : Node::Nodes)
+		for (auto entry : Node::Nodes)
 		{
-			nodes.append(node.address.GetString());
-			nodes.append("\n");
+			Node::AddressEntry thisAddress;
+			thisAddress.fromNetAddress(entry.address);
+
+			entries.push_back(thisAddress);
 		}
 
-		Utils::WriteFile("nodes.txt", nodes);
-	}
+		std::string nodeStream(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
 
-	void Node::StoreDedis()
-	{
-
+		CreateDirectoryW(L"players", NULL);
+		Utils::WriteFile("players/nodes.dat", nodeStream);
 	}
 
 	void Node::AddNode(Network::Address address, bool valid)
 	{
+#ifdef DEBUG
+		if (address.IsSelf()) return;
+#else
 		if (address.IsLocal() || address.IsSelf()) return;
+#endif
 
 		Node::NodeEntry entry;
 
 		entry.startTime = 0;
+		entry.lastHeartbeat = 0;
 		entry.endTime = (valid ? Game::Com_Milliseconds() : 0);
 		entry.state = (valid ? Node::STATE_VALID : Node::STATE_UNKNOWN);
 		entry.address = address;
@@ -76,7 +80,7 @@ namespace Components
 		}
 	}
 
-	void Node::AddDedi(Network::Address address)
+	void Node::AddDedi(Network::Address address, bool dirty)
 	{
 		Node::DediEntry entry;
 
@@ -87,10 +91,16 @@ namespace Components
 
 		// Search if we already know that node
 		bool duplicate = false;
-		for (auto ourEntry : Node::Nodes)
+		for (auto &ourEntry : Node::Dedis)
 		{
 			if (ourEntry.address == entry.address)
 			{
+				if (dirty)
+				{
+					ourEntry.endTime = Game::Com_Milliseconds();
+					ourEntry.state = Node::STATE_UNKNOWN;
+				}
+
 				duplicate = true;
 				break;
 			}
@@ -159,6 +169,24 @@ namespace Components
 		Network::SendRaw(target, packet);
 	}
 
+	void Node::ValidateDedi(Network::Address address, Utils::InfoString info)
+	{
+		for (auto &dedi : Node::Dedis)
+		{
+			if (dedi.address == address)
+			{
+				dedi.state = (info.Get("challenge") == dedi.challenge ? Node::STATE_VALID : Node::STATE_INVALID);
+				dedi.endTime = Game::Com_Milliseconds();
+
+				if (dedi.state == Node::STATE_VALID)
+				{
+					Logger::Print("Validated dedi %s\n", address.GetString());
+				}
+				break;
+			}
+		}
+	}
+
 	Node::Node()
 	{
 //#ifdef USE_NODE_STUFF
@@ -166,12 +194,21 @@ namespace Components
 
 		Dvar::OnInit([] ()
 		{
+			Node::Dedis.clear();
 			Node::Nodes.clear();
 			Node::LoadNodes();
-
-			Node::Dedis.clear();
-			Node::LoadDedis();
 		});
+
+		if (Dedicated::IsDedicated())
+		{
+			QuickPatch::OnShutdown([] ()
+			{
+				for (auto node : Node::Nodes)
+				{
+					Network::Send(node.address, "heartbeatDeadline\n");
+				}
+			});
+		}
 
 		Network::Handle("nodeRequestLists", [] (Network::Address address, std::string data)
 		{
@@ -181,7 +218,7 @@ namespace Components
 			//Node::AddNode(address, true);
 
 			Node::SendNodeList(address);
-			//Node::SendDediList(address);
+			Node::SendDediList(address);
 		});
 
 		Network::Handle("nodeNodeList", [] (Network::Address address, std::string data)
@@ -228,17 +265,35 @@ namespace Components
 			}
 		});
 
+		Network::Handle("heartbeat", [] (Network::Address address, std::string data)
+		{
+			Logger::Print("Received heartbeat from %s\n", address.GetString());
+			Node::AddDedi(address, true);
+		});
+
+		Network::Handle("heartbeatDeadline", [] (Network::Address address, std::string data)
+		{
+			for (auto &dedi : Node::Dedis)
+			{
+				if (dedi.address == address)
+				{
+					Logger::Print("Dedi invalidation message received from %s\n", address.GetString());
+
+					dedi.state = Node::STATE_INVALID;
+					dedi.endTime = Game::Com_Milliseconds();
+				}
+			}
+		});
+
 		Dedicated::OnFrame([] ()
 		{
+			int heartbeatCount = 0;
 			int count = 0;
 
 			// Send requests
 			for (auto &node : Node::Nodes)
 			{
-				// Frame limit
-				if (count >= 1) break; // Query only 1 node per frame (-> 3 packets sent per frame)
-
-				if (node.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */node.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.endTime) > (1000 * 30)))
+				if (count < NODE_FRAME_QUERY_LIMIT && (node.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */node.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.endTime) > (NODE_VALIDITY_EXPIRE))))
 				{
 					count++;
 
@@ -253,17 +308,59 @@ namespace Components
 
 					// Send our lists
 					Node::SendNodeList(node.address);
-					//Node::SendDediList(node.address);
+					Node::SendDediList(node.address);
 				}
-			}
 
-			// Mark invalid nodes
-			for (auto &node : Node::Nodes)
-			{
-				if (node.state == Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.startTime) > (1000 * 10))
+				if (node.state == Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.startTime) > (NODE_QUERY_TIMEOUT))
 				{
 					node.state = Node::STATE_INVALID;
 					node.endTime = Game::Com_Milliseconds();
+				}
+
+				if (node.state == Node::STATE_VALID)
+				{
+					if (heartbeatCount < HEARTBEATS_FRAME_LIMIT && (!node.lastHeartbeat || (Game::Com_Milliseconds() - node.lastHeartbeat) > (HEARTBEAT_INTERVAL)))
+					{
+						heartbeatCount++;
+
+						Logger::Print("Sending heartbeat to node %s...\n", node.address.GetString());
+						node.lastHeartbeat = Game::Com_Milliseconds();
+						Network::Send(node.address, "heartbeat\n");
+					}
+				}
+			}
+
+			count = 0;
+
+			for (auto &dedi : Node::Dedis)
+			{
+				if (count < DEDI_FRAME_QUERY_LIMIT && (dedi.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */dedi.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.endTime) > (DEDI_VALIDITY_EXPIRE))))
+				{
+					count++;
+
+					dedi.startTime = Game::Com_Milliseconds();
+					dedi.endTime = 0;
+					dedi.challenge = Utils::VA("%d", dedi.startTime);
+					dedi.state = Node::STATE_QUERYING;
+
+					Logger::Print("Verifying dedi %s...\n", dedi.address.GetString());
+
+					// Request new lists
+					Network::Send(dedi.address, Utils::VA("getinfo %s\n", dedi.challenge.data()));
+				}
+
+				// No query response
+				if (dedi.state == Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.startTime) > (DEDI_QUERY_TIMEOUT))
+				{
+					dedi.state = Node::STATE_INVALID;
+					dedi.endTime = Game::Com_Milliseconds();
+				}
+
+				// Lack of heartbeats
+				if (dedi.state == Node::STATE_VALID && (Game::Com_Milliseconds() - dedi.startTime) > (HEARTBEAT_DEADLINE))
+				{
+					Logger::Print("Invalidating dedi %s\n", dedi.address.GetString());
+					dedi.state = Node::STATE_INVALID;
 				}
 			}
 
@@ -280,6 +377,16 @@ namespace Components
 			}
 		});
 
+		Command::Add("listdedis", [] (Command::Params params)
+		{
+			Logger::Print("Dedi: %d\n", Node::Dedis.size());
+
+			for (auto dedi : Node::Dedis)
+			{
+				Logger::Print("%s\n", dedi.address.GetString());
+			}
+		});
+
 		Command::Add("addnode", [](Command::Params params)
 		{
 			if (params.Length() < 2) return;
@@ -293,8 +400,5 @@ namespace Components
 	{
 		Node::StoreNodes();
 		Node::Nodes.clear();
-
-		Node::StoreDedis();
-		Node::Dedis.clear();
 	}
 }
