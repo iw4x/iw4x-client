@@ -79,6 +79,8 @@ namespace Components
 			}
 		}
 
+		// TODO: Check the external IP as well!
+
 		return false;
 	}
 
