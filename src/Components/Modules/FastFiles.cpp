@@ -133,8 +133,11 @@ namespace Components
 		Utils::Hook(0x44DA90, FastFiles::GetZoneLocation, HOOK_JUMP).Install()->Quick();
 
 		// Allow dlc ui zone loading
-		Utils::Hook(0x506BC7, FastFiles::LoadInitialZones, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).Install()->Quick();
+		if (!ZoneBuilder::IsEnabled())
+		{
+			Utils::Hook(0x506BC7, FastFiles::LoadInitialZones, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).Install()->Quick();
+		}
 
 		// basic checks (hash jumps, both normal and playlist)
 		Utils::Hook::Nop(0x5B97A3, 2);
