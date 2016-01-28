@@ -224,6 +224,9 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4AEF08, 0x1FFFC);
 		Utils::Hook::Set<DWORD>(0x4AEFA3, 0x1FFFC);
 
+		// Parse port as short in Net_AddrToString
+		Utils::Hook::Set<char*>(0x4698E3, "%u.%u.%u.%u:%hu");
+
 		// Install interception handler
 		Utils::Hook(0x5AA709, Network::PacketInterceptionHandler, HOOK_CALL).Install()->Quick();
 

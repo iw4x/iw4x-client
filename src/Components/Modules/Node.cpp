@@ -42,7 +42,7 @@ namespace Components
 
 	void Node::AddNode(Network::Address address, bool valid)
 	{
-		//if (address.IsLocal() || address.IsSelf()) return;
+		if (address.IsLocal() || address.IsSelf()) return;
 
 		Node::NodeEntry entry;
 
@@ -161,7 +161,7 @@ namespace Components
 
 	Node::Node()
 	{
-#ifdef USE_NODE_STUFF
+//#ifdef USE_NODE_STUFF
 		Assert_Size(Node::AddressEntry, 6);
 
 		Dvar::OnInit([] ()
@@ -286,7 +286,7 @@ namespace Components
 
 			Node::AddNode(Network::Address(params[1]));
 		});
-#endif
+//#endif
 	}
 
 	Node::~Node()
