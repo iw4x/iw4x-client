@@ -171,9 +171,14 @@ namespace Components
 	{
 		if (Network::PacketHandlers.find(Network::SelectedPacket) != Network::PacketHandlers.end())
 		{
+			std::string data;
+
 			size_t offset = Network::SelectedPacket.size() + 4 + 1;
 
-			std::string data(msg->data + offset, msg->cursize - offset);
+			if (static_cast<size_t>(msg->cursize) > offset)
+			{
+				data.append(msg->data + offset, msg->cursize - offset);
+			}
 
 			// Remove trailing 0x00 byte
 			if (data.size() && !data[data.size() - 1]) data.pop_back();

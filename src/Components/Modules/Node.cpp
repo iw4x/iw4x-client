@@ -44,11 +44,11 @@ namespace Components
 
 	void Node::AddNode(Network::Address address, bool valid)
 	{
-#ifdef DEBUG
+//#ifdef DEBUG
 		if (address.IsSelf()) return;
-#else
-		if (address.IsLocal() || address.IsSelf()) return;
-#endif
+// #else
+// 		if (address.IsLocal() || address.IsSelf()) return;
+// #endif
 
 		Node::NodeEntry entry;
 
