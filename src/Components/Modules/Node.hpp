@@ -60,7 +60,7 @@ namespace Components
 				Network::Address address;
 
 				address.SetIP(this->ip);
-				address.SetPort(this->port);
+				address.SetPort(ntohs(this->port));
 				address.SetType(Game::netadrtype_t::NA_IP);
 
 				return address;
@@ -69,7 +69,7 @@ namespace Components
 			void fromNetAddress(Network::Address address)
 			{
 				this->ip = address.GetIP();
-				this->port = address.GetPort();
+				this->port = htons(address.GetPort());
 			}
 		};
 #pragma pack(pop)
