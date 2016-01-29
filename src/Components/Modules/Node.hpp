@@ -35,8 +35,7 @@ namespace Components
 		{
 			Network::Address address;
 			EntryState state;
-			int startTime;
-			int endTime;
+			int lastTime;
 			int lastHeartbeat;
 		};
 
@@ -45,8 +44,7 @@ namespace Components
 			Network::Address address;
 			std::string challenge;
 			EntryState state;
-			int startTime;
-			int endTime;
+			int lastTime;
 		};
 
 #pragma pack(push, 1)
