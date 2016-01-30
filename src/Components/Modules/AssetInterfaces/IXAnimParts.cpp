@@ -23,6 +23,118 @@ namespace Assets
 		}
 	}
 
+	void IXAnimParts::Save_XAnimDeltaPart(Game::XAnimDeltaPart* delta, unsigned short framecount, Components::ZoneBuilder::Zone* builder)
+	{
+		Assert_Size(Game::XAnimDeltaPart, 12);
+
+		Utils::Stream* buffer = builder->GetBuffer();
+		Game::XAnimDeltaPart* destDelta = buffer->Dest<Game::XAnimDeltaPart>();
+		buffer->Save(delta, sizeof(Game::XAnimDeltaPart));
+
+		if (delta->trans)
+		{
+			buffer->Align(Utils::Stream::ALIGN_4);
+			buffer->Save(delta->trans, 4);
+
+			if (delta->trans->size)
+			{
+				buffer->Save(&delta->trans->u.frames, 28);
+
+				if (framecount > 0xFF)
+				{
+					buffer->SaveArray(delta->trans->u.frames.indices._2, delta->trans->size + 1);
+				}
+				else
+				{
+					buffer->SaveArray(delta->trans->u.frames.indices._1, delta->trans->size + 1);
+				}
+
+				if (delta->trans->u.frames.frames._1)
+				{
+					if (delta->trans->smallTrans)
+					{
+						buffer->Save(delta->trans->u.frames.frames._1, 3, delta->trans->size + 1);
+					}
+					else
+					{
+						buffer->Align(Utils::Stream::ALIGN_4);
+						buffer->Save(delta->trans->u.frames.frames._1, 6, delta->trans->size + 1);
+					}
+				}
+			}
+			else
+			{
+				buffer->Save(delta->trans->u.frame0, 12);
+			}
+
+			destDelta->trans = reinterpret_cast<Game::XAnimPartTrans*>(-1);
+		}
+
+		if (delta->quat2)
+		{
+			buffer->Align(Utils::Stream::ALIGN_4);
+			buffer->Save(delta->quat2, 4);
+
+			if (delta->quat2->size)
+			{
+				buffer->Save(&delta->quat2->u.frames, 4);
+
+				if (framecount > 0xFF)
+				{
+					buffer->Save(delta->quat2->u.frames.indices, 2, delta->quat2->size + 1);
+				}
+				else
+				{
+					buffer->Save(delta->quat2->u.frames.indices, 1, delta->quat2->size + 1);
+				}
+
+				if (delta->quat2->u.frames.frames)
+				{
+					buffer->Align(Utils::Stream::ALIGN_4);
+					buffer->Save(delta->quat2->u.frames.frames, 4, delta->quat2->size + 1);
+				}
+			}
+			else
+			{
+				buffer->Save(delta->quat2->u.frame0, 4);
+			}
+
+			destDelta->quat2 = reinterpret_cast<Game::XAnimDeltaPartQuat2*>(-1);
+		}
+
+		if (delta->quat)
+		{
+			buffer->Align(Utils::Stream::ALIGN_4);
+			buffer->Save(delta->quat, 4);
+
+			if (delta->quat->size)
+			{
+				buffer->Save(&delta->quat->u.frames, 4);
+
+				if (framecount > 0xFF)
+				{
+					buffer->Save(delta->quat->u.frames.indices, 2, delta->quat->size + 1);
+				}
+				else
+				{
+					buffer->Save(delta->quat->u.frames.indices, 1, delta->quat->size + 1);
+				}
+
+				if (delta->quat->u.frames.frames)
+				{
+					buffer->Align(Utils::Stream::ALIGN_4);
+					buffer->Save(delta->quat->u.frames.frames, 4, delta->quat->size + 1);
+				}
+			}
+			else
+			{
+				buffer->Save(delta->quat->u.frame0, 4);
+			}
+
+			destDelta->quat = reinterpret_cast<Game::XAnimDeltaPartQuat*>(-1);
+		}
+	}
+
 	void IXAnimParts::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Assert_Size(Game::XAnimParts, 88);
@@ -75,6 +187,8 @@ namespace Assets
 		{
 			Assert_Size(Game::XAnimDeltaPart, 12);
 			buffer->Align(Utils::Stream::ALIGN_4);
+
+			IXAnimParts::Save_XAnimDeltaPart(asset->delta, asset->framecount, builder);
 
 			dest->delta = reinterpret_cast<Game::XAnimDeltaPart*>(-1);
 		}
