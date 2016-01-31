@@ -100,7 +100,7 @@ workspace "iw4x"
 		buildoptions { "-Zm200" } -- allocate ~150mb memory for the precompiled header. This should be enough, increase if necessary
 
 		-- Dependency on zlib, json11 and asio
-		links { "zlib", "json11", "pdcurses", "libtomcrypt" }
+		links { "zlib", "json11", "pdcurses", "libtomcrypt", "tomsfastmath" }
 		includedirs 
 		{ 
 			"./deps/zlib",
@@ -108,6 +108,7 @@ workspace "iw4x"
 			"./deps/pdcurses", 
 			"./deps/asio/asio/include",
 			"./deps/libtomcrypt/src/headers",
+			"./deps/tomsfastmath/src/headers",
 		}
 
 		-- Virtual paths
@@ -204,8 +205,11 @@ workspace "iw4x"
 		-- libtomcrypt
 		project "libtomcrypt"
 			language "C"
-			defines { "_LIB", "LTC_SOURCE", "LTC_NO_RSA_BLINDING" }
+			defines { "_LIB", "LTC_SOURCE", "LTC_NO_RSA_BLINDING", "TFM_DESC" }
+			
+			links { "tomsfastmath" }
 			includedirs { "./deps/libtomcrypt/src/headers"  }
+			includedirs { "./deps/tomsfastmath/src/headers"  }
 
 			files { "./deps/libtomcrypt/src/**.c" }
 			

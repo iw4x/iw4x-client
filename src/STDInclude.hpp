@@ -46,7 +46,7 @@
 
 #define ZLIB_CONST
 
-//#define TFM_DESC
+#define TFM_DESC
 #define LTC_NO_FAST
 #define LTC_NO_PROTOTYPES
 #define LTC_NO_RSA_BLINDING
@@ -57,6 +57,8 @@
 #include <curses.h>
 //#include <asio.hpp>
 #include <json11.hpp>
+
+#include <tfm.h>
 #include <tomcrypt.h>
 
 #pragma warning(pop)
