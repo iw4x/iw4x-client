@@ -207,14 +207,27 @@ workspace "iw4x"
 			defines { "_LIB", "LTC_SOURCE", "LTC_NO_RSA_BLINDING" }
 			includedirs { "./deps/libtomcrypt/src/headers"  }
 
-			files
-			{
-				"./deps/libtomcrypt/src/**.c",
-				"./deps/libtomcrypt/src/**.h"
-			}
+			files { "./deps/libtomcrypt/src/**.c" }
 			
 			-- remove ocb3 code
 			removefiles { "./deps/libtomcrypt/src/encauth/ocb3/**.c" }
+
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			-- always build as static lib, as pdcurses doesn't export anything
+			kind "StaticLib"
+			
+		-- tomsfastmath
+		project "tomsfastmath"
+			language "C"
+			defines { "_LIB" }
+			includedirs { "./deps/tomsfastmath/src/headers"  }
+
+			files { "./deps/tomsfastmath/src/**.c" }
+			
+			-- remove generator code
+			removefiles { "./deps/tomsfastmath/src/generators/**.c" }
 
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"

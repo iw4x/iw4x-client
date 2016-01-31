@@ -14,3 +14,6 @@
 [submodule "deps/libtomcrypt"]
 	path = deps/libtomcrypt
 	url = https://github.com/libtom/libtomcrypt
+[submodule "deps/tomsfastmath"]
+	path = deps/tomsfastmath
+	url = https://github.com/libtom/tomsfastmath.git
