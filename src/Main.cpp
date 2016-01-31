@@ -17,7 +17,7 @@ namespace Main
 
 	void PreInit()
 	{
-		ltc_mp = tfm_desc;
+		ltc_mp = ltm_desc;
 	}
 }
 

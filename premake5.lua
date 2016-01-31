@@ -100,7 +100,7 @@ workspace "iw4x"
 		buildoptions { "-Zm200" } -- allocate ~150mb memory for the precompiled header. This should be enough, increase if necessary
 
 		-- Dependency on zlib, json11 and asio
-		links { "zlib", "json11", "pdcurses", "libtomcrypt", "tomsfastmath" }
+		links { "zlib", "json11", "pdcurses", "libtomcrypt", "libtommath" }
 		includedirs 
 		{ 
 			"./deps/zlib",
@@ -108,7 +108,7 @@ workspace "iw4x"
 			"./deps/pdcurses", 
 			"./deps/asio/asio/include",
 			"./deps/libtomcrypt/src/headers",
-			"./deps/tomsfastmath/src/headers",
+			"./deps/libtommath",
 		}
 
 		-- Virtual paths
@@ -205,11 +205,11 @@ workspace "iw4x"
 		-- libtomcrypt
 		project "libtomcrypt"
 			language "C"
-			defines { "_LIB", "LTC_SOURCE", "LTC_NO_RSA_BLINDING", "TFM_DESC" }
+			defines { "_LIB", "LTC_SOURCE", "LTC_NO_RSA_BLINDING", "LTM_DESC" }
 			
-			links { "tomsfastmath" }
+			links { "libtommath" }
 			includedirs { "./deps/libtomcrypt/src/headers"  }
-			includedirs { "./deps/tomsfastmath/src/headers"  }
+			includedirs { "./deps/libtommath"  }
 
 			files { "./deps/libtomcrypt/src/**.c" }
 			
@@ -222,16 +222,13 @@ workspace "iw4x"
 			-- always build as static lib, as pdcurses doesn't export anything
 			kind "StaticLib"
 			
-		-- tomsfastmath
-		project "tomsfastmath"
+		-- libtommath
+		project "libtommath"
 			language "C"
 			defines { "_LIB" }
-			includedirs { "./deps/tomsfastmath/src/headers"  }
+			includedirs { "./deps/libtommath"  }
 
-			files { "./deps/tomsfastmath/src/**.c" }
-			
-			-- remove generator code
-			removefiles { "./deps/tomsfastmath/src/generators/**.c" }
+			files { "./deps/libtommath/*.c" }
 
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
