@@ -45,11 +45,19 @@
 #pragma warning(disable: 6387)
 
 #define ZLIB_CONST
+
+//#define TFM_DESC
+#define LTC_NO_FAST
+#define LTC_NO_PROTOTYPES
+#define LTC_NO_RSA_BLINDING
+
 #define ASIO_STANDALONE
+
 #include <zlib.h>
 #include <curses.h>
 //#include <asio.hpp>
 #include <json11.hpp>
+#include <tomcrypt.h>
 
 #pragma warning(pop)
 

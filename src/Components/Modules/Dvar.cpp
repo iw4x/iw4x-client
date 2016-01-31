@@ -193,6 +193,12 @@ namespace Components
 		static float volume = 1.0f;
 		Utils::Hook::Set<float*>(0x408078, &volume);
 
+		// Uncheat ui_showList
+		Utils::Hook::Xor<BYTE>(0x6310DC, Game::dvar_flag::DVAR_FLAG_CHEAT);
+
+		// Uncheat ui_debugMode
+		Utils::Hook::Xor<BYTE>(0x6312DE, Game::dvar_flag::DVAR_FLAG_CHEAT);
+
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).Install()->Quick();
 	}

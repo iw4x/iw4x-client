@@ -204,7 +204,7 @@ workspace "iw4x"
 		-- libtomcrypt
 		project "libtomcrypt"
 			language "C"
-			defines { "_LIB", "LTC_SOURCE" }
+			defines { "_LIB", "LTC_SOURCE", "LTC_NO_RSA_BLINDING" }
 			includedirs { "./deps/libtomcrypt/src/headers"  }
 
 			files
