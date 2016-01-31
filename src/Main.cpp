@@ -14,6 +14,11 @@ namespace Main
 	{
 		Components::Loader::Uninitialize();
 	}
+
+	void PreInit()
+	{
+		ltc_mp = tfm_desc;
+	}
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -41,6 +46,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			}
 
 		})->Install();
+
+		Main::PreInit();
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{

@@ -239,8 +239,6 @@ namespace Components
 //#ifdef USE_NODE_STUFF
 		Assert_Size(Node::AddressEntry, 6);
 
-		ltc_mp = tfm_desc;
-
 		Dvar::OnInit([] ()
 		{
 			Node::Dedis.clear();

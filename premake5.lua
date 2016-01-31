@@ -73,7 +73,7 @@ workspace "iw4x"
 	toolset "msc-140"
 
 	configuration "windows"
-		defines {"_WINDOWS"}
+		defines { "_WINDOWS" }
 
 	configuration "Release*"
 		defines { "NDEBUG" }
@@ -81,7 +81,7 @@ workspace "iw4x"
 		optimize "Full"
 
 	configuration "Debug*"
-		defines { "DEBUG" }
+		defines { "DEBUG", "_DEBUG" }
 		flags { "MultiProcessorCompile", "Symbols", "No64BitChecks" }
 		optimize "Debug"
 
