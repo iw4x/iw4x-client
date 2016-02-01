@@ -52,6 +52,7 @@ namespace Components
 
 		Node::NodeEntry entry;
 
+		entry.lastHeard = Game::Com_Milliseconds();
 		entry.lastHeartbeat = 0;
 		entry.lastTime = (valid ? Game::Com_Milliseconds() : 0);
 		entry.state = (valid ? Node::STATE_VALID : Node::STATE_UNKNOWN);
@@ -63,7 +64,14 @@ namespace Components
 		{
 			if (ourEntry.address == entry.address)
 			{
-				// Validate it
+				ourEntry.lastHeard = Game::Com_Milliseconds();
+
+// 				if (ourEntry.state == Node::STATE_INVALID)
+// 				{
+// 					Logger::Print("Node %s was invalidated, but we still received a reference from another node. Suspicous...\n", address.GetString());
+// 				}
+
+								// Validate it
 				if (valid)
 				{
 					ourEntry.state = Node::STATE_VALID;
@@ -86,6 +94,7 @@ namespace Components
 	{
 		Node::DediEntry entry;
 
+		entry.lastHeard = Game::Com_Milliseconds();
 		entry.lastTime = 0;
 		entry.state = Node::STATE_UNKNOWN;
 		entry.address = address;
@@ -96,6 +105,13 @@ namespace Components
 		{
 			if (ourEntry.address == entry.address)
 			{
+				ourEntry.lastHeard = Game::Com_Milliseconds();
+
+// 				if (ourEntry.state == Node::STATE_INVALID)
+// 				{
+// 					Logger::Print("Dedi %s was invalidated, but we still received a reference from another node. Suspicous...\n", address.GetString());
+// 				}
+
 				if (dirty)
 				{
 					ourEntry.lastTime = Game::Com_Milliseconds();
@@ -130,7 +146,7 @@ namespace Components
 				entries.push_back(thisAddress);
 			}
 
-			if (entries.size() >= 111)
+			if (entries.size() >= NODE_PACKET_LIMIT)
 			{
 				std::string packet = "nodeNodeList\n";
 				packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
@@ -161,6 +177,16 @@ namespace Components
 				thisAddress.fromNetAddress(entry.address);
 
 				entries.push_back(thisAddress);
+			}
+
+			if (entries.size() >= DEDI_PACKET_LIMIT)
+			{
+				std::string packet = "nodeDediList\n";
+				packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
+
+				Network::SendRaw(target, packet);
+
+				entries.clear();
 			}
 		}
 
@@ -194,13 +220,13 @@ namespace Components
 
 		for (auto node : Node::Nodes)
 		{
-			if (node.state != Node::STATE_INVALID)
+			if (node.state == Node::STATE_INVALID && (Game::Com_Milliseconds() - node.lastHeard) > NODE_INVALID_DELETE)
 			{
-				cleanNodes.push_back(node);
+				Logger::Print("Removing invalid node %s\n", node.address.GetString());
 			}
 			else
 			{
-				Logger::Print("Removing invalid node %s\n", node.address.GetString());
+				cleanNodes.push_back(node);
 			}
 		}
 
@@ -217,13 +243,13 @@ namespace Components
 
 		for (auto dedi : Node::Dedis)
 		{
-			if (dedi.state != Node::STATE_INVALID)
+			if (dedi.state == Node::STATE_INVALID && (Game::Com_Milliseconds() - dedi.lastHeard) > DEDI_INVALID_DELETE)
 			{
-				cleanDedis.push_back(dedi);
+				Logger::Print("Removing invalid dedi %s\n", dedi.address.GetString());
 			}
 			else
 			{
-				Logger::Print("Removing invalid dedi %s\n", dedi.address.GetString());
+				cleanDedis.push_back(dedi);
 			}
 		}
 
@@ -236,7 +262,6 @@ namespace Components
 
 	Node::Node()
 	{
-//#ifdef USE_NODE_STUFF
 		Assert_Size(Node::AddressEntry, 6);
 
 		Dvar::OnInit([] ()
@@ -349,7 +374,7 @@ namespace Components
 			// Send requests
 			for (auto &node : Node::Nodes)
 			{
-				if (count < NODE_FRAME_QUERY_LIMIT && (node.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */node.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.lastTime) > (NODE_VALIDITY_EXPIRE))))
+				if (count < NODE_FRAME_QUERY_LIMIT && (node.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */node.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.lastTime) >(NODE_VALIDITY_EXPIRE))))
 				{
 					count++;
 
@@ -374,7 +399,7 @@ namespace Components
 
 				if (node.state == Node::STATE_VALID)
 				{
-					if (heartbeatCount < HEARTBEATS_FRAME_LIMIT && (!node.lastHeartbeat || (Game::Com_Milliseconds() - node.lastHeartbeat) > (HEARTBEAT_INTERVAL)))
+					if (heartbeatCount < HEARTBEATS_FRAME_LIMIT && (!node.lastHeartbeat || (Game::Com_Milliseconds() - node.lastHeartbeat) >(HEARTBEAT_INTERVAL)))
 					{
 						heartbeatCount++;
 
@@ -389,7 +414,7 @@ namespace Components
 
 			for (auto &dedi : Node::Dedis)
 			{
-				if (count < DEDI_FRAME_QUERY_LIMIT && (dedi.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */dedi.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.lastTime) > (DEDI_VALIDITY_EXPIRE))))
+				if (count < DEDI_FRAME_QUERY_LIMIT && (dedi.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */dedi.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.lastTime) >(DEDI_VALIDITY_EXPIRE))))
 				{
 					count++;
 
@@ -444,7 +469,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("addnode", [](Command::Params params)
+		Command::Add("addnode", [] (Command::Params params)
 		{
 			if (params.Length() < 2) return;
 
@@ -461,7 +486,28 @@ namespace Components
 				}
 			}
 		});
-//#endif
+
+		Command::Add("syncnodes", [] (Command::Params params)
+		{
+			for (auto &node : Node::Nodes)
+			{
+				if (node.state != Node::STATE_INVALID)
+				{
+					node.state = Node::STATE_UNKNOWN;
+				}
+			}
+		});
+
+		Command::Add("syncdedis", [] (Command::Params params)
+		{
+			for (auto &dedi : Node::Dedis)
+			{
+				if (dedi.state != Node::STATE_INVALID)
+				{
+					dedi.state = Node::STATE_UNKNOWN;
+				}
+			}
+		});
 	}
 
 	Node::~Node()

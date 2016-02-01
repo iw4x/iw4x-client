@@ -41,22 +41,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			}
 
 		})->Install();
-
-// 		auto key = Utils::Cryptography::RSA::GenerateKey(2048);
-// 		std::string message = "ZOB1234543253253452345";
-// 		std::string signature = Utils::Cryptography::RSA::SignMessage(key, message);
-// 
-// 		// Invalidate the signature
-// 		//signature[0] ^= 0xFF;
-// 
-// 		if (Utils::Cryptography::RSA::VerifyMessage(key, message, signature))
-// 		{
-// 			MessageBoxA(0, "Valid", 0, 0);
-// 		}
-// 		else
-// 		{
-// 			MessageBoxA(0, "Invalid!", 0, 0);
-// 		}
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{
