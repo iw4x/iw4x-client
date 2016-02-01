@@ -70,6 +70,7 @@
 #include "Utils\Memory.hpp"
 #include "Utils\Hooking.hpp"
 #include "Utils\Compression.hpp"
+#include "Utils\Cryptography.hpp"
 
 #include "Steam\Steam.hpp"
 
