@@ -213,6 +213,7 @@ namespace Components
 		}
 		else if (ServerList::IsOnlineList())
 		{
+#ifdef USE_LEGACY_SERVER_LIST
 			ServerList::RefreshContainer.AwatingList = true;
 			ServerList::RefreshContainer.AwaitTime = Game::Com_Milliseconds();
 
@@ -225,6 +226,18 @@ namespace Components
 
 			Network::Send(ServerList::RefreshContainer.Host, Utils::VA("getservers IW4 %i full empty", PROTOCOL));
 			//Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
+#else
+			ServerList::RefreshContainer.Mutex.lock();
+
+			auto dedis = Node::GetDediList();
+
+			for (auto dedi : dedis)
+			{
+				ServerList::InsertRequest(dedi, false);
+			}
+
+			ServerList::RefreshContainer.Mutex.unlock();
+#endif
 		}
 		else if (ServerList::IsFavouriteList())
 		{

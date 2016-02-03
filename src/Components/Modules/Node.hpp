@@ -28,6 +28,8 @@ namespace Components
 
 		static void ValidateDedi(Network::Address address, Utils::InfoString info);
 
+		static std::vector<Network::Address> GetDediList();
+
 	private:
 		enum EntryState
 		{
@@ -94,5 +96,9 @@ namespace Components
 
 		static void DeleteInvalidNodes();
 		static void DeleteInvalidDedis();
+
+		static void FrameHandler();
+
+		static const char* GetStateName(EntryState state);
 	};
 }

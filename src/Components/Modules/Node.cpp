@@ -214,6 +214,21 @@ namespace Components
 		}
 	}
 
+	std::vector<Network::Address> Node::GetDediList()
+	{
+		std::vector<Network::Address> dedis;
+
+		for (auto dedi : Node::Dedis)
+		{
+			if (dedi.state == Node::STATE_VALID)
+			{
+				dedis.push_back(dedi.address);
+			}
+		}
+
+		return dedis;
+	}
+
 	void Node::DeleteInvalidNodes()
 	{
 		std::vector<Node::NodeEntry> cleanNodes;
@@ -235,6 +250,92 @@ namespace Components
 			Node::Nodes.clear();
 			Utils::Merge(&Node::Nodes, cleanNodes);
 		}
+	}
+
+	void Node::FrameHandler()
+	{
+		int heartbeatCount = 0;
+		int count = 0;
+
+		// Send requests
+		for (auto &node : Node::Nodes)
+		{
+			if (count < NODE_FRAME_QUERY_LIMIT && (node.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */node.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.lastTime) >(NODE_VALIDITY_EXPIRE))))
+			{
+				count++;
+
+				node.lastTime = Game::Com_Milliseconds();
+				node.state = Node::STATE_QUERYING;
+
+				Logger::Print("Syncing with node %s...\n", node.address.GetString());
+
+				// Request new lists
+				Network::Send(node.address, "nodeRequestLists");
+
+				// Send our lists (only if dedi)
+				if (Dedicated::IsDedicated())
+				{
+					Node::SendNodeList(node.address);
+					Node::SendDediList(node.address);
+				}
+			}
+
+			if (node.state == Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.lastTime) > (NODE_QUERY_TIMEOUT))
+			{
+				node.state = Node::STATE_INVALID;
+				node.lastTime = Game::Com_Milliseconds();
+			}
+
+			if (Dedicated::IsDedicated() && node.state == Node::STATE_VALID)
+			{
+				if (heartbeatCount < HEARTBEATS_FRAME_LIMIT && (!node.lastHeartbeat || (Game::Com_Milliseconds() - node.lastHeartbeat) >(HEARTBEAT_INTERVAL)))
+				{
+					heartbeatCount++;
+
+					Logger::Print("Sending heartbeat to node %s...\n", node.address.GetString());
+					node.lastHeartbeat = Game::Com_Milliseconds();
+					Network::Send(node.address, "heartbeat\n");
+				}
+			}
+		}
+
+		count = 0;
+
+		for (auto &dedi : Node::Dedis)
+		{
+			if (count < DEDI_FRAME_QUERY_LIMIT && (dedi.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */dedi.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.lastTime) >(DEDI_VALIDITY_EXPIRE))))
+			{
+				count++;
+
+				dedi.lastTime = Game::Com_Milliseconds();
+				dedi.challenge = Utils::VA("%d", dedi.lastTime);
+				dedi.state = Node::STATE_QUERYING;
+
+				Logger::Print("Verifying dedi %s...\n", dedi.address.GetString());
+
+				// Request new lists
+				Network::Send(dedi.address, Utils::VA("getinfo %s\n", dedi.challenge.data()));
+			}
+
+			// No query response
+			if (dedi.state == Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.lastTime) > (DEDI_QUERY_TIMEOUT))
+			{
+				dedi.state = Node::STATE_INVALID;
+				dedi.lastTime = Game::Com_Milliseconds();
+			}
+
+			// Lack of heartbeats
+			if (dedi.state == Node::STATE_VALID && (Game::Com_Milliseconds() - dedi.lastTime) > (HEARTBEAT_DEADLINE))
+			{
+				Logger::Print("Invalidating dedi %s\n", dedi.address.GetString());
+				dedi.state = Node::STATE_INVALID;
+			}
+		}
+
+		Node::DeleteInvalidNodes();
+		Node::DeleteInvalidDedis();
+
+		count = 0;
 	}
 
 	void Node::DeleteInvalidDedis()
@@ -260,9 +361,32 @@ namespace Components
 		}
 	}
 
+	const char* Node::GetStateName(EntryState state)
+	{
+		switch (state)
+		{
+		case Node::STATE_UNKNOWN:
+			return "Unknown";
+
+		case Node::STATE_QUERYING:
+			return "Querying";
+
+		case Node::STATE_INVALID:
+			return "Invalid";
+
+		case Node::STATE_VALID:
+			return "Valid";
+		}
+
+		return "";
+	}
+
 	Node::Node()
 	{
 		Assert_Size(Node::AddressEntry, 6);
+
+		// ZoneBuilder doesn't require node stuff
+		if (ZoneBuilder::IsEnabled()) return;
 
 		Dvar::OnInit([] ()
 		{
@@ -282,16 +406,17 @@ namespace Components
 			});
 		}
 
-		Network::Handle("nodeRequestLists", [] (Network::Address address, std::string data)
+		// Only dedis act as nodes!
+		if (Dedicated::IsDedicated())
 		{
-			Logger::Print("Sending our lists to %s\n", address.GetString());
+			Network::Handle("nodeRequestLists", [] (Network::Address address, std::string data)
+			{
+				Logger::Print("Sending our lists to %s\n", address.GetString());
 
-			// Consider this a node for now!
-			//Node::AddNode(address, true);
-
-			Node::SendNodeList(address);
-			Node::SendDediList(address);
-		});
+				Node::SendNodeList(address);
+				Node::SendDediList(address);
+			});
+		}
 
 		Network::Handle("nodeNodeList", [] (Network::Address address, std::string data)
 		{
@@ -366,96 +491,13 @@ namespace Components
 			}
 		});
 
-		Dedicated::OnFrame([] ()
-		{
-			int heartbeatCount = 0;
-			int count = 0;
-
-			// Send requests
-			for (auto &node : Node::Nodes)
-			{
-				if (count < NODE_FRAME_QUERY_LIMIT && (node.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */node.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.lastTime) >(NODE_VALIDITY_EXPIRE))))
-				{
-					count++;
-
-					node.lastTime = Game::Com_Milliseconds();
-					node.state = Node::STATE_QUERYING;
-
-					Logger::Print("Syncing with node %s...\n", node.address.GetString());
-
-					// Request new lists
-					Network::Send(node.address, "nodeRequestLists");
-
-					// Send our lists
-					Node::SendNodeList(node.address);
-					Node::SendDediList(node.address);
-				}
-
-				if (node.state == Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.lastTime) > (NODE_QUERY_TIMEOUT))
-				{
-					node.state = Node::STATE_INVALID;
-					node.lastTime = Game::Com_Milliseconds();
-				}
-
-				if (node.state == Node::STATE_VALID)
-				{
-					if (heartbeatCount < HEARTBEATS_FRAME_LIMIT && (!node.lastHeartbeat || (Game::Com_Milliseconds() - node.lastHeartbeat) >(HEARTBEAT_INTERVAL)))
-					{
-						heartbeatCount++;
-
-						Logger::Print("Sending heartbeat to node %s...\n", node.address.GetString());
-						node.lastHeartbeat = Game::Com_Milliseconds();
-						Network::Send(node.address, "heartbeat\n");
-					}
-				}
-			}
-
-			count = 0;
-
-			for (auto &dedi : Node::Dedis)
-			{
-				if (count < DEDI_FRAME_QUERY_LIMIT && (dedi.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */dedi.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.lastTime) >(DEDI_VALIDITY_EXPIRE))))
-				{
-					count++;
-
-					dedi.lastTime = Game::Com_Milliseconds();
-					dedi.challenge = Utils::VA("%d", dedi.lastTime);
-					dedi.state = Node::STATE_QUERYING;
-
-					Logger::Print("Verifying dedi %s...\n", dedi.address.GetString());
-
-					// Request new lists
-					Network::Send(dedi.address, Utils::VA("getinfo %s\n", dedi.challenge.data()));
-				}
-
-				// No query response
-				if (dedi.state == Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.lastTime) > (DEDI_QUERY_TIMEOUT))
-				{
-					dedi.state = Node::STATE_INVALID;
-					dedi.lastTime = Game::Com_Milliseconds();
-				}
-
-				// Lack of heartbeats
-				if (dedi.state == Node::STATE_VALID && (Game::Com_Milliseconds() - dedi.lastTime) > (HEARTBEAT_DEADLINE))
-				{
-					Logger::Print("Invalidating dedi %s\n", dedi.address.GetString());
-					dedi.state = Node::STATE_INVALID;
-				}
-			}
-
-			Node::DeleteInvalidNodes();
-			Node::DeleteInvalidDedis();
-
-			count = 0;
-		});
-
 		Command::Add("listnodes", [] (Command::Params params)
 		{
 			Logger::Print("Nodes: %d\n", Node::Nodes.size());
 
 			for (auto node : Node::Nodes)
 			{
-				Logger::Print("%s\n", node.address.GetString());
+				Logger::Print("%s\t(%s)\n", node.address.GetString(), Node::GetStateName(node.state));
 			}
 		});
 
@@ -465,7 +507,7 @@ namespace Components
 
 			for (auto dedi : Node::Dedis)
 			{
-				Logger::Print("%s\n", dedi.address.GetString());
+				Logger::Print("%s\t(%s)\n", dedi.address.GetString(), Node::GetStateName(dedi.state));
 			}
 		});
 
@@ -508,6 +550,10 @@ namespace Components
 				}
 			}
 		});
+
+		// Install frame handlers
+		Dedicated::OnFrame(Node::FrameHandler);
+		Renderer::OnFrame(Node::FrameHandler);
 	}
 
 	Node::~Node()
