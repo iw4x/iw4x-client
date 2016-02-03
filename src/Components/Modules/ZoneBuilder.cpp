@@ -15,6 +15,14 @@ namespace Components
 
 	ZoneBuilder::Zone::~Zone()
 	{
+		// Unload our fastfiles
+		Game::XZoneInfo info;
+		info.name = nullptr;
+		info.allocFlags = 0;
+		info.freeFlags = 0x01000000;
+
+		Game::DB_LoadXAssets(&info, 1, true);
+
 		AssetHandler::ClearTemporaryAssets();
 		Localization::ClearTemp();
 
