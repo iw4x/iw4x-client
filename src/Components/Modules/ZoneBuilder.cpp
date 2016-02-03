@@ -382,7 +382,7 @@ namespace Components
 		}
 
 		ZoneBuilder::Zone::ScriptStrings.push_back(str);
-		ZoneBuilder::Zone::ScriptStringMap[gameIndex] = ScriptStrings.size();
+		ZoneBuilder::Zone::ScriptStringMap[gameIndex] = ZoneBuilder::Zone::ScriptStrings.size();
 		return ZoneBuilder::Zone::ScriptStrings.size();
 	}
 
@@ -390,10 +390,14 @@ namespace Components
 	int ZoneBuilder::Zone::FindScriptString(std::string str)
 	{
 		int loc = 0;
-		for (auto it : ScriptStrings)
+		for (auto it : ZoneBuilder::Zone::ScriptStrings)
 		{
 			++loc;
-			if (!it.compare(str)) return loc;
+
+			if (!it.compare(str))
+			{
+				return loc;
+			}
 		}
 		return -1;
 	}
