@@ -60,15 +60,14 @@ namespace Components
 	void ZoneBuilder::Zone::LoadFastFiles()
 	{
 		Logger::Print("Loading required FastFiles...\n");
+
 		for (int i = 0; i < DataMap.GetRows(); ++i)
 		{
 			if (DataMap.GetElementAt(i, 0) == "require")
 			{
 				std::string fastfile = DataMap.GetElementAt(i, 1);
 
-				//Logger::Print("Loading '%s'...\n", fastfile.c_str());
-
-				//if (!DB_IsZoneLoaded(fastfile.c_str()))
+				if (!Game::DB_IsZoneLoaded(fastfile.c_str()))
 				{
 					Game::XZoneInfo info;
 					info.name = fastfile.data();
@@ -76,13 +75,11 @@ namespace Components
 					info.freeFlags = 0;
 
 					Game::DB_LoadXAssets(&info, 1, true);
-
-					//LoadFastFile(fastfile.c_str(), true);
 				}
-// 				else
-// 				{
-// 					Logger::Print("Zone '%s' already loaded\n", fastfile.c_str());
-// 				}
+				else
+				{
+					Logger::Print("Zone '%s' already loaded\n", fastfile.c_str());
+				}
 			}
 		}
 	}

@@ -264,6 +264,25 @@ namespace Game
 		return ASSET_TYPE_INVALID;
 	}
 
+	bool DB_IsZoneLoaded(const char* zone)
+	{
+		int zoneCount = Utils::Hook::Get<int>(0x1261BCC);
+		char* zoneIndices = reinterpret_cast<char*>(0x16B8A34);
+		char* zoneData = reinterpret_cast<char*>(0x14C0F80);
+
+		for (int i = 0; i < zoneCount; i++)
+		{
+			std::string name = zoneData + 4 + 0xA4 * (zoneIndices[i] & 0xFF);
+
+			if (name == zone)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	void MessageBox(std::string message, std::string title)
 	{
 		SetConsole("com_errorMessage", message.data());
