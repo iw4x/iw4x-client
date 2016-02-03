@@ -58,7 +58,7 @@ namespace Components
 			{
 				std::string fastfile = DataMap.GetElementAt(i, 1);
 
-				Logger::Print("Loading '%s'...\n", fastfile.c_str());
+				//Logger::Print("Loading '%s'...\n", fastfile.c_str());
 
 				//if (!DB_IsZoneLoaded(fastfile.c_str()))
 				{
@@ -485,6 +485,13 @@ namespace Components
 
 			// Don't create default assets
 			Utils::Hook::Set<BYTE>(0x407BAA, 0xEB);
+
+			// Increase asset pools
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
+
+			// hunk size (was 300 MiB)
+			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
+			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
 
 			Command::Add("buildzone", [] (Command::Params params)
 			{
