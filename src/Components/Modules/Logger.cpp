@@ -32,7 +32,12 @@ namespace Components
 		}
 		else
 		{
-			printf("%s", buffer);
+			// Only print to stdout, when doing unit tests
+			if (Loader::PerformingUnitTests())
+			{
+				printf("%s", buffer);
+			}
+
 			OutputDebugStringA(buffer);
 		}
 	}
