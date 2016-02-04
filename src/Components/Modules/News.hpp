@@ -6,6 +6,7 @@ namespace Components
 		News();
 		~News();
 		const char* GetName() { return "News"; };
+		bool UnitTest();
 
 	private:
 		static std::thread* Thread;

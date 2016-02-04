@@ -32,6 +32,7 @@ namespace Components
 		}
 		else
 		{
+			printf("%s", buffer);
 			OutputDebugStringA(buffer);
 		}
 	}

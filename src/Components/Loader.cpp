@@ -61,6 +61,36 @@ namespace Components
 		Loader::Components.clear();
 	}
 
+	bool Loader::PerformUnitTests()
+	{
+		bool result = true;
+
+		Logger::Print("Performing unit tests for components:\n");
+
+		for (auto component : Loader::Components)
+		{
+			Logger::Print("Testing '%s'...\n", component->GetName());
+			auto startTime = std::chrono::high_resolution_clock::now();
+			bool testRes = component->UnitTest();
+			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
+
+
+			Logger::Print("Test done (%llims): %s\n\n", duration, (testRes ? "Success" : "Error"));//
+			result &= testRes;
+		}
+
+		return result;
+	}
+
+	bool Loader::PerformingUnitTests()
+	{
+#if DEBUG
+		return Flags::HasFlag("tests");
+#else
+		return false;
+#endif
+	}
+
 	void Loader::Register(Component* component)
 	{
 		if (component)

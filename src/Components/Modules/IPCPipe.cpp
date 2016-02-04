@@ -1,5 +1,7 @@
 #include "STDInclude.hpp"
 
+using namespace std::literals;
+
 namespace Components
 {
 	Pipe* IPCPipe::ServerPipe = 0;
@@ -62,8 +64,13 @@ namespace Components
 
 		if (INVALID_HANDLE_VALUE != this->hPipe)
 		{
-			this->mThreadAttached = true;
-			this->mThread = new std::thread(Pipe::ReceiveThread, this);
+			// Only create the thread, when not performing unit tests!
+			if (!Loader::PerformingUnitTests())
+			{
+				this->mThreadAttached = true;
+				this->mThread = new std::thread(Pipe::ReceiveThread, this);
+			}
+
 			Logger::Print("Pipe successfully created\n");
 			return true;
 		}

@@ -6,6 +6,7 @@ namespace Components
 		Component() {};
 		virtual ~Component() {};
 		virtual const char* GetName() { return "Unknown"; };
+		virtual bool UnitTest() { return true; }; // Unit testing entry
 	};
 
 	class Loader
@@ -13,6 +14,8 @@ namespace Components
 	public:
 		static void Initialize();
 		static void Uninitialize();
+		static bool PerformUnitTests();
+		static bool PerformingUnitTests();
 		static void Register(Component* component);
 
 	private:

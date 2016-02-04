@@ -8,6 +8,17 @@ namespace Main
 	{
 		Main::EntryPointHook.Uninstall();
 		Components::Loader::Initialize();
+
+#ifdef DEBUG
+		if (Components::Loader::PerformingUnitTests())
+		{
+			DWORD result = (Components::Loader::PerformUnitTests() ? 0 : -1);
+			Components::Loader::Uninitialize();
+			ExitProcess(result);
+		}
+#else
+		Logger::Print("Unit tests are disabled outside the debug environment!\n");
+#endif
 	}
 
 	void Uninitialize()

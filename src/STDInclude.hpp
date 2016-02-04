@@ -46,6 +46,7 @@
 
 #define ZLIB_CONST
 
+#define USE_LTM
 #define LTM_DESC
 #define LTC_NO_FAST
 #define LTC_NO_PROTOTYPES

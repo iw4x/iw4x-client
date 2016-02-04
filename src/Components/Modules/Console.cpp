@@ -368,13 +368,26 @@ namespace Components
 
 	Console::Console()
 	{
+		// Console '%s: %s> ' string
+		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: r" REVISION_STR "> ");
+
+		// Internal console
+		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4F65A5, Console::ToggleConsole, HOOK_JUMP).Install()->Quick();
+
+		// Check for bad food ;)
+		Utils::Hook(0x4CB9F4, Console::GetAutoCompleteFileList, HOOK_CALL).Install()->Quick();
+
+		// Code below is not necessary, when performing unit tests!
+		if (Loader::PerformingUnitTests()) return;
+
 		// External console
 		if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
 		{
 			FreeConsole();
 			Utils::Hook::Nop(0x60BB58, 11);
 		}
-		else if(Dedicated::IsDedicated()/* || ZoneBuilder::IsEnabled()*/)
+		else if (Dedicated::IsDedicated()/* || ZoneBuilder::IsEnabled()*/)
 		{
 			Utils::Hook::Nop(0x60BB58, 11);
 
@@ -388,15 +401,5 @@ namespace Components
 		{
 			FreeConsole();
 		}
-
-		// Console '%s: %s> ' string
-		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: r" REVISION_STR "> ");
-
-		// Internal console
-		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4F65A5, Console::ToggleConsole, HOOK_JUMP).Install()->Quick();
-
-		// Check for bad food ;)
-		Utils::Hook(0x4CB9F4, Console::GetAutoCompleteFileList, HOOK_CALL).Install()->Quick();
 	}
 }
