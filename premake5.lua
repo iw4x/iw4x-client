@@ -213,17 +213,17 @@ workspace "iw4x"
 
 			files { "./deps/libtomcrypt/src/**.c" }
 			
+			-- seems like tab stuff can be omitted
+			removefiles { "./deps/libtomcrypt/src/**/*tab.c" }
+			
 			-- remove incorrect files
 			-- for some reason, they lack the necessary header files
 			-- i might have to open a pull request which includes them
 			removefiles 
 			{ 
-				"./deps/libtomcrypt/src/prngs/sober128tab.c",
 				"./deps/libtomcrypt/src/pk/dh/dh_sys.c",
-				"./deps/libtomcrypt/src/ciphers/aes/aes_tab.c",
 				"./deps/libtomcrypt/src/hashes/sha2/sha224.c",
 				"./deps/libtomcrypt/src/hashes/sha2/sha384.c",
-				"./deps/libtomcrypt/src/hashes/whirl/whirltab.c",
 				"./deps/libtomcrypt/src/encauth/ocb3/**.c",
 			}
 
