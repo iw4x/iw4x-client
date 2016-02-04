@@ -14,7 +14,7 @@ namespace Main
 		{
 			DWORD result = (Components::Loader::PerformUnitTests() ? 0 : -1);
 			Components::Loader::Uninitialize();
-			ExitProcess(result);
+			exit(result);
 		}
 #else
 		if (Components::Flags::HasFlag("tests"))
