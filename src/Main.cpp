@@ -17,7 +17,10 @@ namespace Main
 			ExitProcess(result);
 		}
 #else
-		Logger::Print("Unit tests are disabled outside the debug environment!\n");
+		if (Components::Flags::HasFlag("tests"))
+		{
+			Components::Logger::Print("Unit tests are disabled outside the debug environment!\n");
+		}
 #endif
 	}
 
