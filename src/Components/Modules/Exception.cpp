@@ -56,14 +56,15 @@ namespace Components
 			Game::Font* font = Game::R_RegisterFont("fonts/normalFont");
 			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+			// Change the color when attaching a debugger
 			if (IsDebuggerPresent())
 			{
-				color[0] = 1.00f;
-				color[1] = 0.53f;
-				color[2] = 0.23f;
+				color[0] = 0.6588f;
+				color[1] = 1.0000f;
+				color[2] = 0.0000f;
 			}
 
-			Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, 0);
+			Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
 		});
 #else
 		Utils::Hook::Set(0x6D70AC, Exception::SetUnhandledExceptionFilterStub);

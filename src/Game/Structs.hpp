@@ -365,6 +365,18 @@ namespace Game
 		const char *s2;
 	};
 
+	// Taken from menudefinition.h
+	enum itemTextStyle
+	{
+		ITEM_TEXTSTYLE_NORMAL            = 0,   // normal text
+		ITEM_TEXTSTYLE_SHADOWED          = 3,   // drop shadow ( need a color for this )
+		ITEM_TEXTSTYLE_SHADOWEDMORE      = 6,   // drop shadow ( need a color for this )
+		ITEM_TEXTSTYLE_BORDERED          = 7,   // border (stroke)
+		ITEM_TEXTSTYLE_BORDEREDMORE      = 8,   // more border :P
+		ITEM_TEXTSTYLE_MONOSPACE         = 128,
+		ITEM_TEXTSTYLE_MONOSPACESHADOWED = 132,		
+	};
+
 #define ITEM_TYPE_TEXT				0		// simple text
 #define ITEM_TYPE_BUTTON			1		// button, basically text with a border
 #define ITEM_TYPE_RADIOBUTTON		2		// toggle button, may be grouped
