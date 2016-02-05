@@ -353,17 +353,19 @@ namespace Components
 
 		wattron(Console::OutputWindow, COLOR_PAIR(9));
 
-		int currentTime = static_cast<int>(GetTickCount64()); // Make our compiler happy
+// 		int currentTime = static_cast<int>(GetTickCount64()); // Make our compiler happy
+// 
+// 		if (!Console::HasConsole)
+// 		{
+// 			Console::RefreshOutput();
+// 		}
+// 		else if ((currentTime - Console::LastRefresh) > 100)
+// 		{
+// 			Console::RefreshOutput();
+// 			Console::LastRefresh = currentTime;
+// 		}
 
-		if (!Console::HasConsole)
-		{
-			Console::RefreshOutput();
-		}
-		else if ((currentTime - Console::LastRefresh) > 100)
-		{
-			Console::RefreshOutput();
-			Console::LastRefresh = currentTime;
-		}
+		Console::RefreshOutput();
 	}
 
 	Console::Console()

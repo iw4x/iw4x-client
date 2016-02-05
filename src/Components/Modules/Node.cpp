@@ -202,12 +202,15 @@ namespace Components
 		{
 			if (dedi.address == address)
 			{
-				dedi.state = (info.Get("challenge") == dedi.challenge ? Node::STATE_VALID : Node::STATE_INVALID);
-				dedi.lastTime = Game::Com_Milliseconds();
-
-				if (dedi.state == Node::STATE_VALID)
+				if (dedi.state == Node::STATE_QUERYING)
 				{
-					Logger::Print("Validated dedi %s\n", address.GetString());
+					dedi.state = (info.Get("challenge") == dedi.challenge ? Node::STATE_VALID : Node::STATE_INVALID);
+					dedi.lastTime = Game::Com_Milliseconds();
+
+					if (dedi.state == Node::STATE_VALID)
+					{
+						Logger::Print("Validated dedi %s\n", address.GetString());
+					}
 				}
 				break;
 			}
@@ -415,6 +418,10 @@ namespace Components
 
 				Node::SendNodeList(address);
 				Node::SendDediList(address);
+
+				// Send our heartbeat as well :P
+				// Otherwise, if there's only 1 node in the network (us), we might not get listed as dedi
+				Network::Send(address, "heartbeat\n");
 			});
 		}
 

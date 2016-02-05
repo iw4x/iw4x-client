@@ -231,6 +231,8 @@ namespace Components
 				// Post initialization point
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).Install()->Quick();
 
+#ifdef USE_LEGACY_SERVER_LIST
+
 				// Heartbeats
 				Dedicated::OnFrame([] ()
 				{
@@ -242,6 +244,7 @@ namespace Components
 						Dedicated::Heartbeat();
 					}
 				});
+#endif
 			}
 		}
 	}
