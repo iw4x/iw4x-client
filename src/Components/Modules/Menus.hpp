@@ -19,8 +19,8 @@ namespace Components
 		static std::map<std::string, Game::MenuList*> MenuListList;
 		static std::vector<std::string> CustomMenus;
 
-		static Game::XAssetHeader MenuLoad(Game::XAssetType type, const char* filename);
-		static Game::XAssetHeader MenuFileLoad(Game::XAssetType type, const char* filename);
+		static Game::XAssetHeader MenuLoad(Game::XAssetType type, std::string filename);
+		static Game::XAssetHeader MenuFileLoad(Game::XAssetType type, std::string filename);
 
 		static Game::MenuList* LoadMenuList(Game::MenuList* menuList);
 		static Game::MenuList* LoadScriptMenu(const char* menu);

@@ -3,7 +3,7 @@ namespace Utils
 	class CSV
 	{
 	public:
-		CSV(std::string file, bool isFile = true);
+		CSV(std::string file, bool isFile = true, bool allowComments = true);
 		~CSV();
 
 		int GetRows();
@@ -14,8 +14,8 @@ namespace Utils
 
 	private:
 
-		void Parse(std::string file, bool isFile = true);
-		void ParseRow(std::string row);
+		void Parse(std::string file, bool isFile = true, bool allowComments = true);
+		void ParseRow(std::string row, bool allowComments = true);
 		std::vector<std::vector<std::string>> DataMap;
 	};
 }

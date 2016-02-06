@@ -13,8 +13,8 @@ namespace Components
 			virtual void Load(Game::XAssetHeader* header, std::string name, ZoneBuilder::Zone* builder) { /*ErrorTypeNotSupported(this);*/ };
 		};
 
-		typedef Game::XAssetHeader(*Callback)(Game::XAssetType, const char*);
-		typedef bool(*RestrictCallback)(Game::XAssetType type, Game::XAssetHeader asset, const char* name);
+		typedef Game::XAssetHeader(*Callback)(Game::XAssetType type, std::string name);
+		typedef bool(*RestrictCallback)(Game::XAssetType type, Game::XAssetHeader asset, std::string name);
 
 		AssetHandler();
 		~AssetHandler();

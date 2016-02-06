@@ -116,7 +116,7 @@ namespace Components
 
 	Localization::Localization()
 	{
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE, [] (Game::XAssetType, const char* filename)
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE, [] (Game::XAssetType, std::string filename)
 		{
 			Game::XAssetHeader header = { 0 };
 

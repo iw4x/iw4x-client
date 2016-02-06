@@ -2,14 +2,14 @@
 
 namespace Components
 {
-	Game::XAssetHeader Weapon::WeaponFileLoad(Game::XAssetType type, const char* filename)
+	Game::XAssetHeader Weapon::WeaponFileLoad(Game::XAssetType type, std::string filename)
 	{
 		Game::XAssetHeader header = { 0 };
 
 		// Try loading raw weapon
-		if (FileSystem::File(Utils::VA("weapons/mp/%s", filename)).Exists())
+		if (FileSystem::File(Utils::VA("weapons/mp/%s", filename.data())).Exists())
 		{
-			header.data = Game::BG_LoadWeaponDef_LoadObj(filename);
+			header.data = Game::BG_LoadWeaponDef_LoadObj(filename.data());
 		}
 
 		return header;

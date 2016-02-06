@@ -9,13 +9,13 @@ namespace Components
 		MusicalTalent::SoundAliasList[Utils::StrToLower(sound)] = file;
 	}
 
-	Game::XAssetHeader MusicalTalent::ManipulateAliases(Game::XAssetType type, const char* filename)
+	Game::XAssetHeader MusicalTalent::ModifyAliases(Game::XAssetType type, std::string filename)
 	{
 		Game::XAssetHeader header = { 0 };
 
 		if (MusicalTalent::SoundAliasList.find(Utils::StrToLower(filename)) != MusicalTalent::SoundAliasList.end())
 		{
-			Game::snd_alias_list_t* aliases = Game::DB_FindXAssetHeader(type, filename).aliasList;
+			Game::snd_alias_list_t* aliases = Game::DB_FindXAssetHeader(type, filename.data()).aliasList;
 
 			if (aliases)
 			{
@@ -33,7 +33,7 @@ namespace Components
 
 	MusicalTalent::MusicalTalent()
 	{
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_SOUND, MusicalTalent::ManipulateAliases);
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_SOUND, MusicalTalent::ModifyAliases);
 
 		MusicalTalent::Replace("music_mainmenu_mp", "hz_boneyard_intro_LR_1.mp3");
 	}

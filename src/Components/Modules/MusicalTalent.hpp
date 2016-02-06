@@ -11,6 +11,6 @@ namespace Components
 
 	private:
 		static std::map<std::string, const char*> SoundAliasList;
-		static Game::XAssetHeader ManipulateAliases(Game::XAssetType type, const char* filename);
+		static Game::XAssetHeader ModifyAliases(Game::XAssetType type, std::string filename);
 	};
 }

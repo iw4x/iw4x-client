@@ -4,7 +4,7 @@ namespace Utils
 {
 	const char *VA(const char *fmt, ...);
 	std::string StrToLower(std::string input);
-	bool EndsWith(const char* haystack, const char* needle);
+	bool EndsWith(std::string haystack, std::string needle);
 	std::vector<std::string> Explode(const std::string& str, char delim);
 	void Replace(std::string &string, std::string find, std::string replace);
 	bool StartsWith(std::string haystack, std::string needle);

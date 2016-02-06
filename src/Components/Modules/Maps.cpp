@@ -50,7 +50,7 @@ namespace Components
 		return FastFiles::LoadLocalizeZones(data.data(), data.size(), sync);
 	}
 
-	bool Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const char* name)
+	bool Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name)
 	{
 		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end())
 		{
@@ -63,7 +63,7 @@ namespace Components
 		if (type == Game::XAssetType::ASSET_TYPE_MAP_ENTS)
 		{
 			static std::string mapEntities;
-			FileSystem::File ents(Utils::VA("%s.ents", name));
+			FileSystem::File ents(name + ".ents");
 			if (ents.Exists())
 			{
 				mapEntities = ents.GetBuffer();

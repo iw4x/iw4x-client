@@ -25,9 +25,9 @@ namespace Utils
 		return input;
 	}
 
-	bool EndsWith(const char* haystack, const char* needle)
+	bool EndsWith(std::string haystack, std::string needle)
 	{
-		return (strstr(haystack, needle) == (haystack + strlen(haystack) - strlen(needle)));
+		return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
 	}
 
 	std::vector<std::string> Explode(const std::string& str, char delim)

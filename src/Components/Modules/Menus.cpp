@@ -506,16 +506,16 @@ namespace Components
 		Menus::MenuList.clear();
 	}
 
-	Game::XAssetHeader Menus::MenuLoad(Game::XAssetType type, const char* filename)
+	Game::XAssetHeader Menus::MenuLoad(Game::XAssetType type, std::string filename)
 	{
-		return { Game::Menus_FindByName(Game::uiContext, filename) };
+		return { Game::Menus_FindByName(Game::uiContext, filename.data()) };
 	}
 
-	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, const char* filename)
+	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, std::string filename)
 	{
  		Game::XAssetHeader header = { 0 };
 
-		Game::MenuList* menuList = Game::DB_FindXAssetHeader(type, filename).menuList;
+		Game::MenuList* menuList = Game::DB_FindXAssetHeader(type, filename.data()).menuList;
 		header.menuList = menuList;
 
 		// Free the last menulist and ui context, as we have to rebuild it with the new menus
@@ -538,7 +538,7 @@ namespace Components
 			{
 				if (FileSystem::File(filename).Exists())
 				{
-					header.menuList = Menus::LoadScriptMenu(filename);
+					header.menuList = Menus::LoadScriptMenu(filename.data());
 
 					// Reset, if we didn't find scriptmenus
 					if (!header.menuList)

@@ -7,6 +7,6 @@ namespace Components
 		const char* GetName() { return "Weapon"; };
 
 	private:
-		static Game::XAssetHeader WeaponFileLoad(Game::XAssetType type, const char* filename);
+		static Game::XAssetHeader WeaponFileLoad(Game::XAssetType type, std::string filename);
 	};
 }

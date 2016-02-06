@@ -11,6 +11,6 @@ namespace Components
 		static std::map<std::string, Game::StringTable*> StringTableMap;
 
 		static int Hash(const char* data);
-		static Game::StringTable* LoadObject(const char* filename);
+		static Game::StringTable* LoadObject(std::string filename);
 	};
 }

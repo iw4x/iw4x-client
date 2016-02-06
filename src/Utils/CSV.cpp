@@ -2,9 +2,9 @@
 
 namespace Utils
 {
-	CSV::CSV(std::string file, bool isFile)
+	CSV::CSV(std::string file, bool isFile, bool allowComments)
 	{
-		CSV::Parse(file, isFile);
+		CSV::Parse(file, isFile, allowComments);
 	}
 
 	CSV::~CSV()
@@ -64,7 +64,7 @@ namespace Utils
 		return "";
 	}
 
-	void CSV::Parse(std::string file, bool isFile)
+	void CSV::Parse(std::string file, bool isFile, bool allowComments)
 	{
 		std::string buffer;
 
@@ -84,12 +84,12 @@ namespace Utils
 
 			for (auto row : rows)
 			{
-				CSV::ParseRow(row);
+				CSV::ParseRow(row, allowComments);
 			}
 		}
 	}
 
-	void CSV::ParseRow(std::string row)
+	void CSV::ParseRow(std::string row, bool allowComments)
 	{
 		bool isString = false;
 		std::string element;
@@ -119,7 +119,7 @@ namespace Utils
 				//++i;
 				continue;
 			}
-			else if (!isString && row[i] == '#') // Skip comments. I know CSVs usually don't have comments, but in this case it's useful
+			else if (!isString && row[i] == '#' && allowComments) // Skip comments. I know CSVs usually don't have comments, but in this case it's useful
 			{
 				return;
 			}

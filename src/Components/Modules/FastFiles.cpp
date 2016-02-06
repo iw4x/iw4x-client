@@ -10,6 +10,11 @@ namespace Components
 		std::vector<Game::XZoneInfo> data;
 		Utils::Merge(&data, zoneInfo, zoneCount);
 
+		if (FastFiles::Exists("patch_iw4x"))
+		{
+			data.push_back({ "patch_iw4x", 1, 0 });
+		}
+
 		// Load custom weapons, if present (force that later on)
 		if (FastFiles::Exists("weapons_mp"))
 		{

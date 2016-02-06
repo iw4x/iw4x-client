@@ -19,7 +19,7 @@ namespace Components
 		static std::vector<std::string> CurrentDependencies;
 
 		static void GetBSPName(char* buffer, size_t size, const char* format, const char* mapname);
-		static bool LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const char* name);
+		static bool LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name);
 		static void LoadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 
 		void ReallocateEntryPool();

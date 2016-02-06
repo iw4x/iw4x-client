@@ -18,14 +18,14 @@ namespace Components
 		return hash;
 	}
 
-	Game::StringTable* StringTable::LoadObject(const char* filename)
+	Game::StringTable* StringTable::LoadObject(std::string filename)
 	{
 		Game::StringTable* table = nullptr;
 		FileSystem::File rawTable(filename);
 
 		if (rawTable.Exists())
 		{
-			Utils::CSV parsedTable(rawTable.GetBuffer(), false);
+			Utils::CSV parsedTable(rawTable.GetBuffer(), false, false);
 
 			table = Utils::Memory::AllocateArray<Game::StringTable>(1);
 
@@ -67,10 +67,7 @@ namespace Components
 
 	StringTable::StringTable()
 	{
-		// Disable StringTable loading until our StructuredData handler is finished!
-#ifdef ENABLE_STRINGTABLES
-
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [] (Game::XAssetType, const char* filename)
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [] (Game::XAssetType, std::string filename)
 		{
 			Game::XAssetHeader header = { 0 };
 
@@ -85,7 +82,6 @@ namespace Components
 
 			return header;
 		});
-#endif
 	}
 
 	StringTable::~StringTable()
