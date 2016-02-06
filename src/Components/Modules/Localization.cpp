@@ -8,6 +8,17 @@ namespace Components
 
 	void Localization::Set(const char* key, const char* value)
 	{
+		if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
+		{
+			Game::LocalizedEntry* entry = Localization::LocalizeMap[key];
+
+			char* newStaticValue = Utils::Memory::DuplicateString(value);
+			if (!newStaticValue) return;
+			if (entry->value) Utils::Memory::Free(entry->value);
+			entry->value = newStaticValue;
+			return;
+		}
+
 		Game::LocalizedEntry* entry = Utils::Memory::AllocateArray<Game::LocalizedEntry>(1);
 		if (!entry) return;
 
