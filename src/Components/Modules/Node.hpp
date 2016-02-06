@@ -17,6 +17,8 @@
 #define NODE_PACKET_LIMIT 111              // Send 111 nodes per synchronization packet
 #define DEDI_PACKET_LIMIT 111              // Send 111 dedis per synchronization packet
 
+#define NODE_STORE_INTERVAL 1000 * 60* 1   // Store nodes every minute
+
 namespace Components
 {
 	class Node : public Component
@@ -86,7 +88,7 @@ namespace Components
 		static std::vector<DediEntry> Dedis;
 
 		static void LoadNodes();
-		static void StoreNodes();
+		static void StoreNodes(bool force);
 
 		static void AddNode(Network::Address address, bool valid = false);
 		static void AddDedi(Network::Address address, bool dirty = false);

@@ -21,8 +21,14 @@ namespace Components
 		}
 	}
 
-	void Node::StoreNodes()
+	void Node::StoreNodes(bool force)
 	{
+		static int lastStorage = 0;
+
+		// Don't store nodes if the delta is too small and were not forcing it
+		if ((Game::Com_Milliseconds() - lastStorage) < NODE_STORE_INTERVAL && !force) return;
+		lastStorage = Game::Com_Milliseconds();
+
 		std::vector<Node::AddressEntry> entries;
 
 		for (auto entry : Node::Nodes)
@@ -291,7 +297,7 @@ namespace Components
 
 			if (Dedicated::IsDedicated() && node.state == Node::STATE_VALID)
 			{
-				if (heartbeatCount < HEARTBEATS_FRAME_LIMIT && (!node.lastHeartbeat || (Game::Com_Milliseconds() - node.lastHeartbeat) >(HEARTBEAT_INTERVAL)))
+				if (heartbeatCount < HEARTBEATS_FRAME_LIMIT && (!node.lastHeartbeat || (Game::Com_Milliseconds() - node.lastHeartbeat) > (HEARTBEAT_INTERVAL)))
 				{
 					heartbeatCount++;
 
@@ -337,8 +343,7 @@ namespace Components
 
 		Node::DeleteInvalidNodes();
 		Node::DeleteInvalidDedis();
-
-		count = 0;
+		Node::StoreNodes(false);
 	}
 
 	void Node::DeleteInvalidDedis()
@@ -565,7 +570,8 @@ namespace Components
 
 	Node::~Node()
 	{
-		Node::StoreNodes();
+		Node::StoreNodes(true);
 		Node::Nodes.clear();
+		Node::Dedis.clear();
 	}
 }
