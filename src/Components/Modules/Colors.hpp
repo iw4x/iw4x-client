@@ -13,6 +13,15 @@ namespace Components
 		static char Add(uint8_t r, uint8_t g, uint8_t b);
 
 	private:
+		struct HsvColor
+		{
+			unsigned char h;
+			unsigned char s;
+			unsigned char v;
+		};
+
+		static DWORD HsvToRgb(HsvColor hsv);
+
 		static Dvar::Var NewColors;
 
 		static void ClientUserinfoChanged();

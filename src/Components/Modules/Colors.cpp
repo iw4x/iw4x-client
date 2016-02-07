@@ -1,20 +1,58 @@
 #include "STDInclude.hpp"
 
-// -- Additional colors --
-//
-// Colors are resolved using ColorIndex().
-// It resolves the colorTable entry using the ASCII value.
-// If we want to add colors, we have to use correct ASCII chars.
-// As the last value is 0x39 (9), we have to go on with 0x3A (:)
-// So the next chars would be:
-// 0x3A (:), 0x3B (;), 0x3C (<), 0x3D (=), ...
-//
-// The problem though is that I_CleanString doesn't know we added colors, so we have to adapt that as well!
-
 namespace Components
 {
 	Dvar::Var Colors::NewColors;
 	std::vector<DWORD> Colors::ColorTable;
+
+	DWORD Colors::HsvToRgb(Colors::HsvColor hsv)
+	{
+		DWORD rgb;
+		unsigned char region, p, q, t;
+		unsigned int h, s, v, remainder;
+
+		if (hsv.s == 0)
+		{
+			rgb = RGB(hsv.v, hsv.v, hsv.v);
+			return rgb;
+		}
+
+		// converting to 16 bit to prevent overflow
+		h = hsv.h;
+		s = hsv.s;
+		v = hsv.v;
+
+		region = static_cast<uint8_t>(h / 43);
+		remainder = (h - (region * 43)) * 6;
+
+		p = static_cast<uint8_t>((v * (255 - s)) >> 8);
+		q = static_cast<uint8_t>((v * (255 - ((s * remainder) >> 8))) >> 8);
+		t = static_cast<uint8_t>((v * (255 - ((s * (255 - remainder)) >> 8))) >> 8);
+
+		switch (region)
+		{
+		case 0:
+			rgb = RGB(v, t, p);
+			break;
+		case 1:
+			rgb = RGB(q, v, p);
+			break;
+		case 2:
+			rgb = RGB(p, v, t);
+			break;
+		case 3:
+			rgb = RGB(p, q, v);
+			break;
+		case 4:
+			rgb = RGB(t, p, v);
+			break;
+		default:
+			rgb = RGB(v, p, q);
+			break;
+		}
+
+		return rgb;
+	}
 
 	void Colors::Strip(const char* in, char* out, int max)
 	{
@@ -117,6 +155,10 @@ namespace Components
 		{
 			*color = *reinterpret_cast<DWORD*>(0x66E5F74);
 		}
+		else if (index == ':')
+		{
+			*color = Colors::HsvToRgb({ static_cast<uint8_t>((Game::Com_Milliseconds() / 200) % 256), 255,255 });
+		}
 		else
 		{
 			int clrIndex = Colors::ColorIndex(index);
@@ -188,8 +230,8 @@ namespace Components
 		Colors::Add(0, 0, 0);       // 9  - Team color (allies?)
 
 		// Custom colors
-		Colors::Add(211, 84, 0);    // 10 - Orange (:)
-		Colors::Add(0, 255, 200);   // 11 - Turqoise (;) - using that color in infostrings (e.g. your name) fails, ';' is an illegal character!
+		Colors::Add(0, 0, 0);         // 10 - Rainbow (:)
+		//Colors::Add(0, 255, 200);   // 11 - Turqoise (;) - using that color in infostrings (e.g. your name) fails, ';' is an illegal character!
 	}
 
 	Colors::~Colors()

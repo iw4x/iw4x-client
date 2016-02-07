@@ -117,6 +117,7 @@ namespace Components
 		StructuredData::Singleton = this;
 		ZeroMemory(StructuredData::IndexCount, sizeof(StructuredData));
 
+		// TODO: Write these into fastfiles and only hotpatch them when building fastfiles!
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF, [] (Game::XAssetType type, std::string filename)
 		{
 			Game::XAssetHeader header = { 0 };
