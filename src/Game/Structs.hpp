@@ -1157,83 +1157,83 @@ namespace Game
 		STRUCTURED_DATA_ENUMARR = 7,
 		STRUCTURED_DATA_FLOAT = 8,
 		STRUCTURED_DATA_SHORT = 9
-	} structuredDataType_t;
+	} StructuredDataType;
 
 	typedef struct
 	{
-		structuredDataType_t type;
+		StructuredDataType type;
 		union
 		{
 			int index;
 		};
 		int offset;
-	} structuredDataItem_t;
+	} StructuredDataItem;
 
 	typedef struct
 	{
 		const char* name;
-		structuredDataItem_t item;
-	} structuredDataChild_t;
+		StructuredDataItem item;
+	} StructuredDataStructProperty;
 
 	typedef struct
 	{
-		int numChildren;
-		structuredDataChild_t* children;
+		int numProperties;
+		StructuredDataStructProperty* property;
 		int unknown1;
 		int unknown2;
-	} structuredDataStruct_t;
+	} StructuredDataStruct;
 
 	typedef struct
 	{
 		int enumIndex;
-		structuredDataItem_t item;
-	} structuredDataEnumArray_t;
+		StructuredDataItem item;
+	} StructuredDataEnumedArray;
 
 	typedef struct
 	{
 		const char* key;
 		int index;
-	} structuredDataEnumIndex_t;
+	} StructuredDataEnumEntry;
 
 	typedef struct
 	{
 		int numIndices;
 		int unknown;
-		structuredDataEnumIndex_t* indices;
-	} structuredDataEnum_t;
+		StructuredDataEnumEntry* indices;
+	} StructuredDataEnum;
 
 	typedef struct
 	{
 		int numItems;
-		structuredDataItem_t item;
-	} structuredDataIndexedArray_t;
+		StructuredDataItem item;
+	} StructuredDataIndexedArray;
 
 	typedef struct
 	{
 		int version;
 		unsigned int hash;
 		int numEnums;
-		structuredDataEnum_t* enums;
+		StructuredDataEnum* enums;
 		int numStructs;
-		structuredDataStruct_t* structs;
+		StructuredDataStruct* structs;
 		int numIndexedArrays;
-		structuredDataIndexedArray_t* indexedArrays;
+		StructuredDataIndexedArray* indexedArrays;
 		int numEnumArrays;
-		structuredDataEnumArray_t* enumArrays;
-		structuredDataItem_t rootItem;
-	} structuredData_t;
+		StructuredDataEnumedArray* enumArrays;
+		StructuredDataItem rootItem;
+	} StructuredDataDef;
 
 	typedef struct
 	{
 		const char* name;
-		int unknown;
-		structuredData_t* data;
-	} structuredDataDef_t;
+		int count;
+		StructuredDataDef* data;
+	} StructuredDataDefSet;
 
 	typedef struct
 	{
-		structuredData_t* data;
-		structuredDataItem_t* item;
+		StructuredDataDef* data;
+		StructuredDataItem* item;
 		int offset;
 		int error;
 	} structuredDataFindState_t;
@@ -1602,7 +1602,7 @@ namespace Game
 		MaterialVertexDeclaration *vertexDecl;
 		MaterialVertexShader *vertexShader;
 		MaterialPixelShader *pixelShader;
-		structuredDataDef_t* structuredData;
+		StructuredDataDefSet* structuredData;
 		XModel* model;
 		PhysPreset* physPreset;
 		PhysCollmap* physCollmap;

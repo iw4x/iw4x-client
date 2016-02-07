@@ -34,14 +34,14 @@ namespace Components
 			int statOffset;
 		};
 
-		static void DumpDataDef(Game::structuredDataDef_t* dataDef);
-		static void PatchPlayerDataEnum(Game::structuredDataDef_t* data, PlayerDataType type, std::vector<EnumEntry>& entries);
+		static void DumpDataDef(Game::StructuredDataDefSet* dataDef);
+		static void PatchPlayerDataEnum(Game::StructuredDataDefSet* data, PlayerDataType type, std::vector<EnumEntry>& entries);
 		static StructuredData* GetSingleton();
 
 		Utils::Memory::Allocator MemAllocator;
 
 		static int IndexCount[ENUM_MAX];
-		static Game::structuredDataEnumIndex_t* Indices[ENUM_MAX];
+		static Game::StructuredDataEnumEntry* Indices[ENUM_MAX];
 		static std::vector<EnumEntry> Entries[ENUM_MAX];
 
 		static StructuredData* Singleton;

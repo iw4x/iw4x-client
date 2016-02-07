@@ -5,7 +5,7 @@ namespace Components
 	StructuredData* StructuredData::Singleton = nullptr;
 
 	int StructuredData::IndexCount[StructuredData::ENUM_MAX];
-	Game::structuredDataEnumIndex_t* StructuredData::Indices[StructuredData::ENUM_MAX];
+	Game::StructuredDataEnumEntry* StructuredData::Indices[StructuredData::ENUM_MAX];
 	std::vector<StructuredData::EnumEntry> StructuredData::Entries[StructuredData::ENUM_MAX];
 
 	void StructuredData::AddPlayerDataEntry(StructuredData::PlayerDataType type, int index, std::string name)
@@ -24,11 +24,11 @@ namespace Components
 		StructuredData::Entries[type].push_back({ name, index });
 	}
 
-	void StructuredData::PatchPlayerDataEnum(Game::structuredDataDef_t* data, StructuredData::PlayerDataType type, std::vector<StructuredData::EnumEntry>& entries)
+	void StructuredData::PatchPlayerDataEnum(Game::StructuredDataDefSet* data, StructuredData::PlayerDataType type, std::vector<StructuredData::EnumEntry>& entries)
 	{
 		if (!data || !data->data || type >= StructuredData::ENUM_MAX) return;
 
-		Game::structuredDataEnum_t* dataEnum = &data->data->enums[type];
+		Game::StructuredDataEnum* dataEnum = &data->data->enums[type];
 
 		if (StructuredData::IndexCount[type])
 		{
@@ -53,8 +53,8 @@ namespace Components
 		StructuredData::IndexCount[type] = dataEnum->numIndices + entries.size();
 
 		// Allocate new entries
-		StructuredData::Indices[type] = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::structuredDataEnumIndex_t>(StructuredData::IndexCount[type]);
-		memcpy(StructuredData::Indices[type], dataEnum->indices, sizeof(Game::structuredDataEnumIndex_t) * dataEnum->numIndices);
+		StructuredData::Indices[type] = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(StructuredData::IndexCount[type]);
+		memcpy(StructuredData::Indices[type], dataEnum->indices, sizeof(Game::StructuredDataEnumEntry) * dataEnum->numIndices);
 
 		for (unsigned int i = 0; i < entries.size(); i++)
 		{
@@ -76,7 +76,7 @@ namespace Components
 
 			for (unsigned int j = dataEnum->numIndices + i; j > pos && j < static_cast<unsigned int>(StructuredData::IndexCount[type]); j--)
 			{
-				memcpy(&StructuredData::Indices[type][j], &StructuredData::Indices[type][j - 1], sizeof(Game::structuredDataEnumIndex_t));
+				memcpy(&StructuredData::Indices[type][j], &StructuredData::Indices[type][j - 1], sizeof(Game::StructuredDataEnumEntry));
 			}
 
 			StructuredData::Indices[type][pos].index = entries[i].statOffset + lastIndex;
@@ -88,7 +88,7 @@ namespace Components
 		dataEnum->indices = StructuredData::Indices[type];
 	}
 
-	void StructuredData::DumpDataDef(Game::structuredDataDef_t* dataDef)
+	void StructuredData::DumpDataDef(Game::StructuredDataDefSet* dataDef)
 	{
 		if (!dataDef || !dataDef->data) return;
 
@@ -123,7 +123,7 @@ namespace Components
 
 			if (filename == "mp/playerdata.def")
 			{
-				Game::structuredDataDef_t* data = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF, filename.data()).structuredData;
+				Game::StructuredDataDefSet* data = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF, filename.data()).structuredData;
 				header.structuredData = data;
 
 				if (data)
