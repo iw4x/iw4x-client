@@ -26,7 +26,7 @@ namespace Components
 
 	void StructuredData::PatchPlayerDataEnum(Game::structuredDataDef_t* data, StructuredData::PlayerDataType type, std::vector<StructuredData::EnumEntry>& entries)
 	{
-		if (!data || !data->data) return;
+		if (!data || !data->data || type >= StructuredData::ENUM_MAX) return;
 
 		Game::structuredDataEnum_t* dataEnum = &data->data->enums[type];
 
@@ -74,9 +74,9 @@ namespace Components
 				}
 			}
 
-			for (unsigned int j = dataEnum->numIndices + i; j > pos; j--)
+			for (unsigned int j = dataEnum->numIndices + i; j > pos && j < static_cast<unsigned int>(StructuredData::IndexCount[type]); j--)
 			{
-				StructuredData::Indices[type][j] = StructuredData::Indices[type][j - 1];
+				memcpy(&StructuredData::Indices[type][j], &StructuredData::Indices[type][j - 1], sizeof(Game::structuredDataEnumIndex_t));
 			}
 
 			StructuredData::Indices[type][pos].index = entries[i].statOffset + lastIndex;

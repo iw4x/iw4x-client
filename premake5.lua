@@ -97,7 +97,7 @@ workspace "iw4x"
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
-		buildoptions { "-Zm200" } -- allocate ~150mb memory for the precompiled header. This should be enough, increase if necessary
+		buildoptions { "-Zm88" }
 
 		-- Dependency on zlib, json11 and asio
 		links { "zlib", "json11", "pdcurses", "libtomcrypt", "libtommath" }

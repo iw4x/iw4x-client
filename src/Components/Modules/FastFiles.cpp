@@ -86,7 +86,7 @@ namespace Components
 			path.append(".ff");
 		}
 
-		return (GetFileAttributes(path.data()) != INVALID_FILE_ATTRIBUTES);
+		return std::ifstream(path.data()).good();
 	}
 
 	const char* FastFiles::GetZoneLocation(const char* file)
@@ -104,7 +104,7 @@ namespace Components
 			}
 
 			// Check if FastFile exists
-			if (GetFileAttributes(absoluteFile.data()) != INVALID_FILE_ATTRIBUTES)
+			if (std::ifstream(absoluteFile.data()).good())
 			{
 				return Utils::VA("%s", path.data());
 			}
