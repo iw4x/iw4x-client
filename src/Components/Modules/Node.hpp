@@ -44,6 +44,7 @@ namespace Components
 		struct NodeEntry
 		{
 			Network::Address address;
+			Utils::Cryptography::ECDSA::Key publicKey;
 			EntryState state;
 			int lastTime; // Last time we heard anything from the server itself
 			int lastHeartbeat; // Last time we got a heartbeat from it
@@ -83,6 +84,8 @@ namespace Components
 			}
 		};
 #pragma pack(pop)
+
+		static Utils::Cryptography::ECDSA::Key SignatureKey;
 
 		static std::vector<NodeEntry> Nodes;
 		static std::vector<DediEntry> Dedis;

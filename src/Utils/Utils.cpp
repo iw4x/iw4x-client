@@ -30,6 +30,22 @@ namespace Utils
 		return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
 	}
 
+	// Complementary function for memset, which checks if a memory is set
+	bool MemIsSet(void* mem, char chr, size_t length) 
+	{
+		char* memArr = reinterpret_cast<char*>(mem);
+
+		for (size_t i = 0; i < length; i++)
+		{
+			if (memArr[i] != chr)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	std::vector<std::string> Explode(const std::string& str, char delim)
 	{
 		std::vector<std::string> result;

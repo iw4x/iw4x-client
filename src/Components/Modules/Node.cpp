@@ -2,6 +2,8 @@
 
 namespace Components
 {
+	Utils::Cryptography::ECDSA::Key Node::SignatureKey;
+
 	std::vector<Node::NodeEntry> Node::Nodes;
 	std::vector<Node::DediEntry> Node::Dedis;
 
@@ -396,6 +398,9 @@ namespace Components
 		// ZoneBuilder doesn't require node stuff
 		if (ZoneBuilder::IsEnabled()) return;
 
+		// Generate our ECDSA key
+		Node::SignatureKey = Utils::Cryptography::ECDSA::GenerateKey(512);
+
 		Dvar::OnInit([] ()
 		{
 			Node::Dedis.clear();
@@ -570,6 +575,8 @@ namespace Components
 
 	Node::~Node()
 	{
+		Node::SignatureKey.Free();
+
 		Node::StoreNodes(true);
 		Node::Nodes.clear();
 		Node::Dedis.clear();

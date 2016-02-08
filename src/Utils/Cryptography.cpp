@@ -30,7 +30,6 @@ namespace Utils
 			ECDSA::Key key;
 
 			register_prng(&sprng_desc);
-			register_hash(&sha1_desc);
 
 			ltc_mp = ltm_desc;
 
@@ -41,7 +40,7 @@ namespace Utils
 
 		std::string ECDSA::SignMessage(Key key, std::string message)
 		{
-			uint8_t buffer[0x200]; // Default size is 512
+			uint8_t buffer[512];
 			DWORD length = sizeof(buffer);
 
 			register_prng(&sprng_desc);
@@ -81,7 +80,7 @@ namespace Utils
 
 		std::string RSA::SignMessage(RSA::Key key, std::string message)
 		{
-			uint8_t buffer[0x200]; // Default size is 512
+			uint8_t buffer[512];
 			DWORD length = sizeof(buffer);
 
 			register_prng(&sprng_desc);
