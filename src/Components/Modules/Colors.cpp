@@ -164,7 +164,7 @@ namespace Components
 		else if (index == ';')
 		{
 			float fltColor[4];
-			Game::Dvar_GetUnpackedColorByName("sv_color_value", fltColor);
+			Game::Dvar_GetUnpackedColorByName("sv_customTextColor", fltColor);
 			*color = RGB(fltColor[0] * 255, fltColor[1] * 255, fltColor[2] * 255);
 		}
 		else
@@ -222,7 +222,7 @@ namespace Components
 
 		// Register dvar
 		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare² color code style.");
-		Game::Dvar_RegisterColor("sv_color_value", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
+		Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
 
 		// Add our colors
 		Colors::Add(0, 0, 0);       // 0  - Black
