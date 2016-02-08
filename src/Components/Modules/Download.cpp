@@ -224,7 +224,7 @@ namespace Components
 		download.maxParts = download.buffer.size() / PACKET_SIZE;
 		if (download.buffer.size() % PACKET_SIZE) download.maxParts++;
 
-		download.challenge = Utils::VA("%X", Game::Com_Milliseconds());
+		download.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 		Download::Container::AckRequest request;
 		request.id = id;

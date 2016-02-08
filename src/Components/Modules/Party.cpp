@@ -28,7 +28,7 @@ namespace Components
 		Party::Container.AwaitingPlaylist = false;
 		Party::Container.JoinTime = Game::Com_Milliseconds();
 		Party::Container.Target = target;
-		Party::Container.Challenge = Utils::VA("%X", Party::Container.JoinTime);
+		Party::Container.Challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 		Network::Send(Party::Container.Target, Utils::VA("getinfo %s\n", Party::Container.Challenge.data()));
 

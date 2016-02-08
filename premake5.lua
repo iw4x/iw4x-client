@@ -73,7 +73,7 @@ workspace "iw4x"
 	toolset "msc-140"
 
 	configuration "windows"
-		defines { "_WINDOWS" }
+		defines { "_WINDOWS", "WIN32" }
 
 	configuration "Release*"
 		defines { "NDEBUG" }
@@ -205,7 +205,7 @@ workspace "iw4x"
 		-- libtomcrypt
 		project "libtomcrypt"
 			language "C"
-			defines { "_LIB", "LTC_SOURCE", "LTC_NO_RSA_BLINDING", "LTM_DESC", "USE_LTM" }
+			defines { "_LIB", "LTC_SOURCE", "LTC_NO_RSA_BLINDING", "LTM_DESC", "USE_LTM", "WIN32" }
 			
 			links { "libtommath" }
 			includedirs { "./deps/libtomcrypt/src/headers"  }

@@ -28,7 +28,7 @@ namespace Components
 
 					Logger::Print("Starting local server discovery...\n");
 
-					Discovery::DiscoveryContainer.Challenge = Utils::VA("%d", Game::Com_Milliseconds());
+					Discovery::DiscoveryContainer.Challenge = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
 
 					//Network::BroadcastAll("discovery\n");
 					unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").Get<unsigned int>();

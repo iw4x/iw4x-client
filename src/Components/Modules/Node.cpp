@@ -317,7 +317,7 @@ namespace Components
 				count++;
 
 				dedi.lastTime = Game::Com_Milliseconds();
-				dedi.challenge = Utils::VA("%d", dedi.lastTime);
+				dedi.challenge = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
 				dedi.state = Node::STATE_QUERYING;
 
 				Logger::Print("Verifying dedi %s...\n", dedi.address.GetString());

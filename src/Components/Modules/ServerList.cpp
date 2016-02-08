@@ -500,7 +500,7 @@ namespace Components
 			SendServers--;
 
 			server->SendTime = Game::Com_Milliseconds();
-			server->Challenge = Utils::VA("%d", server->SendTime);
+			server->Challenge = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
 
 			ServerList::RefreshContainer.SentCount++;
 
