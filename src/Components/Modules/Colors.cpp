@@ -147,6 +147,8 @@ namespace Components
 
 	void Colors::LookupColor(DWORD* color, char index)
 	{
+		*color = RGB(255, 255, 255);
+
 		if (index == '8') // Color 8
 		{
 			*color = *reinterpret_cast<DWORD*>(0x66E5F70);
@@ -158,6 +160,12 @@ namespace Components
 		else if (index == ':')
 		{
 			*color = Colors::HsvToRgb({ static_cast<uint8_t>((Game::Com_Milliseconds() / 200) % 256), 255,255 });
+		}
+		else if (index == ';')
+		{
+			float fltColor[4];
+			Game::Dvar_GetUnpackedColorByName("sv_color_value", fltColor);
+			*color = RGB(fltColor[0] * 255, fltColor[1] * 255, fltColor[2] * 255);
 		}
 		else
 		{
@@ -214,6 +222,7 @@ namespace Components
 
 		// Register dvar
 		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare² color code style.");
+		Game::Dvar_RegisterColor("sv_color_value", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
 
 		// Add our colors
 		Colors::Add(0, 0, 0);       // 0  - Black
@@ -230,8 +239,8 @@ namespace Components
 		Colors::Add(0, 0, 0);       // 9  - Team color (allies?)
 
 		// Custom colors
-		Colors::Add(0, 0, 0);         // 10 - Rainbow (:)
-		//Colors::Add(0, 255, 200);   // 11 - Turqoise (;) - using that color in infostrings (e.g. your name) fails, ';' is an illegal character!
+		Colors::Add(0, 0, 0);       // 10 - Rainbow (:)
+		Colors::Add(0, 0, 0);       // 11 - Server color (;) - using that color in infostrings (e.g. your name) fails, ';' is an illegal character!
 	}
 
 	Colors::~Colors()

@@ -35,8 +35,9 @@ namespace Game
 	Dvar_RegisterInt_t Dvar_RegisterInt = (Dvar_RegisterInt_t)0x479830;
 	Dvar_RegisterEnum_t Dvar_RegisterEnum = (Dvar_RegisterEnum_t)0x412E40;
 	Dvar_RegisterString_t Dvar_RegisterString = (Dvar_RegisterString_t)0x4FC7E0;
-	Dvar_RegisterColor_t Dvar_RegisterColor = (Dvar_RegisterColor_t)0x471500;
+	Dvar_RegisterColor_t Dvar_RegisterColor = (Dvar_RegisterColor_t)0x4F28E0;//0x471500;
 
+	Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName = (Dvar_GetUnpackedColorByName_t)0x406530;
 	Dvar_FindVar_t Dvar_FindVar = (Dvar_FindVar_t)0x4D5390;
 	Dvar_InfoString_Big_t Dvar_InfoString_Big = (Dvar_InfoString_Big_t)0x4D98A0;
 	Dvar_SetCommand_t Dvar_SetCommand = (Dvar_SetCommand_t)0x4EE430;

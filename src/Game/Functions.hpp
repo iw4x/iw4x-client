@@ -81,6 +81,9 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_RegisterColor_t)(const char* name, float r, float g, float b, float a, int flags, const char* description);
 	extern Dvar_RegisterColor_t Dvar_RegisterColor;
 
+	typedef void(__cdecl * Dvar_GetUnpackedColorByName_t)(const char* name, float* color);
+	extern Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName;
+
 	typedef dvar_t* (__cdecl * Dvar_FindVar_t)(const char *dvarName);
 	extern Dvar_FindVar_t Dvar_FindVar;
 
