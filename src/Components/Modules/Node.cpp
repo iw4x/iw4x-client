@@ -3,9 +3,8 @@
 namespace Components
 {
 	Utils::Cryptography::ECDSA::Key Node::SignatureKey;
-
 	std::vector<Node::NodeEntry> Node::Nodes;
-	std::vector<Node::DediEntry> Node::Dedis;
+	std::vector<Node::ClientSession> Node::Sessions;
 
 	void Node::LoadNodes()
 	{
@@ -22,7 +21,6 @@ namespace Components
 			Node::AddNode(addresses[i].toNetAddress());
 		}
 	}
-
 	void Node::StoreNodes(bool force)
 	{
 		static int lastStorage = 0;
@@ -33,12 +31,12 @@ namespace Components
 
 		std::vector<Node::AddressEntry> entries;
 
-		for (auto entry : Node::Nodes)
+		for (auto node : Node::Nodes)
 		{
-			if (entry.state == Node::STATE_VALID)
+			if (node.state == Node::STATE_VALID && node.registered)
 			{
 				Node::AddressEntry thisAddress;
-				thisAddress.fromNetAddress(entry.address);
+				thisAddress.fromNetAddress(node.address);
 
 				entries.push_back(thisAddress);
 			}
@@ -50,7 +48,34 @@ namespace Components
 		Utils::WriteFile("players/nodes.dat", nodeStream);
 	}
 
-	void Node::AddNode(Network::Address address, bool valid)
+	Node::NodeEntry* Node::FindNode(Network::Address address)
+	{
+		for (auto i = Node::Nodes.begin(); i != Node::Nodes.end(); i++)
+		{
+			if (i->address == address)
+			{
+				// I don't know if that's safe, but we'll see that later...
+				return &*i;
+			}
+		}
+
+		return nullptr;
+	}
+	Node::ClientSession* Node::FindSession(Network::Address address)
+	{
+		for (auto i = Node::Sessions.begin(); i != Node::Sessions.end(); i++)
+		{
+			if (i->address == address)
+			{
+				// I don't know if that's safe, but we'll see that later...
+				return &*i;
+			}
+		}
+
+		return nullptr;
+	}
+
+	void Node::AddNode(Network::Address address)
 	{
 #ifdef DEBUG
 		if (address.IsSelf()) return;
@@ -58,95 +83,35 @@ namespace Components
 		if (address.IsLocal() || address.IsSelf()) return;
 #endif
 
-		Node::NodeEntry entry;
-
-		entry.lastHeard = Game::Com_Milliseconds();
-		entry.lastHeartbeat = 0;
-		entry.lastTime = (valid ? Game::Com_Milliseconds() : 0);
-		entry.state = (valid ? Node::STATE_VALID : Node::STATE_UNKNOWN);
-		entry.address = address;
-
-		// Search if we already know that node
-		bool duplicate = false;
-		for (auto &ourEntry : Node::Nodes)
+		Node::NodeEntry* existingEntry = Node::FindNode(address);
+		if (existingEntry)
 		{
-			if (ourEntry.address == entry.address)
-			{
-				ourEntry.lastHeard = Game::Com_Milliseconds();
-
-// 				if (ourEntry.state == Node::STATE_INVALID)
-// 				{
-// 					Logger::Print("Node %s was invalidated, but we still received a reference from another node. Suspicous...\n", address.GetString());
-// 				}
-
-								// Validate it
-				if (valid)
-				{
-					ourEntry.state = Node::STATE_VALID;
-					ourEntry.lastTime = Game::Com_Milliseconds();
-				}
-
-				duplicate = true;
-				break;
-			}
+			existingEntry->lastHeard = Game::Com_Milliseconds();
 		}
-
-		// Insert if we don't
-		if (!duplicate)
+		else
 		{
+			Node::NodeEntry entry;
+
+			entry.lastHeard = Game::Com_Milliseconds();
+			entry.lastTime = 0;
+			entry.lastListQuery = 0;
+			entry.registered = false;
+			entry.state = Node::STATE_UNKNOWN;
+			entry.address = address;
+
 			Node::Nodes.push_back(entry);
 		}
 	}
 
-	void Node::AddDedi(Network::Address address, bool dirty)
+	void Node::SendNodeList(Network::Address address)
 	{
-		Node::DediEntry entry;
-
-		entry.lastHeard = Game::Com_Milliseconds();
-		entry.lastTime = 0;
-		entry.state = Node::STATE_UNKNOWN;
-		entry.address = address;
-
-		// Search if we already know that node
-		bool duplicate = false;
-		for (auto &ourEntry : Node::Dedis)
-		{
-			if (ourEntry.address == entry.address)
-			{
-				ourEntry.lastHeard = Game::Com_Milliseconds();
-
-// 				if (ourEntry.state == Node::STATE_INVALID)
-// 				{
-// 					Logger::Print("Dedi %s was invalidated, but we still received a reference from another node. Suspicous...\n", address.GetString());
-// 				}
-
-				if (dirty)
-				{
-					ourEntry.lastTime = Game::Com_Milliseconds();
-					ourEntry.state = Node::STATE_UNKNOWN;
-				}
-
-				duplicate = true;
-				break;
-			}
-		}
-
-		// Insert if we don't
-		if (!duplicate)
-		{
-			Node::Dedis.push_back(entry);
-		}
-	}
-
-	void Node::SendNodeList(Network::Address target)
-	{
-		if (target.IsSelf()) return;
+		if (address.IsSelf() || !Dedicated::IsDedicated()) return;
 
 		std::vector<Node::AddressEntry> entries;
 
 		for (auto entry : Node::Nodes)
 		{
-			if (entry.state == Node::STATE_VALID) // Only send valid nodes, or shall we send invalid ones as well?
+			if (entry.state == Node::STATE_VALID && entry.registered) // Only send valid nodes, or shall we send invalid ones as well?
 			{
 				Node::AddressEntry thisAddress;
 				thisAddress.fromNetAddress(entry.address);
@@ -156,88 +121,41 @@ namespace Components
 
 			if (entries.size() >= NODE_PACKET_LIMIT)
 			{
-				std::string packet = "nodeNodeList\n";
+				std::string packet = "nodeListResponse\n";
+				packet.append("\x01", 1); // Yes, we are a dedi
 				packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
 
-				Network::SendRaw(target, packet);
+				Network::SendRaw(address, packet);
 
 				entries.clear();
 			}
 		}
 
-		std::string packet = "nodeNodeList\n";
+		std::string packet = "nodeListResponse\n";
+		packet.append("\x01", 1); // Yes, we are a dedi
 		packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
 
-		Network::SendRaw(target, packet);
+		Network::SendRaw(address, packet);
 	}
 
-	void Node::SendDediList(Network::Address target)
+	void Node::DeleteInvalidSessions()
 	{
-		if (target.IsSelf()) return;
+		std::vector<Node::ClientSession> cleanSessions;
 
-		std::vector<Node::AddressEntry> entries;
-
-		for (auto entry : Node::Dedis)
+		for (auto session : Node::Sessions)
 		{
-			if (entry.state == Node::STATE_VALID) // Only send valid dedis
-			{
-				Node::AddressEntry thisAddress;
-				thisAddress.fromNetAddress(entry.address);
+			if (session.terminated) continue;
+			if ((Game::Com_Milliseconds() - session.lastTime) > SESSION_TIMEOUT) return;
 
-				entries.push_back(thisAddress);
-			}
-
-			if (entries.size() >= DEDI_PACKET_LIMIT)
-			{
-				std::string packet = "nodeDediList\n";
-				packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
-
-				Network::SendRaw(target, packet);
-
-				entries.clear();
-			}
+			cleanSessions.push_back(session);
 		}
 
-		std::string packet = "nodeDediList\n";
-		packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
-
-		Network::SendRaw(target, packet);
-	}
-
-	void Node::ValidateDedi(Network::Address address, Utils::InfoString info)
-	{
-		for (auto &dedi : Node::Dedis)
+		if (cleanSessions.size() != Node::Sessions.size())
 		{
-			if (dedi.address == address)
-			{
-				if (dedi.state == Node::STATE_QUERYING)
-				{
-					dedi.state = (info.Get("challenge") == dedi.challenge ? Node::STATE_VALID : Node::STATE_INVALID);
-					dedi.lastTime = Game::Com_Milliseconds();
-
-					if (dedi.state == Node::STATE_VALID)
-					{
-						Logger::Print("Validated dedi %s\n", address.GetString());
-					}
-				}
-				break;
-			}
+			//Node::Sessions.clear();
+			//Utils::Merge(&Node::Sessions, cleanSessions);
+			Node::Sessions = cleanSessions;
 		}
-	}
-
-	std::vector<Network::Address> Node::GetDediList()
-	{
-		std::vector<Network::Address> dedis;
-
-		for (auto dedi : Node::Dedis)
-		{
-			if (dedi.state == Node::STATE_VALID)
-			{
-				dedis.push_back(dedi.address);
-			}
-		}
-
-		return dedis;
 	}
 
 	void Node::DeleteInvalidNodes()
@@ -258,117 +176,94 @@ namespace Components
 
 		if (cleanNodes.size() != Node::Nodes.size())
 		{
-			Node::Nodes.clear();
-			Utils::Merge(&Node::Nodes, cleanNodes);
+			//Node::Nodes.clear();
+			//Utils::Merge(&Node::Nodes, cleanNodes);
+			Node::Nodes = cleanNodes;
 		}
+	}
+
+	std::vector<Network::Address> Node::GetDediList()
+	{
+		std::vector<Network::Address> dedis;
+
+		for (auto node : Node::Nodes)
+		{
+			if (node.state == Node::STATE_VALID && node.registered && node.isDedi)
+			{
+				dedis.push_back(node.address);
+			}
+		}
+
+		return dedis;
 	}
 
 	void Node::FrameHandler()
 	{
-		int heartbeatCount = 0;
-		int count = 0;
+		int registerCount = 0;
+		int listQueryCount = 0;
 
-		// Send requests
 		for (auto &node : Node::Nodes)
 		{
-			if (count < NODE_FRAME_QUERY_LIMIT && (node.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */node.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.lastTime) >(NODE_VALIDITY_EXPIRE))))
+			// TODO: Decide how to handle nodes that were already registered, but timed out re-registering.
+			if (node.state == STATE_NEGOTIATING && (Game::Com_Milliseconds() - node.lastTime) > (NODE_QUERY_TIMEOUT))
 			{
-				count++;
-
-				node.lastTime = Game::Com_Milliseconds();
-				node.state = Node::STATE_QUERYING;
-
-				Logger::Print("Syncing with node %s...\n", node.address.GetString());
-
-				// Request new lists
-				Network::Send(node.address, "nodeRequestLists");
-
-				// Send our lists (only if dedi)
-				if (Dedicated::IsDedicated())
-				{
-					Node::SendNodeList(node.address);
-					Node::SendDediList(node.address);
-				}
-			}
-
-			if (node.state == Node::STATE_QUERYING && (Game::Com_Milliseconds() - node.lastTime) > (NODE_QUERY_TIMEOUT))
-			{
+				node.registered = false; // Definitely unregister here!
 				node.state = Node::STATE_INVALID;
+				node.lastHeard = Game::Com_Milliseconds();
 				node.lastTime = Game::Com_Milliseconds();
+
+				Logger::Print("Node negotiation timed out. Invalidating %s\n", node.address.GetString());
 			}
 
-			if (Dedicated::IsDedicated() && node.state == Node::STATE_VALID)
+			if (registerCount < NODE_FRAME_QUERY_LIMIT)
 			{
-				if (heartbeatCount < HEARTBEATS_FRAME_LIMIT && (!node.lastHeartbeat || (Game::Com_Milliseconds() - node.lastHeartbeat) > (HEARTBEAT_INTERVAL)))
+				// Register when unregistered and in UNKNOWN state (I doubt it's possible to be unregistered and in VALID state)
+				if (!node.registered && (node.state != Node::STATE_NEGOTIATING && node.state != Node::STATE_INVALID))
 				{
-					heartbeatCount++;
+					registerCount++;
+					node.state = Node::STATE_NEGOTIATING;
+					node.lastTime = Game::Com_Milliseconds();
 
-					Logger::Print("Sending heartbeat to node %s...\n", node.address.GetString());
-					node.lastHeartbeat = Game::Com_Milliseconds();
-					Network::Send(node.address, "heartbeat\n");
+					if (Dedicated::IsDedicated())
+					{
+						node.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+
+						std::string data;
+						Utils::Message::WriteBuffer(data, node.challenge);
+
+						Logger::Print("Sending registration request to %s\n", node.address.GetString());
+						Network::SendRaw(node.address, "nodeRegisterRequest\n" + data);					}
+					else
+					{
+						Logger::Print("Sending session request to %s\n", node.address.GetString());
+						Network::Send(node.address, "sessionRequest\n");
+					}
+				}
+			}
+
+			if (listQueryCount < NODE_FRAME_QUERY_LIMIT)
+			{
+				if (node.registered && node.state == Node::STATE_VALID && (!node.lastListQuery || (Game::Com_Milliseconds() - node.lastListQuery) > NODE_QUERY_INTERVAL))
+				{
+					listQueryCount++;
+					node.state = Node::STATE_NEGOTIATING;
+					node.lastTime = Game::Com_Milliseconds();
+
+					if (Dedicated::IsDedicated())
+					{
+						Network::Send(node.address, "nodeListRequest\n");
+					}
+					else
+					{
+						Network::Send(node.address, "sessionRequest\n");
+					}
 				}
 			}
 		}
 
-		count = 0;
-
-		for (auto &dedi : Node::Dedis)
-		{
-			if (count < DEDI_FRAME_QUERY_LIMIT && (dedi.state == Node::STATE_UNKNOWN || (/*node.state != Node::STATE_INVALID && */dedi.state != Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.lastTime) >(DEDI_VALIDITY_EXPIRE))))
-			{
-				count++;
-
-				dedi.lastTime = Game::Com_Milliseconds();
-				dedi.challenge = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
-				dedi.state = Node::STATE_QUERYING;
-
-				Logger::Print("Verifying dedi %s...\n", dedi.address.GetString());
-
-				// Request new lists
-				Network::Send(dedi.address, Utils::VA("getinfo %s\n", dedi.challenge.data()));
-			}
-
-			// No query response
-			if (dedi.state == Node::STATE_QUERYING && (Game::Com_Milliseconds() - dedi.lastTime) > (DEDI_QUERY_TIMEOUT))
-			{
-				dedi.state = Node::STATE_INVALID;
-				dedi.lastTime = Game::Com_Milliseconds();
-			}
-
-			// Lack of heartbeats
-			if (dedi.state == Node::STATE_VALID && (Game::Com_Milliseconds() - dedi.lastTime) > (HEARTBEAT_DEADLINE))
-			{
-				Logger::Print("Invalidating dedi %s\n", dedi.address.GetString());
-				dedi.state = Node::STATE_INVALID;
-			}
-		}
-
+		Node::DeleteInvalidSessions();
 		Node::DeleteInvalidNodes();
-		Node::DeleteInvalidDedis();
 		Node::StoreNodes(false);
-	}
-
-	void Node::DeleteInvalidDedis()
-	{
-		std::vector<Node::DediEntry> cleanDedis;
-
-		for (auto dedi : Node::Dedis)
-		{
-			if (dedi.state == Node::STATE_INVALID && (Game::Com_Milliseconds() - dedi.lastHeard) > DEDI_INVALID_DELETE)
-			{
-				Logger::Print("Removing invalid dedi %s\n", dedi.address.GetString());
-			}
-			else
-			{
-				cleanDedis.push_back(dedi);
-			}
-		}
-
-		if (cleanDedis.size() != Node::Dedis.size())
-		{
-			Node::Dedis.clear();
-			Utils::Merge(&Node::Dedis, cleanDedis);
-		}
 	}
 
 	const char* Node::GetStateName(EntryState state)
@@ -378,8 +273,8 @@ namespace Components
 		case Node::STATE_UNKNOWN:
 			return "Unknown";
 
-		case Node::STATE_QUERYING:
-			return "Querying";
+		case Node::STATE_NEGOTIATING:
+			return "Negotiating";
 
 		case Node::STATE_INVALID:
 			return "Invalid";
@@ -401,110 +296,316 @@ namespace Components
 		// Generate our ECDSA key
 		Node::SignatureKey = Utils::Cryptography::ECDSA::GenerateKey(512);
 
+		// Load stored nodes
 		Dvar::OnInit([] ()
 		{
-			Node::Dedis.clear();
 			Node::Nodes.clear();
 			Node::LoadNodes();
 		});
 
+		// Send deadline when shutting down
 		if (Dedicated::IsDedicated())
 		{
 			QuickPatch::OnShutdown([] ()
 			{
+				std::string data, challenge;
+				challenge = Utils::VA("X", Utils::Cryptography::Rand::GenerateInt());
+				Utils::Message::WriteBuffer(data, challenge);
+				Utils::Message::WriteBuffer(data, Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge));
+
 				for (auto node : Node::Nodes)
 				{
-					Network::Send(node.address, "deadline\n");
+					Network::SendRaw(node.address, "nodeDeregister\n" + data);
+				}
+			});
+
+			// This is the handler that accepts registration requests from other nodes
+			// If you want to get accepted as node, you have to send a request to this handler
+			Network::Handle("nodeRegisterRequest", [] (Network::Address address, std::string data)
+			{
+				Node::NodeEntry* entry = Node::FindNode(address);
+
+				// Create a new entry, if we don't already know it
+				if (!entry)
+				{
+					Node::AddNode(address);
+					entry = Node::FindNode(address);
+					if (!entry) return;
+				}
+
+				Logger::Print("Received registration request from %s\n", address.GetString());
+
+				std::string response, challenge;
+				if (!Utils::Message::ReadBuffer(data, challenge)) return;
+
+				std::string publicKey = Node::SignatureKey.GetPublicKey();
+				std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge);
+				challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+
+				Utils::Message::WriteBuffer(response, signature);
+				Utils::Message::WriteBuffer(response, publicKey);
+				Utils::Message::WriteBuffer(response, challenge);
+
+				entry->lastTime = Game::Com_Milliseconds();
+				entry->challenge = challenge;
+				entry->state = Node::STATE_NEGOTIATING;
+
+				Network::SendRaw(address, "nodeRegisterSynchronize\n" + response);
+			});
+
+			Network::Handle("nodeRegisterSynchronize", [] (Network::Address address, std::string data)
+			{
+				Node::NodeEntry* entry = Node::FindNode(address);
+				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
+
+				Logger::Print("Received synchronization data for registration from %s!\n", address.GetString());
+
+				std::string challenge, publicKey, signature;
+				if (!Utils::Message::ReadBuffer(data, signature)) return;
+				if (!Utils::Message::ReadBuffer(data, publicKey)) return;
+				if (!Utils::Message::ReadBuffer(data, challenge)) return;
+
+				// Verify signature
+				entry->publicKey.Set(publicKey);
+				if (!Utils::Cryptography::ECDSA::VerifyMessage(entry->publicKey, entry->challenge, signature))
+				{
+					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetString(), entry->challenge.data());
+					return;
+				}
+
+				Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetString(), entry->challenge.data());
+
+				// Mark as registered
+				entry->lastTime = Game::Com_Milliseconds();
+				entry->state = Node::STATE_VALID;
+				entry->registered = true;
+
+				Logger::Print("Node %s registered\n", address.GetString());
+
+				// Build response
+				data.clear();
+				publicKey = Node::SignatureKey.GetPublicKey();
+				signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge);
+
+				Utils::Message::WriteBuffer(data, signature);
+				Utils::Message::WriteBuffer(data, publicKey);
+
+				Network::SendRaw(address, "nodeRegisterAcknowledge\n" + data);
+			});
+
+			Network::Handle("nodeRegisterAcknowledge", [] (Network::Address address, std::string data)
+			{
+				// Ignore requests from nodes we don't know
+				Node::NodeEntry* entry = Node::FindNode(address);
+				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
+
+				Logger::Print("Received acknowledgment from %s\n", address.GetString());
+
+				std::string publicKey, signature;
+				if (!Utils::Message::ReadBuffer(data, signature)) return;
+				if (!Utils::Message::ReadBuffer(data, publicKey)) return;
+
+				entry->publicKey.Set(publicKey);
+
+				if (Utils::Cryptography::ECDSA::VerifyMessage(entry->publicKey, entry->challenge, signature))
+				{
+					entry->lastTime = Game::Com_Milliseconds();
+					entry->state = Node::STATE_VALID;
+					entry->registered = true;
+
+					Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetString(), entry->challenge.data());
+					Logger::Print("Node %s registered\n", address.GetString());
+				}
+				else
+				{
+					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetString(), entry->challenge.data());
+				}
+			});
+
+			Network::Handle("nodeListRequest", [] (Network::Address address, std::string data)
+			{
+				// Requesting a list is either possible, by being registered as node
+				// Or having a valid client session
+				// Client sessions do expire after some time or when having received a list
+				bool allowed = false;
+				Node::NodeEntry* entry = Node::FindNode(address);
+				if (entry && entry->registered)
+				{
+					entry->lastTime = Game::Com_Milliseconds();
+					allowed = true;
+				}
+
+				// Check if there is any open session
+				if (!allowed) 
+				{
+					Node::ClientSession* session = Node::FindSession(address);
+					if (session)
+					{
+						allowed = (session->valid && !session->terminated);
+						session->terminated = true;
+					}
+				}
+
+				if (allowed)
+				{
+					Node::SendNodeList(address);
+				}
+				else
+				{
+					// Unallowed connection
+					Network::Send(address, "nodeListError\n");
+				}
+			});
+
+			Network::Handle("sessionRequest", [] (Network::Address address, std::string data)
+			{
+				// Return if we already have a session for this address
+				if (Node::FindSession(address)) return;
+
+				Logger::Print("Client %s is requesting a new session\n", address.GetString());
+
+				Node::ClientSession session;
+				session.address = address;
+				session.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+				session.lastTime = Game::Com_Milliseconds();
+				session.terminated = false;
+				session.valid = false;
+
+				Node::Sessions.push_back(session);
+
+				Network::Send(address, "sessionInitialize\n" + session.challenge);
+			});
+
+			Network::Handle("sessionSynchronize", [] (Network::Address address, std::string data)
+			{
+				// Return if we don't have a session for this address
+				Node::ClientSession* session = Node::FindSession(address);
+				if (!session || session->terminated || session->valid) return;
+
+				if (session->challenge == data)
+				{
+					Logger::Print("Session for %s validated.\n", address.GetString());
+					session->valid = true;
+					Network::Send(address, "sessionAcknowledge\n");
+				}
+				else
+				{
+					Logger::Print("Challenge mismatch. Validating session for %s failed.\n", address.GetString());
+					session->terminated = true;
 				}
 			});
 		}
-
-		// Only dedis act as nodes!
-		if (Dedicated::IsDedicated())
+		else
 		{
-			Network::Handle("nodeRequestLists", [] (Network::Address address, std::string data)
+			Network::Handle("sessionInitialize", [] (Network::Address address, std::string data)
 			{
-				Logger::Print("Sending our lists to %s\n", address.GetString());
+				Node::NodeEntry* entry = Node::FindNode(address);
+				if (!entry) return;
 
-				Node::SendNodeList(address);
-				Node::SendDediList(address);
+				Logger::Print("Session initialization received. Synchronizing...\n", address.GetString());
 
-				// Send our heartbeat as well :P
-				// Otherwise, if there's only 1 node in the network (us), we might not get listed as dedi
-				Network::Send(address, "heartbeat\n");
+				entry->lastTime = Game::Com_Milliseconds();
+				Network::Send(address, "sessionSynchronize\n" + data);
+			});
+
+			Network::Handle("sessionAcknowledge", [] (Network::Address address, std::string data)
+			{
+				Node::NodeEntry* entry = Node::FindNode(address);
+				if (!entry) return;
+
+				Logger::Print("Session acknowledged, requesting node list...\n", address.GetString());
+
+				entry->state = Node::STATE_VALID;
+				entry->registered = true;
+				entry->lastTime = Game::Com_Milliseconds();
+				Network::Send(address, "nodeListRequest\n");
 			});
 		}
 
-		Network::Handle("nodeNodeList", [] (Network::Address address, std::string data)
+		Network::Handle("nodeListResponse", [] (Network::Address address, std::string data)
 		{
-			if (data.size() % sizeof(Node::AddressEntry))
+			if (data.size() % sizeof(Node::AddressEntry) != 1)
 			{
 				Logger::Print("Received invalid node list from %s!\n", address.GetString());
 				return;
 			}
 
-			unsigned int size = (data.size() / sizeof(Node::AddressEntry));
+			unsigned int size = ((data.size() - 1) / sizeof(Node::AddressEntry));
+			Node::AddressEntry* addresses = reinterpret_cast<Node::AddressEntry*>(const_cast<char*>(data.data() + 1));
+			bool isDedicated = (*data.data() != 0);
 
-			Logger::Print("Received valid node list with %d entries from %s\n", size, address.GetString());
-
-			// Insert the node itself and mark it as valid
-			Node::AddNode(address, true);
-
-			Node::AddressEntry* addresses = reinterpret_cast<Node::AddressEntry*>(const_cast<char*>(data.data()));
-			for (unsigned int i = 0; i < size; ++i)
+			Node::NodeEntry* entry = Node::FindNode(address);
+			if (entry)
 			{
-				Node::AddNode(addresses[i].toNetAddress());
-			}
-		});
-
-		Network::Handle("nodeDediList", [] (Network::Address address, std::string data)
-		{
-			if (data.size() % sizeof(Node::AddressEntry))
-			{
-				Logger::Print("Received invalid dedi list from %s!\n", address.GetString());
-				return;
-			}
-
-			unsigned int size = (data.size() / sizeof(Node::AddressEntry));
-
-			Logger::Print("Received valid dedi list with %d entries from %s\n", size, address.GetString());
-
-			// Insert the node and mark it as valid
-			Node::AddNode(address, true);
-
-			Node::AddressEntry* addresses = reinterpret_cast<Node::AddressEntry*>(const_cast<char*>(data.data()));
-			for (unsigned int i = 0; i < size; ++i)
-			{
-				Node::AddDedi(addresses[i].toNetAddress());
-			}
-		});
-
-		Network::Handle("heartbeat", [] (Network::Address address, std::string data)
-		{
-			Logger::Print("Received heartbeat from %s\n", address.GetString());
-			Node::AddDedi(address, true);
-		});
-
-		Network::Handle("deadline", [] (Network::Address address, std::string data)
-		{
-			Logger::Print("Invalidation message received from %s\n", address.GetString());
-
-			for (auto &dedi : Node::Dedis)
-			{
-				if (dedi.address == address)
+				if (entry->registered)
 				{
-					dedi.state = Node::STATE_INVALID;
-					dedi.lastTime = Game::Com_Milliseconds();
+					Logger::Print("Received valid node list with %d entries from %s\n", size, address.GetString());
+
+					entry->isDedi = isDedicated;
+					entry->state = Node::STATE_VALID;
+					entry->lastTime = Game::Com_Milliseconds();
+					entry->lastListQuery = Game::Com_Milliseconds();
+
+					for (unsigned int i = 0; i < size; ++i)
+					{
+						Node::AddNode(addresses[i].toNetAddress());
+					}
 				}
 			}
-
-			for (auto &node : Node::Nodes)
+			else
 			{
-				if (node.address == address)
+				Node::AddNode(address);
+			}
+		});
+
+		// If we receive that response, our request was not permitted
+		// So we either have to register as node, or register a remote session
+		Network::Handle("nodeListError", [] (Network::Address address, std::string data)
+		{
+			if (Dedicated::IsDedicated())
+			{
+				Node::NodeEntry* entry = Node::FindNode(address);
+				if (entry)
 				{
-					node.state = Node::STATE_INVALID;
-					node.lastTime = Game::Com_Milliseconds();
+					// Set to unregistered to perform registration later on
+					entry->lastTime = Game::Com_Milliseconds();
+					entry->registered = false;
+					entry->state = Node::STATE_UNKNOWN;
 				}
+				else
+				{
+					// Add as new entry to perform registration
+					Node::AddNode(address);
+				}
+			}
+			else
+			{
+				// TODO: Implement client handshake stuff
+				// Nvm, clients can simply ignore that i guess
+			}
+		});
+
+		Network::Handle("nodeDeregister", [] (Network::Address address, std::string data)
+		{
+			Node::NodeEntry* entry = Node::FindNode(address);
+			if (!entry || !entry->registered) return;
+
+			std::string challenge, signature;
+			if (!Utils::Message::ReadBuffer(data, challenge)) return;
+			if (!Utils::Message::ReadBuffer(data, signature)) return;
+
+			if (Utils::Cryptography::ECDSA::VerifyMessage(entry->publicKey, challenge, signature))
+			{
+				entry->lastHeard = Game::Com_Milliseconds();
+				entry->lastTime = Game::Com_Milliseconds();
+				entry->registered = false;
+				entry->state = Node::STATE_INVALID;
+
+				Logger::Print("Node %s unregistered\n", address.GetString());
+			}
+			else
+			{
+				Logger::Print("Node %s tried to unregister using an invalid signature!\n", address.GetString());
 			}
 		});
 
@@ -518,54 +619,12 @@ namespace Components
 			}
 		});
 
-		Command::Add("listdedis", [] (Command::Params params)
-		{
-			Logger::Print("Dedi: %d\n", Node::Dedis.size());
-
-			for (auto dedi : Node::Dedis)
-			{
-				Logger::Print("%s\t(%s)\n", dedi.address.GetString(), Node::GetStateName(dedi.state));
-			}
-		});
-
 		Command::Add("addnode", [] (Command::Params params)
 		{
 			if (params.Length() < 2) return;
 
 			Network::Address address(params[1]);
 			Node::AddNode(address);
-
-			// Invalidate it
-			for (auto &node : Node::Nodes)
-			{
-				if (node.address == address)
-				{
-					node.state = Node::STATE_UNKNOWN;
-					break;
-				}
-			}
-		});
-
-		Command::Add("syncnodes", [] (Command::Params params)
-		{
-			for (auto &node : Node::Nodes)
-			{
-				if (node.state != Node::STATE_INVALID)
-				{
-					node.state = Node::STATE_UNKNOWN;
-				}
-			}
-		});
-
-		Command::Add("syncdedis", [] (Command::Params params)
-		{
-			for (auto &dedi : Node::Dedis)
-			{
-				if (dedi.state != Node::STATE_INVALID)
-				{
-					dedi.state = Node::STATE_UNKNOWN;
-				}
-			}
 		});
 
 		// Install frame handlers
@@ -579,6 +638,73 @@ namespace Components
 
 		Node::StoreNodes(true);
 		Node::Nodes.clear();
-		Node::Dedis.clear();
+		Node::Sessions.clear();
+	}
+
+	bool Node::UnitTest()
+	{
+		printf("Testing ECDSA key...");
+
+		if (!Node::SignatureKey.IsValid())
+		{
+			printf("Error\n");
+			printf("ECDSA key seems invalid!\n");
+			return false;
+		}
+		
+		printf("Success\n");
+		printf("Testing 10 valid signatures...");
+
+		for (int i = 0; i < 10; i++)
+		{
+			std::string message = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
+			std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
+
+			if (!Utils::Cryptography::ECDSA::VerifyMessage(Node::SignatureKey, message, signature))
+			{
+				printf("Error\n");
+				printf("Signature for '%s' (%d) was invalid!\n", message.data(), i);
+				return false;
+			}
+		}
+
+		printf("Success\n");
+		printf("Testing 10 invalid signatures...");
+
+		for (int i = 0; i < 10; i++)
+		{
+			std::string message = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
+			std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
+
+			// Invalidate the message...
+			message[Utils::Cryptography::Rand::GenerateInt() % message.size()]++;
+
+			if (Utils::Cryptography::ECDSA::VerifyMessage(Node::SignatureKey, message, signature))
+			{
+				printf("Error\n");
+				printf("Signature for '%s' (%d) was valid? What the fuck? That is absolutely impossible...\n", message.data(), i);
+				return false;
+			}
+		}
+
+		printf("Success\n");
+		printf("Testing ECDSA key import...");
+
+		std::string pubKey = Node::SignatureKey.GetPublicKey();
+		std::string message = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
+		std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
+
+		Utils::Cryptography::ECDSA::Key testKey;
+		testKey.Set(pubKey);
+
+		if (!Utils::Cryptography::ECDSA::VerifyMessage(Node::SignatureKey, message, signature))
+		{
+			printf("Error\n");
+			printf("Verifying signature for message '%s' using imported keys failed!\n", message.data());
+			return false;
+		}
+
+		printf("Success\n");
+		return true;
 	}
 }

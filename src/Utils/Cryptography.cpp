@@ -40,6 +40,8 @@ namespace Utils
 
 		std::string ECDSA::SignMessage(Key key, std::string message)
 		{
+			if (!key.IsValid()) return "";
+
 			uint8_t buffer[512];
 			DWORD length = sizeof(buffer);
 
@@ -54,6 +56,8 @@ namespace Utils
 
 		bool ECDSA::VerifyMessage(Key key, std::string message, std::string signature)
 		{
+			if (!key.IsValid()) return false;
+
 			ltc_mp = ltm_desc;
 
 			int result = 0;
@@ -80,6 +84,8 @@ namespace Utils
 
 		std::string RSA::SignMessage(RSA::Key key, std::string message)
 		{
+			if (!key.IsValid()) return "";
+
 			uint8_t buffer[512];
 			DWORD length = sizeof(buffer);
 
@@ -95,6 +101,8 @@ namespace Utils
 
 		bool RSA::VerifyMessage(Key key, std::string message, std::string signature)
 		{
+			if (!key.IsValid()) return false;
+
 			register_hash(&sha1_desc);
 
 			ltc_mp = ltm_desc;

@@ -1,23 +1,10 @@
-#define HEARTBEAT_DEADLINE 1000 * 60 * 10  // Invalidate servers after 10 minutes without heartbeat
-#define HEARTBEAT_INTERVAL 1000 * 60 * 3   // Send heartbeats to each node every 3 minutes
-
-#define NODE_VALIDITY_EXPIRE 1000 * 60 * 2 // Revalidate nodes after 2 minutes
-#define DEDI_VALIDITY_EXPIRE 1000 * 60 * 2 // Revalidate dedis after 2 minutes
-
-#define NODE_QUERY_TIMEOUT 1000 * 30 * 1   // Invalidate nodes after 30 seconds without query response
-#define DEDI_QUERY_TIMEOUT 1000 * 10 * 1   // Invalidate dedis after 10 seconds without query response
-
-#define NODE_INVALID_DELETE 1000 * 60 * 10 // Delete invalidated nodes after 10 minutes
-#define DEDI_INVALID_DELETE 1000 * 60 * 10 // Delete invalidated dedis after 10 minutes
-
-#define HEARTBEATS_FRAME_LIMIT 1           // Limit of heartbeats sent to nodes per frame
-#define NODE_FRAME_QUERY_LIMIT 1           // Limit of nodes to be queried per frame
-#define DEDI_FRAME_QUERY_LIMIT 1           // Limit of dedis to be queried per frame
-
-#define NODE_PACKET_LIMIT 111              // Send 111 nodes per synchronization packet
-#define DEDI_PACKET_LIMIT 111              // Send 111 dedis per synchronization packet
-
-#define NODE_STORE_INTERVAL 1000 * 60* 1   // Store nodes every minute
+#define NODE_QUERY_INTERVAL    1000 * 60 * 2  // Query nodelist from nodes evry 2 minutes
+#define NODE_QUERY_TIMEOUT     1000 * 30 * 1  // Invalidate nodes after 30 seconds without query response
+#define NODE_INVALID_DELETE    1000 * 60 * 10 // Delete invalidated nodes after 10 minutes
+#define NODE_FRAME_QUERY_LIMIT 1              // Limit of nodes to be queried per frame
+#define NODE_PACKET_LIMIT      111            // Send 111 nodes per synchronization packet
+#define NODE_STORE_INTERVAL    1000 * 60* 1   // Store nodes every minute
+#define SESSION_TIMEOUT        1000 * 10      // 10 seconds session timeout
 
 namespace Components
 {
@@ -27,8 +14,7 @@ namespace Components
 		Node();
 		~Node();
 		const char* GetName() { return "Node"; };
-
-		static void ValidateDedi(Network::Address address, Utils::InfoString info);
+		bool UnitTest();
 
 		static std::vector<Network::Address> GetDediList();
 
@@ -36,7 +22,7 @@ namespace Components
 		enum EntryState
 		{
 			STATE_UNKNOWN,
-			STATE_QUERYING,
+			STATE_NEGOTIATING,
 			STATE_VALID,
 			STATE_INVALID,
 		};
@@ -44,20 +30,28 @@ namespace Components
 		struct NodeEntry
 		{
 			Network::Address address;
+			std::string challenge;
 			Utils::Cryptography::ECDSA::Key publicKey;
 			EntryState state;
-			int lastTime; // Last time we heard anything from the server itself
-			int lastHeartbeat; // Last time we got a heartbeat from it
-			int lastHeard; // Last time we heard something of the server at all (refs form other nodes)
+
+			bool registered;       // Do we consider this node as registered?
+
+			int lastTime;          // Last time we heard anything from the server itself
+			int lastHeard;         // Last time we heard something of the server at all (refs form other nodes)
+			int lastListQuery;     // Last time we got the list of the node
+
+			// This is only relevant for clients
+			// Other nodes or dedis don't need to know if the entry is a dedi or not.
+			bool isDedi;
 		};
 
-		struct DediEntry
+		struct ClientSession
 		{
 			Network::Address address;
 			std::string challenge;
-			EntryState state;
+			bool valid;
+			bool terminated;
 			int lastTime;
-			int lastHeard;
 		};
 
 #pragma pack(push, 1)
@@ -88,19 +82,18 @@ namespace Components
 		static Utils::Cryptography::ECDSA::Key SignatureKey;
 
 		static std::vector<NodeEntry> Nodes;
-		static std::vector<DediEntry> Dedis;
+		static std::vector<ClientSession> Sessions;
 
 		static void LoadNodes();
 		static void StoreNodes(bool force);
 
-		static void AddNode(Network::Address address, bool valid = false);
-		static void AddDedi(Network::Address address, bool dirty = false);
-
-		static void SendNodeList(Network::Address target);
-		static void SendDediList(Network::Address target);
+		static void AddNode(Network::Address address);
+		static void SendNodeList(Network::Address address);
+		static NodeEntry* FindNode(Network::Address address); 
+		static ClientSession* FindSession(Network::Address address);
 
 		static void DeleteInvalidNodes();
-		static void DeleteInvalidDedis();
+		static void DeleteInvalidSessions();
 
 		static void FrameHandler();
 

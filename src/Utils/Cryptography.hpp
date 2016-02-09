@@ -18,7 +18,7 @@ namespace Utils
 				{
 					ZeroMemory(this->KeyStorage.get(), sizeof(*this->KeyStorage.get()));
 				};
-				Key(ecc_key* key) : Key() { std::memmove(this->KeyStorage.get(), key, sizeof(*key)); };
+				Key(ecc_key* key) : Key() { if(key) std::memmove(this->KeyStorage.get(), key, sizeof(*key)); };
 				Key(ecc_key key) : Key(&key) {};
 				~Key() 
 				{
@@ -90,7 +90,7 @@ namespace Utils
 				{
 					ZeroMemory(this->KeyStorage.get(), sizeof(*this->KeyStorage.get()));
 				};
-				Key(rsa_key* key) : Key() { std::memmove(this->KeyStorage.get(), key, sizeof(*key)); };
+				Key(rsa_key* key) : Key() { if (key) std::memmove(this->KeyStorage.get(), key, sizeof(*key)); };
 				Key(rsa_key key) : Key(&key) {};
 				~Key()
 				{
