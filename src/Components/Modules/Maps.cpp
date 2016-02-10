@@ -110,7 +110,7 @@ namespace Components
 
 	void Maps::ReallocateEntryPool()
 	{
-		static_assert(sizeof(Game::XAssetEntry) == 16, "XAssetEntry size mismatch");
+		Assert_Size(Game::XAssetEntry, 16);
 
 		Maps::EntryPool.clear();
 		Maps::EntryPool.resize(789312);
