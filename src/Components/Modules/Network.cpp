@@ -119,7 +119,8 @@ namespace Components
 
 	void Network::SendCommand(Game::netsrc_t type, Network::Address target, std::string command, std::string data)
 	{
-		// Use space a separator (possible separators are '\n', ' ')
+		// Use space a separator (possible separators are '\n', ' ').
+		// Though, our handler only needs exactly 1 char as separator and doesn't which char it is
 		std::string packet;
 		packet.append(command);
 		packet.append(" ", 1);
@@ -182,7 +183,7 @@ namespace Components
 		return 1;
 	}
 
-	void Network::DeployPacket(Game::netadr_t from, Game::msg_t* msg)
+	void Network::DeployPacket(Game::netadr_t* from, Game::msg_t* msg)
 	{
 		if (Network::PacketHandlers.find(Network::SelectedPacket) != Network::PacketHandlers.end())
 		{
@@ -211,27 +212,16 @@ namespace Components
 	{
 		__asm
 		{
-			push ebp //C54
-			// esp = C54h?
-			mov eax, [esp + 0C54h + 14h]
-			push eax
-			mov eax, [esp + 0C58h + 10h]
-			push eax
-			mov eax, [esp + 0C5Ch + 0Ch]
-			push eax
-			mov eax, [esp + 0C60h + 08h]
-			push eax
-			mov eax, [esp + 0C64h + 04h]
-			push eax
+			lea eax, [esp + 0C54h]
+			push ebp // Command
+			push eax // Address pointer
 			call Network::DeployPacket
-			add esp, 14h
-			add esp, 4h
+			add esp, 8h
 			mov al, 1
-			//C50
-			pop edi //C4C
-			pop esi //C48
-			pop ebp //C44
-			pop ebx //C40
+			pop edi
+			pop esi
+			pop ebp
+			pop ebx
 			add esp, 0C40h
 			retn
 		}

@@ -63,7 +63,7 @@ namespace Components
 		static std::string SelectedPacket;
 		static std::map<std::string, Callback> PacketHandlers;
 		static int PacketInterceptionHandler(const char* packet);
-		static void DeployPacket(Game::netadr_t from, Game::msg_t* msg);
+		static void DeployPacket(Game::netadr_t* from, Game::msg_t* msg);
 		static void DeployPacketStub();
 	};
 }
