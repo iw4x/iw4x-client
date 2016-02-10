@@ -231,7 +231,7 @@ namespace Components
 						std::string data;
 						Proto::NodePacket packet;
 						packet.set_challenge(node.challenge);
-						packet.SerializePartialToString(&data);
+						packet.SerializeToString(&data);
 
 						Logger::Print("Sending registration request to %s\n", node.address.GetString());
 						Network::SendRaw(node.address, "nodeRegisterRequest\n" + data);
@@ -317,7 +317,7 @@ namespace Components
 				Proto::NodePacket packet;
 				packet.set_challenge(challenge);
 				packet.set_signature(Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge));
-				packet.SerializePartialToString(&data);
+				packet.SerializeToString(&data);
 
 				for (auto node : Node::Nodes)
 				{
@@ -343,7 +343,7 @@ namespace Components
 
 				Proto::NodePacket packet;
 				if (!packet.ParseFromString(data)) return;
-				if (!packet.has_challenge()) return;
+				if (!packet.challenge().size()) return;
 
 				std::string response;
 				std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, packet.challenge());
@@ -371,9 +371,9 @@ namespace Components
 
 				Proto::NodePacket packet;
 				if (!packet.ParseFromString(data)) return;
-				if (!packet.has_challenge()) return;
-				if (!packet.has_publickey()) return;
-				if (!packet.has_signature()) return;
+				if (!packet.challenge().size()) return;
+				if (!packet.publickey().size()) return;
+				if (!packet.signature().size()) return;
 
 				std::string challenge = packet.challenge();
 				std::string publicKey = packet.publickey();
@@ -404,7 +404,7 @@ namespace Components
 				packet.Clear();
 				packet.set_signature(signature);
 				packet.set_publickey(publicKey);
-				packet.SerializePartialToString(&data);
+				packet.SerializeToString(&data);
 
 				Network::SendRaw(address, "nodeRegisterAcknowledge\n" + data);
 			});
@@ -419,8 +419,8 @@ namespace Components
 
 				Proto::NodePacket packet;
 				if (!packet.ParseFromString(data)) return;
-				if (!packet.has_signature()) return;
-				if (!packet.has_publickey()) return;
+				if (!packet.signature().size()) return;
+				if (!packet.publickey().size()) return;
 
 				std::string publicKey = packet.publickey();
 				std::string signature = packet.signature();
@@ -485,8 +485,8 @@ namespace Components
 
 				Proto::NodePacket packet;
 				if (!packet.ParseFromString(data)) return;
-				if (!packet.has_challenge()) return;
-				if (!packet.has_signature()) return;
+				if (!packet.challenge().size()) return;
+				if (!packet.signature().size()) return;
 
 				std::string challenge = packet.challenge();
 				std::string signature = packet.signature();
