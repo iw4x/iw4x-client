@@ -79,8 +79,6 @@ namespace Components
 			}
 		}
 
-		// TODO: Check the external IP as well!
-
 		return false;
 	}
 
@@ -89,33 +87,50 @@ namespace Components
 		Network::PacketHandlers[Utils::StrToLower(packet)] = callback;
 	}
 
-	void Network::Send(Game::netsrc_t type, Address target, std::string data)
+	void Network::Send(Game::netsrc_t type, Network::Address target, std::string data)
 	{
-		Game::NET_OutOfBandPrint(type, *target.Get(), data.data());
+		// NET_OutOfBandPrint only supports non-binary data!
+		//Game::NET_OutOfBandPrint(type, *target.Get(), data.data());
+
+		std::string rawData;
+		rawData.append("\xFF\xFF\xFF\xFF", 4);
+		rawData.append(data);
+		//rawData.append("\0", 1);
+
+		Network::SendRaw(type, target, rawData);
 	}
 
-	void Network::Send(Address target, std::string data)
+	void Network::Send(Network::Address target, std::string data)
 	{
 		Network::Send(Game::netsrc_t::NS_CLIENT, target, data);
 	}
 
-	void Network::SendRaw(Game::netsrc_t type, Address target, std::string data)
+	void Network::SendRaw(Game::netsrc_t type, Network::Address target, std::string data)
 	{
-		DWORD header = 0xFFFFFFFF;
-
-		std::string rawData;
-		rawData.append(reinterpret_cast<char*>(&header), 4);
-		rawData.append(data.begin(), data.end());
-		rawData.append("\0", 1);
-
 		// NET_OutOfBandData doesn't seem to work properly
 		//Game::NET_OutOfBandData(type, *target.Get(), data.data(), data.size());
-		Game::Sys_SendPacket(type, rawData.size(), rawData.data(), *target.Get());
+		Game::Sys_SendPacket(type, data.size(), data.data(), *target.Get());
 	}
 
-	void Network::SendRaw(Address target, std::string data)
+	void Network::SendRaw(Network::Address target, std::string data)
 	{
 		Network::SendRaw(Game::netsrc_t::NS_CLIENT, target, data);
+	}
+
+	void Network::SendCommand(Game::netsrc_t type, Network::Address target, std::string command, std::string data)
+	{
+		// Use space a separator (possible separators are '\n', ' ')
+		std::string packet;
+		packet.append(command);
+		packet.append(" ", 1);
+		packet.append(data);
+
+		Network::Send(type, target, packet);
+	}
+
+	void Network::SendCommand(Network::Address target, std::string command, std::string data)
+	{
+		Network::SendCommand(Game::netsrc_t::NS_CLIENT, target, command, data);
 	}
 
 	void Network::Broadcast(unsigned short port, std::string data)
@@ -126,7 +141,7 @@ namespace Components
 		target.SetIP(INADDR_BROADCAST);
 		target.SetType(Game::netadrtype_t::NA_BROADCAST);
 
-		Network::SendRaw(Game::netsrc_t::NS_CLIENT, target, data);
+		Network::Send(Game::netsrc_t::NS_CLIENT, target, data);
 	}
 
 	void Network::BroadcastRange(unsigned int min, unsigned int max, std::string data)
@@ -181,7 +196,8 @@ namespace Components
 			}
 
 			// Remove trailing 0x00 byte
-			if (data.size() && !data[data.size() - 1]) data.pop_back();
+			// Actually, don't remove it, it might be part of the packet. Send correctly formatted packets instead!
+			//if (data.size() && !data[data.size() - 1]) data.pop_back();
 
 			Network::PacketHandlers[Network::SelectedPacket](from, data);
 		}

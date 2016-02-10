@@ -30,7 +30,7 @@ namespace Components
 		Party::Container.Target = target;
 		Party::Container.Challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
-		Network::Send(Party::Container.Target, Utils::VA("getinfo %s\n", Party::Container.Challenge.data()));
+		Network::SendCommand(Party::Container.Target, "getinfo", Party::Container.Challenge);
 
 		Command::Execute("openmenu popup_reconnectingtoparty");
 	}
@@ -308,7 +308,7 @@ namespace Components
 				info.Set("matchtype", "0");
 			}
 
-			Network::Send(address, Utils::VA("infoResponse\n\\%s\n", info.Build().data()));
+			Network::SendCommand(address, "infoResponse", "\\" + info.Build());
 		});
 
 		Network::Handle("infoResponse", [] (Network::Address address, std::string data)
@@ -339,7 +339,7 @@ namespace Components
 						// Send playlist request
 						Party::Container.RequestTime = Game::Com_Milliseconds();
 						Party::Container.AwaitingPlaylist = true;
-						Network::Send(address, "getplaylist\n");
+						Network::SendCommand(address, "getplaylist");
 
 						// This is not a safe method
 						// TODO: Fix actual error!

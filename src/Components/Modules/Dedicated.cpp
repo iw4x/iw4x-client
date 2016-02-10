@@ -141,8 +141,7 @@ namespace Components
 		Network::Address master(Utils::VA("%s:%u", masterServerName, masterPort));
 
 		Logger::Print("Sending heartbeat to master: %s:%u\n", masterServerName, masterPort);
-
-		Network::Send(master, Utils::VA("heartbeat %s\n", "IW4"));
+		Network::SendCommand(master, "heartbeat", "IW4");
 	}
 
 	void Dedicated::OnFrame(Dedicated::Callback callback)

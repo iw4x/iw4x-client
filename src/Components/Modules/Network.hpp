@@ -42,13 +42,17 @@ namespace Components
 
 		static void Handle(std::string packet, Callback callback);
 
-		// Only non-binary data
+		// Send quake-styled binary data
 		static void Send(Address target, std::string data);
 		static void Send(Game::netsrc_t type, Address target, std::string data);
 
-		// Allows sending binary data
+		// Allows sending raw data without quake header
 		static void SendRaw(Address target, std::string data);
 		static void SendRaw(Game::netsrc_t type, Address target, std::string data);
+
+		// Send quake-style command using binary data
+		static void SendCommand(Address target, std::string command, std::string data = "");
+		static void SendCommand(Game::netsrc_t type, Address target, std::string command, std::string data = "");
 
 		static void Broadcast(unsigned short port, std::string data);
 		static void BroadcastRange(unsigned int min, unsigned int max, std::string data);

@@ -49,12 +49,12 @@ namespace Components
 		unsigned int size = compressedList.size();
 		unsigned int hash = Utils::OneAtATime(compressedList.data(), compressedList.size());
 
-		std::string response = "playlistresponse\n";
+		std::string response;
 		response.append(reinterpret_cast<char*>(&hash), 4);
 		response.append(reinterpret_cast<char*>(&size), 4);
 		response.append(compressedList);
 
-		Network::SendRaw(address, response);
+		Network::SendCommand(address, "playlistresponse", response);
 	}
 
 	void Playlist::PlaylistReponse(Network::Address address, std::string data)

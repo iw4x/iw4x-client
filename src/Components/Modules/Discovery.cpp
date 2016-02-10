@@ -28,12 +28,11 @@ namespace Components
 
 					Logger::Print("Starting local server discovery...\n");
 
-					Discovery::DiscoveryContainer.Challenge = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
+					Discovery::DiscoveryContainer.Challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
-					//Network::BroadcastAll("discovery\n");
 					unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").Get<unsigned int>();
 					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").Get<unsigned int>();
-					Network::BroadcastRange(minPort, maxPort, Utils::VA("discovery\n%s", Discovery::DiscoveryContainer.Challenge.data()));
+					Network::BroadcastRange(minPort, maxPort, Utils::VA("discovery %s", Discovery::DiscoveryContainer.Challenge.data()));
 
 					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Com_Milliseconds() - start);
 
@@ -55,7 +54,7 @@ namespace Components
 			}
 
 			Logger::Print("Received discovery request from %s\n", address.GetString());
-			Network::Send(address, Utils::VA("discoveryResponse\n%s", data.data()));
+			Network::SendCommand(address, "discoveryResponse", data);
 		});
 
 		Network::Handle("discoveryResponse", [] (Network::Address address, std::string data)

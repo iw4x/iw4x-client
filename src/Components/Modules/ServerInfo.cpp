@@ -64,7 +64,7 @@ namespace Components
 			}
 
 			ServerInfo::PlayerContainer.Target = info->Addr;
-			Network::Send(ServerInfo::PlayerContainer.Target, "getstatus\n");
+			Network::SendCommand(ServerInfo::PlayerContainer.Target, "getstatus");
 		}
 	}
 
@@ -157,7 +157,7 @@ namespace Components
 				playerList.append(Utils::VA("%i %i \"%s\"\n", score, ping, name.data()));
 			}
 
-			Network::Send(address, Utils::VA("statusResponse\n\\%s\n%s\n", info.Build().data(), playerList.data()));
+			Network::SendCommand(address, "statusResponse", "\\" + info.Build() + "\n" + playerList + "\n");
 		});
 
 		Network::Handle("statusResponse", [] (Network::Address address, std::string data)

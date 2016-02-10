@@ -121,21 +121,21 @@ namespace Components
 
 			if (entries.size() >= NODE_PACKET_LIMIT)
 			{
-				std::string packet = "nodeListResponse\n";
+				std::string packet;
 				packet.append((Dedicated::IsDedicated() ? "\x01" : "\0"), 1);
 				packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
 
-				Network::SendRaw(address, packet);
+				Network::SendCommand(address, "nodeListResponse", packet);
 
 				entries.clear();
 			}
 		}
 
-		std::string packet = "nodeListResponse\n";
+		std::string packet;
 		packet.append((Dedicated::IsDedicated() ? "\x01" : "\0"), 1);
 		packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
 
-		Network::SendRaw(address, packet);
+		Network::SendCommand(address, "nodeListResponse", packet);
 	}
 
 	void Node::DeleteInvalidSessions()
@@ -234,12 +234,12 @@ namespace Components
 						packet.SerializeToString(&data);
 
 						Logger::Print("Sending registration request to %s\n", node.address.GetString());
-						Network::SendRaw(node.address, "nodeRegisterRequest\n" + data);
+						Network::SendCommand(node.address, "nodeRegisterRequest", data);
 					}
 					else
 					{
 						Logger::Print("Sending session request to %s\n", node.address.GetString());
-						Network::Send(node.address, "sessionRequest\n");
+						Network::SendCommand(node.address, "sessionRequest");
 					}
 				}
 			}
@@ -254,11 +254,11 @@ namespace Components
 
 					if (Dedicated::IsDedicated())
 					{
-						Network::Send(node.address, "nodeListRequest\n");
+						Network::SendCommand(node.address, "nodeListRequest");
 					}
 					else
 					{
-						Network::Send(node.address, "sessionRequest\n");
+						Network::SendCommand(node.address, "sessionRequest");
 					}
 				}
 			}
@@ -312,7 +312,7 @@ namespace Components
 			QuickPatch::OnShutdown([] ()
 			{
 				std::string data, challenge;
-				challenge = Utils::VA("X", Utils::Cryptography::Rand::GenerateInt());
+				challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 				Proto::NodePacket packet;
 				packet.set_challenge(challenge);
@@ -321,7 +321,7 @@ namespace Components
 
 				for (auto node : Node::Nodes)
 				{
-					Network::SendRaw(node.address, "nodeDeregister\n" + data);
+					Network::SendCommand(node.address, "nodeDeregister", data);
 				}
 			});
 
@@ -359,7 +359,7 @@ namespace Components
 				entry->challenge = challenge;
 				entry->state = Node::STATE_NEGOTIATING;
 
-				Network::SendRaw(address, "nodeRegisterSynchronize\n" + response);
+				Network::SendCommand(address, "nodeRegisterSynchronize", response);
 			});
 
 			Network::Handle("nodeRegisterSynchronize", [] (Network::Address address, std::string data)
@@ -406,7 +406,7 @@ namespace Components
 				packet.set_publickey(publicKey);
 				packet.SerializeToString(&data);
 
-				Network::SendRaw(address, "nodeRegisterAcknowledge\n" + data);
+				Network::SendCommand(address, "nodeRegisterAcknowledge", data);
 			});
 
 			Network::Handle("nodeRegisterAcknowledge", [] (Network::Address address, std::string data)
@@ -474,7 +474,7 @@ namespace Components
 				{
 					// Unallowed connection
 					Logger::Print("Node list requested by %s, but no valid session was present!\n", address.GetString());
-					Network::Send(address, "nodeListError\n");
+					Network::SendCommand(address, "nodeListError");
 				}
 			});
 
@@ -521,7 +521,7 @@ namespace Components
 
 				Node::Sessions.push_back(session);
 
-				Network::Send(address, "sessionInitialize\n" + session.challenge);
+				Network::SendCommand(address, "sessionInitialize", session.challenge);
 			});
 
 			Network::Handle("sessionSynchronize", [] (Network::Address address, std::string data)
@@ -534,7 +534,7 @@ namespace Components
 				{
 					Logger::Print("Session for %s validated.\n", address.GetString());
 					session->valid = true;
-					Network::Send(address, "sessionAcknowledge\n");
+					Network::SendCommand(address, "sessionAcknowledge");
 				}
 				else
 				{
@@ -553,7 +553,7 @@ namespace Components
 				Logger::Print("Session initialization received. Synchronizing...\n", address.GetString());
 
 				entry->lastTime = Game::Com_Milliseconds();
-				Network::Send(address, "sessionSynchronize\n" + data);
+				Network::SendCommand(address, "sessionSynchronize", data);
 			});
 
 			Network::Handle("sessionAcknowledge", [] (Network::Address address, std::string data)
@@ -566,7 +566,7 @@ namespace Components
 				entry->lastTime = Game::Com_Milliseconds();
 
 				Logger::Print("Session acknowledged, synchronizing node list...\n", address.GetString());
-				Network::Send(address, "nodeListRequest\n");
+				Network::SendCommand(address, "nodeListRequest");
 				Node::SendNodeList(address);
 			});
 		}
@@ -700,7 +700,7 @@ namespace Components
 
 		for (int i = 0; i < 10; ++i)
 		{
-			std::string message = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
+			std::string message = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 			std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
 
 			if (!Utils::Cryptography::ECDSA::VerifyMessage(Node::SignatureKey, message, signature))
@@ -716,7 +716,7 @@ namespace Components
 
 		for (int i = 0; i < 10; ++i)
 		{
-			std::string message = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
+			std::string message = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 			std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
 
 			// Invalidate the message...
@@ -734,7 +734,7 @@ namespace Components
 		printf("Testing ECDSA key import...");
 
 		std::string pubKey = Node::SignatureKey.GetPublicKey();
-		std::string message = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
+		std::string message = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 		std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
 
 		Utils::Cryptography::ECDSA::Key testKey;

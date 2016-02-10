@@ -224,8 +224,8 @@ namespace Components
 
 			Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
 
-			Network::Send(ServerList::RefreshContainer.Host, Utils::VA("getservers IW4 %i full empty", PROTOCOL));
-			//Network::Send(ServerList::RefreshContainer.Host, "getservers 0 full empty\n");
+			Network::SendCommand(ServerList::RefreshContainer.Host, "getservers", Utils::VA("IW4 %i full empty", PROTOCOL));
+			//Network::SendCommand(ServerList::RefreshContainer.Host, "getservers", "0 full empty");
 #else
 			ServerList::RefreshContainer.Mutex.lock();
 
@@ -500,11 +500,11 @@ namespace Components
 			SendServers--;
 
 			server->SendTime = Game::Com_Milliseconds();
-			server->Challenge = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
+			server->Challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 			ServerList::RefreshContainer.SentCount++;
 
-			Network::Send(server->Target, Utils::VA("getinfo %s\n", server->Challenge.data()));
+			Network::SendCommand(server->Target, "getinfo", server->Challenge);
 
 			// Display in the menu, like in COD4
 			Localization::Set("MPUI_SERVERQUERIED", Utils::VA("Sent requests: %d/%d", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount));

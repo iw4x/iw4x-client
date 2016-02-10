@@ -131,9 +131,9 @@ namespace Utils
 
 	std::string ParseChallenge(std::string data)
 	{
-		// Ensure line break
-		data.append("\n");
-		return data.substr(0, data.find_first_of("\n")).data();
+		auto pos = data.find_first_of("\n ");
+		if (pos == std::string::npos) return data;
+		return data.substr(0, pos).data();
 	}
 
 	// TODO: Use modern file reading methods

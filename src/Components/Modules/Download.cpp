@@ -121,11 +121,11 @@ namespace Components
 			download->lastPing = Game::Com_Milliseconds();
 			download->maxParts = request->maxPackets;
 
-			std::string packet = "dlAckResponse\n";
+			std::string packet;
 			packet.append(reinterpret_cast<char*>(&download->id), sizeof(int));
 			packet.append(challenge);
 
-			Network::SendRaw(target, packet);
+			Network::SendCommand(target, "dlAckResponse", packet);
 		}
 	}
 
@@ -232,13 +232,13 @@ namespace Components
 		request.length = download.challenge.size();
 
 
-		std::string packet = "dlAckRequest\n";
+		std::string packet;
 		packet.append(reinterpret_cast<char*>(&request), sizeof(request));
 		packet.append(download.challenge);
 
 		Download::DataContainer.ServerDownloads.push_back(download);
 
-		Network::SendRaw(target, packet);
+		Network::SendCommand(target, "dlAckRequest", packet);
 	}
 
 	std::string Download::AssembleBuffer(Download::Container::DownloadCL* download)
@@ -260,7 +260,7 @@ namespace Components
 		{
 			download->lastPing = Game::Com_Milliseconds();
 
-			std::string data = "dlMissRequest\n";
+			std::string data;
 			data.append(reinterpret_cast<char*>(&download->id), sizeof(int));
 
 			for (auto &packet : packets)
@@ -268,7 +268,7 @@ namespace Components
 				data.append(reinterpret_cast<char*>(&packet), sizeof(int));
 			}
 
-			Network::SendRaw(download->target, data);
+			Network::SendCommand(download->target, "dlMissRequest", data);
 		}
 	}
 
@@ -308,7 +308,7 @@ namespace Components
 		response.append(reinterpret_cast<char*>(&packetContainer), sizeof(packetContainer));
 		response.append(data);
 
-		Network::SendRaw(download->target, response);
+		Network::SendCommand(download->target, "dlPacketResponse", response);
 	}
 
 	void Download::Frame()
@@ -384,7 +384,7 @@ namespace Components
 		response.append(reinterpret_cast<char*>(&download.id), sizeof(int));
 		response.append(file);
 
-		Network::SendRaw(target, response);
+		Network::SendCommand(target, "dlRequest", response);
 
 		return download.id;
 	}
