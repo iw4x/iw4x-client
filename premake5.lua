@@ -100,7 +100,7 @@ workspace "iw4x"
 		buildoptions { "-Zm88" }
 
 		-- Dependency on zlib, json11 and asio
-		links { "zlib", "json11", "pdcurses", "libtomcrypt", "libtommath" }
+		links { "zlib", "json11", "pdcurses", "libtomcrypt", "libtommath", "protobuf" }
 		includedirs 
 		{ 
 			"./deps/zlib",
@@ -109,6 +109,7 @@ workspace "iw4x"
 			"./deps/asio/asio/include",
 			"./deps/libtomcrypt/src/headers",
 			"./deps/libtommath",
+			 "./deps/protobuf/src",
 		}
 
 		-- Virtual paths
@@ -240,6 +241,39 @@ workspace "iw4x"
 			includedirs { "./deps/libtommath"  }
 
 			files { "./deps/libtommath/*.c" }
+
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			-- always build as static lib, as pdcurses doesn't export anything
+			kind "StaticLib"
+			
+		-- protobuf
+		project "protobuf"
+			language "C++"
+			links { "zlib" }
+			defines { "_SCL_SECURE_NO_WARNINGS" }
+			includedirs 
+			{ 
+				"./deps/zlib",
+				"./deps/protobuf/src",
+			}
+
+			files { "./deps/protobuf/src/**.cc" }
+			
+			-- remove unnecessary sources
+			removefiles 
+			{ 
+				"./deps/protobuf/src/**/*test.cc",
+				"./deps/protobuf/src/google/protobuf/*test*.cc",
+				
+				"./deps/protobuf/src/google/protobuf/testing/**.cc",
+				"./deps/protobuf/src/google/protobuf/compiler/**.cc",
+				
+				"./deps/protobuf/src/google/protobuf/arena_nc.cc",
+				"./deps/protobuf/src/google/protobuf/util/internal/error_listener.cc",
+				"./deps/protobuf/src/google/protobuf/stubs/atomicops_internals_x86_gcc.cc",
+			}
 
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
