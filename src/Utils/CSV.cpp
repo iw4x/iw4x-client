@@ -43,7 +43,7 @@ namespace Utils
 
 		for (int i = 0; i < CSV::GetRows(); ++i)
 		{
-			count = max(CSV::GetColumns(i), count);
+			count = std::max(CSV::GetColumns(i), count);
 		}
 
 		return count;

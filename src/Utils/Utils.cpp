@@ -246,31 +246,4 @@ namespace Utils
 			this->KeyValuePairs[KeyValues[i]] = KeyValues[i + 1];
 		}
 	}
-
-	namespace Message
-	{
-		void WriteBuffer(std::string& message, std::string buffer)
-		{
-			DWORD length = buffer.size();
-			message.append(reinterpret_cast<char*>(&length), 4);
-			message.append(buffer);
-		}
-
-		bool ReadBuffer(std::string& message, std::string& buffer)
-		{
-			if (message.size() < 4) return false;
-
-			char* messagePtr = const_cast<char*>(message.data());
-
-			DWORD length = *reinterpret_cast<DWORD*>(messagePtr);
-
-			if (message.size() < (length + 4)) return false;
-
-			buffer.clear();
-			buffer.append(messagePtr + 4, length);
-
-			message = std::string(messagePtr + 4 + length, message.size() - (4 + length));
-			return true;
-		}
-	}
 }

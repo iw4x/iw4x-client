@@ -229,7 +229,9 @@ namespace Components
 						node.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 						std::string data;
-						Utils::Message::WriteBuffer(data, node.challenge);
+						Proto::NodePacket packet;
+						packet.set_challenge(node.challenge);
+						packet.SerializePartialToString(&data);
 
 						Logger::Print("Sending registration request to %s\n", node.address.GetString());
 						Network::SendRaw(node.address, "nodeRegisterRequest\n" + data);
@@ -311,8 +313,11 @@ namespace Components
 			{
 				std::string data, challenge;
 				challenge = Utils::VA("X", Utils::Cryptography::Rand::GenerateInt());
-				Utils::Message::WriteBuffer(data, challenge);
-				Utils::Message::WriteBuffer(data, Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge));
+
+				Proto::NodePacket packet;
+				packet.set_challenge(challenge);
+				packet.set_signature(Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge));
+				packet.SerializePartialToString(&data);
 
 				for (auto node : Node::Nodes)
 				{
@@ -336,16 +341,19 @@ namespace Components
 
 				Logger::Print("Received registration request from %s\n", address.GetString());
 
-				std::string response, challenge;
-				if (!Utils::Message::ReadBuffer(data, challenge)) return;
+				Proto::NodePacket packet;
+				if (!packet.ParseFromString(data)) return;
+				if (!packet.has_challenge()) return;
 
-				std::string publicKey = Node::SignatureKey.GetPublicKey();
-				std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge);
-				challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+				std::string response;
+				std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, packet.challenge());
+				std::string challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
-				Utils::Message::WriteBuffer(response, signature);
-				Utils::Message::WriteBuffer(response, publicKey);
-				Utils::Message::WriteBuffer(response, challenge);
+				packet.Clear();
+				packet.set_challenge(challenge);
+				packet.set_signature(signature);
+				packet.set_publickey(Node::SignatureKey.GetPublicKey());
+				packet.SerializeToString(&response);
 
 				entry->lastTime = Game::Com_Milliseconds();
 				entry->challenge = challenge;
@@ -361,10 +369,15 @@ namespace Components
 
 				Logger::Print("Received synchronization data for registration from %s!\n", address.GetString());
 
-				std::string challenge, publicKey, signature;
-				if (!Utils::Message::ReadBuffer(data, signature)) return;
-				if (!Utils::Message::ReadBuffer(data, publicKey)) return;
-				if (!Utils::Message::ReadBuffer(data, challenge)) return;
+				Proto::NodePacket packet;
+				if (!packet.ParseFromString(data)) return;
+				if (!packet.has_challenge()) return;
+				if (!packet.has_publickey()) return;
+				if (!packet.has_signature()) return;
+
+				std::string challenge = packet.challenge();
+				std::string publicKey = packet.publickey();
+				std::string signature = packet.signature();
 
 				// Verify signature
 				entry->publicKey.Set(publicKey);
@@ -388,8 +401,10 @@ namespace Components
 				publicKey = Node::SignatureKey.GetPublicKey();
 				signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge);
 
-				Utils::Message::WriteBuffer(data, signature);
-				Utils::Message::WriteBuffer(data, publicKey);
+				packet.Clear();
+				packet.set_signature(signature);
+				packet.set_publickey(publicKey);
+				packet.SerializePartialToString(&data);
 
 				Network::SendRaw(address, "nodeRegisterAcknowledge\n" + data);
 			});
@@ -402,9 +417,13 @@ namespace Components
 
 				Logger::Print("Received acknowledgment from %s\n", address.GetString());
 
-				std::string publicKey, signature;
-				if (!Utils::Message::ReadBuffer(data, signature)) return;
-				if (!Utils::Message::ReadBuffer(data, publicKey)) return;
+				Proto::NodePacket packet;
+				if (!packet.ParseFromString(data)) return;
+				if (!packet.has_signature()) return;
+				if (!packet.has_publickey()) return;
+
+				std::string publicKey = packet.publickey();
+				std::string signature = packet.signature();
 
 				entry->publicKey.Set(publicKey);
 
@@ -464,9 +483,13 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || !entry->registered) return;
 
-				std::string challenge, signature;
-				if (!Utils::Message::ReadBuffer(data, challenge)) return;
-				if (!Utils::Message::ReadBuffer(data, signature)) return;
+				Proto::NodePacket packet;
+				if (!packet.ParseFromString(data)) return;
+				if (!packet.has_challenge()) return;
+				if (!packet.has_signature()) return;
+
+				std::string challenge = packet.challenge();
+				std::string signature = packet.signature();
 
 				if (Utils::Cryptography::ECDSA::VerifyMessage(entry->publicKey, challenge, signature))
 				{

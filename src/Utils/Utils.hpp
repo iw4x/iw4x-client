@@ -59,12 +59,4 @@ namespace Utils
 			target->push_back(entry);
 		}
 	}
-
-	// TODO: Implement a bytebuffer class
-	// Maybe convery's or protobuf
-	namespace Message
-	{
-		void WriteBuffer(std::string& message, std::string buffer);
-		bool ReadBuffer(std::string& message, std::string& buffer);
-	}
 }

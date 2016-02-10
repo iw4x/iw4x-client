@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package Proto;
+
+message NodePacket {
+  string challenge = 1;
+  string signature = 2;
+  string publicKey = 3;
+}

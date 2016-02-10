@@ -60,6 +60,9 @@
 #include <json11.hpp>
 #include <tomcrypt.h>
 
+// Protobuf
+#include <proto/node.pb.h>
+
 #pragma warning(pop)
 
 // Version number
