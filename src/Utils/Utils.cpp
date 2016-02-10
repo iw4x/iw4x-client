@@ -35,7 +35,7 @@ namespace Utils
 	{
 		char* memArr = reinterpret_cast<char*>(mem);
 
-		for (size_t i = 0; i < length; i++)
+		for (size_t i = 0; i < length; ++i)
 		{
 			if (memArr[i] != chr)
 			{

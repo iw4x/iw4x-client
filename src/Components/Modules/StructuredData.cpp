@@ -41,7 +41,7 @@ namespace Components
 		// This whole procedure is potentially unsafe.
 		// If any index changes, everything gets shifted and the stats are fucked.
 		int lastIndex = 0;
-		for (int i = 0; i < dataEnum->numIndices; i++)
+		for (int i = 0; i < dataEnum->numIndices; ++i)
 		{
 			if (dataEnum->indices[i].index > lastIndex)
 			{
@@ -56,7 +56,7 @@ namespace Components
 		StructuredData::Indices[type] = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(StructuredData::IndexCount[type]);
 		memcpy(StructuredData::Indices[type], dataEnum->indices, sizeof(Game::StructuredDataEnumEntry) * dataEnum->numIndices);
 
-		for (unsigned int i = 0; i < entries.size(); i++)
+		for (unsigned int i = 0; i < entries.size(); ++i)
 		{
 			unsigned int pos = 0;
 
@@ -129,7 +129,7 @@ namespace Components
 
 				if (data)
 				{
-					for (int i = 0; i < ARR_SIZE(StructuredData::Entries); i++)
+					for (int i = 0; i < ARR_SIZE(StructuredData::Entries); ++i)
 					{
 						if (StructuredData::Entries[i].size())
 						{
@@ -164,7 +164,7 @@ namespace Components
 
 	StructuredData::~StructuredData()
 	{
-		for (int i = 0; i < ARR_SIZE(StructuredData::Entries); i++)
+		for (int i = 0; i < ARR_SIZE(StructuredData::Entries); ++i)
 		{
 			StructuredData::Entries[i].clear();
 		}

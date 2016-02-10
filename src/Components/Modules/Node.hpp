@@ -41,7 +41,6 @@ namespace Components
 			int lastListQuery;     // Last time we got the list of the node
 
 			// This is only relevant for clients
-			// Other nodes or dedis don't need to know if the entry is a dedi or not.
 			bool isDedi;
 		};
 
@@ -50,7 +49,7 @@ namespace Components
 			Network::Address address;
 			std::string challenge;
 			bool valid;
-			bool terminated;
+			//bool terminated; // Sessions can't explicitly be terminated, they can only timeout
 			int lastTime;
 		};
 

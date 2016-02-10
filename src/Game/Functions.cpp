@@ -271,7 +271,7 @@ namespace Game
 		char* zoneIndices = reinterpret_cast<char*>(0x16B8A34);
 		char* zoneData = reinterpret_cast<char*>(0x14C0F80);
 
-		for (int i = 0; i < zoneCount; i++)
+		for (int i = 0; i < zoneCount; ++i)
 		{
 			std::string name = zoneData + 4 + 0xA4 * (zoneIndices[i] & 0xFF);
 

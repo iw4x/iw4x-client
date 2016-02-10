@@ -50,7 +50,7 @@ namespace Components
 
 	Node::NodeEntry* Node::FindNode(Network::Address address)
 	{
-		for (auto i = Node::Nodes.begin(); i != Node::Nodes.end(); i++)
+		for (auto i = Node::Nodes.begin(); i != Node::Nodes.end(); ++i)
 		{
 			if (i->address == address)
 			{
@@ -63,7 +63,7 @@ namespace Components
 	}
 	Node::ClientSession* Node::FindSession(Network::Address address)
 	{
-		for (auto i = Node::Sessions.begin(); i != Node::Sessions.end(); i++)
+		for (auto i = Node::Sessions.begin(); i != Node::Sessions.end(); ++i)
 		{
 			if (i->address == address)
 			{
@@ -105,13 +105,13 @@ namespace Components
 
 	void Node::SendNodeList(Network::Address address)
 	{
-		if (address.IsSelf() || !Dedicated::IsDedicated()) return;
+		if (address.IsSelf()) return;
 
 		std::vector<Node::AddressEntry> entries;
 
 		for (auto entry : Node::Nodes)
 		{
-			if (entry.state == Node::STATE_VALID && entry.registered) // Only send valid nodes, or shall we send invalid ones as well?
+			if (entry.state == Node::STATE_VALID && entry.registered)
 			{
 				Node::AddressEntry thisAddress;
 				thisAddress.fromNetAddress(entry.address);
@@ -122,7 +122,7 @@ namespace Components
 			if (entries.size() >= NODE_PACKET_LIMIT)
 			{
 				std::string packet = "nodeListResponse\n";
-				packet.append("\x01", 1); // Yes, we are a dedi
+				packet.append((Dedicated::IsDedicated() ? "\x01" : "\0"), 1);
 				packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
 
 				Network::SendRaw(address, packet);
@@ -132,7 +132,7 @@ namespace Components
 		}
 
 		std::string packet = "nodeListResponse\n";
-		packet.append("\x01", 1); // Yes, we are a dedi
+		packet.append((Dedicated::IsDedicated() ? "\x01" : "\0"), 1);
 		packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
 
 		Network::SendRaw(address, packet);
@@ -144,10 +144,10 @@ namespace Components
 
 		for (auto session : Node::Sessions)
 		{
-			if (session.terminated) continue;
-			if ((Game::Com_Milliseconds() - session.lastTime) > SESSION_TIMEOUT) return;
-
-			cleanSessions.push_back(session);
+			if (session.lastTime > 0 && (Game::Com_Milliseconds() - session.lastTime) <= SESSION_TIMEOUT)
+			{
+				cleanSessions.push_back(session);
+			}
 		}
 
 		if (cleanSessions.size() != Node::Sessions.size())
@@ -232,7 +232,8 @@ namespace Components
 						Utils::Message::WriteBuffer(data, node.challenge);
 
 						Logger::Print("Sending registration request to %s\n", node.address.GetString());
-						Network::SendRaw(node.address, "nodeRegisterRequest\n" + data);					}
+						Network::SendRaw(node.address, "nodeRegisterRequest\n" + data);
+					}
 					else
 					{
 						Logger::Print("Sending session request to %s\n", node.address.GetString());
@@ -441,8 +442,8 @@ namespace Components
 					Node::ClientSession* session = Node::FindSession(address);
 					if (session)
 					{
-						allowed = (session->valid && !session->terminated);
-						session->terminated = true;
+						session->lastTime = Game::Com_Milliseconds();
+						allowed = session->valid;
 					}
 				}
 
@@ -453,7 +454,32 @@ namespace Components
 				else
 				{
 					// Unallowed connection
+					Logger::Print("Node list requested by %s, but no valid session was present!\n", address.GetString());
 					Network::Send(address, "nodeListError\n");
+				}
+			});
+
+			Network::Handle("nodeDeregister", [] (Network::Address address, std::string data)
+			{
+				Node::NodeEntry* entry = Node::FindNode(address);
+				if (!entry || !entry->registered) return;
+
+				std::string challenge, signature;
+				if (!Utils::Message::ReadBuffer(data, challenge)) return;
+				if (!Utils::Message::ReadBuffer(data, signature)) return;
+
+				if (Utils::Cryptography::ECDSA::VerifyMessage(entry->publicKey, challenge, signature))
+				{
+					entry->lastHeard = Game::Com_Milliseconds();
+					entry->lastTime = Game::Com_Milliseconds();
+					entry->registered = false;
+					entry->state = Node::STATE_INVALID;
+
+					Logger::Print("Node %s unregistered\n", address.GetString());
+				}
+				else
+				{
+					Logger::Print("Node %s tried to unregister using an invalid signature!\n", address.GetString());
 				}
 			});
 
@@ -468,7 +494,6 @@ namespace Components
 				session.address = address;
 				session.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 				session.lastTime = Game::Com_Milliseconds();
-				session.terminated = false;
 				session.valid = false;
 
 				Node::Sessions.push_back(session);
@@ -480,7 +505,7 @@ namespace Components
 			{
 				// Return if we don't have a session for this address
 				Node::ClientSession* session = Node::FindSession(address);
-				if (!session || session->terminated || session->valid) return;
+				if (!session || session->valid) return;
 
 				if (session->challenge == data)
 				{
@@ -490,8 +515,8 @@ namespace Components
 				}
 				else
 				{
+					session->lastTime = -1;
 					Logger::Print("Challenge mismatch. Validating session for %s failed.\n", address.GetString());
-					session->terminated = true;
 				}
 			});
 		}
@@ -513,12 +538,13 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry) return;
 
-				Logger::Print("Session acknowledged, requesting node list...\n", address.GetString());
-
 				entry->state = Node::STATE_VALID;
 				entry->registered = true;
 				entry->lastTime = Game::Com_Milliseconds();
+
+				Logger::Print("Session acknowledged, synchronizing node list...\n", address.GetString());
 				Network::Send(address, "nodeListRequest\n");
+				Node::SendNodeList(address);
 			});
 		}
 
@@ -554,7 +580,18 @@ namespace Components
 			}
 			else
 			{
-				Node::AddNode(address);
+				//Node::AddNode(address);
+
+				Node::ClientSession* session = Node::FindSession(address);
+				if (session && session->valid)
+				{
+					session->lastTime = Game::Com_Milliseconds();
+
+					for (unsigned int i = 0; i < size; ++i)
+					{
+						Node::AddNode(addresses[i].toNetAddress());
+					}
+				}
 			}
 		});
 
@@ -585,30 +622,6 @@ namespace Components
 			}
 		});
 
-		Network::Handle("nodeDeregister", [] (Network::Address address, std::string data)
-		{
-			Node::NodeEntry* entry = Node::FindNode(address);
-			if (!entry || !entry->registered) return;
-
-			std::string challenge, signature;
-			if (!Utils::Message::ReadBuffer(data, challenge)) return;
-			if (!Utils::Message::ReadBuffer(data, signature)) return;
-
-			if (Utils::Cryptography::ECDSA::VerifyMessage(entry->publicKey, challenge, signature))
-			{
-				entry->lastHeard = Game::Com_Milliseconds();
-				entry->lastTime = Game::Com_Milliseconds();
-				entry->registered = false;
-				entry->state = Node::STATE_INVALID;
-
-				Logger::Print("Node %s unregistered\n", address.GetString());
-			}
-			else
-			{
-				Logger::Print("Node %s tried to unregister using an invalid signature!\n", address.GetString());
-			}
-		});
-
 		Command::Add("listnodes", [] (Command::Params params)
 		{
 			Logger::Print("Nodes: %d\n", Node::Nodes.size());
@@ -625,6 +638,13 @@ namespace Components
 
 			Network::Address address(params[1]);
 			Node::AddNode(address);
+
+			Node::NodeEntry* entry = Node::FindNode(address);
+			if (entry)
+			{
+				entry->state = Node::STATE_UNKNOWN;
+				entry->registered = false;
+			}
 		});
 
 		// Install frame handlers
@@ -655,7 +675,7 @@ namespace Components
 		printf("Success\n");
 		printf("Testing 10 valid signatures...");
 
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 10; ++i)
 		{
 			std::string message = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
 			std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
@@ -671,7 +691,7 @@ namespace Components
 		printf("Success\n");
 		printf("Testing 10 invalid signatures...");
 
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 10; ++i)
 		{
 			std::string message = Utils::VA("%d", Utils::Cryptography::Rand::GenerateInt());
 			std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
