@@ -1,3 +1,6 @@
+-- protoc tool
+protocBinPath = path.translate(path.join(_MAIN_SCRIPT_DIR, "tools", "protoc.exe"))
+
 -- Option to allow copying the DLL file to a custom folder after build
 newoption {
 	trigger = "copy-to",
@@ -90,13 +93,23 @@ workspace "iw4x"
 	project "iw4x"
 		kind "SharedLib"
 		language "C++"
-		files { "./src/**.hpp", "./src/**.cpp" }
-		includedirs { "%{prj.location}/src", "./src" }
+		files {
+			"./src/**.hpp",
+			"./src/**.cpp",
+			"./src/**.proto",
+		}
+		includedirs {
+			"%{prj.location}/src",
+			"./src"
+		}
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
 		buildoptions { "/Zm100" }
+		filter "files:**.pb.*"
+			flags { "NoPCH" }
+		filter {}
 
 		-- Dependency on zlib, json11 and asio
 		links { "zlib", "json11", "pdcurses", "libtomcrypt", "libtommath", "protobuf" }
@@ -116,7 +129,9 @@ workspace "iw4x"
 		if not _OPTIONS["no-new-structure"] then
 			vpaths {
 				["Headers/*"] = { "./src/**.hpp" },
-				["Sources/*"] = { "./src/**.cpp" }
+				["Sources/*"] = { "./src/**.cpp" },
+				["Proto/Definitions/*"] = { "./src/Proto/**.proto" },
+				["Proto/Generated/*"] = { "**.pb.*" }, -- meh.
 			}
 		end
 
@@ -143,6 +158,23 @@ workspace "iw4x"
 
 		configuration "Release*"
 			flags { "FatalCompileWarnings" }
+		configuration {}
+
+		-- Generate source code from protobuf definitions
+		rules { "ProtobufCompiler" }
+
+		-- Workaround: Consume protobuf generated source files
+		matches = os.matchfiles(path.join("src/Proto/**.proto"))
+		for i, srcPath in ipairs(matches) do
+			basename = path.getbasename(srcPath)
+			files {
+				string.format("%%{prj.location}/src/proto/%s.pb.h", basename),
+				string.format("%%{prj.location}/src/proto/%s.pb.cc", basename),
+			}
+		end
+		includedirs {
+			"%{prj.location}/src/proto"
+		}
 
 	group "External dependencies"
 
@@ -261,10 +293,7 @@ workspace "iw4x"
 
 			-- default protobuf sources
 			files { "./deps/protobuf/src/**.cc" }
-			
-			-- our generated sources
-			files { "./%{prj.location}/src/proto/**.cc" }
-			
+
 			-- remove unnecessary sources
 			removefiles 
 			{ 
@@ -284,3 +313,19 @@ workspace "iw4x"
 
 			-- always build as static lib, as we include our custom classes and therefore can't perform shared linking
 			kind "StaticLib"
+
+rule "ProtobufCompiler"
+	display "Protobuf compiler"
+	location "./build"
+	fileExtension ".proto"
+	buildmessage "Compiling %(Identity) with protoc..."
+	buildcommands {
+		'@echo off',
+		'path "$(SolutionDir)\\..\\tools"',
+		'if not exist "$(ProjectDir)\\src\\proto" mkdir "$(ProjectDir)\\src\\proto"',
+		'protoc --error_format=msvs -I=%(RootDir)%(Directory) "--cpp_out=$(ProjectDir)\\src\\proto" "%(FullPath)"',
+	}
+	buildoutputs {
+		'$(ProjectDir)\\src\\proto\\%(Filename).pb.cc',
+		'$(ProjectDir)\\src\\proto\\%(Filename).pb.h',
+	}

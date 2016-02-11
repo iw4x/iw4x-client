@@ -61,9 +61,6 @@
 #include <tomcrypt.h>
 #include <wink/signal.hpp>
 
-// Protobuf
-#include <proto/node.pb.h>
-
 #pragma warning(pop)
 
 // Version number
