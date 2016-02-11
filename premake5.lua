@@ -133,7 +133,7 @@ workspace "iw4x"
 		-- fix vpaths for protobuf sources
 		vpaths {
 			["*"] = { "./src/**" },
-			["Proto/*"] = { "./build/src/proto/**" }, -- seems like we need 'build' here
+			["Proto"] = { "**.pb.*" }, -- meh.
 		}
 
 		-- Virtual paths
