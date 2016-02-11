@@ -44,6 +44,9 @@ namespace Utils
 		static void Nop(void* place, size_t length);
 		static void Nop(DWORD place, size_t length);
 
+		static void RedirectJump(void* place, void* stub);
+		static void RedirectJump(DWORD place, void* stub);
+
 		template <typename T> static void Set(void* place, T value)
 		{
 			*static_cast<T*>(place) = value;

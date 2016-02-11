@@ -242,7 +242,7 @@ namespace Components
 		Utils::Hook(0x5AA709, Network::PacketInterceptionHandler, HOOK_CALL).Install()->Quick();
 
 		// Install packet deploy hook
-		Utils::Hook::Set<int>(0x5AA715, (DWORD)Network::DeployPacketStub - 0x5AA713 - 6);
+		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);
 	}
 
 	Network::~Network()

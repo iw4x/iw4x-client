@@ -2,8 +2,9 @@ syntax = "proto3";
 
 package Proto;
 
-message NodePacket {
-  bytes challenge = 1;
-  bytes signature = 2;
-  bytes publicKey = 3;
+message NodePacket 
+{
+	bytes challenge = 1;
+	bytes signature = 2;
+	bytes publicKey = 3;
 }

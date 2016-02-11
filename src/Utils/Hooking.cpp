@@ -131,4 +131,16 @@ namespace Utils
 	{
 		Hook::SetString(reinterpret_cast<void*>(place), string);
 	}
+
+	void Hook::RedirectJump(void* place, void* stub)
+	{
+		char* operandPtr = static_cast<char*>(place) + 2;
+		int newOperand = reinterpret_cast<int>(stub) - (reinterpret_cast<int>(place) + 6);
+		Utils::Hook::Set<int>(operandPtr, newOperand);
+	}
+
+	void Hook::RedirectJump(DWORD place, void* stub)
+	{
+		Hook::RedirectJump(reinterpret_cast<void*>(place), stub);
+	}
 }

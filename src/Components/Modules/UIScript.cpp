@@ -122,7 +122,7 @@ namespace Components
 	UIScript::UIScript()
 	{
 		// Install handler
-		Utils::Hook::Set<int>(0x45EC5B, (DWORD)UIScript::RunMenuScriptStub - 0x45EC59 - 6);
+		Utils::Hook::RedirectJump(0x45EC59, UIScript::RunMenuScriptStub);
 
 		// Install ownerdraw handler
 		Utils::Hook(0x63D233, UIScript::OwnerDrawHandleKeyStub, HOOK_CALL).Install()->Quick();
