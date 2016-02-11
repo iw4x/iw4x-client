@@ -108,7 +108,15 @@ workspace "iw4x"
 		pchsource "src/STDInclude.cpp" -- real path
 		buildoptions { "/Zm100" }
 		filter "files:**.pb.*"
-			flags { "NoPCH" }
+			flags {
+				"NoPCH",
+			}
+			buildoptions {
+				"/wd4100", -- "Unused formal parameter"
+			}
+			defines {
+				"_SCL_SECURE_NO_WARNINGS",
+			}
 		filter {}
 
 		-- Dependency on zlib, json11 and asio
