@@ -1,6 +1,3 @@
--- protoc tool
-protocBinPath = path.translate(path.join(_MAIN_SCRIPT_DIR, "tools", "protoc.exe"))
-
 -- Option to allow copying the DLL file to a custom folder after build
 newoption {
 	trigger = "copy-to",
@@ -131,6 +128,12 @@ workspace "iw4x"
 			"./deps/libtommath",
 			"./deps/protobuf/src",
 			"./deps/Wink-Signals",
+		}
+		
+		-- fix vpaths for protobuf sources
+		vpaths {
+			["*"] = { "./src/**" },
+			["Proto/*"] = { "./build/src/proto/**" }, -- seems like we need 'build' here
 		}
 
 		-- Virtual paths
