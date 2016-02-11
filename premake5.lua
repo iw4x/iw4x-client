@@ -231,7 +231,7 @@ workspace "iw4x"
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
 
-			-- always build as static lib, as pdcurses doesn't export anything
+			-- always build as static lib, as libtomcrypt doesn't export anything
 			kind "StaticLib"
 			
 		-- libtommath
@@ -245,7 +245,7 @@ workspace "iw4x"
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
 
-			-- always build as static lib, as pdcurses doesn't export anything
+			-- always build as static lib, as libtommath doesn't export anything
 			kind "StaticLib"
 			
 		-- protobuf
@@ -282,5 +282,5 @@ workspace "iw4x"
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
 
-			-- always build as static lib, as pdcurses doesn't export anything
+			-- always build as static lib, as we include our custom classes and therefore can't perform shared linking
 			kind "StaticLib"
