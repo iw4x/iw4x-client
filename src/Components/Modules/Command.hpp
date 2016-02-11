@@ -17,20 +17,19 @@ namespace Components
 			DWORD CommandId;
 		};
 
-		typedef void(*Callback)(Command::Params params);
+		typedef void(Callback)(Command::Params params);
 
 		Command();
 		~Command();
 		const char* GetName() { return "Command"; };
 
-		static void Add(const char* name, Callback callback);
-
+		static void Add(const char* name, Callback* callback);
 		static void Execute(std::string command, bool sync = true);
 
 	private:
 		static Game::cmd_function_t* Allocate();
 		static std::vector<Game::cmd_function_t*> Functions;
-		static std::map<std::string, Callback> FunctionMap;
+		static std::map<std::string, wink::slot<Callback>> FunctionMap;
 		static void MainCallback();
 	};
 }

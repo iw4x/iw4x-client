@@ -3,7 +3,7 @@
 namespace Components
 {
 	std::vector<Game::cmd_function_t*> Command::Functions;
-	std::map<std::string, Command::Callback> Command::FunctionMap;
+	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMap;
 
 	char* Command::Params::operator[](size_t index)
 	{
@@ -20,17 +20,7 @@ namespace Components
 		return Game::cmd_argc[this->CommandId];
 	}
 
-	Command::~Command()
-	{
-		for (auto command : Command::Functions)
-		{
-			delete command;
-		}
-
-		Command::Functions.clear();
-	}
-
-	void Command::Add(const char* name, Command::Callback callback)
+	void Command::Add(const char* name, Command::Callback* callback)
 	{
 		Command::FunctionMap[Utils::StrToLower(name)] = callback;
 		Game::Cmd_AddCommand(name, Command::MainCallback, Command::Allocate(), 0);
@@ -73,5 +63,15 @@ namespace Components
 	Command::Command()
 	{
 		// TODO: Add commands here?
+	}
+
+	Command::~Command()
+	{
+		for (auto command : Command::Functions)
+		{
+			delete command;
+		}
+
+		Command::Functions.clear();
 	}
 }

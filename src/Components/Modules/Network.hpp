@@ -34,13 +34,13 @@ namespace Components
 			Game::netadr_t address;
 		};
 
-		typedef void(*Callback)(Address address, std::string data);
+		typedef void(Callback)(Address address, std::string data);
 
 		Network();
 		~Network();
 		const char* GetName() { return "Network"; };
 
-		static void Handle(std::string packet, Callback callback);
+		static void Handle(std::string packet, Callback* callback);
 
 		// Send quake-styled binary data
 		static void Send(Address target, std::string data);
@@ -61,7 +61,7 @@ namespace Components
 	private:
 		static SOCKET TcpSocket;
 		static std::string SelectedPacket;
-		static std::map<std::string, Callback> PacketHandlers;
+		static std::map<std::string, wink::slot<Callback>> PacketHandlers;
 		static int PacketInterceptionHandler(const char* packet);
 		static void DeployPacket(Game::netadr_t* from, Game::msg_t* msg);
 		static void DeployPacketStub();

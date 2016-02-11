@@ -23,20 +23,20 @@ namespace Components
 			void Parse(const char** args);
 		};
 
-		typedef void(*Callback)(Token token);
-		typedef void(*CallbackRaw)();
+		typedef void(Callback)(Token token);
+		typedef void(CallbackRaw)();
 
-		static void Add(std::string name, Callback callback);
-		static void Add(std::string name, CallbackRaw callback);
+		static void Add(std::string name, Callback* callback);
+		static void Add(std::string name, CallbackRaw* callback);
 
-		static void AddOwnerDraw(int ownerdraw, CallbackRaw callback);
+		static void AddOwnerDraw(int ownerdraw, CallbackRaw* callback);
 
 	private:
 		static void OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key);
 		static bool RunMenuScript(const char* name, const char** args);
 		static void RunMenuScriptStub();
 
-		static std::map<std::string, Callback> UIScripts;
-		static std::map<int, CallbackRaw> UIOwnerDraws;
+		static std::map<std::string, wink::slot<Callback>> UIScripts;
+		static std::map<int, wink::slot<CallbackRaw>> UIOwnerDraws;
 	};
 }

@@ -3,7 +3,7 @@
 namespace Components
 {
 	std::string Network::SelectedPacket;
-	std::map<std::string, Network::Callback> Network::PacketHandlers;
+	std::map<std::string, wink::slot<Network::Callback>> Network::PacketHandlers;
 
 	Network::Address::Address(std::string addrString)
 	{
@@ -16,7 +16,7 @@ namespace Components
 	void Network::Address::SetPort(unsigned short port)
 	{
 		this->address.port = htons(port);
-	};
+	}
 	unsigned short Network::Address::GetPort()
 	{
 		return ntohs(this->address.port);
@@ -82,7 +82,7 @@ namespace Components
 		return false;
 	}
 
-	void Network::Handle(std::string packet, Network::Callback callback)
+	void Network::Handle(std::string packet, Network::Callback* callback)
 	{
 		Network::PacketHandlers[Utils::StrToLower(packet)] = callback;
 	}

@@ -4,7 +4,7 @@ namespace Components
 {
 	bool AssetHandler::BypassState = false;
 	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
-	std::map<Game::XAssetType, AssetHandler::Callback> AssetHandler::TypeCallbacks;
+	std::map<Game::XAssetType, wink::slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
 	wink::signal<wink::slot<AssetHandler::RestrictCallback>> AssetHandler::RestrictSignal;
 
 	std::map<void*, void*> AssetHandler::Relocations;
@@ -140,12 +140,12 @@ namespace Components
 		}
 	}
 
-	void AssetHandler::OnFind(Game::XAssetType type, AssetHandler::Callback callback)
+	void AssetHandler::OnFind(Game::XAssetType type, AssetHandler::Callback* callback)
 	{
 		AssetHandler::TypeCallbacks[type] = callback;
 	}
 
-	void AssetHandler::OnLoad(RestrictCallback* callback)
+	void AssetHandler::OnLoad(AssetHandler::RestrictCallback* callback)
 	{
 		AssetHandler::RestrictSignal.connect(callback);
 	}
