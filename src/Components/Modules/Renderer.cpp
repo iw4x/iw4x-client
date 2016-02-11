@@ -3,7 +3,7 @@
 namespace Components
 {
 	Utils::Hook Renderer::DrawFrameHook;
-	std::vector<Renderer::Callback> Renderer::FrameCallbacks;
+	wink::signal<wink::slot<Renderer::Callback>> Renderer::FrameSignal;
 
 	void __declspec(naked) Renderer::FrameHook()
 	{
@@ -16,15 +16,12 @@ namespace Components
 
 	void Renderer::FrameHandler()
 	{
-		for (auto callback : Renderer::FrameCallbacks)
-		{
-			callback();
-		}
+		Renderer::FrameSignal();
 	}
 
-	void Renderer::OnFrame(Renderer::Callback callback)
+	void Renderer::OnFrame(Renderer::Callback* callback)
 	{
-		Renderer::FrameCallbacks.push_back(callback);
+		Renderer::FrameSignal.connect(callback);
 	}
 
 	int Renderer::Width()
@@ -46,6 +43,8 @@ namespace Components
 	Renderer::~Renderer()
 	{
 		Renderer::DrawFrameHook.Uninstall();
-		Renderer::FrameCallbacks.clear();
+
+		// As I don't want to include my fork as submodule, we have to wait till my pull request gets accepted in order to do this.
+		//Renderer::FrameSignal.clear();
 	}
 }

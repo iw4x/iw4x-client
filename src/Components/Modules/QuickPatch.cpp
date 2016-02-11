@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	std::vector<QuickPatch::Callback> QuickPatch::ShutdownCallbacks;
+	wink::signal<wink::slot<QuickPatch::Callback>> QuickPatch::ShutdownSignal;
 
 	int64_t* QuickPatch::GetStatsID()
 	{
@@ -12,17 +12,13 @@ namespace Components
 
 	void QuickPatch::OnShutdown(QuickPatch::Callback callback)
 	{
-		QuickPatch::ShutdownCallbacks.push_back(callback);
+		QuickPatch::ShutdownSignal.connect(callback);
 	}
 
 	void QuickPatch::ShutdownStub(int channel, const char* message)
 	{
 		Game::Com_Printf(0, message);
-
-		for (auto callback : QuickPatch::ShutdownCallbacks)
-		{
-			if (callback) callback();
-		}
+		QuickPatch::ShutdownSignal();
 	}
 
 	void QuickPatch::UnlockStats()
@@ -207,6 +203,6 @@ namespace Components
 
 	QuickPatch::~QuickPatch()
 	{
-		QuickPatch::ShutdownCallbacks.clear();
+		//QuickPatch::ShutdownSignal.clear();
 	}
 }

@@ -3,7 +3,7 @@ namespace Components
 	class Renderer : public Component
 	{
 	public:
-		typedef void(*Callback)();
+		typedef void(Callback)();
 
 		Renderer();
 		~Renderer();
@@ -12,13 +12,13 @@ namespace Components
 		static int Width();
 		static int Height();
 
-		static void OnFrame(Callback callback);
+		static void OnFrame(Callback* callback);
 
 	private:
 		static void FrameHook();
 		static void FrameHandler();
 
-		static std::vector<Callback> FrameCallbacks;
+		static wink::signal<wink::slot<Callback>> FrameSignal;
 		static Utils::Hook DrawFrameHook;
 	};
 }

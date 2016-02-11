@@ -3,7 +3,7 @@ namespace Components
 	class Dvar : public Component
 	{
 	public:
-		typedef void(*Callback)();
+		typedef void(Callback)();
 
 		struct Flag
 		{
@@ -42,14 +42,14 @@ namespace Components
 		~Dvar();
 		const char* GetName() { return "Dvar"; };
 
-		static void OnInit(Callback callback);
+		static void OnInit(Callback* callback);
 
 		// Only strings and bools use this type of declaration
 		template<typename T> static Var Register(const char* name, T value, Flag flag, const char* description);
 		template<typename T> static Var Register(const char* name, T value, T min, T max, Flag flag, const char* description);
 
 	private:
-		static std::vector<Callback> RegistrationCallbacks;
+		static wink::signal<wink::slot<Callback>> RegistrationSignal;
 
 		static Game::dvar_t* RegisterName(const char* name, const char* default, Game::dvar_flag flag, const char* description);
 	};

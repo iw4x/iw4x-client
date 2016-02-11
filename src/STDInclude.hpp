@@ -59,6 +59,7 @@
 //#include <asio.hpp>
 #include <json11.hpp>
 #include <tomcrypt.h>
+#include <wink/signal.hpp>
 
 // Protobuf
 #include <proto/node.pb.h>

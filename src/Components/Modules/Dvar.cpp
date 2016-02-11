@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	std::vector<Dvar::Callback> Dvar::RegistrationCallbacks;
+	wink::signal<wink::slot<Dvar::Callback>> Dvar::RegistrationSignal;
 
 	Dvar::Var::Var(std::string dvarName) : Var()
 	{
@@ -131,18 +131,15 @@ namespace Components
 		return Game::Dvar_RegisterInt(name, value, min, max, flag.val, description);
 	}
 
-	void Dvar::OnInit(Dvar::Callback callback)
+	void Dvar::OnInit(Dvar::Callback* callback)
 	{
-		Dvar::RegistrationCallbacks.push_back(callback);
+		Dvar::RegistrationSignal.connect(callback);
 	}
 
 	Game::dvar_t* Dvar::RegisterName(const char* name, const char* default, Game::dvar_flag flag, const char* description)
 	{
 		// Run callbacks
-		for (auto callback : Dvar::RegistrationCallbacks)
-		{
-			callback();
-		}
+		Dvar::RegistrationSignal();
 
 		// Name watcher
 		Renderer::OnFrame([] ()
@@ -205,6 +202,6 @@ namespace Components
 
 	Dvar::~Dvar()
 	{
-		Dvar::RegistrationCallbacks.clear();
+		//Dvar::RegistrationSignal.clear();
 	}
 }

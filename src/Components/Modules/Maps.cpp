@@ -50,13 +50,14 @@ namespace Components
 		return FastFiles::LoadLocalizeZones(data.data(), data.size(), sync);
 	}
 
-	bool Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name)
+	void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
 	{
 		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end())
 		{
 			if (type == Game::XAssetType::ASSET_TYPE_GAME_MAP_MP || type == Game::XAssetType::ASSET_TYPE_COL_MAP_MP || type == Game::XAssetType::ASSET_TYPE_GFX_MAP || type == Game::XAssetType::ASSET_TYPE_MAP_ENTS || type == Game::XAssetType::ASSET_TYPE_COM_MAP || type == Game::XAssetType::ASSET_TYPE_FX_MAP)
 			{
-				return false;
+				*restrict = true;
+				return;
 			}
 		}
 
@@ -70,8 +71,6 @@ namespace Components
 				asset.mapEnts->entitystring = mapEntities.data();
 			}
 		}
-
-		return true;
 	}
 
 	void Maps::GetBSPName(char* buffer, size_t size, const char* format, const char* mapname)

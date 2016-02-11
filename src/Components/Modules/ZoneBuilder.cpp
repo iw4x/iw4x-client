@@ -447,7 +447,7 @@ namespace Components
 		static_assert(sizeof(Game::XFile) == 40, "Invalid XFile structure!");
 		static_assert(Game::MAX_XFILE_COUNT == 8, "XFile block enum is invalid!");
 
-		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string name)
+		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
 		{
 // 			static void* blocTable = 0;
 // 
@@ -471,8 +471,6 @@ namespace Components
 // 					}
 // 				}
 // 			}
-
-			return true;
 		});
 		
 		if (ZoneBuilder::IsEnabled())

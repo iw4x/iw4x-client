@@ -5,7 +5,7 @@ namespace Components
 	bool AssetHandler::BypassState = false;
 	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, AssetHandler::Callback> AssetHandler::TypeCallbacks;
-	std::vector<AssetHandler::RestrictCallback> AssetHandler::RestrictCallbacks;
+	wink::signal<wink::slot<AssetHandler::RestrictCallback>> AssetHandler::RestrictSignal;
 
 	std::map<void*, void*> AssetHandler::Relocations;
 
@@ -110,15 +110,11 @@ namespace Components
 		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
 		if (!name) return false;
 
-		for (auto callback : AssetHandler::RestrictCallbacks)
-		{
-			if (!callback(type, *asset, name))
-			{
-				return false;
-			}
-		}
+		bool restrict = false;
+		AssetHandler::RestrictSignal(type, *asset, name, &restrict);
 
-		return true;
+		// If no slot restricts the loading, we can load the asset
+		return (!restrict);
 	}
 
 	void __declspec(naked) AssetHandler::AddAssetStub()
@@ -149,9 +145,9 @@ namespace Components
 		AssetHandler::TypeCallbacks[type] = callback;
 	}
 
-	void AssetHandler::OnLoad(RestrictCallback callback)
+	void AssetHandler::OnLoad(RestrictCallback* callback)
 	{
-		AssetHandler::RestrictCallbacks.push_back(callback);
+		AssetHandler::RestrictSignal.connect(callback);
 	}
 
 	void AssetHandler::Relocate(void* start, void* to, DWORD size)
@@ -279,6 +275,7 @@ namespace Components
 		}
 
 		AssetHandler::AssetInterfaces.clear();
+		//AssetHandler::RestrictSignal.clear();
 		AssetHandler::TypeCallbacks.clear();
 	}
 }

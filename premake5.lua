@@ -109,6 +109,7 @@ workspace "iw4x"
 			"./deps/libtomcrypt/src/headers",
 			"./deps/libtommath",
 			"./deps/protobuf/src",
+			"./deps/Wink-Signals",
 		}
 
 		-- Virtual paths

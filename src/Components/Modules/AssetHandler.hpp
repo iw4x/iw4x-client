@@ -14,14 +14,14 @@ namespace Components
 		};
 
 		typedef Game::XAssetHeader(*Callback)(Game::XAssetType type, std::string name);
-		typedef bool(*RestrictCallback)(Game::XAssetType type, Game::XAssetHeader asset, std::string name);
+		typedef void(RestrictCallback)(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict);
 
 		AssetHandler();
 		~AssetHandler();
 		const char* GetName() { return "AssetHandler"; };
 
 		static void OnFind(Game::XAssetType type, Callback callback);
-		static void OnLoad(RestrictCallback callback);
+		static void OnLoad(RestrictCallback* callback);
 
 		static void Relocate(void* start, void* to, DWORD size = 4);
 
@@ -50,7 +50,7 @@ namespace Components
 
 		static std::map<Game::XAssetType, IAsset*> AssetInterfaces;
 		static std::map<Game::XAssetType, Callback> TypeCallbacks;
-		static std::vector<RestrictCallback> RestrictCallbacks;
+		static wink::signal<wink::slot<RestrictCallback>> RestrictSignal;
 
 		static std::map<void*, void*> Relocations;
 	};

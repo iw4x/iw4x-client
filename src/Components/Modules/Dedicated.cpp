@@ -2,8 +2,7 @@
 
 namespace Components
 {
-	Dvar::Var Dedicated::Dedi;
-	std::vector<Dedicated::Callback> Dedicated::FrameCallbacks;
+	wink::signal<wink::slot<Dedicated::Callback>> Dedicated::FrameSignal;
 
 	bool Dedicated::IsDedicated()
 	{
@@ -144,18 +143,14 @@ namespace Components
 		Network::SendCommand(master, "heartbeat", "IW4");
 	}
 
-	void Dedicated::OnFrame(Dedicated::Callback callback)
+	void Dedicated::OnFrame(Dedicated::Callback* callback)
 	{
-		Dedicated::FrameCallbacks.push_back(callback);
+		Dedicated::FrameSignal.connect(callback);
 	}
 
 	void Dedicated::FrameStub()
 	{
-		for (auto callback : Dedicated::FrameCallbacks)
-		{
-			callback();
-		}
-
+		Dedicated::FrameSignal();
 		Utils::Hook::Call<void()>(0x5A8E80)();
 	}
 
@@ -250,6 +245,6 @@ namespace Components
 
 	Dedicated::~Dedicated()
 	{
-		Dedicated::FrameCallbacks.clear();
+		//Dedicated::FrameSignal.clear();
 	}
 }

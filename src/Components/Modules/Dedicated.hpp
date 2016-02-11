@@ -3,7 +3,7 @@ namespace Components
 	class Dedicated : public Component
 	{
 	public:
-		typedef void(*Callback)();
+		typedef void(Callback)();
 
 		Dedicated();
 		~Dedicated();
@@ -13,11 +13,10 @@ namespace Components
 
 		static void Heartbeat();
 
-		static void OnFrame(Callback callback);
+		static void OnFrame(Callback* callback);
 
 	private:
-		static Dvar::Var Dedi;
-		static std::vector<Callback> FrameCallbacks;
+		static wink::signal<wink::slot<Callback>> FrameSignal;
 
 		static void MapRotate();
 		static void FrameStub();
