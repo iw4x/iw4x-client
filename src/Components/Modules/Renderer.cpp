@@ -43,8 +43,6 @@ namespace Components
 	Renderer::~Renderer()
 	{
 		Renderer::DrawFrameHook.Uninstall();
-
-		// As I don't want to include my fork as submodule, we have to wait till my pull request gets accepted in order to do this.
-		//Renderer::FrameSignal.clear();
+		Renderer::FrameSignal.clear();
 	}
 }

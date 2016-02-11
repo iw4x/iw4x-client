@@ -275,7 +275,7 @@ namespace Components
 		}
 
 		AssetHandler::AssetInterfaces.clear();
-		//AssetHandler::RestrictSignal.clear();
+		AssetHandler::RestrictSignal.clear();
 		AssetHandler::TypeCallbacks.clear();
 	}
 }

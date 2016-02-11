@@ -203,6 +203,6 @@ namespace Components
 
 	QuickPatch::~QuickPatch()
 	{
-		//QuickPatch::ShutdownSignal.clear();
+		QuickPatch::ShutdownSignal.clear();
 	}
 }

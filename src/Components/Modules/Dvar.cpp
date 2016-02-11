@@ -202,6 +202,6 @@ namespace Components
 
 	Dvar::~Dvar()
 	{
-		//Dvar::RegistrationSignal.clear();
+		Dvar::RegistrationSignal.clear();
 	}
 }

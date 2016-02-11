@@ -245,6 +245,6 @@ namespace Components
 
 	Dedicated::~Dedicated()
 	{
-		//Dedicated::FrameSignal.clear();
+		Dedicated::FrameSignal.clear();
 	}
 }
