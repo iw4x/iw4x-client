@@ -8,17 +8,13 @@ namespace Components
 
 	void Node::LoadNodes()
 	{
-		std::string nodes = Utils::ReadFile("players/nodes.dat");
-		if (nodes.empty()) return;
-
 		Proto::Node::List list;
-		list.ParseFromString(nodes);
+		std::string nodes = Utils::ReadFile("players/nodes.dat");
+		if (nodes.empty() || !list.ParseFromString(nodes)) return;
 
 		for (int i = 0; i < list.address_size(); ++i)
 		{
-			Network::Address address;
-			address.Deserialize(list.address(i));
-			Node::AddNode(address);
+			Node::AddNode(list.address(i));
 		}
 	}
 	void Node::StoreNodes(bool force)
@@ -30,6 +26,10 @@ namespace Components
 		lastStorage = Game::Com_Milliseconds();
 
 		Proto::Node::List list;
+
+		// This is obsolete when storing to file.
+		// However, defining another proto message due to this would be redundant.
+		//list.set_is_dedi(Dedicated::IsDedicated());
 
 		for (auto node : Node::Nodes)
 		{
@@ -572,9 +572,7 @@ namespace Components
 
 					for (int i = 0; i < list.address_size(); ++i)
 					{
-						Network::Address addr;
-						addr.Deserialize(list.address(i));
-						Node::AddNode(addr);
+						Node::AddNode(list.address(i));
 					}
 				}
 			}
@@ -589,9 +587,7 @@ namespace Components
 
 					for (int i = 0; i < list.address_size(); ++i)
 					{
-						Network::Address addr;
-						addr.Deserialize(list.address(i));
-						Node::AddNode(addr);
+						Node::AddNode(list.address(i));
 					}
 				}
 			}
