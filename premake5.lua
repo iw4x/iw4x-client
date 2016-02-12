@@ -103,7 +103,7 @@ workspace "iw4x"
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
-		buildoptions { "/Zm100" }
+		buildoptions { "/Zm100 -Zm100" }
 		filter "files:**.pb.*"
 			flags {
 				"NoPCH",
