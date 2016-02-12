@@ -236,7 +236,7 @@ namespace Components
 		zoneHeader.assetList.assets = reinterpret_cast<Game::XAsset*>(-1);
 
 		// Increment ScriptStrings count (for empty script string) if available
-		if (ZoneBuilder::Zone::ScriptStrings.size())
+		if (!ZoneBuilder::Zone::ScriptStrings.empty())
 		{
 			zoneHeader.assetList.stringList.count = ZoneBuilder::Zone::ScriptStrings.size() + 1;
 			zoneHeader.assetList.stringList.strings = reinterpret_cast<const char**>(-1);
@@ -247,7 +247,7 @@ namespace Components
 		ZoneBuilder::Zone::Buffer.PushBlock(Game::XFILE_BLOCK_VIRTUAL); // Push main stream onto the stream stack
 
 																   // Write ScriptStrings, if available
-		if (ZoneBuilder::Zone::ScriptStrings.size())
+		if (!ZoneBuilder::Zone::ScriptStrings.empty())
 		{
 			ZoneBuilder::Zone::Buffer.SaveNull(4); // Empty script string?
 												   // This actually represents a NULL string, but as scriptString. 
@@ -361,7 +361,7 @@ namespace Components
 		// Might optimize that later
 		if (!gameIndex)
 		{
-			if (!ZoneBuilder::Zone::ScriptStrings.size())
+			if (ZoneBuilder::Zone::ScriptStrings.empty())
 			{
 				ZoneBuilder::Zone::ScriptStrings.push_back("");
 			}

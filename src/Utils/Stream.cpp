@@ -146,7 +146,7 @@ namespace Utils
 
 	bool Stream::PopBlock()
 	{
-		if (Stream::StreamStack.size())
+		if (!Stream::StreamStack.empty())
 		{
 			Stream::StreamStack.pop_back();
 			return true;
@@ -175,7 +175,7 @@ namespace Utils
 
 	Game::XFILE_BLOCK_TYPES Stream::GetCurrentBlock()
 	{
-		if (Stream::StreamStack.size())
+		if (!Stream::StreamStack.empty())
 		{
 			return Stream::StreamStack[Stream::StreamStack.size() - 1];
 		}

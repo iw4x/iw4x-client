@@ -69,7 +69,7 @@ namespace Components
 
 	bool Download::HasReceivedPacket(Download::Container::DownloadCL* download, int packet)
 	{
-		if (download->parts.size())
+		if (!download->parts.empty())
 		{
 			for (auto i = download->parts.begin(); i != download->parts.end(); ++i)
 			{
@@ -256,7 +256,7 @@ namespace Components
 
 	void Download::RequestMissingPackets(Download::Container::DownloadCL* download, std::vector<int> packets)
 	{
-		if (packets.size())
+		if (!packets.empty())
 		{
 			download->lastPing = Game::Com_Milliseconds();
 
@@ -274,7 +274,7 @@ namespace Components
 
 	void Download::MarkPacketAsDirty(Download::Container::DownloadSV* download, int packet)
 	{
-		if (download->sentParts.size())
+		if (!download->sentParts.empty())
 		{
 			for (auto i = download->sentParts.begin(); i != download->sentParts.end(); ++i)
 			{
@@ -313,7 +313,7 @@ namespace Components
 
 	void Download::Frame()
 	{
-		if (Download::DataContainer.ClientDownloads.size())
+		if (!Download::DataContainer.ClientDownloads.empty())
 		{
 			for (auto i = Download::DataContainer.ClientDownloads.begin(); i != Download::DataContainer.ClientDownloads.end(); ++i)
 			{
@@ -341,7 +341,7 @@ namespace Components
 			}
 		}
 
-		if (Download::DataContainer.ServerDownloads.size())
+		if (!Download::DataContainer.ServerDownloads.empty())
 		{
 			for (auto i = Download::DataContainer.ServerDownloads.begin(); i != Download::DataContainer.ServerDownloads.end(); ++i)
 			{

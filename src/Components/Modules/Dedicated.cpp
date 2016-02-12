@@ -74,7 +74,7 @@ namespace Components
 		Logger::Print("Rotating map...\n");
 
 		// if nothing, just restart
-		if (!Dvar::Var("sv_mapRotation").Get<std::string>().size())
+		if (Dvar::Var("sv_mapRotation").Get<std::string>().empty())
 		{
 			Logger::Print("No rotation defined, restarting map.\n");
 			Command::Execute(Utils::VA("map %s", Dvar::Var("mapname").Get<const char*>()), true);
@@ -82,7 +82,7 @@ namespace Components
 		}
 
 		// first, check if the string contains nothing
-		if (!Dvar::Var("sv_mapRotationCurrent").Get<std::string>().size())
+		if (Dvar::Var("sv_mapRotationCurrent").Get<std::string>().empty())
 		{
 			Logger::Print("Current map rotation has finished, reloading...\n");
 			Dvar::Var("sv_mapRotationCurrent").Set(Dvar::Var("sv_mapRotation").Get<const char*>());

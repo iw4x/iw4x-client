@@ -81,6 +81,17 @@ namespace Components
 
 		return false;
 	}
+	void Network::Address::Serialize(Proto::Network::Address* protoAddress)
+	{
+		protoAddress->set_ip(this->GetIP().full);
+		protoAddress->set_port(htons(this->GetPort()));
+	}
+	void Network::Address::Deserialize(const Proto::Network::Address& protoAddress)
+	{
+		this->SetIP({ protoAddress.ip() });
+		this->SetPort(ntohs(static_cast<uint16_t>(protoAddress.port())));
+		this->SetType(Game::netadrtype_t::NA_IP);
+	}
 
 	void Network::Handle(std::string packet, Network::Callback* callback)
 	{

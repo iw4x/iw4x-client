@@ -78,7 +78,7 @@ namespace Utils
 			buffer = file;
 		}
 		
-		if (buffer.size())
+		if (!buffer.empty())
 		{
 			auto rows = Utils::Explode(buffer, '\n');
 

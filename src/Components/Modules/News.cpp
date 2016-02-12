@@ -54,7 +54,7 @@ namespace Components
 
 			std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/motd.txt").SetTimeout(5000)->Get();
 
-			if (data.size())
+			if (!data.empty())
 			{
 				Localization::Set("MPUI_MOTD_TEXT", data.data());
 			}

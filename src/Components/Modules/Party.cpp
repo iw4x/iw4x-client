@@ -285,7 +285,7 @@ namespace Components
 			info.Set("hc", (Dvar::Var("g_hardcore").Get<bool>() ? "1" : "0"));
 
 			// Ensure mapname is set
-			if (!info.Get("mapname").size())
+			if (info.Get("mapname").empty())
 			{
 				info.Set("mapname", Dvar::Var("ui_mapname").Get<const char*>());
 			}

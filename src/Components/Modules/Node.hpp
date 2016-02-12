@@ -6,9 +6,6 @@
 #define NODE_STORE_INTERVAL    1000 * 60* 1   // Store nodes every minute
 #define SESSION_TIMEOUT        1000 * 10      // 10 seconds session timeout
 
-// Protobuf
-#include "proto/node.pb.h"
-
 namespace Components
 {
 	class Node : public Component
@@ -55,31 +52,6 @@ namespace Components
 			//bool terminated; // Sessions can't explicitly be terminated, they can only timeout
 			int lastTime;
 		};
-
-#pragma pack(push, 1)
-		struct AddressEntry
-		{
-			Game::netIP_t ip;
-			unsigned short port;
-
-			Network::Address toNetAddress()
-			{
-				Network::Address address;
-
-				address.SetIP(this->ip);
-				address.SetPort(ntohs(this->port));
-				address.SetType(Game::netadrtype_t::NA_IP);
-
-				return address;
-			}
-
-			void fromNetAddress(Network::Address address)
-			{
-				this->ip = address.GetIP();
-				this->port = htons(address.GetPort());
-			}
-		};
-#pragma pack(pop)
 
 		static Utils::Cryptography::ECDSA::Key SignatureKey;
 

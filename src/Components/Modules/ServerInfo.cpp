@@ -106,7 +106,7 @@ namespace Components
 			info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
 
 			// Ensure mapname is set
-			if (!info.Get("mapname").size())
+			if (info.Get("mapname").empty())
 			{
 				info.Set("mapname", Dvar::Var("ui_mapname").Get<const char*>());
 			}

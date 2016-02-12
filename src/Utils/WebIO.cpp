@@ -121,7 +121,7 @@ namespace Utils
 			std::string key = param->first;
 			std::string value = param->second;
 
-			if (body.size()) body.append("&");
+			if (!body.empty()) body.append("&");
 
 			body.append(key);
 			body.append("=");

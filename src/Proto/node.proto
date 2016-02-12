@@ -1,10 +1,17 @@
 syntax = "proto3";
 
-package Proto;
+package Proto.Node;
+import "network.proto";
 
-message NodePacket 
+message Packet 
 {
 	bytes challenge = 1;
 	bytes signature = 2;
-	bytes publicKey = 3;
+	bytes publickey = 3;
+}
+
+message List
+{
+	bool is_dedi = 1;
+	repeated Network.Address address = 2;
 }

@@ -218,7 +218,7 @@ namespace Components
 	{
 		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(Utils::VA("ui_mp\\%s.menu", menudef->window.name));
 
-		if (!menus.size())
+		if (menus.empty())
 		{
 			// Try loading the original menu, if we can't load our custom one
 			Game::menuDef_t* originalMenu = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, menudef->window.name).menu;
@@ -239,7 +239,7 @@ namespace Components
 	Game::MenuList* Menus::LoadScriptMenu(const char* menu)
 	{
 		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(menu);
-		if (!menus.size()) return nullptr;
+		if (menus.empty()) return nullptr;
 
 		// Allocate new menu list
 		Game::MenuList* newList = Utils::Memory::AllocateArray<Game::MenuList>(1);

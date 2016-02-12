@@ -30,6 +30,9 @@ namespace Components
 			bool IsLocal();
 			bool IsSelf();
 
+			void Serialize(Proto::Network::Address* protoAddress);
+			void Deserialize(const Proto::Network::Address& protoAddress);
+
 		private:
 			Game::netadr_t address;
 		};

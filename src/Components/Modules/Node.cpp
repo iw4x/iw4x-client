@@ -9,16 +9,16 @@ namespace Components
 	void Node::LoadNodes()
 	{
 		std::string nodes = Utils::ReadFile("players/nodes.dat");
+		if (nodes.empty()) return;
 
-		// Invalid
-		if (!nodes.size() || nodes.size() % 6) return;
+		Proto::Node::List list;
+		list.ParseFromString(nodes);
 
-		unsigned int size = (nodes.size() / sizeof(Node::AddressEntry));
-
-		Node::AddressEntry* addresses = reinterpret_cast<Node::AddressEntry*>(const_cast<char*>(nodes.data()));
-		for (unsigned int i = 0; i < size; ++i)
+		for (int i = 0; i < list.address_size(); ++i)
 		{
-			Node::AddNode(addresses[i].toNetAddress());
+			Network::Address address;
+			address.Deserialize(list.address(i));
+			Node::AddNode(address);
 		}
 	}
 	void Node::StoreNodes(bool force)
@@ -29,23 +29,18 @@ namespace Components
 		if ((Game::Com_Milliseconds() - lastStorage) < NODE_STORE_INTERVAL && !force) return;
 		lastStorage = Game::Com_Milliseconds();
 
-		std::vector<Node::AddressEntry> entries;
+		Proto::Node::List list;
 
 		for (auto node : Node::Nodes)
 		{
 			if (node.state == Node::STATE_VALID && node.registered)
 			{
-				Node::AddressEntry thisAddress;
-				thisAddress.fromNetAddress(node.address);
-
-				entries.push_back(thisAddress);
+				node.address.Serialize(list.add_address());
 			}
 		}
 
-		std::string nodeStream(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
-
 		CreateDirectoryW(L"players", NULL);
-		Utils::WriteFile("players/nodes.dat", nodeStream);
+		Utils::WriteFile("players/nodes.dat", list.SerializeAsString());
 	}
 
 	Node::NodeEntry* Node::FindNode(Network::Address address)
@@ -107,35 +102,27 @@ namespace Components
 	{
 		if (address.IsSelf()) return;
 
-		std::vector<Node::AddressEntry> entries;
+		Proto::Node::List list;
+		list.set_is_dedi(Dedicated::IsDedicated());
 
-		for (auto entry : Node::Nodes)
+		for (auto node : Node::Nodes)
 		{
-			if (entry.state == Node::STATE_VALID && entry.registered)
+			if (node.state == Node::STATE_VALID && node.registered)
 			{
-				Node::AddressEntry thisAddress;
-				thisAddress.fromNetAddress(entry.address);
-
-				entries.push_back(thisAddress);
+				node.address.Serialize(list.add_address());
 			}
 
-			if (entries.size() >= NODE_PACKET_LIMIT)
+			if (list.address_size() >= NODE_PACKET_LIMIT)
 			{
-				std::string packet;
-				packet.append((Dedicated::IsDedicated() ? "\x01" : "\0"), 1);
-				packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
-
-				Network::SendCommand(address, "nodeListResponse", packet);
-
-				entries.clear();
+				Network::SendCommand(address, "nodeListResponse", list.SerializeAsString());
+				list.clear_address();
 			}
 		}
 
-		std::string packet;
-		packet.append((Dedicated::IsDedicated() ? "\x01" : "\0"), 1);
-		packet.append(reinterpret_cast<char*>(entries.data()), entries.size() * sizeof(Node::AddressEntry));
-
-		Network::SendCommand(address, "nodeListResponse", packet);
+		if (list.address_size() > 0)
+		{
+			Network::SendCommand(address, "nodeListResponse", list.SerializeAsString());
+		}
 	}
 
 	void Node::DeleteInvalidSessions()
@@ -228,13 +215,11 @@ namespace Components
 					{
 						node.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
-						std::string data;
-						Proto::NodePacket packet;
+						Proto::Node::Packet packet;
 						packet.set_challenge(node.challenge);
-						packet.SerializeToString(&data);
 
 						Logger::Print("Sending registration request to %s\n", node.address.GetString());
-						Network::SendCommand(node.address, "nodeRegisterRequest", data);
+						Network::SendCommand(node.address, "nodeRegisterRequest", packet.SerializeAsString());
 					}
 					else
 					{
@@ -291,8 +276,6 @@ namespace Components
 
 	Node::Node()
 	{
-		Assert_Size(Node::AddressEntry, 6);
-
 		// ZoneBuilder doesn't require node stuff
 		if (ZoneBuilder::IsEnabled()) return;
 
@@ -311,17 +294,15 @@ namespace Components
 		{
 			QuickPatch::OnShutdown([] ()
 			{
-				std::string data, challenge;
-				challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+				std::string challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
-				Proto::NodePacket packet;
+				Proto::Node::Packet packet;
 				packet.set_challenge(challenge);
 				packet.set_signature(Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge));
-				packet.SerializeToString(&data);
 
 				for (auto node : Node::Nodes)
 				{
-					Network::SendCommand(node.address, "nodeDeregister", data);
+					Network::SendCommand(node.address, "nodeDeregister", packet.SerializeAsString());
 				}
 			});
 
@@ -341,11 +322,10 @@ namespace Components
 
 				Logger::Print("Received registration request from %s\n", address.GetString());
 
-				Proto::NodePacket packet;
+				Proto::Node::Packet packet;
 				if (!packet.ParseFromString(data)) return;
-				if (!packet.challenge().size()) return;
+				if (packet.challenge().empty()) return;
 
-				std::string response;
 				std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, packet.challenge());
 				std::string challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
@@ -353,13 +333,12 @@ namespace Components
 				packet.set_challenge(challenge);
 				packet.set_signature(signature);
 				packet.set_publickey(Node::SignatureKey.GetPublicKey());
-				packet.SerializeToString(&response);
 
 				entry->lastTime = Game::Com_Milliseconds();
 				entry->challenge = challenge;
 				entry->state = Node::STATE_NEGOTIATING;
 
-				Network::SendCommand(address, "nodeRegisterSynchronize", response);
+				Network::SendCommand(address, "nodeRegisterSynchronize", packet.SerializeAsString());
 			});
 
 			Network::Handle("nodeRegisterSynchronize", [] (Network::Address address, std::string data)
@@ -369,11 +348,11 @@ namespace Components
 
 				Logger::Print("Received synchronization data for registration from %s!\n", address.GetString());
 
-				Proto::NodePacket packet;
+				Proto::Node::Packet packet;
 				if (!packet.ParseFromString(data)) return;
-				if (!packet.challenge().size()) return;
-				if (!packet.publickey().size()) return;
-				if (!packet.signature().size()) return;
+				if (packet.challenge().empty()) return;
+				if (packet.publickey().empty()) return;
+				if (packet.signature().empty()) return;
 
 				std::string challenge = packet.challenge();
 				std::string publicKey = packet.publickey();
@@ -397,16 +376,14 @@ namespace Components
 				Logger::Print("Node %s registered\n", address.GetString());
 
 				// Build response
-				data.clear();
 				publicKey = Node::SignatureKey.GetPublicKey();
 				signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge);
 
 				packet.Clear();
 				packet.set_signature(signature);
 				packet.set_publickey(publicKey);
-				packet.SerializeToString(&data);
 
-				Network::SendCommand(address, "nodeRegisterAcknowledge", data);
+				Network::SendCommand(address, "nodeRegisterAcknowledge", packet.SerializeAsString());
 			});
 
 			Network::Handle("nodeRegisterAcknowledge", [] (Network::Address address, std::string data)
@@ -417,10 +394,10 @@ namespace Components
 
 				Logger::Print("Received acknowledgment from %s\n", address.GetString());
 
-				Proto::NodePacket packet;
+				Proto::Node::Packet packet;
 				if (!packet.ParseFromString(data)) return;
-				if (!packet.signature().size()) return;
-				if (!packet.publickey().size()) return;
+				if (packet.signature().empty()) return;
+				if (packet.publickey().empty()) return;
 
 				std::string publicKey = packet.publickey();
 				std::string signature = packet.signature();
@@ -483,10 +460,10 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || !entry->registered) return;
 
-				Proto::NodePacket packet;
+				Proto::Node::Packet packet;
 				if (!packet.ParseFromString(data)) return;
-				if (!packet.challenge().size()) return;
-				if (!packet.signature().size()) return;
+				if (packet.challenge().empty()) return;
+				if (packet.signature().empty()) return;
 
 				std::string challenge = packet.challenge();
 				std::string signature = packet.signature();
@@ -573,31 +550,31 @@ namespace Components
 
 		Network::Handle("nodeListResponse", [] (Network::Address address, std::string data)
 		{
-			if (data.size() % sizeof(Node::AddressEntry) != 1)
+			Proto::Node::List list;
+
+			if (data.empty() || !list.ParseFromString(data)) 
 			{
 				Logger::Print("Received invalid node list from %s!\n", address.GetString());
 				return;
 			}
-
-			unsigned int size = ((data.size() - 1) / sizeof(Node::AddressEntry));
-			Node::AddressEntry* addresses = reinterpret_cast<Node::AddressEntry*>(const_cast<char*>(data.data() + 1));
-			bool isDedicated = (*data.data() != 0);
 
 			Node::NodeEntry* entry = Node::FindNode(address);
 			if (entry)
 			{
 				if (entry->registered)
 				{
-					Logger::Print("Received valid node list with %d entries from %s\n", size, address.GetString());
+					Logger::Print("Received valid node list with %i entries from %s\n", list.address_size(), address.GetString());
 
-					entry->isDedi = isDedicated;
+					entry->isDedi = list.is_dedi();
 					entry->state = Node::STATE_VALID;
 					entry->lastTime = Game::Com_Milliseconds();
 					entry->lastListQuery = Game::Com_Milliseconds();
 
-					for (unsigned int i = 0; i < size; ++i)
+					for (int i = 0; i < list.address_size(); ++i)
 					{
-						Node::AddNode(addresses[i].toNetAddress());
+						Network::Address addr;
+						addr.Deserialize(list.address(i));
+						Node::AddNode(addr);
 					}
 				}
 			}
@@ -610,9 +587,11 @@ namespace Components
 				{
 					session->lastTime = Game::Com_Milliseconds();
 
-					for (unsigned int i = 0; i < size; ++i)
+					for (int i = 0; i < list.address_size(); ++i)
 					{
-						Node::AddNode(addresses[i].toNetAddress());
+						Network::Address addr;
+						addr.Deserialize(list.address(i));
+						Node::AddNode(addr);
 					}
 				}
 			}

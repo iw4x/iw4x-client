@@ -102,7 +102,7 @@ namespace Assets
 				textureList.push_back(textureDef);
 			}
 
-			if (textureList.size())
+			if (!textureList.empty())
 			{
 				Game::MaterialTextureDef* textureTable = builder->GetAllocator()->AllocateArray<Game::MaterialTextureDef>(textureList.size());
 
