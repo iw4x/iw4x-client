@@ -3,6 +3,7 @@
 namespace Components
 {
 	std::string Network::SelectedPacket;
+	wink::signal<wink::slot<Network::CallbackRaw>> Network::StartupSignal;
 	std::map<std::string, wink::slot<Network::Callback>> Network::PacketHandlers;
 
 	Network::Address::Address(std::string addrString)
@@ -96,6 +97,11 @@ namespace Components
 	void Network::Handle(std::string packet, Network::Callback* callback)
 	{
 		Network::PacketHandlers[Utils::StrToLower(packet)] = callback;
+	}
+
+	void Network::OnStart(Network::CallbackRaw* callback)
+	{
+		Network::StartupSignal.connect(callback);
 	}
 
 	void Network::Send(Game::netsrc_t type, Network::Address target, std::string data)
@@ -219,6 +225,21 @@ namespace Components
 		}
 	}
 
+	void Network::NetworkStart()
+	{
+		Network::StartupSignal();
+	}
+
+	void __declspec(naked) Network::NetworkStartStub()
+	{
+		__asm 
+		{
+			mov eax, 64D900h
+			call eax
+			jmp Network::NetworkStart
+		}
+	}
+
 	void __declspec(naked) Network::DeployPacketStub()
 	{
 		__asm
@@ -246,8 +267,14 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4AEF08, 0x1FFFC);
 		Utils::Hook::Set<DWORD>(0x4AEFA3, 0x1FFFC);
 
+		// increase max port binding attempts from 10 to 255
+		Utils::Hook::Set<BYTE>(0x4FD48A, 0xFF);
+
 		// Parse port as short in Net_AddrToString
 		Utils::Hook::Set<char*>(0x4698E3, "%u.%u.%u.%u:%hu");
+
+		// Install startup handler
+		Utils::Hook(0x4FD4D4, Network::NetworkStartStub, HOOK_JUMP).Install()->Quick();
 
 		// Install interception handler
 		Utils::Hook(0x5AA709, Network::PacketInterceptionHandler, HOOK_CALL).Install()->Quick();
@@ -260,5 +287,6 @@ namespace Components
 	{
 		Network::SelectedPacket.clear();
 		Network::PacketHandlers.clear();
+		Network::StartupSignal.clear();
 	}
 }

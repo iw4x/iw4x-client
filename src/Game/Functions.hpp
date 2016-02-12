@@ -357,6 +357,8 @@ namespace Game
 
 	extern gentity_t* g_entities;
 
+	extern SOCKET* ip_socket;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	const char* TabeLookup(StringTable* stringtable, int row, int column);

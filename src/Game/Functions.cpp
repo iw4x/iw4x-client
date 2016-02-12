@@ -177,6 +177,8 @@ namespace Game
 
 	gentity_t* g_entities = (gentity_t*)0x18835D8;
 
+	SOCKET* ip_socket = (SOCKET*)0x64A3008;
+
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();

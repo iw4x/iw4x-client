@@ -16,6 +16,7 @@ namespace Components
 		const char* GetName() { return "Node"; };
 		bool UnitTest();
 
+		static void AddNode(Network::Address address);
 		static std::vector<Network::Address> GetDediList();
 
 	private:
@@ -61,7 +62,6 @@ namespace Components
 		static void LoadNodes();
 		static void StoreNodes(bool force);
 
-		static void AddNode(Network::Address address);
 		static void SendNodeList(Network::Address address);
 		static NodeEntry* FindNode(Network::Address address); 
 		static ClientSession* FindSession(Network::Address address);

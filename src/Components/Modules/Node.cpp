@@ -1,5 +1,7 @@
 #include "STDInclude.hpp"
 
+using namespace std::literals;
+
 namespace Components
 {
 	Utils::Cryptography::ECDSA::Key Node::SignatureKey;
@@ -285,7 +287,7 @@ namespace Components
 		// Load stored nodes
 		Dvar::OnInit([] ()
 		{
-			Node::Nodes.clear();
+			//Node::Nodes.clear();
 			Node::LoadNodes();
 		});
 
@@ -648,6 +650,25 @@ namespace Components
 		// Install frame handlers
 		Dedicated::OnFrame(Node::FrameHandler);
 		Renderer::OnFrame(Node::FrameHandler);
+
+		Network::OnStart([] ()
+		{
+			std::async([] ()
+			{
+				std::this_thread::sleep_for(100ms);
+
+				auto nodes = Utils::WebIO("IW4x", "http://hastebin.com/raw/qodibixora").Get();
+				auto nodeArray = Utils::Explode(nodes, '\n');
+
+				for (auto nodeEntry : nodeArray)
+				{
+					if (!nodeEntry.empty())
+					{
+						Node::AddNode(nodeEntry);
+					}
+				}
+			});
+		});
 	}
 
 	Node::~Node()

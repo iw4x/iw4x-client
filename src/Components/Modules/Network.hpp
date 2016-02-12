@@ -39,12 +39,14 @@ namespace Components
 		};
 
 		typedef void(Callback)(Address address, std::string data);
+		typedef void(CallbackRaw)();
 
 		Network();
 		~Network();
 		const char* GetName() { return "Network"; };
 
 		static void Handle(std::string packet, Callback* callback);
+		static void OnStart(CallbackRaw* callback);
 
 		// Send quake-styled binary data
 		static void Send(Address target, std::string data);
@@ -65,9 +67,14 @@ namespace Components
 	private:
 		static SOCKET TcpSocket;
 		static std::string SelectedPacket;
+		static wink::signal<wink::slot<CallbackRaw>> StartupSignal;
 		static std::map<std::string, wink::slot<Callback>> PacketHandlers;
+
 		static int PacketInterceptionHandler(const char* packet);
 		static void DeployPacket(Game::netadr_t* from, Game::msg_t* msg);
 		static void DeployPacketStub();
+
+		static void NetworkStart();
+		static void NetworkStartStub();
 	};
 }
