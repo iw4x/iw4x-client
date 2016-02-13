@@ -205,6 +205,9 @@ namespace Components
 
 	Colors::Colors()
 	{
+		// Disable SV_UpdateUserinfo_f, to block changing the name ingame
+		*(BYTE*)0x6258D0 = 0xC3;
+
 		// Allow colored names ingame
 		Utils::Hook(0x5D8B40, Colors::ClientUserinfoChanged, HOOK_JUMP).Install()->Quick();
 
