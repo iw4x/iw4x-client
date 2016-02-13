@@ -121,10 +121,9 @@ namespace Components
 			}
 		}
 
-		if (list.address_size() > 0)
-		{
-			Network::SendCommand(address, "nodeListResponse", list.SerializeAsString());
-		}
+		// Even if we send an empty list, we have to tell the client about our dedi-status
+		// If the amount of servers we have modulo the NODE_PACKET_LIMIT equals 0, we will send this request without any servers, so it's obsolete, but meh...
+		Network::SendCommand(address, "nodeListResponse", list.SerializeAsString());
 	}
 
 	void Node::DeleteInvalidSessions()
@@ -235,6 +234,7 @@ namespace Components
 					listQueryCount++;
 					node.state = Node::STATE_NEGOTIATING;
 					node.lastTime = Game::Com_Milliseconds();
+					node.lastListQuery = Game::Com_Milliseconds();
 
 					if (Dedicated::IsDedicated())
 					{
@@ -571,7 +571,6 @@ namespace Components
 					entry->isDedi = list.is_dedi();
 					entry->state = Node::STATE_VALID;
 					entry->lastTime = Game::Com_Milliseconds();
-					entry->lastListQuery = Game::Com_Milliseconds();
 
 					if (!Dedicated::IsDedicated() && entry->isDedi && ServerList::IsOnlineList())
 					{
