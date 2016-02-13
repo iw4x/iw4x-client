@@ -182,6 +182,30 @@ namespace Components
 		}
 	}
 
+	void Node::PerformRegistration(Network::Address address)
+	{
+		Node::NodeEntry* entry = Node::FindNode(address);
+		if (!entry) return;
+
+		entry->lastTime = Game::Com_Milliseconds();
+
+		if (Dedicated::IsDedicated())
+		{
+			entry->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+
+			Proto::Node::Packet packet;
+			packet.set_challenge(entry->challenge);
+
+			Logger::Print("Sending registration request to %s\n", entry->address.GetString());
+			Network::SendCommand(entry->address, "nodeRegisterRequest", packet.SerializeAsString());
+		}
+		else
+		{
+			Logger::Print("Sending session request to %s\n", entry->address.GetString());
+			Network::SendCommand(entry->address, "sessionRequest");
+		}
+	}
+
 	void Node::FrameHandler()
 	{
 		int registerCount = 0;
@@ -207,23 +231,15 @@ namespace Components
 				{
 					registerCount++;
 					node.state = Node::STATE_NEGOTIATING;
-					node.lastTime = Game::Com_Milliseconds();
-
-					if (Dedicated::IsDedicated())
-					{
-						node.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
-
-						Proto::Node::Packet packet;
-						packet.set_challenge(node.challenge);
-
-						Logger::Print("Sending registration request to %s\n", node.address.GetString());
-						Network::SendCommand(node.address, "nodeRegisterRequest", packet.SerializeAsString());
-					}
-					else
-					{
-						Logger::Print("Sending session request to %s\n", node.address.GetString());
-						Network::SendCommand(node.address, "sessionRequest");
-					}
+					Node::PerformRegistration(node.address);
+				}
+				// Requery invalid nodes within the NODE_QUERY_INTERVAL
+				// This is required, as a node might crash, which causes it to be invalid
+				// If it's restarted though, we wouldn't query it again
+				else if (node.state == STATE_INVALID && (Game::Com_Milliseconds() - node.lastTime) >(NODE_QUERY_INTERVAL)) 
+				{
+					registerCount++;
+					Node::PerformRegistration(node.address);
 				}
 			}
 
