@@ -136,6 +136,32 @@ namespace Components
 		}
 	}
 
+	void ServerList::UpdateVisibleList()
+	{
+		auto list = ServerList::GetList();
+		if (!list) return;
+
+		std::vector<ServerList::ServerInfo> tempList(*list);
+
+		if (tempList.empty())
+		{
+			ServerList::Refresh();
+		}
+		else
+		{
+			list->clear();
+
+			ServerList::RefreshContainer.Mutex.lock();
+
+			for (auto server : tempList)
+			{
+				ServerList::InsertRequest(server.Addr, false);
+			}
+
+			ServerList::RefreshContainer.Mutex.unlock();
+		}
+	}
+
 	void ServerList::RefreshVisibleList()
 	{
 		Dvar::Var("ui_serverSelected").Set(false);
@@ -146,7 +172,7 @@ namespace Components
 		if (!list) return;
 
 		// Refresh entirely, if there is no entry in the list
-		if (!list->size())
+		if (list->empty())
 		{
 			ServerList::Refresh();
 			return;
@@ -227,16 +253,7 @@ namespace Components
 			Network::SendCommand(ServerList::RefreshContainer.Host, "getservers", Utils::VA("IW4 %i full empty", PROTOCOL));
 			//Network::SendCommand(ServerList::RefreshContainer.Host, "getservers", "0 full empty");
 #else
-			ServerList::RefreshContainer.Mutex.lock();
-
-			auto dedis = Node::GetDediList();
-
-			for (auto dedi : dedis)
-			{
-				ServerList::InsertRequest(dedi, false);
-			}
-
-			ServerList::RefreshContainer.Mutex.unlock();
+			Node::SyncNodeList();
 #endif
 		}
 		else if (ServerList::IsFavouriteList())
@@ -393,6 +410,7 @@ namespace Components
 					if (*j == k)
 					{
 						ServerList::VisibleList.erase(j);
+						break;
 					}
 				}
 
@@ -604,7 +622,7 @@ namespace Components
 
 		// Add required UIScripts
 		UIScript::Add("UpdateFilter", ServerList::RefreshVisibleList);
-		UIScript::Add("RefreshFilter", ServerList::RefreshVisibleList); // TODO: Re-query the servers
+		UIScript::Add("RefreshFilter", ServerList::UpdateVisibleList);
 
 		UIScript::Add("RefreshServers", ServerList::Refresh);
 		UIScript::Add("JoinServer", [] ()

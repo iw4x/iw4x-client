@@ -27,6 +27,7 @@ namespace Components
 
 		static void Refresh();
 		static void RefreshVisibleList();
+		static void UpdateVisibleList();
 		static void InsertRequest(Network::Address address, bool acquireMutex = true);
 		static void Insert(Network::Address address, Utils::InfoString info);
 

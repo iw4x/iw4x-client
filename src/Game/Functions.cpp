@@ -217,8 +217,7 @@ namespace Game
 				char* uiName = &arenas[i].uiName[0];
 				if ((uiName[0] == 'M' && uiName[1] == 'P') || (uiName[0] == 'P' && uiName[1] == 'A')) // MPUI/PATCH
 				{
-					char* name = LocalizeMapString(uiName);
-					return name;
+					return LocalizeMapString(uiName);
 				}
 
 				return uiName;
@@ -239,8 +238,7 @@ namespace Game
 		{
 			if (!_stricmp(gameTypes[i].gameType, gameType))
 			{
-				char* name = LocalizeMapString(gameTypes[i].uiName);
-				return name;
+				return LocalizeMapString(gameTypes[i].uiName);
 			}
 		}
 

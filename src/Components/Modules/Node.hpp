@@ -16,8 +16,8 @@ namespace Components
 		const char* GetName() { return "Node"; };
 		bool UnitTest();
 
+		static void SyncNodeList();
 		static void AddNode(Network::Address address);
-		static std::vector<Network::Address> GetDediList();
 
 	private:
 		enum EntryState

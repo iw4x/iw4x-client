@@ -171,19 +171,16 @@ namespace Components
 		}
 	}
 
-	std::vector<Network::Address> Node::GetDediList()
+	void Node::SyncNodeList()
 	{
-		std::vector<Network::Address> dedis;
-
-		for (auto node : Node::Nodes)
+		for (auto& node : Node::Nodes)
 		{
-			if (node.state == Node::STATE_VALID && node.registered && node.isDedi)
+			if (node.state == Node::STATE_VALID && node.registered)
 			{
-				dedis.push_back(node.address);
+				node.state = Node::STATE_UNKNOWN;
+				node.registered = false;
 			}
 		}
-
-		return dedis;
 	}
 
 	void Node::FrameHandler()
@@ -423,9 +420,7 @@ namespace Components
 
 			Network::Handle("nodeListRequest", [] (Network::Address address, std::string data)
 			{
-				// Requesting a list is either possible, by being registered as node
-				// Or having a valid client session
-				// Client sessions do expire after some time or when having received a list
+				// Check if this is a registered node
 				bool allowed = false;
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (entry && entry->registered)
@@ -487,20 +482,26 @@ namespace Components
 
 			Network::Handle("sessionRequest", [] (Network::Address address, std::string data)
 			{
-				// Return if we already have a session for this address
-				if (Node::FindSession(address)) return;
+				// Search an active session, if we haven't found one, register a template
+				if (!Node::FindSession(address))
+				{
+					Node::ClientSession templateSession;
+					templateSession.address = address;
+					Node::Sessions.push_back(templateSession);
+				}
+
+				// Search our target session (this should not fail!)
+				Node::ClientSession* session = Node::FindSession(address);
+				if (!session) return; // Registering template session failed, odd...
 
 				Logger::Print("Client %s is requesting a new session\n", address.GetString());
 
-				Node::ClientSession session;
-				session.address = address;
-				session.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
-				session.lastTime = Game::Com_Milliseconds();
-				session.valid = false;
+				// Initialize session data
+				session->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+				session->lastTime = Game::Com_Milliseconds();
+				session->valid = false;
 
-				Node::Sessions.push_back(session);
-
-				Network::SendCommand(address, "sessionInitialize", session.challenge);
+				Network::SendCommand(address, "sessionInitialize", session->challenge);
 			});
 
 			Network::Handle("sessionSynchronize", [] (Network::Address address, std::string data)
@@ -571,6 +572,11 @@ namespace Components
 					entry->state = Node::STATE_VALID;
 					entry->lastTime = Game::Com_Milliseconds();
 					entry->lastListQuery = Game::Com_Milliseconds();
+
+					if (!Dedicated::IsDedicated() && entry->isDedi && ServerList::IsOnlineList())
+					{
+						ServerList::InsertRequest(entry->address, true);
+					}
 
 					for (int i = 0; i < list.address_size(); ++i)
 					{
