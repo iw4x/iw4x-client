@@ -153,6 +153,9 @@ namespace Components
 
 			ServerList::RefreshContainer.Mutex.lock();
 
+			ServerList::RefreshContainer.SendCount = 0;
+			ServerList::RefreshContainer.SentCount = 0;
+
 			for (auto server : tempList)
 			{
 				ServerList::InsertRequest(server.Addr, false);
@@ -228,10 +231,9 @@ namespace Components
 		ServerList::VisibleList.clear();
 		ServerList::RefreshContainer.Mutex.lock();
 		ServerList::RefreshContainer.Servers.clear();
-		ServerList::RefreshContainer.Mutex.unlock();
-
 		ServerList::RefreshContainer.SendCount = 0;
 		ServerList::RefreshContainer.SentCount = 0;
+		ServerList::RefreshContainer.Mutex.unlock();
 
 		if (ServerList::IsOfflineList())
 		{
@@ -349,6 +351,21 @@ namespace Components
 		if (!alreadyInserted)
 		{
 			ServerList::RefreshContainer.Servers.push_back(container);
+
+			auto list = ServerList::GetList();
+			if (list)
+			{
+				for (auto server : *list)
+				{
+					if (server.Addr == container.Target)
+					{
+						ServerList::RefreshContainer.SendCount--;
+						ServerList::RefreshContainer.SentCount--;
+						break;
+					}
+				}
+			}
+
 			ServerList::RefreshContainer.SendCount++;
 		}
 

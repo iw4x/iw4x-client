@@ -155,7 +155,7 @@ workspace "iw4x"
 		-- Pre-build
 		prebuildcommands {
 			"cd %{_MAIN_SCRIPT_DIR}",
-			"premake5 generate-buildinfo"
+			"tools\\premake5 generate-buildinfo"
 		}
 
 		-- Post-build
