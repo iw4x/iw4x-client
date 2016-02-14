@@ -678,7 +678,7 @@ namespace Components
 			{
 				std::this_thread::sleep_for(100ms);
 
-				auto nodes = Utils::WebIO("IW4x", "http://hastebin.com/raw/qodibixora").Get();
+				auto nodes = Utils::WebIO("IW4x", "http://hastebin.com/raw/odizegaqev").Get();
 				auto nodeArray = Utils::Explode(nodes, '\n');
 
 				for (auto nodeEntry : nodeArray)
