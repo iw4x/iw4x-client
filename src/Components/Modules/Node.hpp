@@ -60,6 +60,7 @@ namespace Components
 		static std::vector<ClientSession> Sessions;
 
 		static void LoadNodes();
+		static void LoadNodePreset();
 		static void StoreNodes(bool force);
 
 		static void PerformRegistration(Network::Address address);

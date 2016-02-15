@@ -8,6 +8,21 @@ namespace Components
 	std::vector<Node::NodeEntry> Node::Nodes;
 	std::vector<Node::ClientSession> Node::Sessions;
 
+	void Node::LoadNodePreset()
+	{
+		FileSystem::File defaultNodes("default_nodes.dat");
+		if (!defaultNodes.Exists()) return;
+
+		auto nodes = Utils::Explode(defaultNodes.GetBuffer(), '\n');
+		for (auto node : nodes)
+		{
+			if (!node.empty())
+			{
+				Node::AddNode(node);
+			}
+		}
+	}
+
 	void Node::LoadNodes()
 	{
 		Proto::Node::List list;
@@ -291,6 +306,8 @@ namespace Components
 
 	Node::Node()
 	{
+		Node::Nodes.clear();
+
 		// ZoneBuilder doesn't require node stuff
 		if (ZoneBuilder::IsEnabled()) return;
 
@@ -300,7 +317,7 @@ namespace Components
 		// Load stored nodes
 		Dvar::OnInit([] ()
 		{
-			//Node::Nodes.clear();
+			Node::LoadNodePreset();
 			Node::LoadNodes();
 		});
 
@@ -671,25 +688,6 @@ namespace Components
 		// Install frame handlers
 		Dedicated::OnFrame(Node::FrameHandler);
 		Renderer::OnFrame(Node::FrameHandler);
-
-		Network::OnStart([] ()
-		{
-			std::async([] ()
-			{
-				std::this_thread::sleep_for(100ms);
-
-				auto nodes = Utils::WebIO("IW4x", "http://hastebin.com/raw/odizegaqev").Get();
-				auto nodeArray = Utils::Explode(nodes, '\n');
-
-				for (auto nodeEntry : nodeArray)
-				{
-					if (!nodeEntry.empty())
-					{
-						Node::AddNode(nodeEntry);
-					}
-				}
-			});
-		});
 	}
 
 	Node::~Node()
