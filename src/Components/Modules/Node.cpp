@@ -69,8 +69,7 @@ namespace Components
 		{
 			if (i->address == address)
 			{
-				// I don't know if that's safe, but we'll see that later...
-				return &*i;
+				return &(*i);
 			}
 		}
 
@@ -82,8 +81,7 @@ namespace Components
 		{
 			if (i->address == address)
 			{
-				// I don't know if that's safe, but we'll see that later...
-				return &*i;
+				return &(*i);
 			}
 		}
 

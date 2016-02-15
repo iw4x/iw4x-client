@@ -330,13 +330,13 @@ namespace Components
 					std::vector<int> missingPackets;
 					for (int j = 0; j < i->maxParts; ++j)
 					{
-						if (!Download::HasReceivedPacket(&*i, j))
+						if (!Download::HasReceivedPacket(&(*i), j))
 						{
 							missingPackets.push_back(j);
 						}
 					}
 
-					Download::RequestMissingPackets(&*i, missingPackets);
+					Download::RequestMissingPackets(&(*i), missingPackets);
 				}
 			}
 		}
@@ -354,10 +354,10 @@ namespace Components
 				int packets = 0;
 				for (int j = 0; j < i->maxParts && packets <= FRAME_PACKET_LIMIT && i->acknowledged; ++j)
 				{
-					if (!Download::HasSentPacket(&*i, j))
+					if (!Download::HasSentPacket(&(*i), j))
 					{
 						//Logger::Print("Sending packet...\n");
-						Download::SendPacket(&*i, j);
+						Download::SendPacket(&(*i), j);
 						packets++;
 					}
 				}
