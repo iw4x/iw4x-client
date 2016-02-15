@@ -6,7 +6,7 @@ namespace Components
 		class Address
 		{
 		public:
-			Address() {};
+			Address() { this->SetType(Game::netadrtype_t::NA_BAD); };
 			Address(std::string addrString);
 			Address(Game::netadr_t addr) : address(addr) {}
 			Address(Game::netadr_t* addr) : Address(*addr) {}
@@ -30,6 +30,7 @@ namespace Components
 
 			bool IsLocal();
 			bool IsSelf();
+			bool IsValid();
 
 			void Serialize(Proto::Network::Address* protoAddress);
 			void Deserialize(const Proto::Network::Address& protoAddress);

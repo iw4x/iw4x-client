@@ -82,6 +82,10 @@ namespace Components
 
 		return false;
 	}
+	bool Network::Address::IsValid()
+	{
+		return (this->GetType() != Game::netadrtype_t::NA_BAD);
+	}
 	void Network::Address::Serialize(Proto::Network::Address* protoAddress)
 	{
 		protoAddress->set_ip(this->GetIP().full);

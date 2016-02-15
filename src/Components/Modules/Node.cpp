@@ -13,7 +13,10 @@ namespace Components
 		FileSystem::File defaultNodes("default_nodes.dat");
 		if (!defaultNodes.Exists()) return;
 
-		auto nodes = Utils::Explode(defaultNodes.GetBuffer(), '\n');
+		auto buffer = defaultNodes.GetBuffer();
+		Utils::Replace(buffer, "\r", "");
+
+		auto nodes = Utils::Explode(buffer, '\n');
 		for (auto node : nodes)
 		{
 			if (!node.empty())
@@ -90,9 +93,9 @@ namespace Components
 	void Node::AddNode(Network::Address address)
 	{
 #ifdef DEBUG
-		if (address.IsSelf()) return;
+		if (!address.IsValid() || address.IsSelf()) return;
 #else
-		if (address.IsLocal() || address.IsSelf()) return;
+		if (!address.IsValid() || address.IsLocal() || address.IsSelf()) return;
 #endif
 
 		Node::NodeEntry* existingEntry = Node::FindNode(address);
@@ -112,6 +115,8 @@ namespace Components
 			entry.address = address;
 
 			Node::Nodes.push_back(entry);
+
+			Logger::Print("Adding node %s...\n", address.GetString());
 		}
 	}
 
