@@ -7,7 +7,7 @@ namespace Components
 
 	bool Logger::IsConsoleReady()
 	{
-		return (IsWindow(*(HWND*)0x64A3288) != FALSE || (Dedicated::IsDedicated() && !Flags::HasFlag("console")));
+		return (IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE || (Dedicated::IsDedicated() && !Flags::HasFlag("console")));
 	}
 
 	void Logger::Print(const char* message, ...)
