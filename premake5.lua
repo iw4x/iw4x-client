@@ -118,7 +118,7 @@ workspace "iw4x"
 			}
 		filter {}
 
-		-- Dependency on zlib, json11 and asio
+		-- Dependency libraries
 		links { "zlib", "json11", "pdcurses", "libtomcrypt", "libtommath", "protobuf" }
 		includedirs 
 		{
