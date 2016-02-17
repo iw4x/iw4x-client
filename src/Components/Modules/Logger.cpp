@@ -106,7 +106,7 @@ namespace Components
 		{
 			mov eax, Logger::PipeCallback
 			test eax, eax
-			jnz returnPrint
+			jz returnPrint
 
 			push [esp + 8h]
 			call Logger::PrintMessagePipe
@@ -132,11 +132,6 @@ namespace Components
 	Logger::Logger()
 	{
 		Logger::PipeOutput(nullptr);
-
-		Logger::PipeOutput([] (std::string data)
-		{
-			OutputDebugStringA(data.data());
-		});
 
 		Renderer::OnFrame(Logger::Frame); // Client
 		Dedicated::OnFrame(Logger::Frame); // Dedi
