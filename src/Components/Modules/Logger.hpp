@@ -12,11 +12,16 @@ namespace Components
 		static void SoftError(const char* message, ...);
 		static bool IsConsoleReady();
 
+		static void PipeOutput(void(*callback)(std::string));
+
 	private:
 		static std::mutex MessageMutex;
 		static std::vector<std::string> MessageQueue;
+		static void(*PipeCallback)(std::string);
 
 		static void Frame();
+		static void PrintMessageStub();
+		static void PrintMessagePipe(const char* data);
 		static void EnqueueMessage(std::string message);	
 	};
 }

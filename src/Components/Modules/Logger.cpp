@@ -4,6 +4,7 @@ namespace Components
 {
 	std::mutex Logger::MessageMutex;
 	std::vector<std::string> Logger::MessageQueue;
+	void(*Logger::PipeCallback)(std::string) = nullptr;
 
 	bool Logger::IsConsoleReady()
 	{
@@ -86,6 +87,41 @@ namespace Components
 		Logger::MessageMutex.unlock();
 	}
 
+	void Logger::PipeOutput(void(*callback)(std::string))
+	{
+		Logger::PipeCallback = callback;
+	}
+
+	void Logger::PrintMessagePipe(const char* data)
+	{
+		if (Logger::PipeCallback)
+		{
+			Logger::PipeCallback(data);
+		}
+	}
+
+	void __declspec(naked) Logger::PrintMessageStub()
+	{
+		__asm
+		{
+			mov eax, Logger::PipeCallback
+			test eax, eax
+			jnz returnPrint
+
+			push [esp + 8h]
+			call Logger::PrintMessagePipe
+			add esp, 4h
+			retn
+
+		returnPrint:
+			push esi
+			mov esi, [esp + 0Ch]
+
+			mov eax, 4AA835h
+			jmp eax
+		}
+	}
+
 	void Logger::EnqueueMessage(std::string message)
 	{
 		Logger::MessageMutex.lock();
@@ -95,8 +131,17 @@ namespace Components
 
 	Logger::Logger()
 	{
+		Logger::PipeOutput(nullptr);
+
+		Logger::PipeOutput([] (std::string data)
+		{
+			OutputDebugStringA(data.data());
+		});
+
 		Renderer::OnFrame(Logger::Frame); // Client
 		Dedicated::OnFrame(Logger::Frame); // Dedi
+
+		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).Install()->Quick();
 	}
 
 	Logger::~Logger()

@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package Proto.RCon;
+
+message Command 
+{
+	string commands = 1;
+	bytes signature = 2;
+}
