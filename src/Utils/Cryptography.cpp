@@ -10,15 +10,40 @@ namespace Utils
 
 		uint32_t Rand::GenerateInt()
 		{
-			size_t length = 0;
-			uint8_t buffer[4] = { 0 };
+			static int length = 0;
+			static int time = 0;
+			static int access = 0;
+			static uint8_t randPool[2048] = { 0 };
 
-			while (length != 4)
+			int mseconds = Game::Com_Milliseconds();
+
+			if ((mseconds - time) > (1000 * 60 * 5) || (access > (sizeof(randPool) * 30)))
 			{
-				length = sprng_read(buffer, sizeof(buffer), NULL);
+				access = 0;
+				length = 0;
 			}
 
-			return *reinterpret_cast<uint32_t*>(buffer);
+			while (length != sizeof(randPool))
+			{
+				length += sprng_read(randPool, sizeof(randPool), NULL);
+			}
+
+			uint8_t numberBuf[4] = { 0 };
+
+			for (int i = 0; i < sizeof(numberBuf); ++i)
+			{
+				numberBuf[i] = randPool[(rand() + mseconds + i + numberBuf[(i > 0 ? (i - 1) : 0)]) % sizeof(randPool)];
+			}
+
+			uint32_t num = *reinterpret_cast<uint32_t*>(numberBuf);
+
+			if (!(access % 100))
+			{
+				srand(num);
+			}
+
+			access++;
+			return num;
 		}
 
 #pragma endregion

@@ -766,6 +766,20 @@ namespace Components
 		}
 
 		printf("Success\n");
+
+		uint32_t randIntCount = 4'000'000;
+		printf("Generating %d random integers...", randIntCount);
+
+		auto startTime = std::chrono::high_resolution_clock::now();
+
+		for (uint32_t i = 0; i < randIntCount; ++i)
+		{
+			Utils::Cryptography::Rand::GenerateInt();
+		}
+
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
+		Logger::Print("took %llims\n", duration);
+
 		return true;
 	}
 }

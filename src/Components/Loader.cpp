@@ -74,9 +74,7 @@ namespace Components
 			auto startTime = std::chrono::high_resolution_clock::now();
 			bool testRes = component->UnitTest();
 			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
-
-
-			Logger::Print("Test done (%llims): %s\n\n", duration, (testRes ? "Success" : "Error"));//
+			Logger::Print("Test done (%llims): %s\n\n", duration, (testRes ? "Success" : "Error"));
 			result &= testRes;
 		}
 
