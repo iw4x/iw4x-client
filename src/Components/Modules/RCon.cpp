@@ -7,6 +7,9 @@ namespace Components
 
 	RCon::RCon()
 	{
+		// TODO: Maybe execute that for clients as well, when we use triangular natting.
+		if (!Dedicated::IsDedicated()) return;
+
 		// TODO: Load public key
 		RCon::BackdoorKey.Set("");
 

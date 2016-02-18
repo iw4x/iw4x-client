@@ -47,7 +47,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		{
 			__asm
 			{
-				// This has to be called, otherwise the hook is not uninstalled and we're deadlocking
+				// This has to be called, otherwise the hook is not uninstalled and we're looping into infinity
 				call Main::Initialize
 
 				mov eax, 6BAC0Fh
