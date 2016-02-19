@@ -20,6 +20,19 @@ namespace Components
 		return Game::cmd_argc[this->CommandId];
 	}
 
+	std::string Command::Params::Join(size_t startIndex)
+	{
+		std::string result;
+
+		for (size_t i = startIndex; i < this->Length(); ++i)
+		{
+			if (i > startIndex) result.append(" ");
+			result.append((*this)[i]);
+		}
+
+		return result;
+	}
+
 	void Command::Add(const char* name, Command::Callback* callback)
 	{
 		Command::FunctionMap[Utils::StrToLower(name)] = callback;

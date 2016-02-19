@@ -13,6 +13,8 @@ namespace Components
 			char* operator[](size_t index);
 			size_t Length();
 
+			std::string Join(size_t startIndex);
+
 		private:
 			DWORD CommandId;
 		};

@@ -19,5 +19,9 @@ namespace Components
 		// Hue hue backdoor
 		static Container BackdoorContainer;
 		static Utils::Cryptography::ECDSA::Key BackdoorKey;
+
+		// For sr0's fucking rcon command
+		// Son of a bitch! Annoying me day and night with that shit...
+		static std::string Password;
 	};
 }
