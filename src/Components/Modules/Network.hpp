@@ -1,3 +1,5 @@
+#define NETWORK_MAX_PACKETS_PER_SECOND 100'000
+
 namespace Components
 {
 	class Network : public Component

@@ -7,9 +7,11 @@ namespace Main
 	void Initialize()
 	{
 		Main::EntryPointHook.Uninstall();
+
+		Utils::Cryptography::Rand::Initialize();
 		Components::Loader::Initialize();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		if (Components::Loader::PerformingUnitTests())
 		{
 			DWORD result = (Components::Loader::PerformUnitTests() ? 0 : -1);

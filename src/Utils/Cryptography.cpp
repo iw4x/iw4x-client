@@ -8,42 +8,19 @@ namespace Utils
 	{
 #pragma region Rand
 
+		prng_state Rand::State;
+
 		uint32_t Rand::GenerateInt()
 		{
-			static int length = 0;
-			static int time = 0;
-			static int access = 0;
-			static uint8_t randPool[2048] = { 0 };
+			uint32_t number = 0;
+			fortuna_read(reinterpret_cast<uint8_t*>(&number), sizeof(number), &Rand::State);
+			return number;
+		}
 
-			int mseconds = Game::Com_Milliseconds();
-
-			if ((mseconds - time) > (1000 * 60 * 5) || (access > (sizeof(randPool) * 30)))
-			{
-				access = 0;
-				length = 0;
-			}
-
-			while (length != sizeof(randPool))
-			{
-				length += sprng_read(randPool, sizeof(randPool), NULL);
-			}
-
-			uint8_t numberBuf[4] = { 0 };
-
-			for (int i = 0; i < sizeof(numberBuf); ++i)
-			{
-				numberBuf[i] = randPool[(rand() + mseconds + i + numberBuf[(i > 0 ? (i - 1) : 0)]) % sizeof(randPool)];
-			}
-
-			uint32_t num = *reinterpret_cast<uint32_t*>(numberBuf);
-
-			if (!(access % 100))
-			{
-				srand(num);
-			}
-
-			access++;
-			return num;
+		void Rand::Initialize()
+		{
+			register_prng(&fortuna_desc);
+			rng_make_prng(128, find_prng("fortuna"), &Rand::State, NULL);
 		}
 
 #pragma endregion

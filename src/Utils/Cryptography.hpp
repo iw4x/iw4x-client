@@ -6,6 +6,10 @@ namespace Utils
 		{
 		public:
 			static uint32_t GenerateInt();
+			static void Initialize();
+
+		private:
+			static prng_state State;
 		};
 
 		class ECDSA

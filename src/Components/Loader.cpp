@@ -83,7 +83,7 @@ namespace Components
 
 	bool Loader::PerformingUnitTests()
 	{
-#if DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		return Flags::HasFlag("tests");
 #else
 		return false;

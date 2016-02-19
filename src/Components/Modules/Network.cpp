@@ -181,6 +181,21 @@ namespace Components
 
 	int Network::PacketInterceptionHandler(const char* packet)
 	{
+		// Packet rate limit. 
+		static uint32_t packets = 0;
+		static int lastClean = 0;
+
+		if ((Game::Com_Milliseconds() - lastClean) > 1'000)
+		{
+			packets = 0;
+			lastClean = Game::Com_Milliseconds();
+		}
+
+		if ((++packets) > NETWORK_MAX_PACKETS_PER_SECOND)
+		{
+			return 1;
+		}
+
 		std::string packetCommand = packet;
 		auto pos = packetCommand.find_first_of("\\\n ");
 		if (pos != std::string::npos)
