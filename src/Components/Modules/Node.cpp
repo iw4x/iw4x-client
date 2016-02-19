@@ -252,8 +252,12 @@ namespace Components
 					Node::PerformRegistration(node.address);
 				}
 				// Requery invalid nodes within the NODE_QUERY_INTERVAL
-				// This is required, as a node might crash, which causes it to be invalid
-				// If it's restarted though, we wouldn't query it again
+				// This is required, as a node might crash, which causes it to be invalid.
+				// If it's restarted though, we wouldn't query it again.
+
+				// But wouldn't it send a registration request to us?
+				// Not sure if the code below is necessary...
+				// Well, it might be possible that this node doesn't know use anymore. Anyways, just keep that code here...
 				else if (node.state == STATE_INVALID && (Game::Com_Milliseconds() - node.lastTime) >(NODE_QUERY_INTERVAL)) 
 				{
 					registerCount++;
