@@ -226,6 +226,11 @@ namespace Components
 
 	void Node::FrameHandler()
 	{
+		// Frame limit
+		static int lastFrame = 0;
+		if ((Game::Com_Milliseconds() - lastFrame) < (1000 / NODE_FRAME_LOCK)) return;
+		lastFrame = Game::Com_Milliseconds();
+
 		int registerCount = 0;
 		int listQueryCount = 0;
 
