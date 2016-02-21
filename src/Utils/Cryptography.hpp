@@ -2,6 +2,67 @@ namespace Utils
 {
 	namespace Cryptography
 	{
+		class Token
+		{
+		public:
+			Token() { this->TokenString.clear(); };
+			Token(std::string token) : TokenString(token.begin(), token.end()) { };
+			Token(std::basic_string<uint8_t> token) : TokenString(token.begin(), token.end()) { };
+
+			Token& operator++ ()
+			{
+				if (this->TokenString.empty())
+				{
+					this->TokenString.append(reinterpret_cast<uint8_t*>("\0"), 1);
+				}
+				else
+				{
+					for (unsigned int i = (this->TokenString.size() - 1); i >= 0; i--)
+					{
+						if (this->TokenString[i] == 0xFF)
+						{
+							this->TokenString[i] = 0;
+
+							if (!i)
+							{
+								// Prepend here, as /dev/urandom says so ;) https://github.com/IW4x/iw4x-client-node/wikis/technical-information#incrementing-the-token
+								this->TokenString = std::basic_string<uint8_t>(reinterpret_cast<uint8_t*>("\0"), 1) + this->TokenString;
+								break;
+							}
+						}
+						else
+						{
+							this->TokenString[i]++;
+							break;
+						}
+					}
+				}
+
+				return *this;
+			}
+
+			Token operator++ (int)
+			{
+				Token result = *this;
+				++(*this);
+				return result;
+			}
+
+			std::string ToString()
+			{
+				auto str = this->ToUnsignedString();
+				return std::string(str.begin(), str.end());
+			}
+
+			std::basic_string<uint8_t> ToUnsignedString()
+			{
+				return this->TokenString;
+			}
+
+		private:
+			std::basic_string<uint8_t> TokenString;
+		};
+
 		class Rand
 		{
 		public:

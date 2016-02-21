@@ -30,6 +30,23 @@ namespace Utils
 		return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
 	}
 
+	std::string DumpHex(std::string data)
+	{
+		std::string result;
+
+		for (unsigned int i = 0; i < data.size(); ++i)
+		{
+			if (i > 0)
+			{
+				result.append(" ");
+			}
+
+			result.append(Utils::VA("%02X", data[i] & 0xFF));
+		}
+
+		return result;
+	}
+
 	// Complementary function for memset, which checks if a memory is set
 	bool MemIsSet(void* mem, char chr, size_t length) 
 	{

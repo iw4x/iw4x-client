@@ -156,4 +156,17 @@ namespace Components
 	{
 
 	}
+
+	bool Auth::UnitTest()
+	{
+/*
+		Utils::Cryptography::Token t;
+		for (int i = 0; i < 1'000'000; ++i, ++t)
+		{
+			printf("%s\n", Utils::DumpHex(t.ToString()).data());
+		}
+*/
+
+		return true;
+	}
 }

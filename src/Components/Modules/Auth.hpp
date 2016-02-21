@@ -6,6 +6,7 @@ namespace Components
 		Auth();
 		~Auth();
 		const char* GetName() { return "Auth"; };
+		bool UnitTest();
 
 	private:
 

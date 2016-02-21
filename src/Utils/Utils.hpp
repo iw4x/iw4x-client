@@ -20,6 +20,8 @@ namespace Utils
 	void WriteFile(std::string file, std::string data);
 	std::string ReadFile(std::string file);
 
+	std::string DumpHex(std::string data);
+
 	bool MemIsSet(void* mem, char chr, size_t length);
 
 	class InfoString
