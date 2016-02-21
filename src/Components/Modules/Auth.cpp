@@ -24,13 +24,13 @@ namespace Components
 			// Not sending a response might allow the player to connect for a few seconds (<= 5) until the timeout is reached.
 			if (client->state >= 5)
 			{
-				if (info->state == Auth::STATE_NEGOTIATING && (Game::Com_Milliseconds() - info->time) > 1000 * 5)
+				if (info->state == Auth::STATE_NEGOTIATING && (Game::Com_Milliseconds() - info->time) > 1000 * 3)
 				{
 					info->state = Auth::STATE_INVALID;
 					info->time = Game::Com_Milliseconds();
 					Game::SV_KickClientError(client, "XUID verification timed out!");
 				}
-				else if (info->state == Auth::STATE_UNKNOWN && info->time && (Game::Com_Milliseconds() - info->time) > 1000 * 5) // Wait 5 seconds (error delay)
+				else if (info->state == Auth::STATE_UNKNOWN && info->time && (Game::Com_Milliseconds() - info->time) > 1000 * 2) // Wait 2 seconds (error delay)
 				{
 					Logger::Print("Sending XUID authentication request to %s\n", Network::Address(client->adr).GetString());
 
@@ -132,7 +132,7 @@ namespace Components
 						if (Utils::Cryptography::ECDSA::VerifyMessage(info->publicKey, info->challenge, response.signature()))
 						{
 							info->state = Auth::STATE_VALID;
-							Logger::Print("Verified XUID from %s\n", address.GetString());
+							Logger::Print("Verified XUID %llX from %s\n", client->steamid, address.GetString());
 						}
 						else
 						{
