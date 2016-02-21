@@ -8,9 +8,6 @@
 [submodule "deps/asio"]
 	path = deps/asio
 	url = https://github.com/chriskohlhoff/asio.git
-[submodule "deps/pdcurses"]
-	path = deps/pdcurses
-	url = git://git.code.sf.net/p/pdcurses/code
 [submodule "deps/libtommath"]
 	path = deps/libtommath
 	url = https://github.com/libtom/libtommath.git
