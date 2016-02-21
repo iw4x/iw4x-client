@@ -28,7 +28,7 @@ namespace Components
 				{
 					info->state = Auth::STATE_INVALID;
 					info->time = Game::Com_Milliseconds();
-					Game::SV_KickClientError(client, "XUID verification timeout!");
+					Game::SV_KickClientError(client, "XUID verification timed out!");
 				}
 				else if (info->state == Auth::STATE_UNKNOWN && info->time && (Game::Com_Milliseconds() - info->time) > 1000 * 5) // Wait 5 seconds (error delay)
 				{
