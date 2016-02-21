@@ -11,9 +11,6 @@
 [submodule "deps/pdcurses"]
 	path = deps/pdcurses
 	url = git://git.code.sf.net/p/pdcurses/code
-[submodule "deps/libtomcrypt"]
-	path = deps/libtomcrypt
-	url = https://github.com/libtom/libtomcrypt
 [submodule "deps/libtommath"]
 	path = deps/libtommath
 	url = https://github.com/libtom/libtommath.git
@@ -23,3 +20,6 @@
 [submodule "deps/Wink-Signals"]
 	path = deps/Wink-Signals
 	url = https://github.com/momo5502/Wink-Signals.git
+[submodule "deps/libtomcrypt"]
+	path = deps/libtomcrypt
+	url = https://github.com/libtom/libtomcrypt.git
