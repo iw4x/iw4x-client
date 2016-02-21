@@ -20,6 +20,3 @@
 [submodule "deps/Wink-Signals"]
 	path = deps/Wink-Signals
 	url = https://github.com/momo5502/Wink-Signals.git
-[submodule "deps/libtomcrypt"]
-	path = deps/libtomcrypt
-	url = https://github.com/libtom/libtomcrypt.git
