@@ -21,3 +21,6 @@
 	path = deps/libtomcrypt
 	url = https://github.com/libtom/libtomcrypt.git
 	branch = develop
+[submodule "deps/pdcurses"]
+	path = deps/pdcurses
+	url = https://github.com/wmcbrine/PDCurses.git
