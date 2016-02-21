@@ -94,7 +94,7 @@ namespace Components
 
 				Proto::Auth::Response response;
 				response.set_publickey(Steam::User::GuidKey.GetPublicKey());
-				response.set_signature(Utils::Cryptography::ECDSA::SignMessage(Steam::User::GuidKey, data+"1"));
+				response.set_signature(Utils::Cryptography::ECDSA::SignMessage(Steam::User::GuidKey, data));
 
 				Network::SendCommand(address, "xuidAuthResp", response.SerializeAsString());
 			});
