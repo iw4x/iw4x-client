@@ -357,6 +357,7 @@ namespace Game
 
 	extern gentity_t* g_entities;
 
+	extern netadr_t* connectedHost;
 	extern SOCKET* ip_socket;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
@@ -372,4 +373,7 @@ namespace Game
 	void MessageBox(std::string message, std::string title);
 
 	unsigned int R_HashString(const char* string);
+
+	void SV_KickClient(client_t* client, const char* reason);
+	void SV_KickClientError(client_t* client, const char* reason);
 }

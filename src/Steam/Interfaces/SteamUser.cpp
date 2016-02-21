@@ -2,6 +2,8 @@
 
 namespace Steam
 {
+	::Utils::Cryptography::ECDSA::Key User::GuidKey;
+
 	int User::GetHSteamUser()
 	{
 		return NULL;
@@ -26,19 +28,19 @@ namespace Steam
 			}
 			else if (Components::Singleton::IsFirstInstance()) // Hardware guid
 			{
-				DATA_BLOB Data[2];
-				Data[0].pbData = (BYTE *)"AAAAAAAAAA";
-				Data[0].cbData = 10;
-
-				CryptProtectData(Data, NULL, NULL, NULL, NULL, CRYPTPROTECT_LOCAL_MACHINE, &Data[1]);
-
-				subId = ::Utils::OneAtATime(reinterpret_cast<char*>(Data[1].pbData), 52);
-
-				if (!subId)
+				if (!User::GuidKey.IsValid())
 				{
-					Components::Logger::Print("Hardware-based GUID generation failed!\n");
-					subId = (Game::Com_Milliseconds() + timeGetTime());
+					User::GuidKey.Import(::Utils::ReadFile("players/guid.dat"), PK_PRIVATE);
+					
+					if (!User::GuidKey.IsValid())
+					{
+						User::GuidKey = ::Utils::Cryptography::ECDSA::GenerateKey(512);
+						::Utils::WriteFile("players/guid.dat", User::GuidKey.Export(PK_PRIVATE));
+					}
 				}
+
+				std::string publicKey = User::GuidKey.GetPublicKey();
+				subId = ::Utils::OneAtATime(publicKey.data(), publicKey.size());
 			}
 			else // Random guid
 			{
@@ -54,7 +56,7 @@ namespace Steam
 
 	int User::InitiateGameConnection(void *pAuthBlob, int cbMaxAuthBlob, SteamID steamIDGameServer, unsigned int unIPServer, unsigned short usPortServer, bool bSecure)
 	{
-		// TODO: Generate auth ticket!
+		Components::Logger::Print("%s\n", __FUNCTION__);
 		return 0;
 	}
 

@@ -20,9 +20,9 @@ namespace Utils
 			public:
 				Key() : KeyStorage(new ecc_key)
 				{
-					ZeroMemory(this->KeyStorage.get(), sizeof(*this->KeyStorage.get()));
+					ZeroMemory(this->KeyStorage.get(), sizeof(*this->GetKeyPtr()));
 				};
-				Key(ecc_key* key) : Key() { if(key) std::memmove(this->KeyStorage.get(), key, sizeof(*key)); };
+				Key(ecc_key* key) : Key() { if(key) std::memmove(this->GetKeyPtr(), key, sizeof(*key)); };
 				Key(ecc_key key) : Key(&key) {};
 				~Key() 
 				{
@@ -34,7 +34,7 @@ namespace Utils
 
 				bool IsValid()
 				{
-					return (!Utils::MemIsSet(this->KeyStorage.get(), 0, sizeof(*this->KeyStorage.get())));
+					return (!Utils::MemIsSet(this->GetKeyPtr(), 0, sizeof(*this->GetKeyPtr())));
 				}
 
 				ecc_key* GetKeyPtr()
@@ -59,20 +59,43 @@ namespace Utils
 				{
 					this->Free();
 
-					if (ecc_ansi_x963_import(reinterpret_cast<const uint8_t*>(pubKeyBuffer.data()), pubKeyBuffer.size(), this->KeyStorage.get()) != CRYPT_OK)
+					if (ecc_ansi_x963_import(reinterpret_cast<const uint8_t*>(pubKeyBuffer.data()), pubKeyBuffer.size(), this->GetKeyPtr()) != CRYPT_OK)
 					{
-						ZeroMemory(this->KeyStorage.get(), sizeof(*this->KeyStorage.get()));
+						ZeroMemory(this->KeyStorage.get(), sizeof(*this->GetKeyPtr()));
 					}
+				}
+
+				void Import(std::string key, int type = PK_PRIVATE)
+				{
+					this->Free();
+
+					if (ecc_import(reinterpret_cast<const uint8_t*>(key.data()), key.size(), this->GetKeyPtr()) != CRYPT_OK)
+					{
+						ZeroMemory(this->KeyStorage.get(), sizeof(*this->GetKeyPtr()));
+					}
+				}
+
+				std::string Export(int type = PK_PRIVATE)
+				{
+					uint8_t buffer[4096] = { 0 };
+					DWORD length = sizeof(buffer);
+
+					if (ecc_export(buffer, &length, type, this->GetKeyPtr()) == CRYPT_OK)
+					{
+						return std::string(reinterpret_cast<char*>(buffer), length);
+					}
+
+					return "";
 				}
 
 				void Free()
 				{
 					if (this->IsValid())
 					{
-						ecc_free(this->KeyStorage.get());
+						ecc_free(this->GetKeyPtr());
 					}
 
-					ZeroMemory(this->KeyStorage.get(), sizeof(*this->KeyStorage.get()));
+					ZeroMemory(this->GetKeyPtr(), sizeof(*this->GetKeyPtr()));
 				}
 
 			private:
@@ -92,9 +115,9 @@ namespace Utils
 			public:
 				Key() : KeyStorage(new rsa_key)
 				{
-					ZeroMemory(this->KeyStorage.get(), sizeof(*this->KeyStorage.get()));
+					ZeroMemory(this->KeyStorage.get(), sizeof(*this->GetKeyPtr()));
 				};
-				Key(rsa_key* key) : Key() { if (key) std::memmove(this->KeyStorage.get(), key, sizeof(*key)); };
+				Key(rsa_key* key) : Key() { if (key) std::memmove(this->GetKeyPtr(), key, sizeof(*key)); };
 				Key(rsa_key key) : Key(&key) {};
 				~Key()
 				{
@@ -111,17 +134,17 @@ namespace Utils
 
 				bool IsValid()
 				{
-					return (!Utils::MemIsSet(this->KeyStorage.get(), 0, sizeof(*this->KeyStorage.get())));
+					return (!Utils::MemIsSet(this->GetKeyPtr(), 0, sizeof(*this->GetKeyPtr())));
 				}
 
 				void Free()
 				{
 					if (this->IsValid())
 					{
-						rsa_free(this->KeyStorage.get());
+						rsa_free(this->GetKeyPtr());
 					}
 
-					ZeroMemory(this->KeyStorage.get(), sizeof(*this->KeyStorage.get()));
+					ZeroMemory(this->GetKeyPtr(), sizeof(*this->GetKeyPtr()));
 				}
 
 			private:

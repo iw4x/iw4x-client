@@ -905,7 +905,7 @@ namespace Game
 		// 269044
 		char pad6[9228];
 		// 278272
-		__int64 steamid;
+		unsigned __int64 steamid;
 		// 278280
 		char pad7[403592];
 	} client_t;

@@ -23,6 +23,7 @@ namespace Components
 	};
 }
 
+#include "Modules\Auth.hpp"
 #include "Modules\Dvar.hpp"
 #include "Modules\Maps.hpp"
 #include "Modules\News.hpp"

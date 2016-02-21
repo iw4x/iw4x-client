@@ -177,6 +177,8 @@ namespace Game
 
 	gentity_t* g_entities = (gentity_t*)0x18835D8;
 
+	netadr_t* connectedHost = (netadr_t*)0xA1E888;
+
 	SOCKET* ip_socket = (SOCKET*)0x64A3008;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
@@ -302,5 +304,34 @@ namespace Game
 		}
 
 		return hash;
+	}
+
+	void SV_KickClient(client_t* client, const char* reason)
+	{
+		__asm
+		{
+			push edi
+			push esi
+			mov edi, 0
+			mov esi, client
+			push reason
+			push 0
+			push 0
+			mov eax, 6249A0h
+			call eax
+			add esp, 0Ch
+			pop esi
+			pop edi
+		}
+	}
+
+	void SV_KickClientError(client_t* client, const char* reason)
+	{
+		if (client->state < 5)
+		{
+			Components::Network::Send(client->adr, Utils::VA("error\n%s", reason));
+		}
+
+		SV_KickClient(client, reason);
 	}
 }

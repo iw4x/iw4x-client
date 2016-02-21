@@ -63,6 +63,7 @@
 
 // Protobuf
 #include "proto/network.pb.h"
+#include "proto/auth.pb.h"
 #include "proto/node.pb.h"
 #include "proto/rcon.pb.h"
 

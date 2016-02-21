@@ -9,6 +9,7 @@ namespace Components
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
 
+		Loader::Register(new Auth());
 		Loader::Register(new Dvar());
 		Loader::Register(new Maps());
 		Loader::Register(new News());
