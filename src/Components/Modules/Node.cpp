@@ -263,6 +263,8 @@ namespace Components
 				// But wouldn't it send a registration request to us?
 				// Not sure if the code below is necessary...
 				// Well, it might be possible that this node doesn't know use anymore. Anyways, just keep that code here...
+
+				// Nvm, this is required for clients, as nodes don't send registration requests to clients.
 				else if (node.state == STATE_INVALID && (Game::Com_Milliseconds() - node.lastTime) >(NODE_QUERY_INTERVAL)) 
 				{
 					registerCount++;
