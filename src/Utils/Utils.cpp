@@ -30,7 +30,7 @@ namespace Utils
 		return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
 	}
 
-	std::string DumpHex(std::string data)
+	std::string DumpHex(std::string data, std::string separator)
 	{
 		std::string result;
 
@@ -38,7 +38,7 @@ namespace Utils
 		{
 			if (i > 0)
 			{
-				result.append(" ");
+				result.append(separator);
 			}
 
 			result.append(Utils::VA("%02X", data[i] & 0xFF));

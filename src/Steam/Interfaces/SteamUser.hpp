@@ -20,8 +20,5 @@ namespace Steam
 		virtual void EndAuthSession(SteamID steamID);
 		virtual void CancelAuthTicket(unsigned int hAuthTicket);
 		virtual unsigned int UserHasLicenseForApp(SteamID steamID, unsigned int appID);
-
-		static ::Utils::Cryptography::Token GuidToken;
-		static ::Utils::Cryptography::ECDSA::Key GuidKey;
 	};
 }

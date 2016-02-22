@@ -108,4 +108,4 @@
 #define Assert_Size(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
 
 // Enable unit-test flag for release builds
-//#define FORCE_UNIT_TESTS
+#define FORCE_UNIT_TESTS

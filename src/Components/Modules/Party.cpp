@@ -284,6 +284,7 @@ namespace Components
 			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 			info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
 			info.Set("hc", (Dvar::Var("g_hardcore").Get<bool>() ? "1" : "0"));
+			info.Set("securityLevel", Utils::VA("%i", Dvar::Var("sv_securityLevel").Get<int>()));
 
 			// Ensure mapname is set
 			if (info.Get("mapname").empty())
@@ -325,10 +326,15 @@ namespace Components
 					Party::Container.Valid = false;
 
 					int matchType = atoi(info.Get("matchtype").data());
+					uint32_t securityLevel = static_cast<uint32_t>(atoi(info.Get("securityLevel").data()));
 
 					if (info.Get("challenge") != Party::Container.Challenge)
 					{
 						Party::ConnectError("Invalid join response: Challenge mismatch.");
+					}
+					else if (securityLevel > Auth::GetSecurityLevel())
+					{
+						Party::ConnectError(Utils::VA("Your security level (%d) is lower than the server's (%d)", Auth::GetSecurityLevel(), securityLevel));
 					}
 					else if (!matchType)
 					{

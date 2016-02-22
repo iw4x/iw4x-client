@@ -2,9 +2,6 @@
 
 namespace Steam
 {
-	::Utils::Cryptography::Token User::GuidToken;
-	::Utils::Cryptography::ECDSA::Key User::GuidKey;
-
 	int User::GetHSteamUser()
 	{
 		return NULL;
@@ -27,32 +24,9 @@ namespace Steam
 			{
 				subId = ~0xDED1CA7E;
 			}
-			else if (Components::Singleton::IsFirstInstance()) // Hardware guid
+			else if (Components::Singleton::IsFirstInstance()) // ECDSA guid
 			{
-				if (!User::GuidKey.IsValid())
-				{
-					Proto::Auth::Certificate cert;
-
-					if (cert.ParseFromString(::Utils::ReadFile("players/guid.dat")))
-					{
-						User::GuidKey.Import(cert.privatekey(), PK_PRIVATE);
-						User::GuidToken = cert.token();
-					}
-					
-					if (!User::GuidKey.IsValid())
-					{
-						User::GuidToken.Clear();
-						User::GuidKey = ::Utils::Cryptography::ECDSA::GenerateKey(512);
-
-						cert.set_token(User::GuidToken.ToString());
-						cert.set_privatekey(User::GuidKey.Export(PK_PRIVATE));
-
-						::Utils::WriteFile("players/guid.dat", cert.SerializeAsString());
-					}
-				}
-
-				std::string publicKey = User::GuidKey.GetPublicKey();
-				subId = ::Utils::OneAtATime(publicKey.data(), publicKey.size());
+				subId = Components::Auth::GetKeyHash();
 			}
 			else // Random guid
 			{

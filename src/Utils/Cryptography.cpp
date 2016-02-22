@@ -6,6 +6,7 @@ namespace Utils
 {
 	namespace Cryptography
 	{
+
 #pragma region Rand
 
 		prng_state Rand::State;
@@ -96,7 +97,7 @@ namespace Utils
 			register_hash(&sha1_desc);
 
 			ltc_mp = ltm_desc;
-			
+
 			rsa_sign_hash(reinterpret_cast<const uint8_t*>(message.data()), message.size(), buffer, &length, NULL, find_prng("sprng"), find_hash("sha1"), 0, key.GetKeyPtr());
 
 			return std::string(reinterpret_cast<char*>(buffer), length);
@@ -113,8 +114,46 @@ namespace Utils
 			int result = 0;
 			return (rsa_verify_hash(reinterpret_cast<const uint8_t*>(signature.data()), signature.size(), reinterpret_cast<const uint8_t*>(message.data()), message.size(), find_hash("sha1"), 0, &result, key.GetKeyPtr()) == CRYPT_OK && result != 0);
 		}
-	}
 
 #pragma endregion
 
+#pragma region SHA256
+
+		std::string SHA256::Compute(std::string data, bool hex)
+		{
+			uint8_t buffer[32] = { 0 };
+
+			hash_state state;
+			sha256_init(&state);
+			sha256_process(&state, reinterpret_cast<const uint8_t*>(data.data()), data.size());
+			sha256_done(&state, buffer);
+
+			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
+			if (!hex) return hash;
+
+			return Utils::DumpHex(hash, "");
+		}
+
+#pragma endregion
+
+#pragma region SHA512
+
+		std::string SHA512::Compute(std::string data, bool hex)
+		{
+			uint8_t buffer[64] = { 0 };
+
+			hash_state state;
+			sha512_init(&state);
+			sha512_process(&state, reinterpret_cast<const uint8_t*>(data.data()), data.size());
+			sha512_done(&state, buffer);
+
+			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
+			if (!hex) return hash;
+
+			return Utils::DumpHex(hash, "");
+		}
+
+#pragma endregion
+
+	}
 }

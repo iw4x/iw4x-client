@@ -4,6 +4,9 @@ namespace Components
 {
 	Auth::AuthInfo Auth::ClientAuthInfo[18];
 
+	Utils::Cryptography::Token Auth::GuidToken;
+	Utils::Cryptography::ECDSA::Key Auth::GuidKey;
+
 	void Auth::Frame()
 	{
 		for (int i = 0; i < *Game::svs_numclients; i++)
@@ -79,8 +82,98 @@ namespace Components
 		}
 	}
 
+	unsigned int Auth::GetKeyHash()
+	{
+		Auth::LoadKey();
+		std::string key = Auth::GuidKey.GetPublicKey();
+		return (Utils::OneAtATime(key.data(), key.size()));
+	}
+
+	void Auth::StoreKey()
+	{
+		Proto::Auth::Certificate cert;
+		cert.set_token(Auth::GuidToken.ToString());
+		cert.set_privatekey(Auth::GuidKey.Export(PK_PRIVATE));
+
+		Utils::WriteFile("players/guid.dat", cert.SerializeAsString());
+	}
+
+	void Auth::LoadKey(bool force)
+	{
+		if (!force && Auth::GuidKey.IsValid()) return;
+
+		Proto::Auth::Certificate cert;
+		if (cert.ParseFromString(::Utils::ReadFile("players/guid.dat")))
+		{
+			Auth::GuidKey.Import(cert.privatekey(), PK_PRIVATE);
+			Auth::GuidToken = cert.token();
+		}
+		else
+		{
+			Auth::GuidKey.Free();
+		}
+
+		if (!Auth::GuidKey.IsValid())
+		{
+			Auth::GuidToken.Clear();
+			Auth::GuidKey = Utils::Cryptography::ECDSA::GenerateKey(512);
+			Auth::StoreKey();
+		}
+	}
+
+	uint32_t Auth::GetSecurityLevel()
+	{
+		return Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey());
+	}
+
+	uint32_t Auth::GetZeroBits(Utils::Cryptography::Token token, std::string publicKey)
+	{
+		std::string message = publicKey + token.ToString();
+		std::string hash = Utils::Cryptography::SHA512::Compute(message, false);
+
+		uint32_t bits = 0;
+
+		for (unsigned int i = 0; i < hash.size(); ++i)
+		{
+			if (hash[i] == '\0')
+			{
+				bits += 8;
+				continue;
+			}
+
+			uint8_t value = static_cast<uint8_t>(hash[i]);
+			for (int j = 7; j >= 0; --j)
+			{
+				if ((value >> j) & 1)
+				{
+					return bits;
+				}
+
+				bits++;
+			}
+		}
+
+		return bits;
+	}
+
+	void Auth::IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits)
+	{
+		if (zeroBits > 512) return; // Not possible, due to SHA512
+
+		Utils::Cryptography::Token tempToken(token);
+
+		while (Auth::GetZeroBits(tempToken, publicKey) < zeroBits)
+		{
+			++tempToken;
+		}
+
+		token = tempToken;
+	}
+
 	Auth::Auth()
 	{
+		Auth::LoadKey(true);
+
 		// Only clients receive the auth request
 		if (!Dedicated::IsDedicated()) 
 		{
@@ -93,11 +186,12 @@ namespace Components
 
 				// Ensure our certificate is loaded
 				Steam::SteamUser()->GetSteamID();
-				if (!Steam::User::GuidKey.IsValid()) return;
+				if (!Auth::GuidKey.IsValid()) return;
 
 				Proto::Auth::Response response;
-				response.set_publickey(Steam::User::GuidKey.GetPublicKey());
-				response.set_signature(Utils::Cryptography::ECDSA::SignMessage(Steam::User::GuidKey, data));
+				response.set_token(Auth::GuidToken.ToString());
+				response.set_publickey(Auth::GuidKey.GetPublicKey());
+				response.set_signature(Utils::Cryptography::ECDSA::SignMessage(Auth::GuidKey, data));
 
 				Network::SendCommand(address, "xuidAuthResp", response.SerializeAsString());
 			});
@@ -118,7 +212,7 @@ namespace Components
 					unsigned int id = static_cast<unsigned int>(~0x110000100000000 & client->steamid);
 
 					// Check if response is valid
-					if (!response.ParseFromString(data) || response.signature().empty() || response.publickey().empty())
+					if (!response.ParseFromString(data) || response.signature().empty() || response.publickey().empty() || response.token().empty())
 					{
 						info->state = Auth::STATE_INVALID;
 						Game::SV_KickClientError(client, "XUID authentication response was invalid!");
@@ -138,8 +232,19 @@ namespace Components
 
 						if (Utils::Cryptography::ECDSA::VerifyMessage(info->publicKey, info->challenge, response.signature()))
 						{
-							info->state = Auth::STATE_VALID;
-							Logger::Print("Verified XUID %llX from %s\n", client->steamid, address.GetString());
+							uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").Get<int>());
+							uint32_t userLevel = Auth::GetZeroBits(response.token(), response.publickey());
+
+							if (userLevel >= ourLevel)
+							{
+								info->state = Auth::STATE_VALID;
+								Logger::Print("Verified XUID %llX from %s\n", client->steamid, address.GetString());
+							}
+							else
+							{
+								info->state = Auth::STATE_INVALID;
+								Game::SV_KickClientError(client, Utils::VA("Your security level (%d) does not match the server's security level (%d)", userLevel, ourLevel));
+							}
 						}
 						else
 						{
@@ -157,17 +262,48 @@ namespace Components
 		Dedicated::OnFrame(Auth::Frame);
 		Renderer::OnFrame(Auth::Frame);
 
+		// Register dvar
+		Dvar::Register<int>("sv_securityLevel", 20, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");
+
 		// Install registration hook
 		Utils::Hook(0x478A12, Auth::RegisterClientStub, HOOK_JUMP).Install()->Quick();
+
+		// Guid command
+		Command::Add("guid", [] (Command::Params params)
+		{
+			Logger::Print("Your guid: %llX\n", Steam::SteamUser()->GetSteamID().Bits);
+		});
+
+		Command::Add("securityLevel", [] (Command::Params params)
+		{
+			if (params.Length() < 2)
+			{
+				Logger::Print("Your current security level is %d\n", Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey()));
+			}
+			else
+			{
+				uint32_t level = static_cast<uint32_t>(atoi(params[1]));
+				Logger::Print("Incrementing security level from %d to %d...\n", Auth::GetSecurityLevel(), level);
+				Auth::IncrementToken(Auth::GuidToken, Auth::GuidKey.GetPublicKey(), level);
+				Logger::Print("Your new security level is %d\n", Auth::GetSecurityLevel());
+			}
+		});
 	}
 
 	Auth::~Auth()
 	{
-
+		Auth::StoreKey();
 	}
 
 	bool Auth::UnitTest()
 	{
+// 		Utils::Cryptography::Token t;
+// 		auto _key = Utils::Cryptography::ECDSA::GenerateKey(512);
+// 		Auth::IncrementToken(t, _key.GetPublicKey(), 22);
+// 
+// 		Utils::WriteFile("pubKey.dat", _key.GetPublicKey());
+// 		Utils::WriteFile("token.dat", t.ToString());
+
 /*
 		Utils::Cryptography::Token t;
 		for (int i = 0; i < 1'000'000; ++i, ++t)
@@ -175,6 +311,40 @@ namespace Components
 			printf("%s\n", Utils::DumpHex(t.ToString()).data());
 		}
 */
+// 		auto testSecurityLevel = [](size_t level, std::string key)
+// 		{
+// 			auto startTime = std::chrono::high_resolution_clock::now();
+// 			Utils::Cryptography::Token t;
+// 			Auth::IncrementToken(t, key, level);
+// 			return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
+// 		};
+// 
+// 		for (int j = 10; j < 30; ++j)
+// 		{
+// 			printf("\nTesting security level %i:\n", j);
+// 
+// 			std::vector<long long> times;
+// 
+// 			for (int i = 0; i < 10; ++i)
+// 			{
+// 				auto key = Utils::Cryptography::ECDSA::GenerateKey(512);
+// 
+// 				auto time = testSecurityLevel(j, key.GetPublicKey());
+// 				times.push_back(time);
+// 				printf("\t%i: %llims\n", i, time);
+// 			}
+// 
+// 			long long average = 0;
+// 
+// 			for (auto time : times)
+// 			{
+// 				average += time;
+// 			}
+// 
+// 			average /= times.size();
+// 
+// 			printf("\n  Average: %llims\n", average);
+// 		}
 
 		return true;
 	}

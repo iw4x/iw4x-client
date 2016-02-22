@@ -145,7 +145,7 @@ namespace Assets
 			{
 				if (asset->lods[i].surfaces)
 				{
-					// Requiring this asset is not possible, as it has to be loaded after the model
+					// Requiring this asset is not possible, as it has to be loaded as part of the model
 					//dest->lods[i].surfaces = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name).surfaces;
 
 					IXModelSurfs().Save({ asset->lods[i].surfaces }, builder);

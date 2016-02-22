@@ -8,6 +8,14 @@ namespace Components
 		const char* GetName() { return "Auth"; };
 		bool UnitTest();
 
+		static void StoreKey();
+		static void LoadKey(bool force = false);
+		static unsigned int GetKeyHash();
+
+		static uint32_t GetSecurityLevel();
+		static uint32_t GetZeroBits(Utils::Cryptography::Token token, std::string publicKey);
+		static void IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits);
+
 	private:
 
 		enum AuthState
@@ -27,6 +35,9 @@ namespace Components
 		};
 
 		static AuthInfo ClientAuthInfo[18];
+
+		static Utils::Cryptography::Token GuidToken;
+		static Utils::Cryptography::ECDSA::Key GuidKey;
 
 		static void Frame();
 

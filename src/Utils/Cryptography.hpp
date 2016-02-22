@@ -221,5 +221,17 @@ namespace Utils
 			static std::string SignMessage(Key key, std::string message);
 			static bool VerifyMessage(Key key, std::string message, std::string signature);
 		};
+
+		class SHA256
+		{
+		public:
+			static std::string Compute(std::string data, bool hex = false);
+		};
+
+		class SHA512
+		{
+		public:
+			static std::string Compute(std::string data, bool hex = false);
+		};
 	}
 }
