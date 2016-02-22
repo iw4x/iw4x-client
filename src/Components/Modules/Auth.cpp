@@ -162,10 +162,24 @@ namespace Components
 
 		Utils::Cryptography::Token tempToken(token);
 
-		while (Auth::GetZeroBits(tempToken, publicKey) < zeroBits)
+		// Check if we already have the desired security level
+		uint32_t lastLevel = Auth::GetZeroBits(tempToken, publicKey);
+		uint32_t level = lastLevel;
+		if (level >= zeroBits) return;
+
+		do
 		{
 			++tempToken;
+			level = Auth::GetZeroBits(tempToken, publicKey);
+
+			// Store level if higher than the last one
+			if (level >= lastLevel)
+			{
+				token = tempToken;
+				lastLevel = level;
+			}
 		}
+		while (level < zeroBits);
 
 		token = tempToken;
 	}
@@ -287,6 +301,8 @@ namespace Components
 				Auth::IncrementToken(Auth::GuidToken, Auth::GuidKey.GetPublicKey(), level);
 				Logger::Print("Your new security level is %d\n", Auth::GetSecurityLevel());
 			}
+
+			Logger::Print("Your security token is: %s\n", Utils::DumpHex(Auth::GuidToken.ToString(), "").data());
 		});
 	}
 
