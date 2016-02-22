@@ -6,6 +6,7 @@ namespace Utils
 		{
 		public:
 			Token() { this->TokenString.clear(); };
+			Token(const Token& obj) : TokenString(obj.TokenString) { };
 			Token(std::string token) : TokenString(token.begin(), token.end()) { };
 			Token(std::basic_string<uint8_t> token) : TokenString(token.begin(), token.end()) { };
 
@@ -50,13 +51,17 @@ namespace Utils
 
 			std::string ToString()
 			{
-				auto str = this->ToUnsignedString();
-				return std::string(str.begin(), str.end());
+				return std::string(this->TokenString.begin(), this->TokenString.end());
 			}
 
 			std::basic_string<uint8_t> ToUnsignedString()
 			{
 				return this->TokenString;
+			}
+
+			void Clear()
+			{
+				this->TokenString.clear();
 			}
 
 		private:

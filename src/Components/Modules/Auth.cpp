@@ -24,13 +24,13 @@ namespace Components
 			// Not sending a response might allow the player to connect for a few seconds (<= 5) until the timeout is reached.
 			if (client->state >= 5)
 			{
-				if (info->state == Auth::STATE_NEGOTIATING && (Game::Com_Milliseconds() - info->time) > 1000 * 3)
+				if (info->state == Auth::STATE_NEGOTIATING && (Game::Com_Milliseconds() - info->time) > 1000 * 5)
 				{
 					info->state = Auth::STATE_INVALID;
 					info->time = Game::Com_Milliseconds();
 					Game::SV_KickClientError(client, "XUID verification timed out!");
 				}
-				else if (info->state == Auth::STATE_UNKNOWN && info->time && (Game::Com_Milliseconds() - info->time) > 1000 * 2) // Wait 2 seconds (error delay)
+				else if (info->state == Auth::STATE_UNKNOWN && info->time && (Game::Com_Milliseconds() - info->time) > 1000 * 5) // Wait 5 seconds (error delay)
 				{
 					Logger::Print("Sending XUID authentication request to %s\n", Network::Address(client->adr).GetString());
 
@@ -90,6 +90,9 @@ namespace Components
 
 				// Only accept requests from the server we're connected to
 				if (address != *Game::connectedHost) return;
+
+				// Ensure our certificate is loaded
+				Steam::SteamUser()->GetSteamID();
 				if (!Steam::User::GuidKey.IsValid()) return;
 
 				Proto::Auth::Response response;
@@ -104,12 +107,6 @@ namespace Components
 		{
 			Logger::Print("Received XUID authentication response from %s\n", address.GetString());
 
-			Proto::Auth::Response response;
-			response.ParseFromString(data);
-
-			if (response.signature().empty()) return;
-			if (response.publickey().empty()) return;
-
 			for (int i = 0; i < *Game::svs_numclients; i++)
 			{
 				Game::client_t* client = &Game::svs_clients[i];
@@ -117,14 +114,24 @@ namespace Components
 
 				if (client->state >= 3 && address == client->adr && info->state == Auth::STATE_NEGOTIATING)
 				{
+					Proto::Auth::Response response;
 					unsigned int id = static_cast<unsigned int>(~0x110000100000000 & client->steamid);
 
+					// Check if response is valid
+					if (!response.ParseFromString(data) || response.signature().empty() || response.publickey().empty())
+					{
+						info->state = Auth::STATE_INVALID;
+						Game::SV_KickClientError(client, "XUID authentication response was invalid!");
+					}
+
 					// Check if guid matches the certificate
-					if (id != (Utils::OneAtATime(response.publickey().data(), response.publickey().size()) & ~0x80000000))
+					else if (id != (Utils::OneAtATime(response.publickey().data(), response.publickey().size()) & ~0x80000000))
 					{
 						info->state = Auth::STATE_INVALID;
 						Game::SV_KickClientError(client, "XUID doesn't match the certificate!");
 					}
+
+					// Verify GUID using the signature and certificate
 					else
 					{
 						info->publicKey.Set(response.publickey());
@@ -140,6 +147,8 @@ namespace Components
 							Game::SV_KickClientError(client, "Challenge signature was invalid!");
 						}
 					}
+
+					break;
 				}
 			}
 		});

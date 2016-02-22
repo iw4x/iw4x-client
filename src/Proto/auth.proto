@@ -7,3 +7,9 @@ message Response
 	bytes signature = 1;
 	bytes publickey = 2;
 }
+
+message Certificate
+{
+	bytes privatekey = 1;
+	bytes token      = 2;
+}

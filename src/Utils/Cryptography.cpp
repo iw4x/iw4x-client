@@ -19,6 +19,7 @@ namespace Utils
 
 		void Rand::Initialize()
 		{
+			ltc_mp = ltm_desc;
 			register_prng(&fortuna_desc);
 			rng_make_prng(128, find_prng("fortuna"), &Rand::State, NULL);
 		}

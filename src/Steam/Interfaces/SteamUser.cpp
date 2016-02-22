@@ -2,6 +2,7 @@
 
 namespace Steam
 {
+	::Utils::Cryptography::Token User::GuidToken;
 	::Utils::Cryptography::ECDSA::Key User::GuidKey;
 
 	int User::GetHSteamUser()
@@ -30,12 +31,23 @@ namespace Steam
 			{
 				if (!User::GuidKey.IsValid())
 				{
-					User::GuidKey.Import(::Utils::ReadFile("players/guid.dat"), PK_PRIVATE);
+					Proto::Auth::Certificate cert;
+
+					if (cert.ParseFromString(::Utils::ReadFile("players/guid.dat")))
+					{
+						User::GuidKey.Import(cert.privatekey(), PK_PRIVATE);
+						User::GuidToken = cert.token();
+					}
 					
 					if (!User::GuidKey.IsValid())
 					{
+						User::GuidToken.Clear();
 						User::GuidKey = ::Utils::Cryptography::ECDSA::GenerateKey(512);
-						::Utils::WriteFile("players/guid.dat", User::GuidKey.Export(PK_PRIVATE));
+
+						cert.set_token(User::GuidToken.ToString());
+						cert.set_privatekey(User::GuidKey.Export(PK_PRIVATE));
+
+						::Utils::WriteFile("players/guid.dat", cert.SerializeAsString());
 					}
 				}
 
