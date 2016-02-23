@@ -3,6 +3,7 @@
 namespace Components
 {
 	Auth::AuthInfo Auth::ClientAuthInfo[18];
+	Auth::TokenIncrementing Auth::TokenContainer;
 
 	Utils::Cryptography::Token Auth::GuidToken;
 	Utils::Cryptography::ECDSA::Key Auth::GuidKey;
@@ -47,6 +48,39 @@ namespace Components
 					info->time = Game::Com_Milliseconds();
 				}
 			}
+		}
+
+		if (Auth::TokenContainer.generating)
+		{
+			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::VA("Increasing security level from %d to %d"/* (approx. 1 min)"*/, Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel));
+		}
+		else if(Auth::TokenContainer.thread)
+		{
+			if (Auth::TokenContainer.thread->joinable())
+			{
+				Auth::TokenContainer.thread->join();
+			}
+
+			delete Auth::TokenContainer.thread;
+			Auth::TokenContainer.thread = nullptr;
+			Auth::TokenContainer.generating = false;
+
+			Logger::Print("Security level is %d\n", Auth::GetSecurityLevel());
+			Command::Execute("closemenu security_increase_popmenu", false);
+
+			if (!Auth::TokenContainer.cancel)
+			{
+				if (Auth::TokenContainer.command.empty())
+				{
+					Game::MessageBox(Utils::VA("Your new security level is now %d", Auth::GetSecurityLevel()), "Success");
+				}
+				else
+				{
+					Command::Execute(Auth::TokenContainer.command, false);
+				}
+			}
+
+			Auth::TokenContainer.cancel = false;
 		}
 	}
 
@@ -126,6 +160,35 @@ namespace Components
 		return Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey());
 	}
 
+	void Auth::IncreaseSecurityLevel(uint32_t level, std::string command)
+	{
+		if (Auth::GetSecurityLevel() >= level) return;
+
+		if (!Auth::TokenContainer.generating)
+		{
+			Auth::TokenContainer.cancel = false;
+			Auth::TokenContainer.targetLevel = level;
+			Auth::TokenContainer.command = command;
+
+			// Open menu
+			Command::Execute("openmenu security_increase_popmenu", true);
+
+			// Start thread
+			Auth::TokenContainer.thread = new std::thread([&level] ()
+			{
+				Auth::TokenContainer.generating = true;
+				Auth::TokenContainer.startTime = Game::Com_Milliseconds();
+				Auth::IncrementToken(Auth::GuidToken, Auth::GuidKey.GetPublicKey(), Auth::TokenContainer.targetLevel, &Auth::TokenContainer.cancel);
+				Auth::TokenContainer.generating = false;
+
+				if (Auth::TokenContainer.cancel)
+				{
+					Logger::Print("Token incrementation thread terminated\n");
+				}
+			});
+		}
+	}
+
 	uint32_t Auth::GetZeroBits(Utils::Cryptography::Token token, std::string publicKey)
 	{
 		std::string message = publicKey + token.ToString();
@@ -156,7 +219,7 @@ namespace Components
 		return bits;
 	}
 
-	void Auth::IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits)
+	void Auth::IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits, bool* cancel)
 	{
 		if (zeroBits > 512) return; // Not possible, due to SHA512
 
@@ -178,6 +241,9 @@ namespace Components
 				token = tempToken;
 				lastLevel = level;
 			}
+
+			// Allow canceling that shit
+			if (cancel && *cancel) return;
 		}
 		while (level < zeroBits);
 
@@ -186,6 +252,12 @@ namespace Components
 
 	Auth::Auth()
 	{
+		Auth::TokenContainer.cancel = false;
+		Auth::TokenContainer.generating = false;
+		Auth::TokenContainer.thread = nullptr;
+
+		Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", "");
+
 		Auth::LoadKey(true);
 
 		// Only clients receive the auth request
@@ -293,21 +365,39 @@ namespace Components
 			if (params.Length() < 2)
 			{
 				Logger::Print("Your current security level is %d\n", Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey()));
+				Logger::Print("Your security token is: %s\n", Utils::DumpHex(Auth::GuidToken.ToString(), "").data());
 			}
 			else
 			{
 				uint32_t level = static_cast<uint32_t>(atoi(params[1]));
-				Logger::Print("Incrementing security level from %d to %d...\n", Auth::GetSecurityLevel(), level);
-				Auth::IncrementToken(Auth::GuidToken, Auth::GuidKey.GetPublicKey(), level);
-				Logger::Print("Your new security level is %d\n", Auth::GetSecurityLevel());
+				Auth::IncreaseSecurityLevel(level);
 			}
+		});
 
-			Logger::Print("Your security token is: %s\n", Utils::DumpHex(Auth::GuidToken.ToString(), "").data());
+		UIScript::Add("security_increase_cancel", [] ()
+		{
+			Auth::TokenContainer.cancel = true;
+			Logger::Print("Token incrementation process canceled!\n");
 		});
 	}
 
 	Auth::~Auth()
 	{
+		Auth::TokenContainer.cancel = true;
+		Auth::TokenContainer.generating = false;
+
+		// Terminate thread
+		if (Auth::TokenContainer.thread)
+		{
+			if (Auth::TokenContainer.thread->joinable())
+			{
+				Auth::TokenContainer.thread->join();
+			}
+
+			delete Auth::TokenContainer.thread;
+			Auth::TokenContainer.thread = nullptr;
+		}
+
 		Auth::StoreKey();
 	}
 

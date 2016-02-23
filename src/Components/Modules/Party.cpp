@@ -334,7 +334,9 @@ namespace Components
 					}
 					else if (securityLevel > Auth::GetSecurityLevel())
 					{
-						Party::ConnectError(Utils::VA("Your security level (%d) is lower than the server's (%d)", Auth::GetSecurityLevel(), securityLevel));
+						//Party::ConnectError(Utils::VA("Your security level (%d) is lower than the server's (%d)", Auth::GetSecurityLevel(), securityLevel));
+						Command::Execute("closemenu popup_reconnectingtoparty");
+						Auth::IncreaseSecurityLevel(securityLevel, "reconnect");
 					}
 					else if (!matchType)
 					{
