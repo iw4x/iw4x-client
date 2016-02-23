@@ -93,19 +93,19 @@ namespace Components
 		Utils::Hook::Set<char*>(0x6431D1, "data2");
 
 		// UI version string
-		Utils::Hook::Set<char*>(0x43F73B, "iw4x IW4x: r" REVISION_STR "-" MILESTONE);
+		Utils::Hook::Set<char*>(0x43F73B, "IW4x: r" REVISION_STR "-" MILESTONE);
 
 		// console version string
-		Utils::Hook::Set<char*>(0x4B12BB, "iw4x IW4x r" REVISION_STR "-" MILESTONE " (built " __DATE__ " " __TIME__ ")");
+		Utils::Hook::Set<char*>(0x4B12BB, "IW4x r" REVISION_STR "-" MILESTONE " (built " __DATE__ " " __TIME__ ")");
 
 		// version string
-		Utils::Hook::Set<char*>(0x60BD56, "iw4x IW4x (r" REVISION_STR ")");
+		Utils::Hook::Set<char*>(0x60BD56, "IW4x (r" REVISION_STR ")");
 
 		// console title
-		Utils::Hook::Set<char*>(0x4289E8, "iw4x IW4x (r" REVISION_STR "): Console");
+		Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR "): Console");
 
 		// window title
-		Utils::Hook::Set<char*>(0x5076A0, "iw4x IW4x: Multiplayer");
+		Utils::Hook::Set<char*>(0x5076A0, "IW4x: Multiplayer");
 
 		// sv_hostname
 		Utils::Hook::Set<char*>(0x4D378B, "IW4Host");

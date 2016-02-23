@@ -319,7 +319,7 @@ namespace Components
 	// TODO: Check if a RawFile with the same name has already been added, to prevent conflicts.
 	void ZoneBuilder::Zone::AddBranding()
 	{
-		char* data = "FastFile built using iw4x IW4 ZoneTool!";
+		char* data = "FastFile built using IW4x ZoneTool!";
 		ZoneBuilder::Zone::Branding = { ZoneBuilder::Zone::ZoneName.data(), (int)strlen(data), 0, data };
 
 		Game::XAssetHeader header = { &Branding };

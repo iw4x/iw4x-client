@@ -118,8 +118,8 @@ namespace Components
 			return false;
 		}
 
-		// Write URL:iw4x Protocol
-		data = "URL:iw4x Protocol";
+		// Write URL:IW4x Protocol
+		data = "URL:IW4x Protocol";
 		openRes = RegSetValueEx(hKey, "URL Protocol", 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
 
 		if (openRes != ERROR_SUCCESS)

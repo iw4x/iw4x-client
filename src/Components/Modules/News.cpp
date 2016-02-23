@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-#define NEWS_MOTD_DEFUALT "Welcome to ReactIW4x Multiplayer!"
+#define NEWS_MOTD_DEFUALT "Welcome to IW4x Multiplayer!"
 
 namespace Components
 {

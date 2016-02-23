@@ -630,9 +630,11 @@ namespace Components
 		});
 
 		// Set default masterServerName + port and save it 
+#ifdef USE_LEGACY_SERVER_LIST
 		Utils::Hook::Set<char*>(0x60AD92, "localhost");
 		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_FLAG_SAVED); // masterServerName
 		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_FLAG_SAVED); // masterPort
+#endif
 
 		// Add server list feeder
 		UIFeeder::Add(2.0f, ServerList::GetServerCount, ServerList::GetServerText, ServerList::SelectServer);
