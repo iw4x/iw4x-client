@@ -36,12 +36,21 @@ namespace Components
 				}
 				else if (info->state == Auth::STATE_UNKNOWN && info->time && (Game::Com_Milliseconds() - info->time) > 1000 * 5) // Wait 5 seconds (error delay)
 				{
-					Logger::Print("Sending XUID authentication request to %s\n", Network::Address(client->adr).GetString());
+					if ((client->steamid & 0xFFFFFFFF00000000) != 0x110000100000000)
+					{
+						info->state = Auth::STATE_INVALID;
+						info->time = Game::Com_Milliseconds();
+						Game::SV_KickClientError(client, "Your XUID is invalid!");
+					}
+					else
+					{
+						Logger::Print("Sending XUID authentication request to %s\n", Network::Address(client->adr).GetString());
 
-					info->state = Auth::STATE_NEGOTIATING;
-					info->time = Game::Com_Milliseconds();
-					info->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
-					Network::SendCommand(client->adr, "xuidAuthReq", info->challenge);
+						info->state = Auth::STATE_NEGOTIATING;
+						info->time = Game::Com_Milliseconds();
+						info->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+						Network::SendCommand(client->adr, "xuidAuthReq", info->challenge);
+					}
 				}
 				else if (info->state == Auth::STATE_UNKNOWN && !info->time)
 				{
