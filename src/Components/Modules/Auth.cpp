@@ -96,7 +96,7 @@ namespace Components
 			{
 				if (Auth::TokenContainer.command.empty())
 				{
-					Game::MessageBox(Utils::VA("Your new security level is now %d", Auth::GetSecurityLevel()), "Success");
+					Game::MessageBox(Utils::VA("Your new security level is %d", Auth::GetSecurityLevel()), "Success");
 				}
 				else
 				{
@@ -429,59 +429,5 @@ namespace Components
 		}
 
 		Auth::StoreKey();
-	}
-
-	bool Auth::UnitTest()
-	{
-// 		Utils::Cryptography::Token t;
-// 		auto _key = Utils::Cryptography::ECDSA::GenerateKey(512);
-// 		Auth::IncrementToken(t, _key.GetPublicKey(), 22);
-// 
-// 		Utils::WriteFile("pubKey.dat", _key.GetPublicKey());
-// 		Utils::WriteFile("token.dat", t.ToString());
-
-/*
-		Utils::Cryptography::Token t;
-		for (int i = 0; i < 1'000'000; ++i, ++t)
-		{
-			printf("%s\n", Utils::DumpHex(t.ToString()).data());
-		}
-*/
-// 		auto testSecurityLevel = [](size_t level, std::string key)
-// 		{
-// 			auto startTime = std::chrono::high_resolution_clock::now();
-// 			Utils::Cryptography::Token t;
-// 			Auth::IncrementToken(t, key, level);
-// 			return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
-// 		};
-// 
-// 		for (int j = 10; j < 30; ++j)
-// 		{
-// 			printf("\nTesting security level %i:\n", j);
-// 
-// 			std::vector<long long> times;
-// 
-// 			for (int i = 0; i < 10; ++i)
-// 			{
-// 				auto key = Utils::Cryptography::ECDSA::GenerateKey(512);
-// 
-// 				auto time = testSecurityLevel(j, key.GetPublicKey());
-// 				times.push_back(time);
-// 				printf("\t%i: %llims\n", i, time);
-// 			}
-// 
-// 			long long average = 0;
-// 
-// 			for (auto time : times)
-// 			{
-// 				average += time;
-// 			}
-// 
-// 			average /= times.size();
-// 
-// 			printf("\n  Average: %llims\n", average);
-// 		}
-
-		return true;
 	}
 }

@@ -6,7 +6,6 @@ namespace Components
 		Auth();
 		~Auth();
 		const char* GetName() { return "Auth"; };
-		bool UnitTest();
 
 		static void StoreKey();
 		static void LoadKey(bool force = false);
