@@ -182,7 +182,10 @@ namespace Components
 		// intro stuff
 		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
 		Utils::Hook::Set<char*>(0x60BED2, "unskippablecinematic IW_logo\n");
-		//Utils::Hook::Nop(0x60BEF6, 5); // Don't reset intro dvar
+
+#ifndef DEBUG
+		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset intro dvar
+#endif
 
 		Utils::Hook(0x4D4007, QuickPatch::ShutdownStub, HOOK_CALL).Install()->Quick();
 

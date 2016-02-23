@@ -324,7 +324,7 @@ namespace Components
 							if (userLevel >= ourLevel)
 							{
 								info->state = Auth::STATE_VALID;
-								Logger::Print("Verified XUID %llX from %s\n", client->steamid, address.GetString());
+								Logger::Print("Verified XUID %llX (%d) from %s\n", client->steamid, userLevel, address.GetString());
 							}
 							else
 							{
