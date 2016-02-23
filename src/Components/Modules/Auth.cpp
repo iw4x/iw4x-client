@@ -148,15 +148,19 @@ namespace Components
 
 	void Auth::StoreKey()
 	{
-		Proto::Auth::Certificate cert;
-		cert.set_token(Auth::GuidToken.ToString());
-		cert.set_privatekey(Auth::GuidKey.Export(PK_PRIVATE));
+		if (!Dedicated::IsDedicated() && !ZoneBuilder::IsEnabled())
+		{
+			Proto::Auth::Certificate cert;
+			cert.set_token(Auth::GuidToken.ToString());
+			cert.set_privatekey(Auth::GuidKey.Export(PK_PRIVATE));
 
-		Utils::WriteFile("players/guid.dat", cert.SerializeAsString());
+			Utils::WriteFile("players/guid.dat", cert.SerializeAsString());
+		}
 	}
 
 	void Auth::LoadKey(bool force)
 	{
+		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled()) return;
 		if (!force && Auth::GuidKey.IsValid()) return;
 
 		Proto::Auth::Certificate cert;
