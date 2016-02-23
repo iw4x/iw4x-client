@@ -59,9 +59,8 @@ namespace Components
 			{
 				int diff = Game::Com_Milliseconds() - Auth::TokenContainer.startTime;
 				double hashPMS = (Auth::TokenContainer.hashes * 1.0) / diff;
-				double requiredHashes = std::pow(2, Auth::TokenContainer.targetLevel) - Auth::TokenContainer.hashes;
+				double requiredHashes = std::pow(2, Auth::TokenContainer.targetLevel + 1) - Auth::TokenContainer.hashes;
 				mseconds = requiredHashes / hashPMS;
-				mseconds *= 2; // Times 2, cause well, we might not hit it the first time :P
 				if (mseconds < 0) mseconds = 0;
 			}
 
