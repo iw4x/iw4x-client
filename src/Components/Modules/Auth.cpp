@@ -52,7 +52,20 @@ namespace Components
 
 		if (Auth::TokenContainer.generating)
 		{
-			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::VA("Increasing security level from %d to %d"/* (approx. 1 min)"*/, Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel));
+			static int lastCalc = 0;
+			static double mseconds = 0;
+
+			if (!lastCalc || (Game::Com_Milliseconds() - lastCalc) > 1000)
+			{
+				int diff = Game::Com_Milliseconds() - Auth::TokenContainer.startTime;
+				double hashPMS = (Auth::TokenContainer.hashes * 1.0) / diff;
+				double requiredHashes = std::pow(2, Auth::TokenContainer.targetLevel) - Auth::TokenContainer.hashes;
+				mseconds = requiredHashes / hashPMS;
+				mseconds *= 2; // Times 2, cause well, we might not hit it the first time :P
+				if (mseconds < 0) mseconds = 0;
+			}
+
+			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::VA("Increasing security level from %d to %d (est. %s)", Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel, Utils::FormatTimeSpan(static_cast<int>(mseconds)).data()));
 		}
 		else if(Auth::TokenContainer.thread)
 		{
@@ -177,8 +190,9 @@ namespace Components
 			Auth::TokenContainer.thread = new std::thread([&level] ()
 			{
 				Auth::TokenContainer.generating = true;
+				Auth::TokenContainer.hashes = 0;
 				Auth::TokenContainer.startTime = Game::Com_Milliseconds();
-				Auth::IncrementToken(Auth::GuidToken, Auth::GuidKey.GetPublicKey(), Auth::TokenContainer.targetLevel, &Auth::TokenContainer.cancel);
+				Auth::IncrementToken(Auth::GuidToken, Auth::GuidKey.GetPublicKey(), Auth::TokenContainer.targetLevel, &Auth::TokenContainer.cancel, &Auth::TokenContainer.hashes);
 				Auth::TokenContainer.generating = false;
 
 				if (Auth::TokenContainer.cancel)
@@ -219,7 +233,7 @@ namespace Components
 		return bits;
 	}
 
-	void Auth::IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits, bool* cancel)
+	void Auth::IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits, bool* cancel, uint64_t* count)
 	{
 		if (zeroBits > 512) return; // Not possible, due to SHA512
 
@@ -233,6 +247,7 @@ namespace Components
 		do
 		{
 			++tempToken;
+			if (count) ++(*count);
 			level = Auth::GetZeroBits(tempToken, publicKey);
 
 			// Store level if higher than the last one

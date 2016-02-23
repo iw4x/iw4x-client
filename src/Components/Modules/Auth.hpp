@@ -16,7 +16,7 @@ namespace Components
 		static void IncreaseSecurityLevel(uint32_t level, std::string command = "");
 
 		static uint32_t GetZeroBits(Utils::Cryptography::Token token, std::string publicKey);
-		static void IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits, bool* cancel = nullptr);
+		static void IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits, bool* cancel = nullptr, uint64_t* count = nullptr);
 
 	private:
 
@@ -44,6 +44,7 @@ namespace Components
 			uint32_t targetLevel;
 			int startTime;
 			std::string command;
+			uint64_t hashes;
 		};
 
 		static AuthInfo ClientAuthInfo[18];
