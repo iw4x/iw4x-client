@@ -66,6 +66,8 @@ namespace Components
 
 			if (!lastCalc || (Game::Com_Milliseconds() - lastCalc) > 1000)
 			{
+				lastCalc = Game::Com_Milliseconds();
+
 				int diff = Game::Com_Milliseconds() - Auth::TokenContainer.startTime;
 				double hashPMS = (Auth::TokenContainer.hashes * 1.0) / diff;
 				double requiredHashes = std::pow(2, Auth::TokenContainer.targetLevel + 1) - Auth::TokenContainer.hashes;
