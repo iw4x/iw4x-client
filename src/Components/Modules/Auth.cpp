@@ -64,7 +64,7 @@ namespace Components
 			static int lastCalc = 0;
 			static double mseconds = 0;
 
-			if (!lastCalc || (Game::Com_Milliseconds() - lastCalc) > 1000)
+			if (!lastCalc || (Game::Com_Milliseconds() - lastCalc) > 500)
 			{
 				lastCalc = Game::Com_Milliseconds();
 
