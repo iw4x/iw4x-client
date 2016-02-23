@@ -88,6 +88,7 @@ namespace Components
 			Auth::TokenContainer.thread = nullptr;
 			Auth::TokenContainer.generating = false;
 
+			Auth::StoreKey();
 			Logger::Print("Security level is %d\n", Auth::GetSecurityLevel());
 			Command::Execute("closemenu security_increase_popmenu", false);
 
