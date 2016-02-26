@@ -114,10 +114,10 @@ namespace Components
 		Utils::Hook::Set<char*>(0x60BD91, VERSION_STR);
 
 		// console logo
-		Utils::Hook::Set<char*>(0x428A66, "data/images/logo.bmp");
+		//Utils::Hook::Set<char*>(0x428A66, "data/images/logo.bmp");
 
 		// splash logo
-		Utils::Hook::Set<char*>(0x475F9E, "data/images/splash.bmp");
+		//Utils::Hook::Set<char*>(0x475F9E, "data/images/splash.bmp");
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
