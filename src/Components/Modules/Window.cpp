@@ -89,7 +89,7 @@ namespace Components
 
 	int WINAPI Window::ShowCursorHook(BOOL show)
 	{
-		if (Window::NativeCursor.Get<bool>() && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
+		if (Window::NativeCursor.Get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 		{
 			static int count = 0;
 			(show ? ++count : --count);
@@ -129,7 +129,7 @@ namespace Components
 		// Draw the cursor if necessary
 		Renderer::OnFrame([] ()
 		{
-			if (Window::NativeCursor.Get<bool>() && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
+			if (Window::NativeCursor.Get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 			{
 				int value = 0;
 
