@@ -20,7 +20,7 @@ namespace Steam
 
 		if (!subId)
 		{
-			if (Components::Dedicated::IsDedicated()) // Dedi guid
+			if (Components::Dedicated::IsDedicated() || Components::ZoneBuilder::IsEnabled()) // Dedi guid
 			{
 				subId = ~0xDED1CA7E;
 			}
