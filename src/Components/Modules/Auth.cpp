@@ -379,7 +379,7 @@ namespace Components
 		Renderer::OnFrame(Auth::Frame);
 
 		// Register dvar
-		Dvar::Register<int>("sv_securityLevel", 20, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");
+		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");
 
 		// Install registration hook
 		Utils::Hook(0x478A12, Auth::RegisterClientStub, HOOK_JUMP).Install()->Quick();
