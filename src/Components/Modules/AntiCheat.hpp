@@ -15,5 +15,8 @@ namespace Components
 		static std::string Hash;
 
 		static void Frame();
+		static void PerformCheck();
+
+		static void NullSub();
 	};
 }

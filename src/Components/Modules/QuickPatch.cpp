@@ -44,7 +44,7 @@ namespace Components
 				for (int j = 0; j < 10; ++j)
 				{
 					int progress = atoi(Game::TabeLookup(challengeTable, i, 6 + j * 2));
-					if (!progress )break;
+					if (!progress) break;
 
 					maxState = j + 2;
 					maxProgress = progress;
