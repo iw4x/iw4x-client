@@ -121,11 +121,16 @@ namespace Utils
 
 		std::string SHA256::Compute(std::string data, bool hex)
 		{
+			return SHA256::Compute(reinterpret_cast<const uint8_t*>(data.data()), data.size(), hex);
+		}
+
+		std::string SHA256::Compute(const uint8_t* data, size_t length, bool hex)
+		{
 			uint8_t buffer[32] = { 0 };
 
 			hash_state state;
 			sha256_init(&state);
-			sha256_process(&state, reinterpret_cast<const uint8_t*>(data.data()), data.size());
+			sha256_process(&state, data, length);
 			sha256_done(&state, buffer);
 
 			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
@@ -140,11 +145,16 @@ namespace Utils
 
 		std::string SHA512::Compute(std::string data, bool hex)
 		{
+			return SHA512::Compute(reinterpret_cast<const uint8_t*>(data.data()), data.size(), hex);
+		}
+
+		std::string SHA512::Compute(const uint8_t* data, size_t length, bool hex)
+		{
 			uint8_t buffer[64] = { 0 };
 
 			hash_state state;
 			sha512_init(&state);
-			sha512_process(&state, reinterpret_cast<const uint8_t*>(data.data()), data.size());
+			sha512_process(&state, data, length);
 			sha512_done(&state, buffer);
 
 			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));

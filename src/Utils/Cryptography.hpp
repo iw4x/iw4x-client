@@ -226,12 +226,14 @@ namespace Utils
 		{
 		public:
 			static std::string Compute(std::string data, bool hex = false);
+			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
 		};
 
 		class SHA512
 		{
 		public:
 			static std::string Compute(std::string data, bool hex = false);
+			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
 		};
 	}
 }
