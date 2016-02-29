@@ -51,8 +51,7 @@ namespace Components
 		lastCheck = Game::Com_Milliseconds();
 
 		// Get base module
-		const uint8_t* module = reinterpret_cast<const uint8_t*>(GetModuleHandle(NULL));
-		std::string hash = Utils::Cryptography::SHA512::Compute(module + 0x1000, 0x2D6000, false);
+		std::string hash = Utils::Cryptography::SHA512::Compute(reinterpret_cast<uint8_t*>(GetModuleHandle(NULL)) + 0x1000, 0x2D6000, false);
 
 		// Set the hash, if none is set
 		if (AntiCheat::Hash.empty())

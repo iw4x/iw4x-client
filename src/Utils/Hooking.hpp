@@ -49,7 +49,12 @@ namespace Utils
 
 		template <typename T> static void Set(void* place, T value)
 		{
+			DWORD oldProtect;
+			VirtualProtect(place, sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect);
+
 			*static_cast<T*>(place) = value;
+
+			VirtualProtect(place, sizeof(T), oldProtect, &oldProtect);
 			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
 		}
 
@@ -60,7 +65,12 @@ namespace Utils
 
 		template <typename T> static void Xor(void* place, T value)
 		{
+			DWORD oldProtect;
+			VirtualProtect(place, sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect);
+
 			*static_cast<T*>(place) ^= value;
+
+			VirtualProtect(place, sizeof(T), oldProtect, &oldProtect);
 			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
 		}
 
@@ -71,7 +81,12 @@ namespace Utils
 
 		template <typename T> static void Or(void* place, T value)
 		{
+			DWORD oldProtect;
+			VirtualProtect(place, sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect);
+
 			*static_cast<T*>(place) |= value;
+
+			VirtualProtect(place, sizeof(T), oldProtect, &oldProtect);
 			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
 		}
 
@@ -82,7 +97,12 @@ namespace Utils
 
 		template <typename T> static void And(void* place, T value)
 		{
+			DWORD oldProtect;
+			VirtualProtect(place, sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect);
+
 			*static_cast<T*>(place) &= value;
+
+			VirtualProtect(place, sizeof(T), oldProtect, &oldProtect);
 			FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
 		}
 

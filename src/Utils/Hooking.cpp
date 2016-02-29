@@ -104,7 +104,13 @@ namespace Utils
 
 	void Hook::Nop(void* place, size_t length)
 	{ 
+		DWORD oldProtect;
+		VirtualProtect(place, length, PAGE_EXECUTE_READWRITE, &oldProtect);
+
 		memset(place, 0x90, length);
+
+		VirtualProtect(place, length, oldProtect, &oldProtect);
+		FlushInstructionCache(GetCurrentProcess(), place, length);
 	}
 
 	void Hook::Nop(DWORD place, size_t length)
