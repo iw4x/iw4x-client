@@ -11,6 +11,7 @@ namespace Components
 		static void EmptyHash();
 
 	private:
+		static int LastCheck;
 		static std::string Hash;
 
 		static void Frame();

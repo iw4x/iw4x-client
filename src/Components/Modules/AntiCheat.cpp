@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	int AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
 
 	void __declspec(naked) AntiCheat::CrashClient()
@@ -39,16 +40,15 @@ namespace Components
 	// This has to be called when doing .text changes during runtime
 	void AntiCheat::EmptyHash()
 	{
+		AntiCheat::LastCheck = 0;
 		AntiCheat::Hash.clear();
 	}
 
 	void AntiCheat::Frame()
 	{
-		static int lastCheck = 0;
-
-		// Perform check only every 20 seconds
-		if (lastCheck && (Game::Com_Milliseconds() - lastCheck) < 1000 * 20) return;
-		lastCheck = Game::Com_Milliseconds();
+		// Perform check only every 30 seconds
+		if (AntiCheat::LastCheck && (Game::Com_Milliseconds() - AntiCheat::LastCheck) < 1000 * 30) return;
+		AntiCheat::LastCheck = Game::Com_Milliseconds();
 
 		// Get base module
 		std::string hash = Utils::Cryptography::SHA512::Compute(reinterpret_cast<uint8_t*>(GetModuleHandle(NULL)) + 0x1000, 0x2D6000, false);
@@ -67,6 +67,8 @@ namespace Components
 
 	AntiCheat::AntiCheat()
 	{
+		AntiCheat::EmptyHash();
+
 		Renderer::OnFrame(AntiCheat::Frame);
 		Dedicated::OnFrame(AntiCheat::Frame);
 
