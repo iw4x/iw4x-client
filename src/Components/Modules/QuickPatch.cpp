@@ -21,6 +21,30 @@ namespace Components
 		QuickPatch::ShutdownSignal();
 	}
 
+	void QuickPatch::OnFrame(QuickPatch::Callback* callback)
+	{
+		if (Dedicated::IsDedicated())
+		{
+			Dedicated::OnFrame(callback);
+		}
+		else
+		{
+			Renderer::OnFrame(callback);
+		}
+	}
+
+	void QuickPatch::Once(QuickPatch::Callback* callback)
+	{
+		if (Dedicated::IsDedicated())
+		{
+			Dedicated::Once(callback);
+		}
+		else
+		{
+			Renderer::Once(callback);
+		}
+	}
+
 	void QuickPatch::UnlockStats()
 	{
 		Command::Execute("setPlayerData prestige 10");

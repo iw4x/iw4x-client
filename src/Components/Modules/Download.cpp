@@ -393,14 +393,7 @@ namespace Components
 	{
 #ifdef ENABLE_EXPERIMENTAL_UDP_DOWNLOAD
 		// Frame handlers
-		if (Dedicated::IsDedicated())
-		{
-			Dedicated::OnFrame(Download::Frame);
-		}
-		else
-		{
-			Renderer::OnFrame(Download::Frame);
-		}
+		QuickPatch::OnFrame(Download::Frame);
 
 		// Register client handlers
 		Network::Handle("dlAckRequest", Download::AckRequest);

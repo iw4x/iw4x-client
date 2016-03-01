@@ -12,6 +12,9 @@ namespace Components
 		static void UnlockStats();
 		static void OnShutdown(Callback* callback);
 
+		static void OnFrame(Callback* callback);
+		static void Once(Callback* callback);
+
 	private:
 		static wink::signal<wink::slot<Callback>> ShutdownSignal;
 

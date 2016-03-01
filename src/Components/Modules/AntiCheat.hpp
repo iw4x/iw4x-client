@@ -16,6 +16,7 @@ namespace Components
 
 		static void Frame();
 		static void PerformCheck();
+		static void PatchWinAPI();
 
 		static void NullSub();
 	};

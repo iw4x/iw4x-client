@@ -9,7 +9,10 @@ namespace Utils
 	{
 	public:
 		Hook() : Place(nullptr), Stub(nullptr), Initialized(false), Installed(false), Original(0), UseJump(false), Protection(0) { ZeroMemory(Hook::Buffer, sizeof(Hook::Buffer)); }
+
 		Hook(void* place, void* stub, bool useJump = true) : Hook() { Hook::Initialize(place, stub, useJump); }
+		Hook(void* place, void(*stub)(), bool useJump = true) : Hook(place, reinterpret_cast<void*>(stub), useJump) {}
+
 		Hook(DWORD place, void* stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
 		Hook(DWORD place, DWORD stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
 		Hook(DWORD place, void(*stub)(), bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}

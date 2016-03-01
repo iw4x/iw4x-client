@@ -4,6 +4,7 @@ namespace Components
 {
 	Utils::Hook Renderer::DrawFrameHook;
 	wink::signal<wink::slot<Renderer::Callback>> Renderer::FrameSignal;
+	wink::signal<wink::slot<Renderer::Callback>> Renderer::FrameOnceSignal;
 
 	void __declspec(naked) Renderer::FrameHook()
 	{
@@ -17,6 +18,13 @@ namespace Components
 	void Renderer::FrameHandler()
 	{
 		Renderer::FrameSignal();
+		Renderer::FrameOnceSignal();
+		Renderer::FrameOnceSignal.clear();
+	}
+
+	void Renderer::Once(Renderer::Callback* callback)
+	{
+		Renderer::FrameOnceSignal.connect(callback);
 	}
 
 	void Renderer::OnFrame(Renderer::Callback* callback)
@@ -43,6 +51,7 @@ namespace Components
 	Renderer::~Renderer()
 	{
 		Renderer::DrawFrameHook.Uninstall();
+		Renderer::FrameOnceSignal.clear();
 		Renderer::FrameSignal.clear();
 	}
 }

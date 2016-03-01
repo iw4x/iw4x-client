@@ -35,11 +35,12 @@ namespace Components
 			0xDC, 0xC1, 0xDC, 0x05, 
 
 			// Uninstall minidump handler
-			0xB8, 0x63, 0xE7, 0x2F, 0x00,           // mov  eax, 2FE763h
-			0x05, 0xAD, 0xAD, 0x3C, 0x00,           // add  eax, 3CADADh
-			0x6A, 0x58,                             // push 88
-			0x8B, 0x80, 0xEA, 0x01, 0x00, 0x00,     // mov  eax, [eax + 1EAh]
-			0xFF, 0x10,                             // call dword ptr [eax]
+			// This doesn't work anymore, due to the SetUnhandledExceptionFilter hook, but that's not important
+			//0xB8, 0x63, 0xE7, 0x2F, 0x00,           // mov  eax, 2FE763h
+			//0x05, 0xAD, 0xAD, 0x3C, 0x00,           // add  eax, 3CADADh
+			//0x6A, 0x58,                             // push 88
+			//0x8B, 0x80, 0xEA, 0x01, 0x00, 0x00,     // mov  eax, [eax + 1EAh]
+			//0xFF, 0x10,                             // call dword ptr [eax]
 
 			// Crash me.
 			0xB8, 0x4F, 0x91, 0x27, 0x00,           // mov  eax, 27914Fh
@@ -62,15 +63,6 @@ namespace Components
 			// Push the fake var onto the stack
 			push ebx
 
-			// Get address to VirtualProtect
-			mov eax, 6567h
-			shl eax, 0Ch
-			or eax, 70000A50h
-
-			// Move the address into ebx
-			push eax 
-			pop ebx
-
 			// Save the address to our crash procedure
 			mov eax, offset crashProcedure
 			push eax
@@ -80,9 +72,10 @@ namespace Components
 			push 40h
 			push 2D5FFFh
 			push 401001h
-			call ebx
+			call VirtualProtect
 
 			// Increment to our crash procedure
+			// Skip variable space
 			add dword ptr [esp], 4h
 
 			// This basically removes the pushed ebx value from the stack, so returning results in a call to the procedure
@@ -126,12 +119,39 @@ namespace Components
 		AntiCheat::PerformCheck();
 	}
 
+	void AntiCheat::PatchWinAPI()
+	{
+		auto loadLibStub = [] ()
+		{
+			__asm
+			{
+				xor eax, eax
+				retn 4h
+			}
+		};
+
+		auto loadLibExStub = [] ()
+		{
+			__asm
+			{
+				xor eax, eax
+				retn 0Ch
+			}
+		};
+
+		Utils::Hook(LoadLibraryA, loadLibStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(LoadLibraryW, loadLibStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(LoadLibraryExA, loadLibExStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(LoadLibraryExW, loadLibExStub, HOOK_JUMP).Install()->Quick();
+	}
+
 	AntiCheat::AntiCheat()
 	{
 		AntiCheat::EmptyHash();
 
-		Renderer::OnFrame(AntiCheat::Frame);
-		Dedicated::OnFrame(AntiCheat::Frame);
+		
+		QuickPatch::OnFrame(AntiCheat::Frame);
+		QuickPatch::Once(AntiCheat::PatchWinAPI);
 
 #ifdef DEBUG
 		Command::Add("penis", [] (Command::Params)

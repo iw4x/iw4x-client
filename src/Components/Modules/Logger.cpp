@@ -133,8 +133,7 @@ namespace Components
 	{
 		Logger::PipeOutput(nullptr);
 
-		Renderer::OnFrame(Logger::Frame); // Client
-		Dedicated::OnFrame(Logger::Frame); // Dedi
+		QuickPatch::OnFrame(Logger::Frame);
 
 		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).Install()->Quick();
 	}

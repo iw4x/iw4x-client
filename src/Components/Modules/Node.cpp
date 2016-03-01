@@ -700,8 +700,7 @@ namespace Components
 		});
 
 		// Install frame handlers
-		Dedicated::OnFrame(Node::FrameHandler);
-		Renderer::OnFrame(Node::FrameHandler);
+		QuickPatch::OnFrame(Node::FrameHandler);
 	}
 
 	Node::~Node()

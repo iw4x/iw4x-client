@@ -3,6 +3,7 @@
 namespace Components
 {
 	wink::signal<wink::slot<Dedicated::Callback>> Dedicated::FrameSignal;
+	wink::signal<wink::slot<Dedicated::Callback>> Dedicated::FrameOnceSignal;
 
 	bool Dedicated::IsDedicated()
 	{
@@ -143,6 +144,11 @@ namespace Components
 		Network::SendCommand(master, "heartbeat", "IW4");
 	}
 
+	void Dedicated::Once(Dedicated::Callback* callback)
+	{
+		Dedicated::FrameOnceSignal.connect(callback);
+	}
+
 	void Dedicated::OnFrame(Dedicated::Callback* callback)
 	{
 		Dedicated::FrameSignal.connect(callback);
@@ -151,6 +157,8 @@ namespace Components
 	void Dedicated::FrameStub()
 	{
 		Dedicated::FrameSignal();
+		Dedicated::FrameOnceSignal();
+		Dedicated::FrameOnceSignal.clear();
 		Utils::Hook::Call<void()>(0x5A8E80)();
 	}
 
@@ -245,6 +253,7 @@ namespace Components
 
 	Dedicated::~Dedicated()
 	{
+		Dedicated::FrameOnceSignal.clear();
 		Dedicated::FrameSignal.clear();
 	}
 }

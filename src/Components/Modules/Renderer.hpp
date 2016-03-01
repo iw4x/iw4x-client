@@ -12,6 +12,7 @@ namespace Components
 		static int Width();
 		static int Height();
 
+		static void Once(Callback* callback);
 		static void OnFrame(Callback* callback);
 
 	private:
@@ -19,6 +20,7 @@ namespace Components
 		static void FrameHandler();
 
 		static wink::signal<wink::slot<Callback>> FrameSignal;
+		static wink::signal<wink::slot<Callback>> FrameOnceSignal;
 		static Utils::Hook DrawFrameHook;
 	};
 }

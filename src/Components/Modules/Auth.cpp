@@ -375,8 +375,7 @@ namespace Components
 		});
 
 		// Install frame handlers
-		Dedicated::OnFrame(Auth::Frame);
-		Renderer::OnFrame(Auth::Frame);
+		QuickPatch::OnFrame(Auth::Frame);
 
 		// Register dvar
 		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");
