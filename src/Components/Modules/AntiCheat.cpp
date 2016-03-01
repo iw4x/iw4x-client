@@ -121,23 +121,8 @@ namespace Components
 
 	void AntiCheat::PatchWinAPI()
 	{
-		auto loadLibStub = [] ()
-		{
-			__asm
-			{
-				xor eax, eax
-				retn 4h
-			}
-		};
-
-		auto loadLibExStub = [] ()
-		{
-			__asm
-			{
-				xor eax, eax
-				retn 0Ch
-			}
-		};
+		static uint8_t loadLibStub[]   = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
+		static uint8_t loadLibExStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 }; // xor eax, eax; retn 0Ch
 
 		Utils::Hook(LoadLibraryA, loadLibStub, HOOK_JUMP).Install()->Quick();
 		Utils::Hook(LoadLibraryW, loadLibStub, HOOK_JUMP).Install()->Quick();
@@ -148,16 +133,15 @@ namespace Components
 	AntiCheat::AntiCheat()
 	{
 		AntiCheat::EmptyHash();
-
-		
 		QuickPatch::OnFrame(AntiCheat::Frame);
-		QuickPatch::Once(AntiCheat::PatchWinAPI);
 
 #ifdef DEBUG
 		Command::Add("penis", [] (Command::Params)
 		{
 			AntiCheat::CrashClient();
 		});
+#else
+		QuickPatch::Once(AntiCheat::PatchWinAPI);
 #endif
 	}
 
