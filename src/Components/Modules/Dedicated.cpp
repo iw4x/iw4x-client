@@ -24,7 +24,7 @@ namespace Components
 		};
 
 		memcpy(reinterpret_cast<void*>(0x66E1CB0), &fastfiles, sizeof(fastfiles));
-		Game::LoadInitialFF();
+		Game::R_LoadGraphicsAssets();
 
 		Utils::Hook::Call<void()>(0x4F84C0)();
 	}

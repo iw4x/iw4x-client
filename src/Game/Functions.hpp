@@ -227,9 +227,6 @@ namespace Game
 	typedef void(__cdecl * Live_ParsePlaylists_t)(const char* data);
 	extern Live_ParsePlaylists_t Live_ParsePlaylists;
 
-	typedef void(*LoadInitialFF_t)(void);
-	extern LoadInitialFF_t LoadInitialFF;
-
 	typedef void* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
 
@@ -271,6 +268,9 @@ namespace Game
 
 	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, void* material);
 	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;
+
+	typedef void(__cdecl * R_LoadGraphicsAssets_t)();
+	extern R_LoadGraphicsAssets_t R_LoadGraphicsAssets;
 
 	typedef int(__cdecl * R_TextWidth_t)(const char* text, int maxlength, Font* font);
 	extern R_TextWidth_t R_TextWidth;

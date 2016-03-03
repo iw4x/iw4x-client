@@ -95,7 +95,6 @@ namespace Game
 	Live_MPAcceptInvite_t Live_MPAcceptInvite = (Live_MPAcceptInvite_t)0x420A6D;
 	Live_ParsePlaylists_t Live_ParsePlaylists = (Live_ParsePlaylists_t)0x4295A0;
 
-	LoadInitialFF_t LoadInitialFF = (LoadInitialFF_t)0x506AC0;
 	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;
 
 	LocalizeString_t LocalizeString = (LocalizeString_t)0x4FB010;
@@ -115,6 +114,7 @@ namespace Game
 	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = (R_AddCmdDrawStretchPic_t)0x509770;
 	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x505670;
 	R_AddCmdDrawText_t R_AddCmdDrawText = (R_AddCmdDrawText_t)0x509D80;
+	R_LoadGraphicsAssets_t R_LoadGraphicsAssets = (R_LoadGraphicsAssets_t)0x506AC0;
 	R_TextWidth_t R_TextWidth = (R_TextWidth_t)0x5056C0;
 	R_TextHeight_t R_TextHeight = (R_TextHeight_t)0x505770;
 
