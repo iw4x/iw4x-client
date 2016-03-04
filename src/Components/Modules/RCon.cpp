@@ -51,6 +51,13 @@ namespace Components
 			std::string password = data.substr(0, pos);
 			std::string command = data.substr(pos + 1);
 
+			// B3 sends the password inside quotes :S
+			if (!password.empty() && password[0] == '"' && password[password.size() - 1] == '"')
+			{
+				password.pop_back();
+				password.erase(password.begin());
+			}
+
 			std::string svPassword = Dvar::Var("rcon_password").Get<std::string>();
 
 			if (svPassword.empty())
