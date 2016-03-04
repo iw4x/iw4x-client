@@ -5,6 +5,7 @@ namespace Game
 	// C-Style casts are fine here, that's where we're doing our dirty stuff anyways...
 	BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj = (BG_LoadWeaponDef_LoadObj_t)0x57B5F0;
 
+	Cbuf_AddServerText_t Cbuf_AddServerText = (Cbuf_AddServerText_t)0x4BB9B0;
 	Cbuf_AddText_t Cbuf_AddText = (Cbuf_AddText_t)0x404B20;
 
 	CL_GetClientName_t CL_GetClientName = (CL_GetClientName_t)0x4563D0;
@@ -12,6 +13,7 @@ namespace Game
 	CL_ConnectFromParty_t CL_ConnectFromParty = (CL_ConnectFromParty_t)0x433D30;
 
 	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;
+	Cmd_AddServerCommand_t Cmd_AddServerCommand = (Cmd_AddServerCommand_t)0x4DCE00;
 	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = (Cmd_ExecuteSingleCommand_t)0x609540;
 
 	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
@@ -130,6 +132,7 @@ namespace Game
 	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
 
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = (SV_GameClientNum_Score_t)0x469AC0;
+	SV_GameSendServerCommand_t SV_GameSendServerCommand = (SV_GameSendServerCommand_t)0x4BC3A0;
 
 	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
 	Sys_SendPacket_t Sys_SendPacket = (Sys_SendPacket_t)0x60FDC0;
@@ -146,6 +149,10 @@ namespace Game
 	DWORD* cmd_id = (DWORD*)0x1AAC5D0;
 	DWORD* cmd_argc = (DWORD*)0x1AAC614;
 	char*** cmd_argv = (char***)0x1AAC634;
+
+	DWORD* cmd_id_sv = (DWORD*)0x1ACF8A0;
+	DWORD* cmd_argc_sv = (DWORD*)0x1ACF8E4;
+	char*** cmd_argv_sv = (char***)0x1ACF904;
 
 	source_t **sourceFiles = (source_t **)0x7C4A98;
 	keywordHash_t **menuParseKeywordHash = (keywordHash_t **)0x63AE928;

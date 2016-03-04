@@ -88,6 +88,8 @@ namespace Components
 			Utils::Hook::Set<void*>(0x4D90B7, Maps::WorldMP);
 		}
 
+		AntiCheat::EmptyHash();
+
 		_snprintf(buffer, size, format, mapname);
 	}
 

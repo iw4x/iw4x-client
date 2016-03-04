@@ -5,6 +5,8 @@ namespace Components
 	wink::signal<wink::slot<Dedicated::Callback>> Dedicated::FrameSignal;
 	wink::signal<wink::slot<Dedicated::Callback>> Dedicated::FrameOnceSignal;
 
+	bool Dedicated::SendChat;
+
 	bool Dedicated::IsDedicated()
 	{
 		return Flags::HasFlag("dedicated");
@@ -55,6 +57,62 @@ namespace Components
 			// Start Com_EvenLoop
 			mov eax, 43D140h
 			jmp eax
+		}
+	}
+
+	const char* Dedicated::EvaluateSay(char* text)
+	{
+		Dedicated::SendChat = true;
+
+		if (text[1] == '/')
+		{
+			Dedicated::SendChat = false;
+			text[1] = text[0];
+			++text;
+		}
+
+		return text;
+	}
+
+	void __declspec(naked) Dedicated::PreSayStub()
+	{
+		__asm
+		{
+			mov eax, [esp + 100h + 10h]
+
+			push eax
+			call EvaluateSay
+			add esp, 4h
+
+			mov [esp + 100h + 10h], eax
+
+			jmp Colors::CleanStrStub
+		}
+	}
+
+	void __declspec(naked) Dedicated::PostSayStub()
+	{
+		__asm
+		{
+			// eax is used by the callee
+			push eax
+
+			xor eax, eax
+			mov al, Dedicated::SendChat
+
+			test al, al
+			jnz return
+
+			// Don't send the chat
+			pop eax
+			retn
+
+		return:
+			pop eax
+
+			// Jump to the target
+			push 5DF620h
+			retn
 		}
 	}
 
@@ -228,6 +286,11 @@ namespace Components
 			// Dedicated frame handler
 			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).Install()->Quick();
 
+			// Intercept chat sending
+			Utils::Hook(0x4D000B, Dedicated::PreSayStub, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x4D00D4, Dedicated::PostSayStub, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x4D0110, Dedicated::PostSayStub, HOOK_CALL).Install()->Quick();
+
 			if (!ZoneBuilder::IsEnabled())
 			{
 				// Post initialization point
@@ -248,6 +311,93 @@ namespace Components
 				});
 #endif
 			}
+
+			Dvar::OnInit([] ()
+			{
+				Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_FLAG_NONE, "The name to pose as for 'say' commands");
+
+				// Say command
+				Command::AddSV("say", [] (Command::Params params)
+				{
+					if (params.Length() < 2) return;
+
+					std::string message = params.Join(1);
+					std::string name = Dvar::Var("sv_sayName").Get<std::string>();
+
+					if (!name.empty())
+					{
+						Game::SV_GameSendServerCommand(-1, 0, Utils::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+						Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
+					}
+					else
+					{
+						Game::SV_GameSendServerCommand(-1, 0, Utils::VA("%c \"Console: %s\"", 104, message.data()));
+						Game::Com_Printf(15, "Console: %s\n", message.data());
+					}
+				});
+
+				// Tell command
+				Command::AddSV("tell", [] (Command::Params params)
+				{
+					if (params.Length() < 3) return;
+
+					int client = atoi(params[1]);
+					std::string message = params.Join(2);
+					std::string name = Dvar::Var("sv_sayName").Get<std::string>();
+
+					if (!name.empty())
+					{
+						Game::SV_GameSendServerCommand(client, 0, Utils::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+						Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
+					}
+					else
+					{
+						Game::SV_GameSendServerCommand(client, 0, Utils::VA("%c \"Console: %s\"", 104, message.data()));
+						Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
+					}
+				});
+
+				// Sayraw command
+				Command::AddSV("sayraw", [] (Command::Params params)
+				{
+					if (params.Length() < 2) return;
+
+					std::string message = params.Join(1);
+					Game::SV_GameSendServerCommand(-1, 0, Utils::VA("%c \"%s\"", 104, message.data()));
+					Game::Com_Printf(15, "Raw: %s\n", message.data());
+				});
+
+				// Tellraw command
+				Command::AddSV("tellraw", [] (Command::Params params)
+				{
+					if (params.Length() < 3) return;
+
+					int client = atoi(params[1]);
+					std::string message = params.Join(2);
+					Game::SV_GameSendServerCommand(client, 0, Utils::VA("%c \"%s\"", 104, message.data()));
+					Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
+				});
+
+				// ! command
+				Command::AddSV("!", [] (Command::Params params)
+				{
+					if (params.Length() != 2) return;
+
+					int client = -1;
+					if (std::string(params[1]) != "all")
+					{
+						client = atoi(params[1]);
+
+						if (client >= *reinterpret_cast<int*>(0x31D938C))
+						{
+							Game::Com_Printf(0, "Invalid player.\n");
+							return;
+						}
+					}
+
+					Game::SV_GameSendServerCommand(client, 0, Utils::VA("%c \"\"", 106));
+				});
+			});
 		}
 	}
 

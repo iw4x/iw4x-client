@@ -3,6 +3,9 @@ namespace Game
 	typedef void*(__cdecl * BG_LoadWeaponDef_LoadObj_t)(const char* filename);
 	extern BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj;
 
+	typedef void(__cdecl * Cbuf_AddServerText_t)();
+	extern Cbuf_AddServerText_t Cbuf_AddServerText;
+
 	typedef void(__cdecl * Cbuf_AddText_t)(int localClientNum, const char *text);
 	extern Cbuf_AddText_t Cbuf_AddText;
 
@@ -17,6 +20,9 @@ namespace Game
 
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* name, void(*callback), cmd_function_t* data, char);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
+
+	typedef void(__cdecl * Cmd_AddServerCommand_t)(const char* name, void(*callback), cmd_function_t* data);
+	extern Cmd_AddServerCommand_t Cmd_AddServerCommand;
 
 	typedef void(__cdecl * Cmd_ExecuteSingleCommand_t)(int controller, int a2, const char* cmd);
 	extern Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand;
@@ -302,6 +308,9 @@ namespace Game
 	typedef int(__cdecl* SV_GameClientNum_Score_t)(int clientID);
 	extern SV_GameClientNum_Score_t SV_GameClientNum_Score;
 
+	typedef void(__cdecl * SV_GameSendServerCommand_t)(int clientNum, /*svscmd_type*/int type, const char* text);
+	extern SV_GameSendServerCommand_t SV_GameSendServerCommand;
+
 	typedef bool(__cdecl * Sys_IsMainThread_t)();
 	extern Sys_IsMainThread_t Sys_IsMainThread;
 
@@ -326,6 +335,10 @@ namespace Game
 	extern DWORD* cmd_id;
 	extern DWORD* cmd_argc;
 	extern char*** cmd_argv;
+
+	extern DWORD* cmd_id_sv;
+	extern DWORD* cmd_argc_sv;
+	extern char*** cmd_argv_sv;
 
 	extern int* svs_numclients;
 	extern client_t* svs_clients;

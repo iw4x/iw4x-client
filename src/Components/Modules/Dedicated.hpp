@@ -20,11 +20,18 @@ namespace Components
 		static wink::signal<wink::slot<Callback>> FrameSignal;
 		static wink::signal<wink::slot<Callback>> FrameOnceSignal;
 
+		static bool SendChat;
+
 		static void MapRotate();
 		static void FrameStub();
 		static void InitDedicatedServer();
 
 		static void PostInitialization();
 		static void PostInitializationStub();
+
+		static const char* EvaluateSay(char* text);
+
+		static void PreSayStub();
+		static void PostSayStub();
 	};
 }

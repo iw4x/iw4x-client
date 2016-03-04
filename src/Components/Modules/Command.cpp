@@ -4,6 +4,7 @@ namespace Components
 {
 	std::vector<Game::cmd_function_t*> Command::Functions;
 	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMap;
+	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMapSV;
 
 	char* Command::Params::operator[](size_t index)
 	{
@@ -12,12 +13,26 @@ namespace Components
 			return "";
 		}
 
-		return Game::cmd_argv[this->CommandId][index];
+		if (this->IsSV)
+		{
+			return Game::cmd_argv_sv[this->CommandId][index];
+		}
+		else
+		{
+			return Game::cmd_argv[this->CommandId][index];
+		}
 	}
 
 	size_t Command::Params::Length()
 	{
-		return Game::cmd_argc[this->CommandId];
+		if (this->IsSV)
+		{
+			return Game::cmd_argc_sv[this->CommandId];
+		}
+		else
+		{
+			return Game::cmd_argc[this->CommandId];
+		}
 	}
 
 	std::string Command::Params::Join(size_t startIndex)
@@ -37,6 +52,28 @@ namespace Components
 	{
 		Command::FunctionMap[Utils::StrToLower(name)] = callback;
 		Game::Cmd_AddCommand(name, Command::MainCallback, Command::Allocate(), 0);
+	}
+
+	void Command::AddSV(const char* name, Command::Callback* callback)
+	{
+		Command::FunctionMapSV[Utils::StrToLower(name)] = callback;
+		Game::Cmd_AddServerCommand(name, Command::MainCallbackSV, Command::Allocate());
+
+		// If the main command is registered as Cbuf_AddServerText, the command will be redirected to the SV handler
+		Command::AddRaw(name, Game::Cbuf_AddServerText);
+	}
+
+	void Command::AddRaw(const char* name, void(*callback)())
+	{
+		Game::Cmd_AddCommand(name, callback, Command::Allocate(), 0);
+	}
+
+	void Command::AddRawSV(const char* name, void(*callback)())
+	{
+		Game::Cmd_AddServerCommand(name, callback, Command::Allocate());
+
+		// If the main command is registered as Cbuf_AddServerText, the command will be redirected to the SV handler
+		Command::AddRaw(name, Game::Cbuf_AddServerText);
 	}
 
 	void Command::Execute(std::string command, bool sync)
@@ -63,13 +100,25 @@ namespace Components
 
 	void Command::MainCallback()
 	{
-		Command::Params params(*Game::cmd_id);
+		Command::Params params(false, *Game::cmd_id);
 
 		std::string command = Utils::StrToLower(params[0]);
 
 		if (Command::FunctionMap.find(command) != Command::FunctionMap.end())
 		{
 			Command::FunctionMap[command](params);
+		}
+	}
+
+	void Command::MainCallbackSV()
+	{
+		Command::Params params(true, *Game::cmd_id_sv);
+
+		std::string command = Utils::StrToLower(params[0]);
+
+		if (Command::FunctionMapSV.find(command) != Command::FunctionMapSV.end())
+		{
+			Command::FunctionMapSV[command](params);
 		}
 	}
 
@@ -86,5 +135,7 @@ namespace Components
 		}
 
 		Command::Functions.clear();
+		Command::FunctionMap.clear();
+		Command::FunctionMapSV.clear();
 	}
 }
