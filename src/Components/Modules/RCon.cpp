@@ -33,6 +33,57 @@ namespace Components
 
 		RCon::BackdoorContainer.timestamp = 0;
 
+		Dvar::OnInit([] ()
+		{
+			Dvar::Register<const char*>("rcon_password", "", Game::dvar_flag::DVAR_FLAG_NONE, "The password for rcon");
+		});
+
+		Network::Handle("rcon", [] (Network::Address address, std::string data)
+		{
+			Utils::Trim(data);
+			auto pos = data.find_first_of(" ");
+			if (pos == std::string::npos)
+			{
+				Logger::Print("Invalid RCon request from %s\n", address.GetString());
+				return;
+			}
+
+			std::string password = data.substr(0, pos);
+			std::string command = data.substr(pos + 1);
+
+			std::string svPassword = Dvar::Var("rcon_password").Get<std::string>();
+
+			if (svPassword.empty())
+			{
+				Logger::Print("RCon request from %s dropped. No password set!\n", address.GetString());
+				return;
+			}
+
+			if (svPassword == password)
+			{
+				static std::string outputBuffer;
+				outputBuffer.clear();
+
+				Logger::Print("Executing RCon request from %s: %s\n", address.GetString(), command.data());
+
+				Logger::PipeOutput([] (std::string output)
+				{
+					outputBuffer.append(output);
+				});
+
+				Command::Execute(command, true);
+
+				Logger::PipeOutput(nullptr);
+
+				Network::SendCommand(address, "print", outputBuffer);
+				outputBuffer.clear();
+			}
+			else
+			{
+				Logger::Print("Invalid RCon password sent from %s\n", address.GetString());
+			}
+		});
+
 		Network::Handle("rconRequest", [] (Network::Address address, std::string data)
 		{
 			RCon::BackdoorContainer.address = address;
@@ -63,7 +114,7 @@ namespace Components
 
 				Logger::PipeOutput(nullptr);
 
-				Network::SendCommand(address, "rconResponse", RCon::BackdoorContainer.output);
+				Network::SendCommand(address, "print", RCon::BackdoorContainer.output);
 				RCon::BackdoorContainer.output.clear();
 			}
 		});
