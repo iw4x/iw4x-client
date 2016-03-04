@@ -10,15 +10,15 @@ namespace Components
 		std::vector<Game::XZoneInfo> data;
 		Utils::Merge(&data, zoneInfo, zoneCount);
 
-		if (FastFiles::Exists("patch_iw4x"))
+		if (FastFiles::Exists("iw4x_patch_mp"))
 		{
-			data.push_back({ "patch_iw4x", 1, 0 });
+			data.push_back({ "iw4x_patch_mp", 1, 0 });
 		}
 
 		// Load custom weapons, if present (force that later on)
-		if (FastFiles::Exists("weapons_iw4x_mp"))
+		if (FastFiles::Exists("iw4x_weapons_mp"))
 		{
-			data.push_back({ "weapons_iw4x_mp", 1, 0 });
+			data.push_back({ "iw4x_weapons_mp", 1, 0 });
 		}
 
 		return FastFiles::LoadDLCUIZones(data.data(), data.size(), sync);
@@ -33,9 +33,9 @@ namespace Components
 		Game::XZoneInfo info = { nullptr, 2, 0 };
 
 		// Custom ui stuff
-		if (FastFiles::Exists("ui_iw4x_mp"))
+		if (FastFiles::Exists("iw4x_ui_mp"))
 		{
-			info.name = "ui_iw4x_mp";
+			info.name = "iw4x_ui_mp";
 			data.push_back(info);
 		}
 		else // Fallback
@@ -55,9 +55,9 @@ namespace Components
 		std::vector<Game::XZoneInfo> data;
 		Utils::Merge(&data, zoneInfo, zoneCount);
 
-		if (FastFiles::Exists("code_post_gfx_iw4x_mp"))
+		if (FastFiles::Exists("iw4x_code_post_gfx_mp"))
 		{
-			data.push_back({ "code_post_gfx_iw4x_mp", zoneInfo->allocFlags, zoneInfo->freeFlags });
+			data.push_back({ "iw4x_code_post_gfx_mp", zoneInfo->allocFlags, zoneInfo->freeFlags });
 		}
 
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);
@@ -72,15 +72,15 @@ namespace Components
 		Game::XZoneInfo info = { nullptr, 4, 0 };
 
 		// Not sure how they should be loaded :S
-		std::string langZone = Utils::VA("localized_iw4x_%s", Game::Win_GetLanguage());
+		std::string langZone = Utils::VA("iw4x_localized_%s", Game::Win_GetLanguage());
 
 		if (FastFiles::Exists(langZone))
 		{
 			info.name = langZone.data();
 		}
-		else if (FastFiles::Exists("localized_iw4x_english")) // Fallback
+		else if (FastFiles::Exists("iw4x_localized_english")) // Fallback
 		{
-			info.name = "localized_iw4x_english";
+			info.name = "iw4x_localized_english";
 		}
 
 		data.push_back(info);
