@@ -9,6 +9,42 @@ namespace Components
 
 	RCon::RCon()
 	{
+		Command::Add("rcon", [] (Command::Params params)
+		{
+			if (params.Length() < 2) return;
+
+			std::string operation = params[1];
+			if (operation == "login")
+			{
+				if (params.Length() < 3) return;
+				RCon::Password = params[2];
+			}
+			else if (operation == "logout")
+			{
+				RCon::Password.clear();
+			}
+			else
+			{
+				if (!RCon::Password.empty() && *reinterpret_cast<int*>(0xB2C540) >= 5) // Get our state
+				{
+					Network::Address target(reinterpret_cast<Game::netadr_t*>(0xA5EA44));
+
+					if (target.IsValid())
+					{
+						Network::SendCommand(target, "rcon", RCon::Password + " " + params.Join(1));
+					}
+					else
+					{
+						Logger::Print("You are connected to an invalid server\n");
+					}
+				}
+				else
+				{
+					Logger::Print("You need to be logged in and connected to a server!\n");
+				}
+			}
+		});
+
 		// TODO: Maybe execute that for clients as well, when we use triangular natting.
 		if (!Dedicated::IsDedicated()) return;
 
@@ -123,42 +159,6 @@ namespace Components
 
 				Network::SendCommand(address, "print", RCon::BackdoorContainer.output);
 				RCon::BackdoorContainer.output.clear();
-			}
-		});
-
-		Command::Add("rcon", [] (Command::Params params)
-		{
-			if (params.Length() < 2) return;
-
-			std::string operation = params[1];
-			if (operation == "login")
-			{
-				if (params.Length() < 3) return;
-				RCon::Password = params[2];
-			}
-			else if (operation == "logout")
-			{
-				RCon::Password.clear();
-			}
-			else
-			{
-				if (!RCon::Password.empty() && *reinterpret_cast<int*>(0xB2C540) >= 5) // Get our state
-				{
-					Network::Address target(reinterpret_cast<Game::netadr_t*>(0xA5EA44));
-
-					if (target.IsValid())
-					{
-						Network::SendCommand(target, "rcon", RCon::Password + " " + params.Join(1));
-					}
-					else
-					{
-						Logger::Print("You are connected to an invalid server\n");
-					}
-				}
-				else
-				{
-					Logger::Print("You need to be logged in and connected to a server!\n");
-				}
 			}
 		});
 	}
