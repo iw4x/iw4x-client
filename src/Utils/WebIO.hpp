@@ -9,18 +9,6 @@
 		Small FTP and HTTP utility class using WinAPI
 */
 
-#pragma once
-#include <Windows.h>
-#include <Wininet.h>
-#include <string>
-#include <vector>
-#include <map>
-#include <shlwapi.h>
-
-#pragma comment(lib, "Wininet.lib")
-#pragma comment(lib, "shlwapi.lib")
-#pragma comment(lib, "Ws2_32.lib")
-
 namespace Utils
 {
 	class WebIO

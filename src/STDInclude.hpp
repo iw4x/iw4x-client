@@ -13,7 +13,9 @@
 #include <time.h>
 #include <timeapi.h>
 #include <shellapi.h>
+#include <shlwapi.h>
 #include <WinSock2.h>
+#include <Wininet.h>
 #include <d3d9.h>
 
 #include <map>
@@ -94,6 +96,8 @@
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "d3d9.lib")
+#pragma comment(lib, "Wininet.lib")
+#pragma comment(lib, "shlwapi.lib")
 
 // Revision number
 #define STRINGIZE_(x) #x
