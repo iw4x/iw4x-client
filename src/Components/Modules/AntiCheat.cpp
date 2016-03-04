@@ -133,7 +133,6 @@ namespace Components
 	AntiCheat::AntiCheat()
 	{
 		AntiCheat::EmptyHash();
-		QuickPatch::OnFrame(AntiCheat::Frame);
 
 #ifdef DEBUG
 		Command::Add("penis", [] (Command::Params)
@@ -141,6 +140,7 @@ namespace Components
 			AntiCheat::CrashClient();
 		});
 #else
+		QuickPatch::OnFrame(AntiCheat::Frame);
 		QuickPatch::Once(AntiCheat::PatchWinAPI);
 #endif
 	}

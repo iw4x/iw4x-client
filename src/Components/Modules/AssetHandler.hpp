@@ -68,4 +68,5 @@ namespace Components
 #include "AssetInterfaces\IMaterialPixelShader.hpp"
 #include "AssetInterfaces\IMaterialTechniqueSet.hpp"
 #include "AssetInterfaces\IMaterialVertexShader.hpp"
+#include "AssetInterfaces\IStructuredDataDefSet.hpp"
 #include "AssetInterfaces\IMaterialVertexDeclaration.hpp"

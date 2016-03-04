@@ -33,8 +33,6 @@ namespace Components
 			std::string name;
 			int statOffset;
 		};
-
-		static void DumpDataDef(Game::StructuredDataDefSet* dataDef);
 		static void PatchPlayerDataEnum(Game::StructuredDataDefSet* data, PlayerDataType type, std::vector<EnumEntry>& entries);
 		static StructuredData* GetSingleton();
 

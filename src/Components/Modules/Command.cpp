@@ -8,31 +8,15 @@ namespace Components
 
 	char* Command::Params::operator[](size_t index)
 	{
-		if (index >= this->Length()) 
-		{
-			return "";
-		}
-
-		if (this->IsSV)
-		{
-			return Game::cmd_argv_sv[this->CommandId][index];
-		}
-		else
-		{
-			return Game::cmd_argv[this->CommandId][index];
-		}
+		if (index >= this->Length()) return "";
+		if (this->IsSV) return Game::cmd_argv_sv[this->CommandId][index];
+		else return Game::cmd_argv[this->CommandId][index];
 	}
 
 	size_t Command::Params::Length()
 	{
-		if (this->IsSV)
-		{
-			return Game::cmd_argc_sv[this->CommandId];
-		}
-		else
-		{
-			return Game::cmd_argc[this->CommandId];
-		}
+		if (this->IsSV) return Game::cmd_argc_sv[this->CommandId];
+		else return Game::cmd_argc[this->CommandId];
 	}
 
 	std::string Command::Params::Join(size_t startIndex)

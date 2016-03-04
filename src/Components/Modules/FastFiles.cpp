@@ -16,9 +16,9 @@ namespace Components
 		}
 
 		// Load custom weapons, if present (force that later on)
-		if (FastFiles::Exists("weapons_mp"))
+		if (FastFiles::Exists("weapons_iw4x_mp"))
 		{
-			data.push_back({ "weapons_mp", 1, 0 });
+			data.push_back({ "weapons_iw4x_mp", 1, 0 });
 		}
 
 		return FastFiles::LoadDLCUIZones(data.data(), data.size(), sync);
@@ -33,9 +33,9 @@ namespace Components
 		Game::XZoneInfo info = { nullptr, 2, 0 };
 
 		// Custom ui stuff
-		if (FastFiles::Exists("iw4x_ui_mp"))
+		if (FastFiles::Exists("ui_iw4x_mp"))
 		{
-			info.name = "iw4x_ui_mp";
+			info.name = "ui_iw4x_mp";
 			data.push_back(info);
 		}
 		else // Fallback
@@ -48,6 +48,19 @@ namespace Components
 		}
 
 		return FastFiles::LoadLocalizeZones(data.data(), data.size(), sync);
+	}
+
+	void FastFiles::LoadGfxZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
+	{
+		std::vector<Game::XZoneInfo> data;
+		Utils::Merge(&data, zoneInfo, zoneCount);
+
+		if (FastFiles::Exists("code_post_gfx_iw4x_mp"))
+		{
+			data.push_back({ "code_post_gfx_iw4x_mp", zoneInfo->allocFlags, zoneInfo->freeFlags });
+		}
+
+		Game::DB_LoadXAssets(data.data(), data.size(), sync);
 	}
 
 	// This has to be called every time fastfiles are loaded :D
@@ -142,6 +155,7 @@ namespace Components
 		{
 			Utils::Hook(0x506BC7, FastFiles::LoadInitialZones, HOOK_CALL).Install()->Quick();
 			Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x506B25, FastFiles::LoadGfxZones, HOOK_CALL).Install()->Quick();
 		}
 
 		// basic checks (hash jumps, both normal and playlist)

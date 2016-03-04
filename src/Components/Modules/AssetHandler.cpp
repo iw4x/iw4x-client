@@ -262,6 +262,7 @@ namespace Components
 		AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());
 		AssetHandler::RegisterInterface(new Assets::IMaterialTechniqueSet());
 		AssetHandler::RegisterInterface(new Assets::IMaterialVertexShader());
+		AssetHandler::RegisterInterface(new Assets::IStructuredDataDefSet());
 		AssetHandler::RegisterInterface(new Assets::IMaterialVertexDeclaration());
 	}
 

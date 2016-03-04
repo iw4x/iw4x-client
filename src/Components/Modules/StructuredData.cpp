@@ -88,20 +88,6 @@ namespace Components
 		dataEnum->indices = StructuredData::Indices[type];
 	}
 
-	void StructuredData::DumpDataDef(Game::StructuredDataDefSet* dataDef)
-	{
-		if (!dataDef || !dataDef->data) return;
-
-		json11::Json definition =
-		json11::Json::object
-		{
-			{ "version", dataDef->data->version },
-			//{ "enums", [ 0 ] },
-		};
-
-		Utils::WriteFile(Utils::VA("raw/%s.json", dataDef->name), definition.dump());
-	}
-
 	StructuredData* StructuredData::GetSingleton()
 	{
 		if (!StructuredData::Singleton)
@@ -114,6 +100,9 @@ namespace Components
 
 	StructuredData::StructuredData()
 	{
+		// Only execute this when building zones
+		if (!ZoneBuilder::IsEnabled()) return;
+
 		StructuredData::Singleton = this;
 		ZeroMemory(StructuredData::IndexCount, sizeof(StructuredData));
 
@@ -140,12 +129,6 @@ namespace Components
 			}
 
 			return header;
-		});
-
-		Command::Add("dumpDataDef", [] (Command::Params params)
-		{
-			if (params.Length() < 2) return;
-			StructuredData::DumpDataDef(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF, params[1]).structuredData);
 		});
 
 		// ---------- Weapons ----------
