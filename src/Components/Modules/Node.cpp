@@ -394,7 +394,9 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
 
+#ifdef DEBUG
 				Logger::Print("Received synchronization data for registration from %s!\n", address.GetString());
+#endif
 
 				Proto::Node::Packet packet;
 				if (!packet.ParseFromString(data)) return;
@@ -414,14 +416,15 @@ namespace Components
 					return;
 				}
 
-				Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetString(), entry->challenge.data());
-
 				// Mark as registered
 				entry->lastTime = Game::Com_Milliseconds();
 				entry->state = Node::STATE_VALID;
 				entry->registered = true;
 
+#ifdef DEBUG
+				Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetString(), entry->challenge.data());
 				Logger::Print("Node %s registered\n", address.GetString());
+#endif
 
 				// Build response
 				publicKey = Node::SignatureKey.GetPublicKey();
