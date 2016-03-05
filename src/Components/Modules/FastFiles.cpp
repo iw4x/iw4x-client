@@ -185,7 +185,7 @@ namespace Components
 
 		Renderer::OnFrame([] ()
 		{
-			if (!FastFiles::Current().size() || !Dvar::Var("ui_zoneDebug").Get<bool>()) return;
+			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").Get<bool>()) return;
 
 			Game::Font* font = Game::R_RegisterFont("fonts/consoleFont"); // Inlining that seems to skip xpos, no idea why xD
 			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
