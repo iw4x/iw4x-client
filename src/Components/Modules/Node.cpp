@@ -219,7 +219,9 @@ namespace Components
 		}
 		else
 		{
+#ifdef DEBUG
 			Logger::Print("Sending session request to %s\n", entry->address.GetString());
+#endif
 			Network::SendCommand(entry->address, "sessionRequest");
 		}
 	}
@@ -438,7 +440,9 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
 
+#ifdef DEBUG
 				Logger::Print("Received acknowledgment from %s\n", address.GetString());
+#endif
 
 				Proto::Node::Packet packet;
 				if (!packet.ParseFromString(data)) return;
@@ -456,8 +460,10 @@ namespace Components
 					entry->state = Node::STATE_VALID;
 					entry->registered = true;
 
+#ifdef DEBUG
 					Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetString(), entry->challenge.data());
 					Logger::Print("Node %s registered\n", address.GetString());
+#endif
 				}
 				else
 				{
@@ -519,7 +525,9 @@ namespace Components
 					entry->registered = false;
 					entry->state = Node::STATE_INVALID;
 
+#ifdef DEBUG
 					Logger::Print("Node %s unregistered\n", address.GetString());
+#endif
 				}
 				else
 				{
@@ -541,7 +549,9 @@ namespace Components
 				Node::ClientSession* session = Node::FindSession(address);
 				if (!session) return; // Registering template session failed, odd...
 
+#ifdef DEBUG
 				Logger::Print("Client %s is requesting a new session\n", address.GetString());
+#endif
 
 				// Initialize session data
 				session->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
@@ -559,7 +569,9 @@ namespace Components
 
 				if (session->challenge == data)
 				{
+#ifdef DEBUG
 					Logger::Print("Session for %s validated.\n", address.GetString());
+#endif
 					session->valid = true;
 					Network::SendCommand(address, "sessionAcknowledge");
 				}
@@ -577,7 +589,9 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry) return;
 
+#ifdef DEBUG
 				Logger::Print("Session initialization received. Synchronizing...\n", address.GetString());
+#endif
 
 				entry->lastTime = Game::Com_Milliseconds();
 				Network::SendCommand(address, "sessionSynchronize", data);
@@ -592,7 +606,9 @@ namespace Components
 				entry->registered = true;
 				entry->lastTime = Game::Com_Milliseconds();
 
+#ifdef DEBUG
 				Logger::Print("Session acknowledged, synchronizing node list...\n", address.GetString());
+#endif
 				Network::SendCommand(address, "nodeListRequest");
 				Node::SendNodeList(address);
 			});
@@ -696,6 +712,17 @@ namespace Components
 			{
 				entry->state = Node::STATE_UNKNOWN;
 				entry->registered = false;
+			}
+		});
+
+		Command::Add("syncnodes", [] (Command::Params params)
+		{
+			Logger::Print("Resetting node states...\n");
+
+			for (auto &node : Node::Nodes)
+			{
+				node.state = Node::STATE_UNKNOWN;
+				node.registered = false;
 			}
 		});
 
