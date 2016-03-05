@@ -610,7 +610,7 @@ namespace Components
 			// Find first entry
 			do 
 			{
-				entry = (ServerList::MasterEntry*)(data.data() + offset++);
+				entry = reinterpret_cast<ServerList::MasterEntry*>(const_cast<char*>(data.data()) + offset++);
 			}
 			while (!entry->HasSeparator() && !entry->IsEndToken());
 
