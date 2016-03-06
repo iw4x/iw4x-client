@@ -724,8 +724,15 @@ namespace Components
 
 		Command::Add("syncnodes", [] (Command::Params params)
 		{
-			Logger::Print("Synchronizing nodes...\n");
-			Node::SyncNodeList();
+			Logger::Print("Re-Synchronizing nodes...\n");
+			
+			for (auto& node : Node::Nodes)
+			{
+				node.state = Node::STATE_UNKNOWN;
+				node.registered = false;
+				node.lastTime = 0;
+				node.lastListQuery = 0;
+			}
 		});
 
 		// Install frame handlers
