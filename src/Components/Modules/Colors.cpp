@@ -185,7 +185,7 @@ namespace Components
 
 	char* Colors::CleanStrStub(char* string)
 	{
-		Colors::Strip(string, string, strlen(string));
+		Colors::Strip(string, string, strlen(string) + 1);
 		return string;
 	}
 
