@@ -98,6 +98,7 @@ namespace Components
 		// patch this function on-the-fly, as it's some ugly C.
 		Utils::Hook::Set<DWORD>(0x63FE9E, 3523);
 		Utils::Hook::Set<DWORD>(0x63FECB, 0x7F);
+		AntiCheat::EmptyHash();
 
 		int var = 0x63FE90;
 		__asm
@@ -109,6 +110,7 @@ namespace Components
 
 		Utils::Hook::Set<DWORD>(0x63FE9E, 531);
 		Utils::Hook::Set<DWORD>(0x63FECB, 0x1FF);
+		AntiCheat::EmptyHash();
 
 		return var;
 	}
