@@ -114,7 +114,9 @@ namespace Components
 
 			Node::Nodes.push_back(entry);
 
+#ifdef DEBUG
 			Logger::Print("Adding node %s...\n", address.GetString());
+#endif
 		}
 	}
 
@@ -214,7 +216,9 @@ namespace Components
 			Proto::Node::Packet packet;
 			packet.set_challenge(entry->challenge);
 
+#ifdef DEBUG
 			Logger::Print("Sending registration request to %s\n", entry->address.GetString());
+#endif
 			Network::SendCommand(entry->address, "nodeRegisterRequest", packet.SerializeAsString());
 		}
 		else
