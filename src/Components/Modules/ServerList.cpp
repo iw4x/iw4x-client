@@ -431,7 +431,12 @@ namespace Components
 					}
 				}
 
-				if (info.Get("gamename") == "IW4" && server.MatchType && server.Shortversion == VERSION_STR)
+				if (info.Get("gamename") == "IW4"
+					&& server.MatchType 
+#ifndef DEBUG
+					&& server.Shortversion == VERSION_STR
+#endif
+					)
 				{
 					auto lList = ServerList::GetList();
 
