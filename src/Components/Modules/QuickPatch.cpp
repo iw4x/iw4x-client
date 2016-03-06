@@ -114,7 +114,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);
 
 		// fs_basegame
-		Utils::Hook::Set<char*>(0x6431D1, "data2");
+		Utils::Hook::Set<char*>(0x6431D1, BASEGAME);
 
 		// UI version string
 		Utils::Hook::Set<char*>(0x43F73B, "IW4x: r" REVISION_STR "-" MILESTONE);
@@ -138,10 +138,10 @@ namespace Components
 		Utils::Hook::Set<char*>(0x60BD91, VERSION_STR);
 
 		// console logo
-		//Utils::Hook::Set<char*>(0x428A66, "data/images/logo.bmp");
+		Utils::Hook::Set<char*>(0x428A66, BASEGAME "/images/logo.bmp");
 
 		// splash logo
-		//Utils::Hook::Set<char*>(0x475F9E, "data/images/splash.bmp");
+		Utils::Hook::Set<char*>(0x475F9E, BASEGAME "/images/splash.bmp");
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);

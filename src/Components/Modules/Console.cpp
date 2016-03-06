@@ -380,6 +380,19 @@ namespace Components
 		// Check for bad food ;)
 		Utils::Hook(0x4CB9F4, Console::GetAutoCompleteFileList, HOOK_CALL).Install()->Quick();
 
+		// Modify console style
+		Utils::Hook::Set<BYTE>(0x428A8E, 0);    // Adjust logo Y pos
+		Utils::Hook::Set<BYTE>(0x428A90, 0);    // Adjust logo X pos
+		Utils::Hook::Set<BYTE>(0x428AF2, 67);   // Adjust output Y pos
+		Utils::Hook::Set<DWORD>(0x428AC5, 397); // Adjust input Y pos
+		Utils::Hook::Set<DWORD>(0x428951, 609); // Reduce window width
+		Utils::Hook::Set<DWORD>(0x42895D, 423); // Reduce window height
+		Utils::Hook::Set<DWORD>(0x428AC0, 597); // Reduce input width
+		Utils::Hook::Set<DWORD>(0x428AED, 596); // Reduce output width
+
+		// Don't resize the console
+		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).Install()->Quick(); 
+
 		// Code below is not necessary, when performing unit tests!
 		if (Loader::PerformingUnitTests()) return;
 

@@ -103,6 +103,7 @@
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
 
+#define BASEGAME "data2"
 #define MILESTONE "beta"
 
 #define REVISION_STR STRINGIZE(REVISION)
