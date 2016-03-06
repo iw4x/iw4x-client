@@ -372,7 +372,9 @@ namespace Components
 					if (!entry) return;
 				}
 
+#ifdef DEBUG
 				Logger::Print("Received registration request from %s\n", address.GetString());
+#endif
 
 				Proto::Node::Packet packet;
 				if (!packet.ParseFromString(data)) return;
