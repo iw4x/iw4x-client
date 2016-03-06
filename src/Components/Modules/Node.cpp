@@ -724,13 +724,8 @@ namespace Components
 
 		Command::Add("syncnodes", [] (Command::Params params)
 		{
-			Logger::Print("Resetting node states...\n");
-
-			for (auto &node : Node::Nodes)
-			{
-				node.state = Node::STATE_UNKNOWN;
-				node.registered = false;
-			}
+			Logger::Print("Synchronizing nodes...\n");
+			Node::SyncNodeList();
 		});
 
 		// Install frame handlers
