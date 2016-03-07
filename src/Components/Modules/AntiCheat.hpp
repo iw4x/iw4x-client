@@ -10,6 +10,8 @@ namespace Components
 		static void CrashClient();
 		static void EmptyHash();
 
+		static void InitLoadLibHook();
+
 	private:
 		static int LastCheck;
 		static std::string Hash;
@@ -19,5 +21,7 @@ namespace Components
 		static void PatchWinAPI();
 
 		static void NullSub();
+
+		static Utils::Hook LoadLibHook[4];
 	};
 }

@@ -4,6 +4,7 @@ namespace Components
 {
 	int AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
+	Utils::Hook AntiCheat::LoadLibHook[4];
 
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
@@ -90,6 +91,17 @@ namespace Components
 		AntiCheat::Hash.clear();
 	}
 
+	void AntiCheat::InitLoadLibHook()
+	{
+		static uint8_t loadLibStub[] = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
+		static uint8_t loadLibExStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 }; // xor eax, eax; retn 0Ch
+
+		AntiCheat::LoadLibHook[0].Initialize(LoadLibraryA, loadLibStub, HOOK_JUMP);
+		AntiCheat::LoadLibHook[1].Initialize(LoadLibraryW, loadLibStub, HOOK_JUMP);
+		AntiCheat::LoadLibHook[2].Initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
+		AntiCheat::LoadLibHook[3].Initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
+	}
+
 	void AntiCheat::PerformCheck()
 	{
 		// Hash .text segment
@@ -121,13 +133,18 @@ namespace Components
 
 	void AntiCheat::PatchWinAPI()
 	{
-		static uint8_t loadLibStub[]   = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
-		static uint8_t loadLibExStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 }; // xor eax, eax; retn 0Ch
+		AntiCheat::LoadLibHook[0].Uninstall();
+		AntiCheat::LoadLibHook[1].Uninstall();
+		AntiCheat::LoadLibHook[2].Uninstall();
+		AntiCheat::LoadLibHook[3].Uninstall();
 
-		Utils::Hook(LoadLibraryA, loadLibStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(LoadLibraryW, loadLibStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(LoadLibraryExA, loadLibExStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(LoadLibraryExW, loadLibExStub, HOOK_JUMP).Install()->Quick();
+		// Initialize directx :P
+		Utils::Hook::Call<void()>(0x5078C0)();
+
+		AntiCheat::LoadLibHook[0].Install();
+		AntiCheat::LoadLibHook[1].Install();
+		AntiCheat::LoadLibHook[2].Install();
+		AntiCheat::LoadLibHook[3].Install();
 	}
 
 	AntiCheat::AntiCheat()
@@ -141,7 +158,10 @@ namespace Components
 		});
 #else
 		QuickPatch::OnFrame(AntiCheat::Frame);
-		QuickPatch::Once(AntiCheat::PatchWinAPI);
+		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).Install()->Quick();
+
+		// TODO: Probably move that :P
+		AntiCheat::InitLoadLibHook();
 #endif
 	}
 
