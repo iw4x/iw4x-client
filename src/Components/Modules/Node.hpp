@@ -20,6 +20,8 @@ namespace Components
 		static void SyncNodeList();
 		static void AddNode(Network::Address address);
 
+		static unsigned int GetValidNodeCount();
+
 	private:
 		enum EntryState
 		{

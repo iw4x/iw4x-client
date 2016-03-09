@@ -88,6 +88,21 @@ namespace Components
 		return nullptr;
 	}
 
+	unsigned int Node::GetValidNodeCount()
+	{
+		unsigned int count = 0;
+
+		for (auto node : Node::Nodes)
+		{
+			if (node.state == Node::STATE_VALID)
+			{
+				++count;
+			}
+		}
+
+		return count;
+	}
+
 	void Node::AddNode(Network::Address address)
 	{
 #ifdef DEBUG
@@ -701,7 +716,7 @@ namespace Components
 
 		Command::Add("listnodes", [] (Command::Params params)
 		{
-			Logger::Print("Nodes: %d\n", Node::Nodes.size());
+			Logger::Print("Nodes: %d (%d)\n", Node::Nodes.size(), Node::GetValidNodeCount());
 
 			for (auto node : Node::Nodes)
 			{
