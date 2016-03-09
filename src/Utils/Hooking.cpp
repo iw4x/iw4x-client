@@ -120,7 +120,12 @@ namespace Utils
 
 	void Hook::SetString(void* place, const char* string, size_t length)
 	{
+		DWORD oldProtect;
+		VirtualProtect(place, length + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+
 		strncpy(static_cast<char*>(place), string, length);
+
+		VirtualProtect(place, length + 1, oldProtect, &oldProtect);
 	}
 
 	void Hook::SetString(DWORD place, const char* string, size_t length)
