@@ -427,6 +427,8 @@ namespace Components
 		va_end(ap);
 
 		perror(buffer);
+
+		ExitProcess(1);
 	}
 
 	Console::Console()

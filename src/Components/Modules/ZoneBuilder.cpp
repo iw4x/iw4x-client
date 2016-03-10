@@ -128,7 +128,7 @@ namespace Components
 
 		if (type == Game::XAssetType::ASSET_TYPE_INVALID || type >= Game::XAssetType::ASSET_TYPE_COUNT)
 		{
-			Logger::Print("Error: Invalid asset type '%s'\n", typeName.data());
+			Logger::Error("Error: Invalid asset type '%s'\n", typeName.data());
 			return false;
 		}
 
@@ -136,7 +136,7 @@ namespace Components
 
 		if (!assetHeader.data)
 		{
-			Logger::Print("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));
+			Logger::Error("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));
 			return false;
 		}
 
