@@ -20,7 +20,11 @@ namespace Components
 		vsprintf_s(buffer, message, ap);
 		va_end(ap);
 
-		if (Logger::IsConsoleReady())
+		if (Flags::HasFlag("stdout"))
+		{
+			printf("%s", buffer);
+		}
+		else if (Logger::IsConsoleReady())
 		{
 			if (!Game::Sys_IsMainThread())
 			{
