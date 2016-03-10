@@ -1,5 +1,4 @@
 #include "STDInclude.hpp"
-#include "Steam.hpp"
 
 namespace Steam
 {
