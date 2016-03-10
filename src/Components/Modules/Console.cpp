@@ -1,5 +1,7 @@
 ﻿#include "STDInclude.hpp"
 
+using namespace std::literals;
+
 namespace Components
 {
 	WINDOW* Console::OutputWindow;
@@ -381,18 +383,27 @@ namespace Components
 			DispatchMessageA(&message);
 		}
 
-// 		if (Game::Com_Milliseconds() - Console::LastRefresh > 50)
-// 		{
-// 			// Force process termination
-// 			// if the main thread is not responding
-// 			OutputDebugStringA("Process termination forced, as the main thread is not responding!");
-// 			ExitProcess(static_cast<uint32_t>(-1));
-// 		}
-// 		else
-// 		{
+		if (Game::Com_Milliseconds() - Console::LastRefresh > 100 &&
+			MessageBoxA(0, "The application is not responding anymore, do you want to force its termination?", "Application is not responding", MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
+		{
+			// Force process termination
+			// if the main thread is not responding
+			OutputDebugStringA("Process termination forced, as the main thread is not responding!");
+
+			// We can not force the termination in this thread
+			// The destructor would be called in this thread
+			// and would try to join this thread, which is impossible
+			std::async([] ()
+			{
+				std::this_thread::sleep_for(200ms);
+				ExitProcess(static_cast<uint32_t>(-1));
+			});
+		}
+		else
+		{
 			// Send quit command to safely terminate the application
 			Command::Execute("wait 200;quit\n", false);
-//		}
+		}
 	}
 
 	Console::Console()
@@ -428,14 +439,16 @@ namespace Components
 		{
 			FreeConsole();
 			Utils::Hook::Nop(0x60BB58, 11);
-			Utils::Hook::Nop(0x60BB68, 5);
+
+			Utils::Hook(0x60BB68, [] ()
+			{
+				Console::ConsoleThread = std::thread(Console::ConsoleRunner);
+			}, HOOK_CALL).Install()->Quick();
 
 			QuickPatch::OnFrame([] ()
 			{
 				Console::LastRefresh = Game::Com_Milliseconds();
 			});
-
-			Console::ConsoleThread = std::thread(Console::ConsoleRunner);
 		}
 		else if (Dedicated::IsDedicated()/* || ZoneBuilder::IsEnabled()*/)
 		{
