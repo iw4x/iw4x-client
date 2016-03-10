@@ -242,6 +242,10 @@ namespace Components
 		delwin(Console::InputWindow);
 		delwin(Console::InfoWindow);
 		endwin();
+
+		Console::OutputWindow = nullptr;
+		Console::InputWindow = nullptr;
+		Console::InfoWindow = nullptr;
 	}
 
 	void Console::Create()
@@ -327,6 +331,8 @@ namespace Components
 
 	void Console::Print(const char* message)
 	{
+		if (!Console::OutputWindow) return;
+
 		const char* p = message;
 		while (*p != '\0')
 		{
