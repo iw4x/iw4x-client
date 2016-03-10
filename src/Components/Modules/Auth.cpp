@@ -10,6 +10,7 @@ namespace Components
 
 	void Auth::Frame()
 	{
+#ifndef DEBUG
 		for (int i = 0; i < *Game::svs_numclients; i++)
 		{
 			Game::client_t* client = &Game::svs_clients[i];
@@ -58,6 +59,7 @@ namespace Components
 				}
 			}
 		}
+#endif
 
 		if (Auth::TokenContainer.generating)
 		{
@@ -380,8 +382,10 @@ namespace Components
 		// Register dvar
 		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");
 
+#ifndef DEBUG
 		// Install registration hook
 		Utils::Hook(0x478A12, Auth::RegisterClientStub, HOOK_JUMP).Install()->Quick();
+#endif
 
 		// Guid command
 		Command::Add("guid", [] (Command::Params params)
