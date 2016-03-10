@@ -26,7 +26,7 @@ namespace Components
 		this->mType = IPCTYPE_CLIENT;
 		this->SetName(name);
 
-		this->hPipe = CreateFile(this->PipeFile, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		this->hPipe = CreateFileA(this->PipeFile, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 		if (INVALID_HANDLE_VALUE == this->hPipe)
 		{
@@ -60,7 +60,7 @@ namespace Components
 		this->mType = IPCTYPE_SERVER;
 		this->SetName(name);
 
-		this->hPipe = CreateNamedPipe(this->PipeFile, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, sizeof(this->mPacket), sizeof(this->mPacket), NMPWAIT_USE_DEFAULT_WAIT, NULL);
+		this->hPipe = CreateNamedPipeA(this->PipeFile, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, sizeof(this->mPacket), sizeof(this->mPacket), NMPWAIT_USE_DEFAULT_WAIT, NULL);
 
 		if (INVALID_HANDLE_VALUE != this->hPipe)
 		{

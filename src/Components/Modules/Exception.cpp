@@ -19,7 +19,7 @@ namespace Components
 		ltime = _localtime64(&time);
 		strftime(filename, sizeof(filename) - 1, "iw4x-" VERSION_STR "-%Y%m%d%H%M%S.dmp", ltime);
 
-		HANDLE hFile = CreateFile(filename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		HANDLE hFile = CreateFileA(filename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (hFile && hFile != INVALID_HANDLE_VALUE)
 		{

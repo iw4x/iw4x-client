@@ -25,7 +25,7 @@ namespace Utils
 
 	void WebIO::OpenSession(std::string useragent)
 	{
-		WebIO::m_hSession = InternetOpen(useragent.data(), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+		WebIO::m_hSession = InternetOpenA(useragent.data(), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
 	}
 
 	void WebIO::CloseSession()
@@ -185,7 +185,7 @@ namespace Utils
 
 		const char* username = (WebIO::m_username.size() ? WebIO::m_username.data() : NULL);
 		const char* password = (WebIO::m_password.size() ? WebIO::m_password.data() : NULL);
-		WebIO::m_hConnect = InternetConnect(WebIO::m_hSession, WebIO::m_sUrl.server.data(), wPort, username, password, dwService, dwFlag, 0);
+		WebIO::m_hConnect = InternetConnectA(WebIO::m_hSession, WebIO::m_sUrl.server.data(), wPort, username, password, dwService, dwFlag, 0);
 
 		return (WebIO::m_hConnect && WebIO::m_hConnect != INVALID_HANDLE_VALUE);
 	}
@@ -216,7 +216,7 @@ namespace Utils
 		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_RECEIVE_TIMEOUT, &m_timeout, sizeof(m_timeout));
 		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_SEND_TIMEOUT, &m_timeout, sizeof(m_timeout));
 
-		WebIO::m_hFile = HttpOpenRequest(WebIO::m_hConnect, command, WebIO::m_sUrl.document.data(), NULL, NULL, acceptTypes, dwFlag, 0);
+		WebIO::m_hFile = HttpOpenRequestA(WebIO::m_hConnect, command, WebIO::m_sUrl.document.data(), NULL, NULL, acceptTypes, dwFlag, 0);
 
 		if (!WebIO::m_hFile || WebIO::m_hFile == INVALID_HANDLE_VALUE)
 		{
@@ -225,7 +225,7 @@ namespace Utils
 		}
 
 		const char* headers = "Content-type: application/x-www-form-urlencoded";
-		HttpSendRequest(WebIO::m_hFile, headers, strlen(headers), const_cast<char*>(body.data()), body.size() + 1);
+		HttpSendRequestA(WebIO::m_hFile, headers, strlen(headers), const_cast<char*>(body.data()), body.size() + 1);
 
 		std::string returnBuffer;
 
@@ -353,7 +353,7 @@ namespace Utils
 	{
 		list.clear();
 
-		WIN32_FIND_DATA findFileData;
+		WIN32_FIND_DATAA findFileData;
 		bool result = false;
 		DWORD dwAttribute = (files ? FILE_ATTRIBUTE_NORMAL : FILE_ATTRIBUTE_DIRECTORY);
 

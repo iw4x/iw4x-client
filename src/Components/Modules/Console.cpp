@@ -41,7 +41,7 @@ namespace Components
 	{
 		std::string mapname = Dvar::Var("mapname").Get<const char*>();
 		std::string hostname = Colors::Strip(Dvar::Var("sv_hostname").Get<const char*>());
-		SetConsoleTitle(hostname.data());
+		SetConsoleTitleA(hostname.data());
 
 		int clientCount = 0;
 		int maxclientCount = *Game::svs_numclients;

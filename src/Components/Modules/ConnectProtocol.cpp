@@ -34,12 +34,12 @@ namespace Components
 
 		if (hModule != NULL)
 		{
-			if (GetModuleFileName(hModule, ownPth, MAX_PATH) == ERROR)
+			if (GetModuleFileNameA(hModule, ownPth, MAX_PATH) == ERROR)
 			{
 				return false;
 			}
 
-			if (GetModuleFileName(hModule, workdir, MAX_PATH) == ERROR)
+			if (GetModuleFileNameA(hModule, workdir, MAX_PATH) == ERROR)
 			{
 				return false;
 			}
@@ -61,15 +61,15 @@ namespace Components
 			return false;
 		}
 
-		SetCurrentDirectory(workdir);
+		SetCurrentDirectoryA(workdir);
 
-		LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x\\shell\\open\\command", 0, KEY_ALL_ACCESS, &hKey);
+		LONG openRes = RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x\\shell\\open\\command", 0, KEY_ALL_ACCESS, &hKey);
 		if (openRes == ERROR_SUCCESS)
 		{
 			char regred[MAX_PATH] = { 0 };
 
 			// Check if the game has been moved.
-			openRes = RegQueryValueEx(hKey, 0, 0, 0, reinterpret_cast<BYTE*>(regred), &dwsize);
+			openRes = RegQueryValueExA(hKey, 0, 0, 0, reinterpret_cast<BYTE*>(regred), &dwsize);
 			if (openRes == ERROR_SUCCESS)
 			{
 				char* endPtr = strstr(regred, "\" \"%1\"");
@@ -85,7 +85,7 @@ namespace Components
 				RegCloseKey(hKey);
 				if (strcmp(regred + 1, ownPth))
 				{
-					openRes = RegDeleteKey(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
+					openRes = RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
 				}
 				else
 				{
@@ -94,16 +94,16 @@ namespace Components
 			}
 			else
 			{
-				openRes = RegDeleteKey(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
+				openRes = RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
 			}
 		}
 		else
 		{
-			openRes = RegDeleteKey(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
+			openRes = RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
 		}
 
 		// Open SOFTWARE\\Classes
-		openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Classes", 0, KEY_ALL_ACCESS, &hKey);
+		openRes = RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\Classes", 0, KEY_ALL_ACCESS, &hKey);
 
 		if (openRes != ERROR_SUCCESS)
 		{
@@ -111,7 +111,7 @@ namespace Components
 		}
 
 		// Create SOFTWARE\\Classes\\iw4x
-		openRes = RegCreateKeyEx(hKey, "iw4x", 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
+		openRes = RegCreateKeyExA(hKey, "iw4x", 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
 
 		if (openRes != ERROR_SUCCESS)
 		{
@@ -120,7 +120,7 @@ namespace Components
 
 		// Write URL:IW4x Protocol
 		data = "URL:IW4x Protocol";
-		openRes = RegSetValueEx(hKey, "URL Protocol", 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
+		openRes = RegSetValueExA(hKey, "URL Protocol", 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
 
 		if (openRes != ERROR_SUCCESS)
 		{
@@ -129,7 +129,7 @@ namespace Components
 		}
 
 		// Create SOFTWARE\\Classes\\iw4x\\DefaultIcon
-		openRes = RegCreateKeyEx(hKey, "DefaultIcon", 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
+		openRes = RegCreateKeyExA(hKey, "DefaultIcon", 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
 
 		if (openRes != ERROR_SUCCESS)
 		{
@@ -137,7 +137,7 @@ namespace Components
 		}
 
 		data = Utils::VA("%s,1", ownPth);
-		openRes = RegSetValueEx(hKey, 0, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
+		openRes = RegSetValueExA(hKey, 0, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
 		RegCloseKey(hKey);
 
 		if (openRes != ERROR_SUCCESS)
@@ -146,14 +146,14 @@ namespace Components
 			return false;
 		}
 
-		openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x", 0, KEY_ALL_ACCESS, &hKey);
+		openRes = RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x", 0, KEY_ALL_ACCESS, &hKey);
 
 		if (openRes != ERROR_SUCCESS)
 		{
 			return false;
 		}
 
-		openRes = RegCreateKeyEx(hKey, "shell\\open\\command", 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
+		openRes = RegCreateKeyExA(hKey, "shell\\open\\command", 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
 
 		if (openRes != ERROR_SUCCESS)
 		{
@@ -161,7 +161,7 @@ namespace Components
 		}
 
 		data = Utils::VA("\"%s\" \"%s\"", ownPth, "%1");
-		openRes = RegSetValueEx(hKey, 0, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
+		openRes = RegSetValueExA(hKey, 0, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
 		RegCloseKey(hKey);
 
 		if (openRes != ERROR_SUCCESS)
@@ -177,7 +177,7 @@ namespace Components
 		if (ConnectProtocol::ConnectContainer.Evaluated) return;
 		ConnectProtocol::ConnectContainer.Evaluated = true;
 
-		std::string cmdLine = GetCommandLine();
+		std::string cmdLine = GetCommandLineA();
 
 		auto pos = cmdLine.find("iw4x://");
 
