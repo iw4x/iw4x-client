@@ -19,6 +19,8 @@ namespace Components
 
 	bool Console::HasConsole = false;
 
+	std::thread Console::ConsoleThread;
+
 	char** Console::GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType)
 	{
 		if (path == reinterpret_cast<char*>(0xBAADF00D) || path == reinterpret_cast<char*>(0xCDCDCDCD) || IsBadReadPtr(path, 1)) return nullptr;
@@ -368,6 +370,31 @@ namespace Components
 		Console::RefreshOutput();
 	}
 
+	void Console::ConsoleRunner()
+	{
+		Game::Sys_ShowConsole();
+
+		MSG message;
+		while (IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE && GetMessageA(&message, 0, 0, 0))
+		{
+			TranslateMessage(&message);
+			DispatchMessageA(&message);
+		}
+
+// 		if (Game::Com_Milliseconds() - Console::LastRefresh > 50)
+// 		{
+// 			// Force process termination
+// 			// if the main thread is not responding
+// 			OutputDebugStringA("Process termination forced, as the main thread is not responding!");
+// 			ExitProcess(static_cast<uint32_t>(-1));
+// 		}
+// 		else
+// 		{
+			// Send quit command to safely terminate the application
+			Command::Execute("wait 200;quit\n", false);
+//		}
+	}
+
 	Console::Console()
 	{
 		// Console '%s: %s> ' string
@@ -401,6 +428,14 @@ namespace Components
 		{
 			FreeConsole();
 			Utils::Hook::Nop(0x60BB58, 11);
+			Utils::Hook::Nop(0x60BB68, 5);
+
+			QuickPatch::OnFrame([] ()
+			{
+				Console::LastRefresh = Game::Com_Milliseconds();
+			});
+
+			Console::ConsoleThread = std::thread(Console::ConsoleRunner);
 		}
 		else if (Dedicated::IsDedicated()/* || ZoneBuilder::IsEnabled()*/)
 		{
@@ -415,6 +450,14 @@ namespace Components
 		else
 		{
 			FreeConsole();
+		}
+	}
+
+	Console::~Console()
+	{
+		if (Console::ConsoleThread.joinable())
+		{
+			Console::ConsoleThread.join();
 		}
 	}
 }

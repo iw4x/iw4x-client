@@ -493,6 +493,10 @@ namespace Components
 			// Don't create default assets
 			Utils::Hook::Set<BYTE>(0x407BAA, 0xEB);
 
+			// Don't display errors when assets are missing (we might manually build those)
+			Utils::Hook::Nop(0x5BB3F2, 5);
+			Utils::Hook::Nop(0x5BB422, 5);
+			Utils::Hook::Nop(0x5BB43A, 5);
 			// Increase asset pools
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
 

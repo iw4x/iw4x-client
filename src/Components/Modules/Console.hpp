@@ -7,6 +7,7 @@ namespace Components
 	{
 	public:
 		Console();
+		~Console();
 		const char* GetName() { return "Console"; };
 
 	private:
@@ -32,6 +33,8 @@ namespace Components
 
 		static bool HasConsole;
 
+		static std::thread ConsoleThread;
+
 		static void ShowPrompt();
 		static void RefreshStatus();
 		static void RefreshOutput();
@@ -42,5 +45,7 @@ namespace Components
 		static void Error(const char* format, ...);
 		static void Create();
 		static void Destroy();
+
+		static void ConsoleRunner();
 	};
 }

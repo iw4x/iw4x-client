@@ -317,6 +317,9 @@ namespace Game
 	typedef bool(__cdecl * Sys_SendPacket_t)(netsrc_t sock, size_t len, const char *format, netadr_t adr);
 	extern Sys_SendPacket_t Sys_SendPacket;
 
+	typedef void(__cdecl * Sys_ShowConsole_t)();
+	extern Sys_ShowConsole_t Sys_ShowConsole;
+
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
 

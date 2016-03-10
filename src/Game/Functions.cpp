@@ -136,6 +136,7 @@ namespace Game
 
 	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
 	Sys_SendPacket_t Sys_SendPacket = (Sys_SendPacket_t)0x60FDC0;
+	Sys_ShowConsole_t Sys_ShowConsole = (Sys_ShowConsole_t)0x4305E0;
 
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;
