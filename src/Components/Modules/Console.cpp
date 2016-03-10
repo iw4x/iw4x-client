@@ -412,6 +412,23 @@ namespace Components
 		}
 	}
 
+	void Console::StdOutPrint(const char* message)
+	{
+		printf("%s", message);
+	}
+
+	void Console::StdOutError(const char* format, ...)
+	{
+		char buffer[0x1000] = { 0 };
+
+		va_list ap;
+		va_start(ap, format);
+		vsprintf_s(buffer, format, ap);
+		va_end(ap);
+
+		perror(buffer);
+	}
+
 	Console::Console()
 	{
 		// Console '%s: %s> ' string
@@ -441,7 +458,12 @@ namespace Components
 		if (Loader::PerformingUnitTests()) return;
 
 		// External console
-		if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
+		if (Flags::HasFlag("stdout"))
+		{
+			Utils::Hook(0x4B2080, Console::StdOutPrint, HOOK_JUMP).Install()->Quick();
+			Utils::Hook(0x43D570, Console::StdOutError, HOOK_JUMP).Install()->Quick();
+		}
+		else if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
 		{
 			FreeConsole();
 			Utils::Hook::Nop(0x60BB58, 11);

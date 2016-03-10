@@ -46,6 +46,9 @@ namespace Components
 		static void Create();
 		static void Destroy();
 
+		static void StdOutPrint(const char* message);
+		static void StdOutError(const char* format, ...);
+
 		static void ConsoleRunner();
 	};
 }
