@@ -415,6 +415,7 @@ namespace Components
 	void Console::StdOutPrint(const char* message)
 	{
 		printf("%s", message);
+		fflush(stdout);
 	}
 
 	void Console::StdOutError(const char* format, ...)
@@ -427,6 +428,7 @@ namespace Components
 		va_end(ap);
 
 		perror(buffer);
+		fflush(stderr);
 
 		ExitProcess(1);
 	}
