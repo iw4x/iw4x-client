@@ -207,6 +207,11 @@ namespace Components
 		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
 		Utils::Hook::Set<char*>(0x60BED2, "unskippablecinematic IW_logo\n");
 
+		// Redirect logs
+		Utils::Hook::Set<char*>(0x5E44D8, "logs/games_mp.log");
+		Utils::Hook::Set<char*>(0x60A90C, "logs/console_mp.log");
+		Utils::Hook::Set<char*>(0x60A918, "logs/console_mp.log");
+
 #ifndef DEBUG
 		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset intro dvar
 #endif
