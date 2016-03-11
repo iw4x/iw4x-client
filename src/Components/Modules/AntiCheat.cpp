@@ -5,6 +5,7 @@ namespace Components
 	int AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::LoadLibHook[4];
+	bool AntiCheat::InjectPatches = false;
 
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
@@ -143,12 +144,13 @@ namespace Components
 
 		AntiCheat::LoadLibHook[0].Install();
 		AntiCheat::LoadLibHook[1].Install();
-		AntiCheat::LoadLibHook[2].Install();
-		AntiCheat::LoadLibHook[3].Install();
+		//AntiCheat::LoadLibHook[2].Install();
+		//AntiCheat::LoadLibHook[3].Install();
 	}
 
 	AntiCheat::AntiCheat()
 	{
+		AntiCheat::InjectPatches = false;
 		AntiCheat::EmptyHash();
 
 #ifdef DEBUG
@@ -157,8 +159,8 @@ namespace Components
 			AntiCheat::CrashClient();
 		});
 #else
-		QuickPatch::OnFrame(AntiCheat::Frame);
 		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).Install()->Quick();
+		QuickPatch::OnFrame(AntiCheat::Frame);
 
 		// TODO: Probably move that :P
 		AntiCheat::InitLoadLibHook();

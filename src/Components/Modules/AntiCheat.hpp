@@ -23,5 +23,6 @@ namespace Components
 		static void NullSub();
 
 		static Utils::Hook LoadLibHook[4];
+		static bool InjectPatches;
 	};
 }
