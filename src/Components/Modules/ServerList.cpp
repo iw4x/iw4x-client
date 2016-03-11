@@ -594,7 +594,7 @@ namespace Components
 
 		Dvar::OnInit([] ()
 		{
-			Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_FLAG_NONE, "Wether a server has been selected in the serverlist");
+			Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_FLAG_NONE, "Whether a server has been selected in the serverlist");
 			Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "Map of the selected server");
 		});
 
