@@ -23,6 +23,7 @@ namespace Components
 		if (Flags::HasFlag("stdout"))
 		{
 			printf("%s", buffer);
+			fflush(stdout);
 		}
 		else if (Logger::IsConsoleReady())
 		{
@@ -41,6 +42,7 @@ namespace Components
 			if (Loader::PerformingUnitTests())
 			{
 				printf("%s", buffer);
+				fflush(stdout);
 			}
 
 			OutputDebugStringA(buffer);
