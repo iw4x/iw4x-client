@@ -5,7 +5,6 @@ namespace Components
 	int AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::LoadLibHook[4];
-	bool AntiCheat::InjectPatches = false;
 
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
@@ -150,7 +149,6 @@ namespace Components
 
 	AntiCheat::AntiCheat()
 	{
-		AntiCheat::InjectPatches = false;
 		AntiCheat::EmptyHash();
 
 #ifdef DEBUG

@@ -67,8 +67,8 @@ namespace Components
 			Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
 		});
 #else
-		/*Utils::Hook::Set(0x6D70AC, Exception::SetUnhandledExceptionFilterStub);
-		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);*/
+		Utils::Hook::Set(0x6D70AC, Exception::SetUnhandledExceptionFilterStub);
+		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
 #endif
 
 		Command::Add("mapTest", [] (Command::Params params)
