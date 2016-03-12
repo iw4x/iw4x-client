@@ -213,11 +213,11 @@ namespace Components
 		Utils::Hook::Set<char*>(0x60A918, "logs/console_mp.log");
 
 		// Rename config
-		Utils::Hook::Set<char*>(0x461B4B, "iw4x_config.cfg");
-		Utils::Hook::Set<char*>(0x47DCBB, "iw4x_config.cfg");
-		Utils::Hook::Set<char*>(0x6098F8, "iw4x_config.cfg");
-		Utils::Hook::Set<char*>(0x60B279, "iw4x_config.cfg");
-		Utils::Hook::Set<char*>(0x60BBD4, "iw4x_config.cfg");
+		Utils::Hook::Set<char*>(0x461B4B, CLIENT_CONFIG);
+		Utils::Hook::Set<char*>(0x47DCBB, CLIENT_CONFIG);
+		Utils::Hook::Set<char*>(0x6098F8, CLIENT_CONFIG);
+		Utils::Hook::Set<char*>(0x60B279, CLIENT_CONFIG);
+		Utils::Hook::Set<char*>(0x60BBD4, CLIENT_CONFIG);
 
 #ifndef DEBUG
 		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset intro dvar
