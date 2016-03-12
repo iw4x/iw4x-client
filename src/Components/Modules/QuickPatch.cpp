@@ -212,13 +212,20 @@ namespace Components
 		Utils::Hook::Set<char*>(0x60A90C, "logs/console_mp.log");
 		Utils::Hook::Set<char*>(0x60A918, "logs/console_mp.log");
 
+		// Rename config
+		Utils::Hook::Set<char*>(0x461B4B, "iw4x_config.cfg");
+		Utils::Hook::Set<char*>(0x47DCBB, "iw4x_config.cfg");
+		Utils::Hook::Set<char*>(0x6098F8, "iw4x_config.cfg");
+		Utils::Hook::Set<char*>(0x60B279, "iw4x_config.cfg");
+		Utils::Hook::Set<char*>(0x60BBD4, "iw4x_config.cfg");
+
 #ifndef DEBUG
 		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset intro dvar
 #endif
 
 		Utils::Hook(0x4D4007, QuickPatch::ShutdownStub, HOOK_CALL).Install()->Quick();
 
-		// Rename stat file - TODO: beautify
+		// Rename stat file
 		Utils::Hook::SetString(0x71C048, "iw4x.stat");
 
 		// Patch stats steamid
