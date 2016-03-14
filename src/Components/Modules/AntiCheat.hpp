@@ -22,6 +22,9 @@ namespace Components
 
 		static void NullSub();
 
+		static BOOL WINAPI VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect);
+
 		static Utils::Hook LoadLibHook[4];
+		static Utils::Hook VirtualProtectHook;
 	};
 }

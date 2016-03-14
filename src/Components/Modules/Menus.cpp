@@ -95,24 +95,19 @@ namespace Components
 
 	int Menus::KeywordHash(char* key)
 	{
-		// patch this function on-the-fly, as it's some ugly C.
-		Utils::Hook::Set<DWORD>(0x63FE9E, 3523);
-		Utils::Hook::Set<DWORD>(0x63FECB, 0x7F);
-		AntiCheat::EmptyHash();
+		int hash = 0;
 
-		int var = 0x63FE90;
-		__asm
+		if (*key)
 		{
-			mov eax, key
-			call var
-			mov var, eax
+			int sub = 3523 - reinterpret_cast<DWORD>(key);
+			do
+			{
+				char _chr = *key;
+				hash += reinterpret_cast<DWORD>(&(key++)[sub]) * tolower(_chr);
+			} while (*key);
 		}
 
-		Utils::Hook::Set<DWORD>(0x63FE9E, 531);
-		Utils::Hook::Set<DWORD>(0x63FECB, 0x1FF);
-		AntiCheat::EmptyHash();
-
-		return var;
+		return (static_cast<uint16_t>(hash) + static_cast<uint16_t>(hash >> 8)) & 0x7F;
 	}
 
 	Game::menuDef_t* Menus::ParseMenu(int handle)

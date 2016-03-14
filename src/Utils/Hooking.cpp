@@ -34,7 +34,7 @@ namespace Utils
 		return this;
 	}
 
-	Hook* Hook::Install()
+	Hook* Hook::Install(bool unprotect, bool keepUnportected)
 	{
 		Hook::StateMutex.lock();
 
@@ -46,7 +46,7 @@ namespace Utils
 
 		Hook::Installed = true;
 
-		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
+		if (unprotect) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
 		memcpy(Hook::Buffer, Hook::Place, sizeof(Hook::Buffer));
 
 		char* code = static_cast<char*>(Hook::Place);
@@ -55,7 +55,7 @@ namespace Utils
 
 		*reinterpret_cast<size_t*>(code + 1) = reinterpret_cast<size_t>(Hook::Stub) - (reinterpret_cast<size_t>(Hook::Place) + 5);
 
-		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
+		if (unprotect && !keepUnportected) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
 
 		FlushInstructionCache(GetCurrentProcess(), Hook::Place, sizeof(Hook::Buffer));
 
@@ -72,7 +72,7 @@ namespace Utils
 		}
 	}
 
-	Hook* Hook::Uninstall()
+	Hook* Hook::Uninstall(bool unprotect)
 	{
 		Hook::StateMutex.lock();
 
@@ -84,11 +84,11 @@ namespace Utils
 
 		Hook::Installed = false;
 
-		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
+		if(unprotect) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
 		
 		memcpy(Hook::Place, Hook::Buffer, sizeof(Hook::Buffer));
 
-		VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
+		if (unprotect) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
 
 		FlushInstructionCache(GetCurrentProcess(), Hook::Place, sizeof(Hook::Buffer));
 

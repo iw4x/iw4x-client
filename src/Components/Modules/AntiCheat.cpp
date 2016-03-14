@@ -5,6 +5,7 @@ namespace Components
 	int AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::LoadLibHook[4];
+	Utils::Hook AntiCheat::VirtualProtectHook;
 
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
@@ -98,8 +99,8 @@ namespace Components
 
 		AntiCheat::LoadLibHook[0].Initialize(LoadLibraryA, loadLibStub, HOOK_JUMP);
 		AntiCheat::LoadLibHook[1].Initialize(LoadLibraryW, loadLibStub, HOOK_JUMP);
-		AntiCheat::LoadLibHook[2].Initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
-		AntiCheat::LoadLibHook[3].Initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
+		//AntiCheat::LoadLibHook[2].Initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
+		//AntiCheat::LoadLibHook[3].Initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
 	}
 
 	void AntiCheat::PerformCheck()
@@ -133,10 +134,10 @@ namespace Components
 
 	void AntiCheat::PatchWinAPI()
 	{
-		AntiCheat::LoadLibHook[0].Uninstall();
-		AntiCheat::LoadLibHook[1].Uninstall();
-		AntiCheat::LoadLibHook[2].Uninstall();
-		AntiCheat::LoadLibHook[3].Uninstall();
+		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
+		{
+			AntiCheat::LoadLibHook[i].Uninstall();
+		}
 
 		// Initialize directx :P
 		Utils::Hook::Call<void()>(0x5078C0)();
@@ -147,8 +148,33 @@ namespace Components
 		//AntiCheat::LoadLibHook[3].Install();
 	}
 
+	BOOL WINAPI AntiCheat::VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
+	{
+		AntiCheat::VirtualProtectHook.Uninstall(false);
+
+		if (flNewProtect == PAGE_WRITECOPY || flNewProtect == PAGE_READWRITE || flNewProtect == PAGE_EXECUTE_READWRITE || flNewProtect == PAGE_WRITECOMBINE)
+		{
+			DWORD addr = (DWORD)lpAddress;
+			DWORD start = 0x401000;
+			DWORD end = start + 0x2D6000;
+
+			if (addr > start && addr < end)
+			{
+				OutputDebugStringA(Utils::VA("Write access to address %X", lpAddress));
+			}
+		}
+
+		BOOL retVal = VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
+		AntiCheat::VirtualProtectHook.Install(false);
+		return retVal;
+	}
+
 	AntiCheat::AntiCheat()
 	{
+		// This is required for debugging...in release mode :P
+		//AntiCheat::VirtualProtectHook.Initialize(VirtualProtect, VirtualProtectStub, HOOK_JUMP);
+		//AntiCheat::VirtualProtectHook.Install(true, true);
+
 		AntiCheat::EmptyHash();
 
 #ifdef DEBUG
@@ -168,5 +194,11 @@ namespace Components
 	AntiCheat::~AntiCheat()
 	{
 		AntiCheat::EmptyHash();
+
+		AntiCheat::VirtualProtectHook.Uninstall(false);
+		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
+		{
+			AntiCheat::LoadLibHook[i].Uninstall();
+		}
 	}
 }
