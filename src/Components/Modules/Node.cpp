@@ -10,7 +10,7 @@ namespace Components
 
 	void Node::LoadNodePreset()
 	{
-		FileSystem::File defaultNodes("default_nodes.dat");
+		FileSystem::File defaultNodes("nodes_default.dat");
 		if (!defaultNodes.Exists()) return;
 
 		auto buffer = defaultNodes.GetBuffer();
