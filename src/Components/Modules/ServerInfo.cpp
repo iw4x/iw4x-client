@@ -68,10 +68,46 @@ namespace Components
 		}
 	}
 
+	void ServerInfo::DrawScoreboardInfo(void* a1)
+	{
+		Game::Font* font = Game::R_RegisterFont("fonts/bigfont");
+		void* cxt = Game::UI_GetContext(a1);
+
+		Network::Address address(reinterpret_cast<Game::netadr_t*>(0xA1E888));
+		std::string addressText = address.GetString();
+		if (addressText == "0.0.0.0:0") addressText = "Listen Server";
+
+		// get x positions
+		float fontSize = 0.35f;
+		float y = (480.0f - Dvar::Var("cg_scoreboardHeight").Get<float>()) * 0.5f;
+		y += Dvar::Var("cg_scoreboardHeight").Get<float>() + 6.0f;
+
+		float x = 320.0f - Dvar::Var("cg_scoreboardWidth").Get<float>() * 0.5f;
+		float x2 = 320.0f + Dvar::Var("cg_scoreboardWidth").Get<float>() * 0.5f;
+
+		Game::UI_DrawText(cxt, reinterpret_cast<const char*>(0x7ED3F8), 0x7FFFFFFF, font, x, y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
+		Game::UI_DrawText(cxt, addressText.data(), 0x7FFFFFFF, font, x2 - Game::UI_TextWidth(addressText.data(), 0, font, fontSize), y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
+	}
+
+	void __declspec(naked) ServerInfo::DrawScoreboardStub()
+	{
+		__asm 
+		{
+			push eax
+			call ServerInfo::DrawScoreboardInfo
+			pop eax
+			mov ecx, 591B70h
+			jmp ecx
+		}
+	}
+
 	ServerInfo::ServerInfo()
 	{
 		ServerInfo::PlayerContainer.CurrentPlayer = 0;
 		ServerInfo::PlayerContainer.PlayerList.clear();
+
+		// Draw IP and hostname on the scoreboard
+		Utils::Hook(0x4FC6EA, ServerInfo::DrawScoreboardStub, HOOK_CALL).Install()->Quick();
 
 		// Ignore native getStatus implementation
 		Utils::Hook::Nop(0x62654E, 6);

@@ -141,6 +141,9 @@ namespace Game
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;
 	UI_DrawHandlePic_t UI_DrawHandlePic = (UI_DrawHandlePic_t)0x4D0EA0;
+	UI_GetContext_t UI_GetContext = (UI_GetContext_t)0x4F8940;
+	UI_TextWidth_t UI_TextWidth = (UI_TextWidth_t)0x6315C0;
+	UI_DrawText_t UI_DrawText = (UI_DrawText_t)0x49C0D0;
 
 	Win_GetLanguage_t Win_GetLanguage = (Win_GetLanguage_t)0x45CBA0;
 
@@ -253,6 +256,16 @@ namespace Game
 		}
 
 		return gameType;
+	}
+
+	float UI_GetScoreboardLeft(void* a1)
+	{
+		static int func = 0x590390;
+		__asm
+		{
+			mov eax, [esp + 4h]
+			call func
+		}
 	}
 
 	const char *DB_GetXAssetName(XAsset *asset)

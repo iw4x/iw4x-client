@@ -249,7 +249,7 @@ namespace Components
 	{
 		// Frame limit
 		static int lastFrame = 0;
-		if ((Game::Com_Milliseconds() - lastFrame) < (1000 / NODE_FRAME_LOCK)) return;
+		if ((Game::Com_Milliseconds() - lastFrame) < (1000 / NODE_FRAME_LOCK) || Game::Com_Milliseconds() < 5000) return;
 		lastFrame = Game::Com_Milliseconds();
 
 		int registerCount = 0;

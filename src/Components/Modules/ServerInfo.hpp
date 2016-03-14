@@ -29,5 +29,8 @@ namespace Components
 		static unsigned int GetPlayerCount();
 		static const char* GetPlayerText(unsigned int index, int column);
 		static void SelectPlayer(unsigned int index);
+
+		static void DrawScoreboardInfo(void* a1);
+		static void DrawScoreboardStub();
 	};
 }
