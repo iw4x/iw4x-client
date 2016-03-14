@@ -126,6 +126,7 @@ namespace Components
 			entry.registered = false;
 			entry.state = Node::STATE_UNKNOWN;
 			entry.address = address;
+			entry.challenge.clear();
 
 			Node::Nodes.push_back(entry);
 
@@ -398,6 +399,17 @@ namespace Components
 				std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, packet.challenge());
 				std::string challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
+				// The challenge this client sent is exactly the challenge we stored for this client
+				// That means this is us, so we're going to ignore us :P
+				if (packet.challenge() == entry->challenge)
+				{
+					entry->lastHeard = Game::Com_Milliseconds();
+					entry->lastTime = Game::Com_Milliseconds();
+					entry->registered = false;
+					entry->state = Node::STATE_INVALID;
+					return;
+				}
+
 				packet.Clear();
 				packet.set_challenge(challenge);
 				packet.set_signature(signature);
@@ -666,7 +678,16 @@ namespace Components
 
 					for (int i = 0; i < list.address_size(); ++i)
 					{
-						Node::AddNode(list.address(i));
+						Network::Address _addr(list.address(i));
+
+// 						if (!Node::FindNode(_addr) && _addr.GetPort() >= 1024 && _addr.GetPort() - 20 < 1024)
+// 						{
+// 							std::string a1 = _addr.GetString();
+// 							std::string a2 = address.GetString();
+// 							Logger::Print("Received weird address %s from %s\n", a1.data(), a2.data());
+// 						}
+
+						Node::AddNode(_addr);
 					}
 				}
 			}

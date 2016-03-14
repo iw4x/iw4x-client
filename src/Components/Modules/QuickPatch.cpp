@@ -23,7 +23,7 @@ namespace Components
 
 	void QuickPatch::OnFrame(QuickPatch::Callback* callback)
 	{
-		if (Dedicated::IsDedicated())
+		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled())
 		{
 			Dedicated::OnFrame(callback);
 		}
@@ -35,7 +35,7 @@ namespace Components
 
 	void QuickPatch::Once(QuickPatch::Callback* callback)
 	{
-		if (Dedicated::IsDedicated())
+		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled())
 		{
 			Dedicated::Once(callback);
 		}

@@ -89,12 +89,12 @@ namespace Components
 	void Network::Address::Serialize(Proto::Network::Address* protoAddress)
 	{
 		protoAddress->set_ip(this->GetIP().full);
-		protoAddress->set_port(htons(this->GetPort()));
+		protoAddress->set_port(htons(this->GetPort()) & 0xFFFF);
 	}
 	void Network::Address::Deserialize(const Proto::Network::Address& protoAddress)
 	{
 		this->SetIP(protoAddress.ip());
-		this->SetPort(ntohs(static_cast<uint16_t>(protoAddress.port())));
+		this->SetPort(ntohs(static_cast<uint16_t>(protoAddress.port() & 0xFFFF)));
 		this->SetType(Game::netadrtype_t::NA_IP);
 	}
 
