@@ -100,6 +100,9 @@ workspace "iw4x"
 			"%{prj.location}/src",
 			"./src"
 		}
+		resincludedirs {
+			"$(ProjectDir)src" -- fix for VS IDE
+		}
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
