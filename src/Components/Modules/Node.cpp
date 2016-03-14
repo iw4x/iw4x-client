@@ -42,7 +42,7 @@ namespace Components
 		static int lastStorage = 0;
 
 		// Don't store nodes if the delta is too small and were not forcing it
-		if ((Game::Com_Milliseconds() - lastStorage) < NODE_STORE_INTERVAL && !force) return;
+		if (((Game::Com_Milliseconds() - lastStorage) < NODE_STORE_INTERVAL && !force) || !Node::GetValidNodeCount()) return;
 		lastStorage = Game::Com_Milliseconds();
 
 		Proto::Node::List list;
