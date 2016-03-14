@@ -91,6 +91,7 @@ workspace "iw4x"
 		kind "SharedLib"
 		language "C++"
 		files {
+			"./src/**.rc",
 			"./src/**.hpp",
 			"./src/**.cpp",
 			"./src/**.proto",
@@ -143,6 +144,7 @@ workspace "iw4x"
 			vpaths {
 				["Headers/*"] = { "./src/**.hpp" },
 				["Sources/*"] = { "./src/**.cpp" },
+				["Resource/*"] = { "./src/**.rc" },
 				["Proto/Definitions/*"] = { "./src/Proto/**.proto" },
 				["Proto/Generated/*"] = { "**.pb.*" }, -- meh.
 			}

@@ -1,5 +1,10 @@
 #pragma once
 
+// Version number
+#include <version.hpp>
+
+#ifndef RESSOURCE_DATA
+
 // Disable irrelevant warnings
 #pragma warning(disable: 4100) // Unreferenced parameter (steam has to have them and other stubs as well, due to their calling convention)
 
@@ -71,9 +76,6 @@
 
 #pragma warning(pop)
 
-// Version number
-#include <version.hpp>
-
 #include "Utils\CSV.hpp"
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"
@@ -99,6 +101,8 @@
 #pragma comment(lib, "Wininet.lib")
 #pragma comment(lib, "shlwapi.lib")
 
+#endif
+
 // Revision number
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
@@ -115,3 +119,13 @@
 
 // Enable unit-test flag for release builds
 //#define FORCE_UNIT_TESTS
+
+// Ressource stuff
+#ifdef APSTUDIO_INVOKED
+#ifndef APSTUDIO_READONLY_SYMBOLS
+#define _APS_NEXT_RESOURCE_VALUE        102
+#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_CONTROL_VALUE         1001
+#define _APS_NEXT_SYMED_VALUE           101
+#endif
+#endif
