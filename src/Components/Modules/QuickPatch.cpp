@@ -118,16 +118,16 @@ namespace Components
 		Utils::Hook::Set<char*>(0x6431D1, BASEGAME);
 
 		// UI version string
-		Utils::Hook::Set<char*>(0x43F73B, "IW4x: r" REVISION_STR "-" MILESTONE);
+		Utils::Hook::Set<char*>(0x43F73B, "IW4x: r" REVISION_STR REVISION_SUFFIX "-" MILESTONE);
 
 		// console version string
-		Utils::Hook::Set<char*>(0x4B12BB, "IW4x r" REVISION_STR "-" MILESTONE " (built " __DATE__ " " __TIME__ ")");
+		Utils::Hook::Set<char*>(0x4B12BB, "IW4x r" REVISION_STR REVISION_SUFFIX "-" MILESTONE " (built " __DATE__ " " __TIME__ ")");
 
 		// version string
-		Utils::Hook::Set<char*>(0x60BD56, "IW4x (r" REVISION_STR ")");
+		Utils::Hook::Set<char*>(0x60BD56, "IW4x (r" REVISION_STR REVISION_SUFFIX ")");
 
 		// console title
-		Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR "): Console");
+		Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): Console");
 
 		// window title
 		Utils::Hook::Set<char*>(0x5076A0, "IW4x: Multiplayer");
