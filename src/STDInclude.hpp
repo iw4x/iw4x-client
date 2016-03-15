@@ -3,7 +3,7 @@
 // Version number
 #include <version.hpp>
 
-#ifndef RESSOURCE_DATA
+#ifndef RESOURCE_DATA
 
 // Disable irrelevant warnings
 #pragma warning(disable: 4100) // Unreferenced parameter (steam has to have them and other stubs as well, due to their calling convention)
@@ -120,9 +120,10 @@
 // Enable unit-test flag for release builds
 //#define FORCE_UNIT_TESTS
 
-// Ressource stuff
+// Resource stuff
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
+// Defines below make accessing the resources from the code easier.
 #define _APS_NEXT_RESOURCE_VALUE        102
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
