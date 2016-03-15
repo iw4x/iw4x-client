@@ -18,7 +18,6 @@ exit /B 1
 :build
 set PLATFORM=Win32
 set CONFIGURATION=ReleaseStatic
-call generate
 msbuild /nologo /m /v:m %* build\iw4x.sln
 endlocal
 exit /B %ERRORLEVEL%
