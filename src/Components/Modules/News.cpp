@@ -19,7 +19,7 @@ namespace Components
 
 			News::Thread = nullptr;
 
-			if (!strlen(Localization::Get("MPUI_CHANGELOG_TEXT")))
+			if (!strlen(Localization::Get("MPUI_CHANGELOG_TEXT")) || Localization::Get("MPUI_CHANGELOG_TEXT") == std::string("Loading..."))
 			{
 				Logger::Print("Failed to fetch changelog!\n");
 				result = false;
@@ -45,7 +45,7 @@ namespace Components
 
 	News::News()
 	{
-		Localization::Set("MPUI_CHANGELOG_TEXT", "");
+		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFUALT);
 
 		News::Thread = new std::thread([] ()
