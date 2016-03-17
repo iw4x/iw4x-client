@@ -112,6 +112,11 @@
 #define MILESTONE "beta"
 
 #define REVISION_STR STRINGIZE(REVISION)
+#if !REVISION_CLEAN
+#define REVISION_SUFFIX "*"
+#else
+#define REVISION_SUFFIX ""
+#endif
 #define VERSION 4,2,REVISION
 #define VERSION_STR "4.2." REVISION_STR
 
