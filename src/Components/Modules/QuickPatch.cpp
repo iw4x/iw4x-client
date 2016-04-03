@@ -59,7 +59,7 @@ namespace Components
 			for (int i = 0; i < challengeTable->rowCount; ++i)
 			{
 				// Find challenge
-				const char* challenge = Game::TabeLookup(challengeTable, i, 0);
+				const char* challenge = Game::TableLookup(challengeTable, i, 0);
 
 				int maxState = 0;
 				int maxProgress = 0;
@@ -67,7 +67,7 @@ namespace Components
 				// Find correct tier and progress
 				for (int j = 0; j < 10; ++j)
 				{
-					int progress = atoi(Game::TabeLookup(challengeTable, i, 6 + j * 2));
+					int progress = atoi(Game::TableLookup(challengeTable, i, 6 + j * 2));
 					if (!progress) break;
 
 					maxState = j + 2;

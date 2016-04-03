@@ -211,7 +211,7 @@ namespace Game
 		}
 	}
 
-	const char* TabeLookup(StringTable* stringtable, int row, int column)
+	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{
 		if (!stringtable || !stringtable->values || row >= stringtable->rowCount || column >= stringtable->columnCount) return "";
 

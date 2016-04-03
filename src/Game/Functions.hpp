@@ -387,7 +387,7 @@ namespace Game
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
-	const char* TabeLookup(StringTable* stringtable, int row, int column);
+	const char* TableLookup(StringTable* stringtable, int row, int column);
 	const char* UI_LocalizeMapName(const char* mapName);
 	const char* UI_LocalizeGameType(const char* gameType);
 	float UI_GetScoreboardLeft(void*);
