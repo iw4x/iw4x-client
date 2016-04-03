@@ -134,9 +134,11 @@ namespace Game
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = (SV_GameClientNum_Score_t)0x469AC0;
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = (SV_GameSendServerCommand_t)0x4BC3A0;
 
+	Sys_FreeFileList_t Sys_FreeFileList = (Sys_FreeFileList_t)0x4D8580;
 	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
 	Sys_SendPacket_t Sys_SendPacket = (Sys_SendPacket_t)0x60FDC0;
 	Sys_ShowConsole_t Sys_ShowConsole = (Sys_ShowConsole_t)0x4305E0;
+	Sys_ListFiles_t Sys_ListFiles = (Sys_ListFiles_t)0x45A660;
 
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;

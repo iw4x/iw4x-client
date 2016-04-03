@@ -50,6 +50,7 @@ namespace Components
 		Loader::Register(new MusicalTalent());
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
+		Loader::Register(new ModList());
 	}
 
 	void Loader::Uninitialize()

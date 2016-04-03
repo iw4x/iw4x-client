@@ -311,8 +311,14 @@ namespace Game
 	typedef void(__cdecl * SV_GameSendServerCommand_t)(int clientNum, /*svscmd_type*/int type, const char* text);
 	extern SV_GameSendServerCommand_t SV_GameSendServerCommand;
 
+	typedef FS_FreeFileList_t Sys_FreeFileList_t;
+	extern Sys_FreeFileList_t Sys_FreeFileList;
+
 	typedef bool(__cdecl * Sys_IsMainThread_t)();
 	extern Sys_IsMainThread_t Sys_IsMainThread;
+
+	typedef char** (__cdecl * Sys_ListFiles_t)(char* path, char* extension, int noclue, int* amount, bool listFolders);
+	extern Sys_ListFiles_t Sys_ListFiles;
 
 	typedef bool(__cdecl * Sys_SendPacket_t)(netsrc_t sock, size_t len, const char *format, netadr_t adr);
 	extern Sys_SendPacket_t Sys_SendPacket;

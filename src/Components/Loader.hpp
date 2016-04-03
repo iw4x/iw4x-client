@@ -66,3 +66,4 @@ namespace Components
 #include "Modules\MusicalTalent.hpp"
 #include "Modules\StructuredData.hpp"
 #include "Modules\ConnectProtocol.hpp"
+#include "Modules\ModList.hpp"
