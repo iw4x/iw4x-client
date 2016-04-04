@@ -2,39 +2,34 @@
 
 namespace Components
 {
-	static Dvar::Var cl_modVidRestart;
+	std::vector<std::string> ModList::Mods;
+	unsigned int ModList::CurrentMod;
 
-	ModList::modInfo_t ModList::modInfo;
-
-	bool ModList::hasMod(const char* modName)
+	bool ModList::HasMod(std::string modName)
 	{
-		int count;
-		auto fs_homepath = Dvar::Var("fs_basepath").Get<const char*>();
-		char** mods = Game::Sys_ListFiles((char*)Utils::VA("%s\\%s", fs_homepath, "mods"), NULL, NULL, &count, 1);
+		auto list = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").Get<std::string>() + "\\mods", "", true);
 
-		for (int i = 0; i < count; i++)
+		for (auto mod : list)
 		{
-			if (!_stricmp(modName, mods[i]))
+			if (mod == modName)
 			{
-				Game::Sys_FreeFileList(mods);
 				return true;
 			}
 		}
 
-		Game::Sys_FreeFileList(mods);
 		return false;
 	}
 
 	unsigned int ModList::GetItemCount()
 	{
-		return ModList::modInfo.max;
+		return ModList::Mods.size();
 	}
 
 	const char* ModList::GetItemText(unsigned int index, int column)
 	{
-		if (ModList::modInfo.current >= 0 && ModList::modInfo.current < ModList::modInfo.max)
+		if (index < ModList::Mods.size())
 		{
-			return ModList::modInfo.mods[index];
+			return ModList::Mods[index].data();
 		}
 
 		return "...";
@@ -42,50 +37,43 @@ namespace Components
 
 	void ModList::Select(unsigned int index)
 	{
-		ModList::modInfo.current = index;
+		ModList::CurrentMod = index;
 	}
 
 	void ModList::UIScript_LoadMods()
 	{
-		if (ModList::modInfo.mods != NULL && *ModList::modInfo.mods != NULL)
-		{
-			Game::Sys_FreeFileList(ModList::modInfo.mods);
-		}
-
-		auto fs_homepath = Dvar::Var("fs_basepath").Get<const char*>();
-		auto searchFolder = (char*)Utils::VA("%s\\%s", fs_homepath, "mods");
-		Game::Com_Printf(0, "Searching for mods in %s...\n", searchFolder);
-
-		ModList::modInfo.mods = Game::Sys_ListFiles(searchFolder, NULL, NULL, &ModList::modInfo.max, 1);
-
-		Game::Com_Printf(0, "Found %i mods!\n", ModList::modInfo.max);
+		auto folder = Dvar::Var("fs_basepath").Get<std::string>() + "\\mods";
+		Game::Com_Printf(0, "Searching for mods in %s...\n", folder.data());
+		ModList::Mods = FileSystem::GetSysFileList(folder, "", true);
+		Game::Com_Printf(0, "Found %i mods!\n", ModList::Mods.size());
 	}
 
 	void ModList::UIScript_RunMod()
 	{
-		if (ModList::modInfo.mods != NULL
-			&& *ModList::modInfo.mods != NULL
-			&& ModList::modInfo.current >= 0
-			&& ModList::modInfo.current < ModList::modInfo.max)
+		if (ModList::CurrentMod < ModList::Mods.size())
 		{
-			Dvar::Var("fs_game").Set(Utils::VA("mods/%s", ModList::modInfo.mods[ModList::modInfo.current]));
-			//Game::Cmd_ExecuteSingleCommand(0, 0, Utils::VA("fs_game \"mods/%s\"", modInfo.mods[modInfo.current]));
-			if (cl_modVidRestart.Get<bool>())
+			auto fsGame = Dvar::Var("fs_game");
+			fsGame.Set(Utils::VA("mods/%s", ModList::Mods[ModList::CurrentMod].data()));
+			fsGame.Get<Game::dvar_t*>()->pad2[0] = 1;
+
+			if (Dvar::Var("cl_modVidRestart").Get<bool>())
 			{
-				Game::Cmd_ExecuteSingleCommand(0, 0, "vid_restart");
+				Command::Execute("vid_restart", false);
 			}
 			else
 			{
-				Game::Cmd_ExecuteSingleCommand(0, 0, "closemenu mods_menu");
+				Command::Execute("closemenu mods_menu", false);
 			}
 		}
 	}
 
 	void ModList::UIScript_ClearMods()
 	{
-		Dvar::Var("fs_game").Set("");
-		//Game::Cmd_ExecuteSingleCommand(0, 0, "fs_game \"\"");
-		if (cl_modVidRestart.Get<bool>())
+		auto fsGame = Dvar::Var("fs_game");
+		fsGame.Set("");
+		fsGame.Get<Game::dvar_t*>()->pad2[0] = 1;
+
+		if (Dvar::Var("cl_modVidRestart").Get<bool>())
 		{
 			Game::Cmd_ExecuteSingleCommand(0, 0, "vid_restart");
 		}
@@ -97,12 +85,8 @@ namespace Components
 
 	ModList::ModList()
 	{
-		Dvar::OnInit([]()
-		{
-			cl_modVidRestart = Dvar::Register("cl_modVidRestart", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Perform a vid_restart when loading a mod.");
-		});
-
-		ModList::modInfo.max = ModList::modInfo.current = 0;
+		ModList::CurrentMod = 0;
+		Dvar::Register("cl_modVidRestart", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Perform a vid_restart when loading a mod.");
 
 		UIScript::Add("LoadMods", ModList::UIScript_LoadMods);
 		UIScript::Add("RunMod", ModList::UIScript_RunMod);
@@ -113,5 +97,6 @@ namespace Components
 
 	ModList::~ModList()
 	{
+		ModList::Mods.clear();
 	}
 }

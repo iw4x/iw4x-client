@@ -317,7 +317,7 @@ namespace Game
 	typedef bool(__cdecl * Sys_IsMainThread_t)();
 	extern Sys_IsMainThread_t Sys_IsMainThread;
 
-	typedef char** (__cdecl * Sys_ListFiles_t)(char* path, char* extension, int noclue, int* amount, bool listFolders);
+	typedef char** (__cdecl * Sys_ListFiles_t)(const char *directory, const char *extension, const char *filter, int *numfiles, int wantsubs);
 	extern Sys_ListFiles_t Sys_ListFiles;
 
 	typedef bool(__cdecl * Sys_SendPacket_t)(netsrc_t sock, size_t len, const char *format, netadr_t adr);

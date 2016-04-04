@@ -41,6 +41,7 @@ namespace Components
 		const char* GetName() { return "FileSystem"; };
 
 		static std::vector<std::string> GetFileList(std::string path, std::string extension);
+		static std::vector<std::string> GetSysFileList(std::string path, std::string extension, bool folders = false);
 		static void DeleteFile(std::string folder, std::string file);
 
 	private:

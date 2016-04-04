@@ -67,6 +67,29 @@ namespace Components
 		return fileList;
 	}
 
+	std::vector<std::string> FileSystem::GetSysFileList(std::string path, std::string extension, bool folders)
+	{
+		std::vector<std::string> fileList;
+
+		int numFiles = 0;
+		char** files = Game::Sys_ListFiles(path.data(), extension.data(), NULL, &numFiles, folders);
+
+		if (files)
+		{
+			for (int i = 0; i < numFiles; ++i)
+			{
+				if (files[i])
+				{
+					fileList.push_back(files[i]);
+				}
+			}
+
+			Game::Sys_FreeFileList(files);
+		}
+
+		return fileList;
+	}
+
 	void FileSystem::DeleteFile(std::string folder, std::string file)
 	{
 		char path[MAX_PATH] = { 0 };

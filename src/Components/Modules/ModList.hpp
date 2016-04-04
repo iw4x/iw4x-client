@@ -5,19 +5,13 @@ namespace Components
 	public:
 		ModList();
 		~ModList();
-		const char* GetName() { return "Mods"; };
+		const char* GetName() { return "ModList"; };
 
 	private:
-		struct modInfo_t
-		{
-			char** mods;
-			int max;
-			int current;
-		};
+		static std::vector<std::string> Mods;
+		static unsigned int CurrentMod;
 
-		static bool hasMod(const char* modName);
-
-		static modInfo_t modInfo;
+		static bool HasMod(std::string modName);
 
 		static unsigned int GetItemCount();
 		static const char* GetItemText(unsigned int index, int column);
