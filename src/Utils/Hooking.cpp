@@ -2,6 +2,67 @@
 
 namespace Utils
 {
+	std::map<void*, void*> Hook::Interceptor::IReturn;
+	std::map<void*, void(*)()> Hook::Interceptor::ICallbacks;
+
+	void Hook::Interceptor::Install(void* place, void(*stub)())
+	{
+		return Hook::Interceptor::Install(reinterpret_cast<void**>(place), stub);
+	}
+
+	void Hook::Interceptor::Install(void** place, void(*stub)())
+	{
+		Hook::Interceptor::IReturn[place] = *place;
+		Hook::Interceptor::ICallbacks[place] = stub;
+		*place = Hook::Interceptor::InterceptionStub;
+	}
+
+	void __declspec(naked) Hook::Interceptor::InterceptionStub()
+	{
+		__asm
+		{
+			sub esp, 4h          // Reserve space on the stack for the return address
+			pushad               // Store registers
+
+			lea eax, [esp + 20h] // Load initial stack pointer
+			push eax             // Push it onto the stack
+
+			call RunCallback     // Run the callback based on the given stack pointer
+			call PopReturn       // Get the initial return address according to the stack pointer
+
+			add esp, 4h          // Clear the stack
+
+			mov [esp + 20h], eax // Store the return address at the reserves space
+			popad                // Restore the registers
+
+			retn                 // Return (jump to our return address)
+		}
+	}
+
+	void Hook::Interceptor::RunCallback(void* place)
+	{
+		auto iCallback = Hook::Interceptor::ICallbacks.find(place);
+		if (iCallback != Hook::Interceptor::ICallbacks.end())
+		{
+			iCallback->second();
+			Hook::Interceptor::ICallbacks.erase(iCallback);
+		}
+	}
+
+	void* Hook::Interceptor::PopReturn(void* place)
+	{
+		void* retVal = nullptr;
+
+		auto iReturn = Hook::Interceptor::IReturn.find(place);
+		if (iReturn != Hook::Interceptor::IReturn.end())
+		{
+			retVal = iReturn->second;
+			Hook::Interceptor::IReturn.erase(iReturn);
+		}
+
+		return retVal;
+	}
+
 	Hook::~Hook()
 	{
 		if (Hook::Initialized)

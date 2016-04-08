@@ -8,6 +8,21 @@ namespace Utils
 	class Hook
 	{
 	public:
+		class Interceptor
+		{
+		public:
+			static void Install(void* place, void(*stub)());
+			static void Install(void** place, void(*stub)());
+
+		private:
+			static std::map<void*, void*> IReturn;
+			static std::map<void*, void(*)()> ICallbacks;
+
+			static void InterceptionStub();
+			static void RunCallback(void* place);
+			static void* PopReturn(void* place);
+		};
+
 		Hook() : Place(nullptr), Stub(nullptr), Initialized(false), Installed(false), Original(0), UseJump(false), Protection(0) { ZeroMemory(Hook::Buffer, sizeof(Hook::Buffer)); }
 
 		Hook(void* place, void* stub, bool useJump = true) : Hook() { Hook::Initialize(place, stub, useJump); }
