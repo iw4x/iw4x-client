@@ -32,7 +32,7 @@ namespace Utils
 
 			add esp, 4h          // Clear the stack
 
-			mov [esp + 20h], eax // Store the return address at the reserves space
+			mov [esp + 20h], eax // Store the return address at the reserved space
 			popad                // Restore the registers
 
 			retn                 // Return (jump to our return address)

@@ -199,6 +199,15 @@ namespace Components
 		// fs_game fixes
 		Utils::Hook::Nop(0x4A5D74, 2); // remove fs_game profiles
 		Utils::Hook::Set<BYTE>(0x4081FD, 0xEB); // defaultweapon
+		Utils::Hook::Set<BYTE>(0x452C1D, 0xEB); // LoadObj weaponDefs
+
+		// filesystem init default_mp.cfg check
+		Utils::Hook::Nop(0x461A9E, 5);
+		Utils::Hook::Nop(0x461AAA, 5);
+		Utils::Hook::Nop(0x461AB2, 0xB1);
+
+		// vid_restart when ingame
+		Utils::Hook::Nop(0x4CA1FA, 6);
 
 		// Filter log (initially com_logFilter, but I don't see why that dvar is needed)
 		Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
