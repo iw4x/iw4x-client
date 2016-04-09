@@ -204,7 +204,7 @@ namespace Components
 		// filesystem init default_mp.cfg check
 		Utils::Hook::Nop(0x461A9E, 5);
 		Utils::Hook::Nop(0x461AAA, 5);
-		Utils::Hook::Nop(0x461AB2, 0xB1);
+		Utils::Hook::Set<BYTE>(0x461AB4, 0xEB);
 
 		// vid_restart when ingame
 		Utils::Hook::Nop(0x4CA1FA, 6);
