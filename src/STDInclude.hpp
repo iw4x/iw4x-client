@@ -101,6 +101,9 @@
 #pragma comment(lib, "Wininet.lib")
 #pragma comment(lib, "shlwapi.lib")
 
+// Enable additional literals
+using namespace std::literals;
+
 #endif
 
 // Revision number

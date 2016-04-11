@@ -15,7 +15,7 @@ namespace Game
 	typedef int(__cdecl * CL_IsCgameInitialized_t)();
 	extern CL_IsCgameInitialized_t CL_IsCgameInitialized;
 
-	typedef void(__cdecl * CL_ConnectFromParty_t)(int controller, void*, netadr_t adr, int, int, const char*, const char*);
+	typedef void(__cdecl * CL_ConnectFromParty_t)(int controllerIndex, _XSESSION_INFO *hostInfo, netadr_t addr, int numPublicSlots, int numPrivateSlots, const char *mapname, const char *gametype);
 	extern CL_ConnectFromParty_t CL_ConnectFromParty;
 
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* name, void(*callback), cmd_function_t* data, char);
@@ -24,22 +24,22 @@ namespace Game
 	typedef void(__cdecl * Cmd_AddServerCommand_t)(const char* name, void(*callback), cmd_function_t* data);
 	extern Cmd_AddServerCommand_t Cmd_AddServerCommand;
 
-	typedef void(__cdecl * Cmd_ExecuteSingleCommand_t)(int controller, int a2, const char* cmd);
+	typedef void(__cdecl * Cmd_ExecuteSingleCommand_t)(int localClientNum, int controllerIndex, const char* cmd);
 	extern Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand;
 
 	typedef void(__cdecl * Com_Error_t)(int type, char* message, ...);
 	extern Com_Error_t Com_Error;
 
-	typedef void(__cdecl * Com_Printf_t)(int, const char*, ...);
+	typedef void(__cdecl * Com_Printf_t)(int channel, const char *fmt, ...);
 	extern Com_Printf_t Com_Printf;
 
-	typedef void(__cdecl * Com_PrintMessage_t)(int, const char*, char);
+	typedef void(__cdecl * Com_PrintMessage_t)(int channel, const char *msg, int error);
 	extern Com_PrintMessage_t Com_PrintMessage;
 
-	typedef int(__cdecl * Com_Milliseconds_t)(void);
+	typedef int(__cdecl * Com_Milliseconds_t)();
 	extern Com_Milliseconds_t Com_Milliseconds;
 
-	typedef char* (__cdecl * Com_ParseExt_t)(const char**);
+	typedef char* (__cdecl * Com_ParseExt_t)(const char **data_p);
 	extern Com_ParseExt_t Com_ParseExt;
 
 	typedef void(__cdecl * DB_EnumXAssets_t)(XAssetType type, void(*)(XAssetHeader, void *), void* userdata, bool overrides);
@@ -48,7 +48,7 @@ namespace Game
 	typedef XAssetHeader (__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* name);
 	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 
-	typedef const char* (__cdecl * DB_GetXAssetNameHandler_t)(Game::XAssetHeader* asset);
+	typedef const char* (__cdecl * DB_GetXAssetNameHandler_t)(XAssetHeader* asset);
 	extern DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers;
 
 	typedef int(__cdecl * DB_GetXAssetSizeHandler_t)();
@@ -148,7 +148,7 @@ namespace Game
 	typedef int(__cdecl * FS_Remove_t)(char *);
 	extern FS_Remove_t FS_Remove;
 
-	typedef int(__cdecl * FS_Restart_t)(int a1, int a2);
+	typedef int(__cdecl * FS_Restart_t)(int localClientNum, int checksumFeed);
 	extern FS_Restart_t FS_Restart;
 
 	typedef int(__cdecl * FS_BuildPathToFile_t)(const char*, const char*, const char*, char**);
@@ -191,7 +191,7 @@ namespace Game
 	typedef __int64(__cdecl * MSG_ReadInt64_t)(msg_t* msg);
 	extern MSG_ReadInt64_t MSG_ReadInt64;
 
-	typedef char* (__cdecl * MSG_ReadString_t)(msg_t*);
+	typedef char* (__cdecl * MSG_ReadString_t)(msg_t* msg);
 	extern MSG_ReadString_t MSG_ReadString;
 
 	typedef int(__cdecl * MSG_ReadByte_t)(msg_t* msg);
@@ -200,10 +200,10 @@ namespace Game
 	typedef void(__cdecl * MSG_WriteByte_t)(msg_t* msg, unsigned char c);
 	extern MSG_WriteByte_t MSG_WriteByte;
 
-	typedef void(__cdecl * MSG_WriteData_t)(msg_t* msg, char*, size_t);
+	typedef void(__cdecl * MSG_WriteData_t)(msg_t *buf, const void *data, int length);
 	extern MSG_WriteData_t MSG_WriteData;
 
-	typedef void(__cdecl * MSG_WriteLong_t)(msg_t* msg, int);
+	typedef void(__cdecl * MSG_WriteLong_t)(msg_t *msg, int c);
 	extern MSG_WriteLong_t MSG_WriteLong;
 
 	typedef int(__cdecl * MSG_WriteBitsCompress_t)(bool trainHuffman, const char *from, char *to, int size);
@@ -212,13 +212,13 @@ namespace Game
 	typedef const char* (__cdecl * NET_AdrToString_t)(netadr_t adr);
 	extern NET_AdrToString_t NET_AdrToString;
 
-	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t, netadr_t);
+	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t a, netadr_t b);
 	extern NET_CompareAdr_t NET_CompareAdr;
 
-	typedef bool(__cdecl * NET_IsLocalAddress_t)(netadr_t);
+	typedef bool(__cdecl * NET_IsLocalAddress_t)(netadr_t adr);
 	extern NET_IsLocalAddress_t NET_IsLocalAddress;
 
-	typedef bool(__cdecl * NET_StringToAdr_t)(const char*, netadr_t*);
+	typedef bool(__cdecl * NET_StringToAdr_t)(const char *s, netadr_t *a);
 	extern NET_StringToAdr_t NET_StringToAdr;
 
 	typedef void(__cdecl* NET_OutOfBandPrint_t)(netsrc_t sock, netadr_t adr, const char *data);

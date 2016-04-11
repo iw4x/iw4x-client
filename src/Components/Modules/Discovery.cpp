@@ -1,7 +1,5 @@
 #include "STDInclude.hpp"
 
-using namespace std::literals;
-
 namespace Components
 {
 	Discovery::Container Discovery::DiscoveryContainer = { false, false, nullptr };

@@ -1,7 +1,5 @@
 #include "STDInclude.hpp"
 
-using namespace std::literals;
-
 namespace Components
 {
 	Pipe* IPCPipe::ServerPipe = 0;
@@ -36,7 +34,7 @@ namespace Components
 			{
 				Logger::Print("Attempting to reconnect to the pipe.\n");
 				this->ReconnectAttempt++;
-				Sleep(500);
+				std::this_thread::sleep_for(500ms);
 
 				return this->Connect(name);
 			}

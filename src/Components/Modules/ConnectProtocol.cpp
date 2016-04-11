@@ -1,7 +1,5 @@
 #include "STDInclude.hpp"
 
-using namespace std::literals;
-
 namespace Components
 {
 	ConnectProtocol::Container ConnectProtocol::ConnectContainer = { false, false, "" };

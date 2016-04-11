@@ -1,7 +1,5 @@
 ﻿#include "STDInclude.hpp"
 
-using namespace std::literals;
-
 namespace Components
 {
 	WINDOW* Console::OutputWindow;
@@ -322,7 +320,7 @@ namespace Components
 		{
 			while (true)
 			{
-				Sleep(5000);
+				std::this_thread::sleep_for(5s);
 			}
 		}
 

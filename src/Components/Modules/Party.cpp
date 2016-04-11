@@ -373,8 +373,8 @@ namespace Components
 
 							Game::Menus_CloseAll(Game::uiContext);
 
-							char xnaddr[32];
-							Game::CL_ConnectFromParty(0, xnaddr, *address.Get(), 0, 0, info.Get("mapname").data(), info.Get("gametype").data());
+							Game::_XSESSION_INFO hostInfo;
+							Game::CL_ConnectFromParty(0, &hostInfo, *address.Get(), 0, 0, info.Get("mapname").data(), info.Get("gametype").data());
 						}
 					}
 					else

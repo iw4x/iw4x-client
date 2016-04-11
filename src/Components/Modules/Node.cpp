@@ -1,7 +1,5 @@
 #include "STDInclude.hpp"
 
-using namespace std::literals;
-
 namespace Components
 {
 	Utils::Cryptography::ECDSA::Key Node::SignatureKey;
