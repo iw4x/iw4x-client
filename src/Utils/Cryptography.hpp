@@ -49,7 +49,68 @@ namespace Utils
 				return result;
 			}
 
+			bool operator==(const Token& token) const
+			{
+				return (this->ToString() == token.ToString());
+			}
+
+			bool operator!=(const Token& token) const
+			{
+				return !(*this == token);
+			}
+
+			bool operator< (const Token& token) const
+			{
+				if (*this == token)
+				{
+					return false;
+				}
+				else if (this->ToString().size() < token.ToString().size())
+				{
+					return true;
+				}
+				else if (this->ToString().size() > token.ToString().size())
+				{
+					return false;
+				}
+				else
+				{
+					auto lStr = this->ToString();
+					auto rStr = token.ToString();
+
+					for (unsigned int i = 0; i < lStr.size(); ++i)
+					{
+						if (lStr[i] < rStr[i])
+						{
+							return true;
+						}
+					}
+				}
+
+				return false;
+			}
+
+			bool operator> (const Token& token) const
+			{
+				return (token < *this && *this != token);
+			}
+
+			bool operator<= (const Token& token) const
+			{
+				return !(*this > token);
+			}
+
+			bool operator>= (const Token& token) const
+			{
+				return !(*this < token);
+			}
+
 			std::string ToString()
+			{
+				return std::string(this->TokenString.begin(), this->TokenString.end());
+			}
+
+			const std::string ToString() const
 			{
 				return std::string(this->TokenString.begin(), this->TokenString.end());
 			}
@@ -78,7 +139,7 @@ namespace Utils
 			static prng_state State;
 		};
 
-		class ECDSA
+		class ECC
 		{
 		public:
 			class Key
@@ -234,6 +295,12 @@ namespace Utils
 		public:
 			static std::string Compute(std::string data, bool hex = false);
 			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
+		};
+
+		class JenkinsOneAtATime
+		{
+		public:
+			static unsigned int Compute(const char *key, size_t len);
 		};
 	}
 }

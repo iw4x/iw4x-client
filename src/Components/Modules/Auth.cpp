@@ -6,7 +6,8 @@ namespace Components
 	Auth::TokenIncrementing Auth::TokenContainer;
 
 	Utils::Cryptography::Token Auth::GuidToken;
-	Utils::Cryptography::ECDSA::Key Auth::GuidKey;
+	Utils::Cryptography::Token Auth::ComputeToken;
+	Utils::Cryptography::ECC::Key Auth::GuidKey;
 
 	void Auth::Frame()
 	{
@@ -146,7 +147,7 @@ namespace Components
 	{
 		Auth::LoadKey();
 		std::string key = Auth::GuidKey.GetPublicKey();
-		return (Utils::OneAtATime(key.data(), key.size()));
+		return (Utils::Cryptography::JenkinsOneAtATime::Compute(key.data(), key.size()));
 	}
 
 	void Auth::StoreKey()
@@ -155,6 +156,7 @@ namespace Components
 		{
 			Proto::Auth::Certificate cert;
 			cert.set_token(Auth::GuidToken.ToString());
+			cert.set_ctoken(Auth::ComputeToken.ToString());
 			cert.set_privatekey(Auth::GuidKey.Export(PK_PRIVATE));
 
 			Utils::WriteFile("players/guid.dat", cert.SerializeAsString());
@@ -171,6 +173,7 @@ namespace Components
 		{
 			Auth::GuidKey.Import(cert.privatekey(), PK_PRIVATE);
 			Auth::GuidToken = cert.token();
+			Auth::ComputeToken = cert.ctoken();
 		}
 		else
 		{
@@ -180,7 +183,8 @@ namespace Components
 		if (!Auth::GuidKey.IsValid())
 		{
 			Auth::GuidToken.Clear();
-			Auth::GuidKey = Utils::Cryptography::ECDSA::GenerateKey(512);
+			Auth::ComputeToken.Clear();
+			Auth::GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
 			Auth::StoreKey();
 		}
 	}
@@ -209,7 +213,7 @@ namespace Components
 				Auth::TokenContainer.generating = true;
 				Auth::TokenContainer.hashes = 0;
 				Auth::TokenContainer.startTime = Game::Com_Milliseconds();
-				Auth::IncrementToken(Auth::GuidToken, Auth::GuidKey.GetPublicKey(), Auth::TokenContainer.targetLevel, &Auth::TokenContainer.cancel, &Auth::TokenContainer.hashes);
+				Auth::IncrementToken(Auth::GuidToken, Auth::ComputeToken, Auth::GuidKey.GetPublicKey(), Auth::TokenContainer.targetLevel, &Auth::TokenContainer.cancel, &Auth::TokenContainer.hashes);
 				Auth::TokenContainer.generating = false;
 
 				if (Auth::TokenContainer.cancel)
@@ -250,27 +254,30 @@ namespace Components
 		return bits;
 	}
 
-	void Auth::IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits, bool* cancel, uint64_t* count)
+	void Auth::IncrementToken(Utils::Cryptography::Token& token, Utils::Cryptography::Token& computeToken, std::string publicKey, uint32_t zeroBits, bool* cancel, uint64_t* count)
 	{
 		if (zeroBits > 512) return; // Not possible, due to SHA512
 
-		Utils::Cryptography::Token tempToken(token);
+		if (computeToken < token)
+		{
+			computeToken = token;
+		}
 
 		// Check if we already have the desired security level
-		uint32_t lastLevel = Auth::GetZeroBits(tempToken, publicKey);
+		uint32_t lastLevel = Auth::GetZeroBits(token, publicKey);
 		uint32_t level = lastLevel;
 		if (level >= zeroBits) return;
 
 		do
 		{
-			++tempToken;
+			++computeToken;
 			if (count) ++(*count);
-			level = Auth::GetZeroBits(tempToken, publicKey);
+			level = Auth::GetZeroBits(computeToken, publicKey);
 
 			// Store level if higher than the last one
 			if (level >= lastLevel)
 			{
-				token = tempToken;
+				token = computeToken;
 				lastLevel = level;
 			}
 
@@ -279,7 +286,7 @@ namespace Components
 		}
 		while (level < zeroBits);
 
-		token = tempToken;
+		token = computeToken;
 	}
 
 	Auth::Auth()
@@ -309,7 +316,7 @@ namespace Components
 				Proto::Auth::Response response;
 				response.set_token(Auth::GuidToken.ToString());
 				response.set_publickey(Auth::GuidKey.GetPublicKey());
-				response.set_signature(Utils::Cryptography::ECDSA::SignMessage(Auth::GuidKey, data));
+				response.set_signature(Utils::Cryptography::ECC::SignMessage(Auth::GuidKey, data));
 
 				Network::SendCommand(address, "xuidAuthResp", response.SerializeAsString());
 			});
@@ -337,7 +344,7 @@ namespace Components
 					}
 
 					// Check if guid matches the certificate
-					else if (id != (Utils::OneAtATime(response.publickey().data(), response.publickey().size()) & ~0x80000000))
+					else if (id != (Utils::Cryptography::JenkinsOneAtATime::Compute(response.publickey().data(), response.publickey().size()) & ~0x80000000))
 					{
 						info->state = Auth::STATE_INVALID;
 						Game::SV_KickClientError(client, "XUID doesn't match the certificate!");
@@ -348,7 +355,7 @@ namespace Components
 					{
 						info->publicKey.Set(response.publickey());
 
-						if (Utils::Cryptography::ECDSA::VerifyMessage(info->publicKey, info->challenge, response.signature()))
+						if (Utils::Cryptography::ECC::VerifyMessage(info->publicKey, info->challenge, response.signature()))
 						{
 							uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").Get<int>());
 							uint32_t userLevel = Auth::GetZeroBits(response.token(), response.publickey());
@@ -399,6 +406,7 @@ namespace Components
 			{
 				Logger::Print("Your current security level is %d\n", Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey()));
 				Logger::Print("Your security token is: %s\n", Utils::DumpHex(Auth::GuidToken.ToString(), "").data());
+				Logger::Print("Your computation token is: %s\n", Utils::DumpHex(Auth::ComputeToken.ToString(), "").data());
 			}
 			else
 			{
@@ -432,5 +440,66 @@ namespace Components
 		}
 
 		Auth::StoreKey();
+	}
+
+	bool Auth::UnitTest()
+	{
+		bool success = true;
+
+		printf("Testing logical token operators:\n");
+
+		Utils::Cryptography::Token token1;
+		Utils::Cryptography::Token token2;
+		++token1, token2++; // Test incrementation operator
+
+		printf("Operator == : ");
+		if (token1 == token2 && !(++token1 == token2)) printf("Success\n");
+		else
+		{
+			printf("Error\n");
+			success = false;
+		}
+
+		printf("Operator != : ");
+		if (token1 != token2 && !(++token2 != token1)) printf("Success\n");
+		else
+		{
+			printf("Error\n");
+			success = false;
+		}
+
+		printf("Operator >= : ");
+		if (token1 >= token2 && ++token1 >= token2) printf("Success\n");
+		else
+		{
+			printf("Error\n");
+			success = false;
+		}
+
+		printf("Operator >  : ");
+		if (token1 > token2) printf("Success\n");
+		else
+		{
+			printf("Error\n");
+			success = false;
+		}
+
+		printf("Operator <= : ");
+		if (token1 <= ++token2 && token1 <= ++token2) printf("Success\n");
+		else
+		{
+			printf("Error\n");
+			success = false;
+		}
+
+		printf("Operator <  : ");
+		if (token1 < token2) printf("Success\n");
+		else
+		{
+			printf("Error\n");
+			success = false;
+		}
+
+		return success;
 	}
 }

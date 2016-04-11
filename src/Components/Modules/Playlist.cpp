@@ -47,7 +47,7 @@ namespace Components
 
 		std::string compressedList = Utils::Compression::ZLib::Compress(Playlist::CurrentPlaylistBuffer);
 		unsigned int size = compressedList.size();
-		unsigned int hash = Utils::OneAtATime(compressedList.data(), compressedList.size());
+		unsigned int hash = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedList.data(), compressedList.size());
 
 		std::string response;
 		response.append(reinterpret_cast<char*>(&hash), 4);
@@ -85,7 +85,7 @@ namespace Components
 
 					// Generate buffer and hash
 					std::string compressedData(data.data() + 8, length);
-					unsigned int hash2 = Utils::OneAtATime(compressedData.data(), compressedData.size());
+					unsigned int hash2 = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedData.data(), compressedData.size());
 
 					//Validate hashes
 					if (hash2 != hash)

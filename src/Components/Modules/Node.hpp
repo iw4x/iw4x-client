@@ -35,7 +35,7 @@ namespace Components
 		{
 			Network::Address address;
 			std::string challenge;
-			Utils::Cryptography::ECDSA::Key publicKey;
+			Utils::Cryptography::ECC::Key publicKey;
 			EntryState state;
 
 			bool registered;       // Do we consider this node as registered?
@@ -57,7 +57,7 @@ namespace Components
 			int lastTime;
 		};
 
-		static Utils::Cryptography::ECDSA::Key SignatureKey;
+		static Utils::Cryptography::ECC::Key SignatureKey;
 
 		static std::vector<NodeEntry> Nodes;
 		static std::vector<ClientSession> Sessions;

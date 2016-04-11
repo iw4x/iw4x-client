@@ -145,7 +145,7 @@ namespace Components
 			download->lastPing = Game::Com_Milliseconds();
 			std::string packetData(data.data() + sizeof(Download::Container::Packet), packet->length);
 
-			if (packet->hash == Utils::OneAtATime(packetData.data(), packetData.size()))
+			if (packet->hash == Utils::Cryptography::JenkinsOneAtATime::Compute(packetData.data(), packetData.size()))
 			{
 				//Logger::Print("Packet added!\n");
 				download->parts[packet->partId] = packetData;
@@ -302,7 +302,7 @@ namespace Components
 		std::string data(download->buffer.data() + (packet * PACKET_SIZE), size);
 
 		packetContainer.length = data.size();
-		packetContainer.hash = Utils::OneAtATime(data.data(), data.size());
+		packetContainer.hash = Utils::Cryptography::JenkinsOneAtATime::Compute(data.data(), data.size());
 
 		std::string response = "dlPacketResponse\n";
 		response.append(reinterpret_cast<char*>(&packetContainer), sizeof(packetContainer));

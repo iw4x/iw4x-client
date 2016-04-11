@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	Utils::Cryptography::ECDSA::Key Node::SignatureKey;
+	Utils::Cryptography::ECC::Key Node::SignatureKey;
 	std::vector<Node::NodeEntry> Node::Nodes;
 	std::vector<Node::ClientSession> Node::Sessions;
 
@@ -346,7 +346,7 @@ namespace Components
 		if (ZoneBuilder::IsEnabled()) return;
 
 		// Generate our ECDSA key
-		Node::SignatureKey = Utils::Cryptography::ECDSA::GenerateKey(512);
+		Node::SignatureKey = Utils::Cryptography::ECC::GenerateKey(512);
 
 		// Load stored nodes
 		Dvar::OnInit([] ()
@@ -364,7 +364,7 @@ namespace Components
 
 				Proto::Node::Packet packet;
 				packet.set_challenge(challenge);
-				packet.set_signature(Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge));
+				packet.set_signature(Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, challenge));
 
 				for (auto node : Node::Nodes)
 				{
@@ -394,7 +394,7 @@ namespace Components
 				if (!packet.ParseFromString(data)) return;
 				if (packet.challenge().empty()) return;
 
-				std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, packet.challenge());
+				std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, packet.challenge());
 				std::string challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 				// The challenge this client sent is exactly the challenge we stored for this client
@@ -441,7 +441,7 @@ namespace Components
 
 				// Verify signature
 				entry->publicKey.Set(publicKey);
-				if (!Utils::Cryptography::ECDSA::VerifyMessage(entry->publicKey, entry->challenge, signature))
+				if (!Utils::Cryptography::ECC::VerifyMessage(entry->publicKey, entry->challenge, signature))
 				{
 					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetString(), entry->challenge.data());
 					return;
@@ -459,7 +459,7 @@ namespace Components
 
 				// Build response
 				publicKey = Node::SignatureKey.GetPublicKey();
-				signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, challenge);
+				signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, challenge);
 
 				packet.Clear();
 				packet.set_signature(signature);
@@ -488,7 +488,7 @@ namespace Components
 
 				entry->publicKey.Set(publicKey);
 
-				if (Utils::Cryptography::ECDSA::VerifyMessage(entry->publicKey, entry->challenge, signature))
+				if (Utils::Cryptography::ECC::VerifyMessage(entry->publicKey, entry->challenge, signature))
 				{
 					entry->lastTime = Game::Com_Milliseconds();
 					entry->state = Node::STATE_VALID;
@@ -552,7 +552,7 @@ namespace Components
 				std::string challenge = packet.challenge();
 				std::string signature = packet.signature();
 
-				if (Utils::Cryptography::ECDSA::VerifyMessage(entry->publicKey, challenge, signature))
+				if (Utils::Cryptography::ECC::VerifyMessage(entry->publicKey, challenge, signature))
 				{
 					entry->lastHeard = Game::Com_Milliseconds();
 					entry->lastTime = Game::Com_Milliseconds();
@@ -624,7 +624,7 @@ namespace Components
 				if (!entry) return;
 
 #ifdef DEBUG
-				Logger::Print("Session initialization received. Synchronizing...\n", address.GetString());
+				Logger::Print("Session initialization received from %s. Synchronizing...\n", address.GetString());
 #endif
 
 				entry->lastTime = Game::Com_Milliseconds();
@@ -641,7 +641,7 @@ namespace Components
 				entry->lastTime = Game::Com_Milliseconds();
 
 #ifdef DEBUG
-				Logger::Print("Session acknowledged, synchronizing node list...\n", address.GetString());
+				Logger::Print("Session acknowledged by %s, synchronizing node list...\n", address.GetString());
 #endif
 				Network::SendCommand(address, "nodeListRequest");
 				Node::SendNodeList(address);
@@ -801,9 +801,9 @@ namespace Components
 		for (int i = 0; i < 10; ++i)
 		{
 			std::string message = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
-			std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
+			std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
-			if (!Utils::Cryptography::ECDSA::VerifyMessage(Node::SignatureKey, message, signature))
+			if (!Utils::Cryptography::ECC::VerifyMessage(Node::SignatureKey, message, signature))
 			{
 				printf("Error\n");
 				printf("Signature for '%s' (%d) was invalid!\n", message.data(), i);
@@ -817,12 +817,12 @@ namespace Components
 		for (int i = 0; i < 10; ++i)
 		{
 			std::string message = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
-			std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
+			std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
 			// Invalidate the message...
 			message[Utils::Cryptography::Rand::GenerateInt() % message.size()]++;
 
-			if (Utils::Cryptography::ECDSA::VerifyMessage(Node::SignatureKey, message, signature))
+			if (Utils::Cryptography::ECC::VerifyMessage(Node::SignatureKey, message, signature))
 			{
 				printf("Error\n");
 				printf("Signature for '%s' (%d) was valid? What the fuck? That is absolutely impossible...\n", message.data(), i);
@@ -835,12 +835,12 @@ namespace Components
 
 		std::string pubKey = Node::SignatureKey.GetPublicKey();
 		std::string message = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
-		std::string signature = Utils::Cryptography::ECDSA::SignMessage(Node::SignatureKey, message);
+		std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
-		Utils::Cryptography::ECDSA::Key testKey;
+		Utils::Cryptography::ECC::Key testKey;
 		testKey.Set(pubKey);
 
-		if (!Utils::Cryptography::ECDSA::VerifyMessage(Node::SignatureKey, message, signature))
+		if (!Utils::Cryptography::ECC::VerifyMessage(Node::SignatureKey, message, signature))
 		{
 			printf("Error\n");
 			printf("Verifying signature for message '%s' using imported keys failed!\n", message.data());

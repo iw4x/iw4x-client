@@ -27,11 +27,11 @@ namespace Utils
 
 #pragma endregion
 
-#pragma region ECDSA
+#pragma region ECC
 
-		ECDSA::Key ECDSA::GenerateKey(int bits)
+		ECC::Key ECC::GenerateKey(int bits)
 		{
-			ECDSA::Key key;
+			ECC::Key key;
 
 			register_prng(&sprng_desc);
 
@@ -42,7 +42,7 @@ namespace Utils
 			return key;
 		}
 
-		std::string ECDSA::SignMessage(Key key, std::string message)
+		std::string ECC::SignMessage(Key key, std::string message)
 		{
 			if (!key.IsValid()) return "";
 
@@ -58,7 +58,7 @@ namespace Utils
 			return std::string(reinterpret_cast<char*>(buffer), length);
 		}
 
-		bool ECDSA::VerifyMessage(Key key, std::string message, std::string signature)
+		bool ECC::VerifyMessage(Key key, std::string message, std::string signature)
 		{
 			if (!key.IsValid()) return false;
 
@@ -161,6 +161,25 @@ namespace Utils
 			if (!hex) return hash;
 
 			return Utils::DumpHex(hash, "");
+		}
+
+#pragma endregion
+
+#pragma region JenkinsOneAtATime
+
+		unsigned int JenkinsOneAtATime::Compute(const char *key, size_t len)
+		{
+			unsigned int hash, i;
+			for (hash = i = 0; i < len; ++i)
+			{
+				hash += key[i];
+				hash += (hash << 10);
+				hash ^= (hash >> 6);
+			}
+			hash += (hash << 3);
+			hash ^= (hash >> 11);
+			hash += (hash << 15);
+			return hash;
 		}
 
 #pragma endregion

@@ -6,6 +6,7 @@ namespace Components
 		Auth();
 		~Auth();
 		const char* GetName() { return "Auth"; };
+		bool UnitTest();
 
 		static void StoreKey();
 		static void LoadKey(bool force = false);
@@ -15,7 +16,7 @@ namespace Components
 		static void IncreaseSecurityLevel(uint32_t level, std::string command = "");
 
 		static uint32_t GetZeroBits(Utils::Cryptography::Token token, std::string publicKey);
-		static void IncrementToken(Utils::Cryptography::Token& token, std::string publicKey, uint32_t zeroBits, bool* cancel = nullptr, uint64_t* count = nullptr);
+		static void IncrementToken(Utils::Cryptography::Token& token, Utils::Cryptography::Token& computeToken, std::string publicKey, uint32_t zeroBits, bool* cancel = nullptr, uint64_t* count = nullptr);
 
 	private:
 
@@ -29,7 +30,7 @@ namespace Components
 
 		struct AuthInfo
 		{
-			Utils::Cryptography::ECDSA::Key publicKey;
+			Utils::Cryptography::ECC::Key publicKey;
 			std::string challenge;
 			AuthState state;
 			int time;
@@ -50,7 +51,8 @@ namespace Components
 		static TokenIncrementing TokenContainer;
 
 		static Utils::Cryptography::Token GuidToken;
-		static Utils::Cryptography::ECDSA::Key GuidKey;
+		static Utils::Cryptography::Token ComputeToken;
+		static Utils::Cryptography::ECC::Key GuidKey;
 
 		static void Frame();
 
