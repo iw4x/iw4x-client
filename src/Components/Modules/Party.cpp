@@ -211,6 +211,38 @@ namespace Components
 		// Patch party_minplayers to 1 and protect it
 		//Utils::Hook(0x4D5D51, Party::RegisterMinPlayers, HOOK_CALL).Install()->Quick();
 
+		// Set ui_maxclients to sv_maxclients
+		Utils::Hook::Set<char*>(0x42618F, "sv_maxclients");
+		Utils::Hook::Set<char*>(0x4D3756, "sv_maxclients");
+		Utils::Hook::Set<char*>(0x5E3772, "sv_maxclients");
+
+		// Set party_maxplayers to sv_maxclients
+		//Utils::Hook::Set<char*>(0x4D5D64, "sv_maxclients");
+
+		// Unlatch maxclient dvars
+		Utils::Hook::Xor<BYTE>(0x426187, Game::dvar_flag::DVAR_FLAG_LATCHED);
+		Utils::Hook::Xor<BYTE>(0x4D374E, Game::dvar_flag::DVAR_FLAG_LATCHED);
+		Utils::Hook::Xor<BYTE>(0x5E376A, Game::dvar_flag::DVAR_FLAG_LATCHED);
+		Utils::Hook::Xor<DWORD>(0x4261A1, Game::dvar_flag::DVAR_FLAG_LATCHED);
+		Utils::Hook::Xor<DWORD>(0x4D376D, Game::dvar_flag::DVAR_FLAG_LATCHED);
+		Utils::Hook::Xor<DWORD>(0x5E3789, Game::dvar_flag::DVAR_FLAG_LATCHED);
+
+		Dvar::OnInit([] ()
+		{
+			Dvar::Register<int>("sv_maxclients", 18, 1, 18, Game::dvar_flag::DVAR_FLAG_SAVED, "The maximum number of clients that can connect to a server");
+			//Dvar::Register<int>("party_maxplayers", 18, 0, 18, Game::dvar_flag::DVAR_FLAG_NONE, "Use sv_maxclients to adjust players!");
+			Dvar::Register<int>("ui_maxclients", 18, 0, 18, Game::dvar_flag::DVAR_FLAG_NONE, "Use sv_maxclients to adjust players!");
+		});
+
+		// Synchronize maxplayers dvars
+		QuickPatch::OnFrame([] ()
+		{
+			if (!Dvar::Var("party_enable").Get<bool>())
+			{
+				Dvar::Var("ui_maxclients").SetRaw(Dvar::Var("sv_maxclients").Get<int>());
+			}
+		});
+
 		Command::Add("connect", [] (Command::Params params)
 		{
 			if (params.Length() < 2)

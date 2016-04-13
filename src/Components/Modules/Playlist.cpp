@@ -77,7 +77,7 @@ namespace Components
 					//Validate hashes
 					if (hash != list.hash())
 					{
-						Party::PlaylistError(Utils::VA("Received playlist response from %s, but the checksum did not match (%d != %d).", address.GetString(), list.hash(), hash));
+						Party::PlaylistError(Utils::VA("Received playlist response from %s, but the checksum did not match (%X != %X).", address.GetString(), list.hash(), hash));
 						Playlist::ReceivedPlaylistBuffer.clear();
 						return;
 					}
