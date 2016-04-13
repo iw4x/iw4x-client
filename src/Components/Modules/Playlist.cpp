@@ -46,15 +46,12 @@ namespace Components
 		Logger::Print("Received playlist request, sending currently stored buffer.\n");
 
 		std::string compressedList = Utils::Compression::ZLib::Compress(Playlist::CurrentPlaylistBuffer);
-		unsigned int size = compressedList.size();
-		unsigned int hash = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedList.data(), compressedList.size());
 
-		std::string response;
-		response.append(reinterpret_cast<char*>(&hash), 4);
-		response.append(reinterpret_cast<char*>(&size), 4);
-		response.append(compressedList);
+		Proto::Party::Playlist list;
+		list.set_hash(Utils::Cryptography::JenkinsOneAtATime::Compute(compressedList.data(), compressedList.size()));
+		list.set_buffer(compressedList);
 
-		Network::SendCommand(address, "playlistresponse", response);
+		Network::SendCommand(address, "playlistResponse", list.SerializeAsString());
 	}
 
 	void Playlist::PlaylistReponse(Network::Address address, std::string data)
@@ -63,34 +60,24 @@ namespace Components
 		{
 			if (address == Party::Target())
 			{
-				if (data.size() <= 8)
+				Proto::Party::Playlist list;
+
+				if (!list.ParseFromString(data))
 				{
-					Party::PlaylistError(Utils::VA("Received playlist response, but it is invalid."));
+					Party::PlaylistError(Utils::VA("Received playlist response from %s, but it is invalid.", address.GetString()));
 					Playlist::ReceivedPlaylistBuffer.clear();
 					return;
 				}
 				else
 				{
-					// Read hash and length
-					unsigned int hash = *reinterpret_cast<unsigned int*>(const_cast<char*>(data.data()));
-					unsigned int length = *reinterpret_cast<unsigned int*>(const_cast<char*>(data.data() + 4));
-
-					// Verify length
-					if (length > (data.size() - 8))
-					{
-						Party::PlaylistError(Utils::VA("Received playlist response, but it is too short."));
-						Playlist::ReceivedPlaylistBuffer.clear();
-						return;
-					}
-
 					// Generate buffer and hash
-					std::string compressedData(data.data() + 8, length);
-					unsigned int hash2 = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedData.data(), compressedData.size());
+					std::string compressedData(list.buffer());
+					unsigned int hash = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedData.data(), compressedData.size());
 
 					//Validate hashes
-					if (hash2 != hash)
+					if (hash != list.hash())
 					{
-						Party::PlaylistError(Utils::VA("Received playlist response, but the checksum did not match (%d != %d).", hash, hash2));
+						Party::PlaylistError(Utils::VA("Received playlist response from %s, but the checksum did not match (%d != %d).", address.GetString(), list.hash(), hash));
 						Playlist::ReceivedPlaylistBuffer.clear();
 						return;
 					}
@@ -150,8 +137,8 @@ namespace Components
 			Utils::Hook::Set<BYTE>(0x4D6E60, 0xC3);
 		}
 
-		Network::Handle("getplaylist", PlaylistRequest);
-		Network::Handle("playlistresponse", PlaylistReponse);
+		Network::Handle("getPlaylist", PlaylistRequest);
+		Network::Handle("playlistResponse", PlaylistReponse);
 	}
 
 	Playlist::~Playlist()

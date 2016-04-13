@@ -21,17 +21,20 @@ namespace Components
 	{
 		int numArgs;
 		LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &numArgs);
-
-		for (int i = 0; i < numArgs; ++i)
+		
+		if (argv)
 		{
-			std::wstring wFlag(argv[i]);
-			if (wFlag[0] == L'-')
+			for (int i = 0; i < numArgs; ++i)
 			{
-				Flags::EnabledFlags.push_back(std::string(++wFlag.begin(), wFlag.end()));
+				std::wstring wFlag(argv[i]);
+				if (wFlag[0] == L'-')
+				{
+					Flags::EnabledFlags.push_back(std::string(++wFlag.begin(), wFlag.end()));
+				}
 			}
-		}
 
-		LocalFree(argv);
+			LocalFree(argv);
+		}
 	}
 
 	Flags::Flags()
