@@ -37,6 +37,8 @@ namespace Components
 	}
 	void Node::StoreNodes(bool force)
 	{
+		if (Dedicated::IsDedicated() && Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 		static int lastStorage = 0;
 
 		// Don't store nodes if the delta is too small and were not forcing it
@@ -246,6 +248,8 @@ namespace Components
 
 	void Node::FrameHandler()
 	{
+		if (Dedicated::IsDedicated() && Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 		// Frame limit
 		static int lastFrame = 0;
 		if ((Game::Com_Milliseconds() - lastFrame) < (1000 / NODE_FRAME_LOCK) || Game::Com_Milliseconds() < 5000) return;
@@ -360,6 +364,8 @@ namespace Components
 		{
 			QuickPatch::OnShutdown([] ()
 			{
+				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 				std::string challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 				Proto::Node::Packet packet;
@@ -376,6 +382,8 @@ namespace Components
 			// If you want to get accepted as node, you have to send a request to this handler
 			Network::Handle("nodeRegisterRequest", [] (Network::Address address, std::string data)
 			{
+				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 				Node::NodeEntry* entry = Node::FindNode(address);
 
 				// Create a new entry, if we don't already know it
@@ -422,6 +430,8 @@ namespace Components
 
 			Network::Handle("nodeRegisterSynchronize", [] (Network::Address address, std::string data)
 			{
+				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
 
@@ -470,6 +480,8 @@ namespace Components
 
 			Network::Handle("nodeRegisterAcknowledge", [] (Network::Address address, std::string data)
 			{
+				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 				// Ignore requests from nodes we don't know
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
@@ -507,6 +519,8 @@ namespace Components
 
 			Network::Handle("nodeListRequest", [] (Network::Address address, std::string data)
 			{
+				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 				// Check if this is a registered node
 				bool allowed = false;
 				Node::NodeEntry* entry = Node::FindNode(address);
@@ -541,6 +555,8 @@ namespace Components
 
 			Network::Handle("nodeDeregister", [] (Network::Address address, std::string data)
 			{
+				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || !entry->registered) return;
 
@@ -571,6 +587,8 @@ namespace Components
 
 			Network::Handle("sessionRequest", [] (Network::Address address, std::string data)
 			{
+				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 				// Search an active session, if we haven't found one, register a template
 				if (!Node::FindSession(address))
 				{
@@ -597,6 +615,8 @@ namespace Components
 
 			Network::Handle("sessionSynchronize", [] (Network::Address address, std::string data)
 			{
+				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+
 				// Return if we don't have a session for this address
 				Node::ClientSession* session = Node::FindSession(address);
 				if (!session || session->valid) return;

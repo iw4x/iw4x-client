@@ -20,17 +20,18 @@ namespace Components
 	void Flags::ParseFlags()
 	{
 		int numArgs;
-		LPCWSTR commandLine = GetCommandLineW();
-		LPWSTR* argv = CommandLineToArgvW(commandLine, &numArgs);
+		LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &numArgs);
 
 		for (int i = 0; i < numArgs; ++i)
 		{
-			std::wstring wFlag = argv[i];
+			std::wstring wFlag(argv[i]);
 			if (wFlag[0] == L'-')
 			{
 				Flags::EnabledFlags.push_back(std::string(++wFlag.begin(), wFlag.end()));
 			}
 		}
+
+		LocalFree(argv);
 	}
 
 	Flags::Flags()

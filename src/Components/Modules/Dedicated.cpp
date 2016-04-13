@@ -228,7 +228,7 @@ namespace Components
 
 		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled()) // Run zonebuilder as dedi :P
 		{
-			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't register at the master server");
+			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't act as node");
 
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).Install()->Quick();
 
