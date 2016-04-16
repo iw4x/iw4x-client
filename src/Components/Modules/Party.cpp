@@ -231,17 +231,17 @@ namespace Components
 		{
 			Dvar::Register<int>("sv_maxclients", 18, 1, 18, Game::dvar_flag::DVAR_FLAG_SAVED, "The maximum number of clients that can connect to a server");
 			//Dvar::Register<int>("party_maxplayers", 18, 0, 18, Game::dvar_flag::DVAR_FLAG_NONE, "Use sv_maxclients to adjust players!");
-			Dvar::Register<int>("ui_maxclients", 18, 0, 18, Game::dvar_flag::DVAR_FLAG_NONE, "Use sv_maxclients to adjust players!");
+			//Dvar::Register<int>("ui_maxclients", 18, 0, 18, Game::dvar_flag::DVAR_FLAG_NONE, "Use sv_maxclients to adjust players!");
 		});
 
 		// Synchronize maxplayers dvars
-		QuickPatch::OnFrame([] ()
+		/*QuickPatch::OnFrame([] ()
 		{
 			if (!Dvar::Var("party_enable").Get<bool>())
 			{
 				Dvar::Var("ui_maxclients").SetRaw(Dvar::Var("sv_maxclients").Get<int>());
 			}
-		});
+		});*/
 
 		Command::Add("connect", [] (Command::Params params)
 		{
