@@ -289,7 +289,7 @@ namespace Components
 				// Well, it might be possible that this node doesn't know use anymore. Anyways, just keep that code here...
 
 				// Nvm, this is required for clients, as nodes don't send registration requests to clients.
-				else if (node.state == STATE_INVALID && (Game::Com_Milliseconds() - node.lastTime) >(NODE_QUERY_INTERVAL)) 
+				else if (node.state == STATE_INVALID && (Game::Com_Milliseconds() - node.lastTime) > NODE_QUERY_INTERVAL) 
 				{
 					registerCount++;
 					Node::PerformRegistration(node.address);
@@ -316,6 +316,10 @@ namespace Components
 				}
 			}
 		}
+
+		static int lastCheck = 0;
+		if ((Game::Com_Milliseconds() - lastCheck) < 1000) return;
+		lastCheck = Game::Com_Milliseconds();
 
 		Node::DeleteInvalidSessions();
 		Node::DeleteInvalidNodes();

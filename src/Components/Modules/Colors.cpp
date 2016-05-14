@@ -63,7 +63,7 @@ namespace Components
 		while (*in != 0 && current < max)
 		{
 			char index = *(in + 1);
-			if (*in == '^' && (Colors::ColorIndex(index) != 7 || index == '7')) // Add 1 new color for now
+			if (*in == '^' && (Colors::ColorIndex(index) != 7 || index == '7'))
 			{
 				in++;
 			}

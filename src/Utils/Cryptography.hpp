@@ -59,7 +59,7 @@ namespace Utils
 				return !(*this == token);
 			}
 
-			bool operator< (const Token& token) const
+			bool operator<(const Token& token) const
 			{
 				if (*this == token)
 				{
@@ -90,17 +90,17 @@ namespace Utils
 				return false;
 			}
 
-			bool operator> (const Token& token) const
+			bool operator>(const Token& token) const
 			{
 				return (token < *this && *this != token);
 			}
 
-			bool operator<= (const Token& token) const
+			bool operator<=(const Token& token) const
 			{
 				return !(*this > token);
 			}
 
-			bool operator>= (const Token& token) const
+			bool operator>=(const Token& token) const
 			{
 				return !(*this < token);
 			}
