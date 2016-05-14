@@ -129,6 +129,8 @@ namespace Game
 	SL_ConvertToString_t SL_ConvertToString = (SL_ConvertToString_t)0x4EC1D0;
 	SL_GetString_t SL_GetString = (SL_GetString_t)0x4CDC10;
 
+	SND_InitDriver_t SND_InitDriver = (SND_InitDriver_t)0x4F5090;
+
 	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
 
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = (SV_GameClientNum_Score_t)0x469AC0;

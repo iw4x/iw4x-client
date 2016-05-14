@@ -62,7 +62,7 @@ namespace Components
 		{
 			//maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
 			maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
-			clientCount = Game::PartyHost_CountMembers((Game::PartyData_s*)0x1081C00);
+			clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData_s*>(0x1081C00));
 		}
 
 		wclear(Console::InfoWindow);

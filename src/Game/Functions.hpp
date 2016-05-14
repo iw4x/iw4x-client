@@ -302,6 +302,9 @@ namespace Game
 	typedef short(__cdecl * SL_GetString_t)(const char *str, unsigned int user);
 	extern SL_GetString_t SL_GetString;
 
+	typedef void(__cdecl * SND_InitDriver_t)();
+	extern SND_InitDriver_t SND_InitDriver;
+
 	typedef void(__cdecl * Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;
 

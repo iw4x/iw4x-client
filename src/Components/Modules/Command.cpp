@@ -35,13 +35,13 @@ namespace Components
 	void Command::Add(const char* name, Command::Callback* callback)
 	{
 		Command::FunctionMap[Utils::StrToLower(name)] = callback;
-		Game::Cmd_AddCommand(name, Command::MainCallback, Command::Allocate(), 0);
+		Command::AddRaw(name, Command::MainCallback);
 	}
 
 	void Command::AddSV(const char* name, Command::Callback* callback)
 	{
 		Command::FunctionMapSV[Utils::StrToLower(name)] = callback;
-		Game::Cmd_AddServerCommand(name, Command::MainCallbackSV, Command::Allocate());
+		Command::AddRawSV(name, Command::MainCallbackSV);
 
 		// If the main command is registered as Cbuf_AddServerText, the command will be redirected to the SV handler
 		Command::AddRaw(name, Game::Cbuf_AddServerText);

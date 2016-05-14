@@ -92,6 +92,12 @@ namespace Components
 		AntiCheat::Hash.clear();
 	}
 
+	BOOL WINAPI TestTest(const char* test)
+	{
+		OutputDebugStringA(test);
+		return FALSE;
+	}
+
 	void AntiCheat::InitLoadLibHook()
 	{
 		static uint8_t loadLibStub[] = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
@@ -148,26 +154,41 @@ namespace Components
 		//AntiCheat::LoadLibHook[3].Install();
 	}
 
-	BOOL WINAPI AntiCheat::VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
+	void AntiCheat::SoundInitStub()
 	{
-		AntiCheat::VirtualProtectHook.Uninstall(false);
+		AntiCheat::LoadLibHook[0].Uninstall();
+		AntiCheat::LoadLibHook[1].Uninstall();
+		//AntiCheat::LoadLibHook[2].Uninstall();
+		//AntiCheat::LoadLibHook[3].Uninstall();
 
-		if (flNewProtect == PAGE_WRITECOPY || flNewProtect == PAGE_READWRITE || flNewProtect == PAGE_EXECUTE_READWRITE || flNewProtect == PAGE_WRITECOMBINE)
-		{
-			DWORD addr = (DWORD)lpAddress;
-			DWORD start = 0x401000;
-			DWORD end = start + 0x2D6000;
+		Game::SND_InitDriver();
 
-			if (addr > start && addr < end)
-			{
-				OutputDebugStringA(Utils::VA("Write access to address %X", lpAddress));
-			}
-		}
-
-		BOOL retVal = VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
-		AntiCheat::VirtualProtectHook.Install(false);
-		return retVal;
+		AntiCheat::LoadLibHook[0].Install();
+		AntiCheat::LoadLibHook[1].Install();
+		//AntiCheat::LoadLibHook[2].Install();
+		//AntiCheat::LoadLibHook[3].Install();
 	}
+
+// 	BOOL WINAPI AntiCheat::VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
+// 	{
+// 		AntiCheat::VirtualProtectHook.Uninstall(false);
+// 
+// 		if (flNewProtect == PAGE_WRITECOPY || flNewProtect == PAGE_READWRITE || flNewProtect == PAGE_EXECUTE_READWRITE || flNewProtect == PAGE_WRITECOMBINE)
+// 		{
+// 			DWORD addr = (DWORD)lpAddress;
+// 			DWORD start = 0x401000;
+// 			DWORD end = start + 0x2D6000;
+// 
+// 			if (addr > start && addr < end)
+// 			{
+// 				OutputDebugStringA(Utils::VA("Write access to address %X", lpAddress));
+// 			}
+// 		}
+// 
+// 		BOOL retVal = VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
+// 		AntiCheat::VirtualProtectHook.Install(false);
+// 		return retVal;
+// 	}
 
 	AntiCheat::AntiCheat()
 	{
@@ -183,6 +204,8 @@ namespace Components
 			AntiCheat::CrashClient();
 		});
 #else
+		Utils::Hook(0x60BE8E, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x418204, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).Install()->Quick();
 		QuickPatch::OnFrame(AntiCheat::Frame);
 

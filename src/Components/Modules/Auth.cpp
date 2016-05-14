@@ -368,7 +368,7 @@ namespace Components
 							else
 							{
 								info->state = Auth::STATE_INVALID;
-								Game::SV_KickClientError(client, Utils::VA("Your security level (%d) does not match the server's security level (%d)", userLevel, ourLevel));
+								Game::SV_KickClientError(client, Utils::VA("Your security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
 							}
 						}
 						else
