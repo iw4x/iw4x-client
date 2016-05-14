@@ -92,12 +92,6 @@ namespace Components
 		AntiCheat::Hash.clear();
 	}
 
-	BOOL WINAPI TestTest(const char* test)
-	{
-		OutputDebugStringA(test);
-		return FALSE;
-	}
-
 	void AntiCheat::InitLoadLibHook()
 	{
 		static uint8_t loadLibStub[] = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
@@ -138,35 +132,39 @@ namespace Components
 		AntiCheat::PerformCheck();
 	}
 
-	void AntiCheat::PatchWinAPI()
+	void AntiCheat::UninstallLibHook()
 	{
 		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
 		{
 			AntiCheat::LoadLibHook[i].Uninstall();
 		}
+	}
 
-		// Initialize directx :P
-		Utils::Hook::Call<void()>(0x5078C0)();
-
+	void AntiCheat::InstallLibHook()
+	{
 		AntiCheat::LoadLibHook[0].Install();
 		AntiCheat::LoadLibHook[1].Install();
 		//AntiCheat::LoadLibHook[2].Install();
 		//AntiCheat::LoadLibHook[3].Install();
 	}
 
+	void AntiCheat::PatchWinAPI()
+	{
+		AntiCheat::UninstallLibHook();
+
+		// Initialize directx :P
+		Utils::Hook::Call<void()>(0x5078C0)();
+
+		AntiCheat::InstallLibHook();
+	}
+
 	void AntiCheat::SoundInitStub()
 	{
-		AntiCheat::LoadLibHook[0].Uninstall();
-		AntiCheat::LoadLibHook[1].Uninstall();
-		//AntiCheat::LoadLibHook[2].Uninstall();
-		//AntiCheat::LoadLibHook[3].Uninstall();
+		AntiCheat::UninstallLibHook();
 
 		Game::SND_InitDriver();
 
-		AntiCheat::LoadLibHook[0].Install();
-		AntiCheat::LoadLibHook[1].Install();
-		//AntiCheat::LoadLibHook[2].Install();
-		//AntiCheat::LoadLibHook[3].Install();
+		AntiCheat::InstallLibHook();
 	}
 
 // 	BOOL WINAPI AntiCheat::VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
