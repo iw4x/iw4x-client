@@ -300,6 +300,12 @@ namespace Components
 
 		// Install packet deploy hook
 		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);
+
+		// For /dev/urandom :P
+		Network::Handle("resolveAddress", [] (Address address, std::string data)
+		{
+			Network::SendRaw(address, address.GetString());
+		});
 	}
 
 	Network::~Network()
