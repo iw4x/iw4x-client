@@ -197,6 +197,9 @@ namespace Game
 	typedef int(__cdecl * MSG_ReadByte_t)(msg_t* msg);
 	extern MSG_ReadByte_t MSG_ReadByte;
 
+	typedef int(__cdecl * MSG_ReadBitsCompress_t)(const char *from, char *to, int size);
+	extern MSG_ReadBitsCompress_t MSG_ReadBitsCompress;
+
 	typedef void(__cdecl * MSG_WriteByte_t)(msg_t* msg, unsigned char c);
 	extern MSG_WriteByte_t MSG_WriteByte;
 

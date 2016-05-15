@@ -20,5 +20,8 @@ namespace Components
 
 		static int64_t* GetStatsID();
 		static void ShutdownStub(int channel, const char* message);
+
+		static int MsgReadBitsCompressCheckSV(const char *from, char *to, int size);
+		static int MsgReadBitsCompressCheckCL(const char *from, char *to, int size);
 	};
 }

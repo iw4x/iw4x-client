@@ -80,6 +80,18 @@ namespace Components
 		}
 	}
 
+	int QuickPatch::MsgReadBitsCompressCheckSV(const char *from, char *to, int size)
+	{
+		if (size > 0x800) return 0;
+		return Game::MSG_ReadBitsCompress(from, to, size);
+	}
+
+	int QuickPatch::MsgReadBitsCompressCheckCL(const char *from, char *to, int size)
+	{
+		if (size > 0x20000) return 0;
+		return Game::MSG_ReadBitsCompress(from, to, size);
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// protocol version (workaround for hacks)
@@ -285,6 +297,10 @@ namespace Components
 		Utils::Hook::Nop(0x6830B1, 20);
 		Utils::Hook(0x682EBF, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x6830B1, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
+
+		// Exploit fixes
+		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).Install()->Quick();
 
 		Command::Add("unlockstats", [] (Command::Params params)
 		{

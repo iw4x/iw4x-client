@@ -86,6 +86,7 @@ namespace Game
 	MSG_WriteLong_t MSG_WriteLong = (MSG_WriteLong_t)0x41CA20;
 	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = (MSG_WriteBitsCompress_t)0x4319D0;
 	MSG_ReadByte_t MSG_ReadByte = (MSG_ReadByte_t)0x4C1C20;
+	MSG_ReadBitsCompress_t MSG_ReadBitsCompress = (MSG_ReadBitsCompress_t)0x4DCC30;
 
 	NET_AdrToString_t NET_AdrToString = (NET_AdrToString_t)0x469880;
 	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
