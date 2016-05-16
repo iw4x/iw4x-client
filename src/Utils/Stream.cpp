@@ -41,7 +41,7 @@ namespace Utils
 	{
 		//if (stream == XFILE_BLOCK_TEMP || stream == XFILE_BLOCK_VIRTUAL || stream == XFILE_BLOCK_PHYSICAL) // Only those seem to actually write data.
 																											 // As I'm not sure though, I'll still write the data
-																											 // Use IncreaseStreamSize to fill virtual streams
+																											 // Use IncreaseBlockSize to fill virtual streams
 		auto data = Stream::Data();
 
 		if (Stream::IsCriticalSection() && Stream::Length() + (size * count) > Stream::Capacity())
@@ -58,7 +58,7 @@ namespace Utils
 			__debugbreak();
 		}
 
-		Stream::IncreaseBlockSize(stream, size * count); // stay up to date on those streams
+		Stream::IncreaseBlockSize(stream, size * count);
 
 		return Stream::At() - (size * count);
 	}
@@ -177,7 +177,7 @@ namespace Utils
 	{
 		if (!Stream::StreamStack.empty())
 		{
-			return Stream::StreamStack[Stream::StreamStack.size() - 1];
+			return Stream::StreamStack.back();
 		}
 
 		return Game::XFILE_BLOCK_INVALID;

@@ -33,7 +33,6 @@ namespace Assets
 		if (surf->blendInfo)
 		{
 			buffer->Align(Utils::Stream::ALIGN_2);
-
 			buffer->Save(surf->blendInfo, sizeof(short), surf->blendNum1 + (surf->blendNum2 * 3) + (surf->blendNum3 * 5) + (surf->blendNum4 * 7));
 			destSurf->blendInfo = reinterpret_cast<char*>(-1);
 		}

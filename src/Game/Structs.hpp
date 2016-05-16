@@ -1318,9 +1318,11 @@ namespace Game
 
 	struct XModelLodInfo
 	{
-		char pad[8];
-		XModelSurfs* surfaces;
-		char pad2[32];
+		char pad[4]; // +0
+		short numSurfs; // +4
+		short pad2;// +6
+		XModelSurfs* surfaces; // +8
+		char pad3[32]; // +12
 	};
 
 	struct cplane_t

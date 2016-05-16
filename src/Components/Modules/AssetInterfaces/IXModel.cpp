@@ -145,11 +145,16 @@ namespace Assets
 			{
 				if (asset->lods[i].surfaces)
 				{
-					// Requiring this asset is not possible, as it has to be loaded as part of the model
+					buffer->PushBlock(Game::XFILE_BLOCK_TEMP);
+					buffer->Align(Utils::Stream::ALIGN_4);
+
+					// Requiring this asset is not possible, it has to be loaded as part of the model
 					//dest->lods[i].surfaces = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name).surfaces;
 
 					IXModelSurfs().Save({ asset->lods[i].surfaces }, builder);
 					dest->lods[i].surfaces = reinterpret_cast<Game::XModelSurfs*>(-1);
+
+					buffer->PopBlock();
 				}
 			}
 		}
