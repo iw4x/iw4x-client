@@ -1092,10 +1092,59 @@ namespace Game
 		const char* name;
 	};
 
+	struct Bounds
+	{
+		vec3_t midPoint;
+		vec3_t halfSize;
+	};
+
+	struct TriggerModel
+	{
+		int contents;
+		unsigned short hullCount;
+		unsigned short firstHull;
+	};
+
+	struct TriggerHull
+	{
+		Bounds bounds;
+		int contents;
+		unsigned short slabCount;
+		unsigned short firstSlab;
+	};
+
+	struct TriggerSlab
+	{
+		vec3_t dir;
+		float midPoint;
+		float halfSize;
+	};
+
+	struct MapTriggers
+	{
+		int modelCount;
+		TriggerModel* models; // sizeof 8
+		int hullCount;
+		TriggerHull* hulls; // sizeof 32
+		int slabCount;
+		TriggerSlab* slabs; // sizeof 20
+	};
+
+	struct Stage
+	{
+		char * stageName;
+		float offset[3];
+		int flags;
+	};
+
 	struct MapEnts
 	{
-		const char* name;
-		const char* entitystring;
+		const char *name;
+		char *entityString;
+		int numEntityChars;
+		MapTriggers trigger;
+		Stage * stages;
+		char stageCount;
 	};
 
 	struct StringTableCell

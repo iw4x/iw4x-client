@@ -68,7 +68,8 @@ namespace Components
 			if (ents.Exists())
 			{
 				mapEntities = ents.GetBuffer();
-				asset.mapEnts->entitystring = mapEntities.data();
+				asset.mapEnts->entityString = const_cast<char*>(mapEntities.data());
+				asset.mapEnts->numEntityChars = mapEntities.size();
 			}
 		}
 	}
