@@ -2,6 +2,8 @@
 
 namespace Components
 {
+	std::string ZoneBuilder::TraceZone;
+	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::TraceAssets;
 
 	ZoneBuilder::Zone::Zone(std::string name) : DataMap("zone_source/" + name + ".csv"), ZoneName(name), IndexStart(0), Branding { 0 },
 
@@ -370,7 +372,7 @@ namespace Components
 		}
 
 		std::string str = Game::SL_ConvertToString(gameIndex);
-		int prev = FindScriptString(str);
+		int prev = ZoneBuilder::Zone::FindScriptString(str);
 
 		if (prev > 0)
 		{
@@ -441,11 +443,30 @@ namespace Components
 		return (Flags::HasFlag("zonebuilder") && !Dedicated::IsDedicated());
 	}
 
+	void ZoneBuilder::BeginAssetTrace(std::string zone)
+	{
+		ZoneBuilder::TraceZone = zone;
+	}
+
+	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::EndAssetTrace()
+	{
+		ZoneBuilder::TraceZone.clear();
+
+		std::vector<std::pair<Game::XAssetType, std::string>> AssetTrace;
+		Utils::Merge(&AssetTrace, ZoneBuilder::TraceAssets);
+
+		ZoneBuilder::TraceAssets.clear();
+
+		return AssetTrace;
+	}
+
 	ZoneBuilder::ZoneBuilder()
 	{
 		static_assert(sizeof(Game::XFileHeader) == 21, "Invalid XFileHeader structure!");
 		static_assert(sizeof(Game::XFile) == 40, "Invalid XFile structure!");
 		static_assert(Game::MAX_XFILE_COUNT == 8, "XFile block enum is invalid!");
+
+		ZoneBuilder::EndAssetTrace();
 
 		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
 		{
@@ -503,6 +524,45 @@ namespace Components
 			// hunk size (was 300 MiB)
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
+
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
+			{
+				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
+				{
+					ZoneBuilder::TraceAssets.push_back({ type, name });
+				}
+			});
+
+			Command::Add("verifyzone", [] (Command::Params params)
+			{
+				if (params.Length() < 2) return;
+
+				static std::string zone = params[1];
+
+				ZoneBuilder::BeginAssetTrace(zone);
+
+				Game::XZoneInfo info;
+				info.name = zone.data();
+				info.allocFlags = 0x01000000;
+				info.freeFlags = 0;
+
+				Logger::Print("Loading zone '%s'...\n", zone.data());
+
+				Game::DB_LoadXAssets(&info, 1, true);
+				AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, zone.data()); // Lock until zone is loaded
+
+				auto assets = ZoneBuilder::EndAssetTrace();
+				
+				Logger::Print("Zone '%s' loaded with %d assets:\n", zone.data(), assets.size());
+				
+				int count = 0;
+				for (auto i = assets.begin(); i != assets.end(); ++i, ++count)
+				{
+					Logger::Print(" %d: %s: %s\n", count, Game::DB_GetXAssetTypeName(i->first), i->second.data());
+				}
+
+				Logger::Print("\n");
+			});
 
 			Command::Add("buildzone", [] (Command::Params params)
 			{

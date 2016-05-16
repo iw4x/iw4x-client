@@ -74,5 +74,11 @@ namespace Components
 		const char* GetName() { return "ZoneBuilder"; };
 
 		static bool IsEnabled();
+
+		static std::string TraceZone;
+		static std::vector<std::pair<Game::XAssetType, std::string>> TraceAssets;
+
+		static void BeginAssetTrace(std::string zone);
+		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 	};
 }

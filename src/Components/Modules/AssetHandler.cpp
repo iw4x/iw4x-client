@@ -22,6 +22,7 @@ namespace Components
 
 		if (AssetHandler::AssetInterfaces.find(iAsset->GetType()) != AssetHandler::AssetInterfaces.end())
 		{
+			Logger::Print("Duplicate interface handler: %s\n", Game::DB_GetXAssetTypeName(iAsset->GetType()));
 			delete AssetHandler::AssetInterfaces[iAsset->GetType()];
 		}
 

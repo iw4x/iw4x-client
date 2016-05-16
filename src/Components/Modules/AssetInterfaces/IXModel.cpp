@@ -91,7 +91,7 @@ namespace Assets
 			Assert_Size(Game::XModelAngle, 8);
 
 			buffer->Align(Utils::Stream::ALIGN_2);
-			buffer->Save(asset->tagAngles, sizeof(Game::XModelAngle), asset->numBones - asset->numRootBones);
+			buffer->SaveArray(asset->tagAngles, asset->numBones - asset->numRootBones);
 			dest->tagAngles = reinterpret_cast<Game::XModelAngle*>(-1);
 		}
 
@@ -100,13 +100,13 @@ namespace Assets
 			Assert_Size(Game::XModelTagPos, 12);
 
 			buffer->Align(Utils::Stream::ALIGN_4);
-			buffer->Save(asset->tagPositions, sizeof(Game::XModelTagPos), asset->numBones - asset->numRootBones);
+			buffer->SaveArray(asset->tagPositions, asset->numBones - asset->numRootBones);
 			dest->tagPositions = reinterpret_cast<Game::XModelTagPos*>(-1);
 		}
 
 		if (asset->partClassification)
 		{
-			buffer->Save(asset->partClassification,asset->numBones);
+			buffer->Save(asset->partClassification, asset->numBones);
 			dest->partClassification = reinterpret_cast<char*>(-1);
 		}
 
@@ -115,7 +115,7 @@ namespace Assets
 			Assert_Size(Game::DObjAnimMat, 32);
 
 			buffer->Align(Utils::Stream::ALIGN_4);
-			buffer->Save(asset->animMatrix, sizeof(Game::DObjAnimMat), asset->numBones);
+			buffer->SaveArray(asset->animMatrix, asset->numBones);
 			dest->animMatrix = reinterpret_cast<Game::DObjAnimMat*>(-1);
 		}
 
@@ -124,7 +124,7 @@ namespace Assets
 			buffer->Align(Utils::Stream::ALIGN_4);
 
 			Game::Material** destMaterials = buffer->Dest<Game::Material*>();
-			buffer->Save(asset->materials, sizeof(Game::Material*), asset->numSurfaces);
+			buffer->SaveArray(asset->materials, asset->numSurfaces);
 
 			for (char i = 0; i < asset->numSurfaces; ++i)
 			{

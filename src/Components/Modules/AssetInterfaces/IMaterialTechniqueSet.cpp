@@ -62,13 +62,14 @@ namespace Assets
 			{
 				if (builder->HasPointer(technique))
 				{
+					OutputDebugStringA(asset->name);
 					dest->techniques[i] = builder->GetPointer(technique);
 				}
 				else
 				{
 					// Size-check is obsolete, as the structure is dynamic
 					buffer->Align(Utils::Stream::ALIGN_4);
-					builder->StorePointer(technique);
+					//builder->StorePointer(technique);
 
 					Game::MaterialTechnique* destTechnique = buffer->Dest<Game::MaterialTechnique>();
 					buffer->Save(technique, 8);
