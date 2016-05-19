@@ -57,6 +57,7 @@ namespace Components
 }
 
 #include "AssetInterfaces\IXModel.hpp"
+#include "AssetInterfaces\IMapEnts.hpp"
 #include "AssetInterfaces\IRawFile.hpp"
 #include "AssetInterfaces\IGfxImage.hpp"
 #include "AssetInterfaces\IMaterial.hpp"

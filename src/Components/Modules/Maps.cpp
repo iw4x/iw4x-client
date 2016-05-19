@@ -61,6 +61,12 @@ namespace Components
 			}
 		}
 
+		if (type == Game::XAssetType::ASSET_TYPE_ADDON_MAP_ENTS)
+		{
+			*restrict = true;
+			return;
+		}
+
 		if (type == Game::XAssetType::ASSET_TYPE_MAP_ENTS)
 		{
 			static std::string mapEntities;
@@ -69,7 +75,7 @@ namespace Components
 			{
 				mapEntities = ents.GetBuffer();
 				asset.mapEnts->entityString = const_cast<char*>(mapEntities.data());
-				asset.mapEnts->numEntityChars = mapEntities.size();
+				asset.mapEnts->numEntityChars = mapEntities.size() + 1;
 			}
 		}
 	}
