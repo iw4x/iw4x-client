@@ -157,7 +157,7 @@ namespace Components
 			Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).Install()->Quick();
 		}
 
-		//Utils::Hook(0x506B25, FastFiles::LoadGfxZones, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x506B25, FastFiles::LoadGfxZones, HOOK_CALL).Install()->Quick();
 
 		// basic checks (hash jumps, both normal and playlist)
 		Utils::Hook::Nop(0x5B97A3, 2);
