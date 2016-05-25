@@ -25,22 +25,17 @@ namespace Components
 		~StructuredData();
 		const char* GetName() { return "StructuredData"; };
 
-		void AddPlayerDataEntry(PlayerDataType type, int index, std::string name);
+		void AddPlayerDataEntry(PlayerDataType type, std::string name);
 
 	private:
-		struct EnumEntry
-		{
-			std::string name;
-			int statOffset;
-		};
-		static void PatchPlayerDataEnum(Game::StructuredDataDefSet* data, PlayerDataType type, std::vector<EnumEntry>& entries);
+		static void PatchPlayerDataEnum(Game::StructuredDataDef* data, PlayerDataType type, std::vector<std::string>& entries);
 		static StructuredData* GetSingleton();
 
 		Utils::Memory::Allocator MemAllocator;
 
 		static int IndexCount[ENUM_MAX];
 		static Game::StructuredDataEnumEntry* Indices[ENUM_MAX];
-		static std::vector<EnumEntry> Entries[ENUM_MAX];
+		static std::vector<std::string> Entries[ENUM_MAX];
 
 		static StructuredData* Singleton;
 	};
