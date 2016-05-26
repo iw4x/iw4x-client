@@ -4,34 +4,28 @@ namespace Components
 {
 	StructuredData* StructuredData::Singleton = nullptr;
 
-	int StructuredData::IndexCount[StructuredData::ENUM_MAX];
-	Game::StructuredDataEnumEntry* StructuredData::Indices[StructuredData::ENUM_MAX];
-	std::vector<std::string> StructuredData::Entries[StructuredData::ENUM_MAX];
-
-	void StructuredData::AddPlayerDataEntry(StructuredData::PlayerDataType type, std::string name)
+	const char* StructuredData::EnumTranslation[ENUM_MAX] =
 	{
-		if (type >= StructuredData::ENUM_MAX) return;
-
-		// Check for duplications
-		auto v = &StructuredData::Entries[type];
-		if (std::find(v->begin(), v->end(), name) == v->end())
-		{
-			StructuredData::Entries[type].push_back(name);
-		}
-	}
+		"features",
+		"weapons",
+		"attachements",
+		"challenges",
+		"camos",
+		"perks",
+		"killstreaks",
+		"accolades",
+		"cardicons",
+		"cardtitles",
+		"cardnameplates",
+		"teams",
+		"gametypes"
+	};
 
 	void StructuredData::PatchPlayerDataEnum(Game::StructuredDataDef* data, StructuredData::PlayerDataType type, std::vector<std::string>& entries)
 	{
-		if (!data || type >= StructuredData::ENUM_MAX) return;
+		if (!data || type >= StructuredData::PlayerDataType::ENUM_MAX) return;
 
 		Game::StructuredDataEnum* dataEnum = &data->enums[type];
-
-		if (StructuredData::IndexCount[type])
-		{
-			dataEnum->numIndices = StructuredData::IndexCount[type];
-			dataEnum->indices = StructuredData::Indices[type];
-			return;
-		}
 
 		// Find last index so we can add our offset to it.
 		// This whole procedure is potentially unsafe.
@@ -46,11 +40,11 @@ namespace Components
 		}
 
 		// Calculate new count
-		StructuredData::IndexCount[type] = dataEnum->numIndices + entries.size();
+		unsigned int indexCount = dataEnum->numIndices + entries.size();
 
 		// Allocate new entries
-		StructuredData::Indices[type] = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(StructuredData::IndexCount[type]);
-		memcpy(StructuredData::Indices[type], dataEnum->indices, sizeof(Game::StructuredDataEnumEntry) * dataEnum->numIndices);
+		Game::StructuredDataEnumEntry* indices = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(indexCount);
+		memcpy(indices, dataEnum->indices, sizeof(Game::StructuredDataEnumEntry) * dataEnum->numIndices);
 
 		for (unsigned int i = 0; i < entries.size(); ++i)
 		{
@@ -58,30 +52,31 @@ namespace Components
 
 			for (; pos < (dataEnum->numIndices + i); pos++)
 			{
-				if (StructuredData::Indices[type][pos].key == entries[i])
+				if (indices[pos].key == entries[i])
 				{
 					Logger::Error("Duplicate playerdatadef entry found: %s", entries[i].data());
 				}
 
 				// We found our position
-				if (entries[i] < StructuredData::Indices[type][pos].key)
+				if (entries[i] < indices[pos].key)
 				{
 					break;
 				}
 			}
 
-			for (unsigned int j = dataEnum->numIndices + i; j > pos && j < static_cast<unsigned int>(StructuredData::IndexCount[type]); j--)
+			// TODO directly shift the data using memmove
+			for (unsigned int j = dataEnum->numIndices + i; j > pos && j < indexCount; j--)
 			{
-				memcpy(&StructuredData::Indices[type][j], &StructuredData::Indices[type][j - 1], sizeof(Game::StructuredDataEnumEntry));
+				memcpy(&indices[j], &indices[j - 1], sizeof(Game::StructuredDataEnumEntry));
 			}
 
-			StructuredData::Indices[type][pos].index = i + lastIndex;
-			StructuredData::Indices[type][pos].key = StructuredData::GetSingleton()->MemAllocator.DuplicateString(entries[i]);
+			indices[pos].index = i + lastIndex;
+			indices[pos].key = StructuredData::GetSingleton()->MemAllocator.DuplicateString(entries[i]);
 		}
 
 		// Apply our patches
-		dataEnum->numIndices = StructuredData::IndexCount[type];
-		dataEnum->indices = StructuredData::Indices[type];
+		dataEnum->numIndices = indexCount;
+		dataEnum->indices = indices;
 	}
 
 	StructuredData* StructuredData::GetSingleton()
@@ -99,113 +94,116 @@ namespace Components
 		// Only execute this when building zones
 		if (!ZoneBuilder::IsEnabled()) return;
 
-		// TODO: Increment the version once you change something below
-		static int version = 156;
-
-		// ---------- Weapons ----------
-		StructuredData::AddPlayerDataEntry(StructuredData::ENUM_WEAPONS, "m40a3");
-		StructuredData::AddPlayerDataEntry(StructuredData::ENUM_WEAPONS, "ak47classic");
-		//StructuredData::AddPlayerDataEntry(StructuredData::ENUM_WEAPONS, "ak74u");
-		//StructuredData::AddPlayerDataEntry(StructuredData::ENUM_WEAPONS, "peacekeeper");
-
-		// ---------- Cardicons ----------
-		StructuredData::AddPlayerDataEntry(StructuredData::ENUM_CARDICONS, "cardicon_rtrolling");
-
-		// ---------- Cardtitles ----------
-		StructuredData::AddPlayerDataEntry(StructuredData::ENUM_CARDTITLES, "cardtitle_evilchicken");
-		StructuredData::AddPlayerDataEntry(StructuredData::ENUM_CARDTITLES, "cardtitle_nolaststand");
-
-
-		// Patch handing and initialization
-
 		StructuredData::Singleton = this;
-		ZeroMemory(StructuredData::IndexCount, sizeof(StructuredData));
 
-		// TODO: Write these into fastfiles and only hotpatch them when building fastfiles!
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF, [] (Game::XAssetType type, std::string filename)
+		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string filename, bool* restrict)
 		{
-			Game::XAssetHeader header = { 0 };
+			// Only intercept playerdatadef loading
+			if (filename != "mp/playerdata.def" || type != Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF) return;
 
-			if (filename == "mp/playerdata.def")
+			// Store asset
+			Game::StructuredDataDefSet* data = asset.structuredData;
+			if (!data) return;
+
+			if (data->count != 1)
 			{
-				Game::StructuredDataDefSet* data = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF, filename.data()).structuredData;
-				header.structuredData = data;
-
-				if (data)
-				{
-					// First check if all versions are present
-					for (int ver = 155; ver <= version; ++ver)
-					{
-						bool foundVersion = false;
-
-						for (int i = 0; i < data->count; ++i)
-						{
-							if (data->data[i].version == ver)
-							{
-								foundVersion = true;
-								break;
-							}
-						}
-
-						if (foundVersion && ver == version)
-						{
-							//Logger::Print("PlayerDataDef already patched for version %d, no need to patch anything!\n", version);
-							return header;
-						}
-						else if (!foundVersion && ver != version)
-						{
-							Logger::Error("PlayerDataDef for version %d is missing!", ver);
-							return header;
-						}
-					}
-
-					if (data->data[data->count - 1].version != 155)
-					{
-						Logger::Error("Initial PlayerDataDef is not version 155, patching not possible!");
-						return header;
-					}
-
-					Logger::Print("Patching PlayerDataDef for version %d...\n", version);
-
-					// Reallocate the definition
-					Game::StructuredDataDef* newData = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataDef>(data->count + 1);
-					memcpy(&newData[1], data->data, sizeof Game::StructuredDataDef * data->count);
-
-					// Fill our new definition with the base data (155)
-					memcpy(newData, &data->data[data->count - 1], sizeof Game::StructuredDataDef);
-					newData->version = version;
-
-					// Reallocate the enum array
-					Game::StructuredDataEnum* newEnums = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataEnum>(newData->numEnums);
-					memcpy(newEnums, newData->enums, sizeof Game::StructuredDataEnum * newData->numEnums);
-					newData->enums = newEnums;
-
-					// Patch the definition
-					for (int i = 0; i < ARR_SIZE(StructuredData::Entries); ++i)
-					{
-						if (StructuredData::Entries[i].size())
-						{
-							StructuredData::PatchPlayerDataEnum(newData, static_cast<StructuredData::PlayerDataType>(i), StructuredData::Entries[i]);
-						}
-					}
-
-					// Apply the patch
-					data->data = newData;
-					data->count++;
-				}
+				Logger::Error("PlayerDataDefSet contains more than 1 definition!");
+				return;
 			}
 
-			return header;
+			if (data->data[0].version != 155)
+			{
+				Logger::Error("Initial PlayerDataDef is not version 155, patching not possible!");
+				return;
+			}
+
+			std::map<int, std::vector<std::vector<std::string>>> patchDefinitions;
+
+			// First check if all versions are present
+			for (int i = 156;; ++i)
+			{
+				FileSystem::File definition(Utils::VA("%s/%d.json", filename.data(), i));
+				if (!definition.Exists()) break;
+
+				std::vector<std::vector<std::string>> enumContainer;
+
+				std::string errors;
+				json11::Json defData = json11::Json::parse(definition.GetBuffer(), errors);
+
+				for (unsigned int pType = 0; pType < StructuredData::PlayerDataType::ENUM_MAX; ++pType)
+				{
+					auto enumData = defData[StructuredData::EnumTranslation[pType]];
+
+					std::vector<std::string> entryData;
+
+					if (enumData.is_array())
+					{
+						for (auto rawEntry : enumData.array_items())
+						{
+							if (rawEntry.is_string())
+							{
+								entryData.push_back(rawEntry.string_value());
+							}
+						}
+					}
+
+					enumContainer.push_back(entryData);
+				}
+
+				patchDefinitions[i] = enumContainer;
+			}
+
+			// Nothing to patch
+			if (patchDefinitions.empty()) return;
+
+			// Reallocate the definition
+			Game::StructuredDataDef* newData = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataDef>(data->count + patchDefinitions.size());
+			memcpy(&newData[patchDefinitions.size()], data->data, sizeof Game::StructuredDataDef * data->count);
+
+			// Prepare the buffers
+			for (unsigned int i = 0; i < patchDefinitions.size(); ++i)
+			{
+				memcpy(&newData[i], data->data, sizeof Game::StructuredDataDef);
+				newData[i].version = (patchDefinitions.size() - i) + 155;
+
+				// Reallocate the enum array
+				Game::StructuredDataEnum* newEnums = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataEnum>(data->data->numEnums);
+				memcpy(newEnums, data->data->enums, sizeof Game::StructuredDataEnum * data->data->numEnums);
+				newData[i].enums = newEnums;
+			}
+
+			// Apply new data
+			data->data = newData;
+			data->count += patchDefinitions.size();
+
+			// Patch the definition
+			for (int i = 0; i < data->count; ++i)
+			{
+				// No need to patch version 155
+				if (newData[i].version == 155) continue;
+
+				if(patchDefinitions.find(newData[i].version) != patchDefinitions.end())
+				{
+					auto patchData = patchDefinitions[newData[i].version];
+
+					// Invalid patch data
+					if (patchData.size() != StructuredData::PlayerDataType::ENUM_MAX) continue;
+
+					// Apply the patch data
+					for (unsigned int pType = 0; pType < StructuredData::PlayerDataType::ENUM_MAX; ++pType)
+					{
+						if (!patchData[pType].empty())
+						{
+							StructuredData::PatchPlayerDataEnum(&newData[i], static_cast<StructuredData::PlayerDataType>(pType), patchData[pType]);
+						}
+					}
+				}
+			}
 		});
 	}
 
 	StructuredData::~StructuredData()
 	{
-		for (int i = 0; i < ARR_SIZE(StructuredData::Entries); ++i)
-		{
-			StructuredData::Entries[i].clear();
-		}
-
 		StructuredData::Singleton = nullptr;
 	}
 }
