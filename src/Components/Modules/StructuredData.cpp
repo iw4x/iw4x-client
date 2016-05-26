@@ -130,6 +130,18 @@ namespace Components
 				std::string errors;
 				json11::Json defData = json11::Json::parse(definition.GetBuffer(), errors);
 
+				if (!errors.empty())
+				{
+					Logger::Error("Parsing patch file '%s' for PlayerDataDef version %d failed: %s", definition.GetName().data(), i, errors.data());
+					return;
+				}
+
+				if (!defData.is_object())
+				{
+					Logger::Error("PlayerDataDef patch for version %d is invalid!", i);
+					return;
+				}
+
 				for (unsigned int pType = 0; pType < StructuredData::PlayerDataType::ENUM_MAX; ++pType)
 				{
 					auto enumData = defData[StructuredData::EnumTranslation[pType]];
@@ -187,7 +199,11 @@ namespace Components
 					auto patchData = patchDefinitions[newData[i].version];
 
 					// Invalid patch data
-					if (patchData.size() != StructuredData::PlayerDataType::ENUM_MAX) continue;
+					if (patchData.size() != StructuredData::PlayerDataType::ENUM_MAX)
+					{
+						Logger::Error("PlayerDataDef patch for version %d wasn't parsed correctly!", newData[i].version);
+						continue;
+					}
 
 					// Apply the patch data
 					for (unsigned int pType = 0; pType < StructuredData::PlayerDataType::ENUM_MAX; ++pType)
