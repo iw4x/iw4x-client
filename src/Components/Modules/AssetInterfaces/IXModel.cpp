@@ -20,7 +20,6 @@ namespace Assets
 			{
 				if (asset->materials[i])
 				{
-					//Components::Logger::Print("%s\n", asset->materials[i]->name);
 					builder->LoadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materials[i]->name);
 				}
 			}

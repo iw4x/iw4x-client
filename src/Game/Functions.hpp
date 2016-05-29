@@ -154,6 +154,9 @@ namespace Game
 	typedef int(__cdecl * FS_BuildPathToFile_t)(const char*, const char*, const char*, char**);
 	extern FS_BuildPathToFile_t FS_BuildPathToFile;
 
+	typedef void(__cdecl * GScr_LoadGameTypeScript_t)();
+	extern GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript;
+
 	typedef int(__cdecl * Reader_t)(char const*, int *);
 	typedef bool(__cdecl * Image_LoadFromFileWithReader_t)(GfxImage* image, Reader_t reader);
 	extern Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader;
@@ -245,9 +248,6 @@ namespace Game
 	typedef char* (__cdecl * LocalizeMapString_t)(char*);
 	extern LocalizeMapString_t LocalizeMapString;
 
-	typedef char* (__cdecl * SE_Load_t)(char* file, int Unk);
-	extern SE_Load_t SE_Load;
-
 	typedef int(__cdecl * PC_ReadToken_t)(source_t*, token_t*);
 	extern PC_ReadToken_t PC_ReadToken;
 
@@ -287,6 +287,24 @@ namespace Game
 	typedef int(__cdecl * R_TextHeight_t)(Font* font);
 	extern R_TextHeight_t R_TextHeight;
 
+	typedef void(__cdecl * Scr_ShutdownAllocNode_t)();
+	extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
+
+	typedef int(__cdecl * Scr_LoadGameType_t)();
+	extern Scr_LoadGameType_t Scr_LoadGameType;
+
+	typedef int(__cdecl * Scr_LoadScript_t)(const char*);
+	extern Scr_LoadScript_t Scr_LoadScript;
+
+	typedef int(__cdecl * Scr_GetFunctionHandle_t)(const char*, const char*);
+	extern Scr_GetFunctionHandle_t Scr_GetFunctionHandle;
+
+	typedef int(__cdecl * Scr_ExecThread_t)(int, int);
+	extern Scr_ExecThread_t Scr_ExecThread;
+
+	typedef int(__cdecl * Scr_FreeThread_t)(int);
+	extern Scr_FreeThread_t Scr_FreeThread;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 
@@ -295,6 +313,9 @@ namespace Game
 
 	typedef int(__cdecl * Script_CleanString_t)(char* buffer);
 	extern Script_CleanString_t Script_CleanString;
+
+	typedef char* (__cdecl * SE_Load_t)(char* file, int Unk);
+	extern SE_Load_t SE_Load;
 
 	typedef void(__cdecl * SetConsole_t)(const char* cvar, const char* value);
 	extern SetConsole_t SetConsole;

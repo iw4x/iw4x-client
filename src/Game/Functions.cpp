@@ -66,6 +66,8 @@ namespace Game
 	FS_Restart_t FS_Restart = (FS_Restart_t)0x461A50;
 	FS_BuildPathToFile_t FS_BuildPathToFile = (FS_BuildPathToFile_t)0x4702C0;
 
+	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = (GScr_LoadGameTypeScript_t)0x4ED9A0;
+
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = (Image_LoadFromFileWithReader_t)0x53ABF0;
 	Image_Release_t Image_Release = (Image_Release_t)0x51F010;
 
@@ -103,8 +105,6 @@ namespace Game
 	LocalizeString_t LocalizeString = (LocalizeString_t)0x4FB010;
 	LocalizeMapString_t LocalizeMapString = (LocalizeMapString_t)0x44BB30;
 
-	SE_Load_t SE_Load = (SE_Load_t)0x502A30;
-
 	PC_ReadToken_t PC_ReadToken = (PC_ReadToken_t)0x4ACCD0;
 	PC_ReadTokenHandle_t PC_ReadTokenHandle = (PC_ReadTokenHandle_t)0x4D2060;
 	PC_SourceError_t PC_SourceError = (PC_SourceError_t)0x467A00;
@@ -120,10 +120,22 @@ namespace Game
 	R_LoadGraphicsAssets_t R_LoadGraphicsAssets = (R_LoadGraphicsAssets_t)0x506AC0;
 	R_TextWidth_t R_TextWidth = (R_TextWidth_t)0x5056C0;
 	R_TextHeight_t R_TextHeight = (R_TextHeight_t)0x505770;
+	
+	Scr_LoadGameType_t Scr_LoadGameType = (Scr_LoadGameType_t)0x4D9520;
+
+	Scr_LoadScript_t Scr_LoadScript = (Scr_LoadScript_t)0x45D940;
+	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = (Scr_GetFunctionHandle_t)0x4234F0;
+
+	Scr_ExecThread_t Scr_ExecThread = (Scr_ExecThread_t)0x4AD0B0;
+	Scr_FreeThread_t Scr_FreeThread = (Scr_FreeThread_t)0x4BD320;
+
+	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = (Scr_ShutdownAllocNode_t)0x441650;
 
 	Script_Alloc_t Script_Alloc = (Script_Alloc_t)0x422E70;
 	Script_SetupTokens_t Script_SetupTokens = (Script_SetupTokens_t)0x4E6950;
 	Script_CleanString_t Script_CleanString = (Script_CleanString_t)0x498220;
+
+	SE_Load_t SE_Load = (SE_Load_t)0x502A30;
 
 	SetConsole_t SetConsole = (SetConsole_t)0x44F060;
 

@@ -32,6 +32,7 @@ namespace Components
 #include "Modules\Colors.hpp"
 #include "Modules\D3D9Ex.hpp"
 #include "Modules\Logger.hpp"
+#include "Modules\Script.hpp"
 #include "Modules\Weapon.hpp"
 #include "Modules\Window.hpp"
 #include "Modules\Command.hpp"

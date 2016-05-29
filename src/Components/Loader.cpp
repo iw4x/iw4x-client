@@ -20,6 +20,7 @@ namespace Components
 		Loader::Register(new Colors());
 		Loader::Register(new D3D9Ex());
 		Loader::Register(new Logger());
+		Loader::Register(new Script());
 		Loader::Register(new Weapon());
 		Loader::Register(new Window());
 		Loader::Register(new Command());
