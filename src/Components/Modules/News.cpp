@@ -4,20 +4,16 @@
 
 namespace Components
 {
-	std::thread* News::Thread = nullptr;
+	std::thread News::Thread;
 
 	bool News::UnitTest()
 	{
 		bool result = true;
 
-		if (News::Thread)
+		if (News::Thread.joinable())
 		{
 			Logger::Print("Awaiting thread termination...\n");
-
-			News::Thread->join();
-			delete News::Thread;
-
-			News::Thread = nullptr;
+			News::Thread.join();
 
 			if (!strlen(Localization::Get("MPUI_CHANGELOG_TEXT")) || Localization::Get("MPUI_CHANGELOG_TEXT") == std::string("Loading..."))
 			{
@@ -48,7 +44,7 @@ namespace Components
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFUALT);
 
-		News::Thread = new std::thread([] ()
+		News::Thread = std::thread([] ()
 		{
 			Localization::Set("MPUI_CHANGELOG_TEXT", Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/changelog.txt").SetTimeout(5000)->Get().data());
 
@@ -65,12 +61,9 @@ namespace Components
 
 	News::~News()
 	{
-		if (News::Thread)
+		if (News::Thread.joinable())
 		{
-			News::Thread->join();
-			delete News::Thread;
-
-			News::Thread = nullptr;
+			News::Thread.join();
 		}
 	}
 }

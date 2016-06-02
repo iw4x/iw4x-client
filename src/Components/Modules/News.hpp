@@ -9,6 +9,6 @@ namespace Components
 		bool UnitTest();
 
 	private:
-		static std::thread* Thread;
+		static std::thread Thread;
 	};
 }

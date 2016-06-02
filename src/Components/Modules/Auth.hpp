@@ -40,7 +40,7 @@ namespace Components
 		{
 			bool cancel;
 			bool generating;
-			std::thread* thread;
+			std::thread thread;
 			uint32_t targetLevel;
 			int startTime;
 			std::string command;

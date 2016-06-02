@@ -41,7 +41,7 @@ namespace Components
 		std::map<std::string, PacketCallback> PacketCallbacks;
 
 		HANDLE hPipe;
-		std::thread* mThread;
+		std::thread mThread;
 		bool mThreadAttached;
 
 		Type mType;

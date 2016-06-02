@@ -14,7 +14,7 @@ namespace Components
 		{
 			bool Perform;
 			bool Terminate;
-			std::thread* Thread;
+			std::thread Thread;
 			std::string Challenge;
 		};
 

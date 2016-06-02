@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	Discovery::Container Discovery::DiscoveryContainer = { false, false, nullptr };
+	Discovery::Container Discovery::DiscoveryContainer = { false, false, std::thread() };
 
 	void Discovery::Perform()
 	{
@@ -16,7 +16,7 @@ namespace Components
 
 		Discovery::DiscoveryContainer.Perform = false;
 		Discovery::DiscoveryContainer.Terminate = false;
-		Discovery::DiscoveryContainer.Thread = new std::thread([] ()
+		Discovery::DiscoveryContainer.Thread = std::thread([] ()
 		{
 			while (!Discovery::DiscoveryContainer.Terminate)
 			{
@@ -85,11 +85,9 @@ namespace Components
 		Discovery::DiscoveryContainer.Perform = false;
 		Discovery::DiscoveryContainer.Terminate = true;
 
-		if (Discovery::DiscoveryContainer.Thread)
+		if (Discovery::DiscoveryContainer.Thread.joinable())
 		{
-			Discovery::DiscoveryContainer.Thread->join();
-			delete Discovery::DiscoveryContainer.Thread;
-			Discovery::DiscoveryContainer.Thread = nullptr;
+			Discovery::DiscoveryContainer.Thread.join();
 		}
 	}
 }

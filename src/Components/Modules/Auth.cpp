@@ -80,15 +80,13 @@ namespace Components
 
 			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::VA("Increasing security level from %d to %d (est. %s)", Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel, Utils::FormatTimeSpan(static_cast<int>(mseconds)).data()));
 		}
-		else if(Auth::TokenContainer.thread)
+		else
 		{
-			if (Auth::TokenContainer.thread->joinable())
+			if (Auth::TokenContainer.thread.joinable())
 			{
-				Auth::TokenContainer.thread->join();
+				Auth::TokenContainer.thread.join();
 			}
 
-			delete Auth::TokenContainer.thread;
-			Auth::TokenContainer.thread = nullptr;
 			Auth::TokenContainer.generating = false;
 
 			Auth::StoreKey();
@@ -208,7 +206,7 @@ namespace Components
 			Command::Execute("openmenu security_increase_popmenu", true);
 
 			// Start thread
-			Auth::TokenContainer.thread = new std::thread([&level] ()
+			Auth::TokenContainer.thread = std::thread([&level] ()
 			{
 				Auth::TokenContainer.generating = true;
 				Auth::TokenContainer.hashes = 0;
@@ -293,7 +291,6 @@ namespace Components
 	{
 		Auth::TokenContainer.cancel = false;
 		Auth::TokenContainer.generating = false;
-		Auth::TokenContainer.thread = nullptr;
 
 		Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", "");
 
@@ -428,15 +425,9 @@ namespace Components
 		Auth::TokenContainer.generating = false;
 
 		// Terminate thread
-		if (Auth::TokenContainer.thread)
+		if (Auth::TokenContainer.thread.joinable())
 		{
-			if (Auth::TokenContainer.thread->joinable())
-			{
-				Auth::TokenContainer.thread->join();
-			}
-
-			delete Auth::TokenContainer.thread;
-			Auth::TokenContainer.thread = nullptr;
+			Auth::TokenContainer.thread.join();
 		}
 
 		Auth::StoreKey();

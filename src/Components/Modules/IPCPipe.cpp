@@ -7,7 +7,7 @@ namespace Components
 
 #pragma region Pipe
 
-	Pipe::Pipe() : mType(IPCTYPE_NONE), ReconnectAttempt(0), hPipe(INVALID_HANDLE_VALUE), mThread(0), ConnectCallback(0), mThreadAttached(false)
+	Pipe::Pipe() : mType(IPCTYPE_NONE), ReconnectAttempt(0), hPipe(INVALID_HANDLE_VALUE), ConnectCallback(0), mThreadAttached(false)
 	{
 		this->Destroy();
 	}
@@ -66,7 +66,7 @@ namespace Components
 			if (!Loader::PerformingUnitTests())
 			{
 				this->mThreadAttached = true;
-				this->mThread = new std::thread(Pipe::ReceiveThread, this);
+				this->mThread = std::thread(Pipe::ReceiveThread, this);
 			}
 
 			Logger::Print("Pipe successfully created\n");
@@ -117,17 +117,13 @@ namespace Components
 
 		this->mThreadAttached = false;
 
-		if (this->mThread)
+		if (this->mThread.joinable())
 		{
 			Logger::Print("Terminating pipe thread...\n");
 
-			this->mThread->join();
+			this->mThread.join();
 
 			Logger::Print("Pipe thread terminated.\n");
-
-			delete this->mThread;
-
-			this->mThread = 0;
 		}
 	}
 
