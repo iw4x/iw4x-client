@@ -11,12 +11,14 @@ namespace Components
 	{
 		std::string funcName = Game::SL_ConvertToString(Script::FunctionName);
 
-		Game::Com_Printf(23, "\n");
-		Game::Com_Printf(23, "******* script compile error *******\n");
-		Game::Com_Printf(23, "Error: unknown function %s in %s\n", funcName.data(), Script::ScriptName.data());
-		Game::Com_Printf(23, "************************************\n");
+		Game::Scr_ShutdownAllocNode();
 
-		Game::Com_Error(5, "script compile error\nunknown function %s\n%s\n", funcName.data(), Script::ScriptName.data());
+		Logger::Print(23, "\n");
+		Logger::Print(23, "******* script compile error *******\n");
+		Logger::Print(23, "Error: unknown function %s in %s\n", funcName.data(), Script::ScriptName.data());
+		Logger::Print(23, "************************************\n");
+
+		Logger::Error(5, "script compile error\nunknown function %s\n%s\n", funcName.data(), Script::ScriptName.data());
 	}
 
 	void __declspec(naked) Script::StoreFunctionNameStub()
@@ -127,22 +129,22 @@ namespace Components
 			}
 		}
 
-		Game::Com_Printf(23, "in file %s, line %d:", filename, line);
+		Logger::Print(23, "in file %s, line %d:", filename, line);
 
 		if (currentLine)
 		{
-			Game::Com_Printf(23, "%s\n", currentLine);
+			Logger::Print(23, "%s\n", currentLine);
 
 			for (int i = 0; i < (inLineOffset - 1); i++)
 			{
-				Game::Com_Printf(23, " ");
+				Logger::Print(23, " ");
 			}
 
-			Game::Com_Printf(23, "*\n");
+			Logger::Print(23, "*\n");
 		}
 		else
 		{
-			Game::Com_Printf(23, "\n");
+			Logger::Print(23, "\n");
 		}
 
 		if (freeScript)
@@ -161,13 +163,13 @@ namespace Components
 
 		Game::Scr_ShutdownAllocNode();
 
-		Game::Com_Printf(23, "\n");
-		Game::Com_Printf(23, "******* script compile error *******\n");
-		Game::Com_Printf(23, "Error: %s ", msgbuf);
+		Logger::Print(23, "\n");
+		Logger::Print(23, "******* script compile error *******\n");
+		Logger::Print(23, "Error: %s ", msgbuf);
 		Script::PrintSourcePos(Script::ScriptName.data(), offset);
-		Game::Com_Printf(23, "************************************\n");
+		Logger::Print(23, "************************************\n");
 
-		Game::Com_Error(5, "script compile error\n%s\n%s\n(see console for actual details)\n", msgbuf, Script::ScriptName.data());
+		Logger::Error(5, "script compile error\n%s\n%s\n(see console for actual details)\n", msgbuf, Script::ScriptName.data());
 	}
 
 	int Script::LoadScriptAndLabel(std::string script, std::string label)
@@ -177,7 +179,7 @@ namespace Components
 		if (!Game::Scr_LoadScript(script.data()))
 		{
 			Logger::Print("Script %s encountered an error while loading. (doesn't exist?)", script.data());
-			Game::Com_Error(1, (char*)0x70B810, script.data());
+			Logger::Error(1, (char*)0x70B810, script.data());
 		}
 		else
 		{

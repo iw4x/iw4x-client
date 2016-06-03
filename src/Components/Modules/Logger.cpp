@@ -13,27 +13,30 @@ namespace Components
 
 	void Logger::Print(const char* message, ...)
 	{
-		char buffer[0x1000] = { 0 };
+		return Logger::MessagePrint(0, Logger::Format(&message));
+	}
 
-		va_list ap;
-		va_start(ap, message);
-		vsprintf_s(buffer, message, ap);
-		va_end(ap);
+	void Logger::Print(int channel, const char* message, ...)
+	{
+		return Logger::MessagePrint(channel, Logger::Format(&message));
+	}
 
+	void Logger::MessagePrint(int channel, std::string message)
+	{
 		if (Flags::HasFlag("stdout"))
 		{
-			printf("%s", buffer);
+			printf("%s", message.data());
 			fflush(stdout);
 		}
 		else if (Logger::IsConsoleReady())
 		{
 			if (!Game::Sys_IsMainThread())
 			{
-				Logger::EnqueueMessage(buffer);
+				Logger::EnqueueMessage(message);
 			}
 			else
 			{
-				Game::Com_PrintMessage(0, buffer, 0);
+				Game::Com_PrintMessage(0, message.data(), 0);
 			}
 		}
 		else
@@ -41,36 +44,44 @@ namespace Components
 			// Only print to stdout, when doing unit tests
 			if (Loader::PerformingUnitTests())
 			{
-				printf("%s", buffer);
+				printf("%s", message.data());
 				fflush(stdout);
 			}
 
-			OutputDebugStringA(buffer);
+			OutputDebugStringA(message.data());
 		}
+	}
+
+	void Logger::ErrorPrint(int error, std::string message)
+	{
+		return Game::Com_Error(error, "%s", message.data());
+	}
+
+	void Logger::Error(int error, const char* message, ...)
+	{
+		return Logger::ErrorPrint(error, Logger::Format(&message));
 	}
 
 	void Logger::Error(const char* message, ...)
 	{
-		char buffer[0x1000] = { 0 };
-
-		va_list ap;
-		va_start(ap, message);
-		vsprintf_s(buffer, message, ap);
-		va_end(ap);
-
-		Game::Com_Error(0, "%s", buffer);
+		return Logger::ErrorPrint(0, Logger::Format(&message));
 	}
 
 	void Logger::SoftError(const char* message, ...)
 	{
+		return Logger::ErrorPrint(2, Logger::Format(&message));
+	}
+
+	std::string Logger::Format(const char** message)
+	{
 		char buffer[0x1000] = { 0 };
 
-		va_list ap;
-		va_start(ap, message);
-		vsprintf_s(buffer, message, ap);
+		va_list ap = reinterpret_cast<char*>(const_cast<char**>(&message[1]));
+		//va_start(ap, *message);
+		vsprintf_s(buffer, *message, ap);
 		va_end(ap);
 
-		Game::Com_Error(2, "%s", buffer);
+		return buffer;
 	}
 
 	void Logger::Frame()

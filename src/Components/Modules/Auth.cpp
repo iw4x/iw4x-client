@@ -80,13 +80,9 @@ namespace Components
 
 			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::VA("Increasing security level from %d to %d (est. %s)", Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel, Utils::FormatTimeSpan(static_cast<int>(mseconds)).data()));
 		}
-		else
+		else if(Auth::TokenContainer.thread.joinable())
 		{
-			if (Auth::TokenContainer.thread.joinable())
-			{
-				Auth::TokenContainer.thread.join();
-			}
-
+			Auth::TokenContainer.thread.join();
 			Auth::TokenContainer.generating = false;
 
 			Auth::StoreKey();
