@@ -422,7 +422,7 @@ namespace Components
 
 		va_list ap;
 		va_start(ap, format);
-		vsprintf_s(buffer, format, ap);
+		_vsnprintf(buffer, sizeof(buffer), format, ap);
 		va_end(ap);
 
 		perror(buffer);

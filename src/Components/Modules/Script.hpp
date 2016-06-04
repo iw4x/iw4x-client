@@ -15,8 +15,8 @@ namespace Components
 		static std::vector<std::string> ScriptNameStack;
 		static unsigned short FunctionName;
 
-		static void CompileError(int offset, const char* message, ...);
-		static void PrintSourcePos(const char* filename, int offset);
+		static void CompileError(unsigned int offset, const char* message, ...);
+		static void PrintSourcePos(const char* filename, unsigned int offset);
 
 		static void FunctionError();
 		static void StoreFunctionNameStub();

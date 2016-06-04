@@ -78,7 +78,7 @@ namespace Components
 
 		va_list ap = reinterpret_cast<char*>(const_cast<char**>(&message[1]));
 		//va_start(ap, *message);
-		vsprintf_s(buffer, *message, ap);
+		_vsnprintf(buffer, sizeof(buffer), *message, ap);
 		va_end(ap);
 
 		return buffer;

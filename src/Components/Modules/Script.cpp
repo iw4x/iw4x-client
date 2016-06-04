@@ -18,7 +18,7 @@ namespace Components
 		Logger::Print(23, "Error: unknown function %s in %s\n", funcName.data(), Script::ScriptName.data());
 		Logger::Print(23, "************************************\n");
 
-		Logger::Error(5, "script compile error\nunknown function %s\n%s\n", funcName.data(), Script::ScriptName.data());
+		Logger::Error(5, "script compile error\nunknown function %s\n%s\n\n", funcName.data(), Script::ScriptName.data());
 	}
 
 	void __declspec(naked) Script::StoreFunctionNameStub()
@@ -84,58 +84,49 @@ namespace Components
 		}
 	}
 
-	// TODO: Optimize that!
-	void Script::PrintSourcePos(const char* filename, int offset)
+	void Script::PrintSourcePos(const char* filename, unsigned int offset)
 	{
-		int line = 0;
-		int inLineOffset = 0;
-		char* scriptFile = 0;
-		char* currentLine = 0;
-		bool freeScript = false;
+		FileSystem::File script(filename);
 
-		if (Game::FS_ReadFile(filename, &scriptFile) > -1)
+		if (script.Exists())
 		{
-			int globalOffset = 0;
+			std::string buffer = script.GetBuffer();
+			Utils::Replace(buffer, "\t", " ");
 
-			freeScript = true;
+			int line = 1;
+			int lineOffset = 0;
+			int inlineOffset = 0;
 
-			for (char* c = scriptFile; *c != '\0'; c++)
+			for (unsigned int i = 0; i < buffer.size(); ++i)
 			{
-				if (!currentLine || *c == '\n')
+				// Terminate line
+				if (i == offset)
 				{
-					line++;
-					inLineOffset = 0;
-					currentLine = c;
-				}
-
-				if (globalOffset == offset)
-				{
-					while (*c != '\r' && *c != '\n' && c != '\0')
+					while (buffer[i] != '\r' && buffer[i] != '\n' && buffer[i] != '\0')
 					{
-						c++;
+						++i;
 					}
 
-					*c = '\0';
+					buffer[i] = '\0';
 					break;
 				}
 
-				if (*c == '\t')
+				if (buffer[i] == '\n')
 				{
-					*c = ' ';
+					++line;
+					lineOffset = i; // Includes the line break!
+					inlineOffset = 0;
 				}
-
-				globalOffset++;
-				inLineOffset++;
+				else
+				{
+					++inlineOffset;
+				}
 			}
-		}
 
-		Logger::Print(23, "in file %s, line %d:", filename, line);
+			Logger::Print(23, "in file %s, line %d:", filename, line);
+			Logger::Print(23, "%s\n", buffer.data() + lineOffset);
 
-		if (currentLine)
-		{
-			Logger::Print(23, "%s\n", currentLine);
-
-			for (int i = 0; i < (inLineOffset - 1); i++)
+			for (int i = 0; i < (inlineOffset - 1); ++i)
 			{
 				Logger::Print(23, " ");
 			}
@@ -144,16 +135,11 @@ namespace Components
 		}
 		else
 		{
-			Logger::Print(23, "\n");
-		}
-
-		if (freeScript)
-		{
-			Game::FS_FreeFile(scriptFile);
+			Logger::Print(23, "in file %s, offset %d\n", filename, offset);
 		}
 	}
 
-	void Script::CompileError(int offset, const char* message, ...)
+	void Script::CompileError(unsigned int offset, const char* message, ...)
 	{
 		char msgbuf[1024] = { 0 };
 		va_list v;
@@ -167,7 +153,7 @@ namespace Components
 		Logger::Print(23, "******* script compile error *******\n");
 		Logger::Print(23, "Error: %s ", msgbuf);
 		Script::PrintSourcePos(Script::ScriptName.data(), offset);
-		Logger::Print(23, "************************************\n");
+		Logger::Print(23, "************************************\n\n");
 
 		Logger::Error(5, "script compile error\n%s\n%s\n(see console for actual details)\n", msgbuf, Script::ScriptName.data());
 	}
