@@ -397,7 +397,7 @@ namespace Components
 		if(i != Menus::MenuList.end())
 		{
 			if (i->second) Menus::FreeMenu(i->second);
-			Menus::MenuList.erase(i);
+			i = Menus::MenuList.erase(i);
 		}
 	}
 
@@ -408,7 +408,7 @@ namespace Components
 			if (i->second == menudef)
 			{
 				Menus::FreeMenu(menudef);
-				Menus::MenuList.erase(i);
+				i = Menus::MenuList.erase(i);
 				break;
 			}
 		}
@@ -429,7 +429,7 @@ namespace Components
 				Menus::FreeMenuList(i->second);
 			}
 
-			Menus::MenuListList.erase(i);
+			i = Menus::MenuListList.erase(i);
 		}
 	}
 

@@ -91,6 +91,8 @@ namespace Game
 	MSG_ReadByte_t MSG_ReadByte = (MSG_ReadByte_t)0x4C1C20;
 	MSG_ReadBitsCompress_t MSG_ReadBitsCompress = (MSG_ReadBitsCompress_t)0x4DCC30;
 
+	NetadrToSockadr_t NetadrToSockadr = (NetadrToSockadr_t)0x4B4B40;
+
 	NET_AdrToString_t NET_AdrToString = (NET_AdrToString_t)0x469880;
 	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
 	NET_IsLocalAddress_t NET_IsLocalAddress = (NET_IsLocalAddress_t)0x402BD0;
@@ -144,6 +146,8 @@ namespace Game
 	SL_GetString_t SL_GetString = (SL_GetString_t)0x4CDC10;
 
 	SND_InitDriver_t SND_InitDriver = (SND_InitDriver_t)0x4F5090;
+
+	SockadrToNetadr_t SockadrToNetadr = (SockadrToNetadr_t)0x4F8460;
 
 	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
 
@@ -368,7 +372,7 @@ namespace Game
 	{
 		if (client->state < 5)
 		{
-			Components::Network::Send(client->adr, Utils::VA("error\n%s", reason));
+			Components::Network::Send(client->addr, Utils::VA("error\n%s", reason));
 		}
 
 		SV_KickClient(client, reason);

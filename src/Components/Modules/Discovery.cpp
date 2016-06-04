@@ -47,11 +47,11 @@ namespace Components
 
 			if (!address.IsLocal())
 			{
-				Logger::Print("Received discovery request from non-local address: %s\n", address.GetString());
+				Logger::Print("Received discovery request from non-local address: %s\n", address.GetCString());
 				return;
 			}
 
-			Logger::Print("Received discovery request from %s\n", address.GetString());
+			Logger::Print("Received discovery request from %s\n", address.GetCString());
 			Network::SendCommand(address, "discoveryResponse", data);
 		});
 
@@ -61,17 +61,17 @@ namespace Components
 
 			if (!address.IsLocal())
 			{
-				Logger::Print("Received discovery response from non-local address: %s\n", address.GetString());
+				Logger::Print("Received discovery response from non-local address: %s\n", address.GetCString());
 				return;
 			}
 
 			if (Utils::ParseChallenge(data) != Discovery::DiscoveryContainer.Challenge)
 			{
-				Logger::Print("Received discovery with invalid challenge from: %s\n", address.GetString());
+				Logger::Print("Received discovery with invalid challenge from: %s\n", address.GetCString());
 				return;
 			}
 
-			Logger::Print("Received discovery response from: %s\n", address.GetString());
+			Logger::Print("Received discovery response from: %s\n", address.GetCString());
 
 			if (ServerList::IsOfflineList())
 			{

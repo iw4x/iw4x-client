@@ -64,7 +64,7 @@ namespace Components
 
 				if (!list.ParseFromString(data))
 				{
-					Party::PlaylistError(Utils::VA("Received playlist response from %s, but it is invalid.", address.GetString()));
+					Party::PlaylistError(Utils::VA("Received playlist response from %s, but it is invalid.", address.GetCString()));
 					Playlist::ReceivedPlaylistBuffer.clear();
 					return;
 				}
@@ -77,7 +77,7 @@ namespace Components
 					//Validate hashes
 					if (hash != list.hash())
 					{
-						Party::PlaylistError(Utils::VA("Received playlist response from %s, but the checksum did not match (%X != %X).", address.GetString(), list.hash(), hash));
+						Party::PlaylistError(Utils::VA("Received playlist response from %s, but the checksum did not match (%X != %X).", address.GetCString(), list.hash(), hash));
 						Playlist::ReceivedPlaylistBuffer.clear();
 						return;
 					}

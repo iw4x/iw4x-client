@@ -10,6 +10,10 @@ namespace Components
 		public:
 			Address() { this->SetType(Game::netadrtype_t::NA_BAD); };
 			Address(std::string addrString);
+			Address(sockaddr* addr);
+			Address(sockaddr addr) : Address(&addr) {}
+			Address(sockaddr_in addr) : Address(&addr) {}
+			Address(sockaddr_in* addr) : Address(reinterpret_cast<sockaddr*>(addr)) {}
 			Address(Game::netadr_t addr) : address(addr) {}
 			Address(Game::netadr_t* addr) : Address(*addr) {}
 			Address(const Address& obj) : address(obj.address) {};
@@ -27,8 +31,12 @@ namespace Components
 			void SetType(Game::netadrtype_t type);
 			Game::netadrtype_t GetType();
 
+			sockaddr GetSockAddr();
+			void ToSockAddr(sockaddr* addr);
+			void ToSockAddr(sockaddr_in* addr);
 			Game::netadr_t* Get();
-			const char* GetString();
+			const char* GetCString();
+			std::string GetString();
 
 			bool IsLocal();
 			bool IsSelf();

@@ -261,7 +261,7 @@ workspace "iw4x"
 			kind "StaticLib"
 			
 			
-		-- json11
+		-- mongoose
 		project "mongoose"
 			language "C"
 

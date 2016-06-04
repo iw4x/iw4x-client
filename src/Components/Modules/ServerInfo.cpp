@@ -73,8 +73,7 @@ namespace Components
 		Game::Font* font = Game::R_RegisterFont("fonts/bigfont");
 		void* cxt = Game::UI_GetContext(a1);
 
-		Network::Address address(reinterpret_cast<Game::netadr_t*>(0xA1E888));
-		std::string addressText = address.GetString();
+		std::string addressText = Network::Address(*Game::connectedHost).GetString();
 		if (addressText == "0.0.0.0:0") addressText = "Listen Server";
 
 		// get x positions

@@ -405,7 +405,7 @@ namespace Components
 				server.Addr = address;
 
 				// Remove server from queue
-				ServerList::RefreshContainer.Servers.erase(i);
+				i = ServerList::RefreshContainer.Servers.erase(i);
 
 				// Check if already inserted and remove
 				auto list = ServerList::GetList();
@@ -416,7 +416,7 @@ namespace Components
 				{
 					if (j->Addr == address)
 					{
-						list->erase(j);
+						j = list->erase(j);
 						break;
 					}
 				}
@@ -426,7 +426,7 @@ namespace Components
 				{
 					if (*j == k)
 					{
-						ServerList::VisibleList.erase(j);
+						j = ServerList::VisibleList.erase(j);
 						break;
 					}
 				}
@@ -692,8 +692,7 @@ namespace Components
 		{
 			if (Dvar::Var("cl_ingame").Get<bool>())
 			{
-				Network::Address address(reinterpret_cast<Game::netadr_t*>(0xA1E888));
-				std::string addressText = address.GetString();
+				std::string addressText = Network::Address(*Game::connectedHost).GetString();
 				if (addressText != "0.0.0.0:0")
 				{
 					ServerList::StoreFavourite(addressText);

@@ -80,7 +80,7 @@ namespace Components
 			auto pos = data.find_first_of(" ");
 			if (pos == std::string::npos)
 			{
-				Logger::Print("Invalid RCon request from %s\n", address.GetString());
+				Logger::Print("Invalid RCon request from %s\n", address.GetCString());
 				return;
 			}
 
@@ -98,7 +98,7 @@ namespace Components
 
 			if (svPassword.empty())
 			{
-				Logger::Print("RCon request from %s dropped. No password set!\n", address.GetString());
+				Logger::Print("RCon request from %s dropped. No password set!\n", address.GetCString());
 				return;
 			}
 
@@ -107,7 +107,7 @@ namespace Components
 				static std::string outputBuffer;
 				outputBuffer.clear();
 
-				Logger::Print("Executing RCon request from %s: %s\n", address.GetString(), command.data());
+				Logger::Print("Executing RCon request from %s: %s\n", address.GetCString(), command.data());
 
 				Logger::PipeOutput([] (std::string output)
 				{
@@ -123,7 +123,7 @@ namespace Components
 			}
 			else
 			{
-				Logger::Print("Invalid RCon password sent from %s\n", address.GetString());
+				Logger::Print("Invalid RCon password sent from %s\n", address.GetCString());
 			}
 		});
 

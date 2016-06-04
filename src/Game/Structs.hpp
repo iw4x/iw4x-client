@@ -880,7 +880,7 @@ namespace Game
 		// 4
 		char pad[36];
 		// 40
-		netadr_t adr;
+		netadr_t addr;
 		// 60
 		char pad1[1568];
 		// 1628

@@ -131,7 +131,7 @@ namespace Components
 			Node::Nodes.push_back(entry);
 
 #ifdef DEBUG
-			Logger::Print("Adding node %s...\n", address.GetString());
+			Logger::Print("Adding node %s...\n", address.GetCString());
 #endif
 		}
 	}
@@ -190,7 +190,7 @@ namespace Components
 		{
 			if (node.state == Node::STATE_INVALID && (Game::Com_Milliseconds() - node.lastHeard) > NODE_INVALID_DELETE)
 			{
-				Logger::Print("Removing invalid node %s\n", node.address.GetString());
+				Logger::Print("Removing invalid node %s\n", node.address.GetCString());
 			}
 			else
 			{
@@ -233,14 +233,14 @@ namespace Components
 			packet.set_challenge(entry->challenge);
 
 #ifdef DEBUG
-			Logger::Print("Sending registration request to %s\n", entry->address.GetString());
+			Logger::Print("Sending registration request to %s\n", entry->address.GetCString());
 #endif
 			Network::SendCommand(entry->address, "nodeRegisterRequest", packet.SerializeAsString());
 		}
 		else
 		{
 #ifdef DEBUG
-			Logger::Print("Sending session request to %s\n", entry->address.GetString());
+			Logger::Print("Sending session request to %s\n", entry->address.GetCString());
 #endif
 			Network::SendCommand(entry->address, "sessionRequest");
 		}
@@ -268,7 +268,7 @@ namespace Components
 				node.lastHeard = Game::Com_Milliseconds();
 				node.lastTime = Game::Com_Milliseconds();
 
-				Logger::Print("Node negotiation timed out. Invalidating %s\n", node.address.GetString());
+				Logger::Print("Node negotiation timed out. Invalidating %s\n", node.address.GetCString());
 			}
 
 			if (registerCount < NODE_FRAME_QUERY_LIMIT)
@@ -399,7 +399,7 @@ namespace Components
 				}
 
 #ifdef DEBUG
-				Logger::Print("Received registration request from %s\n", address.GetString());
+				Logger::Print("Received registration request from %s\n", address.GetCString());
 #endif
 
 				Proto::Node::Packet packet;
@@ -440,7 +440,7 @@ namespace Components
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
 
 #ifdef DEBUG
-				Logger::Print("Received synchronization data for registration from %s!\n", address.GetString());
+				Logger::Print("Received synchronization data for registration from %s!\n", address.GetCString());
 #endif
 
 				Proto::Node::Packet packet;
@@ -457,7 +457,7 @@ namespace Components
 				entry->publicKey.Set(publicKey);
 				if (!Utils::Cryptography::ECC::VerifyMessage(entry->publicKey, entry->challenge, signature))
 				{
-					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetString(), entry->challenge.data());
+					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetCString(), entry->challenge.data());
 					return;
 				}
 
@@ -467,8 +467,8 @@ namespace Components
 				entry->registered = true;
 
 #ifdef DEBUG
-				Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetString(), entry->challenge.data());
-				Logger::Print("Node %s registered\n", address.GetString());
+				Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetCString(), entry->challenge.data());
+				Logger::Print("Node %s registered\n", address.GetCString());
 #endif
 
 				// Build response
@@ -491,7 +491,7 @@ namespace Components
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
 
 #ifdef DEBUG
-				Logger::Print("Received acknowledgment from %s\n", address.GetString());
+				Logger::Print("Received acknowledgment from %s\n", address.GetCString());
 #endif
 
 				Proto::Node::Packet packet;
@@ -511,13 +511,13 @@ namespace Components
 					entry->registered = true;
 
 #ifdef DEBUG
-					Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetString(), entry->challenge.data());
-					Logger::Print("Node %s registered\n", address.GetString());
+					Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetCString(), entry->challenge.data());
+					Logger::Print("Node %s registered\n", address.GetCString());
 #endif
 				}
 				else
 				{
-					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetString(), entry->challenge.data());
+					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetCString(), entry->challenge.data());
 				}
 			});
 
@@ -552,7 +552,7 @@ namespace Components
 				else
 				{
 					// Unallowed connection
-					Logger::Print("Node list requested by %s, but no valid session was present!\n", address.GetString());
+					Logger::Print("Node list requested by %s, but no valid session was present!\n", address.GetCString());
 					Network::SendCommand(address, "nodeListError");
 				}
 			});
@@ -580,12 +580,12 @@ namespace Components
 					entry->state = Node::STATE_INVALID;
 
 #ifdef DEBUG
-					Logger::Print("Node %s unregistered\n", address.GetString());
+					Logger::Print("Node %s unregistered\n", address.GetCString());
 #endif
 				}
 				else
 				{
-					Logger::Print("Node %s tried to unregister using an invalid signature!\n", address.GetString());
+					Logger::Print("Node %s tried to unregister using an invalid signature!\n", address.GetCString());
 				}
 			});
 
@@ -606,7 +606,7 @@ namespace Components
 				if (!session) return; // Registering template session failed, odd...
 
 #ifdef DEBUG
-				Logger::Print("Client %s is requesting a new session\n", address.GetString());
+				Logger::Print("Client %s is requesting a new session\n", address.GetCString());
 #endif
 
 				// Initialize session data
@@ -628,7 +628,7 @@ namespace Components
 				if (session->challenge == data)
 				{
 #ifdef DEBUG
-					Logger::Print("Session for %s validated.\n", address.GetString());
+					Logger::Print("Session for %s validated.\n", address.GetCString());
 #endif
 					session->valid = true;
 					Network::SendCommand(address, "sessionAcknowledge");
@@ -636,7 +636,7 @@ namespace Components
 				else
 				{
 					session->lastTime = -1;
-					Logger::Print("Challenge mismatch. Validating session for %s failed.\n", address.GetString());
+					Logger::Print("Challenge mismatch. Validating session for %s failed.\n", address.GetCString());
 				}
 			});
 		}
@@ -648,7 +648,7 @@ namespace Components
 				if (!entry) return;
 
 #ifdef DEBUG
-				Logger::Print("Session initialization received from %s. Synchronizing...\n", address.GetString());
+				Logger::Print("Session initialization received from %s. Synchronizing...\n", address.GetCString());
 #endif
 
 				entry->lastTime = Game::Com_Milliseconds();
@@ -665,7 +665,7 @@ namespace Components
 				entry->lastTime = Game::Com_Milliseconds();
 
 #ifdef DEBUG
-				Logger::Print("Session acknowledged by %s, synchronizing node list...\n", address.GetString());
+				Logger::Print("Session acknowledged by %s, synchronizing node list...\n", address.GetCString());
 #endif
 				Network::SendCommand(address, "nodeListRequest");
 				Node::SendNodeList(address);
@@ -678,7 +678,7 @@ namespace Components
 
 			if (data.empty() || !list.ParseFromString(data)) 
 			{
-				Logger::Print("Received invalid node list from %s!\n", address.GetString());
+				Logger::Print("Received invalid node list from %s!\n", address.GetCString());
 				return;
 			}
 
@@ -687,7 +687,7 @@ namespace Components
 			{
 				if (entry->registered)
 				{
-					Logger::Print("Received valid node list with %i entries from %s\n", list.address_size(), address.GetString());
+					Logger::Print("Received valid node list with %i entries from %s\n", list.address_size(), address.GetCString());
 
 					entry->isDedi = list.is_dedi();
 					entry->state = Node::STATE_VALID;
@@ -763,7 +763,7 @@ namespace Components
 
 			for (auto node : Node::Nodes)
 			{
-				Logger::Print("%s\t(%s)\n", node.address.GetString(), Node::GetStateName(node.state));
+				Logger::Print("%s\t(%s)\n", node.address.GetCString(), Node::GetStateName(node.state));
 			}
 		});
 

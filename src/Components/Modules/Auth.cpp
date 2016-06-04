@@ -46,12 +46,12 @@ namespace Components
 					}
 					else
 					{
-						Logger::Print("Sending XUID authentication request to %s\n", Network::Address(client->adr).GetString());
+						Logger::Print("Sending XUID authentication request to %s\n", Network::Address(client->addr).GetCString());
 
 						info->state = Auth::STATE_NEGOTIATING;
 						info->time = Game::Com_Milliseconds();
 						info->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
-						Network::SendCommand(client->adr, "xuidAuthReq", info->challenge);
+						Network::SendCommand(client->addr, "xuidAuthReq", info->challenge);
 					}
 				}
 				else if (info->state == Auth::STATE_UNKNOWN && !info->time)
@@ -109,7 +109,7 @@ namespace Components
 	{
 		if (clientNum >= 18) return;
 
-		Network::Address address(Game::svs_clients[clientNum].adr);
+		Network::Address address(Game::svs_clients[clientNum].addr);
 
 		if (address.GetType() == Game::netadrtype_t::NA_BOT)
 		{
@@ -117,7 +117,7 @@ namespace Components
 		}
 		else
 		{
-			Logger::Print("Registering client %s\n", address.GetString());
+			Logger::Print("Registering client %s\n", address.GetCString());
 			Auth::ClientAuthInfo[clientNum].time = 0;
 			Auth::ClientAuthInfo[clientNum].state = Auth::STATE_UNKNOWN;
 		}
@@ -297,7 +297,7 @@ namespace Components
 		{
 			Network::Handle("xuidAuthReq", [] (Network::Address address, std::string data)
 			{
-				Logger::Print("Received XUID authentication request from %s\n", address.GetString());
+				Logger::Print("Received XUID authentication request from %s\n", address.GetCString());
 
 				// Only accept requests from the server we're connected to
 				if (address != *Game::connectedHost) return;
@@ -317,14 +317,14 @@ namespace Components
 
 		Network::Handle("xuidAuthResp", [] (Network::Address address, std::string data)
 		{
-			Logger::Print("Received XUID authentication response from %s\n", address.GetString());
+			Logger::Print("Received XUID authentication response from %s\n", address.GetCString());
 
 			for (int i = 0; i < *Game::svs_numclients; i++)
 			{
 				Game::client_t* client = &Game::svs_clients[i];
 				Auth::AuthInfo* info = &Auth::ClientAuthInfo[i];
 
-				if (client->state >= 3 && address == client->adr && info->state == Auth::STATE_NEGOTIATING)
+				if (client->state >= 3 && address == client->addr && info->state == Auth::STATE_NEGOTIATING)
 				{
 					Proto::Auth::Response response;
 					unsigned int id = static_cast<unsigned int>(~0x110000100000000 & client->steamid);
@@ -356,7 +356,7 @@ namespace Components
 							if (userLevel >= ourLevel)
 							{
 								info->state = Auth::STATE_VALID;
-								Logger::Print("Verified XUID %llX (%d) from %s\n", client->steamid, userLevel, address.GetString());
+								Logger::Print("Verified XUID %llX (%d) from %s\n", client->steamid, userLevel, address.GetCString());
 							}
 							else
 							{

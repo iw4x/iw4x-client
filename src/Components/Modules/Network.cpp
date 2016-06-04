@@ -10,6 +10,10 @@ namespace Components
 	{
 		Game::NET_StringToAdr(addrString.data(), &this->address);
 	}
+	Network::Address::Address(sockaddr* addr)
+	{
+		Game::SockadrToNetadr(addr, &this->address);
+	}
 	bool Network::Address::operator==(const Network::Address &obj)
 	{
 		return Game::NET_CompareAdr(this->address, obj.address);
@@ -42,13 +46,34 @@ namespace Components
 	{
 		return this->address.type;
 	}
+	sockaddr Network::Address::GetSockAddr()
+	{
+		sockaddr addr;
+		this->ToSockAddr(&addr);
+		return addr;
+	}
+	void Network::Address::ToSockAddr(sockaddr* addr)
+	{
+		if (addr)
+		{
+			Game::NetadrToSockadr(&this->address, addr);
+		}
+	}
+	void Network::Address::ToSockAddr(sockaddr_in* addr)
+	{
+		this->ToSockAddr(reinterpret_cast<sockaddr*>(addr));
+	}
 	Game::netadr_t* Network::Address::Get()
 	{
 		return &this->address;
 	}
-	const char* Network::Address::GetString()
+	const char* Network::Address::GetCString()
 	{
 		return Game::NET_AdrToString(this->address);
+	}
+	std::string Network::Address::GetString()
+	{
+		return this->GetCString();
 	}
 	bool Network::Address::IsLocal()
 	{

@@ -218,6 +218,9 @@ namespace Game
 	typedef int(__cdecl * MSG_WriteBitsCompress_t)(bool trainHuffman, const char *from, char *to, int size);
 	extern MSG_WriteBitsCompress_t MSG_WriteBitsCompress;
 
+	typedef void(__cdecl * NetadrToSockadr_t)(netadr_t *a, sockaddr *s);
+	extern NetadrToSockadr_t NetadrToSockadr;
+
 	typedef const char* (__cdecl * NET_AdrToString_t)(netadr_t adr);
 	extern NET_AdrToString_t NET_AdrToString;
 
@@ -331,6 +334,9 @@ namespace Game
 
 	typedef void(__cdecl * SND_InitDriver_t)();
 	extern SND_InitDriver_t SND_InitDriver;
+
+	typedef void(__cdecl * SockadrToNetadr_t)(sockaddr *s, netadr_t *a);
+	extern SockadrToNetadr_t SockadrToNetadr;
 
 	typedef void(__cdecl * Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;
