@@ -63,7 +63,7 @@
 
 #include <zlib.h>
 #include <curses.h>
-//#include <asio.hpp>
+#include <mongoose.h>
 #include <json11.hpp>
 #include <tomcrypt.h>
 #include <wink/signal.hpp>

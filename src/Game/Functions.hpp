@@ -18,6 +18,9 @@ namespace Game
 	typedef void(__cdecl * CL_ConnectFromParty_t)(int controllerIndex, _XSESSION_INFO *hostInfo, netadr_t addr, int numPublicSlots, int numPrivateSlots, const char *mapname, const char *gametype);
 	extern CL_ConnectFromParty_t CL_ConnectFromParty;
 
+	typedef void(__cdecl * CL_DownloadsComplete_t)(int controller);
+	extern CL_DownloadsComplete_t CL_DownloadsComplete;
+
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* name, void(*callback), cmd_function_t* data, char);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 

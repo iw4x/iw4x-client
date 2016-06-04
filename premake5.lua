@@ -148,13 +148,13 @@ workspace "iw4x"
 		filter {}
 
 		-- Dependency libraries
-		links { "zlib", "json11", "pdcurses", "libtomcrypt", "libtommath", "protobuf" }
+		links { "zlib", "json11", "pdcurses", "libtomcrypt", "libtommath", "protobuf", "mongoose" }
 		includedirs 
 		{
 			"./deps/zlib",
 			"./deps/json11", 
 			"./deps/pdcurses", 
-			"./deps/asio/asio/include",
+			"./deps/mongoose",
 			"./deps/libtomcrypt/src/headers",
 			"./deps/libtommath",
 			"./deps/protobuf/src",
@@ -253,6 +253,23 @@ workspace "iw4x"
 			
 			-- remove dropbox's testing code
 			removefiles { "./deps/json11/test.cpp" }
+
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			-- always build as static lib, as json11 doesn't export anything
+			kind "StaticLib"
+			
+			
+		-- json11
+		project "mongoose"
+			language "C"
+
+			files
+			{
+				"./deps/mongoose/*.c",
+				"./deps/mongoose/*.h"
+			}
 
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
