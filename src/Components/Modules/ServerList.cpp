@@ -688,6 +688,18 @@ namespace Components
 		{
 			ServerList::StoreFavourite(Dvar::Var("ui_favoriteAddress").Get<std::string>());
 		});
+		UIScript::Add("CreateCurrentServerFavorite", []()
+		{
+			if (Dvar::Var("cl_ingame").Get<bool>())
+			{
+				Network::Address address(reinterpret_cast<Game::netadr_t*>(0xA1E888));
+				std::string addressText = address.GetString();
+				if (addressText != "0.0.0.0:0")
+				{
+					ServerList::StoreFavourite(addressText);
+				}
+			}
+		});
 
 		// Add required ownerDraws
 		UIScript::AddOwnerDraw(220, ServerList::UpdateSource);
