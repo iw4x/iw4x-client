@@ -100,6 +100,54 @@ namespace Components
 		}
 	}
 
+	Utils::InfoString ServerInfo::GetInfo()
+	{
+		int maxclientCount = *Game::svs_numclients;
+
+		if (!maxclientCount)
+		{
+			//maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
+			maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
+		}
+
+		Utils::InfoString info(Game::Dvar_InfoString_Big(1024));
+		info.Set("gamename", "IW4");
+		info.Set("sv_maxclients", Utils::VA("%i", maxclientCount));
+		info.Set("protocol", Utils::VA("%i", PROTOCOL));
+		info.Set("shortversion", VERSION_STR);
+		info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
+		info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
+
+		std::string time = Utils::VA("%u", Game::Com_Milliseconds());
+		info.Set("checksum", Utils::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(time.data(), time.size())));
+
+		// Ensure mapname is set
+		if (info.Get("mapname").empty())
+		{
+			info.Set("mapname", Dvar::Var("ui_mapname").Get<const char*>());
+		}
+
+		// Set matchtype
+		// 0 - No match, connecting not possible
+		// 1 - Party, use Steam_JoinLobby to connect
+		// 2 - Match, use CL_ConnectFromParty to connect
+
+		if (Dvar::Var("party_enable").Get<bool>() && Dvar::Var("party_host").Get<bool>()) // Party hosting
+		{
+			info.Set("matchtype", "1");
+		}
+		else if (Dvar::Var("sv_running").Get<bool>()) // Match hosting
+		{
+			info.Set("matchtype", "2");
+		}
+		else
+		{
+			info.Set("matchtype", "0");
+		}
+
+		return info;
+	}
+
 	ServerInfo::ServerInfo()
 	{
 		ServerInfo::PlayerContainer.CurrentPlayer = 0;
@@ -119,60 +167,18 @@ namespace Components
 
 		Network::Handle("getStatus", [] (Network::Address address, std::string data)
 		{
-			bool isInLobby = false;
-			int maxclientCount = *Game::svs_numclients;
-
-			if(!maxclientCount)
-			{
-				isInLobby = true;
-
-				//maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
-				maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
-			}
-
-			Utils::InfoString info(Game::Dvar_InfoString_Big(1024));
-			info.Set("challenge", Utils::ParseChallenge(data));
-			info.Set("gamename", "IW4");
-			info.Set("sv_maxclients", Utils::VA("%i", maxclientCount));
-			info.Set("protocol", Utils::VA("%i", PROTOCOL));
-			info.Set("shortversion", VERSION_STR);
-			info.Set("checksum", Utils::VA("%d", Game::Com_Milliseconds()));
-			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
-			info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
-
-			// Ensure mapname is set
-			if (info.Get("mapname").empty())
-			{
-				info.Set("mapname", Dvar::Var("ui_mapname").Get<const char*>());
-			}
-
-			// Set matchtype
-			// 0 - No match, connecting not possible
-			// 1 - Party, use Steam_JoinLobby to connect
-			// 2 - Match, use CL_ConnectFromParty to connect
-
-			if (Dvar::Var("party_enable").Get<bool>() && Dvar::Var("party_host").Get<bool>()) // Party hosting
-			{
-				info.Set("matchtype", "1");
-			}
-			else if (Dvar::Var("sv_running").Get<bool>()) // Match hosting
-			{
-				info.Set("matchtype", "2");
-			}
-			else
-			{
-				info.Set("matchtype", "0");
-			}
-
 			std::string playerList;
 
-			for (int i = 0; i < maxclientCount; ++i) // Maybe choose 18 here? 
+			Utils::InfoString info = ServerInfo::GetInfo();
+			info.Set("challenge", Utils::ParseChallenge(data));
+
+			for (int i = 0; i < atoi(info.Get("sv_maxclients").data()); ++i) // Maybe choose 18 here? 
 			{
 				int score = 0;
 				int ping = 0;
 				std::string name;
 
-				if (!isInLobby)
+				if (Dvar::Var("sv_running").Get<bool>())
 				{
 					if (Game::svs_clients[i].state < 3) continue;
 

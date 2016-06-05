@@ -150,6 +150,61 @@ namespace Components
 		}
 	}
 
+	void Download::InfoHandler(mg_connection *nc, int ev, void *ev_data)
+	{
+		// Only handle http requests
+		if (ev != MG_EV_HTTP_REQUEST) return;
+
+		//http_message* message = reinterpret_cast<http_message*>(ev_data);
+
+		Utils::InfoString status = ServerInfo::GetInfo();
+
+		std::map<std::string, json11::Json> info;
+		info["status"] = status.to_json();
+
+		std::vector<json11::Json> players;
+
+		// Build player list
+		for (int i = 0; i < atoi(status.Get("sv_maxclients").data()); ++i) // Maybe choose 18 here? 
+		{
+			std::map<std::string, json11::Json> playerInfo;
+			playerInfo["score"] = 0;
+			playerInfo["ping"] = 0;
+			playerInfo["name"] = "";
+
+			if (Dvar::Var("sv_running").Get<bool>())
+			{
+				if (Game::svs_clients[i].state < 3) continue;
+
+				playerInfo["score"] = Game::SV_GameClientNum_Score(i);
+				playerInfo["ping"] = Game::svs_clients[i].ping;
+				playerInfo["name"] = Game::svs_clients[i].name;
+			}
+			else
+			{
+				// Score and ping are irrelevant
+				const char* namePtr = Game::PartyHost_GetMemberName(reinterpret_cast<Game::PartyData_t*>(0x1081C00), i);
+				if (!namePtr || !namePtr[0]) continue;
+
+				playerInfo["name"] = namePtr;
+			}
+
+			players.push_back(playerInfo);
+		}
+
+		info["players"] = players;
+
+		mg_printf(nc,
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: application/json\r\n"
+			"Connection: close\r\n"
+			"Access-Control-Allow-Origin: *\r\n"
+			"\r\n"
+			"%s", json11::Json(info).dump().data());
+
+		nc->flags |= MG_F_SEND_AND_CLOSE;
+	}
+
 	void Download::EventHandler(mg_connection *nc, int ev, void *ev_data)
 	{
 		// Only handle http requests
@@ -194,7 +249,8 @@ namespace Components
 			{
 				mg_connection* nc = mg_bind(&Download::Mgr, Utils::VA("%hu", (Dvar::Var("net_port").Get<int>() & 0xFFFF)), Download::EventHandler);
 
-				// Handle list requests
+				// Handle special requests
+				mg_register_http_endpoint(nc, "/info", Download::InfoHandler);
 				mg_register_http_endpoint(nc, "/list", Download::ListHandler);
 				mg_register_http_endpoint(nc, "/file", Download::FileHandler);
 

@@ -7,6 +7,8 @@ namespace Components
 		~ServerInfo();
 		const char* GetName() { return "ServerInfo"; };
 
+		static Utils::InfoString GetInfo();
+
 	private:
 		struct Container
 		{

@@ -37,6 +37,8 @@ namespace Utils
 
 		void Dump();
 
+		json11::Json to_json();
+
 	private:
 		std::map<std::string, std::string> KeyValuePairs;
 		void Parse(std::string buffer);

@@ -235,6 +235,11 @@ namespace Utils
 		}
 	}
 
+	json11::Json InfoString::to_json()
+	{
+		return this->KeyValuePairs;
+	}
+
 	void InfoString::Parse(std::string buffer)
 	{
 		if (buffer[0] == '\\')
