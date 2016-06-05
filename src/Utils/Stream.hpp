@@ -9,6 +9,31 @@ namespace Utils
 		std::string Buffer;
 
 	public:
+		class Reader
+		{
+		public:
+			Reader(Utils::Memory::Allocator* allocator, std::string& buffer) : Buffer(buffer), Allocator(allocator), Position(0) {}
+
+			std::string ReadString();
+			const char* ReadCString();
+
+			char ReadByte();
+
+			void* Read(size_t size, size_t count = 1);
+			template <typename T> T* ReadArray(size_t count = 1)
+			{
+				return reinterpret_cast<T*>(Read(sizeof(T), count));
+			}
+
+			bool End();
+			void Seek(unsigned int position);
+
+		private:
+			unsigned int Position;
+			std::string Buffer;
+			Utils::Memory::Allocator* Allocator;
+		};
+
 		enum Alignment
 		{
 			ALIGN_2,

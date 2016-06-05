@@ -116,7 +116,7 @@ namespace Components
 		info.Set("protocol", Utils::VA("%i", PROTOCOL));
 		info.Set("shortversion", VERSION_STR);
 		info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
-		info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
+		info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().empty() ? "0" : "1"));
 
 		std::string time = Utils::VA("%u", Game::Com_Milliseconds());
 		info.Set("checksum", Utils::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(time.data(), time.size())));

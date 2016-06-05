@@ -2,6 +2,63 @@
 
 namespace Utils
 {
+	std::string Stream::Reader::ReadString()
+	{
+		std::string str;
+
+		while (char byte = Stream::Reader::ReadByte())
+		{
+			str.append(&byte, 1);
+		}
+
+		return str;
+	}
+
+	const char* Stream::Reader::ReadCString()
+	{
+		return Stream::Reader::Allocator->DuplicateString(Stream::Reader::ReadString());
+	}
+
+	char Stream::Reader::ReadByte()
+	{
+		if ((Stream::Reader::Position + 1) <= Stream::Reader::Buffer.size())
+		{
+			return Stream::Reader::Buffer[Stream::Reader::Position++];
+		}
+
+		return 0;
+	}
+
+	void* Stream::Reader::Read(size_t size, size_t count)
+	{
+		size_t bytes = size * count;
+
+		if ((Stream::Reader::Position + bytes) <= Stream::Reader::Buffer.size())
+		{
+			void* buffer = Stream::Reader::Allocator->Allocate(bytes);
+
+			std::memcpy(buffer, Stream::Reader::Buffer.data() + Stream::Reader::Position, bytes);
+			Stream::Reader::Position += bytes;
+
+			return buffer;
+		}
+
+		return nullptr;
+	}
+
+	bool Stream::Reader::End()
+	{
+		return (Stream::Reader::Buffer.size() == Stream::Reader::Position);
+	}
+
+	void Stream::Reader::Seek(unsigned int position)
+	{
+		if (Stream::Reader::Buffer.size() >= position)
+		{
+			Stream::Reader::Position = position;
+		}
+	}
+
 	Stream::Stream() : CriticalSectionState(0)
 	{
 		memset(Stream::BlockSize, 0, sizeof(Stream::BlockSize));

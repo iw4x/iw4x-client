@@ -1605,7 +1605,7 @@ namespace Game
 
 	struct XAnimParts
 	{
-		char * name; // 0
+		const char * name; // 0
 		unsigned short dataByteCount; // 4
 		unsigned short dataShortCount; // 6
 		unsigned short dataIntCount; // 8

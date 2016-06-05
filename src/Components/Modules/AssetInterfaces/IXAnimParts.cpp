@@ -2,6 +2,94 @@
 
 namespace Assets
 {
+	void IXAnimParts::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	{
+		Components::FileSystem::File animFile(Utils::VA("xanim/%s.iw4xAnim", name.data()));
+
+		if (animFile.Exists())
+		{
+			Utils::Stream::Reader reader(builder->GetAllocator(), animFile.GetBuffer());
+
+			Game::XAnimParts* xanim = reader.ReadArray<Game::XAnimParts>();
+
+			if (xanim)
+			{
+				if (xanim->name)
+				{
+					xanim->name = reader.ReadCString();
+				}
+
+				if (xanim->tagnames)
+				{
+					xanim->tagnames = builder->GetAllocator()->AllocateArray<short>(xanim->boneCount[Game::XAnimPartType::PART_TYPE_ALL]);
+					for (int i = 0; i < xanim->boneCount[Game::XAnimPartType::PART_TYPE_ALL]; ++i)
+					{
+						xanim->tagnames[i] = Game::SL_GetString(reader.ReadCString(), 0);
+					}
+				}
+
+				if (xanim->notetracks)
+				{
+					xanim->notetracks = reader.ReadArray<Game::XAnimNotifyInfo>(xanim->notetrackCount);
+
+					for (int i = 0; i < xanim->notetrackCount; ++i)
+					{
+						xanim->notetracks[i].name = Game::SL_GetString(reader.ReadCString(), 0);
+					}
+				}
+
+				if (xanim->dataByte)
+				{
+					xanim->dataByte = reader.ReadArray<char>(xanim->dataByteCount);
+				}
+
+				if (xanim->dataShort)
+				{
+					xanim->dataShort = reader.ReadArray<short>(xanim->dataShortCount);
+				}
+
+				if (xanim->dataInt)
+				{
+					xanim->dataInt = reader.ReadArray<int>(xanim->dataIntCount);
+				}
+
+				if (xanim->randomDataByte)
+				{
+					xanim->randomDataByte = reader.ReadArray<char>(xanim->randomDataByteCount);
+				}
+
+				if (xanim->randomDataShort)
+				{
+					xanim->randomDataShort = reader.ReadArray<short>(xanim->randomDataShortCount);
+				}
+
+				if (xanim->randomDataInt)
+				{
+					xanim->randomDataInt = reader.ReadArray<int>(xanim->randomDataIntCount);
+				}
+
+				if (xanim->indices.data)
+				{
+					if (xanim->framecount < 256)
+					{
+						xanim->indices._1 = reader.ReadArray<char>(xanim->indexcount);
+					}
+					else
+					{
+						xanim->indices._2 = reader.ReadArray<unsigned short>(xanim->indexcount);
+					}
+				}
+
+				if (!reader.End())
+				{
+					Components::Logger::Error(0, "Reading animation '%s' failed, remaining raw data found!", name.data());
+				}
+
+				header->xanim = xanim;
+			}
+		}
+	}
+
 	void IXAnimParts::Mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::XAnimParts* asset = header.xanim;
