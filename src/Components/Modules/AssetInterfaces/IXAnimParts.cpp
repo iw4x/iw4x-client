@@ -238,11 +238,11 @@ namespace Assets
 			if (asset->framecount > 0xFF)
 			{
 				buffer->Align(Utils::Stream::ALIGN_2);
-				buffer->SaveArray(dest->indices._2, asset->framecount);
+				buffer->SaveArray(asset->indices._2, asset->indexcount);
 			}
 			else
 			{
-				buffer->SaveArray(dest->indices._1, asset->framecount);
+				buffer->SaveArray(asset->indices._1, asset->indexcount);
 			}
 
 			dest->indices.data = reinterpret_cast<void*>(-1);

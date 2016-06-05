@@ -104,11 +104,11 @@ namespace Components
 
 		http_message* message = reinterpret_cast<http_message*>(ev_data);
 
-		// 		if (!Download::IsClient(nc))
-		// 		{
-		// 			Download::Forbid(nc);
-		// 		}
-		// 		else
+// 		if (!Download::IsClient(nc))
+// 		{
+// 			Download::Forbid(nc);
+// 		}
+// 		else
 		{
 			std::string url(message->uri.p, message->uri.len);
 			Utils::Replace(url, "\\", "/");
@@ -157,30 +157,28 @@ namespace Components
 
 		http_message* message = reinterpret_cast<http_message*>(ev_data);
 
-		if (std::string(message->uri.p, message->uri.len) == "/")
+// 		if (std::string(message->uri.p, message->uri.len) == "/")
+// 		{
+// 			mg_printf(nc, 
+// 				"HTTP/1.1 200 OK\r\n"
+// 				"Content-Type: text/html\r\n"
+// 				"Connection: close\r\n"
+// 				"\r\n"
+// 				"Hi fella!<br>You are%s connected to this server!", (Download::IsClient(nc) ? " " : " not"));
+// 
+// 			Game::client_t* client = Download::GetClient(nc);
+// 
+// 			if (client)
+// 			{
+// 				mg_printf(nc, "<br>Hello %s!", client->name);
+// 			}
+// 		}
+// 		else
 		{
-			mg_printf(nc, 
-				"HTTP/1.1 200 OK\r\n"
-				"Content-Type: text/html\r\n"
-				"Connection: close\r\n"
-				"\r\n"
-				"Hi fella!<br>You are%s connected to this server!", (Download::IsClient(nc) ? " " : " not"));
-
-			Game::client_t* client = Download::GetClient(nc);
-
-			if (client)
-			{
-				mg_printf(nc, "<br>Hello %s!", client->name);
-			}
-		}
-		else
-		{
-			mg_printf(nc, "%s",
-				"HTTP/1.1 404 Not Found\r\n"
-				"Content-Type: text/html\r\n"
-				"Connection: close\r\n"
-				"\r\n"
-				"404 - Not Found");
+			std::string path = (Dvar::Var("fs_basepath").Get<std::string>() + "\\" BASEGAME "\\html");
+			mg_serve_http_opts opts = { 0 };
+			opts.document_root = path.data();
+			mg_serve_http(nc, message, opts);
 		}
 
 		nc->flags |= MG_F_SEND_AND_CLOSE;
