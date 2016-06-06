@@ -7,10 +7,10 @@ namespace Components
 		class File
 		{
 		public:
-			//File() {};
+			File() {};
 			File(std::string file) : FilePath(file) { this->Read(); };
 
-			bool Exists() { return this->Buffer.size() > 0; };
+			bool Exists() { return !this->Buffer.empty(); };
 			std::string GetName() { return this->FilePath; };
 			std::string& GetBuffer() { return this->Buffer; };
 
@@ -45,6 +45,11 @@ namespace Components
 		static void DeleteFile(std::string folder, std::string file);
 
 	private:
+
+		static void RegisterFolder(const char* folder);
+
+		static void RegisterFolders();
+		static void StartupStub();
 		static int ExecIsFSStub(const char* execFilename);
 	};
 }

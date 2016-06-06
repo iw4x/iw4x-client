@@ -2,6 +2,7 @@
 
 namespace Utils
 {
+	std::string GetMimeType(std::string url);
 	const char *VA(const char *fmt, ...);
 	std::string StrToLower(std::string input);
 	bool EndsWith(std::string haystack, std::string needle);

@@ -97,6 +97,37 @@ namespace Components
 		Game::FS_Remove(path);
 	}
 
+	void FileSystem::RegisterFolder(const char* folder)
+	{
+		const char* fs_cdpath = Dvar::Var("fs_cdpath").Get<const char*>();
+		const char* fs_basepath = Dvar::Var("fs_basepath").Get<const char*>();
+		const char* fs_homepath = Dvar::Var("fs_homepath").Get<const char*>();
+
+		if (fs_cdpath)   Game::FS_AddLocalizedGameDirectory(fs_cdpath, folder);
+		if (fs_basepath) Game::FS_AddLocalizedGameDirectory(fs_basepath, folder);
+		if (fs_homepath) Game::FS_AddLocalizedGameDirectory(fs_homepath, folder);
+	}
+
+	void FileSystem::RegisterFolders()
+	{
+		FileSystem::RegisterFolder("userraw");
+	}
+
+	void __declspec(naked) FileSystem::StartupStub()
+	{
+		__asm
+		{
+			push esi
+			call FileSystem::RegisterFolders
+			pop esi
+
+			mov edx, ds:63D0CC0h
+
+			mov eax, 48264Dh
+			jmp eax
+		}
+	}
+
 	int FileSystem::ExecIsFSStub(const char* execFilename)
 	{
 		return !File(execFilename).Exists();
@@ -106,6 +137,9 @@ namespace Components
 	{
 		// Filesystem config checks
 		Utils::Hook(0x6098FD, FileSystem::ExecIsFSStub, HOOK_CALL).Install()->Quick();
+
+		// Register additional folders
+		Utils::Hook(0x482647, FileSystem::StartupStub, HOOK_JUMP).Install()->Quick();
 
 		// exec whitelist removal (YAYFINITY WARD)
 		Utils::Hook::Nop(0x609685, 5);

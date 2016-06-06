@@ -230,10 +230,54 @@ namespace Components
 // 		}
 // 		else
 		{
-			std::string path = (Dvar::Var("fs_basepath").Get<std::string>() + "\\" BASEGAME "\\html");
-			mg_serve_http_opts opts = { 0 };
-			opts.document_root = path.data();
-			mg_serve_http(nc, message, opts);
+			//std::string path = (Dvar::Var("fs_basepath").Get<std::string>() + "\\" BASEGAME "\\html");
+			//mg_serve_http_opts opts = { 0 };
+			//opts.document_root = path.data();
+			//mg_serve_http(nc, message, opts);
+
+			FileSystem::File file;
+			std::string url = "html" + std::string(message->uri.p, message->uri.len);
+
+			if (Utils::EndsWith(url, "/"))
+			{
+				url.append("index.html");
+				file = FileSystem::File(url);
+			}
+			else
+			{
+				file = FileSystem::File(url);
+
+				if (!file.Exists())
+				{
+					url.append("/index.html");
+					file = FileSystem::File(url);
+				}
+			}
+
+			std::string mimeType = Utils::GetMimeType(url);
+
+			if (file.Exists())
+			{
+				std::string& buffer = file.GetBuffer();
+
+				mg_printf(nc,
+					"HTTP/1.1 200 OK\r\n"
+					"Content-Type: %s\r\n"
+					"Content-Length: %d\r\n"
+					"Connection: close\r\n"
+					"\r\n", mimeType.data(), buffer.size());
+
+				mg_send(nc, buffer.data(), static_cast<int>(buffer.size()));
+			}
+			else
+			{
+				mg_printf(nc,
+					"HTTP/1.1 404 Not Found\r\n"
+					"Content-Type: text/html\r\n"
+					"Connection: close\r\n"
+					"\r\n"
+					"404 - Not Found");
+			}
 		}
 
 		nc->flags |= MG_F_SEND_AND_CLOSE;

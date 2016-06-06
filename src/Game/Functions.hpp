@@ -127,6 +127,9 @@ namespace Game
 	typedef int(__cdecl * FS_FOpenFileRead_t)(const char* file, int* fh, int uniqueFile);
 	extern FS_FOpenFileRead_t FS_FOpenFileRead;
 
+	typedef int(__cdecl * FS_FOpenFileReadForThread_t)(const char *filename, int *file, int thread);
+	extern FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread;
+
 	typedef int(__cdecl * FS_FCloseFile_t)(int fh);
 	extern FS_FCloseFile_t FS_FCloseFile;
 
@@ -437,6 +440,8 @@ namespace Game
 	const char *DB_GetXAssetName(XAsset *asset);
 	XAssetType DB_GetXAssetNameType(const char* name);
 	bool DB_IsZoneLoaded(const char* zone);
+
+	void FS_AddLocalizedGameDirectory(const char *path, const char *dir);
 
 	void MessageBox(std::string message, std::string title);
 

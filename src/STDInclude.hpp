@@ -21,6 +21,7 @@
 #include <shlwapi.h>
 #include <WinSock2.h>
 #include <Wininet.h>
+#include <Urlmon.h>
 #include <d3d9.h>
 
 #include <map>
@@ -101,6 +102,7 @@
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "Wininet.lib")
 #pragma comment(lib, "shlwapi.lib")
+#pragma comment(lib, "Urlmon.lib")
 
 // Enable additional literals
 using namespace std::literals;

@@ -57,6 +57,7 @@ namespace Game
 	FS_FOpenFileAppend_t FS_FOpenFileAppend = (FS_FOpenFileAppend_t)0x410BB0;
 	FS_FOpenFileAppend_t FS_FOpenFileWrite = (FS_FOpenFileAppend_t)0x4BA530;
 	FS_FOpenFileRead_t FS_FOpenFileRead = (FS_FOpenFileRead_t)0x46CBF0;
+	FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = (FS_FOpenFileReadForThread_t)0x643270;
 	FS_FCloseFile_t FS_FCloseFile = (FS_FCloseFile_t)0x462000;
 	FS_WriteFile_t FS_WriteFile = (FS_WriteFile_t)0x426450;
 	FS_Write_t FS_Write = (FS_Write_t)0x4C06E0;
@@ -327,6 +328,17 @@ namespace Game
 		}
 
 		return false;
+	}
+
+	void FS_AddLocalizedGameDirectory(const char *path, const char *dir)
+	{
+		__asm
+		{
+			mov ebx, path
+			mov eax, dir
+			mov ecx, 642EF0h
+			call ecx
+		}
 	}
 
 	void MessageBox(std::string message, std::string title)
