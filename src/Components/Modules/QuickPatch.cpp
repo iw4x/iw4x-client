@@ -306,6 +306,24 @@ namespace Components
 		{
 			QuickPatch::UnlockStats();
 		});
+
+
+		// Debug patches
+#ifdef DEBUG
+		// ui_debugMode 1
+		//Utils::Hook::Set<bool>(0x6312E0, true);
+
+		// fs_debug 1
+		Utils::Hook::Set<bool>(0x643172, true);
+
+		// developer 2
+		Utils::Hook::Set<BYTE>(0x4FA425, 2);
+		Utils::Hook::Set<BYTE>(0x51B087, 2);
+		Utils::Hook::Set<BYTE>(0x60AE13, 2);
+
+		// developer_Script 1
+		Utils::Hook::Set<bool>(0x60AE2B, true);
+#endif
 	}
 
 	QuickPatch::~QuickPatch()

@@ -46,6 +46,7 @@ Assert_Size(char, 1);
 Assert_Size(unsigned char, 1);
 Assert_Size(int8_t, 1);
 Assert_Size(uint8_t, 1);
+Assert_Size(bool, 1);
 
 // Ensure pointers are 4 bytes in size (32-bit)
 static_assert(sizeof(intptr_t) == 4 && sizeof(void*) == 4 && sizeof(size_t) == 4, "This doesn't seem to be a 32-bit environment!");
