@@ -23,32 +23,25 @@ namespace Components
 
 	void Logger::MessagePrint(int channel, std::string message)
 	{
-		if (Flags::HasFlag("stdout"))
+		if (Flags::HasFlag("stdout") || Loader::PerformingUnitTests())
 		{
 			printf("%s", message.data());
 			fflush(stdout);
+			return;
 		}
-		else if (Logger::IsConsoleReady())
+
+		if (!Logger::IsConsoleReady())
 		{
-			if (!Game::Sys_IsMainThread())
-			{
-				Logger::EnqueueMessage(message);
-			}
-			else
-			{
-				Game::Com_PrintMessage(0, message.data(), 0);
-			}
+			OutputDebugStringA(message.data());
+		}
+
+		if (!Game::Sys_IsMainThread())
+		{
+			Logger::EnqueueMessage(message);
 		}
 		else
 		{
-			// Only print to stdout, when doing unit tests
-			if (Loader::PerformingUnitTests())
-			{
-				printf("%s", message.data());
-				fflush(stdout);
-			}
-
-			OutputDebugStringA(message.data());
+			Game::Com_PrintMessage(0, message.data(), 0);
 		}
 	}
 
@@ -90,11 +83,9 @@ namespace Components
 
 		for (unsigned int i = 0; i < Logger::MessageQueue.size(); ++i)
 		{
-			if (Logger::IsConsoleReady())
-			{
-				Game::Com_PrintMessage(0, Logger::MessageQueue[i].data(), 0);
-			}
-			else
+			Game::Com_PrintMessage(0, Logger::MessageQueue[i].data(), 0);
+
+			if (!Logger::IsConsoleReady())
 			{
 				OutputDebugStringA(Logger::MessageQueue[i].data());
 			}
