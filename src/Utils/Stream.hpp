@@ -24,6 +24,17 @@ namespace Utils
 			{
 				return reinterpret_cast<T*>(Read(sizeof(T), count));
 			}
+			template <typename T> T Read()
+			{
+				T obj;
+
+				for (unsigned int i = 0; i < sizeof(T); ++i)
+				{
+					reinterpret_cast<char*>(&obj)[i] = ReadByte();
+				}
+
+				return obj;
+			}
 
 			bool End();
 			void Seek(unsigned int position);

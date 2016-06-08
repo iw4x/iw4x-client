@@ -93,8 +93,8 @@ namespace Assets
 
 				textureDef.semantic = 0; // No water image
 				textureDef.sampleState = -30;
-				textureDef.nameEnd = map.string_value().data()[map.string_value().size() - 1];
-				textureDef.nameStart = map.string_value().data()[0];
+				textureDef.nameEnd = map.string_value().back();
+				textureDef.nameStart = map.string_value().front();
 				textureDef.nameHash = Game::R_HashString(map.string_value().data());
 
 				textureDef.info.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, image.string_value(), builder).image;

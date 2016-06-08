@@ -1304,7 +1304,8 @@ namespace Game
 
 	struct XSurfaceCollisionTree
 	{
-		char pad[24];
+		float trans[3];
+		float scale[3];
 		int numNode;
 		char* node; // el size 16
 		int numLeaf;
@@ -1313,8 +1314,10 @@ namespace Game
 
 	struct XRigidVertList
 	{
-		int pad;
-		int pad2;
+		unsigned short boneOffset;
+		unsigned short vertCount;
+		unsigned short triOffset;
+		unsigned short triCount;
 		XSurfaceCollisionTree* entry;
 	};
 
@@ -1371,7 +1374,9 @@ namespace Game
 		short numSurfs; // +4
 		short pad2;// +6
 		XModelSurfs* surfaces; // +8
-		char pad3[32]; // +12
+		char pad3[24];
+		XSurface* surfs;
+		char pad4[4]; // +12
 	};
 
 	struct cplane_t
@@ -1461,9 +1466,15 @@ namespace Game
 		bool tempDefaultToCylinder;
 	};
 
+	struct XBoneInfo
+	{
+		float bounds[2][3];
+		float radiusSquared;
+	};
+
 	struct XModel
 	{
-		char* name; // +0
+		const char* name; // +0
 		char numBones; // +4
 		char numRootBones; // +5
 		char numSurfaces; // +6
@@ -1477,15 +1488,51 @@ namespace Game
 		DObjAnimMat* animMatrix; // +56, element size 32
 		Material** materials; // +60
 		XModelLodInfo lods[4]; // +64
-		int pad4; // +240
+		char pad4;
+		char numLods;
+		short collLod;
 		XModelCollSurf* colSurf; // +244
 		int numColSurfs; // +248
-		int pad6;
-		char* boneInfo; // bone count, +256, element size 28
-		char pad5[36];
+		int contents;
+		XBoneInfo* boneInfo; // bone count, +256, element size 28
+		char pad7[36];
 		PhysPreset* physPreset;
 		PhysCollmap* physCollmap;
 	}; // total size 304
+
+	struct DSkelPartBits
+	{
+		int anim[4];
+		int control[4];
+		int skel[4];
+	};
+
+	struct DSkel
+	{
+		DSkelPartBits partBits;
+		int timeStamp;
+		DObjAnimMat *mat;
+	};
+
+#pragma pack(push, 2)
+	struct DObj
+	{
+		/*XAnimTree_s*/void *tree;
+		unsigned __int16 duplicateParts;
+		unsigned __int16 entnum;
+		char duplicatePartsSize;
+		char numModels;
+		char numBones;
+		char pad;
+		unsigned int ignoreCollision;
+		volatile int locked;
+		DSkel skel;
+		float radius;
+		int hidePartBits[4];
+		char pad2[56];
+		XModel **models;
+	};
+#pragma pack(pop)
 
 	union XAnimDynamicIndices
 	{
