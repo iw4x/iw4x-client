@@ -45,6 +45,9 @@ namespace Game
 	typedef char* (__cdecl * Com_ParseExt_t)(const char **data_p);
 	extern Com_ParseExt_t Com_ParseExt;
 
+	typedef char* (__cdecl * Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
+	extern Con_DrawMiniConsole_t Con_DrawMiniConsole;
+
 	typedef void(__cdecl * DB_EnumXAssets_t)(XAssetType type, void(*)(XAssetHeader, void *), void* userdata, bool overrides);
 	extern DB_EnumXAssets_t DB_EnumXAssets;
 

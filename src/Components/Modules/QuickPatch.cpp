@@ -323,6 +323,16 @@ namespace Components
 
 		// developer_Script 1
 		Utils::Hook::Set<bool>(0x60AE2B, true);
+
+		// Constantly draw the mini console
+		Utils::Hook::Set<BYTE>(0x412A45, 0xEB);
+		Renderer::OnFrame([] ()
+		{
+			if (*reinterpret_cast<Game::Font**>(0x62E4BAC))
+			{
+				Game::Con_DrawMiniConsole(0, 2, 4, (Game::CL_IsCgameInitialized() ? 1.0f : 0.4f));
+			}
+		});
 #endif
 	}
 

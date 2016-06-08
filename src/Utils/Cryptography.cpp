@@ -167,6 +167,11 @@ namespace Utils
 
 #pragma region JenkinsOneAtATime
 
+		unsigned int JenkinsOneAtATime::Compute(std::string data)
+		{
+			return JenkinsOneAtATime::Compute(data.data(), data.size());
+		}
+
 		unsigned int JenkinsOneAtATime::Compute(const char *key, size_t len)
 		{
 			unsigned int hash, i;

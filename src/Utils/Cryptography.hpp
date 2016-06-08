@@ -300,6 +300,7 @@ namespace Utils
 		class JenkinsOneAtATime
 		{
 		public:
+			static unsigned int Compute(std::string data);
 			static unsigned int Compute(const char *key, size_t len);
 		};
 	}

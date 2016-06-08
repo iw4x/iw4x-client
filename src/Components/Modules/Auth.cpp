@@ -140,8 +140,7 @@ namespace Components
 	unsigned int Auth::GetKeyHash()
 	{
 		Auth::LoadKey();
-		std::string key = Auth::GuidKey.GetPublicKey();
-		return (Utils::Cryptography::JenkinsOneAtATime::Compute(key.data(), key.size()));
+		return (Utils::Cryptography::JenkinsOneAtATime::Compute(Auth::GuidKey.GetPublicKey()));
 	}
 
 	void Auth::StoreKey()
@@ -337,7 +336,7 @@ namespace Components
 					}
 
 					// Check if guid matches the certificate
-					else if (id != (Utils::Cryptography::JenkinsOneAtATime::Compute(response.publickey().data(), response.publickey().size()) & ~0x80000000))
+					else if (id != (Utils::Cryptography::JenkinsOneAtATime::Compute(response.publickey()) & ~0x80000000))
 					{
 						info->state = Auth::STATE_INVALID;
 						Game::SV_KickClientError(client, "XUID doesn't match the certificate!");

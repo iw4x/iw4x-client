@@ -15,6 +15,11 @@ namespace Utils
 			}
 			~Allocator() 
 			{
+				this->Free();
+			}
+
+			void Free()
+			{
 				for (auto i = this->RefMemory.begin(); i != this->RefMemory.end(); ++i)
 				{
 					if (i->first && i->second)

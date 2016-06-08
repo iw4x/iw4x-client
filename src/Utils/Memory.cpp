@@ -6,6 +6,8 @@ namespace Utils
 	{
 		void* data = new char[length];
 
+		assert(data != nullptr);
+
 		if (data)
 		{
 			ZeroMemory(data, length);
@@ -23,7 +25,10 @@ namespace Utils
 
 	void Memory::Free(void* data)
 	{
-		delete[] data;
+		if (data)
+		{
+			delete[] data;
+		}
 	}
 
 	void Memory::Free(const void* data)

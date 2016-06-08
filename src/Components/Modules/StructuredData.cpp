@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	StructuredData* StructuredData::Singleton = nullptr;
+	Utils::Memory::Allocator StructuredData::MemAllocator;
 
 	const char* StructuredData::EnumTranslation[ENUM_MAX] =
 	{
@@ -43,7 +43,7 @@ namespace Components
 		unsigned int indexCount = dataEnum->numIndices + entries.size();
 
 		// Allocate new entries
-		Game::StructuredDataEnumEntry* indices = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(indexCount);
+		Game::StructuredDataEnumEntry* indices = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(indexCount);
 		memcpy(indices, dataEnum->indices, sizeof(Game::StructuredDataEnumEntry) * dataEnum->numIndices);
 
 		for (unsigned int i = 0; i < entries.size(); ++i)
@@ -71,7 +71,7 @@ namespace Components
 			}
 
 			indices[pos].index = i + lastIndex;
-			indices[pos].key = StructuredData::GetSingleton()->MemAllocator.DuplicateString(entries[i]);
+			indices[pos].key = StructuredData::MemAllocator.DuplicateString(entries[i]);
 		}
 
 		// Apply our patches
@@ -79,22 +79,10 @@ namespace Components
 		dataEnum->indices = indices;
 	}
 
-	StructuredData* StructuredData::GetSingleton()
-	{
-		if (!StructuredData::Singleton)
-		{
-			Logger::Error("StructuredData singleton is null!");
-		}
-
-		return StructuredData::Singleton;
-	}
-
 	StructuredData::StructuredData()
 	{
 		// Only execute this when building zones
 		if (!ZoneBuilder::IsEnabled()) return;
-
-		StructuredData::Singleton = this;
 
 		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string filename, bool* restrict)
 		{
@@ -169,7 +157,7 @@ namespace Components
 			if (patchDefinitions.empty()) return;
 
 			// Reallocate the definition
-			Game::StructuredDataDef* newData = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataDef>(data->count + patchDefinitions.size());
+			Game::StructuredDataDef* newData = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataDef>(data->count + patchDefinitions.size());
 			memcpy(&newData[patchDefinitions.size()], data->data, sizeof Game::StructuredDataDef * data->count);
 
 			// Prepare the buffers
@@ -179,7 +167,7 @@ namespace Components
 				newData[i].version = (patchDefinitions.size() - i) + 155;
 
 				// Reallocate the enum array
-				Game::StructuredDataEnum* newEnums = StructuredData::GetSingleton()->MemAllocator.AllocateArray<Game::StructuredDataEnum>(data->data->numEnums);
+				Game::StructuredDataEnum* newEnums = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataEnum>(data->data->numEnums);
 				memcpy(newEnums, data->data->enums, sizeof Game::StructuredDataEnum * data->data->numEnums);
 				newData[i].enums = newEnums;
 			}
@@ -220,6 +208,6 @@ namespace Components
 
 	StructuredData::~StructuredData()
 	{
-		StructuredData::Singleton = nullptr;
+		StructuredData::MemAllocator.Free();
 	}
 }

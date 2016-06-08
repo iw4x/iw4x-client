@@ -27,11 +27,7 @@ namespace Components
 
 	private:
 		static void PatchPlayerDataEnum(Game::StructuredDataDef* data, PlayerDataType type, std::vector<std::string>& entries);
-		static StructuredData* GetSingleton();
-
-		Utils::Memory::Allocator MemAllocator;
-
-		static StructuredData* Singleton;
+		static Utils::Memory::Allocator MemAllocator;
 
 		static const char* EnumTranslation[ENUM_MAX];
 	};

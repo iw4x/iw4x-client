@@ -8,6 +8,7 @@ namespace Components
 		const char* GetName() { return "StringTable"; };
 
 	private:
+		static Utils::Memory::Allocator MemAllocator;
 		static std::map<std::string, Game::StringTable*> StringTableMap;
 
 		static int Hash(const char* data);

@@ -38,6 +38,7 @@ namespace Components
 #include "Modules\Command.hpp"
 #include "Modules\Console.hpp"
 #include "Modules\IPCPipe.hpp"
+#include "Modules\ModList.hpp"
 #include "Modules\Network.hpp"
 #include "Modules\Theatre.hpp"
 #include "Modules\Node.hpp"
@@ -67,4 +68,3 @@ namespace Components
 #include "Modules\MusicalTalent.hpp"
 #include "Modules\StructuredData.hpp"
 #include "Modules\ConnectProtocol.hpp"
-#include "Modules\ModList.hpp"

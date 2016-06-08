@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	Utils::Memory::Allocator StringTable::MemAllocator;
 	std::map<std::string, Game::StringTable*> StringTable::StringTableMap;
 
 	int StringTable::Hash(const char* data)
@@ -27,19 +28,18 @@ namespace Components
 		{
 			Utils::CSV parsedTable(rawTable.GetBuffer(), false, false);
 
-			table = Utils::Memory::AllocateArray<Game::StringTable>(1);
+			table = StringTable::MemAllocator.AllocateArray<Game::StringTable>(1);
 
 			if (table)
 			{
-				table->name = Utils::Memory::DuplicateString(filename);
+				table->name = StringTable::MemAllocator.DuplicateString(filename);
 				table->columnCount = parsedTable.GetColumns();
 				table->rowCount = parsedTable.GetRows();
 
-				table->values = Utils::Memory::AllocateArray<Game::StringTableCell>(table->columnCount * table->rowCount);
+				table->values = StringTable::MemAllocator.AllocateArray<Game::StringTableCell>(table->columnCount * table->rowCount);
 
 				if (!table->values)
 				{
-					Utils::Memory::Free(table);
 					return nullptr;
 				}
 
@@ -49,7 +49,7 @@ namespace Components
 					{
 						Game::StringTableCell* cell = &table->values[i * table->columnCount + j];
 						cell->hash = StringTable::Hash(parsedTable.GetElementAt(i, j).data());
-						cell->string = Utils::Memory::DuplicateString(parsedTable.GetElementAt(i, j));
+						cell->string = StringTable::MemAllocator.DuplicateString(parsedTable.GetElementAt(i, j));
 						//if (!cell->string) cell->string = ""; // We have to assume it allocated successfully
 					}
 				}
@@ -86,28 +86,7 @@ namespace Components
 
 	StringTable::~StringTable()
 	{
-		for (auto i = StringTable::StringTableMap.begin(); i != StringTable::StringTableMap.end(); ++i)
-		{
-			Game::StringTable* table = i->second;
-			if (table)
-			{
-				if (table->values)
-				{
-					for (int j = 0; j < table->rowCount * table->columnCount; ++j)
-					{
-						if (table->values[j].string)
-						{
-							Utils::Memory::Free(table->values[j].string);
-						}
-					}
-
-					Utils::Memory::Free(table->values);
-				}
-
-				Utils::Memory::Free(table);
-			}
-		}
-
 		StringTable::StringTableMap.clear();
+		StringTable::MemAllocator.Free();
 	}
 }

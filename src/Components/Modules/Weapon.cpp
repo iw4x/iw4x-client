@@ -24,5 +24,8 @@ namespace Components
 		Utils::Hook::Nop(0x408228, 5); // find asset header
 		Utils::Hook::Nop(0x408230, 5); // is asset default
 		Utils::Hook::Nop(0x40823A, 2); // jump
+
+		// Skip double loading for fs_game
+		Utils::Hook::Set<BYTE>(0x4081FD, 0xEB);
 	}
 }

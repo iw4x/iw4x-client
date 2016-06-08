@@ -48,7 +48,7 @@ namespace Components
 		std::string compressedList = Utils::Compression::ZLib::Compress(Playlist::CurrentPlaylistBuffer);
 
 		Proto::Party::Playlist list;
-		list.set_hash(Utils::Cryptography::JenkinsOneAtATime::Compute(compressedList.data(), compressedList.size()));
+		list.set_hash(Utils::Cryptography::JenkinsOneAtATime::Compute(compressedList));
 		list.set_buffer(compressedList);
 
 		Network::SendCommand(address, "playlistResponse", list.SerializeAsString());
@@ -72,7 +72,7 @@ namespace Components
 				{
 					// Generate buffer and hash
 					std::string compressedData(list.buffer());
-					unsigned int hash = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedData.data(), compressedData.size());
+					unsigned int hash = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedData);
 
 					//Validate hashes
 					if (hash != list.hash())

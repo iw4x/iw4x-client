@@ -26,6 +26,7 @@ namespace Components
 		Loader::Register(new Command());
 		Loader::Register(new Console());
 		Loader::Register(new IPCPipe());
+		Loader::Register(new ModList());
 		Loader::Register(new Network());
 		Loader::Register(new Theatre());
 		Loader::Register(new Download());
@@ -51,7 +52,6 @@ namespace Components
 		Loader::Register(new MusicalTalent());
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
-		Loader::Register(new ModList());
 	}
 
 	void Loader::Uninitialize()
