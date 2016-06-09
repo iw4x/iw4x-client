@@ -12,7 +12,7 @@ namespace Assets
 
 			// Allocate new model and copy the base data to it
 			Game::XModel* model = builder->GetAllocator()->AllocateArray<Game::XModel>();
-			memcpy(model, baseModel, sizeof(Game::XModel));
+			std::memcpy(model, baseModel, sizeof(Game::XModel));
 
 			Utils::Stream::Reader reader(builder->GetAllocator(), modelFile.GetBuffer());
 
@@ -43,7 +43,7 @@ namespace Assets
 			Game::XSurface* baseSurface = &baseModel->lods[0].surfaces[0].surfaces[0];
 			Game::XModelSurfs* surf = builder->GetAllocator()->AllocateArray<Game::XModelSurfs>();
 
-			memcpy(surf, baseModel->lods[0].surfaces, sizeof(Game::XModelSurfs));
+			std::memcpy(surf, baseModel->lods[0].surfaces, sizeof(Game::XModelSurfs));
 			surf->name = builder->GetAllocator()->DuplicateString(Utils::VA("%s1", model->name));
 			surf->surfaces = builder->GetAllocator()->AllocateArray<Game::XSurface>(model->numSurfaces);
 			surf->numSurfaces = model->numSurfaces;
@@ -62,7 +62,7 @@ namespace Assets
 			for (int i = 0; i < surf->numSurfaces; ++i)
 			{
 				Game::XSurface* surface = &surf->surfaces[i];
-				memcpy(surface, baseSurface, sizeof(Game::XSurface));
+				std::memcpy(surface, baseSurface, sizeof(Game::XSurface));
 
 				surface->numVertices = reader.Read<unsigned short>();
 				surface->numPrimitives = reader.Read<unsigned short>();
@@ -103,7 +103,15 @@ namespace Assets
 			for (char i = 0; i < model->numSurfaces; ++i)
 			{
 				model->materials[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.ReadString(), builder).material;
-				model->materials[i] = baseModel->materials[0];
+
+				//if (i < 9)
+				{
+					model->materials[i] = baseModel->materials[0];
+				}
+// 				else
+// 				{
+// 					OutputDebugStringA(model->materials[i]->name);
+// 				}
 			}
 
 			// Read collision surfaces
@@ -198,6 +206,18 @@ namespace Assets
 		buffer->Save(asset, sizeof(Game::XModel));
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+
+// 		if (!strcmp(asset->name, "viewmodel_m40a3"))
+// 		{
+// 			for (char i = 0; i < asset->numBones; ++i)
+// 			{
+// 				OutputDebugStringA(Utils::VA("Bounds[%d][0]: %f - %X\n", i, asset->boneInfo[i].bounds[0], *(DWORD*)&asset->boneInfo[i].bounds[0]));
+// 				OutputDebugStringA(Utils::VA("Bounds[%d][1]: %f - %X\n", i, asset->boneInfo[i].bounds[1], *(DWORD*)&asset->boneInfo[i].bounds[1]));
+// 				OutputDebugStringA(Utils::VA("Bounds[%d][2]: %f - %X\n\n", i, asset->boneInfo[i].bounds[2], *(DWORD*)&asset->boneInfo[i].bounds[2]));
+// 			}
+// 
+// 			__debugbreak();
+// 		}
 
 		if (asset->name)
 		{

@@ -1468,7 +1468,8 @@ namespace Game
 
 	struct XBoneInfo
 	{
-		float bounds[2][3];
+		float offset[3];
+		float bounds[3];
 		float radiusSquared;
 	};
 
