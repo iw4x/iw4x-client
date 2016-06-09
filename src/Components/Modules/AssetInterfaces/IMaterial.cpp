@@ -45,8 +45,8 @@ namespace Assets
 		memcpy(material, baseMaterial, sizeof(Game::Material));
 		material->name = builder->GetAllocator()->DuplicateString(name);
 
-		material->textureAtlasRowCount = 0;
-		material->textureAtlasColumnCount = 0;
+		material->textureAtlasRowCount = 1;
+		material->textureAtlasColumnCount = 1;
 
 		// Load animation frames
 		auto anims = infoData["anims"];
@@ -71,6 +71,16 @@ namespace Assets
 			}
 		}
 
+		// Model surface textures are special, they need a special order and whatnot
+		bool replaceTexture = Utils::StartsWith(name, "mc/");
+		if (replaceTexture)
+		{
+			Game::MaterialTextureDef* textureTable = builder->GetAllocator()->AllocateArray<Game::MaterialTextureDef>(baseMaterial->textureCount);
+			std::memcpy(textureTable, baseMaterial->textureTable, sizeof(Game::MaterialTextureDef) * baseMaterial->textureCount);
+			material->textureTable = textureTable;
+			material->textureCount = baseMaterial->textureCount;
+		}
+
 		// Load referenced textures
 		auto textures = infoData["textures"];
 		if (textures.is_array())
@@ -87,7 +97,7 @@ namespace Assets
 
 				auto map = textureInfo[0];
 				auto image = textureInfo[1];
-				if(!map.is_string() || !image.is_string()) continue;
+				if (!map.is_string() || !image.is_string()) continue;
 
 				Game::MaterialTextureDef textureDef;
 
@@ -99,29 +109,54 @@ namespace Assets
 
 				textureDef.info.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, image.string_value(), builder).image;
 
-				textureList.push_back(textureDef);
+				if (replaceTexture)
+				{
+					bool applied = false;
+
+					for (char i = 0; i < baseMaterial->textureCount; ++i)
+					{
+						if (material->textureTable[i].nameHash == textureDef.nameHash)
+						{
+							applied = true;
+							material->textureTable[i].info.image = textureDef.info.image;
+							break;
+						}
+					}
+
+					if (!applied)
+					{
+						Components::Logger::Error(0, "Unable to find texture for map '%s' in %s!", map.string_value().data(), baseMaterial->name);
+					}
+				}
+				else
+				{
+					textureList.push_back(textureDef);
+				}
 			}
 
-			if (!textureList.empty())
+			if(!replaceTexture)
 			{
-				Game::MaterialTextureDef* textureTable = builder->GetAllocator()->AllocateArray<Game::MaterialTextureDef>(textureList.size());
-
-				if (!textureTable)
+				if (!textureList.empty())
 				{
-					Components::Logger::Error("Failed to allocate texture table!");
-					return;
+					Game::MaterialTextureDef* textureTable = builder->GetAllocator()->AllocateArray<Game::MaterialTextureDef>(textureList.size());
+
+					if (!textureTable)
+					{
+						Components::Logger::Error("Failed to allocate texture table!");
+						return;
+					}
+
+					std::memcpy(textureTable, textureList.data(), sizeof(Game::MaterialTextureDef) * textureList.size());
+
+					material->textureTable = textureTable;
+				}
+				else
+				{
+					material->textureTable = 0;
 				}
 
-				memcpy(textureTable, textureList.data(), sizeof(Game::MaterialTextureDef) * textureList.size());
-
-				material->textureTable = textureTable;
+				material->textureCount = static_cast<char>(textureList.size()) & 0xFF;
 			}
-			else
-			{
-				material->textureTable = 0;
-			}
-
-			material->textureCount = static_cast<char>(textureList.size()) & 0xFF;
 		}
 
 		header->material = material;

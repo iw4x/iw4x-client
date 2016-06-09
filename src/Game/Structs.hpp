@@ -1355,7 +1355,9 @@ namespace Game
 		GfxPackedVertex* vertexBuffer; // +28
 		int numCT; // +32
 		XRigidVertList* ct; // +36
-		char pad5[24]; // +40
+		int something;
+		int something2;
+		char pad5[16]; // +40
 					   // pad5 matches XModelSurfaces pad
 					   // total size, 64
 	};
@@ -1660,10 +1662,10 @@ namespace Game
 		unsigned short randomDataByteCount; // 10 - 0xA
 		unsigned short randomDataIntCount;// 12 - 0xC
 		unsigned short framecount; // 14 - 0xE
-		char pad1; // 16
+		char bLoop; // 16
 		char boneCount[10]; // 17
 		char notetrackCount; // 27
-		bool bLoop; // 28
+		bool pad1; // 28
 		bool bDelta; // 29
 		char assetType; // 30
 		char pad2; // 31

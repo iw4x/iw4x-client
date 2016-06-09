@@ -64,6 +64,10 @@ namespace Assets
 				Game::XSurface* surface = &surf->surfaces[i];
 				std::memcpy(surface, baseSurface, sizeof(Game::XSurface));
 
+				surface->streamHandle = reader.Read<unsigned char>();
+				surface->something = reader.Read<int>();
+				surface->something2 = reader.Read<int>();
+
 				surface->numVertices = reader.Read<unsigned short>();
 				surface->numPrimitives = reader.Read<unsigned short>();
 				surface->numCT = reader.Read<int>();
@@ -103,15 +107,6 @@ namespace Assets
 			for (char i = 0; i < model->numSurfaces; ++i)
 			{
 				model->materials[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.ReadString(), builder).material;
-
-				//if (i < 9)
-				{
-					model->materials[i] = baseModel->materials[0];
-				}
-// 				else
-// 				{
-// 					OutputDebugStringA(model->materials[i]->name);
-// 				}
 			}
 
 			// Read collision surfaces
@@ -206,18 +201,6 @@ namespace Assets
 		buffer->Save(asset, sizeof(Game::XModel));
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
-
-// 		if (!strcmp(asset->name, "viewmodel_m40a3"))
-// 		{
-// 			for (char i = 0; i < asset->numBones; ++i)
-// 			{
-// 				OutputDebugStringA(Utils::VA("Bounds[%d][0]: %f - %X\n", i, asset->boneInfo[i].bounds[0], *(DWORD*)&asset->boneInfo[i].bounds[0]));
-// 				OutputDebugStringA(Utils::VA("Bounds[%d][1]: %f - %X\n", i, asset->boneInfo[i].bounds[1], *(DWORD*)&asset->boneInfo[i].bounds[1]));
-// 				OutputDebugStringA(Utils::VA("Bounds[%d][2]: %f - %X\n\n", i, asset->boneInfo[i].bounds[2], *(DWORD*)&asset->boneInfo[i].bounds[2]));
-// 			}
-// 
-// 			__debugbreak();
-// 		}
 
 		if (asset->name)
 		{
