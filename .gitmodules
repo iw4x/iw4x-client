@@ -21,3 +21,6 @@
 [submodule "deps/pdcurses"]
 	path = deps/pdcurses
 	url = https://github.com/wmcbrine/PDCurses.git
+[submodule "deps/mongoose"]
+	path = deps/mongoose
+	url = https://github.com/cesanta/mongoose.git
