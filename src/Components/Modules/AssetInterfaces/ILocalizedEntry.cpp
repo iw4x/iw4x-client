@@ -16,13 +16,13 @@ namespace Assets
 		if (asset->value)
 		{
 			buffer->SaveString(asset->value);
-			dest->value = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->value);
 		}
 
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		buffer->PopBlock();

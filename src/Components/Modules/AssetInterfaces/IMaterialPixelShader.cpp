@@ -16,14 +16,14 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->loadDef.physicalPart)
 		{
 			buffer->Align(Utils::Stream::ALIGN_4);
 			buffer->Save(asset->loadDef.physicalPart, 4, asset->loadDef.cachedPartSize & 0xFFFF);
-			dest->loadDef.physicalPart = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->loadDef.physicalPart);
 		}
 
 		buffer->PopBlock();

@@ -18,13 +18,13 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->sndAliasPrefix)
 		{
 			buffer->SaveString(asset->sndAliasPrefix);
-			dest->sndAliasPrefix = reinterpret_cast<const char*>(-1);
+			Utils::Stream::ClearPointer(&dest->sndAliasPrefix);
 		}
 
 		buffer->PopBlock();

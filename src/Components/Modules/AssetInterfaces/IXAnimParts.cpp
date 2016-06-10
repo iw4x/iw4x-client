@@ -155,7 +155,7 @@ namespace Assets
 				buffer->Save(delta->trans->u.frame0, 12);
 			}
 
-			destDelta->trans = reinterpret_cast<Game::XAnimPartTrans*>(-1);
+			Utils::Stream::ClearPointer(&destDelta->trans);
 		}
 
 		if (delta->quat2)
@@ -187,7 +187,7 @@ namespace Assets
 				buffer->Save(delta->quat2->u.frame0, 4);
 			}
 
-			destDelta->quat2 = reinterpret_cast<Game::XAnimDeltaPartQuat2*>(-1);
+			Utils::Stream::ClearPointer(&destDelta->quat2);
 		}
 
 		if (delta->quat)
@@ -219,7 +219,7 @@ namespace Assets
 				buffer->Save(delta->quat->u.frame0, 4);
 			}
 
-			destDelta->quat = reinterpret_cast<Game::XAnimDeltaPartQuat*>(-1);
+			Utils::Stream::ClearPointer(&destDelta->quat);
 		}
 	}
 
@@ -237,7 +237,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->tagnames)
@@ -252,7 +252,7 @@ namespace Assets
 				builder->MapScriptString(&destTagnames[i]);
 			}
 
-			dest->tagnames = reinterpret_cast<short*>(-1);
+			Utils::Stream::ClearPointer(&dest->tagnames);
 		}
 
 		if (asset->notetracks)
@@ -268,7 +268,7 @@ namespace Assets
 				builder->MapScriptString(&destNotetracks[i].name);
 			}
 
-			dest->notetracks = reinterpret_cast<Game::XAnimNotifyInfo*>(-1);
+			Utils::Stream::ClearPointer(&dest->notetracks);
 		}
 
 		if (asset->delta)
@@ -278,47 +278,47 @@ namespace Assets
 
 			IXAnimParts::Save_XAnimDeltaPart(asset->delta, asset->framecount, builder);
 
-			dest->delta = reinterpret_cast<Game::XAnimDeltaPart*>(-1);
+			Utils::Stream::ClearPointer(&dest->delta);
 		}
 
 		if (asset->dataByte)
 		{
 			buffer->SaveArray(asset->dataByte, asset->dataByteCount);
-			dest->dataByte = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->delta);
 		}
 
 		if (asset->dataShort)
 		{
 			buffer->Align(Utils::Stream::ALIGN_2);
 			buffer->SaveArray(asset->dataShort, asset->dataShortCount);
-			dest->dataShort = reinterpret_cast<short*>(-1);
+			Utils::Stream::ClearPointer(&dest->dataShort);
 		}
 
 		if (asset->dataInt)
 		{
 			buffer->Align(Utils::Stream::ALIGN_4);
 			buffer->SaveArray(asset->dataInt, asset->dataIntCount);
-			dest->dataInt = reinterpret_cast<int*>(-1);
+			Utils::Stream::ClearPointer(&dest->dataInt);
 		}
 
 		if (asset->randomDataShort)
 		{
 			buffer->Align(Utils::Stream::ALIGN_2);
 			buffer->SaveArray(asset->randomDataShort, asset->randomDataShortCount);
-			dest->randomDataShort = reinterpret_cast<short*>(-1);
+			Utils::Stream::ClearPointer(&dest->randomDataShort);
 		}
 
 		if (asset->randomDataByte)
 		{
 			buffer->SaveArray(asset->randomDataByte, asset->randomDataByteCount);
-			dest->randomDataByte = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->randomDataByte);
 		}
 
 		if (asset->randomDataInt)
 		{
 			buffer->Align(Utils::Stream::ALIGN_4);
 			buffer->SaveArray(asset->randomDataInt, asset->randomDataIntCount);
-			dest->randomDataInt = reinterpret_cast<int*>(-1);
+			Utils::Stream::ClearPointer(&dest->randomDataInt);
 		}
 
 		if (asset->indices.data)
@@ -333,7 +333,7 @@ namespace Assets
 				buffer->SaveArray(asset->indices._1, asset->indexcount);
 			}
 
-			dest->indices.data = reinterpret_cast<void*>(-1);
+			Utils::Stream::ClearPointer(&dest->indices.data);
 		}
 
 		buffer->PopBlock();

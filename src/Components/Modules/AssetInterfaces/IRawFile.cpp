@@ -38,7 +38,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->compressedData)
@@ -52,7 +52,7 @@ namespace Assets
 				buffer->Save(asset->compressedData, asset->sizeUnCompressed + 1);
 			}
 
-			dest->compressedData = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->compressedData);
 		}
 
 		buffer->PopBlock();

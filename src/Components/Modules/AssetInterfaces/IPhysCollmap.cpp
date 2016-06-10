@@ -42,18 +42,18 @@ namespace Assets
 							builder->StorePointer(side->side);
 
 							buffer->Save(side->side, sizeof(Game::cplane_t));
-							destSide->side = reinterpret_cast<Game::cplane_t*>(-1);
+							Utils::Stream::ClearPointer(&destSide->side);
 						}
 					}
 				}
 
-				destBrush->brush.brushSide = reinterpret_cast<Game::cbrushside_t*>(-1);
+				Utils::Stream::ClearPointer(&destBrush->brush.brushSide);
 			}
 
 			if (brush->brush.brushEdge)
 			{
 				buffer->Save(brush->brush.brushEdge, brush->totalEdgeCount);
-				destBrush->brush.brushEdge = reinterpret_cast<char*>(-1);
+				Utils::Stream::ClearPointer(&destBrush->brush.brushEdge);
 			}
 		}
 
@@ -71,7 +71,7 @@ namespace Assets
 				builder->StorePointer(brush->planes);
 
 				buffer->Save(brush->planes, sizeof(Game::cplane_t));
-				destBrush->planes = reinterpret_cast<Game::cplane_t*>(-1);
+				Utils::Stream::ClearPointer(&destBrush->planes);
 			}
 		}
 	}
@@ -95,7 +95,7 @@ namespace Assets
 				buffer->Align(Utils::Stream::ALIGN_4);
 
 				IPhysCollmap::Save_BrushWrapper(builder, geom->brush);
-				destGeom->brush = reinterpret_cast<Game::BrushWrapper*>(-1);
+				Utils::Stream::ClearPointer(&destGeom->brush);
 			}
 		}
 	}
@@ -114,7 +114,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->geoms)
@@ -122,7 +122,7 @@ namespace Assets
 			buffer->Align(Utils::Stream::ALIGN_4);
 
 			IPhysCollmap::Save_PhysGeomInfoArray(builder, asset->geoms, asset->count);
-			dest->geoms = reinterpret_cast<Game::PhysGeomInfo*>(-1);
+			Utils::Stream::ClearPointer(&dest->geoms);
 		}
 
 		buffer->PopBlock();

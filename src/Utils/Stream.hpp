@@ -70,6 +70,10 @@ namespace Utils
 		char* Save(const void * _str, size_t size, size_t count = 1);
 		char* Save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count);
 		char* Save(Game::XFILE_BLOCK_TYPES stream, int value, size_t count);
+		template <typename T> char* Save(T* object)
+		{
+			return SaveArray<T>(object, 1);
+		}
 		template <typename T> char* SaveArray(T* array, size_t count)
 		{
 			return Save(array, sizeof(T), count);
@@ -100,6 +104,10 @@ namespace Utils
 		template <typename T> T* Dest()
 		{
 			return reinterpret_cast<T*>(this->At());
+		}
+		template <typename T> static inline void ClearPointer(T** object)
+		{
+			*object = reinterpret_cast<T*>(-1);
 		}
 
 		void ToBuffer(std::string& outBuffer);

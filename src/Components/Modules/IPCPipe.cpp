@@ -132,7 +132,7 @@ namespace Components
 		memset(this->PipeName, 0, sizeof(this->PipeName));
 		memset(this->PipeFile, 0, sizeof(this->PipeFile));
 
-		strncpy_s(this->PipeName, name.c_str(), sizeof(this->PipeName));
+		strncpy_s(this->PipeName, name.data(), sizeof(this->PipeName));
 		sprintf_s(this->PipeFile, sizeof(this->PipeFile), "\\\\.\\Pipe\\%s", this->PipeName);
 	}
 

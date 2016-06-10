@@ -30,11 +30,11 @@ namespace Assets
 					if (index->key)
 					{
 						buffer->SaveString(index->key);
-						destIndex->key = reinterpret_cast<char*>(-1);
+						Utils::Stream::ClearPointer(&destIndex->key);
 					}
 				}
 
-				destEnum->indices = reinterpret_cast<Game::StructuredDataEnumEntry*>(-1);
+				Utils::Stream::ClearPointer(&destEnum->indices);
 			}
 		}
 	}
@@ -67,11 +67,11 @@ namespace Assets
 					if (property->name)
 					{
 						buffer->SaveString(property->name);
-						destProperty->name = reinterpret_cast<char*>(-1);
+						Utils::Stream::ClearPointer(&destProperty->name);
 					}
 				}
 
-				destStruct->property = reinterpret_cast<Game::StructuredDataStructProperty*>(-1);
+				Utils::Stream::ClearPointer(&destStruct->property);
 			}
 		}
 	}
@@ -90,7 +90,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->data)
@@ -112,7 +112,7 @@ namespace Assets
 					buffer->Align(Utils::Stream::ALIGN_4);
 
 					IStructuredDataDefSet::Save_StructuredDataEnumArray(data->enums, data->numEnums, builder);
-					destData->enums = reinterpret_cast<Game::StructuredDataEnum*>(-1);
+					Utils::Stream::ClearPointer(&destData->enums);
 				}
 
 				if (data->structs)
@@ -121,7 +121,7 @@ namespace Assets
 					buffer->Align(Utils::Stream::ALIGN_4);
 
 					IStructuredDataDefSet::Save_StructuredDataStructArray(data->structs, data->numStructs, builder);
-					destData->structs = reinterpret_cast<Game::StructuredDataStruct*>(-1);
+					Utils::Stream::ClearPointer(&destData->structs);
 				}
 
 				if (data->indexedArrays)
@@ -130,7 +130,7 @@ namespace Assets
 					buffer->Align(Utils::Stream::ALIGN_4);
 
 					buffer->SaveArray(data->indexedArrays, data->numIndexedArrays);
-					destData->indexedArrays = reinterpret_cast<Game::StructuredDataIndexedArray*>(-1);
+					Utils::Stream::ClearPointer(&destData->indexedArrays);
 				}
 
 				if (data->enumArrays)
@@ -139,11 +139,11 @@ namespace Assets
 					buffer->Align(Utils::Stream::ALIGN_4);
 
 					buffer->SaveArray(data->enumArrays, data->numEnumArrays);
-					destData->enumArrays = reinterpret_cast<Game::StructuredDataEnumedArray*>(-1);
+					Utils::Stream::ClearPointer(&destData->enumArrays);
 				}
 			}
 
-			dest->data = reinterpret_cast<Game::StructuredDataDef*>(-1);
+			Utils::Stream::ClearPointer(&dest->data);
 		}
 
 		buffer->PopBlock();

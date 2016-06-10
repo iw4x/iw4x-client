@@ -207,7 +207,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->techniqueSet)
@@ -247,22 +247,22 @@ namespace Assets
 						if (water)
 						{
 							buffer->Align(Utils::Stream::ALIGN_4);
-							buffer->Save(water, sizeof(Game::water_t));
-							destTextureDef->info.water = reinterpret_cast<Game::water_t*>(-1);
+							buffer->Save(water);
+							Utils::Stream::ClearPointer(&destTextureDef->info.water);
 
 							// Save_water_t
 							if (water->H0X)
 							{
 								buffer->Align(Utils::Stream::ALIGN_4);
 								buffer->Save(water->H0X, 8, water->M * water->N);
-								destWater->H0X = reinterpret_cast<float*>(-1);
+								Utils::Stream::ClearPointer(&destWater->H0X);
 							}
 
 							if (water->H0Y)
 							{
 								buffer->Align(Utils::Stream::ALIGN_4);
 								buffer->Save(water->H0Y, 4, water->M * water->N);
-								destWater->H0Y = reinterpret_cast<float*>(-1);
+								Utils::Stream::ClearPointer(&destWater->H0Y);
 							}
 
 							if (water->image)
@@ -277,7 +277,7 @@ namespace Assets
 					}
 				}
 
-				dest->textureTable = reinterpret_cast<Game::MaterialTextureDef*>(-1);
+				Utils::Stream::ClearPointer(&dest->textureTable);
 			}
 		}
 
@@ -295,7 +295,7 @@ namespace Assets
 				builder->StorePointer(asset->constantTable);
 
 				buffer->SaveArray(asset->constantTable, asset->constantCount);
-				dest->constantTable = reinterpret_cast<Game::MaterialConstantDef*>(-1);
+				Utils::Stream::ClearPointer(&dest->constantTable);
 			}
 		}
 
@@ -311,7 +311,7 @@ namespace Assets
 				builder->StorePointer(asset->stateBitTable);
 
 				buffer->Save(asset->stateBitTable, 8, asset->stateBitsCount);
-				dest->stateBitTable = reinterpret_cast<void*>(-1);
+				Utils::Stream::ClearPointer(&dest->stateBitTable);
 			}
 		}
 

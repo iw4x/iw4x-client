@@ -40,37 +40,43 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->entityString)
 		{
 			buffer->Save(asset->entityString, asset->numEntityChars);
-			dest->entityString = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->entityString);
 		}
 
 		if (asset->trigger.models)
 		{
 			Assert_Size(Game::TriggerModel, 8);
 			buffer->Align(Utils::Stream::ALIGN_4);
+
 			buffer->SaveArray(asset->trigger.models, asset->trigger.modelCount);
-			dest->trigger.models = reinterpret_cast<Game::TriggerModel*>(-1);
+
+			Utils::Stream::ClearPointer(&dest->trigger.models);
 		}
 
 		if (asset->trigger.hulls)
 		{
 			Assert_Size(Game::TriggerHull, 32);
 			buffer->Align(Utils::Stream::ALIGN_4);
+
 			buffer->SaveArray(asset->trigger.hulls, asset->trigger.hullCount);
-			dest->trigger.hulls = reinterpret_cast<Game::TriggerHull*>(-1);
+
+			Utils::Stream::ClearPointer(&dest->trigger.hulls);
 		}
 
 		if (asset->trigger.slabs)
 		{
 			Assert_Size(Game::TriggerSlab, 20);
 			buffer->Align(Utils::Stream::ALIGN_4);
+
 			buffer->SaveArray(asset->trigger.slabs, asset->trigger.slabCount);
-			dest->trigger.slabs = reinterpret_cast<Game::TriggerSlab*>(-1);
+
+			Utils::Stream::ClearPointer(&dest->trigger.slabs);
 		}
 
 		if (asset->stages)
@@ -88,10 +94,11 @@ namespace Assets
 				Game::Stage* stage = &asset->stages[i];
 
 				buffer->SaveString(stage->stageName);
-				destStage->stageName = reinterpret_cast<char*>(-1);
+
+				Utils::Stream::ClearPointer(&destStage->stageName);
 			}
 
-			dest->stages = reinterpret_cast<Game::Stage*>(-1);
+			Utils::Stream::ClearPointer(&dest->stages);
 		}
 
 		buffer->PopBlock();

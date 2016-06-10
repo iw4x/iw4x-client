@@ -69,7 +69,7 @@ namespace Components
 			{
 				std::string fastfile = DataMap.GetElementAt(i, 1);
 
-				if (!Game::DB_IsZoneLoaded(fastfile.c_str()))
+				if (!Game::DB_IsZoneLoaded(fastfile.data()))
 				{
 					Game::XZoneInfo info;
 					info.name = fastfile.data();
@@ -80,7 +80,7 @@ namespace Components
 				}
 				else
 				{
-					Logger::Print("Zone '%s' already loaded\n", fastfile.c_str());
+					Logger::Print("Zone '%s' already loaded\n", fastfile.data());
 				}
 			}
 		}
@@ -193,7 +193,7 @@ namespace Components
 	Game::XAssetHeader ZoneBuilder::Zone::RequireAsset(Game::XAssetType type, const char* name)
 	{
 		Game::XAssetHeader header;
-		header.data = reinterpret_cast<void*>(-1);
+		Utils::Stream::ClearPointer(&header.data);
 
 		int assetIndex = ZoneBuilder::Zone::FindAsset(type, name);
 
@@ -227,7 +227,7 @@ namespace Components
 		Utils::WriteFile(outFile, outBuffer);
 
 		Logger::Print("done.\n");
-		Logger::Print("Zone '%s' written with %d assets\n", outFile.c_str(), ZoneBuilder::Zone::LoadedAssets.size());
+		Logger::Print("Zone '%s' written with %d assets\n", outFile.data(), ZoneBuilder::Zone::LoadedAssets.size());
 	}
 
 	void ZoneBuilder::Zone::SaveData()
@@ -235,13 +235,13 @@ namespace Components
 		// Add header
 		Game::ZoneHeader zoneHeader = { 0 };
 		zoneHeader.assetList.assetCount = ZoneBuilder::Zone::LoadedAssets.size();
-		zoneHeader.assetList.assets = reinterpret_cast<Game::XAsset*>(-1);
+		Utils::Stream::ClearPointer(&zoneHeader.assetList.assets);
 
 		// Increment ScriptStrings count (for empty script string) if available
 		if (!ZoneBuilder::Zone::ScriptStrings.empty())
 		{
 			zoneHeader.assetList.stringList.count = ZoneBuilder::Zone::ScriptStrings.size() + 1;
-			zoneHeader.assetList.stringList.strings = reinterpret_cast<const char**>(-1);
+			Utils::Stream::ClearPointer(&zoneHeader.assetList.stringList.strings);
 		}
 
 		// Write header
@@ -267,7 +267,7 @@ namespace Components
 			// Write ScriptStrings
 			for (auto ScriptString : ZoneBuilder::Zone::ScriptStrings)
 			{
-				ZoneBuilder::Zone::Buffer.SaveString(ScriptString.c_str());
+				ZoneBuilder::Zone::Buffer.SaveString(ScriptString.data());
 			}
 		}
 
@@ -278,11 +278,10 @@ namespace Components
 		// AssetTable
 		for (auto asset : ZoneBuilder::Zone::LoadedAssets)
 		{
-			Game::XAsset entry;
-			entry.type = asset.type;
-			entry.header.data = reinterpret_cast<void*>(-1);
+			Game::XAsset entry = { entry.type, 0 };
+			Utils::Stream::ClearPointer(&entry.header.data);
 
-			ZoneBuilder::Zone::Buffer.Save(&entry, sizeof(Game::XAsset));
+			ZoneBuilder::Zone::Buffer.Save(&entry);
 		}
 
 		// Assets

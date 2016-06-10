@@ -205,7 +205,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->boneNames)
@@ -220,13 +220,13 @@ namespace Assets
 				builder->MapScriptString(&destBoneNames[i]);
 			}
 
-			dest->boneNames = reinterpret_cast<short*>(-1);
+			Utils::Stream::ClearPointer(&dest->boneNames);
 		}
 
 		if (asset->parentList)
 		{
 			buffer->Save(asset->parentList, asset->numBones - asset->numRootBones);
-			dest->parentList = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->parentList);
 		}
 
 		if (asset->tagAngles)
@@ -235,7 +235,7 @@ namespace Assets
 
 			buffer->Align(Utils::Stream::ALIGN_2);
 			buffer->SaveArray(asset->tagAngles, asset->numBones - asset->numRootBones);
-			dest->tagAngles = reinterpret_cast<Game::XModelAngle*>(-1);
+			Utils::Stream::ClearPointer(&dest->tagAngles);
 		}
 
 		if (asset->tagPositions)
@@ -244,13 +244,13 @@ namespace Assets
 
 			buffer->Align(Utils::Stream::ALIGN_4);
 			buffer->SaveArray(asset->tagPositions, asset->numBones - asset->numRootBones);
-			dest->tagPositions = reinterpret_cast<Game::XModelTagPos*>(-1);
+			Utils::Stream::ClearPointer(&dest->tagPositions);
 		}
 
 		if (asset->partClassification)
 		{
 			buffer->Save(asset->partClassification, asset->numBones);
-			dest->partClassification = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->partClassification);
 		}
 
 		if (asset->animMatrix)
@@ -259,7 +259,7 @@ namespace Assets
 
 			buffer->Align(Utils::Stream::ALIGN_4);
 			buffer->SaveArray(asset->animMatrix, asset->numBones);
-			dest->animMatrix = reinterpret_cast<Game::DObjAnimMat*>(-1);
+			Utils::Stream::ClearPointer(&dest->animMatrix);
 		}
 
 		if (asset->materials)
@@ -277,7 +277,7 @@ namespace Assets
 				}
 			}
 
-			dest->materials = reinterpret_cast<Game::Material**>(-1);
+			Utils::Stream::ClearPointer(&dest->materials);
 		}
 
 		// Save_XModelLodInfoArray
@@ -295,7 +295,7 @@ namespace Assets
 					buffer->Align(Utils::Stream::ALIGN_4);
 
 					IXModelSurfs().Save({ asset->lods[i].surfaces }, builder);
-					dest->lods[i].surfaces = reinterpret_cast<Game::XModelSurfs*>(-1);
+					Utils::Stream::ClearPointer(&dest->lods[i].surfaces);
 
 					buffer->PopBlock();
 				}
@@ -320,12 +320,13 @@ namespace Assets
 				if (colSurf->tris)
 				{
 					buffer->Align(Utils::Stream::ALIGN_4);
+
 					buffer->Save(colSurf->tris, 48, colSurf->count);
-					destColSurf->tris = reinterpret_cast<void*>(-1);
+					Utils::Stream::ClearPointer(&destColSurf->tris);
 				}
 			}
 
-			dest->colSurf = reinterpret_cast<Game::XModelCollSurf*>(-1);
+			Utils::Stream::ClearPointer(&dest->colSurf);
 		}
 
 		if (asset->boneInfo)
@@ -335,7 +336,7 @@ namespace Assets
 			buffer->Align(Utils::Stream::ALIGN_4);
 
 			buffer->SaveArray(asset->boneInfo, asset->numBones);
-			dest->boneInfo = reinterpret_cast<Game::XBoneInfo*>(-1);
+			Utils::Stream::ClearPointer(&dest->boneInfo);
 		}
 
 		if (asset->physPreset)

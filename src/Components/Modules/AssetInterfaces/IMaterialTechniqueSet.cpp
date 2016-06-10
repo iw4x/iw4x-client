@@ -48,7 +48,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		// Save_MaterialTechniquePtrArray
@@ -80,7 +80,7 @@ namespace Assets
 
 						Game::MaterialPass* destPass = buffer->Dest<Game::MaterialPass>();
 						Game::MaterialPass* pass = &technique->passes[j];
-						buffer->Save(pass, sizeof(Game::MaterialPass));
+						buffer->Save(pass);
 
 						if (pass->vertexDecl)
 						{
@@ -101,17 +101,17 @@ namespace Assets
 						{
 							buffer->Align(Utils::Stream::ALIGN_4);
 							buffer->SaveArray(pass->argumentDef, pass->argCount1 + pass->argCount2 + pass->argCount3);
-							destPass->argumentDef = reinterpret_cast<Game::ShaderArgumentDef*>(-1);
+							Utils::Stream::ClearPointer(&destPass->argumentDef);
 						}
 					}
 
 					if (technique->name)
 					{
 						buffer->SaveString(technique->name);
-						destTechnique->name = reinterpret_cast<char*>(-1);
+						Utils::Stream::ClearPointer(&destTechnique->name);
 					}
 
-					dest->techniques[i] = reinterpret_cast<Game::MaterialTechnique*>(-1);
+					Utils::Stream::ClearPointer(&dest->techniques[i]);
 				}
 			}
 		}

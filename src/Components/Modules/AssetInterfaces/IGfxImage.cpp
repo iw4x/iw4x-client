@@ -100,7 +100,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		buffer->PushBlock(Game::XFILE_BLOCK_TEMP);
@@ -115,7 +115,7 @@ namespace Assets
 			// Zero the size!
 			destTexture->dataSize = 0;
 
-			dest->texture = reinterpret_cast<Game::GfxImageLoadDef*>(-1);
+			Utils::Stream::ClearPointer(&dest->texture);
 		}
 
 		buffer->PopBlock();

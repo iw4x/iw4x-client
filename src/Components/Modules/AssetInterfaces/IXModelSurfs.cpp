@@ -15,14 +15,14 @@ namespace Assets
 		{
 			buffer->Align(Utils::Stream::ALIGN_16);
 			buffer->Save(entry->node, 16, entry->numNode);
-			destEntry->node = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&destEntry->node);
 		}
 
 		if (entry->leaf)
 		{
 			buffer->Align(Utils::Stream::ALIGN_2);
 			buffer->SaveArray(entry->leaf, entry->numLeaf);
-			destEntry->leaf = reinterpret_cast<short*>(-1);
+			Utils::Stream::ClearPointer(&destEntry->leaf);
 		}
 	}
 
@@ -34,7 +34,7 @@ namespace Assets
 		{
 			buffer->Align(Utils::Stream::ALIGN_2);
 			buffer->Save(surf->blendInfo, sizeof(short), surf->blendNum1 + (surf->blendNum2 * 3) + (surf->blendNum3 * 5) + (surf->blendNum4 * 7));
-			destSurf->blendInfo = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&destSurf->blendInfo);
 		}
 
 		// Access vertex block
@@ -45,7 +45,7 @@ namespace Assets
 			
 			buffer->Align(Utils::Stream::ALIGN_16);
 			buffer->SaveArray(surf->vertexBuffer, surf->numVertices);
-			destSurf->vertexBuffer = reinterpret_cast<Game::GfxPackedVertex*>(-1);
+			Utils::Stream::ClearPointer(&destSurf->vertexBuffer);
 		}
 		buffer->PopBlock();
 
@@ -68,11 +68,11 @@ namespace Assets
 				{
 					buffer->Align(Utils::Stream::ALIGN_4);
 					IXModelSurfs::Save_XSurfaceCollisionTree(rigidVertList->entry, builder);
-					destRigidVertList->entry = reinterpret_cast<Game::XSurfaceCollisionTree*>(-1);
+					Utils::Stream::ClearPointer(&destRigidVertList->entry);
 				}
 			}
 
-			destSurf->ct = reinterpret_cast<Game::XRigidVertList*>(-1);
+			Utils::Stream::ClearPointer(&destSurf->ct);
 		}
 
 		// Access index block
@@ -83,7 +83,7 @@ namespace Assets
 
 			buffer->Align(Utils::Stream::ALIGN_16);
 			buffer->SaveArray(surf->indexBuffer, surf->numPrimitives);
-			destSurf->indexBuffer = reinterpret_cast<Game::Face*>(-1);
+			Utils::Stream::ClearPointer(&destSurf->indexBuffer);
 		}
 		buffer->PopBlock();
 	}
@@ -102,7 +102,7 @@ namespace Assets
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
-			dest->name = reinterpret_cast<char*>(-1);
+			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->surfaces)
@@ -119,7 +119,7 @@ namespace Assets
 				IXModelSurfs::Save_XSurface(&asset->surfaces[i], &destSurfaces[i], builder);
 			}
 
-			dest->surfaces = reinterpret_cast<Game::XSurface*>(-1);
+			Utils::Stream::ClearPointer(&dest->surfaces);
 		}
 
 		buffer->PopBlock();

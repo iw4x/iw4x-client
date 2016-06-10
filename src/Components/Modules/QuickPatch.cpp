@@ -324,6 +324,9 @@ namespace Components
 		// developer_Script 1
 		Utils::Hook::Set<bool>(0x60AE2B, true);
 
+		// Disable cheat protection for dvars
+		Utils::Hook::Set<BYTE>(0x647682, 0xEB);
+
 		// Constantly draw the mini console
 		Utils::Hook::Set<BYTE>(0x412A45, 0xEB);
 		Renderer::OnFrame([] ()
