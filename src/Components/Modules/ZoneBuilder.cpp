@@ -278,7 +278,7 @@ namespace Components
 		// AssetTable
 		for (auto asset : ZoneBuilder::Zone::LoadedAssets)
 		{
-			Game::XAsset entry = { entry.type, 0 };
+			Game::XAsset entry = { asset.type, 0 };
 			Utils::Stream::ClearPointer(&entry.header.data);
 
 			ZoneBuilder::Zone::Buffer.Save(&entry);
@@ -309,7 +309,7 @@ namespace Components
 		// Write stream sizes
 		for (int i = 0; i < Game::MAX_XFILE_COUNT; ++i)
 		{
-			header->blockSize[i] = ZoneBuilder::Zone::Buffer.GetBlockSize((Game::XFILE_BLOCK_TYPES)i);
+			header->blockSize[i] = ZoneBuilder::Zone::Buffer.GetBlockSize(static_cast<Game::XFILE_BLOCK_TYPES>(i));
 		}
 
 		ZoneBuilder::Zone::Buffer.LeaveCriticalSection();

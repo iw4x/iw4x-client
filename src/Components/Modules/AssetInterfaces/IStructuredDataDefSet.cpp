@@ -83,7 +83,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::StructuredDataDefSet* asset = header.structuredData;
 		Game::StructuredDataDefSet* dest = buffer->Dest<Game::StructuredDataDefSet>();
-		buffer->Save(asset, sizeof(Game::StructuredDataDefSet));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

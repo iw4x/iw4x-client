@@ -198,7 +198,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::XModel* asset = header.model;
 		Game::XModel* dest = buffer->Dest<Game::XModel>();
-		buffer->Save(asset, sizeof(Game::XModel));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

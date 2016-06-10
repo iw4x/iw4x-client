@@ -41,7 +41,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::MaterialTechniqueSet* asset = header.materialTechset;
 		Game::MaterialTechniqueSet* dest = buffer->Dest<Game::MaterialTechniqueSet>();
-		buffer->Save(asset, sizeof(Game::MaterialTechniqueSet));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

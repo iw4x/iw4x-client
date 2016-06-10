@@ -9,7 +9,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 
 		Game::BrushWrapper* destBrush = buffer->Dest<Game::BrushWrapper>();
-		buffer->Save(brush, sizeof(Game::BrushWrapper));
+		buffer->Save(brush);
 
 		// Save_cbrushWrapper_t
 		{

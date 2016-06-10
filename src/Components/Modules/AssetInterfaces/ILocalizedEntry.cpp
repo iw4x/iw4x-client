@@ -9,7 +9,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::LocalizedEntry* asset = header.localize;
 		Game::LocalizedEntry* dest = buffer->Dest<Game::LocalizedEntry>();
-		buffer->Save(asset, sizeof(Game::LocalizedEntry));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

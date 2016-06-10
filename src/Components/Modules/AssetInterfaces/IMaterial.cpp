@@ -200,7 +200,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::Material* asset = header.material;
 		Game::Material* dest = buffer->Dest<Game::Material>();
-		buffer->Save(asset, sizeof(Game::Material));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

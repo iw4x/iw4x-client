@@ -9,7 +9,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::MaterialVertexShader* asset = header.vertexShader;
 		Game::MaterialVertexShader* dest = buffer->Dest<Game::MaterialVertexShader>();
-		buffer->Save(asset, sizeof(Game::MaterialVertexShader));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

@@ -117,7 +117,7 @@ namespace Assets
 
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::XAnimDeltaPart* destDelta = buffer->Dest<Game::XAnimDeltaPart>();
-		buffer->Save(delta, sizeof(Game::XAnimDeltaPart));
+		buffer->Save(delta);
 
 		if (delta->trans)
 		{
@@ -284,7 +284,7 @@ namespace Assets
 		if (asset->dataByte)
 		{
 			buffer->SaveArray(asset->dataByte, asset->dataByteCount);
-			Utils::Stream::ClearPointer(&dest->delta);
+			Utils::Stream::ClearPointer(&dest->dataByte);
 		}
 
 		if (asset->dataShort)

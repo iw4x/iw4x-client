@@ -31,7 +31,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::RawFile* asset = header.rawfile;
 		Game::RawFile* dest = buffer->Dest<Game::RawFile>();
-		buffer->Save(asset, sizeof(Game::RawFile));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

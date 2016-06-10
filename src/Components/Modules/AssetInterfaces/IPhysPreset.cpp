@@ -9,7 +9,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::PhysPreset* asset = header.physPreset;
 		Game::PhysPreset* dest = buffer->Dest<Game::PhysPreset>();
-		buffer->Save(asset, sizeof(Game::PhysPreset));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

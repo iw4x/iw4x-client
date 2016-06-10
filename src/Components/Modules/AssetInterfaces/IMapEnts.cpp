@@ -33,7 +33,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::MapEnts* asset = header.mapEnts;
 		Game::MapEnts* dest = buffer->Dest<Game::MapEnts>();
-		buffer->Save(asset, sizeof(Game::MapEnts));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

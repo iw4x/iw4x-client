@@ -9,7 +9,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 
 		Game::XSurfaceCollisionTree* destEntry = buffer->Dest<Game::XSurfaceCollisionTree>();
-		buffer->Save(entry, sizeof(Game::XSurfaceCollisionTree));
+		buffer->Save(entry);
 
 		if (entry->node)
 		{
@@ -95,7 +95,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::XModelSurfs* asset = header.surfaces;
 		Game::XModelSurfs* dest = buffer->Dest<Game::XModelSurfs>();
-		buffer->Save(asset, sizeof(Game::XModelSurfs));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 

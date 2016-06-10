@@ -93,7 +93,7 @@ namespace Assets
 		Utils::Stream* buffer = builder->GetBuffer();
 		Game::GfxImage* asset = header.image;
 		Game::GfxImage* dest = buffer->Dest<Game::GfxImage>();
-		buffer->Save(asset, sizeof(Game::GfxImage));
+		buffer->Save(asset);
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
