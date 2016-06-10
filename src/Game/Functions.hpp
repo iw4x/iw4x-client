@@ -21,6 +21,9 @@ namespace Game
 	typedef void(__cdecl * CL_DownloadsComplete_t)(int controller);
 	extern CL_DownloadsComplete_t CL_DownloadsComplete;
 
+	typedef void(__cdecl * CL_ResetViewport_t)();
+	extern CL_ResetViewport_t CL_ResetViewport;
+
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* name, void(*callback), cmd_function_t* data, char);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 
@@ -47,6 +50,9 @@ namespace Game
 
 	typedef char* (__cdecl * Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
 	extern Con_DrawMiniConsole_t Con_DrawMiniConsole;
+
+	typedef void (__cdecl * Con_DrawSolidConsole_t)();
+	extern Con_DrawSolidConsole_t Con_DrawSolidConsole;
 
 	typedef void(__cdecl * DB_EnumXAssets_t)(XAssetType type, void(*)(XAssetHeader, void *), void* userdata, bool overrides);
 	extern DB_EnumXAssets_t DB_EnumXAssets;
@@ -432,6 +438,8 @@ namespace Game
 
 	extern netadr_t* connectedHost;
 	extern SOCKET* ip_socket;
+
+	extern SafeArea* safeArea;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);

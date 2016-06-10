@@ -1858,6 +1858,14 @@ namespace Game
 	{
 		DWORD unk;
 	} PartyData_t;
+
+	struct SafeArea
+	{
+		float left;
+		float top;
+		float right;
+		float bottom;
+	};
 	
 #ifdef __cplusplus
 }

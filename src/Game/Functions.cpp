@@ -12,6 +12,7 @@ namespace Game
 	CL_IsCgameInitialized_t CL_IsCgameInitialized = (CL_IsCgameInitialized_t)0x43EB20;
 	CL_ConnectFromParty_t CL_ConnectFromParty = (CL_ConnectFromParty_t)0x433D30;
 	CL_DownloadsComplete_t CL_DownloadsComplete = (CL_DownloadsComplete_t)0x42CE90;
+	CL_ResetViewport_t CL_ResetViewport = (CL_ResetViewport_t)0x4A8830;
 
 	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = (Cmd_AddServerCommand_t)0x4DCE00;
@@ -24,6 +25,7 @@ namespace Game
 	Com_ParseExt_t Com_ParseExt = (Com_ParseExt_t)0x474D60;
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = (Con_DrawMiniConsole_t)0x464F30;
+	Con_DrawSolidConsole_t Con_DrawSolidConsole = (Con_DrawSolidConsole_t)0x5A5040;
 
 	DB_EnumXAssets_t DB_EnumXAssets = (DB_EnumXAssets_t)0x4B76D0;
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
@@ -216,6 +218,8 @@ namespace Game
 	netadr_t* connectedHost = (netadr_t*)0xA1E888;
 
 	SOCKET* ip_socket = (SOCKET*)0x64A3008;
+
+	SafeArea* safeArea = (SafeArea*)0xA15F48;
 
 	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{

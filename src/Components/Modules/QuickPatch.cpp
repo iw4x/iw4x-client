@@ -139,7 +139,18 @@ namespace Components
 		Utils::Hook::Set<char*>(0x60BD56, "IW4x (r" REVISION_STR REVISION_SUFFIX ")");
 
 		// console title
-		Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): Console");
+		if (ZoneBuilder::IsEnabled())
+		{
+			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): ZoneBuilder");
+		}
+		else if (Dedicated::IsDedicated())
+		{
+			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): Dedicated");
+		}
+		else
+		{
+			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): Console");
+		}
 
 		// window title
 		Utils::Hook::Set<char*>(0x5076A0, "IW4x: Multiplayer");
