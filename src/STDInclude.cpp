@@ -50,3 +50,12 @@ Assert_Size(bool, 1);
 
 // Ensure pointers are 4 bytes in size (32-bit)
 static_assert(sizeof(intptr_t) == 4 && sizeof(void*) == 4 && sizeof(size_t) == 4, "This doesn't seem to be a 32-bit environment!");
+
+// Disable telemetry data logging
+extern "C"
+{
+	void _cdecl __vcrt_initialize_telemetry_provider() {}
+	void _cdecl __telemetry_main_invoke_trigger() {}
+	void _cdecl __telemetry_main_return_trigger() {}
+	void _cdecl __vcrt_uninitialize_telemetry_provider() {}
+};
