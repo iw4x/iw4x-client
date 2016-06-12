@@ -1,11 +1,13 @@
 #include "STDInclude.hpp"
 
 // Rename sections
+#ifndef DEBUG
 #pragma comment(linker, "/merge:.text=.fucker")
 #pragma comment(linker, "/merge:.data=.bastard")
 #pragma comment(linker, "/merge:.rdata=.faggot")
 #pragma comment(linker, "/merge:.tls=.asshole")
 #pragma comment(linker, "/merge:.gfids=.idiot")
+#endif
 
 // Do necessary assertions here
 // Some compilers treat them differently which causes a size mismatch
