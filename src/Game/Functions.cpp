@@ -28,10 +28,12 @@ namespace Game
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = (Con_DrawSolidConsole_t)0x5A5040;
 
 	DB_EnumXAssets_t DB_EnumXAssets = (DB_EnumXAssets_t)0x4B76D0;
+	DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal = (DB_EnumXAssets_Internal_t)0x5BB0A0;
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
 	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = (DB_GetXAssetNameHandler_t*)0x799328;
 	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x799488;
 	DB_GetXAssetTypeName_t DB_GetXAssetTypeName = (DB_GetXAssetTypeName_t)0x4CFCF0;
+	DB_IsXAssetDefault_t DB_IsXAssetDefault = (DB_IsXAssetDefault_t)0x48E6A0;
 	DB_LoadXAssets_t DB_LoadXAssets = (DB_LoadXAssets_t)0x4E5930;
 
 	Dvar_RegisterBool_t Dvar_RegisterBool = (Dvar_RegisterBool_t)0x4CE1A0;
@@ -71,6 +73,8 @@ namespace Game
 	FS_Remove_t FS_Remove = (FS_Remove_t)0x4660F0;
 	FS_Restart_t FS_Restart = (FS_Restart_t)0x461A50;
 	FS_BuildPathToFile_t FS_BuildPathToFile = (FS_BuildPathToFile_t)0x4702C0;
+
+	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = (G_SpawnEntitiesFromString_t)0x4D8840;
 
 	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = (GScr_LoadGameTypeScript_t)0x4ED9A0;
 
@@ -174,7 +178,7 @@ namespace Game
 
 	Win_GetLanguage_t Win_GetLanguage = (Win_GetLanguage_t)0x45CBA0;
 
-	void** DB_XAssetPool = (void**)0x7998A8;
+	XAssetHeader* DB_XAssetPool = (XAssetHeader*)0x7998A8;
 	unsigned int* g_poolSize = (unsigned int*)0x7995E8;
 
 	DWORD* cmd_id = (DWORD*)0x1AAC5D0;
@@ -221,10 +225,13 @@ namespace Game
 
 	SafeArea* safeArea = (SafeArea*)0xA15F48;
 
-	void* ReallocateAssetPool(XAssetType type, unsigned int newSize)
+	SpawnVar* spawnVars = (SpawnVar*)0x1A83DE8;
+	MapEnts** marMapEntsPtr = (MapEnts**)0x112AD34;
+
+	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
-		void* poolEntry = Utils::Memory::Allocate(newSize * elSize);
+		XAssetHeader poolEntry = { Utils::Memory::Allocate(newSize * elSize) };
 		DB_XAssetPool[type] = poolEntry;
 		g_poolSize[type] = newSize;
 		return poolEntry;

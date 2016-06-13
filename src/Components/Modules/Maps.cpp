@@ -2,9 +2,6 @@
 
 namespace Components
 {
-	void* Maps::WorldMP = 0;
-	void* Maps::WorldSP = 0;
-
 	std::map<std::string, std::string> Maps::DependencyList;
 	std::vector<std::string> Maps::CurrentDependencies;
 
@@ -50,6 +47,26 @@ namespace Components
 		return FastFiles::LoadLocalizeZones(data.data(), data.size(), sync);
 	}
 
+	void Maps::OverrideMapEnts(Game::MapEnts* ents)
+	{
+		auto callback = [] (Game::XAssetHeader header, void* ents)
+		{
+			Game::MapEnts* mapEnts = reinterpret_cast<Game::MapEnts*>(ents);
+			Game::clipMap_t* clipMap = header.clipMap;
+
+			if (clipMap && mapEnts && !_stricmp(mapEnts->name, clipMap->name))
+			{
+				clipMap->mapEnts = mapEnts;
+				//*Game::marMapEntsPtr = mapEnts;
+				//Game::G_SpawnEntitiesFromString();
+			}
+		};
+
+		// Internal doesn't lock the thread, as locking is impossible, due to executing this in the thread that holds the current lock
+		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_COL_MAP_MP, callback, ents, true);
+		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_COL_MAP_SP, callback, ents, true);
+	}
+
 	void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
 	{
 		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end())
@@ -77,6 +94,10 @@ namespace Components
 				asset.mapEnts->entityString = const_cast<char*>(mapEntities.data());
 				asset.mapEnts->numEntityChars = mapEntities.size() + 1;
 			}
+
+			// Apply new mapEnts
+			// This doesn't work, entities are spawned before the patch file is loaded
+			//Maps::OverrideMapEnts(asset.mapEnts);
 		}
 	}
 
@@ -87,12 +108,12 @@ namespace Components
 			format = "maps/%s.d3dbsp";
 
 			// Adjust pointer to GameMap_Data
-			Utils::Hook::Set<void*>(0x4D90B7, Maps::WorldSP);
+			Utils::Hook::Set<Game::GameMap_Data**>(0x4D90B7, &(Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_SP].gameMapSP[0].data));
 		}
 		else
 		{
 			// Adjust pointer to GameMap_Data
-			Utils::Hook::Set<void*>(0x4D90B7, Maps::WorldMP);
+			Utils::Hook::Set<Game::GameMap_Data**>(0x4D90B7, &(Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_MP].gameMapMP[0].data));
 		}
 
 		AntiCheat::EmptyHash();
@@ -170,9 +191,7 @@ namespace Components
 		// Intercept map zone loading
 		Utils::Hook(0x42C2AF, Maps::LoadMapZones, HOOK_CALL).Install()->Quick();
 
-		Maps::WorldSP = static_cast<char*>(Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1)) + 52; // Skip name and other padding to reach world data
-		Maps::WorldMP = Utils::Hook::Get<char*>(0x4D90B7); 
-
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FX, 1200);

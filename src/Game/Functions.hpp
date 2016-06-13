@@ -57,6 +57,9 @@ namespace Game
 	typedef void(__cdecl * DB_EnumXAssets_t)(XAssetType type, void(*)(XAssetHeader, void *), void* userdata, bool overrides);
 	extern DB_EnumXAssets_t DB_EnumXAssets;
 
+	typedef void(__cdecl * DB_EnumXAssets_Internal_t)(XAssetType type, void(*)(XAssetHeader, void *), void* userdata, bool overrides);
+	extern DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal;
+	
 	typedef XAssetHeader (__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* name);
 	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 
@@ -68,6 +71,9 @@ namespace Game
 
 	typedef const char *(__cdecl * DB_GetXAssetTypeName_t)(XAssetType type);
 	extern DB_GetXAssetTypeName_t DB_GetXAssetTypeName;
+
+	typedef const char *(__cdecl * DB_IsXAssetDefault_t)(XAssetType type, const char* name);
+	extern DB_IsXAssetDefault_t DB_IsXAssetDefault;
 
 	typedef void(*DB_LoadXAssets_t)(XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 	extern DB_LoadXAssets_t DB_LoadXAssets;
@@ -168,6 +174,9 @@ namespace Game
 
 	typedef int(__cdecl * FS_BuildPathToFile_t)(const char*, const char*, const char*, char**);
 	extern FS_BuildPathToFile_t FS_BuildPathToFile;
+
+	typedef void(__cdecl* G_SpawnEntitiesFromString_t)();
+	extern G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString;
 
 	typedef void(__cdecl * GScr_LoadGameTypeScript_t)();
 	extern GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript;
@@ -395,7 +404,7 @@ namespace Game
 	typedef const char * (__cdecl * Win_GetLanguage_t)();
 	extern Win_GetLanguage_t Win_GetLanguage;
 
-	extern void** DB_XAssetPool;
+	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
 	extern DWORD* cmd_id;
@@ -441,7 +450,10 @@ namespace Game
 
 	extern SafeArea* safeArea;
 
-	void* ReallocateAssetPool(XAssetType type, unsigned int newSize);
+	extern SpawnVar* spawnVars;
+	extern MapEnts** marMapEntsPtr;
+
+	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
 	const char* UI_LocalizeMapName(const char* mapName);

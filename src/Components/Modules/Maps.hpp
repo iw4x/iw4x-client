@@ -10,9 +10,6 @@ namespace Components
 		static void AddDependency(std::string expression, std::string zone);
 
 	private:
-		static void* WorldMP;
-		static void* WorldSP;
-
 		static std::vector<Game::XAssetEntry> EntryPool;
 
 		static std::map<std::string, std::string> DependencyList;
@@ -21,6 +18,8 @@ namespace Components
 		static void GetBSPName(char* buffer, size_t size, const char* format, const char* mapname);
 		static void LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict);
 		static void LoadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
+
+		static void OverrideMapEnts(Game::MapEnts* ents);
 
 		void ReallocateEntryPool();
 	};
