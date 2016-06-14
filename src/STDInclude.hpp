@@ -60,8 +60,6 @@
 #define LTC_NO_PROTOTYPES
 #define LTC_NO_RSA_BLINDING
 
-#define ASIO_STANDALONE
-
 #include <zlib.h>
 #include <curses.h>
 #include <mongoose.h>

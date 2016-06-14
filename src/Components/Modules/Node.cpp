@@ -142,6 +142,7 @@ namespace Components
 
 		Proto::Node::List list;
 		list.set_is_dedi(Dedicated::IsDedicated());
+		list.set_protocol(PROTOCOL);
 
 		for (auto node : Node::Nodes)
 		{
@@ -690,10 +691,11 @@ namespace Components
 					Logger::Print("Received valid node list with %i entries from %s\n", list.address_size(), address.GetCString());
 
 					entry->isDedi = list.is_dedi();
+					entry->protocol = list.protocol();
 					entry->state = Node::STATE_VALID;
 					entry->lastTime = Game::Com_Milliseconds();
 
-					if (!Dedicated::IsDedicated() && entry->isDedi && ServerList::IsOnlineList())
+					if (!Dedicated::IsDedicated() && entry->isDedi && ServerList::IsOnlineList() && entry->protocol == PROTOCOL)
 					{
 						ServerList::InsertRequest(entry->address, true);
 					}

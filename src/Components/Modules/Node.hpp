@@ -46,6 +46,7 @@ namespace Components
 
 			// This is only relevant for clients
 			bool isDedi;
+			uint32_t protocol;
 		};
 
 		struct ClientSession
