@@ -8,7 +8,7 @@ namespace Main
 	{
 		Main::EntryPointHook.Uninstall();
 
-		Utils::Cryptography::Rand::Initialize();
+		Utils::Cryptography::Initialize();
 		Components::Loader::Initialize();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)

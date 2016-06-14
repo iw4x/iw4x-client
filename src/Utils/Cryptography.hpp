@@ -2,6 +2,8 @@ namespace Utils
 {
 	namespace Cryptography
 	{
+		void Initialize();
+
 		class Token
 		{
 		public:
@@ -281,6 +283,21 @@ namespace Utils
 			static Key GenerateKey(int bits);
 			static std::string SignMessage(Key key, std::string message);
 			static bool VerifyMessage(Key key, std::string message, std::string signature);
+		};
+
+		class TDES
+		{
+		public:
+			static void Initialize();
+			static std::string Encrypt(std::string text, std::string iv, std::string key);
+			static std::string Decrpyt(std::string text, std::string iv, std::string key);
+		};
+
+		class Tiger
+		{
+		public:
+			static std::string Compute(std::string data, bool hex = false);
+			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
 		};
 
 		class SHA256

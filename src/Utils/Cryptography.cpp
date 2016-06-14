@@ -6,6 +6,11 @@ namespace Utils
 {
 	namespace Cryptography
 	{
+		void Initialize()
+		{
+			TDES::Initialize();
+			Rand::Initialize();
+		}
 
 #pragma region Rand
 
@@ -113,6 +118,69 @@ namespace Utils
 
 			int result = 0;
 			return (rsa_verify_hash(reinterpret_cast<const uint8_t*>(signature.data()), signature.size(), reinterpret_cast<const uint8_t*>(message.data()), message.size(), find_hash("sha1"), 0, &result, key.GetKeyPtr()) == CRYPT_OK && result != 0);
+		}
+
+#pragma endregion
+
+#pragma region TDES
+
+		void TDES::Initialize()
+		{
+			register_cipher(&des3_desc);
+		}
+
+		std::string TDES::Encrypt(std::string text, std::string iv, std::string key)
+		{
+			std::string encData;
+			encData.resize(text.size());
+
+			symmetric_CBC cbc;
+			int des3 = find_cipher("3des");
+
+			cbc_start(des3, reinterpret_cast<const uint8_t*>(iv.data()), reinterpret_cast<const uint8_t*>(key.data()), key.size(), 0, &cbc);
+			cbc_encrypt(reinterpret_cast<const uint8_t*>(text.data()), reinterpret_cast<uint8_t*>(const_cast<char*>(encData.data())), text.size(), &cbc);
+			cbc_done(&cbc);
+
+			return encData;
+		}
+
+		std::string TDES::Decrpyt(std::string data, std::string iv, std::string key)
+		{
+			std::string decData;
+			decData.resize(data.size());
+
+			symmetric_CBC cbc;
+			int des3 = find_cipher("3des");
+
+			cbc_start(des3, reinterpret_cast<const uint8_t*>(iv.data()), reinterpret_cast<const uint8_t*>(key.data()), key.size(), 0, &cbc);
+			cbc_decrypt(reinterpret_cast<const uint8_t*>(data.data()), reinterpret_cast<uint8_t*>(const_cast<char*>(decData.data())), data.size(), &cbc);
+			cbc_done(&cbc);
+
+			return decData;
+		}
+
+#pragma endregion
+
+#pragma region Tiger
+
+		std::string Tiger::Compute(std::string data, bool hex)
+		{
+			return Tiger::Compute(reinterpret_cast<const uint8_t*>(data.data()), data.size(), hex);
+		}
+
+		std::string Tiger::Compute(const uint8_t* data, size_t length, bool hex)
+		{
+			uint8_t buffer[24] = { 0 };
+
+			hash_state state;
+			tiger_init(&state);
+			tiger_process(&state, data, length);
+			tiger_done(&state, buffer);
+
+			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
+			if (!hex) return hash;
+
+			return Utils::DumpHex(hash, "");
 		}
 
 #pragma endregion

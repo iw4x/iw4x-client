@@ -5,6 +5,45 @@ namespace Utils
 	std::map<void*, void*> Hook::Interceptor::IReturn;
 	std::map<void*, void(*)()> Hook::Interceptor::ICallbacks;
 
+	void Hook::Signature::Process()
+	{
+		if (Hook::Signature::Signatures.empty()) return;
+
+		char* start = reinterpret_cast<char*>(Hook::Signature::Start);
+
+		unsigned int sigCount = Hook::Signature::Signatures.size();
+		Hook::Signature::Container* containers = Hook::Signature::Signatures.data();
+
+		for (size_t i = 0; i < Hook::Signature::Length; ++i)
+		{
+			char* address = start + i;
+
+			for (unsigned int k = 0; k < sigCount; ++k)
+			{
+				Hook::Signature::Container* container = &containers[k];
+
+				unsigned int j = 0;
+				for (j = 0; j < strlen(container->Mask); ++j)
+				{
+					if (container->Mask[j] != '?' &&container->Signature[j] != address[j])
+					{
+						break;
+					}
+				}
+
+				if (j == strlen(container->Mask))
+				{
+					container->Callback(address);
+				}
+			}
+		}
+	}
+
+	void Hook::Signature::Add(Hook::Signature::Container& container)
+	{
+		Hook::Signature::Signatures.push_back(container);
+	}
+
 	void Hook::Interceptor::Install(void* place, void(*stub)())
 	{
 		return Hook::Interceptor::Install(reinterpret_cast<void**>(place), stub);

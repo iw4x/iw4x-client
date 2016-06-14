@@ -8,6 +8,29 @@ namespace Utils
 	class Hook
 	{
 	public:
+		class Signature
+		{
+		public:
+			struct Container
+			{
+				const char* Signature;
+				const char* Mask;
+				std::function<void(char*)> Callback;
+			};
+
+			Signature(void* start, size_t length) : Start(start), Length(length) {}
+			Signature(DWORD start, size_t length) : Signature(reinterpret_cast<void*>(start), length) {}
+			Signature() : Signature(0x400000, 0x800000) {}
+
+			void Process();
+			void Add(Container& container);
+
+		private:
+			void* Start;
+			size_t Length;
+			std::vector<Container> Signatures;
+		};
+
 		class Interceptor
 		{
 		public:
