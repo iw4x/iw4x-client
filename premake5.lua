@@ -240,7 +240,6 @@ workspace "iw4x"
 				kind "StaticLib"
 				removedefines { "ZLIB_DLL" }
 				
-				
 		-- json11
 		project "json11"
 			language "C++"
@@ -259,7 +258,6 @@ workspace "iw4x"
 
 			-- always build as static lib, as json11 doesn't export anything
 			kind "StaticLib"
-			
 			
 		-- mongoose
 		project "mongoose"
