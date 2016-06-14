@@ -93,10 +93,6 @@ namespace Components
 		Party::LobbyMap[id.Bits] = Party::Container.Target;
 
 		Game::Steam_JoinLobby(id, 0);
-
-		// Callback not registered on first try
-		// TODO: Fix :D
-		if (Party::LobbyMap.size() <= 1) Game::Steam_JoinLobby(id, 0);
 	}
 
 	void Party::PlaylistError(std::string error)

@@ -97,6 +97,6 @@ namespace Steam
 
 	unsigned int User::UserHasLicenseForApp(SteamID steamID, unsigned int appID)
 	{
-		return 1;
+		return 0;
 	}
 }

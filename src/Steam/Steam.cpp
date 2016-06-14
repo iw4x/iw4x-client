@@ -12,8 +12,8 @@ namespace Steam
 
 	uint64_t Callbacks::RegisterCall()
 	{
-		Callbacks::Calls[Callbacks::CallID] = false;
-		return Callbacks::CallID++;
+		Callbacks::Calls[++Callbacks::CallID] = false;
+		return Callbacks::CallID;
 	}
 
 	void Callbacks::RegisterCallback(Callbacks::Base* handler, int callback)
