@@ -693,7 +693,7 @@ namespace Components
 			if (Dvar::Var("cl_ingame").Get<bool>())
 			{
 				std::string addressText = Network::Address(*Game::connectedHost).GetString();
-				if (addressText != "0.0.0.0:0")
+				if (addressText != "0.0.0.0:0" && addressText != "loopback")
 				{
 					ServerList::StoreFavourite(addressText);
 				}

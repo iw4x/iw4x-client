@@ -74,7 +74,7 @@ namespace Components
 		void* cxt = Game::UI_GetContext(a1);
 
 		std::string addressText = Network::Address(*Game::connectedHost).GetString();
-		if (addressText == "0.0.0.0:0") addressText = "Listen Server";
+		if (addressText == "0.0.0.0:0" || addressText == "loopback") addressText = "Listen Server";
 
 		// get x positions
 		float fontSize = 0.35f;
