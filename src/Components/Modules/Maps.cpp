@@ -212,6 +212,7 @@ namespace Components
 		//Maps::AddDependency("oilrig", "mp_subbase");
 		//Maps::AddDependency("gulag", "mp_subbase");
 		//Maps::AddDependency("invasion", "mp_rust");
+		Maps::AddDependency("co_hunted", "mp_storm");
 		Maps::AddDependency("^(?!mp_).*", "iw4x_dependencies_mp"); // All maps not starting with "mp_"
 	}
 
