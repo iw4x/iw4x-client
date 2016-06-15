@@ -35,6 +35,8 @@ namespace Components
 
 		static std::thread ConsoleThread;
 
+		static Game::SafeArea OriginalSafeArea;
+
 		static void ShowPrompt();
 		static void RefreshStatus();
 		static void RefreshOutput();
@@ -50,5 +52,9 @@ namespace Components
 		static void StdOutError(const char* format, ...);
 
 		static void ConsoleRunner();
+
+		static void DrawSolidConsoleStub();
+		static void StoreSafeArea();
+		static void RestoreSafeArea();
 	};
 }

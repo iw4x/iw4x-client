@@ -21,6 +21,8 @@ namespace Components
 
 	std::thread Console::ConsoleThread;
 
+	Game::SafeArea Console::OriginalSafeArea;
+
 	char** Console::GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType)
 	{
 		if (path == reinterpret_cast<char*>(0xBAADF00D) || path == reinterpret_cast<char*>(0xCDCDCDCD) || IsBadReadPtr(path, 1)) return nullptr;
@@ -431,6 +433,41 @@ namespace Components
 		ExitProcess(1);
 	}
 
+	void __declspec(naked) Console::DrawSolidConsoleStub()
+	{
+		__asm
+		{
+			pushad
+			call Console::StoreSafeArea
+			popad
+
+			// We need esi preserved here, so we have to backup 'all' registers when storing the safearea
+			call Game::Con_DrawSolidConsole
+
+			call Console::RestoreSafeArea
+			retn
+		}
+	}
+
+	void Console::StoreSafeArea()
+	{
+		// Backup the original safe area
+		Console::OriginalSafeArea = *Game::safeArea;
+
+		// Apply new safe area and border
+		float border = 6.0f;
+		Game::safeArea->top = border;
+		Game::safeArea->left = border;
+		Game::safeArea->bottom = static_cast<float>(Renderer::Height()) - border;
+		Game::safeArea->right = static_cast<float>(Renderer::Width()) - border;
+	}
+
+	void Console::RestoreSafeArea()
+	{
+		// Restore the initial safe area
+		*Game::safeArea = Console::OriginalSafeArea;
+	}
+
 	Console::Console()
 	{
 		// Console '%s: %s> ' string
@@ -441,25 +478,7 @@ namespace Components
 		Utils::Hook(0x4F65A5, Console::ToggleConsole, HOOK_JUMP).Install()->Quick();
 
 		// Patch safearea for ingame-console
-		Utils::Hook(0x5A50EF, [] ()
-		{
-			// Backup the original safe area
-			Game::SafeArea safeAreaBackup;
-			safeAreaBackup = *Game::safeArea;
-
-			// Apply new safe area and border
-			float border = 6.0f;
-			Game::safeArea->top = border;
-			Game::safeArea->left = border;
-			Game::safeArea->bottom = static_cast<float>(Renderer::Height()) - border;
-			Game::safeArea->right = static_cast<float>(Renderer::Width()) - border;
-
-			// Draw the console
-			Game::Con_DrawSolidConsole();
-
-			// Restore the initial safe area
-			*Game::safeArea = safeAreaBackup;
-		}, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5A50EF, Console::DrawSolidConsoleStub, HOOK_CALL).Install()->Quick();
 
 		// Check for bad food ;)
 		Utils::Hook(0x4CB9F4, Console::GetAutoCompleteFileList, HOOK_CALL).Install()->Quick();
