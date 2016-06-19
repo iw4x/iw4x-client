@@ -46,7 +46,7 @@ namespace Assets
 			return;
 		}
 
-		memcpy(image->texture->dimensions, iwiHeader->dimensions, 6);
+		std::memcpy(image->texture->dimensions, iwiHeader->dimensions, 6);
 		image->texture->flags = 0;
 		image->texture->mipLevels = 0;
 

@@ -14,7 +14,7 @@ namespace Components
 
 	void Dedicated::InitDedicatedServer()
 	{
-		const char* fastfiles[7] =
+		static const char* fastfiles[7] =
 		{
 			"code_post_gfx_mp",
 			"localized_code_post_gfx_mp",
@@ -25,7 +25,7 @@ namespace Components
 			"patch_mp"
 		};
 
-		memcpy(reinterpret_cast<void*>(0x66E1CB0), &fastfiles, sizeof(fastfiles));
+		std::memcpy(reinterpret_cast<void*>(0x66E1CB0), &fastfiles, sizeof(fastfiles));
 		Game::R_LoadGraphicsAssets();
 
 		Utils::Hook::Call<void()>(0x4F84C0)();

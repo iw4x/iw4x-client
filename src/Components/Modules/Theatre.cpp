@@ -27,7 +27,7 @@ namespace Components
 		Theatre::BaselineSnapshotMsgOff = *reinterpret_cast<int*>(snapshotMsg + 28) - 7;
 
 		// Copy to our snapshot buffer
-		memcpy(Theatre::BaselineSnapshot, *reinterpret_cast<DWORD**>(snapshotMsg + 8), *reinterpret_cast<DWORD*>(snapshotMsg + 20));
+		std::memcpy(Theatre::BaselineSnapshot, *reinterpret_cast<DWORD**>(snapshotMsg + 8), *reinterpret_cast<DWORD*>(snapshotMsg + 20));
 	}
 
 	void __declspec(naked) Theatre::BaselineStoreStub()

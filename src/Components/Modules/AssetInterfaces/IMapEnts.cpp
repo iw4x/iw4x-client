@@ -12,7 +12,7 @@ namespace Assets
 
 			if (orgEnts)
 			{
-				memcpy(entites, orgEnts, sizeof Game::MapEnts);
+				std::memcpy(entites, orgEnts, sizeof Game::MapEnts);
 			}
 			else
 			{

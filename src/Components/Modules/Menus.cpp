@@ -253,7 +253,7 @@ namespace Components
 		newList->menuCount = menus.size();
 
 		// Copy new menus
-		memcpy(newList->menus, menus.data(), menus.size() * sizeof(Game::menuDef_t *));
+		std::memcpy(newList->menus, menus.data(), menus.size() * sizeof(Game::menuDef_t *));
 
 		Menus::RemoveMenuList(newList->name);
 		Menus::MenuListList[newList->name] = newList;
@@ -300,7 +300,7 @@ namespace Components
 		newList->menuCount = size;
 
 		// Copy new menus
-		memcpy(newList->menus, menus.data(), size * sizeof(Game::menuDef_t *));
+		std::memcpy(newList->menus, menus.data(), size * sizeof(Game::menuDef_t *));
 
 		Menus::RemoveMenuList(newList->name);
 		Menus::MenuListList[newList->name] = newList;

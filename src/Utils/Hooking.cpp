@@ -147,7 +147,7 @@ namespace Utils
 		Hook::Installed = true;
 
 		if (unprotect) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
-		memcpy(Hook::Buffer, Hook::Place, sizeof(Hook::Buffer));
+		std::memcpy(Hook::Buffer, Hook::Place, sizeof(Hook::Buffer));
 
 		char* code = static_cast<char*>(Hook::Place);
 
@@ -186,7 +186,7 @@ namespace Utils
 
 		if(unprotect) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
 		
-		memcpy(Hook::Place, Hook::Buffer, sizeof(Hook::Buffer));
+		std::memcpy(Hook::Place, Hook::Buffer, sizeof(Hook::Buffer));
 
 		if (unprotect) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
 

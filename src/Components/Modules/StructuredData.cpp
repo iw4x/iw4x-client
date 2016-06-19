@@ -44,7 +44,7 @@ namespace Components
 
 		// Allocate new entries
 		Game::StructuredDataEnumEntry* indices = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(indexCount);
-		memcpy(indices, dataEnum->indices, sizeof(Game::StructuredDataEnumEntry) * dataEnum->numIndices);
+		std::memcpy(indices, dataEnum->indices, sizeof(Game::StructuredDataEnumEntry) * dataEnum->numIndices);
 
 		for (unsigned int i = 0; i < entries.size(); ++i)
 		{
@@ -67,7 +67,7 @@ namespace Components
 			// TODO directly shift the data using memmove
 			for (unsigned int j = dataEnum->numIndices + i; j > pos && j < indexCount; j--)
 			{
-				memcpy(&indices[j], &indices[j - 1], sizeof(Game::StructuredDataEnumEntry));
+				std::memcpy(&indices[j], &indices[j - 1], sizeof(Game::StructuredDataEnumEntry));
 			}
 
 			indices[pos].index = i + lastIndex;
@@ -158,17 +158,17 @@ namespace Components
 
 			// Reallocate the definition
 			Game::StructuredDataDef* newData = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataDef>(data->count + patchDefinitions.size());
-			memcpy(&newData[patchDefinitions.size()], data->data, sizeof Game::StructuredDataDef * data->count);
+			std::memcpy(&newData[patchDefinitions.size()], data->data, sizeof Game::StructuredDataDef * data->count);
 
 			// Prepare the buffers
 			for (unsigned int i = 0; i < patchDefinitions.size(); ++i)
 			{
-				memcpy(&newData[i], data->data, sizeof Game::StructuredDataDef);
+				std::memcpy(&newData[i], data->data, sizeof Game::StructuredDataDef);
 				newData[i].version = (patchDefinitions.size() - i) + 155;
 
 				// Reallocate the enum array
 				Game::StructuredDataEnum* newEnums = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataEnum>(data->data->numEnums);
-				memcpy(newEnums, data->data->enums, sizeof Game::StructuredDataEnum * data->data->numEnums);
+				std::memcpy(newEnums, data->data->enums, sizeof Game::StructuredDataEnum * data->data->numEnums);
 				newData[i].enums = newEnums;
 			}
 

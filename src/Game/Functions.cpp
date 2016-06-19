@@ -149,7 +149,7 @@ namespace Game
 
 	SE_Load_t SE_Load = (SE_Load_t)0x502A30;
 
-	SetConsole_t SetConsole = (SetConsole_t)0x44F060;
+	Dvar_SetStringByName_t Dvar_SetStringByName = (Dvar_SetStringByName_t)0x44F060;
 
 	SL_ConvertToString_t SL_ConvertToString = (SL_ConvertToString_t)0x4EC1D0;
 	SL_GetString_t SL_GetString = (SL_GetString_t)0x4CDC10;
@@ -278,7 +278,7 @@ namespace Game
 
 	const char* UI_LocalizeGameType(const char* gameType)
 	{
-		if (gameType == 0 || *gameType == '\0')
+		if (!gameType || !*gameType)
 		{
 			return "";
 		}
@@ -356,8 +356,8 @@ namespace Game
 
 	void MessageBox(std::string message, std::string title)
 	{
-		SetConsole("com_errorMessage", message.data());
-		SetConsole("com_errorTitle", title.data());
+		Dvar_SetStringByName("com_errorMessage", message.data());
+		Dvar_SetStringByName("com_errorTitle", title.data());
 		Cbuf_AddText(0, "openmenu error_popmenu_lobby");
 	}
 

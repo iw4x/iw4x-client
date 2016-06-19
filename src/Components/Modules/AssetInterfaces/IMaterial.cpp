@@ -42,7 +42,7 @@ namespace Assets
 		}
 
 		// Copy base material to our structure
-		memcpy(material, baseMaterial, sizeof(Game::Material));
+		std::memcpy(material, baseMaterial, sizeof(Game::Material));
 		material->name = builder->GetAllocator()->DuplicateString(name);
 
 		material->textureAtlasRowCount = 1;

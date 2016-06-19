@@ -344,8 +344,8 @@ namespace Game
 	typedef char* (__cdecl * SE_Load_t)(char* file, int Unk);
 	extern SE_Load_t SE_Load;
 
-	typedef void(__cdecl * SetConsole_t)(const char* cvar, const char* value);
-	extern SetConsole_t SetConsole;
+	typedef void(__cdecl * Dvar_SetStringByName_t)(const char* cvar, const char* value);
+	extern Dvar_SetStringByName_t Dvar_SetStringByName;
 
 	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
 	extern SL_ConvertToString_t SL_ConvertToString;
