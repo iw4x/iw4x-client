@@ -250,23 +250,6 @@ namespace Components
 		// DB_AddXAsset
 		Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).Install()->Quick();
 
-		Command::Add("listassets", [] (Command::Params params)
-		{
-			if (params.Length() < 2) return;
-
-			Game::XAssetType type = Game::DB_GetXAssetNameType(params[1]);
-
-			if (type != Game::XAssetType::ASSET_TYPE_INVALID)
-			{
-				Game::DB_EnumXAssets(type, [] (Game::XAssetHeader header, void* data)
-				{
-					Game::XAssetType type = *static_cast<Game::XAssetType*>(data);
-					Game::XAsset asset = { type, header };
-					Logger::Print("%s\n", Game::DB_GetXAssetName(&asset));
-				}, &type, false);
-			}
-		});
-
 		// Register asset interfaces
 		AssetHandler::RegisterInterface(new Assets::IXModel());
 		AssetHandler::RegisterInterface(new Assets::IMapEnts());

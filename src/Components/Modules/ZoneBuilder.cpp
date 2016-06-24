@@ -582,7 +582,8 @@ namespace Components
 				{
 					Game::DB_EnumXAssets(type, [] (Game::XAssetHeader header, void* data)
 					{
-						Logger::Print("%s\n", Game::DB_GetXAssetNameHandlers[*(Game::XAssetType*)data](&header));
+						Game::XAsset asset = { *reinterpret_cast<Game::XAssetType*>(data), header };
+						Logger::Print("%s\n", Game::DB_GetXAssetName(&asset));
 					}, &type, false);
 				}
 			});

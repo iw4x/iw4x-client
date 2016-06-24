@@ -14,8 +14,6 @@ namespace Components
 
 	void Toast::Draw(UIToast* toast)
 	{
-#pragma warning(push)
-#pragma warning(disable: 4244)
 		if (!toast) return;
 
 		int width = Renderer::Width();
@@ -50,7 +48,7 @@ namespace Components
 			int diffH = Renderer::Height() / 5;
 			int diff = Game::Com_Milliseconds() - startTime;
 			double scale = 1.0 - ((1.0 * diff) / (1.0 * slideTime));
-			diffH *= scale;
+			diffH = static_cast<int>(diffH* scale);
 			height += diffH;
 		}
 
@@ -63,7 +61,7 @@ namespace Components
 			int diffH = Renderer::Height() / 5;
 			int diff = (startTime + duration) - Game::Com_Milliseconds();
 			double scale = 1.0 - ((1.0 * diff) / (1.0 * slideTime));
-			diffH *= scale;
+			diffH = static_cast<int>(diffH* scale);
 			height += diffH;
 		}
 
@@ -88,6 +86,9 @@ namespace Components
 		bWidth += (bWidth % 2);
 		bHeight += (bHeight % 2);
 
+#pragma warning(push)
+#pragma warning(disable: 4244)
+
 		// Corners
 		Game::R_AddCmdDrawStretchPic(width / 2 - bWidth / 2, height - bHeight / 2, cornerSize, cornerSize, 0, 0, 0.5f, 0.5f, color, circle);                           // Top-Left
 		Game::R_AddCmdDrawStretchPic(width / 2 + bWidth / 2 - cornerSize, height - bHeight / 2, cornerSize, cornerSize, 0.5f, 0, 0, 0.5f, color, circle);              // Top-Right
@@ -111,6 +112,7 @@ namespace Components
 		int rightText = width / 2 + bWidth / 2 - cornerSize - aCorners - iOffsetLeft;
 		Game::R_AddCmdDrawText(toast->Title.data(), 0x7FFFFFFF, font, leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize, height - bHeight / 2 + cornerSize * 2 + 7, 1.0f, 1.0f, 0, wColor, 0); // Title
 		Game::R_AddCmdDrawText(toast->Desc.data(), 0x7FFFFFFF, font, leftText + (rightText - leftText) / 2 - descrSize / 2 + cornerSize, height - bHeight / 2 + cornerSize * 2 + 33, 1.0f, 1.0f, 0, wColor, 0); // Description
+
 #pragma warning(pop)
 	}
 
