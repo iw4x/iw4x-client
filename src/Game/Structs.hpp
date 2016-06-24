@@ -2401,6 +2401,9 @@ namespace Game
 
 	struct SafeArea
 	{
+		int fontHeight;
+		int textHeight;
+		int textWidth;
 		float left;
 		float top;
 		float right;

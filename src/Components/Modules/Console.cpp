@@ -460,6 +460,9 @@ namespace Components
 		Game::safeArea->left = border;
 		Game::safeArea->bottom = static_cast<float>(Renderer::Height()) - border;
 		Game::safeArea->right = static_cast<float>(Renderer::Width()) - border;
+
+		Game::safeArea->textHeight = static_cast<int>((Game::safeArea->bottom - Game::safeArea->top - (2 * Game::safeArea->fontHeight) - 24.0) / Game::safeArea->fontHeight);
+		Game::safeArea->textWidth = static_cast<int>(Game::safeArea->right - Game::safeArea->left - 10.0f - 18.0);
 	}
 
 	void Console::RestoreSafeArea()

@@ -223,7 +223,7 @@ namespace Game
 
 	SOCKET* ip_socket = (SOCKET*)0x64A3008;
 
-	SafeArea* safeArea = (SafeArea*)0xA15F48;
+	SafeArea* safeArea = (SafeArea*)0xA15F3C;
 
 	SpawnVar* spawnVars = (SpawnVar*)0x1A83DE8;
 	MapEnts** marMapEntsPtr = (MapEnts**)0x112AD34;
