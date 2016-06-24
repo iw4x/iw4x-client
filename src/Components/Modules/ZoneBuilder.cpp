@@ -551,6 +551,14 @@ namespace Components
 				AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, zone.data()); // Lock until zone is loaded
 
 				auto assets = ZoneBuilder::EndAssetTrace();
+
+				Logger::Print("Unloading zone '%s'...\n", zone.data());
+				info.freeFlags = info.allocFlags;
+				info.allocFlags = 0;
+				info.name = nullptr;
+
+				Game::DB_LoadXAssets(&info, 1, true);
+				AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
 				
 				Logger::Print("Zone '%s' loaded with %d assets:\n", zone.data(), assets.size());
 				

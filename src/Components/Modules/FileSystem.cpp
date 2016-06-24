@@ -99,13 +99,13 @@ namespace Components
 
 	void FileSystem::RegisterFolder(const char* folder)
 	{
-		const char* fs_cdpath = Dvar::Var("fs_cdpath").Get<const char*>();
-		const char* fs_basepath = Dvar::Var("fs_basepath").Get<const char*>();
-		const char* fs_homepath = Dvar::Var("fs_homepath").Get<const char*>();
+		std::string fs_cdpath = Dvar::Var("fs_cdpath").Get<std::string>();
+		std::string fs_basepath = Dvar::Var("fs_basepath").Get<std::string>();
+		std::string fs_homepath = Dvar::Var("fs_homepath").Get<std::string>();
 
-		if (fs_cdpath)   Game::FS_AddLocalizedGameDirectory(fs_cdpath, folder);
-		if (fs_basepath) Game::FS_AddLocalizedGameDirectory(fs_basepath, folder);
-		if (fs_homepath) Game::FS_AddLocalizedGameDirectory(fs_homepath, folder);
+		if (!fs_cdpath.empty())   Game::FS_AddLocalizedGameDirectory(fs_cdpath.data(),   folder);
+		if (!fs_basepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_basepath.data(), folder);
+		if (!fs_homepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_homepath.data(), folder);
 	}
 
 	void FileSystem::RegisterFolders()
