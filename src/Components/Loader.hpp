@@ -29,6 +29,7 @@ namespace Components
 #include "Modules\News.hpp"
 #include "Modules\Flags.hpp"
 #include "Modules\Menus.hpp"
+#include "Modules\Toast.hpp"
 #include "Modules\Colors.hpp"
 #include "Modules\D3D9Ex.hpp"
 #include "Modules\Logger.hpp"

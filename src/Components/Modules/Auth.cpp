@@ -396,9 +396,12 @@ namespace Components
 		{
 			if (params.Length() < 2)
 			{
-				Logger::Print("Your current security level is %d\n", Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey()));
+				uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey());
+				Logger::Print("Your current security level is %d\n", level);
 				Logger::Print("Your security token is: %s\n", Utils::DumpHex(Auth::GuidToken.ToString(), "").data());
 				Logger::Print("Your computation token is: %s\n", Utils::DumpHex(Auth::ComputeToken.ToString(), "").data());
+
+				Toast::Show("cardicon_locked", "^5Security Level", Utils::VA("Your security level is %d", level), 3000);
 			}
 			else
 			{

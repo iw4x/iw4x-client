@@ -16,6 +16,7 @@ namespace Components
 		Loader::Register(new Node());
 		Loader::Register(new RCon());
 		Loader::Register(new Menus());
+		Loader::Register(new Toast());
 		Loader::Register(new Party());
 		Loader::Register(new Colors());
 		Loader::Register(new D3D9Ex());

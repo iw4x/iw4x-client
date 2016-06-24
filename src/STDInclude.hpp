@@ -39,6 +39,7 @@
 #include <thread>
 #include <chrono>
 #include <future>
+#include <queue>
 
 // Submodules
 // Ignore the warnings, it's no our code!
