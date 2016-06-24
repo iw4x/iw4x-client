@@ -553,7 +553,7 @@ namespace Components
 				auto assets = ZoneBuilder::EndAssetTrace();
 
 				Logger::Print("Unloading zone '%s'...\n", zone.data());
-				info.freeFlags = info.allocFlags;
+				info.freeFlags = 0x01000000;
 				info.allocFlags = 0;
 				info.name = nullptr;
 
