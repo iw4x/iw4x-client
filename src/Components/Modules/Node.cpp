@@ -143,6 +143,7 @@ namespace Components
 		Proto::Node::List list;
 		list.set_is_dedi(Dedicated::IsDedicated());
 		list.set_protocol(PROTOCOL);
+		list.set_version(NODE_VERSION);
 
 		for (auto node : Node::Nodes)
 		{
@@ -165,21 +166,12 @@ namespace Components
 
 	void Node::DeleteInvalidSessions()
 	{
-		std::vector<Node::ClientSession> cleanSessions;
-
-		for (auto session : Node::Sessions)
+		for (auto i = Node::Sessions.begin(); i != Node::Sessions.end(); ++i)
 		{
-			if (session.lastTime > 0 && (Game::Com_Milliseconds() - session.lastTime) <= SESSION_TIMEOUT)
+			if (i->lastTime <= 0 || (Game::Com_Milliseconds() - i->lastTime) > SESSION_TIMEOUT)
 			{
-				cleanSessions.push_back(session);
+				i = Node::Sessions.erase(i);
 			}
-		}
-
-		if (cleanSessions.size() != Node::Sessions.size())
-		{
-			//Node::Sessions.clear();
-			//Utils::Merge(&Node::Sessions, cleanSessions);
-			Node::Sessions = cleanSessions;
 		}
 	}
 
@@ -692,6 +684,7 @@ namespace Components
 
 					entry->isDedi = list.is_dedi();
 					entry->protocol = list.protocol();
+					entry->version = list.version();
 					entry->state = Node::STATE_VALID;
 					entry->lastTime = Game::Com_Milliseconds();
 
@@ -703,6 +696,12 @@ namespace Components
 					for (int i = 0; i < list.address_size(); ++i)
 					{
 						Network::Address _addr(list.address(i));
+
+						// Version 0 sends port in the wrong byte order!
+						if (entry->version <= 0)
+						{
+							_addr.SetPort(ntohs(_addr.GetPort()));
+						}
 
 // 						if (!Node::FindNode(_addr) && _addr.GetPort() >= 1024 && _addr.GetPort() - 20 < 1024)
 // 						{

@@ -15,4 +15,5 @@ message List
 	bool is_dedi = 1;
 	repeated Network.Address address = 2; 
 	uint32 protocol = 3;
+	uint32 version = 4;
 }
