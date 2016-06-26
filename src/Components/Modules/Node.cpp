@@ -269,7 +269,7 @@ namespace Components
 				// Register when unregistered and in UNKNOWN state (I doubt it's possible to be unregistered and in VALID state)
 				if (!node.registered && (node.state != Node::STATE_NEGOTIATING && node.state != Node::STATE_INVALID))
 				{
-					registerCount++;
+					++registerCount;
 					node.state = Node::STATE_NEGOTIATING;
 					Node::PerformRegistration(node.address);
 				}
@@ -284,7 +284,7 @@ namespace Components
 				// Nvm, this is required for clients, as nodes don't send registration requests to clients.
 				else if (node.state == STATE_INVALID && (Game::Com_Milliseconds() - node.lastTime) > NODE_QUERY_INTERVAL) 
 				{
-					registerCount++;
+					++registerCount;
 					Node::PerformRegistration(node.address);
 				}
 			}
@@ -293,7 +293,7 @@ namespace Components
 			{
 				if (node.registered && node.state == Node::STATE_VALID && (!node.lastListQuery || (Game::Com_Milliseconds() - node.lastListQuery) > NODE_QUERY_INTERVAL))
 				{
-					listQueryCount++;
+					++listQueryCount;
 					node.state = Node::STATE_NEGOTIATING;
 					node.lastTime = Game::Com_Milliseconds();
 					node.lastListQuery = Game::Com_Milliseconds();
@@ -698,7 +698,7 @@ namespace Components
 						Network::Address _addr(list.address(i));
 
 						// Version 0 sends port in the wrong byte order!
-						if (entry->version <= 0)
+						if (entry->version == 0)
 						{
 							_addr.SetPort(ntohs(_addr.GetPort()));
 						}
@@ -845,7 +845,7 @@ namespace Components
 			std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
 			// Invalidate the message...
-			message[Utils::Cryptography::Rand::GenerateInt() % message.size()]++;
+			++message[Utils::Cryptography::Rand::GenerateInt() % message.size()];
 
 			if (Utils::Cryptography::ECC::VerifyMessage(Node::SignatureKey, message, signature))
 			{

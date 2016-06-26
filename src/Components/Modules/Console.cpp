@@ -56,7 +56,7 @@ namespace Components
 			{
 				if (Game::svs_clients[i].state >= 3)
 				{
-					clientCount++;
+					++clientCount;
 				}
 			}
 		}
@@ -344,21 +344,21 @@ namespace Components
 			if (*p == '^')
 			{
 				char color;
-				p++;
+				++p;
 
 				color = (*p - '0');
 
 				if (color < 9 && color > 0)
 				{
 					wattron(Console::OutputWindow, COLOR_PAIR(color + 2));
-					p++;
+					++p;
 					continue;
 				}
 			}
 
 			waddch(Console::OutputWindow, *p);
 
-			p++;
+			++p;
 		}
 
 		wattron(Console::OutputWindow, COLOR_PAIR(9));

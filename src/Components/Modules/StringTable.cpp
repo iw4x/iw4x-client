@@ -13,7 +13,7 @@ namespace Components
 		{
 			hash = tolower(*data) + (31 * hash);
 
-			data++;
+			++data;
 		}
 
 		return hash;

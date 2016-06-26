@@ -368,7 +368,7 @@ namespace Game
 		while (*string)
 		{
 			hash = (*string | 0x20) ^ (33 * hash);
-			string++;
+			++string;
 		}
 
 		return hash;

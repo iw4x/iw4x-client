@@ -90,7 +90,7 @@ namespace Components
 				else command.append(Utils::VA("wait 500;", mapname));                             // Test direct map switch
 				command.append(Utils::VA("map %s;", mapname));
 
-				i++, current++;
+				++i, ++current;
 
 				if (current >= max) break;
 			}

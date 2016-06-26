@@ -267,7 +267,7 @@ namespace Components
 				{
 					if (Game::svs_clients[i].state >= 3)
 					{
-						clientCount++;
+						++clientCount;
 					}
 				}
 			}

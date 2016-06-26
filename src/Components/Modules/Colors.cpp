@@ -65,15 +65,16 @@ namespace Components
 			char index = *(in + 1);
 			if (*in == '^' && (Colors::ColorIndex(index) != 7 || index == '7'))
 			{
-				in++;
+				++in;
 			}
 			else
 			{
 				*out = *in;
-				out++;
-				current++;
+				++out;
+				++current;
 			}
-			in++;
+
+			++in;
 		}
 		*out = '\0';
 	}

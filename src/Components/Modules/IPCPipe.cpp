@@ -33,7 +33,7 @@ namespace Components
 			if (this->ReconnectAttempt < IPC_MAX_RECONNECTS)
 			{
 				Logger::Print("Attempting to reconnect to the pipe.\n");
-				this->ReconnectAttempt++;
+				++this->ReconnectAttempt;
 				std::this_thread::sleep_for(500ms);
 
 				return this->Connect(name);

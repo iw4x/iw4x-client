@@ -35,7 +35,7 @@ namespace Utils
 						}
 						else
 						{
-							this->TokenString[i]++;
+							++this->TokenString[i];
 							break;
 						}
 					}
@@ -47,7 +47,7 @@ namespace Utils
 			Token operator++ (int)
 			{
 				Token result = *this;
-				++(*this);
+				this->operator++();
 				return result;
 			}
 
@@ -149,7 +149,7 @@ namespace Utils
 			public:
 				Key() : KeyStorage(new ecc_key)
 				{
-					ZeroMemory(this->KeyStorage.get(), sizeof(*this->GetKeyPtr()));
+					ZeroMemory(this->GetKeyPtr(), sizeof(*this->GetKeyPtr()));
 				};
 				Key(ecc_key* key) : Key() { if(key) std::memmove(this->GetKeyPtr(), key, sizeof(*key)); };
 				Key(ecc_key key) : Key(&key) {};
@@ -244,7 +244,7 @@ namespace Utils
 			public:
 				Key() : KeyStorage(new rsa_key)
 				{
-					ZeroMemory(this->KeyStorage.get(), sizeof(*this->GetKeyPtr()));
+					ZeroMemory(this->GetKeyPtr(), sizeof(*this->GetKeyPtr()));
 				};
 				Key(rsa_key* key) : Key() { if (key) std::memmove(this->GetKeyPtr(), key, sizeof(*key)); };
 				Key(rsa_key key) : Key(&key) {};

@@ -240,7 +240,7 @@ namespace Components
 					return bits;
 				}
 
-				bits++;
+				++bits;
 			}
 		}
 

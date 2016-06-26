@@ -359,14 +359,14 @@ namespace Components
 				{
 					if (server.Addr == container.Target)
 					{
-						ServerList::RefreshContainer.SendCount--;
-						ServerList::RefreshContainer.SentCount--;
+						--ServerList::RefreshContainer.SendCount;
+						--ServerList::RefreshContainer.SentCount;
 						break;
 					}
 				}
 			}
 
-			ServerList::RefreshContainer.SendCount++;
+			++ServerList::RefreshContainer.SendCount;
 		}
 
 		if (acquireMutex) ServerList::RefreshContainer.Mutex.unlock();
@@ -542,7 +542,7 @@ namespace Components
 			server->SendTime = Game::Com_Milliseconds();
 			server->Challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
-			ServerList::RefreshContainer.SentCount++;
+			++ServerList::RefreshContainer.SentCount;
 
 			Network::SendCommand(server->Target, "getinfo", server->Challenge);
 
