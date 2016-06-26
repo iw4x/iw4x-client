@@ -386,7 +386,7 @@ namespace Components
 					if (params.Length() != 2) return;
 
 					int client = -1;
-					if (std::string(params[1]) != "all")
+					if (params[1] != "all"s)
 					{
 						client = atoi(params[1]);
 

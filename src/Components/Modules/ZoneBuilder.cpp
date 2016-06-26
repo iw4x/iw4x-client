@@ -473,7 +473,7 @@ namespace Components
 // 
 // 			if (FastFiles::Current() == "iw4x_ui_mp" && type == Game::XAssetType::ASSET_TYPE_MATERIAL)
 // 			{
-// 				if (std::string(name) == "preview_mp_bloc")
+// 				if (name == "preview_mp_bloc"s)
 // 				{
 // 					blocTable = asset.material->stateBitTable;
 // 				}

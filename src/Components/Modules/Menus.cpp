@@ -276,7 +276,7 @@ namespace Components
 		}
 
 		// Load custom menus
-		if (std::string(menuList->name) == "ui_mp/code.txt") // Should be menus, but code is loaded ingame
+		if (menuList->name == "ui_mp/code.txt"s) // Should be menus, but code is loaded ingame
 		{
 			for (auto menu : Menus::CustomMenus)
 			{
@@ -531,7 +531,7 @@ namespace Components
 		if (menuList)
 		{
 			// Parse scriptmenus!
-			if (!strcmp(menuList->menus[0]->window.name, "default_menu") || Utils::EndsWith(filename, ".menu"))
+			if (menuList->menus[0]->window.name == "default_menu"s || Utils::EndsWith(filename, ".menu"))
 			{
 				if (FileSystem::File(filename).Exists())
 				{
@@ -555,11 +555,9 @@ namespace Components
 
 	bool Menus::IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu)
 	{
-		std::string _connect = "connect";
-
 		if (menu && menu->window.name)
 		{
-			if (menu->window.name == _connect) // Check if we're supposed to draw the loadscreen
+			if (menu->window.name == "connect"s) // Check if we're supposed to draw the loadscreen
 			{
 				Game::menuDef_t* originalConnect = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, "connect").menu;
 

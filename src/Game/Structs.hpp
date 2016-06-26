@@ -1181,7 +1181,7 @@ namespace Game
 		float uvBottom;
 	};
 
-	struct Font
+	typedef struct Font_s
 	{
 		char* name;
 		int size;
@@ -1189,7 +1189,7 @@ namespace Game
 		Material* image;
 		Material* glowImage;
 		FontEntry* characters;
-	};
+	} Font;
 
 	typedef enum
 	{

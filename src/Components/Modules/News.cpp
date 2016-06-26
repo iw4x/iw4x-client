@@ -15,7 +15,7 @@ namespace Components
 			Logger::Print("Awaiting thread termination...\n");
 			News::Thread.join();
 
-			if (!strlen(Localization::Get("MPUI_CHANGELOG_TEXT")) || Localization::Get("MPUI_CHANGELOG_TEXT") == std::string("Loading..."))
+			if (!strlen(Localization::Get("MPUI_CHANGELOG_TEXT")) || Localization::Get("MPUI_CHANGELOG_TEXT") == "Loading..."s)
 			{
 				Logger::Print("Failed to fetch changelog!\n");
 				result = false;

@@ -212,7 +212,7 @@ namespace Components
 
 		http_message* message = reinterpret_cast<http_message*>(ev_data);
 
-// 		if (std::string(message->uri.p, message->uri.len) == "/")
+// 		if (message->uri.p, message->uri.len == "/"s)
 // 		{
 // 			mg_printf(nc, 
 // 				"HTTP/1.1 200 OK\r\n"

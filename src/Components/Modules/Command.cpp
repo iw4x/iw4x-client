@@ -26,7 +26,7 @@ namespace Components
 		for (size_t i = startIndex; i < this->Length(); ++i)
 		{
 			if (i > startIndex) result.append(" ");
-			result.append((*this)[i]);
+			result.append(this->operator[](i));
 		}
 
 		return result;
