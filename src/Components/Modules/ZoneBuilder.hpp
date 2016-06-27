@@ -1,5 +1,6 @@
 #define XFILE_MAGIC_UNSIGNED 0x3030317566665749
 #define XFILE_VERSION 276
+#define XFILE_VERSION_IW4X 0x78345749 // 'IW4x'
 
 namespace Components
 {

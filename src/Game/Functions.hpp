@@ -81,6 +81,9 @@ namespace Game
 	typedef void(*DB_LoadXAssets_t)(XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 	extern DB_LoadXAssets_t DB_LoadXAssets;
 
+	typedef void(__cdecl * DB_ReadXFileUncompressed_t)(void* buffer, int size);
+	extern DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed;
+
 	typedef dvar_t* (__cdecl * Dvar_RegisterBool_t)(const char* name, bool default, int flags, const char* description);
 	extern Dvar_RegisterBool_t Dvar_RegisterBool;
 

@@ -20,5 +20,7 @@ namespace Components
 		static void LoadInitialZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 		static void LoadDLCUIZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 		static void LoadGfxZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
+
+		static void ReadVersionStub(unsigned int* version, int size);
 	};
 }

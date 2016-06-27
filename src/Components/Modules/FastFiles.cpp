@@ -143,12 +143,26 @@ namespace Components
 		return file;
 	}
 
+	void FastFiles::ReadVersionStub(unsigned int* version, int size)
+	{
+		Game::DB_ReadXFileUncompressed(version, size);
+
+		// Allow loading out custom version
+		if (*version == XFILE_VERSION_IW4X)
+		{
+			*version = XFILE_VERSION;
+		}
+	}
+
 	FastFiles::FastFiles()
 	{
 		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display current loaded zone.");
 
 		// Redirect zone paths
 		Utils::Hook(0x44DA90, FastFiles::GetZoneLocation, HOOK_JUMP).Install()->Quick();
+
+		// Allow loading 'newer' zones
+		Utils::Hook(0x4158E7, FastFiles::ReadVersionStub, HOOK_CALL).Install()->Quick();
 
 		// Allow custom zone loading
 		if (!ZoneBuilder::IsEnabled())
