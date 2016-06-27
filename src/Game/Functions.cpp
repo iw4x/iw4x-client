@@ -12,6 +12,7 @@ namespace Game
 	CL_IsCgameInitialized_t CL_IsCgameInitialized = (CL_IsCgameInitialized_t)0x43EB20;
 	CL_ConnectFromParty_t CL_ConnectFromParty = (CL_ConnectFromParty_t)0x433D30;
 	CL_DownloadsComplete_t CL_DownloadsComplete = (CL_DownloadsComplete_t)0x42CE90;
+	CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical = (CL_DrawStretchPicPhysical_t)0x4FC120;
 	CL_ResetViewport_t CL_ResetViewport = (CL_ResetViewport_t)0x4A8830;
 
 	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;

@@ -86,34 +86,29 @@ namespace Components
 		bWidth += (bWidth % 2);
 		bHeight += (bHeight % 2);
 
-#pragma warning(push)
-#pragma warning(disable: 4244)
-
 		// Corners
-		Game::R_AddCmdDrawStretchPic(width / 2 - bWidth / 2, height - bHeight / 2, cornerSize, cornerSize, 0, 0, 0.5f, 0.5f, color, circle);                           // Top-Left
-		Game::R_AddCmdDrawStretchPic(width / 2 + bWidth / 2 - cornerSize, height - bHeight / 2, cornerSize, cornerSize, 0.5f, 0, 0, 0.5f, color, circle);              // Top-Right
-		Game::R_AddCmdDrawStretchPic(width / 2 - bWidth / 2, height + bHeight / 2 - cornerSize, cornerSize, cornerSize, 0, 0.5f, 0.5f, 0, color, circle);              // Bottom-Left
-		Game::R_AddCmdDrawStretchPic(width / 2 + bWidth / 2 - cornerSize, height + bHeight / 2 - cornerSize, cornerSize, cornerSize, 0.5f, 0.5f, 0, 0, color, circle); // Bottom-Right
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height - bHeight / 2), cornerSize * 1.0f, cornerSize * 1.0f, 0, 0, 0.5f, 0.5f, color, circle);                           // Top-Left
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 + bWidth / 2 - cornerSize), static_cast<float>(height - bHeight / 2), cornerSize * 1.0f, cornerSize * 1.0f, 0.5f, 0, 0, 0.5f, color, circle);              // Top-Right
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height + bHeight / 2 - cornerSize), cornerSize * 1.0f, cornerSize * 1.0f, 0, 0.5f, 0.5f, 0, color, circle);              // Bottom-Left
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 + bWidth / 2 - cornerSize), static_cast<float>(height + bHeight / 2 - cornerSize), cornerSize * 1.0f, cornerSize * 1.0f, 0.5f, 0.5f, 0, 0, color, circle); // Bottom-Right
 
 		// Border
-		Game::R_AddCmdDrawStretchPic(width / 2 - bWidth / 2 + cornerSize, height - bHeight / 2 + aCorners, bWidth - cornerSize * 2, cornerSize - aCorners, 0, 0, 1.0f, 1.0f, color, white);    // Top
-		Game::R_AddCmdDrawStretchPic(width / 2 - bWidth / 2 + cornerSize, height + bHeight / 2 - cornerSize, bWidth - cornerSize * 2, cornerSize - aCorners, 0, 0, 1.0f, 1.0f, color, white);  // Bottom
-		Game::R_AddCmdDrawStretchPic(width / 2 - bWidth / 2 + aCorners, height - bHeight / 2 + cornerSize, cornerSize - aCorners, bHeight - cornerSize * 2, 0, 0, 1.0f, 1.0f, color, white);   // Left
-		Game::R_AddCmdDrawStretchPic(width / 2 + bWidth / 2 - cornerSize, height - bHeight / 2 + cornerSize, cornerSize - aCorners, bHeight - cornerSize * 2, 0, 0, 1.0f, 1.0f, color, white); // Right
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + aCorners), static_cast<float>(bWidth - cornerSize * 2), static_cast<float>(cornerSize - aCorners), 0, 0, 1.0f, 1.0f, color, white);    // Top
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + cornerSize), static_cast<float>(height + bHeight / 2 - cornerSize), static_cast<float>(bWidth - cornerSize * 2), static_cast<float>(cornerSize - aCorners), 0, 0, 1.0f, 1.0f, color, white);  // Bottom
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + aCorners), static_cast<float>(height - bHeight / 2 + cornerSize), static_cast<float>(cornerSize - aCorners), static_cast<float>(bHeight - cornerSize * 2), 0, 0, 1.0f, 1.0f, color, white);   // Left
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 + bWidth / 2 - cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize), static_cast<float>(cornerSize - aCorners), static_cast<float>(bHeight - cornerSize * 2), 0, 0, 1.0f, 1.0f, color, white); // Right
 
 																																																					// Center
-		Game::R_AddCmdDrawStretchPic(width / 2 - (bWidth - cornerSize * 2) / 2, height - (bHeight - cornerSize * 2) / 2, bWidth - cornerSize * 2, bHeight - cornerSize * 2, 0, 0, 1.0f, 1.0f, color, white);
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - (bWidth - cornerSize * 2) / 2), static_cast<float>(height - (bHeight - cornerSize * 2) / 2), static_cast<float>(bWidth - cornerSize * 2), static_cast<float>(bHeight - cornerSize * 2), 0, 0, 1.0f, 1.0f, color, white);
 
 		// Image
-		Game::R_AddCmdDrawStretchPic(width / 2 - bWidth / 2 + iOffsetLeft, height - bHeight / 2 + iOffset, imgDim, imgDim, 0, 0, 1.0f, 1.0f, wColor, image);
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + iOffsetLeft), static_cast<float>(height - bHeight / 2 + iOffset), imgDim * 1.0f, imgDim * 1.0f, 0, 0, 1.0f, 1.0f, wColor, image);
 
 		// Text
 		int leftText = width / 2 - bWidth / 2 - cornerSize + iOffsetLeft * 2 + imgDim;
 		int rightText = width / 2 + bWidth / 2 - cornerSize - aCorners - iOffsetLeft;
-		Game::R_AddCmdDrawText(toast->Title.data(), 0x7FFFFFFF, font, leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize, height - bHeight / 2 + cornerSize * 2 + 7, 1.0f, 1.0f, 0, wColor, 0); // Title
-		Game::R_AddCmdDrawText(toast->Desc.data(), 0x7FFFFFFF, font, leftText + (rightText - leftText) / 2 - descrSize / 2 + cornerSize, height - bHeight / 2 + cornerSize * 2 + 33, 1.0f, 1.0f, 0, wColor, 0); // Description
-
-#pragma warning(pop)
+		Game::R_AddCmdDrawText(toast->Title.data(), 0x7FFFFFFF, font, static_cast<float>(leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 7), 1.0f, 1.0f, 0, wColor, 0); // Title
+		Game::R_AddCmdDrawText(toast->Desc.data(), 0x7FFFFFFF, font, static_cast<float>(leftText + (rightText - leftText) / 2 - descrSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 33), 1.0f, 1.0f, 0, wColor, 0); // Description
 	}
 
 	void Toast::Handler()
@@ -148,7 +143,7 @@ namespace Components
 
 		Command::Add("testtoast", [] (Command::Params)
 		{
-			Toast::Show("specialty_nuke", "Test", "This is a test toast", 3000);
+			Toast::Show("cardicon_prestige10", "Test", "This is a test toast", 3000);
 		});
 	}
 

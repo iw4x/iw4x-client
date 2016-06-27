@@ -21,6 +21,9 @@ namespace Game
 	typedef void(__cdecl * CL_DownloadsComplete_t)(int controller);
 	extern CL_DownloadsComplete_t CL_DownloadsComplete;
 
+	typedef void(_cdecl * CL_DrawStretchPicPhysical_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
+	extern CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical;
+
 	typedef void(__cdecl * CL_ResetViewport_t)();
 	extern CL_ResetViewport_t CL_ResetViewport;
 
@@ -302,7 +305,7 @@ namespace Game
 	typedef void(__cdecl * R_AddCmdDrawText_t)(const char *text, int maxChars, Font *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
 	extern R_AddCmdDrawText_t R_AddCmdDrawText;
 
-	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, void* material);
+	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
 	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;
 
 	typedef void(__cdecl * R_LoadGraphicsAssets_t)();
