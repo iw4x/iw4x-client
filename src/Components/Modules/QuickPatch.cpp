@@ -238,6 +238,7 @@ namespace Components
 
 		// intro stuff
 		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
+		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset the intro dvar
 		Utils::Hook::Set<char*>(0x60BED2, "unskippablecinematic IW_logo\n");
 
 		// Redirect logs

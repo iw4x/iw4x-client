@@ -37,14 +37,14 @@ namespace Components
 		Game::vec4_t color = { 0, 0, 0, 0.7f };
 		Game::vec4_t wColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+		height /= 5;
+		height *= 4;
+
 		if (Game::Com_Milliseconds() < startTime || (startTime + duration) < Game::Com_Milliseconds()) return;
 
 		// Fadein stuff
 		else if (Game::Com_Milliseconds() - startTime < slideTime)
 		{
-			height /= 5;
-			height *= 4;
-
 			int diffH = Renderer::Height() / 5;
 			int diff = Game::Com_Milliseconds() - startTime;
 			double scale = 1.0 - ((1.0 * diff) / (1.0 * slideTime));
@@ -55,20 +55,11 @@ namespace Components
 		// Fadeout stuff
 		else if (Game::Com_Milliseconds() - startTime > (duration - slideTime))
 		{
-			height /= 5;
-			height *= 4;
-
 			int diffH = Renderer::Height() / 5;
 			int diff = (startTime + duration) - Game::Com_Milliseconds();
 			double scale = 1.0 - ((1.0 * diff) / (1.0 * slideTime));
 			diffH = static_cast<int>(diffH* scale);
 			height += diffH;
-		}
-
-		else
-		{
-			height /= 5;
-			height *= 4;
 		}
 
 		height += bHeight / 2 + aCorners - cornerSize;
@@ -98,7 +89,7 @@ namespace Components
 		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + aCorners), static_cast<float>(height - bHeight / 2 + cornerSize), static_cast<float>(cornerSize - aCorners), static_cast<float>(bHeight - cornerSize * 2), 0, 0, 1.0f, 1.0f, color, white);   // Left
 		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 + bWidth / 2 - cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize), static_cast<float>(cornerSize - aCorners), static_cast<float>(bHeight - cornerSize * 2), 0, 0, 1.0f, 1.0f, color, white); // Right
 
-																																																					// Center
+		// Center
 		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - (bWidth - cornerSize * 2) / 2), static_cast<float>(height - (bHeight - cornerSize * 2) / 2), static_cast<float>(bWidth - cornerSize * 2), static_cast<float>(bHeight - cornerSize * 2), 0, 0, 1.0f, 1.0f, color, white);
 
 		// Image
