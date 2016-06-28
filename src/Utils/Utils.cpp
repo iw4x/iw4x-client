@@ -61,6 +61,16 @@ namespace Utils
 		return result;
 	}
 
+	std::string XORString(std::string str, char value)
+	{
+		for (unsigned int i = 0; i < str.size(); ++i)
+		{
+			str[i] ^= value;
+		}
+
+		return str;
+	}
+
 	// Complementary function for memset, which checks if a memory is set
 	bool MemIsSet(void* mem, char chr, size_t length) 
 	{

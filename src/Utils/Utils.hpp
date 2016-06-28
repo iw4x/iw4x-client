@@ -22,6 +22,8 @@ namespace Utils
 
 	std::string DumpHex(std::string data, std::string separator = " ");
 
+	std::string XORString(std::string str, char value);
+
 	bool MemIsSet(void* mem, char chr, size_t length);
 
 	class InfoString
