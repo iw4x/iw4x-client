@@ -22,6 +22,8 @@ namespace Components
 
 		static HWND MainWindow;
 
+		static int IsNoBorder();
+
 		static int WINAPI ShowCursorHook(BOOL show);
 		static void DrawCursorStub(void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Game::Material *material);	
 

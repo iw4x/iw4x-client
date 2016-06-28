@@ -61,18 +61,26 @@ namespace Components
 		return ((point.x - rect.left) > 0 && (point.y - rect.top) > 0 && (rect.right - point.x) > 0 && (rect.bottom - point.y) > 0);
 	}
 
+	int Window::IsNoBorder()
+	{
+		return Window::NoBorder.Get<bool>();
+	}
+
 	void __declspec(naked) Window::StyleHookStub()
 	{
-		if (Window::NoBorder.Get<bool>())
+		__asm
 		{
-			__asm mov ebp, WS_VISIBLE | WS_POPUP
-		}
-		else
-		{
-			__asm mov ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION
-		}
+			call Window::IsNoBorder
+			test al, al
+			jz setBorder
 
-		__asm retn
+			mov ebp, WS_VISIBLE | WS_POPUP
+			retn
+			
+		setBorder:
+			mov ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION
+			retn
+		}
 	}
 
 	void Window::DrawCursorStub(void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Game::Material *material)

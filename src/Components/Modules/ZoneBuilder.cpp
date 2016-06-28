@@ -214,7 +214,7 @@ namespace Components
 		FILETIME fileTime;
 		GetSystemTimeAsFileTime(&fileTime);
 
-		Game::XFileHeader header = { XFILE_MAGIC_UNSIGNED, XFILE_VERSION_IW4X, Game::XFileLanguage::XLANG_NONE, fileTime.dwHighDateTime,  fileTime.dwLowDateTime };
+		Game::XFileHeader header = { XFILE_MAGIC_UNSIGNED, XFILE_VERSION_IW4X, Game::XFileLanguage::XLANG_NONE, fileTime.dwHighDateTime, fileTime.dwLowDateTime };
 
 		std::string outBuffer;
 		outBuffer.append(reinterpret_cast<char*>(&header), sizeof(header));
@@ -317,11 +317,15 @@ namespace Components
 	}
 
 	// Add branding asset
-	// TODO: Check if a RawFile with the same name has already been added, to prevent conflicts.
 	void ZoneBuilder::Zone::AddBranding()
 	{
 		char* data = "FastFile built using IW4x ZoneTool!";
 		ZoneBuilder::Zone::Branding = { ZoneBuilder::Zone::ZoneName.data(), (int)strlen(data), 0, data };
+
+		if (ZoneBuilder::Zone::FindAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, ZoneBuilder::Zone::Branding.name) != -1)
+		{
+			Logger::Error("Unable to add branding. Asset '%s' already exists!", ZoneBuilder::Zone::Branding.name);
+		}
 
 		Game::XAssetHeader header = { &Branding };
 		Game::XAsset brandingAsset = { Game::XAssetType::ASSET_TYPE_RAWFILE, header };
@@ -387,16 +391,14 @@ namespace Components
 	// Find a local scriptString
 	int ZoneBuilder::Zone::FindScriptString(std::string str)
 	{
-		int loc = 0;
-		for (auto it : ZoneBuilder::Zone::ScriptStrings)
+		for (unsigned int i = 0; i < ZoneBuilder::Zone::ScriptStrings.size(); ++i)
 		{
-			++loc;
-
-			if (!it.compare(str))
+			if (ZoneBuilder::Zone::ScriptStrings[i] == str)
 			{
-				return loc;
+				return (i + 1);
 			}
 		}
+
 		return -1;
 	}
 
@@ -461,37 +463,11 @@ namespace Components
 
 	ZoneBuilder::ZoneBuilder()
 	{
-		static_assert(sizeof(Game::XFileHeader) == 21, "Invalid XFileHeader structure!");
-		static_assert(sizeof(Game::XFile) == 40, "Invalid XFile structure!");
+		Assert_Size(Game::XFileHeader, 21);
+		Assert_Size(Game::XFile, 40);
 		static_assert(Game::MAX_XFILE_COUNT == 8, "XFile block enum is invalid!");
 
 		ZoneBuilder::EndAssetTrace();
-
-		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
-		{
-// 			static void* blocTable = 0;
-// 
-// 			if (FastFiles::Current() == "iw4x_ui_mp" && type == Game::XAssetType::ASSET_TYPE_MATERIAL)
-// 			{
-// 				if (name == "preview_mp_bloc"s)
-// 				{
-// 					blocTable = asset.material->stateBitTable;
-// 				}
-// 				else if (blocTable)
-// 				{
-// 					void* thisTable = asset.material->stateBitTable;
-// 
-// 					if (thisTable != blocTable)
-// 					{
-// 						OutputDebugStringA("DIFF!");
-// 					}
-// 					else
-// 					{
-// 						OutputDebugStringA("YAY!");
-// 					}
-// 				}
-// 			}
-		});
 		
 		if (ZoneBuilder::IsEnabled())
 		{
