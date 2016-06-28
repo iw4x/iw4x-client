@@ -39,6 +39,12 @@ namespace Utils
 		return input;
 	}
 
+	std::string StrToUpper(std::string input)
+	{
+		std::transform(input.begin(), input.end(), input.begin(), ::toupper);
+		return input;
+	}
+
 	bool EndsWith(std::string haystack, std::string needle)
 	{
 		return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
