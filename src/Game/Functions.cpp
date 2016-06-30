@@ -22,7 +22,6 @@ namespace Game
 	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
 	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
 	Com_PrintMessage_t Com_PrintMessage = (Com_PrintMessage_t)0x4AA830;
-	Com_Milliseconds_t Com_Milliseconds = (Com_Milliseconds_t)0x42A660;
 	Com_ParseExt_t Com_ParseExt = (Com_ParseExt_t)0x474D60;
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = (Con_DrawMiniConsole_t)0x464F30;
@@ -60,7 +59,7 @@ namespace Game
 	FS_FileExists_t FS_FileExists = (FS_FileExists_t)0x4DEFA0;
 	FS_FreeFile_t FS_FreeFile = (FS_FreeFile_t)0x4416B0;
 	FS_ReadFile_t FS_ReadFile = (FS_ReadFile_t)0x4F4B90;
-	FS_ListFiles_t FS_ListFiles = (FS_ListFiles_t)0x441BB0;
+	FS_GetFileList_t FS_GetFileList = (FS_GetFileList_t)0x441BB0;
 	FS_FreeFileList_t FS_FreeFileList = (FS_FreeFileList_t)0x4A5DE0;
 	FS_FOpenFileAppend_t FS_FOpenFileAppend = (FS_FOpenFileAppend_t)0x410BB0;
 	FS_FOpenFileAppend_t FS_FOpenFileWrite = (FS_FOpenFileAppend_t)0x4BA530;
@@ -170,6 +169,7 @@ namespace Game
 	Sys_SendPacket_t Sys_SendPacket = (Sys_SendPacket_t)0x60FDC0;
 	Sys_ShowConsole_t Sys_ShowConsole = (Sys_ShowConsole_t)0x4305E0;
 	Sys_ListFiles_t Sys_ListFiles = (Sys_ListFiles_t)0x45A660;
+	Sys_Milliseconds_t Sys_Milliseconds = (Sys_Milliseconds_t)0x42A660;
 
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;

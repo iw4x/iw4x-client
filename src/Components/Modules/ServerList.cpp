@@ -401,7 +401,7 @@ namespace Components
 				server.MaxClients = atoi(info.Get("sv_maxclients").data());
 				server.Password = (atoi(info.Get("isPrivate").data()) != 0);
 				server.Hardcore = (atoi(info.Get("hc").data()) != 0);
-				server.Ping = (Game::Com_Milliseconds() - i->SendTime);
+				server.Ping = (Game::Sys_Milliseconds() - i->SendTime);
 				server.Addr = address;
 
 				// Remove server from queue
@@ -519,11 +519,11 @@ namespace Components
 		if (ServerList::RefreshContainer.AwatingList)
 		{
 			// Check if we haven't got a response within 10 seconds
-			if (Game::Com_Milliseconds() - ServerList::RefreshContainer.AwaitTime > 5000)
+			if (Game::Sys_Milliseconds() - ServerList::RefreshContainer.AwaitTime > 5000)
 			{
 				ServerList::RefreshContainer.AwatingList = false;
 
-				Logger::Print("We haven't received a response from the master within %d seconds!\n", (Game::Com_Milliseconds() - ServerList::RefreshContainer.AwaitTime) / 1000);
+				Logger::Print("We haven't received a response from the master within %d seconds!\n", (Game::Sys_Milliseconds() - ServerList::RefreshContainer.AwaitTime) / 1000);
 			}
 		}
 
@@ -539,7 +539,7 @@ namespace Components
 			server->Sent = true;
 			SendServers--;
 
-			server->SendTime = Game::Com_Milliseconds();
+			server->SendTime = Game::Sys_Milliseconds();
 			server->Challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 			++ServerList::RefreshContainer.SentCount;

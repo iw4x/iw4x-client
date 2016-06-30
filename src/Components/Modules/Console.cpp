@@ -26,7 +26,7 @@ namespace Components
 	char** Console::GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType)
 	{
 		if (path == reinterpret_cast<char*>(0xBAADF00D) || path == reinterpret_cast<char*>(0xCDCDCDCD) || IsBadReadPtr(path, 1)) return nullptr;
-		return Game::FS_ListFiles(path, extension, behavior, numfiles, allocTrackType);
+		return Game::FS_GetFileList(path, extension, behavior, numfiles, allocTrackType);
 	}
 
 	void Console::ToggleConsole()
@@ -389,7 +389,7 @@ namespace Components
 			DispatchMessageA(&message);
 		}
 
-		if (Game::Com_Milliseconds() - Console::LastRefresh > 100 &&
+		if (Game::Sys_Milliseconds() - Console::LastRefresh > 100 &&
 			MessageBoxA(0, "The application is not responding anymore, do you want to force its termination?", "Application is not responding", MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
 		{
 			// Force process termination
@@ -520,7 +520,7 @@ namespace Components
 
 			QuickPatch::OnFrame([] ()
 			{
-				Console::LastRefresh = Game::Com_Milliseconds();
+				Console::LastRefresh = Game::Sys_Milliseconds();
 			});
 		}
 		else if (Dedicated::IsDedicated()/* || ZoneBuilder::IsEnabled()*/)

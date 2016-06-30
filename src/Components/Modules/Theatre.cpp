@@ -161,7 +161,7 @@ namespace Components
 		Theatre::DemoContainer.CurrentInfo.Mapname = Dvar::Var("mapname").Get<const char*>();
 		Theatre::DemoContainer.CurrentInfo.Gametype = Dvar::Var("g_gametype").Get<const char*>();
 		Theatre::DemoContainer.CurrentInfo.Author = Steam::SteamFriends()->GetPersonaName();
-		Theatre::DemoContainer.CurrentInfo.Length = Game::Com_Milliseconds();
+		Theatre::DemoContainer.CurrentInfo.Length = Game::Sys_Milliseconds();
 		std::time(&Theatre::DemoContainer.CurrentInfo.TimeStamp);
 	}
 
@@ -170,7 +170,7 @@ namespace Components
 		Game::Com_Printf(channel, message);
 
 		// Store correct length
-		Theatre::DemoContainer.CurrentInfo.Length = Game::Com_Milliseconds() - Theatre::DemoContainer.CurrentInfo.Length;
+		Theatre::DemoContainer.CurrentInfo.Length = Game::Sys_Milliseconds() - Theatre::DemoContainer.CurrentInfo.Length;
 
 		// Write metadata
 		FileSystem::FileWriter meta(Utils::VA("%s.json", Theatre::DemoContainer.CurrentInfo.Name.data()));

@@ -45,9 +45,6 @@ namespace Game
 	typedef void(__cdecl * Com_PrintMessage_t)(int channel, const char *msg, int error);
 	extern Com_PrintMessage_t Com_PrintMessage;
 
-	typedef int(__cdecl * Com_Milliseconds_t)();
-	extern Com_Milliseconds_t Com_Milliseconds;
-
 	typedef char* (__cdecl * Com_ParseExt_t)(const char **data_p);
 	extern Com_ParseExt_t Com_ParseExt;
 
@@ -135,8 +132,8 @@ namespace Game
 	typedef int(__cdecl * FS_ReadFile_t)(const char* path, char** buffer);
 	extern FS_ReadFile_t FS_ReadFile;
 
-	typedef char** (__cdecl * FS_ListFiles_t)(const char *path, const char *extension, FsListBehavior_e behavior, int *numfiles, int allocTrackType);
-	extern FS_ListFiles_t FS_ListFiles;
+	typedef char** (__cdecl * FS_GetFileList_t)(const char *path, const char *extension, FsListBehavior_e behavior, int *numfiles, int allocTrackType);
+	extern FS_GetFileList_t FS_GetFileList;
 
 	typedef void(__cdecl * FS_FreeFileList_t)(char** list);
 	extern FS_FreeFileList_t FS_FreeFileList;
@@ -382,6 +379,9 @@ namespace Game
 
 	typedef char** (__cdecl * Sys_ListFiles_t)(const char *directory, const char *extension, const char *filter, int *numfiles, int wantsubs);
 	extern Sys_ListFiles_t Sys_ListFiles;
+
+	typedef int(__cdecl * Sys_Milliseconds_t)();
+	extern Sys_Milliseconds_t Sys_Milliseconds;
 
 	typedef bool(__cdecl * Sys_SendPacket_t)(netsrc_t sock, size_t len, const char *format, netadr_t adr);
 	extern Sys_SendPacket_t Sys_SendPacket;

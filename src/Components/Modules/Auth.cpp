@@ -30,18 +30,18 @@ namespace Components
 			// Not sending a response might allow the player to connect for a few seconds (<= 5) until the timeout is reached.
 			if (client->state >= 5)
 			{
-				if (info->state == Auth::STATE_NEGOTIATING && (Game::Com_Milliseconds() - info->time) > 1000 * 5)
+				if (info->state == Auth::STATE_NEGOTIATING && (Game::Sys_Milliseconds() - info->time) > 1000 * 5)
 				{
 					info->state = Auth::STATE_INVALID;
-					info->time = Game::Com_Milliseconds();
+					info->time = Game::Sys_Milliseconds();
 					Game::SV_KickClientError(client, "XUID verification timed out!");
 				}
-				else if (info->state == Auth::STATE_UNKNOWN && info->time && (Game::Com_Milliseconds() - info->time) > 1000 * 5) // Wait 5 seconds (error delay)
+				else if (info->state == Auth::STATE_UNKNOWN && info->time && (Game::Sys_Milliseconds() - info->time) > 1000 * 5) // Wait 5 seconds (error delay)
 				{
 					if ((client->steamid & 0xFFFFFFFF00000000) != 0x110000100000000)
 					{
 						info->state = Auth::STATE_INVALID;
-						info->time = Game::Com_Milliseconds();
+						info->time = Game::Sys_Milliseconds();
 						Game::SV_KickClientError(client, "Your XUID is invalid!");
 					}
 					else
@@ -49,14 +49,14 @@ namespace Components
 						Logger::Print("Sending XUID authentication request to %s\n", Network::Address(client->addr).GetCString());
 
 						info->state = Auth::STATE_NEGOTIATING;
-						info->time = Game::Com_Milliseconds();
+						info->time = Game::Sys_Milliseconds();
 						info->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 						Network::SendCommand(client->addr, "xuidAuthReq", info->challenge);
 					}
 				}
 				else if (info->state == Auth::STATE_UNKNOWN && !info->time)
 				{
-					info->time = Game::Com_Milliseconds();
+					info->time = Game::Sys_Milliseconds();
 				}
 			}
 		}
@@ -67,11 +67,11 @@ namespace Components
 			static int lastCalc = 0;
 			static double mseconds = 0;
 
-			if (!lastCalc || (Game::Com_Milliseconds() - lastCalc) > 500)
+			if (!lastCalc || (Game::Sys_Milliseconds() - lastCalc) > 500)
 			{
-				lastCalc = Game::Com_Milliseconds();
+				lastCalc = Game::Sys_Milliseconds();
 
-				int diff = Game::Com_Milliseconds() - Auth::TokenContainer.startTime;
+				int diff = Game::Sys_Milliseconds() - Auth::TokenContainer.startTime;
 				double hashPMS = (Auth::TokenContainer.hashes * 1.0) / diff;
 				double requiredHashes = std::pow(2, Auth::TokenContainer.targetLevel + 1) - Auth::TokenContainer.hashes;
 				mseconds = requiredHashes / hashPMS;
@@ -205,7 +205,7 @@ namespace Components
 			{
 				Auth::TokenContainer.generating = true;
 				Auth::TokenContainer.hashes = 0;
-				Auth::TokenContainer.startTime = Game::Com_Milliseconds();
+				Auth::TokenContainer.startTime = Game::Sys_Milliseconds();
 				Auth::IncrementToken(Auth::GuidToken, Auth::ComputeToken, Auth::GuidKey.GetPublicKey(), Auth::TokenContainer.targetLevel, &Auth::TokenContainer.cancel, &Auth::TokenContainer.hashes);
 				Auth::TokenContainer.generating = false;
 

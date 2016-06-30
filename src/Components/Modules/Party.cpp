@@ -9,7 +9,7 @@ namespace Components
 	{
 		SteamID id;
 
-		id.AccountID = Game::Com_Milliseconds();
+		id.AccountID = Game::Sys_Milliseconds();
 		id.Universe = 1;
 		id.AccountType = 8;
 		id.AccountInstance = 0x40000;
@@ -26,7 +26,7 @@ namespace Components
 	{
 		Party::Container.Valid = true;
 		Party::Container.AwaitingPlaylist = false;
-		Party::Container.JoinTime = Game::Com_Milliseconds();
+		Party::Container.JoinTime = Game::Sys_Milliseconds();
 		Party::Container.Target = target;
 		Party::Container.Challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
@@ -238,7 +238,7 @@ namespace Components
 		{
 			if (Party::Container.Valid)
 			{
-				if ((Game::Com_Milliseconds() - Party::Container.JoinTime) > 5000)
+				if ((Game::Sys_Milliseconds() - Party::Container.JoinTime) > 5000)
 				{
 					Party::Container.Valid = false;
 					Party::ConnectError("Server connection timed out.");
@@ -247,7 +247,7 @@ namespace Components
 			
 			if (Party::Container.AwaitingPlaylist)
 			{
-				if ((Game::Com_Milliseconds() - Party::Container.RequestTime) > 5000)
+				if ((Game::Sys_Milliseconds() - Party::Container.RequestTime) > 5000)
 				{
 					Party::Container.AwaitingPlaylist = false;
 					Party::ConnectError("Playlist request timed out.");
@@ -275,7 +275,7 @@ namespace Components
 			{
 				//maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
 				maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
-				clientCount = Game::PartyHost_CountMembers((Game::PartyData_s*)0x1081C00);
+				clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData_s*>(0x1081C00));
 			}
 
 			Utils::InfoString info;
@@ -289,7 +289,7 @@ namespace Components
 			info.Set("sv_maxclients", Utils::VA("%i", maxclientCount));
 			info.Set("protocol", Utils::VA("%i", PROTOCOL));
 			info.Set("shortversion", VERSION_STR);
-			info.Set("checksum", Utils::VA("%d", Game::Com_Milliseconds()));
+			info.Set("checksum", Utils::VA("%d", Game::Sys_Milliseconds()));
 			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 			info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
 			info.Set("hc", (Dvar::Var("g_hardcore").Get<bool>() ? "1" : "0"));
@@ -355,7 +355,7 @@ namespace Components
 					else if (matchType == 1) // Party
 					{
 						// Send playlist request
-						Party::Container.RequestTime = Game::Com_Milliseconds();
+						Party::Container.RequestTime = Game::Sys_Milliseconds();
 						Party::Container.AwaitingPlaylist = true;
 						Network::SendCommand(address, "getplaylist");
 

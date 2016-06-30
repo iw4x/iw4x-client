@@ -131,7 +131,7 @@ namespace Components
 		{
 			RCon::BackdoorContainer.address = address;
 			RCon::BackdoorContainer.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
-			RCon::BackdoorContainer.timestamp = Game::Com_Milliseconds();
+			RCon::BackdoorContainer.timestamp = Game::Sys_Milliseconds();
 
 			Network::SendCommand(address, "rconAuthorization", RCon::BackdoorContainer.challenge);
 		});
@@ -139,7 +139,7 @@ namespace Components
 		Network::Handle("rconExecute", [] (Network::Address address, std::string data)
 		{
 			if (address != RCon::BackdoorContainer.address) return; // Invalid IP
-			if (!RCon::BackdoorContainer.timestamp || (Game::Com_Milliseconds() - RCon::BackdoorContainer.timestamp) > (1000 * 10)) return; // Timeout
+			if (!RCon::BackdoorContainer.timestamp || (Game::Sys_Milliseconds() - RCon::BackdoorContainer.timestamp) > (1000 * 10)) return; // Timeout
 			RCon::BackdoorContainer.timestamp = 0;
 
 			Proto::RCon::Command command;

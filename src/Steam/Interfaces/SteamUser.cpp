@@ -30,7 +30,7 @@ namespace Steam
 			}
 			else // Random guid
 			{
-				subId = (Game::Com_Milliseconds() + timeGetTime());
+				subId = (Game::Sys_Milliseconds() + timeGetTime());
 			}
 
 			subId &= ~0x80000000; // Ensure it's positive

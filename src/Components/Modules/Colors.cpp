@@ -160,7 +160,7 @@ namespace Components
 		}
 		else if (index == ':')
 		{
-			*color = Colors::HsvToRgb({ static_cast<uint8_t>((Game::Com_Milliseconds() / 200) % 256), 255,255 });
+			*color = Colors::HsvToRgb({ static_cast<uint8_t>((Game::Sys_Milliseconds() / 200) % 256), 255,255 });
 		}
 		else if (index == ';')
 		{

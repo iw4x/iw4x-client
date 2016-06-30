@@ -43,23 +43,23 @@ namespace Components
 		height /= 5;
 		height *= 4;
 
-		if (Game::Com_Milliseconds() < startTime || (startTime + duration) < Game::Com_Milliseconds()) return;
+		if (Game::Sys_Milliseconds() < startTime || (startTime + duration) < Game::Sys_Milliseconds()) return;
 
 		// Fadein stuff
-		else if (Game::Com_Milliseconds() - startTime < slideTime)
+		else if (Game::Sys_Milliseconds() - startTime < slideTime)
 		{
 			int diffH = Renderer::Height() / 5;
-			int diff = Game::Com_Milliseconds() - startTime;
+			int diff = Game::Sys_Milliseconds() - startTime;
 			double scale = 1.0 - ((1.0 * diff) / (1.0 * slideTime));
 			diffH = static_cast<int>(diffH * scale);
 			height += diffH;
 		}
 
 		// Fadeout stuff
-		else if (Game::Com_Milliseconds() - startTime > (duration - slideTime))
+		else if (Game::Sys_Milliseconds() - startTime > (duration - slideTime))
 		{
 			int diffH = Renderer::Height() / 5;
-			int diff = (startTime + duration) - Game::Com_Milliseconds();
+			int diff = (startTime + duration) - Game::Sys_Milliseconds();
 			double scale = 1.0 - ((1.0 * diff) / (1.0 * slideTime));
 			diffH = static_cast<int>(diffH * scale);
 			height += diffH;
@@ -110,10 +110,10 @@ namespace Components
 		// Set start time
 		if (!toast->Start)
 		{
-			toast->Start = Game::Com_Milliseconds();
+			toast->Start = Game::Sys_Milliseconds();
 		}
 
-		if ((toast->Start + toast->Length) < Game::Com_Milliseconds())
+		if ((toast->Start + toast->Length) < Game::Sys_Milliseconds())
 		{
 			Toast::Queue.pop();
 		}

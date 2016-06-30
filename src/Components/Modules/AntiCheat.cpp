@@ -134,8 +134,8 @@ namespace Components
 	void AntiCheat::Frame()
 	{
 		// Perform check only every 30 seconds
-		if (AntiCheat::LastCheck && (Game::Com_Milliseconds() - AntiCheat::LastCheck) < 1000 * 30) return;
-		AntiCheat::LastCheck = Game::Com_Milliseconds();
+		if (AntiCheat::LastCheck && (Game::Sys_Milliseconds() - AntiCheat::LastCheck) < 1000 * 30) return;
+		AntiCheat::LastCheck = Game::Sys_Milliseconds();
 
 		AntiCheat::PerformCheck();
 	}

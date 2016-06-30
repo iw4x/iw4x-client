@@ -42,8 +42,8 @@ namespace Components
 		static int lastStorage = 0;
 
 		// Don't store nodes if the delta is too small and were not forcing it
-		if (((Game::Com_Milliseconds() - lastStorage) < NODE_STORE_INTERVAL && !force) || !Node::GetValidNodeCount()) return;
-		lastStorage = Game::Com_Milliseconds();
+		if (((Game::Sys_Milliseconds() - lastStorage) < NODE_STORE_INTERVAL && !force) || !Node::GetValidNodeCount()) return;
+		lastStorage = Game::Sys_Milliseconds();
 
 		Proto::Node::List list;
 
@@ -114,13 +114,13 @@ namespace Components
 		Node::NodeEntry* existingEntry = Node::FindNode(address);
 		if (existingEntry)
 		{
-			existingEntry->lastHeard = Game::Com_Milliseconds();
+			existingEntry->lastHeard = Game::Sys_Milliseconds();
 		}
 		else
 		{
 			Node::NodeEntry entry;
 
-			entry.lastHeard = Game::Com_Milliseconds();
+			entry.lastHeard = Game::Sys_Milliseconds();
 			entry.lastTime = 0;
 			entry.lastListQuery = 0;
 			entry.registered = false;
@@ -168,7 +168,7 @@ namespace Components
 	{
 		for (auto i = Node::Sessions.begin(); i != Node::Sessions.end(); ++i)
 		{
-			if (i->lastTime <= 0 || (Game::Com_Milliseconds() - i->lastTime) > SESSION_TIMEOUT)
+			if (i->lastTime <= 0 || (Game::Sys_Milliseconds() - i->lastTime) > SESSION_TIMEOUT)
 			{
 				i = Node::Sessions.erase(i);
 			}
@@ -181,7 +181,7 @@ namespace Components
 
 		for (auto node : Node::Nodes)
 		{
-			if (node.state == Node::STATE_INVALID && (Game::Com_Milliseconds() - node.lastHeard) > NODE_INVALID_DELETE)
+			if (node.state == Node::STATE_INVALID && (Game::Sys_Milliseconds() - node.lastHeard) > NODE_INVALID_DELETE)
 			{
 				Logger::Print("Removing invalid node %s\n", node.address.GetCString());
 			}
@@ -216,7 +216,7 @@ namespace Components
 		Node::NodeEntry* entry = Node::FindNode(address);
 		if (!entry) return;
 
-		entry->lastTime = Game::Com_Milliseconds();
+		entry->lastTime = Game::Sys_Milliseconds();
 
 		if (Dedicated::IsDedicated())
 		{
@@ -245,8 +245,8 @@ namespace Components
 
 		// Frame limit
 		static int lastFrame = 0;
-		if ((Game::Com_Milliseconds() - lastFrame) < (1000 / NODE_FRAME_LOCK) || Game::Com_Milliseconds() < 5000) return;
-		lastFrame = Game::Com_Milliseconds();
+		if ((Game::Sys_Milliseconds() - lastFrame) < (1000 / NODE_FRAME_LOCK) || Game::Sys_Milliseconds() < 5000) return;
+		lastFrame = Game::Sys_Milliseconds();
 
 		int registerCount = 0;
 		int listQueryCount = 0;
@@ -254,12 +254,12 @@ namespace Components
 		for (auto &node : Node::Nodes)
 		{
 			// TODO: Decide how to handle nodes that were already registered, but timed out re-registering.
-			if (node.state == STATE_NEGOTIATING && (Game::Com_Milliseconds() - node.lastTime) > (NODE_QUERY_TIMEOUT))
+			if (node.state == STATE_NEGOTIATING && (Game::Sys_Milliseconds() - node.lastTime) > (NODE_QUERY_TIMEOUT))
 			{
 				node.registered = false; // Definitely unregister here!
 				node.state = Node::STATE_INVALID;
-				node.lastHeard = Game::Com_Milliseconds();
-				node.lastTime = Game::Com_Milliseconds();
+				node.lastHeard = Game::Sys_Milliseconds();
+				node.lastTime = Game::Sys_Milliseconds();
 
 				Logger::Print("Node negotiation timed out. Invalidating %s\n", node.address.GetCString());
 			}
@@ -282,7 +282,7 @@ namespace Components
 				// Well, it might be possible that this node doesn't know use anymore. Anyways, just keep that code here...
 
 				// Nvm, this is required for clients, as nodes don't send registration requests to clients.
-				else if (node.state == STATE_INVALID && (Game::Com_Milliseconds() - node.lastTime) > NODE_QUERY_INTERVAL) 
+				else if (node.state == STATE_INVALID && (Game::Sys_Milliseconds() - node.lastTime) > NODE_QUERY_INTERVAL)
 				{
 					++registerCount;
 					Node::PerformRegistration(node.address);
@@ -291,12 +291,12 @@ namespace Components
 
 			if (listQueryCount < NODE_FRAME_QUERY_LIMIT)
 			{
-				if (node.registered && node.state == Node::STATE_VALID && (!node.lastListQuery || (Game::Com_Milliseconds() - node.lastListQuery) > NODE_QUERY_INTERVAL))
+				if (node.registered && node.state == Node::STATE_VALID && (!node.lastListQuery || (Game::Sys_Milliseconds() - node.lastListQuery) > NODE_QUERY_INTERVAL))
 				{
 					++listQueryCount;
 					node.state = Node::STATE_NEGOTIATING;
-					node.lastTime = Game::Com_Milliseconds();
-					node.lastListQuery = Game::Com_Milliseconds();
+					node.lastTime = Game::Sys_Milliseconds();
+					node.lastListQuery = Game::Sys_Milliseconds();
 
 					if (Dedicated::IsDedicated())
 					{
@@ -311,8 +311,8 @@ namespace Components
 		}
 
 		static int lastCheck = 0;
-		if ((Game::Com_Milliseconds() - lastCheck) < 1000) return;
-		lastCheck = Game::Com_Milliseconds();
+		if ((Game::Sys_Milliseconds() - lastCheck) < 1000) return;
+		lastCheck = Game::Sys_Milliseconds();
 
 		Node::DeleteInvalidSessions();
 		Node::DeleteInvalidNodes();
@@ -406,8 +406,8 @@ namespace Components
 				// That means this is us, so we're going to ignore us :P
 				if (packet.challenge() == entry->challenge)
 				{
-					entry->lastHeard = Game::Com_Milliseconds();
-					entry->lastTime = Game::Com_Milliseconds();
+					entry->lastHeard = Game::Sys_Milliseconds();
+					entry->lastTime = Game::Sys_Milliseconds();
 					entry->registered = false;
 					entry->state = Node::STATE_INVALID;
 					return;
@@ -418,7 +418,7 @@ namespace Components
 				packet.set_signature(signature);
 				packet.set_publickey(Node::SignatureKey.GetPublicKey());
 
-				entry->lastTime = Game::Com_Milliseconds();
+				entry->lastTime = Game::Sys_Milliseconds();
 				entry->challenge = challenge;
 				entry->state = Node::STATE_NEGOTIATING;
 
@@ -455,7 +455,7 @@ namespace Components
 				}
 
 				// Mark as registered
-				entry->lastTime = Game::Com_Milliseconds();
+				entry->lastTime = Game::Sys_Milliseconds();
 				entry->state = Node::STATE_VALID;
 				entry->registered = true;
 
@@ -499,7 +499,7 @@ namespace Components
 
 				if (Utils::Cryptography::ECC::VerifyMessage(entry->publicKey, entry->challenge, signature))
 				{
-					entry->lastTime = Game::Com_Milliseconds();
+					entry->lastTime = Game::Sys_Milliseconds();
 					entry->state = Node::STATE_VALID;
 					entry->registered = true;
 
@@ -523,7 +523,7 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (entry && entry->registered)
 				{
-					entry->lastTime = Game::Com_Milliseconds();
+					entry->lastTime = Game::Sys_Milliseconds();
 					allowed = true;
 				}
 
@@ -533,7 +533,7 @@ namespace Components
 					Node::ClientSession* session = Node::FindSession(address);
 					if (session)
 					{
-						session->lastTime = Game::Com_Milliseconds();
+						session->lastTime = Game::Sys_Milliseconds();
 						allowed = session->valid;
 					}
 				}
@@ -567,8 +567,8 @@ namespace Components
 
 				if (Utils::Cryptography::ECC::VerifyMessage(entry->publicKey, challenge, signature))
 				{
-					entry->lastHeard = Game::Com_Milliseconds();
-					entry->lastTime = Game::Com_Milliseconds();
+					entry->lastHeard = Game::Sys_Milliseconds();
+					entry->lastTime = Game::Sys_Milliseconds();
 					entry->registered = false;
 					entry->state = Node::STATE_INVALID;
 
@@ -604,7 +604,7 @@ namespace Components
 
 				// Initialize session data
 				session->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
-				session->lastTime = Game::Com_Milliseconds();
+				session->lastTime = Game::Sys_Milliseconds();
 				session->valid = false;
 
 				Network::SendCommand(address, "sessionInitialize", session->challenge);
@@ -644,7 +644,7 @@ namespace Components
 				Logger::Print("Session initialization received from %s. Synchronizing...\n", address.GetCString());
 #endif
 
-				entry->lastTime = Game::Com_Milliseconds();
+				entry->lastTime = Game::Sys_Milliseconds();
 				Network::SendCommand(address, "sessionSynchronize", data);
 			});
 
@@ -655,7 +655,7 @@ namespace Components
 
 				entry->state = Node::STATE_VALID;
 				entry->registered = true;
-				entry->lastTime = Game::Com_Milliseconds();
+				entry->lastTime = Game::Sys_Milliseconds();
 
 #ifdef DEBUG
 				Logger::Print("Session acknowledged by %s, synchronizing node list...\n", address.GetCString());
@@ -686,7 +686,7 @@ namespace Components
 					entry->protocol = list.protocol();
 					entry->version = list.version();
 					entry->state = Node::STATE_VALID;
-					entry->lastTime = Game::Com_Milliseconds();
+					entry->lastTime = Game::Sys_Milliseconds();
 
 					if (!Dedicated::IsDedicated() && entry->isDedi && ServerList::IsOnlineList() && entry->protocol == PROTOCOL)
 					{
@@ -721,7 +721,7 @@ namespace Components
 				Node::ClientSession* session = Node::FindSession(address);
 				if (session && session->valid)
 				{
-					session->lastTime = Game::Com_Milliseconds();
+					session->lastTime = Game::Sys_Milliseconds();
 
 					for (int i = 0; i < list.address_size(); ++i)
 					{
@@ -741,7 +741,7 @@ namespace Components
 				if (entry)
 				{
 					// Set to unregistered to perform registration later on
-					entry->lastTime = Game::Com_Milliseconds();
+					entry->lastTime = Game::Sys_Milliseconds();
 					entry->registered = false;
 					entry->state = Node::STATE_UNKNOWN;
 				}

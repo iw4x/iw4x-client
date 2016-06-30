@@ -49,7 +49,7 @@ namespace Components
 		std::vector<std::string> fileList;
 
 		int numFiles = 0;
-		char** files = Game::FS_ListFiles(path.data(), extension.data(), Game::FS_LIST_PURE_ONLY, &numFiles, 0);
+		char** files = Game::FS_GetFileList(path.data(), extension.data(), Game::FS_LIST_PURE_ONLY, &numFiles, 0);
 
 		if (files)
 		{

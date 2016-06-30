@@ -210,10 +210,10 @@ namespace Components
 		static uint32_t packets = 0;
 		static int lastClean = 0;
 
-		if ((Game::Com_Milliseconds() - lastClean) > 1'000)
+		if ((Game::Sys_Milliseconds() - lastClean) > 1'000)
 		{
 			packets = 0;
-			lastClean = Game::Com_Milliseconds();
+			lastClean = Game::Sys_Milliseconds();
 		}
 
 		if ((++packets) > NETWORK_MAX_PACKETS_PER_SECOND)

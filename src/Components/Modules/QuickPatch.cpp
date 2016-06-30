@@ -211,7 +211,7 @@ namespace Components
 		Utils::Hook::Set<char>(0x6DF5D6, '5');
 
 		// disable 'ignoring asset' notices
-		Utils::Hook::Nop(0x5BB902, 5);
+		//Utils::Hook::Nop(0x5BB902, 5);
 
 		// disable migration_dvarErrors
 		Utils::Hook::Set<BYTE>(0x60BDA7, 0);
@@ -252,10 +252,6 @@ namespace Components
 		Utils::Hook::Set<char*>(0x6098F8, CLIENT_CONFIG);
 		Utils::Hook::Set<char*>(0x60B279, CLIENT_CONFIG);
 		Utils::Hook::Set<char*>(0x60BBD4, CLIENT_CONFIG);
-
-#ifndef DEBUG
-		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset intro dvar
-#endif
 
 		Utils::Hook(0x4D4007, QuickPatch::ShutdownStub, HOOK_CALL).Install()->Quick();
 

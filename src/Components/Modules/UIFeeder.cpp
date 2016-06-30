@@ -146,7 +146,7 @@ namespace Components
 			jz continueOriginal
 
 			// Get current milliseconds
-			call Game::Com_Milliseconds
+			call Game::Sys_Milliseconds
 
 			// Check if allowed to click
 			cmp eax, NextClickTime

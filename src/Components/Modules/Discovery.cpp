@@ -22,7 +22,7 @@ namespace Components
 			{
 				if (Discovery::DiscoveryContainer.Perform)
 				{
-					int start = Game::Com_Milliseconds();
+					int start = Game::Sys_Milliseconds();
 
 					Logger::Print("Starting local server discovery...\n");
 
@@ -32,7 +32,7 @@ namespace Components
 					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").Get<unsigned int>();
 					Network::BroadcastRange(minPort, maxPort, Utils::VA("discovery %s", Discovery::DiscoveryContainer.Challenge.data()));
 
-					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Com_Milliseconds() - start);
+					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Sys_Milliseconds() - start);
 
 					Discovery::DiscoveryContainer.Perform = false;
 				}

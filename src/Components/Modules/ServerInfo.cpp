@@ -117,7 +117,7 @@ namespace Components
 		info.Set("shortversion", VERSION_STR);
 		info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 		info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().empty() ? "0" : "1"));
-		info.Set("checksum", Utils::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::VA("%u", Game::Com_Milliseconds()))));
+		info.Set("checksum", Utils::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::VA("%u", Game::Sys_Milliseconds()))));
 
 		// Ensure mapname is set
 		if (info.Get("mapname").empty())
