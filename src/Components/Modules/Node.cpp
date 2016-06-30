@@ -166,11 +166,15 @@ namespace Components
 
 	void Node::DeleteInvalidSessions()
 	{
-		for (auto i = Node::Sessions.begin(); i != Node::Sessions.end(); ++i)
+		for (auto i = Node::Sessions.begin(); i != Node::Sessions.end();)
 		{
 			if (i->lastTime <= 0 || (Game::Sys_Milliseconds() - i->lastTime) > SESSION_TIMEOUT)
 			{
 				i = Node::Sessions.erase(i);
+			}
+			else
+			{
+				++i;
 			}
 		}
 	}

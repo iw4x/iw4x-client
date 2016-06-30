@@ -10,10 +10,12 @@ namespace Components
 		static Utils::InfoString GetInfo();
 
 	private:
-		struct Container
+		class Container
 		{
-			struct Player
+		public:
+			class Player
 			{
+			public:
 				int Ping;
 				int Score;
 				std::string Name;

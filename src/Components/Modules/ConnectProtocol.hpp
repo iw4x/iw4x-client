@@ -10,8 +10,9 @@ namespace Components
 		static bool Used();
 
 	private:
-		struct Container
+		class Container
 		{
+		public:
 			bool Evaluated;
 			bool Invoked;
 			std::string ConnectString;

@@ -376,7 +376,7 @@ namespace Components
 	{
 		ServerList::RefreshContainer.Mutex.lock();
 
-		for (auto i = ServerList::RefreshContainer.Servers.begin(); i != ServerList::RefreshContainer.Servers.end(); ++i)
+		for (auto i = ServerList::RefreshContainer.Servers.begin(); i != ServerList::RefreshContainer.Servers.end();)
 		{
 			// Our desired server
 			if (i->Target == address && i->Sent)
@@ -412,22 +412,28 @@ namespace Components
 				if (!list) return;
 
 				unsigned int k = 0;
-				for (auto j = list->begin(); j != list->end(); ++j, ++k)
+				for (auto j = list->begin(); j != list->end(); ++k)
 				{
 					if (j->Addr == address)
 					{
 						j = list->erase(j);
-						break;
+					}
+					else
+					{
+						++j;
 					}
 				}
 
 				// Also remove from visible list
-				for (auto j = ServerList::VisibleList.begin(); j != ServerList::VisibleList.end(); ++j)
+				for (auto j = ServerList::VisibleList.begin(); j != ServerList::VisibleList.end();)
 				{
 					if (*j == k)
 					{
 						j = ServerList::VisibleList.erase(j);
-						break;
+					}
+					else
+					{
+						++j;
 					}
 				}
 
@@ -448,6 +454,10 @@ namespace Components
 				}
 
 				break;
+			}
+			else
+			{
+				++i;
 			}
 		}
 

@@ -5,8 +5,9 @@ namespace Components
 	public:
 		typedef void(Callback)();
 
-		struct Flag
-		{
+		class Flag
+		{ 
+		public:
 			Flag(Game::dvar_flag flag) : val(flag){};
 			Flag(int flag) : Flag((Game::dvar_flag)flag) {};
 

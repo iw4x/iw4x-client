@@ -17,8 +17,9 @@ namespace Components
 		static void PlaylistError(std::string error);
 
 	private:
-		struct JoinContainer
+		class JoinContainer
 		{
+		public:
 			Network::Address Target;
 			std::string Challenge;
 			DWORD JoinTime;

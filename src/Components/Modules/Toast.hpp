@@ -10,8 +10,9 @@ namespace Components
 		static void Show(const char* image, const char* title, const char* description, int length);
 
 	private:
-		struct UIToast
+		class UIToast
 		{
+		public:
 			std::string Image;
 			std::string Title;
 			std::string Desc;

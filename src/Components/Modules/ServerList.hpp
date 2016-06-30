@@ -5,8 +5,9 @@ namespace Components
 	public:
 		typedef int(SortCallback)(const void*, const void*);
 
-		struct ServerInfo
+		class ServerInfo
 		{
+		public:
 			Network::Address Addr;
 			std::string Hostname;
 			std::string Mapname;
@@ -73,10 +74,12 @@ namespace Components
 		};
 #pragma pack(pop)
 
-		struct Container
+		class Container
 		{
-			struct ServerContainer
+		public:
+			class ServerContainer
 			{
+			public:
 				bool Sent;
 				int SendTime;
 				std::string Challenge;

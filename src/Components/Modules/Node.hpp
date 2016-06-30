@@ -33,8 +33,9 @@ namespace Components
 			STATE_INVALID,
 		};
 
-		struct NodeEntry
+		class NodeEntry
 		{
+		public:
 			Network::Address address;
 			std::string challenge;
 			Utils::Cryptography::ECC::Key publicKey;
@@ -52,8 +53,9 @@ namespace Components
 			uint32_t version;
 		};
 
-		struct ClientSession
+		class ClientSession
 		{
+		public:
 			Network::Address address;
 			std::string challenge;
 			bool valid;

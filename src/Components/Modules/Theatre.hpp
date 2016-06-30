@@ -7,10 +7,12 @@ namespace Components
 		const char* GetName() { return "Theatre"; };
 
 	private:
-		struct Container
+		class Container
 		{
-			struct DemoInfo
+		public:
+			class DemoInfo
 			{
+			public:
 				std::string Name;
 				std::string Mapname;
 				std::string Gametype;

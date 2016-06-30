@@ -10,8 +10,9 @@ namespace Components
 		static void Perform();
 
 	private:
-		struct Container
+		class Container
 		{
+		public:
 			bool Perform;
 			bool Terminate;
 			std::thread Thread;

@@ -8,8 +8,9 @@ namespace Components
 		const char* GetName() { return "RCon"; };
 
 	private:
-		struct Container
+		class Container
 		{
+		public:
 			int timestamp;
 			std::string output;
 			std::string challenge;

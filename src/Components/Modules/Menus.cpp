@@ -403,13 +403,16 @@ namespace Components
 
 	void Menus::RemoveMenu(Game::menuDef_t* menudef)
 	{
-		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end(); ++i)
+		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end();)
 		{
 			if (i->second == menudef)
 			{
 				Menus::FreeMenu(menudef);
 				i = Menus::MenuList.erase(i);
-				break;
+			}
+			else
+			{
+				++i;
 			}
 		}
 	}

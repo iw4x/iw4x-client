@@ -28,16 +28,18 @@ namespace Components
 			STATE_INVALID,
 		};
 
-		struct AuthInfo
+		class AuthInfo
 		{
+		public:
 			Utils::Cryptography::ECC::Key publicKey;
 			std::string challenge;
 			AuthState state;
 			int time;
 		};
 
-		struct TokenIncrementing
+		class TokenIncrementing
 		{
+		public:
 			bool cancel;
 			bool generating;
 			std::thread thread;
