@@ -211,7 +211,7 @@ namespace Components
 		Utils::Hook::Set<char>(0x6DF5D6, '5');
 
 		// disable 'ignoring asset' notices
-		//Utils::Hook::Nop(0x5BB902, 5);
+		Utils::Hook::Nop(0x5BB902, 5);
 
 		// disable migration_dvarErrors
 		Utils::Hook::Set<BYTE>(0x60BDA7, 0);
