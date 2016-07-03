@@ -139,6 +139,7 @@ workspace "iw4x"
 			}
 			buildoptions {
 				"/wd4100", -- "Unused formal parameter"
+				"/wd4389", -- "Signed/Unsigned mismatch"
 				"/wd6011", -- "Dereferencing NULL pointer"
 				"/wd4125", -- "Decimal digit terminates octal escape sequence"
 			}
