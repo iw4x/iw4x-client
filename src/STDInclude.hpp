@@ -45,6 +45,7 @@
 // Ignore the warnings, it's no our code!
 #pragma warning(push)
 #pragma warning(disable: 4005)
+#pragma warning(disable: 4389)
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6011)
 #pragma warning(disable: 6031)
