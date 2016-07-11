@@ -2,7 +2,6 @@ namespace Utils
 {
 	std::string GetMimeType(std::string url);
 	std::string ParseChallenge(std::string data);
-	bool MemIsSet(void* mem, char chr, size_t length);
 
 	template <typename T> void Merge(std::vector<T>* target, T* source, size_t length)
 	{

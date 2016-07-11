@@ -8,7 +8,7 @@ namespace Assets
 
 		if (rawFile.Exists())
 		{
-			Game::RawFile* asset = builder->GetAllocator()->AllocateArray<Game::RawFile>();
+			Game::RawFile* asset = builder->GetAllocator()->Allocate<Game::RawFile>();
 
 			if (asset)
 			{

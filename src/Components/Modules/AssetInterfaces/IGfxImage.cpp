@@ -7,7 +7,7 @@ namespace Assets
 		Game::GfxImage* image = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_IMAGE, name.data()).image;
 		if (image) return; // TODO: Check for default?
 
-		image = builder->GetAllocator()->AllocateArray<Game::GfxImage>();
+		image = builder->GetAllocator()->Allocate<Game::GfxImage>();
 		if (!image)
 		{
 			Components::Logger::Error("Failed to allocate GfxImage structure!");
@@ -19,7 +19,7 @@ namespace Assets
 		image->category = 0;
 		image->cardMemory = 0;
 
-		image->texture = builder->GetAllocator()->AllocateArray<Game::GfxImageLoadDef>();
+		image->texture = builder->GetAllocator()->Allocate<Game::GfxImageLoadDef>();
 		if (!image->texture)
 		{
 			Components::Logger::Error("Failed to allocate GfxImageLoadDef structure!");

@@ -16,22 +16,6 @@ namespace Utils
 		return "application/octet-stream";
 	}
 
-	// Complementary function for memset, which checks if a memory is set
-	bool MemIsSet(void* mem, char chr, size_t length) 
-	{
-		char* memArr = reinterpret_cast<char*>(mem);
-
-		for (size_t i = 0; i < length; ++i)
-		{
-			if (memArr[i] != chr)
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	std::string ParseChallenge(std::string data)
 	{
 		auto pos = data.find_first_of("\n ");

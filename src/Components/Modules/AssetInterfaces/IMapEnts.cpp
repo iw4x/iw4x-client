@@ -7,7 +7,7 @@ namespace Assets
 		Components::FileSystem::File ents(name + ".ents");
 		if (ents.Exists())
 		{
-			Game::MapEnts* entites = builder->GetAllocator()->AllocateArray<Game::MapEnts>();
+			Game::MapEnts* entites = builder->GetAllocator()->Allocate<Game::MapEnts>();
 			Game::MapEnts* orgEnts = Components::AssetHandler::FindOriginalAsset(this->GetType(), name.data()).mapEnts;
 
 			if (orgEnts)

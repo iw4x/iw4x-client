@@ -28,7 +28,7 @@ namespace Components
 		{
 			Utils::CSV parsedTable(rawTable.GetBuffer(), false, false);
 
-			table = StringTable::MemAllocator.AllocateArray<Game::StringTable>(1);
+			table = StringTable::MemAllocator.Allocate<Game::StringTable>();
 
 			if (table)
 			{

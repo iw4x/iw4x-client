@@ -35,4 +35,20 @@ namespace Utils
 	{
 		Memory::Free(const_cast<void*>(data));
 	}
+
+	// Complementary function for memset, which checks if memory is filled with a char
+	bool Memory::IsSet(void* mem, char chr, size_t length)
+	{
+		char* memArr = reinterpret_cast<char*>(mem);
+
+		for (size_t i = 0; i < length; ++i)
+		{
+			if (memArr[i] != chr)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

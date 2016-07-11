@@ -51,7 +51,7 @@ namespace Steam
 	unsigned __int64 Matchmaking::CreateLobby(int eLobbyType, int cMaxMembers)
 	{
 		uint64_t result = Callbacks::RegisterCall();
-		LobbyCreated* retvals = ::Utils::Memory::AllocateArray<LobbyCreated>();
+		LobbyCreated* retvals = ::Utils::Memory::Allocate<LobbyCreated>();
 		SteamID id;
 		
 		id.AccountID = 1337132;
@@ -72,7 +72,7 @@ namespace Steam
 	unsigned __int64 Matchmaking::JoinLobby(SteamID steamIDLobby)
 	{
 		uint64_t result = Callbacks::RegisterCall();
-		LobbyEnter* retvals = ::Utils::Memory::AllocateArray<LobbyEnter>();
+		LobbyEnter* retvals = ::Utils::Memory::Allocate<LobbyEnter>();
 		retvals->m_bLocked = false;
 		retvals->m_EChatRoomEnterResponse = 1;
 		retvals->m_rgfChatPermissions = 0xFFFFFFFF;

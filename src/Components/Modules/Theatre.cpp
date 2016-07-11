@@ -304,7 +304,7 @@ namespace Components
 				FileSystem::DeleteFile("demos", fmt::sprintf("%s.json", files[i].data()));
 			}
 
-			Command::Execute(fmt::sprintf("record auto_%I64d", time(0)), true);
+			Command::Execute(fmt::format("record auto_{}", time(0)), true);
 		}
 
 		return Utils::Hook::Call<DWORD()>(0x42BBB0)();

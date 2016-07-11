@@ -19,7 +19,7 @@ namespace Components
 			return;
 		}
 
-		Game::LocalizedEntry* entry = Utils::Memory::AllocateArray<Game::LocalizedEntry>(1);
+		Game::LocalizedEntry* entry = Utils::Memory::Allocate<Game::LocalizedEntry>();
 		if (!entry) return;
 
 		entry->name = Utils::Memory::DuplicateString(key);
@@ -75,7 +75,7 @@ namespace Components
 		}
 		else
 		{
-			Game::LocalizedEntry* entry = Utils::Memory::AllocateArray<Game::LocalizedEntry>(1);
+			Game::LocalizedEntry* entry = Utils::Memory::Allocate<Game::LocalizedEntry>();
 			if (!entry) return;
 
 			entry->name = Utils::Memory::DuplicateString(key);

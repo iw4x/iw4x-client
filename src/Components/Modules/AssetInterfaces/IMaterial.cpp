@@ -33,7 +33,7 @@ namespace Assets
 			return;
 		}
 
-		Game::Material* material = builder->GetAllocator()->AllocateArray<Game::Material>();
+		Game::Material* material = builder->GetAllocator()->Allocate<Game::Material>();
 
 		if (!material)
 		{

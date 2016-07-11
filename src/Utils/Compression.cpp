@@ -35,7 +35,9 @@ namespace Utils
 			}
 
 			int ret = 0;
-			uint8_t* dest = Utils::Memory::AllocateArray<uint8_t>(CHUNK);
+			Utils::Memory::Allocator allocator;
+
+			uint8_t* dest = allocator.AllocateArray<uint8_t>(CHUNK);
 			const char* dataPtr = data.data();
 
 			do 
@@ -52,7 +54,6 @@ namespace Utils
 					if (ret == Z_STREAM_ERROR)
 					{
 						inflateEnd(&stream);
-						Utils::Memory::Free(dest);
 						return "";
 					}
 					
@@ -63,9 +64,6 @@ namespace Utils
 			} while (ret != Z_STREAM_END);
 
 			inflateEnd(&stream);
-
-			Utils::Memory::Free(dest);
-
 			return buffer;
 		}
 	};

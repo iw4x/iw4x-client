@@ -11,7 +11,7 @@ namespace Assets
 			Game::XModel* baseModel = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_XMODEL, "viewmodel_mp5k").model;
 
 			// Allocate new model and copy the base data to it
-			Game::XModel* model = builder->GetAllocator()->AllocateArray<Game::XModel>();
+			Game::XModel* model = builder->GetAllocator()->Allocate<Game::XModel>();
 			std::memcpy(model, baseModel, sizeof(Game::XModel));
 
 			Utils::Stream::Reader reader(builder->GetAllocator(), modelFile.GetBuffer());
@@ -41,7 +41,7 @@ namespace Assets
 
 			// Prepare surfaces
 			Game::XSurface* baseSurface = &baseModel->lods[0].surfaces[0].surfaces[0];
-			Game::XModelSurfs* surf = builder->GetAllocator()->AllocateArray<Game::XModelSurfs>();
+			Game::XModelSurfs* surf = builder->GetAllocator()->Allocate<Game::XModelSurfs>();
 
 			std::memcpy(surf, baseModel->lods[0].surfaces, sizeof(Game::XModelSurfs));
 			surf->name = builder->GetAllocator()->DuplicateString(fmt::sprintf("%s1", model->name));

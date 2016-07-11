@@ -49,6 +49,10 @@ namespace Utils
 				this->Pool.push_back(data);
 				return data;
 			}
+			template <typename T> T* Allocate()
+			{
+				return this->AllocateArray<T>(1);
+			}
 			template <typename T> T* AllocateArray(size_t count = 1)
 			{
 				return static_cast<T*>(this->Allocate(count * sizeof(T)));
@@ -67,6 +71,10 @@ namespace Utils
 		};
 
 		static void* Allocate(size_t length);
+		template <typename T> static T* Allocate()
+		{
+			return AllocateArray<T>(1);
+		}
 		template <typename T> static T* AllocateArray(size_t count = 1)
 		{
 			return static_cast<T*>(Allocate(count * sizeof(T)));
@@ -76,5 +84,7 @@ namespace Utils
 
 		static void Free(void* data);
 		static void Free(const void* data);
+
+		static bool IsSet(void* mem, char chr, size_t length);
 	};
 }

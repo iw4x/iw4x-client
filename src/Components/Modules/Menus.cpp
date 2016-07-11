@@ -68,7 +68,7 @@ namespace Components
 
 		script->next = NULL;
 
-		source = Utils::Memory::AllocateArray<Game::source_t>(1);
+		source = Utils::Memory::Allocate<Game::source_t>();
 		if (!source)
 		{
 			Game::FreeMemory(script);
@@ -112,7 +112,7 @@ namespace Components
 
 	Game::menuDef_t* Menus::ParseMenu(int handle)
 	{
-		Game::menuDef_t* menu = Utils::Memory::AllocateArray<Game::menuDef_t>(1);
+		Game::menuDef_t* menu = Utils::Memory::Allocate<Game::menuDef_t>();
 		if (!menu) return nullptr;
 
 		menu->items = Utils::Memory::AllocateArray<Game::itemDef_t*>(512);
@@ -239,7 +239,7 @@ namespace Components
 		if (menus.empty()) return nullptr;
 
 		// Allocate new menu list
-		Game::MenuList* newList = Utils::Memory::AllocateArray<Game::MenuList>(1);
+		Game::MenuList* newList = Utils::Memory::Allocate<Game::MenuList>();
 		if (!newList) return nullptr;
 
 		newList->menus = Utils::Memory::AllocateArray<Game::menuDef_t*>(menus.size());
@@ -285,7 +285,7 @@ namespace Components
 		}
 
 		// Allocate new menu list
-		Game::MenuList* newList = Utils::Memory::AllocateArray<Game::MenuList>(1);
+		Game::MenuList* newList = Utils::Memory::Allocate<Game::MenuList>();
 		if (!newList) return menuList;
 
 		size_t size = menus.size();

@@ -163,7 +163,7 @@ namespace Utils
 
 				bool IsValid()
 				{
-					return (!Utils::MemIsSet(this->GetKeyPtr(), 0, sizeof(*this->GetKeyPtr())));
+					return (!Utils::Memory::IsSet(this->GetKeyPtr(), 0, sizeof(*this->GetKeyPtr())));
 				}
 
 				ecc_key* GetKeyPtr()
@@ -263,7 +263,7 @@ namespace Utils
 
 				bool IsValid()
 				{
-					return (!Utils::MemIsSet(this->GetKeyPtr(), 0, sizeof(*this->GetKeyPtr())));
+					return (!Utils::Memory::IsSet(this->GetKeyPtr(), 0, sizeof(*this->GetKeyPtr())));
 				}
 
 				void Free()
