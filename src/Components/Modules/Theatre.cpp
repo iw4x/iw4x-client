@@ -67,7 +67,7 @@ namespace Components
 
 		for (int i = 0; i < compressedSize; i += 1024)
 		{
-			int size = min(compressedSize - i, 1024);
+			int size = std::min(compressedSize - i, 1024);
 
 			if (i + size >= sizeof(cmpData))
 			{
@@ -173,7 +173,7 @@ namespace Components
 		Theatre::DemoContainer.CurrentInfo.Length = Game::Sys_Milliseconds() - Theatre::DemoContainer.CurrentInfo.Length;
 
 		// Write metadata
-		FileSystem::FileWriter meta(Utils::VA("%s.json", Theatre::DemoContainer.CurrentInfo.Name.data()));
+		FileSystem::FileWriter meta(fmt::sprintf("%s.json", Theatre::DemoContainer.CurrentInfo.Name.data()));
 		meta.Write(json11::Json(Theatre::DemoContainer.CurrentInfo).dump());
 	}
 
@@ -186,7 +186,7 @@ namespace Components
 
 		for (auto demo : demos)
 		{
-			FileSystem::File meta(Utils::VA("demos/%s.json", demo.data()));
+			FileSystem::File meta(fmt::sprintf("demos/%s.json", demo.data()));
 
 			if (meta.Exists())
 			{
@@ -241,7 +241,7 @@ namespace Components
 	{
 		if (Theatre::DemoContainer.CurrentSelection < Theatre::DemoContainer.Demos.size())
 		{
-			Command::Execute(Utils::VA("demo %s", Theatre::DemoContainer.Demos[Theatre::DemoContainer.CurrentSelection].Name.data()), true);
+			Command::Execute(fmt::sprintf("demo %s", Theatre::DemoContainer.Demos[Theatre::DemoContainer.CurrentSelection].Name.data()), true);
 			Command::Execute("demoback", false);
 		}
 	}
@@ -258,7 +258,7 @@ namespace Components
 		{
 			Theatre::Container::DemoInfo info = Theatre::DemoContainer.Demos[item];
 
-			return Utils::VA("%s on %s", Game::UI_LocalizeGameType(info.Gametype.data()), Game::UI_LocalizeMapName(info.Mapname.data()));
+			return Utils::String::VA("%s on %s", Game::UI_LocalizeGameType(info.Gametype.data()), Game::UI_LocalizeMapName(info.Mapname.data()));
 		}
 
 		return "";
@@ -274,7 +274,7 @@ namespace Components
 			Dvar::Var("ui_demo_mapname").Set(info.Mapname);
 			Dvar::Var("ui_demo_mapname_localized").Set(Game::UI_LocalizeMapName(info.Mapname.data()));
 			Dvar::Var("ui_demo_gametype").Set(Game::UI_LocalizeGameType(info.Gametype.data()));
-			Dvar::Var("ui_demo_length").Set(Utils::FormatTimeSpan(info.Length));
+			Dvar::Var("ui_demo_length").Set(Utils::String::FormatTimeSpan(info.Length));
 			Dvar::Var("ui_demo_author").Set(info.Author);
 			Dvar::Var("ui_demo_date").Set(std::asctime(std::localtime(&info.TimeStamp)));
 		}
@@ -289,7 +289,7 @@ namespace Components
 
 			for (auto demo : demos)
 			{
-				if (Utils::StartsWith(demo, "auto_"))
+				if (Utils::String::StartsWith(demo, "auto_"))
 				{
 					files.push_back(demo);
 				}
@@ -301,10 +301,10 @@ namespace Components
 			{
 				Logger::Print("Deleting old demo %s\n", files[i].data());
 				FileSystem::DeleteFile("demos", files[i].data());
-				FileSystem::DeleteFile("demos", Utils::VA("%s.json", files[i].data()));
+				FileSystem::DeleteFile("demos", fmt::sprintf("%s.json", files[i].data()));
 			}
 
-			Command::Execute(Utils::VA("record auto_%I64d", time(0)), true);
+			Command::Execute(fmt::sprintf("record auto_%I64d", time(0)), true);
 		}
 
 		return Utils::Hook::Call<DWORD()>(0x42BBB0)();

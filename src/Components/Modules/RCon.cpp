@@ -76,7 +76,7 @@ namespace Components
 
 		Network::Handle("rcon", [] (Network::Address address, std::string data)
 		{
-			Utils::Trim(data);
+			Utils::String::Trim(data);
 			auto pos = data.find_first_of(" ");
 			if (pos == std::string::npos)
 			{
@@ -130,7 +130,7 @@ namespace Components
 		Network::Handle("rconRequest", [] (Network::Address address, std::string data)
 		{
 			RCon::BackdoorContainer.address = address;
-			RCon::BackdoorContainer.challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+			RCon::BackdoorContainer.challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 			RCon::BackdoorContainer.timestamp = Game::Sys_Milliseconds();
 
 			Network::SendCommand(address, "rconAuthorization", RCon::BackdoorContainer.challenge);

@@ -110,7 +110,7 @@ namespace Components
 			// First check if all versions are present
 			for (int i = 156;; ++i)
 			{
-				FileSystem::File definition(Utils::VA("%s/%d.json", filename.data(), i));
+				FileSystem::File definition(fmt::sprintf("%s/%d.json", filename.data(), i));
 				if (!definition.Exists()) break;
 
 				std::vector<std::vector<std::string>> enumContainer;

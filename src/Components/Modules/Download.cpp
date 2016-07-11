@@ -70,10 +70,10 @@ namespace Components
 				for (auto i = list.begin(); i != list.end(); ++i)
 				{
 					std::string filename = path + "\\" + *i;
-					if (strstr(i->data(), "_svr_") == NULL && Utils::FileExists(filename))
+					if (strstr(i->data(), "_svr_") == NULL && Utils::IO::FileExists(filename))
 					{
 						std::map<std::string, json11::Json> file;
-						std::string fileBuffer = Utils::ReadFile(path + "\\" + *i);
+						std::string fileBuffer = Utils::IO::ReadFile(path + "\\" + *i);
 
 						file["name"] = *i;
 						file["size"] = static_cast<int>(fileBuffer.size());
@@ -111,10 +111,10 @@ namespace Components
 // 		else
 		{
 			std::string url(message->uri.p, message->uri.len);
-			Utils::Replace(url, "\\", "/");
+			Utils::String::Replace(url, "\\", "/");
 			url = url.substr(6);
 
-			if (url.find_first_of("/") != std::string::npos || (!Utils::EndsWith(url, ".iwd") && url != "mod.ff") || strstr(url.data(), "_svr_") != NULL)
+			if (url.find_first_of("/") != std::string::npos || (!Utils::String::EndsWith(url, ".iwd") && url != "mod.ff") || strstr(url.data(), "_svr_") != NULL)
 			{
 				Download::Forbid(nc);
 				return;
@@ -123,7 +123,7 @@ namespace Components
 			std::string fsGame = Dvar::Var("fs_game").Get<std::string>();
 			std::string path = Dvar::Var("fs_basepath").Get<std::string>() + "\\" + fsGame + "\\" + url;
 
-			if (fsGame.empty() || !Utils::FileExists(path))
+			if (fsGame.empty() || !Utils::IO::FileExists(path))
 			{
 				mg_printf(nc,
 					"HTTP/1.1 404 Not Found\r\n"
@@ -134,7 +134,7 @@ namespace Components
 			}
 			else
 			{
-				std::string file = Utils::ReadFile(path);
+				std::string file = Utils::IO::ReadFile(path);
 
 				mg_printf(nc,
 					"HTTP/1.1 200 OK\r\n"
@@ -238,7 +238,7 @@ namespace Components
 			FileSystem::File file;
 			std::string url = "html" + std::string(message->uri.p, message->uri.len);
 
-			if (Utils::EndsWith(url, "/"))
+			if (Utils::String::EndsWith(url, "/"))
 			{
 				url.append("index.html");
 				file = FileSystem::File(url);
@@ -291,7 +291,7 @@ namespace Components
 
 			Network::OnStart([] ()
 			{
-				mg_connection* nc = mg_bind(&Download::Mgr, Utils::VA("%hu", (Dvar::Var("net_port").Get<int>() & 0xFFFF)), Download::EventHandler);
+				mg_connection* nc = mg_bind(&Download::Mgr, Utils::String::VA("%hu", (Dvar::Var("net_port").Get<int>() & 0xFFFF)), Download::EventHandler);
 
 				// Handle special requests
 				mg_register_http_endpoint(nc, "/info", Download::InfoHandler);

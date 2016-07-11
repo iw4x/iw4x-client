@@ -38,7 +38,7 @@ namespace Components
 		}
 
 		// Load patch files
-		std::string patchZone = Utils::VA("patch_%s", zoneInfo->name);
+		std::string patchZone = fmt::sprintf("patch_%s", zoneInfo->name);
 		if (FastFiles::Exists(patchZone))
 		{
 			data.push_back({ patchZone.data(), zoneInfo->allocFlags, zoneInfo->freeFlags });
@@ -130,7 +130,7 @@ namespace Components
 		}
 		catch (const std::exception e)
 		{
-			MessageBoxA(0, Utils::VA("Invalid regular expression: %s", expression.data()), "Warning", MB_ICONEXCLAMATION);
+			MessageBoxA(0, Utils::String::VA("Invalid regular expression: %s", expression.data()), "Warning", MB_ICONEXCLAMATION);
 			return;
 		}
 

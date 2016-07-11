@@ -12,9 +12,9 @@ namespace Components
 		if (!defaultNodes.Exists()) return;
 
 		auto buffer = defaultNodes.GetBuffer();
-		Utils::Replace(buffer, "\r", "");
+		Utils::String::Replace(buffer, "\r", "");
 
-		auto nodes = Utils::Explode(buffer, '\n');
+		auto nodes = Utils::String::Explode(buffer, '\n');
 		for (auto node : nodes)
 		{
 			if (!node.empty())
@@ -27,7 +27,7 @@ namespace Components
 	void Node::LoadNodes()
 	{
 		Proto::Node::List list;
-		std::string nodes = Utils::ReadFile("players/nodes.dat");
+		std::string nodes = Utils::IO::ReadFile("players/nodes.dat");
 		if (nodes.empty() || !list.ParseFromString(nodes)) return;
 
 		for (int i = 0; i < list.address_size(); ++i)
@@ -60,7 +60,7 @@ namespace Components
 		}
 
 		CreateDirectoryW(L"players", NULL);
-		Utils::WriteFile("players/nodes.dat", list.SerializeAsString());
+		Utils::IO::WriteFile("players/nodes.dat", list.SerializeAsString());
 	}
 
 	Node::NodeEntry* Node::FindNode(Network::Address address)
@@ -224,7 +224,7 @@ namespace Components
 
 		if (Dedicated::IsDedicated())
 		{
-			entry->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+			entry->challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 
 			Proto::Node::Packet packet;
 			packet.set_challenge(entry->challenge);
@@ -367,7 +367,7 @@ namespace Components
 			{
 				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
 
-				std::string challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+				std::string challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 
 				Proto::Node::Packet packet;
 				packet.set_challenge(challenge);
@@ -404,7 +404,7 @@ namespace Components
 				if (packet.challenge().empty()) return;
 
 				std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, packet.challenge());
-				std::string challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+				std::string challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 
 				// The challenge this client sent is exactly the challenge we stored for this client
 				// That means this is us, so we're going to ignore us :P
@@ -607,7 +607,7 @@ namespace Components
 #endif
 
 				// Initialize session data
-				session->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+				session->challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 				session->lastTime = Game::Sys_Milliseconds();
 				session->valid = false;
 
@@ -829,7 +829,7 @@ namespace Components
 
 		for (int i = 0; i < 10; ++i)
 		{
-			std::string message = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+			std::string message = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 			std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
 			if (!Utils::Cryptography::ECC::VerifyMessage(Node::SignatureKey, message, signature))
@@ -845,7 +845,7 @@ namespace Components
 
 		for (int i = 0; i < 10; ++i)
 		{
-			std::string message = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+			std::string message = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 			std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
 			// Invalidate the message...
@@ -863,7 +863,7 @@ namespace Components
 		printf("Testing ECDSA key import...");
 
 		std::string pubKey = Node::SignatureKey.GetPublicKey();
-		std::string message = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+		std::string message = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 		std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
 		Utils::Cryptography::ECC::Key testKey;

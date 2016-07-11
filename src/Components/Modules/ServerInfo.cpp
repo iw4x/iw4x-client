@@ -16,16 +16,16 @@ namespace Components
 			switch (column)
 			{
 			case 0:
-				return Utils::VA("%d", index);
+				return Utils::String::VA("%d", index);
 
 			case 1:
 				return ServerInfo::PlayerContainer.PlayerList[index].Name.data();
 
 			case 2:
-				return Utils::VA("%d", ServerInfo::PlayerContainer.PlayerList[index].Score);
+				return Utils::String::VA("%d", ServerInfo::PlayerContainer.PlayerList[index].Score);
 
 			case 3:
-				return Utils::VA("%d", ServerInfo::PlayerContainer.PlayerList[index].Ping);
+				return Utils::String::VA("%d", ServerInfo::PlayerContainer.PlayerList[index].Ping);
 			}
 		}
 
@@ -112,12 +112,12 @@ namespace Components
 
 		Utils::InfoString info(Game::Dvar_InfoString_Big(1024));
 		info.Set("gamename", "IW4");
-		info.Set("sv_maxclients", Utils::VA("%i", maxclientCount));
-		info.Set("protocol", Utils::VA("%i", PROTOCOL));
+		info.Set("sv_maxclients", fmt::sprintf("%i", maxclientCount));
+		info.Set("protocol", fmt::sprintf("%i", PROTOCOL));
 		info.Set("shortversion", VERSION_STR);
 		info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 		info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().empty() ? "0" : "1"));
-		info.Set("checksum", Utils::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::VA("%u", Game::Sys_Milliseconds()))));
+		info.Set("checksum", fmt::sprintf("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(fmt::sprintf("%u", Game::Sys_Milliseconds()))));
 
 		// Ensure mapname is set
 		if (info.Get("mapname").empty())
@@ -193,7 +193,7 @@ namespace Components
 					name = namePtr;
 				}
 
-				playerList.append(Utils::VA("%i %i \"%s\"\n", score, ping, name.data()));
+				playerList.append(fmt::sprintf("%i %i \"%s\"\n", score, ping, name.data()));
 			}
 
 			Network::SendCommand(address, "statusResponse", "\\" + info.Build() + "\n" + playerList + "\n");
@@ -240,7 +240,7 @@ namespace Components
 					Dvar::Var("uiSi_ModName").Set(info.Get("fs_game").data() + 5);
 				}
 
-				auto lines = Utils::Explode(data, '\n');
+				auto lines = Utils::String::Explode(data, '\n');
 
 				if (lines.size() <= 1) return;
 

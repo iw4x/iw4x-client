@@ -4,7 +4,7 @@ namespace Assets
 {
 	void IMaterial::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File materialInfo(Utils::VA("materials/%s.json", name.data()));
+		Components::FileSystem::File materialInfo(fmt::sprintf("materials/%s.json", name.data()));
 
 		if (!materialInfo.Exists()) return;
 
@@ -72,7 +72,7 @@ namespace Assets
 		}
 
 		// Model surface textures are special, they need a special order and whatnot
-		bool replaceTexture = Utils::StartsWith(name, "mc/");
+		bool replaceTexture = Utils::String::StartsWith(name, "mc/");
 		if (replaceTexture)
 		{
 			Game::MaterialTextureDef* textureTable = builder->GetAllocator()->AllocateArray<Game::MaterialTextureDef>(baseMaterial->textureCount);

@@ -28,7 +28,7 @@ namespace Components
 		Party::Container.AwaitingPlaylist = false;
 		Party::Container.JoinTime = Game::Sys_Milliseconds();
 		Party::Container.Target = target;
-		Party::Container.Challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+		Party::Container.Challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 
 		Network::SendCommand(Party::Container.Target, "getinfo", Party::Container.Challenge);
 
@@ -43,11 +43,11 @@ namespace Components
 
 			if (key == "addr")
 			{
-				return Utils::VA("%d", address.GetIP().full);
+				return Utils::String::VA("%d", address.GetIP().full);
 			}
 			else if (key =="port")
 			{
-				return Utils::VA("%d", address.GetPort());
+				return Utils::String::VA("%d", address.GetPort());
 			}
 		}
 
@@ -284,16 +284,16 @@ namespace Components
 			info.Set("hostname", Dvar::Var("sv_hostname").Get<const char*>());
 			info.Set("gametype", Dvar::Var("g_gametype").Get<const char*>());
 			info.Set("fs_game", Dvar::Var("fs_game").Get<const char*>());
-			info.Set("xuid", Utils::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
-			info.Set("clients", Utils::VA("%i", clientCount));
-			info.Set("sv_maxclients", Utils::VA("%i", maxclientCount));
-			info.Set("protocol", Utils::VA("%i", PROTOCOL));
+			info.Set("xuid", fmt::sprintf("%llX", Steam::SteamUser()->GetSteamID().Bits));
+			info.Set("clients", fmt::sprintf("%i", clientCount));
+			info.Set("sv_maxclients", fmt::sprintf("%i", maxclientCount));
+			info.Set("protocol", fmt::sprintf("%i", PROTOCOL));
 			info.Set("shortversion", VERSION_STR);
-			info.Set("checksum", Utils::VA("%d", Game::Sys_Milliseconds()));
+			info.Set("checksum", fmt::sprintf("%d", Game::Sys_Milliseconds()));
 			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 			info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
 			info.Set("hc", (Dvar::Var("g_hardcore").Get<bool>() ? "1" : "0"));
-			info.Set("securityLevel", Utils::VA("%i", Dvar::Var("sv_securityLevel").Get<int>()));
+			info.Set("securityLevel", fmt::sprintf("%i", Dvar::Var("sv_securityLevel").Get<int>()));
 
 			// Ensure mapname is set
 			if (info.Get("mapname").empty())

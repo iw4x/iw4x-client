@@ -86,9 +86,9 @@ namespace Components
 					continue;
 				}
 
-				if(!(i % 2)) command.append(Utils::VA("wait 250;disconnect;wait 750;", mapname)); // Test a disconnect
-				else command.append(Utils::VA("wait 500;", mapname));                             // Test direct map switch
-				command.append(Utils::VA("map %s;", mapname));
+				if(!(i % 2)) command.append(fmt::sprintf("wait 250;disconnect;wait 750;", mapname)); // Test a disconnect
+				else command.append(fmt::sprintf("wait 500;", mapname));                             // Test direct map switch
+				command.append(fmt::sprintf("map %s;", mapname));
 
 				++i, ++current;
 

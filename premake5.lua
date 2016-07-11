@@ -149,9 +149,10 @@ workspace "iw4x"
 		filter {}
 
 		-- Dependency libraries
-		links { "zlib", "json11", "pdcurses", "libtomcrypt", "libtommath", "protobuf", "mongoose" }
+		links { "zlib", "fmt", "json11", "pdcurses", "libtomcrypt", "libtommath", "protobuf", "mongoose" }
 		includedirs 
 		{
+			"./deps/fmt", 
 			"./deps/zlib",
 			"./deps/json11", 
 			"./deps/pdcurses", 
@@ -163,14 +164,16 @@ workspace "iw4x"
 		}
 		
 		-- fix vpaths for protobuf sources
-		vpaths {
+		vpaths 
+		{
 			["*"] = { "./src/**" },
 			["Proto/Generated"] = { "**.pb.*" }, -- meh.
 		}
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
-			vpaths {
+			vpaths 
+			{
 				["Headers/*"] = { "./src/**.hpp" },
 				["Sources/*"] = { "./src/**.cpp" },
 				["Resource/*"] = { "./src/**.rc" },
@@ -184,7 +187,8 @@ workspace "iw4x"
 		}
 		
 		-- Pre-build
-		prebuildcommands {
+		prebuildcommands 
+		{
 			"cd %{_MAIN_SCRIPT_DIR}",
 			"tools\\premake5 generate-buildinfo"
 		}
@@ -211,7 +215,8 @@ workspace "iw4x"
 		matches = os.matchfiles(path.join("src/Proto/**.proto"))
 		for i, srcPath in ipairs(matches) do
 			basename = path.getbasename(srcPath)
-			files {
+			files 
+			{
 				string.format("%%{prj.location}/src/proto/%s.pb.h", basename),
 				string.format("%%{prj.location}/src/proto/%s.pb.cc", basename),
 			}
@@ -260,6 +265,23 @@ workspace "iw4x"
 			-- always build as static lib, as json11 doesn't export anything
 			kind "StaticLib"
 			
+		-- fmt
+		project "fmt"
+			language "C++"
+
+			includedirs { "./deps/fmt" }
+			files
+			{
+				"./deps/fmt/fmt/*.cc",
+				"./deps/fmt/fmt/*.h"
+			}
+
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			-- always build as static lib, as fmt doesn't export anything
+			kind "StaticLib"
+			
 		-- mongoose
 		project "mongoose"
 			language "C"
@@ -273,7 +295,7 @@ workspace "iw4x"
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
 
-			-- always build as static lib, as json11 doesn't export anything
+			-- always build as static lib, as mongoose doesn't export anything
 			kind "StaticLib"
 			
 			
@@ -300,8 +322,8 @@ workspace "iw4x"
 			defines { "_LIB", "LTC_SOURCE", "LTC_NO_FAST", "LTC_NO_RSA_BLINDING", "LTM_DESC", "USE_LTM", "WIN32" }
 			
 			links { "libtommath" }
-			includedirs { "./deps/libtomcrypt/src/headers"  }
-			includedirs { "./deps/libtommath"  }
+			includedirs { "./deps/libtomcrypt/src/headers" }
+			includedirs { "./deps/libtommath" }
 
 			files { "./deps/libtomcrypt/src/**.c" }
 			

@@ -395,13 +395,13 @@ namespace Game
 		}
 	}
 
-	void SV_KickClientError(client_t* client, const char* reason)
+	void SV_KickClientError(client_t* client, std::string reason)
 	{
 		if (client->state < 5)
 		{
-			Components::Network::Send(client->addr, Utils::VA("error\n%s", reason));
+			Components::Network::Send(client->addr, fmt::sprintf("error\n%s", reason.data()));
 		}
 
-		SV_KickClient(client, reason);
+		SV_KickClient(client, reason.data());
 	}
 }

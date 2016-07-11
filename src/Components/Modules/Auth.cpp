@@ -50,7 +50,7 @@ namespace Components
 
 						info->state = Auth::STATE_NEGOTIATING;
 						info->time = Game::Sys_Milliseconds();
-						info->challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+						info->challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 						Network::SendCommand(client->addr, "xuidAuthReq", info->challenge);
 					}
 				}
@@ -78,7 +78,7 @@ namespace Components
 				if (mseconds < 0) mseconds = 0;
 			}
 
-			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::VA("Increasing security level from %d to %d (est. %s)", Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel, Utils::FormatTimeSpan(static_cast<int>(mseconds)).data()));
+			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", fmt::sprintf("Increasing security level from %d to %d (est. %s)", Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel, Utils::String::FormatTimeSpan(static_cast<int>(mseconds)).data()));
 		}
 		else if(Auth::TokenContainer.thread.joinable())
 		{
@@ -93,7 +93,7 @@ namespace Components
 			{
 				if (Auth::TokenContainer.command.empty())
 				{
-					Game::MessageBox(Utils::VA("Your new security level is %d", Auth::GetSecurityLevel()), "Success");
+					Game::MessageBox(fmt::sprintf("Your new security level is %d", Auth::GetSecurityLevel()), "Success");
 				}
 				else
 				{
@@ -152,7 +152,7 @@ namespace Components
 			cert.set_ctoken(Auth::ComputeToken.ToString());
 			cert.set_privatekey(Auth::GuidKey.Export(PK_PRIVATE));
 
-			Utils::WriteFile("players/guid.dat", cert.SerializeAsString());
+			Utils::IO::WriteFile("players/guid.dat", cert.SerializeAsString());
 		}
 	}
 
@@ -162,7 +162,7 @@ namespace Components
 		if (!force && Auth::GuidKey.IsValid()) return;
 
 		Proto::Auth::Certificate cert;
-		if (cert.ParseFromString(::Utils::ReadFile("players/guid.dat")))
+		if (cert.ParseFromString(::Utils::IO::ReadFile("players/guid.dat")))
 		{
 			Auth::GuidKey.Import(cert.privatekey(), PK_PRIVATE);
 			Auth::GuidToken = cert.token();
@@ -360,7 +360,7 @@ namespace Components
 							else
 							{
 								info->state = Auth::STATE_INVALID;
-								Game::SV_KickClientError(client, Utils::VA("Your security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
+								Game::SV_KickClientError(client, fmt::sprintf("Your security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
 							}
 						}
 						else
@@ -398,10 +398,10 @@ namespace Components
 			{
 				uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey());
 				Logger::Print("Your current security level is %d\n", level);
-				Logger::Print("Your security token is: %s\n", Utils::DumpHex(Auth::GuidToken.ToString(), "").data());
-				Logger::Print("Your computation token is: %s\n", Utils::DumpHex(Auth::ComputeToken.ToString(), "").data());
+				Logger::Print("Your security token is: %s\n", Utils::String::DumpHex(Auth::GuidToken.ToString(), "").data());
+				Logger::Print("Your computation token is: %s\n", Utils::String::DumpHex(Auth::ComputeToken.ToString(), "").data());
 
-				Toast::Show("cardicon_locked", "^5Security Level", Utils::VA("Your security level is %d", level), 3000);
+				Toast::Show("cardicon_locked", "^5Security Level", fmt::sprintf("Your security level is %d", level), 3000);
 			}
 			else
 			{

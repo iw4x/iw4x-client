@@ -180,7 +180,7 @@ namespace Utils
 			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
 			if (!hex) return hash;
 
-			return Utils::DumpHex(hash, "");
+			return Utils::String::DumpHex(hash, "");
 		}
 
 #pragma endregion
@@ -204,7 +204,7 @@ namespace Utils
 			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
 			if (!hex) return hash;
 
-			return Utils::DumpHex(hash, "");
+			return Utils::String::DumpHex(hash, "");
 		}
 
 #pragma endregion
@@ -228,7 +228,7 @@ namespace Utils
 			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
 			if (!hex) return hash;
 
-			return Utils::DumpHex(hash, "");
+			return Utils::String::DumpHex(hash, "");
 		}
 
 #pragma endregion

@@ -8,7 +8,7 @@ namespace Components
 	{
 		for (auto entry : Flags::EnabledFlags)
 		{
-			if (Utils::StrToLower(entry) == Utils::StrToLower(flag))
+			if (Utils::String::StrToLower(entry) == Utils::String::StrToLower(flag))
 			{
 				return true;
 			}

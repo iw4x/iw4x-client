@@ -34,7 +34,7 @@ namespace Components
 
 	void Command::Add(const char* name, Command::Callback* callback)
 	{
-		std::string command = Utils::StrToLower(name);
+		std::string command = Utils::String::StrToLower(name);
 
 		if (Command::FunctionMap.find(command) == Command::FunctionMap.end())
 		{
@@ -46,7 +46,7 @@ namespace Components
 
 	void Command::AddSV(const char* name, Command::Callback* callback)
 	{
-		std::string command = Utils::StrToLower(name);
+		std::string command = Utils::String::StrToLower(name);
 
 		if (Command::FunctionMapSV.find(command) == Command::FunctionMapSV.end())
 		{
@@ -98,7 +98,7 @@ namespace Components
 	{
 		Command::Params params(false, *Game::cmd_id);
 
-		std::string command = Utils::StrToLower(params[0]);
+		std::string command = Utils::String::StrToLower(params[0]);
 
 		if (Command::FunctionMap.find(command) != Command::FunctionMap.end())
 		{
@@ -110,7 +110,7 @@ namespace Components
 	{
 		Command::Params params(true, *Game::cmd_id_sv);
 
-		std::string command = Utils::StrToLower(params[0]);
+		std::string command = Utils::String::StrToLower(params[0]);
 
 		if (Command::FunctionMapSV.find(command) != Command::FunctionMapSV.end())
 		{

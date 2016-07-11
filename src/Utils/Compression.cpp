@@ -40,7 +40,7 @@ namespace Utils
 
 			do 
 			{
-				stream.avail_in = min(CHUNK, data.size() - (dataPtr - data.data()));
+				stream.avail_in = std::min(static_cast<size_t>(CHUNK), data.size() - (dataPtr - data.data()));
 				stream.next_in = reinterpret_cast<const uint8_t*>(dataPtr);
 
 				do 

@@ -53,7 +53,7 @@ namespace Components
 		if (ModList::CurrentMod < ModList::Mods.size())
 		{
 			auto fsGame = Dvar::Var("fs_game");
-			fsGame.Set(Utils::VA("mods/%s", ModList::Mods[ModList::CurrentMod].data()));
+			fsGame.Set(fmt::sprintf("mods/%s", ModList::Mods[ModList::CurrentMod].data()));
 			fsGame.Get<Game::dvar_t*>()->pad2[0] = 1;
 
 			if (Dvar::Var("cl_modVidRestart").Get<bool>())

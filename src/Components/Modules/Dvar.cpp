@@ -99,14 +99,14 @@ namespace Components
 	{
 		if (this->dvar && this->dvar->name)
 		{
-			Game::Dvar_SetCommand(this->dvar->name, Utils::VA("%i", integer));
+			Game::Dvar_SetCommand(this->dvar->name, Utils::String::VA("%i", integer));
 		}
 	}
 	void Dvar::Var::Set(float value)
 	{
 		if (this->dvar && this->dvar->name)
 		{
-			Game::Dvar_SetCommand(this->dvar->name, Utils::VA("%f", value));
+			Game::Dvar_SetCommand(this->dvar->name, Utils::String::VA("%f", value));
 		}
 	}
 
@@ -150,7 +150,7 @@ namespace Components
 			// Don't perform any checks if name didn't change
 			if (name == lastValidName) return;
 
-			std::string saneName = Colors::Strip(Utils::Trim(name));
+			std::string saneName = Colors::Strip(Utils::String::Trim(name));
 			if (saneName.size() < 3 || (saneName[0] == '[' && saneName[1] == '{'))
 			{
 				Logger::Print("Username '%s' is invalid. It must at least be 3 characters long and not appear empty!\n", name.data());

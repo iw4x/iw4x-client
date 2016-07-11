@@ -42,7 +42,7 @@ namespace Components
 		Script::ScriptNameStack.push_back(Script::ScriptName);
 		Script::ScriptName = name;
 
-		if (!Utils::EndsWith(Script::ScriptName, ".gsc"))
+		if (!Utils::String::EndsWith(Script::ScriptName, ".gsc"))
 		{
 			Script::ScriptName.append(".gsc");
 		}
@@ -91,7 +91,7 @@ namespace Components
 		if (script.Exists())
 		{
 			std::string buffer = script.GetBuffer();
-			Utils::Replace(buffer, "\t", " ");
+			Utils::String::Replace(buffer, "\t", " ");
 
 			int line = 1;
 			int lineOffset = 0;
@@ -204,7 +204,7 @@ namespace Components
 		{
 			file = "scripts/" + file;
 
-			if (Utils::EndsWith(file, ".gsc"))
+			if (Utils::String::EndsWith(file, ".gsc"))
 			{
 				file = file.substr(0, file.size() - 4);
 			}

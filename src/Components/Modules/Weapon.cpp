@@ -7,7 +7,7 @@ namespace Components
 		Game::XAssetHeader header = { 0 };
 
 		// Try loading raw weapon
-		if (FileSystem::File(Utils::VA("weapons/mp/%s", filename.data())).Exists())
+		if (FileSystem::File(fmt::sprintf("weapons/mp/%s", filename.data())).Exists())
 		{
 			header.data = Game::BG_LoadWeaponDef_LoadObj(filename.data());
 		}

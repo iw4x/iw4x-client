@@ -134,7 +134,7 @@ namespace Components
 			return false;
 		}
 
-		data = Utils::VA("%s,1", ownPth);
+		data = fmt::sprintf("%s,1", ownPth);
 		openRes = RegSetValueExA(hKey, 0, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
 		RegCloseKey(hKey);
 
@@ -158,7 +158,7 @@ namespace Components
 			return false;
 		}
 
-		data = Utils::VA("\"%s\" \"%s\"", ownPth, "%1");
+		data = fmt::sprintf("\"%s\" \"%s\"", ownPth, "%1");
 		openRes = RegSetValueExA(hKey, 0, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
 		RegCloseKey(hKey);
 
@@ -198,7 +198,7 @@ namespace Components
 		// IPC handler
 		IPCPipe::On("connect", [] (std::string data)
 		{
-			Command::Execute(Utils::VA("connect %s", data.data()), false);
+			Command::Execute(fmt::sprintf("connect %s", data.data()), false);
 		});
 
 		// Invocation handler
@@ -208,7 +208,7 @@ namespace Components
 			if (!ConnectProtocol::ConnectContainer.Invoked && ConnectProtocol::Used())
 			{
 				ConnectProtocol::ConnectContainer.Invoked = true;
-				Command::Execute(Utils::VA("connect %s", ConnectProtocol::ConnectContainer.ConnectString.data()), false);
+				Command::Execute(fmt::sprintf("connect %s", ConnectProtocol::ConnectContainer.ConnectString.data()), false);
 			}
 		});
 

@@ -5,7 +5,7 @@ namespace Components
 	std::queue<Toast::UIToast> Toast::Queue;
 	std::mutex Toast::Mutex;
 
-	void Toast::Show(const char* image, const char* title, const char* description, int length)
+	void Toast::Show(std::string image, std::string title, std::string description, int length)
 	{
 		Toast::Mutex.lock();
 		Toast::Queue.push({ image, title, description, length, 0 });
@@ -95,7 +95,7 @@ namespace Components
 		// Text
 		float leftText = width / 2 - bWidth / 2 - cornerSize + iOffsetLeft * 2 + imgDim;
 		float rightText = width / 2 + bWidth / 2 - cornerSize - iOffsetLeft;
-		Game::R_AddCmdDrawText(Utils::StrToUpper(toast->Title).data(), 0x7FFFFFFF, font, static_cast<float>(leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 7), fontSize, fontSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Title
+		Game::R_AddCmdDrawText(Utils::String::StrToUpper(toast->Title).data(), 0x7FFFFFFF, font, static_cast<float>(leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 7), fontSize, fontSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Title
 		Game::R_AddCmdDrawText(toast->Desc.data(), 0x7FFFFFFF, descfont, leftText + (rightText - leftText) / 2 - descrSize / 2 + cornerSize, static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 33), descSize, descSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Description
 	}
 

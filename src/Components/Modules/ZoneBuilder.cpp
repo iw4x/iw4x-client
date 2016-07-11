@@ -97,7 +97,7 @@ namespace Components
 					if (DataMap.GetElementAt(i, 0) == "localize")
 					{
 						std::string stringOverride = DataMap.GetElementAt(i, 2);
-						Utils::Replace(stringOverride, "\\n", "\n");
+						Utils::String::Replace(stringOverride, "\\n", "\n");
 
 						Localization::SetTemp(DataMap.GetElementAt(i, 1), stringOverride);
 					}
@@ -224,7 +224,7 @@ namespace Components
 		outBuffer.append(zoneBuffer);
 
 		std::string outFile = "zone/" + ZoneBuilder::Zone::ZoneName + ".ff";
-		Utils::WriteFile(outFile, outBuffer);
+		Utils::IO::WriteFile(outFile, outBuffer);
 
 		Logger::Print("done.\n");
 		Logger::Print("Zone '%s' written with %d assets\n", outFile.data(), ZoneBuilder::Zone::LoadedAssets.size());

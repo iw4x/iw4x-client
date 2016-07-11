@@ -74,8 +74,8 @@ namespace Components
 					maxProgress = progress;
 				}
 
-				Command::Execute(Utils::VA("setPlayerData challengeState %s %d", challenge, maxState));
-				Command::Execute(Utils::VA("setPlayerData challengeProgress %s %d", challenge, maxProgress));
+				Command::Execute(fmt::sprintf("setPlayerData challengeState %s %d", challenge, maxState));
+				Command::Execute(fmt::sprintf("setPlayerData challengeProgress %s %d", challenge, maxProgress));
 			}
 		}
 	}

@@ -7,7 +7,7 @@ namespace Components
 		~Toast();
 		const char* GetName() { return "Toast"; };
 
-		static void Show(const char* image, const char* title, const char* description, int length);
+		static void Show(std::string image, std::string title, std::string description, int length);
 
 	private:
 		class UIToast

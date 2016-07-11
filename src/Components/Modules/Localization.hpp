@@ -7,7 +7,7 @@ namespace Components
 		~Localization();
 		const char* GetName() { return "Localization"; };
 
-		static void Set(const char* key, const char* value);
+		static void Set(std::string key, std::string value);
 		static const char* Get(const char* key);
 
 		static void SetTemp(std::string key, std::string value);

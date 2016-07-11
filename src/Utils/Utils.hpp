@@ -1,52 +1,8 @@
-#define ARR_SIZE(x) (sizeof(x) / sizeof(x[0]))
-
 namespace Utils
 {
 	std::string GetMimeType(std::string url);
-	const char *VA(const char *fmt, ...);
-	std::string StrToLower(std::string input);
-	std::string StrToUpper(std::string input);
-	bool EndsWith(std::string haystack, std::string needle);
-	std::vector<std::string> Explode(const std::string& str, char delim);
-	void Replace(std::string &string, std::string find, std::string replace);
-	bool StartsWith(std::string haystack, std::string needle);
-	std::string &LTrim(std::string &s);
-	std::string &RTrim(std::string &s);
-	std::string &Trim(std::string &s);
-
-	std::string FormatTimeSpan(int milliseconds);
 	std::string ParseChallenge(std::string data);
-
-	bool FileExists(std::string file);
-	void WriteFile(std::string file, std::string data);
-	std::string ReadFile(std::string file);
-
-	std::string DumpHex(std::string data, std::string separator = " ");
-
-	std::string XORString(std::string str, char value);
-
 	bool MemIsSet(void* mem, char chr, size_t length);
-
-	class InfoString
-	{
-	public:
-		InfoString() {};
-		InfoString(std::string buffer) : InfoString() { this->Parse(buffer); };
-		InfoString(const InfoString &obj) : KeyValuePairs(obj.KeyValuePairs) {};
-
-		void Set(std::string key, std::string value);
-		std::string Get(std::string key);
-
-		std::string Build();
-
-		void Dump();
-
-		json11::Json to_json();
-
-	private:
-		std::map<std::string, std::string> KeyValuePairs;
-		void Parse(std::string buffer);
-	};
 
 	template <typename T> void Merge(std::vector<T>* target, T* source, size_t length)
 	{

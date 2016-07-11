@@ -46,6 +46,7 @@
 #pragma warning(push)
 #pragma warning(disable: 4005)
 #pragma warning(disable: 4389)
+#pragma warning(disable: 4702)
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6011)
 #pragma warning(disable: 6031)
@@ -69,6 +70,16 @@
 #include <tomcrypt.h>
 #include <wink/signal.hpp>
 
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
+
+#include <fmt/printf.h>
+
 // Protobuf
 #include "proto/network.pb.h"
 #include "proto/party.pb.h"
@@ -78,11 +89,14 @@
 
 #pragma warning(pop)
 
+#include "Utils\IO.hpp"
 #include "Utils\CSV.hpp"
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"
 #include "Utils\Memory.hpp"
+#include "Utils\String.hpp"
 #include "Utils\Hooking.hpp"
+#include "Utils\InfoString.hpp"
 #include "Utils\Compression.hpp"
 #include "Utils\Cryptography.hpp"
 

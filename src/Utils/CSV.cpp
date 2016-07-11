@@ -70,8 +70,8 @@ namespace Utils
 
 		if (isFile)
 		{
-			if (!Utils::FileExists(file)) return;
-			buffer = Utils::ReadFile(file);
+			if (!Utils::IO::FileExists(file)) return;
+			buffer = Utils::IO::ReadFile(file);
 		}
 		else
 		{
@@ -80,7 +80,7 @@ namespace Utils
 		
 		if (!buffer.empty())
 		{
-			auto rows = Utils::Explode(buffer, '\n');
+			auto rows = Utils::String::Explode(buffer, '\n');
 
 			for (auto row : rows)
 			{

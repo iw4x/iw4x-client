@@ -46,13 +46,13 @@ namespace Components
 
 		News::Thread = std::thread([] ()
 		{
-			Localization::Set("MPUI_CHANGELOG_TEXT", Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/changelog.txt").SetTimeout(5000)->Get().data());
+			Localization::Set("MPUI_CHANGELOG_TEXT", Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/changelog.txt").SetTimeout(5000)->Get());
 
 			std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/motd.txt").SetTimeout(5000)->Get();
 
 			if (!data.empty())
 			{
-				Localization::Set("MPUI_MOTD_TEXT", data.data());
+				Localization::Set("MPUI_MOTD_TEXT", data);
 			}
 
 			// TODO: Implement update checks here!

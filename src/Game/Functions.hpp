@@ -477,5 +477,5 @@ namespace Game
 	unsigned int R_HashString(const char* string);
 
 	void SV_KickClient(client_t* client, const char* reason);
-	void SV_KickClientError(client_t* client, const char* reason);
+	void SV_KickClientError(client_t* client, std::string reason);
 }

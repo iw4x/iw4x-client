@@ -72,7 +72,7 @@ namespace Components
 		Game::XZoneInfo info = { nullptr, 4, 0 };
 
 		// Not sure how they should be loaded :S
-		std::string langZone = Utils::VA("iw4x_localized_%s", Game::Win_GetLanguage());
+		std::string langZone = fmt::sprintf("iw4x_localized_%s", Game::Win_GetLanguage());
 
 		if (FastFiles::Exists(langZone))
 		{
@@ -94,7 +94,7 @@ namespace Components
 		std::string path = FastFiles::GetZoneLocation(file.data());
 		path.append(file);
 
-		if (!Utils::EndsWith(path.data(), ".ff"))
+		if (!Utils::String::EndsWith(path.data(), ".ff"))
 		{
 			path.append(".ff");
 		}
@@ -108,22 +108,22 @@ namespace Components
 		
 		for (auto &path : FastFiles::ZonePaths)
 		{
-			std::string absoluteFile = Utils::VA("%s\\%s%s", dir, path.data(), file);
+			std::string absoluteFile = fmt::sprintf("%s\\%s%s", dir, path.data(), file);
 
 			// No ".ff" appended, append it manually
-			if (!Utils::EndsWith(absoluteFile.data(), ".ff"))
+			if (!Utils::String::EndsWith(absoluteFile, ".ff"))
 			{
 				absoluteFile.append(".ff");
 			}
 
 			// Check if FastFile exists
-			if (std::ifstream(absoluteFile.data()).good())
+			if (Utils::IO::FileExists(absoluteFile))
 			{
-				return Utils::VA("%s", path.data());
+				return Utils::String::VA("%s", path.data());
 			}
 		}
 
-		return Utils::VA("zone\\%s\\", Game::Win_GetLanguage());
+		return Utils::String::VA("zone\\%s\\", Game::Win_GetLanguage());
 	}
 
 	void FastFiles::AddZonePath(std::string path)
@@ -203,7 +203,7 @@ namespace Components
 
 			Game::Font* font = Game::R_RegisterFont("fonts/consoleFont"); // Inlining that seems to skip xpos, no idea why xD
 			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
-			Game::R_AddCmdDrawText(Utils::VA("Loading FastFile: %s", FastFiles::Current().data()), 0x7FFFFFFF, font, 5.0f, static_cast<float>(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
+			Game::R_AddCmdDrawText(Utils::String::VA("Loading FastFile: %s", FastFiles::Current().data()), 0x7FFFFFFF, font, 5.0f, static_cast<float>(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 		});
 
 		Command::Add("loadzone", [] (Command::Params params)

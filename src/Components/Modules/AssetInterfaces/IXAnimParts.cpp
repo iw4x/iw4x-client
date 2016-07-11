@@ -4,7 +4,7 @@ namespace Assets
 {
 	void IXAnimParts::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File animFile(Utils::VA("xanim/%s.iw4xAnim", name.data()));
+		Components::FileSystem::File animFile(fmt::sprintf("xanim/%s.iw4xAnim", name.data()));
 
 		if (animFile.Exists())
 		{

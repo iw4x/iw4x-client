@@ -75,7 +75,7 @@ namespace Utils
 
 		if (Stream::CriticalSectionState != 0)
 		{
-			MessageBoxA(0, Utils::VA("Invalid critical section state '%i' for stream destruction!", Stream::CriticalSectionState), "WARNING", MB_ICONEXCLAMATION);
+			MessageBoxA(0, Utils::String::VA("Invalid critical section state '%i' for stream destruction!", Stream::CriticalSectionState), "WARNING", MB_ICONEXCLAMATION);
 		}
 	};
 
@@ -103,7 +103,7 @@ namespace Utils
 
 		if (Stream::IsCriticalSection() && Stream::Length() + (size * count) > Stream::Capacity())
 		{
-			MessageBoxA(0, Utils::VA("Potential stream reallocation during critical operation detected! Writing data of the length 0x%X exceeds the allocated stream size of 0x%X\n", (size * count), Stream::Capacity()), "ERROR", MB_ICONERROR);
+			MessageBoxA(0, Utils::String::VA("Potential stream reallocation during critical operation detected! Writing data of the length 0x%X exceeds the allocated stream size of 0x%X\n", (size * count), Stream::Capacity()), "ERROR", MB_ICONERROR);
 			__debugbreak();
 		}
 

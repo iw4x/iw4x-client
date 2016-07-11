@@ -101,9 +101,9 @@ namespace Components
 		static uint8_t loadLibAStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xBE }; // LoadLibraryA
 		static uint8_t loadLibWStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8 }; // LoadLibraryW
 
-		HMODULE kernel32 = GetModuleHandleA(Utils::XORString(std::string(reinterpret_cast<char*>(kernel32Str), sizeof kernel32Str), -1).data());
-		FARPROC loadLibA = GetProcAddress(kernel32, Utils::XORString(std::string(reinterpret_cast<char*>(loadLibAStr), sizeof loadLibAStr), -1).data());
-		FARPROC loadLibW = GetProcAddress(kernel32, Utils::XORString(std::string(reinterpret_cast<char*>(loadLibWStr), sizeof loadLibWStr), -1).data());
+		HMODULE kernel32 = GetModuleHandleA(Utils::String::XORString(std::string(reinterpret_cast<char*>(kernel32Str), sizeof kernel32Str), -1).data());
+		FARPROC loadLibA = GetProcAddress(kernel32, Utils::String::XORString(std::string(reinterpret_cast<char*>(loadLibAStr), sizeof loadLibAStr), -1).data());
+		FARPROC loadLibW = GetProcAddress(kernel32, Utils::String::XORString(std::string(reinterpret_cast<char*>(loadLibWStr), sizeof loadLibWStr), -1).data());
 
 		AntiCheat::LoadLibHook[0].Initialize(loadLibA, loadLibStub, HOOK_JUMP);
 		AntiCheat::LoadLibHook[1].Initialize(loadLibW, loadLibStub, HOOK_JUMP);

@@ -26,7 +26,7 @@ namespace Assets
 			return;
 		}
 
-		Components::FileSystem::File iwi(Utils::VA("images/%s.iwi", name.data()));
+		Components::FileSystem::File iwi(fmt::sprintf("images/%s.iwi", name.data()));
 
 		if (!iwi.Exists())
 		{

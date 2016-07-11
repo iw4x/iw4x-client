@@ -136,7 +136,7 @@ namespace Components
 		if (Dvar::Var("sv_mapRotation").Get<std::string>().empty())
 		{
 			Logger::Print("No rotation defined, restarting map.\n");
-			Command::Execute(Utils::VA("map %s", Dvar::Var("mapname").Get<const char*>()), true);
+			Command::Execute(fmt::sprintf("map %s", Dvar::Var("mapname").Get<const char*>()), true);
 			return;
 		}
 
@@ -149,7 +149,7 @@ namespace Components
 
 		std::string rotation = Dvar::Var("sv_mapRotationCurrent").Get<std::string>();
 
-		auto tokens = Utils::Explode(rotation, ' ');
+		auto tokens = Utils::String::Explode(rotation, ' ');
 
 		for (unsigned int i = 0; i < (tokens.size() - 1); i += 2)
 		{
@@ -176,7 +176,7 @@ namespace Components
 				Dvar::Var("sv_mapRotationCurrent").Set(rotation);
 
 				Logger::Print("Loading new map: %s\n", value.data());
-				Command::Execute(Utils::VA("map %s", value.data()), true);
+				Command::Execute(fmt::sprintf("map %s", value.data()), true);
 				break;
 			}
 			else if (key == "gametype")
@@ -196,7 +196,7 @@ namespace Components
 		int masterPort = Dvar::Var("masterPort").Get<int>();
 		const char* masterServerName = Dvar::Var("masterServerName").Get<const char*>();
 
-		Network::Address master(Utils::VA("%s:%u", masterServerName, masterPort));
+		Network::Address master(fmt::sprintf("%s:%u", masterServerName, masterPort));
 
 		Logger::Print("Sending heartbeat to master: %s:%u\n", masterServerName, masterPort);
 		Network::SendCommand(master, "heartbeat", "IW4");
@@ -328,12 +328,12 @@ namespace Components
 
 					if (!name.empty())
 					{
-						Game::SV_GameSendServerCommand(-1, 0, Utils::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
 						Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
 					}
 					else
 					{
-						Game::SV_GameSendServerCommand(-1, 0, Utils::VA("%c \"Console: %s\"", 104, message.data()));
+						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
 						Game::Com_Printf(15, "Console: %s\n", message.data());
 					}
 				});
@@ -349,12 +349,12 @@ namespace Components
 
 					if (!name.empty())
 					{
-						Game::SV_GameSendServerCommand(client, 0, Utils::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
 						Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
 					}
 					else
 					{
-						Game::SV_GameSendServerCommand(client, 0, Utils::VA("%c \"Console: %s\"", 104, message.data()));
+						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
 						Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
 					}
 				});
@@ -365,7 +365,7 @@ namespace Components
 					if (params.Length() < 2) return;
 
 					std::string message = params.Join(1);
-					Game::SV_GameSendServerCommand(-1, 0, Utils::VA("%c \"%s\"", 104, message.data()));
+					Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
 					Game::Com_Printf(15, "Raw: %s\n", message.data());
 				});
 
@@ -376,7 +376,7 @@ namespace Components
 
 					int client = atoi(params[1]);
 					std::string message = params.Join(2);
-					Game::SV_GameSendServerCommand(client, 0, Utils::VA("%c \"%s\"", 104, message.data()));
+					Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
 					Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
 				});
 
@@ -397,7 +397,7 @@ namespace Components
 						}
 					}
 
-					Game::SV_GameSendServerCommand(client, 0, Utils::VA("%c \"\"", 106));
+					Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"\"", 106));
 				});
 			});
 		}

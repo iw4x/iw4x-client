@@ -6,7 +6,7 @@ namespace Components
 	std::map<std::string, Game::LocalizedEntry*> Localization::LocalizeMap;
 	std::map<std::string, Game::LocalizedEntry*> Localization::TempLocalizeMap;
 
-	void Localization::Set(const char* key, const char* value)
+	void Localization::Set(std::string key, std::string value)
 	{
 		if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
 		{
@@ -119,8 +119,8 @@ namespace Components
 
 	DWORD Localization::SELoadLanguageStub()
 	{
-		//'official' iw4m localized strings
-		Game::SE_Load("localizedstrings/iw4m.str", 0);
+		//'official' iw4x localized strings
+		Game::SE_Load("localizedstrings/iw4x.str", 0);
 
 		return Utils::Hook::Call<DWORD()>(0x629E20)();
 	}

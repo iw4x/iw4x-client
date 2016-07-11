@@ -4,7 +4,7 @@ namespace Assets
 {
 	void IXModel::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File modelFile(Utils::VA("xmodel/%s.iw4xModel", name.data()));
+		Components::FileSystem::File modelFile(fmt::sprintf("xmodel/%s.iw4xModel", name.data()));
 
 		if (modelFile.Exists())
 		{
@@ -44,7 +44,7 @@ namespace Assets
 			Game::XModelSurfs* surf = builder->GetAllocator()->AllocateArray<Game::XModelSurfs>();
 
 			std::memcpy(surf, baseModel->lods[0].surfaces, sizeof(Game::XModelSurfs));
-			surf->name = builder->GetAllocator()->DuplicateString(Utils::VA("%s1", model->name));
+			surf->name = builder->GetAllocator()->DuplicateString(fmt::sprintf("%s1", model->name));
 			surf->surfaces = builder->GetAllocator()->AllocateArray<Game::XSurface>(model->numSurfaces);
 			surf->numSurfaces = model->numSurfaces;
 

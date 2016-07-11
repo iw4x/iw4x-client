@@ -92,7 +92,7 @@ namespace Components
 
 			case Column::Players:
 			{
-				return Utils::VA("%i (%i)", server->Clients, server->MaxClients);
+				return Utils::String::VA("%i (%i)", server->Clients, server->MaxClients);
 			}
 
 			case Column::Gametype:
@@ -112,7 +112,7 @@ namespace Components
 
 			case Column::Ping:
 			{
-				return Utils::VA("%i", server->Ping);
+				return Utils::String::VA("%i", server->Ping);
 			}
 		}
 
@@ -269,9 +269,9 @@ namespace Components
 		//json11::Json::parse()
 		std::vector<std::string> servers;
 
-		if (Utils::FileExists("players/favourites.json"))
+		if (Utils::IO::FileExists("players/favourites.json"))
 		{
-			std::string data = Utils::ReadFile("players/favourites.json");
+			std::string data = Utils::IO::ReadFile("players/favourites.json");
 			json11::Json object = json11::Json::parse(data, data);
 
 			if (!object.is_array())
@@ -299,18 +299,18 @@ namespace Components
 		servers.push_back(server);
 
 		json11::Json data = json11::Json(servers);
-		Utils::WriteFile("players/favourites.json", data.dump());
+		Utils::IO::WriteFile("players/favourites.json", data.dump());
 		Game::MessageBox("Server added to favourites.", "Success");
 	}
 
 	void ServerList::LoadFavourties()
 	{
-		if (ServerList::IsFavouriteList() && Utils::FileExists("players/favourites.json"))
+		if (ServerList::IsFavouriteList() && Utils::IO::FileExists("players/favourites.json"))
 		{
 			auto list = ServerList::GetList();
 			if (list) list->clear();
 
-			std::string data = Utils::ReadFile("players/favourites.json");
+			std::string data = Utils::IO::ReadFile("players/favourites.json");
 			json11::Json object = json11::Json::parse(data, data);
 
 			if (!object.is_array())
@@ -550,14 +550,14 @@ namespace Components
 			SendServers--;
 
 			server->SendTime = Game::Sys_Milliseconds();
-			server->Challenge = Utils::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+			server->Challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 
 			++ServerList::RefreshContainer.SentCount;
 
 			Network::SendCommand(server->Target, "getinfo", server->Challenge);
 
 			// Display in the menu, like in COD4
-			Localization::Set("MPUI_SERVERQUERIED", Utils::VA("Sent requests: %d/%d", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount));
+			Localization::Set("MPUI_SERVERQUERIED", fmt::sprintf("Sent requests: %d/%d", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount));
 
 			if (SendServers <= 0) break;
 		}

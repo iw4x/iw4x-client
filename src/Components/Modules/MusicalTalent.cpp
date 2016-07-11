@@ -6,14 +6,14 @@ namespace Components
 
 	void MusicalTalent::Replace(std::string sound, const char* file)
 	{
-		MusicalTalent::SoundAliasList[Utils::StrToLower(sound)] = file;
+		MusicalTalent::SoundAliasList[Utils::String::StrToLower(sound)] = file;
 	}
 
 	Game::XAssetHeader MusicalTalent::ModifyAliases(Game::XAssetType type, std::string filename)
 	{
 		Game::XAssetHeader header = { 0 };
 
-		if (MusicalTalent::SoundAliasList.find(Utils::StrToLower(filename)) != MusicalTalent::SoundAliasList.end())
+		if (MusicalTalent::SoundAliasList.find(Utils::String::StrToLower(filename)) != MusicalTalent::SoundAliasList.end())
 		{
 			Game::snd_alias_list_t* aliases = Game::DB_FindXAssetHeader(type, filename.data()).aliasList;
 
@@ -21,7 +21,7 @@ namespace Components
 			{
 				if (aliases->aliases->stream->type == 2)
 				{
-					aliases->aliases->stream->file = MusicalTalent::SoundAliasList[Utils::StrToLower(filename)];
+					aliases->aliases->stream->file = MusicalTalent::SoundAliasList[Utils::String::StrToLower(filename)];
 				}
 
 				header.aliasList = aliases;

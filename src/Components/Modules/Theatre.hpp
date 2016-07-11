@@ -28,7 +28,7 @@ namespace Components
 						{ "gametype", Gametype },
 						{ "author", Author },
 						{ "length", Length },
-						{ "timestamp", Utils::VA("%lld", TimeStamp) } //Ugly, but prevents information loss
+						{ "timestamp", fmt::sprintf("%lld", TimeStamp) } //Ugly, but prevents information loss
 					};
 				}
 			};
