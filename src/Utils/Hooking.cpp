@@ -223,7 +223,7 @@ namespace Utils
 		DWORD oldProtect;
 		VirtualProtect(place, length + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
 
-		strncpy(static_cast<char*>(place), string, length);
+		strncpy_s(static_cast<char*>(place), length, string, length);
 
 		VirtualProtect(place, length + 1, oldProtect, &oldProtect);
 	}

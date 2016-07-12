@@ -24,6 +24,8 @@ typedef union
 #include "Interfaces\SteamRemoteStorage.hpp"
 #include "Interfaces\SteamMasterServerUpdater.hpp"
 
+#include "Proxy.hpp"
+
 namespace Steam
 {
 	class Callbacks
@@ -88,6 +90,4 @@ namespace Steam
 	STEAM_EXPORT Steam::RemoteStorage* SteamRemoteStorage();
 	STEAM_EXPORT Steam::User* SteamUser();
 	STEAM_EXPORT Steam::Utils* SteamUtils();
-
-	extern HMODULE Overlay;
 }

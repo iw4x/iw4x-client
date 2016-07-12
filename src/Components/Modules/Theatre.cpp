@@ -271,12 +271,17 @@ namespace Components
 			Theatre::DemoContainer.CurrentSelection = index;
 			Theatre::Container::DemoInfo info = Theatre::DemoContainer.Demos[index];
 
+			tm time;
+			char buffer[1000] = { 0 };
+			localtime_s(&time, &info.TimeStamp);
+			asctime_s(buffer, sizeof buffer, &time);
+
 			Dvar::Var("ui_demo_mapname").Set(info.Mapname);
 			Dvar::Var("ui_demo_mapname_localized").Set(Game::UI_LocalizeMapName(info.Mapname.data()));
 			Dvar::Var("ui_demo_gametype").Set(Game::UI_LocalizeGameType(info.Gametype.data()));
 			Dvar::Var("ui_demo_length").Set(Utils::String::FormatTimeSpan(info.Length));
 			Dvar::Var("ui_demo_author").Set(info.Author);
-			Dvar::Var("ui_demo_date").Set(std::asctime(std::localtime(&info.TimeStamp)));
+			Dvar::Var("ui_demo_date").Set(buffer);
 		}
 	}
 

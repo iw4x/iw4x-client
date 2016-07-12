@@ -118,7 +118,7 @@ namespace Components
 
 		AntiCheat::EmptyHash();
 
-		_snprintf(buffer, size, format, mapname);
+		_snprintf_s(buffer, size, size, format, mapname);
 	}
 
 	void Maps::AddDependency(std::string expression, std::string zone)

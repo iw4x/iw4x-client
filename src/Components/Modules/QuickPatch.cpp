@@ -305,6 +305,7 @@ namespace Components
 		Utils::Hook::Nop(0x6830B1, 20);
 		Utils::Hook(0x682EBF, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x6830B1, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
+		//Utils::Hook::Set<BYTE>(0x68323A, 0xEB);
 
 		// Exploit fixes
 		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).Install()->Quick();

@@ -163,8 +163,8 @@ namespace Components
 
 			if (Console::LineBufferIndex)
 			{
-				strcpy(Console::LineBuffer2, Console::LineBuffer);
-				strcat(Console::LineBuffer, "\n");
+				strcpy_s(Console::LineBuffer2, Console::LineBuffer);
+				strcat_s(Console::LineBuffer, "\n");
 				Console::LineBufferIndex = 0;
 				return Console::LineBuffer;
 			}
@@ -215,7 +215,7 @@ namespace Components
 			wprintw(Console::InputWindow, "%s", Console::LineBuffer2);
 			wrefresh(Console::InputWindow);
 
-			strcpy(Console::LineBuffer, Console::LineBuffer2);
+			strcpy_s(Console::LineBuffer, Console::LineBuffer2);
 			Console::LineBufferIndex = strlen(Console::LineBuffer);
 			break;
 		}
@@ -310,7 +310,7 @@ namespace Components
 
 		va_list va;
 		va_start(va, format);
-		_vsnprintf(buffer, sizeof(buffer), format, va);
+		_vsnprintf_s(buffer, sizeof(buffer), format, va);
 		va_end(va);
 
 		Game::Com_Printf(0, "ERROR:\n");
@@ -424,7 +424,7 @@ namespace Components
 
 		va_list ap;
 		va_start(ap, format);
-		_vsnprintf(buffer, sizeof(buffer), format, ap);
+		_vsnprintf_s(buffer, sizeof(buffer), format, ap);
 		va_end(ap);
 
 		perror(buffer);

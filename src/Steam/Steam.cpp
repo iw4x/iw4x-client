@@ -2,8 +2,6 @@
 
 namespace Steam
 {
-	HMODULE Overlay = 0;
-
 	uint64_t Callbacks::CallID = 0;
 	std::map<uint64_t, bool> Callbacks::Calls;
 	std::map<uint64_t, Callbacks::Base*> Callbacks::ResultHandlers;
@@ -71,22 +69,9 @@ namespace Steam
 	{
 		bool SteamAPI_Init()
 		{
-			Overlay = GetModuleHandleA("gameoverlayrenderer.dll");
-
-			if (!Overlay)
+			if (!Proxy::Inititalize())
 			{
-				HKEY hRegKey;
-				if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hRegKey) == ERROR_SUCCESS)
-				{
-					char steamPath[MAX_PATH] = { 0 };
-					DWORD dwLength = sizeof(steamPath);
-					RegQueryValueExA(hRegKey, "InstallPath", NULL, NULL, reinterpret_cast<BYTE*>(steamPath), &dwLength);
-					RegCloseKey(hRegKey);
-
-					SetDllDirectoryA(steamPath);
-
-					Overlay = LoadLibraryA(::Utils::String::VA("%s\\%s", steamPath, "gameoverlayrenderer.dll"));
-				}
+				OutputDebugStringA("Steamproxy not initialized properly");
 			}
 
 			return true;
@@ -109,6 +94,7 @@ namespace Steam
 
 		void SteamAPI_Shutdown()
 		{
+			Proxy::Uninititalize();
 		}
 
 		void SteamAPI_UnregisterCallResult()
