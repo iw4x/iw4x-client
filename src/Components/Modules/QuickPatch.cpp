@@ -82,14 +82,28 @@ namespace Components
 
 	int QuickPatch::MsgReadBitsCompressCheckSV(const char *from, char *to, int size)
 	{
+		static char buffer[0x8000];
+
 		if (size > 0x800) return 0;
-		return Game::MSG_ReadBitsCompress(from, to, size);
+		size = Game::MSG_ReadBitsCompress(from, buffer, size);
+
+		if (size > 0x800) return 0;
+		memcpy(to, buffer, size);
+
+		return size;
 	}
 
 	int QuickPatch::MsgReadBitsCompressCheckCL(const char *from, char *to, int size)
 	{
+		static char buffer[0x100000];
+
 		if (size > 0x20000) return 0;
-		return Game::MSG_ReadBitsCompress(from, to, size);
+		size = Game::MSG_ReadBitsCompress(from, buffer, size);
+
+		if (size > 0x20000) return 0;
+		memcpy(to, buffer, size);
+
+		return size;
 	}
 
 	QuickPatch::QuickPatch()
