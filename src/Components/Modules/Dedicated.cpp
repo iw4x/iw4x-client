@@ -7,7 +7,7 @@ namespace Components
 
 	bool Dedicated::SendChat;
 
-	bool Dedicated::IsDedicated()
+	bool Dedicated::IsEnabled()
 	{
 		return Flags::HasFlag("dedicated");
 	}
@@ -118,7 +118,7 @@ namespace Components
 
 	void Dedicated::MapRotate()
 	{
-		if (!Dedicated::IsDedicated() && Dvar::Var("sv_dontrotate").Get<bool>())
+		if (!Dedicated::IsEnabled() && Dvar::Var("sv_dontrotate").Get<bool>())
 		{
 			Dvar::Var("sv_dontrotate").SetRaw(0);
 			return;
@@ -226,7 +226,7 @@ namespace Components
 		Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
 		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_FLAG_CHEAT, "");
 
-		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled()) // Run zonebuilder as dedi :P
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) // Run zonebuilder as dedi :P
 		{
 			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't act as node");
 

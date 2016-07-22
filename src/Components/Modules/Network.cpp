@@ -125,7 +125,7 @@ namespace Components
 
 	void Network::Handle(std::string packet, Network::Callback* callback)
 	{
-		Network::PacketHandlers[Utils::String::StrToLower(packet)] = callback;
+		Network::PacketHandlers[Utils::String::ToLower(packet)] = callback;
 	}
 
 	void Network::OnStart(Network::CallbackRaw* callback)
@@ -228,12 +228,12 @@ namespace Components
 			packetCommand = packetCommand.substr(0, pos);
 		}
 
-		packetCommand = Utils::String::StrToLower(packetCommand);
+		packetCommand = Utils::String::ToLower(packetCommand);
 
 		// Check if custom handler exists
 		for (auto i = Network::PacketHandlers.begin(); i != Network::PacketHandlers.end(); ++i)
 		{
-			if (Utils::String::StrToLower(i->first) == packetCommand)
+			if (Utils::String::ToLower(i->first) == packetCommand)
 			{
 				Network::SelectedPacket = i->first;
 				return 0;

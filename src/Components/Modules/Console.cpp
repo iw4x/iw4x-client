@@ -523,7 +523,7 @@ namespace Components
 				Console::LastRefresh = Game::Sys_Milliseconds();
 			});
 		}
-		else if (Dedicated::IsDedicated()/* || ZoneBuilder::IsEnabled()*/)
+		else if (Dedicated::IsEnabled()/* || ZoneBuilder::IsEnabled()*/)
 		{
 			Utils::Hook::Nop(0x60BB58, 11);
 

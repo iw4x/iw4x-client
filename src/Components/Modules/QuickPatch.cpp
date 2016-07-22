@@ -23,7 +23,7 @@ namespace Components
 
 	void QuickPatch::OnFrame(QuickPatch::Callback* callback)
 	{
-		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled())
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			Dedicated::OnFrame(callback);
 		}
@@ -35,7 +35,7 @@ namespace Components
 
 	void QuickPatch::Once(QuickPatch::Callback* callback)
 	{
-		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled())
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			Dedicated::Once(callback);
 		}
@@ -157,7 +157,7 @@ namespace Components
 		{
 			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): ZoneBuilder");
 		}
-		else if (Dedicated::IsDedicated())
+		else if (Dedicated::IsEnabled())
 		{
 			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): Dedicated");
 		}
@@ -322,8 +322,9 @@ namespace Components
 		//Utils::Hook::Set<BYTE>(0x68323A, 0xEB);
 
 		// Exploit fixes
-		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).Install()->Quick();
+		Utils::Hook::Set<BYTE>(0x412370, 0xC3);                                                      // SV_SteamAuthClient
+		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).Install()->Quick(); // SV_ExecuteClientCommands
+		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).Install()->Quick(); // CL_ParseServerMessage
 
 		Command::Add("unlockstats", [] (Command::Params params)
 		{

@@ -95,7 +95,7 @@ namespace Components
 		// Text
 		float leftText = width / 2 - bWidth / 2 - cornerSize + iOffsetLeft * 2 + imgDim;
 		float rightText = width / 2 + bWidth / 2 - cornerSize - iOffsetLeft;
-		Game::R_AddCmdDrawText(Utils::String::StrToUpper(toast->Title).data(), 0x7FFFFFFF, font, static_cast<float>(leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 7), fontSize, fontSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Title
+		Game::R_AddCmdDrawText(Utils::String::ToUpper(toast->Title).data(), 0x7FFFFFFF, font, static_cast<float>(leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 7), fontSize, fontSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Title
 		Game::R_AddCmdDrawText(toast->Desc.data(), 0x7FFFFFFF, descfont, leftText + (rightText - leftText) / 2 - descrSize / 2 + cornerSize, static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 33), descSize, descSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Description
 	}
 

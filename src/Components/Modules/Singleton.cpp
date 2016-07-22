@@ -17,7 +17,7 @@ namespace Components
 			ExitProcess(0);
 		}
 
-		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 
 		Singleton::FirstInstance = (CreateMutexA(NULL, FALSE, "iw4x_mutex") && GetLastError() != ERROR_ALREADY_EXISTS);
 

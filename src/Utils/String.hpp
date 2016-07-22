@@ -19,8 +19,8 @@ namespace Utils
 			return buffer;
 		}
 
-		std::string StrToLower(std::string input);
-		std::string StrToUpper(std::string input);
+		std::string ToLower(std::string input);
+		std::string ToUpper(std::string input);
 		bool EndsWith(std::string haystack, std::string needle);
 		std::vector<std::string> Explode(const std::string& str, char delim);
 		void Replace(std::string &string, std::string find, std::string replace);
@@ -33,6 +33,6 @@ namespace Utils
 
 		std::string DumpHex(std::string data, std::string separator = " ");
 
-		std::string XORString(std::string str, char value);
+		std::string XOR(std::string str, char value);
 	}
 }

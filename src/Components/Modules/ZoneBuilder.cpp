@@ -441,7 +441,7 @@ namespace Components
 
 	bool ZoneBuilder::IsEnabled()
 	{
-		return (Flags::HasFlag("zonebuilder") && !Dedicated::IsDedicated());
+		return (Flags::HasFlag("zonebuilder") && !Dedicated::IsEnabled());
 	}
 
 	void ZoneBuilder::BeginAssetTrace(std::string zone)

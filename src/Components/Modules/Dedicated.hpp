@@ -9,7 +9,7 @@ namespace Components
 		~Dedicated();
 		const char* GetName() { return "Dedicated"; };
 
-		static bool IsDedicated();
+		static bool IsEnabled();
 
 		static void Heartbeat();
 

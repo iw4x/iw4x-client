@@ -46,7 +46,7 @@ namespace Components
 		});
 
 		// TODO: Maybe execute that for clients as well, when we use triangular natting.
-		if (!Dedicated::IsDedicated()) return;
+		if (!Dedicated::IsEnabled()) return;
 
 		// Load public key
 		static uint8_t publicKey[] = 

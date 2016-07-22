@@ -4,13 +4,13 @@ namespace Utils
 {
 	namespace String
 	{
-		std::string StrToLower(std::string input)
+		std::string ToLower(std::string input)
 		{
 			std::transform(input.begin(), input.end(), input.begin(), ::tolower);
 			return input;
 		}
 
-		std::string StrToUpper(std::string input)
+		std::string ToUpper(std::string input)
 		{
 			std::transform(input.begin(), input.end(), input.begin(), ::toupper);
 			return input;
@@ -38,7 +38,7 @@ namespace Utils
 			return result;
 		}
 
-		std::string XORString(std::string str, char value)
+		std::string XOR(std::string str, char value)
 		{
 			for (unsigned int i = 0; i < str.size(); ++i)
 			{

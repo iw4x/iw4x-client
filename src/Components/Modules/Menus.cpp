@@ -609,7 +609,7 @@ namespace Components
 
 	Menus::Menus()
 	{
-		if (Dedicated::IsDedicated()) return;
+		if (Dedicated::IsEnabled()) return;
 
 		// Ensure everything is zero'ed
 		Menus::FreeEverything();

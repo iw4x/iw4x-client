@@ -285,7 +285,7 @@ namespace Components
 
 	Download::Download()
 	{
-		if (Dedicated::IsDedicated())
+		if (Dedicated::IsEnabled())
 		{
 			mg_mgr_init(&Download::Mgr, NULL);
 
@@ -319,7 +319,7 @@ namespace Components
 
 	Download::~Download()
 	{
-		if (Dedicated::IsDedicated())
+		if (Dedicated::IsEnabled())
 		{
 			mg_mgr_free(&Download::Mgr);
 		}

@@ -11,7 +11,7 @@ namespace Components
 		if (Utils::Hook::Get<bool>(0x1AD3680)) return;
 
 		// Don't load playlists when dedi and no party
-		if (Dedicated::IsDedicated() && !Dvar::Var("party_enable").Get<bool>())
+		if (Dedicated::IsEnabled() && !Dvar::Var("party_enable").Get<bool>())
 		{
 			Utils::Hook::Set<bool>(0x1AD3680, true); // Set received to true
 			Dvar::Var("xblive_privateserver").Set(true);

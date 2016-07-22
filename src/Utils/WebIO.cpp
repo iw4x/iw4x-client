@@ -1,4 +1,5 @@
 #include "STDInclude.hpp"
+#include <shlwapi.h>
 
 namespace Utils
 {

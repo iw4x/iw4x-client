@@ -208,7 +208,7 @@ namespace Components
 
 	IPCPipe::IPCPipe()
 	{
-		if (Dedicated::IsDedicated()) return;
+		if (Dedicated::IsEnabled()) return;
 
 		// Server pipe
 		IPCPipe::ServerPipe = new Pipe();

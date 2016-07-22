@@ -37,7 +37,7 @@ namespace Components
 	}
 	void Node::StoreNodes(bool force)
 	{
-		if (Dedicated::IsDedicated() && Dvar::Var("sv_lanOnly").Get<bool>()) return;
+		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").Get<bool>()) return;
 
 		static int lastStorage = 0;
 
@@ -141,7 +141,7 @@ namespace Components
 		if (address.IsSelf()) return;
 
 		Proto::Node::List list;
-		list.set_is_dedi(Dedicated::IsDedicated());
+		list.set_is_dedi(Dedicated::IsEnabled());
 		list.set_protocol(PROTOCOL);
 		list.set_version(NODE_VERSION);
 
@@ -222,7 +222,7 @@ namespace Components
 
 		entry->lastTime = Game::Sys_Milliseconds();
 
-		if (Dedicated::IsDedicated())
+		if (Dedicated::IsEnabled())
 		{
 			entry->challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 
@@ -245,7 +245,7 @@ namespace Components
 
 	void Node::FrameHandler()
 	{
-		if (Dedicated::IsDedicated() && Dvar::Var("sv_lanOnly").Get<bool>()) return;
+		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").Get<bool>()) return;
 
 		// Frame limit
 		static int lastFrame = 0;
@@ -302,7 +302,7 @@ namespace Components
 					node.lastTime = Game::Sys_Milliseconds();
 					node.lastListQuery = Game::Sys_Milliseconds();
 
-					if (Dedicated::IsDedicated())
+					if (Dedicated::IsEnabled())
 					{
 						Network::SendCommand(node.address, "nodeListRequest");
 					}
@@ -361,7 +361,7 @@ namespace Components
 		});
 
 		// Send deadline when shutting down
-		if (Dedicated::IsDedicated())
+		if (Dedicated::IsEnabled())
 		{
 			QuickPatch::OnShutdown([] ()
 			{
@@ -692,7 +692,7 @@ namespace Components
 					entry->state = Node::STATE_VALID;
 					entry->lastTime = Game::Sys_Milliseconds();
 
-					if (!Dedicated::IsDedicated() && entry->isDedi && ServerList::IsOnlineList() && entry->protocol == PROTOCOL)
+					if (!Dedicated::IsEnabled() && entry->isDedi && ServerList::IsOnlineList() && entry->protocol == PROTOCOL)
 					{
 						ServerList::InsertRequest(entry->address, true);
 					}
@@ -739,7 +739,7 @@ namespace Components
 		// So we either have to register as node, or register a remote session
 		Network::Handle("nodeListError", [] (Network::Address address, std::string data)
 		{
-			if (Dedicated::IsDedicated())
+			if (Dedicated::IsEnabled())
 			{
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (entry)

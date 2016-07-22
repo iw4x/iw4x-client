@@ -145,7 +145,7 @@ namespace Components
 
 	void Auth::StoreKey()
 	{
-		if (!Dedicated::IsDedicated() && !ZoneBuilder::IsEnabled())
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
 			Proto::Auth::Certificate cert;
 			cert.set_token(Auth::GuidToken.ToString());
@@ -158,7 +158,7 @@ namespace Components
 
 	void Auth::LoadKey(bool force)
 	{
-		if (Dedicated::IsDedicated() || ZoneBuilder::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 		if (!force && Auth::GuidKey.IsValid()) return;
 
 		Proto::Auth::Certificate cert;
@@ -292,7 +292,7 @@ namespace Components
 		Auth::LoadKey(true);
 
 		// Only clients receive the auth request
-		if (!Dedicated::IsDedicated()) 
+		if (!Dedicated::IsEnabled())
 		{
 			Network::Handle("xuidAuthReq", [] (Network::Address address, std::string data)
 			{
