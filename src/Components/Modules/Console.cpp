@@ -499,7 +499,7 @@ namespace Components
 		// Don't resize the console
 		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).Install()->Quick(); 
 
-		// Code below is not necessary, when performing unit tests!
+		// Code below is not necessary when performing unit tests!
 		if (Loader::PerformingUnitTests()) return;
 
 		// External console
