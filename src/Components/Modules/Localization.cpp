@@ -3,6 +3,7 @@
 namespace Components
 {
 	Dvar::Var Localization::UseLocalization;
+	Utils::Memory::Allocator Localization::MemAllocator;
 	std::map<std::string, Game::LocalizedEntry*> Localization::LocalizeMap;
 	std::map<std::string, Game::LocalizedEntry*> Localization::TempLocalizeMap;
 
@@ -12,28 +13,28 @@ namespace Components
 		{
 			Game::LocalizedEntry* entry = Localization::LocalizeMap[key];
 
-			char* newStaticValue = Utils::Memory::DuplicateString(value);
+			char* newStaticValue = Localization::MemAllocator.DuplicateString(value);
 			if (!newStaticValue) return;
-			if (entry->value) Utils::Memory::Free(entry->value);
+			if (entry->value) Localization::MemAllocator.Free(entry->value);
 			entry->value = newStaticValue;
 			return;
 		}
 
-		Game::LocalizedEntry* entry = Utils::Memory::Allocate<Game::LocalizedEntry>();
+		Game::LocalizedEntry* entry = Localization::MemAllocator.Allocate<Game::LocalizedEntry>();
 		if (!entry) return;
 
-		entry->name = Utils::Memory::DuplicateString(key);
+		entry->name = Localization::MemAllocator.DuplicateString(key);
 		if (!entry->name)
 		{
-			Utils::Memory::Free(entry);
+			Localization::MemAllocator.Free(entry);
 			return;
 		}
 
-		entry->value = Utils::Memory::DuplicateString(value);
+		entry->value = Localization::MemAllocator.DuplicateString(value);
 		if (!entry->value)
 		{
-			Utils::Memory::Free(entry->name);
-			Utils::Memory::Free(entry);
+			Localization::MemAllocator.Free(entry->name);
+			Localization::MemAllocator.Free(entry);
 			return;
 		}
 
@@ -70,26 +71,26 @@ namespace Components
 		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
 		{
 			Game::LocalizedEntry* entry = Localization::TempLocalizeMap[key];
-			if(entry->value) Utils::Memory::Free(entry->value);
-			entry->value = Utils::Memory::DuplicateString(value);
+			if(entry->value) Localization::MemAllocator.Free(entry->value);
+			entry->value = Localization::MemAllocator.DuplicateString(value);
 		}
 		else
 		{
-			Game::LocalizedEntry* entry = Utils::Memory::Allocate<Game::LocalizedEntry>();
+			Game::LocalizedEntry* entry = Localization::MemAllocator.Allocate<Game::LocalizedEntry>();
 			if (!entry) return;
 
-			entry->name = Utils::Memory::DuplicateString(key);
+			entry->name = Localization::MemAllocator.DuplicateString(key);
 			if (!entry->name)
 			{
-				Utils::Memory::Free(entry);
+				Localization::MemAllocator.Free(entry);
 				return;
 			}
 
-			entry->value = Utils::Memory::DuplicateString(value);
+			entry->value = Localization::MemAllocator.DuplicateString(value);
 			if (!entry->value)
 			{
-				Utils::Memory::Free(entry->name);
-				Utils::Memory::Free(entry);
+				Localization::MemAllocator.Free(entry->name);
+				Localization::MemAllocator.Free(entry);
 				return;
 			}
 
@@ -103,9 +104,9 @@ namespace Components
 		{
 			if (i->second)
 			{
-				if (i->second->name)  Utils::Memory::Free(i->second->name);
-				if (i->second->value) Utils::Memory::Free(i->second->value);
-				Utils::Memory::Free(i->second);
+				if (i->second->name)  Localization::MemAllocator.Free(i->second->name);
+				if (i->second->value) Localization::MemAllocator.Free(i->second->value);
+				Localization::MemAllocator.Free(i->second);
 			}
 		}
 
@@ -186,16 +187,7 @@ namespace Components
 	{
 		Localization::ClearTemp();
 
-		for (auto i = Localization::LocalizeMap.begin(); i != Localization::LocalizeMap.end(); ++i)
-		{
-			if (i->second)
-			{
-				if (i->second->name)  Utils::Memory::Free(i->second->name);
-				if (i->second->value) Utils::Memory::Free(i->second->value);
-				Utils::Memory::Free(i->second);
-			}
-		}
-
 		Localization::LocalizeMap.clear();
+		Localization::MemAllocator.Clear();
 	}
 }

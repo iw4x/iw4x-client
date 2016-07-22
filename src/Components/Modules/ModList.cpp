@@ -52,18 +52,7 @@ namespace Components
 	{
 		if (ModList::CurrentMod < ModList::Mods.size())
 		{
-			auto fsGame = Dvar::Var("fs_game");
-			fsGame.Set(fmt::sprintf("mods/%s", ModList::Mods[ModList::CurrentMod].data()));
-			fsGame.Get<Game::dvar_t*>()->pad2[0] = 1;
-
-			if (Dvar::Var("cl_modVidRestart").Get<bool>())
-			{
-				Command::Execute("vid_restart", false);
-			}
-			else
-			{
-				Command::Execute("closemenu mods_menu", false);
-			}
+			ModList::RunMod(ModList::Mods[ModList::CurrentMod]);
 		}
 	}
 
@@ -80,6 +69,22 @@ namespace Components
 		else
 		{
 			Game::Cmd_ExecuteSingleCommand(0, 0, "closemenu mods_menu");
+		}
+	}
+
+	void ModList::RunMod(std::string mod)
+	{
+		auto fsGame = Dvar::Var("fs_game");
+		fsGame.Set(fmt::sprintf("mods/%s", mod.data()));
+		fsGame.Get<Game::dvar_t*>()->pad2[0] = 1;
+
+		if (Dvar::Var("cl_modVidRestart").Get<bool>())
+		{
+			Command::Execute("vid_restart", false);
+		}
+		else
+		{
+			Command::Execute("closemenu mods_menu", false);
 		}
 	}
 

@@ -208,6 +208,6 @@ namespace Components
 
 	StructuredData::~StructuredData()
 	{
-		StructuredData::MemAllocator.Free();
+		StructuredData::MemAllocator.Clear();
 	}
 }

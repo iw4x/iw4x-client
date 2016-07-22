@@ -87,6 +87,6 @@ namespace Components
 	StringTable::~StringTable()
 	{
 		StringTable::StringTableMap.clear();
-		StringTable::MemAllocator.Free();
+		StringTable::MemAllocator.Clear();
 	}
 }

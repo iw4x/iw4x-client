@@ -566,7 +566,7 @@ namespace Components
 
 				if (originalConnect == menu) // Check if we draw the original loadscreen
 				{
-					if (Menus::MenuList.find("connect") != Menus::MenuList.end()) // Check if we have a custom loadscreen, to prevent drawing the original one ontop
+					if (Menus::MenuList.find("connect") != Menus::MenuList.end()) // Check if we have a custom loadscreen, to prevent drawing the original one on top
 					{
 						return false;
 					}

@@ -15,10 +15,10 @@ namespace Utils
 			}
 			~Allocator() 
 			{
-				this->Free();
+				this->Clear();
 			}
 
-			void Free()
+			void Clear()
 			{
 				for (auto i = this->RefMemory.begin(); i != this->RefMemory.end(); ++i)
 				{
@@ -36,6 +36,28 @@ namespace Utils
 				}
 
 				this->Pool.clear();
+			}
+
+			void Free(void* data)
+			{
+				auto i = this->RefMemory.find(data);
+				if (i != this->RefMemory.end())
+				{
+					i->second(i->first);
+					this->RefMemory.erase(i);
+				}
+
+				auto j = std::find(this->Pool.begin(), this->Pool.end(), data);
+				if (j != this->Pool.end())
+				{
+					Memory::Free(data);
+					this->Pool.erase(j);
+				}
+			}
+
+			void Free(const void* data)
+			{
+				this->Free(const_cast<void*>(data));
 			}
 
 			void Reference(void* memory, FreeCallback callback)

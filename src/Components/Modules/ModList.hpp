@@ -7,6 +7,8 @@ namespace Components
 		~ModList();
 		const char* GetName() { return "ModList"; };
 
+		static void RunMod(std::string mod);
+
 	private:
 		static std::vector<std::string> Mods;
 		static unsigned int CurrentMod;
