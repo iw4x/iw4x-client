@@ -331,6 +331,11 @@ namespace Components
 			QuickPatch::UnlockStats();
 		});
 
+		Command::Add("crash", [] (Command::Params params)
+		{
+			throw new std::exception();
+		});
+
 
 		// Debug patches
 #ifdef DEBUG

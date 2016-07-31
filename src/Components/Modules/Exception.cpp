@@ -9,6 +9,26 @@
 
 namespace Components
 {
+	void Exception::UploadMinidump(std::string filename)
+	{
+// 		Utils::WebIO webio("Firefucks", UPLOAD_URL);
+// 
+// 		if (Utils::IO::FileExists(filename))
+// 		{
+// 			std::string buffer = Utils::IO::ReadFile(filename);
+// 			std::string result = webio.PostFile(buffer);
+// 
+// 			MessageBoxA(0, result.data(), "Minidump", 0);
+// 		}
+
+// 		mg_mgr mgr;
+// 		mg_mgr_init(&mgr, NULL);
+// 
+// 		mg_connect_http
+// 
+// 		mg_mgr_free(&mgr);
+	}
+
 	LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
 	{
 		char filename[MAX_PATH];
@@ -23,10 +43,12 @@ namespace Components
 
 		if (hFile && hFile != INVALID_HANDLE_VALUE)
 		{
-			MINIDUMP_EXCEPTION_INFORMATION ex = { GetCurrentThreadId(),ExceptionInfo, FALSE };
+			MINIDUMP_EXCEPTION_INFORMATION ex = { GetCurrentThreadId(), ExceptionInfo, FALSE };
 			MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &ex, NULL, NULL);
 			CloseHandle(hFile);
 		}
+
+		Exception::UploadMinidump(filename);
 
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{
@@ -35,7 +57,7 @@ namespace Components
 		}
 		else
 		{
-			Logger::Error("Fatal error (0x%08x) at 0x%08x.", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
+			Logger::Error("Fatal error (0x%08X) at 0x%08X.", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
 		}
 
 		return EXCEPTION_CONTINUE_SEARCH;

@@ -230,6 +230,9 @@ namespace Game
 	SpawnVar* spawnVars = (SpawnVar*)0x1A83DE8;
 	MapEnts** marMapEntsPtr = (MapEnts**)0x112AD34;
 
+	IDirect3D9** d3d9 = (IDirect3D9**)0x66DEF84;
+	IDirect3DDevice9** dx_ptr = (IDirect3DDevice9**)0x66DEF88;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();

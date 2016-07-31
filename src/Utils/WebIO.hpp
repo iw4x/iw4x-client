@@ -26,6 +26,9 @@ namespace Utils
 		void SetURL(std::string url);
 		void SetCredentials(std::string username, std::string password);
 
+		std::string PostFile(std::string url, std::string data);
+		std::string PostFile(std::string data);
+
 		std::string Post(std::string url, WebIO::Params params);
 		std::string Post(std::string url, std::string body);
 		std::string Post(WebIO::Params params);
@@ -90,7 +93,7 @@ namespace Utils
 
 		bool IsSecuredConnection();
 
-		std::string Execute(const char* command, std::string body);
+		std::string Execute(const char* command, std::string body, WebIO::Params headers = WebIO::Params());
 
 		bool ListElements(std::string directory, std::vector<std::string> &list, bool files);
 

@@ -134,6 +134,29 @@ namespace Utils
 		return body;
 	}
 
+	std::string WebIO::PostFile(std::string url, std::string data)
+	{
+		WebIO::SetURL(url);
+		return WebIO::PostFile(data);
+	}
+
+	std::string WebIO::PostFile(std::string data)
+	{
+		WebIO::Params headers;
+
+		std::string boundary = "xxxxxxxxx";
+		headers["Content-Type"] = "multipart/form-data, boundary=" + boundary;
+		headers["Content-Length"] = fmt::sprintf("%u", data.size());
+
+		std::string body = "--" + boundary + "\r\n";
+		body += "Content-Disposition: form-data; name=\"contents\"; filename=\"minidump.dmp\"\r\n";
+		body += "Content-Type: application/octet-stream\r\n\r\n";
+		body += data + "\r\n";
+		body += "--" + boundary + "--";
+
+		return WebIO::Execute("POST", body, headers);
+	}
+
 	std::string WebIO::Post(std::string url, std::string body)
 	{
 		WebIO::SetURL(url);
@@ -203,7 +226,7 @@ namespace Utils
 		return this;
 	}
 
-	std::string WebIO::Execute(const char* command, std::string body)
+	std::string WebIO::Execute(const char* command, std::string body, WebIO::Params headers)
 	{
 		if (!WebIO::OpenConnection()) return "";
 
@@ -225,8 +248,22 @@ namespace Utils
 			return "";
 		}
 
-		const char* headers = "Content-type: application/x-www-form-urlencoded";
-		HttpSendRequestA(WebIO::m_hFile, headers, strlen(headers), const_cast<char*>(body.data()), body.size() + 1);
+		if (headers.find("Content-type") == headers.end())
+		{
+			headers["Content-type"] = "application/x-www-form-urlencoded";
+		}
+
+		std::string finalHeaders;
+
+		for (auto i = headers.begin(); i != headers.end(); ++i)
+		{
+			finalHeaders.append(i->first);
+			finalHeaders.append(": ");
+			finalHeaders.append(i->second);
+			finalHeaders.append("\r\n");
+		}
+
+		HttpSendRequestA(WebIO::m_hFile, finalHeaders.data(), finalHeaders.size(), const_cast<char*>(body.data()), body.size() + 1);
 
 		std::string returnBuffer;
 

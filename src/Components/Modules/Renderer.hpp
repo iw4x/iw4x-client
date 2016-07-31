@@ -4,6 +4,7 @@ namespace Components
 	{
 	public:
 		typedef void(Callback)();
+		typedef void(BackendCallback)(IDirect3DDevice9*);
 
 		Renderer();
 		~Renderer();
@@ -14,13 +15,18 @@ namespace Components
 
 		static void Once(Callback* callback);
 		static void OnFrame(Callback* callback);
+		static void OnBackendFrame(BackendCallback* callback);
 
 	private:
-		static void FrameHook();
+		static void FrameStub();
 		static void FrameHandler();
+
+		static void BackendFrameStub();
+		static void BackendFrameHandler();
 
 		static wink::signal<wink::slot<Callback>> FrameSignal;
 		static wink::signal<wink::slot<Callback>> FrameOnceSignal;
+		static wink::signal<wink::slot<BackendCallback>> BackendFrameSignal;
 		static Utils::Hook DrawFrameHook;
 	};
 }

@@ -459,6 +459,9 @@ namespace Game
 	extern SpawnVar* spawnVars;
 	extern MapEnts** marMapEntsPtr;
 
+	extern IDirect3D9** d3d9;
+	extern IDirect3DDevice9** dx_ptr;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
