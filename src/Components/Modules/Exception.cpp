@@ -101,7 +101,7 @@ namespace Components
 
 			for (int i =0;;)
 			{
-				char* mapname = reinterpret_cast<char*>(0x7471D0) + 40 * i;
+				char* mapname = Game::mapnames[i];
 				if (!*mapname)
 				{
 					i = 0;

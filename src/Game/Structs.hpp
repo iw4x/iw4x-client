@@ -2421,6 +2421,8 @@ namespace Game
 	};
 #pragma pack(pop)
 	
+		typedef char mapname_t[40];
+
 #ifdef __cplusplus
 }
 #endif
