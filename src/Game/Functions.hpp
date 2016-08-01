@@ -24,6 +24,9 @@ namespace Game
 	typedef void(_cdecl * CL_DrawStretchPicPhysical_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
 	extern CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical;
 
+	typedef void(__cdecl * CL_HandleRelayPacket_t)(Game::msg_t* msg, int client);
+	extern CL_HandleRelayPacket_t CL_HandleRelayPacket;
+
 	typedef void(__cdecl * CL_ResetViewport_t)();
 	extern CL_ResetViewport_t CL_ResetViewport;
 

@@ -106,6 +106,14 @@ namespace Components
 		return size;
 	}
 
+	void QuickPatch::CL_HandleRelayPacketCheck(Game::msg_t* msg, int client)
+	{
+		if (Command::Params().Length() >= 3)
+		{
+			Game::CL_HandleRelayPacket(msg, client);
+		}
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// protocol version (workaround for hacks)
@@ -325,6 +333,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x412370, 0xC3);                                                      // SV_SteamAuthClient
 		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).Install()->Quick(); // SV_ExecuteClientCommands
 		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).Install()->Quick(); // CL_ParseServerMessage
+		Utils::Hook(0x5AA009, QuickPatch::CL_HandleRelayPacketCheck, HOOK_CALL).Install()->Quick();  // CL_HandleRelayPacket
 
 		Command::Add("unlockstats", [] (Command::Params params)
 		{

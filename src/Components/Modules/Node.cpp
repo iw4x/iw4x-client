@@ -684,7 +684,9 @@ namespace Components
 			{
 				if (entry->registered)
 				{
+#ifdef DEBUG
 					Logger::Print("Received valid node list with %i entries from %s\n", list.address_size(), address.GetCString());
+#endif
 
 					entry->isDedi = list.is_dedi();
 					entry->protocol = list.protocol();
