@@ -22,8 +22,12 @@ namespace Components
 
 		if (AssetHandler::AssetInterfaces.find(iAsset->GetType()) != AssetHandler::AssetInterfaces.end())
 		{
-			Logger::Print("Duplicate interface handler: %s\n", Game::DB_GetXAssetTypeName(iAsset->GetType()));
+			Logger::Print("Duplicate asset interface: %s\n", Game::DB_GetXAssetTypeName(iAsset->GetType()));
 			delete AssetHandler::AssetInterfaces[iAsset->GetType()];
+		}
+		else
+		{
+			Logger::Print("Asset interface registered: %s\n", Game::DB_GetXAssetTypeName(iAsset->GetType()));
 		}
 
 		AssetHandler::AssetInterfaces[iAsset->GetType()] = iAsset;
@@ -251,22 +255,24 @@ namespace Components
 		Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).Install()->Quick();
 
 		// Register asset interfaces
-		AssetHandler::RegisterInterface(new Assets::IXModel());
-		AssetHandler::RegisterInterface(new Assets::IMapEnts());
-		AssetHandler::RegisterInterface(new Assets::IRawFile());
-		AssetHandler::RegisterInterface(new Assets::IGfxImage());
-		AssetHandler::RegisterInterface(new Assets::IMaterial());
-		AssetHandler::RegisterInterface(new Assets::IPhysPreset());
-		AssetHandler::RegisterInterface(new Assets::IXAnimParts());
-		AssetHandler::RegisterInterface(new Assets::IPhysCollmap());
-		//AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
-		AssetHandler::RegisterInterface(new Assets::ILocalizedEntry());
-		AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());
-		AssetHandler::RegisterInterface(new Assets::IMaterialTechniqueSet());
-		AssetHandler::RegisterInterface(new Assets::IMaterialVertexShader());
-		AssetHandler::RegisterInterface(new Assets::IStructuredDataDefSet());
-		AssetHandler::RegisterInterface(new Assets::IMaterialVertexDeclaration());
-
+		if (ZoneBuilder::IsEnabled())
+		{
+			AssetHandler::RegisterInterface(new Assets::IXModel());
+			AssetHandler::RegisterInterface(new Assets::IMapEnts());
+			AssetHandler::RegisterInterface(new Assets::IRawFile());
+			AssetHandler::RegisterInterface(new Assets::IGfxImage());
+			AssetHandler::RegisterInterface(new Assets::IMaterial());
+			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
+			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
+			AssetHandler::RegisterInterface(new Assets::IPhysCollmap());
+			//AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
+			AssetHandler::RegisterInterface(new Assets::ILocalizedEntry());
+			AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());
+			AssetHandler::RegisterInterface(new Assets::IMaterialTechniqueSet());
+			AssetHandler::RegisterInterface(new Assets::IMaterialVertexShader());
+			AssetHandler::RegisterInterface(new Assets::IStructuredDataDefSet());
+			AssetHandler::RegisterInterface(new Assets::IMaterialVertexDeclaration());
+		}
 	}
 
 	AssetHandler::~AssetHandler()

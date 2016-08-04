@@ -6,6 +6,7 @@ namespace Components
 		class IAsset
 		{
 		public:
+			virtual ~IAsset() {};
 			virtual Game::XAssetType GetType() { return Game::XAssetType::ASSET_TYPE_INVALID; };
 			virtual void Mark(Game::XAssetHeader header, ZoneBuilder::Zone* builder) { /*ErrorTypeNotSupported(this);*/ };
 			virtual void Save(Game::XAssetHeader header, ZoneBuilder::Zone* builder) { /*ErrorTypeNotSupported(this);*/ };
