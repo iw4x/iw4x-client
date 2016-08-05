@@ -704,7 +704,7 @@ namespace Components
 						Network::Address _addr(list.address(i));
 
 						// Version 0 sends port in the wrong byte order!
-						if (entry->version == 0)
+						if (list.version() == 0)
 						{
 							_addr.SetPort(ntohs(_addr.GetPort()));
 						}
