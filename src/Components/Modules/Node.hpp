@@ -1,7 +1,7 @@
 #define NODE_QUERY_INTERVAL    1000 * 60 * 2  // Query nodelist from nodes evry 2 minutes
 #define NODE_QUERY_TIMEOUT     1000 * 30 * 1  // Invalidate nodes after 30 seconds without query response
 #define NODE_INVALID_DELETE    1000 * 60 * 10 // Delete invalidated nodes after 10 minutes
-#define NODE_FRAME_QUERY_LIMIT 5              // Limit of nodes to be queried per frame
+#define NODE_FRAME_QUERY_LIMIT 3              // Limit of nodes to be queried per frame
 #define NODE_FRAME_LOCK        60             // Limit of max frames per second
 #define NODE_PACKET_LIMIT      111            // Send 111 nodes per synchronization packet
 #define NODE_STORE_INTERVAL    1000 * 60* 1   // Store nodes every minute
