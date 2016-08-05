@@ -185,6 +185,30 @@ namespace Utils
 
 #pragma endregion
 
+#pragma region SHA1
+
+		std::string SHA1::Compute(std::string data, bool hex)
+		{
+			return SHA1::Compute(reinterpret_cast<const uint8_t*>(data.data()), data.size(), hex);
+		}
+
+		std::string SHA1::Compute(const uint8_t* data, size_t length, bool hex)
+		{
+			uint8_t buffer[20] = { 0 };
+
+			hash_state state;
+			sha1_init(&state);
+			sha1_process(&state, data, length);
+			sha1_done(&state, buffer);
+
+			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
+			if (!hex) return hash;
+
+			return Utils::String::DumpHex(hash, "");
+		}
+
+#pragma endregion
+
 #pragma region SHA256
 
 		std::string SHA256::Compute(std::string data, bool hex)

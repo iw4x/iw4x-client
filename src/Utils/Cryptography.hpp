@@ -300,6 +300,13 @@ namespace Utils
 			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
 		};
 
+		class SHA1
+		{
+		public:
+			static std::string Compute(std::string data, bool hex = false);
+			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
+		};
+
 		class SHA256
 		{
 		public:

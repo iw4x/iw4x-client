@@ -144,15 +144,16 @@ namespace Utils
 	{
 		WebIO::Params headers;
 
-		std::string boundary = "xxxxxxxxx";
+		std::string boundary = "----WebKitFormBoundaryHoLVocRsBxs71fU6";
 		headers["Content-Type"] = "multipart/form-data, boundary=" + boundary;
-		headers["Content-Length"] = fmt::sprintf("%u", data.size());
 
 		std::string body = "--" + boundary + "\r\n";
-		body += "Content-Disposition: form-data; name=\"contents\"; filename=\"minidump.dmp\"\r\n";
+		body += "Content-Disposition: form-data; name=\"files[]\"; filename=\"minidump.dmp\"\r\n";
 		body += "Content-Type: application/octet-stream\r\n\r\n";
 		body += data + "\r\n";
-		body += "--" + boundary + "--";
+		body += "--" + boundary + "--\r\n";
+
+		headers["Content-Length"] = fmt::sprintf("%u", body.size());
 
 		return WebIO::Execute("POST", body, headers);
 	}
@@ -248,9 +249,9 @@ namespace Utils
 			return "";
 		}
 
-		if (headers.find("Content-type") == headers.end())
+		if (headers.find("Content-Type") == headers.end())
 		{
-			headers["Content-type"] = "application/x-www-form-urlencoded";
+			headers["Content-Type"] = "application/x-www-form-urlencoded";
 		}
 
 		std::string finalHeaders;

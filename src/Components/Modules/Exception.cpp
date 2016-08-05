@@ -9,24 +9,45 @@
 
 namespace Components
 {
-	void Exception::UploadMinidump(std::string filename)
+	bool Exception::UploadMinidump(std::string filename)
 	{
-// 		Utils::WebIO webio("Firefucks", UPLOAD_URL);
-// 
-// 		if (Utils::IO::FileExists(filename))
-// 		{
-// 			std::string buffer = Utils::IO::ReadFile(filename);
-// 			std::string result = webio.PostFile(buffer);
-// 
-// 			MessageBoxA(0, result.data(), "Minidump", 0);
-// 		}
+		Utils::WebIO webio("Firefucks", UPLOAD_URL);
 
-// 		mg_mgr mgr;
-// 		mg_mgr_init(&mgr, NULL);
-// 
-// 		mg_connect_http
-// 
-// 		mg_mgr_free(&mgr);
+		if (Utils::IO::FileExists(filename))
+		{
+			std::string buffer = Utils::IO::ReadFile(filename);
+			std::string result = webio.PostFile(buffer);
+
+			std::string errors;
+			json11::Json object = json11::Json::parse(result, errors);
+
+			if (!object.is_object()) return false;
+
+			json11::Json success = object["success"];
+
+			if (!success.is_bool() || !success.bool_value()) return false;
+
+			json11::Json files = object["files"];
+
+			if (!files.is_array()) return false;
+
+			for (auto file : files.array_items())
+			{
+				json11::Json url = file["url"];
+				json11::Json hash = file["hash"];
+
+				if (hash.is_string() && url.is_string())
+				{
+					if (Utils::String::ToLower(Utils::Cryptography::SHA1::Compute(buffer, true)) == Utils::String::ToLower(hash.string_value()))
+					{
+						MessageBoxA(0, url.string_value().data(), 0, 0);
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
