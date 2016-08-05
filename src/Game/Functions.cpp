@@ -164,6 +164,9 @@ namespace Game
 
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = (SV_GameClientNum_Score_t)0x469AC0;
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = (SV_GameSendServerCommand_t)0x4BC3A0;
+	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = (SV_Cmd_TokenizeString_t)0x4B5780;
+	SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString = (SV_Cmd_EndTokenizedString_t)0x464750;
+	SV_DirectConnect_t SV_DirectConnect = (SV_DirectConnect_t)0x460480;
 
 	Sys_FreeFileList_t Sys_FreeFileList = (Sys_FreeFileList_t)0x4D8580;
 	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;

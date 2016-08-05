@@ -20,23 +20,6 @@ namespace Components
 
 	private:
 
-		enum AuthState
-		{
-			STATE_UNKNOWN,
-			STATE_NEGOTIATING,
-			STATE_VALID,
-			STATE_INVALID,
-		};
-
-		class AuthInfo
-		{
-		public:
-			Utils::Cryptography::ECC::Key publicKey;
-			std::string challenge;
-			AuthState state;
-			int time;
-		};
-
 		class TokenIncrementing
 		{
 		public:
@@ -49,16 +32,14 @@ namespace Components
 			uint64_t hashes;
 		};
 
-		static AuthInfo ClientAuthInfo[18];
 		static TokenIncrementing TokenContainer;
 
 		static Utils::Cryptography::Token GuidToken;
 		static Utils::Cryptography::Token ComputeToken;
 		static Utils::Cryptography::ECC::Key GuidKey;
 
-		static void Frame();
-
-		static void RegisterClient(int clientNum);
-		static void RegisterClientStub();
+		static void SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char *format, int len);
+		static void ParseConnectData(Game::msg_t* msg, Game::netadr_t addr);
+		static void DirectConnectStub();
 	};
 }

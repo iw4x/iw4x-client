@@ -2,138 +2,159 @@
 
 namespace Components
 {
-	Auth::AuthInfo Auth::ClientAuthInfo[18];
 	Auth::TokenIncrementing Auth::TokenContainer;
 
 	Utils::Cryptography::Token Auth::GuidToken;
 	Utils::Cryptography::Token Auth::ComputeToken;
 	Utils::Cryptography::ECC::Key Auth::GuidKey;
 
-	void Auth::Frame()
+	void Auth::SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char *format, int len)
 	{
-#ifndef DEBUG
-		for (int i = 0; i < *Game::svs_numclients; i++)
+		// Ensure our certificate is loaded
+		Steam::SteamUser()->GetSteamID();
+		if (!Auth::GuidKey.IsValid())
 		{
-			Game::client_t* client = &Game::svs_clients[i];
-			Auth::AuthInfo* info = &Auth::ClientAuthInfo[i];
-
-			// State must be 5 or greater here, as otherwise the client will crash when being kicked.
-			// That's due to the hunk being freed by that time, but it hasn't been reallocated, therefore all future allocations will cause a crash.
-			// Additionally, the game won't catch the errors and simply lose the connection, so we even have to add a delay to send the data.
-
-			// Not sure if that's potentially unsafe, though.
-			// Players faking their GUID will be connected for 5 seconds, which allows them to fuck up everything.
-			// I think we have to perform the verification when clients are still in state 3, but for now it works.
-
-			// I think we even have to lock the client into state 3 until the verification is done.
-			// Intercepting the entire connection process to perform the authentication within state 3 solely is necessary, due to having a timeout. 
-			// Not sending a response might allow the player to connect for a few seconds (<= 5) until the timeout is reached.
-			if (client->state >= 5)
-			{
-				if (info->state == Auth::STATE_NEGOTIATING && (Game::Sys_Milliseconds() - info->time) > 1000 * 5)
-				{
-					info->state = Auth::STATE_INVALID;
-					info->time = Game::Sys_Milliseconds();
-					Game::SV_KickClientError(client, "XUID verification timed out!");
-				}
-				else if (info->state == Auth::STATE_UNKNOWN && info->time && (Game::Sys_Milliseconds() - info->time) > 1000 * 5) // Wait 5 seconds (error delay)
-				{
-					if ((client->steamid & 0xFFFFFFFF00000000) != 0x110000100000000)
-					{
-						info->state = Auth::STATE_INVALID;
-						info->time = Game::Sys_Milliseconds();
-						Game::SV_KickClientError(client, "Your XUID is invalid!");
-					}
-					else
-					{
-						Logger::Print("Sending XUID authentication request to %s\n", Network::Address(client->addr).GetCString());
-
-						info->state = Auth::STATE_NEGOTIATING;
-						info->time = Game::Sys_Milliseconds();
-						info->challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
-						Network::SendCommand(client->addr, "xuidAuthReq", info->challenge);
-					}
-				}
-				else if (info->state == Auth::STATE_UNKNOWN && !info->time)
-				{
-					info->time = Game::Sys_Milliseconds();
-				}
-			}
+			Logger::SoftError("Connecting failed: Guid key is invalid!");
+			return;
 		}
-#endif
 
-		if (Auth::TokenContainer.generating)
+		std::string connectString(format, len);
+		Game::SV_Cmd_TokenizeString(connectString.data());
+
+		Command::Params params(true, *Game::cmd_id_sv);
+
+		if (params.Length() < 3)
 		{
-			static int lastCalc = 0;
-			static double mseconds = 0;
-
-			if (!lastCalc || (Game::Sys_Milliseconds() - lastCalc) > 500)
-			{
-				lastCalc = Game::Sys_Milliseconds();
-
-				int diff = Game::Sys_Milliseconds() - Auth::TokenContainer.startTime;
-				double hashPMS = (Auth::TokenContainer.hashes * 1.0) / diff;
-				double requiredHashes = std::pow(2, Auth::TokenContainer.targetLevel + 1) - Auth::TokenContainer.hashes;
-				mseconds = requiredHashes / hashPMS;
-				if (mseconds < 0) mseconds = 0;
-			}
-
-			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", fmt::sprintf("Increasing security level from %d to %d (est. %s)", Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel, Utils::String::FormatTimeSpan(static_cast<int>(mseconds)).data()));
+			Game::SV_Cmd_EndTokenizedString();
+			Logger::SoftError("Connecting failed: Command parsing error!");
+			return;
 		}
-		else if(Auth::TokenContainer.thread.joinable())
+
+		Utils::InfoString infostr(params[2]);
+		std::string challenge = infostr.Get("challenge");
+
+		if (challenge.empty())
 		{
-			Auth::TokenContainer.thread.join();
-			Auth::TokenContainer.generating = false;
-
-			Auth::StoreKey();
-			Logger::Print("Security level is %d\n", Auth::GetSecurityLevel());
-			Command::Execute("closemenu security_increase_popmenu", false);
-
-			if (!Auth::TokenContainer.cancel)
-			{
-				if (Auth::TokenContainer.command.empty())
-				{
-					Game::MessageBox(fmt::sprintf("Your new security level is %d", Auth::GetSecurityLevel()), "Success");
-				}
-				else
-				{
-					Command::Execute(Auth::TokenContainer.command, false);
-				}
-			}
-
-			Auth::TokenContainer.cancel = false;
+			Game::SV_Cmd_EndTokenizedString();
+			Logger::SoftError("Connecting failed: Challenge parsing error!");
+			return;
 		}
+
+		Game::SV_Cmd_EndTokenizedString();
+
+		Proto::Auth::Connect connectData;
+		connectData.set_token(Auth::GuidToken.ToString());
+		connectData.set_publickey(Auth::GuidKey.GetPublicKey());
+		connectData.set_signature(Utils::Cryptography::ECC::SignMessage(Auth::GuidKey, challenge));
+		connectData.set_infostring(connectString);
+
+		Network::SendCommand(sock, adr, "connect", connectData.SerializeAsString());
 	}
 
-	void Auth::RegisterClient(int clientNum)
+	void Auth::ParseConnectData(Game::msg_t* msg, Game::netadr_t addr)
 	{
-		if (clientNum >= 18) return;
+		Network::Address address(addr);
 
-		Network::Address address(Game::svs_clients[clientNum].addr);
-
-		if (address.GetType() == Game::netadrtype_t::NA_BOT)
+		// Parse proto data
+		Proto::Auth::Connect connectData;
+		if (msg->cursize <= 12 || !connectData.ParseFromString(std::string(&msg->data[12], msg->cursize - 12)))
 		{
-			Auth::ClientAuthInfo[clientNum].state = Auth::STATE_VALID;
+			Network::Send(address, "error\nInvalid connect packet!");
+			return;
+		}
+
+#if DEBUG
+		// Simply connect, if we're in debug mode, we ignore all security checks
+		if (!connectData.infostring().empty())
+		{
+			Game::SV_Cmd_EndTokenizedString();
+			Game::SV_Cmd_TokenizeString(connectData.infostring().data());
+			Game::SV_DirectConnect(*address.Get());
 		}
 		else
 		{
-			Logger::Print("Registering client %s\n", address.GetCString());
-			Auth::ClientAuthInfo[clientNum].time = 0;
-			Auth::ClientAuthInfo[clientNum].state = Auth::STATE_UNKNOWN;
+			Network::Send(address, "error\nInvalid infostring data!");
 		}
+#else
+		// Validate proto data
+		if (connectData.signature().empty() || connectData.publickey().empty() || connectData.token().empty() || connectData.infostring().empty())
+		{
+			Network::Send(address, "error\nInvalid connect data!");
+			return;
+		}
+
+		// Setup new cmd params
+		Game::SV_Cmd_EndTokenizedString();
+		Game::SV_Cmd_TokenizeString(connectData.infostring().data());
+
+		// Access the params
+		Command::Params params(true, *Game::cmd_id_sv);
+
+		// Ensure there are enough params
+		if (params.Length() < 3)
+		{
+			Network::Send(address, "error\nInvalid connect string!");
+			return;
+		}
+
+		// Parse the infostring
+		Utils::InfoString infostr(params[2]);
+
+		// Read the required data
+		std::string steamId = infostr.Get("xuid");
+		std::string challenge = infostr.Get("challenge");
+
+		if (steamId.empty() || challenge.empty())
+		{
+			Network::Send(address, "error\nInvalid connect data!");
+			return;
+		}
+
+		// Parse the id
+		unsigned __int64 xuid = strtoull(steamId.data(), nullptr, 16);
+		unsigned int id = static_cast<unsigned int>(~0x110000100000000 & xuid);
+
+		if ((xuid & 0xFFFFFFFF00000000) != 0x110000100000000 || id != (Utils::Cryptography::JenkinsOneAtATime::Compute(connectData.publickey()) & ~0x80000000))
+		{
+			Network::Send(address, "error\nXUID doesn't match the certificate!");
+			return;
+		}
+
+		// Verify the signature
+		Utils::Cryptography::ECC::Key key;
+		key.Set(connectData.publickey());
+
+		if (!key.IsValid() || !Utils::Cryptography::ECC::VerifyMessage(key, challenge, connectData.signature()))
+		{
+			Network::Send(address, "error\nChallenge signature was invalid!");
+			return;
+		}
+
+		// Verify the security level
+		uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").Get<int>());
+		uint32_t userLevel = Auth::GetZeroBits(connectData.token(), connectData.publickey());
+
+		if (userLevel < ourLevel)
+		{
+			Network::Send(address, fmt::sprintf("error\nYour security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
+			return;
+		}
+
+		Logger::Print("Verified XUID %llX (%d) from %s\n", xuid, userLevel, address.GetCString());
+		Game::SV_DirectConnect(*address.Get());
+#endif
 	}
 
-	void __declspec(naked) Auth::RegisterClientStub()
+	void __declspec(naked) Auth::DirectConnectStub()
 	{
 		__asm
 		{
 			push esi
-			call Auth::RegisterClient
+			call Auth::ParseConnectData
 			pop esi
 
-			imul esi, 366Ch
-			mov eax, 478A18h
-			jmp eax
+			mov edi, 6265FEh
+			jmp edi
 		}
 	}
 
@@ -291,100 +312,12 @@ namespace Components
 
 		Auth::LoadKey(true);
 
-		// Only clients receive the auth request
-		if (!Dedicated::IsEnabled())
-		{
-			Network::Handle("xuidAuthReq", [] (Network::Address address, std::string data)
-			{
-				Logger::Print("Received XUID authentication request from %s\n", address.GetCString());
-
-				// Only accept requests from the server we're connected to
-				if (address != *Game::connectedHost) return;
-
-				// Ensure our certificate is loaded
-				Steam::SteamUser()->GetSteamID();
-				if (!Auth::GuidKey.IsValid()) return;
-
-				Proto::Auth::Response response;
-				response.set_token(Auth::GuidToken.ToString());
-				response.set_publickey(Auth::GuidKey.GetPublicKey());
-				response.set_signature(Utils::Cryptography::ECC::SignMessage(Auth::GuidKey, data));
-
-				Network::SendCommand(address, "xuidAuthResp", response.SerializeAsString());
-			});
-		}
-
-		Network::Handle("xuidAuthResp", [] (Network::Address address, std::string data)
-		{
-			Logger::Print("Received XUID authentication response from %s\n", address.GetCString());
-
-			for (int i = 0; i < *Game::svs_numclients; i++)
-			{
-				Game::client_t* client = &Game::svs_clients[i];
-				Auth::AuthInfo* info = &Auth::ClientAuthInfo[i];
-
-				if (client->state >= 3 && address == client->addr && info->state == Auth::STATE_NEGOTIATING)
-				{
-					Proto::Auth::Response response;
-					unsigned int id = static_cast<unsigned int>(~0x110000100000000 & client->steamid);
-
-					// Check if response is valid
-					if (!response.ParseFromString(data) || response.signature().empty() || response.publickey().empty() || response.token().empty())
-					{
-						info->state = Auth::STATE_INVALID;
-						Game::SV_KickClientError(client, "XUID authentication response was invalid!");
-					}
-
-					// Check if guid matches the certificate
-					else if (id != (Utils::Cryptography::JenkinsOneAtATime::Compute(response.publickey()) & ~0x80000000))
-					{
-						info->state = Auth::STATE_INVALID;
-						Game::SV_KickClientError(client, "XUID doesn't match the certificate!");
-					}
-
-					// Verify GUID using the signature and certificate
-					else
-					{
-						info->publicKey.Set(response.publickey());
-
-						if (Utils::Cryptography::ECC::VerifyMessage(info->publicKey, info->challenge, response.signature()))
-						{
-							uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").Get<int>());
-							uint32_t userLevel = Auth::GetZeroBits(response.token(), response.publickey());
-
-							if (userLevel >= ourLevel)
-							{
-								info->state = Auth::STATE_VALID;
-								Logger::Print("Verified XUID %llX (%d) from %s\n", client->steamid, userLevel, address.GetCString());
-							}
-							else
-							{
-								info->state = Auth::STATE_INVALID;
-								Game::SV_KickClientError(client, fmt::sprintf("Your security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
-							}
-						}
-						else
-						{
-							info->state = Auth::STATE_INVALID;
-							Game::SV_KickClientError(client, "Challenge signature was invalid!");
-						}
-					}
-
-					break;
-				}
-			}
-		});
-
-		// Install frame handlers
-		QuickPatch::OnFrame(Auth::Frame);
-
 		// Register dvar
 		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");
 
-#ifndef DEBUG
 		// Install registration hook
-		Utils::Hook(0x478A12, Auth::RegisterClientStub, HOOK_JUMP).Install()->Quick();
-#endif
+		Utils::Hook(0x6265F9, Auth::DirectConnectStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x41D3E3, Auth::SendConnectDataStub, HOOK_CALL).Install()->Quick();
 
 		// Guid command
 		Command::Add("guid", [] (Command::Params params)

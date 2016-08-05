@@ -374,6 +374,15 @@ namespace Game
 	typedef void(__cdecl * SV_GameSendServerCommand_t)(int clientNum, /*svscmd_type*/int type, const char* text);
 	extern SV_GameSendServerCommand_t SV_GameSendServerCommand;
 
+	typedef void(__cdecl * SV_Cmd_TokenizeString_t)(const char* string);
+	extern SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString;
+
+	typedef void(__cdecl * SV_Cmd_EndTokenizedString_t)();
+	extern SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString;
+
+	typedef void(__cdecl * SV_DirectConnect_t)(netadr_t adr);
+	extern SV_DirectConnect_t SV_DirectConnect;
+
 	typedef FS_FreeFileList_t Sys_FreeFileList_t;
 	extern Sys_FreeFileList_t Sys_FreeFileList;
 
