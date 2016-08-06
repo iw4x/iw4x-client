@@ -265,7 +265,9 @@ namespace Components
 				node.lastHeard = Game::Sys_Milliseconds();
 				node.lastTime = Game::Sys_Milliseconds();
 
+#ifdef DEBUG
 				Logger::Print("Node negotiation timed out. Invalidating %s\n", node.address.GetCString());
+#endif
 			}
 
 			if (registerCount < NODE_FRAME_QUERY_LIMIT)
