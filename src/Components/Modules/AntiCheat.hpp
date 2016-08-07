@@ -27,9 +27,7 @@ namespace Components
 
 		static void NullSub();
 
-		static void AssertLibraryCall(void* callee);
-		static void AssertProcessCall(void* callee);
-		static void AssertModuleCall(HMODULE module, void* callee);
+		static void AssertCalleeModule(void* callee);
 
 		static void UninstallLibHook();
 		static void InstallLibHook();
@@ -44,6 +42,7 @@ namespace Components
 		static void SoundInitStub(int a1, int a2, int a3);
 		static void SoundInitDriverStub();
 
+		static void DObjGetWorldTagPosStub();
 		static void AimTargetGetTagPosStub();
 
 		static Utils::Hook LoadLibHook[4];

@@ -47,7 +47,7 @@ namespace Components
 		return (UIFeeder::Feeders.find(UIFeeder::Current.Feeder) != UIFeeder::Feeders.end());
 	}
 
-	void __declspec(naked) UIFeeder::SetItemSelectionStub()
+	__declspec(naked) void UIFeeder::SetItemSelectionStub()
 	{
 		__asm
 		{
@@ -72,7 +72,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) UIFeeder::GetItemTextStub()
+	__declspec(naked) void UIFeeder::GetItemTextStub()
 	{
 		__asm
 		{
@@ -105,7 +105,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) UIFeeder::GetItemCountStub()
+	__declspec(naked) void UIFeeder::GetItemCountStub()
 	{
 		__asm
 		{
@@ -128,7 +128,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) UIFeeder::HandleKeyStub()
+	__declspec(naked) void UIFeeder::HandleKeyStub()
 	{
 		static int NextClickTime = 0;
 
@@ -191,7 +191,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) UIFeeder::MouseEnterStub()
+	__declspec(naked) void UIFeeder::MouseEnterStub()
 	{
 		__asm
 		{
@@ -211,7 +211,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) UIFeeder::MouseSelectStub()
+	__declspec(naked) void UIFeeder::MouseSelectStub()
 	{
 		__asm
 		{
@@ -231,7 +231,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) UIFeeder::PlaySoundStub()
+	__declspec(naked) void UIFeeder::PlaySoundStub()
 	{
 		__asm
 		{

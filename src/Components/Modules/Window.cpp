@@ -66,7 +66,7 @@ namespace Components
 		return Window::NoBorder.Get<bool>();
 	}
 
-	void __declspec(naked) Window::StyleHookStub()
+	__declspec(naked) void Window::StyleHookStub()
 	{
 		__asm
 		{

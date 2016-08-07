@@ -88,7 +88,7 @@ namespace Components
 		Game::UI_DrawText(cxt, addressText.data(), 0x7FFFFFFF, font, x2 - Game::UI_TextWidth(addressText.data(), 0, font, fontSize), y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
 	}
 
-	void __declspec(naked) ServerInfo::DrawScoreboardStub()
+	__declspec(naked) void ServerInfo::DrawScoreboardStub()
 	{
 		__asm 
 		{

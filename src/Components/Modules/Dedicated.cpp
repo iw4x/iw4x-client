@@ -48,7 +48,7 @@ namespace Components
 		Utils::Hook::Call<void()>(0x60C3D0)();
 	}
 
-	void __declspec(naked) Dedicated::PostInitializationStub()
+	__declspec(naked) void Dedicated::PostInitializationStub()
 	{
 		__asm
 		{
@@ -74,7 +74,7 @@ namespace Components
 		return text;
 	}
 
-	void __declspec(naked) Dedicated::PreSayStub()
+	__declspec(naked) void Dedicated::PreSayStub()
 	{
 		__asm
 		{
@@ -90,7 +90,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) Dedicated::PostSayStub()
+	__declspec(naked) void Dedicated::PostSayStub()
 	{
 		__asm
 		{

@@ -9,7 +9,7 @@ namespace Components
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
 	// By returning, the crash procedure will be called, as it hasn't been cleaned from the stack
-	void __declspec(naked) AntiCheat::NullSub()
+	__declspec(naked) void AntiCheat::NullSub()
 	{
 		__asm
 		{
@@ -28,7 +28,8 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) AntiCheat::CrashClient()
+#if 0
+	__declspec(naked) void AntiCheat::CrashClient()
 	{
 		static uint8_t crashProcedure[] =
 		{
@@ -83,26 +84,20 @@ namespace Components
 			jmp AntiCheat::NullSub
 		}
 	}
+#endif
 
-	void AntiCheat::AssertLibraryCall(void* callee)
+	void AntiCheat::CrashClient()
 	{
-		HMODULE hModuleSelf = nullptr;
-		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(AntiCheat::AssertLibraryCall), &hModuleSelf);
-
-		AntiCheat::AssertModuleCall(hModuleSelf, callee);
+		Utils::Hook::Set<BYTE>(0x41BA2C, 0xEB);
 	}
 
-	void AntiCheat::AssertProcessCall(void* callee)
+	void AntiCheat::AssertCalleeModule(void* callee)
 	{
-		AntiCheat::AssertModuleCall(GetModuleHandle(NULL), callee);
-	}
-
-	void AntiCheat::AssertModuleCall(HMODULE module, void* callee)
-	{
-		HMODULE hModuleTarget = nullptr;
+		HMODULE hModuleSelf = nullptr, hModuleTarget = nullptr, hModuleProcess = GetModuleHandleA(NULL);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &hModuleTarget);
+		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(AntiCheat::AssertCalleeModule), &hModuleSelf);
 
-		if (!module || !hModuleTarget || module != hModuleTarget)
+		if (!hModuleSelf || !hModuleTarget || !hModuleProcess || (hModuleTarget != hModuleSelf &&hModuleTarget != hModuleProcess))
 		{
 			//AntiCheat::CrashClient();
 			AntiCheat::Hash.append("\0", 1);
@@ -110,12 +105,12 @@ namespace Components
 	}
 
 	// This has to be called when doing .text changes during runtime
-	void AntiCheat::EmptyHash()
+	__declspec(noinline) void AntiCheat::EmptyHash()
 	{
 		AntiCheat::LastCheck = 0;
 		AntiCheat::Hash.clear();
 
-		AntiCheat::AssertLibraryCall(_ReturnAddress());
+		AntiCheat::AssertCalleeModule(_ReturnAddress());
 	}
 
 	void AntiCheat::InitLoadLibHook()
@@ -255,7 +250,7 @@ namespace Components
 		AntiCheat::InstallLibHook();
 	}
 
-	void __declspec(naked) AntiCheat::CinematicStub()
+	__declspec(naked) void AntiCheat::CinematicStub()
 	{
 		__asm
 		{
@@ -273,14 +268,34 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) AntiCheat::AimTargetGetTagPosStub()
+	__declspec(naked) void AntiCheat::DObjGetWorldTagPosStub()
+	{
+		__asm
+		{
+			pushad
+			push[esp + 20h]
+
+			call AntiCheat::AssertCalleeModule
+
+			pop esi
+			popad
+
+			push ecx
+			mov ecx, [esp + 10h]
+
+			push 426585h
+			retn
+		}
+	}
+
+	__declspec(naked) void AntiCheat::AimTargetGetTagPosStub()
 	{
 		__asm
 		{
 			pushad
 			push [esp + 20h]
 
-			call AntiCheat::AssertProcessCall
+			call AntiCheat::AssertCalleeModule
 
 			pop esi
 			popad
@@ -311,8 +326,9 @@ namespace Components
  		Utils::Hook(0x418204, AntiCheat::SoundInitDriverStub, HOOK_CALL).Install()->Quick();
 		QuickPatch::OnFrame(AntiCheat::Frame);
 
-		// Check AimTarget_GetTagPos
-		//Utils::Hook(0x56AC60, AntiCheat::AimTargetGetTagPosStub, HOOK_JUMP).Install()->Quick();
+		// Detect aimbots
+		Utils::Hook(0x426580, AntiCheat::DObjGetWorldTagPosStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x56AC60, AntiCheat::AimTargetGetTagPosStub, HOOK_JUMP).Install()->Quick();
 
 		// TODO: Probably move that :P
 		AntiCheat::InitLoadLibHook();

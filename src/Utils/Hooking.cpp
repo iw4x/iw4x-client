@@ -56,7 +56,7 @@ namespace Utils
 		*place = Hook::Interceptor::InterceptionStub;
 	}
 
-	void __declspec(naked) Hook::Interceptor::InterceptionStub()
+	__declspec(naked) void Hook::Interceptor::InterceptionStub()
 	{
 		__asm
 		{

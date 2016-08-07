@@ -30,7 +30,7 @@ namespace Components
 		std::memcpy(Theatre::BaselineSnapshot, *reinterpret_cast<DWORD**>(snapshotMsg + 8), *reinterpret_cast<DWORD*>(snapshotMsg + 20));
 	}
 
-	void __declspec(naked) Theatre::BaselineStoreStub()
+	__declspec(naked) void Theatre::BaselineStoreStub()
 	{
 		_asm
 		{
@@ -79,7 +79,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) Theatre::BaselineToFileStub()
+	__declspec(naked) void Theatre::BaselineToFileStub()
 	{
 		__asm
 		{
@@ -95,7 +95,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) Theatre::AdjustTimeDeltaStub()
+	__declspec(naked) void Theatre::AdjustTimeDeltaStub()
 	{
 		__asm
 		{
@@ -113,7 +113,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) Theatre::ServerTimedOutStub()
+	__declspec(naked) void Theatre::ServerTimedOutStub()
 	{
 		__asm
 		{
@@ -132,7 +132,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) Theatre::UISetActiveMenuStub()
+	__declspec(naked) void Theatre::UISetActiveMenuStub()
 	{
 		__asm
 		{

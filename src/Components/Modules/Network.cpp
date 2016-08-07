@@ -278,7 +278,7 @@ namespace Components
 		Network::StartupSignal();
 	}
 
-	void __declspec(naked) Network::NetworkStartStub()
+	__declspec(naked) void Network::NetworkStartStub()
 	{
 		__asm 
 		{
@@ -288,7 +288,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) Network::DeployPacketStub()
+	__declspec(naked) void Network::DeployPacketStub()
 	{
 		__asm
 		{

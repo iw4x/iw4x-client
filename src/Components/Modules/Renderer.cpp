@@ -7,7 +7,7 @@ namespace Components
 	wink::signal<wink::slot<Renderer::Callback>> Renderer::FrameOnceSignal;
 	wink::signal<wink::slot<Renderer::BackendCallback>> Renderer::BackendFrameSignal;
 
-	void __declspec(naked) Renderer::FrameStub()
+	__declspec(naked) void Renderer::FrameStub()
 	{
 		__asm
 		{
@@ -23,7 +23,7 @@ namespace Components
 		Renderer::FrameOnceSignal.clear();
 	}
 
-	void __declspec(naked) Renderer::BackendFrameStub()
+	__declspec(naked) void Renderer::BackendFrameStub()
 	{
 		__asm
 		{

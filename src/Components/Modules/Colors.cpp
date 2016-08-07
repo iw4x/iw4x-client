@@ -86,7 +86,7 @@ namespace Components
 		return std::string(buffer);
 	}
 
-	void __declspec(naked) Colors::ClientUserinfoChanged()
+	__declspec(naked) void Colors::ClientUserinfoChanged()
 	{
 		__asm
 		{
@@ -190,7 +190,7 @@ namespace Components
 		return string;
 	}
 
-	void __declspec(naked) Colors::LookupColorStub()
+	__declspec(naked) void Colors::LookupColorStub()
 	{
 		__asm
 		{

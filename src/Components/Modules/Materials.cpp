@@ -4,7 +4,7 @@ namespace Components
 {
 	Utils::Hook Materials::ImageVersionCheckHook;
 
-	void __declspec(naked) Materials::ImageVersionCheck()
+	__declspec(naked) void Materials::ImageVersionCheck()
 	{
 		__asm
 		{
@@ -30,7 +30,7 @@ namespace Components
 		return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
 	}
 
-	void __declspec(naked) Materials::DrawMaterialStub()
+	__declspec(naked) void Materials::DrawMaterialStub()
 	{
 		__asm
 		{

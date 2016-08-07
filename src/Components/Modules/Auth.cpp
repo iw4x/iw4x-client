@@ -152,7 +152,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) Auth::DirectConnectStub()
+	__declspec(naked) void Auth::DirectConnectStub()
 	{
 		__asm
 		{

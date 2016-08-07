@@ -64,7 +64,7 @@ namespace Components
 		return header;
 	}
 
-	void __declspec(naked) AssetHandler::FindAssetStub()
+	__declspec(naked) void AssetHandler::FindAssetStub()
 	{
 		__asm
 		{
@@ -122,7 +122,7 @@ namespace Components
 		return (!restrict);
 	}
 
-	void __declspec(naked) AssetHandler::AddAssetStub()
+	__declspec(naked) void AssetHandler::AddAssetStub()
 	{
 		__asm
 		{

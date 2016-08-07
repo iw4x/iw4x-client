@@ -433,7 +433,7 @@ namespace Components
 		ExitProcess(1);
 	}
 
-	void __declspec(naked) Console::DrawSolidConsoleStub()
+	__declspec(naked) void Console::DrawSolidConsoleStub()
 	{
 		__asm
 		{

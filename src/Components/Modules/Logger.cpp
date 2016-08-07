@@ -108,7 +108,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) Logger::PrintMessageStub()
+	__declspec(naked) void Logger::PrintMessageStub()
 	{
 		__asm
 		{

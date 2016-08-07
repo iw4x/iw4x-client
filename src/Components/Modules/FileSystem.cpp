@@ -113,7 +113,7 @@ namespace Components
 		FileSystem::RegisterFolder("userraw");
 	}
 
-	void __declspec(naked) FileSystem::StartupStub()
+	__declspec(naked) void FileSystem::StartupStub()
 	{
 		__asm
 		{

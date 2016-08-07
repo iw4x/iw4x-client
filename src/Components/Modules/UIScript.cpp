@@ -90,7 +90,7 @@ namespace Components
 		Utils::Hook::Call<void(int, int, float*, int)>(0x4F58A0)(ownerDraw, flags, special, key);
 	}
 
-	void __declspec(naked) UIScript::RunMenuScriptStub()
+	__declspec(naked) void UIScript::RunMenuScriptStub()
 	{
 		__asm
 		{

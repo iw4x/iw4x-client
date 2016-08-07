@@ -21,7 +21,7 @@ namespace Components
 		Logger::Error(5, "script compile error\nunknown function %s\n%s\n\n", funcName.data(), Script::ScriptName.data());
 	}
 
-	void __declspec(naked) Script::StoreFunctionNameStub()
+	__declspec(naked) void Script::StoreFunctionNameStub()
 	{
 		__asm
 		{
@@ -48,7 +48,7 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) Script::StoreScriptNameStub()
+	__declspec(naked) void Script::StoreScriptNameStub()
 	{
 		__asm
 		{
@@ -71,7 +71,7 @@ namespace Components
 		Script::ScriptNameStack.pop_back();
 	}
 
-	void __declspec(naked) Script::RestoreScriptNameStub()
+	__declspec(naked) void Script::RestoreScriptNameStub()
 	{
 		__asm
 		{
