@@ -15,6 +15,8 @@ namespace Components
 
 		static void InitLoadLibHook();
 
+		static void IntegrityCheck();
+
 	private:
 		static int LastCheck;
 		static std::string Hash;
@@ -24,6 +26,10 @@ namespace Components
 		static void PatchWinAPI();
 
 		static void NullSub();
+
+		static void AssertLibraryCall(void* callee);
+		static void AssertProcessCall(void* callee);
+		static void AssertModuleCall(HMODULE module, void* callee);
 
 		static void UninstallLibHook();
 		static void InstallLibHook();
@@ -35,8 +41,10 @@ namespace Components
 #endif
 
 		static void CinematicStub();
-		static void SoundInitStub();
-		static bool EncodeInitStub(const char* param);
+		static void SoundInitStub(int a1, int a2, int a3);
+		static void SoundInitDriverStub();
+
+		static void AimTargetGetTagPosStub();
 
 		static Utils::Hook LoadLibHook[4];
 	};

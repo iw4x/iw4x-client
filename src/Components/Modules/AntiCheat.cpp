@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	int AntiCheat::LastCheck;
+	int AntiCheat::LastCheck = 0;
 	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::LoadLibHook[4];
 
@@ -84,11 +84,38 @@ namespace Components
 		}
 	}
 
+	void AntiCheat::AssertLibraryCall(void* callee)
+	{
+		HMODULE hModuleSelf = nullptr;
+		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(AntiCheat::AssertLibraryCall), &hModuleSelf);
+
+		AntiCheat::AssertModuleCall(hModuleSelf, callee);
+	}
+
+	void AntiCheat::AssertProcessCall(void* callee)
+	{
+		AntiCheat::AssertModuleCall(GetModuleHandle(NULL), callee);
+	}
+
+	void AntiCheat::AssertModuleCall(HMODULE module, void* callee)
+	{
+		HMODULE hModuleTarget = nullptr;
+		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &hModuleTarget);
+
+		if (!module || !hModuleTarget || module != hModuleTarget)
+		{
+			//AntiCheat::CrashClient();
+			AntiCheat::Hash.append("\0", 1);
+		}
+	}
+
 	// This has to be called when doing .text changes during runtime
 	void AntiCheat::EmptyHash()
 	{
 		AntiCheat::LastCheck = 0;
 		AntiCheat::Hash.clear();
+
+		AntiCheat::AssertLibraryCall(_ReturnAddress());
 	}
 
 	void AntiCheat::InitLoadLibHook()
@@ -113,6 +140,20 @@ namespace Components
 #endif
 		//AntiCheat::LoadLibHook[2].Initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
 		//AntiCheat::LoadLibHook[3].Initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
+	}
+
+	void AntiCheat::IntegrityCheck()
+	{
+		int lastCheck = AntiCheat::LastCheck;
+		int milliseconds = Game::Sys_Milliseconds();
+
+		if (milliseconds < 1000 * 40) return;
+
+		// If there was no check within the last 90 seconds, crash!
+		if ((milliseconds - lastCheck) > 1000 * 90)
+		{
+			AntiCheat::CrashClient();
+		}
 	}
 
 	void AntiCheat::PerformCheck()
@@ -196,7 +237,16 @@ namespace Components
 		AntiCheat::InstallLibHook();
 	}
 
-	void AntiCheat::SoundInitStub()
+	void AntiCheat::SoundInitStub(int a1, int a2, int a3)
+	{
+		AntiCheat::UninstallLibHook();
+
+		Game::SND_Init(a1, a2, a3);
+
+		AntiCheat::InstallLibHook();
+	}
+
+	void AntiCheat::SoundInitDriverStub()
 	{
 		AntiCheat::UninstallLibHook();
 
@@ -223,15 +273,23 @@ namespace Components
 		}
 	}
 
-	bool AntiCheat::EncodeInitStub(const char* param)
+	void __declspec(naked) AntiCheat::AimTargetGetTagPosStub()
 	{
-		AntiCheat::UninstallLibHook();
+		__asm
+		{
+			pushad
+			push [esp + 20h]
 
-		bool result = Game::Encode_Init(param);
+			call AntiCheat::AssertProcessCall
 
-		AntiCheat::InstallLibHook();
+			pop esi
+			popad
 
-		return result;
+			sub esp, 14h
+			cmp dword ptr[esi + 0E0h], 1
+			push 56AC6Ah
+			ret
+		}
 	}
 
 	AntiCheat::AntiCheat()
@@ -246,11 +304,15 @@ namespace Components
 #else
 
 		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).Install()->Quick();
- 		Utils::Hook(0x60BE8E, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
- 		Utils::Hook(0x418204, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x51C76C, AntiCheat::CinematicStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4A22E5, AntiCheat::EncodeInitStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x418209, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x60BE9D, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
+ 		Utils::Hook(0x60BE8E, AntiCheat::SoundInitDriverStub, HOOK_CALL).Install()->Quick();
+ 		Utils::Hook(0x418204, AntiCheat::SoundInitDriverStub, HOOK_CALL).Install()->Quick();
 		QuickPatch::OnFrame(AntiCheat::Frame);
+
+		// Check AimTarget_GetTagPos
+		//Utils::Hook(0x56AC60, AntiCheat::AimTargetGetTagPosStub, HOOK_JUMP).Install()->Quick();
 
 		// TODO: Probably move that :P
 		AntiCheat::InitLoadLibHook();

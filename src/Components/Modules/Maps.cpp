@@ -174,6 +174,11 @@ namespace Components
 
 		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAE91, Maps::EntryPool.data() + 1);
 		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, Maps::EntryPool.data() + 1);
+
+		// This is placed here in case the anticheat has been disabled!
+#ifndef DEBUG
+		Renderer::OnFrame(AntiCheat::IntegrityCheck);
+#endif
 	}
 
 	Maps::Maps()

@@ -160,6 +160,7 @@ namespace Game
 	SL_ConvertToString_t SL_ConvertToString = (SL_ConvertToString_t)0x4EC1D0;
 	SL_GetString_t SL_GetString = (SL_GetString_t)0x4CDC10;
 
+	SND_Init_t SND_Init = (SND_Init_t)0x46A630;
 	SND_InitDriver_t SND_InitDriver = (SND_InitDriver_t)0x4F5090;
 
 	SockadrToNetadr_t SockadrToNetadr = (SockadrToNetadr_t)0x4F8460;

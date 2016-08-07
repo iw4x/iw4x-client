@@ -368,6 +368,9 @@ namespace Game
 	typedef short(__cdecl * SL_GetString_t)(const char *str, unsigned int user);
 	extern SL_GetString_t SL_GetString;
 
+	typedef void(__cdecl * SND_Init_t)(int a1, int a2, int a3);
+	extern SND_Init_t SND_Init;
+
 	typedef void(__cdecl * SND_InitDriver_t)();
 	extern SND_InitDriver_t SND_InitDriver;
 

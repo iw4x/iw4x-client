@@ -69,7 +69,7 @@ namespace Components
 			CloseHandle(hFile);
 		}
 
-		Exception::UploadMinidump(filename);
+		//Exception::UploadMinidump(filename);
 
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{
