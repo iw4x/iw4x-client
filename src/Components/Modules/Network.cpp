@@ -107,6 +107,10 @@ namespace Components
 
 		return false;
 	}
+	bool Network::Address::IsLoopback()
+	{
+		return Game::NET_IsLocalAddress(this->address);
+	}
 	bool Network::Address::IsValid()
 	{
 		return (this->GetType() != Game::netadrtype_t::NA_BAD);

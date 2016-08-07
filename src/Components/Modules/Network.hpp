@@ -41,6 +41,7 @@ namespace Components
 			bool IsLocal();
 			bool IsSelf();
 			bool IsValid();
+			bool IsLoopback();
 
 			void Serialize(Proto::Network::Address* protoAddress);
 			void Deserialize(const Proto::Network::Address& protoAddress);

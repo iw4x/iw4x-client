@@ -63,86 +63,93 @@ namespace Components
 			return;
 		}
 
-#if DEBUG
-		// Simply connect, if we're in debug mode, we ignore all security checks
-		if (!connectData.infostring().empty())
+		if (address.IsLoopback()
+// Simply connect, if we're in debug mode, we ignore all security checks
+#ifdef DEBUG
+			|| true
+#endif
+			)
 		{
-			Game::SV_Cmd_EndTokenizedString();
-			Game::SV_Cmd_TokenizeString(connectData.infostring().data());
-			Game::SV_DirectConnect(*address.Get());
+			if (!connectData.infostring().empty())
+			{
+				Game::SV_Cmd_EndTokenizedString();
+				Game::SV_Cmd_TokenizeString(connectData.infostring().data());
+				Game::SV_DirectConnect(*address.Get());
+			}
+			else
+			{
+				Network::Send(address, "error\nInvalid infostring data!");
+			}
 		}
 		else
 		{
-			Network::Send(address, "error\nInvalid infostring data!");
+			// Validate proto data
+			if (connectData.signature().empty() || connectData.publickey().empty() || connectData.token().empty() || connectData.infostring().empty())
+			{
+				Network::Send(address, "error\nInvalid connect data!");
+				return;
+			}
+
+			// Setup new cmd params
+			Game::SV_Cmd_EndTokenizedString();
+			Game::SV_Cmd_TokenizeString(connectData.infostring().data());
+
+			// Access the params
+			Command::Params params(true);
+
+			// Ensure there are enough params
+			if (params.Length() < 3)
+			{
+				Network::Send(address, "error\nInvalid connect string!");
+				return;
+			}
+
+			// Parse the infostring
+			Utils::InfoString infostr(params[2]);
+
+			// Read the required data
+			std::string steamId = infostr.Get("xuid");
+			std::string challenge = infostr.Get("challenge");
+
+			if (steamId.empty() || challenge.empty())
+			{
+				Network::Send(address, "error\nInvalid connect data!");
+				return;
+			}
+
+			// Parse the id
+			unsigned __int64 xuid = strtoull(steamId.data(), nullptr, 16);
+			unsigned int id = static_cast<unsigned int>(~0x110000100000000 & xuid);
+
+			if ((xuid & 0xFFFFFFFF00000000) != 0x110000100000000 || id != (Utils::Cryptography::JenkinsOneAtATime::Compute(connectData.publickey()) & ~0x80000000))
+			{
+				Network::Send(address, "error\nXUID doesn't match the certificate!");
+				return;
+			}
+
+			// Verify the signature
+			Utils::Cryptography::ECC::Key key;
+			key.Set(connectData.publickey());
+
+			if (!key.IsValid() || !Utils::Cryptography::ECC::VerifyMessage(key, challenge, connectData.signature()))
+			{
+				Network::Send(address, "error\nChallenge signature was invalid!");
+				return;
+			}
+
+			// Verify the security level
+			uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").Get<int>());
+			uint32_t userLevel = Auth::GetZeroBits(connectData.token(), connectData.publickey());
+
+			if (userLevel < ourLevel)
+			{
+				Network::Send(address, fmt::sprintf("error\nYour security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
+				return;
+			}
+
+			Logger::Print("Verified XUID %llX (%d) from %s\n", xuid, userLevel, address.GetCString());
+			Game::SV_DirectConnect(*address.Get());
 		}
-#else
-		// Validate proto data
-		if (connectData.signature().empty() || connectData.publickey().empty() || connectData.token().empty() || connectData.infostring().empty())
-		{
-			Network::Send(address, "error\nInvalid connect data!");
-			return;
-		}
-
-		// Setup new cmd params
-		Game::SV_Cmd_EndTokenizedString();
-		Game::SV_Cmd_TokenizeString(connectData.infostring().data());
-
-		// Access the params
-		Command::Params params(true);
-
-		// Ensure there are enough params
-		if (params.Length() < 3)
-		{
-			Network::Send(address, "error\nInvalid connect string!");
-			return;
-		}
-
-		// Parse the infostring
-		Utils::InfoString infostr(params[2]);
-
-		// Read the required data
-		std::string steamId = infostr.Get("xuid");
-		std::string challenge = infostr.Get("challenge");
-
-		if (steamId.empty() || challenge.empty())
-		{
-			Network::Send(address, "error\nInvalid connect data!");
-			return;
-		}
-
-		// Parse the id
-		unsigned __int64 xuid = strtoull(steamId.data(), nullptr, 16);
-		unsigned int id = static_cast<unsigned int>(~0x110000100000000 & xuid);
-
-		if ((xuid & 0xFFFFFFFF00000000) != 0x110000100000000 || id != (Utils::Cryptography::JenkinsOneAtATime::Compute(connectData.publickey()) & ~0x80000000))
-		{
-			Network::Send(address, "error\nXUID doesn't match the certificate!");
-			return;
-		}
-
-		// Verify the signature
-		Utils::Cryptography::ECC::Key key;
-		key.Set(connectData.publickey());
-
-		if (!key.IsValid() || !Utils::Cryptography::ECC::VerifyMessage(key, challenge, connectData.signature()))
-		{
-			Network::Send(address, "error\nChallenge signature was invalid!");
-			return;
-		}
-
-		// Verify the security level
-		uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").Get<int>());
-		uint32_t userLevel = Auth::GetZeroBits(connectData.token(), connectData.publickey());
-
-		if (userLevel < ourLevel)
-		{
-			Network::Send(address, fmt::sprintf("error\nYour security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
-			return;
-		}
-
-		Logger::Print("Verified XUID %llX (%d) from %s\n", xuid, userLevel, address.GetCString());
-		Game::SV_DirectConnect(*address.Get());
-#endif
 	}
 
 	void __declspec(naked) Auth::DirectConnectStub()
