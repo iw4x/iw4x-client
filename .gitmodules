@@ -14,7 +14,7 @@
 	url = https://github.com/google/protobuf.git
 [submodule "deps/Wink-Signals"]
 	path = deps/Wink-Signals
-	url = https://github.com/momo5502/Wink-Signals.git
+	url = https://github.com/miguelmartin75/Wink-Signals.git
 [submodule "deps/libtomcrypt"]
 	path = deps/libtomcrypt
 	url = https://github.com/libtom/libtomcrypt.git
