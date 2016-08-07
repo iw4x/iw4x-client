@@ -131,7 +131,12 @@ namespace Game
 
 	typedef struct cmd_function_s
 	{
-		char pad[24];
+		cmd_function_s *next;
+		const char *name;
+		const char *autoCompleteDir;
+		const char *autoCompleteExt;
+		void(__cdecl *function)();
+		int pad;
 	} cmd_function_t;
 
 	typedef struct

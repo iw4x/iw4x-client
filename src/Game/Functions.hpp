@@ -442,6 +442,8 @@ namespace Game
 	extern DWORD* cmd_argc_sv;
 	extern char*** cmd_argv_sv;
 
+	extern cmd_function_t** cmd_functions;
+
 	extern int* svs_numclients;
 	extern client_t* svs_clients;
 

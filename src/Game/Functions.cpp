@@ -199,6 +199,8 @@ namespace Game
 	DWORD* cmd_argc_sv = (DWORD*)0x1ACF8E4;
 	char*** cmd_argv_sv = (char***)0x1ACF904;
 
+	cmd_function_t** cmd_functions = (cmd_function_t**)0x1AAC658;
+
 	source_t **sourceFiles = (source_t **)0x7C4A98;
 	keywordHash_t **menuParseKeywordHash = (keywordHash_t **)0x63AE928;
 

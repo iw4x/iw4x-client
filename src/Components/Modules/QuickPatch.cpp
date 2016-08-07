@@ -120,9 +120,13 @@ namespace Components
 
 		if (args.Length() >= 4)
 		{
-			Game::dvar_t* dvar = Game::Dvar_FindVar(args[3]);
+			std::string cmd = args[0];
+			std::string table = args[1];
+			std::string col = args[2];
+			std::string dvarName = args[3];
+			Game::dvar_t* dvar = Game::Dvar_FindVar(dvarName.data());
 
-			if (!dvar || dvar->flags & Game::DVAR_FLAG_WRITEPROTECTED || dvar->flags & Game::DVAR_FLAG_CHEAT || dvar->flags & Game::DVAR_FLAG_READONLY)
+			if (Command::Find(dvarName) || (dvar && (dvar->flags & Game::DVAR_FLAG_WRITEPROTECTED || dvar->flags & Game::DVAR_FLAG_CHEAT || dvar->flags & Game::DVAR_FLAG_READONLY)))
 			{
 				return;
 			}

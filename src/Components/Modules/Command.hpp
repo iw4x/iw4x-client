@@ -33,6 +33,8 @@ namespace Components
 		static void AddRawSV(const char* name, void(*callback)());
 		static void Execute(std::string command, bool sync = true);
 
+		static Game::cmd_function_t* Find(std::string command);
+
 	private:
 		static Game::cmd_function_t* Allocate();
 		static std::vector<Game::cmd_function_t*> Functions;

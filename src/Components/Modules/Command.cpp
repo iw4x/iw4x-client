@@ -86,6 +86,23 @@ namespace Components
 		}
 	}
 
+	Game::cmd_function_t* Command::Find(std::string command)
+	{
+		Game::cmd_function_t* cmdFunction = *Game::cmd_functions;
+
+		while (cmdFunction)
+		{
+			if (cmdFunction->name && cmdFunction->name == command)
+			{
+				return cmdFunction;
+			}
+
+			cmdFunction = cmdFunction->next;
+		}
+
+		return nullptr;
+	}
+
 	Game::cmd_function_t* Command::Allocate()
 	{
 		Game::cmd_function_t* cmd = new Game::cmd_function_t;
