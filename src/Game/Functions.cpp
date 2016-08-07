@@ -15,6 +15,7 @@ namespace Game
 	CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical = (CL_DrawStretchPicPhysical_t)0x4FC120;
 	CL_HandleRelayPacket_t CL_HandleRelayPacket = (CL_HandleRelayPacket_t)0x5A8C70;
 	CL_ResetViewport_t CL_ResetViewport = (CL_ResetViewport_t)0x4A8830;
+	CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f = (CL_SelectStringTableEntryInDvar_f_t)0x4A4560;
 
 	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = (Cmd_AddServerCommand_t)0x4DCE00;

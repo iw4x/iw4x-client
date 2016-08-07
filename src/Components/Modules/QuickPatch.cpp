@@ -10,7 +10,7 @@ namespace Components
 		return &id;
 	}
 
-	void QuickPatch::OnShutdown(QuickPatch::Callback callback)
+	void QuickPatch::OnShutdown(QuickPatch::Callback* callback)
 	{
 		QuickPatch::ShutdownSignal.connect(callback);
 	}
@@ -112,6 +112,23 @@ namespace Components
 		{
 			Game::CL_HandleRelayPacket(msg, client);
 		}
+	}
+
+	void QuickPatch::SelectStringTableEntryInDvarStub()
+	{
+		Command::Params args;
+
+		if (args.Length() >= 4)
+		{
+			Game::dvar_t* dvar = Game::Dvar_FindVar(args[3]);
+
+			if (!dvar || dvar->flags & Game::DVAR_FLAG_WRITEPROTECTED || dvar->flags & Game::DVAR_FLAG_CHEAT || dvar->flags & Game::DVAR_FLAG_READONLY)
+			{
+				return;
+			}
+		}
+
+		Game::CL_SelectStringTableEntryInDvar_f();
 	}
 
 	QuickPatch::QuickPatch()
@@ -334,6 +351,9 @@ namespace Components
 		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).Install()->Quick(); // SV_ExecuteClientCommands
 		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).Install()->Quick(); // CL_ParseServerMessage
 		Utils::Hook(0x5AA009, QuickPatch::CL_HandleRelayPacketCheck, HOOK_CALL).Install()->Quick();  // CL_HandleRelayPacket
+
+		// Patch selectStringTableEntryInDvar
+		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
 
 		Command::Add("unlockstats", [] (Command::Params params)
 		{

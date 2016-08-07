@@ -30,6 +30,9 @@ namespace Game
 	typedef void(__cdecl * CL_ResetViewport_t)();
 	extern CL_ResetViewport_t CL_ResetViewport;
 
+	typedef void(__cdecl * CL_SelectStringTableEntryInDvar_f_t)();
+	extern CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f;
+
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* name, void(*callback), cmd_function_t* data, char);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 

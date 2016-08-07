@@ -21,6 +21,8 @@ namespace Components
 		static int64_t* GetStatsID();
 		static void ShutdownStub(int channel, const char* message);
 
+		static void SelectStringTableEntryInDvarStub();
+
 		static int MsgReadBitsCompressCheckSV(const char *from, char *to, int size);
 		static int MsgReadBitsCompressCheckCL(const char *from, char *to, int size);
 		static void CL_HandleRelayPacketCheck(Game::msg_t* msg, int client);
