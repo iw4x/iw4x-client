@@ -53,6 +53,8 @@ namespace Game
 	Dvar_InfoString_Big_t Dvar_InfoString_Big = (Dvar_InfoString_Big_t)0x4D98A0;
 	Dvar_SetCommand_t Dvar_SetCommand = (Dvar_SetCommand_t)0x4EE430;
 
+	Encode_Init_t Encode_Init = (Encode_Init_t)0x462AB0;
+
 	Field_Clear_t Field_Clear = (Field_Clear_t)0x437EB0;
 
 	FreeMemory_t FreeMemory = (FreeMemory_t)0x4D6640;
@@ -129,6 +131,7 @@ namespace Game
 	PartyHost_GetMemberName_t PartyHost_GetMemberName = (PartyHost_GetMemberName_t)0x44BE90;
 
 	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = (R_AddCmdDrawStretchPic_t)0x509770;
+	R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = (R_Cinematic_StartPlayback_Now_t)0x51C5B0;
 	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x505670;
 	R_AddCmdDrawText_t R_AddCmdDrawText = (R_AddCmdDrawText_t)0x509D80;
 	R_LoadGraphicsAssets_t R_LoadGraphicsAssets = (R_LoadGraphicsAssets_t)0x506AC0;

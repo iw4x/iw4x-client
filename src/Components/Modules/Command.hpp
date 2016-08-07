@@ -7,6 +7,7 @@ namespace Components
 		{
 		public:
 			Params(bool sv, DWORD id) : CommandId(id), IsSV(sv) {};
+			Params(bool sv) : Params(sv, (sv ? *Game::cmd_id_sv : *Game::cmd_id)) {};
 			Params(const Params &obj) : CommandId(obj.CommandId), IsSV(obj.IsSV) {};
 			Params() : Params(false, *Game::cmd_id) {};
 

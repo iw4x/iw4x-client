@@ -1,3 +1,6 @@
+// Uncomment that to see if we are preventing necessary libraries from being loaded
+//#define DEBUG_LOAD_LIBRARY
+
 namespace Components
 {
 	class AntiCheat : public Component
@@ -25,10 +28,16 @@ namespace Components
 		static void UninstallLibHook();
 		static void InstallLibHook();
 
+#ifdef DEBUG_LOAD_LIBRARY
+		static HANDLE LoadLibary(std::wstring library, void* callee);
+		static HANDLE WINAPI LoadLibaryAStub(const char* library);
+		static HANDLE WINAPI LoadLibaryWStub(const wchar_t* library);
+#endif
+
+		static void CinematicStub();
 		static void SoundInitStub();
-		static BOOL WINAPI VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect);
+		static bool EncodeInitStub(const char* param);
 
 		static Utils::Hook LoadLibHook[4];
-		static Utils::Hook VirtualProtectHook;
 	};
 }

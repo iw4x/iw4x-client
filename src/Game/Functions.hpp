@@ -123,6 +123,9 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_SetCommand_t)(const char* name, const char* value);
 	extern Dvar_SetCommand_t Dvar_SetCommand;
 
+	typedef bool(__cdecl * Encode_Init_t)(const char* );
+	extern Encode_Init_t Encode_Init;
+
 	typedef void(__cdecl * Field_Clear_t)(void* field);
 	extern Field_Clear_t Field_Clear;
 
@@ -310,6 +313,9 @@ namespace Game
 
 	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
 	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;
+
+	typedef bool(__cdecl * R_Cinematic_StartPlayback_Now_t)();
+	extern R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now;
 
 	typedef void(__cdecl * R_LoadGraphicsAssets_t)();
 	extern R_LoadGraphicsAssets_t R_LoadGraphicsAssets;

@@ -5,7 +5,6 @@ namespace Components
 	int AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::LoadLibHook[4];
-	Utils::Hook AntiCheat::VirtualProtectHook;
 
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
@@ -105,8 +104,13 @@ namespace Components
 		FARPROC loadLibA = GetProcAddress(kernel32, Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibAStr), sizeof loadLibAStr), -1).data());
 		FARPROC loadLibW = GetProcAddress(kernel32, Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibWStr), sizeof loadLibWStr), -1).data());
 
+#ifdef DEBUG_LOAD_LIBRARY
+		AntiCheat::LoadLibHook[0].Initialize(loadLibA, LoadLibaryAStub, HOOK_JUMP);
+		AntiCheat::LoadLibHook[1].Initialize(loadLibW, LoadLibaryWStub, HOOK_JUMP);
+#else
 		AntiCheat::LoadLibHook[0].Initialize(loadLibA, loadLibStub, HOOK_JUMP);
 		AntiCheat::LoadLibHook[1].Initialize(loadLibW, loadLibStub, HOOK_JUMP);
+#endif
 		//AntiCheat::LoadLibHook[2].Initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
 		//AntiCheat::LoadLibHook[3].Initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
 	}
@@ -139,6 +143,32 @@ namespace Components
 
 		AntiCheat::PerformCheck();
 	}
+
+#ifdef DEBUG_LOAD_LIBRARY
+	HANDLE AntiCheat::LoadLibary(std::wstring library, void* callee)
+	{
+		HMODULE module;
+		char buffer[MAX_PATH] = { 0 };
+
+		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &module);
+		GetModuleFileNameA(module, buffer, sizeof buffer);
+
+		MessageBoxA(0, fmt::sprintf("Loading library %s via %s %X", std::string(library.begin(), library.end()).data(), buffer, reinterpret_cast<uint32_t>(callee)).data(), 0, 0);
+
+		return LoadLibraryExW(library.data(), NULL, 0);
+	}
+
+	HANDLE WINAPI AntiCheat::LoadLibaryAStub(const char* library)
+	{
+		std::string lib(library);
+		return AntiCheat::LoadLibary(std::wstring(lib.begin(), lib.end()), _ReturnAddress());
+	}
+
+	HANDLE WINAPI AntiCheat::LoadLibaryWStub(const wchar_t* library)
+	{
+		return AntiCheat::LoadLibary(library, _ReturnAddress());
+	}
+#endif
 
 	void AntiCheat::UninstallLibHook()
 	{
@@ -175,33 +205,37 @@ namespace Components
 		AntiCheat::InstallLibHook();
 	}
 
-// 	BOOL WINAPI AntiCheat::VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
-// 	{
-// 		AntiCheat::VirtualProtectHook.Uninstall(false);
-// 
-// 		if (flNewProtect == PAGE_WRITECOPY || flNewProtect == PAGE_READWRITE || flNewProtect == PAGE_EXECUTE_READWRITE || flNewProtect == PAGE_WRITECOMBINE)
-// 		{
-// 			DWORD addr = (DWORD)lpAddress;
-// 			DWORD start = 0x401000;
-// 			DWORD end = start + 0x2D6000;
-// 
-// 			if (addr > start && addr < end)
-// 			{
-// 				OutputDebugStringA(Utils::VA("Write access to address %X", lpAddress));
-// 			}
-// 		}
-// 
-// 		BOOL retVal = VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
-// 		AntiCheat::VirtualProtectHook.Install(false);
-// 		return retVal;
-// 	}
+	void __declspec(naked) AntiCheat::CinematicStub()
+	{
+		__asm
+		{
+			pushad
+			call AntiCheat::UninstallLibHook
+			popad
+
+			call Game::R_Cinematic_StartPlayback_Now
+
+			pushad
+			call AntiCheat::InstallLibHook
+			popad
+
+			retn
+		}
+	}
+
+	bool AntiCheat::EncodeInitStub(const char* param)
+	{
+		AntiCheat::UninstallLibHook();
+
+		bool result = Game::Encode_Init(param);
+
+		AntiCheat::InstallLibHook();
+
+		return result;
+	}
 
 	AntiCheat::AntiCheat()
 	{
-		// This is required for debugging...in release mode :P
-		//AntiCheat::VirtualProtectHook.Initialize(VirtualProtect, VirtualProtectStub, HOOK_JUMP);
-		//AntiCheat::VirtualProtectHook.Install(true, true);
-
 		AntiCheat::EmptyHash();
 
 #ifdef DEBUG
@@ -210,9 +244,12 @@ namespace Components
 			AntiCheat::CrashClient();
 		});
 #else
-		Utils::Hook(0x60BE8E, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x418204, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
+
 		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).Install()->Quick();
+ 		Utils::Hook(0x60BE8E, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
+ 		Utils::Hook(0x418204, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x51C76C, AntiCheat::CinematicStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4A22E5, AntiCheat::EncodeInitStub, HOOK_CALL).Install()->Quick();
 		QuickPatch::OnFrame(AntiCheat::Frame);
 
 		// TODO: Probably move that :P
@@ -224,7 +261,6 @@ namespace Components
 	{
 		AntiCheat::EmptyHash();
 
-		AntiCheat::VirtualProtectHook.Uninstall(false);
 		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
 		{
 			AntiCheat::LoadLibHook[i].Uninstall();
