@@ -164,6 +164,13 @@ namespace Components
 
 			AntiCheat::CrashClient();
 		}
+
+		// TODO: Move that elsewhere
+		if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
+		{
+			CloseHandle(h);
+			AntiCheat::CrashClient();
+		}
 	}
 
 	void AntiCheat::PerformCheck()
@@ -326,6 +333,7 @@ namespace Components
 		}
 	}
 
+	// TODO: Beautify that
 	DWORD AntiCheat::ProtectProcess()
 	{
 		// Returned to caller
