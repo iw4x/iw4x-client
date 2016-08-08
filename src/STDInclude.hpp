@@ -23,6 +23,7 @@
 #include <Wininet.h>
 //#include <Urlmon.h>
 #include <d3d9.h>
+#include <Aclapi.h>
 
 //#include <map>
 //#include <mutex>
@@ -117,6 +118,7 @@
 #pragma comment(lib, "Wininet.lib")
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "Urlmon.lib")
+#pragma comment(lib, "Advapi32.lib")
 
 // Enable additional literals
 using namespace std::literals;
