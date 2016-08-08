@@ -3,7 +3,7 @@
 
 // Log detections
 // Make sure to disable that before releasig!
-//#define DEBUG_DETECTIONS
+#define DEBUG_DETECTIONS
 
 namespace Components
 {
@@ -19,11 +19,25 @@ namespace Components
 
 		static void InitLoadLibHook();
 
-		static void IntegrityCheck();
+		static void ReadIntegrityCheck();
+		static void ScanIntegrityCheck();
+		static void FlagIntegrityCheck();
 
 	private:
+		enum IntergrityFlag
+		{
+			NO_FLAG = (0),
+			INITIALIZATION = (1 << 0),
+			MEMORY_SCAN = (1 << 1),
+			SCAN_INTEGRITY_CHECK = (1 << 2),
+			READ_INTEGRITY_CHECK = (1 << 3),
+
+			MAX_FLAG,
+		};
+
 		static int LastCheck;
 		static std::string Hash;
+		static unsigned long Flags;
 
 		static void Frame();
 		static void PerformCheck();

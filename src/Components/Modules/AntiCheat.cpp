@@ -5,6 +5,7 @@ namespace Components
 	int AntiCheat::LastCheck = 0;
 	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::LoadLibHook[4];
+	unsigned long AntiCheat::Flags = NO_FLAG;
 
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
@@ -144,7 +145,50 @@ namespace Components
 		//AntiCheat::LoadLibHook[3].Initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
 	}
 
-	void AntiCheat::IntegrityCheck()
+	void AntiCheat::ReadIntegrityCheck()
+	{
+		static int lastCheck = Game::Sys_Milliseconds();
+		
+		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 70)
+		{
+			// TODO: Move that elsewhere
+			if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
+			{
+#ifdef DEBUG_DETECTIONS
+				OutputDebugStringA("AntiCheat: Process integrity check failed");
+#endif
+
+				CloseHandle(h);
+				AntiCheat::Hash.append("\0", 1);
+			}
+		}
+
+		// Set the integrity flag
+		AntiCheat::Flags |= AntiCheat::IntergrityFlag::READ_INTEGRITY_CHECK;
+	}
+
+	void AntiCheat::FlagIntegrityCheck()
+	{
+		static int lastCheck = Game::Sys_Milliseconds();
+
+		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 180)
+		{
+			lastCheck = Game::Sys_Milliseconds();
+
+			unsigned long flags = ((AntiCheat::IntergrityFlag::MAX_FLAG - 1) << 1) - 1;
+
+			if (AntiCheat::Flags != flags)
+			{
+#ifdef DEBUG_DETECTIONS
+				OutputDebugStringA(Utils::String::VA("AntiCheat: Flag integrity check failed: %X", AntiCheat::Flags));
+#endif
+
+				AntiCheat::CrashClient();
+			}
+		}
+	}
+
+	void AntiCheat::ScanIntegrityCheck()
 	{
 		static int count = 0;
 		int lastCheck = AntiCheat::LastCheck;
@@ -165,12 +209,8 @@ namespace Components
 			AntiCheat::CrashClient();
 		}
 
-		// TODO: Move that elsewhere
-		if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
-		{
-			CloseHandle(h);
-			AntiCheat::CrashClient();
-		}
+		// Set the integrity flag
+		AntiCheat::Flags |= AntiCheat::IntergrityFlag::SCAN_INTEGRITY_CHECK;
 	}
 
 	void AntiCheat::PerformCheck()
@@ -195,6 +235,9 @@ namespace Components
 
 			AntiCheat::CrashClient();
 		}
+
+		// Set the memory scan flag
+		AntiCheat::Flags |= AntiCheat::IntergrityFlag::MEMORY_SCAN;
 	}
 
 	void AntiCheat::Frame()
@@ -591,11 +634,15 @@ namespace Components
 
 		// Prevent external processes from accessing our memory
 		AntiCheat::ProtectProcess();
+
+		// Set the integrity flag
+		AntiCheat::Flags |= AntiCheat::IntergrityFlag::INITIALIZATION;
 #endif
 	}
 
 	AntiCheat::~AntiCheat()
 	{
+		AntiCheat::Flags = NO_FLAG;
 		AntiCheat::EmptyHash();
 
 		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)

@@ -716,6 +716,11 @@ namespace Components
 
 		// Add frame callback
 		Renderer::OnFrame(ServerList::Frame);
+
+		// This is placed here in case the anticheat has been disabled!
+#ifndef DEBUG
+		Renderer::OnFrame(AntiCheat::ReadIntegrityCheck);
+#endif
 	}
 
 	ServerList::~ServerList()

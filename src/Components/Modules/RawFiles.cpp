@@ -20,5 +20,10 @@ namespace Components
 
 		// remove fs_game check for moddable rawfiles - allows non-fs_game to modify rawfiles
 		Utils::Hook::Nop(0x61AB76, 2);
+
+		// This is placed here in case the anticheat has been disabled!
+#ifndef DEBUG
+		Renderer::OnFrame(AntiCheat::FlagIntegrityCheck);
+#endif
 	}
 }

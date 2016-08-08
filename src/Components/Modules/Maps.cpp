@@ -177,7 +177,7 @@ namespace Components
 
 		// This is placed here in case the anticheat has been disabled!
 #ifndef DEBUG
-		Renderer::OnFrame(AntiCheat::IntegrityCheck);
+		Renderer::OnFrame(AntiCheat::ScanIntegrityCheck);
 #endif
 	}
 
