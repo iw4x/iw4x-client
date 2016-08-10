@@ -10,6 +10,11 @@ newoption {
 	description = "Do not use new virtual path structure (separating headers and source files)."
 }
 
+newoption {
+	trigger = "copy-pdb",
+	description = "Copy debug information for binaries as well to the path given via --copy-to."
+}
+
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -200,6 +205,12 @@ workspace "iw4x"
 				"if not exist \"" .. saneCopyToPath .. "\" mkdir \"" .. saneCopyToPath .. "\"",
 				"copy /y \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\"",
 			}
+
+			if _OPTIONS["copy-pdb"] then
+				postbuildcommands {
+					"copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "\"",
+				}
+			end
 		end
 
 		-- Specific configurations
