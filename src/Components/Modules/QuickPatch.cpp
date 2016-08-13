@@ -300,7 +300,7 @@ namespace Components
 
 		// Disable profile system
 		Utils::Hook::Nop(0x60BEB1, 5);          // GamerProfile_InitAllProfiles
-		Utils::Hook::Nop(0x60BEB8, 5);          // GamerProfile_LogInProfile
+//		Utils::Hook::Nop(0x60BEB8, 5);          // GamerProfile_LogInProfile
 //		Utils::Hook::Nop(0x4059EA, 5);          // GamerProfile_RegisterCommands
 		Utils::Hook::Nop(0x4059EF, 5);          // GamerProfile_RegisterDvars
 		Utils::Hook::Nop(0x47DF9A, 5);          // GamerProfile_UpdateSystemDvars
