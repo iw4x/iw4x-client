@@ -195,6 +195,7 @@ workspace "iw4x"
 	project "iw4x"
 		kind "SharedLib"
 		language "C++"
+		flags { "C++14" }
 		files {
 			"./src/**.rc",
 			"./src/**.hpp",
