@@ -89,7 +89,7 @@ namespace Components
 	void AntiCheat::CrashClient()
 	{
 #ifdef DEBUG_DETECTIONS
-		MessageBoxA(0, "Check the debug log for more information!", "AntiCheat triggered", MB_ICONERROR);
+		MessageBoxA(0, "Check the log for more information!", "AntiCheat triggered", MB_ICONERROR);
 #else
 		Utils::Hook::Set<BYTE>(0x41BA2C, 0xEB);
 #endif
@@ -108,7 +108,7 @@ namespace Components
 			char buffer[MAX_PATH] = { 0 };
 			GetModuleFileNameA(hModuleTarget, buffer, sizeof buffer);
 
-			OutputDebugStringA(Utils::String::VA("AntiCheat: Callee assertion failed: %X %s", reinterpret_cast<uint32_t>(callee), buffer));
+			Logger::Print(Utils::String::VA("AntiCheat: Callee assertion failed: %X %s", reinterpret_cast<uint32_t>(callee), buffer));
 #endif
 
 			//AntiCheat::CrashClient();
@@ -159,7 +159,7 @@ namespace Components
 			if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
 			{
 #ifdef DEBUG_DETECTIONS
-				OutputDebugStringA("AntiCheat: Process integrity check failed");
+				Logger::Print("AntiCheat: Process integrity check failed");
 #endif
 
 				CloseHandle(h);
@@ -184,7 +184,7 @@ namespace Components
 			if (AntiCheat::Flags != flags)
 			{
 #ifdef DEBUG_DETECTIONS
-				OutputDebugStringA(Utils::String::VA("AntiCheat: Flag integrity check failed: %X", AntiCheat::Flags));
+				Logger::Print(Utils::String::VA("AntiCheat: Flag integrity check failed: %X", AntiCheat::Flags));
 #endif
 
 				AntiCheat::CrashClient();
@@ -207,7 +207,7 @@ namespace Components
 		if ((lastCheck && (milliseconds - lastCheck) > 1000 * 120) || count > 1)
 		{
 #ifdef DEBUG_DETECTIONS
-			OutputDebugStringA("AntiCheat: Integrity check failed");
+			Logger::Print("AntiCheat: Integrity check failed");
 #endif
 
 			AntiCheat::CrashClient();
@@ -234,7 +234,7 @@ namespace Components
 		else if (AntiCheat::Hash != hash)
 		{
 #ifdef DEBUG_DETECTIONS
-			OutputDebugStringA("AntiCheat: Memory scan failed");
+			Logger::Print("AntiCheat: Memory scan failed");
 #endif
 
 			AntiCheat::CrashClient();
