@@ -287,7 +287,10 @@ workspace "iw4x"
 		flags { "UndefinedIdentifiers", "ExtraWarnings" }
 
 		configuration "Release*"
-			flags { "FatalCompileWarnings" }
+			flags {
+				"FatalCompileWarnings",
+				"FatalLinkWarnings",
+			}
 		configuration {}
 
 		-- Generate source code from protobuf definitions
