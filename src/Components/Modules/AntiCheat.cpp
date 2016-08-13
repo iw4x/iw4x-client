@@ -90,6 +90,7 @@ namespace Components
 	{
 #ifdef DEBUG_DETECTIONS
 		MessageBoxA(0, "Check the log for more information!", "AntiCheat triggered", MB_ICONERROR);
+		ExitProcess(0xFFFFFFFF);
 #else
 		Utils::Hook::Set<BYTE>(0x41BA2C, 0xEB);
 #endif

@@ -45,6 +45,7 @@ namespace Components
 				}
 				else
 				{
+					Toast::Show("cardicon_locked", "Success", fmt::sprintf("Your new security level is %d", Auth::GetSecurityLevel()), 5000);
 					Command::Execute(Auth::TokenContainer.command, false);
 				}
 			}
