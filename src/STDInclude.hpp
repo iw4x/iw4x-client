@@ -56,14 +56,6 @@
 #pragma warning(disable: 6386)
 #pragma warning(disable: 6387)
 
-#define ZLIB_CONST
-
-#define USE_LTM
-#define LTM_DESC
-#define LTC_NO_FAST
-#define LTC_NO_PROTOTYPES
-#define LTC_NO_RSA_BLINDING
-
 #include <zlib.h>
 #include <curses.h>
 #include <mongoose.h>

@@ -105,6 +105,66 @@ newaction {
 	end
 }
 
+depsBasePath = "./deps"
+
+require "premake/fmt"
+require "premake/json11"
+require "premake/libtomcrypt"
+require "premake/libtommath"
+require "premake/mongoose"
+require "premake/pdcurses"
+require "premake/protobuf"
+require "premake/winksignals"
+require "premake/zlib"
+
+fmt.setup
+{
+	source = path.join(depsBasePath, "fmt"),
+}
+json11.setup
+{
+	source = path.join(depsBasePath, "json11"),
+}
+libtomcrypt.setup
+{
+	defines = {
+		"LTC_NO_FAST",
+		"LTC_NO_PROTOTYPES",
+		"LTC_NO_RSA_BLINDING",
+	},
+	source = path.join(depsBasePath, "libtomcrypt"),
+}
+libtommath.setup
+{
+	defines = {
+		"LTM_DESC",
+	},
+	source = path.join(depsBasePath, "libtommath"),
+}
+mongoose.setup
+{
+	source = path.join(depsBasePath, "mongoose"),
+}
+pdcurses.setup
+{
+	source = path.join(depsBasePath, "pdcurses"),
+}
+protobuf.setup
+{
+	source = path.join(depsBasePath, "protobuf"),
+}
+winksignals.setup
+{
+	source = path.join(depsBasePath, "Wink-Signals"),
+}
+zlib.setup
+{
+	defines = {
+		"ZLIB_CONST",
+	},
+	source = path.join(depsBasePath, "zlib"),
+}
+
 workspace "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
@@ -164,38 +224,20 @@ workspace "iw4x"
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
 		buildoptions { "/Zm200" }
-		filter "files:**.pb.*"
-			flags {
-				"NoPCH",
-			}
-			buildoptions {
-				"/wd4100", -- "Unused formal parameter"
-				"/wd4389", -- "Signed/Unsigned mismatch"
-				"/wd6011", -- "Dereferencing NULL pointer"
-				"/wd4125", -- "Decimal digit terminates octal escape sequence"
-			}
-			defines {
-				"_SCL_SECURE_NO_WARNINGS",
-			}
-		filter {}
 
 		-- Dependency libraries
-		links { "zlib", "fmt", "json11", "pdcurses", "libtomcrypt", "libtommath", "protobuf", "mongoose" }
-		includedirs 
-		{
-			"./deps/fmt", 
-			"./deps/zlib",
-			"./deps/json11", 
-			"./deps/pdcurses", 
-			"./deps/mongoose",
-			"./deps/libtomcrypt/src/headers",
-			"./deps/libtommath",
-			"./deps/protobuf/src",
-			"./deps/Wink-Signals",
-		}
-		
+		fmt.import()
+		json11.import()
+		libtomcrypt.import()
+		libtommath.import()
+		mongoose.import()
+		pdcurses.import()
+		protobuf.import()
+		winksignals.import()
+		zlib.import()
+
 		-- fix vpaths for protobuf sources
-		vpaths 
+		vpaths
 		{
 			["*"] = { "./src/**" },
 			["Proto/Generated"] = { "**.pb.*" }, -- meh.
@@ -203,7 +245,7 @@ workspace "iw4x"
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
-			vpaths 
+			vpaths
 			{
 				["Headers/*"] = { "./src/**.hpp" },
 				["Sources/*"] = { "./src/**.cpp" },
@@ -213,15 +255,16 @@ workspace "iw4x"
 			}
 		end
 
-		vpaths {
+		vpaths
+		{
 			["Docs/*"] = { "**.txt","**.md" },
 		}
-		
+
 		-- Pre-build
-		prebuildcommands 
+		prebuildcommands
 		{
 			"cd %{_MAIN_SCRIPT_DIR}",
-			"tools\\premake5 generate-buildinfo"
+			"tools\\premake5 generate-buildinfo",
 		}
 
 		-- Post-build
@@ -247,191 +290,47 @@ workspace "iw4x"
 		configuration {}
 
 		-- Generate source code from protobuf definitions
+		filter "files:**.pb.*"
+			flags {
+				"NoPCH",
+			}
+			buildoptions {
+				"/wd4100", -- "Unused formal parameter"
+				"/wd4389", -- "Signed/Unsigned mismatch"
+				"/wd6011", -- "Dereferencing NULL pointer"
+				"/wd4125", -- "Decimal digit terminates octal escape sequence"
+			}
+			defines {
+				"_SCL_SECURE_NO_WARNINGS",
+			}
+		filter {}
 		rules { "ProtobufCompiler" }
 
 		-- Workaround: Consume protobuf generated source files
 		matches = os.matchfiles(path.join("src/Proto/**.proto"))
 		for i, srcPath in ipairs(matches) do
 			basename = path.getbasename(srcPath)
-			files 
+			files
 			{
 				string.format("%%{prj.location}/src/proto/%s.pb.h", basename),
 				string.format("%%{prj.location}/src/proto/%s.pb.cc", basename),
 			}
 		end
-		includedirs {
-			"%{prj.location}/src/proto"
+		includedirs
+		{
+			"%{prj.location}/src/proto",
 		}
 
 	group "External dependencies"
-
-		-- zlib
-		project "zlib"
-			language "C"
-			defines { "ZLIB_DLL", "_CRT_SECURE_NO_DEPRECATE" }
-
-			files
-			{
-				"./deps/zlib/*.h",
-				"./deps/zlib/*.c"
-			}
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			kind "SharedLib"
-			configuration "*Static"
-				kind "StaticLib"
-				removedefines { "ZLIB_DLL" }
-				
-		-- json11
-		project "json11"
-			language "C++"
-
-			files
-			{
-				"./deps/json11/*.cpp",
-				"./deps/json11/*.hpp"
-			}
-			
-			-- remove dropbox's testing code
-			removefiles { "./deps/json11/test.cpp" }
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as json11 doesn't export anything
-			kind "StaticLib"
-			
-		-- fmt
-		project "fmt"
-			language "C++"
-
-			includedirs { "./deps/fmt" }
-			files
-			{
-				"./deps/fmt/fmt/*.cc",
-				"./deps/fmt/fmt/*.h"
-			}
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as fmt doesn't export anything
-			kind "StaticLib"
-			
-		-- mongoose
-		project "mongoose"
-			language "C"
-
-			files
-			{
-				"./deps/mongoose/*.c",
-				"./deps/mongoose/*.h"
-			}
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as mongoose doesn't export anything
-			kind "StaticLib"
-			
-			
-		-- pdcurses
-		project "pdcurses"
-			language "C"
-			includedirs { "./deps/pdcurses/"  }
-
-			files
-			{
-				"./deps/pdcurses/pdcurses/*.c",
-				"./deps/pdcurses/win32/*.c"
-			}
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as pdcurses doesn't export anything
-			kind "StaticLib"
-
-		-- libtomcrypt
-		project "libtomcrypt"
-			language "C"
-			defines { "_LIB", "LTC_SOURCE", "LTC_NO_FAST", "LTC_NO_RSA_BLINDING", "LTM_DESC", "USE_LTM", "WIN32" }
-			
-			links { "libtommath" }
-			includedirs { "./deps/libtomcrypt/src/headers" }
-			includedirs { "./deps/libtommath" }
-
-			files { "./deps/libtomcrypt/src/**.c" }
-			
-			-- seems like tab stuff can be omitted
-			removefiles { "./deps/libtomcrypt/src/**/*tab.c" }
-			
-			-- remove incorrect files
-			-- for some reason, they lack the necessary header files
-			-- i might have to open a pull request which includes them
-			removefiles 
-			{ 
-				"./deps/libtomcrypt/src/pk/dh/dh_sys.c",
-				"./deps/libtomcrypt/src/hashes/sha2/sha224.c",
-				"./deps/libtomcrypt/src/hashes/sha2/sha384.c",
-				"./deps/libtomcrypt/src/encauth/ocb3/**.c",
-			}
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as libtomcrypt doesn't export anything
-			kind "StaticLib"
-			
-		-- libtommath
-		project "libtommath"
-			language "C"
-			defines { "_LIB" }
-			includedirs { "./deps/libtommath"  }
-
-			files { "./deps/libtommath/*.c" }
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as libtommath doesn't export anything
-			kind "StaticLib"
-			
-		-- protobuf
-		project "protobuf"
-			language "C++"
-			links { "zlib" }
-			defines { "_SCL_SECURE_NO_WARNINGS" }
-			includedirs 
-			{ 
-				"./deps/zlib",
-				"./deps/protobuf/src",
-			}
-
-			-- default protobuf sources
-			files { "./deps/protobuf/src/**.cc" }
-
-			-- remove unnecessary sources
-			removefiles 
-			{ 
-				"./deps/protobuf/src/**/*test.cc",
-				"./deps/protobuf/src/google/protobuf/*test*.cc",
-				
-				"./deps/protobuf/src/google/protobuf/testing/**.cc",
-				"./deps/protobuf/src/google/protobuf/compiler/**.cc",
-				
-				"./deps/protobuf/src/google/protobuf/arena_nc.cc",
-				"./deps/protobuf/src/google/protobuf/util/internal/error_listener.cc",
-				"./deps/protobuf/src/google/protobuf/stubs/atomicops_internals_x86_gcc.cc",
-			}
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as we include our custom classes and therefore can't perform shared linking
-			kind "StaticLib"
+		fmt.project()
+		json11.project()
+		libtomcrypt.project()
+		libtommath.project()
+		mongoose.project()
+		pdcurses.project()
+		winksignals.project()
+		zlib.project()
+		protobuf.project()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"
