@@ -20,10 +20,11 @@ namespace Steam
 
 	void Proxy::Uninititalize()
 	{
-		if (Proxy::Client)  FreeLibrary(Proxy::Client);
+		// Freeing libraries causes crashes
+		//if (Proxy::Client)  FreeLibrary(Proxy::Client);
 		Proxy::Client = nullptr;
 
-		if (Proxy::Overlay) FreeLibrary(Proxy::Overlay);
+		//if (Proxy::Overlay) FreeLibrary(Proxy::Overlay);
 		Proxy::Overlay = nullptr;
 	}
 
