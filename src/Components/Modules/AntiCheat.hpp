@@ -3,7 +3,7 @@
 
 // Log detections
 // Make sure to disable that before releasig!
-//#define DEBUG_DETECTIONS
+#define DEBUG_DETECTIONS
 
 namespace Components
 {

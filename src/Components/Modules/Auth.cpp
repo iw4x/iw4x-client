@@ -8,6 +8,51 @@ namespace Components
 	Utils::Cryptography::Token Auth::ComputeToken;
 	Utils::Cryptography::ECC::Key Auth::GuidKey;
 
+	void Auth::Frame()
+	{
+		if (Auth::TokenContainer.generating)
+		{
+			static int lastCalc = 0;
+			static double mseconds = 0;
+
+			if (!lastCalc || (Game::Sys_Milliseconds() - lastCalc) > 500)
+			{
+				lastCalc = Game::Sys_Milliseconds();
+
+				int diff = Game::Sys_Milliseconds() - Auth::TokenContainer.startTime;
+				double hashPMS = (Auth::TokenContainer.hashes * 1.0) / diff;
+				double requiredHashes = std::pow(2, Auth::TokenContainer.targetLevel + 1) - Auth::TokenContainer.hashes;
+				mseconds = requiredHashes / hashPMS;
+				if (mseconds < 0) mseconds = 0;
+			}
+
+			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::String::VA("Increasing security level from %d to %d (est. %s)", Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel, Utils::String::FormatTimeSpan(static_cast<int>(mseconds)).data()));
+		}
+		else if (Auth::TokenContainer.thread.joinable())
+		{
+			Auth::TokenContainer.thread.join();
+			Auth::TokenContainer.generating = false;
+
+			Auth::StoreKey();
+			Logger::Print("Security level is %d\n", Auth::GetSecurityLevel());
+			Command::Execute("closemenu security_increase_popmenu", false);
+
+			if (!Auth::TokenContainer.cancel)
+			{
+				if (Auth::TokenContainer.command.empty())
+				{
+					Game::MessageBox(Utils::String::VA("Your new security level is %d", Auth::GetSecurityLevel()), "Success");
+				}
+				else
+				{
+					Command::Execute(Auth::TokenContainer.command, false);
+				}
+			}
+
+			Auth::TokenContainer.cancel = false;
+		}
+	}
+
 	void Auth::SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char *format, int len)
 	{
 		// Ensure our certificate is loaded
@@ -318,6 +363,8 @@ namespace Components
 		Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", "");
 
 		Auth::LoadKey(true);
+
+		QuickPatch::OnFrame(Auth::Frame);
 
 		// Register dvar
 		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");

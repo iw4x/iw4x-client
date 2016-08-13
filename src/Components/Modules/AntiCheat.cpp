@@ -85,12 +85,16 @@ namespace Components
 			jmp AntiCheat::NullSub
 		}
 	}
-#endif
-
+#else
 	void AntiCheat::CrashClient()
 	{
+#ifdef DEBUG_DETECTIONS
+		MessageBoxA(0, "Check the debug log for more information!", "AntiCheat triggered", MB_ICONERROR);
+#else
 		Utils::Hook::Set<BYTE>(0x41BA2C, 0xEB);
+#endif
 	}
+#endif
 
 	void AntiCheat::AssertCalleeModule(void* callee)
 	{

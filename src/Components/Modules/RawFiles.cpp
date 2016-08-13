@@ -23,7 +23,7 @@ namespace Components
 
 		// This is placed here in case the anticheat has been disabled!
 #ifndef DEBUG
-		Renderer::OnFrame(AntiCheat::FlagIntegrityCheck);
+		QuickPatch::OnFrame(AntiCheat::FlagIntegrityCheck);
 #endif
 	}
 }
