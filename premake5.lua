@@ -15,6 +15,21 @@ newoption {
 	description = "Copy debug information for binaries as well to the path given via --copy-to."
 }
 
+newoption {
+	trigger = "debug-detections",
+	description = "Log anticheat detections."
+}
+
+newoption {
+	trigger = "debug-load-library",
+	description = "Log libraries that get loaded."
+}
+
+newoption {
+	trigger = "force-unit-tests",
+	description = "Always compile unit tests."
+}
+
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -133,6 +148,17 @@ workspace "iw4x"
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
 		}
+
+		-- Debug flags
+		if _OPTIONS["debug-detections"] then
+			defines { "DEBUG_DETECTIONS" }
+		end
+		if _OPTIONS["debug-load-library"] then
+			defines { "DEBUG_LOAD_LIBRARY" }
+		end
+		if _OPTIONS["force-unit-tests"] then
+			defines { "FORCE_UNIT_TESTS" }
+		end
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives

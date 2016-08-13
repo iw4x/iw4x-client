@@ -1,10 +1,3 @@
-// Uncomment that to see if we are preventing necessary libraries from being loaded
-//#define DEBUG_LOAD_LIBRARY
-
-// Log detections
-// Make sure to disable that before releasig!
-#define DEBUG_DETECTIONS
-
 namespace Components
 {
 	class AntiCheat : public Component
