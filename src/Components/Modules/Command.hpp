@@ -36,10 +36,11 @@ namespace Components
 		static Game::cmd_function_t* Find(std::string command);
 
 	private:
-		static Game::cmd_function_t* Allocate();
-		static std::vector<Game::cmd_function_t*> Functions;
+		static Utils::Memory::Allocator MemAllocator;
 		static std::map<std::string, wink::slot<Callback>> FunctionMap;
 		static std::map<std::string, wink::slot<Callback>> FunctionMapSV;
+
+		static Game::cmd_function_t* Allocate();
 		static void MainCallback();
 		static void MainCallbackSV();
 	};

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	std::vector<Game::cmd_function_t*> Command::Functions;
+	Utils::Memory::Allocator Command::MemAllocator;
 	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMap;
 	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMapSV;
 
@@ -105,10 +105,7 @@ namespace Components
 
 	Game::cmd_function_t* Command::Allocate()
 	{
-		Game::cmd_function_t* cmd = new Game::cmd_function_t;
-		Command::Functions.push_back(cmd);
-
-		return cmd;
+		return Command::MemAllocator.Allocate<Game::cmd_function_t>();
 	}
 
 	void Command::MainCallback()
@@ -142,12 +139,7 @@ namespace Components
 
 	Command::~Command()
 	{
-		for (auto command : Command::Functions)
-		{
-			delete command;
-		}
-
-		Command::Functions.clear();
+		Command::MemAllocator.Clear();
 		Command::FunctionMap.clear();
 		Command::FunctionMapSV.clear();
 	}
