@@ -14,7 +14,6 @@ namespace Components
 		{
 		public:
 			bool Evaluated;
-			bool Invoked;
 			std::string ConnectString;
 		};
 

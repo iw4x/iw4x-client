@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	ConnectProtocol::Container ConnectProtocol::ConnectContainer = { false, false, "" };
+	ConnectProtocol::Container ConnectProtocol::ConnectContainer = { false, "" };
 
 	bool ConnectProtocol::Evaluated()
 	{
@@ -202,12 +202,10 @@ namespace Components
 		});
 
 		// Invocation handler
-		// TODO: Don't call it every frame, once is enough!
-		Renderer::OnFrame([] ()
+		Renderer::Once([] ()
 		{
-			if (!ConnectProtocol::ConnectContainer.Invoked && ConnectProtocol::Used())
+			if (ConnectProtocol::Used())
 			{
-				ConnectProtocol::ConnectContainer.Invoked = true;
 				Command::Execute(fmt::sprintf("connect %s", ConnectProtocol::ConnectContainer.ConnectString.data()), false);
 			}
 		});
