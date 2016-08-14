@@ -58,7 +58,7 @@ namespace Utils
 				std::string _entry = std::move(token);
 
 				// Remove trailing 0x0 bytes
-				while (_entry.size() && !_entry[_entry.size() - 1])
+				while (_entry.size() && !_entry.back())
 				{
 					_entry = _entry.substr(0, _entry.size() - 1);
 				}

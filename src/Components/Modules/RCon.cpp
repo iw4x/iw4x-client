@@ -88,7 +88,7 @@ namespace Components
 			std::string command = data.substr(pos + 1);
 
 			// B3 sends the password inside quotes :S
-			if (!password.empty() && password[0] == '"' && password[password.size() - 1] == '"')
+			if (!password.empty() && password[0] == '"' && password.back() == '"')
 			{
 				password.pop_back();
 				password.erase(password.begin());

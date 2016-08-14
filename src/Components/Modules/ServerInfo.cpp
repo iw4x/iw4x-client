@@ -271,7 +271,7 @@ namespace Components
 						currentData = currentData.substr(1);
 					}
 
-					if (currentData[currentData.size() - 1] == '\"')
+					if (currentData.back() == '\"')
 					{
 						currentData.pop_back();
 					}
