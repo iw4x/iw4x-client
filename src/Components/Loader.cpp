@@ -60,7 +60,9 @@ namespace Components
 		std::reverse(Loader::Components.begin(), Loader::Components.end());
 		for (auto component : Loader::Components)
 		{
+#ifdef DEBUG
 			Logger::Print("Unregistering component: %s\n", component->GetName());
+#endif
 			delete component;
 		}
 
@@ -99,7 +101,9 @@ namespace Components
 	{
 		if (component)
 		{
+#ifdef DEBUG
 			Logger::Print("Component registered: %s\n", component->GetName());
+#endif
 			Loader::Components.push_back(component);
 		}
 	}
