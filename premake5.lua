@@ -16,12 +16,12 @@ newoption {
 }
 
 newoption {
-	trigger = "debug-detections",
+	trigger = "ac-debug-detections",
 	description = "Log anticheat detections."
 }
 
 newoption {
-	trigger = "debug-load-library",
+	trigger = "ac-debug-load-library",
 	description = "Log libraries that get loaded."
 }
 
@@ -210,10 +210,10 @@ workspace "iw4x"
 		}
 
 		-- Debug flags
-		if _OPTIONS["debug-detections"] then
+		if _OPTIONS["ac-debug-detections"] then
 			defines { "DEBUG_DETECTIONS" }
 		end
-		if _OPTIONS["debug-load-library"] then
+		if _OPTIONS["ac-debug-load-library"] then
 			defines { "DEBUG_LOAD_LIBRARY" }
 		end
 		if _OPTIONS["force-unit-tests"] then
