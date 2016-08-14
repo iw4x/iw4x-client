@@ -187,7 +187,9 @@ namespace Components
 		{
 			if (node.state == Node::STATE_INVALID && (Game::Sys_Milliseconds() - node.lastHeard) > NODE_INVALID_DELETE)
 			{
+#ifdef DEBUG
 				Logger::Print("Removing invalid node %s\n", node.address.GetCString());
+#endif
 			}
 			else
 			{
@@ -516,7 +518,9 @@ namespace Components
 				}
 				else
 				{
+#ifdef DEBUG
 					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetCString(), entry->challenge.data());
+#endif
 				}
 			});
 
@@ -550,8 +554,10 @@ namespace Components
 				}
 				else
 				{
+#ifdef DEBUG
 					// Unallowed connection
 					Logger::Print("Node list requested by %s, but no valid session was present!\n", address.GetCString());
+#endif
 					Network::SendCommand(address, "nodeListError");
 				}
 			});
@@ -584,7 +590,9 @@ namespace Components
 				}
 				else
 				{
+#ifdef DEBUG
 					Logger::Print("Node %s tried to unregister using an invalid signature!\n", address.GetCString());
+#endif
 				}
 			});
 
@@ -635,7 +643,9 @@ namespace Components
 				else
 				{
 					session->lastTime = -1;
+#ifdef DEBUG
 					Logger::Print("Challenge mismatch. Validating session for %s failed.\n", address.GetCString());
+#endif
 				}
 			});
 		}
@@ -677,7 +687,9 @@ namespace Components
 
 			if (data.empty() || !list.ParseFromString(data)) 
 			{
+#ifdef DEBUG
 				Logger::Print("Received invalid node list from %s!\n", address.GetCString());
+#endif
 				return;
 			}
 
