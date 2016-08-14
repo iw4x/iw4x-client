@@ -294,9 +294,10 @@ namespace Components
 			info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
 			info.Set("hc", (Dvar::Var("g_hardcore").Get<bool>() ? "1" : "0"));
 			info.Set("securityLevel", fmt::sprintf("%i", Dvar::Var("sv_securityLevel").Get<int>()));
+			info.Set("sv_running", (Dvar::Var("sv_running").Get<bool>() ? "1" : "0"));
 
 			// Ensure mapname is set
-			if (info.Get("mapname").empty())
+			if (info.Get("mapname").empty() || (Dvar::Var("party_enable").Get<bool>() && Dvar::Var("party_host").Get<bool>() && !Dvar::Var("sv_running").Get<bool>()))
 			{
 				info.Set("mapname", Dvar::Var("ui_mapname").Get<const char*>());
 			}

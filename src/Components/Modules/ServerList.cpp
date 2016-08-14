@@ -87,7 +87,14 @@ namespace Components
 
 			case Column::Mapname:
 			{
-				return  Game::UI_LocalizeMapName(server->Mapname.data());
+				if (server->SVRunning)
+				{
+					return Game::UI_LocalizeMapName(server->Mapname.data());
+				}
+				else
+				{
+					return Utils::String::VA("^3%s", Game::UI_LocalizeMapName(server->Mapname.data()));
+				}
 			}
 
 			case Column::Players:
@@ -402,6 +409,7 @@ namespace Components
 				server.MaxClients = atoi(info.Get("sv_maxclients").data());
 				server.Password = (atoi(info.Get("isPrivate").data()) != 0);
 				server.Hardcore = (atoi(info.Get("hc").data()) != 0);
+				server.SVRunning = (atoi(info.Get("sv_running").data()) != 0);
 				server.Ping = (Game::Sys_Milliseconds() - i->SendTime);
 				server.Addr = address;
 

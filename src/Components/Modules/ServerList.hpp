@@ -21,6 +21,7 @@ namespace Components
 			int MatchType;
 			int SecurityLevel;
 			bool Hardcore;
+			bool SVRunning;
 		};
 
 		ServerList();
