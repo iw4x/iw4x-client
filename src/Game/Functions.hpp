@@ -114,6 +114,9 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_RegisterColor_t)(const char* name, float r, float g, float b, float a, int flags, const char* description);
 	extern Dvar_RegisterColor_t Dvar_RegisterColor;
 
+	typedef void(__cdecl * Dvar_SetStringByName_t)(const char* cvar, const char* value);
+	extern Dvar_SetStringByName_t Dvar_SetStringByName;
+
 	typedef void(__cdecl * Dvar_GetUnpackedColorByName_t)(const char* name, float* color);
 	extern Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName;
 
@@ -281,12 +284,6 @@ namespace Game
 	typedef void* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
 
-	typedef char* (__cdecl * LocalizeString_t)(char*, char*);
-	extern LocalizeString_t LocalizeString;
-
-	typedef char* (__cdecl * LocalizeMapString_t)(char*);
-	extern LocalizeMapString_t LocalizeMapString;
-
 	typedef int(__cdecl * PC_ReadToken_t)(source_t*, token_t*);
 	extern PC_ReadToken_t PC_ReadToken;
 
@@ -359,8 +356,8 @@ namespace Game
 	typedef char* (__cdecl * SE_Load_t)(char* file, int Unk);
 	extern SE_Load_t SE_Load;
 
-	typedef void(__cdecl * Dvar_SetStringByName_t)(const char* cvar, const char* value);
-	extern Dvar_SetStringByName_t Dvar_SetStringByName;
+	typedef char* (__cdecl * SEH_StringEd_GetString_t)(const char* string);
+	extern SEH_StringEd_GetString_t SEH_StringEd_GetString;
 
 	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
 	extern SL_ConvertToString_t SL_ConvertToString;
@@ -415,6 +412,9 @@ namespace Game
 
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
+
+	typedef char* (__cdecl * UI_CheckStringTranslation_t)(char*, char*);
+	extern UI_CheckStringTranslation_t UI_CheckStringTranslation;
 
 	typedef MenuList *(__cdecl * UI_LoadMenus_t)(const char *menuFile, int imageTrack);
 	extern UI_LoadMenus_t UI_LoadMenus;

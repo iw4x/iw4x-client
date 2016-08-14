@@ -119,9 +119,6 @@ namespace Game
 
 	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;
 
-	LocalizeString_t LocalizeString = (LocalizeString_t)0x4FB010;
-	LocalizeMapString_t LocalizeMapString = (LocalizeMapString_t)0x44BB30;
-
 	PC_ReadToken_t PC_ReadToken = (PC_ReadToken_t)0x4ACCD0;
 	PC_ReadTokenHandle_t PC_ReadTokenHandle = (PC_ReadTokenHandle_t)0x4D2060;
 	PC_SourceError_t PC_SourceError = (PC_SourceError_t)0x467A00;
@@ -155,6 +152,8 @@ namespace Game
 
 	SE_Load_t SE_Load = (SE_Load_t)0x502A30;
 
+	SEH_StringEd_GetString_t SEH_StringEd_GetString = (SEH_StringEd_GetString_t)0x44BB30;
+
 	Dvar_SetStringByName_t Dvar_SetStringByName = (Dvar_SetStringByName_t)0x44F060;
 
 	SL_ConvertToString_t SL_ConvertToString = (SL_ConvertToString_t)0x4EC1D0;
@@ -181,6 +180,7 @@ namespace Game
 	Sys_Milliseconds_t Sys_Milliseconds = (Sys_Milliseconds_t)0x42A660;
 
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
+	UI_CheckStringTranslation_t UI_CheckStringTranslation = (UI_CheckStringTranslation_t)0x4FB010;
 	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;
 	UI_DrawHandlePic_t UI_DrawHandlePic = (UI_DrawHandlePic_t)0x4D0EA0;
 	UI_GetContext_t UI_GetContext = (UI_GetContext_t)0x4F8940;
@@ -284,7 +284,7 @@ namespace Game
 				char* uiName = &arenas[i].uiName[0];
 				if ((uiName[0] == 'M' && uiName[1] == 'P') || (uiName[0] == 'P' && uiName[1] == 'A')) // MPUI/PATCH
 				{
-					return LocalizeMapString(uiName);
+					return SEH_StringEd_GetString(uiName);
 				}
 
 				return uiName;
@@ -305,7 +305,7 @@ namespace Game
 		{
 			if (!_stricmp(gameTypes[i].gameType, gameType))
 			{
-				return LocalizeMapString(gameTypes[i].uiName);
+				return SEH_StringEd_GetString(gameTypes[i].uiName);
 			}
 		}
 
