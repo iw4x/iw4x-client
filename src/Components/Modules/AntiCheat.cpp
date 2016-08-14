@@ -300,7 +300,7 @@ namespace Components
 	{
 		AntiCheat::UninstallLibHook();
 
-		// Initialize directx :P
+		// Initialize directx
 		Utils::Hook::Call<void()>(0x5078C0)();
 
 		AntiCheat::InstallLibHook();
@@ -320,6 +320,16 @@ namespace Components
 		AntiCheat::UninstallLibHook();
 
 		Game::SND_InitDriver();
+
+		AntiCheat::InstallLibHook();
+	}
+
+	void AntiCheat::LostD3DStub()
+	{
+		AntiCheat::UninstallLibHook();
+
+		// Reset directx
+		Utils::Hook::Call<void()>(0x508070)();
 
 		AntiCheat::InstallLibHook();
 	}
@@ -623,6 +633,7 @@ namespace Components
 #else
 
 		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5082FD, AntiCheat::LostD3DStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x51C76C, AntiCheat::CinematicStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x418209, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x60BE9D, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();

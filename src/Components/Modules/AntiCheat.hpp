@@ -51,6 +51,7 @@ namespace Components
 		static HANDLE WINAPI LoadLibaryWStub(const wchar_t* library);
 #endif
 
+		static void LostD3DStub();
 		static void CinematicStub();
 		static void SoundInitStub(int a1, int a2, int a3);
 		static void SoundInitDriverStub();
