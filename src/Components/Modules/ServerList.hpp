@@ -19,6 +19,7 @@ namespace Components
 			bool Password;
 			int Ping;
 			int MatchType;
+			int SecurityLevel;
 			bool Hardcore;
 		};
 

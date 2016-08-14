@@ -398,6 +398,7 @@ namespace Components
 				server.Mod = info.Get("fs_game");
 				server.MatchType = atoi(info.Get("matchtype").data());
 				server.Clients = atoi(info.Get("clients").data());
+				server.SecurityLevel = atoi(info.Get("securityLevel").data());
 				server.MaxClients = atoi(info.Get("sv_maxclients").data());
 				server.Password = (atoi(info.Get("isPrivate").data()) != 0);
 				server.Hardcore = (atoi(info.Get("hc").data()) != 0);

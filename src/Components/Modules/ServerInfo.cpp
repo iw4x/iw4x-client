@@ -49,6 +49,7 @@ namespace Components
 			Dvar::Var("uiSi_ServerName").Set(info->Hostname);
 			Dvar::Var("uiSi_MaxClients").Set(info->Clients);
 			Dvar::Var("uiSi_Version").Set(info->Shortversion);
+			Dvar::Var("uiSi_SecurityLevel").Set(info->SecurityLevel);
 			Dvar::Var("uiSi_isPrivate").Set(info->Password ? "@MENU_YES" : "@MENU_NO");
 			Dvar::Var("uiSi_Hardcore").Set(info->Hardcore ? "@MENU_ENABLED" : "@MENU_DISABLED");
 			Dvar::Var("uiSi_KillCam").Set("@MENU_NO");
@@ -208,6 +209,7 @@ namespace Components
 				Dvar::Var("uiSi_ServerName").Set(info.Get("sv_hostname"));
 				Dvar::Var("uiSi_MaxClients").Set(info.Get("sv_maxclients"));
 				Dvar::Var("uiSi_Version").Set(info.Get("shortversion"));
+				Dvar::Var("uiSi_SecurityLevel").Set(info.Get("sv_securityLevel"));
 				Dvar::Var("uiSi_isPrivate").Set(info.Get("isPrivate") == "0" ? "@MENU_NO" : "@MENU_YES");
 				Dvar::Var("uiSi_Hardcore").Set(info.Get("g_hardcore") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");
 				Dvar::Var("uiSi_KillCam").Set(info.Get("scr_game_allowkillcam") == "0" ? "@MENU_NO" : "@MENU_YES");
