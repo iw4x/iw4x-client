@@ -167,6 +167,15 @@ namespace Components
 			unsigned __int64 xuid = strtoull(steamId.data(), nullptr, 16);
 			unsigned int id = static_cast<unsigned int>(~0x110000100000000 & xuid);
 
+			SteamID guid;
+			guid.Bits = xuid;
+
+			if (Bans::IsBanned({ guid, address.GetIP() }))
+			{
+				Network::Send(address, "error\nEXE_ERR_BANNED_PERM");
+				return;
+			}
+
 			if ((xuid & 0xFFFFFFFF00000000) != 0x110000100000000 || id != (Utils::Cryptography::JenkinsOneAtATime::Compute(connectData.publickey()) & ~0x80000000))
 			{
 				Network::Send(address, "error\nXUID doesn't match the certificate!");

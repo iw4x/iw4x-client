@@ -509,4 +509,7 @@ namespace Game
 
 	void SV_KickClient(client_t* client, const char* reason);
 	void SV_KickClientError(client_t* client, std::string reason);
+
+	void Scr_iPrintLn(int clientNum, std::string message);
+	void Scr_iPrintLnBold(int clientNum, std::string message);
 }

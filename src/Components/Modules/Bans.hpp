@@ -3,6 +3,8 @@ namespace Components
 	class Bans : public Component
 	{
 	public:
+		typedef std::pair<SteamID, Game::netIP_t> Entry;
+
 		Bans();
 		~Bans();
 
@@ -11,5 +13,20 @@ namespace Components
 #endif
 
 		static void BanClientNum(int num, std::string reason);
+
+		static bool IsBanned(Entry entry);
+		static void InsertBan(Entry entry);
+
+	private:
+		class BanList
+		{
+		public:
+			std::vector<SteamID> IDList;
+			std::vector<Game::netIP_t> IPList;
+		};
+
+		static std::mutex AccessMutex;
+
+		static BanList LoadBans();
 	};
 }
