@@ -45,31 +45,39 @@ namespace Components
 	{
 		std::string mapname = Dvar::Var("mapname").Get<const char*>();
 		std::string hostname = Colors::Strip(Dvar::Var("sv_hostname").Get<const char*>());
-		SetConsoleTitleA(hostname.data());
 
-		int clientCount = 0;
-		int maxclientCount = *Game::svs_numclients;
-
-		if (maxclientCount)
+		if (Console::HasConsole)
 		{
-			for (int i = 0; i < maxclientCount; ++i)
+			SetConsoleTitleA(hostname.data());
+
+			int clientCount = 0;
+			int maxclientCount = *Game::svs_numclients;
+
+			if (maxclientCount)
 			{
-				if (Game::svs_clients[i].state >= 3)
+				for (int i = 0; i < maxclientCount; ++i)
 				{
-					++clientCount;
+					if (Game::svs_clients[i].state >= 3)
+					{
+						++clientCount;
+					}
 				}
 			}
-		}
-		else
-		{
-			//maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
-			maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
-			clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData_s*>(0x1081C00));
-		}
+			else
+			{
+				//maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
+				maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
+				clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData_s*>(0x1081C00));
+			}
 
-		wclear(Console::InfoWindow);
-		wprintw(Console::InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (mapname.size() ? mapname.data() : "none"));
-		wnoutrefresh(Console::InfoWindow);
+			wclear(Console::InfoWindow);
+			wprintw(Console::InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (mapname.size() ? mapname.data() : "none"));
+			wnoutrefresh(Console::InfoWindow);
+		}
+		else if(IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE)
+		{
+			SetWindowTextA(*reinterpret_cast<HWND*>(0x64A3288), Utils::String::VA("IW4x(r" REVISION_STR REVISION_SUFFIX ") : %s", hostname.data())); 
+		}
 	}
 
 	void Console::ShowPrompt()
@@ -126,7 +134,6 @@ namespace Components
 		if ((currentTime - Console::LastRefresh) > 250)
 		{
 			Console::RefreshOutput();
-			Console::RefreshStatus();
 			Console::LastRefresh = currentTime;
 		}
 
@@ -498,6 +505,8 @@ namespace Components
 
 		// Don't resize the console
 		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).Install()->Quick(); 
+
+		Dedicated::OnFrame(Console::RefreshStatus);
 
 		// Code below is not necessary when performing unit tests!
 		if (Loader::PerformingUnitTests()) return;
