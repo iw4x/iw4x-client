@@ -78,7 +78,9 @@ namespace Components
 
 		for (auto component : Loader::Components)
 		{
+#ifdef DEBUG
 			Logger::Print("Testing '%s'...\n", component->GetName());
+#endif
 			auto startTime = std::chrono::high_resolution_clock::now();
 			bool testRes = component->UnitTest();
 			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
