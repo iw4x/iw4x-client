@@ -16,7 +16,7 @@ namespace Components
 			ConnectProtocol::EvaluateProtocol();
 		}
 
-		return (ConnectProtocol::ConnectContainer.ConnectString.size() > 0);
+		return (!ConnectProtocol::ConnectContainer.ConnectString.empty());
 	}
 
 	bool ConnectProtocol::InstallProtocol()

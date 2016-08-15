@@ -327,6 +327,9 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x45B98F, 0x5188FB); // profile_setBlacklevel
 		Utils::Hook::Set<DWORD>(0x45B9A5, 0x5188FB); // profile_toggleCanSkipOffensiveMissions
 
+		// Patch SV_IsClientUsingOnlineStatsOffline
+		Utils::Hook::Set<DWORD>(0x46B710, 0x90C3C033);
+
 		// Fix mouse pitch adjustments
 		UIScript::Add("updateui_mousePitch", [] ()
 		{

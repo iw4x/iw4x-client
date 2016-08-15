@@ -90,6 +90,23 @@ namespace Components
 
 		SteamID id = Party::GenerateLobbyId();
 
+		// Temporary workaround
+		// TODO: Patch the 127.0.0.1 -> loopback mapping in the party code
+		if (Party::Container.Target.IsLoopback())
+		{
+			if (*Game::numIP)
+			{
+				Party::Container.Target.SetIP(*Game::localIP);
+				Party::Container.Target.SetType(Game::netadrtype_t::NA_IP);
+
+				Logger::Print("Trying to connect to party with loopback address, using a local ip instead: %s\n", Party::Container.Target.GetCString());
+			}
+			else
+			{
+				Logger::Print("Trying to connect to party with loopback address, but no local ip was found.\n");
+			}
+		}
+
 		Party::LobbyMap[id.Bits] = Party::Container.Target;
 
 		Game::Steam_JoinLobby(id, 0);
@@ -219,6 +236,9 @@ namespace Components
 		Utils::Hook::Xor<DWORD>(0x4261A1, Game::dvar_flag::DVAR_FLAG_LATCHED);
 		Utils::Hook::Xor<DWORD>(0x4D376D, Game::dvar_flag::DVAR_FLAG_LATCHED);
 		Utils::Hook::Xor<DWORD>(0x5E3789, Game::dvar_flag::DVAR_FLAG_LATCHED);
+
+		// Patch Live_PlayerHasLoopbackAddr
+		//Utils::Hook::Set<DWORD>(0x418F30, 0x90C3C033);
 
 		Command::Add("connect", [] (Command::Params params)
 		{

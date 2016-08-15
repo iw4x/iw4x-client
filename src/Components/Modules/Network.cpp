@@ -109,6 +109,11 @@ namespace Components
 	}
 	bool Network::Address::IsLoopback()
 	{
+		if (this->GetIP().full == 0x100007f) // 127.0.0.1
+		{
+			return true;
+		}
+
 		return Game::NET_IsLocalAddress(this->address);
 	}
 	bool Network::Address::IsValid()

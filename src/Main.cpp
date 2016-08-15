@@ -4,9 +4,23 @@ namespace Main
 {
 	static Utils::Hook EntryPointHook;
 
+	void SetEnvironment()
+	{
+		wchar_t exeName[512];
+		GetModuleFileName(GetModuleHandle(NULL), exeName, sizeof(exeName) / 2);
+
+		wchar_t* exeBaseName = wcsrchr(exeName, L'\\');
+		exeBaseName[0] = L'\0';
+		exeBaseName++;
+
+		SetCurrentDirectory(exeName);
+	}
+
 	void Initialize()
 	{
 		Main::EntryPointHook.Uninstall();
+
+		SetEnvironment();
 
 		Utils::Cryptography::Initialize();
 		Components::Loader::Initialize();

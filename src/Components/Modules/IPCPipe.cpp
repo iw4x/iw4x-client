@@ -248,7 +248,7 @@ namespace Components
 		if (IPCPipe::ServerPipe) delete IPCPipe::ServerPipe;
 		if (IPCPipe::ClientPipe) delete IPCPipe::ClientPipe;
 
-		IPCPipe::ServerPipe = 0;
-		IPCPipe::ClientPipe = 0;
+		IPCPipe::ServerPipe = nullptr;
+		IPCPipe::ClientPipe = nullptr;
 	}
 }

@@ -219,7 +219,7 @@ namespace Components
 
 	void Auth::StoreKey()
 	{
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && Auth::GuidKey.IsValid())
 		{
 			Proto::Auth::Certificate cert;
 			cert.set_token(Auth::GuidToken.ToString());
@@ -363,7 +363,9 @@ namespace Components
 
 		Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", "");
 
+		// Load the key
 		Auth::LoadKey(true);
+		Steam::SteamUser()->GetSteamID();
 
 		QuickPatch::OnFrame(Auth::Frame);
 
