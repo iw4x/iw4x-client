@@ -5,7 +5,11 @@ namespace Components
 	public:
 		Auth();
 		~Auth();
+
+#ifdef DEBUG
 		const char* GetName() { return "Auth"; };
+#endif
+
 		bool UnitTest();
 
 		static void StoreKey();

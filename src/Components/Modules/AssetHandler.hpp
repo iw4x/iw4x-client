@@ -19,7 +19,10 @@ namespace Components
 
 		AssetHandler();
 		~AssetHandler();
+
+#ifdef DEBUG
 		const char* GetName() { return "AssetHandler"; };
+#endif
 
 		static void OnFind(Game::XAssetType type, Callback* callback);
 		static void OnLoad(RestrictCallback* callback);

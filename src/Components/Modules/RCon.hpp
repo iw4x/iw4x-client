@@ -5,7 +5,10 @@ namespace Components
 	public:
 		RCon();
 		~RCon();
+
+#ifdef DEBUG
 		const char* GetName() { return "RCon"; };
+#endif
 
 	private:
 		class Container

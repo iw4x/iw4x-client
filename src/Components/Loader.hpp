@@ -5,7 +5,11 @@ namespace Components
 	public:
 		Component() {};
 		virtual ~Component() {};
+
+#ifdef DEBUG
 		virtual const char* GetName() { return "Unknown"; };
+#endif
+
 		virtual bool UnitTest() { return true; }; // Unit testing entry
 	};
 
@@ -24,6 +28,7 @@ namespace Components
 }
 
 #include "Modules\Auth.hpp"
+#include "Modules\Bans.hpp"
 #include "Modules\Dvar.hpp"
 #include "Modules\Maps.hpp"
 #include "Modules\News.hpp"

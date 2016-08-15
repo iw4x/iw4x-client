@@ -8,7 +8,10 @@ namespace Components
 	public:
 		Console();
 		~Console();
+
+#ifdef DEBUG
 		const char* GetName() { return "Console"; };
+#endif
 
 	private:
 		static void ToggleConsole();

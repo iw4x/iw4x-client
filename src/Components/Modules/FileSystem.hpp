@@ -38,7 +38,10 @@ namespace Components
 		};
 
 		FileSystem();
+
+#ifdef DEBUG
 		const char* GetName() { return "FileSystem"; };
+#endif
 
 		static std::vector<std::string> GetFileList(std::string path, std::string extension);
 		static std::vector<std::string> GetSysFileList(std::string path, std::string extension, bool folders = false);

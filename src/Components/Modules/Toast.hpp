@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Toast();
 		~Toast();
+
+#ifdef DEBUG
 		const char* GetName() { return "Toast"; };
+#endif
 
 		static void Show(std::string image, std::string title, std::string description, int length);
 

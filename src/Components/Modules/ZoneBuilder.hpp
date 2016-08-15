@@ -72,7 +72,10 @@ namespace Components
 		};
 
 		ZoneBuilder();
+
+#ifdef DEBUG
 		const char* GetName() { return "ZoneBuilder"; };
+#endif
 
 		static bool IsEnabled();
 

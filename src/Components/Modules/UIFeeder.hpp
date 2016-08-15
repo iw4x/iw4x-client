@@ -16,7 +16,10 @@ namespace Components
 
 		UIFeeder();
 		~UIFeeder();
+
+#ifdef DEBUG
 		const char* GetName() { return "UIFeeder"; };
+#endif
 
 		static void Add(float feeder, GetItemCount_t itemCountCb, GetItemText_t itemTextCb, Select_t selectCb);
 

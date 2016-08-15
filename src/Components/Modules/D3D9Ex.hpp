@@ -4,7 +4,10 @@ namespace Components
 	{
 	public:
 		D3D9Ex();
+
+#ifdef DEBUG
 		const char* GetName() { return "D3D9Ex"; };
+#endif
 
 	private:
 

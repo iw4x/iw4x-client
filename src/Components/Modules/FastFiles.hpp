@@ -5,7 +5,10 @@ namespace Components
 	public:
 		FastFiles();
 		~FastFiles();
+
+#ifdef DEBUG
 		const char* GetName() { return "FastFiles"; };
+#endif
 
 		static void AddZonePath(std::string path);
 		static std::string Current();

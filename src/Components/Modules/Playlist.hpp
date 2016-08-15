@@ -7,7 +7,10 @@ namespace Components
 
 		Playlist();
 		~Playlist();
+
+#ifdef DEBUG
 		const char* GetName() { return "Playlist"; };
+#endif
 
 		static void LoadPlaylist();
 

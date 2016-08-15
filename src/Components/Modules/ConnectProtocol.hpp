@@ -4,7 +4,10 @@ namespace Components
 	{
 	public:
 		ConnectProtocol();
+
+#ifdef DEBUG
 		const char* GetName() { return "ConnectProtocol"; };
+#endif
 
 		static bool Evaluated();
 		static bool Used();

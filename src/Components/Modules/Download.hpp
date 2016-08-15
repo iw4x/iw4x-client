@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Download();
 		~Download();
+
+#ifdef DEBUG
 		const char* GetName() { return "Download"; };
+#endif
 
 	private:
 		static mg_mgr Mgr;

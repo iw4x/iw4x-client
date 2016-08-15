@@ -8,7 +8,10 @@ namespace Components
 
 		Renderer();
 		~Renderer();
+
+#ifdef DEBUG
 		const char* GetName() { return "Renderer"; };
+#endif
 
 		static int Width();
 		static int Height();

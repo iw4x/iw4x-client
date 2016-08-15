@@ -7,7 +7,10 @@ namespace Components
 
 		QuickPatch();
 		~QuickPatch();
+
+#ifdef DEBUG
 		const char* GetName() { return "QuickPatch"; };
+#endif
 
 		static void UnlockStats();
 		static void OnShutdown(Callback* callback);

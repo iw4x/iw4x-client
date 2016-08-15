@@ -25,7 +25,10 @@ namespace Components
 
 		Command();
 		~Command();
+
+#ifdef DEBUG
 		const char* GetName() { return "Command"; };
+#endif
 
 		static void Add(const char* name, Callback* callback);
 		static void AddSV(const char* name, Callback* callback);

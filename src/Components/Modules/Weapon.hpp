@@ -4,7 +4,10 @@ namespace Components
 	{
 	public:
 		Weapon();
+
+#ifdef DEBUG
 		const char* GetName() { return "Weapon"; };
+#endif
 
 	private:
 		static Game::XAssetHeader WeaponFileLoad(Game::XAssetType type, std::string filename);

@@ -5,7 +5,10 @@ namespace Components
 	public:
 		StringTable();
 		~StringTable();
+
+#ifdef DEBUG
 		const char* GetName() { return "StringTable"; };
+#endif
 
 	private:
 		static Utils::Memory::Allocator MemAllocator;

@@ -23,7 +23,10 @@ namespace Components
 
 		StructuredData();
 		~StructuredData();
+
+#ifdef DEBUG
 		const char* GetName() { return "StructuredData"; };
+#endif
 
 	private:
 		static void PatchPlayerDataEnum(Game::StructuredDataDef* data, PlayerDataType type, std::vector<std::string>& entries);

@@ -41,7 +41,10 @@ namespace Components
 
 		Dvar();
 		~Dvar();
+
+#ifdef DEBUG
 		const char* GetName() { return "Dvar"; };
+#endif
 
 		static void OnInit(Callback* callback);
 

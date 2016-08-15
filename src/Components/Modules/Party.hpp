@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Party();
 		~Party();
+
+#ifdef DEBUG
 		const char* GetName() { return "Party"; };
+#endif
 
 		static Network::Address Target();
 		static void Connect(Network::Address target);

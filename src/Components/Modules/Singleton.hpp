@@ -4,7 +4,10 @@ namespace Components
 	{
 	public:
 		Singleton();
+
+#ifdef DEBUG
 		const char* GetName() { return "Singleton"; };
+#endif
 
 		static bool IsFirstInstance();
 

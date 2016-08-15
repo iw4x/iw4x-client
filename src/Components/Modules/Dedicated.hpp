@@ -7,7 +7,10 @@ namespace Components
 
 		Dedicated();
 		~Dedicated();
+
+#ifdef DEBUG
 		const char* GetName() { return "Dedicated"; };
+#endif
 
 		static bool IsEnabled();
 

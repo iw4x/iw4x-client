@@ -5,7 +5,10 @@ namespace Components
 	public:
 		UIScript();
 		~UIScript();
+
+#ifdef DEBUG
 		const char* GetName() { return "UIScript"; };
+#endif
 
 		class Token
 		{

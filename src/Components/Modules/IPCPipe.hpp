@@ -62,7 +62,10 @@ namespace Components
 	public:
 		IPCPipe();
 		~IPCPipe();
+
+#ifdef DEBUG
 		const char* GetName() { return "IPCPipe"; };
+#endif
 
 		static bool Write(std::string command, std::string data);
 		static void On(std::string command, Pipe::PacketCallback callback);

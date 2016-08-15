@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Colors();
 		~Colors();
+
+#ifdef DEBUG
 		const char* GetName() { return "Colors"; };
+#endif
 
 		static void Strip(const char* in, char* out, int max);
 		static std::string Strip(std::string in);

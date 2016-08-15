@@ -16,7 +16,11 @@ namespace Components
 	public:
 		Node();
 		~Node();
+
+#ifdef DEBUG
 		const char* GetName() { return "Node"; };
+#endif
+
 		bool UnitTest();
 
 		static void SyncNodeList();

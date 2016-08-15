@@ -4,7 +4,10 @@ namespace Components
 	{
 	public:
 		Window();
+
+#ifdef DEBUG
 		const char* GetName() { return "Window"; };
+#endif
 
 		static int Width();
 		static int Height();

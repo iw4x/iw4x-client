@@ -5,7 +5,10 @@ namespace Components
 	public:
 		ModList();
 		~ModList();
+
+#ifdef DEBUG
 		const char* GetName() { return "ModList"; };
+#endif
 
 		static void RunMod(std::string mod);
 

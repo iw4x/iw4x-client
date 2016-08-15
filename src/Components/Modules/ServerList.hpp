@@ -26,7 +26,10 @@ namespace Components
 
 		ServerList();
 		~ServerList();
+
+#ifdef DEBUG
 		const char* GetName() { return "ServerList"; };
+#endif
 
 		static void Refresh();
 		static void RefreshVisibleList();

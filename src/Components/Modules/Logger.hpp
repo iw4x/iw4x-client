@@ -5,8 +5,10 @@ namespace Components
 	public:
 		Logger();
 		~Logger();
-		const char* GetName() { return "Logger"; };
 
+#ifdef DEBUG
+		const char* GetName() { return "Logger"; };
+#endif
 
 		static void MessagePrint(int channel, std::string message);
 		static void Print(int channel, const char* message, ...);

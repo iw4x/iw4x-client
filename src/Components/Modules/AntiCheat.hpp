@@ -5,7 +5,10 @@ namespace Components
 	public:
 		AntiCheat();
 		~AntiCheat();
-		const char* GetName() { return "Component"; }; // Wrong name :P
+
+#ifdef DEBUG
+		const char* GetName() { return "AntiCheat"; };
+#endif
 
 		static void CrashClient();
 		static void EmptyHash();

@@ -5,7 +5,11 @@ namespace Components
 	public:
 		News();
 		~News();
+
+#ifdef DEBUG
 		const char* GetName() { return "News"; };
+#endif
+
 		bool UnitTest();
 
 	private:

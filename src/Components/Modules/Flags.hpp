@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Flags();
 		~Flags();
+
+#ifdef DEBUG
 		const char* GetName() { return "Flags"; };
+#endif
 
 		static bool HasFlag(std::string flag);
 

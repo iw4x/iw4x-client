@@ -55,7 +55,10 @@ namespace Components
 
 		Network();
 		~Network();
+
+#ifdef DEBUG
 		const char* GetName() { return "Network"; };
+#endif
 
 		static void Handle(std::string packet, Callback* callback);
 		static void OnStart(CallbackRaw* callback);

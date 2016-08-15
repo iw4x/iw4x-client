@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Discovery();
 		~Discovery();
+
+#ifdef DEBUG
 		const char* GetName() { return "Discovery"; };
+#endif
 
 		static void Perform();
 

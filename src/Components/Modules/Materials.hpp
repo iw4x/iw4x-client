@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Materials();
 		~Materials();
+
+#ifdef DEBUG
 		const char* GetName() { return "Materials"; };
+#endif
 
 	private:
 		static Utils::Hook ImageVersionCheckHook;

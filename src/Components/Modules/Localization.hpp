@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Localization();
 		~Localization();
+
+#ifdef DEBUG
 		const char* GetName() { return "Localization"; };
+#endif
 
 		static void Set(std::string key, std::string value);
 		static const char* Get(const char* key);

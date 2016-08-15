@@ -5,7 +5,10 @@ namespace Components
 	public:
 		MusicalTalent();
 		~MusicalTalent();
+
+#ifdef DEBUG
 		const char* GetName() { return "MusicalTalent"; };
+#endif
 
 		static void Replace(std::string sound, const char* file);
 

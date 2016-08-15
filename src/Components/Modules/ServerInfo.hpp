@@ -5,7 +5,10 @@ namespace Components
 	public:
 		ServerInfo();
 		~ServerInfo();
+
+#ifdef DEBUG
 		const char* GetName() { return "ServerInfo"; };
+#endif
 
 		static Utils::InfoString GetInfo();
 

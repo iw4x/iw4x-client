@@ -6,7 +6,10 @@ namespace Components
 	{
 	public:
 		Exception();
+
+#ifdef DEBUG
 		const char* GetName() { return "Exception"; };
+#endif
 
 	private:
 		static LONG WINAPI ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo);

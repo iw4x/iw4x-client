@@ -8,7 +8,10 @@ namespace Components
 	public:
 		Menus();
 		~Menus();
+
+#ifdef DEBUG
 		const char* GetName() { return "Menus"; };
+#endif
 
 		static void FreeEverything();
 

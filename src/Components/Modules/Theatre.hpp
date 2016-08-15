@@ -4,7 +4,10 @@ namespace Components
 	{
 	public:
 		Theatre();
+
+#ifdef DEBUG
 		const char* GetName() { return "Theatre"; };
+#endif
 
 	private:
 		class Container

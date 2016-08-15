@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Script();
 		~Script();
+
+#ifdef DEBUG
 		const char* GetName() { return "Script"; };
+#endif
 
 		static int LoadScriptAndLabel(std::string script, std::string label);
 

@@ -5,7 +5,10 @@ namespace Components
 	public:
 		Maps();
 		~Maps();
+
+#ifdef DEBUG
 		const char* GetName() { return "Maps"; };
+#endif
 
 		static void AddDependency(std::string expression, std::string zone);
 
