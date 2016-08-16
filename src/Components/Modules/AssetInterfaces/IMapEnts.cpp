@@ -94,7 +94,6 @@ namespace Assets
 				Game::Stage* stage = &asset->stages[i];
 
 				buffer->SaveString(stage->stageName);
-
 				Utils::Stream::ClearPointer(&destStage->stageName);
 			}
 

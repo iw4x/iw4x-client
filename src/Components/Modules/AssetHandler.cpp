@@ -265,6 +265,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
 			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
 			AssetHandler::RegisterInterface(new Assets::IPhysCollmap());
+			AssetHandler::RegisterInterface(new Assets::IStringTable());
 			//AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
 			AssetHandler::RegisterInterface(new Assets::ILocalizedEntry());
 			AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());

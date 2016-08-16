@@ -68,6 +68,7 @@ namespace Components
 #include "AssetInterfaces\IPhysPreset.hpp"
 #include "AssetInterfaces\IXAnimParts.hpp"
 #include "AssetInterfaces\IPhysCollmap.hpp"
+#include "AssetInterfaces\IStringTable.hpp"
 #include "AssetInterfaces\IXModelSurfs.hpp"
 #include "AssetInterfaces\ILocalizedEntry.hpp"
 #include "AssetInterfaces\IMaterialPixelShader.hpp"

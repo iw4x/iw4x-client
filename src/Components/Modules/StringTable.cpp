@@ -47,9 +47,11 @@ namespace Components
 				{
 					for (int j = 0; j < table->columnCount; ++j)
 					{
+						std::string value = parsedTable.GetElementAt(i, j);
+
 						Game::StringTableCell* cell = &table->values[i * table->columnCount + j];
-						cell->hash = StringTable::Hash(parsedTable.GetElementAt(i, j).data());
-						cell->string = StringTable::MemAllocator.DuplicateString(parsedTable.GetElementAt(i, j));
+						cell->hash = StringTable::Hash(value.data());
+						cell->string = StringTable::MemAllocator.DuplicateString(value);
 						//if (!cell->string) cell->string = ""; // We have to assume it allocated successfully
 					}
 				}
