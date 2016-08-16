@@ -430,4 +430,28 @@ namespace Game
 	{
 		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x67, message.data()));
 	}
+
+	void IN_KeyUp(kbutton_t* button)
+	{
+		__asm 
+		{
+			push esi
+			mov esi, button
+			mov eax, 5A5580h
+			call eax
+			pop esi
+		}
+	}
+
+	void IN_KeyDown(kbutton_t* button)
+	{
+		__asm
+		{
+			push esi
+			mov esi, button
+			mov eax, 5A54E0h
+			call eax
+			pop esi
+		}
+	}
 }

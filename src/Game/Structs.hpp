@@ -136,8 +136,19 @@ namespace Game
 		const char *autoCompleteDir;
 		const char *autoCompleteExt;
 		void(__cdecl *function)();
-		int pad;
+		int unknown;
 	} cmd_function_t;
+
+#pragma pack(push, 4)
+	struct kbutton_t
+	{
+		int down[2];
+		unsigned int downtime;
+		unsigned int msec;
+		bool active;
+		bool wasPressed;
+	};
+#pragma pack(pop)
 
 	typedef struct
 	{

@@ -30,6 +30,8 @@ namespace Components
 		const char* GetName() { return "Command"; };
 #endif
 
+		static Game::cmd_function_t* Allocate();
+
 		static void Add(const char* name, Callback* callback);
 		static void AddSV(const char* name, Callback* callback);
 		static void AddRaw(const char* name, void(*callback)());
@@ -43,7 +45,6 @@ namespace Components
 		static std::map<std::string, wink::slot<Callback>> FunctionMap;
 		static std::map<std::string, wink::slot<Callback>> FunctionMapSV;
 
-		static Game::cmd_function_t* Allocate();
 		static void MainCallback();
 		static void MainCallbackSV();
 	};

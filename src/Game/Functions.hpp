@@ -33,7 +33,7 @@ namespace Game
 	typedef void(__cdecl * CL_SelectStringTableEntryInDvar_f_t)();
 	extern CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f;
 
-	typedef void(__cdecl * Cmd_AddCommand_t)(const char* name, void(*callback), cmd_function_t* data, char);
+	typedef void(__cdecl * Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_t* allocedCmd, char);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 
 	typedef void(__cdecl * Cmd_AddServerCommand_t)(const char* name, void(*callback), cmd_function_t* data);
@@ -512,4 +512,7 @@ namespace Game
 
 	void Scr_iPrintLn(int clientNum, std::string message);
 	void Scr_iPrintLnBold(int clientNum, std::string message);
+
+	void IN_KeyUp(kbutton_t* button);
+	void IN_KeyDown(kbutton_t* button);
 }

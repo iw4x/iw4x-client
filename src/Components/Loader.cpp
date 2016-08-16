@@ -12,6 +12,7 @@ namespace Components
 		Loader::Register(new Auth());
 		Loader::Register(new Bans());
 		Loader::Register(new Dvar());
+		Loader::Register(new Lean());
 		Loader::Register(new Maps());
 		Loader::Register(new News());
 		Loader::Register(new Node());
