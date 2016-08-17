@@ -868,11 +868,20 @@ namespace Game
 		int lastEntityRef;
 	} msg_t;
 
+	enum playerFlag
+	{
+		PLAYER_FLAG_NOCLIP = 1,
+		PLAYER_FLAG_UFO = 2,
+		PLAYER_FLAG_FROZEN = 4,
+	};
+
 	typedef struct gclient_s 
 	{
 		unsigned char pad[12764];
 		unsigned int team;
-		char pad2[1164];
+		char pad2[436];
+		int flags;
+		char pad3[724];
 	} gclient_t;
 
 	typedef struct gentity_s 

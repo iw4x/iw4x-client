@@ -8,6 +8,8 @@ namespace Game
 	Cbuf_AddServerText_t Cbuf_AddServerText = (Cbuf_AddServerText_t)0x4BB9B0;
 	Cbuf_AddText_t Cbuf_AddText = (Cbuf_AddText_t)0x404B20;
 
+	CG_GetClientNum_t CG_GetClientNum = (CG_GetClientNum_t)0x433700;
+
 	CL_GetClientName_t CL_GetClientName = (CL_GetClientName_t)0x4563D0;
 	CL_IsCgameInitialized_t CL_IsCgameInitialized = (CL_IsCgameInitialized_t)0x43EB20;
 	CL_ConnectFromParty_t CL_ConnectFromParty = (CL_ConnectFromParty_t)0x433D30;

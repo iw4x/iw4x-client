@@ -134,7 +134,74 @@ namespace Components
 
 	Command::Command()
 	{
-		// TODO: Add commands here?
+		// Disable native noclip command
+		Utils::Hook::Nop(0x474846, 5);
+
+		Command::Add("noclip", [] (Command::Params params)
+		{
+			if (!Game::CL_IsCgameInitialized())
+			{
+				Logger::Print("No game running!\n");
+				return;
+			}
+			if (!Dvar::Var("sv_cheats").Get<bool>())
+			{
+				Logger::Print("Cheats disabled!\n");
+				return;
+			}
+
+			int clientNum = Game::CG_GetClientNum();
+			if (clientNum >= 18)
+			{
+				Logger::Print("Unable to lookup our clientnum!\n");
+				return;
+			}
+
+			Game::gentity_t* entity = &Game::g_entities[clientNum];
+
+			if (!entity->client)
+			{
+				Logger::Print("Unable to find our client info!\n");
+				return;
+			}
+
+			entity->client->flags ^= Game::PLAYER_FLAG_NOCLIP;
+
+			Logger::Print("Noclip toggled\n");
+		});
+
+		Command::Add("ufo", [] (Command::Params params)
+		{
+			if (!Game::CL_IsCgameInitialized())
+			{
+				Logger::Print("No game running!\n");
+				return;
+			}
+			if (!Dvar::Var("sv_cheats").Get<bool>())
+			{
+				Logger::Print("Cheats disabled!\n");
+				return;
+			}
+
+			int clientNum = Game::CG_GetClientNum();
+			if (clientNum >= 18)
+			{
+				Logger::Print("Unable to lookup our clientnum!\n");
+				return;
+			}
+
+			Game::gentity_t* entity = &Game::g_entities[clientNum];
+
+			if (!entity->client)
+			{
+				Logger::Print("Unable to find our client info!\n");
+				return;
+			}
+
+			entity->client->flags ^= Game::PLAYER_FLAG_UFO;
+
+			Logger::Print("UFO toggled\n");
+		});
 	}
 
 	Command::~Command()

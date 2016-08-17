@@ -372,7 +372,6 @@ namespace Components
 			throw new std::exception();
 		});
 
-
 		// Debug patches
 #ifdef DEBUG
 		// ui_debugMode 1

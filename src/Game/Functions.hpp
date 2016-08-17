@@ -9,6 +9,9 @@ namespace Game
 	typedef void(__cdecl * Cbuf_AddText_t)(int localClientNum, const char *text);
 	extern Cbuf_AddText_t Cbuf_AddText;
 
+	typedef int(__cdecl * CG_GetClientNum_t)();
+	extern CG_GetClientNum_t CG_GetClientNum;
+
 	typedef char*(__cdecl * CL_GetClientName_t)(int localClientNum, int index, char *buf, size_t size);
 	extern CL_GetClientName_t CL_GetClientName;
 
