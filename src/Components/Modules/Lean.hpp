@@ -1,3 +1,6 @@
+#define BUTTON_FLAG_LEANLEFT 0x40
+#define BUTTON_FLAG_LEANRIGHT 0x80
+
 namespace Components
 {
 	class Lean : public Component
@@ -18,5 +21,8 @@ namespace Components
 
 		static void IN_LeanRight_Up();
 		static void IN_LeanRight_Down();
+
+		static void CL_CmdButtonsStub();
+		static void SetLeanFlags(Game::usercmd_s* cmds);
 	};
 }

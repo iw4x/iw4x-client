@@ -25,6 +25,37 @@ namespace Components
 		Game::IN_KeyDown(&Lean::in_leanright);
 	}
 
+	void Lean::SetLeanFlags(Game::usercmd_s* cmds)
+	{
+		if (Lean::in_leanleft.active || Lean::in_leanleft.wasPressed)
+		{
+			cmds->buttons |= BUTTON_FLAG_LEANLEFT;
+		}
+
+		if (Lean::in_leanright.active || Lean::in_leanright.wasPressed)
+		{
+			cmds->buttons |= BUTTON_FLAG_LEANRIGHT;
+		}
+
+		Lean::in_leanleft.wasPressed = 0;
+		Lean::in_leanright.wasPressed = 0;
+	}
+
+	void __declspec(naked) Lean::CL_CmdButtonsStub()
+	{
+		__asm
+		{
+			// CL_CmdButtons
+			mov ecx, 5A6510h
+			call ecx
+
+			push esi
+			call Lean::SetLeanFlags
+			pop esi
+			retn
+		}
+	}
+
 	Lean::Lean()
 	{
 		Game::Cmd_AddCommand("+leanleft", Lean::IN_LeanLeft_Down, Command::Allocate(), 1);
@@ -33,6 +64,6 @@ namespace Components
 		Game::Cmd_AddCommand("+leanright", Lean::IN_LeanRight_Down, Command::Allocate(), 1);
 		Game::Cmd_AddCommand("-leanright", Lean::IN_LeanRight_Up, Command::Allocate(), 1);
 
-		// TODO: Transmit correct button flags in CL_CmdButtons and more?
+		Utils::Hook(0x5A6D84, Lean::CL_CmdButtonsStub, HOOK_CALL).Install()->Quick();
 	}
 }

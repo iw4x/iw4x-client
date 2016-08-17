@@ -2436,6 +2436,22 @@ namespace Game
 		char spawnVarChars[2048];
 	};
 #pragma pack(pop)
+
+	// Probably incomplete or wrong!
+#pragma pack(push, 4)
+	struct usercmd_s
+	{
+		int serverTime;
+		int buttons;
+		char weapon;
+		char offHandIndex;
+		int angles[3];
+		char forwardmove;
+		char rightmove;
+		float meleeChargeYaw;
+		char meleeChargeDist;
+	};
+#pragma pack(pop)
 	
 		typedef char mapname_t[40];
 
