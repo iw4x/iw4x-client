@@ -1,3 +1,16 @@
+-- Quote the given string input as a C string
+function cstrquote(value)
+	result = value:gsub("\\", "\\\\")
+	result = result:gsub("\"", "\\\"")
+	result = result:gsub("\n", "\\n")
+	result = result:gsub("\t", "\\t")
+	result = result:gsub("\r", "\\r")
+	result = result:gsub("\a", "\\a")
+	result = result:gsub("\b", "\\b")
+	result = "\"" .. result .. "\""
+	return result
+end
+
 -- Option to allow copying the DLL file to a custom folder after build
 newoption {
 	trigger = "copy-to",
@@ -54,7 +67,7 @@ newaction {
 		proc:close()
 
 		-- get whether this is a clean revision (no uncommitted changes)
-		local proc = assert(io.popen("git status --porcelain", "r"))
+		proc = assert(io.popen("git status --porcelain", "r"))
 		local revClean = 1
 		local revCleanSuffix = ""
 		if assert(proc:read('*a')) ~= "" then
@@ -62,6 +75,10 @@ newaction {
 			revCleanSuffix = " (unclean)"
 		end
 		proc:close()
+
+		-- get current tag name (aka milestone for now)
+		proc = assert(io.popen("git tag"))
+		local tagName = assert(proc:read('*l'))
 
 		-- get old version number from version.hpp if any
 		local oldRevNumber = "(none)"
@@ -100,6 +117,7 @@ newaction {
 			versionHeader:write("\n")
 			versionHeader:write("#define REVISION " .. revNumber .. "\n")
 			versionHeader:write("#define REVISION_CLEAN " .. revClean .. "\n")
+			versionHeader:write("#define MILESTONE " .. cstrquote(tagName) .. "\n")
 			versionHeader:close()
 		end
 	end
