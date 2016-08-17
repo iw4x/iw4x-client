@@ -123,7 +123,6 @@ using namespace std::literals;
 
 #define BASEGAME "iw4x"
 #define CLIENT_CONFIG "iw4x_config.cfg"
-#define MILESTONE "beta"
 
 #define REVISION_STR STRINGIZE(REVISION)
 #if !REVISION_CLEAN
