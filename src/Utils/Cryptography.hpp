@@ -285,7 +285,7 @@ namespace Utils
 			static bool VerifyMessage(Key key, std::string message, std::string signature);
 		};
 
-		class TDES
+		class DES3
 		{
 		public:
 			static void Initialize();

@@ -8,7 +8,7 @@ namespace Utils
 	{
 		void Initialize()
 		{
-			TDES::Initialize();
+			DES3::Initialize();
 			Rand::Initialize();
 		}
 
@@ -122,14 +122,14 @@ namespace Utils
 
 #pragma endregion
 
-#pragma region TDES
+#pragma region DES3
 
-		void TDES::Initialize()
+		void DES3::Initialize()
 		{
 			register_cipher(&des3_desc);
 		}
 
-		std::string TDES::Encrypt(std::string text, std::string iv, std::string key)
+		std::string DES3::Encrypt(std::string text, std::string iv, std::string key)
 		{
 			std::string encData;
 			encData.resize(text.size());
@@ -144,7 +144,7 @@ namespace Utils
 			return encData;
 		}
 
-		std::string TDES::Decrpyt(std::string data, std::string iv, std::string key)
+		std::string DES3::Decrpyt(std::string data, std::string iv, std::string key)
 		{
 			std::string decData;
 			decData.resize(data.size());
