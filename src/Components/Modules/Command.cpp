@@ -161,7 +161,7 @@ namespace Components
 
 			if (!entity->client)
 			{
-				Logger::Print("Unable to find our client info!\n");
+				Logger::Print("Unable to find our client info, we're probably not the host!\n");
 				return;
 			}
 
@@ -194,7 +194,7 @@ namespace Components
 
 			if (!entity->client)
 			{
-				Logger::Print("Unable to find our client info!\n");
+				Logger::Print("Unable to find our client info, we're probably not the host!\n");
 				return;
 			}
 
