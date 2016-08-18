@@ -139,68 +139,48 @@ namespace Components
 
 		Command::Add("noclip", [] (Command::Params)
 		{
-			if (!Game::CL_IsCgameInitialized())
+			int clientNum = Game::CG_GetClientNum();
+			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
 			{
-				Logger::Print("No game running!\n");
+				Logger::Print("You are not hosting a match!\n");
+				Toast::Show("cardicon_stop", "Error", "You are not hosting a match!", 3000);
 				return;
 			}
+
 			if (!Dvar::Var("sv_cheats").Get<bool>())
 			{
 				Logger::Print("Cheats disabled!\n");
+				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", 3000);
 				return;
 			}
 
-			int clientNum = Game::CG_GetClientNum();
-			if (clientNum >= 18)
-			{
-				Logger::Print("Unable to lookup our clientnum!\n");
-				return;
-			}
-
-			Game::gentity_t* entity = &Game::g_entities[clientNum];
-
-			if (!entity->client)
-			{
-				Logger::Print("Unable to find our client info, we're probably not the host!\n");
-				return;
-			}
-
-			entity->client->flags ^= Game::PLAYER_FLAG_NOCLIP;
+			Game::g_entities[clientNum].client->flags ^= Game::PLAYER_FLAG_NOCLIP;
 
 			Logger::Print("Noclip toggled\n");
+			Toast::Show("cardicon_abduction", "Success", "Noclip toggled", 3000);
 		});
 
 		Command::Add("ufo", [] (Command::Params)
 		{
-			if (!Game::CL_IsCgameInitialized())
+			int clientNum = Game::CG_GetClientNum();
+			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
 			{
-				Logger::Print("No game running!\n");
+				Logger::Print("You are not hosting a match!\n");
+				Toast::Show("cardicon_stop", "Error", "You are not hosting a match!", 3000);
 				return;
 			}
+
 			if (!Dvar::Var("sv_cheats").Get<bool>())
 			{
 				Logger::Print("Cheats disabled!\n");
+				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", 3000);
 				return;
 			}
 
-			int clientNum = Game::CG_GetClientNum();
-			if (clientNum >= 18)
-			{
-				Logger::Print("Unable to lookup our clientnum!\n");
-				return;
-			}
-
-			Game::gentity_t* entity = &Game::g_entities[clientNum];
-
-			if (!entity->client)
-			{
-				Logger::Print("Unable to find our client info, we're probably not the host!\n");
-				return;
-			}
-
-			entity->client->flags ^= Game::PLAYER_FLAG_UFO;
+			Game::g_entities[clientNum].client->flags ^= Game::PLAYER_FLAG_UFO;
 
 			Logger::Print("UFO toggled\n");
+			Toast::Show("cardicon_abduction", "Success", "UFO toggled", 3000);
 		});
 	}
 
