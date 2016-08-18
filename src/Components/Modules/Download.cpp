@@ -40,7 +40,7 @@ namespace Components
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 	}
 
-	void Download::ListHandler(mg_connection *nc, int ev, void *ev_data)
+	void Download::ListHandler(mg_connection* nc, int ev, void* /*ev_data*/)
 	{
 		// Only handle http requests
 		if (ev != MG_EV_HTTP_REQUEST) return;
@@ -150,7 +150,7 @@ namespace Components
 		}
 	}
 
-	void Download::InfoHandler(mg_connection *nc, int ev, void *ev_data)
+	void Download::InfoHandler(mg_connection* nc, int ev, void* /*ev_data*/)
 	{
 		// Only handle http requests
 		if (ev != MG_EV_HTTP_REQUEST) return;

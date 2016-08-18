@@ -247,7 +247,7 @@ namespace Components
 		Proto::Auth::Certificate cert;
 		if (cert.ParseFromString(::Utils::IO::ReadFile("players/guid.dat")))
 		{
-			Auth::GuidKey.Import(cert.privatekey(), PK_PRIVATE);
+			Auth::GuidKey.Import(cert.privatekey());
 			Auth::GuidToken = cert.token();
 			Auth::ComputeToken = cert.ctoken();
 		}
@@ -386,7 +386,7 @@ namespace Components
 		Utils::Hook(0x41D3E3, Auth::SendConnectDataStub, HOOK_CALL).Install()->Quick();
 
 		// Guid command
-		Command::Add("guid", [] (Command::Params params)
+		Command::Add("guid", [] (Command::Params)
 		{
 			Logger::Print("Your guid: %llX\n", Steam::SteamUser()->GetSteamID().Bits);
 		});

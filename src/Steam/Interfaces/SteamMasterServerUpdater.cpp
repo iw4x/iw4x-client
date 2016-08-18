@@ -1,5 +1,7 @@
 #include "STDInclude.hpp"
 
+STEAM_IGNORE_WARNINGS_START
+
 namespace Steam
 {
 	void MasterServerUpdater::SetActive(bool bActive)
@@ -65,3 +67,5 @@ namespace Steam
 		return 0;
 	}
 }
+
+STEAM_IGNORE_WARNINGS_END

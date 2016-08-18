@@ -778,7 +778,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("listnodes", [] (Command::Params params)
+		Command::Add("listnodes", [] (Command::Params)
 		{
 			Logger::Print("Nodes: %d (%d)\n", Node::Nodes.size(), Node::GetValidNodeCount());
 
@@ -803,7 +803,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("syncnodes", [] (Command::Params params)
+		Command::Add("syncnodes", [] (Command::Params)
 		{
 			Logger::Print("Re-Synchronizing nodes...\n");
 			

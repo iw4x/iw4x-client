@@ -8,10 +8,10 @@ namespace Components
 		public:
 			virtual ~IAsset() {};
 			virtual Game::XAssetType GetType() { return Game::XAssetType::ASSET_TYPE_INVALID; };
-			virtual void Mark(Game::XAssetHeader header, ZoneBuilder::Zone* builder) { /*ErrorTypeNotSupported(this);*/ };
-			virtual void Save(Game::XAssetHeader header, ZoneBuilder::Zone* builder) { /*ErrorTypeNotSupported(this);*/ };
-			virtual void Dump(Game::XAssetHeader header) { /*ErrorTypeNotSupported(this);*/ };
-			virtual void Load(Game::XAssetHeader* header, std::string name, ZoneBuilder::Zone* builder) { /*ErrorTypeNotSupported(this);*/ };
+			virtual void Mark(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
+			virtual void Save(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
+			virtual void Dump(Game::XAssetHeader /*header*/) { /*ErrorTypeNotSupported(this);*/ };
+			virtual void Load(Game::XAssetHeader* /*header*/, std::string name, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
 		};
 
 		typedef Game::XAssetHeader(Callback)(Game::XAssetType type, std::string name);

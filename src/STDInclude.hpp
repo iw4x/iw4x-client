@@ -5,9 +5,6 @@
 
 #ifndef RESOURCE_DATA
 
-// Disable irrelevant warnings
-#pragma warning(disable: 4100) // Unreferenced parameter (steam has to have them and other stubs as well, due to their calling convention)
-
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 
@@ -46,6 +43,7 @@
 // Ignore the warnings, it's no our code!
 #pragma warning(push)
 #pragma warning(disable: 4005)
+#pragma warning(disable: 4100)
 #pragma warning(disable: 4389)
 #pragma warning(disable: 4702)
 #pragma warning(disable: 6001)

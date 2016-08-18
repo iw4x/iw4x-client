@@ -317,11 +317,16 @@ namespace Game
 	float UI_GetScoreboardLeft(void* a1)
 	{
 		static int func = 0x590390;
+		float result = 0;
+
 		__asm
 		{
-			mov eax, [esp + 4h]
+			mov eax, a1
 			call func
+			mov result, eax
 		}
+
+		return result;
 	}
 
 	const char *DB_GetXAssetName(XAsset *asset)

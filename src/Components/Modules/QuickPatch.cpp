@@ -17,7 +17,7 @@ namespace Components
 
 	void QuickPatch::ShutdownStub(int channel, const char* message)
 	{
-		Game::Com_Printf(0, message);
+		Game::Com_Printf(channel, message);
 		QuickPatch::ShutdownSignal();
 	}
 
@@ -362,12 +362,12 @@ namespace Components
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
 
-		Command::Add("unlockstats", [] (Command::Params params)
+		Command::Add("unlockstats", [] (Command::Params)
 		{
 			QuickPatch::UnlockStats();
 		});
 
-		Command::Add("crash", [] (Command::Params params)
+		Command::Add("crash", [] (Command::Params)
 		{
 			throw new std::exception();
 		});

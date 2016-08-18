@@ -41,7 +41,7 @@ namespace Components
 		}
 		else
 		{
-			Game::Com_PrintMessage(0, message.data(), 0);
+			Game::Com_PrintMessage(channel, message.data(), 0);
 		}
 	}
 

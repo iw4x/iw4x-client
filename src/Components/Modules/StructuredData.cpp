@@ -84,7 +84,7 @@ namespace Components
 		// Only execute this when building zones
 		if (!ZoneBuilder::IsEnabled()) return;
 
-		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string filename, bool* restrict)
+		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string filename, bool* /*restrict*/)
 		{
 			// Only intercept playerdatadef loading
 			if (filename != "mp/playerdata.def" || type != Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF) return;

@@ -1,5 +1,7 @@
 #include "STDInclude.hpp"
 
+STEAM_IGNORE_WARNINGS_START
+
 namespace Steam
 {
 	bool Networking::SendP2PPacket(SteamID steamIDRemote, const void *pubData, unsigned int cubData, int eP2PSendType)
@@ -102,3 +104,5 @@ namespace Steam
 		return 0;
 	}
 }
+
+STEAM_IGNORE_WARNINGS_END

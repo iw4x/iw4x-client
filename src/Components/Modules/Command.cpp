@@ -137,7 +137,7 @@ namespace Components
 		// Disable native noclip command
 		Utils::Hook::Nop(0x474846, 5);
 
-		Command::Add("noclip", [] (Command::Params params)
+		Command::Add("noclip", [] (Command::Params)
 		{
 			if (!Game::CL_IsCgameInitialized())
 			{
@@ -170,7 +170,7 @@ namespace Components
 			Logger::Print("Noclip toggled\n");
 		});
 
-		Command::Add("ufo", [] (Command::Params params)
+		Command::Add("ufo", [] (Command::Params)
 		{
 			if (!Game::CL_IsCgameInitialized())
 			{

@@ -236,7 +236,7 @@ namespace Components
 		});
 
 		// Test pipe functionality by sending pings
-		Command::Add("ipcping", [] (Command::Params params)
+		Command::Add("ipcping", [] (Command::Params)
 		{
 			Logger::Print("Sending ping to pipe!\n");
 			IPCPipe::Write("ping", "");

@@ -1,5 +1,7 @@
 #include "STDInclude.hpp"
 
+STEAM_IGNORE_WARNINGS_START
+
 namespace Steam
 {
 	bool RemoteStorage::FileWrite(const char *pchFile, const void *pvData, int cubData)
@@ -41,3 +43,5 @@ namespace Steam
 		return false;
 	}
 }
+
+STEAM_IGNORE_WARNINGS_END

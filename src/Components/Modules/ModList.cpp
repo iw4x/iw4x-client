@@ -25,7 +25,7 @@ namespace Components
 		return ModList::Mods.size();
 	}
 
-	const char* ModList::GetItemText(unsigned int index, int column)
+	const char* ModList::GetItemText(unsigned int index, int /*column*/)
 	{
 		if (index < ModList::Mods.size())
 		{

@@ -113,7 +113,7 @@ namespace Components
 		Localization::TempLocalizeMap.clear();
 	}
 
-	void __stdcall Localization::SetStringStub(const char* key, const char* value, bool isEnglish)
+	void __stdcall Localization::SetStringStub(const char* key, const char* value, bool /*isEnglish*/)
 	{
 		Localization::Set(key, value);
 	}

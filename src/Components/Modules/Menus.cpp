@@ -506,7 +506,7 @@ namespace Components
 		Menus::MenuList.clear();
 	}
 
-	Game::XAssetHeader Menus::MenuLoad(Game::XAssetType type, std::string filename)
+	Game::XAssetHeader Menus::MenuLoad(Game::XAssetType /*type*/, std::string filename)
 	{
 		return { Game::Menus_FindByName(Game::uiContext, filename.data()) };
 	}
@@ -644,7 +644,7 @@ namespace Components
 			Game::Menus_OpenByName(Game::uiContext, params[1]);
 		});
 
-		Command::Add("reloadmenus", [] (Command::Params params)
+		Command::Add("reloadmenus", [] (Command::Params)
 		{
 			// Close all menus
 			Game::Menus_CloseAll(Game::uiContext);

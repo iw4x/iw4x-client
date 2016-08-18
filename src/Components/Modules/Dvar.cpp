@@ -136,7 +136,7 @@ namespace Components
 		Dvar::RegistrationSignal.connect(callback);
 	}
 
-	Game::dvar_t* Dvar::RegisterName(const char* name, const char* default, Game::dvar_flag flag, const char* description)
+	Game::dvar_t* Dvar::RegisterName(const char* name, const char* /*default*/, Game::dvar_flag flag, const char* description)
 	{
 		// Run callbacks
 		Dvar::RegistrationSignal();

@@ -252,7 +252,7 @@ namespace Components
 	}
 
 	// Omit column here
-	const char* Theatre::GetDemoText(unsigned int item, int column)
+	const char* Theatre::GetDemoText(unsigned int item, int /*column*/)
 	{
 		if (item < Theatre::DemoContainer.Demos.size())
 		{

@@ -2,6 +2,11 @@
 
 #define STEAM_EXPORT extern "C" __declspec(dllexport)
 
+#define STEAM_IGNORE_WARNINGS_START __pragma(warning(push)) \
+                                    __pragma(warning(disable: 4100)) 
+
+#define STEAM_IGNORE_WARNINGS_END   __pragma(warning(pop)) 
+
 typedef union
 {
 	struct

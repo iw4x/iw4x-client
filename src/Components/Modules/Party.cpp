@@ -69,7 +69,7 @@ namespace Components
 		Command::Execute("openmenu menu_xboxlive_partyended");
 	}
 
-	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int value, int min, int max, Game::dvar_flag flag, const char* description)
+	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int /*value*/, int /*min*/, int max, Game::dvar_flag flag, const char* description)
 	{
 		return Dvar::Register<int>(name, 1, 1, max, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED | flag, description).Get<Game::dvar_t*>();
 	}
@@ -249,7 +249,7 @@ namespace Components
 
 			Party::Connect(Network::Address(params[1]));
 		});
-		Command::Add("reconnect", [] (Command::Params params)
+		Command::Add("reconnect", [] (Command::Params)
 		{
 			Party::Connect(Party::Container.Target);
 		});

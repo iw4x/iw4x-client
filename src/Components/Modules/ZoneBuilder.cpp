@@ -500,7 +500,7 @@ namespace Components
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
 
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* /*restrict*/)
 			{
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{

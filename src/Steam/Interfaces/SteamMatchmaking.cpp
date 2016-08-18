@@ -1,5 +1,7 @@
 #include "STDInclude.hpp"
 
+STEAM_IGNORE_WARNINGS_START
+
 namespace Steam
 {
 	int Matchmaking::GetFavoriteGameCount()
@@ -191,3 +193,5 @@ namespace Steam
 		return true;
 	}
 }
+
+STEAM_IGNORE_WARNINGS_END

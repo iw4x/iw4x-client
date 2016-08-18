@@ -1,6 +1,8 @@
 #include "STDInclude.hpp"
 
-using namespace Components;
+using namespace Components; 
+
+STEAM_IGNORE_WARNINGS_START
 
 namespace Steam
 {
@@ -118,3 +120,5 @@ namespace Steam
 	{
 	}
 }
+
+STEAM_IGNORE_WARNINGS_END

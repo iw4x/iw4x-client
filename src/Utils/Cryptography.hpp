@@ -194,7 +194,7 @@ namespace Utils
 					}
 				}
 
-				void Import(std::string key, int type = PK_PRIVATE)
+				void Import(std::string key)
 				{
 					this->Free();
 
