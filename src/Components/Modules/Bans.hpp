@@ -27,6 +27,6 @@ namespace Components
 
 		static std::mutex AccessMutex;
 
-		static BanList LoadBans();
+		static void LoadBans(BanList* list);
 	};
 }
