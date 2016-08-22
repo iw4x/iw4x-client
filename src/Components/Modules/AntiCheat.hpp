@@ -1,3 +1,8 @@
+#ifndef DEBUG
+// Hide AntiCheat in embeded symbol names
+#define AntiCheat SubComponent
+#endif
+
 namespace Components
 {
 	class AntiCheat : public Component
