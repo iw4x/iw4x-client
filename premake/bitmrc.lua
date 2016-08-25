@@ -28,16 +28,17 @@ function bitmrc.project()
 
 		includedirs
 		{
-			path.join(bitmrc.settings.source, "src"),
+			path.join(bitmrc.settings.source, "BitMRC/include"),
 		}
 		files
 		{
-			path.join(bitmrc.settings.source, "src/**.cc"),
+			path.join(bitmrc.settings.source, "BitMRC/**.cpp"),
 		}
 		removefiles
 		{
 			-- path.join(bitmrc.settings.source, "src/**/*test.cc"),
 			path.join(bitmrc.settings.source, "BitMRC/main.cpp"),
+			path.join(bitmrc.settings.source, "BitMRC/tests/**"),
 		}
 
 		-- dependencies

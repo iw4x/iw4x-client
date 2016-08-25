@@ -134,8 +134,8 @@ require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/winksignals"
 require "premake/zlib"
-require "premake/bitmrc"
 require "premake/libcryptopp"
+require "premake/bitmrc"
 
 fmt.setup
 {
@@ -184,13 +184,13 @@ zlib.setup
 	},
 	source = path.join(depsBasePath, "zlib"),
 }
-bitmrc.setup
-{
-	source = path.join(depsBasePath, "bitmrc"),
-}
 libcryptopp.setup
 {
 	source = path.join(depsBasePath, "libcryptopp"),
+}
+bitmrc.setup
+{
+	source = path.join(depsBasePath, "bitmrc"),
 }
 
 workspace "iw4x"
@@ -264,8 +264,8 @@ workspace "iw4x"
 		protobuf.import()
 		winksignals.import()
 		zlib.import()
-		bitmrc.import()
 		libcryptopp.import()
+		bitmrc.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -365,8 +365,8 @@ workspace "iw4x"
 		winksignals.project()
 		zlib.project()
 		protobuf.project()
-		bitmrc.project()
 		libcryptopp.project()
+		bitmrc.project()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"
