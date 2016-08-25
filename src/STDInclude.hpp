@@ -60,6 +60,8 @@
 #include <json11.hpp>
 #include <tomcrypt.h>
 #include <wink/signal.hpp>
+// Bitmessage
+#include <BitMRC.h>
 
 #ifdef max
 #undef max
