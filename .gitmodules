@@ -32,6 +32,3 @@
 [submodule "deps/bitmrc"]
 	path = deps/bitmrc
 	url = https://github.com/mrc-g/BitMRC.git
-[submodule "deps/libcryptopp"]
-	path = deps/libcryptopp
-	url = https://github.com/weidai11/cryptopp.git

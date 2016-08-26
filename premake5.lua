@@ -137,6 +137,10 @@ require "premake/zlib"
 require "premake/libcryptopp"
 require "premake/bitmrc"
 
+bitmrc.setup
+{
+	source = path.join(depsBasePath, "bitmrc"),
+}
 fmt.setup
 {
 	source = path.join(depsBasePath, "fmt"),
@@ -144,6 +148,10 @@ fmt.setup
 json11.setup
 {
 	source = path.join(depsBasePath, "json11"),
+}
+libcryptopp.setup
+{
+	source = path.join(depsBasePath, "bitmrc/libcryptopp"),
 }
 libtomcrypt.setup
 {
@@ -183,14 +191,6 @@ zlib.setup
 		"ZLIB_CONST",
 	},
 	source = path.join(depsBasePath, "zlib"),
-}
-libcryptopp.setup
-{
-	source = path.join(depsBasePath, "libcryptopp"),
-}
-bitmrc.setup
-{
-	source = path.join(depsBasePath, "bitmrc"),
 }
 
 workspace "iw4x"
