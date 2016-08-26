@@ -11,8 +11,12 @@ end
 function sqlite3.import()
 	if not sqlite3.settings then error("Run sqlite3.setup first") end
 
-	links { "sqlite3" }
 	sqlite3.includes()
+	sqlite3.links()
+end
+
+function sqlite3.links()
+	links { "sqlite3" }
 end
 
 function sqlite3.includes()
@@ -34,8 +38,8 @@ function sqlite3.project()
 
 		files
 		{
-			path.join(sqlite3.settings.source, "*.c"),
-			path.join(sqlite3.settings.source, "*.h"),
+			path.join(sqlite3.settings.source, "sqlite3*.c"),
+			path.join(sqlite3.settings.source, "sqlite3*.h"),
 		}
 
 		-- not our code, ignore POSIX usage warnings for now

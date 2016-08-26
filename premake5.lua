@@ -369,6 +369,7 @@ workspace "iw4x"
 		mongoose.project()
 		pdcurses.project()
 		protobuf.project()
+		sqlite3.project()
 		winksignals.project()
 		zlib.project()
 
