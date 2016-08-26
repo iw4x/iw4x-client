@@ -11,6 +11,9 @@ end
 function bitmrc.import()
 	if not bitmrc.settings then error("Run bitmrc.setup first") end
 
+	sqlite3.import()
+	libcryptopp.import()
+
 	bitmrc.includes()
 end
 
@@ -29,27 +32,27 @@ function bitmrc.project()
 		includedirs
 		{
 			path.join(bitmrc.settings.source, "BitMRC/include"),
+			path.join(bitmrc.settings.source, "BitMRC/Storage/include"),
 		}
 		files
 		{
-			path.join(bitmrc.settings.source, "BitMRC/**.cpp"),
+			path.join(bitmrc.settings.source, "BitMRC/*.cpp"),
+			path.join(bitmrc.settings.source, "BitMRC/Storage/*.cpp"),
 		}
 		removefiles
 		{
 			-- path.join(bitmrc.settings.source, "src/**/*test.cc"),
-			path.join(bitmrc.settings.source, "BitMRC/main.cpp"),
+			path.join(bitmrc.settings.source, "BitMRC/main.*"),
+			path.join(bitmrc.settings.source, "BitMRC/class.*"),
 			path.join(bitmrc.settings.source, "BitMRC/tests/**"),
-			path.join(bitmrc.settings.source, "BitMRC/Storage/**"),
-			path.join(bitmrc.settings.source, "BitMRC/Debug/**"),
 		}
 
 		-- dependencies
+		sqlite3.import()
 		libcryptopp.import()
 
-		-- not our code, ignore POSIX usage warnings for now
 		defines { "_SCL_SECURE_NO_WARNINGS" }
 		warnings "Off"
 
-		-- always build as static lib, as we include our custom classes and therefore can't perform shared linking
 		kind "StaticLib"
 end

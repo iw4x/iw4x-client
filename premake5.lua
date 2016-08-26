@@ -125,17 +125,18 @@ newaction {
 
 depsBasePath = "./deps"
 
+require "premake/bitmrc"
 require "premake/fmt"
 require "premake/json11"
+require "premake/libcryptopp"
 require "premake/libtomcrypt"
 require "premake/libtommath"
 require "premake/mongoose"
 require "premake/pdcurses"
 require "premake/protobuf"
+require "premake/sqlite3"
 require "premake/winksignals"
 require "premake/zlib"
-require "premake/libcryptopp"
-require "premake/bitmrc"
 
 bitmrc.setup
 {
@@ -180,6 +181,10 @@ pdcurses.setup
 protobuf.setup
 {
 	source = path.join(depsBasePath, "protobuf"),
+}
+sqlite3.setup
+{
+	source = path.join(depsBasePath, "bitmrc/windows/sqlite3"),
 }
 winksignals.setup
 {
@@ -255,6 +260,7 @@ workspace "iw4x"
 		buildoptions { "/Zm200" }
 
 		-- Dependency libraries
+		bitmrc.import()
 		fmt.import()
 		json11.import()
 		libtomcrypt.import()
@@ -264,8 +270,6 @@ workspace "iw4x"
 		protobuf.import()
 		winksignals.import()
 		zlib.import()
-		libcryptopp.import()
-		bitmrc.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -356,17 +360,17 @@ workspace "iw4x"
 		}
 
 	group "External dependencies"
+		bitmrc.project()
 		fmt.project()
 		json11.project()
+		libcryptopp.project()
 		libtomcrypt.project()
 		libtommath.project()
 		mongoose.project()
 		pdcurses.project()
+		protobuf.project()
 		winksignals.project()
 		zlib.project()
-		protobuf.project()
-		libcryptopp.project()
-		bitmrc.project()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"
