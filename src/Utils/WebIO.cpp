@@ -134,24 +134,25 @@ namespace Utils
 		return body;
 	}
 
-	std::string WebIO::PostFile(std::string url, std::string data)
+	std::string WebIO::PostFile(std::string url, std::string filename, std::string fieldname, std::string data)
 	{
 		WebIO::SetURL(url);
-		return WebIO::PostFile(data);
+		return WebIO::PostFile(filename, fieldname, data);
 	}
 
-	std::string WebIO::PostFile(std::string data)
+	std::string WebIO::PostFile(std::string filename, std::string fieldname, std::string data)
 	{
 		WebIO::Params headers;
 
-		std::string boundary = "----WebKitFormBoundaryHoLVocRsBxs71fU6";
+		std::string boundary = "----FormBoundary" + Utils::Cryptography::SHA256::Compute(fmt::sprintf("%d", timeGetTime()));
 		headers["Content-Type"] = "multipart/form-data, boundary=" + boundary;
 
-		std::string body = "--" + boundary + "\r\n";
-		body += "Content-Disposition: form-data; name=\"files[]\"; filename=\"minidump.dmp\"\r\n";
-		body += "Content-Type: application/octet-stream\r\n\r\n";
-		body += data + "\r\n";
-		body += "--" + boundary + "--\r\n";
+		std::string body;
+		body.append("--" + boundary + "\r\n");
+		body.append("Content-Disposition: form-data; name=\"" + fieldname + "\"; filename=\"" + filename + "\"\r\n");
+		body.append("Content-Type: application/octet-stream\r\n\r\n");
+		body.append(data + "\r\n");
+		body.append("--" + boundary + "--\r\n");
 
 		headers["Content-Length"] = fmt::sprintf("%u", body.size());
 
