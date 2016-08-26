@@ -13,8 +13,12 @@ function bitmrc.import()
 
 	sqlite3.import()
 	libcryptopp.import()
-
+	bitmrc.links()
 	bitmrc.includes()
+end
+
+function bitmrc.links()
+	links { "bitmrc" }
 end
 
 function bitmrc.includes()

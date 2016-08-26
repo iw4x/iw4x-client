@@ -11,7 +11,12 @@ end
 function libcryptopp.import()
 	if not libcryptopp.settings then error("Run libcryptopp.setup first") end
 
+	libcryptopp.links()
 	libcryptopp.includes()
+end
+
+function libcryptopp.links()
+	links { "libcryptopp" }
 end
 
 function libcryptopp.includes()
