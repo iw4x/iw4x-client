@@ -136,7 +136,16 @@ namespace Components
 		if (Dvar::Var("sv_mapRotation").Get<std::string>().empty())
 		{
 			Logger::Print("No rotation defined, restarting map.\n");
-			Command::Execute(fmt::sprintf("map %s", Dvar::Var("mapname").Get<const char*>()), true);
+
+			if (!Dvar::Var("sv_cheats").Get<bool>())
+			{
+				Command::Execute(fmt::sprintf("map %s", Dvar::Var("mapname").Get<const char*>()), true);
+			}
+			else
+			{
+				Command::Execute(fmt::sprintf("devmap %s", Dvar::Var("mapname").Get<const char*>()), true);
+			}
+
 			return;
 		}
 

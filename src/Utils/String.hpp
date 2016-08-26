@@ -12,9 +12,14 @@ namespace Utils
 			static int g_vaNextBufferIndex = 0;
 
 			char* buffer = g_vaBuffer[g_vaNextBufferIndex];
-			std::string str = fmt::sprintf(message, std::forward<Args>(args)...);
-			strncpy_s(g_vaBuffer[g_vaNextBufferIndex], str.data(), VA_BUFFER_SIZE);
 			g_vaNextBufferIndex = (g_vaNextBufferIndex + 1) % VA_BUFFER_COUNT;
+
+			std::string str = fmt::sprintf(message, std::forward<Args>(args)...);
+
+			if (memmove_s(buffer, VA_BUFFER_SIZE, str.data(), str.size() + 1))
+			{
+				*buffer = 0; // Error
+			}
 
 			return buffer;
 		}

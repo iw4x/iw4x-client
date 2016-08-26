@@ -1,5 +1,3 @@
-#define UPLOAD_URL "https://reich.io/upload.php"
-
 namespace Components
 {
 	class Exception : public Component

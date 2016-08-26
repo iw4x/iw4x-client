@@ -11,12 +11,12 @@ namespace Components
 {
 	bool Exception::UploadMinidump(std::string filename)
 	{
-		Utils::WebIO webio("Firefucks", UPLOAD_URL);
-
 		if (Utils::IO::FileExists(filename))
 		{
+			Utils::WebIO webio("Firefucks", "https://reich.io/upload.php");
+
 			std::string buffer = Utils::IO::ReadFile(filename);
-			std::string result = webio.PostFile(buffer);
+			std::string result = webio.PostFile("minidump.dmp", "files[]", buffer);
 
 			std::string errors;
 			json11::Json object = json11::Json::parse(result, errors);
