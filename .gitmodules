@@ -31,4 +31,4 @@
 	url = https://github.com/miguelmartin75/Wink-Signals.git
 [submodule "deps/bitmrc"]
 	path = deps/bitmrc
-	url = https://github.com/mrc-g/BitMRC.git
+	url = git@github.com:iw4x-dev-urandom/BitMRC.git
