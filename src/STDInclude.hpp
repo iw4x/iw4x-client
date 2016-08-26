@@ -46,6 +46,7 @@
 #pragma warning(disable: 4100)
 #pragma warning(disable: 4389)
 #pragma warning(disable: 4702)
+#pragma warning(disable: 4996) // _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6011)
 #pragma warning(disable: 6031)
