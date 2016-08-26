@@ -33,7 +33,14 @@ end
 function libcryptopp.project()
 	if not libcryptopp.settings then error("Run libcryptopp.setup first") end
 
+	rule "MASM_dummy"
+		location "./build"
+		fileextension ""
+		filename "masm_dummy"
+
 	externalrule "MASM"
+		filename "masm_dummy"
+		location "./build"
 		buildmessage "Building and assembling %(Identity)..."
 		propertydefinition {
 			name = "PreprocessorDefinitions",
