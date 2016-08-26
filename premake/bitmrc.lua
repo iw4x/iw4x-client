@@ -11,8 +11,8 @@ end
 function bitmrc.import()
 	if not bitmrc.settings then error("Run bitmrc.setup first") end
 
-	sqlite3.import()
-	libcryptopp.import()
+	sqlite3.links()
+	libcryptopp.links()
 	bitmrc.links()
 	bitmrc.includes()
 end
