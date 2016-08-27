@@ -115,5 +115,20 @@ namespace Utils
 
 			return fmt::sprintf("%02d:%02d:%02d", hoursTotal, minutes, seconds);
 		}
+
+		// Encodes a given string in Base64
+		std::string encodeBase64(const char* input, const unsigned long inputSize) {
+			unsigned long outlen = long(inputSize + (inputSize / 3.0) + 16);
+			unsigned char* outbuf = new unsigned char[outlen]; //Reserve output memory
+			base64_encode((unsigned char*)input, inputSize, outbuf, &outlen);
+			std::string ret((char*)outbuf, outlen);
+			delete[] outbuf;
+			return ret;
+		}
+
+		// Encodes a given string in Base64
+		std::string encodeBase64(const std::string& input) {
+			return encodeBase64(input.c_str(), input.size());
+		}
 	}
 }

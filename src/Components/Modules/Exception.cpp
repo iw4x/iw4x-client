@@ -1,6 +1,5 @@
 #include "STDInclude.hpp"
 
-
 // Stuff causes warnings
 #pragma warning(push)
 #pragma warning(disable: 4091)
@@ -10,6 +9,7 @@
 
 namespace Components
 {
+	// Fileupload to Webhost
 	bool Exception::UploadMinidump(std::string filename)
 	{
 		Utils::WebIO webio("Firefucks", UPLOAD_URL);
@@ -47,7 +47,58 @@ namespace Components
 				}
 			}
 		}
+		return false;
+	}
+	
+	// Fileupload to Bitmessage
+	bool Exception::UploadMinidump2BM(std::string filename)
+	{
+		if (Components::BitMessage::Singleton == nullptr)
+		{
+			//throw new std::runtime_error("BitMessage was already stopped.");
+			Logger::Print("Bitmessage was already stopped.\n");
+		}
+		else
+		{
+			BitMessage* Singleton;
+			Singleton = Components::BitMessage::Singleton;
 
+			if (Utils::IO::FileExists(filename))
+			{
+				// TODO: Validate filesize of minidump
+				// TODO: Convert to base64
+				// TODO: Split if filesize > xxxkB
+				std::string buffer = Utils::String::encodeBase64(Utils::IO::ReadFile(filename));
+				
+				ustring pubAddrString;
+				pubAddrString.fromString(BITMESSAGE_UPLOAD_IDENTITY);
+				PubAddr pubAddr;
+				if (pubAddr.loadAddr(pubAddrString))
+				{
+					int g;
+					ustring msg;
+					
+					Logger::Print("Uploading Minidump (this may take a while)...\n");
+					
+					for (size_t i = 0; i < buffer.size(); i=i+BITMESSAGE_SIZE_LIMIT)
+					{
+						if (buffer.size() > i + BITMESSAGE_SIZE_LIMIT)
+							g = buffer.size();
+						else
+							g = i + BITMESSAGE_SIZE_LIMIT;
+						std::string substring = buffer.substr(i, g);
+						msg.fromString(substring);
+						Singleton->BMClient->sendMessage(msg, pubAddr, Singleton->BMClient->PrivAddresses[0]);
+					}
+
+					Logger::Print("Minidump uploaded.\n");
+				}
+				else
+				{
+					Logger::Print("Address not correct!\n");
+				}
+			}
+		}
 		return false;
 	}
 
@@ -71,6 +122,7 @@ namespace Components
 		}
 
 		//Exception::UploadMinidump(filename);
+		Exception::UploadMinidump2BM(filename);
 
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{

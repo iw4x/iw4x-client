@@ -39,5 +39,8 @@ namespace Utils
 		std::string DumpHex(std::string data, std::string separator = " ");
 
 		std::string XOR(std::string str, char value);
+
+		std::string encodeBase64(const char* input, const unsigned long inputSize);
+		std::string encodeBase64(const std::string& input);
 	}
 }
