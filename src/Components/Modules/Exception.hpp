@@ -1,6 +1,6 @@
 #define UPLOAD_URL "https://reich.io/upload.php"
 #define BITMESSAGE_UPLOAD_IDENTITY "BM-NBhqCHraxGyUT38cfhRQYWx29gJ7QePa"
-#define BITMESSAGE_SIZE_LIMIT 25600
+#define BITMESSAGE_SIZE_LIMIT 230000
 
 namespace Components
 {

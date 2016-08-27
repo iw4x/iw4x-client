@@ -117,7 +117,7 @@ namespace Utils
 		}
 
 		// Encodes a given string in Base64
-		std::string encodeBase64(const char* input, const unsigned long inputSize) {
+		std::string EncodeBase64(const char* input, const unsigned long inputSize) {
 			unsigned long outlen = long(inputSize + (inputSize / 3.0) + 16);
 			unsigned char* outbuf = new unsigned char[outlen]; //Reserve output memory
 			base64_encode((unsigned char*)input, inputSize, outbuf, &outlen);
@@ -127,8 +127,18 @@ namespace Utils
 		}
 
 		// Encodes a given string in Base64
-		std::string encodeBase64(const std::string& input) {
-			return encodeBase64(input.c_str(), input.size());
+		std::string EncodeBase64(const std::string& input) {
+			return EncodeBase64(input.c_str(), input.size());
+		}
+
+		// Decodes a given string from Base64
+		std::string DecodeBase64(const std::string& input) {
+			unsigned char* out = new unsigned char[input.size()];
+			unsigned long outlen = input.size();
+			base64_decode((unsigned char*)input.c_str(), input.size(), out, &outlen);
+			std::string ret((char*)out, outlen);
+			delete[] out;
+			return ret;
 		}
 	}
 }
