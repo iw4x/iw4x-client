@@ -34,10 +34,14 @@ namespace Components
 
 		this->BMClient->start();
 
-		Command::Add("bm_sendb", [](Command::Params) {
+		Command::Add("bm_sendb", [](Command::Params params) {
+			if (params.Length() < 2) return;
+
 			ustring msg;
-			msg.appendVarString("testing");
+			msg.appendVarString(params.Join(1));
+			Logger::Print("Sending broadcast...\n");
 			Singleton->BMClient->sendBroadcast(msg, Singleton->BMClient->PrivAddresses[0]);
+			Logger::Print("Broadcast done.\n");
 		});
 		Command::Add("bm_check_messages", [](Command::Params) {
 			while (Singleton->BMClient->new_messages.size() > 0)
@@ -104,10 +108,10 @@ namespace Components
 			Singleton->SaveNodes();
 		});
 		Command::Add("bm_address_public", [](Command::Params params) {
-			if (params.Length() < 1) return;
+			if (params.Length() < 2) return;
 
 			ustring addre;
-			addre.fromString(params[0]);
+			addre.fromString(params.Join(1));
 			PubAddr address;
 			if (address.loadAddr(addre))
 			{
@@ -121,10 +125,10 @@ namespace Components
 			}
 		});
 		Command::Add("bm_address_broadcast", [](Command::Params params) {
-			if (params.Length() < 1) return;
+			if (params.Length() < 2) return;
 
 			ustring addre;
-			addre.fromString(params[0]);
+			addre.fromString(params.Join(1));
 			PubAddr address;
 			if (address.loadAddr(addre))
 			{
