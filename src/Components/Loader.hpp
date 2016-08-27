@@ -49,6 +49,7 @@ namespace Components
 #include "Modules\Network.hpp"
 #include "Modules\Theatre.hpp"
 #include "Modules\Node.hpp"
+#include "Modules\BitMessage.hpp"
 #include "Modules\RCon.hpp"
 #include "Modules\Party.hpp" // Destroys the order, but requires network classes :D
 #include "Modules\Download.hpp"

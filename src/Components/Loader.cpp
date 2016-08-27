@@ -16,6 +16,9 @@ namespace Components
 		Loader::Register(new Maps());
 		Loader::Register(new News());
 		Loader::Register(new Node());
+#ifndef DISABLE_BITMESSAGE
+		Loader::Register(new BitMessage());
+#endif
 		Loader::Register(new RCon());
 		Loader::Register(new Menus());
 		Loader::Register(new Toast());
