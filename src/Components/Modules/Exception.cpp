@@ -193,5 +193,19 @@ namespace Components
 
 			Command::Execute(command, false);
 		});
+		Command::Add("debug_minidump", [](Command::Params)
+		{
+			CONTEXT ectx;
+			
+			EXCEPTION_RECORD erec;
+			erec.ExceptionAddress = 0x0;
+			erec.ExceptionCode = EXCEPTION_BREAKPOINT;
+
+			EXCEPTION_POINTERS eptr;
+			eptr.ContextRecord = &ectx;
+			eptr.ExceptionRecord = &erec;
+
+			Exception::ExceptionFilter(&eptr);
+		});
 	}
 }
