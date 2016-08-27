@@ -2,8 +2,8 @@
 
 #ifndef DISABLE_BITMESSAGE
 
-#define BITMESSAGE_NODE_STORAGE_FILENAME std::string("players/bmnodes.dat")
-#define BITMESSAGE_OBJECT_STORAGE_FILENAME std::string("save")
+#define BITMESSAGE_KEYS_FILENAME std::string("players/bmkey.dat")
+#define BITMESSAGE_OBJECT_STORAGE_FILENAME std::string("players/bmstore.dat")
 
 static const std::map<std::string, unsigned short> bitmessageKnownNodes = {
 	// https://github.com/Bitmessage/PyBitmessage/blob/4622d952e47a7dbb3a90aa79f4d20163aa14b041/src/defaultKnownNodes.py#L15-L23
@@ -37,18 +37,9 @@ namespace Components
 #endif
 
 		static BitMessage* Singleton;
-		BitMRC* BMClient = new BitMRC();
-
-		void SaveNodes();
-		bool HasNode(std::string ip, std::string port);
-
-		void SaveObjectsAndKeys();
+		BitMRC* BMClient;
 
 	private:
-		void LoadNodes();
-
-		void LoadObjectsAndKeys();
-
 		bool InitAddr();
 	};
 }
