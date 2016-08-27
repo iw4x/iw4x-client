@@ -34,6 +34,26 @@ namespace Components
 
 		this->BMClient->start();
 
+		Command::Add("bm_send", [](Command::Params params) {
+			if (params.Length() < 3) return;
+
+			ustring pubAddrString;
+			pubAddrString.fromString(params[1]);
+			PubAddr pubAddr;
+			if (pubAddr.loadAddr(pubAddrString))
+			{
+				ustring msg;
+				msg.fromString(params.Join(2));
+
+				Logger::Print("Sending message (this may take a while)...\n");
+				Singleton->BMClient->sendMessage(msg, pubAddr, Singleton->BMClient->PrivAddresses[0]);
+				Logger::Print("Message sent.\n");
+			}
+			else
+			{
+				Logger::Print("Address not correct!\n");
+			}
+		});
 		Command::Add("bm_sendb", [](Command::Params params) {
 			if (params.Length() < 2) return;
 
