@@ -61,8 +61,9 @@
 #include <json11.hpp>
 #include <tomcrypt.h>
 #include <wink/signal.hpp>
-// Bitmessage
+#ifndef DISABLE_BITMESSAGE
 #include <BitMRC.h>
+#endif
 
 #ifdef max
 #undef max
@@ -112,6 +113,7 @@
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "Urlmon.lib")
 #pragma comment(lib, "Advapi32.lib")
+#pragma comment(lib, "rpcrt4.lib")
 
 // Enable additional literals
 using namespace std::literals;

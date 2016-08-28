@@ -134,21 +134,30 @@ namespace Utils
 		return body;
 	}
 
-	std::string WebIO::PostFile(std::string url, std::string data)
+	std::string WebIO::PostFile(std::string url, std::string data, std::string fieldName, std::string fileName)
 	{
 		WebIO::SetURL(url);
-		return WebIO::PostFile(data);
+		return WebIO::PostFile(data, fieldName, fileName);
 	}
 
-	std::string WebIO::PostFile(std::string data)
+	std::string WebIO::PostFile(std::string data, std::string fieldName, std::string fileName)
 	{
 		WebIO::Params headers;
 
 		std::string boundary = "----WebKitFormBoundaryHoLVocRsBxs71fU6";
 		headers["Content-Type"] = "multipart/form-data, boundary=" + boundary;
 
+		Utils::String::Replace(fieldName, "\"", "\\\"");
+		Utils::String::Replace(fieldName, "\\", "\\\\");
+		Utils::String::Replace(fileName, "\"", "\\\"");
+		Utils::String::Replace(fileName, "\\", "\\\\");
+
 		std::string body = "--" + boundary + "\r\n";
-		body += "Content-Disposition: form-data; name=\"files[]\"; filename=\"minidump.dmp\"\r\n";
+		body += "Content-Disposition: form-data; name=\"";
+		body += fieldName;
+		body += "\"; filename=\"";
+		body += fileName;
+		body += "\"\r\n";
 		body += "Content-Type: application/octet-stream\r\n\r\n";
 		body += data + "\r\n";
 		body += "--" + boundary + "--\r\n";

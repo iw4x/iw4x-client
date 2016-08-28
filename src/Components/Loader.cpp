@@ -45,6 +45,7 @@ namespace Components
 		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());
 		Loader::Register(new Exception());
+		Loader::Register(new MinidumpUpload());
 		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
 		Loader::Register(new FileSystem());

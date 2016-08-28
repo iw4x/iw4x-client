@@ -42,6 +42,7 @@ namespace Utils
 
 		std::string EncodeBase64(const char* input, const unsigned long inputSize);
 		std::string EncodeBase64(const std::string& input);
-		std::string DecodeBase64(const std::string& input);
+
+		std::string GenerateUUIDString();
 	}
 }

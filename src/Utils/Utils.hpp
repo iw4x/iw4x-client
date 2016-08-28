@@ -2,6 +2,7 @@ namespace Utils
 {
 	std::string GetMimeType(std::string url);
 	std::string ParseChallenge(std::string data);
+	void OutputDebugLastError();
 
 	template <typename T> void Merge(std::vector<T>* target, T* source, size_t length)
 	{

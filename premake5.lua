@@ -43,6 +43,21 @@ newoption {
 	description = "Always compile unit tests."
 }
 
+newoption {
+	trigger = "force-exception-handler",
+	description = "Install custom unhandled exception handler even for Debug builds."
+}
+
+newoption {
+	trigger = "force-minidump-upload",
+	description = "Upload minidumps even for Debug builds."
+}
+
+newoption {
+	trigger = "disable-bitmessage",
+	description = "Disable use of BitMessage completely."
+}
+
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -242,6 +257,9 @@ workspace "iw4x"
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
 		}
+		removefiles {
+			"./src/Components/Modules/Tor.*",
+		}
 
 		-- Debug flags
 		if _OPTIONS["ac-debug-detections"] then
@@ -253,6 +271,18 @@ workspace "iw4x"
 		if _OPTIONS["force-unit-tests"] then
 			defines { "FORCE_UNIT_TESTS" }
 		end
+		if _OPTIONS["force-minidump-upload"] then
+			defines { "FORCE_MINIDUMP_UPLOAD" }
+		end
+		if _OPTIONS["force-exception-handler"] then
+			defines { "FORCE_EXCEPTION_HANDLER" }
+		end
+		if _OPTIONS["disable-bitmessage"] then
+			defines { "DISABLE_BITMESSAGE" }
+			removefiles {
+				"./src/Components/Modules/BitMessage.*",
+			}
+		end
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
@@ -260,7 +290,9 @@ workspace "iw4x"
 		buildoptions { "/Zm200" }
 
 		-- Dependency libraries
-		bitmrc.import()
+		if not _OPTIONS["disable-bitmessage"] then
+			bitmrc.import()
+		end
 		fmt.import()
 		json11.import()
 		libtomcrypt.import()
@@ -360,16 +392,18 @@ workspace "iw4x"
 		}
 
 	group "External dependencies"
-		bitmrc.project()
+		if not _OPTIONS["disable-bitmessage"] then
+			bitmrc.project()
+			libcryptopp.project()
+			sqlite3.project()
+		end
 		fmt.project()
 		json11.project()
-		libcryptopp.project()
 		libtomcrypt.project()
 		libtommath.project()
 		mongoose.project()
 		pdcurses.project()
 		protobuf.project()
-		sqlite3.project()
 		winksignals.project()
 		zlib.project()
 

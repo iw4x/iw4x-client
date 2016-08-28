@@ -8,14 +8,13 @@ using namespace Utils;
 
 namespace Components
 {
-	BitMessage* BitMessage::Singleton = nullptr;
+	BitMessage* BitMessage::Singleton = NULL;
 
 	BitMessage::BitMessage()
 	{
-		if (Singleton != nullptr)
-		{
-			throw new std::runtime_error("Only 1 BitMessage instance allowed at the same time.");
-		}
+		if (Singleton != NULL)
+			throw new std::runtime_error("Only one instance of BitMessage allowed at the same time.");
+
 		Singleton = this;
 
 		Logger::Print("Initializing BitMessage...\n");
@@ -158,6 +157,92 @@ namespace Components
 				Logger::Print("Address not correct!\n");
 			}
 		});
+	}
+
+	BitMessage::~BitMessage()
+	{
+		Singleton = NULL;
+	}
+
+	void BitMessage::SetDefaultTTL(time_t ttl)
+	{
+		this->BMClient->defaultTTL = ttl;
+	}
+
+	bool BitMessage::RequestPublicKey(std::string targetAddress)
+	{
+		// Convert to ustring
+		ustring targetAddressU;
+		targetAddressU.fromString(targetAddress);
+
+		// Convert to PubAddr
+		PubAddr pubAddr;
+		if (!pubAddr.loadAddr(targetAddressU))
+		{
+			return false;
+		}
+
+		// Request public key!
+		this->BMClient->getPubKey(pubAddr);
+		return true;
+	}
+
+	bool BitMessage::Subscribe(std::string targetAddress)
+	{
+		// Convert to ustring
+		ustring targetAddressU;
+		targetAddressU.fromString(targetAddress);
+
+		// Convert to PubAddr
+		PubAddr pubAddr;
+		if (!pubAddr.loadAddr(targetAddressU))
+		{
+			return false;
+		}
+
+		// Subscribe!
+		this->BMClient->addSubscription(pubAddr);
+		return true;
+	}
+
+	bool BitMessage::SendMsg(std::string targetAddress, std::string message, time_t ttl)
+	{
+		// Convert target address to ustring
+		ustring targetAddressU;
+		targetAddressU.fromString(targetAddress);
+
+		// Convert target address to PubAddr
+		PubAddr pubAddr;
+		if (!pubAddr.loadAddr(targetAddressU))
+		{
+			return false;
+		}
+
+		// Convert message to ustring
+		ustring messageU;
+		messageU.fromString(message);
+
+		// Send the message
+		// TODO - Set mutex on priv when accessing first private address
+		if (ttl > 0)
+			this->BMClient->sendMessage(messageU, pubAddr, this->BMClient->PrivAddresses[0], ttl);
+		else
+			this->BMClient->sendMessage(messageU, pubAddr, this->BMClient->PrivAddresses[0]);
+		return true;
+	}
+
+	bool BitMessage::SendBroadcast(std::string message, time_t ttl)
+	{
+		// Convert message to ustring
+		ustring messageU;
+		messageU.fromString(message);
+
+		// TODO - Set mutex on priv when accessing first private address
+		if (ttl > 0)
+			this->BMClient->sendBroadcast(messageU, this->BMClient->PrivAddresses[0], ttl);
+		else
+			this->BMClient->sendBroadcast(messageU, this->BMClient->PrivAddresses[0]);
+		return true;
 	}
 
 	bool BitMessage::InitAddr()

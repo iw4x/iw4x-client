@@ -62,6 +62,7 @@ namespace Components
 #include "Modules\Dedicated.hpp"
 #include "Modules\Discovery.hpp"
 #include "Modules\Exception.hpp"
+#include "Modules\MinidumpUpload.hpp"
 #include "Modules\FastFiles.hpp"
 #include "Modules\Materials.hpp"
 #include "Modules\Singleton.hpp"

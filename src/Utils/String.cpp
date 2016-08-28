@@ -131,14 +131,16 @@ namespace Utils
 			return EncodeBase64(input.c_str(), input.size());
 		}
 
-		// Decodes a given string from Base64
-		std::string DecodeBase64(const std::string& input) {
-			unsigned char* out = new unsigned char[input.size()];
-			unsigned long outlen = input.size();
-			base64_decode((unsigned char*)input.c_str(), input.size(), out, &outlen);
-			std::string ret((char*)out, outlen);
-			delete[] out;
-			return ret;
+		// Generates a UUID and returns the string representation of it
+		std::string GenerateUUIDString() {
+			// Generate UUID data
+			UUID uuid;
+			UuidCreate(&uuid);
+
+			// Convert to string representation
+			char* strdata = NULL;
+			UuidToStringA(&uuid, (RPC_CSTR*)&strdata);
+			return std::string(strdata);
 		}
 	}
 }
