@@ -197,27 +197,65 @@ namespace Components
 #pragma warning(disable:4740) // flow in or out of inline asm code suppresses global optimization
 		Command::Add("debug_minidump", [](Command::Params)
 		{
-			CONTEXT ectx;
-			ZeroMemory(&ectx, sizeof(CONTEXT));
-			ectx.ContextFlags = CONTEXT_CONTROL;
+			// The following code was taken from VC++ 8.0 CRT (invarg.c: line 104)
 
-			__asm
-			{
-			Label:
-				mov[ectx.Ebp], ebp;
-				mov[ectx.Esp], esp;
-				mov eax, [Label];
-				mov[ectx.Eip], eax;
+			EXCEPTION_RECORD ExceptionRecord;
+			CONTEXT ContextRecord;
+			memset(&ContextRecord, 0, sizeof(CONTEXT));
+
+#ifdef _X86_
+
+			__asm {
+				mov dword ptr[ContextRecord.Eax], eax
+				mov dword ptr[ContextRecord.Ecx], ecx
+				mov dword ptr[ContextRecord.Edx], edx
+				mov dword ptr[ContextRecord.Ebx], ebx
+				mov dword ptr[ContextRecord.Esi], esi
+				mov dword ptr[ContextRecord.Edi], edi
+				mov word ptr[ContextRecord.SegSs], ss
+				mov word ptr[ContextRecord.SegCs], cs
+				mov word ptr[ContextRecord.SegDs], ds
+				mov word ptr[ContextRecord.SegEs], es
+				mov word ptr[ContextRecord.SegFs], fs
+				mov word ptr[ContextRecord.SegGs], gs
+				pushfd
+				pop[ContextRecord.EFlags]
 			}
 
-			EXCEPTION_RECORD erec;
-			ZeroMemory(&erec, sizeof(EXCEPTION_RECORD));
-			erec.ExceptionAddress = _ReturnAddress();
-			erec.ExceptionCode = EXCEPTION_BREAKPOINT;
+			ContextRecord.ContextFlags = CONTEXT_CONTROL;
+#pragma warning(push)
+#pragma warning(disable:4311)
+			ContextRecord.Eip = (ULONG)_ReturnAddress();
+			ContextRecord.Esp = (ULONG)_AddressOfReturnAddress();
+#pragma warning(pop)
+			ContextRecord.Ebp = *((ULONG *)_AddressOfReturnAddress() - 1);
 
-			auto eptr = new EXCEPTION_POINTERS();
-			eptr->ContextRecord = &ectx;
-			eptr->ExceptionRecord = &erec;
+
+#elif defined (_IA64_) || defined (_AMD64_)
+
+			/* Need to fill up the Context in IA64 and AMD64. */
+			RtlCaptureContext(&ContextRecord);
+
+#else  /* defined (_IA64_) || defined (_AMD64_) */
+
+			ZeroMemory(&ContextRecord, sizeof(ContextRecord));
+
+#endif  /* defined (_IA64_) || defined (_AMD64_) */
+
+			ZeroMemory(&ExceptionRecord, sizeof(EXCEPTION_RECORD));
+
+			ExceptionRecord.ExceptionCode = EXCEPTION_BREAKPOINT;
+			ExceptionRecord.ExceptionAddress = _ReturnAddress();
+
+
+			EXCEPTION_RECORD* pExceptionRecord = new EXCEPTION_RECORD;
+			memcpy(pExceptionRecord, &ExceptionRecord, sizeof(EXCEPTION_RECORD));
+			CONTEXT* pContextRecord = new CONTEXT;
+			memcpy(pContextRecord, &ContextRecord, sizeof(CONTEXT));
+
+			auto eptr = new EXCEPTION_POINTERS;
+			eptr->ExceptionRecord = pExceptionRecord;
+			eptr->ContextRecord = pContextRecord;
 
 			Exception::ExceptionFilter(eptr);
 		});
