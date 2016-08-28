@@ -257,9 +257,6 @@ workspace "iw4x"
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
 		}
-		removefiles {
-			"./src/Components/Modules/Tor.*",
-		}
 
 		-- Debug flags
 		if _OPTIONS["ac-debug-detections"] then
