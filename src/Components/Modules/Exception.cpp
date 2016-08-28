@@ -70,6 +70,10 @@ namespace Components
 			MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &ex, NULL, NULL);
 			CloseHandle(hFile);
 		}
+		else
+		{
+			MessageBoxA(0, "Failed to create file!", "ERROR", MB_ICONERROR);
+		}
 
 		//Exception::UploadMinidump(filename);
 
