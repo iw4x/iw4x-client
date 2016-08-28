@@ -26,7 +26,7 @@ namespace Components
 
 	std::string Minidump::ToString()
 	{
-		if (!Minidump::EnsureFileMapping()) return false;
+		if (!this->EnsureFileMapping()) return false;
 
 		auto pBuf = MapViewOfFile(this->mapFileHandle, FILE_MAP_READ, 0, 0, 0);
 		if (pBuf == NULL)
@@ -48,7 +48,7 @@ namespace Components
 
 	bool Minidump::GetStream(MINIDUMP_STREAM_TYPE type, PMINIDUMP_DIRECTORY* directoryPtr, PVOID* streamBeginningPtr, ULONG* streamSizePtr)
 	{
-		if (!Minidump::EnsureFileMapping()) return false;
+		if (!this->EnsureFileMapping()) return false;
 
 		auto pBuf = MapViewOfFile(this->mapFileHandle, FILE_MAP_READ, 0, 0, 0);
 		if (pBuf == NULL)
@@ -110,7 +110,7 @@ namespace Components
 		if (this->mapFileHandle == NULL || this->mapFileHandle == INVALID_HANDLE_VALUE)
 		{
 			this->mapFileHandle = CreateFileMappingA(this->fileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
-			if (this->mapFileHandle == NULL || this->mapFileHandle == INVALID_HANDLE_VALUE)
+			if (this->mapFileHandle == NULL)
 			{
 				Utils::OutputDebugLastError();
 				return false;
