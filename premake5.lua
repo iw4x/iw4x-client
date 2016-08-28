@@ -140,6 +140,7 @@ newaction {
 
 depsBasePath = "./deps"
 
+require "premake/base128"
 require "premake/bitmrc"
 require "premake/fmt"
 require "premake/json11"
@@ -153,6 +154,10 @@ require "premake/sqlite3"
 require "premake/winksignals"
 require "premake/zlib"
 
+base128.setup
+{
+	source = path.join(depsBasePath, "base128"),
+}
 bitmrc.setup
 {
 	source = path.join(depsBasePath, "bitmrc"),
@@ -290,6 +295,7 @@ workspace "iw4x"
 		if not _OPTIONS["disable-bitmessage"] then
 			bitmrc.import()
 		end
+		base128.import()
 		fmt.import()
 		json11.import()
 		libtomcrypt.import()
@@ -398,6 +404,7 @@ workspace "iw4x"
 			libcryptopp.project()
 			sqlite3.project()
 		end
+		base128.project()
 		fmt.project()
 		json11.project()
 		libtomcrypt.project()

@@ -1,4 +1,5 @@
 #include "STDInclude.hpp"
+#include "base128.h"
 
 namespace Utils
 {
@@ -129,6 +130,14 @@ namespace Utils
 		// Encodes a given string in Base64
 		std::string EncodeBase64(const std::string& input) {
 			return EncodeBase64(input.c_str(), input.size());
+		}
+
+		// Encodes a given string in Base128
+		std::string EncodeBase128(const std::string& input) {
+			auto encoder = new base128();
+			auto buffer = encoder->encode(const_cast<void*>(static_cast<const void*>(input.data())), input.size());
+			delete encoder;
+			return std::string(buffer);
 		}
 
 		// Generates a UUID and returns the string representation of it

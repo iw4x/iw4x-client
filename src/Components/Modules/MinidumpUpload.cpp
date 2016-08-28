@@ -279,6 +279,11 @@ namespace Components
 
 		std::string compressedMinidump = Utils::Compression::ZLib::Compress(minidump->ToString());
 
+#ifndef DISABLE_BASE128
+		extraHeaders["Encoding"] = "base128";
+		compressedMinidump = Utils::String::EncodeBase128(compressedMinidump);
+#endif
+
 		Logger::Print("Uploading minidump...\n");
 
 #ifdef DISABLE_BITMESSAGE
@@ -345,7 +350,8 @@ namespace Components
 		std::string marker = "MINIDUMP";
 		std::stringstream output;
 
-		extraHeaders["Encoding"] = "raw";
+		if (extraHeaders.find("Encoding") == extraHeaders.end())
+			extraHeaders["Encoding"] = "raw";
 		extraHeaders["Version"] = VERSION_STR;
 
 		output << "-----BEGIN " << marker << "-----\n";
