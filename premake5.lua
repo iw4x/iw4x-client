@@ -339,7 +339,6 @@ workspace "iw4x"
 			saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
 			postbuildcommands {
 				"if not exist \"" .. saneCopyToPath .. "\" mkdir \"" .. saneCopyToPath .. "\"",
-				"copy /y \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\"",
 			}
 
 			if _OPTIONS["copy-pdb"] then
@@ -347,6 +346,11 @@ workspace "iw4x"
 					"copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "\"",
 				}
 			end
+			
+			-- This has to be the last one, as otherwise VisualStudio will succeed building even if copying fails
+			postbuildcommands {
+				"copy /y \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\"",
+			}
 		end
 
 		-- Specific configurations
