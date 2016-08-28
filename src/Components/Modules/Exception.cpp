@@ -9,6 +9,8 @@
 
 namespace Components
 {
+	Utils::Hook Exception::SetFilterHook;
+
 	bool Exception::UploadMinidump(std::string filename)
 	{
 		if (Utils::IO::FileExists(filename))
@@ -86,7 +88,10 @@ namespace Components
 
 	LPTOP_LEVEL_EXCEPTION_FILTER WINAPI Exception::SetUnhandledExceptionFilterStub(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter)
 	{
+		Exception::SetFilterHook.Uninstall();
 		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
+		Exception::SetFilterHook.Install();
+
 		return lpTopLevelExceptionFilter;
 	}
 
@@ -110,7 +115,9 @@ namespace Components
 			Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
 		});
 #else
-		Utils::Hook::Set(0x6D70AC, Exception::SetUnhandledExceptionFilterStub);
+		Exception::SetFilterHook.Initialize(SetUnhandledExceptionFilter, Exception::SetUnhandledExceptionFilterStub, HOOK_JUMP);
+		Exception::SetFilterHook.Install();
+
 		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
 #endif
 
@@ -140,5 +147,10 @@ namespace Components
 
 			Command::Execute(command, false);
 		});
+	}
+
+	Exception::~Exception()
+	{
+		Exception::SetFilterHook.Uninstall();
 	}
 }

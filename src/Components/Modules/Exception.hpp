@@ -4,6 +4,7 @@ namespace Components
 	{
 	public:
 		Exception();
+		~Exception();
 
 #ifdef DEBUG
 		const char* GetName() { return "Exception"; };
@@ -14,5 +15,7 @@ namespace Components
 		static LPTOP_LEVEL_EXCEPTION_FILTER WINAPI SetUnhandledExceptionFilterStub(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter);
 
 		static bool UploadMinidump(std::string filename);
+
+		static Utils::Hook SetFilterHook;
 	};
 }
