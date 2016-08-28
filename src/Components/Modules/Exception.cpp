@@ -9,6 +9,8 @@
 
 namespace Components
 {
+	Utils::Hook Exception::SetFilterHook;
+
 	LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
 	{
 		// Pass on harmless errors
@@ -43,7 +45,10 @@ namespace Components
 
 	LPTOP_LEVEL_EXCEPTION_FILTER WINAPI Exception::SetUnhandledExceptionFilterStub(LPTOP_LEVEL_EXCEPTION_FILTER)
 	{
-		return SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
+		Exception::SetFilterHook.Uninstall();
+		LPTOP_LEVEL_EXCEPTION_FILTER retval = SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
+		Exception::SetFilterHook.Install();
+		return retval;
 	}
 
 	LPTOP_LEVEL_EXCEPTION_FILTER Exception::Hook()
@@ -72,7 +77,9 @@ namespace Components
 		});
 #endif
 #if !defined(DEBUG) || defined(FORCE_EXCEPTION_HANDLER)
-		Utils::Hook::Set(0x6D70AC, Exception::SetUnhandledExceptionFilterStub);
+		Exception::SetFilterHook.Initialize(SetUnhandledExceptionFilter, Exception::SetUnhandledExceptionFilterStub, HOOK_JUMP);
+		Exception::SetFilterHook.Install();
+
 		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
 #endif
 
@@ -175,5 +182,10 @@ namespace Components
 			Exception::ExceptionFilter(eptr);
 		});
 #pragma warning(pop)
+	}
+
+	Exception::~Exception()
+	{
+		Exception::SetFilterHook.Uninstall();
 	}
 }

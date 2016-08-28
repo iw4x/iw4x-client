@@ -6,6 +6,7 @@ namespace Components
 	{
 	public:
 		Exception();
+		~Exception();
 
 #ifdef DEBUG
 		const char* GetName() { return "Exception"; };
@@ -15,5 +16,7 @@ namespace Components
 	private:
 		static LONG WINAPI ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo);
 		static LPTOP_LEVEL_EXCEPTION_FILTER WINAPI SetUnhandledExceptionFilterStub(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter);
+
+		static Utils::Hook SetFilterHook;
 	};
 }
