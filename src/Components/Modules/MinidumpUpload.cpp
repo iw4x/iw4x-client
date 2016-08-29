@@ -7,7 +7,10 @@ namespace Components
 {
 
 #pragma region Minidump class implementation
-	inline Minidump::Minidump() {}
+	Minidump::Minidump()
+	{
+		this->fileHandle = this->mapFileHandle = INVALID_HANDLE_VALUE;
+	}
 
 	Minidump::~Minidump()
 	{
@@ -110,7 +113,7 @@ namespace Components
 		if (this->mapFileHandle == NULL || this->mapFileHandle == INVALID_HANDLE_VALUE)
 		{
 			this->mapFileHandle = CreateFileMappingA(this->fileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
-			if (this->mapFileHandle == NULL)
+			if (this->mapFileHandle == NULL || this->mapFileHandle == INVALID_HANDLE_VALUE)
 			{
 				Utils::OutputDebugLastError();
 				return false;
