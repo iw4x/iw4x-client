@@ -343,7 +343,7 @@ namespace Components
 			auto partNum = offset / this->maxSegmentSize + 1;
 			extraPartHeaders.insert({ "Part", Utils::String::VA("%d", partNum) });
 
-			Logger::Print("Uploading minidump %s (part %d out of %d, %d bytes)...\n", partNum, totalParts, part.size());
+			Logger::Print("Uploading minidump %s (part %d out of %d, %d bytes)...\n", extraHeaders["ID"], partNum, totalParts, part.size());
 			BitMessage::Singleton->SendMsg(MinidumpUpload::targetAddress, MinidumpUpload::Encode(part, extraPartHeaders));
 		}
 
