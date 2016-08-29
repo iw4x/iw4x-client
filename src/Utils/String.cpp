@@ -1,5 +1,7 @@
 #include "STDInclude.hpp"
+#ifndef DISABLE_BASE128
 #include "base128.h"
+#endif
 
 namespace Utils
 {
@@ -132,6 +134,7 @@ namespace Utils
 			return EncodeBase64(input.c_str(), input.size());
 		}
 
+#ifndef DISABLE_BASE128
 		// Encodes a given string in Base128
 		std::string EncodeBase128(const std::string& input) {
 			auto encoder = new base128();
@@ -146,6 +149,7 @@ namespace Utils
 			delete encoder;
 			return retval;
 		}
+#endif
 
 		// Generates a UUID and returns the string representation of it
 		std::string GenerateUUIDString() {
