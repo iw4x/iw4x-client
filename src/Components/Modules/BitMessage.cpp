@@ -116,13 +116,13 @@ namespace Components
 			else
 				for (auto& addr : Singleton->BMClient->PubAddresses)
 				{
-					Logger::Print("%s\n", addr.getAddress().c_str());
+					Logger::Print("%s (waiting for public key: %s)\n", addr.getAddress().c_str(), addr.waitingPubKey() ? "yes" : "no");
 				}
 
 			mlock.unlock();
 		});
 		Command::Add("bm_save", [](Command::Params) {
-			Singleton->BMClient->save(BITMESSAGE_OBJECT_STORAGE_FILENAME);
+			Singleton->Save();
 		});
 		Command::Add("bm_address_public", [](Command::Params params) {
 			if (params.Length() < 2) return;
@@ -184,6 +184,31 @@ namespace Components
 
 		// Request public key!
 		this->BMClient->getPubKey(pubAddr);
+		return true;
+	}
+
+	bool BitMessage::RequestAndWaitForPublicKey(std::string targetAddress)
+	{
+		// Convert to ustring
+		ustring targetAddressU;
+		targetAddressU.fromString(targetAddress);
+
+		// Convert to PubAddr
+		PubAddr pubAddr;
+		if (!pubAddr.loadAddr(targetAddressU))
+		{
+			return false;
+		}
+
+		// Request public key!
+		this->BMClient->getPubKey(pubAddr);
+
+		// TODO: Wait for public key by using signalling in BitMRC, needs to be done directly in the fork.
+		do
+		{
+			sleep(1000);
+		} while (pubAddr.waitingPubKey());
+
 		return true;
 	}
 
@@ -255,6 +280,11 @@ namespace Components
 		}
 		BMClient->addAddr(myAddress);
 		return true;
+	}
+
+	void BitMessage::Save()
+	{
+		BMClient->save();
 	}
 }
 
