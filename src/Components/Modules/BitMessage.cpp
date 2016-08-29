@@ -162,6 +162,7 @@ namespace Components
 	BitMessage::~BitMessage()
 	{
 		Singleton = NULL;
+		delete this->BMClient;
 	}
 
 	void BitMessage::SetDefaultTTL(time_t ttl)
