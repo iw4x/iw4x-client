@@ -260,6 +260,7 @@ namespace Components
 			} while (FindNextFileA(hFind, &ffd) != 0);
 		}
 
+		Logger::Print("All minidumps uploaded.");
 		return true;
 	}
 
@@ -278,16 +279,18 @@ namespace Components
 			{"ID", Utils::String::GenerateUUIDString()},
 		};
 
-		Logger::Print("Compressing minidump...\n");
+		std::string compressedMinidump = minidump->ToString();
 
-		std::string compressedMinidump = Utils::Compression::ZLib::Compress(minidump->ToString());
+		Logger::Print("Compressing minidump %s (currently %d bytes)...\n", extraHeaders["ID"], compressedMinidump.size());
+		compressedMinidump = Utils::Compression::ZLib::Compress(compressedMinidump);
 
 #ifndef DISABLE_BASE128
+		Logger::Print("Encoding minidump %s (currently %d bytes)...\n", extraHeaders["ID"], compressedMinidump.size());
 		extraHeaders["Encoding"] = "base128";
 		compressedMinidump = Utils::String::EncodeBase128(compressedMinidump);
 #endif
 
-		Logger::Print("Uploading minidump...\n");
+		Logger::Print("Minidump %s now prepared for uploading (currently %d bytes)...\n", extraHeaders["ID"], compressedMinidump.size());
 
 #ifdef DISABLE_BITMESSAGE
 		for (auto& targetUrl : targetUrls)
@@ -340,7 +343,7 @@ namespace Components
 			auto partNum = offset / this->maxSegmentSize + 1;
 			extraPartHeaders.insert({ "Part", Utils::String::VA("%d", partNum) });
 
-			Logger::Print("Uploading part %d out of %d (%d bytes)...\n", partNum, totalParts, part.size());
+			Logger::Print("Uploading minidump %s (part %d out of %d, %d bytes)...\n", partNum, totalParts, part.size());
 			BitMessage::Singleton->SendMsg(MinidumpUpload::targetAddress, MinidumpUpload::Encode(part, extraPartHeaders));
 		}
 
