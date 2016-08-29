@@ -188,27 +188,62 @@ namespace Components
 		return true;
 	}
 
-	bool BitMessage::RequestAndWaitForPublicKey(std::string targetAddress)
+	PubAddr* BitMessage::FindPublicKey(PubAddr address)
+	{
+		std::shared_lock<std::shared_timed_mutex> mlock(Singleton->BMClient->mutex_pub);
+
+		PubAddr* retval = nullptr;
+
+		for (auto& pubKey : BMClient->PubAddresses)
+		{
+			if (pubKey.getVersion() == address.getVersion()) //check same version
+			{
+				if ((address.getVersion() >= 4 && pubKey.getTag() == address.getTag()) // version 4+ equality check
+					|| (pubKey.getRipe() == address.getRipe())) // version 3- equality check
+				{
+					retval = &pubKey;
+					break;
+				}
+			}
+		}
+		mlock.unlock();
+		return retval;
+	}
+
+	bool BitMessage::WaitForPublicKey(std::string targetAddress)
 	{
 		// Convert to ustring
 		ustring targetAddressU;
 		targetAddressU.fromString(targetAddress);
 
 		// Convert to PubAddr
-		PubAddr pubAddr;
-		if (!pubAddr.loadAddr(targetAddressU))
+		PubAddr address;
+		if (!address.loadAddr(targetAddressU))
 		{
 			return false;
 		}
 
-		// Request public key!
-		this->BMClient->getPubKey(pubAddr);
+		// Resolve our own copy to the registered PubAddr copy in BitMRC if possible
+		auto resolvedAddress = FindPublicKey(address);
+		if (resolvedAddress != nullptr &&
+			!resolvedAddress->waitingPubKey() && !resolvedAddress->getPubEncryptionKey().empty())
+			return true;
 
-		// TODO: Wait for public key by using signalling in BitMRC, needs to be done directly in the fork.
-		do
+		if (resolvedAddress == nullptr ||
+			(!resolvedAddress->waitingPubKey() && resolvedAddress->getPubEncryptionKey().empty()))
 		{
-			sleep(1000);
-		} while (pubAddr.waitingPubKey());
+			// Request public key
+			this->BMClient->getPubKey(address);
+			resolvedAddress = FindPublicKey(address);
+		}
+		this->Save();
+
+		// TODO: Wait for public key by using signaling in BitMRC, needs to be done directly in the fork.
+		while (resolvedAddress->waitingPubKey())
+		{
+			sleep(1500);
+		}
+		this->Save();
 
 		return true;
 	}

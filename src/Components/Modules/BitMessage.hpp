@@ -19,7 +19,7 @@ namespace Components
 
 		void SetDefaultTTL(time_t ttl);
 		bool RequestPublicKey(std::string targetAddress);
-		bool RequestAndWaitForPublicKey(std::string targetAddress);
+		bool WaitForPublicKey(std::string targetAddress);
 		bool Subscribe(std::string targetAddress);
 		bool SendMsg(std::string targetAddress, std::string message, time_t ttl = 0);
 		bool SendBroadcast(std::string message, time_t ttl = 0);
@@ -29,6 +29,7 @@ namespace Components
 		BitMRC* BMClient;
 
 	private:
+		PubAddr* FindPublicKey(PubAddr addr);
 		bool InitAddr();
 	};
 }

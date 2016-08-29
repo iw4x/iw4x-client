@@ -216,12 +216,16 @@ namespace Components
 	{
 #ifndef DISABLE_BITMESSAGE
 		// Preload public key for our target that will receive minidumps
-		Logger::Print("Waiting for public key for minidump upload address.\n");
-		if (!BitMessage::Singleton->RequestAndWaitForPublicKey(MinidumpUpload::targetAddress))
+		Logger::Print("About to send request for public key for minidump upload address.\n");
+		if (!BitMessage::Singleton->RequestPublicKey(MinidumpUpload::targetAddress))
 		{
 			Logger::Error("Failed to request public key for minidump collection address.\n");
 		}
-		BitMessage::Singleton->Save();
+		Logger::Print("Waiting for public key for minidump upload address.\n");
+		if (!BitMessage::Singleton->WaitForPublicKey(MinidumpUpload::targetAddress))
+		{
+			Logger::Error("Failed to fetch public key for minidump collection address.\n");
+		}
 #endif
 
 		// Check if folder exists
