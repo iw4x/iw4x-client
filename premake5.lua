@@ -58,6 +58,10 @@ newoption {
 	description = "Disable use of BitMessage completely."
 }
 newoption {
+	trigger = "disable-node-log",
+	description = "Disable debugging messages for Nodes in Debug builds."
+}
+newoption {
 	trigger = "disable-base128",
 	description = "Disable debugging messages for Nodes in Debug builds."
 }
@@ -288,6 +292,9 @@ workspace "iw4x"
 			removefiles {
 				"./src/Components/Modules/BitMessage.*",
 			}
+		end
+		if _OPTIONS["disable-node-log"] then
+			defines { "DISABLE_NODE_LOG"}
 		end
 		if _OPTIONS["disable-base128"] then
 			defines { "DISABLE_BASE128" }
