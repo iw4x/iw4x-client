@@ -28,10 +28,9 @@ namespace Components
 		}
 		else
 		{
-			MessageBoxA(0, "Failed to create file!", "ERROR", MB_ICONERROR);
+			delete minidump;
 		}
 
-		printf("Trying to print an error message from ExceptionFilter...");
 		switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
 		{
 		case EXCEPTION_STACK_OVERFLOW:
