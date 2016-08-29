@@ -135,7 +135,8 @@ namespace Utils
 		// Encodes a given string in Base128
 		std::string EncodeBase128(const std::string& input) {
 			auto encoder = new base128();
-			auto buffer = encoder->encode(const_cast<void*>(static_cast<const void*>(input.data())), input.size());
+			void* inbuffer = const_cast<char*>(input.data());
+			char* buffer = encoder->encode(inbuffer, input.size());
 			delete encoder;
 			return std::string(buffer);
 		}
