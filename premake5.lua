@@ -57,6 +57,10 @@ newoption {
 	trigger = "disable-bitmessage",
 	description = "Disable use of BitMessage completely."
 }
+newoption {
+	trigger = "disable-base128",
+	description = "Disable debugging messages for Nodes in Debug builds."
+}
 
 newaction {
 	trigger = "version",
@@ -285,6 +289,9 @@ workspace "iw4x"
 				"./src/Components/Modules/BitMessage.*",
 			}
 		end
+		if _OPTIONS["disable-base128"] then
+			defines { "DISABLE_BASE128" }
+		end
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
@@ -295,7 +302,9 @@ workspace "iw4x"
 		if not _OPTIONS["disable-bitmessage"] then
 			bitmrc.import()
 		end
-		base128.import()
+		if not _OPTIONS["disable-base128"] then
+			base128.import()
+		end
 		fmt.import()
 		json11.import()
 		libtomcrypt.import()
@@ -404,7 +413,9 @@ workspace "iw4x"
 			libcryptopp.project()
 			sqlite3.project()
 		end
-		base128.project()
+		if not _OPTIONS["disable-base128"] then
+			base128.project()
+		end
 		fmt.project()
 		json11.project()
 		libtomcrypt.project()
