@@ -137,8 +137,14 @@ namespace Utils
 			auto encoder = new base128();
 			void* inbuffer = const_cast<char*>(input.data());
 			char* buffer = encoder->encode(inbuffer, input.size());
+			/*
+			Interesting to see that the buffer returned by the encoder is not a standalone string copy
+			but instead is a pointer to the internal "encoded" field of the encoder. So if you deinitialize
+			the encoder that string will probably become garbage.
+			*/
+			std::string retval(buffer);
 			delete encoder;
-			return std::string(buffer);
+			return retval;
 		}
 
 		// Generates a UUID and returns the string representation of it
