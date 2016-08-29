@@ -646,7 +646,10 @@ namespace Components
 		Utils::Hook(0x56AC60, AntiCheat::AimTargetGetTagPosStub, HOOK_JUMP).Install()->Quick();
 
 		// TODO: Probably move that :P
-		AntiCheat::InitLoadLibHook();
+		if (!Dedicated::IsEnabled())
+		{
+			AntiCheat::InitLoadLibHook();
+		}
 
 		// Prevent external processes from accessing our memory
 		AntiCheat::ProtectProcess();

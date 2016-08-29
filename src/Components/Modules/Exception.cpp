@@ -26,6 +26,10 @@ namespace Components
 			OutputDebugStringA("Failed to create new minidump!");
 			Utils::OutputDebugLastError();
 		}
+		else
+		{
+			MessageBoxA(0, "Failed to create file!", "ERROR", MB_ICONERROR);
+		}
 
 		printf("Trying to print an error message from ExceptionFilter...");
 		switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
