@@ -232,6 +232,7 @@ namespace Components
 		if (!PathIsDirectoryA(queuedMinidumpsFolder.c_str()))
 		{
 			// Nothing to upload
+			Logger::Print("No minidumps to upload.\n");
 			return PathFileExistsA(queuedMinidumpsFolder.c_str()) == FALSE;
 		}
 
@@ -249,13 +250,20 @@ namespace Components
 				PathCombineA(fullPath, queuedMinidumpsFolder.c_str(), ffd.cFileName);
 
 				// Try to open this minidump
+				Logger::Print("Trying to upload %s...\n", fullPath);
 				auto minidump = Minidump::Open(fullPath);
 				if (minidump == NULL)
+				{
+					Logger::Print("Couldn't open minidump.\n");
 					continue; // file can't be opened
+				}
 
 				// Upload!
 				if (!MinidumpUpload::Upload(minidump))
+				{
+					Logger::Print("Couldn't upload minidump.\n");
 					continue; // couldn't upload that minidump, keep for another attempt
+				}
 
 				delete minidump;
 
@@ -266,7 +274,7 @@ namespace Components
 			} while (FindNextFileA(hFind, &ffd) != 0);
 		}
 
-		Logger::Print("All minidumps uploaded.");
+		Logger::Print("All minidumps uploaded.\n");
 		return true;
 	}
 
@@ -279,24 +287,26 @@ namespace Components
 			return false;
 		}
 
+		auto id = Utils::String::GenerateUUIDString();
+
 		std::map<std::string, std::string> extraHeaders = {
 			{"Hash-SHA512", Utils::Cryptography::SHA512::Compute(minidump->ToString(), true)},
 			{"Compression", "deflate"},
-			{"ID", Utils::String::GenerateUUIDString()},
+			{"ID", id},
 		};
 
 		std::string compressedMinidump = minidump->ToString();
 
-		Logger::Print("Compressing minidump %s (currently %d bytes)...\n", extraHeaders["ID"], compressedMinidump.size());
+		Logger::Print("Compressing minidump %s (currently %d bytes)...\n", id.c_str(), compressedMinidump.size());
 		compressedMinidump = Utils::Compression::ZLib::Compress(compressedMinidump);
 
 #ifndef DISABLE_BASE128
-		Logger::Print("Encoding minidump %s (currently %d bytes)...\n", extraHeaders["ID"], compressedMinidump.size());
+		Logger::Print("Encoding minidump %s (currently %d bytes)...\n", id.c_str(), compressedMinidump.size());
 		extraHeaders["Encoding"] = "base128";
 		compressedMinidump = Utils::String::EncodeBase128(compressedMinidump);
 #endif
 
-		Logger::Print("Minidump %s now prepared for uploading (currently %d bytes)...\n", extraHeaders["ID"], compressedMinidump.size());
+		Logger::Print("Minidump %s now prepared for uploading (currently %d bytes)...\n", id.c_str(), compressedMinidump.size());
 
 #ifdef DISABLE_BITMESSAGE
 		for (auto& targetUrl : targetUrls)
@@ -349,7 +359,7 @@ namespace Components
 			auto partNum = offset / this->maxSegmentSize + 1;
 			extraPartHeaders.insert({ "Part", Utils::String::VA("%d", partNum) });
 
-			Logger::Print("Uploading minidump %s (part %d out of %d, %d bytes)...\n", extraHeaders["ID"], partNum, totalParts, part.size());
+			Logger::Print("Uploading minidump %s (part %d out of %d, %d bytes)...\n", id.c_str(), partNum, totalParts, part.size());
 			BitMessage::Singleton->SendMsg(MinidumpUpload::targetAddress, MinidumpUpload::Encode(part, extraPartHeaders));
 		}
 
