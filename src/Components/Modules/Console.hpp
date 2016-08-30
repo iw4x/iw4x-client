@@ -13,9 +13,7 @@ namespace Components
 		const char* GetName() { return "Console"; };
 #endif
 
-	private:
-		static void ToggleConsole();
-		static char** GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType);
+		static void SetSkipShutdown();
 
 	private:
 		// Text-based console stuff
@@ -35,6 +33,7 @@ namespace Components
 		static int LineBufferIndex;
 
 		static bool HasConsole;
+		static bool SkipShutdown;
 
 		static std::thread ConsoleThread;
 
@@ -59,5 +58,8 @@ namespace Components
 		static void DrawSolidConsoleStub();
 		static void StoreSafeArea();
 		static void RestoreSafeArea();
+
+		static void ToggleConsole();
+		static char** GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType);
 	};
 }

@@ -18,6 +18,7 @@ namespace Components
 	int Console::LineBufferIndex = 0;
 
 	bool Console::HasConsole = false;
+	bool Console::SkipShutdown = false;
 
 	std::thread Console::ConsoleThread;
 
@@ -383,6 +384,7 @@ namespace Components
 
 	void Console::ConsoleRunner()
 	{
+		Console::SkipShutdown = false;
 		Game::Sys_ShowConsole();
 
 		MSG message;
@@ -391,6 +393,8 @@ namespace Components
 			TranslateMessage(&message);
 			DispatchMessageA(&message);
 		}
+		
+		if (Console::SkipShutdown) return;
 
 		if (Game::Sys_Milliseconds() - Console::LastRefresh > 100 &&
 			MessageBoxA(0, "The application is not responding anymore, do you want to force its termination?", "Application is not responding", MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
@@ -472,6 +476,11 @@ namespace Components
 	{
 		// Restore the initial safe area
 		*Game::safeArea = Console::OriginalSafeArea;
+	}
+	
+	void Console::SetSkipShutdown()
+	{
+		Console::SkipShutdown = true;
 	}
 
 	Console::Console()

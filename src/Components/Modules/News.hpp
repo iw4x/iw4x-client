@@ -14,5 +14,9 @@ namespace Components
 
 	private:
 		static std::thread Thread;
+		static bool Terminate;
+
+		static void CheckForUpdate();
+		static void ExitProcessStub(unsigned int exitCode);
 	};
 }
