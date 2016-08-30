@@ -32,6 +32,7 @@
 [submodule "deps/bitmrc"]
 	path = deps/bitmrc
 	url = git@github.com:iw4x-dev-urandom/BitMRC.git
+	ignore = dirty
 [submodule "deps/base128"]
 	path = deps/base128
 	url = https://github.com/seizu/base128.git
