@@ -17,20 +17,19 @@ namespace Components
 		const char* GetName() { return "BitMessage"; };
 #endif
 
-		void SetDefaultTTL(time_t ttl);
-		bool RequestPublicKey(std::string targetAddress);
-		bool WaitForPublicKey(std::string targetAddress);
-		bool Subscribe(std::string targetAddress);
-		bool SendMsg(std::string targetAddress, std::string message, time_t ttl = 0);
-		bool SendBroadcast(std::string message, time_t ttl = 0);
-		void Save();
+		static void SetDefaultTTL(time_t ttl);
+		static bool RequestPublicKey(std::string targetAddress);
+		static bool WaitForPublicKey(std::string targetAddress);
+		static bool Subscribe(std::string targetAddress);
+		static bool SendMsg(std::string targetAddress, std::string message, time_t ttl = 0);
+		static bool SendBroadcast(std::string message, time_t ttl = 0);
+		static void Save();
 
-		static BitMessage* Singleton;
-		BitMRC* BMClient;
+		static BitMRC* BMClient;
 
 	private:
-		PubAddr* FindPublicKey(PubAddr addr);
-		bool InitAddr();
+		static PubAddr* FindPublicKey(PubAddr addr);
+		static bool InitAddr();
 	};
 }
 

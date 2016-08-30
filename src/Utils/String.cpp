@@ -120,46 +120,50 @@ namespace Utils
 		}
 
 		// Encodes a given string in Base64
-		std::string EncodeBase64(const char* input, const unsigned long inputSize) {
+		std::string EncodeBase64(const char* input, const unsigned long inputSize) 
+		{
 			unsigned long outlen = long(inputSize + (inputSize / 3.0) + 16);
 			unsigned char* outbuf = new unsigned char[outlen]; //Reserve output memory
-			base64_encode((unsigned char*)input, inputSize, outbuf, &outlen);
+			base64_encode(reinterpret_cast<unsigned char*>(const_cast<char*>(input)), inputSize, outbuf, &outlen);
 			std::string ret((char*)outbuf, outlen);
 			delete[] outbuf;
 			return ret;
 		}
 
 		// Encodes a given string in Base64
-		std::string EncodeBase64(const std::string& input) {
-			return EncodeBase64(input.c_str(), input.size());
+		std::string EncodeBase64(const std::string& input) 
+		{
+			return EncodeBase64(input.data(), input.size());
 		}
 
 #ifndef DISABLE_BASE128
 		// Encodes a given string in Base128
-		std::string EncodeBase128(const std::string& input) {
-			auto encoder = new base128();
+		std::string EncodeBase128(const std::string& input) 
+		{
+			base128 encoder;
+
 			void* inbuffer = const_cast<char*>(input.data());
-			char* buffer = encoder->encode(inbuffer, input.size());
+			char* buffer = encoder.encode(inbuffer, input.size());
 			/*
 			Interesting to see that the buffer returned by the encoder is not a standalone string copy
 			but instead is a pointer to the internal "encoded" field of the encoder. So if you deinitialize
 			the encoder that string will probably become garbage.
 			*/
 			std::string retval(buffer);
-			delete encoder;
 			return retval;
 		}
 #endif
 
 		// Generates a UUID and returns the string representation of it
-		std::string GenerateUUIDString() {
+		std::string GenerateUUIDString() 
+		{
 			// Generate UUID data
 			UUID uuid;
 			UuidCreate(&uuid);
 
 			// Convert to string representation
-			char* strdata = NULL;
-			UuidToStringA(&uuid, (RPC_CSTR*)&strdata);
+			char* strdata = nullptr;
+			UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&strdata));
 			return std::string(strdata);
 		}
 	}

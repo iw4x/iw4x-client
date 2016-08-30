@@ -43,16 +43,14 @@ namespace Components
 		~MinidumpUpload();
 
 		// Uploads the given minidump.
-		bool Upload(Minidump* minidump);
+		static bool Upload(Minidump* minidump);
 
 		// Generates a new minidump and saves it to the folder for queued minidumps.
-		Minidump* CreateQueuedMinidump(LPEXCEPTION_POINTERS exceptionInfo, int minidumpType = MiniDumpTiny);
+		static Minidump* CreateQueuedMinidump(LPEXCEPTION_POINTERS exceptionInfo, int minidumpType = MiniDumpTiny);
 
 		// Browses the folder for queued minidumps and uploads each queued minidump.
 		// On Release builds this will also delete every successfully uploaded minidump.
-		bool UploadQueuedMinidumps();
-
-		static MinidumpUpload* Singleton;
+		static bool UploadQueuedMinidumps();
 
 	private:
 		std::thread uploadThread;

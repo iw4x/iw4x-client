@@ -32,7 +32,7 @@ namespace Components
 		if (!this->EnsureFileMapping()) return false;
 
 		auto pBuf = MapViewOfFile(this->mapFileHandle, FILE_MAP_READ, 0, 0, 0);
-		if (pBuf == NULL)
+		if (!pBuf)
 		{
 			Utils::OutputDebugLastError();
 			throw new std::runtime_error("Could not read minidump.");
@@ -54,7 +54,7 @@ namespace Components
 		if (!this->EnsureFileMapping()) return false;
 
 		auto pBuf = MapViewOfFile(this->mapFileHandle, FILE_MAP_READ, 0, 0, 0);
-		if (pBuf == NULL)
+		if (!pBuf)
 		{
 			Utils::OutputDebugLastError();
 			throw new std::runtime_error("Could not read minidump.");
@@ -80,7 +80,7 @@ namespace Components
 	Minidump* Minidump::Create(std::string path, LPEXCEPTION_POINTERS exceptionInfo, int type)
 	{
 		Minidump* minidump = Minidump::Initialize(path);
-		if (minidump == NULL) return minidump;
+		if (!minidump) return minidump;
 
 		// Do the dump generation
 		MINIDUMP_EXCEPTION_INFORMATION ex = { GetCurrentThreadId(), exceptionInfo, FALSE };
@@ -88,15 +88,15 @@ namespace Components
 		{
 			Utils::OutputDebugLastError();
 			delete minidump;
-			return NULL;
+			return nullptr;
 		}
 
 		if (SetFilePointer(minidump->fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 		{
 			Utils::OutputDebugLastError();
 			delete minidump;
-			DeleteFileA(path.c_str());
-			return NULL;
+			DeleteFileA(path.data());
+			return nullptr;
 		}
 
 		return minidump;
@@ -104,8 +104,7 @@ namespace Components
 
 	Minidump* Minidump::Open(std::string path)
 	{
-		Minidump* minidump = Minidump::Initialize(path, FILE_SHARE_READ);
-		return minidump;
+		return Minidump::Initialize(path, FILE_SHARE_READ);
 	}
 
 	bool Minidump::EnsureFileMapping()
@@ -126,14 +125,15 @@ namespace Components
 	{
 		Minidump* minidump = new Minidump();
 
-		minidump->fileHandle = CreateFileA(path.c_str(),
+		minidump->fileHandle = CreateFileA(path.data(),
 			GENERIC_WRITE | GENERIC_READ, fileShare,
 			NULL, (fileShare & FILE_SHARE_WRITE) > 0 ? OPEN_ALWAYS : OPEN_EXISTING, NULL, NULL);
+
 		if (minidump->fileHandle == NULL || minidump->fileHandle == INVALID_HANDLE_VALUE)
 		{
 			Utils::OutputDebugLastError();
 			delete minidump;
-			return NULL;
+			return nullptr;
 		}
 
 		return minidump;
@@ -141,11 +141,11 @@ namespace Components
 #pragma endregion
 
 #pragma region Minidump uploader class implementation
-	MinidumpUpload* MinidumpUpload::Singleton = NULL;
-
 	const std::string MinidumpUpload::queuedMinidumpsFolder = "minidumps\\";
+
 #ifdef DISABLE_BITMESSAGE
-	const std::vector<std::string> MinidumpUpload::targetUrls = {
+	const std::vector<std::string> MinidumpUpload::targetUrls = 
+	{
 		"https://reich.io/upload.php",
 		"https://hitlers.kz/upload.php"
 	};
@@ -156,11 +156,6 @@ namespace Components
 
 	MinidumpUpload::MinidumpUpload()
 	{
-		if (Singleton != NULL)
-			throw new std::runtime_error("Can only create one instance at a time.");
-
-		Singleton = this;
-
 #if !defined(DEBUG) || defined(FORCE_MINIDUMP_UPLOAD)
 		this->uploadThread = std::thread([&]() { this->UploadQueuedMinidumps(); });
 #endif
@@ -168,8 +163,6 @@ namespace Components
 
 	MinidumpUpload::~MinidumpUpload()
 	{
-		Singleton = NULL;
-
 		if (this->uploadThread.joinable())
 		{
 			this->uploadThread.join();
@@ -178,9 +171,14 @@ namespace Components
 
 	bool MinidumpUpload::EnsureQueuedMinidumpsFolderExists()
 	{
-		BOOL success = CreateDirectoryA(queuedMinidumpsFolder.c_str(), NULL);
-		if (success != TRUE) success = GetLastError() == ERROR_ALREADY_EXISTS;
-		return success == TRUE;
+		BOOL success = CreateDirectoryA(MinidumpUpload::queuedMinidumpsFolder.data(), NULL);
+
+		if (success != TRUE)
+		{
+			success = (GetLastError() == ERROR_ALREADY_EXISTS);
+		}
+
+		return (success == TRUE);
 	}
 
 	Minidump* MinidumpUpload::CreateQueuedMinidump(LPEXCEPTION_POINTERS exceptionInfo, int minidumpType)
@@ -206,7 +204,7 @@ namespace Components
 
 		// Combine with queuedMinidumpsFolder
 		char filename[MAX_PATH];
-		PathCombineA(filename, queuedMinidumpsFolder.c_str(), Utils::String::VA("%s-" VERSION_STR "-%s.dmp", exeFileName, filenameFriendlyTime));
+		PathCombineA(filename, MinidumpUpload::queuedMinidumpsFolder.data(), Utils::String::VA("%s-" VERSION_STR "-%s.dmp", exeFileName, filenameFriendlyTime));
 
 		// Generate the dump
 		return Minidump::Create(filename, exceptionInfo, minidumpType);
@@ -217,28 +215,28 @@ namespace Components
 #ifndef DISABLE_BITMESSAGE
 		// Preload public key for our target that will receive minidumps
 		Logger::Print("About to send request for public key for minidump upload address.\n");
-		if (!BitMessage::Singleton->RequestPublicKey(MinidumpUpload::targetAddress))
+		if (!BitMessage::RequestPublicKey(MinidumpUpload::targetAddress))
 		{
 			Logger::Error("Failed to request public key for minidump collection address.\n");
 		}
 		Logger::Print("Waiting for public key for minidump upload address.\n");
-		if (!BitMessage::Singleton->WaitForPublicKey(MinidumpUpload::targetAddress))
+		if (!BitMessage::WaitForPublicKey(MinidumpUpload::targetAddress))
 		{
 			Logger::Error("Failed to fetch public key for minidump collection address.\n");
 		}
 #endif
 
 		// Check if folder exists
-		if (!PathIsDirectoryA(queuedMinidumpsFolder.c_str()))
+		if (!PathIsDirectoryA(MinidumpUpload::queuedMinidumpsFolder.data()))
 		{
 			// Nothing to upload
 			Logger::Print("No minidumps to upload.\n");
-			return PathFileExistsA(queuedMinidumpsFolder.c_str()) == FALSE;
+			return PathFileExistsA(MinidumpUpload::queuedMinidumpsFolder.data()) == FALSE;
 		}
 
 		// Walk through directory and search for valid minidumps
 		WIN32_FIND_DATAA ffd;
-		HANDLE hFind = FindFirstFileA(Utils::String::VA("%s\\*.dmp", queuedMinidumpsFolder), &ffd);
+		HANDLE hFind = FindFirstFileA(Utils::String::VA("%s\\*.dmp", MinidumpUpload::queuedMinidumpsFolder), &ffd);
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
 			do
@@ -247,12 +245,12 @@ namespace Components
 					continue; // ignore directory
 
 				char fullPath[MAX_PATH_SIZE];
-				PathCombineA(fullPath, queuedMinidumpsFolder.c_str(), ffd.cFileName);
+				PathCombineA(fullPath, MinidumpUpload::queuedMinidumpsFolder.data(), ffd.cFileName);
 
 				// Try to open this minidump
 				Logger::Print("Trying to upload %s...\n", fullPath);
 				auto minidump = Minidump::Open(fullPath);
-				if (minidump == NULL)
+				if (!minidump)
 				{
 					Logger::Print("Couldn't open minidump.\n");
 					continue; // file can't be opened
@@ -297,16 +295,16 @@ namespace Components
 
 		std::string compressedMinidump = minidump->ToString();
 
-		Logger::Print("Compressing minidump %s (currently %d bytes)...\n", id.c_str(), compressedMinidump.size());
+		Logger::Print("Compressing minidump %s (currently %d bytes)...\n", id.data(), compressedMinidump.size());
 		compressedMinidump = Utils::Compression::ZLib::Compress(compressedMinidump);
 
 #ifndef DISABLE_BASE128
-		Logger::Print("Encoding minidump %s (currently %d bytes)...\n", id.c_str(), compressedMinidump.size());
+		Logger::Print("Encoding minidump %s (currently %d bytes)...\n", id.data(), compressedMinidump.size());
 		extraHeaders["Encoding"] = "base128";
 		compressedMinidump = Utils::String::EncodeBase128(compressedMinidump);
 #endif
 
-		Logger::Print("Minidump %s now prepared for uploading (currently %d bytes)...\n", id.c_str(), compressedMinidump.size());
+		Logger::Print("Minidump %s now prepared for uploading (currently %d bytes)...\n", id.data(), compressedMinidump.size());
 
 #ifdef DISABLE_BITMESSAGE
 		for (auto& targetUrl : targetUrls)
@@ -348,19 +346,19 @@ namespace Components
 		return false;
 #else
 		// BitMessage has a max msg size that is somewhere around 220 KB, split it up as necessary!
-		auto totalParts = compressedMinidump.size() / this->maxSegmentSize + 1;
+		auto totalParts = compressedMinidump.size() / MinidumpUpload::maxSegmentSize + 1;
 		extraHeaders.insert({ "Parts", Utils::String::VA("%d",totalParts) });
 
-		for (size_t offset = 0; offset < compressedMinidump.size(); offset += this->maxSegmentSize)
+		for (size_t offset = 0; offset < compressedMinidump.size(); offset += MinidumpUpload::maxSegmentSize)
 		{
 			auto extraPartHeaders = extraHeaders;
 
-			auto part = compressedMinidump.substr(offset, std::min(this->maxSegmentSize, compressedMinidump.size() - offset));
-			auto partNum = offset / this->maxSegmentSize + 1;
+			auto part = compressedMinidump.substr(offset, std::min(MinidumpUpload::maxSegmentSize, compressedMinidump.size() - offset));
+			auto partNum = offset / MinidumpUpload::maxSegmentSize + 1;
 			extraPartHeaders.insert({ "Part", Utils::String::VA("%d", partNum) });
 
-			Logger::Print("Uploading minidump %s (part %d out of %d, %d bytes)...\n", id.c_str(), partNum, totalParts, part.size());
-			BitMessage::Singleton->SendMsg(MinidumpUpload::targetAddress, MinidumpUpload::Encode(part, extraPartHeaders));
+			Logger::Print("Uploading minidump %s (part %d out of %d, %d bytes)...\n", id.data(), partNum, totalParts, part.size());
+			BitMessage::SendMsg(MinidumpUpload::targetAddress, MinidumpUpload::Encode(part, extraPartHeaders));
 		}
 
 		return true;
