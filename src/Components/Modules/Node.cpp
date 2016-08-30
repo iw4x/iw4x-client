@@ -8,19 +8,13 @@ namespace Components
 
 	void Node::LoadNodePreset()
 	{
+		Proto::Node::List list;
 		FileSystem::File defaultNodes("nodes_default.dat");
-		if (!defaultNodes.Exists()) return;
+		if (!defaultNodes.Exists() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(defaultNodes.GetBuffer()))) return;
 
-		auto buffer = defaultNodes.GetBuffer();
-		Utils::String::Replace(buffer, "\r", "");
-
-		auto nodes = Utils::String::Explode(buffer, '\n');
-		for (auto node : nodes)
+		for (int i = 0; i < list.address_size(); ++i)
 		{
-			if (!node.empty())
-			{
-				Node::AddNode(node);
-			}
+			Node::AddNode(list.address(i));
 		}
 	}
 
@@ -28,7 +22,7 @@ namespace Components
 	{
 		Proto::Node::List list;
 		std::string nodes = Utils::IO::ReadFile("players/nodes.dat");
-		if (nodes.empty() || !list.ParseFromString(nodes)) return;
+		if (nodes.empty() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(nodes))) return;
 
 		for (int i = 0; i < list.address_size(); ++i)
 		{
@@ -60,7 +54,10 @@ namespace Components
 		}
 
 		CreateDirectoryW(L"players", NULL);
-		Utils::IO::WriteFile("players/nodes.dat", list.SerializeAsString());
+
+		
+
+		Utils::IO::WriteFile("players/nodes.dat", Utils::Compression::ZLib::Compress(list.SerializeAsString()));
 	}
 
 	Node::NodeEntry* Node::FindNode(Network::Address address)
@@ -906,6 +903,31 @@ namespace Components
 
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
 		Logger::Print("took %llims\n", duration);
+
+		printf("Testing ZLib compression...");
+
+		std::string test = fmt::sprintf("%c", Utils::Cryptography::Rand::GenerateInt());
+
+		for (int i = 0; i < 21; ++i)
+		{
+			std::string compressed = Utils::Compression::ZLib::Compress(test);
+			std::string decompressed = Utils::Compression::ZLib::Decompress(compressed);
+
+			if (test != decompressed)
+			{
+				printf("Error\n");
+				printf("Compressing %d bytes and decompressing failed!\n", test.size());
+				return false;
+			}
+
+			auto size = test.size();
+			for (unsigned int j = 0; j < size; ++j)
+			{
+				test.append(fmt::sprintf("%c", Utils::Cryptography::Rand::GenerateInt()));
+			}
+		}
+
+		printf("Success\n");
 
 		return true;
 	}
