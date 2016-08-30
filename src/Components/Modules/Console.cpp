@@ -76,14 +76,14 @@ namespace Components
 		}
 		else if(IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE)
 		{
-			SetWindowTextA(*reinterpret_cast<HWND*>(0x64A3288), Utils::String::VA("IW4x(r" REVISION_STR REVISION_SUFFIX ") : %s", hostname.data())); 
+			SetWindowTextA(*reinterpret_cast<HWND*>(0x64A3288), Utils::String::VA("IW4x(" VERSION ") : %s", hostname.data())); 
 		}
 	}
 
 	void Console::ShowPrompt()
 	{
 		wattron(Console::InputWindow, COLOR_PAIR(10) | A_BOLD);
-		wprintw(Console::InputWindow, "%s> ", VERSION_STR);
+		wprintw(Console::InputWindow, "%s> ", VERSION);
 	}
 
 	void Console::RefreshOutput()
@@ -477,7 +477,7 @@ namespace Components
 	Console::Console()
 	{
 		// Console '%s: %s> ' string
-		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: r" REVISION_STR "> ");
+		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: " VERSION "> ");
 
 		// Internal console
 		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).Install()->Quick();

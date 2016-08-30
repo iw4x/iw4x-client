@@ -115,7 +115,7 @@ namespace Components
 		info.Set("gamename", "IW4");
 		info.Set("sv_maxclients", fmt::sprintf("%i", maxclientCount));
 		info.Set("protocol", fmt::sprintf("%i", PROTOCOL));
-		info.Set("shortversion", VERSION_STR);
+		info.Set("shortversion", SHORTVERSION);
 		info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 		info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().empty() ? "0" : "1"));
 		info.Set("checksum", fmt::sprintf("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(fmt::sprintf("%u", Game::Sys_Milliseconds()))));

@@ -173,26 +173,26 @@ namespace Components
 		Utils::Hook::Set<char*>(0x6431D1, BASEGAME);
 
 		// UI version string
-		Utils::Hook::Set<char*>(0x43F73B, "IW4x: r" REVISION_STR REVISION_SUFFIX "-" MILESTONE);
+		Utils::Hook::Set<char*>(0x43F73B, "IW4x: " VERSION);
 
 		// console version string
-		Utils::Hook::Set<char*>(0x4B12BB, "IW4x r" REVISION_STR REVISION_SUFFIX "-" MILESTONE " (built " __DATE__ " " __TIME__ ")");
+		Utils::Hook::Set<char*>(0x4B12BB, "IW4x " VERSION " (built " __DATE__ " " __TIME__ ")");
 
 		// version string
-		Utils::Hook::Set<char*>(0x60BD56, "IW4x (r" REVISION_STR REVISION_SUFFIX ")");
+		Utils::Hook::Set<char*>(0x60BD56, "IW4x (" VERSION ")");
 
 		// console title
 		if (ZoneBuilder::IsEnabled())
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): ZoneBuilder");
+			Utils::Hook::Set<char*>(0x4289E8, "IW4x (" VERSION "): ZoneBuilder");
 		}
 		else if (Dedicated::IsEnabled())
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): Dedicated");
+			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" VERSION "): Dedicated");
 		}
 		else
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" REVISION_STR REVISION_SUFFIX "): Console");
+			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" VERSION "): Console");
 		}
 
 		// window title
@@ -202,7 +202,7 @@ namespace Components
 		Utils::Hook::Set<char*>(0x4D378B, "IW4Host");
 
 		// shortversion
-		Utils::Hook::Set<char*>(0x60BD91, VERSION_STR);
+		Utils::Hook::Set<char*>(0x60BD91, SHORTVERSION);
 
 		// console logo
 		Utils::Hook::Set<char*>(0x428A66, BASEGAME "/images/logo.bmp");
