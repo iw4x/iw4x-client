@@ -308,6 +308,9 @@ namespace Components
 		wrefresh(Console::InfoWindow);
 		wrefresh(Console::InputWindow);
 
+		// 3 Lines do not autoscroll, 1 has a linebreak -> skip 4 lines when initializing
+		Console::ScrollOutput(4);
+
 		Console::RefreshOutput();
 	}
 
