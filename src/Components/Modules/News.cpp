@@ -51,9 +51,8 @@ namespace Components
 		ZeroMemory(&pInfo, sizeof(pInfo));
 		sInfo.cb = sizeof(sInfo);
 
-		CreateProcessA("updater.dat", NULL, NULL, NULL, false, CREATE_NO_WINDOW, NULL, NULL, &sInfo, &pInfo);
+		CreateProcessA("updater.exe", NULL, NULL, NULL, false, CREATE_NO_WINDOW, NULL, NULL, &sInfo, &pInfo);
 
-		Console::SetSkipShutdown();
 		TerminateProcess(GetCurrentProcess(), exitCode);
 	}
 
@@ -94,9 +93,10 @@ namespace Components
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFUALT);
 
-		if (Utils::IO::FileExists("updater.dat"))
+		// TODO: Probably remove that, if the updater is part of the repo?
+		if (Utils::IO::FileExists("updater.exe"))
 		{
-			remove("updater.dat");
+			remove("updater.exe");
 		}
 
 		Command::Add("checkforupdate", [] (Command::Params)
@@ -112,11 +112,11 @@ namespace Components
 			Command::Execute("openmenu popup_reconnectingtoparty", true);
 
 			// Run the updater on shutdown
-			Utils::Hook::Set(0x6D72A0, ExitProcessStub);
+			Utils::Hook::Set(0x6D72A0, News::ExitProcessStub);
 
-			std::async([] ()
+			std::thread([] ()
 			{
-				std::string data = Utils::WebIO("IW4x", "http://localhost/iw4/updater/updater.exe").SetTimeout(5000)->Get();
+				std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/updater.exe").SetTimeout(5000)->Get();
 
 				if (data.empty())
 				{
@@ -126,10 +126,11 @@ namespace Components
 				}
 				else
 				{
-					Utils::IO::WriteFile("updater.dat", data);
+					Console::SetSkipShutdown();
+					Utils::IO::WriteFile("updater.exe", data);
 					Command::Execute("wait 300; quit;", false);
 				}
-			});
+			}).detach();
 		});
 
 		News::Terminate = false;
