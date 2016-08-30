@@ -79,7 +79,7 @@ namespace Components
 					int version = atoi(caches.data());
 
 					Dvar::Var("cl_updateversion").Get<Game::dvar_t*>()->current.integer = version;
-					Dvar::Var("cl_updateavailable").Get<Game::dvar_t*>()->current.boolean = (version > /*REVISION*/1);
+					Dvar::Var("cl_updateavailable").Get<Game::dvar_t*>()->current.boolean = (version > REVISION);
 				}
 			}
 		}
