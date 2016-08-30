@@ -21,6 +21,11 @@ end
 
 function libcryptopp.includes()
 	if not libcryptopp.settings then error("Run libcryptopp.setup first") end
+	
+	--defines { "CRYPTOPP_IMPORTS" }
+	
+	--filter "*Static"
+	--	removedefines { "CRYPTOPP_IMPORTS" }
 
 	filter "Debug*"
 		defines { "_DEBUG" }
@@ -102,6 +107,12 @@ function libcryptopp.project()
 			path.join(libcryptopp.settings.source, "fipsalgt.*"),
 			path.join(libcryptopp.settings.source, "cryptlib_bds.*"),
 			path.join(libcryptopp.settings.source, "validat*.*"),
+			
+			-- Remove linker warnings
+			path.join(libcryptopp.settings.source, "strciphr.cpp"),
+			path.join(libcryptopp.settings.source, "simple.cpp"),
+			path.join(libcryptopp.settings.source, "polynomi.cpp"),
+			path.join(libcryptopp.settings.source, "algebra.cpp"),
 		}
 
 		-- Pre-compiled header
@@ -117,13 +128,16 @@ function libcryptopp.project()
 			"MASM",
 			--"CustomProtoBuildTool",
 		}
-
-		kind "SharedLib"
-		filter "*Static"
+		
+		-- SharedLib needs that
+		--links { "Ws2_32" }
+		
+		--kind "SharedLib"
+		--filter "*Static"
 			kind "StaticLib"
 
 		filter "kind:SharedLib"
-			defines { "CRYPTOPP_IMPORTS" }
+			defines { "CRYPTOPP_EXPORTS" }
 
 		filter "architecture:x86"
 			exceptionhandling "SEH"

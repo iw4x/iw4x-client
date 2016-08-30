@@ -49,6 +49,8 @@ function bitmrc.project()
 			path.join(bitmrc.settings.source, "BitMRC/main.*"),
 			path.join(bitmrc.settings.source, "BitMRC/class.*"),
 			path.join(bitmrc.settings.source, "BitMRC/tests/**"),
+			
+			path.join(bitmrc.settings.source, "BitMRC/Storage/Storable.cpp"),
 		}
 
 		-- dependencies

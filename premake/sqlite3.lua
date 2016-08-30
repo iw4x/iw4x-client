@@ -45,10 +45,10 @@ function sqlite3.project()
 		-- not our code, ignore POSIX usage warnings for now
 		warnings "Off"
 
-		kind "SharedLib"
-		filter "*Static"
+		--kind "SharedLib"
+		--filter "*Static"
 			kind "StaticLib"
-		filter "kind:StaticLib"
-			defines { "_LIB" }
-			removedefines { "_USRDLL", "_DLL" }
+		--filter "kind:StaticLib"
+		--	defines { "_LIB" }
+		--	removedefines { "_USRDLL", "_DLL" }
 end
