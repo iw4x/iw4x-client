@@ -279,11 +279,12 @@ namespace Components
 		raw();
 		noecho();
 
-		Console::OutputWindow = newpad(OUTPUT_HEIGHT, Console::Width);
+		Console::OutputWindow = newpad(Console::Height - 1, Console::Width);
 		Console::InputWindow = newwin(1, Console::Width, Console::Height - 1, 0);
 		Console::InfoWindow = newwin(1, Console::Width, 0, 0);
 
 		scrollok(Console::OutputWindow, true);
+		idlok(Console::OutputWindow, true);
 		scrollok(Console::InputWindow, true);
 		nodelay(Console::InputWindow, true);
 		keypad(Console::InputWindow, true);
@@ -307,9 +308,6 @@ namespace Components
 
 		wrefresh(Console::InfoWindow);
 		wrefresh(Console::InputWindow);
-
-		// 4 Lines do not autoscroll/are multiline -> skip 4 lines when initializing
-		Console::ScrollOutput(4);
 
 		Console::RefreshOutput();
 	}
@@ -346,11 +344,6 @@ namespace Components
 		const char* p = message;
 		while (*p != '\0')
 		{
-			if (*p == '\n')
-			{
-				Console::ScrollOutput(1);
-			}
-
 			if (*p == '^')
 			{
 				char color;
