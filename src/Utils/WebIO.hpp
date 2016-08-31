@@ -74,6 +74,7 @@ namespace Utils
 			std::string protocol;
 			std::string server;
 			std::string document;
+			std::string port;
 			std::string raw;
 		};
 

@@ -104,10 +104,26 @@ namespace Utils
 			WebIO::m_sUrl.document = server.substr(pos);
 		}
 
+		WebIO::m_sUrl.port.clear();
+
+		pos = WebIO::m_sUrl.server.find(":");
+		if (pos != std::string::npos)
+		{
+			WebIO::m_sUrl.port = WebIO::m_sUrl.server.substr(pos + 1);
+			WebIO::m_sUrl.server = WebIO::m_sUrl.server.substr(0, pos);
+		}
+
 		WebIO::m_sUrl.raw.clear();
 		WebIO::m_sUrl.raw.append(WebIO::m_sUrl.protocol);
 		WebIO::m_sUrl.raw.append("://");
 		WebIO::m_sUrl.raw.append(WebIO::m_sUrl.server);
+
+		if (!WebIO::m_sUrl.port.empty())
+		{
+			WebIO::m_sUrl.raw.append(":");
+			WebIO::m_sUrl.raw.append(WebIO::m_sUrl.port);
+		}
+
 		WebIO::m_sUrl.raw.append(WebIO::m_sUrl.document);
 
 		WebIO::m_isFTP = (WebIO::m_sUrl.protocol == "ftp");
@@ -215,6 +231,11 @@ namespace Utils
 		else if (WebIO::IsSecuredConnection())
 		{
 			wPort = INTERNET_DEFAULT_HTTPS_PORT;
+		}
+
+		if (!WebIO::m_sUrl.port.empty())
+		{
+			wPort = static_cast<WORD>(atoi(WebIO::m_sUrl.port.data()));
 		}
 
 		const char* username = (WebIO::m_username.size() ? WebIO::m_username.data() : NULL);

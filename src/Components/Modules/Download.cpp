@@ -3,6 +3,229 @@
 namespace Components
 {
 	mg_mgr Download::Mgr;
+	Download::ClientDownload Download::CLDownload;
+
+#pragma region Client
+
+	void Download::InitiateClientDownload(std::string mod)
+	{
+		if (Download::CLDownload.Running) return;
+
+		Download::CLDownload.Mutex.lock();
+		Download::CLDownload.Progress = "Downloading mod";
+		Download::CLDownload.Mutex.unlock();
+
+		Command::Execute("openmenu popup_reconnectingtoparty", true);
+
+		Download::CLDownload.Running = true;
+		Download::CLDownload.Mod = mod;
+		Download::CLDownload.Target = Party::Target();
+		Download::CLDownload.Thread = std::thread(Download::ModDownloader, &Download::CLDownload);
+	}
+
+	bool Download::ParseModList(ClientDownload* download, std::string list)
+	{
+		if (!download) return false;
+		download->Files.clear();
+
+		std::string error;
+		json11::Json listData = json11::Json::parse(list, error);
+
+
+		if (!error.empty() || !listData.is_array()) return false;
+
+		for (auto& file : listData.array_items())
+		{
+			if (!file.is_object()) return false;
+
+			auto hash = file["hash"];
+			auto name = file["name"];
+			auto size = file["size"];
+
+			if (!hash.is_string() || !name.is_string() || !size.is_number()) return false;
+
+			Download::ClientDownload::File fileEntry;
+			fileEntry.Name = name.string_value();
+			fileEntry.Hash = hash.string_value();
+			fileEntry.Size = static_cast<size_t>(size.number_value());
+
+			if (!fileEntry.Name.empty())
+			{
+				download->Files.push_back(fileEntry);
+			}
+		}
+
+		return true;
+	}
+
+	void Download::DownloadHandler(mg_connection *nc, int ev, void* ev_data)
+	{
+		http_message* hm = reinterpret_cast<http_message*>(ev_data);
+		Download::FileDownload* fDownload = reinterpret_cast<Download::FileDownload*>(nc->mgr->user_data);
+
+		if (ev == MG_EV_CONNECT)
+		{
+			if (hm->message.p)
+			{
+				fDownload->downloading = false;
+				return;
+			}
+		}
+
+		if (ev == MG_EV_RECV)
+		{
+			fDownload->receivedBytes += static_cast<size_t>(*reinterpret_cast<int*>(ev_data));
+
+			double progress = (100.0 / fDownload->file.Size) * fDownload->receivedBytes;
+			fDownload->download->Mutex.lock();
+			fDownload->download->Progress = fmt::sprintf("Downloading file (%d/%d) %s %d%%", fDownload->index + 1, fDownload->download->Files.size(), fDownload->file.Name.data(), static_cast<unsigned int>(progress));
+			fDownload->download->Mutex.unlock();
+		}
+
+		if (ev == MG_EV_HTTP_REPLY)
+		{
+			nc->flags |= MG_F_CLOSE_IMMEDIATELY;
+			fDownload->buffer = std::string(hm->body.p, hm->body.len);
+			fDownload->downloading = false;
+			return;
+		}
+	}
+
+	bool Download::DownloadFile(ClientDownload* download, unsigned int index)
+	{
+		if (!download || download->Files.size() <= index) return false;
+
+		auto file = download->Files[index];
+
+		download->Mutex.lock();
+		download->Progress = fmt::sprintf("Downloading file (%d/%d) %s 0%%", index + 1, download->Files.size(), file.Name.data());
+		download->Mutex.unlock();
+
+		std::string path = download->Mod + "/" + file.Name;
+		if (Utils::IO::FileExists(path))
+		{
+			std::string data = Utils::IO::ReadFile(path);
+
+			if (data.size() == file.Size && Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(data), "") == file.Hash)
+			{
+				return true;
+			}
+		}
+
+		std::string url = "http://" + download->Target.GetString() + "/file/" + file.Name;
+
+		Download::FileDownload fDownload;
+		fDownload.file = file;
+		fDownload.index = index;
+		fDownload.download = download;
+		fDownload.downloading = true;
+		fDownload.receivedBytes = 0;
+
+		download->Valid = true;
+		mg_mgr_init(&download->Mgr, &fDownload);
+		mg_connect_http(&download->Mgr, Download::DownloadHandler, url.data(), NULL, NULL);
+
+		while (fDownload.downloading)
+		{
+			mg_mgr_poll(&download->Mgr, 0);
+		}
+
+		mg_mgr_free(&download->Mgr);
+		download->Valid = false;
+
+		if (fDownload.buffer.size() != file.Size || Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(fDownload.buffer), "") != file.Hash)
+		{
+			return false;
+		}
+
+		Utils::IO::CreateDirectory(download->Mod);
+		Utils::IO::WriteFile(path, fDownload.buffer);
+
+		return true;
+	}
+
+	void Download::ModDownloader(ClientDownload* download)
+	{
+		if (!download) download = &Download::CLDownload;
+
+		std::string host = "http://" + download->Target.GetString();
+		std::string list = Utils::WebIO("IW4x", host + "/list").SetTimeout(5000)->Get();
+
+		if (list.empty())
+		{
+			download->Thread.detach();
+			download->Clear();
+
+			QuickPatch::Once([] ()
+			{
+				Party::ConnectError("Failed to download the modlist!");
+			});
+
+			return;
+		}
+
+		if (!Download::ParseModList(download, list))
+		{
+			download->Thread.detach();
+			download->Clear();
+
+			QuickPatch::Once([] ()
+			{
+				Party::ConnectError("Failed to parse the modlist!");
+			});
+
+			return;
+		}
+
+		for (unsigned int i = 0; i < download->Files.size(); ++i)
+		{
+			if (!Download::DownloadFile(download, i))
+			{
+				Dvar::Var("partyend_reason").Set(fmt::sprintf("Failed to download file: %s!", download->Files[i].Name.data()));
+
+				download->Thread.detach();
+				download->Clear();
+
+				QuickPatch::Once([] ()
+				{
+					Localization::ClearTemp();
+					Command::Execute("closemenu popup_reconnectingtoparty");
+					Command::Execute("openmenu menu_xboxlive_partyended");
+				});
+
+				return;
+			}
+		}
+
+		static std::string mod = download->Mod;
+
+		download->Thread.detach();
+		download->Clear();
+		
+		// Run this on the main thread
+		QuickPatch::Once([] ()
+		{
+			auto fsGame = Dvar::Var("fs_game");
+			fsGame.Set(mod);
+			fsGame.Get<Game::dvar_t*>()->pad2[0] = 1;
+
+			mod.clear();
+
+			Localization::ClearTemp();
+			Command::Execute("closemenu popup_reconnectingtoparty", true);
+
+			if (Dvar::Var("cl_modVidRestart").Get<bool>())
+			{
+				Command::Execute("vid_restart", false);
+			}
+
+			Command::Execute("reconnect", false);
+		});
+	}
+
+#pragma endregion
+
+#pragma region Server
 
 	bool Download::IsClient(mg_connection *nc)
 	{
@@ -283,6 +506,8 @@ namespace Components
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 	}
 
+#pragma endregion
+
 	Download::Download()
 	{
 		if (Dedicated::IsEnabled())
@@ -308,12 +533,22 @@ namespace Components
 		}
 		else
 		{
-			Utils::Hook(0x5AC6E9, [] ()
-			{
-				// TODO: Perform moddownload here
+// 			Utils::Hook(0x5AC6E9, [] ()
+// 			{
+// 				// TODO: Perform moddownload here
+// 
+// 				Game::CL_DownloadsComplete(0);
+// 			}, HOOK_CALL).Install()->Quick();
 
-				Game::CL_DownloadsComplete(0);
-			}, HOOK_CALL).Install()->Quick();
+			QuickPatch::OnFrame([]
+			{
+				if (Download::CLDownload.Running)
+				{
+					Download::CLDownload.Mutex.lock();
+					Localization::SetTemp("MENU_RECONNECTING_TO_PARTY", Download::CLDownload.Progress);
+					Download::CLDownload.Mutex.unlock();
+				}
+			});
 		}
 	}
 
@@ -325,7 +560,7 @@ namespace Components
 		}
 		else
 		{
-
+			Download::CLDownload.Clear();
 		}
 	}
 }
