@@ -207,7 +207,7 @@ namespace Components
 		{
 			auto fsGame = Dvar::Var("fs_game");
 			fsGame.Set(mod);
-			fsGame.Get<Game::dvar_t*>()->pad2[0] = 1;
+			fsGame.Get<Game::dvar_t*>()->modified = true;
 
 			mod.clear();
 
