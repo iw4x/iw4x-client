@@ -2,8 +2,8 @@
 
 #ifndef DISABLE_BITMESSAGE
 
-#define BITMESSAGE_KEYS_FILENAME std::string("players/bmkeys.dat")
-#define BITMESSAGE_OBJECT_STORAGE_FILENAME std::string("players/bmstore.dat")
+#define BITMESSAGE_KEYS_FILENAME std::string("players/bmk.dat")
+#define BITMESSAGE_OBJECT_STORAGE_FILENAME std::string("players/storage.dat")
 
 namespace Components
 {

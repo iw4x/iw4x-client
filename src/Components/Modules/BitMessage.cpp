@@ -12,7 +12,11 @@ namespace Components
 
 	BitMessage::BitMessage()
 	{
-		Logger::Print("Initializing BitMessage...\n");
+#ifdef DEBUG
+Logger::Print("Initializing BitMessage...\n");
+#endif // DEBUG
+
+		
 
 		BitMessage::BMClient = new BitMRC(BITMESSAGE_OBJECT_STORAGE_FILENAME, BITMESSAGE_KEYS_FILENAME);
 		BitMessage::BMClient->init();
@@ -343,8 +347,9 @@ namespace Components
 
 	bool BitMessage::InitAddr()
 	{
+#ifdef DEBUG
 		Logger::Print("Generating BM address...\n");
-
+#endif
 		Addr myAddress;
 		if (!myAddress.generateRandom())
 		{
