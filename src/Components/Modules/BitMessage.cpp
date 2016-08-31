@@ -31,6 +31,7 @@ namespace Components
 
 		BitMessage::BMClient->start();
 
+#ifdef DEBUG
 		Command::Add("bm_send", [](Command::Params params) 
 		{
 			if (params.Length() < 3) return;
@@ -177,6 +178,7 @@ namespace Components
 				Logger::Print("Address not correct!\n");
 			}
 		});
+#endif
 	}
 
 	BitMessage::~BitMessage()
