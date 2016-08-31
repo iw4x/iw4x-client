@@ -19,6 +19,7 @@ namespace Components
 
 		Download::CLDownload.Running = true;
 		Download::CLDownload.Mod = mod;
+		Download::CLDownload.TerminateThread = false;
 		Download::CLDownload.Target = Party::Target();
 		Download::CLDownload.Thread = std::thread(Download::ModDownloader, &Download::CLDownload);
 	}
@@ -125,7 +126,7 @@ namespace Components
 		mg_mgr_init(&download->Mgr, &fDownload);
 		mg_connect_http(&download->Mgr, Download::DownloadHandler, url.data(), NULL, NULL);
 
-		while (fDownload.downloading)
+		while (fDownload.downloading && !fDownload.download->TerminateThread)
 		{
 			mg_mgr_poll(&download->Mgr, 0);
 		}
@@ -164,6 +165,8 @@ namespace Components
 			return;
 		}
 
+		if (download->TerminateThread) return;
+
 		if (!Download::ParseModList(download, list))
 		{
 			download->Thread.detach();
@@ -177,8 +180,12 @@ namespace Components
 			return;
 		}
 
+		if (download->TerminateThread) return;
+
 		for (unsigned int i = 0; i < download->Files.size(); ++i)
 		{
+			if (download->TerminateThread) return;
+
 			if (!Download::DownloadFile(download, i))
 			{
 				Dvar::Var("partyend_reason").Set(fmt::sprintf("Failed to download file: %s!", download->Files[i].Name.data()));
@@ -196,6 +203,8 @@ namespace Components
 				return;
 			}
 		}
+
+		if (download->TerminateThread) return;
 
 		static std::string mod = download->Mod;
 

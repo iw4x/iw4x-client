@@ -16,17 +16,19 @@ namespace Components
 		class ClientDownload
 		{
 		public:
-			ClientDownload() : Valid(false), Running(false) {}
+			ClientDownload() : Valid(false), Running(false), TerminateThread(false) {}
 			~ClientDownload() { this->Clear(); }
 
 			bool Running;
 			bool Valid;
+			bool TerminateThread;
 			mg_mgr Mgr;
 			Network::Address Target;
 			std::string Mod;
 			std::mutex Mutex;
 			std::thread Thread;
 			std::string Progress;
+
 
 			class File
 			{
@@ -40,6 +42,13 @@ namespace Components
 
 			void Clear()
 			{
+				this->TerminateThread = true;
+
+				if (this->Thread.joinable())
+				{
+					this->Thread.join();
+				}
+
 				this->Running = false;
 				this->Mod.clear();
 				this->Files.clear();
