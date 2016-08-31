@@ -53,6 +53,16 @@ namespace Components
 
 		CreateProcessA("updater.exe", NULL, NULL, NULL, false, CREATE_NO_WINDOW, NULL, NULL, &sInfo, &pInfo);
 
+		if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(pInfo.hThread);
+		}
+
+		if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(pInfo.hProcess);
+		}
+
 		TerminateProcess(GetCurrentProcess(), exitCode);
 	}
 

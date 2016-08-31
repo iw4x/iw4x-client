@@ -159,12 +159,17 @@ namespace Utils
 		{
 			// Generate UUID data
 			UUID uuid;
-			UuidCreate(&uuid);
+			if (!UuidCreate(&uuid))
+			{
+				// Convert to string representation
+				char* strdata = nullptr;
+				if (!UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&strdata)))
+				{
+					return std::string(strdata);
+				}
+			}
 
-			// Convert to string representation
-			char* strdata = nullptr;
-			UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&strdata));
-			return std::string(strdata);
+			return "";
 		}
 	}
 }
