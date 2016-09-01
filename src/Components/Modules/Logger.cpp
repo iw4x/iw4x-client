@@ -174,7 +174,7 @@ namespace Components
 		Logger::MessageMutex.unlock();
 	}
 
-	void Logger::test(std::string message)
+	void Logger::PipeOutputStub(std::string message)
 	{
 		
 		if (Logger::addresses.size()) {
@@ -190,7 +190,7 @@ namespace Components
 
 	Logger::Logger()
 	{
-		Logger::PipeOutput(&test);
+		Logger::PipeOutput(&PipeOutputStub);
 
 		QuickPatch::OnFrame(Logger::Frame);
 

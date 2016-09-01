@@ -40,7 +40,7 @@ namespace Components
 
 		 Game::cmd_function_t sv_glog_list;
 		 Game::cmd_function_t sv_glog_list2;
-		 static void test(std::string message);
+		 static void PipeOutputStub(std::string message);
 	private:
 		static std::mutex MessageMutex;
 		static std::vector<std::string> MessageQueue;
