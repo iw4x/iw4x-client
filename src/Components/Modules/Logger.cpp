@@ -11,10 +11,12 @@ namespace Components
 	static char* writeFolder;
 	//static DWORD fsBuildOSPathForThreadHookLoc = 0x642139;
 	DWORD fsBuildOSPathForThreadHookLocRet = 0x64213F;
-	Game::dvar_t* iw4m_onelog;
 	
+	Game::dvar_t* iw4m_onelog;
+
 
 	void(*Logger::PipeCallback)(std::string) = nullptr;
+	void(*Logger::GLogCallback)(std::string) = nullptr;
 
 	bool Logger::IsConsoleReady()
 	{
@@ -43,7 +45,7 @@ namespace Components
 				}
 			}*/
 			fflush(stdout);
-			
+
 			return;
 		}
 
@@ -118,7 +120,7 @@ namespace Components
 
 		for (unsigned int i = 0; i < Logger::MessageQueue.size(); ++i)
 		{
-			
+
 			Game::Com_PrintMessage(0, Logger::MessageQueue[i].data(), 0);
 
 			if (!Logger::IsConsoleReady())
@@ -136,12 +138,24 @@ namespace Components
 		Logger::PipeCallback = callback;
 	}
 
+	void Logger::GLogOutput(void(*callback)(std::string))
+	{
+		Logger::GLogCallback = callback;
+	}
+
 	void Logger::PrintMessagePipe(const char* data)
 	{
 		if (Logger::PipeCallback)
 		{
-
 			Logger::PipeCallback(data);
+		}
+	}
+
+	void Logger::GLogMessagePipe(const char* data)
+	{
+		if (Logger::GLogCallback)
+		{	
+			Logger::GLogCallback(data);
 		}
 	}
 
@@ -156,7 +170,7 @@ namespace Components
 			push[esp + 8h]
 			call Logger::PrintMessagePipe
 			add esp, 4h
-			
+
 
 			returnPrint :
 			push esi
@@ -165,6 +179,27 @@ namespace Components
 				mov eax, 4AA835h
 				jmp eax
 		}
+	}
+
+	__declspec(naked) void Logger::GLogPrintfHookStub() {
+		_asm
+		{
+			mov eax, Logger::GLogCallback
+			test eax, eax
+			jz returnPrint
+			
+			
+			call Logger::GLogMessagePipe
+			
+			returnPrint :
+			
+			mov eax, 4576C0h
+			jmp eax
+
+			
+		}
+
+
 	}
 
 	void Logger::EnqueueMessage(std::string message)
@@ -176,7 +211,7 @@ namespace Components
 
 	void Logger::PipeOutputStub(std::string message)
 	{
-		
+
 		if (Logger::addresses.size()) {
 			for (size_t i = 0; i < Logger::addresses.size(); i++) {
 				const char* toSend = Utils::String::VA("%i %s", 0, message);
@@ -184,18 +219,32 @@ namespace Components
 			}
 		}
 		//Logger::PrintMessagePipe(message.c_str());
-	
-	}
 
+	}
+	void Logger::GPipeOutputStub(std::string message)
+	{
+		OutputDebugStringA("Worked");
+		if (Logger::gaddresses.size()) {
+			for (size_t i = 0; i < Logger::gaddresses.size(); i++) {
+				const char* toSend = Utils::String::VA("%s", message);
+				Network::Send(Logger::gaddresses[i], toSend);
+			}
+		}
+		//Logger::PrintMessagePipe(message.c_str());
+
+	}
 
 	Logger::Logger()
 	{
 		Logger::PipeOutput(&PipeOutputStub);
+		Logger::GLogOutput(&GPipeOutputStub);
 
+		//Logger::PipeOutput(nullptr);
+		//Logger::GLogOutput(nullptr);
 		QuickPatch::OnFrame(Logger::Frame);
 
 		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).Install()->Quick();
-
+		Utils::Hook(Logger::glogprintfHookLoc, Logger::GLogPrintfHookStub, HOOK_CALL).Install()->Quick();
 		//Logging over network stuff
 		Game::Cmd_AddCommand("log_add", Game::Cbuf_AddServerText, &sv_log_add, 0);
 		Game::Cmd_AddServerCommand("log_add", Logger::SV_Log_Add_f, &sv_log_add2);
@@ -215,9 +264,9 @@ namespace Components
 		Game::Cmd_AddCommand("g_log_list", Game::Cbuf_AddServerText, &sv_glog_list, 0);
 		Game::Cmd_AddServerCommand("g_log_list", Logger::SV_GLog_List_f, &sv_glog_list2);
 
-		Utils::Hook(Logger::fsBuildOSPathForThreadHookLoc, FS_BuildOSPathForThreadHookFunc, HOOK_JUMP).Install()->Quick();
-		Logger::FS_BuildOSPathForThreadHookTest();
-		iw4m_onelog = (Game::dvar_t*)Game::Dvar_RegisterBool("iw4x_onelog", false, Game::DVAR_FLAG_LATCHED || Game::DVAR_FLAG_SAVED, "Only write the game log to the '" BASEGAME "' OS folder");
+		//Utils::Hook(Logger::fsBuildOSPathForThreadHookLoc, FS_BuildOSPathForThreadHookFunc, HOOK_JUMP).Install()->Quick();
+		//Logger::FS_BuildOSPathForThreadHookTest();
+		//iw4m_onelog = (Game::dvar_t*)Game::Dvar_RegisterBool("iw4x_onelog", false, Game::DVAR_FLAG_LATCHED || Game::DVAR_FLAG_SAVED, "Only write the game log to the '" BASEGAME "' OS folder");
 
 
 	}
@@ -341,7 +390,7 @@ namespace Components
 		return true;
 	}
 
-
+	
 
 
 
@@ -374,7 +423,7 @@ namespace Components
 			push ebp
 			push esi
 			mov esi, [esp + 0Ch]
-			
+
 			jmp fsBuildOSPathForThreadHookLocRet
 		}
 
