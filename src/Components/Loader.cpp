@@ -2,10 +2,18 @@
 
 namespace Components
 {
+	bool Loader::Pregame = true;
 	std::vector<Component*> Loader::Components;
+
+	bool Loader::IsPregame()
+	{
+		return Loader::Pregame;
+	}
 
 	void Loader::Initialize()
 	{
+		Loader::Pregame = true;
+
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
 
@@ -59,6 +67,8 @@ namespace Components
 		Loader::Register(new MusicalTalent());
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
+
+		Loader::Pregame = false;
 	}
 
 	void Loader::Uninitialize()

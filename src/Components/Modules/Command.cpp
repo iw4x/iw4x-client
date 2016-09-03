@@ -46,6 +46,17 @@ namespace Components
 
 	void Command::AddSV(const char* name, Command::Callback* callback)
 	{
+		if (Loader::IsPregame())
+		{
+			MessageBoxA(0, "Registering server commands in pregamestate is illegal!", 0, MB_ICONERROR);
+
+#ifdef DEBUG
+			__debugbreak();
+#endif
+
+			return;
+		}
+
 		std::string command = Utils::String::ToLower(name);
 
 		if (Command::FunctionMapSV.find(command) == Command::FunctionMapSV.end())
