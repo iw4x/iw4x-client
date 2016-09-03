@@ -22,12 +22,30 @@ namespace Components
 
 	Game::Material* Materials::VerifyMaterial(Game::Material* material)
 	{
-		if (!IsBadReadPtr(material, 4) && !IsBadReadPtr(material->name, 1))
+// 		if (!IsBadReadPtr(material, 4) && !IsBadReadPtr(material->name, 1))
+// 		{
+// 			return material;
+// 		}
+
+		Materials::VerifyContainer container = { false, material };
+		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MATERIAL, [] (Game::XAssetHeader header, void* data)
+		{
+			Materials::VerifyContainer* container = reinterpret_cast<Materials::VerifyContainer*>(data);
+
+			if (container && header.material == container->material)
+			{
+				container->isValid = true;
+			}
+		}, &container, false);
+
+		if (container.isValid)
 		{
 			return material;
 		}
-
-		return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
+		else
+		{
+			return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
+		}
 	}
 
 	__declspec(naked) void Materials::DrawMaterialStub()

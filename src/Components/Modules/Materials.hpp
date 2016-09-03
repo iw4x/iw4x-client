@@ -11,6 +11,13 @@ namespace Components
 #endif
 
 	private:
+		class VerifyContainer
+		{
+		public:
+			bool isValid;
+			Game::Material* material;
+		};
+
 		static Utils::Hook ImageVersionCheckHook;
 		static void ImageVersionCheck();
 
