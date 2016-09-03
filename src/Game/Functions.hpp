@@ -518,17 +518,4 @@ namespace Game
 
 	void IN_KeyUp(kbutton_t* button);
 	void IN_KeyDown(kbutton_t* button);
-	
-	inline int	Cmd_Argc(void)
-	{
-		return cmd_argc[*cmd_id];
-	}
-
-	inline char *Cmd_Argv(int arg)
-	{
-		if ((unsigned)arg >= cmd_argc[*cmd_id]) {
-			return "";
-		}
-		return (char*)(cmd_argv[*cmd_id][arg]);
-	}
 }
