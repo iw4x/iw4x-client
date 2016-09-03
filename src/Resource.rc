@@ -2,7 +2,6 @@
 //
 #pragma code_page(65001)
 
-#define RESOURCE_DATA
 #include "STDInclude.hpp"
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -47,8 +46,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION VERSION
- PRODUCTVERSION VERSION
+ FILEVERSION VERSION_RC
+ PRODUCTVERSION VERSION_RC
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,12 +68,12 @@ BEGIN
 #else
             VALUE "FileDescription", "IW4 client modification"
 #endif
-            VALUE "FileVersion", VERSION_STR
+            VALUE "FileVersion", SHORTVERSION 
             VALUE "InternalName", "iw4x"
             VALUE "LegalCopyright", "No rights reserved."
             VALUE "OriginalFilename", "iw4x.dll"
             VALUE "ProductName", "IW4x"
-            VALUE "ProductVersion", VERSION_STR
+            VALUE "ProductVersion", SHORTVERSION
         END
     END
     BLOCK "VarFileInfo"

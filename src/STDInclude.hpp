@@ -1,9 +1,9 @@
 #pragma once
 
 // Version number
-#include <version.hpp>
+#include "version.h"
 
-#ifndef RESOURCE_DATA
+#ifndef RC_INVOKED
 
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
@@ -120,21 +120,11 @@ using namespace std::literals;
 
 #endif
 
-// Revision number
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
 
 #define BASEGAME "iw4x"
 #define CLIENT_CONFIG "iw4x_config.cfg"
-
-#define REVISION_STR STRINGIZE(REVISION)
-#if !REVISION_CLEAN
-#define REVISION_SUFFIX "*"
-#else
-#define REVISION_SUFFIX ""
-#endif
-#define VERSION 4,2,REVISION
-#define VERSION_STR "4.2." REVISION_STR
 
 #define Assert_Size(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
 

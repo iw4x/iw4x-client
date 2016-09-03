@@ -204,7 +204,7 @@ namespace Components
 
 		// Combine with queuedMinidumpsFolder
 		char filename[MAX_PATH];
-		PathCombineA(filename, MinidumpUpload::queuedMinidumpsFolder.data(), Utils::String::VA("%s-" VERSION_STR "-%s.dmp", exeFileName, filenameFriendlyTime));
+		PathCombineA(filename, MinidumpUpload::queuedMinidumpsFolder.data(), Utils::String::VA("%s-" VERSION "-%s.dmp", exeFileName, filenameFriendlyTime));
 
 		// Generate the dump
 		return Minidump::Create(filename, exceptionInfo, minidumpType);
@@ -372,7 +372,7 @@ namespace Components
 
 		if (extraHeaders.find("Encoding") == extraHeaders.end())
 			extraHeaders["Encoding"] = "raw";
-		extraHeaders["Version"] = VERSION_STR;
+		extraHeaders["Version"] = VERSION;
 
 		output << "-----BEGIN " << marker << "-----\n";
 
