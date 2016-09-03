@@ -449,7 +449,7 @@ namespace Components
 				if (info.Get("gamename") == "IW4"
 					&& server.MatchType 
 #ifndef DEBUG
-					&& server.Shortversion == VERSION_STR
+					&& server.Shortversion == SHORTVERSION
 #endif
 					)
 				{

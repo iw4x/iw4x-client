@@ -309,7 +309,7 @@ namespace Components
 			info.Set("clients", fmt::sprintf("%i", clientCount));
 			info.Set("sv_maxclients", fmt::sprintf("%i", maxclientCount));
 			info.Set("protocol", fmt::sprintf("%i", PROTOCOL));
-			info.Set("shortversion", VERSION_STR);
+			info.Set("shortversion", SHORTVERSION);
 			info.Set("checksum", fmt::sprintf("%d", Game::Sys_Milliseconds()));
 			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 			info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
