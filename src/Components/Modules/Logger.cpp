@@ -111,6 +111,8 @@ namespace Components
 
 	void Logger::NetworkLog(const char* data, bool gLog)
 	{
+		if (!data) return;
+
 		std::string buffer(data);
 		for (auto& addr : Logger::LoggingAddresses[gLog & 1])
 		{
@@ -123,7 +125,7 @@ namespace Components
 		__asm
 		{
 			push 1
-			push[esp + 4h]
+			push [esp + 8h]
 			call Logger::NetworkLog
 			add esp, 8h
 
@@ -147,7 +149,7 @@ namespace Components
 
 		returnPrint:
 			push 0
-			push [esp + 8h]
+			push [esp + 0Ch]
 			call Logger::NetworkLog
 			add esp, 8h
 
