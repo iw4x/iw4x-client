@@ -591,37 +591,35 @@ namespace Components
 			if (NULL != pSecDesc) 
 			{
 				HeapFree(GetProcessHeap(), 0, pSecDesc);
-				pSecDesc = NULL;
 			}
 			if (NULL != pDacl) 
 			{
 				HeapFree(GetProcessHeap(), 0, pDacl);
-				pDacl = NULL;
 			}
+
 			if (psidAdmins) 
 			{
 				FreeSid(psidAdmins);
-				psidAdmins = NULL;
 			}
+
 			if (psidSystem) 
 			{
 				FreeSid(psidSystem);
-				psidSystem = NULL;
 			}
+
 			if (psidEveryone) 
 			{
 				FreeSid(psidEveryone);
-				psidEveryone = NULL;
 			}
+
 			if (NULL != pTokenInfo) 
 			{
 				HeapFree(GetProcessHeap(), 0, pTokenInfo);
-				pTokenInfo = NULL;
 			}
+
 			if (NULL != hToken) 
 			{
 				CloseHandle(hToken);
-				hToken = NULL;
 			}
 		}
 
