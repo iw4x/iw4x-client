@@ -24,9 +24,6 @@ namespace Components
 		Loader::Register(new Maps());
 		Loader::Register(new News());
 		Loader::Register(new Node());
-#ifndef DISABLE_BITMESSAGE
-		Loader::Register(new BitMessage());
-#endif
 		Loader::Register(new RCon());
 		Loader::Register(new Menus());
 		Loader::Register(new Toast());
@@ -53,9 +50,11 @@ namespace Components
 		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());
 		Loader::Register(new Exception());
-		Loader::Register(new MinidumpUpload());
 		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
+#ifndef DISABLE_BITMESSAGE
+		Loader::Register(new BitMessage());
+#endif
 		Loader::Register(new FileSystem());
 		Loader::Register(new QuickPatch());
 		Loader::Register(new ServerInfo());
@@ -65,6 +64,7 @@ namespace Components
 		Loader::Register(new AssetHandler());
 		Loader::Register(new Localization());
 		Loader::Register(new MusicalTalent());
+		Loader::Register(new MinidumpUpload());
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
 

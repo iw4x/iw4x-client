@@ -21,6 +21,8 @@ namespace Components
 
 	Game::StringTable* StringTable::LoadObject(std::string filename)
 	{
+		filename = Utils::String::ToLower(filename);
+
 		Game::StringTable* table = nullptr;
 		FileSystem::File rawTable(filename);
 
@@ -72,6 +74,8 @@ namespace Components
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [] (Game::XAssetType, std::string filename)
 		{
 			Game::XAssetHeader header = { 0 };
+
+			filename = Utils::String::ToLower(filename);
 
 			if (StringTable::StringTableMap.find(filename) != StringTable::StringTableMap.end())
 			{
