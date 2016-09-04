@@ -522,6 +522,9 @@ namespace Components
 			FreeConsole();
 			Utils::Hook::Nop(0x60BB58, 11);
 
+			// Redirect input (]command)
+			Utils::Hook(0x47025A, 0x4F5770, HOOK_CALL).Install()->Quick();
+
 			Utils::Hook(0x60BB68, [] ()
 			{
 				Console::ConsoleThread = std::thread(Console::ConsoleRunner);
