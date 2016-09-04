@@ -143,7 +143,6 @@ namespace Components
 
 				if (Window::CursorVisible)
 				{
-					// TODO: Apply custom cursor
 					SetCursor(LoadCursor(NULL, IDC_ARROW));
 
 					while ((value = ShowCursor(TRUE)) < 0);

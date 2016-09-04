@@ -5,6 +5,6 @@ namespace Utils
 		bool FileExists(std::string file);
 		void WriteFile(std::string file, std::string data);
 		std::string ReadFile(std::string file);
-		void CreateDirectory(std::string dir);
+		bool CreateDirectory(std::string dir);
 	}
 }

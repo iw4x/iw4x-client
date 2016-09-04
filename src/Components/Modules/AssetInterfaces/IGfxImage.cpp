@@ -5,7 +5,7 @@ namespace Assets
 	void IGfxImage::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::GfxImage* image = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_IMAGE, name.data()).image;
-		if (image) return; // TODO: Check for default?
+		if (image) return;
 
 		image = builder->GetAllocator()->Allocate<Game::GfxImage>();
 		if (!image)

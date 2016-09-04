@@ -542,13 +542,6 @@ namespace Components
 		}
 		else
 		{
-// 			Utils::Hook(0x5AC6E9, [] ()
-// 			{
-// 				// TODO: Perform moddownload here
-// 
-// 				Game::CL_DownloadsComplete(0);
-// 			}, HOOK_CALL).Install()->Quick();
-
 			QuickPatch::OnFrame([]
 			{
 				if (Download::CLDownload.Running)

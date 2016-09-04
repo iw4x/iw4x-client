@@ -155,7 +155,6 @@ namespace Components
 				Localization::Set("MPUI_MOTD_TEXT", data);
 			}
 
-			// TODO: Implement update checks here!
 			if (!Loader::PerformingUnitTests())
 			{
 				while (!News::Terminate)

@@ -48,9 +48,9 @@ namespace Utils
 			return buffer;
 		}
 
-		void CreateDirectory(std::string dir)
+		bool CreateDirectory(std::string dir)
 		{
-			char opath[MAX_PATH];
+			char opath[MAX_PATH] = { 0 };
 			char *p;
 			size_t len;
 
@@ -70,7 +70,10 @@ namespace Utils
 
 					if (_access(opath, 0))
 					{
-						_mkdir(opath);
+						if (_mkdir(opath) == -1)
+						{
+							return false;
+						}
 					}
 
 					*p = L'\\';
@@ -79,8 +82,13 @@ namespace Utils
 
 			if (_access(opath, 0))
 			{
-				_mkdir(opath);
+				if (_mkdir(opath) == -1)
+				{
+					return false;
+				}
 			}
+
+			return true;
 		}
 	}
 }

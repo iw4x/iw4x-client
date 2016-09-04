@@ -768,11 +768,6 @@ namespace Components
 					Node::AddNode(address);
 				}
 			}
-			else
-			{
-				// TODO: Implement client handshake stuff
-				// Nvm, clients can simply ignore that i guess
-			}
 		});
 
 		Command::Add("listnodes", [] (Command::Params)

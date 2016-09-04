@@ -110,7 +110,6 @@ namespace Components
 	{
 		Bans::AccessMutex.lock();
 
-		// TODO: Read bans
 		FileSystem::File bans("bans.json");
 
 		if (bans.Exists())

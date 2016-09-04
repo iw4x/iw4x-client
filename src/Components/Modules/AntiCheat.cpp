@@ -163,7 +163,6 @@ namespace Components
 		
 		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 70)
 		{
-			// TODO: Move that elsewhere
 			if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
 			{
 #ifdef DEBUG_DETECTIONS

@@ -13,8 +13,6 @@ namespace Assets
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
-		// TODO: I think we have to write them, even if they are NULL
-
 		if (asset->name)
 		{
 			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
