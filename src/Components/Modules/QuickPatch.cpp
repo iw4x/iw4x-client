@@ -170,7 +170,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);
 
 		// fs_basegame
-		Utils::Hook::Set<char*>(0x6431D1, BASEGAME);
+		Utils::Hook::Set<char*>(0x6431D1, BASEGAME); 
 
 		// UI version string
 		Utils::Hook::Set<char*>(0x43F73B, "IW4x: " VERSION);
@@ -180,6 +180,14 @@ namespace Components
 
 		// version string
 		Utils::Hook::Set<char*>(0x60BD56, "IW4x (" VERSION ")");
+
+		// Shift ui version string to the left (ui_buildlocation)
+		Utils::Hook::Nop(0x6310A0, 5); // Don't register the initial dvar
+		Utils::Hook::Nop(0x6310B8, 5); // Don't write the result
+		Dvar::OnInit([] ()
+		{
+			*reinterpret_cast<Game::dvar_t**>(0x62E4B64) = Game::Dvar_RegisterVec2("ui_buildLocation", -80.0f, 15.0f, -10000.0, 10000.0, Game::DVAR_FLAG_READONLY, "Where to draw the build number");
+		});
 
 		// console title
 		if (ZoneBuilder::IsEnabled())
