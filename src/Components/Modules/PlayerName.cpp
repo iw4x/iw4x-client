@@ -12,7 +12,7 @@ namespace Components
 
 	PlayerName::PlayerName()
 	{
-		if (0)
+		if (0) // Disabled for now (comment out that line to enable it)
 		{
 			for (int i = 0; i < ARRAY_SIZE(PlayerName::PlayerNames); ++i)
 			{
