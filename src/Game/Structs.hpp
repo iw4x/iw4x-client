@@ -136,7 +136,7 @@ namespace Game
 		const char *autoCompleteDir;
 		const char *autoCompleteExt;
 		void(__cdecl *function)();
-		int unknown;
+		bool isKey; // Looks like this is true when the command is a key/button
 	} cmd_function_t;
 
 #pragma pack(push, 4)
