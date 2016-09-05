@@ -381,7 +381,7 @@ namespace Components
 
 	void ServerList::Insert(Network::Address address, Utils::InfoString info)
 	{
-		ServerList::RefreshContainer.Mutex.lock();
+		std::lock_guard<std::mutex> _(ServerList::RefreshContainer.Mutex);
 
 		for (auto i = ServerList::RefreshContainer.Servers.begin(); i != ServerList::RefreshContainer.Servers.end();)
 		{
@@ -469,8 +469,6 @@ namespace Components
 				++i;
 			}
 		}
-
-		ServerList::RefreshContainer.Mutex.unlock();
 	}
 
 	ServerList::ServerInfo* ServerList::GetCurrentServer()
@@ -625,7 +623,7 @@ namespace Components
 
 			ServerList::RefreshContainer.AwatingList = false;
 
-			ServerList::RefreshContainer.Mutex.lock();
+			std::lock_guard<std::mutex> _(ServerList::RefreshContainer.Mutex);
 
 			int offset = 0;
 			int count = ServerList::RefreshContainer.Servers.size();
@@ -649,8 +647,6 @@ namespace Components
 			}
 
 			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.Servers.size() - count);
-
-			ServerList::RefreshContainer.Mutex.unlock();
 		});
 
 		// Set default masterServerName + port and save it 

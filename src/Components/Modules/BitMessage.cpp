@@ -251,7 +251,7 @@ Logger::Print("Initializing BitMessage...\n");
 		}
 
 		// Resolve our own copy to the registered PubAddr copy in BitMRC if possible
-		auto resolvedAddress = FindPublicKey(address);
+		auto resolvedAddress = BitMessage::FindPublicKey(address);
 		if (resolvedAddress != nullptr &&
 			!resolvedAddress->waitingPubKey() && !resolvedAddress->getPubEncryptionKey().empty())
 			return true;
@@ -261,7 +261,7 @@ Logger::Print("Initializing BitMessage...\n");
 		{
 			// Request public key
 			BitMessage::BMClient->getPubKey(address);
-			resolvedAddress = FindPublicKey(address);
+			resolvedAddress = BitMessage::FindPublicKey(address);
 		}
 
 		BitMessage::Save();

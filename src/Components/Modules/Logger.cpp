@@ -80,7 +80,7 @@ namespace Components
 
 	void Logger::Frame()
 	{
-		Logger::MessageMutex.lock();
+		std::lock_guard<std::mutex> _(Logger::MessageMutex);
 
 		for (unsigned int i = 0; i < Logger::MessageQueue.size(); ++i)
 		{
@@ -93,7 +93,6 @@ namespace Components
 		}
 
 		Logger::MessageQueue.clear();
-		Logger::MessageMutex.unlock();
 	}
 
 	void Logger::PipeOutput(void(*callback)(std::string))

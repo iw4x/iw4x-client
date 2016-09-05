@@ -108,7 +108,7 @@ namespace Components
 
 	void Bans::LoadBans(Bans::BanList* list)
 	{
-		Bans::AccessMutex.lock();
+		std::lock_guard<std::mutex> _(Bans::AccessMutex);
 
 		FileSystem::File bans("bans.json");
 
@@ -161,8 +161,6 @@ namespace Components
 				}
 			}
 		}
-
-		Bans::AccessMutex.unlock();
 	}
 
 	void Bans::BanClientNum(int num, std::string reason)
