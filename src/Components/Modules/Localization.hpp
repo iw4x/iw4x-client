@@ -17,6 +17,7 @@ namespace Components
 		static void ClearTemp();
 
 	private:
+		static std::mutex LocalizeMutex;
 		static Utils::Memory::Allocator MemAllocator;
 		static std::map<std::string, Game::LocalizedEntry*> LocalizeMap;
 		static std::map<std::string, Game::LocalizedEntry*> TempLocalizeMap;

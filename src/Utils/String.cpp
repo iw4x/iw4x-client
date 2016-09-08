@@ -119,6 +119,28 @@ namespace Utils
 			return fmt::sprintf("%02d:%02d:%02d", hoursTotal, minutes, seconds);
 		}
 
+		std::string FormatBandwidth(size_t bytes, int milliseconds)
+		{
+			static char* sizes[] = 
+			{
+				"B",
+				"KB",
+				"MB",
+				"GB",
+				"TB"
+			};
+
+			double bytesPerSecond = (1000.0 / milliseconds) * bytes;
+
+			int i = 0;
+			for (i = 0; bytesPerSecond > 1000 && i < ARRAY_SIZE(sizes); ++i) // 1024 or 1000?
+			{
+				bytesPerSecond /= 1000;
+			}
+
+			return fmt::sprintf("%.2f %s/s", static_cast<float>(bytesPerSecond), sizes[i]);
+		}
+
 		// Encodes a given string in Base64
 		std::string EncodeBase64(const char* input, const unsigned long inputSize) 
 		{

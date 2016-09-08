@@ -35,6 +35,7 @@ namespace Utils
 		std::string &Trim(std::string &s);
 
 		std::string FormatTimeSpan(int milliseconds);
+		std::string FormatBandwidth(size_t bytes, int milliseconds);
 
 		std::string DumpHex(std::string data, std::string separator = " ");
 

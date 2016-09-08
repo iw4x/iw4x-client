@@ -16,7 +16,7 @@ namespace Components
 		class ClientDownload
 		{
 		public:
-			ClientDownload() : Valid(false), Running(false), TerminateThread(false) {}
+			ClientDownload() : Valid(false), Running(false), TerminateThread(false), TotalBytes(0), DownBytes(0), LastTimeStamp(0), TimeStampBytes(0) {}
 			~ClientDownload() { this->Clear(); }
 
 			bool Running;
@@ -25,10 +25,13 @@ namespace Components
 			mg_mgr Mgr;
 			Network::Address Target;
 			std::string Mod;
-			std::mutex Mutex;
 			std::thread Thread;
-			std::string Progress;
 
+			size_t TotalBytes;
+			size_t DownBytes;
+
+			int LastTimeStamp;
+			size_t TimeStampBytes;
 
 			class File
 			{
@@ -58,10 +61,6 @@ namespace Components
 					this->Valid = false;
 					mg_mgr_free(&(this->Mgr));
 				}
-
-				this->Mutex.lock();
-				this->Progress.clear();
-				this->Mutex.unlock();
 			}
 		};
 
@@ -71,10 +70,13 @@ namespace Components
 			ClientDownload* download;
 			ClientDownload::File file;
 
+			int timestamp;
 			bool downloading;
 			unsigned int index;
 			std::string buffer;
 			size_t receivedBytes;
+
+
 		};
 
 		static mg_mgr Mgr;

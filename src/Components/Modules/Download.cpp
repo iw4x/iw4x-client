@@ -11,11 +11,11 @@ namespace Components
 	{
 		if (Download::CLDownload.Running) return;
 
-		Download::CLDownload.Mutex.lock();
-		Download::CLDownload.Progress = "Downloading mod";
-		Download::CLDownload.Mutex.unlock();
+		Localization::SetTemp("MPUI_EST_TIME_LEFT", Utils::String::FormatTimeSpan(0));
+		Localization::SetTemp("MPUI_PROGRESS_DL", "(0/0) %");
+		Localization::SetTemp("MPUI_TRANS_RATE", "0.0 MB/s");
 
-		Command::Execute("openmenu popup_reconnectingtoparty", true);
+		Command::Execute("openmenu mod_download_popmenu", true);
 
 		Download::CLDownload.Running = true;
 		Download::CLDownload.Mod = mod;
@@ -35,6 +35,8 @@ namespace Components
 
 		if (!error.empty() || !listData.is_array()) return false;
 
+		download->TotalBytes = 0;
+
 		for (auto& file : listData.array_items())
 		{
 			if (!file.is_object()) return false;
@@ -53,6 +55,7 @@ namespace Components
 			if (!fileEntry.Name.empty())
 			{
 				download->Files.push_back(fileEntry);
+				download->TotalBytes += fileEntry.Size;
 			}
 		}
 
@@ -75,12 +78,32 @@ namespace Components
 
 		if (ev == MG_EV_RECV)
 		{
-			fDownload->receivedBytes += static_cast<size_t>(*reinterpret_cast<int*>(ev_data));
+			size_t bytes = static_cast<size_t>(*reinterpret_cast<int*>(ev_data));
+			fDownload->receivedBytes += bytes;
+			fDownload->download->DownBytes += bytes;
+			fDownload->download->TimeStampBytes += bytes;
 
-			double progress = (100.0 / fDownload->file.Size) * fDownload->receivedBytes;
-			fDownload->download->Mutex.lock();
-			fDownload->download->Progress = fmt::sprintf("Downloading file (%d/%d) %s %d%%", fDownload->index + 1, fDownload->download->Files.size(), fDownload->file.Name.data(), static_cast<unsigned int>(progress));
-			fDownload->download->Mutex.unlock();
+			double progress = (100.0 / fDownload->download->TotalBytes) * fDownload->download->DownBytes;
+			Localization::SetTemp("MPUI_PROGRESS_DL", fmt::sprintf("(%d/%d) %d%%", fDownload->index + 1, fDownload->download->Files.size(), static_cast<unsigned int>(progress)));
+
+			int delta = Game::Sys_Milliseconds() - fDownload->download->LastTimeStamp;
+			if (delta > 300)
+			{
+				bool doFormat = fDownload->download->LastTimeStamp != 0;
+				fDownload->download->LastTimeStamp = Game::Sys_Milliseconds();
+
+				size_t dataLeft = fDownload->download->TotalBytes - fDownload->download->DownBytes;
+				double timeLeftD = ((1.0 * dataLeft) / fDownload->download->TimeStampBytes) * delta;
+				int timeLeft = static_cast<int>(timeLeftD);
+
+				if (doFormat)
+				{
+					Localization::SetTemp("MPUI_EST_TIME_LEFT", Utils::String::FormatTimeSpan(timeLeft));
+					Localization::SetTemp("MPUI_TRANS_RATE", Utils::String::FormatBandwidth(fDownload->download->TimeStampBytes, delta));
+				}
+
+				fDownload->download->TimeStampBytes = 0;
+			}
 		}
 
 		if (ev == MG_EV_HTTP_REPLY)
@@ -98,10 +121,6 @@ namespace Components
 
 		auto file = download->Files[index];
 
-		download->Mutex.lock();
-		download->Progress = fmt::sprintf("Downloading file (%d/%d) %s 0%%", index + 1, download->Files.size(), file.Name.data());
-		download->Mutex.unlock();
-
 		std::string path = download->Mod + "/" + file.Name;
 		if (Utils::IO::FileExists(path))
 		{
@@ -109,6 +128,7 @@ namespace Components
 
 			if (data.size() == file.Size && Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(data), "") == file.Hash)
 			{
+				download->TotalBytes += file.Size;
 				return true;
 			}
 		}
@@ -121,6 +141,8 @@ namespace Components
 		fDownload.download = download;
 		fDownload.downloading = true;
 		fDownload.receivedBytes = 0;
+
+		Utils::String::Replace(url, " ", "%20");
 
 		download->Valid = true;
 		mg_mgr_init(&download->Mgr, &fDownload);
@@ -154,6 +176,8 @@ namespace Components
 
 		if (list.empty())
 		{
+			if (download->TerminateThread) return;
+
 			download->Thread.detach();
 			download->Clear();
 
@@ -169,6 +193,8 @@ namespace Components
 
 		if (!Download::ParseModList(download, list))
 		{
+			if (download->TerminateThread) return;
+
 			download->Thread.detach();
 			download->Clear();
 
@@ -182,21 +208,27 @@ namespace Components
 
 		if (download->TerminateThread) return;
 
+		static std::string mod = download->Mod;
+
 		for (unsigned int i = 0; i < download->Files.size(); ++i)
 		{
 			if (download->TerminateThread) return;
 
 			if (!Download::DownloadFile(download, i))
 			{
-				Dvar::Var("partyend_reason").Set(fmt::sprintf("Failed to download file: %s!", download->Files[i].Name.data()));
+				if (download->TerminateThread) return;
 
+				mod = fmt::sprintf("Failed to download file: %s!", download->Files[i].Name.data());
 				download->Thread.detach();
 				download->Clear();
 
 				QuickPatch::Once([] ()
 				{
+					Dvar::Var("partyend_reason").Set(mod);
+					mod.clear();
+
 					Localization::ClearTemp();
-					Command::Execute("closemenu popup_reconnectingtoparty");
+					Command::Execute("closemenu mod_download_popmenu");
 					Command::Execute("openmenu menu_xboxlive_partyended");
 				});
 
@@ -205,8 +237,6 @@ namespace Components
 		}
 
 		if (download->TerminateThread) return;
-
-		static std::string mod = download->Mod;
 
 		download->Thread.detach();
 		download->Clear();
@@ -221,7 +251,7 @@ namespace Components
 			mod.clear();
 
 			Localization::ClearTemp();
-			Command::Execute("closemenu popup_reconnectingtoparty", true);
+			Command::Execute("closemenu mod_download_popmenu", true);
 
 			if (Dvar::Var("cl_modVidRestart").Get<bool>())
 			{
@@ -345,6 +375,8 @@ namespace Components
 			std::string url(message->uri.p, message->uri.len);
 			Utils::String::Replace(url, "\\", "/");
 			url = url.substr(6);
+
+			Utils::String::Replace(url, "%20", " ");
 
 			if (url.find_first_of("/") != std::string::npos || (!Utils::String::EndsWith(url, ".iwd") && url != "mod.ff") || strstr(url.data(), "_svr_") != NULL)
 			{
@@ -542,14 +574,9 @@ namespace Components
 		}
 		else
 		{
-			QuickPatch::OnFrame([]
+			UIScript::Add("mod_download_cancel", [] ()
 			{
-				if (Download::CLDownload.Running)
-				{
-					Download::CLDownload.Mutex.lock();
-					Localization::SetTemp("MENU_RECONNECTING_TO_PARTY", Download::CLDownload.Progress);
-					Download::CLDownload.Mutex.unlock();
-				}
+				Download::CLDownload.Clear();
 			});
 		}
 	}
