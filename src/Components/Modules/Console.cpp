@@ -483,6 +483,14 @@ namespace Components
 		Console::SkipShutdown = true;
 	}
 
+	void Console::FreeNativeConsole()
+	{
+		if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled())
+		{
+			FreeConsole();
+		}
+	}
+
 	Console::Console()
 	{
 		// Console '%s: %s> ' string
@@ -527,7 +535,6 @@ namespace Components
 		}
 		else if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
 		{
-			FreeConsole();
 			Utils::Hook::Nop(0x60BB58, 11);
 
 			// Redirect input (]command)

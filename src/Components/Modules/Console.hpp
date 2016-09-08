@@ -15,6 +15,8 @@ namespace Components
 
 		static void SetSkipShutdown();
 
+		static void FreeNativeConsole();
+
 	private:
 		// Text-based console stuff
 		static WINDOW* OutputWindow;
