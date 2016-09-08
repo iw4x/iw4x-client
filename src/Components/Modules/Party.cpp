@@ -383,6 +383,17 @@ namespace Components
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Download::InitiateClientDownload(info.Get("fs_game"));
 					}
+					else if (!Dvar::Var("fs_game").Get<std::string>().empty() && info.Get("fs_game").empty())
+					{
+						Dvar::Var("fs_game").Set("");
+
+						if (Dvar::Var("cl_modVidRestart").Get<bool>())
+						{
+							Command::Execute("vid_restart", false);
+						}
+
+						Command::Execute("reconnect", false);
+					}
 					else
 					{
 						if (Party::Container.MatchType == 1) // Party
