@@ -58,21 +58,18 @@ def perConfiguration(suffix, f) {
 // We need a Windows Server with Visual Studio 2015, Premake5 and Git on it.
 def doBuild(premakeFlags, configuration) {
 	node("windows") {
-		sshagent (credentials: ["ba9ec261-deff-4fa0-a0e8-5d755f88d035"]) {
-			checkout scm
+		checkout scm
 
-			premakeHome = "${pwd()}\\tools"
+		premakeHome = "${pwd()}\\tools"
 
-			withEnv(["PATH+=${premakeHome}"]) {
-				def outputDir = pwd()
-				bat "premake5 vs2015 $premakeFlags"
-				bat "\"${tool 'MSBuild'}\" src\\build\\iw4x.sln \"/p:OutDir=$outputDir\\\" \"/p:Configuration=$configuration\""
-			}
-
-			archiveArtifacts artifacts: "*.dll,*.pdb", fingerprint: true
-			stash name: "iw4x $configuration", includes: "*.dll,*.pdb"
+		withEnv(["PATH+=${premakeHome}"]) {
+			def outputDir = pwd()
+			bat "premake5 vs2015 $premakeFlags"
+			bat "\"${tool 'MSBuild'}\" src\\build\\iw4x.sln \"/p:OutDir=$outputDir\\\" \"/p:Configuration=$configuration\""
 		}
 
+		archiveArtifacts artifacts: "*.dll,*.pdb", fingerprint: true
+		stash name: "iw4x $configuration", includes: "*.dll,*.pdb"
 	}
 }
 
