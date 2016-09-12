@@ -33,6 +33,8 @@ is set up. For those who want to play around with this, here's a bit of informat
 - If you fuck this script up, I will kill you.
 */
 
+import groovy.transform.Field
+
 @Field def configurations = [
 	"Debug",
 	"DebugStatic",
