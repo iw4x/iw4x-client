@@ -81,12 +81,12 @@ stage "Build"
 def executions = [:]
 for (int i = 0; i < configurations.size(); i++)
 {
-	configuration = configurations[i]
+	def configuration = configurations[i]
 	executions["$configuration"] = {
-		doBuild premakeFlags: "", configuration: configuration
+		doBuild("", configuration)
 	}
 	executions["$configuration Unit-Testing"] = {
-		doBuild premakeFlags: "--force-unit-tests", configuration: configuration
+		doBuild("--force-unit-tests", configuration)
 	}
 }
 parallel executions
