@@ -59,18 +59,16 @@ def doBuild(premakeFlags, configuration) {
 		sshagent (credentials: ["ba9ec261-deff-4fa0-a0e8-5d755f88d035"]) {
 			checkout scm
 
-			premakeHome = "${pwd()}\\src\\tools"
+			premakeHome = "${pwd()}\\tools"
 
 			withEnv(["PATH+=${premakeHome}"]) {
 				def outputDir = pwd()
-				dir("src") {
-					bat "premake5 vs2015 $premakeFlags"
-					bat "\"${tool 'MSBuild'}\" src\\build\\iw4x.sln \"/p:OutDir=$outputDir\\\" \"/p:Configuration=$configuration\""
-				}
+				bat "premake5 vs2015 $premakeFlags"
+				bat "\"${tool 'MSBuild'}\" src\\build\\iw4x.sln \"/p:OutDir=$outputDir\\\" \"/p:Configuration=$configuration\""
 			}
 
-			archiveArtifacts artifacts: "*", fingerprint: true
-			stash name: "iw4x $configuration", includes: "*"
+			archiveArtifacts artifacts: "*.dll,*.pdb", fingerprint: true
+			stash name: "iw4x $configuration", includes: "*.dll,*.pdb"
 		}
 
 	}
