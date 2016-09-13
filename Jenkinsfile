@@ -57,7 +57,6 @@ def doBuild(name, premakeFlags, configuration) {
 			bat "\"${msbuild}\" build\\iw4x.sln \"/p:OutDir=$outputDir\\\\\" \"/p:Configuration=$configuration\""
 		}
 
-		archiveArtifacts artifacts: "*.dll,*.pdb", fingerprint: true
 		stash name: "$name", includes: "*.dll,*.pdb"
 	}
 }
@@ -137,3 +136,16 @@ for (int i = 0; i < configurations.size(); i++)
 	}
 }
 parallel executions
+
+// Collect all the binaries and give each configuration its own subfolder
+stage "Publishing"
+node("windows") { // any node will do
+	for (int i = 0; i < configurations.size(); i++)
+	{
+		def configuration = configurations[i]
+		dir("$configuration") {
+			unstash "IW4x $configuration"
+		}
+	}
+	archiveArtifacts artifacts: "**/*.dll,**/*.pdb", fingerprint: true
+}
