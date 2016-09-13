@@ -44,7 +44,7 @@ import groovy.transform.Field
 
 // This will build the IW4x client.
 // We need a Windows Server with Visual Studio 2015, Premake5 and Git on it.
-def doBuild(premakeFlags, configuration) {
+def doBuild(name, premakeFlags, configuration) {
 	node("windows") {
 		checkout scm
 
@@ -58,7 +58,7 @@ def doBuild(premakeFlags, configuration) {
 		}
 
 		archiveArtifacts artifacts: "*.dll,*.pdb", fingerprint: true
-		stash name: "iw4x $configuration", includes: "*.dll,*.pdb"
+		stash name: "$name", includes: "*.dll,*.pdb"
 	}
 }
 
@@ -69,10 +69,10 @@ for (int i = 0; i < configurations.size(); i++)
 {
 	def configuration = configurations[i]
 	executions["$configuration"] = {
-		doBuild("", configuration)
+		doBuild("IW4x $configuration", "", configuration)
 	}
 	executions["$configuration Unit-Testing"] = {
-		doBuild("--force-unit-tests", configuration)
+		doBuild("IW4x $configuration with unit tests", "--force-unit-tests", configuration)
 	}
 }
 parallel executions
