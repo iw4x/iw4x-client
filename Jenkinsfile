@@ -127,7 +127,7 @@ parallel executions
 
 // Run unit tests on each configuration.
 stage "Testing"
-def executions = [:]
+executions = [:]
 for (int i = 0; i < configurations.size(); i++)
 {
 	def configuration = configurations[i]
