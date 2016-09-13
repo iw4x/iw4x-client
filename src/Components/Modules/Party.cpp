@@ -64,6 +64,7 @@ namespace Components
 
 	void Party::ConnectError(std::string message)
 	{
+		Localization::ClearTemp();
 		Command::Execute("closemenu popup_reconnectingtoparty");
 		Dvar::Var("partyend_reason").Set(message);
 		Command::Execute("openmenu menu_xboxlive_partyended");
@@ -308,7 +309,7 @@ namespace Components
 			info.Set("clients", fmt::sprintf("%i", clientCount));
 			info.Set("sv_maxclients", fmt::sprintf("%i", maxclientCount));
 			info.Set("protocol", fmt::sprintf("%i", PROTOCOL));
-			info.Set("shortversion", VERSION_STR);
+			info.Set("shortversion", SHORTVERSION);
 			info.Set("checksum", fmt::sprintf("%d", Game::Sys_Milliseconds()));
 			info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
 			info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().size() ? "1" : "0"));
@@ -354,8 +355,9 @@ namespace Components
 				{
 					// Invalidate handler for future packets
 					Party::Container.Valid = false;
+					Party::Container.Info = info;
 
-					int matchType = atoi(info.Get("matchtype").data());
+					Party::Container.MatchType = atoi(info.Get("matchtype").data());
 					uint32_t securityLevel = static_cast<uint32_t>(atoi(info.Get("securityLevel").data()));
 
 					if (info.Get("challenge") != Party::Container.Challenge)
@@ -368,48 +370,66 @@ namespace Components
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Auth::IncreaseSecurityLevel(securityLevel, "reconnect");
 					}
-					else if (!matchType)
+					else if (!Party::Container.MatchType)
 					{
 						Party::ConnectError("Server is not hosting a match.");
 					}
-					// Connect 
-					else if (matchType == 1) // Party
+					else if(Party::Container.MatchType > 2 || Party::Container.MatchType < 0)
 					{
-						// Send playlist request
-						Party::Container.RequestTime = Game::Sys_Milliseconds();
-						Party::Container.AwaitingPlaylist = true;
-						Network::SendCommand(address, "getplaylist");
-
-						// This is not a safe method
-						// TODO: Fix actual error!
-						if (Game::CL_IsCgameInitialized())
-						{
-							Command::Execute("disconnect", true);
-						}
+						Party::ConnectError("Invalid join response: Unknown matchtype");
 					}
-					else if (matchType == 2) // Match
+					else if(!info.Get("fs_game").empty() && Dvar::Var("fs_game").Get<std::string>() != info.Get("fs_game"))
 					{
-						if (atoi(info.Get("clients").data()) >= atoi(info.Get("sv_maxclients").data()))
-						{
-							Party::ConnectError("@EXE_SERVERISFULL");
-						}
-						if (info.Get("mapname") == "" || info.Get("gametype") == "")
-						{
-							Party::ConnectError("Invalid map or gametype.");
-						}
-						else
-						{
-							Dvar::Var("xblive_privateserver").Set(true);
+						Command::Execute("closemenu popup_reconnectingtoparty");
+						Download::InitiateClientDownload(info.Get("fs_game"));
+					}
+					else if (!Dvar::Var("fs_game").Get<std::string>().empty() && info.Get("fs_game").empty())
+					{
+						Dvar::Var("fs_game").Set("");
 
-							Game::Menus_CloseAll(Game::uiContext);
-
-							Game::_XSESSION_INFO hostInfo;
-							Game::CL_ConnectFromParty(0, &hostInfo, *address.Get(), 0, 0, info.Get("mapname").data(), info.Get("gametype").data());
+						if (Dvar::Var("cl_modVidRestart").Get<bool>())
+						{
+							Command::Execute("vid_restart", false);
 						}
+
+						Command::Execute("reconnect", false);
 					}
 					else
 					{
-						Party::ConnectError("Invalid join response: Unknown matchtype");
+						if (Party::Container.MatchType == 1) // Party
+						{
+							// Send playlist request
+							Party::Container.RequestTime = Game::Sys_Milliseconds();
+							Party::Container.AwaitingPlaylist = true;
+							Network::SendCommand(Party::Container.Target, "getplaylist");
+
+							// This is not a safe method
+							// TODO: Fix actual error!
+							if (Game::CL_IsCgameInitialized())
+							{
+								Command::Execute("disconnect", true);
+							}
+						}
+						else if (Party::Container.MatchType == 2) // Match
+						{
+							if (atoi(Party::Container.Info.Get("clients").data()) >= atoi(Party::Container.Info.Get("sv_maxclients").data()))
+							{
+								Party::ConnectError("@EXE_SERVERISFULL");
+							}
+							if (Party::Container.Info.Get("mapname") == "" || Party::Container.Info.Get("gametype") == "")
+							{
+								Party::ConnectError("Invalid map or gametype.");
+							}
+							else
+							{
+								Dvar::Var("xblive_privateserver").Set(true);
+
+								Game::Menus_CloseAll(Game::uiContext);
+
+								Game::_XSESSION_INFO hostInfo;
+								Game::CL_ConnectFromParty(0, &hostInfo, *Party::Container.Target.Get(), 0, 0, Party::Container.Info.Get("mapname").data(), Party::Container.Info.Get("gametype").data());
+							}
+						}
 					}
 				}
 			}

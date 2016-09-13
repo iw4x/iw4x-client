@@ -39,7 +39,7 @@ namespace Components
 		Bans::BanList list;
 		Bans::LoadBans(&list);
 
-		Bans::AccessMutex.lock();
+		std::lock_guard<std::mutex> _(Bans::AccessMutex);
 
 		if (entry.first.Bits)
 		{
@@ -102,15 +102,12 @@ namespace Components
 		
 		FileSystem::FileWriter ban("bans.json");
 		ban.Write(bans.dump());
-
-		Bans::AccessMutex.unlock();
 	}
 
 	void Bans::LoadBans(Bans::BanList* list)
 	{
-		Bans::AccessMutex.lock();
+		std::lock_guard<std::mutex> _(Bans::AccessMutex);
 
-		// TODO: Read bans
 		FileSystem::File bans("bans.json");
 
 		if (bans.Exists())
@@ -162,8 +159,6 @@ namespace Components
 				}
 			}
 		}
-
-		Bans::AccessMutex.unlock();
 	}
 
 	void Bans::BanClientNum(int num, std::string reason)

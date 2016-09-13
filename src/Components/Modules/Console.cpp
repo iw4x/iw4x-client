@@ -18,6 +18,7 @@ namespace Components
 	int Console::LineBufferIndex = 0;
 
 	bool Console::HasConsole = false;
+	bool Console::SkipShutdown = false;
 
 	std::thread Console::ConsoleThread;
 
@@ -76,14 +77,14 @@ namespace Components
 		}
 		else if(IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE)
 		{
-			SetWindowTextA(*reinterpret_cast<HWND*>(0x64A3288), Utils::String::VA("IW4x(r" REVISION_STR REVISION_SUFFIX ") : %s", hostname.data())); 
+			SetWindowTextA(*reinterpret_cast<HWND*>(0x64A3288), Utils::String::VA("IW4x(" VERSION ") : %s", hostname.data())); 
 		}
 	}
 
 	void Console::ShowPrompt()
 	{
 		wattron(Console::InputWindow, COLOR_PAIR(10) | A_BOLD);
-		wprintw(Console::InputWindow, "%s> ", VERSION_STR);
+		wprintw(Console::InputWindow, "%s> ", VERSION);
 	}
 
 	void Console::RefreshOutput()
@@ -279,11 +280,12 @@ namespace Components
 		raw();
 		noecho();
 
-		Console::OutputWindow = newpad(OUTPUT_HEIGHT, Console::Width);
+		Console::OutputWindow = newpad(Console::Height - 1, Console::Width);
 		Console::InputWindow = newwin(1, Console::Width, Console::Height - 1, 0);
 		Console::InfoWindow = newwin(1, Console::Width, 0, 0);
 
 		scrollok(Console::OutputWindow, true);
+		idlok(Console::OutputWindow, true);
 		scrollok(Console::InputWindow, true);
 		nodelay(Console::InputWindow, true);
 		keypad(Console::InputWindow, true);
@@ -343,11 +345,6 @@ namespace Components
 		const char* p = message;
 		while (*p != '\0')
 		{
-			if (*p == '\n')
-			{
-				Console::ScrollOutput(1);
-			}
-
 			if (*p == '^')
 			{
 				char color;
@@ -387,6 +384,7 @@ namespace Components
 
 	void Console::ConsoleRunner()
 	{
+		Console::SkipShutdown = false;
 		Game::Sys_ShowConsole();
 
 		MSG message;
@@ -395,6 +393,8 @@ namespace Components
 			TranslateMessage(&message);
 			DispatchMessageA(&message);
 		}
+		
+		if (Console::SkipShutdown) return;
 
 		if (Game::Sys_Milliseconds() - Console::LastRefresh > 100 &&
 			MessageBoxA(0, "The application is not responding anymore, do you want to force its termination?", "Application is not responding", MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
@@ -406,11 +406,11 @@ namespace Components
 			// We can not force the termination in this thread
 			// The destructor would be called in this thread
 			// and would try to join this thread, which is impossible
-			std::async([] ()
+			std::thread([] ()
 			{
 				std::this_thread::sleep_for(200ms);
 				ExitProcess(static_cast<uint32_t>(-1));
-			});
+			}).detach();
 		}
 		else
 		{
@@ -477,11 +477,24 @@ namespace Components
 		// Restore the initial safe area
 		*Game::safeArea = Console::OriginalSafeArea;
 	}
+	
+	void Console::SetSkipShutdown()
+	{
+		Console::SkipShutdown = true;
+	}
+
+	void Console::FreeNativeConsole()
+	{
+		if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled())
+		{
+			FreeConsole();
+		}
+	}
 
 	Console::Console()
 	{
 		// Console '%s: %s> ' string
-		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: r" REVISION_STR "> ");
+		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: " VERSION "> ");
 
 		// Internal console
 		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).Install()->Quick();
@@ -522,8 +535,10 @@ namespace Components
 		}
 		else if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
 		{
-			FreeConsole();
 			Utils::Hook::Nop(0x60BB58, 11);
+
+			// Redirect input (]command)
+			Utils::Hook(0x47025A, 0x4F5770, HOOK_CALL).Install()->Quick();
 
 			Utils::Hook(0x60BB68, [] ()
 			{

@@ -13,9 +13,11 @@ namespace Components
 	{
 		if (Flags::HasFlag("version"))
 		{
-			printf("IW4x r" REVISION_STR "-" MILESTONE " (built " __DATE__ " " __TIME__ ")\n");
+			printf("IW4x " VERSION " (built " __DATE__ " " __TIME__ ")\n");
 			ExitProcess(0);
 		}
+
+		Console::FreeNativeConsole();
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 

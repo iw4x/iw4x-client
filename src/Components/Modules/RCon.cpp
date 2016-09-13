@@ -45,7 +45,6 @@ namespace Components
 			}
 		});
 
-		// TODO: Maybe execute that for clients as well, when we use triangular natting.
 		if (!Dedicated::IsEnabled()) return;
 
 		// Load public key

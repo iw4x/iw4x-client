@@ -46,6 +46,17 @@ namespace Components
 
 	void Command::AddSV(const char* name, Command::Callback* callback)
 	{
+		if (Loader::IsPregame())
+		{
+			MessageBoxA(0, "Registering server commands in pregamestate is illegal!", 0, MB_ICONERROR);
+
+#ifdef DEBUG
+			__debugbreak();
+#endif
+
+			return;
+		}
+
 		std::string command = Utils::String::ToLower(name);
 
 		if (Command::FunctionMapSV.find(command) == Command::FunctionMapSV.end())
@@ -59,9 +70,9 @@ namespace Components
 		Command::FunctionMapSV[command] = callback;
 	}
 
-	void Command::AddRaw(const char* name, void(*callback)())
+	void Command::AddRaw(const char* name, void(*callback)(), bool key)
 	{
-		Game::Cmd_AddCommand(name, callback, Command::Allocate(), 0);
+		Game::Cmd_AddCommand(name, callback, Command::Allocate(), key);
 	}
 
 	void Command::AddRawSV(const char* name, void(*callback)())
@@ -134,6 +145,8 @@ namespace Components
 
 	Command::Command()
 	{
+		Assert_Size(Game::cmd_function_t, 24);
+
 		// Disable native noclip command
 		Utils::Hook::Nop(0x474846, 5);
 

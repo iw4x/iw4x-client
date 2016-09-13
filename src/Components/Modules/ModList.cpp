@@ -60,7 +60,7 @@ namespace Components
 	{
 		auto fsGame = Dvar::Var("fs_game");
 		fsGame.Set("");
-		fsGame.Get<Game::dvar_t*>()->pad2[0] = 1;
+		fsGame.Get<Game::dvar_t*>()->modified = true;
 
 		if (Dvar::Var("cl_modVidRestart").Get<bool>())
 		{
@@ -76,7 +76,7 @@ namespace Components
 	{
 		auto fsGame = Dvar::Var("fs_game");
 		fsGame.Set(fmt::sprintf("mods/%s", mod.data()));
-		fsGame.Get<Game::dvar_t*>()->pad2[0] = 1;
+		fsGame.Get<Game::dvar_t*>()->modified = true;
 
 		if (Dvar::Var("cl_modVidRestart").Get<bool>())
 		{

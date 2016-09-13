@@ -391,23 +391,26 @@ namespace Components
 			Logger::Print("Your guid: %llX\n", Steam::SteamUser()->GetSteamID().Bits);
 		});
 
-		Command::Add("securityLevel", [] (Command::Params params)
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
-			if (params.Length() < 2)
+			Command::Add("securityLevel", [] (Command::Params params)
 			{
-				uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey());
-				Logger::Print("Your current security level is %d\n", level);
-				Logger::Print("Your security token is: %s\n", Utils::String::DumpHex(Auth::GuidToken.ToString(), "").data());
-				Logger::Print("Your computation token is: %s\n", Utils::String::DumpHex(Auth::ComputeToken.ToString(), "").data());
+				if (params.Length() < 2)
+				{
+					uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey());
+					Logger::Print("Your current security level is %d\n", level);
+					Logger::Print("Your security token is: %s\n", Utils::String::DumpHex(Auth::GuidToken.ToString(), "").data());
+					Logger::Print("Your computation token is: %s\n", Utils::String::DumpHex(Auth::ComputeToken.ToString(), "").data());
 
-				Toast::Show("cardicon_locked", "^5Security Level", fmt::sprintf("Your security level is %d", level), 3000);
-			}
-			else
-			{
-				uint32_t level = static_cast<uint32_t>(atoi(params[1]));
-				Auth::IncreaseSecurityLevel(level);
-			}
-		});
+					Toast::Show("cardicon_locked", "^5Security Level", fmt::sprintf("Your security level is %d", level), 3000);
+				}
+				else
+				{
+					uint32_t level = static_cast<uint32_t>(atoi(params[1]));
+					Auth::IncreaseSecurityLevel(level);
+				}
+			});
+		}
 
 		UIScript::Add("security_increase_cancel", [] ()
 		{

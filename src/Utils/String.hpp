@@ -35,9 +35,17 @@ namespace Utils
 		std::string &Trim(std::string &s);
 
 		std::string FormatTimeSpan(int milliseconds);
+		std::string FormatBandwidth(size_t bytes, int milliseconds);
 
 		std::string DumpHex(std::string data, std::string separator = " ");
 
 		std::string XOR(std::string str, char value);
+
+		std::string EncodeBase64(const char* input, const unsigned long inputSize);
+		std::string EncodeBase64(const std::string& input);
+
+		std::string EncodeBase128(const std::string& input);
+
+		std::string GenerateUUIDString();
 	}
 }

@@ -104,10 +104,26 @@ namespace Utils
 			WebIO::m_sUrl.document = server.substr(pos);
 		}
 
+		WebIO::m_sUrl.port.clear();
+
+		pos = WebIO::m_sUrl.server.find(":");
+		if (pos != std::string::npos)
+		{
+			WebIO::m_sUrl.port = WebIO::m_sUrl.server.substr(pos + 1);
+			WebIO::m_sUrl.server = WebIO::m_sUrl.server.substr(0, pos);
+		}
+
 		WebIO::m_sUrl.raw.clear();
 		WebIO::m_sUrl.raw.append(WebIO::m_sUrl.protocol);
 		WebIO::m_sUrl.raw.append("://");
 		WebIO::m_sUrl.raw.append(WebIO::m_sUrl.server);
+
+		if (!WebIO::m_sUrl.port.empty())
+		{
+			WebIO::m_sUrl.raw.append(":");
+			WebIO::m_sUrl.raw.append(WebIO::m_sUrl.port);
+		}
+
 		WebIO::m_sUrl.raw.append(WebIO::m_sUrl.document);
 
 		WebIO::m_isFTP = (WebIO::m_sUrl.protocol == "ftp");
@@ -134,25 +150,33 @@ namespace Utils
 		return body;
 	}
 
-	std::string WebIO::PostFile(std::string url, std::string filename, std::string fieldname, std::string data)
+	std::string WebIO::PostFile(std::string url, std::string data, std::string fieldName, std::string fileName)
 	{
 		WebIO::SetURL(url);
-		return WebIO::PostFile(filename, fieldname, data);
+		return WebIO::PostFile(data, fieldName, fileName);
 	}
 
-	std::string WebIO::PostFile(std::string filename, std::string fieldname, std::string data)
+	std::string WebIO::PostFile(std::string data, std::string fieldName, std::string fileName)
 	{
 		WebIO::Params headers;
 
-		std::string boundary = "----FormBoundary" + Utils::Cryptography::SHA256::Compute(fmt::sprintf("%d", timeGetTime()));
+		std::string boundary = "----WebKitFormBoundaryHoLVocRsBxs71fU6";
 		headers["Content-Type"] = "multipart/form-data, boundary=" + boundary;
 
-		std::string body;
-		body.append("--" + boundary + "\r\n");
-		body.append("Content-Disposition: form-data; name=\"" + fieldname + "\"; filename=\"" + filename + "\"\r\n");
-		body.append("Content-Type: application/octet-stream\r\n\r\n");
-		body.append(data + "\r\n");
-		body.append("--" + boundary + "--\r\n");
+		Utils::String::Replace(fieldName, "\"", "\\\"");
+		Utils::String::Replace(fieldName, "\\", "\\\\");
+		Utils::String::Replace(fileName, "\"", "\\\"");
+		Utils::String::Replace(fileName, "\\", "\\\\");
+
+		std::string body = "--" + boundary + "\r\n";
+		body += "Content-Disposition: form-data; name=\"";
+		body += fieldName;
+		body += "\"; filename=\"";
+		body += fileName;
+		body += "\"\r\n";
+		body += "Content-Type: application/octet-stream\r\n\r\n";
+		body += data + "\r\n";
+		body += "--" + boundary + "--\r\n";
 
 		headers["Content-Length"] = fmt::sprintf("%u", body.size());
 
@@ -207,6 +231,11 @@ namespace Utils
 		else if (WebIO::IsSecuredConnection())
 		{
 			wPort = INTERNET_DEFAULT_HTTPS_PORT;
+		}
+
+		if (!WebIO::m_sUrl.port.empty())
+		{
+			wPort = static_cast<WORD>(atoi(WebIO::m_sUrl.port.data()));
 		}
 
 		const char* username = (WebIO::m_username.size() ? WebIO::m_username.data() : NULL);

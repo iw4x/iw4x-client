@@ -58,11 +58,11 @@ namespace Components
 
 	Lean::Lean()
 	{
-		Game::Cmd_AddCommand("+leanleft", Lean::IN_LeanLeft_Down, Command::Allocate(), 1);
-		Game::Cmd_AddCommand("-leanleft", Lean::IN_LeanLeft_Up, Command::Allocate(), 1);
+		Command::AddRaw("+leanleft", Lean::IN_LeanLeft_Down, true);
+		Command::AddRaw("-leanleft", Lean::IN_LeanLeft_Up, true);
 
-		Game::Cmd_AddCommand("+leanright", Lean::IN_LeanRight_Down, Command::Allocate(), 1);
-		Game::Cmd_AddCommand("-leanright", Lean::IN_LeanRight_Up, Command::Allocate(), 1);
+		Command::AddRaw("+leanright", Lean::IN_LeanRight_Down, true);
+		Command::AddRaw("-leanright", Lean::IN_LeanRight_Up, true);
 
 		Utils::Hook(0x5A6D84, Lean::CL_CmdButtonsStub, HOOK_CALL).Install()->Quick();
 	}

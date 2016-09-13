@@ -1,9 +1,9 @@
 #pragma once
 
 // Version number
-#include <version.hpp>
+#include "version.h"
 
-#ifndef RESOURCE_DATA
+#ifndef RC_INVOKED
 
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
@@ -46,6 +46,7 @@
 #pragma warning(disable: 4100)
 #pragma warning(disable: 4389)
 #pragma warning(disable: 4702)
+#pragma warning(disable: 4996) // _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6011)
 #pragma warning(disable: 6031)
@@ -60,6 +61,9 @@
 #include <json11.hpp>
 #include <tomcrypt.h>
 #include <wink/signal.hpp>
+#ifndef DISABLE_BITMESSAGE
+#include <BitMRC.h>
+#endif
 
 #ifdef max
 #undef max
@@ -109,27 +113,18 @@
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "Urlmon.lib")
 #pragma comment(lib, "Advapi32.lib")
+#pragma comment(lib, "rpcrt4.lib")
 
 // Enable additional literals
 using namespace std::literals;
 
 #endif
 
-// Revision number
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
 
 #define BASEGAME "iw4x"
 #define CLIENT_CONFIG "iw4x_config.cfg"
-
-#define REVISION_STR STRINGIZE(REVISION)
-#if !REVISION_CLEAN
-#define REVISION_SUFFIX "*"
-#else
-#define REVISION_SUFFIX ""
-#endif
-#define VERSION 4,2,REVISION
-#define VERSION_STR "4.2." REVISION_STR
 
 #define Assert_Size(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
 

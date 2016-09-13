@@ -34,7 +34,7 @@ namespace Components
 
 		static void Add(const char* name, Callback* callback);
 		static void AddSV(const char* name, Callback* callback);
-		static void AddRaw(const char* name, void(*callback)());
+		static void AddRaw(const char* name, void(*callback)(), bool key = false);
 		static void AddRawSV(const char* name, void(*callback)());
 		static void Execute(std::string command, bool sync = true);
 

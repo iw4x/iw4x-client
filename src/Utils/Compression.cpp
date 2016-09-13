@@ -6,8 +6,13 @@ namespace Utils
 	{
 		std::string ZLib::Compress(std::string data)
 		{
+			Utils::Memory::Allocator allocator;
 			unsigned long length = (data.size() * 2);
-			char* buffer = Utils::Memory::AllocateArray<char>(length);
+			
+			// Make sure the buffer is large enough
+			if (length < 100) length *= 10;
+
+			char* buffer = allocator.AllocateArray<char>(length);
 
 			if (compress2(reinterpret_cast<Bytef*>(buffer), &length, reinterpret_cast<Bytef*>(const_cast<char*>(data.data())), data.size(), Z_BEST_COMPRESSION) != Z_OK)
 			{
@@ -17,8 +22,6 @@ namespace Utils
 
 			data.clear();
 			data.append(buffer, length);
-
-			Utils::Memory::Free(buffer);
 
 			return data;
 		}
@@ -44,6 +47,7 @@ namespace Utils
 			{
 				stream.avail_in = std::min(static_cast<size_t>(CHUNK), data.size() - (dataPtr - data.data()));
 				stream.next_in = reinterpret_cast<const uint8_t*>(dataPtr);
+				dataPtr += stream.avail_in;
 
 				do 
 				{
@@ -51,7 +55,7 @@ namespace Utils
 					stream.next_out = dest;
 
 					ret = inflate(&stream, Z_NO_FLUSH);
-					if (ret == Z_STREAM_ERROR)
+ 					if (ret != Z_OK && ret != Z_STREAM_END)
 					{
 						inflateEnd(&stream);
 						return "";

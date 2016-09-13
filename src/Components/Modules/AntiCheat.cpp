@@ -136,18 +136,25 @@ namespace Components
 		static uint8_t loadLibWStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8 }; // LoadLibraryW
 
 		HMODULE kernel32 = GetModuleHandleA(Utils::String::XOR(std::string(reinterpret_cast<char*>(kernel32Str), sizeof kernel32Str), -1).data());
-		FARPROC loadLibA = GetProcAddress(kernel32, Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibAStr), sizeof loadLibAStr), -1).data());
-		FARPROC loadLibW = GetProcAddress(kernel32, Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibWStr), sizeof loadLibWStr), -1).data());
 
+		if (kernel32)
+		{
+			FARPROC loadLibA = GetProcAddress(kernel32, Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibAStr), sizeof loadLibAStr), -1).data());
+			FARPROC loadLibW = GetProcAddress(kernel32, Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibWStr), sizeof loadLibWStr), -1).data());
+
+			if (loadLibA && loadLibW)
+			{
 #ifdef DEBUG_LOAD_LIBRARY
-		AntiCheat::LoadLibHook[0].Initialize(loadLibA, LoadLibaryAStub, HOOK_JUMP);
-		AntiCheat::LoadLibHook[1].Initialize(loadLibW, LoadLibaryWStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[0].Initialize(loadLibA, LoadLibaryAStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[1].Initialize(loadLibW, LoadLibaryWStub, HOOK_JUMP);
 #else
-		AntiCheat::LoadLibHook[0].Initialize(loadLibA, loadLibStub, HOOK_JUMP);
-		AntiCheat::LoadLibHook[1].Initialize(loadLibW, loadLibStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[0].Initialize(loadLibA, loadLibStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[1].Initialize(loadLibW, loadLibStub, HOOK_JUMP);
 #endif
-		//AntiCheat::LoadLibHook[2].Initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
-		//AntiCheat::LoadLibHook[3].Initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
+				//AntiCheat::LoadLibHook[2].Initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
+				//AntiCheat::LoadLibHook[3].Initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
+			}
+		}
 	}
 
 	void AntiCheat::ReadIntegrityCheck()
@@ -156,7 +163,6 @@ namespace Components
 		
 		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 70)
 		{
-			// TODO: Move that elsewhere
 			if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
 			{
 #ifdef DEBUG_DETECTIONS
@@ -584,37 +590,35 @@ namespace Components
 			if (NULL != pSecDesc) 
 			{
 				HeapFree(GetProcessHeap(), 0, pSecDesc);
-				pSecDesc = NULL;
 			}
 			if (NULL != pDacl) 
 			{
 				HeapFree(GetProcessHeap(), 0, pDacl);
-				pDacl = NULL;
 			}
+
 			if (psidAdmins) 
 			{
 				FreeSid(psidAdmins);
-				psidAdmins = NULL;
 			}
+
 			if (psidSystem) 
 			{
 				FreeSid(psidSystem);
-				psidSystem = NULL;
 			}
+
 			if (psidEveryone) 
 			{
 				FreeSid(psidEveryone);
-				psidEveryone = NULL;
 			}
+
 			if (NULL != pTokenInfo) 
 			{
 				HeapFree(GetProcessHeap(), 0, pTokenInfo);
-				pTokenInfo = NULL;
 			}
+
 			if (NULL != hToken) 
 			{
 				CloseHandle(hToken);
-				hToken = NULL;
 			}
 		}
 
@@ -646,7 +650,10 @@ namespace Components
 		Utils::Hook(0x56AC60, AntiCheat::AimTargetGetTagPosStub, HOOK_JUMP).Install()->Quick();
 
 		// TODO: Probably move that :P
-		AntiCheat::InitLoadLibHook();
+		if (!Dedicated::IsEnabled())
+		{
+			AntiCheat::InitLoadLibHook();
+		}
 
 		// Prevent external processes from accessing our memory
 		AntiCheat::ProtectProcess();

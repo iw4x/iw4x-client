@@ -47,5 +47,48 @@ namespace Utils
 
 			return buffer;
 		}
+
+		bool CreateDirectory(std::string dir)
+		{
+			char opath[MAX_PATH] = { 0 };
+			char *p;
+			size_t len;
+
+			strncpy_s(opath, dir.data(), sizeof(opath));
+			len = strlen(opath);
+
+			if (opath[len - 1] == L'/')
+			{
+				opath[len - 1] = L'\0';
+			}
+
+			for (p = opath; *p; p++)
+			{
+				if (*p == L'/' || *p == L'\\')
+				{
+					*p = L'\0';
+
+					if (_access(opath, 0))
+					{
+						if (_mkdir(opath) == -1)
+						{
+							return false;
+						}
+					}
+
+					*p = L'\\';
+				}
+			}
+
+			if (_access(opath, 0))
+			{
+				if (_mkdir(opath) == -1)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
 	}
 }

@@ -26,8 +26,8 @@ namespace Utils
 		void SetURL(std::string url);
 		void SetCredentials(std::string username, std::string password);
 
-		std::string PostFile(std::string url, std::string filename, std::string fieldname, std::string data);
-		std::string PostFile(std::string filename, std::string fieldname, std::string data);
+		std::string PostFile(std::string url, std::string data, std::string fieldName, std::string fileName);
+		std::string PostFile(std::string data, std::string fieldName, std::string fileName);
 
 		std::string Post(std::string url, WebIO::Params params);
 		std::string Post(std::string url, std::string body);
@@ -74,6 +74,7 @@ namespace Utils
 			std::string protocol;
 			std::string server;
 			std::string document;
+			std::string port;
 			std::string raw;
 		};
 

@@ -8,19 +8,13 @@ namespace Components
 
 	void Node::LoadNodePreset()
 	{
+		Proto::Node::List list;
 		FileSystem::File defaultNodes("nodes_default.dat");
-		if (!defaultNodes.Exists()) return;
+		if (!defaultNodes.Exists() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(defaultNodes.GetBuffer()))) return;
 
-		auto buffer = defaultNodes.GetBuffer();
-		Utils::String::Replace(buffer, "\r", "");
-
-		auto nodes = Utils::String::Explode(buffer, '\n');
-		for (auto node : nodes)
+		for (int i = 0; i < list.address_size(); ++i)
 		{
-			if (!node.empty())
-			{
-				Node::AddNode(node);
-			}
+			Node::AddNode(list.address(i));
 		}
 	}
 
@@ -28,7 +22,7 @@ namespace Components
 	{
 		Proto::Node::List list;
 		std::string nodes = Utils::IO::ReadFile("players/nodes.dat");
-		if (nodes.empty() || !list.ParseFromString(nodes)) return;
+		if (nodes.empty() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(nodes))) return;
 
 		for (int i = 0; i < list.address_size(); ++i)
 		{
@@ -60,7 +54,10 @@ namespace Components
 		}
 
 		CreateDirectoryW(L"players", NULL);
-		Utils::IO::WriteFile("players/nodes.dat", list.SerializeAsString());
+
+		
+
+		Utils::IO::WriteFile("players/nodes.dat", Utils::Compression::ZLib::Compress(list.SerializeAsString()));
 	}
 
 	Node::NodeEntry* Node::FindNode(Network::Address address)
@@ -130,7 +127,7 @@ namespace Components
 
 			Node::Nodes.push_back(entry);
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 			Logger::Print("Adding node %s...\n", address.GetCString());
 #endif
 		}
@@ -187,7 +184,7 @@ namespace Components
 		{
 			if (node.state == Node::STATE_INVALID && (Game::Sys_Milliseconds() - node.lastHeard) > NODE_INVALID_DELETE)
 			{
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Removing invalid node %s\n", node.address.GetCString());
 #endif
 			}
@@ -231,14 +228,14 @@ namespace Components
 			Proto::Node::Packet packet;
 			packet.set_challenge(entry->challenge);
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 			Logger::Print("Sending registration request to %s\n", entry->address.GetCString());
 #endif
 			Network::SendCommand(entry->address, "nodeRegisterRequest", packet.SerializeAsString());
 		}
 		else
 		{
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 			Logger::Print("Sending session request to %s\n", entry->address.GetCString());
 #endif
 			Network::SendCommand(entry->address, "sessionRequest");
@@ -267,7 +264,7 @@ namespace Components
 				node.lastHeard = Game::Sys_Milliseconds();
 				node.lastTime = Game::Sys_Milliseconds();
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Node negotiation timed out. Invalidating %s\n", node.address.GetCString());
 #endif
 			}
@@ -399,7 +396,7 @@ namespace Components
 					if (!entry) return;
 				}
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Received registration request from %s\n", address.GetCString());
 #endif
 
@@ -440,7 +437,7 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Received synchronization data for registration from %s!\n", address.GetCString());
 #endif
 
@@ -467,7 +464,7 @@ namespace Components
 				entry->state = Node::STATE_VALID;
 				entry->registered = true;
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetCString(), entry->challenge.data());
 				Logger::Print("Node %s registered\n", address.GetCString());
 #endif
@@ -491,7 +488,7 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Received acknowledgment from %s\n", address.GetCString());
 #endif
 
@@ -511,7 +508,7 @@ namespace Components
 					entry->state = Node::STATE_VALID;
 					entry->registered = true;
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 					Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetCString(), entry->challenge.data());
 					Logger::Print("Node %s registered\n", address.GetCString());
 #endif
@@ -554,7 +551,7 @@ namespace Components
 				}
 				else
 				{
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 					// Unallowed connection
 					Logger::Print("Node list requested by %s, but no valid session was present!\n", address.GetCString());
 #endif
@@ -584,13 +581,13 @@ namespace Components
 					entry->registered = false;
 					entry->state = Node::STATE_INVALID;
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 					Logger::Print("Node %s unregistered\n", address.GetCString());
 #endif
 				}
 				else
 				{
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 					Logger::Print("Node %s tried to unregister using an invalid signature!\n", address.GetCString());
 #endif
 				}
@@ -612,7 +609,7 @@ namespace Components
 				Node::ClientSession* session = Node::FindSession(address);
 				if (!session) return; // Registering template session failed, odd...
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Client %s is requesting a new session\n", address.GetCString());
 #endif
 
@@ -634,7 +631,7 @@ namespace Components
 
 				if (session->challenge == data)
 				{
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 					Logger::Print("Session for %s validated.\n", address.GetCString());
 #endif
 					session->valid = true;
@@ -643,7 +640,7 @@ namespace Components
 				else
 				{
 					session->lastTime = -1;
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 					Logger::Print("Challenge mismatch. Validating session for %s failed.\n", address.GetCString());
 #endif
 				}
@@ -656,7 +653,7 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry) return;
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Session initialization received from %s. Synchronizing...\n", address.GetCString());
 #endif
 
@@ -673,7 +670,7 @@ namespace Components
 				entry->registered = true;
 				entry->lastTime = Game::Sys_Milliseconds();
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Session acknowledged by %s, synchronizing node list...\n", address.GetCString());
 #endif
 				Network::SendCommand(address, "nodeListRequest");
@@ -687,7 +684,7 @@ namespace Components
 
 			if (data.empty() || !list.ParseFromString(data)) 
 			{
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Received invalid node list from %s!\n", address.GetCString());
 #endif
 				return;
@@ -698,7 +695,7 @@ namespace Components
 			{
 				if (entry->registered)
 				{
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 					Logger::Print("Received valid node list with %i entries from %s\n", list.address_size(), address.GetCString());
 #endif
 
@@ -770,11 +767,6 @@ namespace Components
 					// Add as new entry to perform registration
 					Node::AddNode(address);
 				}
-			}
-			else
-			{
-				// TODO: Implement client handshake stuff
-				// Nvm, clients can simply ignore that i guess
 			}
 		});
 
@@ -906,6 +898,31 @@ namespace Components
 
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
 		Logger::Print("took %llims\n", duration);
+
+		printf("Testing ZLib compression...");
+
+		std::string test = fmt::sprintf("%c", Utils::Cryptography::Rand::GenerateInt());
+
+		for (int i = 0; i < 21; ++i)
+		{
+			std::string compressed = Utils::Compression::ZLib::Compress(test);
+			std::string decompressed = Utils::Compression::ZLib::Decompress(compressed);
+
+			if (test != decompressed)
+			{
+				printf("Error\n");
+				printf("Compressing %d bytes and decompressing failed!\n", test.size());
+				return false;
+			}
+
+			auto size = test.size();
+			for (unsigned int j = 0; j < size; ++j)
+			{
+				test.append(fmt::sprintf("%c", Utils::Cryptography::Rand::GenerateInt()));
+			}
+		}
+
+		printf("Success\n");
 
 		return true;
 	}

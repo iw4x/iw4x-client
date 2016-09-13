@@ -11,10 +11,16 @@ namespace Components
 #endif
 
 	private:
+		static int ImageNameLength;
+
 		static Utils::Hook ImageVersionCheckHook;
 		static void ImageVersionCheck();
 
-		static Game::Material* VerifyMaterial(Game::Material* material);
+		static Game::Material* ResolveMaterial(const char* stringPtr);
 		static void DrawMaterialStub();
+		static void PostDrawMaterialStub();
+
+		static int WriteDeathMessageIcon(char* string, int offset, Game::Material* material);
+		static void DeathMessageStub();
 	};
 }

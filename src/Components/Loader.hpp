@@ -22,7 +22,10 @@ namespace Components
 		static bool PerformingUnitTests();
 		static void Register(Component* component);
 
+		static bool IsPregame();
+
 	private:
+		static bool Pregame;
 		static std::vector<Component*> Components;
 	};
 }
@@ -38,7 +41,6 @@ namespace Components
 #include "Modules\Toast.hpp"
 #include "Modules\Colors.hpp"
 #include "Modules\D3D9Ex.hpp"
-#include "Modules\Logger.hpp"
 #include "Modules\Script.hpp"
 #include "Modules\Weapon.hpp"
 #include "Modules\Window.hpp"
@@ -51,6 +53,7 @@ namespace Components
 #include "Modules\Node.hpp"
 #include "Modules\RCon.hpp"
 #include "Modules\Party.hpp" // Destroys the order, but requires network classes :D
+#include "Modules\Logger.hpp"
 #include "Modules\Download.hpp"
 #include "Modules\Playlist.hpp"
 #include "Modules\RawFiles.hpp"
@@ -64,7 +67,9 @@ namespace Components
 #include "Modules\FastFiles.hpp"
 #include "Modules\Materials.hpp"
 #include "Modules\Singleton.hpp"
+#include "Modules\BitMessage.hpp"
 #include "Modules\FileSystem.hpp"
+#include "Modules\PlayerName.hpp"
 #include "Modules\QuickPatch.hpp"
 #include "Modules\ServerInfo.hpp"
 #include "Modules\ServerList.hpp"
@@ -73,5 +78,6 @@ namespace Components
 #include "Modules\AssetHandler.hpp"
 #include "Modules\Localization.hpp"
 #include "Modules\MusicalTalent.hpp"
+#include "Modules\MinidumpUpload.hpp"
 #include "Modules\StructuredData.hpp"
 #include "Modules\ConnectProtocol.hpp"

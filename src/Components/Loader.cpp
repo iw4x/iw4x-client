@@ -2,10 +2,18 @@
 
 namespace Components
 {
+	bool Loader::Pregame = true;
 	std::vector<Component*> Loader::Components;
+
+	bool Loader::IsPregame()
+	{
+		return Loader::Pregame;
+	}
 
 	void Loader::Initialize()
 	{
+		Loader::Pregame = true;
+
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
 
@@ -44,7 +52,11 @@ namespace Components
 		Loader::Register(new Exception());
 		Loader::Register(new FastFiles());
 		Loader::Register(new Materials());
+#ifndef DISABLE_BITMESSAGE
+		Loader::Register(new BitMessage());
+#endif
 		Loader::Register(new FileSystem());
+		Loader::Register(new PlayerName());
 		Loader::Register(new QuickPatch());
 		Loader::Register(new ServerInfo());
 		Loader::Register(new ServerList());
@@ -53,8 +65,11 @@ namespace Components
 		Loader::Register(new AssetHandler());
 		Loader::Register(new Localization());
 		Loader::Register(new MusicalTalent());
+		Loader::Register(new MinidumpUpload());
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
+
+		Loader::Pregame = false;
 	}
 
 	void Loader::Uninitialize()

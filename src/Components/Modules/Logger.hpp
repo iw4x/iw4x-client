@@ -24,12 +24,16 @@ namespace Components
 	private:
 		static std::mutex MessageMutex;
 		static std::vector<std::string> MessageQueue;
+		static std::vector<Network::Address> LoggingAddresses[2];
 		static void(*PipeCallback)(std::string);
 
 		static void Frame();
+		static void GameLogStub();
 		static void PrintMessageStub();
 		static void PrintMessagePipe(const char* data);
 		static void EnqueueMessage(std::string message);	
+
+		static void NetworkLog(const char* data, bool gLog);
 
 		static std::string Format(const char** message);
 	};

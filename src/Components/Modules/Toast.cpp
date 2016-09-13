@@ -103,7 +103,7 @@ namespace Components
 	{
 		if (Toast::Queue.empty()) return;
 
-		Toast::Mutex.lock();
+		std::lock_guard<std::mutex> _(Toast::Mutex);
 
 		Toast::UIToast* toast = &Toast::Queue.front();
 
@@ -121,8 +121,6 @@ namespace Components
 		{
 			Toast::Draw(toast);
 		}
-
-		Toast::Mutex.unlock();
 	}
 
 	Toast::Toast()

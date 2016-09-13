@@ -3,6 +3,268 @@
 namespace Components
 {
 	mg_mgr Download::Mgr;
+	Download::ClientDownload Download::CLDownload;
+
+#pragma region Client
+
+	void Download::InitiateClientDownload(std::string mod)
+	{
+		if (Download::CLDownload.Running) return;
+
+		Localization::SetTemp("MPUI_EST_TIME_LEFT", Utils::String::FormatTimeSpan(0));
+		Localization::SetTemp("MPUI_PROGRESS_DL", "(0/0) %");
+		Localization::SetTemp("MPUI_TRANS_RATE", "0.0 MB/s");
+
+		Command::Execute("openmenu mod_download_popmenu", true);
+
+		Download::CLDownload.Running = true;
+		Download::CLDownload.Mod = mod;
+		Download::CLDownload.TerminateThread = false;
+		Download::CLDownload.Target = Party::Target();
+		Download::CLDownload.Thread = std::thread(Download::ModDownloader, &Download::CLDownload);
+	}
+
+	bool Download::ParseModList(ClientDownload* download, std::string list)
+	{
+		if (!download) return false;
+		download->Files.clear();
+
+		std::string error;
+		json11::Json listData = json11::Json::parse(list, error);
+
+
+		if (!error.empty() || !listData.is_array()) return false;
+
+		download->TotalBytes = 0;
+
+		for (auto& file : listData.array_items())
+		{
+			if (!file.is_object()) return false;
+
+			auto hash = file["hash"];
+			auto name = file["name"];
+			auto size = file["size"];
+
+			if (!hash.is_string() || !name.is_string() || !size.is_number()) return false;
+
+			Download::ClientDownload::File fileEntry;
+			fileEntry.Name = name.string_value();
+			fileEntry.Hash = hash.string_value();
+			fileEntry.Size = static_cast<size_t>(size.number_value());
+
+			if (!fileEntry.Name.empty())
+			{
+				download->Files.push_back(fileEntry);
+				download->TotalBytes += fileEntry.Size;
+			}
+		}
+
+		return true;
+	}
+
+	void Download::DownloadHandler(mg_connection *nc, int ev, void* ev_data)
+	{
+		http_message* hm = reinterpret_cast<http_message*>(ev_data);
+		Download::FileDownload* fDownload = reinterpret_cast<Download::FileDownload*>(nc->mgr->user_data);
+
+		if (ev == MG_EV_CONNECT)
+		{
+			if (hm->message.p)
+			{
+				fDownload->downloading = false;
+				return;
+			}
+		}
+
+		if (ev == MG_EV_RECV)
+		{
+			size_t bytes = static_cast<size_t>(*reinterpret_cast<int*>(ev_data));
+			fDownload->receivedBytes += bytes;
+			fDownload->download->DownBytes += bytes;
+			fDownload->download->TimeStampBytes += bytes;
+
+			double progress = (100.0 / fDownload->download->TotalBytes) * fDownload->download->DownBytes;
+			Localization::SetTemp("MPUI_PROGRESS_DL", fmt::sprintf("(%d/%d) %d%%", fDownload->index + 1, fDownload->download->Files.size(), static_cast<unsigned int>(progress)));
+
+			int delta = Game::Sys_Milliseconds() - fDownload->download->LastTimeStamp;
+			if (delta > 300)
+			{
+				bool doFormat = fDownload->download->LastTimeStamp != 0;
+				fDownload->download->LastTimeStamp = Game::Sys_Milliseconds();
+
+				size_t dataLeft = fDownload->download->TotalBytes - fDownload->download->DownBytes;
+				double timeLeftD = ((1.0 * dataLeft) / fDownload->download->TimeStampBytes) * delta;
+				int timeLeft = static_cast<int>(timeLeftD);
+
+				if (doFormat)
+				{
+					Localization::SetTemp("MPUI_EST_TIME_LEFT", Utils::String::FormatTimeSpan(timeLeft));
+					Localization::SetTemp("MPUI_TRANS_RATE", Utils::String::FormatBandwidth(fDownload->download->TimeStampBytes, delta));
+				}
+
+				fDownload->download->TimeStampBytes = 0;
+			}
+		}
+
+		if (ev == MG_EV_HTTP_REPLY)
+		{
+			nc->flags |= MG_F_CLOSE_IMMEDIATELY;
+			fDownload->buffer = std::string(hm->body.p, hm->body.len);
+			fDownload->downloading = false;
+			return;
+		}
+	}
+
+	bool Download::DownloadFile(ClientDownload* download, unsigned int index)
+	{
+		if (!download || download->Files.size() <= index) return false;
+
+		auto file = download->Files[index];
+
+		std::string path = download->Mod + "/" + file.Name;
+		if (Utils::IO::FileExists(path))
+		{
+			std::string data = Utils::IO::ReadFile(path);
+
+			if (data.size() == file.Size && Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(data), "") == file.Hash)
+			{
+				download->TotalBytes += file.Size;
+				return true;
+			}
+		}
+
+		std::string url = "http://" + download->Target.GetString() + "/file/" + file.Name;
+
+		Download::FileDownload fDownload;
+		fDownload.file = file;
+		fDownload.index = index;
+		fDownload.download = download;
+		fDownload.downloading = true;
+		fDownload.receivedBytes = 0;
+
+		Utils::String::Replace(url, " ", "%20");
+
+		download->Valid = true;
+		mg_mgr_init(&download->Mgr, &fDownload);
+		mg_connect_http(&download->Mgr, Download::DownloadHandler, url.data(), NULL, NULL);
+
+		while (fDownload.downloading && !fDownload.download->TerminateThread)
+		{
+			mg_mgr_poll(&download->Mgr, 0);
+		}
+
+		mg_mgr_free(&download->Mgr);
+		download->Valid = false;
+
+		if (fDownload.buffer.size() != file.Size || Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(fDownload.buffer), "") != file.Hash)
+		{
+			return false;
+		}
+
+		Utils::IO::CreateDirectory(download->Mod);
+		Utils::IO::WriteFile(path, fDownload.buffer);
+
+		return true;
+	}
+
+	void Download::ModDownloader(ClientDownload* download)
+	{
+		if (!download) download = &Download::CLDownload;
+
+		std::string host = "http://" + download->Target.GetString();
+		std::string list = Utils::WebIO("IW4x", host + "/list").SetTimeout(5000)->Get();
+
+		if (list.empty())
+		{
+			if (download->TerminateThread) return;
+
+			download->Thread.detach();
+			download->Clear();
+
+			QuickPatch::Once([] ()
+			{
+				Party::ConnectError("Failed to download the modlist!");
+			});
+
+			return;
+		}
+
+		if (download->TerminateThread) return;
+
+		if (!Download::ParseModList(download, list))
+		{
+			if (download->TerminateThread) return;
+
+			download->Thread.detach();
+			download->Clear();
+
+			QuickPatch::Once([] ()
+			{
+				Party::ConnectError("Failed to parse the modlist!");
+			});
+
+			return;
+		}
+
+		if (download->TerminateThread) return;
+
+		static std::string mod = download->Mod;
+
+		for (unsigned int i = 0; i < download->Files.size(); ++i)
+		{
+			if (download->TerminateThread) return;
+
+			if (!Download::DownloadFile(download, i))
+			{
+				if (download->TerminateThread) return;
+
+				mod = fmt::sprintf("Failed to download file: %s!", download->Files[i].Name.data());
+				download->Thread.detach();
+				download->Clear();
+
+				QuickPatch::Once([] ()
+				{
+					Dvar::Var("partyend_reason").Set(mod);
+					mod.clear();
+
+					Localization::ClearTemp();
+					Command::Execute("closemenu mod_download_popmenu");
+					Command::Execute("openmenu menu_xboxlive_partyended");
+				});
+
+				return;
+			}
+		}
+
+		if (download->TerminateThread) return;
+
+		download->Thread.detach();
+		download->Clear();
+		
+		// Run this on the main thread
+		QuickPatch::Once([] ()
+		{
+			auto fsGame = Dvar::Var("fs_game");
+			fsGame.Set(mod);
+			fsGame.Get<Game::dvar_t*>()->modified = true;
+
+			mod.clear();
+
+			Localization::ClearTemp();
+			Command::Execute("closemenu mod_download_popmenu", true);
+
+			if (Dvar::Var("cl_modVidRestart").Get<bool>())
+			{
+				Command::Execute("vid_restart", false);
+			}
+
+			Command::Execute("reconnect", false);
+		});
+	}
+
+#pragma endregion
+
+#pragma region Server
 
 	bool Download::IsClient(mg_connection *nc)
 	{
@@ -113,6 +375,8 @@ namespace Components
 			std::string url(message->uri.p, message->uri.len);
 			Utils::String::Replace(url, "\\", "/");
 			url = url.substr(6);
+
+			Utils::String::Replace(url, "%20", " ");
 
 			if (url.find_first_of("/") != std::string::npos || (!Utils::String::EndsWith(url, ".iwd") && url != "mod.ff") || strstr(url.data(), "_svr_") != NULL)
 			{
@@ -283,6 +547,8 @@ namespace Components
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 	}
 
+#pragma endregion
+
 	Download::Download()
 	{
 		if (Dedicated::IsEnabled())
@@ -308,12 +574,10 @@ namespace Components
 		}
 		else
 		{
-			Utils::Hook(0x5AC6E9, [] ()
+			UIScript::Add("mod_download_cancel", [] ()
 			{
-				// TODO: Perform moddownload here
-
-				Game::CL_DownloadsComplete(0);
-			}, HOOK_CALL).Install()->Quick();
+				Download::CLDownload.Clear();
+			});
 		}
 	}
 
@@ -325,7 +589,7 @@ namespace Components
 		}
 		else
 		{
-
+			Download::CLDownload.Clear();
 		}
 	}
 }

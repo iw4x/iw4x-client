@@ -117,14 +117,14 @@ namespace Game
 	typedef struct dvar_t
 	{
 		//startbyte:endbyte
-		const char*		name; //0:3
-		const char*		description; //4:7
-		unsigned int	flags; //8:11
-		char			type; //12:12
-		char			pad2[3]; //13:15
-		dvar_value_t	current; //16:31
-		dvar_value_t	latched; //32:47
-		dvar_value_t	_default; //48:64
+		const char* name; //0:3
+		const char*	description; //4:7
+		unsigned int flags; //8:11
+		char type; //12:12
+		bool modified; //13:15
+		dvar_value_t current; //16:31
+		dvar_value_t latched; //32:47
+		dvar_value_t _default; //48:64
 		dvar_maxmin_t min; //65:67
 		dvar_maxmin_t max; //68:72 woooo
 	} dvar_t;
@@ -136,7 +136,7 @@ namespace Game
 		const char *autoCompleteDir;
 		const char *autoCompleteExt;
 		void(__cdecl *function)();
-		int unknown;
+		bool isKey; // Looks like this is true when the command is a key/button
 	} cmd_function_t;
 
 #pragma pack(push, 4)

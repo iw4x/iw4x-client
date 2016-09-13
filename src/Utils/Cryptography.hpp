@@ -20,7 +20,7 @@ namespace Utils
 				}
 				else
 				{
-					for (unsigned int i = (this->TokenString.size() - 1); i >= 0; i--)
+					for (int i = static_cast<int>(this->TokenString.size() - 1); i >= 0; --i)
 					{
 						if (this->TokenString[i] == 0xFF)
 						{

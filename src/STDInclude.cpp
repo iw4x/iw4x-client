@@ -17,6 +17,10 @@ Assert_Size(DWORD, 4);
 Assert_Size(WORD, 2);
 Assert_Size(BYTE, 1);
 
+// 128 bit integers (only x64)
+//Assert_Size(__int128, 16);
+//Assert_Size(unsigned __int128, 16);
+
 // 64 bit integers
 Assert_Size(__int64, 8);
 Assert_Size(unsigned __int64, 8);
@@ -64,8 +68,8 @@ static_assert(sizeof(intptr_t) == 4 && sizeof(void*) == 4 && sizeof(size_t) == 4
 // Disable telemetry data logging
 extern "C"
 {
-	void _cdecl __vcrt_initialize_telemetry_provider() {}
-	void _cdecl __telemetry_main_invoke_trigger() {}
-	void _cdecl __telemetry_main_return_trigger() {}
-	void _cdecl __vcrt_uninitialize_telemetry_provider() {}
+	void __cdecl __vcrt_initialize_telemetry_provider() {}
+	void __cdecl __telemetry_main_invoke_trigger() {}
+	void __cdecl __telemetry_main_return_trigger() {}
+	void __cdecl __vcrt_uninitialize_telemetry_provider() {}
 };

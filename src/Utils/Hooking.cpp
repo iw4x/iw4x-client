@@ -136,11 +136,10 @@ namespace Utils
 
 	Hook* Hook::Install(bool unprotect, bool keepUnportected)
 	{
-		Hook::StateMutex.lock();
+		std::lock_guard<std::mutex> _(Hook::StateMutex);
 
 		if (!Hook::Initialized || Hook::Installed)
 		{
-			Hook::StateMutex.unlock();
 			return this;
 		}
 
@@ -158,8 +157,6 @@ namespace Utils
 		if (unprotect && !keepUnportected) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
 
 		FlushInstructionCache(GetCurrentProcess(), Hook::Place, sizeof(Hook::Buffer));
-
-		Hook::StateMutex.unlock();
 
 		return this;
 	}

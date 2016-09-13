@@ -19,6 +19,8 @@ namespace Components
 		static void PlaylistContinue();
 		static void PlaylistError(std::string error);
 
+		static void ConnectError(std::string message);
+
 	private:
 		class JoinContainer
 		{
@@ -27,10 +29,13 @@ namespace Components
 			std::string Challenge;
 			DWORD JoinTime;
 			bool Valid;
+			int MatchType;
+
+			Utils::InfoString Info;
 
 			// Party-specific stuff
 			DWORD RequestTime;
-			bool AwaitingPlaylist;
+			bool AwaitingPlaylist;		
 		};
 
 		static JoinContainer Container;
@@ -39,8 +44,6 @@ namespace Components
 		static SteamID GenerateLobbyId();
 
 		static Game::dvar_t* RegisterMinPlayers(const char* name, int value, int min, int max, Game::dvar_flag flag, const char* description);
-
-		static void ConnectError(std::string message);
 
 		static DWORD UIDvarIntStub(char* dvar);
 	};
