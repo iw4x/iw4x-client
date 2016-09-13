@@ -49,7 +49,7 @@ def useShippedPremake(f) {
 }
 
 def getIW4xExecutable() {
-	step [
+	step([
 		$class: 'CopyArtifact',
 		filter: '*',
 		fingerprintArtifacts: true,
@@ -60,7 +60,7 @@ def getIW4xExecutable() {
 			fallbackToLastSuccessful: true,
 			upstreamFilterStrategy: 'UseGlobalSetting'
 		]
-	]
+	])
 }
 
 // This will build the IW4x client.
