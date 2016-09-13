@@ -85,6 +85,7 @@ def doUnitTests(name) {
 				// Set up environment
 				bat """
 				mklink /J \"main\" \"$mw2dir\\main\"
+				mkdir \"zone\"
 				mklink /J \"zone\\dlc\" \"$mw2dir\\zone\\dlc\"
 				mklink /J \"zone\\$localization\" \"$mw2dir\\zone\\$localization\"
 				copy /y \"$mw2dir\\*.dll\"
