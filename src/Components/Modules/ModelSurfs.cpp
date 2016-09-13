@@ -15,10 +15,17 @@ namespace Components
 		*bufferOut = ModelSurfs::BufferMap[buffer];
 	}
 
+	// TODO: Implement
+	bool ModelSurfs::LoadXSurfaces(Game::XModel* model)
+	{
+		(model);
+		return false;
+	}
+
+	// TODO: Implement
 	void ModelSurfs::ReleaseModelSurf(Game::XAssetHeader header)
 	{
 		Game::XModelSurfs* surfaces = header.surfaces;
-
 		(surfaces);
 	}
 
@@ -32,15 +39,22 @@ namespace Components
 		ModelSurfs::BufferMap.clear();
 	}
 
+	// TODO: Implement
 	void ModelSurfs::EndRecover()
 	{
 		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_XMODELSURFS, [] (Game::XAssetHeader header, void* /*userdata*/)
 		{
 			Game::XModelSurfs* surfaces = header.surfaces;
-
-			// TODO: Recreate all buffers here
 			(surfaces);
 		}, nullptr, false);
+	}
+
+	void ModelSurfs::XModelSurfsFixup(Game::XModel* model)
+	{
+		if (!ModelSurfs::LoadXSurfaces(model))
+		{
+			Game::DB_XModelSurfsFixup(model);
+		}
 	}
 
 	__declspec(naked) void ModelSurfs::GetIndexBufferStub()
@@ -82,6 +96,24 @@ namespace Components
 		}
 	}
 
+	__declspec(naked) void ModelSurfs::GetIndexBaseStub()
+	{
+		__asm
+		{
+			mov eax, [esp + 4h]
+			cmp al, 0FFh
+
+			jne returnSafe
+
+			xor eax, eax
+			retn
+
+		returnSafe:
+			mov eax, 48C5F0h
+			jmp eax
+		}
+	}
+
 	__declspec(naked) void ModelSurfs::GetVertexBufferStub()
 	{
 		__asm
@@ -112,6 +144,8 @@ namespace Components
 		Renderer::OnDeviceRecoveryEnd(ModelSurfs::EndRecover);
 
 		// Install hooks
+		Utils::Hook(0x47A6BD, ModelSurfs::XModelSurfsFixup, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x558F12, ModelSurfs::GetIndexBaseStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x5BC050, ModelSurfs::GetIndexBufferStub, HOOK_JUMP).Install()->Quick();
 		Utils::Hook(0x558E70, ModelSurfs::GetIndexBufferStub2, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x5BC050, ModelSurfs::GetVertexBufferStub, HOOK_JUMP).Install()->Quick();

@@ -18,6 +18,10 @@ namespace Components
 		static IUnknown* GetBuffer(void* buffer);
 		static void SetBuffer(char streamHandle, void* buffer, IUnknown** bufferOut, int* offsetOut);
 
+		static bool LoadXSurfaces(Game::XModel* model);
+		static void XModelSurfsFixup(Game::XModel* model);
+
+		static void GetIndexBaseStub();
 		static void GetIndexBufferStub();
 		static void GetIndexBufferStub2();
 		static void GetVertexBufferStub();

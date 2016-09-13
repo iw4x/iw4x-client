@@ -99,6 +99,9 @@ namespace Game
 	typedef void(__cdecl * DB_ReleaseXAssetHandler_t)(XAssetHeader header);
 	extern DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers;
 
+	typedef void(__cdecl * DB_XModelSurfsFixup_t)(XModel* model);
+	extern DB_XModelSurfsFixup_t DB_XModelSurfsFixup;
+
 	typedef dvar_t* (__cdecl * Dvar_RegisterBool_t)(const char* name, bool default, int flags, const char* description);
 	extern Dvar_RegisterBool_t Dvar_RegisterBool;
 
