@@ -142,7 +142,7 @@ stage("Testing") {
 	{
 		def configuration = configurations[i]
 		executions["$configuration"] = {
-			doUnitTests("IW4x $configuration with unit tests")
+			doUnitTests("IW4x $configuration (unit tests)")
 		}
 	}
 	parallel executions
