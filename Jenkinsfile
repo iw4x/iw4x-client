@@ -50,18 +50,20 @@ def useShippedPremake(f) {
 
 // This will build the IW4x client.
 // We need a Windows Server with Visual Studio 2015, Premake5 and Git on it.
-def doBuild(name, premakeFlags, configuration) {
+def doBuild(name, wsid, premakeFlags, configuration) {
 	node("windows") {
-		checkout scm
+		ws("./$wsid") {
+			checkout scm
 
-		useShippedPremake {
-			def outputDir = pwd()
-			def msbuild = tool "Microsoft.NET MSBuild 14.0"
-			bat "premake5 vs2015 $premakeFlags"
-			bat "\"${msbuild}\" build\\iw4x.sln \"/p:OutDir=$outputDir\\\\\" \"/p:Configuration=$configuration\""
+			useShippedPremake {
+				def outputDir = pwd()
+				def msbuild = tool "Microsoft.NET MSBuild 14.0"
+				bat "premake5 vs2015 $premakeFlags"
+				bat "\"${msbuild}\" build\\iw4x.sln \"/p:OutDir=$outputDir\\\\\" \"/p:Configuration=$configuration\""
+			}
+
+			stash name: "$name", includes: "*.dll,*.pdb"
 		}
-
-		stash name: "$name", includes: "*.dll,*.pdb"
 	}
 }
 
@@ -124,10 +126,10 @@ stage("Build") {
 	{
 		def configuration = configurations[i]
 		executions["$configuration"] = {
-			doBuild("IW4x $configuration", "", configuration)
+			doBuild("IW4x $configuration", "$configuration", "", configuration)
 		}
 		executions["$configuration with unit tests"] = {
-			doBuild("IW4x $configuration (unit tests)", "--force-unit-tests", configuration)
+			doBuild("IW4x $configuration (unit tests)", "$configuration+unittests", "--force-unit-tests", configuration)
 		}
 	}
 	parallel executions
