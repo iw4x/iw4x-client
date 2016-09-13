@@ -56,6 +56,7 @@ namespace Components
 		Loader::Register(new BitMessage());
 #endif
 		Loader::Register(new FileSystem());
+		Loader::Register(new ModelSurfs());
 		Loader::Register(new PlayerName());
 		Loader::Register(new QuickPatch());
 		Loader::Register(new ServerInfo());

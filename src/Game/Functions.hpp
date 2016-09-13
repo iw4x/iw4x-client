@@ -63,6 +63,12 @@ namespace Game
 	typedef void (__cdecl * Con_DrawSolidConsole_t)();
 	extern Con_DrawSolidConsole_t Con_DrawSolidConsole;
 
+	typedef void(__cdecl * DB_BeginRecoverLostDevice_t)();
+	extern DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice;
+
+	typedef void(__cdecl * DB_EndRecoverLostDevice_t)();
+	extern DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice;
+
 	typedef void(__cdecl * DB_EnumXAssets_t)(XAssetType type, void(*)(XAssetHeader, void *), void* userdata, bool overrides);
 	extern DB_EnumXAssets_t DB_EnumXAssets;
 
@@ -89,6 +95,9 @@ namespace Game
 
 	typedef void(__cdecl * DB_ReadXFileUncompressed_t)(void* buffer, int size);
 	extern DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed;
+
+	typedef void(__cdecl * DB_ReleaseXAssetHandler_t)(XAssetHeader header);
+	extern DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers;
 
 	typedef dvar_t* (__cdecl * Dvar_RegisterBool_t)(const char* name, bool default, int flags, const char* description);
 	extern Dvar_RegisterBool_t Dvar_RegisterBool;

@@ -31,6 +31,8 @@ namespace Game
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = (Con_DrawMiniConsole_t)0x464F30;
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = (Con_DrawSolidConsole_t)0x5A5040;
 
+	DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice = (DB_BeginRecoverLostDevice_t)0x4BFF90;
+	DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice = (DB_EndRecoverLostDevice_t)0x46B660;
 	DB_EnumXAssets_t DB_EnumXAssets = (DB_EnumXAssets_t)0x4B76D0;
 	DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal = (DB_EnumXAssets_Internal_t)0x5BB0A0;
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
@@ -40,6 +42,7 @@ namespace Game
 	DB_IsXAssetDefault_t DB_IsXAssetDefault = (DB_IsXAssetDefault_t)0x48E6A0;
 	DB_LoadXAssets_t DB_LoadXAssets = (DB_LoadXAssets_t)0x4E5930;
 	DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = (DB_ReadXFileUncompressed_t)0x4705E0;
+	DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = (DB_ReleaseXAssetHandler_t*)0x799AB8;
 
 	Dvar_RegisterBool_t Dvar_RegisterBool = (Dvar_RegisterBool_t)0x4CE1A0;
 	Dvar_RegisterFloat_t Dvar_RegisterFloat = (Dvar_RegisterFloat_t)0x648440;
