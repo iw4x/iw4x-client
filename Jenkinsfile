@@ -101,6 +101,16 @@ def doUnitTests(name) {
 	}
 }
 
+// Change build name to correct version
+stage "Versioning"
+node("windows") {
+	checkout scm
+
+	version = sh(returnStdout: true, script: 'premake5 version').split("\r?\n")[1]
+
+	currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
+}
+
 // For each available configuration generate a normal build and a unit test build.
 stage "Build"
 def executions = [:]
