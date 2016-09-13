@@ -42,18 +42,6 @@ import groovy.transform.Field
 	"ReleaseStatic"
 ]
 
-// Run a function for each platform and project to be built
-def perConfiguration(suffix, f) {
-	def executions = [:]
-	for (int a = 0; a < configurations.size(); a++) {
-		def configuration = configurations[a]
-		executions["$configuration$suffix"] = {
-			f(goos, goarch, targetProject)
-		}
-	}
-	parallel executions
-}
-
 // This will build the IW4x client.
 // We need a Windows Server with Visual Studio 2015, Premake5 and Git on it.
 def doBuild(premakeFlags, configuration) {
