@@ -42,15 +42,19 @@ import groovy.transform.Field
 	"ReleaseStatic"
 ]
 
+def useShippedPremake(f) {
+	def premakeHome = "${pwd()}\\tools"
+
+	withEnv(["PATH+=${premakeHome}"], f)
+}
+
 // This will build the IW4x client.
 // We need a Windows Server with Visual Studio 2015, Premake5 and Git on it.
 def doBuild(name, premakeFlags, configuration) {
 	node("windows") {
 		checkout scm
 
-		premakeHome = "${pwd()}\\tools"
-
-		withEnv(["PATH+=${premakeHome}"]) {
+		useShippedPremake {
 			def outputDir = pwd()
 			def msbuild = tool "Microsoft.NET MSBuild 14.0"
 			bat "premake5 vs2015 $premakeFlags"
@@ -105,9 +109,11 @@ stage("Checkout & Versioning") {
 	node("windows") {
 		checkout scm
 
-		version = bat(returnStdout: true, script: 'premake5 version').split("\r?\n")[1]
+		useShippedPremake {
+			def version = bat(returnStdout: true, script: 'premake5 version').split("\r?\n")[1]
 
-		currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
+			currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
+		}
 	}
 }
 
