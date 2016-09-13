@@ -48,6 +48,21 @@ def useShippedPremake(f) {
 	withEnv(["PATH+=${premakeHome}"], f)
 }
 
+def getIW4xExecutable() {
+	step [
+		$class: 'CopyArtifact',
+		filter: '*',
+		fingerprintArtifacts: true,
+		projectName: 'iw4x/iw4x-executable/master',
+		selector: [
+			$class: 'TriggeredBuildSelector',
+			allowUpstreamDependencies: false,
+			fallbackToLastSuccessful: true,
+			upstreamFilterStrategy: 'UseGlobalSetting'
+		]
+	]
+}
+
 // This will build the IW4x client.
 // We need a Windows Server with Visual Studio 2015, Premake5 and Git on it.
 def doBuild(name, wsid, premakeFlags, configuration) {
@@ -94,6 +109,7 @@ def doUnitTests(name) {
 				"""
 
 				// Run tests
+				getIW4xExecutable()
 				bat "iw4x.exe -tests"
 			}
 		} finally {
