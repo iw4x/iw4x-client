@@ -66,7 +66,7 @@ def doBuild(premakeFlags, configuration) {
 			def outputDir = pwd()
 			def msbuild = tool "Microsoft.NET MSBuild 14.0"
 			bat "premake5 vs2015 $premakeFlags"
-			bat "\"${msbuild}\" src\\build\\iw4x.sln \"/p:OutDir=$outputDir\\\" \"/p:Configuration=$configuration\""
+			bat "\"${msbuild}\" build\\iw4x.sln \"/p:OutDir=$outputDir\\\" \"/p:Configuration=$configuration\""
 		}
 
 		archiveArtifacts artifacts: "*.dll,*.pdb", fingerprint: true
