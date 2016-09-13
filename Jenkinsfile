@@ -101,7 +101,7 @@ def doUnitTests(name) {
 }
 
 // First though let's give this build a proper name
-stage "Checkout & Versioning" {
+stage("Checkout & Versioning") {
 	node("windows") {
 		checkout scm
 
@@ -112,7 +112,7 @@ stage "Checkout & Versioning" {
 }
 
 // For each available configuration generate a normal build and a unit test build.
-stage "Build" {
+stage("Build") {
 	def executions = [:]
 	for (int i = 0; i < configurations.size(); i++)
 	{
@@ -128,7 +128,7 @@ stage "Build" {
 }
 
 // Run unit tests on each configuration.
-stage "Testing" {
+stage("Testing") {
 	executions = [:]
 	for (int i = 0; i < configurations.size(); i++)
 	{
@@ -141,7 +141,7 @@ stage "Testing" {
 }
 
 // Collect all the binaries and give each configuration its own subfolder
-stage "Publishing" {
+stage("Publishing") {
 	node("windows") { // any node will do
 		for (int i = 0; i < configurations.size(); i++)
 		{
