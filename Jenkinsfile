@@ -105,7 +105,7 @@ stage "Versioning"
 node("windows") {
 	checkout scm
 
-	version = sh(returnStdout: true, script: 'premake5 version').split("\r?\n")[1]
+	version = bat(returnStdout: true, script: 'premake5 version').split("\r?\n")[1]
 
 	currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
 }
