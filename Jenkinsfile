@@ -110,7 +110,7 @@ stage("Checkout & Versioning") {
 		checkout scm
 
 		useShippedPremake {
-			def version = bat(returnStdout: true, script: 'premake5 version').split("\r?\n")[1]
+			def version = bat(returnStdout: true, script: '@premake5 version').split("\r?\n")[1]
 
 			currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
 		}
