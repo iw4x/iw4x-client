@@ -62,6 +62,45 @@ def doBuild(name, premakeFlags, configuration) {
 	}
 }
 
+// This will run the unit tests for IW4x.
+// We need a Windows Server with MW2 on it.
+def doUnitTests(name) {
+	node("windows") {
+		checkout scm
+
+		mw2dir = tool "Modern Warfare 2"
+
+		unstash "$name"
+
+		// Get installed localization for correct zonefiles directory junction
+		def localization = readFile("$mw2dir\\localization.txt").split("\r?\n")[0]
+
+		try {
+			timeout(time: 180, unit: "MINUTES") {
+				// Set up environment
+				bat """
+				mklink /J \"main\" \"$mw2dir\\main\"
+				mklink /J \"zone\\dlc\" \"$mw2dir\\zone\\dlc\"
+				mklink /J \"zone\\$localization\" \"$mw2dir\\zone\\$localization\"
+				copy /y \"$mw2dir\\*.dll\"
+				copy /y \"$mw2dir\\*.txt\"
+				copy /y \"$mw2dir\\*.bmp\"
+				"""
+
+				// Run tests
+				bat "iw4x.exe -tests"
+			}
+		} finally {
+			// In all cases make sure to at least remove the directory junctions!
+			bat """
+			rmdir \"main\"
+			rmdir \"zone\\dlc\"
+			rmdir \"zone\\$localization\"
+			"""
+		}
+	}
+}
+
 // For each available configuration generate a normal build and a unit test build.
 stage "Build"
 def executions = [:]
@@ -71,9 +110,20 @@ for (int i = 0; i < configurations.size(); i++)
 	executions["$configuration"] = {
 		doBuild("IW4x $configuration", "", configuration)
 	}
-	executions["$configuration Unit-Testing"] = {
-		doBuild("IW4x $configuration with unit tests", "--force-unit-tests", configuration)
+	executions["$configuration with unit tests"] = {
+		doBuild("IW4x $configuration (unit tests)", "--force-unit-tests", configuration)
 	}
 }
 parallel executions
 
+// Run unit tests on each configuration.
+stage "Testing"
+def executions = [:]
+for (int i = 0; i < configurations.size(); i++)
+{
+	def configuration = configurations[i]
+	executions["$configuration"] = {
+		doUnitTests("IW4x $configuration with unit tests")
+	}
+}
+parallel executions
