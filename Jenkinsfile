@@ -100,52 +100,56 @@ def doUnitTests(name) {
 	}
 }
 
-// Change build name to correct version
-stage "Versioning"
-node("windows") {
-	checkout scm
+// First though let's give this build a proper name
+stage "Checkout & Versioning" {
+	node("windows") {
+		checkout scm
 
-	version = bat(returnStdout: true, script: 'premake5 version').split("\r?\n")[1]
+		version = bat(returnStdout: true, script: 'premake5 version').split("\r?\n")[1]
 
-	currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
+		currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
+	}
 }
 
 // For each available configuration generate a normal build and a unit test build.
-stage "Build"
-def executions = [:]
-for (int i = 0; i < configurations.size(); i++)
-{
-	def configuration = configurations[i]
-	executions["$configuration"] = {
-		doBuild("IW4x $configuration", "", configuration)
-	}
-	executions["$configuration with unit tests"] = {
-		doBuild("IW4x $configuration (unit tests)", "--force-unit-tests", configuration)
-	}
-}
-parallel executions
-
-// Run unit tests on each configuration.
-stage "Testing"
-executions = [:]
-for (int i = 0; i < configurations.size(); i++)
-{
-	def configuration = configurations[i]
-	executions["$configuration"] = {
-		doUnitTests("IW4x $configuration with unit tests")
-	}
-}
-parallel executions
-
-// Collect all the binaries and give each configuration its own subfolder
-stage "Publishing"
-node("windows") { // any node will do
+stage "Build" {
+	def executions = [:]
 	for (int i = 0; i < configurations.size(); i++)
 	{
 		def configuration = configurations[i]
-		dir("$configuration") {
-			unstash "IW4x $configuration"
+		executions["$configuration"] = {
+			doBuild("IW4x $configuration", "", configuration)
+		}
+		executions["$configuration with unit tests"] = {
+			doBuild("IW4x $configuration (unit tests)", "--force-unit-tests", configuration)
 		}
 	}
-	archiveArtifacts artifacts: "**/*.dll,**/*.pdb", fingerprint: true
+	parallel executions
+}
+
+// Run unit tests on each configuration.
+stage "Testing" {
+	executions = [:]
+	for (int i = 0; i < configurations.size(); i++)
+	{
+		def configuration = configurations[i]
+		executions["$configuration"] = {
+			doUnitTests("IW4x $configuration with unit tests")
+		}
+	}
+	parallel executions
+}
+
+// Collect all the binaries and give each configuration its own subfolder
+stage "Publishing" {
+	node("windows") { // any node will do
+		for (int i = 0; i < configurations.size(); i++)
+		{
+			def configuration = configurations[i]
+			dir("$configuration") {
+				unstash "IW4x $configuration"
+			}
+		}
+		archiveArtifacts artifacts: "**/*.dll,**/*.pdb", fingerprint: true
+	}
 }
