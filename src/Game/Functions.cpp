@@ -494,8 +494,8 @@ namespace Game
 
 			mov ebx, 5112C0h
 			call ebx
-
 			add esp, 4
+
 			pop ebx
 			pop edi
 		}
