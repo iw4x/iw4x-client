@@ -126,6 +126,11 @@ def doUnitTests(name, wsid) {
 	}
 }
 
+// Job properties
+properties: [
+	[$class: "GitLabConnectionProperty", gitLabConnection: "sr0"]
+]
+
 gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"]) {
 	// First though let's give this build a proper name
 	stage("Checkout & Versioning") {
