@@ -483,19 +483,20 @@ namespace Game
 
 	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len)
 	{
-		DWORD func = 0x5112C0;
-
 		__asm
 		{
 			push edi
+			push ebx
 
 			mov eax, len
 			mov edi, where
 			push data
 
-			call func
+			mov ebx, 5112C0h
+			call ebx
 
 			add esp, 4
+			pop ebx
 			pop edi
 		}
 	}
