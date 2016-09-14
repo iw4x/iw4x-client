@@ -128,61 +128,69 @@ def doUnitTests(name, wsid) {
 
 // First though let's give this build a proper name
 stage("Checkout & Versioning") {
-	node("windows") {
-		checkout scm
+	gitlabCommitStatus("Checkout & Versioning") {
+		node("windows") {
+			checkout scm
 
-		useShippedPremake {
-			def version = bat(returnStdout: true, script: '@premake5 version').split("\r?\n")[1]
+			useShippedPremake {
+				def version = bat(returnStdout: true, script: '@premake5 version').split("\r?\n")[1]
 
-			currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
+				currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
+			}
 		}
 	}
 }
 
 // For each available configuration generate a normal build and a unit test build.
 stage("Build") {
-	def executions = [:]
-	for (int i = 0; i < configurations.size(); i++)
-	{
-		def configuration = configurations[i]
-		executions["$configuration"] = {
-			doBuild("IW4x $configuration", "$configuration", "", configuration)
+	gitlabCommitStatus("Build") {
+		def executions = [:]
+		for (int i = 0; i < configurations.size(); i++)
+		{
+			def configuration = configurations[i]
+			executions["$configuration"] = {
+				doBuild("IW4x $configuration", "$configuration", "", configuration)
+			}
+			executions["$configuration with unit tests"] = {
+				doBuild("IW4x $configuration (unit tests)", "$configuration+unittests", "--force-unit-tests", configuration)
+			}
 		}
-		executions["$configuration with unit tests"] = {
-			doBuild("IW4x $configuration (unit tests)", "$configuration+unittests", "--force-unit-tests", configuration)
-		}
+		parallel executions
 	}
-	parallel executions
 }
 
 // Run unit tests on each configuration.
 stage("Testing") {
-	executions = [:]
-	for (int i = 0; i < configurations.size(); i++)
-	{
-		def configuration = configurations[i]
-		executions["$configuration"] = {
-			doUnitTests("IW4x $configuration (unit tests)", configuration)
+	gitlabCommitStatus("Testing") {
+		executions = [:]
+		for (int i = 0; i < configurations.size(); i++)
+		{
+			def configuration = configurations[i]
+			executions["$configuration"] = {
+				doUnitTests("IW4x $configuration (unit tests)", configuration)
+			}
 		}
+		parallel executions
 	}
-	parallel executions
 }
 
 // Collect all the binaries and give each configuration its own subfolder
 stage("Publishing") {
-	node("windows") { // any node will do
-		ws("IW4x/pub") {
-			try {
-				for (int i = 0; i < configurations.size(); i++)
-				{
-					def configuration = configurations[i]
-					dir("$configuration") {
-						unstash "IW4x $configuration"
+	gitlabCommitStatus("Publishing") {
+		node("windows") { // any node will do
+			ws("IW4x/pub") {
+				try {
+					for (int i = 0; i < configurations.size(); i++)
+					{
+						def configuration = configurations[i]
+						dir("$configuration") {
+							unstash "IW4x $configuration"
+						}
 					}
+					archiveArtifacts artifacts: "**/*.dll,**/*.pdb", fingerprint: true
+				} finally {
+					deleteDir()
 				}
-				archiveArtifacts artifacts: "**/*.dll,**/*.pdb", fingerprint: true
-			} finally {
-				deleteDir()
 			}
 		}
 	}
