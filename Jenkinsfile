@@ -67,7 +67,7 @@ def getIW4xExecutable() {
 // We need a Windows Server with Visual Studio 2015, Premake5 and Git on it.
 def doBuild(name, wsid, premakeFlags, configuration) {
 	node("windows") {
-		ws("./$wsid") {
+		ws("IW4x/build/$wsid") {
 			checkout scm
 
 			useShippedPremake {
@@ -84,41 +84,44 @@ def doBuild(name, wsid, premakeFlags, configuration) {
 
 // This will run the unit tests for IW4x.
 // We need a Windows Server with MW2 on it.
-def doUnitTests(name) {
+def doUnitTests(name, wsid) {
 	node("windows") {
-		checkout scm
+		ws("IW4x/testing/$wsid") {
+			checkout scm
 
-		mw2dir = tool "Modern Warfare 2"
+			mw2dir = tool "Modern Warfare 2"
 
-		unstash "$name"
+			unstash "$name"
 
-		// Get installed localization for correct zonefiles directory junction
-		def localization = readFile("$mw2dir\\localization.txt").split("\r?\n")[0]
+			// Get installed localization for correct zonefiles directory junction
+			def localization = readFile("$mw2dir\\localization.txt").split("\r?\n")[0]
 
-		try {
-			timeout(time: 180, unit: "MINUTES") {
-				// Set up environment
+			try {
+				timeout(time: 180, unit: "MINUTES") {
+					// Set up environment
+					bat """
+					mklink /J \"main\" \"$mw2dir\\main\"
+					mkdir \"zone\"
+					mklink /J \"zone\\dlc\" \"$mw2dir\\zone\\dlc\"
+					mklink /J \"zone\\$localization\" \"$mw2dir\\zone\\$localization\"
+					copy /y \"$mw2dir\\*.dll\"
+					copy /y \"$mw2dir\\*.txt\"
+					copy /y \"$mw2dir\\*.bmp\"
+					"""
+
+					// Run tests
+					getIW4xExecutable()
+					bat "iw4x.exe -tests"
+				}
+			} finally {
+				// In all cases make sure to at least remove the directory junctions!
 				bat """
-				mklink /J \"main\" \"$mw2dir\\main\"
-				mkdir \"zone\"
-				mklink /J \"zone\\dlc\" \"$mw2dir\\zone\\dlc\"
-				mklink /J \"zone\\$localization\" \"$mw2dir\\zone\\$localization\"
-				copy /y \"$mw2dir\\*.dll\"
-				copy /y \"$mw2dir\\*.txt\"
-				copy /y \"$mw2dir\\*.bmp\"
+				rmdir \"main\"
+				rmdir \"zone\\dlc\"
+				rmdir \"zone\\$localization\"
 				"""
-
-				// Run tests
-				getIW4xExecutable()
-				bat "iw4x.exe -tests"
+				deleteDir()
 			}
-		} finally {
-			// In all cases make sure to at least remove the directory junctions!
-			bat """
-			rmdir \"main\"
-			rmdir \"zone\\dlc\"
-			rmdir \"zone\\$localization\"
-			"""
 		}
 	}
 }
@@ -159,7 +162,7 @@ stage("Testing") {
 	{
 		def configuration = configurations[i]
 		executions["$configuration"] = {
-			doUnitTests("IW4x $configuration (unit tests)")
+			doUnitTests("IW4x $configuration (unit tests)", configuration)
 		}
 	}
 	parallel executions
@@ -168,13 +171,19 @@ stage("Testing") {
 // Collect all the binaries and give each configuration its own subfolder
 stage("Publishing") {
 	node("windows") { // any node will do
-		for (int i = 0; i < configurations.size(); i++)
-		{
-			def configuration = configurations[i]
-			dir("$configuration") {
-				unstash "IW4x $configuration"
+		ws("IW4x/pub") {
+			try {
+				for (int i = 0; i < configurations.size(); i++)
+				{
+					def configuration = configurations[i]
+					dir("$configuration") {
+						unstash "IW4x $configuration"
+					}
+				}
+				archiveArtifacts artifacts: "**/*.dll,**/*.pdb", fingerprint: true
+			} catch {
+				deleteDir()
 			}
 		}
-		archiveArtifacts artifacts: "**/*.dll,**/*.pdb", fingerprint: true
 	}
 }
