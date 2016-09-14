@@ -157,6 +157,7 @@ namespace Components
 	MinidumpUpload::MinidumpUpload()
 	{
 #if !defined(DEBUG) || defined(FORCE_MINIDUMP_UPLOAD)
+		if (Loader::PerformingUnitTests() || ZoneBuilder::IsEnabled()) return;
 		this->uploadThread = std::thread([&]() { this->UploadQueuedMinidumps(); });
 #endif
 	}
