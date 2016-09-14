@@ -522,7 +522,7 @@ namespace Components
 
 			if (file.Exists())
 			{
-				std::string& buffer = file.GetBuffer();
+				std::string buffer = file.GetBuffer();
 
 				mg_printf(nc,
 					"HTTP/1.1 200 OK\r\n"

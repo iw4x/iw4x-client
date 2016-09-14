@@ -30,8 +30,8 @@ namespace Components
 		static std::vector<Game::menuDef_t*> LoadMenu(Game::menuDef_t* menudef);
 		static std::vector<Game::menuDef_t*> LoadMenu(std::string file);
 
-		static Game::script_t* LoadMenuScript(std::string name, std::string& buffer);
-		static int LoadMenuSource(std::string name, std::string& buffer);
+		static Game::script_t* LoadMenuScript(std::string name, std::string buffer);
+		static int LoadMenuSource(std::string name, std::string buffer);
 
 		static int ReserveSourceHandle();
 		static bool IsValidSourceHandle(int handle);

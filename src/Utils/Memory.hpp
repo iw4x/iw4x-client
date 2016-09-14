@@ -92,6 +92,7 @@ namespace Utils
 			std::map<void*, FreeCallback> RefMemory;
 		};
 
+		static void* AllocateAlign(size_t length, size_t alignment);
 		static void* Allocate(size_t length);
 		template <typename T> static T* Allocate()
 		{

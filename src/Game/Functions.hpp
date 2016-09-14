@@ -329,6 +329,9 @@ namespace Game
 	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
 	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;
 
+	typedef void* (__cdecl * R_AllocStaticIndexBuffer_t)(IDirect3DIndexBuffer9** store, int length);
+	extern R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer;
+
 	typedef bool(__cdecl * R_Cinematic_StartPlayback_Now_t)();
 	extern R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now;
 
@@ -530,4 +533,7 @@ namespace Game
 
 	void IN_KeyUp(kbutton_t* button);
 	void IN_KeyDown(kbutton_t* button);
+
+	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count);
+	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len);
 }

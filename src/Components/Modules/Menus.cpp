@@ -25,7 +25,7 @@ namespace Components
 		return i;
 	}
 
-	Game::script_t* Menus::LoadMenuScript(std::string name, std::string& buffer)
+	Game::script_t* Menus::LoadMenuScript(std::string name, std::string buffer)
 	{
 		Game::script_t* script = Game::Script_Alloc(sizeof(Game::script_t) + 1 + buffer.length());
 
@@ -52,7 +52,7 @@ namespace Components
 		return script;
 	}
 
-	int Menus::LoadMenuSource(std::string name, std::string& buffer)
+	int Menus::LoadMenuSource(std::string name, std::string buffer)
 	{
 		int handle = Menus::ReserveSourceHandle();
 		if (!Menus::IsValidSourceHandle(handle)) return 0; // No free source slot!

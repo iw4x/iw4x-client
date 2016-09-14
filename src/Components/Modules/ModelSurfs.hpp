@@ -7,8 +7,8 @@ namespace Components
 		~ModelSurfs();
 
 	private:
-
 		static std::map<void*, IUnknown*> BufferMap;
+		static std::map<void*, Game::CModelAllocData*> AllocMap;
 
 		static void ReleaseModelSurf(Game::XAssetHeader header);
 
@@ -18,7 +18,9 @@ namespace Components
 		static IUnknown* GetBuffer(void* buffer);
 		static void SetBuffer(char streamHandle, void* buffer, IUnknown** bufferOut, int* offsetOut);
 
-		static bool LoadXSurfaces(Game::XModel* model);
+		static void CreateBuffers(Game::XModelSurfs* surfs);
+		static Game::XModelSurfs* LoadXModelSurfaces(std::string name);
+		static bool LoadSurfaces(Game::XModel* model);
 		static void XModelSurfsFixup(Game::XModel* model);
 
 		static void GetIndexBaseStub();

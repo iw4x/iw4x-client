@@ -135,6 +135,7 @@ namespace Game
 	PartyHost_GetMemberName_t PartyHost_GetMemberName = (PartyHost_GetMemberName_t)0x44BE90;
 
 	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = (R_AddCmdDrawStretchPic_t)0x509770;
+	R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = (R_AllocStaticIndexBuffer_t)0x51E7A0;
 	R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = (R_Cinematic_StartPlayback_Now_t)0x51C5B0;
 	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x505670;
 	R_AddCmdDrawText_t R_AddCmdDrawText = (R_AddCmdDrawText_t)0x509D80;
@@ -463,6 +464,39 @@ namespace Game
 			mov eax, 5A54E0h
 			call eax
 			pop esi
+		}
+	}
+
+	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count)
+	{
+		if (Components::Dvar::Var("r_loadForRenderer").Get<bool>())
+		{
+			void* buffer = R_AllocStaticIndexBuffer(storeHere, 2 * count);
+			memcpy(buffer, data, 2 * count);
+
+			if (storeHere && *storeHere)
+			{
+				(*storeHere)->Unlock();
+			}
+		}
+	}
+
+	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len)
+	{
+		DWORD func = 0x5112C0;
+
+		__asm
+		{
+			push edi
+
+			mov eax, len
+			mov edi, where
+			push data
+
+			call func
+
+			add esp, 4
+			pop edi
 		}
 	}
 }
