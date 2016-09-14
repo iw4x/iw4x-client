@@ -181,7 +181,7 @@ stage("Publishing") {
 					}
 				}
 				archiveArtifacts artifacts: "**/*.dll,**/*.pdb", fingerprint: true
-			} catch {
+			} finally {
 				deleteDir()
 			}
 		}
