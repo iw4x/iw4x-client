@@ -69,6 +69,7 @@ namespace Components
 #include "Modules\Singleton.hpp"
 #include "Modules\BitMessage.hpp"
 #include "Modules\FileSystem.hpp"
+#include "Modules\ModelSurfs.hpp"
 #include "Modules\PlayerName.hpp"
 #include "Modules\QuickPatch.hpp"
 #include "Modules\ServerInfo.hpp"

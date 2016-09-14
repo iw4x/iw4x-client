@@ -2,17 +2,17 @@
 
 namespace Utils
 {
+	void* Memory::AllocateAlign(size_t length, size_t alignment)
+	{
+		void* data = _aligned_malloc(length, alignment);
+		assert(data != nullptr);
+		return data;
+	}
+
 	void* Memory::Allocate(size_t length)
 	{
-		void* data = new char[length];
-
+		void* data = calloc(length, 1);
 		assert(data != nullptr);
-
-		if (data)
-		{
-			ZeroMemory(data, length);
-		}
-
 		return data;
 	}
 
@@ -27,7 +27,7 @@ namespace Utils
 	{
 		if (data)
 		{
-			delete[] data;
+			free(data);
 		}
 	}
 

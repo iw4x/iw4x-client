@@ -818,6 +818,10 @@ namespace Game
 		menuDef_t **menus;
 	};
 
+#define FS_SEEK_CUR 0
+#define FS_SEEK_END 1
+#define FS_SEEK_SET 2
+
 	enum FsListBehavior_e
 	{
 		FS_LIST_PURE_ONLY = 0x0,
@@ -1394,7 +1398,10 @@ namespace Game
 
 	struct XModelLodInfo
 	{
-		char pad[4]; // +0
+		// I'm not sure if this is correct
+		short someCount;
+		short someTotalCount;
+
 		short numSurfs; // +4
 		short pad2;// +6
 		XModelSurfs* surfaces; // +8
@@ -1524,6 +1531,39 @@ namespace Game
 		PhysPreset* physPreset;
 		PhysCollmap* physCollmap;
 	}; // total size 304
+
+	//static_assert(offsetof(XModel, lods) <= 70, "");
+
+	struct CModelAllocData
+	{
+		void* mainArray;
+		void* vertexBuffer;
+		void* indexBuffer;
+	};
+
+	struct CModelSectionHeader
+	{
+		int size;
+		int offset;
+		int fixupStart;
+		int fixupCount;
+		void* buffer;
+	};
+
+	enum CModelSection
+	{
+		SECTION_MAIN = 0,
+		SECTION_INDEX = 1,
+		SECTION_VERTEX = 2,
+		SECTION_FIXUP = 3,
+	};
+
+	struct CModelHeader
+	{
+		int version;
+		unsigned int signature;
+		CModelSectionHeader sectionHeader[4];
+	};
 
 	struct DSkelPartBits
 	{

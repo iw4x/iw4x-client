@@ -31,6 +31,8 @@ namespace Game
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = (Con_DrawMiniConsole_t)0x464F30;
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = (Con_DrawSolidConsole_t)0x5A5040;
 
+	DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice = (DB_BeginRecoverLostDevice_t)0x4BFF90;
+	DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice = (DB_EndRecoverLostDevice_t)0x46B660;
 	DB_EnumXAssets_t DB_EnumXAssets = (DB_EnumXAssets_t)0x4B76D0;
 	DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal = (DB_EnumXAssets_Internal_t)0x5BB0A0;
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
@@ -40,6 +42,8 @@ namespace Game
 	DB_IsXAssetDefault_t DB_IsXAssetDefault = (DB_IsXAssetDefault_t)0x48E6A0;
 	DB_LoadXAssets_t DB_LoadXAssets = (DB_LoadXAssets_t)0x4E5930;
 	DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = (DB_ReadXFileUncompressed_t)0x4705E0;
+	DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = (DB_ReleaseXAssetHandler_t*)0x799AB8;
+	DB_XModelSurfsFixup_t DB_XModelSurfsFixup = (DB_XModelSurfsFixup_t)0x5BAC50;
 
 	Dvar_RegisterBool_t Dvar_RegisterBool = (Dvar_RegisterBool_t)0x4CE1A0;
 	Dvar_RegisterFloat_t Dvar_RegisterFloat = (Dvar_RegisterFloat_t)0x648440;
@@ -131,6 +135,7 @@ namespace Game
 	PartyHost_GetMemberName_t PartyHost_GetMemberName = (PartyHost_GetMemberName_t)0x44BE90;
 
 	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = (R_AddCmdDrawStretchPic_t)0x509770;
+	R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = (R_AllocStaticIndexBuffer_t)0x51E7A0;
 	R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = (R_Cinematic_StartPlayback_Now_t)0x51C5B0;
 	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x505670;
 	R_AddCmdDrawText_t R_AddCmdDrawText = (R_AddCmdDrawText_t)0x509D80;
@@ -459,6 +464,40 @@ namespace Game
 			mov eax, 5A54E0h
 			call eax
 			pop esi
+		}
+	}
+
+	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count)
+	{
+		if (Components::Dvar::Var("r_loadForRenderer").Get<bool>())
+		{
+			void* buffer = R_AllocStaticIndexBuffer(storeHere, 2 * count);
+			memcpy(buffer, data, 2 * count);
+
+			if (storeHere && *storeHere)
+			{
+				(*storeHere)->Unlock();
+			}
+		}
+	}
+
+	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len)
+	{
+		__asm
+		{
+			push edi
+			push ebx
+
+			mov eax, len
+			mov edi, where
+			push data
+
+			mov ebx, 5112C0h
+			call ebx
+			add esp, 4
+
+			pop ebx
+			pop edi
 		}
 	}
 }
