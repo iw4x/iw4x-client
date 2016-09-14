@@ -87,8 +87,6 @@ def doBuild(name, wsid, premakeFlags, configuration) {
 def doUnitTests(name, wsid) {
 	node("windows") {
 		ws("IW4x/testing/$wsid") {
-			checkout scm
-
 			mw2dir = tool "Modern Warfare 2"
 
 			unstash "$name"
