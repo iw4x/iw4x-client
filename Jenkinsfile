@@ -84,7 +84,7 @@ def doBuild(name, wsid, premakeFlags, configuration) {
 
 // This will run the unit tests for IW4x.
 // We need a Windows Server with MW2 on it.
-def doUnitTests(label, name, wsid) {
+def doUnitTests(name, wsid) {
 	ws("IW4x/testing/$wsid") {
 		mw2dir = tool "Modern Warfare 2"
 
