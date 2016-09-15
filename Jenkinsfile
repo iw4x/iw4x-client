@@ -192,28 +192,28 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 				}
 				executions["$configuration on Linux"] = {
 					node("docker && linux && amd64") {
-						def image = null
-						dir("src") {
-							checkout scm
-							image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
-							deleteDir()
-						}
-						image.inside {
-							doUnitTests("IW4x $configuration (unit tests)")
+						try {
+							def image = null
+							dir("src") {
+								checkout scm
+								image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
+								deleteDir()
+							}
+							image.inside {
+								doUnitTests("IW4x $configuration (unit tests)")
+							}
+						} catch (Exception e) {
+							if (isUnix()) {
+								manager.buildUnstable()
+								manager.addWarningBadge "$configuration unit test failed on Linux"
+							} else {
+								throw e
+							}
 						}
 					}
 				}
 			}
-			try {
-				parallel executions
-			} catch (Exception e) {
-				if (isUnix()) {
-					manager.buildUnstable()
-					manager.addWarningBadge "Unit tests failed on Linux"
-				} else {
-					throw e
-				}
-			}
+			parallel executions
 		}
 	}
 
