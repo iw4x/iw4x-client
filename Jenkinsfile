@@ -84,7 +84,7 @@ def doBuild(name, wsid, premakeFlags, configuration) {
 
 // This will run the unit tests for IW4x.
 // We need a Windows Server with MW2 on it.
-def doUnitTests(name, wsid) {
+def doUnitTests(name) {
 	mw2dir = tool "Modern Warfare 2"
 
 	unstash "$name"
@@ -120,7 +120,6 @@ def doUnitTests(name, wsid) {
 			// Run tests
 			getIW4xExecutable()
 			if (isUnix()) {
-				sh "ls"
 				sh "wine-wrapper iw4x.exe -tests"
 			} else {
 				bat "iw4x.exe -tests"
@@ -187,8 +186,8 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 				def configuration = configurations[i]
 				executions["$configuration on Windows"] = {
 					node("windows") {
-						ws("IW4x/testing/$wsid") {
-							doUnitTests("IW4x $configuration (unit tests)", configuration)
+						ws("IW4x/testing/$configuration") {
+							doUnitTests("IW4x $configuration (unit tests)")
 						}
 					}
 				}
@@ -201,7 +200,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 							deleteDir()
 						}
 						image.inside {
-							doUnitTests("IW4x $configuration (unit tests)", configuration)
+							doUnitTests("IW4x $configuration (unit tests)")
 						}
 					}
 				}
