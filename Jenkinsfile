@@ -193,7 +193,13 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 				}
 				executions["$configuration on Linux"] = {
 					node("docker && linux && amd64") {
-						docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f wine32.Dockerfile jenkins").inside {
+						def image = null
+						dir("src") {
+							checkout scm
+							image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f wine32.Dockerfile jenkins")
+							deleteDir()
+						}
+						image.inside {
 							doUnitTests("IW4x $configuration (unit tests)", configuration)
 						}
 					}
