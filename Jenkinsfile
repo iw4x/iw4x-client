@@ -84,19 +84,29 @@ def doBuild(name, wsid, premakeFlags, configuration) {
 
 // This will run the unit tests for IW4x.
 // We need a Windows Server with MW2 on it.
-def doUnitTests(name, wsid) {
-	node("windows") {
-		ws("IW4x/testing/$wsid") {
-			mw2dir = tool "Modern Warfare 2"
+def doUnitTests(label, name, wsid) {
+	ws("IW4x/testing/$wsid") {
+		mw2dir = tool "Modern Warfare 2"
 
-			unstash "$name"
+		unstash "$name"
 
-			// Get installed localization for correct zonefiles directory junction
-			def localization = readFile("$mw2dir\\localization.txt").split("\r?\n")[0]
+		// Get installed localization for correct zonefiles directory junction
+		def localization = readFile("$mw2dir/localization.txt").split("\r?\n")[0]
 
-			try {
-				timeout(time: 180, unit: "MINUTES") {
-					// Set up environment
+		try {
+			timeout(time: 180, unit: "MINUTES") {
+				// Set up environment
+				if (isUnix()) {
+					sh """
+					mkdir -p zone
+					for f in main zone/dlc \"zone/$localization\"; do
+						ln -sfv \"$mw2dir/\$f\" \"\$f\"
+					done
+					for f in \"$mw2dir\"/*.dll \"$mw2dir\"/*.txt \"$mw2dir\"/*.bmp; do
+						ln -sfv \"\$f\" \"\$(basename \"\$f\")\"
+					done
+					"""
+				} else {
 					bat """
 					mklink /J \"main\" \"$mw2dir\\main\"
 					mkdir \"zone\"
@@ -106,20 +116,26 @@ def doUnitTests(name, wsid) {
 					copy /y \"$mw2dir\\*.txt\"
 					copy /y \"$mw2dir\\*.bmp\"
 					"""
+				}
 
-					// Run tests
-					getIW4xExecutable()
+				// Run tests
+				getIW4xExecutable()
+				if (isUnix()) {
+					sh "wine-wrapper iw4x.exe -tests"
+				} else {
 					bat "iw4x.exe -tests"
 				}
-			} finally {
-				// In all cases make sure to at least remove the directory junctions!
+			}
+		} finally {
+			// In all cases make sure to at least remove the directory junctions!
+			if (!isUnix()) {
 				bat """
 				rmdir \"main\"
 				rmdir \"zone\\dlc\"
 				rmdir \"zone\\$localization\"
 				"""
-				deleteDir()
 			}
+			deleteDir()
 		}
 	}
 }
@@ -170,8 +186,17 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 			for (int i = 0; i < configurations.size(); i++)
 			{
 				def configuration = configurations[i]
-				executions["$configuration"] = {
-					doUnitTests("IW4x $configuration (unit tests)", configuration)
+				executions["$configuration on Windows"] = {
+					node("windows") {
+						doUnitTests("IW4x $configuration (unit tests)", configuration)
+					}
+				}
+				executions["$configuration on Linux"] = {
+					node("docker && linux && amd64") {
+						docker.build("", "--rm --force-rm -f jenkins/wine32.Dockerfile").inside {
+							doUnitTests("IW4x $configuration (unit tests)", configuration)
+						}
+					}
 				}
 			}
 			parallel executions
