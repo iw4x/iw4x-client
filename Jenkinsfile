@@ -181,8 +181,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 	stage("Testing") {
 		gitlabCommitStatus("Testing") {
 			executions = [:]
-			for (int i = 0; i < configurations.size(); i++)
-			{
+			for (int i = 0; i < configurations.size(); i++) {
 				def configuration = configurations[i]
 				executions["$configuration on Windows"] = {
 					node("windows") {
@@ -205,7 +204,16 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 					}
 				}
 			}
-			parallel executions
+			try {
+				parallel executions
+			} catch (Exception e) {
+				if (isUnix()) {
+					manager.buildUnstable()
+					manager.addWarningBadge "Unit tests failed on Linux"
+				} else {
+					throw e
+				}
+			}
 		}
 	}
 
