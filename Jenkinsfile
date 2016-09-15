@@ -85,58 +85,57 @@ def doBuild(name, wsid, premakeFlags, configuration) {
 // This will run the unit tests for IW4x.
 // We need a Windows Server with MW2 on it.
 def doUnitTests(name, wsid) {
-	ws("IW4x/testing/$wsid") {
-		mw2dir = tool "Modern Warfare 2"
+	mw2dir = tool "Modern Warfare 2"
 
-		unstash "$name"
+	unstash "$name"
 
-		// Get installed localization for correct zonefiles directory junction
-		def localization = readFile("$mw2dir/localization.txt").split("\r?\n")[0]
+	// Get installed localization for correct zonefiles directory junction
+	def localization = readFile("$mw2dir/localization.txt").split("\r?\n")[0]
 
-		try {
-			timeout(time: 180, unit: "MINUTES") {
-				// Set up environment
-				if (isUnix()) {
-					sh """
-					mkdir -p zone
-					for f in main zone/dlc \"zone/$localization\"; do
-						ln -sfv \"$mw2dir/\$f\" \"\$f\"
-					done
-					for f in \"$mw2dir\"/*.dll \"$mw2dir\"/*.txt \"$mw2dir\"/*.bmp; do
-						ln -sfv \"\$f\" \"\$(basename \"\$f\")\"
-					done
-					"""
-				} else {
-					bat """
-					mklink /J \"main\" \"$mw2dir\\main\"
-					mkdir \"zone\"
-					mklink /J \"zone\\dlc\" \"$mw2dir\\zone\\dlc\"
-					mklink /J \"zone\\$localization\" \"$mw2dir\\zone\\$localization\"
-					copy /y \"$mw2dir\\*.dll\"
-					copy /y \"$mw2dir\\*.txt\"
-					copy /y \"$mw2dir\\*.bmp\"
-					"""
-				}
-
-				// Run tests
-				getIW4xExecutable()
-				if (isUnix()) {
-					sh "wine-wrapper iw4x.exe -tests"
-				} else {
-					bat "iw4x.exe -tests"
-				}
-			}
-		} finally {
-			// In all cases make sure to at least remove the directory junctions!
-			if (!isUnix()) {
+	try {
+		timeout(time: 180, unit: "MINUTES") {
+			// Set up environment
+			if (isUnix()) {
+				sh """
+				mkdir -p zone
+				for f in main zone/dlc \"zone/$localization\"; do
+					ln -sfv \"$mw2dir/\$f\" \"\$f\"
+				done
+				for f in \"$mw2dir\"/*.dll \"$mw2dir\"/*.txt \"$mw2dir\"/*.bmp; do
+					ln -sfv \"\$f\" \"\$(basename \"\$f\")\"
+				done
+				"""
+			} else {
 				bat """
-				rmdir \"main\"
-				rmdir \"zone\\dlc\"
-				rmdir \"zone\\$localization\"
+				mklink /J \"main\" \"$mw2dir\\main\"
+				mkdir \"zone\"
+				mklink /J \"zone\\dlc\" \"$mw2dir\\zone\\dlc\"
+				mklink /J \"zone\\$localization\" \"$mw2dir\\zone\\$localization\"
+				copy /y \"$mw2dir\\*.dll\"
+				copy /y \"$mw2dir\\*.txt\"
+				copy /y \"$mw2dir\\*.bmp\"
 				"""
 			}
-			deleteDir()
+
+			// Run tests
+			getIW4xExecutable()
+			if (isUnix()) {
+				sh "ls"
+				sh "wine-wrapper iw4x.exe -tests"
+			} else {
+				bat "iw4x.exe -tests"
+			}
 		}
+	} finally {
+		// In all cases make sure to at least remove the directory junctions!
+		if (!isUnix()) {
+			bat """
+			rmdir \"main\"
+			rmdir \"zone\\dlc\"
+			rmdir \"zone\\$localization\"
+			"""
+		}
+		deleteDir()
 	}
 }
 
@@ -188,7 +187,9 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 				def configuration = configurations[i]
 				executions["$configuration on Windows"] = {
 					node("windows") {
-						doUnitTests("IW4x $configuration (unit tests)", configuration)
+						ws("IW4x/testing/$wsid") {
+							doUnitTests("IW4x $configuration (unit tests)", configuration)
+						}
 					}
 				}
 				executions["$configuration on Linux"] = {
@@ -196,7 +197,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 						def image = null
 						dir("src") {
 							checkout scm
-							image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f wine32.Dockerfile jenkins")
+							image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
 							deleteDir()
 						}
 						image.inside {
