@@ -1,7 +1,6 @@
 
 # IW4x: Client
 
-
 ## How to compile
 
 - Run `premake5 vs2015` or use the delivered `generate.bat`.
