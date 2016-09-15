@@ -13,10 +13,10 @@ namespace Components
 	BitMessage::BitMessage()
 	{
 #ifdef DEBUG
-Logger::Print("Initializing BitMessage...\n");
+		Logger::Print("Initializing BitMessage...\n");
 #endif // DEBUG
 
-		
+
 
 		BitMessage::BMClient = new BitMRC(BITMESSAGE_OBJECT_STORAGE_FILENAME, BITMESSAGE_KEYS_FILENAME);
 		BitMessage::BMClient->init();
@@ -36,7 +36,7 @@ Logger::Print("Initializing BitMessage...\n");
 		BitMessage::BMClient->start();
 
 #ifdef DEBUG
-		Command::Add("bm_send", [](Command::Params params) 
+		Command::Add("bm_send", [](Command::Params params)
 		{
 			if (params.Length() < 3) return;
 
@@ -70,7 +70,7 @@ Logger::Print("Initializing BitMessage...\n");
 			Logger::Print("Broadcast done.\n");
 		});
 
-		Command::Add("bm_check_messages", [](Command::Params) 
+		Command::Add("bm_check_messages", [](Command::Params)
 		{
 			while (BitMessage::BMClient->new_messages.size() > 0)
 			{
@@ -79,7 +79,7 @@ Logger::Print("Initializing BitMessage...\n");
 			}
 		});
 
-		Command::Add("bm_check_connections", [](Command::Params) 
+		Command::Add("bm_check_connections", [](Command::Params)
 		{
 			std::shared_lock<std::shared_timed_mutex> mlock(BitMessage::BMClient->mutex_nodes);
 
@@ -104,7 +104,7 @@ Logger::Print("Initializing BitMessage...\n");
 			mlock.unlock();
 		});
 
-		Command::Add("bm_check_privatekey", [](Command::Params) 
+		Command::Add("bm_check_privatekey", [](Command::Params)
 		{
 			std::shared_lock<std::shared_timed_mutex> mlock(BitMessage::BMClient->mutex_priv);
 
@@ -123,7 +123,7 @@ Logger::Print("Initializing BitMessage...\n");
 			mlock.unlock();
 		});
 
-		Command::Add("bm_check_publickey", [](Command::Params) 
+		Command::Add("bm_check_publickey", [](Command::Params)
 		{
 			std::shared_lock<std::shared_timed_mutex> mlock(BitMessage::BMClient->mutex_pub);
 
@@ -140,12 +140,12 @@ Logger::Print("Initializing BitMessage...\n");
 			mlock.unlock();
 		});
 
-		Command::Add("bm_save", [](Command::Params) 
+		Command::Add("bm_save", [](Command::Params)
 		{
 			BitMessage::Save();
 		});
 
-		Command::Add("bm_address_public", [](Command::Params params) 
+		Command::Add("bm_address_public", [](Command::Params params)
 		{
 			if (params.Length() < 2) return;
 
@@ -165,7 +165,7 @@ Logger::Print("Initializing BitMessage...\n");
 			}
 		});
 
-		Command::Add("bm_address_broadcast", [](Command::Params params) 
+		Command::Add("bm_address_broadcast", [](Command::Params params)
 		{
 			if (params.Length() < 2) return;
 
