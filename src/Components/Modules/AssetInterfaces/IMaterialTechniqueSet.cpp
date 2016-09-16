@@ -6,7 +6,7 @@ namespace Assets
 	{
 		Game::MaterialTechniqueSet* asset = header.materialTechset;
 
-		for (int i = 0; i < ARR_SIZE(Game::MaterialTechniqueSet::techniques); ++i)
+		for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
 		{
 			Game::MaterialTechnique* technique = asset->techniques[i];
 
@@ -52,9 +52,9 @@ namespace Assets
 		}
 
 		// Save_MaterialTechniquePtrArray
-		static_assert(ARR_SIZE(Game::MaterialTechniqueSet::techniques) == 48, "Techniques array invalid!");
+		static_assert(ARRAYSIZE(Game::MaterialTechniqueSet::techniques) == 48, "Techniques array invalid!");
 
-		for (int i = 0; i < ARR_SIZE(Game::MaterialTechniqueSet::techniques); ++i)
+		for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
 		{
 			Game::MaterialTechnique* technique = asset->techniques[i];
 

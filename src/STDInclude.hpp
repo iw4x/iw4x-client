@@ -91,6 +91,7 @@
 #include "Utils\Memory.hpp"
 #include "Utils\String.hpp"
 #include "Utils\Hooking.hpp"
+#include "Utils\Library.hpp"
 #include "Utils\InfoString.hpp"
 #include "Utils\Compression.hpp"
 #include "Utils\Cryptography.hpp"

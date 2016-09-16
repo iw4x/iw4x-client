@@ -22,8 +22,8 @@ namespace Steam
 		static bool BOverlayNeedsPresent();
 
 	private:
-		static HMODULE Client;
-		static HMODULE Overlay;
+		static ::Utils::Library Client;
+		static ::Utils::Library Overlay;
 
 		static std::string GetSteamDirectory();
 	};

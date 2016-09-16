@@ -2,8 +2,8 @@
 
 namespace Steam
 {
-	HMODULE Proxy::Client = nullptr;
-	HMODULE Proxy::Overlay = nullptr;
+	::Utils::Library Proxy::Client;
+	::Utils::Library Proxy::Overlay;
 
 	bool Proxy::Inititalize()
 	{
@@ -12,20 +12,16 @@ namespace Steam
 
 		SetDllDirectoryA(Proxy::GetSteamDirectory().data());
 
-		Proxy::Client = LoadLibraryA(STEAMCLIENT_LIB);
-		Proxy::Overlay = LoadLibraryA(GAMEOVERLAY_LIB);
+		Proxy::Client = ::Utils::Library(STEAMCLIENT_LIB, false);
+		Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
 
-		return (Proxy::Client && Proxy::Overlay);
+		return (Proxy::Client.Valid() && Proxy::Overlay.Valid());
 	}
 
 	void Proxy::Uninititalize()
 	{
-		// Freeing libraries causes crashes
-		//if (Proxy::Client)  FreeLibrary(Proxy::Client);
-		Proxy::Client = nullptr;
-
-		//if (Proxy::Overlay) FreeLibrary(Proxy::Overlay);
-		Proxy::Overlay = nullptr;
+		Proxy::Client = ::Utils::Library();
+		Proxy::Overlay = ::Utils::Library();
 	}
 
 	std::string Proxy::GetSteamDirectory()
@@ -46,27 +42,17 @@ namespace Steam
 
 	void Proxy::SetOverlayNotificationPosition(uint32_t eNotificationPosition)
 	{
-		if (Proxy::Overlay)
+		if (Proxy::Overlay.Valid())
 		{
-			FARPROC SetNotificationPositionFn = GetProcAddress(Proxy::Overlay, "SetNotificationPosition");
-
-			if (SetNotificationPositionFn)
-			{
-				::Utils::Hook::Call<void(uint32_t)>(SetNotificationPositionFn)(eNotificationPosition);
-			}
+			Proxy::Overlay.Get<void(uint32_t)>("SetNotificationPosition")(eNotificationPosition);
 		}
 	}
 
 	bool Proxy::IsOverlayEnabled()
 	{
-		if (Proxy::Overlay)
+		if (Proxy::Overlay.Valid())
 		{
-			FARPROC IsOverlayEnabledFn = GetProcAddress(Proxy::Overlay, "IsOverlayEnabled");
-
-			if (IsOverlayEnabledFn)
-			{
-				return ::Utils::Hook::Call<bool()>(IsOverlayEnabledFn)();
-			}
+			return Proxy::Overlay.Get<bool()>("IsOverlayEnabled")();
 		}
 
 		return false;
@@ -74,14 +60,9 @@ namespace Steam
 
 	bool Proxy::BOverlayNeedsPresent()
 	{
-		if (Proxy::Overlay)
+		if (Proxy::Overlay.Valid())
 		{
-			FARPROC BOverlayNeedsPresentFn = GetProcAddress(Proxy::Overlay, "BOverlayNeedsPresent");
-
-			if (BOverlayNeedsPresentFn)
-			{
-				return ::Utils::Hook::Call<bool()>(BOverlayNeedsPresentFn)();
-			}
+			return Proxy::Overlay.Get<bool()>("BOverlayNeedsPresent")();
 		}
 
 		return false;
