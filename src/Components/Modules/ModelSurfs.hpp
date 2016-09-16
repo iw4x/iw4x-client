@@ -5,6 +5,10 @@ namespace Components
 	public:
 		ModelSurfs();
 		~ModelSurfs();
+		
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
+		const char* GetName() { return "ModelSurfs"; };
+#endif
 
 	private:
 		static std::map<void*, IUnknown*> BufferMap;

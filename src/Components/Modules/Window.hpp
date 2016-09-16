@@ -5,7 +5,7 @@ namespace Components
 	public:
 		Window();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Window"; };
 #endif
 

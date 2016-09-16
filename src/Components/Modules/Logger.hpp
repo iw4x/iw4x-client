@@ -6,7 +6,7 @@ namespace Components
 		Logger();
 		~Logger();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Logger"; };
 #endif
 

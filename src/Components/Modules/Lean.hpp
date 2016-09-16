@@ -8,7 +8,7 @@ namespace Components
 	public:
 		Lean();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Lean"; };
 #endif
 

@@ -6,7 +6,7 @@ namespace Components
 		Component() {};
 		virtual ~Component() {};
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		virtual const char* GetName() { return "Unknown"; };
 #endif
 

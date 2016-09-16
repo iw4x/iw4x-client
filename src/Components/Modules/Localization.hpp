@@ -6,7 +6,7 @@ namespace Components
 		Localization();
 		~Localization();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Localization"; };
 #endif
 

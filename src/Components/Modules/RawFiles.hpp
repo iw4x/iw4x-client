@@ -5,7 +5,7 @@ namespace Components
 	public:
 		RawFiles();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "RawFiles"; };
 #endif
 

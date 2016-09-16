@@ -6,7 +6,7 @@ namespace Components
 		Discovery();
 		~Discovery();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Discovery"; };
 #endif
 

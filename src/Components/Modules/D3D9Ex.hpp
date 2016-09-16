@@ -5,7 +5,7 @@ namespace Components
 	public:
 		D3D9Ex();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "D3D9Ex"; };
 #endif
 

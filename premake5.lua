@@ -80,7 +80,7 @@ newoption {
 
 newoption {
 	trigger = "disable-base128",
-	description = "Disable debugging messages for Nodes in Debug builds."
+	description = "Disable base128 encoding for minidumps."
 }
 
 newaction {

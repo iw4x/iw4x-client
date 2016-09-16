@@ -17,7 +17,7 @@ namespace Components
 		Node();
 		~Node();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Node"; };
 #endif
 
