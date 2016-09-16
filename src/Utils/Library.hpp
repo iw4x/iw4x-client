@@ -13,7 +13,7 @@ namespace Utils
 		template <typename T>
 		std::function<T> Get(std::string process)
 		{
-			if (this->Valid())
+			if (!this->Valid())
 			{
 				throw new std::runtime_error("Library not loaded!");
 			}
