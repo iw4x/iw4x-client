@@ -13,17 +13,17 @@ function cstrquote(value)
 	return result
 end
 
--- Converts tags in "vX.X.X" format to X,X,X.
--- In the case where the format does not work fall back to old 4,2,REVISION.
-function vertonum(value, vernumber)
+-- Converts tags in "vX.X.X" format to an array of numbers {X,X,X}.
+-- In the case where the format does not work fall back to old {4,2,REVISION}.
+function vertonumarr(value, vernumber)
 	vernum = {}
 	for num in string.gmatch(value, "%d+") do
-		table.insert(vernum, num)
+		table.insert(vernum, tonumber(num))
 	end
 	if #vernum < 3 then
-		return "4,2," .. vernumber
+		return {4,2,tonumber(vernumber)}
 	end
-	return vernum[1] .. "," .. vernum[2] .. "," .. vernum[3]
+	return vernum
 end
 
 -- Option to allow copying the DLL file to a custom folder after build
@@ -116,7 +116,7 @@ newaction {
 		if revDirty then revDirty = 1 else revDirty = 0 end
 		proc:close()
 
-		-- get current tag name (aka milestone for now)
+		-- get current tag name
 		proc = assert(io.popen("git describe --tags --abbrev=0"))
 		local tagName = assert(proc:read('*l'))
 
@@ -153,11 +153,11 @@ newaction {
 			versionHeader:write("#define REVISION " .. revNumber .. "\n")
 			versionHeader:write("\n")
 			versionHeader:write("// Version transformed for RC files\n")
-			versionHeader:write("#define VERSION_RC " .. vertonum(tagName, revNumber) .. "\n")
+			versionHeader:write("#define VERSION_RC " .. table.concat(vertonumarr(tagName, revNumber), ",") .. "\n")
 			versionHeader:write("\n")
 			versionHeader:write("// Alias definitions\n")
 			versionHeader:write("#define VERSION GIT_DESCRIBE\n")
-			versionHeader:write("#define SHORTVERSION GIT_TAG\n")
+			versionHeader:write("#define SHORTVERSION " .. cstrquote(table.concat(vertonumarr(tagName, revNumber), ".")) .. "\n")
 			versionHeader:close()
 			local versionHeader = assert(io.open(wks.location .. "/src/version.hpp", "w"))
 			versionHeader:write("/*\n")
