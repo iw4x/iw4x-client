@@ -7,7 +7,7 @@
 #define NODE_STORE_INTERVAL    1000 * 60* 1   // Store nodes every minute
 #define SESSION_TIMEOUT        1000 * 10      // 10 seconds session timeout
 
-#define NODE_VERSION 1
+#define NODE_VERSION 2
 
 namespace Components
 {
@@ -69,6 +69,8 @@ namespace Components
 
 		static Utils::Cryptography::ECC::Key SignatureKey;
 
+		static std::mutex NodeMutex;
+		static std::mutex SessionMutex;
 		static std::vector<NodeEntry> Nodes;
 		static std::vector<ClientSession> Sessions;
 
