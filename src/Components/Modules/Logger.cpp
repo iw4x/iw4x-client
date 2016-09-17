@@ -12,6 +12,11 @@ namespace Components
 		return (IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE || (Dedicated::IsEnabled() && !Flags::HasFlag("console")));
 	}
 
+	void Logger::PrintStub(int channel, const char* message, ...)
+	{
+		return Logger::MessagePrint(channel, Logger::Format(&message));
+	}
+
 	void Logger::Print(const char* message, ...)
 	{
 		return Logger::MessagePrint(0, Logger::Format(&message));
@@ -175,6 +180,11 @@ namespace Components
 
 		Utils::Hook(0x4B0218, Logger::GameLogStub, HOOK_CALL).Install()->Quick();
 		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).Install()->Quick();
+
+		if (Loader::PerformingUnitTests())
+		{
+			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).Install()->Quick();
+		}
 
 		Dvar::OnInit([] ()
 		{

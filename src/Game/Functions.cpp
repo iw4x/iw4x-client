@@ -22,6 +22,7 @@ namespace Game
 	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = (Cmd_AddServerCommand_t)0x4DCE00;
 	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = (Cmd_ExecuteSingleCommand_t)0x609540;
+	Com_ClientPacketEvent_t Com_ClientPacketEvent = (Com_ClientPacketEvent_t)0x49F0B0;
 
 	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
 	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
@@ -92,6 +93,8 @@ namespace Game
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = (Image_LoadFromFileWithReader_t)0x53ABF0;
 	Image_Release_t Image_Release = (Image_Release_t)0x51F010;
 
+	LargeLocalInit_t LargeLocalInit = (LargeLocalInit_t)0x4A62A0;
+
 	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
 	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
 	Menus_FindByName_t Menus_FindByName = (Menus_FindByName_t)0x487240;
@@ -115,6 +118,7 @@ namespace Game
 
 	NET_AdrToString_t NET_AdrToString = (NET_AdrToString_t)0x469880;
 	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
+	NET_Init_t NET_Init = (NET_Init_t)0x491860;
 	NET_IsLocalAddress_t NET_IsLocalAddress = (NET_IsLocalAddress_t)0x402BD0;
 	NET_StringToAdr_t NET_StringToAdr = (NET_StringToAdr_t)0x409010;
 	NET_OutOfBandPrint_t NET_OutOfBandPrint = (NET_OutOfBandPrint_t)0x4AEF00;

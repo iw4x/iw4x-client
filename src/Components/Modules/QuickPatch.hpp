@@ -12,6 +12,8 @@ namespace Components
 		const char* GetName() { return "QuickPatch"; };
 #endif
 
+		bool UnitTest();
+
 		static void UnlockStats();
 		static void OnShutdown(Callback* callback);
 

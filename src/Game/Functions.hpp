@@ -45,6 +45,9 @@ namespace Game
 	typedef void(__cdecl * Cmd_ExecuteSingleCommand_t)(int localClientNum, int controllerIndex, const char* cmd);
 	extern Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand;
 
+	typedef void(__cdecl * Com_ClientPacketEvent_t)();
+	extern Com_ClientPacketEvent_t Com_ClientPacketEvent;
+
 	typedef void(__cdecl * Com_Error_t)(int type, char* message, ...);
 	extern Com_Error_t Com_Error;
 
@@ -218,6 +221,9 @@ namespace Game
 	typedef void(__cdecl * Image_Release_t)(GfxImage* image);
 	extern Image_Release_t Image_Release;
 
+	typedef void(__cdecl * LargeLocalInit_t)();
+	extern LargeLocalInit_t LargeLocalInit;
+
 	typedef void(__cdecl * Menus_CloseAll_t)(UiContext *dc);
 	extern Menus_CloseAll_t Menus_CloseAll;
 
@@ -277,6 +283,9 @@ namespace Game
 
 	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t a, netadr_t b);
 	extern NET_CompareAdr_t NET_CompareAdr;
+
+	typedef void(__cdecl * NET_Init_t)();
+	extern NET_Init_t NET_Init;
 
 	typedef bool(__cdecl * NET_IsLocalAddress_t)(netadr_t adr);
 	extern NET_IsLocalAddress_t NET_IsLocalAddress;

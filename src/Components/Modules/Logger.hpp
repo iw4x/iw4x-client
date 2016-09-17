@@ -19,6 +19,8 @@ namespace Components
 		static void SoftError(const char* message, ...);
 		static bool IsConsoleReady();
 
+		static void PrintStub(int channel, const char* message, ...);
+
 		static void PipeOutput(void(*callback)(std::string));
 
 	private:
