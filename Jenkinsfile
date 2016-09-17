@@ -36,11 +36,43 @@ is set up. For those who want to play around with this, here's a bit of informat
 import groovy.transform.Field
 
 @Field def configurations = [
-	"Debug",
-	// "DebugStatic",
-	"Release",
-	// "ReleaseStatic"
-]
+	"Debug": [
+		WorkspaceID: "build@debug",
+		StashName: "iw4x-debug",
+		MSBuildConfiguration: "Debug",
+		PremakeArgs: "",
+		Archive: true,
+	],
+	"Release": [
+		WorkspaceID: "build@release",
+		StashName: "iw4x-release",
+		MSBuildConfiguration: "Release",
+		PremakeArgs: "",
+		Archive: true,
+	],
+	"Release with unit tests": [
+		WorkspaceID: "build@release+unittests",
+		StashName: "iw4x-release-unittests",
+		MSBuildConfiguration: "Release",
+		PremakeArgs: "--force-unit-tests",
+		Archive: false,
+	],
+].collect {k, v -> [k, v]}
+
+@Field def testing = [
+	"Debug": [
+		WorkspaceID: "testing@debug",
+		StashName: "iw4x-debug",
+	],
+	"Release": [
+		WorkspaceID: "testing@release",
+		StashName: "iw4x-release-unittests",
+	],
+].collect {k, v -> [k, v]}
+
+def jobWorkspace(id, f) {
+	ws("workspace/${env.JOB_NAME}@$id", f)
+}
 
 def useShippedPremake(f) {
 	def premakeHome = "${pwd()}\\tools"
@@ -65,19 +97,19 @@ def getIW4xExecutable() {
 
 // This will build the IW4x client.
 // We need a Windows Server with Visual Studio 2015, Premake5 and Git on it.
-def doBuild(name, wsid, premakeFlags, configuration) {
+def doBuild(cfg) {
 	node("windows") {
-		ws("IW4x/build/$wsid") {
+		jobWorkspace(cfg.WorkspaceID) {
 			checkout scm
 
 			useShippedPremake {
 				def outputDir = pwd()
 				def msbuild = tool "Microsoft.NET MSBuild 14.0"
-				bat "premake5 vs2015 $premakeFlags"
-				bat "\"${msbuild}\" build\\iw4x.sln \"/p:OutDir=$outputDir\\\\\" \"/p:Configuration=$configuration\""
+				bat "premake5 vs2015 ${cfg.PremakeArgs}"
+				bat "\"${msbuild}\" build\\iw4x.sln \"/p:OutDir=$outputDir\\\\\" \"/p:Configuration=${cfg.MSBuildConfiguration}\""
 			}
 
-			stash name: "$name", includes: "*.dll,*.pdb"
+			stash name: "${cfg.StashName}", includes: "*.dll,*.pdb"
 		}
 	}
 }
@@ -148,12 +180,14 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 	stage("Checkout & Versioning") {
 		gitlabCommitStatus("Checkout & Versioning") {
 			node("windows") {
-				checkout scm
+				jobWorkspace("versioning") {
+					checkout scm
 
-				useShippedPremake {
-					def version = bat(returnStdout: true, script: '@premake5 version').split("\r?\n")[1]
+					useShippedPremake {
+						def version = bat(returnStdout: true, script: '@premake5 version').split("\r?\n")[1]
 
-					currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
+						currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
+					}
 				}
 			}
 		}
@@ -163,14 +197,18 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 	stage("Build") {
 		gitlabCommitStatus("Build") {
 			def executions = [:]
-			for (int i = 0; i < configurations.size(); i++)
-			{
-				def configuration = configurations[i]
-				executions["$configuration"] = {
-					doBuild("IW4x $configuration", "$configuration", "", configuration)
-				}
-				executions["$configuration with unit tests"] = {
-					doBuild("IW4x $configuration (unit tests)", "$configuration+unittests", "--force-unit-tests", configuration)
+			for (int i = 0; i < configurations.size(); i++) {
+				def entry = configurations[i]
+
+				def configName = entry[0]
+				def config = entry[1]
+
+				executions[configName] = {
+					node("windows") {
+						jobWorkspace(config.WorkspaceID) {
+							doBuild(config)
+						}
+					}
 				}
 			}
 			parallel executions
@@ -181,16 +219,20 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 	stage("Testing") {
 		gitlabCommitStatus("Testing") {
 			executions = [:]
-			for (int i = 0; i < configurations.size(); i++) {
-				def configuration = configurations[i]
-				executions["$configuration on Windows"] = {
+			for (int i = 0; i < testing.size(); i++) {
+				def entry = testing.get(i)
+
+				def testName = entry[0]
+				def test = entry[1]
+
+				executions["$testName on Windows"] = {
 					node("windows") {
-						ws("IW4x/testing/$configuration") {
-							doUnitTests("IW4x $configuration (unit tests)")
+						jobWorkspace(test.WorkspaceID) {
+							doUnitTests(test.StashName)
 						}
 					}
 				}
-				executions["$configuration on Linux"] = {
+				executions["$testName on Linux"] = {
 					node("docker && linux && amd64") {
 						try {
 							def image = null
@@ -200,12 +242,12 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 								deleteDir()
 							}
 							image.inside {
-								doUnitTests("IW4x $configuration (unit tests)")
+								doUnitTests(test.StashName)
 							}
 						} catch (Exception e) {
 							if (isUnix()) {
 								manager.buildUnstable()
-								manager.addWarningBadge "$configuration unit test failed on Linux"
+								manager.addWarningBadge "$testName unit test failed on Linux"
 							} else {
 								throw e
 							}
@@ -221,13 +263,18 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 	stage("Archiving") {
 		gitlabCommitStatus("Archiving") {
 			node("windows") { // any node will do
-				ws("IW4x/pub") {
+				jobWorkspace("archiving") {
 					try {
-						for (int i = 0; i < configurations.size(); i++)
-						{
-							def configuration = configurations[i]
-							dir("$configuration") {
-								unstash "IW4x $configuration"
+						for (int i = 0; i < configurations.size(); i++) {
+							def entry = configurations[i]
+
+							def configName = entry[0]
+							def config = entry[1]
+
+							if (config.Archive) {
+								dir(configName) {
+									unstash config.StashName
+								}
 							}
 						}
 						archiveArtifacts artifacts: "**/*.dll,**/*.pdb", fingerprint: true
