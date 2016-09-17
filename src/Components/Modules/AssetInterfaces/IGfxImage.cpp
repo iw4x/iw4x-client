@@ -34,8 +34,10 @@ namespace Assets
 			return;
 		}
 
-		const Game::GfxImageFileHeader* iwiHeader = reinterpret_cast<const Game::GfxImageFileHeader*>(iwi.GetBuffer().data());
+		auto iwiBuffer = iwi.GetBuffer();
 
+		const Game::GfxImageFileHeader* iwiHeader = reinterpret_cast<const Game::GfxImageFileHeader*>(iwiBuffer.data());
+		
 		image->mapType = 3;
 		image->dataLen1 = iwiHeader->fileSizeForPicmip[0] - 32;
 		image->dataLen2 = iwiHeader->fileSizeForPicmip[0] - 32;
