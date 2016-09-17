@@ -46,7 +46,7 @@ function zlib.project()
 		warnings "Off"
 
 		kind "SharedLib"
-		configuration "*Static"
+		--configuration "*Static"
 			defines { "_LIB" }
 			removedefines { "_USRDLL", "_DLL", "ZLIB_DLL" }
 			kind "StaticLib"

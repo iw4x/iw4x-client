@@ -260,7 +260,8 @@ workspace "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
-	configurations { "Debug", "DebugStatic", "Release", "ReleaseStatic" }
+	--configurations { "Debug", "DebugStatic", "Release", "ReleaseStatic" }
+	configurations { "Debug", "Release" }
 	architecture "x32"
 	platforms "x86"
 
@@ -280,7 +281,7 @@ workspace "iw4x"
 		flags { "MultiProcessorCompile", "Symbols", "No64BitChecks" }
 		optimize "Debug"
 
-	configuration "*Static"
+	--configuration "*Static"
 		flags { "StaticRuntime" }
 
 	project "iw4x"
