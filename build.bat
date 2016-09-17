@@ -18,7 +18,7 @@ exit /B 1
 :build
 call generate.bat
 set PLATFORM=Win32
-set CONFIGURATION=ReleaseStatic
+set CONFIGURATION=Release
 msbuild /nologo /m /v:m %* build\iw4x.sln
 endlocal
 exit /B %ERRORLEVEL%

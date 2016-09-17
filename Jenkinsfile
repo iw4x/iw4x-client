@@ -37,9 +37,9 @@ import groovy.transform.Field
 
 @Field def configurations = [
 	"Debug",
-	"DebugStatic",
+	// "DebugStatic",
 	"Release",
-	"ReleaseStatic"
+	// "ReleaseStatic"
 ]
 
 def useShippedPremake(f) {
