@@ -16,8 +16,6 @@ namespace Components
 		Logger::Print("Initializing BitMessage...\n");
 #endif // DEBUG
 
-
-
 		BitMessage::BMClient = new BitMRC(BITMESSAGE_OBJECT_STORAGE_FILENAME, BITMESSAGE_KEYS_FILENAME);
 		BitMessage::BMClient->init();
 		BitMessage::BMClient->defaultTTL = 1 * 60 * 60; // 1 hour
