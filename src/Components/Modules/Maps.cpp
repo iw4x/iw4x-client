@@ -149,6 +149,11 @@ namespace Components
 		Maps::DependencyList[expression] = zone;
 	}
 
+	bool Maps::IgnoreEntityStub(const char* entity)
+	{
+		return (Utils::String::StartsWith(entity, "dyn_") || Utils::String::StartsWith(entity, "node_") || Utils::String::StartsWith(entity, "actor_"));
+	}
+
 	void Maps::ReallocateEntryPool()
 	{
 		Assert_Size(Game::XAssetEntry, 16);
@@ -207,6 +212,9 @@ namespace Components
 
 		// Intercept map zone loading
 		Utils::Hook(0x42C2AF, Maps::LoadMapZones, HOOK_CALL).Install()->Quick();
+
+		// Ignore SP entities
+		Utils::Hook(0x5FBD6E, Maps::IgnoreEntityStub, HOOK_CALL).Install()->Quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);

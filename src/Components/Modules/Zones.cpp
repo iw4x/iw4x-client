@@ -1036,7 +1036,7 @@ namespace Components
 		*(BYTE*)0x463D65 = (iw5) ? 0x90 : 0x40;
 		*(DWORD*)0x463D66 = (iw5) ? 0x9004E0C1 : 0xC003C003; // shl eax, 4 instead of add eax, eax * 2
 
-															 // addon_map_ents asset type (we reuse it for weaponattach)
+		// addon_map_ents asset type (we reuse it for weaponattach)
 		*(BYTE*)0x418B30 = (iw5) ? 43 : Game::ASSET_TYPE_ADDON_MAP_ENTS;
 
 		// hooks
@@ -1103,7 +1103,7 @@ namespace Components
 			loadTechniquePassHook.Uninstall();
 			loadStructuredDataChildArrayHook.Uninstall();
 
-			//xmodelDefaultHook.Uninstall();
+			xmodelDefaultHook.Uninstall();
 			fxDefaultHook.Uninstall();
 		}
 	}
@@ -1114,18 +1114,11 @@ namespace Components
 		PatchMW2_FifthInfinityApply(version, version >= 316);
 	}
 
-	bool IgnoreEntityHookFunc(const char* entity)
-	{
-		return (!strncmp(entity, "dyn_", 4) || !strncmp(entity, "node_", 5) || !strncmp(entity, "actor_", 6)/* || !strncmp(entity, "weapon_", 7)*/);
-	}
-
 	Zones::Zones()
 	{
 		// Ignore missing soundaliases for now
 		// TODO: Include them in the dependency zone!
 		Utils::Hook::Nop(0x644207, 5);
-
-		Utils::Hook(0x5FBD6E, IgnoreEntityHookFunc).Install()->Quick();
 
 		fxEffectTailHook.Initialize(fxEffectTailHookLoc, FxEffectTailHookStub, HOOK_CALL);
 		fxEffectModifyHook.Initialize(fxEffectModifyHookLoc, FxEffectModifyHookFunc, HOOK_CALL);

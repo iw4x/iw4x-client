@@ -114,12 +114,248 @@ namespace Components
 		return modelSurfs;
 	}
 
+	Game::FS_FOpenFileRead_t FS_FOpenFileReadDatabase = (Game::FS_FOpenFileRead_t)0x42ECA0;
+
+	void FS_FOpenFileReadCurrentThread(char* filename, int* handle)
+	{
+		if (GetCurrentThreadId() == *(DWORD*)0x1CDE7FC)
+		{
+			Game::FS_FOpenFileRead(filename, handle, 0);
+		}
+		else if (GetCurrentThreadId() == *(DWORD*)0x1CDE814)
+		{
+			FS_FOpenFileReadDatabase(filename, handle, 0);
+		}
+		else
+		{
+			*handle = NULL;
+		}
+	}
+
+	struct CModelSectionHeader
+	{
+		int size;
+		int offset;
+		int fixupStart;
+		int fixupCount;
+		char* buffer;
+	};
+
+	struct CModelHeader
+	{
+		int version;
+		unsigned int signature;
+		CModelSectionHeader main;
+		CModelSectionHeader index;
+		CModelSectionHeader vertex;
+		CModelSectionHeader fixup;
+	};
+
+	void ReadCModelSection(int handle, CModelSectionHeader& header)
+	{
+		Game::FS_Seek(handle, header.offset, FS_SEEK_SET);
+		Game::FS_Read(header.buffer, header.size, handle);
+	}
+
+	void FixupCModelSection(CModelHeader& header, CModelSectionHeader& section, DWORD* fixups)
+	{
+		for (int i = section.fixupStart; i < section.fixupStart + section.fixupCount; i++)
+		{
+			DWORD fixup = fixups[i];
+			int targetSectionNum = fixup & 3;
+			CModelSectionHeader* targetSection;
+
+			if (targetSectionNum == 0)
+			{
+				targetSection = &header.main;
+			}
+			else if (targetSectionNum == 1)
+			{
+				targetSection = &header.index;
+			}
+			else if (targetSectionNum == 2)
+			{
+				targetSection = &header.vertex;
+			}
+
+			*(DWORD*)(section.buffer + (fixup >> 3)) += (DWORD)targetSection->buffer;
+		}
+	}
+
+	void Load_VertexBuffer(void* data, void** where, int len)
+	{
+		DWORD func = 0x5112C0;
+
+		__asm
+		{
+			push edi
+
+			mov eax, len
+			mov edi, where
+			push data
+
+			call func
+
+			add esp, 4
+			pop edi
+		}
+	}
+
+	typedef void* (__cdecl * R_AllocStaticIndexBuffer_t)(void** store, int length);
+	R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = (R_AllocStaticIndexBuffer_t)0x51E7A0;
+
+	void Load_IndexBuffer(void* data, void** storeHere, int count)
+	{
+		static Game::dvar_t* r_loadForRenderer = *(Game::dvar_t**)0x69F0ED4;
+
+		if (r_loadForRenderer->current.boolean)
+		{
+			void* buffer = R_AllocStaticIndexBuffer(storeHere, 2 * count);
+			memcpy(buffer, data, 2 * count);
+
+			if (IsBadReadPtr(storeHere, 4) || IsBadReadPtr(*storeHere, 4))
+			{
+				Game::Com_Error(0, "Static index buffer allocation failed.");
+			}
+
+			__asm
+			{
+				push ecx
+				mov ecx, storeHere
+				mov ecx, [ecx]
+
+				mov eax, [ecx]
+				add eax, 30h
+				mov eax, [eax]
+
+				push ecx
+				call eax
+
+				pop ecx
+			}
+		}
+	}
+
+	void CreateCModelBuffers(void* surfs)
+	{
+		Game::XModelSurfs* model = (Game::XModelSurfs*)surfs;
+
+		for (int i = 0; i < model->numSurfaces; i++)
+		{
+			Game::XSurface* surface = &model->surfaces[i];
+
+			void* vertexBuffer;
+			void* indexBuffer;
+
+			Load_VertexBuffer(surface->vertexBuffer, &vertexBuffer, surface->numVertices * 32);
+			Load_IndexBuffer(surface->indexBuffer, &indexBuffer, surface->numPrimitives * 3);
+
+			ModelSurfs::BufferMap[surface->vertexBuffer] = (IUnknown*)vertexBuffer;
+			ModelSurfs::BufferMap[surface->indexBuffer] = (IUnknown*)indexBuffer;
+		}
+	}
+
+	char* LoadCModel(const char* name)
+	{
+		char filename[512];
+		sprintf_s(filename, sizeof(filename), "models/%s", name);
+
+		int handle;
+		FS_FOpenFileReadCurrentThread(filename, &handle);
+
+		if (handle <= 0)
+		{
+			Game::Com_Error(1, "Error opening %s", filename);
+		}
+
+		CModelHeader header;
+
+		if (Game::FS_Read(&header, sizeof(header), handle) != sizeof(header))
+		{
+			Game::FS_FCloseFile(handle);
+			Game::Com_Error(1, "%s: header could not be read", filename);
+		}
+
+		if (header.version != 1)
+		{
+			Game::FS_FCloseFile(handle);
+			Game::Com_Error(1, "%s: header version is not '1'", filename);
+		}
+
+		static DWORD fixups[4096];
+
+		if (header.fixup.size >= sizeof(fixups))
+		{
+			Game::FS_FCloseFile(handle);
+			Game::Com_Error(1, "%s: fixup size too big", filename);
+		}
+
+		header.main.buffer = (char*)malloc(header.main.size);
+		header.index.buffer = (char*)_aligned_malloc(header.index.size, 16);
+		header.vertex.buffer = (char*)_aligned_malloc(header.vertex.size, 16);
+		header.fixup.buffer = (char*)fixups;
+
+		ReadCModelSection(handle, header.main);
+		ReadCModelSection(handle, header.index);
+		ReadCModelSection(handle, header.vertex);
+		ReadCModelSection(handle, header.fixup);
+
+		Game::FS_FCloseFile(handle);
+
+		FixupCModelSection(header, header.main, fixups);
+		FixupCModelSection(header, header.index, fixups);
+		FixupCModelSection(header, header.vertex, fixups);
+
+		Game::CModelAllocData* allocationData = (Game::CModelAllocData*)malloc(sizeof(Game::CModelAllocData));
+		allocationData->mainArray = header.main.buffer;
+		allocationData->indexBuffer = header.index.buffer;
+		allocationData->vertexBuffer = header.vertex.buffer;
+
+		*(void**)(header.main.buffer + 44) = allocationData;
+
+		// maybe the +36/48 = 0 stuff here?
+
+		// move buffers to work with iw4
+		int numSurfaces = *(short*)(header.main.buffer + 8);
+
+		char* tempSurface = new char[84 * numSurfaces];
+		char* surface = *(char**)(header.main.buffer + 4);
+
+		for (int i = 0; i < numSurfaces; i++)
+		{
+			char* source = &surface[84 * i];
+			char* dest = &tempSurface[64 * i];
+
+			memcpy(dest, source, 12);
+			memcpy(dest + 12, source + 16, 20);
+			memcpy(dest + 32, source + 40, 8);
+			memcpy(dest + 40, source + 52, 24);
+
+			dest[6] = 0xFF; // fake stream handle for the vertex/index buffer get code to use
+		}
+
+		memcpy(surface, tempSurface, 84 * numSurfaces);
+
+		delete[] tempSurface;
+
+		// create vertex/index buffers
+		CreateCModelBuffers(header.main.buffer);
+
+		// store the buffer bit
+		ModelSurfs::AllocMap[header.vertex.buffer] = allocationData;
+
+		return header.main.buffer;
+	}
+
 	bool ModelSurfs::LoadSurfaces(Game::XModel* model)
 	{
 		if (!model) return false;
 		bool changed = false;
 
 		short surfCount = 0;
+
+		static_assert(offsetof(Game::XModel, lods) == 64, "");
+		static_assert(offsetof(Game::XModelLodInfo, surfs) == 36, "");
 
 		for (char i = 0; i < model->numLods; ++i)
 		{
@@ -139,10 +375,44 @@ namespace Components
 				model->lods[i].someCount = numSurfs;
 				model->lods[i].someTotalCount = surfCount;
 				surfCount += numSurfs;
+
+				changed = true;
 			}
 		}
 
 		return changed;
+	}
+
+	bool Load_XModelAssetHookFunc(char* xmodel)
+	{
+		bool didStuff = false;
+		short totalv = 0;
+
+		for (int i = 0; i < xmodel[241]; i++)
+		{
+			Game::XModelSurfs* surfs = *(Game::XModelSurfs**)(xmodel + 72 + (44 * i));
+
+			if (!surfs->surfaces)
+			{
+				char* newSurfs = LoadCModel(surfs->name);
+
+				memcpy(xmodel + 76 + (44 * i), &newSurfs[12], 24);
+				memcpy(xmodel + 100 + (44 * i), &newSurfs[4], 4);
+
+				short v = *(short*)(newSurfs + 8);
+				*(short*)(xmodel + 68 + (44 * i)) = v;
+				*(short*)(xmodel + 70 + (44 * i)) = totalv;
+
+				totalv += v;
+
+				surfs->numSurfaces = ((Game::XModelSurfs*)newSurfs)->numSurfaces;
+				surfs->surfaces = ((Game::XModelSurfs*)newSurfs)->surfaces;
+
+				didStuff = true;
+			}
+		}
+
+		return didStuff;
 	}
 
 	void ModelSurfs::ReleaseModelSurf(Game::XAssetHeader header)
@@ -200,7 +470,8 @@ namespace Components
 
 	void ModelSurfs::XModelSurfsFixup(Game::XModel* model)
 	{
-		if (!ModelSurfs::LoadSurfaces(model))
+		//if (!ModelSurfs::LoadSurfaces(model))
+		if(!Load_XModelAssetHookFunc((char*)model))
 		{
 			Game::DB_XModelSurfsFixup(model);
 		}
