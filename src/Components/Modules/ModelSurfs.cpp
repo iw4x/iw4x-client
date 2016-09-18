@@ -79,7 +79,7 @@ namespace Components
 			Game::CModelSectionHeader* section = &header.sectionHeader[i];
 			for (int j = section->fixupStart; j < section->fixupStart + section->fixupCount; ++j)
 			{
-				unsigned int fixup = fixups[i];
+				unsigned int fixup = fixups[j];
 				*reinterpret_cast<DWORD*>(reinterpret_cast<char*>(section->buffer) + (fixup >> 3)) += reinterpret_cast<DWORD>(header.sectionHeader[fixup & 3].buffer);
 			}
 		}
@@ -103,7 +103,7 @@ namespace Components
 			memcpy(&tempSurfaces[i], surfaceData + (i * 84), 12);
 			memcpy(&tempSurfaces[i].indexBuffer, surfaceData + (i * 84) + 16, 20);
 			memcpy(&tempSurfaces[i].numCT, surfaceData + (i * 84) + 40, 8);
-			memcpy(&tempSurfaces[i].pad5, surfaceData + (i * 84) + 52, 24);
+			memcpy(&tempSurfaces[i].something, surfaceData + (i * 84) + 52, 24);
 			tempSurfaces[i].streamHandle = 0xFF; // Fake handle for buffer interception
 		}
 

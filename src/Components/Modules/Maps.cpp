@@ -84,6 +84,15 @@ namespace Components
 			return;
 		}
 
+		if (type == Game::XAssetType::ASSET_TYPE_WEAPON)
+		{
+			if (!strstr(name.data(), "_mp") && name != "none" && name != "destructible_car")
+			{
+				*restrict = true;
+				return;
+			}
+		}
+
 		if (type == Game::XAssetType::ASSET_TYPE_MAP_ENTS)
 		{
 			static std::string mapEntities;
@@ -106,7 +115,10 @@ namespace Components
 		if (_strnicmp("mp_", mapname, 3))
 		{
 			format = "maps/%s.d3dbsp";
+		}
 
+		if (_strnicmp("mp_", mapname, 3) || mapname == "mp_nuked"s || mapname == "mp_bloc"s)
+		{
 			// Adjust pointer to GameMap_Data
 			Utils::Hook::Set<Game::GameMap_Data**>(0x4D90B7, &(Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_SP].gameMapSP[0].data));
 		}
@@ -218,6 +230,8 @@ namespace Components
 		//Maps::AddDependency("gulag", "mp_subbase");
 		//Maps::AddDependency("invasion", "mp_rust");
 		Maps::AddDependency("co_hunted", "mp_storm");
+		Maps::AddDependency("mp_nuked", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_bloc", "iw4x_dependencies_mp");
 		Maps::AddDependency("^(?!mp_).*", "iw4x_dependencies_mp"); // All maps not starting with "mp_"
 	}
 

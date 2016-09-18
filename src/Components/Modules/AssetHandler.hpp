@@ -29,6 +29,10 @@ namespace Components
 
 		static void Relocate(void* start, void* to, DWORD size = 4);
 
+		static void Relocate(DWORD start, DWORD size, DWORD to) {
+			Relocate((void*)start, (void*)to, size);
+		}
+
 		static void ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder);
 		static void ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder);
 

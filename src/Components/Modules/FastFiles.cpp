@@ -154,6 +154,12 @@ namespace Components
 		}
 
 		Zones::InstallPatches(*version);
+
+		// TODO: Ugly hotpatch, beautify that!
+// 		if (*version >= 316)
+// 		{
+// 			*version = XFILE_VERSION;
+// 		}
 	}
 
 	FastFiles::FastFiles()
