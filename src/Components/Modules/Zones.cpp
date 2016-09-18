@@ -1071,7 +1071,7 @@ namespace Components
 			loadStructuredDataChildArrayHook.Install();
 
 			//xmodelDefaultHook.Install();
-			fxDefaultHook.Install();
+			//fxDefaultHook.Install();
 		}
 		else
 		{
@@ -1102,15 +1102,14 @@ namespace Components
 
 			loadTechniquePassHook.Uninstall();
 			loadStructuredDataChildArrayHook.Uninstall();
-
-			xmodelDefaultHook.Uninstall();
-			fxDefaultHook.Uninstall();
 		}
 	}
 
 	void Zones::InstallPatches(int version)
 	{
 		Zones::ZoneVersion = version;
+		AssetHandler::ClearRelocations();
+
 		PatchMW2_FifthInfinityApply(version, version >= 316);
 	}
 
@@ -1141,6 +1140,9 @@ namespace Components
 		loadStructuredDataChildArrayHook.Initialize(loadStructuredDataChildArrayHookLoc, Load_StructuredDataChildArrayHookFunc, HOOK_CALL);
 
 		pathDataTailHook.Initialize(pathDataTailHookLoc, PathDataTailHookFunc, HOOK_JUMP);
+
+		// path_node_constant_t marking function; has some terrible string references
+		*(BYTE*)0x4F74B0 = 0xC3;
 	}
 
 	Zones::~Zones()

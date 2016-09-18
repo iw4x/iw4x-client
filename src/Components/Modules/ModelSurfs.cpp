@@ -114,6 +114,9 @@ namespace Components
 		return modelSurfs;
 	}
 
+
+	static std::map<DWORD, void*> bufferMap;
+
 	Game::FS_FOpenFileRead_t FS_FOpenFileReadDatabase = (Game::FS_FOpenFileRead_t)0x42ECA0;
 
 	void FS_FOpenFileReadCurrentThread(char* filename, int* handle)
@@ -250,10 +253,19 @@ namespace Components
 			Load_VertexBuffer(surface->vertexBuffer, &vertexBuffer, surface->numVertices * 32);
 			Load_IndexBuffer(surface->indexBuffer, &indexBuffer, surface->numPrimitives * 3);
 
-			ModelSurfs::BufferMap[surface->vertexBuffer] = (IUnknown*)vertexBuffer;
-			ModelSurfs::BufferMap[surface->indexBuffer] = (IUnknown*)indexBuffer;
+			bufferMap[(DWORD)surface->vertexBuffer] = vertexBuffer;
+			bufferMap[(DWORD)surface->indexBuffer] = indexBuffer;
 		}
 	}
+
+	struct CModelAllocData
+	{
+		void* mainArray;
+		void* vertexBuffer;
+		void* indexBuffer;
+	};
+
+	static std::map<DWORD, CModelAllocData*> allocData;
 
 	char* LoadCModel(const char* name)
 	{
@@ -306,7 +318,7 @@ namespace Components
 		FixupCModelSection(header, header.index, fixups);
 		FixupCModelSection(header, header.vertex, fixups);
 
-		Game::CModelAllocData* allocationData = (Game::CModelAllocData*)malloc(sizeof(Game::CModelAllocData));
+		CModelAllocData* allocationData = (CModelAllocData*)malloc(sizeof(CModelAllocData));
 		allocationData->mainArray = header.main.buffer;
 		allocationData->indexBuffer = header.index.buffer;
 		allocationData->vertexBuffer = header.vertex.buffer;
@@ -342,46 +354,13 @@ namespace Components
 		CreateCModelBuffers(header.main.buffer);
 
 		// store the buffer bit
-		ModelSurfs::AllocMap[header.vertex.buffer] = allocationData;
+		allocData[(DWORD)header.vertex.buffer] = allocationData;
 
 		return header.main.buffer;
 	}
 
-	bool ModelSurfs::LoadSurfaces(Game::XModel* model)
-	{
-		if (!model) return false;
-		bool changed = false;
-
-		short surfCount = 0;
-
-		static_assert(offsetof(Game::XModel, lods) == 64, "");
-		static_assert(offsetof(Game::XModelLodInfo, surfs) == 36, "");
-
-		for (char i = 0; i < model->numLods; ++i)
-		{
-			Game::XModelSurfs* surfs = model->lods[i].surfaces;
-
-			if (!surfs->surfaces)
-			{
-				Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
-
-				surfs->surfaces = newSurfs->surfaces;
-				surfs->numSurfaces = newSurfs->numSurfaces;
-
-				model->lods[i].surfaces = newSurfs;
-				memcpy(model->lods[i].pad3, newSurfs->pad, 24);
-
-				short numSurfs = static_cast<short>(newSurfs->numSurfaces);
-				model->lods[i].someCount = numSurfs;
-				model->lods[i].someTotalCount = surfCount;
-				surfCount += numSurfs;
-
-				changed = true;
-			}
-		}
-
-		return changed;
-	}
+	Utils::Hook loadXModelAssetHook;
+	DWORD loadXModelAssetHookLoc = 0x47A6BD;
 
 	bool Load_XModelAssetHookFunc(char* xmodel)
 	{
@@ -413,6 +392,221 @@ namespace Components
 		}
 
 		return didStuff;
+	}
+
+#pragma optimize("", off)
+	void __declspec(naked) Load_XModelAssetHookStub()
+	{
+		__asm
+		{
+			mov eax, [esp + 4]
+			push eax
+			call Load_XModelAssetHookFunc
+			add esp, 4h
+
+			cmp al, al
+			jnz justReturn
+
+			retn
+
+			justReturn :
+			jmp loadXModelAssetHook.Original
+		}
+	}
+#pragma optimize("", on)
+
+	Utils::Hook getIndexBufferHook;
+	DWORD getIndexBufferHookLoc = 0x4B4DE0;
+	DWORD getIndexBufferHookRet = 0x4B4DE5;
+
+	void GetIndexBufferHookFunc(char streamHandle, void* buffer, void** bufferOut, int* offsetOut)
+	{
+		*offsetOut = 0;
+		*bufferOut = bufferMap[(DWORD)buffer];//buffer;
+	}
+
+#pragma optimize("", off)
+	void __declspec(naked) GetIndexBufferHookStub()
+	{
+		__asm
+		{
+			mov eax, [esp + 4h]
+			cmp al, 0FFh
+
+			je handleOwn
+			movzx eax, [esp + 4h]
+			jmp getIndexBufferHookRet
+
+			handleOwn :
+			jmp GetIndexBufferHookFunc
+		}
+	}
+#pragma optimize("", on)
+
+	Utils::Hook getVertexBufferHook;
+	DWORD getVertexBufferHookLoc = 0x5BC050;
+	DWORD getVertexBufferHookRet = 0x5BC055;
+
+	void GetVertexBufferHookFunc(char streamHandle, void* buffer, void** bufferOut, int* offsetOut)
+	{
+		*offsetOut = 0;
+		*bufferOut = bufferMap[(DWORD)buffer];//buffer;
+	}
+
+#pragma optimize("", off)
+	void __declspec(naked) GetVertexBufferHookStub()
+	{
+		__asm
+		{
+			mov eax, [esp + 4h]
+			cmp al, 0FFh
+
+			je handleOwnVertex
+			movzx eax, [esp + 4h]
+			jmp getVertexBufferHookRet
+
+			handleOwnVertex :
+			jmp GetVertexBufferHookFunc
+		}
+	}
+
+	/*CallHook getIndexBuffer2Hook;
+	DWORD getIndexBuffer2HookLoc = 0x558F12;
+
+	void* GetIndexBuffer2HookFunc(char streamHandle, void* buffer)
+	{
+	return buffer;
+	}
+
+	void __declspec(naked) GetIndexBuffer2HookStub()
+	{
+	__asm
+	{
+	mov eax, [esp + 4h]
+	cmp al, 0FFh
+
+	je handleOwn
+	movzx eax, [esp + 4h]
+	jmp getIndexBuffer2Hook.pOriginal
+
+	handleOwn:
+	jmp GetIndexBuffer2HookFunc
+	}
+	}*/
+
+	Utils::Hook getIndexBuffer3Hook;
+	DWORD getIndexBuffer3HookLoc = 0x558E70;
+
+	void* GetIndexBuffer3HookFunc(DWORD buffer)
+	{
+		return bufferMap[buffer];
+	}
+
+	void __declspec(naked) GetIndexBuffer3HookStub()
+	{
+		__asm
+		{
+			mov eax, [esp + 4h]
+			cmp al, 0FFh
+
+			je handleOwn
+			movzx eax, [esp + 4h]
+			jmp getIndexBuffer3Hook.Original
+
+			handleOwn :
+			mov eax, [edi + 0Ch]
+				push eax
+				call GetIndexBuffer3HookFunc
+				add esp, 4h
+				retn
+		}
+	}
+
+	Utils::Hook getIndexBaseHook;
+	DWORD getIndexBaseHookLoc = 0x558F12;
+
+	void __declspec(naked) GetIndexBaseHookStub()
+	{
+		__asm
+		{
+			mov eax, [esp + 4h]
+			cmp al, 0FFh
+
+			je handleOwn
+			jmp getIndexBaseHook.Original
+
+			handleOwn :
+			xor eax, eax
+				retn
+		}
+	}
+#pragma optimize("", on)
+
+	void PatchMW2_CModels()
+	{
+		loadXModelAssetHook.Initialize(loadXModelAssetHookLoc, Load_XModelAssetHookStub, HOOK_CALL);
+		loadXModelAssetHook.Install();
+
+		getIndexBufferHook.Initialize(getIndexBufferHookLoc, GetIndexBufferHookStub, HOOK_JUMP);
+		getIndexBufferHook.Install();
+
+		//getIndexBuffer2Hook.initialize(getIndexBuffer2HookLoc, GetIndexBuffer2HookStub);
+		//getIndexBuffer2Hook.installHook();
+
+		getIndexBuffer3Hook.Initialize(getIndexBuffer3HookLoc, GetIndexBuffer3HookStub, HOOK_CALL);
+		getIndexBuffer3Hook.Install();
+
+		getIndexBaseHook.Initialize(getIndexBaseHookLoc, GetIndexBaseHookStub, HOOK_CALL);
+		getIndexBaseHook.Install();
+
+		getVertexBufferHook.Initialize(getVertexBufferHookLoc, GetVertexBufferHookStub, HOOK_JUMP);
+		getVertexBufferHook.Install();
+
+		//*(DWORD*)0x799AC4 = (DWORD)DB_RemoveXModelSurfs;
+
+		//getBoneIndexHook1.initialize(getBoneIndexHook1Loc, GetBoneIndexHookStub);
+		//getBoneIndexHook1.installHook();
+
+		//*(void**)0x4E3409 = CL_DObjCreateHookFunc;
+
+		//updateDObjSetBitsHook.initialize(updateDObjSetBitsHookLoc, UpdateDObjSetBitsHookStub);
+		//updateDObjSetBitsHook.installHook();
+
+		//getBoneIndexHook2.initialize(getBoneIndexHook2Loc, GetBoneIndexHookStub);
+		//getBoneIndexHook2.installHook();
+	}
+
+	bool ModelSurfs::LoadSurfaces(Game::XModel* model)
+	{
+		if (!model) return false;
+		bool changed = false;
+
+		short surfCount = 0;
+
+		for (char i = 0; i < model->numLods; ++i)
+		{
+			Game::XModelSurfs* surfs = model->lods[i].surfaces;
+
+			if (!surfs->surfaces)
+			{
+				Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
+
+				surfs->surfaces = newSurfs->surfaces;
+				surfs->numSurfaces = newSurfs->numSurfaces;
+
+				model->lods[i].surfs = newSurfs->surfaces;
+				memcpy(model->lods[i].pad3, newSurfs->pad, 24);
+
+				short numSurfs = static_cast<short>(newSurfs->numSurfaces);
+				model->lods[i].someCount = numSurfs;
+				model->lods[i].someTotalCount = surfCount;
+				surfCount += numSurfs;
+
+				changed = true;
+			}
+		}
+
+		return changed;
 	}
 
 	void ModelSurfs::ReleaseModelSurf(Game::XAssetHeader header)
@@ -470,8 +664,8 @@ namespace Components
 
 	void ModelSurfs::XModelSurfsFixup(Game::XModel* model)
 	{
-		//if (!ModelSurfs::LoadSurfaces(model))
-		if(!Load_XModelAssetHookFunc((char*)model))
+		if (!ModelSurfs::LoadSurfaces(model))
+		//if(!Load_XModelAssetHookFunc((char*)model))
 		{
 			Game::DB_XModelSurfsFixup(model);
 		}
@@ -554,6 +748,8 @@ namespace Components
 
 	ModelSurfs::ModelSurfs()
 	{
+		PatchMW2_CModels();
+		return;
 		ModelSurfs::BufferMap.clear();
 
 		// Install release handler

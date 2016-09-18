@@ -155,6 +155,11 @@ namespace Components
 		AssetHandler::RestrictSignal.connect(callback);
 	}
 
+	void AssetHandler::ClearRelocations()
+	{
+		AssetHandler::Relocations.clear();
+	}
+
 	void AssetHandler::Relocate(void* start, void* to, DWORD size)
 	{
 		for (DWORD i = 0; i < size; i += 4)
@@ -167,12 +172,14 @@ namespace Components
 	void AssetHandler::OffsetToAlias(Utils::Stream::Offset* offset)
 	{
 		// Same here, reinterpret the value, as we're operating inside the game's environment
-		offset->pointer = *reinterpret_cast<void**>((*Game::g_streamBlocks)[offset->GetUnpackedBlock()].data + offset->GetUnpackedOffset());
+		void* pointer = (*Game::g_streamBlocks)[offset->GetUnpackedBlock()].data + offset->GetUnpackedOffset();
 
-		if (AssetHandler::Relocations.find(offset->pointer) != AssetHandler::Relocations.end())
+		if (AssetHandler::Relocations.find(pointer) != AssetHandler::Relocations.end())
 		{
-			offset->pointer = AssetHandler::Relocations[offset->pointer];
+			pointer = AssetHandler::Relocations[pointer];
 		}
+
+		offset->pointer = *reinterpret_cast<void**>(pointer);
 	}
 
 	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)
@@ -285,6 +292,7 @@ namespace Components
 			delete i->second;
 		}
 
+		AssetHandler::Relocations.clear();
 		AssetHandler::AssetInterfaces.clear();
 		AssetHandler::RestrictSignal.clear();
 		AssetHandler::TypeCallbacks.clear();

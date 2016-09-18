@@ -27,6 +27,7 @@ namespace Components
 		static void OnFind(Game::XAssetType type, Callback* callback);
 		static void OnLoad(RestrictCallback* callback);
 
+		static void ClearRelocations();
 		static void Relocate(void* start, void* to, DWORD size = 4);
 
 		static void Relocate(DWORD start, DWORD size, DWORD to) {
