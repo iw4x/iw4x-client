@@ -1398,12 +1398,9 @@ namespace Game
 
 	struct XModelLodInfo
 	{
-		// I'm not sure if this is correct
-		short someCount;
-		short someTotalCount;
-
+		char pad[4];
 		short numSurfs; // +4
-		short pad2;// +6
+		short maxSurfs;// +6
 		XModelSurfs* surfaces; // +8
 		char pad3[24];
 		XSurface* surfs;
@@ -1531,8 +1528,6 @@ namespace Game
 		PhysPreset* physPreset;
 		PhysCollmap* physCollmap;
 	}; // total size 304
-
-	//static_assert(offsetof(XModel, lods) <= 70, "");
 
 	struct CModelAllocData
 	{

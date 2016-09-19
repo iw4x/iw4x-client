@@ -3,7 +3,7 @@
 namespace Components
 {
 	std::map<void*, IUnknown*> ModelSurfs::BufferMap;
-	std::map<void*, Game::CModelAllocData*> ModelSurfs::AllocMap;
+	std::map<std::string, Game::CModelAllocData*> ModelSurfs::AllocMap;
 
 	IUnknown* ModelSurfs::GetBuffer(void* buffer)
 	{
@@ -90,13 +90,13 @@ namespace Components
 		allocationData->indexBuffer = header.sectionHeader[Game::SECTION_INDEX].buffer;
 		allocationData->vertexBuffer = header.sectionHeader[Game::SECTION_VERTEX].buffer;
 
-		ModelSurfs::AllocMap[allocationData->vertexBuffer] = allocationData;
-		*reinterpret_cast<void**>(reinterpret_cast<char*>(allocationData->mainArray) + 44) = allocationData;
-
 		Assert_Size(Game::XSurface, 64);
 		Game::XModelSurfs* modelSurfs = reinterpret_cast<Game::XModelSurfs*>(allocationData->mainArray);
 		Game::XSurface* tempSurfaces = allocator.AllocateArray<Game::XSurface>(modelSurfs->numSurfaces);
 		char* surfaceData = reinterpret_cast<char*>(modelSurfs->surfaces);
+
+		ModelSurfs::AllocMap[modelSurfs->name] = allocationData;
+		*reinterpret_cast<void**>(reinterpret_cast<char*>(allocationData->mainArray) + 44) = allocationData;
 
 		for (int i = 0; i < modelSurfs->numSurfaces; ++i)
 		{
@@ -114,473 +114,11 @@ namespace Components
 		return modelSurfs;
 	}
 
-
-	static std::map<DWORD, void*> bufferMap;
-
-	Game::FS_FOpenFileRead_t FS_FOpenFileReadDatabase = (Game::FS_FOpenFileRead_t)0x42ECA0;
-
-	void FS_FOpenFileReadCurrentThread(char* filename, int* handle)
-	{
-		if (GetCurrentThreadId() == *(DWORD*)0x1CDE7FC)
-		{
-			Game::FS_FOpenFileRead(filename, handle, 0);
-		}
-		else if (GetCurrentThreadId() == *(DWORD*)0x1CDE814)
-		{
-			FS_FOpenFileReadDatabase(filename, handle, 0);
-		}
-		else
-		{
-			*handle = NULL;
-		}
-	}
-
-	struct CModelSectionHeader
-	{
-		int size;
-		int offset;
-		int fixupStart;
-		int fixupCount;
-		char* buffer;
-	};
-
-	struct CModelHeader
-	{
-		int version;
-		unsigned int signature;
-		CModelSectionHeader main;
-		CModelSectionHeader index;
-		CModelSectionHeader vertex;
-		CModelSectionHeader fixup;
-	};
-
-	void ReadCModelSection(int handle, CModelSectionHeader& header)
-	{
-		Game::FS_Seek(handle, header.offset, FS_SEEK_SET);
-		Game::FS_Read(header.buffer, header.size, handle);
-	}
-
-	void FixupCModelSection(CModelHeader& header, CModelSectionHeader& section, DWORD* fixups)
-	{
-		for (int i = section.fixupStart; i < section.fixupStart + section.fixupCount; i++)
-		{
-			DWORD fixup = fixups[i];
-			int targetSectionNum = fixup & 3;
-			CModelSectionHeader* targetSection;
-
-			if (targetSectionNum == 0)
-			{
-				targetSection = &header.main;
-			}
-			else if (targetSectionNum == 1)
-			{
-				targetSection = &header.index;
-			}
-			else if (targetSectionNum == 2)
-			{
-				targetSection = &header.vertex;
-			}
-
-			*(DWORD*)(section.buffer + (fixup >> 3)) += (DWORD)targetSection->buffer;
-		}
-	}
-
-	void Load_VertexBuffer(void* data, void** where, int len)
-	{
-		DWORD func = 0x5112C0;
-
-		__asm
-		{
-			push edi
-
-			mov eax, len
-			mov edi, where
-			push data
-
-			call func
-
-			add esp, 4
-			pop edi
-		}
-	}
-
-	typedef void* (__cdecl * R_AllocStaticIndexBuffer_t)(void** store, int length);
-	R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = (R_AllocStaticIndexBuffer_t)0x51E7A0;
-
-	void Load_IndexBuffer(void* data, void** storeHere, int count)
-	{
-		static Game::dvar_t* r_loadForRenderer = *(Game::dvar_t**)0x69F0ED4;
-
-		if (r_loadForRenderer->current.boolean)
-		{
-			void* buffer = R_AllocStaticIndexBuffer(storeHere, 2 * count);
-			memcpy(buffer, data, 2 * count);
-
-			if (IsBadReadPtr(storeHere, 4) || IsBadReadPtr(*storeHere, 4))
-			{
-				Game::Com_Error(0, "Static index buffer allocation failed.");
-			}
-
-			__asm
-			{
-				push ecx
-				mov ecx, storeHere
-				mov ecx, [ecx]
-
-				mov eax, [ecx]
-				add eax, 30h
-				mov eax, [eax]
-
-				push ecx
-				call eax
-
-				pop ecx
-			}
-		}
-	}
-
-	void CreateCModelBuffers(void* surfs)
-	{
-		Game::XModelSurfs* model = (Game::XModelSurfs*)surfs;
-
-		for (int i = 0; i < model->numSurfaces; i++)
-		{
-			Game::XSurface* surface = &model->surfaces[i];
-
-			void* vertexBuffer;
-			void* indexBuffer;
-
-			Load_VertexBuffer(surface->vertexBuffer, &vertexBuffer, surface->numVertices * 32);
-			Load_IndexBuffer(surface->indexBuffer, &indexBuffer, surface->numPrimitives * 3);
-
-			bufferMap[(DWORD)surface->vertexBuffer] = vertexBuffer;
-			bufferMap[(DWORD)surface->indexBuffer] = indexBuffer;
-		}
-	}
-
-	struct CModelAllocData
-	{
-		void* mainArray;
-		void* vertexBuffer;
-		void* indexBuffer;
-	};
-
-	static std::map<DWORD, CModelAllocData*> allocData;
-
-	char* LoadCModel(const char* name)
-	{
-		char filename[512];
-		sprintf_s(filename, sizeof(filename), "models/%s", name);
-
-		int handle;
-		FS_FOpenFileReadCurrentThread(filename, &handle);
-
-		if (handle <= 0)
-		{
-			Game::Com_Error(1, "Error opening %s", filename);
-		}
-
-		CModelHeader header;
-
-		if (Game::FS_Read(&header, sizeof(header), handle) != sizeof(header))
-		{
-			Game::FS_FCloseFile(handle);
-			Game::Com_Error(1, "%s: header could not be read", filename);
-		}
-
-		if (header.version != 1)
-		{
-			Game::FS_FCloseFile(handle);
-			Game::Com_Error(1, "%s: header version is not '1'", filename);
-		}
-
-		static DWORD fixups[4096];
-
-		if (header.fixup.size >= sizeof(fixups))
-		{
-			Game::FS_FCloseFile(handle);
-			Game::Com_Error(1, "%s: fixup size too big", filename);
-		}
-
-		header.main.buffer = (char*)malloc(header.main.size);
-		header.index.buffer = (char*)_aligned_malloc(header.index.size, 16);
-		header.vertex.buffer = (char*)_aligned_malloc(header.vertex.size, 16);
-		header.fixup.buffer = (char*)fixups;
-
-		ReadCModelSection(handle, header.main);
-		ReadCModelSection(handle, header.index);
-		ReadCModelSection(handle, header.vertex);
-		ReadCModelSection(handle, header.fixup);
-
-		Game::FS_FCloseFile(handle);
-
-		FixupCModelSection(header, header.main, fixups);
-		FixupCModelSection(header, header.index, fixups);
-		FixupCModelSection(header, header.vertex, fixups);
-
-		CModelAllocData* allocationData = (CModelAllocData*)malloc(sizeof(CModelAllocData));
-		allocationData->mainArray = header.main.buffer;
-		allocationData->indexBuffer = header.index.buffer;
-		allocationData->vertexBuffer = header.vertex.buffer;
-
-		*(void**)(header.main.buffer + 44) = allocationData;
-
-		// maybe the +36/48 = 0 stuff here?
-
-		// move buffers to work with iw4
-		int numSurfaces = *(short*)(header.main.buffer + 8);
-
-		char* tempSurface = new char[84 * numSurfaces];
-		char* surface = *(char**)(header.main.buffer + 4);
-
-		for (int i = 0; i < numSurfaces; i++)
-		{
-			char* source = &surface[84 * i];
-			char* dest = &tempSurface[64 * i];
-
-			memcpy(dest, source, 12);
-			memcpy(dest + 12, source + 16, 20);
-			memcpy(dest + 32, source + 40, 8);
-			memcpy(dest + 40, source + 52, 24);
-
-			dest[6] = 0xFF; // fake stream handle for the vertex/index buffer get code to use
-		}
-
-		memcpy(surface, tempSurface, 84 * numSurfaces);
-
-		delete[] tempSurface;
-
-		// create vertex/index buffers
-		CreateCModelBuffers(header.main.buffer);
-
-		// store the buffer bit
-		allocData[(DWORD)header.vertex.buffer] = allocationData;
-
-		return header.main.buffer;
-	}
-
-	Utils::Hook loadXModelAssetHook;
-	DWORD loadXModelAssetHookLoc = 0x47A6BD;
-
-	bool Load_XModelAssetHookFunc(char* xmodel)
-	{
-		bool didStuff = false;
-		short totalv = 0;
-
-		for (int i = 0; i < xmodel[241]; i++)
-		{
-			Game::XModelSurfs* surfs = *(Game::XModelSurfs**)(xmodel + 72 + (44 * i));
-
-			if (!surfs->surfaces)
-			{
-				char* newSurfs = LoadCModel(surfs->name);
-
-				memcpy(xmodel + 76 + (44 * i), &newSurfs[12], 24);
-				memcpy(xmodel + 100 + (44 * i), &newSurfs[4], 4);
-
-				short v = *(short*)(newSurfs + 8);
-				*(short*)(xmodel + 68 + (44 * i)) = v;
-				*(short*)(xmodel + 70 + (44 * i)) = totalv;
-
-				totalv += v;
-
-				surfs->numSurfaces = ((Game::XModelSurfs*)newSurfs)->numSurfaces;
-				surfs->surfaces = ((Game::XModelSurfs*)newSurfs)->surfaces;
-
-				didStuff = true;
-			}
-		}
-
-		return didStuff;
-	}
-
-#pragma optimize("", off)
-	void __declspec(naked) Load_XModelAssetHookStub()
-	{
-		__asm
-		{
-			mov eax, [esp + 4]
-			push eax
-			call Load_XModelAssetHookFunc
-			add esp, 4h
-
-			cmp al, al
-			jnz justReturn
-
-			retn
-
-			justReturn :
-			jmp loadXModelAssetHook.Original
-		}
-	}
-#pragma optimize("", on)
-
-	Utils::Hook getIndexBufferHook;
-	DWORD getIndexBufferHookLoc = 0x4B4DE0;
-	DWORD getIndexBufferHookRet = 0x4B4DE5;
-
-	void GetIndexBufferHookFunc(char streamHandle, void* buffer, void** bufferOut, int* offsetOut)
-	{
-		*offsetOut = 0;
-		*bufferOut = bufferMap[(DWORD)buffer];//buffer;
-	}
-
-#pragma optimize("", off)
-	void __declspec(naked) GetIndexBufferHookStub()
-	{
-		__asm
-		{
-			mov eax, [esp + 4h]
-			cmp al, 0FFh
-
-			je handleOwn
-			movzx eax, [esp + 4h]
-			jmp getIndexBufferHookRet
-
-			handleOwn :
-			jmp GetIndexBufferHookFunc
-		}
-	}
-#pragma optimize("", on)
-
-	Utils::Hook getVertexBufferHook;
-	DWORD getVertexBufferHookLoc = 0x5BC050;
-	DWORD getVertexBufferHookRet = 0x5BC055;
-
-	void GetVertexBufferHookFunc(char streamHandle, void* buffer, void** bufferOut, int* offsetOut)
-	{
-		*offsetOut = 0;
-		*bufferOut = bufferMap[(DWORD)buffer];//buffer;
-	}
-
-#pragma optimize("", off)
-	void __declspec(naked) GetVertexBufferHookStub()
-	{
-		__asm
-		{
-			mov eax, [esp + 4h]
-			cmp al, 0FFh
-
-			je handleOwnVertex
-			movzx eax, [esp + 4h]
-			jmp getVertexBufferHookRet
-
-			handleOwnVertex :
-			jmp GetVertexBufferHookFunc
-		}
-	}
-
-	/*CallHook getIndexBuffer2Hook;
-	DWORD getIndexBuffer2HookLoc = 0x558F12;
-
-	void* GetIndexBuffer2HookFunc(char streamHandle, void* buffer)
-	{
-	return buffer;
-	}
-
-	void __declspec(naked) GetIndexBuffer2HookStub()
-	{
-	__asm
-	{
-	mov eax, [esp + 4h]
-	cmp al, 0FFh
-
-	je handleOwn
-	movzx eax, [esp + 4h]
-	jmp getIndexBuffer2Hook.pOriginal
-
-	handleOwn:
-	jmp GetIndexBuffer2HookFunc
-	}
-	}*/
-
-	Utils::Hook getIndexBuffer3Hook;
-	DWORD getIndexBuffer3HookLoc = 0x558E70;
-
-	void* GetIndexBuffer3HookFunc(DWORD buffer)
-	{
-		return bufferMap[buffer];
-	}
-
-	void __declspec(naked) GetIndexBuffer3HookStub()
-	{
-		__asm
-		{
-			mov eax, [esp + 4h]
-			cmp al, 0FFh
-
-			je handleOwn
-			movzx eax, [esp + 4h]
-			jmp getIndexBuffer3Hook.Original
-
-			handleOwn :
-			mov eax, [edi + 0Ch]
-				push eax
-				call GetIndexBuffer3HookFunc
-				add esp, 4h
-				retn
-		}
-	}
-
-	Utils::Hook getIndexBaseHook;
-	DWORD getIndexBaseHookLoc = 0x558F12;
-
-	void __declspec(naked) GetIndexBaseHookStub()
-	{
-		__asm
-		{
-			mov eax, [esp + 4h]
-			cmp al, 0FFh
-
-			je handleOwn
-			jmp getIndexBaseHook.Original
-
-			handleOwn :
-			xor eax, eax
-				retn
-		}
-	}
-#pragma optimize("", on)
-
-	void PatchMW2_CModels()
-	{
-		loadXModelAssetHook.Initialize(loadXModelAssetHookLoc, Load_XModelAssetHookStub, HOOK_CALL);
-		loadXModelAssetHook.Install();
-
-		getIndexBufferHook.Initialize(getIndexBufferHookLoc, GetIndexBufferHookStub, HOOK_JUMP);
-		getIndexBufferHook.Install();
-
-		//getIndexBuffer2Hook.initialize(getIndexBuffer2HookLoc, GetIndexBuffer2HookStub);
-		//getIndexBuffer2Hook.installHook();
-
-		getIndexBuffer3Hook.Initialize(getIndexBuffer3HookLoc, GetIndexBuffer3HookStub, HOOK_CALL);
-		getIndexBuffer3Hook.Install();
-
-		getIndexBaseHook.Initialize(getIndexBaseHookLoc, GetIndexBaseHookStub, HOOK_CALL);
-		getIndexBaseHook.Install();
-
-		getVertexBufferHook.Initialize(getVertexBufferHookLoc, GetVertexBufferHookStub, HOOK_JUMP);
-		getVertexBufferHook.Install();
-
-		//*(DWORD*)0x799AC4 = (DWORD)DB_RemoveXModelSurfs;
-
-		//getBoneIndexHook1.initialize(getBoneIndexHook1Loc, GetBoneIndexHookStub);
-		//getBoneIndexHook1.installHook();
-
-		//*(void**)0x4E3409 = CL_DObjCreateHookFunc;
-
-		//updateDObjSetBitsHook.initialize(updateDObjSetBitsHookLoc, UpdateDObjSetBitsHookStub);
-		//updateDObjSetBitsHook.installHook();
-
-		//getBoneIndexHook2.initialize(getBoneIndexHook2Loc, GetBoneIndexHookStub);
-		//getBoneIndexHook2.installHook();
-	}
-
 	bool ModelSurfs::LoadSurfaces(Game::XModel* model)
 	{
 		if (!model) return false;
-		bool changed = false;
 
+		bool changed = false;
 		short surfCount = 0;
 
 		for (char i = 0; i < model->numLods; ++i)
@@ -591,15 +129,15 @@ namespace Components
 			{
 				Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
 
-				surfs->surfaces = newSurfs->surfaces;
-				surfs->numSurfaces = newSurfs->numSurfaces;
+ 				surfs->surfaces = newSurfs->surfaces;
+ 				surfs->numSurfaces = newSurfs->numSurfaces;
 
 				model->lods[i].surfs = newSurfs->surfaces;
 				memcpy(model->lods[i].pad3, newSurfs->pad, 24);
 
 				short numSurfs = static_cast<short>(newSurfs->numSurfaces);
-				model->lods[i].someCount = numSurfs;
-				model->lods[i].someTotalCount = surfCount;
+				model->lods[i].numSurfs = numSurfs;
+				model->lods[i].maxSurfs = surfCount;
 				surfCount += numSurfs;
 
 				changed = true;
@@ -611,11 +149,15 @@ namespace Components
 
 	void ModelSurfs::ReleaseModelSurf(Game::XAssetHeader header)
 	{
+		bool hasCustomSurface = false;
 		for (int i = 0; i < header.surfaces->numSurfaces && header.surfaces->surfaces; ++i)
 		{
 			Game::XSurface* surface = &header.surfaces->surfaces[i];
+
 			if (surface->streamHandle == 0xFF)
 			{
+				hasCustomSurface = true;
+
 				auto buffer = ModelSurfs::BufferMap.find(surface->indexBuffer);
 				if (buffer != ModelSurfs::BufferMap.end())
 				{
@@ -629,17 +171,20 @@ namespace Components
 					buffer->second->Release();
 					ModelSurfs::BufferMap.erase(buffer);
 				}
+			}
+		}
 
-				auto allocData = ModelSurfs::AllocMap.find(surface->vertexBuffer);
-				if (allocData != ModelSurfs::AllocMap.end())
-				{
-					Utils::Memory::Free(allocData->second->indexBuffer);
-					Utils::Memory::Free(allocData->second->vertexBuffer);
-					Utils::Memory::Free(allocData->second->mainArray);
-					Utils::Memory::Free(allocData->second);
+		if (hasCustomSurface)
+		{
+			auto allocData = ModelSurfs::AllocMap.find(header.surfaces->name);
+			if (allocData != ModelSurfs::AllocMap.end())
+			{
+				Utils::Memory::FreeAlign(allocData->second->indexBuffer);
+				Utils::Memory::FreeAlign(allocData->second->vertexBuffer);
+				Utils::Memory::Free(allocData->second->mainArray);
+				Utils::Memory::Free(allocData->second);
 
-					ModelSurfs::AllocMap.erase(allocData);
-				}
+				ModelSurfs::AllocMap.erase(allocData);
 			}
 		}
 	}
@@ -665,7 +210,6 @@ namespace Components
 	void ModelSurfs::XModelSurfsFixup(Game::XModel* model)
 	{
 		if (!ModelSurfs::LoadSurfaces(model))
-		//if(!Load_XModelAssetHookFunc((char*)model))
 		{
 			Game::DB_XModelSurfsFixup(model);
 		}
@@ -748,8 +292,6 @@ namespace Components
 
 	ModelSurfs::ModelSurfs()
 	{
-		PatchMW2_CModels();
-		return;
 		ModelSurfs::BufferMap.clear();
 
 		// Install release handler
@@ -762,7 +304,7 @@ namespace Components
 		// Install hooks
 		Utils::Hook(0x47A6BD, ModelSurfs::XModelSurfsFixup, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x558F12, ModelSurfs::GetIndexBaseStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5BC050, ModelSurfs::GetIndexBufferStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4B4DE0, ModelSurfs::GetIndexBufferStub, HOOK_JUMP).Install()->Quick();
 		Utils::Hook(0x558E70, ModelSurfs::GetIndexBufferStub2, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x5BC050, ModelSurfs::GetVertexBufferStub, HOOK_JUMP).Install()->Quick();
 	}

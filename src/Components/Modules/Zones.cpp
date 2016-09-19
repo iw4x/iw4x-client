@@ -8,7 +8,6 @@ namespace Components
 	extern bool* useEntryNames;
 
 	Utils::Hook fxEffectLoadHook;
-	DWORD fxEffectLoadHookLoc = 0x49591B;
 
 	static DWORD fxEffectStringValue[64];
 	static int fxEffectIndex = 0;
@@ -52,7 +51,6 @@ namespace Components
 	}
 
 	Utils::Hook fxEffectModifyHook;
-	DWORD fxEffectModifyHookLoc = 0x45ADA0;
 
 	bool ignoreThisFx = false;
 
@@ -97,7 +95,6 @@ namespace Components
 	}
 
 	Utils::Hook fxEffectTailHook;
-	DWORD fxEffectTailHookLoc = 0x495938;
 
 	void FxEffectTailHookFunc()
 	{
@@ -146,7 +143,6 @@ namespace Components
 	}
 
 	Utils::Hook xModelModifyHook;
-	DWORD xModelModifyHookLoc = 0x410D90;
 
 	void XModelModifyHookFunc(int a1, char* buffer, size_t len)
 	{
@@ -199,7 +195,6 @@ namespace Components
 	}
 
 	Utils::Hook xLodTailHook;
-	DWORD xLodTailHookLoc = 0x4EA6FE;
 
 	void XModelLODTailHookFunc(int i)
 	{
@@ -240,7 +235,6 @@ namespace Components
 	}
 
 	Utils::Hook fxDefaultHook;
-	DWORD fxDefaultHookLoc = 0x4D9C0E;
 
 	void FxDefaultHookFunc()
 	{
@@ -258,7 +252,6 @@ namespace Components
 	}
 
 	Utils::Hook xmodelDefaultHook;
-	DWORD xmodelDefaultHookLoc = 0x4FCAEE;
 
 	void XModelDefaultHookFunc()
 	{
@@ -276,7 +269,6 @@ namespace Components
 	}
 
 	Utils::Hook xsurfaceIntLoadHook;
-	DWORD xsurfaceIntLoadHookLoc = 0x4925C8;
 
 	void XSurfaceIntLoadHookFunc(int a1, char* buffer, size_t len)
 	{
@@ -315,7 +307,6 @@ namespace Components
 	}
 
 	Utils::Hook loadWeaponDefHook;
-	DWORD loadWeaponDefHookLoc = 0x47CCD2;
 
 	typedef void(__cdecl * Load_Stream_t)(int load, DWORD ptr, int len);
 	Load_Stream_t Load_Stream = (Load_Stream_t)0x470E30;
@@ -661,7 +652,6 @@ namespace Components
 #define Load_XStringPtr Load_XStringPtr_
 
 	Utils::Hook gameWorldSpLoadHook;
-	DWORD gameWorldSpLoadHookLoc = 0x4F4D0D;
 
 	void GameWorldSpLoadHookFunc(int a1, char* buffer, size_t len)
 	{
@@ -685,7 +675,6 @@ namespace Components
 	}
 
 	Utils::Hook pathDataTailHook;
-	DWORD pathDataTailHookLoc = 0x427A1B;
 
 	void PathDataTailHookFunc()
 	{
@@ -715,7 +704,6 @@ namespace Components
 	}
 
 	Utils::Hook allocZoneMemoryHook;
-	DWORD allocZoneMemoryHookLoc = 0x415A57;
 
 	void AllocXZoneMemoryHookFunc(unsigned int* sizes)
 	{
@@ -736,7 +724,6 @@ namespace Components
 	}
 
 	Utils::Hook sndAliasLoadHook;
-	DWORD sndAliasLoadHookLoc = 0x4F0AC8;
 
 	void SndAliasLoadHookFunc(int a1, char* buffer, size_t len)
 	{
@@ -783,7 +770,6 @@ namespace Components
 	}
 
 	Utils::Hook mssSoundLoadHook;
-	DWORD mssSoundLoadHookLoc = 0x403A5D;
 
 	void MssSoundLoadHookFunc(int a1, char* buffer, size_t len)
 	{
@@ -804,7 +790,6 @@ namespace Components
 	}
 
 	Utils::Hook vehicleLoadHook;
-	DWORD vehicleLoadHookLoc = 0x483DA0;
 
 	void VehicleLoadHookFunc(int a1, char* buffer, int len)
 	{
@@ -829,7 +814,6 @@ namespace Components
 	}
 
 	Utils::Hook loadWeaponAttachHook;
-	DWORD loadWeaponAttachHookLoc = 0x463022;
 
 	DWORD varWeaponAttachStuff;
 
@@ -867,7 +851,6 @@ namespace Components
 	}
 
 	Utils::Hook menuDefLoadHook;
-	DWORD menuDefLoadHookLoc = 0x41A570;
 
 	void MenuDefLoadHookFunc(int doLoad, char* buffer, int len)
 	{
@@ -910,7 +893,6 @@ namespace Components
 	}
 
 	Utils::Hook gameWorldSpIntHook;
-	DWORD gameWorldSpIntHookLoc = 0x4F4D3B;
 
 	void GameWorldSpIntHookFunc(int doLoad)
 	{
@@ -936,7 +918,6 @@ namespace Components
 	};
 
 	Utils::Hook loadTechniquePassHook;
-	DWORD loadTechniquePassHookLoc = 0x428F0A;
 
 	void Load_TechniquePassHookFunc(int a1, MaterialArgumentDef* pass, size_t size)
 	{
@@ -980,7 +961,6 @@ namespace Components
 	}
 
 	Utils::Hook loadStructuredDataChildArrayHook;
-	DWORD loadStructuredDataChildArrayHookLoc = 0x4B1EB8;
 
 	void Load_StructuredDataChildArrayHookFunc(int a1, char* data, size_t size)
 	{
@@ -1119,30 +1099,30 @@ namespace Components
 		// TODO: Include them in the dependency zone!
 		Utils::Hook::Nop(0x644207, 5);
 
-		fxEffectTailHook.Initialize(fxEffectTailHookLoc, FxEffectTailHookStub, HOOK_CALL);
-		fxEffectModifyHook.Initialize(fxEffectModifyHookLoc, FxEffectModifyHookFunc, HOOK_CALL);
-		xLodTailHook.Initialize(xLodTailHookLoc, XModelLODTailHookStub, HOOK_CALL);
-		xModelModifyHook.Initialize(xModelModifyHookLoc, XModelModifyHookFunc, HOOK_CALL);
-		xsurfaceIntLoadHook.Initialize(xsurfaceIntLoadHookLoc, XSurfaceIntLoadHookFunc, HOOK_CALL);
-		gameWorldSpLoadHook.Initialize(gameWorldSpLoadHookLoc, GameWorldSpLoadHookFunc, HOOK_CALL);
-		loadWeaponDefHook.Initialize(loadWeaponDefHookLoc, Load_WeaponDef_CodC, HOOK_CALL);
-		vehicleLoadHook.Initialize(vehicleLoadHookLoc, VehicleLoadHookFunc, HOOK_CALL);
-		xmodelDefaultHook.Initialize(xmodelDefaultHookLoc, XModelDefaultHookStub, HOOK_CALL);
-		fxDefaultHook.Initialize(fxDefaultHookLoc, FxDefaultHookStub, HOOK_CALL);
-		allocZoneMemoryHook.Initialize(allocZoneMemoryHookLoc, AllocXZoneMemoryHookStub, HOOK_CALL);
-		sndAliasLoadHook.Initialize(sndAliasLoadHookLoc, SndAliasLoadHookFunc, HOOK_CALL);
-		mssSoundLoadHook.Initialize(mssSoundLoadHookLoc, MssSoundLoadHookFunc, HOOK_CALL);
-		loadWeaponAttachHook.Initialize(loadWeaponAttachHookLoc, Load_WeaponAttach, HOOK_CALL);
-		menuDefLoadHook.Initialize(menuDefLoadHookLoc, MenuDefLoadHookFunc, HOOK_CALL);
-		fxEffectLoadHook.Initialize(fxEffectLoadHookLoc, FxEffectLoadHookFunc, HOOK_CALL);
-		gameWorldSpIntHook.Initialize(gameWorldSpIntHookLoc, GameWorldSpIntHookFunc, HOOK_CALL);
-		loadTechniquePassHook.Initialize(loadTechniquePassHookLoc, Load_TechniquePassHookFunc, HOOK_CALL);
-		loadStructuredDataChildArrayHook.Initialize(loadStructuredDataChildArrayHookLoc, Load_StructuredDataChildArrayHookFunc, HOOK_CALL);
+		// Block Mark_pathnode_constant_t
+		Utils::Hook::Set<BYTE>(0x4F74B0, 0xC3);
 
-		pathDataTailHook.Initialize(pathDataTailHookLoc, PathDataTailHookFunc, HOOK_JUMP);
+		fxEffectTailHook.Initialize(0x495938, FxEffectTailHookStub, HOOK_CALL);
+		fxEffectModifyHook.Initialize(0x45ADA0, FxEffectModifyHookFunc, HOOK_CALL);
+		xLodTailHook.Initialize(0x4EA6FE, XModelLODTailHookStub, HOOK_CALL);
+		xModelModifyHook.Initialize(0x410D90, XModelModifyHookFunc, HOOK_CALL);
+		xsurfaceIntLoadHook.Initialize(0x4925C8, XSurfaceIntLoadHookFunc, HOOK_CALL);
+		gameWorldSpLoadHook.Initialize(0x4F4D0D, GameWorldSpLoadHookFunc, HOOK_CALL);
+		loadWeaponDefHook.Initialize(0x47CCD2, Load_WeaponDef_CodC, HOOK_CALL);
+		vehicleLoadHook.Initialize(0x483DA0, VehicleLoadHookFunc, HOOK_CALL);
+		xmodelDefaultHook.Initialize(0x4FCAEE, XModelDefaultHookStub, HOOK_CALL);
+		fxDefaultHook.Initialize(0x4D9C0E, FxDefaultHookStub, HOOK_CALL);
+		allocZoneMemoryHook.Initialize(0x415A57, AllocXZoneMemoryHookStub, HOOK_CALL);
+		sndAliasLoadHook.Initialize(0x4F0AC8, SndAliasLoadHookFunc, HOOK_CALL);
+		mssSoundLoadHook.Initialize(0x403A5D, MssSoundLoadHookFunc, HOOK_CALL);
+		loadWeaponAttachHook.Initialize(0x463022, Load_WeaponAttach, HOOK_CALL);
+		menuDefLoadHook.Initialize(0x41A570, MenuDefLoadHookFunc, HOOK_CALL);
+		fxEffectLoadHook.Initialize(0x49591B, FxEffectLoadHookFunc, HOOK_CALL);
+		gameWorldSpIntHook.Initialize(0x4F4D3B, GameWorldSpIntHookFunc, HOOK_CALL);
+		loadTechniquePassHook.Initialize(0x428F0A, Load_TechniquePassHookFunc, HOOK_CALL);
+		loadStructuredDataChildArrayHook.Initialize(0x4B1EB8, Load_StructuredDataChildArrayHookFunc, HOOK_CALL);
 
-		// path_node_constant_t marking function; has some terrible string references
-		*(BYTE*)0x4F74B0 = 0xC3;
+		pathDataTailHook.Initialize(0x427A1B, PathDataTailHookFunc, HOOK_JUMP);
 	}
 
 	Zones::~Zones()

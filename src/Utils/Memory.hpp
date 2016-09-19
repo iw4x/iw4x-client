@@ -108,6 +108,9 @@ namespace Utils
 		static void Free(void* data);
 		static void Free(const void* data);
 
+		static void FreeAlign(void* data);
+		static void FreeAlign(const void* data);
+
 		static bool IsSet(void* mem, char chr, size_t length);
 	};
 }

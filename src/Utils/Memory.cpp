@@ -27,6 +27,7 @@ namespace Utils
 	{
 		if (data)
 		{
+			OutputDebugStringA(Utils::String::VA("Free: %X\n", (DWORD)data));
 			free(data);
 		}
 	}
@@ -34,6 +35,19 @@ namespace Utils
 	void Memory::Free(const void* data)
 	{
 		Memory::Free(const_cast<void*>(data));
+	}
+
+	void Memory::FreeAlign(void* data)
+	{
+		if (data)
+		{
+			_aligned_free(data);
+		}
+	}
+
+	void Memory::FreeAlign(const void* data)
+	{
+		Memory::FreeAlign(const_cast<void*>(data));
 	}
 
 	// Complementary function for memset, which checks if memory is filled with a char
