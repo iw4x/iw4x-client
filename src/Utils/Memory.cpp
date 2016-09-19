@@ -27,7 +27,6 @@ namespace Utils
 	{
 		if (data)
 		{
-			OutputDebugStringA(Utils::String::VA("Free: %X\n", (DWORD)data));
 			free(data);
 		}
 	}

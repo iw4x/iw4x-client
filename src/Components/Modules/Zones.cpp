@@ -100,7 +100,7 @@ namespace Components
 	{
 		// varXString = (varFxEffect + 256)
 		//*(DWORD*)0x112B340 = (*(DWORD*)0x112B018) + 256;
-		DWORD thisFX = *(DWORD*)0x112B018;
+		//DWORD thisFX = *(DWORD*)0x112B018;
 
 		/*if (*(char*)(thisFX + 176) == 0 || *(char*)(thisFX + 176) == 4)
 		{
@@ -354,7 +354,7 @@ namespace Components
 	//#define Load_XStringPtr(x) Load_XStringPtr_(x); DBG(("wF: %s\n", **(DWORD**)varXString))
 #define Load_XStringPtr Load_XStringPtr_
 
-	void Load_WeaponDef_CodC(int doLoad)
+	void Load_WeaponDef_CodC(int /*doLoad*/)
 	{
 		// setup structures we use
 		DWORD varWeaponDef = *(DWORD*)0x112A9F4;//*(DWORD*)0x112AE14;
@@ -825,7 +825,7 @@ namespace Components
 
 		for (int i = 0; i < count; i++)
 		{
-			DWORD* varXString = (DWORD*)0x112B340;
+			//DWORD* varXString = (DWORD*)0x112B340;
 
 			if (varStuff[1] < 16 || varStuff[1] == 39)
 			{
@@ -870,7 +870,7 @@ namespace Components
 		AssetHandler::Relocate((DWORD)buffer + 172, 232, (DWORD)buffer + 168);
 	}
 
-	void Load_WeaponAttach(int doLoad)
+	void Load_WeaponAttach(int /*doLoad*/)
 	{
 		// setup structures we use
 		DWORD varWeaponAttach = *(DWORD*)0x112ADE0;//*(DWORD*)0x112AE14;
@@ -894,7 +894,7 @@ namespace Components
 
 	Utils::Hook gameWorldSpIntHook;
 
-	void GameWorldSpIntHookFunc(int doLoad)
+	void GameWorldSpIntHookFunc(int /*doLoad*/)
 	{
 		memset(*(void**)0x112AD7C, 0, 40);
 	}
@@ -979,17 +979,6 @@ namespace Components
 	void PatchMW2_FifthInfinityApply(int fileVersion, bool iw5)
 	{
 		ffVersion = fileVersion;
-
-		// patch the expected version
-		int version = (iw5) ? 316 : 276;
-
-		if (iw5 && fileVersion >= 318)
-		{
-			version = fileVersion;
-		}
-
-		*(DWORD*)0x4158F4 = version;
-		*(DWORD*)0x4158FB = version;
 
 		// physpreset size
 		*(BYTE*)0x49CE0A = (iw5) ? 68 : 44;
@@ -1087,10 +1076,18 @@ namespace Components
 
 	void Zones::InstallPatches(int version)
 	{
-		Zones::ZoneVersion = version;
-		AssetHandler::ClearRelocations();
-
-		PatchMW2_FifthInfinityApply(version, version >= 316);
+ 		Zones::ZoneVersion = version;
+// 		AssetHandler::ClearRelocations();
+// 
+// 		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == XFILE_VERSION)
+// 		{
+// 			Utils::Hook::Set<DWORD>(0x4158F4, version);
+// 			Utils::Hook::Set<DWORD>(0x4158FB, version);
+// 		}
+// 
+// 		PatchMW2_FifthInfinityApply(version, version >= 316);
+// 
+// 		AntiCheat::EmptyHash();
 	}
 
 	Zones::Zones()

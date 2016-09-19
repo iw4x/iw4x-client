@@ -300,5 +300,11 @@ namespace Components
 		Logger::MessageMutex.lock();
 		Logger::MessageQueue.clear();
 		Logger::MessageMutex.unlock();
+
+		// Flush the console log
+		if (int fh = *reinterpret_cast<int*>(0x1AD8F28))
+		{
+			Game::FS_FCloseFile(fh);
+		}
 	}
 }
