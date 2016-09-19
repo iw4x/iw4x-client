@@ -24,7 +24,7 @@ namespace Components
 
 		static void OverrideMapEnts(Game::MapEnts* ents);
 
-		static bool IgnoreEntityStub(const char* entity);
+		static int IgnoreEntityStub(const char* entity);
 
 		void ReallocateEntryPool();
 	};

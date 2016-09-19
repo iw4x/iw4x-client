@@ -1077,17 +1077,17 @@ namespace Components
 	void Zones::InstallPatches(int version)
 	{
  		Zones::ZoneVersion = version;
-// 		AssetHandler::ClearRelocations();
-// 
-// 		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == XFILE_VERSION)
-// 		{
-// 			Utils::Hook::Set<DWORD>(0x4158F4, version);
-// 			Utils::Hook::Set<DWORD>(0x4158FB, version);
-// 		}
-// 
-// 		PatchMW2_FifthInfinityApply(version, version >= 316);
-// 
-// 		AntiCheat::EmptyHash();
+		AssetHandler::ClearRelocations();
+
+		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == XFILE_VERSION)
+		{
+			Utils::Hook::Set<DWORD>(0x4158F4, version);
+			Utils::Hook::Set<DWORD>(0x4158FB, version);
+		}
+
+		PatchMW2_FifthInfinityApply(version, version >= 316);
+
+		AntiCheat::EmptyHash();
 	}
 
 	Zones::Zones()
