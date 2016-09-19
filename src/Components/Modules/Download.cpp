@@ -532,7 +532,7 @@ namespace Components
 					"\r\n", mimeType.data(), buffer.size());
 
 				mg_send(nc, buffer.data(), static_cast<int>(buffer.size()));
-			}
+ 			}
 			else
 			{
 				mg_printf(nc,

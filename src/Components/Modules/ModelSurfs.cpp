@@ -38,7 +38,7 @@ namespace Components
 	Game::XModelSurfs* ModelSurfs::LoadXModelSurfaces(std::string name)
 	{
 		Utils::Memory::Allocator allocator;
-		FileSystem::File model(fmt::sprintf("models/%s", name.data()));
+		FileSystem::FileReader model(fmt::sprintf("models/%s", name.data()));
 
 		if (!model.Exists())
 		{

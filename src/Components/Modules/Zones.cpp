@@ -4,15 +4,10 @@ namespace Components
 {
 	int Zones::ZoneVersion;
 
-
-	extern bool* useEntryNames;
-
 	Utils::Hook fxEffectLoadHook;
 
 	static DWORD fxEffectStringValue[64];
 	static int fxEffectIndex = 0;
-
-	int ffVersion = 0;
 
 #define VERSION_ALPHA2 316
 #define VERSION_ALPHA3 318//319
@@ -52,25 +47,15 @@ namespace Components
 
 	Utils::Hook fxEffectModifyHook;
 
-	bool ignoreThisFx = false;
-
 	void FxEffectModifyHookFunc(int a1, char* buffer, size_t len)
 	{
 		char typeNum = *(char*)(buffer + 176);
 
 		//DBG(("ot %i\n", typeNum));
 
-		if (typeNum == 2)
-		{
-			ignoreThisFx = true;
-		}
-		else if (typeNum == 3)
+		if (typeNum == 3)
 		{
 			typeNum = 2;
-		}
-		else if (typeNum == 4)
-		{
-			ignoreThisFx = true;
 		}
 		else if (typeNum >= 5)
 		{
@@ -155,7 +140,7 @@ namespace Components
 			add esp, 0Ch
 		}
 
-		int elSize = (ffVersion == VERSION_ALPHA2) ? 364 : 360;
+		int elSize = (Zones::ZoneVersion == VERSION_ALPHA2) ? 364 : 360;
 
 		static unsigned char tempVar[364];
 		memcpy(&tempVar[0], &buffer[0], 36);
@@ -198,7 +183,7 @@ namespace Components
 
 	void XModelLODTailHookFunc(int i)
 	{
-		int elSize = (ffVersion == VERSION_ALPHA2) ? 364 : 360;
+		int elSize = (Zones::ZoneVersion == VERSION_ALPHA2) ? 364 : 360;
 		i = (4 - i)/* + 1*/;
 
 		// varXString = (varXModel + 0x16C - (4 * i)) // where the above function parked the new xstring
@@ -231,40 +216,6 @@ namespace Components
 			add esp, 8h
 
 			retn
-		}
-	}
-
-	Utils::Hook fxDefaultHook;
-
-	void FxDefaultHookFunc()
-	{
-		DWORD* varFxEffectDefPtr = *(DWORD**)0x112ACC0;
-
-		*varFxEffectDefPtr = (DWORD)Game::DB_FindXAssetHeader(Game::ASSET_TYPE_FX, "misc/missing_fx").data;
-	}
-
-	void __declspec(naked) FxDefaultHookStub()
-	{
-		__asm
-		{
-			jmp FxDefaultHookFunc
-		}
-	}
-
-	Utils::Hook xmodelDefaultHook;
-
-	void XModelDefaultHookFunc()
-	{
-		DWORD* varXModelPtr = *(DWORD**)0x112A934;
-
-		*varXModelPtr = (DWORD)Game::DB_FindXAssetHeader(Game::ASSET_TYPE_XMODEL, "void").data;
-	}
-
-	void __declspec(naked) XModelDefaultHookStub()
-	{
-		__asm
-		{
-			jmp XModelDefaultHookFunc
 		}
 	}
 
@@ -361,7 +312,7 @@ namespace Components
 		DWORD* varXString = (DWORD*)0x112B340;
 
 		// and do the stuff
-		Load_Stream(1, varWeaponDef, (ffVersion >= 318) ? 3156 : 3112);
+		Load_Stream(1, varWeaponDef, (Zones::ZoneVersion >= 318) ? 3156 : 3112);
 
 		DB_PushStreamPos(3);
 
@@ -426,7 +377,7 @@ namespace Components
 			Load_SndAliasCustom(*varsnd_alias_list_name);
 		}
 
-		if (ffVersion >= 318)
+		if (Zones::ZoneVersion >= 318)
 		{
 			for (int i = 0, offset = 1184; i < 2; i++, offset += 4)
 			{
@@ -536,7 +487,7 @@ namespace Components
 			DWORD vec2 = DB_AllocStreamPos(3);
 			*(DWORD*)(varWeaponDef + 2556) = vec2;
 
-			Load_Stream(1, vec2, 8 * *(short*)(varWeaponDef + ((ffVersion >= 318) ? 3076 : 3040)));
+			Load_Stream(1, vec2, 8 * *(short*)(varWeaponDef + ((Zones::ZoneVersion >= 318) ? 3076 : 3040)));
 		}
 
 		*varXString = varWeaponDef + 2552;
@@ -547,7 +498,7 @@ namespace Components
 			DWORD vec2 = DB_AllocStreamPos(3);
 			*(DWORD*)(varWeaponDef + 2560) = vec2;
 
-			Load_Stream(1, vec2, 8 * *(short*)(varWeaponDef + ((ffVersion >= 318) ? 3078 : 3042)));
+			Load_Stream(1, vec2, 8 * *(short*)(varWeaponDef + ((Zones::ZoneVersion >= 318) ? 3078 : 3042)));
 		}
 
 		*varXString = varWeaponDef + 2640;
@@ -595,7 +546,7 @@ namespace Components
 		*varsnd_alias_list_name = varWeaponDef + 2904; // 2912
 		Load_SndAliasCustom(*varsnd_alias_list_name);
 
-		if (ffVersion >= 318)
+		if (Zones::ZoneVersion >= 318)
 		{
 			for (int i = 0, offset = 2972; i < 6; i++, offset += 4)
 			{
@@ -976,15 +927,13 @@ namespace Components
 		}
 	}
 
-	void PatchMW2_FifthInfinityApply(int fileVersion, bool iw5)
+	void PatchMW2_FifthInfinityApply(bool iw5)
 	{
-		ffVersion = fileVersion;
-
 		// physpreset size
 		*(BYTE*)0x49CE0A = (iw5) ? 68 : 44;
 
 		// XModel size
-		*(DWORD*)0x410D8A = (iw5) ? ((ffVersion == VERSION_ALPHA2) ? 0x16C : 0x168) : 0x130;
+		*(DWORD*)0x410D8A = (iw5) ? ((Zones::ZoneVersion == VERSION_ALPHA2) ? 0x16C : 0x168) : 0x130;
 
 		// XSurface size
 		*(BYTE*)0x48E84A = (iw5) ? 48 : 36;
@@ -1031,16 +980,13 @@ namespace Components
 
 			loadWeaponAttachHook.Install();
 
-			if (ffVersion >= VERSION_ALPHA3)
+			if (Zones::ZoneVersion >= VERSION_ALPHA3)
 			{
 				gameWorldSpIntHook.Install();
 			}
 
 			loadTechniquePassHook.Install();
 			loadStructuredDataChildArrayHook.Install();
-
-			//xmodelDefaultHook.Install();
-			//fxDefaultHook.Install();
 		}
 		else
 		{
@@ -1064,9 +1010,6 @@ namespace Components
 
 			loadWeaponAttachHook.Uninstall();
 
-			xmodelDefaultHook.Uninstall();
-			fxDefaultHook.Uninstall();
-
 			gameWorldSpIntHook.Uninstall();
 
 			loadTechniquePassHook.Uninstall();
@@ -1085,7 +1028,7 @@ namespace Components
 			Utils::Hook::Set<DWORD>(0x4158FB, version);
 		}
 
-		PatchMW2_FifthInfinityApply(version, version >= 316);
+		PatchMW2_FifthInfinityApply(version >= 316);
 
 		AntiCheat::EmptyHash();
 	}
@@ -1107,8 +1050,6 @@ namespace Components
 		gameWorldSpLoadHook.Initialize(0x4F4D0D, GameWorldSpLoadHookFunc, HOOK_CALL);
 		loadWeaponDefHook.Initialize(0x47CCD2, Load_WeaponDef_CodC, HOOK_CALL);
 		vehicleLoadHook.Initialize(0x483DA0, VehicleLoadHookFunc, HOOK_CALL);
-		xmodelDefaultHook.Initialize(0x4FCAEE, XModelDefaultHookStub, HOOK_CALL);
-		fxDefaultHook.Initialize(0x4D9C0E, FxDefaultHookStub, HOOK_CALL);
 		allocZoneMemoryHook.Initialize(0x415A57, AllocXZoneMemoryHookStub, HOOK_CALL);
 		sndAliasLoadHook.Initialize(0x4F0AC8, SndAliasLoadHookFunc, HOOK_CALL);
 		mssSoundLoadHook.Initialize(0x403A5D, MssSoundLoadHookFunc, HOOK_CALL);

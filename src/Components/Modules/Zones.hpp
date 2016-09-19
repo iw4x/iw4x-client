@@ -12,7 +12,7 @@ namespace Components
 
 		static void InstallPatches(int version);
 
-	private:
+	//private:
 		static int ZoneVersion;
 	};
 }

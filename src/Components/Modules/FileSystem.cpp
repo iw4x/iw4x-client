@@ -2,30 +2,45 @@
 
 namespace Components
 {
-	FileSystem::File::File(std::string file) : Name(file), Handle(0)
+	void FileSystem::File::Read()
+	{
+		char* buffer = nullptr;
+		int size = Game::FS_ReadFile(this->FilePath.data(), &buffer);
+
+		this->Buffer.clear();
+
+		if (size >= 0)
+		{
+			this->Buffer.append(buffer, size);
+			Game::FS_FreeFile(buffer);
+		}
+	}
+
+
+	FileSystem::FileReader::FileReader(std::string file) : Name(file), Handle(0)
 	{
 		this->Size = Game::FS_FOpenFileRead(this->Name.data(), &this->Handle, 0);
 	}
 
-	FileSystem::File::~File()
+	FileSystem::FileReader::~FileReader()
 	{
-		if (this->Exists())
+		if (this->Exists() && this->Handle)
 		{
 			Game::FS_FCloseFile(this->Handle);
 		}
 	}
 
-	bool FileSystem::File::Exists()
+	bool FileSystem::FileReader::Exists()
 	{
 		return (this->Size > 0);
 	}
 
-	std::string FileSystem::File::GetName()
+	std::string FileSystem::FileReader::GetName()
 	{
 		return this->Name;
 	}
 
-	std::string FileSystem::File::GetBuffer()
+	std::string FileSystem::FileReader::GetBuffer()
 	{
 		Utils::Memory::Allocator allocator;
 		if (!this->Exists()) return std::string();
@@ -34,7 +49,7 @@ namespace Components
 		this->Seek(0, FS_SEEK_SET);
 
 		char* buffer = allocator.AllocateArray<char>(this->Size);
-		if (!FileSystem::File::Read(buffer, this->Size))
+		if (!this->Read(buffer, this->Size))
 		{
 			this->Seek(position, FS_SEEK_SET);
 			return std::string();
@@ -45,7 +60,7 @@ namespace Components
 		return std::string(buffer, this->Size);
 	}
 
-	bool FileSystem::File::Read(void* buffer, size_t size)
+	bool FileSystem::FileReader::Read(void* buffer, size_t size)
 	{
 		if (!this->Exists() || static_cast<size_t>(this->Size) < size || Game::FS_Read(buffer, size, this->Handle) != static_cast<int>(size))
 		{
@@ -55,7 +70,7 @@ namespace Components
 		return true;
 	}
 
-	void FileSystem::File::Seek(int offset, int origin)
+	void FileSystem::FileReader::Seek(int offset, int origin)
 	{
 		if (this->Exists())
 		{
