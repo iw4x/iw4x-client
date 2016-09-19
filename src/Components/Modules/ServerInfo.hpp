@@ -6,7 +6,7 @@ namespace Components
 		ServerInfo();
 		~ServerInfo();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "ServerInfo"; };
 #endif
 

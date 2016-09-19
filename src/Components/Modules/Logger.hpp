@@ -6,7 +6,7 @@ namespace Components
 		Logger();
 		~Logger();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Logger"; };
 #endif
 
@@ -18,6 +18,8 @@ namespace Components
 		static void Error(int error, const char* message, ...);
 		static void SoftError(const char* message, ...);
 		static bool IsConsoleReady();
+
+		static void PrintStub(int channel, const char* message, ...);
 
 		static void PipeOutput(void(*callback)(std::string));
 

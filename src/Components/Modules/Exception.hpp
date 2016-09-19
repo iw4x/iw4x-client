@@ -8,7 +8,7 @@ namespace Components
 		Exception();
 		~Exception();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Exception"; };
 #endif
 		static LPTOP_LEVEL_EXCEPTION_FILTER Hook();

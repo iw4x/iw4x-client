@@ -5,7 +5,7 @@ namespace Components
 	public:
 		Singleton();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Singleton"; };
 #endif
 

@@ -28,6 +28,7 @@ namespace Components
 		Loader::Register(new Menus());
 		Loader::Register(new Toast());
 		Loader::Register(new Party());
+		Loader::Register(new Zones());
 		Loader::Register(new Colors());
 		Loader::Register(new D3D9Ex());
 		Loader::Register(new Logger());
@@ -56,6 +57,7 @@ namespace Components
 		Loader::Register(new BitMessage());
 #endif
 		Loader::Register(new FileSystem());
+		Loader::Register(new ModelSurfs());
 		Loader::Register(new PlayerName());
 		Loader::Register(new QuickPatch());
 		Loader::Register(new ServerInfo());
@@ -78,7 +80,10 @@ namespace Components
 		for (auto component : Loader::Components)
 		{
 #ifdef DEBUG
-			Logger::Print("Unregistering component: %s\n", component->GetName());
+			if(!Loader::PerformingUnitTests())
+			{
+				Logger::Print("Unregistering component: %s\n", component->GetName());
+			}
 #endif
 			delete component;
 		}
@@ -94,7 +99,7 @@ namespace Components
 
 		for (auto component : Loader::Components)
 		{
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 			Logger::Print("Testing '%s'...\n", component->GetName());
 #endif
 			auto startTime = std::chrono::high_resolution_clock::now();
@@ -121,7 +126,10 @@ namespace Components
 		if (component)
 		{
 #ifdef DEBUG
-			Logger::Print("Component registered: %s\n", component->GetName());
+			if(!Loader::PerformingUnitTests())
+			{
+				Logger::Print("Component registered: %s\n", component->GetName());
+			}
 #endif
 			Loader::Components.push_back(component);
 		}

@@ -6,7 +6,7 @@ namespace Components
 		Materials();
 		~Materials();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Materials"; };
 #endif
 

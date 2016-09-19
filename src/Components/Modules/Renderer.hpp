@@ -9,7 +9,7 @@ namespace Components
 		Renderer();
 		~Renderer();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "Renderer"; };
 #endif
 
@@ -20,6 +20,9 @@ namespace Components
 		static void OnFrame(Callback* callback);
 		static void OnBackendFrame(BackendCallback* callback);
 
+		static void OnDeviceRecoveryEnd(Callback* callback);
+		static void OnDeviceRecoveryBegin(Callback* callback);
+
 	private:
 		static void FrameStub();
 		static void FrameHandler();
@@ -29,6 +32,10 @@ namespace Components
 
 		static wink::signal<wink::slot<Callback>> FrameSignal;
 		static wink::signal<wink::slot<Callback>> FrameOnceSignal;
+
+		static wink::signal<wink::slot<Callback>> EndRecoverDeviceSignal;
+		static wink::signal<wink::slot<Callback>> BeginRecoverDeviceSignal;
+
 		static wink::signal<wink::slot<BackendCallback>> BackendFrameSignal;
 		static Utils::Hook DrawFrameHook;
 	};

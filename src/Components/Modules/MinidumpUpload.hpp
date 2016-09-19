@@ -36,7 +36,7 @@ namespace Components
 	class MinidumpUpload : public Component
 	{
 	public:
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "MinidumpUpload"; };
 #endif
 		MinidumpUpload();

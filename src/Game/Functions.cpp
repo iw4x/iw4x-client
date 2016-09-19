@@ -22,6 +22,7 @@ namespace Game
 	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = (Cmd_AddServerCommand_t)0x4DCE00;
 	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = (Cmd_ExecuteSingleCommand_t)0x609540;
+	Com_ClientPacketEvent_t Com_ClientPacketEvent = (Com_ClientPacketEvent_t)0x49F0B0;
 
 	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
 	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
@@ -31,6 +32,8 @@ namespace Game
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = (Con_DrawMiniConsole_t)0x464F30;
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = (Con_DrawSolidConsole_t)0x5A5040;
 
+	DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice = (DB_BeginRecoverLostDevice_t)0x4BFF90;
+	DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice = (DB_EndRecoverLostDevice_t)0x46B660;
 	DB_EnumXAssets_t DB_EnumXAssets = (DB_EnumXAssets_t)0x4B76D0;
 	DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal = (DB_EnumXAssets_Internal_t)0x5BB0A0;
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
@@ -40,6 +43,8 @@ namespace Game
 	DB_IsXAssetDefault_t DB_IsXAssetDefault = (DB_IsXAssetDefault_t)0x48E6A0;
 	DB_LoadXAssets_t DB_LoadXAssets = (DB_LoadXAssets_t)0x4E5930;
 	DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = (DB_ReadXFileUncompressed_t)0x4705E0;
+	DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = (DB_ReleaseXAssetHandler_t*)0x799AB8;
+	DB_XModelSurfsFixup_t DB_XModelSurfsFixup = (DB_XModelSurfsFixup_t)0x5BAC50;
 
 	Dvar_RegisterBool_t Dvar_RegisterBool = (Dvar_RegisterBool_t)0x4CE1A0;
 	Dvar_RegisterFloat_t Dvar_RegisterFloat = (Dvar_RegisterFloat_t)0x648440;
@@ -88,6 +93,8 @@ namespace Game
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = (Image_LoadFromFileWithReader_t)0x53ABF0;
 	Image_Release_t Image_Release = (Image_Release_t)0x51F010;
 
+	LargeLocalInit_t LargeLocalInit = (LargeLocalInit_t)0x4A62A0;
+
 	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
 	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
 	Menus_FindByName_t Menus_FindByName = (Menus_FindByName_t)0x487240;
@@ -111,6 +118,7 @@ namespace Game
 
 	NET_AdrToString_t NET_AdrToString = (NET_AdrToString_t)0x469880;
 	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
+	NET_Init_t NET_Init = (NET_Init_t)0x491860;
 	NET_IsLocalAddress_t NET_IsLocalAddress = (NET_IsLocalAddress_t)0x402BD0;
 	NET_StringToAdr_t NET_StringToAdr = (NET_StringToAdr_t)0x409010;
 	NET_OutOfBandPrint_t NET_OutOfBandPrint = (NET_OutOfBandPrint_t)0x4AEF00;
@@ -131,6 +139,7 @@ namespace Game
 	PartyHost_GetMemberName_t PartyHost_GetMemberName = (PartyHost_GetMemberName_t)0x44BE90;
 
 	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = (R_AddCmdDrawStretchPic_t)0x509770;
+	R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = (R_AllocStaticIndexBuffer_t)0x51E7A0;
 	R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = (R_Cinematic_StartPlayback_Now_t)0x51C5B0;
 	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x505670;
 	R_AddCmdDrawText_t R_AddCmdDrawText = (R_AddCmdDrawText_t)0x509D80;
@@ -459,6 +468,40 @@ namespace Game
 			mov eax, 5A54E0h
 			call eax
 			pop esi
+		}
+	}
+
+	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count)
+	{
+		if (Components::Dvar::Var("r_loadForRenderer").Get<bool>())
+		{
+			void* buffer = R_AllocStaticIndexBuffer(storeHere, 2 * count);
+			memcpy(buffer, data, 2 * count);
+
+			if (storeHere && *storeHere)
+			{
+				(*storeHere)->Unlock();
+			}
+		}
+	}
+
+	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len)
+	{
+		__asm
+		{
+			push edi
+			push ebx
+
+			mov eax, len
+			mov edi, where
+			push data
+
+			mov ebx, 5112C0h
+			call ebx
+			add esp, 4
+
+			pop ebx
+			pop edi
 		}
 	}
 }

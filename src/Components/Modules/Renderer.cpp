@@ -7,6 +7,9 @@ namespace Components
 	wink::signal<wink::slot<Renderer::Callback>> Renderer::FrameOnceSignal;
 	wink::signal<wink::slot<Renderer::BackendCallback>> Renderer::BackendFrameSignal;
 
+	wink::signal<wink::slot<Renderer::Callback>> Renderer::EndRecoverDeviceSignal;
+	wink::signal<wink::slot<Renderer::Callback>> Renderer::BeginRecoverDeviceSignal;
+
 	__declspec(naked) void Renderer::FrameStub()
 	{
 		__asm
@@ -62,6 +65,16 @@ namespace Components
 		Renderer::BackendFrameSignal.connect(callback);
 	}
 
+	void Renderer::OnDeviceRecoveryEnd(Renderer::Callback* callback)
+	{
+		Renderer::EndRecoverDeviceSignal.connect(callback);
+	}
+
+	void Renderer::OnDeviceRecoveryBegin(Renderer::Callback* callback)
+	{
+		Renderer::BeginRecoverDeviceSignal.connect(callback);
+	}
+
 	int Renderer::Width()
 	{
 		return Utils::Hook::Get<int>(0x66E1C68);
@@ -106,6 +119,18 @@ namespace Components
 		Renderer::DrawFrameHook.Initialize(0x5ACB99, Renderer::FrameStub, HOOK_CALL)->Install();
 
 		Utils::Hook(0x536A80, Renderer::BackendFrameStub, HOOK_JUMP).Install()->Quick();
+
+		Utils::Hook(0x508298, [] ()
+		{
+			Game::DB_BeginRecoverLostDevice();
+			Renderer::BeginRecoverDeviceSignal();
+		}, HOOK_CALL).Install()->Quick();
+
+		Utils::Hook(0x508355, [] ()
+		{
+			Renderer::EndRecoverDeviceSignal();
+			Game::DB_EndRecoverLostDevice();
+		}, HOOK_CALL).Install()->Quick();
 	}
 
 	Renderer::~Renderer()
@@ -114,5 +139,8 @@ namespace Components
 		Renderer::BackendFrameSignal.clear();
 		Renderer::FrameOnceSignal.clear();
 		Renderer::FrameSignal.clear();
+
+		Renderer::EndRecoverDeviceSignal.clear();
+		Renderer::BeginRecoverDeviceSignal.clear();
 	}
 }

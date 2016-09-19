@@ -6,7 +6,7 @@ namespace Components
 		Component() {};
 		virtual ~Component() {};
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		virtual const char* GetName() { return "Unknown"; };
 #endif
 
@@ -39,6 +39,7 @@ namespace Components
 #include "Modules\Flags.hpp"
 #include "Modules\Menus.hpp"
 #include "Modules\Toast.hpp"
+#include "Modules\Zones.hpp"
 #include "Modules\Colors.hpp"
 #include "Modules\D3D9Ex.hpp"
 #include "Modules\Script.hpp"
@@ -69,6 +70,7 @@ namespace Components
 #include "Modules\Singleton.hpp"
 #include "Modules\BitMessage.hpp"
 #include "Modules\FileSystem.hpp"
+#include "Modules\ModelSurfs.hpp"
 #include "Modules\PlayerName.hpp"
 #include "Modules\QuickPatch.hpp"
 #include "Modules\ServerInfo.hpp"

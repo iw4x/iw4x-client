@@ -45,6 +45,9 @@ namespace Game
 	typedef void(__cdecl * Cmd_ExecuteSingleCommand_t)(int localClientNum, int controllerIndex, const char* cmd);
 	extern Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand;
 
+	typedef void(__cdecl * Com_ClientPacketEvent_t)();
+	extern Com_ClientPacketEvent_t Com_ClientPacketEvent;
+
 	typedef void(__cdecl * Com_Error_t)(int type, char* message, ...);
 	extern Com_Error_t Com_Error;
 
@@ -62,6 +65,12 @@ namespace Game
 
 	typedef void (__cdecl * Con_DrawSolidConsole_t)();
 	extern Con_DrawSolidConsole_t Con_DrawSolidConsole;
+
+	typedef void(__cdecl * DB_BeginRecoverLostDevice_t)();
+	extern DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice;
+
+	typedef void(__cdecl * DB_EndRecoverLostDevice_t)();
+	extern DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice;
 
 	typedef void(__cdecl * DB_EnumXAssets_t)(XAssetType type, void(*)(XAssetHeader, void *), void* userdata, bool overrides);
 	extern DB_EnumXAssets_t DB_EnumXAssets;
@@ -89,6 +98,12 @@ namespace Game
 
 	typedef void(__cdecl * DB_ReadXFileUncompressed_t)(void* buffer, int size);
 	extern DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed;
+
+	typedef void(__cdecl * DB_ReleaseXAssetHandler_t)(XAssetHeader header);
+	extern DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers;
+
+	typedef void(__cdecl * DB_XModelSurfsFixup_t)(XModel* model);
+	extern DB_XModelSurfsFixup_t DB_XModelSurfsFixup;
 
 	typedef dvar_t* (__cdecl * Dvar_RegisterBool_t)(const char* name, bool default, int flags, const char* description);
 	extern Dvar_RegisterBool_t Dvar_RegisterBool;
@@ -206,6 +221,9 @@ namespace Game
 	typedef void(__cdecl * Image_Release_t)(GfxImage* image);
 	extern Image_Release_t Image_Release;
 
+	typedef void(__cdecl * LargeLocalInit_t)();
+	extern LargeLocalInit_t LargeLocalInit;
+
 	typedef void(__cdecl * Menus_CloseAll_t)(UiContext *dc);
 	extern Menus_CloseAll_t Menus_CloseAll;
 
@@ -266,6 +284,9 @@ namespace Game
 	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t a, netadr_t b);
 	extern NET_CompareAdr_t NET_CompareAdr;
 
+	typedef void(__cdecl * NET_Init_t)();
+	extern NET_Init_t NET_Init;
+
 	typedef bool(__cdecl * NET_IsLocalAddress_t)(netadr_t adr);
 	extern NET_IsLocalAddress_t NET_IsLocalAddress;
 
@@ -316,6 +337,9 @@ namespace Game
 
 	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
 	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;
+
+	typedef void* (__cdecl * R_AllocStaticIndexBuffer_t)(IDirect3DIndexBuffer9** store, int length);
+	extern R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer;
 
 	typedef bool(__cdecl * R_Cinematic_StartPlayback_Now_t)();
 	extern R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now;
@@ -518,4 +542,7 @@ namespace Game
 
 	void IN_KeyUp(kbutton_t* button);
 	void IN_KeyDown(kbutton_t* button);
+
+	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count);
+	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len);
 }

@@ -424,4 +424,46 @@ namespace Components
 	{
 		QuickPatch::ShutdownSignal.clear();
 	}
+
+	bool QuickPatch::UnitTest()
+	{
+		uint32_t randIntCount = 4'000'000;
+		printf("Generating %d random integers...", randIntCount);
+
+		auto startTime = std::chrono::high_resolution_clock::now();
+
+		for (uint32_t i = 0; i < randIntCount; ++i)
+		{
+			Utils::Cryptography::Rand::GenerateInt();
+		}
+
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
+		Logger::Print("took %llims\n", duration);
+
+		printf("Testing ZLib compression...");
+
+		std::string test = fmt::sprintf("%c", Utils::Cryptography::Rand::GenerateInt());
+
+		for (int i = 0; i < 21; ++i)
+		{
+			std::string compressed = Utils::Compression::ZLib::Compress(test);
+			std::string decompressed = Utils::Compression::ZLib::Decompress(compressed);
+
+			if (test != decompressed)
+			{
+				printf("Error\n");
+				printf("Compressing %d bytes and decompressing failed!\n", test.size());
+				return false;
+			}
+
+			auto size = test.size();
+			for (unsigned int j = 0; j < size; ++j)
+			{
+				test.append(fmt::sprintf("%c", Utils::Cryptography::Rand::GenerateInt()));
+			}
+		}
+
+		printf("Success\n");
+		return true;
+	}
 }

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	int AntiCheat::LastCheck = 0;
+	int AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::LoadLibHook[4];
 	unsigned long AntiCheat::Flags = NO_FLAG;
@@ -92,7 +92,15 @@ namespace Components
 		MessageBoxA(0, "Check the log for more information!", "AntiCheat triggered", MB_ICONERROR);
 		ExitProcess(0xFFFFFFFF);
 #else
-		Utils::Hook::Set<BYTE>(0x41BA2C, 0xEB);
+		static std::thread triggerThread;
+		if (!triggerThread.joinable())
+		{
+			triggerThread = std::thread([] ()
+			{
+				std::this_thread::sleep_for(43s);
+				Utils::Hook::Set<BYTE>(0x41BA2C, 0xEB);
+			});
+		}
 #endif
 	}
 #endif
@@ -112,8 +120,7 @@ namespace Components
 			Logger::Print(Utils::String::VA("AntiCheat: Callee assertion failed: %X %s", reinterpret_cast<uint32_t>(callee), buffer));
 #endif
 
-			//AntiCheat::CrashClient();
-			AntiCheat::Hash.append("\0", 1);
+			AntiCheat::CrashClient();
 		}
 	}
 
@@ -161,8 +168,10 @@ namespace Components
 	{
 		static int lastCheck = Game::Sys_Milliseconds();
 		
-		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 70)
+		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 20)
 		{
+			lastCheck = Game::Sys_Milliseconds();
+
 			if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
 			{
 #ifdef DEBUG_DETECTIONS
@@ -170,7 +179,7 @@ namespace Components
 #endif
 
 				CloseHandle(h);
-				AntiCheat::Hash.append("\0", 1);
+				AntiCheat::CrashClient();
 			}
 		}
 
@@ -182,7 +191,7 @@ namespace Components
 	{
 		static int lastCheck = Game::Sys_Milliseconds();
 
-		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 180)
+		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 30)
 		{
 			lastCheck = Game::Sys_Milliseconds();
 
@@ -208,10 +217,8 @@ namespace Components
 		if (lastCheck) count = 0;
 		else ++count;
 
-		if (milliseconds < 1000 * 40) return;
-
 		// If there was no check within the last 120 seconds, crash!
-		if ((lastCheck && (milliseconds - lastCheck) > 1000 * 120) || count > 1)
+		if ((milliseconds > 1000 * 25) && ((lastCheck && (milliseconds - lastCheck) > 1000 * 40) || count > 1))
 		{
 #ifdef DEBUG_DETECTIONS
 			Logger::Print("AntiCheat: Integrity check failed");
@@ -254,7 +261,7 @@ namespace Components
 	void AntiCheat::Frame()
 	{
 		// Perform check only every 30 seconds
-		if (AntiCheat::LastCheck && (Game::Sys_Milliseconds() - AntiCheat::LastCheck) < 1000 * 30) return;
+		if (AntiCheat::LastCheck && (Game::Sys_Milliseconds() - AntiCheat::LastCheck) < 1000 * 10) return;
 		AntiCheat::LastCheck = Game::Sys_Milliseconds();
 
 		AntiCheat::PerformCheck();
@@ -627,6 +634,9 @@ namespace Components
 
 	AntiCheat::AntiCheat()
 	{
+		AntiCheat::Flags = NO_FLAG;
+		AntiCheat::LastCheck = 0;
+
 		AntiCheat::EmptyHash();
 
 #ifdef DEBUG

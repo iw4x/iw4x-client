@@ -147,11 +147,13 @@ namespace Components
 	{
 		Game::DB_ReadXFileUncompressed(version, size);
 
-		// Allow loading out custom version
+		// Allow loading of custom version
 		if (*version == XFILE_VERSION_IW4X)
 		{
 			*version = XFILE_VERSION;
 		}
+
+		Zones::InstallPatches(*version);
 	}
 
 	FastFiles::FastFiles()

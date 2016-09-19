@@ -7,18 +7,20 @@ namespace Components
 		class File
 		{
 		public:
-			File() {};
-			File(std::string file) : FilePath(file) { this->Read(); };
+			File() : Size(-1), Name(), Handle(0) {};
+			File(std::string file);
+			~File();
 
-			bool Exists() { return !this->Buffer.empty(); };
-			std::string GetName() { return this->FilePath; };
-			std::string& GetBuffer() { return this->Buffer; };
+			bool Exists();
+			std::string GetName();
+			std::string GetBuffer();
+			bool Read(void* buffer, size_t size);
+			void Seek(int offset, int origin);
 
 		private:
-			std::string FilePath;
-			std::string Buffer;
-
-			void Read();
+			int Handle;
+			int Size;
+			std::string Name;
 		};
 
 		class FileWriter
@@ -39,7 +41,7 @@ namespace Components
 
 		FileSystem();
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "FileSystem"; };
 #endif
 
