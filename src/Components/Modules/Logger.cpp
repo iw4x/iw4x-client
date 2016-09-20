@@ -85,14 +85,14 @@ namespace Components
 
 	void Logger::Flush()
 	{
-		if (!Game::Sys_IsMainThread())
-		{
-			while (!Logger::MessageQueue.empty())
-			{
-				std::this_thread::sleep_for(10ms);
-			}
-		}
-		else
+// 		if (!Game::Sys_IsMainThread())
+// 		{
+// 			while (!Logger::MessageQueue.empty())
+// 			{
+// 				std::this_thread::sleep_for(10ms);
+// 			}
+// 		}
+// 		else
 		{
 			Logger::Frame();
 		}

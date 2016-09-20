@@ -789,10 +789,12 @@ namespace Components
 
 	void Zones::InstallPatches(int version)
 	{
-		bool patch = (version >= VERSION_ALPHA2);
- 		Zones::ZoneVersion = version;
 		AssetHandler::ClearRelocations();
 
+		if (Zones::ZoneVersion == version) return;
+		Zones::ZoneVersion = version;
+
+		bool patch = (version >= VERSION_ALPHA2);
 		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == XFILE_VERSION)
 		{
 			Utils::Hook::Set<DWORD>(0x4158F4, version);
@@ -890,6 +892,8 @@ namespace Components
 
 	Zones::Zones()
 	{
+		Zones::ZoneVersion = 0;
+
 		// Ignore missing soundaliases for now
 		// TODO: Include them in the dependency zone!
 		Utils::Hook::Nop(0x644207, 5);
