@@ -11,7 +11,7 @@ msbuild /version >NUL 2>NUL
 if errorlevel 0 goto:build
 
 echo Couldn't find any MSBuild to build this project.
-echo Make sure you have Microsoft Build Tools 2015 or Visual Studio 2015 installed.
+echo Make sure you have Visual C++ Build Tools 2015 or Visual Studio 2015 installed.
 endlocal
 exit /B 1
 
