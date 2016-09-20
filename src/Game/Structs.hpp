@@ -368,6 +368,19 @@ namespace Game
 		void *stateBitTable;
 	};
 
+	struct TracerDef
+	{
+		const char * name;
+		Material * material;
+		unsigned int drawInterval;
+		float speed;
+		float beamLength;
+		float beamWidth;
+		float screwRadius;
+		float screwDist;
+		float colors[5][4];
+	};
+
 	struct keyname_t
 	{
 		const char *name;
@@ -2309,6 +2322,7 @@ namespace Game
 		FxEffectDef* fx;
 		GameMap_MP* gameMapMP;
 		GameMap_SP* gameMapSP;
+		TracerDef* tracer;
 	};
 
 	struct XAsset

@@ -83,6 +83,21 @@ namespace Components
 		return buffer;
 	}
 
+	void Logger::Flush()
+	{
+		if (!Game::Sys_IsMainThread())
+		{
+			while (!Logger::MessageQueue.empty())
+			{
+				std::this_thread::sleep_for(10ms);
+			}
+		}
+		else
+		{
+			Logger::Frame();
+		}
+	}
+
 	void Logger::Frame()
 	{
 		std::lock_guard<std::mutex> _(Logger::MessageMutex);

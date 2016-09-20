@@ -1,3 +1,6 @@
+#define VERSION_ALPHA2 316
+#define VERSION_ALPHA3 318//319
+
 namespace Components
 {
 	class Zones : public Component
