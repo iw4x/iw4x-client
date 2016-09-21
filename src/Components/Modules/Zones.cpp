@@ -520,7 +520,7 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, 48);
 
-		memcpy(buffer + 28, buffer + 32, 16);
+		memmove(buffer + 28, buffer + 32, 16);
 		AssetHandler::Relocate(buffer + 32, buffer + 28, 16);
 
 		return result;
@@ -536,7 +536,7 @@ namespace Components
 
 		AssetHandler::Relocate(buffer + 400, buffer + 408, 388);
 
-		memcpy(buffer, vehicle, sizeof(788));
+		memcpy(buffer, vehicle, 788);
 
 		return result;
 	}
