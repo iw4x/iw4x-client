@@ -17,5 +17,15 @@ namespace Components
 
 	//private:
 		static int ZoneVersion;
+
+		static Utils::Hook LoadFxElemDefHook;
+		static Utils::Hook LoadFxElemDefArrayHook;
+		static Utils::Hook LoadXModelLodInfoHook;
+
+		static void LoadFxElemDefArrayStub(bool atStreamStart);
+		static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
+
+		static void LoadXModelLodInfo(int i);
+		static void LoadXModelLodInfoStub();
 	};
 }

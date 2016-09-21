@@ -242,6 +242,9 @@ namespace Game
 	typedef void(__cdecl * Load_XModelPtr_t)(bool atStreamStart);
 	extern Load_XModelPtr_t Load_XModelPtr;
 
+	typedef void(__cdecl * Load_XModelSurfsFixup_t)(XModelSurfs **, XModelLodInfo *);
+	extern Load_XModelSurfsFixup_t Load_XModelSurfsFixup;
+
 	typedef void(__cdecl * Load_XStringArray_t)(bool atStreamStart, int count);
 	extern Load_XStringArray_t Load_XStringArray;
 
@@ -250,6 +253,9 @@ namespace Game
 
 	typedef void(__cdecl *Load_FxEffectDefHandle_t)(bool atStreamStart);
 	extern Load_FxEffectDefHandle_t Load_FxEffectDefHandle;
+
+	typedef void(__cdecl *Load_FxElemDef_t)(bool atStreamStart);
+	extern Load_FxElemDef_t Load_FxElemDef;
 
 	typedef void(__cdecl * Load_SndAliasCustom_t)(snd_alias_list_t** var);
 	extern Load_SndAliasCustom_t Load_SndAliasCustom;
@@ -559,9 +565,10 @@ namespace Game
 
 	extern mapname_t* mapnames;
 
-	extern const char** varXString;
+	extern char*** varXString;
 	extern TracerDef** varTracerDefPtr;
 	extern XModel** varXModelPtr;
+	extern XModel** varXModel;
 	extern const char** varConstChar;
 	extern Material** varMaterialHandle;
 	extern FxEffectDef** varFxEffectDefHandle;

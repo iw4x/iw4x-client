@@ -4,9 +4,13 @@ namespace Components
 {
 	int Zones::ZoneVersion;
 
+	Utils::Hook Zones::LoadFxElemDefHook;
+	Utils::Hook Zones::LoadFxElemDefArrayHook;
+	Utils::Hook Zones::LoadXModelLodInfoHook;
+
 	Utils::Hook fxEffectLoadHook;
 
-	static DWORD fxEffectStringValue[64];
+	static char* fxEffectStringValue[64];
 	static int fxEffectIndex = 0;
 
 	void FxEffectLoadHookFunc(int a1, char* buffer, int len)
@@ -34,7 +38,7 @@ namespace Components
 
 			memcpy(tempVar + (252 * i), buffer + (260 * i), 252);
 
-			fxEffectStringValue[i] = *(DWORD*)(buffer + (260 * i) + 256);
+			fxEffectStringValue[i] = *(char**)(buffer + (260 * i) + 256);
 		}
 
 		memcpy(buffer, tempVar, len);
@@ -42,67 +46,25 @@ namespace Components
 		delete[] tempVar;
 	}
 
-	Utils::Hook fxEffectModifyHook;
-
-	void FxEffectModifyHookFunc(int a1, char* buffer, size_t len)
+	bool Zones::LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size)
 	{
-		char typeNum = *(char*)(buffer + 176);
-
-		//DBG(("ot %i\n", typeNum));
-
-		if (typeNum == 3)
+		if (fxElem->elemType == 3)
 		{
-			typeNum = 2;
+			fxElem->elemType = 2;
 		}
-		else if (typeNum >= 5)
+		else if (fxElem->elemType >= 5)
 		{
-			typeNum -= 2;
+			fxElem->elemType -= 2;
 		}
 
-		/*if (typeNum >= 2)
-		{
-		typeNum -= 2;
-		}*/
-
-		*(char*)(buffer + 176) = typeNum;
-
-		__asm
-		{
-			push len
-			push buffer
-			push a1
-			call fxEffectModifyHook.Original
-			add esp, 0Ch
-		}
+		return Game::Load_Stream(atStreamStart, fxElem, size);
 	}
 
-	Utils::Hook fxEffectTailHook;
-
-	void FxEffectTailHookFunc()
+	void Zones::LoadFxElemDefArrayStub(bool atStreamStart)
 	{
-		*Game::varXString = (char*)&fxEffectStringValue[fxEffectIndex++];
-
-		// Load_XStringPtr(0)
-		__asm
-		{
-			mov eax, 47FDA0h
-
-			push 0
-			call eax
-			add esp, 4h
-		}
-	}
-
-	void __declspec(naked) FxEffectTailHookStub()
-	{
-		__asm
-		{
-			push 0
-			call fxEffectTailHook.Original
-			add esp, 4
-
-			jmp FxEffectTailHookFunc
-		}
+		Game::Load_FxElemDef(atStreamStart);
+		*Game::varXString = &fxEffectStringValue[fxEffectIndex++];
+		Game::Load_XString(0);
 	}
 
 	Utils::Hook xModelModifyHook;
@@ -151,35 +113,22 @@ namespace Components
 		memcpy(buffer, tempVar, elSize);
 	}
 
-	Utils::Hook xLodTailHook;
-
-	void XModelLODTailHookFunc(int i)
+	void Zones::LoadXModelLodInfo(int i)
 	{
 		int elSize = (Zones::ZoneVersion == VERSION_ALPHA2) ? 364 : 360;
-		i = (4 - i)/* + 1*/;
-
-		// varXString = (varXModel + 0x16C - (4 * i)) // where the above function parked the new xstring
-		*Game::varXString = (char*)((*(DWORD*)0x112AE14) + (elSize - 4)) - (4 * i);
-
+		*Game::varXString = reinterpret_cast<char**>(reinterpret_cast<char*>(*Game::varXModel) + (elSize - 4) - (4 * (4 - i)));
 		Game::Load_XString(false);
 	}
 
-	void __declspec(naked) XModelLODTailHookStub()
+	void __declspec(naked) Zones::LoadXModelLodInfoStub()
 	{
 		__asm
 		{
 			push edi
-			call XModelLODTailHookFunc
-			add esp, 4h
+			call Zones::LoadXModelLodInfo
+			pop edi
 
-			mov eax, [esp + 8h]
-			push eax
-			add eax, 8
-			push eax
-			call xLodTailHook.Original
-			add esp, 8h
-
-			retn
+			jmp Game::Load_XModelSurfsFixup
 		}
 	}
 
@@ -233,16 +182,16 @@ namespace Components
 
 		Game::DB_PushStreamPos(3);
 
-		*Game::varXString = (char*)varWeaponDef + 0;
+		*Game::varXString = (char**)(varWeaponDef + 0);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 4;
+		*Game::varXString = (char**)(varWeaponDef + 4);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 8;
+		*Game::varXString = (char**)(varWeaponDef + 8);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 12;
+		*Game::varXString = (char**)(varWeaponDef + 12);
 		Game::Load_XString(false);
 
 		*Game::varXModelPtr = (Game::XModel*)(varWeaponDef + 16);
@@ -265,15 +214,15 @@ namespace Components
 		// 32 scriptstrings, should not need to be loaded
 
 		// 236
-		*Game::varXString = (char*)varWeaponDef + 236;
+		*Game::varXString = (char**)(varWeaponDef + 236);
 		Game::Load_XStringArray(false, 48);
 
 		// 428
-		*Game::varXString = (char*)varWeaponDef + 428;
+		*Game::varXString = (char**)(varWeaponDef + 428);
 		Game::Load_XStringArray(false, 48);
 
 		// 620
-		*Game::varXString = (char*)varWeaponDef + 620;
+		*Game::varXString = (char**)(varWeaponDef + 620);
 		Game::Load_XStringArray(false, 48);
 
 		// 812
@@ -351,13 +300,13 @@ namespace Components
 			Game::Load_MaterialHandle(false);
 		}
 
-		*Game::varXString = (char*)varWeaponDef + 1484;
+		*Game::varXString = (char**)(varWeaponDef + 1484);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 1492;
+		*Game::varXString = (char**)(varWeaponDef + 1492);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 1508;
+		*Game::varXString = (char**)(varWeaponDef + 1508);
 		Game::Load_XString(false);
 
 		for (int offset = 1764; offset <= 1776; offset += 4)
@@ -396,7 +345,7 @@ namespace Components
 		*Game::varsnd_alias_list_name = (Game::snd_alias_list_t**)(varWeaponDef + 2372); // 2380
 		Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 
-		*Game::varXString = (char*)varWeaponDef + 2548; // 2556
+		*Game::varXString = (char**)(varWeaponDef + 2548); // 2556
 		Game::Load_XString(false);
 
 		if (*(DWORD*)(varWeaponDef + 2556) == -1) // 2564
@@ -407,7 +356,7 @@ namespace Components
 			Game::Load_Stream(1, (void*)vec2, 8 * *(short*)(varWeaponDef + ((Zones::ZoneVersion >= 318) ? 3076 : 3040)));
 		}
 
-		*Game::varXString = (char*)varWeaponDef + 2552;
+		*Game::varXString = (char**)(varWeaponDef + 2552);
 		Game::Load_XString(false);
 
 		if (*(DWORD*)(varWeaponDef + 2560) == -1)
@@ -418,22 +367,22 @@ namespace Components
 			Game::Load_Stream(1, (void*)vec2, 8 * *(short*)(varWeaponDef + ((Zones::ZoneVersion >= 318) ? 3078 : 3042)));
 		}
 
-		*Game::varXString = (char*)varWeaponDef + 2640;
+		*Game::varXString = (char**)(varWeaponDef + 2640);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 2644;
+		*Game::varXString = (char**)(varWeaponDef + 2644);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 2676;
+		*Game::varXString = (char**)(varWeaponDef + 2676);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 2680;
+		*Game::varXString = (char**)(varWeaponDef + 2680);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 2804;
+		*Game::varXString = (char**)(varWeaponDef + 2804);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 2808;
+		*Game::varXString = (char**)(varWeaponDef + 2808);
 		Game::Load_XString(false);
 
 		*Game::varTracerDefPtr = (Game::TracerDef*)(varWeaponDef + 2812);
@@ -445,7 +394,7 @@ namespace Components
 		*Game::varFxEffectDefHandle = (Game::FxEffectDef*)(varWeaponDef + 2844);
 		Game::Load_FxEffectDefHandle(false);
 
-		*Game::varXString = (char*)varWeaponDef + 2848;
+		*Game::varXString = (char**)(varWeaponDef + 2848);
 		Game::Load_XString(false);
 
 		*Game::varsnd_alias_list_name = (Game::snd_alias_list_t**)(varWeaponDef + 2864);
@@ -479,13 +428,13 @@ namespace Components
 
 		}
 
-		*Game::varXString = (char*)varWeaponDef + 2984;
+		*Game::varXString = (char**)(varWeaponDef + 2984);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 2996;
+		*Game::varXString = (char**)(varWeaponDef + 2996);
 		Game::Load_XString(false);
 
-		*Game::varXString = (char*)varWeaponDef + 3000;
+		*Game::varXString = (char**)(varWeaponDef + 3000);
 		Game::Load_XString(false);
 
 		*Game::varMaterialHandle = (Game::Material*)(varWeaponDef + 3008);
@@ -831,10 +780,10 @@ namespace Components
 
 		if (patch)
 		{
-			fxEffectTailHook.Install();
-			fxEffectModifyHook.Install();
+			Zones::LoadFxElemDefArrayHook.Install();
+			Zones::LoadFxElemDefHook.Install();
 
-			xLodTailHook.Install();
+			Zones::LoadXModelLodInfoHook.Install();
 			xModelModifyHook.Install();
 
 			xsurfaceIntLoadHook.Install();
@@ -861,10 +810,10 @@ namespace Components
 		}
 		else
 		{
-			fxEffectTailHook.Uninstall();
-			fxEffectModifyHook.Uninstall();
+			Zones::LoadFxElemDefArrayHook.Uninstall();
+			Zones::LoadFxElemDefHook.Uninstall();
 
-			xLodTailHook.Uninstall();
+			Zones::LoadXModelLodInfoHook.Uninstall();
 			xModelModifyHook.Uninstall();
 
 			xsurfaceIntLoadHook.Uninstall();
@@ -901,9 +850,9 @@ namespace Components
 		// Block Mark_pathnode_constant_t
 		Utils::Hook::Set<BYTE>(0x4F74B0, 0xC3);
 
-		fxEffectTailHook.Initialize(0x495938, FxEffectTailHookStub, HOOK_CALL);
-		fxEffectModifyHook.Initialize(0x45ADA0, FxEffectModifyHookFunc, HOOK_CALL);
-		xLodTailHook.Initialize(0x4EA6FE, XModelLODTailHookStub, HOOK_CALL);
+		Zones::LoadFxElemDefArrayHook.Initialize(0x495938, Zones::LoadFxElemDefArrayStub, HOOK_CALL);
+		Zones::LoadFxElemDefHook.Initialize(0x45ADA0, Zones::LoadFxElemDefStub, HOOK_CALL);
+		Zones::LoadXModelLodInfoHook.Initialize(0x4EA6FE, Zones::LoadXModelLodInfoStub, HOOK_CALL);
 		xModelModifyHook.Initialize(0x410D90, XModelModifyHookFunc, HOOK_CALL);
 		xsurfaceIntLoadHook.Initialize(0x4925C8, XSurfaceIntLoadHookFunc, HOOK_CALL);
 		gameWorldSpLoadHook.Initialize(0x4F4D0D, GameWorldSpLoadHookFunc, HOOK_CALL);

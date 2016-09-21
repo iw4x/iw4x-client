@@ -102,9 +102,11 @@ namespace Game
 	Load_Stream_t Load_Stream = (Load_Stream_t)0x470E30;
 	Load_XString_t Load_XString = (Load_XString_t)0x47FDA0;
 	Load_XModelPtr_t Load_XModelPtr = (Load_XModelPtr_t)0x4FCA70;
+	Load_XModelSurfsFixup_t Load_XModelSurfsFixup = (Load_XModelSurfsFixup_t)0x40D7A0;
 	Load_XStringArray_t Load_XStringArray = (Load_XStringArray_t)0x4977F0;
 	Load_XStringCustom_t Load_XStringCustom = (Load_XStringCustom_t)0x4E0DD0;
 	Load_FxEffectDefHandle_t Load_FxEffectDefHandle = (Load_FxEffectDefHandle_t)0x4D9B90;
+	Load_FxElemDef_t Load_FxElemDef = (Load_FxElemDef_t)0x45AD90;
 	Load_SndAliasCustom_t Load_SndAliasCustom = (Load_SndAliasCustom_t)0x49B6B0;
 	Load_MaterialHandle_t Load_MaterialHandle = (Load_MaterialHandle_t)0x403960;
 	Load_PhysCollmapPtr_t Load_PhysCollmapPtr = (Load_PhysCollmapPtr_t)0x47E990;
@@ -273,9 +275,10 @@ namespace Game
 
 	mapname_t* mapnames = (mapname_t*)0x7471D0;
 
-	const char** varXString = (const char**)0x112B340;
+	char*** varXString = (char***)0x112B340;
 	TracerDef** varTracerDefPtr = (TracerDef**)0x112B3BC;
 	XModel** varXModelPtr = (XModel**)0x112A934;
+	XModel** varXModel = (XModel**)0x112AE14;
 	const char** varConstChar = (const char**)0x112A774;
 	Material** varMaterialHandle = (Material**)0x112A878;
 	FxEffectDef** varFxEffectDefHandle = (FxEffectDef**)0x112ACC0;
