@@ -569,6 +569,7 @@ namespace Game
 	extern TracerDef** varTracerDefPtr;
 	extern XModel** varXModelPtr;
 	extern XModel** varXModel;
+	extern PathData** varPathData;
 	extern const char** varConstChar;
 	extern Material** varMaterialHandle;
 	extern FxEffectDef** varFxEffectDefHandle;

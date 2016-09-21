@@ -1415,9 +1415,9 @@ namespace Game
 		short numSurfs; // +4
 		short maxSurfs;// +6
 		XModelSurfs* surfaces; // +8
-		char pad3[24];
+		char pad3[24]; // +12
 		XSurface* surfs;
-		char pad4[4]; // +12
+		char pad4[4]; 
 	};
 
 	struct cplane_t
@@ -2281,18 +2281,35 @@ namespace Game
 		char pad[112];
 	};
 
-	struct GameMap_SP
+	struct PathData
+	{
+		char pad[40];
+	};
+
+	struct VehicleTrack
+	{
+		char pad[8];
+	};
+
+	struct GameWorldSp
 	{
 		const char* name;
-		char pad[48];
+		PathData pathData;
+		VehicleTrack vehicleTrack;
 		GameMap_Data* data;
 	};
 
 
-	struct GameMap_MP
+	struct GameWorldMp
 	{
 		const char* name;
 		GameMap_Data* data;
+	};
+
+	struct VehicleDef
+	{
+		const char* name;
+		char pad[716];
 	};
 
 	union XAssetHeader
@@ -2320,9 +2337,10 @@ namespace Game
 		XAnimParts* xanim;
 		clipMap_t* clipMap;
 		FxEffectDef* fx;
-		GameMap_MP* gameMapMP;
-		GameMap_SP* gameMapSP;
+		GameWorldMp* gameMapMP;
+		GameWorldSp* gameMapSP;
 		TracerDef* tracer;
+		VehicleDef* vehicle;
 	};
 
 	struct XAsset

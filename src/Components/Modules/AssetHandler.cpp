@@ -50,16 +50,19 @@ namespace Components
 	{
 		Game::XAssetHeader header = { 0 };
 
-		// Allow call DB_FindXAssetHeader within the hook
-		AssetHandler::BypassState = true;
-
-		if (AssetHandler::TypeCallbacks.find(type) != AssetHandler::TypeCallbacks.end())
+		if (filename)
 		{
-			header = AssetHandler::TypeCallbacks[type](type, filename);
-		}
+			// Allow call DB_FindXAssetHeader within the hook
+			AssetHandler::BypassState = true;
 
-		// Disallow calling DB_FindXAssetHeader ;)
-		AssetHandler::BypassState = false;
+			if (AssetHandler::TypeCallbacks.find(type) != AssetHandler::TypeCallbacks.end())
+			{
+				header = AssetHandler::TypeCallbacks[type](type, filename);
+			}
+
+			// Disallow calling DB_FindXAssetHeader ;)
+			AssetHandler::BypassState = false;
+		}
 
 		return header;
 	}

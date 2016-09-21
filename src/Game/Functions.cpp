@@ -279,6 +279,7 @@ namespace Game
 	TracerDef** varTracerDefPtr = (TracerDef**)0x112B3BC;
 	XModel** varXModelPtr = (XModel**)0x112A934;
 	XModel** varXModel = (XModel**)0x112AE14;
+	PathData** varPathData = (PathData**)0x112AD7C;
 	const char** varConstChar = (const char**)0x112A774;
 	Material** varMaterialHandle = (Material**)0x112A878;
 	FxEffectDef** varFxEffectDefHandle = (FxEffectDef**)0x112ACC0;

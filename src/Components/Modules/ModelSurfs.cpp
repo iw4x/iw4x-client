@@ -100,10 +100,12 @@ namespace Components
 
 		for (int i = 0; i < modelSurfs->numSurfaces; ++i)
 		{
-			memcpy(&tempSurfaces[i], surfaceData + (i * 84), 12);
-			memcpy(&tempSurfaces[i].indexBuffer, surfaceData + (i * 84) + 16, 20);
-			memcpy(&tempSurfaces[i].numCT, surfaceData + (i * 84) + 40, 8);
-			memcpy(&tempSurfaces[i].something, surfaceData + (i * 84) + 52, 24);
+			char* source = &surfaceData[i * 84];
+
+			memcpy(&tempSurfaces[i], source, 12);
+			memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
+			memcpy(&tempSurfaces[i].numCT, source + 40, 8);
+			memcpy(&tempSurfaces[i].something, source + 52, 24);
 			tempSurfaces[i].streamHandle = 0xFF; // Fake handle for buffer interception
 		}
 

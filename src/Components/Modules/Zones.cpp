@@ -7,6 +7,13 @@ namespace Components
 	Utils::Hook Zones::LoadFxElemDefHook;
 	Utils::Hook Zones::LoadFxElemDefArrayHook;
 	Utils::Hook Zones::LoadXModelLodInfoHook;
+	Utils::Hook Zones::LoadXModelHook;
+	Utils::Hook Zones::LoadXSurfaceArrayHook;
+	Utils::Hook Zones::LoadGameWorldSpHook;
+	Utils::Hook Zones::LoadPathDataHook;
+	Utils::Hook Zones::LoadVehicleDefHook;
+	Utils::Hook Zones::Loadsnd_alias_tArrayHook;
+	Utils::Hook Zones::LoadLoadedSoundHook;
 
 	Utils::Hook fxEffectLoadHook;
 
@@ -67,50 +74,33 @@ namespace Components
 		Game::Load_XString(0);
 	}
 
-	Utils::Hook xModelModifyHook;
-
-	void XModelModifyHookFunc(int a1, char* buffer, size_t len)
+	bool Zones::LoadXModel(bool atStreamStart, char* xmodel, int size)
 	{
-		__asm
-		{
-			push len
-			push buffer
-			push a1
-			call xModelModifyHook.Original
-			add esp, 0Ch
-		}
+		bool result = Game::Load_Stream(atStreamStart, xmodel, size);
 
 		int elSize = (Zones::ZoneVersion == VERSION_ALPHA2) ? 364 : 360;
 
-		static unsigned char tempVar[364];
-		memcpy(&tempVar[0], &buffer[0], 36);
-		memcpy(&tempVar[36], &buffer[44], 28);
+		Game::XModel model[2]; // Allocate 2 models, as we exceed the buffer
 
-		//DB_AddRelocation((DWORD)buffer + 44, 28, (DWORD)buffer + 36);
+		memcpy(model, xmodel, 36);
+		memcpy(&model->pad3[0x1C], &xmodel[44], 28);
 
 		for (int i = 0; i < 4; i++)
 		{
-			//DB_AddRelocation((DWORD)buffer + 72 + (i * 56), 12, (DWORD)buffer + 64 + (i * 44));
-			//DB_AddRelocation((DWORD)buffer + 72 + (i * 56) + 12, 32, (DWORD)buffer + 64 + (i * 44) + 16);
+			memcpy(&model->lods[i], &xmodel[72 + (i * 56)], 12);
+			memcpy(&model->lods[i].pad3, &xmodel[72 + (i * 56) + 16], 32);
 
-			memcpy(&tempVar[64 + (i * 44)], &buffer[72 + (i * 56)], 12);
-			memcpy(&tempVar[64 + (i * 44) + 12], &buffer[72 + (i * 56) + 16], 32);
-
-			memcpy(&tempVar[(elSize - 4) - (i * 4)], &buffer[72 + (i * 56) + 12], 4);
+			memcpy(reinterpret_cast<char*>(&model) + (elSize - 4) - (i * 4), &xmodel[72 + (i * 56) + 12], 4);
 		}
 
-		//DB_AddRelocation((DWORD)buffer + 292, (elSize - 292 - 4), (DWORD)buffer + 236);
-		//DB_AddRelocation((DWORD)buffer + (elSize - 8), 8, (DWORD)buffer + 296);
+		memcpy(&model->lods[3].pad4[0], &xmodel[292], (elSize - 292 - 4)/*68*/);
+		memcpy(&model->physPreset, &xmodel[(elSize - 8)], 8);
 
-		memcpy(&tempVar[236], &buffer[292], (elSize - 292 - 4)/*68*/);
-		memcpy(&tempVar[296], &buffer[(elSize - 8)], 8);
+		model[1].name = reinterpret_cast<char*>(0xDEC0ADDE);
 
-		tempVar[304] = 0xDE;
-		tempVar[305] = 0xAD;
-		tempVar[306] = 0xC0;
-		tempVar[307] = 0xDE;
+		memcpy(xmodel, &model, elSize);
 
-		memcpy(buffer, tempVar, elSize);
+		return result;
 	}
 
 	void Zones::LoadXModelLodInfo(int i)
@@ -132,42 +122,31 @@ namespace Components
 		}
 	}
 
-	Utils::Hook xsurfaceIntLoadHook;
-
-	void XSurfaceIntLoadHookFunc(int a1, char* buffer, size_t len)
+	bool Zones::LoadXSurfaceArray(bool atStreamStart, char* buffer, int size)
 	{
-		len >>= 6;
+		size >>= 6;
 
-		int count = len;
-		len *= 84;
+		int count = size;
+		size *= 84;
 
-		__asm
-		{
-			push len
-			push buffer
-			push a1
-			call xsurfaceIntLoadHook.Original
-			add esp, 0Ch
-		}
+		bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
-		char* tempVar = new char[len];
+		Utils::Memory::Allocator allocator;
+		Game::XSurface* tempSurfaces = allocator.AllocateArray<Game::XSurface>(count);
 
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; ++i)
 		{
 			char* source = &buffer[i * 84];
-			char* dest = &tempVar[i * 64];
 
-			//memcpy(dest, source, 12);
-			//memcpy(dest + 12, source + 16, 72);
-			memcpy(dest, source, 12);
-			memcpy(dest + 12, source + 16, 20);
-			memcpy(dest + 32, source + 40, 8);
-			memcpy(dest + 40, source + 52, 24);
+			memcpy(&tempSurfaces[i], source, 12);
+			memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
+			memcpy(&tempSurfaces[i].numCT, source + 40, 8);
+			memcpy(&tempSurfaces[i].something, source + 52, 24);
 		}
 
-		memcpy(buffer, tempVar, len);
+		memcpy(buffer, tempSurfaces, sizeof(Game::XSurface) * count);
 
-		delete[] tempVar;
+		return result;
 	}
 
 	Utils::Hook loadWeaponDefHook;
@@ -465,27 +444,18 @@ namespace Components
 		Game::DB_PopStreamPos();
 	}
 
-	Utils::Hook gameWorldSpLoadHook;
-
-	void GameWorldSpLoadHookFunc(int a1, char* buffer, size_t len)
+	bool Zones::LoadGameWorldSp(bool atStreamStart, char* buffer)
 	{
-		len = 84;
+		bool result = Game::Load_Stream(atStreamStart, buffer, 84);
 
-		__asm
-		{
-			push len
-			push buffer
-			push a1
-			call gameWorldSpLoadHook.Original
-			add esp, 0Ch
-		}
+		Game::GameWorldSp world[2];
+		memcpy(&world, buffer, 44);
+		memcpy(&world[1], &buffer[44], 28);
+		memcpy(&world->vehicleTrack, &buffer[72], 12);
 
-		static char tempVar[84];
-		memcpy(&tempVar[0], &buffer[0], 44);
-		memcpy(&tempVar[56], &buffer[44], 28);
-		memcpy(&tempVar[44], &buffer[72], 12);
+		memcpy(buffer, world, 84);
 
-		memcpy(buffer, tempVar, sizeof(tempVar));
+		return result;
 	}
 
 	Utils::Hook pathDataTailHook;
@@ -517,84 +487,58 @@ namespace Components
 		}
 	}
 
-	Utils::Hook sndAliasLoadHook;
-
-	void SndAliasLoadHookFunc(int a1, char* buffer, size_t len)
+	bool Zones::Loadsnd_alias_tArray(bool atStreamStart, char* buffer, int len)
 	{
 		len /= 100;
 		int count = len;
 		len *= 108;
 
-		__asm
-		{
-			push len
-			push buffer
-			push a1
-			call gameWorldSpLoadHook.Original
-			add esp, 0Ch
-		}
+		bool result = Game::Load_Stream(atStreamStart, buffer, len);
 
-		char* tempVar = new char[len];
+		Utils::Memory::Allocator allocator;
+		Game::snd_alias_t* tempSounds = allocator.AllocateArray<Game::snd_alias_t>(count);
 
-		for (int i = 0; i < count; i++)
+ 		for (int i = 0; i < count; i++)
 		{
 			char* src = &buffer[i * 108];
-			char* dest = &tempVar[i * 100];
 
-			memcpy(dest + 0, src + 0, 60);
-			memcpy(dest + 60, src + 68, 20);
-			memcpy(dest + 80, src + 88, 20);
+			memcpy(&tempSounds[i],          src + 0,  60);
+			memcpy(&tempSounds[i].pad2[36], src + 68, 20);
+			memcpy(&tempSounds[i].pad2[56], src + 88, 20);
 
-			AssetHandler::Relocate((DWORD)src + 0, 60, (DWORD)(buffer + (i * 100)) + 0);
-			AssetHandler::Relocate((DWORD)src + 68, 20, (DWORD)(buffer + (i * 100)) + 60);
-			AssetHandler::Relocate((DWORD)src + 88, 20, (DWORD)(buffer + (i * 100)) + 80);
+			AssetHandler::Relocate(src + 0,  buffer + (i * 100) + 0,  60);
+			AssetHandler::Relocate(src + 68, buffer + (i * 100) + 60, 20);
+			AssetHandler::Relocate(src + 88, buffer + (i * 100) + 80, 20);
 		}
 
-		memcpy(buffer, tempVar, len);
-		delete[] tempVar;
+		memcpy(buffer, tempSounds, sizeof(Game::snd_alias_t) * count);
+
+		return result;
 	}
 
-	Utils::Hook mssSoundLoadHook;
-
-	void MssSoundLoadHookFunc(int a1, char* buffer, size_t len)
+	bool Zones::LoadLoadedSound(bool atStreamStart, char* buffer)
 	{
-		len = 48;
-
-		__asm
-		{
-			push len
-			push buffer
-			push a1
-			call gameWorldSpLoadHook.Original
-			add esp, 0Ch
-		}
+		bool result = Game::Load_Stream(atStreamStart, buffer, 48);
 
 		memcpy(buffer + 28, buffer + 32, 16);
-		AssetHandler::Relocate((DWORD)buffer + 32, 16, (DWORD)buffer + 28);
+		AssetHandler::Relocate(buffer + 32, buffer + 28, 16);
+
+		return result;
 	}
 
-	Utils::Hook vehicleLoadHook;
-
-	void VehicleLoadHookFunc(int a1, char* buffer, int len)
+	bool Zones::LoadVehicleDef(bool atStreamStart, char* buffer)
 	{
-		len = 788;
+		bool result = Game::Load_Stream(atStreamStart, buffer, 788);
+		
+		Game::VehicleDef vehicle[2];
+		memcpy(vehicle, &buffer[0], 400);
+		memcpy(&vehicle->pad[404], &buffer[400], 388);
 
-		__asm
-		{
-			push len
-			push buffer
-			push a1
-			call vehicleLoadHook.Original
-			add esp, 0Ch
-		}
+		AssetHandler::Relocate(buffer + 400, buffer + 408, 388);
 
-		static char tempVar[788];
-		memcpy(&tempVar[0], &buffer[0], 400);
-		memcpy(&tempVar[408], &buffer[400], 388);
+		memcpy(buffer, vehicle, sizeof(788));
 
-		AssetHandler::Relocate((DWORD)buffer + 400, 388, (DWORD)buffer + 408);
-
-		memcpy(buffer, tempVar, sizeof(tempVar));
+		return result;
 	}
 
 	Utils::Hook loadWeaponAttachHook;
@@ -674,13 +618,6 @@ namespace Components
 		Load_WeaponAttachStuff(*(int*)(varWeaponAttach + 4));
 
 		Game::DB_PopStreamPos();
-	}
-
-	Utils::Hook gameWorldSpIntHook;
-
-	void GameWorldSpIntHookFunc(int /*doLoad*/)
-	{
-		memset(*(void**)0x112AD7C, 0, 40);
 	}
 
 	Utils::Hook loadTechniquePassHook;
@@ -784,17 +721,17 @@ namespace Components
 			Zones::LoadFxElemDefHook.Install();
 
 			Zones::LoadXModelLodInfoHook.Install();
-			xModelModifyHook.Install();
+			Zones::LoadXModelHook.Install();
 
-			xsurfaceIntLoadHook.Install();
-			gameWorldSpLoadHook.Install();
+			Zones::LoadXSurfaceArrayHook.Install();
+			Zones::LoadGameWorldSpHook.Install();
 			pathDataTailHook.Install();
 
 			loadWeaponDefHook.Install();
-			vehicleLoadHook.Install();
+			Zones::LoadVehicleDefHook.Install();
 
-			sndAliasLoadHook.Install();
-			mssSoundLoadHook.Install();
+			Zones::Loadsnd_alias_tArrayHook.Install();
+			Zones::LoadLoadedSoundHook.Install();
 			menuDefLoadHook.Install();
 			fxEffectLoadHook.Install();
 
@@ -802,7 +739,7 @@ namespace Components
 
 			if (Zones::ZoneVersion >= VERSION_ALPHA3)
 			{
-				gameWorldSpIntHook.Install();
+				Zones::LoadPathDataHook.Install();
 			}
 
 			loadTechniquePassHook.Install();
@@ -814,23 +751,23 @@ namespace Components
 			Zones::LoadFxElemDefHook.Uninstall();
 
 			Zones::LoadXModelLodInfoHook.Uninstall();
-			xModelModifyHook.Uninstall();
+			Zones::LoadXModelHook.Uninstall();
 
-			xsurfaceIntLoadHook.Uninstall();
-			gameWorldSpLoadHook.Uninstall();
+			Zones::LoadXSurfaceArrayHook.Uninstall();
+			Zones::LoadGameWorldSpHook.Uninstall();
 			pathDataTailHook.Uninstall();
 
 			loadWeaponDefHook.Uninstall();
-			vehicleLoadHook.Uninstall();
+			Zones::LoadVehicleDefHook.Uninstall();
 
-			sndAliasLoadHook.Uninstall();
-			mssSoundLoadHook.Uninstall();
+			Zones::Loadsnd_alias_tArrayHook.Uninstall();
+			Zones::LoadLoadedSoundHook.Uninstall();
 			menuDefLoadHook.Uninstall();
 			fxEffectLoadHook.Uninstall();
 
 			loadWeaponAttachHook.Uninstall();
 
-			gameWorldSpIntHook.Uninstall();
+			Zones::LoadPathDataHook.Uninstall();
 
 			loadTechniquePassHook.Uninstall();
 			loadStructuredDataChildArrayHook.Uninstall();
@@ -853,21 +790,25 @@ namespace Components
 		Zones::LoadFxElemDefArrayHook.Initialize(0x495938, Zones::LoadFxElemDefArrayStub, HOOK_CALL);
 		Zones::LoadFxElemDefHook.Initialize(0x45ADA0, Zones::LoadFxElemDefStub, HOOK_CALL);
 		Zones::LoadXModelLodInfoHook.Initialize(0x4EA6FE, Zones::LoadXModelLodInfoStub, HOOK_CALL);
-		xModelModifyHook.Initialize(0x410D90, XModelModifyHookFunc, HOOK_CALL);
-		xsurfaceIntLoadHook.Initialize(0x4925C8, XSurfaceIntLoadHookFunc, HOOK_CALL);
-		gameWorldSpLoadHook.Initialize(0x4F4D0D, GameWorldSpLoadHookFunc, HOOK_CALL);
+		Zones::LoadXModelHook.Initialize(0x410D90, Zones::LoadXModel, HOOK_CALL);
+		Zones::LoadXSurfaceArrayHook.Initialize(0x4925C8, Zones::LoadXSurfaceArray, HOOK_CALL);
+		Zones::LoadGameWorldSpHook.Initialize(0x4F4D0D, Zones::LoadGameWorldSp, HOOK_CALL);
 		loadWeaponDefHook.Initialize(0x47CCD2, Load_WeaponDef_CodC, HOOK_CALL);
-		vehicleLoadHook.Initialize(0x483DA0, VehicleLoadHookFunc, HOOK_CALL);
-		sndAliasLoadHook.Initialize(0x4F0AC8, SndAliasLoadHookFunc, HOOK_CALL);
-		mssSoundLoadHook.Initialize(0x403A5D, MssSoundLoadHookFunc, HOOK_CALL);
+		Zones::LoadVehicleDefHook.Initialize(0x483DA0, Zones::LoadVehicleDef, HOOK_CALL);
+		Zones::Loadsnd_alias_tArrayHook.Initialize(0x4F0AC8, Zones::Loadsnd_alias_tArray, HOOK_CALL);
+		Zones::LoadLoadedSoundHook.Initialize(0x403A5D, Zones::LoadLoadedSound, HOOK_CALL);
 		loadWeaponAttachHook.Initialize(0x463022, Load_WeaponAttach, HOOK_CALL);
 		menuDefLoadHook.Initialize(0x41A570, MenuDefLoadHookFunc, HOOK_CALL);
 		fxEffectLoadHook.Initialize(0x49591B, FxEffectLoadHookFunc, HOOK_CALL);
-		gameWorldSpIntHook.Initialize(0x4F4D3B, GameWorldSpIntHookFunc, HOOK_CALL);
 		loadTechniquePassHook.Initialize(0x428F0A, Load_TechniquePassHookFunc, HOOK_CALL);
 		loadStructuredDataChildArrayHook.Initialize(0x4B1EB8, Load_StructuredDataChildArrayHookFunc, HOOK_CALL);
 
 		pathDataTailHook.Initialize(0x427A1B, PathDataTailHookFunc, HOOK_JUMP);
+
+		Zones::LoadPathDataHook.Initialize(0x4F4D3B, [] ()
+		{
+			ZeroMemory(*Game::varPathData, sizeof(Game::PathData));
+		}, HOOK_CALL);
 	}
 
 	Zones::~Zones()
