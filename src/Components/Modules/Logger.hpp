@@ -23,6 +23,8 @@ namespace Components
 
 		static void PipeOutput(void(*callback)(std::string));
 
+		static void Flush();
+
 	private:
 		static std::mutex MessageMutex;
 		static std::vector<std::string> MessageQueue;

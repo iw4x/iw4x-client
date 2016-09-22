@@ -32,6 +32,10 @@ namespace Game
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = (Con_DrawMiniConsole_t)0x464F30;
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = (Con_DrawSolidConsole_t)0x5A5040;
 
+	DB_AllocStreamPos_t DB_AllocStreamPos = (DB_AllocStreamPos_t)0x418380;
+	DB_PushStreamPos_t DB_PushStreamPos = (DB_PushStreamPos_t)0x458A20;
+	DB_PopStreamPos_t DB_PopStreamPos = (DB_PopStreamPos_t)0x4D1D60;
+
 	DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice = (DB_BeginRecoverLostDevice_t)0x4BFF90;
 	DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice = (DB_EndRecoverLostDevice_t)0x46B660;
 	DB_EnumXAssets_t DB_EnumXAssets = (DB_EnumXAssets_t)0x4B76D0;
@@ -94,6 +98,20 @@ namespace Game
 	Image_Release_t Image_Release = (Image_Release_t)0x51F010;
 
 	LargeLocalInit_t LargeLocalInit = (LargeLocalInit_t)0x4A62A0;
+
+	Load_Stream_t Load_Stream = (Load_Stream_t)0x470E30;
+	Load_XString_t Load_XString = (Load_XString_t)0x47FDA0;
+	Load_XModelPtr_t Load_XModelPtr = (Load_XModelPtr_t)0x4FCA70;
+	Load_XModelSurfsFixup_t Load_XModelSurfsFixup = (Load_XModelSurfsFixup_t)0x40D7A0;
+	Load_XStringArray_t Load_XStringArray = (Load_XStringArray_t)0x4977F0;
+	Load_XStringCustom_t Load_XStringCustom = (Load_XStringCustom_t)0x4E0DD0;
+	Load_FxEffectDefHandle_t Load_FxEffectDefHandle = (Load_FxEffectDefHandle_t)0x4D9B90;
+	Load_FxElemDef_t Load_FxElemDef = (Load_FxElemDef_t)0x45AD90;
+	Load_SndAliasCustom_t Load_SndAliasCustom = (Load_SndAliasCustom_t)0x49B6B0;
+	Load_MaterialHandle_t Load_MaterialHandle = (Load_MaterialHandle_t)0x403960;
+	Load_PhysCollmapPtr_t Load_PhysCollmapPtr = (Load_PhysCollmapPtr_t)0x47E990;
+	Load_TracerDefPtr_t Load_TracerDefPtr = (Load_TracerDefPtr_t)0x493090;
+	Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray = (Load_snd_alias_list_nameArray_t)0x4499F0;
 
 	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
 	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
@@ -256,6 +274,17 @@ namespace Game
 	IDirect3DDevice9** dx_ptr = (IDirect3DDevice9**)0x66DEF88;
 
 	mapname_t* mapnames = (mapname_t*)0x7471D0;
+
+	char*** varXString = (char***)0x112B340;
+	TracerDef** varTracerDefPtr = (TracerDef**)0x112B3BC;
+	XModel** varXModelPtr = (XModel**)0x112A934;
+	XModel** varXModel = (XModel**)0x112AE14;
+	PathData** varPathData = (PathData**)0x112AD7C;
+	const char** varConstChar = (const char**)0x112A774;
+	Material** varMaterialHandle = (Material**)0x112A878;
+	FxEffectDef** varFxEffectDefHandle = (FxEffectDef**)0x112ACC0;
+	PhysCollmap** varPhysCollmapPtr = (PhysCollmap **)0x112B440;
+	snd_alias_list_t*** varsnd_alias_list_name = (snd_alias_list_t***)0x112AF38;
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
@@ -476,7 +505,7 @@ namespace Game
 		if (Components::Dvar::Var("r_loadForRenderer").Get<bool>())
 		{
 			void* buffer = R_AllocStaticIndexBuffer(storeHere, 2 * count);
-			memcpy(buffer, data, 2 * count);
+			std::memcpy(buffer, data, 2 * count);
 
 			if (storeHere && *storeHere)
 			{

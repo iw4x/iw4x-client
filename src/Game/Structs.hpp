@@ -368,6 +368,19 @@ namespace Game
 		void *stateBitTable;
 	};
 
+	struct TracerDef
+	{
+		const char * name;
+		Material * material;
+		unsigned int drawInterval;
+		float speed;
+		float beamLength;
+		float beamWidth;
+		float screwRadius;
+		float screwDist;
+		float colors[5][4];
+	};
+
 	struct keyname_t
 	{
 		const char *name;
@@ -1398,16 +1411,13 @@ namespace Game
 
 	struct XModelLodInfo
 	{
-		// I'm not sure if this is correct
-		short someCount;
-		short someTotalCount;
-
+		char pad[4];
 		short numSurfs; // +4
-		short pad2;// +6
+		short maxSurfs;// +6
 		XModelSurfs* surfaces; // +8
-		char pad3[24];
+		char pad3[24]; // +12
 		XSurface* surfs;
-		char pad4[4]; // +12
+		char pad4[4]; 
 	};
 
 	struct cplane_t
@@ -1531,8 +1541,6 @@ namespace Game
 		PhysPreset* physPreset;
 		PhysCollmap* physCollmap;
 	}; // total size 304
-
-	//static_assert(offsetof(XModel, lods) <= 70, "");
 
 	struct CModelAllocData
 	{
@@ -2273,18 +2281,35 @@ namespace Game
 		char pad[112];
 	};
 
-	struct GameMap_SP
+	struct PathData
+	{
+		char pad[40];
+	};
+
+	struct VehicleTrack
+	{
+		char pad[8];
+	};
+
+	struct GameWorldSp
 	{
 		const char* name;
-		char pad[48];
+		PathData pathData;
+		VehicleTrack vehicleTrack;
 		GameMap_Data* data;
 	};
 
 
-	struct GameMap_MP
+	struct GameWorldMp
 	{
 		const char* name;
 		GameMap_Data* data;
+	};
+
+	struct VehicleDef
+	{
+		const char* name;
+		char pad[716];
 	};
 
 	union XAssetHeader
@@ -2312,8 +2337,10 @@ namespace Game
 		XAnimParts* xanim;
 		clipMap_t* clipMap;
 		FxEffectDef* fx;
-		GameMap_MP* gameMapMP;
-		GameMap_SP* gameMapSP;
+		GameWorldMp* gameMapMP;
+		GameWorldSp* gameMapSP;
+		TracerDef* tracer;
+		VehicleDef* vehicle;
 	};
 
 	struct XAsset

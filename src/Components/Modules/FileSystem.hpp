@@ -7,9 +7,26 @@ namespace Components
 		class File
 		{
 		public:
-			File() : Size(-1), Name(), Handle(0) {};
-			File(std::string file);
-			~File();
+			File() {};
+			File(std::string file) : FilePath(file) { this->Read(); };
+
+			bool Exists() { return !this->Buffer.empty(); };
+			std::string GetName() { return this->FilePath; };
+			std::string& GetBuffer() { return this->Buffer; };
+
+		private:
+			std::string FilePath;
+			std::string Buffer;
+
+			void Read();
+		};
+
+		class FileReader
+		{
+		public:
+			FileReader() : Size(-1), Name(), Handle(0) {};
+			FileReader(std::string file);
+			~FileReader();
 
 			bool Exists();
 			std::string GetName();

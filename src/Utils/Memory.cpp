@@ -36,6 +36,19 @@ namespace Utils
 		Memory::Free(const_cast<void*>(data));
 	}
 
+	void Memory::FreeAlign(void* data)
+	{
+		if (data)
+		{
+			_aligned_free(data);
+		}
+	}
+
+	void Memory::FreeAlign(const void* data)
+	{
+		Memory::FreeAlign(const_cast<void*>(data));
+	}
+
 	// Complementary function for memset, which checks if memory is filled with a char
 	bool Memory::IsSet(void* mem, char chr, size_t length)
 	{

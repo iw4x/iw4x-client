@@ -89,6 +89,7 @@ namespace Components
 	void AntiCheat::CrashClient()
 	{
 #ifdef DEBUG_DETECTIONS
+		Logger::Flush();
 		MessageBoxA(0, "Check the log for more information!", "AntiCheat triggered", MB_ICONERROR);
 		ExitProcess(0xFFFFFFFF);
 #else
@@ -217,8 +218,8 @@ namespace Components
 		if (lastCheck) count = 0;
 		else ++count;
 
-		// If there was no check within the last 120 seconds, crash!
-		if ((milliseconds > 1000 * 25) && ((lastCheck && (milliseconds - lastCheck) > 1000 * 40) || count > 1))
+		// If there was no check within the last 40 seconds, crash!
+		if ((milliseconds > 1000 * 40) && ((lastCheck && (milliseconds - lastCheck) > 1000 * 40) || count > 1))
 		{
 #ifdef DEBUG_DETECTIONS
 			Logger::Print("AntiCheat: Integrity check failed");
@@ -260,7 +261,7 @@ namespace Components
 
 	void AntiCheat::Frame()
 	{
-		// Perform check only every 30 seconds
+		// Perform check only every 10 seconds
 		if (AntiCheat::LastCheck && (Game::Sys_Milliseconds() - AntiCheat::LastCheck) < 1000 * 10) return;
 		AntiCheat::LastCheck = Game::Sys_Milliseconds();
 

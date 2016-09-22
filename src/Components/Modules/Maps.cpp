@@ -84,6 +84,24 @@ namespace Components
 			return;
 		}
 
+		if (type == Game::XAssetType::ASSET_TYPE_WEAPON)
+		{
+			if (!strstr(name.data(), "_mp") && name != "none" && name != "destructible_car")
+			{
+				*restrict = true;
+				return;
+			}
+		}
+
+		if (type == Game::XAssetType::ASSET_TYPE_STRINGTABLE)
+		{
+			if (FastFiles::Current() == "mp_cross_fire")
+			{
+				*restrict = true;
+				return;
+			}
+		}
+
 		if (type == Game::XAssetType::ASSET_TYPE_MAP_ENTS)
 		{
 			static std::string mapEntities;
@@ -106,7 +124,10 @@ namespace Components
 		if (_strnicmp("mp_", mapname, 3))
 		{
 			format = "maps/%s.d3dbsp";
+		}
 
+		if (_strnicmp("mp_", mapname, 3) || mapname == "mp_nuked"s || mapname == "mp_bloc"s || mapname == "mp_cargoship"s || mapname == "mp_cross_fire"s)
+		{
 			// Adjust pointer to GameMap_Data
 			Utils::Hook::Set<Game::GameMap_Data**>(0x4D90B7, &(Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_SP].gameMapSP[0].data));
 		}
@@ -135,6 +156,11 @@ namespace Components
 		}
 
 		Maps::DependencyList[expression] = zone;
+	}
+
+	int Maps::IgnoreEntityStub(const char* entity)
+	{
+		return (Utils::String::StartsWith(entity, "dyn_") || Utils::String::StartsWith(entity, "node_") || Utils::String::StartsWith(entity, "actor_"));
 	}
 
 	void Maps::ReallocateEntryPool()
@@ -196,6 +222,9 @@ namespace Components
 		// Intercept map zone loading
 		Utils::Hook(0x42C2AF, Maps::LoadMapZones, HOOK_CALL).Install()->Quick();
 
+		// Ignore SP entities
+		Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).Install()->Quick();
+
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700);
@@ -218,6 +247,11 @@ namespace Components
 		//Maps::AddDependency("gulag", "mp_subbase");
 		//Maps::AddDependency("invasion", "mp_rust");
 		Maps::AddDependency("co_hunted", "mp_storm");
+		Maps::AddDependency("mp_nuked", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_bloc", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_bloc", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_cargoship", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_cross_fire", "iw4x_dependencies_mp");
 		Maps::AddDependency("^(?!mp_).*", "iw4x_dependencies_mp"); // All maps not starting with "mp_"
 	}
 

@@ -3,7 +3,7 @@
 namespace Components
 {
 	std::map<void*, IUnknown*> ModelSurfs::BufferMap;
-	std::map<void*, Game::CModelAllocData*> ModelSurfs::AllocMap;
+	std::map<std::string, Game::CModelAllocData*> ModelSurfs::AllocMap;
 
 	IUnknown* ModelSurfs::GetBuffer(void* buffer)
 	{
@@ -38,7 +38,7 @@ namespace Components
 	Game::XModelSurfs* ModelSurfs::LoadXModelSurfaces(std::string name)
 	{
 		Utils::Memory::Allocator allocator;
-		FileSystem::File model(fmt::sprintf("models/%s", name.data()));
+		FileSystem::FileReader model(fmt::sprintf("models/%s", name.data()));
 
 		if (!model.Exists())
 		{
@@ -79,7 +79,7 @@ namespace Components
 			Game::CModelSectionHeader* section = &header.sectionHeader[i];
 			for (int j = section->fixupStart; j < section->fixupStart + section->fixupCount; ++j)
 			{
-				unsigned int fixup = fixups[i];
+				unsigned int fixup = fixups[j];
 				*reinterpret_cast<DWORD*>(reinterpret_cast<char*>(section->buffer) + (fixup >> 3)) += reinterpret_cast<DWORD>(header.sectionHeader[fixup & 3].buffer);
 			}
 		}
@@ -90,24 +90,26 @@ namespace Components
 		allocationData->indexBuffer = header.sectionHeader[Game::SECTION_INDEX].buffer;
 		allocationData->vertexBuffer = header.sectionHeader[Game::SECTION_VERTEX].buffer;
 
-		ModelSurfs::AllocMap[allocationData->vertexBuffer] = allocationData;
-		*reinterpret_cast<void**>(reinterpret_cast<char*>(allocationData->mainArray) + 44) = allocationData;
-
 		Assert_Size(Game::XSurface, 64);
 		Game::XModelSurfs* modelSurfs = reinterpret_cast<Game::XModelSurfs*>(allocationData->mainArray);
 		Game::XSurface* tempSurfaces = allocator.AllocateArray<Game::XSurface>(modelSurfs->numSurfaces);
 		char* surfaceData = reinterpret_cast<char*>(modelSurfs->surfaces);
 
+		ModelSurfs::AllocMap[modelSurfs->name] = allocationData;
+		*reinterpret_cast<void**>(reinterpret_cast<char*>(allocationData->mainArray) + 44) = allocationData;
+
 		for (int i = 0; i < modelSurfs->numSurfaces; ++i)
 		{
-			memcpy(&tempSurfaces[i], surfaceData + (i * 84), 12);
-			memcpy(&tempSurfaces[i].indexBuffer, surfaceData + (i * 84) + 16, 20);
-			memcpy(&tempSurfaces[i].numCT, surfaceData + (i * 84) + 40, 8);
-			memcpy(&tempSurfaces[i].pad5, surfaceData + (i * 84) + 52, 24);
+			char* source = &surfaceData[i * 84];
+
+			std::memcpy(&tempSurfaces[i], source, 12);
+			std::memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
+			std::memcpy(&tempSurfaces[i].numCT, source + 40, 8);
+			std::memcpy(&tempSurfaces[i].something, source + 52, 24);
 			tempSurfaces[i].streamHandle = 0xFF; // Fake handle for buffer interception
 		}
 
-		memcpy(surfaceData, tempSurfaces, 64 * modelSurfs->numSurfaces);
+		std::memcpy(surfaceData, tempSurfaces, 64 * modelSurfs->numSurfaces);
 
 		ModelSurfs::CreateBuffers(modelSurfs);
 
@@ -117,8 +119,8 @@ namespace Components
 	bool ModelSurfs::LoadSurfaces(Game::XModel* model)
 	{
 		if (!model) return false;
-		bool changed = false;
 
+		bool changed = false;
 		short surfCount = 0;
 
 		for (char i = 0; i < model->numLods; ++i)
@@ -129,16 +131,18 @@ namespace Components
 			{
 				Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
 
-				surfs->surfaces = newSurfs->surfaces;
-				surfs->numSurfaces = newSurfs->numSurfaces;
+ 				surfs->surfaces = newSurfs->surfaces;
+ 				surfs->numSurfaces = newSurfs->numSurfaces;
 
-				model->lods[i].surfaces = newSurfs;
-				memcpy(model->lods[i].pad3, newSurfs->pad, 24);
+				model->lods[i].surfs = newSurfs->surfaces;
+				std::memcpy(model->lods[i].pad3, newSurfs->pad, 24);
 
 				short numSurfs = static_cast<short>(newSurfs->numSurfaces);
-				model->lods[i].someCount = numSurfs;
-				model->lods[i].someTotalCount = surfCount;
+				model->lods[i].numSurfs = numSurfs;
+				model->lods[i].maxSurfs = surfCount;
 				surfCount += numSurfs;
+
+				changed = true;
 			}
 		}
 
@@ -147,11 +151,15 @@ namespace Components
 
 	void ModelSurfs::ReleaseModelSurf(Game::XAssetHeader header)
 	{
+		bool hasCustomSurface = false;
 		for (int i = 0; i < header.surfaces->numSurfaces && header.surfaces->surfaces; ++i)
 		{
 			Game::XSurface* surface = &header.surfaces->surfaces[i];
+
 			if (surface->streamHandle == 0xFF)
 			{
+				hasCustomSurface = true;
+
 				auto buffer = ModelSurfs::BufferMap.find(surface->indexBuffer);
 				if (buffer != ModelSurfs::BufferMap.end())
 				{
@@ -165,17 +173,20 @@ namespace Components
 					buffer->second->Release();
 					ModelSurfs::BufferMap.erase(buffer);
 				}
+			}
+		}
 
-				auto allocData = ModelSurfs::AllocMap.find(surface->vertexBuffer);
-				if (allocData != ModelSurfs::AllocMap.end())
-				{
-					Utils::Memory::Free(allocData->second->indexBuffer);
-					Utils::Memory::Free(allocData->second->vertexBuffer);
-					Utils::Memory::Free(allocData->second->mainArray);
-					Utils::Memory::Free(allocData->second);
+		if (hasCustomSurface)
+		{
+			auto allocData = ModelSurfs::AllocMap.find(header.surfaces->name);
+			if (allocData != ModelSurfs::AllocMap.end())
+			{
+				Utils::Memory::FreeAlign(allocData->second->indexBuffer);
+				Utils::Memory::FreeAlign(allocData->second->vertexBuffer);
+				Utils::Memory::Free(allocData->second->mainArray);
+				Utils::Memory::Free(allocData->second);
 
-					ModelSurfs::AllocMap.erase(allocData);
-				}
+				ModelSurfs::AllocMap.erase(allocData);
 			}
 		}
 	}
@@ -295,7 +306,7 @@ namespace Components
 		// Install hooks
 		Utils::Hook(0x47A6BD, ModelSurfs::XModelSurfsFixup, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x558F12, ModelSurfs::GetIndexBaseStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5BC050, ModelSurfs::GetIndexBufferStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4B4DE0, ModelSurfs::GetIndexBufferStub, HOOK_JUMP).Install()->Quick();
 		Utils::Hook(0x558E70, ModelSurfs::GetIndexBufferStub2, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x5BC050, ModelSurfs::GetVertexBufferStub, HOOK_JUMP).Install()->Quick();
 	}

@@ -83,6 +83,21 @@ namespace Components
 		return buffer;
 	}
 
+	void Logger::Flush()
+	{
+// 		if (!Game::Sys_IsMainThread())
+// 		{
+// 			while (!Logger::MessageQueue.empty())
+// 			{
+// 				std::this_thread::sleep_for(10ms);
+// 			}
+// 		}
+// 		else
+		{
+			Logger::Frame();
+		}
+	}
+
 	void Logger::Frame()
 	{
 		std::lock_guard<std::mutex> _(Logger::MessageMutex);
@@ -300,5 +315,11 @@ namespace Components
 		Logger::MessageMutex.lock();
 		Logger::MessageQueue.clear();
 		Logger::MessageMutex.unlock();
+
+		// Flush the console log
+		if (int fh = *reinterpret_cast<int*>(0x1AD8F28))
+		{
+			Game::FS_FCloseFile(fh);
+		}
 	}
 }

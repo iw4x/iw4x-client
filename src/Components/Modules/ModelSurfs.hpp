@@ -10,9 +10,9 @@ namespace Components
 		const char* GetName() { return "ModelSurfs"; };
 #endif
 
-	private:
+	//private:
 		static std::map<void*, IUnknown*> BufferMap;
-		static std::map<void*, Game::CModelAllocData*> AllocMap;
+		static std::map<std::string, Game::CModelAllocData*> AllocMap;
 
 		static void ReleaseModelSurf(Game::XAssetHeader header);
 

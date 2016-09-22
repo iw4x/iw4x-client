@@ -66,6 +66,15 @@ namespace Game
 	typedef void (__cdecl * Con_DrawSolidConsole_t)();
 	extern Con_DrawSolidConsole_t Con_DrawSolidConsole;
 
+	typedef char *(__cdecl *DB_AllocStreamPos_t)(int alignment);
+	extern DB_AllocStreamPos_t DB_AllocStreamPos;
+
+	typedef void(__cdecl * DB_PushStreamPos_t)(unsigned int index);
+	extern DB_PushStreamPos_t DB_PushStreamPos;
+
+	typedef void(__cdecl * DB_PopStreamPos_t)();
+	extern DB_PopStreamPos_t DB_PopStreamPos;
+
 	typedef void(__cdecl * DB_BeginRecoverLostDevice_t)();
 	extern DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice;
 
@@ -223,6 +232,45 @@ namespace Game
 
 	typedef void(__cdecl * LargeLocalInit_t)();
 	extern LargeLocalInit_t LargeLocalInit;
+
+	typedef bool(__cdecl * Load_Stream_t)(bool atStreamStart, const void *ptr, int size);
+	extern Load_Stream_t Load_Stream;
+
+	typedef void(__cdecl * Load_XString_t)(bool atStreamStart);
+	extern Load_XString_t Load_XString;
+
+	typedef void(__cdecl * Load_XModelPtr_t)(bool atStreamStart);
+	extern Load_XModelPtr_t Load_XModelPtr;
+
+	typedef void(__cdecl * Load_XModelSurfsFixup_t)(XModelSurfs **, XModelLodInfo *);
+	extern Load_XModelSurfsFixup_t Load_XModelSurfsFixup;
+
+	typedef void(__cdecl * Load_XStringArray_t)(bool atStreamStart, int count);
+	extern Load_XStringArray_t Load_XStringArray;
+
+	typedef void(__cdecl * Load_XStringCustom_t)(const char **str);
+	extern Load_XStringCustom_t Load_XStringCustom;
+
+	typedef void(__cdecl *Load_FxEffectDefHandle_t)(bool atStreamStart);
+	extern Load_FxEffectDefHandle_t Load_FxEffectDefHandle;
+
+	typedef void(__cdecl *Load_FxElemDef_t)(bool atStreamStart);
+	extern Load_FxElemDef_t Load_FxElemDef;
+
+	typedef void(__cdecl * Load_SndAliasCustom_t)(snd_alias_list_t** var);
+	extern Load_SndAliasCustom_t Load_SndAliasCustom;
+
+	typedef void(__cdecl *Load_MaterialHandle_t)(bool atStreamStart);
+	extern Load_MaterialHandle_t Load_MaterialHandle;
+
+	typedef void(__cdecl *Load_PhysCollmapPtr_t)(bool atStreamStart);
+	extern Load_PhysCollmapPtr_t Load_PhysCollmapPtr;
+
+	typedef void(__cdecl *Load_TracerDefPtr_t)(bool atStreamStart);
+	extern Load_TracerDefPtr_t Load_TracerDefPtr;
+
+	typedef void(__cdecl *Load_snd_alias_list_nameArray_t)(bool atStreamStart, int count);
+	extern Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray;
 
 	typedef void(__cdecl * Menus_CloseAll_t)(UiContext *dc);
 	extern Menus_CloseAll_t Menus_CloseAll;
@@ -516,6 +564,17 @@ namespace Game
 	extern IDirect3DDevice9** dx_ptr;
 
 	extern mapname_t* mapnames;
+
+	extern char*** varXString;
+	extern TracerDef** varTracerDefPtr;
+	extern XModel** varXModelPtr;
+	extern XModel** varXModel;
+	extern PathData** varPathData;
+	extern const char** varConstChar;
+	extern Material** varMaterialHandle;
+	extern FxEffectDef** varFxEffectDefHandle;
+	extern PhysCollmap** varPhysCollmapPtr;
+	extern snd_alias_list_t*** varsnd_alias_list_name;
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
