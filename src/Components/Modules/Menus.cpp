@@ -45,7 +45,7 @@ namespace Components
 		Game::Script_SetupTokens(script, reinterpret_cast<char*>(0x797F80));
 		script->punctuations = reinterpret_cast<Game::punctuation_t*>(0x797F80);
 
-		memcpy(script->buffer, buffer.data(), script->length + 1);
+		std::memcpy(script->buffer, buffer.data(), script->length + 1);
 
 		script->length = Game::Script_CleanString(script->buffer);
 

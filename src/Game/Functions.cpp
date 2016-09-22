@@ -505,7 +505,7 @@ namespace Game
 		if (Components::Dvar::Var("r_loadForRenderer").Get<bool>())
 		{
 			void* buffer = R_AllocStaticIndexBuffer(storeHere, 2 * count);
-			memcpy(buffer, data, 2 * count);
+			std::memcpy(buffer, data, 2 * count);
 
 			if (storeHere && *storeHere)
 			{

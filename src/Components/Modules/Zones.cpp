@@ -43,12 +43,12 @@ namespace Components
 		{
 			AssetHandler::Relocate((DWORD)buffer + (260 * i), 252, (DWORD)buffer + (252 * i));
 
-			memcpy(tempVar + (252 * i), buffer + (260 * i), 252);
+			std::memcpy(tempVar + (252 * i), buffer + (260 * i), 252);
 
 			fxEffectStringValue[i] = *(char**)(buffer + (260 * i) + 256);
 		}
 
-		memcpy(buffer, tempVar, len);
+		std::memcpy(buffer, tempVar, len);
 
 		delete[] tempVar;
 	}
@@ -82,23 +82,23 @@ namespace Components
 
 		Game::XModel model[2]; // Allocate 2 models, as we exceed the buffer
 
-		memcpy(model, xmodel, 36);
-		memcpy(&model->pad3[0x1C], &xmodel[44], 28);
+		std::memcpy(model, xmodel, 36);
+		std::memcpy(&model->pad3[0x1C], &xmodel[44], 28);
 
 		for (int i = 0; i < 4; i++)
 		{
-			memcpy(&model->lods[i], &xmodel[72 + (i * 56)], 12);
-			memcpy(&model->lods[i].pad3, &xmodel[72 + (i * 56) + 16], 32);
+			std::memcpy(&model->lods[i], &xmodel[72 + (i * 56)], 12);
+			std::memcpy(&model->lods[i].pad3, &xmodel[72 + (i * 56) + 16], 32);
 
-			memcpy(reinterpret_cast<char*>(&model) + (elSize - 4) - (i * 4), &xmodel[72 + (i * 56) + 12], 4);
+			std::memcpy(reinterpret_cast<char*>(&model) + (elSize - 4) - (i * 4), &xmodel[72 + (i * 56) + 12], 4);
 		}
 
-		memcpy(&model->lods[3].pad4[0], &xmodel[292], (elSize - 292 - 4)/*68*/);
-		memcpy(&model->physPreset, &xmodel[(elSize - 8)], 8);
+		std::memcpy(&model->lods[3].pad4[0], &xmodel[292], (elSize - 292 - 4)/*68*/);
+		std::memcpy(&model->physPreset, &xmodel[(elSize - 8)], 8);
 
 		model[1].name = reinterpret_cast<char*>(0xDEC0ADDE);
 
-		memcpy(xmodel, &model, elSize);
+		std::memcpy(xmodel, &model, elSize);
 
 		return result;
 	}
@@ -138,13 +138,13 @@ namespace Components
 		{
 			char* source = &buffer[i * 84];
 
-			memcpy(&tempSurfaces[i], source, 12);
-			memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
-			memcpy(&tempSurfaces[i].numCT, source + 40, 8);
-			memcpy(&tempSurfaces[i].something, source + 52, 24);
+			std::memcpy(&tempSurfaces[i], source, 12);
+			std::memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
+			std::memcpy(&tempSurfaces[i].numCT, source + 40, 8);
+			std::memcpy(&tempSurfaces[i].something, source + 52, 24);
 		}
 
-		memcpy(buffer, tempSurfaces, sizeof(Game::XSurface) * count);
+		std::memcpy(buffer, tempSurfaces, sizeof(Game::XSurface) * count);
 
 		return result;
 	}
@@ -449,11 +449,11 @@ namespace Components
 		bool result = Game::Load_Stream(atStreamStart, buffer, 84);
 
 		Game::GameWorldSp world[2];
-		memcpy(&world, buffer, 44);
-		memcpy(&world[1], &buffer[44], 28);
-		memcpy(&world->vehicleTrack, &buffer[72], 12);
+		std::memcpy(&world, buffer, 44);
+		std::memcpy(&world[1], &buffer[44], 28);
+		std::memcpy(&world->vehicleTrack, &buffer[72], 12);
 
-		memcpy(buffer, world, 84);
+		std::memcpy(buffer, world, 84);
 
 		return result;
 	}
@@ -502,16 +502,16 @@ namespace Components
 		{
 			char* src = &buffer[i * 108];
 
-			memcpy(&tempSounds[i],          src + 0,  60);
-			memcpy(&tempSounds[i].pad2[36], src + 68, 20);
-			memcpy(&tempSounds[i].pad2[56], src + 88, 20);
+			std::memcpy(&tempSounds[i],          src + 0,  60);
+			std::memcpy(&tempSounds[i].pad2[36], src + 68, 20);
+			std::memcpy(&tempSounds[i].pad2[56], src + 88, 20);
 
 			AssetHandler::Relocate(src + 0,  buffer + (i * 100) + 0,  60);
 			AssetHandler::Relocate(src + 68, buffer + (i * 100) + 60, 20);
 			AssetHandler::Relocate(src + 88, buffer + (i * 100) + 80, 20);
 		}
 
-		memcpy(buffer, tempSounds, sizeof(Game::snd_alias_t) * count);
+		std::memcpy(buffer, tempSounds, sizeof(Game::snd_alias_t) * count);
 
 		return result;
 	}
@@ -520,7 +520,7 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, 48);
 
-		memmove(buffer + 28, buffer + 32, 16);
+		std::memmove(buffer + 28, buffer + 32, 16);
 		AssetHandler::Relocate(buffer + 32, buffer + 28, 16);
 
 		return result;
@@ -531,12 +531,12 @@ namespace Components
 		bool result = Game::Load_Stream(atStreamStart, buffer, 788);
 		
 		Game::VehicleDef vehicle[2];
-		memcpy(vehicle, &buffer[0], 400);
-		memcpy(&vehicle->pad[404], &buffer[400], 388);
+		std::memcpy(vehicle, &buffer[0], 400);
+		std::memcpy(&vehicle->pad[404], &buffer[400], 388);
 
 		AssetHandler::Relocate(buffer + 400, buffer + 408, 388);
 
-		memcpy(buffer, vehicle, 788);
+		std::memcpy(buffer, vehicle, 788);
 
 		return result;
 	}
@@ -593,7 +593,7 @@ namespace Components
 			add esp, 0Ch
 		}
 
-		memcpy(buffer + 168, buffer + 172, 232);
+		std::memcpy(buffer + 168, buffer + 172, 232);
 
 		AssetHandler::Relocate((DWORD)buffer + 172, 232, (DWORD)buffer + 168);
 	}
@@ -668,7 +668,7 @@ namespace Components
 
 		for (int i = 0; i < count; i++)
 		{
-			memcpy(data + (i * 16), data + (i * 24), 16);
+			std::memcpy(data + (i * 16), data + (i * 24), 16);
 			AssetHandler::Relocate((DWORD)data + (i * 24), 16, (DWORD)data + (i * 16));
 		}
 	}
