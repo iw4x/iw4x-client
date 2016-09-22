@@ -249,7 +249,6 @@ namespace Components
 		Maps::AddDependency("co_hunted", "mp_storm");
 		Maps::AddDependency("mp_nuked", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_bloc", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_bloc", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_cargoship", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_cross_fire", "iw4x_dependencies_mp");
 		Maps::AddDependency("^(?!mp_).*", "iw4x_dependencies_mp"); // All maps not starting with "mp_"
