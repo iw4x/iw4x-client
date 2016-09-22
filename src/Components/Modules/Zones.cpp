@@ -112,9 +112,16 @@ namespace Components
 		{
 			push edi
 			call Zones::LoadXModelLodInfo
-			pop edi
+			add esp, 4h
 
-			jmp Game::Load_XModelSurfsFixup
+			mov eax, [esp + 8h]
+			push eax
+			add eax, 8
+			push eax
+			call Game::Load_XModelSurfsFixup
+			add esp, 8h
+
+			retn
 		}
 	}
 
