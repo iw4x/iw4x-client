@@ -574,6 +574,7 @@ namespace Game
 	extern Material** varMaterialHandle;
 	extern FxEffectDef** varFxEffectDefHandle;
 	extern PhysCollmap** varPhysCollmapPtr;
+	extern Game::MaterialPass** varMaterialPass;
 	extern snd_alias_list_t*** varsnd_alias_list_name;
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);

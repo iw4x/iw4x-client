@@ -268,7 +268,7 @@ namespace Game
 		MaterialTextureDefInfo info;
 	};
 
-	struct ShaderArgumentDef
+	struct MaterialShaderArgument
 	{
 		short type;
 		short dest;
@@ -321,7 +321,7 @@ namespace Game
 		char argCount2;
 		char argCount3;
 		char unk;
-		ShaderArgumentDef* argumentDef;
+		MaterialShaderArgument* argumentDef;
 	};
 
 	struct MaterialTechnique

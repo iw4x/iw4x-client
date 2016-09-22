@@ -18,6 +18,9 @@ namespace Components
 	//private:
 		static int ZoneVersion;
 
+		static int FxEffectIndex;
+		static char* FxEffectStrings[64];
+
 		static Utils::Hook LoadFxElemDefHook;
 		static Utils::Hook LoadFxElemDefArrayHook;
 		static Utils::Hook LoadXModelLodInfoHook;
@@ -28,6 +31,12 @@ namespace Components
 		static Utils::Hook LoadVehicleDefHook;
 		static Utils::Hook Loadsnd_alias_tArrayHook;
 		static Utils::Hook LoadLoadedSoundHook;
+		static Utils::Hook LoadmenuDef_tHook;
+		static Utils::Hook LoadFxEffectDefHook;
+		static Utils::Hook LoadMaterialShaderArgumentArrayHook;
+		static Utils::Hook LoadStructuredDataStructPropertyArrayHook;
+		static Utils::Hook LoadPathDataTailHook;
+		static Utils::Hook LoadWeaponAttachHook;
 
 		static void LoadFxElemDefArrayStub(bool atStreamStart);
 		static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
@@ -40,5 +49,12 @@ namespace Components
 		static bool LoadVehicleDef(bool atStreamStart, char* buffer);
 		static bool Loadsnd_alias_tArray(bool atStreamStart, char* buffer, int len);
 		static bool LoadLoadedSound(bool atStreamStart, char* buffer);
+		static bool LoadmenuDef_t(bool atStreamStart, char* buffer, int size);
+		static bool LoadFxEffectDef(bool atStreamStart, char* buffer, int size);
+		static bool LoadMaterialShaderArgumentArray(bool atStreamStart, Game::MaterialShaderArgument* argument, int size);
+		static bool LoadStructuredDataStructPropertyArray(bool atStreamStart, char* data, int size);
+		static void LoadPathDataTail();
+		static void LoadWeaponAttach();
+		static void LoadWeaponAttachStuff(DWORD* varWeaponAttachStuff, int count);
 	};
 }

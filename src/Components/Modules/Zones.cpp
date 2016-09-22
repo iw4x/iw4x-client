@@ -4,6 +4,9 @@ namespace Components
 {
 	int Zones::ZoneVersion;
 
+	int Zones::FxEffectIndex;
+	char* Zones::FxEffectStrings[64];
+
 	Utils::Hook Zones::LoadFxElemDefHook;
 	Utils::Hook Zones::LoadFxElemDefArrayHook;
 	Utils::Hook Zones::LoadXModelLodInfoHook;
@@ -14,43 +17,36 @@ namespace Components
 	Utils::Hook Zones::LoadVehicleDefHook;
 	Utils::Hook Zones::Loadsnd_alias_tArrayHook;
 	Utils::Hook Zones::LoadLoadedSoundHook;
+	Utils::Hook Zones::LoadmenuDef_tHook;
+	Utils::Hook Zones::LoadFxEffectDefHook;
+	Utils::Hook Zones::LoadMaterialShaderArgumentArrayHook;
+	Utils::Hook Zones::LoadStructuredDataStructPropertyArrayHook;
+	Utils::Hook Zones::LoadPathDataTailHook;
+	Utils::Hook Zones::LoadWeaponAttachHook;
 
-	Utils::Hook fxEffectLoadHook;
-
-	static char* fxEffectStringValue[64];
-	static int fxEffectIndex = 0;
-
-	void FxEffectLoadHookFunc(int a1, char* buffer, int len)
+	bool Zones::LoadFxEffectDef(bool atStreamStart, char* buffer, int size)
 	{
-		len /= 252;
+		size /= 252;
+		int count = size;
+		size *= 260;
 
-		int count = len;
-		len *= 260;
+		bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
-		__asm
-		{
-			push len
-			push buffer
-			push a1
-			call fxEffectLoadHook.Original
-			add esp, 0Ch
-		}
+		Zones::FxEffectIndex = 0;
 
-		fxEffectIndex = 0;
-		char* tempVar = new char[len];
+		Utils::Memory::Allocator allocator;
+		Game::FxElemDef* elems = allocator.AllocateArray<Game::FxElemDef>(count);
 
 		for (int i = 0; i < count; i++)
 		{
-			AssetHandler::Relocate((DWORD)buffer + (260 * i), 252, (DWORD)buffer + (252 * i));
-
-			std::memcpy(tempVar + (252 * i), buffer + (260 * i), 252);
-
-			fxEffectStringValue[i] = *(char**)(buffer + (260 * i) + 256);
+			AssetHandler::Relocate(buffer + (260 * i), buffer + (252 * i), 252);
+			std::memcpy(&elems[i], buffer + (260 * i), 252);
+			Zones::FxEffectStrings[i] = *(char**)(buffer + (260 * i) + 256);
 		}
 
-		std::memcpy(buffer, tempVar, len);
+		std::memcpy(buffer, elems,sizeof(Game::FxElemDef) * count);
 
-		delete[] tempVar;
+		return result;
 	}
 
 	bool Zones::LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size)
@@ -70,7 +66,7 @@ namespace Components
 	void Zones::LoadFxElemDefArrayStub(bool atStreamStart)
 	{
 		Game::Load_FxElemDef(atStreamStart);
-		*Game::varXString = &fxEffectStringValue[fxEffectIndex++];
+		*Game::varXString = &Zones::FxEffectStrings[Zones::FxEffectIndex++];
 		Game::Load_XString(0);
 	}
 
@@ -458,32 +454,26 @@ namespace Components
 		return result;
 	}
 
-	Utils::Hook pathDataTailHook;
-
-	void PathDataTailHookFunc()
+	void Zones::LoadPathDataTail()
 	{
-		DWORD varStuff = *(DWORD*)0x112AD7C;
-		DWORD varThing;
+		char* varPathData = reinterpret_cast<char*>(*Game::varPathData);
 
-		if (*(DWORD*)(varStuff + 56))
+		if (*reinterpret_cast<char**>(varPathData + 56))
 		{
-			*(DWORD*)(varStuff + 56) = (DWORD)Game::DB_AllocStreamPos(0);
-			varThing = *(DWORD*)(varStuff + 56);
-			Game::Load_Stream(1, (void*)varThing, *(DWORD*)(varStuff + 52));
+			*reinterpret_cast<char**>(varPathData + 56) = Game::DB_AllocStreamPos(0);
+			Game::Load_Stream(1, *reinterpret_cast<char**>(varPathData + 56), *reinterpret_cast<int*>(varPathData + 52));
 		}
 
-		if (*(DWORD*)(varStuff + 64))
+		if (*reinterpret_cast<char**>(varPathData + 64))
 		{
-			*(DWORD*)(varStuff + 64) = (DWORD)Game::DB_AllocStreamPos(0);
-			varThing = *(DWORD*)(varStuff + 64);
-			Game::Load_Stream(1, (void*)varThing, *(DWORD*)(varStuff + 60));
+			*reinterpret_cast<char**>(varPathData + 64) = Game::DB_AllocStreamPos(0);
+			Game::Load_Stream(1, *reinterpret_cast<char**>(varPathData + 64), *reinterpret_cast<int*>(varPathData + 60));
 		}
 
-		if (*(DWORD*)(varStuff + 76))
+		if (*reinterpret_cast<char**>(varPathData + 76))
 		{
-			*(DWORD*)(varStuff + 76) = (DWORD)Game::DB_AllocStreamPos(0);
-			varThing = *(DWORD*)(varStuff + 76);
-			Game::Load_Stream(1, (void*)varThing, *(DWORD*)(varStuff + 72));
+			*reinterpret_cast<char**>(varPathData + 76) = Game::DB_AllocStreamPos(0);
+			Game::Load_Stream(1, *reinterpret_cast<char**>(varPathData + 76), *reinterpret_cast<int*>(varPathData + 72));
 		}
 	}
 
@@ -541,99 +531,64 @@ namespace Components
 		return result;
 	}
 
-	Utils::Hook loadWeaponAttachHook;
-
-	DWORD varWeaponAttachStuff;
-
-	void Load_WeaponAttachStuff(int count)
+	void Zones::LoadWeaponAttachStuff(DWORD* varWeaponAttachStuff, int count)
 	{
-		Game::Load_Stream(1, (void*)varWeaponAttachStuff, 12 * count);
-
-		DWORD* varStuff = (DWORD*)varWeaponAttachStuff;
+		Game::Load_Stream(1, varWeaponAttachStuff, 12 * count);
 
 		for (int i = 0; i < count; i++)
 		{
-			//DWORD* varXString = (DWORD*)0x112B340;
-
-			if (varStuff[1] < 16 || varStuff[1] == 39)
+			if (varWeaponAttachStuff[1] < 16 || varWeaponAttachStuff[1] == 39)
 			{
-				if (varStuff[2] == -1)
+				if (varWeaponAttachStuff[2] == -1)
 				{
-					varStuff[2] = (DWORD)Game::DB_AllocStreamPos(0);
-					*Game::varConstChar = (const char*)varStuff[2];
+					varWeaponAttachStuff[2] = (DWORD)Game::DB_AllocStreamPos(0);
+					*Game::varConstChar = reinterpret_cast<const char*>(varWeaponAttachStuff[2]);
 					Game::Load_XStringCustom(Game::varConstChar);
-
-					//if (*useEntryNames)
-					{
-						//DBG(("wA: %s\n", *varXStringData));
-					}
-				}
-				else if (varStuff[2])
-				{
-					// meh, no convertin' here
 				}
 			}
 
-			varStuff += 3;
+			varWeaponAttachStuff += 3;
 		}
 	}
 
-	Utils::Hook menuDefLoadHook;
-
-	void MenuDefLoadHookFunc(int doLoad, char* buffer, int len)
+	bool Zones::LoadmenuDef_t(bool atStreamStart, char* buffer, int size)
 	{
-		len += 4;
-
-		__asm
-		{
-			push len
-			push buffer
-			push doLoad
-			call menuDefLoadHook.Original
-			add esp, 0Ch
-		}
-
-		std::memcpy(buffer + 168, buffer + 172, 232);
-
-		AssetHandler::Relocate((DWORD)buffer + 172, 232, (DWORD)buffer + 168);
+		bool result = Game::Load_Stream(atStreamStart, buffer, size + 4);
+		std::memmove(buffer + 168, buffer + 172, 232);
+		AssetHandler::Relocate(buffer + 172, buffer + 168, 232);
+		return result;
 	}
 
-	void Load_WeaponAttach(int /*doLoad*/)
+	void Zones::LoadWeaponAttach()
 	{
 		// setup structures we use
-		DWORD varWeaponAttach = *(DWORD*)0x112ADE0;//*(DWORD*)0x112AE14;
-		DWORD* varXString = (DWORD*)0x112B340;
+		char* varWeaponAttach = *reinterpret_cast<char**>(0x112ADE0); // varAddonMapEnts
 
 		// and do the stuff
-		Game::Load_Stream(1, (void*)varWeaponAttach, 12);
+		Game::Load_Stream(1, varWeaponAttach, 12);
 
 		Game::DB_PushStreamPos(3);
 
-		*varXString = varWeaponAttach + 0;
+		*Game::varXString = reinterpret_cast<char**>(varWeaponAttach);
 		Game::Load_XString(false);
 
-		*(void**)(varWeaponAttach + 8) = Game::DB_AllocStreamPos(3);
+		*reinterpret_cast<void**>(varWeaponAttach + 8) = Game::DB_AllocStreamPos(3);
 
-		varWeaponAttachStuff = *(DWORD*)(varWeaponAttach + 8);
-		Load_WeaponAttachStuff(*(int*)(varWeaponAttach + 4));
+		Zones::LoadWeaponAttachStuff(*reinterpret_cast<DWORD**>(varWeaponAttach + 8), *reinterpret_cast<int*>(varWeaponAttach + 4));
 
 		Game::DB_PopStreamPos();
 	}
 
-	Utils::Hook loadTechniquePassHook;
-
-	void Load_TechniquePassHookFunc(bool atStreamStart, Game::ShaderArgumentDef* pass, size_t size)
+	bool Zones::LoadMaterialShaderArgumentArray(bool atStreamStart, Game::MaterialShaderArgument* argument, int size)
 	{
-		int count = size / 8;
+		bool result = Game::Load_Stream(atStreamStart, argument, size);
 
-		Game::MaterialPass* curPass = *(Game::MaterialPass**)0x112A960;
-		count = curPass->argCount1 + curPass->argCount2 + curPass->argCount3;
-
-		Game::Load_Stream(atStreamStart, pass, size);
+		Game::MaterialPass* curPass = *Game::varMaterialPass;
+		int count = curPass->argCount1 + curPass->argCount2 + curPass->argCount3;
 
 		for (int i = 0; i < count; i++)
 		{
-			Game::ShaderArgumentDef* arg = &pass[i];
+			Game::MaterialShaderArgument* arg = &argument[i];
 
 			if (arg->type != 3 && arg->type != 5)
 			{
@@ -655,22 +610,25 @@ namespace Components
 				arg->paramID -= 2;
 			}
 		}
+
+		return result;
 	}
 
-	Utils::Hook loadStructuredDataChildArrayHook;
-
-	void Load_StructuredDataChildArrayHookFunc(bool atStreamStart, char* data, size_t size)
+	bool Zones::LoadStructuredDataStructPropertyArray(bool atStreamStart, char* data, int size)
 	{
-		int count = size / 16;
-		size = count * 24;
+		size /= 16;
+		int count = size;
+		size *= 24;
 
-		Game::Load_Stream(atStreamStart, data, size);
+		bool result = Game::Load_Stream(atStreamStart, data, size);
 
 		for (int i = 0; i < count; i++)
 		{
-			std::memcpy(data + (i * 16), data + (i * 24), 16);
-			AssetHandler::Relocate((DWORD)data + (i * 24), 16, (DWORD)data + (i * 16));
+			std::memmove(data + (i * 16), data + (i * 24), 16);
+			AssetHandler::Relocate(data + (i * 24), data + (i * 16), 16);
 		}
+
+		return result;
 	}
 
 	void Zones::InstallPatches(int version)
@@ -725,25 +683,25 @@ namespace Components
 
 			Zones::LoadXSurfaceArrayHook.Install();
 			Zones::LoadGameWorldSpHook.Install();
-			pathDataTailHook.Install();
+			Zones::LoadPathDataTailHook.Install();
 
 			loadWeaponDefHook.Install();
 			Zones::LoadVehicleDefHook.Install();
 
 			Zones::Loadsnd_alias_tArrayHook.Install();
 			Zones::LoadLoadedSoundHook.Install();
-			menuDefLoadHook.Install();
-			fxEffectLoadHook.Install();
+			Zones::LoadmenuDef_tHook.Install();
+			Zones::LoadFxEffectDefHook.Install();
 
-			loadWeaponAttachHook.Install();
+			Zones::LoadWeaponAttachHook.Install();
 
 			if (Zones::ZoneVersion >= VERSION_ALPHA3)
 			{
 				Zones::LoadPathDataHook.Install();
 			}
 
-			loadTechniquePassHook.Install();
-			loadStructuredDataChildArrayHook.Install();
+			Zones::LoadMaterialShaderArgumentArrayHook.Install();
+			Zones::LoadStructuredDataStructPropertyArrayHook.Install();
 		}
 		else
 		{
@@ -755,22 +713,22 @@ namespace Components
 
 			Zones::LoadXSurfaceArrayHook.Uninstall();
 			Zones::LoadGameWorldSpHook.Uninstall();
-			pathDataTailHook.Uninstall();
+			Zones::LoadPathDataTailHook.Uninstall();
 
 			loadWeaponDefHook.Uninstall();
 			Zones::LoadVehicleDefHook.Uninstall();
 
 			Zones::Loadsnd_alias_tArrayHook.Uninstall();
 			Zones::LoadLoadedSoundHook.Uninstall();
-			menuDefLoadHook.Uninstall();
-			fxEffectLoadHook.Uninstall();
+			Zones::LoadmenuDef_tHook.Uninstall();
+			Zones::LoadFxEffectDefHook.Uninstall();
 
-			loadWeaponAttachHook.Uninstall();
+			Zones::LoadWeaponAttachHook.Uninstall();
 
 			Zones::LoadPathDataHook.Uninstall();
 
-			loadTechniquePassHook.Uninstall();
-			loadStructuredDataChildArrayHook.Uninstall();
+			Zones::LoadMaterialShaderArgumentArrayHook.Uninstall();
+			Zones::LoadStructuredDataStructPropertyArrayHook.Uninstall();
 		}
 
 		AntiCheat::EmptyHash();
@@ -797,14 +755,13 @@ namespace Components
 		Zones::LoadVehicleDefHook.Initialize(0x483DA0, Zones::LoadVehicleDef, HOOK_CALL);
 		Zones::Loadsnd_alias_tArrayHook.Initialize(0x4F0AC8, Zones::Loadsnd_alias_tArray, HOOK_CALL);
 		Zones::LoadLoadedSoundHook.Initialize(0x403A5D, Zones::LoadLoadedSound, HOOK_CALL);
-		loadWeaponAttachHook.Initialize(0x463022, Load_WeaponAttach, HOOK_CALL);
-		menuDefLoadHook.Initialize(0x41A570, MenuDefLoadHookFunc, HOOK_CALL);
-		fxEffectLoadHook.Initialize(0x49591B, FxEffectLoadHookFunc, HOOK_CALL);
-		loadTechniquePassHook.Initialize(0x428F0A, Load_TechniquePassHookFunc, HOOK_CALL);
-		loadStructuredDataChildArrayHook.Initialize(0x4B1EB8, Load_StructuredDataChildArrayHookFunc, HOOK_CALL);
+		Zones::LoadWeaponAttachHook.Initialize(0x463022, Zones::LoadWeaponAttach, HOOK_CALL);
+		Zones::LoadmenuDef_tHook.Initialize(0x41A570, Zones::LoadmenuDef_t, HOOK_CALL);
+		Zones::LoadFxEffectDefHook.Initialize(0x49591B, Zones::LoadFxEffectDef, HOOK_CALL);
+		Zones::LoadMaterialShaderArgumentArrayHook.Initialize(0x428F0A, Zones::LoadMaterialShaderArgumentArray, HOOK_CALL);
+		Zones::LoadStructuredDataStructPropertyArrayHook.Initialize(0x4B1EB8, Zones::LoadStructuredDataStructPropertyArray, HOOK_CALL);
 
-		pathDataTailHook.Initialize(0x427A1B, PathDataTailHookFunc, HOOK_JUMP);
-
+		Zones::LoadPathDataTailHook.Initialize(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP);
 		Zones::LoadPathDataHook.Initialize(0x4F4D3B, [] ()
 		{
 			ZeroMemory(*Game::varPathData, sizeof(Game::PathData));

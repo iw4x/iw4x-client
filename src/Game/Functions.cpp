@@ -284,6 +284,7 @@ namespace Game
 	Material** varMaterialHandle = (Material**)0x112A878;
 	FxEffectDef** varFxEffectDefHandle = (FxEffectDef**)0x112ACC0;
 	PhysCollmap** varPhysCollmapPtr = (PhysCollmap **)0x112B440;
+	Game::MaterialPass** varMaterialPass = (Game::MaterialPass**)0x112A960;
 	snd_alias_list_t*** varsnd_alias_list_name = (snd_alias_list_t***)0x112AF38;
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
