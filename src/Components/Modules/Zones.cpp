@@ -37,7 +37,7 @@ namespace Components
 		Utils::Memory::Allocator allocator;
 		Game::FxElemDef* elems = allocator.AllocateArray<Game::FxElemDef>(count);
 
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; ++i)
 		{
 			AssetHandler::Relocate(buffer + (260 * i), buffer + (252 * i), 252);
 			std::memcpy(&elems[i], buffer + (260 * i), 252);
@@ -81,7 +81,7 @@ namespace Components
 		std::memcpy(model, xmodel, 36);
 		std::memcpy(&model->pad3[0x1C], &xmodel[44], 28);
 
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; ++i)
 		{
 			std::memcpy(&model->lods[i], &xmodel[72 + (i * 56)], 12);
 			std::memcpy(&model->lods[i].pad3, &xmodel[72 + (i * 56) + 16], 32);
@@ -92,7 +92,7 @@ namespace Components
 		std::memcpy(&model->lods[3].pad4[0], &xmodel[292], (elSize - 292 - 4)/*68*/);
 		std::memcpy(&model->physPreset, &xmodel[(elSize - 8)], 8);
 
-		model[1].name = reinterpret_cast<char*>(0xDEC0ADDE);
+		model[1].name = reinterpret_cast<char*>(0xDEADC0DE);
 
 		std::memcpy(xmodel, &model, elSize);
 
@@ -106,7 +106,7 @@ namespace Components
 		Game::Load_XString(false);
 	}
 
-	void __declspec(naked) Zones::LoadXModelLodInfoStub()
+	__declspec(naked) void Zones::LoadXModelLodInfoStub()
 	{
 		__asm
 		{
@@ -179,7 +179,7 @@ namespace Components
 		*Game::varXModelPtr = (Game::XModel*)(varWeaponDef + 16);
 		Game::Load_XModelPtr(false);
 
-		for (int i = 0, offset = 20; i < 32; i++, offset += 4)
+		for (int i = 0, offset = 20; i < 32; ++i, offset += 4)
 		{
 			*Game::varXModelPtr = (Game::XModel*)(varWeaponDef + offset);
 			Game::Load_XModelPtr(false);
@@ -219,7 +219,7 @@ namespace Components
 
 		// 980
 		// 50 soundalias name references; up to and including 1180
-		for (int i = 0, offset = 980; i < 50; i++, offset += 4)
+		for (int i = 0, offset = 980; i < 50; ++i, offset += 4)
 		{
 			*Game::varsnd_alias_list_name = (Game::snd_alias_list_t**)(varWeaponDef + offset);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
@@ -227,7 +227,7 @@ namespace Components
 
 		if (Zones::ZoneVersion >= 318)
 		{
-			for (int i = 0, offset = 1184; i < 2; i++, offset += 4)
+			for (int i = 0, offset = 1184; i < 2; ++i, offset += 4)
 			{
 				*Game::varsnd_alias_list_name = (Game::snd_alias_list_t**)(varWeaponDef + offset);
 				Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
@@ -276,7 +276,7 @@ namespace Components
 		// 1208
 		static int matOffsets1[] = { 1208, 1212, 1428, 1432, 1436, 1440, 1444, 1448, 1456, 1464 };
 
-		for (int i = 0; i < sizeof(matOffsets1) / sizeof(int); i++)
+		for (int i = 0; i < sizeof(matOffsets1) / sizeof(int); ++i)
 		{
 			*Game::varMaterialHandle = (Game::Material*)(varWeaponDef + matOffsets1[i]);
 			Game::Load_MaterialHandle(false);
@@ -396,7 +396,7 @@ namespace Components
 
 		if (Zones::ZoneVersion >= 318)
 		{
-			for (int i = 0, offset = 2972; i < 6; i++, offset += 4)
+			for (int i = 0, offset = 2972; i < 6; ++i, offset += 4)
 			{
 				*Game::varsnd_alias_list_name = (Game::snd_alias_list_t**)(varWeaponDef + offset);
 				Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
@@ -495,7 +495,7 @@ namespace Components
 		Utils::Memory::Allocator allocator;
 		Game::snd_alias_t* tempSounds = allocator.AllocateArray<Game::snd_alias_t>(count);
 
- 		for (int i = 0; i < count; i++)
+ 		for (int i = 0; i < count; ++i)
 		{
 			char* src = &buffer[i * 108];
 
@@ -542,7 +542,7 @@ namespace Components
 	{
 		Game::Load_Stream(1, varWeaponAttachStuff, 12 * count);
 
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; ++i)
 		{
 			if (varWeaponAttachStuff[1] < 16 || varWeaponAttachStuff[1] == 39)
 			{
@@ -593,7 +593,7 @@ namespace Components
 		Game::MaterialPass* curPass = *Game::varMaterialPass;
 		int count = curPass->argCount1 + curPass->argCount2 + curPass->argCount3;
 
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; ++i)
 		{
 			Game::MaterialShaderArgument* arg = &argument[i];
 
@@ -629,7 +629,7 @@ namespace Components
 
 		bool result = Game::Load_Stream(atStreamStart, data, size);
 
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; ++i)
 		{
 			std::memmove(data + (i * 16), data + (i * 24), 16);
 			AssetHandler::Relocate(data + (i * 24), data + (i * 16), 16);
