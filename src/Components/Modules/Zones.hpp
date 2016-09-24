@@ -15,7 +15,7 @@ namespace Components
 
 		static void InstallPatches(int version);
 
-	//private:
+	private:
 		static int ZoneVersion;
 
 		static int FxEffectIndex;
@@ -37,6 +37,7 @@ namespace Components
 		static Utils::Hook LoadStructuredDataStructPropertyArrayHook;
 		static Utils::Hook LoadPathDataTailHook;
 		static Utils::Hook LoadWeaponAttachHook;
+		static Utils::Hook LoadWeaponCompleteDefHook;
 
 		static void LoadFxElemDefArrayStub(bool atStreamStart);
 		static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
@@ -56,5 +57,6 @@ namespace Components
 		static void LoadPathDataTail();
 		static void LoadWeaponAttach();
 		static void LoadWeaponAttachStuff(DWORD* varWeaponAttachStuff, int count);
+		static void LoadWeaponCompleteDef();
 	};
 }

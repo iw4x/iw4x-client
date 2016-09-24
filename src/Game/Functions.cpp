@@ -276,14 +276,14 @@ namespace Game
 	mapname_t* mapnames = (mapname_t*)0x7471D0;
 
 	char*** varXString = (char***)0x112B340;
-	TracerDef** varTracerDefPtr = (TracerDef**)0x112B3BC;
-	XModel** varXModelPtr = (XModel**)0x112A934;
+	TracerDef*** varTracerDefPtr = (TracerDef***)0x112B3BC;
+	XModel*** varXModelPtr = (XModel***)0x112A934;
 	XModel** varXModel = (XModel**)0x112AE14;
 	PathData** varPathData = (PathData**)0x112AD7C;
 	const char** varConstChar = (const char**)0x112A774;
-	Material** varMaterialHandle = (Material**)0x112A878;
-	FxEffectDef** varFxEffectDefHandle = (FxEffectDef**)0x112ACC0;
-	PhysCollmap** varPhysCollmapPtr = (PhysCollmap **)0x112B440;
+	Material*** varMaterialHandle = (Material***)0x112A878;
+	FxEffectDef*** varFxEffectDefHandle = (FxEffectDef***)0x112ACC0;
+	PhysCollmap*** varPhysCollmapPtr = (PhysCollmap***)0x112B440;
 	Game::MaterialPass** varMaterialPass = (Game::MaterialPass**)0x112A960;
 	snd_alias_list_t*** varsnd_alias_list_name = (snd_alias_list_t***)0x112AF38;
 

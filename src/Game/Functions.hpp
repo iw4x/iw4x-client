@@ -566,14 +566,14 @@ namespace Game
 	extern mapname_t* mapnames;
 
 	extern char*** varXString;
-	extern TracerDef** varTracerDefPtr;
-	extern XModel** varXModelPtr;
+	extern TracerDef*** varTracerDefPtr;
+	extern XModel*** varXModelPtr;
 	extern XModel** varXModel;
 	extern PathData** varPathData;
 	extern const char** varConstChar;
-	extern Material** varMaterialHandle;
-	extern FxEffectDef** varFxEffectDefHandle;
-	extern PhysCollmap** varPhysCollmapPtr;
+	extern Material*** varMaterialHandle;
+	extern FxEffectDef*** varFxEffectDefHandle;
+	extern PhysCollmap*** varPhysCollmapPtr;
 	extern Game::MaterialPass** varMaterialPass;
 	extern snd_alias_list_t*** varsnd_alias_list_name;
 
