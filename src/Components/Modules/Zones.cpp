@@ -643,7 +643,7 @@ namespace Components
 		Zones::ZoneVersion = version;
 
 		bool patch = (version >= VERSION_ALPHA2);
-		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == XFILE_VERSION)
+		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == VERSION_ALPHA3_DEC || Zones::ZoneVersion == XFILE_VERSION)
 		{
 			Utils::Hook::Set<DWORD>(0x4158F4, version);
 			Utils::Hook::Set<DWORD>(0x4158FB, version);

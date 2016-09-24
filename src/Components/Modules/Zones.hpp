@@ -1,5 +1,6 @@
 #define VERSION_ALPHA2 316
 #define VERSION_ALPHA3 318//319
+#define VERSION_ALPHA3_DEC 319
 
 namespace Components
 {
@@ -14,6 +15,8 @@ namespace Components
 #endif
 
 		static void InstallPatches(int version);
+
+		static int Version() { return Zones::ZoneVersion; };
 
 	private:
 		static int ZoneVersion;
