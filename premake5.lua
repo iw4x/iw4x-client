@@ -274,12 +274,12 @@ workspace "iw4x"
 
 	configuration "Release*"
 		defines { "NDEBUG" }
-		flags { "MultiProcessorCompile", "Symbols", "LinkTimeOptimization", "No64BitChecks" }
+		flags { "MultiProcessorCompile", "LinkTimeOptimization", "No64BitChecks" }
 		optimize "Full"
 
 	configuration "Debug*"
 		defines { "DEBUG", "_DEBUG" }
-		flags { "MultiProcessorCompile", "Symbols", "No64BitChecks" }
+		flags { "MultiProcessorCompile", "No64BitChecks" }
 		optimize "Debug"
 		symbols "On"
 
@@ -404,6 +404,8 @@ workspace "iw4x"
 
 		-- Specific configurations
 		flags { "UndefinedIdentifiers", "ExtraWarnings" }
+
+		symbols "On"
 
 		configuration "Release*"
 			flags {
