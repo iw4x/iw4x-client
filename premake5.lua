@@ -260,13 +260,14 @@ workspace "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
-	--configurations { "Debug", "DebugStatic", "Release", "ReleaseStatic" }
 	configurations { "Debug", "Release" }
 	architecture "x32"
 	platforms "x86"
 
 	-- VS 2015 toolset only
 	toolset "msc-140"
+
+	flags { "StaticRuntime" }
 
 	configuration "windows"
 		defines { "_WINDOWS", "WIN32" }
@@ -280,9 +281,7 @@ workspace "iw4x"
 		defines { "DEBUG", "_DEBUG" }
 		flags { "MultiProcessorCompile", "Symbols", "No64BitChecks" }
 		optimize "Debug"
-
-	--configuration "*Static"
-		flags { "StaticRuntime" }
+		symbols "On"
 
 	project "iw4x"
 		kind "SharedLib"
@@ -396,7 +395,7 @@ workspace "iw4x"
 					"copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "\"",
 				}
 			end
-			
+
 			-- This has to be the last one, as otherwise VisualStudio will succeed building even if copying fails
 			postbuildcommands {
 				"copy /y \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\"",
