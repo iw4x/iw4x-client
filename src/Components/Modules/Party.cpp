@@ -24,6 +24,8 @@ namespace Components
 
 	void Party::Connect(Network::Address target)
 	{
+		Node::AddNode(target);
+
 		Party::Container.Valid = true;
 		Party::Container.AwaitingPlaylist = false;
 		Party::Container.JoinTime = Game::Sys_Milliseconds();
