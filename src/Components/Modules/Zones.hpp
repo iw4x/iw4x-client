@@ -41,6 +41,7 @@ namespace Components
 		static Utils::Hook LoadPathDataTailHook;
 		static Utils::Hook LoadWeaponAttachHook;
 		static Utils::Hook LoadWeaponCompleteDefHook;
+		static Utils::Hook LoadGfxImageHook;
 
 		static void LoadFxElemDefArrayStub(bool atStreamStart);
 		static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
@@ -61,5 +62,6 @@ namespace Components
 		static void LoadWeaponAttach();
 		static void LoadWeaponAttachStuff(DWORD* varWeaponAttachStuff, int count);
 		static void LoadWeaponCompleteDef();
+		static bool LoadGfxImage(bool atStreamStart, char* buffer, int size);
 	};
 }

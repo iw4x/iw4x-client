@@ -116,6 +116,13 @@ namespace Components
 	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)
 	{
 		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
+
+		// Should we perform the null check before or after this?
+		if (Flags::HasFlag("entries"))
+		{
+			OutputDebugStringA(Utils::String::VA("%s: %d: %s\n", FastFiles::Current().data(), type, name));
+		}
+
 		if (!name) return false;
 
 		bool restrict = false;
@@ -183,6 +190,8 @@ namespace Components
 		}
 
 		offset->pointer = *reinterpret_cast<void**>(pointer);
+
+		//Game::XAssetHeader zob{ offset->pointer };
 	}
 
 	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)

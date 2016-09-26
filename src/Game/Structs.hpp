@@ -2315,6 +2315,10 @@ namespace Game
 	union XAssetHeader
 	{
 		void *data;
+
+		// This is only for debugging
+		const char* string;
+
 		MenuList *menuList;
 		menuDef_t *menu;
 		Material *material;

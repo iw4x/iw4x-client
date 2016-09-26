@@ -24,6 +24,7 @@ namespace Components
 	Utils::Hook Zones::LoadPathDataTailHook;
 	Utils::Hook Zones::LoadWeaponAttachHook;
 	Utils::Hook Zones::LoadWeaponCompleteDefHook;
+	Utils::Hook Zones::LoadGfxImageHook;
 
 	bool Zones::LoadFxEffectDef(bool atStreamStart, char* buffer, int size)
 	{
@@ -45,7 +46,7 @@ namespace Components
 			Zones::FxEffectStrings[i] = *reinterpret_cast<char**>(buffer + (260 * i) + 256);
 		}
 
-		std::memcpy(buffer, elems,sizeof(Game::FxElemDef) * count);
+		std::memcpy(buffer, elems, sizeof(Game::FxElemDef) * count);
 
 		return result;
 	}
@@ -146,6 +147,35 @@ namespace Components
 			std::memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
 			std::memcpy(&tempSurfaces[i].numCT, source + 40, 8);
 			std::memcpy(&tempSurfaces[i].something, source + 52, 24);
+
+			if (Zones::ZoneVersion >= 332)
+			{
+				struct
+				{
+					short pad;                    // +0
+					char flag;                    // +2
+					unsigned char streamHandle;   // +3
+					unsigned short numVertices;   // +4
+					unsigned short numPrimitives; // +6
+					// [...]
+				} surface332;
+
+				// Copy the data to our new structure
+				std::memcpy(&surface332, &tempSurfaces[i], sizeof(surface332));
+
+				// Check if that special flag is set
+				if (!(surface332.flag & 0x20))
+				{
+					Logger::Error("We're not able to handle XSurface buffer allocation yet!");
+				}
+
+				// Copy the correct data back to our surface
+				tempSurfaces[i].streamHandle = surface332.streamHandle;
+				tempSurfaces[i].numVertices = surface332.numVertices;
+				tempSurfaces[i].numPrimitives = surface332.numPrimitives;
+
+				//std::memmove(&tempSurfaces[i].numVertices, &tempSurfaces[i].numPrimitives, 6);
+			}
 		}
 
 		std::memcpy(buffer, tempSurfaces, sizeof(Game::XSurface) * count);
@@ -635,6 +665,16 @@ namespace Components
 		return result;
 	}
 
+	bool Zones::LoadGfxImage(bool atStreamStart, char* buffer, int size)
+	{
+		bool result = Game::Load_Stream(atStreamStart, buffer, size + 4);
+
+		memcpy(buffer + 28, buffer + 32, 4);
+		AssetHandler::Relocate(buffer + 32, buffer + 28, 4);
+
+		return result;
+	}
+
 	void Zones::InstallPatches(int version)
 	{
 		AssetHandler::ClearRelocations();
@@ -643,7 +683,7 @@ namespace Components
 		Zones::ZoneVersion = version;
 
 		bool patch = (version >= VERSION_ALPHA2);
-		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == VERSION_ALPHA3_DEC || Zones::ZoneVersion == XFILE_VERSION)
+		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == VERSION_ALPHA3_DEC || Zones::ZoneVersion == XFILE_VERSION || Zones::ZoneVersion == 332)
 		{
 			Utils::Hook::Set<DWORD>(0x4158F4, version);
 			Utils::Hook::Set<DWORD>(0x4158FB, version);
@@ -677,6 +717,9 @@ namespace Components
 		// addon_map_ents asset type (we reuse it for weaponattach)
 		Utils::Hook::Set<BYTE>(0x418B30, (patch) ? 43 : Game::ASSET_TYPE_ADDON_MAP_ENTS);
 
+		// Change block for images
+		//Utils::Hook::Set<BYTE>(0x4C13E4, ((Zones::ZoneVersion >= 332) ? 3 : 0)); 
+
 		if (patch)
 		{
 			Zones::LoadFxElemDefArrayHook.Install();
@@ -702,6 +745,19 @@ namespace Components
 			if (Zones::ZoneVersion >= VERSION_ALPHA3)
 			{
 				Zones::LoadPathDataHook.Install();
+			}
+			else
+			{
+				Zones::LoadPathDataHook.Uninstall();
+			}
+
+			if (Zones::ZoneVersion >= 332)
+			{
+				Zones::LoadGfxImageHook.Install();
+			}
+			else
+			{
+				Zones::LoadGfxImageHook.Uninstall();
 			}
 
 			Zones::LoadMaterialShaderArgumentArrayHook.Install();
@@ -733,6 +789,8 @@ namespace Components
 
 			Zones::LoadMaterialShaderArgumentArrayHook.Uninstall();
 			Zones::LoadStructuredDataStructPropertyArrayHook.Uninstall();
+
+			Zones::LoadGfxImageHook.Uninstall();
 		}
 
 		AntiCheat::EmptyHash();
@@ -764,6 +822,8 @@ namespace Components
 		Zones::LoadFxEffectDefHook.Initialize(0x49591B, Zones::LoadFxEffectDef, HOOK_CALL);
 		Zones::LoadMaterialShaderArgumentArrayHook.Initialize(0x428F0A, Zones::LoadMaterialShaderArgumentArray, HOOK_CALL);
 		Zones::LoadStructuredDataStructPropertyArrayHook.Initialize(0x4B1EB8, Zones::LoadStructuredDataStructPropertyArray, HOOK_CALL);
+
+		Zones::LoadGfxImageHook.Initialize(0x4471AD, Zones::LoadGfxImage, HOOK_CALL);
 
 		Zones::LoadPathDataTailHook.Initialize(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP);
 		Zones::LoadPathDataHook.Initialize(0x4F4D3B, [] ()
