@@ -17,7 +17,7 @@
 	path = deps/protobuf
 	url = https://github.com/google/protobuf.git
 	shallow = true
-	branch = master
+	branch = 3.1.x
 [submodule "deps/libtomcrypt"]
 	path = deps/libtomcrypt
 	url = https://github.com/libtom/libtomcrypt.git
