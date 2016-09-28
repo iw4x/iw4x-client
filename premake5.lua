@@ -281,7 +281,11 @@ workspace "iw4x"
 		defines { "DEBUG", "_DEBUG" }
 		flags { "MultiProcessorCompile", "No64BitChecks" }
 		optimize "Debug"
-		symbols "On"
+		if symbols ~= nil then
+			symbols "On"
+		else
+			flags { "Symbols" }
+		end
 
 	project "iw4x"
 		kind "SharedLib"
@@ -405,7 +409,11 @@ workspace "iw4x"
 		-- Specific configurations
 		flags { "UndefinedIdentifiers", "ExtraWarnings" }
 
-		symbols "On"
+		if symbols ~= nil then
+			symbols "On"
+		else
+			flags { "Symbols" }
+		end
 
 		configuration "Release*"
 			flags {
@@ -415,20 +423,6 @@ workspace "iw4x"
 		configuration {}
 
 		-- Generate source code from protobuf definitions
-		filter "files:**.pb.*"
-			flags {
-				"NoPCH",
-			}
-			buildoptions {
-				"/wd4100", -- "Unused formal parameter"
-				"/wd4389", -- "Signed/Unsigned mismatch"
-				"/wd6011", -- "Dereferencing NULL pointer"
-				"/wd4125", -- "Decimal digit terminates octal escape sequence"
-			}
-			defines {
-				"_SCL_SECURE_NO_WARNINGS",
-			}
-		filter {}
 		rules { "ProtobufCompiler" }
 
 		-- Workaround: Consume protobuf generated source files
@@ -445,6 +439,20 @@ workspace "iw4x"
 		{
 			"%{prj.location}/src/proto",
 		}
+		filter "files:**.pb.*"
+			flags {
+				"NoPCH",
+			}
+			buildoptions {
+				"/wd4100", -- "Unused formal parameter"
+				"/wd4389", -- "Signed/Unsigned mismatch"
+				"/wd6011", -- "Dereferencing NULL pointer"
+				"/wd4125", -- "Decimal digit terminates octal escape sequence"
+			}
+			defines {
+				"_SCL_SECURE_NO_WARNINGS",
+			}
+		filter {}
 
 	group "External dependencies"
 		if not _OPTIONS["disable-bitmessage"] then
