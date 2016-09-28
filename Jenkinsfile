@@ -152,7 +152,7 @@ def doUnitTests(name) {
 			// Run tests
 			getIW4xExecutable()
 			if (isUnix()) {
-				sh "wine-wrapper iw4x.exe -tests"
+				sh "WINEDEBUG=warn+all wine-wrapper iw4x.exe -tests"
 			} else {
 				bat "iw4x.exe -tests"
 			}
