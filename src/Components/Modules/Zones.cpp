@@ -106,6 +106,8 @@ namespace Components
 		int elSize = (Zones::ZoneVersion == VERSION_ALPHA2) ? 364 : 360;
 		*Game::varXString = reinterpret_cast<char**>(reinterpret_cast<char*>(*Game::varXModel) + (elSize - 4) - (4 * (4 - i)));
 		Game::Load_XString(false);
+
+		Game::XModel* model = *Game::varXModel;
 	}
 
 	__declspec(naked) void Zones::LoadXModelLodInfoStub()
@@ -523,15 +525,15 @@ namespace Components
 		Utils::Memory::Allocator allocator;
 		Game::snd_alias_t* tempSounds = allocator.AllocateArray<Game::snd_alias_t>(count);
 
- 		for (int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			char* src = &buffer[i * 108];
 
-			std::memcpy(&tempSounds[i],          src + 0,  60);
+			std::memcpy(&tempSounds[i], src + 0, 60);
 			std::memcpy(&tempSounds[i].pad2[36], src + 68, 20);
 			std::memcpy(&tempSounds[i].pad2[56], src + 88, 20);
 
-			AssetHandler::Relocate(src + 0,  buffer + (i * 100) + 0,  60);
+			AssetHandler::Relocate(src + 0, buffer + (i * 100) + 0, 60);
 			AssetHandler::Relocate(src + 68, buffer + (i * 100) + 60, 20);
 			AssetHandler::Relocate(src + 88, buffer + (i * 100) + 80, 20);
 		}
@@ -554,7 +556,7 @@ namespace Components
 	bool Zones::LoadVehicleDef(bool atStreamStart, char* buffer)
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, 788);
-		
+
 		Game::VehicleDef vehicle[2];
 		std::memcpy(vehicle, &buffer[0], 400);
 		std::memcpy(&vehicle->pad[404], &buffer[400], 388);
@@ -670,7 +672,43 @@ namespace Components
 		bool result = Game::Load_Stream(atStreamStart, buffer, size + 4);
 
 		memcpy(buffer + 28, buffer + 32, 4);
-		AssetHandler::Relocate(buffer + 32, buffer + 28, 4);
+		//AssetHandler::Relocate(buffer + 32, buffer + 28, 4);
+
+		// Tell the game to load the image externally!
+		//Game::GfxImage* image = reinterpret_cast<Game::GfxImage*>(buffer);
+		//image->loaded = false;
+		//image->dataLen1 = 0;
+		//image->dataLen2 = 0;
+
+		return result;
+	}
+
+	bool Load_GfxImageLoadStruct(bool atStreamStart, char* buffer, int size)
+	{
+// 		if (Zones::Version() >= 332)
+// 		{
+// 			size = 0;
+// 			(*reinterpret_cast<Game::GfxImageLoadDef**>(0x112ACD0))->dataSize = 0;
+// 		}
+
+		return Game::Load_Stream(atStreamStart, buffer, size);
+	}
+
+	DWORD Load_Texture(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image)
+	{
+// 		if (!(*loadDef)->dataSize)
+// 		{
+// 			image->loaded = false;
+// 		}
+
+		if (FastFiles::Current() == "mp_cargoship_sh" || FastFiles::Current() == "mp_cargoship_sh_load")
+		{
+			OutputDebugStringA("");
+		}
+
+		//OutputDebugStringA(Utils::String::VA("LoadDefPtr: %X -> %s\n", reinterpret_cast<DWORD>(image->texture), image->name));
+		DWORD result = Utils::Hook::Call<DWORD(Game::GfxImageLoadDef**, Game::GfxImage*)>(0x51F4E0)(loadDef, image);
+		//OutputDebugStringA(Utils::String::VA("LoadDefPtr: %X -> %s\n", reinterpret_cast<DWORD>(image->texture), image->name));
 
 		return result;
 	}
@@ -754,6 +792,7 @@ namespace Components
 			if (Zones::ZoneVersion >= 332)
 			{
 				Zones::LoadGfxImageHook.Install();
+				//Utils::Hook::Nop(0x5BB93E, 2);
 			}
 			else
 			{
@@ -830,6 +869,9 @@ namespace Components
 		{
 			ZeroMemory(*Game::varPathData, sizeof(Game::PathData));
 		}, HOOK_CALL);
+
+		Utils::Hook(0x4D32A9, Load_GfxImageLoadStruct, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4D32BC, Load_Texture, HOOK_CALL).Install()->Quick();
 	}
 
 	Zones::~Zones()
