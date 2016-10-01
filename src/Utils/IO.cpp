@@ -11,6 +11,8 @@ namespace Utils
 
 		void WriteFile(std::string file, std::string data)
 		{
+			CreateDirectory(file.substr(0, file.find_last_of("/\\")));
+
 			std::ofstream stream(file, std::ios::binary);
 
 			if (stream.is_open())

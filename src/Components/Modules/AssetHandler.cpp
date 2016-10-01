@@ -116,29 +116,12 @@ namespace Components
 	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)
 	{
 		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
+		if (!name) return false;
 
-		if (name == "com_pipe_8x128_ceramic"s)
-		{
-			OutputDebugStringA("");
-		}
-
-		if (type == 10 && Zones::Version() >= 332 && Utils::String::StartsWith(name, "*"))
-		{
-			OutputDebugStringA(Utils::String::VA("LoadDefPtr: %X -> %s\n", reinterpret_cast<DWORD>(asset->image->texture), name));
-		}
-
-		if (name == "fx_icicle_broken_small"s || (type != 9 && type != 6 && type != 8 && type != 7 && Zones::Version() >= 332))
-		{
-			OutputDebugStringA("");
-		}
-
-		// Should we perform the null check before or after this?
 		if (Flags::HasFlag("entries"))
 		{
 			OutputDebugStringA(Utils::String::VA("%s: %d: %s\n", FastFiles::Current().data(), type, name));
 		}
-
-		if (!name) return false;
 
 		bool restrict = false;
 		AssetHandler::RestrictSignal(type, *asset, name, &restrict);
@@ -196,10 +179,6 @@ namespace Components
 
 	void AssetHandler::OffsetToAlias(Utils::Stream::Offset* offset)
 	{
-#ifdef DEBUG
-		Utils::Stream::Offset old = *offset;
-#endif
-
 		// Same here, reinterpret the value, as we're operating inside the game's environment
 		void* pointer = (*Game::g_streamBlocks)[offset->GetUnpackedBlock()].data + offset->GetUnpackedOffset();
 
@@ -209,10 +188,6 @@ namespace Components
 		}
 
 		offset->pointer = *reinterpret_cast<void**>(pointer);
-
-#ifdef DEBUG
-		Game::XAssetHeader zob{ offset->pointer };
-#endif
  	}
 
 	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)
