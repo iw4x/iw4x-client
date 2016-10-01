@@ -34,17 +34,24 @@ namespace Components
 				return;
 			}
 
-			std::string filename = params[1];
-			const char* data = Game::LoadModdableRawfile(0, filename.data());
+			FileSystem::File file(params[1]);
+			if (file.Exists())
+			{
+				Utils::IO::WriteFile("raw/" + file.GetName(), file.GetBuffer());
+				Logger::Print("File '%s' written to raw!\n", file.GetName().data());
+				return;
+			}
+
+			const char* data = Game::LoadModdableRawfile(0, file.GetName().data());
 
 			if (data)
 			{
-				Utils::IO::WriteFile("raw/" + filename, data);
-				Logger::Print("File '%s' written to raw!\n", filename.data());
+				Utils::IO::WriteFile("raw/" + file.GetName(), data);
+				Logger::Print("File '%s' written to raw!\n", file.GetName().data());
 			}
 			else
 			{
-				Logger::Print("File '%s' does not exist!\n", filename.data());
+				Logger::Print("File '%s' does not exist!\n", file.GetName().data());
 			}
 		});
 	}

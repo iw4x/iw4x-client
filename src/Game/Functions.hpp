@@ -536,6 +536,8 @@ namespace Game
 	extern int* gameTypeCount;
 	extern gameTypeName_t* gameTypes;
 
+	extern searchpath_t* fs_searchpaths;
+
 	extern XBlock** g_streamBlocks;
 
 	extern bool* g_lobbyCreateInProgress;

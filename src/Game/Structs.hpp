@@ -2495,6 +2495,41 @@ namespace Game
 		DWORD unk;
 	} PartyData_t;
 
+	typedef struct fileInPack_s
+	{
+		DWORD idk;
+		char* name;
+		DWORD idk2;
+	} fileInPack_t;
+
+	typedef struct
+	{
+		char			pakFilename[256];			// c:\quake3\baseq3\pak0.pk3
+		char			pakBasename[256];			// pak0
+		char			pakGamename[256];			// baseq3
+		void*			handle;						// handle to zip file
+		int				checksum;
+		int				pure_checksum;				// checksum for pure
+		int				idk;						// ?
+		int				numfiles;					// number of files in pk3
+		int				referenced;					// referenced file flags
+		int				hashSize;					// hash table size (power of 2)
+		fileInPack_t*	*hashTable;					// hash table
+		fileInPack_t*	buildBuffer;
+	} pack_t;
+
+	typedef struct {
+		char		path[256];		// c:\quake3
+		char		gamedir[256];	// baseq3
+	} directory_t;
+
+	typedef struct searchpath_s
+	{
+		searchpath_s* next;
+		pack_t* pack;
+		directory_t* dir;
+	} searchpath_t;
+
 	struct SafeArea
 	{
 		int fontHeight;

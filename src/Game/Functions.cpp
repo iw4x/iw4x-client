@@ -245,6 +245,8 @@ namespace Game
 	int* gameTypeCount = (int*)0x62E50A0;
 	gameTypeName_t* gameTypes = (gameTypeName_t*)0x62E50A4;
 
+	searchpath_t* fs_searchpaths = (searchpath_t*)0x63D96E0;
+
 	XBlock** g_streamBlocks = (XBlock**)0x16E554C;
 
 	bool* g_lobbyCreateInProgress = (bool*)0x66C9BC2;
