@@ -117,7 +117,7 @@ namespace Components
 	{
 		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
 
-		if (name == "props/icicle_tall_des"s)
+		if (name == "com_pipe_8x128_ceramic"s)
 		{
 			OutputDebugStringA("");
 		}

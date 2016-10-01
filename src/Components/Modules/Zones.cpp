@@ -694,6 +694,8 @@ namespace Components
 		return Game::Load_Stream(atStreamStart, buffer, size);
 	}
 
+	Utils::Hook LoadStreamHook;
+
 	DWORD Load_Texture(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image)
 	{
 // 		if (!(*loadDef)->dataSize)
@@ -703,12 +705,24 @@ namespace Components
 
 		if (FastFiles::Current() == "mp_cargoship_sh" || FastFiles::Current() == "mp_cargoship_sh_load")
 		{
+			LoadStreamHook.Install();
 			OutputDebugStringA("");
 		}
 
 		//OutputDebugStringA(Utils::String::VA("LoadDefPtr: %X -> %s\n", reinterpret_cast<DWORD>(image->texture), image->name));
 		DWORD result = Utils::Hook::Call<DWORD(Game::GfxImageLoadDef**, Game::GfxImage*)>(0x51F4E0)(loadDef, image);
 		//OutputDebugStringA(Utils::String::VA("LoadDefPtr: %X -> %s\n", reinterpret_cast<DWORD>(image->texture), image->name));
+
+		return result;
+	}
+
+	bool LoadStream(bool atStreamStart, void* buffer, int size)
+	{
+		LoadStreamHook.Uninstall();
+		bool result = Game::Load_Stream(atStreamStart, buffer, size);
+		LoadStreamHook.Install();
+
+		OutputDebugStringA(Utils::String::VA("Loading %d bytes from stream %d at %X (%d)\n", size, *(DWORD*)0x16E5578, (DWORD)_ReturnAddress(), atStreamStart  & 1));
 
 		return result;
 	}
@@ -872,6 +886,8 @@ namespace Components
 
 		Utils::Hook(0x4D32A9, Load_GfxImageLoadStruct, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x4D32BC, Load_Texture, HOOK_CALL).Install()->Quick();
+
+		LoadStreamHook.Initialize(Game::Load_Stream, LoadStream, HOOK_JUMP);
 	}
 
 	Zones::~Zones()
