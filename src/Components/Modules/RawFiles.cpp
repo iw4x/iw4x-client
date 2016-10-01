@@ -25,5 +25,27 @@ namespace Components
 #ifndef DEBUG
 		QuickPatch::OnFrame(AntiCheat::FlagIntegrityCheck);
 #endif
+
+		Command::Add("dumpraw", [] (Command::Params params)
+		{
+			if (params.Length() < 2)
+			{
+				Logger::Print("Specify a filename!\n");
+				return;
+			}
+
+			std::string filename = params[1];
+			const char* data = Game::LoadModdableRawfile(0, filename.data());
+
+			if (data)
+			{
+				Utils::IO::WriteFile("raw/" + filename, data);
+				Logger::Print("File '%s' written to raw!\n", filename.data());
+			}
+			else
+			{
+				Logger::Print("File '%s' does not exist!\n", filename.data());
+			}
+		});
 	}
 }

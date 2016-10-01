@@ -353,7 +353,7 @@ namespace Game
 	typedef void(__cdecl * Live_ParsePlaylists_t)(const char* data);
 	extern Live_ParsePlaylists_t Live_ParsePlaylists;
 
-	typedef void* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
+	typedef char* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
 
 	typedef int(__cdecl * PC_ReadToken_t)(source_t*, token_t*);

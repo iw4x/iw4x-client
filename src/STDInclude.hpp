@@ -86,6 +86,7 @@
 
 #include "Utils\IO.hpp"
 #include "Utils\CSV.hpp"
+#include "Utils\Chain.hpp"
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"
 #include "Utils\Memory.hpp"

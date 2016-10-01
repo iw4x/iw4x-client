@@ -523,15 +523,15 @@ namespace Components
 		Utils::Memory::Allocator allocator;
 		Game::snd_alias_t* tempSounds = allocator.AllocateArray<Game::snd_alias_t>(count);
 
- 		for (int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			char* src = &buffer[i * 108];
 
-			std::memcpy(&tempSounds[i],          src + 0,  60);
+			std::memcpy(&tempSounds[i], src + 0, 60);
 			std::memcpy(&tempSounds[i].pad2[36], src + 68, 20);
 			std::memcpy(&tempSounds[i].pad2[56], src + 88, 20);
 
-			AssetHandler::Relocate(src + 0,  buffer + (i * 100) + 0,  60);
+			AssetHandler::Relocate(src + 0, buffer + (i * 100) + 0, 60);
 			AssetHandler::Relocate(src + 68, buffer + (i * 100) + 60, 20);
 			AssetHandler::Relocate(src + 88, buffer + (i * 100) + 80, 20);
 		}
@@ -554,7 +554,7 @@ namespace Components
 	bool Zones::LoadVehicleDef(bool atStreamStart, char* buffer)
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, 788);
-		
+
 		Game::VehicleDef vehicle[2];
 		std::memcpy(vehicle, &buffer[0], 400);
 		std::memcpy(&vehicle->pad[404], &buffer[400], 388);
@@ -671,6 +671,7 @@ namespace Components
 
 		memcpy(buffer + 28, buffer + 32, 4);
 		AssetHandler::Relocate(buffer + 32, buffer + 28, 4);
+		//AssetHandler::Relocate(buffer + 28, buffer + 32, 4); // There is no point in storing the LoadDef
 
 		return result;
 	}
@@ -718,7 +719,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x418B30, (patch) ? 43 : Game::ASSET_TYPE_ADDON_MAP_ENTS);
 
 		// Change block for images
-		//Utils::Hook::Set<BYTE>(0x4C13E4, ((Zones::ZoneVersion >= 332) ? 3 : 0)); 
+		Utils::Hook::Set<BYTE>(0x4D3224, ((Zones::ZoneVersion >= 332) ? 3 : 0));
 
 		if (patch)
 		{
