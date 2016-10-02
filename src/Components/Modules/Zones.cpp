@@ -954,9 +954,12 @@ namespace Components
 
 	bool Zones::LoadmenuDef_t(bool atStreamStart, char* buffer, int size)
 	{
-		bool result = Game::Load_Stream(atStreamStart, buffer, size + 4);
-		std::memmove(buffer + 168, buffer + 172, 232);
-		AssetHandler::Relocate(buffer + 172, buffer + 168, 232);
+		if (Zones::ZoneVersion < 359) size += 4;
+
+		bool result = Game::Load_Stream(atStreamStart, buffer, size);
+		std::memmove(buffer + 168, buffer + 172, (Zones::ZoneVersion < 359 ? 232 : 228));
+		AssetHandler::Relocate(buffer + 172, buffer + 168, (Zones::ZoneVersion < 359 ? 232 : 228));
+
 		return result;
 	}
 
@@ -1160,7 +1163,8 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, size + 968);
 
-		std::memmove(buffer + 348, buffer + 1316, 280);
+		int sunDiff = 8;
+		std::memmove(buffer + 348 + sunDiff, buffer + 1316 + sunDiff, 280 - sunDiff);
 		AssetHandler::Relocate(buffer + 1316, buffer + 348, 280);
 
 		return result;
@@ -1179,6 +1183,9 @@ namespace Components
 		Game::Load_MaterialHandle(atStreamStart);
 
 		std::memmove(varsunflare_t + 12, varsunflare_t + 20, 84);
+
+		// Copy the remaining struct data we couldn't copy in LoadGfxWorld
+		std::memmove(varsunflare_t + 96, varsunflare_t + 104, 8);
 	}
 
 	void Zones::InstallPatches(int version)
@@ -1273,6 +1280,9 @@ namespace Components
 				Zones::LoadMaterialHook.Install();
 				Zones::LoadGfxWorldHook.Install();
 				Zones::Loadsunflare_tHook.Install();
+
+				// menu stuff
+				Utils::Hook::Nop(0x41A590, 5);
 			}
 			else
 			{
@@ -1281,6 +1291,8 @@ namespace Components
 				Zones::LoadMaterialHook.Uninstall();
 				Zones::LoadGfxWorldHook.Uninstall();
 				Zones::Loadsunflare_tHook.Uninstall();
+
+				Utils::Hook(0x41A590, 0x4AF680, HOOK_CALL).Install()->Quick();
 			}
 
 			Zones::LoadMaterialShaderArgumentArrayHook.Install();
@@ -1320,6 +1332,8 @@ namespace Components
 			Zones::LoadMaterialHook.Uninstall();
 			Zones::LoadGfxWorldHook.Uninstall();
 			Zones::Loadsunflare_tHook.Uninstall();
+
+			Utils::Hook(0x41A590, 0x4AF680, HOOK_CALL).Install()->Quick();
 		}
 
 		AntiCheat::EmptyHash();

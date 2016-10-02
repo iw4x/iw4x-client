@@ -188,6 +188,10 @@ namespace Components
 		}
 
 		offset->pointer = *reinterpret_cast<void**>(pointer);
+
+#ifdef DEBUG
+		Game::XAssetHeader zob{ offset->pointer };
+#endif
  	}
 
 	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)

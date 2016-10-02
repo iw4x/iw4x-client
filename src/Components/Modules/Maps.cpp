@@ -117,6 +117,12 @@ namespace Components
 			// This doesn't work, entities are spawned before the patch file is loaded
 			//Maps::OverrideMapEnts(asset.mapEnts);
 		}
+
+		if (type == Game::XAssetType::ASSET_TYPE_MENU && Zones::Version() >= 359)
+		{
+			*restrict = true;
+			return;
+		}
 	}
 
 	void Maps::GetBSPName(char* buffer, size_t size, const char* format, const char* mapname)
