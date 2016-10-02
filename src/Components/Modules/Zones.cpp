@@ -1133,17 +1133,22 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
-		struct
+		struct material339_s
 		{
 			char drawSurfBegin[4]; // Probably wrong
 			int surfaceTypeBits;
 			const char *name;
-			char drawSurf[8];
+			char drawSurf[6];
+			char gameFlags;
+			char pad;
 			char sortKey;
 			char textureAtlasRowCount;
 			char textureAtlasColumnCount;
-			char gameFlags;
 		} material359;
+
+		static_assert(offsetof(material339_s, gameFlags) == 18, "");
+		static_assert(offsetof(material339_s, sortKey) == 20, "");
+		static_assert(offsetof(material339_s, textureAtlasColumnCount) == 22, "");
 
 		Game::Material* material = (Game::Material*)buffer;
 		memcpy(&material359, material, sizeof(material359));
@@ -1154,7 +1159,18 @@ namespace Components
 		material->textureAtlasColumnCount = material359.textureAtlasColumnCount;
 		material->gameFlags = material359.gameFlags;
 		material->surfaceTypeBits = material359.surfaceTypeBits;
+		
 		memcpy(material->drawSurf, material359.drawSurfBegin, 4); // Probably wrong
+
+		material->drawSurf[4] = 0;
+		material->drawSurf[5] = 0;
+		material->drawSurf[6] = 0;
+
+		material->drawSurf[7] = material359.drawSurf[0];
+		material->drawSurf[8] = material359.drawSurf[1];
+		material->drawSurf[9] = material359.drawSurf[2];
+		material->drawSurf[10] = material359.drawSurf[3];
+		material->drawSurf[11] = material359.drawSurf[4];
 
 		return result;
 	}
@@ -1163,7 +1179,7 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, size + 968);
 
-		int sunDiff = 8;
+		int sunDiff = 8; // Stuff that is part of the sunflare we would overwrite
 		std::memmove(buffer + 348 + sunDiff, buffer + 1316 + sunDiff, 280 - sunDiff);
 		AssetHandler::Relocate(buffer + 1316, buffer + 348, 280);
 
@@ -1185,7 +1201,8 @@ namespace Components
 		std::memmove(varsunflare_t + 12, varsunflare_t + 20, 84);
 
 		// Copy the remaining struct data we couldn't copy in LoadGfxWorld
-		std::memmove(varsunflare_t + 96, varsunflare_t + 104, 8);
+		char* varGfxWorld = *reinterpret_cast<char**>(0x112A7F4);
+		std::memmove(varGfxWorld + 348, varGfxWorld + 1316, 8);
 	}
 
 	void Zones::InstallPatches(int version)
@@ -1346,6 +1363,9 @@ namespace Components
 		// Ignore missing soundaliases for now
 		// TODO: Include them in the dependency zone!
 		Utils::Hook::Nop(0x644207, 5);
+
+		//Utils::Hook::Nop(0x50AAFE, 5); 
+		//Utils::Hook::Nop(0x51B4A6, 5);
 
 		// Block Mark_pathnode_constant_t
 		Utils::Hook::Set<BYTE>(0x4F74B0, 0xC3);
