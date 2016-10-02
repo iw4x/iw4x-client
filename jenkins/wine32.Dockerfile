@@ -18,14 +18,22 @@ RUN \
                 echo '[multilib]' &&\
                 echo 'Include = /etc/pacman.d/mirrorlist'\
         ) >> /etc/pacman.conf &&\
-        pacman -Sy --noconfirm wine wget xorg-server-xvfb &&\
+        pacman -Sy --noconfirm \
+                lib32-gnutls \
+                wine \
+                wget \
+                xorg-server-xvfb \
+                &&\
 \
         wine-wrapper wineboot.exe -i &&\
         wget -Ovcredist_x86.exe https://download.microsoft.com/download/d/d/9/dd9a82d0-52ef-40db-8dab-795376989c03/vcredist_x86.exe &&\
         xvfb-run sh -c 'wine-wrapper vcredist_x86.exe /q' &&\
         rm vcredist_x86.exe &&\
 \
-        pacman -Rs --noconfirm xorg-server-xvfb wget &&\
+        pacman -Rs --noconfirm \
+                xorg-server-xvfb \
+                wget \
+                &&\
 \
         find /. -name "*~" -type f -delete &&\
         rm -rf /tmp/* /var/tmp/* /usr/share/man/* /usr/share/info/* /usr/share/doc/* &&\
