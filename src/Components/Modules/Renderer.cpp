@@ -21,9 +21,12 @@ namespace Components
 
 	void Renderer::FrameHandler()
 	{
-		Renderer::FrameSignal();
-		Renderer::FrameOnceSignal();
+		auto copy = Renderer::FrameSignal;
+		copy();
+
+		copy = Renderer::FrameOnceSignal;
 		Renderer::FrameOnceSignal.clear();
+		copy();
 	}
 
 	__declspec(naked) void Renderer::BackendFrameStub()

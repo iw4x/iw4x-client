@@ -193,6 +193,21 @@ namespace Components
 		}
 	}
 
+	void ConnectProtocol::Invocation()
+	{
+		if (ConnectProtocol::Used())
+		{
+			if (!Game::Sys_IsDatabaseReady() && !Game::Sys_IsDatabaseReady2())
+			{
+				QuickPatch::Once(ConnectProtocol::Invocation);
+			}
+			else
+			{
+				Command::Execute(fmt::sprintf("connect %s", ConnectProtocol::ConnectContainer.ConnectString.data()), false);
+			}
+		}
+	}
+
 	ConnectProtocol::ConnectProtocol()
 	{
 		// IPC handler
@@ -202,13 +217,7 @@ namespace Components
 		});
 
 		// Invocation handler
-		Renderer::Once([] ()
-		{
-			if (ConnectProtocol::Used())
-			{
-				Command::Execute(fmt::sprintf("connect %s", ConnectProtocol::ConnectContainer.ConnectString.data()), false);
-			}
-		});
+		QuickPatch::Once(ConnectProtocol::Invocation);
 
 		ConnectProtocol::InstallProtocol();
 		ConnectProtocol::EvaluateProtocol();
@@ -225,7 +234,7 @@ namespace Components
 			else
 			{
 				// Only skip intro here, invocation will be done later.
-				Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
+				//Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
 			}
 		}
 	}

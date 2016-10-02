@@ -24,5 +24,7 @@ namespace Components
 
 		static void EvaluateProtocol();
 		static bool InstallProtocol();
+
+		static void Invocation();
 	};
 }

@@ -204,6 +204,8 @@ namespace Game
 	SV_DirectConnect_t SV_DirectConnect = (SV_DirectConnect_t)0x460480;
 
 	Sys_FreeFileList_t Sys_FreeFileList = (Sys_FreeFileList_t)0x4D8580;
+	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = (Sys_IsDatabaseReady_t)0x4CA4A0;
+	Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2 = (Sys_IsDatabaseReady2_t)0x441280;
 	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
 	Sys_SendPacket_t Sys_SendPacket = (Sys_SendPacket_t)0x60FDC0;
 	Sys_ShowConsole_t Sys_ShowConsole = (Sys_ShowConsole_t)0x4305E0;

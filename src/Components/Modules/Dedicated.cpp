@@ -223,9 +223,13 @@ namespace Components
 
 	void Dedicated::FrameStub()
 	{
-		Dedicated::FrameSignal();
-		Dedicated::FrameOnceSignal();
+		auto copy = Dedicated::FrameSignal;
+		copy();
+
+		copy = Dedicated::FrameOnceSignal;
 		Dedicated::FrameOnceSignal.clear();
+		copy();
+
 		Utils::Hook::Call<void()>(0x5A8E80)();
 	}
 
