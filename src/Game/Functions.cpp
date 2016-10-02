@@ -46,6 +46,7 @@ namespace Game
 	DB_GetXAssetTypeName_t DB_GetXAssetTypeName = (DB_GetXAssetTypeName_t)0x4CFCF0;
 	DB_IsXAssetDefault_t DB_IsXAssetDefault = (DB_IsXAssetDefault_t)0x48E6A0;
 	DB_LoadXAssets_t DB_LoadXAssets = (DB_LoadXAssets_t)0x4E5930;
+	DB_LoadXFileData_t DB_LoadXFileData = (DB_LoadXFileData_t)0x445460;
 	DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = (DB_ReadXFileUncompressed_t)0x4705E0;
 	DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = (DB_ReleaseXAssetHandler_t*)0x799AB8;
 	DB_XModelSurfsFixup_t DB_XModelSurfsFixup = (DB_XModelSurfsFixup_t)0x5BAC50;
@@ -110,6 +111,7 @@ namespace Game
 	Load_SndAliasCustom_t Load_SndAliasCustom = (Load_SndAliasCustom_t)0x49B6B0;
 	Load_MaterialHandle_t Load_MaterialHandle = (Load_MaterialHandle_t)0x403960;
 	Load_PhysCollmapPtr_t Load_PhysCollmapPtr = (Load_PhysCollmapPtr_t)0x47E990;
+	Load_PhysPresetPtr_t Load_PhysPresetPtr = (Load_PhysPresetPtr_t)0x4FAD30;
 	Load_TracerDefPtr_t Load_TracerDefPtr = (Load_TracerDefPtr_t)0x493090;
 	Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray = (Load_snd_alias_list_nameArray_t)0x4499F0;
 
@@ -286,6 +288,7 @@ namespace Game
 	Material*** varMaterialHandle = (Material***)0x112A878;
 	FxEffectDef*** varFxEffectDefHandle = (FxEffectDef***)0x112ACC0;
 	PhysCollmap*** varPhysCollmapPtr = (PhysCollmap***)0x112B440;
+	PhysPreset*** varPhysPresetPtr = (PhysPreset***)0x112B378;
 	Game::MaterialPass** varMaterialPass = (Game::MaterialPass**)0x112A960;
 	snd_alias_list_t*** varsnd_alias_list_name = (snd_alias_list_t***)0x112AF38;
 

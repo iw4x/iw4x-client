@@ -105,6 +105,9 @@ namespace Game
 	typedef void(*DB_LoadXAssets_t)(XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 	extern DB_LoadXAssets_t DB_LoadXAssets;
 
+	typedef void(*DB_LoadXFileData_t)(char *pos, int size);
+	extern DB_LoadXFileData_t DB_LoadXFileData;
+
 	typedef void(__cdecl * DB_ReadXFileUncompressed_t)(void* buffer, int size);
 	extern DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed;
 
@@ -265,6 +268,9 @@ namespace Game
 
 	typedef void(__cdecl *Load_PhysCollmapPtr_t)(bool atStreamStart);
 	extern Load_PhysCollmapPtr_t Load_PhysCollmapPtr;
+
+	typedef void(__cdecl *Load_PhysPresetPtr_t)(bool atStreamStart);
+	extern Load_PhysPresetPtr_t Load_PhysPresetPtr;
 
 	typedef void(__cdecl *Load_TracerDefPtr_t)(bool atStreamStart);
 	extern Load_TracerDefPtr_t Load_TracerDefPtr;
@@ -576,6 +582,7 @@ namespace Game
 	extern Material*** varMaterialHandle;
 	extern FxEffectDef*** varFxEffectDefHandle;
 	extern PhysCollmap*** varPhysCollmapPtr;
+	extern PhysPreset*** varPhysPresetPtr;
 	extern Game::MaterialPass** varMaterialPass;
 	extern snd_alias_list_t*** varsnd_alias_list_name;
 

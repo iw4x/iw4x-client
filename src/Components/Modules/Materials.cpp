@@ -109,6 +109,12 @@ namespace Components
 		// Adapt death message to IW5 material format
 		Utils::Hook(0x5A30D9, Materials::DeathMessageStub, HOOK_JUMP).Install()->Quick();
 
+#ifdef DEBUG
+		// Ignore missing images
+		Utils::Hook::Nop(0x51F5AC, 5);
+		Utils::Hook::Nop(0x51F4C4, 5);
+#endif
+
 // 		Renderer::OnFrame([] ()
 // 		{
 // 			Game::Font* font = Game::R_RegisterFont("fonts/normalFont");
