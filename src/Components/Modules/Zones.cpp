@@ -25,6 +25,11 @@ namespace Components
 	Utils::Hook Zones::LoadWeaponAttachHook;
 	Utils::Hook Zones::LoadWeaponCompleteDefHook;
 	Utils::Hook Zones::LoadGfxImageHook;
+	Utils::Hook Zones::LoadXAssetHook;
+	Utils::Hook Zones::LoadMaterialTechniqueHook;
+	Utils::Hook Zones::LoadMaterialHook;
+	Utils::Hook Zones::LoadGfxWorldHook;
+	Utils::Hook Zones::Loadsunflare_tHook;
 
 	bool Zones::LoadFxEffectDef(bool atStreamStart, char* buffer, int size)
 	{
@@ -1051,10 +1056,12 @@ namespace Components
 				short width;
 				short depth;
 				char loaded;
-				char pad3[3];
+				char pad3[5];
 				Game::GfxImageLoadDef* storedTexture;
 				char* name;
 			} image359;
+
+			Assert_Size(image359, 52);
 
 			// Copy to new struct
 			memcpy(&image359, buffer, sizeof(image359));
@@ -1082,10 +1089,7 @@ namespace Components
 		return result;
 	}
 
-
-	Utils::Hook LoadXFileDataHook;
-
-	bool LoadXAsset(bool atStreamStart, char* buffer, int size)
+	bool Zones::LoadXAsset(bool atStreamStart, char* buffer, int size)
 	{
 		size /= 8;
 		int count = size;
@@ -1112,9 +1116,7 @@ namespace Components
 		return result;
 	}
 
-	Utils::Hook LoadTechniqueHook;
-
-	bool LoadTechnique(bool atStreamStart, char* buffer, int size)
+	bool Zones::LoadMaterialTechnique(bool atStreamStart, char* buffer, int size)
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, size + 4);
 
@@ -1124,45 +1126,59 @@ namespace Components
 		return result;
 	}
 
-	Utils::Hook LoadMaterialHook;
-
-	bool LoadMaterial(bool atStreamStart, char* buffer, int size)
+	bool Zones::LoadMaterial(bool atStreamStart, char* buffer, int size)
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
-		// TODO: Complete that, there are more changes!
+		struct
+		{
+			char drawSurfBegin[4]; // Probably wrong
+			int surfaceTypeBits;
+			const char *name;
+			char drawSurf[8];
+			char sortKey;
+			char textureAtlasRowCount;
+			char textureAtlasColumnCount;
+			char gameFlags;
+		} material359;
+
 		Game::Material* material = (Game::Material*)buffer;
-		std::memcpy(&material->name, &material->drawSurf[0], 4);
+		memcpy(&material359, material, sizeof(material359));
+
+		material->name = material359.name;
+		material->sortKey = material359.sortKey;
+		material->textureAtlasRowCount = material359.textureAtlasRowCount;
+		material->textureAtlasColumnCount = material359.textureAtlasColumnCount;
+		material->gameFlags = material359.gameFlags;
+		material->surfaceTypeBits = material359.surfaceTypeBits;
+		memcpy(material->drawSurf, material359.drawSurfBegin, 4); // Probably wrong
 
 		return result;
 	}
 
-	Utils::Hook LoadGfxWorldHook;
-
-	bool LoadGfxWorld(bool atStreamStart, char* buffer, int size)
+	bool Zones::LoadGfxWorld(bool atStreamStart, char* buffer, int size)
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, size + 968);
 
-		int addition = 64;
-		std::memmove(buffer + 412 - addition, buffer + 1380 - addition, 216 + addition);
-		AssetHandler::Relocate(buffer + 1380 - addition, buffer + 412 - addition, 216 + addition);
+		std::memmove(buffer + 348, buffer + 1316, 280);
+		AssetHandler::Relocate(buffer + 1316, buffer + 348, 280);
 
 		return result;
 	}
 
-	Utils::Hook LoadGfxWorldMaterialsHook;
-
-	void LoadGfxWorldMaterials(bool atStreamStart)
+	void Zones::Loadsunflare_t(bool atStreamStart)
 	{
 		Game::Load_MaterialHandle(atStreamStart);
 
-		*Game::varMaterialHandle = (Game::Material**)(*(DWORD*)0x112A848 + 12);
+		char* varsunflare_t = *reinterpret_cast<char**>(0x112A848);
+
+		*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varsunflare_t + 12);
 		Game::Load_MaterialHandle(atStreamStart);
 
-		*Game::varMaterialHandle = (Game::Material**)(*(DWORD*)0x112A848 + 16);
+		*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varsunflare_t + 16);
 		Game::Load_MaterialHandle(atStreamStart);
 
-		std::memmove(*(char**)0x112A848 + 12, *(char**)0x112A848 + 20, 84);
+		std::memmove(varsunflare_t + 12, varsunflare_t + 20, 84);
 	}
 
 	void Zones::InstallPatches(int version)
@@ -1207,7 +1223,7 @@ namespace Components
 		// addon_map_ents asset type (we reuse it for weaponattach)
 		Utils::Hook::Set<BYTE>(0x418B30, (patch) ? 43 : Game::ASSET_TYPE_ADDON_MAP_ENTS);
 
-		// Change block for images
+		// Change block for image load defs
 		Utils::Hook::Set<BYTE>(0x4D3224, ((Zones::ZoneVersion >= 332) ? 3 : 0));
 
 		if (patch)
@@ -1252,19 +1268,19 @@ namespace Components
 
 			if (Zones::ZoneVersion >= 359)
 			{
-				LoadXFileDataHook.Install();
-				LoadTechniqueHook.Install();
-				LoadMaterialHook.Install();
-				LoadGfxWorldHook.Install();
-				LoadGfxWorldMaterialsHook.Install();
+				Zones::LoadXAssetHook.Install();
+				Zones::LoadMaterialTechniqueHook.Install();
+				Zones::LoadMaterialHook.Install();
+				Zones::LoadGfxWorldHook.Install();
+				Zones::Loadsunflare_tHook.Install();
 			}
 			else
 			{
-				LoadXFileDataHook.Uninstall();
-				LoadTechniqueHook.Uninstall();
-				LoadMaterialHook.Uninstall();
-				LoadGfxWorldHook.Uninstall();
-				LoadGfxWorldMaterialsHook.Uninstall();
+				Zones::LoadXAssetHook.Uninstall();
+				Zones::LoadMaterialTechniqueHook.Uninstall();
+				Zones::LoadMaterialHook.Uninstall();
+				Zones::LoadGfxWorldHook.Uninstall();
+				Zones::Loadsunflare_tHook.Uninstall();
 			}
 
 			Zones::LoadMaterialShaderArgumentArrayHook.Install();
@@ -1299,11 +1315,11 @@ namespace Components
 
 			Zones::LoadGfxImageHook.Uninstall();
 
-			LoadXFileDataHook.Uninstall();
-			LoadTechniqueHook.Uninstall();
-			LoadMaterialHook.Uninstall();
-			LoadGfxWorldHook.Uninstall();
-			LoadGfxWorldMaterialsHook.Uninstall();
+			Zones::LoadXAssetHook.Uninstall();
+			Zones::LoadMaterialTechniqueHook.Uninstall();
+			Zones::LoadMaterialHook.Uninstall();
+			Zones::LoadGfxWorldHook.Uninstall();
+			Zones::Loadsunflare_tHook.Uninstall();
 		}
 
 		AntiCheat::EmptyHash();
@@ -1338,17 +1354,17 @@ namespace Components
 
 		Zones::LoadGfxImageHook.Initialize(0x4471AD, Zones::LoadGfxImage, HOOK_CALL);
 
+		Zones::LoadXAssetHook.Initialize(0x5B9AA5, Zones::LoadXAsset, HOOK_CALL);
+		Zones::LoadMaterialTechniqueHook.Initialize(0x461710, Zones::LoadMaterialTechnique, HOOK_CALL);
+		Zones::LoadMaterialHook.Initialize(0x40330D, Zones::LoadMaterial, HOOK_CALL);
+		Zones::LoadGfxWorldHook.Initialize(0x4B8DC0, Zones::LoadGfxWorld, HOOK_CALL);
+		Zones::Loadsunflare_tHook.Initialize(0x4B8FF5, Zones::Loadsunflare_t, HOOK_CALL);
+
 		Zones::LoadPathDataTailHook.Initialize(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP);
 		Zones::LoadPathDataHook.Initialize(0x4F4D3B, [] ()
 		{
 			ZeroMemory(*Game::varPathData, sizeof(Game::PathData));
 		}, HOOK_CALL);
-
-		LoadXFileDataHook.Initialize(0x5B9AA5, LoadXAsset, HOOK_CALL);
-		LoadTechniqueHook.Initialize(0x461710, LoadTechnique, HOOK_CALL);
-		LoadMaterialHook.Initialize(0x40330D, LoadMaterial, HOOK_CALL);
-		LoadGfxWorldHook.Initialize(0x4B8DC0, LoadGfxWorld, HOOK_CALL);
-		LoadGfxWorldMaterialsHook.Initialize(0x4B8FF5, LoadGfxWorldMaterials, HOOK_CALL);
 	}
 
 	Zones::~Zones()

@@ -126,7 +126,18 @@ namespace Components
 			format = "maps/%s.d3dbsp";
 		}
 
-		if (_strnicmp("mp_", mapname, 3) || mapname == "mp_nuked"s || mapname == "mp_bloc"s || mapname == "mp_cargoship"s || mapname == "mp_cross_fire"s || mapname == "mp_bog_sh"s || mapname == "mp_killhouse"s || mapname == "mp_bloc_sh"s || mapname == "mp_cargoship_sh"s || mapname == "mp_firingrange"s)
+		bool handleAsSp = false;
+
+		for (auto dependency : Maps::DependencyList)
+		{
+			if (dependency.second == "iw4x_dependencies_mp" && std::regex_match(mapname, std::regex(dependency.first)))
+			{
+				handleAsSp = true;
+				break;
+			}
+		}
+
+		if (_strnicmp("mp_", mapname, 3) || handleAsSp)
 		{
 			// Adjust pointer to GameMap_Data
 			Utils::Hook::Set<Game::GameMap_Data**>(0x4D90B7, &(Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_SP].gameMapSP[0].data));
@@ -253,11 +264,13 @@ namespace Components
 		Maps::AddDependency("mp_cross_fire", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_bog_sh", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_killhouse", "iw4x_dependencies_mp");
+
 		Maps::AddDependency("^(?!mp_).*", "iw4x_dependencies_mp"); // All maps not starting with "mp_"
 
 		Maps::AddDependency("mp_bloc_sh", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_cargoship_sh", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_shipment_long", "iw4x_dependencies_mp");
 	}
 
 	Maps::~Maps()

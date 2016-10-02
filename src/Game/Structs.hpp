@@ -2735,6 +2735,7 @@ namespace Game
 		int unknown;
 	};
 
+	// That shit is wrong!
 	struct GfxWorld
 	{
 		const char *name;

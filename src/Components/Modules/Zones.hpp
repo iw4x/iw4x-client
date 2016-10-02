@@ -42,6 +42,11 @@ namespace Components
 		static Utils::Hook LoadWeaponAttachHook;
 		static Utils::Hook LoadWeaponCompleteDefHook;
 		static Utils::Hook LoadGfxImageHook;
+		static Utils::Hook LoadXAssetHook;
+		static Utils::Hook LoadMaterialTechniqueHook;
+		static Utils::Hook LoadMaterialHook;
+		static Utils::Hook LoadGfxWorldHook;
+		static Utils::Hook Loadsunflare_tHook;
 
 		static void LoadFxElemDefArrayStub(bool atStreamStart);
 		static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
@@ -63,5 +68,10 @@ namespace Components
 		static void LoadWeaponAttachStuff(DWORD* varWeaponAttachStuff, int count);
 		static void LoadWeaponCompleteDef();
 		static bool LoadGfxImage(bool atStreamStart, char* buffer, int size);
+		static bool LoadXAsset(bool atStreamStart, char* buffer, int size);
+		static bool LoadMaterialTechnique(bool atStreamStart, char* buffer, int size);
+		static bool LoadMaterial(bool atStreamStart, char* buffer, int size);
+		static bool LoadGfxWorld(bool atStreamStart, char* buffer, int size);
+		static void Loadsunflare_t(bool atStreamStart);
 	};
 }
