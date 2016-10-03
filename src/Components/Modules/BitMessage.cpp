@@ -185,7 +185,14 @@ namespace Components
 
 	BitMessage::~BitMessage()
 	{
-		delete BitMessage::BMClient;
+		BitMessage::Save();
+
+		// We have to do that in another thread, as sometims the terminating thread already holds the mutex lock...
+		std::thread([&] ()
+		{
+			delete BitMessage::BMClient;
+		}).join();
+
 		BitMessage::BMClient = nullptr;
 	}
 
