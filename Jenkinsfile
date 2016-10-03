@@ -85,7 +85,7 @@ def getIW4xExecutable() {
 		$class: 'CopyArtifact',
 		filter: '*',
 		fingerprintArtifacts: true,
-		projectName: 'iw4x/iw4x-executable/' + iw4xExecutableBranch,
+		projectName: 'iw4x/iw4x-executable/' + iw4xExecutableBranch(),
 		selector: [
 			$class: 'TriggeredBuildSelector',
 			allowUpstreamDependencies: false,
@@ -170,11 +170,19 @@ def doUnitTests(name) {
 	}
 }
 
+// Returns the IW4x executable branch to use
+def iw4xExecutableBranch() {
+	try {
+	    return IW4X_EXECUTABLE_BRANCH;
+	} catch(MissingPropertyException) {
+		return "master";
+	}
+}
+
 // Job properties
 properties([
 	[$class: "GitLabConnectionProperty", gitLabConnection: "sr0"]
 ])
-
 
 gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"]) {
 	// First though let's give this build a proper name
