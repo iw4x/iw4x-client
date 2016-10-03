@@ -247,6 +247,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 							try {
 								def image = null
 								dir("src") {
+									deleteDir()
 									checkout scm
 									image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
 									deleteDir()
