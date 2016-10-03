@@ -243,22 +243,24 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 				}
 				executions["$testName on Linux"] = {
 					node("docker && linux && amd64") {
-						try {
-							def image = null
-							dir("src") {
-								checkout scm
-								image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
-								deleteDir()
-							}
-							image.inside {
-								doUnitTests(test.StashName)
-							}
-						} catch (Exception e) {
-							if (isUnix()) {
-								manager.buildUnstable()
-								manager.addWarningBadge "$testName unit test failed on Linux"
-							} else {
-								throw e
+						wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+							try {
+								def image = null
+								dir("src") {
+									checkout scm
+									image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
+									deleteDir()
+								}
+								image.inside {
+									doUnitTests(test.StashName)
+								}
+							} catch (Exception e) {
+								if (isUnix()) {
+									manager.buildUnstable()
+									manager.addWarningBadge "$testName unit test failed on Linux"
+								} else {
+									throw e
+								}
 							}
 						}
 					}
