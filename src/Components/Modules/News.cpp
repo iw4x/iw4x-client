@@ -66,6 +66,11 @@ namespace Components
 		TerminateProcess(GetCurrentProcess(), exitCode);
 	}
 
+	const char* News::GetNewsText()
+	{
+		return Localization::Get("MPUI_MOTD_TEXT");
+	}
+
 	void News::CheckForUpdate()
 	{
 		std::string caches = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/caches.xml").SetTimeout(5000)->Get();
@@ -102,6 +107,13 @@ namespace Components
 
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFUALT);
+
+		// make newsfeed (ticker) menu items not cut off based on safe area
+		Utils::Hook::Nop(0x63892D, 5);
+
+		// hook for getting the news ticker string
+		Utils::Hook::Nop(0x6388BB, 2); // skip the "if (item->text[0] == '@')" localize check
+		Utils::Hook(0x6388C1, News::GetNewsText, HOOK_CALL).Install()->Quick();
 
 		// TODO: Probably remove that, if the updater is part of the repo?
 		if (Utils::IO::FileExists("updater.exe"))

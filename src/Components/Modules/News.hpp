@@ -18,5 +18,7 @@ namespace Components
 
 		static void CheckForUpdate();
 		static void ExitProcessStub(unsigned int exitCode);
+
+		static const char* GetNewsText();
 	};
 }
