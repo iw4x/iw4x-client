@@ -49,3 +49,8 @@
 	url = https://github.com/seizu/base128.git
 	shallow = true
 	branch = master
+[submodule "deps/protobuf"]
+	path = deps/protobuf
+	url = https://github.com/google/protobuf.git
+	shallow = true
+	branch = 3.1.x
