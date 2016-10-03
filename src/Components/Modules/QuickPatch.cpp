@@ -181,6 +181,10 @@ namespace Components
 		// version string
 		Utils::Hook::Set<char*>(0x60BD56, "IW4x (" VERSION ")");
 
+		// version string color
+		static float buildLocColor[] = { 1.0f, 1.0f, 1.0f, 0.8f };
+		Utils::Hook::Set(0x43F710, buildLocColor);
+
 		// Shift ui version string to the left (ui_buildlocation)
 		Utils::Hook::Nop(0x6310A0, 5); // Don't register the initial dvar
 		Utils::Hook::Nop(0x6310B8, 5); // Don't write the result
