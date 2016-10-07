@@ -340,6 +340,15 @@ namespace Game
 		MaterialTechnique* techniques[48];
 	};
 
+	struct MaterialTechniqueSet_new
+	{
+		const char* name;
+		char pad[4];
+		MaterialTechniqueSet* remappedTechniques;
+		int pad2;
+		MaterialTechnique* techniques[48];
+	};
+
 	struct MaterialConstantDef
 	{
 		int nameHash;
@@ -363,6 +372,30 @@ namespace Game
 		char stateFlags;
 		char cameraRegion;
 		MaterialTechniqueSet *techniqueSet;
+		MaterialTextureDef *textureTable;
+		MaterialConstantDef *constantTable;
+		void *stateBitTable;
+	};
+
+	struct Material_new
+	{
+		char drawSurfBegin[4]; // Probably wrong
+		int surfaceTypeBits;
+		const char *name;
+		char drawSurf[6];
+		char gameFlags;
+		char pad;
+		char sortKey;
+		char textureAtlasRowCount;
+		char textureAtlasColumnCount;
+		char pad2;
+		char stateBitsEntry[48];
+		char textureCount;
+		char constantCount;
+		char stateBitsCount;
+		char stateFlags;
+		char cameraRegion;
+		MaterialTechniqueSet_new *techniqueSet;
 		MaterialTextureDef *textureTable;
 		MaterialConstantDef *constantTable;
 		void *stateBitTable;
@@ -2775,6 +2808,10 @@ namespace Game
 		int unknown5;
 	};
 #pragma pack(pop)
+
+#ifdef __cplusplus
+	static_assert(offsetof(GfxWorld, worldDraw) == 80, "");
+#endif
 
 	union XAssetHeader
 	{

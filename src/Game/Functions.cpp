@@ -203,6 +203,7 @@ namespace Game
 	SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString = (SV_Cmd_EndTokenizedString_t)0x464750;
 	SV_DirectConnect_t SV_DirectConnect = (SV_DirectConnect_t)0x460480;
 
+	Sys_Error_t Sys_Error = (Sys_Error_t)0x4E0200;
 	Sys_FreeFileList_t Sys_FreeFileList = (Sys_FreeFileList_t)0x4D8580;
 	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = (Sys_IsDatabaseReady_t)0x4CA4A0;
 	Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2 = (Sys_IsDatabaseReady2_t)0x441280;

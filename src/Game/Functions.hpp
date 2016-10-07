@@ -473,6 +473,9 @@ namespace Game
 	typedef void(__cdecl * SV_DirectConnect_t)(netadr_t adr);
 	extern SV_DirectConnect_t SV_DirectConnect;
 
+	typedef int(__cdecl * Sys_Error_t)(int, char *, ...);
+	extern Sys_Error_t Sys_Error;
+
 	typedef void(__cdecl * Sys_FreeFileList_t)(char** list);
 	extern Sys_FreeFileList_t Sys_FreeFileList;
 

@@ -1123,8 +1123,9 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, size + 4);
 
-		std::memmove(buffer + 8, buffer + 12, 196);
-		AssetHandler::Relocate(buffer + 12, buffer + 8, 196);
+		int shiftTest = 4;
+		std::memmove(buffer + 8 + shiftTest, buffer + 12 + shiftTest, 196 - shiftTest);
+		AssetHandler::Relocate(buffer + 12 + shiftTest, buffer + 8 + shiftTest, 196 - shiftTest);
 
 		return result;
 	}
@@ -1150,6 +1151,8 @@ namespace Components
 		static_assert(offsetof(material339_s, sortKey) == 20, "");
 		static_assert(offsetof(material339_s, textureAtlasColumnCount) == 22, "");
 
+		static_assert(offsetof(Game::Material, stateBitsEntry) == 24, "");
+
 		Game::Material* material = (Game::Material*)buffer;
 		memcpy(&material359, material, sizeof(material359));
 
@@ -1158,9 +1161,12 @@ namespace Components
 		material->textureAtlasRowCount = material359.textureAtlasRowCount;
 		material->textureAtlasColumnCount = material359.textureAtlasColumnCount;
 		material->gameFlags = material359.gameFlags;
+
+		// Probably wrong
 		material->surfaceTypeBits = material359.surfaceTypeBits;
-		
-		memcpy(material->drawSurf, material359.drawSurfBegin, 4); // Probably wrong
+
+		// Pretty sure that's wrong
+		memcpy(material->drawSurf, material359.drawSurfBegin, 4);
 
 		material->drawSurf[4] = 0;
 		material->drawSurf[5] = 0;

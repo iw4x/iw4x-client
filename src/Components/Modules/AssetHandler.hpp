@@ -46,6 +46,16 @@ namespace Components
 	private:
 		static bool BypassState;
 
+		static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
+
+		static std::map<Game::XAssetType, IAsset*> AssetInterfaces;
+		static std::map<Game::XAssetType, wink::slot<Callback>> TypeCallbacks;
+		static wink::signal<wink::slot<RestrictCallback>> RestrictSignal;
+
+		static std::map<void*, void*> Relocations;
+
+		static std::vector<std::pair<Game::XAssetType, std::string>> EmptyAssets;
+
 		static void RegisterInterface(IAsset* iAsset);
 
 		static Game::XAssetHeader FindAsset(Game::XAssetType type, const char* filename);
@@ -55,13 +65,8 @@ namespace Components
 
 		static void OffsetToAlias(Utils::Stream::Offset* offset);
 
-		static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
-
-		static std::map<Game::XAssetType, IAsset*> AssetInterfaces;
-		static std::map<Game::XAssetType, wink::slot<Callback>> TypeCallbacks;
-		static wink::signal<wink::slot<RestrictCallback>> RestrictSignal;
-
-		static std::map<void*, void*> Relocations;
+		static void StoreEmptyAsset(Game::XAssetType type, const char* name);
+		static void StoreEmptyAssetStub();
 	};
 }
 

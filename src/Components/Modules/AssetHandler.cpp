@@ -9,6 +9,8 @@ namespace Components
 
 	std::map<void*, void*> AssetHandler::Relocations;
 
+	std::vector<std::pair<Game::XAssetType, std::string>> AssetHandler::EmptyAssets;
+
 	std::map<std::string, Game::XAssetHeader> AssetHandler::TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
 	void AssetHandler::RegisterInterface(IAsset* iAsset)
@@ -118,6 +120,18 @@ namespace Components
 		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
 		if (!name) return false;
 
+		for (auto i = AssetHandler::EmptyAssets.begin(); i != AssetHandler::EmptyAssets.end();)
+		{
+			if (i->first == type && i->second == name)
+			{
+				i = AssetHandler::EmptyAssets.erase(i);
+			}
+			else
+			{
+				++i;
+			}
+		}
+
 		if (Flags::HasFlag("entries"))
 		{
 			OutputDebugStringA(Utils::String::VA("%s: %d: %s\n", FastFiles::Current().data(), type, name));
@@ -172,7 +186,6 @@ namespace Components
 	{
 		for (DWORD i = 0; i < size; i += 4)
 		{
-			// Reinterpret cast is fine here, as we are working with low-level pointers (due to the relocation hook)
 			AssetHandler::Relocations[reinterpret_cast<char*>(start) + i] = reinterpret_cast<char*>(to) + i;
 		}
 	}
@@ -260,6 +273,30 @@ namespace Components
 		return header;
 	}
 
+	void AssetHandler::StoreEmptyAsset(Game::XAssetType type, const char* name)
+	{
+		AssetHandler::EmptyAssets.push_back({ type,name });
+	}
+
+	__declspec(naked) void AssetHandler::StoreEmptyAssetStub()
+	{
+		__asm
+		{
+			pushad
+			push ebx
+			push eax
+
+			call AssetHandler::StoreEmptyAsset
+
+			pop eax
+			pop ebx
+			popad
+
+			push 5BB290h
+			retn
+		}
+	}
+
 	AssetHandler::AssetHandler()
 	{
 		AssetHandler::ClearTemporaryAssets();
@@ -272,6 +309,22 @@ namespace Components
 
 		// DB_AddXAsset
 		Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).Install()->Quick();
+
+		// Store empty assets
+		Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).Install()->Quick();
+
+		QuickPatch::OnFrame([] ()
+		{
+			if (Game::Sys_IsDatabaseReady() && Game::Sys_IsDatabaseReady2() && !AssetHandler::EmptyAssets.empty())
+			{
+				for (auto& asset : AssetHandler::EmptyAssets)
+				{
+					Game::Sys_Error(25, reinterpret_cast<char*>(0x724428), Game::DB_GetXAssetTypeName(asset.first), asset.second.data());
+				}
+
+				AssetHandler::EmptyAssets.clear();
+			}
+		});
 
 		// Register asset interfaces
 		if (ZoneBuilder::IsEnabled())
