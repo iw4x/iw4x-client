@@ -1136,8 +1136,8 @@ namespace Components
 
 		struct material339_s
 		{
-			char drawSurfBegin[4]; // Probably wrong
-			int surfaceTypeBits;
+			char drawSurfBegin[8]; // 4
+			//int surfaceTypeBits;
 			const char *name;
 			char drawSurf[6];
 			char gameFlags;
@@ -1163,20 +1163,16 @@ namespace Components
 		material->gameFlags = material359.gameFlags;
 
 		// Probably wrong
-		material->surfaceTypeBits = material359.surfaceTypeBits;
+		material->surfaceTypeBits = 0;//material359.surfaceTypeBits;
 
 		// Pretty sure that's wrong
-		memcpy(material->drawSurf, material359.drawSurfBegin, 4);
+		// Actually, it's not
+		memcpy(material->drawSurf, material359.drawSurfBegin, 8);
 
-		material->drawSurf[4] = 0;
-		material->drawSurf[5] = 0;
-		material->drawSurf[6] = 0;
-
-		material->drawSurf[7] = material359.drawSurf[0];
-		material->drawSurf[8] = material359.drawSurf[1];
-		material->drawSurf[9] = material359.drawSurf[2];
-		material->drawSurf[10] = material359.drawSurf[3];
-		material->drawSurf[11] = material359.drawSurf[4];
+		material->drawSurf[8] = material359.drawSurf[0];
+		material->drawSurf[9] = material359.drawSurf[1];
+		material->drawSurf[10] = material359.drawSurf[2];
+		material->drawSurf[11] = material359.drawSurf[3];
 
 		return result;
 	}
@@ -1255,6 +1251,9 @@ namespace Components
 
 		// Change block for image load defs
 		Utils::Hook::Set<BYTE>(0x4D3224, ((Zones::ZoneVersion >= 332) ? 3 : 0));
+
+		// This is needed if we want the original lightning on cargoship_sh, but original maps are darker
+		//Utils::Hook::Set<BYTE>(0x525333, 61);
 
 		if (patch)
 		{

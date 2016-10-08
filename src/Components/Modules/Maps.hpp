@@ -26,6 +26,10 @@ namespace Components
 
 		static int IgnoreEntityStub(const char* entity);
 
+#ifdef DEBUG
+		static void ExportMap(Game::GfxWorld* world);
+#endif
+
 		void ReallocateEntryPool();
 	};
 }

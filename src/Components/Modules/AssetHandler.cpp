@@ -132,6 +132,11 @@ namespace Components
 			}
 		}
 
+		if (type == 5 && name == "wc/codo_ui_viewer_black_decal3"s)
+		{
+			std::memcpy(&asset->material->gameFlags, &(*reinterpret_cast<Game::Material**>(0xA7FFE8))->gameFlags, sizeof(Game::Material) - 4);
+		}
+
 		if (Flags::HasFlag("entries"))
 		{
 			OutputDebugStringA(Utils::String::VA("%s: %d: %s\n", FastFiles::Current().data(), type, name));
@@ -275,7 +280,7 @@ namespace Components
 
 	void AssetHandler::StoreEmptyAsset(Game::XAssetType type, const char* name)
 	{
-		AssetHandler::EmptyAssets.push_back({ type,name });
+		AssetHandler::EmptyAssets.push_back({ type, name });
 	}
 
 	__declspec(naked) void AssetHandler::StoreEmptyAssetStub()
@@ -313,6 +318,7 @@ namespace Components
 		// Store empty assets
 		Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).Install()->Quick();
 
+		// Log missing empty assets
 		QuickPatch::OnFrame([] ()
 		{
 			if (Game::Sys_IsDatabaseReady() && Game::Sys_IsDatabaseReady2() && !AssetHandler::EmptyAssets.empty())

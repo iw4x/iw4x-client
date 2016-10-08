@@ -39,6 +39,12 @@
 #include <future>
 #include <queue>
 
+// Usefull for debugging
+template <size_t S> class Sizer { };
+#define BindNum(x, y) Sizer<x> y;
+#define SizeOf(x, y) BindNum(sizeof(x), y)
+#define OffsetOf(x, y, z) BindNum(offsetof(x, y), z)
+
 // Submodules
 // Ignore the warnings, it's no our code!
 #pragma warning(push)

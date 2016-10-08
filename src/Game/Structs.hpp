@@ -2464,6 +2464,7 @@ namespace Game
 	{
 		float mins[3];
 		float maxs[3];
+		int pad;
 		unsigned __int16 childCount;
 		unsigned __int16 surfaceCount;
 		unsigned __int16 startSurfIndex;
@@ -2507,7 +2508,7 @@ namespace Game
 		char lightmapIndex;
 		char reflectionProbeIndex;
 		char primaryLightIndex;
-		bool castsSunShadow;
+		char castsSunShadow;
 	};
 
 	struct GfxCullGroup
@@ -2537,13 +2538,14 @@ namespace Game
 		unsigned int staticSurfaceCount;
 		unsigned int litSurfsBegin;
 		unsigned int litSurfsEnd;
-		char unknown1[0x20];
+		char unknown1[0x24];
 		char *smodelVisData[3];
 		char *surfaceVisData[3];
 		unsigned __int16 *sortedSurfIndex;
+
 		GfxStaticModelInst *smodelInsts;
 		GfxSurface *surfaces;
-		GfxCullGroup *cullGroups;
+		GfxCullGroup *cullGroups; // actually GfxSurfaceBounds (24), but not important right now
 		GfxStaticModelDrawInst *smodelDrawInsts;
 		GfxDrawSurf *surfaceMaterials;
 		unsigned int *surfaceCastsSunShadow;
@@ -2757,18 +2759,16 @@ namespace Game
 		GfxWorldVertexLayerData vld;
 		int indexCount;
 		unsigned __int16 *indices;
-		void/*IDirect3DIndexBuffer9*/* indexBuffer;
 	};
 
-	struct unknownGfxWorldStruct2
+	struct GfxSky
 	{
-		int unknownCount;
-		int * unknownArray;
-		GfxImage * unknownImage;
-		int unknown;
+		int skySurfCount;
+		int * skyStartSurfs;
+		GfxImage * skyImage;
+		int skySamplerState;
 	};
 
-	// That shit is wrong!
 	struct GfxWorld
 	{
 		const char *name;
@@ -2776,12 +2776,12 @@ namespace Game
 		int planeCount;
 		int nodeCount;
 		int unknown2;
-		unsigned int unknownCount1;
-		unknownGfxWorldStruct2 * unknownStructs1; //Count = unknownCount1;
+		unsigned int skyCount;
+		GfxSky* skies;
 		char unknown1[0x18];
 		GfxWorldDpvsPlanes dpvsPlanes; //The following rely on the count in this
 		char *unknown4;
-		GfxAabbTree *aabbTree;
+		GfxAabbTree *aabbTree; // Actually GfxCellTree 
 		GfxCell *cells;
 		GfxWorldDraw worldDraw;
 		GfxLightGrid lightGrid;
@@ -2801,17 +2801,73 @@ namespace Game
 		char *primaryLightForModelDynEnt;
 		GfxShadowGeometry *shadowGeom;
 		GfxLightRegion *lightRegion;
+
+		char pad[68];
+
 		GfxWorldDpvsStatic dpvs;
 		GfxWorldDpvsDynamic dpvsDyn;
-		unsigned int unknownCount3;
-		char * unknown3; //Size = unknownCount2 * 0x38
+
+		char pad2[4];
+
+		unsigned int heroOnlyLightCount;
+		char * heroOnlyLight;
+		int unknown5;
+	};
+
+	struct GfxWorld_new
+	{
+		const char *name;
+		const char *baseName;
+		int planeCount;
+		int nodeCount;
+		int unknown2;
+		unsigned int skyCount;
+		GfxSky* skies;
+		char unknown1[0x18];
+		GfxWorldDpvsPlanes dpvsPlanes; //The following rely on the count in this
+		char *unknown4;
+		GfxAabbTree *aabbTree; // Actually GfxCellTree 
+		GfxCell *cells;
+		GfxWorldDraw worldDraw;
+		GfxLightGrid lightGrid;
+		int modelCount;
+		GfxBrushModel *models;
+		float mins[3];
+		float maxs[3];
+		unsigned int checksum;
+		int materialMemoryCount;
+		MaterialMemory *materialMemory;
+		sunflare_t sun;
+
+		char whatIsThat[968];
+
+		unsigned int *cellCasterBits[2];
+		GfxSceneDynModel *sceneDynModel;
+		GfxSceneDynBrush *sceneDynBrush;
+		unsigned int *primaryLightEntityShadowVis;
+		unsigned int *primaryLightDynEntShadowVis[2];
+		char *primaryLightForModelDynEnt;
+		GfxShadowGeometry *shadowGeom;
+		GfxLightRegion *lightRegion;
+
+		char pad[68];
+
+		GfxWorldDpvsStatic dpvs;
+		GfxWorldDpvsDynamic dpvsDyn;
+
+		char pad2[4];
+
+		unsigned int heroOnlyLightCount;
+		char * heroOnlyLight;
 		int unknown5;
 	};
 #pragma pack(pop)
 
-#ifdef __cplusplus
-	static_assert(offsetof(GfxWorld, worldDraw) == 80, "");
-#endif
+	struct rgpStruct
+	{
+		int pad[2117];
+		GfxWorld* world;
+	};
 
 	union XAssetHeader
 	{
