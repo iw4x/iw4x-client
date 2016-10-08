@@ -340,15 +340,6 @@ namespace Game
 		MaterialTechnique* techniques[48];
 	};
 
-	struct MaterialTechniqueSet_new
-	{
-		const char* name;
-		char pad[4];
-		MaterialTechniqueSet* remappedTechniques;
-		int pad2;
-		MaterialTechnique* techniques[48];
-	};
-
 	struct MaterialConstantDef
 	{
 		int nameHash;
@@ -372,30 +363,6 @@ namespace Game
 		char stateFlags;
 		char cameraRegion;
 		MaterialTechniqueSet *techniqueSet;
-		MaterialTextureDef *textureTable;
-		MaterialConstantDef *constantTable;
-		void *stateBitTable;
-	};
-
-	struct Material_new
-	{
-		char drawSurfBegin[4]; // Probably wrong
-		int surfaceTypeBits;
-		const char *name;
-		char drawSurf[6];
-		char gameFlags;
-		char pad;
-		char sortKey;
-		char textureAtlasRowCount;
-		char textureAtlasColumnCount;
-		char pad2;
-		char stateBitsEntry[48];
-		char textureCount;
-		char constantCount;
-		char stateBitsCount;
-		char stateFlags;
-		char cameraRegion;
-		MaterialTechniqueSet_new *techniqueSet;
 		MaterialTextureDef *textureTable;
 		MaterialConstantDef *constantTable;
 		void *stateBitTable;
@@ -2793,54 +2760,6 @@ namespace Game
 		int materialMemoryCount;
 		MaterialMemory *materialMemory;
 		sunflare_t sun;
-		unsigned int *cellCasterBits[2];
-		GfxSceneDynModel *sceneDynModel;
-		GfxSceneDynBrush *sceneDynBrush;
-		unsigned int *primaryLightEntityShadowVis;
-		unsigned int *primaryLightDynEntShadowVis[2];
-		char *primaryLightForModelDynEnt;
-		GfxShadowGeometry *shadowGeom;
-		GfxLightRegion *lightRegion;
-
-		char pad[68];
-
-		GfxWorldDpvsStatic dpvs;
-		GfxWorldDpvsDynamic dpvsDyn;
-
-		char pad2[4];
-
-		unsigned int heroOnlyLightCount;
-		char * heroOnlyLight;
-		int unknown5;
-	};
-
-	struct GfxWorld_new
-	{
-		const char *name;
-		const char *baseName;
-		int planeCount;
-		int nodeCount;
-		int unknown2;
-		unsigned int skyCount;
-		GfxSky* skies;
-		char unknown1[0x18];
-		GfxWorldDpvsPlanes dpvsPlanes; //The following rely on the count in this
-		char *unknown4;
-		GfxAabbTree *aabbTree; // Actually GfxCellTree 
-		GfxCell *cells;
-		GfxWorldDraw worldDraw;
-		GfxLightGrid lightGrid;
-		int modelCount;
-		GfxBrushModel *models;
-		float mins[3];
-		float maxs[3];
-		unsigned int checksum;
-		int materialMemoryCount;
-		MaterialMemory *materialMemory;
-		sunflare_t sun;
-
-		char whatIsThat[968];
-
 		unsigned int *cellCasterBits[2];
 		GfxSceneDynModel *sceneDynModel;
 		GfxSceneDynBrush *sceneDynBrush;
