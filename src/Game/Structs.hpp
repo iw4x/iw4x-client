@@ -219,7 +219,9 @@ namespace Game
 		union 
 		{
 			GfxImageLoadDef* loadDef;
+#ifdef __cplusplus
 			IDirect3DTexture9* texture;
+#endif
 		};
 		
 		char mapType; // 5 is cube, 4 is 3d, 3 is 2d
@@ -2445,6 +2447,16 @@ namespace Game
 		int childrenOffset;
 	};
 
+	struct GfxCellTree
+	{
+		GfxAabbTree *aabbTree;
+	};
+
+	struct GfxCellTreeCount
+	{
+		int aabbTreeCount;
+	};
+
 	struct GfxLightGridEntry
 	{
 		unsigned __int16 colorsIndex;
@@ -2483,12 +2495,10 @@ namespace Game
 		char castsSunShadow;
 	};
 
-	struct GfxCullGroup
+	struct GfxSurfaceBounds
 	{
-		float mins[3];
-		float maxs[3];
-		int surfaceCount;
-		int startSurfIndex;
+		Bounds bounds;
+		char flags;
 	};
 
 	struct GfxDrawSurfFields
@@ -2517,7 +2527,7 @@ namespace Game
 		unsigned __int16 *sortedSurfIndex;
 		GfxStaticModelInst *smodelInsts;
 		GfxSurface *surfaces;
-		GfxCullGroup *cullGroups; // actually GfxSurfaceBounds (24), but not important right now
+		GfxSurfaceBounds *surfacesBounds;
 		GfxStaticModelDrawInst *smodelDrawInsts;
 		GfxDrawSurf *surfaceMaterials;
 		unsigned int *surfaceCastsSunShadow;
@@ -2752,8 +2762,8 @@ namespace Game
 		GfxSky* skies;
 		char unknown1[0x18];
 		GfxWorldDpvsPlanes dpvsPlanes; //The following rely on the count in this
-		char *unknown4;
-		GfxAabbTree *aabbTree; // Actually GfxCellTree 
+		GfxCellTreeCount *aabbTreeCounts;
+		GfxCellTree *aabbTrees;
 		GfxCell *cells;
 		GfxWorldDraw worldDraw;
 		GfxLightGrid lightGrid;
@@ -2774,7 +2784,18 @@ namespace Game
 		GfxShadowGeometry *shadowGeom;
 		GfxLightRegion *lightRegion;
 
-		char pad[68];
+		char pad[24];
+		GfxImage* unknownImage;
+		char* unknown6;
+		char* unknown7;
+		char* unknown8;
+		char* unknown9;
+		char* unknown10;
+		char* unknown11;
+		char* unknown12;
+		char* unknown13;
+		char* unknown14;
+		char* unknown15;
 
 		GfxWorldDpvsStatic dpvs;
 		GfxWorldDpvsDynamic dpvsDyn;
