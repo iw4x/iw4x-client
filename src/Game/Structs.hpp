@@ -237,27 +237,6 @@ namespace Game
 		char* name;
 	};
 
-	struct GfxImage_new
-	{
-		GfxImageLoadDef* texture;
-		char mapType;
-		char semantic;
-		char category;
-		char flags;
-		int cardMemory;
-		char pad[8]; // ?
-		int dataLen1;
-		int dataLen2;
-		char pad2[4]; // ?
-		short height;
-		short width;
-		short depth;
-		char loaded;
-		char pad3[5];
-		GfxImageLoadDef* storedTexture;
-		char* name;
-	};
-
 	struct water_t
 	{
 		float floatTime;
@@ -2531,7 +2510,8 @@ namespace Game
 		unsigned int staticSurfaceCount;
 		unsigned int litSurfsBegin;
 		unsigned int litSurfsEnd;
-		char unknown1[0x24];
+		char unknown1[0x20];
+		int sunShadowCount;
 		char *smodelVisData[3];
 		char *surfaceVisData[3];
 		unsigned __int16 *sortedSurfIndex;

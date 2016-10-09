@@ -15,7 +15,7 @@ namespace Components
 	private:
 		static std::vector<Game::XAssetEntry> EntryPool;
 
-		static std::map<std::string, std::string> DependencyList;
+		static std::vector<std::pair<std::string, std::string>> DependencyList;
 		static std::vector<std::string> CurrentDependencies;
 
 		static void GetBSPName(char* buffer, size_t size, const char* format, const char* mapname);
