@@ -202,10 +202,9 @@ namespace Components
 		Logger::Print("Writing vertices...\n");
 		for (unsigned int i = 0; i < world->worldDraw.vertexCount; i++)
 		{
-			// Y/Z need to be inverted
-			float x = world->worldDraw.vd.vertices[i].xyz[0];
+			float x = world->worldDraw.vd.vertices[i].xyz[1];
 			float y = world->worldDraw.vd.vertices[i].xyz[2];
-			float z = world->worldDraw.vd.vertices[i].xyz[1];
+			float z = world->worldDraw.vd.vertices[i].xyz[0];
 
 			map.append(fmt::sprintf("v %.6f %.6f %.6f\n", x,y, z));
 		}

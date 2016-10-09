@@ -1083,6 +1083,9 @@ namespace Components
 			image->depth = image359.depth;
 			image->loaded = image359.loaded;
 			image->name = image359.name;
+
+			// Used for later stuff
+			image->pad = image359.pad3[1];
 		}
 		else
 		{
@@ -1090,6 +1093,20 @@ namespace Components
 		}
 
 		return result;
+	}
+
+	Utils::Hook LoadTextureHook;
+
+	int LoadTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)
+	{
+		if (Zones::Version() >= 359 && (((image->pad & 1) && !(image->pad & 2))))
+		{
+			image->loaded = 1;
+			image->texture = 0;
+			return 1;
+		}
+
+		return Game::Load_Texture(loadDef, image);
 	}
 
 	bool Zones::LoadXAsset(bool atStreamStart, char* buffer, int size)
@@ -1303,6 +1320,8 @@ namespace Components
 				Zones::LoadGfxWorldHook.Install();
 				Zones::Loadsunflare_tHook.Install();
 
+				LoadTextureHook.Install();
+
 				// menu stuff
 				Utils::Hook::Nop(0x41A590, 5);
 			}
@@ -1313,6 +1332,8 @@ namespace Components
 				Zones::LoadMaterialHook.Uninstall();
 				Zones::LoadGfxWorldHook.Uninstall();
 				Zones::Loadsunflare_tHook.Uninstall();
+
+				LoadTextureHook.Uninstall();
 
 				Utils::Hook(0x41A590, 0x4AF680, HOOK_CALL).Install()->Quick();
 			}
@@ -1355,14 +1376,26 @@ namespace Components
 			Zones::LoadGfxWorldHook.Uninstall();
 			Zones::Loadsunflare_tHook.Uninstall();
 
+			LoadTextureHook.Uninstall();
+
 			Utils::Hook(0x41A590, 0x4AF680, HOOK_CALL).Install()->Quick();
 		}
 
 		AntiCheat::EmptyHash();
 	}
 
+	int ___test()
+	{
+		return 0;
+	}
+
 	Zones::Zones()
 	{
+// 		Utils::Hook(0x525A90, ___test, HOOK_JUMP).Install()->Quick();
+// 		Utils::Hook(0x50C4F0, ___test, HOOK_JUMP).Install()->Quick();
+// 		Utils::Hook(0x514F90, ___test, HOOK_JUMP).Install()->Quick();
+// 		Utils::Hook(0x54A2E0, ___test, HOOK_JUMP).Install()->Quick();
+
 		Zones::ZoneVersion = 0;
 
 		// Ignore missing soundaliases for now
@@ -1404,6 +1437,8 @@ namespace Components
 		{
 			ZeroMemory(*Game::varPathData, sizeof(Game::PathData));
 		}, HOOK_CALL);
+
+		LoadTextureHook.Initialize(0x4D32BC, LoadTexture, HOOK_CALL);
 	}
 
 	Zones::~Zones()

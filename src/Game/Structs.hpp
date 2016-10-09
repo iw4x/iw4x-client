@@ -237,6 +237,27 @@ namespace Game
 		char* name;
 	};
 
+	struct GfxImage_new
+	{
+		GfxImageLoadDef* texture;
+		char mapType;
+		char semantic;
+		char category;
+		char flags;
+		int cardMemory;
+		char pad[8]; // ?
+		int dataLen1;
+		int dataLen2;
+		char pad2[4]; // ?
+		short height;
+		short width;
+		short depth;
+		char loaded;
+		char pad3[5];
+		GfxImageLoadDef* storedTexture;
+		char* name;
+	};
+
 	struct water_t
 	{
 		float floatTime;
