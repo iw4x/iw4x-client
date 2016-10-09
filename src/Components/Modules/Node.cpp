@@ -734,13 +734,15 @@ namespace Components
 					entry->state = Node::STATE_VALID;
 					entry->lastTime = Game::Sys_Milliseconds();
 
+#ifndef DEBUG
 					// Block old versions
-// 					if (entry->version < NODE_VERSION)
-// 					{
-// 						entry->state = Node::STATE_INVALID;
-// 						Node::NodeMutex.unlock();
-// 						return;
-// 					}
+					if (entry->version < NODE_VERSION)
+					{
+						entry->state = Node::STATE_INVALID;
+						Node::NodeMutex.unlock();
+						return;
+					}
+#endif
 
 					if (!Dedicated::IsEnabled() && entry->isDedi && ServerList::IsOnlineList() && entry->protocol == PROTOCOL)
 					{

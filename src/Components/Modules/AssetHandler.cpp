@@ -132,32 +132,6 @@ namespace Components
 			}
 		}
 
-		if (type == 21)
-		{
-			//asset->gfxMap->dpvs.staticSurfaceCount = 0;
-// 
-// 			for (unsigned int i = 0; i < asset->gfxMap->dpvs.staticSurfaceCount; ++i)
-// 			{
-// 				//OutputDebugStringA(Utils::String::VA("%i\n", asset->gfxMap->dpvs.sortedSurfIndex[i] & 0xFFFF));
-// 				asset->gfxMap->dpvs.sortedSurfIndex[i] = i;
-// 			}
-// 			OutputDebugStringA("\n");
-
-// 			for (int i = 0; i < asset->gfxMap->unknown2; ++i)
-// 			{
-// 				if (i < (asset->gfxMap->unknown2 - 1))
-// 				{
-// 					asset->gfxMap->dpvs.surfaceMaterials[i].packed = 0;
-// 				}
-// 			}
-		}
-
-		if (type == 5 && Utils::String::StartsWith(name, "wc/"))
-		{
-			//asset->material->sortKey = rand() & 0xFF;
-			OutputDebugStringA(Utils::String::VA("%s: %X %s", FastFiles::Current().data(), asset->material->sortKey & 0xFF, asset->material->name));
-		}
-
 		if (type == 5 && name == "wc/codo_ui_viewer_black_decal3"s)
 		{
 			asset->material->sortKey = 0xE;

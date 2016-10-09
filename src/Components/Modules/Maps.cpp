@@ -206,7 +206,7 @@ namespace Components
 			float y = world->worldDraw.vd.vertices[i].xyz[2];
 			float z = world->worldDraw.vd.vertices[i].xyz[0];
 
-			map.append(fmt::sprintf("v %.6f %.6f %.6f\n", x,y, z));
+			map.append(fmt::sprintf("v %.6f %.6f %.6f\n", x, y, z));
 		}
 
 		map.append("\n");
