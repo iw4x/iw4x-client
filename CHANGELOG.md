@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## v0.2.0 - 2016-10-09
+
+This is the first public Alpha version.
+
+### Added
+- Support for CoD:Online maps.
+
+### Fixed
+- Fix techniques in Zonebuilder.
+- Fixed possible memory leak.
+- Fixed timeout bug when connecting to server via iw4x link.
+- Partially fix deadlock in decentralized networking code.
+
 ## v0.1.1 - 2016-09-19
 
 This version is an internal Beta version.
