@@ -216,7 +216,12 @@ namespace Game
 
 	struct GfxImage
 	{
-		GfxImageLoadDef * /*Direct3DTexture9**/ texture;
+		union 
+		{
+			GfxImageLoadDef* loadDef;
+			IDirect3DTexture9* texture;
+		};
+		
 		char mapType; // 5 is cube, 4 is 3d, 3 is 2d
 		char semantic;
 		char category;
@@ -2509,7 +2514,6 @@ namespace Game
 		char *smodelVisData[3];
 		char *surfaceVisData[3];
 		unsigned __int16 *sortedSurfIndex;
-
 		GfxStaticModelInst *smodelInsts;
 		GfxSurface *surfaces;
 		GfxCullGroup *cullGroups; // actually GfxSurfaceBounds (24), but not important right now

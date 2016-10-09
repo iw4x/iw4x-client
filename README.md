@@ -21,3 +21,4 @@
 | `--disable-node-log` | Disable debugging messages for Nodes in Debug builds. |
 | `--disable-base128` | Disable base128 encoding for minidumps. |
 | `--no-new-structure` | Do not use new virtual path structure (separating headers and source files). |
+| `--enable-dxsdk` | Enable DirectX SDK (required for GfxMap exporting). |

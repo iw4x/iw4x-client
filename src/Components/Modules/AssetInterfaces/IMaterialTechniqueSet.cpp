@@ -74,13 +74,15 @@ namespace Assets
 					buffer->Save(technique, 8);
 
 					// Save_MaterialPassArray
+					Game::MaterialPass* destPasses = buffer->Dest<Game::MaterialPass>();
+					buffer->SaveArray(technique->passes, technique->numPasses);
+
 					for (short j = 0; j < technique->numPasses; ++j)
 					{
 						Assert_Size(Game::MaterialPass, 20);
 
-						Game::MaterialPass* destPass = buffer->Dest<Game::MaterialPass>();
+						Game::MaterialPass* destPass = &destPasses[j];
 						Game::MaterialPass* pass = &technique->passes[j];
-						buffer->Save(pass);
 
 						if (pass->vertexDecl)
 						{

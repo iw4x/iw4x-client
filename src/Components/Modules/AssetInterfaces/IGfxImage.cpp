@@ -19,8 +19,8 @@ namespace Assets
 		image->category = 0;
 		image->cardMemory = 0;
 
-		image->texture = builder->GetAllocator()->Allocate<Game::GfxImageLoadDef>();
-		if (!image->texture)
+		image->loadDef = builder->GetAllocator()->Allocate<Game::GfxImageLoadDef>();
+		if (!image->loadDef)
 		{
 			Components::Logger::Error("Failed to allocate GfxImageLoadDef structure!");
 			return;
@@ -48,39 +48,39 @@ namespace Assets
 			return;
 		}
 
-		std::memcpy(image->texture->dimensions, iwiHeader->dimensions, 6);
-		image->texture->flags = 0;
-		image->texture->mipLevels = 0;
+		std::memcpy(image->loadDef->dimensions, iwiHeader->dimensions, 6);
+		image->loadDef->flags = 0;
+		image->loadDef->mipLevels = 0;
 
 		switch (iwiHeader->format)
 		{
 			case Game::IWI_COMPRESSION::IWI_ARGB:
 			{
-				image->texture->format = 21;
+				image->loadDef->format = 21;
 				break;
 			}
 
 			case Game::IWI_COMPRESSION::IWI_RGB8:
 			{
-				image->texture->format = 20;
+				image->loadDef->format = 20;
 				break;
 			}
 
 			case Game::IWI_COMPRESSION::IWI_DXT1:
 			{
-				image->texture->format = 0x31545844;
+				image->loadDef->format = 0x31545844;
 				break;
 			}
 
 			case Game::IWI_COMPRESSION::IWI_DXT3:
 			{
-				image->texture->format = 0x33545844;
+				image->loadDef->format = 0x33545844;
 				break;
 			}
 
 			case Game::IWI_COMPRESSION::IWI_DXT5:
 			{
-				image->texture->format = 0x35545844;
+				image->loadDef->format = 0x35545844;
 				break;
 			}
 		}

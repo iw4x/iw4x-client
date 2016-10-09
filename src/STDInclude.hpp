@@ -39,6 +39,11 @@
 #include <future>
 #include <queue>
 
+#ifdef ENABLE_DXSDK
+#include <D3dx9tex.h>
+#pragma comment(lib, "D3dx9.lib")
+#endif
+
 // Usefull for debugging
 template <size_t S> class Sizer { };
 #define BindNum(x, y) Sizer<x> y;

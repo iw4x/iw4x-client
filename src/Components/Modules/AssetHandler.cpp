@@ -134,7 +134,7 @@ namespace Components
 
 		if (type == 5 && name == "wc/codo_ui_viewer_black_decal3"s)
 		{
-			std::memcpy(&asset->material->gameFlags, &(*reinterpret_cast<Game::Material**>(0xA7FFE8))->gameFlags, sizeof(Game::Material) - 4);
+			asset->material->sortKey = 0xE;
 		}
 
 		if (Flags::HasFlag("entries"))

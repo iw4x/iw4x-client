@@ -26,7 +26,7 @@ namespace Components
 
 		static int IgnoreEntityStub(const char* entity);
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(ENABLE_DXSDK)
 		static void ExportMap(Game::GfxWorld* world);
 #endif
 

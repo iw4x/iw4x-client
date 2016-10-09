@@ -260,6 +260,12 @@ namespace Game
 	typedef void(__cdecl *Load_FxElemDef_t)(bool atStreamStart);
 	extern Load_FxElemDef_t Load_FxElemDef;
 
+	typedef void(__cdecl *Load_GfxTextureLoad_t)(bool atStreamStart);
+	extern Load_GfxTextureLoad_t Load_GfxTextureLoad;
+
+	typedef int(__cdecl *Load_Texture_t)(GfxImageLoadDef **loadDef, GfxImage *image);
+	extern Load_Texture_t Load_Texture;
+
 	typedef void(__cdecl * Load_SndAliasCustom_t)(snd_alias_list_t** var);
 	extern Load_SndAliasCustom_t Load_SndAliasCustom;
 

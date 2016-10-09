@@ -83,6 +83,11 @@ newoption {
 	description = "Disable base128 encoding for minidumps."
 }
 
+newoption {
+	trigger = "enable-dxsdk",
+	description = "Enable DirectX SDK (required for GfxMap exporting)."
+}
+
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -332,6 +337,12 @@ workspace "iw4x"
 		end
 		if _OPTIONS["disable-base128"] then
 			defines { "DISABLE_BASE128" }
+		end
+		
+		if _OPTIONS["enable-dxsdk"] then
+			defines { "ENABLE_DXSDK" }
+			includedirs { "%DXSDK_DIR%Include" }
+			libdirs { "%DXSDK_DIR%Lib/x86" }
 		end
 
 		-- Pre-compiled header

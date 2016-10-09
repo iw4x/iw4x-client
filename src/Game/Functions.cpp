@@ -108,6 +108,8 @@ namespace Game
 	Load_XStringCustom_t Load_XStringCustom = (Load_XStringCustom_t)0x4E0DD0;
 	Load_FxEffectDefHandle_t Load_FxEffectDefHandle = (Load_FxEffectDefHandle_t)0x4D9B90;
 	Load_FxElemDef_t Load_FxElemDef = (Load_FxElemDef_t)0x45AD90;
+	Load_Texture_t Load_Texture = (Load_Texture_t)0x51F4E0;
+	Load_GfxTextureLoad_t Load_GfxTextureLoad = (Load_GfxTextureLoad_t)0x4D3210;
 	Load_SndAliasCustom_t Load_SndAliasCustom = (Load_SndAliasCustom_t)0x49B6B0;
 	Load_MaterialHandle_t Load_MaterialHandle = (Load_MaterialHandle_t)0x403960;
 	Load_PhysCollmapPtr_t Load_PhysCollmapPtr = (Load_PhysCollmapPtr_t)0x47E990;
