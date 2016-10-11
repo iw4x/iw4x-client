@@ -71,7 +71,7 @@ import groovy.transform.Field
 ].collect {k, v -> [k, v]}
 
 def jobWorkspace(id, f) {
-	ws("workspace/${env.JOB_NAME}@$id", f)
+	ws("workspace/${env.JOB_NAME.replaceAll(/[%$]/, "_")}@$id", f)
 }
 
 def useShippedPremake(f) {
