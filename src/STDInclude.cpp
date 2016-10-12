@@ -67,11 +67,14 @@ Assert_Size(std::uint8_t, 1);
 // Ensure pointers are 4 bytes in size (32-bit)
 static_assert(sizeof(intptr_t) == 4 && sizeof(void*) == 4 && sizeof(size_t) == 4, "This doesn't seem to be a 32-bit environment!");
 
-// Disable telemetry data logging
 extern "C"
 {
+    // Disable telemetry data logging
 	void __cdecl __vcrt_initialize_telemetry_provider() {}
 	void __cdecl __telemetry_main_invoke_trigger() {}
 	void __cdecl __telemetry_main_return_trigger() {}
 	void __cdecl __vcrt_uninitialize_telemetry_provider() {}
+	
+	// Enable 'High Performance Graphics'
+    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 };
