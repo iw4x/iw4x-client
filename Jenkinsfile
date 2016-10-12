@@ -100,7 +100,9 @@ def getIW4xExecutable() {
 def doBuild(cfg) {
 	node("windows") {
 		jobWorkspace(cfg.WorkspaceID) {
-			checkout scm
+			retry(5) {
+				checkout scm
+			}
 
 			useShippedPremake {
 				def outputDir = pwd()
@@ -151,10 +153,12 @@ def doUnitTests(name) {
 
 			// Run tests
 			getIW4xExecutable()
-			if (isUnix()) {
-				sh "WINEDEBUG=warn+all wine-wrapper iw4x.exe -tests"
-			} else {
-				bat "iw4x.exe -tests"
+			retry(5) {
+				if (isUnix()) {
+					sh "WINEDEBUG=warn+all wine-wrapper iw4x.exe -tests"
+				} else {
+					bat "iw4x.exe -tests"
+				}
 			}
 		}
 	} finally {
@@ -190,7 +194,9 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 		gitlabCommitStatus("Checkout & Versioning") {
 			node("windows") {
 				jobWorkspace("versioning") {
-					checkout scm
+					retry(5) {
+						checkout scm
+					}
 
 					useShippedPremake {
 						def version = bat(returnStdout: true, script: '@premake5 version').split("\r?\n")[1]
