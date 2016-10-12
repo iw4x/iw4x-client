@@ -203,6 +203,8 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 
 						currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
 					}
+
+					stash name: "jenkins-files", includes: "jenkins/**"
 				}
 			}
 		}
@@ -253,8 +255,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 							try {
 								def image = null
 								dir("src") {
-									deleteDir()
-									checkout scm
+									unstash "jenkins-files"
 									image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
 									deleteDir()
 								}
