@@ -85,8 +85,12 @@ namespace Components
 		float x = 320.0f - Dvar::Var("cg_scoreboardWidth").Get<float>() * 0.5f;
 		float x2 = 320.0f + Dvar::Var("cg_scoreboardWidth").Get<float>() * 0.5f;
 
-		Game::UI_DrawText(cxt, reinterpret_cast<const char*>(0x7ED3F8), 0x7FFFFFFF, font, x, y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
-		Game::UI_DrawText(cxt, addressText.data(), 0x7FFFFFFF, font, x2 - Game::UI_TextWidth(addressText.data(), 0, font, fontSize), y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
+		// draw only when stream friendly ui is not enabled
+		if (!Dvar::Var("ui_streamFriendly").Get<bool>())
+		{
+			Game::UI_DrawText(cxt, reinterpret_cast<const char*>(0x7ED3F8), 0x7FFFFFFF, font, x, y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
+			Game::UI_DrawText(cxt, addressText.data(), 0x7FFFFFFF, font, x2 - Game::UI_TextWidth(addressText.data(), 0, font, fontSize), y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
+		}
 	}
 
 	__declspec(naked) void ServerInfo::DrawScoreboardStub()

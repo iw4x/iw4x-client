@@ -393,6 +393,9 @@ namespace Components
 			throw new std::exception();
 		});
 
+		// Dvars
+		Dvar::Register<bool>("ui_streamFriendly", 0, Game::DVAR_FLAG_SAVED, "Stream friendly UI");
+
 		// Debug patches
 #ifdef DEBUG
 		// ui_debugMode 1
