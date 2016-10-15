@@ -1,56 +1,45 @@
 [submodule "deps/zlib"]
 	path = deps/zlib
 	url = https://github.com/madler/zlib.git
-	shallow = true
 	branch = develop
 [submodule "deps/json11"]
 	path = deps/json11
 	url = https://github.com/dropbox/json11.git
-	shallow = true
 	branch = master
 [submodule "deps/libtommath"]
 	path = deps/libtommath
 	url = https://github.com/libtom/libtommath.git
-	shallow = true
 	branch = develop
 [submodule "deps/libtomcrypt"]
 	path = deps/libtomcrypt
 	url = https://github.com/libtom/libtomcrypt.git
-	shallow = true
 	branch = develop
 [submodule "deps/pdcurses"]
 	path = deps/pdcurses
 	url = https://github.com/wmcbrine/PDCurses.git
-	shallow = true
 	branch = master
 [submodule "deps/mongoose"]
 	path = deps/mongoose
 	url = https://github.com/cesanta/mongoose.git
-	shallow = true
 	branch = master
 [submodule "deps/fmt"]
 	path = deps/fmt
 	url = https://github.com/fmtlib/fmt.git
-	shallow = true
 	branch = master
 [submodule "deps/Wink-Signals"]
 	path = deps/Wink-Signals
 	url = https://github.com/miguelmartin75/Wink-Signals.git
-	shallow = true
 	branch = master
 [submodule "deps/bitmrc"]
 	path = deps/bitmrc
 	url = git@github.com:iw4x-dev-urandom/BitMRC.git
-	shallow = true
 	branch = master
 	fetchRecurseSubmodules = true
 [submodule "deps/base128"]
 	path = deps/base128
 	url = https://github.com/seizu/base128.git
-	shallow = true
 	branch = master
 [submodule "deps/protobuf"]
 	path = deps/protobuf
 	url = https://github.com/google/protobuf.git
-	shallow = true
 	branch = tags/v3.1.0
