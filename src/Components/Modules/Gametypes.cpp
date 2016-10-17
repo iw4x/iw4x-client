@@ -28,7 +28,7 @@ namespace Components
 		Dvar::Var("g_gametype").Set(gametype);
 	}
 
-	bool Gametypes::BuildGametypeList(const char*, void* buffer, size_t size)
+	void* Gametypes::BuildGametypeList(const char*, void* buffer, size_t size)
 	{
 		std::vector<std::string> gametypes;
 
@@ -78,14 +78,17 @@ namespace Components
 		std::string data;
 		for (auto& gametype : gametypes)
 		{
-			data.append(gametype);
-			data.append("\n");
+			if (Game::LoadModdableRawfile(0, Utils::String::VA("maps/mp/gametypes/%s.txt", gametype.data())))
+			{
+				data.append(gametype);
+				data.append("\r\n");
+			}
 		}
 
 		// Copy to the actual buffer
-		std::memcpy(buffer, data.data(), std::min(size, data.size()));
+		std::memcpy(buffer, data.data(), std::min(size, data.size() + 1));
 
-		return (!gametypes.empty());
+		return (data.empty() ? nullptr : buffer);
 	}
 
 	Gametypes::Gametypes()

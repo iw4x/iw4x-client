@@ -14,6 +14,6 @@ namespace Components
 		static const char* GetGametypeText(unsigned int index, int column);
 		static void SelectGametype(unsigned int index);
 
-		static bool BuildGametypeList(const char* file, void* buffer, size_t size);
+		static void* BuildGametypeList(const char* file, void* buffer, size_t size);
 	};
 }
