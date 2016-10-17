@@ -641,6 +641,12 @@ namespace Components
 				return;
 			}
 
+			// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
+			if (Dvar::Var("cl_ingame").Get<bool>())
+			{
+				Game::Key_SetCatcher(0, 16);
+			}
+
 			Game::Menus_OpenByName(Game::uiContext, params[1]);
 		});
 
@@ -665,6 +671,11 @@ namespace Components
 				// Reopen main menu
 				Game::Menus_OpenByName(Game::uiContext, "main_text");
 			}
+		});
+
+		Command::Add("mp_QuickMessage", [] (Command::Params)
+		{
+			Command::Execute("openmenu quickmessage");
 		});
 
 		// Define custom menus here

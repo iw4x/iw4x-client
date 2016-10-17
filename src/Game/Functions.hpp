@@ -233,6 +233,9 @@ namespace Game
 	typedef void(__cdecl * Image_Release_t)(GfxImage* image);
 	extern Image_Release_t Image_Release;
 
+	typedef void(__cdecl * Key_SetCatcher_t)(int localClientNum, int catcher);
+	extern Key_SetCatcher_t Key_SetCatcher;
+
 	typedef void(__cdecl * LargeLocalInit_t)();
 	extern LargeLocalInit_t LargeLocalInit;
 

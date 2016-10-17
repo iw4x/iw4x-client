@@ -88,6 +88,9 @@ namespace Components
 		// 172.16.X.X - 172.31.X.X
 		if (this->GetIP().bytes[0] == 172 && (this->GetIP().bytes[1] >= 16) && (this->GetIP().bytes[1] < 32)) return true;
 
+		// 127.0.0.1
+		if (this->GetIP().full == 0x0100007F) return true;
+
 		// TODO: Maybe check for matching localIPs and subnet mask
 
 		return false;

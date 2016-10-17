@@ -2545,12 +2545,17 @@ namespace Game
 	struct GfxStaticModelDrawInst
 	{
 		GfxPackedPlacement placement;
-		XModel *model;
+
+		char pad[24];
+
+		XModel *model; // 52
 		float cullDist;
 		char reflectionProbeIndex;
 		char primaryLightIndex;
 		unsigned __int16 lightingHandle;
 		char flags;
+
+		char pad2[8];
 	};
 
 	struct cplane_s

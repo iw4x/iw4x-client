@@ -401,7 +401,9 @@ namespace Components
 		Maps::AddDependency("mp_cargoship_sh", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_shipment_long", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp"); 
+		Maps::AddDependency("mp_firingrange", "mp_underpass");
+		Maps::AddDependency("mp_underpass", "mp_firingrange");
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		Command::Add("dumpmap", [] (Command::Params)
