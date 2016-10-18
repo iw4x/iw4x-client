@@ -1126,7 +1126,12 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, size + 4);
 
+		// This shouldn't make any difference.
+		// The new entry is an additional remapped techset which is linked at runtime.
+		// It's used when the 0x100 gameFlag in a material is set.
+		// As MW2 flags are only 1 byte large, this won't be possible anyways
 		int shiftTest = 4;
+
 		std::memmove(buffer + 8 + shiftTest, buffer + 12 + shiftTest, 196 - shiftTest);
 		AssetHandler::Relocate(buffer + 12 + shiftTest, buffer + 8 + shiftTest, 196 - shiftTest);
 
@@ -1140,11 +1145,15 @@ namespace Components
 		struct material339_s
 		{
 			char drawSurfBegin[8]; // 4
-			//int surfaceTypeBits;
+								   //int surfaceTypeBits;
 			const char *name;
 			char drawSurf[6];
-			char gameFlags;
-			char pad;
+
+			union
+			{
+				char gameFlags;
+				short sGameFlags;
+			};
 			char sortKey;
 			char textureAtlasRowCount;
 			char textureAtlasColumnCount;
@@ -1177,6 +1186,11 @@ namespace Components
 		material->drawSurf[10] = material359.drawSurf[2];
 		material->drawSurf[11] = material359.drawSurf[3];
 
+		if (material359.sGameFlags & 0x100)
+		{
+			//OutputDebugStringA("");
+		}
+
 		return result;
 	}
 
@@ -1208,6 +1222,30 @@ namespace Components
 		// Copy the remaining struct data we couldn't copy in LoadGfxWorld
 		char* varGfxWorld = *reinterpret_cast<char**>(0x112A7F4);
 		std::memmove(varGfxWorld + 348, varGfxWorld + 1316, 8);
+	}
+
+	void ModifyShit()
+	{
+		//Game::GfxWorldDraw* worldDraw = *reinterpret_cast<Game::GfxWorldDraw**>(0x112A8D4);
+		//Game::GfxWorldVertexData* vd = *reinterpret_cast<Game::GfxWorldVertexData**>(0x112B078);
+
+		//worldDraw->vertexLayerDataSize = 0;
+
+		//for (unsigned int i = 0; i < worldDraw->vertexCount; ++i)
+		{
+			//vd->vertices[i].normal.packed++;
+			//vd->vertices[i].tangent.packed++;
+			//vd->vertices[i].color.packed = Utils::Cryptography::Rand::GenerateInt();
+			//std::swap(vd->vertices[i].xyz[0], vd->vertices[i].xyz[1]);
+		}
+
+		// 		for (unsigned int i = 0; i < worldDraw->vertexCount; ++i)
+		// 		{
+		// 			OutputDebugStringA(Utils::String::VA("%f %f\n", vd->vertices[i].texCoord[0], vd->vertices[i].texCoord[1]));
+		// 
+		// 			vd->vertices[i].lmapCoord[0] = 1.0f;
+		// 			vd->vertices[i].lmapCoord[1] = 1.0f;
+		// 		}
 	}
 
 	void Zones::InstallPatches(int version)
@@ -1366,6 +1404,8 @@ namespace Components
 
 	Zones::Zones()
 	{
+		Utils::Hook(0x483876, ModifyShit, HOOK_CALL).Install()->Quick();
+
 		Zones::ZoneVersion = 0;
 
 		// Ignore missing soundaliases for now

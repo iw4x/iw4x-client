@@ -132,6 +132,230 @@ namespace Components
 			}
 		}
 
+		if (type == 20/* && name == "maps/mp/mp_underpass.d3dbsp"s*/)
+		{
+			char* world = nullptr;
+			Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_FX_MAP, [] (Game::XAssetHeader header, void* world)
+			{
+				*reinterpret_cast<Game::GfxWorld**>(world) = header.gfxMap;
+			}, &world, false);
+
+			if (world)
+			{
+				//std::memcpy(world + 4, &asset->rawfile->sizeCompressed, Game::DB_GetXAssetSizeHandlers[Game::XAssetType::ASSET_TYPE_FX_MAP]() - 4);
+			}
+		}
+
+		if (type == 22)
+		{
+			OutputDebugStringA(Utils::String::VA("%s: %s\n", FastFiles::Current().data(), name));
+		}
+
+
+		if (type <= 9 && type >= 6 && Zones::Version() >= 359)
+		{
+			static Game::XAssetType __type;
+			static std::string __name;
+			__name = name;
+			__type = type;
+
+			Game::MaterialTechniqueSet* techset = nullptr;
+			Game::DB_EnumXAssets_Internal(type, [] (Game::XAssetHeader header, void* _asset)
+			{
+				Game::MaterialTechniqueSet** _techset = reinterpret_cast<Game::MaterialTechniqueSet**>(_asset);
+
+				if (__name == Game::DB_GetXAssetNameHandlers[__type](&header))
+				{
+					*_techset = header.materialTechset;
+				}
+			}, &techset, false);
+
+			if (techset)
+			{
+				if(type == 6)
+
+				std::memcpy(asset->materialTechset, techset, Game::DB_GetXAssetSizeHandlers[type]());
+				//return false;
+				OutputDebugStringA("");
+			}
+		}
+
+		if (type == 21 && asset->gfxMap->baseName == "mp_underpass"s)
+		{
+			//asset->gfxMap->dpvs.smodelCount = 0;
+
+			Game::GfxWorld* world = nullptr;
+			Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_GFX_MAP, [] (Game::XAssetHeader header, void* world)
+			{
+				*reinterpret_cast<Game::GfxWorld**>(world) = header.gfxMap;
+			}, &world, false);
+
+// 			int targetId = *world->skies->skyStartSurfs;
+//			int sourceId = *asset->gfxMap->skies->skyStartSurfs;
+
+// 			world->dpvs.surfaceVisData[0][targetId] = asset->gfxMap->dpvs.surfaceVisData[0][sourceId];
+// 			world->dpvs.surfaceVisData[1][targetId] = asset->gfxMap->dpvs.surfaceVisData[1][sourceId];
+// 			world->dpvs.surfaceVisData[2][targetId] = asset->gfxMap->dpvs.surfaceVisData[2][sourceId];
+// 
+// 			world->dpvs.surfaces[targetId].material = asset->gfxMap->dpvs.surfaces[sourceId].material;
+// 			world->dpvs.surfacesBounds[targetId].flags = asset->gfxMap->dpvs.surfacesBounds[sourceId].flags;
+// 
+// 			world->dpvs.surfaceCastsSunShadow[targetId] = asset->gfxMap->dpvs.surfaceCastsSunShadow[sourceId];
+// 
+// 			world->skies->skyImage = asset->gfxMap->skies->skyImage;
+
+//			std::memcpy(&world->worldDraw.lightmaps[world->dpvs.surfaces[targetId].lightmapIndex], &asset->gfxMap->worldDraw.lightmaps[asset->gfxMap->dpvs.surfaces[sourceId].lightmapIndex], 8);
+
+// 			DWORD* stuff = reinterpret_cast<DWORD*>(asset->gfxMap->unknown1);
+// 			for (unsigned int i = 0; i < asset->gfxMap->dpvs.staticSurfaceCount; ++i)
+// 			{
+// 				asset->gfxMap->dpvs.surfaces[i].tris.vertexLayerData = 0;
+// 			}
+
+			auto replaceMaterial = [] (Game::GfxSurface* surfs, unsigned int count, Game::Material** base)
+			{
+				static int _i = 0;
+				_i++;
+				for (unsigned int i = 0; i < count; ++i)
+				{
+					Game::Material* source = *base;
+					Game::Material* target = surfs[i].material;
+
+					if (source->gameFlags == target->gameFlags)
+					{
+						*base = target;
+						OutputDebugStringA(Utils::String::VA("SUCCESS: replaced %s with %s %d\n", source->name, target->name, _i));
+						OutputDebugStringA(Utils::String::VA("SortKey: %X\nGameFlags: %X\nStateFlags: %X\nTechset: %s\n\n", source->sortKey & 0xFF, source->gameFlags & 0xFF, source->stateFlags & 0xFF, source->techniqueSet->name));
+
+						source = target;
+						OutputDebugStringA(Utils::String::VA("SortKey: %X\nGameFlags: %X\nStateFlags: %X\nTechset: %s\n\n", source->sortKey & 0xFF, source->gameFlags & 0xFF, source->stateFlags & 0xFF, source->techniqueSet->name));
+						return;
+					}
+				}
+
+				OutputDebugStringA(Utils::String::VA("FAILURE: unable to replace %s %d\n", (*base)->name, _i));
+
+				Game::Material* source = *base;
+				OutputDebugStringA(Utils::String::VA("SortKey: %X\nGameFlags: %X\nStateFlags: %X\nTechset: %s\n\n", source->sortKey & 0xFF, source->gameFlags & 0xFF, source->stateFlags & 0xFF, source->techniqueSet->name));
+			};
+
+// 			for (unsigned int i = 0; i < world->dpvs.staticSurfaceCount; ++i)
+// 			{
+// 				replaceMaterial(asset->gfxMap->dpvs.surfaces, asset->gfxMap->dpvs.staticSurfaceCount, &world->dpvs.surfaces[i].material);
+// 			}
+
+// 			for (int i = 0; i < world->materialMemoryCount; ++i)
+// 			{
+// 				for (int j = 0; j < asset->gfxMap->materialMemoryCount; ++j)
+// 				{
+// 					if (world->materialMemory[i].material->gameFlags == asset->gfxMap->materialMemory[j].material->gameFlags)
+// 					{
+// 						world->materialMemory[i].material = asset->gfxMap->materialMemory[j].material;
+// 						world->materialMemory[i].memory = asset->gfxMap->materialMemory[j].memory;
+// 					}
+// 				}
+// 			}
+
+// 			//std::memcpy(&world->dpvs, &asset->gfxMap->dpvs, sizeof(Game::GfxWorldDpvsStatic));
+// 			std::memcpy(&world->worldDraw, &asset->gfxMap->worldDraw, sizeof(Game::GfxWorldDraw));
+// 			std::memcpy(&world->lightGrid, &asset->gfxMap->lightGrid, sizeof(Game::GfxLightGrid));
+// 			//std::memcpy(&world->dpvsPlanes, &asset->gfxMap->dpvsPlanes, sizeof(Game::GfxWorldDpvsPlanes));
+// 			world->dpvs.surfaces = asset->gfxMap->dpvs.surfaces;
+// 			world->dpvs.surfacesBounds = asset->gfxMap->dpvs.surfacesBounds;
+// 			world->dpvs.staticSurfaceCount = asset->gfxMap->dpvs.staticSurfaceCount;
+// 			world->dpvs.sortedSurfIndex = asset->gfxMap->dpvs.sortedSurfIndex;
+// 			world->dpvs.surfaceVisData[0] = asset->gfxMap->dpvs.surfaceVisData[0];
+// 			world->dpvs.surfaceVisData[1] = asset->gfxMap->dpvs.surfaceVisData[1];
+// 			world->dpvs.surfaceVisData[2] = asset->gfxMap->dpvs.surfaceVisData[2];
+// 
+// 			world->cellCasterBits[0] = asset->gfxMap->cellCasterBits[0];
+// 			world->cellCasterBits[1] = asset->gfxMap->cellCasterBits[1];
+// 
+// 			world->skies = asset->gfxMap->skies;
+// 			world->materialMemory = asset->gfxMap->materialMemory;
+// 			world->materialMemoryCount = asset->gfxMap->materialMemoryCount;
+// 
+// 			world->dpvs.litSurfsBegin = asset->gfxMap->dpvs.litSurfsBegin;
+// 			world->dpvs.litSurfsEnd = asset->gfxMap->dpvs.litSurfsEnd;
+// 			world->dpvs.surfaceMaterials = asset->gfxMap->dpvs.surfaceMaterials;
+// 
+// 			std::memcpy(world->pad, asset->gfxMap->pad, 68);
+// 			std::memcpy(world->dpvs.unknown1, asset->gfxMap->dpvs.unknown1, 8);
+// 			std::memcpy(&world->dpvs.unknown1[0x18], &asset->gfxMap->dpvs.unknown1[0x18], 4);
+// 			std::memcpy(&world->sun, &asset->gfxMap->sun, sizeof(Game::sunflare_t));
+
+			//world->dpvs.smodelCount = 0;
+
+			//std::memcpy(world->dpvsPlanes.planes, asset->gfxMap->dpvsPlanes.planes, 20 * (std::min(world->planeCount, asset->gfxMap->planeCount)));
+
+// 			for (int i = 0; i < world->planeCount; ++i)
+// 			{
+// 				world->dpvsPlanes.planes[i].type = 0;
+// 			}
+
+			//world->cells = asset->gfxMap->cells;
+
+// 			for(int i = 0; i < std::min(asset->gfxMap->dpvsPlanes.cellCount, world->dpvsPlanes.cellCount); ++i)
+// 			{
+// // 				for (int j = 0; j < std::min(asset->gfxMap->aabbTreeCounts[i].aabbTreeCount, world->aabbTreeCounts[i].aabbTreeCount); ++j)
+// // 				{
+// // 					Game::GfxAabbTree* treeA = &world->aabbTrees[i].aabbTree[j];
+// // 					Game::GfxAabbTree* treeB = &asset->gfxMap->aabbTrees[i].aabbTree[j];
+// // 
+// // 					treeA->childrenOffset
+// // 				}
+// 
+// 				for (int j = 0; j < std::min(asset->gfxMap->cells[i].portalCount, world->cells[i].portalCount); ++j)
+// 				{
+// 					Game::GfxPortal* portalA = &world->cells[i].portals[j];
+// 					Game::GfxPortal* portalB = &asset->gfxMap->cells[i].portals[j];
+// 
+// 					std::memcpy(&portalA->writable, &portalB->writable, sizeof(portalA->writable));
+// 					std::memcpy(&portalA->plane, &portalB->plane, sizeof(portalA->plane));
+// 					//std::memcpy(&portalA->unknown, &portalB->unknown, sizeof(portalA->unknown));
+// 					std::memcpy(&portalA->hullAxis, &portalB->hullAxis, sizeof(portalA->hullAxis));
+// 				}
+// 
+// 				//std::memcpy(&world->cells[i], &asset->gfxMap->cells[i], sizeof(Game::GfxCell));
+// 				//std::memcpy(&world->cells[i], &asset->gfxMap->cells[i], sizeof(Game::GfxCell));
+// 			}
+
+			//std::memcpy(&world->planeCount, &asset->gfxMap->planeCount, 620);
+			
+// 			asset->gfxMap->cells = world->cells;
+// 			asset->gfxMap->aabbTrees = world->aabbTrees;
+// 			asset->gfxMap->aabbTreeCounts = world->aabbTreeCounts;
+// 			std::memcpy(&asset->gfxMap->dpvsPlanes, &world->dpvsPlanes, sizeof(Game::GfxWorldDpvsPlanes));
+
+
+			//std::memcpy(&world->planeCount, &asset->gfxMap->planeCount, 620);
+
+			OutputDebugStringA("");
+		}
+
+		static Game::MaterialTechniqueSet* technique = nullptr;
+
+		if (type == 5 && Utils::String::StartsWith(name, "wc/"))
+		{
+			if (technique == (Game::MaterialTechniqueSet*)1)
+			{
+				technique = asset->material->techniqueSet;
+			}
+
+			if (!technique)
+			{
+				technique = (Game::MaterialTechniqueSet*)1;
+			}
+
+			if (Zones::Version() >= 359)
+			{
+				//asset->material->techniqueSet = technique;
+			}
+
+			//asset->material->sortKey = rand() & 0xFF;
+			//OutputDebugStringA(Utils::String::VA("%s: %X %s", FastFiles::Current().data(), asset->material->sortKey & 0xFF, asset->material->name));
+		}
+
 		if (type == 5 && name == "wc/codo_ui_viewer_black_decal3"s)
 		{
 			asset->material->sortKey = 0xE;
