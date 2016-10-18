@@ -104,6 +104,11 @@ namespace Components
 
 		if (type == Game::XAssetType::ASSET_TYPE_MAP_ENTS)
 		{
+			if (Flags::HasFlag("dump"))
+			{
+				Utils::IO::WriteFile(fmt::sprintf("raw/%s.ents", name), asset.mapEnts->entityString);
+			}
+
 			static std::string mapEntities;
 			FileSystem::File ents(name + ".ents");
 			if (ents.Exists())
