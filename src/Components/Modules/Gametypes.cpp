@@ -25,7 +25,7 @@ namespace Components
 		std::string gametype = Game::gameTypes[index].gameType;
 
 		Dvar::Var("ui_gametype").Set(gametype);
-		Dvar::Var("g_gametype").Set(gametype);
+		//Dvar::Var("g_gametype").Set(gametype);
 	}
 
 	void* Gametypes::BuildGametypeList(const char*, void* buffer, size_t size)
