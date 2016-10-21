@@ -60,6 +60,9 @@ namespace Game
 	typedef char* (__cdecl * Com_ParseExt_t)(const char **data_p);
 	extern Com_ParseExt_t Com_ParseExt;
 
+	typedef void(__cdecl * Com_SetSlowMotion_t)(float start, float end, int duration);
+	extern Com_SetSlowMotion_t Com_SetSlowMotion;
+
 	typedef char* (__cdecl * Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
 	extern Con_DrawMiniConsole_t Con_DrawMiniConsole;
 
@@ -424,6 +427,12 @@ namespace Game
 
 	typedef int(__cdecl * Scr_LoadScript_t)(const char*);
 	extern Scr_LoadScript_t Scr_LoadScript;
+
+	typedef float(__cdecl * Scr_GetFloat_t)(int);
+	extern Scr_GetFloat_t Scr_GetFloat;
+
+	typedef int(__cdecl * Scr_GetNumParam_t)(void);
+	extern Scr_GetNumParam_t Scr_GetNumParam;
 
 	typedef int(__cdecl * Scr_GetFunctionHandle_t)(const char*, const char*);
 	extern Scr_GetFunctionHandle_t Scr_GetFunctionHandle;

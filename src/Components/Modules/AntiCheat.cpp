@@ -371,7 +371,7 @@ namespace Components
 		__asm
 		{
 			pushad
-			push[esp + 20h]
+			push [esp + 20h]
 
 			call AntiCheat::AssertCalleeModule
 
