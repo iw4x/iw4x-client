@@ -151,7 +151,7 @@ namespace Components
 			OutputDebugStringA(Utils::String::VA("%s: %s\n", FastFiles::Current().data(), name));
 		}
 
-
+		/*
 		if (type <= 9 && type >= 6 && Zones::Version() >= 359)
 		{
 			static Game::XAssetType __type;
@@ -179,9 +179,11 @@ namespace Components
 				OutputDebugStringA("");
 			}
 		}
+		*/
 
-		if (type == 21 && asset->gfxMap->baseName == "mp_underpass"s)
+		if (type == 21/* && asset->gfxMap->baseName == "mp_underpass"s*/ && false)
 		{
+
 			//asset->gfxMap->dpvs.smodelCount = 0;
 
 			Game::GfxWorld* world = nullptr;
@@ -335,26 +337,46 @@ namespace Components
 
 		static Game::MaterialTechniqueSet* technique = nullptr;
 
-		if (type == 5 && Utils::String::StartsWith(name, "wc/"))
+		/*if (type == 9)
 		{
-			if (technique == (Game::MaterialTechniqueSet*)1)
+			FILE* fp;
+			fopen_s(&fp, "test.txt", "a");
+			fprintf(fp, "%s: %s\n", FastFiles::Current().data(), name);
+
+			for (int i = 0; i < 48; i++)
 			{
-				technique = asset->material->techniqueSet;
+				if (asset->materialTechset->techniques[i])
+				{
+					fprintf(fp, "\t%d: %s\n", i, asset->materialTechset->techniques[i]->name);
+
+					for (int j = 0; j <asset->materialTechset->techniques[i]->numPasses; j++)
+					{
+						Game::MaterialPass* pass = &asset->materialTechset->techniques[i]->passes[j];
+
+						for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); k++)
+						{
+							fprintf(fp, "\t\t%d.%d.%d:\n", i, j, k);
+
+							fprintf(fp, "\t\t\tDest: %d\n", pass->argumentDef[k].dest & 0xFFFF);
+							fprintf(fp, "\t\t\tMore: %d\n", pass->argumentDef[k].more & 0xFFFF);
+							fprintf(fp, "\t\t\tType: %d\n", pass->argumentDef[k].type & 0xFFFF);
+							fprintf(fp, "\t\t\tPara: %d\n", pass->argumentDef[k].paramID & 0xFFFF);
+						}
+					}
+				}
 			}
 
-			if (!technique)
-			{
-				technique = (Game::MaterialTechniqueSet*)1;
-			}
+			fprintf(fp, "\n");
+			fclose(fp);
+		}*/
 
-			if (Zones::Version() >= 359)
-			{
-				//asset->material->techniqueSet = technique;
-			}
-
-			//asset->material->sortKey = rand() & 0xFF;
-			//OutputDebugStringA(Utils::String::VA("%s: %X %s", FastFiles::Current().data(), asset->material->sortKey & 0xFF, asset->material->name));
-		}
+// 		if (type == 5)
+// 		{
+// 			FILE* fp;
+// 			fopen_s(&fp, "test.txt", "a");
+// 			fprintf(fp, "%s: %s %X %X %X\n", FastFiles::Current().data(), name, asset->material->sortKey & 0xFF, asset->material->gameFlags & 0xFF, asset->material->stateFlags & 0xFF);
+// 			fclose(fp);
+// 		}
 
 		if (type == 5 && name == "wc/codo_ui_viewer_black_decal3"s)
 		{
@@ -545,7 +567,7 @@ namespace Components
 		// Log missing empty assets
 		QuickPatch::OnFrame([] ()
 		{
-			if (Game::Sys_IsDatabaseReady() && Game::Sys_IsDatabaseReady2() && !AssetHandler::EmptyAssets.empty())
+			if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
 			{
 				for (auto& asset : AssetHandler::EmptyAssets)
 				{

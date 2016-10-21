@@ -197,7 +197,7 @@ namespace Components
 	{
 		if (ConnectProtocol::Used())
 		{
-			if (!Game::Sys_IsDatabaseReady() && !Game::Sys_IsDatabaseReady2())
+			if (!FastFiles::Ready())
 			{
 				QuickPatch::Once(ConnectProtocol::Invocation);
 			}

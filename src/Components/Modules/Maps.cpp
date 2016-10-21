@@ -314,7 +314,15 @@ namespace Components
 		Assert_Size(Game::XAssetEntry, 16);
 
 		Maps::EntryPool.clear();
-		Maps::EntryPool.resize(789312);
+
+		if (ZoneBuilder::IsEnabled())
+		{
+			Maps::EntryPool.resize(1183968);
+		}
+		else
+		{
+			Maps::EntryPool.resize(789312);
+		}
 
 		// Apply new size
 		Utils::Hook::Set<DWORD>(0x5BAEB0, Maps::EntryPool.size());
@@ -404,11 +412,13 @@ namespace Components
 
 		Maps::AddDependency("mp_bloc_sh", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_cargoship_sh", "iw4x_dependencies_mp");
-		//Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp");
-		//Maps::AddDependency("mp_shipment_long", "iw4x_dependencies_mp");
-		//Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp"); 
-		//Maps::AddDependency("mp_firingrange", "mp_underpass");
-		//Maps::AddDependency("mp_underpass", "mp_firingrange");
+		Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_shipment_long", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp"); 
+		Maps::AddDependency("mp_firingrange", "mp_underpass");
+		Maps::AddDependency("zm_asylum_sh", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_rust_long", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_rust_long", "mp_rust");
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		Command::Add("dumpmap", [] (Command::Params)
