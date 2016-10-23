@@ -13,6 +13,9 @@ namespace Components
 
 	std::map<std::string, Game::XAssetHeader> AssetHandler::TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
+	static std::map<std::string, short> techsMain;
+	static std::map<std::string, short> techsSub;
+
 	void AssetHandler::RegisterInterface(IAsset* iAsset)
 	{
 		if (!iAsset) return;
@@ -133,51 +136,43 @@ namespace Components
 		}
 
 #if DEBUG
-		if (type == 9 && false)
+		if (type == 9)
 		{
 			static Game::MaterialTechniqueSet* technique = nullptr;
 
-			auto printTechset = [] (Game::MaterialTechniqueSet* technique, std::string zone)
+			auto printTechset = [] (Game::MaterialTechniqueSet* technique, std::map<std::string, short>* _map)
 			{
-				FILE* fp;
-				fopen_s(&fp, "test.txt", "a");
-				fprintf(fp, "%s: %s\n", zone.data(), technique->name);
-
 				for (int i = 0; i < 48; i++)
 				{
 					if (technique->techniques[i])
 					{
-						fprintf(fp, "\t%d: %s\n", i, technique->techniques[i]->name);
-
 						for (int j = 0; j < technique->techniques[i]->numPasses; j++)
 						{
 							Game::MaterialPass* pass = &technique->techniques[i]->passes[j];
 
 							for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); k++)
 							{
-								fprintf(fp, "\t\t\t%d.%d.%d Para: %d\n", i, j, k, pass->argumentDef[k].paramID & 0xFFFF);
+								std::string name = fmt::sprintf("%s:%d.%d.%d_%d", technique->techniques[i]->name, i, j, k, pass->argumentDef[k].type);
+
+								if (_map->find(name) != _map->end())
+								{
+									OutputDebugStringA(name.data());
+								}
+
+								(*_map)[name] = pass->argumentDef[k].paramID;
 							}
 						}
 					}
 				}
-
-				fprintf(fp, "\n");
-				fclose(fp);
 			};
-
-			static std::map<std::string, Game::MaterialTechniqueSet*> techs;
 
 			if (FastFiles::Current() == "mp_rust_long")
 			{
-				techs[name] = asset->materialTechset;
-				printTechset(asset->materialTechset, "mp_rust_long");
+				printTechset(asset->materialTechset, &techsMain);
 			}
 			else
 			{
-				if (techs.find(name) != techs.end())
-				{
-					printTechset(asset->materialTechset, FastFiles::Current());
-				}
+				printTechset(asset->materialTechset, &techsSub);
 			}
 		}
 #endif
@@ -376,6 +371,17 @@ namespace Components
 				for (auto& asset : AssetHandler::EmptyAssets)
 				{
 					Game::Sys_Error(25, reinterpret_cast<char*>(0x724428), Game::DB_GetXAssetTypeName(asset.first), asset.second.data());
+				}
+
+				for (auto main : techsMain)
+				{
+					if (techsSub.find(main.first) != techsSub.end() && main.second != techsSub[main.first])
+					{
+						FILE* fp;
+						fopen_s(&fp, "stuff.txt", "a");
+						fprintf(fp, "%s: %d %d\n", main.first.data(), main.second & 0xFFFF, techsSub[main.first] & 0xFFFF);
+						fclose(fp);
+					}
 				}
 
 				AssetHandler::EmptyAssets.clear();

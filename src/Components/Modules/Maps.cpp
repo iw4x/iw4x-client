@@ -416,7 +416,6 @@ namespace Components
 		Maps::AddDependency("mp_shipment_long", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp"); 
 		Maps::AddDependency("mp_rust_long", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_rust_long", "mp_rust");
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		Command::Add("dumpmap", [] (Command::Params)

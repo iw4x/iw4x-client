@@ -1009,6 +1009,11 @@ namespace Components
 				if (Zones::Version() >= 359/* && arg->paramID <= 113*/)
 				{
 					arg->paramID -= 7;
+
+					if (arg->paramID <= 53)
+					{
+						arg->paramID += 1;
+					}
 				}
 			}
 			// >= 21 works fine for specular, but breaks trees
@@ -1019,7 +1024,7 @@ namespace Components
 
 				if (Zones::Version() >= 359)
 				{
-					if (arg->paramID > 15 && arg->paramID < 34)
+					if (arg->paramID > 15 && arg->paramID < 30)
 					{
 						arg->paramID -= 1;
 					}
@@ -1029,6 +1034,10 @@ namespace Components
 					}
 				}
 			}
+// 			else if (Zones::Version() >= 359 && arg->paramID == 20592)
+// 			{
+// 				arg->paramID == 25180;
+// 			}
 		}
 
 		return result;
