@@ -13,9 +13,6 @@ namespace Components
 
 	std::map<std::string, Game::XAssetHeader> AssetHandler::TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
-	static std::map<std::string, short> techsMain;
-	static std::map<std::string, short> techsSub;
-
 	void AssetHandler::RegisterInterface(IAsset* iAsset)
 	{
 		if (!iAsset) return;
@@ -134,48 +131,6 @@ namespace Components
 				++i;
 			}
 		}
-
-#if DEBUG
-		if (type == 9)
-		{
-			static Game::MaterialTechniqueSet* technique = nullptr;
-
-			auto printTechset = [] (Game::MaterialTechniqueSet* technique, std::map<std::string, short>* _map)
-			{
-				for (int i = 0; i < 48; i++)
-				{
-					if (technique->techniques[i])
-					{
-						for (int j = 0; j < technique->techniques[i]->numPasses; j++)
-						{
-							Game::MaterialPass* pass = &technique->techniques[i]->passes[j];
-
-							for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); k++)
-							{
-								std::string name = fmt::sprintf("%s:%d.%d.%d_%d", technique->techniques[i]->name, i, j, k, pass->argumentDef[k].type);
-
-								if (_map->find(name) != _map->end())
-								{
-									OutputDebugStringA(name.data());
-								}
-
-								(*_map)[name] = pass->argumentDef[k].paramID;
-							}
-						}
-					}
-				}
-			};
-
-			if (FastFiles::Current() == "mp_rust_long")
-			{
-				printTechset(asset->materialTechset, &techsMain);
-			}
-			else
-			{
-				printTechset(asset->materialTechset, &techsSub);
-			}
-		}
-#endif
 
 		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && name == "wc/codo_ui_viewer_black_decal3"s)
 		{
@@ -371,17 +326,6 @@ namespace Components
 				for (auto& asset : AssetHandler::EmptyAssets)
 				{
 					Game::Sys_Error(25, reinterpret_cast<char*>(0x724428), Game::DB_GetXAssetTypeName(asset.first), asset.second.data());
-				}
-
-				for (auto main : techsMain)
-				{
-					if (techsSub.find(main.first) != techsSub.end() && main.second != techsSub[main.first])
-					{
-						FILE* fp;
-						fopen_s(&fp, "stuff.txt", "a");
-						fprintf(fp, "%s: %d %d\n", main.first.data(), main.second & 0xFFFF, techsSub[main.first] & 0xFFFF);
-						fclose(fp);
-					}
 				}
 
 				AssetHandler::EmptyAssets.clear();
