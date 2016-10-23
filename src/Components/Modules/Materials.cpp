@@ -93,6 +93,23 @@ namespace Components
 		}
 	}
 
+#ifdef DEBUG
+	void Materials::DumpImageCfg(int, const char*, const char* material)
+	{
+		Materials::DumpImageCfgPath(0, nullptr, Utils::String::VA("images/%s.iwi", material));
+	}
+
+	void Materials::DumpImageCfgPath(int, const char*, const char* material)
+	{
+		FILE* fp;
+		if (!fopen_s(&fp, "dump.cfg", "a"))
+		{
+			fprintf(fp, "dumpraw %s\n", material);
+			fclose(fp);
+		}
+	}
+#endif
+
 	Materials::Materials()
 	{
 		Materials::ImageNameLength = 7;
@@ -110,9 +127,18 @@ namespace Components
 		Utils::Hook(0x5A30D9, Materials::DeathMessageStub, HOOK_JUMP).Install()->Quick();
 
 #ifdef DEBUG
-		// Ignore missing images
-		Utils::Hook::Nop(0x51F5AC, 5);
-		Utils::Hook::Nop(0x51F4C4, 5);
+		if (Flags::HasFlag("dump"))
+		{
+			Utils::Hook(0x51F5AC, Materials::DumpImageCfg, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x51F4C4, Materials::DumpImageCfg, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x53AC62, Materials::DumpImageCfgPath, HOOK_CALL).Install()->Quick();
+		}
+		else
+		{
+			// Ignore missing images
+			Utils::Hook::Nop(0x51F5AC, 5);
+			Utils::Hook::Nop(0x51F4C4, 5);
+		}
 #endif
 
 // 		Renderer::OnFrame([] ()
