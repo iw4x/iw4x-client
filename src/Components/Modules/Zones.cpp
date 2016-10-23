@@ -1006,7 +1006,7 @@ namespace Components
 			{
 				arg->paramID -= 3;
 
-				if (Zones::Version() >= 359)
+				if (Zones::Version() >= 359/* && arg->paramID <= 113*/)
 				{
 					arg->paramID -= 7;
 				}

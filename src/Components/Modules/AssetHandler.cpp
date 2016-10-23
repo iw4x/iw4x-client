@@ -132,6 +132,7 @@ namespace Components
 			}
 		}
 
+#if DEBUG
 		if (type == 9 && false)
 		{
 			static Game::MaterialTechniqueSet* technique = nullptr;
@@ -154,12 +155,7 @@ namespace Components
 
 							for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); k++)
 							{
-								fprintf(fp, "\t\t%d.%d.%d:\n", i, j, k);
-
-								fprintf(fp, "\t\t\tDest: %d\n", pass->argumentDef[k].dest & 0xFFFF);
-								fprintf(fp, "\t\t\tMore: %d\n", pass->argumentDef[k].more & 0xFFFF);
-								fprintf(fp, "\t\t\tType: %d\n", pass->argumentDef[k].type & 0xFFFF);
-								fprintf(fp, "\t\t\tPara: %d\n", pass->argumentDef[k].paramID & 0xFFFF);
+								fprintf(fp, "\t\t\t%d.%d.%d Para: %d\n", i, j, k, pass->argumentDef[k].paramID & 0xFFFF);
 							}
 						}
 					}
@@ -171,10 +167,10 @@ namespace Components
 
 			static std::map<std::string, Game::MaterialTechniqueSet*> techs;
 
-			if (FastFiles::Current() == "mp_firingrange")
+			if (FastFiles::Current() == "mp_rust_long")
 			{
 				techs[name] = asset->materialTechset;
-				printTechset(asset->materialTechset, "mp_firingrange");
+				printTechset(asset->materialTechset, "mp_rust_long");
 			}
 			else
 			{
@@ -184,8 +180,9 @@ namespace Components
 				}
 			}
 		}
+#endif
 
-		if (type == 5 && name == "wc/codo_ui_viewer_black_decal3"s)
+		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && name == "wc/codo_ui_viewer_black_decal3"s)
 		{
 			asset->material->sortKey = 0xE;
 		}
