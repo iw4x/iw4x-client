@@ -1005,12 +1005,29 @@ namespace Components
 			if (arg->paramID >= 58 && arg->paramID <= 135) // >= 34 would be 31 in iw4 terms
 			{
 				arg->paramID -= 3;
+
+				if (Zones::Version() >= 359/* && arg->paramID <= 113*/)
+				{
+					arg->paramID -= 7;
+				}
 			}
 			// >= 21 works fine for specular, but breaks trees
 			// >= 4 is too low, breaks specular
 			else if (arg->paramID >= 11 && arg->paramID < 58)
 			{
 				arg->paramID -= 2;
+
+				if (Zones::Version() >= 359)
+				{
+					if (arg->paramID > 15 && arg->paramID < 34)
+					{
+						arg->paramID -= 1;
+					}
+					else if (arg->paramID >= 50)
+					{
+						arg->paramID += 6;
+					}
+				}
 			}
 		}
 
@@ -1126,7 +1143,12 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, size + 4);
 
+		// This shouldn't make any difference.
+		// The new entry is an additional remapped techset which is linked at runtime.
+		// It's used when the 0x100 gameFlag in a material is set.
+		// As MW2 flags are only 1 byte large, this won't be possible anyways
 		int shiftTest = 4;
+
 		std::memmove(buffer + 8 + shiftTest, buffer + 12 + shiftTest, 196 - shiftTest);
 		AssetHandler::Relocate(buffer + 12 + shiftTest, buffer + 8 + shiftTest, 196 - shiftTest);
 
@@ -1143,8 +1165,12 @@ namespace Components
 			//int surfaceTypeBits;
 			const char *name;
 			char drawSurf[6];
-			char gameFlags;
-			char pad;
+
+			union
+			{
+				char gameFlags;
+				short sGameFlags;
+			};
 			char sortKey;
 			char textureAtlasRowCount;
 			char textureAtlasColumnCount;
@@ -1176,6 +1202,11 @@ namespace Components
 		material->drawSurf[9] = material359.drawSurf[1];
 		material->drawSurf[10] = material359.drawSurf[2];
 		material->drawSurf[11] = material359.drawSurf[3];
+
+		if (material359.sGameFlags & 0x100)
+		{
+			//OutputDebugStringA("");
+		}
 
 		return result;
 	}

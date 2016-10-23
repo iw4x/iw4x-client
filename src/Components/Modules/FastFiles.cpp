@@ -218,6 +218,11 @@ namespace Components
 		return std::ifstream(path.data()).good();
 	}
 
+	bool FastFiles::Ready()
+	{
+		return (Game::Sys_IsDatabaseReady() && Game::Sys_IsDatabaseReady2());
+	}
+
 	const char* FastFiles::GetZoneLocation(const char* file)
 	{
 		const char* dir = Dvar::Var("fs_basepath").Get<const char*>();

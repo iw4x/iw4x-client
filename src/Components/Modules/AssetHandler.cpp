@@ -132,7 +132,57 @@ namespace Components
 			}
 		}
 
-		if (type == 5 && name == "wc/codo_ui_viewer_black_decal3"s)
+#if DEBUG
+		if (type == 9 && false)
+		{
+			static Game::MaterialTechniqueSet* technique = nullptr;
+
+			auto printTechset = [] (Game::MaterialTechniqueSet* technique, std::string zone)
+			{
+				FILE* fp;
+				fopen_s(&fp, "test.txt", "a");
+				fprintf(fp, "%s: %s\n", zone.data(), technique->name);
+
+				for (int i = 0; i < 48; i++)
+				{
+					if (technique->techniques[i])
+					{
+						fprintf(fp, "\t%d: %s\n", i, technique->techniques[i]->name);
+
+						for (int j = 0; j < technique->techniques[i]->numPasses; j++)
+						{
+							Game::MaterialPass* pass = &technique->techniques[i]->passes[j];
+
+							for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); k++)
+							{
+								fprintf(fp, "\t\t\t%d.%d.%d Para: %d\n", i, j, k, pass->argumentDef[k].paramID & 0xFFFF);
+							}
+						}
+					}
+				}
+
+				fprintf(fp, "\n");
+				fclose(fp);
+			};
+
+			static std::map<std::string, Game::MaterialTechniqueSet*> techs;
+
+			if (FastFiles::Current() == "mp_rust_long")
+			{
+				techs[name] = asset->materialTechset;
+				printTechset(asset->materialTechset, "mp_rust_long");
+			}
+			else
+			{
+				if (techs.find(name) != techs.end())
+				{
+					printTechset(asset->materialTechset, FastFiles::Current());
+				}
+			}
+		}
+#endif
+
+		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && name == "wc/codo_ui_viewer_black_decal3"s)
 		{
 			asset->material->sortKey = 0xE;
 		}
@@ -321,7 +371,7 @@ namespace Components
 		// Log missing empty assets
 		QuickPatch::OnFrame([] ()
 		{
-			if (Game::Sys_IsDatabaseReady() && Game::Sys_IsDatabaseReady2() && !AssetHandler::EmptyAssets.empty())
+			if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
 			{
 				for (auto& asset : AssetHandler::EmptyAssets)
 				{

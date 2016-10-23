@@ -493,8 +493,11 @@ namespace Components
 			Utils::Hook::Nop(0x5BB3F2, 5);
 			Utils::Hook::Nop(0x5BB422, 5);
 			Utils::Hook::Nop(0x5BB43A, 5);
+
 			// Increase asset pools
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODELSURFS, 8192);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 14336);
 
 			// hunk size (was 300 MiB)
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB

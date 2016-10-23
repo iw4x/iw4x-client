@@ -28,6 +28,7 @@ namespace Game
 	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
 	Com_PrintMessage_t Com_PrintMessage = (Com_PrintMessage_t)0x4AA830;
 	Com_ParseExt_t Com_ParseExt = (Com_ParseExt_t)0x474D60;
+	Com_SetSlowMotion_t Com_SetSlowMotion = (Com_SetSlowMotion_t)0x446E20;
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = (Con_DrawMiniConsole_t)0x464F30;
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = (Con_DrawSolidConsole_t)0x5A5040;
@@ -175,6 +176,9 @@ namespace Game
 
 	Scr_LoadScript_t Scr_LoadScript = (Scr_LoadScript_t)0x45D940;
 	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = (Scr_GetFunctionHandle_t)0x4234F0;
+
+	Scr_GetFloat_t Scr_GetFloat = (Scr_GetFloat_t)0x443140;
+	Scr_GetNumParam_t Scr_GetNumParam = (Scr_GetNumParam_t)0x4B0E90;
 
 	Scr_ExecThread_t Scr_ExecThread = (Scr_ExecThread_t)0x4AD0B0;
 	Scr_FreeThread_t Scr_FreeThread = (Scr_FreeThread_t)0x4BD320;
