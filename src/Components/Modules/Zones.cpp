@@ -206,6 +206,11 @@ namespace Components
 				if (Zones::ZoneVersion >= 359)
 				{
 					size = 3120;
+
+					if (Zones::ZoneVersion >= 365)
+					{
+						size = 3124;
+					}
 				}
 			}
 		}
@@ -320,7 +325,7 @@ namespace Components
 		if (Zones::ZoneVersion >= 359)
 		{
 			// 53 soundalias name references; up to and including 1124
-			for (int i = 0, offset = 912; i < 53; ++i, offset += 4)
+			for (int i = 0, offset = 916; i < 52; ++i, offset += 4)
 			{
 				*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + offset);
 				Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
@@ -764,6 +769,11 @@ namespace Components
 		{
 			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 2988);
 			Game::Load_XString(false);
+
+			if (Zones::ZoneVersion >= 365)
+			{
+				varWeaponCompleteDef += 4;
+			}
 
 			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3000);
 			Game::Load_XString(false);
