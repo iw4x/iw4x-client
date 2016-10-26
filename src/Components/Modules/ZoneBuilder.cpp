@@ -21,7 +21,7 @@ namespace Components
 		Game::XZoneInfo info;
 		info.name = nullptr;
 		info.allocFlags = 0;
-		info.freeFlags = 0x01000000;
+		info.freeFlags = 0x20;
 
 		Game::DB_LoadXAssets(&info, 1, true);
 
@@ -73,7 +73,7 @@ namespace Components
 				{
 					Game::XZoneInfo info;
 					info.name = fastfile.data();
-					info.allocFlags = 0x01000000;
+					info.allocFlags = 0x20;
 					info.freeFlags = 0;
 
 					Game::DB_LoadXAssets(&info, 1, true);
@@ -521,7 +521,7 @@ namespace Components
 
 				Game::XZoneInfo info;
 				info.name = zone.data();
-				info.allocFlags = 0x01000000;
+				info.allocFlags = 0x20;
 				info.freeFlags = 0;
 
 				Logger::Print("Loading zone '%s'...\n", zone.data());
@@ -532,7 +532,7 @@ namespace Components
 				auto assets = ZoneBuilder::EndAssetTrace();
 
 				Logger::Print("Unloading zone '%s'...\n", zone.data());
-				info.freeFlags = 0x01000000;
+				info.freeFlags = 0x20;
 				info.allocFlags = 0;
 				info.name = nullptr;
 
