@@ -26,6 +26,9 @@ namespace Components
 
 		static int IgnoreEntityStub(const char* entity);
 
+		static void PatchMapLoad(const char** mapnamePtr);
+		static void MapLoadStub();
+
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		static void ExportMap(Game::GfxWorld* world);
 #endif

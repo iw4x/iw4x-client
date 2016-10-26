@@ -185,6 +185,35 @@ namespace Components
 		return (Utils::String::StartsWith(entity, "dyn_") || Utils::String::StartsWith(entity, "node_") || Utils::String::StartsWith(entity, "actor_"));
 	}
 
+	void Maps::PatchMapLoad(const char** mapnamePtr)
+	{
+		if (!strcmp(*mapnamePtr, "mp_shipment"))
+		{
+			*mapnamePtr = "mp_shipment_long";
+			Dvar::Var("sv_shortmap").SetRaw(1);
+		}
+		else if (!strcmp(*mapnamePtr, "mp_shipment_long"))
+		{
+			Dvar::Var("sv_shortmap").SetRaw(0);
+		}
+	}
+
+	__declspec(naked) void Maps::MapLoadStub()
+	{
+		__asm
+		{
+			lea eax, [esp + 4h]
+			push eax
+			call Maps::PatchMapLoad
+			add esp, 4h
+
+			sub esp, 84h
+
+			push 6244B6h
+			retn
+		}
+	}
+
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 	// Credit to SE2Dev, as we shouldn't share the code, keep that in debug mode!
 	void Maps::ExportMap(Game::GfxWorld* world)
@@ -363,6 +392,8 @@ namespace Components
 
 	Maps::Maps()
 	{
+		Dvar::Register<bool>("sv_shortmap", false, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED, "");
+
 		// Restrict asset loading
 		AssetHandler::OnLoad(Maps::LoadAssetRestrict);
 
@@ -378,6 +409,9 @@ namespace Components
 
 		// Ignore SP entities
 		Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).Install()->Quick();
+
+		// Shipment patches
+		Utils::Hook(0x6244B0, Maps::MapLoadStub, HOOK_JUMP).Install()->Quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
