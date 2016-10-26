@@ -101,6 +101,8 @@ namespace Components
 
 	News::News()
 	{
+		if (ZoneBuilder::IsEnabled()) return; // Maybe also dedi?
+
 		Dvar::Register<int>("cl_updateoldversion", REVISION, REVISION, REVISION, Game::DVAR_FLAG_WRITEPROTECTED, "Current version number.");
 		Dvar::Register<int>("cl_updateversion", 0, 0, -1, Game::DVAR_FLAG_WRITEPROTECTED, "New version number.");
 		Dvar::Register<bool>("cl_updateavailable", 0, Game::DVAR_FLAG_WRITEPROTECTED, "New update is available.");
