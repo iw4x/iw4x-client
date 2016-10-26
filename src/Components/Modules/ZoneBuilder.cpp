@@ -103,7 +103,19 @@ namespace Components
 					}
 					else
 					{
-						ZoneBuilder::Zone::RenameAsset(Game::DB_GetXAssetNameType(DataMap.GetElementAt(i, 0).data()), DataMap.GetElementAt(i, 1), DataMap.GetElementAt(i, 2));
+						std::string oldName = DataMap.GetElementAt(i, 1);
+						std::string newName = DataMap.GetElementAt(i, 2);
+						std::string typeName = DataMap.GetElementAt(i, 0).data();
+						Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
+
+						if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
+						{
+							ZoneBuilder::Zone::RenameAsset(type, oldName, newName);
+						}
+						else
+						{
+							Logger::Error("Unable to rename '%s' to '%s' as the asset type '%s' is invalid!", oldName.data(), newName.data(), typeName.data());
+						}
 					}
 				}
 
@@ -411,21 +423,29 @@ namespace Components
 	// Store a new name for a given asset
 	void ZoneBuilder::Zone::RenameAsset(Game::XAssetType type, std::string asset, std::string newName)
 	{
-		if (type < Game::XAssetType::ASSET_TYPE_COUNT)
+		if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
 		{
 			ZoneBuilder::Zone::RenameMap[type][asset] = newName;
+		}
+		else
+		{
+			Logger::Error("Unable to rename '%s' to '%s' as the asset type is invalid!", asset.data(), newName.data());
 		}
 	}
 
 	// Return the new name for a given asset
 	std::string ZoneBuilder::Zone::GetAssetName(Game::XAssetType type, std::string asset)
 	{
-		if (type < Game::XAssetType::ASSET_TYPE_COUNT)
+		if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
 		{
 			if (ZoneBuilder::Zone::RenameMap[type].find(asset) != ZoneBuilder::Zone::RenameMap[type].end())
 			{
 				return ZoneBuilder::Zone::RenameMap[type][asset];
 			}
+		}
+		else
+		{
+			Logger::Error("Unable to get name for '%s' as the asset type is invalid!", asset.data());
 		}
 
 		return asset;
