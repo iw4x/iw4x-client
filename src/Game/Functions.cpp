@@ -336,9 +336,9 @@ namespace Game
 	{
 		for (int i = 0; i < *arenaCount; ++i)
 		{
-			if (!_stricmp(arenas[i].mapName, mapName))
+			if (!_stricmp(Components::ArenaLength::NewArenas[i].mapName, mapName))
 			{
-				char* uiName = &arenas[i].uiName[0];
+				char* uiName = &Components::ArenaLength::NewArenas[i].uiName[0];
 				if ((uiName[0] == 'M' && uiName[1] == 'P') || (uiName[0] == 'P' && uiName[1] == 'A')) // MPUI/PATCH
 				{
 					return SEH_StringEd_GetString(uiName);

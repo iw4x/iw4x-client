@@ -64,6 +64,7 @@ namespace Components
 		Loader::Register(new ServerInfo());
 		Loader::Register(new ServerList());
 		Loader::Register(new SlowMotion());
+		Loader::Register(new ArenaLength());
 		Loader::Register(new StringTable());
 		Loader::Register(new ZoneBuilder());
 		Loader::Register(new AssetHandler());

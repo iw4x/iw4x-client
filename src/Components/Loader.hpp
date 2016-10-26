@@ -77,6 +77,7 @@ namespace Components
 #include "Modules\ServerInfo.hpp"
 #include "Modules\ServerList.hpp"
 #include "Modules\SlowMotion.hpp"
+#include "Modules\ArenaLength.hpp"
 #include "Modules\StringTable.hpp"
 #include "Modules\ZoneBuilder.hpp"
 #include "Modules\AssetHandler.hpp"
