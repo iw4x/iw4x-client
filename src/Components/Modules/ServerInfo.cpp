@@ -130,6 +130,12 @@ namespace Components
 			info.Set("mapname", Dvar::Var("ui_mapname").Get<const char*>());
 		}
 
+		// Shipment patches
+		if (info.Get("mapname") == "mp_shipment_long" && Dvar::Var("sv_shortmap").Get<bool>())
+		{
+			info.Set("mapname", "mp_shipment");
+		}
+
 		// Set matchtype
 		// 0 - No match, connecting not possible
 		// 1 - Party, use Steam_JoinLobby to connect
