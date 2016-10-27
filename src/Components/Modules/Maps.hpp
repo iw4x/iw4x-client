@@ -15,6 +15,7 @@ namespace Components
 	private:
 		static std::vector<Game::XAssetEntry> EntryPool;
 
+		static std::string CurrentMainZone;
 		static std::vector<std::pair<std::string, std::string>> DependencyList;
 		static std::vector<std::string> CurrentDependencies;
 
@@ -25,9 +26,6 @@ namespace Components
 		static void OverrideMapEnts(Game::MapEnts* ents);
 
 		static int IgnoreEntityStub(const char* entity);
-
-		static void PatchMapLoad(const char** mapnamePtr);
-		static void MapLoadStub();
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		static void ExportMap(Game::GfxWorld* world);

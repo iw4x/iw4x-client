@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	std::string Maps::CurrentMainZone;
 	std::vector<std::pair<std::string, std::string>> Maps::DependencyList;
 	std::vector<std::string> Maps::CurrentDependencies;
 
@@ -10,6 +11,8 @@ namespace Components
 	void Maps::LoadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
 	{
 		if (!zoneInfo) return;
+
+		Maps::CurrentMainZone = zoneInfo->name;
 
 		Maps::CurrentDependencies.clear();
 		for (auto i = Maps::DependencyList.begin(); i != Maps::DependencyList.end(); ++i)
@@ -69,7 +72,8 @@ namespace Components
 
 	void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
 	{
-		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end())
+		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()
+			&& (FastFiles::Current() != "mp_shipment_long" || Maps::CurrentMainZone != "mp_shipment")) // Shipment is a special case
 		{
 			if (type == Game::XAssetType::ASSET_TYPE_GAME_MAP_MP || type == Game::XAssetType::ASSET_TYPE_COL_MAP_MP || type == Game::XAssetType::ASSET_TYPE_GFX_MAP || type == Game::XAssetType::ASSET_TYPE_MAP_ENTS || type == Game::XAssetType::ASSET_TYPE_COM_MAP || type == Game::XAssetType::ASSET_TYPE_FX_MAP)
 			{
@@ -137,6 +141,12 @@ namespace Components
 			format = "maps/%s.d3dbsp";
 		}
 
+		// Redirect shipment to shipment long
+		if (mapname == "mp_shipment"s)
+		{
+			mapname = "mp_shipment_long";
+		}
+
 		bool handleAsSp = false;
 
 		for (auto dependency : Maps::DependencyList)
@@ -183,35 +193,6 @@ namespace Components
 	int Maps::IgnoreEntityStub(const char* entity)
 	{
 		return (Utils::String::StartsWith(entity, "dyn_") || Utils::String::StartsWith(entity, "node_") || Utils::String::StartsWith(entity, "actor_"));
-	}
-
-	void Maps::PatchMapLoad(const char** mapnamePtr)
-	{
-		if (!strcmp(*mapnamePtr, "mp_shipment"))
-		{
-			*mapnamePtr = "mp_shipment_long";
-			Dvar::Var("sv_shortmap").SetRaw(1);
-		}
-		else if (!strcmp(*mapnamePtr, "mp_shipment_long"))
-		{
-			Dvar::Var("sv_shortmap").SetRaw(0);
-		}
-	}
-
-	__declspec(naked) void Maps::MapLoadStub()
-	{
-		__asm
-		{
-			lea eax, [esp + 4h]
-			push eax
-			call Maps::PatchMapLoad
-			add esp, 4h
-
-			sub esp, 84h
-
-			push 6244B6h
-			retn
-		}
 	}
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
@@ -392,8 +373,6 @@ namespace Components
 
 	Maps::Maps()
 	{
-		Dvar::Register<bool>("sv_shortmap", false, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED, "");
-
 		// Restrict asset loading
 		AssetHandler::OnLoad(Maps::LoadAssetRestrict);
 
@@ -409,9 +388,6 @@ namespace Components
 
 		// Ignore SP entities
 		Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).Install()->Quick();
-
-		// Shipment patches
-		Utils::Hook(0x6244B0, Maps::MapLoadStub, HOOK_JUMP).Install()->Quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
@@ -452,6 +428,9 @@ namespace Components
 		Maps::AddDependency("mp_rust_long", "iw4x_dependencies_mp");
 		Maps::AddDependency("mp_ambush_sh", "iw4x_dependencies_mp");
 
+		Maps::AddDependency("mp_shipment", "mp_shipment_long");
+		Maps::AddDependency("mp_shipment", "iw4x_dependencies_mp");
+
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		Command::Add("dumpmap", [] (Command::Params)
 		{
@@ -482,6 +461,10 @@ namespace Components
 
 	Maps::~Maps()
 	{
+		Maps::DependencyList.clear();
+		Maps::CurrentMainZone.clear();
+		Maps::CurrentDependencies.clear();
+
 		Maps::EntryPool.clear();
 	}
 }
