@@ -44,7 +44,7 @@ namespace Components
 		static void PerformCheck();
 		static void PatchWinAPI();
 
-		static DWORD ProtectProcess();
+		static unsigned long ProtectProcess();
 
 		static void NullSub();
 

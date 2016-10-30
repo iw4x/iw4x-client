@@ -405,232 +405,140 @@ namespace Components
 		}
 	}
 
-	// TODO: Beautify that
-	DWORD AntiCheat::ProtectProcess()
+	unsigned long AntiCheat::ProtectProcess()
 	{
-		// Returned to caller
-		DWORD dwResult = (DWORD)-1;
+		Utils::Memory::Allocator allocator;
 
-		// Released on exit
-		HANDLE hToken = NULL;
-		PVOID pTokenInfo = NULL;
-
-		PSID psidEveryone = NULL;
-		PSID psidSystem = NULL;
-		PSID psidAdmins = NULL;
-
-		PACL pDacl = NULL;
-		PSECURITY_DESCRIPTOR pSecDesc = NULL;
-
-		__try
+		// If this fails, you can try to fallback to OpenThreadToken
+		HANDLE hToken = nullptr;
+		if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &hToken))
 		{
-			// Scratch
-			DWORD dwSize = 0;
-			BOOL bResult = FALSE;
-
-			// If this fails, you can try to fallback to OpenThreadToken
-			if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &hToken)) 
-			{
-				dwResult = GetLastError();
-				assert(FALSE);
-				__leave; /*failed*/
-			}
-
-			bResult = GetTokenInformation(hToken, TokenUser, NULL, 0, &dwSize);
-			dwResult = GetLastError();
-			assert(bResult == FALSE && ERROR_INSUFFICIENT_BUFFER == dwResult);
-			if (!(bResult == FALSE && ERROR_INSUFFICIENT_BUFFER == dwResult)) { __leave; /*failed*/ }
-
-			if (dwSize) 
-			{
-				pTokenInfo = HeapAlloc(GetProcessHeap(), 0, dwSize);
-				dwResult = GetLastError();
-				assert(NULL != pTokenInfo);
-				if (NULL == pTokenInfo) { __leave; /*failed*/ }
-			}
-
-			bResult = GetTokenInformation(hToken, TokenUser, pTokenInfo, dwSize, &dwSize);
-			dwResult = GetLastError();
-			assert(bResult && pTokenInfo);
-			if (!(bResult && pTokenInfo)) { __leave; /*failed*/ }
-
-			PSID psidCurUser = ((TOKEN_USER*)pTokenInfo)->User.Sid;
-
-			SID_IDENTIFIER_AUTHORITY sidEveryone = SECURITY_WORLD_SID_AUTHORITY;
-			bResult = AllocateAndInitializeSid(&sidEveryone, 1,
-				SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, &psidEveryone);
-			dwResult = GetLastError();
-			assert(bResult && psidEveryone);
-			if (!(bResult && psidEveryone)) { __leave; /*failed*/ }
-
-			SID_IDENTIFIER_AUTHORITY sidSystem = SECURITY_NT_AUTHORITY;
-			bResult = AllocateAndInitializeSid(&sidSystem, 1,
-				SECURITY_LOCAL_SYSTEM_RID, 0, 0, 0, 0, 0, 0, 0, &psidSystem);
-			dwResult = GetLastError();
-
-			assert(bResult && psidSystem);
-			if (!(bResult && psidSystem)) { __leave; /*failed*/ }
-
-			SID_IDENTIFIER_AUTHORITY sidAdministrators = SECURITY_NT_AUTHORITY;
-			bResult = AllocateAndInitializeSid(&sidAdministrators, 2,
-				SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS,
-				0, 0, 0, 0, 0, 0, &psidAdmins);
-
-			dwResult = GetLastError();
-			assert(bResult && psidAdmins);
-			if (!(bResult && psidAdmins)) { __leave; /*failed*/ }
-
-			const PSID psidArray[] = 
-			{
-				psidEveryone,    /* Deny most rights to everyone */
-				psidCurUser,    /* Allow what was not denied */
-				psidSystem,        /* Full control */
-				psidAdmins,        /* Full control */
-			};
-
-			// Determine required size of the ACL
-			dwSize = sizeof(ACL);
-
-			// First the DENY, then the ALLOW
-			dwSize += GetLengthSid(psidArray[0]);
-			dwSize += sizeof(ACCESS_DENIED_ACE) - sizeof(DWORD);
-
-			for (UINT i = 1; i < _countof(psidArray); i++) 
-			{
-				// DWORD is the SidStart field, which is not used for absolute format
-				dwSize += GetLengthSid(psidArray[i]);
-				dwSize += sizeof(ACCESS_ALLOWED_ACE) - sizeof(DWORD);
-			}
-
-			pDacl = (PACL)HeapAlloc(GetProcessHeap(), 0, dwSize);
-			dwResult = GetLastError();
-			assert(NULL != pDacl);
-			if (NULL == pDacl) { __leave; /*failed*/ }
-
-			bResult = InitializeAcl(pDacl, dwSize, ACL_REVISION);
-			dwResult = GetLastError();
-			assert(TRUE == bResult);
-			if (FALSE == bResult) { __leave; /*failed*/ }
-
-			// Mimic Protected Process
-			// http://www.microsoft.com/whdc/system/vista/process_vista.mspx
-			// Protected processes allow PROCESS_TERMINATE, which is
-			// probably not appropriate for high integrity software.
-			static const DWORD dwPoison =
-				/*READ_CONTROL |*/ WRITE_DAC | WRITE_OWNER |
-				PROCESS_CREATE_PROCESS | PROCESS_CREATE_THREAD |
-				PROCESS_DUP_HANDLE | PROCESS_QUERY_INFORMATION |
-				PROCESS_SET_QUOTA | PROCESS_SET_INFORMATION |
-				PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE |
-				// In addition to protected process
-				PROCESS_SUSPEND_RESUME | PROCESS_TERMINATE;
-
-			bResult = AddAccessDeniedAce(pDacl, ACL_REVISION, dwPoison, psidArray[0]);
-			dwResult = GetLastError();
-			assert(TRUE == bResult);
-			if (FALSE == bResult) { __leave; /*failed*/ }
-
-			// Standard and specific rights not explicitly denied
-			static const DWORD dwAllowed = ~dwPoison & 0x1FFF;
-			bResult = AddAccessAllowedAce(pDacl, ACL_REVISION, dwAllowed, psidArray[1]);
-			dwResult = GetLastError();
-			assert(TRUE == bResult);
-			if (FALSE == bResult) { __leave; /*failed*/ }
-
-			// Because of ACE ordering, System will effectively have dwAllowed even
-			// though the ACE specifies PROCESS_ALL_ACCESS (unless software uses
-			// SeDebugPrivilege or SeTcbName and increases access).
-			// As an exercise, check behavior of tools such as Process Explorer under XP,
-			// Vista, and above. Vista and above should exhibit slightly different behavior
-			// due to Restricted tokens.
-			bResult = AddAccessAllowedAce(pDacl, ACL_REVISION, PROCESS_ALL_ACCESS, psidArray[2]);
-			dwResult = GetLastError();
-			assert(TRUE == bResult);
-			if (FALSE == bResult) { __leave; /*failed*/ }
-
-			// Because of ACE ordering, Administrators will effectively have dwAllowed
-			// even though the ACE specifies PROCESS_ALL_ACCESS (unless the Administrator
-			// invokes 'discretionary security' by taking ownership and increasing access).
-			// As an exercise, check behavior of tools such as Process Explorer under XP,
-			// Vista, and above. Vista and above should exhibit slightly different behavior
-			// due to Restricted tokens.
-			bResult = AddAccessAllowedAce(pDacl, ACL_REVISION, PROCESS_ALL_ACCESS, psidArray[3]);
-			dwResult = GetLastError();
-			assert(TRUE == bResult);
-			if (FALSE == bResult) { __leave; /*failed*/ }
-
-			pSecDesc = (PSECURITY_DESCRIPTOR)HeapAlloc(GetProcessHeap(), 0, SECURITY_DESCRIPTOR_MIN_LENGTH);
-			dwResult = GetLastError();
-			assert(NULL != pSecDesc);
-			if (NULL == pSecDesc) { __leave; /*failed*/ }
-
-			// InitializeSecurityDescriptor initializes a security descriptor in
-			// absolute format, rather than self-relative format. See
-			// http://msdn.microsoft.com/en-us/library/aa378863(VS.85).aspx
-			bResult = InitializeSecurityDescriptor(pSecDesc, SECURITY_DESCRIPTOR_REVISION);
-			dwResult = GetLastError();
-			assert(TRUE == bResult);
-			if (FALSE == bResult) { __leave; /*failed*/ }
-
-			bResult = SetSecurityDescriptorDacl(pSecDesc, TRUE, pDacl, FALSE);
-			dwResult = GetLastError();
-			assert(TRUE == bResult);
-			if (FALSE == bResult) { __leave; /*failed*/ }
-
-			dwResult = SetSecurityInfo(
-				GetCurrentProcess(),
-				SE_KERNEL_OBJECT, // process object
-				OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
-				psidCurUser, // NULL, // Owner SID
-				NULL, // Group SID
-				pDacl,
-				NULL // SACL
-			);
-
-			dwResult = GetLastError();
-			assert(ERROR_SUCCESS == dwResult);
-			if (ERROR_SUCCESS != dwResult) { __leave; /*failed*/ }
-
-			dwResult = ERROR_SUCCESS;
+			return GetLastError();
 		}
-		__finally
+
+		auto freeSid = [] (void* sid)
 		{
-			if (NULL != pSecDesc) 
+			if (sid)
 			{
-				HeapFree(GetProcessHeap(), 0, pSecDesc);
+				FreeSid(reinterpret_cast<PSID>(sid));
 			}
-			if (NULL != pDacl) 
-			{
-				HeapFree(GetProcessHeap(), 0, pDacl);
-			}
+		};
 
-			if (psidAdmins) 
-			{
-				FreeSid(psidAdmins);
-			}
-
-			if (psidSystem) 
-			{
-				FreeSid(psidSystem);
-			}
-
-			if (psidEveryone) 
-			{
-				FreeSid(psidEveryone);
-			}
-
-			if (NULL != pTokenInfo) 
-			{
-				HeapFree(GetProcessHeap(), 0, pTokenInfo);
-			}
-
-			if (NULL != hToken) 
+		allocator.Reference(hToken, [] (void* hToken)
+		{
+			if (hToken)
 			{
 				CloseHandle(hToken);
 			}
+		});
+
+		DWORD dwSize = 0;
+		PVOID pTokenInfo = nullptr;
+		if (GetTokenInformation(hToken, TokenUser, NULL, 0, &dwSize) || GetLastError() != ERROR_INSUFFICIENT_BUFFER) return GetLastError();
+
+		if (dwSize)
+		{
+			pTokenInfo = allocator.Allocate(dwSize);
+			if (!pTokenInfo) return GetLastError();
 		}
 
-		return dwResult;
+		if (!GetTokenInformation(hToken, TokenUser, pTokenInfo, dwSize, &dwSize) || !pTokenInfo) return GetLastError();
+
+		PSID psidCurUser = reinterpret_cast<TOKEN_USER*>(pTokenInfo)->User.Sid;
+
+		PSID psidEveryone = nullptr;
+		SID_IDENTIFIER_AUTHORITY sidEveryone = SECURITY_WORLD_SID_AUTHORITY;
+		if (!AllocateAndInitializeSid(&sidEveryone, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, &psidEveryone) || !psidEveryone) return GetLastError();
+		allocator.Reference(psidEveryone, freeSid);
+
+		PSID psidSystem = nullptr;
+		SID_IDENTIFIER_AUTHORITY sidSystem = SECURITY_NT_AUTHORITY;
+		if (!AllocateAndInitializeSid(&sidSystem, 1, SECURITY_LOCAL_SYSTEM_RID, 0, 0, 0, 0, 0, 0, 0, &psidSystem) || !psidSystem) return GetLastError();
+		allocator.Reference(psidSystem, freeSid);
+
+		PSID psidAdmins = nullptr;
+		SID_IDENTIFIER_AUTHORITY sidAdministrators = SECURITY_NT_AUTHORITY;
+		if (!AllocateAndInitializeSid(&sidAdministrators, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &psidAdmins) || !psidAdmins) return GetLastError();
+		allocator.Reference(psidAdmins, freeSid);
+
+		const PSID psidArray[] =
+		{
+			psidEveryone, /* Deny most rights to everyone */
+			psidCurUser,  /* Allow what was not denied */
+			psidSystem,   /* Full control */
+			psidAdmins,   /* Full control */
+		};
+
+		// Determine required size of the ACL
+		dwSize = sizeof(ACL);
+
+		// First the DENY, then the ALLOW
+		dwSize += GetLengthSid(psidArray[0]);
+		dwSize += sizeof(ACCESS_DENIED_ACE) - sizeof(DWORD);
+
+		for (UINT i = 1; i < _countof(psidArray); i++)
+		{
+			// DWORD is the SidStart field, which is not used for absolute format
+			dwSize += GetLengthSid(psidArray[i]);
+			dwSize += sizeof(ACCESS_ALLOWED_ACE) - sizeof(DWORD);
+		}
+
+		PACL pDacl = reinterpret_cast<PACL>(allocator.Allocate(dwSize));
+		if (!pDacl || !InitializeAcl(pDacl, dwSize, ACL_REVISION)) return GetLastError();
+
+		// Mimic Protected Process
+		// http://www.microsoft.com/whdc/system/vista/process_vista.mspx
+		// Protected processes allow PROCESS_TERMINATE, which is
+		// probably not appropriate for high integrity software.
+		static const DWORD dwPoison =
+			/*READ_CONTROL |*/ WRITE_DAC | WRITE_OWNER |
+			PROCESS_CREATE_PROCESS | PROCESS_CREATE_THREAD |
+			PROCESS_DUP_HANDLE | PROCESS_QUERY_INFORMATION |
+			PROCESS_SET_QUOTA | PROCESS_SET_INFORMATION |
+			PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE |
+			// In addition to protected process
+			PROCESS_SUSPEND_RESUME | PROCESS_TERMINATE;
+
+		if (!AddAccessDeniedAce(pDacl, ACL_REVISION, dwPoison, psidArray[0])) return GetLastError();
+
+		// Standard and specific rights not explicitly denied
+		static const DWORD dwAllowed = ~dwPoison & 0x1FFF;
+		if (!AddAccessAllowedAce(pDacl, ACL_REVISION, dwAllowed, psidArray[1])) return GetLastError();
+
+		// Because of ACE ordering, System will effectively have dwAllowed even
+		// though the ACE specifies PROCESS_ALL_ACCESS (unless software uses
+		// SeDebugPrivilege or SeTcbName and increases access).
+		// As an exercise, check behavior of tools such as Process Explorer under XP,
+		// Vista, and above. Vista and above should exhibit slightly different behavior
+		// due to Restricted tokens.
+		if (!AddAccessAllowedAce(pDacl, ACL_REVISION, PROCESS_ALL_ACCESS, psidArray[2])) return GetLastError();
+
+		// Because of ACE ordering, Administrators will effectively have dwAllowed
+		// even though the ACE specifies PROCESS_ALL_ACCESS (unless the Administrator
+		// invokes 'discretionary security' by taking ownership and increasing access).
+		// As an exercise, check behavior of tools such as Process Explorer under XP,
+		// Vista, and above. Vista and above should exhibit slightly different behavior
+		// due to Restricted tokens.
+		if (!AddAccessAllowedAce(pDacl, ACL_REVISION, PROCESS_ALL_ACCESS, psidArray[3])) return GetLastError();
+
+		PSECURITY_DESCRIPTOR pSecDesc = allocator.Allocate<SECURITY_DESCRIPTOR>();
+		if (!pSecDesc) return GetLastError();
+
+		// InitializeSecurityDescriptor initializes a security descriptor in
+		// absolute format, rather than self-relative format. See
+		// http://msdn.microsoft.com/en-us/library/aa378863(VS.85).aspx
+		if (!InitializeSecurityDescriptor(pSecDesc, SECURITY_DESCRIPTOR_REVISION)) return GetLastError();
+		if (!SetSecurityDescriptorDacl(pSecDesc, TRUE, pDacl, FALSE)) return GetLastError();
+
+		return SetSecurityInfo(
+			GetCurrentProcess(),
+			SE_KERNEL_OBJECT, // process object
+			OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
+			psidCurUser, // NULL, // Owner SID
+			NULL, // Group SID
+			pDacl,
+			NULL // SACL
+		);
 	}
 
 	AntiCheat::AntiCheat()
