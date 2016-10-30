@@ -435,7 +435,7 @@ namespace Components
 			Maps::AddDlc({ 4, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.4.Classics.1.zip", { "mp_cross_fire", "mp_cargoship", "mp_bloc" } });
 			Maps::AddDlc({ 5, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.5.Classics.2.zip", { "mp_killhouse", "mp_bog_sh" } });
 			Maps::AddDlc({ 6, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.6.Cargoship.Winter.zip", { "mp_cargoship_sh" } });
-			Maps::AddDlc({ 7, "", { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
+			Maps::AddDlc({ 7, "", { /*"mp_shipment_long", "mp_rust_long", "mp_firingrange"*/ } });
 
 			Maps::UpdateDlcStatus();
 
@@ -448,6 +448,7 @@ namespace Components
 					if (pack.index == dlc)
 					{
 						ShellExecuteA(NULL, "open", pack.url.data(), 0, 0, SW_SHOWNORMAL);
+						return;
 					}
 				}
 
