@@ -134,6 +134,40 @@ namespace Components
 		}
 	}
 
+	Game::GameMap_Data** Maps::GetWorldData()
+	{
+		bool handleAsSp = false;
+
+		for (auto dependency : Maps::DependencyList)
+		{
+			if (dependency.second == "iw4x_dependencies_mp" && std::regex_match(Maps::CurrentMainZone, std::regex(dependency.first)))
+			{
+				handleAsSp = true;
+				break;
+			}
+		}
+
+		Game::XAssetType type = Game::XAssetType::ASSET_TYPE_GAME_MAP_MP;
+		if (Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || handleAsSp)
+		{
+			type = Game::XAssetType::ASSET_TYPE_GAME_MAP_SP;
+		}
+
+		return &(Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_MP].gameMapMP[0].data);
+	}
+
+	__declspec(naked) void Maps::GetWorldDataStub()
+	{
+		__asm
+		{
+			mov eax, 46AC30h
+			call eax
+
+			call Maps::GetWorldData
+			retn
+		}
+	}
+
 	void Maps::GetBSPName(char* buffer, size_t size, const char* format, const char* mapname)
 	{
 		if (_strnicmp("mp_", mapname, 3))
@@ -146,30 +180,6 @@ namespace Components
 		{
 			mapname = "mp_shipment_long";
 		}
-
-		bool handleAsSp = false;
-
-		for (auto dependency : Maps::DependencyList)
-		{
-			if (dependency.second == "iw4x_dependencies_mp" && std::regex_match(mapname, std::regex(dependency.first)))
-			{
-				handleAsSp = true;
-				break;
-			}
-		}
-
-		if (_strnicmp("mp_", mapname, 3) || handleAsSp)
-		{
-			// Adjust pointer to GameMap_Data
-			Utils::Hook::Set<Game::GameMap_Data**>(0x4D90B7, &(Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_SP].gameMapSP[0].data));
-		}
-		else
-		{
-			// Adjust pointer to GameMap_Data
-			Utils::Hook::Set<Game::GameMap_Data**>(0x4D90B7, &(Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_MP].gameMapMP[0].data));
-		}
-
-		AntiCheat::EmptyHash();
 
 		_snprintf_s(buffer, size, size, format, mapname);
 	}
@@ -388,6 +398,10 @@ namespace Components
 
 		// Ignore SP entities
 		Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).Install()->Quick();
+
+		// WorldData pointer replacement
+		Utils::Hook::Nop(0x4D90B6, 5);
+		Utils::Hook(0x4D90B1, Maps::GetWorldDataStub, HOOK_CALL).Install()->Quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
