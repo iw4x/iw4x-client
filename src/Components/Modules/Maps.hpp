@@ -13,6 +13,15 @@ namespace Components
 		static void AddDependency(std::string expression, std::string zone);
 
 	private:
+		class DLC
+		{
+		public:
+			int index;
+			std::string url;
+			std::vector<std::string> maps;
+		};
+
+		static std::vector<DLC> DlcPacks;
 		static std::vector<Game::XAssetEntry> EntryPool;
 
 		static std::string CurrentMainZone;
@@ -29,6 +38,9 @@ namespace Components
 
 		static Game::GameMap_Data** GetWorldData();
 		static void GetWorldDataStub();
+
+		static void AddDlc(DLC dlc);
+		static void UpdateDlcStatus();
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		static void ExportMap(Game::GfxWorld* world);

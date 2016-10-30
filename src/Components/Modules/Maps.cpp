@@ -6,6 +6,7 @@ namespace Components
 	std::vector<std::pair<std::string, std::string>> Maps::DependencyList;
 	std::vector<std::string> Maps::CurrentDependencies;
 
+	std::vector<Maps::DLC> Maps::DlcPacks;
 	std::vector<Game::XAssetEntry> Maps::EntryPool;
 
 	void Maps::LoadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
@@ -329,6 +330,47 @@ namespace Components
 	}
 #endif
 
+	void Maps::AddDlc(Maps::DLC dlc)
+	{
+		for (auto& pack : Maps::DlcPacks)
+		{
+			if (pack.index == dlc.index)
+			{
+				pack.url = dlc.url;
+				pack.maps = dlc.maps;
+				Maps::UpdateDlcStatus();
+				return;
+			}
+		}
+
+		Dvar::Register<bool>(Utils::String::VA("isDlcInstalled_%d", dlc.index), false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
+
+		Maps::DlcPacks.push_back(dlc);
+		Maps::UpdateDlcStatus();
+	}
+
+	void Maps::UpdateDlcStatus()
+	{
+		bool hasAllDlcs = true;
+		for (auto& pack : Maps::DlcPacks)
+		{
+			bool hasAllMaps = true;
+			for (auto map : pack.maps)
+			{
+				if (!FastFiles::Exists(map))
+				{
+					hasAllMaps = false;
+					hasAllDlcs = false;
+					break;
+				}
+			}
+
+			Dvar::Var(Utils::String::VA("isDlcInstalled_%d", pack.index)).SetRaw(hasAllMaps ? 1 : 0);
+		}
+
+		Dvar::Var("isDlcInstalled_All").SetRaw(hasAllDlcs ? 1 : 0);
+	}
+
 	void Maps::ReallocateEntryPool()
 	{
 		Assert_Size(Game::XAssetEntry, 16);
@@ -383,6 +425,36 @@ namespace Components
 
 	Maps::Maps()
 	{
+		Dvar::OnInit([] ()
+		{
+			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
+
+			Maps::AddDlc({ 1, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.1.Stimulus.Package.zip", { "mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash" } });
+			Maps::AddDlc({ 2, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.2.Resurgence.Pack.zip", { "mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2" } });
+			Maps::AddDlc({ 3, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.3.Nuketown.zip", { "mp_nuked" } });
+			Maps::AddDlc({ 4, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.4.Classics.1.zip", { "mp_cross_fire", "mp_cargoship", "mp_bloc" } });
+			Maps::AddDlc({ 5, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.5.Classics.2.zip", { "mp_killhouse", "mp_bog_sh" } });
+			Maps::AddDlc({ 6, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.6.Cargoship.Winter.zip", { "mp_cargoship_sh" } });
+			Maps::AddDlc({ 7, "", { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
+
+			Maps::UpdateDlcStatus();
+
+			UIScript::Add("downloadDLC", [] (UIScript::Token token)
+			{
+				int dlc = token.Get<int>();
+
+				for (auto pack : Maps::DlcPacks)
+				{
+					if (pack.index == dlc)
+					{
+						ShellExecuteA(NULL, "open", pack.url.data(), 0, 0, SW_SHOWNORMAL);
+					}
+				}
+
+				Game::MessageBox(fmt::sprintf("DLC %d does not exist!", dlc), "ERROR");
+			});
+		});
+
 		// Restrict asset loading
 		AssetHandler::OnLoad(Maps::LoadAssetRestrict);
 
@@ -475,6 +547,7 @@ namespace Components
 
 	Maps::~Maps()
 	{
+		Maps::DlcPacks.clear();
 		Maps::DependencyList.clear();
 		Maps::CurrentMainZone.clear();
 		Maps::CurrentDependencies.clear();
