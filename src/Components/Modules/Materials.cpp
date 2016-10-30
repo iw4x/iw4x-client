@@ -101,8 +101,8 @@ namespace Components
 
 	void Materials::DumpImageCfgPath(int, const char*, const char* material)
 	{
-		FILE* fp;
-		if (!fopen_s(&fp, "dump.cfg", "a"))
+		FILE* fp = nullptr;
+		if (!fopen_s(&fp, "dump.cfg", "a") && fp != nullptr)
 		{
 			fprintf(fp, "dumpraw %s\n", material);
 			fclose(fp);

@@ -851,19 +851,23 @@ namespace Components
 		Game::DB_PopStreamPos();
 	}
 
+// Code-analysis has a bug, the first memcpy makes it believe size of tempVar is 44 instead of 84
+#pragma warning(push)
+#pragma warning(disable: 6385)
 	bool Zones::LoadGameWorldSp(bool atStreamStart, char* buffer)
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, 84);
 
-		Game::GameWorldSp world[2];
-		std::memcpy(&world, buffer, 44);
-		std::memcpy(&world[1], &buffer[44], 28);
-		std::memcpy(&world->vehicleTrack, &buffer[72], 12);
+		static char tempVar[84];
+		std::memcpy(&tempVar[0], &buffer[0], 44);
+		std::memcpy(&tempVar[56], &buffer[44], 28);
+		std::memcpy(&tempVar[44], &buffer[72], 12);
 
-		std::memcpy(buffer, world, 84);
+		std::memcpy(buffer, tempVar, sizeof(tempVar));
 
 		return result;
 	}
+#pragma warning(pop)
 
 	void Zones::LoadPathDataTail()
 	{
@@ -927,20 +931,24 @@ namespace Components
 		return result;
 	}
 
+// Code-analysis has a bug, the first memcpy makes it believe size of tempVar is 400 instead of 788
+#pragma warning(push)
+#pragma warning(disable: 6385)
 	bool Zones::LoadVehicleDef(bool atStreamStart, char* buffer)
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, 788);
 
-		Game::VehicleDef vehicle[2];
-		std::memcpy(vehicle, &buffer[0], 400);
-		std::memcpy(&vehicle->pad[404], &buffer[400], 388);
+		static char tempVar[788];
+		std::memcpy(&tempVar[0], &buffer[0], 400);
+		std::memcpy(&tempVar[408], &buffer[400], 388);
 
 		AssetHandler::Relocate(buffer + 400, buffer + 408, 388);
 
-		std::memcpy(buffer, vehicle, 788);
+		std::memmove(buffer, tempVar, sizeof(tempVar));
 
 		return result;
 	}
+#pragma warning(pop)
 
 	void Zones::LoadWeaponAttachStuff(DWORD* varWeaponAttachStuff, int count)
 	{
