@@ -78,7 +78,7 @@ namespace Components
 			retn
 			
 		setBorder:
-			mov ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION
+			mov ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX
 			retn
 		}
 	}
