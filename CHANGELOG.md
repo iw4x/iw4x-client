@@ -9,19 +9,24 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 This is going to be the second public Alpha version.
 
 ### Added
+
 - Support for CoD:Online maps.
-  - Firing Range (mp_firingrange)
-  - Rust (mp_rust_long, see Known issues)
-  - Shipment (mp_shipment/mp_shipment_long)
+
+    - Firing Range (mp_firingrange)
+    - Rust (mp_rust_long, see Known issues)
+    - Shipment (mp_shipment/mp_shipment_long)
 
 ### Changed
+
 - Rename Arctic Wet Work map to official name Freighter.
 
 ### Fixed
+
 - Fix crash when using the Harrier killstreak.
 - Disable code that downloads news/changelog when in zonebuilder mode.
 
 ### Known issues
+
 - Some planes on Rust Long are not correctly rotated.
 - Running IW4x on Linux currently requires gnutls to be installed additional to Wine as it needs to access the Tor service via HTTPS.
 
@@ -30,22 +35,26 @@ This is going to be the second public Alpha version.
 This is the first public Alpha version.
 
 ### Added
+
 - Support for CoD:Online maps.
-  - Arctic Wet Work (mp_cargoship_sh)
-  - Bloc (mp_bloc)
-  - Bog (mp_bog_sh)
-  - Crossfire (mp_cross_fire)
-  - Killhouse (mp_killhouse)
-  - Nuketown (mp_nuked)
-  - Wet Work (mp_cargoship)
+
+    - Arctic Wet Work (mp_cargoship_sh)
+    - Bloc (mp_bloc)
+    - Bog (mp_bog_sh)
+    - Crossfire (mp_cross_fire)
+    - Killhouse (mp_killhouse)
+    - Nuketown (mp_nuked)
+    - Wet Work (mp_cargoship)
 
 ### Fixed
+
 - Fix techniques in Zonebuilder.
 - Fix possible memory leak.
 - Fix timeout bug when connecting to server via iw4x link.
 - Partially fix deadlock in decentralized networking code.
 
 ### Known issues
+
 - Running IW4x on Linux currently requires gnutls to be installed additional to Wine as it needs to access the Tor service via HTTPS.
 
 ## [0.1.1] - 2016-09-19
@@ -53,12 +62,15 @@ This is the first public Alpha version.
 This version is an internal Beta version.
 
 ### Added
+
 - IW5 material embedding.
 
 ### Changed
+
 - Enhanced mod download with detailed progress display.
 
 ### Fixed
+
 - Fix and optimize network logging commands.
 - Fix console not displaying command inputs properly.
 - Fix crash when running multiple instances of the IW4x client from the same directory.
@@ -71,6 +83,7 @@ This version is an internal Beta version.
 This version is an internal Beta version.
 
 ### Added
+
 - Added `banclient` command which will permanently ban a client from a server. The ban will persist across restarts.
 - Added capabilities to save played games and replay them ("Theater").
 - Added code for generating and sending minidumps for debugging purposes. This feature is meant to be used only during the Open Beta and will be removed once the code goes to stable release.
@@ -93,5 +106,6 @@ This version is an internal Beta version.
 - Reintroduced parties, now also available for dedicated servers ("lobby servers").
 
 ### Changed
+
 - Logs moved to `userraw` folder.
 - Replaced main menu background music.
