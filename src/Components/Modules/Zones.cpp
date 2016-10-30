@@ -858,7 +858,7 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, 84);
 
-		static char tempVar[84];
+		char tempVar[84] = { 0 };
 		std::memcpy(&tempVar[0], &buffer[0], 44);
 		std::memcpy(&tempVar[56], &buffer[44], 28);
 		std::memcpy(&tempVar[44], &buffer[72], 12);
@@ -938,9 +938,9 @@ namespace Components
 	{
 		bool result = Game::Load_Stream(atStreamStart, buffer, 788);
 
-		static char tempVar[788];
+		char tempVar[788] = { 0 };
 		std::memcpy(&tempVar[0], &buffer[0], 400);
-		std::memcpy(&tempVar[408], &buffer[400], 388);
+		std::memcpy(&tempVar[408], &buffer[400], 380);
 
 		AssetHandler::Relocate(buffer + 400, buffer + 408, 388);
 
