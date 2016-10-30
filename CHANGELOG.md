@@ -4,20 +4,51 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## v0.2.0 - 2016-10-09
+## [Unreleased]
+
+This is going to be the second public Alpha version.
+
+### Added
+- Support for CoD:Online maps.
+  - Firing Range (mp_firingrange)
+  - Rust (mp_rust_long, see Known issues)
+  - Shipment (mp_shipment/mp_shipment_long)
+
+### Changed
+- Rename Arctic Wet Work map to official name Freighter.
+
+### Fixed
+- Fix crash when using the Harrier killstreak.
+- Disable code that downloads news/changelog when in zonebuilder mode.
+
+### Known issues
+- Some planes on Rust Long are not correctly rotated.
+- Running IW4x on Linux currently requires gnutls to be installed additional to Wine as it needs to access the Tor service via HTTPS.
+
+## [0.2.0] - 2016-10-09
 
 This is the first public Alpha version.
 
 ### Added
 - Support for CoD:Online maps.
+  - Arctic Wet Work (mp_cargoship_sh)
+  - Bloc (mp_bloc)
+  - Bog (mp_bog_sh)
+  - Crossfire (mp_cross_fire)
+  - Killhouse (mp_killhouse)
+  - Nuketown (mp_nuked)
+  - Wet Work (mp_cargoship)
 
 ### Fixed
 - Fix techniques in Zonebuilder.
-- Fixed possible memory leak.
-- Fixed timeout bug when connecting to server via iw4x link.
+- Fix possible memory leak.
+- Fix timeout bug when connecting to server via iw4x link.
 - Partially fix deadlock in decentralized networking code.
 
-## v0.1.1 - 2016-09-19
+### Known issues
+- Running IW4x on Linux currently requires gnutls to be installed additional to Wine as it needs to access the Tor service via HTTPS.
+
+## [0.1.1] - 2016-09-19
 
 This version is an internal Beta version.
 
@@ -28,14 +59,14 @@ This version is an internal Beta version.
 - Enhanced mod download with detailed progress display.
 
 ### Fixed
-- Fixed and optimized network logging commands.
-- Fixed console not displaying command inputs properly.
-- Fixed crash when running multiple instances of the IW4x client from the same directory.
-- Fixed crash when the `securityLevel` command is used on a game server.
-- Fixed possible data corruption in code for decentralized networking.
-- Fixed possible deadlock during client shutdown.
+- Fix and optimize network logging commands.
+- Fix console not displaying command inputs properly.
+- Fix crash when running multiple instances of the IW4x client from the same directory.
+- Fix crash when the `securityLevel` command is used on a game server.
+- Fix possible data corruption in code for decentralized networking.
+- Fix possible deadlock during client shutdown.
 
-## v0.1.0 - 2016-09-03
+## [0.1.0] - 2016-09-03
 
 This version is an internal Beta version.
 
