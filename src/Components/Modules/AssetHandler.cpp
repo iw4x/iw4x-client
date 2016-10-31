@@ -121,14 +121,6 @@ namespace Components
 		{
 			asset.material->sortKey = 0xE;
 		}
-
-#ifdef DEBUG
-		// This is bad! We still want to see red-fxs in release mode
-		if (type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void")
-		{
-			asset.model->numLods = 0;
-		}
-#endif
 	}
 
 	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)
@@ -320,6 +312,8 @@ namespace Components
 
 	AssetHandler::AssetHandler()
 	{
+		Dvar::Register<bool>("r_noVoid", false, Game::DVAR_FLAG_SAVED, "Disable void model (red fx)");
+
 		AssetHandler::ClearTemporaryAssets();
 
 		// DB_FindXAssetHeader
@@ -345,6 +339,14 @@ namespace Components
 				}
 
 				AssetHandler::EmptyAssets.clear();
+			}
+		});
+
+		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
+		{
+			if (Dvar::Var("r_noVoid").Get<bool>() && type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void")
+			{
+				asset.model->numLods = 0;
 			}
 		});
 
