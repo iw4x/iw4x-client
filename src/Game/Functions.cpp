@@ -224,6 +224,7 @@ namespace Game
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 	UI_CheckStringTranslation_t UI_CheckStringTranslation = (UI_CheckStringTranslation_t)0x4FB010;
 	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;
+	UI_UpdateArenas_t UI_UpdateArenas = (UI_UpdateArenas_t)0x4A95B0;
 	UI_DrawHandlePic_t UI_DrawHandlePic = (UI_DrawHandlePic_t)0x4D0EA0;
 	UI_GetContext_t UI_GetContext = (UI_GetContext_t)0x4F8940;
 	UI_TextWidth_t UI_TextWidth = (UI_TextWidth_t)0x6315C0;

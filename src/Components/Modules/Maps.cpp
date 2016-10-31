@@ -151,26 +151,15 @@ namespace Components
 		}
 	}
 
-	Game::GameMap_Data** Maps::GetWorldData()
+	Game::GameMap_Data* Maps::GetWorldData()
 	{
-		Game::XAssetType type = Game::XAssetType::ASSET_TYPE_GAME_MAP_MP;
-		if (Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::IsSPMap)
+		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::IsSPMap)
 		{
-			type = Game::XAssetType::ASSET_TYPE_GAME_MAP_SP;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_SP].gameMapSP[0].data;
 		}
-
-		return &(Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_MP].gameMapMP[0].data);
-	}
-
-	__declspec(naked) void Maps::GetWorldDataStub()
-	{
-		__asm
+		else
 		{
-			mov eax, 46AC30h
-			call eax
-
-			call Maps::GetWorldData
-			retn
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_MP].gameMapMP[0].data;
 		}
 	}
 
@@ -507,8 +496,7 @@ namespace Components
 		Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).Install()->Quick();
 
 		// WorldData pointer replacement
-		Utils::Hook::Nop(0x4D90B6, 5);
-		Utils::Hook(0x4D90B1, Maps::GetWorldDataStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4D90B6, Maps::GetWorldData, HOOK_CALL).Install()->Quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);

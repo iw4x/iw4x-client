@@ -527,6 +527,9 @@ namespace Game
 	typedef MenuList *(__cdecl * UI_LoadMenus_t)(const char *menuFile, int imageTrack);
 	extern UI_LoadMenus_t UI_LoadMenus;
 
+	typedef void(__cdecl * UI_UpdateArenas_t)();
+	extern UI_UpdateArenas_t UI_UpdateArenas;
+
 	typedef void(__cdecl * UI_DrawHandlePic_t)(/*ScreenPlacement*/void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Material *material);
 	extern UI_DrawHandlePic_t UI_DrawHandlePic;
 

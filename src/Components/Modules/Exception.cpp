@@ -99,30 +99,21 @@ namespace Components
 
 		Command::Add("mapTest", [](Command::Params params)
 		{
+			Game::UI_UpdateArenas();
+
 			std::string command;
-
-			int max = (params.Length() >= 2 ? atoi(params[1]) : 16), current = 0;
-
-			for (int i = 0;;)
+			for (int i = 0; i < (params.Length() >= 2 ? atoi(params[1]) : *Game::arenaCount); ++i)
 			{
-				char* mapname = Game::mapnames[i];
-				if (!*mapname)
-				{
-					i = 0;
-					continue;
-				}
+				char* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
 
 				if (!(i % 2)) command.append(fmt::sprintf("wait 250;disconnect;wait 750;", mapname)); // Test a disconnect
-				else command.append(fmt::sprintf("wait 500;", mapname));                             // Test direct map switch
+				else command.append(fmt::sprintf("wait 500;", mapname));                              // Test direct map switch
 				command.append(fmt::sprintf("map %s;", mapname));
-
-				++i, ++current;
-
-				if (current >= max) break;
 			}
 
 			Command::Execute(command, false);
 		});
+
 		Command::Add("debug_exceptionhandler", [](Command::Params)
 		{
 			Logger::Print("Rerunning SetUnhandledExceptionHandler...\n");
