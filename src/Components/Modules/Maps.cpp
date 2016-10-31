@@ -179,6 +179,11 @@ namespace Components
 		_snprintf_s(buffer, size, size, format, mapname);
 	}
 
+	void Maps::HandleAsSPMap()
+	{
+		Maps::IsSPMap = true;
+	}
+
 	void Maps::AddDependency(std::string expression, std::string zone)
 	{
 		// Test expression before adding it

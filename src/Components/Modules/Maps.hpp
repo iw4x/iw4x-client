@@ -10,7 +10,7 @@ namespace Components
 		const char* GetName() { return "Maps"; };
 #endif
 
-		static void HandleAsSPMap() { IsSPMap = true; }
+		static void HandleAsSPMap();
 		static void AddDependency(std::string expression, std::string zone);
 
 		static std::pair<std::string, std::string> GetTeamsForMap(std::string map);

@@ -1286,10 +1286,12 @@ namespace Components
 	{
 		AssetHandler::ClearRelocations();
 
+		bool patch = (version >= VERSION_ALPHA2);
+		if (patch) Maps::HandleAsSPMap();
+
 		if (Zones::ZoneVersion == version) return;
 		Zones::ZoneVersion = version;
 
-		bool patch = (version >= VERSION_ALPHA2);
 		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == VERSION_ALPHA3_DEC || Zones::ZoneVersion == XFILE_VERSION || Zones::ZoneVersion >= 332)
 		{
 			Utils::Hook::Set<DWORD>(0x4158F4, version);
@@ -1344,8 +1346,6 @@ namespace Components
 
 		if (patch)
 		{
-			Maps::HandleAsSPMap();
-
 			Zones::LoadFxElemDefArrayHook.Install();
 			Zones::LoadFxElemDefHook.Install();
 
