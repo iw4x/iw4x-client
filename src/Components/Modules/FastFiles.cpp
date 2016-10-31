@@ -131,12 +131,6 @@ namespace Components
 			data.push_back({ "iw4x_patch_mp", 1, 0 });
 		}
 
-		// Load custom weapons, if present (force that later on)
-		if (FastFiles::Exists("iw4x_weapons_mp"))
-		{
-			data.push_back({ "iw4x_weapons_mp", 1, 0 });
-		}
-
 		return FastFiles::LoadDLCUIZones(data.data(), data.size(), sync);
 	}
 
