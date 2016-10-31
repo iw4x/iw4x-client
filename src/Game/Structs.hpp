@@ -3009,14 +3009,22 @@ namespace Game
 	{
 		char uiName[32];
 		char mapName[16];
-		char pad[2768];
+		char description[32];
+		char mapimage[32];
+		char keys[32][16];
+		char values[32][64];
+		char pad[144];
 	};
 
 	struct newMapArena_t
 	{
 		char uiName[32];
 		char oldMapName[16];
-		char other[2768];
+		char description[32];
+		char mapimage[32];
+		char keys[32][16];
+		char values[32][64];
+		char other[144];
 		char mapName[32];
 	};
 

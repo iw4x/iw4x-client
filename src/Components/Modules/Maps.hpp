@@ -13,6 +13,8 @@ namespace Components
 		static void HandleAsSPMap() { IsSPMap = true; }
 		static void AddDependency(std::string expression, std::string zone);
 
+		static std::pair<std::string, std::string> GetTeamsForMap(std::string map);
+
 	private:
 		class DLC
 		{

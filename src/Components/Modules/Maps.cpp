@@ -29,8 +29,21 @@ namespace Components
 			}
 		}
 
+		Utils::Memory::Allocator allocator;
+		auto teams = Maps::GetTeamsForMap(Maps::CurrentMainZone);
+
 		std::vector<Game::XZoneInfo> data;
 		Utils::Merge(&data, zoneInfo, zoneCount);
+
+		Game::XZoneInfo team;
+		team.allocFlags = zoneInfo->allocFlags;
+		team.freeFlags = zoneInfo->freeFlags;
+
+		team.name = allocator.DuplicateString(fmt::sprintf("iw4x_team_%s", teams.first.data()));
+		data.push_back(team);
+
+		team.name = allocator.DuplicateString(fmt::sprintf("iw4x_team_%s", teams.second.data()));
+		data.push_back(team);
 
 		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); ++i)
 		{
@@ -196,6 +209,35 @@ namespace Components
 	int Maps::IgnoreEntityStub(const char* entity)
 	{
 		return (Utils::String::StartsWith(entity, "dyn_") || Utils::String::StartsWith(entity, "node_") || Utils::String::StartsWith(entity, "actor_"));
+	}
+
+	std::pair<std::string, std::string> Maps::GetTeamsForMap(std::string map)
+	{
+		std::string team_axis = "opforce_composite";
+		std::string team_allies = "us_army";
+
+		for (int i = 0; i < *Game::arenaCount; ++i)
+		{
+			Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
+			if (arena->mapName == map)
+			{
+				for (int j = 0; j < ARRAY_SIZE(arena->keys); ++j)
+				{
+					if (arena->keys[j] == "allieschar"s)
+					{
+						team_allies = arena->values[j];
+					}
+					else if (arena->keys[j] == "axischar"s)
+					{
+						team_axis = arena->values[j];
+					}
+				}
+
+				break;
+			}
+		}
+
+ 		return { team_axis, team_allies };
 	}
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)

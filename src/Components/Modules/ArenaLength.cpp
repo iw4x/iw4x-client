@@ -68,21 +68,20 @@ namespace Components
 		Utils::Hook::Set<Game::newMapArena_t*>(0x630B2E, &ArenaLength::NewArenas[0]);
 		Utils::Hook::Set<Game::newMapArena_t*>(0x632782, &ArenaLength::NewArenas[0]);
 
-		Utils::Hook::Set<char*>(0x4A967A, &ArenaLength::NewArenas[0].other[0]);
-
-		Utils::Hook::Set<char*>(0x4A96AD, &ArenaLength::NewArenas[0].other[0x20]);
-
-		Utils::Hook::Set<char*>(0x42F214, &ArenaLength::NewArenas[0].other[0xA40]);
-
-		Utils::Hook::Set<char*>(0x4A96ED, &ArenaLength::NewArenas[0].other[0xA48]);
-		Utils::Hook::Set<char*>(0x4A9769, &ArenaLength::NewArenas[0].other[0xA48]);
-		Utils::Hook::Set<char*>(0x4A97A5, &ArenaLength::NewArenas[0].other[0xA48]);
-
-		Utils::Hook::Set<char*>(0x631E92, &ArenaLength::NewArenas[0].other[0xACC]);
+		Utils::Hook::Set<char*>(0x4A967A, ArenaLength::NewArenas[0].description);
+		Utils::Hook::Set<char*>(0x4A96AD, ArenaLength::NewArenas[0].mapimage);
 
 		Utils::Hook::Set<char*>(0x4A9616, ArenaLength::NewArenas[0].mapName);
 		Utils::Hook::Set<char*>(0x4A9703, ArenaLength::NewArenas[0].mapName);
 		Utils::Hook::Set<char*>(0x4064A8, ArenaLength::NewArenas[0].mapName);
+
+		Utils::Hook::Set<char*>(0x42F214, &ArenaLength::NewArenas[0].other[0]);
+
+		Utils::Hook::Set<char*>(0x4A96ED, &ArenaLength::NewArenas[0].other[0x8]);
+		Utils::Hook::Set<char*>(0x4A9769, &ArenaLength::NewArenas[0].other[0x8]);
+		Utils::Hook::Set<char*>(0x4A97A5, &ArenaLength::NewArenas[0].other[0x8]);
+
+		Utils::Hook::Set<char*>(0x631E92, &ArenaLength::NewArenas[0].other[0x8C]);
 
 		// Resize the array
 		Utils::Hook::Set<int>(0x4064DE, sizeof(Game::newMapArena_t));
@@ -112,6 +111,6 @@ namespace Components
 
 		Utils::Hook::Set<BYTE>(0x4A95F8, 32);
 
-		Utils::Hook::Set<int>(0x42F22B, offsetof(Game::newMapArena_t, mapName) - offsetof(Game::newMapArena_t, other[0xA40]));
+		Utils::Hook::Set<int>(0x42F22B, offsetof(Game::newMapArena_t, mapName) - offsetof(Game::newMapArena_t, other));
 	}
 }
