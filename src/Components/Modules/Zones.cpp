@@ -1268,6 +1268,20 @@ namespace Components
 		std::memmove(varGfxWorld + 348, varGfxWorld + 1316, 8);
 	}
 
+	bool Zones::LoadStatement(bool atStreamStart, char* buffer, int size)
+	{
+		if (Zones::Version() >= 359) size -= 4;
+
+		bool result = Game::Load_Stream(atStreamStart, buffer, size);
+
+		if (Zones::Version() >= 359)
+		{
+			std::memmove(buffer + 12, buffer + 8, 12);
+		}
+
+		return result;
+	}
+
 	void Zones::InstallPatches(int version)
 	{
 		AssetHandler::ClearRelocations();
@@ -1316,6 +1330,18 @@ namespace Components
 		// This is needed if we want the original lightning on cargoship_sh, but original maps are darker
 		//Utils::Hook::Set<BYTE>(0x525333, 61);
 
+		// Patch ExpressionSupportingData loading in menus
+		if (Zones::Version() >= 359)
+		{
+			Utils::Hook::Nop(0x41A590, 5);
+			Utils::Hook::Set<BYTE>(0x459833, 0xC3);
+		}
+		else
+		{
+			Utils::Hook(0x41A590, 0x4AF680, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x459833, 0x4AF680, HOOK_JUMP).Install()->Quick();
+		}
+
 		if (patch)
 		{
 			Zones::LoadFxElemDefArrayHook.Install();
@@ -1363,9 +1389,6 @@ namespace Components
 				Zones::LoadMaterialHook.Install();
 				Zones::LoadGfxWorldHook.Install();
 				Zones::Loadsunflare_tHook.Install();
-
-				// menu stuff
-				Utils::Hook::Nop(0x41A590, 5);
 			}
 			else
 			{
@@ -1374,8 +1397,6 @@ namespace Components
 				Zones::LoadMaterialHook.Uninstall();
 				Zones::LoadGfxWorldHook.Uninstall();
 				Zones::Loadsunflare_tHook.Uninstall();
-
-				Utils::Hook(0x41A590, 0x4AF680, HOOK_CALL).Install()->Quick();
 			}
 
 			Zones::LoadMaterialShaderArgumentArrayHook.Install();
@@ -1415,8 +1436,6 @@ namespace Components
 			Zones::LoadMaterialHook.Uninstall();
 			Zones::LoadGfxWorldHook.Uninstall();
 			Zones::Loadsunflare_tHook.Uninstall();
-
-			Utils::Hook(0x41A590, 0x4AF680, HOOK_CALL).Install()->Quick();
 		}
 
 		AntiCheat::EmptyHash();
@@ -1465,6 +1484,13 @@ namespace Components
 		{
 			ZeroMemory(*Game::varPathData, sizeof(Game::PathData));
 		}, HOOK_CALL);
+
+		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).Install()->Quick();
+
+#ifdef DEBUG
+		// Easy dirty disk debugging
+		Utils::Hook::Set<WORD>(0x4CF7F0, 0xC3CC);
+#endif
 	}
 
 	Zones::~Zones()

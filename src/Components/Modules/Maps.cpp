@@ -171,7 +171,7 @@ namespace Components
 
 	void Maps::GetBSPName(char* buffer, size_t size, const char* format, const char* mapname)
 	{
-		if (_strnicmp("mp_", mapname, 3))
+		if (!Utils::String::StartsWith(mapname, "mp_") && mapname != "zm_asylum_sh"s)
 		{
 			format = "maps/%s.d3dbsp";
 		}
@@ -517,6 +517,12 @@ namespace Components
 
 		Maps::AddDependency("mp_shipment", "mp_shipment_long");
 		Maps::AddDependency("mp_shipment", "iw4x_dependencies_mp");
+
+		// Testing
+		Maps::AddDependency("mp_trainingground", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_shootingrange", "iw4x_dependencies_mp");
+		Maps::AddDependency("mp_cqbtraining", "iw4x_dependencies_mp");
+		Maps::AddDependency("zm_asylum_sh", "iw4x_dependencies_mp");
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		Command::Add("dumpmap", [] (Command::Params)
