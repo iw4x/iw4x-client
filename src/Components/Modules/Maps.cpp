@@ -490,6 +490,7 @@ namespace Components
 		//Maps::AddDependency("gulag", "mp_subbase");
 		//Maps::AddDependency("invasion", "mp_rust");
 		Maps::AddDependency("co_hunted", "mp_storm");
+		Maps::AddDependency("mp_shipment", "mp_shipment_long");
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		Command::Add("dumpmap", [] (Command::Params)
