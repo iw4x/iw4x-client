@@ -11,6 +11,16 @@ namespace Components
 {
 	Utils::Hook Exception::SetFilterHook;
 
+	__declspec(noreturn) void Exception::ErrorLongJmp(jmp_buf _Buf, int _Value)
+	{
+		if (!*reinterpret_cast<DWORD*>(0x1AD7EB4))
+		{
+			TerminateProcess(GetCurrentProcess(), 1337);
+		}
+
+		longjmp(_Buf, _Value);
+	}
+
 	LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
 	{
 		// Pass on harmless errors
@@ -84,6 +94,8 @@ namespace Components
 
 		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
 #endif
+
+		//Utils::Hook(0x4B241F, Exception::ErrorLongJmp, HOOK_CALL).Install()->Quick();
 
 		Command::Add("mapTest", [](Command::Params params)
 		{

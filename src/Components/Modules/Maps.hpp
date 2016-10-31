@@ -10,6 +10,7 @@ namespace Components
 		const char* GetName() { return "Maps"; };
 #endif
 
+		static void HandleAsSPMap() { IsSPMap = true; }
 		static void AddDependency(std::string expression, std::string zone);
 
 	private:
@@ -21,6 +22,7 @@ namespace Components
 			std::vector<std::string> maps;
 		};
 
+		static bool IsSPMap;
 		static std::vector<DLC> DlcPacks;
 		static std::vector<Game::XAssetEntry> EntryPool;
 

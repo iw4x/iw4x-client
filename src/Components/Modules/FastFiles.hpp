@@ -17,6 +17,8 @@ namespace Components
 
 		static void LoadLocalizeZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 
+		static unsigned char ZoneKey[1191];
+
 	private:
 		union Key
 		{
@@ -31,7 +33,6 @@ namespace Components
 
 		static Key CurrentKey;
 		static symmetric_CTR CurrentCTR;
-		static unsigned char ZoneKey[];
 		static std::vector<std::string> ZonePaths;
 		static const char* GetZoneLocation(const char* file);
 		static void LoadInitialZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);

@@ -1344,6 +1344,8 @@ namespace Components
 
 		if (patch)
 		{
+			Maps::HandleAsSPMap();
+
 			Zones::LoadFxElemDefArrayHook.Install();
 			Zones::LoadFxElemDefHook.Install();
 

@@ -6,6 +6,7 @@ namespace Components
 	std::vector<std::pair<std::string, std::string>> Maps::DependencyList;
 	std::vector<std::string> Maps::CurrentDependencies;
 
+	bool Maps::IsSPMap;
 	std::vector<Maps::DLC> Maps::DlcPacks;
 	std::vector<Game::XAssetEntry> Maps::EntryPool;
 
@@ -13,6 +14,7 @@ namespace Components
 	{
 		if (!zoneInfo) return;
 
+		Maps::IsSPMap = false;
 		Maps::CurrentMainZone = zoneInfo->name;
 
 		Maps::CurrentDependencies.clear();
@@ -138,19 +140,8 @@ namespace Components
 
 	Game::GameMap_Data** Maps::GetWorldData()
 	{
-		bool handleAsSp = false;
-
-		for (auto dependency : Maps::DependencyList)
-		{
-			if (dependency.second == "iw4x_dependencies_mp" && std::regex_match(Maps::CurrentMainZone, std::regex(dependency.first)))
-			{
-				handleAsSp = true;
-				break;
-			}
-		}
-
 		Game::XAssetType type = Game::XAssetType::ASSET_TYPE_GAME_MAP_MP;
-		if (Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || handleAsSp)
+		if (Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::IsSPMap)
 		{
 			type = Game::XAssetType::ASSET_TYPE_GAME_MAP_SP;
 		}
@@ -499,31 +490,6 @@ namespace Components
 		//Maps::AddDependency("gulag", "mp_subbase");
 		//Maps::AddDependency("invasion", "mp_rust");
 		Maps::AddDependency("co_hunted", "mp_storm");
-		Maps::AddDependency("mp_nuked", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_bloc", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_cargoship", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_cross_fire", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_bog_sh", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_killhouse", "iw4x_dependencies_mp");
-
-		Maps::AddDependency("^(?!mp_).*", "iw4x_dependencies_mp"); // All maps not starting with "mp_"
-
-		Maps::AddDependency("mp_bloc_sh", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_cargoship_sh", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_shipment_long", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_firingrange", "iw4x_dependencies_mp"); 
-		Maps::AddDependency("mp_rust_long", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_ambush_sh", "iw4x_dependencies_mp");
-
-		Maps::AddDependency("mp_shipment", "mp_shipment_long");
-		Maps::AddDependency("mp_shipment", "iw4x_dependencies_mp");
-
-		// Testing
-		Maps::AddDependency("mp_trainingground", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_shootingrange", "iw4x_dependencies_mp");
-		Maps::AddDependency("mp_cqbtraining", "iw4x_dependencies_mp");
-		Maps::AddDependency("zm_asylum_sh", "iw4x_dependencies_mp");
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		Command::Add("dumpmap", [] (Command::Params)
