@@ -67,6 +67,8 @@ namespace Components
 
 		static void StoreEmptyAsset(Game::XAssetType type, const char* name);
 		static void StoreEmptyAssetStub();
+
+		static void ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, std::string name);
 	};
 }
 

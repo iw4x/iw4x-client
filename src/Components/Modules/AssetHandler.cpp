@@ -115,6 +115,22 @@ namespace Components
 		}
 	}
 
+	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, std::string name)
+	{
+		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && name == "wc/codo_ui_viewer_black_decal3")
+		{
+			asset.material->sortKey = 0xE;
+		}
+
+#ifdef DEBUG
+		// This is bad! We still want to see red-fxs in release mode
+		if (type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void")
+		{
+			asset.model->numLods = 0;
+		}
+#endif
+	}
+
 	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)
 	{
 		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
@@ -132,19 +148,6 @@ namespace Components
 			}
 		}
 
-		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && name == "wc/codo_ui_viewer_black_decal3"s)
-		{
-			asset->material->sortKey = 0xE;
-		}
-
-#ifdef DEBUG
-		// This is bad! We still want to see red-fxs in release mode
-		if (type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void"s)
-		{
-			asset->model->numLods = 0;
-		}
-#endif
-
 		if (Flags::HasFlag("entries"))
 		{
 			OutputDebugStringA(Utils::String::VA("%s: %d: %s\n", FastFiles::Current().data(), type, name));
@@ -152,6 +155,11 @@ namespace Components
 
 		bool restrict = false;
 		AssetHandler::RestrictSignal(type, *asset, name, &restrict);
+
+		if (!restrict)
+		{
+			AssetHandler::ModifyAsset(type, *asset, name);
+		}
 
 		// If no slot restricts the loading, we can load the asset
 		return (!restrict);
