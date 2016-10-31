@@ -128,7 +128,8 @@ namespace Components
 			//Maps::OverrideMapEnts(asset.mapEnts);
 		}
 
-		if (type == Game::XAssetType::ASSET_TYPE_MENU && Zones::Version() >= 359)
+		// This is broken
+		if ((type == Game::XAssetType::ASSET_TYPE_MENU || type == Game::XAssetType::ASSET_TYPE_MENUFILE) && Zones::Version() >= 359)
 		{
 			*restrict = true;
 			return;

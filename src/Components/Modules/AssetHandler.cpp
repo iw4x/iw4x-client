@@ -137,6 +137,14 @@ namespace Components
 			asset->material->sortKey = 0xE;
 		}
 
+#ifdef DEBUG
+		// This is bad! We still want to see red-fxs in release mode
+		if (type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void"s)
+		{
+			asset->model->numLods = 0;
+		}
+#endif
+
 		if (Flags::HasFlag("entries"))
 		{
 			OutputDebugStringA(Utils::String::VA("%s: %d: %s\n", FastFiles::Current().data(), type, name));
