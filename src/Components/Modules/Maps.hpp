@@ -15,6 +15,8 @@ namespace Components
 
 		static std::pair<std::string, std::string> GetTeamsForMap(std::string map);
 
+		static std::string CurrentMainZone;
+
 	private:
 		class DLC
 		{
@@ -28,7 +30,6 @@ namespace Components
 		static std::vector<DLC> DlcPacks;
 		static std::vector<Game::XAssetEntry> EntryPool;
 
-		static std::string CurrentMainZone;
 		static std::vector<std::pair<std::string, std::string>> DependencyList;
 		static std::vector<std::string> CurrentDependencies;
 

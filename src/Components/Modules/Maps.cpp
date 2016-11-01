@@ -165,7 +165,7 @@ namespace Components
 
 	void Maps::GetBSPName(char* buffer, size_t size, const char* format, const char* mapname)
 	{
-		if (!Utils::String::StartsWith(mapname, "mp_") && mapname != "zm_asylum_sh"s)
+		if (!Utils::String::StartsWith(mapname, "mp_") && mapname != "zm_asylum_sh"s && mapname != "zm_prototype_sh"s && mapname != "zm_zombie_training"s)
 		{
 			format = "maps/%s.d3dbsp";
 		}
@@ -517,6 +517,7 @@ namespace Components
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXDECL, 196);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, 2400);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMPACTFX, 8);
 
 		Maps::ReallocateEntryPool();
 

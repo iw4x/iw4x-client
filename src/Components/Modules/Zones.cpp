@@ -1045,6 +1045,11 @@ namespace Components
 					if (arg->paramID > 15 && arg->paramID < 30)
 					{
 						arg->paramID -= 1;
+
+						if (arg->paramID == 19)
+						{
+							arg->paramID = 21;
+						}
 					}
 					else if (arg->paramID >= 50)
 					{
@@ -1052,10 +1057,6 @@ namespace Components
 					}
 				}
 			}
-// 			else if (Zones::Version() >= 359 && arg->paramID == 20592)
-// 			{
-// 				arg->paramID == 25180;
-// 			}
 		}
 
 		return result;
