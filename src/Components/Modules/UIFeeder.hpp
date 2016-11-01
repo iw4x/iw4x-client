@@ -50,5 +50,7 @@ namespace Components
 		static void PlaySoundStub();
 
 		static std::map<float, Callbacks> Feeders;
+
+		static void ApplyMapFeeder(Game::dvar_t* dvar, int num);
 	};
 }

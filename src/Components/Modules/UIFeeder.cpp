@@ -251,6 +251,26 @@ namespace Components
 		}
 	}
 
+	void UIFeeder::ApplyMapFeeder(Game::dvar_t* dvar, int num)
+	{
+		Dvar::Var(dvar).Set(num);
+
+		if (num < 0 || num >= *Game::arenaCount)
+		{
+			num = 0;
+		}
+
+		// UI_SortArenas
+		Utils::Hook::Call<void()>(0x630AE0)();
+
+		const char* mapname = ArenaLength::NewArenas[reinterpret_cast<int*>(0x633E934)[num]].mapName;
+
+		Dvar::Var("ui_mapname").Set(mapname);
+
+		// Party_SetDisplayMapName
+		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname);
+	}
+
 	UIFeeder::UIFeeder()
 	{
 		// Get feeder item count
@@ -276,6 +296,9 @@ namespace Components
 
 		// some thing overwriting feeder 2's data
 		Utils::Hook::Set<BYTE>(0x4A06A9, 0xEB);
+
+		// correct feeder 4
+		Utils::Hook(0x4C260E, UIFeeder::ApplyMapFeeder, HOOK_CALL).Install()->Quick();
 	}
 
 	UIFeeder::~UIFeeder()
