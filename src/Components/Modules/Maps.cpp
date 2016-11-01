@@ -31,6 +31,7 @@ namespace Components
 
 		Utils::Memory::Allocator allocator;
 		auto teams = Maps::GetTeamsForMap(Maps::CurrentMainZone);
+		auto dependencies = Maps::GetDependenciesForMap(Maps::CurrentMainZone);
 
 		std::vector<Game::XZoneInfo> data;
 		Utils::Merge(&data, zoneInfo, zoneCount);
@@ -44,6 +45,17 @@ namespace Components
 
 		team.name = allocator.DuplicateString(fmt::sprintf("iw4x_team_%s", teams.second.data()));
 		data.push_back(team);
+
+		for (auto& depdendency : dependencies)
+		{
+			Game::XZoneInfo info;
+
+			info.name = depdendency.data();
+			info.allocFlags = zoneInfo->allocFlags;
+			info.freeFlags = zoneInfo->freeFlags;
+
+			data.push_back(info);
+		}
 
 		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); ++i)
 		{
@@ -203,6 +215,26 @@ namespace Components
 	int Maps::IgnoreEntityStub(const char* entity)
 	{
 		return (Utils::String::StartsWith(entity, "dyn_") || Utils::String::StartsWith(entity, "node_") || Utils::String::StartsWith(entity, "actor_"));
+	}
+
+	std::vector<std::string> Maps::GetDependenciesForMap(std::string map)
+	{
+		for (int i = 0; i < *Game::arenaCount; ++i)
+		{
+			Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
+			if (arena->mapName == map)
+			{
+				for (int j = 0; j < ARRAY_SIZE(arena->keys); ++j)
+				{
+					if (arena->keys[j] == "dependency"s)
+					{
+						return Utils::String::Explode(arena->values[j], ' ');
+					}
+				}
+			}
+		}
+
+		return {};
 	}
 
 	std::pair<std::string, std::string> Maps::GetTeamsForMap(std::string map)
@@ -525,8 +557,8 @@ namespace Components
 		//Maps::AddDependency("oilrig", "mp_subbase");
 		//Maps::AddDependency("gulag", "mp_subbase");
 		//Maps::AddDependency("invasion", "mp_rust");
-		Maps::AddDependency("co_hunted", "mp_storm");
-		Maps::AddDependency("mp_shipment", "mp_shipment_long");
+		//Maps::AddDependency("co_hunted", "mp_storm");
+		//Maps::AddDependency("mp_shipment", "mp_shipment_long");
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		Command::Add("dumpmap", [] (Command::Params)

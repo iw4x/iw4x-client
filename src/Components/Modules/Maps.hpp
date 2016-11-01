@@ -14,6 +14,7 @@ namespace Components
 		static void AddDependency(std::string expression, std::string zone);
 
 		static std::pair<std::string, std::string> GetTeamsForMap(std::string map);
+		static std::vector<std::string> GetDependenciesForMap(std::string map);
 
 		static std::string CurrentMainZone;
 
