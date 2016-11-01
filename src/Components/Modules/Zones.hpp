@@ -74,5 +74,6 @@ namespace Components
 		static bool LoadGfxWorld(bool atStreamStart, char* buffer, int size);
 		static void Loadsunflare_t(bool atStreamStart);
 		static bool LoadStatement(bool atStreamStart, char* buffer, int size);
+		static void LoadWindowImage(bool atStreamStart);
 	};
 }

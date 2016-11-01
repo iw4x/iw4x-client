@@ -237,14 +237,7 @@ namespace Components
 
 		if (Zones::ZoneVersion >= 359)
 		{
-			for (int i = 0, offset = 20; i < 4; ++i, offset += 4)
-			{
-				*Game::varXModelPtr = reinterpret_cast<Game::XModel**>(varWeaponCompleteDef + offset);
-				Game::Load_XModelPtr(false);
-			}
-
-			// 148
-			for (int offset = 28; offset <= 56; offset += 4)
+			for (int offset = 20; offset <= 56; offset += 4)
 			{
 				*Game::varXModelPtr = reinterpret_cast<Game::XModel**>(varWeaponCompleteDef + offset);
 				Game::Load_XModelPtr(false);
@@ -972,11 +965,13 @@ namespace Components
 
 	bool Zones::LoadmenuDef_t(bool atStreamStart, char* buffer, int size)
 	{
-		if (Zones::ZoneVersion < 359) size += 4;
+		if (Zones::ZoneVersion != 359) size += 4;
 
 		bool result = Game::Load_Stream(atStreamStart, buffer, size);
-		std::memmove(buffer + 168, buffer + 172, (Zones::ZoneVersion < 359 ? 232 : 228));
-		AssetHandler::Relocate(buffer + 172, buffer + 168, (Zones::ZoneVersion < 359 ? 232 : 228));
+		std::memmove(buffer + 168, buffer + 172, (Zones::ZoneVersion != 359 ? 232 : 228));
+		AssetHandler::Relocate(buffer + 172, buffer + 168, (Zones::ZoneVersion != 359 ? 232 : 228));
+
+		reinterpret_cast<Game::menuDef_t*>(buffer)->expressionData = nullptr;
 
 		return result;
 	}
@@ -1283,6 +1278,16 @@ namespace Components
 		return result;
 	}
 
+	void Zones::LoadWindowImage(bool atStreamStart)
+	{
+		Game::Load_MaterialHandle(atStreamStart);
+
+		if (Zones::Version() >= 360)
+		{
+			Game::Load_GfxImagePtr(atStreamStart);
+		}
+	}
+
 	void Zones::InstallPatches(int version)
 	{
 		AssetHandler::ClearRelocations();
@@ -1336,13 +1341,11 @@ namespace Components
 		// Patch ExpressionSupportingData loading in menus
 		if (Zones::Version() >= 359)
 		{
-			Utils::Hook::Nop(0x41A590, 5);
-			Utils::Hook::Set<BYTE>(0x459833, 0xC3);
+			Utils::Hook::Set<BYTE>(0x4AF680, 0xC3);
 		}
 		else
 		{
-			Utils::Hook(0x41A590, 0x4AF680, HOOK_CALL).Install()->Quick();
-			Utils::Hook(0x459833, 0x4AF680, HOOK_JUMP).Install()->Quick();
+			Utils::Hook::Set<BYTE>(0x4AF680, 0xA1);
 		}
 
 		if (patch)
@@ -1489,6 +1492,7 @@ namespace Components
 		}, HOOK_CALL);
 
 		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).Install()->Quick();
 
 #ifdef DEBUG
 		// Easy dirty disk debugging

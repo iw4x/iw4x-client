@@ -266,6 +266,9 @@ namespace Game
 	typedef void(__cdecl *Load_FxElemDef_t)(bool atStreamStart);
 	extern Load_FxElemDef_t Load_FxElemDef;
 
+	typedef void(__cdecl *Load_GfxImagePtr_t)(bool atStreamStart);
+	extern Load_GfxImagePtr_t Load_GfxImagePtr;
+
 	typedef void(__cdecl *Load_GfxTextureLoad_t)(bool atStreamStart);
 	extern Load_GfxTextureLoad_t Load_GfxTextureLoad;
 
