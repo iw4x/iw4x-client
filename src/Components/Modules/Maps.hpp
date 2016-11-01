@@ -43,6 +43,7 @@ namespace Components
 		static int IgnoreEntityStub(const char* entity);
 
 		static Game::GameMap_Data* GetWorldData();
+		static void GetWorldDataStub();
 
 		static void AddDlc(DLC dlc);
 		static void UpdateDlcStatus();

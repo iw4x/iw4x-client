@@ -175,6 +175,23 @@ namespace Components
 		}
 	}
 
+	__declspec(naked) void Maps::GetWorldDataStub()
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			call Maps::GetWorldData
+
+			mov [esp + 20h], eax
+			popad
+			pop eax
+
+			retn
+		}
+	}
+
 	void Maps::GetBSPName(char* buffer, size_t size, const char* format, const char* mapname)
 	{
 		if (!Utils::String::StartsWith(mapname, "mp_") && !Utils::String::StartsWith(mapname, "zm_"))
@@ -533,7 +550,7 @@ namespace Components
 		Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).Install()->Quick();
 
 		// WorldData pointer replacement
-		Utils::Hook(0x4D90B6, Maps::GetWorldData, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4D90B6, Maps::GetWorldDataStub, HOOK_CALL).Install()->Quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);

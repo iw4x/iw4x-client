@@ -1492,7 +1492,7 @@ namespace Components
 		}, HOOK_CALL);
 
 		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).Install()->Quick();
+		//Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).Install()->Quick();
 
 #ifdef DEBUG
 		// Easy dirty disk debugging
