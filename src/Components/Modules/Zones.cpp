@@ -1284,6 +1284,10 @@ namespace Components
 
 		if (Zones::Version() >= 360)
 		{
+			char** varGfxImagePtr = reinterpret_cast<char**>(0x112B4A0);
+			char** varwindowDef_t = reinterpret_cast<char**>(0x112AF94);
+
+			*varGfxImagePtr = *varwindowDef_t + 164;
 			Game::Load_GfxImagePtr(atStreamStart);
 		}
 	}

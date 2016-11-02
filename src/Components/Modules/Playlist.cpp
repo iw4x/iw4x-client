@@ -121,6 +121,17 @@ namespace Components
 		Game::Dvar_SetStringByName(cvar, value);
 	} 
 
+	int Playlist::GetMapIndex(const char* mapname)
+	{
+		auto i = Playlist::MapRelocation.find(mapname);
+		if (i != Playlist::MapRelocation.end())
+		{
+			mapname = i->second.data();
+		}
+
+		return Game::Live_GetMapIndex(mapname);
+	}
+
 	Playlist::Playlist()
 	{
 		// Default playlists
@@ -144,6 +155,7 @@ namespace Components
 		//Got playlists is true
 		//Utils::Hook::Set<bool>(0x1AD3680, true);
 
+		Utils::Hook(0x497DB5, Playlist::GetMapIndex, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x42A19D, Playlist::MapNameCopy, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x4A6FEE, Playlist::SetMapName, HOOK_CALL).Install()->Quick();
 

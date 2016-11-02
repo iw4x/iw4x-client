@@ -371,6 +371,9 @@ namespace Game
 	typedef void(__cdecl * Live_MPAcceptInvite_t)(_XSESSION_INFO *hostInfo, const int controllerIndex, bool fromGameInvite);
 	extern Live_MPAcceptInvite_t Live_MPAcceptInvite;
 
+	typedef int(__cdecl * Live_GetMapIndex_t)(const char* mapname);
+	extern Live_GetMapIndex_t Live_GetMapIndex;
+
 	typedef char* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
 

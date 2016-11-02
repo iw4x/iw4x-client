@@ -151,6 +151,7 @@ namespace Game
 	NET_OutOfBandData_t NET_OutOfBandData = (NET_OutOfBandData_t)0x49C7E0;
 
 	Live_MPAcceptInvite_t Live_MPAcceptInvite = (Live_MPAcceptInvite_t)0x420A6D;
+	Live_GetMapIndex_t Live_GetMapIndex = (Live_GetMapIndex_t)0x4F6440;
 
 	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;
 

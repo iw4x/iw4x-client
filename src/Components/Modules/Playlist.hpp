@@ -27,5 +27,6 @@ namespace Components
 
 		static void MapNameCopy(char *dest, const char *src, int destsize);
 		static void SetMapName(const char* cvar, const char* value);
+		static int GetMapIndex(const char* mapname);
 	};
 }
