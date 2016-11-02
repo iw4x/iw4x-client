@@ -11,7 +11,11 @@ namespace Utils
 
 		void WriteFile(std::string file, std::string data)
 		{
-			CreateDirectory(file.substr(0, file.find_last_of("/\\")));
+			auto pos = file.find_last_of("/\\");
+			if (pos != std::string::npos)
+			{
+				CreateDirectory(file.substr(0, pos));
+			}
 
 			std::ofstream stream(file, std::ios::binary);
 
