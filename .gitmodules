@@ -39,7 +39,3 @@
 	path = deps/base128
 	url = https://github.com/seizu/base128.git
 	branch = master
-[submodule "deps/protobuf"]
-	path = deps/protobuf
-	url = https://github.com/google/protobuf.git
-	branch = tags/v3.1.0
