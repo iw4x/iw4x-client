@@ -4,6 +4,7 @@ namespace Components
 {
 	std::string Playlist::CurrentPlaylistBuffer;
 	std::string Playlist::ReceivedPlaylistBuffer;
+	std::map<const void*, std::string> Playlist::MapRelocation;
 
 	void Playlist::LoadPlaylist()
 	{
@@ -26,7 +27,7 @@ namespace Components
 		if (playlist.Exists())
 		{
 			Logger::Print("Parsing playlist '%s'...\n", playlist.GetName().data());
-			Game::Live_ParsePlaylists(playlist.GetBuffer().data());
+			Game::Playlist_ParsePlaylists(playlist.GetBuffer().data());
 			Utils::Hook::Set<bool>(0x1AD3680, true); // Playlist loaded
 		}
 		else
@@ -37,6 +38,7 @@ namespace Components
 
 	DWORD Playlist::StorePlaylistStub(const char** buffer)
 	{
+		Playlist::MapRelocation.clear();
 		Playlist::CurrentPlaylistBuffer = *buffer;
 		return Utils::Hook::Call<DWORD(const char**)>(0x4C0350)(buffer);
 	}
@@ -87,7 +89,7 @@ namespace Components
 
 					// Load and continue connection
 					Logger::Print("Received playlist, loading and continuing connection...\n");
-					Game::Live_ParsePlaylists(Playlist::ReceivedPlaylistBuffer.data());
+					Game::Playlist_ParsePlaylists(Playlist::ReceivedPlaylistBuffer.data());
 					Party::PlaylistContinue();
 				}
 			}
@@ -101,6 +103,23 @@ namespace Components
 			Logger::Print("Received stray playlist response, ignoring it.\n");
 		}
 	}
+
+	void Playlist::MapNameCopy(char *dest, const char *src, int destsize)
+	{
+		Utils::Hook::Call<void(char*, const char*, int)>(0x4D6F80)(dest, src, destsize);
+		Playlist::MapRelocation[dest] = src;
+	}
+
+	void Playlist::SetMapName(const char* cvar, const char* value)
+	{
+		auto i = Playlist::MapRelocation.find(value);
+		if (i != Playlist::MapRelocation.end())
+		{
+			value = i->second.data();
+		}
+
+		Game::Dvar_SetStringByName(cvar, value);
+	} 
 
 	Playlist::Playlist()
 	{
@@ -125,6 +144,9 @@ namespace Components
 		//Got playlists is true
 		//Utils::Hook::Set<bool>(0x1AD3680, true);
 
+		Utils::Hook(0x42A19D, Playlist::MapNameCopy, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4A6FEE, Playlist::SetMapName, HOOK_CALL).Install()->Quick();
+
 		// Store playlist buffer on load
 		Utils::Hook(0x42961C, Playlist::StorePlaylistStub, HOOK_CALL).Install()->Quick();
 
@@ -143,6 +165,7 @@ namespace Components
 
 	Playlist::~Playlist()
 	{
+		Playlist::MapRelocation.clear();
 		Playlist::CurrentPlaylistBuffer.clear();
 		Playlist::ReceivedPlaylistBuffer.clear();
 	}

@@ -371,9 +371,6 @@ namespace Game
 	typedef void(__cdecl * Live_MPAcceptInvite_t)(_XSESSION_INFO *hostInfo, const int controllerIndex, bool fromGameInvite);
 	extern Live_MPAcceptInvite_t Live_MPAcceptInvite;
 
-	typedef void(__cdecl * Live_ParsePlaylists_t)(const char* data);
-	extern Live_ParsePlaylists_t Live_ParsePlaylists;
-
 	typedef char* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
 
@@ -397,6 +394,9 @@ namespace Game
 
 	typedef const char *(__cdecl * PartyHost_GetMemberName_t)(PartyData_s* party, const int clientNum);
 	extern PartyHost_GetMemberName_t PartyHost_GetMemberName;
+
+	typedef void(__cdecl * Playlist_ParsePlaylists_t)(const char* data);
+	extern Playlist_ParsePlaylists_t Playlist_ParsePlaylists;
 
 	typedef Font* (__cdecl * R_RegisterFont_t)(const char* asset);
 	extern R_RegisterFont_t R_RegisterFont;
