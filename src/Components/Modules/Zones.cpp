@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+﻿#include "STDInclude.hpp"
 
 namespace Components
 {
@@ -1427,9 +1427,6 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4447B6, (patch) ? 0x8C0 : 0x834);
 		Utils::Hook::Set<DWORD>(0x4447D1, (patch) ? 16 : 15);
 
-		// GameWorldSp asset type
-		Utils::Hook::Set<BYTE>(0x41899A, (patch) ? 18 : 17);
-
 		// PathData internal struct size
 		Utils::Hook::Set<DWORD>(0x4D6A04, (patch) ? 148 : 136);
 		Utils::Hook::Set<DWORD>(0x4D6A49, (patch) ? 148 : 136);
@@ -1456,6 +1453,40 @@ namespace Components
 		}
 
 		AntiCheat::EmptyHash();
+	}
+
+	bool Zones::CheckGameMapSp(int type)
+	{
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			return (type == Game::XAssetType::ASSET_TYPE_GAME_MAP_MP);
+		}
+
+		return (type == Game::XAssetType::ASSET_TYPE_GAME_MAP_SP);
+	}
+
+	__declspec(naked) void Zones::GameMapSpPatchStub()
+	{
+		__asm
+		{
+			pushad
+
+			push eax
+			call CheckGameMapSp
+			add esp, 4h
+
+			test eax, eax
+			jz returnSafe
+
+			popad
+			push 4189AEh
+			retn
+			
+		returnSafe:
+			popad
+			push 41899Dh
+			retn
+		}
 	}
 
 	Zones::Zones()
@@ -1499,6 +1530,8 @@ namespace Components
 		Utils::Hook(0x4B8DC0, Zones::LoadGfxWorld, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x4B8FF5, Zones::Loadsunflare_t, HOOK_CALL).Install()->Quick();
 
+		Utils::Hook(0x418998, Zones::GameMapSpPatchStub, HOOK_JUMP).Install()->Quick();
+
 		Utils::Hook(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP).Install()->Quick();
 		Utils::Hook(0x4F4D3B, [] ()
 		{
@@ -1509,7 +1542,7 @@ namespace Components
 			else
 			{
 				// Load_PathData
-				Utils::Hook::Call<void(int)>(0x4278A0)(false)
+				Utils::Hook::Call<void(int)>(0x4278A0)(false);
 			}
 		}, HOOK_CALL).Install()->Quick();
 

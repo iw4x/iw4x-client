@@ -24,6 +24,9 @@ namespace Components
 		static int FxEffectIndex;
 		static char* FxEffectStrings[64];
 
+		static bool CheckGameMapSp(int type);
+		static void GameMapSpPatchStub();
+
 		static void LoadFxElemDefArrayStub(bool atStreamStart);
 		static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
 
