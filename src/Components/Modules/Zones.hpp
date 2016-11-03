@@ -24,30 +24,6 @@ namespace Components
 		static int FxEffectIndex;
 		static char* FxEffectStrings[64];
 
-		static Utils::Hook LoadFxElemDefHook;
-		static Utils::Hook LoadFxElemDefArrayHook;
-		static Utils::Hook LoadXModelLodInfoHook;
-		static Utils::Hook LoadXModelHook;
-		static Utils::Hook LoadXSurfaceArrayHook;
-		static Utils::Hook LoadGameWorldSpHook;
-		static Utils::Hook LoadPathDataHook;
-		static Utils::Hook LoadVehicleDefHook;
-		static Utils::Hook Loadsnd_alias_tArrayHook;
-		static Utils::Hook LoadLoadedSoundHook;
-		static Utils::Hook LoadmenuDef_tHook;
-		static Utils::Hook LoadFxEffectDefHook;
-		static Utils::Hook LoadMaterialShaderArgumentArrayHook;
-		static Utils::Hook LoadStructuredDataStructPropertyArrayHook;
-		static Utils::Hook LoadPathDataTailHook;
-		static Utils::Hook LoadWeaponAttachHook;
-		static Utils::Hook LoadWeaponCompleteDefHook;
-		static Utils::Hook LoadGfxImageHook;
-		static Utils::Hook LoadXAssetHook;
-		static Utils::Hook LoadMaterialTechniqueHook;
-		static Utils::Hook LoadMaterialHook;
-		static Utils::Hook LoadGfxWorldHook;
-		static Utils::Hook Loadsunflare_tHook;
-
 		static void LoadFxElemDefArrayStub(bool atStreamStart);
 		static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
 
@@ -55,10 +31,10 @@ namespace Components
 		static void LoadXModelLodInfoStub();
 		static bool LoadXModel(bool atStreamStart, char* xmodel, int size);
 		static bool LoadXSurfaceArray(bool atStreamStart, char* buffer, int size);
-		static bool LoadGameWorldSp(bool atStreamStart, char* buffer);
-		static bool LoadVehicleDef(bool atStreamStart, char* buffer);
+		static bool LoadGameWorldSp(bool atStreamStart, char* buffer, int size);
+		static bool LoadVehicleDef(bool atStreamStart, char* buffer, int size);
 		static bool Loadsnd_alias_tArray(bool atStreamStart, char* buffer, int len);
-		static bool LoadLoadedSound(bool atStreamStart, char* buffer);
+		static bool LoadLoadedSound(bool atStreamStart, char* buffer, int size);
 		static bool LoadmenuDef_t(bool atStreamStart, char* buffer, int size);
 		static bool LoadFxEffectDef(bool atStreamStart, char* buffer, int size);
 		static bool LoadMaterialShaderArgumentArray(bool atStreamStart, Game::MaterialShaderArgument* argument, int size);
