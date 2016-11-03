@@ -1455,7 +1455,7 @@ namespace Components
 		AntiCheat::EmptyHash();
 	}
 
-	bool Zones::CheckGameMapSp(int type)
+	__declspec(noinline) bool Zones::CheckGameMapSp(int type)
 	{
 		if (Zones::Version() >= VERSION_ALPHA2)
 		{
@@ -1472,11 +1472,11 @@ namespace Components
 			pushad
 
 			push eax
-			call CheckGameMapSp
+			call Zones::CheckGameMapSp
 			add esp, 4h
 
-			test eax, eax
-			jz returnSafe
+			test al, al
+			jnz returnSafe
 
 			popad
 			push 4189AEh
