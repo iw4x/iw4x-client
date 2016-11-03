@@ -1436,12 +1436,6 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x463D65, (patch) ? 0x90 : 0x40);
 		Utils::Hook::Set<DWORD>(0x463D66, (patch) ? 0x9004E0C1 : 0xC003C003); // shl eax, 4 instead of add eax, eax * 2
 
-		// Change block for image load defs
-		Utils::Hook::Set<BYTE>(0x4D3224, ((Zones::ZoneVersion >= 332) ? 3 : 0));
-
-		// This is needed if we want the original lightning on cargoship_sh, but original maps are darker
-		//Utils::Hook::Set<BYTE>(0x525333, 61);
-
 		// Patch ExpressionSupportingData loading in menus
 		if (Zones::Version() >= 359)
 		{
@@ -1544,6 +1538,12 @@ namespace Components
 				// Load_PathData
 				Utils::Hook::Call<void(int)>(0x4278A0)(false);
 			}
+		}, HOOK_CALL).Install()->Quick();
+
+		// Change stream for images
+		Utils::Hook(0x4D3225, [] ()
+		{
+			Game::DB_PushStreamPos((Zones::ZoneVersion >= 332) ? 3 : 0);
 		}, HOOK_CALL).Install()->Quick();
 
 		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).Install()->Quick();
