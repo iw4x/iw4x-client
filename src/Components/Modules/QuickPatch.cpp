@@ -394,10 +394,12 @@ namespace Components
 			QuickPatch::UnlockStats();
 		});
 
+#if DEBUG
 		Command::Add("crash", [] (Command::Params)
 		{
 			throw new std::exception();
 		});
+#endif
 
 		// Dvars
 		Dvar::Register<bool>("ui_streamFriendly", 0, Game::DVAR_FLAG_SAVED, "Stream friendly UI");
