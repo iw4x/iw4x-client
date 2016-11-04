@@ -1401,6 +1401,67 @@ namespace Components
 		}
 	}
 
+	void Zones::LoadPhysPreset(bool atStreamStart, char* buffer, int size)
+	{
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			size = 68;
+		}
+
+		Game::Load_Stream(atStreamStart, buffer, size);
+	}
+
+	void Zones::LoadXModelSurfs(bool atStreamStart, char* buffer, int size)
+	{
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			size = 48;
+		}
+
+		Game::Load_Stream(atStreamStart, buffer, size);
+	}
+
+	void Zones::LoadImpactFx(bool atStreamStart, char* buffer, int size)
+	{
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			size = 0x8C0;
+		}
+
+		Game::Load_Stream(atStreamStart, buffer, size);
+	}
+
+	int Zones::ImpactFxArrayCount()
+	{
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			return 16;
+		}
+
+		return 15;
+	}
+
+	__declspec(naked) void Zones::LoadImpactFxArray()
+	{
+		__asm
+		{
+			push edi
+			pushad
+
+			push edi
+			call Zones::ImpactFxArrayCount
+			pop edi
+
+			mov [esp + 20h], eax
+
+			popad
+			pop edi
+
+			push 4447E0h
+			retn
+		}
+	}
+
 	void Zones::InstallPatches(int version)
 	{
 		AssetHandler::ClearRelocations();
@@ -1416,16 +1477,6 @@ namespace Components
 			Utils::Hook::Set<DWORD>(0x4158F4, version);
 			Utils::Hook::Set<DWORD>(0x4158FB, version);
 		}
-
-		// physpreset size
-		Utils::Hook::Set<BYTE>(0x49CE0A, (patch) ? 68 : 44);
-
-		// XSurface size
-		Utils::Hook::Set<BYTE>(0x48E84A, (patch) ? 48 : 36);
-
-		// impactfx internal size/count
-		Utils::Hook::Set<DWORD>(0x4447B6, (patch) ? 0x8C0 : 0x834);
-		Utils::Hook::Set<DWORD>(0x4447D1, (patch) ? 16 : 15);
 
 		// PathData internal struct size
 		Utils::Hook::Set<DWORD>(0x4D6A04, (patch) ? 148 : 136);
@@ -1491,9 +1542,6 @@ namespace Components
 		// TODO: Include them in the dependency zone!
 		Utils::Hook::Nop(0x644207, 5);
 
-		//Utils::Hook::Nop(0x50AAFE, 5); 
-		//Utils::Hook::Nop(0x51B4A6, 5);
-
 		// Block Mark_pathnode_constant_t
 		Utils::Hook::Set<BYTE>(0x4F74B0, 0xC3);
 
@@ -1515,7 +1563,11 @@ namespace Components
 		Utils::Hook(0x49591B, Zones::LoadFxEffectDef, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x428F0A, Zones::LoadMaterialShaderArgumentArray, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x4B1EB8, Zones::LoadStructuredDataStructPropertyArray, HOOK_CALL).Install()->Quick();
-
+		Utils::Hook(0x49CE0D, Zones::LoadPhysPreset, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x48E84D, Zones::LoadXModelSurfs, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4447C2, Zones::LoadImpactFx, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4447D0, Zones::LoadImpactFxArray, HOOK_JUMP).Install()->Quick();
+		
 		Utils::Hook(0x4471AD, Zones::LoadGfxImage, HOOK_CALL).Install()->Quick();
 
 		Utils::Hook(0x5B9AA5, Zones::LoadXAsset, HOOK_CALL).Install()->Quick();
@@ -1525,7 +1577,6 @@ namespace Components
 		Utils::Hook(0x4B8FF5, Zones::Loadsunflare_t, HOOK_CALL).Install()->Quick();
 
 		Utils::Hook(0x418998, Zones::GameMapSpPatchStub, HOOK_JUMP).Install()->Quick();
-
 		Utils::Hook(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP).Install()->Quick();
 		Utils::Hook(0x4F4D3B, [] ()
 		{

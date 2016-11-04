@@ -54,5 +54,10 @@ namespace Components
 		static void Loadsunflare_t(bool atStreamStart);
 		static bool LoadStatement(bool atStreamStart, char* buffer, int size);
 		static void LoadWindowImage(bool atStreamStart);
+		static void LoadPhysPreset(bool atStreamStart, char* buffer, int size);
+		static void LoadXModelSurfs(bool atStreamStart, char* buffer, int size);
+		static void LoadImpactFx(bool atStreamStart, char* buffer, int size);
+		static void LoadImpactFxArray();
+		static int ImpactFxArrayCount();
 	};
 }
