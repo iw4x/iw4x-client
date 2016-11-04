@@ -268,7 +268,18 @@ namespace Components
 			*version = XFILE_VERSION;
 		}
 
-		Zones::InstallPatches(*version);
+		Zones::SetVersion(*version);
+
+		// Allow loading of codo versions
+		if (*version >= VERSION_ALPHA2 && *version <= 360)
+		{
+			*version = XFILE_VERSION;
+		}
+
+		if (*version != XFILE_VERSION)
+		{
+			Logger::Error("Zone version %d is not supported!", Zones::Version());
+		}
 	}
 
 	void FastFiles::AuthLoadInitCrypto()

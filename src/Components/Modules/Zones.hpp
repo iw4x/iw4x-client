@@ -14,7 +14,7 @@ namespace Components
 		const char* GetName() { return "Zones"; };
 #endif
 
-		static void InstallPatches(int version);
+		static void SetVersion(int version);
 
 		static int Version() { return Zones::ZoneVersion; };
 
@@ -57,7 +57,12 @@ namespace Components
 		static void LoadPhysPreset(bool atStreamStart, char* buffer, int size);
 		static void LoadXModelSurfs(bool atStreamStart, char* buffer, int size);
 		static void LoadImpactFx(bool atStreamStart, char* buffer, int size);
+		static void LoadPathNodeArray(bool atStreamStart, char* buffer, int size);
+		static void LoadPathnodeConstantTail(bool atStreamStart, char* buffer, int size);
+		static void LoadExpressionSupportingDataPtr(bool atStreamStart);
 		static void LoadImpactFxArray();
 		static int ImpactFxArrayCount();
+		static void LoadPathDataConstant();
+		static int PathDataSize();
 	};
 }

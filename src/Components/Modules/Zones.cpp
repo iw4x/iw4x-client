@@ -1462,52 +1462,56 @@ namespace Components
 		}
 	}
 
-	void Zones::InstallPatches(int version)
+	void Zones::LoadPathNodeArray(bool atStreamStart, char* buffer, int size)
+	{
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			size /= 136;
+			size *= 148;
+		}
+
+		Game::Load_Stream(atStreamStart, buffer, size);
+	}
+
+	void Zones::LoadPathnodeConstantTail(bool atStreamStart, char* buffer, int size)
+	{
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			size /= 12;
+			size *= 16;
+		}
+
+		Game::Load_Stream(atStreamStart, buffer, size);
+	}
+
+	void Zones::LoadExpressionSupportingDataPtr(bool atStreamStart)
+	{
+		if (Zones::Version() < 359)
+		{
+			Utils::Hook::Call<void(bool)>(0x4AF680)(atStreamStart);
+		}
+	}
+
+	void Zones::SetVersion(int version)
 	{
 		AssetHandler::ClearRelocations();
-
-		bool patch = (version >= VERSION_ALPHA2);
-		if (patch) Maps::HandleAsSPMap();
-
-		if (Zones::ZoneVersion == version) return;
 		Zones::ZoneVersion = version;
-
-		if (Zones::ZoneVersion == VERSION_ALPHA2 || Zones::ZoneVersion == VERSION_ALPHA3 || Zones::ZoneVersion == VERSION_ALPHA3_DEC || Zones::ZoneVersion == XFILE_VERSION || Zones::ZoneVersion >= 332)
-		{
-			Utils::Hook::Set<DWORD>(0x4158F4, version);
-			Utils::Hook::Set<DWORD>(0x4158FB, version);
-		}
-
-		// PathData internal struct size
-		Utils::Hook::Set<DWORD>(0x4D6A04, (patch) ? 148 : 136);
-		Utils::Hook::Set<DWORD>(0x4D6A49, (patch) ? 148 : 136);
-
-		// PathData internal struct data size
-		Utils::Hook::Set<WORD>(0x463D63, (patch) ? 0x9090 : 0x048D);
-		Utils::Hook::Set<BYTE>(0x463D65, (patch) ? 0x90 : 0x40);
-		Utils::Hook::Set<DWORD>(0x463D66, (patch) ? 0x9004E0C1 : 0xC003C003); // shl eax, 4 instead of add eax, eax * 2
-
-		// Patch ExpressionSupportingData loading in menus
-		if (Zones::Version() >= 359)
-		{
-			Utils::Hook::Set<BYTE>(0x4AF680, 0xC3);
-		}
-		else
-		{
-			Utils::Hook::Set<BYTE>(0x4AF680, 0xA1);
-		}
-
-		AntiCheat::EmptyHash();
 	}
 
 	__declspec(noinline) bool Zones::CheckGameMapSp(int type)
 	{
-		if (Zones::Version() >= VERSION_ALPHA2)
+		if (type == Game::XAssetType::ASSET_TYPE_GAME_MAP_SP)
 		{
-			return (type == Game::XAssetType::ASSET_TYPE_GAME_MAP_MP);
+			return true;
 		}
 
-		return (type == Game::XAssetType::ASSET_TYPE_GAME_MAP_SP);
+		if (Zones::Version() >= VERSION_ALPHA2 && type == Game::XAssetType::ASSET_TYPE_GAME_MAP_MP)
+		{
+			Maps::HandleAsSPMap();
+			return true;
+		}
+
+		return false;
 	}
 
 	__declspec(naked) void Zones::GameMapSpPatchStub()
@@ -1530,6 +1534,35 @@ namespace Components
 		returnSafe:
 			popad
 			push 41899Dh
+			retn
+		}
+	}
+
+	int Zones::PathDataSize()
+	{
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			return 148;
+		}
+
+		return 136;
+	}
+
+	__declspec(naked) void Zones::LoadPathDataConstant()
+	{
+		__asm
+		{
+			push esi
+			pushad
+
+			call Zones::PathDataSize
+
+			add [esp + 20h], eax
+
+			popad
+			pop esi
+
+			push 4D6A4Dh
 			retn
 		}
 	}
@@ -1567,8 +1600,14 @@ namespace Components
 		Utils::Hook(0x48E84D, Zones::LoadXModelSurfs, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x4447C2, Zones::LoadImpactFx, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x4447D0, Zones::LoadImpactFxArray, HOOK_JUMP).Install()->Quick();
-		
+		Utils::Hook(0x4D6A0B, Zones::LoadPathNodeArray, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4D6A47, Zones::LoadPathDataConstant, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x463D6E, Zones::LoadPathnodeConstantTail, HOOK_CALL).Install()->Quick();
+
 		Utils::Hook(0x4471AD, Zones::LoadGfxImage, HOOK_CALL).Install()->Quick();
+
+		Utils::Hook(0x41A590, Zones::LoadExpressionSupportingDataPtr, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x459833, Zones::LoadExpressionSupportingDataPtr, HOOK_JUMP).Install()->Quick();
 
 		Utils::Hook(0x5B9AA5, Zones::LoadXAsset, HOOK_CALL).Install()->Quick();
 		Utils::Hook(0x461710, Zones::LoadMaterialTechnique, HOOK_CALL).Install()->Quick();
