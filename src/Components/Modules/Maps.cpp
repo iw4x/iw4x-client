@@ -31,7 +31,9 @@ namespace Components
 
 		Utils::Memory::Allocator allocator;
 		auto teams = Maps::GetTeamsForMap(Maps::CurrentMainZone);
+
 		auto dependencies = Maps::GetDependenciesForMap(Maps::CurrentMainZone);
+		Utils::Merge(&Maps::CurrentDependencies, dependencies.data(), dependencies.size());
 
 		std::vector<Game::XZoneInfo> data;
 		Utils::Merge(&data, zoneInfo, zoneCount);
@@ -45,17 +47,6 @@ namespace Components
 
 		team.name = allocator.DuplicateString(fmt::sprintf("iw4x_team_%s", teams.second.data()));
 		data.push_back(team);
-
-		for (auto& depdendency : dependencies)
-		{
-			Game::XZoneInfo info;
-
-			info.name = depdendency.data();
-			info.allocFlags = zoneInfo->allocFlags;
-			info.freeFlags = zoneInfo->freeFlags;
-
-			data.push_back(info);
-		}
 
 		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); ++i)
 		{
