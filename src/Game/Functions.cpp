@@ -81,6 +81,7 @@ namespace Game
 	FS_FOpenFileAppend_t FS_FOpenFileAppend = (FS_FOpenFileAppend_t)0x410BB0;
 	FS_FOpenFileAppend_t FS_FOpenFileWrite = (FS_FOpenFileAppend_t)0x4BA530;
 	FS_FOpenFileRead_t FS_FOpenFileRead = (FS_FOpenFileRead_t)0x46CBF0;
+	FS_FOpenFileRead_t FS_FOpenFileReadDatabase = (FS_FOpenFileRead_t)0x42ECA0;
 	FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = (FS_FOpenFileReadForThread_t)0x643270;
 	FS_FCloseFile_t FS_FCloseFile = (FS_FCloseFile_t)0x462000;
 	FS_WriteFile_t FS_WriteFile = (FS_WriteFile_t)0x426450;
@@ -518,6 +519,23 @@ namespace Game
 			mov eax, 5A54E0h
 			call eax
 			pop esi
+		}
+	}
+
+	int FS_FOpenFileReadCurrentThread(const char* file, int* fh)
+	{
+		if (GetCurrentThreadId() == *reinterpret_cast<DWORD*>(0x1CDE7FC))
+		{
+			return FS_FOpenFileRead(file, fh);
+		}
+		else if (GetCurrentThreadId() == *reinterpret_cast<DWORD*>(0x1CDE814))
+		{
+			return FS_FOpenFileReadDatabase(file, fh);
+		}
+		else
+		{
+			*fh = NULL;
+			return -1;
 		}
 	}
 

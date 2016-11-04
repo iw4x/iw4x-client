@@ -187,7 +187,7 @@ namespace Game
 	extern FS_FOpenFileAppend_t FS_FOpenFileAppend;
 	extern FS_FOpenFileAppend_t FS_FOpenFileWrite;
 
-	typedef int(__cdecl * FS_FOpenFileRead_t)(const char* file, int* fh, int uniqueFile);
+	typedef int(__cdecl * FS_FOpenFileRead_t)(const char* file, int* fh/*, int uniqueFile*/);
 	extern FS_FOpenFileRead_t FS_FOpenFileRead;
 
 	typedef int(__cdecl * FS_FOpenFileReadForThread_t)(const char *filename, int *file, int thread);
@@ -647,6 +647,8 @@ namespace Game
 
 	void IN_KeyUp(kbutton_t* button);
 	void IN_KeyDown(kbutton_t* button);
+
+	int FS_FOpenFileReadCurrentThread(const char* file, int* fh);
 
 	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count);
 	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len);

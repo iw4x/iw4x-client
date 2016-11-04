@@ -19,7 +19,7 @@ namespace Components
 
 	FileSystem::FileReader::FileReader(std::string file) : Name(file), Handle(0)
 	{
-		this->Size = Game::FS_FOpenFileRead(this->Name.data(), &this->Handle, 0);
+		this->Size = Game::FS_FOpenFileReadCurrentThread(this->Name.data(), &this->Handle);
 	}
 
 	FileSystem::FileReader::~FileReader()
@@ -172,14 +172,16 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
 			push esi
 			call FileSystem::RegisterFolders
 			pop esi
+			popad
 
 			mov edx, ds:63D0CC0h
 
-			mov eax, 48264Dh
-			jmp eax
+			push 48264Dh
+			retn
 		}
 	}
 
