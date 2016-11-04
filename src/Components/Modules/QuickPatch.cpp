@@ -47,6 +47,12 @@ namespace Components
 
 	void QuickPatch::UnlockStats()
 	{
+		if (Game::CL_IsCgameInitialized())
+		{
+			Toast::Show("cardicon_locked", "^1Error", "Not allowed while ingame.", 3000);
+			return;
+		}
+
 		Command::Execute("setPlayerData prestige 10");
 		Command::Execute("setPlayerData experience 2516000");
 		Command::Execute("setPlayerData iconUnlocked cardicon_prestige10_02 1");
