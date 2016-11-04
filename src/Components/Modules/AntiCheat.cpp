@@ -126,6 +126,7 @@ namespace Components
 	}
 
 	// This has to be called when doing .text changes during runtime
+	[[deprecated]]
 	__declspec(noinline) void AntiCheat::EmptyHash()
 	{
 		AntiCheat::LastCheck = 0;
@@ -546,7 +547,10 @@ namespace Components
 		AntiCheat::Flags = NO_FLAG;
 		AntiCheat::LastCheck = 0;
 
+#pragma warning(push)
+#pragma warning(disable: 4996)
 		AntiCheat::EmptyHash();
+#pragma warning(pop)
 
 #ifdef DEBUG
 		Command::Add("penis", [] (Command::Params)
@@ -585,7 +589,11 @@ namespace Components
 	AntiCheat::~AntiCheat()
 	{
 		AntiCheat::Flags = NO_FLAG;
+
+#pragma warning(push)
+#pragma warning(disable: 4996)
 		AntiCheat::EmptyHash();
+#pragma warning(pop)
 
 		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
 		{
