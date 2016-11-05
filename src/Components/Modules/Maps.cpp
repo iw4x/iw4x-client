@@ -531,6 +531,12 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x64A029, 0x1C200000); // 450 MiB
 		Utils::Hook::Set<DWORD>(0x64A057, 0x1C200000);
 
+#if DEBUG
+		// Hunk debugging
+		Utils::Hook::Set<BYTE>(0x4FF57B, 0xCC);
+		Utils::Hook::Nop(0x4FF57C, 4);
+#endif
+
 		// Intercept BSP name resolving
 		Utils::Hook(0x4C5979, Maps::GetBSPName, HOOK_CALL).Install()->Quick();
 
