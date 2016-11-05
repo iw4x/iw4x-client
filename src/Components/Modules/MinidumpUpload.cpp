@@ -1,7 +1,7 @@
 #include "STDInclude.hpp"
 #include "Shlwapi.h"
 
-const int MiniDumpTiny = MiniDumpFilterMemory | MiniDumpWithoutAuxiliaryState | MiniDumpWithoutOptionalData | MiniDumpFilterModulePaths | MiniDumpIgnoreInaccessibleMemory;
+const int MiniDumpTiny = MiniDumpIgnoreInaccessibleMemory | /*MiniDumpWithModuleHeaders |*/ MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithTokenInformation | MiniDumpWithProcessThreadData | MiniDumpWithFullAuxiliaryState;
 
 namespace Components
 {

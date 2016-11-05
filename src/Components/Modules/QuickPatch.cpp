@@ -336,6 +336,8 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4C37F0, 0xC3); // GamerProfile_UpdateProfileAndSaveIfNeeded
 		Utils::Hook::Set<BYTE>(0x633CA0, 0xC3); // GamerProfile_SetPercentCompleteMP
 
+		Utils::Hook::Set<BYTE>(0x5AE212, 0xC3); // Profile reading
+
 		// GamerProfile_RegisterCommands
 		// Some random function used as nullsub :P
 		Utils::Hook::Set<DWORD>(0x45B868, 0x5188FB); // profile_menuDvarsSetup
@@ -394,12 +396,10 @@ namespace Components
 			QuickPatch::UnlockStats();
 		});
 
-#if DEBUG
 		Command::Add("crash", [] (Command::Params)
 		{
 			throw new std::exception();
 		});
-#endif
 
 		// Dvars
 		Dvar::Register<bool>("ui_streamFriendly", 0, Game::DVAR_FLAG_SAVED, "Stream friendly UI");
