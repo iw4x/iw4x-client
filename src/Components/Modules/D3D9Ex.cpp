@@ -569,6 +569,12 @@ namespace Components
 
 	HRESULT D3D9Ex::D3D9Device::SetPixelShaderConstantF(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
 	{
+		if (IsBadReadPtr(pConstantData, Vector4fCount * 16))
+		{
+			Logger::Print("Invalid shader constant array!");
+			return D3DERR_INVALIDCALL;
+		}
+
 		return m_pIDirect3DDevice9->SetPixelShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 	}
 
