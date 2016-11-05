@@ -121,6 +121,32 @@ namespace Components
 		{
 			asset.material->sortKey = 0xE;
 		}
+
+		// Fix shader const stuff
+		if (type == Game::XAssetType::ASSET_TYPE_TECHSET && Zones::Version() >= 359)
+		{
+			for (int i = 0; i < 48; i++)
+			{
+				if (asset.materialTechset->techniques[i])
+				{
+					for (int j = 0; j < asset.materialTechset->techniques[i]->numPasses; j++)
+					{
+						Game::MaterialPass* pass = &asset.materialTechset->techniques[i]->passes[j];
+
+						for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); k++)
+						{
+							if (pass->argumentDef[k].type == D3DSHADER_PARAM_REGISTER_TYPE::D3DSPR_CONSTINT)
+							{
+								if (pass->argumentDef[k].paramID == -28132)
+								{
+									pass->argumentDef[k].paramID = 2644;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)

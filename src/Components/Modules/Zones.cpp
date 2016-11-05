@@ -1070,7 +1070,7 @@ namespace Components
 		{
 			Game::MaterialShaderArgument* arg = &argument[i];
 
-			if (arg->type != 3 && arg->type != 5)
+			if (arg->type != D3DSHADER_PARAM_REGISTER_TYPE::D3DSPR_TEXTURE && arg->type != D3DSHADER_PARAM_REGISTER_TYPE::D3DSPR_ATTROUT)
 			{
 				continue;
 			}
