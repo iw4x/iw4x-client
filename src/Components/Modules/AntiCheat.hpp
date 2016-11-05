@@ -16,7 +16,6 @@ namespace Components
 #endif
 
 		static void CrashClient();
-		static void EmptyHash();
 
 		static void InitLoadLibHook();
 
@@ -36,12 +35,13 @@ namespace Components
 			MAX_FLAG,
 		};
 
-		static int LastCheck;
+		static Utils::Time::Interval LastCheck;
 		static std::string Hash;
 		static unsigned long Flags;
 
-		static void Frame();
-		static void PerformCheck();
+		static bool ScanIntegrityIsInOrder;
+
+		static void PerformScan();
 		static void PatchWinAPI();
 
 		static unsigned long ProtectProcess();

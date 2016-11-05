@@ -2,10 +2,12 @@
 
 namespace Components
 {
-	int AntiCheat::LastCheck;
+	Utils::Time::Interval AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::LoadLibHook[4];
 	unsigned long AntiCheat::Flags = NO_FLAG;
+
+	bool AntiCheat::ScanIntegrityIsInOrder;
 
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
@@ -125,16 +127,6 @@ namespace Components
 		}
 	}
 
-	// This has to be called when doing .text changes during runtime
-	[[deprecated]]
-	__declspec(noinline) void AntiCheat::EmptyHash()
-	{
-		AntiCheat::LastCheck = 0;
-		AntiCheat::Hash.clear();
-
-		AntiCheat::AssertCalleeModule(_ReturnAddress());
-	}
-
 	void AntiCheat::InitLoadLibHook()
 	{
 		static uint8_t loadLibStub[] = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
@@ -168,11 +160,11 @@ namespace Components
 
 	void AntiCheat::ReadIntegrityCheck()
 	{
-		static int lastCheck = Game::Sys_Milliseconds();
-		
-		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 20)
+		static Utils::Time::Interval check;
+
+		if(check.Elapsed(20s))
 		{
-			lastCheck = Game::Sys_Milliseconds();
+			check.Set();
 
 			if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
 			{
@@ -191,11 +183,11 @@ namespace Components
 
 	void AntiCheat::FlagIntegrityCheck()
 	{
-		static int lastCheck = Game::Sys_Milliseconds();
+		static Utils::Time::Interval check;
 
-		if ((Game::Sys_Milliseconds() - lastCheck) > 1000 * 30)
+		if (check.Elapsed(30s))
 		{
-			lastCheck = Game::Sys_Milliseconds();
+			check.Set();
 
 			unsigned long flags = ((AntiCheat::IntergrityFlag::MAX_FLAG - 1) << 1) - 1;
 
@@ -212,15 +204,19 @@ namespace Components
 
 	void AntiCheat::ScanIntegrityCheck()
 	{
-		static int count = 0;
-		int lastCheck = AntiCheat::LastCheck;
-		int milliseconds = Game::Sys_Milliseconds();
+		if (!AntiCheat::ScanIntegrityIsInOrder)
+		{
+#ifdef DEBUG_DETECTIONS
+			Logger::Print("AntiCheat: Integrity order check failed");
+#endif
 
-		if (lastCheck) count = 0;
-		else ++count;
+			AntiCheat::CrashClient();
+		}
+
+		AntiCheat::ScanIntegrityIsInOrder = false;
 
 		// If there was no check within the last 40 seconds, crash!
-		if ((milliseconds > 1000 * 40) && ((lastCheck && (milliseconds - lastCheck) > 1000 * 40) || count > 1))
+		if (AntiCheat::LastCheck.Elapsed(40s))
 		{
 #ifdef DEBUG_DETECTIONS
 			Logger::Print("AntiCheat: Integrity check failed");
@@ -233,8 +229,14 @@ namespace Components
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::SCAN_INTEGRITY_CHECK;
 	}
 
-	void AntiCheat::PerformCheck()
+	void AntiCheat::PerformScan()
 	{
+		AntiCheat::ScanIntegrityIsInOrder = true;
+
+		// Perform check only every 10 seconds
+		if (!AntiCheat::LastCheck.Elapsed(10s)) return;
+		AntiCheat::LastCheck.Set();
+
 		// Hash .text segment
 		// Add 1 to each value, so searching in memory doesn't reveal anything
 		size_t textSize = 0x2D6001;
@@ -258,15 +260,6 @@ namespace Components
 
 		// Set the memory scan flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::MEMORY_SCAN;
-	}
-
-	void AntiCheat::Frame()
-	{
-		// Perform check only every 10 seconds
-		if (AntiCheat::LastCheck && (Game::Sys_Milliseconds() - AntiCheat::LastCheck) < 1000 * 10) return;
-		AntiCheat::LastCheck = Game::Sys_Milliseconds();
-
-		AntiCheat::PerformCheck();
 	}
 
 #ifdef DEBUG_LOAD_LIBRARY
@@ -545,12 +538,8 @@ namespace Components
 	AntiCheat::AntiCheat()
 	{
 		AntiCheat::Flags = NO_FLAG;
-		AntiCheat::LastCheck = 0;
-
-#pragma warning(push)
-#pragma warning(disable: 4996)
-		AntiCheat::EmptyHash();
-#pragma warning(pop)
+		AntiCheat::Hash.clear();
+		AntiCheat::ScanIntegrityIsInOrder = false;
 
 #ifdef DEBUG
 		Command::Add("penis", [] (Command::Params)
@@ -566,7 +555,7 @@ namespace Components
 		Utils::Hook(0x60BE9D, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
  		Utils::Hook(0x60BE8E, AntiCheat::SoundInitDriverStub, HOOK_CALL).Install()->Quick();
  		Utils::Hook(0x418204, AntiCheat::SoundInitDriverStub, HOOK_CALL).Install()->Quick();
-		QuickPatch::OnFrame(AntiCheat::Frame);
+		Renderer::OnFrame(AntiCheat::PerformScan);
 
 		// Detect aimbots
 		Utils::Hook(0x426580, AntiCheat::DObjGetWorldTagPosStub, HOOK_JUMP).Install()->Quick();
@@ -580,6 +569,10 @@ namespace Components
 
 		// Prevent external processes from accessing our memory
 		AntiCheat::ProtectProcess();
+		Renderer::OnDeviceRecoveryEnd([] ()
+		{
+			AntiCheat::ProtectProcess();
+		});
 
 		// Set the integrity flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::INITIALIZATION;
@@ -589,11 +582,7 @@ namespace Components
 	AntiCheat::~AntiCheat()
 	{
 		AntiCheat::Flags = NO_FLAG;
-
-#pragma warning(push)
-#pragma warning(disable: 4996)
-		AntiCheat::EmptyHash();
-#pragma warning(pop)
+		AntiCheat::Hash.clear();
 
 		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
 		{

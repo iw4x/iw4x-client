@@ -97,6 +97,7 @@ template <size_t S> class Sizer { };
 
 #include "Utils\IO.hpp"
 #include "Utils\CSV.hpp"
+#include "Utils\Time.hpp"
 #include "Utils\Chain.hpp"
 #include "Utils\Utils.hpp"
 #include "Utils\WebIO.hpp"

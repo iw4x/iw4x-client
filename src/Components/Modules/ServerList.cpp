@@ -724,7 +724,7 @@ namespace Components
 
 		// This is placed here in case the anticheat has been disabled!
 #ifndef DEBUG
-		QuickPatch::OnFrame(AntiCheat::ReadIntegrityCheck);
+		Renderer::OnFrame(AntiCheat::ReadIntegrityCheck);
 #endif
 	}
 
