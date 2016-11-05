@@ -39,8 +39,6 @@ namespace Components
 		static std::string Hash;
 		static unsigned long Flags;
 
-		static bool ScanIntegrityIsInOrder;
-
 		static void PerformScan();
 		static void PatchWinAPI();
 

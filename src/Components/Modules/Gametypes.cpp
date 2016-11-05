@@ -98,5 +98,15 @@ namespace Components
 		// Dynamically grab gametypes
 		Utils::Hook(0x5FA46C, Gametypes::BuildGametypeList, HOOK_CALL).Install()->Quick(); // Scr_UpdateGameTypeList
 		Utils::Hook(0x632155, Gametypes::BuildGametypeList, HOOK_CALL).Install()->Quick(); // UI_UpdateGameTypesList
+
+		// This is placed here in case the anticheat has been disabled!
+		// Make sure this is called after every onther anticheat check!
+#ifndef DEBUG
+		Utils::Hook(0x5ACBA3, [] () // Somewhere in the renderer, past other renderer hooks!
+		{
+			AntiCheat::FlagIntegrityCheck();
+			return Utils::Hook::Call<void()>(0x50AB20)();
+		}, HOOK_CALL).Install()->Quick();
+#endif
 	}
 }

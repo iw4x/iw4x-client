@@ -7,8 +7,6 @@ namespace Components
 	Utils::Hook AntiCheat::LoadLibHook[4];
 	unsigned long AntiCheat::Flags = NO_FLAG;
 
-	bool AntiCheat::ScanIntegrityIsInOrder;
-
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
 	// By returning, the crash procedure will be called, as it hasn't been cleaned from the stack
@@ -31,63 +29,6 @@ namespace Components
 		}
 	}
 
-#if 0
-	__declspec(naked) void AntiCheat::CrashClient()
-	{
-		static uint8_t crashProcedure[] =
-		{
-			// Variable space
-			0xDC, 0xC1, 0xDC, 0x05, 
-
-			// Uninstall minidump handler
-			// This doesn't work anymore, due to the SetUnhandledExceptionFilter hook, but that's not important
-			//0xB8, 0x63, 0xE7, 0x2F, 0x00,           // mov  eax, 2FE763h
-			//0x05, 0xAD, 0xAD, 0x3C, 0x00,           // add  eax, 3CADADh
-			//0x6A, 0x58,                             // push 88
-			//0x8B, 0x80, 0xEA, 0x01, 0x00, 0x00,     // mov  eax, [eax + 1EAh]
-			//0xFF, 0x10,                             // call dword ptr [eax]
-
-			// Crash me.
-			0xB8, 0x4F, 0x91, 0x27, 0x00,           // mov  eax, 27914Fh
-			0x05, 0xDD, 0x28, 0x1A, 0x00,           // add  eax, 1A28DDh
-			0x80, 0x00, 0x68,                       // add  byte ptr [eax], 68h
-			0xC3,                                   // retn
-
-			// Random stuff
-			0xBE, 0xFF, 0xC2, 0xF4, 0x3A,
-		};
-
-		__asm
-		{
-			// This does absolutely nothing :P
-			xor eax, eax
-			mov ebx, [esp + 4h]
-			shl ebx, 4h
-			setz bl
-
-			// Push the fake var onto the stack
-			push ebx
-
-			// Save the address to our crash procedure
-			mov eax, offset crashProcedure
-			push eax
-
-			// Unprotect the .text segment
-			push eax
-			push 40h
-			push 2D5FFFh
-			push 401001h
-			call VirtualProtect
-
-			// Increment to our crash procedure
-			// Skip variable space
-			add dword ptr [esp], 4h
-
-			// This basically removes the pushed ebx value from the stack, so returning results in a call to the procedure
-			jmp AntiCheat::NullSub
-		}
-	}
-#else
 	void AntiCheat::CrashClient()
 	{
 #ifdef DEBUG_DETECTIONS
@@ -106,7 +47,6 @@ namespace Components
 		}
 #endif
 	}
-#endif
 
 	void AntiCheat::AssertCalleeModule(void* callee)
 	{
@@ -204,17 +144,6 @@ namespace Components
 
 	void AntiCheat::ScanIntegrityCheck()
 	{
-		if (!AntiCheat::ScanIntegrityIsInOrder)
-		{
-#ifdef DEBUG_DETECTIONS
-			Logger::Print("AntiCheat: Integrity order check failed");
-#endif
-
-			AntiCheat::CrashClient();
-		}
-
-		AntiCheat::ScanIntegrityIsInOrder = false;
-
 		// If there was no check within the last 40 seconds, crash!
 		if (AntiCheat::LastCheck.Elapsed(40s))
 		{
@@ -231,8 +160,6 @@ namespace Components
 
 	void AntiCheat::PerformScan()
 	{
-		AntiCheat::ScanIntegrityIsInOrder = true;
-
 		// Perform check only every 10 seconds
 		if (!AntiCheat::LastCheck.Elapsed(10s)) return;
 		AntiCheat::LastCheck.Set();
@@ -539,7 +466,6 @@ namespace Components
 	{
 		AntiCheat::Flags = NO_FLAG;
 		AntiCheat::Hash.clear();
-		AntiCheat::ScanIntegrityIsInOrder = false;
 
 #ifdef DEBUG
 		Command::Add("penis", [] (Command::Params)
