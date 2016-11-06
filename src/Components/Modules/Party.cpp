@@ -380,7 +380,7 @@ namespace Components
 					{
 						Party::ConnectError("Invalid join response: Unknown matchtype");
 					}
-					else if(!info.Get("fs_game").empty() && Dvar::Var("fs_game").Get<std::string>() != info.Get("fs_game"))
+					else if(!info.Get("fs_game").empty() && Utils::String::ToLower(Dvar::Var("fs_game").Get<std::string>()) != Utils::String::ToLower(info.Get("fs_game")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Download::InitiateClientDownload(info.Get("fs_game"));
