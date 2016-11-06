@@ -165,6 +165,11 @@ namespace Components
 
 	void FileSystem::RegisterFolders()
 	{
+		if (ZoneBuilder::IsEnabled())
+		{
+			FileSystem::RegisterFolder("zonedata");
+		}
+
 		FileSystem::RegisterFolder("userraw");
 	}
 

@@ -1419,11 +1419,12 @@ namespace Game
 
 	struct XModelLodInfo
 	{
-		char pad[4];
+		float dist;
 		short numSurfs; // +4
 		short maxSurfs;// +6
 		XModelSurfs* surfaces; // +8
-		char pad3[24]; // +12
+		int partBits[4];
+		char pad3[8]; // +12
 		XSurface* surfs;
 		char pad4[4]; 
 	};

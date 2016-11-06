@@ -48,16 +48,25 @@ namespace Assets
 			surf->surfaces = builder->GetAllocator()->AllocateArray<Game::XSurface>(model->numSurfaces);
 			surf->numSurfaces = model->numSurfaces;
 
-			ZeroMemory(&model->lods[0], sizeof(Game::XModelLodInfo));
-			model->lods[0].numSurfs = model->numSurfaces;
-			model->lods[0].surfaces = surf;
-			model->numLods = 1;
-
 			// Reset surfaces in remaining lods
 			for (unsigned int i = 1; i < 4; ++i)
 			{
 				ZeroMemory(&model->lods[i], sizeof(Game::XModelLodInfo));
 			}
+
+			model->lods[0].dist = reader.Read<float>();
+			model->lods[0].numSurfs = reader.Read<short>();
+			model->lods[0].maxSurfs = reader.Read<short>();
+
+			model->lods[0].partBits[0] = reader.Read<int>();
+			model->lods[0].partBits[1] = reader.Read<int>();
+			model->lods[0].partBits[2] = reader.Read<int>();
+			model->lods[0].partBits[3] = reader.Read<int>();
+
+			model->lods[0].numSurfs = model->numSurfaces; // This is needed in case we have more than 1 LOD
+			model->lods[0].surfaces = surf;
+			model->lods[0].surfs = surf->surfaces;
+			model->numLods = 1;
 
 			// Read surfaces
 			for (int i = 0; i < surf->numSurfaces; ++i)
@@ -206,6 +215,11 @@ namespace Assets
 		Game::XModel* asset = header.model;
 		Game::XModel* dest = buffer->Dest<Game::XModel>();
 		buffer->Save(asset);
+
+		if(asset->name == "viewmodel_m40a3"s)
+		{
+			OutputDebugStringA("");
+		}
 
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
