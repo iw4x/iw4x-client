@@ -44,18 +44,19 @@ namespace Assets
 			Game::XModelSurfs* surf = builder->GetAllocator()->Allocate<Game::XModelSurfs>();
 
 			std::memcpy(surf, baseModel->lods[0].surfaces, sizeof(Game::XModelSurfs));
-			surf->name = builder->GetAllocator()->DuplicateString(fmt::sprintf("%s1", model->name));
+			surf->name = builder->GetAllocator()->DuplicateString(fmt::sprintf("%s_lod1", model->name));
 			surf->surfaces = builder->GetAllocator()->AllocateArray<Game::XSurface>(model->numSurfaces);
 			surf->numSurfaces = model->numSurfaces;
 
+			ZeroMemory(&model->lods[0], sizeof(Game::XModelLodInfo));
 			model->lods[0].numSurfs = model->numSurfaces;
 			model->lods[0].surfaces = surf;
+			model->numLods = 1;
 
 			// Reset surfaces in remaining lods
 			for (unsigned int i = 1; i < 4; ++i)
 			{
-				model->lods[i].numSurfs = 0;
-				model->lods[i].surfaces = nullptr;
+				ZeroMemory(&model->lods[i], sizeof(Game::XModelLodInfo));
 			}
 
 			// Read surfaces
@@ -64,9 +65,15 @@ namespace Assets
 				Game::XSurface* surface = &surf->surfaces[i];
 				std::memcpy(surface, baseSurface, sizeof(Game::XSurface));
 
+				surface->tileMode = reader.Read<char>();
+				surface->deformed = reader.Read<char>();
+
 				surface->streamHandle = reader.Read<unsigned char>();
 				surface->something = reader.Read<int>();
 				surface->something2 = reader.Read<int>();
+
+				surface->pad2 = reader.Read<char>();
+				surface->pad3 = reader.Read<int>();
 
 				surface->numVertices = reader.Read<unsigned short>();
 				surface->numPrimitives = reader.Read<unsigned short>();

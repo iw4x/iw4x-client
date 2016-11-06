@@ -1386,7 +1386,8 @@ namespace Game
 
 	struct XSurface
 	{
-		short pad; // +0
+		char tileMode;
+		char deformed;
 		unsigned short numVertices; // +2
 		unsigned short numPrimitives; // +4
 		unsigned char streamHandle; // something to do with buffers, +6
