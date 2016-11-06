@@ -136,6 +136,7 @@ namespace Components
 		{
 			Dvar::Var("ui_serverSelected").Set(true);
 			Dvar::Var("ui_serverSelectedMap").Set(info->Mapname);
+			Dvar::Var("ui_serverSelectedGametype").Set(info->Gametype);
 		}
 		else
 		{
