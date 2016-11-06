@@ -39,22 +39,38 @@ namespace Components
 			}
 		}
 
+		std::vector<std::string> rebaseEntries;
+		for (unsigned int i = 0; i < entries.size(); ++i)
+		{
+			for (int pos = 0; pos < dataEnum->numIndices; ++pos)
+			{
+				if (dataEnum->indices[pos].key == entries[i])
+				{
+					rebaseEntries.push_back(entries[i]);
+				}
+			}
+		}
+
 		// Calculate new count
-		unsigned int indexCount = dataEnum->numIndices + entries.size();
+		unsigned int indexCount = dataEnum->numIndices + entries.size() - rebaseEntries.size();
 
 		// Allocate new entries
 		Game::StructuredDataEnumEntry* indices = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(indexCount);
 		std::memcpy(indices, dataEnum->indices, sizeof(Game::StructuredDataEnumEntry) * dataEnum->numIndices);
 
+		int skipped = 0;
 		for (unsigned int i = 0; i < entries.size(); ++i)
 		{
 			unsigned int pos = 0;
 
-			for (; pos < (dataEnum->numIndices + i); pos++)
+			for (; pos < (dataEnum->numIndices + i - rebaseEntries.size()); ++pos)
 			{
 				if (indices[pos].key == entries[i])
 				{
-					Logger::Error("Duplicate playerdatadef entry found: %s", entries[i].data());
+					Logger::Print("Playerdatadef entry %s will be rebased!\n", entries[i].data());
+					pos = 0xFFFFFFFF;
+					break;
+					//Logger::Error("Duplicate playerdatadef entry found: %s", entries[i].data());
 				}
 
 				// We found our position
@@ -64,14 +80,55 @@ namespace Components
 				}
 			}
 
+			// Rebasing needed
+			if (pos == 0xFFFFFFFF)
+			{
+				++skipped;
+				continue;
+			}
+
 			// TODO directly shift the data using memmove
-			for (unsigned int j = dataEnum->numIndices + i; j > pos && j < indexCount; j--)
+			for (unsigned int j = dataEnum->numIndices + i - skipped; j > pos && j < indexCount; --j)
 			{
 				std::memcpy(&indices[j], &indices[j - 1], sizeof(Game::StructuredDataEnumEntry));
 			}
 
-			indices[pos].index = i + lastIndex;
+			indices[pos].index = i + lastIndex - skipped;
 			indices[pos].key = StructuredData::MemAllocator.DuplicateString(entries[i]);
+		}
+
+		// Meh, but best way for now
+		for (unsigned int i = 0; i < rebaseEntries.size(); ++i)
+		{
+			int index = -1;
+			unsigned int pos = 0;
+			for (; pos < indexCount; ++pos)
+			{
+				if (indices[pos].key == rebaseEntries[i])
+				{
+					index = indices[pos].index;
+					indices[pos].index = entries.size() + lastIndex - rebaseEntries.size() + i;
+					break;
+				}
+			}
+
+			if (index < 0)
+			{
+				Logger::Error("Playerdatadef entry %s cannot be rebased!", rebaseEntries[i].data());
+			}
+
+			for (unsigned int j = 0; j < indexCount; ++j)
+			{
+				if (pos != j && indices[j].index > index)
+				{
+					indices[j].index--;
+				}
+			}
+		}
+
+		for (unsigned int j = 0; j < indexCount && type == StructuredData::PlayerDataType::ENUM_WEAPONS; ++j)
+		{
+			OutputDebugStringA(Utils::String::VA("%s: %d\n", indices[j].key, indices[j].index));
 		}
 
 		// Apply our patches
