@@ -46,22 +46,20 @@ namespace Components
 		// Rebase or add new entries
 		for (auto entry : entries)
 		{
-			bool rebased = false;
+			const char* value = nullptr;
 			for (auto i = dataVector.begin(); i != dataVector.end(); ++i)
 			{
 				if (*i == entry)
 				{
-					const char* value = *i;
+					value = *i;
 					dataVector.erase(i);
-					dataVector.push_back(value);
-					Logger::Print("Playerdatadef entry '%s' was rebased!\n", value);
-					rebased = true;
+					Logger::Print("Playerdatadef entry '%s' will be rebased!\n", value);
 					break;
 				}
 			}
 
-			if(rebased) continue;
-			dataVector.push_back(StructuredData::MemAllocator.DuplicateString(entry));
+			if (!value) value = StructuredData::MemAllocator.DuplicateString(entry);
+			dataVector.push_back(value);
 		}
 
 		// Map data back to the game structure
