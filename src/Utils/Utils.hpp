@@ -4,6 +4,8 @@ namespace Utils
 	std::string ParseChallenge(std::string data);
 	void OutputDebugLastError();
 
+	bool IsWineEnvironment();
+
 	template <typename T> void Merge(std::vector<T>* target, T* source, size_t length)
 	{
 		if (source)

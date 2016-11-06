@@ -157,32 +157,35 @@ namespace Components
 			}).detach();
 		});
 
-		News::Terminate = false;
-		News::Thread = std::thread([] ()
+		if (!Utils::IsWineEnvironment())
 		{
-			Localization::Set("MPUI_CHANGELOG_TEXT", Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/changelog.txt").SetTimeout(5000)->Get());
-
-			std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/motd.txt").SetTimeout(5000)->Get();
-
-			if (!data.empty())
+			News::Terminate = false;
+			News::Thread = std::thread([] ()
 			{
-				Localization::Set("MPUI_MOTD_TEXT", data);
-			}
+				Localization::Set("MPUI_CHANGELOG_TEXT", Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/changelog.txt").SetTimeout(5000)->Get());
 
-			if (!Loader::PerformingUnitTests())
-			{
-				while (!News::Terminate)
+				std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/motd.txt").SetTimeout(5000)->Get();
+
+				if (!data.empty())
 				{
-					News::CheckForUpdate();
+					Localization::Set("MPUI_MOTD_TEXT", data);
+				}
 
-					// Sleep for 3 minutes
-					for (int i = 0; i < 180 && !News::Terminate; ++i)
+				if (!Loader::PerformingUnitTests())
+				{
+					while (!News::Terminate)
 					{
-						std::this_thread::sleep_for(1s);
+						News::CheckForUpdate();
+
+						// Sleep for 3 minutes
+						for (int i = 0; i < 180 && !News::Terminate; ++i)
+						{
+							std::this_thread::sleep_for(1s);
+						}
 					}
 				}
-			}
-		});
+			});
+		}
 	}
 
 	News::~News()

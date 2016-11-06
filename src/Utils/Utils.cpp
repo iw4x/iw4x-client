@@ -35,4 +35,11 @@ namespace Utils
 
 		LocalFree(messageBuffer);
 	}
+
+	bool IsWineEnvironment()
+	{
+		HMODULE hntdll = GetModuleHandleA("ntdll.dll");
+		if (!hntdll) return false;
+		return (GetProcAddress(hntdll, "wine_get_version") != nullptr);
+	}
 }
