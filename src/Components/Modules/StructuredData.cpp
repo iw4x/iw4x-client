@@ -27,112 +27,62 @@ namespace Components
 
 		Game::StructuredDataEnum* dataEnum = &data->enums[type];
 
-		// Find last index so we can add our offset to it.
-		// This whole procedure is potentially unsafe.
-		// If any index changes, everything gets shifted and the stats are fucked.
-		int lastIndex = 0;
+		// Build index-sorted data vector
+		std::vector<const char*> dataVector;
 		for (int i = 0; i < dataEnum->numIndices; ++i)
 		{
-			if (dataEnum->indices[i].index > lastIndex)
+			int index = 0;
+			for (; index < dataEnum->numIndices; ++index)
 			{
-				lastIndex = dataEnum->indices[i].index;
-			}
-		}
-
-		std::vector<std::string> rebaseEntries;
-		for (unsigned int i = 0; i < entries.size(); ++i)
-		{
-			for (int pos = 0; pos < dataEnum->numIndices; ++pos)
-			{
-				if (dataEnum->indices[pos].key == entries[i])
-				{
-					rebaseEntries.push_back(entries[i]);
-				}
-			}
-		}
-
-		// Calculate new count
-		unsigned int indexCount = dataEnum->numIndices + entries.size() - rebaseEntries.size();
-
-		// Allocate new entries
-		Game::StructuredDataEnumEntry* indices = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(indexCount);
-		std::memcpy(indices, dataEnum->indices, sizeof(Game::StructuredDataEnumEntry) * dataEnum->numIndices);
-
-		int skipped = 0;
-		for (unsigned int i = 0; i < entries.size(); ++i)
-		{
-			unsigned int pos = 0;
-
-			for (; pos < (dataEnum->numIndices + i - rebaseEntries.size()); ++pos)
-			{
-				if (indices[pos].key == entries[i])
-				{
-					Logger::Print("Playerdatadef entry %s will be rebased!\n", entries[i].data());
-					pos = 0xFFFFFFFF;
-					break;
-					//Logger::Error("Duplicate playerdatadef entry found: %s", entries[i].data());
-				}
-
-				// We found our position
-				if (entries[i] < indices[pos].key)
+				if (dataEnum->indices[index].index == i)
 				{
 					break;
 				}
 			}
 
-			// Rebasing needed
-			if (pos == 0xFFFFFFFF)
-			{
-				++skipped;
-				continue;
-			}
-
-			// TODO directly shift the data using memmove
-			for (unsigned int j = dataEnum->numIndices + i - skipped; j > pos && j < indexCount; --j)
-			{
-				std::memcpy(&indices[j], &indices[j - 1], sizeof(Game::StructuredDataEnumEntry));
-			}
-
-			indices[pos].index = i + lastIndex - skipped;
-			indices[pos].key = StructuredData::MemAllocator.DuplicateString(entries[i]);
+			dataVector.push_back(dataEnum->indices[index].key);
 		}
 
-		// Meh, but best way for now
-		for (unsigned int i = 0; i < rebaseEntries.size(); ++i)
+		// Rebase or add new entries
+		for (auto entry : entries)
 		{
-			int index = -1;
-			unsigned int pos = 0;
-			for (; pos < indexCount; ++pos)
+			bool rebased = false;
+			for (auto i = dataVector.begin(); i != dataVector.end(); ++i)
 			{
-				if (indices[pos].key == rebaseEntries[i])
+				if (*i == entry)
 				{
-					index = indices[pos].index;
-					indices[pos].index = entries.size() + lastIndex - rebaseEntries.size() + i;
+					const char* value = *i;
+					dataVector.erase(i);
+					dataVector.push_back(value);
+					Logger::Print("Playerdatadef entry '%s' was rebased!\n", value);
+					rebased = true;
 					break;
 				}
 			}
 
-			if (index < 0)
-			{
-				Logger::Error("Playerdatadef entry %s cannot be rebased!", rebaseEntries[i].data());
-			}
-
-			for (unsigned int j = 0; j < indexCount; ++j)
-			{
-				if (pos != j && indices[j].index > index)
-				{
-					indices[j].index--;
-				}
-			}
+			if(rebased) continue;
+			dataVector.push_back(StructuredData::MemAllocator.DuplicateString(entry));
 		}
 
-		for (unsigned int j = 0; j < indexCount && type == StructuredData::PlayerDataType::ENUM_WEAPONS; ++j)
+		// Map data back to the game structure
+		Game::StructuredDataEnumEntry* indices = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(dataVector.size());
+		for (unsigned int i = 0; i < dataVector.size(); ++i)
 		{
-			OutputDebugStringA(Utils::String::VA("%s: %d\n", indices[j].key, indices[j].index));
+			indices[i].index = i;
+			indices[i].key = dataVector[i];
 		}
+
+		// Sort alphabetically
+		qsort(indices, dataVector.size(), sizeof(Game::StructuredDataEnumEntry), [] (const void* first, const void* second)
+		{
+			const Game::StructuredDataEnumEntry* entry1 = reinterpret_cast<const Game::StructuredDataEnumEntry*>(first);
+			const Game::StructuredDataEnumEntry* entry2 = reinterpret_cast<const Game::StructuredDataEnumEntry*>(second);
+
+			return std::string(entry1->key).compare(entry2->key);
+		});
 
 		// Apply our patches
-		dataEnum->numIndices = indexCount;
+		dataEnum->numIndices = dataVector.size();
 		dataEnum->indices = indices;
 	}
 
