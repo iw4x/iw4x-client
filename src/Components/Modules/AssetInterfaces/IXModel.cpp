@@ -216,11 +216,6 @@ namespace Assets
 		Game::XModel* dest = buffer->Dest<Game::XModel>();
 		buffer->Save(asset);
 
-		if(asset->name == "viewmodel_m40a3"s)
-		{
-			OutputDebugStringA("");
-		}
-
 		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
 		if (asset->name)
