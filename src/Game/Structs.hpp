@@ -1402,7 +1402,9 @@ namespace Game
 		GfxPackedVertex* vertexBuffer; // +28
 		int numCT; // +32
 		XRigidVertList* ct; // +36
-		int something;
+		char boneIndex;
+		char unk;
+		short something;
 		int something2;
 		char pad5[16]; // +40
 					   // pad5 matches XModelSurfaces pad
