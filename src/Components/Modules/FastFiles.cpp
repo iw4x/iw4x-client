@@ -220,8 +220,17 @@ namespace Components
 	const char* FastFiles::GetZoneLocation(const char* file)
 	{
 		const char* dir = Dvar::Var("fs_basepath").Get<const char*>();
+
+		std::vector<std::string> paths; 
+		std::string modDir = Dvar::Var("fs_game").Get<std::string>();
+		if (file == "mod"s || file == "mod.ff"s || !modDir.empty())
+		{
+			paths.push_back(fmt::sprintf("zone\\%s\\", modDir.data()));
+		}
+
+		Utils::Merge(&paths, FastFiles::ZonePaths);
 		
-		for (auto &path : FastFiles::ZonePaths)
+		for (auto &path : paths)
 		{
 			std::string absoluteFile = fmt::sprintf("%s\\%s%s", dir, path.data(), file);
 

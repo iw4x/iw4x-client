@@ -330,11 +330,13 @@ namespace Components
 	{
 		Utils::Memory::Allocator allocator;
 
-		// If this fails, you can try to fallback to OpenThreadToken
 		HANDLE hToken = nullptr;
 		if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &hToken))
 		{
-			return GetLastError();
+			if (!OpenThreadToken(GetCurrentThread(), TOKEN_READ, TRUE, &hToken))
+			{
+				return GetLastError();
+			}
 		}
 
 		auto freeSid = [] (void* sid)
