@@ -42,6 +42,20 @@ namespace Components
 
 		if (!model.Exists())
 		{
+#ifdef DEBUG
+			if (Flags::HasFlag("dump"))
+			{
+				FILE* fp = nullptr;
+				if (!fopen_s(&fp, "dump.cfg", "a") && fp)
+				{
+					fprintf(fp, "dumpraw %s\n", model.GetName().data());
+					fclose(fp);
+				}
+
+				return nullptr;
+			}
+#endif
+
 			Logger::Error("Loading model %s failed!", name.data());
 		}
 
@@ -131,6 +145,7 @@ namespace Components
 			{
 				Assert_Offset(Game::XModelLodInfo, partBits, 12);
 				Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
+				if (!newSurfs) continue;
 
  				surfs->surfaces = newSurfs->surfaces;
  				surfs->numSurfaces = newSurfs->numSurfaces;
