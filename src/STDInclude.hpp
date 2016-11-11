@@ -141,6 +141,7 @@ using namespace std::literals;
 #define CLIENT_CONFIG "iw4x_config.cfg"
 
 #define Assert_Size(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
+#define Assert_Offset(x, y, offset) static_assert(offsetof(x, y) == offset, STRINGIZE(x) "::" STRINGIZE(y) " is not at the right offset.")
 
 // Resource stuff
 #ifdef APSTUDIO_INVOKED

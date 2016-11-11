@@ -1425,8 +1425,8 @@ namespace Game
 		short numSurfs; // +4
 		short maxSurfs;// +6
 		XModelSurfs* surfaces; // +8
-		int partBits[4];
-		char pad3[8]; // +12
+		int partBits[4]; // +12
+		char pad3[8]; 
 		XSurface* surfs;
 		char pad4[4]; 
 	};

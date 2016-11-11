@@ -93,8 +93,10 @@ namespace Components
 
 			for (int i = 0; i < 4; ++i)
 			{
+				Assert_Offset(Game::XModelLodInfo, partBits, 12);
+
 				std::memcpy(&model->lods[i], &xmodel[72 + (i * 56)], 12);
-				std::memcpy(&model->lods[i].pad3, &xmodel[72 + (i * 56) + 16], 32);
+				std::memcpy(&model->lods[i].partBits, &xmodel[72 + (i * 56) + 16], 32);
 
 				std::memcpy(reinterpret_cast<char*>(&model) + (size - 4) - (i * 4), &xmodel[72 + (i * 56) + 12], 4);
 			}

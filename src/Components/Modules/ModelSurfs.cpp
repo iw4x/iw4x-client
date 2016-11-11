@@ -129,13 +129,14 @@ namespace Components
 
 			if (!surfs->surfaces)
 			{
+				Assert_Offset(Game::XModelLodInfo, partBits, 12);
 				Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
 
  				surfs->surfaces = newSurfs->surfaces;
  				surfs->numSurfaces = newSurfs->numSurfaces;
 
 				model->lods[i].surfs = newSurfs->surfaces;
-				std::memcpy(model->lods[i].pad3, newSurfs->pad, 24);
+				std::memcpy(model->lods[i].partBits, newSurfs->pad, 24);
 
 				short numSurfs = static_cast<short>(newSurfs->numSurfaces);
 				model->lods[i].numSurfs = numSurfs;
