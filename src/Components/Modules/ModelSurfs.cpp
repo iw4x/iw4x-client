@@ -136,7 +136,7 @@ namespace Components
  				surfs->numSurfaces = newSurfs->numSurfaces;
 
 				model->lods[i].surfs = newSurfs->surfaces;
-				std::memcpy(model->lods[i].partBits, newSurfs->pad, 24);
+				std::memcpy(&model->lods[i].partBits, newSurfs->pad, 24);
 
 				short numSurfs = static_cast<short>(newSurfs->numSurfaces);
 				model->lods[i].numSurfs = numSurfs;
