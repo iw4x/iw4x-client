@@ -2,6 +2,8 @@
 
 namespace Components
 {
+	Utils::Memory::Allocator FileSystem::MemAllocator;
+
 	void FileSystem::File::Read()
 	{
 		char* buffer = nullptr;
@@ -32,12 +34,17 @@ namespace Components
 
 	bool FileSystem::FileReader::Exists()
 	{
-		return (this->Size > 0);
+		return (this->Size >= 0);
 	}
 
 	std::string FileSystem::FileReader::GetName()
 	{
 		return this->Name;
+	}
+
+	int FileSystem::FileReader::GetSize()
+	{
+		return this->Size;
 	}
 
 	std::string FileSystem::FileReader::GetBuffer()
@@ -152,6 +159,16 @@ namespace Components
 		Game::FS_Remove(path);
 	}
 
+	void* FileSystem::AllocateFile(int size)
+	{
+		return FileSystem::MemAllocator.Allocate(size);
+	}
+
+	void FileSystem::FreeFile(void* buffer)
+	{
+		FileSystem::MemAllocator.Free(buffer);
+	}
+
 	void FileSystem::RegisterFolder(const char* folder)
 	{
 		std::string fs_cdpath = Dvar::Var("fs_cdpath").Get<std::string>();
@@ -197,6 +214,13 @@ namespace Components
 
 	FileSystem::FileSystem()
 	{
+		FileSystem::MemAllocator.Clear();
+
+		// Thread safe file system interaction
+		Utils::Hook(0x4F4BFF, FileSystem::AllocateFile, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4F4BC0, Game::FS_FOpenFileReadCurrentThread, HOOK_CALL).Install()->Quick();
+		Utils::Hook(Game::FS_FreeFile, FileSystem::FreeFile, HOOK_JUMP).Install()->Quick();
+
 		// Filesystem config checks
 		Utils::Hook(0x6098FD, FileSystem::ExecIsFSStub, HOOK_CALL).Install()->Quick();
 
@@ -212,5 +236,10 @@ namespace Components
 
 		// Ignore bad magic, when trying to free hunk when it's already cleared
 		Utils::Hook::Set<WORD>(0x49AACE, 0xC35E);
+	}
+
+	FileSystem::~FileSystem()
+	{
+		assert(FileSystem::MemAllocator.Empty());
 	}
 }

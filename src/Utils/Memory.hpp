@@ -80,6 +80,11 @@ namespace Utils
 				return static_cast<T*>(this->Allocate(count * sizeof(T)));
 			}
 
+			bool Empty()
+			{
+				return (this->Pool.empty() && this->RefMemory.empty());
+			}
+
 			char* DuplicateString(std::string string)
 			{
 				char* data = Memory::DuplicateString(string);

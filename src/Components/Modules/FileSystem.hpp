@@ -31,6 +31,7 @@ namespace Components
 			bool Exists();
 			std::string GetName();
 			std::string GetBuffer();
+			int GetSize();
 			bool Read(void* buffer, size_t size);
 			void Seek(int offset, int origin);
 
@@ -57,6 +58,7 @@ namespace Components
 		};
 
 		FileSystem();
+		~FileSystem();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* GetName() { return "FileSystem"; };
@@ -67,6 +69,10 @@ namespace Components
 		static void DeleteFile(std::string folder, std::string file);
 
 	private:
+		static Utils::Memory::Allocator MemAllocator;
+
+		static void* AllocateFile(int size);
+		static void FreeFile(void* buffer);
 
 		static void RegisterFolder(const char* folder);
 
