@@ -109,7 +109,7 @@ namespace Components
 
 		if (type == Game::XAssetType::ASSET_TYPE_WEAPON)
 		{
-			if (!strstr(name.data(), "_mp") && name != "none" && name != "destructible_car")
+			if ((!strstr(name.data(), "_mp") && name != "none" && name != "destructible_car") || Zones::Version() >= VERSION_ALPHA2)
 			{
 				*restrict = true;
 				return;
@@ -148,6 +148,12 @@ namespace Components
 
 		// This is broken
 		if ((type == Game::XAssetType::ASSET_TYPE_MENU || type == Game::XAssetType::ASSET_TYPE_MENUFILE) && Zones::Version() >= 359)
+		{
+			*restrict = true;
+			return;
+		}
+
+		if (type == Game::XAssetType::ASSET_TYPE_VEHICLE && Zones::Version() >= VERSION_ALPHA2)
 		{
 			*restrict = true;
 			return;
@@ -194,6 +200,12 @@ namespace Components
 		if (mapname == "mp_shipment"s)
 		{
 			mapname = "mp_shipment_long";
+		}
+
+		// Redirect crash tropical
+		if (mapname == "mp_crash_trop"s)
+		{
+			mapname = "mp_crash_tropical";
 		}
 
 		_snprintf_s(buffer, size, size, format, mapname);

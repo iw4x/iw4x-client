@@ -2319,7 +2319,9 @@ namespace Game
 	struct VehicleDef
 	{
 		const char* name;
-		char pad[716];
+		char pad[408];
+		void* weaponDef;
+		char pad2[304];
 	};
 
 	struct XModelDrawInfo
