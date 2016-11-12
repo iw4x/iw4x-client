@@ -8,6 +8,7 @@ using namespace Utils;
 
 namespace Components
 {
+	std::thread BitMessage::ShutDownThread;
 	BitMRC* BitMessage::BMClient;
 
 	BitMessage::BitMessage()
@@ -15,6 +16,15 @@ namespace Components
 #ifdef DEBUG
 		Logger::Print("Initializing BitMessage...\n");
 #endif // DEBUG
+
+		QuickPatch::OnShutdown([] ()
+		{
+			BitMessage::ShutDownThread = std::thread(BitMessage::ShutDown);
+			if (BitMessage::ShutDownThread.joinable())
+			{
+				BitMessage::ShutDownThread.join();
+			}
+		});
 
 		BitMessage::BMClient = new BitMRC(BITMESSAGE_OBJECT_STORAGE_FILENAME, BITMESSAGE_KEYS_FILENAME);
 		BitMessage::BMClient->init();
@@ -34,7 +44,7 @@ namespace Components
 		BitMessage::BMClient->start();
 
 #ifdef DEBUG
-		Command::Add("bm_send", [](Command::Params params)
+		Command::Add("bm_send", [] (Command::Params params)
 		{
 			if (params.Length() < 3) return;
 
@@ -57,7 +67,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("bm_sendb", [](Command::Params params)
+		Command::Add("bm_sendb", [] (Command::Params params)
 		{
 			if (params.Length() < 2) return;
 
@@ -68,8 +78,10 @@ namespace Components
 			Logger::Print("Broadcast done.\n");
 		});
 
-		Command::Add("bm_check_messages", [](Command::Params)
+		Command::Add("bm_check_messages", [] (Command::Params)
 		{
+			if (!BitMessage::BMClient) return;
+
 			while (BitMessage::BMClient->new_messages.size() > 0)
 			{
 				auto msg = BitMessage::BMClient->new_messages.pop();
@@ -77,13 +89,15 @@ namespace Components
 			}
 		});
 
-		Command::Add("bm_check_connections", [](Command::Params)
+		Command::Add("bm_check_connections", [] (Command::Params)
 		{
+			if (!BitMessage::BMClient) return;
 			std::shared_lock<std::shared_timed_mutex> mlock(BitMessage::BMClient->mutex_nodes);
 
 			for (auto& node : BitMessage::BMClient->Nodes)
 			{
-				switch (node->state) {
+				switch (node->state) 
+				{
 				case 0: // Not connected
 					Logger::Print("%s: Disconnected\n", node->Ip.data());
 					break;
@@ -102,8 +116,9 @@ namespace Components
 			mlock.unlock();
 		});
 
-		Command::Add("bm_check_privatekey", [](Command::Params)
+		Command::Add("bm_check_privatekey", [] (Command::Params)
 		{
+			if (!BitMessage::BMClient) return;
 			std::shared_lock<std::shared_timed_mutex> mlock(BitMessage::BMClient->mutex_priv);
 
 			if (BitMessage::BMClient->PrivAddresses.empty())
@@ -121,8 +136,9 @@ namespace Components
 			mlock.unlock();
 		});
 
-		Command::Add("bm_check_publickey", [](Command::Params)
+		Command::Add("bm_check_publickey", [] (Command::Params)
 		{
+			if (!BitMessage::BMClient) return;
 			std::shared_lock<std::shared_timed_mutex> mlock(BitMessage::BMClient->mutex_pub);
 
 			if (BitMessage::BMClient->PubAddresses.empty())
@@ -138,13 +154,14 @@ namespace Components
 			mlock.unlock();
 		});
 
-		Command::Add("bm_save", [](Command::Params)
+		Command::Add("bm_save", [] (Command::Params)
 		{
 			BitMessage::Save();
 		});
 
-		Command::Add("bm_address_public", [](Command::Params params)
+		Command::Add("bm_address_public", [] (Command::Params params)
 		{
+			if (!BitMessage::BMClient) return;
 			if (params.Length() < 2) return;
 
 			ustring addre;
@@ -163,8 +180,9 @@ namespace Components
 			}
 		});
 
-		Command::Add("bm_address_broadcast", [](Command::Params params)
+		Command::Add("bm_address_broadcast", [] (Command::Params params)
 		{
+			if (!BitMessage::BMClient) return;
 			if (params.Length() < 2) return;
 
 			ustring addre;
@@ -183,22 +201,31 @@ namespace Components
 #endif
 	}
 
-	BitMessage::~BitMessage()
+	void BitMessage::ShutDown()
 	{
 		BitMessage::Save();
-
 		delete BitMessage::BMClient;
-
 		BitMessage::BMClient = nullptr;
+	}
+
+	BitMessage::~BitMessage()
+	{
+		if (BitMessage::BMClient)
+		{
+			BitMessage::ShutDown();
+		}
 	}
 
 	void BitMessage::SetDefaultTTL(time_t ttl)
 	{
+		if (!BitMessage::BMClient) return;
 		BitMessage::BMClient->defaultTTL = ttl;
 	}
 
 	bool BitMessage::RequestPublicKey(std::string targetAddress)
 	{
+		if (!BitMessage::BMClient) return false;
+
 		// Convert to ustring
 		ustring targetAddressU;
 		targetAddressU.fromString(targetAddress);
@@ -217,6 +244,7 @@ namespace Components
 
 	PubAddr* BitMessage::FindPublicKey(PubAddr address)
 	{
+		if (!BitMessage::BMClient) return nullptr;
 		std::shared_lock<std::shared_timed_mutex> mlock(BitMessage::BMClient->mutex_pub);
 
 		PubAddr* retval = nullptr;
@@ -240,6 +268,8 @@ namespace Components
 
 	bool BitMessage::WaitForPublicKey(std::string targetAddress)
 	{
+		if (!BitMessage::BMClient) return false;
+
 		// Convert to ustring
 		ustring targetAddressU;
 		targetAddressU.fromString(targetAddress);
@@ -280,6 +310,8 @@ namespace Components
 
 	bool BitMessage::Subscribe(std::string targetAddress)
 	{
+		if (!BitMessage::BMClient) return false;
+
 		// Convert to ustring
 		ustring targetAddressU;
 		targetAddressU.fromString(targetAddress);
@@ -298,6 +330,8 @@ namespace Components
 
 	bool BitMessage::SendMsg(std::string targetAddress, std::string message, time_t ttl)
 	{
+		if (!BitMessage::BMClient) return false;
+
 		// Convert target address to ustring
 		ustring targetAddressU;
 		targetAddressU.fromString(targetAddress);
@@ -329,6 +363,8 @@ namespace Components
 
 	bool BitMessage::SendBroadcast(std::string message, time_t ttl)
 	{
+		if (!BitMessage::BMClient) return false;
+
 		// Convert message to ustring
 		ustring messageU;
 		messageU.fromString(message);
@@ -348,6 +384,8 @@ namespace Components
 
 	bool BitMessage::InitAddr()
 	{
+		if (!BitMessage::BMClient) return false;
+
 #ifdef DEBUG
 		Logger::Print("Generating BM address...\n");
 #endif
@@ -363,7 +401,10 @@ namespace Components
 
 	void BitMessage::Save()
 	{
-		BitMessage::BMClient->save();
+		if (BitMessage::BMClient)
+		{
+			BitMessage::BMClient->save();
+		}
 	}
 }
 

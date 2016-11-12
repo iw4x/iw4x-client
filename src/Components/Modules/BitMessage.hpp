@@ -28,8 +28,12 @@ namespace Components
 		static BitMRC* BMClient;
 
 	private:
+		static std::thread ShutDownThread;
+
 		static PubAddr* FindPublicKey(PubAddr addr);
 		static bool InitAddr();
+
+		static void ShutDown();
 	};
 }
 
