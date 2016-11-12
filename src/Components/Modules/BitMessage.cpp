@@ -15,7 +15,7 @@ namespace Components
 	{
 #ifdef DEBUG
 		Logger::Print("Initializing BitMessage...\n");
-#endif // DEBUG
+#endif
 
 		QuickPatch::OnShutdown([] ()
 		{

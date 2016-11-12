@@ -15,10 +15,10 @@ namespace Components
 		QuickPatch::ShutdownSignal.connect(callback);
 	}
 
-	void QuickPatch::ShutdownStub(int channel, const char* message)
+	void QuickPatch::ShutdownStub(int num)
 	{
-		Game::Com_Printf(channel, message);
 		QuickPatch::ShutdownSignal();
+		Utils::Hook::Call<void(int)>(0x46B370)(num);
 	}
 
 	void QuickPatch::OnFrame(QuickPatch::Callback* callback)
@@ -323,7 +323,7 @@ namespace Components
 		Utils::Hook::Set<char*>(0x60B279, CLIENT_CONFIG);
 		Utils::Hook::Set<char*>(0x60BBD4, CLIENT_CONFIG);
 
-		Utils::Hook(0x4D4007, QuickPatch::ShutdownStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4D697A, QuickPatch::ShutdownStub, HOOK_CALL).Install()->Quick();
 
 		// Disable profile system
 //		Utils::Hook::Nop(0x60BEB1, 5);          // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.

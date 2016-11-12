@@ -24,7 +24,7 @@ namespace Components
 		static wink::signal<wink::slot<Callback>> ShutdownSignal;
 
 		static int64_t* GetStatsID();
-		static void ShutdownStub(int channel, const char* message);
+		static void ShutdownStub(int num);
 
 		static void SelectStringTableEntryInDvarStub();
 
