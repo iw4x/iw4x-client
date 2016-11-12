@@ -122,6 +122,11 @@ namespace Components
 			asset.material->sortKey = 0xE;
 		}
 
+		if (type == Game::XAssetType::ASSET_TYPE_VEHICLE && Zones::Version() >= VERSION_ALPHA2)
+		{
+			asset.vehicle->weaponDef = nullptr;
+		}
+
 		// Fix shader const stuff
 		if (type == Game::XAssetType::ASSET_TYPE_TECHSET && Zones::Version() >= 359)
 		{

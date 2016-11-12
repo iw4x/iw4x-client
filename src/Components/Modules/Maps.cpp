@@ -152,12 +152,6 @@ namespace Components
 			*restrict = true;
 			return;
 		}
-
-		if (type == Game::XAssetType::ASSET_TYPE_VEHICLE && Zones::Version() >= VERSION_ALPHA2)
-		{
-			*restrict = true;
-			return;
-		}
 	}
 
 	Game::GameMap_Data* Maps::GetWorldData()
