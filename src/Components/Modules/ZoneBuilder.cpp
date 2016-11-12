@@ -536,7 +536,7 @@ namespace Components
 			{
 				if (params.Length() < 2) return;
 
-				static std::string zone = params[1];
+				std::string zone = params[1];
 
 				ZoneBuilder::BeginAssetTrace(zone);
 
