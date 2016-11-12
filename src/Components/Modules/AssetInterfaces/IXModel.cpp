@@ -78,8 +78,7 @@ namespace Assets
 				surface->deformed = reader.Read<char>();
 
 				surface->streamHandle = reader.Read<unsigned char>();
-				surface->boneIndex = reader.Read<char>();
-				surface->unk = reader.Read<char>();
+				surface->flags = reader.Read<unsigned short>();
 				surface->something = reader.Read<short>();
 				surface->something2 = reader.Read<int>();
 

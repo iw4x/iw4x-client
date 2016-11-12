@@ -1403,8 +1403,7 @@ namespace Game
 		int numCT; // +32
 		XRigidVertList* ct; // +36
 		short something;
-		char unk;
-		char boneIndex;
+		unsigned short flags;
 		int something2;
 		char pad5[16]; // +40
 					   // pad5 matches XModelSurfaces pad
