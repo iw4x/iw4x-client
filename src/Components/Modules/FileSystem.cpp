@@ -172,7 +172,7 @@ namespace Components
 		int size = reader.GetSize();
 		if (reader.Exists() && size >= 0)
 		{
-			*buffer = FileSystem::MemAllocator.AllocateArray<char>(size + 1);
+			*buffer = FileSystem::AllocateFile(size + 1);
 			if (reader.Read(*buffer, size)) return size;
 
 			FileSystem::FreeFile(*buffer);
@@ -180,6 +180,11 @@ namespace Components
 		}
 
 		return -1;
+	}
+
+	char* FileSystem::AllocateFile(int size)
+	{
+		return FileSystem::MemAllocator.AllocateArray<char>(size);
 	}
 
 	void FileSystem::FreeFile(void* buffer)
@@ -235,7 +240,8 @@ namespace Components
 		FileSystem::MemAllocator.Clear();
 
 		// Thread safe file system interaction
-		Utils::Hook(Game::FS_ReadFile, FileSystem::ReadFile, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4F4BFF, FileSystem::AllocateFile, HOOK_CALL).Install()->Quick();
+		//Utils::Hook(Game::FS_ReadFile, FileSystem::ReadFile, HOOK_JUMP).Install()->Quick();
 		Utils::Hook(Game::FS_FreeFile, FileSystem::FreeFile, HOOK_JUMP).Install()->Quick();
 
 		// Filesystem config checks

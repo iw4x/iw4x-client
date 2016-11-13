@@ -73,6 +73,7 @@ namespace Components
 		static Utils::Memory::Allocator MemAllocator;
 
 		static int ReadFile(const char* path, char** buffer);
+		static char* AllocateFile(int size);
 		static void FreeFile(void* buffer);
 
 		static void RegisterFolder(const char* folder);
