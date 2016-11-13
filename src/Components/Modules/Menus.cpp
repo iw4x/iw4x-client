@@ -531,7 +531,7 @@ namespace Components
 			Menus::RemoveMenuList(filename);
 		}
 		
-		if (menuList)
+		if (menuList && reinterpret_cast<DWORD>(menuList) != 0xDDDDDDDD)
 		{
 			// Parse scriptmenus!
 			if (menuList->menus[0]->window.name == "default_menu"s || Utils::String::EndsWith(filename, ".menu"))
@@ -551,6 +551,10 @@ namespace Components
 			{
 				header.menuList = Menus::LoadMenuList(menuList);
 			}
+		}
+		else
+		{
+			header.menuList = nullptr;
 		}
 
 		return header;
