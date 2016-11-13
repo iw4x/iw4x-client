@@ -505,6 +505,7 @@ namespace Components
 			Maps::AddDlc({ 5, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.5.Classics.2.zip", { "mp_killhouse", "mp_bog_sh" } });
 			Maps::AddDlc({ 6, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.6.Cargoship.Winter.zip", { "mp_cargoship_sh" } });
 			Maps::AddDlc({ 7, "https://iw4xcachep26muba.onion.to/dlc/IW4.DLC.7.Resurrection.Pack.zip", { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
+			Maps::AddDlc({ 8, "",{ /*"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"*/ } });
 
 			Maps::UpdateDlcStatus();
 
