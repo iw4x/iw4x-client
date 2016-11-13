@@ -581,6 +581,21 @@ namespace Components
 				Zone(zoneName).Build();
 			});
 
+			Command::Add("buildall", [] (Command::Params)
+			{
+				auto zoneSources = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").Get<std::string>() + "\\zone_source", "csv", false);
+
+				for (auto source : zoneSources)
+				{
+					if (Utils::String::EndsWith(source, ".csv"))
+					{
+						source = source.substr(0, source.find(".csv"));
+					}
+
+					Command::Execute(fmt::sprintf("buildzone %s", source.data()), true);
+				}
+			});
+
 			Command::Add("listassets", [] (Command::Params params)
 			{
 				if (params.Length() < 2) return;
