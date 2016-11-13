@@ -196,12 +196,6 @@ namespace Components
 			mapname = "mp_shipment_long";
 		}
 
-		// Redirect crash tropical
-		if (mapname == "mp_crash_trop"s)
-		{
-			mapname = "mp_crash_tropical";
-		}
-
 		_snprintf_s(buffer, size, size, format, mapname);
 	}
 
