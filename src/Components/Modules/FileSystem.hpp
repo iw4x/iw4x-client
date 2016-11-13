@@ -69,9 +69,10 @@ namespace Components
 		static void DeleteFile(std::string folder, std::string file);
 
 	private:
+		static std::mutex Mutex;
 		static Utils::Memory::Allocator MemAllocator;
 
-		static void* AllocateFile(int size);
+		static int ReadFile(const char* path, char** buffer);
 		static void FreeFile(void* buffer);
 
 		static void RegisterFolder(const char* folder);

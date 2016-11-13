@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	std::mutex FileSystem::Mutex;
 	Utils::Memory::Allocator FileSystem::MemAllocator;
 
 	void FileSystem::File::Read()
@@ -34,7 +35,7 @@ namespace Components
 
 	bool FileSystem::FileReader::Exists()
 	{
-		return (this->Size >= 0);
+		return (this->Size >= 0 && this->Handle);
 	}
 
 	std::string FileSystem::FileReader::GetName()
@@ -159,9 +160,26 @@ namespace Components
 		Game::FS_Remove(path);
 	}
 
-	void* FileSystem::AllocateFile(int size)
+	int FileSystem::ReadFile(const char* path, char** buffer)
 	{
-		return FileSystem::MemAllocator.Allocate(size);
+		if (!buffer) return -1;
+		else *buffer = nullptr;
+		if (!path) return -1;
+
+		std::lock_guard<std::mutex> _(FileSystem::Mutex);
+		FileSystem::FileReader reader(path);
+
+		int size = reader.GetSize();
+		if (reader.Exists() && size >= 0)
+		{
+			*buffer = FileSystem::MemAllocator.AllocateArray<char>(size + 1);
+			if (reader.Read(*buffer, size)) return size;
+
+			FileSystem::FreeFile(*buffer);
+			*buffer = nullptr;
+		}
+
+		return -1;
 	}
 
 	void FileSystem::FreeFile(void* buffer)
@@ -217,8 +235,7 @@ namespace Components
 		FileSystem::MemAllocator.Clear();
 
 		// Thread safe file system interaction
-		Utils::Hook(0x4F4BFF, FileSystem::AllocateFile, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4F4BC0, Game::FS_FOpenFileReadCurrentThread, HOOK_CALL).Install()->Quick();
+		Utils::Hook(Game::FS_ReadFile, FileSystem::ReadFile, HOOK_JUMP).Install()->Quick();
 		Utils::Hook(Game::FS_FreeFile, FileSystem::FreeFile, HOOK_JUMP).Install()->Quick();
 
 		// Filesystem config checks
