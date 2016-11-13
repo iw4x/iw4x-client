@@ -203,17 +203,17 @@ namespace Components
 
 	void BitMessage::ShutDown()
 	{
-		BitMessage::Save();
-		delete BitMessage::BMClient;
-		BitMessage::BMClient = nullptr;
+		if (BitMessage::BMClient)
+		{
+			BitMessage::Save();
+			delete BitMessage::BMClient;
+			BitMessage::BMClient = nullptr;
+		}
 	}
 
 	BitMessage::~BitMessage()
 	{
-		if (BitMessage::BMClient)
-		{
-			BitMessage::ShutDown();
-		}
+		BitMessage::ShutDown();
 	}
 
 	void BitMessage::SetDefaultTTL(time_t ttl)
