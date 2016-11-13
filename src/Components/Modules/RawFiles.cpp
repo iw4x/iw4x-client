@@ -29,7 +29,7 @@ namespace Components
 				return;
 			}
 
-			FileSystem::File file(params[1]);
+			FileSystem::File file(params.Join(1));
 			if (file.Exists())
 			{
 				Utils::IO::WriteFile("raw/" + file.GetName(), file.GetBuffer());
