@@ -1,5 +1,5 @@
 
-# IW4x: Client
+# IW4x: Client [![Discord](https://discordapp.com/api/guilds/219514629703860235/widget.png)](https://discord.gg/sKeVmR3)
 
 ## Commit message style
 
