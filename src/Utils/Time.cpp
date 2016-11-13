@@ -4,7 +4,7 @@ namespace Utils
 {
 	namespace Time
 	{
-		void Interval::Set()
+		void Interval::Update()
 		{
 			this->LastPoint = std::chrono::high_resolution_clock::now();
 		}

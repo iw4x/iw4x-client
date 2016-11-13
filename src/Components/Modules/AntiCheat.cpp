@@ -104,7 +104,7 @@ namespace Components
 
 		if(check.Elapsed(20s))
 		{
-			check.Set();
+			check.Update();
 
 			if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
 			{
@@ -127,7 +127,7 @@ namespace Components
 
 		if (check.Elapsed(30s))
 		{
-			check.Set();
+			check.Update();
 
 			unsigned long flags = ((AntiCheat::IntergrityFlag::MAX_FLAG - 1) << 1) - 1;
 
@@ -162,7 +162,7 @@ namespace Components
 	{
 		// Perform check only every 10 seconds
 		if (!AntiCheat::LastCheck.Elapsed(10s)) return;
-		AntiCheat::LastCheck.Set();
+		AntiCheat::LastCheck.Update();
 
 		// Hash .text segment
 		// Add 1 to each value, so searching in memory doesn't reveal anything

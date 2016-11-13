@@ -10,7 +10,7 @@ namespace Utils
 		public:
 			Interval() : LastPoint(std::chrono::high_resolution_clock::now()) {}
 
-			void Set();
+			void Update();
 			bool Elapsed(std::chrono::nanoseconds nsecs);
 		};
 	}
