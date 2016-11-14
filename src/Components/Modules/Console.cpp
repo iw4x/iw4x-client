@@ -491,10 +491,44 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* Console::RegisterConColor(const char* name, float r, float g, float b, float a, float min, float max, int flags, const char* description)
+	{
+		static struct
+		{
+			const char* name;
+			float color[4];
+		} patchedColors[] =
+		{
+			{ "con_inputBoxColor",     { 0.20f, 0.20f, 0.20f, 1.00f } },
+			{ "con_inputHintBoxColor", { 0.30f, 0.30f, 0.30f, 1.00f } },
+			{ "con_outputBarColor",    { 0.50f, 0.50f, 0.50f, 0.60f } },
+			{ "con_outputSliderColor", { 0.35f, 0.50f, 0.00f, 0.60f } },
+			{ "con_outputWindowColor", { 0.25f, 0.25f, 0.25f, 0.85f } },
+		};
+
+		for (int i = 0; i < ARRAY_SIZE(patchedColors); ++i)
+		{
+			if (std::string(name) == patchedColors[i].name)
+			{
+				r = patchedColors[i].color[0];
+				g = patchedColors[i].color[1];
+				b = patchedColors[i].color[2];
+				a = patchedColors[i].color[3];
+				break;
+			}
+		}
+
+		return reinterpret_cast<Game::Dvar_RegisterVec4_t>(0x471500)(name, r, g, b, a, min, max, flags, description);
+	}
+
 	Console::Console()
 	{
 		// Console '%s: %s> ' string
 		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: " VERSION "> ");
+
+		// Patch console color
+		static float consoleColor[] = { 0.53f, 0.75f, 0.00f, 1.00f };
+		Utils::Hook::Set<float*>(0x5A451A, consoleColor);
 
 		// Internal console
 		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).Install()->Quick();
@@ -505,6 +539,13 @@ namespace Components
 
 		// Check for bad food ;)
 		Utils::Hook(0x4CB9F4, Console::GetAutoCompleteFileList, HOOK_CALL).Install()->Quick();
+
+		// Patch console dvars
+		Utils::Hook(0x4829AB, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4829EE, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x482A31, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x482A7A, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x482AC3, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
 
 		// Modify console style
 		Utils::Hook::Set<BYTE>(0x428A8E, 0);    // Adjust logo Y pos
