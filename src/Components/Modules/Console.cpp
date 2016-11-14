@@ -502,7 +502,7 @@ namespace Components
 			{ "con_inputBoxColor",     { 0.20f, 0.20f, 0.20f, 1.00f } },
 			{ "con_inputHintBoxColor", { 0.30f, 0.30f, 0.30f, 1.00f } },
 			{ "con_outputBarColor",    { 0.50f, 0.50f, 0.50f, 0.60f } },
-			{ "con_outputSliderColor", { 0.35f, 0.50f, 0.00f, 0.60f } },
+			{ "con_outputSliderColor", { 0.70f, 1.00f, 0.00f, 1.00f } },
 			{ "con_outputWindowColor", { 0.25f, 0.25f, 0.25f, 0.85f } },
 		};
 
@@ -527,8 +527,9 @@ namespace Components
 		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: " VERSION "> ");
 
 		// Patch console color
-		static float consoleColor[] = { 0.53f, 0.75f, 0.00f, 1.00f };
+		static float consoleColor[] = { 0.70f, 1.00f, 0.00f, 1.00f };
 		Utils::Hook::Set<float*>(0x5A451A, consoleColor);
+		Utils::Hook::Set<float*>(0x5A4400, consoleColor);
 
 		// Internal console
 		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).Install()->Quick();
