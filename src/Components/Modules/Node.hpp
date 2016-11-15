@@ -28,6 +28,8 @@ namespace Components
 
 		static unsigned int GetValidNodeCount();
 
+		static void LoadNodeRemotePreset();
+
 	private:
 		enum EntryState
 		{

@@ -8,6 +8,20 @@ namespace Components
 	std::vector<Node::NodeEntry> Node::Nodes;
 	std::vector<Node::ClientSession> Node::Sessions;
 
+	void Node::LoadNodeRemotePreset()
+	{
+		std::string nodes = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/nodex.txt").SetTimeout(5000)->Get();
+		if (nodes.empty()) return;
+
+		auto nodeList = Utils::String::Explode(nodes, '\n');
+		for (auto node : nodeList)
+		{
+			Utils::String::Replace(node, "\r", "");
+			node = Utils::String::Trim(node);
+			Node::AddNode(node);
+		}
+	}
+
 	void Node::LoadNodePreset()
 	{
 		Proto::Node::List list;
