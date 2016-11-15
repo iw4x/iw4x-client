@@ -10,7 +10,7 @@ namespace Components
 
 	void Node::LoadNodeRemotePreset()
 	{
-		std::string nodes = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/nodsx.txt").SetTimeout(5000)->Get();
+		std::string nodes = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/nodes.txt").SetTimeout(5000)->Get();
 		if (nodes.empty()) return;
 
 		auto nodeList = Utils::String::Explode(nodes, '\n');
