@@ -173,8 +173,6 @@ namespace Components
 
 				if (!Loader::PerformingUnitTests())
 				{
-					Node::LoadNodeRemotePreset();
-
 					while (!News::Terminate)
 					{
 						News::CheckForUpdate();

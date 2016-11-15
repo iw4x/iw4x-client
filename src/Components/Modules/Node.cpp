@@ -878,6 +878,14 @@ namespace Components
 
 		// Install frame handlers
 		QuickPatch::OnFrame(Node::FrameHandler);
+
+		Network::OnStart([] ()
+		{
+			std::thread([] ()
+			{
+				Node::LoadNodeRemotePreset();
+			}).detach();
+		});
 	}
 
 	Node::~Node()
