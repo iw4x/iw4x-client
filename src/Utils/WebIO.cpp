@@ -294,7 +294,18 @@ namespace Utils
 			finalHeaders.append("\r\n");
 		}
 
-		HttpSendRequestA(WebIO::m_hFile, finalHeaders.data(), finalHeaders.size(), const_cast<char*>(body.data()), body.size() + 1);
+		if (HttpSendRequestA(WebIO::m_hFile, finalHeaders.data(), finalHeaders.size(), const_cast<char*>(body.data()), body.size() + 1) == FALSE)
+		{
+			return "";
+		}
+
+		DWORD statusCode = 404;
+		DWORD length = sizeof(statusCode);
+		if (HttpQueryInfo(WebIO::m_hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &statusCode, &length, NULL) == FALSE || (statusCode != 200 && statusCode != 201))
+		{
+			WebIO::CloseConnection();
+			return "";
+		}
 
 		std::string returnBuffer;
 
