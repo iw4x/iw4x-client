@@ -864,7 +864,7 @@ namespace Components
 
 		Command::Add("syncnodes", [] (Command::Params)
 		{
-			Logger::Print("Re-Synchronizing nodes...\n");
+			Logger::Print("Resynchronizing nodes...\n");
 			
 			std::lock_guard<std::mutex> _(Node::NodeMutex);
 			for (auto& node : Node::Nodes)
@@ -874,6 +874,13 @@ namespace Components
 				node.lastTime = 0;
 				node.lastListQuery = 0;
 			}
+		});
+
+		Command::Add("reloadnodes", [](Command::Params)
+		{
+			Logger::Print("Reload remote preset nodes...\n");
+
+			Node::LoadNodeRemotePreset();
 		});
 
 		// Install frame handlers

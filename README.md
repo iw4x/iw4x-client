@@ -4,7 +4,7 @@
 ## Commit message style
 
 ```
-[module] Imperative summary
+[Module] Imperative summary
 
 - points or text
 
