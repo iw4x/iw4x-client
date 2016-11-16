@@ -161,12 +161,15 @@ namespace Components
 		// Resolving hook
 		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).Install()->Quick();
 
+#ifdef DEBUG
 		// Set loading entry point
 		Utils::Hook(0x41D859, Localization::SELoadLanguageStub, HOOK_CALL).Install()->Quick();
+#endif
 
 		// Overwrite SetString
 		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).Install()->Quick();
 
+/*
 		// TODO: Get rid of those!
 		Localization::Set("MENU_SEARCHINGFORGAMES_100MS", "");
 		Localization::Set("MP_SEARCHING_FOR_PLAYER", "Waiting");
@@ -192,7 +195,8 @@ namespace Components
 		Localization::Set("MPUI_DESC_QUIT", "Quit the game.");
 
 		Localization::Set("PLATFORM_REFRESH_LIST", "Refresh List ^0- ^3F5");
-		Localization::Set("PLATFORM_REFRESH_LIST_CAPS", "REFRESH LIST ^0- ^3F5");
+		Localization::Set("PLATFORM_REFRESH_LIST_CAPS", "REFRESH LIST ^0- ^/*3F5");
+*/
 
 		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
 	}
