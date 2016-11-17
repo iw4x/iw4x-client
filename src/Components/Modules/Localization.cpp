@@ -133,8 +133,17 @@ namespace Components
 
 	DWORD Localization::SELoadLanguageStub()
 	{
-		//'official' iw4x localized strings
-		Game::SE_Load("localizedstrings/iw4x.str", 0);
+		if (ZoneBuilder::IsEnabled())
+		{
+			if (FileSystem::File(fmt::sprintf("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage())).Exists())
+			{
+				Game::SE_Load(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage()), 0);
+			}
+			else
+			{
+				Game::SE_Load("localizedstrings/iw4x_english.str", 0);
+			}
+		}
 
 		return Utils::Hook::Call<DWORD()>(0x629E20)();
 	}
@@ -161,10 +170,8 @@ namespace Components
 		// Resolving hook
 		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).Install()->Quick();
 
-#ifdef DEBUG
 		// Set loading entry point
 		Utils::Hook(0x41D859, Localization::SELoadLanguageStub, HOOK_CALL).Install()->Quick();
-#endif
 
 		// Overwrite SetString
 		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).Install()->Quick();

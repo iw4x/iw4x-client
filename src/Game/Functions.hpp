@@ -458,7 +458,7 @@ namespace Game
 	typedef int(__cdecl * Script_CleanString_t)(char* buffer);
 	extern Script_CleanString_t Script_CleanString;
 
-	typedef char* (__cdecl * SE_Load_t)(char* file, int Unk);
+	typedef char* (__cdecl * SE_Load_t)(const char* file, int Unk);
 	extern SE_Load_t SE_Load;
 
 	typedef char* (__cdecl * SEH_StringEd_GetString_t)(const char* string);
