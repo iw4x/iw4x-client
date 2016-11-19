@@ -27,7 +27,6 @@ This is going to be the second public Alpha version.
 
 ### Known issues
 
-- Some planes on Rust Long are not correctly rotated.
 - Running IW4x on Linux currently requires gnutls to be installed additional to Wine as it needs to access the Tor service via HTTPS.
 
 ## [0.2.0] - 2016-10-09
