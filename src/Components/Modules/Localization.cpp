@@ -133,13 +133,13 @@ namespace Components
 
 	DWORD Localization::SELoadLanguageStub()
 	{
-		if (ZoneBuilder::IsEnabled())
+		//if (ZoneBuilder::IsEnabled())
 		{
 			if (FileSystem::File(fmt::sprintf("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage())).Exists())
 			{
 				Game::SE_Load(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage()), 0);
 			}
-			else
+			else if (FileSystem::File("localizedstrings/iw4x_english.str").Exists())
 			{
 				Game::SE_Load("localizedstrings/iw4x_english.str", 0);
 			}
