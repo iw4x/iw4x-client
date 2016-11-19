@@ -56,45 +56,19 @@ namespace Utils
 
 		bool CreateDirectory(std::string dir)
 		{
-			char opath[MAX_PATH] = { 0 };
-			char *p;
-			size_t len;
+			return std::experimental::filesystem::create_directories(dir);
+		}
 
-			strncpy_s(opath, dir.data(), sizeof(opath));
-			len = strlen(opath);
+		std::vector<std::string> ListFiles(std::string dir)
+		{
+			std::vector<std::string> files;
 
-			if (opath[len - 1] == L'/')
+			for (auto& file : std::experimental::filesystem::directory_iterator(dir))
 			{
-				opath[len - 1] = L'\0';
+				files.push_back(file.path().generic_string());
 			}
 
-			for (p = opath; *p; p++)
-			{
-				if (*p == L'/' || *p == L'\\')
-				{
-					*p = L'\0';
-
-					if (_access(opath, 0))
-					{
-						if (_mkdir(opath) == -1)
-						{
-							return false;
-						}
-					}
-
-					*p = L'\\';
-				}
-			}
-
-			if (_access(opath, 0))
-			{
-				if (_mkdir(opath) == -1)
-				{
-					return false;
-				}
-			}
-
-			return true;
+			return files;
 		}
 	}
 }

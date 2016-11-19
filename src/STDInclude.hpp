@@ -39,6 +39,9 @@
 #include <future>
 #include <queue>
 
+// Experimental C++17 features
+#include <filesystem>
+
 #ifdef ENABLE_DXSDK
 #include <D3dx9tex.h>
 #pragma comment(lib, "D3dx9.lib")
