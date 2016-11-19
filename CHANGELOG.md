@@ -19,6 +19,7 @@ This is going to be the second public Alpha version.
 ### Changed
 
 - Rename Arctic Wet Work map to official name Freighter.
+- Complete redesign of the main menus.
 
 ### Fixed
 
