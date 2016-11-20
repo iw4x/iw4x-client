@@ -98,7 +98,7 @@ namespace Components
 	Discovery::~Discovery()
 	{
 		Discovery::IsPerforming = false;
-		Discovery::IsPerforming = true;
+		Discovery::IsTerminating = true;
 
 		if (Discovery::Thread.joinable())
 		{
