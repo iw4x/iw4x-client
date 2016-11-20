@@ -10,7 +10,7 @@ namespace Components
 		~Menus();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Menus"; };
+		const char* getName() { return "Menus"; };
 #endif
 
 		static void FreeEverything();

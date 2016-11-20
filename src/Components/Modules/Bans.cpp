@@ -11,7 +11,7 @@ namespace Components
 
 		if (entry.first.Bits)
 		{
-			for (auto& idEntry : list.IDList)
+			for (auto& idEntry : list.idList)
 			{
 				if (idEntry.Bits == entry.first.Bits)
 				{
@@ -22,7 +22,7 @@ namespace Components
 
 		if (entry.second.full)
 		{
-			for (auto& ipEntry : list.IPList)
+			for (auto& ipEntry : list.ipList)
 			{
 				if (ipEntry.full == entry.second.full)
 				{
@@ -44,7 +44,7 @@ namespace Components
 		if (entry.first.Bits)
 		{
 			bool found = false;
-			for (auto& idEntry : list.IDList)
+			for (auto& idEntry : list.idList)
 			{
 				if (idEntry.Bits == entry.first.Bits)
 				{
@@ -55,14 +55,14 @@ namespace Components
 
 			if (!found)
 			{
-				list.IDList.push_back(entry.first);
+				list.idList.push_back(entry.first);
 			}
 		}
 
 		if (entry.second.full)
 		{
 			bool found = false;
-			for (auto& ipEntry : list.IPList)
+			for (auto& ipEntry : list.ipList)
 			{
 				if (ipEntry.full == entry.second.full)
 				{
@@ -73,19 +73,19 @@ namespace Components
 
 			if (!found)
 			{
-				list.IPList.push_back(entry.second);
+				list.ipList.push_back(entry.second);
 			}
 		}
 
 		std::vector<std::string> idVector;
 		std::vector<std::string> ipVector;
 
-		for (auto& idEntry : list.IDList)
+		for (auto& idEntry : list.idList)
 		{
 			idVector.push_back(fmt::sprintf("%llX", idEntry.Bits));
 		}
 
-		for (auto& ipEntry : list.IPList)
+		for (auto& ipEntry : list.ipList)
 		{
 			ipVector.push_back(fmt::sprintf("%u.%u.%u.%u",
 				ipEntry.bytes[0] & 0xFF,
@@ -101,7 +101,7 @@ namespace Components
 		};
 		
 		FileSystem::FileWriter ban("bans.json");
-		ban.Write(bans.dump());
+		ban.write(bans.dump());
 	}
 
 	void Bans::LoadBans(Bans::BanList* list)
@@ -110,10 +110,10 @@ namespace Components
 
 		FileSystem::File bans("bans.json");
 
-		if (bans.Exists())
+		if (bans.exists())
 		{
 			std::string error;
-			json11::Json banData = json11::Json::parse(bans.GetBuffer(), error);
+			json11::Json banData = json11::Json::parse(bans.getBuffer(), error);
 
 			if (!error.empty())
 			{
@@ -140,7 +140,7 @@ namespace Components
 							SteamID id;
 							id.Bits = strtoull(idEntry.string_value().data(), nullptr, 16);
 							
-							list->IDList.push_back(id);
+							list->idList.push_back(id);
 						}
 					}
 				}
@@ -153,7 +153,7 @@ namespace Components
 						{
 							Network::Address addr(ipEntry.string_value());
 
-							list->IPList.push_back(addr.GetIP());
+							list->ipList.push_back(addr.getIP());
 						}
 					}
 				}
@@ -163,7 +163,7 @@ namespace Components
 
 	void Bans::BanClientNum(int num, std::string reason)
 	{
-		if (!Dvar::Var("sv_running").Get<bool>())
+		if (!Dvar::Var("sv_running").get<bool>())
 		{
 			Logger::Print("Server is not running.\n");
 			return;
@@ -189,10 +189,10 @@ namespace Components
 	{
 		Command::Add("banclient", [] (Command::Params params)
 		{
-			if (params.Length() < 2) return;
+			if (params.length() < 2) return;
 
 			std::string reason = "EXE_ERR_BANNED_PERM";
-			if (params.Length() >= 3) reason = params[2];
+			if (params.length() >= 3) reason = params[2];
 
 			Bans::BanClientNum(atoi(params[1]), reason);
 		});

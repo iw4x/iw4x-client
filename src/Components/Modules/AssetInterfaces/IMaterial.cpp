@@ -2,14 +2,14 @@
 
 namespace Assets
 {
-	void IMaterial::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IMaterial::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File materialInfo(fmt::sprintf("materials/%s.json", name.data()));
 
-		if (!materialInfo.Exists()) return;
+		if (!materialInfo.exists()) return;
 
 		std::string errors;
-		json11::Json infoData = json11::Json::parse(materialInfo.GetBuffer(), errors);
+		json11::Json infoData = json11::Json::parse(materialInfo.getBuffer(), errors);
 
 		if (!infoData.is_object())
 		{
@@ -33,7 +33,7 @@ namespace Assets
 			return;
 		}
 
-		Game::Material* material = builder->GetAllocator()->Allocate<Game::Material>();
+		Game::Material* material = builder->getAllocator()->allocate<Game::Material>();
 
 		if (!material)
 		{
@@ -43,7 +43,7 @@ namespace Assets
 
 		// Copy base material to our structure
 		std::memcpy(material, baseMaterial, sizeof(Game::Material));
-		material->name = builder->GetAllocator()->DuplicateString(name);
+		material->name = builder->getAllocator()->duplicateString(name);
 
 		material->textureAtlasRowCount = 1;
 		material->textureAtlasColumnCount = 1;
@@ -75,7 +75,7 @@ namespace Assets
 		bool replaceTexture = Utils::String::StartsWith(name, "mc/");
 		if (replaceTexture)
 		{
-			Game::MaterialTextureDef* textureTable = builder->GetAllocator()->AllocateArray<Game::MaterialTextureDef>(baseMaterial->textureCount);
+			Game::MaterialTextureDef* textureTable = builder->getAllocator()->allocateArray<Game::MaterialTextureDef>(baseMaterial->textureCount);
 			std::memcpy(textureTable, baseMaterial->textureTable, sizeof(Game::MaterialTextureDef) * baseMaterial->textureCount);
 			material->textureTable = textureTable;
 			material->textureCount = baseMaterial->textureCount;
@@ -138,7 +138,7 @@ namespace Assets
 			{
 				if (!textureList.empty())
 				{
-					Game::MaterialTextureDef* textureTable = builder->GetAllocator()->AllocateArray<Game::MaterialTextureDef>(textureList.size());
+					Game::MaterialTextureDef* textureTable = builder->getAllocator()->allocateArray<Game::MaterialTextureDef>(textureList.size());
 
 					if (!textureTable)
 					{
@@ -162,13 +162,13 @@ namespace Assets
 		header->material = material;
 	}
 
-	void IMaterial::Mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	void IMaterial::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::Material* asset = header.material;
 
 		if (asset->techniqueSet)
 		{
-			builder->LoadAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet->name);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet->name);
 		}
 
 		if (asset->textureTable)
@@ -181,56 +181,56 @@ namespace Assets
 					{
 						if (asset->textureTable[i].info.water->image)
 						{
-							builder->LoadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.water->image->name);
+							builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.water->image->name);
 						}
 					}
 					else
 					{
-						builder->LoadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.image->name);
+						builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.image->name);
 					}
 				}
 			}
 		}
 	}
 
-	void IMaterial::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	void IMaterial::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_Size(Game::Material, 96);
+		AssertSize(Game::Material, 96);
 
-		Utils::Stream* buffer = builder->GetBuffer();
+		Utils::Stream* buffer = builder->getBuffer();
 		Game::Material* asset = header.material;
-		Game::Material* dest = buffer->Dest<Game::Material>();
-		buffer->Save(asset);
+		Game::Material* dest = buffer->dest<Game::Material>();
+		buffer->save(asset);
 
-		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
 		if (asset->name)
 		{
-			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
+			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->techniqueSet)
 		{
-			dest->techniqueSet = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet->name).materialTechset;
+			dest->techniqueSet = builder->requireAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet->name).materialTechset;
 		}
 
 		if (asset->textureTable)
 		{
-			Assert_Size(Game::MaterialTextureDef, 12);
+			AssertSize(Game::MaterialTextureDef, 12);
 
 			// Pointer/Offset insertion is untested, but it worked in T6, so I think it's fine
-			if (builder->HasPointer(asset->textureTable))
+			if (builder->hasPointer(asset->textureTable))
 			{
-				dest->textureTable = builder->GetPointer(asset->textureTable);
+				dest->textureTable = builder->getPointer(asset->textureTable);
 			}
 			else
 			{
-				buffer->Align(Utils::Stream::ALIGN_4);
-				builder->StorePointer(asset->textureTable);
+				buffer->align(Utils::Stream::ALIGN_4);
+				builder->storePointer(asset->textureTable);
 
-				Game::MaterialTextureDef* destTextureTable = buffer->Dest<Game::MaterialTextureDef>();
-				buffer->SaveArray(asset->textureTable, asset->textureCount);
+				Game::MaterialTextureDef* destTextureTable = buffer->dest<Game::MaterialTextureDef>();
+				buffer->saveArray(asset->textureTable, asset->textureCount);
 
 				for (char i = 0; i < asset->textureCount; ++i)
 				{
@@ -239,41 +239,41 @@ namespace Assets
 
 					if (textureDef->semantic == SEMANTIC_WATER_MAP)
 					{
-						Assert_Size(Game::water_t, 68);
+						AssertSize(Game::water_t, 68);
 
-						Game::water_t* destWater = buffer->Dest<Game::water_t>();
+						Game::water_t* destWater = buffer->dest<Game::water_t>();
 						Game::water_t* water = textureDef->info.water;
 
 						if (water)
 						{
-							buffer->Align(Utils::Stream::ALIGN_4);
-							buffer->Save(water);
+							buffer->align(Utils::Stream::ALIGN_4);
+							buffer->save(water);
 							Utils::Stream::ClearPointer(&destTextureDef->info.water);
 
 							// Save_water_t
 							if (water->H0X)
 							{
-								buffer->Align(Utils::Stream::ALIGN_4);
-								buffer->Save(water->H0X, 8, water->M * water->N);
+								buffer->align(Utils::Stream::ALIGN_4);
+								buffer->save(water->H0X, 8, water->M * water->N);
 								Utils::Stream::ClearPointer(&destWater->H0X);
 							}
 
 							if (water->H0Y)
 							{
-								buffer->Align(Utils::Stream::ALIGN_4);
-								buffer->Save(water->H0Y, 4, water->M * water->N);
+								buffer->align(Utils::Stream::ALIGN_4);
+								buffer->save(water->H0Y, 4, water->M * water->N);
 								Utils::Stream::ClearPointer(&destWater->H0Y);
 							}
 
 							if (water->image)
 							{
-								destWater->image = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, water->image->name).image;
+								destWater->image = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, water->image->name).image;
 							}
 						}
 					}
 					else if (textureDef->info.image)
 					{
-						destTextureDef->info.image = builder->RequireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, textureDef->info.image->name).image;
+						destTextureDef->info.image = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, textureDef->info.image->name).image;
 					}
 				}
 
@@ -283,38 +283,38 @@ namespace Assets
 
 		if (asset->constantTable)
 		{
-			Assert_Size(Game::MaterialConstantDef, 32);
+			AssertSize(Game::MaterialConstantDef, 32);
 
-			if (builder->HasPointer(asset->constantTable))
+			if (builder->hasPointer(asset->constantTable))
 			{
-				dest->constantTable = builder->GetPointer(asset->constantTable);
+				dest->constantTable = builder->getPointer(asset->constantTable);
 			}
 			else
 			{
-				buffer->Align(Utils::Stream::ALIGN_16);
-				builder->StorePointer(asset->constantTable);
+				buffer->align(Utils::Stream::ALIGN_16);
+				builder->storePointer(asset->constantTable);
 
-				buffer->SaveArray(asset->constantTable, asset->constantCount);
+				buffer->saveArray(asset->constantTable, asset->constantCount);
 				Utils::Stream::ClearPointer(&dest->constantTable);
 			}
 		}
 
 		if (asset->stateBitTable)
 		{
-			if (builder->HasPointer(asset->stateBitTable))
+			if (builder->hasPointer(asset->stateBitTable))
 			{
-				dest->stateBitTable = builder->GetPointer(asset->stateBitTable);
+				dest->stateBitTable = builder->getPointer(asset->stateBitTable);
 			}
 			else
 			{
-				buffer->Align(Utils::Stream::ALIGN_4);
-				builder->StorePointer(asset->stateBitTable);
+				buffer->align(Utils::Stream::ALIGN_4);
+				builder->storePointer(asset->stateBitTable);
 
-				buffer->Save(asset->stateBitTable, 8, asset->stateBitsCount);
+				buffer->save(asset->stateBitTable, 8, asset->stateBitsCount);
 				Utils::Stream::ClearPointer(&dest->stateBitTable);
 			}
 		}
 
-		buffer->PopBlock();
+		buffer->popBlock();
 	}
 }

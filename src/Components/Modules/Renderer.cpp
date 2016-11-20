@@ -15,7 +15,7 @@ namespace Components
 		__asm
 		{
 			call Renderer::FrameHandler
-			jmp Renderer::DrawFrameHook.Original
+			jmp Renderer::DrawFrameHook.original
 		}
 	}
 
@@ -119,26 +119,26 @@ namespace Components
 // 		});
 
 		// Frame hook
-		Renderer::DrawFrameHook.Initialize(0x5ACB99, Renderer::FrameStub, HOOK_CALL)->Install();
+		Renderer::DrawFrameHook.initialize(0x5ACB99, Renderer::FrameStub, HOOK_CALL)->install();
 
-		Utils::Hook(0x536A80, Renderer::BackendFrameStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x536A80, Renderer::BackendFrameStub, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x508298, [] ()
 		{
 			Game::DB_BeginRecoverLostDevice();
 			Renderer::BeginRecoverDeviceSignal();
-		}, HOOK_CALL).Install()->Quick();
+		}, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x508355, [] ()
 		{
 			Renderer::EndRecoverDeviceSignal();
 			Game::DB_EndRecoverLostDevice();
-		}, HOOK_CALL).Install()->Quick();
+		}, HOOK_CALL).install()->quick();
 	}
 
 	Renderer::~Renderer()
 	{
-		Renderer::DrawFrameHook.Uninstall();
+		Renderer::DrawFrameHook.uninstall();
 		Renderer::BackendFrameSignal.clear();
 		Renderer::FrameOnceSignal.clear();
 		Renderer::FrameSignal.clear();

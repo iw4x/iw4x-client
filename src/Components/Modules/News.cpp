@@ -7,7 +7,7 @@ namespace Components
 	bool News::Terminate;
 	std::thread News::Thread;
 
-	bool News::UnitTest()
+	bool News::unitTest()
 	{
 		bool result = true;
 
@@ -73,7 +73,7 @@ namespace Components
 
 	void News::CheckForUpdate()
 	{
-		std::string caches = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/caches.xml").SetTimeout(5000)->Get();
+		std::string caches = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/caches.xml").setTimeout(5000)->get();
 
 		if (!caches.empty())
 		{
@@ -92,8 +92,8 @@ namespace Components
 
 					int version = atoi(caches.data());
 
-					Dvar::Var("cl_updateversion").Get<Game::dvar_t*>()->current.integer = version;
-					Dvar::Var("cl_updateavailable").Get<Game::dvar_t*>()->current.boolean = (version > REVISION);
+					Dvar::Var("cl_updateversion").get<Game::dvar_t*>()->current.integer = version;
+					Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean = (version > REVISION);
 				}
 			}
 		}
@@ -115,7 +115,7 @@ namespace Components
 
 		// hook for getting the news ticker string
 		Utils::Hook::Nop(0x6388BB, 2); // skip the "if (item->text[0] == '@')" localize check
-		Utils::Hook(0x6388C1, News::GetNewsText, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x6388C1, News::GetNewsText, HOOK_CALL).install()->quick();
 
 		// TODO: Probably remove that, if the updater is part of the repo?
 		if (Utils::IO::FileExists("updater.exe"))
@@ -130,7 +130,7 @@ namespace Components
 
 		Command::Add("getautoupdate", [] (Command::Params)
 		{
-			if (!Dvar::Var("cl_updateavailable").Get<Game::dvar_t*>()->current.boolean) return;
+			if (!Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean) return;
 
 			Localization::SetTemp("MENU_RECONNECTING_TO_PARTY", "Downloading updater");
 			Command::Execute("openmenu popup_reconnectingtoparty", true);
@@ -140,7 +140,7 @@ namespace Components
 
 			std::thread([] ()
 			{
-				std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/updater.exe").SetTimeout(5000)->Get();
+				std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/updater.exe").setTimeout(5000)->get();
 
 				if (data.empty())
 				{
@@ -162,9 +162,9 @@ namespace Components
 			News::Terminate = false;
 			News::Thread = std::thread([] ()
 			{
-				Localization::Set("MPUI_CHANGELOG_TEXT", Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/changelog.txt").SetTimeout(5000)->Get());
+				Localization::Set("MPUI_CHANGELOG_TEXT", Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/changelog.txt").setTimeout(5000)->get());
 
-				std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/motd.txt").SetTimeout(5000)->Get();
+				std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/motd.txt").setTimeout(5000)->get();
 
 				if (!data.empty())
 				{

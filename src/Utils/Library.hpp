@@ -3,26 +3,26 @@ namespace Utils
 	class Library
 	{
 	public:
-		Library() : Module(nullptr), FreeOnDestroy(false) {};
+		Library() : module(nullptr), freeOnDestroy(false) {};
 		Library(std::string buffer, bool freeOnDestroy = true);
 		~Library();
 
-		bool Valid();
-		HMODULE GetModule();
+		bool valid();
+		HMODULE getModule();
 
 		template <typename T>
-		std::function<T> Get(std::string process)
+		std::function<T> get(std::string process)
 		{
-			if (!this->Valid())
+			if (!this->valid())
 			{
 				throw new std::runtime_error("Library not loaded!");
 			}
 
-			return reinterpret_cast<T*>(GetProcAddress(this->GetModule(), process.data()));
+			return reinterpret_cast<T*>(GetProcAddress(this->getModule(), process.data()));
 		}
 
 	private:
-		HMODULE Module;
-		bool FreeOnDestroy;
+		HMODULE module;
+		bool freeOnDestroy;
 	};
 }

@@ -19,7 +19,7 @@ namespace Components
 				PlayerName::PlayerNames[i] = "mumu";
 			}
 
-			Utils::Hook(Game::CL_GetClientName, PlayerName::GetClientName, HOOK_JUMP).Install()->Quick();
+			Utils::Hook(Game::CL_GetClientName, PlayerName::GetClientName, HOOK_JUMP).install()->quick();
 		}
 	}
 

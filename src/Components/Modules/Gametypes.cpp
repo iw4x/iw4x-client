@@ -24,8 +24,8 @@ namespace Components
 
 		std::string gametype = Game::gameTypes[index].gameType;
 
-		Dvar::Var("ui_gametype").Set(gametype);
-		//Dvar::Var("g_gametype").Set(gametype);
+		Dvar::Var("ui_gametype").set(gametype);
+		//Dvar::Var("g_gametype").set(gametype);
 	}
 
 	void* Gametypes::BuildGametypeList(const char*, void* buffer, size_t size)
@@ -96,8 +96,8 @@ namespace Components
 		UIFeeder::Add(29.0f, Gametypes::GetGametypeCount, Gametypes::GetGametypeText, Gametypes::SelectGametype);
 
 		// Dynamically grab gametypes
-		Utils::Hook(0x5FA46C, Gametypes::BuildGametypeList, HOOK_CALL).Install()->Quick(); // Scr_UpdateGameTypeList
-		Utils::Hook(0x632155, Gametypes::BuildGametypeList, HOOK_CALL).Install()->Quick(); // UI_UpdateGameTypesList
+		Utils::Hook(0x5FA46C, Gametypes::BuildGametypeList, HOOK_CALL).install()->quick(); // Scr_UpdateGameTypeList
+		Utils::Hook(0x632155, Gametypes::BuildGametypeList, HOOK_CALL).install()->quick(); // UI_UpdateGameTypesList
 
 		// This is placed here in case the anticheat has been disabled!
 		// Make sure this is called after every onther anticheat check!
@@ -106,7 +106,7 @@ namespace Components
 		{
 			AntiCheat::FlagIntegrityCheck();
 			return Utils::Hook::Call<void()>(0x50AB20)();
-		}, HOOK_CALL).Install()->Quick();
+		}, HOOK_CALL).install()->quick();
 #endif
 	}
 }

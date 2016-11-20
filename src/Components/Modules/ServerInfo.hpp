@@ -7,7 +7,7 @@ namespace Components
 		~ServerInfo();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "ServerInfo"; };
+		const char* getName() { return "ServerInfo"; };
 #endif
 
 		static Utils::InfoString GetInfo();
@@ -19,14 +19,14 @@ namespace Components
 			class Player
 			{
 			public:
-				int Ping;
-				int Score;
-				std::string Name;
+				int ping;
+				int score;
+				std::string name;
 			};
 
-			unsigned int CurrentPlayer;
-			std::vector<Player> PlayerList;
-			Network::Address Target;
+			unsigned int currentPlayer;
+			std::vector<Player> playerList;
+			Network::Address target;
 		};
 
 		static Container PlayerContainer;

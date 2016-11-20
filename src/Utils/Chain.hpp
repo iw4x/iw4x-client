@@ -7,36 +7,36 @@ namespace Utils
 		class Entry
 		{
 		private:
-			std::shared_ptr<T> Object;
-			std::shared_ptr<Entry> Next;
+			std::shared_ptr<T> object;
+			std::shared_ptr<Entry> next;
 
 		public:
-			bool HasNext()
+			bool hasNext()
 			{
-				return (this->Next.use_count() > 0);
+				return (this->next.use_count() > 0);
 			}
 
-			bool IsValid()
+			bool isValid()
 			{
 				return (this->Object.use_count() > 0);
 			}
 			
-			void Set(T object)
+			void set(T object)
 			{
-				this->Object = std::shared_ptr<T>(new T());
-				*this->Object.get() = object;
+				this->object = std::shared_ptr<T>(new T());
+				*this->object.get() = object;
 			}
 
-			std::shared_ptr<T> Get()
+			std::shared_ptr<T> get()
 			{
-				return this->Object;
+				return this->object;
 			}
 
-			Entry GetNext()
+			Entry getNext()
 			{
-				if (this->HasNext())
+				if (this->hasNext())
 				{
-					return *(this->Next.get());
+					return *(this->next.get());
 				}
 				else
 				{
@@ -44,24 +44,24 @@ namespace Utils
 				}
 			}
 
-			std::shared_ptr<Entry> GetNextEntry()
+			std::shared_ptr<Entry> getNextEntry()
 			{
-				return this->Next;
+				return this->next;
 			}
 
-			void SetNextEntry(std::shared_ptr<Entry> entry)
+			void setNextEntry(std::shared_ptr<Entry> entry)
 			{
-				this->Next = entry;
+				this->next = entry;
 			}
 
 			T *operator->()
 			{
-				return (this->Object.get());
+				return (this->object.get());
 			}
 
 			Entry& operator++ ()
 			{
-				*this = this->GetNext();
+				*this = this->getNext();
 				return *this;
 			}
 
@@ -74,78 +74,74 @@ namespace Utils
 		};
 
 	private:
-		std::mutex Mutex;
-		Entry Object;
+		std::mutex mutex;
+		Entry object;
 
 	public:
-		void Add(T object)
+		void add(T object)
 		{
-			this->Mutex.lock();
+			std::lock_guard<std::mutex> _(this->mutex);
 			
 			if (!this->Empty())
 			{
 				// Create new chain entry
 				std::shared_ptr<Entry> currentObject = std::shared_ptr<Entry>(new Entry);
-				*currentObject.get() = this->Object;
+				*currentObject.get() = this->object;
 
 				// Add it to the chain
-				this->Object = Entry();
-				this->Object.SetNextEntry(currentObject);
+				this->object = Entry();
+				this->object.setNextEntry(currentObject);
 			}
 
-			this->Object.Set(object);
-
-			this->Mutex.unlock();
+			this->object.set(object);
 		}
 
-		void Remove(std::shared_ptr<T> object)
+		void remove(std::shared_ptr<T> object)
 		{
-			this->Mutex.lock();
+			std::lock_guard<std::mutex> _(this->mutex);
 			
-			if (!this->Empty())
+			if (!this->empty())
 			{
-				if (this->Object.Get().get() == object.get())
+				if (this->object.get().get() == object.get())
 				{
-					this->Object = this->Object.GetNext();
+					this->object = this->object.getNext();
 				}
-				else if(this->Object.HasNext())
+				else if(this->object.hasNext())
 				{
-					for (auto entry = this->Object; entry.IsValid(); ++entry)
+					for (auto entry = this->object; entry.isValid(); ++entry)
 					{
-						auto next = entry.GetNext();
+						auto next = entry.getNext();
 
-						if (next.IsValid() && next.Get().get() == object.get())
+						if (next.isValid() && next.get().get() == object.get())
 						{
-							*entry.GetNextEntry().get() = next.GetNext();
+							*entry.getNextEntry().get() = next.getNext();
 						}
 					}
 				}
 			}
-
-			this->Mutex.unlock();
 		}
 
-		void Remove(Entry entry)
+		void remove(Entry entry)
 		{
-			if (entry.IsValid())
+			if (entry.isValid())
 			{
-				this->Remove(entry.Get());
+				this->remove(entry.Get());
 			}
 		}
 
-		bool Empty()
+		bool empty()
 		{
-			return !this->Object.IsValid();
+			return !this->object.isValid();
 		}
 
-		Entry Begin()
+		Entry begin()
 		{
-			return this->Object;
+			return this->object;
 		}
 
-		void Clear()
+		void clear()
 		{
-			this->Object = Entry();
+			this->object = Entry();
 		}
 	};
 }

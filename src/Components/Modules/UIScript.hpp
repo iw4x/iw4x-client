@@ -7,23 +7,23 @@ namespace Components
 		~UIScript();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "UIScript"; };
+		const char* getName() { return "UIScript"; };
 #endif
 
 		class Token
 		{
 		public:
-			Token(const char** args) : token(0) { this->Parse(args); };
+			Token(const char** args) : token(0) { this->parse(args); };
 			Token(const Token &obj) { this->token = obj.token; };
 
-			template<typename T> T Get();
-			bool IsValid();
+			template<typename T> T get();
+			bool isValid();
 
 
 		private:
 			char* token;
 
-			void Parse(const char** args);
+			void parse(const char** args);
 		};
 
 		typedef void(Callback)(Token token);

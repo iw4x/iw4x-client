@@ -8,12 +8,12 @@ namespace Steam
 {
 	const char *Friends::GetPersonaName()
 	{
-		return Dvar::Var("name").Get<const char*>();
+		return Dvar::Var("name").get<const char*>();
 	}
 
 	void Friends::SetPersonaName(const char *pchPersonaName)
 	{
-		Dvar::Var("name").Set(pchPersonaName);
+		Dvar::Var("name").set(pchPersonaName);
 	}
 
 	int Friends::GetPersonaState()

@@ -2,21 +2,22 @@
 
 namespace Components
 {
-	ConnectProtocol::Container ConnectProtocol::ConnectContainer = { false, "" };
+	bool ConnectProtocol::Evaluated = false;
+	std::string ConnectProtocol::ConnectString;
 
-	bool ConnectProtocol::Evaluated()
+	bool ConnectProtocol::IsEvaluated()
 	{
-		return ConnectProtocol::ConnectContainer.Evaluated;
+		return ConnectProtocol::Evaluated;
 	}
 
 	bool ConnectProtocol::Used()
 	{
-		if (!ConnectProtocol::Evaluated())
+		if (!ConnectProtocol::IsEvaluated())
 		{
 			ConnectProtocol::EvaluateProtocol();
 		}
 
-		return (!ConnectProtocol::ConnectContainer.ConnectString.empty());
+		return (!ConnectProtocol::ConnectString.empty());
 	}
 
 	bool ConnectProtocol::InstallProtocol()
@@ -172,8 +173,8 @@ namespace Components
 
 	void ConnectProtocol::EvaluateProtocol()
 	{
-		if (ConnectProtocol::ConnectContainer.Evaluated) return;
-		ConnectProtocol::ConnectContainer.Evaluated = true;
+		if (ConnectProtocol::Evaluated) return;
+		ConnectProtocol::Evaluated = true;
 
 		std::string cmdLine = GetCommandLineA();
 
@@ -189,7 +190,7 @@ namespace Components
 				cmdLine = cmdLine.substr(0, pos);
 			}
 
-			ConnectProtocol::ConnectContainer.ConnectString = cmdLine;
+			ConnectProtocol::ConnectString = cmdLine;
 		}
 	}
 
@@ -203,7 +204,7 @@ namespace Components
 			}
 			else
 			{
-				Command::Execute(fmt::sprintf("connect %s", ConnectProtocol::ConnectContainer.ConnectString.data()), false);
+				Command::Execute(fmt::sprintf("connect %s", ConnectProtocol::ConnectString.data()), false);
 			}
 		}
 	}
@@ -228,7 +229,7 @@ namespace Components
 		{
 			if (!Singleton::IsFirstInstance())
 			{
-				IPCPipe::Write("connect", ConnectProtocol::ConnectContainer.ConnectString);
+				IPCPipe::Write("connect", ConnectProtocol::ConnectString);
 				ExitProcess(0);
 			}
 			else

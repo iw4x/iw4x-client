@@ -9,10 +9,10 @@ namespace Components
 		~QuickPatch();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "QuickPatch"; };
+		const char* getName() { return "QuickPatch"; };
 #endif
 
-		bool UnitTest();
+		bool unitTest();
 
 		static void UnlockStats();
 		static void OnShutdown(Callback* callback);

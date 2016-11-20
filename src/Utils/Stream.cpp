@@ -2,11 +2,11 @@
 
 namespace Utils
 {
-	std::string Stream::Reader::ReadString()
+	std::string Stream::Reader::readString()
 	{
 		std::string str;
 
-		while (char byte = Stream::Reader::ReadByte())
+		while (char byte = this->readByte())
 		{
 			str.append(&byte, 1);
 		}
@@ -14,176 +14,176 @@ namespace Utils
 		return str;
 	}
 
-	const char* Stream::Reader::ReadCString()
+	const char* Stream::Reader::readCString()
 	{
-		return Stream::Reader::Allocator->DuplicateString(Stream::Reader::ReadString());
+		return this->allocator->duplicateString(this->readString());
 	}
 
-	char Stream::Reader::ReadByte()
+	char Stream::Reader::readByte()
 	{
-		if ((Stream::Reader::Position + 1) <= Stream::Reader::Buffer.size())
+		if ((this->position + 1) <= this->buffer.size())
 		{
-			return Stream::Reader::Buffer[Stream::Reader::Position++];
+			return this->buffer[this->position++];
 		}
 
 		return 0;
 	}
 
-	void* Stream::Reader::Read(size_t size, size_t count)
+	void* Stream::Reader::read(size_t size, size_t count)
 	{
 		size_t bytes = size * count;
 
-		if ((Stream::Reader::Position + bytes) <= Stream::Reader::Buffer.size())
+		if ((this->position + bytes) <= this->buffer.size())
 		{
-			void* buffer = Stream::Reader::Allocator->Allocate(bytes);
+			void* _buffer = this->allocator->allocate(bytes);
 
-			std::memcpy(buffer, Stream::Reader::Buffer.data() + Stream::Reader::Position, bytes);
-			Stream::Reader::Position += bytes;
+			std::memcpy(_buffer, this->buffer.data() + this->position, bytes);
+			this->position += bytes;
 
-			return buffer;
+			return _buffer;
 		}
 
 		return nullptr;
 	}
 
-	bool Stream::Reader::End()
+	bool Stream::Reader::end()
 	{
-		return (Stream::Reader::Buffer.size() == Stream::Reader::Position);
+		return (this->buffer.size() == this->position);
 	}
 
-	void Stream::Reader::Seek(unsigned int position)
+	void Stream::Reader::seek(unsigned int _position)
 	{
-		if (Stream::Reader::Buffer.size() >= position)
+		if (this->buffer.size() >= _position)
 		{
-			Stream::Reader::Position = position;
+			this->position = _position;
 		}
 	}
 
-	Stream::Stream() : CriticalSectionState(0)
+	Stream::Stream() : criticalSectionState(0)
 	{
-		memset(Stream::BlockSize, 0, sizeof(Stream::BlockSize));
+		memset(this->blockSize, 0, sizeof(this->blockSize));
 	}
 
 	Stream::Stream(size_t size) : Stream()
 	{
-		Stream::Buffer.reserve(size);
+		this->buffer.reserve(size);
 	}
 
 	Stream::~Stream()
 	{
-		Stream::Buffer.clear();
+		this->buffer.clear();
 
-		if (Stream::CriticalSectionState != 0)
+		if (this->criticalSectionState != 0)
 		{
-			MessageBoxA(0, Utils::String::VA("Invalid critical section state '%i' for stream destruction!", Stream::CriticalSectionState), "WARNING", MB_ICONEXCLAMATION);
+			MessageBoxA(0, Utils::String::VA("Invalid critical section state '%i' for stream destruction!", this->criticalSectionState), "WARNING", MB_ICONEXCLAMATION);
 		}
 	};
 
-	size_t Stream::Length()
+	size_t Stream::length()
 	{
-		return Stream::Buffer.length();
+		return this->buffer.length();
 	}
 
-	size_t Stream::Capacity()
+	size_t Stream::capacity()
 	{
-		return Stream::Buffer.capacity();
+		return this->buffer.capacity();
 	}
 
-	char* Stream::Save(const void* _str, size_t size, size_t count)
+	char* Stream::save(const void* _str, size_t size, size_t count)
 	{
-		return Stream::Save(Stream::GetCurrentBlock(), _str, size, count);
+		return this->save(this->getCurrentBlock(), _str, size, count);
 	}
 
-	char* Stream::Save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count)
+	char* Stream::save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count)
 	{
 		//if (stream == XFILE_BLOCK_TEMP || stream == XFILE_BLOCK_VIRTUAL || stream == XFILE_BLOCK_PHYSICAL) // Only those seem to actually write data.
 																											 // As I'm not sure though, I'll still write the data
 																											 // Use IncreaseBlockSize to fill virtual streams
-		auto data = Stream::Data();
+		auto data = this->data();
 
-		if (Stream::IsCriticalSection() && Stream::Length() + (size * count) > Stream::Capacity())
+		if (this->isCriticalSection() && this->length() + (size * count) > this->capacity())
 		{
-			MessageBoxA(0, Utils::String::VA("Potential stream reallocation during critical operation detected! Writing data of the length 0x%X exceeds the allocated stream size of 0x%X\n", (size * count), Stream::Capacity()), "ERROR", MB_ICONERROR);
+			MessageBoxA(0, Utils::String::VA("Potential stream reallocation during critical operation detected! Writing data of the length 0x%X exceeds the allocated stream size of 0x%X\n", (size * count), this->capacity()), "ERROR", MB_ICONERROR);
 			__debugbreak();
 		}
 
-		Stream::Buffer.append(static_cast<const char*>(_str), size * count);
+		this->buffer.append(static_cast<const char*>(_str), size * count);
 
-		if (Stream::Data() != data && Stream::IsCriticalSection())
+		if (this->data() != data && this->isCriticalSection())
 		{
 			MessageBoxA(0, "Stream reallocation during critical operations not permitted!\nPlease increase the initial memory size or reallocate memory during non-critical sections!", "ERROR", MB_ICONERROR);
 			__debugbreak();
 		}
 
-		Stream::IncreaseBlockSize(stream, size * count);
+		this->increaseBlockSize(stream, size * count);
 
-		return Stream::At() - (size * count);
+		return this->at() - (size * count);
 	}
 
-	char* Stream::Save(Game::XFILE_BLOCK_TYPES stream, int value, size_t count)
+	char* Stream::save(Game::XFILE_BLOCK_TYPES stream, int value, size_t count)
 	{
-		auto ret = Stream::Length();
+		auto ret = this->length();
 
 		for (size_t i = 0; i < count; ++i)
 		{
-			Stream::Save(stream, &value, 4, 1);
+			this->save(stream, &value, 4, 1);
 		}
 
-		return Stream::Data() + ret;
+		return this->data() + ret;
 	}
 
-	char* Stream::SaveString(std::string string)
+	char* Stream::saveString(std::string string)
 	{
-		return Stream::SaveString(string.data()/*, string.size()*/);
+		return this->saveString(string.data()/*, string.size()*/);
 	}
 
-	char* Stream::SaveString(const char* string)
+	char* Stream::saveString(const char* string)
 	{
-		return Stream::SaveString(string, strlen(string));
+		return this->saveString(string, strlen(string));
 	}
 
-	char* Stream::SaveString(const char* string, size_t len)
+	char* Stream::saveString(const char* string, size_t len)
 	{
-		auto ret = Stream::Length();
+		auto ret = this->length();
 
 		if (string)
 		{
-			Stream::Save(string, len);
+			this->save(string, len);
 		}
 
-		Stream::SaveNull();
+		this->saveNull();
 
-		return Stream::Data() + ret;
+		return this->data() + ret;
 	}
 
-	char* Stream::SaveText(std::string string)
+	char* Stream::saveText(std::string string)
 	{
-		return Stream::Save(string.data(), string.length());
+		return this->save(string.data(), string.length());
 	}
 
-	char* Stream::SaveByte(unsigned char byte, size_t count)
+	char* Stream::saveByte(unsigned char byte, size_t count)
 	{
-		auto ret = Stream::Length();
+		auto ret = this->length();
 
 		for (size_t i = 0; i < count; ++i)
 		{
-			Stream::Save(&byte, 1);
+			this->save(&byte, 1);
 		}
 
-		return Stream::Data() + ret;
+		return this->data() + ret;
 	}
 
-	char* Stream::SaveNull(size_t count)
+	char* Stream::saveNull(size_t count)
 	{
-		return Stream::SaveByte(0, count);
+		return this->saveByte(0, count);
 	}
 
-	char* Stream::SaveMax(size_t count)
+	char* Stream::saveMax(size_t count)
 	{
-		return Stream::SaveByte(static_cast<unsigned char>(-1), count);
+		return this->saveByte(static_cast<unsigned char>(-1), count);
 	}
 
-	void Stream::Align(Stream::Alignment align)
+	void Stream::align(Stream::Alignment align)
 	{
 		uint32_t size = 2 << align;
 
@@ -191,116 +191,116 @@ namespace Utils
 		if (!size || (size & (size - 1))) return;
 		--size;
 
-		Game::XFILE_BLOCK_TYPES stream = Stream::GetCurrentBlock();
-		Stream::BlockSize[stream] = ~size & (Stream::GetBlockSize(stream) + size);
+		Game::XFILE_BLOCK_TYPES stream = this->getCurrentBlock();
+		this->blockSize[stream] = ~size & (this->getBlockSize(stream) + size);
 	}
 
-	bool Stream::PushBlock(Game::XFILE_BLOCK_TYPES stream)
+	bool Stream::pushBlock(Game::XFILE_BLOCK_TYPES stream)
 	{
-		Stream::StreamStack.push_back(stream);
-		return Stream::IsValidBlock(stream);
+		this->streamStack.push_back(stream);
+		return this->isValidBlock(stream);
 	}
 
-	bool Stream::PopBlock()
+	bool Stream::popBlock()
 	{
-		if (!Stream::StreamStack.empty())
+		if (!this->streamStack.empty())
 		{
-			Stream::StreamStack.pop_back();
+			this->streamStack.pop_back();
 			return true;
 		}
 
 		return false;
 	}
 
-	bool Stream::IsValidBlock(Game::XFILE_BLOCK_TYPES stream)
+	bool Stream::isValidBlock(Game::XFILE_BLOCK_TYPES stream)
 	{
 		return (stream < Game::MAX_XFILE_COUNT && stream >= Game::XFILE_BLOCK_TEMP);
 	}
 
-	void Stream::IncreaseBlockSize(Game::XFILE_BLOCK_TYPES stream, unsigned int size)
+	void Stream::increaseBlockSize(Game::XFILE_BLOCK_TYPES stream, unsigned int size)
 	{
-		if (Stream::IsValidBlock(stream))
+		if (this->isValidBlock(stream))
 		{
-			Stream::BlockSize[stream] += size;
+			this->blockSize[stream] += size;
 		}
 	}
 
-	void Stream::IncreaseBlockSize(unsigned int size)
+	void Stream::increaseBlockSize(unsigned int size)
 	{
-		return IncreaseBlockSize(Stream::GetCurrentBlock(), size);
+		return this->increaseBlockSize(this->getCurrentBlock(), size);
 	}
 
-	Game::XFILE_BLOCK_TYPES Stream::GetCurrentBlock()
+	Game::XFILE_BLOCK_TYPES Stream::getCurrentBlock()
 	{
-		if (!Stream::StreamStack.empty())
+		if (!this->streamStack.empty())
 		{
-			return Stream::StreamStack.back();
+			return this->streamStack.back();
 		}
 
 		return Game::XFILE_BLOCK_INVALID;
 	}
 
-	char* Stream::At()
+	char* Stream::at()
 	{
-		return reinterpret_cast<char*>(Stream::Data() + Stream::Length());
+		return reinterpret_cast<char*>(this->data() + this->length());
 	}
 
-	char* Stream::Data()
+	char* Stream::data()
 	{
-		return const_cast<char*>(Stream::Buffer.data());
+		return const_cast<char*>(this->buffer.data());
 	}
 
-	unsigned int Stream::GetBlockSize(Game::XFILE_BLOCK_TYPES stream)
+	unsigned int Stream::getBlockSize(Game::XFILE_BLOCK_TYPES stream)
 	{
-		if (Stream::IsValidBlock(stream))
+		if (this->isValidBlock(stream))
 		{
-			return Stream::BlockSize[stream];
+			return this->blockSize[stream];
 		}
 
 		return 0;
 	}
 
-	DWORD Stream::GetPackedOffset()
+	DWORD Stream::getPackedOffset()
 	{
-		Game::XFILE_BLOCK_TYPES block = Stream::GetCurrentBlock();
+		Game::XFILE_BLOCK_TYPES block = this->getCurrentBlock();
 
 		Stream::Offset offset;
 		offset.block = block;
-		offset.offset = Stream::GetBlockSize(block);
-		return offset.GetPackedOffset();
+		offset.offset = this->getBlockSize(block);
+		return offset.getPackedOffset();
 	}
 
-	void Stream::ToBuffer(std::string& outBuffer)
+	void Stream::toBuffer(std::string& outBuffer)
 	{
 		outBuffer.clear();
-		outBuffer.append(Stream::Data(), Stream::Length());
+		outBuffer.append(this->data(), this->length());
 	}
 
-	std::string Stream::ToBuffer()
+	std::string Stream::toBuffer()
 	{
-		std::string buffer;
-		Stream::ToBuffer(buffer);
-		return buffer;
+		std::string _buffer;
+		this->toBuffer(_buffer);
+		return _buffer;
 	}
 
-	void Stream::EnterCriticalSection()
+	void Stream::enterCriticalSection()
 	{
-		++Stream::CriticalSectionState;
+		++this->criticalSectionState;
 	}
 
-	void Stream::LeaveCriticalSection()
+	void Stream::leaveCriticalSection()
 	{
-		--Stream::CriticalSectionState;
+		--this->criticalSectionState;
 	}
 
-	bool Stream::IsCriticalSection()
+	bool Stream::isCriticalSection()
 	{
-		if (Stream::CriticalSectionState < 0)
+		if (this->criticalSectionState < 0)
 		{
 			MessageBoxA(0, "CriticalSectionState in stream has been overrun!", "ERROR", MB_ICONERROR);
 			__debugbreak();
 		}
 
-		return (Stream::CriticalSectionState != 0);
+		return (this->criticalSectionState != 0);
 	}
 }

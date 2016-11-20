@@ -9,7 +9,7 @@ namespace Components
 		~Dedicated();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Dedicated"; };
+		const char* getName() { return "Dedicated"; };
 #endif
 
 		static bool IsEnabled();

@@ -118,13 +118,13 @@ namespace Components
 
 	void Dedicated::MapRotate()
 	{
-		if (!Dedicated::IsEnabled() && Dvar::Var("sv_dontrotate").Get<bool>())
+		if (!Dedicated::IsEnabled() && Dvar::Var("sv_dontrotate").get<bool>())
 		{
-			Dvar::Var("sv_dontrotate").SetRaw(0);
+			Dvar::Var("sv_dontrotate").setRaw(0);
 			return;
 		}
 
-		if (Dvar::Var("party_enable").Get<bool>() && Dvar::Var("party_host").Get<bool>())
+		if (Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>())
 		{
 			Logger::Print("Not performing map rotation as we are hosting a party!\n");
 			return;
@@ -133,30 +133,30 @@ namespace Components
 		Logger::Print("Rotating map...\n");
 
 		// if nothing, just restart
-		if (Dvar::Var("sv_mapRotation").Get<std::string>().empty())
+		if (Dvar::Var("sv_mapRotation").get<std::string>().empty())
 		{
 			Logger::Print("No rotation defined, restarting map.\n");
 
-			if (!Dvar::Var("sv_cheats").Get<bool>())
+			if (!Dvar::Var("sv_cheats").get<bool>())
 			{
-				Command::Execute(fmt::sprintf("map %s", Dvar::Var("mapname").Get<const char*>()), true);
+				Command::Execute(fmt::sprintf("map %s", Dvar::Var("mapname").get<const char*>()), true);
 			}
 			else
 			{
-				Command::Execute(fmt::sprintf("devmap %s", Dvar::Var("mapname").Get<const char*>()), true);
+				Command::Execute(fmt::sprintf("devmap %s", Dvar::Var("mapname").get<const char*>()), true);
 			}
 
 			return;
 		}
 
 		// first, check if the string contains nothing
-		if (Dvar::Var("sv_mapRotationCurrent").Get<std::string>().empty())
+		if (Dvar::Var("sv_mapRotationCurrent").get<std::string>().empty())
 		{
 			Logger::Print("Current map rotation has finished, reloading...\n");
-			Dvar::Var("sv_mapRotationCurrent").Set(Dvar::Var("sv_mapRotation").Get<const char*>());
+			Dvar::Var("sv_mapRotationCurrent").set(Dvar::Var("sv_mapRotation").get<const char*>());
 		}
 
-		std::string rotation = Dvar::Var("sv_mapRotationCurrent").Get<std::string>();
+		std::string rotation = Dvar::Var("sv_mapRotationCurrent").get<std::string>();
 
 		auto tokens = Utils::String::Explode(rotation, ' ');
 
@@ -164,7 +164,7 @@ namespace Components
 		{
 			if (i + 1 >= tokens.size())
 			{
-				Dvar::Var("sv_mapRotationCurrent").Set("");
+				Dvar::Var("sv_mapRotationCurrent").set("");
 				Command::Execute("map_rotate", true);
 				return;
 			}
@@ -182,7 +182,7 @@ namespace Components
 					rotation += tokens[j];
 				}
 
-				Dvar::Var("sv_mapRotationCurrent").Set(rotation);
+				Dvar::Var("sv_mapRotationCurrent").set(rotation);
 
 				Logger::Print("Loading new map: %s\n", value.data());
 				Command::Execute(fmt::sprintf("map %s", value.data()), true);
@@ -191,7 +191,7 @@ namespace Components
 			else if (key == "gametype")
 			{
 				Logger::Print("Applying new gametype: %s\n", value.data());
-				Dvar::Var("g_gametype").Set(value);
+				Dvar::Var("g_gametype").set(value);
 			}
 			else
 			{
@@ -202,8 +202,8 @@ namespace Components
 
 	void Dedicated::Heartbeat()
 	{
-		int masterPort = Dvar::Var("masterPort").Get<int>();
-		const char* masterServerName = Dvar::Var("masterServerName").Get<const char*>();
+		int masterPort = Dvar::Var("masterPort").get<int>();
+		const char* masterServerName = Dvar::Var("masterServerName").get<const char*>();
 
 		Network::Address master(fmt::sprintf("%s:%u", masterServerName, masterPort));
 
@@ -243,7 +243,7 @@ namespace Components
 		{
 			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't act as node");
 
-			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();
 
 			Utils::Hook::Set<BYTE>(0x683370, 0xC3); // steam sometimes doesn't like the server
 
@@ -299,17 +299,17 @@ namespace Components
 			Utils::Hook::Set<BYTE>(0x4B4D19, 0xEB);
 
 			// Dedicated frame handler
-			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).install()->quick();
 
 			// Intercept chat sending
-			Utils::Hook(0x4D000B, Dedicated::PreSayStub, HOOK_CALL).Install()->Quick();
-			Utils::Hook(0x4D00D4, Dedicated::PostSayStub, HOOK_CALL).Install()->Quick();
-			Utils::Hook(0x4D0110, Dedicated::PostSayStub, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x4D000B, Dedicated::PreSayStub, HOOK_CALL).install()->quick();
+			Utils::Hook(0x4D00D4, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
+			Utils::Hook(0x4D0110, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
 
 			if (!ZoneBuilder::IsEnabled())
 			{
 				// Post initialization point
-				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).Install()->Quick();
+				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
 
 #ifdef USE_LEGACY_SERVER_LIST
 
@@ -318,7 +318,7 @@ namespace Components
 				{
 					static int LastHeartbeat = 0;
 
-					if (Dvar::Var("sv_maxclients").Get<int>() > 0 && !LastHeartbeat || (Game::Com_Milliseconds() - LastHeartbeat) > 120 * 1000)
+					if (Dvar::Var("sv_maxclients").get<int>() > 0 && !LastHeartbeat || (Game::Com_Milliseconds() - LastHeartbeat) > 120 * 1000)
 					{
 						LastHeartbeat = Game::Com_Milliseconds();
 						Dedicated::Heartbeat();
@@ -334,10 +334,10 @@ namespace Components
 				// Say command
 				Command::AddSV("say", [] (Command::Params params)
 				{
-					if (params.Length() < 2) return;
+					if (params.length() < 2) return;
 
-					std::string message = params.Join(1);
-					std::string name = Dvar::Var("sv_sayName").Get<std::string>();
+					std::string message = params.join(1);
+					std::string name = Dvar::Var("sv_sayName").get<std::string>();
 
 					if (!name.empty())
 					{
@@ -354,11 +354,11 @@ namespace Components
 				// Tell command
 				Command::AddSV("tell", [] (Command::Params params)
 				{
-					if (params.Length() < 3) return;
+					if (params.length() < 3) return;
 
 					int client = atoi(params[1]);
-					std::string message = params.Join(2);
-					std::string name = Dvar::Var("sv_sayName").Get<std::string>();
+					std::string message = params.join(2);
+					std::string name = Dvar::Var("sv_sayName").get<std::string>();
 
 					if (!name.empty())
 					{
@@ -375,9 +375,9 @@ namespace Components
 				// Sayraw command
 				Command::AddSV("sayraw", [] (Command::Params params)
 				{
-					if (params.Length() < 2) return;
+					if (params.length() < 2) return;
 
-					std::string message = params.Join(1);
+					std::string message = params.join(1);
 					Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
 					Game::Com_Printf(15, "Raw: %s\n", message.data());
 				});
@@ -385,10 +385,10 @@ namespace Components
 				// Tellraw command
 				Command::AddSV("tellraw", [] (Command::Params params)
 				{
-					if (params.Length() < 3) return;
+					if (params.length() < 3) return;
 
 					int client = atoi(params[1]);
-					std::string message = params.Join(2);
+					std::string message = params.join(2);
 					Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
 					Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
 				});
@@ -396,7 +396,7 @@ namespace Components
 				// ! command
 				Command::AddSV("!", [] (Command::Params params)
 				{
-					if (params.Length() != 2) return;
+					if (params.length() != 2) return;
 
 					int client = -1;
 					if (params[1] != "all"s)

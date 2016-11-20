@@ -9,7 +9,7 @@ namespace Components
 		~Playlist();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Playlist"; };
+		const char* getName() { return "Playlist"; };
 #endif
 
 		static void LoadPlaylist();

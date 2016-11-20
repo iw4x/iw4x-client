@@ -14,7 +14,7 @@ namespace Components
 		~BitMessage();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "BitMessage"; };
+		const char* getName() { return "BitMessage"; };
 #endif
 
 		static void SetDefaultTTL(time_t ttl);

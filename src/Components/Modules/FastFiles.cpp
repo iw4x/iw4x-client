@@ -219,10 +219,10 @@ namespace Components
 
 	const char* FastFiles::GetZoneLocation(const char* file)
 	{
-		const char* dir = Dvar::Var("fs_basepath").Get<const char*>();
+		const char* dir = Dvar::Var("fs_basepath").get<const char*>();
 
 		std::vector<std::string> paths; 
-		std::string modDir = Dvar::Var("fs_game").Get<std::string>();
+		std::string modDir = Dvar::Var("fs_game").get<std::string>();
 		if (file == "mod"s || file == "mod.ff"s || !modDir.empty())
 		{
 			paths.push_back(fmt::sprintf("zone\\%s\\", modDir.data()));
@@ -366,17 +366,17 @@ namespace Components
 		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display current loaded zone.");
 
 		// Redirect zone paths
-		Utils::Hook(0x44DA90, FastFiles::GetZoneLocation, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x44DA90, FastFiles::GetZoneLocation, HOOK_JUMP).install()->quick();
 
 		// Allow loading 'newer' zones
-		Utils::Hook(0x4158E7, FastFiles::ReadVersionStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4158E7, FastFiles::ReadVersionStub, HOOK_CALL).install()->quick();
 
 		// Allow custom zone loading
 		if (!ZoneBuilder::IsEnabled())
 		{
-			Utils::Hook(0x506BC7, FastFiles::LoadInitialZones, HOOK_CALL).Install()->Quick();
-			Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).Install()->Quick();
-			Utils::Hook(0x506B25, FastFiles::LoadGfxZones, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x506BC7, FastFiles::LoadInitialZones, HOOK_CALL).install()->quick();
+			Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).install()->quick();
+			Utils::Hook(0x506B25, FastFiles::LoadGfxZones, HOOK_CALL).install()->quick();
 		}
 
 		// basic checks (hash jumps, both normal and playlist)
@@ -402,17 +402,17 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x5BA603, 1);
 
 		// Initialize crypto
-		Utils::Hook(0x4D02F0, FastFiles::AuthLoadInitCrypto, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4D02F0, FastFiles::AuthLoadInitCrypto, HOOK_CALL).install()->quick();
 
 		// Initial stage decryption
-		Utils::Hook(0x4D0306, FastFiles::InflateInitDecrypt, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4D0306, FastFiles::InflateInitDecrypt, HOOK_CALL).install()->quick();
 
 		// Hash bit decryption
-		Utils::Hook(0x5B9958, FastFiles::AuthLoadInflateCompare, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5B9912, FastFiles::AuthLoadInflateCompare, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5B9958, FastFiles::AuthLoadInflateCompare, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5B9912, FastFiles::AuthLoadInflateCompare, HOOK_CALL).install()->quick();
 
 		// General read
-		Utils::Hook(0x5B98E4, FastFiles::AuthLoadInflateDecryptBase, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5B98E4, FastFiles::AuthLoadInflateDecryptBase, HOOK_CALL).install()->quick();
 
 		// Add custom zone paths
 		FastFiles::AddZonePath("zone\\patch\\");
@@ -420,7 +420,7 @@ namespace Components
 
 		Renderer::OnFrame([] ()
 		{
-			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").Get<bool>()) return;
+			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").get<bool>()) return;
 
 			Game::Font* font = Game::R_RegisterFont("fonts/consoleFont"); // Inlining that seems to skip xpos, no idea why xD
 			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
@@ -429,7 +429,7 @@ namespace Components
 
 		Command::Add("loadzone", [] (Command::Params params)
 		{
-			if (params.Length() < 2) return;
+			if (params.length() < 2) return;
 
 			Game::XZoneInfo info;
 			info.name = params[1];

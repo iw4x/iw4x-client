@@ -7,7 +7,7 @@ namespace Components
 		~Colors();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Colors"; };
+		const char* getName() { return "Colors"; };
 #endif
 
 		static void Strip(const char* in, char* out, int max);
@@ -23,9 +23,9 @@ namespace Components
 			unsigned char v;
 		};
 
-		static DWORD HsvToRgb(HsvColor hsv);
-
 		static Dvar::Var NewColors;
+
+		static DWORD HsvToRgb(HsvColor hsv);
 
 		static void ClientUserinfoChanged();
 		static char* GetClientName(int localClientNum, int index, char *buf, size_t size);

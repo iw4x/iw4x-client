@@ -7,7 +7,7 @@ namespace Components
 		~Script();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Script"; };
+		const char* getName() { return "Script"; };
 #endif
 
 		static int LoadScriptAndLabel(std::string script, std::string label);

@@ -9,7 +9,7 @@ namespace Components
 		~Bans();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Bans"; };
+		const char* getName() { return "Bans"; };
 #endif
 
 		static void BanClientNum(int num, std::string reason);
@@ -21,12 +21,11 @@ namespace Components
 		class BanList
 		{
 		public:
-			std::vector<SteamID> IDList;
-			std::vector<Game::netIP_t> IPList;
+			std::vector<SteamID> idList;
+			std::vector<Game::netIP_t> ipList;
 		};
 
 		static std::mutex AccessMutex;
-
 		static void LoadBans(BanList* list);
 	};
 }

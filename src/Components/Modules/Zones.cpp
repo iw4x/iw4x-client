@@ -25,7 +25,7 @@ namespace Components
 		if (Zones::Version() >= VERSION_ALPHA2)
 		{
 			Utils::Memory::Allocator allocator;
-			Game::FxElemDef* elems = allocator.AllocateArray<Game::FxElemDef>(count);
+			Game::FxElemDef* elems = allocator.allocateArray<Game::FxElemDef>(count);
 
 			for (int i = 0; i < count; ++i)
 			{
@@ -93,7 +93,7 @@ namespace Components
 
 			for (int i = 0; i < 4; ++i)
 			{
-				Assert_Offset(Game::XModelLodInfo, partBits, 12);
+				AssertOffset(Game::XModelLodInfo, partBits, 12);
 
 				std::memcpy(&model->lods[i], &xmodel[72 + (i * 56)], 12);
 				std::memcpy(&model->lods[i].partBits, &xmodel[72 + (i * 56) + 16], 32);
@@ -158,7 +158,7 @@ namespace Components
 		if (Zones::Version() >= VERSION_ALPHA2)
 		{
 			Utils::Memory::Allocator allocator;
-			Game::XSurface* tempSurfaces = allocator.AllocateArray<Game::XSurface>(count);
+			Game::XSurface* tempSurfaces = allocator.allocateArray<Game::XSurface>(count);
 
 			for (int i = 0; i < count; ++i)
 			{
@@ -934,7 +934,7 @@ namespace Components
 		if (Zones::Version() >= VERSION_ALPHA2)
 		{
 			Utils::Memory::Allocator allocator;
-			Game::snd_alias_t* tempSounds = allocator.AllocateArray<Game::snd_alias_t>(count);
+			Game::snd_alias_t* tempSounds = allocator.allocateArray<Game::snd_alias_t>(count);
 
 			for (int i = 0; i < count; ++i)
 			{
@@ -1184,7 +1184,7 @@ namespace Components
 					char* name;
 				} image359;
 
-				Assert_Size(image359, 52);
+				AssertSize(image359, 52);
 
 				// Copy to new struct
 				memcpy(&image359, buffer, sizeof(image359));
@@ -1232,7 +1232,7 @@ namespace Components
 		if (Zones::ZoneVersion >= 359)
 		{
 			Utils::Memory::Allocator allocator;
-			Game::XAsset* tempAssets = allocator.AllocateArray<Game::XAsset>(count);
+			Game::XAsset* tempAssets = allocator.allocateArray<Game::XAsset>(count);
 
 			for (int i = 0; i < count; ++i)
 			{
@@ -1583,42 +1583,42 @@ namespace Components
 		// addon_map_ents asset type (we reuse it for weaponattach)
 		Utils::Hook::Set<BYTE>(0x418B31, 0x72);
 
-		Utils::Hook(0x495938, Zones::LoadFxElemDefArrayStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x45ADA0, Zones::LoadFxElemDefStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4EA6FE, Zones::LoadXModelLodInfoStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x410D90, Zones::LoadXModel, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4925C8, Zones::LoadXSurfaceArray, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4F4D0D, Zones::LoadGameWorldSp, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x47CCD2, Zones::LoadWeaponCompleteDef, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x483DA0, Zones::LoadVehicleDef, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4F0AC8, Zones::Loadsnd_alias_tArray, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x403A5D, Zones::LoadLoadedSound, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x463022, Zones::LoadWeaponAttach, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x41A570, Zones::LoadmenuDef_t, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x49591B, Zones::LoadFxEffectDef, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x428F0A, Zones::LoadMaterialShaderArgumentArray, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4B1EB8, Zones::LoadStructuredDataStructPropertyArray, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x49CE0D, Zones::LoadPhysPreset, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x48E84D, Zones::LoadXModelSurfs, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4447C2, Zones::LoadImpactFx, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4447D0, Zones::LoadImpactFxArray, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x4D6A0B, Zones::LoadPathNodeArray, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4D6A47, Zones::LoadPathDataConstant, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x463D6E, Zones::LoadPathnodeConstantTail, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x495938, Zones::LoadFxElemDefArrayStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x45ADA0, Zones::LoadFxElemDefStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4EA6FE, Zones::LoadXModelLodInfoStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x410D90, Zones::LoadXModel, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4925C8, Zones::LoadXSurfaceArray, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4F4D0D, Zones::LoadGameWorldSp, HOOK_CALL).install()->quick();
+		Utils::Hook(0x47CCD2, Zones::LoadWeaponCompleteDef, HOOK_CALL).install()->quick();
+		Utils::Hook(0x483DA0, Zones::LoadVehicleDef, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4F0AC8, Zones::Loadsnd_alias_tArray, HOOK_CALL).install()->quick();
+		Utils::Hook(0x403A5D, Zones::LoadLoadedSound, HOOK_CALL).install()->quick();
+		Utils::Hook(0x463022, Zones::LoadWeaponAttach, HOOK_CALL).install()->quick();
+		Utils::Hook(0x41A570, Zones::LoadmenuDef_t, HOOK_CALL).install()->quick();
+		Utils::Hook(0x49591B, Zones::LoadFxEffectDef, HOOK_CALL).install()->quick();
+		Utils::Hook(0x428F0A, Zones::LoadMaterialShaderArgumentArray, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4B1EB8, Zones::LoadStructuredDataStructPropertyArray, HOOK_CALL).install()->quick();
+		Utils::Hook(0x49CE0D, Zones::LoadPhysPreset, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48E84D, Zones::LoadXModelSurfs, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4447C2, Zones::LoadImpactFx, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4447D0, Zones::LoadImpactFxArray, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4D6A0B, Zones::LoadPathNodeArray, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D6A47, Zones::LoadPathDataConstant, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x463D6E, Zones::LoadPathnodeConstantTail, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x4471AD, Zones::LoadGfxImage, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4471AD, Zones::LoadGfxImage, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x41A590, Zones::LoadExpressionSupportingDataPtr, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x459833, Zones::LoadExpressionSupportingDataPtr, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x41A590, Zones::LoadExpressionSupportingDataPtr, HOOK_CALL).install()->quick();
+		Utils::Hook(0x459833, Zones::LoadExpressionSupportingDataPtr, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x5B9AA5, Zones::LoadXAsset, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x461710, Zones::LoadMaterialTechnique, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x40330D, Zones::LoadMaterial, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4B8DC0, Zones::LoadGfxWorld, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4B8FF5, Zones::Loadsunflare_t, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5B9AA5, Zones::LoadXAsset, HOOK_CALL).install()->quick();
+		Utils::Hook(0x461710, Zones::LoadMaterialTechnique, HOOK_CALL).install()->quick();
+		Utils::Hook(0x40330D, Zones::LoadMaterial, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4B8DC0, Zones::LoadGfxWorld, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4B8FF5, Zones::Loadsunflare_t, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x418998, Zones::GameMapSpPatchStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x418998, Zones::GameMapSpPatchStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x4F4D3B, [] ()
 		{
 			if (Zones::ZoneVersion >= VERSION_ALPHA3)
@@ -1630,16 +1630,16 @@ namespace Components
 				// Load_PathData
 				Utils::Hook::Call<void(int)>(0x4278A0)(false);
 			}
-		}, HOOK_CALL).Install()->Quick();
+		}, HOOK_CALL).install()->quick();
 
 		// Change stream for images
 		Utils::Hook(0x4D3225, [] ()
 		{
 			Game::DB_PushStreamPos((Zones::ZoneVersion >= 332) ? 3 : 0);
-		}, HOOK_CALL).Install()->Quick();
+		}, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).install()->quick();
+		Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).install()->quick();
 
 #ifdef DEBUG
 		// Easy dirty disk debugging

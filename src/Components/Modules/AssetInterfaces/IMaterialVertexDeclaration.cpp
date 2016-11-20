@@ -2,23 +2,23 @@
 
 namespace Assets
 {
-	void IMaterialVertexDeclaration::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	void IMaterialVertexDeclaration::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_Size(Game::MaterialVertexDeclaration, 100);
+		AssertSize(Game::MaterialVertexDeclaration, 100);
 
-		Utils::Stream* buffer = builder->GetBuffer();
+		Utils::Stream* buffer = builder->getBuffer();
 		Game::MaterialVertexDeclaration* asset = header.vertexDecl;
-		Game::MaterialVertexDeclaration* dest = buffer->Dest<Game::MaterialVertexDeclaration>();
-		buffer->Save(asset);
+		Game::MaterialVertexDeclaration* dest = buffer->dest<Game::MaterialVertexDeclaration>();
+		buffer->save(asset);
 
-		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
 		if (asset->name)
 		{
-			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
+			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		buffer->PopBlock();
+		buffer->popBlock();
 	}
 }

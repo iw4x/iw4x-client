@@ -11,7 +11,7 @@ namespace Components
 		~Zones();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Zones"; };
+		const char* getName() { return "Zones"; };
 #endif
 
 		static void SetVersion(int version);

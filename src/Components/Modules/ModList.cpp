@@ -7,7 +7,7 @@ namespace Components
 
 	bool ModList::HasMod(std::string modName)
 	{
-		auto list = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").Get<std::string>() + "\\mods", "", true);
+		auto list = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").get<std::string>() + "\\mods", "", true);
 
 		for (auto mod : list)
 		{
@@ -42,7 +42,7 @@ namespace Components
 
 	void ModList::UIScript_LoadMods()
 	{
-		auto folder = Dvar::Var("fs_basepath").Get<std::string>() + "\\mods";
+		auto folder = Dvar::Var("fs_basepath").get<std::string>() + "\\mods";
 		Game::Com_Printf(0, "Searching for mods in %s...\n", folder.data());
 		ModList::Mods = FileSystem::GetSysFileList(folder, "", true);
 		Game::Com_Printf(0, "Found %i mods!\n", ModList::Mods.size());
@@ -59,10 +59,10 @@ namespace Components
 	void ModList::UIScript_ClearMods()
 	{
 		auto fsGame = Dvar::Var("fs_game");
-		fsGame.Set("");
-		fsGame.Get<Game::dvar_t*>()->modified = true;
+		fsGame.set("");
+		fsGame.get<Game::dvar_t*>()->modified = true;
 
-		if (Dvar::Var("cl_modVidRestart").Get<bool>())
+		if (Dvar::Var("cl_modVidRestart").get<bool>())
 		{
 			Game::Cmd_ExecuteSingleCommand(0, 0, "vid_restart");
 		}
@@ -75,10 +75,10 @@ namespace Components
 	void ModList::RunMod(std::string mod)
 	{
 		auto fsGame = Dvar::Var("fs_game");
-		fsGame.Set(fmt::sprintf("mods/%s", mod.data()));
-		fsGame.Get<Game::dvar_t*>()->modified = true;
+		fsGame.set(fmt::sprintf("mods/%s", mod.data()));
+		fsGame.get<Game::dvar_t*>()->modified = true;
 
-		if (Dvar::Var("cl_modVidRestart").Get<bool>())
+		if (Dvar::Var("cl_modVidRestart").get<bool>())
 		{
 			Command::Execute("vid_restart", false);
 		}

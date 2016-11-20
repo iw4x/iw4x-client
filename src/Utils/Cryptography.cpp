@@ -42,14 +42,14 @@ namespace Utils
 
 			ltc_mp = ltm_desc;
 
-			ecc_make_key(NULL, find_prng("sprng"), bits / 8, key.GetKeyPtr());
+			ecc_make_key(NULL, find_prng("sprng"), bits / 8, key.getKeyPtr());
 
 			return key;
 		}
 
 		std::string ECC::SignMessage(Key key, std::string message)
 		{
-			if (!key.IsValid()) return "";
+			if (!key.isValid()) return "";
 
 			uint8_t buffer[512];
 			DWORD length = sizeof(buffer);
@@ -58,19 +58,19 @@ namespace Utils
 
 			ltc_mp = ltm_desc;
 
-			ecc_sign_hash(reinterpret_cast<const uint8_t*>(message.data()), message.size(), buffer, &length, NULL, find_prng("sprng"), key.GetKeyPtr());
+			ecc_sign_hash(reinterpret_cast<const uint8_t*>(message.data()), message.size(), buffer, &length, NULL, find_prng("sprng"), key.getKeyPtr());
 
 			return std::string(reinterpret_cast<char*>(buffer), length);
 		}
 
 		bool ECC::VerifyMessage(Key key, std::string message, std::string signature)
 		{
-			if (!key.IsValid()) return false;
+			if (!key.isValid()) return false;
 
 			ltc_mp = ltm_desc;
 
 			int result = 0;
-			return (ecc_verify_hash(reinterpret_cast<const uint8_t*>(signature.data()), signature.size(), reinterpret_cast<const uint8_t*>(message.data()), message.size(), &result, key.GetKeyPtr()) == CRYPT_OK && result != 0);
+			return (ecc_verify_hash(reinterpret_cast<const uint8_t*>(signature.data()), signature.size(), reinterpret_cast<const uint8_t*>(message.data()), message.size(), &result, key.getKeyPtr()) == CRYPT_OK && result != 0);
 		}
 
 #pragma endregion
@@ -86,14 +86,14 @@ namespace Utils
 
 			ltc_mp = ltm_desc;
 
-			rsa_make_key(NULL, find_prng("sprng"), bits / 8, 65537, key.GetKeyPtr());
+			rsa_make_key(NULL, find_prng("sprng"), bits / 8, 65537, key.getKeyPtr());
 
 			return key;
 		}
 
 		std::string RSA::SignMessage(RSA::Key key, std::string message)
 		{
-			if (!key.IsValid()) return "";
+			if (!key.isValid()) return "";
 
 			uint8_t buffer[512];
 			DWORD length = sizeof(buffer);
@@ -103,21 +103,21 @@ namespace Utils
 
 			ltc_mp = ltm_desc;
 
-			rsa_sign_hash(reinterpret_cast<const uint8_t*>(message.data()), message.size(), buffer, &length, NULL, find_prng("sprng"), find_hash("sha1"), 0, key.GetKeyPtr());
+			rsa_sign_hash(reinterpret_cast<const uint8_t*>(message.data()), message.size(), buffer, &length, NULL, find_prng("sprng"), find_hash("sha1"), 0, key.getKeyPtr());
 
 			return std::string(reinterpret_cast<char*>(buffer), length);
 		}
 
 		bool RSA::VerifyMessage(Key key, std::string message, std::string signature)
 		{
-			if (!key.IsValid()) return false;
+			if (!key.isValid()) return false;
 
 			register_hash(&sha1_desc);
 
 			ltc_mp = ltm_desc;
 
 			int result = 0;
-			return (rsa_verify_hash(reinterpret_cast<const uint8_t*>(signature.data()), signature.size(), reinterpret_cast<const uint8_t*>(message.data()), message.size(), find_hash("sha1"), 0, &result, key.GetKeyPtr()) == CRYPT_OK && result != 0);
+			return (rsa_verify_hash(reinterpret_cast<const uint8_t*>(signature.data()), signature.size(), reinterpret_cast<const uint8_t*>(message.data()), message.size(), find_hash("sha1"), 0, &result, key.getKeyPtr()) == CRYPT_OK && result != 0);
 		}
 
 #pragma endregion

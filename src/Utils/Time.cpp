@@ -4,14 +4,14 @@ namespace Utils
 {
 	namespace Time
 	{
-		void Interval::Update()
+		void Interval::update()
 		{
-			this->LastPoint = std::chrono::high_resolution_clock::now();
+			this->lastPoint = std::chrono::high_resolution_clock::now();
 		}
 
-		bool Interval::Elapsed(std::chrono::nanoseconds nsecs)
+		bool Interval::elapsed(std::chrono::nanoseconds nsecs)
 		{
-			return ((std::chrono::high_resolution_clock::now() - this->LastPoint) >= nsecs);
+			return ((std::chrono::high_resolution_clock::now() - this->lastPoint) >= nsecs);
 		}
 	}
 }

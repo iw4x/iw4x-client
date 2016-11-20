@@ -12,9 +12,9 @@ namespace Components
 
 	const char* UIFeeder::GetItemText()
 	{
-		if (UIFeeder::Feeders.find(UIFeeder::Current.Feeder) != UIFeeder::Feeders.end())
+		if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
 		{
-			return UIFeeder::Feeders[UIFeeder::Current.Feeder].GetItemText(UIFeeder::Current.Index, UIFeeder::Current.Column);
+			return UIFeeder::Feeders[UIFeeder::Current.feeder].getItemText(UIFeeder::Current.index, UIFeeder::Current.column);
 		}
 
 		return nullptr;
@@ -22,9 +22,9 @@ namespace Components
 
 	unsigned int UIFeeder::GetItemCount()
 	{
-		if (UIFeeder::Feeders.find(UIFeeder::Current.Feeder) != UIFeeder::Feeders.end())
+		if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
 		{
-			return UIFeeder::Feeders[UIFeeder::Current.Feeder].GetItemCount();
+			return UIFeeder::Feeders[UIFeeder::Current.feeder].getItemCount();
 		}
 
 		return 0;
@@ -32,9 +32,9 @@ namespace Components
 
 	bool UIFeeder::SetItemSelection()
 	{
-		if (UIFeeder::Feeders.find(UIFeeder::Current.Feeder) != UIFeeder::Feeders.end())
+		if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
 		{
-			UIFeeder::Feeders[UIFeeder::Current.Feeder].Select(UIFeeder::Current.Index);
+			UIFeeder::Feeders[UIFeeder::Current.feeder].select(UIFeeder::Current.index);
 			return true;
 		}
 
@@ -43,8 +43,8 @@ namespace Components
 
 	bool UIFeeder::CheckFeeder()
 	{
-		if (UIFeeder::Current.Feeder == 15.0f) return false;
-		return (UIFeeder::Feeders.find(UIFeeder::Current.Feeder) != UIFeeder::Feeders.end());
+		if (UIFeeder::Current.feeder == 15.0f) return false;
+		return (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end());
 	}
 
 	__declspec(naked) void UIFeeder::SetItemSelectionStub()
@@ -52,10 +52,10 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp + 08h]
-			mov UIFeeder::Current.Feeder, eax
+			mov UIFeeder::Current.feeder, eax
 
 			mov eax, [esp + 0Ch]
-			mov UIFeeder::Current.Index, eax
+			mov UIFeeder::Current.index, eax
 
 			call UIFeeder::SetItemSelection
 
@@ -77,13 +77,13 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp + 0Ch]
-			mov UIFeeder::Current.Feeder, eax
+			mov UIFeeder::Current.feeder, eax
 
 			mov eax, [esp + 10h]
-			mov UIFeeder::Current.Index, eax
+			mov UIFeeder::Current.index, eax
 
 			mov eax, [esp + 14h]
-			mov UIFeeder::Current.Column, eax
+			mov UIFeeder::Current.column, eax
 
 			call UIFeeder::GetItemText
 
@@ -110,7 +110,7 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp + 8h]
-			mov UIFeeder::Current.Feeder, eax
+			mov UIFeeder::Current.feeder, eax
 
 			call UIFeeder::GetItemCount
 
@@ -136,7 +136,7 @@ namespace Components
 		{
 			mov ebx, ebp
 			mov eax, [ebp + 12Ch]
-			mov UIFeeder::Current.Feeder, eax
+			mov UIFeeder::Current.feeder, eax
 
 			push ebx
 			call UIFeeder::CheckFeeder
@@ -178,7 +178,7 @@ namespace Components
 
 			// Update indices if not
 			mov [ecx], edx
-			mov UIFeeder::Current.Index, edx
+			mov UIFeeder::Current.index, edx
 
 			call UIFeeder::SetItemSelection
 
@@ -196,7 +196,7 @@ namespace Components
 		__asm
 		{
 			mov eax, [edi + 12Ch]
-			mov UIFeeder::Current.Feeder, eax
+			mov UIFeeder::Current.feeder, eax
 
 			call UIFeeder::CheckFeeder
 
@@ -216,7 +216,7 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp + 08h]
-			mov UIFeeder::Current.Feeder, eax
+			mov UIFeeder::Current.feeder, eax
 
 			call UIFeeder::CheckFeeder
 
@@ -236,7 +236,7 @@ namespace Components
 		__asm
 		{
 			mov eax, [edi + 12Ch]
-			mov UIFeeder::Current.Feeder, eax
+			mov UIFeeder::Current.feeder, eax
 
 			call UIFeeder::CheckFeeder
 
@@ -253,7 +253,7 @@ namespace Components
 
 	void UIFeeder::ApplyMapFeeder(Game::dvar_t* dvar, int num)
 	{
-		Dvar::Var(dvar).Set(num);
+		Dvar::Var(dvar).set(num);
 
 		if (num < 0 || num >= *Game::arenaCount)
 		{
@@ -265,7 +265,7 @@ namespace Components
 
 		const char* mapname = ArenaLength::NewArenas[reinterpret_cast<int*>(0x633E934)[num]].mapName;
 
-		Dvar::Var("ui_mapname").Set(mapname);
+		Dvar::Var("ui_mapname").set(mapname);
 
 		// Party_SetDisplayMapName
 		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname);
@@ -274,31 +274,31 @@ namespace Components
 	UIFeeder::UIFeeder()
 	{
 		// Get feeder item count
-		Utils::Hook(0x41A0D0, UIFeeder::GetItemCountStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x41A0D0, UIFeeder::GetItemCountStub, HOOK_JUMP).install()->quick();
 
 		// Get feeder item text
-		Utils::Hook(0x4CE9E0, UIFeeder::GetItemTextStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4CE9E0, UIFeeder::GetItemTextStub, HOOK_JUMP).install()->quick();
 
 		// Select feeder item
-		Utils::Hook(0x4C25D0, UIFeeder::SetItemSelectionStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4C25D0, UIFeeder::SetItemSelectionStub, HOOK_JUMP).install()->quick();
 
 		// Mouse enter check
-		Utils::Hook(0x639D6E, UIFeeder::MouseEnterStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x639D6E, UIFeeder::MouseEnterStub, HOOK_JUMP).install()->quick();
 
 		// Handle key event
-		Utils::Hook(0x63C5BC, UIFeeder::HandleKeyStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x63C5BC, UIFeeder::HandleKeyStub, HOOK_CALL).install()->quick();
 
 		// Mouse select check
-		Utils::Hook(0x639D31, UIFeeder::MouseSelectStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x639D31, UIFeeder::MouseSelectStub, HOOK_CALL).install()->quick();
 
 		// Play mouse over sound check
-		Utils::Hook(0x639D66, UIFeeder::PlaySoundStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x639D66, UIFeeder::PlaySoundStub, HOOK_CALL).install()->quick();
 
 		// some thing overwriting feeder 2's data
 		Utils::Hook::Set<BYTE>(0x4A06A9, 0xEB);
 
 		// correct feeder 4
-		Utils::Hook(0x4C260E, UIFeeder::ApplyMapFeeder, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4C260E, UIFeeder::ApplyMapFeeder, HOOK_CALL).install()->quick();
 	}
 
 	UIFeeder::~UIFeeder()

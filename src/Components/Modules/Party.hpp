@@ -7,7 +7,7 @@ namespace Components
 		~Party();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Party"; };
+		const char* getName() { return "Party"; };
 #endif
 
 		static Network::Address Target();
@@ -25,17 +25,17 @@ namespace Components
 		class JoinContainer
 		{
 		public:
-			Network::Address Target;
-			std::string Challenge;
-			DWORD JoinTime;
-			bool Valid;
-			int MatchType;
+			Network::Address target;
+			std::string challenge;
+			DWORD joinTime;
+			bool valid;
+			int matchType;
 
-			Utils::InfoString Info;
+			Utils::InfoString info;
 
 			// Party-specific stuff
-			DWORD RequestTime;
-			bool AwaitingPlaylist;		
+			DWORD requestTime;
+			bool awaitingPlaylist;		
 		};
 
 		static JoinContainer Container;

@@ -6,7 +6,7 @@ namespace Components
 		ArenaLength();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "ArenaLength"; };
+		const char* getName() { return "ArenaLength"; };
 #endif
 
 		static Game::newMapArena_t NewArenas[128];
@@ -16,6 +16,5 @@ namespace Components
 		static void ArenaMapOffsetHook2();
 		static void ArenaMapOffsetHook3();
 		static void ArenaMapOffsetHook4();
-		static void ArenaMapOffsetHook5();
 	};
 }

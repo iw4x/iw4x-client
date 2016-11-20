@@ -25,7 +25,7 @@ namespace Components
 		~StructuredData();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "StructuredData"; };
+		const char* getName() { return "StructuredData"; };
 #endif
 
 	private:

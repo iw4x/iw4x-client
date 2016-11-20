@@ -114,7 +114,7 @@ namespace Components
 
 	void QuickPatch::CL_HandleRelayPacketCheck(Game::msg_t* msg, int client)
 	{
-		if (Command::Params().Length() >= 3)
+		if (Command::Params().length() >= 3)
 		{
 			Game::CL_HandleRelayPacket(msg, client);
 		}
@@ -124,7 +124,7 @@ namespace Components
 	{
 		Command::Params args;
 
-		if (args.Length() >= 4)
+		if (args.length() >= 4)
 		{
 			std::string cmd = args[0];
 			std::string table = args[1];
@@ -323,7 +323,7 @@ namespace Components
 		Utils::Hook::Set<char*>(0x60B279, CLIENT_CONFIG);
 		Utils::Hook::Set<char*>(0x60BBD4, CLIENT_CONFIG);
 
-		Utils::Hook(0x4D697A, QuickPatch::ShutdownStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4D697A, QuickPatch::ShutdownStub, HOOK_CALL).install()->quick();
 
 		// Disable profile system
 //		Utils::Hook::Nop(0x60BEB1, 5);          // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.
@@ -362,13 +362,13 @@ namespace Components
 		// Fix mouse pitch adjustments
 		UIScript::Add("updateui_mousePitch", [] ()
 		{
-			if (Dvar::Var("ui_mousePitch").Get<bool>())
+			if (Dvar::Var("ui_mousePitch").get<bool>())
 			{
-				Dvar::Var("m_pitch").Set(-0.022f);
+				Dvar::Var("m_pitch").set(-0.022f);
 			}
 			else
 			{
-				Dvar::Var("m_pitch").Set(0.022f);
+				Dvar::Var("m_pitch").set(0.022f);
 			}
 		});
 
@@ -378,15 +378,15 @@ namespace Components
 		// Patch stats steamid
 		Utils::Hook::Nop(0x682EBF, 20);
 		Utils::Hook::Nop(0x6830B1, 20);
-		Utils::Hook(0x682EBF, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x6830B1, QuickPatch::GetStatsID, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x682EBF, QuickPatch::GetStatsID, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6830B1, QuickPatch::GetStatsID, HOOK_CALL).install()->quick();
 		//Utils::Hook::Set<BYTE>(0x68323A, 0xEB);
 
 		// Exploit fixes
 		Utils::Hook::Set<BYTE>(0x412370, 0xC3);                                                      // SV_SteamAuthClient
-		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).Install()->Quick(); // SV_ExecuteClientCommands
-		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).Install()->Quick(); // CL_ParseServerMessage
-		Utils::Hook(0x5AA009, QuickPatch::CL_HandleRelayPacketCheck, HOOK_CALL).Install()->Quick();  // CL_HandleRelayPacket
+		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
+		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
+		Utils::Hook(0x5AA009, QuickPatch::CL_HandleRelayPacketCheck, HOOK_CALL).install()->quick();  // CL_HandleRelayPacket
 
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
@@ -440,7 +440,7 @@ namespace Components
 		QuickPatch::ShutdownSignal.clear();
 	}
 
-	bool QuickPatch::UnitTest()
+	bool QuickPatch::unitTest()
 	{
 		uint32_t randIntCount = 4'000'000;
 		printf("Generating %d random integers...", randIntCount);

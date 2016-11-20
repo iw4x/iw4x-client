@@ -10,7 +10,7 @@ namespace Components
 		~Console();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Console"; };
+		const char* getName() { return "Console"; };
 #endif
 
 		static void SetSkipShutdown();

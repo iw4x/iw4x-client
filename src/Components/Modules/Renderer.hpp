@@ -10,7 +10,7 @@ namespace Components
 		~Renderer();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Renderer"; };
+		const char* getName() { return "Renderer"; };
 #endif
 
 		static int Width();

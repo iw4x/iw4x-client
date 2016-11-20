@@ -8,22 +8,22 @@ namespace Components
 
 	char* Command::Params::operator[](size_t index)
 	{
-		if (index >= this->Length()) return "";
-		if (this->IsSV) return Game::cmd_argv_sv[this->CommandId][index];
-		else return Game::cmd_argv[this->CommandId][index];
+		if (index >= this->length()) return "";
+		if (this->isSV) return Game::cmd_argv_sv[this->commandId][index];
+		else return Game::cmd_argv[this->commandId][index];
 	}
 
-	size_t Command::Params::Length()
+	size_t Command::Params::length()
 	{
-		if (this->IsSV) return Game::cmd_argc_sv[this->CommandId];
-		else return Game::cmd_argc[this->CommandId];
+		if (this->isSV) return Game::cmd_argc_sv[this->commandId];
+		else return Game::cmd_argc[this->commandId];
 	}
 
-	std::string Command::Params::Join(size_t startIndex)
+	std::string Command::Params::join(size_t startIndex)
 	{
 		std::string result;
 
-		for (size_t i = startIndex; i < this->Length(); ++i)
+		for (size_t i = startIndex; i < this->length(); ++i)
 		{
 			if (i > startIndex) result.append(" ");
 			result.append(this->operator[](i));
@@ -116,7 +116,7 @@ namespace Components
 
 	Game::cmd_function_t* Command::Allocate()
 	{
-		return Command::MemAllocator.Allocate<Game::cmd_function_t>();
+		return Command::MemAllocator.allocate<Game::cmd_function_t>();
 	}
 
 	void Command::MainCallback()
@@ -145,7 +145,7 @@ namespace Components
 
 	Command::Command()
 	{
-		Assert_Size(Game::cmd_function_t, 24);
+		AssertSize(Game::cmd_function_t, 24);
 
 		// Disable native noclip command
 		Utils::Hook::Nop(0x474846, 5);
@@ -160,7 +160,7 @@ namespace Components
 				return;
 			}
 
-			if (!Dvar::Var("sv_cheats").Get<bool>())
+			if (!Dvar::Var("sv_cheats").get<bool>())
 			{
 				Logger::Print("Cheats disabled!\n");
 				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", 3000);
@@ -183,7 +183,7 @@ namespace Components
 				return;
 			}
 
-			if (!Dvar::Var("sv_cheats").Get<bool>())
+			if (!Dvar::Var("sv_cheats").get<bool>())
 			{
 				Logger::Print("Cheats disabled!\n");
 				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", 3000);
@@ -199,7 +199,7 @@ namespace Components
 
 	Command::~Command()
 	{
-		Command::MemAllocator.Clear();
+		Command::MemAllocator.clear();
 		Command::FunctionMap.clear();
 		Command::FunctionMapSV.clear();
 	}

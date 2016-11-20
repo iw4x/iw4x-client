@@ -7,7 +7,7 @@ namespace Components
 		~Download();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Download"; };
+		const char* getName() { return "Download"; };
 #endif
 
 		static void InitiateClientDownload(std::string mod);
@@ -16,50 +16,50 @@ namespace Components
 		class ClientDownload
 		{
 		public:
-			ClientDownload() : Valid(false), Running(false), TerminateThread(false), TotalBytes(0), DownBytes(0), LastTimeStamp(0), TimeStampBytes(0) {}
-			~ClientDownload() { this->Clear(); }
+			ClientDownload() : valid(false), running(false), terminateThread(false), totalBytes(0), downBytes(0), lastTimeStamp(0), timeStampBytes(0) {}
+			~ClientDownload() { this->clear(); }
 
-			bool Running;
-			bool Valid;
-			bool TerminateThread;
-			mg_mgr Mgr;
-			Network::Address Target;
-			std::string Mod;
-			std::thread Thread;
+			bool running;
+			bool valid;
+			bool terminateThread;
+			mg_mgr mgr;
+			Network::Address target;
+			std::string mod;
+			std::thread thread;
 
-			size_t TotalBytes;
-			size_t DownBytes;
+			size_t totalBytes;
+			size_t downBytes;
 
-			int LastTimeStamp;
-			size_t TimeStampBytes;
+			int lastTimeStamp;
+			size_t timeStampBytes;
 
 			class File
 			{
 			public:
-				std::string Name;
-				std::string Hash;
-				size_t Size;
+				std::string name;
+				std::string hash;
+				size_t size;
 			};
 
-			std::vector<File> Files;
+			std::vector<File> files;
 
-			void Clear()
+			void clear()
 			{
-				this->TerminateThread = true;
+				this->terminateThread = true;
 
-				if (this->Thread.joinable())
+				if (this->thread.joinable())
 				{
-					this->Thread.join();
+					this->thread.join();
 				}
 
-				this->Running = false;
-				this->Mod.clear();
-				this->Files.clear();
+				this->running = false;
+				this->mod.clear();
+				this->files.clear();
 
-				if (this->Valid)
+				if (this->valid)
 				{
-					this->Valid = false;
-					mg_mgr_free(&(this->Mgr));
+					this->valid = false;
+					mg_mgr_free(&(this->mgr));
 				}
 			}
 		};
@@ -75,8 +75,6 @@ namespace Components
 			unsigned int index;
 			std::string buffer;
 			size_t receivedBytes;
-
-
 		};
 
 		static mg_mgr Mgr;

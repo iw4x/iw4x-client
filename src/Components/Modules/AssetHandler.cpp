@@ -16,23 +16,23 @@ namespace Components
 	void AssetHandler::RegisterInterface(IAsset* iAsset)
 	{
 		if (!iAsset) return;
-		if (iAsset->GetType() == Game::XAssetType::ASSET_TYPE_INVALID)
+		if (iAsset->getType() == Game::XAssetType::ASSET_TYPE_INVALID)
 		{
 			delete iAsset;
 			return;
 		}
 
-		if (AssetHandler::AssetInterfaces.find(iAsset->GetType()) != AssetHandler::AssetInterfaces.end())
+		if (AssetHandler::AssetInterfaces.find(iAsset->getType()) != AssetHandler::AssetInterfaces.end())
 		{
-			Logger::Print("Duplicate asset interface: %s\n", Game::DB_GetXAssetTypeName(iAsset->GetType()));
-			delete AssetHandler::AssetInterfaces[iAsset->GetType()];
+			Logger::Print("Duplicate asset interface: %s\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
+			delete AssetHandler::AssetInterfaces[iAsset->getType()];
 		}
 		else
 		{
-			Logger::Print("Asset interface registered: %s\n", Game::DB_GetXAssetTypeName(iAsset->GetType()));
+			Logger::Print("Asset interface registered: %s\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
 		}
 
-		AssetHandler::AssetInterfaces[iAsset->GetType()] = iAsset;
+		AssetHandler::AssetInterfaces[iAsset->getType()] = iAsset;
 	}
 
 	void AssetHandler::ClearTemporaryAssets()
@@ -237,7 +237,7 @@ namespace Components
 	void AssetHandler::OffsetToAlias(Utils::Stream::Offset* offset)
 	{
 		// Same here, reinterpret the value, as we're operating inside the game's environment
-		void* pointer = (*Game::g_streamBlocks)[offset->GetUnpackedBlock()].data + offset->GetUnpackedOffset();
+		void* pointer = (*Game::g_streamBlocks)[offset->getUnpackedBlock()].data + offset->getUnpackedOffset();
 
 		if (AssetHandler::Relocations.find(pointer) != AssetHandler::Relocations.end())
 		{
@@ -255,7 +255,7 @@ namespace Components
 	{
 		if (AssetHandler::AssetInterfaces.find(asset.type) != AssetHandler::AssetInterfaces.end())
 		{
-			AssetHandler::AssetInterfaces[asset.type]->Save(asset.header, builder);
+			AssetHandler::AssetInterfaces[asset.type]->save(asset.header, builder);
 		}
 		else
 		{
@@ -267,7 +267,7 @@ namespace Components
 	{
 		if (AssetHandler::AssetInterfaces.find(asset.type) != AssetHandler::AssetInterfaces.end())
 		{
-			AssetHandler::AssetInterfaces[asset.type]->Mark(asset.header, builder);
+			AssetHandler::AssetInterfaces[asset.type]->mark(asset.header, builder);
 		}
 		else
 		{
@@ -289,7 +289,7 @@ namespace Components
 
 		if (AssetHandler::AssetInterfaces.find(type) != AssetHandler::AssetInterfaces.end())
 		{
-			AssetHandler::AssetInterfaces[type]->Load(&header, filename, builder);
+			AssetHandler::AssetInterfaces[type]->load(&header, filename, builder);
 
 			if (header.data)
 			{
@@ -348,16 +348,16 @@ namespace Components
 		AssetHandler::ClearTemporaryAssets();
 
 		// DB_FindXAssetHeader
-		Utils::Hook(Game::DB_FindXAssetHeader, AssetHandler::FindAssetStub).Install()->Quick();
+		Utils::Hook(Game::DB_FindXAssetHeader, AssetHandler::FindAssetStub).install()->quick();
 
 		// DB_ConvertOffsetToAlias
-		Utils::Hook(0x4FDFA0, AssetHandler::OffsetToAlias, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4FDFA0, AssetHandler::OffsetToAlias, HOOK_JUMP).install()->quick();
 
 		// DB_AddXAsset
-		Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).install()->quick();
 
 		// Store empty assets
-		Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).install()->quick();
 
 		// Log missing empty assets
 		QuickPatch::OnFrame([] ()
@@ -375,7 +375,7 @@ namespace Components
 
 		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
 		{
-			if (Dvar::Var("r_noVoid").Get<bool>() && type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void")
+			if (Dvar::Var("r_noVoid").get<bool>() && type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void")
 			{
 				asset.model->numLods = 0;
 			}

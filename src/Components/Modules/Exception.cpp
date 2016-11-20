@@ -57,9 +57,9 @@ namespace Components
 
 	LPTOP_LEVEL_EXCEPTION_FILTER WINAPI Exception::SetUnhandledExceptionFilterStub(LPTOP_LEVEL_EXCEPTION_FILTER)
 	{
-		Exception::SetFilterHook.Uninstall();
+		Exception::SetFilterHook.uninstall();
 		LPTOP_LEVEL_EXCEPTION_FILTER retval = SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
-		Exception::SetFilterHook.Install();
+		Exception::SetFilterHook.install();
 		return retval;
 	}
 
@@ -89,20 +89,20 @@ namespace Components
 		});
 #endif
 #if !defined(DEBUG) || defined(FORCE_EXCEPTION_HANDLER)
-		Exception::SetFilterHook.Initialize(SetUnhandledExceptionFilter, Exception::SetUnhandledExceptionFilterStub, HOOK_JUMP);
-		Exception::SetFilterHook.Install();
+		Exception::SetFilterHook.initialize(SetUnhandledExceptionFilter, Exception::SetUnhandledExceptionFilterStub, HOOK_JUMP);
+		Exception::SetFilterHook.install();
 
 		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
 #endif
 
-		//Utils::Hook(0x4B241F, Exception::ErrorLongJmp, HOOK_CALL).Install()->Quick();
+		//Utils::Hook(0x4B241F, Exception::ErrorLongJmp, HOOK_CALL).install()->quick();
 
 		Command::Add("mapTest", [](Command::Params params)
 		{
 			Game::UI_UpdateArenas();
 
 			std::string command;
-			for (int i = 0; i < (params.Length() >= 2 ? atoi(params[1]) : *Game::arenaCount); ++i)
+			for (int i = 0; i < (params.length() >= 2 ? atoi(params[1]) : *Game::arenaCount); ++i)
 			{
 				char* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
 
@@ -171,6 +171,6 @@ namespace Components
 
 	Exception::~Exception()
 	{
-		Exception::SetFilterHook.Uninstall();
+		Exception::SetFilterHook.uninstall();
 	}
 }

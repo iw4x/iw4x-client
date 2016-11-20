@@ -63,7 +63,7 @@ namespace Components
 
 	int Window::IsNoBorder()
 	{
-		return Window::NoBorder.Get<bool>();
+		return Window::NoBorder.get<bool>();
 	}
 
 	__declspec(naked) void Window::StyleHookStub()
@@ -85,7 +85,7 @@ namespace Components
 
 	void Window::DrawCursorStub(void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Game::Material *material)
 	{
-		if (Window::NativeCursor.Get<bool>())
+		if (Window::NativeCursor.get<bool>())
 		{
 			Window::CursorVisible = TRUE;
 		}
@@ -97,7 +97,7 @@ namespace Components
 
 	int WINAPI Window::ShowCursorHook(BOOL show)
 	{
-		if (Window::NativeCursor.Get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
+		if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 		{
 			static int count = 0;
 			(show ? ++count : --count);
@@ -125,19 +125,19 @@ namespace Components
 		Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Do not use a border in windowed mode");
 		Window::NativeCursor = Dvar::Register<bool>("ui_nativeCursor", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display native cursor");
 
-		Utils::Hook(0x507643, Window::StyleHookStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x507643, Window::StyleHookStub, HOOK_CALL).install()->quick();
 
 		// Main window creation
 		Utils::Hook::Nop(0x5076AA, 1);
-		Utils::Hook(0x5076AB, Window::CreateMainWindow, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5076AB, Window::CreateMainWindow, HOOK_CALL).install()->quick();
 
 		// Mark the cursor as visible
-		Utils::Hook(0x48E5D3, Window::DrawCursorStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x48E5D3, Window::DrawCursorStub, HOOK_CALL).install()->quick();
 
 		// Draw the cursor if necessary
 		Renderer::OnFrame([] ()
 		{
-			if (Window::NativeCursor.Get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
+			if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 			{
 				int value = 0;
 

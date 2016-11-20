@@ -6,7 +6,7 @@ namespace Components
 		Weapon();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Weapon"; };
+		const char* getName() { return "Weapon"; };
 #endif
 
 	private:

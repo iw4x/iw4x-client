@@ -3,8 +3,8 @@ namespace Assets
 	class IMaterialVertexShader : public Components::AssetHandler::IAsset
 	{
 	public:
-		virtual Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_VERTEXSHADER; };
+		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_VERTEXSHADER; };
 
-		virtual void Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
+		virtual void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 	};
 }

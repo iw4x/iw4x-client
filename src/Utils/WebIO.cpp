@@ -7,57 +7,57 @@ namespace Utils
 
 	WebIO::WebIO(std::string useragent, std::string url) : WebIO(useragent)
 	{
-		WebIO::SetURL(url);
+		this->setURL(url);
 	}
 
-	WebIO::WebIO(std::string useragent) : m_timeout(5000) // 5 seconds timeout by default
+	WebIO::WebIO(std::string useragent) : timeout(5000) // 5 seconds timeout by default
 	{
-		WebIO::OpenSession(useragent);
+		this->openSession(useragent);
 	}
 
 	WebIO::~WebIO()
 	{
-		WebIO::m_username.clear();
-		WebIO::m_password.clear();
+		this->username.clear();
+		this->password.clear();
 
-		WebIO::CloseConnection();
-		WebIO::CloseSession();
+		this->closeConnection();
+		this->closeSession();
 	}
 
-	void WebIO::OpenSession(std::string useragent)
+	void WebIO::openSession(std::string useragent)
 	{
-		WebIO::m_hSession = InternetOpenA(useragent.data(), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+		this->hSession = InternetOpenA(useragent.data(), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
 	}
 
-	void WebIO::CloseSession()
+	void WebIO::closeSession()
 	{
-		InternetCloseHandle(WebIO::m_hSession);
+		InternetCloseHandle(this->hSession);
 	}
 
-	void WebIO::SetCredentials(std::string username, std::string password)
+	void WebIO::SetCredentials(std::string _username, std::string _password)
 	{
-		WebIO::m_username.clear();
-		WebIO::m_password.clear();
+		this->username.clear();
+		this->password.clear();
 
-		WebIO::m_username.append(username.begin(), username.end());
-		WebIO::m_password.append(password.begin(), password.end());
+		this->username.append(_username.begin(), _username.end());
+		this->password.append(_password.begin(), _password.end());
 	}
 
-	void WebIO::SetURL(std::string url)
+	void WebIO::setURL(std::string _url)
 	{
-		WebIO::m_sUrl.server.clear();
-		WebIO::m_sUrl.protocol.clear();
-		WebIO::m_sUrl.document.clear();
+		this->url.server.clear();
+		this->url.protocol.clear();
+		this->url.document.clear();
 
 		// Insert protocol if none
-		if (url.find("://") == std::string::npos)
+		if (_url.find("://") == std::string::npos)
 		{
-			url = "http://" + url;
+			_url = "http://" + _url;
 		}
 
 		PARSEDURLA pURL;
 		pURL.cbSize = sizeof(pURL);
-		ParseURLA(url.data(), &pURL);
+		ParseURLA(_url.data(), &pURL);
 
 		// Parse protocol
 		if (pURL.cchProtocol && pURL.cchProtocol != 0xCCCCCCCC && pURL.pszProtocol)
@@ -65,12 +65,12 @@ namespace Utils
 			for (UINT i = 0; i < pURL.cchProtocol; ++i)
 			{
 				char lChar = static_cast<char>(tolower(pURL.pszProtocol[i]));
-				WebIO::m_sUrl.protocol.append(&lChar, 1);
+				this->url.protocol.append(&lChar, 1);
 			}
 		}
 		else
 		{
-			WebIO::m_sUrl.protocol.append("http");
+			this->url.protocol.append("http");
 		}
 
 		// Parse suffix
@@ -95,41 +95,41 @@ namespace Utils
 		size_t pos = server.find("/");
 		if (pos == std::string::npos)
 		{
-			WebIO::m_sUrl.server = server;
-			WebIO::m_sUrl.document = "/";
+			this->url.server = server;
+			this->url.document = "/";
 		}
 		else
 		{
-			WebIO::m_sUrl.server = server.substr(0, pos);
-			WebIO::m_sUrl.document = server.substr(pos);
+			this->url.server = server.substr(0, pos);
+			this->url.document = server.substr(pos);
 		}
 
-		WebIO::m_sUrl.port.clear();
+		this->url.port.clear();
 
-		pos = WebIO::m_sUrl.server.find(":");
+		pos = this->url.server.find(":");
 		if (pos != std::string::npos)
 		{
-			WebIO::m_sUrl.port = WebIO::m_sUrl.server.substr(pos + 1);
-			WebIO::m_sUrl.server = WebIO::m_sUrl.server.substr(0, pos);
+			this->url.port = this->url.server.substr(pos + 1);
+			this->url.server = this->url.server.substr(0, pos);
 		}
 
-		WebIO::m_sUrl.raw.clear();
-		WebIO::m_sUrl.raw.append(WebIO::m_sUrl.protocol);
-		WebIO::m_sUrl.raw.append("://");
-		WebIO::m_sUrl.raw.append(WebIO::m_sUrl.server);
+		this->url.raw.clear();
+		this->url.raw.append(this->url.protocol);
+		this->url.raw.append("://");
+		this->url.raw.append(this->url.server);
 
-		if (!WebIO::m_sUrl.port.empty())
+		if (!this->url.port.empty())
 		{
-			WebIO::m_sUrl.raw.append(":");
-			WebIO::m_sUrl.raw.append(WebIO::m_sUrl.port);
+			this->url.raw.append(":");
+			this->url.raw.append(this->url.port);
 		}
 
-		WebIO::m_sUrl.raw.append(WebIO::m_sUrl.document);
+		this->url.raw.append(this->url.document);
 
-		WebIO::m_isFTP = (WebIO::m_sUrl.protocol == "ftp");
+		this->isFTP = (this->url.protocol == "ftp");
 	}
 
-	std::string WebIO::BuildPostBody(WebIO::Params params)
+	std::string WebIO::buildPostBody(WebIO::Params params)
 	{
 		std::string body;
 
@@ -150,13 +150,13 @@ namespace Utils
 		return body;
 	}
 
-	std::string WebIO::PostFile(std::string url, std::string data, std::string fieldName, std::string fileName)
+	std::string WebIO::postFile(std::string _url, std::string data, std::string fieldName, std::string fileName)
 	{
-		WebIO::SetURL(url);
-		return WebIO::PostFile(data, fieldName, fileName);
+		this->setURL(_url);
+		return this->postFile(data, fieldName, fileName);
 	}
 
-	std::string WebIO::PostFile(std::string data, std::string fieldName, std::string fileName)
+	std::string WebIO::postFile(std::string data, std::string fieldName, std::string fileName)
 	{
 		WebIO::Params headers;
 
@@ -180,90 +180,90 @@ namespace Utils
 
 		headers["Content-Length"] = fmt::sprintf("%u", body.size());
 
-		return WebIO::Execute("POST", body, headers);
+		return this->execute("POST", body, headers);
 	}
 
-	std::string WebIO::Post(std::string url, std::string body)
+	std::string WebIO::post(std::string _url, std::string body)
 	{
-		WebIO::SetURL(url);
-		return WebIO::Post(body);
+		this->setURL(_url);
+		return this->post(body);
 	}
 
-	std::string WebIO::Post(std::string url, WebIO::Params params)
+	std::string WebIO::post(std::string _url, WebIO::Params params)
 	{
-		WebIO::SetURL(url);
-		return WebIO::Post(params);
+		this->setURL(_url);
+		return this->post(params);
 	}
 
-	std::string WebIO::Post(WebIO::Params params)
+	std::string WebIO::post(WebIO::Params params)
 	{
-		return WebIO::Post(WebIO::BuildPostBody(params));
+		return this->post(this->buildPostBody(params));
 	}
 
-	std::string WebIO::Post(std::string body)
+	std::string WebIO::post(std::string body)
 	{
-		return WebIO::Execute("POST", body);
+		return this->execute("POST", body);
 	}
 
-	std::string WebIO::Get(std::string url)
+	std::string WebIO::get(std::string _url)
 	{
-		WebIO::SetURL(url);
-		return WebIO::Get();
+		this->setURL(_url);
+		return this->get();
 	}
 
-	std::string WebIO::Get()
+	std::string WebIO::get()
 	{
-		return WebIO::Execute("GET", "");
+		return this->execute("GET", "");
 	}
 
-	bool WebIO::OpenConnection()
+	bool WebIO::openConnection()
 	{
 		WORD wPort = INTERNET_DEFAULT_HTTP_PORT;
 		DWORD dwService = INTERNET_SERVICE_HTTP;
 		DWORD dwFlag = 0;
 
-		if (WebIO::m_isFTP)
+		if (this->isFTP)
 		{
 			wPort = INTERNET_DEFAULT_FTP_PORT;
 			dwService = INTERNET_SERVICE_FTP;
 			dwFlag = INTERNET_FLAG_PASSIVE;
 		}
-		else if (WebIO::IsSecuredConnection())
+		else if (this->isSecuredConnection())
 		{
 			wPort = INTERNET_DEFAULT_HTTPS_PORT;
 		}
 
-		if (!WebIO::m_sUrl.port.empty())
+		if (!this->url.port.empty())
 		{
-			wPort = static_cast<WORD>(atoi(WebIO::m_sUrl.port.data()));
+			wPort = static_cast<WORD>(atoi(this->url.port.data()));
 		}
 
-		const char* username = (WebIO::m_username.size() ? WebIO::m_username.data() : NULL);
-		const char* password = (WebIO::m_password.size() ? WebIO::m_password.data() : NULL);
-		WebIO::m_hConnect = InternetConnectA(WebIO::m_hSession, WebIO::m_sUrl.server.data(), wPort, username, password, dwService, dwFlag, 0);
+		const char* _username = (this->username.size() ? this->username.data() : NULL);
+		const char* _password = (this->password.size() ? this->password.data() : NULL);
+		this->hConnect = InternetConnectA(this->hSession, this->url.server.data(), wPort, _username, _password, dwService, dwFlag, 0);
 
-		return (WebIO::m_hConnect && WebIO::m_hConnect != INVALID_HANDLE_VALUE);
+		return (this->hConnect && this->hConnect != INVALID_HANDLE_VALUE);
 	}
 
-	void WebIO::CloseConnection()
+	void WebIO::closeConnection()
 	{
-		if (WebIO::m_hFile && WebIO::m_hFile != INVALID_HANDLE_VALUE) InternetCloseHandle(WebIO::m_hFile);
-		if (WebIO::m_hConnect && WebIO::m_hConnect != INVALID_HANDLE_VALUE) InternetCloseHandle(WebIO::m_hConnect);
+		if (this->hFile && this->hFile != INVALID_HANDLE_VALUE) InternetCloseHandle(this->hFile);
+		if (this->hConnect && this->hConnect != INVALID_HANDLE_VALUE) InternetCloseHandle(this->hConnect);
 	}
 
-	WebIO* WebIO::SetTimeout(DWORD mseconds)
+	WebIO* WebIO::setTimeout(DWORD mseconds)
 	{
-		this->m_timeout = mseconds;
+		this->timeout = mseconds;
 		return this;
 	}
 
-	std::string WebIO::Execute(const char* command, std::string body, WebIO::Params headers)
+	std::string WebIO::execute(const char* command, std::string body, WebIO::Params headers)
 	{
-		if (!WebIO::OpenConnection()) return "";
+		if (!this->openConnection()) return "";
 
 		const char *acceptTypes[] = { "application/x-www-form-urlencoded", nullptr };
 
-		DWORD dwFlag = INTERNET_FLAG_RELOAD | (WebIO::IsSecuredConnection() ? INTERNET_FLAG_SECURE : 0);
+		DWORD dwFlag = INTERNET_FLAG_RELOAD | (this->isSecuredConnection() ? INTERNET_FLAG_SECURE : 0);
 
 		// This doesn't seem to actually do anything, half of those options don't even seem to be implemented.
 		// Good job microsoft... ( https://msdn.microsoft.com/en-us/library/windows/desktop/aa385328%28v=vs.85%29.aspx )
@@ -271,11 +271,11 @@ namespace Utils
 		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_RECEIVE_TIMEOUT, &m_timeout, sizeof(m_timeout));
 		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_SEND_TIMEOUT, &m_timeout, sizeof(m_timeout));
 
-		WebIO::m_hFile = HttpOpenRequestA(WebIO::m_hConnect, command, WebIO::m_sUrl.document.data(), NULL, NULL, acceptTypes, dwFlag, 0);
+		this->hFile = HttpOpenRequestA(this->hConnect, command, this->url.document.data(), NULL, NULL, acceptTypes, dwFlag, 0);
 
-		if (!WebIO::m_hFile || WebIO::m_hFile == INVALID_HANDLE_VALUE)
+		if (!this->hFile || this->hFile == INVALID_HANDLE_VALUE)
 		{
-			WebIO::CloseConnection();
+			this->closeConnection();
 			return "";
 		}
 
@@ -294,16 +294,16 @@ namespace Utils
 			finalHeaders.append("\r\n");
 		}
 
-		if (HttpSendRequestA(WebIO::m_hFile, finalHeaders.data(), finalHeaders.size(), const_cast<char*>(body.data()), body.size() + 1) == FALSE)
+		if (HttpSendRequestA(this->hFile, finalHeaders.data(), finalHeaders.size(), const_cast<char*>(body.data()), body.size() + 1) == FALSE)
 		{
 			return "";
 		}
 
 		DWORD statusCode = 404;
 		DWORD length = sizeof(statusCode);
-		if (HttpQueryInfo(WebIO::m_hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &statusCode, &length, NULL) == FALSE || (statusCode != 200 && statusCode != 201))
+		if (HttpQueryInfo(this->hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &statusCode, &length, NULL) == FALSE || (statusCode != 200 && statusCode != 201))
 		{
-			WebIO::CloseConnection();
+			this->closeConnection();
 			return "";
 		}
 
@@ -312,66 +312,66 @@ namespace Utils
 		DWORD size = 0;
 		char buffer[0x2001] = { 0 };
 
-		while (InternetReadFile(WebIO::m_hFile, buffer, 0x2000, &size))
+		while (InternetReadFile(this->hFile, buffer, 0x2000, &size))
 		{
 			returnBuffer.append(buffer, size);
 			if (!size) break;
 		}
 
-		WebIO::CloseConnection();
+		this->closeConnection();
 
 		return returnBuffer;
 	}
 
-	bool WebIO::IsSecuredConnection()
+	bool WebIO::isSecuredConnection()
 	{
-		return (WebIO::m_sUrl.protocol == "https");
+		return (this->url.protocol == "https");
 	}
 
-	bool WebIO::Connect()
+	bool WebIO::connect()
 	{
-		return WebIO::OpenConnection();
+		return this->openConnection();
 	}
 
-	void WebIO::Disconnect()
+	void WebIO::disconnect()
 	{
-		WebIO::CloseConnection();
+		this->closeConnection();
 	}
 
-	bool WebIO::SetDirectory(std::string directory)
+	bool WebIO::setDirectory(std::string directory)
 	{
-		return (FtpSetCurrentDirectoryA(WebIO::m_hConnect, directory.data()) == TRUE);
+		return (FtpSetCurrentDirectoryA(this->hConnect, directory.data()) == TRUE);
 	}
 
-	bool WebIO::SetRelativeDirectory(std::string directory)
+	bool WebIO::setRelativeDirectory(std::string directory)
 	{
 		std::string currentDir;
 
-		if (WebIO::GetDirectory(currentDir))
+		if (this->getDirectory(currentDir))
 		{
-			WebIO::FormatPath(directory, true);
-			WebIO::FormatPath(currentDir, true);
+			this->formatPath(directory, true);
+			this->formatPath(currentDir, true);
 
 			char path[MAX_PATH] = { 0 };
 			PathCombineA(path, currentDir.data(), directory.data());
 
 			std::string newPath(path);
-			WebIO::FormatPath(newPath, false);
+			this->formatPath(newPath, false);
 
-			return WebIO::SetDirectory(newPath);
+			return this->setDirectory(newPath);
 		}
 
 		return false;
 	}
 
-	bool WebIO::GetDirectory(std::string &directory)
+	bool WebIO::getDirectory(std::string &directory)
 	{
 		directory.clear();
 
 		DWORD size = MAX_PATH;
 		char currentDir[MAX_PATH] = { 0 };
 
-		if (FtpGetCurrentDirectoryA(WebIO::m_hConnect, currentDir, &size) == TRUE)
+		if (FtpGetCurrentDirectoryA(this->hConnect, currentDir, &size) == TRUE)
 		{
 			directory.append(currentDir, size);
 			return true;
@@ -380,7 +380,7 @@ namespace Utils
 		return false;
 	}
 
-	void WebIO::FormatPath(std::string &path, bool win)
+	void WebIO::formatPath(std::string &path, bool win)
 	{
 		size_t nPos;
 		std::string find = "\\";
@@ -398,38 +398,38 @@ namespace Utils
 		}
 	}
 
-	bool WebIO::CreateDirectory(std::string directory)
+	bool WebIO::createDirectory(std::string directory)
 	{
-		return (FtpCreateDirectoryA(WebIO::m_hConnect, directory.data()) == TRUE);
+		return (FtpCreateDirectoryA(this->hConnect, directory.data()) == TRUE);
 	}
 
 	// Recursively delete a directory
-	bool WebIO::DeleteDirectory(std::string directory)
+	bool WebIO::deleteDirectory(std::string directory)
 	{
 		std::string tempDir;
-		WebIO::GetDirectory(tempDir);
+		this->getDirectory(tempDir);
 
-		WebIO::SetRelativeDirectory(directory);
+		this->setRelativeDirectory(directory);
 
 		std::vector<std::string> list;
 
-		WebIO::ListFiles(".", list);
-		for (auto file : list) WebIO::DeleteFile(file);
+		this->listFiles(".", list);
+		for (auto file : list) this->deleteFile(file);
 
-		WebIO::ListDirectories(".", list);
-		for (auto dir : list) WebIO::DeleteDirectory(dir);
+		this->listDirectories(".", list);
+		for (auto dir : list) this->deleteDirectory(dir);
 
-		WebIO::SetDirectory(tempDir);
+		this->setDirectory(tempDir);
 
-		return (FtpRemoveDirectoryA(WebIO::m_hConnect, directory.data()) == TRUE);
+		return (FtpRemoveDirectoryA(this->hConnect, directory.data()) == TRUE);
 	}
 
-	bool WebIO::RenameDirectory(std::string directory, std::string newDir)
+	bool WebIO::renameDirectory(std::string directory, std::string newDir)
 	{
-		return (FtpRenameFileA(WebIO::m_hConnect, directory.data(), newDir.data()) == TRUE); // According to the internetz, this should work
+		return (FtpRenameFileA(this->hConnect, directory.data(), newDir.data()) == TRUE); // According to the internetz, this should work
 	}
 
-	bool WebIO::ListElements(std::string directory, std::vector<std::string> &list, bool files)
+	bool WebIO::listElements(std::string directory, std::vector<std::string> &list, bool files)
 	{
 		list.clear();
 
@@ -439,12 +439,12 @@ namespace Utils
 
 		// Any filename.
 		std::string tempDir;
-		WebIO::GetDirectory(tempDir);
-		WebIO::SetRelativeDirectory(directory);
+		this->getDirectory(tempDir);
+		this->setRelativeDirectory(directory);
 
-		WebIO::m_hFile = FtpFindFirstFileA(WebIO::m_hConnect, "*", &findFileData, INTERNET_FLAG_RELOAD, NULL);
+		this->hFile = FtpFindFirstFileA(this->hConnect, "*", &findFileData, INTERNET_FLAG_RELOAD, NULL);
 
-		if (WebIO::m_hFile != INVALID_HANDLE_VALUE)
+		if (this->hFile && this->hFile != INVALID_HANDLE_VALUE)
 		{
 			do
 			{
@@ -457,83 +457,83 @@ namespace Utils
 					list.push_back(findFileData.cFileName);
 					result = true;
 				}
-			} while (InternetFindNextFileA(WebIO::m_hFile, &findFileData));
+			} while (InternetFindNextFileA(this->hFile, &findFileData));
 
-			InternetCloseHandle(WebIO::m_hFile);
+			InternetCloseHandle(this->hFile);
 		}
 
-		WebIO::SetDirectory(tempDir);
+		this->setDirectory(tempDir);
 
 		return result;
 	}
 
-	bool WebIO::ListDirectories(std::string directory, std::vector<std::string> &list)
+	bool WebIO::listDirectories(std::string directory, std::vector<std::string> &list)
 	{
-		return WebIO::ListElements(directory, list, false);
+		return this->listElements(directory, list, false);
 	}
 
-	bool WebIO::ListFiles(std::string directory, std::vector<std::string> &list)
+	bool WebIO::listFiles(std::string directory, std::vector<std::string> &list)
 	{
-		return WebIO::ListElements(directory, list, true);
+		return this->listElements(directory, list, true);
 	}
 
-	bool WebIO::UploadFile(std::string file, std::string localfile)
+	bool WebIO::uploadFile(std::string file, std::string localfile)
 	{
-		return (FtpPutFileA(WebIO::m_hConnect, localfile.data(), file.data(), FTP_TRANSFER_TYPE_BINARY, NULL) == TRUE);
+		return (FtpPutFileA(this->hConnect, localfile.data(), file.data(), FTP_TRANSFER_TYPE_BINARY, NULL) == TRUE);
 	}
 
-	bool WebIO::DeleteFile(std::string file)
+	bool WebIO::deleteFile(std::string file)
 	{
-		return (FtpDeleteFileA(WebIO::m_hConnect, file.data()) == TRUE);
+		return (FtpDeleteFileA(this->hConnect, file.data()) == TRUE);
 	}
 
-	bool WebIO::RenameFile(std::string file, std::string newFile)
+	bool WebIO::renameFile(std::string file, std::string newFile)
 	{
-		return (FtpRenameFileA(WebIO::m_hConnect, file.data(), newFile.data()) == TRUE);
+		return (FtpRenameFileA(this->hConnect, file.data(), newFile.data()) == TRUE);
 	}
 
-	bool WebIO::DownloadFile(std::string file, std::string localfile)
+	bool WebIO::downloadFile(std::string file, std::string localfile)
 	{
-		return (FtpGetFileA(WebIO::m_hConnect, file.data(), localfile.data(), FALSE, NULL, FTP_TRANSFER_TYPE_BINARY, 0) == TRUE);
+		return (FtpGetFileA(this->hConnect, file.data(), localfile.data(), FALSE, NULL, FTP_TRANSFER_TYPE_BINARY, 0) == TRUE);
 	}
 
-	bool WebIO::UploadFileData(std::string file, std::string data)
+	bool WebIO::uploadFileData(std::string file, std::string data)
 	{
 		bool result = false;
-		WebIO::m_hFile = FtpOpenFileA(WebIO::m_hConnect, file.data(), GENERIC_WRITE, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
+		this->hFile = FtpOpenFileA(this->hConnect, file.data(), GENERIC_WRITE, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
 
-		if (WebIO::m_hFile)
+		if (this->hFile)
 		{
 			DWORD size = 0;
-			if (InternetWriteFile(WebIO::m_hFile, data.data(), data.size(), &size) == TRUE)
+			if (InternetWriteFile(this->hFile, data.data(), data.size(), &size) == TRUE)
 			{
 				result = (size == data.size());
 			}
 
-			InternetCloseHandle(WebIO::m_hFile);
+			InternetCloseHandle(this->hFile);
 		}
 
 		return result;
 	}
 
-	bool WebIO::DownloadFileData(std::string file, std::string &data)
+	bool WebIO::downloadFileData(std::string file, std::string &data)
 	{
 		data.clear();
 
-		WebIO::m_hFile = FtpOpenFileA(WebIO::m_hConnect, file.data(), GENERIC_READ, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
+		this->hFile = FtpOpenFileA(this->hConnect, file.data(), GENERIC_READ, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
 
-		if (WebIO::m_hFile)
+		if (this->hFile)
 		{
 			DWORD size = 0;
 			char buffer[0x2001] = { 0 };
 
-			while (InternetReadFile(WebIO::m_hFile, buffer, 0x2000, &size))
+			while (InternetReadFile(this->hFile, buffer, 0x2000, &size))
 			{
 				data.append(buffer, size);
 				if (!size) break;
 			}
 
-			InternetCloseHandle(WebIO::m_hFile);
+			InternetCloseHandle(this->hFile);
 			return true;
 		}
 

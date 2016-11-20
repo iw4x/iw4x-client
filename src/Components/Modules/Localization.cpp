@@ -16,28 +16,28 @@ namespace Components
 		{
 			Game::LocalizedEntry* entry = Localization::LocalizeMap[key];
 
-			char* newStaticValue = Localization::MemAllocator.DuplicateString(value);
+			char* newStaticValue = Localization::MemAllocator.duplicateString(value);
 			if (!newStaticValue) return;
-			if (entry->value) Localization::MemAllocator.Free(entry->value);
+			if (entry->value) Localization::MemAllocator.free(entry->value);
 			entry->value = newStaticValue;
 			return;
 		}
 
-		Game::LocalizedEntry* entry = Localization::MemAllocator.Allocate<Game::LocalizedEntry>();
+		Game::LocalizedEntry* entry = Localization::MemAllocator.allocate<Game::LocalizedEntry>();
 		if (!entry) return;
 
-		entry->name = Localization::MemAllocator.DuplicateString(key);
+		entry->name = Localization::MemAllocator.duplicateString(key);
 		if (!entry->name)
 		{
-			Localization::MemAllocator.Free(entry);
+			Localization::MemAllocator.free(entry);
 			return;
 		}
 
-		entry->value = Localization::MemAllocator.DuplicateString(value);
+		entry->value = Localization::MemAllocator.duplicateString(value);
 		if (!entry->value)
 		{
-			Localization::MemAllocator.Free(entry->name);
-			Localization::MemAllocator.Free(entry);
+			Localization::MemAllocator.free(entry->name);
+			Localization::MemAllocator.free(entry);
 			return;
 		}
 
@@ -46,7 +46,7 @@ namespace Components
 
 	const char* Localization::Get(const char* key)
 	{
-		if (!Localization::UseLocalization.Get<bool>()) return key;
+		if (!Localization::UseLocalization.get<bool>()) return key;
 
 		Game::LocalizedEntry* entry = nullptr;
 		std::lock_guard<std::mutex> _(Localization::LocalizeMutex);
@@ -82,26 +82,26 @@ namespace Components
 		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
 		{
 			Game::LocalizedEntry* entry = Localization::TempLocalizeMap[key];
-			if(entry->value) Localization::MemAllocator.Free(entry->value);
-			entry->value = Localization::MemAllocator.DuplicateString(value);
+			if(entry->value) Localization::MemAllocator.free(entry->value);
+			entry->value = Localization::MemAllocator.duplicateString(value);
 		}
 		else
 		{
-			Game::LocalizedEntry* entry = Localization::MemAllocator.Allocate<Game::LocalizedEntry>();
+			Game::LocalizedEntry* entry = Localization::MemAllocator.allocate<Game::LocalizedEntry>();
 			if (!entry) return;
 
-			entry->name = Localization::MemAllocator.DuplicateString(key);
+			entry->name = Localization::MemAllocator.duplicateString(key);
 			if (!entry->name)
 			{
-				Localization::MemAllocator.Free(entry);
+				Localization::MemAllocator.free(entry);
 				return;
 			}
 
-			entry->value = Localization::MemAllocator.DuplicateString(value);
+			entry->value = Localization::MemAllocator.duplicateString(value);
 			if (!entry->value)
 			{
-				Localization::MemAllocator.Free(entry->name);
-				Localization::MemAllocator.Free(entry);
+				Localization::MemAllocator.free(entry->name);
+				Localization::MemAllocator.free(entry);
 				return;
 			}
 
@@ -117,9 +117,9 @@ namespace Components
 		{
 			if (i->second)
 			{
-				if (i->second->name)  Localization::MemAllocator.Free(i->second->name);
-				if (i->second->value) Localization::MemAllocator.Free(i->second->value);
-				Localization::MemAllocator.Free(i->second);
+				if (i->second->name)  Localization::MemAllocator.free(i->second->name);
+				if (i->second->value) Localization::MemAllocator.free(i->second->value);
+				Localization::MemAllocator.free(i->second);
 			}
 		}
 
@@ -135,11 +135,11 @@ namespace Components
 	{
 		//if (ZoneBuilder::IsEnabled())
 		{
-			if (FileSystem::File(fmt::sprintf("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage())).Exists())
+			if (FileSystem::File(fmt::sprintf("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage())).exists())
 			{
 				Game::SE_Load(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage()), 0);
 			}
-			else if (FileSystem::File("localizedstrings/iw4x_english.str").Exists())
+			else if (FileSystem::File("localizedstrings/iw4x_english.str").exists())
 			{
 				Game::SE_Load("localizedstrings/iw4x_english.str", 0);
 			}
@@ -168,13 +168,13 @@ namespace Components
 		});
 
 		// Resolving hook
-		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).install()->quick();
 
 		// Set loading entry point
-		Utils::Hook(0x41D859, Localization::SELoadLanguageStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x41D859, Localization::SELoadLanguageStub, HOOK_CALL).install()->quick();
 
 		// Overwrite SetString
-		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).install()->quick();
 
 /*
 		// TODO: Get rid of those!
@@ -213,6 +213,6 @@ namespace Components
 		Localization::ClearTemp();
 
 		Localization::LocalizeMap.clear();
-		Localization::MemAllocator.Clear();
+		Localization::MemAllocator.clear();
 	}
 }

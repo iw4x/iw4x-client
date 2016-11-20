@@ -10,17 +10,17 @@ namespace Utils
 
 			Allocator()
 			{ 
-				this->Pool.clear();
-				this->RefMemory.clear();
+				this->pool.clear();
+				this->refMemory.clear();
 			}
 			~Allocator() 
 			{
-				this->Clear();
+				this->clear();
 			}
 
-			void Clear()
+			void clear()
 			{
-				for (auto i = this->RefMemory.begin(); i != this->RefMemory.end(); ++i)
+				for (auto i = this->refMemory.begin(); i != this->refMemory.end(); ++i)
 				{
 					if (i->first && i->second)
 					{
@@ -28,73 +28,73 @@ namespace Utils
 					}
 				}
 
-				this->RefMemory.clear();
+				this->refMemory.clear();
 
-				for (auto data : this->Pool)
+				for (auto data : this->pool)
 				{
 					Memory::Free(data);
 				}
 
-				this->Pool.clear();
+				this->pool.clear();
 			}
 
-			void Free(void* data)
+			void free(void* data)
 			{
-				auto i = this->RefMemory.find(data);
-				if (i != this->RefMemory.end())
+				auto i = this->refMemory.find(data);
+				if (i != this->refMemory.end())
 				{
 					i->second(i->first);
-					this->RefMemory.erase(i);
+					this->refMemory.erase(i);
 				}
 
-				auto j = std::find(this->Pool.begin(), this->Pool.end(), data);
-				if (j != this->Pool.end())
+				auto j = std::find(this->pool.begin(), this->pool.end(), data);
+				if (j != this->pool.end())
 				{
 					Memory::Free(data);
-					this->Pool.erase(j);
+					this->pool.erase(j);
 				}
 			}
 
-			void Free(const void* data)
+			void free(const void* data)
 			{
-				this->Free(const_cast<void*>(data));
+				this->free(const_cast<void*>(data));
 			}
 
-			void Reference(void* memory, FreeCallback callback)
+			void reference(void* memory, FreeCallback callback)
 			{
-				this->RefMemory[memory] = callback;
+				this->refMemory[memory] = callback;
 			}
 
-			void* Allocate(size_t length)
+			void* allocate(size_t length)
 			{
 				void* data = Memory::Allocate(length);
-				this->Pool.push_back(data);
+				this->pool.push_back(data);
 				return data;
 			}
-			template <typename T> T* Allocate()
+			template <typename T> T* allocate()
 			{
-				return this->AllocateArray<T>(1);
+				return this->allocateArray<T>(1);
 			}
-			template <typename T> T* AllocateArray(size_t count = 1)
+			template <typename T> T* allocateArray(size_t count = 1)
 			{
-				return static_cast<T*>(this->Allocate(count * sizeof(T)));
-			}
-
-			bool Empty()
-			{
-				return (this->Pool.empty() && this->RefMemory.empty());
+				return static_cast<T*>(this->allocate(count * sizeof(T)));
 			}
 
-			char* DuplicateString(std::string string)
+			bool empty()
+			{
+				return (this->pool.empty() && this->refMemory.empty());
+			}
+
+			char* duplicateString(std::string string)
 			{
 				char* data = Memory::DuplicateString(string);
-				this->Pool.push_back(data);
+				this->pool.push_back(data);
 				return data;
 			}
 
 		private:
-			std::vector<void*> Pool;
-			std::map<void*, FreeCallback> RefMemory;
+			std::vector<void*> pool;
+			std::map<void*, FreeCallback> refMemory;
 		};
 
 		static void* AllocateAlign(size_t length, size_t alignment);

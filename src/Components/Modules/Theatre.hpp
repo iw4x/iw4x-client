@@ -6,42 +6,36 @@ namespace Components
 		Theatre();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Theatre"; };
+		const char* getName() { return "Theatre"; };
 #endif
 
 	private:
-		class Container
+		class DemoInfo
 		{
 		public:
-			class DemoInfo
+			std::string name;
+			std::string mapname;
+			std::string gametype;
+			std::string author;
+			int length;
+			std::time_t timeStamp;
+
+			json11::Json to_json() const
 			{
-			public:
-				std::string Name;
-				std::string Mapname;
-				std::string Gametype;
-				std::string Author;
-				int Length;
-				std::time_t TimeStamp;
-
-				json11::Json to_json() const
+				return json11::Json::object
 				{
-					return json11::Json::object
-					{
-						{ "mapname", Mapname },
-						{ "gametype", Gametype },
-						{ "author", Author },
-						{ "length", Length },
-						{ "timestamp", fmt::sprintf("%lld", TimeStamp) } //Ugly, but prevents information loss
-					};
-				}
-			};
-
-			DemoInfo CurrentInfo;
-			unsigned int CurrentSelection;
-			std::vector<DemoInfo> Demos;
+					{ "mapname", mapname },
+					{ "gametype", gametype },
+					{ "author", author },
+					{ "length", length },
+					{ "timestamp", fmt::sprintf("%lld", timeStamp) } //Ugly, but prevents information loss
+				};
+			}
 		};
 
-		static Container DemoContainer;
+		static DemoInfo CurrentInfo;
+		static unsigned int CurrentSelection;
+		static std::vector<DemoInfo> Demos;
 
 		static char BaselineSnapshot[131072];
 		static int BaselineSnapshotMsgLen;

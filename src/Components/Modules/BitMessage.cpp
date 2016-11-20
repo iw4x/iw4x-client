@@ -46,7 +46,7 @@ namespace Components
 #ifdef DEBUG
 		Command::Add("bm_send", [] (Command::Params params)
 		{
-			if (params.Length() < 3) return;
+			if (params.length() < 3) return;
 
 			ustring pubAddrString;
 			pubAddrString.fromString(params[1]);
@@ -55,7 +55,7 @@ namespace Components
 			if (pubAddr.loadAddr(pubAddrString))
 			{
 				ustring msg;
-				msg.fromString(params.Join(2));
+				msg.fromString(params.join(2));
 
 				Logger::Print("Sending message (this may take a while)...\n");
 				BitMessage::BMClient->sendMessage(msg, pubAddr, BitMessage::BMClient->PrivAddresses[0]);
@@ -69,10 +69,10 @@ namespace Components
 
 		Command::Add("bm_sendb", [] (Command::Params params)
 		{
-			if (params.Length() < 2) return;
+			if (params.length() < 2) return;
 
 			ustring msg;
-			msg.appendVarString(params.Join(1));
+			msg.appendVarString(params.join(1));
 			Logger::Print("Sending broadcast...\n");
 			BitMessage::BMClient->sendBroadcast(msg, BitMessage::BMClient->PrivAddresses[0]);
 			Logger::Print("Broadcast done.\n");
@@ -162,10 +162,10 @@ namespace Components
 		Command::Add("bm_address_public", [] (Command::Params params)
 		{
 			if (!BitMessage::BMClient) return;
-			if (params.Length() < 2) return;
+			if (params.length() < 2) return;
 
 			ustring addre;
-			addre.fromString(params.Join(1));
+			addre.fromString(params.join(1));
 
 			PubAddr address;
 			if (address.loadAddr(addre))
@@ -183,10 +183,10 @@ namespace Components
 		Command::Add("bm_address_broadcast", [] (Command::Params params)
 		{
 			if (!BitMessage::BMClient) return;
-			if (params.Length() < 2) return;
+			if (params.length() < 2) return;
 
 			ustring addre;
-			addre.fromString(params.Join(1));
+			addre.fromString(params.join(1));
 			PubAddr address;
 			if (address.loadAddr(addre))
 			{

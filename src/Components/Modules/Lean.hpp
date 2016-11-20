@@ -9,7 +9,7 @@ namespace Components
 		Lean();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Lean"; };
+		const char* getName() { return "Lean"; };
 #endif
 
 	private:

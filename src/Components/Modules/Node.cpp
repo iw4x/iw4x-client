@@ -10,7 +10,7 @@ namespace Components
 
 	void Node::LoadNodeRemotePreset()
 	{
-		std::string nodes = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/nodes.txt").SetTimeout(5000)->Get();
+		std::string nodes = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/nodes.txt").setTimeout(5000)->get();
 		if (nodes.empty()) return;
 
 		auto nodeList = Utils::String::Explode(nodes, '\n');
@@ -26,7 +26,7 @@ namespace Components
 	{
 		Proto::Node::List list;
 		FileSystem::File defaultNodes("nodes_default.dat");
-		if (!defaultNodes.Exists() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(defaultNodes.GetBuffer()))) return;
+		if (!defaultNodes.exists() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(defaultNodes.getBuffer()))) return;
 
 		for (int i = 0; i < list.address_size(); ++i)
 		{
@@ -47,7 +47,7 @@ namespace Components
 	}
 	void Node::StoreNodes(bool force)
 	{
-		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").Get<bool>()) return;
+		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 		static int lastStorage = 0;
 
@@ -66,7 +66,7 @@ namespace Components
 		{
 			if (node.state == Node::STATE_VALID && node.registered)
 			{
-				node.address.Serialize(list.add_address());
+				node.address.serialize(list.add_address());
 			}
 		}
 
@@ -121,9 +121,9 @@ namespace Components
 	void Node::AddNode(Network::Address address)
 	{
 #ifdef DEBUG
-		if (!address.IsValid() || address.IsSelf()) return;
+		if (!address.isValid() || address.isSelf()) return;
 #else
-		if (!address.IsValid() || address.IsLocal() || address.IsSelf()) return;
+		if (!address.isValid() || address.isLocal() || address.isSelf()) return;
 #endif
 
 		std::lock_guard<std::mutex> _(Node::NodeMutex);
@@ -147,14 +147,14 @@ namespace Components
 			Node::Nodes.push_back(entry);
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-			Logger::Print("Adding node %s...\n", address.GetCString());
+			Logger::Print("Adding node %s...\n", address.getCString());
 #endif
 		}
 	}
 
 	void Node::SendNodeList(Network::Address address)
 	{
-		if (address.IsSelf()) return;
+		if (address.isSelf()) return;
 
 		Proto::Node::List list;
 		list.set_is_dedi(Dedicated::IsEnabled());
@@ -167,7 +167,7 @@ namespace Components
 		{
 			if (node.state == Node::STATE_VALID && node.registered)
 			{
-				node.address.Serialize(list.add_address());
+				node.address.serialize(list.add_address());
 			}
 
 			if (list.address_size() >= NODE_PACKET_LIMIT)
@@ -208,7 +208,7 @@ namespace Components
 			if (node.state == Node::STATE_INVALID && (Game::Sys_Milliseconds() - node.lastHeard) > NODE_INVALID_DELETE)
 			{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Removing invalid node %s\n", node.address.GetCString());
+				Logger::Print("Removing invalid node %s\n", node.address.getCString());
 #endif
 			}
 			else
@@ -253,14 +253,14 @@ namespace Components
 			packet.set_challenge(entry->challenge);
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-			Logger::Print("Sending registration request to %s\n", entry->address.GetCString());
+			Logger::Print("Sending registration request to %s\n", entry->address.getCString());
 #endif
 			Network::SendCommand(entry->address, "nodeRegisterRequest", packet.SerializeAsString());
 		}
 		else
 		{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-			Logger::Print("Sending session request to %s\n", entry->address.GetCString());
+			Logger::Print("Sending session request to %s\n", entry->address.getCString());
 #endif
 			Network::SendCommand(entry->address, "sessionRequest");
 		}
@@ -268,7 +268,7 @@ namespace Components
 
 	void Node::FrameHandler()
 	{
-		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").Get<bool>()) return;
+		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 		// Frame limit
 		static int lastFrame = 0;
@@ -291,7 +291,7 @@ namespace Components
 					node.lastTime = Game::Sys_Milliseconds();
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-					Logger::Print("Node negotiation timed out. Invalidating %s\n", node.address.GetCString());
+					Logger::Print("Node negotiation timed out. Invalidating %s\n", node.address.getCString());
 #endif
 				}
 
@@ -393,7 +393,7 @@ namespace Components
 		{
 			QuickPatch::OnShutdown([] ()
 			{
-				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 				std::string challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 
@@ -412,7 +412,7 @@ namespace Components
 			// If you want to get accepted as node, you have to send a request to this handler
 			Network::Handle("nodeRegisterRequest", [] (Network::Address address, std::string data)
 			{
-				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 				// Create a new entry, if we don't already know it
 				if (!Node::FindNode(address))
@@ -425,7 +425,7 @@ namespace Components
 				Node::NodeEntry* entry = Node::FindNode(address);
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Received registration request from %s\n", address.GetCString());
+				Logger::Print("Received registration request from %s\n", address.getCString());
 #endif
 
 				Proto::Node::Packet packet;
@@ -449,7 +449,7 @@ namespace Components
 				packet.Clear();
 				packet.set_challenge(challenge);
 				packet.set_signature(signature);
-				packet.set_publickey(Node::SignatureKey.GetPublicKey());
+				packet.set_publickey(Node::SignatureKey.getPublicKey());
 
 				entry->lastTime = Game::Sys_Milliseconds();
 				entry->challenge = challenge;
@@ -460,14 +460,14 @@ namespace Components
 
 			Network::Handle("nodeRegisterSynchronize", [] (Network::Address address, std::string data)
 			{
-				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 				std::lock_guard<std::mutex> _(Node::NodeMutex);
 				Node::NodeEntry* entry = Node::FindNode(address);
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Received synchronization data for registration from %s!\n", address.GetCString());
+				Logger::Print("Received synchronization data for registration from %s!\n", address.getCString());
 #endif
 
 				Proto::Node::Packet packet;
@@ -481,10 +481,10 @@ namespace Components
 				std::string signature = packet.signature();
 
 				// Verify signature
-				entry->publicKey.Set(publicKey);
+				entry->publicKey.set(publicKey);
 				if (!Utils::Cryptography::ECC::VerifyMessage(entry->publicKey, entry->challenge, signature))
 				{
-					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetCString(), entry->challenge.data());
+					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.getCString(), entry->challenge.data());
 					return;
 				}
 
@@ -494,12 +494,12 @@ namespace Components
 				entry->registered = true;
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetCString(), entry->challenge.data());
-				Logger::Print("Node %s registered\n", address.GetCString());
+				Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.getCString(), entry->challenge.data());
+				Logger::Print("Node %s registered\n", address.getCString());
 #endif
 
 				// Build response
-				publicKey = Node::SignatureKey.GetPublicKey();
+				publicKey = Node::SignatureKey.getPublicKey();
 				signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, challenge);
 
 				packet.Clear();
@@ -511,7 +511,7 @@ namespace Components
 
 			Network::Handle("nodeRegisterAcknowledge", [] (Network::Address address, std::string data)
 			{
-				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 				// Ignore requests from nodes we don't know
 				std::lock_guard<std::mutex> _(Node::NodeMutex);
@@ -519,7 +519,7 @@ namespace Components
 				if (!entry || entry->state != Node::STATE_NEGOTIATING) return;
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Received acknowledgment from %s\n", address.GetCString());
+				Logger::Print("Received acknowledgment from %s\n", address.getCString());
 #endif
 
 				Proto::Node::Packet packet;
@@ -530,7 +530,7 @@ namespace Components
 				std::string publicKey = packet.publickey();
 				std::string signature = packet.signature();
 
-				entry->publicKey.Set(publicKey);
+				entry->publicKey.set(publicKey);
 
 				if (Utils::Cryptography::ECC::VerifyMessage(entry->publicKey, entry->challenge, signature))
 				{
@@ -539,21 +539,21 @@ namespace Components
 					entry->registered = true;
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-					Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.GetCString(), entry->challenge.data());
-					Logger::Print("Node %s registered\n", address.GetCString());
+					Logger::Print("Signature from %s for challenge '%s' is valid!\n", address.getCString(), entry->challenge.data());
+					Logger::Print("Node %s registered\n", address.getCString());
 #endif
 				}
 				else
 				{
 #ifdef DEBUG
-					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.GetCString(), entry->challenge.data());
+					Logger::Print("Signature from %s for challenge '%s' is invalid!\n", address.getCString(), entry->challenge.data());
 #endif
 				}
 			});
 
 			Network::Handle("nodeListRequest", [] (Network::Address address, std::string data)
 			{
-				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 				// Check if this is a registered node
 				bool allowed = false;
@@ -588,7 +588,7 @@ namespace Components
 				{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 					// Unallowed connection
-					Logger::Print("Node list requested by %s, but no valid session was present!\n", address.GetCString());
+					Logger::Print("Node list requested by %s, but no valid session was present!\n", address.getCString());
 #endif
 					Network::SendCommand(address, "nodeListError");
 				}
@@ -596,7 +596,7 @@ namespace Components
 
 			Network::Handle("nodeDeregister", [] (Network::Address address, std::string data)
 			{
-				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 				std::lock_guard<std::mutex> _(Node::NodeMutex);
 				Node::NodeEntry* entry = Node::FindNode(address);
@@ -618,20 +618,20 @@ namespace Components
 					entry->state = Node::STATE_INVALID;
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-					Logger::Print("Node %s unregistered\n", address.GetCString());
+					Logger::Print("Node %s unregistered\n", address.getCString());
 #endif
 				}
 				else
 				{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-					Logger::Print("Node %s tried to unregister using an invalid signature!\n", address.GetCString());
+					Logger::Print("Node %s tried to unregister using an invalid signature!\n", address.getCString());
 #endif
 				}
 			});
 
 			Network::Handle("sessionRequest", [] (Network::Address address, std::string data)
 			{
-				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 				// Search an active session, if we haven't found one, register a template
 				std::lock_guard<std::mutex> _(Node::SessionMutex);
@@ -647,7 +647,7 @@ namespace Components
 				if (!session) return; // Registering template session failed, odd...
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Client %s is requesting a new session\n", address.GetCString());
+				Logger::Print("Client %s is requesting a new session\n", address.getCString());
 #endif
 
 				// Initialize session data
@@ -660,7 +660,7 @@ namespace Components
 
 			Network::Handle("sessionSynchronize", [] (Network::Address address, std::string data)
 			{
-				if (Dvar::Var("sv_lanOnly").Get<bool>()) return;
+				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
 				// Return if we don't have a session for this address
 				std::lock_guard<std::mutex> _(Node::SessionMutex);
@@ -670,7 +670,7 @@ namespace Components
 				if (session->challenge == data)
 				{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-					Logger::Print("Session for %s validated.\n", address.GetCString());
+					Logger::Print("Session for %s validated.\n", address.getCString());
 #endif
 					session->valid = true;
 					Network::SendCommand(address, "sessionAcknowledge");
@@ -679,7 +679,7 @@ namespace Components
 				{
 					session->lastTime = -1;
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-					Logger::Print("Challenge mismatch. Validating session for %s failed.\n", address.GetCString());
+					Logger::Print("Challenge mismatch. Validating session for %s failed.\n", address.getCString());
 #endif
 				}
 			});
@@ -693,7 +693,7 @@ namespace Components
 				if (!entry) return;
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Session initialization received from %s. Synchronizing...\n", address.GetCString());
+				Logger::Print("Session initialization received from %s. Synchronizing...\n", address.getCString());
 #endif
 
 				entry->lastTime = Game::Sys_Milliseconds();
@@ -713,7 +713,7 @@ namespace Components
 				}
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Session acknowledged by %s, synchronizing node list...\n", address.GetCString());
+				Logger::Print("Session acknowledged by %s, synchronizing node list...\n", address.getCString());
 #endif
 				Network::SendCommand(address, "nodeListRequest");
 				Node::SendNodeList(address);
@@ -727,7 +727,7 @@ namespace Components
 			if (data.empty() || !list.ParseFromString(data)) 
 			{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Received invalid node list from %s!\n", address.GetCString());
+				Logger::Print("Received invalid node list from %s!\n", address.getCString());
 #endif
 				return;
 			}
@@ -739,7 +739,7 @@ namespace Components
 				if (entry->registered)
 				{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-					Logger::Print("Received valid node list with %i entries from %s\n", list.address_size(), address.GetCString());
+					Logger::Print("Received valid node list with %i entries from %s\n", list.address_size(), address.getCString());
 #endif
 
 					entry->isDedi = list.is_dedi();
@@ -772,13 +772,13 @@ namespace Components
 						// Version 0 sends port in the wrong byte order!
 						if (list.version() == 0)
 						{
-							_addr.SetPort(ntohs(_addr.GetPort()));
+							_addr.setPort(ntohs(_addr.getPort()));
 						}
 
 // 						if (!Node::FindNode(_addr) && _addr.GetPort() >= 1024 && _addr.GetPort() - 20 < 1024)
 // 						{
-// 							std::string a1 = _addr.GetString();
-// 							std::string a2 = address.GetString();
+// 							std::string a1 = _addr.getString();
+// 							std::string a2 = address.getString();
 // 							Logger::Print("Received weird address %s from %s\n", a1.data(), a2.data());
 // 						}
 
@@ -842,13 +842,13 @@ namespace Components
 			std::lock_guard<std::mutex> _(Node::NodeMutex);
 			for (auto node : Node::Nodes)
 			{
-				Logger::Print("%s\t(%s)\n", node.address.GetCString(), Node::GetStateName(node.state));
+				Logger::Print("%s\t(%s)\n", node.address.getCString(), Node::GetStateName(node.state));
 			}
 		});
 
 		Command::Add("addnode", [] (Command::Params params)
 		{
-			if (params.Length() < 2) return;
+			if (params.length() < 2) return;
 
 			Network::Address address(params[1]);
 			Node::AddNode(address);
@@ -892,7 +892,7 @@ namespace Components
 
 	Node::~Node()
 	{
-		Node::SignatureKey.Free();
+		Node::SignatureKey.free();
 
 		Node::StoreNodes(true);
 		std::lock_guard<std::mutex> _(Node::NodeMutex);
@@ -901,11 +901,11 @@ namespace Components
 		Node::Sessions.clear();
 	}
 
-	bool Node::UnitTest()
+	bool Node::unitTest()
 	{
 		printf("Testing ECDSA key...");
 
-		if (!Node::SignatureKey.IsValid())
+		if (!Node::SignatureKey.isValid())
 		{
 			printf("Error\n");
 			printf("ECDSA key seems invalid!\n");
@@ -950,12 +950,12 @@ namespace Components
 		printf("Success\n");
 		printf("Testing ECDSA key import...");
 
-		std::string pubKey = Node::SignatureKey.GetPublicKey();
+		std::string pubKey = Node::SignatureKey.getPublicKey();
 		std::string message = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 		std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
 		Utils::Cryptography::ECC::Key testKey;
-		testKey.Set(pubKey);
+		testKey.set(pubKey);
 
 		if (!Utils::Cryptography::ECC::VerifyMessage(Node::SignatureKey, message, signature))
 		{

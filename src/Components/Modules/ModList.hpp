@@ -7,7 +7,7 @@ namespace Components
 		~ModList();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "ModList"; };
+		const char* getName() { return "ModList"; };
 #endif
 
 		static void RunMod(std::string mod);

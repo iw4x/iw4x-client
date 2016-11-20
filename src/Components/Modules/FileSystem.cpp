@@ -5,72 +5,72 @@ namespace Components
 	std::mutex FileSystem::Mutex;
 	Utils::Memory::Allocator FileSystem::MemAllocator;
 
-	void FileSystem::File::Read()
+	void FileSystem::File::read()
 	{
-		char* buffer = nullptr;
-		int size = Game::FS_ReadFile(this->FilePath.data(), &buffer);
+		char* _buffer = nullptr;
+		int size = Game::FS_ReadFile(this->filePath.data(), &_buffer);
 
-		this->Buffer.clear();
+		this->buffer.clear();
 
 		if (size >= 0)
 		{
-			this->Buffer.append(buffer, size);
-			Game::FS_FreeFile(buffer);
+			this->buffer.append(_buffer, size);
+			Game::FS_FreeFile(_buffer);
 		}
 	}
 
 
-	FileSystem::FileReader::FileReader(std::string file) : Name(file), Handle(0)
+	FileSystem::FileReader::FileReader(std::string file) : name(file), handle(0)
 	{
-		this->Size = Game::FS_FOpenFileReadCurrentThread(this->Name.data(), &this->Handle);
+		this->size = Game::FS_FOpenFileReadCurrentThread(this->name.data(), &this->handle);
 	}
 
 	FileSystem::FileReader::~FileReader()
 	{
-		if (this->Exists() && this->Handle)
+		if (this->exists() && this->handle)
 		{
-			Game::FS_FCloseFile(this->Handle);
+			Game::FS_FCloseFile(this->handle);
 		}
 	}
 
-	bool FileSystem::FileReader::Exists()
+	bool FileSystem::FileReader::exists()
 	{
-		return (this->Size >= 0 && this->Handle);
+		return (this->size >= 0 && this->handle);
 	}
 
-	std::string FileSystem::FileReader::GetName()
+	std::string FileSystem::FileReader::getName()
 	{
-		return this->Name;
+		return this->name;
 	}
 
-	int FileSystem::FileReader::GetSize()
+	int FileSystem::FileReader::getSize()
 	{
-		return this->Size;
+		return this->size;
 	}
 
-	std::string FileSystem::FileReader::GetBuffer()
+	std::string FileSystem::FileReader::getBuffer()
 	{
 		Utils::Memory::Allocator allocator;
-		if (!this->Exists()) return std::string();
+		if (!this->exists()) return std::string();
 
-		int position = Game::FS_FTell(this->Handle);
-		this->Seek(0, FS_SEEK_SET);
+		int position = Game::FS_FTell(this->handle);
+		this->seek(0, FS_SEEK_SET);
 
-		char* buffer = allocator.AllocateArray<char>(this->Size);
-		if (!this->Read(buffer, this->Size))
+		char* buffer = allocator.allocateArray<char>(this->size);
+		if (!this->read(buffer, this->size))
 		{
-			this->Seek(position, FS_SEEK_SET);
+			this->seek(position, FS_SEEK_SET);
 			return std::string();
 		}
 
-		this->Seek(position, FS_SEEK_SET);
+		this->seek(position, FS_SEEK_SET);
 
-		return std::string(buffer, this->Size);
+		return std::string(buffer, this->size);
 	}
 
-	bool FileSystem::FileReader::Read(void* buffer, size_t size)
+	bool FileSystem::FileReader::read(void* buffer, size_t _size)
 	{
-		if (!this->Exists() || static_cast<size_t>(this->Size) < size || Game::FS_Read(buffer, size, this->Handle) != static_cast<int>(size))
+		if (!this->exists() || static_cast<size_t>(this->size) < _size || Game::FS_Read(buffer, _size, this->handle) != static_cast<int>(_size))
 		{
 			return false;
 		}
@@ -78,32 +78,33 @@ namespace Components
 		return true;
 	}
 
-	void FileSystem::FileReader::Seek(int offset, int origin)
+	void FileSystem::FileReader::seek(int offset, int origin)
 	{
-		if (this->Exists())
+		if (this->exists())
 		{
-			Game::FS_Seek(this->Handle, offset, origin);
+			Game::FS_Seek(this->handle, offset, origin);
 		}
 	}
 
-	void FileSystem::FileWriter::Write(std::string data)
+	void FileSystem::FileWriter::write(std::string data)
 	{
-		if (this->Handle)
+		if (this->handle)
 		{
-			Game::FS_Write(data.data(), data.size(), this->Handle);
+			Game::FS_Write(data.data(), data.size(), this->handle);
 		}
 	}
 
-	void FileSystem::FileWriter::Open()
+	void FileSystem::FileWriter::open()
 	{
-		this->Handle = Game::FS_FOpenFileWrite(this->FilePath.data());
+		this->handle = Game::FS_FOpenFileWrite(this->filePath.data());
 	}
 
-	void FileSystem::FileWriter::Close()
+	void FileSystem::FileWriter::close()
 	{
-		if (this->Handle)
+		if (this->handle)
 		{
-			Game::FS_FCloseFile(this->Handle);
+			Game::FS_FCloseFile(this->handle);
+			this->handle = 0;
 		}
 	}
 
@@ -156,7 +157,7 @@ namespace Components
 	void FileSystem::DeleteFile(std::string folder, std::string file)
 	{
 		char path[MAX_PATH] = { 0 };
-		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").Get<const char*>(), reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
+		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").get<const char*>(), reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
 		Game::FS_Remove(path);
 	}
 
@@ -169,11 +170,11 @@ namespace Components
 		std::lock_guard<std::mutex> _(FileSystem::Mutex);
 		FileSystem::FileReader reader(path);
 
-		int size = reader.GetSize();
-		if (reader.Exists() && size >= 0)
+		int size = reader.getSize();
+		if (reader.exists() && size >= 0)
 		{
 			*buffer = FileSystem::AllocateFile(size + 1);
-			if (reader.Read(*buffer, size)) return size;
+			if (reader.read(*buffer, size)) return size;
 
 			FileSystem::FreeFile(*buffer);
 			*buffer = nullptr;
@@ -184,19 +185,19 @@ namespace Components
 
 	char* FileSystem::AllocateFile(int size)
 	{
-		return FileSystem::MemAllocator.AllocateArray<char>(size);
+		return FileSystem::MemAllocator.allocateArray<char>(size);
 	}
 
 	void FileSystem::FreeFile(void* buffer)
 	{
-		FileSystem::MemAllocator.Free(buffer);
+		FileSystem::MemAllocator.free(buffer);
 	}
 
 	void FileSystem::RegisterFolder(const char* folder)
 	{
-		std::string fs_cdpath = Dvar::Var("fs_cdpath").Get<std::string>();
-		std::string fs_basepath = Dvar::Var("fs_basepath").Get<std::string>();
-		std::string fs_homepath = Dvar::Var("fs_homepath").Get<std::string>();
+		std::string fs_cdpath = Dvar::Var("fs_cdpath").get<std::string>();
+		std::string fs_basepath = Dvar::Var("fs_basepath").get<std::string>();
+		std::string fs_homepath = Dvar::Var("fs_homepath").get<std::string>();
 
 		if (!fs_cdpath.empty())   Game::FS_AddLocalizedGameDirectory(fs_cdpath.data(),   folder);
 		if (!fs_basepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_basepath.data(), folder);
@@ -232,23 +233,23 @@ namespace Components
 
 	int FileSystem::ExecIsFSStub(const char* execFilename)
 	{
-		return !File(execFilename).Exists();
+		return !File(execFilename).exists();
 	}
 
 	FileSystem::FileSystem()
 	{
-		FileSystem::MemAllocator.Clear();
+		FileSystem::MemAllocator.clear();
 
 		// Thread safe file system interaction
-		Utils::Hook(0x4F4BFF, FileSystem::AllocateFile, HOOK_CALL).Install()->Quick();
-		//Utils::Hook(Game::FS_ReadFile, FileSystem::ReadFile, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(Game::FS_FreeFile, FileSystem::FreeFile, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4F4BFF, FileSystem::AllocateFile, HOOK_CALL).install()->quick();
+		//Utils::Hook(Game::FS_ReadFile, FileSystem::ReadFile, HOOK_JUMP).install()->quick();
+		Utils::Hook(Game::FS_FreeFile, FileSystem::FreeFile, HOOK_JUMP).install()->quick();
 
 		// Filesystem config checks
-		Utils::Hook(0x6098FD, FileSystem::ExecIsFSStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x6098FD, FileSystem::ExecIsFSStub, HOOK_CALL).install()->quick();
 
 		// Register additional folders
-		Utils::Hook(0x482647, FileSystem::StartupStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x482647, FileSystem::StartupStub, HOOK_JUMP).install()->quick();
 
 		// exec whitelist removal (YAYFINITY WARD)
 		Utils::Hook::Nop(0x609685, 5);
@@ -263,6 +264,6 @@ namespace Components
 
 	FileSystem::~FileSystem()
 	{
-		assert(FileSystem::MemAllocator.Empty());
+		assert(FileSystem::MemAllocator.empty());
 	}
 }

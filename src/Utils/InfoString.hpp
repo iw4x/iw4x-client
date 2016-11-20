@@ -4,20 +4,20 @@ namespace Utils
 	{
 	public:
 		InfoString() {};
-		InfoString(std::string buffer) : InfoString() { this->Parse(buffer); };
-		InfoString(const InfoString &obj) : KeyValuePairs(obj.KeyValuePairs) {};
+		InfoString(std::string buffer) : InfoString() { this->parse(buffer); };
+		InfoString(const InfoString &obj) : keyValuePairs(obj.keyValuePairs) {};
 
-		void Set(std::string key, std::string value);
-		std::string Get(std::string key);
+		void set(std::string key, std::string value);
+		std::string get(std::string key);
 
-		std::string Build();
+		std::string build();
 
-		void Dump();
+		void dump();
 
 		json11::Json to_json();
 
 	private:
-		std::map<std::string, std::string> KeyValuePairs;
-		void Parse(std::string buffer);
+		std::map<std::string, std::string> keyValuePairs;
+		void parse(std::string buffer);
 	};
 }

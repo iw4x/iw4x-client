@@ -2,24 +2,24 @@
 
 namespace Assets
 {
-	void IGfxImage::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IGfxImage::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::GfxImage* image = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_IMAGE, name.data()).image;
 		if (image) return;
 
-		image = builder->GetAllocator()->Allocate<Game::GfxImage>();
+		image = builder->getAllocator()->allocate<Game::GfxImage>();
 		if (!image)
 		{
 			Components::Logger::Error("Failed to allocate GfxImage structure!");
 			return;
 		}
 
-		image->name = builder->GetAllocator()->DuplicateString(name);
+		image->name = builder->getAllocator()->duplicateString(name);
 		image->semantic = 2;
 		image->category = 0;
 		image->cardMemory = 0;
 
-		image->loadDef = builder->GetAllocator()->Allocate<Game::GfxImageLoadDef>();
+		image->loadDef = builder->getAllocator()->allocate<Game::GfxImageLoadDef>();
 		if (!image->loadDef)
 		{
 			Components::Logger::Error("Failed to allocate GfxImageLoadDef structure!");
@@ -28,13 +28,13 @@ namespace Assets
 
 		Components::FileSystem::File iwi(fmt::sprintf("images/%s.iwi", name.data()));
 
-		if (!iwi.Exists())
+		if (!iwi.exists())
 		{
-			Components::Logger::Error("Loading image '%s' failed!", iwi.GetName().data());
+			Components::Logger::Error("Loading image '%s' failed!", iwi.getName().data());
 			return;
 		}
 
-		auto iwiBuffer = iwi.GetBuffer();
+		auto iwiBuffer = iwi.getBuffer();
 
 		const Game::GfxImageFileHeader* iwiHeader = reinterpret_cast<const Game::GfxImageFileHeader*>(iwiBuffer.data());
 		
@@ -88,31 +88,31 @@ namespace Assets
 		header->image = image;
 	}
 
-	void IGfxImage::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	void IGfxImage::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_Size(Game::GfxImage, 32);
+		AssertSize(Game::GfxImage, 32);
 
-		Utils::Stream* buffer = builder->GetBuffer();
+		Utils::Stream* buffer = builder->getBuffer();
 		Game::GfxImage* asset = header.image;
-		Game::GfxImage* dest = buffer->Dest<Game::GfxImage>();
-		buffer->Save(asset);
+		Game::GfxImage* dest = buffer->dest<Game::GfxImage>();
+		buffer->save(asset);
 
-		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
 		if (asset->name)
 		{
-			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
+			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		buffer->PushBlock(Game::XFILE_BLOCK_TEMP);
+		buffer->pushBlock(Game::XFILE_BLOCK_TEMP);
 
 		if (asset->texture)
 		{
-			buffer->Align(Utils::Stream::ALIGN_4);
+			buffer->align(Utils::Stream::ALIGN_4);
 			
-			Game::GfxImageLoadDef* destTexture = buffer->Dest<Game::GfxImageLoadDef>();
-			buffer->Save(asset->texture, 16);
+			Game::GfxImageLoadDef* destTexture = buffer->dest<Game::GfxImageLoadDef>();
+			buffer->save(asset->texture, 16);
 
 			// Zero the size!
 			destTexture->dataSize = 0;
@@ -120,7 +120,7 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->texture);
 		}
 
-		buffer->PopBlock();
-		buffer->PopBlock();
+		buffer->popBlock();
+		buffer->popBlock();
 	}
 }

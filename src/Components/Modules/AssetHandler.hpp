@@ -7,11 +7,11 @@ namespace Components
 		{
 		public:
 			virtual ~IAsset() {};
-			virtual Game::XAssetType GetType() { return Game::XAssetType::ASSET_TYPE_INVALID; };
-			virtual void Mark(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
-			virtual void Save(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
-			virtual void Dump(Game::XAssetHeader /*header*/) { /*ErrorTypeNotSupported(this);*/ };
-			virtual void Load(Game::XAssetHeader* /*header*/, std::string name, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
+			virtual Game::XAssetType getType() { return Game::XAssetType::ASSET_TYPE_INVALID; };
+			virtual void mark(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
+			virtual void save(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
+			virtual void dump(Game::XAssetHeader /*header*/) { /*ErrorTypeNotSupported(this);*/ };
+			virtual void load(Game::XAssetHeader* /*header*/, std::string name, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
 		};
 
 		typedef Game::XAssetHeader(Callback)(Game::XAssetType type, std::string name);
@@ -21,7 +21,7 @@ namespace Components
 		~AssetHandler();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "AssetHandler"; };
+		const char* getName() { return "AssetHandler"; };
 #endif
 
 		static void OnFind(Game::XAssetType type, Callback* callback);
@@ -29,10 +29,6 @@ namespace Components
 
 		static void ClearRelocations();
 		static void Relocate(void* start, void* to, DWORD size = 4);
-
-		static void Relocate(DWORD start, DWORD size, DWORD to) {
-			Relocate((void*)start, (void*)to, size);
-		}
 
 		static void ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder);
 		static void ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder);

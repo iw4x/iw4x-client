@@ -13,68 +13,68 @@ namespace Components
 			Zone(std::string zoneName);
 			~Zone();
 
-			void Build();
+			void build();
 
-			Utils::Stream* GetBuffer();
-			Utils::Memory::Allocator* GetAllocator();
+			Utils::Stream* getBuffer();
+			Utils::Memory::Allocator* getAllocator();
 
-			bool HasPointer(const void* pointer);
-			void StorePointer(const void* pointer);
+			bool hasPointer(const void* pointer);
+			void storePointer(const void* pointer);
 
 			template<typename T>
-			T* GetPointer(const T* pointer) { return reinterpret_cast<T*>(SafeGetPointer(pointer)); }
+			T* getPointer(const T* pointer) { return reinterpret_cast<T*>(this->safeGetPointer(pointer)); }
 
-			int FindAsset(Game::XAssetType type, std::string name);
-			Game::XAsset* GetAsset(int index);
-			uint32_t GetAssetOffset(int index);
-			Game::XAssetHeader RequireAsset(Game::XAssetType type, const char* name);
-			bool LoadAsset(Game::XAssetType type, std::string name);
+			int findAsset(Game::XAssetType type, std::string name);
+			Game::XAsset* getAsset(int index);
+			uint32_t getAssetOffset(int index);
+			Game::XAssetHeader requireAsset(Game::XAssetType type, const char* name);
+			bool loadAsset(Game::XAssetType type, std::string name);
 
-			int AddScriptString(unsigned short gameIndex);
-			int AddScriptString(std::string str);
-			int FindScriptString(std::string str);
+			int addScriptString(unsigned short gameIndex);
+			int addScriptString(std::string str);
+			int findScriptString(std::string str);
 
-			void MapScriptString(unsigned short* gameIndex);
+			void mapScriptString(unsigned short* gameIndex);
 
-			void RenameAsset(Game::XAssetType type, std::string asset, std::string newName);
-			std::string GetAssetName(Game::XAssetType type, std::string asset);
+			void renameAsset(Game::XAssetType type, std::string asset, std::string newName);
+			std::string getAssetName(Game::XAssetType type, std::string asset);
 
-			void Store(Game::XAssetHeader header);
+			void store(Game::XAssetHeader header);
 
 		private:
-			void LoadFastFiles();
+			void loadFastFiles();
 
-			bool LoadAssets();
-			bool LoadAsset(std::string type, std::string name);
+			bool loadAssets();
+			bool loadAsset(std::string type, std::string name);
 
-			void SaveData();
-			void WriteZone();
+			void saveData();
+			void writeZone();
 
-			void AddBranding();
+			void addBranding();
 
-			uint32_t SafeGetPointer(const void* pointer);
+			uint32_t safeGetPointer(const void* pointer);
 
-			int IndexStart;
-			Utils::Stream Buffer;
+			int indexStart;
+			Utils::Stream buffer;
 
-			std::string ZoneName;
-			Utils::CSV DataMap;
+			std::string zoneName;
+			Utils::CSV dataMap;
 
-			Utils::Memory::Allocator MemAllocator;
+			Utils::Memory::Allocator memAllocator;
 
-			std::vector<Game::XAsset> LoadedAssets;
-			std::vector<std::string> ScriptStrings;
-			std::map<unsigned short, unsigned int> ScriptStringMap;
-			std::map<std::string, std::string> RenameMap[Game::XAssetType::ASSET_TYPE_COUNT];
-			std::map<const void*, uint32_t> PointerMap;
+			std::vector<Game::XAsset> loadedAssets;
+			std::vector<std::string> scriptStrings;
+			std::map<unsigned short, unsigned int> scriptStringMap;
+			std::map<std::string, std::string> renameMap[Game::XAssetType::ASSET_TYPE_COUNT];
+			std::map<const void*, uint32_t> pointerMap;
 
-			Game::RawFile Branding;
+			Game::RawFile branding;
 		};
 
 		ZoneBuilder();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "ZoneBuilder"; };
+		const char* getName() { return "ZoneBuilder"; };
 #endif
 
 		static bool IsEnabled();

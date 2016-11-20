@@ -2,13 +2,13 @@
 
 namespace Assets
 {
-	void IMapEnts::Load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IMapEnts::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File ents(name + ".ents");
-		if (ents.Exists())
+		if (ents.exists())
 		{
-			Game::MapEnts* entites = builder->GetAllocator()->Allocate<Game::MapEnts>();
-			Game::MapEnts* orgEnts = Components::AssetHandler::FindOriginalAsset(this->GetType(), name.data()).mapEnts;
+			Game::MapEnts* entites = builder->getAllocator()->allocate<Game::MapEnts>();
+			Game::MapEnts* orgEnts = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).mapEnts;
 
 			if (orgEnts)
 			{
@@ -16,90 +16,90 @@ namespace Assets
 			}
 			else
 			{
-				entites->name = builder->GetAllocator()->DuplicateString(name);
+				entites->name = builder->getAllocator()->duplicateString(name);
 			}
 
-			entites->entityString = builder->GetAllocator()->DuplicateString(ents.GetBuffer());
-			entites->numEntityChars = ents.GetBuffer().size() + 1;
+			entites->entityString = builder->getAllocator()->duplicateString(ents.getBuffer());
+			entites->numEntityChars = ents.getBuffer().size() + 1;
 
 			header->mapEnts = entites;
 		}
 	}
 
-	void IMapEnts::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	void IMapEnts::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_Size(Game::MapEnts, 44);
+		AssertSize(Game::MapEnts, 44);
 
-		Utils::Stream* buffer = builder->GetBuffer();
+		Utils::Stream* buffer = builder->getBuffer();
 		Game::MapEnts* asset = header.mapEnts;
-		Game::MapEnts* dest = buffer->Dest<Game::MapEnts>();
-		buffer->Save(asset);
+		Game::MapEnts* dest = buffer->dest<Game::MapEnts>();
+		buffer->save(asset);
 
-		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
 		if (asset->name)
 		{
-			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
+			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->entityString)
 		{
-			buffer->Save(asset->entityString, asset->numEntityChars);
+			buffer->save(asset->entityString, asset->numEntityChars);
 			Utils::Stream::ClearPointer(&dest->entityString);
 		}
 
 		if (asset->trigger.models)
 		{
-			Assert_Size(Game::TriggerModel, 8);
-			buffer->Align(Utils::Stream::ALIGN_4);
+			AssertSize(Game::TriggerModel, 8);
+			buffer->align(Utils::Stream::ALIGN_4);
 
-			buffer->SaveArray(asset->trigger.models, asset->trigger.modelCount);
+			buffer->saveArray(asset->trigger.models, asset->trigger.modelCount);
 
 			Utils::Stream::ClearPointer(&dest->trigger.models);
 		}
 
 		if (asset->trigger.hulls)
 		{
-			Assert_Size(Game::TriggerHull, 32);
-			buffer->Align(Utils::Stream::ALIGN_4);
+			AssertSize(Game::TriggerHull, 32);
+			buffer->align(Utils::Stream::ALIGN_4);
 
-			buffer->SaveArray(asset->trigger.hulls, asset->trigger.hullCount);
+			buffer->saveArray(asset->trigger.hulls, asset->trigger.hullCount);
 
 			Utils::Stream::ClearPointer(&dest->trigger.hulls);
 		}
 
 		if (asset->trigger.slabs)
 		{
-			Assert_Size(Game::TriggerSlab, 20);
-			buffer->Align(Utils::Stream::ALIGN_4);
+			AssertSize(Game::TriggerSlab, 20);
+			buffer->align(Utils::Stream::ALIGN_4);
 
-			buffer->SaveArray(asset->trigger.slabs, asset->trigger.slabCount);
+			buffer->saveArray(asset->trigger.slabs, asset->trigger.slabCount);
 
 			Utils::Stream::ClearPointer(&dest->trigger.slabs);
 		}
 
 		if (asset->stages)
 		{
-			Assert_Size(Game::Stage, 20);
+			AssertSize(Game::Stage, 20);
 
-			buffer->Align(Utils::Stream::ALIGN_4);
+			buffer->align(Utils::Stream::ALIGN_4);
 
-			Game::Stage* destStages = buffer->Dest<Game::Stage>();
-			buffer->SaveArray(asset->stages, asset->stageCount);
+			Game::Stage* destStages = buffer->dest<Game::Stage>();
+			buffer->saveArray(asset->stages, asset->stageCount);
 
 			for (int i = 0; i < asset->stageCount; ++i)
 			{
 				Game::Stage* destStage = &destStages[i];
 				Game::Stage* stage = &asset->stages[i];
 
-				buffer->SaveString(stage->stageName);
+				buffer->saveString(stage->stageName);
 				Utils::Stream::ClearPointer(&destStage->stageName);
 			}
 
 			Utils::Stream::ClearPointer(&dest->stages);
 		}
 
-		buffer->PopBlock();
+		buffer->popBlock();
 	}
 }

@@ -6,16 +6,16 @@ namespace Utils
 		CSV(std::string file, bool isFile = true, bool allowComments = true);
 		~CSV();
 
-		int GetRows();
-		int GetColumns();
-		int GetColumns(size_t row);
+		int getRows();
+		int getColumns();
+		int getColumns(size_t row);
 
-		std::string GetElementAt(size_t row, size_t column);
+		std::string getElementAt(size_t row, size_t column);
 
 	private:
+		std::vector<std::vector<std::string>> dataMap;
 
-		void Parse(std::string file, bool isFile = true, bool allowComments = true);
-		void ParseRow(std::string row, bool allowComments = true);
-		std::vector<std::vector<std::string>> DataMap;
+		void parse(std::string file, bool isFile = true, bool allowComments = true);
+		void parseRow(std::string row, bool allowComments = true);
 	};
 }

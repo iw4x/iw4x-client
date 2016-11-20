@@ -174,10 +174,10 @@ namespace Components
 		std::vector<Game::menuDef_t*> menus;
 		FileSystem::File menuFile(menu);
 
-		if (menuFile.Exists())
+		if (menuFile.exists())
 		{
 			Game::pc_token_t token;
-			int handle = Menus::LoadMenuSource(menu, menuFile.GetBuffer());
+			int handle = Menus::LoadMenuSource(menu, menuFile.getBuffer());
 
 			if (Menus::IsValidSourceHandle(handle))
 			{
@@ -536,7 +536,7 @@ namespace Components
 			// Parse scriptmenus!
 			if (menuList->menus[0]->window.name == "default_menu"s || Utils::String::EndsWith(filename, ".menu"))
 			{
-				if (FileSystem::File(filename).Exists())
+				if (FileSystem::File(filename).exists())
 				{
 					header.menuList = Menus::LoadScriptMenu(filename.data());
 
@@ -626,7 +626,7 @@ namespace Components
 		Utils::Hook::Nop(0x428E48, 5);
 
 		// Intercept menu painting
-		Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).install()->quick();
 
 		// disable the 2 new tokens in ItemParse_rect
 		Utils::Hook::Set<BYTE>(0x640693, 0xEB);
@@ -639,14 +639,14 @@ namespace Components
 
 		Command::Add("openmenu", [] (Command::Params params)
 		{
-			if (params.Length() != 2)
+			if (params.length() != 2)
 			{
 				Logger::Print("USAGE: openmenu <menu name>\n");
 				return;
 			}
 
 			// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
-			if (Dvar::Var("cl_ingame").Get<bool>())
+			if (Dvar::Var("cl_ingame").get<bool>())
 			{
 				Game::Key_SetCatcher(0, 16);
 			}

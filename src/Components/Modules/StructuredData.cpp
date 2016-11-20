@@ -58,12 +58,12 @@ namespace Components
 				}
 			}
 
-			if (!value) value = StructuredData::MemAllocator.DuplicateString(entry);
+			if (!value) value = StructuredData::MemAllocator.duplicateString(entry);
 			dataVector.push_back(value);
 		}
 
 		// Map data back to the game structure
-		Game::StructuredDataEnumEntry* indices = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataEnumEntry>(dataVector.size());
+		Game::StructuredDataEnumEntry* indices = StructuredData::MemAllocator.allocateArray<Game::StructuredDataEnumEntry>(dataVector.size());
 		for (unsigned int i = 0; i < dataVector.size(); ++i)
 		{
 			indices[i].index = i;
@@ -116,16 +116,16 @@ namespace Components
 			for (int i = 156;; ++i)
 			{
 				FileSystem::File definition(fmt::sprintf("%s/%d.json", filename.data(), i));
-				if (!definition.Exists()) break;
+				if (!definition.exists()) break;
 
 				std::vector<std::vector<std::string>> enumContainer;
 
 				std::string errors;
-				json11::Json defData = json11::Json::parse(definition.GetBuffer(), errors);
+				json11::Json defData = json11::Json::parse(definition.getBuffer(), errors);
 
 				if (!errors.empty())
 				{
-					Logger::Error("Parsing patch file '%s' for PlayerDataDef version %d failed: %s", definition.GetName().data(), i, errors.data());
+					Logger::Error("Parsing patch file '%s' for PlayerDataDef version %d failed: %s", definition.getName().data(), i, errors.data());
 					return;
 				}
 
@@ -162,7 +162,7 @@ namespace Components
 			if (patchDefinitions.empty()) return;
 
 			// Reallocate the definition
-			Game::StructuredDataDef* newData = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataDef>(data->count + patchDefinitions.size());
+			Game::StructuredDataDef* newData = StructuredData::MemAllocator.allocateArray<Game::StructuredDataDef>(data->count + patchDefinitions.size());
 			std::memcpy(&newData[patchDefinitions.size()], data->data, sizeof Game::StructuredDataDef * data->count);
 
 			// Prepare the buffers
@@ -172,7 +172,7 @@ namespace Components
 				newData[i].version = (patchDefinitions.size() - i) + 155;
 
 				// Reallocate the enum array
-				Game::StructuredDataEnum* newEnums = StructuredData::MemAllocator.AllocateArray<Game::StructuredDataEnum>(data->data->numEnums);
+				Game::StructuredDataEnum* newEnums = StructuredData::MemAllocator.allocateArray<Game::StructuredDataEnum>(data->data->numEnums);
 				std::memcpy(newEnums, data->data->enums, sizeof Game::StructuredDataEnum * data->data->numEnums);
 				newData[i].enums = newEnums;
 			}
@@ -213,6 +213,6 @@ namespace Components
 
 	StructuredData::~StructuredData()
 	{
-		StructuredData::MemAllocator.Clear();
+		StructuredData::MemAllocator.clear();
 	}
 }

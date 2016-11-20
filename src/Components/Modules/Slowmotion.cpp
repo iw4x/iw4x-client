@@ -79,7 +79,7 @@ namespace Components
 		if (!Dedicated::IsEnabled()) return;
 
 		SlowMotion::Delay = 0;
-		Utils::Hook(0x5F5FF2, SlowMotion::SetSlowMotion, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x60B38A, SlowMotion::ApplySlowMotionStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5F5FF2, SlowMotion::SetSlowMotion, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x60B38A, SlowMotion::ApplySlowMotionStub, HOOK_CALL).install()->quick();
 	}
 }

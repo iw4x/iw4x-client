@@ -6,19 +6,19 @@ namespace Components
 		class Params
 		{
 		public:
-			Params(bool sv, DWORD id) : CommandId(id), IsSV(sv) {};
+			Params(bool sv, DWORD id) : commandId(id), isSV(sv) {};
 			Params(bool sv) : Params(sv, (sv ? *Game::cmd_id_sv : *Game::cmd_id)) {};
-			Params(const Params &obj) : CommandId(obj.CommandId), IsSV(obj.IsSV) {};
+			Params(const Params &obj) : commandId(obj.commandId), isSV(obj.isSV) {};
 			Params() : Params(false, *Game::cmd_id) {};
 
 			char* operator[](size_t index);
-			size_t Length();
+			size_t length();
 
-			std::string Join(size_t startIndex);
+			std::string join(size_t startIndex);
 
 		private:
-			bool IsSV;
-			DWORD CommandId;
+			bool isSV;
+			DWORD commandId;
 		};
 
 		typedef void(Callback)(Command::Params params);
@@ -27,7 +27,7 @@ namespace Components
 		~Command();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Command"; };
+		const char* getName() { return "Command"; };
 #endif
 
 		static Game::cmd_function_t* Allocate();

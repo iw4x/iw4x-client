@@ -12,27 +12,27 @@ namespace Components
 		if (Utils::Hook::Get<bool>(0x1AD3680)) return;
 
 		// Don't load playlists when dedi and no party
-		if (Dedicated::IsEnabled() && !Dvar::Var("party_enable").Get<bool>())
+		if (Dedicated::IsEnabled() && !Dvar::Var("party_enable").get<bool>())
 		{
 			Utils::Hook::Set<bool>(0x1AD3680, true); // Set received to true
-			Dvar::Var("xblive_privateserver").Set(true);
+			Dvar::Var("xblive_privateserver").set(true);
 			return;
 		}
 
-		Dvar::Var("xblive_privateserver").Set(false);
+		Dvar::Var("xblive_privateserver").set(false);
 
-		std::string playlistFilename = Dvar::Var("playlistFilename").Get<char*>();
+		std::string playlistFilename = Dvar::Var("playlistFilename").get<char*>();
 		FileSystem::File playlist(playlistFilename);
 
-		if (playlist.Exists())
+		if (playlist.exists())
 		{
-			Logger::Print("Parsing playlist '%s'...\n", playlist.GetName().data());
-			Game::Playlist_ParsePlaylists(playlist.GetBuffer().data());
+			Logger::Print("Parsing playlist '%s'...\n", playlist.getName().data());
+			Game::Playlist_ParsePlaylists(playlist.getBuffer().data());
 			Utils::Hook::Set<bool>(0x1AD3680, true); // Playlist loaded
 		}
 		else
 		{
-			Logger::Print("Unable to load playlist '%s'!\n", playlist.GetName().data());
+			Logger::Print("Unable to load playlist '%s'!\n", playlist.getName().data());
 		}
 	}
 
@@ -66,7 +66,7 @@ namespace Components
 
 				if (!list.ParseFromString(data))
 				{
-					Party::PlaylistError(fmt::sprintf("Received playlist response from %s, but it is invalid.", address.GetCString()));
+					Party::PlaylistError(fmt::sprintf("Received playlist response from %s, but it is invalid.", address.getCString()));
 					Playlist::ReceivedPlaylistBuffer.clear();
 					return;
 				}
@@ -79,7 +79,7 @@ namespace Components
 					//Validate hashes
 					if (hash != list.hash())
 					{
-						Party::PlaylistError(fmt::sprintf("Received playlist response from %s, but the checksum did not match (%X != %X).", address.GetCString(), list.hash(), hash));
+						Party::PlaylistError(fmt::sprintf("Received playlist response from %s, but the checksum did not match (%X != %X).", address.getCString(), list.hash(), hash));
 						Playlist::ReceivedPlaylistBuffer.clear();
 						return;
 					}
@@ -155,17 +155,17 @@ namespace Components
 		//Got playlists is true
 		//Utils::Hook::Set<bool>(0x1AD3680, true);
 
-		Utils::Hook(0x497DB5, Playlist::GetMapIndex, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x42A19D, Playlist::MapNameCopy, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4A6FEE, Playlist::SetMapName, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x497DB5, Playlist::GetMapIndex, HOOK_CALL).install()->quick();
+		Utils::Hook(0x42A19D, Playlist::MapNameCopy, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A6FEE, Playlist::SetMapName, HOOK_CALL).install()->quick();
 
 		// Store playlist buffer on load
-		Utils::Hook(0x42961C, Playlist::StorePlaylistStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x42961C, Playlist::StorePlaylistStub, HOOK_CALL).install()->quick();
 
 		//if (Dedicated::IsDedicated())
 		{
 			// Custom playlist loading
-			Utils::Hook(0x420B5A, Playlist::LoadPlaylist, HOOK_JUMP).Install()->Quick();
+			Utils::Hook(0x420B5A, Playlist::LoadPlaylist, HOOK_JUMP).install()->quick();
 
 			// disable playlist.ff loading function
 			Utils::Hook::Set<BYTE>(0x4D6E60, 0xC3);

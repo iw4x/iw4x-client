@@ -6,7 +6,7 @@ namespace Components
 		Singleton();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Singleton"; };
+		const char* getName() { return "Singleton"; };
 #endif
 
 		static bool IsFirstInstance();

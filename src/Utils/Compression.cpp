@@ -12,7 +12,7 @@ namespace Utils
 			// Make sure the buffer is large enough
 			if (length < 100) length *= 10;
 
-			char* buffer = allocator.AllocateArray<char>(length);
+			char* buffer = allocator.allocateArray<char>(length);
 
 			if (compress2(reinterpret_cast<Bytef*>(buffer), &length, reinterpret_cast<Bytef*>(const_cast<char*>(data.data())), data.size(), Z_BEST_COMPRESSION) != Z_OK)
 			{
@@ -40,7 +40,7 @@ namespace Utils
 			int ret = 0;
 			Utils::Memory::Allocator allocator;
 
-			uint8_t* dest = allocator.AllocateArray<uint8_t>(CHUNK);
+			uint8_t* dest = allocator.allocateArray<uint8_t>(CHUNK);
 			const char* dataPtr = data.data();
 
 			do 

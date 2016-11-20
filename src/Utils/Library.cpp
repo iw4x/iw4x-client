@@ -2,28 +2,28 @@
 
 namespace Utils
 {
-	Library::Library(std::string buffer, bool freeOnDestroy) : FreeOnDestroy(freeOnDestroy), Module(nullptr)
+	Library::Library(std::string buffer, bool _freeOnDestroy) : freeOnDestroy(_freeOnDestroy), module(nullptr)
 	{
-		this->Module = LoadLibraryExA(buffer.data(), NULL, 0);
+		this->module = LoadLibraryExA(buffer.data(), NULL, 0);
 	}
 
 	Library::~Library()
 	{
-		if (this->FreeOnDestroy && this->Valid())
+		if (this->freeOnDestroy && this->valid())
 		{
-			FreeLibrary(this->GetModule());
+			FreeLibrary(this->getModule());
 		}
 
-		this->Module = nullptr;
+		this->module = nullptr;
 	}
 
-	bool Library::Valid()
+	bool Library::valid()
 	{
-		return (this->GetModule() != nullptr);
+		return (this->getModule() != nullptr);
 	}
 
-	HMODULE Library::GetModule()
+	HMODULE Library::getModule()
 	{
-		return this->Module;
+		return this->module;
 	}
 }

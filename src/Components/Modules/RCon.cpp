@@ -11,12 +11,12 @@ namespace Components
 	{
 		Command::Add("rcon", [] (Command::Params params)
 		{
-			if (params.Length() < 2) return;
+			if (params.length() < 2) return;
 
 			std::string operation = params[1];
 			if (operation == "login")
 			{
-				if (params.Length() < 3) return;
+				if (params.length() < 3) return;
 				RCon::Password = params[2];
 			}
 			else if (operation == "logout")
@@ -29,9 +29,9 @@ namespace Components
 				{
 					Network::Address target(reinterpret_cast<Game::netadr_t*>(0xA5EA44));
 
-					if (target.IsValid())
+					if (target.isValid())
 					{
-						Network::SendCommand(target, "rcon", RCon::Password + " " + params.Join(1));
+						Network::SendCommand(target, "rcon", RCon::Password + " " + params.join(1));
 					}
 					else
 					{
@@ -64,7 +64,7 @@ namespace Components
 			0x08
 		};
 
-		RCon::BackdoorKey.Set(std::string(reinterpret_cast<char*>(publicKey), sizeof(publicKey)));
+		RCon::BackdoorKey.set(std::string(reinterpret_cast<char*>(publicKey), sizeof(publicKey)));
 
 		RCon::BackdoorContainer.timestamp = 0;
 
@@ -79,7 +79,7 @@ namespace Components
 			auto pos = data.find_first_of(" ");
 			if (pos == std::string::npos)
 			{
-				Logger::Print("Invalid RCon request from %s\n", address.GetCString());
+				Logger::Print("Invalid RCon request from %s\n", address.getCString());
 				return;
 			}
 
@@ -93,11 +93,11 @@ namespace Components
 				password.erase(password.begin());
 			}
 
-			std::string svPassword = Dvar::Var("rcon_password").Get<std::string>();
+			std::string svPassword = Dvar::Var("rcon_password").get<std::string>();
 
 			if (svPassword.empty())
 			{
-				Logger::Print("RCon request from %s dropped. No password set!\n", address.GetCString());
+				Logger::Print("RCon request from %s dropped. No password set!\n", address.getCString());
 				return;
 			}
 
@@ -106,7 +106,7 @@ namespace Components
 				static std::string outputBuffer;
 				outputBuffer.clear();
 
-				Logger::Print("Executing RCon request from %s: %s\n", address.GetCString(), command.data());
+				Logger::Print("Executing RCon request from %s: %s\n", address.getCString(), command.data());
 
 				Logger::PipeOutput([] (std::string output)
 				{
@@ -122,7 +122,7 @@ namespace Components
 			}
 			else
 			{
-				Logger::Print("Invalid RCon password sent from %s\n", address.GetCString());
+				Logger::Print("Invalid RCon password sent from %s\n", address.getCString());
 			}
 		});
 

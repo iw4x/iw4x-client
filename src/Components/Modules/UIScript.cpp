@@ -5,9 +5,9 @@ namespace Components
 	std::map<std::string, wink::slot<UIScript::Callback>> UIScript::UIScripts;
 	std::map<int, wink::slot<UIScript::CallbackRaw>> UIScript::UIOwnerDraws;
 
-	template<> int UIScript::Token::Get()
+	template<> int UIScript::Token::get()
 	{
-		if (this->IsValid())
+		if (this->isValid())
 		{
 			return atoi(this->token);
 		}
@@ -15,9 +15,9 @@ namespace Components
 		return 0;
 	}
 
-	template<> char* UIScript::Token::Get()
+	template<> char* UIScript::Token::get()
 	{
-		if (this->IsValid())
+		if (this->isValid())
 		{
 			return this->token;
 		}
@@ -25,22 +25,22 @@ namespace Components
 		return "";
 	}
 
-	template<> const char* UIScript::Token::Get()
+	template<> const char* UIScript::Token::get()
 	{
-		return this->Get<char*>();
+		return this->get<char*>();
 	}
 
-	template<> std::string UIScript::Token::Get()
+	template<> std::string UIScript::Token::get()
 	{
-		return this->Get<const char*>();
+		return this->get<const char*>();
 	}
 
-	bool UIScript::Token::IsValid()
+	bool UIScript::Token::isValid()
 	{
-		return (token && token[0]);
+		return (this->token && this->token[0]);
 	}
 
-	void UIScript::Token::Parse(const char** args)
+	void UIScript::Token::parse(const char** args)
 	{
 		if (args)
 		{
@@ -125,7 +125,7 @@ namespace Components
 		Utils::Hook::RedirectJump(0x45EC59, UIScript::RunMenuScriptStub);
 
 		// Install ownerdraw handler
-		Utils::Hook(0x63D233, UIScript::OwnerDrawHandleKeyStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x63D233, UIScript::OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();
 	}
 
 	UIScript::~UIScript()

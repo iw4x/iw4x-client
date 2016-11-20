@@ -8,27 +8,27 @@ namespace Components
 		class ServerInfo
 		{
 		public:
-			Network::Address Addr;
-			std::string Hostname;
-			std::string Mapname;
-			std::string Gametype;
-			std::string Mod;
-			std::string Shortversion;
-			int Clients;
-			int MaxClients;
-			bool Password;
-			int Ping;
-			int MatchType;
-			int SecurityLevel;
-			bool Hardcore;
-			bool SVRunning;
+			Network::Address addr;
+			std::string hostname;
+			std::string mapname;
+			std::string gametype;
+			std::string mod;
+			std::string shortversion;
+			int clients;
+			int maxClients;
+			bool password;
+			int ping;
+			int matchType;
+			int securityLevel;
+			bool hardcore;
+			bool svRunning;
 		};
 
 		ServerList();
 		~ServerList();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "ServerList"; };
+		const char* getName() { return "ServerList"; };
 #endif
 
 		static void Refresh();
@@ -59,22 +59,22 @@ namespace Components
 #pragma pack(push, 1)
 		union MasterEntry
 		{
-			char Token[7];
+			char token[7];
 			struct
 			{
-				uint32_t IP;
-				uint16_t Port;
+				uint32_t ip;
+				uint16_t port;
 			};
 
 			bool IsEndToken()
 			{
 				// End of transmission or file token
-				return (Token[0] == 'E' && Token[1] == 'O' && (Token[2] == 'T' || Token[2] == 'F'));
+				return (token[0] == 'E' && token[1] == 'O' && (token[2] == 'T' || token[2] == 'F'));
 			}
 
 			bool HasSeparator()
 			{
-				return (Token[6] == '\\');
+				return (token[6] == '\\');
 			}
 		};
 #pragma pack(pop)
@@ -85,21 +85,21 @@ namespace Components
 			class ServerContainer
 			{
 			public:
-				bool Sent;
-				int SendTime;
-				std::string Challenge;
-				Network::Address Target;
+				bool sent;
+				int sendTime;
+				std::string challenge;
+				Network::Address target;
 			};
 
-			bool AwatingList;
-			int AwaitTime;
+			bool awatingList;
+			int awaitTime;
 
-			int SentCount;
-			int SendCount;
+			int sentCount;
+			int sendCount;
 
-			Network::Address Host;
-			std::vector<ServerContainer> Servers;
-			std::mutex Mutex;
+			Network::Address host;
+			std::vector<ServerContainer> servers;
+			std::mutex mutex;
 		};
 
 		static unsigned int GetServerCount();

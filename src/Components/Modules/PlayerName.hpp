@@ -7,7 +7,7 @@ namespace Components
 		~PlayerName();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "PlayerName"; };
+		const char* getName() { return "PlayerName"; };
 #endif
 
 	private:

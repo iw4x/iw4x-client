@@ -6,7 +6,7 @@ namespace Components
 		Window();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Window"; };
+		const char* getName() { return "Window"; };
 #endif
 
 		static int Width();

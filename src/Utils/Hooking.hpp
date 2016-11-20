@@ -13,22 +13,22 @@ namespace Utils
 		public:
 			struct Container
 			{
-				const char* Signature;
-				const char* Mask;
-				std::function<void(char*)> Callback;
+				const char* signature;
+				const char* mask;
+				std::function<void(char*)> callback;
 			};
 
-			Signature(void* start, size_t length) : Start(start), Length(length) {}
-			Signature(DWORD start, size_t length) : Signature(reinterpret_cast<void*>(start), length) {}
+			Signature(void* _start, size_t _length) : start(_start), length(_length) {}
+			Signature(DWORD _start, size_t _length) : Signature(reinterpret_cast<void*>(_start), _length) {}
 			Signature() : Signature(0x400000, 0x800000) {}
 
-			void Process();
-			void Add(Container& container);
+			void process();
+			void add(Container& container);
 
 		private:
-			void* Start;
-			size_t Length;
-			std::vector<Container> Signatures;
+			void* start;
+			size_t length;
+			std::vector<Container> signatures;
 		};
 
 		class Interceptor
@@ -46,9 +46,9 @@ namespace Utils
 			static void* PopReturn(void* place);
 		};
 
-		Hook() : Place(nullptr), Stub(nullptr), Initialized(false), Installed(false), Original(0), UseJump(false), Protection(0) { ZeroMemory(Hook::Buffer, sizeof(Hook::Buffer)); }
+		Hook() : place(nullptr), stub(nullptr), initialized(false), installed(false), original(0), useJump(false), protection(0) { ZeroMemory(this->buffer, sizeof(this->buffer)); }
 
-		Hook(void* place, void* stub, bool useJump = true) : Hook() { Hook::Initialize(place, stub, useJump); }
+		Hook(void* place, void* stub, bool useJump = true) : Hook() { this->initialize(place, stub, useJump); }
 		Hook(void* place, void(*stub)(), bool useJump = true) : Hook(place, reinterpret_cast<void*>(stub), useJump) {}
 
 		Hook(DWORD place, void* stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
@@ -57,14 +57,14 @@ namespace Utils
 
 		~Hook();
 
-		Hook* Initialize(void* place, void* stub, bool useJump = true);
-		Hook* Initialize(DWORD place, void* stub, bool useJump = true);
-		Hook* Initialize(DWORD place, void(*stub)(), bool useJump = true); // For lambdas
-		Hook* Install(bool unprotect = true, bool keepUnportected = false);
-		Hook* Uninstall(bool unprotect = true);
+		Hook* initialize(void* place, void* stub, bool useJump = true);
+		Hook* initialize(DWORD place, void* stub, bool useJump = true);
+		Hook* initialize(DWORD place, void(*stub)(), bool useJump = true); // For lambdas
+		Hook* install(bool unprotect = true, bool keepUnportected = false);
+		Hook* uninstall(bool unprotect = true);
 
-		void* GetAddress();
-		void Quick();
+		void* getAddress();
+		void quick();
 
 		template <typename T> static std::function<T> Call(DWORD function)
 		{
@@ -163,17 +163,17 @@ namespace Utils
 		}
 
 	private:
-		bool Initialized;
-		bool Installed;
+		bool initialized;
+		bool installed;
 
-		void* Place;
-		void* Stub;
-		void* Original;
-		char Buffer[5];
-		bool UseJump;
+		void* place;
+		void* stub;
+		void* original;
+		char buffer[5];
+		bool useJump;
 
-		DWORD Protection;
+		DWORD protection;
 
-		std::mutex StateMutex;
+		std::mutex stateMutex;
 	};
 }

@@ -7,10 +7,10 @@ namespace Components
 		~Auth();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Auth"; };
+		const char* getName() { return "Auth"; };
 #endif
 
-		bool UnitTest();
+		bool unitTest();
 
 		static void StoreKey();
 		static void LoadKey(bool force = false);

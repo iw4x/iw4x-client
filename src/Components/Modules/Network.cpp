@@ -18,91 +18,91 @@ namespace Components
 	{
 		return Game::NET_CompareAdr(this->address, obj.address);
 	}
-	void Network::Address::SetPort(unsigned short port)
+	void Network::Address::setPort(unsigned short port)
 	{
 		this->address.port = htons(port);
 	}
-	unsigned short Network::Address::GetPort()
+	unsigned short Network::Address::getPort()
 	{
 		return ntohs(this->address.port);
 	}
-	void Network::Address::SetIP(DWORD ip)
+	void Network::Address::setIP(DWORD ip)
 	{
 		this->address.ip.full = ip;
 	}
-	void Network::Address::SetIP(Game::netIP_t ip)
+	void Network::Address::setIP(Game::netIP_t ip)
 	{
 		this->address.ip = ip;
 	}
-	Game::netIP_t Network::Address::GetIP()
+	Game::netIP_t Network::Address::getIP()
 	{
 		return this->address.ip;
 	}
-	void Network::Address::SetType(Game::netadrtype_t type)
+	void Network::Address::setType(Game::netadrtype_t type)
 	{
 		this->address.type = type;
 	}
-	Game::netadrtype_t Network::Address::GetType()
+	Game::netadrtype_t Network::Address::getType()
 	{
 		return this->address.type;
 	}
-	sockaddr Network::Address::GetSockAddr()
+	sockaddr Network::Address::getSockAddr()
 	{
 		sockaddr addr;
-		this->ToSockAddr(&addr);
+		this->toSockAddr(&addr);
 		return addr;
 	}
-	void Network::Address::ToSockAddr(sockaddr* addr)
+	void Network::Address::toSockAddr(sockaddr* addr)
 	{
 		if (addr)
 		{
 			Game::NetadrToSockadr(&this->address, addr);
 		}
 	}
-	void Network::Address::ToSockAddr(sockaddr_in* addr)
+	void Network::Address::toSockAddr(sockaddr_in* addr)
 	{
-		this->ToSockAddr(reinterpret_cast<sockaddr*>(addr));
+		this->toSockAddr(reinterpret_cast<sockaddr*>(addr));
 	}
-	Game::netadr_t* Network::Address::Get()
+	Game::netadr_t* Network::Address::get()
 	{
 		return &this->address;
 	}
-	const char* Network::Address::GetCString()
+	const char* Network::Address::getCString()
 	{
 		return Game::NET_AdrToString(this->address);
 	}
-	std::string Network::Address::GetString()
+	std::string Network::Address::getString()
 	{
-		return this->GetCString();
+		return this->getCString();
 	}
-	bool Network::Address::IsLocal()
+	bool Network::Address::isLocal()
 	{
 		// According to: https://en.wikipedia.org/wiki/Private_network
 
 		// 10.X.X.X
-		if (this->GetIP().bytes[0] == 10) return true;
+		if (this->getIP().bytes[0] == 10) return true;
 
 		// 192.168.X.X
-		if (this->GetIP().bytes[0] == 192 && this->GetIP().bytes[1] == 168) return true;
+		if (this->getIP().bytes[0] == 192 && this->getIP().bytes[1] == 168) return true;
 
 		// 172.16.X.X - 172.31.X.X
-		if (this->GetIP().bytes[0] == 172 && (this->GetIP().bytes[1] >= 16) && (this->GetIP().bytes[1] < 32)) return true;
+		if (this->getIP().bytes[0] == 172 && (this->getIP().bytes[1] >= 16) && (this->getIP().bytes[1] < 32)) return true;
 
 		// 127.0.0.1
-		if (this->GetIP().full == 0x0100007F) return true;
+		if (this->getIP().full == 0x0100007F) return true;
 
 		// TODO: Maybe check for matching localIPs and subnet mask
 
 		return false;
 	}
-	bool Network::Address::IsSelf()
+	bool Network::Address::isSelf()
 	{
 		if (Game::NET_IsLocalAddress(this->address)) return true; // Loopback
-		if (this->GetPort() != (Dvar::Var("net_port").Get<int>() & 0xFFFF)) return false; // Port not equal
+		if (this->getPort() != (Dvar::Var("net_port").get<int>() & 0xFFFF)) return false; // Port not equal
 
 		for (int i = 0; i < *Game::numIP; ++i)
 		{
-			if (this->GetIP().full == Game::localIP[i].full)
+			if (this->getIP().full == Game::localIP[i].full)
 			{
 				return true;
 			}
@@ -110,29 +110,29 @@ namespace Components
 
 		return false;
 	}
-	bool Network::Address::IsLoopback()
+	bool Network::Address::isLoopback()
 	{
-		if (this->GetIP().full == 0x100007f) // 127.0.0.1
+		if (this->getIP().full == 0x100007f) // 127.0.0.1
 		{
 			return true;
 		}
 
 		return Game::NET_IsLocalAddress(this->address);
 	}
-	bool Network::Address::IsValid()
+	bool Network::Address::isValid()
 	{
-		return (this->GetType() != Game::netadrtype_t::NA_BAD);
+		return (this->getType() != Game::netadrtype_t::NA_BAD);
 	}
-	void Network::Address::Serialize(Proto::Network::Address* protoAddress)
+	void Network::Address::serialize(Proto::Network::Address* protoAddress)
 	{
-		protoAddress->set_ip(this->GetIP().full);
-		protoAddress->set_port(this->GetPort() & 0xFFFF);
+		protoAddress->set_ip(this->getIP().full);
+		protoAddress->set_port(this->getPort() & 0xFFFF);
 	}
-	void Network::Address::Deserialize(const Proto::Network::Address& protoAddress)
+	void Network::Address::deserialize(const Proto::Network::Address& protoAddress)
 	{
-		this->SetIP(protoAddress.ip());
-		this->SetPort(static_cast<uint16_t>(protoAddress.port()));
-		this->SetType(Game::netadrtype_t::NA_IP);
+		this->setIP(protoAddress.ip());
+		this->setPort(static_cast<uint16_t>(protoAddress.port()));
+		this->setType(Game::netadrtype_t::NA_IP);
 	}
 
 	void Network::Handle(std::string packet, Network::Callback* callback)
@@ -167,7 +167,7 @@ namespace Components
 	{
 		// NET_OutOfBandData doesn't seem to work properly
 		//Game::NET_OutOfBandData(type, *target.Get(), data.data(), data.size());
-		Game::Sys_SendPacket(type, data.size(), data.data(), *target.Get());
+		Game::Sys_SendPacket(type, data.size(), data.data(), *target.get());
 	}
 
 	void Network::SendRaw(Network::Address target, std::string data)
@@ -196,9 +196,9 @@ namespace Components
 	{
 		Address target;
 
-		target.SetPort(port);
-		target.SetIP(INADDR_BROADCAST);
-		target.SetType(Game::netadrtype_t::NA_BROADCAST);
+		target.setPort(port);
+		target.setIP(INADDR_BROADCAST);
+		target.setType(Game::netadrtype_t::NA_BROADCAST);
 
 		Network::Send(Game::netsrc_t::NS_CLIENT, target, data);
 	}
@@ -317,7 +317,7 @@ namespace Components
 
 	Network::Network()
 	{
-		Assert_Size(Game::netadr_t, 20);
+		AssertSize(Game::netadr_t, 20);
 
 		// maximum size in NET_OutOfBandPrint
 		Utils::Hook::Set<DWORD>(0x4AEF08, 0x1FFFC);
@@ -330,18 +330,17 @@ namespace Components
 		Utils::Hook::Set<char*>(0x4698E3, "%u.%u.%u.%u:%hu");
 
 		// Install startup handler
-		Utils::Hook(0x4FD4D4, Network::NetworkStartStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4FD4D4, Network::NetworkStartStub, HOOK_JUMP).install()->quick();
 
 		// Install interception handler
-		Utils::Hook(0x5AA709, Network::PacketInterceptionHandler, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5AA709, Network::PacketInterceptionHandler, HOOK_CALL).install()->quick();
 
 		// Install packet deploy hook
 		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);
 
-		// For /dev/urandom :P
 		Network::Handle("resolveAddress", [] (Address address, std::string data)
 		{
-			Network::SendRaw(address, address.GetString());
+			Network::SendRaw(address, address.getString());
 		});
 	}
 

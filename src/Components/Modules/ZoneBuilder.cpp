@@ -5,14 +5,14 @@ namespace Components
 	std::string ZoneBuilder::TraceZone;
 	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::TraceAssets;
 
-	ZoneBuilder::Zone::Zone(std::string name) : DataMap("zone_source/" + name + ".csv"), ZoneName(name), IndexStart(0), Branding { 0 },
+	ZoneBuilder::Zone::Zone(std::string name) : dataMap("zone_source/" + name + ".csv"), zoneName(name), indexStart(0), branding { 0 },
 
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
 		// That way we can be sure it won't need to reallocate memory.
 		// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
-		Buffer(0xC800000)
+		buffer(0xC800000)
 	{}
 
 	ZoneBuilder::Zone::~Zone()
@@ -28,46 +28,46 @@ namespace Components
 		AssetHandler::ClearTemporaryAssets();
 		Localization::ClearTemp();
 
-		ZoneBuilder::Zone::LoadedAssets.clear();
-		ZoneBuilder::Zone::ScriptStrings.clear();
-		ZoneBuilder::Zone::ScriptStringMap.clear();
+		this->loadedAssets.clear();
+		this->scriptStrings.clear();
+		this->scriptStringMap.clear();
 	}
 
-	Utils::Stream* ZoneBuilder::Zone::GetBuffer()
+	Utils::Stream* ZoneBuilder::Zone::getBuffer()
 	{
-		return &Buffer;
+		return &this->buffer;
 	}
 
-	Utils::Memory::Allocator* ZoneBuilder::Zone::GetAllocator()
+	Utils::Memory::Allocator* ZoneBuilder::Zone::getAllocator()
 	{
-		return &MemAllocator;
+		return &this->memAllocator;
 	}
 
-	void ZoneBuilder::Zone::Zone::Build()
+	void ZoneBuilder::Zone::Zone::build()
 	{
-		ZoneBuilder::Zone::LoadFastFiles();
+		this->loadFastFiles();
 
 		Logger::Print("Linking assets...\n");
-		if (!ZoneBuilder::Zone::LoadAssets()) return;
+		if (!this->loadAssets()) return;
 
-		ZoneBuilder::Zone::AddBranding();
+		this->addBranding();
 
 		Logger::Print("Saving...\n");
-		ZoneBuilder::Zone::SaveData();
+		this->saveData();
 
 		Logger::Print("Compressing...\n");
-		ZoneBuilder::Zone::WriteZone();
+		this->writeZone();
 	}
 
-	void ZoneBuilder::Zone::LoadFastFiles()
+	void ZoneBuilder::Zone::loadFastFiles()
 	{
 		Logger::Print("Loading required FastFiles...\n");
 
-		for (int i = 0; i < DataMap.GetRows(); ++i)
+		for (int i = 0; i < this->dataMap.getRows(); ++i)
 		{
-			if (DataMap.GetElementAt(i, 0) == "require")
+			if (this->dataMap.getElementAt(i, 0) == "require")
 			{
-				std::string fastfile = DataMap.GetElementAt(i, 1);
+				std::string fastfile = this->dataMap.getElementAt(i, 1);
 
 				if (!Game::DB_IsZoneLoaded(fastfile.data()))
 				{
@@ -86,31 +86,31 @@ namespace Components
 		}
 	}
 
-	bool ZoneBuilder::Zone::LoadAssets()
+	bool ZoneBuilder::Zone::loadAssets()
 	{
-		for (int i = 0; i < DataMap.GetRows(); ++i)
+		for (int i = 0; i < this->dataMap.getRows(); ++i)
 		{
-			if (DataMap.GetElementAt(i, 0) != "require")
+			if (this->dataMap.getElementAt(i, 0) != "require")
 			{
-				if (DataMap.GetColumns(i) > 2)
+				if (this->dataMap.getColumns(i) > 2)
 				{
-					if (DataMap.GetElementAt(i, 0) == "localize")
+					if (this->dataMap.getElementAt(i, 0) == "localize")
 					{
-						std::string stringOverride = DataMap.GetElementAt(i, 2);
+						std::string stringOverride = this->dataMap.getElementAt(i, 2);
 						Utils::String::Replace(stringOverride, "\\n", "\n");
 
-						Localization::SetTemp(DataMap.GetElementAt(i, 1), stringOverride);
+						Localization::SetTemp(this->dataMap.getElementAt(i, 1), stringOverride);
 					}
 					else
 					{
-						std::string oldName = DataMap.GetElementAt(i, 1);
-						std::string newName = DataMap.GetElementAt(i, 2);
-						std::string typeName = DataMap.GetElementAt(i, 0).data();
+						std::string oldName = this->dataMap.getElementAt(i, 1);
+						std::string newName = this->dataMap.getElementAt(i, 2);
+						std::string typeName = this->dataMap.getElementAt(i, 0).data();
 						Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 
 						if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
 						{
-							ZoneBuilder::Zone::RenameAsset(type, oldName, newName);
+							this->renameAsset(type, oldName, newName);
 						}
 						else
 						{
@@ -119,7 +119,7 @@ namespace Components
 					}
 				}
 
-				if (!ZoneBuilder::Zone::LoadAsset(DataMap.GetElementAt(i, 0), DataMap.GetElementAt(i, 1)))
+				if (!this->loadAsset(this->dataMap.getElementAt(i, 0), this->dataMap.getElementAt(i, 1)))
 				{
 					return false;
 				}
@@ -129,16 +129,16 @@ namespace Components
 		return true;
 	}
 
-	bool ZoneBuilder::Zone::LoadAsset(Game::XAssetType type, std::string name)
+	bool ZoneBuilder::Zone::loadAsset(Game::XAssetType type, std::string name)
 	{
-		return ZoneBuilder::Zone::LoadAsset(Game::DB_GetXAssetTypeName(type), name);
+		return this->loadAsset(Game::DB_GetXAssetTypeName(type), name);
 	}
 
-	bool ZoneBuilder::Zone::LoadAsset(std::string typeName, std::string name)
+	bool ZoneBuilder::Zone::loadAsset(std::string typeName, std::string name)
 	{
 		Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 
-		if (ZoneBuilder::Zone::FindAsset(type, name) != -1) return true;
+		if (this->findAsset(type, name) != -1) return true;
 
 		if (type == Game::XAssetType::ASSET_TYPE_INVALID || type >= Game::XAssetType::ASSET_TYPE_COUNT)
 		{
@@ -161,15 +161,15 @@ namespace Components
 		// Handle script strings and referenced assets
 		AssetHandler::ZoneMark(asset, this);
 
-		ZoneBuilder::Zone::LoadedAssets.push_back(asset);
+		this->loadedAssets.push_back(asset);
 		return true;
 	}
 
-	int ZoneBuilder::Zone::FindAsset(Game::XAssetType type, std::string name)
+	int ZoneBuilder::Zone::findAsset(Game::XAssetType type, std::string name)
 	{
-		for (unsigned int i = 0; i < ZoneBuilder::Zone::LoadedAssets.size(); ++i)
+		for (unsigned int i = 0; i < this->loadedAssets.size(); ++i)
 		{
-			Game::XAsset* asset = &ZoneBuilder::Zone::LoadedAssets[i];
+			Game::XAsset* asset = &this->loadedAssets[i];
 
 			if (asset->type != type) continue;
 
@@ -184,34 +184,34 @@ namespace Components
 		return -1;
 	}
 
-	Game::XAsset* ZoneBuilder::Zone::GetAsset(int index)
+	Game::XAsset* ZoneBuilder::Zone::getAsset(int index)
 	{
-		if ((uint32_t)index < ZoneBuilder::Zone::LoadedAssets.size())
+		if (static_cast<uint32_t>(index) < this->loadedAssets.size())
 		{
-			return &ZoneBuilder::Zone::LoadedAssets[index];
+			return &this->loadedAssets[index];
 		}
 
 		return nullptr;
 	}
 
-	uint32_t ZoneBuilder::Zone::GetAssetOffset(int index)
+	uint32_t ZoneBuilder::Zone::getAssetOffset(int index)
 	{
 		Utils::Stream::Offset offset;
 		offset.block = Game::XFILE_BLOCK_VIRTUAL;
-		offset.offset = (ZoneBuilder::Zone::IndexStart + (index * sizeof(Game::XAsset)) + 4);
-		return offset.GetPackedOffset();
+		offset.offset = (this->indexStart + (index * sizeof(Game::XAsset)) + 4);
+		return offset.getPackedOffset();
 	}
 
-	Game::XAssetHeader ZoneBuilder::Zone::RequireAsset(Game::XAssetType type, const char* name)
+	Game::XAssetHeader ZoneBuilder::Zone::requireAsset(Game::XAssetType type, const char* name)
 	{
 		Game::XAssetHeader header;
 		Utils::Stream::ClearPointer(&header.data);
 
-		int assetIndex = ZoneBuilder::Zone::FindAsset(type, name);
+		int assetIndex = this->findAsset(type, name);
 
 		if (assetIndex != -1)
 		{
-			header.data = reinterpret_cast<void*>(ZoneBuilder::Zone::GetAssetOffset(assetIndex));
+			header.data = reinterpret_cast<void*>(this->getAssetOffset(assetIndex));
 		}
 		else
 		{
@@ -221,7 +221,7 @@ namespace Components
 		return header;
 	}
 
-	void ZoneBuilder::Zone::WriteZone()
+	void ZoneBuilder::Zone::writeZone()
 	{
 		FILETIME fileTime;
 		GetSystemTimeAsFileTime(&fileTime);
@@ -231,181 +231,181 @@ namespace Components
 		std::string outBuffer;
 		outBuffer.append(reinterpret_cast<char*>(&header), sizeof(header));
 
-		std::string zoneBuffer = ZoneBuilder::Zone::Buffer.ToBuffer();
+		std::string zoneBuffer = this->buffer.toBuffer();
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 		outBuffer.append(zoneBuffer);
 
-		std::string outFile = "zone/" + ZoneBuilder::Zone::ZoneName + ".ff";
+		std::string outFile = "zone/" + this->zoneName + ".ff";
 		Utils::IO::WriteFile(outFile, outBuffer);
 
 		Logger::Print("done.\n");
-		Logger::Print("Zone '%s' written with %d assets\n", outFile.data(), ZoneBuilder::Zone::LoadedAssets.size());
+		Logger::Print("Zone '%s' written with %d assets\n", outFile.data(), this->loadedAssets.size());
 	}
 
-	void ZoneBuilder::Zone::SaveData()
+	void ZoneBuilder::Zone::saveData()
 	{
 		// Add header
 		Game::ZoneHeader zoneHeader = { 0 };
-		zoneHeader.assetList.assetCount = ZoneBuilder::Zone::LoadedAssets.size();
+		zoneHeader.assetList.assetCount = this->loadedAssets.size();
 		Utils::Stream::ClearPointer(&zoneHeader.assetList.assets);
 
 		// Increment ScriptStrings count (for empty script string) if available
-		if (!ZoneBuilder::Zone::ScriptStrings.empty())
+		if (!this->scriptStrings.empty())
 		{
-			zoneHeader.assetList.stringList.count = ZoneBuilder::Zone::ScriptStrings.size() + 1;
+			zoneHeader.assetList.stringList.count = this->scriptStrings.size() + 1;
 			Utils::Stream::ClearPointer(&zoneHeader.assetList.stringList.strings);
 		}
 
 		// Write header
-		ZoneBuilder::Zone::Buffer.Save(&zoneHeader, sizeof(Game::ZoneHeader));
-		ZoneBuilder::Zone::Buffer.PushBlock(Game::XFILE_BLOCK_VIRTUAL); // Push main stream onto the stream stack
+		this->buffer.save(&zoneHeader, sizeof(Game::ZoneHeader));
+		this->buffer.pushBlock(Game::XFILE_BLOCK_VIRTUAL); // Push main stream onto the stream stack
 
-																   // Write ScriptStrings, if available
-		if (!ZoneBuilder::Zone::ScriptStrings.empty())
+		// Write ScriptStrings, if available
+		if (!this->scriptStrings.empty())
 		{
-			ZoneBuilder::Zone::Buffer.SaveNull(4); // Empty script string?
-												   // This actually represents a NULL string, but as scriptString. 
-												   // So scriptString loading for NULL scriptStrings from fastfile results in a NULL scriptString.
-												   // That's the reason why the count is incremented by 1, if scriptStrings are available.
+			this->buffer.saveNull(4); // Empty script string?
+                                      // This actually represents a NULL string, but as scriptString. 
+                                      // So scriptString loading for NULL scriptStrings from fastfile results in a NULL scriptString.
+									  // That's the reason why the count is incremented by 1, if scriptStrings are available.
 
 			// Write ScriptString pointer table
-			for (size_t i = 0; i < ZoneBuilder::Zone::ScriptStrings.size(); ++i)
+			for (size_t i = 0; i < this->scriptStrings.size(); ++i)
 			{
-				ZoneBuilder::Zone::Buffer.SaveMax(4);
+				this->buffer.saveMax(4);
 			}
 
-			ZoneBuilder::Zone::Buffer.Align(Utils::Stream::ALIGN_4);
+			this->buffer.align(Utils::Stream::ALIGN_4);
 
 			// Write ScriptStrings
-			for (auto ScriptString : ZoneBuilder::Zone::ScriptStrings)
+			for (auto ScriptString : this->scriptStrings)
 			{
-				ZoneBuilder::Zone::Buffer.SaveString(ScriptString.data());
+				this->buffer.saveString(ScriptString.data());
 			}
 		}
 
 		// Align buffer (4 bytes) to get correct offsets for pointers
-		ZoneBuilder::Zone::Buffer.Align(Utils::Stream::ALIGN_4);
-		ZoneBuilder::Zone::IndexStart = ZoneBuilder::Zone::Buffer.GetBlockSize(Game::XFILE_BLOCK_VIRTUAL); // Mark AssetTable offset
+		this->buffer.align(Utils::Stream::ALIGN_4);
+		this->indexStart = this->buffer.getBlockSize(Game::XFILE_BLOCK_VIRTUAL); // Mark AssetTable offset
 
 		// AssetTable
-		for (auto asset : ZoneBuilder::Zone::LoadedAssets)
+		for (auto asset : this->loadedAssets)
 		{
 			Game::XAsset entry = { asset.type, 0 };
 			Utils::Stream::ClearPointer(&entry.header.data);
 
-			ZoneBuilder::Zone::Buffer.Save(&entry);
+			this->buffer.save(&entry);
 		}
 
 		// Assets
-		for (auto asset : ZoneBuilder::Zone::LoadedAssets)
+		for (auto asset : this->loadedAssets)
 		{
-			ZoneBuilder::Zone::Buffer.PushBlock(Game::XFILE_BLOCK_TEMP);
-			ZoneBuilder::Zone::Buffer.Align(Utils::Stream::ALIGN_4);
+			this->buffer.pushBlock(Game::XFILE_BLOCK_TEMP);
+			this->buffer.align(Utils::Stream::ALIGN_4);
 
 #ifdef DEBUG
 			Components::Logger::Print("Saving (%s): %s\n", Game::DB_GetXAssetTypeName(asset.type), Game::DB_GetXAssetName(&asset));
 #endif
 
-			ZoneBuilder::Zone::Store(asset.header);
+			this->store(asset.header);
 			AssetHandler::ZoneSave(asset, this);
 
-			ZoneBuilder::Zone::Buffer.PopBlock();
+			this->buffer.popBlock();
 		}
 
 		// Adapt header
-		ZoneBuilder::Zone::Buffer.EnterCriticalSection();
-		Game::XFile* header = reinterpret_cast<Game::XFile*>(ZoneBuilder::Zone::Buffer.Data());
-		header->size = ZoneBuilder::Zone::Buffer.Length() - sizeof(Game::XFile); // Write correct data size
+		this->buffer.enterCriticalSection();
+		Game::XFile* header = reinterpret_cast<Game::XFile*>(this->buffer.data());
+		header->size = this->buffer.length() - sizeof(Game::XFile); // Write correct data size
 		header->externalSize = 0; // ? 
 
 		// Write stream sizes
 		for (int i = 0; i < Game::MAX_XFILE_COUNT; ++i)
 		{
-			header->blockSize[i] = ZoneBuilder::Zone::Buffer.GetBlockSize(static_cast<Game::XFILE_BLOCK_TYPES>(i));
+			header->blockSize[i] = this->buffer.getBlockSize(static_cast<Game::XFILE_BLOCK_TYPES>(i));
 		}
 
-		ZoneBuilder::Zone::Buffer.LeaveCriticalSection();
-		ZoneBuilder::Zone::Buffer.PopBlock();
+		this->buffer.leaveCriticalSection();
+		this->buffer.popBlock();
 	}
 
 	// Add branding asset
-	void ZoneBuilder::Zone::AddBranding()
+	void ZoneBuilder::Zone::addBranding()
 	{
 		char* data = "FastFile built using IW4x ZoneTool!";
-		ZoneBuilder::Zone::Branding = { ZoneBuilder::Zone::ZoneName.data(), (int)strlen(data), 0, data };
+		this->branding = { this->zoneName.data(), (int)strlen(data), 0, data };
 
-		if (ZoneBuilder::Zone::FindAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, ZoneBuilder::Zone::Branding.name) != -1)
+		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
 		{
-			Logger::Error("Unable to add branding. Asset '%s' already exists!", ZoneBuilder::Zone::Branding.name);
+			Logger::Error("Unable to add branding. Asset '%s' already exists!", this->branding.name);
 		}
 
-		Game::XAssetHeader header = { &Branding };
+		Game::XAssetHeader header = { &this->branding };
 		Game::XAsset brandingAsset = { Game::XAssetType::ASSET_TYPE_RAWFILE, header };
-		ZoneBuilder::Zone::LoadedAssets.push_back(brandingAsset);
+		this->loadedAssets.push_back(brandingAsset);
 	}
 
 	// Check if the given pointer has already been mapped
-	bool ZoneBuilder::Zone::HasPointer(const void* pointer)
+	bool ZoneBuilder::Zone::hasPointer(const void* pointer)
 	{
-		return (ZoneBuilder::Zone::PointerMap.find(pointer) != ZoneBuilder::Zone::PointerMap.end());
+		return (this->pointerMap.find(pointer) != this->pointerMap.end());
 	}
 
 	// Get stored offset for given file pointer
-	uint32_t ZoneBuilder::Zone::SafeGetPointer(const void* pointer)
+	uint32_t ZoneBuilder::Zone::safeGetPointer(const void* pointer)
 	{
-		if (ZoneBuilder::Zone::HasPointer(pointer))
+		if (this->hasPointer(pointer))
 		{
-			return ZoneBuilder::Zone::PointerMap[pointer];
+			return this->pointerMap[pointer];
 		}
 
 		return NULL;
 	}
 
-	void ZoneBuilder::Zone::StorePointer(const void* pointer)
+	void ZoneBuilder::Zone::storePointer(const void* pointer)
 	{
-		ZoneBuilder::Zone::PointerMap[pointer] = ZoneBuilder::Zone::Buffer.GetPackedOffset();
+		this->pointerMap[pointer] = this->buffer.getPackedOffset();
 	}
 
-	int ZoneBuilder::Zone::AddScriptString(std::string str)
+	int ZoneBuilder::Zone::addScriptString(std::string str)
 	{
-		return ZoneBuilder::Zone::AddScriptString(Game::SL_GetString(str.data(), 0));
+		return this->addScriptString(Game::SL_GetString(str.data(), 0));
 	}
 
 	// Mark a scriptString for writing and map it.
-	int ZoneBuilder::Zone::AddScriptString(unsigned short gameIndex)
+	int ZoneBuilder::Zone::addScriptString(unsigned short gameIndex)
 	{
 		// Handle NULL scriptStrings
 		// Might optimize that later
 		if (!gameIndex)
 		{
-			if (ZoneBuilder::Zone::ScriptStrings.empty())
+			if (this->scriptStrings.empty())
 			{
-				ZoneBuilder::Zone::ScriptStrings.push_back("");
+				this->scriptStrings.push_back("");
 			}
 
 			return 0;
 		}
 
 		std::string str = Game::SL_ConvertToString(gameIndex);
-		int prev = ZoneBuilder::Zone::FindScriptString(str);
+		int prev = this->findScriptString(str);
 
 		if (prev > 0)
 		{
-			ZoneBuilder::Zone::ScriptStringMap[gameIndex] = prev;
+			this->scriptStringMap[gameIndex] = prev;
 			return prev;
 		}
 
-		ZoneBuilder::Zone::ScriptStrings.push_back(str);
-		ZoneBuilder::Zone::ScriptStringMap[gameIndex] = ZoneBuilder::Zone::ScriptStrings.size();
-		return ZoneBuilder::Zone::ScriptStrings.size();
+		this->scriptStrings.push_back(str);
+		this->scriptStringMap[gameIndex] = this->scriptStrings.size();
+		return this->scriptStrings.size();
 	}
 
 	// Find a local scriptString
-	int ZoneBuilder::Zone::FindScriptString(std::string str)
+	int ZoneBuilder::Zone::findScriptString(std::string str)
 	{
-		for (unsigned int i = 0; i < ZoneBuilder::Zone::ScriptStrings.size(); ++i)
+		for (unsigned int i = 0; i < this->scriptStrings.size(); ++i)
 		{
-			if (ZoneBuilder::Zone::ScriptStrings[i] == str)
+			if (this->scriptStrings[i] == str)
 			{
 				return (i + 1);
 			}
@@ -415,17 +415,17 @@ namespace Components
 	}
 
 	// Remap a scriptString to it's corresponding value in the local scriptString table.
-	void ZoneBuilder::Zone::MapScriptString(unsigned short* gameIndex)
+	void ZoneBuilder::Zone::mapScriptString(unsigned short* gameIndex)
 	{
-		*gameIndex = 0xFFFF & ZoneBuilder::Zone::ScriptStringMap[*gameIndex];
+		*gameIndex = 0xFFFF & this->scriptStringMap[*gameIndex];
 	}
 
 	// Store a new name for a given asset
-	void ZoneBuilder::Zone::RenameAsset(Game::XAssetType type, std::string asset, std::string newName)
+	void ZoneBuilder::Zone::renameAsset(Game::XAssetType type, std::string asset, std::string newName)
 	{
 		if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
 		{
-			ZoneBuilder::Zone::RenameMap[type][asset] = newName;
+			this->renameMap[type][asset] = newName;
 		}
 		else
 		{
@@ -434,13 +434,13 @@ namespace Components
 	}
 
 	// Return the new name for a given asset
-	std::string ZoneBuilder::Zone::GetAssetName(Game::XAssetType type, std::string asset)
+	std::string ZoneBuilder::Zone::getAssetName(Game::XAssetType type, std::string asset)
 	{
 		if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
 		{
-			if (ZoneBuilder::Zone::RenameMap[type].find(asset) != ZoneBuilder::Zone::RenameMap[type].end())
+			if (this->renameMap[type].find(asset) != this->renameMap[type].end())
 			{
-				return ZoneBuilder::Zone::RenameMap[type][asset];
+				return this->renameMap[type][asset];
 			}
 		}
 		else
@@ -451,11 +451,11 @@ namespace Components
 		return asset;
 	}
 
-	void ZoneBuilder::Zone::Store(Game::XAssetHeader header)
+	void ZoneBuilder::Zone::store(Game::XAssetHeader header)
 	{
-		if (!ZoneBuilder::Zone::HasPointer(header.data)) // We should never have to restore a pointer, so this expression should always resolve into false
+		if (!this->hasPointer(header.data)) // We should never have to restore a pointer, so this expression should always resolve into false
 		{
-			ZoneBuilder::Zone::StorePointer(header.data);
+			this->storePointer(header.data);
 		}
 	}
 
@@ -483,8 +483,8 @@ namespace Components
 
 	ZoneBuilder::ZoneBuilder()
 	{
-		Assert_Size(Game::XFileHeader, 21);
-		Assert_Size(Game::XFile, 40);
+		AssertSize(Game::XFileHeader, 21);
+		AssertSize(Game::XFile, 40);
 		static_assert(Game::MAX_XFILE_COUNT == 8, "XFile block enum is invalid!");
 
 		ZoneBuilder::EndAssetTrace();
@@ -534,7 +534,7 @@ namespace Components
 
 			Command::Add("verifyzone", [] (Command::Params params)
 			{
-				if (params.Length() < 2) return;
+				if (params.length() < 2) return;
 
 				std::string zone = params[1];
 
@@ -573,17 +573,17 @@ namespace Components
 
 			Command::Add("buildzone", [] (Command::Params params)
 			{
-				if (params.Length() < 2) return;
+				if (params.length() < 2) return;
 
 				std::string zoneName = params[1];
 				Logger::Print("Building zone '%s'...\n", zoneName.data());
 
-				Zone(zoneName).Build();
+				Zone(zoneName).build();
 			});
 
 			Command::Add("buildall", [] (Command::Params)
 			{
-				auto zoneSources = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").Get<std::string>() + "\\zone_source", "csv", false);
+				auto zoneSources = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").get<std::string>() + "\\zone_source", "csv", false);
 
 				for (auto source : zoneSources)
 				{
@@ -598,7 +598,7 @@ namespace Components
 
 			Command::Add("listassets", [] (Command::Params params)
 			{
-				if (params.Length() < 2) return;
+				if (params.length() < 2) return;
 				Game::XAssetType type = Game::DB_GetXAssetNameType(params[1]);
 
 				if (type != Game::XAssetType::ASSET_TYPE_INVALID)

@@ -42,10 +42,10 @@ namespace Components
 		team.allocFlags = zoneInfo->allocFlags;
 		team.freeFlags = zoneInfo->freeFlags;
 
-		team.name = allocator.DuplicateString(fmt::sprintf("iw4x_team_%s", teams.first.data()));
+		team.name = allocator.duplicateString(fmt::sprintf("iw4x_team_%s", teams.first.data()));
 		data.push_back(team);
 
-		team.name = allocator.DuplicateString(fmt::sprintf("iw4x_team_%s", teams.second.data()));
+		team.name = allocator.duplicateString(fmt::sprintf("iw4x_team_%s", teams.second.data()));
 		data.push_back(team);
 
 		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); ++i)
@@ -134,9 +134,9 @@ namespace Components
 
 			static std::string mapEntities;
 			FileSystem::File ents(name + ".ents");
-			if (ents.Exists())
+			if (ents.exists())
 			{
-				mapEntities = ents.GetBuffer();
+				mapEntities = ents.getBuffer();
 				asset.mapEnts->entityString = const_cast<char*>(mapEntities.data());
 				asset.mapEnts->numEntityChars = mapEntities.size() + 1;
 			}
@@ -313,7 +313,7 @@ namespace Components
 
 		Logger::Print("Searching materials...\n");
 		int materialCount = 0;
-		Game::Material** materials = allocator.AllocateArray<Game::Material*>(world->dpvs.staticSurfaceCount);
+		Game::Material** materials = allocator.allocateArray<Game::Material*>(world->dpvs.staticSurfaceCount);
 
 		for (unsigned int i = 0; i < world->dpvs.staticSurfaceCount; i++)
 		{
@@ -433,15 +433,15 @@ namespace Components
 				}
 			}
 
-			Dvar::Var(Utils::String::VA("isDlcInstalled_%d", pack.index)).SetRaw(hasAllMaps ? 1 : 0);
+			Dvar::Var(Utils::String::VA("isDlcInstalled_%d", pack.index)).setRaw(hasAllMaps ? 1 : 0);
 		}
 
-		Dvar::Var("isDlcInstalled_All").SetRaw(hasAllDlcs ? 1 : 0);
+		Dvar::Var("isDlcInstalled_All").setRaw(hasAllDlcs ? 1 : 0);
 	}
 
-	void Maps::ReallocateEntryPool()
+	void Maps::reallocateEntryPool()
 	{
-		Assert_Size(Game::XAssetEntry, 16);
+		AssertSize(Game::XAssetEntry, 16);
 
 		Maps::EntryPool.clear();
 
@@ -505,7 +505,7 @@ namespace Components
 
 			UIScript::Add("downloadDLC", [] (UIScript::Token token)
 			{
-				int dlc = token.Get<int>();
+				int dlc = token.get<int>();
 
 				for (auto pack : Maps::DlcPacks)
 				{
@@ -534,16 +534,16 @@ namespace Components
 #endif
 
 		// Intercept BSP name resolving
-		Utils::Hook(0x4C5979, Maps::GetBSPName, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4C5979, Maps::GetBSPName, HOOK_CALL).install()->quick();
 
 		// Intercept map zone loading
-		Utils::Hook(0x42C2AF, Maps::LoadMapZones, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x42C2AF, Maps::LoadMapZones, HOOK_CALL).install()->quick();
 
 		// Ignore SP entities
-		Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).install()->quick();
 
 		// WorldData pointer replacement
-		Utils::Hook(0x4D90B6, Maps::GetWorldDataStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4D90B6, Maps::GetWorldDataStub, HOOK_CALL).install()->quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
@@ -561,7 +561,7 @@ namespace Components
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMPACTFX, 8);
 
-		Maps::ReallocateEntryPool();
+		this->reallocateEntryPool();
 
 		// Dependencies
 		//Maps::AddDependency("oilrig", "mp_subbase");

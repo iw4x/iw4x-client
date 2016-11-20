@@ -18,7 +18,7 @@ namespace Main
 
 	void Initialize()
 	{
-		Main::EntryPointHook.Uninstall();
+		Main::EntryPointHook.uninstall();
 
 		SetEnvironment();
 
@@ -63,7 +63,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		VirtualProtect(module + 0x1000, 0x2D6000, PAGE_EXECUTE_READ, &oldProtect); // Protect the .text segment
 
 
-		Main::EntryPointHook.Initialize(0x6BAC0F, [] ()
+		Main::EntryPointHook.initialize(0x6BAC0F, [] ()
 		{
 			__asm
 			{
@@ -74,7 +74,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 				jmp eax
 			}
 
-		})->Install();
+		})->install();
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{

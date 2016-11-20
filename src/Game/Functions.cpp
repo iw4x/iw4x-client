@@ -541,7 +541,7 @@ namespace Game
 
 	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count)
 	{
-		if (Components::Dvar::Var("r_loadForRenderer").Get<bool>())
+		if (Components::Dvar::Var("r_loadForRenderer").get<bool>())
 		{
 			void* buffer = R_AllocStaticIndexBuffer(storeHere, 2 * count);
 			std::memcpy(buffer, data, 2 * count);

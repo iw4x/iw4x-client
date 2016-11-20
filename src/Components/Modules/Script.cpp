@@ -88,9 +88,9 @@ namespace Components
 	{
 		FileSystem::File script(filename);
 
-		if (script.Exists())
+		if (script.exists())
 		{
-			std::string buffer = script.GetBuffer();
+			std::string buffer = script.getBuffer();
 			Utils::String::Replace(buffer, "\t", " ");
 
 			int line = 1;
@@ -222,16 +222,16 @@ namespace Components
 
 	Script::Script()
 	{
-		Utils::Hook(0x612DB0, Script::StoreFunctionNameStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x427E71, Script::RestoreScriptNameStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x427DBC, Script::StoreScriptNameStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x612DB0, Script::StoreFunctionNameStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x427E71, Script::RestoreScriptNameStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x427DBC, Script::StoreScriptNameStub, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x612E8D, Script::FunctionError, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x612EA2, Script::FunctionError, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x434260, Script::CompileError, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x612E8D, Script::FunctionError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x612EA2, Script::FunctionError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x434260, Script::CompileError, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x48EFFE, Script::LoadGameType, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x45D44A, Script::LoadGameTypeScript, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x48EFFE, Script::LoadGameType, HOOK_CALL).install()->quick();
+		Utils::Hook(0x45D44A, Script::LoadGameTypeScript, HOOK_CALL).install()->quick();
 	}
 
 	Script::~Script()

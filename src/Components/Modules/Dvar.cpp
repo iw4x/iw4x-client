@@ -16,11 +16,11 @@ namespace Components
 		}
 	}
 
-	template <> Game::dvar_t* Dvar::Var::Get()
+	template <> Game::dvar_t* Dvar::Var::get()
 	{
 		return this->dvar;
 	}
-	template <> char* Dvar::Var::Get()
+	template <> char* Dvar::Var::get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING && this->dvar->current.string)
 		{
@@ -29,11 +29,11 @@ namespace Components
 
 		return "";
 	}
-	template <> const char* Dvar::Var::Get()
+	template <> const char* Dvar::Var::get()
 	{
-		return this->Get<char*>();
+		return this->get<char*>();
 	}
-	template <> int Dvar::Var::Get()
+	template <> int Dvar::Var::get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
 		{
@@ -42,11 +42,11 @@ namespace Components
 
 		return 0;
 	}
-	template <> unsigned int Dvar::Var::Get()
+	template <> unsigned int Dvar::Var::get()
 	{
-		return static_cast<unsigned int>(this->Get<int>());
+		return static_cast<unsigned int>(this->get<int>());
 	}
-	template <> float Dvar::Var::Get()
+	template <> float Dvar::Var::get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
 		{
@@ -55,7 +55,7 @@ namespace Components
 
 		return 0;
 	}
-	template <> float* Dvar::Var::Get()
+	template <> float* Dvar::Var::get()
 	{
 		static float val[4] = { 0 };
 
@@ -66,7 +66,7 @@ namespace Components
 
 		return val;
 	}
-	template <> bool Dvar::Var::Get()
+	template <> bool Dvar::Var::get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
 		{
@@ -75,34 +75,34 @@ namespace Components
 
 		return false;
 	}
-	template <> std::string Dvar::Var::Get()
+	template <> std::string Dvar::Var::get()
 	{
-		return this->Get<const char*>();
+		return this->get<const char*>();
 	}
 
-	void Dvar::Var::Set(char* string)
+	void Dvar::Var::set(char* string)
 	{
-		this->Set(const_cast<const char*>(string));
+		this->set(const_cast<const char*>(string));
 	}
-	void Dvar::Var::Set(const char* string)
+	void Dvar::Var::set(const char* string)
 	{
 		if (this->dvar && this->dvar->name)
 		{
 			Game::Dvar_SetCommand(this->dvar->name, string);
 		}
 	}
-	void Dvar::Var::Set(std::string string)
+	void Dvar::Var::set(std::string string)
 	{
-		this->Set(string.data());
+		this->set(string.data());
 	}
-	void Dvar::Var::Set(int integer)
+	void Dvar::Var::set(int integer)
 	{
 		if (this->dvar && this->dvar->name)
 		{
 			Game::Dvar_SetCommand(this->dvar->name, Utils::String::VA("%i", integer));
 		}
 	}
-	void Dvar::Var::Set(float value)
+	void Dvar::Var::set(float value)
 	{
 		if (this->dvar && this->dvar->name)
 		{
@@ -110,7 +110,7 @@ namespace Components
 		}
 	}
 
-	void Dvar::Var::SetRaw(int integer)
+	void Dvar::Var::setRaw(int integer)
 	{
 		if (this->dvar)
 		{
@@ -145,7 +145,7 @@ namespace Components
 		Renderer::OnFrame([] ()
 		{
 			static std::string lastValidName = "Unknown Soldier";
-			std::string name = Dvar::Var("name").Get<char*>();
+			std::string name = Dvar::Var("name").get<char*>();
 
 			// Don't perform any checks if name didn't change
 			if (name == lastValidName) return;
@@ -154,7 +154,7 @@ namespace Components
 			if (saneName.size() < 3 || (saneName[0] == '[' && saneName[1] == '{'))
 			{
 				Logger::Print("Username '%s' is invalid. It must at least be 3 characters long and not appear empty!\n", name.data());
-				Dvar::Var("name").Set(lastValidName);
+				Dvar::Var("name").set(lastValidName);
 			}
 			else
 			{
@@ -162,7 +162,7 @@ namespace Components
 			}
 		});
 
-		return Dvar::Register<const char*>(name, "Unknown Soldier", Dvar::Flag(flag | Game::dvar_flag::DVAR_FLAG_SAVED).val, description).Get<Game::dvar_t*>();
+		return Dvar::Register<const char*>(name, "Unknown Soldier", Dvar::Flag(flag | Game::dvar_flag::DVAR_FLAG_SAVED).val, description).get<Game::dvar_t*>();
 	}
 
 	Dvar::Dvar()
@@ -197,7 +197,7 @@ namespace Components
 		Utils::Hook::Xor<BYTE>(0x6312DE, Game::dvar_flag::DVAR_FLAG_CHEAT);
 
 		// Hook dvar 'name' registration
-		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).install()->quick();
 	}
 
 	Dvar::~Dvar()

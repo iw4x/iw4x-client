@@ -85,7 +85,7 @@ namespace Components
 #ifdef DEBUG
 			if(!Loader::PerformingUnitTests())
 			{
-				Logger::Print("Unregistering component: %s\n", component->GetName());
+				Logger::Print("Unregistering component: %s\n", component->getName());
 			}
 #endif
 			delete component;
@@ -103,10 +103,10 @@ namespace Components
 		for (auto component : Loader::Components)
 		{
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-			Logger::Print("Testing '%s'...\n", component->GetName());
+			Logger::Print("Testing '%s'...\n", component->getName());
 #endif
 			auto startTime = std::chrono::high_resolution_clock::now();
-			bool testRes = component->UnitTest();
+			bool testRes = component->unitTest();
 			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
 			Logger::Print("Test done (%llims): %s\n\n", duration, (testRes ? "Success" : "Error"));
 			result &= testRes;
@@ -131,7 +131,7 @@ namespace Components
 #ifdef DEBUG
 			if(!Loader::PerformingUnitTests())
 			{
-				Logger::Print("Component registered: %s\n", component->GetName());
+				Logger::Print("Component registered: %s\n", component->getName());
 			}
 #endif
 			Loader::Components.push_back(component);

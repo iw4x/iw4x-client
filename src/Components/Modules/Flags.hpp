@@ -7,7 +7,7 @@ namespace Components
 		~Flags();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Flags"; };
+		const char* getName() { return "Flags"; };
 #endif
 
 		static bool HasFlag(std::string flag);

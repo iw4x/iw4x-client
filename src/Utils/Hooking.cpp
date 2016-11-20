@@ -5,43 +5,43 @@ namespace Utils
 	std::map<void*, void*> Hook::Interceptor::IReturn;
 	std::map<void*, void(*)()> Hook::Interceptor::ICallbacks;
 
-	void Hook::Signature::Process()
+	void Hook::Signature::process()
 	{
-		if (Hook::Signature::Signatures.empty()) return;
+		if (this->signatures.empty()) return;
 
-		char* start = reinterpret_cast<char*>(Hook::Signature::Start);
+		char* _start = reinterpret_cast<char*>(this->start);
 
-		unsigned int sigCount = Hook::Signature::Signatures.size();
-		Hook::Signature::Container* containers = Hook::Signature::Signatures.data();
+		unsigned int sigCount = this->signatures.size();
+		Hook::Signature::Container* containers = this->signatures.data();
 
-		for (size_t i = 0; i < Hook::Signature::Length; ++i)
+		for (size_t i = 0; i < this->length; ++i)
 		{
-			char* address = start + i;
+			char* address = _start + i;
 
 			for (unsigned int k = 0; k < sigCount; ++k)
 			{
 				Hook::Signature::Container* container = &containers[k];
 
 				unsigned int j = 0;
-				for (j = 0; j < strlen(container->Mask); ++j)
+				for (j = 0; j < strlen(container->mask); ++j)
 				{
-					if (container->Mask[j] != '?' &&container->Signature[j] != address[j])
+					if (container->mask[j] != '?' &&container->signature[j] != address[j])
 					{
 						break;
 					}
 				}
 
-				if (j == strlen(container->Mask))
+				if (j == strlen(container->mask))
 				{
-					container->Callback(address);
+					container->callback(address);
 				}
 			}
 		}
 	}
 
-	void Hook::Signature::Add(Hook::Signature::Container& container)
+	void Hook::Signature::add(Hook::Signature::Container& container)
 	{
-		Hook::Signature::Signatures.push_back(container);
+		Hook::Signature::signatures.push_back(container);
 	}
 
 	void Hook::Interceptor::Install(void* place, void(*stub)())
@@ -88,11 +88,11 @@ namespace Utils
 		}
 	}
 
-	void* Hook::Interceptor::PopReturn(void* place)
+	void* Hook::Interceptor::PopReturn(void* _place)
 	{
 		void* retVal = nullptr;
 
-		auto iReturn = Hook::Interceptor::IReturn.find(place);
+		auto iReturn = Hook::Interceptor::IReturn.find(_place);
 		if (iReturn != Hook::Interceptor::IReturn.end())
 		{
 			retVal = iReturn->second;
@@ -104,99 +104,96 @@ namespace Utils
 
 	Hook::~Hook()
 	{
-		if (Hook::Initialized)
+		if (this->initialized)
 		{
-			Hook::Uninstall();
+			this->uninstall();
 		}
 	}
 
-	Hook* Hook::Initialize(DWORD place, void(*stub)(), bool useJump)
+	Hook* Hook::initialize(DWORD _place, void(*_stub)(), bool _useJump)
 	{
-		return Hook::Initialize(place, reinterpret_cast<void*>(stub), useJump);
+		return this->initialize(_place, reinterpret_cast<void*>(_stub), _useJump);
 	}
 
-	Hook* Hook::Initialize(DWORD place, void* stub, bool useJump)
+	Hook* Hook::initialize(DWORD _place, void* _stub, bool _useJump)
 	{
-		return Hook::Initialize(reinterpret_cast<void*>(place), stub, useJump);
+		return this->initialize(reinterpret_cast<void*>(_place), _stub, _useJump);
 	}
 
-	Hook* Hook::Initialize(void* place, void* stub, bool useJump)
+	Hook* Hook::initialize(void* _place, void* _stub, bool _useJump)
 	{
-		if (Hook::Initialized) return this;
-		Hook::Initialized = true;
+		if (this->initialized) return this;
+		this->initialized = true;
 
-		Hook::UseJump = useJump;
-		Hook::Place = place;
-		Hook::Stub = stub;
+		this->useJump = _useJump;
+		this->place = _place;
+		this->stub = _stub;
 
-		Hook::Original = static_cast<char*>(Hook::Place) + 5 + *reinterpret_cast<DWORD*>((static_cast<char*>(Hook::Place) + 1));
+		this->original = static_cast<char*>(this->place) + 5 + *reinterpret_cast<DWORD*>((static_cast<char*>(this->place) + 1));
 
 		return this;
 	}
 
-	Hook* Hook::Install(bool unprotect, bool keepUnportected)
+	Hook* Hook::install(bool unprotect, bool keepUnportected)
 	{
-		std::lock_guard<std::mutex> _(Hook::StateMutex);
+		std::lock_guard<std::mutex> _(this->stateMutex);
 
-		if (!Hook::Initialized || Hook::Installed)
+		if (!this->initialized || this->installed)
 		{
 			return this;
 		}
 
-		Hook::Installed = true;
+		this->installed = true;
 
-		if (unprotect) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
-		std::memcpy(Hook::Buffer, Hook::Place, sizeof(Hook::Buffer));
+		if (unprotect) VirtualProtect(this->place, sizeof(this->buffer), PAGE_EXECUTE_READWRITE, &this->protection);
+		std::memcpy(this->buffer, this->place, sizeof(this->buffer));
 
-		char* code = static_cast<char*>(Hook::Place);
+		char* code = static_cast<char*>(this->place);
 
-		*code = static_cast<char>(Hook::UseJump ? 0xE9 : 0xE8);
+		*code = static_cast<char>(this->useJump ? 0xE9 : 0xE8);
 
-		*reinterpret_cast<size_t*>(code + 1) = reinterpret_cast<size_t>(Hook::Stub) - (reinterpret_cast<size_t>(Hook::Place) + 5);
+		*reinterpret_cast<size_t*>(code + 1) = reinterpret_cast<size_t>(this->stub) - (reinterpret_cast<size_t>(this->place) + 5);
 
-		if (unprotect && !keepUnportected) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
+		if (unprotect && !keepUnportected) VirtualProtect(this->place, sizeof(this->buffer), this->protection, &this->protection);
 
-		FlushInstructionCache(GetCurrentProcess(), Hook::Place, sizeof(Hook::Buffer));
+		FlushInstructionCache(GetCurrentProcess(), this->place, sizeof(this->buffer));
 
 		return this;
 	}
 
-	void Hook::Quick()
+	void Hook::quick()
 	{
-		if (Hook::Installed)
+		if (Hook::installed)
 		{
-			Hook::Installed = false;
+			Hook::installed = false;
 		}
 	}
 
-	Hook* Hook::Uninstall(bool unprotect)
+	Hook* Hook::uninstall(bool unprotect)
 	{
-		Hook::StateMutex.lock();
+		std::lock_guard<std::mutex> _(this->stateMutex);
 
-		if (!Hook::Initialized || !Hook::Installed)
+		if (!this->initialized || !this->installed)
 		{
-			Hook::StateMutex.unlock();
 			return this;
 		}
 
-		Hook::Installed = false;
+		this->installed = false;
 
-		if(unprotect) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), PAGE_EXECUTE_READWRITE, &this->Protection);
+		if(unprotect) VirtualProtect(this->place, sizeof(this->buffer), PAGE_EXECUTE_READWRITE, &this->protection);
 		
-		std::memcpy(Hook::Place, Hook::Buffer, sizeof(Hook::Buffer));
+		std::memcpy(this->place, this->buffer, sizeof(this->buffer));
 
-		if (unprotect) VirtualProtect(Hook::Place, sizeof(Hook::Buffer), Hook::Protection, &this->Protection);
+		if (unprotect) VirtualProtect(this->place, sizeof(this->buffer), this->protection, &this->protection);
 
-		FlushInstructionCache(GetCurrentProcess(), Hook::Place, sizeof(Hook::Buffer));
-
-		Hook::StateMutex.unlock();
+		FlushInstructionCache(GetCurrentProcess(), this->place, sizeof(this->buffer));
 
 		return this;
 	}
 
-	void* Hook::GetAddress()
+	void* Hook::getAddress()
 	{
-		return Hook::Place;
+		return this->place;
 	}
 
 	void Hook::Nop(void* place, size_t length)

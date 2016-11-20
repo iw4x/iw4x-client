@@ -6,12 +6,12 @@ namespace Components
 
 	unsigned int ServerInfo::GetPlayerCount()
 	{
-		return ServerInfo::PlayerContainer.PlayerList.size();
+		return ServerInfo::PlayerContainer.playerList.size();
 	}
 
 	const char* ServerInfo::GetPlayerText(unsigned int index, int column)
 	{
-		if (index < ServerInfo::PlayerContainer.PlayerList.size())
+		if (index < ServerInfo::PlayerContainer.playerList.size())
 		{
 			switch (column)
 			{
@@ -19,13 +19,13 @@ namespace Components
 				return Utils::String::VA("%d", index);
 
 			case 1:
-				return ServerInfo::PlayerContainer.PlayerList[index].Name.data();
+				return ServerInfo::PlayerContainer.playerList[index].name.data();
 
 			case 2:
-				return Utils::String::VA("%d", ServerInfo::PlayerContainer.PlayerList[index].Score);
+				return Utils::String::VA("%d", ServerInfo::PlayerContainer.playerList[index].score);
 
 			case 3:
-				return Utils::String::VA("%d", ServerInfo::PlayerContainer.PlayerList[index].Ping);
+				return Utils::String::VA("%d", ServerInfo::PlayerContainer.playerList[index].ping);
 			}
 		}
 
@@ -34,38 +34,38 @@ namespace Components
 
 	void ServerInfo::SelectPlayer(unsigned int index)
 	{
-		ServerInfo::PlayerContainer.CurrentPlayer = index;
+		ServerInfo::PlayerContainer.currentPlayer = index;
 	}
 
 	void ServerInfo::ServerStatus()
 	{
-		ServerInfo::PlayerContainer.CurrentPlayer = 0;
-		ServerInfo::PlayerContainer.PlayerList.clear();
+		ServerInfo::PlayerContainer.currentPlayer = 0;
+		ServerInfo::PlayerContainer.playerList.clear();
 
 		ServerList::ServerInfo* info = ServerList::GetCurrentServer();
 
 		if(info)
 		{
-			Dvar::Var("uiSi_ServerName").Set(info->Hostname);
-			Dvar::Var("uiSi_MaxClients").Set(info->Clients);
-			Dvar::Var("uiSi_Version").Set(info->Shortversion);
-			Dvar::Var("uiSi_SecurityLevel").Set(info->SecurityLevel);
-			Dvar::Var("uiSi_isPrivate").Set(info->Password ? "@MENU_YES" : "@MENU_NO");
-			Dvar::Var("uiSi_Hardcore").Set(info->Hardcore ? "@MENU_ENABLED" : "@MENU_DISABLED");
-			Dvar::Var("uiSi_KillCam").Set("@MENU_NO");
-			Dvar::Var("uiSi_ffType").Set("@MENU_DISABLED");
-			Dvar::Var("uiSi_MapName").Set(info->Mapname);
-			Dvar::Var("uiSi_MapNameLoc").Set(Game::UI_LocalizeMapName(info->Mapname.data()));
-			Dvar::Var("uiSi_GameType").Set(Game::UI_LocalizeGameType(info->Gametype.data()));
-			Dvar::Var("uiSi_ModName").Set("");
+			Dvar::Var("uiSi_ServerName").set(info->hostname);
+			Dvar::Var("uiSi_MaxClients").set(info->clients);
+			Dvar::Var("uiSi_Version").set(info->shortversion);
+			Dvar::Var("uiSi_SecurityLevel").set(info->securityLevel);
+			Dvar::Var("uiSi_isPrivate").set(info->password ? "@MENU_YES" : "@MENU_NO");
+			Dvar::Var("uiSi_Hardcore").set(info->hardcore ? "@MENU_ENABLED" : "@MENU_DISABLED");
+			Dvar::Var("uiSi_KillCam").set("@MENU_NO");
+			Dvar::Var("uiSi_ffType").set("@MENU_DISABLED");
+			Dvar::Var("uiSi_MapName").set(info->mapname);
+			Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(info->mapname.data()));
+			Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(info->gametype.data()));
+			Dvar::Var("uiSi_ModName").set("");
 
-			if (info->Mod.size() > 5)
+			if (info->mod.size() > 5)
 			{
-				Dvar::Var("uiSi_ModName").Set(info->Mod.data() + 5);
+				Dvar::Var("uiSi_ModName").set(info->mod.data() + 5);
 			}
 
-			ServerInfo::PlayerContainer.Target = info->Addr;
-			Network::SendCommand(ServerInfo::PlayerContainer.Target, "getstatus");
+			ServerInfo::PlayerContainer.target = info->addr;
+			Network::SendCommand(ServerInfo::PlayerContainer.target, "getstatus");
 		}
 	}
 
@@ -74,19 +74,19 @@ namespace Components
 		Game::Font* font = Game::R_RegisterFont("fonts/bigfont");
 		void* cxt = Game::UI_GetContext(a1);
 
-		std::string addressText = Network::Address(*Game::connectedHost).GetString();
+		std::string addressText = Network::Address(*Game::connectedHost).getString();
 		if (addressText == "0.0.0.0:0" || addressText == "loopback") addressText = "Listen Server";
 
 		// get x positions
 		float fontSize = 0.35f;
-		float y = (480.0f - Dvar::Var("cg_scoreboardHeight").Get<float>()) * 0.5f;
-		y += Dvar::Var("cg_scoreboardHeight").Get<float>() + 6.0f;
+		float y = (480.0f - Dvar::Var("cg_scoreboardHeight").get<float>()) * 0.5f;
+		y += Dvar::Var("cg_scoreboardHeight").get<float>() + 6.0f;
 
-		float x = 320.0f - Dvar::Var("cg_scoreboardWidth").Get<float>() * 0.5f;
-		float x2 = 320.0f + Dvar::Var("cg_scoreboardWidth").Get<float>() * 0.5f;
+		float x = 320.0f - Dvar::Var("cg_scoreboardWidth").get<float>() * 0.5f;
+		float x2 = 320.0f + Dvar::Var("cg_scoreboardWidth").get<float>() * 0.5f;
 
 		// draw only when stream friendly ui is not enabled
-		if (!Dvar::Var("ui_streamFriendly").Get<bool>())
+		if (!Dvar::Var("ui_streamFriendly").get<bool>())
 		{
 			Game::UI_DrawText(cxt, reinterpret_cast<const char*>(0x7ED3F8), 0x7FFFFFFF, font, x, y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
 			Game::UI_DrawText(cxt, addressText.data(), 0x7FFFFFFF, font, x2 - Game::UI_TextWidth(addressText.data(), 0, font, fontSize), y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
@@ -111,23 +111,23 @@ namespace Components
 
 		if (!maxclientCount)
 		{
-			//maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
+			//maxclientCount = Dvar::Var("sv_maxclients").get<int>();
 			maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
 		}
 
 		Utils::InfoString info(Game::Dvar_InfoString_Big(1024));
-		info.Set("gamename", "IW4");
-		info.Set("sv_maxclients", fmt::sprintf("%i", maxclientCount));
-		info.Set("protocol", fmt::sprintf("%i", PROTOCOL));
-		info.Set("shortversion", SHORTVERSION);
-		info.Set("mapname", Dvar::Var("mapname").Get<const char*>());
-		info.Set("isPrivate", (Dvar::Var("g_password").Get<std::string>().empty() ? "0" : "1"));
-		info.Set("checksum", fmt::sprintf("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(fmt::sprintf("%u", Game::Sys_Milliseconds()))));
+		info.set("gamename", "IW4");
+		info.set("sv_maxclients", fmt::sprintf("%i", maxclientCount));
+		info.set("protocol", fmt::sprintf("%i", PROTOCOL));
+		info.set("shortversion", SHORTVERSION);
+		info.set("mapname", Dvar::Var("mapname").get<const char*>());
+		info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().empty() ? "0" : "1"));
+		info.set("checksum", fmt::sprintf("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(fmt::sprintf("%u", Game::Sys_Milliseconds()))));
 
 		// Ensure mapname is set
-		if (info.Get("mapname").empty())
+		if (info.get("mapname").empty())
 		{
-			info.Set("mapname", Dvar::Var("ui_mapname").Get<const char*>());
+			info.set("mapname", Dvar::Var("ui_mapname").get<const char*>());
 		}
 
 		// Set matchtype
@@ -135,17 +135,17 @@ namespace Components
 		// 1 - Party, use Steam_JoinLobby to connect
 		// 2 - Match, use CL_ConnectFromParty to connect
 
-		if (Dvar::Var("party_enable").Get<bool>() && Dvar::Var("party_host").Get<bool>()) // Party hosting
+		if (Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>()) // Party hosting
 		{
-			info.Set("matchtype", "1");
+			info.set("matchtype", "1");
 		}
-		else if (Dvar::Var("sv_running").Get<bool>()) // Match hosting
+		else if (Dvar::Var("sv_running").get<bool>()) // Match hosting
 		{
-			info.Set("matchtype", "2");
+			info.set("matchtype", "2");
 		}
 		else
 		{
-			info.Set("matchtype", "0");
+			info.set("matchtype", "0");
 		}
 
 		return info;
@@ -153,11 +153,11 @@ namespace Components
 
 	ServerInfo::ServerInfo()
 	{
-		ServerInfo::PlayerContainer.CurrentPlayer = 0;
-		ServerInfo::PlayerContainer.PlayerList.clear();
+		ServerInfo::PlayerContainer.currentPlayer = 0;
+		ServerInfo::PlayerContainer.playerList.clear();
 
 		// Draw IP and hostname on the scoreboard
-		Utils::Hook(0x4FC6EA, ServerInfo::DrawScoreboardStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4FC6EA, ServerInfo::DrawScoreboardStub, HOOK_CALL).install()->quick();
 
 		// Ignore native getStatus implementation
 		Utils::Hook::Nop(0x62654E, 6);
@@ -173,15 +173,15 @@ namespace Components
 			std::string playerList;
 
 			Utils::InfoString info = ServerInfo::GetInfo();
-			info.Set("challenge", Utils::ParseChallenge(data));
+			info.set("challenge", Utils::ParseChallenge(data));
 
-			for (int i = 0; i < atoi(info.Get("sv_maxclients").data()); ++i) // Maybe choose 18 here? 
+			for (int i = 0; i < atoi(info.get("sv_maxclients").data()); ++i) // Maybe choose 18 here? 
 			{
 				int score = 0;
 				int ping = 0;
 				std::string name;
 
-				if (Dvar::Var("sv_running").Get<bool>())
+				if (Dvar::Var("sv_running").get<bool>())
 				{
 					if (Game::svs_clients[i].state < 3) continue;
 
@@ -201,49 +201,49 @@ namespace Components
 				playerList.append(fmt::sprintf("%i %i \"%s\"\n", score, ping, name.data()));
 			}
 
-			Network::SendCommand(address, "statusResponse", "\\" + info.Build() + "\n" + playerList + "\n");
+			Network::SendCommand(address, "statusResponse", "\\" + info.build() + "\n" + playerList + "\n");
 		});
 
 		Network::Handle("statusResponse", [] (Network::Address address, std::string data)
 		{
-			if (ServerInfo::PlayerContainer.Target == address)
+			if (ServerInfo::PlayerContainer.target == address)
 			{
 				Utils::InfoString info(data.substr(0, data.find_first_of("\n")));
 
-				Dvar::Var("uiSi_ServerName").Set(info.Get("sv_hostname"));
-				Dvar::Var("uiSi_MaxClients").Set(info.Get("sv_maxclients"));
-				Dvar::Var("uiSi_Version").Set(info.Get("shortversion"));
-				Dvar::Var("uiSi_SecurityLevel").Set(info.Get("sv_securityLevel"));
-				Dvar::Var("uiSi_isPrivate").Set(info.Get("isPrivate") == "0" ? "@MENU_NO" : "@MENU_YES");
-				Dvar::Var("uiSi_Hardcore").Set(info.Get("g_hardcore") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");
-				Dvar::Var("uiSi_KillCam").Set(info.Get("scr_game_allowkillcam") == "0" ? "@MENU_NO" : "@MENU_YES");
-				Dvar::Var("uiSi_MapName").Set(info.Get("mapname"));
-				Dvar::Var("uiSi_MapNameLoc").Set(Game::UI_LocalizeMapName(info.Get("mapname").data()));
-				Dvar::Var("uiSi_GameType").Set(Game::UI_LocalizeGameType(info.Get("g_gametype").data()));
-				Dvar::Var("uiSi_ModName").Set("");
+				Dvar::Var("uiSi_ServerName").set(info.get("sv_hostname"));
+				Dvar::Var("uiSi_MaxClients").set(info.get("sv_maxclients"));
+				Dvar::Var("uiSi_Version").set(info.get("shortversion"));
+				Dvar::Var("uiSi_SecurityLevel").set(info.get("sv_securityLevel"));
+				Dvar::Var("uiSi_isPrivate").set(info.get("isPrivate") == "0" ? "@MENU_NO" : "@MENU_YES");
+				Dvar::Var("uiSi_Hardcore").set(info.get("g_hardcore") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");
+				Dvar::Var("uiSi_KillCam").set(info.get("scr_game_allowkillcam") == "0" ? "@MENU_NO" : "@MENU_YES");
+				Dvar::Var("uiSi_MapName").set(info.get("mapname"));
+				Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(info.get("mapname").data()));
+				Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(info.get("g_gametype").data()));
+				Dvar::Var("uiSi_ModName").set("");
 
-				switch (atoi(info.Get("scr_team_fftype").data()))
+				switch (atoi(info.get("scr_team_fftype").data()))
 				{
 				default:
-					Dvar::Var("uiSi_ffType").Set("@MENU_DISABLED");
+					Dvar::Var("uiSi_ffType").set("@MENU_DISABLED");
 					break;
 
 				case 1:
-					Dvar::Var("uiSi_ffType").Set("@MENU_ENABLED");
+					Dvar::Var("uiSi_ffType").set("@MENU_ENABLED");
 					break;
 
 				case 2:
-					Dvar::Var("uiSi_ffType").Set("@MPUI_RULES_REFLECT");
+					Dvar::Var("uiSi_ffType").set("@MPUI_RULES_REFLECT");
 					break;
 
 				case 3:
-					Dvar::Var("uiSi_ffType").Set("@MPUI_RULES_SHARED");
+					Dvar::Var("uiSi_ffType").set("@MPUI_RULES_SHARED");
 					break;
 				}
 
-				if (info.Get("fs_game").size() > 5)
+				if (info.get("fs_game").size() > 5)
 				{
-					Dvar::Var("uiSi_ModName").Set(info.Get("fs_game").data() + 5);
+					Dvar::Var("uiSi_ModName").set(info.get("fs_game").data() + 5);
 				}
 
 				auto lines = Utils::String::Explode(data, '\n');
@@ -259,13 +259,13 @@ namespace Components
 					if (currentData.size() < 3) continue;
 
 					// Insert score
-					player.Score = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
+					player.score = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
 
 					// Remove score
 					currentData = currentData.substr(currentData.find_first_of(" ") + 1);
 
 					// Insert ping
-					player.Ping = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
+					player.ping = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
 
 					// Remove ping
 					currentData = currentData.substr(currentData.find_first_of(" ") + 1);
@@ -280,9 +280,9 @@ namespace Components
 						currentData.pop_back();
 					}
 
-					player.Name = currentData;
+					player.name = currentData;
 
-					ServerInfo::PlayerContainer.PlayerList.push_back(player);
+					ServerInfo::PlayerContainer.playerList.push_back(player);
 				}
 			}
 		});
@@ -290,6 +290,6 @@ namespace Components
 
 	ServerInfo::~ServerInfo()
 	{
-		ServerInfo::PlayerContainer.PlayerList.clear();
+		ServerInfo::PlayerContainer.playerList.clear();
 	}
 }

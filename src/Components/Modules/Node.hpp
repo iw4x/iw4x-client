@@ -18,10 +18,10 @@ namespace Components
 		~Node();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Node"; };
+		const char* getName() { return "Node"; };
 #endif
 
-		bool UnitTest();
+		bool unitTest();
 
 		static void SyncNodeList();
 		static void AddNode(Network::Address address);

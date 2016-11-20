@@ -2,29 +2,29 @@
 
 namespace Assets
 {
-	void ILocalizedEntry::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	void ILocalizedEntry::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_Size(Game::LocalizedEntry, 8);
+		AssertSize(Game::LocalizedEntry, 8);
 
-		Utils::Stream* buffer = builder->GetBuffer();
+		Utils::Stream* buffer = builder->getBuffer();
 		Game::LocalizedEntry* asset = header.localize;
-		Game::LocalizedEntry* dest = buffer->Dest<Game::LocalizedEntry>();
-		buffer->Save(asset);
+		Game::LocalizedEntry* dest = buffer->dest<Game::LocalizedEntry>();
+		buffer->save(asset);
 
-		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
 		if (asset->value)
 		{
-			buffer->SaveString(asset->value);
+			buffer->saveString(asset->value);
 			Utils::Stream::ClearPointer(&dest->value);
 		}
 
 		if (asset->name)
 		{
-			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
+			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		buffer->PopBlock();
+		buffer->popBlock();
 	}
 }

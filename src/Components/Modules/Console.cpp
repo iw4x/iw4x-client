@@ -44,8 +44,8 @@ namespace Components
 
 	void Console::RefreshStatus()
 	{
-		std::string mapname = Dvar::Var("mapname").Get<const char*>();
-		std::string hostname = Colors::Strip(Dvar::Var("sv_hostname").Get<const char*>());
+		std::string mapname = Dvar::Var("mapname").get<const char*>();
+		std::string hostname = Colors::Strip(Dvar::Var("sv_hostname").get<const char*>());
 
 		if (Console::HasConsole)
 		{
@@ -66,7 +66,7 @@ namespace Components
 			}
 			else
 			{
-				//maxclientCount = Dvar::Var("sv_maxclients").Get<int>();
+				//maxclientCount = Dvar::Var("sv_maxclients").get<int>();
 				maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
 				clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData_s*>(0x1081C00));
 			}
@@ -532,21 +532,21 @@ namespace Components
 		Utils::Hook::Set<float*>(0x5A4400, consoleColor);
 
 		// Internal console
-		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4F65A5, Console::ToggleConsole, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4F65A5, Console::ToggleConsole, HOOK_JUMP).install()->quick();
 
 		// Patch safearea for ingame-console
-		Utils::Hook(0x5A50EF, Console::DrawSolidConsoleStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5A50EF, Console::DrawSolidConsoleStub, HOOK_CALL).install()->quick();
 
 		// Check for bad food ;)
-		Utils::Hook(0x4CB9F4, Console::GetAutoCompleteFileList, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4CB9F4, Console::GetAutoCompleteFileList, HOOK_CALL).install()->quick();
 
 		// Patch console dvars
-		Utils::Hook(0x4829AB, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4829EE, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x482A31, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x482A7A, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x482AC3, Console::RegisterConColor, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x4829AB, Console::RegisterConColor, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4829EE, Console::RegisterConColor, HOOK_CALL).install()->quick();
+		Utils::Hook(0x482A31, Console::RegisterConColor, HOOK_CALL).install()->quick();
+		Utils::Hook(0x482A7A, Console::RegisterConColor, HOOK_CALL).install()->quick();
+		Utils::Hook(0x482AC3, Console::RegisterConColor, HOOK_CALL).install()->quick();
 
 		// Modify console style
 		Utils::Hook::Set<BYTE>(0x428A8E, 0);    // Adjust logo Y pos
@@ -559,7 +559,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x428AED, 596); // Reduce output width
 
 		// Don't resize the console
-		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).Install()->Quick(); 
+		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).install()->quick(); 
 
 		if (Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
@@ -572,20 +572,20 @@ namespace Components
 		// External console
 		if (Flags::HasFlag("stdout"))
 		{
-			Utils::Hook(0x4B2080, Console::StdOutPrint, HOOK_JUMP).Install()->Quick();
-			Utils::Hook(0x43D570, Console::StdOutError, HOOK_JUMP).Install()->Quick();
+			Utils::Hook(0x4B2080, Console::StdOutPrint, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x43D570, Console::StdOutError, HOOK_JUMP).install()->quick();
 		}
 		else if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
 		{
 			Utils::Hook::Nop(0x60BB58, 11);
 
 			// Redirect input (]command)
-			Utils::Hook(0x47025A, 0x4F5770, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x47025A, 0x4F5770, HOOK_CALL).install()->quick();
 
 			Utils::Hook(0x60BB68, [] ()
 			{
 				Console::ConsoleThread = std::thread(Console::ConsoleRunner);
-			}, HOOK_CALL).Install()->Quick();
+			}, HOOK_CALL).install()->quick();
 
 			QuickPatch::OnFrame([] ()
 			{
@@ -596,11 +596,11 @@ namespace Components
 		{
 			Utils::Hook::Nop(0x60BB58, 11);
 
-			Utils::Hook(0x4305E0, Console::Create, HOOK_JUMP).Install()->Quick();
-			Utils::Hook(0x4528A0, Console::Destroy, HOOK_JUMP).Install()->Quick();
-			Utils::Hook(0x4B2080, Console::Print, HOOK_JUMP).Install()->Quick();
-			Utils::Hook(0x43D570, Console::Error, HOOK_JUMP).Install()->Quick();
-			Utils::Hook(0x4859A5, Console::Input, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x4305E0, Console::Create, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x4528A0, Console::Destroy, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x4B2080, Console::Print, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x43D570, Console::Error, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x4859A5, Console::Input, HOOK_CALL).install()->quick();
 		}
 		else
 		{

@@ -2,7 +2,9 @@
 
 namespace Components
 {
-	Theatre::Container Theatre::DemoContainer;
+	Theatre::DemoInfo Theatre::CurrentInfo;
+	unsigned int Theatre::CurrentSelection;
+	std::vector<Theatre::DemoInfo> Theatre::Demos;
 
 	char Theatre::BaselineSnapshot[131072] = { 0 };
 	int Theatre::BaselineSnapshotMsgLen;
@@ -157,12 +159,12 @@ namespace Components
 	{
 		Game::Com_Printf(channel, message, file);
 
-		Theatre::DemoContainer.CurrentInfo.Name = file;
-		Theatre::DemoContainer.CurrentInfo.Mapname = Dvar::Var("mapname").Get<const char*>();
-		Theatre::DemoContainer.CurrentInfo.Gametype = Dvar::Var("g_gametype").Get<const char*>();
-		Theatre::DemoContainer.CurrentInfo.Author = Steam::SteamFriends()->GetPersonaName();
-		Theatre::DemoContainer.CurrentInfo.Length = Game::Sys_Milliseconds();
-		std::time(&Theatre::DemoContainer.CurrentInfo.TimeStamp);
+		Theatre::CurrentInfo.name = file;
+		Theatre::CurrentInfo.mapname = Dvar::Var("mapname").get<const char*>();
+		Theatre::CurrentInfo.gametype = Dvar::Var("g_gametype").get<const char*>();
+		Theatre::CurrentInfo.author = Steam::SteamFriends()->GetPersonaName();
+		Theatre::CurrentInfo.length = Game::Sys_Milliseconds();
+		std::time(&Theatre::CurrentInfo.timeStamp);
 	}
 
 	void Theatre::StopRecordStub(int channel, char* message)
@@ -170,17 +172,17 @@ namespace Components
 		Game::Com_Printf(channel, message);
 
 		// Store correct length
-		Theatre::DemoContainer.CurrentInfo.Length = Game::Sys_Milliseconds() - Theatre::DemoContainer.CurrentInfo.Length;
+		Theatre::CurrentInfo.length = Game::Sys_Milliseconds() - Theatre::CurrentInfo.length;
 
 		// Write metadata
-		FileSystem::FileWriter meta(fmt::sprintf("%s.json", Theatre::DemoContainer.CurrentInfo.Name.data()));
-		meta.Write(json11::Json(Theatre::DemoContainer.CurrentInfo).dump());
+		FileSystem::FileWriter meta(fmt::sprintf("%s.json", Theatre::CurrentInfo.name.data()));
+		meta.write(json11::Json(Theatre::CurrentInfo).dump());
 	}
 
 	void Theatre::LoadDemos()
 	{
-		Theatre::DemoContainer.CurrentSelection = 0;
-		Theatre::DemoContainer.Demos.clear();
+		Theatre::CurrentSelection = 0;
+		Theatre::Demos.clear();
 
 		auto demos = FileSystem::GetFileList("demos/", "dm_13");
 
@@ -188,49 +190,49 @@ namespace Components
 		{
 			FileSystem::File meta(fmt::sprintf("demos/%s.json", demo.data()));
 
-			if (meta.Exists())
+			if (meta.exists())
 			{
 				std::string error;
-				json11::Json metaObject = json11::Json::parse(meta.GetBuffer(), error);
+				json11::Json metaObject = json11::Json::parse(meta.getBuffer(), error);
 
 				if (metaObject.is_object())
 				{
-					Theatre::Container::DemoInfo info;
+					Theatre::DemoInfo info;
 
-					info.Name      = demo.substr(0, demo.find_last_of("."));
-					info.Author    = metaObject["author"].string_value();
-					info.Gametype  = metaObject["gametype"].string_value();
-					info.Mapname   = metaObject["mapname"].string_value();
-					info.Length    = (int)metaObject["length"].number_value();
-					info.TimeStamp = _atoi64(metaObject["timestamp"].string_value().data());
+					info.name      = demo.substr(0, demo.find_last_of("."));
+					info.author    = metaObject["author"].string_value();
+					info.gametype  = metaObject["gametype"].string_value();
+					info.mapname   = metaObject["mapname"].string_value();
+					info.length    = (int)metaObject["length"].number_value();
+					info.timeStamp = _atoi64(metaObject["timestamp"].string_value().data());
 
-					Theatre::DemoContainer.Demos.push_back(info);
+					Theatre::Demos.push_back(info);
 				}
 			}
 		}
 
 		// Reverse, latest demo first!
-		std::reverse(Theatre::DemoContainer.Demos.begin(), Theatre::DemoContainer.Demos.end());
+		std::reverse(Theatre::Demos.begin(), Theatre::Demos.end());
 	}
 
 	void Theatre::DeleteDemo()
 	{
-		if (Theatre::DemoContainer.CurrentSelection < Theatre::DemoContainer.Demos.size())
+		if (Theatre::CurrentSelection < Theatre::Demos.size())
 		{
-			Theatre::Container::DemoInfo info = Theatre::DemoContainer.Demos[Theatre::DemoContainer.CurrentSelection];
+			Theatre::DemoInfo info = Theatre::Demos[Theatre::CurrentSelection];
 	
-			Logger::Print("Deleting demo %s...\n", info.Name.data());
+			Logger::Print("Deleting demo %s...\n", info.name.data());
 
-			FileSystem::DeleteFile("demos", info.Name + ".dm_13");
-			FileSystem::DeleteFile("demos", info.Name + ".dm_13.json");
+			FileSystem::DeleteFile("demos", info.name + ".dm_13");
+			FileSystem::DeleteFile("demos", info.name + ".dm_13.json");
 
 			// Reset our ui_demo_* dvars here, because the theater menu needs it.
-			Dvar::Var("ui_demo_mapname").Set("");
-			Dvar::Var("ui_demo_mapname_localized").Set("");
-			Dvar::Var("ui_demo_gametype").Set("");
-			Dvar::Var("ui_demo_length").Set("");
-			Dvar::Var("ui_demo_author").Set("");
-			Dvar::Var("ui_demo_date").Set("");
+			Dvar::Var("ui_demo_mapname").set("");
+			Dvar::Var("ui_demo_mapname_localized").set("");
+			Dvar::Var("ui_demo_gametype").set("");
+			Dvar::Var("ui_demo_length").set("");
+			Dvar::Var("ui_demo_author").set("");
+			Dvar::Var("ui_demo_date").set("");
 
 			// Reload demos
 			Theatre::LoadDemos();
@@ -239,26 +241,26 @@ namespace Components
 
 	void Theatre::PlayDemo()
 	{
-		if (Theatre::DemoContainer.CurrentSelection < Theatre::DemoContainer.Demos.size())
+		if (Theatre::CurrentSelection < Theatre::Demos.size())
 		{
-			Command::Execute(fmt::sprintf("demo %s", Theatre::DemoContainer.Demos[Theatre::DemoContainer.CurrentSelection].Name.data()), true);
+			Command::Execute(fmt::sprintf("demo %s", Theatre::Demos[Theatre::CurrentSelection].name.data()), true);
 			Command::Execute("demoback", false);
 		}
 	}
 
 	unsigned int Theatre::GetDemoCount()
 	{
-		return Theatre::DemoContainer.Demos.size();
+		return Theatre::Demos.size();
 	}
 
 	// Omit column here
 	const char* Theatre::GetDemoText(unsigned int item, int /*column*/)
 	{
-		if (item < Theatre::DemoContainer.Demos.size())
+		if (item < Theatre::Demos.size())
 		{
-			Theatre::Container::DemoInfo info = Theatre::DemoContainer.Demos[item];
+			Theatre::DemoInfo info = Theatre::Demos[item];
 
-			return Utils::String::VA("%s on %s", Game::UI_LocalizeGameType(info.Gametype.data()), Game::UI_LocalizeMapName(info.Mapname.data()));
+			return Utils::String::VA("%s on %s", Game::UI_LocalizeGameType(info.gametype.data()), Game::UI_LocalizeMapName(info.mapname.data()));
 		}
 
 		return "";
@@ -266,28 +268,28 @@ namespace Components
 
 	void Theatre::SelectDemo(unsigned int index)
 	{
-		if (index < Theatre::DemoContainer.Demos.size())
+		if (index < Theatre::Demos.size())
 		{
-			Theatre::DemoContainer.CurrentSelection = index;
-			Theatre::Container::DemoInfo info = Theatre::DemoContainer.Demos[index];
+			Theatre::CurrentSelection = index;
+			Theatre::DemoInfo info = Theatre::Demos[index];
 
 			tm time;
 			char buffer[1000] = { 0 };
-			localtime_s(&time, &info.TimeStamp);
+			localtime_s(&time, &info.timeStamp);
 			asctime_s(buffer, sizeof buffer, &time);
 
-			Dvar::Var("ui_demo_mapname").Set(info.Mapname);
-			Dvar::Var("ui_demo_mapname_localized").Set(Game::UI_LocalizeMapName(info.Mapname.data()));
-			Dvar::Var("ui_demo_gametype").Set(Game::UI_LocalizeGameType(info.Gametype.data()));
-			Dvar::Var("ui_demo_length").Set(Utils::String::FormatTimeSpan(info.Length));
-			Dvar::Var("ui_demo_author").Set(info.Author);
-			Dvar::Var("ui_demo_date").Set(buffer);
+			Dvar::Var("ui_demo_mapname").set(info.mapname);
+			Dvar::Var("ui_demo_mapname_localized").set(Game::UI_LocalizeMapName(info.mapname.data()));
+			Dvar::Var("ui_demo_gametype").set(Game::UI_LocalizeGameType(info.gametype.data()));
+			Dvar::Var("ui_demo_length").set(Utils::String::FormatTimeSpan(info.length));
+			Dvar::Var("ui_demo_author").set(info.author);
+			Dvar::Var("ui_demo_date").set(buffer);
 		}
 	}
 
 	uint32_t Theatre::InitCGameStub()
 	{
-		if (Dvar::Var("cl_autoRecord").Get<bool>() && !*Game::demoPlaying)
+		if (Dvar::Var("cl_autoRecord").get<bool>() && !*Game::demoPlaying)
 		{
 			std::vector<std::string> files;
 			std::vector<std::string> demos = FileSystem::GetFileList("demos/", "dm_13");
@@ -300,7 +302,7 @@ namespace Components
 				}
 			}
 
-			int numDel = files.size() - Dvar::Var("cl_demosKeep").Get<int>();
+			int numDel = files.size() - Dvar::Var("cl_demosKeep").get<int>();
 
 			for (int i = 0; i < numDel; ++i)
 			{
@@ -340,22 +342,22 @@ namespace Components
 		Dvar::Register<bool>("cl_autoRecord", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Automatically record games.");
 		Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::dvar_flag::DVAR_FLAG_SAVED, "How many demos to keep with autorecord.");
 
-		Utils::Hook(0x5A8370, Theatre::GamestateWriteStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5A85D2, Theatre::RecordGamestateStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5ABE36, Theatre::BaselineStoreStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x5A8630, Theatre::BaselineToFileStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x4CB3EF, Theatre::UISetActiveMenuStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x50320E, Theatre::AdjustTimeDeltaStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5A8E03, Theatre::ServerTimedOutStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x5A8370, Theatre::GamestateWriteStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A85D2, Theatre::RecordGamestateStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5ABE36, Theatre::BaselineStoreStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5A8630, Theatre::BaselineToFileStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4CB3EF, Theatre::UISetActiveMenuStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x50320E, Theatre::AdjustTimeDeltaStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A8E03, Theatre::ServerTimedOutStub, HOOK_JUMP).install()->quick();
 
 		// Hook commands to enforce metadata generation
-		Utils::Hook(0x5A82AE, Theatre::RecordStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5A8156, Theatre::StopRecordStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5A82AE, Theatre::RecordStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A8156, Theatre::StopRecordStub, HOOK_CALL).install()->quick();
 
 		// Autorecording
-		Utils::Hook(0x5A1D6A, Theatre::InitCGameStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4A712A, Theatre::MapChangeStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5AA91C, Theatre::MapChangeSVStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5A1D6A, Theatre::InitCGameStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A712A, Theatre::MapChangeStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5AA91C, Theatre::MapChangeSVStub, HOOK_CALL).install()->quick();
 
 		// UIScripts
 		UIScript::Add("loadDemos", Theatre::LoadDemos);

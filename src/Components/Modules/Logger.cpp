@@ -193,19 +193,19 @@ namespace Components
 
 		QuickPatch::OnFrame(Logger::Frame);
 
-		Utils::Hook(0x4B0218, Logger::GameLogStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4B0218, Logger::GameLogStub, HOOK_CALL).install()->quick();
+		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).install()->quick();
 
 		if (Loader::PerformingUnitTests())
 		{
-			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).Install()->Quick();
+			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).install()->quick();
 		}
 
 		Dvar::OnInit([] ()
 		{
 			Command::AddSV("log_add", [] (Command::Params params)
 			{
-				if (params.Length() < 2) return;
+				if (params.length() < 2) return;
 
 				Network::Address addr(params[1]);
 
@@ -217,13 +217,13 @@ namespace Components
 
 			Command::AddSV("log_del", [] (Command::Params params)
 			{
-				if (params.Length() < 2) return;
+				if (params.length() < 2) return;
 
 				int num = atoi(params[1]);
 				if (fmt::sprintf("%i", num) == params[1] && static_cast<unsigned int>(num) < Logger::LoggingAddresses[0].size())
 				{
 					auto addr = Logger::LoggingAddresses[0].begin() + num;
-					Logger::Print("Address %s removed\n", addr->GetCString());
+					Logger::Print("Address %s removed\n", addr->getCString());
 					Logger::LoggingAddresses[0].erase(addr);
 				}
 				else
@@ -234,11 +234,11 @@ namespace Components
 					if (i != Logger::LoggingAddresses[0].end())
 					{
 						Logger::LoggingAddresses[0].erase(i);
-						Logger::Print("Address %s removed\n", addr.GetCString());
+						Logger::Print("Address %s removed\n", addr.getCString());
 					}
 					else
 					{
-						Logger::Print("Address %s not found!\n", addr.GetCString());
+						Logger::Print("Address %s not found!\n", addr.getCString());
 					}
 				}
 			});
@@ -250,13 +250,13 @@ namespace Components
 
 				for (unsigned int i = 0; i < Logger::LoggingAddresses[0].size(); ++i)
 				{
-					Logger::Print("#%03d: %5s\n", i, Logger::LoggingAddresses[0][i].GetCString());
+					Logger::Print("#%03d: %5s\n", i, Logger::LoggingAddresses[0][i].getCString());
 				}
 			});
 
 			Command::AddSV("g_log_add", [] (Command::Params params)
 			{
-				if (params.Length() < 2) return;
+				if (params.length() < 2) return;
 
 				Network::Address addr(params[1]);
 
@@ -268,13 +268,13 @@ namespace Components
 
 			Command::AddSV("g_log_del", [] (Command::Params params)
 			{
-				if (params.Length() < 2) return;
+				if (params.length() < 2) return;
 
 				int num = atoi(params[1]);
 				if (fmt::sprintf("%i", num) == params[1] && static_cast<unsigned int>(num) < Logger::LoggingAddresses[1].size())
 				{
 					auto addr = Logger::LoggingAddresses[1].begin() + num;
-					Logger::Print("Address %s removed\n", addr->GetCString());
+					Logger::Print("Address %s removed\n", addr->getCString());
 					Logger::LoggingAddresses[1].erase(addr);
 				}
 				else
@@ -285,11 +285,11 @@ namespace Components
 					if (i != Logger::LoggingAddresses[1].end())
 					{
 						Logger::LoggingAddresses[1].erase(i);
-						Logger::Print("Address %s removed\n", addr.GetCString());
+						Logger::Print("Address %s removed\n", addr.getCString());
 					}
 					else
 					{
-						Logger::Print("Address %s not found!\n", addr.GetCString());
+						Logger::Print("Address %s not found!\n", addr.getCString());
 					}
 				}
 			});
@@ -301,7 +301,7 @@ namespace Components
 
 				for (unsigned int i = 0; i < Logger::LoggingAddresses[1].size(); ++i)
 				{
-					Logger::Print("#%03d: %5s\n", i, Logger::LoggingAddresses[1][i].GetCString());
+					Logger::Print("#%03d: %5s\n", i, Logger::LoggingAddresses[1][i].getCString());
 				}
 			});
 		});

@@ -9,7 +9,7 @@ namespace Components
 		SlowMotion();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "SlowMotion"; };
+		const char* getName() { return "SlowMotion"; };
 #endif
 
 	private:

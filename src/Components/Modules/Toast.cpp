@@ -20,8 +20,8 @@ namespace Components
 		int height = Renderer::Height();
 		int slideTime = 100;
 
-		int duration = toast->Length;
-		int startTime = toast->Start;
+		int duration = toast->length;
+		int startTime = toast->start;
 
 		int border = 1;
 		int cornerSize = 15;
@@ -33,7 +33,7 @@ namespace Components
 		float descSize = 0.9f;
 
 		Game::Material* white = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "white").material;
-		Game::Material* image = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, toast->Image.data()).material;
+		Game::Material* image = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, toast->image.data()).material;
 		Game::Font* font = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/objectiveFont").font;
 		Game::Font* descfont = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/normalFont").font;
 		Game::vec4_t wColor = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -70,8 +70,8 @@ namespace Components
 		// Calculate width data
 		int iOffset = (bHeight - imgDim) / 2;
 		int iOffsetLeft = iOffset * 2;
-		float titleSize = Game::R_TextWidth(toast->Title.data(), 0x7FFFFFFF, font) * fontSize;
-		float descrSize = Game::R_TextWidth(toast->Desc.data(), 0x7FFFFFFF, descfont) * descSize;
+		float titleSize = Game::R_TextWidth(toast->title.data(), 0x7FFFFFFF, font) * fontSize;
+		float descrSize = Game::R_TextWidth(toast->desc.data(), 0x7FFFFFFF, descfont) * descSize;
 		float bWidth = iOffsetLeft * 3 + imgDim + std::max(titleSize, descrSize);
 
 		// Make stuff divisible by 2
@@ -95,8 +95,8 @@ namespace Components
 		// Text
 		float leftText = width / 2 - bWidth / 2 - cornerSize + iOffsetLeft * 2 + imgDim;
 		float rightText = width / 2 + bWidth / 2 - cornerSize - iOffsetLeft;
-		Game::R_AddCmdDrawText(Utils::String::ToUpper(toast->Title).data(), 0x7FFFFFFF, font, static_cast<float>(leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 7), fontSize, fontSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Title
-		Game::R_AddCmdDrawText(toast->Desc.data(), 0x7FFFFFFF, descfont, leftText + (rightText - leftText) / 2 - descrSize / 2 + cornerSize, static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 33), descSize, descSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Description
+		Game::R_AddCmdDrawText(Utils::String::ToUpper(toast->title).data(), 0x7FFFFFFF, font, static_cast<float>(leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 7), fontSize, fontSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Title
+		Game::R_AddCmdDrawText(toast->desc.data(), 0x7FFFFFFF, descfont, leftText + (rightText - leftText) / 2 - descrSize / 2 + cornerSize, static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 33), descSize, descSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Description
 	}
 
 	void Toast::Handler()
@@ -108,12 +108,12 @@ namespace Components
 		Toast::UIToast* toast = &Toast::Queue.front();
 
 		// Set start time
-		if (!toast->Start)
+		if (!toast->start)
 		{
-			toast->Start = Game::Sys_Milliseconds();
+			toast->start = Game::Sys_Milliseconds();
 		}
 
-		if ((toast->Start + toast->Length) < Game::Sys_Milliseconds())
+		if ((toast->start + toast->length) < Game::Sys_Milliseconds())
 		{
 			Toast::Queue.pop();
 		}

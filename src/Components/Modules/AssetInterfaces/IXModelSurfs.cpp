@@ -2,62 +2,62 @@
 
 namespace Assets
 {
-	void IXModelSurfs::Save_XSurfaceCollisionTree(Game::XSurfaceCollisionTree* entry, Components::ZoneBuilder::Zone* builder)
+	void IXModelSurfs::saveXSurfaceCollisionTree(Game::XSurfaceCollisionTree* entry, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_Size(Game::XSurfaceCollisionTree, 40);
+		AssertSize(Game::XSurfaceCollisionTree, 40);
 
-		Utils::Stream* buffer = builder->GetBuffer();
+		Utils::Stream* buffer = builder->getBuffer();
 
-		Game::XSurfaceCollisionTree* destEntry = buffer->Dest<Game::XSurfaceCollisionTree>();
-		buffer->Save(entry);
+		Game::XSurfaceCollisionTree* destEntry = buffer->dest<Game::XSurfaceCollisionTree>();
+		buffer->save(entry);
 
 		if (entry->node)
 		{
-			buffer->Align(Utils::Stream::ALIGN_16);
-			buffer->Save(entry->node, 16, entry->numNode);
+			buffer->align(Utils::Stream::ALIGN_16);
+			buffer->save(entry->node, 16, entry->numNode);
 			Utils::Stream::ClearPointer(&destEntry->node);
 		}
 
 		if (entry->leaf)
 		{
-			buffer->Align(Utils::Stream::ALIGN_2);
-			buffer->SaveArray(entry->leaf, entry->numLeaf);
+			buffer->align(Utils::Stream::ALIGN_2);
+			buffer->saveArray(entry->leaf, entry->numLeaf);
 			Utils::Stream::ClearPointer(&destEntry->leaf);
 		}
 	}
 
-	void IXModelSurfs::Save_XSurface(Game::XSurface* surf, Game::XSurface* destSurf, Components::ZoneBuilder::Zone* builder)
+	void IXModelSurfs::saveXSurface(Game::XSurface* surf, Game::XSurface* destSurf, Components::ZoneBuilder::Zone* builder)
 	{
-		Utils::Stream* buffer = builder->GetBuffer();
+		Utils::Stream* buffer = builder->getBuffer();
 
 		if (surf->blendInfo)
 		{
-			buffer->Align(Utils::Stream::ALIGN_2);
-			buffer->Save(surf->blendInfo, sizeof(short), surf->blendNum1 + (surf->blendNum2 * 3) + (surf->blendNum3 * 5) + (surf->blendNum4 * 7));
+			buffer->align(Utils::Stream::ALIGN_2);
+			buffer->save(surf->blendInfo, sizeof(short), surf->blendNum1 + (surf->blendNum2 * 3) + (surf->blendNum3 * 5) + (surf->blendNum4 * 7));
 			Utils::Stream::ClearPointer(&destSurf->blendInfo);
 		}
 
 		// Access vertex block
-		buffer->PushBlock(Game::XFILE_BLOCK_VERTEX);
+		buffer->pushBlock(Game::XFILE_BLOCK_VERTEX);
 		if (surf->vertexBuffer)
 		{
-			Assert_Size(Game::GfxPackedVertex, 32);
+			AssertSize(Game::GfxPackedVertex, 32);
 			
-			buffer->Align(Utils::Stream::ALIGN_16);
-			buffer->SaveArray(surf->vertexBuffer, surf->numVertices);
+			buffer->align(Utils::Stream::ALIGN_16);
+			buffer->saveArray(surf->vertexBuffer, surf->numVertices);
 			Utils::Stream::ClearPointer(&destSurf->vertexBuffer);
 		}
-		buffer->PopBlock();
+		buffer->popBlock();
 
 		// Save_XRigidVertListArray
 		if (surf->ct)
 		{
-			Assert_Size(Game::XRigidVertList, 12);
+			AssertSize(Game::XRigidVertList, 12);
 
-			buffer->Align(Utils::Stream::ALIGN_4);
+			buffer->align(Utils::Stream::ALIGN_4);
 
-			Game::XRigidVertList* destCt = buffer->Dest<Game::XRigidVertList>();
-			buffer->SaveArray(surf->ct, surf->numCT);
+			Game::XRigidVertList* destCt = buffer->dest<Game::XRigidVertList>();
+			buffer->saveArray(surf->ct, surf->numCT);
 
 			for (int i = 0; i < surf->numCT; ++i)
 			{
@@ -66,8 +66,8 @@ namespace Assets
 
 				if (rigidVertList->entry)
 				{
-					buffer->Align(Utils::Stream::ALIGN_4);
-					IXModelSurfs::Save_XSurfaceCollisionTree(rigidVertList->entry, builder);
+					buffer->align(Utils::Stream::ALIGN_4);
+					this->saveXSurfaceCollisionTree(rigidVertList->entry, builder);
 					Utils::Stream::ClearPointer(&destRigidVertList->entry);
 				}
 			}
@@ -76,52 +76,52 @@ namespace Assets
 		}
 
 		// Access index block
-		buffer->PushBlock(Game::XFILE_BLOCK_INDEX);
+		buffer->pushBlock(Game::XFILE_BLOCK_INDEX);
 		if (surf->indexBuffer)
 		{
-			Assert_Size(Game::Face, 6);
+			AssertSize(Game::Face, 6);
 
-			buffer->Align(Utils::Stream::ALIGN_16);
-			buffer->SaveArray(surf->indexBuffer, surf->numPrimitives);
+			buffer->align(Utils::Stream::ALIGN_16);
+			buffer->saveArray(surf->indexBuffer, surf->numPrimitives);
 			Utils::Stream::ClearPointer(&destSurf->indexBuffer);
 		}
-		buffer->PopBlock();
+		buffer->popBlock();
 	}
 
-	void IXModelSurfs::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	void IXModelSurfs::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_Size(Game::XModelSurfs, 36);
+		AssertSize(Game::XModelSurfs, 36);
 
-		Utils::Stream* buffer = builder->GetBuffer();
+		Utils::Stream* buffer = builder->getBuffer();
 		Game::XModelSurfs* asset = header.surfaces;
-		Game::XModelSurfs* dest = buffer->Dest<Game::XModelSurfs>();
-		buffer->Save(asset);
+		Game::XModelSurfs* dest = buffer->dest<Game::XModelSurfs>();
+		buffer->save(asset);
 
-		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
 		if (asset->name)
 		{
-			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
+			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->surfaces)
 		{
-			Assert_Size(Game::XSurface, 64);
+			AssertSize(Game::XSurface, 64);
 
-			buffer->Align(Utils::Stream::ALIGN_4);
+			buffer->align(Utils::Stream::ALIGN_4);
 
-			Game::XSurface* destSurfaces = buffer->Dest<Game::XSurface>();
-			buffer->SaveArray(asset->surfaces, asset->numSurfaces);
+			Game::XSurface* destSurfaces = buffer->dest<Game::XSurface>();
+			buffer->saveArray(asset->surfaces, asset->numSurfaces);
 
 			for (int i = 0; i < asset->numSurfaces; ++i)
 			{
-				IXModelSurfs::Save_XSurface(&asset->surfaces[i], &destSurfaces[i], builder);
+				this->saveXSurface(&asset->surfaces[i], &destSurfaces[i], builder);
 			}
 
 			Utils::Stream::ClearPointer(&dest->surfaces);
 		}
 
-		buffer->PopBlock();
+		buffer->popBlock();
 	}
 }

@@ -6,7 +6,7 @@ namespace Components
 		D3D9Ex();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "D3D9Ex"; };
+		const char* getName() { return "D3D9Ex"; };
 #endif
 
 	private:

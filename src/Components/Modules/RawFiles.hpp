@@ -6,7 +6,7 @@ namespace Components
 		RawFiles();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "RawFiles"; };
+		const char* getName() { return "RawFiles"; };
 #endif
 
 		static void* RawFiles::LoadModdableRawfileFunc(const char* filename);

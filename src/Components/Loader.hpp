@@ -7,10 +7,10 @@ namespace Components
 		virtual ~Component() {};
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		virtual const char* GetName() { return "Unknown"; };
+		virtual const char* getName() { return "Unknown"; };
 #endif
 
-		virtual bool UnitTest() { return true; }; // Unit testing entry
+		virtual bool unitTest() { return true; }; // Unit testing entry
 	};
 
 	class Loader

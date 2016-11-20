@@ -9,7 +9,7 @@ namespace Components
 
 	void Download::InitiateClientDownload(std::string mod)
 	{
-		if (Download::CLDownload.Running) return;
+		if (Download::CLDownload.running) return;
 
 		Localization::SetTemp("MPUI_EST_TIME_LEFT", Utils::String::FormatTimeSpan(0));
 		Localization::SetTemp("MPUI_PROGRESS_DL", "(0/0) %");
@@ -17,17 +17,17 @@ namespace Components
 
 		Command::Execute("openmenu mod_download_popmenu", true);
 
-		Download::CLDownload.Running = true;
-		Download::CLDownload.Mod = mod;
-		Download::CLDownload.TerminateThread = false;
-		Download::CLDownload.Target = Party::Target();
-		Download::CLDownload.Thread = std::thread(Download::ModDownloader, &Download::CLDownload);
+		Download::CLDownload.running = true;
+		Download::CLDownload.mod = mod;
+		Download::CLDownload.terminateThread = false;
+		Download::CLDownload.target = Party::Target();
+		Download::CLDownload.thread = std::thread(Download::ModDownloader, &Download::CLDownload);
 	}
 
 	bool Download::ParseModList(ClientDownload* download, std::string list)
 	{
 		if (!download) return false;
-		download->Files.clear();
+		download->files.clear();
 
 		std::string error;
 		json11::Json listData = json11::Json::parse(list, error);
@@ -35,7 +35,7 @@ namespace Components
 
 		if (!error.empty() || !listData.is_array()) return false;
 
-		download->TotalBytes = 0;
+		download->totalBytes = 0;
 
 		for (auto& file : listData.array_items())
 		{
@@ -48,14 +48,14 @@ namespace Components
 			if (!hash.is_string() || !name.is_string() || !size.is_number()) return false;
 
 			Download::ClientDownload::File fileEntry;
-			fileEntry.Name = name.string_value();
-			fileEntry.Hash = hash.string_value();
-			fileEntry.Size = static_cast<size_t>(size.number_value());
+			fileEntry.name = name.string_value();
+			fileEntry.hash = hash.string_value();
+			fileEntry.size = static_cast<size_t>(size.number_value());
 
-			if (!fileEntry.Name.empty())
+			if (!fileEntry.name.empty())
 			{
-				download->Files.push_back(fileEntry);
-				download->TotalBytes += fileEntry.Size;
+				download->files.push_back(fileEntry);
+				download->totalBytes += fileEntry.size;
 			}
 		}
 
@@ -80,29 +80,29 @@ namespace Components
 		{
 			size_t bytes = static_cast<size_t>(*reinterpret_cast<int*>(ev_data));
 			fDownload->receivedBytes += bytes;
-			fDownload->download->DownBytes += bytes;
-			fDownload->download->TimeStampBytes += bytes;
+			fDownload->download->downBytes += bytes;
+			fDownload->download->timeStampBytes += bytes;
 
-			double progress = (100.0 / fDownload->download->TotalBytes) * fDownload->download->DownBytes;
-			Localization::SetTemp("MPUI_PROGRESS_DL", fmt::sprintf("(%d/%d) %d%%", fDownload->index + 1, fDownload->download->Files.size(), static_cast<unsigned int>(progress)));
+			double progress = (100.0 / fDownload->download->totalBytes) * fDownload->download->downBytes;
+			Localization::SetTemp("MPUI_PROGRESS_DL", fmt::sprintf("(%d/%d) %d%%", fDownload->index + 1, fDownload->download->files.size(), static_cast<unsigned int>(progress)));
 
-			int delta = Game::Sys_Milliseconds() - fDownload->download->LastTimeStamp;
+			int delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp;
 			if (delta > 300)
 			{
-				bool doFormat = fDownload->download->LastTimeStamp != 0;
-				fDownload->download->LastTimeStamp = Game::Sys_Milliseconds();
+				bool doFormat = fDownload->download->lastTimeStamp != 0;
+				fDownload->download->lastTimeStamp = Game::Sys_Milliseconds();
 
-				size_t dataLeft = fDownload->download->TotalBytes - fDownload->download->DownBytes;
-				double timeLeftD = ((1.0 * dataLeft) / fDownload->download->TimeStampBytes) * delta;
+				size_t dataLeft = fDownload->download->totalBytes - fDownload->download->downBytes;
+				double timeLeftD = ((1.0 * dataLeft) / fDownload->download->timeStampBytes) * delta;
 				int timeLeft = static_cast<int>(timeLeftD);
 
 				if (doFormat)
 				{
 					Localization::SetTemp("MPUI_EST_TIME_LEFT", Utils::String::FormatTimeSpan(timeLeft));
-					Localization::SetTemp("MPUI_TRANS_RATE", Utils::String::FormatBandwidth(fDownload->download->TimeStampBytes, delta));
+					Localization::SetTemp("MPUI_TRANS_RATE", Utils::String::FormatBandwidth(fDownload->download->timeStampBytes, delta));
 				}
 
-				fDownload->download->TimeStampBytes = 0;
+				fDownload->download->timeStampBytes = 0;
 			}
 		}
 
@@ -117,23 +117,23 @@ namespace Components
 
 	bool Download::DownloadFile(ClientDownload* download, unsigned int index)
 	{
-		if (!download || download->Files.size() <= index) return false;
+		if (!download || download->files.size() <= index) return false;
 
-		auto file = download->Files[index];
+		auto file = download->files[index];
 
-		std::string path = download->Mod + "/" + file.Name;
+		std::string path = download->mod + "/" + file.name;
 		if (Utils::IO::FileExists(path))
 		{
 			std::string data = Utils::IO::ReadFile(path);
 
-			if (data.size() == file.Size && Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(data), "") == file.Hash)
+			if (data.size() == file.size && Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(data), "") == file.hash)
 			{
-				download->TotalBytes += file.Size;
+				download->totalBytes += file.size;
 				return true;
 			}
 		}
 
-		std::string url = "http://" + download->Target.GetString() + "/file/" + file.Name;
+		std::string url = "http://" + download->target.getString() + "/file/" + file.name;
 
 		Download::FileDownload fDownload;
 		fDownload.file = file;
@@ -144,24 +144,24 @@ namespace Components
 
 		Utils::String::Replace(url, " ", "%20");
 
-		download->Valid = true;
-		mg_mgr_init(&download->Mgr, &fDownload);
-		mg_connect_http(&download->Mgr, Download::DownloadHandler, url.data(), NULL, NULL);
+		download->valid = true;
+		mg_mgr_init(&download->mgr, &fDownload);
+		mg_connect_http(&download->mgr, Download::DownloadHandler, url.data(), NULL, NULL);
 
-		while (fDownload.downloading && !fDownload.download->TerminateThread)
+		while (fDownload.downloading && !fDownload.download->terminateThread)
 		{
-			mg_mgr_poll(&download->Mgr, 0);
+			mg_mgr_poll(&download->mgr, 0);
 		}
 
-		mg_mgr_free(&download->Mgr);
-		download->Valid = false;
+		mg_mgr_free(&download->mgr);
+		download->valid = false;
 
-		if (fDownload.buffer.size() != file.Size || Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(fDownload.buffer), "") != file.Hash)
+		if (fDownload.buffer.size() != file.size || Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(fDownload.buffer), "") != file.hash)
 		{
 			return false;
 		}
 
-		Utils::IO::CreateDirectory(download->Mod);
+		Utils::IO::CreateDirectory(download->mod);
 		Utils::IO::WriteFile(path, fDownload.buffer);
 
 		return true;
@@ -171,15 +171,15 @@ namespace Components
 	{
 		if (!download) download = &Download::CLDownload;
 
-		std::string host = "http://" + download->Target.GetString();
-		std::string list = Utils::WebIO("IW4x", host + "/list").SetTimeout(5000)->Get();
+		std::string host = "http://" + download->target.getString();
+		std::string list = Utils::WebIO("IW4x", host + "/list").setTimeout(5000)->get();
 
 		if (list.empty())
 		{
-			if (download->TerminateThread) return;
+			if (download->terminateThread) return;
 
-			download->Thread.detach();
-			download->Clear();
+			download->thread.detach();
+			download->clear();
 
 			QuickPatch::Once([] ()
 			{
@@ -189,14 +189,14 @@ namespace Components
 			return;
 		}
 
-		if (download->TerminateThread) return;
+		if (download->terminateThread) return;
 
 		if (!Download::ParseModList(download, list))
 		{
-			if (download->TerminateThread) return;
+			if (download->terminateThread) return;
 
-			download->Thread.detach();
-			download->Clear();
+			download->thread.detach();
+			download->clear();
 
 			QuickPatch::Once([] ()
 			{
@@ -206,25 +206,25 @@ namespace Components
 			return;
 		}
 
-		if (download->TerminateThread) return;
+		if (download->terminateThread) return;
 
-		static std::string mod = download->Mod;
+		static std::string mod = download->mod;
 
-		for (unsigned int i = 0; i < download->Files.size(); ++i)
+		for (unsigned int i = 0; i < download->files.size(); ++i)
 		{
-			if (download->TerminateThread) return;
+			if (download->terminateThread) return;
 
 			if (!Download::DownloadFile(download, i))
 			{
-				if (download->TerminateThread) return;
+				if (download->terminateThread) return;
 
-				mod = fmt::sprintf("Failed to download file: %s!", download->Files[i].Name.data());
-				download->Thread.detach();
-				download->Clear();
+				mod = fmt::sprintf("Failed to download file: %s!", download->files[i].name.data());
+				download->thread.detach();
+				download->clear();
 
 				QuickPatch::Once([] ()
 				{
-					Dvar::Var("partyend_reason").Set(mod);
+					Dvar::Var("partyend_reason").set(mod);
 					mod.clear();
 
 					Localization::ClearTemp();
@@ -236,24 +236,24 @@ namespace Components
 			}
 		}
 
-		if (download->TerminateThread) return;
+		if (download->terminateThread) return;
 
-		download->Thread.detach();
-		download->Clear();
+		download->thread.detach();
+		download->clear();
 		
 		// Run this on the main thread
 		QuickPatch::Once([] ()
 		{
 			auto fsGame = Dvar::Var("fs_game");
-			fsGame.Set(mod);
-			fsGame.Get<Game::dvar_t*>()->modified = true;
+			fsGame.set(mod);
+			fsGame.get<Game::dvar_t*>()->modified = true;
 
 			mod.clear();
 
 			Localization::ClearTemp();
 			Command::Execute("closemenu mod_download_popmenu", true);
 
-			if (Dvar::Var("cl_modVidRestart").Get<bool>())
+			if (Dvar::Var("cl_modVidRestart").get<bool>())
 			{
 				Command::Execute("vid_restart", false);
 			}
@@ -281,7 +281,7 @@ namespace Components
 
 			if (client->state >= 3)
 			{
-				if (address.GetIP().full == Network::Address(client->addr).GetIP().full)
+				if (address.getIP().full == Network::Address(client->addr).getIP().full)
 				{
 					return client;
 				}
@@ -316,7 +316,7 @@ namespace Components
 			static std::string fsGamePre;
 			static json11::Json jsonList;
 
-			std::string fsGame = Dvar::Var("fs_game").Get<std::string>();
+			std::string fsGame = Dvar::Var("fs_game").get<std::string>();
 			
 			if (!fsGame.empty() && fsGame != fsGamePre)
 			{
@@ -324,7 +324,7 @@ namespace Components
 
 				fsGamePre = fsGame;
 
-				std::string path = Dvar::Var("fs_basepath").Get<std::string>() + "\\" + fsGame;
+				std::string path = Dvar::Var("fs_basepath").get<std::string>() + "\\" + fsGame;
 				auto list = FileSystem::GetSysFileList(path, "iwd", false);
 
 				list.push_back("mod.ff");
@@ -384,8 +384,8 @@ namespace Components
 				return;
 			}
 
-			std::string fsGame = Dvar::Var("fs_game").Get<std::string>();
-			std::string path = Dvar::Var("fs_basepath").Get<std::string>() + "\\" + fsGame + "\\" + url;
+			std::string fsGame = Dvar::Var("fs_game").get<std::string>();
+			std::string path = Dvar::Var("fs_basepath").get<std::string>() + "\\" + fsGame + "\\" + url;
 
 			if (fsGame.empty() || !Utils::IO::FileExists(path))
 			{
@@ -429,14 +429,14 @@ namespace Components
 		std::vector<json11::Json> players;
 
 		// Build player list
-		for (int i = 0; i < atoi(status.Get("sv_maxclients").data()); ++i) // Maybe choose 18 here? 
+		for (int i = 0; i < atoi(status.get("sv_maxclients").data()); ++i) // Maybe choose 18 here? 
 		{
 			std::map<std::string, json11::Json> playerInfo;
 			playerInfo["score"] = 0;
 			playerInfo["ping"] = 0;
 			playerInfo["name"] = "";
 
-			if (Dvar::Var("sv_running").Get<bool>())
+			if (Dvar::Var("sv_running").get<bool>())
 			{
 				if (Game::svs_clients[i].state < 3) continue;
 
@@ -494,7 +494,7 @@ namespace Components
 // 		}
 // 		else
 		{
-			//std::string path = (Dvar::Var("fs_basepath").Get<std::string>() + "\\" BASEGAME "\\html");
+			//std::string path = (Dvar::Var("fs_basepath").get<std::string>() + "\\" BASEGAME "\\html");
 			//mg_serve_http_opts opts = { 0 };
 			//opts.document_root = path.data();
 			//mg_serve_http(nc, message, opts);
@@ -511,7 +511,7 @@ namespace Components
 			{
 				file = FileSystem::File(url);
 
-				if (!file.Exists())
+				if (!file.exists())
 				{
 					url.append("/index.html");
 					file = FileSystem::File(url);
@@ -520,9 +520,9 @@ namespace Components
 
 			std::string mimeType = Utils::GetMimeType(url);
 
-			if (file.Exists())
+			if (file.exists())
 			{
-				std::string buffer = file.GetBuffer();
+				std::string buffer = file.getBuffer();
 
 				mg_printf(nc,
 					"HTTP/1.1 200 OK\r\n"
@@ -557,7 +557,7 @@ namespace Components
 
 			Network::OnStart([] ()
 			{
-				mg_connection* nc = mg_bind(&Download::Mgr, Utils::String::VA("%hu", (Dvar::Var("net_port").Get<int>() & 0xFFFF)), Download::EventHandler);
+				mg_connection* nc = mg_bind(&Download::Mgr, Utils::String::VA("%hu", (Dvar::Var("net_port").get<int>() & 0xFFFF)), Download::EventHandler);
 
 				// Handle special requests
 				mg_register_http_endpoint(nc, "/info", Download::InfoHandler);
@@ -576,7 +576,7 @@ namespace Components
 		{
 			UIScript::Add("mod_download_cancel", [] ()
 			{
-				Download::CLDownload.Clear();
+				Download::CLDownload.clear();
 			});
 		}
 	}
@@ -589,7 +589,7 @@ namespace Components
 		}
 		else
 		{
-			Download::CLDownload.Clear();
+			Download::CLDownload.clear();
 		}
 	}
 }

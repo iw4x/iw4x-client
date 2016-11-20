@@ -9,7 +9,7 @@ namespace Components
 		{ 
 		public:
 			Flag(Game::dvar_flag flag) : val(flag){};
-			Flag(int flag) : Flag((Game::dvar_flag)flag) {};
+			Flag(int flag) : Flag(static_cast<Game::dvar_flag>(flag)) {};
 
 			Game::dvar_flag val;
 		};
@@ -21,19 +21,18 @@ namespace Components
 			Var(const Var &obj) { this->dvar = obj.dvar; };
 			Var(Game::dvar_t* _dvar) : dvar(_dvar) {};
 			Var(std::string dvarName);
-			Var(std::string dvarName, std::string value);
 
-			template<typename T> T Get();
+			template<typename T> T get();
 
-			void Set(char* string);
-			void Set(const char* string);
-			void Set(std::string string);
+			void set(char* string);
+			void set(const char* string);
+			void set(std::string string);
 
-			void Set(int integer);
-			void Set(float value);
+			void set(int integer);
+			void set(float value);
 
 			// TODO: Add others
-			void SetRaw(int integer);
+			void setRaw(int integer);
 
 		private:
 			Game::dvar_t* dvar;
@@ -43,7 +42,7 @@ namespace Components
 		~Dvar();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Dvar"; };
+		const char* getName() { return "Dvar"; };
 #endif
 
 		static void OnInit(Callback* callback);

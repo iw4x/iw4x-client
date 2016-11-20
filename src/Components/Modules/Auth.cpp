@@ -58,7 +58,7 @@ namespace Components
 	{
 		// Ensure our certificate is loaded
 		Steam::SteamUser()->GetSteamID();
-		if (!Auth::GuidKey.IsValid())
+		if (!Auth::GuidKey.isValid())
 		{
 			Logger::SoftError("Connecting failed: Guid key is invalid!");
 			return;
@@ -69,7 +69,7 @@ namespace Components
 
 		Command::Params params(true);
 
-		if (params.Length() < 3)
+		if (params.length() < 3)
 		{
 			Game::SV_Cmd_EndTokenizedString();
 			Logger::SoftError("Connecting failed: Command parsing error!");
@@ -77,7 +77,7 @@ namespace Components
 		}
 
 		Utils::InfoString infostr(params[2]);
-		std::string challenge = infostr.Get("challenge");
+		std::string challenge = infostr.get("challenge");
 
 		if (challenge.empty())
 		{
@@ -89,8 +89,8 @@ namespace Components
 		Game::SV_Cmd_EndTokenizedString();
 
 		Proto::Auth::Connect connectData;
-		connectData.set_token(Auth::GuidToken.ToString());
-		connectData.set_publickey(Auth::GuidKey.GetPublicKey());
+		connectData.set_token(Auth::GuidToken.toString());
+		connectData.set_publickey(Auth::GuidKey.getPublicKey());
 		connectData.set_signature(Utils::Cryptography::ECC::SignMessage(Auth::GuidKey, challenge));
 		connectData.set_infostring(connectString);
 
@@ -109,7 +109,7 @@ namespace Components
 			return;
 		}
 
-		if (address.IsLoopback()
+		if (address.isLoopback()
 // Simply connect, if we're in debug mode, we ignore all security checks
 #ifdef DEBUG
 			|| true
@@ -120,7 +120,7 @@ namespace Components
 			{
 				Game::SV_Cmd_EndTokenizedString();
 				Game::SV_Cmd_TokenizeString(connectData.infostring().data());
-				Game::SV_DirectConnect(*address.Get());
+				Game::SV_DirectConnect(*address.get());
 			}
 			else
 			{
@@ -144,7 +144,7 @@ namespace Components
 			Command::Params params(true);
 
 			// Ensure there are enough params
-			if (params.Length() < 3)
+			if (params.length() < 3)
 			{
 				Network::Send(address, "error\nInvalid connect string!");
 				return;
@@ -154,8 +154,8 @@ namespace Components
 			Utils::InfoString infostr(params[2]);
 
 			// Read the required data
-			std::string steamId = infostr.Get("xuid");
-			std::string challenge = infostr.Get("challenge");
+			std::string steamId = infostr.get("xuid");
+			std::string challenge = infostr.get("challenge");
 
 			if (steamId.empty() || challenge.empty())
 			{
@@ -170,7 +170,7 @@ namespace Components
 			SteamID guid;
 			guid.Bits = xuid;
 
-			if (Bans::IsBanned({ guid, address.GetIP() }))
+			if (Bans::IsBanned({ guid, address.getIP() }))
 			{
 				Network::Send(address, "error\nEXE_ERR_BANNED_PERM");
 				return;
@@ -184,16 +184,16 @@ namespace Components
 
 			// Verify the signature
 			Utils::Cryptography::ECC::Key key;
-			key.Set(connectData.publickey());
+			key.set(connectData.publickey());
 
-			if (!key.IsValid() || !Utils::Cryptography::ECC::VerifyMessage(key, challenge, connectData.signature()))
+			if (!key.isValid() || !Utils::Cryptography::ECC::VerifyMessage(key, challenge, connectData.signature()))
 			{
 				Network::Send(address, "error\nChallenge signature was invalid!");
 				return;
 			}
 
 			// Verify the security level
-			uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").Get<int>());
+			uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").get<int>());
 			uint32_t userLevel = Auth::GetZeroBits(connectData.token(), connectData.publickey());
 
 			if (userLevel < ourLevel)
@@ -202,8 +202,8 @@ namespace Components
 				return;
 			}
 
-			Logger::Print("Verified XUID %llX (%d) from %s\n", xuid, userLevel, address.GetCString());
-			Game::SV_DirectConnect(*address.Get());
+			Logger::Print("Verified XUID %llX (%d) from %s\n", xuid, userLevel, address.getCString());
+			Game::SV_DirectConnect(*address.get());
 		}
 	}
 
@@ -223,17 +223,17 @@ namespace Components
 	unsigned int Auth::GetKeyHash()
 	{
 		Auth::LoadKey();
-		return (Utils::Cryptography::JenkinsOneAtATime::Compute(Auth::GuidKey.GetPublicKey()));
+		return (Utils::Cryptography::JenkinsOneAtATime::Compute(Auth::GuidKey.getPublicKey()));
 	}
 
 	void Auth::StoreKey()
 	{
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && Auth::GuidKey.IsValid())
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && Auth::GuidKey.isValid())
 		{
 			Proto::Auth::Certificate cert;
-			cert.set_token(Auth::GuidToken.ToString());
-			cert.set_ctoken(Auth::ComputeToken.ToString());
-			cert.set_privatekey(Auth::GuidKey.Export(PK_PRIVATE));
+			cert.set_token(Auth::GuidToken.toString());
+			cert.set_ctoken(Auth::ComputeToken.toString());
+			cert.set_privatekey(Auth::GuidKey.serialize(PK_PRIVATE));
 
 			Utils::IO::WriteFile("players/guid.dat", cert.SerializeAsString());
 		}
@@ -242,24 +242,24 @@ namespace Components
 	void Auth::LoadKey(bool force)
 	{
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
-		if (!force && Auth::GuidKey.IsValid()) return;
+		if (!force && Auth::GuidKey.isValid()) return;
 
 		Proto::Auth::Certificate cert;
 		if (cert.ParseFromString(::Utils::IO::ReadFile("players/guid.dat")))
 		{
-			Auth::GuidKey.Import(cert.privatekey());
+			Auth::GuidKey.deserialize(cert.privatekey());
 			Auth::GuidToken = cert.token();
 			Auth::ComputeToken = cert.ctoken();
 		}
 		else
 		{
-			Auth::GuidKey.Free();
+			Auth::GuidKey.free();
 		}
 
-		if (!Auth::GuidKey.IsValid())
+		if (!Auth::GuidKey.isValid())
 		{
-			Auth::GuidToken.Clear();
-			Auth::ComputeToken.Clear();
+			Auth::GuidToken.clear();
+			Auth::ComputeToken.clear();
 			Auth::GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
 			Auth::StoreKey();
 		}
@@ -267,7 +267,7 @@ namespace Components
 
 	uint32_t Auth::GetSecurityLevel()
 	{
-		return Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey());
+		return Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
 	}
 
 	void Auth::IncreaseSecurityLevel(uint32_t level, std::string command)
@@ -289,7 +289,7 @@ namespace Components
 				Auth::TokenContainer.generating = true;
 				Auth::TokenContainer.hashes = 0;
 				Auth::TokenContainer.startTime = Game::Sys_Milliseconds();
-				Auth::IncrementToken(Auth::GuidToken, Auth::ComputeToken, Auth::GuidKey.GetPublicKey(), Auth::TokenContainer.targetLevel, &Auth::TokenContainer.cancel, &Auth::TokenContainer.hashes);
+				Auth::IncrementToken(Auth::GuidToken, Auth::ComputeToken, Auth::GuidKey.getPublicKey(), Auth::TokenContainer.targetLevel, &Auth::TokenContainer.cancel, &Auth::TokenContainer.hashes);
 				Auth::TokenContainer.generating = false;
 
 				if (Auth::TokenContainer.cancel)
@@ -302,7 +302,7 @@ namespace Components
 
 	uint32_t Auth::GetZeroBits(Utils::Cryptography::Token token, std::string publicKey)
 	{
-		std::string message = publicKey + token.ToString();
+		std::string message = publicKey + token.toString();
 		std::string hash = Utils::Cryptography::SHA512::Compute(message, false);
 
 		uint32_t bits = 0;
@@ -382,8 +382,8 @@ namespace Components
 		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");
 
 		// Install registration hook
-		Utils::Hook(0x6265F9, Auth::DirectConnectStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x41D3E3, Auth::SendConnectDataStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x6265F9, Auth::DirectConnectStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x41D3E3, Auth::SendConnectDataStub, HOOK_CALL).install()->quick();
 
 		// Guid command
 		Command::Add("guid", [] (Command::Params)
@@ -395,12 +395,12 @@ namespace Components
 		{
 			Command::Add("securityLevel", [] (Command::Params params)
 			{
-				if (params.Length() < 2)
+				if (params.length() < 2)
 				{
-					uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.GetPublicKey());
+					uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
 					Logger::Print("Your current security level is %d\n", level);
-					Logger::Print("Your security token is: %s\n", Utils::String::DumpHex(Auth::GuidToken.ToString(), "").data());
-					Logger::Print("Your computation token is: %s\n", Utils::String::DumpHex(Auth::ComputeToken.ToString(), "").data());
+					Logger::Print("Your security token is: %s\n", Utils::String::DumpHex(Auth::GuidToken.toString(), "").data());
+					Logger::Print("Your computation token is: %s\n", Utils::String::DumpHex(Auth::ComputeToken.toString(), "").data());
 
 					Toast::Show("cardicon_locked", "^5Security Level", fmt::sprintf("Your security level is %d", level), 3000);
 				}
@@ -433,7 +433,7 @@ namespace Components
 		Auth::StoreKey();
 	}
 
-	bool Auth::UnitTest()
+	bool Auth::unitTest()
 	{
 		bool success = true;
 

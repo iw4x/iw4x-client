@@ -7,7 +7,7 @@ namespace Components
 		~Logger();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Logger"; };
+		const char* getName() { return "Logger"; };
 #endif
 
 		static void MessagePrint(int channel, std::string message);

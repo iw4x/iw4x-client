@@ -3,9 +3,9 @@ namespace Assets
 	class IMaterialTechniqueSet : public Components::AssetHandler::IAsset
 	{
 	public:
-		virtual Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_TECHSET; };
+		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_TECHSET; };
 
-		virtual void Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
-		virtual void Mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
+		virtual void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
+		virtual void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 	};
 }

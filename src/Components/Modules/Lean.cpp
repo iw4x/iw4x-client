@@ -64,6 +64,6 @@ namespace Components
 		Command::AddRaw("+leanright", Lean::IN_LeanRight_Down, true);
 		Command::AddRaw("-leanright", Lean::IN_LeanRight_Up, true);
 
-		Utils::Hook(0x5A6D84, Lean::CL_CmdButtonsStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x5A6D84, Lean::CL_CmdButtonsStub, HOOK_CALL).install()->quick();
 	}
 }

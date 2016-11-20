@@ -173,7 +173,7 @@ namespace Components
 			int clrIndex = Colors::ColorIndex(index);
 
 			// Use native colors
-			if (clrIndex <= 7 && !Colors::NewColors.Get<bool>())
+			if (clrIndex <= 7 && !Colors::NewColors.get<bool>())
 			{
 				*color = reinterpret_cast<DWORD*>(0x78DC70)[index - 48];
 			}
@@ -210,19 +210,19 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
 
 		// Allow colored names ingame
-		Utils::Hook(0x5D8B40, Colors::ClientUserinfoChanged, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x5D8B40, Colors::ClientUserinfoChanged, HOOK_JUMP).install()->quick();
 
 		// Though, don't apply that to overhead names.
-		Utils::Hook(0x581932, Colors::GetClientName, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x581932, Colors::GetClientName, HOOK_CALL).install()->quick();
 
 		// Patch RB_LookupColor
-		Utils::Hook(0x534CD0, Colors::LookupColorStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x534CD0, Colors::LookupColorStub, HOOK_JUMP).install()->quick();
 
 		// Patch ColorIndex
-		Utils::Hook(0x417770, Colors::ColorIndex, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x417770, Colors::ColorIndex, HOOK_JUMP).install()->quick();
 
 		// Patch I_CleanStr
-		Utils::Hook(0x4AD470, Colors::CleanStrStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x4AD470, Colors::CleanStrStub, HOOK_JUMP).install()->quick();
 
 		// Register dvar
 		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare² color code style.");

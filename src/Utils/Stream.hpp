@@ -3,46 +3,46 @@ namespace Utils
 	class Stream
 	{
 	private:
-		int CriticalSectionState;
-		unsigned int BlockSize[Game::MAX_XFILE_COUNT];
-		std::vector<Game::XFILE_BLOCK_TYPES> StreamStack;
-		std::string Buffer;
+		int criticalSectionState;
+		unsigned int blockSize[Game::MAX_XFILE_COUNT];
+		std::vector<Game::XFILE_BLOCK_TYPES> streamStack;
+		std::string buffer;
 
 	public:
 		class Reader
 		{
 		public:
-			Reader(Utils::Memory::Allocator* allocator, std::string buffer) : Buffer(buffer), Allocator(allocator), Position(0) {}
+			Reader(Utils::Memory::Allocator* _allocator, std::string _buffer) : buffer(_buffer), allocator(_allocator), position(0) {}
 
-			std::string ReadString();
-			const char* ReadCString();
+			std::string readString();
+			const char* readCString();
 
-			char ReadByte();
+			char readByte();
 
-			void* Read(size_t size, size_t count = 1);
-			template <typename T> T* ReadArray(size_t count = 1)
+			void* read(size_t size, size_t count = 1);
+			template <typename T> T* readArray(size_t count = 1)
 			{
-				return reinterpret_cast<T*>(Read(sizeof(T), count));
+				return reinterpret_cast<T*>(this->read(sizeof(T), count));
 			}
-			template <typename T> T Read()
+			template <typename T> T read()
 			{
 				T obj;
 
 				for (unsigned int i = 0; i < sizeof(T); ++i)
 				{
-					reinterpret_cast<char*>(&obj)[i] = ReadByte();
+					reinterpret_cast<char*>(&obj)[i] = this->readByte();
 				}
 
 				return obj;
 			}
 
-			bool End();
-			void Seek(unsigned int position);
+			bool end();
+			void seek(unsigned int position);
 
 		private:
-			unsigned int Position;
-			std::string Buffer;
-			Utils::Memory::Allocator* Allocator;
+			unsigned int position;
+			std::string buffer;
+			Utils::Memory::Allocator* allocator;
 		};
 
 		enum Alignment
@@ -64,62 +64,62 @@ namespace Utils
 		Stream(size_t size);
 		~Stream();
 
-		size_t Length();
-		size_t Capacity();
+		size_t length();
+		size_t capacity();
 
-		char* Save(const void * _str, size_t size, size_t count = 1);
-		char* Save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count);
-		char* Save(Game::XFILE_BLOCK_TYPES stream, int value, size_t count);
-		template <typename T> char* Save(T* object)
+		char* save(const void * _str, size_t size, size_t count = 1);
+		char* save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count);
+		char* save(Game::XFILE_BLOCK_TYPES stream, int value, size_t count);
+		template <typename T> char* save(T* object)
 		{
-			return SaveArray<T>(object, 1);
+			return saveArray<T>(object, 1);
 		}
-		template <typename T> char* SaveArray(T* array, size_t count)
+		template <typename T> char* saveArray(T* array, size_t count)
 		{
-			return Save(array, sizeof(T), count);
+			return save(array, sizeof(T), count);
 		}
 
-		char* SaveString(std::string string);
-		char* SaveString(const char* string);
-		char* SaveString(const char* string, size_t len);
-		char* SaveByte(unsigned char byte, size_t count = 1);
-		char* SaveNull(size_t count = 1);
-		char* SaveMax(size_t count = 1);
+		char* saveString(std::string string);
+		char* saveString(const char* string);
+		char* saveString(const char* string, size_t len);
+		char* saveByte(unsigned char byte, size_t count = 1);
+		char* saveNull(size_t count = 1);
+		char* saveMax(size_t count = 1);
 
-		char* SaveText(std::string string);
+		char* saveText(std::string string);
 
-		void Align(Alignment align);
-		bool PushBlock(Game::XFILE_BLOCK_TYPES stream);
-		bool PopBlock();
-		bool IsValidBlock(Game::XFILE_BLOCK_TYPES stream);
-		void IncreaseBlockSize(Game::XFILE_BLOCK_TYPES stream, unsigned int size);
-		void IncreaseBlockSize(unsigned int size);
-		Game::XFILE_BLOCK_TYPES GetCurrentBlock();
-		unsigned int GetBlockSize(Game::XFILE_BLOCK_TYPES stream);
+		void align(Alignment align);
+		bool pushBlock(Game::XFILE_BLOCK_TYPES stream);
+		bool popBlock();
+		bool isValidBlock(Game::XFILE_BLOCK_TYPES stream);
+		void increaseBlockSize(Game::XFILE_BLOCK_TYPES stream, unsigned int size);
+		void increaseBlockSize(unsigned int size);
+		Game::XFILE_BLOCK_TYPES getCurrentBlock();
+		unsigned int getBlockSize(Game::XFILE_BLOCK_TYPES stream);
 
-		DWORD GetPackedOffset();
+		DWORD getPackedOffset();
 
-		char* Data();
-		char* At();
-		template <typename T> T* Dest()
+		char* data();
+		char* at();
+		template <typename T> T* dest()
 		{
-			return reinterpret_cast<T*>(this->At());
+			return reinterpret_cast<T*>(this->at());
 		}
 		template <typename T> static inline void ClearPointer(T** object)
 		{
 			*object = reinterpret_cast<T*>(-1);
 		}
 
-		void ToBuffer(std::string& outBuffer);
-		std::string ToBuffer();
+		void toBuffer(std::string& outBuffer);
+		std::string toBuffer();
 
 		// Enter/Leave critical sections in which reallocations are not allowed.
 		// If buffer reallocation is detected, the operation has to be terminated
 		// and more memory has to be allocated next time. This will have to be done
 		// by editing the code though.
-		void EnterCriticalSection();
-		void LeaveCriticalSection();
-		bool IsCriticalSection();
+		void enterCriticalSection();
+		void leaveCriticalSection();
+		bool isCriticalSection();
 
 
 		// This represents packed offset in streams:
@@ -143,19 +143,19 @@ namespace Utils
 			Offset(Game::XFILE_BLOCK_TYPES _block, uint32_t _offset) : offset(_offset), block(_block) {};
 
 			// The game needs it to be incremented
-			uint32_t GetPackedOffset() 
+			uint32_t getPackedOffset() 
 			{ 
 				return this->packed + 1;
 			};
 
-			uint32_t GetUnpackedOffset()
+			uint32_t getUnpackedOffset()
 			{
 				Offset lOffset = *this;
 				lOffset.packed--;
 				return lOffset.offset;
 			};
 
-			int GetUnpackedBlock()
+			int getUnpackedBlock()
 			{
 				Offset lOffset = *this;
 				lOffset.packed--;

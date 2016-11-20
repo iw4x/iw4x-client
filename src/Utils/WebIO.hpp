@@ -14,7 +14,6 @@ namespace Utils
 	class WebIO
 	{
 	public:
-
 		typedef std::map<std::string, std::string> Params;
 
 		WebIO();
@@ -23,43 +22,43 @@ namespace Utils
 
 		~WebIO();
 
-		void SetURL(std::string url);
+		void setURL(std::string url);
 		void SetCredentials(std::string username, std::string password);
 
-		std::string PostFile(std::string url, std::string data, std::string fieldName, std::string fileName);
-		std::string PostFile(std::string data, std::string fieldName, std::string fileName);
+		std::string postFile(std::string url, std::string data, std::string fieldName, std::string fileName);
+		std::string postFile(std::string data, std::string fieldName, std::string fileName);
 
-		std::string Post(std::string url, WebIO::Params params);
-		std::string Post(std::string url, std::string body);
-		std::string Post(WebIO::Params params);
-		std::string Post(std::string body);
+		std::string post(std::string url, WebIO::Params params);
+		std::string post(std::string url, std::string body);
+		std::string post(WebIO::Params params);
+		std::string post(std::string body);
 
-		std::string Get(std::string url);
-		std::string Get();
+		std::string get(std::string url);
+		std::string get();
 
-		WebIO* SetTimeout(DWORD mseconds);
+		WebIO* setTimeout(DWORD mseconds);
 
 		// FTP
-		bool Connect();
-		void Disconnect(); // Not necessary
+		bool connect();
+		void disconnect(); // Not necessary
 
-		bool SetDirectory(std::string directory);
-		bool SetRelativeDirectory(std::string directory);
-		bool GetDirectory(std::string &directory);
-		bool CreateDirectory(std::string directory);
-		bool DeleteDirectory(std::string directory);
-		bool RenameDirectory(std::string directory, std::string newDir);
+		bool setDirectory(std::string directory);
+		bool setRelativeDirectory(std::string directory);
+		bool getDirectory(std::string &directory);
+		bool createDirectory(std::string directory);
+		bool deleteDirectory(std::string directory);
+		bool renameDirectory(std::string directory, std::string newDir);
 
-		bool ListDirectories(std::string directory, std::vector<std::string> &list);
-		bool ListFiles(std::string directory, std::vector<std::string> &list);
+		bool listDirectories(std::string directory, std::vector<std::string> &list);
+		bool listFiles(std::string directory, std::vector<std::string> &list);
 
-		bool DeleteFile(std::string file);
-		bool RenameFile(std::string file, std::string newFile);
-		bool UploadFile(std::string file, std::string localfile);
-		bool DownloadFile(std::string file, std::string localfile);
+		bool deleteFile(std::string file);
+		bool renameFile(std::string file, std::string newFile);
+		bool uploadFile(std::string file, std::string localfile);
+		bool downloadFile(std::string file, std::string localfile);
 
-		bool UploadFileData(std::string file, std::string data);
-		bool DownloadFileData(std::string file, std::string &data);
+		bool uploadFileData(std::string file, std::string data);
+		bool downloadFileData(std::string file, std::string &data);
 
 	private:
 
@@ -78,32 +77,32 @@ namespace Utils
 			std::string raw;
 		};
 
-		bool m_isFTP;
-		std::string m_username;
-		std::string m_password;
+		bool isFTP;
+		std::string username;
+		std::string password;
 
-		WebURL m_sUrl;
+		WebURL url;
 
-		HINTERNET m_hSession;
-		HINTERNET m_hConnect;
-		HINTERNET m_hFile;
+		HINTERNET hSession;
+		HINTERNET hConnect;
+		HINTERNET hFile;
 
-		DWORD m_timeout;
+		DWORD timeout;
 
-		std::string BuildPostBody(WebIO::Params params);
+		std::string buildPostBody(WebIO::Params params);
 
-		bool IsSecuredConnection();
+		bool isSecuredConnection();
 
-		std::string Execute(const char* command, std::string body, WebIO::Params headers = WebIO::Params());
+		std::string execute(const char* command, std::string body, WebIO::Params headers = WebIO::Params());
 
-		bool ListElements(std::string directory, std::vector<std::string> &list, bool files);
+		bool listElements(std::string directory, std::vector<std::string> &list, bool files);
 
-		void OpenSession(std::string useragent);
-		void CloseSession();
+		void openSession(std::string useragent);
+		void closeSession();
 
-		bool OpenConnection();
-		void CloseConnection();
+		bool openConnection();
+		void closeConnection();
 
-		void FormatPath(std::string &path, bool win); /* if (win == true):  / -> \\ */
+		void formatPath(std::string &path, bool win); /* if (win == true):  / -> \\ */
 	};
 }

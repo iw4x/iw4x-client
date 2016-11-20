@@ -7,7 +7,7 @@ namespace Components
 		~RCon();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "RCon"; };
+		const char* getName() { return "RCon"; };
 #endif
 
 	private:

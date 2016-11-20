@@ -86,14 +86,14 @@ namespace Components
 			if (loadLibA && loadLibW)
 			{
 #ifdef DEBUG_LOAD_LIBRARY
-				AntiCheat::LoadLibHook[0].Initialize(loadLibA, LoadLibaryAStub, HOOK_JUMP);
-				AntiCheat::LoadLibHook[1].Initialize(loadLibW, LoadLibaryWStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[0].initialize(loadLibA, LoadLibaryAStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[1].initialize(loadLibW, LoadLibaryWStub, HOOK_JUMP);
 #else
-				AntiCheat::LoadLibHook[0].Initialize(loadLibA, loadLibStub, HOOK_JUMP);
-				AntiCheat::LoadLibHook[1].Initialize(loadLibW, loadLibStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[0].initialize(loadLibA, loadLibStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[1].initialize(loadLibW, loadLibStub, HOOK_JUMP);
 #endif
-				//AntiCheat::LoadLibHook[2].Initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
-				//AntiCheat::LoadLibHook[3].Initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
+				//AntiCheat::LoadLibHook[2].initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
+				//AntiCheat::LoadLibHook[3].initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
 			}
 		}
 	}
@@ -102,9 +102,9 @@ namespace Components
 	{
 		static Utils::Time::Interval check;
 
-		if(check.Elapsed(20s))
+		if(check.elapsed(20s))
 		{
-			check.Update();
+			check.update();
 
 			if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
 			{
@@ -125,9 +125,9 @@ namespace Components
 	{
 		static Utils::Time::Interval check;
 
-		if (check.Elapsed(30s))
+		if (check.elapsed(30s))
 		{
-			check.Update();
+			check.update();
 
 			unsigned long flags = ((AntiCheat::IntergrityFlag::MAX_FLAG - 1) << 1) - 1;
 
@@ -145,7 +145,7 @@ namespace Components
 	void AntiCheat::ScanIntegrityCheck()
 	{
 		// If there was no check within the last 40 seconds, crash!
-		if (AntiCheat::LastCheck.Elapsed(40s))
+		if (AntiCheat::LastCheck.elapsed(40s))
 		{
 #ifdef DEBUG_DETECTIONS
 			Logger::Print("AntiCheat: Integrity check failed");
@@ -161,8 +161,8 @@ namespace Components
 	void AntiCheat::PerformScan()
 	{
 		// Perform check only every 10 seconds
-		if (!AntiCheat::LastCheck.Elapsed(10s)) return;
-		AntiCheat::LastCheck.Update();
+		if (!AntiCheat::LastCheck.elapsed(10s)) return;
+		AntiCheat::LastCheck.update();
 
 		// Hash .text segment
 		// Add 1 to each value, so searching in memory doesn't reveal anything
@@ -219,16 +219,16 @@ namespace Components
 	{
 		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
 		{
-			AntiCheat::LoadLibHook[i].Uninstall();
+			AntiCheat::LoadLibHook[i].uninstall();
 		}
 	}
 
 	void AntiCheat::InstallLibHook()
 	{
-		AntiCheat::LoadLibHook[0].Install();
-		AntiCheat::LoadLibHook[1].Install();
-		//AntiCheat::LoadLibHook[2].Install();
-		//AntiCheat::LoadLibHook[3].Install();
+		AntiCheat::LoadLibHook[0].install();
+		AntiCheat::LoadLibHook[1].install();
+		//AntiCheat::LoadLibHook[2].install();
+		//AntiCheat::LoadLibHook[3].install();
 	}
 
 	void AntiCheat::PatchWinAPI()
@@ -347,7 +347,7 @@ namespace Components
 			}
 		};
 
-		allocator.Reference(hToken, [] (void* hToken)
+		allocator.reference(hToken, [] (void* hToken)
 		{
 			if (hToken)
 			{
@@ -361,7 +361,7 @@ namespace Components
 
 		if (dwSize)
 		{
-			pTokenInfo = allocator.Allocate(dwSize);
+			pTokenInfo = allocator.allocate(dwSize);
 			if (!pTokenInfo) return GetLastError();
 		}
 
@@ -372,17 +372,17 @@ namespace Components
 		PSID psidEveryone = nullptr;
 		SID_IDENTIFIER_AUTHORITY sidEveryone = SECURITY_WORLD_SID_AUTHORITY;
 		if (!AllocateAndInitializeSid(&sidEveryone, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, &psidEveryone) || !psidEveryone) return GetLastError();
-		allocator.Reference(psidEveryone, freeSid);
+		allocator.reference(psidEveryone, freeSid);
 
 		PSID psidSystem = nullptr;
 		SID_IDENTIFIER_AUTHORITY sidSystem = SECURITY_NT_AUTHORITY;
 		if (!AllocateAndInitializeSid(&sidSystem, 1, SECURITY_LOCAL_SYSTEM_RID, 0, 0, 0, 0, 0, 0, 0, &psidSystem) || !psidSystem) return GetLastError();
-		allocator.Reference(psidSystem, freeSid);
+		allocator.reference(psidSystem, freeSid);
 
 		PSID psidAdmins = nullptr;
 		SID_IDENTIFIER_AUTHORITY sidAdministrators = SECURITY_NT_AUTHORITY;
 		if (!AllocateAndInitializeSid(&sidAdministrators, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &psidAdmins) || !psidAdmins) return GetLastError();
-		allocator.Reference(psidAdmins, freeSid);
+		allocator.reference(psidAdmins, freeSid);
 
 		const PSID psidArray[] =
 		{
@@ -406,7 +406,7 @@ namespace Components
 			dwSize += sizeof(ACCESS_ALLOWED_ACE) - sizeof(DWORD);
 		}
 
-		PACL pDacl = reinterpret_cast<PACL>(allocator.Allocate(dwSize));
+		PACL pDacl = reinterpret_cast<PACL>(allocator.allocate(dwSize));
 		if (!pDacl || !InitializeAcl(pDacl, dwSize, ACL_REVISION)) return GetLastError();
 
 		// Mimic Protected Process
@@ -444,7 +444,7 @@ namespace Components
 		// due to Restricted tokens.
 		if (!AddAccessAllowedAce(pDacl, ACL_REVISION, PROCESS_ALL_ACCESS, psidArray[3])) return GetLastError();
 
-		PSECURITY_DESCRIPTOR pSecDesc = allocator.Allocate<SECURITY_DESCRIPTOR>();
+		PSECURITY_DESCRIPTOR pSecDesc = allocator.allocate<SECURITY_DESCRIPTOR>();
 		if (!pSecDesc) return GetLastError();
 
 		// InitializeSecurityDescriptor initializes a security descriptor in
@@ -476,18 +476,18 @@ namespace Components
 		});
 #else
 
-		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5082FD, AntiCheat::LostD3DStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x51C76C, AntiCheat::CinematicStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x418209, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x60BE9D, AntiCheat::SoundInitStub, HOOK_CALL).Install()->Quick();
- 		Utils::Hook(0x60BE8E, AntiCheat::SoundInitDriverStub, HOOK_CALL).Install()->Quick();
- 		Utils::Hook(0x418204, AntiCheat::SoundInitDriverStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5082FD, AntiCheat::LostD3DStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x51C76C, AntiCheat::CinematicStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x418209, AntiCheat::SoundInitStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x60BE9D, AntiCheat::SoundInitStub, HOOK_CALL).install()->quick();
+ 		Utils::Hook(0x60BE8E, AntiCheat::SoundInitDriverStub, HOOK_CALL).install()->quick();
+ 		Utils::Hook(0x418204, AntiCheat::SoundInitDriverStub, HOOK_CALL).install()->quick();
 		Renderer::OnFrame(AntiCheat::PerformScan);
 
 		// Detect aimbots
-		Utils::Hook(0x426580, AntiCheat::DObjGetWorldTagPosStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x56AC60, AntiCheat::AimTargetGetTagPosStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x426580, AntiCheat::DObjGetWorldTagPosStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x56AC60, AntiCheat::AimTargetGetTagPosStub, HOOK_JUMP).install()->quick();
 
 		// TODO: Probably move that :P
 		if (!Dedicated::IsEnabled())
@@ -514,7 +514,7 @@ namespace Components
 
 		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
 		{
-			AntiCheat::LoadLibHook[i].Uninstall();
+			AntiCheat::LoadLibHook[i].uninstall();
 		}
 	}
 }

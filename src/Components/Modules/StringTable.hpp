@@ -7,7 +7,7 @@ namespace Components
 		~StringTable();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "StringTable"; };
+		const char* getName() { return "StringTable"; };
 #endif
 
 	private:

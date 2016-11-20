@@ -7,7 +7,7 @@ namespace Components
 		~Localization();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Localization"; };
+		const char* getName() { return "Localization"; };
 #endif
 
 		static void Set(std::string key, std::string value);

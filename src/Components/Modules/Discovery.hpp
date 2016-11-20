@@ -7,21 +7,15 @@ namespace Components
 		~Discovery();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Discovery"; };
+		const char* getName() { return "Discovery"; };
 #endif
 
 		static void Perform();
 
 	private:
-		class Container
-		{
-		public:
-			bool Perform;
-			bool Terminate;
-			std::thread Thread;
-			std::string Challenge;
-		};
-
-		static Container DiscoveryContainer;
+		static bool IsTerminating;
+		static bool IsPerforming;
+		static std::thread Thread;
+		static std::string Challenge;
 	};
 }

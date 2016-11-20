@@ -7,10 +7,10 @@ namespace Components
 		~News();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "News"; };
+		const char* getName() { return "News"; };
 #endif
 
-		bool UnitTest();
+		bool unitTest();
 
 	private:
 		static std::thread Thread;

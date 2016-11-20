@@ -12,7 +12,7 @@ namespace Components
 			cmp eax, 9
 			je returnSafely
 
-			jmp Materials::ImageVersionCheckHook.Original
+			jmp Materials::ImageVersionCheckHook.original
 
 		returnSafely:
 			mov al, 1
@@ -115,23 +115,23 @@ namespace Components
 		Materials::ImageNameLength = 7;
 
 		// Allow codo images
-		Materials::ImageVersionCheckHook.Initialize(0x53A456, Materials::ImageVersionCheck, HOOK_CALL)->Install();
+		Materials::ImageVersionCheckHook.initialize(0x53A456, Materials::ImageVersionCheck, HOOK_CALL)->install();
 
 		// Fix material pointer exploit
-		Utils::Hook(0x534E0C, Materials::DrawMaterialStub, HOOK_CALL).Install()->Quick();
+		Utils::Hook(0x534E0C, Materials::DrawMaterialStub, HOOK_CALL).install()->quick();
 
 		// Increment string pointer accordingly
-		Utils::Hook(0x5358FA, Materials::PostDrawMaterialStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x5358FA, Materials::PostDrawMaterialStub, HOOK_JUMP).install()->quick();
 
 		// Adapt death message to IW5 material format
-		Utils::Hook(0x5A30D9, Materials::DeathMessageStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x5A30D9, Materials::DeathMessageStub, HOOK_JUMP).install()->quick();
 
 #ifdef DEBUG
 		if (Flags::HasFlag("dump"))
 		{
-			Utils::Hook(0x51F5AC, Materials::DumpImageCfg, HOOK_CALL).Install()->Quick();
-			Utils::Hook(0x51F4C4, Materials::DumpImageCfg, HOOK_CALL).Install()->Quick();
-			Utils::Hook(0x53AC62, Materials::DumpImageCfgPath, HOOK_CALL).Install()->Quick();
+			Utils::Hook(0x51F5AC, Materials::DumpImageCfg, HOOK_CALL).install()->quick();
+			Utils::Hook(0x51F4C4, Materials::DumpImageCfg, HOOK_CALL).install()->quick();
+			Utils::Hook(0x53AC62, Materials::DumpImageCfgPath, HOOK_CALL).install()->quick();
 		}
 		else
 		{
@@ -152,6 +152,6 @@ namespace Components
 
 	Materials::~Materials()
 	{
-		Materials::ImageVersionCheckHook.Uninstall();
+		Materials::ImageVersionCheckHook.uninstall();
 	}
 }

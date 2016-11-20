@@ -34,17 +34,17 @@ namespace Components
 
 	bool ServerList::IsFavouriteList()
 	{
-		return (Dvar::Var("ui_netSource").Get<int>() == 2);
+		return (Dvar::Var("ui_netSource").get<int>() == 2);
 	}
 
 	bool ServerList::IsOfflineList()
 	{
-		return (Dvar::Var("ui_netSource").Get<int>() == 0);
+		return (Dvar::Var("ui_netSource").get<int>() == 0);
 	}
 
 	bool ServerList::IsOnlineList()
 	{
-		return (Dvar::Var("ui_netSource").Get<int>() == 1);
+		return (Dvar::Var("ui_netSource").get<int>() == 1);
 	}
 
 	unsigned int ServerList::GetServerCount()
@@ -72,46 +72,46 @@ namespace Components
 		{
 			case Column::Password:
 			{
-				return (server->Password ? "X" : "");
+				return (server->password ? "X" : "");
 			}
 
 			case Column::Matchtype:
 			{
-				return ((server->MatchType == 1) ? "P" : "M");
+				return ((server->matchType == 1) ? "P" : "M");
 			}
 
 			case Column::Hostname:
 			{
-				return server->Hostname.data();
+				return server->hostname.data();
 			}
 
 			case Column::Mapname:
 			{
-				if (server->SVRunning)
+				if (server->svRunning)
 				{
-					return Game::UI_LocalizeMapName(server->Mapname.data());
+					return Game::UI_LocalizeMapName(server->mapname.data());
 				}
 				else
 				{
-					return Utils::String::VA("^3%s", Game::UI_LocalizeMapName(server->Mapname.data()));
+					return Utils::String::VA("^3%s", Game::UI_LocalizeMapName(server->mapname.data()));
 				}
 			}
 
 			case Column::Players:
 			{
-				return Utils::String::VA("%i (%i)", server->Clients, server->MaxClients);
+				return Utils::String::VA("%i (%i)", server->clients, server->maxClients);
 			}
 
 			case Column::Gametype:
 			{
-				return Game::UI_LocalizeGameType(server->Gametype.data());
+				return Game::UI_LocalizeGameType(server->gametype.data());
 			}
 
 			case Column::Mod:
 			{
-				if (server->Mod != "")
+				if (server->mod != "")
 				{
-					return (server->Mod.data() + 5);
+					return (server->mod.data() + 5);
 				}
 
 				return "";
@@ -119,7 +119,7 @@ namespace Components
 
 			case Column::Ping:
 			{
-				return Utils::String::VA("%i", server->Ping);
+				return Utils::String::VA("%i", server->ping);
 			}
 		}
 
@@ -134,13 +134,13 @@ namespace Components
 
 		if (info)
 		{
-			Dvar::Var("ui_serverSelected").Set(true);
-			Dvar::Var("ui_serverSelectedMap").Set(info->Mapname);
-			Dvar::Var("ui_serverSelectedGametype").Set(info->Gametype);
+			Dvar::Var("ui_serverSelected").set(true);
+			Dvar::Var("ui_serverSelectedMap").set(info->mapname);
+			Dvar::Var("ui_serverSelectedGametype").set(info->gametype);
 		}
 		else
 		{
-			Dvar::Var("ui_serverSelected").Set(false);
+			Dvar::Var("ui_serverSelected").set(false);
 		}
 	}
 
@@ -159,23 +159,21 @@ namespace Components
 		{
 			list->clear();
 
-			ServerList::RefreshContainer.Mutex.lock();
+			std::lock_guard<std::mutex> _(ServerList::RefreshContainer.mutex);
 
-			ServerList::RefreshContainer.SendCount = 0;
-			ServerList::RefreshContainer.SentCount = 0;
+			ServerList::RefreshContainer.sendCount = 0;
+			ServerList::RefreshContainer.sentCount = 0;
 
 			for (auto server : tempList)
 			{
-				ServerList::InsertRequest(server.Addr, false);
+				ServerList::InsertRequest(server.addr, false);
 			}
-
-			ServerList::RefreshContainer.Mutex.unlock();
 		}
 	}
 
 	void ServerList::RefreshVisibleList()
 	{
-		Dvar::Var("ui_serverSelected").Set(false);
+		Dvar::Var("ui_serverSelected").set(false);
 
 		ServerList::VisibleList.clear();
 
@@ -189,34 +187,34 @@ namespace Components
 			return;
 		}
 
-		bool ui_browserShowFull     = Dvar::Var("ui_browserShowFull").Get<bool>();
-		bool ui_browserShowEmpty    = Dvar::Var("ui_browserShowEmpty").Get<bool>();
-		int ui_browserShowHardcore  = Dvar::Var("ui_browserKillcam").Get<int>();
-		int ui_browserShowPassword  = Dvar::Var("ui_browserShowPassword").Get<int>();
-		int ui_browserMod           = Dvar::Var("ui_browserMod").Get<int>();
-		int ui_joinGametype         = Dvar::Var("ui_joinGametype").Get<int>();
+		bool ui_browserShowFull     = Dvar::Var("ui_browserShowFull").get<bool>();
+		bool ui_browserShowEmpty    = Dvar::Var("ui_browserShowEmpty").get<bool>();
+		int ui_browserShowHardcore  = Dvar::Var("ui_browserKillcam").get<int>();
+		int ui_browserShowPassword  = Dvar::Var("ui_browserShowPassword").get<int>();
+		int ui_browserMod           = Dvar::Var("ui_browserMod").get<int>();
+		int ui_joinGametype         = Dvar::Var("ui_joinGametype").get<int>();
 
 		for (unsigned int i = 0; i < list->size(); ++i)
 		{
 			ServerList::ServerInfo* info = &(*list)[i];
 
 			// Filter full servers
-			if (!ui_browserShowFull && info->Clients >= info->MaxClients) continue;
+			if (!ui_browserShowFull && info->clients >= info->maxClients) continue;
 
 			// Filter empty servers
-			if (!ui_browserShowEmpty && info->Clients <= 0) continue;
+			if (!ui_browserShowEmpty && info->clients <= 0) continue;
 
 			// Filter hardcore servers
-			if ((ui_browserShowHardcore == 0 && info->Hardcore) || (ui_browserShowHardcore == 1 && !info->Hardcore)) continue;
+			if ((ui_browserShowHardcore == 0 && info->hardcore) || (ui_browserShowHardcore == 1 && !info->hardcore)) continue;
 
 			// Filter servers with password
-			if ((ui_browserShowPassword == 0 && info->Password) || (ui_browserShowPassword == 1 && !info->Password)) continue;
+			if ((ui_browserShowPassword == 0 && info->password) || (ui_browserShowPassword == 1 && !info->password)) continue;
 
 			// Don't show modded servers
-			if ((ui_browserMod == 0 && info->Mod.size()) || (ui_browserMod == 1 && !info->Mod.size())) continue;
+			if ((ui_browserMod == 0 && info->mod.size()) || (ui_browserMod == 1 && !info->mod.size())) continue;
 
 			// Filter by gametype
-			if (ui_joinGametype > 0 && (ui_joinGametype -1) < *Game::gameTypeCount  && Game::gameTypes[(ui_joinGametype - 1)].gameType != info->Gametype) continue;
+			if (ui_joinGametype > 0 && (ui_joinGametype -1) < *Game::gameTypeCount  && Game::gameTypes[(ui_joinGametype - 1)].gameType != info->gametype) continue;
 
 			ServerList::VisibleList.push_back(i);
 		}
@@ -226,7 +224,7 @@ namespace Components
 
 	void ServerList::Refresh()
 	{
-		Dvar::Var("ui_serverSelected").Set(false);
+		Dvar::Var("ui_serverSelected").set(false);
 		Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 
 // 		ServerList::OnlineList.clear();
@@ -237,11 +235,11 @@ namespace Components
 		if (list) list->clear();
 
 		ServerList::VisibleList.clear();
-		ServerList::RefreshContainer.Mutex.lock();
-		ServerList::RefreshContainer.Servers.clear();
-		ServerList::RefreshContainer.SendCount = 0;
-		ServerList::RefreshContainer.SentCount = 0;
-		ServerList::RefreshContainer.Mutex.unlock();
+		ServerList::RefreshContainer.mutex.lock();
+		ServerList::RefreshContainer.servers.clear();
+		ServerList::RefreshContainer.sendCount = 0;
+		ServerList::RefreshContainer.sentCount = 0;
+		ServerList::RefreshContainer.mutex.unlock();
 
 		if (ServerList::IsOfflineList())
 		{
@@ -250,17 +248,17 @@ namespace Components
 		else if (ServerList::IsOnlineList())
 		{
 #ifdef USE_LEGACY_SERVER_LIST
-			ServerList::RefreshContainer.AwatingList = true;
-			ServerList::RefreshContainer.AwaitTime = Game::Com_Milliseconds();
+			ServerList::RefreshContainer.awatingList = true;
+			ServerList::RefreshContainer.awaitTime = Game::Sys_Milliseconds();
 
-			int masterPort = Dvar::Var("masterPort").Get<int>();
-			const char* masterServerName = Dvar::Var("masterServerName").Get<const char*>();
+			int masterPort = Dvar::Var("masterPort").get<int>();
+			const char* masterServerName = Dvar::Var("masterServerName").get<const char*>();
 
-			ServerList::RefreshContainer.Host = Network::Address(Utils::VA("%s:%u", masterServerName, masterPort));
+			ServerList::RefreshContainer.host = Network::Address(Utils::String::VA("%s:%u", masterServerName, masterPort));
 
 			Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
 
-			Network::SendCommand(ServerList::RefreshContainer.Host, "getservers", Utils::VA("IW4 %i full empty", PROTOCOL));
+			Network::SendCommand(ServerList::RefreshContainer.host, "getservers", Utils::String::VA("IW4 %i full empty", PROTOCOL));
 			//Network::SendCommand(ServerList::RefreshContainer.Host, "getservers", "0 full empty");
 #else
 			Node::SyncNodeList();
@@ -340,16 +338,16 @@ namespace Components
 
 	void ServerList::InsertRequest(Network::Address address, bool acquireMutex)
 	{
-		if (acquireMutex) ServerList::RefreshContainer.Mutex.lock();
+		if (acquireMutex) ServerList::RefreshContainer.mutex.lock();
 
 		ServerList::Container::ServerContainer container;
-		container.Sent = false;
-		container.Target = address;
+		container.sent = false;
+		container.target = address;
 
 		bool alreadyInserted = false;
-		for (auto &server : ServerList::RefreshContainer.Servers)
+		for (auto &server : ServerList::RefreshContainer.servers)
 		{
-			if (server.Target == container.Target)
+			if (server.target == container.target)
 			{
 				alreadyInserted = true;
 				break;
@@ -358,39 +356,39 @@ namespace Components
 
 		if (!alreadyInserted)
 		{
-			ServerList::RefreshContainer.Servers.push_back(container);
+			ServerList::RefreshContainer.servers.push_back(container);
 
 			auto list = ServerList::GetList();
 			if (list)
 			{
 				for (auto server : *list)
 				{
-					if (server.Addr == container.Target)
+					if (server.addr == container.target)
 					{
-						--ServerList::RefreshContainer.SendCount;
-						--ServerList::RefreshContainer.SentCount;
+						--ServerList::RefreshContainer.sendCount;
+						--ServerList::RefreshContainer.sentCount;
 						break;
 					}
 				}
 			}
 
-			++ServerList::RefreshContainer.SendCount;
+			++ServerList::RefreshContainer.sendCount;
 		}
 
-		if (acquireMutex) ServerList::RefreshContainer.Mutex.unlock();
+		if (acquireMutex) ServerList::RefreshContainer.mutex.unlock();
 	}
 
 	void ServerList::Insert(Network::Address address, Utils::InfoString info)
 	{
-		std::lock_guard<std::mutex> _(ServerList::RefreshContainer.Mutex);
+		std::lock_guard<std::mutex> _(ServerList::RefreshContainer.mutex);
 
-		for (auto i = ServerList::RefreshContainer.Servers.begin(); i != ServerList::RefreshContainer.Servers.end();)
+		for (auto i = ServerList::RefreshContainer.servers.begin(); i != ServerList::RefreshContainer.servers.end();)
 		{
 			// Our desired server
-			if (i->Target == address && i->Sent)
+			if (i->target == address && i->sent)
 			{
 				// Challenge did not match
-				if (i->Challenge != info.Get("challenge"))
+				if (i->challenge != info.get("challenge"))
 				{
 					// Shall we remove the server from the queue?
 					// Better not, it might send a second response with the correct challenge.
@@ -399,23 +397,23 @@ namespace Components
 				}
 
 				ServerInfo server;
-				server.Hostname = info.Get("hostname");
-				server.Mapname = info.Get("mapname");
-				server.Gametype = info.Get("gametype");
-				server.Shortversion = info.Get("shortversion");
-				server.Mod = info.Get("fs_game");
-				server.MatchType = atoi(info.Get("matchtype").data());
-				server.Clients = atoi(info.Get("clients").data());
-				server.SecurityLevel = atoi(info.Get("securityLevel").data());
-				server.MaxClients = atoi(info.Get("sv_maxclients").data());
-				server.Password = (atoi(info.Get("isPrivate").data()) != 0);
-				server.Hardcore = (atoi(info.Get("hc").data()) != 0);
-				server.SVRunning = (atoi(info.Get("sv_running").data()) != 0);
-				server.Ping = (Game::Sys_Milliseconds() - i->SendTime);
-				server.Addr = address;
+				server.hostname = info.get("hostname");
+				server.mapname = info.get("mapname");
+				server.gametype = info.get("gametype");
+				server.shortversion = info.get("shortversion");
+				server.mod = info.get("fs_game");
+				server.matchType = atoi(info.get("matchtype").data());
+				server.clients = atoi(info.get("clients").data());
+				server.securityLevel = atoi(info.get("securityLevel").data());
+				server.maxClients = atoi(info.get("sv_maxclients").data());
+				server.password = (atoi(info.get("isPrivate").data()) != 0);
+				server.hardcore = (atoi(info.get("hc").data()) != 0);
+				server.svRunning = (atoi(info.get("sv_running").data()) != 0);
+				server.ping = (Game::Sys_Milliseconds() - i->sendTime);
+				server.addr = address;
 
 				// Remove server from queue
-				i = ServerList::RefreshContainer.Servers.erase(i);
+				i = ServerList::RefreshContainer.servers.erase(i);
 
 				// Check if already inserted and remove
 				auto list = ServerList::GetList();
@@ -424,7 +422,7 @@ namespace Components
 				unsigned int k = 0;
 				for (auto j = list->begin(); j != list->end(); ++k)
 				{
-					if (j->Addr == address)
+					if (j->addr == address)
 					{
 						j = list->erase(j);
 					}
@@ -447,10 +445,10 @@ namespace Components
 					}
 				}
 
-				if (info.Get("gamename") == "IW4"
-					&& server.MatchType 
+				if (info.get("gamename") == "IW4"
+					&& server.matchType 
 #ifndef DEBUG
-					&& server.Shortversion == SHORTVERSION
+					&& server.shortversion == SHORTVERSION
 #endif
 					)
 				{
@@ -499,11 +497,11 @@ namespace Components
 			// Numerical comparisons
 			if (ServerList::SortKey == ServerList::Column::Ping)
 			{
-				return ((info1->Ping - info2->Ping) * (ServerList::SortAsc ? 1 : -1));
+				return ((info1->ping - info2->ping) * (ServerList::SortAsc ? 1 : -1));
 			}
 			else if (ServerList::SortKey == ServerList::Column::Players)
 			{
-				return ((info1->Clients - info2->Clients) * (ServerList::SortAsc ? 1 : -1));
+				return ((info1->clients - info2->clients) * (ServerList::SortAsc ? 1 : -1));
 			}
 
 			std::string text1 = Colors::Strip(ServerList::GetServerText(info1, ServerList::SortKey));
@@ -532,59 +530,60 @@ namespace Components
 
 	void ServerList::Frame()
 	{
-		if (!ServerList::RefreshContainer.Mutex.try_lock()) return;
+		// This is bad practice and might even cause undefined behaviour!
+		if (!ServerList::RefreshContainer.mutex.try_lock()) return;
 
-		if (ServerList::RefreshContainer.AwatingList)
+		if (ServerList::RefreshContainer.awatingList)
 		{
 			// Check if we haven't got a response within 10 seconds
-			if (Game::Sys_Milliseconds() - ServerList::RefreshContainer.AwaitTime > 5000)
+			if (Game::Sys_Milliseconds() - ServerList::RefreshContainer.awaitTime > 5000)
 			{
-				ServerList::RefreshContainer.AwatingList = false;
+				ServerList::RefreshContainer.awatingList = false;
 
-				Logger::Print("We haven't received a response from the master within %d seconds!\n", (Game::Sys_Milliseconds() - ServerList::RefreshContainer.AwaitTime) / 1000);
+				Logger::Print("We haven't received a response from the master within %d seconds!\n", (Game::Sys_Milliseconds() - ServerList::RefreshContainer.awaitTime) / 1000);
 			}
 		}
 
 		// Send requests to 10 servers each frame
 		int SendServers = 10;
 		
-		for (unsigned int i = 0; i < ServerList::RefreshContainer.Servers.size(); ++i)
+		for (unsigned int i = 0; i < ServerList::RefreshContainer.servers.size(); ++i)
 		{
-			ServerList::Container::ServerContainer* server = &ServerList::RefreshContainer.Servers[i];
-			if (server->Sent) continue;
+			ServerList::Container::ServerContainer* server = &ServerList::RefreshContainer.servers[i];
+			if (server->sent) continue;
 
 			// Found server we can send a request to
-			server->Sent = true;
+			server->sent = true;
 			SendServers--;
 
-			server->SendTime = Game::Sys_Milliseconds();
-			server->Challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+			server->sendTime = Game::Sys_Milliseconds();
+			server->challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 
-			++ServerList::RefreshContainer.SentCount;
+			++ServerList::RefreshContainer.sentCount;
 
-			Network::SendCommand(server->Target, "getinfo", server->Challenge);
+			Network::SendCommand(server->target, "getinfo", server->challenge);
 
 			// Display in the menu, like in COD4
-			Localization::Set("MPUI_SERVERQUERIED", fmt::sprintf("Sent requests: %d/%d", ServerList::RefreshContainer.SentCount, ServerList::RefreshContainer.SendCount));
+			Localization::Set("MPUI_SERVERQUERIED", fmt::sprintf("Sent requests: %d/%d", ServerList::RefreshContainer.sentCount, ServerList::RefreshContainer.sendCount));
 
 			if (SendServers <= 0) break;
 		}
 
-		ServerList::RefreshContainer.Mutex.unlock();
+		ServerList::RefreshContainer.mutex.unlock();
 	}
 
 	void ServerList::UpdateSource()
 	{
 		Dvar::Var netSource("ui_netSource");
 
-		int source = netSource.Get<int>();
+		int source = netSource.get<int>();
 
-		if (++source > netSource.Get<Game::dvar_t*>()->max.i)
+		if (++source > netSource.get<Game::dvar_t*>()->max.i)
 		{
 			source = 0;
 		}
 
-		netSource.Set(source);
+		netSource.set(source);
 
 		ServerList::RefreshVisibleList();
 	}
@@ -593,14 +592,14 @@ namespace Components
 	{
 		Dvar::Var joinGametype("ui_joinGametype");
 
-		int gametype = joinGametype.Get<int>();
+		int gametype = joinGametype.get<int>();
 
 		if (++gametype > *Game::gameTypeCount)
 		{
 			gametype = 0;
 		}
 
-		joinGametype.Set(gametype);
+		joinGametype.set(gametype);
 
 		ServerList::RefreshVisibleList();
 	}
@@ -620,14 +619,14 @@ namespace Components
 
 		Network::Handle("getServersResponse", [] (Network::Address address, std::string data)
 		{
-			if (ServerList::RefreshContainer.Host != address) return; // Only parse from host we sent to
+			if (ServerList::RefreshContainer.host != address) return; // Only parse from host we sent to
 
-			ServerList::RefreshContainer.AwatingList = false;
+			ServerList::RefreshContainer.awatingList = false;
 
-			std::lock_guard<std::mutex> _(ServerList::RefreshContainer.Mutex);
+			std::lock_guard<std::mutex> _(ServerList::RefreshContainer.mutex);
 
 			int offset = 0;
-			int count = ServerList::RefreshContainer.Servers.size();
+			int count = ServerList::RefreshContainer.servers.size();
 			ServerList::MasterEntry* entry = nullptr;
 
 			// Find first entry
@@ -640,14 +639,14 @@ namespace Components
 			for (int i = 0; !entry[i].IsEndToken() && entry[i].HasSeparator(); ++i)
 			{
 				Network::Address serverAddr = address;
-				serverAddr.SetIP(entry[i].IP);
-				serverAddr.SetPort(ntohs(entry[i].Port));
-				serverAddr.SetType(Game::NA_IP);
+				serverAddr.setIP(entry[i].ip);
+				serverAddr.setPort(ntohs(entry[i].port));
+				serverAddr.setType(Game::NA_IP);
 
 				ServerList::InsertRequest(serverAddr, false);
 			}
 
-			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.Servers.size() - count);
+			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.servers.size() - count);
 		});
 
 		// Set default masterServerName + port and save it 
@@ -671,12 +670,12 @@ namespace Components
 
 			if (info)
 			{
-				Party::Connect(info->Addr);
+				Party::Connect(info->addr);
 			}
 		});
 		UIScript::Add("ServerSort", [] (UIScript::Token token)
 		{
-			int key = token.Get<int>();
+			int key = token.get<int>();
 
 			if (ServerList::SortKey == key)
 			{
@@ -697,18 +696,18 @@ namespace Components
 
 			if (info)
 			{
-				ServerList::StoreFavourite(info->Addr.GetString());
+				ServerList::StoreFavourite(info->addr.getString());
 			}
 		});
 		UIScript::Add("CreateFavorite", [] ()
 		{
-			ServerList::StoreFavourite(Dvar::Var("ui_favoriteAddress").Get<std::string>());
+			ServerList::StoreFavourite(Dvar::Var("ui_favoriteAddress").get<std::string>());
 		});
 		UIScript::Add("CreateCurrentServerFavorite", []()
 		{
-			if (Dvar::Var("cl_ingame").Get<bool>())
+			if (Dvar::Var("cl_ingame").get<bool>())
 			{
-				std::string addressText = Network::Address(*Game::connectedHost).GetString();
+				std::string addressText = Network::Address(*Game::connectedHost).getString();
 				if (addressText != "0.0.0.0:0" && addressText != "loopback")
 				{
 					ServerList::StoreFavourite(addressText);
@@ -736,9 +735,9 @@ namespace Components
 		ServerList::FavouriteList.clear();
 		ServerList::VisibleList.clear();
 
-		ServerList::RefreshContainer.Mutex.lock();
-		ServerList::RefreshContainer.AwatingList = false;
-		ServerList::RefreshContainer.Servers.clear();
-		ServerList::RefreshContainer.Mutex.unlock();
+		ServerList::RefreshContainer.mutex.lock();
+		ServerList::RefreshContainer.awatingList = false;
+		ServerList::RefreshContainer.servers.clear();
+		ServerList::RefreshContainer.mutex.unlock();
 	}
 }

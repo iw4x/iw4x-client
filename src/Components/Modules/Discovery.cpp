@@ -2,11 +2,14 @@
 
 namespace Components
 {
-	Discovery::Container Discovery::DiscoveryContainer = { false, false, std::thread() };
+	bool Discovery::IsTerminating = false;
+	bool Discovery::IsPerforming = false;
+	std::thread Discovery::Thread;
+	std::string Discovery::Challenge;
 
 	void Discovery::Perform()
 	{
-		Discovery::DiscoveryContainer.Perform = true;
+		Discovery::IsPerforming = true;
 	}
 
 	Discovery::Discovery()
@@ -16,27 +19,27 @@ namespace Components
 
 		// An additional thread prevents lags
 		// Not sure if that's the best way though
-		Discovery::DiscoveryContainer.Perform = false;
-		Discovery::DiscoveryContainer.Terminate = false;
-		Discovery::DiscoveryContainer.Thread = std::thread([] ()
+		Discovery::IsPerforming = false;
+		Discovery::IsTerminating = false;
+		Discovery::Thread = std::thread([] ()
 		{
-			while (!Discovery::DiscoveryContainer.Terminate)
+			while (!Discovery::IsTerminating)
 			{
-				if (Discovery::DiscoveryContainer.Perform)
+				if (Discovery::IsPerforming)
 				{
 					int start = Game::Sys_Milliseconds();
 
 					Logger::Print("Starting local server discovery...\n");
 
-					Discovery::DiscoveryContainer.Challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+					Discovery::Challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
 
-					unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").Get<unsigned int>();
-					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").Get<unsigned int>();
-					Network::BroadcastRange(minPort, maxPort, fmt::sprintf("discovery %s", Discovery::DiscoveryContainer.Challenge.data()));
+					unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").get<unsigned int>();
+					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").get<unsigned int>();
+					Network::BroadcastRange(minPort, maxPort, fmt::sprintf("discovery %s", Discovery::Challenge.data()));
 
 					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Sys_Milliseconds() - start);
 
-					Discovery::DiscoveryContainer.Perform = false;
+					Discovery::IsPerforming = false;
 				}
 
 				std::this_thread::sleep_for(50ms);
@@ -45,35 +48,35 @@ namespace Components
 
 		Network::Handle("discovery", [] (Network::Address address, std::string data)
 		{
-			if (address.IsSelf()) return;
+			if (address.isSelf()) return;
 
-			if (!address.IsLocal())
+			if (!address.isLocal())
 			{
-				Logger::Print("Received discovery request from non-local address: %s\n", address.GetCString());
+				Logger::Print("Received discovery request from non-local address: %s\n", address.getCString());
 				return;
 			}
 
-			Logger::Print("Received discovery request from %s\n", address.GetCString());
+			Logger::Print("Received discovery request from %s\n", address.getCString());
 			Network::SendCommand(address, "discoveryResponse", data);
 		});
 
 		Network::Handle("discoveryResponse", [] (Network::Address address, std::string data)
 		{
-			if (address.IsSelf()) return;
+			if (address.isSelf()) return;
 
-			if (!address.IsLocal())
+			if (!address.isLocal())
 			{
-				Logger::Print("Received discovery response from non-local address: %s\n", address.GetCString());
+				Logger::Print("Received discovery response from non-local address: %s\n", address.getCString());
 				return;
 			}
 
-			if (Utils::ParseChallenge(data) != Discovery::DiscoveryContainer.Challenge)
+			if (Utils::ParseChallenge(data) != Discovery::Challenge)
 			{
-				Logger::Print("Received discovery with invalid challenge from: %s\n", address.GetCString());
+				Logger::Print("Received discovery with invalid challenge from: %s\n", address.getCString());
 				return;
 			}
 
-			Logger::Print("Received discovery response from: %s\n", address.GetCString());
+			Logger::Print("Received discovery response from: %s\n", address.getCString());
 
 			if (ServerList::IsOfflineList())
 			{
@@ -88,18 +91,18 @@ namespace Components
 		{
 			AntiCheat::ScanIntegrityCheck();
 			return Utils::Hook::Call<void()>(0x4AA720)();
-		}, HOOK_CALL).Install()->Quick();
+		}, HOOK_CALL).install()->quick();
 #endif
 	}
 
 	Discovery::~Discovery()
 	{
-		Discovery::DiscoveryContainer.Perform = false;
-		Discovery::DiscoveryContainer.Terminate = true;
+		Discovery::IsPerforming = false;
+		Discovery::IsPerforming = true;
 
-		if (Discovery::DiscoveryContainer.Thread.joinable())
+		if (Discovery::Thread.joinable())
 		{
-			Discovery::DiscoveryContainer.Thread.join();
+			Discovery::Thread.join();
 		}
 	}
 }

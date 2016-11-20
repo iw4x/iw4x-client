@@ -7,7 +7,7 @@ namespace Components
 		~FastFiles();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "FastFiles"; };
+		const char* getName() { return "FastFiles"; };
 #endif
 
 		static void AddZonePath(std::string path);

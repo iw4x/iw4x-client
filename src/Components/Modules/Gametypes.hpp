@@ -6,7 +6,7 @@ namespace Components
 		Gametypes();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Gametypes"; };
+		const char* getName() { return "Gametypes"; };
 #endif
 
 	private:

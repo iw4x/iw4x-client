@@ -12,7 +12,7 @@ namespace Components
 		~AntiCheat();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "AntiCheat"; };
+		const char* getName() { return "AntiCheat"; };
 #endif
 
 		static void CrashClient();

@@ -26,19 +26,19 @@ namespace Components
 		Game::StringTable* table = nullptr;
 		FileSystem::File rawTable(filename);
 
-		if (rawTable.Exists())
+		if (rawTable.exists())
 		{
-			Utils::CSV parsedTable(rawTable.GetBuffer(), false, false);
+			Utils::CSV parsedTable(rawTable.getBuffer(), false, false);
 
-			table = StringTable::MemAllocator.Allocate<Game::StringTable>();
+			table = StringTable::MemAllocator.allocate<Game::StringTable>();
 
 			if (table)
 			{
-				table->name = StringTable::MemAllocator.DuplicateString(filename);
-				table->columnCount = parsedTable.GetColumns();
-				table->rowCount = parsedTable.GetRows();
+				table->name = StringTable::MemAllocator.duplicateString(filename);
+				table->columnCount = parsedTable.getColumns();
+				table->rowCount = parsedTable.getRows();
 
-				table->values = StringTable::MemAllocator.AllocateArray<Game::StringTableCell>(table->columnCount * table->rowCount);
+				table->values = StringTable::MemAllocator.allocateArray<Game::StringTableCell>(table->columnCount * table->rowCount);
 
 				if (!table->values)
 				{
@@ -49,11 +49,11 @@ namespace Components
 				{
 					for (int j = 0; j < table->columnCount; ++j)
 					{
-						std::string value = parsedTable.GetElementAt(i, j);
+						std::string value = parsedTable.getElementAt(i, j);
 
 						Game::StringTableCell* cell = &table->values[i * table->columnCount + j];
 						cell->hash = StringTable::Hash(value.data());
-						cell->string = StringTable::MemAllocator.DuplicateString(value);
+						cell->string = StringTable::MemAllocator.duplicateString(value);
 						//if (!cell->string) cell->string = ""; // We have to assume it allocated successfully
 					}
 				}
@@ -93,6 +93,6 @@ namespace Components
 	StringTable::~StringTable()
 	{
 		StringTable::StringTableMap.clear();
-		StringTable::MemAllocator.Clear();
+		StringTable::MemAllocator.clear();
 	}
 }

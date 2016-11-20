@@ -15,7 +15,7 @@ namespace Steam
 		Proxy::Client = ::Utils::Library(STEAMCLIENT_LIB, false);
 		Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
 
-		return (Proxy::Client.Valid() && Proxy::Overlay.Valid());
+		return (Proxy::Client.valid() && Proxy::Overlay.valid());
 	}
 
 	void Proxy::Uninititalize()
@@ -42,17 +42,17 @@ namespace Steam
 
 	void Proxy::SetOverlayNotificationPosition(uint32_t eNotificationPosition)
 	{
-		if (Proxy::Overlay.Valid())
+		if (Proxy::Overlay.valid())
 		{
-			Proxy::Overlay.Get<void(uint32_t)>("SetNotificationPosition")(eNotificationPosition);
+			Proxy::Overlay.get<void(uint32_t)>("SetNotificationPosition")(eNotificationPosition);
 		}
 	}
 
 	bool Proxy::IsOverlayEnabled()
 	{
-		if (Proxy::Overlay.Valid())
+		if (Proxy::Overlay.valid())
 		{
-			return Proxy::Overlay.Get<bool()>("IsOverlayEnabled")();
+			return Proxy::Overlay.get<bool()>("IsOverlayEnabled")();
 		}
 
 		return false;
@@ -60,9 +60,9 @@ namespace Steam
 
 	bool Proxy::BOverlayNeedsPresent()
 	{
-		if (Proxy::Overlay.Valid())
+		if (Proxy::Overlay.valid())
 		{
-			return Proxy::Overlay.Get<bool()>("BOverlayNeedsPresent")();
+			return Proxy::Overlay.get<bool()>("BOverlayNeedsPresent")();
 		}
 
 		return false;

@@ -8,7 +8,7 @@ namespace Components
 		class Address
 		{
 		public:
-			Address() { this->SetType(Game::netadrtype_t::NA_BAD); };
+			Address() { setType(Game::netadrtype_t::NA_BAD); };
 			Address(std::string addrString);
 			Address(sockaddr* addr);
 			Address(sockaddr addr) : Address(&addr) {}
@@ -17,34 +17,34 @@ namespace Components
 			Address(Game::netadr_t addr) : address(addr) {}
 			Address(Game::netadr_t* addr) : Address(*addr) {}
 			Address(const Address& obj) : address(obj.address) {};
-			Address(const Proto::Network::Address& addr) { this->Deserialize(addr); };
+			Address(const Proto::Network::Address& addr) { this->deserialize(addr); };
 			bool operator!=(const Address &obj) { return !(*this == obj); };
 			bool operator==(const Address &obj);
 
-			void SetPort(unsigned short port);
-			unsigned short GetPort();
+			void setPort(unsigned short port);
+			unsigned short getPort();
 
-			void SetIP(DWORD ip);
-			void SetIP(Game::netIP_t ip);
-			Game::netIP_t GetIP();
+			void setIP(DWORD ip);
+			void setIP(Game::netIP_t ip);
+			Game::netIP_t getIP();
 
-			void SetType(Game::netadrtype_t type);
-			Game::netadrtype_t GetType();
+			void setType(Game::netadrtype_t type);
+			Game::netadrtype_t getType();
 
-			sockaddr GetSockAddr();
-			void ToSockAddr(sockaddr* addr);
-			void ToSockAddr(sockaddr_in* addr);
-			Game::netadr_t* Get();
-			const char* GetCString();
-			std::string GetString();
+			sockaddr getSockAddr();
+			void toSockAddr(sockaddr* addr);
+			void toSockAddr(sockaddr_in* addr);
+			Game::netadr_t* get();
+			const char* getCString();
+			std::string getString();
 
-			bool IsLocal();
-			bool IsSelf();
-			bool IsValid();
-			bool IsLoopback();
+			bool isLocal();
+			bool isSelf();
+			bool isValid();
+			bool isLoopback();
 
-			void Serialize(Proto::Network::Address* protoAddress);
-			void Deserialize(const Proto::Network::Address& protoAddress);
+			void serialize(Proto::Network::Address* protoAddress);
+			void deserialize(const Proto::Network::Address& protoAddress);
 
 		private:
 			Game::netadr_t address;
@@ -57,7 +57,7 @@ namespace Components
 		~Network();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Network"; };
+		const char* getName() { return "Network"; };
 #endif
 
 		static void Handle(std::string packet, Callback* callback);
@@ -80,7 +80,6 @@ namespace Components
 		static void BroadcastAll(std::string data);
 
 	private:
-		static SOCKET TcpSocket;
 		static std::string SelectedPacket;
 		static wink::signal<wink::slot<CallbackRaw>> StartupSignal;
 		static std::map<std::string, wink::slot<Callback>> PacketHandlers;

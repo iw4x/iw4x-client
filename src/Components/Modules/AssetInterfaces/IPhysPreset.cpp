@@ -2,29 +2,29 @@
 
 namespace Assets
 {
-	void IPhysPreset::Save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	void IPhysPreset::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Assert_Size(Game::PhysPreset, 44);
+		AssertSize(Game::PhysPreset, 44);
 
-		Utils::Stream* buffer = builder->GetBuffer();
+		Utils::Stream* buffer = builder->getBuffer();
 		Game::PhysPreset* asset = header.physPreset;
-		Game::PhysPreset* dest = buffer->Dest<Game::PhysPreset>();
-		buffer->Save(asset);
+		Game::PhysPreset* dest = buffer->dest<Game::PhysPreset>();
+		buffer->save(asset);
 
-		buffer->PushBlock(Game::XFILE_BLOCK_VIRTUAL);
+		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
 		if (asset->name)
 		{
-			buffer->SaveString(builder->GetAssetName(this->GetType(), asset->name));
+			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
 		if (asset->sndAliasPrefix)
 		{
-			buffer->SaveString(asset->sndAliasPrefix);
+			buffer->saveString(asset->sndAliasPrefix);
 			Utils::Stream::ClearPointer(&dest->sndAliasPrefix);
 		}
 
-		buffer->PopBlock();
+		buffer->popBlock();
 	}
 }

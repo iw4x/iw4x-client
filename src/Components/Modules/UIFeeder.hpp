@@ -9,16 +9,16 @@ namespace Components
 
 		struct Callbacks
 		{
-			GetItemCount_t GetItemCount;
-			GetItemText_t GetItemText;
-			Select_t Select;
+			GetItemCount_t getItemCount;
+			GetItemText_t getItemText;
+			Select_t select;
 		};
 
 		UIFeeder();
 		~UIFeeder();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "UIFeeder"; };
+		const char* getName() { return "UIFeeder"; };
 #endif
 
 		static void Add(float feeder, GetItemCount_t itemCountCb, GetItemText_t itemTextCb, Select_t selectCb);
@@ -26,9 +26,9 @@ namespace Components
 	private:
 		struct Container
 		{
-			float Feeder;
-			int Index;
-			int Column;
+			float feeder;
+			int index;
+			int column;
 		};
 
 		static Container Current;

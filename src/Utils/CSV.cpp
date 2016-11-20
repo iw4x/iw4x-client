@@ -4,12 +4,12 @@ namespace Utils
 {
 	CSV::CSV(std::string file, bool isFile, bool allowComments)
 	{
-		CSV::Parse(file, isFile, allowComments);
+		this->parse(file, isFile, allowComments);
 	}
 
 	CSV::~CSV()
 	{
-		for (auto row : CSV::DataMap)
+		for (auto row : this->dataMap)
 		{
 			for (auto entry : row)
 			{
@@ -19,41 +19,41 @@ namespace Utils
 			row.clear();
 		}
 
-		CSV::DataMap.clear();
+		this->dataMap.clear();
 	}
 
-	int CSV::GetRows()
+	int CSV::getRows()
 	{
-		return CSV::DataMap.size();
+		return this->dataMap.size();
 	}
 
-	int CSV::GetColumns(size_t row)
+	int CSV::getColumns(size_t row)
 	{
-		if (CSV::DataMap.size() > row)
+		if (this->dataMap.size() > row)
 		{
-			return CSV::DataMap[row].size();
+			return this->dataMap[row].size();
 		}
 
 		return 0;
 	}
 
-	int CSV::GetColumns()
+	int CSV::getColumns()
 	{
 		int count = 0;
 
-		for (int i = 0; i < CSV::GetRows(); ++i)
+		for (int i = 0; i < this->getRows(); ++i)
 		{
-			count = std::max(CSV::GetColumns(i), count);
+			count = std::max(this->getColumns(i), count);
 		}
 
 		return count;
 	}
 
-	std::string CSV::GetElementAt(size_t row, size_t column)
+	std::string CSV::getElementAt(size_t row, size_t column)
 	{
-		if (CSV::DataMap.size() > row)
+		if (this->dataMap.size() > row)
 		{
-			auto _row = CSV::DataMap[row];
+			auto _row = this->dataMap[row];
 
 			if (_row.size() > column)
 			{
@@ -64,7 +64,7 @@ namespace Utils
 		return "";
 	}
 
-	void CSV::Parse(std::string file, bool isFile, bool allowComments)
+	void CSV::parse(std::string file, bool isFile, bool allowComments)
 	{
 		std::string buffer;
 
@@ -84,12 +84,12 @@ namespace Utils
 
 			for (auto row : rows)
 			{
-				CSV::ParseRow(row, allowComments);
+				this->parseRow(row, allowComments);
 			}
 		}
 	}
 
-	void CSV::ParseRow(std::string row, bool allowComments)
+	void CSV::parseRow(std::string row, bool allowComments)
 	{
 		bool isString = false;
 		std::string element;
@@ -139,6 +139,6 @@ namespace Utils
 			return;
 		}
 
-		DataMap.push_back(_row);
+		this->dataMap.push_back(_row);
 	}
 }

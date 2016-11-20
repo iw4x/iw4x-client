@@ -7,7 +7,7 @@ namespace Components
 		~Toast();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Toast"; };
+		const char* getName() { return "Toast"; };
 #endif
 
 		static void Show(std::string image, std::string title, std::string description, int length);
@@ -16,11 +16,11 @@ namespace Components
 		class UIToast
 		{
 		public:
-			std::string Image;
-			std::string Title;
-			std::string Desc;
-			int Length;
-			int Start;
+			std::string image;
+			std::string title;
+			std::string desc;
+			int length;
+			int start;
 		};
 
 		static void Handler();

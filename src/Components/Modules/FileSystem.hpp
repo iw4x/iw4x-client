@@ -8,60 +8,60 @@ namespace Components
 		{
 		public:
 			File() {};
-			File(std::string file) : FilePath(file) { this->Read(); };
+			File(std::string file) : filePath(file) { this->read(); };
 
-			bool Exists() { return !this->Buffer.empty(); };
-			std::string GetName() { return this->FilePath; };
-			std::string& GetBuffer() { return this->Buffer; };
+			bool exists() { return !this->buffer.empty(); };
+			std::string getName() { return this->filePath; };
+			std::string& getBuffer() { return this->buffer; };
 
 		private:
-			std::string FilePath;
-			std::string Buffer;
+			std::string filePath;
+			std::string buffer;
 
-			void Read();
+			void read();
 		};
 
 		class FileReader
 		{
 		public:
-			FileReader() : Size(-1), Name(), Handle(0) {};
+			FileReader() : size(-1), name(), handle(0) {};
 			FileReader(std::string file);
 			~FileReader();
 
-			bool Exists();
-			std::string GetName();
-			std::string GetBuffer();
-			int GetSize();
-			bool Read(void* buffer, size_t size);
-			void Seek(int offset, int origin);
+			bool exists();
+			std::string getName();
+			std::string getBuffer();
+			int getSize();
+			bool read(void* buffer, size_t size);
+			void seek(int offset, int origin);
 
 		private:
-			int Handle;
-			int Size;
-			std::string Name;
+			int handle;
+			int size;
+			std::string name;
 		};
 
 		class FileWriter
 		{
 		public:
-			FileWriter(std::string file) : FilePath(file), Handle(0) { this->Open(); };
-			~FileWriter() { this->Close(); };
+			FileWriter(std::string file) : filePath(file), handle(0) { this->open(); };
+			~FileWriter() { this->close(); };
 
-			void Write(std::string data);
+			void write(std::string data);
 
 		private:
-			int Handle;
-			std::string FilePath;
+			int handle;
+			std::string filePath;
 
-			void Open();
-			void Close();
+			void open();
+			void close();
 		};
 
 		FileSystem();
 		~FileSystem();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "FileSystem"; };
+		const char* getName() { return "FileSystem"; };
 #endif
 
 		static std::vector<std::string> GetFileList(std::string path, std::string extension);

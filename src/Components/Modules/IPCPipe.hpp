@@ -12,8 +12,8 @@ namespace Components
 	public:
 		struct Packet
 		{
-			char Command[IPC_COMMAND_SIZE];
-			char Buffer[IPC_BUFFER_SIZE];
+			char command[IPC_COMMAND_SIZE];
+			char buffer[IPC_BUFFER_SIZE];
 		};
 
 		enum Type
@@ -29,30 +29,30 @@ namespace Components
 		Pipe();
 		~Pipe();
 
-		bool Connect(std::string name);
-		bool Create(std::string name);
+		bool connect(std::string name);
+		bool create(std::string name);
 
-		bool Write(std::string command, std::string data);
-		void SetCallback(std::string command, PacketCallback callback);
-		void OnConnect(Callback callback);
+		bool write(std::string command, std::string data);
+		void setCallback(std::string command, PacketCallback callback);
+		void onConnect(Callback callback);
 
 	private:
-		Callback ConnectCallback;
-		std::map<std::string, PacketCallback> PacketCallbacks;
+		wink::slot<void()> connectCallback;
+		std::map<std::string, PacketCallback> packetCallbacks;
 
-		HANDLE hPipe;
-		std::thread mThread;
-		bool mThreadAttached;
+		HANDLE pipe;
+		std::thread thread;
+		bool threadAttached;
 
-		Type mType;
-		Packet mPacket;
+		Type type;
+		Packet packet;
 
-		char PipeName[MAX_PATH];
-		char PipeFile[MAX_PATH];
-		unsigned int ReconnectAttempt;
+		char pipeName[MAX_PATH];
+		char pipeFile[MAX_PATH];
+		unsigned int reconnectAttempt;
 
-		void Destroy();
-		void SetName(std::string name);
+		void destroy();
+		void setName(std::string name);
 
 		static void ReceiveThread(Pipe* pipe);
 	};
@@ -61,18 +61,17 @@ namespace Components
 	{
 	public:
 		IPCPipe();
-		~IPCPipe();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "IPCPipe"; };
+		const char* getName() { return "IPCPipe"; };
 #endif
 
 		static bool Write(std::string command, std::string data);
 		static void On(std::string command, Pipe::PacketCallback callback);
 
 	private:
-		static Pipe* ServerPipe;
-		static Pipe* ClientPipe;
+		static Pipe ServerPipe;
+		static Pipe ClientPipe;
 
 		static void ConnectClient();
 	};

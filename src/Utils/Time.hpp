@@ -5,13 +5,13 @@ namespace Utils
 		class Interval
 		{
 		private:
-			std::chrono::high_resolution_clock::time_point LastPoint;
+			std::chrono::high_resolution_clock::time_point lastPoint;
 
 		public:
-			Interval() : LastPoint(std::chrono::high_resolution_clock::now()) {}
+			Interval() : lastPoint(std::chrono::high_resolution_clock::now()) {}
 
-			void Update();
-			bool Elapsed(std::chrono::nanoseconds nsecs);
+			void update();
+			bool elapsed(std::chrono::nanoseconds nsecs);
 		};
 	}
 }

@@ -40,7 +40,7 @@ namespace Components
 		Utils::Memory::Allocator allocator;
 		FileSystem::FileReader model(fmt::sprintf("models/%s", name.data()));
 
-		if (!model.Exists())
+		if (!model.exists())
 		{
 #ifdef DEBUG
 			if (Flags::HasFlag("dump"))
@@ -48,7 +48,7 @@ namespace Components
 				FILE* fp = nullptr;
 				if (!fopen_s(&fp, "dump.cfg", "a") && fp)
 				{
-					fprintf(fp, "dumpraw %s\n", model.GetName().data());
+					fprintf(fp, "dumpraw %s\n", model.getName().data());
 					fclose(fp);
 				}
 
@@ -60,7 +60,7 @@ namespace Components
 		}
 
 		Game::CModelHeader header;
-		if (!model.Read(&header, sizeof header))
+		if (!model.read(&header, sizeof header))
 		{
 			Logger::Error("Reading header for model %s failed!", name.data());
 		}
@@ -74,13 +74,13 @@ namespace Components
 		header.sectionHeader[Game::SECTION_MAIN].buffer = Utils::Memory::Allocate(header.sectionHeader[Game::SECTION_MAIN].size);
 		header.sectionHeader[Game::SECTION_INDEX].buffer = Utils::Memory::AllocateAlign(header.sectionHeader[Game::SECTION_INDEX].size, 16);
 		header.sectionHeader[Game::SECTION_VERTEX].buffer = Utils::Memory::AllocateAlign(header.sectionHeader[Game::SECTION_VERTEX].size, 16);
-		header.sectionHeader[Game::SECTION_FIXUP].buffer = allocator.AllocateArray<char>(header.sectionHeader[Game::SECTION_FIXUP].size);
+		header.sectionHeader[Game::SECTION_FIXUP].buffer = allocator.allocateArray<char>(header.sectionHeader[Game::SECTION_FIXUP].size);
 
 		// Load section data
 		for (int i = 0; i < ARRAY_SIZE(header.sectionHeader); ++i)
 		{
-			model.Seek(header.sectionHeader[i].offset, FS_SEEK_SET);
-			if (!model.Read(header.sectionHeader[i].buffer, header.sectionHeader[i].size))
+			model.seek(header.sectionHeader[i].offset, FS_SEEK_SET);
+			if (!model.read(header.sectionHeader[i].buffer, header.sectionHeader[i].size))
 			{
 				Logger::Error("Reading section %d for model %s failed!", i, name.data());
 			}
@@ -104,9 +104,9 @@ namespace Components
 		allocationData->indexBuffer = header.sectionHeader[Game::SECTION_INDEX].buffer;
 		allocationData->vertexBuffer = header.sectionHeader[Game::SECTION_VERTEX].buffer;
 
-		Assert_Size(Game::XSurface, 64);
+		AssertSize(Game::XSurface, 64);
 		Game::XModelSurfs* modelSurfs = reinterpret_cast<Game::XModelSurfs*>(allocationData->mainArray);
-		Game::XSurface* tempSurfaces = allocator.AllocateArray<Game::XSurface>(modelSurfs->numSurfaces);
+		Game::XSurface* tempSurfaces = allocator.allocateArray<Game::XSurface>(modelSurfs->numSurfaces);
 		char* surfaceData = reinterpret_cast<char*>(modelSurfs->surfaces);
 
 		ModelSurfs::AllocMap[modelSurfs->name] = allocationData;
@@ -143,7 +143,7 @@ namespace Components
 
 			if (!surfs->surfaces)
 			{
-				Assert_Offset(Game::XModelLodInfo, partBits, 12);
+				AssertOffset(Game::XModelLodInfo, partBits, 12);
 				Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
 				if (!newSurfs) continue;
 
@@ -320,11 +320,11 @@ namespace Components
 		Renderer::OnDeviceRecoveryEnd(ModelSurfs::EndRecover);
 
 		// Install hooks
-		Utils::Hook(0x47A6BD, ModelSurfs::XModelSurfsFixup, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x558F12, ModelSurfs::GetIndexBaseStub, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x4B4DE0, ModelSurfs::GetIndexBufferStub, HOOK_JUMP).Install()->Quick();
-		Utils::Hook(0x558E70, ModelSurfs::GetIndexBufferStub2, HOOK_CALL).Install()->Quick();
-		Utils::Hook(0x5BC050, ModelSurfs::GetVertexBufferStub, HOOK_JUMP).Install()->Quick();
+		Utils::Hook(0x47A6BD, ModelSurfs::XModelSurfsFixup, HOOK_CALL).install()->quick();
+		Utils::Hook(0x558F12, ModelSurfs::GetIndexBaseStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4B4DE0, ModelSurfs::GetIndexBufferStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x558E70, ModelSurfs::GetIndexBufferStub2, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5BC050, ModelSurfs::GetVertexBufferStub, HOOK_JUMP).install()->quick();
 	}
 
 	ModelSurfs::~ModelSurfs()

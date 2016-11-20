@@ -7,7 +7,7 @@ namespace Components
 		~Maps();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* GetName() { return "Maps"; };
+		const char* getName() { return "Maps"; };
 #endif
 
 		static void HandleAsSPMap();
@@ -52,6 +52,6 @@ namespace Components
 		static void ExportMap(Game::GfxWorld* world);
 #endif
 
-		void ReallocateEntryPool();
+		void reallocateEntryPool();
 	};
 }

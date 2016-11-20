@@ -7,35 +7,35 @@ namespace Utils
 		class Token
 		{
 		public:
-			Token() { this->TokenString.clear(); };
-			Token(const Token& obj) : TokenString(obj.TokenString) { };
-			Token(std::string token) : TokenString(token.begin(), token.end()) { };
-			Token(std::basic_string<uint8_t> token) : TokenString(token.begin(), token.end()) { };
+			Token() { this->tokenString.clear(); };
+			Token(const Token& obj) : tokenString(obj.tokenString) { };
+			Token(std::string token) : tokenString(token.begin(), token.end()) { };
+			Token(std::basic_string<uint8_t> token) : tokenString(token.begin(), token.end()) { };
 
 			Token& operator++ ()
 			{
-				if (this->TokenString.empty())
+				if (this->tokenString.empty())
 				{
-					this->TokenString.append(reinterpret_cast<uint8_t*>("\0"), 1);
+					this->tokenString.append(reinterpret_cast<uint8_t*>("\0"), 1);
 				}
 				else
 				{
-					for (int i = static_cast<int>(this->TokenString.size() - 1); i >= 0; --i)
+					for (int i = static_cast<int>(this->tokenString.size() - 1); i >= 0; --i)
 					{
-						if (this->TokenString[i] == 0xFF)
+						if (this->tokenString[i] == 0xFF)
 						{
-							this->TokenString[i] = 0;
+							this->tokenString[i] = 0;
 
 							if (!i)
 							{
 								// Prepend here, as /dev/urandom says so ;) https://github.com/IW4x/iw4x-client-node/wikis/technical-information#incrementing-the-token
-								this->TokenString = std::basic_string<uint8_t>(reinterpret_cast<uint8_t*>("\0"), 1) + this->TokenString;
+								this->tokenString = std::basic_string<uint8_t>(reinterpret_cast<uint8_t*>("\0"), 1) + this->tokenString;
 								break;
 							}
 						}
 						else
 						{
-							++this->TokenString[i];
+							++this->tokenString[i];
 							break;
 						}
 					}
@@ -53,7 +53,7 @@ namespace Utils
 
 			bool operator==(const Token& token) const
 			{
-				return (this->ToString() == token.ToString());
+				return (this->toString() == token.toString());
 			}
 
 			bool operator!=(const Token& token) const
@@ -67,18 +67,18 @@ namespace Utils
 				{
 					return false;
 				}
-				else if (this->ToString().size() < token.ToString().size())
+				else if (this->toString().size() < token.toString().size())
 				{
 					return true;
 				}
-				else if (this->ToString().size() > token.ToString().size())
+				else if (this->toString().size() > token.toString().size())
 				{
 					return false;
 				}
 				else
 				{
-					auto lStr = this->ToString();
-					auto rStr = token.ToString();
+					auto lStr = this->toString();
+					auto rStr = token.toString();
 
 					for (unsigned int i = 0; i < lStr.size(); ++i)
 					{
@@ -107,28 +107,28 @@ namespace Utils
 				return !(*this < token);
 			}
 
-			std::string ToString()
+			std::string toString()
 			{
-				return std::string(this->TokenString.begin(), this->TokenString.end());
+				return std::string(this->tokenString.begin(), this->tokenString.end());
 			}
 
-			const std::string ToString() const
+			const std::string toString() const
 			{
-				return std::string(this->TokenString.begin(), this->TokenString.end());
+				return std::string(this->tokenString.begin(), this->tokenString.end());
 			}
 
-			std::basic_string<uint8_t> ToUnsignedString()
+			std::basic_string<uint8_t> toUnsignedString()
 			{
-				return this->TokenString;
+				return this->tokenString;
 			}
 
-			void Clear()
+			void clear()
 			{
-				this->TokenString.clear();
+				this->tokenString.clear();
 			}
 
 		private:
-			std::basic_string<uint8_t> TokenString;
+			std::basic_string<uint8_t> tokenString;
 		};
 
 		class Rand
@@ -147,36 +147,36 @@ namespace Utils
 			class Key
 			{
 			public:
-				Key() : KeyStorage(new ecc_key)
+				Key() : keyStorage(new ecc_key)
 				{
-					ZeroMemory(this->GetKeyPtr(), sizeof(*this->GetKeyPtr()));
+					ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
 				};
-				Key(ecc_key* key) : Key() { if(key) std::memmove(this->GetKeyPtr(), key, sizeof(*key)); };
+				Key(ecc_key* key) : Key() { if(key) std::memmove(this->getKeyPtr(), key, sizeof(*key)); };
 				Key(ecc_key key) : Key(&key) {};
 				~Key() 
 				{
-					if (this->KeyStorage.use_count() <= 1)
+					if (this->keyStorage.use_count() <= 1)
 					{
-						this->Free();
+						this->free();
 					}
 				};
 
-				bool IsValid()
+				bool isValid()
 				{
-					return (!Utils::Memory::IsSet(this->GetKeyPtr(), 0, sizeof(*this->GetKeyPtr())));
+					return (!Utils::Memory::IsSet(this->getKeyPtr(), 0, sizeof(*this->getKeyPtr())));
 				}
 
-				ecc_key* GetKeyPtr()
+				ecc_key* getKeyPtr()
 				{
-					return this->KeyStorage.get();
+					return this->keyStorage.get();
 				}
 
-				std::string GetPublicKey()
+				std::string getPublicKey()
 				{
 					uint8_t buffer[512] = { 0 };
 					DWORD length = sizeof(buffer);
 
-					if (ecc_ansi_x963_export(this->GetKeyPtr(), buffer, &length) == CRYPT_OK)
+					if (ecc_ansi_x963_export(this->getKeyPtr(), buffer, &length) == CRYPT_OK)
 					{
 						return std::string(reinterpret_cast<char*>(buffer), length);
 					}
@@ -184,32 +184,32 @@ namespace Utils
 					return "";
 				}
 
-				void Set(std::string pubKeyBuffer)
+				void set(std::string pubKeyBuffer)
 				{
-					this->Free();
+					this->free();
 
-					if (ecc_ansi_x963_import(reinterpret_cast<const uint8_t*>(pubKeyBuffer.data()), pubKeyBuffer.size(), this->GetKeyPtr()) != CRYPT_OK)
+					if (ecc_ansi_x963_import(reinterpret_cast<const uint8_t*>(pubKeyBuffer.data()), pubKeyBuffer.size(), this->getKeyPtr()) != CRYPT_OK)
 					{
-						ZeroMemory(this->KeyStorage.get(), sizeof(*this->GetKeyPtr()));
+						ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
 					}
 				}
 
-				void Import(std::string key)
+				void deserialize(std::string key)
 				{
-					this->Free();
+					this->free();
 
-					if (ecc_import(reinterpret_cast<const uint8_t*>(key.data()), key.size(), this->GetKeyPtr()) != CRYPT_OK)
+					if (ecc_import(reinterpret_cast<const uint8_t*>(key.data()), key.size(), this->getKeyPtr()) != CRYPT_OK)
 					{
-						ZeroMemory(this->KeyStorage.get(), sizeof(*this->GetKeyPtr()));
+						ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
 					}
 				}
 
-				std::string Export(int type = PK_PRIVATE)
+				std::string serialize(int type = PK_PRIVATE)
 				{
 					uint8_t buffer[4096] = { 0 };
 					DWORD length = sizeof(buffer);
 
-					if (ecc_export(buffer, &length, type, this->GetKeyPtr()) == CRYPT_OK)
+					if (ecc_export(buffer, &length, type, this->getKeyPtr()) == CRYPT_OK)
 					{
 						return std::string(reinterpret_cast<char*>(buffer), length);
 					}
@@ -217,18 +217,18 @@ namespace Utils
 					return "";
 				}
 
-				void Free()
+				void free()
 				{
-					if (this->IsValid())
+					if (this->isValid())
 					{
-						ecc_free(this->GetKeyPtr());
+						ecc_free(this->getKeyPtr());
 					}
 
-					ZeroMemory(this->GetKeyPtr(), sizeof(*this->GetKeyPtr()));
+					ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
 				}
 
 			private:
-				std::shared_ptr<ecc_key> KeyStorage;
+				std::shared_ptr<ecc_key> keyStorage;
 			};
 
 			static Key GenerateKey(int bits);
@@ -242,42 +242,42 @@ namespace Utils
 			class Key
 			{
 			public:
-				Key() : KeyStorage(new rsa_key)
+				Key() : keyStorage(new rsa_key)
 				{
-					ZeroMemory(this->GetKeyPtr(), sizeof(*this->GetKeyPtr()));
+					ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
 				};
-				Key(rsa_key* key) : Key() { if (key) std::memmove(this->GetKeyPtr(), key, sizeof(*key)); };
+				Key(rsa_key* key) : Key() { if (key) std::memmove(this->getKeyPtr(), key, sizeof(*key)); };
 				Key(rsa_key key) : Key(&key) {};
 				~Key()
 				{
-					if (this->KeyStorage.use_count() <= 1)
+					if (this->keyStorage.use_count() <= 1)
 					{
-						this->Free();
+						this->free();
 					}
 				};
 
-				rsa_key* GetKeyPtr()
+				rsa_key* getKeyPtr()
 				{
-					return this->KeyStorage.get();
+					return this->keyStorage.get();
 				}
 
-				bool IsValid()
+				bool isValid()
 				{
-					return (!Utils::Memory::IsSet(this->GetKeyPtr(), 0, sizeof(*this->GetKeyPtr())));
+					return (!Utils::Memory::IsSet(this->getKeyPtr(), 0, sizeof(*this->getKeyPtr())));
 				}
 
-				void Free()
+				void free()
 				{
-					if (this->IsValid())
+					if (this->isValid())
 					{
-						rsa_free(this->GetKeyPtr());
+						rsa_free(this->getKeyPtr());
 					}
 
-					ZeroMemory(this->GetKeyPtr(), sizeof(*this->GetKeyPtr()));
+					ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
 				}
 
 			private:
-				std::shared_ptr<rsa_key> KeyStorage;
+				std::shared_ptr<rsa_key> keyStorage;
 			};
 
 			static Key GenerateKey(int bits);
