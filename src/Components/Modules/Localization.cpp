@@ -131,7 +131,7 @@ namespace Components
 		Localization::Set(key, value);
 	}
 
-	DWORD Localization::SELoadLanguageStub()
+	void Localization::LoadLanguageStrings()
 	{
 		//if (ZoneBuilder::IsEnabled())
 		{
@@ -144,8 +144,19 @@ namespace Components
 				Game::SE_Load("localizedstrings/iw4x_english.str", 0);
 			}
 		}
+	}
 
-		return Utils::Hook::Call<DWORD()>(0x629E20)();
+	__declspec(naked) void Localization::SELoadLanguageStub()
+	{
+		__asm
+		{
+			pushad
+			call Localization::LoadLanguageStrings
+			popad
+
+			push 629E20h
+			retn
+		}
 	}
 
 	Localization::Localization()

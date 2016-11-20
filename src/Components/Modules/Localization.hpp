@@ -24,6 +24,7 @@ namespace Components
 		static Dvar::Var UseLocalization;
 
 		static void __stdcall SetStringStub(const char* key, const char* value, bool isEnglish);
-		static DWORD SELoadLanguageStub();
+		static void LoadLanguageStrings();
+		static void SELoadLanguageStub();
 	};
 }
