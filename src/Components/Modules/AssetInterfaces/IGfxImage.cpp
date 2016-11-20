@@ -112,12 +112,19 @@ namespace Assets
 			buffer->align(Utils::Stream::ALIGN_4);
 			
 			Game::GfxImageLoadDef* destTexture = buffer->dest<Game::GfxImageLoadDef>();
-			buffer->save(asset->texture, 16);
+			buffer->save(asset->loadDef, 16);
+
+			builder->incrementExternalSize(asset->loadDef->dataSize);
 
 			// Zero the size!
 			destTexture->dataSize = 0;
 
-			Utils::Stream::ClearPointer(&dest->texture);
+			if (destTexture->dataSize > 0)
+			{
+				buffer->save(asset->loadDef->data, asset->loadDef->dataSize);
+			}
+
+			Utils::Stream::ClearPointer(&dest->loadDef);
 		}
 
 		buffer->popBlock();

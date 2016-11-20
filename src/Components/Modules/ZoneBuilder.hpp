@@ -41,6 +41,8 @@ namespace Components
 
 			void store(Game::XAssetHeader header);
 
+			void incrementExternalSize(unsigned int size);
+
 		private:
 			void loadFastFiles();
 
@@ -55,6 +57,7 @@ namespace Components
 			uint32_t safeGetPointer(const void* pointer);
 
 			int indexStart;
+			unsigned int externalSize;
 			Utils::Stream buffer;
 
 			std::string zoneName;

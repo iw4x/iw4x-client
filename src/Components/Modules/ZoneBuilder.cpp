@@ -5,7 +5,7 @@ namespace Components
 	std::string ZoneBuilder::TraceZone;
 	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::TraceAssets;
 
-	ZoneBuilder::Zone::Zone(std::string name) : dataMap("zone_source/" + name + ".csv"), zoneName(name), indexStart(0), branding { 0 },
+	ZoneBuilder::Zone::Zone(std::string name) : dataMap("zone_source/" + name + ".csv"), zoneName(name), indexStart(0), externalSize(0), branding { 0 },
 
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
@@ -316,7 +316,7 @@ namespace Components
 		this->buffer.enterCriticalSection();
 		Game::XFile* header = reinterpret_cast<Game::XFile*>(this->buffer.data());
 		header->size = this->buffer.length() - sizeof(Game::XFile); // Write correct data size
-		header->externalSize = 0; // ? 
+		header->externalSize = this->externalSize; // This actually stores how much external data has to be loaded. It's used to calculate the loadscreen progress
 
 		// Write stream sizes
 		for (int i = 0; i < Game::MAX_XFILE_COUNT; ++i)
@@ -457,6 +457,11 @@ namespace Components
 		{
 			this->storePointer(header.data);
 		}
+	}
+
+	void ZoneBuilder::Zone::incrementExternalSize(unsigned int size)
+	{
+		this->externalSize += size;
 	}
 
 	bool ZoneBuilder::IsEnabled()
