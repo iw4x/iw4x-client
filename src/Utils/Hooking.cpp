@@ -60,21 +60,21 @@ namespace Utils
 	{
 		__asm
 		{
-			sub esp, 4h          // Reserve space on the stack for the return address
-			pushad               // Store registers
+			sub esp, 4h                             // Reserve space on the stack for the return address
+			pushad                                  // Store registers
 
-			lea eax, [esp + 20h] // Load initial stack pointer
-			push eax             // Push it onto the stack
+			lea eax, [esp + 20h]                    // Load initial stack pointer
+			push eax                                // Push it onto the stack
 
-			call RunCallback     // Run the callback based on the given stack pointer
-			call PopReturn       // Get the initial return address according to the stack pointer
+			call Hook::Interceptor::RunCallback     // Run the callback based on the given stack pointer
+			call Hook::Interceptor::PopReturn       // Get the initial return address according to the stack pointer
 
-			add esp, 4h          // Clear the stack
+			add esp, 4h                             // Clear the stack
 
-			mov [esp + 20h], eax // Store the return address at the reserved space
-			popad                // Restore the registers
+			mov [esp + 20h], eax                    // Store the return address at the reserved space
+			popad                                   // Restore the registers
 
-			retn                 // Return (jump to our return address)
+			retn                                    // Return (jump to our return address)
 		}
 	}
 
