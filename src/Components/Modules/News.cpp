@@ -77,7 +77,7 @@ namespace Components
 
 		if (!caches.empty())
 		{
-			std::string str = "<Cache ID=\"game\" Version=\"";
+			std::string str = "<Cache ID=\"iw4x\" Version=\"";
 			auto pos = caches.find(str);
 
 			if (pos != std::string::npos)
@@ -116,12 +116,6 @@ namespace Components
 		// hook for getting the news ticker string
 		Utils::Hook::Nop(0x6388BB, 2); // skip the "if (item->text[0] == '@')" localize check
 		Utils::Hook(0x6388C1, News::GetNewsText, HOOK_CALL).install()->quick();
-
-		// TODO: Probably remove that, if the updater is part of the repo?
-		if (Utils::IO::FileExists("updater.exe"))
-		{
-			remove("updater.exe");
-		}
 
 		Command::Add("checkforupdate", [] (Command::Params)
 		{
