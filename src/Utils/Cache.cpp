@@ -10,6 +10,7 @@ namespace Utils
 		*/
 	};
 	std::string Cache::validUrl;
+	std::mutex Cache::CacheMutex;
 
 	Cache::Cache(std::string path)
 	{
@@ -31,15 +32,22 @@ namespace Utils
 
 	std::string Cache::GetFile(int timeout, std::string useragent)
 	{
-		for (int i = 0; i < ARRAY_SIZE(Cache::urls); i++)
+		if (Cache::validUrl.empty())
 		{
-			std::string result = Utils::WebIO(useragent, this->GetUrl(Cache::urls[i], this->Path)).setTimeout(timeout)->get();
-			if (!result.empty())
+			std::lock_guard<std::mutex> _(Cache::CacheMutex);
+			for (int i = 0; i < ARRAY_SIZE(Cache::urls); i++)
 			{
-				Cache::validUrl = Cache::urls[i];
-				return result;
+				std::string result = Utils::WebIO(useragent, this->GetUrl(Cache::urls[i], this->Path)).setTimeout(timeout)->get();
+				if (!result.empty())
+				{
+					Cache::validUrl = Cache::urls[i];
+					return result;
+				}
 			}
 		}
-		return "";
+		else
+		{
+			return Utils::WebIO(useragent, this->GetUrl(Cache::validUrl, this->Path)).setTimeout(timeout)->get();
+		}
 	}
 }
