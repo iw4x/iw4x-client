@@ -3,15 +3,13 @@ namespace Utils
 	class Cache
 	{
 	public:
-		Cache(std::string path);
-		std::string GetUrl();
-		std::string GetFile(int timeout = 5000, std::string useragent = "IW4x");
+		static std::string GetUrl(std::string path);
+		static std::string GetFile(std::string path, int timeout = 5000, std::string useragent = "IW4x");
 
 	private:
 		static std::mutex CacheMutex;
-		static const char* urls[];
-		static std::string validUrl;
-		std::string Path;
-		std::string GetUrl(std::string url, std::string path);
+		static const char* Urls[];
+		static std::string ValidUrl;
+		static std::string GetUrl(std::string url, std::string path);
 	};
 }

@@ -73,7 +73,7 @@ namespace Components
 
 	void News::CheckForUpdate()
 	{
-		std::string caches = Utils::Cache("/iw4/caches.xml").GetFile();
+		std::string caches = Utils::Cache::GetFile("/iw4/caches.xml");
 
 		if (!caches.empty())
 		{
@@ -134,7 +134,7 @@ namespace Components
 
 			std::thread([] ()
 			{
-				std::string data = Utils::Cache("/iw4/updater.exe").GetFile();
+				std::string data = Utils::Cache::GetFile("/iw4/updater.exe");
 
 				if (data.empty())
 				{
@@ -156,9 +156,9 @@ namespace Components
 			News::Terminate = false;
 			News::Thread = std::thread([] ()
 			{
-				Localization::Set("MPUI_CHANGELOG_TEXT", Utils::Cache("/iw4/changelog.txt").GetFile());
+				Localization::Set("MPUI_CHANGELOG_TEXT", Utils::Cache::GetFile("/iw4/changelog.txt"));
 
-				std::string data = Utils::Cache("/iw4/motd.txt").GetFile();
+				std::string data = Utils::Cache::GetFile("/iw4/motd.txt");
 
 				if (!data.empty())
 				{

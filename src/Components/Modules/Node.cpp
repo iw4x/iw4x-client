@@ -10,7 +10,7 @@ namespace Components
 
 	void Node::LoadNodeRemotePreset()
 	{
-		std::string nodes = Utils::Cache("/iw4/nodes.txt").GetFile();
+		std::string nodes = Utils::Cache::GetFile("/iw4/nodes.txt");
 		if (nodes.empty()) return;
 
 		auto nodeList = Utils::String::Explode(nodes, '\n');

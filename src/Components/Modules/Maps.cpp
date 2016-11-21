@@ -492,14 +492,14 @@ namespace Components
 		{
 			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
 
-			Maps::AddDlc({ 1, Utils::Cache("/dlc/IW4.DLC.1.Stimulus.Package.zip").GetUrl(), { "mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash" } });
-			Maps::AddDlc({ 2, Utils::Cache("/dlc/IW4.DLC.2.Resurgence.Pack.zip").GetUrl(), { "mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2" } });
-			Maps::AddDlc({ 3, Utils::Cache("/dlc/IW4.DLC.3.Nuketown.zip").GetUrl(), { "mp_nuked" } });
-			Maps::AddDlc({ 4, Utils::Cache("/dlc/IW4.DLC.4.Classics.1.zip").GetUrl(), { "mp_cross_fire", "mp_cargoship", "mp_bloc" } });
-			Maps::AddDlc({ 5, Utils::Cache("/dlc/IW4.DLC.5.Classics.2.zip").GetUrl(), { "mp_killhouse", "mp_bog_sh" } });
-			Maps::AddDlc({ 6, Utils::Cache("/dlc/IW4.DLC.6.Cargoship.Winter.zip").GetUrl(), { "mp_cargoship_sh" } });
-			Maps::AddDlc({ 7, Utils::Cache("/dlc/IW4.DLC.7.Resurrection.Pack.zip").GetUrl(), { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
-			Maps::AddDlc({ 8, ""/*Utils::Cache("/dlc/").GetUrl()*/,{ /*"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"*/ } });
+			Maps::AddDlc({ 1, Utils::Cache::GetUrl("/dlc/IW4.DLC.1.Stimulus.Package.zip"), { "mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash" } });
+			Maps::AddDlc({ 2, Utils::Cache::GetUrl("/dlc/IW4.DLC.2.Resurgence.Pack.zip"), { "mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2" } });
+			Maps::AddDlc({ 3, Utils::Cache::GetUrl("/dlc/IW4.DLC.3.Nuketown.zip"), { "mp_nuked" } });
+			Maps::AddDlc({ 4, Utils::Cache::GetUrl("/dlc/IW4.DLC.4.Classics.1.zip"), { "mp_cross_fire", "mp_cargoship", "mp_bloc" } });
+			Maps::AddDlc({ 5, Utils::Cache::GetUrl("/dlc/IW4.DLC.5.Classics.2.zip"), { "mp_killhouse", "mp_bog_sh" } });
+			Maps::AddDlc({ 6, Utils::Cache::GetUrl("/dlc/IW4.DLC.6.Cargoship.Winter.zip"), { "mp_cargoship_sh" } });
+			Maps::AddDlc({ 7, Utils::Cache::GetUrl("/dlc/IW4.DLC.7.Resurrection.Pack.zip"), { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
+			Maps::AddDlc({ 8, ""/*Utils::Cache::GetUrl("/dlc/")*/,{ /*"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"*/ } });
 
 			Maps::UpdateDlcStatus();
 

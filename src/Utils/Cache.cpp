@@ -2,27 +2,24 @@
 
 namespace Utils
 {
-	const char* Cache::urls[] =
+	const char* Cache::Urls[] =
 	{
 		"https://iw4xcachep26muba.onion.to"/*,
 		"https://iw4xcachejnetuln.onion.to",
 		"https://iw4xcachedjodc4y.onion.to",
 		*/
 	};
-	std::string Cache::validUrl;
+	std::string Cache::ValidUrl;
 	std::mutex Cache::CacheMutex;
 
-	Cache::Cache(std::string path)
+	std::string Cache::GetUrl(std::string path)
 	{
-		this->Path = path;
-	}
+		std::lock_guard<std::mutex> _(Cache::CacheMutex);
 
-	std::string Cache::GetUrl()
-	{
-		if (Cache::validUrl.empty())
-			return Cache::urls[0] + this->Path;
+		if (Cache::ValidUrl.empty())
+			return Cache::Urls[0] + path;
 		else
-			return Cache::validUrl + this->Path;
+			return Cache::ValidUrl + path;
 	}
 
 	std::string Cache::GetUrl(std::string url, std::string path)
@@ -30,25 +27,28 @@ namespace Utils
 		return url + path;
 	}
 
-	std::string Cache::GetFile(int timeout, std::string useragent)
+	std::string Cache::GetFile(std::string path, int timeout, std::string useragent)
 	{
-		if (Cache::validUrl.empty())
+		std::lock_guard<std::mutex> _(Cache::CacheMutex);
+
+		if (Cache::ValidUrl.empty())
 		{
-			std::lock_guard<std::mutex> _(Cache::CacheMutex);
-			for (int i = 0; i < ARRAY_SIZE(Cache::urls); i++)
+			for (int i = 0; i < ARRAY_SIZE(Cache::Urls); i++)
 			{
-				std::string result = Utils::WebIO(useragent, this->GetUrl(Cache::urls[i], this->Path)).setTimeout(timeout)->get();
+				std::string result = Utils::WebIO(useragent, Cache::GetUrl(Cache::Urls[i], path)).setTimeout(timeout)->get();
+
 				if (!result.empty())
 				{
-					Cache::validUrl = Cache::urls[i];
+					Cache::ValidUrl = Cache::Urls[i];
 					return result;
 				}
 			}
+
+			return "";
 		}
 		else
 		{
-			return Utils::WebIO(useragent, this->GetUrl(Cache::validUrl, this->Path)).setTimeout(timeout)->get();
+			return Utils::WebIO(useragent, Cache::GetUrl(Cache::ValidUrl, path)).setTimeout(timeout)->get();
 		}
-		return "";
 	}
 }
