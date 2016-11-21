@@ -49,5 +49,6 @@ namespace Utils
 		{
 			return Utils::WebIO(useragent, this->GetUrl(Cache::validUrl, this->Path)).setTimeout(timeout)->get();
 		}
+		return "";
 	}
 }
