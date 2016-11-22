@@ -17,9 +17,13 @@ namespace Utils
 		std::lock_guard<std::mutex> _(Cache::CacheMutex);
 
 		if (Cache::ValidUrl.empty())
+		{
 			return Cache::Urls[0] + path;
+		}
 		else
+		{
 			return Cache::ValidUrl + path;
+		}
 	}
 
 	std::string Cache::GetUrl(std::string url, std::string path)
