@@ -209,7 +209,7 @@ namespace Components
 			path.append(".ff");
 		}
 
-		return std::ifstream(path.data()).good();
+		return Utils::IO::FileExists(path);
 	}
 
 	bool FastFiles::Ready()
@@ -225,7 +225,7 @@ namespace Components
 		std::string modDir = Dvar::Var("fs_game").get<std::string>();
 		if (file == "mod"s || file == "mod.ff"s || !modDir.empty())
 		{
-			paths.push_back(fmt::sprintf("zone\\%s\\", modDir.data()));
+			paths.push_back(fmt::sprintf("%s\\", modDir.data()));
 		}
 
 		Utils::Merge(&paths, FastFiles::ZonePaths);
