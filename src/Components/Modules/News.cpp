@@ -73,7 +73,7 @@ namespace Components
 
 	void News::CheckForUpdate()
 	{
-		std::string caches = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/caches.xml").setTimeout(5000)->get();
+		std::string caches = Utils::Cache::GetFile("/iw4/caches.xml");
 
 		if (!caches.empty())
 		{
@@ -134,7 +134,7 @@ namespace Components
 
 			std::thread([] ()
 			{
-				std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/updater.exe").setTimeout(5000)->get();
+				std::string data = Utils::Cache::GetFile("/iw4/updater.exe");
 
 				if (data.empty())
 				{
@@ -156,9 +156,9 @@ namespace Components
 			News::Terminate = false;
 			News::Thread = std::thread([] ()
 			{
-				Localization::Set("MPUI_CHANGELOG_TEXT", Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/changelog.txt").setTimeout(5000)->get());
+				Localization::Set("MPUI_CHANGELOG_TEXT", Utils::Cache::GetFile("/iw4/changelog.txt"));
 
-				std::string data = Utils::WebIO("IW4x", "https://iw4xcachep26muba.onion.to/iw4/motd.txt").setTimeout(5000)->get();
+				std::string data = Utils::Cache::GetFile("/iw4/motd.txt");
 
 				if (!data.empty())
 				{
