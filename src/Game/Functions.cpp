@@ -225,6 +225,8 @@ namespace Game
 	Sys_ListFiles_t Sys_ListFiles = (Sys_ListFiles_t)0x45A660;
 	Sys_Milliseconds_t Sys_Milliseconds = (Sys_Milliseconds_t)0x42A660;
 
+	TeleportPlayer_t TeleportPlayer = (TeleportPlayer_t)0x496850;
+
 	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
 	UI_CheckStringTranslation_t UI_CheckStringTranslation = (UI_CheckStringTranslation_t)0x4FB010;
 	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;

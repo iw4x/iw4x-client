@@ -195,6 +195,51 @@ namespace Components
 			Logger::Print("UFO toggled\n");
 			Toast::Show("cardicon_abduction", "Success", "UFO toggled", 3000);
 		});
+
+		Command::Add("setviewpos", [](Command::Params params)
+		{
+			int clientNum = Game::CG_GetClientNum();
+			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
+			{
+				Logger::Print("You are not hosting a match!\n");
+				Toast::Show("cardicon_stop", "Error", "You are not hosting a match!", 3000);
+				return;
+			}
+
+			if (!Dvar::Var("sv_cheats").get<bool>())
+			{
+				Logger::Print("Cheats disabled!\n");
+				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", 3000);
+				return;
+			}
+
+			if (params.length() < 4 || params.length() > 6)
+			{
+				Logger::Print("Invalid coordinate specified!\n");
+				Toast::Show("cardicon_stop", "Error", "Invalid coordinate specified!", 3000);
+				return;
+			}
+
+			float pos[3];
+			float orientation[3];
+
+			for (unsigned int i = 0; i < (params.length() - 1); i++)
+			{
+				if (i < 3)
+				{
+					pos[i] = strtof(params[i + 1], NULL);
+				}
+				else
+				{
+					orientation[i - 3] = strtof(params[i + 1], NULL);
+				}
+			}
+
+			Game::TeleportPlayer(&Game::g_entities[clientNum], pos, orientation);
+
+			Logger::Print("Successfully teleported player!\n");
+			Toast::Show("cardicon_abduction", "Success", "You have been teleported!", 3000);
+		});
 	}
 
 	Command::~Command()
