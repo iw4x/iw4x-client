@@ -50,6 +50,20 @@ function protobuf.project()
 			path.join(protobuf.settings.source, "src/google/protobuf/util/internal/error_listener.cc"),
 			path.join(protobuf.settings.source, "**/*_gcc.cc"),
 		}
+		
+		-- Generate source code from protobuf definitions
+		rules { "ProtobufCompiler" }
+
+		-- Workaround: Consume protobuf generated source files	
+		matches = os.matchfiles(path.join("src/Proto/**.proto"))
+		for i, srcPath in ipairs(matches) do
+			basename = path.getbasename(srcPath)
+			files
+			{
+				string.format("%%{prj.location}/src/proto/%s.pb.h", basename),
+				string.format("%%{prj.location}/src/proto/%s.pb.cc", basename),
+			}
+		end
 
 		-- dependencies
 		zlib.import()

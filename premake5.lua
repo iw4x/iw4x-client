@@ -371,7 +371,7 @@ workspace "iw4x"
 		vpaths
 		{
 			["*"] = { "./src/**" },
-			["Proto/Generated"] = { "**.pb.*" }, -- meh.
+			--["Proto/Generated"] = { "**.pb.*" }, -- meh.
 		}
 
 		-- Virtual paths
@@ -381,8 +381,8 @@ workspace "iw4x"
 				["Headers/*"] = { "./src/**.hpp" },
 				["Sources/*"] = { "./src/**.cpp" },
 				["Resource/*"] = { "./src/**.rc" },
-				["Proto/Definitions/*"] = { "./src/Proto/**.proto" },
-				["Proto/Generated/*"] = { "**.pb.*" }, -- meh.
+				--["Proto/Definitions/*"] = { "./src/Proto/**.proto" },
+				--["Proto/Generated/*"] = { "**.pb.*" }, -- meh.
 			}
 		end
 
@@ -433,6 +433,7 @@ workspace "iw4x"
 			}
 		configuration {}
 
+		--[[
 		-- Generate source code from protobuf definitions
 		rules { "ProtobufCompiler" }
 
@@ -464,6 +465,7 @@ workspace "iw4x"
 				"_SCL_SECURE_NO_WARNINGS",
 			}
 		filter {}
+		]]
 
 	group "External dependencies"
 		if not _OPTIONS["disable-bitmessage"] then
