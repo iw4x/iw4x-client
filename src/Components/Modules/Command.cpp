@@ -213,32 +213,31 @@ namespace Components
 				return;
 			}
 
-			if (params.length() < 4 || params.length() > 6)
+			if (params.length() != 4 && params.length() != 6)
 			{
 				Logger::Print("Invalid coordinate specified!\n");
 				Toast::Show("cardicon_stop", "Error", "Invalid coordinate specified!", 3000);
 				return;
 			}
 
-			float pos[3];
-			float orientation[3];
-
-			for (unsigned int i = 0; i < (params.length() - 1); i++)
-			{
-				if (i < 3)
-				{
-					pos[i] = strtof(params[i + 1], NULL);
-				}
-				else
-				{
-					orientation[i - 3] = strtof(params[i + 1], NULL);
-				}
-			}
+			float pos[3] = { 0.0f, 0.0f, 0.0f };
+			float orientation[3] = { 0.0f, 0.0f, 0.0f };
+			
+			pos[0] = strtof(params[1], NULL);
+			pos[1] = strtof(params[2], NULL);
+			pos[2] = strtof(params[3], NULL);
+			
+            if(params.length() == 6)
+            {
+                orientation[0] = strtof(params[4], NULL);
+                orientation[1] = strtof(params[5], NULL);
+            }
 
 			Game::TeleportPlayer(&Game::g_entities[clientNum], pos, orientation);
 
-			Logger::Print("Successfully teleported player!\n");
-			Toast::Show("cardicon_abduction", "Success", "You have been teleported!", 3000);
+			// Logging that will spam the console and screen if people use cinematics
+			//Logger::Print("Successfully teleported player!\n");
+			//Toast::Show("cardicon_abduction", "Success", "You have been teleported!", 3000);
 		});
 	}
 
