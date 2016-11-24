@@ -300,7 +300,7 @@ workspace "iw4x"
 			"./src/**.rc",
 			"./src/**.hpp",
 			"./src/**.cpp",
-			"./src/**.proto",
+			--"./src/**.proto",
 		}
 		includedirs {
 			"%{prj.location}/src",
