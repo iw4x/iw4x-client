@@ -227,11 +227,11 @@ namespace Components
 			pos[1] = strtof(params[2], NULL);
 			pos[2] = strtof(params[3], NULL);
 			
-            if(params.length() == 6)
-            {
-                orientation[0] = strtof(params[4], NULL);
-                orientation[1] = strtof(params[5], NULL);
-            }
+			if(params.length() == 6)
+			{
+				orientation[0] = strtof(params[4], NULL);
+				orientation[1] = strtof(params[5], NULL);
+			}
 
 			Game::TeleportPlayer(&Game::g_entities[clientNum], pos, orientation);
 
