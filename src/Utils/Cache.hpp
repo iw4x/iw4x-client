@@ -3,7 +3,7 @@ namespace Utils
 	class Cache
 	{
 	public:
-		static std::string GetUrl(std::string path);
+		static std::string GetStaticUrl(std::string path);
 		static std::string GetFile(std::string path, int timeout = 5000, std::string useragent = "IW4x");
 
 	private:

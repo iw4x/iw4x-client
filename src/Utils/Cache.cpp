@@ -12,9 +12,9 @@ namespace Utils
 	std::string Cache::ValidUrl;
 	std::mutex Cache::CacheMutex;
 
-	std::string Cache::GetUrl(std::string path)
+	std::string Cache::GetStaticUrl(std::string path)
 	{
-		return Cache::Urls[ARRAY_SIZE(Cache::Urls) - 1] + path;
+		return Cache::Urls[0] + path;
 	}
 
 	std::string Cache::GetUrl(std::string url, std::string path)
