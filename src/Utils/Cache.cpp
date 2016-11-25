@@ -14,16 +14,7 @@ namespace Utils
 
 	std::string Cache::GetUrl(std::string path)
 	{
-		std::lock_guard<std::mutex> _(Cache::CacheMutex);
-
-		if (Cache::ValidUrl.empty())
-		{
-			return Cache::Urls[0] + path;
-		}
-		else
-		{
-			return Cache::ValidUrl + path;
-		}
+		return Cache::Urls[ARRAY_SIZE(Cache::Urls) - 1] + path;
 	}
 
 	std::string Cache::GetUrl(std::string url, std::string path)
