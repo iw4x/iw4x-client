@@ -21,12 +21,15 @@ namespace Components
 
 		static void ConnectError(std::string message);
 
+		static std::string GetMotd();
+
 	private:
 		class JoinContainer
 		{
 		public:
 			Network::Address target;
 			std::string challenge;
+			std::string motd;
 			DWORD joinTime;
 			bool valid;
 			int matchType;
@@ -35,7 +38,7 @@ namespace Components
 
 			// Party-specific stuff
 			DWORD requestTime;
-			bool awaitingPlaylist;		
+			bool awaitingPlaylist;
 		};
 
 		static JoinContainer Container;

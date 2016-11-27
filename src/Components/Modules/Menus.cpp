@@ -623,7 +623,16 @@ namespace Components
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
 
 		// Don't open connect menu
-		Utils::Hook::Nop(0x428E48, 5);
+		//Utils::Hook::Nop(0x428E48, 5);
+
+		// Use the connect menu open call to update server motds
+		Utils::Hook(0x428E48, []()
+		{
+			if (!Party::GetMotd().empty())
+			{
+				Dvar::Var("didyouknow").set(Party::GetMotd());
+			}
+		}, HOOK_CALL).install()->quick();
 
 		// Intercept menu painting
 		Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).install()->quick();

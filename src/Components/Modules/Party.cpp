@@ -72,6 +72,11 @@ namespace Components
 		Command::Execute("openmenu menu_xboxlive_partyended");
 	}
 
+	std::string Party::GetMotd()
+	{
+		return Party::Container.motd;
+	}
+
 	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int /*value*/, int /*min*/, int max, Game::dvar_flag flag, const char* description)
 	{
 		return Dvar::Register<int>(name, 1, 1, max, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED | flag, description).get<Game::dvar_t*>();
@@ -319,6 +324,11 @@ namespace Components
 			info.set("securityLevel", fmt::sprintf("%i", Dvar::Var("sv_securityLevel").get<int>()));
 			info.set("sv_running", (Dvar::Var("sv_running").get<bool>() ? "1" : "0"));
 
+			if (Dedicated::IsEnabled())
+			{
+				info.set("sv_motd", Dvar::Var("sv_motd").get<std::string>());
+			}
+
 			// Ensure mapname is set
 			if (info.get("mapname").empty() || (Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>() && !Dvar::Var("sv_running").get<bool>()))
 			{
@@ -398,6 +408,8 @@ namespace Components
 					}
 					else
 					{
+						Party::Container.motd = info.get("sv_motd");
+
 						if (Party::Container.matchType == 1) // Party
 						{
 							// Send playlist request

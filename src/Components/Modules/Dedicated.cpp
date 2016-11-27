@@ -330,6 +330,7 @@ namespace Components
 			Dvar::OnInit([] ()
 			{
 				Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_FLAG_NONE, "The name to pose as for 'say' commands");
+				Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_FLAG_NONE, "A custom message of the day for servers");
 
 				// Say command
 				Command::AddSV("say", [] (Command::Params params)
