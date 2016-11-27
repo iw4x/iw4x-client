@@ -185,7 +185,8 @@ def iw4xExecutableBranch() {
 
 // Job properties
 properties([
-	[$class: "GitLabConnectionProperty", gitLabConnection: "sr0"]
+	[$class: "GitLabConnectionProperty", gitLabConnection: "sr0"],
+	buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '30'))
 ])
 
 gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"]) {
