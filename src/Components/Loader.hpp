@@ -32,6 +32,7 @@ namespace Components
 
 #include "Modules\Auth.hpp"
 #include "Modules\Bans.hpp"
+#include "Modules\Bots.hpp"
 #include "Modules\Dvar.hpp"
 #include "Modules\Lean.hpp"
 #include "Modules\Maps.hpp"
