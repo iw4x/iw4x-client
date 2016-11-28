@@ -1921,9 +1921,12 @@ namespace Game
 
 	struct FxTrailVertex
 	{
+		/*
 		float pos[2];
 		float normal[2];
 		float texCoord[2];
+		*/
+		char pad[20];
 	};
 
 	struct FxTrailDef
@@ -1956,7 +1959,7 @@ namespace Game
 		float sparkFountainBoostFactor;
 	};
 
-	union unknownFxUnion
+	union FxElemExtendedDef
 	{
 		char *unknownBytes;
 		FxSparkFountain *sparkFountain;
@@ -2037,7 +2040,7 @@ namespace Game
 		FxEffectDefRef *effectEmitted;
 		FxFloatRange emitDist;
 		FxFloatRange emitDistVariance;
-		unknownFxUnion *trailDef;
+		FxElemExtendedDef extendedDef;
 		//If elemType == 3, then use trailDef
 		//If elemType == 6, then use sparkFountain
 		//If elemType != 3 && elemType != 6 use unknownBytes (size = 1)

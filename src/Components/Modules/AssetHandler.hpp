@@ -75,6 +75,7 @@ namespace Components
 #include "AssetInterfaces\IMaterial.hpp"
 #include "AssetInterfaces\IPhysPreset.hpp"
 #include "AssetInterfaces\IXAnimParts.hpp"
+#include "AssetInterfaces\IFxEffectDef.hpp"
 #include "AssetInterfaces\IPhysCollmap.hpp"
 #include "AssetInterfaces\IStringTable.hpp"
 #include "AssetInterfaces\IXModelSurfs.hpp"

@@ -391,6 +391,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IMaterial());
 			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
 			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
+			AssetHandler::RegisterInterface(new Assets::IFxEffectDef());
 			AssetHandler::RegisterInterface(new Assets::IPhysCollmap());
 			AssetHandler::RegisterInterface(new Assets::IStringTable());
 			//AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
