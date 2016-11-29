@@ -1215,14 +1215,26 @@ namespace Game
 		char * compressedData;
 	};
 
-#pragma pack(push, 4)
 	struct SndCurve
 	{
 		const char *filename;
 		unsigned __int16 knotCount;
 		vec2_t knots[16];
 	};
-#pragma pack(pop)
+
+	struct MssSound
+	{
+		char unknown1[8];
+		int size;
+		char unknown2[22];
+		char *data;	// size = soundSize 
+	};
+
+	struct LoadedSound
+	{
+		const char *name;
+		MssSound mssSound;
+	};
 
 	struct FontEntry
 	{
@@ -2898,6 +2910,7 @@ namespace Game
 		VehicleDef* vehicle;
 		GfxWorld* gfxMap;
 		SndCurve* sndCurve;
+		LoadedSound* sound;
 	};
 
 	struct XAsset
