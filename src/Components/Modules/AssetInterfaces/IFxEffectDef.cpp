@@ -22,7 +22,7 @@ namespace Assets
 
 			case 0xA:
 			{
-				// TODO: Load sound here as soon as soundaliases are supported!
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName);
 				break;
 			}
 

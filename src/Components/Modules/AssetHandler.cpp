@@ -398,6 +398,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IStringTable());
 			//AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
 			AssetHandler::RegisterInterface(new Assets::ILocalizedEntry());
+			AssetHandler::RegisterInterface(new Assets::Isnd_alias_list_t());
 			AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());
 			AssetHandler::RegisterInterface(new Assets::IMaterialTechniqueSet());
 			AssetHandler::RegisterInterface(new Assets::IMaterialVertexShader());

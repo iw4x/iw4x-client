@@ -150,27 +150,108 @@ namespace Game
 	};
 #pragma pack(pop)
 
-	typedef struct
+	struct SpeakerLevels
 	{
-		char type;
-		char pad[3];
-		const char* folder;
-		const char* file;
-	} StreamFile;
+		int speaker;
+		int numLevels;
+		float levels[2];
+	};
 
-	typedef struct
+	struct ChannelMap
 	{
-		char pad[20];
-		StreamFile* stream;
-		char pad2[76];
-	} snd_alias_t;
+		int entryCount;	// how many entries are used
+		SpeakerLevels speakers[6];
+	};
 
-	typedef struct
+	struct SpeakerMap
 	{
-		const char* name;
-		snd_alias_t* aliases;
-		int numAliases;
-	} snd_alias_list_t;
+		bool isDefault;
+		const char *name;
+		ChannelMap channelMaps[2][2];
+	};
+
+	enum snd_alias_type_t : char
+	{
+		SAT_UNKNOWN = 0x0,
+		SAT_LOADED = 0x1,
+		SAT_STREAMED = 0x2
+	};
+
+	struct StreamedSound
+	{
+		const char *dir;
+		const char *name;
+	};
+
+	struct SndCurve
+	{
+		const char *filename;
+		unsigned __int16 knotCount;
+		vec2_t knots[16];
+	};
+
+	struct MssSound
+	{
+		char unknown1[8];
+		int size;
+		char unknown2[22];
+		char *data;	// size = soundSize 
+	};
+
+	struct LoadedSound
+	{
+		const char *name;
+		MssSound mssSound;
+	};
+
+	union SoundData
+	{
+		LoadedSound* loaded;
+		StreamedSound stream;
+	};
+
+	struct SoundFile	// 0xC
+	{
+		snd_alias_type_t type;
+		bool exists;
+		SoundData data;
+	};
+
+	struct snd_alias_t
+	{
+		const char *name;
+		const char *subtitle;
+		const char *secondaryAliasName;
+		const char *chainAliasName;
+		const char *string4;
+		SoundFile *soundFile;
+		int sequence;
+		float volMin;
+		float volMax;
+		float pitchMin;
+		float pitchMax;
+		float distMin;
+		float distMax;
+		int flags;
+		float slavePercentage;
+		float probability;
+		float lfePercentage;
+		float centerPercentage;
+		int startDelay;
+		int pad;
+		SndCurve *volumeFalloffCurve;
+		float envelopMin;
+		float envelopMax;
+		float envelopPercentage;
+		SpeakerMap *speakerMap;
+	};
+
+	struct snd_alias_list_t
+	{
+		const char *name;
+		snd_alias_t *head;
+		int count;
+	};
 
 	typedef struct
 	{
@@ -1213,27 +1294,6 @@ namespace Game
 		int sizeCompressed;
 		int sizeUnCompressed;
 		char * compressedData;
-	};
-
-	struct SndCurve
-	{
-		const char *filename;
-		unsigned __int16 knotCount;
-		vec2_t knots[16];
-	};
-
-	struct MssSound
-	{
-		char unknown1[8];
-		int size;
-		char unknown2[22];
-		char *data;	// size = soundSize 
-	};
-
-	struct LoadedSound
-	{
-		const char *name;
-		MssSound mssSound;
 	};
 
 	struct FontEntry

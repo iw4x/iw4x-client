@@ -82,6 +82,7 @@ namespace Components
 #include "AssetInterfaces\IStringTable.hpp"
 #include "AssetInterfaces\IXModelSurfs.hpp"
 #include "AssetInterfaces\ILocalizedEntry.hpp"
+#include "AssetInterfaces\Isnd_alias_list_t.hpp"
 #include "AssetInterfaces\IMaterialPixelShader.hpp"
 #include "AssetInterfaces\IMaterialTechniqueSet.hpp"
 #include "AssetInterfaces\IMaterialVertexShader.hpp"

@@ -939,10 +939,11 @@ namespace Components
 			for (int i = 0; i < count; ++i)
 			{
 				char* src = &buffer[i * 108];
+				char* dest = reinterpret_cast<char*>(&tempSounds[i]);
 
-				std::memcpy(&tempSounds[i], src + 0, 60);
-				std::memcpy(&tempSounds[i].pad2[36], src + 68, 20);
-				std::memcpy(&tempSounds[i].pad2[56], src + 88, 20);
+				std::memcpy(dest + 0, src + 0, 60);
+				std::memcpy(dest + 60, src + 68, 20);
+				std::memcpy(dest + 80, src + 88, 20);
 
 				AssetHandler::Relocate(src + 0, buffer + (i * 100) + 0, 60);
 				AssetHandler::Relocate(src + 68, buffer + (i * 100) + 60, 20);

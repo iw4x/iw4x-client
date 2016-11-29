@@ -19,9 +19,9 @@ namespace Components
 
 			if (aliases)
 			{
-				if (aliases->aliases->stream->type == 2)
+				if (aliases->head->soundFile->type == 2)
 				{
-					aliases->aliases->stream->file = MusicalTalent::SoundAliasList[Utils::String::ToLower(filename)];
+					aliases->head->soundFile->data.stream.name = MusicalTalent::SoundAliasList[Utils::String::ToLower(filename)];
 				}
 
 				header.aliasList = aliases;
