@@ -515,7 +515,7 @@ namespace Components
 			Utils::Hook::Set<BYTE>(0x407BAA, 0xEB);
 
 			// Don't load sounds
-			Utils::Hook::Set<BYTE>(0x334D41, 0xC3);
+			//Utils::Hook::Set<BYTE>(0x413430, 0xC3);
 
 			// Don't display errors when assets are missing (we might manually build those)
 			Utils::Hook::Nop(0x5BB3F2, 5);
