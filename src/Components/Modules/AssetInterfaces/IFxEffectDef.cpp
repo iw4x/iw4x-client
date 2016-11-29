@@ -63,8 +63,15 @@ namespace Assets
 					{
 						for (char j = 0; j < elemDef->visualCount; ++j)
 						{
-							builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]->name);
-							builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]->name);
+							if (elemDef->visuals.markArray[j].data[0])
+							{
+								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]->name);
+							}
+
+							if (elemDef->visuals.markArray[j].data[1])
+							{
+								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]->name);
+							}
 						}
 					}
 				}
