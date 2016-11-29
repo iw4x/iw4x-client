@@ -73,6 +73,7 @@ namespace Components
 #include "AssetInterfaces\IRawFile.hpp"
 #include "AssetInterfaces\IGfxImage.hpp"
 #include "AssetInterfaces\IMaterial.hpp"
+#include "AssetInterfaces\ISndCurve.hpp"
 #include "AssetInterfaces\IPhysPreset.hpp"
 #include "AssetInterfaces\IXAnimParts.hpp"
 #include "AssetInterfaces\IFxEffectDef.hpp"

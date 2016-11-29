@@ -1215,6 +1215,15 @@ namespace Game
 		char * compressedData;
 	};
 
+#pragma pack(push, 4)
+	struct SndCurve
+	{
+		const char *filename;
+		unsigned __int16 knotCount;
+		vec2_t knots[16];
+	};
+#pragma pack(pop)
+
 	struct FontEntry
 	{
 		unsigned short character;
@@ -2888,6 +2897,7 @@ namespace Game
 		TracerDef* tracer;
 		VehicleDef* vehicle;
 		GfxWorld* gfxMap;
+		SndCurve* sndCurve;
 	};
 
 	struct XAsset
