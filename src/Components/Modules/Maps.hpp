@@ -45,6 +45,8 @@ namespace Components
 		static Game::GameMap_Data* GetWorldData();
 		static void GetWorldDataStub();
 
+		static void LoadRawSun();
+
 		static void AddDlc(DLC dlc);
 		static void UpdateDlcStatus();
 

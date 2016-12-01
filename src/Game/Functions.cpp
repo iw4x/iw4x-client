@@ -175,6 +175,7 @@ namespace Game
 	R_LoadGraphicsAssets_t R_LoadGraphicsAssets = (R_LoadGraphicsAssets_t)0x506AC0;
 	R_TextWidth_t R_TextWidth = (R_TextWidth_t)0x5056C0;
 	R_TextHeight_t R_TextHeight = (R_TextHeight_t)0x505770;
+	R_FlushSun_t R_FlushSun = (R_FlushSun_t)0x53FB50;
 	
 	Scr_LoadGameType_t Scr_LoadGameType = (Scr_LoadGameType_t)0x4D9520;
 
@@ -459,6 +460,36 @@ namespace Game
 		}
 
 		return hash;
+	}
+
+	void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun)
+	{
+		__asm
+		{
+			push ecx
+			push sun
+			mov eax, mapname
+
+			mov ecx, 53F990h
+			call ecx
+
+			add esp, 4h
+			pop ecx
+		}
+	}
+
+	void R_SetSunFromDvars(sunflare_t* sun)
+	{
+		__asm
+		{
+			push esi
+			mov esi, sun
+
+			mov eax, 53F6D0h
+			call ecx
+
+			pop esi
+		}
 	}
 
 	void SV_KickClient(client_t* client, const char* reason)

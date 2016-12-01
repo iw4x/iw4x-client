@@ -425,6 +425,9 @@ namespace Game
 	typedef int(__cdecl * R_TextHeight_t)(Font* font);
 	extern R_TextHeight_t R_TextHeight;
 
+	typedef void(__cdecl * R_FlushSun_t)();
+	extern R_FlushSun_t R_FlushSun;
+
 	typedef void(__cdecl * Scr_ShutdownAllocNode_t)();
 	extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
 
@@ -641,6 +644,8 @@ namespace Game
 	void MessageBox(std::string message, std::string title);
 
 	unsigned int R_HashString(const char* string);
+	void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
+	void R_SetSunFromDvars(sunflare_t* sun);
 
 	void SV_KickClient(client_t* client, const char* reason);
 	void SV_KickClientError(client_t* client, std::string reason);
