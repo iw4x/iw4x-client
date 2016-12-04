@@ -189,9 +189,9 @@ namespace Components
 
 		Game::GfxWorld* world = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
 
-		if (FileSystem::File(fmt::sprintf("sun/%s.sun", world->baseName)).exists())
+		if (FileSystem::File(fmt::sprintf("sun/%s.sun", Maps::CurrentMainZone.data())).exists())
 		{
-			Game::R_LoadSunThroughDvars(world->baseName, &world->sun);
+			Game::R_LoadSunThroughDvars(Maps::CurrentMainZone.data(), &world->sun);
 		}
 	}
 
