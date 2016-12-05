@@ -975,9 +975,9 @@ namespace Game
 
 	enum playerFlag
 	{
-		PLAYER_FLAG_NOCLIP = 1,
-		PLAYER_FLAG_UFO = 2,
-		PLAYER_FLAG_FROZEN = 4,
+		PLAYER_FLAG_NOCLIP = 1 << 0,
+		PLAYER_FLAG_UFO    = 1 << 1,
+		PLAYER_FLAG_FROZEN = 1 << 2,
 	};
 
 	typedef struct gclient_s 
