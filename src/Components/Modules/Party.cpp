@@ -150,8 +150,8 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x401C15, 0xEB);
 
 		// disable configstring checksum matching (it's unreliable at most)
-		Utils::Hook::Set<BYTE>(0x4A75A7, 0xEB); // SV_SpawnServer
-		Utils::Hook::Set<BYTE>(0x5AC2CF, 0xEB); // CL_ParseGamestate
+		//Utils::Hook::Set<BYTE>(0x4A75A7, 0xEB); // SV_SpawnServer
+		//Utils::Hook::Set<BYTE>(0x5AC2CF, 0xEB); // CL_ParseGamestate
 		Utils::Hook::Set<BYTE>(0x5AC2C3, 0xEB); // CL_ParseGamestate
 
 		// AnonymousAddRequest
