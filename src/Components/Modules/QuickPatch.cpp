@@ -336,6 +336,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4C37F0, 0xC3); // GamerProfile_UpdateProfileAndSaveIfNeeded
 		Utils::Hook::Set<BYTE>(0x633CA0, 0xC3); // GamerProfile_SetPercentCompleteMP
 
+		Utils::Hook::Nop(0x5AF1EC, 5); // Profile loading error
 		Utils::Hook::Set<BYTE>(0x5AE212, 0xC3); // Profile reading
 
 		// GamerProfile_RegisterCommands
