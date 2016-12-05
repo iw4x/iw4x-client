@@ -55,6 +55,7 @@ namespace Components
 		Loader::Register(new FastFiles());
 		Loader::Register(new Gametypes());
 		Loader::Register(new Materials());
+		Loader::Register(new Threading());
 #ifndef DISABLE_BITMESSAGE
 		Loader::Register(new BitMessage());
 #endif
