@@ -628,6 +628,8 @@ namespace Game
 	extern Game::MaterialPass** varMaterialPass;
 	extern snd_alias_list_t*** varsnd_alias_list_name;
 
+	extern FxElemField* s_elemFields;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);

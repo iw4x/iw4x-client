@@ -311,6 +311,8 @@ namespace Game
 	Game::MaterialPass** varMaterialPass = (Game::MaterialPass**)0x112A960;
 	snd_alias_list_t*** varsnd_alias_list_name = (snd_alias_list_t***)0x112AF38;
 
+	FxElemField* s_elemFields = (FxElemField*)0x73B848;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();

@@ -2,6 +2,23 @@
 
 namespace Assets
 {
+	void IFxEffectDef::load(Game::XAssetHeader* /*header*/, std::string /*name*/, Components::ZoneBuilder::Zone* /*builder*/)
+	{
+		// TODO:
+		// - Add the missing Editor-structures (FxEditorEffectDef, FxEditorElemDef, ...)
+		// - Initialize a parse session for the FX
+		// - Correctly load the FX by parsing each token
+		// - Convert the Editor-structures to the native ones
+
+		if (0)
+		{
+			for (int i = 0; i < FX_ELEM_FIELD_COUNT; ++i)
+			{
+				Game::s_elemFields[i].handler(nullptr, nullptr);
+			}
+		}
+	}
+
 	void IFxEffectDef::markFxElemVisuals(Game::FxElemVisuals* visuals, char elemType, Components::ZoneBuilder::Zone* builder)
 	{
 		switch (elemType)
