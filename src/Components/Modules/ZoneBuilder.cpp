@@ -316,7 +316,7 @@ namespace Components
 		this->buffer.enterCriticalSection();
 		Game::XFile* header = reinterpret_cast<Game::XFile*>(this->buffer.data());
 		header->size = this->buffer.length() - sizeof(Game::XFile); // Write correct data size
-		header->externalSize = this->externalSize; // This actually stores how much external data has to be loaded. It's used to calculate the loadscreen progress
+		header->externalSize = 0;//this->externalSize; // This actually stores how much external data has to be loaded. It's used to calculate the loadscreen progress
 
 		// Write stream sizes
 		for (int i = 0; i < Game::MAX_XFILE_COUNT; ++i)

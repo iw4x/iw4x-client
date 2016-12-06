@@ -17,6 +17,8 @@ namespace Components
 
 		static void LoadLocalizeZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 
+		static float GetFullLoadedFraction();
+
 		static unsigned char ZoneKey[1191];
 
 	private:
@@ -30,6 +32,9 @@ namespace Components
 
 			unsigned char data[1];
 		};
+
+		static unsigned int CurrentZone;
+		static unsigned int MaxZones;
 
 		static Key CurrentKey;
 		static symmetric_CTR CurrentCTR;
@@ -46,5 +51,7 @@ namespace Components
 		static void AuthLoadInflateDecryptBase();
 		static void AuthLoadInflateDecryptBaseFunc(unsigned char* buffer);
 		static int InflateInitDecrypt(z_streamp strm, const char *version, int stream_size);
+
+		static void LoadZonesStub(Game::XZoneInfo *zoneInfo, unsigned int zoneCount);
 	};
 }

@@ -6,6 +6,9 @@ namespace Components
 	symmetric_CTR FastFiles::CurrentCTR;
 	std::vector<std::string> FastFiles::ZonePaths;
 
+	unsigned int FastFiles::CurrentZone;
+	unsigned int FastFiles::MaxZones;
+
 	unsigned char FastFiles::ZoneKey[1191] =
 	{
 		0x30,0x82,0x04,0xA3,0x02,0x01,0x00,0x02,0x82,0x01,0x01,
@@ -269,6 +272,7 @@ namespace Components
 
 	void FastFiles::ReadVersionStub(unsigned int* version, int size)
 	{
+		FastFiles::CurrentZone++;
 		Game::DB_ReadXFileUncompressed(version, size);
 
 		// Allow loading of custom version
@@ -361,6 +365,22 @@ namespace Components
 		}
 	}
 
+	float FastFiles::GetFullLoadedFraction()
+	{
+		float singleProgress = 1.0f / FastFiles::MaxZones;
+		float partialProgress = singleProgress * (FastFiles::CurrentZone - 1);
+		float currentProgress = std::max(std::min(Game::DB_GetLoadedFraction(), 1.0f), 0.0f);
+		return partialProgress + (currentProgress * singleProgress);
+	}
+
+	void FastFiles::LoadZonesStub(Game::XZoneInfo *zoneInfo, unsigned int zoneCount)
+	{
+		FastFiles::CurrentZone = 0;
+		FastFiles::MaxZones = zoneCount;
+
+		Utils::Hook::Call<void(Game::XZoneInfo*, unsigned int)>(0x5BBAC0)(zoneInfo, zoneCount);
+	}
+
 	FastFiles::FastFiles()
 	{
 		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display current loaded zone.");
@@ -413,6 +433,13 @@ namespace Components
 
 		// General read
 		Utils::Hook(0x5B98E4, FastFiles::AuthLoadInflateDecryptBase, HOOK_CALL).install()->quick();
+
+		// Fix fastfile progress
+		Utils::Hook(0x4E5DE3, FastFiles::LoadZonesStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x407761, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
+		Utils::Hook(0x49FA1E, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
+		Utils::Hook(0x589090, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
+		Utils::Hook(0x629FC0, FastFiles::GetFullLoadedFraction, HOOK_JUMP).install()->quick();
 
 		// Add custom zone paths
 		FastFiles::AddZonePath("zone\\patch\\");
