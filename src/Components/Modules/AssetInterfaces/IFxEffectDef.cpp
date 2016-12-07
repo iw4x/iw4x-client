@@ -21,10 +21,13 @@ namespace Assets
 					Components::Logger::Error("Effect needs to be updated from the legacy format.\n");
 				}
 
-				for (int i = 0; i < FX_ELEM_FIELD_COUNT; ++i)
-				{
-					Game::s_elemFields[i].handler(nullptr, nullptr);
-				}
+				Game::FxEditorEffectDef efx;
+				ZeroMemory(&efx, sizeof(efx));
+
+// 				for (int i = 0; i < FX_ELEM_FIELD_COUNT; ++i)
+// 				{
+// 					Game::s_elemFields[i].handler(&session, efx.elems);
+// 				}
 
 				Game::Com_EndParseSession();
 			}

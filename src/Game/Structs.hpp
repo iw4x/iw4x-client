@@ -1930,19 +1930,6 @@ namespace Game
 		FX_ELEM_TYPE_LAST_DRAWN       = 0x9,
 	};
 
-#define FX_ELEM_FIELD_COUNT 90
-
-	struct FxEditorElemDef
-	{
-		// Uh...
-	};
-
-	struct FxElemField
-	{
-		const char *keyName;
-		bool(__cdecl *handler)(const char**, FxEditorElemDef*);
-	};
-
 	struct FxElemVec3Range
 	{
 		float base[3];
@@ -2152,6 +2139,118 @@ namespace Game
 		int elemDefCountOneShot;
 		int elemDefCountEmission;
 		FxElemDef *elemDefs;		//Count = elemDefCountOneShot + elemDefCountEmission + elemDefCountLooping
+	};
+
+#define FX_ELEM_FIELD_COUNT 90
+
+	struct FxEditorElemAtlas
+	{
+		int behavior;
+		int index;
+		int fps;
+		int loopCount;
+		int indexRange;
+		int colIndexBits;
+		int rowIndexBits;
+		int entryCount;
+	};
+
+	struct FxCurve
+	{
+		int dimensionCount;
+		int keyCount;
+		float keys[1];
+	};
+
+	struct FxEditorTrailDef
+	{
+		FxTrailVertex verts[64];
+		int vertCount;
+		unsigned __int16 inds[128];
+		int indCount;
+	};
+
+	struct FxEditorElemDef
+	{
+		char name[48];
+		int editorFlags;
+		int flags;
+		FxFloatRange spawnRange;
+		FxFloatRange fadeInRange;
+		FxFloatRange fadeOutRange;
+		float spawnFrustumCullRadius;
+		FxSpawnDefLooping spawnLooping;
+		FxSpawnDefOneShot spawnOneShot;
+		FxIntRange spawnDelayMsec;
+		FxIntRange lifeSpanMsec;
+		FxFloatRange spawnOrigin[3];
+		FxFloatRange spawnOffsetRadius;
+		FxFloatRange spawnOffsetHeight;
+		FxFloatRange spawnAngles[3];
+		FxFloatRange angularVelocity[3];
+		FxFloatRange initialRotation;
+		FxFloatRange gravity;
+		FxFloatRange elasticity;
+		FxEditorElemAtlas atlas;
+		float velScale[2][3];
+		FxCurve *velShape[2][3][2];
+		float rotationScale;
+		FxCurve *rotationShape[2];
+		float sizeScale[2];
+		FxCurve *sizeShape[2][2];
+		float scaleScale;
+		FxCurve *scaleShape[2];
+		FxCurve *color[2];
+		FxCurve *alpha[2];
+		float lightingFrac;
+		float decalFadeInTime;
+		float collOffset[3];
+		float collRadius;
+		FxEffectDef *effectOnImpact;
+		FxEffectDef *effectOnDeath;
+		int sortOrder;
+		FxEffectDef *emission;
+		FxFloatRange emitDist;
+		FxFloatRange emitDistVariance;
+		char elemType;
+		__declspec(align(4)) int visualCount;
+		union
+		{
+			FxElemVisuals visuals[32];
+			FxElemMarkVisuals markVisuals[16];
+		} visuals;
+		int trailSplitDist;
+		int trailSplitArcDist;
+		int trailSplitTime;
+		int trailRepeatDist;
+		float trailScrollTime;
+		FxEditorTrailDef trailDef;
+		int sparkFountainGravity;
+		int sparkFountainBounceFrac;
+		int sparkFountainBounceRand;
+		int sparkFountainSparkSpacing;
+		int sparkFountainSparkLength;
+		int sparkFountainSparkCount;
+		int sparkFountainLoopTime;
+		int sparkFountainVelMin;
+		int sparkFountainVelMax;
+		int sparkFountainVelConeAngle;
+		int sparkFountainRestSpeed;
+		int sparkFountainBoostTime;
+		int sparkFountainBoostFactor;
+	};
+
+	struct FxEditorEffectDef
+	{
+		char name[64];
+		int elemCount;
+		FxEditorElemDef elems[32];
+	};
+
+	struct FxElemField
+	{
+		const char *keyName;
+		bool(__cdecl *handler)(const char**, FxEditorElemDef*);
 	};
 
 	struct cPlane
