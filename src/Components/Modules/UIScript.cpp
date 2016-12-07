@@ -44,7 +44,7 @@ namespace Components
 	{
 		if (args)
 		{
-			this->token = Game::Com_ParseExt(args);
+			this->token = Game::Com_Parse(args);
 		}
 	}
 

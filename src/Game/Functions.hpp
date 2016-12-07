@@ -57,8 +57,17 @@ namespace Game
 	typedef void(__cdecl * Com_PrintMessage_t)(int channel, const char *msg, int error);
 	extern Com_PrintMessage_t Com_PrintMessage;
 
-	typedef char* (__cdecl * Com_ParseExt_t)(const char **data_p);
-	extern Com_ParseExt_t Com_ParseExt;
+	typedef void(__cdecl * Com_EndParseSession_t)();
+	extern Com_EndParseSession_t Com_EndParseSession;
+
+	typedef void(__cdecl * Com_BeginParseSession_t)(const char* why);
+	extern Com_BeginParseSession_t Com_BeginParseSession;
+
+	typedef void(__cdecl * Com_SetSpaceDelimited_t)(int);
+	extern Com_SetSpaceDelimited_t Com_SetSpaceDelimited;
+
+	typedef char* (__cdecl * Com_Parse_t)(const char **data_p);
+	extern Com_Parse_t Com_Parse;
 
 	typedef void(__cdecl * Com_SetSlowMotion_t)(float start, float end, int duration);
 	extern Com_SetSlowMotion_t Com_SetSlowMotion;
@@ -518,6 +527,15 @@ namespace Game
 	typedef bool(__cdecl * Sys_IsMainThread_t)();
 	extern Sys_IsMainThread_t Sys_IsMainThread;
 
+	typedef bool(__cdecl * Sys_IsRenderThread_t)();
+	extern Sys_IsRenderThread_t Sys_IsRenderThread;
+
+	typedef bool(__cdecl * Sys_IsServerThread_t)();
+	extern Sys_IsServerThread_t Sys_IsServerThread;
+
+	typedef bool(__cdecl * Sys_IsDatabaseThread_t)();
+	extern Sys_IsDatabaseThread_t Sys_IsDatabaseThread;
+
 	typedef char** (__cdecl * Sys_ListFiles_t)(const char *directory, const char *extension, const char *filter, int *numfiles, int wantsubs);
 	extern Sys_ListFiles_t Sys_ListFiles;
 
@@ -665,4 +683,7 @@ namespace Game
 
 	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count);
 	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len);
+
+	void* Com_GetParseThreadInfo();
+	void Com_SetParseNegativeNumbers(int parse);
 }

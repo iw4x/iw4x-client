@@ -27,7 +27,10 @@ namespace Game
 	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
 	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
 	Com_PrintMessage_t Com_PrintMessage = (Com_PrintMessage_t)0x4AA830;
-	Com_ParseExt_t Com_ParseExt = (Com_ParseExt_t)0x474D60;
+	Com_EndParseSession_t Com_EndParseSession = (Com_EndParseSession_t)0x4B80B0;
+	Com_BeginParseSession_t Com_BeginParseSession = (Com_BeginParseSession_t)0x4AAB80;
+	Com_SetSpaceDelimited_t Com_SetSpaceDelimited = (Com_SetSpaceDelimited_t)0x4FC710;
+	Com_Parse_t Com_Parse = (Com_Parse_t)0x474D60;
 	Com_SetSlowMotion_t Com_SetSlowMotion = (Com_SetSlowMotion_t)0x446E20;
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = (Con_DrawMiniConsole_t)0x464F30;
@@ -222,6 +225,9 @@ namespace Game
 	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = (Sys_IsDatabaseReady_t)0x4CA4A0;
 	Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2 = (Sys_IsDatabaseReady2_t)0x441280;
 	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
+	Sys_IsRenderThread_t Sys_IsRenderThread = (Sys_IsRenderThread_t)0x4B20E0;
+	Sys_IsServerThread_t Sys_IsServerThread = (Sys_IsServerThread_t)0x4B0270;
+	Sys_IsDatabaseThread_t Sys_IsDatabaseThread = (Sys_IsDatabaseThread_t)0x4C6020;
 	Sys_SendPacket_t Sys_SendPacket = (Sys_SendPacket_t)0x60FDC0;
 	Sys_ShowConsole_t Sys_ShowConsole = (Sys_ShowConsole_t)0x4305E0;
 	Sys_ListFiles_t Sys_ListFiles = (Sys_ListFiles_t)0x45A660;
@@ -606,6 +612,40 @@ namespace Game
 
 			pop ebx
 			pop edi
+		}
+	}
+
+	void* Com_GetParseThreadInfo()
+	{
+		if (Game::Sys_IsMainThread())
+		{
+			return reinterpret_cast<void*>(0x6466628);
+		}
+		else if (Game::Sys_IsRenderThread())
+		{
+			return reinterpret_cast<void*>(0x646AC34);
+		}
+		else if (Game::Sys_IsServerThread())
+		{
+			return reinterpret_cast<void*>(0x646F240);
+		}
+		else if(Game::Sys_IsDatabaseThread())
+		{
+			return reinterpret_cast<void*>(0x647384C);
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
+	void Com_SetParseNegativeNumbers(int parse)
+	{
+		char* g_parse = reinterpret_cast<char*>(Com_GetParseThreadInfo());
+
+		if (g_parse)
+		{
+			g_parse[1056 * *(reinterpret_cast<DWORD*>(g_parse) + 4224) + 1032] = parse != 0;
 		}
 	}
 }

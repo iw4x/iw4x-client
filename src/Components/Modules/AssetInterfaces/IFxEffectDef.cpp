@@ -2,19 +2,31 @@
 
 namespace Assets
 {
-	void IFxEffectDef::load(Game::XAssetHeader* /*header*/, std::string /*name*/, Components::ZoneBuilder::Zone* /*builder*/)
+	void IFxEffectDef::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
-		// TODO:
-		// - Add the missing Editor-structures (FxEditorEffectDef, FxEditorElemDef, ...)
-		// - Initialize a parse session for the FX
-		// - Correctly load the FX by parsing each token
-		// - Convert the Editor-structures to the native ones
-
 		if (0)
 		{
-			for (int i = 0; i < FX_ELEM_FIELD_COUNT; ++i)
+			Components::FileSystem::File rawFx(fmt::sprintf("fx/%s.efx", name.data()));
+			if (rawFx.exists())
 			{
-				Game::s_elemFields[i].handler(nullptr, nullptr);
+				const char* session = rawFx.getBuffer().data();
+				Game::Com_BeginParseSession("fx");
+				Game::Com_SetSpaceDelimited(0);
+				Game::Com_SetParseNegativeNumbers(1);
+
+				const char* format = Game::Com_Parse(&session);
+				if (format != "iwfx"s)
+				{
+					Game::Com_EndParseSession();
+					Components::Logger::Error("Effect needs to be updated from the legacy format.\n");
+				}
+
+				for (int i = 0; i < FX_ELEM_FIELD_COUNT; ++i)
+				{
+					Game::s_elemFields[i].handler(nullptr, nullptr);
+				}
+
+				Game::Com_EndParseSession();
 			}
 		}
 	}
