@@ -1610,7 +1610,7 @@ namespace Game
 		const char* name; // +0
 		char numBones; // +4
 		char numRootBones; // +5
-		char numSurfaces; // +6
+		unsigned char numSurfaces; // +6
 		char pad2; // +7
 		char pad3[28]; // +8
 		short* boneNames; // +36

@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
 
+#define IW4X_MODEL_VERSION 1
+
 namespace Assets
 {
 	void IXModel::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
@@ -16,10 +18,21 @@ namespace Assets
 
 			Utils::Stream::Reader reader(builder->getAllocator(), modelFile.getBuffer());
 
+			if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xModl"))
+			{
+				Components::Logger::Error(0, "Reading model '%s' failed, header is invalid!", name.data());
+			}
+
+			int version = reader.read<int>();
+			if (version != IW4X_MODEL_VERSION)
+			{
+				Components::Logger::Error(0, "Reading model '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_MODEL_VERSION, version);
+			}
+
 			model->name = reader.readCString();
 			model->numBones = reader.readByte();
 			model->numRootBones = reader.readByte();
-			model->numSurfaces = reader.readByte();
+			model->numSurfaces = reader.read<unsigned char>();
 			model->numColSurfs = reader.read<int>();
 
 			// Read bone names
@@ -121,7 +134,7 @@ namespace Assets
 
 			// Read materials
 			model->materials = builder->getAllocator()->allocateArray<Game::Material*>(model->numSurfaces);
-			for (char i = 0; i < model->numSurfaces; ++i)
+			for (unsigned char i = 0; i < model->numSurfaces; ++i)
 			{
 				model->materials[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString(), builder).material;
 			}
@@ -177,7 +190,7 @@ namespace Assets
 
 		if (asset->materials)
 		{
-			for (char i = 0; i < asset->numSurfaces; ++i)
+			for (unsigned char i = 0; i < asset->numSurfaces; ++i)
 			{
 				if (asset->materials[i])
 				{
@@ -286,7 +299,7 @@ namespace Assets
 			Game::Material** destMaterials = buffer->dest<Game::Material*>();
 			buffer->saveArray(asset->materials, asset->numSurfaces);
 
-			for (char i = 0; i < asset->numSurfaces; ++i)
+			for (unsigned char i = 0; i < asset->numSurfaces; ++i)
 			{
 				if (asset->materials[i])
 				{

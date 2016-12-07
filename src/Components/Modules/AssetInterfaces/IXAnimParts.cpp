@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
 
+#define IW4X_ANIM_VERSION 1
+
 namespace Assets
 {
 	void IXAnimParts::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
@@ -9,6 +11,17 @@ namespace Assets
 		if (animFile.exists())
 		{
 			Utils::Stream::Reader reader(builder->getAllocator(), animFile.getBuffer());
+
+			if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xAnim"))
+			{
+				Components::Logger::Error(0, "Reading animation '%s' failed, header is invalid!", name.data());
+			}
+
+			int version = reader.read<int>();
+			if (version != IW4X_ANIM_VERSION)
+			{
+				Components::Logger::Error(0, "Reading animation '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_ANIM_VERSION, version);
+			}
 
 			Game::XAnimParts* xanim = reader.readArray<Game::XAnimParts>();
 
