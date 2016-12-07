@@ -114,7 +114,7 @@ namespace Components
 
 	void QuickPatch::CL_HandleRelayPacketCheck(Game::msg_t* msg, int client)
 	{
-		if (Command::Params().length() >= 3)
+		if (Command::IClientParams().length() >= 3)
 		{
 			Game::CL_HandleRelayPacket(msg, client);
 		}
@@ -122,7 +122,7 @@ namespace Components
 
 	void QuickPatch::SelectStringTableEntryInDvarStub()
 	{
-		Command::Params args;
+		Command::IClientParams args;
 
 		if (args.length() >= 4)
 		{

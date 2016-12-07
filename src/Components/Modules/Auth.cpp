@@ -67,7 +67,7 @@ namespace Components
 		std::string connectString(format, len);
 		Game::SV_Cmd_TokenizeString(connectString.data());
 
-		Command::Params params(true);
+		Command::IServerParams params;
 
 		if (params.length() < 3)
 		{
@@ -141,7 +141,7 @@ namespace Components
 			Game::SV_Cmd_TokenizeString(connectData.infostring().data());
 
 			// Access the params
-			Command::Params params(true);
+			Command::IServerParams params;
 
 			// Ensure there are enough params
 			if (params.length() < 3)

@@ -6,20 +6,7 @@ namespace Components
 	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMap;
 	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMapSV;
 
-	char* Command::Params::operator[](size_t index)
-	{
-		if (index >= this->length()) return "";
-		if (this->isSV) return Game::cmd_argv_sv[this->commandId][index];
-		else return Game::cmd_argv[this->commandId][index];
-	}
-
-	size_t Command::Params::length()
-	{
-		if (this->isSV) return Game::cmd_argc_sv[this->commandId];
-		else return Game::cmd_argc[this->commandId];
-	}
-
-	std::string Command::Params::join(size_t startIndex)
+	std::string Command::IParams::join(size_t startIndex)
 	{
 		std::string result;
 
@@ -30,6 +17,28 @@ namespace Components
 		}
 
 		return result;
+	}
+
+	char* Command::IClientParams::operator[](size_t index)
+	{
+		if (index >= this->length()) return "";
+		return Game::cmd_argv[this->commandId][index];
+	}
+
+	size_t Command::IClientParams::length()
+	{
+		return Game::cmd_argc[this->commandId];
+	}
+
+	char* Command::IServerParams::operator[](size_t index)
+	{
+		if (index >= this->length()) return "";
+		return Game::cmd_argv_sv[this->commandId][index];
+	}
+
+	size_t Command::IServerParams::length()
+	{
+		return Game::cmd_argc_sv[this->commandId];
 	}
 
 	void Command::Add(const char* name, Command::Callback* callback)
@@ -121,25 +130,25 @@ namespace Components
 
 	void Command::MainCallback()
 	{
-		Command::Params params(false, *Game::cmd_id);
+		Command::IClientParams params(*Game::cmd_id);
 
 		std::string command = Utils::String::ToLower(params[0]);
 
 		if (Command::FunctionMap.find(command) != Command::FunctionMap.end())
 		{
-			Command::FunctionMap[command](params);
+			Command::FunctionMap[command](&params);
 		}
 	}
 
 	void Command::MainCallbackSV()
 	{
-		Command::Params params(true, *Game::cmd_id_sv);
+		Command::IServerParams params(*Game::cmd_id_sv);
 
 		std::string command = Utils::String::ToLower(params[0]);
 
 		if (Command::FunctionMapSV.find(command) != Command::FunctionMapSV.end())
 		{
-			Command::FunctionMapSV[command](params);
+			Command::FunctionMapSV[command](&params);
 		}
 	}
 

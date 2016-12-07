@@ -3,22 +3,76 @@ namespace Components
 	class Command : public Component
 	{
 	public:
+		class IParams
+		{
+		public:
+			IParams() {};
+			virtual ~IParams() {};
+			virtual char* operator[](size_t index) = 0;
+			virtual size_t length() = 0;
+			virtual std::string join(size_t startIndex);
+		};
+
+		class IClientParams : public IParams
+		{
+		public:
+			IClientParams(unsigned int id) : commandId(id) {};
+			IClientParams(const IClientParams &obj) : commandId(obj.commandId) {};
+			IClientParams() : IClientParams(*Game::cmd_id) {};
+
+			~IClientParams() {};
+			char* operator[](size_t index) override;
+			size_t length() override;
+
+		private:
+			unsigned int commandId;
+		};
+
+		class IServerParams : public IParams
+		{
+		public:
+			IServerParams(unsigned int id) : commandId(id) {};
+			IServerParams(const IServerParams &obj) : commandId(obj.commandId) {};
+			IServerParams() : IServerParams(*Game::cmd_id_sv) {};
+
+			~IServerParams() {};
+			char* operator[](size_t index) override;
+			size_t length() override;
+
+		private:
+			unsigned int commandId;
+		};
+
 		class Params
 		{
 		public:
-			Params(bool sv, DWORD id) : commandId(id), isSV(sv) {};
-			Params(bool sv) : Params(sv, (sv ? *Game::cmd_id_sv : *Game::cmd_id)) {};
-			Params(const Params &obj) : commandId(obj.commandId), isSV(obj.isSV) {};
-			Params() : Params(false, *Game::cmd_id) {};
+			Params(IParams* _paramInterface) : paramInterface(_paramInterface) 
+			{ 
+				if (!paramInterface) 
+				{
+					throw new std::invalid_argument("Invalid command parameter interface!");
+				}
+			};
 
-			char* operator[](size_t index);
-			size_t length();
+			Params(const Params &obj) : paramInterface(obj.paramInterface) {};
 
-			std::string join(size_t startIndex);
+			char* operator[](size_t index) 
+			{ 
+				return paramInterface->operator[](index);
+			}
+
+			size_t length()
+			{
+				return paramInterface->length();
+			}
+
+			std::string join(size_t startIndex) 
+			{ 
+				return paramInterface->join(startIndex);
+			}
 
 		private:
-			bool isSV;
-			DWORD commandId;
+			IParams* paramInterface;
 		};
 
 		typedef void(Callback)(Command::Params params);
