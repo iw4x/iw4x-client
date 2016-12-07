@@ -6,7 +6,7 @@ namespace Components
 	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMap;
 	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMapSV;
 
-	std::string Command::IParams::join(size_t startIndex)
+	std::string Command::Params::join(size_t startIndex)
 	{
 		std::string result;
 
@@ -19,24 +19,29 @@ namespace Components
 		return result;
 	}
 
-	char* Command::IClientParams::operator[](size_t index)
+	char* Command::Params::operator[](size_t index)
+	{
+		return this->get(index);
+	}
+
+	char* Command::ClientParams::get(size_t index)
 	{
 		if (index >= this->length()) return "";
 		return Game::cmd_argv[this->commandId][index];
 	}
 
-	size_t Command::IClientParams::length()
+	size_t Command::ClientParams::length()
 	{
 		return Game::cmd_argc[this->commandId];
 	}
 
-	char* Command::IServerParams::operator[](size_t index)
+	char* Command::ServerParams::get(size_t index)
 	{
 		if (index >= this->length()) return "";
 		return Game::cmd_argv_sv[this->commandId][index];
 	}
 
-	size_t Command::IServerParams::length()
+	size_t Command::ServerParams::length()
 	{
 		return Game::cmd_argc_sv[this->commandId];
 	}
@@ -130,7 +135,7 @@ namespace Components
 
 	void Command::MainCallback()
 	{
-		Command::IClientParams params(*Game::cmd_id);
+		Command::ClientParams params(*Game::cmd_id);
 
 		std::string command = Utils::String::ToLower(params[0]);
 
@@ -142,7 +147,7 @@ namespace Components
 
 	void Command::MainCallbackSV()
 	{
-		Command::IServerParams params(*Game::cmd_id_sv);
+		Command::ServerParams params(*Game::cmd_id_sv);
 
 		std::string command = Utils::String::ToLower(params[0]);
 
@@ -159,7 +164,7 @@ namespace Components
 		// Disable native noclip command
 		Utils::Hook::Nop(0x474846, 5);
 
-		Command::Add("noclip", [] (Command::Params)
+		Command::Add("noclip", [] (Command::Params*)
 		{
 			int clientNum = Game::CG_GetClientNum();
 			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
@@ -182,7 +187,7 @@ namespace Components
 			Toast::Show("cardicon_abduction", "Success", "Noclip toggled", 3000);
 		});
 
-		Command::Add("ufo", [] (Command::Params)
+		Command::Add("ufo", [] (Command::Params*)
 		{
 			int clientNum = Game::CG_GetClientNum();
 			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
@@ -205,7 +210,7 @@ namespace Components
 			Toast::Show("cardicon_abduction", "Success", "UFO toggled", 3000);
 		});
 
-		Command::Add("setviewpos", [](Command::Params params)
+		Command::Add("setviewpos", [](Command::Params* params)
 		{
 			int clientNum = Game::CG_GetClientNum();
 			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
@@ -222,7 +227,7 @@ namespace Components
 				return;
 			}
 
-			if (params.length() != 4 && params.length() != 6)
+			if (params->length() != 4 && params->length() != 6)
 			{
 				Logger::Print("Invalid coordinate specified!\n");
 				Toast::Show("cardicon_stop", "Error", "Invalid coordinate specified!", 3000);
@@ -232,14 +237,14 @@ namespace Components
 			float pos[3] = { 0.0f, 0.0f, 0.0f };
 			float orientation[3] = { 0.0f, 0.0f, 0.0f };
 			
-			pos[0] = strtof(params[1], NULL);
-			pos[1] = strtof(params[2], NULL);
-			pos[2] = strtof(params[3], NULL);
+			pos[0] = strtof(params->get(1), NULL);
+			pos[1] = strtof(params->get(2), NULL);
+			pos[2] = strtof(params->get(3), NULL);
 			
-			if(params.length() == 6)
+			if(params->length() == 6)
 			{
-				orientation[0] = strtof(params[4], NULL);
-				orientation[1] = strtof(params[5], NULL);
+				orientation[0] = strtof(params->get(4), NULL);
+				orientation[1] = strtof(params->get(5), NULL);
 			}
 
 			Game::TeleportPlayer(&Game::g_entities[clientNum], pos, orientation);

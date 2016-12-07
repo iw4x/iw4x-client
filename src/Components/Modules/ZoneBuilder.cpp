@@ -540,11 +540,11 @@ namespace Components
 				}
 			});
 
-			Command::Add("verifyzone", [] (Command::Params params)
+			Command::Add("verifyzone", [] (Command::Params* params)
 			{
-				if (params.length() < 2) return;
+				if (params->length() < 2) return;
 
-				std::string zone = params[1];
+				std::string zone = params->get(1);
 
 				ZoneBuilder::BeginAssetTrace(zone);
 
@@ -579,17 +579,17 @@ namespace Components
 				Logger::Print("\n");
 			});
 
-			Command::Add("buildzone", [] (Command::Params params)
+			Command::Add("buildzone", [] (Command::Params* params)
 			{
-				if (params.length() < 2) return;
+				if (params->length() < 2) return;
 
-				std::string zoneName = params[1];
+				std::string zoneName = params->get(1);
 				Logger::Print("Building zone '%s'...\n", zoneName.data());
 
 				Zone(zoneName).build();
 			});
 
-			Command::Add("buildall", [] (Command::Params)
+			Command::Add("buildall", [] (Command::Params*)
 			{
 				auto zoneSources = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").get<std::string>() + "\\zone_source", "csv", false);
 
@@ -604,10 +604,10 @@ namespace Components
 				}
 			});
 
-			Command::Add("listassets", [] (Command::Params params)
+			Command::Add("listassets", [] (Command::Params* params)
 			{
-				if (params.length() < 2) return;
-				Game::XAssetType type = Game::DB_GetXAssetNameType(params[1]);
+				if (params->length() < 2) return;
+				Game::XAssetType type = Game::DB_GetXAssetNameType(params->get(1));
 
 				if (type != Game::XAssetType::ASSET_TYPE_INVALID)
 				{

@@ -3,79 +3,47 @@ namespace Components
 	class Command : public Component
 	{
 	public:
-		class IParams
-		{
-		public:
-			IParams() {};
-			virtual ~IParams() {};
-			virtual char* operator[](size_t index) = 0;
-			virtual size_t length() = 0;
-			virtual std::string join(size_t startIndex);
-		};
-
-		class IClientParams : public IParams
-		{
-		public:
-			IClientParams(unsigned int id) : commandId(id) {};
-			IClientParams(const IClientParams &obj) : commandId(obj.commandId) {};
-			IClientParams() : IClientParams(*Game::cmd_id) {};
-
-			~IClientParams() {};
-			char* operator[](size_t index) override;
-			size_t length() override;
-
-		private:
-			unsigned int commandId;
-		};
-
-		class IServerParams : public IParams
-		{
-		public:
-			IServerParams(unsigned int id) : commandId(id) {};
-			IServerParams(const IServerParams &obj) : commandId(obj.commandId) {};
-			IServerParams() : IServerParams(*Game::cmd_id_sv) {};
-
-			~IServerParams() {};
-			char* operator[](size_t index) override;
-			size_t length() override;
-
-		private:
-			unsigned int commandId;
-		};
-
 		class Params
 		{
 		public:
-			Params(IParams* _paramInterface) : paramInterface(_paramInterface) 
-			{ 
-				if (!paramInterface) 
-				{
-					throw new std::invalid_argument("Invalid command parameter interface!");
-				}
-			};
+			Params() {};
+			virtual ~Params() {};
+			virtual char* get(size_t index) = 0;
+			virtual size_t length() = 0;
 
-			Params(const Params &obj) : paramInterface(obj.paramInterface) {};
-
-			char* operator[](size_t index) 
-			{ 
-				return paramInterface->operator[](index);
-			}
-
-			size_t length()
-			{
-				return paramInterface->length();
-			}
-
-			std::string join(size_t startIndex) 
-			{ 
-				return paramInterface->join(startIndex);
-			}
-
-		private:
-			IParams* paramInterface;
+			virtual std::string join(size_t startIndex);
+			virtual char* operator[](size_t index);
 		};
 
-		typedef void(Callback)(Command::Params params);
+		class ClientParams : public Params
+		{
+		public:
+			ClientParams(unsigned int id) : commandId(id) {};
+			ClientParams(const ClientParams &obj) : commandId(obj.commandId) {};
+			ClientParams() : ClientParams(*Game::cmd_id) {};
+
+			char* get(size_t index) override;
+			size_t length() override;
+
+		private:
+			unsigned int commandId;
+		};
+
+		class ServerParams : public Params
+		{
+		public:
+			ServerParams(unsigned int id) : commandId(id) {};
+			ServerParams(const ServerParams &obj) : commandId(obj.commandId) {};
+			ServerParams() : ServerParams(*Game::cmd_id_sv) {};
+
+			char* get(size_t index) override;
+			size_t length() override;
+
+		private:
+			unsigned int commandId;
+		};
+
+		typedef void(Callback)(Command::Params* params);
 
 		Command();
 		~Command();

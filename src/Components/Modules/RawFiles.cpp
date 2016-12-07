@@ -21,15 +21,15 @@ namespace Components
 		// remove fs_game check for moddable rawfiles - allows non-fs_game to modify rawfiles
 		Utils::Hook::Nop(0x61AB76, 2);
 
-		Command::Add("dumpraw", [] (Command::Params params)
+		Command::Add("dumpraw", [] (Command::Params* params)
 		{
-			if (params.length() < 2)
+			if (params->length() < 2)
 			{
 				Logger::Print("Specify a filename!\n");
 				return;
 			}
 
-			FileSystem::File file(params.join(1));
+			FileSystem::File file(params->join(1));
 			if (file.exists())
 			{
 				Utils::IO::WriteFile("raw/" + file.getName(), file.getBuffer());

@@ -470,7 +470,7 @@ namespace Components
 		AntiCheat::Hash.clear();
 
 #ifdef DEBUG
-		Command::Add("penis", [] (Command::Params)
+		Command::Add("penis", [] (Command::Params*)
 		{
 			AntiCheat::CrashClient();
 		});

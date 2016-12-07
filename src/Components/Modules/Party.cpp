@@ -248,16 +248,16 @@ namespace Components
 		// Patch Live_PlayerHasLoopbackAddr
 		//Utils::Hook::Set<DWORD>(0x418F30, 0x90C3C033);
 
-		Command::Add("connect", [] (Command::Params params)
+		Command::Add("connect", [] (Command::Params* params)
 		{
-			if (params.length() < 2)
+			if (params->length() < 2)
 			{
 				return;
 			}
 
-			Party::Connect(Network::Address(params[1]));
+			Party::Connect(Network::Address(params->get(1)));
 		});
-		Command::Add("reconnect", [] (Command::Params)
+		Command::Add("reconnect", [] (Command::Params*)
 		{
 			Party::Connect(Party::Container.target);
 		});

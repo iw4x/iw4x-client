@@ -835,7 +835,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("listnodes", [] (Command::Params)
+		Command::Add("listnodes", [] (Command::Params*)
 		{
 			Logger::Print("Nodes: %d (%d)\n", Node::Nodes.size(), Node::GetValidNodeCount());
 
@@ -846,11 +846,11 @@ namespace Components
 			}
 		});
 
-		Command::Add("addnode", [] (Command::Params params)
+		Command::Add("addnode", [] (Command::Params* params)
 		{
-			if (params.length() < 2) return;
+			if (params->length() < 2) return;
 
-			Network::Address address(params[1]);
+			Network::Address address(params->get(1));
 			Node::AddNode(address);
 
 			std::lock_guard<std::mutex> _(Node::NodeMutex);
@@ -862,7 +862,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("syncnodes", [] (Command::Params)
+		Command::Add("syncnodes", [] (Command::Params*)
 		{
 			Logger::Print("Resynchronizing nodes...\n");
 			

@@ -117,12 +117,12 @@ namespace Components
 		Utils::Hook::Nop(0x6388BB, 2); // skip the "if (item->text[0] == '@')" localize check
 		Utils::Hook(0x6388C1, News::GetNewsText, HOOK_CALL).install()->quick();
 
-		Command::Add("checkforupdate", [] (Command::Params)
+		Command::Add("checkforupdate", [] (Command::Params*)
 		{
 			News::CheckForUpdate();
 		});
 
-		Command::Add("getautoupdate", [] (Command::Params)
+		Command::Add("getautoupdate", [] (Command::Params*)
 		{
 			if (!Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean) return;
 

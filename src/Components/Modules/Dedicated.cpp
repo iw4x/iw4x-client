@@ -333,11 +333,11 @@ namespace Components
 				Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_FLAG_NONE, "A custom message of the day for servers");
 
 				// Say command
-				Command::AddSV("say", [] (Command::Params params)
+				Command::AddSV("say", [] (Command::Params* params)
 				{
-					if (params.length() < 2) return;
+					if (params->length() < 2) return;
 
-					std::string message = params.join(1);
+					std::string message = params->join(1);
 					std::string name = Dvar::Var("sv_sayName").get<std::string>();
 
 					if (!name.empty())
@@ -353,12 +353,12 @@ namespace Components
 				});
 
 				// Tell command
-				Command::AddSV("tell", [] (Command::Params params)
+				Command::AddSV("tell", [] (Command::Params* params)
 				{
-					if (params.length() < 3) return;
+					if (params->length() < 3) return;
 
-					int client = atoi(params[1]);
-					std::string message = params.join(2);
+					int client = atoi(params->get(1));
+					std::string message = params->join(2);
 					std::string name = Dvar::Var("sv_sayName").get<std::string>();
 
 					if (!name.empty())
@@ -374,35 +374,35 @@ namespace Components
 				});
 
 				// Sayraw command
-				Command::AddSV("sayraw", [] (Command::Params params)
+				Command::AddSV("sayraw", [] (Command::Params* params)
 				{
-					if (params.length() < 2) return;
+					if (params->length() < 2) return;
 
-					std::string message = params.join(1);
+					std::string message = params->join(1);
 					Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
 					Game::Com_Printf(15, "Raw: %s\n", message.data());
 				});
 
 				// Tellraw command
-				Command::AddSV("tellraw", [] (Command::Params params)
+				Command::AddSV("tellraw", [] (Command::Params* params)
 				{
-					if (params.length() < 3) return;
+					if (params->length() < 3) return;
 
-					int client = atoi(params[1]);
-					std::string message = params.join(2);
+					int client = atoi(params->get(1));
+					std::string message = params->join(2);
 					Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
 					Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
 				});
 
 				// ! command
-				Command::AddSV("!", [] (Command::Params params)
+				Command::AddSV("!", [] (Command::Params* params)
 				{
-					if (params.length() != 2) return;
+					if (params->length() != 2) return;
 
 					int client = -1;
-					if (params[1] != "all"s)
+					if (params->get(1) != "all"s)
 					{
-						client = atoi(params[1]);
+						client = atoi(params->get(1));
 
 						if (client >= *reinterpret_cast<int*>(0x31D938C))
 						{

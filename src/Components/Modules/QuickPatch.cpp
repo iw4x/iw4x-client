@@ -114,7 +114,7 @@ namespace Components
 
 	void QuickPatch::CL_HandleRelayPacketCheck(Game::msg_t* msg, int client)
 	{
-		if (Command::IClientParams().length() >= 3)
+		if (Command::ClientParams().length() >= 3)
 		{
 			Game::CL_HandleRelayPacket(msg, client);
 		}
@@ -122,7 +122,7 @@ namespace Components
 
 	void QuickPatch::SelectStringTableEntryInDvarStub()
 	{
-		Command::IClientParams args;
+		Command::ClientParams args;
 
 		if (args.length() >= 4)
 		{
@@ -392,12 +392,12 @@ namespace Components
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
 
-		Command::Add("unlockstats", [] (Command::Params)
+		Command::Add("unlockstats", [] (Command::Params*)
 		{
 			QuickPatch::UnlockStats();
 		});
 
-		Command::Add("crash", [] (Command::Params)
+		Command::Add("crash", [] (Command::Params*)
 		{
 			throw new std::exception();
 		});

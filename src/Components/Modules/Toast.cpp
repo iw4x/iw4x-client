@@ -127,7 +127,7 @@ namespace Components
 	{
 		Renderer::OnFrame(Toast::Handler);
 
-		Command::Add("testtoast", [] (Command::Params)
+		Command::Add("testtoast", [] (Command::Params*)
 		{
 			Toast::Show("cardicon_prestige10", "Test", "This is a test toast", 3000);
 		});

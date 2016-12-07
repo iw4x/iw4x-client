@@ -97,12 +97,12 @@ namespace Components
 
 		//Utils::Hook(0x4B241F, Exception::ErrorLongJmp, HOOK_CALL).install()->quick();
 
-		Command::Add("mapTest", [](Command::Params params)
+		Command::Add("mapTest", [](Command::Params* params)
 		{
 			Game::UI_UpdateArenas();
 
 			std::string command;
-			for (int i = 0; i < (params.length() >= 2 ? atoi(params[1]) : *Game::arenaCount); ++i)
+			for (int i = 0; i < (params->length() >= 2 ? atoi(params->get(1)) : *Game::arenaCount); ++i)
 			{
 				char* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
 
@@ -114,7 +114,7 @@ namespace Components
 			Command::Execute(command, false);
 		});
 
-		Command::Add("debug_exceptionhandler", [](Command::Params)
+		Command::Add("debug_exceptionhandler", [] (Command::Params*)
 		{
 			Logger::Print("Rerunning SetUnhandledExceptionHandler...\n");
 			auto oldHandler = Exception::Hook();
@@ -123,7 +123,7 @@ namespace Components
 
 #pragma warning(push)
 #pragma warning(disable:4740) // flow in or out of inline asm code suppresses global optimization
-		Command::Add("debug_minidump", [](Command::Params)
+		Command::Add("debug_minidump", [](Command::Params*)
 		{
 			// The following code was taken from VC++ 8.0 CRT (invarg.c: line 104)
 

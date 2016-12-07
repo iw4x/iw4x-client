@@ -454,12 +454,12 @@ namespace Components
 			Game::R_AddCmdDrawText(Utils::String::VA("Loading FastFile: %s", FastFiles::Current().data()), 0x7FFFFFFF, font, 5.0f, static_cast<float>(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 		});
 
-		Command::Add("loadzone", [] (Command::Params params)
+		Command::Add("loadzone", [] (Command::Params* params)
 		{
-			if (params.length() < 2) return;
+			if (params->length() < 2) return;
 
 			Game::XZoneInfo info;
-			info.name = params[1];
+			info.name = params->get(1);
 			info.allocFlags = 1;//0x01000000;
 			info.freeFlags = 0;
 

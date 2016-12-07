@@ -9,15 +9,15 @@ namespace Components
 
 	RCon::RCon()
 	{
-		Command::Add("rcon", [] (Command::Params params)
+		Command::Add("rcon", [] (Command::Params* params)
 		{
-			if (params.length() < 2) return;
+			if (params->length() < 2) return;
 
-			std::string operation = params[1];
+			std::string operation = params->get(1);
 			if (operation == "login")
 			{
-				if (params.length() < 3) return;
-				RCon::Password = params[2];
+				if (params->length() < 3) return;
+				RCon::Password = params->get(2);
 			}
 			else if (operation == "logout")
 			{
@@ -31,7 +31,7 @@ namespace Components
 
 					if (target.isValid())
 					{
-						Network::SendCommand(target, "rcon", RCon::Password + " " + params.join(1));
+						Network::SendCommand(target, "rcon", RCon::Password + " " + params->join(1));
 					}
 					else
 					{

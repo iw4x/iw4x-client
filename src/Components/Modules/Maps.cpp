@@ -586,7 +586,7 @@ namespace Components
 		//Maps::AddDependency("mp_shipment", "mp_shipment_long");
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
-		Command::Add("dumpmap", [] (Command::Params)
+		Command::Add("dumpmap", [] (Command::Params*)
 		{
 			if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 			{

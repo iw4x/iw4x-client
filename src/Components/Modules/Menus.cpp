@@ -646,9 +646,9 @@ namespace Components
 		//make Com_Error and similar go back to main_text instead of menu_xboxlive.
 		Utils::Hook::SetString(0x6FC790, "main_text");
 
-		Command::Add("openmenu", [] (Command::Params params)
+		Command::Add("openmenu", [] (Command::Params* params)
 		{
-			if (params.length() != 2)
+			if (params->length() != 2)
 			{
 				Logger::Print("USAGE: openmenu <menu name>\n");
 				return;
@@ -660,10 +660,10 @@ namespace Components
 				Game::Key_SetCatcher(0, 16);
 			}
 
-			Game::Menus_OpenByName(Game::uiContext, params[1]);
+			Game::Menus_OpenByName(Game::uiContext, params->get(1));
 		});
 
-		Command::Add("reloadmenus", [] (Command::Params)
+		Command::Add("reloadmenus", [] (Command::Params*)
 		{
 			// Close all menus
 			Game::Menus_CloseAll(Game::uiContext);
@@ -686,7 +686,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("mp_QuickMessage", [] (Command::Params)
+		Command::Add("mp_QuickMessage", [] (Command::Params*)
 		{
 			Command::Execute("openmenu quickmessage");
 		});

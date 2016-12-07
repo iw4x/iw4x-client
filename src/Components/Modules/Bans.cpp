@@ -187,14 +187,14 @@ namespace Components
 
 	Bans::Bans()
 	{
-		Command::Add("banclient", [] (Command::Params params)
+		Command::Add("banclient", [] (Command::Params* params)
 		{
-			if (params.length() < 2) return;
+			if (params->length() < 2) return;
 
 			std::string reason = "EXE_ERR_BANNED_PERM";
-			if (params.length() >= 3) reason = params[2];
+			if (params->length() >= 3) reason = params->get(2);
 
-			Bans::BanClientNum(atoi(params[1]), reason);
+			Bans::BanClientNum(atoi(params->get(1)), reason);
 		});
 
 		// Verify the list on startup

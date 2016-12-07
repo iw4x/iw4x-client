@@ -67,7 +67,7 @@ namespace Components
 		std::string connectString(format, len);
 		Game::SV_Cmd_TokenizeString(connectString.data());
 
-		Command::IServerParams params;
+		Command::ServerParams params;
 
 		if (params.length() < 3)
 		{
@@ -141,7 +141,7 @@ namespace Components
 			Game::SV_Cmd_TokenizeString(connectData.infostring().data());
 
 			// Access the params
-			Command::IServerParams params;
+			Command::ServerParams params;
 
 			// Ensure there are enough params
 			if (params.length() < 3)
@@ -386,16 +386,16 @@ namespace Components
 		Utils::Hook(0x41D3E3, Auth::SendConnectDataStub, HOOK_CALL).install()->quick();
 
 		// Guid command
-		Command::Add("guid", [] (Command::Params)
+		Command::Add("guid", [] (Command::Params*)
 		{
 			Logger::Print("Your guid: %llX\n", Steam::SteamUser()->GetSteamID().Bits);
 		});
 
 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
-			Command::Add("securityLevel", [] (Command::Params params)
+			Command::Add("securityLevel", [] (Command::Params* params)
 			{
-				if (params.length() < 2)
+				if (params->length() < 2)
 				{
 					uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
 					Logger::Print("Your current security level is %d\n", level);
@@ -406,7 +406,7 @@ namespace Components
 				}
 				else
 				{
-					uint32_t level = static_cast<uint32_t>(atoi(params[1]));
+					uint32_t level = static_cast<uint32_t>(atoi(params->get(1)));
 					Auth::IncreaseSecurityLevel(level);
 				}
 			});
