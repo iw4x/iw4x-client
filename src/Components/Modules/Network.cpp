@@ -326,6 +326,9 @@ namespace Components
 		// increase max port binding attempts from 10 to 100
 		Utils::Hook::Set<BYTE>(0x4FD48A, 100);
 
+		// increase cl_maxpackets limit to 120
+		Utils::Hook::Set<BYTE>(0x4050A1, 125);
+
 		// Parse port as short in Net_AddrToString
 		Utils::Hook::Set<char*>(0x4698E3, "%u.%u.%u.%u:%hu");
 
