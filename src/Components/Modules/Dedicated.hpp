@@ -36,5 +36,7 @@ namespace Components
 
 		static void PreSayStub();
 		static void PostSayStub();
+
+		static void TimeWrapStub(int code, const char* message);
 	};
 }

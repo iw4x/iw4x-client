@@ -116,6 +116,29 @@ namespace Components
 		}
 	}
 
+	void Dedicated::TimeWrapStub(int code, const char* message)
+	{
+		static bool partyEnable;
+		static std::string mapname;
+
+		partyEnable = Dvar::Var("party_enable").get<bool>();
+		mapname = Dvar::Var("mapname").get<std::string>();
+
+		QuickPatch::Once([]()
+		{
+			Dvar::Var("party_enable").set(partyEnable);
+
+			if (!partyEnable) // Time wrapping should not occur in party servers, but yeah...
+			{
+				if (mapname.empty()) mapname = "mp_rust";
+				Command::Execute(fmt::sprintf("map %s", mapname.data()), false);
+				mapname.clear();
+			}
+		});
+
+		Game::Com_Error(code, message);
+	}
+
 	void Dedicated::MapRotate()
 	{
 		if (!Dedicated::IsEnabled() && Dvar::Var("sv_dontrotate").get<bool>())
@@ -305,6 +328,10 @@ namespace Components
 			Utils::Hook(0x4D000B, Dedicated::PreSayStub, HOOK_CALL).install()->quick();
 			Utils::Hook(0x4D00D4, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
 			Utils::Hook(0x4D0110, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
+
+			// Intercept time wrapping
+			Utils::Hook(0x62737D, Dedicated::TimeWrapStub, HOOK_CALL).install()->quick();
+			//Utils::Hook::Set<DWORD>(0x62735C, 50'000); // Time wrap after 50 seconds (for testing - i don't want to wait 3 weeks)
 
 			if (!ZoneBuilder::IsEnabled())
 			{
