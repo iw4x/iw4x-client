@@ -684,6 +684,6 @@ namespace Game
 	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count);
 	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len);
 
-	void* Com_GetParseThreadInfo();
+	char* Com_GetParseThreadInfo();
 	void Com_SetParseNegativeNumbers(int parse);
 }

@@ -615,23 +615,23 @@ namespace Game
 		}
 	}
 
-	void* Com_GetParseThreadInfo()
+	char* Com_GetParseThreadInfo()
 	{
 		if (Game::Sys_IsMainThread())
 		{
-			return reinterpret_cast<void*>(0x6466628);
+			return reinterpret_cast<char*>(0x6466628);
 		}
 		else if (Game::Sys_IsRenderThread())
 		{
-			return reinterpret_cast<void*>(0x646AC34);
+			return reinterpret_cast<char*>(0x646AC34);
 		}
 		else if (Game::Sys_IsServerThread())
 		{
-			return reinterpret_cast<void*>(0x646F240);
+			return reinterpret_cast<char*>(0x646F240);
 		}
 		else if(Game::Sys_IsDatabaseThread())
 		{
-			return reinterpret_cast<void*>(0x647384C);
+			return reinterpret_cast<char*>(0x647384C);
 		}
 		else
 		{
@@ -641,7 +641,7 @@ namespace Game
 
 	void Com_SetParseNegativeNumbers(int parse)
 	{
-		char* g_parse = reinterpret_cast<char*>(Com_GetParseThreadInfo());
+		char* g_parse = Com_GetParseThreadInfo();
 
 		if (g_parse)
 		{
