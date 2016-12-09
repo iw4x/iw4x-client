@@ -21,6 +21,13 @@ namespace Assets
 					Components::Logger::Error("Effect needs to be updated from the legacy format.\n");
 				}
 
+				int version = atoi(Game::Com_Parse(&session));
+				if (version > 2)
+				{
+					Game::Com_EndParseSession();
+					Components::Logger::Error("Version %i is too high. I can only handle up to %i.\n", version, 2);
+				}
+
 				Game::FxEditorEffectDef efx;
 				ZeroMemory(&efx, sizeof(efx));
 
