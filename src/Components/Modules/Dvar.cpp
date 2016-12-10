@@ -162,7 +162,19 @@ namespace Components
 			}
 		});
 
-		return Dvar::Register<const char*>(name, "Unknown Soldier", Dvar::Flag(flag | Game::dvar_flag::DVAR_FLAG_SAVED).val, description).get<Game::dvar_t*>();
+		std::string username = "Unknown Soldier";
+
+		if (Steam::Proxy::SteamFriends)
+		{
+			const char* steamName = Steam::Proxy::SteamFriends->GetPersonaName();
+
+			if (steamName && !std::string(steamName).empty())
+			{
+				username = steamName;
+			}
+		}
+
+		return Dvar::Register<const char*>(name, username.data(), Dvar::Flag(flag | Game::dvar_flag::DVAR_FLAG_SAVED).val, description).get<Game::dvar_t*>();
 	}
 
 	Dvar::Dvar()
