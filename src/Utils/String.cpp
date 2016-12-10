@@ -88,17 +88,23 @@ namespace Utils
 			return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data(), needle.size()));
 		}
 
+		int IsSpace(int c)
+		{
+			if (c < -1) return 0;
+			return _isspace_l(c, nullptr);
+		}
+
 		// trim from start
 		std::string &LTrim(std::string &s)
 		{
-			s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+			s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(IsSpace))));
 			return s;
 		}
 
 		// trim from end
 		std::string &RTrim(std::string &s)
 		{
-			s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+			s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(IsSpace))).base(), s.end());
 			return s;
 		}
 

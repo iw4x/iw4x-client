@@ -24,6 +24,7 @@ namespace Utils
 			return buffer;
 		}
 
+		int IsSpace(int c);
 		std::string ToLower(std::string input);
 		std::string ToUpper(std::string input);
 		bool EndsWith(std::string haystack, std::string needle);
