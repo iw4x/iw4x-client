@@ -31,23 +31,23 @@ namespace Steam
 		Proxy::SteamUser = Proxy::SteamClient->ConnectToGlobalUser(Proxy::SteamPipe);
 		if (!Proxy::SteamUser)
 		{
-			Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
+			//Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
 			return false;
 		}
 
 		Proxy::SteamFriends = reinterpret_cast<Friends*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamFriends005"));
 		if (!Proxy::SteamFriends)
 		{
-			Proxy::SteamClient->ReleaseUser(Proxy::SteamPipe, Proxy::SteamUser);
-			Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
+			//Proxy::SteamClient->ReleaseUser(Proxy::SteamPipe, Proxy::SteamUser);
+			//Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
 			return false;
 		}
 
 		Proxy::SteamUtils = reinterpret_cast<Utils*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamUtils005"));
 		if (!Proxy::SteamUtils)
 		{
-			Proxy::SteamClient->ReleaseUser(Proxy::SteamPipe, Proxy::SteamUser);
-			Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
+			//Proxy::SteamClient->ReleaseUser(Proxy::SteamPipe, Proxy::SteamUser);
+			//Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
 			return false;
 		}
 
@@ -60,10 +60,10 @@ namespace Steam
 		{
 			if (Proxy::SteamUser)
 			{
-				Proxy::SteamClient->ReleaseUser(Proxy::SteamPipe, Proxy::SteamUser);
+				//Proxy::SteamClient->ReleaseUser(Proxy::SteamPipe, Proxy::SteamUser);
 			}
 
-			Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
+			//Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
 		}
 
 		Proxy::Client = ::Utils::Library();
