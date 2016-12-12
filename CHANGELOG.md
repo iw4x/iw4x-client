@@ -10,22 +10,22 @@ This is going to be the second public Alpha version.
 
 ### Added
 
-- Support for CoD:Online maps.
+- Add support for CoD:Online maps.
 
     - Firing Range (mp_firingrange)
     - Rust (mp_rust_long)
     - Shipment (mp_shipment/mp_shipment_long)
 
-- Added sv_motd dvar for server owners to set custom motd (will be visible in the loadscreen).
-- Added Zonebuilder support for sounds and fx.
-- Added command setviewpos.
-- Added high-definition loadscreens
+- Add sv_motd dvar for server owners to set custom motd (will be visible in the loadscreen).
+- Add Zonebuilder support for sounds and fx.
+- Add command setviewpos.
+- Add high-definition loadscreens.
 
 ### Changed
 
 - Rename Arctic Wet Work map to it's official name (Freighter).
 - Complete redesign of the main menus.
-- Enabled cl_maxpackets to be set up to 125.
+- Allow cl_maxpackets to be set up to 125.
 
 ### Fixed
 
@@ -36,7 +36,7 @@ This is going to be the second public Alpha version.
 
 ### Known issues
 
-- Running IW4x on Linux currently requires gnutls to be installed additional to Wine as it needs to access the Tor service via HTTPS.
+- IW4x on Linux currently requires gnutls to be installed to access the Tor service via HTTPS.
 
 ## [0.2.0] - 2016-10-09
 
