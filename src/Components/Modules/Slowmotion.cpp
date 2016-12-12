@@ -68,7 +68,7 @@ namespace Components
 		SlowMotion::Delay = delay;
 
 		// set snapshot num to 1 behind (T6 does this, why shouldn't we?)
-		for (int i = 0; i < *Game::svs_numclients; i++)
+		for (int i = 0; i < *Game::svs_numclients; ++i)
 		{
 			Game::svs_clients[i].snapNum = (*reinterpret_cast<DWORD*>(0x31D9384)) - 1;
 		}
@@ -76,10 +76,11 @@ namespace Components
 
 	SlowMotion::SlowMotion()
 	{
-		if (!Dedicated::IsEnabled()) return;
-
-		SlowMotion::Delay = 0;
-		Utils::Hook(0x5F5FF2, SlowMotion::SetSlowMotion, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x60B38A, SlowMotion::ApplySlowMotionStub, HOOK_CALL).install()->quick();
+		if (Dedicated::IsEnabled())
+		{
+			SlowMotion::Delay = 0;
+			Utils::Hook(0x5F5FF2, SlowMotion::SetSlowMotion, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x60B38A, SlowMotion::ApplySlowMotionStub, HOOK_CALL).install()->quick();
+		}
 	}
 }

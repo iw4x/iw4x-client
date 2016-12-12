@@ -244,7 +244,7 @@ namespace Components
 		Dedicated::FrameSignal.connect(callback);
 	}
 
-	void Dedicated::FrameStub()
+	void Dedicated::FrameHandler()
 	{
 		auto copy = Dedicated::FrameSignal;
 		copy();
@@ -252,8 +252,19 @@ namespace Components
 		copy = Dedicated::FrameOnceSignal;
 		Dedicated::FrameOnceSignal.clear();
 		copy();
+	}
 
-		Utils::Hook::Call<void()>(0x5A8E80)();
+	__declspec(naked) void Dedicated::FrameStub()
+	{
+		__asm
+		{
+			pushad
+			call Dedicated::FrameHandler
+			popad
+
+			push 5A8E80h
+			retn
+		}
 	}
 
 	Dedicated::Dedicated()

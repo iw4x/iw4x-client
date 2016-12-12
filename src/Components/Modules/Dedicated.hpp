@@ -26,6 +26,7 @@ namespace Components
 		static bool SendChat;
 
 		static void MapRotate();
+		static void FrameHandler();
 		static void FrameStub();
 		static void InitDedicatedServer();
 
