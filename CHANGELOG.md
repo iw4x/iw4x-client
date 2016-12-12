@@ -30,7 +30,7 @@ This is going to be the second public Alpha version.
 
 - Fix crash when using the Harrier killstreak.
 - Disable code that downloads news/changelog when in zonebuilder mode.
-- Fix hang on game shutdown.
+- Fix freeze on game shutdown.
 - Disable unlockstats while ingame to prevent a crash.
 
 ### Known issues
