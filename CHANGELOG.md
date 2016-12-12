@@ -13,18 +13,25 @@ This is going to be the second public Alpha version.
 - Support for CoD:Online maps.
 
     - Firing Range (mp_firingrange)
-    - Rust (mp_rust_long, see Known issues)
+    - Rust (mp_rust_long)
     - Shipment (mp_shipment/mp_shipment_long)
+
+- Added sv_motd dvar for server owners to set custom motd.
+- Added Zonebuilder support for sounds.
+- Added command setviewpos.
 
 ### Changed
 
 - Rename Arctic Wet Work map to official name Freighter.
 - Complete redesign of the main menus.
+- Enabled cl_maxpackets to be set up to 125.
 
 ### Fixed
 
 - Fix crash when using the Harrier killstreak.
 - Disable code that downloads news/changelog when in zonebuilder mode.
+- Fix hang on game shutdown.
+- Disable unlockstats while ingame to prevent a crash.
 
 ### Known issues
 
