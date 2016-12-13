@@ -100,7 +100,7 @@ namespace Components
 			std::string newImage = image;
 			Utils::String::Replace(newImage, "preview_", "loadscreen_");
 
-			if (FileSystem::File(fmt::sprintf("images/%s.iwi", newImage.data())).exists())
+			if (FileSystem::FileReader(fmt::sprintf("images/%s.iwi", newImage.data())).exists())
 			{
 				image = Utils::String::VA("%s", newImage.data());
 			}
