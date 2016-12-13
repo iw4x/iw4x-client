@@ -20,6 +20,8 @@ namespace Utils
 
 			void clear()
 			{
+				std::lock_guard<std::mutex> _(this->mutex);
+
 				for (auto i = this->refMemory.begin(); i != this->refMemory.end(); ++i)
 				{
 					if (i->first && i->second)
@@ -40,6 +42,8 @@ namespace Utils
 
 			void free(void* data)
 			{
+				std::lock_guard<std::mutex> _(this->mutex);
+
 				auto i = this->refMemory.find(data);
 				if (i != this->refMemory.end())
 				{
@@ -62,11 +66,15 @@ namespace Utils
 
 			void reference(void* memory, FreeCallback callback)
 			{
+				std::lock_guard<std::mutex> _(this->mutex);
+
 				this->refMemory[memory] = callback;
 			}
 
 			void* allocate(size_t length)
 			{
+				std::lock_guard<std::mutex> _(this->mutex);
+
 				void* data = Memory::Allocate(length);
 				this->pool.push_back(data);
 				return data;
@@ -87,6 +95,8 @@ namespace Utils
 
 			char* duplicateString(std::string string)
 			{
+				std::lock_guard<std::mutex> _(this->mutex);
+
 				char* data = Memory::DuplicateString(string);
 				this->pool.push_back(data);
 				return data;
@@ -95,6 +105,7 @@ namespace Utils
 		private:
 			std::vector<void*> pool;
 			std::map<void*, FreeCallback> refMemory;
+			std::mutex mutex;
 		};
 
 		static void* AllocateAlign(size_t length, size_t alignment);
