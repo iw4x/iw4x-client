@@ -93,6 +93,22 @@ namespace Components
 		}
 	}
 
+	int Materials::FormatImagePath(char* buffer, size_t size, int, int, const char* image)
+	{
+		if (Utils::String::StartsWith(image, "preview_"))
+		{
+			std::string newImage = image;
+			Utils::String::Replace(newImage, "preview_", "loadscreen_");
+
+			if (FileSystem::File(fmt::sprintf("images/%s.iwi", newImage.data())).exists())
+			{
+				image = Utils::String::VA("%s", newImage.data());
+			}
+		}
+
+		return _snprintf_s(buffer, size, size, "images/%s.iwi", image);
+	}
+
 #ifdef DEBUG
 	void Materials::DumpImageCfg(int, const char*, const char* material)
 	{
@@ -125,6 +141,9 @@ namespace Components
 
 		// Adapt death message to IW5 material format
 		Utils::Hook(0x5A30D9, Materials::DeathMessageStub, HOOK_JUMP).install()->quick();
+
+		// Resolve preview images to loadscreens
+		Utils::Hook(0x53AC19, Materials::FormatImagePath, HOOK_CALL).install()->quick();
 
 #ifdef DEBUG
 		if (Flags::HasFlag("dump"))

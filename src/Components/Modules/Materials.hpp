@@ -23,6 +23,8 @@ namespace Components
 		static int WriteDeathMessageIcon(char* string, int offset, Game::Material* material);
 		static void DeathMessageStub();
 
+		static int FormatImagePath(char* buffer, size_t size, int, int, const char* image);
+
 #ifdef DEBUG
 		static void DumpImageCfg(int, const char*, const char* material);
 		static void DumpImageCfgPath(int, const char*, const char* material);
