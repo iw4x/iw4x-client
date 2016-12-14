@@ -315,6 +315,25 @@ namespace Components
 		}
 	}
 
+	__declspec(naked) void Network::PacketErrorCheck()
+	{
+		__asm
+		{
+			cmp eax, 2746h
+			jz returnIgnore
+
+			cmp eax, WSAENETRESET
+			jz returnIgnore
+
+			push 465325h
+			retn
+
+		returnIgnore:
+			push 4654C6h
+			retn
+		}
+	}
+
 	Network::Network()
 	{
 		AssertSize(Game::netadr_t, 20);
@@ -337,6 +356,9 @@ namespace Components
 
 		// Install interception handler
 		Utils::Hook(0x5AA709, Network::PacketInterceptionHandler, HOOK_CALL).install()->quick();
+
+		// Prevent recvfrom error spam
+		Utils::Hook(0x46531A, Network::PacketErrorCheck, HOOK_JUMP).install()->quick();
 
 		// Install packet deploy hook
 		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);

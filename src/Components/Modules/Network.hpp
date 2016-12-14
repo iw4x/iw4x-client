@@ -90,5 +90,7 @@ namespace Components
 
 		static void NetworkStart();
 		static void NetworkStartStub();
+
+		static void PacketErrorCheck();
 	};
 }
