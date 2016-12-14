@@ -26,7 +26,9 @@ namespace Assets
 			return;
 		}
 
-		Components::FileSystem::File iwi(fmt::sprintf("images/%s.iwi", name.data()));
+		char nameBuffer[MAX_PATH] = { 0 };
+		Components::Materials::FormatImagePath(nameBuffer, sizeof(nameBuffer), 0, 0, name.data());
+		Components::FileSystem::File iwi(nameBuffer);
 
 		if (!iwi.exists())
 		{

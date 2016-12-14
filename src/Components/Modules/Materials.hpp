@@ -10,6 +10,8 @@ namespace Components
 		const char* getName() { return "Materials"; };
 #endif
 
+		static int FormatImagePath(char* buffer, size_t size, int, int, const char* image);
+
 	private:
 		static int ImageNameLength;
 
@@ -22,8 +24,6 @@ namespace Components
 
 		static int WriteDeathMessageIcon(char* string, int offset, Game::Material* material);
 		static void DeathMessageStub();
-
-		static int FormatImagePath(char* buffer, size_t size, int, int, const char* image);
 
 #ifdef DEBUG
 		static void DumpImageCfg(int, const char*, const char* material);
