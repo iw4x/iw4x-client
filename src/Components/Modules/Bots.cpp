@@ -4,9 +4,10 @@ namespace Components
 {
 	std::vector<std::string> Bots::BotNames;
 
-	void Bots::InsertBotName(const char* arg)
+	void Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
-		const char** args = &arg;
+		static int botId = 0;
+
 		if (Bots::BotNames.empty())
 		{
 			FileSystem::File bots("bots.txt");
@@ -27,27 +28,14 @@ namespace Components
 				}
 			}
 
-			if(Bots::BotNames.empty())
+			if (Bots::BotNames.empty())
 			{
 				Bots::BotNames.push_back("bot");
 			}
 		}
 
-		int botId = reinterpret_cast<int>(args[12]);
-		args[12] = Utils::String::VA("%s", Bots::BotNames[botId % Bots::BotNames.size()].data());
-	}
-
-	__declspec(naked) void Bots::BuildConnectStringStub()
-	{
-		__asm
-		{
-			pushad
-			call Bots::InsertBotName
-			popad
-
-			push 6B5D80h // sprintf
-			retn
-		}
+		botId %= Bots::BotNames.size();
+		strncpy_s(buffer, 0x400, Utils::String::VA(connectString, num, Bots::BotNames[botId++].data(), protocol, checksum, statVer, statStuff, port), 0x400);
 	}
 
 	Bots::Bots()
@@ -56,7 +44,7 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
 		
 		// Intercept sprintf for the connect string
-		Utils::Hook(0x48ADAB, Bots::BuildConnectStringStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48ADAB, Bots::BuildConnectString, HOOK_CALL).install()->quick();
 	}
 
 	Bots::~Bots()
