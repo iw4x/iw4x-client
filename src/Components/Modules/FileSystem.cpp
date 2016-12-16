@@ -19,6 +19,16 @@ namespace Components
 		}
 	}
 
+	void FileSystem::RawFile::read()
+	{
+		this->buffer.clear();
+
+		Game::RawFile* rawfile = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_RAWFILE, this->filePath.data()).rawfile;
+		if (!rawfile || Game::DB_IsXAssetDefault(Game::XAssetType::ASSET_TYPE_RAWFILE, this->filePath.data())) return;
+
+		this->buffer.resize(Game::DB_GetRawFileLen(rawfile));
+		Game::DB_GetRawBuffer(rawfile, const_cast<char*>(this->buffer.data()), this->buffer.size());
+	}
 
 	FileSystem::FileReader::FileReader(std::string file) : name(file), handle(0)
 	{

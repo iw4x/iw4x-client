@@ -117,6 +117,12 @@ namespace Game
 	typedef const char *(__cdecl * DB_IsXAssetDefault_t)(XAssetType type, const char* name);
 	extern DB_IsXAssetDefault_t DB_IsXAssetDefault;
 
+	typedef void(__cdecl * DB_GetRawBuffer_t)(RawFile* rawfile, char* buffer, int size);
+	extern DB_GetRawBuffer_t DB_GetRawBuffer;
+
+	typedef int(__cdecl * DB_GetRawFileLen_t)(RawFile* rawfile);
+	extern DB_GetRawFileLen_t DB_GetRawFileLen;
+
 	typedef void(*DB_LoadXAssets_t)(XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 	extern DB_LoadXAssets_t DB_LoadXAssets;
 

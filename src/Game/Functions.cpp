@@ -45,6 +45,8 @@ namespace Game
 	DB_EnumXAssets_t DB_EnumXAssets = (DB_EnumXAssets_t)0x4B76D0;
 	DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal = (DB_EnumXAssets_Internal_t)0x5BB0A0;
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
+	DB_GetRawBuffer_t DB_GetRawBuffer = (DB_GetRawBuffer_t)0x4CDC50;
+	DB_GetRawFileLen_t DB_GetRawFileLen = (DB_GetRawFileLen_t)0x4DAA80;
 	DB_GetLoadedFraction_t DB_GetLoadedFraction = (DB_GetLoadedFraction_t)0x468380;
 	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = (DB_GetXAssetNameHandler_t*)0x799328;
 	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x799488;

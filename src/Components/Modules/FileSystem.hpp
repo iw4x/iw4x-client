@@ -3,12 +3,38 @@ namespace Components
 	class FileSystem : public Component
 	{
 	public:
+		class AbstractFile
+		{
+		public:
+			virtual ~AbstractFile() {};
 
-		class File
+			virtual bool exists() = 0;
+			virtual std::string getName() = 0;
+			virtual std::string& getBuffer() = 0;
+		};
+
+		class File : public AbstractFile
 		{
 		public:
 			File() {};
 			File(std::string file) : filePath(file) { this->read(); };
+
+			bool exists() { return !this->buffer.empty(); };
+			std::string getName() { return this->filePath; };
+			std::string& getBuffer() { return this->buffer; };
+
+		private:
+			std::string filePath;
+			std::string buffer;
+
+			void read();
+		};
+
+		class RawFile : public AbstractFile
+		{
+		public:
+			RawFile() {};
+			RawFile(std::string file) : filePath(file) { this->read(); };
 
 			bool exists() { return !this->buffer.empty(); };
 			std::string getName() { return this->filePath; };
