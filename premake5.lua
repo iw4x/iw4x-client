@@ -44,6 +44,11 @@ newoption {
 }
 
 newoption {
+	trigger = "ac-disable",
+	description = "Disable anticheat."
+}
+
+newoption {
 	trigger = "ac-debug-detections",
 	description = "Log anticheat detections."
 }
@@ -311,6 +316,9 @@ workspace "iw4x"
 		}
 
 		-- Debug flags
+		if _OPTIONS["ac-disable"] then
+			defines { "DISABLE_ANTICHEAT" }
+		end
 		if _OPTIONS["ac-debug-detections"] then
 			defines { "DEBUG_DETECTIONS" }
 		end

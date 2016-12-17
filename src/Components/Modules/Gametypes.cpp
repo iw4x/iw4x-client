@@ -101,7 +101,7 @@ namespace Components
 
 		// This is placed here in case the anticheat has been disabled!
 		// Make sure this is called after every onther anticheat check!
-#ifndef DEBUG
+#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
 		Utils::Hook(0x5ACBA3, [] () // Somewhere in the renderer, past other renderer hooks!
 		{
 			AntiCheat::FlagIntegrityCheck();

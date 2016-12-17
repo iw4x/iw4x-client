@@ -86,7 +86,7 @@ namespace Components
 
 		// This is placed here in case the anticheat has been disabled!
 		// Make sure this is called after the memory scan!
-#ifndef DEBUG
+#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
 		Utils::Hook(0x5ACB9E, [] () // Somewhere in the renderer, past the scan check
 		{
 			AntiCheat::ScanIntegrityCheck();
