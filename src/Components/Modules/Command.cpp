@@ -253,6 +253,14 @@ namespace Components
 			//Logger::Print("Successfully teleported player!\n");
 			//Toast::Show("cardicon_abduction", "Success", "You have been teleported!", 3000);
 		});
+
+		Command::Add("openLink", [](Command::Params* params)
+		{
+			if (params->length() > 1)
+			{
+				ShellExecuteA(NULL, "open", params->get(1), 0, 0, SW_SHOWNORMAL);
+			}
+		});
 	}
 
 	Command::~Command()
