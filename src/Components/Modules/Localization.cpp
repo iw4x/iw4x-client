@@ -5,8 +5,8 @@ namespace Components
 	std::mutex Localization::LocalizeMutex;
 	Dvar::Var Localization::UseLocalization;
 	Utils::Memory::Allocator Localization::MemAllocator;
-	std::map<std::string, Game::LocalizedEntry*> Localization::LocalizeMap;
-	std::map<std::string, Game::LocalizedEntry*> Localization::TempLocalizeMap;
+	std::unordered_map<std::string, Game::LocalizedEntry*> Localization::LocalizeMap;
+	std::unordered_map<std::string, Game::LocalizedEntry*> Localization::TempLocalizeMap;
 
 	void Localization::Set(std::string key, std::string value)
 	{

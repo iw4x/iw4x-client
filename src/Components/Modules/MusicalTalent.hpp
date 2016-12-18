@@ -13,7 +13,7 @@ namespace Components
 		static void Replace(std::string sound, const char* file);
 
 	private:
-		static std::map<std::string, const char*> SoundAliasList;
+		static std::unordered_map<std::string, const char*> SoundAliasList;
 		static Game::XAssetHeader ModifyAliases(Game::XAssetType type, std::string filename);
 	};
 }

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	std::map<std::string, const char*> MusicalTalent::SoundAliasList;
+	std::unordered_map<std::string, const char*> MusicalTalent::SoundAliasList;
 
 	void MusicalTalent::Replace(std::string sound, const char* file)
 	{

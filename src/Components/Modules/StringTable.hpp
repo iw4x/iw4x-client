@@ -12,7 +12,7 @@ namespace Components
 
 	private:
 		static Utils::Memory::Allocator MemAllocator;
-		static std::map<std::string, Game::StringTable*> StringTableMap;
+		static std::unordered_map<std::string, Game::StringTable*> StringTableMap;
 
 		static int Hash(const char* data);
 		static Game::StringTable* LoadObject(std::string filename);

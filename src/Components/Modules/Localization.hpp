@@ -19,8 +19,8 @@ namespace Components
 	private:
 		static std::mutex LocalizeMutex;
 		static Utils::Memory::Allocator MemAllocator;
-		static std::map<std::string, Game::LocalizedEntry*> LocalizeMap;
-		static std::map<std::string, Game::LocalizedEntry*> TempLocalizeMap;
+		static std::unordered_map<std::string, Game::LocalizedEntry*> LocalizeMap;
+		static std::unordered_map<std::string, Game::LocalizedEntry*> TempLocalizeMap;
 		static Dvar::Var UseLocalization;
 
 		static void __stdcall SetStringStub(const char* key, const char* value, bool isEnglish);

@@ -18,7 +18,7 @@ namespace Components
 
 	private:
 		static std::string CurrentPlaylistBuffer;
-		static std::map<const void*, std::string> MapRelocation;
+		static std::unordered_map<const void*, std::string> MapRelocation;
 
 		static DWORD StorePlaylistStub(const char** buffer);
 

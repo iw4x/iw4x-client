@@ -49,7 +49,7 @@ namespace Components
 		static void HandleKeyStub();
 		static void PlaySoundStub();
 
-		static std::map<float, Callbacks> Feeders;
+		static std::unordered_map<float, Callbacks> Feeders;
 
 		static void ApplyMapFeeder(Game::dvar_t* dvar, int num);
 	};

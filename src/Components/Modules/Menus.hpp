@@ -18,8 +18,8 @@ namespace Components
 		static void Add(std::string menu);
 
 	private:
-		static std::map<std::string, Game::menuDef_t*> MenuList;
-		static std::map<std::string, Game::MenuList*> MenuListList;
+		static std::unordered_map<std::string, Game::menuDef_t*> MenuList;
+		static std::unordered_map<std::string, Game::MenuList*> MenuListList;
 		static std::vector<std::string> CustomMenus;
 
 		static Game::XAssetHeader MenuLoad(Game::XAssetType type, std::string filename);

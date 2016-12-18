@@ -38,6 +38,7 @@
 //#include <chrono>
 #include <future>
 #include <queue>
+#include <unordered_map>
 
 // Experimental C++17 features
 #include <filesystem>

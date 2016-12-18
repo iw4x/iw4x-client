@@ -3,7 +3,7 @@
 namespace Components
 {
 	UIFeeder::Container UIFeeder::Current;
-	std::map<float, UIFeeder::Callbacks> UIFeeder::Feeders;
+	std::unordered_map<float, UIFeeder::Callbacks> UIFeeder::Feeders;
 
 	void UIFeeder::Add(float feeder, UIFeeder::GetItemCount_t itemCountCb, UIFeeder::GetItemText_t itemTextCb, UIFeeder::Select_t selectCb)
 	{

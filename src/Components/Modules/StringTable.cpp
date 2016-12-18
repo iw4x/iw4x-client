@@ -3,7 +3,7 @@
 namespace Components
 {
 	Utils::Memory::Allocator StringTable::MemAllocator;
-	std::map<std::string, Game::StringTable*> StringTable::StringTableMap;
+	std::unordered_map<std::string, Game::StringTable*> StringTable::StringTableMap;
 
 	int StringTable::Hash(const char* data)
 	{

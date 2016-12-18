@@ -39,7 +39,7 @@ namespace Components
 		static bool RunMenuScript(const char* name, const char** args);
 		static void RunMenuScriptStub();
 
-		static std::map<std::string, wink::slot<Callback>> UIScripts;
-		static std::map<int, wink::slot<CallbackRaw>> UIOwnerDraws;
+		static std::unordered_map<std::string, wink::slot<Callback>> UIScripts;
+		static std::unordered_map<int, wink::slot<CallbackRaw>> UIOwnerDraws;
 	};
 }

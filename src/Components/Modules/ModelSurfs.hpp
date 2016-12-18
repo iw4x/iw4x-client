@@ -11,8 +11,8 @@ namespace Components
 #endif
 
 	private:
-		static std::map<void*, IUnknown*> BufferMap;
-		static std::map<std::string, Game::CModelAllocData*> AllocMap;
+		static std::unordered_map<void*, IUnknown*> BufferMap;
+		static std::unordered_map<std::string, Game::CModelAllocData*> AllocMap;
 
 		static void ReleaseModelSurf(Game::XAssetHeader header);
 

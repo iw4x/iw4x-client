@@ -2,8 +2,8 @@
 
 namespace Components
 {
-	std::map<void*, IUnknown*> ModelSurfs::BufferMap;
-	std::map<std::string, Game::CModelAllocData*> ModelSurfs::AllocMap;
+	std::unordered_map<void*, IUnknown*> ModelSurfs::BufferMap;
+	std::unordered_map<std::string, Game::CModelAllocData*> ModelSurfs::AllocMap;
 
 	IUnknown* ModelSurfs::GetBuffer(void* buffer)
 	{

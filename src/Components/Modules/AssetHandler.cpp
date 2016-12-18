@@ -409,7 +409,7 @@ namespace Components
 
 	AssetHandler::~AssetHandler()
 	{
-		ClearTemporaryAssets();
+		AssetHandler::ClearTemporaryAssets();
 
 		for (auto i = AssetHandler::AssetInterfaces.begin(); i != AssetHandler::AssetInterfaces.end(); ++i)
 		{

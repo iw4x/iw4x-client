@@ -64,8 +64,8 @@ namespace Components
 
 	private:
 		static Utils::Memory::Allocator MemAllocator;
-		static std::map<std::string, wink::slot<Callback>> FunctionMap;
-		static std::map<std::string, wink::slot<Callback>> FunctionMapSV;
+		static std::unordered_map<std::string, wink::slot<Callback>> FunctionMap;
+		static std::unordered_map<std::string, wink::slot<Callback>> FunctionMapSV;
 
 		static void MainCallback();
 		static void MainCallbackSV();

@@ -4,7 +4,7 @@ namespace Components
 {
 	std::string Playlist::CurrentPlaylistBuffer;
 	std::string Playlist::ReceivedPlaylistBuffer;
-	std::map<const void*, std::string> Playlist::MapRelocation;
+	std::unordered_map<const void*, std::string> Playlist::MapRelocation;
 
 	void Playlist::LoadPlaylist()
 	{

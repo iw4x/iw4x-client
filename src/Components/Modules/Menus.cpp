@@ -3,8 +3,8 @@
 namespace Components
 {
 	std::vector<std::string> Menus::CustomMenus;
-	std::map<std::string, Game::menuDef_t*> Menus::MenuList;
-	std::map<std::string, Game::MenuList*> Menus::MenuListList;
+	std::unordered_map<std::string, Game::menuDef_t*> Menus::MenuList;
+	std::unordered_map<std::string, Game::MenuList*> Menus::MenuListList;
 
 	int Menus::ReserveSourceHandle()
 	{

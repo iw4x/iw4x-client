@@ -3,8 +3,8 @@
 namespace Components
 {
 	Utils::Memory::Allocator Command::MemAllocator;
-	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMap;
-	std::map<std::string, wink::slot<Command::Callback>> Command::FunctionMapSV;
+	std::unordered_map<std::string, wink::slot<Command::Callback>> Command::FunctionMap;
+	std::unordered_map<std::string, wink::slot<Command::Callback>> Command::FunctionMapSV;
 
 	std::string Command::Params::join(size_t startIndex)
 	{

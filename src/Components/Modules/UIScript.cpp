@@ -2,8 +2,8 @@
 
 namespace Components
 {
-	std::map<std::string, wink::slot<UIScript::Callback>> UIScript::UIScripts;
-	std::map<int, wink::slot<UIScript::CallbackRaw>> UIScript::UIOwnerDraws;
+	std::unordered_map<std::string, wink::slot<UIScript::Callback>> UIScript::UIScripts;
+	std::unordered_map<int, wink::slot<UIScript::CallbackRaw>> UIScript::UIOwnerDraws;
 
 	template<> int UIScript::Token::get()
 	{
