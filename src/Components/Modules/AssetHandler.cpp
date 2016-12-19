@@ -3,6 +3,7 @@
 namespace Components
 {
 	bool AssetHandler::BypassState = false;
+	std::recursive_mutex AssetHandler::BypassMutex;
 	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, wink::slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
 	wink::signal<wink::slot<AssetHandler::RestrictCallback>> AssetHandler::RestrictSignal;
@@ -54,6 +55,8 @@ namespace Components
 
 		if (filename)
 		{
+			std::lock_guard<std::recursive_mutex> _(AssetHandler::BypassMutex);
+
 			// Allow call DB_FindXAssetHeader within the hook
 			AssetHandler::BypassState = true;
 
@@ -308,11 +311,13 @@ namespace Components
 
 	Game::XAssetHeader AssetHandler::FindOriginalAsset(Game::XAssetType type, const char* filename)
 	{
-		bool OriginalState = AssetHandler::BypassState;
+		std::lock_guard<std::recursive_mutex> _(AssetHandler::BypassMutex);
+
+		bool originalState = AssetHandler::BypassState;
 
 		AssetHandler::BypassState = true;
 		Game::XAssetHeader header = Game::DB_FindXAssetHeader(type, filename);
-		if(!OriginalState) AssetHandler::BypassState = false;
+		if(!originalState) AssetHandler::BypassState = false;
 
 		return header;
 	}

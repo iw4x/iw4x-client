@@ -41,6 +41,7 @@ namespace Components
 
 	private:
 		static bool BypassState;
+		static std::recursive_mutex BypassMutex;
 
 		static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
