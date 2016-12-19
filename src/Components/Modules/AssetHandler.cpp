@@ -2,8 +2,8 @@
 
 namespace Components
 {
-	bool AssetHandler::BypassState = false;
 	std::recursive_mutex AssetHandler::BypassMutex;
+	std::vector<std::thread::id> AssetHandler::BypassThreads;
 	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, wink::slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
 	wink::signal<wink::slot<AssetHandler::RestrictCallback>> AssetHandler::RestrictSignal;
@@ -55,10 +55,8 @@ namespace Components
 
 		if (filename)
 		{
-			std::lock_guard<std::recursive_mutex> _(AssetHandler::BypassMutex);
-
 			// Allow call DB_FindXAssetHeader within the hook
-			AssetHandler::BypassState = true;
+			AssetHandler::SetThreadBypass();
 
 			if (AssetHandler::TypeCallbacks.find(type) != AssetHandler::TypeCallbacks.end())
 			{
@@ -66,10 +64,41 @@ namespace Components
 			}
 
 			// Disallow calling DB_FindXAssetHeader ;)
-			AssetHandler::BypassState = false;
+			AssetHandler::ClearThreadBypass();
 		}
 
 		return header;
+	}
+
+	int AssetHandler::HasThreadBypass()
+	{
+		std::lock_guard<std::recursive_mutex> _(AssetHandler::BypassMutex);
+		return (std::find(AssetHandler::BypassThreads.begin(), AssetHandler::BypassThreads.end(), std::this_thread::get_id()) != AssetHandler::BypassThreads.end()) & 1;
+	}
+
+	void AssetHandler::SetThreadBypass()
+	{
+		std::lock_guard<std::recursive_mutex> _(AssetHandler::BypassMutex);
+
+		if (!AssetHandler::HasThreadBypass())
+		{
+			AssetHandler::BypassThreads.push_back(std::this_thread::get_id());
+		}
+	}
+
+	void AssetHandler::ClearThreadBypass()
+	{
+		std::lock_guard<std::recursive_mutex> _(AssetHandler::BypassMutex);
+
+		while (AssetHandler::HasThreadBypass())
+		{
+			auto i = std::find(AssetHandler::BypassThreads.begin(), AssetHandler::BypassThreads.end(), std::this_thread::get_id());
+
+			if (i != AssetHandler::BypassThreads.end())
+			{
+				AssetHandler::BypassThreads.erase(i);
+			}
+		}
 	}
 
 	__declspec(naked) void AssetHandler::FindAssetStub()
@@ -83,8 +112,7 @@ namespace Components
 			push edi
 
 			// Check if custom handler should be bypassed
-			xor eax, eax
-			mov al, AssetHandler::BypassState
+			call AssetHandler::HasThreadBypass
 
 			test al, al
 			jnz finishOriginal
@@ -313,11 +341,11 @@ namespace Components
 	{
 		std::lock_guard<std::recursive_mutex> _(AssetHandler::BypassMutex);
 
-		bool originalState = AssetHandler::BypassState;
+		int originalState = AssetHandler::HasThreadBypass();
 
-		AssetHandler::BypassState = true;
+		AssetHandler::SetThreadBypass();
 		Game::XAssetHeader header = Game::DB_FindXAssetHeader(type, filename);
-		if(!originalState) AssetHandler::BypassState = false;
+		if (!originalState) AssetHandler::ClearThreadBypass();
 
 		return header;
 	}
