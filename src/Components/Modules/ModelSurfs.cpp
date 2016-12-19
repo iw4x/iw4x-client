@@ -109,6 +109,19 @@ namespace Components
 		Game::XSurface* tempSurfaces = allocator.allocateArray<Game::XSurface>(modelSurfs->numSurfaces);
 		char* surfaceData = reinterpret_cast<char*>(modelSurfs->surfaces);
 
+		if (ModelSurfs::AllocMap.find(modelSurfs->name) != ModelSurfs::AllocMap.end())
+		{
+			Game::CModelAllocData* allocData = ModelSurfs::AllocMap[modelSurfs->name];
+
+			if (allocData)
+			{
+				Utils::Memory::FreeAlign(allocData->indexBuffer);
+				Utils::Memory::FreeAlign(allocData->vertexBuffer);
+				Utils::Memory::Free(allocData->mainArray);
+				Utils::Memory::Free(allocData);
+			}
+		}
+
 		ModelSurfs::AllocMap[modelSurfs->name] = allocationData;
 		*reinterpret_cast<void**>(reinterpret_cast<char*>(allocationData->mainArray) + 44) = allocationData;
 
