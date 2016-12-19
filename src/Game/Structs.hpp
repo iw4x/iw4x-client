@@ -195,7 +195,7 @@ namespace Game
 		char unknown1[8];
 		int size;
 		char unknown2[22];
-		char *data;	// size = soundSize 
+		char *data;	// size = soundSize
 	};
 
 	struct LoadedSound
@@ -292,19 +292,19 @@ namespace Game
 		short dimensions[3];
 		int format; // usually the compression Magic
 		int dataSize; // set to zero to load from IWD
-		char data[1]; 
+		char data[1];
 	};
 
 	struct GfxImage
 	{
-		union 
+		union
 		{
 			GfxImageLoadDef* loadDef;
 #ifdef __cplusplus
 			IDirect3DTexture9* texture;
 #endif
 		};
-		
+
 		char mapType; // 5 is cube, 4 is 3d, 3 is 2d
 		char semantic;
 		char category;
@@ -491,7 +491,7 @@ namespace Game
 		ITEM_TEXTSTYLE_BORDERED          = 7,   // border (stroke)
 		ITEM_TEXTSTYLE_BORDEREDMORE      = 8,   // more border :P
 		ITEM_TEXTSTYLE_MONOSPACE         = 128,
-		ITEM_TEXTSTYLE_MONOSPACESHADOWED = 132,		
+		ITEM_TEXTSTYLE_MONOSPACESHADOWED = 132,
 	};
 
 #define ITEM_TYPE_TEXT				0		// simple text
@@ -929,7 +929,7 @@ namespace Game
 		FS_LIST_ALL = 0x1,
 	};
 
-	typedef enum 
+	typedef enum
 	{
 		NA_BOT,
 		NA_BAD,					// an address lookup failed
@@ -939,7 +939,7 @@ namespace Game
 		NA_IP6, // custom type
 	} netadrtype_t;
 
-	typedef enum 
+	typedef enum
 	{
 		NS_CLIENT,
 		NS_SERVER
@@ -951,7 +951,7 @@ namespace Game
 		DWORD full;
 	} netIP_t;
 
-	typedef struct 
+	typedef struct
 	{
 		netadrtype_t type;
 		netIP_t ip;
@@ -980,7 +980,7 @@ namespace Game
 		PLAYER_FLAG_FROZEN = 1 << 2,
 	};
 
-	typedef struct gclient_s 
+	typedef struct gclient_s
 	{
 		unsigned char pad[12764];
 		unsigned int team;
@@ -989,7 +989,7 @@ namespace Game
 		char pad3[724];
 	} gclient_t;
 
-	typedef struct gentity_s 
+	typedef struct gentity_s
 	{
 		unsigned char pad[312]; // 0
 		float origin[3]; // 312
@@ -1506,9 +1506,9 @@ namespace Game
 		short maxSurfs;// +6
 		XModelSurfs* surfaces; // +8
 		int partBits[4]; // +12
-		char pad3[8]; 
+		char pad3[8];
 		XSurface* surfs;
-		char pad4[4]; 
+		char pad4[4];
 	};
 
 	struct cplane_t
@@ -2992,7 +2992,9 @@ namespace Game
 		int unknown2;
 		unsigned int skyCount;
 		GfxSky* skies;
-		char unknown1[0x18];
+        int unkCount1;
+        int unkCount2;
+		char unknown1[16];
 		GfxWorldDpvsPlanes dpvsPlanes; //The following rely on the count in this
 		GfxCellTreeCount *aabbTreeCounts;
 		GfxCellTree *aabbTrees;
@@ -3007,7 +3009,9 @@ namespace Game
 		int materialMemoryCount;
 		MaterialMemory *materialMemory;
 		sunflare_t sun;
-		unsigned int *cellCasterBits[2];
+        char pad[64];
+		GfxImage* unknownImage;
+        unsigned int *cellCasterBits[2];
 		GfxSceneDynModel *sceneDynModel;
 		GfxSceneDynBrush *sceneDynBrush;
 		unsigned int *primaryLightEntityShadowVis;
@@ -3015,25 +3019,9 @@ namespace Game
 		char *primaryLightForModelDynEnt;
 		GfxShadowGeometry *shadowGeom;
 		GfxLightRegion *lightRegion;
-
-		char pad[24];
-		GfxImage* unknownImage;
-		char* unknown6;
-		char* unknown7;
-		char* unknown8;
-		char* unknown9;
-		char* unknown10;
-		char* unknown11;
-		char* unknown12;
-		char* unknown13;
-		char* unknown14;
-		char* unknown15;
-
 		GfxWorldDpvsStatic dpvs;
 		GfxWorldDpvsDynamic dpvsDyn;
-
 		char pad2[4];
-
 		unsigned int heroOnlyLightCount;
 		char * heroOnlyLight;
 		int unknown5;
@@ -3320,7 +3308,7 @@ namespace Game
 		char meleeChargeDist;
 	};
 #pragma pack(pop)
-	
+
 		typedef char mapname_t[40];
 
 #ifdef __cplusplus
