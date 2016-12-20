@@ -424,7 +424,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IGfxWorld());
 			AssetHandler::RegisterInterface(new Assets::ISndCurve());
 			AssetHandler::RegisterInterface(new Assets::IMaterial());
-            AssetHandler::RegisterInterface(new Assets::IclipMap_t());
+			AssetHandler::RegisterInterface(new Assets::IclipMap_t());
 			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
 			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
 			AssetHandler::RegisterInterface(new Assets::IFxEffectDef());
