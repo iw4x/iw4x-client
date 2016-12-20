@@ -2462,8 +2462,8 @@ namespace Game
 		short numCBrushes; // +140
 		short pad2; // +142
 		cBrush * cBrushes; // sizeof 36, +144
-		void* unknown2; // same count as cBrushes, +148
-		int * unknown3; // same count as cBrushes, +152
+		void* cBrushBounds; // same count as cBrushes, +148
+		int * cBrushContents; // same count as cBrushes, +152
 		MapEnts * mapEnts; // +156
 		int unkCount4; // +160
 		void* unknown4; // +164

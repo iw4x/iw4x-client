@@ -80,6 +80,7 @@ namespace Components
 #include "AssetInterfaces\IGfxWorld.hpp"
 #include "AssetInterfaces\IMaterial.hpp"
 #include "AssetInterfaces\ISndCurve.hpp"
+#include "AssetInterfaces\IclipMap_t.hpp"
 #include "AssetInterfaces\IPhysPreset.hpp"
 #include "AssetInterfaces\IXAnimParts.hpp"
 #include "AssetInterfaces\IFxEffectDef.hpp"
