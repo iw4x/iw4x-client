@@ -437,6 +437,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IMaterialVertexShader());
 			AssetHandler::RegisterInterface(new Assets::IStructuredDataDefSet());
 			AssetHandler::RegisterInterface(new Assets::IMaterialVertexDeclaration());
+            AssetHandler::RegisterInterface(new Assets::IGfxWorld());
 		}
 	}
 

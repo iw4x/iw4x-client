@@ -30,7 +30,7 @@
 #include <fstream>
 //#include <utility>
 //#include <algorithm>
-//#include <functional> 
+//#include <functional>
 #include <cctype>
 //#include <locale>
 #include <regex>

@@ -144,7 +144,7 @@ namespace Components
 	const std::string MinidumpUpload::queuedMinidumpsFolder = "minidumps\\";
 
 #ifdef DISABLE_BITMESSAGE
-	const std::vector<std::string> MinidumpUpload::targetUrls = 
+	const std::vector<std::string> MinidumpUpload::targetUrls =
 	{
 		"https://reich.io/upload.php",
 		"https://hitlers.kz/upload.php"
@@ -308,12 +308,13 @@ namespace Components
 		Logger::Print("Minidump %s now prepared for uploading (currently %d bytes)...\n", id.data(), compressedMinidump.size());
 
 #ifdef DISABLE_BITMESSAGE
+
 		for (auto& targetUrl : targetUrls)
 		{
 			Utils::WebIO webio("Firefucks", targetUrl);
 
 			std::string buffer = MinidumpUpload::Encode(compressedMinidump, extraHeaders);
-			std::string result = webio.PostFile(buffer, "files[]", "minidump.dmpx");
+			std::string result = webio.postFile(buffer, "files[]", "minidump.dmpx");
 
 			std::string errors;
 			json11::Json object = json11::Json::parse(result, errors);
@@ -343,7 +344,7 @@ namespace Components
 				}
 			}
 		}
-
+        
 		return false;
 #else
 		// BitMessage has a max msg size that is somewhere around 220 KB, split it up as necessary!

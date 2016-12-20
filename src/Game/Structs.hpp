@@ -2953,18 +2953,18 @@ namespace Game
 		void/*IDirect3DVertexBuffer9*/* layerVb;
 	};
 
-	typedef char GfxTexture[0x34];
+	typedef unsigned int GfxRawTexture;
 
 	struct GfxWorldDraw
 	{
 		unsigned int reflectionProbeCount;
 		GfxImage * * reflectionImages;
 		GfxReflectionProbe *reflectionProbes;
-		GfxTexture * reflectionProbeTextures; //Count = refelctionProbeCount
+		GfxRawTexture * reflectionProbeTextures; //Count = refelctionProbeCount
 		int lightmapCount;
 		GfxLightmapArray *lightmaps;
-		GfxTexture * lightmapPrimaryTextures; //Count = lightmapCount
-		GfxTexture * lightmapSecondaryTextures; //Count = lightmapCount
+		GfxRawTexture * lightmapPrimaryTextures; //Count = lightmapCount
+		GfxRawTexture * lightmapSecondaryTextures; //Count = lightmapCount
 		GfxImage *skyImage;
 		GfxImage *outdoorImage;
 		unsigned int vertexCount;
@@ -3021,7 +3021,7 @@ namespace Game
 		GfxLightRegion *lightRegion;
 		GfxWorldDpvsStatic dpvs;
 		GfxWorldDpvsDynamic dpvsDyn;
-		char pad2[4];
+		int pad2;
 		unsigned int heroOnlyLightCount;
 		char * heroOnlyLight;
 		int unknown5;

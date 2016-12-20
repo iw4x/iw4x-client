@@ -93,3 +93,4 @@ namespace Components
 #include "AssetInterfaces\IMaterialVertexShader.hpp"
 #include "AssetInterfaces\IStructuredDataDefSet.hpp"
 #include "AssetInterfaces\IMaterialVertexDeclaration.hpp"
+#include "AssetInterfaces\IGfxWorld.hpp"
