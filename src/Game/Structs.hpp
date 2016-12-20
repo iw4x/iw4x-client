@@ -2631,9 +2631,34 @@ namespace Game
 		pathnode_tree_t *nodeTree;
 	};
 
+	struct VehicleTrackObstacle
+	{
+		char pad[12];
+	};
+
+	struct VehicleTrackSector
+	{
+		char pad[52];
+		VehicleTrackObstacle* trackObstacles;
+		int trackObstacleCount;
+	};
+
+	struct VehicleTrackSegment
+	{
+		const char* name;
+		VehicleTrackSector* trackSectors;
+		int trackSectorCount;
+		VehicleTrackSegment** trackSegments1;
+		int trackSegmentCount1;
+		VehicleTrackSegment** trackSegments2;
+		int trackSegmentCount2;
+		int pad;
+	};
+
 	struct VehicleTrack
 	{
-		char pad[8];
+		VehicleTrackSegment* trackSegments;
+		int trackSegmentCount;
 	};
 
 	struct GameWorldSp
@@ -2643,7 +2668,6 @@ namespace Game
 		VehicleTrack vehicleTrack;
 		G_GlassData* data;
 	};
-
 
 	struct GameWorldMp
 	{
@@ -2814,6 +2838,7 @@ namespace Game
 		float mins[3];
 		float maxs[3];
 		GfxColor groundLighting;
+		int pad[2];
 	};
 
 	enum surfaceType_t
@@ -3003,6 +3028,7 @@ namespace Game
 		float bounds[2][3];
 		unsigned int surfaceCount;
 		unsigned int startSurfIndex;
+		int pad;
 	};
 
 	struct MaterialMemory
