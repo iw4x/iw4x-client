@@ -154,7 +154,7 @@ namespace Components
 		}
 	}
 
-	Game::GameMap_Data* Maps::GetWorldData()
+	Game::G_GlassData* Maps::GetWorldData()
 	{
 		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::IsSPMap)
 		{

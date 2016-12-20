@@ -83,6 +83,7 @@ namespace Components
 #include "AssetInterfaces\IPhysPreset.hpp"
 #include "AssetInterfaces\IXAnimParts.hpp"
 #include "AssetInterfaces\IFxEffectDef.hpp"
+#include "AssetInterfaces\IGameWorldMp.hpp"
 #include "AssetInterfaces\ILoadedSound.hpp"
 #include "AssetInterfaces\IPhysCollmap.hpp"
 #include "AssetInterfaces\IStringTable.hpp"

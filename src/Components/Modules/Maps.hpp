@@ -42,7 +42,7 @@ namespace Components
 
 		static int IgnoreEntityStub(const char* entity);
 
-		static Game::GameMap_Data* GetWorldData();
+		static Game::G_GlassData* GetWorldData();
 		static void GetWorldDataStub();
 
 		static void LoadRawSun();

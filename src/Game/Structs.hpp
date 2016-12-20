@@ -2476,18 +2476,159 @@ namespace Game
 		char unknown5[0x30];
 	}; // +256
 
-	struct GameMap_Data
+	struct G_GlassPiece
 	{
-		void* unk1;
-		int unkCount1;
-		int unkCount2;
-		void* unk2;
-		char pad[112];
+		char pad[12];
+	};
+
+	struct G_GlassName
+	{
+		char *nameStr;
+		__int16 name;
+		unsigned __int16 pieceCount;
+		unsigned __int16 *pieceIndices;
+	};
+
+	struct G_GlassData
+	{
+		G_GlassPiece *glassPieces;
+		unsigned int pieceCount;
+		unsigned __int16 damageToWeaken;
+		unsigned __int16 damageToDestroy;
+		unsigned int glassNameCount;
+		G_GlassName *glassNames;
+		char pad[108];
+	};
+
+	struct pathbasenode_t
+	{
+		float vOrigin[3];
+		unsigned int type;
+	};
+
+	struct pathnode_tree_nodes_t
+	{
+		int nodeCount;
+		unsigned __int16 *nodes;
+	};
+
+	struct pathnode_tree_t;
+
+	union pathnode_tree_info_t
+	{
+		pathnode_tree_t *child[2];
+		pathnode_tree_nodes_t s;
+	};
+
+	struct pathnode_tree_t
+	{
+		int axis;
+		float dist;
+		pathnode_tree_info_t u;
+	};
+
+	enum nodeType
+	{
+		NODE_BADNODE = 0x0,
+		NODE_PATHNODE = 0x1,
+		NODE_COVER_STAND = 0x2,
+		NODE_COVER_CROUCH = 0x3,
+		NODE_COVER_CROUCH_WINDOW = 0x4,
+		NODE_COVER_PRONE = 0x5,
+		NODE_COVER_RIGHT = 0x6,
+		NODE_COVER_LEFT = 0x7,
+		NODE_COVER_WIDE_RIGHT = 0x8,
+		NODE_COVER_WIDE_LEFT = 0x9,
+		NODE_CONCEALMENT_STAND = 0xA,
+		NODE_CONCEALMENT_CROUCH = 0xB,
+		NODE_CONCEALMENT_PRONE = 0xC,
+		NODE_REACQUIRE = 0xD,
+		NODE_BALCONY = 0xE,
+		NODE_SCRIPTED = 0xF,
+		NODE_NEGOTIATION_BEGIN = 0x10,
+		NODE_NEGOTIATION_END = 0x11,
+		NODE_TURRET = 0x12,
+		NODE_GUARD = 0x13,
+		NODE_NUMTYPES = 0x14,
+		NODE_DONTLINK = 0x14,
+	};
+
+	struct pathlink_s
+	{
+		float fDist;
+		unsigned __int16 nodeNum;
+		char disconnectCount;
+		char negotiationLink;
+		char ubBadPlaceCount[4];
+	};
+
+	struct pathnode_constant_t
+	{
+		nodeType type;
+		unsigned __int16 spawnflags;
+		unsigned __int16 targetname;
+		unsigned __int16 script_linkName;
+		unsigned __int16 script_noteworthy;
+		unsigned __int16 target;
+		unsigned __int16 animscript;
+		int animscriptfunc;
+		float vOrigin[3];
+		float fAngle;
+		float forward[2];
+		float fRadius;
+		float minUseDistSq;
+		__int16 wOverlapNode[2];
+		__int16 wChainId;
+		__int16 wChainDepth;
+		__int16 wChainParent;
+		unsigned __int16 totalLinkCount;
+		pathlink_s *Links;
+	};
+
+	struct pathnode_dynamic_t
+	{
+		void *pOwner;
+		int iFreeTime;
+		int iValidTime[3];
+		int inPlayerLOSTime;
+		__int16 wLinkCount;
+		__int16 wOverlapCount;
+		__int16 turretEntNumber;
+		__int16 userCount;
+	};
+
+	struct pathnode_t;
+
+	struct pathnode_transient_t
+	{
+		int iSearchFrame;
+		pathnode_t *pNextOpen;
+		pathnode_t *pPrevOpen;
+		pathnode_t *pParent;
+		float fCost;
+		float fHeuristic;
+		float costFactor;
+	};
+
+	struct pathnode_t
+	{
+		pathnode_constant_t constant;
+		pathnode_dynamic_t dynamic;
+		pathnode_transient_t transient;
 	};
 
 	struct PathData
 	{
-		char pad[40];
+		unsigned int nodeCount;
+		pathnode_t *nodes;
+		pathbasenode_t *basenodes;
+		unsigned int chainNodeCount;
+		unsigned __int16 *chainNodeForNode;
+		unsigned __int16 *nodeForChainNode;
+		int visBytes;
+		char *pathVis;
+		int nodeTreeCount;
+		pathnode_tree_t *nodeTree;
 	};
 
 	struct VehicleTrack
@@ -2500,14 +2641,14 @@ namespace Game
 		const char* name;
 		PathData pathData;
 		VehicleTrack vehicleTrack;
-		GameMap_Data* data;
+		G_GlassData* data;
 	};
 
 
 	struct GameWorldMp
 	{
 		const char* name;
-		GameMap_Data* data;
+		G_GlassData* data;
 	};
 
 	struct VehicleDef

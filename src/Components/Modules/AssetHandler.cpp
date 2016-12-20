@@ -427,6 +427,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
 			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
 			AssetHandler::RegisterInterface(new Assets::IFxEffectDef());
+			AssetHandler::RegisterInterface(new Assets::IGameWorldMp());
 			AssetHandler::RegisterInterface(new Assets::ILoadedSound());
 			AssetHandler::RegisterInterface(new Assets::IPhysCollmap());
 			AssetHandler::RegisterInterface(new Assets::IStringTable());
