@@ -77,6 +77,7 @@ namespace Components
 #include "AssetInterfaces\IMapEnts.hpp"
 #include "AssetInterfaces\IRawFile.hpp"
 #include "AssetInterfaces\IGfxImage.hpp"
+#include "AssetInterfaces\IGfxWorld.hpp"
 #include "AssetInterfaces\IMaterial.hpp"
 #include "AssetInterfaces\ISndCurve.hpp"
 #include "AssetInterfaces\IPhysPreset.hpp"
@@ -93,4 +94,3 @@ namespace Components
 #include "AssetInterfaces\IMaterialVertexShader.hpp"
 #include "AssetInterfaces\IStructuredDataDefSet.hpp"
 #include "AssetInterfaces\IMaterialVertexDeclaration.hpp"
-#include "AssetInterfaces\IGfxWorld.hpp"

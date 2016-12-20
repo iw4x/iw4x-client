@@ -421,6 +421,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IMapEnts());
 			AssetHandler::RegisterInterface(new Assets::IRawFile());
 			AssetHandler::RegisterInterface(new Assets::IGfxImage());
+			AssetHandler::RegisterInterface(new Assets::IGfxWorld());
 			AssetHandler::RegisterInterface(new Assets::ISndCurve());
 			AssetHandler::RegisterInterface(new Assets::IMaterial());
 			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
@@ -437,7 +438,6 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IMaterialVertexShader());
 			AssetHandler::RegisterInterface(new Assets::IStructuredDataDefSet());
 			AssetHandler::RegisterInterface(new Assets::IMaterialVertexDeclaration());
-            AssetHandler::RegisterInterface(new Assets::IGfxWorld());
 		}
 	}
 
