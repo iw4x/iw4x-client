@@ -1472,8 +1472,8 @@ namespace Game
 		unsigned short numVertices; // +2
 		unsigned short numPrimitives; // +4
 		unsigned char streamHandle; // something to do with buffers, +6
-		char pad2; // +7
-		int pad3; // +8
+		unsigned __int16 baseTriIndex;
+		unsigned __int16 baseVertIndex;
 		Face* indexBuffer; // +12
 		short blendNum1; // +16
 		short blendNum2; // +18
@@ -1483,10 +1483,8 @@ namespace Game
 		GfxPackedVertex* vertexBuffer; // +28
 		int numCT; // +32
 		XRigidVertList* ct; // +36
-		short something;
-		unsigned short flags;
-		int something2;
-		char pad5[16]; // +40
+		int partBits[4];
+		char pad5[8]; // +40
 					   // pad5 matches XModelSurfaces pad
 					   // total size, 64
 	};
@@ -1496,7 +1494,8 @@ namespace Game
 		const char* name;
 		XSurface* surfaces;
 		int numSurfaces;
-		char pad[24];
+		int partBits[4];
+		char pad[8];
 	};
 
 	struct XModelLodInfo

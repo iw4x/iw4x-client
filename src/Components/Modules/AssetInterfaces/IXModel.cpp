@@ -1,6 +1,6 @@
 #include <STDInclude.hpp>
 
-#define IW4X_MODEL_VERSION 1
+#define IW4X_MODEL_VERSION 2
 
 namespace Assets
 {
@@ -91,12 +91,13 @@ namespace Assets
 				surface->deformed = reader.read<char>();
 
 				surface->streamHandle = reader.read<unsigned char>();
-				surface->flags = reader.read<unsigned short>();
-				surface->something = reader.read<short>();
-				surface->something2 = reader.read<int>();
+				surface->partBits[0] = reader.read<int>();
+				surface->partBits[1] = reader.read<int>();
+				surface->partBits[2] = reader.read<int>();
+				surface->partBits[3] = reader.read<int>();
 
-				surface->pad2 = reader.read<char>();
-				surface->pad3 = reader.read<int>();
+				surface->baseTriIndex = reader.read<unsigned __int16>();
+				surface->baseVertIndex = reader.read<unsigned __int16>();
 
 				surface->numVertices = reader.read<unsigned short>();
 				surface->numPrimitives = reader.read<unsigned short>();

@@ -132,7 +132,7 @@ namespace Components
 			std::memcpy(&tempSurfaces[i], source, 12);
 			std::memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
 			std::memcpy(&tempSurfaces[i].numCT, source + 40, 8);
-			std::memcpy(&tempSurfaces[i].something, source + 52, 24);
+			std::memcpy(&tempSurfaces[i].partBits, source + 52, 24);
 			tempSurfaces[i].streamHandle = 0xFF; // Fake handle for buffer interception
 		}
 
@@ -164,7 +164,7 @@ namespace Components
  				surfs->numSurfaces = newSurfs->numSurfaces;
 
 				model->lods[i].surfs = newSurfs->surfaces;
-				std::memcpy(&model->lods[i].partBits, newSurfs->pad, 24);
+				std::memcpy(&model->lods[i].partBits, newSurfs->partBits, 24);
 
 				short numSurfs = static_cast<short>(newSurfs->numSurfaces);
 				model->lods[i].numSurfs = numSurfs;

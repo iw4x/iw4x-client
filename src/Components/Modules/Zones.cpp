@@ -167,7 +167,7 @@ namespace Components
 				std::memcpy(&tempSurfaces[i], source, 12);
 				std::memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
 				std::memcpy(&tempSurfaces[i].numCT, source + 40, 8);
-				std::memcpy(&tempSurfaces[i].something, source + 52, 24);
+				std::memcpy(&tempSurfaces[i].partBits, source + 52, 24);
 
 				if (Zones::ZoneVersion >= 332)
 				{
