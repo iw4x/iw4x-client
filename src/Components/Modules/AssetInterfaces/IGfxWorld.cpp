@@ -2,13 +2,11 @@
 
 namespace Assets
 {
-    void IGfxWorld::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+    void IGfxWorld::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
 		Game::GfxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFX_MAP, name.data()).gfxMap;
 		if (map) return;
 		Components::Logger::Error("Missing GfxMap %s... you can't make them yet you idiot.", name.data());
-        *(header);
-        *(builder);
     }
 
     void IGfxWorld::saveGfxWorldDpvsPlanes(Game::GfxWorld* world, Game::GfxWorldDpvsPlanes* asset, Game::GfxWorldDpvsPlanes* dest, Components::ZoneBuilder::Zone* builder) {
@@ -199,21 +197,19 @@ namespace Assets
     void IGfxWorld::savesunflare_t(Game::sunflare_t* asset, Game::sunflare_t* dest, Components::ZoneBuilder::Zone* builder) {
         AssertSize(Game::sunflare_t, 96);
 
-        Utils::Stream* buffer = builder->getBuffer();
-
         if(asset->spriteMaterial) {
-            asset->spriteMaterial = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->spriteMaterial->name).material;
+            dest->spriteMaterial = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->spriteMaterial->name).material;
         }
 
         if(asset->flareMaterial) {
-            asset->flareMaterial = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->flareMaterial->name).material;
+            dest->flareMaterial = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->flareMaterial->name).material;
         }
     }
 
-    void IGfxWorld::saveGfxWorldDpvsStatic(Game::GfxWorldDpvsStatic* asset, Game::GfxWorldDpvsStatic* dest, int planeCount, Components::ZoneBuilder::Zone* builder) {
+    void IGfxWorld::saveGfxWorldDpvsStatic(Game::GfxWorldDpvsStatic* /*asset*/, Game::GfxWorldDpvsStatic* /*dest*/, int /*planeCount*/, Components::ZoneBuilder::Zone* /*builder*/) {
         AssertSize(Game::GfxWorldDpvsStatic, 108);
 
-        Utils::Stream* buffer = builder->getBuffer();
+        //Utils::Stream* buffer = builder->getBuffer();
     }
 
     void IGfxWorld::saveGfxWorldDpvsDynamic(Game::GfxWorldDpvsDynamic* asset, Game::GfxWorldDpvsDynamic* dest, int planeCount, Components::ZoneBuilder::Zone* builder) {
@@ -285,7 +281,7 @@ namespace Assets
 			Game::GfxSky* destSkyTable = buffer->dest<Game::GfxSky>();
 			buffer->saveArray(asset->skies, asset->skyCount);
 
-			for (char i = 0; i < asset->skyCount; ++i)
+			for (unsigned char i = 0; i < asset->skyCount; ++i)
 			{
                 Game::GfxSky* destSky = &destSkyTable[i];
                 Game::GfxSky* sky = &asset->skies[i];
@@ -324,7 +320,7 @@ namespace Assets
 			Game::GfxCellTree* destCellTreeTable = buffer->dest<Game::GfxCellTree>();
 			buffer->saveArray(asset->aabbTrees, cellCount);
 
-			for (char i = 0; i < cellCount; ++i)
+			for (unsigned char i = 0; i < cellCount; ++i)
 			{
                 Game::GfxCellTree* destCellTree = &destCellTreeTable[i];
                 Game::GfxCellTree* cellTree = &asset->aabbTrees[i];
@@ -377,7 +373,7 @@ namespace Assets
 			Game::GfxCell* destCellTable = buffer->dest<Game::GfxCell>();
 			buffer->saveArray(asset->cells, cellCount);
 
-			for (char i = 0; i < cellCount; ++i)
+			for (unsigned char i = 0; i < cellCount; ++i)
 			{
                 Game::GfxCell* destCell = &destCellTable[i];
                 Game::GfxCell* cell = &asset->cells[i];
@@ -562,7 +558,7 @@ namespace Assets
         			Game::GfxLightRegionHull* destLightRegionHullTable = buffer->dest<Game::GfxLightRegionHull>();
         			buffer->saveArray(lightRegion->hulls, lightRegion->hullCount);
 
-        			for (char j = 0; j < lightRegion->hullCount; ++j)
+        			for (unsigned char j = 0; j < lightRegion->hullCount; ++j)
         			{
                         Game::GfxLightRegionHull* destLightRegionHull = &destLightRegionHullTable[j];
                         Game::GfxLightRegionHull* lightRegionHull = &lightRegion->hulls[j];
