@@ -391,6 +391,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IXModel());
 			AssetHandler::RegisterInterface(new Assets::IMapEnts());
 			AssetHandler::RegisterInterface(new Assets::IRawFile());
+			AssetHandler::RegisterInterface(new Assets::IComWorld());
 			AssetHandler::RegisterInterface(new Assets::IGfxImage());
 			AssetHandler::RegisterInterface(new Assets::IGfxWorld());
 			AssetHandler::RegisterInterface(new Assets::ISndCurve());
