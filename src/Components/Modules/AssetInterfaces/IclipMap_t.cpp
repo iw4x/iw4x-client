@@ -13,37 +13,55 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
-		if (asset->cPlanes) // OffsetToPointer support
+		if (asset->cPlanes)
 		{
-			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->cPlanes, sizeof(Game::cPlane), asset->numCPlanes);
-			Utils::Stream::ClearPointer(&dest->cPlanes);
+			AssertSize(Game::cplane_t, 20);
+
+			if (builder->hasPointer(asset->cPlanes))
+			{
+				dest->cPlanes = builder->getPointer(asset->cPlanes);
+			}
+			else
+			{
+				builder->storePointer(asset->cPlanes);
+
+				buffer->align(Utils::Stream::ALIGN_4);
+				buffer->saveArray(asset->cPlanes, asset->numCPlanes);
+				Utils::Stream::ClearPointer(&dest->cPlanes);
+			}
 		}
 
 		if (asset->staticModelList)
 		{
+			AssertSize(Game::cStaticModel_t, 76);
+
 			// xmodel is already stored
 			buffer->align(Utils::Stream::ALIGN_4);
-			Game::cStaticModel* destStaticModelList = buffer->dest<Game::cStaticModel>();
-			buffer->save(asset->staticModelList, sizeof(Game::cStaticModel), asset->numStaticModels);
-			for (int i = 0; i < asset->numStaticModels; i++) 
+			Game::cStaticModel_t* destStaticModelList = buffer->dest<Game::cStaticModel_t>();
+			buffer->saveArray(asset->staticModelList, asset->numStaticModels);
+
+			for (int i = 0; i < asset->numStaticModels; ++i)
 			{
 				if (asset->staticModelList[i].xmodel)
 				{
 					destStaticModelList[i].xmodel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->staticModelList[i].xmodel->name).model;
 				}
 			}
+
 			Utils::Stream::ClearPointer(&dest->staticModelList);
 		}
 
 		if (asset->materials)
 		{
+			AssertSize(Game::ClipMaterial, 12);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-			Game::dMaterial* mats = buffer->dest<Game::dMaterial>();
-			buffer->save(asset->materials, sizeof(Game::dMaterial), asset->numMaterials);
-			for (int i = 0; i < asset->numMaterials; i++)
+			Game::ClipMaterial* mats = buffer->dest<Game::ClipMaterial>();
+			buffer->saveArray(asset->materials, asset->numMaterials);
+
+			for (int i = 0; i < asset->numMaterials; ++i)
 			{
-				buffer->save(asset->materials[i].name, strlen(asset->materials[i].name) + 1, 1);
+				buffer->saveString(asset->materials[i].name);
 				Utils::Stream::ClearPointer(&mats[i].name);
 			}
 			Utils::Stream::ClearPointer(&dest->materials);
@@ -51,174 +69,272 @@ namespace Assets
 
 		if (asset->cBrushSides)
 		{
+			AssertSize(Game::cbrushside_t, 8);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-			Game::cBrushSide* sides = buffer->dest<Game::cBrushSide>();
-			buffer->save(asset->cBrushSides, sizeof(Game::cBrushSide), asset->numCBrushSides);
-			for (int i = 0; i < asset->numCBrushSides; i++)
+			Game::cbrushside_t* sides = buffer->dest<Game::cbrushside_t>();
+			buffer->saveArray(asset->cBrushSides, asset->numCBrushSides);
+
+			for (int i = 0; i < asset->numCBrushSides; ++i)
 			{
-				if (sides[i].side) // OffsetToPointer
+				if (sides[i].side)
 				{
-					buffer->align(Utils::Stream::ALIGN_4);
-					buffer->save(sides[i].side, sizeof(Game::cPlane), 1);
-					Utils::Stream::ClearPointer(&sides[i].side);
+					AssertSize(Game::cplane_t, 20);
+
+					if (builder->hasPointer(sides[i].side))
+					{
+						sides[i].side = builder->getPointer(sides[i].side);
+					}
+					else
+					{
+						builder->storePointer(sides[i].side);
+
+						buffer->align(Utils::Stream::ALIGN_4);
+						buffer->save(sides[i].side);
+						Utils::Stream::ClearPointer(&sides[i].side);
+					}
 				}
 			}
+
 			Utils::Stream::ClearPointer(&dest->cBrushSides);
 		}
 
 		if (asset->cBrushEdges)
 		{
 			// no align for char
-			buffer->save(asset->cBrushEdges, 1, asset->numCBrushEdges);
+			buffer->saveArray(asset->cBrushEdges, asset->numCBrushEdges);
 			Utils::Stream::ClearPointer(&dest->cBrushEdges);
 		}
 
 		if (asset->cNodes)
 		{
+			AssertSize(Game::cNode_t, 8);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-			Game::cNode* nodes = buffer->dest<Game::cNode>();
-			buffer->save(asset->cNodes, sizeof(Game::cNode), asset->numCNodes);
-			for (int i = 0; i < asset->numCNodes; i++)
+			Game::cNode_t* nodes = buffer->dest<Game::cNode_t>();
+			buffer->saveArray(asset->cNodes, asset->numCNodes);
+
+			for (int i = 0; i < asset->numCNodes; ++i)
 			{
-				if (nodes[i].plane) // OffsetToPointer
+				if (nodes[i].plane)
 				{
-					buffer->align(Utils::Stream::ALIGN_4);
-					buffer->save(nodes[i].plane, sizeof(Game::cPlane), 1);
-					Utils::Stream::ClearPointer(&nodes[i].plane);
+					if (builder->hasPointer(nodes[i].plane))
+					{
+						nodes[i].plane = builder->getPointer(nodes[i].plane);
+					}
+					else
+					{
+						builder->storePointer(nodes[i].plane);
+
+						buffer->align(Utils::Stream::ALIGN_4);
+						buffer->save(nodes[i].plane);
+						Utils::Stream::ClearPointer(&nodes[i].plane);
+					}
 				}
 			}
+
 			Utils::Stream::ClearPointer(&dest->cNodes);
 		}
 
 		if (asset->cLeaf)
 		{
+			AssertSize(Game::cLeaf_t, 40);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->cLeaf, sizeof(Game::cLeaf), asset->numCLeaf);
+			buffer->saveArray(asset->cLeaf, asset->numCLeaf);
 			Utils::Stream::ClearPointer(&dest->cLeaf);
 		}
 
 		if (asset->leafBrushes)
 		{
 			buffer->align(Utils::Stream::ALIGN_2);
-			buffer->save(asset->leafBrushes, 2, asset->numLeafBrushes);
+			buffer->saveArray(asset->leafBrushes, asset->numLeafBrushes);
 			Utils::Stream::ClearPointer(&dest->leafBrushes);
 		}
 
 		if (asset->cLeafBrushNodes)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			Game::cLeafBrushNode* node = buffer->dest<Game::cLeafBrushNode>();
-			buffer->save(asset->cLeafBrushNodes, sizeof(Game::cLeafBrushNode), asset->numCLeafBrushNodes);
+			Game::cLeafBrushNode_t* node = buffer->dest<Game::cLeafBrushNode_t>();
+			buffer->saveArray(asset->cLeafBrushNodes, asset->numCLeafBrushNodes);
 
-			for (int i = 0; i < asset->numCLeafBrushNodes; i++)
+			for (int i = 0; i < asset->numCLeafBrushNodes; ++i)
 			{
 				if (node[i].leafBrushCount > 0)
 				{
-					if (node[i].data.leaf.brushes) // OffsetToPointer
+					if (node[i].data.leaf.brushes)
 					{
-						buffer->align(Utils::Stream::ALIGN_2);
-						buffer->save(node[i].data.leaf.brushes, 2, node[i].leafBrushCount);
-						Utils::Stream::ClearPointer(&node[i].data.leaf.brushes);
+						if (builder->hasPointer(node[i].data.leaf.brushes))
+						{
+							node[i].data.leaf.brushes = builder->getPointer(node[i].data.leaf.brushes);
+						}
+						else
+						{
+							builder->storePointer(node[i].data.leaf.brushes);
+
+							buffer->align(Utils::Stream::ALIGN_2);
+							buffer->saveArray(node[i].data.leaf.brushes, node[i].leafBrushCount);
+							Utils::Stream::ClearPointer(&node[i].data.leaf.brushes);
+						}
 					}
 				}
 			}
+
 			Utils::Stream::ClearPointer(&dest->cLeafBrushNodes);
 		}
 
 		if (asset->leafSurfaces)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->leafSurfaces, sizeof(int), asset->numLeafSurfaces);
+			buffer->saveArray(asset->leafSurfaces, asset->numLeafSurfaces);
 			Utils::Stream::ClearPointer(&dest->leafSurfaces);
 		}
 
 		if (asset->verts)
 		{
+			AssertSize(Game::vec3_t, 12);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->verts, sizeof(Game::vec3_t), asset->numVerts);
+			buffer->saveArray(asset->verts, asset->numVerts);
 			Utils::Stream::ClearPointer(&dest->verts);
 		}
 
 		if (asset->triIndices)
 		{
 			buffer->align(Utils::Stream::ALIGN_2);
-			buffer->save(asset->triIndices, sizeof(short), 3 * asset->numTriIndices);
+			buffer->save(asset->triIndices, 6, asset->numTriIndices);
 			Utils::Stream::ClearPointer(&dest->triIndices);
 		}
 
 		if (asset->triEdgeIsWalkable)
 		{
 			// no align for char
-			buffer->save(asset->triEdgeIsWalkable, sizeof(char), ((3 * asset->numTriIndices + 31) >> 3) & 0xFFFFFFFC);
+			buffer->save(asset->triEdgeIsWalkable, 1, 4 * ((3 * asset->numTriIndices + 31) >> 5));
 			Utils::Stream::ClearPointer(&dest->triEdgeIsWalkable);
 		}
 
 		if (asset->collisionBorders)
 		{
+			AssertSize(Game::CollisionBorder, 28);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->collisionBorders, sizeof(Game::CollisionBorder), asset->numCollisionBorders);
+
+			for (int i = 0; i < asset->numCollisionBorders; ++i)
+			{
+				builder->storePointer(&asset->collisionBorders[i]);
+				buffer->save(&asset->collisionBorders[i]);
+			}
+
 			Utils::Stream::ClearPointer(&dest->collisionBorders);
 		}
 
 		if (asset->collisionPartitions)
 		{
+			AssertSize(Game::CollisionPartition, 12);
+
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::CollisionPartition* border = buffer->dest<Game::CollisionPartition>();
-			buffer->save(asset->collisionPartitions, sizeof(Game::CollisionPartition), asset->numCollisionPartitions);
+			buffer->saveArray(asset->collisionPartitions, asset->numCollisionPartitions);
 
-			for (int i = 0; i < asset->numCollisionPartitions; i++)
+			for (int i = 0; i < asset->numCollisionPartitions; ++i)
 			{
-				if (border[i].borders) // OffsetToPointer
+				if (border[i].borders)
 				{
-					buffer->align(Utils::Stream::ALIGN_4);
-					buffer->save(border[i].borders, sizeof(Game::CollisionBorder), 1);
-					Utils::Stream::ClearPointer(&border[i].borders);
+					if (builder->hasPointer(border[i].borders))
+					{
+						border[i].borders = builder->getPointer(border[i].borders);
+					}
+					else
+					{
+						builder->storePointer(border[i].borders);
+
+						buffer->align(Utils::Stream::ALIGN_4);
+						buffer->save(border[i].borders);
+						Utils::Stream::ClearPointer(&border[i].borders);
+					}
 				}
 			}
+
 			Utils::Stream::ClearPointer(&dest->collisionPartitions);
 		}
 
 		if (asset->collisionAABBTrees)
 		{
+			AssertSize(Game::CollisionAabbTree, 32);
+
 			buffer->align(Utils::Stream::ALIGN_16);
-			buffer->save(asset->collisionAABBTrees, sizeof(Game::CollisionAabbTree), asset->numCollisionAABBTrees);
+			buffer->saveArray(asset->collisionAABBTrees, asset->numCollisionAABBTrees);
 			Utils::Stream::ClearPointer(&dest->collisionAABBTrees);
 		}
 
 		if (asset->cModels)
 		{
+			AssertSize(Game::cmodel_t, 68);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->cModels, sizeof(Game::cModel), asset->numCModels);
+			buffer->saveArray(asset->cModels, asset->numCModels);
 			Utils::Stream::ClearPointer(&dest->cModels);
 		}
 
 		if (asset->cBrushes)
 		{
-			buffer->align(Utils::Stream::ALIGN_128);
-			Game::cBrush* brushes = buffer->dest<Game::cBrush>();
-			buffer->save(asset->cBrushes, sizeof(Game::cBrush), asset->numCBrushes);
+			AssertSize(Game::cbrush_t, 36);
 
-			for (short i = 0; i < asset->numCBrushes; i++)
+			buffer->align(Utils::Stream::ALIGN_128);
+			Game::cbrush_t* brushes = buffer->dest<Game::cbrush_t>();
+			buffer->saveArray(asset->cBrushes, asset->numCBrushes);
+
+			for (short i = 0; i < asset->numCBrushes; ++i)
 			{
 				if (brushes[i].brushSide)
 				{
-					Game::cBrushSide* side = buffer->dest<Game::cBrushSide>();
-					buffer->save(brushes[i].brushSide, sizeof(Game::cBrushSide), 1);
-
-					if (brushes[i].brushSide->side)
+					if (builder->hasPointer(brushes[i].brushSide))
 					{
-						buffer->align(Utils::Stream::ALIGN_4);
-						buffer->save(brushes[i].brushSide->side, sizeof(Game::cPlane), 1);
-						Utils::Stream::ClearPointer(&side->side);
+						brushes[i].brushSide = builder->getPointer(brushes[i].brushSide);
 					}
+					else
+					{
+						builder->storePointer(brushes[i].brushSide);
 
-					Utils::Stream::ClearPointer(&brushes[i].brushSide);
+						AssertSize(Game::cbrushside_t, 8);
+
+						buffer->align(Utils::Stream::ALIGN_4);
+						Game::cbrushside_t* side = buffer->dest<Game::cbrushside_t>();
+						buffer->save(brushes[i].brushSide);
+
+						if (brushes[i].brushSide->side)
+						{
+							if (builder->hasPointer(brushes[i].brushSide->side))
+							{
+								brushes[i].brushSide->side = builder->getPointer(brushes[i].brushSide->side);
+							}
+							else
+							{
+								builder->storePointer(brushes[i].brushSide->side);
+
+								buffer->align(Utils::Stream::ALIGN_4);
+								buffer->save(brushes[i].brushSide->side);
+								Utils::Stream::ClearPointer(&side->side);
+							}
+						}
+
+						Utils::Stream::ClearPointer(&brushes[i].brushSide);
+					}
 				}
 
 				if (brushes[i].brushEdge)
 				{
-					buffer->save(brushes[i].brushEdge, 1, 1);
-					Utils::Stream::ClearPointer(&brushes[i].brushEdge);
+					if (builder->hasPointer(brushes[i].brushEdge))
+					{
+						brushes[i].brushEdge = builder->getPointer(brushes[i].brushEdge);
+					}
+					else
+					{
+						builder->storePointer(brushes[i].brushEdge);
+
+						buffer->save(brushes[i].brushEdge);
+						Utils::Stream::ClearPointer(&brushes[i].brushEdge);
+					}
 				}
 			}
 			Utils::Stream::ClearPointer(&dest->cBrushes);
@@ -226,22 +342,26 @@ namespace Assets
 
 		if (asset->cBrushBounds)
 		{
+			AssertSize(Game::Bounds, 24);
+
 			buffer->align(Utils::Stream::ALIGN_128);
-			buffer->save(asset->cBrushBounds, sizeof(Game::Bounds), asset->numCBrushes);
+			buffer->saveArray(asset->cBrushBounds, asset->numCBrushes);
 			Utils::Stream::ClearPointer(&dest->cBrushBounds);
 		}
 
 		if (asset->cBrushContents)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->cBrushContents, sizeof(int), asset->numCBrushes);
+			buffer->saveArray(asset->cBrushContents, asset->numCBrushes);
 			Utils::Stream::ClearPointer(&dest->cBrushContents);
 		}
 
 		if (asset->unknown4)
 		{
+			AssertSize(Game::SModelAabbNode, 28);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->unknown4, 28, asset->unkCount4);
+			buffer->saveArray(asset->unknown4, asset->unkCount4);
 			Utils::Stream::ClearPointer(&dest->unknown4);
 		}
 
@@ -250,18 +370,21 @@ namespace Assets
 			dest->mapEnts = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->name).mapEnts;
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (asset->dynEntDefList[i])
 			{
+				AssertSize(Game::DynEntityDef, 92);
+
 				buffer->align(Utils::Stream::ALIGN_4);
 				Game::DynEntityDef* dynEntDest = buffer->dest<Game::DynEntityDef>();
-				buffer->save(asset->dynEntDefList[i], sizeof(Game::DynEntityDef), asset->dynEntCount[i]);
-				for (int j = 0; j < asset->dynEntCount[i]; j++)
+				buffer->saveArray(asset->dynEntDefList[i], asset->dynEntCount[i]);
+
+				for (int j = 0; j < asset->dynEntCount[i]; ++j)
 				{
-					Game::XModel* m = asset->dynEntDefList[j]->xModel;
-					Game::FxEffectDef* fx = asset->dynEntDefList[j]->destroyFx;
-					Game::PhysPreset* p = asset->dynEntDefList[j]->physPreset;
+					Game::XModel* m = asset->dynEntDefList[i][j].xModel;
+					Game::FxEffectDef* fx = asset->dynEntDefList[i][j].destroyFx;
+					Game::PhysPreset* p = asset->dynEntDefList[i][j].physPreset;
 
 					if (m)
 					{
@@ -289,8 +412,10 @@ namespace Assets
 		{
 			if (asset->dynEntPoseList[i])
 			{
+				AssertSize(Game::DynEntityPose, 32);
+
 				buffer->align(Utils::Stream::ALIGN_4);
-				buffer->save(asset->dynEntPoseList[i], sizeof(Game::DynEntityPose), asset->dynEntCount[i]);
+				buffer->saveArray(asset->dynEntPoseList[i], asset->dynEntCount[i]);
 				Utils::Stream::ClearPointer(&dest->dynEntPoseList[i]);
 
 			}
@@ -300,8 +425,10 @@ namespace Assets
 		{
 			if (asset->dynEntClientList[i])
 			{
+				AssertSize(Game::DynEntityClient, 12);
+
 				buffer->align(Utils::Stream::ALIGN_4);
-				buffer->save(asset->dynEntClientList[i], sizeof(Game::DynEntityClient), asset->dynEntCount[i]);
+				buffer->save(asset->dynEntClientList[i], asset->dynEntCount[i]);
 				Utils::Stream::ClearPointer(&dest->dynEntClientList[i]);
 			}
 		}
@@ -310,8 +437,10 @@ namespace Assets
 		{
 			if (asset->dynEntCollList[i])
 			{
+				AssertSize(Game::DynEntityColl, 20);
+
 				buffer->align(Utils::Stream::ALIGN_4);
-				buffer->save(asset->dynEntCollList[i], sizeof(Game::DynEntityColl), asset->dynEntCount[i]);
+				buffer->save(asset->dynEntCollList[i], asset->dynEntCount[i]);
 				Utils::Stream::ClearPointer(&dest->dynEntCollList[i]);
 			}
 		}
@@ -333,11 +462,11 @@ namespace Assets
 		{
 			for (int i = 0; i < asset->dynEntCount[j]; i++)
 			{
-				Game::XModel* m = asset->dynEntDefList[j]->xModel;
+				Game::XModel* m = asset->dynEntDefList[j][i].xModel;
 				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name);
-				Game::FxEffectDef* fx = asset->dynEntDefList[j]->destroyFx;
+				Game::FxEffectDef* fx = asset->dynEntDefList[j][i].destroyFx;
 				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, fx->name);
-				Game::PhysPreset* p = asset->dynEntDefList[j]->physPreset;
+				Game::PhysPreset* p = asset->dynEntDefList[j][i].physPreset;
 				builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, p->name);
 			}
 		}

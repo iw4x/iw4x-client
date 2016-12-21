@@ -1512,9 +1512,10 @@ namespace Game
 
 	struct cplane_t
 	{
-		vec3_t a;
+		float normal[3];
 		float dist;
-		int type;
+		char type;
+		char signbits;
 	};
 
 	struct cbrushside_t
@@ -2252,14 +2253,7 @@ namespace Game
 		bool(__cdecl *handler)(const char**, FxEditorElemDef*);
 	};
 
-	struct cPlane
-	{
-		vec3_t a;
-		float dist;
-		int type;
-	};
-
-	struct cStaticModel
+	struct cStaticModel_t
 	{
 		XModel *xmodel;
 		float origin[3];
@@ -2268,34 +2262,28 @@ namespace Game
 		float absmax[3];
 	};
 
-	struct dMaterial
+	struct ClipMaterial
 	{
 		char* name;
 		int unk;
 		int unk2;
 	};
 
-	struct cNode
+	struct cNode_t
 	{
-		cPlane* plane;
+		cplane_t* plane;
 		short children[2];
 	};
 
-	struct cBrushSide
-	{
-		cPlane* side;
-		short texInfo, dispInfo;
-	};
-
-	struct cBrush
+	struct cbrush_t
 	{
 		int count;
-		cBrushSide * brushSide;
+		cbrushside_t * brushSide;
 		char * brushEdge;
 		char pad[24];
 	};
 
-	struct cLeaf
+	struct cLeaf_t
 	{
 		unsigned __int16 firstCollAabbIndex;
 		unsigned __int16 collAabbCount;
@@ -2324,7 +2312,7 @@ namespace Game
 		cLeafBrushNodeChildren children;
 	};
 
-	struct cLeafBrushNode
+	struct cLeafBrushNode_t
 	{
 		char axis;
 		__int16 leafBrushCount;
@@ -2332,12 +2320,12 @@ namespace Game
 		cLeafBrushNodeData data;
 	};
 
-	struct cModel
+	struct cmodel_t
 	{
 		float mins[3];
 		float maxs[3];
 		float radius;
-		cLeaf leaf;
+		cLeaf_t leaf;
 	};
 
 	enum DynEntityType
@@ -2422,26 +2410,31 @@ namespace Game
 		CollisionAabbTreeIndex u;
 	};
 
+	struct SModelAabbNode
+	{
+		char pad[28];
+	};
+
 	struct clipMap_t
 	{
 		const char* name;
 		int unknown1; // +8
 		int numCPlanes; // +8
-		cPlane* cPlanes; // sizeof 20, +12
+		cplane_t* cPlanes; // sizeof 20, +12
 		int numStaticModels; // +16
-		cStaticModel* staticModelList; // sizeof 76, +20
+		cStaticModel_t* staticModelList; // sizeof 76, +20
 		int numMaterials; // +24
-		dMaterial* materials; // sizeof 12 with a string (possibly name?), +28
+		ClipMaterial* materials; // sizeof 12 with a string (possibly name?), +28
 		int numCBrushSides; // +32
-		cBrushSide* cBrushSides; // sizeof 8, +36
+		cbrushside_t* cBrushSides; // sizeof 8, +36
 		int numCBrushEdges; // +40
 		char* cBrushEdges; // +44
 		int numCNodes; // +48
-		cNode * cNodes; // sizeof 8, +52
+		cNode_t* cNodes; // sizeof 8, +52
 		int numCLeaf; // +56
-		cLeaf* cLeaf; // +60
+		cLeaf_t* cLeaf; // +60
 		int numCLeafBrushNodes; // +64
-		cLeafBrushNode* cLeafBrushNodes; // +68
+		cLeafBrushNode_t* cLeafBrushNodes; // +68
 		int numLeafBrushes; // +72
 		short* leafBrushes; // +76
 		int numLeafSurfaces; // +80
@@ -2458,15 +2451,15 @@ namespace Game
 		int numCollisionAABBTrees; // +124
 		CollisionAabbTree* collisionAABBTrees;// sizeof 32, +128
 		int numCModels; // +132
-		cModel* cModels; // sizeof 68, +136
+		cmodel_t* cModels; // sizeof 68, +136
 		short numCBrushes; // +140
 		short pad2; // +142
-		cBrush * cBrushes; // sizeof 36, +144
-		void* cBrushBounds; // same count as cBrushes, +148
+		cbrush_t * cBrushes; // sizeof 36, +144
+		Bounds* cBrushBounds; // same count as cBrushes, +148
 		int * cBrushContents; // same count as cBrushes, +152
 		MapEnts * mapEnts; // +156
 		int unkCount4; // +160
-		void* unknown4; // +164
+		SModelAabbNode* unknown4; // +164
 		unsigned __int16 dynEntCount[2];
 		DynEntityDef *dynEntDefList[2];
 		DynEntityPose *dynEntPoseList[2];
@@ -2788,12 +2781,10 @@ namespace Game
 		float offset[3];
 	};
 
-	struct cplane_s;
-
 	struct GfxWorldDpvsPlanes
 	{
 		int cellCount;
-		cplane_s *planes;
+		cplane_t *planes;
 		unsigned __int16 *nodes;
 		unsigned int *sceneEntCellBits; //Size = cellCount << 11
 	};
@@ -2890,7 +2881,7 @@ namespace Game
 	struct GfxSurfaceBounds
 	{
 		Bounds bounds;
-		char flags;
+		//char flags;
 	};
 
 	struct GfxDrawSurfFields
@@ -2948,14 +2939,6 @@ namespace Game
 		char flags;
 
 		char pad2[8];
-	};
-
-	struct cplane_s
-	{
-		float normal[3];
-		float dist;
-		char type;
-		char signbits;
 	};
 
 	struct GfxPortalWritable
