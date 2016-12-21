@@ -13,6 +13,12 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
+		if (asset->name)
+		{
+			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
+			Utils::Stream::ClearPointer(&dest->name);
+		}
+
 		if (asset->cPlanes)
 		{
 			AssertSize(Game::cplane_t, 20);
@@ -390,17 +396,17 @@ namespace Assets
 
 					if (m)
 					{
-						dynEntDest->xModel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name).model;
+						dynEntDest[j].xModel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name).model;
 					}
 
 					if (fx)
 					{
-						dynEntDest->destroyFx = builder->requireAsset(Game::XAssetType::ASSET_TYPE_FX, fx->name).fx;
+						dynEntDest[j].destroyFx = builder->requireAsset(Game::XAssetType::ASSET_TYPE_FX, fx->name).fx;
 					}
 
 					if (p)
 					{
-						dynEntDest->physPreset = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, p->name).physPreset;
+						dynEntDest[j].physPreset = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, p->name).physPreset;
 					}
 				}
 
