@@ -7,7 +7,7 @@ namespace Assets
 		AssertSize(Game::GameWorldMp, 8);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::GameWorldMp* asset = header.gameMapMP;
+		Game::GameWorldMp* asset = header.gameWorldMp;
 		Game::GameWorldMp* dest = buffer->dest<Game::GameWorldMp>();
 		buffer->save(asset);
 

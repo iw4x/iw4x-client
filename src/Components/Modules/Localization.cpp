@@ -5,8 +5,8 @@ namespace Components
 	std::mutex Localization::LocalizeMutex;
 	Dvar::Var Localization::UseLocalization;
 	Utils::Memory::Allocator Localization::MemAllocator;
-	std::unordered_map<std::string, Game::LocalizedEntry*> Localization::LocalizeMap;
-	std::unordered_map<std::string, Game::LocalizedEntry*> Localization::TempLocalizeMap;
+	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
+	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::TempLocalizeMap;
 
 	void Localization::Set(std::string key, std::string value)
 	{
@@ -14,7 +14,7 @@ namespace Components
 
 		if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
 		{
-			Game::LocalizedEntry* entry = Localization::LocalizeMap[key];
+			Game::LocalizeEntry* entry = Localization::LocalizeMap[key];
 
 			char* newStaticValue = Localization::MemAllocator.duplicateString(value);
 			if (!newStaticValue) return;
@@ -23,7 +23,7 @@ namespace Components
 			return;
 		}
 
-		Game::LocalizedEntry* entry = Localization::MemAllocator.allocate<Game::LocalizedEntry>();
+		Game::LocalizeEntry* entry = Localization::MemAllocator.allocate<Game::LocalizeEntry>();
 		if (!entry) return;
 
 		entry->name = Localization::MemAllocator.duplicateString(key);
@@ -48,7 +48,7 @@ namespace Components
 	{
 		if (!Localization::UseLocalization.get<bool>()) return key;
 
-		Game::LocalizedEntry* entry = nullptr;
+		Game::LocalizeEntry* entry = nullptr;
 		std::lock_guard<std::mutex> _(Localization::LocalizeMutex);
 
 		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
@@ -81,13 +81,13 @@ namespace Components
 
 		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
 		{
-			Game::LocalizedEntry* entry = Localization::TempLocalizeMap[key];
+			Game::LocalizeEntry* entry = Localization::TempLocalizeMap[key];
 			if(entry->value) Localization::MemAllocator.free(entry->value);
 			entry->value = Localization::MemAllocator.duplicateString(value);
 		}
 		else
 		{
-			Game::LocalizedEntry* entry = Localization::MemAllocator.allocate<Game::LocalizedEntry>();
+			Game::LocalizeEntry* entry = Localization::MemAllocator.allocate<Game::LocalizeEntry>();
 			if (!entry) return;
 
 			entry->name = Localization::MemAllocator.duplicateString(key);

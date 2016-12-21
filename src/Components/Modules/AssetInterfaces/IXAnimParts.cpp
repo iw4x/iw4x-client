@@ -98,14 +98,14 @@ namespace Assets
 					Components::Logger::Error(0, "Reading animation '%s' failed, remaining raw data found!", name.data());
 				}
 
-				header->xanim = xanim;
+				header->parts = xanim;
 			}
 		}
 	}
 
 	void IXAnimParts::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Game::XAnimParts* asset = header.xanim;
+		Game::XAnimParts* asset = header.parts;
 
 		if (asset->tagnames)
 		{
@@ -241,7 +241,7 @@ namespace Assets
 		AssertSize(Game::XAnimParts, 88);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::XAnimParts* asset = header.xanim;
+		Game::XAnimParts* asset = header.parts;
 		Game::XAnimParts* dest = buffer->dest<Game::XAnimParts>();
 		buffer->save(asset, sizeof(Game::XAnimParts));
 

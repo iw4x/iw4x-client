@@ -1213,7 +1213,7 @@ namespace Game
 		UILocalVarContext localVars;
 	};
 
-	struct LocalizedEntry
+	struct LocalizeEntry
 	{
 		const char* value;
 		const char* name;
@@ -3200,42 +3200,67 @@ namespace Game
 		GfxWorld* world;
 	};
 
+	struct ComPrimaryLight
+	{
+		char type;
+		char canUseShadowMap;
+		char exponent;
+		char unused;
+		float color[3];
+		float dir[3];
+		float origin[3];
+		float radius;
+		float cosHalfFovOuter;
+		float cosHalfFovInner;
+		float cosHalfFovExpanded;
+		float rotationLimit;
+		float translationLimit;
+		char* name;
+	};
+
+	struct ComWorld
+	{
+		char *name;
+		int isInUse;
+		int lightCount;
+		ComPrimaryLight* lights;
+	};
+
 	union XAssetHeader
 	{
 		void *data;
 
-		// This is only for debugging
-		const char* string;
-
 		MenuList *menuList;
 		menuDef_t *menu;
 		Material *material;
-		snd_alias_list_t *aliasList;
-		LocalizedEntry *localize;
-		StringTable *stringTable;
+		snd_alias_list_t* sound;
+		LocalizeEntry* localize;
+		StringTable* stringTable;
 		MapEnts* mapEnts;
 		RawFile* rawfile;
 		GfxImage* image;
 		Font* font;
-		MaterialTechniqueSet *materialTechset;
-		MaterialVertexDeclaration *vertexDecl;
-		MaterialVertexShader *vertexShader;
-		MaterialPixelShader *pixelShader;
+		MaterialTechniqueSet* techniqueSet;
+		MaterialVertexDeclaration* vertexDecl;
+		MaterialVertexShader* vertexShader;
+		MaterialPixelShader* pixelShader;
 		StructuredDataDefSet* structuredData;
 		XModel* model;
 		PhysPreset* physPreset;
 		PhysCollmap* physCollmap;
 		XModelSurfs* surfaces;
-		XAnimParts* xanim;
+		XAnimParts* parts;
 		clipMap_t* clipMap;
 		FxEffectDef* fx;
-		GameWorldMp* gameMapMP;
-		GameWorldSp* gameMapSP;
+		GameWorldMp* gameWorldMp;
+		GameWorldSp* gameWorldSp;
 		TracerDef* tracer;
 		VehicleDef* vehicle;
-		GfxWorld* gfxMap;
+		GfxWorld* gfxWorld;
+		GfxLightDef* lightDef;
 		SndCurve* sndCurve;
-		LoadedSound* sound;
+		LoadedSound* loadSnd;
+		ComWorld* comWorld;
 	};
 
 	struct XAsset

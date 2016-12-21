@@ -158,11 +158,11 @@ namespace Components
 	{
 		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::IsSPMap)
 		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_SP].gameMapSP[0].data;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_SP].gameWorldSp[0].data;
 		}
 		else
 		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_MP].gameMapMP[0].data;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_MP].gameWorldMp[0].data;
 		}
 	}
 
@@ -597,7 +597,7 @@ namespace Components
 			Game::GfxWorld* world = nullptr;
 			Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_GFX_MAP, [] (Game::XAssetHeader header, void* world)
 			{
-				*reinterpret_cast<Game::GfxWorld**>(world) = header.gfxMap;
+				*reinterpret_cast<Game::GfxWorld**>(world) = header.gfxWorld;
 			}, &world, false);
 
 			if (world)

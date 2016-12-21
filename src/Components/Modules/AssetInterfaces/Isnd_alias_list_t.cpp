@@ -4,7 +4,7 @@ namespace Assets
 {
 	void Isnd_alias_list_t::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Game::snd_alias_list_t* asset = header.aliasList;
+		Game::snd_alias_list_t* asset = header.sound;
 
 		for (int i = 0; i < asset->count; ++i)
 		{
@@ -27,7 +27,7 @@ namespace Assets
 		AssertSize(Game::snd_alias_list_t, 12);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::snd_alias_list_t* asset = header.aliasList;
+		Game::snd_alias_list_t* asset = header.sound;
 		Game::snd_alias_list_t* dest = buffer->dest<Game::snd_alias_list_t>();
 		buffer->save(asset);
 
@@ -110,7 +110,7 @@ namespace Assets
 							{
 								if (alias->soundFile->type == Game::snd_alias_type_t::SAT_LOADED)
 								{
-									destSoundFile->data.loaded = builder->requireAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded->name).sound;
+									destSoundFile->data.loaded = builder->requireAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded->name).loadSnd;
 								}
 								else
 								{

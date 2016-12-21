@@ -4,7 +4,7 @@ namespace Assets
 {
 	void IMaterialTechniqueSet::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Game::MaterialTechniqueSet* asset = header.materialTechset;
+		Game::MaterialTechniqueSet* asset = header.techniqueSet;
 
 		for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
 		{
@@ -39,7 +39,7 @@ namespace Assets
 		AssertSize(Game::MaterialTechniqueSet, 204);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::MaterialTechniqueSet* asset = header.materialTechset;
+		Game::MaterialTechniqueSet* asset = header.techniqueSet;
 		Game::MaterialTechniqueSet* dest = buffer->dest<Game::MaterialTechniqueSet>();
 		buffer->save(asset);
 

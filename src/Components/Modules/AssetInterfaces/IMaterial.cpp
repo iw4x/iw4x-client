@@ -212,7 +212,7 @@ namespace Assets
 
 		if (asset->techniqueSet)
 		{
-			dest->techniqueSet = builder->requireAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet->name).materialTechset;
+			dest->techniqueSet = builder->requireAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet->name).techniqueSet;
 		}
 
 		if (asset->textureTable)

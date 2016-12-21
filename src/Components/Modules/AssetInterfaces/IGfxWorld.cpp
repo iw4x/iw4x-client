@@ -4,7 +4,7 @@ namespace Assets
 {
 	void IGfxWorld::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
-		Game::GfxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFX_MAP, name.data()).gfxMap;
+		Game::GfxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFX_MAP, name.data()).gfxWorld;
 		if (map) return;
 
 		Components::Logger::Error("Missing GfxMap %s... you can't make them yet you idiot.", name.data());
@@ -12,7 +12,7 @@ namespace Assets
 
     void IGfxWorld::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
     {
-        Game::GfxWorld* asset = header.gfxMap;
+        Game::GfxWorld* asset = header.gfxWorld;
 
         if(asset->worldDraw.reflectionImages)
         {
@@ -498,7 +498,7 @@ namespace Assets
 		AssertSize(Game::GfxWorld, 0x274);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::GfxWorld* asset = header.gfxMap;
+		Game::GfxWorld* asset = header.gfxWorld;
 		Game::GfxWorld* dest = buffer->dest<Game::GfxWorld>();
 		buffer->save(asset);
 

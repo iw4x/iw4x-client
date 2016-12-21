@@ -86,7 +86,7 @@ namespace Components
 #include "AssetInterfaces\IPhysCollmap.hpp"
 #include "AssetInterfaces\IStringTable.hpp"
 #include "AssetInterfaces\IXModelSurfs.hpp"
-#include "AssetInterfaces\ILocalizedEntry.hpp"
+#include "AssetInterfaces\ILocalizeEntry.hpp"
 #include "AssetInterfaces\Isnd_alias_list_t.hpp"
 #include "AssetInterfaces\IMaterialPixelShader.hpp"
 #include "AssetInterfaces\IMaterialTechniqueSet.hpp"

@@ -1,6 +1,6 @@
 namespace Assets
 {
-	class ILocalizedEntry : public Components::AssetHandler::IAsset
+	class ILocalizeEntry : public Components::AssetHandler::IAsset
 	{
 	public:
 		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_LOCALIZE; };

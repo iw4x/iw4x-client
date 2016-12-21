@@ -136,11 +136,11 @@ namespace Components
 		{
 			for (int i = 0; i < 48; i++)
 			{
-				if (asset.materialTechset->techniques[i])
+				if (asset.techniqueSet->techniques[i])
 				{
-					for (int j = 0; j < asset.materialTechset->techniques[i]->numPasses; j++)
+					for (int j = 0; j < asset.techniqueSet->techniques[i]->numPasses; j++)
 					{
-						Game::MaterialPass* pass = &asset.materialTechset->techniques[i]->passes[j];
+						Game::MaterialPass* pass = &asset.techniqueSet->techniques[i]->passes[j];
 
 						for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); k++)
 						{
@@ -404,7 +404,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IPhysCollmap());
 			AssetHandler::RegisterInterface(new Assets::IStringTable());
 			//AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
-			AssetHandler::RegisterInterface(new Assets::ILocalizedEntry());
+			AssetHandler::RegisterInterface(new Assets::ILocalizeEntry());
 			AssetHandler::RegisterInterface(new Assets::Isnd_alias_list_t());
 			AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());
 			AssetHandler::RegisterInterface(new Assets::IMaterialTechniqueSet());

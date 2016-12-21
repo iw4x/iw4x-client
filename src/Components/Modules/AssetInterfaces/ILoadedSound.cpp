@@ -7,7 +7,7 @@ namespace Assets
 		AssertSize(Game::LoadedSound, 44);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::LoadedSound* asset = header.sound;
+		Game::LoadedSound* asset = header.loadSnd;
 		Game::LoadedSound* dest = buffer->dest<Game::LoadedSound>();
 		buffer->save(asset);
 

@@ -15,7 +15,7 @@ namespace Components
 
 		if (MusicalTalent::SoundAliasList.find(Utils::String::ToLower(filename)) != MusicalTalent::SoundAliasList.end())
 		{
-			Game::snd_alias_list_t* aliases = Game::DB_FindXAssetHeader(type, filename.data()).aliasList;
+			Game::snd_alias_list_t* aliases = Game::DB_FindXAssetHeader(type, filename.data()).sound;
 
 			if (aliases)
 			{
@@ -24,7 +24,7 @@ namespace Components
 					aliases->head->soundFile->data.stream.name = MusicalTalent::SoundAliasList[Utils::String::ToLower(filename)];
 				}
 
-				header.aliasList = aliases;
+				header.sound = aliases;
 			}
 		}
 
