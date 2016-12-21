@@ -3155,7 +3155,7 @@ namespace Game
 		const char *baseName;
 		int planeCount;
 		int nodeCount;
-		int unknown2;
+		int dpvsSurfaceCount;
 		unsigned int skyCount;
 		GfxSky* skies;
         int unkCount1;

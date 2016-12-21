@@ -10,6 +10,104 @@ namespace Assets
 		Components::Logger::Error("Missing GfxMap %s... you can't make them yet you idiot.", name.data());
 	}
 
+    void IGfxWorld::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+    {
+        Game::GfxWorld* asset = header.gfxMap;
+
+        if(asset->worldDraw.reflectionImages)
+        {
+            for (unsigned int i = 0; i < asset->worldDraw.reflectionProbeCount; i++)
+            {
+                builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.reflectionImages[i]->name);
+            }
+        }
+
+        if (asset->worldDraw.lightmaps)
+        {
+            for (int i = 0; i < asset->worldDraw.lightmapCount; i++)
+            {
+                if (asset->worldDraw.lightmaps[i].primary)
+                {
+                    builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].primary->name);
+                }
+
+                if (asset->worldDraw.lightmaps[i].secondary)
+                {
+                    builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].secondary->name);
+                }
+            }
+        }
+
+        if (asset->worldDraw.skyImage)
+        {
+            builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.skyImage->name);
+        }
+
+        if (asset->worldDraw.outdoorImage)
+        {
+            builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.outdoorImage->name);
+        }
+
+        if (asset->sun.spriteMaterial)
+        {
+            builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.spriteMaterial->name);
+        }
+
+        if (asset->sun.flareMaterial)
+        {
+            builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.flareMaterial->name);
+        }
+
+        if (asset->skies) {
+            for (unsigned int i = 0; i < asset->skyCount; i++)
+            {
+                if (asset->skies[i].skyImage)
+                {
+                    builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->skies[i].skyImage->name);
+                }
+            }
+        }
+
+        if (asset->materialMemory) {
+            for (int i = 0; i < asset->materialMemoryCount; i++)
+            {
+                if (asset->materialMemory[i].material)
+                {
+                    builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materialMemory[i].material->name);
+                }
+            }
+        }
+
+        if (asset->unknownImage)
+        {
+            builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage->name);
+        }
+
+
+
+        if (asset->dpvs.surfaces)
+        {
+            for (int i = 0; i < asset->dpvsSurfaceCount; i++)
+            {
+                if (asset->dpvs.surfaces[i].material)
+                {
+                    builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->dpvs.surfaces[i].material->name);
+                }
+            }
+        }
+
+        if (asset->dpvs.smodelDrawInsts)
+        {
+            for (unsigned int i = 0; i < asset->dpvs.smodelCount; i++)
+            {
+                if (asset->dpvs.smodelDrawInsts[i].model)
+                {
+                    builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->dpvs.smodelDrawInsts[i].model->name);
+                }
+            }
+        }
+    }
+
 	void IGfxWorld::saveGfxWorldDpvsPlanes(Game::GfxWorld* world, Game::GfxWorldDpvsPlanes* asset, Game::GfxWorldDpvsPlanes* dest, Components::ZoneBuilder::Zone* builder) {
 		AssertSize(Game::GfxWorldDpvsPlanes, 16);
 
@@ -149,28 +247,31 @@ namespace Assets
 			dest->outdoorImage = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->outdoorImage->name).image;
 		}
 
-		// the next 2 blocks *SHOULD* be in their own functions but i'm too lazy to type it all out
-
 		// saveGfxWorldVertexData
-		if (asset->vd.vertices)
-		{
-			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->vd.vertices, asset->vertexCount);
-			Utils::Stream::ClearPointer(&dest->vd.vertices);
-		}
+        {
+            if (asset->vd.vertices)
+    		{
+    			buffer->align(Utils::Stream::ALIGN_4);
+    			buffer->saveArray(asset->vd.vertices, asset->vertexCount);
+    			Utils::Stream::ClearPointer(&dest->vd.vertices);
+    		}
 
-		// this one has no if statement on purpouse
-		buffer->save(&asset->vd.worldVb, 1, 4);
+    		// this one has no if statement on purpouse
+    		buffer->save(&asset->vd.worldVb, 1, 4);
+        }
 
 		// saveGfxWorldVertexLayerData
-		if (asset->vld.data)
-		{
-			// no align for char
-			buffer->saveArray(asset->vld.data, asset->vertexLayerDataSize);
-			Utils::Stream::ClearPointer(&dest->vld.data);
-		}
+        {
 
-		buffer->save(&asset->vld.layerVb, 1, 4);
+            if (asset->vld.data)
+    		{
+    			// no align for char
+    			buffer->saveArray(asset->vld.data, asset->vertexLayerDataSize);
+    			Utils::Stream::ClearPointer(&dest->vld.data);
+    		}
+
+    		buffer->save(&asset->vld.layerVb, 1, 4);
+        }
 
 		if (asset->indices)
 		{
@@ -234,7 +335,7 @@ namespace Assets
 		}
 	}
 
-	void IGfxWorld::saveGfxWorldDpvsStatic(Game::GfxWorldDpvsStatic* asset, Game::GfxWorldDpvsStatic* dest, int /*planeCount*/, Components::ZoneBuilder::Zone* builder)
+	void IGfxWorld::saveGfxWorldDpvsStatic(Game::GfxWorld* world, Game::GfxWorldDpvsStatic* asset, Game::GfxWorldDpvsStatic* dest, int /*planeCount*/, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::GfxWorldDpvsStatic, 108);
 
@@ -275,34 +376,79 @@ namespace Assets
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			buffer->saveArray(asset->smodelInsts, asset->smodelCount);
-			Utils::Stream::ClearPointer(&dest->sortedSurfIndex);
+			Utils::Stream::ClearPointer(&dest->smodelInsts);
 		}
 
 		if (asset->surfaces)
 		{
-			// TODO
+			AssertSize(Game::GfxSurface, 24);
+
+            buffer->align(Utils::Stream::ALIGN_4);
+            Game::GfxSurface* destSurfaceTable = buffer->dest<Game::GfxSurface>();
+            buffer->saveArray(asset->surfaces, world->dpvsSurfaceCount);
+
+            for (int i = 0; i < world->dpvsSurfaceCount; i++)
+            {
+                Game::GfxSurface* surface = &asset->surfaces[i];
+                Game::GfxSurface* destSurface = &destSurfaceTable[i];
+
+                if (surface->material)
+                {
+                    destSurface->material = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, surface->material->name).material;
+                }
+            }
+            Utils::Stream::ClearPointer(&dest->surfaces);
 		}
 
 		if (asset->surfacesBounds)
 		{
-			// TODO
+			//AssertSize(Game::GfxSurfaceBounds, 24);
+            // this is wrong but i dont really care since its just a single struct
+
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->save(asset->surfacesBounds, 24, world->dpvsSurfaceCount);
+            Utils::Stream::ClearPointer(&dest->surfacesBounds);
 		}
 
 		if (asset->smodelDrawInsts)
 		{
-			// TODO
+            AssertSize(Game::GfxStaticModelDrawInst, 76);
+
+            buffer->align(Utils::Stream::ALIGN_4);
+            Game::GfxStaticModelDrawInst* destModelTable = buffer->dest<Game::GfxStaticModelDrawInst>();
+            buffer->saveArray(asset->smodelDrawInsts, asset->smodelCount);
+
+            for (unsigned int i = 0; i < asset->smodelCount; i++)
+            {
+                Game::GfxStaticModelDrawInst* model = &asset->smodelDrawInsts[i];
+                Game::GfxStaticModelDrawInst* destModel = &destModelTable[i];
+
+                if (model->model)
+                {
+                    destModel->model = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, model->model->name).model;
+                }
+            }
+            Utils::Stream::ClearPointer(&dest->smodelDrawInsts);
 		}
 
 		buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);
 
 		if (asset->surfaceMaterials)
 		{
-			// TODO
+			AssertSize(Game::GfxDrawSurf, 8);
+
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveArray(asset->surfaceMaterials, world->dpvsSurfaceCount);
+            Utils::Stream::ClearPointer(&dest->surfaceMaterials);
 		}
 
 		if (asset->surfaceCastsSunShadow)
 		{
-			// TODO
+            AssertSize(Game::GfxDrawSurf, 8);
+
+            buffer->align(Utils::Stream::ALIGN_128);
+            buffer->save(asset->surfaceCastsSunShadow, 4, asset->sunShadowCount);
+            Utils::Stream::ClearPointer(&dest->surfaceCastsSunShadow);
 		}
 
 		buffer->popBlock();
@@ -696,7 +842,7 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->lightRegion);
 		}
 
-		this->saveGfxWorldDpvsStatic(&asset->dpvs, &dest->dpvs, asset->dpvsPlanes.cellCount, builder);
+		this->saveGfxWorldDpvsStatic(asset, &asset->dpvs, &dest->dpvs, asset->dpvsPlanes.cellCount, builder);
 		this->saveGfxWorldDpvsDynamic(&asset->dpvsDyn, &dest->dpvsDyn, builder);
 
 		if (asset->heroOnlyLight)
