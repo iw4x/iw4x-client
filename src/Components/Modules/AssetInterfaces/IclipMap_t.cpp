@@ -154,6 +154,8 @@ namespace Assets
 
 		if (asset->cLeafBrushNodes)
 		{
+			AssertSize(Game::cLeafBrushNode_t, 20);
+
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cLeafBrushNode_t* node = buffer->dest<Game::cLeafBrushNode_t>();
 			buffer->saveArray(asset->cLeafBrushNodes, asset->numCLeafBrushNodes);
@@ -162,19 +164,19 @@ namespace Assets
 			{
 				if (node[i].leafBrushCount > 0)
 				{
-					if (node[i].data.leaf.brushes)
+					if (node[i].data.brushes)
 					{
-						if (builder->hasPointer(node[i].data.leaf.brushes))
+						if (builder->hasPointer(node[i].data.brushes))
 						{
-							node[i].data.leaf.brushes = builder->getPointer(node[i].data.leaf.brushes);
+							node[i].data.brushes = builder->getPointer(node[i].data.brushes);
 						}
 						else
 						{
-							builder->storePointer(node[i].data.leaf.brushes);
+							builder->storePointer(node[i].data.brushes);
 
 							buffer->align(Utils::Stream::ALIGN_2);
-							buffer->saveArray(node[i].data.leaf.brushes, node[i].leafBrushCount);
-							Utils::Stream::ClearPointer(&node[i].data.leaf.brushes);
+							buffer->saveArray(node[i].data.brushes, node[i].leafBrushCount);
+							Utils::Stream::ClearPointer(&node[i].data.brushes);
 						}
 					}
 				}
@@ -452,7 +454,7 @@ namespace Assets
 	void IclipMap_t::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::clipMap_t* asset = header.clipMap;
-		for (int i = 0; i < asset->numStaticModels; i++)
+		for (int i = 0; i < asset->numStaticModels; ++i)
 		{
 			Game::XModel* m = asset->staticModelList[i].xmodel;
 			builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name);
@@ -460,14 +462,24 @@ namespace Assets
 
 		for (int j = 0; j < 2; j++)
 		{
-			for (int i = 0; i < asset->dynEntCount[j]; i++)
+			Game::DynEntityDef* def = asset->dynEntDefList[j];
+
+			for (int i = 0; i < asset->dynEntCount[j]; ++i)
 			{
-				Game::XModel* m = asset->dynEntDefList[j][i].xModel;
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name);
-				Game::FxEffectDef* fx = asset->dynEntDefList[j][i].destroyFx;
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, fx->name);
-				Game::PhysPreset* p = asset->dynEntDefList[j][i].physPreset;
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, p->name);
+				if (def[i].xModel)
+				{
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def[i].xModel->name);
+				}
+
+				if (def[i].destroyFx)
+				{
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, def[i].destroyFx->name);
+				}
+
+				if (def[i].physPreset)
+				{
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, def[i].physPreset->name);
+				}
 			}
 		}
 		builder->loadAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->name);

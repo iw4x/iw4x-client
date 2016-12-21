@@ -2294,22 +2294,9 @@ namespace Game
 		int leafBrushNode;
 	};
 
-	struct cLeafBrushNodeLeaf
+	struct cLeafBrushNodeLeaf_t
 	{
 		unsigned __int16 *brushes;
-	};
-
-	struct cLeafBrushNodeChildren
-	{
-		float dist;
-		float range;
-		unsigned __int16 childOffset[6];
-	};
-
-	union cLeafBrushNodeData
-	{
-		cLeafBrushNodeLeaf leaf;
-		cLeafBrushNodeChildren children;
 	};
 
 	struct cLeafBrushNode_t
@@ -2317,7 +2304,8 @@ namespace Game
 		char axis;
 		__int16 leafBrushCount;
 		int contents;
-		cLeafBrushNodeData data;
+		cLeafBrushNodeLeaf_t data;
+		char pad[8];
 	};
 
 	struct cmodel_t
