@@ -58,7 +58,8 @@ namespace Assets
 			builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.flareMaterial->name);
 		}
 
-		if (asset->skies) {
+		if (asset->skies)
+		{
 			for (unsigned int i = 0; i < asset->skyCount; i++)
 			{
 				if (asset->skies[i].skyImage)
@@ -68,7 +69,8 @@ namespace Assets
 			}
 		}
 
-		if (asset->materialMemory) {
+		if (asset->materialMemory)
+		{
 			for (int i = 0; i < asset->materialMemoryCount; i++)
 			{
 				if (asset->materialMemory[i].material)
@@ -218,6 +220,7 @@ namespace Assets
 					lightmapArrayDest->secondary = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, lightmapArray->secondary->name).image;
 				}
 			}
+
 			Utils::Stream::ClearPointer(asset->reflectionImages);
 		}
 
