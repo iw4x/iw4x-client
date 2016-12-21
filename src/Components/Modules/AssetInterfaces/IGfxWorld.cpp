@@ -16,7 +16,7 @@ namespace Assets
 
 		if (asset->worldDraw.reflectionImages)
 		{
-			for (unsigned int i = 0; i < asset->worldDraw.reflectionProbeCount; i++)
+			for (unsigned int i = 0; i < asset->worldDraw.reflectionProbeCount; ++i)
 			{
 				builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.reflectionImages[i]->name);
 			}
@@ -24,7 +24,7 @@ namespace Assets
 
 		if (asset->worldDraw.lightmaps)
 		{
-			for (int i = 0; i < asset->worldDraw.lightmapCount; i++)
+			for (int i = 0; i < asset->worldDraw.lightmapCount; ++i)
 			{
 				if (asset->worldDraw.lightmaps[i].primary)
 				{
@@ -60,7 +60,7 @@ namespace Assets
 
 		if (asset->skies)
 		{
-			for (unsigned int i = 0; i < asset->skyCount; i++)
+			for (unsigned int i = 0; i < asset->skyCount; ++i)
 			{
 				if (asset->skies[i].skyImage)
 				{
@@ -71,7 +71,7 @@ namespace Assets
 
 		if (asset->materialMemory)
 		{
-			for (int i = 0; i < asset->materialMemoryCount; i++)
+			for (int i = 0; i < asset->materialMemoryCount; ++i)
 			{
 				if (asset->materialMemory[i].material)
 				{
@@ -89,7 +89,7 @@ namespace Assets
 
 		if (asset->dpvs.surfaces)
 		{
-			for (int i = 0; i < asset->dpvsSurfaceCount; i++)
+			for (int i = 0; i < asset->dpvsSurfaceCount; ++i)
 			{
 				if (asset->dpvs.surfaces[i].material)
 				{
@@ -100,7 +100,7 @@ namespace Assets
 
 		if (asset->dpvs.smodelDrawInsts)
 		{
-			for (unsigned int i = 0; i < asset->dpvs.smodelCount; i++)
+			for (unsigned int i = 0; i < asset->dpvs.smodelCount; ++i)
 			{
 				if (asset->dpvs.smodelDrawInsts[i].model)
 				{
@@ -688,7 +688,7 @@ namespace Assets
 			Game::MaterialMemory* destMaterialMemoryTable = buffer->dest<Game::MaterialMemory>();
 			buffer->saveArray(asset->materialMemory, asset->materialMemoryCount);
 
-			for (char i = 0; i < asset->materialMemoryCount; ++i)
+			for (int i = 0; i < asset->materialMemoryCount; ++i)
 			{
 				Game::MaterialMemory* destMaterialMemory = &destMaterialMemoryTable[i];
 				Game::MaterialMemory* materialMemory = &asset->materialMemory[i];
