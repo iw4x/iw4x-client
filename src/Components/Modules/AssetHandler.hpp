@@ -40,8 +40,7 @@ namespace Components
 		static void StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset);
 
 	private:
-		static std::recursive_mutex BypassMutex;
-		static std::vector<std::thread::id> BypassThreads;
+		static thread_local bool BypassState;
 
 		static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
@@ -68,8 +67,6 @@ namespace Components
 		static void ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, std::string name);
 
 		static int HasThreadBypass();
-		static void SetThreadBypass();
-		static void ClearThreadBypass();
 	};
 }
 
