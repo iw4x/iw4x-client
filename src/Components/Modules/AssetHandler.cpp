@@ -240,7 +240,6 @@ namespace Components
 
 	void AssetHandler::OffsetToAlias(Utils::Stream::Offset* offset)
 	{
-		// Same here, reinterpret the value, as we're operating inside the game's environment
 		void* pointer = (*Game::g_streamBlocks)[offset->getUnpackedBlock()].data + offset->getUnpackedOffset();
 
 		if (AssetHandler::Relocations.find(pointer) != AssetHandler::Relocations.end())
@@ -249,10 +248,6 @@ namespace Components
 		}
 
 		offset->pointer = *reinterpret_cast<void**>(pointer);
-
-#ifdef DEBUG
-		Game::XAssetHeader zob{ offset->pointer };
-#endif
  	}
 
 	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)

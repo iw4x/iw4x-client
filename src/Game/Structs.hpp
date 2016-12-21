@@ -2948,7 +2948,7 @@ namespace Game
 	{
 		GfxPortalWritable writable;
 		DpvsPlane plane;
-		float(*vertices)[3];
+		vec3_t* vertices;
 		char unknown[2];
 		char vertexCount;
 		float hullAxis[2][3];
