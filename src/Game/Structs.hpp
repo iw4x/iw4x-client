@@ -285,14 +285,25 @@ namespace Game
 		int fileSizeForPicmip[4];
 	};
 
-	struct GfxImageLoadDef // actually a IDirect3DTexture* but this is easier
+	struct __declspec(align(4)) GfxImageLoadDef
 	{
-		char mipLevels;
+		char levelCount;
 		char flags;
-		short dimensions[3];
-		int format; // usually the compression Magic
-		int dataSize; // set to zero to load from IWD
+		__int16 dimensions[3];
+		int format;
+		int resourceSize;
 		char data[1];
+	};
+
+	enum MapType : char
+	{
+		MAPTYPE_NONE = 0x0,
+		MAPTYPE_INVALID1 = 0x1,
+		MAPTYPE_INVALID2 = 0x2,
+		MAPTYPE_2D = 0x3,
+		MAPTYPE_3D = 0x4,
+		MAPTYPE_CUBE = 0x5,
+		MAPTYPE_COUNT = 0x6,
 	};
 
 	struct GfxImage
@@ -301,11 +312,14 @@ namespace Game
 		{
 			GfxImageLoadDef* loadDef;
 #ifdef __cplusplus
-			IDirect3DTexture9* texture;
+			IDirect3DBaseTexture9 *basemap;
+			IDirect3DTexture9 *map;
+			IDirect3DVolumeTexture9 *volmap;
+			IDirect3DCubeTexture9 *cubemap;
 #endif
 		};
 
-		char mapType; // 5 is cube, 4 is 3d, 3 is 2d
+		MapType mapType;
 		char semantic;
 		char category;
 		char flags;

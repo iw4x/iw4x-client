@@ -75,6 +75,7 @@ namespace Components
 		};
 
 		ZoneBuilder();
+		~ZoneBuilder();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* getName() { return "ZoneBuilder"; };
@@ -87,5 +88,10 @@ namespace Components
 
 		static void BeginAssetTrace(std::string zone);
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
+
+	private:
+		static Utils::Memory::Allocator MemAllocator;
+		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
+		static void ReleaseTexture(Game::XAssetHeader header);
 	};
 }

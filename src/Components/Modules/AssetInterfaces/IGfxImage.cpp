@@ -40,7 +40,7 @@ namespace Assets
 
 		const Game::GfxImageFileHeader* iwiHeader = reinterpret_cast<const Game::GfxImageFileHeader*>(iwiBuffer.data());
 		
-		image->mapType = 3;
+		image->mapType = Game::MAPTYPE_2D;
 		image->dataLen1 = iwiHeader->fileSizeForPicmip[0] - 32;
 		image->dataLen2 = iwiHeader->fileSizeForPicmip[0] - 32;
 
@@ -52,7 +52,7 @@ namespace Assets
 
 		std::memcpy(image->loadDef->dimensions, iwiHeader->dimensions, 6);
 		image->loadDef->flags = 0;
-		image->loadDef->mipLevels = 0;
+		image->loadDef->levelCount = 0;
 
 		switch (iwiHeader->format)
 		{
@@ -93,6 +93,7 @@ namespace Assets
 	void IGfxImage::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::GfxImage, 32);
+		AssertSize(Game::MapType, 1);
 
 		Utils::Stream* buffer = builder->getBuffer();
 		Game::GfxImage* asset = header.image;
@@ -109,21 +110,18 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_TEMP);
 
-		if (asset->texture)
+		if (asset->loadDef)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
 			
 			Game::GfxImageLoadDef* destTexture = buffer->dest<Game::GfxImageLoadDef>();
-			buffer->save(asset->loadDef, 16);
+			buffer->save(asset->loadDef, 16, 1);
 
-			builder->incrementExternalSize(asset->loadDef->dataSize);
+			builder->incrementExternalSize(asset->loadDef->resourceSize);
 
-			// Zero the size!
-			destTexture->dataSize = 0;
-
-			if (destTexture->dataSize > 0)
+			if (destTexture->resourceSize > 0)
 			{
-				buffer->save(asset->loadDef->data, asset->loadDef->dataSize);
+				buffer->save(asset->loadDef->data, asset->loadDef->resourceSize);
 			}
 
 			Utils::Stream::ClearPointer(&dest->loadDef);

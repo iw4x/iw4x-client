@@ -1167,7 +1167,7 @@ namespace Components
 				struct
 				{
 					Game::GfxImageLoadDef* texture;
-					char mapType;
+					Game::MapType mapType;
 					char semantic;
 					char category;
 					char flags;

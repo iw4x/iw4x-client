@@ -377,7 +377,7 @@ namespace Components
 			}
 
 			std::string _name = fmt::sprintf("raw/mapdump/%s/textures/%s.png", world->baseName, image->name);
-			D3DXSaveTextureToFile(std::wstring(_name.begin(), _name.end()).data(), D3DXIFF_PNG, image->texture, NULL);
+			D3DXSaveTextureToFile(std::wstring(_name.begin(), _name.end()).data(), D3DXIFF_PNG, image->map, NULL);
 
 			mtl.append(fmt::sprintf("\nnewmtl %s\n", name.data()));
 			mtl.append("Ka 1.0000 1.0000 1.0000\n");
