@@ -22,7 +22,7 @@ namespace Components
 			void storePointer(const void* pointer);
 
 			template<typename T>
-			T* getPointer(const T* pointer) { return reinterpret_cast<T*>(this->safeGetPointer(pointer)); }
+			inline T* getPointer(const T* pointer) { return reinterpret_cast<T*>(this->safeGetPointer(pointer)); }
 
 			int findAsset(Game::XAssetType type, std::string name);
 			Game::XAsset* getAsset(int index);
