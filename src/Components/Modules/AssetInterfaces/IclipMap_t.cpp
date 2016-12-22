@@ -5,6 +5,7 @@ namespace Assets
 	void IclipMap_t::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::clipMap_t, 256);
+		SaveLogEnter("clipMap_t");
 
 		Utils::Stream* buffer = builder->getBuffer();
 		Game::clipMap_t* asset = header.clipMap;
@@ -24,6 +25,7 @@ namespace Assets
 		if (asset->cPlanes)
 		{
 			AssertSize(Game::cplane_t, 20);
+			SaveLogEnter("cplane_t");
 
 			if (builder->hasPointer(asset->cPlanes))
 			{
@@ -37,11 +39,15 @@ namespace Assets
 				buffer->saveArray(asset->cPlanes, asset->numCPlanes);
 				Utils::Stream::ClearPointer(&dest->cPlanes);
 			}
+
+			SaveLogExit();
 		}
 
 		if (asset->staticModelList)
 		{
+
 			AssertSize(Game::cStaticModel_t, 76);
+			SaveLogEnter("cStaticModel_t");
 
 			// xmodel is already stored
 			buffer->align(Utils::Stream::ALIGN_4);
@@ -57,11 +63,13 @@ namespace Assets
 			}
 
 			Utils::Stream::ClearPointer(&dest->staticModelList);
+			SaveLogExit();
 		}
 
 		if (asset->materials)
 		{
 			AssertSize(Game::ClipMaterial, 12);
+			SaveLogEnter("ClipMaterial");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::ClipMaterial* mats = buffer->dest<Game::ClipMaterial>();
@@ -72,12 +80,15 @@ namespace Assets
 				buffer->saveString(asset->materials[i].name);
 				Utils::Stream::ClearPointer(&mats[i].name);
 			}
+
 			Utils::Stream::ClearPointer(&dest->materials);
+			SaveLogExit();
 		}
 
 		if (asset->cBrushSides)
 		{
 			AssertSize(Game::cbrushside_t, 8);
+			SaveLogEnter("cbrushside_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cbrushside_t* sides = buffer->dest<Game::cbrushside_t>();
@@ -105,18 +116,24 @@ namespace Assets
 			}
 
 			Utils::Stream::ClearPointer(&dest->cBrushSides);
+			SaveLogExit();
 		}
 
 		if (asset->cBrushEdges)
 		{
+			SaveLogEnter("cBrushEdge");
+
 			// no align for char
 			buffer->saveArray(asset->cBrushEdges, asset->numCBrushEdges);
 			Utils::Stream::ClearPointer(&dest->cBrushEdges);
+
+			SaveLogExit();
 		}
 
 		if (asset->cNodes)
 		{
 			AssertSize(Game::cNode_t, 8);
+			SaveLogEnter("cNode_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cNode_t* nodes = buffer->dest<Game::cNode_t>();
@@ -142,27 +159,35 @@ namespace Assets
 			}
 
 			Utils::Stream::ClearPointer(&dest->cNodes);
+			SaveLogExit();
 		}
 
 		if (asset->cLeaf)
 		{
 			AssertSize(Game::cLeaf_t, 40);
+			SaveLogEnter("cLeaf_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			buffer->saveArray(asset->cLeaf, asset->numCLeaf);
 			Utils::Stream::ClearPointer(&dest->cLeaf);
+			SaveLogExit();
 		}
 
 		if (asset->leafBrushes)
 		{
+			SaveLogEnter("cLeafBrush_t");
+
 			buffer->align(Utils::Stream::ALIGN_2);
 			buffer->saveArray(asset->leafBrushes, asset->numLeafBrushes);
 			Utils::Stream::ClearPointer(&dest->leafBrushes);
+
+			SaveLogExit();
 		}
 
 		if (asset->cLeafBrushNodes)
 		{
 			AssertSize(Game::cLeafBrushNode_t, 20);
+			SaveLogEnter("cLeafBrushNode_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cLeafBrushNode_t* node = buffer->dest<Game::cLeafBrushNode_t>();
@@ -191,13 +216,18 @@ namespace Assets
 			}
 
 			Utils::Stream::ClearPointer(&dest->cLeafBrushNodes);
+			SaveLogExit();
 		}
 
 		if (asset->leafSurfaces)
 		{
+			SaveLogEnter("cLeafSurface_t");
+
 			buffer->align(Utils::Stream::ALIGN_4);
 			buffer->saveArray(asset->leafSurfaces, asset->numLeafSurfaces);
 			Utils::Stream::ClearPointer(&dest->leafSurfaces);
+
+			SaveLogExit();
 		}
 
 		if (asset->verts)
@@ -226,6 +256,7 @@ namespace Assets
 		if (asset->collisionBorders)
 		{
 			AssertSize(Game::CollisionBorder, 28);
+			SaveLogEnter("CollisionBorder");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 
@@ -236,11 +267,13 @@ namespace Assets
 			}
 
 			Utils::Stream::ClearPointer(&dest->collisionBorders);
+			SaveLogExit();
 		}
 
 		if (asset->collisionPartitions)
 		{
 			AssertSize(Game::CollisionPartition, 12);
+			SaveLogEnter("CollisionPartition");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::CollisionPartition* border = buffer->dest<Game::CollisionPartition>();
@@ -266,29 +299,37 @@ namespace Assets
 			}
 
 			Utils::Stream::ClearPointer(&dest->collisionPartitions);
+			SaveLogExit();
 		}
 
 		if (asset->collisionAABBTrees)
 		{
 			AssertSize(Game::CollisionAabbTree, 32);
+			SaveLogEnter("CollisionAabbTree");
 
 			buffer->align(Utils::Stream::ALIGN_16);
 			buffer->saveArray(asset->collisionAABBTrees, asset->numCollisionAABBTrees);
 			Utils::Stream::ClearPointer(&dest->collisionAABBTrees);
+
+			SaveLogExit();
 		}
 
 		if (asset->cModels)
 		{
 			AssertSize(Game::cmodel_t, 68);
+			SaveLogEnter("cmodel_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			buffer->saveArray(asset->cModels, asset->numCModels);
 			Utils::Stream::ClearPointer(&dest->cModels);
+
+			SaveLogExit();
 		}
 
 		if (asset->cBrushes)
 		{
 			AssertSize(Game::cbrush_t, 36);
+			SaveLogEnter("cbrush_t");
 
 			buffer->align(Utils::Stream::ALIGN_128);
 			Game::cbrush_t* brushes = buffer->dest<Game::cbrush_t>();
@@ -347,16 +388,21 @@ namespace Assets
 					}
 				}
 			}
+
 			Utils::Stream::ClearPointer(&dest->cBrushes);
+			SaveLogExit();
 		}
 
 		if (asset->cBrushBounds)
 		{
 			AssertSize(Game::Bounds, 24);
+			SaveLogEnter("Bounds");
 
 			buffer->align(Utils::Stream::ALIGN_128);
 			buffer->saveArray(asset->cBrushBounds, asset->numCBrushes);
 			Utils::Stream::ClearPointer(&dest->cBrushBounds);
+
+			SaveLogExit();
 		}
 
 		if (asset->cBrushContents)
@@ -369,10 +415,13 @@ namespace Assets
 		if (asset->unknown4)
 		{
 			AssertSize(Game::SModelAabbNode, 28);
+			SaveLogEnter("SModelAabbNode");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			buffer->saveArray(asset->unknown4, asset->unkCount4);
 			Utils::Stream::ClearPointer(&dest->unknown4);
+
+			SaveLogExit();
 		}
 
 		if (asset->mapEnts)
@@ -457,6 +506,8 @@ namespace Assets
 
 		buffer->popBlock();
 		buffer->popBlock();
+
+		SaveLogExit();
 	}
 
 	void IclipMap_t::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
