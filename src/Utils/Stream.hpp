@@ -121,6 +121,14 @@ namespace Utils
 		void leaveCriticalSection();
 		bool isCriticalSection();
 
+        // for recording zb writes
+#ifdef DEBUG
+        static FILE* writeLog;
+        static int structLevel;
+        void enterStruct(const char* structName);
+        void leaveStruct();
+        void logWrite(int writeLen);
+#endif
 
 		// This represents packed offset in streams:
 		// - lowest 28 bits store the value/offset
@@ -143,8 +151,8 @@ namespace Utils
 			Offset(Game::XFILE_BLOCK_TYPES _block, uint32_t _offset) : offset(_offset), block(_block) {};
 
 			// The game needs it to be incremented
-			uint32_t getPackedOffset() 
-			{ 
+			uint32_t getPackedOffset()
+			{
 				return this->packed + 1;
 			};
 
