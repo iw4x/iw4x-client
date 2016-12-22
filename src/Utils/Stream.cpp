@@ -112,8 +112,8 @@ namespace Utils
 	char* Stream::save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count)
 	{
 		// Only those seem to actually write data.
-		// As I'm not sure though, I'll still write the data
-		// Use IncreaseBlockSize to fill virtual streams
+	    // everything else is allocated at runtime but XFILE_BLOCK_RUNTIME is the only one that actually allocates anything
+        // clearly half of this stuff is unused
 		if (stream != Game::XFILE_BLOCK_TEMP && stream != Game::XFILE_BLOCK_VIRTUAL && stream != Game::XFILE_BLOCK_PHYSICAL && stream != Game::XFILE_BLOCK_INVALID)
 		{
 			this->increaseBlockSize(stream, size * count);
