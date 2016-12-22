@@ -85,8 +85,6 @@ namespace Assets
 			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage->name);
 		}
 
-
-
 		if (asset->dpvs.surfaces)
 		{
 			for (int i = 0; i < asset->dpvsSurfaceCount; ++i)
@@ -266,7 +264,6 @@ namespace Assets
 
 		// saveGfxWorldVertexLayerData
 		{
-
 			if (asset->vld.data)
 			{
 				// no align for char
@@ -389,7 +386,7 @@ namespace Assets
 			Game::GfxSurface* destSurfaceTable = buffer->dest<Game::GfxSurface>();
 			buffer->saveArray(asset->surfaces, world->dpvsSurfaceCount);
 
-			for (int i = 0; i < world->dpvsSurfaceCount; i++)
+			for (int i = 0; i < world->dpvsSurfaceCount; ++i)
 			{
 				Game::GfxSurface* surface = &asset->surfaces[i];
 				Game::GfxSurface* destSurface = &destSurfaceTable[i];
@@ -420,7 +417,7 @@ namespace Assets
 			Game::GfxStaticModelDrawInst* destModelTable = buffer->dest<Game::GfxStaticModelDrawInst>();
 			buffer->saveArray(asset->smodelDrawInsts, asset->smodelCount);
 
-			for (unsigned int i = 0; i < asset->smodelCount; i++)
+			for (unsigned int i = 0; i < asset->smodelCount; ++i)
 			{
 				Game::GfxStaticModelDrawInst* model = &asset->smodelDrawInsts[i];
 				Game::GfxStaticModelDrawInst* destModel = &destModelTable[i];
@@ -480,9 +477,9 @@ namespace Assets
 		}
 
 		// this covers [0][0], [1][0], [0][1], [1][1], [0][2], [1][2]
-		for (char i = 0; i < 3; i++)
+		for (char i = 0; i < 3; ++i)
 		{
-			for (char j = 0; j < 2; j++)
+			for (char j = 0; j < 2; ++j)
 			{
 				if (asset->dynEntVisData[j][i])
 				{
@@ -498,7 +495,7 @@ namespace Assets
 
 	void IGfxWorld::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		AssertSize(Game::GfxWorld, 0x274);
+		AssertSize(Game::GfxWorld, 628);
 
 		Utils::Stream* buffer = builder->getBuffer();
 		Game::GfxWorld* asset = header.gfxWorld;
