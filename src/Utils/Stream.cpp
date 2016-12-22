@@ -104,7 +104,7 @@ namespace Utils
 		// Only those seem to actually write data.
 		// everything else is allocated at runtime but XFILE_BLOCK_RUNTIME is the only one that actually allocates anything
 		// clearly half of this stuff is unused
-		if (stream != Game::XFILE_BLOCK_TEMP && stream != Game::XFILE_BLOCK_VIRTUAL && stream != Game::XFILE_BLOCK_PHYSICAL && stream != Game::XFILE_BLOCK_INVALID)
+		if (stream == Game::XFILE_BLOCK_RUNTIME)
 		{
 			this->increaseBlockSize(stream, size * count);
 			return this->at();
