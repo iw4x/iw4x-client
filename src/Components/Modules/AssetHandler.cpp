@@ -384,7 +384,7 @@ namespace Components
 		if (ZoneBuilder::IsEnabled())
 		{
 			AssetHandler::RegisterInterface(new Assets::IXModel());
-            AssetHandler::RegisterInterface(new Assets::IFxWorld());
+			AssetHandler::RegisterInterface(new Assets::IFxWorld());
 			AssetHandler::RegisterInterface(new Assets::IMapEnts());
 			AssetHandler::RegisterInterface(new Assets::IRawFile());
 			AssetHandler::RegisterInterface(new Assets::IComWorld());

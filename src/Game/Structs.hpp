@@ -352,7 +352,7 @@ namespace Game
 		GfxImage *image;
 	};
 
-	#define SEMANTIC_WATER_MAP 11
+#define SEMANTIC_WATER_MAP 11
 
 	union MaterialTextureDefInfo
 	{
@@ -3143,8 +3143,8 @@ namespace Game
 		int dpvsSurfaceCount;
 		unsigned int skyCount;
 		GfxSky* skies;
-        int unkCount1;
-        int unkCount2;
+		int unkCount1;
+		int unkCount2;
 		char unknown1[16];
 		GfxWorldDpvsPlanes dpvsPlanes; //The following rely on the count in this
 		GfxCellTreeCount *aabbTreeCounts;
@@ -3160,9 +3160,9 @@ namespace Game
 		int materialMemoryCount;
 		MaterialMemory *materialMemory;
 		sunflare_t sun;
-        char pad[64];
+		char pad[64];
 		GfxImage* unknownImage;
-        unsigned int *cellCasterBits[2];
+		unsigned int *cellCasterBits[2];
 		GfxSceneDynModel *sceneDynModel;
 		GfxSceneDynBrush *sceneDynBrush;
 		unsigned int *primaryLightEntityShadowVis;
@@ -3212,142 +3212,142 @@ namespace Game
 	};
 
 #pragma pack(push, 4)
-    struct FxGlassDef
-    {
-        float halfThickness;
-        float texVecs[2][2];
-        GfxColor color;
-        Material *material;
-        Material *materialShattered;
-        PhysPreset *physPreset;
-    };
+	struct FxGlassDef
+	{
+		float halfThickness;
+		float texVecs[2][2];
+		GfxColor color;
+		Material *material;
+		Material *materialShattered;
+		PhysPreset *physPreset;
+	};
 #pragma pack(pop)
 
-    struct FxSpatialFrame
-    {
-        float quat[4];
-        float origin[3];
-    };
+	struct FxSpatialFrame
+	{
+		float quat[4];
+		float origin[3];
+	};
 
-    union FxGlassPiecePlace
-    {
-        struct
-        {
-            FxSpatialFrame frame;
-            float radius;
-        };
-        unsigned int nextFree;
-    };
+	union FxGlassPiecePlace
+	{
+		struct
+		{
+			FxSpatialFrame frame;
+			float radius;
+		};
+		unsigned int nextFree;
+	};
 
-    struct FxGlassPieceState
-    {
-        float texCoordOrigin[2];
-        unsigned int supportMask;
-        unsigned __int16 initIndex;
-        unsigned __int16 geoDataStart;
-        unsigned __int16 lightingIndex;
-        char defIndex;
-        char pad[3];
-        char vertCount;
-        char holeDataCount;
-        char crackDataCount;
-        char fanDataCount;
-        unsigned __int16 flags;
-        float areaX2;
-    };
+	struct FxGlassPieceState
+	{
+		float texCoordOrigin[2];
+		unsigned int supportMask;
+		unsigned __int16 initIndex;
+		unsigned __int16 geoDataStart;
+		unsigned __int16 lightingIndex;
+		char defIndex;
+		char pad[3];
+		char vertCount;
+		char holeDataCount;
+		char crackDataCount;
+		char fanDataCount;
+		unsigned __int16 flags;
+		float areaX2;
+	};
 
-    struct FxGlassPieceDynamics
-    {
-        char pad[36];
-    };
+	struct FxGlassPieceDynamics
+	{
+		char pad[36];
+	};
 
-    struct FxGlassVertex
-    {
-        __int16 x;
-        __int16 y;
-    };
+	struct FxGlassVertex
+	{
+		__int16 x;
+		__int16 y;
+	};
 
-    struct FxGlassHoleHeader
-    {
-        unsigned __int16 uniqueVertCount;
-        char touchVert;
-        char pad[1];
-    };
+	struct FxGlassHoleHeader
+	{
+		unsigned __int16 uniqueVertCount;
+		char touchVert;
+		char pad[1];
+	};
 
-    struct FxGlassCrackHeader
-    {
-        unsigned __int16 uniqueVertCount;
-        char beginVertIndex;
-        char endVertIndex;
-    };
+	struct FxGlassCrackHeader
+	{
+		unsigned __int16 uniqueVertCount;
+		char beginVertIndex;
+		char endVertIndex;
+	};
 
-    union FxGlassGeometryData
-    {
-        FxGlassVertex vert;
-        FxGlassHoleHeader hole;
-        FxGlassCrackHeader crack;
-        char asBytes[4];
-        __int16 anonymous[2];
-    };
+	union FxGlassGeometryData
+	{
+		FxGlassVertex vert;
+		FxGlassHoleHeader hole;
+		FxGlassCrackHeader crack;
+		char asBytes[4];
+		__int16 anonymous[2];
+	};
 
 #pragma pack(push, 4)
-    struct FxGlassInitPieceState //Note, on MW3 this is missing 4 bytes, just not sure whats missing yet
-    {
-        /*
-        FxSpatialFrame frame;
-        float radius;
-        float texCoordOrigin[2];
-        unsigned int supportMask;
-        float areaX2;
-        unsigned __int16 lightingIndex;
-        char defIndex;
-        char vertCount;
-        char fanDataCount;
-        */
-        char pad[52];
-    };
+	struct FxGlassInitPieceState //Note, on MW3 this is missing 4 bytes, just not sure whats missing yet
+	{
+		/*
+		FxSpatialFrame frame;
+		float radius;
+		float texCoordOrigin[2];
+		unsigned int supportMask;
+		float areaX2;
+		unsigned __int16 lightingIndex;
+		char defIndex;
+		char vertCount;
+		char fanDataCount;
+		*/
+		char pad[52];
+	};
 #pragma pack(pop)
 
 #pragma pack(push, 8)
-    struct FxGlassSystem
-    {
-        int time;
-        int prevTime;
-        unsigned int defCount;
-        unsigned int pieceLimit;
-        unsigned int pieceWordCount;
-        unsigned int initPieceCount;
-        unsigned int cellCount;
-        unsigned int activePieceCount;
-        unsigned int firstFreePiece;
-        unsigned int geoDataLimit;
-        unsigned int geoDataCount;
-        unsigned int initGeoDataCount;
-        FxGlassDef *defs;
-        FxGlassPiecePlace *piecePlaces;
-        FxGlassPieceState *pieceStates;
-        FxGlassPieceDynamics *pieceDynamics;
-        FxGlassGeometryData *geoData;
-        unsigned int *isInUse;
-        unsigned int *cellBits;
-        char *visData;
-        float (*linkOrg)[3];
-        float *halfThickness;
-        unsigned __int16 *lightingHandles;
-        FxGlassInitPieceState *initPieceStates;
-        FxGlassGeometryData *initGeoData;
-        bool needToCompactData;
-        char initCount;
-        float effectChanceAccum;
-        int lastPieceDeletionTime;
-    };
+	struct FxGlassSystem
+	{
+		int time;
+		int prevTime;
+		unsigned int defCount;
+		unsigned int pieceLimit;
+		unsigned int pieceWordCount;
+		unsigned int initPieceCount;
+		unsigned int cellCount;
+		unsigned int activePieceCount;
+		unsigned int firstFreePiece;
+		unsigned int geoDataLimit;
+		unsigned int geoDataCount;
+		unsigned int initGeoDataCount;
+		FxGlassDef *defs;
+		FxGlassPiecePlace *piecePlaces;
+		FxGlassPieceState *pieceStates;
+		FxGlassPieceDynamics *pieceDynamics;
+		FxGlassGeometryData *geoData;
+		unsigned int *isInUse;
+		unsigned int *cellBits;
+		char *visData;
+		float(*linkOrg)[3];
+		float *halfThickness;
+		unsigned __int16 *lightingHandles;
+		FxGlassInitPieceState *initPieceStates;
+		FxGlassGeometryData *initGeoData;
+		bool needToCompactData;
+		char initCount;
+		float effectChanceAccum;
+		int lastPieceDeletionTime;
+	};
 #pragma pack(pop)
 
-    struct FxWorld
-    {
-        const char * name;
-        FxGlassSystem glassSys;
-    };
+	struct FxWorld
+	{
+		const char * name;
+		FxGlassSystem glassSys;
+	};
 
 	union XAssetHeader
 	{
@@ -3379,7 +3379,7 @@ namespace Game
 		GameWorldSp* gameWorldSp;
 		TracerDef* tracer;
 		VehicleDef* vehicle;
-        FxWorld* fxWorld;
+		FxWorld* fxWorld;
 		GfxWorld* gfxWorld;
 		GfxLightDef* lightDef;
 		SndCurve* sndCurve;
@@ -3624,7 +3624,7 @@ namespace Game
 	};
 #pragma pack(pop)
 
-		typedef char mapname_t[40];
+	typedef char mapname_t[40];
 
 #ifdef __cplusplus
 }
