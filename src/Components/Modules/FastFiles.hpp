@@ -36,6 +36,8 @@ namespace Components
 		static unsigned int CurrentZone;
 		static unsigned int MaxZones;
 
+		static bool StreamRead;
+
 		static Key CurrentKey;
 		static symmetric_CTR CurrentCTR;
 		static std::vector<std::string> ZonePaths;
@@ -53,5 +55,7 @@ namespace Components
 		static int InflateInitDecrypt(z_streamp strm, const char *version, int stream_size);
 
 		static void LoadZonesStub(Game::XZoneInfo *zoneInfo, unsigned int zoneCount);
+
+		static void LogStreamRead(int len);
 	};
 }

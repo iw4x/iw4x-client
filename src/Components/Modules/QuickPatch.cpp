@@ -141,54 +141,6 @@ namespace Components
 		Game::CL_SelectStringTableEntryInDvar_f();
 	}
 
-#ifdef DEBUG
-
-    FILE* QuickPatch::readLog = nullptr;
-    Utils::Hook QuickPatch::beginLoggingHook;
-    int* QuickPatch::g_streamPos = (int*)0x16E5554;
-
-    void QuickPatch::logReads(bool /*flush*/)
-    {
-        fopen_s(&readLog, "userraw/logs/iw4_reads.log", "w");
-
-        // call the original load func
-        __asm
-        {
-            push 1
-            call beginLoggingHook.original
-            add esp, 4
-        }
-
-        if(readLog)
-        {
-            fclose(readLog);
-            readLog = nullptr;
-        }
-    }
-
-    void QuickPatch::logXAssetRead(int len)
-    {
-        *g_streamPos = *g_streamPos + len;
-        if(!readLog) return;
-        fprintf(readLog, "%d\n", len);
-        fflush(readLog);
-        // manually flush file because otherwie when ZB crashes it wont get flushed
-    }
-
-    void QuickPatch::logXAssetVirtualRead(int len)
-    {
-        *g_streamPos = *g_streamPos + len;
-        if(!readLog) return;
-        fprintf(readLog, "(%d)\n", len);
-        fflush(readLog);
-        // manually flush file because otherwie when ZB crashes it wont get flushed
-    }
-
-
-#endif
-
-
-
 	QuickPatch::QuickPatch()
 	{
 		// protocol version (workaround for hacks)
@@ -481,12 +433,6 @@ namespace Components
 				Game::Con_DrawMiniConsole(0, 2, 4, (Game::CL_IsCgameInitialized() ? 1.0f : 0.4f));
 			}
 		});
-
-        beginLoggingHook.initialize(0x4BCB62, QuickPatch::logReads, HOOK_CALL); // currently set to Load_GfxWorld
-        beginLoggingHook.install()->quick();
-        Utils::Hook(0x470E75, QuickPatch::logXAssetRead, HOOK_CALL).install()->quick();
-        Utils::Hook(0x4E0E0B, QuickPatch::logXAssetRead, HOOK_CALL).install()->quick();
-        Utils::Hook(0x470E5A, QuickPatch::logXAssetVirtualRead, HOOK_CALL).install()->quick();
 #endif
 	}
 

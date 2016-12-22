@@ -278,6 +278,8 @@ namespace Game
 	searchpath_t* fs_searchpaths = (searchpath_t*)0x63D96E0;
 
 	XBlock** g_streamBlocks = (XBlock**)0x16E554C;
+	int* g_streamPos = (int*)0x16E5554;
+	int* g_streamPosIndex = (int*)0x16E5578;
 
 	bool* g_lobbyCreateInProgress = (bool*)0x66C9BC2;
 	party_t** partyIngame = (party_t**)0x1081C00;

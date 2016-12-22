@@ -104,9 +104,16 @@ namespace Components
 		}
 	}
 
-	void FileSystem::FileWriter::open()
+	void FileSystem::FileWriter::open(bool append)
 	{
-		this->handle = Game::FS_FOpenFileWrite(this->filePath.data());
+		if (append)
+		{
+			this->handle = Game::FS_FOpenFileAppend(this->filePath.data());
+		}
+		else
+		{
+			this->handle = Game::FS_FOpenFileWrite(this->filePath.data());
+		}
 	}
 
 	void FileSystem::FileWriter::close()

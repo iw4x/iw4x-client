@@ -70,7 +70,7 @@ namespace Components
 		class FileWriter
 		{
 		public:
-			FileWriter(std::string file) : filePath(file), handle(0) { this->open(); };
+			FileWriter(std::string file, bool append = false) : filePath(file), handle(0) { this->open(append); };
 			~FileWriter() { this->close(); };
 
 			void write(std::string data);
@@ -79,7 +79,7 @@ namespace Components
 			int handle;
 			std::string filePath;
 
-			void open();
+			void open(bool append = false);
 			void close();
 		};
 

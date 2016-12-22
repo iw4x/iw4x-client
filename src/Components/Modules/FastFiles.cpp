@@ -6,6 +6,8 @@ namespace Components
 	symmetric_CTR FastFiles::CurrentCTR;
 	std::vector<std::string> FastFiles::ZonePaths;
 
+	bool FastFiles::StreamRead = false;
+
 	unsigned int FastFiles::CurrentZone;
 	unsigned int FastFiles::MaxZones;
 
@@ -381,6 +383,20 @@ namespace Components
 		Utils::Hook::Call<void(Game::XZoneInfo*, unsigned int)>(0x5BBAC0)(zoneInfo, zoneCount);
 	}
 
+#ifdef DEBUG
+	void FastFiles::LogStreamRead(int len)
+	{
+		*Game::g_streamPos += len;
+
+		if (FastFiles::StreamRead)
+		{
+			std::string data = fmt::sprintf("%d\n", len);
+			if (*Game::g_streamPosIndex == 2) data = fmt::sprintf("(%d)\n", len);
+			Utils::IO::WriteFile("userraw/logs/iw4_reads.log", data, true);
+		}
+	}
+#endif
+
 	FastFiles::FastFiles()
 	{
 		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display current loaded zone.");
@@ -465,6 +481,18 @@ namespace Components
 
 			Game::DB_LoadXAssets(&info, 1, true);
 		});
+
+#ifdef DEBUG
+		// ZoneBuilder debugging
+		Utils::IO::WriteFile("userraw/logs/iw4_reads.log", "", false);
+		Utils::Hook(0x4A8FA0, FastFiles::LogStreamRead, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4BCB62, []()
+		{
+			FastFiles::StreamRead = true;
+			Utils::Hook::Call<void(bool)>(0x4B8DB0)(true); // currently set to Load_GfxWorld
+			FastFiles::StreamRead = false;
+		}, HOOK_CALL).install()->quick();
+#endif
 	}
 
 	FastFiles::~FastFiles()

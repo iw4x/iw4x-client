@@ -9,7 +9,7 @@ namespace Utils
 			return std::ifstream(file).good();
 		}
 
-		void WriteFile(std::string file, std::string data)
+		void WriteFile(std::string file, std::string data, bool append)
 		{
 			auto pos = file.find_last_of("/\\");
 			if (pos != std::string::npos)
@@ -17,7 +17,7 @@ namespace Utils
 				CreateDirectory(file.substr(0, pos));
 			}
 
-			std::ofstream stream(file, std::ios::binary);
+			std::ofstream stream(file, std::ios::binary | std::ofstream::out | (append ? std::ofstream::app : std::ofstream::out));
 
 			if (stream.is_open())
 			{

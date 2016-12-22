@@ -614,6 +614,8 @@ namespace Game
 	extern searchpath_t* fs_searchpaths;
 
 	extern XBlock** g_streamBlocks;
+	extern int* g_streamPos;
+	extern int* g_streamPosIndex;
 
 	extern bool* g_lobbyCreateInProgress;
 	extern party_t** partyIngame;

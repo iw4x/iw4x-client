@@ -64,11 +64,11 @@ namespace Utils
 		memset(this->blockSize, 0, sizeof(this->blockSize));
 #ifdef DEBUG
 
-        if(this->writeLog) return;
-        if(fopen_s(&this->writeLog, "userraw/logs/zb_writes.log", "w"))
-        {
-            Components::Logger::Print("WARNING: Couldn't open write log. Writes from ZoneBuilder will not be logged.\n");
-        }
+		if (this->writeLog) return;
+		if (fopen_s(&this->writeLog, "userraw/logs/zb_writes.log", "w"))
+		{
+			Components::Logger::Print("WARNING: Couldn't open write log. Writes from ZoneBuilder will not be logged.\n");
+		}
 #endif
 	}
 
@@ -87,10 +87,10 @@ namespace Utils
 		}
 
 #ifdef DEBUG
-        if(this->writeLog)
-        {
-            fclose(this->writeLog);
-        }
+		if (this->writeLog)
+		{
+			fclose(this->writeLog);
+		}
 #endif
 	};
 
@@ -112,8 +112,8 @@ namespace Utils
 	char* Stream::save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count)
 	{
 		// Only those seem to actually write data.
-	    // everything else is allocated at runtime but XFILE_BLOCK_RUNTIME is the only one that actually allocates anything
-        // clearly half of this stuff is unused
+		// everything else is allocated at runtime but XFILE_BLOCK_RUNTIME is the only one that actually allocates anything
+		// clearly half of this stuff is unused
 		if (stream != Game::XFILE_BLOCK_TEMP && stream != Game::XFILE_BLOCK_VIRTUAL && stream != Game::XFILE_BLOCK_PHYSICAL && stream != Game::XFILE_BLOCK_INVALID)
 		{
 			this->increaseBlockSize(stream, size * count);
@@ -130,8 +130,8 @@ namespace Utils
 
 		this->buffer.append(static_cast<const char*>(_str), size * count);
 
-        // log the write for zonebuilder debugging
-        SAVE_LOG_WRITE(size * count);
+		// log the write for zonebuilder debugging
+		SAVE_LOG_WRITE(size * count);
 
 		if (this->data() != data && this->isCriticalSection())
 		{
@@ -330,35 +330,35 @@ namespace Utils
 
 #ifdef DEBUG
 
-    FILE* Stream::writeLog = nullptr;
-    int Stream::structLevel = 0;
+	FILE* Stream::writeLog = nullptr;
+	int Stream::structLevel = 0;
 
-    void Stream::enterStruct(const char* structName)
-    {
-        if(!this->writeLog) return;
-        fprintf(this->writeLog, "%*s%s\n", this->structLevel++, "", structName);
-    }
+	void Stream::enterStruct(const char* structName)
+	{
+		if (!this->writeLog) return;
+		fprintf(this->writeLog, "%*s%s\n", this->structLevel++, "", structName);
+	}
 
-    void Stream::leaveStruct()
-    {
-        if(!this->writeLog) return;
-        this->structLevel--;
+	void Stream::leaveStruct()
+	{
+		if (!this->writeLog) return;
+		this->structLevel--;
 
-        if(this->structLevel < 0) {
-            Components::Logger::Print("Stream::exitStruct underflow! All following writes will not be logged!\n");
-            fclose(this->writeLog);
-            this->writeLog = nullptr;
-            return;
-        }
+		if (this->structLevel < 0) {
+			Components::Logger::Print("Stream::exitStruct underflow! All following writes will not be logged!\n");
+			fclose(this->writeLog);
+			this->writeLog = nullptr;
+			return;
+		}
 
-        fprintf(this->writeLog, "%*s-----\n", this->structLevel, "");
-    }
+		fprintf(this->writeLog, "%*s-----\n", this->structLevel, "");
+	}
 
-    void Stream::logWrite(int writeLen)
-    {
-        if(!this->writeLog) return;
-        fprintf(this->writeLog, "%*s%d\n", this->structLevel, "", writeLen);
-    }
+	void Stream::logWrite(int writeLen)
+	{
+		if (!this->writeLog) return;
+		fprintf(this->writeLog, "%*s%d\n", this->structLevel, "", writeLen);
+	}
 
 #endif
 }
