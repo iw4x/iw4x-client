@@ -113,7 +113,7 @@ namespace Assets
 		AssertSize(Game::GfxWorldDpvsPlanes, 16);
 
 		Utils::Stream* buffer = builder->getBuffer();
-        SAVE_LOG_ENTER("GfxWorldDpvsPlanes");
+		SaveLogEnter("GfxWorldDpvsPlanes");
 
 		if (asset->planes)
 		{
@@ -150,13 +150,13 @@ namespace Assets
 		}
 
 		buffer->popBlock();
-        SAVE_LOG_EXIT();
+		SaveLogExit();
 	}
 
 	void IGfxWorld::saveGfxWorldDraw(Game::GfxWorldDraw* asset, Game::GfxWorldDraw* dest, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::GfxWorldDraw, 72);
-        SAVE_LOG_ENTER("GfxWorldDraw");
+		SaveLogEnter("GfxWorldDraw");
 
 		Utils::Stream* buffer = builder->getBuffer();
 
@@ -282,7 +282,7 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->indices);
 		}
 
-        SAVE_LOG_EXIT();
+		SaveLogExit();
 	}
 
 	void IGfxWorld::saveGfxLightGrid(Game::GfxLightGrid* asset, Game::GfxLightGrid* dest, Components::ZoneBuilder::Zone* builder)
@@ -290,7 +290,7 @@ namespace Assets
 		AssertSize(Game::GfxLightGrid, 56);
 
 		Utils::Stream* buffer = builder->getBuffer();
-        SAVE_LOG_ENTER("GfxLightGrid");
+		SaveLogEnter("GfxLightGrid");
 
 		if (asset->rowDataStart)
 		{
@@ -323,14 +323,14 @@ namespace Assets
 			buffer->saveArray(asset->colors, asset->colorCount);
 			Utils::Stream::ClearPointer(&dest->colors);
 		}
-        SAVE_LOG_EXIT();
+
+		SaveLogExit();
 	}
 
 	void IGfxWorld::savesunflare_t(Game::sunflare_t* asset, Game::sunflare_t* dest, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::sunflare_t, 96);
-
-        SAVE_LOG_ENTER("sunflare_t");
+		SaveLogEnter("sunflare_t");
 
 		if (asset->spriteMaterial)
 		{
@@ -342,7 +342,7 @@ namespace Assets
 			dest->flareMaterial = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->flareMaterial->name).material;
 		}
         
-        SAVE_LOG_EXIT();
+		SaveLogExit();
 	}
 
 	void IGfxWorld::saveGfxWorldDpvsStatic(Game::GfxWorld* world, Game::GfxWorldDpvsStatic* asset, Game::GfxWorldDpvsStatic* dest, int /*planeCount*/, Components::ZoneBuilder::Zone* builder)
@@ -350,7 +350,7 @@ namespace Assets
 		AssertSize(Game::GfxWorldDpvsStatic, 108);
 
 		Utils::Stream* buffer = builder->getBuffer();
-        SAVE_LOG_ENTER("GfxWorldDpvsStatic");
+		SaveLogEnter("GfxWorldDpvsStatic");
 
 		buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);
 
@@ -464,7 +464,7 @@ namespace Assets
 		}
 
 		buffer->popBlock();
-        SAVE_LOG_EXIT();
+		SaveLogExit();
 	}
 
 	void IGfxWorld::saveGfxWorldDpvsDynamic(Game::GfxWorldDpvsDynamic* asset, Game::GfxWorldDpvsDynamic* dest, Components::ZoneBuilder::Zone* builder)
@@ -472,7 +472,7 @@ namespace Assets
 		AssertSize(Game::GfxWorldDpvsDynamic, 48);
 
 		Utils::Stream* buffer = builder->getBuffer();
-        SAVE_LOG_ENTER("GfxWorldDpvsDynamic");
+		SaveLogEnter("GfxWorldDpvsDynamic");
 
 		buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);
 
@@ -505,7 +505,7 @@ namespace Assets
 		}
 
 		buffer->popBlock();
-        SAVE_LOG_EXIT();
+        SaveLogExit();
 	}
 
 	void IGfxWorld::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
@@ -513,7 +513,8 @@ namespace Assets
 		AssertSize(Game::GfxWorld, 628);
 
 		Utils::Stream* buffer = builder->getBuffer();
-        SAVE_LOG_ENTER("GfxWorld");
+		SaveLogEnter("GfxWorld");
+
 		Game::GfxWorld* asset = header.gfxWorld;
 		Game::GfxWorld* dest = buffer->dest<Game::GfxWorld>();
 		buffer->save(asset);
@@ -869,6 +870,6 @@ namespace Assets
 		}
 
 		buffer->popBlock();
-        SAVE_LOG_EXIT();
+		SaveLogExit();
 	}
 }

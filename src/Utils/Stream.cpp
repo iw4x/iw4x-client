@@ -62,13 +62,10 @@ namespace Utils
 	Stream::Stream() : criticalSectionState(0)
 	{
 		memset(this->blockSize, 0, sizeof(this->blockSize));
-#ifdef DEBUG
 
-		if (this->writeLog) return;
-		if (fopen_s(&this->writeLog, "userraw/logs/zb_writes.log", "w"))
-		{
-			Components::Logger::Print("WARNING: Couldn't open write log. Writes from ZoneBuilder will not be logged.\n");
-		}
+#ifdef DEBUG
+		this->structLevel = 0;
+		Utils::IO::WriteFile("userraw/logs/zb_writes.log", "", false);
 #endif
 	}
 
@@ -85,13 +82,6 @@ namespace Utils
 		{
 			MessageBoxA(0, Utils::String::VA("Invalid critical section state '%i' for stream destruction!", this->criticalSectionState), "WARNING", MB_ICONEXCLAMATION);
 		}
-
-#ifdef DEBUG
-		if (this->writeLog)
-		{
-			fclose(this->writeLog);
-		}
-#endif
 	};
 
 	size_t Stream::length()
@@ -129,9 +119,6 @@ namespace Utils
 		}
 
 		this->buffer.append(static_cast<const char*>(_str), size * count);
-
-		// log the write for zonebuilder debugging
-		SAVE_LOG_WRITE(size * count);
 
 		if (this->data() != data && this->isCriticalSection())
 		{
@@ -247,6 +234,12 @@ namespace Utils
 		{
 			this->blockSize[stream] += size;
 		}
+
+#ifdef DEBUG
+		std::string data = fmt::sprintf("%*s%d\n", this->structLevel, "", size);
+		if(stream == Game::XFILE_BLOCK_RUNTIME) data = fmt::sprintf("%*s(%d)\n", this->structLevel, "", size);
+		Utils::IO::WriteFile("userraw/logs/zb_writes.log", data, true);
+#endif
 	}
 
 	void Stream::increaseBlockSize(unsigned int size)
@@ -329,36 +322,23 @@ namespace Utils
 	}
 
 #ifdef DEBUG
-
-	FILE* Stream::writeLog = nullptr;
-	int Stream::structLevel = 0;
-
 	void Stream::enterStruct(const char* structName)
 	{
-		if (!this->writeLog) return;
-		fprintf(this->writeLog, "%*s%s\n", this->structLevel++, "", structName);
+		if (this->structLevel >= 0)
+		{
+			Utils::IO::WriteFile("userraw/logs/zb_writes.log", fmt::sprintf("%*s%s\n", this->structLevel++, "", structName), true);
+		}
 	}
 
 	void Stream::leaveStruct()
 	{
-		if (!this->writeLog) return;
-		this->structLevel--;
-
-		if (this->structLevel < 0) {
-			Components::Logger::Print("Stream::exitStruct underflow! All following writes will not be logged!\n");
-			fclose(this->writeLog);
-			this->writeLog = nullptr;
+		if (--this->structLevel < 0)
+		{
+			Components::Logger::Print("Stream::leaveStruct underflow! All following writes will not be logged!\n");
 			return;
 		}
 
-		fprintf(this->writeLog, "%*s-----\n", this->structLevel, "");
+		Utils::IO::WriteFile("userraw/logs/zb_writes.log", fmt::sprintf("%*s-----\n", this->structLevel, ""), true);
 	}
-
-	void Stream::logWrite(int writeLen)
-	{
-		if (!this->writeLog) return;
-		fprintf(this->writeLog, "%*s%d\n", this->structLevel, "", writeLen);
-	}
-
 #endif
 }

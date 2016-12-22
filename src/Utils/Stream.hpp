@@ -1,3 +1,12 @@
+// write logs for ZoneBuilder
+#ifndef DEBUG
+#define SaveLogEnter(x)
+#define SaveLogExit()
+#else
+#define SaveLogEnter(x) builder->getBuffer()->enterStruct(x)
+#define SaveLogExit() builder->getBuffer()->leaveStruct()
+#endif
+
 namespace Utils
 {
 	class Stream
@@ -123,11 +132,9 @@ namespace Utils
 
         // for recording zb writes
 #ifdef DEBUG
-        static FILE* writeLog;
-        static int structLevel;
+        int structLevel;
         void enterStruct(const char* structName);
         void leaveStruct();
-        void logWrite(int writeLen);
 #endif
 
 		// This represents packed offset in streams:

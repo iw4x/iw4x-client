@@ -148,17 +148,6 @@ using namespace std::literals;
 #define AssertSize(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
 #define AssertOffset(x, y, offset) static_assert(offsetof(x, y) == offset, STRINGIZE(x) "::" STRINGIZE(y) " is not at the right offset.")
 
-// write logs for ZoneBuilder
-#ifndef DEBUG
-    #define SAVE_LOG_ENTER(x)
-    #define SAVE_LOG_EXIT()
-    #define SAVE_LOG_WRITE(size)
-#else
-    #define SAVE_LOG_ENTER(x) builder->getBuffer()->enterStruct(x)
-    #define SAVE_LOG_EXIT() builder->getBuffer()->leaveStruct()
-    #define SAVE_LOG_WRITE(size) this->logWrite(size)
-#endif
-
 // Resource stuff
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS

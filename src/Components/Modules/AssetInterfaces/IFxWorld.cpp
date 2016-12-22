@@ -7,7 +7,8 @@ namespace Assets
         AssertSize(Game::FxWorld, 116);
 
 		Utils::Stream* buffer = builder->getBuffer();
-        SAVE_LOG_ENTER("FxWorld");
+		SaveLogEnter("FxWorld");
+
 		Game::FxWorld* asset = header.fxWorld;
 		Game::FxWorld* dest = buffer->dest<Game::FxWorld>();
 		buffer->save(asset);
@@ -152,6 +153,8 @@ namespace Assets
                 Utils::Stream::ClearPointer(&dest->glassSys.initGeoData);
             }
         }
+
+		SaveLogExit();
     }
     void IFxWorld::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
     {
