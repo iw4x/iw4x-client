@@ -11,6 +11,8 @@ namespace Assets
 		Game::clipMap_t* dest = buffer->dest<Game::clipMap_t>();
 		buffer->save(asset);
 
+		dest->isInUse = 0;
+
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
 		if (asset->name)

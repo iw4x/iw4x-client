@@ -2420,7 +2420,7 @@ namespace Game
 	struct clipMap_t
 	{
 		const char* name;
-		int unknown1; // +8
+		int isInUse; // +8
 		int numCPlanes; // +8
 		cplane_t* cPlanes; // sizeof 20, +12
 		int numStaticModels; // +16
@@ -2460,7 +2460,8 @@ namespace Game
 		Bounds* cBrushBounds; // same count as cBrushes, +148
 		int * cBrushContents; // same count as cBrushes, +152
 		MapEnts * mapEnts; // +156
-		int unkCount4; // +160
+		unsigned short unkCount4; // +160
+		short pad; // +160
 		SModelAabbNode* unknown4; // +164
 		unsigned __int16 dynEntCount[2];
 		DynEntityDef *dynEntDefList[2];

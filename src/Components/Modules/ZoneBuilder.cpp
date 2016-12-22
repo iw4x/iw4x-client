@@ -228,7 +228,18 @@ namespace Components
 		FILETIME fileTime;
 		GetSystemTimeAsFileTime(&fileTime);
 
-		Game::XFileHeader header = { XFILE_MAGIC_UNSIGNED, XFILE_VERSION_IW4X, Game::XFileLanguage::XLANG_NONE, fileTime.dwHighDateTime, fileTime.dwLowDateTime };
+		Game::XFileHeader header =
+		{
+			XFILE_MAGIC_UNSIGNED,
+#ifdef DEBUG
+			XFILE_VERSION,
+#else
+			XFILE_VERSION_IW4X,
+#endif
+			Game::XFileLanguage::XLANG_NONE,
+			fileTime.dwHighDateTime,
+			fileTime.dwLowDateTime
+		};
 
 		std::string outBuffer;
 		outBuffer.append(reinterpret_cast<char*>(&header), sizeof(header));
