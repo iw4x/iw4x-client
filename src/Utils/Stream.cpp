@@ -96,9 +96,15 @@ namespace Utils
 
 	char* Stream::save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count)
 	{
-		//if (stream == XFILE_BLOCK_TEMP || stream == XFILE_BLOCK_VIRTUAL || stream == XFILE_BLOCK_PHYSICAL) // Only those seem to actually write data.
-																											 // As I'm not sure though, I'll still write the data
-																											 // Use IncreaseBlockSize to fill virtual streams
+		// Only those seem to actually write data.
+		// As I'm not sure though, I'll still write the data
+		// Use IncreaseBlockSize to fill virtual streams
+		if (stream != Game::XFILE_BLOCK_TEMP && stream != Game::XFILE_BLOCK_VIRTUAL && stream != Game::XFILE_BLOCK_PHYSICAL)
+		{
+			this->increaseBlockSize(stream, size * count);
+			return this->at();
+		}
+
 		auto data = this->data();
 
 		if (this->isCriticalSection() && this->length() + (size * count) > this->capacity())
