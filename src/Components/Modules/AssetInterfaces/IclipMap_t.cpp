@@ -416,7 +416,7 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (asset->dynEntPoseList[i])
 			{
@@ -429,7 +429,7 @@ namespace Assets
 			}
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (asset->dynEntClientList[i])
 			{
@@ -441,7 +441,7 @@ namespace Assets
 			}
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (asset->dynEntCollList[i])
 			{
@@ -466,7 +466,7 @@ namespace Assets
 			builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name);
 		}
 
-		for (int j = 0; j < 2; j++)
+		for (int j = 0; j < 2; ++j)
 		{
 			Game::DynEntityDef* def = asset->dynEntDefList[j];
 
