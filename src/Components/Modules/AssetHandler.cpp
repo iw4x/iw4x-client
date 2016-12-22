@@ -134,15 +134,15 @@ namespace Components
 		// Fix shader const stuff
 		if (type == Game::XAssetType::ASSET_TYPE_TECHSET && Zones::Version() >= 359)
 		{
-			for (int i = 0; i < 48; i++)
+			for (int i = 0; i < 48; ++i)
 			{
 				if (asset.techniqueSet->techniques[i])
 				{
-					for (int j = 0; j < asset.techniqueSet->techniques[i]->numPasses; j++)
+					for (int j = 0; j < asset.techniqueSet->techniques[i]->numPasses; ++j)
 					{
 						Game::MaterialPass* pass = &asset.techniqueSet->techniques[i]->passes[j];
 
-						for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); k++)
+						for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); ++k)
 						{
 							if (pass->argumentDef[k].type == D3DSHADER_PARAM_REGISTER_TYPE::D3DSPR_CONSTINT)
 							{
@@ -240,7 +240,6 @@ namespace Components
 
 	void AssetHandler::OffsetToAlias(Utils::Stream::Offset* offset)
 	{
-		// Same here, reinterpret the value, as we're operating inside the game's environment
 		void* pointer = (*Game::g_streamBlocks)[offset->getUnpackedBlock()].data + offset->getUnpackedOffset();
 
 		if (AssetHandler::Relocations.find(pointer) != AssetHandler::Relocations.end())
@@ -249,10 +248,6 @@ namespace Components
 		}
 
 		offset->pointer = *reinterpret_cast<void**>(pointer);
-
-#ifdef DEBUG
-		Game::XAssetHeader zob{ offset->pointer };
-#endif
  	}
 
 	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)

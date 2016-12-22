@@ -306,7 +306,7 @@ namespace Components
 		map.append(fmt::sprintf("mtllib %s.mtl\n\n", world->baseName));
 
 		Logger::Print("Writing vertices...\n");
-		for (unsigned int i = 0; i < world->worldDraw.vertexCount; i++)
+		for (unsigned int i = 0; i < world->worldDraw.vertexCount; ++i)
 		{
 			float x = world->worldDraw.vd.vertices[i].xyz[1];
 			float y = world->worldDraw.vd.vertices[i].xyz[2];
@@ -318,7 +318,7 @@ namespace Components
 		map.append("\n");
 
 		Logger::Print("Writing texture coordinates...\n");
-		for (unsigned int i = 0; i < world->worldDraw.vertexCount; i++)
+		for (unsigned int i = 0; i < world->worldDraw.vertexCount; ++i)
 		{
 			map.append(fmt::sprintf("vt %.6f %.6f\n", world->worldDraw.vd.vertices[i].texCoord[0], -world->worldDraw.vd.vertices[i].texCoord[1]));
 		}
@@ -327,11 +327,11 @@ namespace Components
 		int materialCount = 0;
 		Game::Material** materials = allocator.allocateArray<Game::Material*>(world->dpvs.staticSurfaceCount);
 
-		for (unsigned int i = 0; i < world->dpvs.staticSurfaceCount; i++)
+		for (unsigned int i = 0; i < world->dpvs.staticSurfaceCount; ++i)
 		{
 			bool isNewMat = true;
 
-			for (int j = 0; j < materialCount; j++)
+			for (int j = 0; j < materialCount; ++j)
 			{
 				if (world->dpvs.surfaces[i].material == materials[j])
 				{
@@ -350,7 +350,7 @@ namespace Components
 		mtl.append(fmt::sprintf("# Material Count: %d\n", materialCount));
 
 		Logger::Print("Exporting materials and faces...\n");
-		for (int m = 0; m < materialCount; m++)
+		for (int m = 0; m < materialCount; ++m)
 		{
 			std::string name = materials[m]->name;
 
@@ -377,7 +377,7 @@ namespace Components
 			}
 
 			std::string _name = fmt::sprintf("raw/mapdump/%s/textures/%s.png", world->baseName, image->name);
-			D3DXSaveTextureToFile(std::wstring(_name.begin(), _name.end()).data(), D3DXIFF_PNG, image->texture, NULL);
+			D3DXSaveTextureToFile(std::wstring(_name.begin(), _name.end()).data(), D3DXIFF_PNG, image->map, NULL);
 
 			mtl.append(fmt::sprintf("\nnewmtl %s\n", name.data()));
 			mtl.append("Ka 1.0000 1.0000 1.0000\n");
@@ -386,14 +386,14 @@ namespace Components
 			mtl.append(fmt::sprintf("map_Ka textures/%s.png\n", image->name));
 			mtl.append(fmt::sprintf("map_Kd textures/%s.png\n", image->name));
 
-			for (unsigned int i = 0; i < world->dpvs.staticSurfaceCount; i++)
+			for (unsigned int i = 0; i < world->dpvs.staticSurfaceCount; ++i)
 			{
 				if (world->dpvs.surfaces[i].material != materials[m])
 					continue;
 
 				int vertOffset = world->dpvs.surfaces[i].tris.firstVertex + 1;//+1 cus obj starts at 1
 				int indexOffset = world->dpvs.surfaces[i].tris.baseIndex;
-				for (unsigned short j = 0; j < world->dpvs.surfaces[i].tris.triCount; j++)
+				for (unsigned short j = 0; j < world->dpvs.surfaces[i].tris.triCount; ++j)
 				{
 					int a = world->worldDraw.indices[indexOffset + j * 3 + 0] + vertOffset;
 					int b = world->worldDraw.indices[indexOffset + j * 3 + 1] + vertOffset;

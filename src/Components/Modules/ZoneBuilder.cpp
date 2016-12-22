@@ -2,6 +2,8 @@
 
 namespace Components
 {
+	Utils::Memory::Allocator ZoneBuilder::MemAllocator;
+
 	std::string ZoneBuilder::TraceZone;
 	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::TraceAssets;
 
@@ -316,7 +318,7 @@ namespace Components
 		this->buffer.enterCriticalSection();
 		Game::XFile* header = reinterpret_cast<Game::XFile*>(this->buffer.data());
 		header->size = this->buffer.length() - sizeof(Game::XFile); // Write correct data size
-		header->externalSize = 0;//this->externalSize; // This actually stores how much external data has to be loaded. It's used to calculate the loadscreen progress
+		header->externalSize = this->externalSize; // This actually stores how much external data has to be loaded. It's used to calculate the loadscreen progress
 
 		// Write stream sizes
 		for (int i = 0; i < Game::MAX_XFILE_COUNT; ++i)
@@ -486,6 +488,25 @@ namespace Components
 		return AssetTrace;
 	}
 
+	int ZoneBuilder::StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)
+	{
+		size_t size = 16 + (*loadDef)->resourceSize;
+		void* data = ZoneBuilder::MemAllocator.allocate(size);
+		std::memcpy(data, *loadDef, size);
+
+		image->loadDef = reinterpret_cast<Game::GfxImageLoadDef *>(data);
+
+		return 0;
+	}
+
+	void ZoneBuilder::ReleaseTexture(Game::XAssetHeader header)
+	{
+		if (header.image && header.image->loadDef)
+		{
+			ZoneBuilder::MemAllocator.free(header.image->loadDef);
+		}
+	}
+
 	ZoneBuilder::ZoneBuilder()
 	{
 		AssertSize(Game::XFileHeader, 21);
@@ -497,7 +518,13 @@ namespace Components
 		if (ZoneBuilder::IsEnabled())
 		{
 			// Prevent loading textures (preserves loaddef)
-			Utils::Hook::Set<BYTE>(0x51F4E0, 0xC3);
+			//Utils::Hook::Set<BYTE>(Game::Load_Texture, 0xC3);
+
+			// Store the loaddef
+			Utils::Hook(Game::Load_Texture, StoreTexture, HOOK_JUMP).install()->quick();
+
+			// Release the loaddef
+			Game::DB_ReleaseXAssetHandlers[Game::XAssetType::ASSET_TYPE_IMAGE] = ZoneBuilder::ReleaseTexture;
 
 			//r_loadForrenderer = 0 
 			Utils::Hook::Set<BYTE>(0x519DDF, 0);
@@ -619,5 +646,10 @@ namespace Components
 				}
 			});
 		}
+	}
+
+	ZoneBuilder::~ZoneBuilder()
+	{
+		assert(ZoneBuilder::MemAllocator.empty());
 	}
 }

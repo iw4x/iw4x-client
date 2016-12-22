@@ -85,8 +85,6 @@ namespace Assets
 			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage->name);
 		}
 
-
-
 		if (asset->dpvs.surfaces)
 		{
 			for (int i = 0; i < asset->dpvsSurfaceCount; ++i)
@@ -147,7 +145,7 @@ namespace Assets
 		if (asset->sceneEntCellBits)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->sceneEntCellBits, 2048, asset->cellCount);
+			buffer->save(asset->sceneEntCellBits, 1, asset->cellCount << 11);
 			Utils::Stream::ClearPointer(&dest->sceneEntCellBits);
 		}
 
@@ -169,12 +167,12 @@ namespace Assets
 			Game::GfxImage** imageDest = buffer->dest<Game::GfxImage*>();
 			buffer->saveArray(asset->reflectionImages, asset->reflectionProbeCount);
 
-			for (unsigned int i = 0; i < asset->reflectionProbeCount; i++)
+			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
 			{
 				imageDest[i] = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->reflectionImages[i]->name).image;
 			}
 
-			Utils::Stream::ClearPointer(asset->reflectionImages);
+			Utils::Stream::ClearPointer(&dest->reflectionImages);
 		}
 
 		if (asset->reflectionProbes)
@@ -208,7 +206,7 @@ namespace Assets
 			Game::GfxLightmapArray* lightmapArrayDestTable = buffer->dest<Game::GfxLightmapArray>();
 			buffer->saveArray(asset->lightmaps, asset->lightmapCount);
 
-			for (int i = 0; i < asset->lightmapCount; i++)
+			for (int i = 0; i < asset->lightmapCount; ++i)
 			{
 				Game::GfxLightmapArray* lightmapArrayDest = &lightmapArrayDestTable[i];
 				Game::GfxLightmapArray* lightmapArray = &asset->lightmaps[i];
@@ -224,7 +222,7 @@ namespace Assets
 				}
 			}
 
-			Utils::Stream::ClearPointer(asset->reflectionImages);
+			Utils::Stream::ClearPointer(&dest->lightmaps);
 		}
 
 		buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);
@@ -259,26 +257,22 @@ namespace Assets
 		{
 			if (asset->vd.vertices)
 			{
+				AssertSize(Game::GfxWorldVertex, 44);
+
 				buffer->align(Utils::Stream::ALIGN_4);
 				buffer->saveArray(asset->vd.vertices, asset->vertexCount);
 				Utils::Stream::ClearPointer(&dest->vd.vertices);
 			}
-
-			// this one has no if statement on purpouse
-			buffer->save(&asset->vd.worldVb, 1, 4);
 		}
 
 		// saveGfxWorldVertexLayerData
 		{
-
 			if (asset->vld.data)
 			{
 				// no align for char
 				buffer->saveArray(asset->vld.data, asset->vertexLayerDataSize);
 				Utils::Stream::ClearPointer(&dest->vld.data);
 			}
-
-			buffer->save(&asset->vld.layerVb, 1, 4);
 		}
 
 		if (asset->indices)
@@ -301,7 +295,7 @@ namespace Assets
 		if (asset->rowDataStart)
 		{
 			buffer->align(Utils::Stream::ALIGN_2);
-			buffer->saveArray(asset->rowDataStart, (asset->maxs[asset->rowAxis] - asset->mins[asset->rowAxis]) + 2);
+			buffer->saveArray(asset->rowDataStart, (asset->maxs[asset->rowAxis] - asset->mins[asset->rowAxis]) + 1);
 			Utils::Stream::ClearPointer(&dest->rowDataStart);
 		}
 
@@ -404,7 +398,7 @@ namespace Assets
 			Game::GfxSurface* destSurfaceTable = buffer->dest<Game::GfxSurface>();
 			buffer->saveArray(asset->surfaces, world->dpvsSurfaceCount);
 
-			for (int i = 0; i < world->dpvsSurfaceCount; i++)
+			for (int i = 0; i < world->dpvsSurfaceCount; ++i)
 			{
 				Game::GfxSurface* surface = &asset->surfaces[i];
 				Game::GfxSurface* destSurface = &destSurfaceTable[i];
@@ -435,7 +429,7 @@ namespace Assets
 			Game::GfxStaticModelDrawInst* destModelTable = buffer->dest<Game::GfxStaticModelDrawInst>();
 			buffer->saveArray(asset->smodelDrawInsts, asset->smodelCount);
 
-			for (unsigned int i = 0; i < asset->smodelCount; i++)
+			for (unsigned int i = 0; i < asset->smodelCount; ++i)
 			{
 				Game::GfxStaticModelDrawInst* model = &asset->smodelDrawInsts[i];
 				Game::GfxStaticModelDrawInst* destModel = &destModelTable[i];
@@ -497,9 +491,9 @@ namespace Assets
 		}
 
 		// this covers [0][0], [1][0], [0][1], [1][1], [0][2], [1][2]
-		for (char i = 0; i < 3; i++)
+		for (char i = 0; i < 3; ++i)
 		{
-			for (char j = 0; j < 2; j++)
+			for (char j = 0; j < 2; ++j)
 			{
 				if (asset->dynEntVisData[j][i])
 				{
@@ -516,7 +510,7 @@ namespace Assets
 
 	void IGfxWorld::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		AssertSize(Game::GfxWorld, 0x274);
+		AssertSize(Game::GfxWorld, 628);
 
 		Utils::Stream* buffer = builder->getBuffer();
         SAVE_LOG_ENTER("GfxWorld");
@@ -569,7 +563,7 @@ namespace Assets
 
 		this->saveGfxWorldDpvsPlanes(asset, &asset->dpvsPlanes, &dest->dpvsPlanes, builder);
 
-		uint32_t cellCount = asset->dpvsPlanes.cellCount;
+		int cellCount = asset->dpvsPlanes.cellCount;
 
 		if (asset->aabbTreeCounts)
 		{
@@ -588,7 +582,7 @@ namespace Assets
 			Game::GfxCellTree* destCellTreeTable = buffer->dest<Game::GfxCellTree>();
 			buffer->saveArray(asset->aabbTrees, cellCount);
 
-			for (unsigned int i = 0; i < cellCount; ++i)
+			for (int i = 0; i < cellCount; ++i)
 			{
 				Game::GfxCellTree* destCellTree = &destCellTreeTable[i];
 				Game::GfxCellTree* cellTree = &asset->aabbTrees[i];
@@ -630,7 +624,6 @@ namespace Assets
 
 					Utils::Stream::ClearPointer(&destCellTree->aabbTree);
 				}
-
 			}
 
 			Utils::Stream::ClearPointer(&dest->aabbTrees);
@@ -644,7 +637,7 @@ namespace Assets
 			Game::GfxCell* destCellTable = buffer->dest<Game::GfxCell>();
 			buffer->saveArray(asset->cells, cellCount);
 
-			for (unsigned int i = 0; i < cellCount; ++i)
+			for (int i = 0; i < cellCount; ++i)
 			{
 				Game::GfxCell* destCell = &destCellTable[i];
 				Game::GfxCell* cell = &asset->cells[i];

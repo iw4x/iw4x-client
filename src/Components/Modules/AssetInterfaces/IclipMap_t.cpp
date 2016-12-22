@@ -29,9 +29,9 @@ namespace Assets
 			}
 			else
 			{
+				buffer->align(Utils::Stream::ALIGN_4);
 				builder->storePointer(asset->cPlanes);
 
-				buffer->align(Utils::Stream::ALIGN_4);
 				buffer->saveArray(asset->cPlanes, asset->numCPlanes);
 				Utils::Stream::ClearPointer(&dest->cPlanes);
 			}
@@ -93,9 +93,9 @@ namespace Assets
 					}
 					else
 					{
+						buffer->align(Utils::Stream::ALIGN_4);
 						builder->storePointer(sides[i].side);
 
-						buffer->align(Utils::Stream::ALIGN_4);
 						buffer->save(sides[i].side);
 						Utils::Stream::ClearPointer(&sides[i].side);
 					}
@@ -130,9 +130,9 @@ namespace Assets
 					}
 					else
 					{
+						buffer->align(Utils::Stream::ALIGN_4);
 						builder->storePointer(nodes[i].plane);
 
-						buffer->align(Utils::Stream::ALIGN_4);
 						buffer->save(nodes[i].plane);
 						Utils::Stream::ClearPointer(&nodes[i].plane);
 					}
@@ -178,9 +178,9 @@ namespace Assets
 						}
 						else
 						{
+							buffer->align(Utils::Stream::ALIGN_2);
 							builder->storePointer(node[i].data.brushes);
 
-							buffer->align(Utils::Stream::ALIGN_2);
 							buffer->saveArray(node[i].data.brushes, node[i].leafBrushCount);
 							Utils::Stream::ClearPointer(&node[i].data.brushes);
 						}
@@ -254,9 +254,9 @@ namespace Assets
 					}
 					else
 					{
+						buffer->align(Utils::Stream::ALIGN_4);
 						builder->storePointer(border[i].borders);
 
-						buffer->align(Utils::Stream::ALIGN_4);
 						buffer->save(border[i].borders);
 						Utils::Stream::ClearPointer(&border[i].borders);
 					}
@@ -302,11 +302,11 @@ namespace Assets
 					}
 					else
 					{
-						builder->storePointer(brushes[i].brushSide);
-
 						AssertSize(Game::cbrushside_t, 8);
 
 						buffer->align(Utils::Stream::ALIGN_4);
+						builder->storePointer(brushes[i].brushSide);
+
 						Game::cbrushside_t* side = buffer->dest<Game::cbrushside_t>();
 						buffer->save(brushes[i].brushSide);
 
@@ -318,9 +318,9 @@ namespace Assets
 							}
 							else
 							{
+								buffer->align(Utils::Stream::ALIGN_4);
 								builder->storePointer(brushes[i].brushSide->side);
 
-								buffer->align(Utils::Stream::ALIGN_4);
 								buffer->save(brushes[i].brushSide->side);
 								Utils::Stream::ClearPointer(&side->side);
 							}
@@ -416,7 +416,7 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (asset->dynEntPoseList[i])
 			{
@@ -429,7 +429,7 @@ namespace Assets
 			}
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (asset->dynEntClientList[i])
 			{
@@ -441,7 +441,7 @@ namespace Assets
 			}
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (asset->dynEntCollList[i])
 			{
@@ -466,7 +466,7 @@ namespace Assets
 			builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name);
 		}
 
-		for (int j = 0; j < 2; j++)
+		for (int j = 0; j < 2; ++j)
 		{
 			Game::DynEntityDef* def = asset->dynEntDefList[j];
 

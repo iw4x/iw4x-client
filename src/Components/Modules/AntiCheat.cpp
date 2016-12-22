@@ -399,7 +399,7 @@ namespace Components
 		dwSize += GetLengthSid(psidArray[0]);
 		dwSize += sizeof(ACCESS_DENIED_ACE) - sizeof(DWORD);
 
-		for (UINT i = 1; i < _countof(psidArray); i++)
+		for (UINT i = 1; i < _countof(psidArray); ++i)
 		{
 			// DWORD is the SidStart field, which is not used for absolute format
 			dwSize += GetLengthSid(psidArray[i]);
