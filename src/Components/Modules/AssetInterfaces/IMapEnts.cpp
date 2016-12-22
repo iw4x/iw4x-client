@@ -49,33 +49,32 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->entityString);
 		}
 
+		AssertSize(Game::MapTriggers, 24);
+
 		if (asset->trigger.models)
 		{
 			AssertSize(Game::TriggerModel, 8);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-
 			buffer->saveArray(asset->trigger.models, asset->trigger.modelCount);
-
 			Utils::Stream::ClearPointer(&dest->trigger.models);
 		}
 
 		if (asset->trigger.hulls)
 		{
 			AssertSize(Game::TriggerHull, 32);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-
 			buffer->saveArray(asset->trigger.hulls, asset->trigger.hullCount);
-
 			Utils::Stream::ClearPointer(&dest->trigger.hulls);
 		}
 
 		if (asset->trigger.slabs)
 		{
 			AssertSize(Game::TriggerSlab, 20);
+
 			buffer->align(Utils::Stream::ALIGN_4);
-
 			buffer->saveArray(asset->trigger.slabs, asset->trigger.slabCount);
-
 			Utils::Stream::ClearPointer(&dest->trigger.slabs);
 		}
 
@@ -88,13 +87,16 @@ namespace Assets
 			Game::Stage* destStages = buffer->dest<Game::Stage>();
 			buffer->saveArray(asset->stages, asset->stageCount);
 
-			for (int i = 0; i < asset->stageCount; ++i)
+			for (char i = 0; i < asset->stageCount; ++i)
 			{
 				Game::Stage* destStage = &destStages[i];
 				Game::Stage* stage = &asset->stages[i];
 
-				buffer->saveString(stage->stageName);
-				Utils::Stream::ClearPointer(&destStage->stageName);
+				if (stage->stageName)
+				{
+					buffer->saveString(stage->stageName);
+					Utils::Stream::ClearPointer(&destStage->stageName);
+				}
 			}
 
 			Utils::Stream::ClearPointer(&dest->stages);

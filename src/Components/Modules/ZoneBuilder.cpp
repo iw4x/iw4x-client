@@ -552,6 +552,12 @@ namespace Components
 			// Don't create default assets
 			Utils::Hook::Set<BYTE>(0x407BAA, 0xEB);
 
+			// Don't mark clip maps as 'in use'
+			Utils::Hook::Nop(0x405E07, 7);
+
+			// Don't mark assets
+			//Utils::Hook::Nop(0x5BB632, 5);
+
 			// Don't load sounds
 			//Utils::Hook::Set<BYTE>(0x413430, 0xC3);
 
