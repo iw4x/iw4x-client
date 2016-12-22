@@ -257,13 +257,7 @@ namespace Assets
 			SaveLogEnter("CollisionBorder");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-
-			for (int i = 0; i < asset->numCollisionBorders; ++i)
-			{
-				builder->storePointer(&asset->collisionBorders[i]);
-				buffer->save(&asset->collisionBorders[i]);
-			}
-
+			buffer->saveArray(&asset->collisionBorders, asset->numCollisionBorders);
 			Utils::Stream::ClearPointer(&dest->collisionBorders);
 			SaveLogExit();
 		}
