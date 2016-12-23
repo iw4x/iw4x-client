@@ -90,7 +90,12 @@ namespace Assets
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cbrushside_t* sides = buffer->dest<Game::cbrushside_t>();
-			buffer->saveArray(asset->cBrushSides, asset->numCBrushSides);
+			// we need the pointer to each of these to be stored so we can't write them all at once
+			for(int i = 0; i < asset->numCBrushSides; ++i)
+			{
+				builder->storePointer(&asset->cBrushSides[i]); // for reference in cBrush
+				buffer->save(&asset->cBrushSides[i]);
+			}
 
 			for (int i = 0; i < asset->numCBrushSides; ++i)
 			{
@@ -349,6 +354,8 @@ namespace Assets
 					else
 					{
 						AssertSize(Game::cbrushside_t, 8);
+
+						MessageBoxA(0, "BrushSide shouldn't be written in cBrush!", "WARNING", MB_ICONEXCLAMATION);
 
 						buffer->align(Utils::Stream::ALIGN_4);
 						builder->storePointer(brush->brushSide);
