@@ -18,17 +18,17 @@ namespace Assets
 
 				if (pass->vertexDecl)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_VERTEXDECL, pass->vertexDecl->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_VERTEXDECL, pass->vertexDecl);
 				}
 
 				if (pass->vertexShader)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, pass->vertexShader->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, pass->vertexShader);
 				}
 
 				if (pass->pixelShader)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_PIXELSHADER, pass->pixelShader->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_PIXELSHADER, pass->pixelShader);
 				}
 			}
 		}
@@ -86,17 +86,17 @@ namespace Assets
 
 						if (pass->vertexDecl)
 						{
-							destPass->vertexDecl = builder->requireAsset(Game::XAssetType::ASSET_TYPE_VERTEXDECL, pass->vertexDecl->name).vertexDecl;
+							destPass->vertexDecl = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_VERTEXDECL, pass->vertexDecl).vertexDecl;
 						}
 
 						if (pass->vertexShader)
 						{
-							destPass->vertexShader = builder->requireAsset(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, pass->vertexShader->name).vertexShader;
+							destPass->vertexShader = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, pass->vertexShader).vertexShader;
 						}
 
 						if (pass->pixelShader)
 						{
-							destPass->pixelShader = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PIXELSHADER, pass->pixelShader->name).pixelShader;
+							destPass->pixelShader = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PIXELSHADER, pass->pixelShader).pixelShader;
 						}
 
 						if (pass->argumentDef)

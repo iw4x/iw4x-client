@@ -13,6 +13,7 @@ namespace Assets
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
+		builder->pushAliasBase();
 
 		if (asset->name)
 		{
@@ -50,15 +51,19 @@ namespace Assets
 			// xmodel is already stored
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cStaticModel_t* destStaticModelList = buffer->dest<Game::cStaticModel_t>();
+			builder->pushAliasBase();
 			buffer->saveArray(asset->staticModelList, asset->numStaticModels);
 
 			for (int i = 0; i < asset->numStaticModels; ++i)
 			{
 				if (asset->staticModelList[i].xmodel)
 				{
-					destStaticModelList[i].xmodel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->staticModelList[i].xmodel->name).model;
+					destStaticModelList[i].xmodel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->staticModelList[i].xmodel,
+						offsetof(Game::cStaticModel_t, xmodel) + (sizeof(Game::cStaticModel_t) * i)).model;
 				}
 			}
+
+			builder->popAliasBase();
 
 			Utils::Stream::ClearPointer(&dest->staticModelList);
 			SaveLogExit();
@@ -427,7 +432,7 @@ namespace Assets
 
 		if (asset->mapEnts)
 		{
-			dest->mapEnts = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->name).mapEnts;
+			dest->mapEnts = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->mapEnts, offsetof(Game::clipMap_t, mapEnts)).mapEnts;
 		}
 
 		for (int i = 0; i < 2; ++i)
@@ -438,6 +443,7 @@ namespace Assets
 
 				buffer->align(Utils::Stream::ALIGN_4);
 				Game::DynEntityDef* dynEntDest = buffer->dest<Game::DynEntityDef>();
+				builder->pushAliasBase();
 				buffer->saveArray(asset->dynEntDefList[i], asset->dynEntCount[i]);
 
 				Game::DynEntityDef* dynEnt = asset->dynEntDefList[i];
@@ -445,19 +451,24 @@ namespace Assets
 				{
 					if (dynEnt[j].xModel)
 					{
-						dynEntDest[j].xModel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, dynEnt[j].xModel->name).model;
+						dynEntDest[j].xModel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, dynEnt[j].xModel,
+							GET_ALIAS_OFFSET_ARRAY(Game::DynEntityDef, xModel, j)).model;
 					}
 
 					if (dynEnt[j].destroyFx)
 					{
-						dynEntDest[j].destroyFx = builder->requireAsset(Game::XAssetType::ASSET_TYPE_FX, dynEnt[j].destroyFx->name).fx;
+						dynEntDest[j].destroyFx = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, dynEnt[j].destroyFx,
+							GET_ALIAS_OFFSET_ARRAY(Game::DynEntityDef, xModel, j)).fx;
 					}
 
 					if (dynEnt[j].physPreset)
 					{
-						dynEntDest[j].physPreset = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, dynEnt[j].physPreset->name).physPreset;
+						dynEntDest[j].physPreset = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, dynEnt[j].physPreset,
+							GET_ALIAS_OFFSET_ARRAY(Game::DynEntityDef, xModel, j)).physPreset;
 					}
 				}
+
+				builder->popAliasBase();
 
 				Utils::Stream::ClearPointer(&dest->dynEntDefList[i]);
 			}
@@ -504,6 +515,7 @@ namespace Assets
 
 		buffer->popBlock();
 		buffer->popBlock();
+		builder->popAliasBase();
 
 		SaveLogExit();
 	}
@@ -514,7 +526,7 @@ namespace Assets
 		for (int i = 0; i < asset->numStaticModels; ++i)
 		{
 			Game::XModel* m = asset->staticModelList[i].xmodel;
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m);
 		}
 
 		for (int j = 0; j < 2; ++j)
@@ -525,21 +537,21 @@ namespace Assets
 			{
 				if (def[i].xModel)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def[i].xModel->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def[i].xModel);
 				}
 
 				if (def[i].destroyFx)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, def[i].destroyFx->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, def[i].destroyFx);
 				}
 
 				if (def[i].physPreset)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, def[i].physPreset->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, def[i].physPreset);
 				}
 			}
 		}
-		builder->loadAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->name);
+		builder->markAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset);
 	}
 
 	void IclipMap_t::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)

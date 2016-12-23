@@ -12,12 +12,12 @@ namespace Assets
 
 			if (alias->soundFile && alias->soundFile->type == Game::snd_alias_type_t::SAT_LOADED)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded->name);
+				builder->markAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded);
 			}
 
 			if (alias->volumeFalloffCurve)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SNDCURVE, alias->volumeFalloffCurve->filename);
+				builder->markAsset(Game::XAssetType::ASSET_TYPE_SNDCURVE, alias->volumeFalloffCurve);
 			}
 		}
 	}
@@ -110,7 +110,7 @@ namespace Assets
 							{
 								if (alias->soundFile->type == Game::snd_alias_type_t::SAT_LOADED)
 								{
-									destSoundFile->data.loaded = builder->requireAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded->name).loadSnd;
+									destSoundFile->data.loaded = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded).loadSnd;
 								}
 								else
 								{
@@ -137,7 +137,7 @@ namespace Assets
 
 					if (alias->volumeFalloffCurve)
 					{
-						destAlias->volumeFalloffCurve = builder->requireAsset(Game::XAssetType::ASSET_TYPE_SNDCURVE, alias->volumeFalloffCurve->filename).sndCurve;
+						destAlias->volumeFalloffCurve = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_SNDCURVE, alias->volumeFalloffCurve).sndCurve;
 					}
 
 					if (alias->speakerMap)

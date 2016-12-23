@@ -1,5 +1,6 @@
 // write logs for ZoneBuilder
-#ifndef DEBUG
+//#define WRITE_LOGS
+#ifndef WRITE_LOGS // they take forever to run so only enable if needed
 #define SaveLogEnter(x)
 #define SaveLogExit()
 #else
@@ -131,7 +132,7 @@ namespace Utils
 		bool isCriticalSection();
 
         // for recording zb writes
-#ifdef DEBUG
+#ifdef WRITE_LOGS
         int structLevel;
         void enterStruct(const char* structName);
         void leaveStruct();
