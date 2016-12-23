@@ -49,7 +49,7 @@ namespace Assets
 			{
 				if (visuals->xmodel)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel);
 				}
 
 				break;
@@ -69,7 +69,7 @@ namespace Assets
 			{
 				if (visuals->effectDef)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, visuals->effectDef);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, visuals->effectDef);
 				}
 
 				break;
@@ -79,7 +79,7 @@ namespace Assets
 			{
 				if (visuals->material)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material);
 				}
 
 				break;
@@ -104,12 +104,12 @@ namespace Assets
 						{
 							if (elemDef->visuals.markArray[j].data[0])
 							{
-								builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]);
+								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]);
 							}
 
 							if (elemDef->visuals.markArray[j].data[1])
 							{
-								builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]);
+								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]);
 							}
 						}
 					}
@@ -132,17 +132,17 @@ namespace Assets
 
 			if (elemDef->effectOnImpact)
 			{
-				builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnImpact);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnImpact);
 			}
 
 			if (elemDef->effectOnDeath)
 			{
-				builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnDeath);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnDeath);
 			}
 
 			if (elemDef->effectEmitted)
 			{
-				builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectEmitted);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectEmitted);
 			}
 		}
 	}

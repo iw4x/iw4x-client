@@ -2,9 +2,6 @@
 #define XFILE_VERSION 276
 #define XFILE_VERSION_IW4X 0x78345749 // 'IW4x'
 
-#define GET_ALIAS_OFFSET(_s, _m) offsetof((_s), (_m))
-#define GET_ALIAS_OFFSET_ARRAY(_s, _m, _loop) (offsetof((_s), (_m)) + (sizeof(_s) * (_loop)))
-
 namespace Components
 {
 	class ZoneBuilder : public Component
@@ -23,16 +20,19 @@ namespace Components
 
 			bool hasPointer(const void* pointer);
 			void storePointer(const void* pointer);
-			void storePointer(const void* pointer, Utils::Stream::Offset offset);
 
 			template<typename T>
 			inline T* getPointer(const T* pointer) { return reinterpret_cast<T*>(this->safeGetPointer(pointer)); }
 
 			int findAsset(Game::XAssetType type, std::string name);
+			Game::XAssetHeader findSubAsset(Game::XAssetType type, std::string name);
 			Game::XAsset* getAsset(int index);
 			uint32_t getAssetTableOffset(int index);
+
+			bool hasAlias(Game::XAsset asset);
 			Game::XAssetHeader saveSubAsset(Game::XAssetType type, void* ptr);
-			bool loadAsset(Game::XAssetType type, std::string name);
+			bool loadAsset(Game::XAssetType type, std::string name, bool isSubAsset = true);
+			bool loadAsset(Game::XAssetType type, void* data, bool isSubAsset = true);
 			void markAsset(Game::XAssetType type, void* ptr);
 
 			int addScriptString(unsigned short gameIndex);
@@ -52,13 +52,13 @@ namespace Components
 			void loadFastFiles();
 
 			bool loadAssets();
-			bool loadAsset(std::string type, std::string name);
+			bool loadAsset(std::string type, std::string name, bool isSubAsset = true);
 
 			void saveData();
 			void writeZone();
 
-			unsigned int getAlias(const void* pointer);
-			void storeAlias(const void* pointer, unsigned int alias);
+			unsigned int getAlias(Game::XAsset asset);
+			void storeAlias(Game::XAsset asset);
 
 			void addBranding();
 
@@ -74,13 +74,15 @@ namespace Components
 			Utils::Memory::Allocator memAllocator;
 
 			std::vector<Game::XAsset> loadedAssets;
-			std::vector<Game::XAssetHeader> savedAssets;
 			std::vector<Game::XAsset> markedAssets;
+			std::vector<Game::XAsset> loadedSubAssets;
 			std::vector<std::string> scriptStrings;
 			std::map<unsigned short, unsigned int> scriptStringMap;
+
 			std::map<std::string, std::string> renameMap[Game::XAssetType::ASSET_TYPE_COUNT];
+
 			std::map<const void*, uint32_t> pointerMap;
-			std::map<const void*, uint32_t> aliasMap;
+			std::vector<std::pair<Game::XAsset, uint32_t>> aliasList;
 
 			Game::RawFile branding;
 		};

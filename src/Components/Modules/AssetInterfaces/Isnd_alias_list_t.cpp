@@ -12,12 +12,12 @@ namespace Assets
 
 			if (alias->soundFile && alias->soundFile->type == Game::snd_alias_type_t::SAT_LOADED)
 			{
-				builder->markAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded);
 			}
 
 			if (alias->volumeFalloffCurve)
 			{
-				builder->markAsset(Game::XAssetType::ASSET_TYPE_SNDCURVE, alias->volumeFalloffCurve);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SNDCURVE, alias->volumeFalloffCurve);
 			}
 		}
 	}

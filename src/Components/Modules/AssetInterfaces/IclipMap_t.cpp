@@ -521,7 +521,10 @@ namespace Assets
 		for (int i = 0; i < asset->numStaticModels; ++i)
 		{
 			Game::XModel* m = asset->staticModelList[i].xmodel;
-			builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m);
+			if (m)
+			{
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m);
+			}
 		}
 
 		for (int j = 0; j < 2; ++j)
@@ -532,21 +535,21 @@ namespace Assets
 			{
 				if (def[i].xModel)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def[i].xModel);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def[i].xModel);
 				}
 
 				if (def[i].destroyFx)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, def[i].destroyFx);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, def[i].destroyFx);
 				}
 
 				if (def[i].physPreset)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, def[i].physPreset);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, def[i].physPreset);
 				}
 			}
 		}
-		builder->markAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset);
+		builder->loadAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset);
 	}
 
 	void IclipMap_t::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)

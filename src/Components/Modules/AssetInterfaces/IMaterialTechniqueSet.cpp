@@ -18,17 +18,17 @@ namespace Assets
 
 				if (pass->vertexDecl)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_VERTEXDECL, pass->vertexDecl);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_VERTEXDECL, pass->vertexDecl);
 				}
 
 				if (pass->vertexShader)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, pass->vertexShader);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, pass->vertexShader);
 				}
 
 				if (pass->pixelShader)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_PIXELSHADER, pass->pixelShader);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_PIXELSHADER, pass->pixelShader);
 				}
 			}
 		}

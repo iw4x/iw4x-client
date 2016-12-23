@@ -61,6 +61,9 @@ namespace Assets
 			surf->surfaces = builder->getAllocator()->allocateArray<Game::XSurface>(model->numSurfaces);
 			surf->numSurfaces = model->numSurfaces;
 
+			// Store surfs for later writing
+			Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, { surf });
+
 			// Reset surfaces in remaining lods
 			for (unsigned int i = 1; i < 4; ++i)
 			{
@@ -195,7 +198,7 @@ namespace Assets
 			{
 				if (asset->materials[i])
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materials[i]);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materials[i]);
 				}
 			}
 		}
@@ -204,21 +207,18 @@ namespace Assets
 		{
 			if (asset->lods[i].surfaces)
 			{
-				// We're not supposed to include xmodelsurfs as standalone asset
-				//builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name);
-
-				IXModelSurfs().mark({ asset->lods[i].surfaces }, builder);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces);
 			}
 		}
 
 		if (asset->physPreset)
 		{
-			builder->markAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset);
 		}
 
 		if (asset->physCollmap)
 		{
-			builder->markAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap);
 		}
 	}
 
@@ -319,16 +319,7 @@ namespace Assets
 			{
 				if (asset->lods[i].surfaces)
 				{
-					// Requiring this asset is not possible, it has to be loaded as part of the model
-					//dest->lods[i].surfaces = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces).surfaces;
-
-					buffer->pushBlock(Game::XFILE_BLOCK_TEMP);
-					buffer->align(Utils::Stream::ALIGN_4);
-
-					IXModelSurfs().save({ asset->lods[i].surfaces }, builder);
-					Utils::Stream::ClearPointer(&dest->lods[i].surfaces);
-
-					buffer->popBlock();
+					dest->lods[i].surfaces = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces).surfaces;
 				}
 			}
 		}

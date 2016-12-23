@@ -168,7 +168,7 @@ namespace Assets
 
 		if (asset->techniqueSet)
 		{
-			builder->markAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet);
 		}
 
 		if (asset->textureTable)
@@ -181,12 +181,12 @@ namespace Assets
 					{
 						if (asset->textureTable[i].info.water->image)
 						{
-							builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.water->image);
+							builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.water->image);
 						}
 					}
 					else
 					{
-						builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.image);
+						builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.image);
 					}
 				}
 			}

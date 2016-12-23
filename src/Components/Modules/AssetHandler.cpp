@@ -400,7 +400,7 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::ILoadedSound());
 			AssetHandler::RegisterInterface(new Assets::IPhysCollmap());
 			AssetHandler::RegisterInterface(new Assets::IStringTable());
-			//AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
+			AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
 			AssetHandler::RegisterInterface(new Assets::ILocalizeEntry());
 			AssetHandler::RegisterInterface(new Assets::Isnd_alias_list_t());
 			AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());

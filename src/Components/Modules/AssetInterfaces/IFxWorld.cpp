@@ -164,9 +164,20 @@ namespace Assets
 		{
 			for (unsigned int i = 0; i < asset->glassSys.defCount; ++i)
 			{
-				builder->markAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->glassSys.defs[i].physPreset);
-				builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->glassSys.defs[i].material);
-				builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->glassSys.defs[i].materialShattered);
+				if (asset->glassSys.defs[i].physPreset)
+				{
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->glassSys.defs[i].physPreset);
+				}
+
+				if (asset->glassSys.defs[i].material)
+				{
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->glassSys.defs[i].material);
+				}
+
+				if (asset->glassSys.defs[i].materialShattered)
+				{
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->glassSys.defs[i].materialShattered);
+				}
 			}
 		}
 	}

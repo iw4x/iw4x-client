@@ -18,7 +18,7 @@ namespace Assets
 		{
 			for (unsigned int i = 0; i < asset->worldDraw.reflectionProbeCount; ++i)
 			{
-				builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.reflectionImages[i]);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.reflectionImages[i]);
 			}
 		}
 
@@ -28,34 +28,34 @@ namespace Assets
 			{
 				if (asset->worldDraw.lightmaps[i].primary)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].primary);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].primary);
 				}
 
 				if (asset->worldDraw.lightmaps[i].secondary)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].secondary);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].secondary);
 				}
 			}
 		}
 
 		if (asset->worldDraw.skyImage)
 		{
-			builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.skyImage);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.skyImage);
 		}
 
 		if (asset->worldDraw.outdoorImage)
 		{
-			builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.outdoorImage);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.outdoorImage);
 		}
 
 		if (asset->sun.spriteMaterial)
 		{
-			builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.spriteMaterial);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.spriteMaterial);
 		}
 
 		if (asset->sun.flareMaterial)
 		{
-			builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.flareMaterial);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.flareMaterial);
 		}
 
 		if (asset->skies)
@@ -64,7 +64,7 @@ namespace Assets
 			{
 				if (asset->skies[i].skyImage)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->skies[i].skyImage);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->skies[i].skyImage);
 				}
 			}
 		}
@@ -75,14 +75,14 @@ namespace Assets
 			{
 				if (asset->materialMemory[i].material)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materialMemory[i].material);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materialMemory[i].material);
 				}
 			}
 		}
 
 		if (asset->unknownImage)
 		{
-			builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage);
 		}
 
 		if (asset->dpvs.surfaces)
@@ -91,7 +91,7 @@ namespace Assets
 			{
 				if (asset->dpvs.surfaces[i].material)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->dpvs.surfaces[i].material);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->dpvs.surfaces[i].material);
 				}
 			}
 		}
@@ -102,7 +102,7 @@ namespace Assets
 			{
 				if (asset->dpvs.smodelDrawInsts[i].model)
 				{
-					builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->dpvs.smodelDrawInsts[i].model);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->dpvs.smodelDrawInsts[i].model);
 				}
 			}
 		}
