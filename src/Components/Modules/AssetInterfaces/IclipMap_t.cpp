@@ -257,7 +257,13 @@ namespace Assets
 			SaveLogEnter("CollisionBorder");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(&asset->collisionBorders, asset->numCollisionBorders);
+
+			for (int i = 0; i < asset->numCollisionBorders; ++i)
+			{
+				builder->storePointer(&asset->collisionBorders[i]);
+				buffer->save(&asset->collisionBorders[i]);
+			}
+
 			Utils::Stream::ClearPointer(&dest->collisionBorders);
 			SaveLogExit();
 		}
@@ -268,24 +274,26 @@ namespace Assets
 			SaveLogEnter("CollisionPartition");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			Game::CollisionPartition* border = buffer->dest<Game::CollisionPartition>();
+			Game::CollisionPartition* destPartitions = buffer->dest<Game::CollisionPartition>();
 			buffer->saveArray(asset->collisionPartitions, asset->numCollisionPartitions);
 
 			for (int i = 0; i < asset->numCollisionPartitions; ++i)
 			{
-				if (border[i].borders)
+				Game::CollisionPartition* destPartition = &destPartitions[i];
+				Game::CollisionPartition* partition = &asset->collisionPartitions[i];
+
+				if (partition->borders)
 				{
-					if (builder->hasPointer(border[i].borders))
+					if (builder->hasPointer(partition->borders))
 					{
-						border[i].borders = builder->getPointer(border[i].borders);
+						destPartition->borders = builder->getPointer(partition->borders);
 					}
 					else
 					{
 						buffer->align(Utils::Stream::ALIGN_4);
-						builder->storePointer(border[i].borders);
-
-						buffer->save(border[i].borders);
-						Utils::Stream::ClearPointer(&border[i].borders);
+						builder->storePointer(partition->borders);
+						buffer->save(partition->borders);
+						Utils::Stream::ClearPointer(&destPartition->borders);
 					}
 				}
 			}
@@ -324,59 +332,60 @@ namespace Assets
 			SaveLogEnter("cbrush_t");
 
 			buffer->align(Utils::Stream::ALIGN_128);
-			Game::cbrush_t* brushes = buffer->dest<Game::cbrush_t>();
+			Game::cbrush_t* destBrushes = buffer->dest<Game::cbrush_t>();
 			buffer->saveArray(asset->cBrushes, asset->numCBrushes);
 
 			for (short i = 0; i < asset->numCBrushes; ++i)
 			{
-				if (brushes[i].brushSide)
+				Game::cbrush_t* destBrush = &destBrushes[i];
+				Game::cbrush_t* brush = &asset->cBrushes[i];
+
+				if (brush->brushSide)
 				{
-					if (builder->hasPointer(brushes[i].brushSide))
+					if (builder->hasPointer(brush->brushSide))
 					{
-						brushes[i].brushSide = builder->getPointer(brushes[i].brushSide);
+						destBrush->brushSide = builder->getPointer(brush->brushSide);
 					}
 					else
 					{
 						AssertSize(Game::cbrushside_t, 8);
 
 						buffer->align(Utils::Stream::ALIGN_4);
-						builder->storePointer(brushes[i].brushSide);
+						builder->storePointer(brush->brushSide);
 
 						Game::cbrushside_t* side = buffer->dest<Game::cbrushside_t>();
-						buffer->save(brushes[i].brushSide);
+						buffer->save(brush->brushSide);
 
-						if (brushes[i].brushSide->side)
+						if (brush->brushSide->side)
 						{
-							if (builder->hasPointer(brushes[i].brushSide->side))
+							if (builder->hasPointer(brush->brushSide->side))
 							{
-								brushes[i].brushSide->side = builder->getPointer(brushes[i].brushSide->side);
+								side->side = builder->getPointer(brush->brushSide->side);
 							}
 							else
 							{
 								buffer->align(Utils::Stream::ALIGN_4);
-								builder->storePointer(brushes[i].brushSide->side);
-
-								buffer->save(brushes[i].brushSide->side);
+								builder->storePointer(brush->brushSide->side);
+								buffer->save(brush->brushSide->side);
 								Utils::Stream::ClearPointer(&side->side);
 							}
 						}
 
-						Utils::Stream::ClearPointer(&brushes[i].brushSide);
+						Utils::Stream::ClearPointer(&destBrush->brushSide);
 					}
 				}
 
-				if (brushes[i].brushEdge)
+				if (brush->brushEdge)
 				{
-					if (builder->hasPointer(brushes[i].brushEdge))
+					if (builder->hasPointer(brush->brushEdge))
 					{
-						brushes[i].brushEdge = builder->getPointer(brushes[i].brushEdge);
+						destBrush->brushEdge = builder->getPointer(brush->brushEdge);
 					}
 					else
 					{
-						builder->storePointer(brushes[i].brushEdge);
-
-						buffer->save(brushes[i].brushEdge);
-						Utils::Stream::ClearPointer(&brushes[i].brushEdge);
+						builder->storePointer(brush->brushEdge);
+						buffer->save(brush->brushEdge);
+						Utils::Stream::ClearPointer(&destBrush->brushEdge);
 					}
 				}
 			}
@@ -431,25 +440,22 @@ namespace Assets
 				Game::DynEntityDef* dynEntDest = buffer->dest<Game::DynEntityDef>();
 				buffer->saveArray(asset->dynEntDefList[i], asset->dynEntCount[i]);
 
+				Game::DynEntityDef* dynEnt = asset->dynEntDefList[i];
 				for (int j = 0; j < asset->dynEntCount[i]; ++j)
 				{
-					Game::XModel* m = asset->dynEntDefList[i][j].xModel;
-					Game::FxEffectDef* fx = asset->dynEntDefList[i][j].destroyFx;
-					Game::PhysPreset* p = asset->dynEntDefList[i][j].physPreset;
-
-					if (m)
+					if (dynEnt[j].xModel)
 					{
-						dynEntDest[j].xModel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name).model;
+						dynEntDest[j].xModel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, dynEnt[j].xModel->name).model;
 					}
 
-					if (fx)
+					if (dynEnt[j].destroyFx)
 					{
-						dynEntDest[j].destroyFx = builder->requireAsset(Game::XAssetType::ASSET_TYPE_FX, fx->name).fx;
+						dynEntDest[j].destroyFx = builder->requireAsset(Game::XAssetType::ASSET_TYPE_FX, dynEnt[j].destroyFx->name).fx;
 					}
 
-					if (p)
+					if (dynEnt[j].physPreset)
 					{
-						dynEntDest[j].physPreset = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, p->name).physPreset;
+						dynEntDest[j].physPreset = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, dynEnt[j].physPreset->name).physPreset;
 					}
 				}
 
