@@ -177,7 +177,5 @@ namespace Utils
 				return lOffset.block;
 			};
 		};
-
-		Offset getOffset();
 	};
 }

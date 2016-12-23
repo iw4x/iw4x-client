@@ -126,13 +126,9 @@ namespace Assets
 				AssertSize(Game::cplane_t, 20);
 
 				buffer->align(Utils::Stream::ALIGN_4);
+				builder->storePointer(asset->planes);
 
-				for (int i = 0; i < world->planeCount; ++i)
-				{
-					builder->storePointer(&asset->planes[i]);
-					buffer->save(&asset->planes[i]);
-				}
-
+				buffer->saveArray(asset->planes, world->planeCount);
 				Utils::Stream::ClearPointer(&dest->planes);
 			}
 		}
@@ -619,13 +615,9 @@ namespace Assets
 							else
 							{
 								buffer->align(Utils::Stream::ALIGN_2);
+								builder->storePointer(aabbTree->smodelIndexes);
 
-								for (unsigned short k = 0; k < aabbTree->smodelIndexCount; ++k)
-								{
-									builder->storePointer(&aabbTree->smodelIndexes[k]);
-									buffer->save(&aabbTree->smodelIndexes[k]);
-								}
-
+								buffer->saveArray(aabbTree->smodelIndexes, aabbTree->smodelIndexCount);
 								Utils::Stream::ClearPointer(&destAabbTree->smodelIndexes);
 							}
 						}

@@ -32,13 +32,9 @@ namespace Assets
 			else
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
+				builder->storePointer(asset->cPlanes);
 
-				for (int i = 0; i < asset->numCPlanes; ++i)
-				{
-					builder->storePointer(&asset->cPlanes[i]);
-					buffer->save(&asset->cPlanes[i]);
-				}
-
+				buffer->saveArray(asset->cPlanes, asset->numCPlanes);
 				Utils::Stream::ClearPointer(&dest->cPlanes);
 			}
 
@@ -51,9 +47,8 @@ namespace Assets
 			AssertSize(Game::cStaticModel_t, 76);
 			SaveLogEnter("cStaticModel_t");
 
+			// xmodel is already stored
 			buffer->align(Utils::Stream::ALIGN_4);
-
-			Utils::Stream::Offset mark = buffer->getOffset();
 			Game::cStaticModel_t* destStaticModelList = buffer->dest<Game::cStaticModel_t>();
 			buffer->saveArray(asset->staticModelList, asset->numStaticModels);
 
@@ -209,13 +204,9 @@ namespace Assets
 						else
 						{
 							buffer->align(Utils::Stream::ALIGN_2);
+							builder->storePointer(node[i].data.brushes);
 
-							for (short j = 0; j < node[i].leafBrushCount; ++j)
-							{
-								builder->storePointer(&node[i].data.brushes[j]);
-								buffer->save(&node[i].data.brushes[j]);
-							}
-
+							buffer->saveArray(node[i].data.brushes, node[i].leafBrushCount);
 							Utils::Stream::ClearPointer(&node[i].data.brushes);
 						}
 					}
@@ -436,7 +427,7 @@ namespace Assets
 
 		if (asset->mapEnts)
 		{
-			dest->mapEnts = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->mapEnts->name).mapEnts;
+			dest->mapEnts = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->name).mapEnts;
 		}
 
 		for (int i = 0; i < 2; ++i)
