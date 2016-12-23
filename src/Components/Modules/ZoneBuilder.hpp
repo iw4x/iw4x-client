@@ -23,6 +23,7 @@ namespace Components
 
 			bool hasPointer(const void* pointer);
 			void storePointer(const void* pointer);
+			void storePointer(const void* pointer, Utils::Stream::Offset offset);
 
 			template<typename T>
 			inline T* getPointer(const T* pointer) { return reinterpret_cast<T*>(this->safeGetPointer(pointer)); }
@@ -30,7 +31,7 @@ namespace Components
 			int findAsset(Game::XAssetType type, std::string name);
 			Game::XAsset* getAsset(int index);
 			uint32_t getAssetTableOffset(int index);
-			Game::XAssetHeader saveSubAsset(Game::XAssetType type, void* ptr, unsigned int aliasOffset);
+			Game::XAssetHeader saveSubAsset(Game::XAssetType type, void* ptr);
 			bool loadAsset(Game::XAssetType type, std::string name);
 			void markAsset(Game::XAssetType type, void* ptr);
 
@@ -46,10 +47,6 @@ namespace Components
 			void store(Game::XAssetHeader header);
 
 			void incrementExternalSize(unsigned int size);
-
-			void pushAliasBase();
-			void popAliasBase();
-			unsigned int getAliasBase();
 
 		private:
 			void loadFastFiles();

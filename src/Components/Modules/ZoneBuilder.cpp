@@ -204,7 +204,7 @@ namespace Components
 		offset.offset = (this->indexStart + (index * sizeof(Game::XAsset)) + 4);
 		return offset.getPackedOffset();
 	}
-
+/*
 	void ZoneBuilder::Zone::pushAliasBase()
 	{
 		this->aliasBaseStack.push_back(this->buffer.getBlockSize(Game::XFILE_BLOCK_VIRTUAL));
@@ -222,8 +222,9 @@ namespace Components
 	{
 		return this->aliasBaseStack.back();
 	}
+*/
 
-	Game::XAssetHeader ZoneBuilder::Zone::saveSubAsset(Game::XAssetType type, void* ptr, unsigned int aliasOffset)
+	Game::XAssetHeader ZoneBuilder::Zone::saveSubAsset(Game::XAssetType type, void* ptr)
 	{
 		Game::XAssetHeader header;
 		header.data = ptr;
@@ -253,13 +254,18 @@ namespace Components
 				assetToSave.header = header;
 				assetToSave.type = type;
 
-				this->storeAlias(ptr, this->getAliasBase() + aliasOffset);
+				// we alias the next 4 (aligned) bytes of the stream b/c DB_InsertPointer gives us a nice pointer to use as the alias
+				// otherwise it would be a fuckfest trying to figure out where the alias is in the stream
+				this->buffer.align(Utils::Stream::ALIGN_4);
+				this->storeAlias(ptr, this->buffer.getBlockSize(Game::XFILE_BLOCK_VIRTUAL));
+
+				this->buffer.increaseBlockSize(Game::XFILE_BLOCK_VIRTUAL, 4);
 
 				this->buffer.pushBlock(Game::XFILE_BLOCK_TEMP);
 				AssetHandler::ZoneSave(assetToSave, this);
 				this->buffer.popBlock();
 				this->savedAssets.push_back(header);
-				Utils::Stream::ClearPointer(&header.data);
+				header.data = reinterpret_cast<void*>(-2); // DB_InsertPointer marker
 			}
 		}
 		else
@@ -445,6 +451,11 @@ namespace Components
 		return NULL;
 	}
 
+	void ZoneBuilder::Zone::storePointer(const void* pointer)
+	{
+		this->pointerMap[pointer] = this->buffer.getPackedOffset();
+	}
+
 	void ZoneBuilder::Zone::storeAlias(const void* ptr, unsigned int alias)
 	{
 		this->aliasMap[ptr] = alias;
@@ -456,6 +467,7 @@ namespace Components
 		{
 			return this->aliasMap[ptr];
 		}
+		Logger::Print("Warning: Missing Alias for pointer! Export will almost certainly fail!\n");
 		return 0;
 	}
 
