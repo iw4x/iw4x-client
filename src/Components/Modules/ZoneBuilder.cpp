@@ -267,17 +267,16 @@ namespace Components
 				Components::Logger::Print("Saving require (%s): %s\n", Game::DB_GetXAssetTypeName(type), Game::DB_GetXAssetNameHandlers[type](&header));
 #endif
 
-				this->buffer.pushBlock(Game::XFILE_BLOCK_VIRTUAL);
-
 				// we alias the next 4 (aligned) bytes of the stream b/c DB_InsertPointer gives us a nice pointer to use as the alias
 				// otherwise it would be a fuckfest trying to figure out where the alias is in the stream
+				this->buffer.pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 				this->buffer.align(Utils::Stream::ALIGN_4);
 				this->storeAlias(asset);
-				this->buffer.increaseBlockSize(Game::XFILE_BLOCK_VIRTUAL, 4);
-
+				this->buffer.increaseBlockSize(4);
 				this->buffer.popBlock();
 
 				this->buffer.pushBlock(Game::XFILE_BLOCK_TEMP);
+				this->buffer.align(Utils::Stream::ALIGN_4);
 				AssetHandler::ZoneSave(asset, this);
 				this->buffer.popBlock();
 
