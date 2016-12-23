@@ -61,7 +61,7 @@ namespace Assets
 
 			case 0xA:
 			{
-				//builder->markAsset(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName);
 				break;
 			}
 

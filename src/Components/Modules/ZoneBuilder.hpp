@@ -33,7 +33,6 @@ namespace Components
 			Game::XAssetHeader saveSubAsset(Game::XAssetType type, void* ptr);
 			bool loadAsset(Game::XAssetType type, std::string name, bool isSubAsset = true);
 			bool loadAsset(Game::XAssetType type, void* data, bool isSubAsset = true);
-			void markAsset(Game::XAssetType type, void* ptr);
 
 			int addScriptString(unsigned short gameIndex);
 			int addScriptString(std::string str);

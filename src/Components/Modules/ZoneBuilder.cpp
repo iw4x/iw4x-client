@@ -293,18 +293,6 @@ namespace Components
 		return header;
 	}
 
-	void ZoneBuilder::Zone::markAsset(Game::XAssetType type, void* ptr)
-	{
-		Game::XAsset asset { type, { ptr } };
-		if(std::find_if(this->markedAssets.begin(), this->markedAssets.end(), [&] (const Game::XAsset& s) { return (asset.header.data == s.header.data && asset.type == s.type); } ) != this->markedAssets.end())
-		{
-			return; // don't re-mark assets
-		}
-
-		AssetHandler::ZoneMark(asset, this);
-		this->markedAssets.push_back(asset);
-	}
-
 	void ZoneBuilder::Zone::writeZone()
 	{
 		FILETIME fileTime;
