@@ -20,6 +20,7 @@ namespace Components
 
 			bool hasPointer(const void* pointer);
 			void storePointer(const void* pointer);
+			void storePointer(const void* pointer, Utils::Stream::Offset offset);
 
 			template<typename T>
 			inline T* getPointer(const T* pointer) { return reinterpret_cast<T*>(this->safeGetPointer(pointer)); }

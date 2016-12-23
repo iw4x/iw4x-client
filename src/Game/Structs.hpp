@@ -1542,9 +1542,10 @@ namespace Game
 	struct cbrushWrapper_t
 	{
 		short count;
+		short pad;
 		cbrushside_t* brushSide;
 		char * brushEdge;
-		char pad[24];
+		char pad2[24];
 	};
 
 #pragma pack(push, 4)

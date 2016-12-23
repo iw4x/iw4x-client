@@ -374,9 +374,14 @@ namespace Components
 		return NULL;
 	}
 
+	void ZoneBuilder::Zone::storePointer(const void* pointer, Utils::Stream::Offset offset)
+	{
+		this->pointerMap[pointer] = offset.getPackedOffset();
+	}
+
 	void ZoneBuilder::Zone::storePointer(const void* pointer)
 	{
-		this->pointerMap[pointer] = this->buffer.getPackedOffset();
+		this->storePointer(pointer, this->buffer.getOffset());
 	}
 
 	int ZoneBuilder::Zone::addScriptString(std::string str)

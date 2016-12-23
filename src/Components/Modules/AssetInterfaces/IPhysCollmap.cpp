@@ -40,8 +40,7 @@ namespace Assets
 						{
 							buffer->align(Utils::Stream::ALIGN_4);
 							builder->storePointer(side->side);
-
-							buffer->save(side->side, sizeof(Game::cplane_t));
+							buffer->save(side->side);
 							Utils::Stream::ClearPointer(&destSide->side);
 						}
 					}
@@ -68,9 +67,13 @@ namespace Assets
 			else
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
-				builder->storePointer(brush->planes);
 
-				buffer->save(brush->planes, sizeof(Game::cplane_t));
+				for (short i = 0; i < brush->brush.count; ++i)
+				{
+					builder->storePointer(&brush->planes[i]);
+					buffer->save(&brush->planes[i]);
+				}
+
 				Utils::Stream::ClearPointer(&destBrush->planes);
 			}
 		}

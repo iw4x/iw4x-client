@@ -277,14 +277,20 @@ namespace Utils
 		return 0;
 	}
 
-	DWORD Stream::getPackedOffset()
+	Stream::Offset Stream::getOffset()
 	{
 		Game::XFILE_BLOCK_TYPES block = this->getCurrentBlock();
 
 		Stream::Offset offset;
 		offset.block = block;
 		offset.offset = this->getBlockSize(block);
-		return offset.getPackedOffset();
+
+		return offset;
+	}
+
+	DWORD Stream::getPackedOffset()
+	{
+		return this->getOffset().getPackedOffset();
 	}
 
 	void Stream::toBuffer(std::string& outBuffer)
