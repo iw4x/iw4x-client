@@ -283,7 +283,15 @@ namespace Components
 		asset.header.data = ptr;
 		asset.type = type;
 
+		const auto& cmp = asset.header.data;
+
+		if(std::find_if(this->markedAssets.begin(), this->markedAssets.end(), [&cmp] (const Game::XAsset& s) { return cmp == s.header.data; } ) != this->markedAssets.end())
+		{
+			return; // don't re-mark assets
+		}
+
 		AssetHandler::ZoneMark(asset, this);
+		this->markedAssets.push_back(asset);
 	}
 
 	void ZoneBuilder::Zone::writeZone()

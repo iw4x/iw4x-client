@@ -75,11 +75,11 @@ namespace Components
 
 			std::vector<Game::XAsset> loadedAssets;
 			std::vector<Game::XAssetHeader> savedAssets;
+			std::vector<Game::XAsset> markedAssets;
 			std::vector<std::string> scriptStrings;
 			std::map<unsigned short, unsigned int> scriptStringMap;
 			std::map<std::string, std::string> renameMap[Game::XAssetType::ASSET_TYPE_COUNT];
 			std::map<const void*, uint32_t> pointerMap;
-			std::vector<uint32_t> aliasBaseStack;
 			std::map<const void*, uint32_t> aliasMap;
 
 			Game::RawFile branding;
