@@ -56,7 +56,7 @@ namespace Assets
 			{
 				if (asset->staticModelList[i].xmodel)
 				{
-					destStaticModelList[i].xmodel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->staticModelList[i].xmodel->name).model;
+					destStaticModelList[i].xmodel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->staticModelList[i].xmodel).model;
 				}
 			}
 
@@ -90,7 +90,12 @@ namespace Assets
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cbrushside_t* sides = buffer->dest<Game::cbrushside_t>();
-			buffer->saveArray(asset->cBrushSides, asset->numCBrushSides);
+			// we need the pointer to each of these to be stored so we can't write them all at once
+			for(int i = 0; i < asset->numCBrushSides; ++i)
+			{
+				builder->storePointer(&asset->cBrushSides[i]); // for reference in cBrush
+				buffer->save(&asset->cBrushSides[i]);
+			}
 
 			for (int i = 0; i < asset->numCBrushSides; ++i)
 			{
@@ -350,6 +355,8 @@ namespace Assets
 					{
 						AssertSize(Game::cbrushside_t, 8);
 
+						MessageBoxA(0, "BrushSide shouldn't be written in cBrush!", "WARNING", MB_ICONEXCLAMATION);
+
 						buffer->align(Utils::Stream::ALIGN_4);
 						builder->storePointer(brush->brushSide);
 
@@ -427,7 +434,7 @@ namespace Assets
 
 		if (asset->mapEnts)
 		{
-			dest->mapEnts = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->name).mapEnts;
+			dest->mapEnts = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->mapEnts).mapEnts;
 		}
 
 		for (int i = 0; i < 2; ++i)
@@ -445,17 +452,17 @@ namespace Assets
 				{
 					if (dynEnt[j].xModel)
 					{
-						dynEntDest[j].xModel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, dynEnt[j].xModel->name).model;
+						dynEntDest[j].xModel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, dynEnt[j].xModel).model;
 					}
 
 					if (dynEnt[j].destroyFx)
 					{
-						dynEntDest[j].destroyFx = builder->requireAsset(Game::XAssetType::ASSET_TYPE_FX, dynEnt[j].destroyFx->name).fx;
+						dynEntDest[j].destroyFx = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, dynEnt[j].destroyFx).fx;
 					}
 
 					if (dynEnt[j].physPreset)
 					{
-						dynEntDest[j].physPreset = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, dynEnt[j].physPreset->name).physPreset;
+						dynEntDest[j].physPreset = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, dynEnt[j].physPreset).physPreset;
 					}
 				}
 
@@ -514,7 +521,7 @@ namespace Assets
 		for (int i = 0; i < asset->numStaticModels; ++i)
 		{
 			Game::XModel* m = asset->staticModelList[i].xmodel;
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, m);
 		}
 
 		for (int j = 0; j < 2; ++j)
@@ -525,21 +532,21 @@ namespace Assets
 			{
 				if (def[i].xModel)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def[i].xModel->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def[i].xModel);
 				}
 
 				if (def[i].destroyFx)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, def[i].destroyFx->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, def[i].destroyFx);
 				}
 
 				if (def[i].physPreset)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, def[i].physPreset->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, def[i].physPreset);
 				}
 			}
 		}
-		builder->loadAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->name);
+		builder->markAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset);
 	}
 
 	void IclipMap_t::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)

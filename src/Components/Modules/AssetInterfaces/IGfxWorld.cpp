@@ -18,7 +18,7 @@ namespace Assets
 		{
 			for (unsigned int i = 0; i < asset->worldDraw.reflectionProbeCount; ++i)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.reflectionImages[i]->name);
+				builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.reflectionImages[i]);
 			}
 		}
 
@@ -28,34 +28,34 @@ namespace Assets
 			{
 				if (asset->worldDraw.lightmaps[i].primary)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].primary->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].primary);
 				}
 
 				if (asset->worldDraw.lightmaps[i].secondary)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].secondary->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].secondary);
 				}
 			}
 		}
 
 		if (asset->worldDraw.skyImage)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.skyImage->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.skyImage);
 		}
 
 		if (asset->worldDraw.outdoorImage)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.outdoorImage->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.outdoorImage);
 		}
 
 		if (asset->sun.spriteMaterial)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.spriteMaterial->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.spriteMaterial);
 		}
 
 		if (asset->sun.flareMaterial)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.flareMaterial->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->sun.flareMaterial);
 		}
 
 		if (asset->skies)
@@ -64,7 +64,7 @@ namespace Assets
 			{
 				if (asset->skies[i].skyImage)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->skies[i].skyImage->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->skies[i].skyImage);
 				}
 			}
 		}
@@ -75,14 +75,14 @@ namespace Assets
 			{
 				if (asset->materialMemory[i].material)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materialMemory[i].material->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materialMemory[i].material);
 				}
 			}
 		}
 
 		if (asset->unknownImage)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage);
 		}
 
 		if (asset->dpvs.surfaces)
@@ -91,7 +91,7 @@ namespace Assets
 			{
 				if (asset->dpvs.surfaces[i].material)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->dpvs.surfaces[i].material->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->dpvs.surfaces[i].material);
 				}
 			}
 		}
@@ -102,7 +102,7 @@ namespace Assets
 			{
 				if (asset->dpvs.smodelDrawInsts[i].model)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->dpvs.smodelDrawInsts[i].model->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->dpvs.smodelDrawInsts[i].model);
 				}
 			}
 		}
@@ -169,7 +169,7 @@ namespace Assets
 
 			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
 			{
-				imageDest[i] = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->reflectionImages[i]->name).image;
+				imageDest[i] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->reflectionImages[i]).image;
 			}
 
 			Utils::Stream::ClearPointer(&dest->reflectionImages);
@@ -213,12 +213,12 @@ namespace Assets
 
 				if (lightmapArray->primary)
 				{
-					lightmapArrayDest->primary = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, lightmapArray->primary->name).image;
+					lightmapArrayDest->primary = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, lightmapArray->primary).image;
 				}
 
 				if (lightmapArray->secondary)
 				{
-					lightmapArrayDest->secondary = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, lightmapArray->secondary->name).image;
+					lightmapArrayDest->secondary = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, lightmapArray->secondary).image;
 				}
 			}
 
@@ -245,12 +245,12 @@ namespace Assets
 
 		if (asset->skyImage)
 		{
-			dest->skyImage = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->skyImage->name).image;
+			dest->skyImage = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->skyImage).image;
 		}
 
 		if (asset->outdoorImage)
 		{
-			dest->outdoorImage = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->outdoorImage->name).image;
+			dest->outdoorImage = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->outdoorImage).image;
 		}
 
 		// saveGfxWorldVertexData
@@ -334,14 +334,14 @@ namespace Assets
 
 		if (asset->spriteMaterial)
 		{
-			dest->spriteMaterial = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->spriteMaterial->name).material;
+			dest->spriteMaterial = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->spriteMaterial).material;
 		}
 
 		if (asset->flareMaterial)
 		{
-			dest->flareMaterial = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->flareMaterial->name).material;
+			dest->flareMaterial = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->flareMaterial).material;
 		}
-        
+
 		SaveLogExit();
 	}
 
@@ -405,7 +405,7 @@ namespace Assets
 
 				if (surface->material)
 				{
-					destSurface->material = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, surface->material->name).material;
+					destSurface->material = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, surface->material).material;
 				}
 			}
 
@@ -436,7 +436,7 @@ namespace Assets
 
 				if (model->model)
 				{
-					destModel->model = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, model->model->name).model;
+					destModel->model = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, model->model).model;
 				}
 			}
 
@@ -555,7 +555,7 @@ namespace Assets
 
 				if (sky->skyImage)
 				{
-					destSky->skyImage = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, sky->skyImage->name).image;
+					destSky->skyImage = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, sky->skyImage).image;
 				}
 			}
 
@@ -705,7 +705,7 @@ namespace Assets
 
 				if (materialMemory->material)
 				{
-					destMaterialMemory->material = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, materialMemory->material->name).material;
+					destMaterialMemory->material = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, materialMemory->material).material;
 				}
 			}
 
@@ -716,7 +716,7 @@ namespace Assets
 
 		if (asset->unknownImage)
 		{
-			dest->unknownImage = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage->name).image;
+			dest->unknownImage = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage).image;
 		}
 
 		buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);

@@ -63,7 +63,7 @@ namespace Utils
 	{
 		memset(this->blockSize, 0, sizeof(this->blockSize));
 
-#ifdef DEBUG
+#ifdef WRITE_LOGS
 		this->structLevel = 0;
 		Utils::IO::WriteFile("userraw/logs/zb_writes.log", "", false);
 #endif
@@ -235,7 +235,7 @@ namespace Utils
 			this->blockSize[stream] += size;
 		}
 
-#ifdef DEBUG
+#ifdef WRITE_LOGS
 		std::string data = fmt::sprintf("%*s%d\n", this->structLevel, "", size);
 		if(stream == Game::XFILE_BLOCK_RUNTIME) data = fmt::sprintf("%*s(%d)\n", this->structLevel, "", size);
 		Utils::IO::WriteFile("userraw/logs/zb_writes.log", data, true);
@@ -321,7 +321,7 @@ namespace Utils
 		return (this->criticalSectionState != 0);
 	}
 
-#ifdef DEBUG
+#ifdef WRITE_LOGS
 	void Stream::enterStruct(const char* structName)
 	{
 		if (this->structLevel >= 0)

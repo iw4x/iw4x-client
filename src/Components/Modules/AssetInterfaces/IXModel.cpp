@@ -144,7 +144,7 @@ namespace Assets
 			if (reader.readByte())
 			{
 				model->colSurf = reader.readArray<Game::XModelCollSurf>(model->numColSurfs);
-				
+
 				for (int i = 0; i < model->numColSurfs; ++i)
 				{
 					if (model->colSurf[i].tris)
@@ -195,7 +195,7 @@ namespace Assets
 			{
 				if (asset->materials[i])
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materials[i]->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materials[i]);
 				}
 			}
 		}
@@ -205,7 +205,7 @@ namespace Assets
 			if (asset->lods[i].surfaces)
 			{
 				// We're not supposed to include xmodelsurfs as standalone asset
-				//builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name);
+				//builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name);
 
 				IXModelSurfs().mark({ asset->lods[i].surfaces }, builder);
 			}
@@ -213,12 +213,12 @@ namespace Assets
 
 		if (asset->physPreset)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset);
 		}
 
 		if (asset->physCollmap)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap);
 		}
 	}
 
@@ -245,7 +245,7 @@ namespace Assets
 
 			unsigned short* destBoneNames = buffer->dest<unsigned short>();
 			buffer->saveArray(asset->boneNames, asset->numBones);
-			
+
 			for (char i = 0; i < asset->numBones; ++i)
 			{
 				builder->mapScriptString(&destBoneNames[i]);
@@ -304,7 +304,7 @@ namespace Assets
 			{
 				if (asset->materials[i])
 				{
-					destMaterials[i] = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materials[i]->name).material;
+					destMaterials[i] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->materials[i]).material;
 				}
 			}
 
@@ -320,7 +320,7 @@ namespace Assets
 				if (asset->lods[i].surfaces)
 				{
 					// Requiring this asset is not possible, it has to be loaded as part of the model
-					//dest->lods[i].surfaces = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces->name).surfaces;
+					//dest->lods[i].surfaces = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces).surfaces;
 
 					buffer->pushBlock(Game::XFILE_BLOCK_TEMP);
 					buffer->align(Utils::Stream::ALIGN_4);
@@ -372,12 +372,12 @@ namespace Assets
 
 		if (asset->physPreset)
 		{
-			dest->physPreset = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset->name).physPreset;
+			dest->physPreset = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset).physPreset;
 		}
 
 		if (asset->physCollmap)
 		{
-			dest->physCollmap = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap->name).physCollmap;
+			dest->physCollmap = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap).physCollmap;
 		}
 
 		buffer->popBlock();

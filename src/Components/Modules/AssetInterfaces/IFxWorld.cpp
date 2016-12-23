@@ -39,17 +39,17 @@ namespace Assets
 
 					if (glassDef->physPreset)
 					{
-						destGlassDef->physPreset = builder->requireAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, glassDef->physPreset->name).physPreset;
+						destGlassDef->physPreset = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, glassDef->physPreset).physPreset;
 					}
 
 					if (glassDef->material)
 					{
-						destGlassDef->material = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, glassDef->material->name).material;
+						destGlassDef->material = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, glassDef->material).material;
 					}
 
 					if (glassDef->materialShattered)
 					{
-						destGlassDef->materialShattered = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, glassDef->materialShattered->name).material;
+						destGlassDef->materialShattered = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, glassDef->materialShattered).material;
 					}
 				}
 
@@ -164,9 +164,9 @@ namespace Assets
 		{
 			for (unsigned int i = 0; i < asset->glassSys.defCount; ++i)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->glassSys.defs[i].physPreset->name);
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->glassSys.defs[i].material->name);
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->glassSys.defs[i].materialShattered->name);
+				builder->markAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->glassSys.defs[i].physPreset);
+				builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->glassSys.defs[i].material);
+				builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->glassSys.defs[i].materialShattered);
 			}
 		}
 	}

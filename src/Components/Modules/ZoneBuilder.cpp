@@ -160,10 +160,11 @@ namespace Components
 		asset.type = type;
 		asset.header = assetHeader;
 
-		// Handle script strings and referenced assets
+		this->loadedAssets.push_back(asset);
+
+		// Handle script strings
 		AssetHandler::ZoneMark(asset, this);
 
-		this->loadedAssets.push_back(asset);
 		return true;
 	}
 
@@ -196,31 +197,93 @@ namespace Components
 		return nullptr;
 	}
 
-	uint32_t ZoneBuilder::Zone::getAssetOffset(int index)
+	uint32_t ZoneBuilder::Zone::getAssetTableOffset(int index)
 	{
 		Utils::Stream::Offset offset;
 		offset.block = Game::XFILE_BLOCK_VIRTUAL;
 		offset.offset = (this->indexStart + (index * sizeof(Game::XAsset)) + 4);
 		return offset.getPackedOffset();
 	}
+/*
+	void ZoneBuilder::Zone::pushAliasBase()
+	{
+		this->aliasBaseStack.push_back(this->buffer.getBlockSize(Game::XFILE_BLOCK_VIRTUAL));
+	}
 
-	Game::XAssetHeader ZoneBuilder::Zone::requireAsset(Game::XAssetType type, const char* name)
+	void ZoneBuilder::Zone::popAliasBase()
+	{
+		if (!this->aliasBaseStack.empty())
+		{
+			this->aliasBaseStack.pop_back();
+		}
+	}
+
+	unsigned int ZoneBuilder::Zone::getAliasBase()
+	{
+		return this->aliasBaseStack.back();
+	}
+*/
+
+	Game::XAssetHeader ZoneBuilder::Zone::saveSubAsset(Game::XAssetType type, void* ptr)
 	{
 		Game::XAssetHeader header;
-		Utils::Stream::ClearPointer(&header.data);
+		header.data = ptr;
 
-		int assetIndex = this->findAsset(type, name);
-
-		if (assetIndex != -1)
+		int assetIndex = this->findAsset(type, Game::DB_GetXAssetNameHandlers[type](&header));
+		if (assetIndex == -1) // nested asset
 		{
-			header.data = reinterpret_cast<void*>(this->getAssetOffset(assetIndex));
+			const auto& cmp = header.data;
+
+			// already written. find alias and store in ptr
+			if(std::find_if(this->savedAssets.begin(), this->savedAssets.end(), [&cmp] (const Game::XAssetHeader& s) { return cmp == s.data; } ) != this->savedAssets.end())
+			{
+#ifdef DEBUG
+				//Components::Logger::Print("Using alias for (%s): %s\n", Game::DB_GetXAssetTypeName(asset->type), Game::DB_GetXAssetName(asset));
+#endif
+				Utils::Stream::Offset off;
+				off.block = Game::XFILE_BLOCK_VIRTUAL;
+				off.offset = this->getAlias(ptr);
+				header.data = reinterpret_cast<void*>(off.getPackedOffset());
+			}
+			else
+			{
+#ifdef DEBUG
+				Components::Logger::Print("Saving Require (%s): %s\n", Game::DB_GetXAssetTypeName(type), Game::DB_GetXAssetNameHandlers[type](&header));
+#endif
+				Game::XAsset assetToSave;
+				assetToSave.header = header;
+				assetToSave.type = type;
+
+				// we alias the next 4 (aligned) bytes of the stream b/c DB_InsertPointer gives us a nice pointer to use as the alias
+				// otherwise it would be a fuckfest trying to figure out where the alias is in the stream
+				this->buffer.align(Utils::Stream::ALIGN_4);
+				this->storeAlias(ptr, this->buffer.getBlockSize(Game::XFILE_BLOCK_VIRTUAL));
+
+				this->buffer.increaseBlockSize(Game::XFILE_BLOCK_VIRTUAL, 4);
+
+				this->buffer.pushBlock(Game::XFILE_BLOCK_TEMP);
+				AssetHandler::ZoneSave(assetToSave, this);
+				this->buffer.popBlock();
+				this->savedAssets.push_back(header);
+				header.data = reinterpret_cast<void*>(-2); // DB_InsertPointer marker
+			}
 		}
 		else
 		{
-			Logger::Error("Missing required asset '%s' (%s). Export failed!", name, Game::DB_GetXAssetTypeName(type));
+			// asset was written normally. not sure this is even possible but its here
+			header.data = reinterpret_cast<void*>(this->getAssetTableOffset(assetIndex));
 		}
 
 		return header;
+	}
+
+	void ZoneBuilder::Zone::markAsset(Game::XAssetType type, void* ptr)
+	{
+		Game::XAsset asset;
+		asset.header.data = ptr;
+		asset.type = type;
+
+		AssetHandler::ZoneMark(asset, this);
 	}
 
 	void ZoneBuilder::Zone::writeZone()
@@ -252,7 +315,7 @@ namespace Components
 		Utils::IO::WriteFile(outFile, outBuffer);
 
 		Logger::Print("done.\n");
-		Logger::Print("Zone '%s' written with %d assets\n", outFile.data(), this->loadedAssets.size());
+		Logger::Print("Zone '%s' written with %d assets and %d script strings\n", outFile.data(), this->savedAssets.size(), this->scriptStrings.size());
 	}
 
 	void ZoneBuilder::Zone::saveData()
@@ -277,7 +340,7 @@ namespace Components
 		if (!this->scriptStrings.empty())
 		{
 			this->buffer.saveNull(4); // Empty script string?
-                                      // This actually represents a NULL string, but as scriptString. 
+                                      // This actually represents a NULL string, but as scriptString.
                                       // So scriptString loading for NULL scriptStrings from fastfile results in a NULL scriptString.
 									  // That's the reason why the count is incremented by 1, if scriptStrings are available.
 
@@ -312,15 +375,29 @@ namespace Components
 		// Assets
 		for (auto asset : this->loadedAssets)
 		{
+			/*
+			const auto& cmp = asset.header.data;
+
+			if(std::find_if(this->savedAssets.begin(), this->savedAssets.end(), [&cmp] (const Game::XAsset& s) { return cmp == s.header.data; } ) != this->savedAssets.end())
+			{
+#ifdef DEBUG
+				Components::Logger::Print("Skipping (%s): %s\n", Game::DB_GetXAssetTypeName(asset.type), Game::DB_GetXAssetNameHandlers[type](header));
+#endif
+				continue;
+			}
+			*/
+
 			this->buffer.pushBlock(Game::XFILE_BLOCK_TEMP);
 			this->buffer.align(Utils::Stream::ALIGN_4);
 
 #ifdef DEBUG
-			Components::Logger::Print("Saving (%s): %s\n", Game::DB_GetXAssetTypeName(asset.type), Game::DB_GetXAssetName(&asset));
+			Components::Logger::Print("Saving (%s): %s\n", Game::DB_GetXAssetTypeName(asset.type), Game::DB_GetXAssetNameHandlers[asset.type](&asset.header));
 #endif
 
 			this->store(asset.header);
 			AssetHandler::ZoneSave(asset, this);
+
+			savedAssets.push_back(asset.header);
 
 			this->buffer.popBlock();
 		}
@@ -364,7 +441,7 @@ namespace Components
 	}
 
 	// Get stored offset for given file pointer
-	uint32_t ZoneBuilder::Zone::safeGetPointer(const void* pointer)
+	unsigned int ZoneBuilder::Zone::safeGetPointer(const void* pointer)
 	{
 		if (this->hasPointer(pointer))
 		{
@@ -377,6 +454,21 @@ namespace Components
 	void ZoneBuilder::Zone::storePointer(const void* pointer)
 	{
 		this->pointerMap[pointer] = this->buffer.getPackedOffset();
+	}
+
+	void ZoneBuilder::Zone::storeAlias(const void* ptr, unsigned int alias)
+	{
+		this->aliasMap[ptr] = alias;
+	}
+
+	unsigned int ZoneBuilder::Zone::getAlias(const void* ptr)
+	{
+		if((this->aliasMap.find(ptr) != this->aliasMap.end()))
+		{
+			return this->aliasMap[ptr];
+		}
+		Logger::Print("Warning: Missing Alias for pointer! Export will almost certainly fail!\n");
+		return 0;
 	}
 
 	int ZoneBuilder::Zone::addScriptString(std::string str)
@@ -525,7 +617,7 @@ namespace Components
 		static_assert(Game::MAX_XFILE_COUNT == 8, "XFile block enum is invalid!");
 
 		ZoneBuilder::EndAssetTrace();
-		
+
 		if (ZoneBuilder::IsEnabled())
 		{
 			// Prevent loading textures (preserves loaddef)
@@ -537,7 +629,7 @@ namespace Components
 			// Release the loaddef
 			Game::DB_ReleaseXAssetHandlers[Game::XAssetType::ASSET_TYPE_IMAGE] = ZoneBuilder::ReleaseTexture;
 
-			//r_loadForrenderer = 0 
+			//r_loadForrenderer = 0
 			Utils::Hook::Set<BYTE>(0x519DDF, 0);
 
 			//r_delayloadimage retn
@@ -611,9 +703,9 @@ namespace Components
 
 				Game::DB_LoadXAssets(&info, 1, true);
 				AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
-				
+
 				Logger::Print("Zone '%s' loaded with %d assets:\n", zone.data(), assets.size());
-				
+
 				int count = 0;
 				for (auto i = assets.begin(); i != assets.end(); ++i, ++count)
 				{

@@ -49,7 +49,7 @@ namespace Assets
 			{
 				if (visuals->xmodel)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel);
 				}
 
 				break;
@@ -61,7 +61,7 @@ namespace Assets
 
 			case 0xA:
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName);
+				//builder->markAsset(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName);
 				break;
 			}
 
@@ -69,7 +69,7 @@ namespace Assets
 			{
 				if (visuals->effectDef)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, visuals->effectDef->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, visuals->effectDef);
 				}
 
 				break;
@@ -79,7 +79,7 @@ namespace Assets
 			{
 				if (visuals->material)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material->name);
+					builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material);
 				}
 
 				break;
@@ -104,12 +104,12 @@ namespace Assets
 						{
 							if (elemDef->visuals.markArray[j].data[0])
 							{
-								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]->name);
+								builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]);
 							}
 
 							if (elemDef->visuals.markArray[j].data[1])
 							{
-								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]->name);
+								builder->markAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]);
 							}
 						}
 					}
@@ -132,17 +132,17 @@ namespace Assets
 
 			if (elemDef->effectOnImpact)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnImpact->name);
+				builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnImpact);
 			}
 
 			if (elemDef->effectOnDeath)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnDeath->name);
+				builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnDeath);
 			}
 
 			if (elemDef->effectEmitted)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectEmitted->name);
+				builder->markAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectEmitted);
 			}
 		}
 	}
@@ -157,7 +157,7 @@ namespace Assets
 			{
 				if (visuals->xmodel)
 				{
-					destVisuals->xmodel = builder->requireAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel->name).model;
+					destVisuals->xmodel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel).model;
 				}
 
 				break;
@@ -193,7 +193,7 @@ namespace Assets
 			{
 				if (visuals->material)
 				{
-					destVisuals->material = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material->name).material;
+					destVisuals->material = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material).material;
 				}
 
 				break;
@@ -267,12 +267,12 @@ namespace Assets
 							{
 								if (elemDef->visuals.markArray[j].data[0])
 								{
-									destMarkArray[j].data[0] = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]->name).material;
+									destMarkArray[j].data[0] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]).material;
 								}
 
 								if (elemDef->visuals.markArray[j].data[1])
 								{
-									destMarkArray[j].data[1] = builder->requireAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]->name).material;
+									destMarkArray[j].data[1] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]).material;
 								}
 							}
 

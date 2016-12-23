@@ -168,7 +168,7 @@ namespace Assets
 
 		if (asset->techniqueSet)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet->name);
+			builder->markAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet);
 		}
 
 		if (asset->textureTable)
@@ -181,12 +181,12 @@ namespace Assets
 					{
 						if (asset->textureTable[i].info.water->image)
 						{
-							builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.water->image->name);
+							builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.water->image);
 						}
 					}
 					else
 					{
-						builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.image->name);
+						builder->markAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.image);
 					}
 				}
 			}
@@ -212,7 +212,7 @@ namespace Assets
 
 		if (asset->techniqueSet)
 		{
-			dest->techniqueSet = builder->requireAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet->name).techniqueSet;
+			dest->techniqueSet = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet).techniqueSet;
 		}
 
 		if (asset->textureTable)
@@ -267,13 +267,13 @@ namespace Assets
 
 							if (water->image)
 							{
-								destWater->image = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, water->image->name).image;
+								destWater->image = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, water->image).image;
 							}
 						}
 					}
 					else if (textureDef->info.image)
 					{
-						destTextureDef->info.image = builder->requireAsset(Game::XAssetType::ASSET_TYPE_IMAGE, textureDef->info.image->name).image;
+						destTextureDef->info.image = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, textureDef->info.image).image;
 					}
 				}
 
