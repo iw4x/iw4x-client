@@ -61,7 +61,7 @@ namespace Assets
 
 			case 0xA:
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, std::string(visuals->soundName), true);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, std::string(visuals->soundName), false);
 				break;
 			}
 
@@ -69,7 +69,7 @@ namespace Assets
 			{
 				if (visuals->effectDef)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, visuals->effectDef);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, visuals->effectDef, false);
 				}
 
 				break;
@@ -132,17 +132,17 @@ namespace Assets
 
 			if (elemDef->effectOnImpact)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnImpact);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnImpact, false);
 			}
 
 			if (elemDef->effectOnDeath)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnDeath);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectOnDeath, false);
 			}
 
 			if (elemDef->effectEmitted)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectEmitted);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, elemDef->effectEmitted, false);
 			}
 		}
 	}
