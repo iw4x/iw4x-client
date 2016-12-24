@@ -80,11 +80,11 @@ namespace Utils
 		char* save(const void * _str, size_t size, size_t count = 1);
 		char* save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count);
 		char* save(Game::XFILE_BLOCK_TYPES stream, int value, size_t count);
-		template <typename T> char* save(T* object)
+		template <typename T> inline char* save(T* object)
 		{
 			return saveArray<T>(object, 1);
 		}
-		template <typename T> char* saveArray(T* array, size_t count)
+		template <typename T> inline char* saveArray(T* array, size_t count)
 		{
 			return save(array, sizeof(T), count);
 		}

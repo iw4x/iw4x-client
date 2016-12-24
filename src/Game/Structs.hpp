@@ -2574,9 +2574,9 @@ namespace Game
 		float fRadius;
 		float minUseDistSq;
 		__int16 wOverlapNode[2];
-		__int16 wChainId;
-		__int16 wChainDepth;
-		__int16 wChainParent;
+// 		__int16 wChainId;
+// 		__int16 wChainDepth;
+// 		__int16 wChainParent;
 		unsigned __int16 totalLinkCount;
 		pathlink_s *Links;
 	};
@@ -2611,6 +2611,7 @@ namespace Game
 		pathnode_constant_t constant;
 		pathnode_dynamic_t dynamic;
 		pathnode_transient_t transient;
+		char pad[12];
 	};
 
 	struct PathData
