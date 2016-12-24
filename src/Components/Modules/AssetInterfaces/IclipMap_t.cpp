@@ -217,9 +217,13 @@ namespace Assets
 						else
 						{
 							buffer->align(Utils::Stream::ALIGN_2);
-							builder->storePointer(node[i].data.brushes);
 
-							buffer->saveArray(node[i].data.brushes, node[i].leafBrushCount);
+							for (short j = 0; j < node[i].leafBrushCount; ++j)
+							{
+								builder->storePointer(&node[i].data.brushes[j]);
+								buffer->save(&node[i].data.brushes[j]);
+							}
+
 							Utils::Stream::ClearPointer(&node[i].data.brushes);
 						}
 					}
