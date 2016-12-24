@@ -144,7 +144,7 @@ namespace Components
 	bool Zones::LoadXSurfaceArray(bool atStreamStart, char* buffer, int size)
 	{
 		int count = 0;
-		
+
 		if (Zones::Version() >= VERSION_ALPHA2)
 		{
 			size >>= 6;
@@ -578,7 +578,7 @@ namespace Components
 			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2308);
 			Game::Load_FxEffectDefHandle(false);
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2336); 
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2336);
 			Game::Load_FxEffectDefHandle(false);
 		}
 		else
@@ -612,7 +612,7 @@ namespace Components
 
 		if (Zones::ZoneVersion >= 359)
 		{
-			if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2524) == -1) 
+			if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2524) == -1)
 			{
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 2524) = vec2;
@@ -1533,7 +1533,7 @@ namespace Components
 			popad
 			push 4189AEh
 			retn
-			
+
 		returnSafe:
 			popad
 			push 41899Dh
@@ -1645,6 +1645,8 @@ namespace Components
 #ifdef DEBUG
 		// Easy dirty disk debugging
 		Utils::Hook::Set<WORD>(0x4CF7F0, 0xC3CC);
+		// disable _invoke_watson to allow debugging
+		Utils::Hook::Set<WORD>(0x6B9602,0xCCCC);
 #endif
 	}
 

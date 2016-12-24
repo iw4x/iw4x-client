@@ -32,9 +32,13 @@ namespace Assets
 			else
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
-				builder->storePointer(asset->cPlanes);
 
-				buffer->saveArray(asset->cPlanes, asset->numCPlanes);
+				// not sure if this is neede but both brushside and brushedge need it and it can't hurt
+				for(int i = 0; i < asset->numCPlanes; i++)
+				{
+					builder->storePointer(&asset->cPlanes[i]);
+					buffer->save(&asset->cPlanes[i]);
+				}
 				Utils::Stream::ClearPointer(&dest->cPlanes);
 			}
 
@@ -127,7 +131,11 @@ namespace Assets
 			SaveLogEnter("cBrushEdge");
 
 			// no align for char
-			buffer->saveArray(asset->cBrushEdges, asset->numCBrushEdges);
+			for(int i = 0; i < asset->numCBrushEdges; ++i)
+			{
+				builder->storePointer(&asset->cBrushEdges[i]); // for reference in cBrush
+				buffer->save(&asset->cBrushEdges[i]);
+			}
 			Utils::Stream::ClearPointer(&dest->cBrushEdges);
 
 			SaveLogExit();
