@@ -30,9 +30,7 @@ namespace Components
 		AssetHandler::ClearTemporaryAssets();
 		Localization::ClearTemp();
 
-		this->loadedAssets.clear();
-		this->scriptStrings.clear();
-		this->scriptStringMap.clear();
+		assert(this->loadedSubAssets.size() == this->aliasList.size());
 	}
 
 	Utils::Stream* ZoneBuilder::Zone::getBuffer()
