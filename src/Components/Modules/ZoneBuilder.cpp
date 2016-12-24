@@ -30,7 +30,47 @@ namespace Components
 		AssetHandler::ClearTemporaryAssets();
 		Localization::ClearTemp();
 
-		assert(this->loadedSubAssets.size() == this->aliasList.size());
+#ifdef DEBUG
+		for (auto& subAsset : this->loadedSubAssets)
+		{
+			bool found = false;
+			std::string name = Game::DB_GetXAssetName(&subAsset);
+
+			for (auto& alias : this->aliasList)
+			{
+				if (subAsset.type == alias.first.type && name == Game::DB_GetXAssetName(&alias.first))
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				Logger::Error("Asset %s of type %s was loaded, but not written!", name.data(), Game::DB_GetXAssetTypeName(subAsset.type));
+			}
+		}
+
+		for (auto& alias : this->aliasList)
+		{
+			bool found = false;
+			std::string name = Game::DB_GetXAssetName(&alias.first);
+
+			for (auto& subAsset : this->loadedSubAssets)
+			{
+				if (subAsset.type == alias.first.type && name == Game::DB_GetXAssetName(&subAsset))
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				Logger::Error("Asset %s of type %s was written, but not loaded!", name.data(), Game::DB_GetXAssetTypeName(alias.first.type));
+			}
+		}
+#endif
 	}
 
 	Utils::Stream* ZoneBuilder::Zone::getBuffer()
