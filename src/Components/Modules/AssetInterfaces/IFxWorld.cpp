@@ -53,6 +53,7 @@ namespace Assets
 					}
 				}
 
+				Utils::Stream::ClearPointer(&dest->glassSys.defs);
 			}
 
 			buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);
