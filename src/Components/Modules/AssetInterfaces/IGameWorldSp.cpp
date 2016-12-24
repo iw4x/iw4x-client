@@ -43,22 +43,107 @@ namespace Assets
 				Game::pathnode_tree_t** destChildNodeTreePtr = &destNodeTree->u.child[i];
 				Game::pathnode_tree_t** childNodeTreePtr = &nodeTree->u.child[i];
 
-				if (builder->hasPointer(*childNodeTreePtr))
+				if (*childNodeTreePtr)
 				{
-					*destChildNodeTreePtr = builder->getPointer(*childNodeTreePtr);
+					if (builder->hasPointer(*childNodeTreePtr))
+					{
+						*destChildNodeTreePtr = builder->getPointer(*childNodeTreePtr);
+					}
+					else
+					{
+						buffer->align(Utils::Stream::ALIGN_4);
+						builder->storePointer(*childNodeTreePtr);
+
+						Game::pathnode_tree_t* destChildNodeTree = buffer->dest<Game::pathnode_tree_t>();
+						buffer->save(*childNodeTreePtr);
+
+						this->savepathnode_tree_info_t(*childNodeTreePtr, destChildNodeTree, builder);
+						Utils::Stream::ClearPointer(destChildNodeTreePtr);
+					}
+				}
+			}
+		}
+	}
+
+	void IGameWorldSp::saveVehicleTrackSegment_ptrArray(Game::VehicleTrackSegment** trackSegmentPtrs, int count, Components::ZoneBuilder::Zone* builder)
+	{
+		Utils::Stream* buffer = builder->getBuffer();
+
+		Game::VehicleTrackSegment** destTrackSegmentPtrs = buffer->dest<Game::VehicleTrackSegment*>();
+		buffer->saveArray(trackSegmentPtrs, count);
+
+		for (int i = 0; i < count; ++i)
+		{
+			Game::VehicleTrackSegment** destTrackSegmentPtr = &destTrackSegmentPtrs[i];
+			Game::VehicleTrackSegment** trackSegmentPtr = &trackSegmentPtrs[i];
+
+			if (*trackSegmentPtr)
+			{
+				if (builder->hasPointer(*trackSegmentPtr))
+				{
+					*destTrackSegmentPtr = builder->getPointer(*trackSegmentPtr);
 				}
 				else
 				{
 					buffer->align(Utils::Stream::ALIGN_4);
-					builder->storePointer(*childNodeTreePtr);
+					builder->storePointer(*trackSegmentPtr);
 
-					Game::pathnode_tree_t* destChildNodeTree = buffer->dest<Game::pathnode_tree_t>();
-					buffer->save(*childNodeTreePtr);
+					Game::VehicleTrackSegment* destTrackSegment = buffer->dest<Game::VehicleTrackSegment>();
+					buffer->save(*trackSegmentPtr);
 
-					IGameWorldSp::savepathnode_tree_info_t(*childNodeTreePtr, destChildNodeTree, builder);
-					Utils::Stream::ClearPointer(destChildNodeTreePtr);
+					this->saveVehicleTrackSegment(*trackSegmentPtr, destTrackSegment, builder);
+
+					Utils::Stream::ClearPointer(destTrackSegmentPtr);
 				}
 			}
+		}
+	}
+
+	void IGameWorldSp::saveVehicleTrackSegment(Game::VehicleTrackSegment* trackSegment, Game::VehicleTrackSegment* destTrackSegment, Components::ZoneBuilder::Zone* builder)
+	{
+		Utils::Stream* buffer = builder->getBuffer();
+
+		if (trackSegment->name)
+		{
+			buffer->saveString(trackSegment->name);
+			Utils::Stream::ClearPointer(&destTrackSegment->name);
+		}
+
+		if (trackSegment->trackSectors)
+		{
+			AssertSize(Game::VehicleTrackSector, 60);
+			buffer->align(Utils::Stream::ALIGN_4);
+
+			Game::VehicleTrackSector* destTrackSectors = buffer->dest<Game::VehicleTrackSector>();
+			buffer->saveArray(trackSegment->trackSectors, trackSegment->trackSectorCount);
+
+			for (int i = 0; i < trackSegment->trackSectorCount; ++i)
+			{
+				Game::VehicleTrackSector* destTrackSector = &destTrackSectors[i];
+				Game::VehicleTrackSector* trackSector = &trackSegment->trackSectors[i];
+
+				if (trackSector->trackObstacles)
+				{
+					AssertSize(Game::VehicleTrackObstacle, 12);
+					buffer->align(Utils::Stream::ALIGN_4);
+					buffer->saveArray(trackSector->trackObstacles, trackSector->trackObstacleCount);
+					Utils::Stream::ClearPointer(&destTrackSector->trackObstacles);
+				}
+			}
+		}
+
+		if (trackSegment->trackSegments1)
+		{
+			buffer->align(Utils::Stream::ALIGN_4);
+			this->saveVehicleTrackSegment_ptrArray(trackSegment->trackSegments1, trackSegment->trackSegmentCount1, builder);
+			Utils::Stream::ClearPointer(&destTrackSegment->trackSegments1);
+		}
+
+		if (trackSegment->trackSegments2)
+		{
+			buffer->align(Utils::Stream::ALIGN_4);
+			this->saveVehicleTrackSegment_ptrArray(trackSegment->trackSegments2, trackSegment->trackSegmentCount2, builder);
+			Utils::Stream::ClearPointer(&destTrackSegment->trackSegments2);
 		}
 	}
 
@@ -156,12 +241,12 @@ namespace Assets
 				Game::pathnode_tree_t* destNodeTrees = buffer->dest<Game::pathnode_tree_t>();
 				buffer->saveArray(asset->pathData.nodeTree, asset->pathData.nodeTreeCount);
 
-				for (unsigned int i = 0; i < asset->pathData.nodeCount; ++i)
+				for (int i = 0; i < asset->pathData.nodeTreeCount; ++i)
 				{
 					Game::pathnode_tree_t* destNodeTree = &destNodeTrees[i];
 					Game::pathnode_tree_t* nodeTree = &asset->pathData.nodeTree[i];
 
-					IGameWorldSp::savepathnode_tree_info_t(nodeTree, destNodeTree, builder);
+					this->savepathnode_tree_info_t(nodeTree, destNodeTree, builder);
 				}
 
 				Utils::Stream::ClearPointer(&dest->pathData.nodeTree);
@@ -170,10 +255,38 @@ namespace Assets
 
 		// Save_VehicleTrack
 		{
-			// TODO: Finish that!
 			AssertSize(Game::VehicleTrack, 8);
-			dest->vehicleTrack.trackSegments = 0;
-			dest->vehicleTrack.trackSegmentCount = 0;
+
+			if (asset->vehicleTrack.trackSegments)
+			{
+				if (builder->hasPointer(asset->vehicleTrack.trackSegments))
+				{
+					dest->vehicleTrack.trackSegments = builder->getPointer(asset->vehicleTrack.trackSegments);
+				}
+				else
+				{
+					AssertSize(Game::VehicleTrackSegment, 44);
+
+					buffer->align(Utils::Stream::ALIGN_4);
+					Game::VehicleTrackSegment* destTrackSegments = buffer->dest<Game::VehicleTrackSegment>();
+
+					for (int i = 0; i < asset->vehicleTrack.trackSegmentCount; ++i)
+					{
+						builder->storePointer(&asset->vehicleTrack.trackSegments[i]);
+						buffer->save(&asset->vehicleTrack.trackSegments[i]);
+					}
+
+					for (int i = 0; i < asset->vehicleTrack.trackSegmentCount; ++i)
+					{
+						Game::VehicleTrackSegment* destTrackSegment = &destTrackSegments[i];
+						Game::VehicleTrackSegment* trackSegment = &asset->vehicleTrack.trackSegments[i];
+
+						this->saveVehicleTrackSegment(trackSegment, destTrackSegment, builder);
+					}
+
+					Utils::Stream::ClearPointer(&dest->vehicleTrack.trackSegments);
+				}
+			}
 		}
 
 		if (asset->data)

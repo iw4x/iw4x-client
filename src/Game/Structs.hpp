@@ -2649,7 +2649,7 @@ namespace Game
 		int trackSegmentCount1;
 		VehicleTrackSegment** trackSegments2;
 		int trackSegmentCount2;
-		int pad;
+		int pad[4];
 	};
 
 	struct VehicleTrack
