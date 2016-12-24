@@ -492,7 +492,7 @@ namespace Assets
 				AssertSize(Game::DynEntityClient, 12);
 
 				buffer->align(Utils::Stream::ALIGN_4);
-				buffer->save(asset->dynEntClientList[i], asset->dynEntCount[i]);
+				buffer->saveArray(asset->dynEntClientList[i], asset->dynEntCount[i]);
 				Utils::Stream::ClearPointer(&dest->dynEntClientList[i]);
 			}
 		}
@@ -504,7 +504,7 @@ namespace Assets
 				AssertSize(Game::DynEntityColl, 20);
 
 				buffer->align(Utils::Stream::ALIGN_4);
-				buffer->save(asset->dynEntCollList[i], asset->dynEntCount[i]);
+				buffer->saveArray(asset->dynEntCollList[i], asset->dynEntCount[i]);
 				Utils::Stream::ClearPointer(&dest->dynEntCollList[i]);
 			}
 		}
