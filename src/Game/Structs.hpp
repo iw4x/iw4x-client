@@ -1530,6 +1530,7 @@ namespace Game
 		float dist;
 		char type;
 		char signbits;
+		char pad[2];
 	};
 
 	struct cbrushside_t
@@ -2906,9 +2907,16 @@ namespace Game
 	{
 		unsigned int smodelCount;
 		unsigned int staticSurfaceCount;
+		unsigned int staticSurfaceCountNoDecal;
 		unsigned int litSurfsBegin;
 		unsigned int litSurfsEnd;
-		char unknown1[0x20];
+		unsigned int decalSurfsBegin;
+		unsigned int decalSurfsEnd;
+		unsigned int emissiveSurfsBegin;
+		unsigned int emissiveSurfsEnd;
+		unsigned int smodelVisDataCount;
+		unsigned int surfaceVisDataCount;
+		int surfStuff;
 		int sunShadowCount;
 		char *smodelVisData[3];
 		char *surfaceVisData[3];
@@ -3138,48 +3146,56 @@ namespace Game
 		int skySamplerState;
 	};
 
+	struct GfxHeroOnlyLight
+	{
+		char pad[56];
+	};
+
 	struct GfxWorld
 	{
 		const char *name;
 		const char *baseName;
 		int planeCount;
 		int nodeCount;
-		int dpvsSurfaceCount;
-		unsigned int skyCount;
-		GfxSky* skies;
-		int unkCount1;
-		int unkCount2;
-		char unknown1[16];
-		GfxWorldDpvsPlanes dpvsPlanes; //The following rely on the count in this
+		unsigned int surfaceCount;
+		int skyCount;
+		GfxSky *skies;
+		unsigned int lastSunPrimaryLightIndex;
+		unsigned int primaryLightCount;
+		unsigned int sortKeyLitDecal;
+		unsigned int sortKeyEffectDecal;
+		unsigned int sortKeyEffectAuto;
+		unsigned int sortKeyDistortion;
+		GfxWorldDpvsPlanes dpvsPlanes;
 		GfxCellTreeCount *aabbTreeCounts;
 		GfxCellTree *aabbTrees;
 		GfxCell *cells;
-		GfxWorldDraw worldDraw;
+		GfxWorldDraw draw;
 		GfxLightGrid lightGrid;
 		int modelCount;
 		GfxBrushModel *models;
-		float mins[3];
-		float maxs[3];
+		Bounds bounds;
 		unsigned int checksum;
 		int materialMemoryCount;
 		MaterialMemory *materialMemory;
 		sunflare_t sun;
-		char pad[64];
-		GfxImage* unknownImage;
-		unsigned int *cellCasterBits[2];
+		float outdoorLookupMatrix[4][4];
+		GfxImage *outdoorImage;
+		unsigned int *cellCasterBits;
+		unsigned int *cellHasSunLitSurfsBits;
 		GfxSceneDynModel *sceneDynModel;
 		GfxSceneDynBrush *sceneDynBrush;
 		unsigned int *primaryLightEntityShadowVis;
 		unsigned int *primaryLightDynEntShadowVis[2];
-		char *primaryLightForModelDynEnt;
+		char *nonSunPrimaryLightForModelDynEnt;
 		GfxShadowGeometry *shadowGeom;
 		GfxLightRegion *lightRegion;
 		GfxWorldDpvsStatic dpvs;
 		GfxWorldDpvsDynamic dpvsDyn;
-		int pad2;
+		unsigned int mapVtxChecksum;
 		unsigned int heroOnlyLightCount;
-		char * heroOnlyLight;
-		int unknown5;
+		GfxHeroOnlyLight *heroOnlyLights;
+		char fogTypesAllowed;
 	};
 #pragma pack(pop)
 

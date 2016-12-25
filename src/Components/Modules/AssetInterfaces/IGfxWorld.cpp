@@ -9,6 +9,7 @@ namespace Assets
 		if (name != "maps/iw4_credits.d3dbsp") return;
 		Game::GfxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFX_MAP, "maps/iw4_credits.d3dbsp").gfxWorld;
 		if (!map) return;
+		header->gfxWorld = map;
 
 		map->name = "maps/mp/mp_toujane.d3dbsp";
 		map->baseName = "mp_toujane";
@@ -16,7 +17,17 @@ namespace Assets
 		Game::Material* basemat = /*Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "white").material;*/map->dpvs.surfaces[0].material;
 		if (!basemat) return;
 
-		Components::FileSystem::File mapFile(fmt::sprintf("gfxworld/%s.iw4xGfxWorld", map->baseName));
+		for (unsigned int i = 0; i < map->dpvs.staticSurfaceCount; ++i)
+		{
+			if (map->dpvs.surfaces[i].material)
+			{
+				map->dpvs.surfaces[i].material = basemat;
+			}
+		}
+
+		//return;
+
+		Components::FileSystem::File mapFile(fmt::sprintf("gfxworld/%s.iw4xGfxWorld", /*map->baseName*/"mp_waw_toujane_night"));
 
 		if (mapFile.exists())
 		{
@@ -36,31 +47,83 @@ namespace Assets
 			std::string _name = reader.readString(); // Name
 			std::string bname = reader.readString(); // Basename
 
-			map->worldDraw.indexCount = reader.read<int>();
-			map->worldDraw.indices = reader.readArray<unsigned short>(map->worldDraw.indexCount);
+			map->nodeCount = reader.read<int>();
+			map->planeCount = reader.read<int>();
 
-			map->worldDraw.vertexCount = reader.read<unsigned int>();
-			map->worldDraw.vd.vertices = reader.readArray<Game::GfxWorldVertex>(map->worldDraw.vertexCount);
+			map->bounds.midPoint[0] = reader.read<float>();
+			map->bounds.midPoint[1] = reader.read<float>();
+			map->bounds.midPoint[2] = reader.read<float>();
 
-			map->worldDraw.vertexLayerDataSize = reader.read<unsigned int>();
-			map->worldDraw.vld.data = reader.readArray<char>(map->worldDraw.vertexLayerDataSize);
+			map->bounds.halfSize[0] = reader.read<float>();
+			map->bounds.halfSize[1] = reader.read<float>();
+			map->bounds.halfSize[2] = reader.read<float>();
 
-			for (unsigned int i = 0; i < map->worldDraw.vertexCount; ++i)
+			map->dpvsPlanes = reader.read<Game::GfxWorldDpvsPlanes>();
+			map->dpvsPlanes.planes = reader.readArray<Game::cplane_t>(map->planeCount);
+			map->dpvsPlanes.nodes = reader.readArray<unsigned short>(map->nodeCount);
+			map->dpvsPlanes.sceneEntCellBits = reinterpret_cast<unsigned int*>(reader.readArray<char>(map->dpvsPlanes.cellCount << 11));
+			map->aabbTreeCounts = reader.readArray<Game::GfxCellTreeCount>(map->dpvsPlanes.cellCount);
+		
+			//map->aabbTrees = reader.readArray<Game::GfxCellTree>(map->dpvsPlanes.cellCount);
+			map->aabbTrees = builder->getAllocator()->allocateArray<Game::GfxCellTree>(map->dpvsPlanes.cellCount);
+			
+			for (int i = 0; i < map->dpvsPlanes.cellCount; ++i)
 			{
-				map->worldDraw.vd.vertices[i].color.uArray[0] = 0xFF;
-				map->worldDraw.vd.vertices[i].color.uArray[1] = 0xFF;
-				map->worldDraw.vd.vertices[i].color.uArray[2] = 0xFF;
+				map->aabbTrees[i].aabbTree = reader.readArray<Game::GfxAabbTree>(map->aabbTreeCounts[i].aabbTreeCount);
 			}
 
-			map->dpvs.staticSurfaceCount = reader.read<unsigned int>();
-			map->dpvsSurfaceCount = map->dpvs.staticSurfaceCount;
-			map->dpvs.sortedSurfIndex = reader.readArray<unsigned short>(map->dpvs.staticSurfaceCount);
+			map->cells = reader.readArray<Game::GfxCell>(map->dpvsPlanes.cellCount);
+
+			for (int i = 0; i < map->dpvsPlanes.cellCount; ++i)
+			{
+				Game::GfxCell* cell = &map->cells[i];
+				cell->portals = reader.readArray<Game::GfxPortal>(cell->portalCount);
+
+				for (int j = 0; j < cell->portalCount; ++j)
+				{
+					cell->portals[i].vertices = reader.readArray<Game::vec3_t>(cell->portals[i].vertexCount);
+				}
+			}
+
+			//return;
+
+			Game::GfxWorldVertex* originalVerts = map->draw.vd.vertices;
+
+			map->draw.indexCount = reader.read<int>();
+			map->draw.indices = reader.readArray<unsigned short>(map->draw.indexCount);
+
+			map->draw.vertexCount = reader.read<unsigned int>();
+			map->draw.vd.vertices = reader.readArray<Game::GfxWorldVertex>(map->draw.vertexCount);
+
+			map->draw.vertexLayerDataSize = reader.read<unsigned int>();
+			map->draw.vld.data = reader.readArray<char>(map->draw.vertexLayerDataSize);
+
+			for (unsigned int i = 0; i < map->draw.vertexCount; ++i)
+			{
+				map->draw.vd.vertices[i].lmapCoord[0] = originalVerts[i % 3].lmapCoord[0];
+				map->draw.vd.vertices[i].lmapCoord[1] = originalVerts[i % 3].lmapCoord[1];
+
+				map->draw.vd.vertices[i].texCoord[0] = originalVerts[i % 3].texCoord[0];
+				map->draw.vd.vertices[i].texCoord[1] = originalVerts[i % 3].texCoord[1];
+				map->draw.vd.vertices[i].texCoord[2] = originalVerts[i % 3].texCoord[2];
+			}
+
+			for (int i = 0; i < 8; ++i)
+			{
+				(&map->dpvs.staticSurfaceCount)[i] = reader.read<unsigned int>();
+			}
+
+			map->surfaceCount = map->dpvs.staticSurfaceCount;
+			map->dpvs.sortedSurfIndex = reader.readArray<unsigned short>(map->dpvs.staticSurfaceCount + map->dpvs.staticSurfaceCountNoDecal);
+			//map->dpvs.surfacesBounds = reader.readArray<Game::GfxSurfaceBounds>(map->dpvs.staticSurfaceCount);
 			map->dpvs.surfaces = builder->getAllocator()->allocateArray<Game::GfxSurface>(map->dpvs.staticSurfaceCount);
 
 			for (unsigned int i = 0; i < map->dpvs.staticSurfaceCount; ++i)
 			{
-				Game::GfxSurface* surf = reader.readArray<Game::GfxSurface>(1);
-				std::memcpy(&map->dpvs.surfaces[i], surf, sizeof(Game::GfxSurface));
+				//Game::GfxSurface* surf = reader.readArray<Game::GfxSurface>(1);
+				//std::memcpy(&map->dpvs.surfaces[i], surf, sizeof(Game::GfxSurface));
+
+				map->dpvs.surfaces[i] = reader.read<Game::GfxSurface>();
 
 				if (map->dpvs.surfaces[i].material)
 				{
@@ -68,9 +131,12 @@ namespace Assets
 					map->dpvs.surfaces[i].material = basemat;
 				}
 			}
-
-			header->gfxWorld = map;
 		}
+
+		map->draw.reflectionImages = 0;
+		map->draw.reflectionProbeCount = 0;
+		map->draw.reflectionProbes = 0;
+		map->draw.reflectionProbeTextures = 0;
 
 		//Components::Logger::Error("Missing GfxMap %s... you can't make them yet you idiot.", name.data());
 	}
@@ -79,38 +145,38 @@ namespace Assets
 	{
 		Game::GfxWorld* asset = header.gfxWorld;
 
-		if (asset->worldDraw.reflectionImages)
+		if (asset->draw.reflectionImages)
 		{
-			for (unsigned int i = 0; i < asset->worldDraw.reflectionProbeCount; ++i)
+			for (unsigned int i = 0; i < asset->draw.reflectionProbeCount; ++i)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.reflectionImages[i]);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.reflectionImages[i]);
 			}
 		}
 
-		if (asset->worldDraw.lightmaps)
+		if (asset->draw.lightmaps)
 		{
-			for (int i = 0; i < asset->worldDraw.lightmapCount; ++i)
+			for (int i = 0; i < asset->draw.lightmapCount; ++i)
 			{
-				if (asset->worldDraw.lightmaps[i].primary)
+				if (asset->draw.lightmaps[i].primary)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].primary);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.lightmaps[i].primary);
 				}
 
-				if (asset->worldDraw.lightmaps[i].secondary)
+				if (asset->draw.lightmaps[i].secondary)
 				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.lightmaps[i].secondary);
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.lightmaps[i].secondary);
 				}
 			}
 		}
 
-		if (asset->worldDraw.skyImage)
+		if (asset->draw.skyImage)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.skyImage);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.skyImage);
 		}
 
-		if (asset->worldDraw.outdoorImage)
+		if (asset->draw.outdoorImage)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->worldDraw.outdoorImage);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.outdoorImage);
 		}
 
 		if (asset->sun.spriteMaterial)
@@ -125,7 +191,7 @@ namespace Assets
 
 		if (asset->skies)
 		{
-			for (unsigned int i = 0; i < asset->skyCount; ++i)
+			for (int i = 0; i < asset->skyCount; ++i)
 			{
 				if (asset->skies[i].skyImage)
 				{
@@ -145,14 +211,14 @@ namespace Assets
 			}
 		}
 
-		if (asset->unknownImage)
+		if (asset->outdoorImage)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->outdoorImage);
 		}
 
 		if (asset->dpvs.surfaces)
 		{
-			for (int i = 0; i < asset->dpvsSurfaceCount; ++i)
+			for (unsigned int i = 0; i < asset->surfaceCount; ++i)
 			{
 				if (asset->dpvs.surfaces[i].material)
 				{
@@ -463,7 +529,7 @@ namespace Assets
 		if (asset->sortedSurfIndex)
 		{
 			buffer->align(Utils::Stream::ALIGN_2);
-			buffer->saveArray(asset->sortedSurfIndex, asset->staticSurfaceCount + asset->litSurfsBegin);
+			buffer->saveArray(asset->sortedSurfIndex, asset->staticSurfaceCount + asset->staticSurfaceCountNoDecal);
 			Utils::Stream::ClearPointer(&dest->sortedSurfIndex);
 		}
 
@@ -486,9 +552,9 @@ namespace Assets
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::GfxSurface* destSurfaceTable = buffer->dest<Game::GfxSurface>();
-			buffer->saveArray(asset->surfaces, world->dpvsSurfaceCount);
+			buffer->saveArray(asset->surfaces, world->surfaceCount);
 
-			for (int i = 0; i < world->dpvsSurfaceCount; ++i)
+			for (unsigned int i = 0; i < world->surfaceCount; ++i)
 			{
 				Game::GfxSurface* surface = &asset->surfaces[i];
 				Game::GfxSurface* destSurface = &destSurfaceTable[i];
@@ -509,7 +575,7 @@ namespace Assets
 			SaveLogEnter("GfxSurfaceBounds");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->surfacesBounds, world->dpvsSurfaceCount);
+			buffer->saveArray(asset->surfacesBounds, world->surfaceCount);
 			Utils::Stream::ClearPointer(&dest->surfacesBounds);
 
 			SaveLogExit();
@@ -547,7 +613,7 @@ namespace Assets
 			SaveLogEnter("GfxDrawSurf");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->surfaceMaterials, world->dpvsSurfaceCount);
+			buffer->saveArray(asset->surfaceMaterials, world->surfaceCount);
 			Utils::Stream::ClearPointer(&dest->surfaceMaterials);
 
 			SaveLogExit();
@@ -644,7 +710,7 @@ namespace Assets
 			Game::GfxSky* destSkyTable = buffer->dest<Game::GfxSky>();
 			buffer->saveArray(asset->skies, asset->skyCount);
 
-			for (unsigned int i = 0; i < asset->skyCount; ++i)
+			for (int i = 0; i < asset->skyCount; ++i)
 			{
 				Game::GfxSky* destSky = &destSkyTable[i];
 				Game::GfxSky* sky = &asset->skies[i];
@@ -797,7 +863,7 @@ namespace Assets
 			SaveLogExit();
 		}
 
-		this->saveGfxWorldDraw(&asset->worldDraw, &dest->worldDraw, builder);
+		this->saveGfxWorldDraw(&asset->draw, &dest->draw, builder);
 		this->saveGfxLightGrid(&asset->lightGrid, &dest->lightGrid, builder);
 
 		if (asset->models)
@@ -838,25 +904,25 @@ namespace Assets
 
 		this->savesunflare_t(&asset->sun, &dest->sun, builder);
 
-		if (asset->unknownImage)
+		if (asset->outdoorImage)
 		{
-			dest->unknownImage = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->unknownImage).image;
+			dest->outdoorImage = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->outdoorImage).image;
 		}
 
 		buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);
 
-		if (asset->cellCasterBits[0])
+		if (asset->cellCasterBits)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->cellCasterBits[0], cellCount * ((cellCount + 31) >> 5));
-			Utils::Stream::ClearPointer(&dest->cellCasterBits[0]);
+			buffer->saveArray(asset->cellCasterBits, cellCount * ((cellCount + 31) >> 5));
+			Utils::Stream::ClearPointer(&dest->cellCasterBits);
 		}
 
-		if (asset->cellCasterBits[1])
+		if (asset->cellHasSunLitSurfsBits)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->cellCasterBits[1], ((cellCount + 31) >> 5));
-			Utils::Stream::ClearPointer(&dest->cellCasterBits[1]);
+			buffer->saveArray(asset->cellHasSunLitSurfsBits, ((cellCount + 31) >> 5));
+			Utils::Stream::ClearPointer(&dest->cellHasSunLitSurfsBits);
 		}
 
 		if (asset->sceneDynModel)
@@ -880,29 +946,29 @@ namespace Assets
 		if (asset->primaryLightEntityShadowVis)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->primaryLightEntityShadowVis, 1, (asset->unkCount2 + 0x1FFFF - asset->unkCount1) << 15);
+			buffer->save(asset->primaryLightEntityShadowVis, 1, (asset->primaryLightCount + 0x1FFFF - asset->lastSunPrimaryLightIndex) << 15);
 			Utils::Stream::ClearPointer(&dest->primaryLightEntityShadowVis);
 		}
 
 		if (asset->primaryLightDynEntShadowVis[0])
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->primaryLightDynEntShadowVis[0], asset->dpvsDyn.dynEntClientCount[0] * (asset->unkCount2 - 1 - asset->unkCount1));
+			buffer->saveArray(asset->primaryLightDynEntShadowVis[0], asset->dpvsDyn.dynEntClientCount[0] * (asset->primaryLightCount - 1 - asset->lastSunPrimaryLightIndex));
 			Utils::Stream::ClearPointer(&dest->primaryLightDynEntShadowVis[0]);
 		}
 
 		if (asset->primaryLightDynEntShadowVis[1])
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->primaryLightDynEntShadowVis[1], asset->dpvsDyn.dynEntClientCount[1] * (asset->unkCount2 - 1 - asset->unkCount1));
+			buffer->saveArray(asset->primaryLightDynEntShadowVis[1], asset->dpvsDyn.dynEntClientCount[1] * (asset->primaryLightCount - 1 - asset->lastSunPrimaryLightIndex));
 			Utils::Stream::ClearPointer(&dest->primaryLightDynEntShadowVis[1]);
 		}
 
-		if (asset->primaryLightForModelDynEnt)
+		if (asset->nonSunPrimaryLightForModelDynEnt)
 		{
 			// no align cause char
-			buffer->saveArray(asset->primaryLightForModelDynEnt, asset->dpvsDyn.dynEntClientCount[0]);
-			Utils::Stream::ClearPointer(&dest->primaryLightForModelDynEnt);
+			buffer->saveArray(asset->nonSunPrimaryLightForModelDynEnt, asset->dpvsDyn.dynEntClientCount[0]);
+			Utils::Stream::ClearPointer(&dest->nonSunPrimaryLightForModelDynEnt);
 		}
 
 		buffer->popBlock();
@@ -914,9 +980,9 @@ namespace Assets
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::GfxShadowGeometry* destShadowGeometryTable = buffer->dest<Game::GfxShadowGeometry>();
-			buffer->saveArray(asset->shadowGeom, asset->unkCount2);
+			buffer->saveArray(asset->shadowGeom, asset->primaryLightCount);
 
-			for (int i = 0; i < asset->unkCount2; ++i)
+			for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
 			{
 				Game::GfxShadowGeometry* destShadowGeometry = &destShadowGeometryTable[i];
 				Game::GfxShadowGeometry* shadowGeometry = &asset->shadowGeom[i];
@@ -947,9 +1013,9 @@ namespace Assets
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::GfxLightRegion* destLightRegionTable = buffer->dest<Game::GfxLightRegion>();
-			buffer->saveArray(asset->lightRegion, asset->unkCount2);
+			buffer->saveArray(asset->lightRegion, asset->primaryLightCount);
 
-			for (int i = 0; i < asset->unkCount2; ++i)
+			for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
 			{
 				Game::GfxLightRegion* destLightRegion = &destLightRegionTable[i];
 				Game::GfxLightRegion* lightRegion = &asset->lightRegion[i];
@@ -994,12 +1060,12 @@ namespace Assets
 		this->saveGfxWorldDpvsStatic(asset, &asset->dpvs, &dest->dpvs, asset->dpvsPlanes.cellCount, builder);
 		this->saveGfxWorldDpvsDynamic(&asset->dpvsDyn, &dest->dpvsDyn, builder);
 
-		if (asset->heroOnlyLight)
+		if (asset->heroOnlyLights)
 		{
-			// no assert cause we use save manually here
+			AssertSize(Game::GfxHeroOnlyLight, 56);
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->heroOnlyLight, 56, asset->heroOnlyLightCount);
-			Utils::Stream::ClearPointer(&dest->heroOnlyLight);
+			buffer->saveArray(asset->heroOnlyLights, asset->heroOnlyLightCount);
+			Utils::Stream::ClearPointer(&dest->heroOnlyLights);
 		}
 
 		buffer->popBlock();
