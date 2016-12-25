@@ -59,6 +59,29 @@ namespace Utils
 		}
 	}
 
+	void* Stream::Reader::readPointer()
+	{
+		void* pointer = this->read<void*>();
+		if (!this->hasPointer(pointer))
+		{
+			this->pointerMap[pointer] = 0;
+		}
+		return pointer;
+	}
+
+	void Stream::Reader::mapPointer(void* oldPointer, void* newPointer)
+	{
+		if (this->hasPointer(oldPointer))
+		{
+			this->pointerMap[oldPointer] = newPointer;
+		}
+	}
+
+	bool Stream::Reader::hasPointer(void* pointer)
+	{
+		return this->pointerMap.find(pointer) != this->pointerMap.end();
+	}
+
 	Stream::Stream() : criticalSectionState(0)
 	{
 		memset(this->blockSize, 0, sizeof(this->blockSize));

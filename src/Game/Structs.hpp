@@ -2948,8 +2948,8 @@ namespace Game
 
 	struct GfxPortalWritable
 	{
-		bool isQueued;
-		bool isAncestor;
+		char isQueued;
+		char isAncestor;
 		char recursionDepth;
 		char hullPointCount;
 		float(*hullPoints)[2];
@@ -2959,6 +2959,7 @@ namespace Game
 	{
 		float coeffs[4];
 		char side[3];
+		char pad;
 	};
 
 	struct GfxPortal
