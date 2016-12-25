@@ -1,13 +1,78 @@
 #include <STDInclude.hpp>
 
+#define IW4X_GFXMAP_VERSION 1
+
 namespace Assets
 {
-	void IGfxWorld::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
+	void IGfxWorld::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		Game::GfxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFX_MAP, name.data()).gfxWorld;
-		if (map) return;
+		if (name != "maps/iw4_credits.d3dbsp") return;
+		Game::GfxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFX_MAP, "maps/iw4_credits.d3dbsp").gfxWorld;
+		if (!map) return;
 
-		Components::Logger::Error("Missing GfxMap %s... you can't make them yet you idiot.", name.data());
+		map->name = "maps/mp/mp_toujane.d3dbsp";
+		map->baseName = "mp_toujane";
+
+		Game::Material* basemat = /*Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "white").material;*/map->dpvs.surfaces[0].material;
+		if (!basemat) return;
+
+		Components::FileSystem::File mapFile(fmt::sprintf("gfxworld/%s.iw4xGfxWorld", map->baseName));
+
+		if (mapFile.exists())
+		{
+			Utils::Stream::Reader reader(builder->getAllocator(), mapFile.getBuffer());
+
+			if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xGfxW"))
+			{
+				Components::Logger::Error(0, "Reading gfxworld '%s' failed, header is invalid!", name.data());
+			}
+
+			int version = reader.read<int>();
+			if (version != IW4X_GFXMAP_VERSION)
+			{
+				Components::Logger::Error(0, "Reading gfxworld '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_GFXMAP_VERSION, version);
+			}
+
+			std::string _name = reader.readString(); // Name
+			std::string bname = reader.readString(); // Basename
+
+			map->worldDraw.indexCount = reader.read<int>();
+			map->worldDraw.indices = reader.readArray<unsigned short>(map->worldDraw.indexCount);
+
+			map->worldDraw.vertexCount = reader.read<unsigned int>();
+			map->worldDraw.vd.vertices = reader.readArray<Game::GfxWorldVertex>(map->worldDraw.vertexCount);
+
+			map->worldDraw.vertexLayerDataSize = reader.read<unsigned int>();
+			map->worldDraw.vld.data = reader.readArray<char>(map->worldDraw.vertexLayerDataSize);
+
+			for (unsigned int i = 0; i < map->worldDraw.vertexCount; ++i)
+			{
+				map->worldDraw.vd.vertices[i].color.uArray[0] = 0xFF;
+				map->worldDraw.vd.vertices[i].color.uArray[1] = 0xFF;
+				map->worldDraw.vd.vertices[i].color.uArray[2] = 0xFF;
+			}
+
+			map->dpvs.staticSurfaceCount = reader.read<unsigned int>();
+			map->dpvsSurfaceCount = map->dpvs.staticSurfaceCount;
+			map->dpvs.sortedSurfIndex = reader.readArray<unsigned short>(map->dpvs.staticSurfaceCount);
+			map->dpvs.surfaces = builder->getAllocator()->allocateArray<Game::GfxSurface>(map->dpvs.staticSurfaceCount);
+
+			for (unsigned int i = 0; i < map->dpvs.staticSurfaceCount; ++i)
+			{
+				Game::GfxSurface* surf = reader.readArray<Game::GfxSurface>(1);
+				std::memcpy(&map->dpvs.surfaces[i], surf, sizeof(Game::GfxSurface));
+
+				if (map->dpvs.surfaces[i].material)
+				{
+					std::string matname = reader.readString(); // Name
+					map->dpvs.surfaces[i].material = basemat;
+				}
+			}
+
+			header->gfxWorld = map;
+		}
+
+		//Components::Logger::Error("Missing GfxMap %s... you can't make them yet you idiot.", name.data());
 	}
 
 	void IGfxWorld::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

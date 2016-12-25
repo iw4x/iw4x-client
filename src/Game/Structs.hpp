@@ -2725,6 +2725,7 @@ namespace Game
 	{
 		unsigned int packed;
 		char array[4];
+		unsigned char uArray[4];
 	};
 
 	union PackedUnitVec
