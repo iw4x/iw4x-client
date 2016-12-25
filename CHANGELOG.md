@@ -10,9 +10,27 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - IW4x on Linux currently requires gnutls to be installed to access the Tor service via HTTPS.
 
+## [0.2.2] - 2016-12-25
+
+This is the third public Alpha version, it mostly consists of bug fixes.
+
+### Changed
+
+- Optimized fastfiles, they are now a lot smaller.
+
+### Fixed
+
+- Fix issues when spawning more than one bot.
+- Fix no ammo bug.
+- Fix splash screen hang.
+
+### Known issues
+
+- IW4x on Linux currently requires gnutls to be installed to access the Tor service via HTTPS.
+
 ## [0.2.1] - 2016-12-14
 
-This is going to be the second public Alpha version.
+This is the second public Alpha version.
 
 ### Added
 

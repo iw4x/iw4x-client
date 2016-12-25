@@ -434,6 +434,63 @@ namespace Game
 		MaterialPass passes[1];
 	};
 
+	enum MaterialTechniqueType
+	{
+		TECHNIQUE_DEPTH_PREPASS = 0x0,
+		TECHNIQUE_BUILD_FLOAT_Z = 0x1,
+		TECHNIQUE_BUILD_SHADOWMAP_DEPTH = 0x2,
+		TECHNIQUE_BUILD_SHADOWMAP_COLOR = 0x3,
+		TECHNIQUE_UNLIT = 0x4,
+		TECHNIQUE_EMISSIVE = 0x5,
+		TECHNIQUE_EMISSIVE_DFOG = 0x6,
+		TECHNIQUE_EMISSIVE_SHADOW = 0x7,
+		TECHNIQUE_EMISSIVE_SHADOW_DFOG = 0x8,
+		TECHNIQUE_LIT_BEGIN = 0x9,
+		TECHNIQUE_LIT = 0x9,
+		TECHNIQUE_LIT_DFOG = 0xA,
+		TECHNIQUE_LIT_SUN = 0xB,
+		TECHNIQUE_LIT_SUN_DFOG = 0xC,
+		TECHNIQUE_LIT_SUN_SHADOW = 0xD,
+		TECHNIQUE_LIT_SUN_SHADOW_DFOG = 0xE,
+		TECHNIQUE_LIT_SPOT = 0xF,
+		TECHNIQUE_LIT_SPOT_DFOG = 0x10,
+		TECHNIQUE_LIT_SPOT_SHADOW = 0x11,
+		TECHNIQUE_LIT_SPOT_SHADOW_DFOG = 0x12,
+		TECHNIQUE_LIT_OMNI = 0x13,
+		TECHNIQUE_LIT_OMNI_DFOG = 0x14,
+		TECHNIQUE_LIT_OMNI_SHADOW = 0x15,
+		TECHNIQUE_LIT_OMNI_SHADOW_DFOG = 0x16,
+		TECHNIQUE_LIT_INSTANCED = 0x17,
+		TECHNIQUE_LIT_INSTANCED_DFOG = 0x18,
+		TECHNIQUE_LIT_INSTANCED_SUN = 0x19,
+		TECHNIQUE_LIT_INSTANCED_SUN_DFOG = 0x1A,
+		TECHNIQUE_LIT_INSTANCED_SUN_SHADOW = 0x1B,
+		TECHNIQUE_LIT_INSTANCED_SUN_SHADOW_DFOG = 0x1C,
+		TECHNIQUE_LIT_INSTANCED_SPOT = 0x1D,
+		TECHNIQUE_LIT_INSTANCED_SPOT_DFOG = 0x1E,
+		TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW = 0x1F,
+		TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW_DFOG = 0x20,
+		TECHNIQUE_LIT_INSTANCED_OMNI = 0x21,
+		TECHNIQUE_LIT_INSTANCED_OMNI_DFOG = 0x22,
+		TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW = 0x23,
+		TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW_DFOG = 0x24,
+		TECHNIQUE_LIT_END = 0x25,
+		TECHNIQUE_LIGHT_SPOT = 0x25,
+		TECHNIQUE_LIGHT_OMNI = 0x26,
+		TECHNIQUE_LIGHT_SPOT_SHADOW = 0x27,
+		TECHNIQUE_FAKELIGHT_NORMAL = 0x28,
+		TECHNIQUE_FAKELIGHT_VIEW = 0x29,
+		TECHNIQUE_SUNLIGHT_PREVIEW = 0x2A,
+		TECHNIQUE_CASE_TEXTURE = 0x2B,
+		TECHNIQUE_WIREFRAME_SOLID = 0x2C,
+		TECHNIQUE_WIREFRAME_SHADED = 0x2D,
+		TECHNIQUE_DEBUG_BUMPMAP = 0x2E,
+		TECHNIQUE_DEBUG_BUMPMAP_INSTANCED = 0x2F,
+		TECHNIQUE_COUNT = 0x30,
+		TECHNIQUE_TOTAL_COUNT = 0x31,
+		TECHNIQUE_NONE = 0x32,
+	};
+
 	struct MaterialTechniqueSet
 	{
 		const char* name;
@@ -449,6 +506,18 @@ namespace Game
 		vec4_t literal;
 	};
 
+	struct GfxDrawSurfFields
+	{
+		__int64 _bf0;
+	};
+
+	union GfxDrawSurf
+	{
+		GfxDrawSurfFields fields;
+		unsigned __int64 packed;
+	};
+
+#pragma pack(push, 4)
 	struct Material
 	{
 		const char *name;
@@ -456,8 +525,10 @@ namespace Game
 		char sortKey;
 		char textureAtlasRowCount;
 		char textureAtlasColumnCount;
-		char drawSurf[12];
+		GfxDrawSurf drawSurf;
 		int surfaceTypeBits;
+		unsigned __int16 hashIndex;
+		unsigned __int16 pad;
 		char stateBitsEntry[48];
 		char textureCount;
 		char constantCount;
@@ -469,6 +540,7 @@ namespace Game
 		MaterialConstantDef *constantTable;
 		void *stateBitTable;
 	};
+#pragma pack(pop)
 
 	struct TracerDef
 	{
@@ -2890,16 +2962,6 @@ namespace Game
 		//char flags;
 	};
 
-	struct GfxDrawSurfFields
-	{
-		__int64 _bf0;
-	};
-
-	union GfxDrawSurf
-	{
-		GfxDrawSurfFields fields;
-		unsigned __int64 packed;
-	};
 
 	struct GfxStaticModelDrawInst;
 

@@ -1319,12 +1319,14 @@ namespace Components
 
 			// Pretty sure that's wrong
 			// Actually, it's not
-			memcpy(material->drawSurf, material359.drawSurfBegin, 8);
+			// yes it was lol
+			memcpy(&material->drawSurf.packed, material359.drawSurfBegin, 8);
 
-			material->drawSurf[8] = material359.drawSurf[0];
-			material->drawSurf[9] = material359.drawSurf[1];
-			material->drawSurf[10] = material359.drawSurf[2];
-			material->drawSurf[11] = material359.drawSurf[3];
+			memcpy(&material->surfaceTypeBits, &material359.drawSurf[0], 6); // copies both surfaceTypeBits and hashIndex
+			//material->drawSurf[8] = material359.drawSurf[0];
+			//material->drawSurf[9] = material359.drawSurf[1];
+			//material->drawSurf[10] = material359.drawSurf[2];
+			//material->drawSurf[11] = material359.drawSurf[3];
 
 			if (material359.sGameFlags & 0x100)
 			{
