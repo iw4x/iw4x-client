@@ -517,6 +517,11 @@ namespace Game
 		unsigned __int64 packed;
 	};
 
+	struct GfxStateBits
+	{
+		unsigned int loadBits[2];
+	};
+
 #pragma pack(push, 4)
 	struct Material
 	{
@@ -538,7 +543,7 @@ namespace Game
 		MaterialTechniqueSet *techniqueSet;
 		MaterialTextureDef *textureTable;
 		MaterialConstantDef *constantTable;
-		void *stateBitTable;
+		GfxStateBits *stateBitTable;
 	};
 #pragma pack(pop)
 

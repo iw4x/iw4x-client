@@ -8,5 +8,6 @@ namespace Assets
 		virtual void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		virtual void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		virtual void load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder) override;
+		void loadJson(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder);
 	};
 }

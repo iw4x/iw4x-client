@@ -1,8 +1,128 @@
 #include <STDInclude.hpp>
 
+#define IW4X_MAT_VERSION "0"
+
 namespace Assets
 {
 	void IMaterial::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	{
+		Components::FileSystem::File materialFile(fmt::sprintf("materials/%s.iw4xMaterial", name.data()));
+		if(!materialFile.exists())
+		{
+			this->loadJson(header, name, builder);
+			return;
+		}
+
+		Game::Material* material = builder->getAllocator()->allocate<Game::Material>();
+
+		if(!material)
+		{
+			Components::Logger::Print("Error allocating memory for material structure!\n");
+			return;
+		}
+
+		Utils::Stream::Reader reader(builder->getAllocator(), materialFile.getBuffer());
+
+		if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xMat" IW4X_MAT_VERSION))
+		{
+			Components::Logger::Error(0, "Reading material '%s' failed, header is invalid!", name.data());
+		}
+
+		material->name = reader.readCString();
+		material->gameFlags = reader.readByte();
+		material->sortKey = reader.readByte();
+		material->textureAtlasRowCount = reader.readByte();
+		material->textureAtlasColumnCount = reader.readByte();
+		material->drawSurf.packed = reader.read<__int16>();
+		material->surfaceTypeBits = reader.read<int>();
+		material->hashIndex = reader.read<unsigned __int16>();
+		char* stateBitsEntry = reader.readArray<char>(48);
+		memcpy(material->stateBitsEntry, stateBitsEntry, 48);
+		material->textureCount = reader.readByte();
+		material->constantCount = reader.readByte();
+		material->stateBitsCount = reader.readByte();
+		material->stateFlags = reader.readByte();
+		material->cameraRegion = reader.readByte();
+		material->techniqueSet = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_TECHSET, reader.readCString()).techniqueSet;
+
+		material->textureTable = builder->getAllocator()->allocateArray<Game::MaterialTextureDef>(material->textureCount);
+		material->constantTable = builder->getAllocator()->allocateArray<Game::MaterialConstantDef>(material->constantCount);
+		material->stateBitTable = builder->getAllocator()->allocateArray<Game::GfxStateBits>(material->stateBitsCount);
+
+		if(!material->textureTable || !material->constantTable || !material->stateBitTable)
+		{
+			Components::Logger::Print("Error allocating memory for material structure!\n");
+			builder->getAllocator()->free(material); // cleanup
+			return;
+		}
+
+		for (int i = 0; i < material->textureCount; ++i)
+		{
+			const char* mapName = reader.readCString();
+			material->textureTable[i].nameStart = mapName[0];
+			material->textureTable[i].nameEnd = mapName[strlen(mapName) - 1];
+			material->textureTable[i].nameHash = Game::R_HashString(mapName);
+			material->textureTable[i].sampleState = reader.readByte();
+			material->textureTable[i].semantic = reader.readByte();
+			if (material->textureTable[i].semantic == SEMANTIC_WATER_MAP)
+			{
+				material->textureTable[i].info.water->floatTime = reader.read<float>();
+				material->textureTable[i].info.water->M = reader.read<int>();
+				material->textureTable[i].info.water->N = reader.read<int>();
+				int count = material->textureTable[i].info.water->M * material->textureTable[i].info.water->N;
+				material->textureTable[i].info.water->H0X = reader.readArray<float>(count);
+				material->textureTable[i].info.water->H0Y = reader.readArray<float>(count);
+				/*material->textureTable[i].info.water->wTerm =*/ reader.readArray<float>(count);
+				material->textureTable[i].info.water->Lx = reader.read<float>();
+				material->textureTable[i].info.water->Lz = reader.read<float>();
+				material->textureTable[i].info.water->gravity = reader.read<float>();
+				material->textureTable[i].info.water->windvel = reader.read<float>();
+				material->textureTable[i].info.water->winddir[0] = reader.read<float>();
+				material->textureTable[i].info.water->winddir[1] = reader.read<float>();
+				material->textureTable[i].info.water->amplitude = reader.read<float>();
+				material->textureTable[i].info.water->codeConstant[0] = reader.read<float>();
+				material->textureTable[i].info.water->codeConstant[1] = reader.read<float>();
+				material->textureTable[i].info.water->codeConstant[2] = reader.read<float>();
+				material->textureTable[i].info.water->codeConstant[3] = reader.read<float>();
+				material->textureTable[i].info.water->image = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readCString()).image;
+			}
+			else
+			{
+				material->textureTable[i].info.image = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readCString()).image;
+			}
+
+			builder->getAllocator()->free(mapName);
+		}
+
+		for (int i = 0; i < material->constantCount; ++i)
+		{
+			const char* constName = reader.readCString();
+			const char* ptr = constName;
+			int j = 0;
+			// its late and msbuild wont stop bitching about strncpy being unsafe and i really dont care enough to fix it any other way
+			// this will do for now
+			// strncpy(materialConstantTable[i].name, constName, 12);
+			while(j < 12 && *ptr)
+			{
+				material->constantTable[i].name[j] = *ptr;
+				++ptr;
+				++j;
+			}
+			material->constantTable[i].nameHash = Game::R_HashString(constName);
+			float* literal = reader.readArray<float>(4);
+			material->constantTable[i].literal[0] = literal[0];
+			material->constantTable[i].literal[1] = literal[1];
+			material->constantTable[i].literal[2] = literal[2];
+			material->constantTable[i].literal[3] = literal[3];
+
+			builder->getAllocator()->free(constName);
+			builder->getAllocator()->free(literal);
+		}
+
+		material->stateBitTable = reader.readArray<Game::GfxStateBits>(material->stateBitsCount);
+	}
+
+	void IMaterial::loadJson(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File materialInfo(fmt::sprintf("materials/%s.json", name.data()));
 
