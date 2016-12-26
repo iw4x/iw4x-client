@@ -33,7 +33,7 @@ namespace Assets
 		material->sortKey = reader.readByte();
 		material->textureAtlasRowCount = reader.readByte();
 		material->textureAtlasColumnCount = reader.readByte();
-		material->drawSurf.packed = reader.read<__int16>();
+		material->drawSurf.packed = reader.read<__int64>();
 		material->surfaceTypeBits = reader.read<int>();
 		material->hashIndex = reader.read<unsigned __int16>();
 		char* stateBitsEntry = reader.readArray<char>(48);
@@ -43,27 +43,29 @@ namespace Assets
 		material->stateBitsCount = reader.readByte();
 		material->stateFlags = reader.readByte();
 		material->cameraRegion = reader.readByte();
-		material->techniqueSet = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_TECHSET, reader.readCString()).techniqueSet;
 
-		material->textureTable = builder->getAllocator()->allocateArray<Game::MaterialTextureDef>(material->textureCount);
-		material->constantTable = builder->getAllocator()->allocateArray<Game::MaterialConstantDef>(material->constantCount);
-		material->stateBitTable = builder->getAllocator()->allocateArray<Game::GfxStateBits>(material->stateBitsCount);
+		std::string techset = reader.readString();
+		material->techniqueSet = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_TECHSET, techset.data()).techniqueSet;
+
+		material->textureTable = builder->getAllocator()->allocateArray<Game::MaterialTextureDef>(material->textureCount & 0xFF);
+		material->constantTable = builder->getAllocator()->allocateArray<Game::MaterialConstantDef>(material->constantCount & 0xFF);
+		material->stateBitTable = builder->getAllocator()->allocateArray<Game::GfxStateBits>(material->stateBitsCount & 0xFF);
 
 		if(!material->textureTable || !material->constantTable || !material->stateBitTable)
 		{
 			Components::Logger::Print("Error allocating memory for material structure!\n");
-			builder->getAllocator()->free(material); // cleanup
 			return;
 		}
 
-		for (int i = 0; i < material->textureCount; ++i)
+		for (char i = 0; i < material->textureCount; ++i)
 		{
-			const char* mapName = reader.readCString();
-			material->textureTable[i].nameStart = mapName[0];
-			material->textureTable[i].nameEnd = mapName[strlen(mapName) - 1];
-			material->textureTable[i].nameHash = Game::R_HashString(mapName);
+			std::string mapName = reader.readString();
+			material->textureTable[i].nameStart = mapName.front();
+			material->textureTable[i].nameEnd = mapName.back();
+			material->textureTable[i].nameHash = Game::R_HashString(mapName.data());
 			material->textureTable[i].sampleState = reader.readByte();
 			material->textureTable[i].semantic = reader.readByte();
+
 			if (material->textureTable[i].semantic == SEMANTIC_WATER_MAP)
 			{
 				material->textureTable[i].info.water->floatTime = reader.read<float>();
@@ -90,36 +92,23 @@ namespace Assets
 			{
 				material->textureTable[i].info.image = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readCString()).image;
 			}
-
-			builder->getAllocator()->free(mapName);
 		}
 
-		for (int i = 0; i < material->constantCount; ++i)
+		for (char i = 0; i < material->constantCount; ++i)
 		{
-			const char* constName = reader.readCString();
-			const char* ptr = constName;
-			int j = 0;
-			// its late and msbuild wont stop bitching about strncpy being unsafe and i really dont care enough to fix it any other way
-			// this will do for now
-			// strncpy(materialConstantTable[i].name, constName, 12);
-			while(j < 12 && *ptr)
-			{
-				material->constantTable[i].name[j] = *ptr;
-				++ptr;
-				++j;
-			}
-			material->constantTable[i].nameHash = Game::R_HashString(constName);
+			std::string constName = reader.readString();
+			strncpy_s(material->constantTable[i].name, 12, constName.data(), 12);
+
+			material->constantTable[i].nameHash = Game::R_HashString(constName.data());
 			float* literal = reader.readArray<float>(4);
 			material->constantTable[i].literal[0] = literal[0];
 			material->constantTable[i].literal[1] = literal[1];
 			material->constantTable[i].literal[2] = literal[2];
 			material->constantTable[i].literal[3] = literal[3];
-
-			builder->getAllocator()->free(constName);
-			builder->getAllocator()->free(literal);
 		}
 
 		material->stateBitTable = reader.readArray<Game::GfxStateBits>(material->stateBitsCount);
+		header->material = material;
 	}
 
 	void IMaterial::loadJson(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)

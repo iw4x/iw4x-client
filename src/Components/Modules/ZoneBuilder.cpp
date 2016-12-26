@@ -792,6 +792,14 @@ namespace Components
 					}, &type, false);
 				}
 			});
+
+			Command::Add("sortkeysdump", [](Command::Params*)
+			{
+					Game::DB_EnumXAssets(Game::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void*)
+					{
+						Logger::Print("%s: %X\n", header.material->name, header.material->sortKey & 0xFF);
+					}, nullptr, false);
+			});
 		}
 	}
 

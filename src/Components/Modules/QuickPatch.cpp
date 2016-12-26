@@ -267,8 +267,8 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4D3A74, 0);
 
 		// Force debug logging
-		Utils::Hook::Nop(0x4AA89F, 2);
-		Utils::Hook::Nop(0x4AA8A1, 6);
+		Utils::Hook::Nop(0x4AA89F, 8);
+		//Utils::Hook::Set<BYTE>(0x6FF53C, 0);
 
 		// remove activeAction execution (exploit in mods)
 		Utils::Hook::Set<BYTE>(0x5A1D43, 0xEB);

@@ -130,8 +130,7 @@ namespace Assets
 
 				if (map->dpvs.surfaces[i].material)
 				{
-					std::string matname = reader.readString(); // Name
-					map->dpvs.surfaces[i].material = basemat;
+					map->dpvs.surfaces[i].material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString(), builder).material;
 				}
 			}
 		}
