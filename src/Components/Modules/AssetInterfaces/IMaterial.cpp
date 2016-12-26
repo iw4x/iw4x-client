@@ -101,15 +101,19 @@ namespace Assets
 
 		for (char i = 0; i < material->constantCount; ++i)
 		{
-			std::string constName = reader.readString();
-			strncpy_s(material->constantTable[i].name, 12, constName.data(), 12);
+			for (int j = 0; j < 12; ++j)
+			{
+				material->constantTable[i].name[j] = reader.readByte();
+			}
+
+			std::string constName(material->constantTable[i].name, 12);
+			constName.push_back('0');
 
 			material->constantTable[i].nameHash = Game::R_HashString(constName.data());
-			float* literal = reader.readArray<float>(4);
-			material->constantTable[i].literal[0] = literal[0];
-			material->constantTable[i].literal[1] = literal[1];
-			material->constantTable[i].literal[2] = literal[2];
-			material->constantTable[i].literal[3] = literal[3];
+			material->constantTable[i].literal[0] = reader.read<float>();
+			material->constantTable[i].literal[1] = reader.read<float>();
+			material->constantTable[i].literal[2] = reader.read<float>();
+			material->constantTable[i].literal[3] = reader.read<float>();
 		}
 
 		material->stateBitTable = reader.readArray<Game::GfxStateBits>(material->stateBitsCount);
