@@ -110,6 +110,11 @@ namespace Components
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFUALT);
 
+		if (Utils::IO::FileExists("updater.exe"))
+		{
+			remove("updater.exe");
+		}
+
 		// make newsfeed (ticker) menu items not cut off based on safe area
 		Utils::Hook::Nop(0x63892D, 5);
 
