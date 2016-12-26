@@ -81,7 +81,10 @@ namespace Assets
 
 				for (int j = 0; j < cell->portalCount; ++j)
 				{
-					cell->portals[i].vertices = reader.readArray<Game::vec3_t>(cell->portals[i].vertexCount);
+					if (cell->portals[j].vertices)
+					{
+						cell->portals[j].vertices = reader.readArray<Game::vec3_t>(cell->portals[j].vertexCount & 0xFF);
+					}
 				}
 			}
 
