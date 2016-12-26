@@ -49,9 +49,14 @@ namespace Utils
 			bool end();
 			void seek(unsigned int position);
 
+			void* readPointer();
+			void mapPointer(void* oldPointer, void* newPointer);
+			bool hasPointer(void* pointer);
+
 		private:
 			unsigned int position;
 			std::string buffer;
+			std::map<void*, void*> pointerMap;
 			Utils::Memory::Allocator* allocator;
 		};
 

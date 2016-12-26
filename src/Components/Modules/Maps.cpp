@@ -306,11 +306,11 @@ namespace Components
 		map.append(fmt::sprintf("mtllib %s.mtl\n\n", world->baseName));
 
 		Logger::Print("Writing vertices...\n");
-		for (unsigned int i = 0; i < world->worldDraw.vertexCount; ++i)
+		for (unsigned int i = 0; i < world->draw.vertexCount; ++i)
 		{
-			float x = world->worldDraw.vd.vertices[i].xyz[1];
-			float y = world->worldDraw.vd.vertices[i].xyz[2];
-			float z = world->worldDraw.vd.vertices[i].xyz[0];
+			float x = world->draw.vd.vertices[i].xyz[1];
+			float y = world->draw.vd.vertices[i].xyz[2];
+			float z = world->draw.vd.vertices[i].xyz[0];
 
 			map.append(fmt::sprintf("v %.6f %.6f %.6f\n", x, y, z));
 		}
@@ -318,9 +318,9 @@ namespace Components
 		map.append("\n");
 
 		Logger::Print("Writing texture coordinates...\n");
-		for (unsigned int i = 0; i < world->worldDraw.vertexCount; ++i)
+		for (unsigned int i = 0; i < world->draw.vertexCount; ++i)
 		{
-			map.append(fmt::sprintf("vt %.6f %.6f\n", world->worldDraw.vd.vertices[i].texCoord[0], -world->worldDraw.vd.vertices[i].texCoord[1]));
+			map.append(fmt::sprintf("vt %.6f %.6f\n", world->draw.vd.vertices[i].texCoord[0], -world->draw.vd.vertices[i].texCoord[1]));
 		}
 
 		Logger::Print("Searching materials...\n");
@@ -395,9 +395,9 @@ namespace Components
 				int indexOffset = world->dpvs.surfaces[i].tris.baseIndex;
 				for (unsigned short j = 0; j < world->dpvs.surfaces[i].tris.triCount; ++j)
 				{
-					int a = world->worldDraw.indices[indexOffset + j * 3 + 0] + vertOffset;
-					int b = world->worldDraw.indices[indexOffset + j * 3 + 1] + vertOffset;
-					int c = world->worldDraw.indices[indexOffset + j * 3 + 2] + vertOffset;
+					int a = world->draw.indices[indexOffset + j * 3 + 0] + vertOffset;
+					int b = world->draw.indices[indexOffset + j * 3 + 1] + vertOffset;
+					int c = world->draw.indices[indexOffset + j * 3 + 2] + vertOffset;
 
 					map.append(fmt::sprintf("f %d/%d %d/%d %d/%d\n", a, a, b, b, c, c));
 				}
