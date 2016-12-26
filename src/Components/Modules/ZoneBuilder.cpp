@@ -714,7 +714,7 @@ namespace Components
 				}
 			});
 
-			Command::Add("verifyzone", [] (Command::Params* params)
+			Command::Add("verifyzone", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
 
@@ -753,7 +753,7 @@ namespace Components
 				Logger::Print("\n");
 			});
 
-			Command::Add("buildzone", [] (Command::Params* params)
+			Command::Add("buildzone", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
 
@@ -763,7 +763,7 @@ namespace Components
 				Zone(zoneName).build();
 			});
 
-			Command::Add("buildall", [] (Command::Params*)
+			Command::Add("buildall", [](Command::Params*)
 			{
 				auto zoneSources = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").get<std::string>() + "\\zone_source", "csv", false);
 
@@ -778,14 +778,14 @@ namespace Components
 				}
 			});
 
-			Command::Add("listassets", [] (Command::Params* params)
+			Command::Add("listassets", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
 				Game::XAssetType type = Game::DB_GetXAssetNameType(params->get(1));
 
 				if (type != Game::XAssetType::ASSET_TYPE_INVALID)
 				{
-					Game::DB_EnumXAssets(type, [] (Game::XAssetHeader header, void* data)
+					Game::DB_EnumXAssets(type, [](Game::XAssetHeader header, void* data)
 					{
 						Game::XAsset asset = { *reinterpret_cast<Game::XAssetType*>(data), header };
 						Logger::Print("%s\n", Game::DB_GetXAssetName(&asset));
@@ -793,12 +793,12 @@ namespace Components
 				}
 			});
 
-			Command::Add("sortkeysdump", [](Command::Params*)
+			Command::Add("materialInfoDump", [](Command::Params*)
 			{
-					Game::DB_EnumXAssets(Game::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void*)
-					{
-						Logger::Print("%s: %X\n", header.material->name, header.material->sortKey & 0xFF);
-					}, nullptr, false);
+				Game::DB_EnumXAssets(Game::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void*)
+				{
+					Logger::Print("%s: %X %X %X\n", header.material->name, header.material->sortKey & 0xFF, header.material->gameFlags & 0xFF, header.material->stateFlags & 0xFF);
+				}, nullptr, false);
 			});
 		}
 	}
