@@ -47,6 +47,11 @@ namespace Assets
 		std::string techset = reader.readString();
 		material->techniqueSet = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_TECHSET, techset.data()).techniqueSet;
 
+		if (!material->techniqueSet)
+		{
+			Components::Logger::Error("Techset '%s' not found!", techset.data());
+		}
+
 		material->textureTable = builder->getAllocator()->allocateArray<Game::MaterialTextureDef>(material->textureCount & 0xFF);
 		material->constantTable = builder->getAllocator()->allocateArray<Game::MaterialConstantDef>(material->constantCount & 0xFF);
 		material->stateBitTable = builder->getAllocator()->allocateArray<Game::GfxStateBits>(material->stateBitsCount & 0xFF);
