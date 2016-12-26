@@ -60,13 +60,20 @@ namespace Assets
 
 			const Game::GfxImageFileHeader* iwiHeader = reinterpret_cast<const Game::GfxImageFileHeader*>(iwiBuffer.data());
 
+			if (std::memcmp(iwiHeader->tag, "IWi", 3) && iwiHeader->version == 8)
+			{
+				Components::Logger::Error("Image is not a valid IWi!");
+				return;
+			}
+
 			image->mapType = Game::MAPTYPE_2D;
 			image->dataLen1 = iwiHeader->fileSizeForPicmip[0] - 32;
 			image->dataLen2 = iwiHeader->fileSizeForPicmip[0] - 32;
 
-			if (std::memcmp(iwiHeader->tag, "IWi", 3) && iwiHeader->version == 8)
+			image->loadDef = builder->getAllocator()->allocate<Game::GfxImageLoadDef>();
+			if (!image->loadDef)
 			{
-				Components::Logger::Error("Image is not a valid IWi!");
+				Components::Logger::Error("Failed to allocate GfxImageLoadDef structure!");
 				return;
 			}
 
