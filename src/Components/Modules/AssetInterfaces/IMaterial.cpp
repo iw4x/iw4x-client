@@ -118,6 +118,16 @@ namespace Assets
 
 		material->stateBitTable = reader.readArray<Game::GfxStateBits>(material->stateBitsCount);
 		header->material = material;
+
+		// Find correct sortkey by comparing techsets
+		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void* data)
+		{
+			Game::Material* material = reinterpret_cast<Game::Material*>(data);
+			if (std::string(material->techniqueSet->name) == header.material->techniqueSet->name)
+			{
+				material->sortKey = header.material->sortKey;
+			}
+		}, material, false);
 	}
 
 	void IMaterial::loadJson(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)

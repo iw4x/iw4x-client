@@ -494,7 +494,9 @@ namespace Game
 	struct MaterialTechniqueSet
 	{
 		const char* name;
-		char pad[4];
+		char worldVertFormat;
+		bool hasBeenUploaded;
+		char unused[1];
 		MaterialTechniqueSet* remappedTechniques;
 		MaterialTechnique* techniques[48];
 	};

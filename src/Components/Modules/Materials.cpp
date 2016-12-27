@@ -131,17 +131,8 @@ namespace Components
 	{
 		static Game::Material* a = m1;
 		static Game::Material* b = m2;
-		int result = 0;
-		__asm
-		{
-			push m1
-			push m2
-			mov eax, 0x5235B0
-			call eax
-			add esp, 8
-			mov result, eax
-		}
-		return result;
+
+		return Utils::Hook::Call<int(Game::Material*, Game::Material*)>(0x5235B0)(m1, m2);
 	}
 
 #endif
@@ -180,7 +171,7 @@ namespace Components
 		}
 
 		Logger::Print("%d\n", sizeof(int (*)(Game::Material*, Game::Material*)));
-		Utils::Hook::Set<int (*)(Game::Material*, Game::Material*)>(0x523894, static_cast<int (*)(Game::Material*, Game::Material*)>(Materials::MaterialComparePrint));
+		Utils::Hook::Set<void*>(0x523894, Materials::MaterialComparePrint);
 #endif
 
 // 		Renderer::OnFrame([] ()
