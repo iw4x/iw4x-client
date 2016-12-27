@@ -132,7 +132,7 @@ namespace Assets
 		}, material, false);
 	}
 
-	void IMaterial::loadNative(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IMaterial::loadNative(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
 		header->material = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).material;
 	}
