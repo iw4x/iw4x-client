@@ -63,10 +63,10 @@ namespace Assets
 			map->dpvsPlanes.nodes = reader.readArray<unsigned short>(map->nodeCount);
 			map->dpvsPlanes.sceneEntCellBits = reinterpret_cast<unsigned int*>(reader.readArray<char>(map->dpvsPlanes.cellCount << 11));
 			map->aabbTreeCounts = reader.readArray<Game::GfxCellTreeCount>(map->dpvsPlanes.cellCount);
-		
+
 			//map->aabbTrees = reader.readArray<Game::GfxCellTree>(map->dpvsPlanes.cellCount);
 			map->aabbTrees = builder->getAllocator()->allocateArray<Game::GfxCellTree>(map->dpvsPlanes.cellCount);
-			
+
 			for (int i = 0; i < map->dpvsPlanes.cellCount; ++i)
 			{
 				map->aabbTrees[i].aabbTree = reader.readArray<Game::GfxAabbTree>(map->aabbTreeCounts[i].aabbTreeCount);
@@ -138,6 +138,10 @@ namespace Assets
 		map->draw.reflectionProbeCount = 0;
 		map->draw.reflectionProbes = 0;
 		map->draw.reflectionProbeTextures = 0;
+
+		map->draw.lightmapCount = 0;
+		map->draw.lightmapPrimaryTextures = 0;
+		map->draw.lightmapSecondaryTextures = 0;
 
 		//Components::Logger::Error("Missing GfxMap %s... you can't make them yet you idiot.", name.data());
 	}
