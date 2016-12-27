@@ -45,7 +45,7 @@ namespace Assets
 		material->cameraRegion = reader.readByte();
 
 		std::string techset = reader.readString();
-		material->techniqueSet = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_TECHSET, techset.data()).techniqueSet;
+		material->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHSET, techset.data(), builder).techniqueSet;
 
 		if (!material->techniqueSet)
 		{
@@ -91,11 +91,11 @@ namespace Assets
 				material->textureTable[i].info.water->codeConstant[1] = reader.read<float>();
 				material->textureTable[i].info.water->codeConstant[2] = reader.read<float>();
 				material->textureTable[i].info.water->codeConstant[3] = reader.read<float>();
-				material->textureTable[i].info.water->image = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readCString()).image;
+				material->textureTable[i].info.water->image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
 			}
 			else
 			{
-				material->textureTable[i].info.image = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readCString()).image;
+				material->textureTable[i].info.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
 			}
 		}
 
