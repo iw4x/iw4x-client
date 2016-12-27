@@ -30,7 +30,7 @@ namespace Components
 		{
 			Materials::ImageNameLength = 4 + length;
 			std::string image(imagePtr, length);
-			
+
 			return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
 		}
 
@@ -65,7 +65,7 @@ namespace Components
 
 	int Materials::WriteDeathMessageIcon(char* string, int offset, Game::Material* material)
 	{
-		if (!material) 
+		if (!material)
 		{
 			material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
 		}
@@ -126,6 +126,24 @@ namespace Components
 			fclose(fp);
 		}
 	}
+
+	int Materials::MaterialComparePrint(Game::Material* m1, Game::Material* m2)
+	{
+		static Game::Material* a = m1;
+		static Game::Material* b = m2;
+		int result = 0;
+		__asm
+		{
+			push m1
+			push m2
+			mov eax, 0x5235B0
+			call eax
+			add esp, 8
+			mov result, eax
+		}
+		return result;
+	}
+
 #endif
 
 	Materials::Materials()
@@ -160,13 +178,16 @@ namespace Components
 			Utils::Hook::Nop(0x51F5AC, 5);
 			Utils::Hook::Nop(0x51F4C4, 5);
 		}
+
+		Logger::Print("%d\n", sizeof(int (*)(Game::Material*, Game::Material*)));
+		Utils::Hook::Set<int (*)(Game::Material*, Game::Material*)>(0x523894, static_cast<int (*)(Game::Material*, Game::Material*)>(Materials::MaterialComparePrint));
 #endif
 
 // 		Renderer::OnFrame([] ()
 // 		{
 // 			Game::Font* font = Game::R_RegisterFont("fonts/normalFont");
 // 			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-// 
+//
 // 			Game::R_AddCmdDrawText("test^==preview_mp_rustzob", 0x7FFFFFFF, font, 500.0f, 150.0f, 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
 // 		});
 	}

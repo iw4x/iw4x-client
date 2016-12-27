@@ -28,6 +28,7 @@ namespace Components
 #ifdef DEBUG
 		static void DumpImageCfg(int, const char*, const char* material);
 		static void DumpImageCfgPath(int, const char*, const char* material);
+		static int MaterialComparePrint(Game::Material* m1, Game::Material* m2);
 #endif
 	};
 }
