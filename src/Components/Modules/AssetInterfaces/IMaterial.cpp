@@ -6,16 +6,18 @@ namespace Assets
 {
 	void IMaterial::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
+		if (!header->data) this->loadJson(header, name, builder);   // Check if we want to override materials
+		if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
+		if (!header->data) this->loadBinary(header, name, builder); // Check if we need to import a new one into the game
+	}
+
+	void IMaterial::loadBinary(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	{
 		Components::FileSystem::File materialFile(fmt::sprintf("materials/%s.iw4xMaterial", name.data()));
-		if(!materialFile.exists())
-		{
-			this->loadJson(header, name, builder);
-			return;
-		}
+		if (!materialFile.exists()) return;
 
 		Game::Material* material = builder->getAllocator()->allocate<Game::Material>();
-
-		if(!material)
+		if (!material)
 		{
 			Components::Logger::Print("Error allocating memory for material structure!\n");
 			return;
@@ -56,7 +58,7 @@ namespace Assets
 		material->constantTable = builder->getAllocator()->allocateArray<Game::MaterialConstantDef>(material->constantCount & 0xFF);
 		material->stateBitTable = builder->getAllocator()->allocateArray<Game::GfxStateBits>(material->stateBitsCount & 0xFF);
 
-		if(!material->textureTable || !material->constantTable || !material->stateBitTable)
+		if (!material->textureTable || !material->constantTable || !material->stateBitTable)
 		{
 			Components::Logger::Print("Error allocating memory for material structure!\n");
 			return;
@@ -128,6 +130,11 @@ namespace Assets
 				material->sortKey = header.material->sortKey;
 			}
 		}, material, false);
+	}
+
+	void IMaterial::loadNative(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	{
+		header->material = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).material;
 	}
 
 	void IMaterial::loadJson(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
