@@ -95,6 +95,7 @@ namespace Components
 
 	int Materials::FormatImagePath(char* buffer, size_t size, int, int, const char* image)
 	{
+#if 0
 		if (Utils::String::StartsWith(image, "preview_"))
 		{
 			std::string newImage = image;
@@ -105,6 +106,7 @@ namespace Components
 				image = Utils::String::VA("%s", newImage.data());
 			}
 		}
+#endif
 
 		return _snprintf_s(buffer, size, size, "images/%s.iwi", image);
 	}

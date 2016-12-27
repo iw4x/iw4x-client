@@ -68,6 +68,7 @@ namespace Assets
 	void IGameWorldSp::saveVehicleTrackSegment_ptrArray(Game::VehicleTrackSegment** trackSegmentPtrs, int count, Components::ZoneBuilder::Zone* builder)
 	{
 		Utils::Stream* buffer = builder->getBuffer();
+		if (!trackSegmentPtrs) return;
 
 		Game::VehicleTrackSegment** destTrackSegmentPtrs = buffer->dest<Game::VehicleTrackSegment*>();
 		buffer->saveArray(trackSegmentPtrs, count);

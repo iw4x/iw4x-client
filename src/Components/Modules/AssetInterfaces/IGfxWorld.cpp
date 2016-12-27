@@ -108,7 +108,6 @@ namespace Assets
 
 				map->draw.vd.vertices[i].texCoord[0] = originalVerts[i % 3].texCoord[0];
 				map->draw.vd.vertices[i].texCoord[1] = originalVerts[i % 3].texCoord[1];
-				map->draw.vd.vertices[i].texCoord[2] = originalVerts[i % 3].texCoord[2];
 			}
 
 			for (int i = 0; i < 8; ++i)
