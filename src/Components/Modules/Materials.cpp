@@ -170,7 +170,6 @@ namespace Components
 			Utils::Hook::Nop(0x51F4C4, 5);
 		}
 
-		Logger::Print("%d\n", sizeof(int (*)(Game::Material*, Game::Material*)));
 		Utils::Hook::Set<void*>(0x523894, Materials::MaterialComparePrint);
 #endif
 
