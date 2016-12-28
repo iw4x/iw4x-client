@@ -9,11 +9,11 @@ namespace Utils
 			typedef void(*FreeCallback)(void*);
 
 			Allocator()
-			{ 
+			{
 				this->pool.clear();
 				this->refMemory.clear();
 			}
-			~Allocator() 
+			~Allocator()
 			{
 				this->clear();
 			}
@@ -79,11 +79,11 @@ namespace Utils
 				this->pool.push_back(data);
 				return data;
 			}
-			template <typename T> T* allocate()
+			template <typename T> inline T* allocate()
 			{
 				return this->allocateArray<T>(1);
 			}
-			template <typename T> T* allocateArray(size_t count = 1)
+			template <typename T> inline T* allocateArray(size_t count = 1)
 			{
 				return static_cast<T*>(this->allocate(count * sizeof(T)));
 			}
@@ -110,11 +110,11 @@ namespace Utils
 
 		static void* AllocateAlign(size_t length, size_t alignment);
 		static void* Allocate(size_t length);
-		template <typename T> static T* Allocate()
+		template <typename T> static inline T* Allocate()
 		{
 			return AllocateArray<T>(1);
 		}
-		template <typename T> static T* AllocateArray(size_t count = 1)
+		template <typename T> static inline T* AllocateArray(size_t count = 1)
 		{
 			return static_cast<T*>(Allocate(count * sizeof(T)));
 		}
