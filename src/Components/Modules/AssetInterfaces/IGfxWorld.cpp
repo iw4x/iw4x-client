@@ -7,7 +7,7 @@ namespace Assets
 	void IGfxWorld::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		if (name != "maps/iw4_credits.d3dbsp") return;
-		Game::GfxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFX_MAP, "maps/iw4_credits.d3dbsp").gfxWorld;
+		Game::GfxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, "maps/iw4_credits.d3dbsp").gfxWorld;
 		if (!map) return;
 		header->gfxWorld = map;
 

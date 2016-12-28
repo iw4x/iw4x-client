@@ -1505,12 +1505,12 @@ namespace Components
 
 	__declspec(noinline) bool Zones::CheckGameMapSp(int type)
 	{
-		if (type == Game::XAssetType::ASSET_TYPE_GAME_MAP_SP)
+		if (type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP)
 		{
 			return true;
 		}
 
-		if (Zones::Version() >= VERSION_ALPHA2 && type == Game::XAssetType::ASSET_TYPE_GAME_MAP_MP)
+		if (Zones::Version() >= VERSION_ALPHA2 && type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP)
 		{
 			Maps::HandleAsSPMap();
 			return true;

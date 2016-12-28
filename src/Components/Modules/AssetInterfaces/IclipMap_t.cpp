@@ -566,7 +566,7 @@ namespace Assets
 
 	void IclipMap_t::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
-		Game::clipMap_t* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_COL_MAP_MP, name.data()).clipMap;
+		Game::clipMap_t* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, name.data()).clipMap;
 		if (map) return;
 
 		Components::Logger::Error("Missing clipMap_t %s... you can't make them yet you idiot.", name.data());

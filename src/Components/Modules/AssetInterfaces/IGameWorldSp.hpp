@@ -3,7 +3,7 @@ namespace Assets
 	class IGameWorldSp : public Components::AssetHandler::IAsset
 	{
 	public:
-		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_GAME_MAP_SP; };
+		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP; };
 
 		virtual void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		virtual void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;

@@ -419,9 +419,9 @@ namespace Game
 			if (!_stricmp(DB_GetXAssetTypeName(type), name))
 			{
 				// Col map workaround!
-				if (type == Game::XAssetType::ASSET_TYPE_COL_MAP_SP)
+				if (type == Game::XAssetType::ASSET_TYPE_CLIPMAP)
 				{
-					return Game::XAssetType::ASSET_TYPE_COL_MAP_MP;
+					return Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS;
 				}
 
 				return type;

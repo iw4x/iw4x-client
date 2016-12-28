@@ -63,7 +63,7 @@ namespace Components
 		if (!entry || !entry->value)
 		{
 			Localization::LocalizeMutex.unlock();
-			entry = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_LOCALIZE, key).localize;
+			entry = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, key).localize;
 			Localization::LocalizeMutex.lock();
 		}
 
@@ -161,7 +161,7 @@ namespace Components
 
 	Localization::Localization()
 	{
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE, [] (Game::XAssetType, std::string filename)
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [] (Game::XAssetType, std::string filename)
 		{
 			Game::XAssetHeader header = { 0 };
 			std::lock_guard<std::mutex> _(Localization::LocalizeMutex);

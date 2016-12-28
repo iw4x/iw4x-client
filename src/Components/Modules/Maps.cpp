@@ -85,8 +85,8 @@ namespace Components
 		};
 
 		// Internal doesn't lock the thread, as locking is impossible, due to executing this in the thread that holds the current lock
-		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_COL_MAP_MP, callback, ents, true);
-		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_COL_MAP_SP, callback, ents, true);
+		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, callback, ents, true);
+		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_CLIPMAP, callback, ents, true);
 	}
 
 	void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
@@ -94,7 +94,7 @@ namespace Components
 		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()
 			&& (FastFiles::Current() != "mp_shipment_long" || Maps::CurrentMainZone != "mp_shipment")) // Shipment is a special case
 		{
-			if (type == Game::XAssetType::ASSET_TYPE_GAME_MAP_MP || type == Game::XAssetType::ASSET_TYPE_COL_MAP_MP || type == Game::XAssetType::ASSET_TYPE_GFX_MAP || type == Game::XAssetType::ASSET_TYPE_MAP_ENTS || type == Game::XAssetType::ASSET_TYPE_COM_MAP || type == Game::XAssetType::ASSET_TYPE_FX_MAP)
+			if (type == Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS || type == Game::XAssetType::ASSET_TYPE_CLIPMAP || type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP || type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP || type == Game::XAssetType::ASSET_TYPE_GFXWORLD || type == Game::XAssetType::ASSET_TYPE_MAP_ENTS || type == Game::XAssetType::ASSET_TYPE_COMWORLD || type == Game::XAssetType::ASSET_TYPE_FX_MAP)
 			{
 				*restrict = true;
 				return;
@@ -147,7 +147,7 @@ namespace Components
 		}
 
 		// This is broken
-		if ((type == Game::XAssetType::ASSET_TYPE_MENU || type == Game::XAssetType::ASSET_TYPE_MENUFILE) && Zones::Version() >= 359)
+		if ((type == Game::XAssetType::ASSET_TYPE_MENU || type == Game::XAssetType::ASSET_TYPE_MENULIST) && Zones::Version() >= 359)
 		{
 			*restrict = true;
 			return;
@@ -158,11 +158,11 @@ namespace Components
 	{
 		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::IsSPMap)
 		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_SP].gameWorldSp[0].data;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].data;
 		}
 		else
 		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAME_MAP_MP].gameWorldMp[0].data;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp[0].data;
 		}
 	}
 
@@ -560,12 +560,12 @@ namespace Components
 		// Allow loading raw suns
 		Utils::Hook(0x51B46A, Maps::LoadRawSun, HOOK_CALL).install()->quick();
 
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAME_MAP_SP, 1);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FX, 1200);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOCALIZE, 14000);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XANIM, 8192);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XANIMPARTS, 8192);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL, 5125);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PHYSPRESET, 128);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PIXELSHADER, 10000);
@@ -574,7 +574,7 @@ namespace Components
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXDECL, 196);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, 2400);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMPACTFX, 8);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMPACT_FX, 8);
 
 		this->reallocateEntryPool();
 
@@ -595,7 +595,7 @@ namespace Components
 			}
 
 			Game::GfxWorld* world = nullptr;
-			Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_GFX_MAP, [] (Game::XAssetHeader header, void* world)
+			Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_GFXWORLD, [] (Game::XAssetHeader header, void* world)
 			{
 				*reinterpret_cast<Game::GfxWorld**>(world) = header.gfxWorld;
 			}, &world, false);

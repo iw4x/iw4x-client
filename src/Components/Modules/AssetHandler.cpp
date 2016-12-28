@@ -132,7 +132,7 @@ namespace Components
 		}
 
 		// Fix shader const stuff
-		if (type == Game::XAssetType::ASSET_TYPE_TECHSET && Zones::Version() >= 359)
+		if (type == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET && Zones::Version() >= 359)
 		{
 			for (int i = 0; i < 48; ++i)
 			{

@@ -17,7 +17,7 @@ namespace Assets
 
 			if (alias->volumeFalloffCurve)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SNDCURVE, alias->volumeFalloffCurve);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, alias->volumeFalloffCurve);
 			}
 		}
 	}
@@ -137,7 +137,7 @@ namespace Assets
 
 					if (alias->volumeFalloffCurve)
 					{
-						destAlias->volumeFalloffCurve = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_SNDCURVE, alias->volumeFalloffCurve).sndCurve;
+						destAlias->volumeFalloffCurve = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, alias->volumeFalloffCurve).sndCurve;
 					}
 
 					if (alias->speakerMap)

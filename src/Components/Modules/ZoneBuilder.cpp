@@ -700,7 +700,7 @@ namespace Components
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODELSURFS, 8192);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 14336);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHSET, 1536);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, 1536);
 
 			// hunk size (was 300 MiB)
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB

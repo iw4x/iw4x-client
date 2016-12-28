@@ -620,7 +620,7 @@ namespace Components
 
 		// Intercept asset finding
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, Menus::MenuLoad);
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENUFILE, Menus::MenuFileLoad);
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENULIST, Menus::MenuFileLoad);
 
 		// Don't open connect menu
 		//Utils::Hook::Nop(0x428E48, 5);

@@ -47,7 +47,7 @@ namespace Assets
 		material->cameraRegion = reader.readByte();
 
 		std::string techset = reader.readString();
-		material->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHSET, techset.data(), builder).techniqueSet;
+		material->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techset.data(), builder).techniqueSet;
 
 		if (!material->techniqueSet)
 		{
@@ -303,7 +303,7 @@ namespace Assets
 
 		if (asset->techniqueSet)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, asset->techniqueSet);
 		}
 
 		if (asset->textureTable)
@@ -347,7 +347,7 @@ namespace Assets
 
 		if (asset->techniqueSet)
 		{
-			dest->techniqueSet = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_TECHSET, asset->techniqueSet).techniqueSet;
+			dest->techniqueSet = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, asset->techniqueSet).techniqueSet;
 		}
 
 		if (asset->textureTable)

@@ -3,7 +3,7 @@ namespace Assets
 	class IGfxWorld : public Components::AssetHandler::IAsset
 	{
 	public:
-		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_GFX_MAP; };
+		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_GFXWORLD; };
 
 		virtual void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
         virtual void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
