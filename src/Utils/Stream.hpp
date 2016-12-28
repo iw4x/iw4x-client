@@ -30,7 +30,11 @@ namespace Utils
 			char readByte();
 
 			void* read(size_t size, size_t count = 1);
-			template <typename T> T* readArray(size_t count = 1)
+			template <typename T> inline T* readObject()
+			{
+				return readArray<T>(1);
+			}
+			template <typename T> inline T* readArray(size_t count = 1)
 			{
 				return reinterpret_cast<T*>(this->read(sizeof(T), count));
 			}

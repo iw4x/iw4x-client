@@ -4,30 +4,131 @@
 
 namespace Assets
 {
-	void IGfxWorld::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IGfxWorld::loadGfxWorldDpvsStatic(Game::GfxWorld* world, Game::GfxWorldDpvsStatic* asset, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader)
 	{
-		if (name != "maps/iw4_credits.d3dbsp") return;
-		Game::GfxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, "maps/iw4_credits.d3dbsp").gfxWorld;
-		if (!map) return;
-		header->gfxWorld = map;
-
-		map->name = "maps/mp/mp_toujane.d3dbsp";
-		map->baseName = "mp_toujane";
-
-		Game::Material* basemat = /*Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "white").material;*/map->dpvs.surfaces[0].material;
-		if (!basemat) return;
-
-		for (unsigned int i = 0; i < map->dpvs.staticSurfaceCount; ++i)
+		if (asset->sortedSurfIndex)
 		{
-			if (map->dpvs.surfaces[i].material)
+			asset->sortedSurfIndex = reader->readArray<unsigned short>(asset->staticSurfaceCount + asset->staticSurfaceCountNoDecal);
+		}
+
+		if (asset->smodelInsts)
+		{
+			asset->smodelInsts = reader->readArray<Game::GfxStaticModelInst>(asset->smodelCount);
+		}
+
+		if (asset->surfaces)
+		{
+			asset->surfaces = reader->readArray<Game::GfxSurface>(world->surfaceCount);
+
+			for (unsigned int i = 0; i < world->surfaceCount; ++i)
 			{
-				map->dpvs.surfaces[i].material = basemat;
+				Game::GfxSurface* surface = &asset->surfaces[i];
+
+				if (surface->material)
+				{
+					world->dpvs.surfaces[i].material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader->readString().data(), builder).material;
+				}
 			}
 		}
 
-		//return;
+		if (asset->surfacesBounds)
+		{
+			asset->surfacesBounds = reader->readArray<Game::GfxSurfaceBounds>(world->surfaceCount);
+		}
 
-		Components::FileSystem::File mapFile(fmt::sprintf("gfxworld/%s.iw4xGfxWorld", /*map->baseName*/"mp_waw_toujane_night"));
+		if (asset->smodelDrawInsts)
+		{
+			asset->smodelDrawInsts = reader->readArray<Game::GfxStaticModelDrawInst>(asset->smodelCount);
+
+			for (unsigned int i = 0; i < asset->smodelCount; ++i)
+			{
+				Game::GfxStaticModelDrawInst* model = &asset->smodelDrawInsts[i];
+
+				if (model->model)
+				{
+					model->model = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, reader->readString().data(), builder).model;
+					//reader->readString(); model->model = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_XMODEL, "void").model; // Use red-fx for now
+				}
+			}
+		}
+	}
+
+	void IGfxWorld::loadGfxWorldDraw(Game::GfxWorldDraw* asset, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader)
+	{
+		if (asset->reflectionImages)
+		{
+			asset->reflectionImages = reader->readArray<Game::GfxImage*>(asset->reflectionProbeCount);
+
+			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
+			{
+				asset->reflectionImages[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+			}
+		}
+
+		if (asset->reflectionProbes)
+		{
+			asset->reflectionProbes = reader->readArray<Game::GfxReflectionProbe>(asset->reflectionProbeCount);
+		}
+
+		if (asset->lightmaps)
+		{
+			asset->lightmaps = reader->readArray<Game::GfxLightmapArray>(asset->lightmapCount);
+
+			for (int i = 0; i < asset->lightmapCount; ++i)
+			{
+				Game::GfxLightmapArray* lightmapArray = &asset->lightmaps[i];
+
+				if (lightmapArray->primary)
+				{
+					lightmapArray->primary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+				}
+
+				if (lightmapArray->secondary)
+				{
+					lightmapArray->secondary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+				}
+			}
+		}
+
+		if (asset->skyImage)
+		{
+			asset->skyImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+		}
+
+		if (asset->outdoorImage)
+		{
+			asset->outdoorImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+		}
+
+		// saveGfxWorldVertexData
+		{
+			if (asset->vd.vertices)
+			{
+				asset->vd.vertices = reader->readArray<Game::GfxWorldVertex>(asset->vertexCount);
+			}
+		}
+
+		// saveGfxWorldVertexLayerData
+		{
+			if (asset->vld.data)
+			{
+				// no align for char
+				asset->vld.data = reader->readArray<char>(asset->vertexLayerDataSize);
+			}
+		}
+
+		if (asset->indices)
+		{
+			asset->indices = reader->readArray<unsigned short>(asset->indexCount);
+		}
+	}
+
+	void IGfxWorld::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	{
+		Utils::String::Replace(name, "maps/mp/", "");
+		Utils::String::Replace(name, ".d3dbsp", "");
+
+		Components::FileSystem::File mapFile(fmt::sprintf("gfxworld/%s.iw4xGfxWorld", name.data()));
 
 		if (mapFile.exists())
 		{
@@ -35,115 +136,240 @@ namespace Assets
 
 			if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xGfxW"))
 			{
-				Components::Logger::Error(0, "Reading gfxworld '%s' failed, header is invalid!", name.data());
+				Components::Logger::Error("Reading gfxworld '%s' failed, header is invalid!", name.data());
 			}
 
 			int version = reader.read<int>();
 			if (version != IW4X_GFXMAP_VERSION)
 			{
-				Components::Logger::Error(0, "Reading gfxworld '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_GFXMAP_VERSION, version);
+				Components::Logger::Error("Reading gfxworld '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_GFXMAP_VERSION, version);
 			}
 
-			std::string _name = reader.readString(); // Name
-			std::string bname = reader.readString(); // Basename
+			Game::GfxWorld* asset = reader.readObject<Game::GfxWorld>();
+			header->gfxWorld = asset;
 
-			map->nodeCount = reader.read<int>();
-			map->planeCount = reader.read<int>();
-
-			map->bounds.midPoint[0] = reader.read<float>();
-			map->bounds.midPoint[1] = reader.read<float>();
-			map->bounds.midPoint[2] = reader.read<float>();
-
-			map->bounds.halfSize[0] = reader.read<float>();
-			map->bounds.halfSize[1] = reader.read<float>();
-			map->bounds.halfSize[2] = reader.read<float>();
-
-			map->dpvsPlanes = reader.read<Game::GfxWorldDpvsPlanes>();
-			map->dpvsPlanes.planes = reader.readArray<Game::cplane_t>(map->planeCount);
-			map->dpvsPlanes.nodes = reader.readArray<unsigned short>(map->nodeCount);
-			map->dpvsPlanes.sceneEntCellBits = reinterpret_cast<unsigned int*>(reader.readArray<char>(map->dpvsPlanes.cellCount << 11));
-			map->aabbTreeCounts = reader.readArray<Game::GfxCellTreeCount>(map->dpvsPlanes.cellCount);
-
-			//map->aabbTrees = reader.readArray<Game::GfxCellTree>(map->dpvsPlanes.cellCount);
-			map->aabbTrees = builder->getAllocator()->allocateArray<Game::GfxCellTree>(map->dpvsPlanes.cellCount);
-
-			for (int i = 0; i < map->dpvsPlanes.cellCount; ++i)
+			if (asset->name)
 			{
-				map->aabbTrees[i].aabbTree = reader.readArray<Game::GfxAabbTree>(map->aabbTreeCounts[i].aabbTreeCount);
+				asset->name = reader.readCString();
 			}
 
-			map->cells = reader.readArray<Game::GfxCell>(map->dpvsPlanes.cellCount);
-
-			for (int i = 0; i < map->dpvsPlanes.cellCount; ++i)
+			if (asset->baseName)
 			{
-				Game::GfxCell* cell = &map->cells[i];
-				cell->portals = reader.readArray<Game::GfxPortal>(cell->portalCount);
+				asset->baseName = reader.readCString();
+			}
 
-				for (int j = 0; j < cell->portalCount; ++j)
+			if (asset->skies)
+			{
+				asset->skies = reader.readArray<Game::GfxSky>(asset->skyCount);
+
+				for (int i = 0; i < asset->skyCount; ++i)
 				{
-					if (cell->portals[j].vertices)
+					Game::GfxSky* sky = &asset->skies[i];
+
+					if (sky->skyStartSurfs)
 					{
-						cell->portals[j].vertices = reader.readArray<Game::vec3_t>(cell->portals[j].vertexCount & 0xFF);
+						sky->skyStartSurfs = reader.readArray<int>(sky->skySurfCount);
+					}
+
+					if (sky->skyImage)
+					{
+						sky->skyImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
 					}
 				}
 			}
 
-			//return;
-
-			Game::GfxWorldVertex* originalVerts = map->draw.vd.vertices;
-
-			map->draw.indexCount = reader.read<int>();
-			map->draw.indices = reader.readArray<unsigned short>(map->draw.indexCount);
-
-			map->draw.vertexCount = reader.read<unsigned int>();
-			map->draw.vd.vertices = reader.readArray<Game::GfxWorldVertex>(map->draw.vertexCount);
-
-			map->draw.vertexLayerDataSize = reader.read<unsigned int>();
-			map->draw.vld.data = reader.readArray<char>(map->draw.vertexLayerDataSize);
-
-			for (unsigned int i = 0; i < map->draw.vertexCount; ++i)
+			// GfxWorldDpvsPlanes
 			{
-				map->draw.vd.vertices[i].lmapCoord[0] = originalVerts[i % 3].lmapCoord[0];
-				map->draw.vd.vertices[i].lmapCoord[1] = originalVerts[i % 3].lmapCoord[1];
-
-				map->draw.vd.vertices[i].texCoord[0] = originalVerts[i % 3].texCoord[0];
-				map->draw.vd.vertices[i].texCoord[1] = originalVerts[i % 3].texCoord[1];
-			}
-
-			for (int i = 0; i < 8; ++i)
-			{
-				(&map->dpvs.staticSurfaceCount)[i] = reader.read<unsigned int>();
-			}
-
-			map->surfaceCount = map->dpvs.staticSurfaceCount;
-			map->dpvs.sortedSurfIndex = reader.readArray<unsigned short>(map->dpvs.staticSurfaceCount + map->dpvs.staticSurfaceCountNoDecal);
-			//map->dpvs.surfacesBounds = reader.readArray<Game::GfxSurfaceBounds>(map->dpvs.staticSurfaceCount);
-			map->dpvs.surfaces = builder->getAllocator()->allocateArray<Game::GfxSurface>(map->dpvs.staticSurfaceCount);
-
-			for (unsigned int i = 0; i < map->dpvs.staticSurfaceCount; ++i)
-			{
-				//Game::GfxSurface* surf = reader.readArray<Game::GfxSurface>(1);
-				//std::memcpy(&map->dpvs.surfaces[i], surf, sizeof(Game::GfxSurface));
-
-				map->dpvs.surfaces[i] = reader.read<Game::GfxSurface>();
-
-				if (map->dpvs.surfaces[i].material)
+				// TODO: Add pointer support
+				if (asset->dpvsPlanes.planes)
 				{
-					map->dpvs.surfaces[i].material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString(), builder).material;
+					asset->dpvsPlanes.planes = reader.readArray<Game::cplane_t>(asset->planeCount);
+				}
+
+				if (asset->dpvsPlanes.nodes)
+				{
+					asset->dpvsPlanes.nodes = reader.readArray<unsigned short>(asset->nodeCount);
 				}
 			}
+
+
+			int cellCount = asset->dpvsPlanes.cellCount;
+
+			if (asset->aabbTreeCounts)
+			{
+				asset->aabbTreeCounts = reader.readArray<Game::GfxCellTreeCount>(cellCount);
+			}
+
+			if (asset->aabbTrees)
+			{
+				asset->aabbTrees = reader.readArray<Game::GfxCellTree>(cellCount);
+
+				for (int i = 0; i < cellCount; ++i)
+				{
+					Game::GfxCellTree* cellTree = &asset->aabbTrees[i];
+
+					if (cellTree->aabbTree)
+					{
+						cellTree->aabbTree = reader.readArray<Game::GfxAabbTree>(asset->aabbTreeCounts[i].aabbTreeCount);
+
+						for (int j = 0; j < asset->aabbTreeCounts[i].aabbTreeCount; ++j)
+						{
+							Game::GfxAabbTree* aabbTree = &cellTree->aabbTree[j];
+
+							if (aabbTree->smodelIndexes)
+							{
+								aabbTree->smodelIndexes = reader.readArray<unsigned short>(aabbTree->smodelIndexCount);
+							}
+						}
+					}
+				}
+			}
+
+			if (asset->cells)
+			{
+				asset->cells = reader.readArray<Game::GfxCell>(cellCount);
+
+				for (int i = 0; i < cellCount; ++i)
+				{
+					Game::GfxCell* cell = &asset->cells[i];
+
+					if (cell->portals)
+					{
+						cell->portals = reader.readArray<Game::GfxPortal>(cell->portalCount);
+
+						for (int j = 0; j < cell->portalCount; ++j)
+						{
+							Game::GfxPortal* portal = &cell->portals[j];
+
+							if (portal->vertices)
+							{
+								portal->vertices = reader.readArray<Game::vec3_t>(portal->vertexCount);
+							}
+						}
+					}
+
+					if (cell->reflectionProbes)
+					{
+						// no align for char
+						cell->reflectionProbes = reader.readArray<char>(cell->reflectionProbeCount);
+					}
+				}
+			}
+
+			this->loadGfxWorldDraw(&asset->draw, builder, &reader);
+
+			// GfxLightGrid
+			{
+				if (asset->lightGrid.rowDataStart)
+				{
+					asset->lightGrid.rowDataStart = reader.readArray<unsigned short>((asset->lightGrid.maxs[asset->lightGrid.rowAxis] - asset->lightGrid.mins[asset->lightGrid.rowAxis]) + 1);
+				}
+
+				if (asset->lightGrid.rawRowData)
+				{
+					// no align for char
+					asset->lightGrid.rawRowData = reader.readArray<char>(asset->lightGrid.rawRowDataSize);
+				}
+
+				if (asset->lightGrid.entries)
+				{
+					asset->lightGrid.entries = reader.readArray<Game::GfxLightGridEntry>(asset->lightGrid.entryCount);
+				}
+
+				if (asset->lightGrid.colors)
+				{
+					asset->lightGrid.colors = reader.readArray<Game::GfxLightGridColors>(asset->lightGrid.colorCount);
+				}
+			}
+
+			if (asset->models)
+			{
+				asset->models = reader.readArray<Game::GfxBrushModel>(asset->modelCount);
+			}
+
+			if (asset->materialMemory)
+			{
+				asset->materialMemory = reader.readArray<Game::MaterialMemory>(asset->materialMemoryCount);
+
+				for (int i = 0; i < asset->materialMemoryCount; ++i)
+				{
+					Game::MaterialMemory* materialMemory = &asset->materialMemory[i];
+
+					if (materialMemory->material)
+					{
+						materialMemory->material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString().data(), builder).material;
+					}
+				}
+			}
+
+			if (asset->sun.spriteMaterial)
+			{
+				asset->sun.spriteMaterial = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString().data(), builder).material;
+			}
+
+			if (asset->sun.flareMaterial)
+			{
+				asset->sun.flareMaterial = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString().data(), builder).material;
+			}
+
+			if (asset->outdoorImage)
+			{
+				asset->outdoorImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
+			}
+
+			if (asset->shadowGeom)
+			{
+				asset->shadowGeom = reader.readArray<Game::GfxShadowGeometry>(asset->primaryLightCount);
+
+				for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
+				{
+					Game::GfxShadowGeometry* shadowGeometry = &asset->shadowGeom[i];
+
+					if (shadowGeometry->sortedSurfIndex)
+					{
+						shadowGeometry->sortedSurfIndex = reader.readArray<unsigned short>(shadowGeometry->surfaceCount);
+					}
+
+					if (shadowGeometry->smodelIndex)
+					{
+						shadowGeometry->smodelIndex = reader.readArray<unsigned short>(shadowGeometry->smodelCount);
+					}
+				}
+			}
+
+			if (asset->lightRegion)
+			{
+				asset->lightRegion = reader.readArray<Game::GfxLightRegion>(asset->primaryLightCount);
+
+				for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
+				{
+					Game::GfxLightRegion* lightRegion = &asset->lightRegion[i];
+
+					if (lightRegion->hulls)
+					{
+						lightRegion->hulls = reader.readArray<Game::GfxLightRegionHull>(lightRegion->hullCount);
+
+						for (unsigned int j = 0; j < lightRegion->hullCount; ++j)
+						{
+							Game::GfxLightRegionHull* lightRegionHull = &lightRegion->hulls[j];
+
+							if (lightRegionHull->axis)
+							{
+								lightRegionHull->axis = reader.readArray<Game::GfxLightRegionAxis>(lightRegionHull->axisCount);
+							}
+						}
+					}
+				}
+			}
+
+			this->loadGfxWorldDpvsStatic(asset, &asset->dpvs, builder, &reader);
+
+			// Obsolete, IW3 has no support for that
+			if (asset->heroOnlyLights)
+			{
+				asset->heroOnlyLights = reader.readArray<Game::GfxHeroOnlyLight>(asset->heroOnlyLightCount);
+			}
 		}
-
-		map->draw.reflectionImages = 0;
-		map->draw.reflectionProbeCount = 0;
-		map->draw.reflectionProbes = 0;
-		map->draw.reflectionProbeTextures = 0;
-
-		map->draw.lightmapCount = 0;
-		map->draw.lightmapPrimaryTextures = 0;
-		map->draw.lightmapSecondaryTextures = 0;
-
-		//Components::Logger::Error("Missing GfxMap %s... you can't make them yet you idiot.", name.data());
 	}
 
 	void IGfxWorld::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
