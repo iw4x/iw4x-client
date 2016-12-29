@@ -49,8 +49,10 @@ namespace Assets
 			image->depth = image->loadDef->dimensions[2];
 
 			image->loaded = true;
+
+			header->image = image;
 		}
-		else
+		else if(name[0] != '*')
 		{
 			char nameBuffer[MAX_PATH] = { 0 };
 			Components::Materials::FormatImagePath(nameBuffer, sizeof(nameBuffer), 0, 0, name.data());
@@ -123,9 +125,9 @@ namespace Assets
 					break;
 				}
 			}
-		}
 
-		header->image = image;
+			header->image = image;
+		}
 	}
 
 	void IGfxImage::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
