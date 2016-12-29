@@ -861,6 +861,21 @@ namespace Assets
 
 		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, Utils::String::VA("maps/mp/%s.d3dbsp", name.c_str()), builder).mapEnts;
 
+		// This mustn't be null and has to have at least 1 'valid' entry.
+		if (!clipMap->unkCount4 || !clipMap->unknown4)
+		{
+			clipMap->unkCount4 = 1;
+			clipMap->unknown4 = builder->getAllocator()->allocateArray<Game::SModelAabbNode>(1);
+		}
+
+		// These mustn't be null, but they don't need to be valid.
+		for (int i = 0; i < 2; ++i)
+		{
+			Utils::Stream::ClearPointer(&clipMap->dynEntPoseList[i]);
+			Utils::Stream::ClearPointer(&clipMap->dynEntClientList[i]);
+			Utils::Stream::ClearPointer(&clipMap->dynEntCollList[i]);
+		}
+
 		header->clipMap = clipMap;
 	}
 }
