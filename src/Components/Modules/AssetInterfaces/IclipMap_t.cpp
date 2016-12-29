@@ -1,5 +1,7 @@
 #include <StdInclude.hpp>
 
+#define IW4X_CLIPMAP_VERSION 1
+
 namespace Assets
 {
 	void IclipMap_t::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
@@ -564,11 +566,247 @@ namespace Assets
 		builder->loadAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset);
 	}
 
-	void IclipMap_t::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
+	void IclipMap_t::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::clipMap_t* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, name.data()).clipMap;
 		if (map) return;
 
-		Components::Logger::Error("Missing clipMap_t %s... you can't make them yet you idiot.", name.data());
+		std::string basename(name);
+
+		basename.erase(0, 8);
+		basename.erase(basename.end() - 7, basename.end());
+
+		Components::FileSystem::File clipFile(fmt::sprintf("clipmap/%s.iw4xClipMap", basename.data()));
+		if (!clipFile.exists()) return;
+
+		Game::clipMap_t* clipMap = builder->getAllocator()->allocate<Game::clipMap_t>();
+		if (!clipMap)
+		{
+			Components::Logger::Print("Error allocating memory for clipMap_t structure!\n");
+			return;
+		}
+
+		Utils::Stream::Reader reader(builder->getAllocator(), clipFile.getBuffer());
+
+		if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xClip"))
+		{
+			Components::Logger::Error(0, "Reading clipMap_t '%s' failed, header is invalid!", name.data());
+		}
+
+		int version = reader.read<int>();
+		if (version != IW4X_CLIPMAP_VERSION)
+		{
+			Components::Logger::Error(0, "Reading clipmap '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_CLIPMAP_VERSION, version);
+		}
+
+		clipMap->name = reader.readCString();
+
+		clipMap->numCPlanes = reader.read<int>();
+		clipMap->numStaticModels = reader.read<int>();
+		clipMap->numMaterials = reader.read<int>();
+		clipMap->numCBrushSides = reader.read<int>();
+		clipMap->numCBrushEdges = reader.read<int>();
+		clipMap->numCNodes = reader.read<int>();
+		clipMap->numCLeaf = reader.read<int>();
+		clipMap->numCLeafBrushNodes = reader.read<int>();
+		clipMap->numLeafBrushes = reader.read<int>();
+		clipMap->numLeafSurfaces = reader.read<int>();
+		clipMap->numVerts = reader.read<int>();
+		clipMap->numTriIndices = reader.read<int>();
+		clipMap->numCollisionBorders = reader.read<int>();
+		clipMap->numCollisionPartitions = reader.read<int>();
+		clipMap->numCollisionAABBTrees = reader.read<int>();
+		clipMap->numCModels = reader.read<int>();
+		clipMap->numCBrushes = reader.read<short>();
+		clipMap->dynEntCount[0] = reader.read<unsigned __int16>();
+		clipMap->dynEntCount[1] = reader.read<unsigned __int16>();
+
+		if (clipMap->numCPlanes)
+		{
+			clipMap->cPlanes = reader.readArray<Game::cplane_t>(clipMap->numCPlanes);
+		}
+
+		if (clipMap->numStaticModels)
+		{
+			clipMap->staticModelList = reader.readArray<Game::cStaticModel_t>(clipMap->numStaticModels);
+		}
+
+		if (clipMap->numMaterials)
+		{
+			clipMap->materials = builder->getAllocator()->allocateArray<Game::ClipMaterial>(clipMap->numMaterials);
+			for (int i = 0; i < clipMap->numMaterials; ++i)
+			{	
+				clipMap->materials[i].name = reader.readArray<char>(64);
+				clipMap->materials[i].unk = reader.read<int>();
+				clipMap->materials[i].unk2 = reader.read<int>();
+			}
+		}
+
+		if (clipMap->numCBrushSides)
+		{
+			clipMap->cBrushSides = builder->getAllocator()->allocateArray<Game::cbrushside_t>(clipMap->numCBrushSides);
+			for (int i = 0; i < clipMap->numCBrushSides; ++i)
+			{
+				int planeIndex = reader.read<int>();
+				clipMap->cBrushSides[i].side = &clipMap->cPlanes[planeIndex];
+				// not sure how to fill out texInfo and dispInfo
+				// just leave zero for now
+			}
+		}
+
+		if (clipMap->numCBrushEdges)
+		{
+			clipMap->cBrushEdges = reader.readArray<char>(clipMap->numCBrushEdges);
+		}
+
+		if (clipMap->numCNodes)
+		{
+			clipMap->cNodes = builder->getAllocator()->allocateArray<Game::cNode_t>(clipMap->numCNodes);
+			for (int i = 0; i < clipMap->numCNodes; ++i)
+			{
+				int planeIndex = reader.read<int>();
+				clipMap->cNodes[i].plane = &clipMap->cPlanes[planeIndex];
+				clipMap->cNodes[i].children[0] = reader.read<short>();
+				clipMap->cNodes[i].children[1] = reader.read<short>();
+			}
+		}
+
+		if (clipMap->numCLeaf)
+		{
+			clipMap->cLeaf = reader.readArray<Game::cLeaf_t>(clipMap->numCLeaf);
+		}
+
+		if (clipMap->numCLeafBrushNodes)
+		{
+			clipMap->cLeafBrushNodes = builder->getAllocator()->allocateArray<Game::cLeafBrushNode_t>(clipMap->numCLeafBrushNodes);
+			for (int i = 0; i < clipMap->numCLeafBrushNodes; ++i)
+			{
+				Game::cLeafBrushNode_t tmp = reader.read<Game::cLeafBrushNode_t>();
+				memcpy(&clipMap->cLeafBrushNodes[i], &tmp, sizeof(Game::cLeafBrushNode_t));
+
+				if (tmp.leafBrushCount > 0)
+				{
+					clipMap->cLeafBrushNodes[i].data.brushes = reader.readArray<unsigned short>(tmp.leafBrushCount);
+				}
+			}
+		}
+
+		if (clipMap->numLeafBrushes)
+		{
+			clipMap->leafBrushes = reader.readArray<short>(clipMap->numLeafBrushes);
+		}
+
+		if (clipMap->numLeafSurfaces)
+		{
+			clipMap->leafSurfaces = reader.readArray<int>(clipMap->numLeafSurfaces);
+		}
+
+		if (clipMap->numVerts)
+		{
+			clipMap->verts = reader.readArray<Game::vec3_t>(clipMap->numVerts);
+		}
+
+		if (clipMap->numTriIndices)
+		{
+			clipMap->triIndices = reader.readArray<short>(clipMap->numTriIndices * 3);
+			clipMap->triEdgeIsWalkable = reader.readArray<bool>(4 * ((3 * clipMap->numTriIndices + 31) >> 5));
+		}
+
+		if (clipMap->numCollisionBorders)
+		{
+			clipMap->collisionBorders = reader.readArray<Game::CollisionBorder>(clipMap->numCollisionBorders);
+		}
+
+		if (clipMap->numCollisionPartitions)
+		{
+			clipMap->collisionPartitions = builder->getAllocator()->allocateArray<Game::CollisionPartition>(clipMap->numCollisionPartitions);
+			for (int i = 0; i < clipMap->numCollisionPartitions; ++i)
+			{
+				clipMap->collisionPartitions[i].triCount = reader.read<char>();
+				clipMap->collisionPartitions[i].borderCount = reader.read<char>();
+				clipMap->collisionPartitions[i].firstTri = reader.read<int>();
+
+				if (clipMap->collisionPartitions[i].borderCount > 0)
+				{
+					int index = reader.read<int>();
+					clipMap->collisionPartitions[i].borders = &clipMap->collisionBorders[index];
+				}
+			}
+		}
+
+		if (clipMap->numCollisionAABBTrees)
+		{
+			clipMap->collisionAABBTrees = reader.readArray<Game::CollisionAabbTree>(clipMap->numCollisionAABBTrees);
+		}
+
+		if (clipMap->numCModels)
+		{
+			clipMap->cModels = reader.readArray<Game::cmodel_t>(clipMap->numCModels);
+		}
+
+		if (clipMap->numCBrushes)
+		{
+			clipMap->cBrushes = builder->getAllocator()->allocateArray<Game::cbrush_t>(clipMap->numCBrushes);
+			for (int i = 0; i < clipMap->numCBrushes; ++i)
+			{
+				clipMap->cBrushes[i].count = reader.read<int>();
+				if (clipMap->cBrushes[i].count > 0)
+				{
+					int index = reader.read<int>();
+					clipMap->cBrushes[i].brushSide = &clipMap->cBrushSides[index];
+				}
+
+				int index = reader.read<int>();
+				clipMap->cBrushes[i].brushEdge = &clipMap->cBrushEdges[index];
+
+				reader.readArray<short>(6); // don't know where these go
+				reader.readArray<short>(6);
+				reader.readArray<char>(6);
+			}
+
+			clipMap->cBrushBounds = reader.readArray<Game::Bounds>(clipMap->numCBrushes);
+			clipMap->cBrushContents = reader.readArray<int>(clipMap->numCBrushes);
+		}
+
+		for (int x = 0; x < 2; ++x)
+		{
+			if (clipMap->dynEntCount[x])
+			{
+				clipMap->dynEntDefList[x] = builder->getAllocator()->allocateArray<Game::DynEntityDef>(clipMap->dynEntCount[x]);
+				for (int i = 0; i < clipMap->dynEntCount[x]; ++i)
+				{
+					clipMap->dynEntDefList[x][i].type = reader.read<Game::DynEntityType>();
+					clipMap->dynEntDefList[x][i].pose = reader.read<Game::GfxPlacement>();
+					std::string tempName = reader.readString();
+					if (tempName != "NONE"s)
+					{
+						clipMap->dynEntDefList[x][i].xModel = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, name, builder).model;
+					}
+
+					clipMap->dynEntDefList[x][i].brushModel = reader.read<short>();
+					clipMap->dynEntDefList[x][i].physicsBrushModel = reader.read<short>();
+
+					tempName = reader.readString();
+					if (tempName != "NONE"s)
+					{
+						clipMap->dynEntDefList[x][i].destroyFx = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, name, builder).fx;
+					}
+
+					tempName = reader.readString();
+					if (tempName != "NONE"s)
+					{
+						clipMap->dynEntDefList[x][i].physPreset = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_PHYSPRESET, name, builder).physPreset;
+					}
+
+					clipMap->dynEntDefList[x][i].health = reader.read<int>();
+					clipMap->dynEntDefList[x][i].mass = reader.read<Game::PhysMass>();
+					clipMap->dynEntDefList[x][i].contents = reader.read<int>();
+				}
+			}
+		}
+
+		clipMap->checksum = reader.read<int>();
+
+		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, basename.c_str(), builder).mapEnts;
 	}
 }

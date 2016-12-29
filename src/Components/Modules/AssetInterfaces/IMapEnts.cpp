@@ -4,7 +4,14 @@ namespace Assets
 {
 	void IMapEnts::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File ents(name + ".ents");
+		std::string basename(name);
+
+		basename.erase(0, 8);
+		basename.erase(basename.end() - 7, basename.end());
+
+		Components::Logger::Print("Using basename %s for mapents %s\n", basename.c_str(), name.c_str());
+
+		Components::FileSystem::File ents(Utils::String::VA("mapents/%s.ents", basename.c_str()));
 		if (ents.exists())
 		{
 			Game::MapEnts* entites = builder->getAllocator()->allocate<Game::MapEnts>();
