@@ -20,7 +20,7 @@ namespace Assets
 			}
 			else
 			{
-				entites->name = builder->getAllocator()->duplicateString(name);
+				entites->name = builder->getAllocator()->duplicateString(Utils::String::VA("maps/mp/%s.d3dbsp", name));
 			}
 
 			entites->entityString = builder->getAllocator()->duplicateString(ents.getBuffer());

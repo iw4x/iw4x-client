@@ -775,10 +775,6 @@ namespace Assets
 			memset(clipMap->cBrushes, 0, sizeof(Game::cbrush_t) * clipMap->numCBrushes);
 			for (int i = 0; i < clipMap->numCBrushes; ++i)
 			{
-				if (i == 134)
-				{
-					__debugbreak();
-				}
 				clipMap->cBrushes[i].numsides = reader.read<unsigned int>() & 0xFFFF; // todo: check for overflow here
 				if (clipMap->cBrushes[i].numsides > 0)
 				{
