@@ -334,12 +334,22 @@ namespace Game
 		char* name;
 	};
 
-	struct water_t
+	struct WaterWritable
 	{
 		float floatTime;
-		float *H0X;		// Count = M * N
-		float *H0Y;		// Count = M * N
-		//float *wTerm;		// Count = M * N
+	};
+
+	struct complex_s
+	{
+		float real;
+		float imag;
+	};
+
+	struct water_t
+	{
+		WaterWritable writable;
+		complex_s *H0;
+		float *wTerm;
 		int M;
 		int N;
 		float Lx;

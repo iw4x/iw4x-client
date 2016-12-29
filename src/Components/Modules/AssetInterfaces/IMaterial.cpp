@@ -75,13 +75,12 @@ namespace Assets
 
 			if (material->textureTable[i].semantic == SEMANTIC_WATER_MAP)
 			{
-				material->textureTable[i].info.water->floatTime = reader.read<float>();
+				material->textureTable[i].info.water->writable.floatTime = reader.read<float>();
 				material->textureTable[i].info.water->M = reader.read<int>();
 				material->textureTable[i].info.water->N = reader.read<int>();
 				int count = material->textureTable[i].info.water->M * material->textureTable[i].info.water->N;
-				material->textureTable[i].info.water->H0X = reader.readArray<float>(count);
-				material->textureTable[i].info.water->H0Y = reader.readArray<float>(count);
-				/*material->textureTable[i].info.water->wTerm =*/ reader.readArray<float>(count);
+				material->textureTable[i].info.water->H0 = reader.readArray<Game::complex_s>(count);
+				material->textureTable[i].info.water->wTerm = reader.readArray<float>(count);
 				material->textureTable[i].info.water->Lx = reader.read<float>();
 				material->textureTable[i].info.water->Lz = reader.read<float>();
 				material->textureTable[i].info.water->gravity = reader.read<float>();
@@ -386,18 +385,18 @@ namespace Assets
 							Utils::Stream::ClearPointer(&destTextureDef->info.water);
 
 							// Save_water_t
-							if (water->H0X)
+							if (water->H0)
 							{
 								buffer->align(Utils::Stream::ALIGN_4);
-								buffer->save(water->H0X, 8, water->M * water->N);
-								Utils::Stream::ClearPointer(&destWater->H0X);
+								buffer->save(water->H0, 8, water->M * water->N);
+								Utils::Stream::ClearPointer(&destWater->H0);
 							}
 
-							if (water->H0Y)
+							if (water->wTerm)
 							{
 								buffer->align(Utils::Stream::ALIGN_4);
-								buffer->save(water->H0Y, 4, water->M * water->N);
-								Utils::Stream::ClearPointer(&destWater->H0Y);
+								buffer->save(water->wTerm, 4, water->M * water->N);
+								Utils::Stream::ClearPointer(&destWater->wTerm);
 							}
 
 							if (water->image)
