@@ -248,6 +248,8 @@ namespace Game
 
 	Win_GetLanguage_t Win_GetLanguage = (Win_GetLanguage_t)0x45CBA0;
 
+	Vec3UnpackUnitVec_t Vec3UnpackUnitVec = (Vec3UnpackUnitVec_t)0x45CA90;
+
 	XAssetHeader* DB_XAssetPool = (XAssetHeader*)0x7998A8;
 	unsigned int* g_poolSize = (unsigned int*)0x7995E8;
 

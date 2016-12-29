@@ -584,6 +584,9 @@ namespace Game
 	typedef const char * (__cdecl * Win_GetLanguage_t)();
 	extern Win_GetLanguage_t Win_GetLanguage;
 
+	typedef void (__cdecl * Vec3UnpackUnitVec_t)(PackedUnitVec, vec3_t *);
+	extern Vec3UnpackUnitVec_t Vec3UnpackUnitVec;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
