@@ -372,7 +372,7 @@ namespace Components
 		float singleProgress = 1.0f / FastFiles::MaxZones;
 		float partialProgress = singleProgress * (FastFiles::CurrentZone - 1);
 		float currentProgress = std::max(std::min(Game::DB_GetLoadedFraction(), 1.0f), 0.0f);
-		return partialProgress + (currentProgress * singleProgress);
+		return std::min(partialProgress + (currentProgress * singleProgress), 1.0f);
 	}
 
 	void FastFiles::LoadZonesStub(Game::XZoneInfo *zoneInfo, unsigned int zoneCount)
