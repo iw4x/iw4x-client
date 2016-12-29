@@ -7,7 +7,7 @@ namespace Assets
 	void IGfxImage::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::GfxImage* image = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_IMAGE, name.data()).image;
-		if (image) return;
+		if (image && name[0] != '*') return;
 
 		image = builder->getAllocator()->allocate<Game::GfxImage>();
 		if (!image)
@@ -43,6 +43,12 @@ namespace Assets
 			image->dataLen2 = image->dataLen1;
 
 			image->loadDef = reinterpret_cast<Game::GfxImageLoadDef*>(reader.readArray<char>(image->dataLen1 + 16));
+
+			image->height = image->loadDef->dimensions[0];
+			image->width = image->loadDef->dimensions[1];
+			image->depth = image->loadDef->dimensions[2];
+
+			image->loaded = true;
 		}
 		else
 		{
@@ -80,6 +86,10 @@ namespace Assets
 			std::memcpy(image->loadDef->dimensions, iwiHeader->dimensions, 6);
 			image->loadDef->flags = 0;
 			image->loadDef->levelCount = 0;
+
+			image->height = image->loadDef->dimensions[0];
+			image->width = image->loadDef->dimensions[1];
+			image->depth = image->loadDef->dimensions[2];
 
 			switch (iwiHeader->format)
 			{

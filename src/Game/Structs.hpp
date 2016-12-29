@@ -3003,7 +3003,7 @@ namespace Game
 	struct GfxPackedPlacement
 	{
 		float origin[3];
-		PackedUnitVec axis[3];
+		vec3_t/*PackedUnitVec*/ axis[3];
 		float scale;
 	};
 
@@ -3011,7 +3011,7 @@ namespace Game
 	{
 		GfxPackedPlacement placement;
 
-		char pad[24];
+		//char pad[24];
 
 		XModel *model; // 52
 		float cullDist;
