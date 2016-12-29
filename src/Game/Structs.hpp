@@ -2381,11 +2381,15 @@ namespace Game
 
 	struct cbrush_t
 	{
-		int count;
-		cbrushside_t * brushSide;
-		char * brushEdge;
-		char pad[24];
+		unsigned __int16 numsides;
+		unsigned __int16 glassPieceIndex;
+		cbrushside_t *sides;
+		char *baseAdjacentSide;
+		__int16 axialMaterialNum[2][3];
+		char firstAdjacentSideOffsets[2][3];
+		char edgeCount[2][3];
 	};
+
 
 	struct cLeaf_t
 	{
@@ -2504,8 +2508,11 @@ namespace Game
 
 	struct SModelAabbNode
 	{
-		char pad[28];
+		Bounds bounds;
+		unsigned __int16 firstChild;
+		unsigned __int16 childCount;
 	};
+
 
 	struct clipMap_t
 	{
@@ -2981,22 +2988,21 @@ namespace Game
 
 
 	struct GfxStaticModelDrawInst;
-
 	struct GfxWorldDpvsStatic
 	{
 		unsigned int smodelCount;
 		unsigned int staticSurfaceCount;
 		unsigned int staticSurfaceCountNoDecal;
-		unsigned int litSurfsBegin;
-		unsigned int litSurfsEnd;
-		unsigned int decalSurfsBegin;
-		unsigned int decalSurfsEnd;
+		unsigned int litOpaqueSurfsBegin;
+		unsigned int litOpaqueSurfsEnd;
+		unsigned int litTransSurfsBegin;
+		unsigned int litTransSurfsEnd;
+		unsigned int shadowCasterSurfsBegin;
+		unsigned int shadowCasterSurfsEnd;
 		unsigned int emissiveSurfsBegin;
 		unsigned int emissiveSurfsEnd;
 		unsigned int smodelVisDataCount;
 		unsigned int surfaceVisDataCount;
-		int surfStuff;
-		int sunShadowCount;
 		char *smodelVisData[3];
 		char *surfaceVisData[3];
 		unsigned __int16 *sortedSurfIndex;
@@ -3008,6 +3014,7 @@ namespace Game
 		unsigned int *surfaceCastsSunShadow;
 		volatile int usageCount;
 	};
+
 
 #pragma pack(push, 4)
 	struct GfxPackedPlacement

@@ -359,11 +359,11 @@ namespace Assets
 				Game::cbrush_t* destBrush = &destBrushes[i];
 				Game::cbrush_t* brush = &asset->cBrushes[i];
 
-				if (brush->brushSide)
+				if (brush->sides)
 				{
-					if (builder->hasPointer(brush->brushSide))
+					if (builder->hasPointer(brush->sides))
 					{
-						destBrush->brushSide = builder->getPointer(brush->brushSide);
+						destBrush->sides = builder->getPointer(brush->sides);
 					}
 					else
 					{
@@ -372,41 +372,41 @@ namespace Assets
 						MessageBoxA(0, "BrushSide shouldn't be written in cBrush!", "WARNING", MB_ICONEXCLAMATION);
 
 						buffer->align(Utils::Stream::ALIGN_4);
-						builder->storePointer(brush->brushSide);
+						builder->storePointer(brush->sides);
 
 						Game::cbrushside_t* side = buffer->dest<Game::cbrushside_t>();
-						buffer->save(brush->brushSide);
+						buffer->save(brush->sides);
 
-						if (brush->brushSide->side)
+						if (brush->sides->side)
 						{
-							if (builder->hasPointer(brush->brushSide->side))
+							if (builder->hasPointer(brush->sides->side))
 							{
-								side->side = builder->getPointer(brush->brushSide->side);
+								side->side = builder->getPointer(brush->sides->side);
 							}
 							else
 							{
 								buffer->align(Utils::Stream::ALIGN_4);
-								builder->storePointer(brush->brushSide->side);
-								buffer->save(brush->brushSide->side);
+								builder->storePointer(brush->sides->side);
+								buffer->save(brush->sides->side);
 								Utils::Stream::ClearPointer(&side->side);
 							}
 						}
 
-						Utils::Stream::ClearPointer(&destBrush->brushSide);
+						Utils::Stream::ClearPointer(&destBrush->sides);
 					}
 				}
 
-				if (brush->brushEdge)
+				if (brush->baseAdjacentSide)
 				{
-					if (builder->hasPointer(brush->brushEdge))
+					if (builder->hasPointer(brush->baseAdjacentSide))
 					{
-						destBrush->brushEdge = builder->getPointer(brush->brushEdge);
+						destBrush->baseAdjacentSide = builder->getPointer(brush->baseAdjacentSide);
 					}
 					else
 					{
-						builder->storePointer(brush->brushEdge);
-						buffer->save(brush->brushEdge);
-						Utils::Stream::ClearPointer(&destBrush->brushEdge);
+						builder->storePointer(brush->baseAdjacentSide);
+						buffer->save(brush->baseAdjacentSide);
+						Utils::Stream::ClearPointer(&destBrush->baseAdjacentSide);
 					}
 				}
 			}
@@ -566,18 +566,16 @@ namespace Assets
 		builder->loadAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset);
 	}
 
-	void IclipMap_t::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IclipMap_t::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		Game::clipMap_t* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, name.data()).clipMap;
-		if (map) return;
+		Utils::String::Replace(name, "maps/mp/", "");
+		Utils::String::Replace(name, ".d3dbsp", "");
 
-		std::string basename(name);
-
-		basename.erase(0, 8);
-		basename.erase(basename.end() - 7, basename.end());
-
-		Components::FileSystem::File clipFile(fmt::sprintf("clipmap/%s.iw4xClipMap", basename.data()));
-		if (!clipFile.exists()) return;
+		Components::FileSystem::File clipFile(fmt::sprintf("clipmap/%s.iw4xClipMap", name.data()));
+		if (!clipFile.exists())
+		{
+			return;
+		}
 
 		Game::clipMap_t* clipMap = builder->getAllocator()->allocate<Game::clipMap_t>();
 		if (!clipMap)
@@ -628,17 +626,27 @@ namespace Assets
 
 		if (clipMap->numStaticModels)
 		{
-			clipMap->staticModelList = reader.readArray<Game::cStaticModel_t>(clipMap->numStaticModels);
+			clipMap->staticModelList = builder->getAllocator()->allocateArray<Game::cStaticModel_t>(clipMap->numStaticModels);
+			for (int i = 0; i < clipMap->numStaticModels; ++i)
+			{
+				std::string modelName = reader.readString();
+				if (modelName != "NONE"s)
+				{
+					clipMap->staticModelList[i].xmodel = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, modelName, builder).model;
+				}
+				float* buf = reader.readArray<float>(18);
+				memcpy(&clipMap->staticModelList[i].origin, buf, sizeof(float) * 18);
+			}
 		}
 
 		if (clipMap->numMaterials)
 		{
 			clipMap->materials = builder->getAllocator()->allocateArray<Game::ClipMaterial>(clipMap->numMaterials);
-			for (int i = 0; i < clipMap->numMaterials; ++i)
+			for (int j = 0; j < clipMap->numMaterials; ++j)
 			{	
-				clipMap->materials[i].name = reader.readArray<char>(64);
-				clipMap->materials[i].unk = reader.read<int>();
-				clipMap->materials[i].unk2 = reader.read<int>();
+				clipMap->materials[j].name = reader.readArray<char>(64);
+				clipMap->materials[j].unk = reader.read<int>();
+				clipMap->materials[j].unk2 = reader.read<int>();
 			}
 		}
 
@@ -648,7 +656,14 @@ namespace Assets
 			for (int i = 0; i < clipMap->numCBrushSides; ++i)
 			{
 				int planeIndex = reader.read<int>();
+				if (planeIndex < 0 || planeIndex > clipMap->numCBrushSides) {
+					Components::Logger::Error("invalid plane index");
+					return;
+				}
 				clipMap->cBrushSides[i].side = &clipMap->cPlanes[planeIndex];
+				reader.read<int>(); // materialNum
+				reader.read<short>(); // firstAdjacentSide
+				reader.read<char>(); // edgeCount
 				// not sure how to fill out texInfo and dispInfo
 				// just leave zero for now
 			}
@@ -665,6 +680,11 @@ namespace Assets
 			for (int i = 0; i < clipMap->numCNodes; ++i)
 			{
 				int planeIndex = reader.read<int>();
+				if (planeIndex < 0 || planeIndex > clipMap->numCPlanes)
+				{
+					Components::Logger::Error("invalid plane index\n");
+					return;
+				}
 				clipMap->cNodes[i].plane = &clipMap->cPlanes[planeIndex];
 				clipMap->cNodes[i].children[0] = reader.read<short>();
 				clipMap->cNodes[i].children[1] = reader.read<short>();
@@ -729,6 +749,11 @@ namespace Assets
 				if (clipMap->collisionPartitions[i].borderCount > 0)
 				{
 					int index = reader.read<int>();
+					if (index < 0 || index > clipMap->numCollisionBorders)
+					{
+						Components::Logger::Error("invalid border index\n");
+						return;
+					}
 					clipMap->collisionPartitions[i].borders = &clipMap->collisionBorders[index];
 				}
 			}
@@ -747,21 +772,51 @@ namespace Assets
 		if (clipMap->numCBrushes)
 		{
 			clipMap->cBrushes = builder->getAllocator()->allocateArray<Game::cbrush_t>(clipMap->numCBrushes);
+			memset(clipMap->cBrushes, 0, sizeof(Game::cbrush_t) * clipMap->numCBrushes);
 			for (int i = 0; i < clipMap->numCBrushes; ++i)
 			{
-				clipMap->cBrushes[i].count = reader.read<int>();
-				if (clipMap->cBrushes[i].count > 0)
+				if (i == 134)
+				{
+					__debugbreak();
+				}
+				clipMap->cBrushes[i].numsides = reader.read<unsigned int>() & 0xFFFF; // todo: check for overflow here
+				if (clipMap->cBrushes[i].numsides > 0)
 				{
 					int index = reader.read<int>();
-					clipMap->cBrushes[i].brushSide = &clipMap->cBrushSides[index];
+					if (index < 0 || index > clipMap->numCBrushSides)
+					{
+						Components::Logger::Error("invalid side index\n");
+						return;
+					}
+					clipMap->cBrushes[i].sides = &clipMap->cBrushSides[index];
+				}
+				else
+				{
+					clipMap->cBrushes[i].sides = nullptr;
 				}
 
 				int index = reader.read<int>();
-				clipMap->cBrushes[i].brushEdge = &clipMap->cBrushEdges[index];
+				if (index > clipMap->numCBrushEdges)
+				{
+					Components::Logger::Error("invalid edge index\n");
+					return;
+				}
+				clipMap->cBrushes[i].baseAdjacentSide = &clipMap->cBrushEdges[index];
 
-				reader.readArray<short>(6); // don't know where these go
-				reader.readArray<short>(6);
-				reader.readArray<char>(6);
+				char* tmp = reader.readArray<char>(12);
+				memcpy(&clipMap->cBrushes[i].axialMaterialNum, tmp, 12);
+
+				//todo check for overflow
+				for (int r = 0; r < 2; ++r)
+				{
+					for (int c = 0; c < 3; ++c)
+					{
+						clipMap->cBrushes[i].firstAdjacentSideOffsets[r][c] = reader.read<short>() & 0xFF;
+					}
+				}
+
+				tmp = reader.readArray<char>(6);
+				memcpy(&clipMap->cBrushes[i].edgeCount, tmp, 6);
 			}
 
 			clipMap->cBrushBounds = reader.readArray<Game::Bounds>(clipMap->numCBrushes);
@@ -780,7 +835,7 @@ namespace Assets
 					std::string tempName = reader.readString();
 					if (tempName != "NONE"s)
 					{
-						clipMap->dynEntDefList[x][i].xModel = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, name, builder).model;
+						clipMap->dynEntDefList[x][i].xModel = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, tempName, builder).model;
 					}
 
 					clipMap->dynEntDefList[x][i].brushModel = reader.read<short>();
@@ -789,13 +844,13 @@ namespace Assets
 					tempName = reader.readString();
 					if (tempName != "NONE"s)
 					{
-						clipMap->dynEntDefList[x][i].destroyFx = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, name, builder).fx;
+						clipMap->dynEntDefList[x][i].destroyFx = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, tempName, builder).fx;
 					}
 
 					tempName = reader.readString();
 					if (tempName != "NONE"s)
 					{
-						clipMap->dynEntDefList[x][i].physPreset = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_PHYSPRESET, name, builder).physPreset;
+						clipMap->dynEntDefList[x][i].physPreset = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_PHYSPRESET, tempName, builder).physPreset;
 					}
 
 					clipMap->dynEntDefList[x][i].health = reader.read<int>();
@@ -807,6 +862,8 @@ namespace Assets
 
 		clipMap->checksum = reader.read<int>();
 
-		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, basename.c_str(), builder).mapEnts;
+		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, Utils::String::VA("maps/mp/%s.d3dbsp", name.c_str()), builder).mapEnts;
+
+		header->clipMap = clipMap;
 	}
 }

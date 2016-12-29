@@ -856,8 +856,8 @@ namespace Assets
 			SaveLogEnter("GfxDrawSurf");
 
 			buffer->align(Utils::Stream::ALIGN_128);
-			buffer->save(asset->surfaceCastsSunShadow, 4, asset->sunShadowCount);
-			Utils::Stream::ClearPointer(&dest->surfaceCastsSunShadow);
+			buffer->save(asset->surfaceCastsSunShadow, 4, asset->surfaceVisDataCount);
+			Utils::Stream::ClearPointer(&dest->surfaceMaterials);
 
 			SaveLogExit();
 		}
