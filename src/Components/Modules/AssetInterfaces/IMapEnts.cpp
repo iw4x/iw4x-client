@@ -14,6 +14,18 @@ namespace Assets
 			Game::MapEnts* entites = builder->getAllocator()->allocate<Game::MapEnts>();
 			Game::MapEnts* orgEnts = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).mapEnts;
 
+			// TODO: Get rid of that
+			if (!orgEnts)
+			{
+				Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MAP_ENTS, [](Game::XAssetHeader header, void* mapEnts)
+				{
+					if (!*reinterpret_cast<void**>(mapEnts))
+					{
+						*reinterpret_cast<Game::MapEnts**>(mapEnts) = header.mapEnts;
+					}
+				}, &orgEnts, false);
+			}
+
 			if (orgEnts)
 			{
 				std::memcpy(entites, orgEnts, sizeof Game::MapEnts);
