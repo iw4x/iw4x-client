@@ -36,7 +36,7 @@ namespace Assets
 				buffer->align(Utils::Stream::ALIGN_4);
 
 				// not sure if this is neede but both brushside and brushedge need it and it can't hurt
-				for(int i = 0; i < asset->numCPlanes; i++)
+				for (int i = 0; i < asset->numCPlanes; i++)
 				{
 					builder->storePointer(&asset->cPlanes[i]);
 					buffer->save(&asset->cPlanes[i]);
@@ -97,7 +97,7 @@ namespace Assets
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cbrushside_t* sides = buffer->dest<Game::cbrushside_t>();
 			// we need the pointer to each of these to be stored so we can't write them all at once
-			for(int i = 0; i < asset->numCBrushSides; ++i)
+			for (int i = 0; i < asset->numCBrushSides; ++i)
 			{
 				builder->storePointer(&asset->cBrushSides[i]); // for reference in cBrush
 				buffer->save(&asset->cBrushSides[i]);
@@ -133,7 +133,7 @@ namespace Assets
 			SaveLogEnter("cBrushEdge");
 
 			// no align for char
-			for(int i = 0; i < asset->numCBrushEdges; ++i)
+			for (int i = 0; i < asset->numCBrushEdges; ++i)
 			{
 				builder->storePointer(&asset->cBrushEdges[i]); // for reference in cBrush
 				buffer->save(&asset->cBrushEdges[i]);
@@ -643,7 +643,7 @@ namespace Assets
 		{
 			clipMap->materials = builder->getAllocator()->allocateArray<Game::ClipMaterial>(clipMap->numMaterials);
 			for (int j = 0; j < clipMap->numMaterials; ++j)
-			{	
+			{
 				clipMap->materials[j].name = reader.readArray<char>(64);
 				clipMap->materials[j].unk = reader.read<int>();
 				clipMap->materials[j].unk2 = reader.read<int>();
@@ -656,7 +656,8 @@ namespace Assets
 			for (int i = 0; i < clipMap->numCBrushSides; ++i)
 			{
 				int planeIndex = reader.read<int>();
-				if (planeIndex < 0 || planeIndex > clipMap->numCBrushSides) {
+				if (planeIndex < 0 || planeIndex > clipMap->numCBrushSides)
+				{
 					Components::Logger::Error("invalid plane index");
 					return;
 				}
