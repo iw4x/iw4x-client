@@ -2500,10 +2500,10 @@ namespace Game
 
 	struct CollisionAabbTree
 	{
-		float origin[3];
-		float halfSize[3];
+		float midPoint[3];
 		unsigned __int16 materialIndex;
 		unsigned __int16 childCount;
+		float halfSize[3];
 		CollisionAabbTreeIndex u;
 	};
 
@@ -2558,9 +2558,9 @@ namespace Game
 		Bounds* cBrushBounds; // same count as cBrushes, +148
 		int * cBrushContents; // same count as cBrushes, +152
 		MapEnts * mapEnts; // +156
-		unsigned short unkCount4; // +160
+		unsigned __int16 smodelNodeCount;
 		short pad; // +160
-		SModelAabbNode* unknown4; // +164
+		SModelAabbNode *smodelNodes;
 		unsigned __int16 dynEntCount[2];
 		DynEntityDef *dynEntDefList[2];
 		DynEntityPose *dynEntPoseList[2];

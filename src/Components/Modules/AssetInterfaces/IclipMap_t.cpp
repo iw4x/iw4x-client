@@ -434,14 +434,14 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->cBrushContents);
 		}
 
-		if (asset->unknown4)
+		if (asset->smodelNodes)
 		{
 			AssertSize(Game::SModelAabbNode, 28);
 			SaveLogEnter("SModelAabbNode");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->unknown4, asset->unkCount4);
-			Utils::Stream::ClearPointer(&dest->unknown4);
+			buffer->saveArray(asset->smodelNodes, asset->smodelNodeCount);
+			Utils::Stream::ClearPointer(&dest->smodelNodes);
 
 			SaveLogExit();
 		}
@@ -859,10 +859,14 @@ namespace Assets
 		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, Utils::String::VA("maps/mp/%s.d3dbsp", name.c_str()), builder).mapEnts;
 
 		// This mustn't be null and has to have at least 1 'valid' entry.
-		if (!clipMap->unkCount4 || !clipMap->unknown4)
+		if (!clipMap->smodelNodeCount || !clipMap->smodelNodes)
 		{
-			clipMap->unkCount4 = 1;
-			clipMap->unknown4 = builder->getAllocator()->allocateArray<Game::SModelAabbNode>(1);
+			clipMap->smodelNodeCount = 1;
+			clipMap->smodelNodes = builder->getAllocator()->allocateArray<Game::SModelAabbNode>(clipMap->smodelNodeCount);
+
+			clipMap->smodelNodes[0].bounds.halfSize[0] = -131072.000f;
+			clipMap->smodelNodes[0].bounds.halfSize[1] = -131072.000f;
+			clipMap->smodelNodes[0].bounds.halfSize[2] = -131072.000f;
 		}
 
 		// These mustn't be null, but they don't need to be valid.
