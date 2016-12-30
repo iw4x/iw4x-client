@@ -33,6 +33,10 @@ namespace Assets
 			else
 			{
 				entites->name = builder->getAllocator()->duplicateString(Utils::String::VA("maps/mp/%s.d3dbsp", name));
+				entites->stageCount = 1;
+				entites->stages = builder->getAllocator()->allocate<Game::Stage>();
+				entites->stages[0].stageName = "stage 0";
+				entites->stages[0].flags = 0x10400;
 			}
 
 			entites->entityString = builder->getAllocator()->duplicateString(ents.getBuffer());
