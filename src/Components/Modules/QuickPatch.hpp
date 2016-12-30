@@ -33,5 +33,7 @@ namespace Components
 		static void CL_HandleRelayPacketCheck(Game::msg_t* msg, int client);
 
 		static void CompareMaterialStateBits();
+
+		static void testFunc();
 	};
 }

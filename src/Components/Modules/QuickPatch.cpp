@@ -180,6 +180,23 @@ namespace Components
 		}, nullptr, false);
 	}
 
+	void QuickPatch::testFunc()
+	{
+		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, [](Game::XAssetHeader header, void* /*unused*/)
+		{
+			Game::clipMap_t* map = header.clipMap;
+
+			for (int i = 0; i < map->numCBrushSides; ++i)
+			{
+				if (map->cBrushSides[i].texInfo > map->numMaterials)
+				{
+					__debugbreak();
+				}
+			}
+
+		}, nullptr, false);
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// protocol version (workaround for hacks)
@@ -446,6 +463,11 @@ namespace Components
 		Command::Add("checkmaterials", [] (Command::Params*)
 		{
 			QuickPatch::CompareMaterialStateBits();
+		});
+
+		Command::Add("test", [](Command::Params*)
+		{
+			QuickPatch::testFunc();
 		});
 
 		// Dvars
