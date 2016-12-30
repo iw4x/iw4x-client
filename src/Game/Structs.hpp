@@ -2881,7 +2881,7 @@ namespace Game
 
 	struct GfxReflectionProbe
 	{
-		float offset[3];
+		float origin[3];
 	};
 
 	struct GfxWorldDpvsPlanes
