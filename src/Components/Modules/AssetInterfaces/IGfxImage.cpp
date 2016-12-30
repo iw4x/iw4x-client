@@ -49,6 +49,14 @@ namespace Assets
 			image->depth = image->loadDef->dimensions[2];
 
 			image->loaded = true;
+			image->loadDef->flags = 0;
+
+			if (Utils::String::StartsWith(name, "*lightmap"))
+			{
+				image->loadDef->dimensions[0] = 0;
+				image->loadDef->dimensions[1] = 2;
+				image->loadDef->dimensions[2] = 0;
+			}
 
 			header->image = image;
 		}
