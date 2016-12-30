@@ -700,12 +700,11 @@ namespace Assets
 			clipMap->cLeafBrushNodes = builder->getAllocator()->allocateArray<Game::cLeafBrushNode_t>(clipMap->numCLeafBrushNodes);
 			for (int i = 0; i < clipMap->numCLeafBrushNodes; ++i)
 			{
-				Game::cLeafBrushNode_t tmp = reader.read<Game::cLeafBrushNode_t>();
-				memcpy(&clipMap->cLeafBrushNodes[i], &tmp, sizeof(Game::cLeafBrushNode_t));
+				clipMap->cLeafBrushNodes[i] = reader.read<Game::cLeafBrushNode_t>();
 
-				if (tmp.leafBrushCount > 0)
+				if (clipMap->cLeafBrushNodes[i].leafBrushCount > 0)
 				{
-					clipMap->cLeafBrushNodes[i].data.brushes = reader.readArray<unsigned short>(tmp.leafBrushCount);
+					clipMap->cLeafBrushNodes[i].data.brushes = reader.readArray<unsigned short>(clipMap->cLeafBrushNodes[i].leafBrushCount);
 				}
 			}
 		}
@@ -867,7 +866,7 @@ namespace Assets
 		}
 
 		// These mustn't be null, but they don't need to be valid.
-		for (int i = 0; i < 2; ++i)
+		for (int i = 0; i < 2 && clipMap->dynEntCount[i]; ++i)
 		{
 			Utils::Stream::ClearPointer(&clipMap->dynEntPoseList[i]);
 			Utils::Stream::ClearPointer(&clipMap->dynEntClientList[i]);
