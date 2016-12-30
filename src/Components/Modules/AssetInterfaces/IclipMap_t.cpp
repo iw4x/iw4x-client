@@ -869,7 +869,7 @@ namespace Assets
 		}
 
 		// These mustn't be null, but they don't need to be valid.
-		for (int i = 0; i < 2; ++i)
+		for (int i = 0; i < 2 && clipMap->dynEntCount[i]; ++i)
 		{
 			Utils::Stream::ClearPointer(&clipMap->dynEntPoseList[i]);
 			Utils::Stream::ClearPointer(&clipMap->dynEntClientList[i]);
