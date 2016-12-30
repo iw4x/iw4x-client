@@ -317,6 +317,24 @@ namespace Assets
 				asset->outdoorImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
 			}
 
+			if (asset->primaryLightCount > 0)
+			{
+				Utils::Stream::ClearPointer(&asset->primaryLightEntityShadowVis);
+			}
+
+			if (asset->dpvsDyn.dynEntClientCount[0] > 0)
+			{
+				Utils::Stream::ClearPointer(&asset->sceneDynModel);
+				Utils::Stream::ClearPointer(&asset->primaryLightDynEntShadowVis[0]);
+				Utils::Stream::ClearPointer(&asset->nonSunPrimaryLightForModelDynEnt);
+			}
+
+			if (asset->dpvsDyn.dynEntClientCount[1] > 0)
+			{
+				Utils::Stream::ClearPointer(&asset->sceneDynBrush);
+				Utils::Stream::ClearPointer(&asset->primaryLightDynEntShadowVis[1]);
+			}
+
 			if (asset->shadowGeom)
 			{
 				asset->shadowGeom = reader.readArray<Game::GfxShadowGeometry>(asset->primaryLightCount);
