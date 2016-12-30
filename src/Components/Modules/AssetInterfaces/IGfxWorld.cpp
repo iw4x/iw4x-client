@@ -875,7 +875,7 @@ namespace Assets
 
 			buffer->align(Utils::Stream::ALIGN_128);
 			buffer->save(asset->surfaceCastsSunShadow, 4, asset->surfaceVisDataCount);
-			Utils::Stream::ClearPointer(&dest->surfaceMaterials);
+			Utils::Stream::ClearPointer(&dest->surfaceCastsSunShadow);
 
 			SaveLogExit();
 		}

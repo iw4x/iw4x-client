@@ -2931,8 +2931,7 @@ namespace Game
 	{
 		float mins[3];
 		float maxs[3];
-		GfxColor groundLighting;
-		int pad[2];
+		float lightingOrigin[3];
 	};
 
 	enum surfaceType_t
@@ -2990,7 +2989,7 @@ namespace Game
 	struct GfxPackedPlacement
 	{
 		float origin[3];
-		vec3_t/*PackedUnitVec*/ axis[3];
+		vec3_t axis[3];
 		float scale;
 	};
 
@@ -3035,7 +3034,6 @@ namespace Game
 		volatile int usageCount;
 	};
 
-
 #pragma pack(push, 4)
 
 	struct GfxPortalWritable
@@ -3059,7 +3057,7 @@ namespace Game
 		GfxPortalWritable writable;
 		DpvsPlane plane;
 		vec3_t* vertices;
-		char unknown[2];
+		unsigned __int16 cellIndex;
 		char vertexCount;
 		float hullAxis[2][3];
 	};
