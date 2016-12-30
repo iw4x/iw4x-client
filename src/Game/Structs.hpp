@@ -1624,9 +1624,10 @@ namespace Game
 
 	struct cbrushside_t
 	{
-		cplane_t* side;
-		short texInfo;
-		short dispInfo;
+		cplane_t *plane;
+		unsigned __int16 materialNum;
+		char firstAdjacentSideOffset;
+		char edgeCount;
 	};
 
 	struct cbrushWrapper_t
@@ -2986,8 +2987,27 @@ namespace Game
 		//char flags;
 	};
 
+	struct GfxPackedPlacement
+	{
+		float origin[3];
+		vec3_t/*PackedUnitVec*/ axis[3];
+		float scale;
+	};
 
-	struct GfxStaticModelDrawInst;
+	struct GfxStaticModelDrawInst
+	{
+		GfxPackedPlacement placement;
+		XModel *model;
+		unsigned __int16 cullDist;
+		unsigned __int16 lightingHandle;
+		char reflectionProbeIndex;
+		char primaryLightIndex;
+		char flags;
+		char firstMtlSkinIndex;
+		GfxColor groundLighting;
+		unsigned __int16 cacheId[4];
+	};
+
 	struct GfxWorldDpvsStatic
 	{
 		unsigned int smodelCount;
@@ -3017,28 +3037,6 @@ namespace Game
 
 
 #pragma pack(push, 4)
-	struct GfxPackedPlacement
-	{
-		float origin[3];
-		vec3_t/*PackedUnitVec*/ axis[3];
-		float scale;
-	};
-
-	struct GfxStaticModelDrawInst
-	{
-		GfxPackedPlacement placement;
-
-		//char pad[24];
-
-		XModel *model; // 52
-		float cullDist;
-		char reflectionProbeIndex;
-		char primaryLightIndex;
-		unsigned __int16 lightingHandle;
-		char flags;
-
-		char pad2[8];
-	};
 
 	struct GfxPortalWritable
 	{
@@ -3731,6 +3729,28 @@ namespace Game
 #pragma pack(pop)
 
 	typedef char mapname_t[40];
+
+	struct traceWork_t
+	{
+		/*TraceExtents*/int extents;
+		float delta[3];
+		float deltaLen;
+		float deltaLenSq;
+		float delta2DLen;
+		float delta2DLenSq;
+		float size[3];
+		Bounds bounds;
+		int contents;
+		bool isPoint;
+		bool axialCullOnly;
+		float radius;
+		float offset[3];
+		float radiusOffset[3];
+		float boundingRadius;
+		/*TraceThreadInfo*/ int threadInfo;
+		/*CM_WorldTraceCallbacks*/ void *callbacks;
+	};
+
 
 #ifdef __cplusplus
 }

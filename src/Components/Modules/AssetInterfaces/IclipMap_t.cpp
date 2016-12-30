@@ -105,21 +105,21 @@ namespace Assets
 
 			for (int i = 0; i < asset->numCBrushSides; ++i)
 			{
-				if (sides[i].side)
+				if (sides[i].plane)
 				{
 					AssertSize(Game::cplane_t, 20);
 
-					if (builder->hasPointer(sides[i].side))
+					if (builder->hasPointer(sides[i].plane))
 					{
-						sides[i].side = builder->getPointer(sides[i].side);
+						sides[i].plane = builder->getPointer(sides[i].plane);
 					}
 					else
 					{
 						buffer->align(Utils::Stream::ALIGN_4);
-						builder->storePointer(sides[i].side);
+						builder->storePointer(sides[i].plane);
 
-						buffer->save(sides[i].side);
-						Utils::Stream::ClearPointer(&sides[i].side);
+						buffer->save(sides[i].plane);
+						Utils::Stream::ClearPointer(&sides[i].plane);
 					}
 				}
 			}
@@ -377,18 +377,18 @@ namespace Assets
 						Game::cbrushside_t* side = buffer->dest<Game::cbrushside_t>();
 						buffer->save(brush->sides);
 
-						if (brush->sides->side)
+						if (brush->sides->plane)
 						{
-							if (builder->hasPointer(brush->sides->side))
+							if (builder->hasPointer(brush->sides->plane))
 							{
-								side->side = builder->getPointer(brush->sides->side);
+								side->plane = builder->getPointer(brush->sides->plane);
 							}
 							else
 							{
 								buffer->align(Utils::Stream::ALIGN_4);
-								builder->storePointer(brush->sides->side);
-								buffer->save(brush->sides->side);
-								Utils::Stream::ClearPointer(&side->side);
+								builder->storePointer(brush->sides->plane);
+								buffer->save(brush->sides->plane);
+								Utils::Stream::ClearPointer(&side->plane);
 							}
 						}
 
@@ -661,12 +661,10 @@ namespace Assets
 					Components::Logger::Error("invalid plane index");
 					return;
 				}
-				clipMap->cBrushSides[i].side = &clipMap->cPlanes[planeIndex];
-				reader.read<int>(); // materialNum
-				reader.read<short>(); // firstAdjacentSide
-				reader.read<char>(); // edgeCount
-				// not sure how to fill out texInfo and dispInfo
-				// just leave zero for now
+				clipMap->cBrushSides[i].plane = &clipMap->cPlanes[planeIndex];
+				clipMap->cBrushSides[i].materialNum = static_cast<unsigned short>(reader.read<int>()); // materialNum
+				clipMap->cBrushSides[i].firstAdjacentSideOffset = static_cast<char>(reader.read<short>()); // firstAdjacentSide
+				clipMap->cBrushSides[i].edgeCount = reader.read<char>(); // edgeCount
 			}
 		}
 

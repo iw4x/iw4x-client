@@ -30,19 +30,19 @@ namespace Assets
 					Game::cbrushside_t* destSide = &destBrushSide[i];
 					Game::cbrushside_t* side = &brush->brush.brushSide[i];
 
-					if (side->side)
+					if (side->plane)
 					{
-						if (builder->hasPointer(side->side))
+						if (builder->hasPointer(side->plane))
 						{
-							destSide->side = builder->getPointer(side->side);
+							destSide->plane = builder->getPointer(side->plane);
 						}
 						else
 						{
 							buffer->align(Utils::Stream::ALIGN_4);
-							builder->storePointer(side->side);
+							builder->storePointer(side->plane);
 
-							buffer->save(side->side, sizeof(Game::cplane_t));
-							Utils::Stream::ClearPointer(&destSide->side);
+							buffer->save(side->plane, sizeof(Game::cplane_t));
+							Utils::Stream::ClearPointer(&destSide->plane);
 						}
 					}
 				}
