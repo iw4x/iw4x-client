@@ -17,13 +17,18 @@ namespace Assets
 			// TODO: Get rid of that
 			if (!orgEnts)
 			{
-				Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MAP_ENTS, [](Game::XAssetHeader header, void* mapEnts)
+				orgEnts = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, "maps/iw4_credits.d3dbsp").mapEnts;
+
+				if (!orgEnts)
 				{
-					if (!*reinterpret_cast<void**>(mapEnts))
+					Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MAP_ENTS, [](Game::XAssetHeader header, void* mapEnts)
 					{
-						*reinterpret_cast<Game::MapEnts**>(mapEnts) = header.mapEnts;
-					}
-				}, &orgEnts, false);
+						if (!*reinterpret_cast<void**>(mapEnts))
+						{
+							*reinterpret_cast<Game::MapEnts**>(mapEnts) = header.mapEnts;
+						}
+					}, &orgEnts, false);
+				}
 			}
 
 			if (orgEnts)
