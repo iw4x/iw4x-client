@@ -75,6 +75,7 @@ namespace Assets
 
 			if (material->textureTable[i].semantic == SEMANTIC_WATER_MAP)
 			{
+				material->textureTable[i].info.water = builder->getAllocator()->allocate<Game::water_t>();
 				material->textureTable[i].info.water->writable.floatTime = reader.read<float>();
 				material->textureTable[i].info.water->M = reader.read<int>();
 				material->textureTable[i].info.water->N = reader.read<int>();
