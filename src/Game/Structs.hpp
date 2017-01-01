@@ -1586,10 +1586,7 @@ namespace Game
 		GfxPackedVertex* vertexBuffer; // +28
 		int numCT; // +32
 		XRigidVertList* ct; // +36
-		int partBits[4];
-		char pad5[8]; // +40
-					   // pad5 matches XModelSurfaces pad
-					   // total size, 64
+		int partBits[6];
 	};
 
 	struct XModelSurfs
@@ -1597,19 +1594,17 @@ namespace Game
 		const char* name;
 		XSurface* surfaces;
 		int numSurfaces;
-		int partBits[4];
-		char pad[8];
+		int partBits[6];
 	};
 
 	struct XModelLodInfo
 	{
 		float dist;
-		short numSurfs; // +4
-		short maxSurfs;// +6
-		XModelSurfs* surfaces; // +8
-		int partBits[4]; // +12
-		char pad3[8];
-		XSurface* surfs;
+		unsigned __int16 numsurfs;
+		unsigned __int16 surfIndex;
+		XModelSurfs *modelSurfs;
+		int partBits[6];
+		XSurface *surfs;
 		char pad4[4];
 	};
 

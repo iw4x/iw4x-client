@@ -1,6 +1,6 @@
 #include <STDInclude.hpp>
 
-#define IW4X_MODEL_VERSION 2
+#define IW4X_MODEL_VERSION 3
 
 namespace Assets
 {
@@ -34,6 +34,8 @@ namespace Assets
 			model->numRootBones = reader.readByte();
 			model->numSurfaces = reader.read<unsigned char>();
 			model->numColSurfs = reader.read<int>();
+			model->numLods = static_cast<char>(reader.read<short>());
+			model->collLod = reader.read<short>();
 
 			// Read bone names
 			model->boneNames = builder->getAllocator()->allocateArray<short>(model->numBones);
@@ -53,41 +55,32 @@ namespace Assets
 			model->animMatrix = reader.readArray<Game::DObjAnimMat>(boneCount);
 
 			// Prepare surfaces
-			Game::XSurface* baseSurface = &baseModel->lods[0].surfaces[0].surfaces[0];
-			Game::XModelSurfs* surf = builder->getAllocator()->allocate<Game::XModelSurfs>();
+			Game::XModelSurfs surf;
+			Utils::Memory::Allocator allocator;
+			Game::XSurface* baseSurface = &baseModel->lods[0].modelSurfs[0].surfaces[0];
 
-			std::memcpy(surf, baseModel->lods[0].surfaces, sizeof(Game::XModelSurfs));
-			surf->name = builder->getAllocator()->duplicateString(fmt::sprintf("%s_lod1", model->name));
-			surf->surfaces = builder->getAllocator()->allocateArray<Game::XSurface>(model->numSurfaces);
-			surf->numSurfaces = model->numSurfaces;
+			std::memcpy(&surf, baseModel->lods[0].modelSurfs, sizeof(Game::XModelSurfs));
+			surf.surfaces = allocator.allocateArray<Game::XSurface>(model->numSurfaces);
+			surf.numSurfaces = model->numSurfaces;
 
-			// Store surfs for later writing
-			Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, { surf });
-
-			// Reset surfaces in remaining lods
-			for (unsigned int i = 1; i < 4; ++i)
+			for (int i = 0; i < 4; ++i)
 			{
-				ZeroMemory(&model->lods[i], sizeof(Game::XModelLodInfo));
+				model->lods[i].dist = reader.read<float>();
+				model->lods[i].numsurfs = reader.read<unsigned short>();
+				model->lods[i].surfIndex = reader.read<unsigned short>();
+
+				model->lods[i].partBits[0] = reader.read<int>();
+				model->lods[i].partBits[1] = reader.read<int>();
+				model->lods[i].partBits[2] = reader.read<int>();
+				model->lods[i].partBits[3] = reader.read<int>();
+				model->lods[i].partBits[4] = 0;
+				model->lods[i].partBits[5] = 0;
 			}
 
-			model->lods[0].dist = reader.read<float>();
-			model->lods[0].numSurfs = reader.read<short>();
-			model->lods[0].maxSurfs = reader.read<short>();
-
-			model->lods[0].partBits[0] = reader.read<int>();
-			model->lods[0].partBits[1] = reader.read<int>();
-			model->lods[0].partBits[2] = reader.read<int>();
-			model->lods[0].partBits[3] = reader.read<int>();
-
-			model->lods[0].numSurfs = model->numSurfaces; // This is needed in case we have more than 1 LOD
-			model->lods[0].surfaces = surf;
-			model->lods[0].surfs = surf->surfaces;
-			model->numLods = 1;
-
 			// Read surfaces
-			for (int i = 0; i < surf->numSurfaces; ++i)
+			for (int i = 0; i < surf.numSurfaces; ++i)
 			{
-				Game::XSurface* surface = &surf->surfaces[i];
+				Game::XSurface* surface = &surf.surfaces[i];
 				std::memcpy(surface, baseSurface, sizeof(Game::XSurface));
 
 				surface->tileMode = reader.read<char>();
@@ -98,6 +91,8 @@ namespace Assets
 				surface->partBits[1] = reader.read<int>();
 				surface->partBits[2] = reader.read<int>();
 				surface->partBits[3] = reader.read<int>();
+				surface->partBits[4] = 0;
+				surface->partBits[5] = 0;
 
 				surface->baseTriIndex = reader.read<unsigned __int16>();
 				surface->baseVertIndex = reader.read<unsigned __int16>();
@@ -134,6 +129,27 @@ namespace Assets
 				{
 					surface->ct = nullptr;
 				}
+			}
+
+			// When all surfaces are loaded, split them up. 
+			for (char i = 0; i < model->numLods; ++i)			
+			{
+				Game::XModelSurfs* realSurf = builder->getAllocator()->allocate<Game::XModelSurfs>();
+
+				// Usually, a binary representation is used for the index, but meh.
+				realSurf->name = builder->getAllocator()->duplicateString(fmt::sprintf("%s_lod%d", model->name, i & 0xFF));
+
+				realSurf->numSurfaces = model->lods[i].numsurfs;
+				realSurf->surfaces = builder->getAllocator()->allocateArray<Game::XSurface>(realSurf->numSurfaces);
+
+				std::memcpy(realSurf->surfaces, &surf.surfaces[model->lods[i].surfIndex], sizeof(Game::XSurface) * realSurf->numSurfaces);
+				std::memcpy(realSurf->partBits, model->lods[i].partBits, sizeof(realSurf->partBits));
+
+				model->lods[i].modelSurfs = realSurf;
+				model->lods[i].surfs = realSurf->surfaces;
+
+				// Store surfs for later writing
+				Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, { realSurf });
 			}
 
 			// Read materials
@@ -205,9 +221,9 @@ namespace Assets
 
 		for (int i = 0; i < 4; ++i)
 		{
-			if (asset->lods[i].surfaces)
+			if (asset->lods[i].modelSurfs)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].modelSurfs);
 			}
 		}
 
@@ -317,9 +333,9 @@ namespace Assets
 
 			for (int i = 0; i < 4; ++i)
 			{
-				if (asset->lods[i].surfaces)
+				if (asset->lods[i].modelSurfs)
 				{
-					dest->lods[i].surfaces = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].surfaces).surfaces;
+					dest->lods[i].modelSurfs = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lods[i].modelSurfs).surfaces;
 				}
 			}
 		}
