@@ -337,12 +337,12 @@ namespace Components
 
 		Game::XFileHeader header =
 		{
-			XFILE_MAGIC_UNSIGNED,
 #ifdef DEBUG
-			XFILE_VERSION,
+			XFILE_MAGIC_UNSIGNED,
 #else
-			XFILE_VERSION_IW4X,
+			XFILE_HEADER_IW4X | (static_cast<unsigned __int64>(XFILE_VERSION_IW4X) << 32),
 #endif
+			XFILE_VERSION,
 			Game::XFileLanguage::XLANG_NONE,
 			fileTime.dwHighDateTime,
 			fileTime.dwLowDateTime
@@ -352,6 +352,12 @@ namespace Components
 		outBuffer.append(reinterpret_cast<char*>(&header), sizeof(header));
 
 		std::string zoneBuffer = this->buffer.toBuffer();
+
+#ifndef DEBUG
+		// Insert a random byte, this will destroy the whole alignment and result in a crash, if not handled
+		zoneBuffer.insert(zoneBuffer.begin(), static_cast<char>(Utils::Cryptography::Rand::GenerateInt()));
+#endif
+
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 		outBuffer.append(zoneBuffer);
 

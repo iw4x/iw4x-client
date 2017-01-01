@@ -54,6 +54,7 @@ namespace Game
 	DB_IsXAssetDefault_t DB_IsXAssetDefault = (DB_IsXAssetDefault_t)0x48E6A0;
 	DB_LoadXAssets_t DB_LoadXAssets = (DB_LoadXAssets_t)0x4E5930;
 	DB_LoadXFileData_t DB_LoadXFileData = (DB_LoadXFileData_t)0x445460;
+	DB_ReadXFile_t DB_ReadXFile = (DB_ReadXFile_t)0x445460;
 	DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = (DB_ReadXFileUncompressed_t)0x4705E0;
 	DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = (DB_ReleaseXAssetHandler_t*)0x799AB8;
 	DB_XModelSurfsFixup_t DB_XModelSurfsFixup = (DB_XModelSurfsFixup_t)0x5BAC50;

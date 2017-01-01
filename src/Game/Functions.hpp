@@ -132,6 +132,9 @@ namespace Game
 	typedef void(__cdecl * DB_ReadXFileUncompressed_t)(void* buffer, int size);
 	extern DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed;
 
+	typedef void(__cdecl * DB_ReadXFile_t)(void* buffer, int size);
+	extern DB_ReadXFile_t DB_ReadXFile;
+
 	typedef void(__cdecl * DB_ReleaseXAssetHandler_t)(XAssetHeader header);
 	extern DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers;
 

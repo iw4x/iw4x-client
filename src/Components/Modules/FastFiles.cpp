@@ -6,6 +6,7 @@ namespace Components
 	symmetric_CTR FastFiles::CurrentCTR;
 	std::vector<std::string> FastFiles::ZonePaths;
 
+	bool FastFiles::IsIW4xZone = false;
 	bool FastFiles::StreamRead = false;
 
 	unsigned int FastFiles::CurrentZone;
@@ -272,16 +273,21 @@ namespace Components
 		return file;
 	}
 
+	void FastFiles::ReadXFileHeader(void* buffer, int size)
+	{
+		if (FastFiles::IsIW4xZone)
+		{
+			char pad;
+			Game::DB_ReadXFile(&pad, 1);
+		}
+
+		Game::DB_ReadXFile(buffer, size);
+	}
+
 	void FastFiles::ReadVersionStub(unsigned int* version, int size)
 	{
 		FastFiles::CurrentZone++;
 		Game::DB_ReadXFileUncompressed(version, size);
-
-		// Allow loading of custom version
-		if (*version == XFILE_VERSION_IW4X)
-		{
-			*version = XFILE_VERSION;
-		}
 
 		Zones::SetVersion(*version);
 
@@ -294,6 +300,30 @@ namespace Components
 		if (*version != XFILE_VERSION)
 		{
 			Logger::Error("Zone version %d is not supported!", Zones::Version());
+		}
+	}
+
+	void FastFiles::ReadHeaderStub(unsigned int* header, int size)
+	{
+		FastFiles::IsIW4xZone = false;
+		Game::DB_ReadXFileUncompressed(header, size);
+
+		if (header[0] == XFILE_HEADER_IW4X)
+		{
+			FastFiles::IsIW4xZone = true;
+
+			if (header[1] < XFILE_VERSION_IW4X)
+			{
+				Logger::Error("The fastfile you are trying to load is outdated (%d, expected %d)", header[1], XFILE_VERSION_IW4X);
+			}
+#ifdef DEBUG
+			else if (header[1] > XFILE_VERSION_IW4X)
+			{
+				Logger::Error("You are loading a fastfile that is too new (%d, expected %d), how's that possible?", header[1], XFILE_VERSION_IW4X);
+			}
+#endif
+
+			*reinterpret_cast<unsigned __int64*>(header) = XFILE_MAGIC_UNSIGNED;
 		}
 	}
 
@@ -407,6 +437,9 @@ namespace Components
 		// Allow loading 'newer' zones
 		Utils::Hook(0x4158E7, FastFiles::ReadVersionStub, HOOK_CALL).install()->quick();
 
+		// Allow loading IW4x zones
+		Utils::Hook(0x4157B8, FastFiles::ReadHeaderStub, HOOK_CALL).install()->quick();
+
 		// Allow custom zone loading
 		if (!ZoneBuilder::IsEnabled())
 		{
@@ -456,6 +489,9 @@ namespace Components
 		Utils::Hook(0x49FA1E, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
 		Utils::Hook(0x589090, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
 		Utils::Hook(0x629FC0, FastFiles::GetFullLoadedFraction, HOOK_JUMP).install()->quick();
+
+		// XFile header loading
+		Utils::Hook(0x4159E2, FastFiles::ReadXFileHeader, HOOK_CALL).install()->quick();
 
 		// Add custom zone paths
 		FastFiles::AddZonePath("zone\\patch\\");

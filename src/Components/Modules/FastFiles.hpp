@@ -36,6 +36,7 @@ namespace Components
 		static unsigned int CurrentZone;
 		static unsigned int MaxZones;
 
+		static bool IsIW4xZone;
 		static bool StreamRead;
 
 		static Key CurrentKey;
@@ -46,7 +47,10 @@ namespace Components
 		static void LoadDLCUIZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 		static void LoadGfxZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 
+		static void ReadHeaderStub(unsigned int* header, int size);
 		static void ReadVersionStub(unsigned int* version, int size);
+
+		static void ReadXFileHeader(void* buffer, int size);
 
 		static void AuthLoadInitCrypto();
 		static int AuthLoadInflateCompare(unsigned char* buffer, int length, unsigned char* ivValue);
