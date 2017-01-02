@@ -89,19 +89,19 @@ namespace Components
 			Game::XModel model[2]; // Allocate 2 models, as we exceed the buffer
 
 			std::memcpy(model, xmodel, 36);
-			std::memcpy(&model->pad3[0x1C], &xmodel[44], 28);
+			std::memcpy(&model->boneNames, &xmodel[44], 28);
 
 			for (int i = 0; i < 4; ++i)
 			{
 				AssertOffset(Game::XModelLodInfo, partBits, 12);
 
-				std::memcpy(&model->lods[i], &xmodel[72 + (i * 56)], 12);
-				std::memcpy(&model->lods[i].partBits, &xmodel[72 + (i * 56) + 16], 32);
+				std::memcpy(&model->lodInfo[i], &xmodel[72 + (i * 56)], 12);
+				std::memcpy(&model->lodInfo[i].partBits, &xmodel[72 + (i * 56) + 16], 32);
 
 				std::memcpy(reinterpret_cast<char*>(&model) + (size - 4) - (i * 4), &xmodel[72 + (i * 56) + 12], 4);
 			}
 
-			std::memcpy(&model->lods[3].pad4[0], &xmodel[292], (size - 292 - 4)/*68*/);
+			std::memcpy(&model->lodInfo[3].lod, &xmodel[292], (size - 292 - 4)/*68*/);
 			std::memcpy(&model->physPreset, &xmodel[(size - 8)], 8);
 
 			model[1].name = reinterpret_cast<char*>(0xDEADC0DE);

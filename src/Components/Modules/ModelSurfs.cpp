@@ -152,7 +152,7 @@ namespace Components
 
 		for (char i = 0; i < model->numLods; ++i)
 		{
-			Game::XModelSurfs* surfs = model->lods[i].modelSurfs;
+			Game::XModelSurfs* surfs = model->lodInfo[i].modelSurfs;
 
 			if (!surfs->surfaces)
 			{
@@ -163,12 +163,12 @@ namespace Components
  				surfs->surfaces = newSurfs->surfaces;
  				surfs->numSurfaces = newSurfs->numSurfaces;
 
-				model->lods[i].surfs = newSurfs->surfaces;
-				std::memcpy(&model->lods[i].partBits, &newSurfs->partBits, 24);
+				model->lodInfo[i].surfs = newSurfs->surfaces;
+				std::memcpy(&model->lodInfo[i].partBits, &newSurfs->partBits, 24);
 
 				short numSurfs = static_cast<short>(newSurfs->numSurfaces);
-				model->lods[i].numsurfs = numSurfs;
-				model->lods[i].surfIndex = surfCount;
+				model->lodInfo[i].numsurfs = numSurfs;
+				model->lodInfo[i].surfIndex = surfCount;
 				surfCount += numSurfs;
 
 				changed = true;

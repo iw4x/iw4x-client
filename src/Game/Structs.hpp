@@ -1517,21 +1517,6 @@ namespace Game
 		int error;
 	} structuredDataFindState_t;
 
-	struct XModelAngle
-	{
-		short x;
-		short y;
-		short z;
-		short base; // defines the 90-degree point for the shorts
-	};
-
-	struct XModelTagPos
-	{
-		float x;
-		float y;
-		float z;
-	};
-
 	struct XSurfaceCollisionTree
 	{
 		float trans[3];
@@ -1605,7 +1590,10 @@ namespace Game
 		XModelSurfs *modelSurfs;
 		int partBits[6];
 		XSurface *surfs;
-		char pad4[4];
+		char lod;
+		char smcBaseIndexPlusOne;
+		char smcSubIndexMask;
+		char smcBucket;
 	};
 
 	struct cplane_t
@@ -1683,12 +1671,11 @@ namespace Game
 		float tvec[4];
 	};
 
-	struct XModelCollSurf
+	struct XModelCollSurf_s
 	{
 		XModelCollTri_s *collTris;
 		int numCollTris;
-		float mins[3];
-		float maxs[3];
+		Bounds bounds;
 		int boneIdx;
 		int contents;
 		int surfFlags;
@@ -1718,31 +1705,36 @@ namespace Game
 
 	struct XModel
 	{
-		const char* name; // +0
-		char numBones; // +4
-		char numRootBones; // +5
-		unsigned char numSurfaces; // +6
-		char pad2; // +7
-		char pad3[28]; // +8
-		short* boneNames; // +36
-		char* parentList; // +40
-		XModelAngle* tagAngles; // +44, element size 8
-		XModelTagPos* tagPositions; // +48, element size 12
-		char* partClassification; // +52
-		DObjAnimMat* animMatrix; // +56, element size 32
-		Material** materials; // +60
-		XModelLodInfo lods[4]; // +64
-		char pad4;
+		const char *name;
+		char numBones;
+		char numRootBones;
+		char numsurfs;
+		char lodRampType;
+		float scale;
+		unsigned int noScalePartBits[6];
+		unsigned __int16 *boneNames;
+		char *parentList;
+		__int16 *quats;
+		float *trans;
+		char *partClassification;
+		DObjAnimMat *baseMat;
+		Material **materialHandles;
+		XModelLodInfo lodInfo[4];
+		char maxLoadedLod;
 		char numLods;
-		short collLod;
-		XModelCollSurf* colSurf; // +244
-		int numColSurfs; // +248
+		char collLod;
+		char flags;
+		XModelCollSurf_s *collSurfs;
+		int numCollSurfs;
 		int contents;
-		XBoneInfo* boneInfo; // bone count, +256, element size 28
-		char pad7[36];
-		PhysPreset* physPreset;
-		PhysCollmap* physCollmap;
-	}; // total size 304
+		XBoneInfo *boneInfo;
+		float radius;
+		Bounds bounds;
+		int memUsage;
+		bool bad;
+		PhysPreset *physPreset;
+		PhysCollmap *physCollmap;
+	};
 
 	struct CModelAllocData
 	{
