@@ -166,9 +166,9 @@ namespace Assets
 
 				for (int i = 0; i < model->numColSurfs; ++i)
 				{
-					if (model->colSurf[i].tris)
+					if (model->colSurf[i].collTris)
 					{
-						model->colSurf[i].tris = reader.read(48, model->colSurf[i].count);
+						model->colSurf[i].collTris = reader.readArray<Game::XModelCollTri_s>(model->colSurf[i].numCollTris);
 					}
 				}
 			}
@@ -355,12 +355,12 @@ namespace Assets
 				Game::XModelCollSurf* destColSurf = &destColSurfs[i];
 				Game::XModelCollSurf* colSurf = &asset->colSurf[i];
 
-				if (colSurf->tris)
+				if (colSurf->collTris)
 				{
 					buffer->align(Utils::Stream::ALIGN_4);
 
-					buffer->save(colSurf->tris, 48, colSurf->count);
-					Utils::Stream::ClearPointer(&destColSurf->tris);
+					buffer->save(colSurf->collTris, 48, colSurf->numCollTris);
+					Utils::Stream::ClearPointer(&destColSurf->collTris);
 				}
 			}
 

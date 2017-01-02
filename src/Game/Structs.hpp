@@ -1676,12 +1676,23 @@ namespace Game
 		float transWeight;
 	};
 
+	struct XModelCollTri_s
+	{
+		float plane[4];
+		float svec[4];
+		float tvec[4];
+	};
+
 	struct XModelCollSurf
 	{
-		void* tris; // +0, sizeof 48
-		int count; // +4
-		char pad[36]; // +8
-	}; // +44
+		XModelCollTri_s *collTris;
+		int numCollTris;
+		float mins[3];
+		float maxs[3];
+		int boneIdx;
+		int contents;
+		int surfFlags;
+	};
 
 	struct PhysPreset
 	{
