@@ -155,6 +155,8 @@ namespace Assets
 						asset->lodInfo[i].modelSurfs = reader.readObject<Game::XModelSurfs>();
 						this->loadXModelSurfs(asset->lodInfo[i].modelSurfs, &reader);
 						Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, { asset->lodInfo[i].modelSurfs });
+
+						asset->lodInfo[i].surfs = asset->lodInfo[i].modelSurfs->surfaces;
 					}
 				}
 			}
