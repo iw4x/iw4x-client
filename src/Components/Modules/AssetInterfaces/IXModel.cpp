@@ -157,6 +157,12 @@ namespace Assets
 						Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, { asset->lodInfo[i].modelSurfs });
 
 						asset->lodInfo[i].surfs = asset->lodInfo[i].modelSurfs->surfaces;
+
+						// Zero that for now, it breaks the models.
+						// TODO: Figure out how that can be converted
+						asset->lodInfo[i].smcBaseIndexPlusOne = 0;
+						asset->lodInfo[i].smcSubIndexMask = 0;
+						asset->lodInfo[i].smcBucket = 0;
 					}
 				}
 			}
