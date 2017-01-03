@@ -11,18 +11,22 @@ namespace Assets
 		Game::XSurfaceCollisionTree* destEntry = buffer->dest<Game::XSurfaceCollisionTree>();
 		buffer->save(entry);
 
-		if (entry->node)
+		if (entry->nodes)
 		{
+			AssertSize(Game::XSurfaceCollisionNode, 16);
+
 			buffer->align(Utils::Stream::ALIGN_16);
-			buffer->save(entry->node, 16, entry->numNode);
-			Utils::Stream::ClearPointer(&destEntry->node);
+			buffer->saveArray(entry->nodes, entry->nodeCount);
+			Utils::Stream::ClearPointer(&destEntry->nodes);
 		}
 
-		if (entry->leaf)
+		if (entry->leafs)
 		{
+			AssertSize(Game::XSurfaceCollisionLeaf, 2);
+
 			buffer->align(Utils::Stream::ALIGN_2);
-			buffer->saveArray(entry->leaf, entry->numLeaf);
-			Utils::Stream::ClearPointer(&destEntry->leaf);
+			buffer->saveArray(entry->leafs, entry->leafCount);
+			Utils::Stream::ClearPointer(&destEntry->leafs);
 		}
 	}
 
@@ -30,60 +34,58 @@ namespace Assets
 	{
 		Utils::Stream* buffer = builder->getBuffer();
 
-		if (surf->blendInfo)
+		if (surf->vertInfo.vertsBlend)
 		{
 			buffer->align(Utils::Stream::ALIGN_2);
-			buffer->save(surf->blendInfo, sizeof(short), surf->blendNum1 + (surf->blendNum2 * 3) + (surf->blendNum3 * 5) + (surf->blendNum4 * 7));
-			Utils::Stream::ClearPointer(&destSurf->blendInfo);
+			buffer->saveArray(surf->vertInfo.vertsBlend, surf->vertInfo.vertCount[0] + (surf->vertInfo.vertCount[1] * 3) + (surf->vertInfo.vertCount[2] * 5) + (surf->vertInfo.vertCount[3] * 7));
+			Utils::Stream::ClearPointer(&destSurf->vertInfo.vertsBlend);
 		}
 
 		// Access vertex block
 		buffer->pushBlock(Game::XFILE_BLOCK_VERTEX);
-		if (surf->vertexBuffer)
+		if (surf->verts0)
 		{
 			AssertSize(Game::GfxPackedVertex, 32);
 			
 			buffer->align(Utils::Stream::ALIGN_16);
-			buffer->saveArray(surf->vertexBuffer, surf->numVertices);
-			Utils::Stream::ClearPointer(&destSurf->vertexBuffer);
+			buffer->saveArray(surf->verts0, surf->vertCount);
+			Utils::Stream::ClearPointer(&destSurf->verts0);
 		}
 		buffer->popBlock();
 
 		// Save_XRigidVertListArray
-		if (surf->ct)
+		if (surf->vertList)
 		{
 			AssertSize(Game::XRigidVertList, 12);
 
 			buffer->align(Utils::Stream::ALIGN_4);
 
 			Game::XRigidVertList* destCt = buffer->dest<Game::XRigidVertList>();
-			buffer->saveArray(surf->ct, surf->numCT);
+			buffer->saveArray(surf->vertList, surf->vertListCount);
 
-			for (int i = 0; i < surf->numCT; ++i)
+			for (unsigned int i = 0; i < surf->vertListCount; ++i)
 			{
 				Game::XRigidVertList* destRigidVertList = &destCt[i];
-				Game::XRigidVertList* rigidVertList = &surf->ct[i];
+				Game::XRigidVertList* rigidVertList = &surf->vertList[i];
 
-				if (rigidVertList->entry)
+				if (rigidVertList->collisionTree)
 				{
 					buffer->align(Utils::Stream::ALIGN_4);
-					this->saveXSurfaceCollisionTree(rigidVertList->entry, builder);
-					Utils::Stream::ClearPointer(&destRigidVertList->entry);
+					this->saveXSurfaceCollisionTree(rigidVertList->collisionTree, builder);
+					Utils::Stream::ClearPointer(&destRigidVertList->collisionTree);
 				}
 			}
 
-			Utils::Stream::ClearPointer(&destSurf->ct);
+			Utils::Stream::ClearPointer(&destSurf->vertList);
 		}
 
 		// Access index block
 		buffer->pushBlock(Game::XFILE_BLOCK_INDEX);
-		if (surf->indexBuffer)
+		if (surf->triIndices)
 		{
-			AssertSize(Game::Face, 6);
-
 			buffer->align(Utils::Stream::ALIGN_16);
-			buffer->saveArray(surf->indexBuffer, surf->numPrimitives);
-			Utils::Stream::ClearPointer(&destSurf->indexBuffer);
+			buffer->saveArray(surf->triIndices, surf->triCount * 3);
+			Utils::Stream::ClearPointer(&destSurf->triIndices);
 		}
 		buffer->popBlock();
 	}

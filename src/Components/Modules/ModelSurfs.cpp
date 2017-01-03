@@ -21,16 +21,16 @@ namespace Components
 		for (int i = 0; i < surfs->numSurfaces; ++i)
 		{
 			Game::XSurface* surface = &surfs->surfaces[i];
-			if (surface->streamHandle == 0xFF)
+			if (surface->zoneHandle == -1)
 			{
 				IDirect3DVertexBuffer9* vertexBuffer;
 				IDirect3DIndexBuffer9* indexBuffer;
 
-				Game::Load_VertexBuffer(surface->vertexBuffer, &vertexBuffer, surface->numVertices * 32);
-				Game::Load_IndexBuffer(surface->indexBuffer, &indexBuffer, surface->numPrimitives * 3);
+				Game::Load_VertexBuffer(surface->verts0, &vertexBuffer, surface->vertCount * 32);
+				Game::Load_IndexBuffer(surface->triIndices, &indexBuffer, surface->triCount * 3);
 
-				ModelSurfs::BufferMap[surface->vertexBuffer] = vertexBuffer;
-				ModelSurfs::BufferMap[surface->indexBuffer] = indexBuffer;
+				ModelSurfs::BufferMap[surface->verts0] = vertexBuffer;
+				ModelSurfs::BufferMap[surface->triIndices] = indexBuffer;
 			}
 		}
 	}
@@ -130,10 +130,10 @@ namespace Components
 			char* source = &surfaceData[i * 84];
 
 			std::memcpy(&tempSurfaces[i], source, 12);
-			std::memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
-			std::memcpy(&tempSurfaces[i].numCT, source + 40, 8);
+			std::memcpy(&tempSurfaces[i].triIndices, source + 16, 20);
+			std::memcpy(&tempSurfaces[i].vertListCount, source + 40, 8);
 			std::memcpy(&tempSurfaces[i].partBits, source + 52, 24);
-			tempSurfaces[i].streamHandle = 0xFF; // Fake handle for buffer interception
+			tempSurfaces[i].zoneHandle = -1; // Fake handle for buffer interception
 		}
 
 		std::memcpy(surfaceData, tempSurfaces, 64 * modelSurfs->numSurfaces);
@@ -185,18 +185,18 @@ namespace Components
 		{
 			Game::XSurface* surface = &header.surfaces->surfaces[i];
 
-			if (surface->streamHandle == 0xFF)
+			if (surface->zoneHandle == -1)
 			{
 				hasCustomSurface = true;
 
-				auto buffer = ModelSurfs::BufferMap.find(surface->indexBuffer);
+				auto buffer = ModelSurfs::BufferMap.find(surface->triIndices);
 				if (buffer != ModelSurfs::BufferMap.end())
 				{
 					buffer->second->Release();
 					ModelSurfs::BufferMap.erase(buffer);
 				}
 
-				buffer = ModelSurfs::BufferMap.find(surface->vertexBuffer);
+				buffer = ModelSurfs::BufferMap.find(surface->verts0);
 				if (buffer != ModelSurfs::BufferMap.end())
 				{
 					buffer->second->Release();

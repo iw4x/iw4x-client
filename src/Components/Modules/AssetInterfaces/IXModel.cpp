@@ -41,7 +41,7 @@ namespace Assets
 
 			// Read bone names
 			model->boneNames = builder->getAllocator()->allocateArray<unsigned short>(model->numBones);
-			for (int i = 0; i < model->numBones; ++i)
+			for (char i = 0; i < model->numBones; ++i)
 			{
 				model->boneNames[i] = Game::SL_GetString(reader.readCString(), 0);
 			}
@@ -86,9 +86,9 @@ namespace Assets
 				std::memcpy(surface, baseSurface, sizeof(Game::XSurface));
 
 				surface->tileMode = reader.read<char>();
-				surface->deformed = reader.read<char>();
+				surface->deformed = reader.read<bool>();
 
-				surface->streamHandle = reader.read<unsigned char>();
+				surface->zoneHandle = reader.read<char>();
 				surface->partBits[0] = reader.read<int>();
 				surface->partBits[1] = reader.read<int>();
 				surface->partBits[2] = reader.read<int>();
@@ -99,37 +99,37 @@ namespace Assets
 				surface->baseTriIndex = reader.read<unsigned __int16>();
 				surface->baseVertIndex = reader.read<unsigned __int16>();
 
-				surface->numVertices = reader.read<unsigned short>();
-				surface->numPrimitives = reader.read<unsigned short>();
-				surface->numCT = reader.read<int>();
+				surface->vertCount = reader.read<unsigned short>();
+				surface->triCount = reader.read<unsigned short>();
+				surface->vertListCount = reader.read<unsigned int>();
 
-				surface->blendNum1 = reader.read<short>();
-				surface->blendNum2 = reader.read<short>();
-				surface->blendNum3 = reader.read<short>();
-				surface->blendNum4 = reader.read<short>();
+				surface->vertInfo.vertCount[0] = reader.read<short>();
+				surface->vertInfo.vertCount[1] = reader.read<short>();
+				surface->vertInfo.vertCount[2] = reader.read<short>();
+				surface->vertInfo.vertCount[3] = reader.read<short>();
 
-				surface->blendInfo = reinterpret_cast<char*>(reader.read(2, surface->blendNum1 + (3 * surface->blendNum2) + (5 * surface->blendNum3) + (7 * surface->blendNum4)));
+				surface->vertInfo.vertsBlend = reader.readArray<unsigned short>(surface->vertInfo.vertCount[0] + (3 * surface->vertInfo.vertCount[1]) + (5 * surface->vertInfo.vertCount[2]) + (7 * surface->vertInfo.vertCount[3]));
 
-				surface->vertexBuffer = reader.readArray<Game::GfxPackedVertex>(surface->numVertices);
-				surface->indexBuffer = reader.readArray<Game::Face>(surface->numPrimitives);
+				surface->verts0 = reader.readArray<Game::GfxPackedVertex>(surface->vertCount);
+				surface->triIndices = reader.readArray<unsigned __int16>(3 * surface->triCount);
 
 				// Read vert list
 				if (reader.readByte())
 				{
-					surface->ct = reader.readArray<Game::XRigidVertList>(surface->numCT);
+					surface->vertList = reader.readArray<Game::XRigidVertList>(surface->vertListCount);
 
-					for (int j = 0; j < surface->numCT; ++j)
+					for (unsigned int j = 0; j < surface->vertListCount; ++j)
 					{
-						Game::XRigidVertList* vertList = &surface->ct[j];
+						Game::XRigidVertList* vertList = &surface->vertList[j];
 
-						vertList->entry = reader.readArray<Game::XSurfaceCollisionTree>();
-						vertList->entry->node = reinterpret_cast<char*>(reader.read(16, vertList->entry->numNode));
-						vertList->entry->leaf = reader.readArray<short>(vertList->entry->numLeaf);
+						vertList->collisionTree = reader.readArray<Game::XSurfaceCollisionTree>();
+						vertList->collisionTree->nodes = reader.readArray<Game::XSurfaceCollisionNode>(vertList->collisionTree->nodeCount);
+						vertList->collisionTree->leafs = reader.readArray<Game::XSurfaceCollisionLeaf>(vertList->collisionTree->leafCount);
 					}
 				}
 				else
 				{
-					surface->ct = nullptr;
+					surface->vertList = nullptr;
 				}
 			}
 
@@ -212,7 +212,7 @@ namespace Assets
 
 		if (asset->materialHandles)
 		{
-			for (unsigned char i = 0; i < asset->numsurfs; ++i)
+			for (char i = 0; i < asset->numsurfs; ++i)
 			{
 				if (asset->materialHandles[i])
 				{
@@ -314,7 +314,7 @@ namespace Assets
 			Game::Material** destMaterials = buffer->dest<Game::Material*>();
 			buffer->saveArray(asset->materialHandles, asset->numsurfs);
 
-			for (unsigned char i = 0; i < asset->numsurfs; ++i)
+			for (char i = 0; i < asset->numsurfs; ++i)
 			{
 				if (asset->materialHandles[i])
 				{

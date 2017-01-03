@@ -165,19 +165,19 @@ namespace Components
 				char* source = &buffer[i * 84];
 
 				std::memcpy(&tempSurfaces[i], source, 12);
-				std::memcpy(&tempSurfaces[i].indexBuffer, source + 16, 20);
-				std::memcpy(&tempSurfaces[i].numCT, source + 40, 8);
+				std::memcpy(&tempSurfaces[i].triIndices, source + 16, 20);
+				std::memcpy(&tempSurfaces[i].vertListCount, source + 40, 8);
 				std::memcpy(&tempSurfaces[i].partBits, source + 52, 24);
 
 				if (Zones::ZoneVersion >= 332)
 				{
 					struct
 					{
-						short pad;                    // +0
-						char flag;                    // +2
-						unsigned char streamHandle;   // +3
-						unsigned short numVertices;   // +4
-						unsigned short numPrimitives; // +6
+						short pad;                // +0
+						char flag;                // +2
+						char zoneHandle;          // +3
+						unsigned short vertCount; // +4
+						unsigned short triCount;  // +6
 						// [...]
 					} surface332;
 
@@ -191,9 +191,9 @@ namespace Components
 					}
 
 					// Copy the correct data back to our surface
-					tempSurfaces[i].streamHandle = surface332.streamHandle;
-					tempSurfaces[i].numVertices = surface332.numVertices;
-					tempSurfaces[i].numPrimitives = surface332.numPrimitives;
+					tempSurfaces[i].zoneHandle = surface332.zoneHandle;
+					tempSurfaces[i].vertCount = surface332.vertCount;
+					tempSurfaces[i].triCount = surface332.triCount;
 
 					//std::memmove(&tempSurfaces[i].numVertices, &tempSurfaces[i].numPrimitives, 6);
 				}

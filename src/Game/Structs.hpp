@@ -1517,23 +1517,41 @@ namespace Game
 		int error;
 	} structuredDataFindState_t;
 
+	struct XSurfaceCollisionLeaf
+	{
+		unsigned __int16 triangleBeginIndex;
+	};
+
+	struct XSurfaceCollisionAabb
+	{
+		unsigned __int16 mins[3];
+		unsigned __int16 maxs[3];
+	};
+
+	struct XSurfaceCollisionNode
+	{
+		XSurfaceCollisionAabb aabb;
+		unsigned __int16 childBeginIndex;
+		unsigned __int16 childCount;
+	};
+
 	struct XSurfaceCollisionTree
 	{
 		float trans[3];
 		float scale[3];
-		int numNode;
-		char* node; // el size 16
-		int numLeaf;
-		short* leaf;
+		unsigned int nodeCount;
+		XSurfaceCollisionNode *nodes;
+		unsigned int leafCount;
+		XSurfaceCollisionLeaf *leafs;
 	};
 
 	struct XRigidVertList
 	{
-		unsigned short boneOffset;
-		unsigned short vertCount;
-		unsigned short triOffset;
-		unsigned short triCount;
-		XSurfaceCollisionTree* entry;
+		unsigned __int16 boneOffset;
+		unsigned __int16 vertCount;
+		unsigned __int16 triOffset;
+		unsigned __int16 triCount;
+		XSurfaceCollisionTree *collisionTree;
 	};
 
 	struct GfxPackedVertex
@@ -1546,31 +1564,26 @@ namespace Game
 		float normal[3];
 	};
 
-	struct Face
+	struct XSurfaceVertexInfo
 	{
-		unsigned short v1;
-		unsigned short v2;
-		unsigned short v3;
+		__int16 vertCount[4];
+		unsigned __int16 *vertsBlend;
 	};
 
 	struct XSurface
 	{
 		char tileMode;
-		char deformed;
-		unsigned short numVertices; // +2
-		unsigned short numPrimitives; // +4
-		unsigned char streamHandle; // something to do with buffers, +6
+		bool deformed;
+		unsigned __int16 vertCount;
+		unsigned __int16 triCount;
+		char zoneHandle;
 		unsigned __int16 baseTriIndex;
 		unsigned __int16 baseVertIndex;
-		Face* indexBuffer; // +12
-		short blendNum1; // +16
-		short blendNum2; // +18
-		short blendNum3; // +20
-		short blendNum4; // +22
-		char* blendInfo; // +24
-		GfxPackedVertex* vertexBuffer; // +28
-		int numCT; // +32
-		XRigidVertList* ct; // +36
+		unsigned __int16 *triIndices;
+		XSurfaceVertexInfo vertInfo;
+		GfxPackedVertex *verts0;
+		unsigned int vertListCount;
+		XRigidVertList *vertList;
 		int partBits[6];
 	};
 
