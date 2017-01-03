@@ -1554,14 +1554,31 @@ namespace Game
 		XSurfaceCollisionTree *collisionTree;
 	};
 
+	union PackedTexCoords
+	{
+		unsigned int packed;
+	};
+
+	union GfxColor
+	{
+		unsigned int packed;
+		char array[4];
+		unsigned char uArray[4];
+	};
+
+	union PackedUnitVec
+	{
+		unsigned int packed;
+	};
+
 	struct GfxPackedVertex
 	{
-		float x;
-		float y;
-		float z;
-		DWORD color;
-		WORD texCoords[2];
-		float normal[3];
+		float xyz[3];
+		float binormalSign;
+		GfxColor color;
+		PackedTexCoords texCoord;
+		PackedUnitVec normal;
+		PackedUnitVec tangent;
 	};
 
 	struct XSurfaceVertexInfo
@@ -2828,18 +2845,6 @@ namespace Game
 		GfxStreamingAabbTree *aabbTrees;
 		int leafRefCount;
 		int *leafRefs;
-	};
-
-	union GfxColor
-	{
-		unsigned int packed;
-		char array[4];
-		unsigned char uArray[4];
-	};
-
-	union PackedUnitVec
-	{
-		unsigned int packed;
 	};
 
 	struct GfxWorldVertex
