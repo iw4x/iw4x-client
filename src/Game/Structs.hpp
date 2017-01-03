@@ -1663,7 +1663,7 @@ namespace Game
 
 	struct PhysCollmap
 	{
-		const char * name;
+		const char *name;
 		unsigned int count;
 		PhysGeomInfo *geoms;
 		char unknown[0x18];

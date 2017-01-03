@@ -1,21 +1,83 @@
 #include <STDInclude.hpp>
 
-#define IW4X_MODEL_VERSION 3
+#define IW4X_MODEL_VERSION 4
 
 namespace Assets
 {
+	void IXModel::loadXSurfaceCollisionTree(Game::XSurfaceCollisionTree* entry, Utils::Stream::Reader* reader)
+	{
+		if (entry->nodes)
+		{
+			entry->nodes = reader->readArray<Game::XSurfaceCollisionNode>(entry->nodeCount);
+		}
+
+		if (entry->leafs)
+		{
+			entry->leafs = reader->readArray<Game::XSurfaceCollisionLeaf>(entry->leafCount);
+		}
+	}
+
+	void IXModel::loadXSurface(Game::XSurface* surf, Utils::Stream::Reader* reader)
+	{
+		if (surf->vertInfo.vertsBlend)
+		{
+			surf->vertInfo.vertsBlend = reader->readArray<unsigned short>(surf->vertInfo.vertCount[0] + (surf->vertInfo.vertCount[1] * 3) + (surf->vertInfo.vertCount[2] * 5) + (surf->vertInfo.vertCount[3] * 7));
+		}
+
+		// Access vertex block
+		if (surf->verts0)
+		{
+			surf->verts0 = reader->readArray<Game::GfxPackedVertex>(surf->vertCount);
+		}
+
+		// Save_XRigidVertListArray
+		if (surf->vertList)
+		{
+			surf->vertList = reader->readArray<Game::XRigidVertList>(surf->vertListCount);
+
+			for (unsigned int i = 0; i < surf->vertListCount; ++i)
+			{
+				Game::XRigidVertList* rigidVertList = &surf->vertList[i];
+
+				if (rigidVertList->collisionTree)
+				{
+					rigidVertList->collisionTree = reader->readObject<Game::XSurfaceCollisionTree>();
+					this->loadXSurfaceCollisionTree(rigidVertList->collisionTree, reader);
+				}
+			}
+		}
+
+		// Access index block
+		if (surf->triIndices)
+		{
+			surf->triIndices = reader->readArray<unsigned short>(surf->triCount * 3);
+		}
+	}
+
+	void IXModel::loadXModelSurfs(Game::XModelSurfs* asset, Utils::Stream::Reader* reader)
+	{
+		if (asset->name)
+		{
+			asset->name = reader->readCString();
+		}
+
+		if (asset->surfaces)
+		{
+			asset->surfaces = reader->readArray<Game::XSurface>(asset->numSurfaces);
+
+			for (int i = 0; i < asset->numSurfaces; ++i)
+			{
+				this->loadXSurface(&asset->surfaces[i], reader);
+			}
+		}
+	}
+
 	void IXModel::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File modelFile(fmt::sprintf("xmodel/%s.iw4xModel", name.data()));
 
 		if (modelFile.exists())
 		{
-			Game::XModel* baseModel = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_XMODEL, "viewmodel_mp5k").model;
-
-			// Allocate new model and copy the base data to it
-			Game::XModel* model = builder->getAllocator()->allocate<Game::XModel>();
-			std::memcpy(model, baseModel, sizeof(Game::XModel));
-
 			Utils::Stream::Reader reader(builder->getAllocator(), modelFile.getBuffer());
 
 			if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xModl"))
@@ -29,164 +91,105 @@ namespace Assets
 				Components::Logger::Error(0, "Reading model '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_MODEL_VERSION, version);
 			}
 
-			ZeroMemory(model->noScalePartBits, sizeof model->noScalePartBits);
+			Game::XModel* asset = reader.readObject<Game::XModel>();
 
-			model->name = reader.readCString();
-			model->numBones = reader.readByte();
-			model->numRootBones = reader.readByte();
-			model->numsurfs = reader.read<unsigned char>();
-			model->numCollSurfs = reader.read<int>();
-			model->numLods = static_cast<char>(reader.read<short>());
-			model->collLod = static_cast<char>(reader.read<short>());
-
-			// Read bone names
-			model->boneNames = builder->getAllocator()->allocateArray<unsigned short>(model->numBones);
-			for (char i = 0; i < model->numBones; ++i)
+			if (asset->name)
 			{
-				model->boneNames[i] = Game::SL_GetString(reader.readCString(), 0);
+				asset->name = reader.readCString();
 			}
 
-			// Bone count
-			int boneCount = (model->numBones - model->numRootBones);
-
-			// Read bone data
-			model->parentList = reader.readArray<char>(boneCount);
-			model->quats = reader.readArray<short>(boneCount * 4);
-			model->trans = reader.readArray<float>(boneCount * 3);
-			model->partClassification = reader.readArray<char>(boneCount);
-			model->baseMat = reader.readArray<Game::DObjAnimMat>(boneCount);
-
-			// Prepare surfaces
-			Game::XModelSurfs surf;
-			Utils::Memory::Allocator allocator;
-			Game::XSurface* baseSurface = &baseModel->lodInfo[0].modelSurfs[0].surfaces[0];
-
-			std::memcpy(&surf, baseModel->lodInfo[0].modelSurfs, sizeof(Game::XModelSurfs));
-			surf.surfaces = allocator.allocateArray<Game::XSurface>(model->numsurfs);
-			surf.numSurfaces = model->numsurfs;
-
-			for (int i = 0; i < 4; ++i)
+			if (asset->boneNames)
 			{
-				model->lodInfo[i].dist = reader.read<float>();
-				model->lodInfo[i].numsurfs = reader.read<unsigned short>();
-				model->lodInfo[i].surfIndex = reader.read<unsigned short>();
+				asset->boneNames = builder->getAllocator()->allocateArray<unsigned short>(asset->numBones);
 
-				model->lodInfo[i].partBits[0] = reader.read<int>();
-				model->lodInfo[i].partBits[1] = reader.read<int>();
-				model->lodInfo[i].partBits[2] = reader.read<int>();
-				model->lodInfo[i].partBits[3] = reader.read<int>();
-				model->lodInfo[i].partBits[4] = 0;
-				model->lodInfo[i].partBits[5] = 0;
-			}
-
-			// Read surfaces
-			for (int i = 0; i < surf.numSurfaces; ++i)
-			{
-				Game::XSurface* surface = &surf.surfaces[i];
-				std::memcpy(surface, baseSurface, sizeof(Game::XSurface));
-
-				surface->tileMode = reader.read<char>();
-				surface->deformed = reader.read<bool>();
-
-				surface->zoneHandle = reader.read<char>();
-				surface->partBits[0] = reader.read<int>();
-				surface->partBits[1] = reader.read<int>();
-				surface->partBits[2] = reader.read<int>();
-				surface->partBits[3] = reader.read<int>();
-				surface->partBits[4] = 0;
-				surface->partBits[5] = 0;
-
-				surface->baseTriIndex = reader.read<unsigned __int16>();
-				surface->baseVertIndex = reader.read<unsigned __int16>();
-
-				surface->vertCount = reader.read<unsigned short>();
-				surface->triCount = reader.read<unsigned short>();
-				surface->vertListCount = reader.read<unsigned int>();
-
-				surface->vertInfo.vertCount[0] = reader.read<short>();
-				surface->vertInfo.vertCount[1] = reader.read<short>();
-				surface->vertInfo.vertCount[2] = reader.read<short>();
-				surface->vertInfo.vertCount[3] = reader.read<short>();
-
-				surface->vertInfo.vertsBlend = reader.readArray<unsigned short>(surface->vertInfo.vertCount[0] + (3 * surface->vertInfo.vertCount[1]) + (5 * surface->vertInfo.vertCount[2]) + (7 * surface->vertInfo.vertCount[3]));
-
-				surface->verts0 = reader.readArray<Game::GfxPackedVertex>(surface->vertCount);
-				surface->triIndices = reader.readArray<unsigned __int16>(3 * surface->triCount);
-
-				// Read vert list
-				if (reader.readByte())
+				for (char i = 0; i < asset->numBones; ++i)
 				{
-					surface->vertList = reader.readArray<Game::XRigidVertList>(surface->vertListCount);
-
-					for (unsigned int j = 0; j < surface->vertListCount; ++j)
-					{
-						Game::XRigidVertList* vertList = &surface->vertList[j];
-
-						vertList->collisionTree = reader.readArray<Game::XSurfaceCollisionTree>();
-						vertList->collisionTree->nodes = reader.readArray<Game::XSurfaceCollisionNode>(vertList->collisionTree->nodeCount);
-						vertList->collisionTree->leafs = reader.readArray<Game::XSurfaceCollisionLeaf>(vertList->collisionTree->leafCount);
-					}
-				}
-				else
-				{
-					surface->vertList = nullptr;
+					asset->boneNames[i] = Game::SL_GetString(reader.readCString(), 0);
 				}
 			}
 
-			// When all surfaces are loaded, split them up. 
-			for (char i = 0; i < model->numLods; ++i)			
+			if (asset->parentList)
 			{
-				Game::XModelSurfs* realSurf = builder->getAllocator()->allocate<Game::XModelSurfs>();
-
-				// Usually, a binary representation is used for the index, but meh.
-				realSurf->name = builder->getAllocator()->duplicateString(fmt::sprintf("%s_lod%d", model->name, i & 0xFF));
-
-				realSurf->numSurfaces = model->lodInfo[i].numsurfs;
-				realSurf->surfaces = builder->getAllocator()->allocateArray<Game::XSurface>(realSurf->numSurfaces);
-
-				std::memcpy(realSurf->surfaces, &surf.surfaces[model->lodInfo[i].surfIndex], sizeof(Game::XSurface) * realSurf->numSurfaces);
-				std::memcpy(realSurf->partBits, model->lodInfo[i].partBits, sizeof(realSurf->partBits));
-
-				model->lodInfo[i].modelSurfs = realSurf;
-				model->lodInfo[i].surfs = realSurf->surfaces;
-
-				// Store surfs for later writing
-				Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, { realSurf });
+				asset->parentList = reader.readArray<char>(asset->numBones - asset->numRootBones);
 			}
 
-			// Read materials
-			model->materialHandles = builder->getAllocator()->allocateArray<Game::Material*>(model->numsurfs);
-			for (char i = 0; i < model->numsurfs; ++i)
+			if (asset->quats)
 			{
-				model->materialHandles[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString(), builder).material;
+				asset->quats = reader.readArray<short>((asset->numBones - asset->numRootBones) * 4);
 			}
 
-			// Read collision surfaces
-			if (reader.readByte())
+			if (asset->trans)
 			{
-				model->collSurfs = reader.readArray<Game::XModelCollSurf_s>(model->numCollSurfs);
+				asset->trans = reader.readArray<float>((asset->numBones - asset->numRootBones) * 3);
+			}
 
-				for (int i = 0; i < model->numCollSurfs; ++i)
+			if (asset->partClassification)
+			{
+				asset->partClassification = reader.readArray<char>(asset->numBones);
+			}
+
+			if (asset->baseMat)
+			{
+				asset->baseMat = reader.readArray<Game::DObjAnimMat>(asset->numBones);
+			}
+
+			if (asset->materialHandles)
+			{
+				asset->materialHandles = reader.readArray<Game::Material*>(asset->numsurfs);
+
+				for (char i = 0; i < asset->numsurfs; ++i)
 				{
-					if (model->collSurfs[i].collTris)
+					if (asset->materialHandles[i])
 					{
-						model->collSurfs[i].collTris = reader.readArray<Game::XModelCollTri_s>(model->collSurfs[i].numCollTris);
+						asset->materialHandles[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString(), builder).material;
 					}
 				}
 			}
-			else
+
+			// Save_XModelLodInfoArray
 			{
-				model->collSurfs = nullptr;
+				for (int i = 0; i < 4; ++i)
+				{
+					if (asset->lodInfo[i].modelSurfs)
+					{
+						asset->lodInfo[i].modelSurfs = reader.readObject<Game::XModelSurfs>();
+						this->loadXModelSurfs(asset->lodInfo[i].modelSurfs, &reader);
+						Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, { asset->lodInfo[i].modelSurfs });
+					}
+				}
 			}
 
-			// Read bone info
-			if (reader.readByte())
+			// Save_XModelCollSurfArray
+			if (asset->collSurfs)
 			{
-				model->boneInfo = reader.readArray<Game::XBoneInfo>(model->numBones);
+				asset->collSurfs = reader.readArray<Game::XModelCollSurf_s>(asset->numCollSurfs);
+
+				for (int i = 0; i < asset->numCollSurfs; ++i)
+				{
+					Game::XModelCollSurf_s* collSurf = &asset->collSurfs[i];
+
+					if (collSurf->collTris)
+					{
+						collSurf->collTris = reader.readArray<Game::XModelCollTri_s>(collSurf->numCollTris);
+					}
+				}
 			}
-			else
+
+			if (asset->boneInfo)
 			{
-				model->boneInfo = nullptr;
+				asset->boneInfo = reader.readArray<Game::XBoneInfo>(asset->numBones);
+			}
+
+			if (asset->physPreset)
+			{
+				// TODO
+				asset->physPreset = nullptr;
+			}
+
+			if (asset->physCollmap)
+			{
+				// TODO
+				asset->physCollmap = nullptr;
 			}
 
 			if (!reader.end())
@@ -194,7 +197,7 @@ namespace Assets
 				Components::Logger::Error(0, "Reading model '%s' failed, remaining raw data found!", name.data());
 			}
 
-			header->model = model;
+			header->model = asset;
 		}
 	}
 
