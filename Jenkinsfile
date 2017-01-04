@@ -98,22 +98,18 @@ def getIW4xExecutable() {
 // This will build the IW4x client.
 // We need a Windows Server with Visual Studio 2015, Premake5 and Git on it.
 def doBuild(cfg) {
-	node("windows") {
-		jobWorkspace(cfg.WorkspaceID) {
-			retry(5) {
-				checkout scm
-			}
-
-			useShippedPremake {
-				def outputDir = pwd()
-				def msbuild = tool "Microsoft.NET MSBuild 14.0"
-				bat "premake5 vs2015 ${cfg.PremakeArgs}"
-				bat "\"${msbuild}\" build\\iw4x.sln \"/p:OutDir=$outputDir\\\\\" \"/p:Configuration=${cfg.MSBuildConfiguration}\""
-			}
-
-			stash name: "${cfg.StashName}", includes: "*.dll,*.pdb"
-		}
+	retry(5) {
+		checkout scm
 	}
+
+	useShippedPremake {
+		def outputDir = pwd()
+		def msbuild = tool "Microsoft.NET MSBuild 14.0"
+		bat "premake5 vs2015 ${cfg.PremakeArgs}"
+		bat "\"${msbuild}\" build\\iw4x.sln \"/p:OutDir=$outputDir\\\\\" \"/p:Configuration=${cfg.MSBuildConfiguration}\""
+	}
+
+	stash name: "${cfg.StashName}", includes: "*.dll,*.pdb"
 }
 
 // This will run the unit tests for IW4x.
