@@ -190,7 +190,6 @@ depsBasePath = "./deps"
 
 require "premake/base128"
 require "premake/bitmrc"
-require "premake/fmt"
 require "premake/json11"
 require "premake/libcryptopp"
 require "premake/libtomcrypt"
@@ -199,7 +198,6 @@ require "premake/mongoose"
 require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/sqlite3"
-require "premake/winksignals"
 require "premake/zlib"
 
 base128.setup
@@ -209,10 +207,6 @@ base128.setup
 bitmrc.setup
 {
 	source = path.join(depsBasePath, "bitmrc"),
-}
-fmt.setup
-{
-	source = path.join(depsBasePath, "fmt"),
 }
 json11.setup
 {
@@ -253,10 +247,6 @@ protobuf.setup
 sqlite3.setup
 {
 	source = path.join(depsBasePath, "bitmrc/windows/sqlite3"),
-}
-winksignals.setup
-{
-	source = path.join(depsBasePath, "Wink-Signals"),
 }
 zlib.setup
 {
@@ -365,14 +355,12 @@ workspace "iw4x"
 		if not _OPTIONS["disable-base128"] then
 			base128.import()
 		end
-		fmt.import()
 		json11.import()
 		libtomcrypt.import()
 		libtommath.import()
 		mongoose.import()
 		pdcurses.import()
 		protobuf.import()
-		winksignals.import()
 		zlib.import()
 
 		-- fix vpaths for protobuf sources
@@ -484,14 +472,12 @@ workspace "iw4x"
 		if not _OPTIONS["disable-base128"] then
 			base128.project()
 		end
-		fmt.project()
 		json11.project()
 		libtomcrypt.project()
 		libtommath.project()
 		mongoose.project()
 		pdcurses.project()
 		protobuf.project()
-		winksignals.project()
 		zlib.project()
 
 rule "ProtobufCompiler"
