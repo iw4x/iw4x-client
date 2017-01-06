@@ -190,8 +190,19 @@ namespace Assets
 
 			if (asset->physPreset)
 			{
-				// TODO
-				asset->physPreset = nullptr;
+				asset->physPreset = reader.readObject<Game::PhysPreset>();
+
+				if (asset->physPreset->name)
+				{
+					asset->physPreset->name = reader.readCString();
+				}
+
+				if (asset->physPreset->sndAliasPrefix)
+				{
+					asset->physPreset->sndAliasPrefix = reader.readCString();
+				}
+
+				Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, { asset->physPreset });
 			}
 
 			if (asset->physCollmap)
