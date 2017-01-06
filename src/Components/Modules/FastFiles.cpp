@@ -188,7 +188,7 @@ namespace Components
 		Game::XZoneInfo info = { nullptr, 4, 0 };
 
 		// Not sure how they should be loaded :S
-		std::string langZone = fmt::sprintf("iw4x_localized_%s", Game::Win_GetLanguage());
+		std::string langZone = Utils::String::VA("iw4x_localized_%s", Game::Win_GetLanguage());
 
 		if (FastFiles::Exists(langZone))
 		{
@@ -231,14 +231,14 @@ namespace Components
 		std::string modDir = Dvar::Var("fs_game").get<std::string>();
 		if (file == "mod"s || file == "mod.ff"s || !modDir.empty())
 		{
-			paths.push_back(fmt::sprintf("%s\\", modDir.data()));
+			paths.push_back(Utils::String::VA("%s\\", modDir.data()));
 		}
 
 		Utils::Merge(&paths, FastFiles::ZonePaths);
 		
 		for (auto &path : paths)
 		{
-			std::string absoluteFile = fmt::sprintf("%s\\%s%s", dir, path.data(), file);
+			std::string absoluteFile = Utils::String::VA("%s\\%s%s", dir, path.data(), file);
 
 			// No ".ff" appended, append it manually
 			if (!Utils::String::EndsWith(absoluteFile, ".ff"))
@@ -420,8 +420,8 @@ namespace Components
 
 		if (FastFiles::StreamRead)
 		{
-			std::string data = fmt::sprintf("%d\n", len);
-			if (*Game::g_streamPosIndex == 2) data = fmt::sprintf("(%d)\n", len);
+			std::string data = Utils::String::VA("%d\n", len);
+			if (*Game::g_streamPosIndex == 2) data = Utils::String::VA("(%d)\n", len);
 			Utils::IO::WriteFile("userraw/logs/iw4_reads.log", data, true);
 		}
 	}

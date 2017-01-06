@@ -537,7 +537,7 @@ namespace Game
 	{
 		if (client->state < 5)
 		{
-			Components::Network::Send(client->addr, fmt::sprintf("error\n%s", reason.data()));
+			Components::Network::Send(client->addr, Utils::String::VA("error\n%s", reason.data()));
 		}
 
 		SV_KickClient(client, reason.data());

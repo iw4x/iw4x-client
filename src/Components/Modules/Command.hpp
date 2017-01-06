@@ -54,8 +54,8 @@ namespace Components
 
 		static Game::cmd_function_t* Allocate();
 
-		static void Add(const char* name, Callback* callback);
-		static void AddSV(const char* name, Callback* callback);
+		static void Add(const char* name, Utils::Slot<Callback> callback);
+		static void AddSV(const char* name, Utils::Slot<Callback> callback);
 		static void AddRaw(const char* name, void(*callback)(), bool key = false);
 		static void AddRawSV(const char* name, void(*callback)());
 		static void Execute(std::string command, bool sync = true);
@@ -64,8 +64,8 @@ namespace Components
 
 	private:
 		static Utils::Memory::Allocator MemAllocator;
-		static std::unordered_map<std::string, wink::slot<Callback>> FunctionMap;
-		static std::unordered_map<std::string, wink::slot<Callback>> FunctionMapSV;
+		static std::unordered_map<std::string, Utils::Slot<Callback>> FunctionMap;
+		static std::unordered_map<std::string, Utils::Slot<Callback>> FunctionMapSV;
 
 		static void MainCallback();
 		static void MainCallbackSV();

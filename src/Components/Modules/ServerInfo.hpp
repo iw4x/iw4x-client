@@ -31,7 +31,7 @@ namespace Components
 
 		static Container PlayerContainer;
 
-		static void ServerStatus();
+		static void ServerStatus(UIScript::Token);
 
 		static unsigned int GetPlayerCount();
 		static const char* GetPlayerText(unsigned int index, int column);

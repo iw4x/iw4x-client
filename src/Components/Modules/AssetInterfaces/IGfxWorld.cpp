@@ -128,7 +128,7 @@ namespace Assets
 		Utils::String::Replace(name, "maps/mp/", "");
 		Utils::String::Replace(name, ".d3dbsp", "");
 
-		Components::FileSystem::File mapFile(fmt::sprintf("gfxworld/%s.iw4xGfxWorld", name.data()));
+		Components::FileSystem::File mapFile(Utils::String::VA("gfxworld/%s.iw4xGfxWorld", name.data()));
 
 		if (mapFile.exists())
 		{

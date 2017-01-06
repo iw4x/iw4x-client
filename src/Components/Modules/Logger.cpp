@@ -220,7 +220,7 @@ namespace Components
 				if (params->length() < 2) return;
 
 				int num = atoi(params->get(1));
-				if (fmt::sprintf("%i", num) == params->get(1) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[0].size())
+				if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[0].size())
 				{
 					auto addr = Logger::LoggingAddresses[0].begin() + num;
 					Logger::Print("Address %s removed\n", addr->getCString());
@@ -271,7 +271,7 @@ namespace Components
 				if (params->length() < 2) return;
 
 				int num = atoi(params->get(1));
-				if (fmt::sprintf("%i", num) == params->get(1) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[1].size())
+				if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[1].size())
 				{
 					auto addr = Logger::LoggingAddresses[1].begin() + num;
 					Logger::Print("Address %s removed\n", addr->getCString());

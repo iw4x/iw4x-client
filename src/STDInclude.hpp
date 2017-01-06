@@ -75,7 +75,6 @@ template <size_t S> class Sizer { };
 #include <mongoose.h>
 #include <json11.hpp>
 #include <tomcrypt.h>
-#include <wink/signal.hpp>
 #ifndef DISABLE_BITMESSAGE
 #include <BitMRC.h>
 #endif
@@ -87,8 +86,6 @@ template <size_t S> class Sizer { };
 #ifdef min
 #undef min
 #endif
-
-#include <fmt/printf.h>
 
 // Protobuf
 #include "proto/network.pb.h"

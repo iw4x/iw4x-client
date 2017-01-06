@@ -82,12 +82,12 @@ namespace Components
 
 		for (auto& idEntry : list.idList)
 		{
-			idVector.push_back(fmt::sprintf("%llX", idEntry.Bits));
+			idVector.push_back(Utils::String::VA("%llX", idEntry.Bits));
 		}
 
 		for (auto& ipEntry : list.ipList)
 		{
-			ipVector.push_back(fmt::sprintf("%u.%u.%u.%u",
+			ipVector.push_back(Utils::String::VA("%u.%u.%u.%u",
 				ipEntry.bytes[0] & 0xFF,
 				ipEntry.bytes[1] & 0xFF, 
 				ipEntry.bytes[2] & 0xFF, 

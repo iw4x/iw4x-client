@@ -21,8 +21,8 @@ namespace Components
 		static unsigned int GetItemCount();
 		static const char* GetItemText(unsigned int index, int column);
 		static void Select(unsigned int index);
-		static void UIScript_LoadMods();
-		static void UIScript_RunMod();
-		static void UIScript_ClearMods();
+		static void UIScript_LoadMods(UIScript::Token);
+		static void UIScript_RunMod(UIScript::Token);
+		static void UIScript_ClearMods(UIScript::Token);
 	};
 }

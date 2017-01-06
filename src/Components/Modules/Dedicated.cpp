@@ -2,8 +2,8 @@
 
 namespace Components
 {
-	wink::signal<wink::slot<Dedicated::Callback>> Dedicated::FrameSignal;
-	wink::signal<wink::slot<Dedicated::Callback>> Dedicated::FrameOnceSignal;
+	Utils::Signal<Dedicated::Callback> Dedicated::FrameSignal;
+	Utils::Signal<Dedicated::Callback> Dedicated::FrameOnceSignal;
 
 	bool Dedicated::SendChat;
 
@@ -131,7 +131,7 @@ namespace Components
 			if (!partyEnable) // Time wrapping should not occur in party servers, but yeah...
 			{
 				if (mapname.empty()) mapname = "mp_rust";
-				Command::Execute(fmt::sprintf("map %s", mapname.data()), false);
+				Command::Execute(Utils::String::VA("map %s", mapname.data()), false);
 				mapname.clear();
 			}
 		});
@@ -162,11 +162,11 @@ namespace Components
 
 			if (!Dvar::Var("sv_cheats").get<bool>())
 			{
-				Command::Execute(fmt::sprintf("map %s", Dvar::Var("mapname").get<const char*>()), true);
+				Command::Execute(Utils::String::VA("map %s", Dvar::Var("mapname").get<const char*>()), true);
 			}
 			else
 			{
-				Command::Execute(fmt::sprintf("devmap %s", Dvar::Var("mapname").get<const char*>()), true);
+				Command::Execute(Utils::String::VA("devmap %s", Dvar::Var("mapname").get<const char*>()), true);
 			}
 
 			return;
@@ -208,7 +208,7 @@ namespace Components
 				Dvar::Var("sv_mapRotationCurrent").set(rotation);
 
 				Logger::Print("Loading new map: %s\n", value.data());
-				Command::Execute(fmt::sprintf("map %s", value.data()), true);
+				Command::Execute(Utils::String::VA("map %s", value.data()), true);
 				break;
 			}
 			else if (key == "gametype")
@@ -228,18 +228,18 @@ namespace Components
 		int masterPort = Dvar::Var("masterPort").get<int>();
 		const char* masterServerName = Dvar::Var("masterServerName").get<const char*>();
 
-		Network::Address master(fmt::sprintf("%s:%u", masterServerName, masterPort));
+		Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
 
 		Logger::Print("Sending heartbeat to master: %s:%u\n", masterServerName, masterPort);
 		Network::SendCommand(master, "heartbeat", "IW4");
 	}
 
-	void Dedicated::Once(Dedicated::Callback* callback)
+	void Dedicated::Once(Utils::Slot<Dedicated::Callback> callback)
 	{
 		Dedicated::FrameOnceSignal.connect(callback);
 	}
 
-	void Dedicated::OnFrame(Dedicated::Callback* callback)
+	void Dedicated::OnFrame(Utils::Slot<Dedicated::Callback> callback)
 	{
 		Dedicated::FrameSignal.connect(callback);
 	}

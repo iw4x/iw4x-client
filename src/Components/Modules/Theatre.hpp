@@ -28,7 +28,7 @@ namespace Components
 					{ "gametype", gametype },
 					{ "author", author },
 					{ "length", length },
-					{ "timestamp", fmt::sprintf("%lld", timeStamp) } //Ugly, but prevents information loss
+					{ "timestamp", Utils::String::VA("%lld", timeStamp) } //Ugly, but prevents information loss
 				};
 			}
 		};
@@ -44,9 +44,9 @@ namespace Components
 		static void WriteBaseline();
 		static void StoreBaseline(PBYTE snapshotMsg);
 
-		static void LoadDemos();
-		static void DeleteDemo();
-		static void PlayDemo();
+		static void LoadDemos(UIScript::Token);
+		static void DeleteDemo(UIScript::Token);
+		static void PlayDemo(UIScript::Token);
 
 		static unsigned int GetDemoCount();
 		static const char* GetDemoText(unsigned int item, int column);

@@ -194,7 +194,7 @@ namespace Components
 					{
 						Game::PC_ReadTokenHandle(handle, &token);
 
-						Utils::Merge(&menus, Menus::LoadMenu(fmt::sprintf("ui_mp\\%s.menu", token.string)));
+						Utils::Merge(&menus, Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", token.string)));
 					}
 
 					if (!_stricmp(token.string, "menudef"))
@@ -213,7 +213,7 @@ namespace Components
 
 	std::vector<Game::menuDef_t*> Menus::LoadMenu(Game::menuDef_t* menudef)
 	{
-		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(fmt::sprintf("ui_mp\\%s.menu", menudef->window.name));
+		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", menudef->window.name));
 
 		if (menus.empty())
 		{

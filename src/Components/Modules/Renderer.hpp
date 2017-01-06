@@ -16,12 +16,12 @@ namespace Components
 		static int Width();
 		static int Height();
 
-		static void Once(Callback* callback);
-		static void OnFrame(Callback* callback);
-		static void OnBackendFrame(BackendCallback* callback);
+		static void Once(Utils::Slot<Callback> callback);
+		static void OnFrame(Utils::Slot<Callback> callback);
+		static void OnBackendFrame(Utils::Slot<BackendCallback> callback);
 
-		static void OnDeviceRecoveryEnd(Callback* callback);
-		static void OnDeviceRecoveryBegin(Callback* callback);
+		static void OnDeviceRecoveryEnd(Utils::Slot<Callback> callback);
+		static void OnDeviceRecoveryBegin(Utils::Slot<Callback> callback);
 
 	private:
 		static void FrameStub();
@@ -30,13 +30,13 @@ namespace Components
 		static void BackendFrameStub();
 		static void BackendFrameHandler();
 
-		static wink::signal<wink::slot<Callback>> FrameSignal;
-		static wink::signal<wink::slot<Callback>> FrameOnceSignal;
+		static Utils::Signal<Callback> FrameSignal;
+		static Utils::Signal<Callback> FrameOnceSignal;
 
-		static wink::signal<wink::slot<Callback>> EndRecoverDeviceSignal;
-		static wink::signal<wink::slot<Callback>> BeginRecoverDeviceSignal;
+		static Utils::Signal<Callback> EndRecoverDeviceSignal;
+		static Utils::Signal<Callback> BeginRecoverDeviceSignal;
 
-		static wink::signal<wink::slot<BackendCallback>> BackendFrameSignal;
+		static Utils::Signal<BackendCallback> BackendFrameSignal;
 		static Utils::Hook DrawFrameHook;
 	};
 }

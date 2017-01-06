@@ -13,6 +13,7 @@ namespace Components
 		class Token
 		{
 		public:
+			Token() : token(0) {};
 			Token(const char** args) : token(0) { this->parse(args); };
 			Token(const Token &obj) { this->token = obj.token; };
 
@@ -29,17 +30,15 @@ namespace Components
 		typedef void(Callback)(Token token);
 		typedef void(CallbackRaw)();
 
-		static void Add(std::string name, Callback* callback);
-		static void Add(std::string name, CallbackRaw* callback);
-
-		static void AddOwnerDraw(int ownerdraw, CallbackRaw* callback);
+		static void Add(std::string name, Utils::Slot<Callback> callback);
+		static void AddOwnerDraw(int ownerdraw, Utils::Slot<CallbackRaw> callback);
 
 	private:
 		static void OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key);
 		static bool RunMenuScript(const char* name, const char** args);
 		static void RunMenuScriptStub();
 
-		static std::unordered_map<std::string, wink::slot<Callback>> UIScripts;
-		static std::unordered_map<int, wink::slot<CallbackRaw>> UIOwnerDraws;
+		static std::unordered_map<std::string, Utils::Slot<Callback>> UIScripts;
+		static std::unordered_map<int, Utils::Slot<CallbackRaw>> UIOwnerDraws;
 	};
 }

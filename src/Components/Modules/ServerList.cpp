@@ -144,7 +144,7 @@ namespace Components
 		}
 	}
 
-	void ServerList::UpdateVisibleList()
+	void ServerList::UpdateVisibleList(UIScript::Token)
 	{
 		auto list = ServerList::GetList();
 		if (!list) return;
@@ -153,7 +153,7 @@ namespace Components
 
 		if (tempList.empty())
 		{
-			ServerList::Refresh();
+			ServerList::Refresh(UIScript::Token());
 		}
 		else
 		{
@@ -171,7 +171,7 @@ namespace Components
 		}
 	}
 
-	void ServerList::RefreshVisibleList()
+	void ServerList::RefreshVisibleList(UIScript::Token)
 	{
 		Dvar::Var("ui_serverSelected").set(false);
 
@@ -183,7 +183,7 @@ namespace Components
 		// Refresh entirely, if there is no entry in the list
 		if (list->empty())
 		{
-			ServerList::Refresh();
+			ServerList::Refresh(UIScript::Token());
 			return;
 		}
 
@@ -222,7 +222,7 @@ namespace Components
 		ServerList::SortList();
 	}
 
-	void ServerList::Refresh()
+	void ServerList::Refresh(UIScript::Token)
 	{
 		Dvar::Var("ui_serverSelected").set(false);
 		Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
@@ -457,7 +457,7 @@ namespace Components
 					if (lList)
 					{
 						lList->push_back(server);
-						ServerList::RefreshVisibleList();
+						ServerList::RefreshVisibleList(UIScript::Token());
 					}
 				}
 
@@ -557,14 +557,14 @@ namespace Components
 			SendServers--;
 
 			server->sendTime = Game::Sys_Milliseconds();
-			server->challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+			server->challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 			++ServerList::RefreshContainer.sentCount;
 
 			Network::SendCommand(server->target, "getinfo", server->challenge);
 
 			// Display in the menu, like in COD4
-			Localization::Set("MPUI_SERVERQUERIED", fmt::sprintf("Sent requests: %d/%d", ServerList::RefreshContainer.sentCount, ServerList::RefreshContainer.sendCount));
+			Localization::Set("MPUI_SERVERQUERIED", Utils::String::VA("Sent requests: %d/%d", ServerList::RefreshContainer.sentCount, ServerList::RefreshContainer.sendCount));
 
 			if (SendServers <= 0) break;
 		}
@@ -585,7 +585,7 @@ namespace Components
 
 		netSource.set(source);
 
-		ServerList::RefreshVisibleList();
+		ServerList::RefreshVisibleList(UIScript::Token());
 	}
 
 	void ServerList::UpdateGameType()
@@ -601,7 +601,7 @@ namespace Components
 
 		joinGametype.set(gametype);
 
-		ServerList::RefreshVisibleList();
+		ServerList::RefreshVisibleList(UIScript::Token());
 	}
 
 	ServerList::ServerList()
@@ -664,7 +664,7 @@ namespace Components
 		UIScript::Add("RefreshFilter", ServerList::UpdateVisibleList);
 
 		UIScript::Add("RefreshServers", ServerList::Refresh);
-		UIScript::Add("JoinServer", [] ()
+		UIScript::Add("JoinServer", [] (UIScript::Token)
 		{
 			ServerList::ServerInfo* info = ServerList::GetServer(ServerList::CurrentServer);
 
@@ -690,7 +690,7 @@ namespace Components
 			Logger::Print("Sorting server list by token: %d\n", ServerList::SortKey);
 			ServerList::SortList();
 		});
-		UIScript::Add("CreateListFavorite", [] ()
+		UIScript::Add("CreateListFavorite", [] (UIScript::Token)
 		{
 			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
 
@@ -699,11 +699,11 @@ namespace Components
 				ServerList::StoreFavourite(info->addr.getString());
 			}
 		});
-		UIScript::Add("CreateFavorite", [] ()
+		UIScript::Add("CreateFavorite", [] (UIScript::Token)
 		{
 			ServerList::StoreFavourite(Dvar::Var("ui_favoriteAddress").get<std::string>());
 		});
-		UIScript::Add("CreateCurrentServerFavorite", []()
+		UIScript::Add("CreateCurrentServerFavorite", [] (UIScript::Token)
 		{
 			if (Dvar::Var("cl_ingame").get<bool>())
 			{

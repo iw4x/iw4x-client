@@ -31,11 +31,11 @@ namespace Components
 
 					Logger::Print("Starting local server discovery...\n");
 
-					Discovery::Challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+					Discovery::Challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 					unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").get<unsigned int>();
 					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").get<unsigned int>();
-					Network::BroadcastRange(minPort, maxPort, fmt::sprintf("discovery %s", Discovery::Challenge.data()));
+					Network::BroadcastRange(minPort, maxPort, Utils::String::VA("discovery %s", Discovery::Challenge.data()));
 
 					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Sys_Milliseconds() - start);
 

@@ -45,7 +45,7 @@ namespace Components
 				}
 				else
 				{
-					Toast::Show("cardicon_locked", "Success", fmt::sprintf("Your new security level is %d", Auth::GetSecurityLevel()), 5000);
+					Toast::Show("cardicon_locked", "Success", Utils::String::VA("Your new security level is %d", Auth::GetSecurityLevel()), 5000);
 					Command::Execute(Auth::TokenContainer.command, false);
 				}
 			}
@@ -198,7 +198,7 @@ namespace Components
 
 			if (userLevel < ourLevel)
 			{
-				Network::Send(address, fmt::sprintf("error\nYour security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
+				Network::Send(address, Utils::String::VA("error\nYour security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
 				return;
 			}
 
@@ -402,7 +402,7 @@ namespace Components
 					Logger::Print("Your security token is: %s\n", Utils::String::DumpHex(Auth::GuidToken.toString(), "").data());
 					Logger::Print("Your computation token is: %s\n", Utils::String::DumpHex(Auth::ComputeToken.toString(), "").data());
 
-					Toast::Show("cardicon_locked", "^5Security Level", fmt::sprintf("Your security level is %d", level), 3000);
+					Toast::Show("cardicon_locked", "^5Security Level", Utils::String::VA("Your security level is %d", level), 3000);
 				}
 				else
 				{
@@ -412,7 +412,7 @@ namespace Components
 			});
 		}
 
-		UIScript::Add("security_increase_cancel", [] ()
+		UIScript::Add("security_increase_cancel", [] (UIScript::Token)
 		{
 			Auth::TokenContainer.cancel = true;
 			Logger::Print("Token incrementation process canceled!\n");

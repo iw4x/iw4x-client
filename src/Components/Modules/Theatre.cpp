@@ -175,11 +175,11 @@ namespace Components
 		Theatre::CurrentInfo.length = Game::Sys_Milliseconds() - Theatre::CurrentInfo.length;
 
 		// Write metadata
-		FileSystem::FileWriter meta(fmt::sprintf("%s.json", Theatre::CurrentInfo.name.data()));
+		FileSystem::FileWriter meta(Utils::String::VA("%s.json", Theatre::CurrentInfo.name.data()));
 		meta.write(json11::Json(Theatre::CurrentInfo).dump());
 	}
 
-	void Theatre::LoadDemos()
+	void Theatre::LoadDemos(UIScript::Token)
 	{
 		Theatre::CurrentSelection = 0;
 		Theatre::Demos.clear();
@@ -188,7 +188,7 @@ namespace Components
 
 		for (auto demo : demos)
 		{
-			FileSystem::File meta(fmt::sprintf("demos/%s.json", demo.data()));
+			FileSystem::File meta(Utils::String::VA("demos/%s.json", demo.data()));
 
 			if (meta.exists())
 			{
@@ -215,7 +215,7 @@ namespace Components
 		std::reverse(Theatre::Demos.begin(), Theatre::Demos.end());
 	}
 
-	void Theatre::DeleteDemo()
+	void Theatre::DeleteDemo(UIScript::Token)
 	{
 		if (Theatre::CurrentSelection < Theatre::Demos.size())
 		{
@@ -235,15 +235,15 @@ namespace Components
 			Dvar::Var("ui_demo_date").set("");
 
 			// Reload demos
-			Theatre::LoadDemos();
+			Theatre::LoadDemos(UIScript::Token());
 		}
 	}
 
-	void Theatre::PlayDemo()
+	void Theatre::PlayDemo(UIScript::Token)
 	{
 		if (Theatre::CurrentSelection < Theatre::Demos.size())
 		{
-			Command::Execute(fmt::sprintf("demo %s", Theatre::Demos[Theatre::CurrentSelection].name.data()), true);
+			Command::Execute(Utils::String::VA("demo %s", Theatre::Demos[Theatre::CurrentSelection].name.data()), true);
 			Command::Execute("demoback", false);
 		}
 	}
@@ -308,10 +308,10 @@ namespace Components
 			{
 				Logger::Print("Deleting old demo %s\n", files[i].data());
 				FileSystem::DeleteFile("demos", files[i].data());
-				FileSystem::DeleteFile("demos", fmt::sprintf("%s.json", files[i].data()));
+				FileSystem::DeleteFile("demos", Utils::String::VA("%s.json", files[i].data()));
 			}
 
-			Command::Execute(fmt::format("record auto_{}", time(0)), true);
+			Command::Execute(Utils::String::VA("record auto_%lld", time(0)), true);
 		}
 
 		return Utils::Hook::Call<DWORD()>(0x42BBB0)();

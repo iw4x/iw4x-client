@@ -571,7 +571,7 @@ namespace Assets
 		Utils::String::Replace(name, "maps/mp/", "");
 		Utils::String::Replace(name, ".d3dbsp", "");
 
-		Components::FileSystem::File clipFile(fmt::sprintf("clipmap/%s.iw4xClipMap", name.data()));
+		Components::FileSystem::File clipFile(Utils::String::VA("clipmap/%s.iw4xClipMap", name.data()));
 		if (!clipFile.exists())
 		{
 			return;

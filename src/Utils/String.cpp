@@ -3,10 +3,27 @@
 #include "base128.h"
 #endif
 
+#define VA_BUFFER_COUNT		32
+#define VA_BUFFER_SIZE		65536
+
 namespace Utils
 {
 	namespace String
 	{
+		const char *VA(const char *fmt, ...)
+		{
+			static char g_vaBuffer[VA_BUFFER_COUNT][VA_BUFFER_SIZE];
+			static int g_vaNextBufferIndex = 0;
+
+			va_list ap;
+			va_start(ap, fmt);
+			char* dest = g_vaBuffer[g_vaNextBufferIndex];
+			vsnprintf_s(g_vaBuffer[g_vaNextBufferIndex], VA_BUFFER_SIZE, fmt, ap);
+			g_vaNextBufferIndex = (g_vaNextBufferIndex + 1) % VA_BUFFER_COUNT;
+			va_end(ap);
+			return dest;
+		}
+
 		std::string ToLower(std::string input)
 		{
 			std::transform(input.begin(), input.end(), input.begin(), ::tolower);
@@ -35,7 +52,7 @@ namespace Utils
 					result.append(separator);
 				}
 
-				result.append(fmt::sprintf("%02X", data[i] & 0xFF));
+				result.append(Utils::String::VA("%02X", data[i] & 0xFF));
 			}
 
 			return result;
@@ -122,7 +139,7 @@ namespace Utils
 			int minutes = minutesTotal % 60;
 			int hoursTotal = minutesTotal / 60;
 
-			return fmt::sprintf("%02d:%02d:%02d", hoursTotal, minutes, seconds);
+			return Utils::String::VA("%02d:%02d:%02d", hoursTotal, minutes, seconds);
 		}
 
 		std::string FormatBandwidth(size_t bytes, int milliseconds)
@@ -144,7 +161,7 @@ namespace Utils
 				bytesPerSecond /= 1000;
 			}
 
-			return fmt::sprintf("%.2f %s/s", static_cast<float>(bytesPerSecond), sizes[i]);
+			return Utils::String::VA("%.2f %s/s", static_cast<float>(bytesPerSecond), sizes[i]);
 		}
 
 		// Encodes a given string in Base64

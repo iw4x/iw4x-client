@@ -13,7 +13,7 @@ namespace Assets
 
 	void IMaterial::loadBinary(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File materialFile(fmt::sprintf("materials/%s.iw4xMaterial", name.data()));
+		Components::FileSystem::File materialFile(Utils::String::VA("materials/%s.iw4xMaterial", name.data()));
 		if (!materialFile.exists()) return;
 
 		Game::Material* material = builder->getAllocator()->allocate<Game::Material>();
@@ -139,7 +139,7 @@ namespace Assets
 
 	void IMaterial::loadJson(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File materialInfo(fmt::sprintf("materials/%s.json", name.data()));
+		Components::FileSystem::File materialInfo(Utils::String::VA("materials/%s.json", name.data()));
 
 		if (!materialInfo.exists()) return;
 

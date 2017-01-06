@@ -37,7 +37,7 @@ namespace Components
 		ServerInfo::PlayerContainer.currentPlayer = index;
 	}
 
-	void ServerInfo::ServerStatus()
+	void ServerInfo::ServerStatus(UIScript::Token)
 	{
 		ServerInfo::PlayerContainer.currentPlayer = 0;
 		ServerInfo::PlayerContainer.playerList.clear();
@@ -117,12 +117,12 @@ namespace Components
 
 		Utils::InfoString info(Game::Dvar_InfoString_Big(1024));
 		info.set("gamename", "IW4");
-		info.set("sv_maxclients", fmt::sprintf("%i", maxclientCount));
-		info.set("protocol", fmt::sprintf("%i", PROTOCOL));
+		info.set("sv_maxclients", Utils::String::VA("%i", maxclientCount));
+		info.set("protocol", Utils::String::VA("%i", PROTOCOL));
 		info.set("shortversion", SHORTVERSION);
 		info.set("mapname", Dvar::Var("mapname").get<const char*>());
 		info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().empty() ? "0" : "1"));
-		info.set("checksum", fmt::sprintf("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(fmt::sprintf("%u", Game::Sys_Milliseconds()))));
+		info.set("checksum", Utils::String::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::String::VA("%u", Game::Sys_Milliseconds()))));
 
 		// Ensure mapname is set
 		if (info.get("mapname").empty())
@@ -198,7 +198,7 @@ namespace Components
 					name = namePtr;
 				}
 
-				playerList.append(fmt::sprintf("%i %i \"%s\"\n", score, ping, name.data()));
+				playerList.append(Utils::String::VA("%i %i \"%s\"\n", score, ping, name.data()));
 			}
 
 			Network::SendCommand(address, "statusResponse", "\\" + info.build() + "\n" + playerList + "\n");

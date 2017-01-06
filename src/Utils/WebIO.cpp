@@ -178,7 +178,7 @@ namespace Utils
 		body += data + "\r\n";
 		body += "--" + boundary + "--\r\n";
 
-		headers["Content-Length"] = fmt::sprintf("%u", body.size());
+		headers["Content-Length"] = Utils::String::VA("%u", body.size());
 
 		return this->execute("POST", body, headers);
 	}

@@ -74,7 +74,7 @@ namespace Assets
 
 	void IXModel::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File modelFile(fmt::sprintf("xmodel/%s.iw4xModel", name.data()));
+		Components::FileSystem::File modelFile(Utils::String::VA("xmodel/%s.iw4xModel", name.data()));
 
 		if (modelFile.exists())
 		{

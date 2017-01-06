@@ -84,7 +84,7 @@ namespace Components
 			fDownload->download->timeStampBytes += bytes;
 
 			double progress = (100.0 / fDownload->download->totalBytes) * fDownload->download->downBytes;
-			Localization::SetTemp("MPUI_PROGRESS_DL", fmt::sprintf("(%d/%d) %d%%", fDownload->index + 1, fDownload->download->files.size(), static_cast<unsigned int>(progress)));
+			Localization::SetTemp("MPUI_PROGRESS_DL", Utils::String::VA("(%d/%d) %d%%", fDownload->index + 1, fDownload->download->files.size(), static_cast<unsigned int>(progress)));
 
 			int delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp;
 			if (delta > 300)
@@ -218,7 +218,7 @@ namespace Components
 			{
 				if (download->terminateThread) return;
 
-				mod = fmt::sprintf("Failed to download file: %s!", download->files[i].name.data());
+				mod = Utils::String::VA("Failed to download file: %s!", download->files[i].name.data());
 				download->thread.detach();
 				download->clear();
 
@@ -574,7 +574,7 @@ namespace Components
 		}
 		else
 		{
-			UIScript::Add("mod_download_cancel", [] ()
+			UIScript::Add("mod_download_cancel", [] (UIScript::Token)
 			{
 				Download::CLDownload.clear();
 			});

@@ -3,12 +3,12 @@
 namespace Components
 {
 	Utils::Hook Renderer::DrawFrameHook;
-	wink::signal<wink::slot<Renderer::Callback>> Renderer::FrameSignal;
-	wink::signal<wink::slot<Renderer::Callback>> Renderer::FrameOnceSignal;
-	wink::signal<wink::slot<Renderer::BackendCallback>> Renderer::BackendFrameSignal;
+	Utils::Signal<Renderer::Callback> Renderer::FrameSignal;
+	Utils::Signal<Renderer::Callback> Renderer::FrameOnceSignal;
+	Utils::Signal<Renderer::BackendCallback> Renderer::BackendFrameSignal;
 
-	wink::signal<wink::slot<Renderer::Callback>> Renderer::EndRecoverDeviceSignal;
-	wink::signal<wink::slot<Renderer::Callback>> Renderer::BeginRecoverDeviceSignal;
+	Utils::Signal<Renderer::Callback> Renderer::EndRecoverDeviceSignal;
+	Utils::Signal<Renderer::Callback> Renderer::BeginRecoverDeviceSignal;
 
 	__declspec(naked) void Renderer::FrameStub()
 	{
@@ -53,27 +53,27 @@ namespace Components
 		}
 	}
 
-	void Renderer::Once(Renderer::Callback* callback)
+	void Renderer::Once(Utils::Slot<Renderer::Callback> callback)
 	{
 		Renderer::FrameOnceSignal.connect(callback);
 	}
 
-	void Renderer::OnFrame(Renderer::Callback* callback)
+	void Renderer::OnFrame(Utils::Slot<Renderer::Callback> callback)
 	{
 		Renderer::FrameSignal.connect(callback);
 	}
 
-	void Renderer::OnBackendFrame(Renderer::BackendCallback* callback)
+	void Renderer::OnBackendFrame(Utils::Slot<Renderer::BackendCallback> callback)
 	{
 		Renderer::BackendFrameSignal.connect(callback);
 	}
 
-	void Renderer::OnDeviceRecoveryEnd(Renderer::Callback* callback)
+	void Renderer::OnDeviceRecoveryEnd(Utils::Slot<Renderer::Callback> callback)
 	{
 		Renderer::EndRecoverDeviceSignal.connect(callback);
 	}
 
-	void Renderer::OnDeviceRecoveryBegin(Renderer::Callback* callback)
+	void Renderer::OnDeviceRecoveryBegin(Utils::Slot<Renderer::Callback> callback)
 	{
 		Renderer::BeginRecoverDeviceSignal.connect(callback);
 	}

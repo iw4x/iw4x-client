@@ -24,4 +24,32 @@ namespace Utils
 			target->push_back(entry);
 		}
 	}
+
+	template <typename T> using Slot = std::function<T>;
+	template <typename T> 
+	class Signal
+	{
+	public:
+		void connect(Slot<T> slot)
+		{
+			slots.push_back(slot);
+		}
+
+		void clear()
+		{
+			slots.clear();
+		}
+
+		template <class ...Args>
+		void operator()(Args&&... args) const
+		{
+			for (auto& slot : slots)
+			{
+				slot(std::forward<Args>(args)...);
+			}
+		}
+
+	private:
+		std::vector<Slot<T>> slots;
+	};
 }

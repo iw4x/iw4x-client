@@ -60,8 +60,8 @@ namespace Components
 		const char* getName() { return "Network"; };
 #endif
 
-		static void Handle(std::string packet, Callback* callback);
-		static void OnStart(CallbackRaw* callback);
+		static void Handle(std::string packet, Utils::Slot<Callback> callback);
+		static void OnStart(Utils::Slot<CallbackRaw> callback);
 
 		// Send quake-styled binary data
 		static void Send(Address target, std::string data);
@@ -81,8 +81,8 @@ namespace Components
 
 	private:
 		static std::string SelectedPacket;
-		static wink::signal<wink::slot<CallbackRaw>> StartupSignal;
-		static std::map<std::string, wink::slot<Callback>> PacketHandlers;
+		static Utils::Signal<CallbackRaw> StartupSignal;
+		static std::map<std::string, Utils::Slot<Callback>> PacketHandlers;
 
 		static int PacketInterceptionHandler(const char* packet);
 		static void DeployPacket(Game::netadr_t* from, Game::msg_t* msg);

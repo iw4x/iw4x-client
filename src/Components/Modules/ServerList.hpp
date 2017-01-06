@@ -31,9 +31,9 @@ namespace Components
 		const char* getName() { return "ServerList"; };
 #endif
 
-		static void Refresh();
-		static void RefreshVisibleList();
-		static void UpdateVisibleList();
+		static void Refresh(UIScript::Token);
+		static void RefreshVisibleList(UIScript::Token);
+		static void UpdateVisibleList(UIScript::Token);
 		static void InsertRequest(Network::Address address, bool acquireMutex = true);
 		static void Insert(Network::Address address, Utils::InfoString info);
 

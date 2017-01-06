@@ -2,27 +2,7 @@ namespace Utils
 {
 	namespace String
 	{
-		template <typename ...Args>
-		const char* VA(std::string message, Args && ...args)
-		{
-			#define VA_BUFFER_COUNT	4
-			#define VA_BUFFER_SIZE	65536
-
-			static char g_vaBuffer[VA_BUFFER_COUNT][VA_BUFFER_SIZE];
-			static int g_vaNextBufferIndex = 0;
-
-			char* buffer = g_vaBuffer[g_vaNextBufferIndex];
-			g_vaNextBufferIndex = (g_vaNextBufferIndex + 1) % VA_BUFFER_COUNT;
-
-			std::string str = fmt::sprintf(message, std::forward<Args>(args)...);
-
-			if (memmove_s(buffer, VA_BUFFER_SIZE, str.data(), str.size() + 1))
-			{
-				*buffer = 0; // Error
-			}
-
-			return buffer;
-		}
+		const char *VA(const char *fmt, ...);
 
 		int IsSpace(int c);
 		std::string ToLower(std::string input);

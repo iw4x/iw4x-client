@@ -247,7 +247,7 @@ namespace Components
 
 		if (Dedicated::IsEnabled())
 		{
-			entry->challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+			entry->challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 			Proto::Node::Packet packet;
 			packet.set_challenge(entry->challenge);
@@ -395,7 +395,7 @@ namespace Components
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
-				std::string challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+				std::string challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 				Proto::Node::Packet packet;
 				packet.set_challenge(challenge);
@@ -433,7 +433,7 @@ namespace Components
 				if (packet.challenge().empty()) return;
 
 				std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, packet.challenge());
-				std::string challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+				std::string challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 				// The challenge this client sent is exactly the challenge we stored for this client
 				// That means this is us, so we're going to ignore us :P
@@ -651,7 +651,7 @@ namespace Components
 #endif
 
 				// Initialize session data
-				session->challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+				session->challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 				session->lastTime = Game::Sys_Milliseconds();
 				session->valid = false;
 
@@ -917,7 +917,7 @@ namespace Components
 
 		for (int i = 0; i < 10; ++i)
 		{
-			std::string message = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+			std::string message = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 			std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
 			if (!Utils::Cryptography::ECC::VerifyMessage(Node::SignatureKey, message, signature))
@@ -933,7 +933,7 @@ namespace Components
 
 		for (int i = 0; i < 10; ++i)
 		{
-			std::string message = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+			std::string message = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 			std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
 			// Invalidate the message...
@@ -951,7 +951,7 @@ namespace Components
 		printf("Testing ECDSA key import...");
 
 		std::string pubKey = Node::SignatureKey.getPublicKey();
-		std::string message = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+		std::string message = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 		std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, message);
 
 		Utils::Cryptography::ECC::Key testKey;

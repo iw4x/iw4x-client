@@ -3,8 +3,8 @@
 namespace Components
 {
 	std::string Network::SelectedPacket;
-	wink::signal<wink::slot<Network::CallbackRaw>> Network::StartupSignal;
-	std::map<std::string, wink::slot<Network::Callback>> Network::PacketHandlers;
+	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
+	std::map<std::string, Utils::Slot<Network::Callback>> Network::PacketHandlers;
 
 	Network::Address::Address(std::string addrString)
 	{
@@ -135,12 +135,12 @@ namespace Components
 		this->setType(Game::netadrtype_t::NA_IP);
 	}
 
-	void Network::Handle(std::string packet, Network::Callback* callback)
+	void Network::Handle(std::string packet, Utils::Slot<Network::Callback> callback)
 	{
 		Network::PacketHandlers[Utils::String::ToLower(packet)] = callback;
 	}
 
-	void Network::OnStart(Network::CallbackRaw* callback)
+	void Network::OnStart(Utils::Slot<Network::CallbackRaw> callback)
 	{
 		Network::StartupSignal.connect(callback);
 	}

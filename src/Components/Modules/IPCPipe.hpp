@@ -23,8 +23,8 @@ namespace Components
 			IPCTYPE_CLIENT
 		};
 
-		typedef void(__cdecl* PacketCallback)(std::string data);
-		typedef void(__cdecl* Callback)();
+		typedef void(__cdecl PacketCallback)(std::string data);
+		typedef void(__cdecl Callback)();
 
 		Pipe();
 		~Pipe();
@@ -33,12 +33,12 @@ namespace Components
 		bool create(std::string name);
 
 		bool write(std::string command, std::string data);
-		void setCallback(std::string command, PacketCallback callback);
+		void setCallback(std::string command, Utils::Slot<PacketCallback> callback);
 		void onConnect(Callback callback);
 
 	private:
-		wink::slot<void()> connectCallback;
-		std::map<std::string, PacketCallback> packetCallbacks;
+		Utils::Slot<void()> connectCallback;
+		std::map<std::string, Utils::Slot<PacketCallback>> packetCallbacks;
 
 		HANDLE pipe;
 		std::thread thread;
@@ -67,7 +67,7 @@ namespace Components
 #endif
 
 		static bool Write(std::string command, std::string data);
-		static void On(std::string command, Pipe::PacketCallback callback);
+		static void On(std::string command, Utils::Slot<Pipe::PacketCallback> callback);
 
 	private:
 		static Pipe ServerPipe;

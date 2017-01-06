@@ -83,7 +83,7 @@ namespace Components
 		this->connectCallback = callback;
 	}
 
-	void Pipe::setCallback(std::string command, Pipe::PacketCallback callback)
+	void Pipe::setCallback(std::string command, Utils::Slot<Pipe::PacketCallback> callback)
 	{
 		this->packetCallbacks[command] = callback;
 	}
@@ -193,7 +193,7 @@ namespace Components
 	}
 
 	// Installs a callback for receiving commands from the process on the other end of the pipe
-	void IPCPipe::On(std::string command, Pipe::PacketCallback callback)
+	void IPCPipe::On(std::string command, Utils::Slot<Pipe::PacketCallback> callback)
 	{
 		IPCPipe::ServerPipe.setCallback(command, callback);
 	}

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	wink::signal<wink::slot<QuickPatch::Callback>> QuickPatch::ShutdownSignal;
+	Utils::Signal<QuickPatch::Callback> QuickPatch::ShutdownSignal;
 
 	int64_t* QuickPatch::GetStatsID()
 	{
@@ -10,7 +10,7 @@ namespace Components
 		return &id;
 	}
 
-	void QuickPatch::OnShutdown(QuickPatch::Callback* callback)
+	void QuickPatch::OnShutdown(Utils::Slot<QuickPatch::Callback> callback)
 	{
 		QuickPatch::ShutdownSignal.connect(callback);
 	}
@@ -21,7 +21,7 @@ namespace Components
 		Utils::Hook::Call<void(int)>(0x46B370)(num);
 	}
 
-	void QuickPatch::OnFrame(QuickPatch::Callback* callback)
+	void QuickPatch::OnFrame(Utils::Slot<QuickPatch::Callback> callback)
 	{
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
@@ -33,7 +33,7 @@ namespace Components
 		}
 	}
 
-	void QuickPatch::Once(QuickPatch::Callback* callback)
+	void QuickPatch::Once(Utils::Slot<QuickPatch::Callback> callback)
 	{
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
@@ -80,8 +80,8 @@ namespace Components
 					maxProgress = progress;
 				}
 
-				Command::Execute(fmt::sprintf("setPlayerData challengeState %s %d", challenge, maxState));
-				Command::Execute(fmt::sprintf("setPlayerData challengeProgress %s %d", challenge, maxProgress));
+				Command::Execute(Utils::String::VA("setPlayerData challengeState %s %d", challenge, maxState));
+				Command::Execute(Utils::String::VA("setPlayerData challengeProgress %s %d", challenge, maxProgress));
 			}
 		}
 	}
@@ -409,7 +409,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x46B710, 0x90C3C033);
 
 		// Fix mouse pitch adjustments
-		UIScript::Add("updateui_mousePitch", [] ()
+		UIScript::Add("updateui_mousePitch", [] (UIScript::Token)
 		{
 			if (Dvar::Var("ui_mousePitch").get<bool>())
 			{
@@ -516,7 +516,7 @@ namespace Components
 
 		printf("Testing ZLib compression...");
 
-		std::string test = fmt::sprintf("%c", Utils::Cryptography::Rand::GenerateInt());
+		std::string test = Utils::String::VA("%c", Utils::Cryptography::Rand::GenerateInt());
 
 		for (int i = 0; i < 21; ++i)
 		{
@@ -533,7 +533,7 @@ namespace Components
 			auto size = test.size();
 			for (unsigned int j = 0; j < size; ++j)
 			{
-				test.append(fmt::sprintf("%c", Utils::Cryptography::Rand::GenerateInt()));
+				test.append(Utils::String::VA("%c", Utils::Cryptography::Rand::GenerateInt()));
 			}
 		}
 

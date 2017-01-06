@@ -198,7 +198,7 @@ namespace Components
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &module);
 		GetModuleFileNameA(module, buffer, sizeof buffer);
 
-		MessageBoxA(0, fmt::sprintf("Loading library %s via %s %X", std::string(library.begin(), library.end()).data(), buffer, reinterpret_cast<uint32_t>(callee)).data(), 0, 0);
+		MessageBoxA(0, Utils::String::VA("Loading library %s via %s %X", std::string(library.begin(), library.end()).data(), buffer, reinterpret_cast<uint32_t>(callee)), 0, 0);
 
 		return LoadLibraryExW(library.data(), NULL, 0);
 	}

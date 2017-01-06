@@ -40,7 +40,7 @@ namespace Components
 		ModList::CurrentMod = index;
 	}
 
-	void ModList::UIScript_LoadMods()
+	void ModList::UIScript_LoadMods(UIScript::Token)
 	{
 		auto folder = Dvar::Var("fs_basepath").get<std::string>() + "\\mods";
 		Game::Com_Printf(0, "Searching for mods in %s...\n", folder.data());
@@ -48,7 +48,7 @@ namespace Components
 		Game::Com_Printf(0, "Found %i mods!\n", ModList::Mods.size());
 	}
 
-	void ModList::UIScript_RunMod()
+	void ModList::UIScript_RunMod(UIScript::Token)
 	{
 		if (ModList::CurrentMod < ModList::Mods.size())
 		{
@@ -56,7 +56,7 @@ namespace Components
 		}
 	}
 
-	void ModList::UIScript_ClearMods()
+	void ModList::UIScript_ClearMods(UIScript::Token)
 	{
 		auto fsGame = Dvar::Var("fs_game");
 		fsGame.set("");
@@ -75,7 +75,7 @@ namespace Components
 	void ModList::RunMod(std::string mod)
 	{
 		auto fsGame = Dvar::Var("fs_game");
-		fsGame.set(fmt::sprintf("mods/%s", mod.data()));
+		fsGame.set(Utils::String::VA("mods/%s", mod.data()));
 		fsGame.get<Game::dvar_t*>()->modified = true;
 
 		if (Dvar::Var("cl_modVidRestart").get<bool>())

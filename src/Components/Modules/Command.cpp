@@ -3,8 +3,8 @@
 namespace Components
 {
 	Utils::Memory::Allocator Command::MemAllocator;
-	std::unordered_map<std::string, wink::slot<Command::Callback>> Command::FunctionMap;
-	std::unordered_map<std::string, wink::slot<Command::Callback>> Command::FunctionMapSV;
+	std::unordered_map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMap;
+	std::unordered_map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMapSV;
 
 	std::string Command::Params::join(size_t startIndex)
 	{
@@ -46,7 +46,7 @@ namespace Components
 		return Game::cmd_argc_sv[this->commandId];
 	}
 
-	void Command::Add(const char* name, Command::Callback* callback)
+	void Command::Add(const char* name, Utils::Slot<Command::Callback> callback)
 	{
 		std::string command = Utils::String::ToLower(name);
 
@@ -58,7 +58,7 @@ namespace Components
 		Command::FunctionMap[command] = callback;
 	}
 
-	void Command::AddSV(const char* name, Command::Callback* callback)
+	void Command::AddSV(const char* name, Utils::Slot<Command::Callback> callback)
 	{
 		if (Loader::IsPregame())
 		{

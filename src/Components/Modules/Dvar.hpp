@@ -45,14 +45,14 @@ namespace Components
 		const char* getName() { return "Dvar"; };
 #endif
 
-		static void OnInit(Callback* callback);
+		static void OnInit(Utils::Slot<Callback> callback);
 
 		// Only strings and bools use this type of declaration
 		template<typename T> static Var Register(const char* name, T value, Flag flag, const char* description);
 		template<typename T> static Var Register(const char* name, T value, T min, T max, Flag flag, const char* description);
 
 	private:
-		static wink::signal<wink::slot<Callback>> RegistrationSignal;
+		static Utils::Signal<Callback> RegistrationSignal;
 
 		static Game::dvar_t* RegisterName(const char* name, const char* default, Game::dvar_flag flag, const char* description);
 	};

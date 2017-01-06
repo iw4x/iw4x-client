@@ -30,7 +30,7 @@ namespace Components
 		Party::Container.awaitingPlaylist = false;
 		Party::Container.joinTime = Game::Sys_Milliseconds();
 		Party::Container.target = target;
-		Party::Container.challenge = fmt::sprintf("%X", Utils::Cryptography::Rand::GenerateInt());
+		Party::Container.challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
 
 		Network::SendCommand(Party::Container.target, "getinfo", Party::Container.challenge);
 
@@ -312,16 +312,16 @@ namespace Components
 			info.set("hostname", Dvar::Var("sv_hostname").get<const char*>());
 			info.set("gametype", Dvar::Var("g_gametype").get<const char*>());
 			info.set("fs_game", Dvar::Var("fs_game").get<const char*>());
-			info.set("xuid", fmt::sprintf("%llX", Steam::SteamUser()->GetSteamID().Bits));
-			info.set("clients", fmt::sprintf("%i", clientCount));
-			info.set("sv_maxclients", fmt::sprintf("%i", maxclientCount));
-			info.set("protocol", fmt::sprintf("%i", PROTOCOL));
+			info.set("xuid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
+			info.set("clients", Utils::String::VA("%i", clientCount));
+			info.set("sv_maxclients", Utils::String::VA("%i", maxclientCount));
+			info.set("protocol", Utils::String::VA("%i", PROTOCOL));
 			info.set("shortversion", SHORTVERSION);
-			info.set("checksum", fmt::sprintf("%d", Game::Sys_Milliseconds()));
+			info.set("checksum", Utils::String::VA("%d", Game::Sys_Milliseconds()));
 			info.set("mapname", Dvar::Var("mapname").get<const char*>());
 			info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().size() ? "1" : "0"));
 			info.set("hc", (Dvar::Var("g_hardcore").get<bool>() ? "1" : "0"));
-			info.set("securityLevel", fmt::sprintf("%i", Dvar::Var("sv_securityLevel").get<int>()));
+			info.set("securityLevel", Utils::String::VA("%i", Dvar::Var("sv_securityLevel").get<int>()));
 			info.set("sv_running", (Dvar::Var("sv_running").get<bool>() ? "1" : "0"));
 
 			if (Dedicated::IsEnabled())

@@ -135,7 +135,7 @@ namespace Components
 	{
 		//if (ZoneBuilder::IsEnabled())
 		{
-			if (FileSystem::File(fmt::sprintf("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage())).exists())
+			if (FileSystem::File(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage())).exists())
 			{
 				Game::SE_Load(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage()), 0);
 			}

@@ -15,13 +15,13 @@ namespace Components
 		bool unitTest();
 
 		static void UnlockStats();
-		static void OnShutdown(Callback* callback);
+		static void OnShutdown(Utils::Slot<Callback> callback);
 
-		static void OnFrame(Callback* callback);
-		static void Once(Callback* callback);
+		static void OnFrame(Utils::Slot<Callback> callback);
+		static void Once(Utils::Slot<Callback> callback);
 
 	private:
-		static wink::signal<wink::slot<Callback>> ShutdownSignal;
+		static Utils::Signal<Callback> ShutdownSignal;
 
 		static int64_t* GetStatsID();
 		static void ShutdownStub(int num);

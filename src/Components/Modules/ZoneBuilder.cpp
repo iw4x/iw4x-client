@@ -780,7 +780,7 @@ namespace Components
 						source = source.substr(0, source.find(".csv"));
 					}
 
-					Command::Execute(fmt::sprintf("buildzone %s", source.data()), true);
+					Command::Execute(Utils::String::VA("buildzone %s", source.data()), true);
 				}
 			});
 

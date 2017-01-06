@@ -16,12 +16,12 @@ namespace Components
 
 		static void Heartbeat();
 
-		static void OnFrame(Callback* callback);
-		static void Once(Callback* callback);
+		static void OnFrame(Utils::Slot<Callback> callback);
+		static void Once(Utils::Slot<Callback> callback);
 
 	private:
-		static wink::signal<wink::slot<Callback>> FrameSignal;
-		static wink::signal<wink::slot<Callback>> FrameOnceSignal;
+		static Utils::Signal<Callback> FrameSignal;
+		static Utils::Signal<Callback> FrameOnceSignal;
 
 		static bool SendChat;
 

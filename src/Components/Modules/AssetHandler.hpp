@@ -24,8 +24,8 @@ namespace Components
 		const char* getName() { return "AssetHandler"; };
 #endif
 
-		static void OnFind(Game::XAssetType type, Callback* callback);
-		static void OnLoad(RestrictCallback* callback);
+		static void OnFind(Game::XAssetType type, Utils::Slot<Callback> callback);
+		static void OnLoad(Utils::Slot<RestrictCallback> callback);
 
 		static void ClearRelocations();
 		static void Relocate(void* start, void* to, DWORD size = 4);
@@ -45,8 +45,8 @@ namespace Components
 		static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
 		static std::map<Game::XAssetType, IAsset*> AssetInterfaces;
-		static std::map<Game::XAssetType, wink::slot<Callback>> TypeCallbacks;
-		static wink::signal<wink::slot<RestrictCallback>> RestrictSignal;
+		static std::map<Game::XAssetType, Utils::Slot<Callback>> TypeCallbacks;
+		static Utils::Signal<RestrictCallback> RestrictSignal;
 
 		static std::map<void*, void*> Relocations;
 

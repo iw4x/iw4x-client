@@ -2,8 +2,8 @@
 
 namespace Components
 {
-	std::unordered_map<std::string, wink::slot<UIScript::Callback>> UIScript::UIScripts;
-	std::unordered_map<int, wink::slot<UIScript::CallbackRaw>> UIScript::UIOwnerDraws;
+	std::unordered_map<std::string, Utils::Slot<UIScript::Callback>> UIScript::UIScripts;
+	std::unordered_map<int, Utils::Slot<UIScript::CallbackRaw>> UIScript::UIOwnerDraws;
 
 	template<> int UIScript::Token::get()
 	{
@@ -48,17 +48,12 @@ namespace Components
 		}
 	}
 
-	void UIScript::Add(std::string name, UIScript::Callback* callback)
+	void UIScript::Add(std::string name, Utils::Slot<UIScript::Callback> callback)
 	{
 		UIScript::UIScripts[name] = callback;
 	}
 
-	void UIScript::Add(std::string name, UIScript::CallbackRaw* callback)
-	{
-		UIScript::Add(name, reinterpret_cast<UIScript::Callback*>(callback));
-	}
-
-	void UIScript::AddOwnerDraw(int ownerdraw, UIScript::CallbackRaw* callback)
+	void UIScript::AddOwnerDraw(int ownerdraw, Utils::Slot<UIScript::CallbackRaw> callback)
 	{
 		UIScript::UIOwnerDraws[ownerdraw] = callback;
 	}
