@@ -204,7 +204,7 @@ namespace Components
 		strftime(filenameFriendlyTime, sizeof(filenameFriendlyTime) - 1, "%Y%m%d%H%M%S", &ltime);
 
 		// Combine with queuedMinidumpsFolder
-		char filename[MAX_PATH];
+		char filename[MAX_PATH] = { 0 };
 		PathCombineA(filename, MinidumpUpload::queuedMinidumpsFolder.data(), Utils::String::VA("%s-" VERSION "-%s.dmp", exeFileName, filenameFriendlyTime));
 
 		// Generate the dump
@@ -237,7 +237,7 @@ namespace Components
 
 		// Walk through directory and search for valid minidumps
 		WIN32_FIND_DATAA ffd;
-		HANDLE hFind = FindFirstFileA(Utils::String::VA("%s\\*.dmp", MinidumpUpload::queuedMinidumpsFolder), &ffd);
+		HANDLE hFind = FindFirstFileA(Utils::String::VA("%s\\*.dmp", MinidumpUpload::queuedMinidumpsFolder.data()), &ffd);
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
 			do
@@ -349,7 +349,7 @@ namespace Components
 #else
 		// BitMessage has a max msg size that is somewhere around 220 KB, split it up as necessary!
 		auto totalParts = compressedMinidump.size() / MinidumpUpload::maxSegmentSize + 1;
-		extraHeaders.insert({ "Parts", Utils::String::VA("%d",totalParts) });
+		extraHeaders.insert({ "Parts", Utils::String::VA("%d", totalParts) });
 
 		for (size_t offset = 0; offset < compressedMinidump.size(); offset += MinidumpUpload::maxSegmentSize)
 		{
