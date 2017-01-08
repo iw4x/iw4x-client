@@ -128,6 +128,13 @@ namespace Assets
 			if (std::string(material->techniqueSet->name) == header.material->techniqueSet->name)
 			{
 				material->sortKey = header.material->sortKey;
+
+				// This is temp, as nobody has time to fix materials
+				material->stateBitsCount = header.material->stateBitsCount;
+				material->stateBitTable = header.material->stateBitTable;
+				std::memcpy(material->stateBitsEntry, header.material->stateBitsEntry, 48);
+				material->constantCount = header.material->constantCount;
+				material->constantTable = header.material->constantTable;
 			}
 		}, material, false);
 	}
