@@ -300,10 +300,6 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x6832BA, 0xEB);
 		Utils::Hook::Set<BYTE>(0x4BD190, 0xC3);
 
-		//*(BYTE*)0x4BB250 = 0x33;
-		//*(BYTE*)0x4BB251 = 0xC0;
-		//*(DWORD*)0x4BB252 = 0xC3909090;
-
 		// remove 'impure stats' checking
 		Utils::Hook::Set<BYTE>(0x4BB250, 0x33);
 		Utils::Hook::Set<BYTE>(0x4BB251, 0xC0);
