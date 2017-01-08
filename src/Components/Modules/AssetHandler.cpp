@@ -389,10 +389,14 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::IRawFile());
 			AssetHandler::RegisterInterface(new Assets::IComWorld());
 			AssetHandler::RegisterInterface(new Assets::IGfxImage());
+#ifdef ENABLE_EXPERIMENTAL_MAP_CODE
 			AssetHandler::RegisterInterface(new Assets::IGfxWorld());
+#endif
 			AssetHandler::RegisterInterface(new Assets::ISndCurve());
 			AssetHandler::RegisterInterface(new Assets::IMaterial());
+#ifdef ENABLE_EXPERIMENTAL_MAP_CODE
 			AssetHandler::RegisterInterface(new Assets::IclipMap_t());
+#endif
 			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
 			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
 			AssetHandler::RegisterInterface(new Assets::IFxEffectDef());

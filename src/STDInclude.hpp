@@ -155,3 +155,8 @@ using namespace std::literals;
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+
+// Enables custom map code
+#ifdef DEBUG
+#define ENABLE_EXPERIMENTAL_MAP_CODE
+#endif
