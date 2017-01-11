@@ -109,6 +109,7 @@ namespace Components
 		static void StartupStub();
 		static int ExecIsFSStub(const char* execFilename);
 
+		static void FsStartupSync(const char* a1);
 		static void FsRestartSync(int a1, int a2);
 		static void DelayLoadImagesSync();
 		static int LoadTextureSync(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);

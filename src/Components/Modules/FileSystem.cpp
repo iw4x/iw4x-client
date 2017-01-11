@@ -254,6 +254,12 @@ namespace Components
 		return !File(execFilename).exists();
 	}
 
+	void FileSystem::FsStartupSync(const char* a1)
+	{
+		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		return Utils::Hook::Call<void(const char*)>(0x4823A0)(a1); // FS_Startup
+	}
+
 	void FileSystem::FsRestartSync(int a1, int a2)
 	{
 		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
@@ -297,10 +303,14 @@ namespace Components
 		// Ignore bad magic, when trying to free hunk when it's already cleared
 		Utils::Hook::Set<WORD>(0x49AACE, 0xC35E);
 
+		// Synchronize filesystem starts
+		Utils::Hook(0x4290C6, FileSystem::FsStartupSync, HOOK_CALL).install()->quick(); // FS_InitFilesystem
+		Utils::Hook(0x461A88, FileSystem::FsStartupSync, HOOK_CALL).install()->quick(); // FS_Restart
+
 		// Synchronize filesystem restarts
 		Utils::Hook(0x4A745B, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // SV_SpawnServer
 		Utils::Hook(0x4C8609, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // FS_ConditionalRestart
-		Utils::Hook(0x5AC68E, FileSystem::FsRestartSync, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5AC68E, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
 
 		// Synchronize db image loading
 		Utils::Hook(0x415AB8, FileSystem::DelayLoadImagesSync, HOOK_CALL).install()->quick();
