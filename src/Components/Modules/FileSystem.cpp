@@ -3,6 +3,7 @@
 namespace Components
 {
 	std::mutex FileSystem::Mutex;
+	std::recursive_mutex FileSystem::FSMutex;
 	Utils::Memory::Allocator FileSystem::MemAllocator;
 
 	void FileSystem::File::read()
@@ -253,6 +254,24 @@ namespace Components
 		return !File(execFilename).exists();
 	}
 
+	void FileSystem::FsRestartSync(int a1, int a2)
+	{
+		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		return Utils::Hook::Call<void(int, int)>(0x461A50)(a1, a2); // FS_Restart
+	}
+
+	void FileSystem::DelayLoadImagesSync()
+	{
+		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		return Utils::Hook::Call<void()>(0x494060)(); // DB_LoadDelayedImages
+	}
+
+	int FileSystem::LoadTextureSync(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)
+	{
+		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		return Game::Load_Texture(loadDef, image);
+	}
+
 	FileSystem::FileSystem()
 	{
 		FileSystem::MemAllocator.clear();
@@ -277,6 +296,15 @@ namespace Components
 
 		// Ignore bad magic, when trying to free hunk when it's already cleared
 		Utils::Hook::Set<WORD>(0x49AACE, 0xC35E);
+
+		// Synchronize filesystem restarts
+		Utils::Hook(0x4A745B, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // SV_SpawnServer
+		Utils::Hook(0x4C8609, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // FS_ConditionalRestart
+		Utils::Hook(0x5AC68E, FileSystem::FsRestartSync, HOOK_CALL).install()->quick();
+
+		// Synchronize db image loading
+		Utils::Hook(0x415AB8, FileSystem::DelayLoadImagesSync, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D32BC, FileSystem::LoadTextureSync, HOOK_CALL).install()->quick();
 	}
 
 	FileSystem::~FileSystem()

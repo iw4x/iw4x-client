@@ -96,6 +96,7 @@ namespace Components
 
 	private:
 		static std::mutex Mutex;
+		static std::recursive_mutex FSMutex;
 		static Utils::Memory::Allocator MemAllocator;
 
 		static int ReadFile(const char* path, char** buffer);
@@ -107,5 +108,9 @@ namespace Components
 		static void RegisterFolders();
 		static void StartupStub();
 		static int ExecIsFSStub(const char* execFilename);
+
+		static void FsRestartSync(int a1, int a2);
+		static void DelayLoadImagesSync();
+		static int LoadTextureSync(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
 	};
 }
