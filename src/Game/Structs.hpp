@@ -3669,28 +3669,55 @@ namespace Game
 		DWORD unk;
 	} PartyData_t;
 
-	typedef struct fileInPack_s
+	struct fileInIwd_s
 	{
-		DWORD idk;
-		char* name;
-		DWORD idk2;
-	} fileInPack_t;
+		unsigned int pos;
+		char *name;
+		fileInIwd_s *next;
+	};
 
-	typedef struct
+	struct iwd_t
 	{
-		char			pakFilename[256];			// c:\quake3\baseq3\pak0.pk3
-		char			pakBasename[256];			// pak0
-		char			pakGamename[256];			// baseq3
-		void*			handle;						// handle to zip file
-		int				checksum;
-		int				pure_checksum;				// checksum for pure
-		int				idk;						// ?
-		int				numfiles;					// number of files in pk3
-		int				referenced;					// referenced file flags
-		int				hashSize;					// hash table size (power of 2)
-		fileInPack_t*	*hashTable;					// hash table
-		fileInPack_t*	buildBuffer;
-	} pack_t;
+		char iwdFilename[256];
+		char iwdBasename[256];
+		char iwdGamename[256];
+		char *handle;
+		int checksum;
+		int pure_checksum;
+		volatile int hasOpenFile;
+		int numfiles;
+		char referenced;
+		unsigned int hashSize;
+		fileInIwd_s **hashTable;
+		fileInIwd_s *buildBuffer;
+	};
+
+#ifndef __cplusplus
+	typedef void _iobuf;
+#endif
+
+	union qfile_gus
+	{
+		_iobuf *o;
+		char *z;
+	};
+
+	struct qfile_us
+	{
+		qfile_gus file;
+		int iwdIsClone;
+	};
+
+	struct fileHandleData_t
+	{
+		qfile_us handleFiles;
+		int handleSync;
+		int fileSize;
+		int zipFilePos;
+		iwd_t *zipFile;
+		int streamed;
+		char name[256];
+	};
 
 	typedef struct {
 		char		path[256];		// c:\quake3
@@ -3700,8 +3727,12 @@ namespace Game
 	typedef struct searchpath_s
 	{
 		searchpath_s* next;
-		pack_t* pack;
+		iwd_t *iwd;
 		directory_t* dir;
+		int bLocalized;
+		int ignore;
+		int ignorePureCheck;
+		int language;
 	} searchpath_t;
 
 	struct SafeArea
