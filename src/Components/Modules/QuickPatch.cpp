@@ -112,14 +112,6 @@ namespace Components
 		return size;
 	}
 
-	void QuickPatch::CL_HandleRelayPacketCheck(Game::msg_t* msg, int client)
-	{
-		if (Command::ClientParams().length() >= 3)
-		{
-			Game::CL_HandleRelayPacket(msg, client);
-		}
-	}
-
 	void QuickPatch::SelectStringTableEntryInDvarStub()
 	{
 		Command::ClientParams args;
@@ -429,9 +421,9 @@ namespace Components
 
 		// Exploit fixes
 		Utils::Hook::Set<BYTE>(0x412370, 0xC3);                                                      // SV_SteamAuthClient
+		Utils::Hook::Set<BYTE>(0x5A8C70, 0xC3);                                                      // CL_HandleRelayPacket
 		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
 		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
-		Utils::Hook(0x5AA009, QuickPatch::CL_HandleRelayPacketCheck, HOOK_CALL).install()->quick();  // CL_HandleRelayPacket
 
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
