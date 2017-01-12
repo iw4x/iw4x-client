@@ -70,10 +70,6 @@ namespace Components
 			}
 		}
 
-		CreateDirectoryW(L"players", NULL);
-
-		
-
 		Utils::IO::WriteFile("players/nodes.dat", Utils::Compression::ZLib::Compress(list.SerializeAsString()));
 	}
 
@@ -272,7 +268,7 @@ namespace Components
 
 		// Frame limit
 		static int lastFrame = 0;
-		if ((Game::Sys_Milliseconds() - lastFrame) < (1000 / NODE_FRAME_LOCK) || Game::Sys_Milliseconds() < 5000) return;
+		if ((Game::Sys_Milliseconds() - lastFrame) < (1000 / NODE_FRAME_LOCK)/* || Game::Sys_Milliseconds() < 5000*/) return;
 		lastFrame = Game::Sys_Milliseconds();
 
 		int registerCount = 0;
