@@ -12,12 +12,12 @@ namespace Components
 	{
 		if (Auth::TokenContainer.generating)
 		{
-			static int lastCalc = 0;
 			static double mseconds = 0;
+			static Utils::Time::Interval interval;
 
-			if (!lastCalc || (Game::Sys_Milliseconds() - lastCalc) > 500)
+			if (interval.elapsed(500ms))
 			{
-				lastCalc = Game::Sys_Milliseconds();
+				interval.update();
 
 				int diff = Game::Sys_Milliseconds() - Auth::TokenContainer.startTime;
 				double hashPMS = (Auth::TokenContainer.hashes * 1.0) / diff;
