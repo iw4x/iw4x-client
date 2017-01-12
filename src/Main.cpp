@@ -20,7 +20,7 @@ namespace Main
 	{
 		Main::EntryPointHook.uninstall();
 
-		SetEnvironment();
+		Main::SetEnvironment();
 
 		Utils::Cryptography::Initialize();
 		Components::Loader::Initialize();
