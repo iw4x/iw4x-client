@@ -12,17 +12,24 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ## [0.2.2] - 2016-12-25
 
-This is the third public Alpha version, it mostly consists of bug fixes.
+This is the first public Beta version, it mostly consists of bug fixes.
+
+### Added
+
+- Add peacekeeper
 
 ### Changed
 
-- Optimized fastfiles, they are now a lot smaller.
+- Optimize fastfiles, they are now a lot smaller.
+- Improve security by modifying guids to allow 64 bit certificate fingerprints.
 
 ### Fixed
 
 - Fix issues when spawning more than one bot.
 - Fix no ammo bug.
 - Fix splash screen hang.
+- Fix concurrent image loading bug.
+- Fix server crash on startup.
 
 ### Known issues
 
