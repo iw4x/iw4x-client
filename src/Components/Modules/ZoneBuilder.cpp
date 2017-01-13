@@ -660,7 +660,7 @@ namespace Components
 			{
 				if (asset.first == type && asset.second == name)
 				{
-					// Allocate an empty asset (filled with zeros),
+					// Allocate an empty asset (filled with zeros)
 					header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
 
 					// Set the name to the original name, so it can be stored
