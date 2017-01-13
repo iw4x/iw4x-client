@@ -165,7 +165,6 @@ namespace Components
 
 			// Parse the id
 			unsigned __int64 xuid = strtoull(steamId.data(), nullptr, 16);
-			unsigned int id = static_cast<unsigned int>(~0x110000100000000 & xuid);
 
 			SteamID guid;
 			guid.Bits = xuid;
@@ -176,7 +175,7 @@ namespace Components
 				return;
 			}
 
-			if ((xuid & 0xFFFFFFFF00000000) != 0x110000100000000 || id != (Utils::Cryptography::JenkinsOneAtATime::Compute(connectData.publickey()) & ~0x80000000))
+			if (xuid != Auth::GetKeyHash(connectData.publickey()))
 			{
 				Network::Send(address, "error\nXUID doesn't match the certificate!");
 				return;
@@ -220,10 +219,22 @@ namespace Components
 		}
 	}
 
-	unsigned int Auth::GetKeyHash()
+	unsigned __int64 Auth::GetKeyHash(std::string key)
+	{
+		std::string hash = Utils::Cryptography::SHA1::Compute(key);
+
+		if (hash.size() >= 8)
+		{
+			return *reinterpret_cast<unsigned __int64*>(const_cast<char*>(hash.data()));
+		}
+
+		return 0;
+	}
+
+	unsigned __int64 Auth::GetKeyHash()
 	{
 		Auth::LoadKey();
-		return (Utils::Cryptography::JenkinsOneAtATime::Compute(Auth::GuidKey.getPublicKey()));
+		return Auth::GetKeyHash(Auth::GuidKey.getPublicKey());
 	}
 
 	void Auth::StoreKey()
@@ -384,6 +395,13 @@ namespace Components
 		// Install registration hook
 		Utils::Hook(0x6265F9, Auth::DirectConnectStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x41D3E3, Auth::SendConnectDataStub, HOOK_CALL).install()->quick();
+
+		// SteamIDs can only contain 31 bits of actual 'id' data.
+		// The other 33 bits are steam internal data like universe and so on.
+		// Using only 31 bits for fingerprints is pretty insecure.
+		// The function below verifies the integrity steam's part of the SteamID.
+		// Patching that check allows us to use 64 bit for fingerprints.
+		Utils::Hook::Set<DWORD>(0x4D0D60, 0xC301B0);
 
 		// Guid command
 		Command::Add("guid", [] (Command::Params*)

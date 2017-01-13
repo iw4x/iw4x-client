@@ -16,29 +16,27 @@ namespace Steam
 
 	SteamID User::GetSteamID()
 	{
-		static unsigned int subId = 0;
+		static unsigned __int64 idBits = 0;
 
 		SteamID id;
 
-		if (!subId)
+		if (!idBits)
 		{
 			if (Components::Dedicated::IsEnabled() || Components::ZoneBuilder::IsEnabled()) // Dedi guid
 			{
-				subId = ~0xDED1CA7E;
+				idBits = *reinterpret_cast<unsigned __int64*>("DEDICATE");
 			}
 			else if (Components::Singleton::IsFirstInstance()) // ECDSA guid
 			{
-				subId = Components::Auth::GetKeyHash();
+				idBits = Components::Auth::GetKeyHash();
 			}
 			else // Random guid
 			{
-				subId = (Game::Sys_Milliseconds() + timeGetTime());
+				idBits = (static_cast<unsigned __int64>(Game::Sys_Milliseconds()) << 32) | timeGetTime();
 			}
-
-			subId &= ~0x80000000; // Ensure it's positive
 		}
 
-		id.Bits = 0x110000100000000 | subId;
+		id.Bits = idBits;
 		return id;
 	}
 
