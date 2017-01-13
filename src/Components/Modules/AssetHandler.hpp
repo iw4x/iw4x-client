@@ -34,7 +34,7 @@ namespace Components
 		static void ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder);
 
 		static Game::XAssetHeader FindOriginalAsset(Game::XAssetType type, const char* filename);
-		static Game::XAssetHeader FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder);
+		static Game::XAssetHeader FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder, bool isSubAsset = true);
 
 		static void ClearTemporaryAssets();
 		static void StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset);

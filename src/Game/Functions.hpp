@@ -138,6 +138,12 @@ namespace Game
 	typedef void(__cdecl * DB_ReleaseXAssetHandler_t)(XAssetHeader header);
 	extern DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers;
 
+	typedef void(__cdecl * DB_SetXAssetName_t)(XAsset* asset, const char* name);
+	extern DB_SetXAssetName_t DB_SetXAssetName;
+
+	typedef void(__cdecl * DB_SetXAssetNameHandler_t)(XAssetHeader* header, const char* name);
+	extern DB_SetXAssetNameHandler_t* DB_SetXAssetNameHandlers;
+
 	typedef void(__cdecl * DB_XModelSurfsFixup_t)(XModel* model);
 	extern DB_XModelSurfsFixup_t DB_XModelSurfsFixup;
 

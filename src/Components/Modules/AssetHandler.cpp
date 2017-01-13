@@ -274,7 +274,7 @@ namespace Components
 		}
 	}
 
-	Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder)
+	Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder, bool isSubAsset)
 	{
 		Game::XAssetHeader header = { 0 };
 		if (type >= Game::XAssetType::ASSET_TYPE_COUNT) return header;
@@ -294,6 +294,11 @@ namespace Components
 			{
 				Components::AssetHandler::StoreTemporaryAsset(type, header);
 			}
+		}
+
+		if (!header.data && isSubAsset)
+		{
+			header = ZoneBuilder::GetEmptyAssetIfCommon(type, filename, builder);
 		}
 
 		if (!header.data)

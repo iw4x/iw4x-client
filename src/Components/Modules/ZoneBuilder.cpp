@@ -7,6 +7,8 @@ namespace Components
 	std::string ZoneBuilder::TraceZone;
 	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::TraceAssets;
 
+	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::CommonAssets;
+
 	ZoneBuilder::Zone::Zone(std::string name) : dataMap("zone_source/" + name + ".csv"), zoneName(name), indexStart(0), externalSize(0), branding { 0 },
 
 		// Reserve 100MB by default.
@@ -172,7 +174,11 @@ namespace Components
 	bool ZoneBuilder::Zone::loadAsset(Game::XAssetType type, void* data, bool isSubAsset)
 	{
 		Game::XAsset asset{ type, { data } };
-		return this->loadAsset(type, Game::DB_GetXAssetName(&asset), isSubAsset);
+
+		const char* name = Game::DB_GetXAssetName(&asset);
+
+		if (name) return this->loadAsset(type, std::string(name), isSubAsset);
+		else return false;
 	}
 
 	bool ZoneBuilder::Zone::loadAsset(Game::XAssetType type, std::string name, bool isSubAsset)
@@ -184,6 +190,9 @@ namespace Components
 	{
 		Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 
+		// Sanitize name for empty assets
+		if (name[0] == ',') name.erase(name.begin());
+
 		if (this->findAsset(type, name) != -1 || this->findSubAsset(type, name).data) return true;
 
 		if (type == Game::XAssetType::ASSET_TYPE_INVALID || type >= Game::XAssetType::ASSET_TYPE_COUNT)
@@ -192,7 +201,7 @@ namespace Components
 			return false;
 		}
 
-		Game::XAssetHeader assetHeader = AssetHandler::FindAssetForZone(type, name, this);
+		Game::XAssetHeader assetHeader = AssetHandler::FindAssetForZone(type, name, this, isSubAsset);
 		if (!assetHeader.data)
 		{
 			Logger::Error("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));
@@ -220,6 +229,8 @@ namespace Components
 
 	int ZoneBuilder::Zone::findAsset(Game::XAssetType type, std::string name)
 	{
+		if (name[0] == ',') name.erase(name.begin());
+
 		for (unsigned int i = 0; i < this->loadedAssets.size(); ++i)
 		{
 			Game::XAsset* asset = &this->loadedAssets[i];
@@ -227,6 +238,7 @@ namespace Components
 			if (asset->type != type) continue;
 
 			const char* assetName = Game::DB_GetXAssetName(asset);
+			if (assetName[0] == ',') ++assetName;
 
 			if (name == assetName)
 			{
@@ -239,6 +251,8 @@ namespace Components
 
 	Game::XAssetHeader ZoneBuilder::Zone::findSubAsset(Game::XAssetType type, std::string name)
 	{
+		if (name[0] == ',') name.erase(name.begin());
+
 		for (unsigned int i = 0; i < this->loadedSubAssets.size(); ++i)
 		{
 			Game::XAsset* asset = &this->loadedSubAssets[i];
@@ -246,6 +260,7 @@ namespace Components
 			if (asset->type != type) continue;
 
 			const char* assetName = Game::DB_GetXAssetName(asset);
+			if (assetName[0] == ',') ++assetName;
 
 			if (name == assetName)
 			{
@@ -298,7 +313,7 @@ namespace Components
 				asset.header = this->findSubAsset(type, name);
 				if (!asset.header.data)
 				{
-					Logger::Error("Missing required asset '%s' (%s). Export failed!", name, Game::DB_GetXAssetTypeName(type));
+					Logger::Error("Missing required asset '%s' (%s). Export failed!", name.data(), Game::DB_GetXAssetTypeName(type));
 				}
 
 #ifdef DEBUG
@@ -635,6 +650,33 @@ namespace Components
 		return AssetTrace;
 	}
 
+	Game::XAssetHeader ZoneBuilder::GetEmptyAssetIfCommon(Game::XAssetType type, std::string name, ZoneBuilder::Zone* builder)
+	{
+		Game::XAssetHeader header = { 0 };
+
+		if (type >= 0 && type < Game::XAssetType::ASSET_TYPE_COUNT)
+		{
+			for (auto& asset : ZoneBuilder::CommonAssets)
+			{
+				if (asset.first == type && asset.second == name)
+				{
+					// Allocate an empty asset (filled with zeros),
+					header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
+
+					// Set the name to the original name, so it can be stored
+					Game::DB_SetXAssetNameHandlers[type](&header, name.data());
+					AssetHandler::StoreTemporaryAsset(type, header);
+
+					// Set the name to the empty name
+					Game::DB_SetXAssetNameHandlers[type](&header, builder->getAllocator()->duplicateString("," + name));
+					break;
+				}
+			}
+		}
+
+		return header;
+	}
+
 	int ZoneBuilder::StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)
 	{
 		size_t size = 16 + (*loadDef)->resourceSize;
@@ -714,6 +756,12 @@ namespace Components
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* /*restrict*/)
 			{
+				// This is used to track which assets can be stored as empty assets
+				if (FastFiles::Current() == "common_mp")
+				{
+					ZoneBuilder::CommonAssets.push_back({ type, name });
+				}
+
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{
 					ZoneBuilder::TraceAssets.push_back({ type, name });
@@ -812,5 +860,6 @@ namespace Components
 	ZoneBuilder::~ZoneBuilder()
 	{
 		assert(ZoneBuilder::MemAllocator.empty());
+		ZoneBuilder::CommonAssets.clear();
 	}
 }

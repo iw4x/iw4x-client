@@ -57,6 +57,8 @@ namespace Game
 	DB_ReadXFile_t DB_ReadXFile = (DB_ReadXFile_t)0x445460;
 	DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = (DB_ReadXFileUncompressed_t)0x4705E0;
 	DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = (DB_ReleaseXAssetHandler_t*)0x799AB8;
+	DB_SetXAssetName_t DB_SetXAssetName = (DB_SetXAssetName_t)0x453580;
+	DB_SetXAssetNameHandler_t* DB_SetXAssetNameHandlers = (DB_SetXAssetNameHandler_t*)0x7993D8;
 	DB_XModelSurfsFixup_t DB_XModelSurfsFixup = (DB_XModelSurfsFixup_t)0x5BAC50;
 
 	Dvar_RegisterBool_t Dvar_RegisterBool = (Dvar_RegisterBool_t)0x4CE1A0;

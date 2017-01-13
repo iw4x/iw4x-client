@@ -129,8 +129,8 @@ namespace Components
 
 	int Materials::MaterialComparePrint(Game::Material* m1, Game::Material* m2)
 	{
-		static Game::Material* a = m1;
-		static Game::Material* b = m2;
+		static Game::Material* a,* b;
+		a = m1, b = m2;
 
 		return Utils::Hook::Call<int(Game::Material*, Game::Material*)>(0x5235B0)(m1, m2);
 	}

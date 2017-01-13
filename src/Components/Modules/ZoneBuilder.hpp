@@ -100,8 +100,12 @@ namespace Components
 		static std::string TraceZone;
 		static std::vector<std::pair<Game::XAssetType, std::string>> TraceAssets;
 
+		static std::vector<std::pair<Game::XAssetType, std::string>> CommonAssets;
+
 		static void BeginAssetTrace(std::string zone);
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
+
+		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, std::string name, Zone* builder);
 
 	private:
 		static Utils::Memory::Allocator MemAllocator;

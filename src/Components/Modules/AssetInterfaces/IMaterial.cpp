@@ -125,7 +125,10 @@ namespace Assets
 		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void* data)
 		{
 			Game::Material* material = reinterpret_cast<Game::Material*>(data);
-			if (std::string(material->techniqueSet->name) == header.material->techniqueSet->name)
+			const char* name = material->techniqueSet->name;
+			if (name[0] == ',') ++name;
+
+			if (std::string(name) == header.material->techniqueSet->name)
 			{
 				material->sortKey = header.material->sortKey;
 
