@@ -16,12 +16,14 @@ This is the first public Beta version, it mostly consists of bug fixes.
 
 ### Added
 
-- Add peacekeeper
+- Add peacekeeper.
+- Add com_logFilter dvar.
 
 ### Changed
 
 - Optimize fastfiles, they are now a lot smaller.
 - Improve security by modifying guids to allow 64 bit certificate fingerprints.
+- Improve node synchronization handling.
 
 ### Fixed
 

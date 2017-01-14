@@ -337,8 +337,12 @@ namespace Components
 		Utils::Hook::Nop(0x4CA1FA, 6);
 
 		// Filter log (initially com_logFilter, but I don't see why that dvar is needed)
-		Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
-		Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
+		// Seems like it's needed for B3, so there is a separate handling for dedicated servers in Dedicated.cpp
+		if (!Dedicated::IsEnabled())
+		{
+			Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
+			Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
+		}
 
 		// intro stuff
 		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals

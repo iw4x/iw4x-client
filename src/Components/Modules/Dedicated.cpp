@@ -28,6 +28,12 @@ namespace Components
 		std::memcpy(reinterpret_cast<void*>(0x66E1CB0), &fastfiles, sizeof(fastfiles));
 		Game::R_LoadGraphicsAssets();
 
+		if (Dvar::Var("com_logFilter").get<bool>())
+		{
+			Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
+			Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
+		}
+
 		Utils::Hook::Call<void()>(0x4F84C0)();
 	}
 
@@ -272,6 +278,7 @@ namespace Components
 		// Map rotation
 		Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
 		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_FLAG_CHEAT, "");
+		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_FLAG_LATCHED, "Removes ~95% of unneeded lines from the log");
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) // Run zonebuilder as dedi :P
 		{
