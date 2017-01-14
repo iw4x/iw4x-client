@@ -227,6 +227,11 @@ namespace Utils
 					ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
 				}
 
+				bool operator==(Key& key)
+				{
+					return (this->isValid() && key.isValid() && this->serialize(PK_PUBLIC) == key.serialize(PK_PUBLIC));
+				}
+
 			private:
 				std::shared_ptr<ecc_key> keyStorage;
 			};

@@ -484,6 +484,15 @@ namespace Components
 					return;
 				}
 
+				for (auto& node : Node::Nodes)
+				{
+					if (node.publicKey == entry->publicKey)
+					{
+						entry->lastTime = Game::Sys_Milliseconds();
+						entry->state = Node::STATE_INVALID;
+					}
+				}
+
 				// Mark as registered
 				entry->lastTime = Game::Sys_Milliseconds();
 				entry->state = Node::STATE_VALID;
