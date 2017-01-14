@@ -154,6 +154,7 @@ namespace Game
 
 	NET_AdrToString_t NET_AdrToString = (NET_AdrToString_t)0x469880;
 	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
+	NET_ErrorString_t NET_ErrorString = (NET_ErrorString_t)0x4E7720;
 	NET_Init_t NET_Init = (NET_Init_t)0x491860;
 	NET_IsLocalAddress_t NET_IsLocalAddress = (NET_IsLocalAddress_t)0x402BD0;
 	NET_StringToAdr_t NET_StringToAdr = (NET_StringToAdr_t)0x409010;
@@ -303,6 +304,8 @@ namespace Game
 	netadr_t* connectedHost = (netadr_t*)0xA1E888;
 
 	SOCKET* ip_socket = (SOCKET*)0x64A3008;
+
+	uint32_t* com_frameTime = (uint32_t*)0x1AD8F3C;
 
 	SafeArea* safeArea = (SafeArea*)0xA15F3C;
 

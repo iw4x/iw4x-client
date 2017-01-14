@@ -380,6 +380,9 @@ namespace Game
 	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t a, netadr_t b);
 	extern NET_CompareAdr_t NET_CompareAdr;
 
+	typedef const char* (__cdecl * NET_ErrorString_t)();
+	extern NET_ErrorString_t NET_ErrorString;
+
 	typedef void(__cdecl * NET_Init_t)();
 	extern NET_Init_t NET_Init;
 
@@ -645,6 +648,8 @@ namespace Game
 
 	extern netadr_t* connectedHost;
 	extern SOCKET* ip_socket;
+
+	extern uint32_t* com_frameTime;
 
 	extern SafeArea* safeArea;
 

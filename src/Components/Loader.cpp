@@ -55,6 +55,7 @@ namespace Components
 		Loader::Register(new Discovery());
 		Loader::Register(new Exception());
 		Loader::Register(new FastFiles());
+		Loader::Register(new FrameTime());
 		Loader::Register(new Gametypes());
 		Loader::Register(new Materials());
 		Loader::Register(new Threading());

@@ -52,4 +52,32 @@ namespace Utils
 	private:
 		std::vector<Slot<T>> slots;
 	};
+
+	template <typename T>
+	class Value
+	{
+	public:
+		Value() : hasValue(false) {}
+		Value(T _value) { this->set(_value); }
+
+		void set(T _value)
+		{
+			this->value = _value;
+			this->hasValue = true;
+		}
+
+		bool isValid()
+		{
+			return this->hasValue;
+		}
+
+		T get()
+		{
+			return this->value;
+		}
+
+	private:
+		bool hasValue;
+		T value;
+	};
 }

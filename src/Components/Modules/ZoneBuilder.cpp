@@ -630,7 +630,14 @@ namespace Components
 
 	bool ZoneBuilder::IsEnabled()
 	{
-		return (Flags::HasFlag("zonebuilder") && !Dedicated::IsEnabled());
+		static Utils::Value<bool> flag;
+
+		if (!flag.isValid())
+		{
+			flag.set(Flags::HasFlag("zonebuilder"));
+		}
+
+		return (flag.get() && !Dedicated::IsEnabled());
 	}
 
 	void ZoneBuilder::BeginAssetTrace(std::string zone)

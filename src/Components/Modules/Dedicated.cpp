@@ -9,7 +9,14 @@ namespace Components
 
 	bool Dedicated::IsEnabled()
 	{
-		return Flags::HasFlag("dedicated");
+		static Utils::Value<bool> flag;
+
+		if (!flag.isValid())
+		{
+			flag.set(Flags::HasFlag("dedicated"));
+		}
+
+		return flag.get();
 	}
 
 	void Dedicated::InitDedicatedServer()

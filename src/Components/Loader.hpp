@@ -67,6 +67,7 @@ namespace Components
 #include "Modules\Discovery.hpp"
 #include "Modules\Exception.hpp"
 #include "Modules\FastFiles.hpp"
+#include "Modules\FrameTime.hpp"
 #include "Modules\Gametypes.hpp"
 #include "Modules\Materials.hpp"
 #include "Modules\Singleton.hpp"

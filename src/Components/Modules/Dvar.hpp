@@ -20,6 +20,7 @@ namespace Components
 			Var() : dvar(0) {};
 			Var(const Var &obj) { this->dvar = obj.dvar; };
 			Var(Game::dvar_t* _dvar) : dvar(_dvar) {};
+			Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {};
 			Var(std::string dvarName);
 
 			template<typename T> T get();
