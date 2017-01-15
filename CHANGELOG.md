@@ -10,28 +10,35 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - IW4x on Linux currently requires gnutls to be installed to access the Tor service via HTTPS.
 
-## [0.2.2] - 2016-12-25
+## [0.3.0] - 2016-01-14
 
-This is the first public Beta version, it mostly consists of bug fixes.
+This is the first public Beta version.
 
 ### Added
 
-- Add peacekeeper.
 - Add com_logFilter dvar.
+- Add peacekeeper.
+- Add support for maps from DLC 8 (Recycled Pack)
+
+  - Chemical Plant (mp_storm_spring)
+  - Crash: Tropical (mp_crash_tropical)
+  - Estate: Tropical (mp_estate_tropical)
+  - Favela: Tropical (mp_fav_tropical)
+  - Forgotten City (mp_bloc_sh)
 
 ### Changed
 
-- Optimize fastfiles, they are now a lot smaller.
-- Improve security by modifying guids to allow 64 bit certificate fingerprints.
 - Improve node synchronization handling.
+- Improve security by modifying GUIDs to allow 64-bit certificate fingerprints.
+- Optimize fastfiles, they are now a lot smaller.
 
 ### Fixed
 
+- Fix concurrent image loading bug.
 - Fix issues when spawning more than one bot.
 - Fix no ammo bug.
-- Fix splash screen hang.
-- Fix concurrent image loading bug.
 - Fix server crash on startup.
+- Fix splash screen hang.
 
 ### Known issues
 
