@@ -18,6 +18,13 @@ This is the first public Beta version.
 
 - Add com_logFilter dvar.
 - Add peacekeeper.
+- Add support for maps from DLC 8 (Recycled Pack)
+
+  - Chemical Plant (mp_storm_spring)
+  - Crash: Tropical (mp_crash_tropical)
+  - Estate: Tropical (mp_estate_tropical)
+  - Favela: Tropical (mp_fav_tropical)
+  - Forgotten City (mp_bloc_sh)
 
 ### Changed
 
