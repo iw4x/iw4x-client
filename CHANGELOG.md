@@ -10,9 +10,9 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - IW4x on Linux currently requires gnutls to be installed to access the Tor service via HTTPS.
 
-## [0.2.2] - 2016-12-25
+## [0.3.0] - 2016-01-14
 
-This is the first public Beta version, it mostly consists of bug fixes.
+This is the first public Beta version.
 
 ### Added
 
