@@ -16,22 +16,22 @@ This is the first public Beta version.
 
 ### Added
 
-- Add peacekeeper.
 - Add com_logFilter dvar.
+- Add peacekeeper.
 
 ### Changed
 
-- Optimize fastfiles, they are now a lot smaller.
-- Improve security by modifying guids to allow 64 bit certificate fingerprints.
 - Improve node synchronization handling.
+- Improve security by modifying GUIDs to allow 64-bit certificate fingerprints.
+- Optimize fastfiles, they are now a lot smaller.
 
 ### Fixed
 
+- Fix concurrent image loading bug.
 - Fix issues when spawning more than one bot.
 - Fix no ammo bug.
-- Fix splash screen hang.
-- Fix concurrent image loading bug.
 - Fix server crash on startup.
+- Fix splash screen hang.
 
 ### Known issues
 
