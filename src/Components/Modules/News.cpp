@@ -51,7 +51,7 @@ namespace Components
 		ZeroMemory(&pInfo, sizeof(pInfo));
 		sInfo.cb = sizeof(sInfo);
 
-		CreateProcessA("updater.exe", NULL, NULL, NULL, false, CREATE_NO_WINDOW, NULL, NULL, &sInfo, &pInfo);
+		CreateProcessA("updater.exe", NULL, NULL, NULL, false, NULL, NULL, NULL, &sInfo, &pInfo);
 
 		if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE)
 		{
