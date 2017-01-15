@@ -20,6 +20,18 @@ typedef union
 	unsigned long long Bits;
 } SteamID;
 
+
+#pragma pack( push, 1 )
+
+struct GameID_t
+{
+	unsigned int m_nAppID : 24;
+	unsigned int m_nType : 8;
+	unsigned int m_nModID : 32;
+};
+
+#pragma pack( pop )
+
 #include "Interfaces\SteamUser.hpp"
 #include "Interfaces\SteamUtils.hpp"
 #include "Interfaces\SteamFriends.hpp"

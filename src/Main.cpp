@@ -50,6 +50,8 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 {
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
+		Steam::Proxy::RunMod();
+
 		// Ensure we're working with our desired binary
 		if (Utils::Hook::Get<DWORD>(0x4C0FFF) != 0x6824748B)
 		{

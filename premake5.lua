@@ -89,6 +89,11 @@ newoption {
 }
 
 newoption {
+	trigger = "disable-steam-game",
+	description = "Disable Steam's in-game setting."
+}
+
+newoption {
 	trigger = "enable-dxsdk",
 	description = "Enable DirectX SDK (required for GfxMap exporting)."
 }
@@ -337,6 +342,9 @@ workspace "iw4x"
 			defines { "DISABLE_BASE128" }
 		end
 		
+		if _OPTIONS["disable-steam-game"] then
+			defines { "DISABLE_STEAM_GAME" }
+		end
 		if _OPTIONS["enable-dxsdk"] then
 			defines { "ENABLE_DXSDK" }
 			includedirs { "%DXSDK_DIR%Include" }

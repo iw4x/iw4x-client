@@ -69,9 +69,19 @@ namespace Steam
 	{
 		bool SteamAPI_Init()
 		{
+#ifndef DISABLE_STEAM_GAME
+			Proxy::SetGame(10190);
+#endif
+
 			if (!Proxy::Inititalize())
 			{
 				OutputDebugStringA("Steamproxy not initialized properly");
+			}
+			else
+			{
+#ifndef DISABLE_STEAM_GAME
+				Proxy::SetMod("IW4x - Modern Warfare 2");
+#endif
 			}
 
 			return true;
