@@ -31,6 +31,7 @@ This is the first public Beta version.
 - Improve node synchronization handling.
 - Improve security by modifying GUIDs to allow 64-bit certificate fingerprints.
 - Optimize fastfiles, they are now a lot smaller.
+- Replace intro.
 
 ### Fixed
 

@@ -299,6 +299,11 @@ namespace Components
 
 		// correct feeder 4
 		Utils::Hook(0x4C260E, UIFeeder::ApplyMapFeeder, HOOK_CALL).install()->quick();
+
+		// Fix feeder focus
+		//Utils::Hook::Nop(0x63B1DD, 2); // Flag 4 check (WINDOW_VISIBLE)
+		Utils::Hook::Nop(0x63B1E6, 2); // Flag 2 check (WINDOW_HASFOCUS)
+		Utils::Hook::Nop(0x63B1F7, 2); // Flag 2000 check (WINDOW_LB_THUMB?)
 	}
 
 	UIFeeder::~UIFeeder()

@@ -23,14 +23,14 @@ namespace Components
 			Game::XSurface* surface = &surfs->surfaces[i];
 			if (surface->zoneHandle == -1)
 			{
-				IDirect3DVertexBuffer9* vertexBuffer;
-				IDirect3DIndexBuffer9* indexBuffer;
+				IDirect3DVertexBuffer9* vertexBuffer = nullptr;
+				IDirect3DIndexBuffer9* indexBuffer = nullptr;
 
 				Game::Load_VertexBuffer(surface->verts0, &vertexBuffer, surface->vertCount * 32);
 				Game::Load_IndexBuffer(surface->triIndices, &indexBuffer, surface->triCount * 3);
 
-				ModelSurfs::BufferMap[surface->verts0] = vertexBuffer;
-				ModelSurfs::BufferMap[surface->triIndices] = indexBuffer;
+				if (vertexBuffer) ModelSurfs::BufferMap[surface->verts0] = vertexBuffer;
+				if (indexBuffer) ModelSurfs::BufferMap[surface->triIndices] = indexBuffer;
 			}
 		}
 	}
@@ -189,23 +189,26 @@ namespace Components
 			{
 				hasCustomSurface = true;
 
-				auto buffer = ModelSurfs::BufferMap.find(surface->triIndices);
-				if (buffer != ModelSurfs::BufferMap.end())
+				if (!ModelSurfs::BufferMap.empty())
 				{
-					buffer->second->Release();
-					ModelSurfs::BufferMap.erase(buffer);
-				}
+					auto buffer = ModelSurfs::BufferMap.find(surface->triIndices);
+					if (buffer != ModelSurfs::BufferMap.end())
+					{
+						buffer->second->Release();
+						ModelSurfs::BufferMap.erase(buffer);
+					}
 
-				buffer = ModelSurfs::BufferMap.find(surface->verts0);
-				if (buffer != ModelSurfs::BufferMap.end())
-				{
-					buffer->second->Release();
-					ModelSurfs::BufferMap.erase(buffer);
+					buffer = ModelSurfs::BufferMap.find(surface->verts0);
+					if (buffer != ModelSurfs::BufferMap.end())
+					{
+						buffer->second->Release();
+						ModelSurfs::BufferMap.erase(buffer);
+					}
 				}
 			}
 		}
 
-		if (hasCustomSurface)
+		if (hasCustomSurface && !ModelSurfs::AllocMap.empty())
 		{
 			auto allocData = ModelSurfs::AllocMap.find(header.surfaces->name);
 			if (allocData != ModelSurfs::AllocMap.end())

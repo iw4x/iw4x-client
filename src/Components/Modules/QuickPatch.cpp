@@ -483,6 +483,9 @@ namespace Components
 				Game::Con_DrawMiniConsole(0, 2, 4, (Game::CL_IsCgameInitialized() ? 1.0f : 0.4f));
 			}
 		});
+#else
+		// Remove missing tag message
+		Utils::Hook::Nop(0x4EBF1A, 5);
 #endif
 	}
 
