@@ -189,23 +189,26 @@ namespace Components
 			{
 				hasCustomSurface = true;
 
-				auto buffer = ModelSurfs::BufferMap.find(surface->triIndices);
-				if (buffer != ModelSurfs::BufferMap.end())
+				if (!ModelSurfs::BufferMap.empty())
 				{
-					buffer->second->Release();
-					ModelSurfs::BufferMap.erase(buffer);
-				}
+					auto buffer = ModelSurfs::BufferMap.find(surface->triIndices);
+					if (buffer != ModelSurfs::BufferMap.end())
+					{
+						buffer->second->Release();
+						ModelSurfs::BufferMap.erase(buffer);
+					}
 
-				buffer = ModelSurfs::BufferMap.find(surface->verts0);
-				if (buffer != ModelSurfs::BufferMap.end())
-				{
-					buffer->second->Release();
-					ModelSurfs::BufferMap.erase(buffer);
+					buffer = ModelSurfs::BufferMap.find(surface->verts0);
+					if (buffer != ModelSurfs::BufferMap.end())
+					{
+						buffer->second->Release();
+						ModelSurfs::BufferMap.erase(buffer);
+					}
 				}
 			}
 		}
 
-		if (hasCustomSurface)
+		if (hasCustomSurface && !ModelSurfs::AllocMap.empty())
 		{
 			auto allocData = ModelSurfs::AllocMap.find(header.surfaces->name);
 			if (allocData != ModelSurfs::AllocMap.end())
