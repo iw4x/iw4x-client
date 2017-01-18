@@ -202,7 +202,15 @@ namespace Assets
 					asset->physPreset->sndAliasPrefix = reader.readCString();
 				}
 
-				Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, { asset->physPreset });
+				// This is an experiment, ak74 fails though
+				if (asset->name == "weapon_ak74u"s)
+				{
+					asset->physPreset = nullptr;
+				}
+				else
+				{
+					Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, { asset->physPreset });
+				}
 			}
 
 			if (asset->physCollmap)
