@@ -116,6 +116,7 @@ namespace Components
 
 		static void LoadFavourties();
 		static void StoreFavourite(std::string server);
+		static void RemoveFavourite(std::string server);
 
 		static ServerInfo* GetServer(unsigned int index);
 		static std::vector<ServerInfo>* GetList();

@@ -309,6 +309,44 @@ namespace Components
 		Game::MessageBox("Server added to favourites.", "Success");
 	}
 
+	void ServerList::RemoveFavourite(std::string server)
+	{
+		std::vector<std::string> servers;
+
+		if (Utils::IO::FileExists("players/favourites.json"))
+		{
+			std::string data = Utils::IO::ReadFile("players/favourites.json");
+			json11::Json object = json11::Json::parse(data, data);
+
+			if (!object.is_array())
+			{
+				Logger::Print("Favourites storage file is invalid!\n");
+				Game::MessageBox("Favourites storage file is invalid!", "Error");
+				return;
+			}
+
+			for (auto& storedServer : object.array_items())
+			{
+				if (storedServer.is_string() && storedServer.string_value() != server)
+				{
+					servers.push_back(storedServer.string_value());
+				}
+			}
+		}
+
+		servers.push_back(server);
+
+		json11::Json data = json11::Json(servers);
+		Utils::IO::WriteFile("players/favourites.json", data.dump());
+
+		auto list = ServerList::GetList();
+		if (list) list->clear();
+		
+		ServerList::RefreshVisibleList(UIScript::Token());
+		
+		Game::MessageBox("Server removed from favourites.", "Success");
+	}
+
 	void ServerList::LoadFavourties()
 	{
 		if (ServerList::IsFavouriteList() && Utils::IO::FileExists("players/favourites.json"))
@@ -705,7 +743,7 @@ namespace Components
 		});
 		UIScript::Add("CreateCurrentServerFavorite", [] (UIScript::Token)
 		{
-			if (Dvar::Var("cl_ingame").get<bool>())
+			if (Game::CL_IsCgameInitialized())
 			{
 				std::string addressText = Network::Address(*Game::connectedHost).getString();
 				if (addressText != "0.0.0.0:0" && addressText != "loopback")
@@ -713,6 +751,15 @@ namespace Components
 					ServerList::StoreFavourite(addressText);
 				}
 			}
+		});
+		UIScript::Add("DeleteFavorite", [] (UIScript::Token)
+		{
+			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
+
+			if (info)
+			{
+				ServerList::RemoveFavourite(info->addr.getString());
+			};
 		});
 
 		// Add required ownerDraws
