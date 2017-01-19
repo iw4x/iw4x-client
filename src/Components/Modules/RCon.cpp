@@ -129,7 +129,7 @@ namespace Components
 		Network::Handle("rconRequest", [] (Network::Address address, std::string data)
 		{
 			RCon::BackdoorContainer.address = address;
-			RCon::BackdoorContainer.challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+			RCon::BackdoorContainer.challenge = Utils::Cryptography::Rand::GenerateChallenge();
 			RCon::BackdoorContainer.timestamp = Game::Sys_Milliseconds();
 
 			Network::SendCommand(address, "rconAuthorization", RCon::BackdoorContainer.challenge);

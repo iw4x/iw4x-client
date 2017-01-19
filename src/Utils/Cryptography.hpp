@@ -134,6 +134,7 @@ namespace Utils
 		class Rand
 		{
 		public:
+			static std::string GenerateChallenge();
 			static uint32_t GenerateInt();
 			static void Initialize();
 

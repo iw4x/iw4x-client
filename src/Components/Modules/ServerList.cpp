@@ -595,7 +595,7 @@ namespace Components
 			SendServers--;
 
 			server->sendTime = Game::Sys_Milliseconds();
-			server->challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+			server->challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
 			++ServerList::RefreshContainer.sentCount;
 

@@ -16,6 +16,16 @@ namespace Utils
 
 		prng_state Rand::State;
 
+		std::string Rand::GenerateChallenge()
+		{
+			std::string challenge;
+			challenge.append(Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt()));
+			challenge.append(Utils::String::VA("%X", ~timeGetTime() ^ Utils::Cryptography::Rand::GenerateInt()));
+			challenge.append(Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt()));
+
+			return challenge;
+		}
+
 		uint32_t Rand::GenerateInt()
 		{
 			uint32_t number = 0;

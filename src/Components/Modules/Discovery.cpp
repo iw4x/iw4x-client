@@ -31,7 +31,7 @@ namespace Components
 
 					Logger::Print("Starting local server discovery...\n");
 
-					Discovery::Challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+					Discovery::Challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
 					unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").get<unsigned int>();
 					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").get<unsigned int>();

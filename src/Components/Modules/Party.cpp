@@ -30,7 +30,7 @@ namespace Components
 		Party::Container.awaitingPlaylist = false;
 		Party::Container.joinTime = Game::Sys_Milliseconds();
 		Party::Container.target = target;
-		Party::Container.challenge = Utils::String::VA("%X", Utils::Cryptography::Rand::GenerateInt());
+		Party::Container.challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
 		Network::SendCommand(Party::Container.target, "getinfo", Party::Container.challenge);
 
