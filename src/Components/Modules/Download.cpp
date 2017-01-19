@@ -20,6 +20,10 @@ namespace Components
 		Download::CLDownload.running = true;
 		Download::CLDownload.mod = mod;
 		Download::CLDownload.terminateThread = false;
+		Download::CLDownload.totalBytes = 0;
+		Download::CLDownload.lastTimeStamp = 0;
+		Download::CLDownload.downBytes = 0;
+		Download::CLDownload.timeStampBytes = 0;
 		Download::CLDownload.target = Party::Target();
 		Download::CLDownload.thread = std::thread(Download::ModDownloader, &Download::CLDownload);
 	}
