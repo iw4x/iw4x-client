@@ -14,7 +14,9 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
 			call Renderer::FrameHandler
+			popad
 			jmp Renderer::DrawFrameHook.original
 		}
 	}
@@ -33,7 +35,9 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
 			call Renderer::BackendFrameHandler
+			popad
 
 			mov eax, ds:66E1BF0h
 			mov ecx, 536A85h

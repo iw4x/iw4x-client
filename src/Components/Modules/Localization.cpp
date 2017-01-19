@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	std::mutex Localization::LocalizeMutex;
+	std::recursive_mutex Localization::LocalizeMutex;
 	Dvar::Var Localization::UseLocalization;
 	Utils::Memory::Allocator Localization::MemAllocator;
 	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
@@ -10,7 +10,7 @@ namespace Components
 
 	void Localization::Set(std::string key, std::string value)
 	{
-		std::lock_guard<std::mutex> _(Localization::LocalizeMutex);
+		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 
 		if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
 		{
@@ -49,7 +49,7 @@ namespace Components
 		if (!Localization::UseLocalization.get<bool>()) return key;
 
 		Game::LocalizeEntry* entry = nullptr;
-		std::lock_guard<std::mutex> _(Localization::LocalizeMutex);
+		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 
 		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
 		{
@@ -62,9 +62,7 @@ namespace Components
 
 		if (!entry || !entry->value)
 		{
-			Localization::LocalizeMutex.unlock();
 			entry = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, key).localize;
-			Localization::LocalizeMutex.lock();
 		}
 
 		if (entry && entry->value)
@@ -77,7 +75,7 @@ namespace Components
 
 	void Localization::SetTemp(std::string key, std::string value)
 	{
-		std::lock_guard<std::mutex> _(Localization::LocalizeMutex);
+		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 
 		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
 		{
@@ -111,7 +109,7 @@ namespace Components
 
 	void Localization::ClearTemp()
 	{
-		std::lock_guard<std::mutex> _(Localization::LocalizeMutex);
+		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 
 		for (auto i = Localization::TempLocalizeMap.begin(); i != Localization::TempLocalizeMap.end(); ++i)
 		{
@@ -164,7 +162,7 @@ namespace Components
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [] (Game::XAssetType, std::string filename)
 		{
 			Game::XAssetHeader header = { 0 };
-			std::lock_guard<std::mutex> _(Localization::LocalizeMutex);
+			std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 
 			if (Localization::TempLocalizeMap.find(filename) != Localization::TempLocalizeMap.end())
 			{

@@ -153,6 +153,8 @@ namespace Utils
 				"TB"
 			};
 
+			if (!milliseconds) return "0.00 B/s";
+
 			double bytesPerSecond = (1000.0 / milliseconds) * bytes;
 
 			int i = 0;

@@ -15,7 +15,7 @@ namespace Components
 		Localization::SetTemp("MPUI_PROGRESS_DL", "(0/0) %");
 		Localization::SetTemp("MPUI_TRANS_RATE", "0.0 MB/s");
 
-		Command::Execute("openmenu mod_download_popmenu", true);
+		Command::Execute("openmenu mod_download_popmenu", false);
 
 		Download::CLDownload.running = true;
 		Download::CLDownload.mod = mod;
@@ -83,7 +83,12 @@ namespace Components
 			fDownload->download->downBytes += bytes;
 			fDownload->download->timeStampBytes += bytes;
 
-			double progress = (100.0 / fDownload->download->totalBytes) * fDownload->download->downBytes;
+			double progress = 0;
+			if (fDownload->download->totalBytes)
+			{
+				progress = (100.0 / fDownload->download->totalBytes) * fDownload->download->downBytes;
+			}
+
 			Localization::SetTemp("MPUI_PROGRESS_DL", Utils::String::VA("(%d/%d) %d%%", fDownload->index + 1, fDownload->download->files.size(), static_cast<unsigned int>(progress)));
 
 			int delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp;
@@ -93,8 +98,13 @@ namespace Components
 				fDownload->download->lastTimeStamp = Game::Sys_Milliseconds();
 
 				size_t dataLeft = fDownload->download->totalBytes - fDownload->download->downBytes;
-				double timeLeftD = ((1.0 * dataLeft) / fDownload->download->timeStampBytes) * delta;
-				int timeLeft = static_cast<int>(timeLeftD);
+
+				int timeLeft = 0;
+				if (fDownload->download->timeStampBytes)
+				{
+					double timeLeftD = ((1.0 * dataLeft) / fDownload->download->timeStampBytes) * delta;
+					timeLeft = static_cast<int>(timeLeftD);
+				}
 
 				if (doFormat)
 				{
@@ -208,7 +218,7 @@ namespace Components
 
 		if (download->terminateThread) return;
 
-		static std::string mod = download->mod;
+		std::string mod = download->mod;
 
 		for (unsigned int i = 0; i < download->files.size(); ++i)
 		{
@@ -222,10 +232,9 @@ namespace Components
 				download->thread.detach();
 				download->clear();
 
-				QuickPatch::Once([] ()
+				QuickPatch::Once([mod] ()
 				{
 					Dvar::Var("partyend_reason").set(mod);
-					mod.clear();
 
 					Localization::ClearTemp();
 					Command::Execute("closemenu mod_download_popmenu");
@@ -242,16 +251,14 @@ namespace Components
 		download->clear();
 		
 		// Run this on the main thread
-		QuickPatch::Once([] ()
+		QuickPatch::Once([mod] ()
 		{
 			auto fsGame = Dvar::Var("fs_game");
 			fsGame.set(mod);
 			fsGame.get<Game::dvar_t*>()->modified = true;
 
-			mod.clear();
-
 			Localization::ClearTemp();
-			Command::Execute("closemenu mod_download_popmenu", true);
+			Command::Execute("closemenu mod_download_popmenu", false);
 
 			if (Dvar::Var("cl_modVidRestart").get<bool>())
 			{
