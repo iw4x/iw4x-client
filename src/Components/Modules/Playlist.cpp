@@ -119,7 +119,7 @@ namespace Components
 		}
 
 		Game::Dvar_SetStringByName(cvar, value);
-	} 
+	}
 
 	int Playlist::GetMapIndex(const char* mapname)
 	{

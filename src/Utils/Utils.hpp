@@ -26,7 +26,7 @@ namespace Utils
 	}
 
 	template <typename T> using Slot = std::function<T>;
-	template <typename T> 
+	template <typename T>
 	class Signal
 	{
 	public:

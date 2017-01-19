@@ -154,7 +154,7 @@ namespace Utils
 				};
 				Key(ecc_key* key) : Key() { if(key) std::memmove(this->getKeyPtr(), key, sizeof(*key)); };
 				Key(ecc_key key) : Key(&key) {};
-				~Key() 
+				~Key()
 				{
 					if (this->keyStorage.use_count() <= 1)
 					{

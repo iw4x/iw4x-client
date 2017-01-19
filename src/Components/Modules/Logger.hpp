@@ -35,7 +35,7 @@ namespace Components
 		static void GameLogStub();
 		static void PrintMessageStub();
 		static void PrintMessagePipe(const char* data);
-		static void EnqueueMessage(std::string message);	
+		static void EnqueueMessage(std::string message);
 
 		static void NetworkLog(const char* data, bool gLog);
 

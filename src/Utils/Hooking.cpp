@@ -181,7 +181,7 @@ namespace Utils
 		this->installed = false;
 
 		if(unprotect) VirtualProtect(this->place, sizeof(this->buffer), PAGE_EXECUTE_READWRITE, &this->protection);
-		
+
 		std::memcpy(this->place, this->buffer, sizeof(this->buffer));
 
 		if (unprotect) VirtualProtect(this->place, sizeof(this->buffer), this->protection, &this->protection);
@@ -197,7 +197,7 @@ namespace Utils
 	}
 
 	void Hook::Nop(void* place, size_t length)
-	{ 
+	{
 		DWORD oldProtect;
 		VirtualProtect(place, length, PAGE_EXECUTE_READWRITE, &oldProtect);
 
@@ -208,7 +208,7 @@ namespace Utils
 	}
 
 	void Hook::Nop(DWORD place, size_t length)
-	{ 
+	{
 		Nop(reinterpret_cast<void*>(place), length);
 	}
 

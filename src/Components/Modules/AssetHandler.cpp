@@ -248,7 +248,7 @@ namespace Components
 		}
 
 		offset->pointer = *reinterpret_cast<void**>(pointer);
- 	}
+	}
 
 	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)
 	{

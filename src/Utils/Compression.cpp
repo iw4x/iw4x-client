@@ -8,7 +8,7 @@ namespace Utils
 		{
 			Utils::Memory::Allocator allocator;
 			unsigned long length = (data.size() * 2);
-			
+
 			// Make sure the buffer is large enough
 			if (length < 100) length *= 10;
 
@@ -43,24 +43,24 @@ namespace Utils
 			uint8_t* dest = allocator.allocateArray<uint8_t>(CHUNK);
 			const char* dataPtr = data.data();
 
-			do 
+			do
 			{
 				stream.avail_in = std::min(static_cast<size_t>(CHUNK), data.size() - (dataPtr - data.data()));
 				stream.next_in = reinterpret_cast<const uint8_t*>(dataPtr);
 				dataPtr += stream.avail_in;
 
-				do 
+				do
 				{
 					stream.avail_out = CHUNK;
 					stream.next_out = dest;
 
 					ret = inflate(&stream, Z_NO_FLUSH);
- 					if (ret != Z_OK && ret != Z_STREAM_END)
+					if (ret != Z_OK && ret != Z_STREAM_END)
 					{
 						inflateEnd(&stream);
 						return "";
 					}
-					
+
 					buffer.append(reinterpret_cast<const char*>(dest), CHUNK - stream.avail_out);
 
 				} while (stream.avail_out == 0);

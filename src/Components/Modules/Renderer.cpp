@@ -100,24 +100,24 @@ namespace Components
 // 			{
 // 				device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, 0, 0, 0);
 // 			}
-// 
+//
 // 			return;
-// 
+//
 // 			IDirect3DSurface9* buffer = nullptr;
-// 
+//
 // 			device->CreateOffscreenPlainSurface(Renderer::Width(), Renderer::Height(), D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &buffer, nullptr);
 // 			device->GetFrontBufferData(0, buffer);
-// 
+//
 // 			if (buffer)
 // 			{
 // 				D3DSURFACE_DESC desc;
 // 				D3DLOCKED_RECT lockedRect;
-// 
+//
 // 				buffer->GetDesc(&desc);
-// 
+//
 // 				HRESULT res = buffer->LockRect(&lockedRect, NULL, D3DLOCK_READONLY);
-// 
-// 
+//
+//
 // 				buffer->UnlockRect();
 // 			}
 // 		});

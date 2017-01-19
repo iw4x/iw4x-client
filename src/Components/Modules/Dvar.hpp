@@ -6,7 +6,7 @@ namespace Components
 		typedef void(Callback)();
 
 		class Flag
-		{ 
+		{
 		public:
 			Flag(Game::dvar_flag flag) : val(flag){};
 			Flag(int flag) : Flag(static_cast<Game::dvar_flag>(flag)) {};

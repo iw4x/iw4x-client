@@ -77,7 +77,7 @@ namespace Components
 		}
 		else if(IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE)
 		{
-			SetWindowTextA(*reinterpret_cast<HWND*>(0x64A3288), Utils::String::VA("IW4x(" VERSION ") : %s", hostname.data())); 
+			SetWindowTextA(*reinterpret_cast<HWND*>(0x64A3288), Utils::String::VA("IW4x(" VERSION ") : %s", hostname.data()));
 		}
 	}
 
@@ -368,7 +368,7 @@ namespace Components
 		wattron(Console::OutputWindow, COLOR_PAIR(9));
 
 // 		int currentTime = static_cast<int>(GetTickCount64()); // Make our compiler happy
-// 
+//
 // 		if (!Console::HasConsole)
 // 		{
 // 			Console::RefreshOutput();
@@ -393,7 +393,7 @@ namespace Components
 			TranslateMessage(&message);
 			DispatchMessageA(&message);
 		}
-		
+
 		if (Console::SkipShutdown) return;
 
 		if (Game::Sys_Milliseconds() - Console::LastRefresh > 100 &&
@@ -477,7 +477,7 @@ namespace Components
 		// Restore the initial safe area
 		*Game::safeArea = Console::OriginalSafeArea;
 	}
-	
+
 	void Console::SetSkipShutdown()
 	{
 		Console::SkipShutdown = true;
@@ -559,7 +559,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x428AED, 596); // Reduce output width
 
 		// Don't resize the console
-		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).install()->quick(); 
+		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).install()->quick();
 
 		if (Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{

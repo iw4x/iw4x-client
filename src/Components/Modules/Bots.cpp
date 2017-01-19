@@ -42,7 +42,7 @@ namespace Components
 	{
 		// Replace connect string
 		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
-		
+
 		// Intercept sprintf for the connect string
 		Utils::Hook(0x48ADAB, Bots::BuildConnectString, HOOK_CALL).install()->quick();
 	}

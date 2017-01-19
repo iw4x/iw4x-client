@@ -116,7 +116,7 @@ namespace Components
 		if (!menu) return nullptr;
 
 		menu->items = Utils::Memory::AllocateArray<Game::itemDef_t*>(512);
-		if (!menu->items) 
+		if (!menu->items)
 		{
 			Utils::Memory::Free(menu);
 			return nullptr;
@@ -130,7 +130,7 @@ namespace Components
 			return nullptr;
 		}
 
-		while (true) 
+		while (true)
 		{
 			ZeroMemory(&token, sizeof(token));
 
@@ -140,7 +140,7 @@ namespace Components
 				break; // Fail
 			}
 
-			if (*token.string == '}') 
+			if (*token.string == '}')
 			{
 				break; // Success
 			}
@@ -149,13 +149,13 @@ namespace Components
 
 			Game::keywordHash_t* key = Game::menuParseKeywordHash[idx];
 
-			if (!key) 
+			if (!key)
 			{
 				Game::PC_SourceError(handle, "unknown menu keyword %s", token.string);
 				continue;
 			}
 
-			if (!key->func(menu, handle)) 
+			if (!key->func(menu, handle))
 			{
 				Game::PC_SourceError(handle, "couldn't parse menu keyword %s", token.string);
 				break; // Fail
@@ -513,7 +513,7 @@ namespace Components
 
 	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, std::string filename)
 	{
- 		Game::XAssetHeader header = { 0 };
+		Game::XAssetHeader header = { 0 };
 
 		Game::MenuList* menuList = Game::DB_FindXAssetHeader(type, filename.data()).menuList;
 		header.menuList = menuList;
@@ -530,7 +530,7 @@ namespace Components
 
 			Menus::RemoveMenuList(filename);
 		}
-		
+
 		if (menuList && reinterpret_cast<DWORD>(menuList) != 0xDDDDDDDD)
 		{
 			// Parse scriptmenus!
@@ -670,7 +670,7 @@ namespace Components
 
 			// Free custom menus
 			Menus::FreeEverything();
-			
+
 			// Only disconnect if in-game, context is updated automatically!
 			if (Game::CL_IsCgameInitialized())
 			{

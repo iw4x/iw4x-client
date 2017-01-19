@@ -218,7 +218,7 @@ namespace Components
 
 	int Network::PacketInterceptionHandler(const char* packet)
 	{
-		// Packet rate limit. 
+		// Packet rate limit.
 		static uint32_t packets = 0;
 		static int lastClean = 0;
 
@@ -288,7 +288,7 @@ namespace Components
 
 	__declspec(naked) void Network::NetworkStartStub()
 	{
-		__asm 
+		__asm
 		{
 			mov eax, 64D900h
 			call eax

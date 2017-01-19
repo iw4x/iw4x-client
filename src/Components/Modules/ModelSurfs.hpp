@@ -5,7 +5,7 @@ namespace Components
 	public:
 		ModelSurfs();
 		~ModelSurfs();
-		
+
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* getName() { return "ModelSurfs"; };
 #endif

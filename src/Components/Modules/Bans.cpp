@@ -89,8 +89,8 @@ namespace Components
 		{
 			ipVector.push_back(Utils::String::VA("%u.%u.%u.%u",
 				ipEntry.bytes[0] & 0xFF,
-				ipEntry.bytes[1] & 0xFF, 
-				ipEntry.bytes[2] & 0xFF, 
+				ipEntry.bytes[1] & 0xFF,
+				ipEntry.bytes[2] & 0xFF,
 				ipEntry.bytes[3] & 0xFF));
 		}
 
@@ -99,7 +99,7 @@ namespace Components
 			{ "ip", ipVector },
 			{ "id", idVector },
 		};
-		
+
 		FileSystem::FileWriter ban("bans.json");
 		ban.write(bans.dump());
 	}
@@ -139,7 +139,7 @@ namespace Components
 						{
 							SteamID id;
 							id.Bits = strtoull(idEntry.string_value().data(), nullptr, 16);
-							
+
 							list->idList.push_back(id);
 						}
 					}

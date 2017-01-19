@@ -48,21 +48,21 @@ namespace Components
 			// No need for that :)
 			if (gametype == "_gametypes") return;
 
-			if (std::find(gametypes.begin(), gametypes.end(), gametype) == gametypes.end()) 
+			if (std::find(gametypes.begin(), gametypes.end(), gametype) == gametypes.end())
 			{
 				gametypes.push_back(gametype);
 			}
 		};
 
 		// Get the gametypes we can find in the filesystem
-		std::vector<std::string> rawGametypes = FileSystem::GetFileList("maps/mp/gametypes/", "txt"); 
+		std::vector<std::string> rawGametypes = FileSystem::GetFileList("maps/mp/gametypes/", "txt");
 
 		// Get the gametypes we can find in the database
 		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_RAWFILE, [] (Game::XAssetHeader header, void* data)
 		{
 			std::string name = header.rawfile->name;
 			std::vector<std::string>* rawGametypes = reinterpret_cast<std::vector<std::string>*>(data);
-			
+
 			if (Utils::String::StartsWith(name, "maps/mp/gametypes/") && Utils::String::EndsWith(name, ".txt"))
 			{
 				if (std::count(name.begin(), name.end(), '/') == 3 && std::count(name.begin(), name.end(), '\\') == 0)

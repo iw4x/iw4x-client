@@ -82,7 +82,7 @@ namespace Components
 
 		static void PerformRegistration(Network::Address address);
 		static void SendNodeList(Network::Address address);
-		static NodeEntry* FindNode(Network::Address address); 
+		static NodeEntry* FindNode(Network::Address address);
 		static ClientSession* FindSession(Network::Address address);
 
 		static void DeleteInvalidNodes();

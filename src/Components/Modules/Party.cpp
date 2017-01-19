@@ -186,7 +186,7 @@ namespace Components
 		Utils::Hook::Nop(0x5A96BE, 2);
 
 		// Always open lobby menu when connecting
-		// It's not possible to entirely patch it via code 
+		// It's not possible to entirely patch it via code
 		//Utils::Hook::Set<BYTE>(0x5B1698, 0xEB);
 		//Utils::Hook::Nop(0x5029F2, 6);
 		//Utils::Hook::SetString(0x70573C, "menu_xboxlive_lobby");
@@ -272,7 +272,7 @@ namespace Components
 					Party::ConnectError("Server connection timed out.");
 				}
 			}
-			
+
 			if (Party::Container.awaitingPlaylist)
 			{
 				if ((Game::Sys_Milliseconds() - Party::Container.requestTime) > 5000)
@@ -372,6 +372,8 @@ namespace Components
 					Party::Container.matchType = atoi(info.get("matchtype").data());
 					uint32_t securityLevel = static_cast<uint32_t>(atoi(info.get("securityLevel").data()));
 
+					std::string mod = Dvar::Var("fs_game").get<std::string>();
+
 					if (info.get("challenge") != Party::Container.challenge)
 					{
 						Party::ConnectError("Invalid join response: Challenge mismatch.");
@@ -390,7 +392,7 @@ namespace Components
 					{
 						Party::ConnectError("Invalid join response: Unknown matchtype");
 					}
-					else if(!info.get("fs_game").empty() && Utils::String::ToLower(Dvar::Var("fs_game").get<std::string>()) != Utils::String::ToLower(info.get("fs_game")))
+					else if(!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Download::InitiateClientDownload(info.get("fs_game"));

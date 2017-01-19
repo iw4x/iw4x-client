@@ -195,7 +195,7 @@ namespace Components
 		__asm
 		{
 			push ebx
-			push [esp + 8h] // Index
+			push[esp + 8h] // Index
 			push esi        // Color ref
 			call Colors::LookupColor
 			add esp, 8h

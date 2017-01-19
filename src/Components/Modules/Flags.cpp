@@ -21,7 +21,7 @@ namespace Components
 	{
 		int numArgs;
 		LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &numArgs);
-		
+
 		if (argv)
 		{
 			for (int i = 0; i < numArgs; ++i)

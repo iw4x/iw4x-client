@@ -186,7 +186,7 @@ namespace Game
 	R_TextWidth_t R_TextWidth = (R_TextWidth_t)0x5056C0;
 	R_TextHeight_t R_TextHeight = (R_TextHeight_t)0x505770;
 	R_FlushSun_t R_FlushSun = (R_FlushSun_t)0x53FB50;
-	
+
 	Scr_LoadGameType_t Scr_LoadGameType = (Scr_LoadGameType_t)0x4D9520;
 
 	Scr_LoadScript_t Scr_LoadScript = (Scr_LoadScript_t)0x45D940;
@@ -560,7 +560,7 @@ namespace Game
 
 	void IN_KeyUp(kbutton_t* button)
 	{
-		__asm 
+		__asm
 		{
 			push esi
 			mov esi, button

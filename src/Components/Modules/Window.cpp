@@ -76,7 +76,7 @@ namespace Components
 
 			mov ebp, WS_VISIBLE | WS_POPUP
 			retn
-			
+
 		setBorder:
 			mov ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX
 			retn

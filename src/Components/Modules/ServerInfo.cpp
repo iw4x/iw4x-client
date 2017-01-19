@@ -95,7 +95,7 @@ namespace Components
 
 	__declspec(naked) void ServerInfo::DrawScoreboardStub()
 	{
-		__asm 
+		__asm
 		{
 			push eax
 			call ServerInfo::DrawScoreboardInfo
@@ -175,7 +175,7 @@ namespace Components
 			Utils::InfoString info = ServerInfo::GetInfo();
 			info.set("challenge", Utils::ParseChallenge(data));
 
-			for (int i = 0; i < atoi(info.get("sv_maxclients").data()); ++i) // Maybe choose 18 here? 
+			for (int i = 0; i < atoi(info.get("sv_maxclients").data()); ++i) // Maybe choose 18 here?
 			{
 				int score = 0;
 				int ping = 0;

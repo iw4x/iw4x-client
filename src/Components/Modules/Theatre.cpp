@@ -76,7 +76,7 @@ namespace Components
 				Logger::Print("Error: Writing compressed demo baseline exceeded buffer\n");
 				break;
 			}
-			
+
 			Game::FS_Write(&cmpData[i], size, *Game::demoFile);
 		}
 	}
@@ -220,7 +220,7 @@ namespace Components
 		if (Theatre::CurrentSelection < Theatre::Demos.size())
 		{
 			Theatre::DemoInfo info = Theatre::Demos[Theatre::CurrentSelection];
-	
+
 			Logger::Print("Deleting demo %s...\n", info.name.data());
 
 			FileSystem::DeleteFile("demos", info.name + ".dm_13");
@@ -369,7 +369,7 @@ namespace Components
 
 		// set the configstrings stuff to load the default (empty) string table; this should allow demo recording on all gametypes/maps
 		if(!Dedicated::IsEnabled()) Utils::Hook::Set<char*>(0x47440B, "mp/defaultStringTable.csv");
-	
+
 		// Change font size
 		Utils::Hook::Set<BYTE>(0x5AC854, 2);
 		Utils::Hook::Set<BYTE>(0x5AC85A, 2);

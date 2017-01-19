@@ -55,7 +55,7 @@ namespace Steam
 		uint64_t result = Callbacks::RegisterCall();
 		LobbyCreated* retvals = ::Utils::Memory::Allocate<LobbyCreated>();
 		SteamID id;
-		
+
 		id.AccountID = 1337132;
 		id.Universe = 1;
 		id.AccountType = 8;

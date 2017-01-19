@@ -20,7 +20,7 @@ namespace Utils
 			{
 				return (this->Object.use_count() > 0);
 			}
-			
+
 			void set(T object)
 			{
 				this->object = std::shared_ptr<T>(new T());
@@ -81,7 +81,7 @@ namespace Utils
 		void add(T object)
 		{
 			std::lock_guard<std::mutex> _(this->mutex);
-			
+
 			if (!this->Empty())
 			{
 				// Create new chain entry
@@ -99,7 +99,7 @@ namespace Utils
 		void remove(std::shared_ptr<T> object)
 		{
 			std::lock_guard<std::mutex> _(this->mutex);
-			
+
 			if (!this->empty())
 			{
 				if (this->object.get().get() == object.get())

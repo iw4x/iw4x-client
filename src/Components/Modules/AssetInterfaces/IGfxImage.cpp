@@ -161,7 +161,7 @@ namespace Assets
 		if (asset->loadDef)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			
+
 			Game::GfxImageLoadDef* destTexture = buffer->dest<Game::GfxImageLoadDef>();
 			buffer->save(asset->loadDef, 16, 1);
 

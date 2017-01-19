@@ -249,7 +249,7 @@ namespace Components
 
 		download->thread.detach();
 		download->clear();
-		
+
 		// Run this on the main thread
 		QuickPatch::Once([mod] ()
 		{
@@ -324,7 +324,7 @@ namespace Components
 			static json11::Json jsonList;
 
 			std::string fsGame = Dvar::Var("fs_game").get<std::string>();
-			
+
 			if (!fsGame.empty() && fsGame != fsGamePre)
 			{
 				std::vector<json11::Json> fileList;
@@ -436,7 +436,7 @@ namespace Components
 		std::vector<json11::Json> players;
 
 		// Build player list
-		for (int i = 0; i < atoi(status.get("sv_maxclients").data()); ++i) // Maybe choose 18 here? 
+		for (int i = 0; i < atoi(status.get("sv_maxclients").data()); ++i) // Maybe choose 18 here?
 		{
 			std::map<std::string, json11::Json> playerInfo;
 			playerInfo["score"] = 0;
@@ -485,15 +485,15 @@ namespace Components
 
 // 		if (message->uri.p, message->uri.len == "/"s)
 // 		{
-// 			mg_printf(nc, 
+// 			mg_printf(nc,
 // 				"HTTP/1.1 200 OK\r\n"
 // 				"Content-Type: text/html\r\n"
 // 				"Connection: close\r\n"
 // 				"\r\n"
 // 				"Hi fella!<br>You are%s connected to this server!", (Download::IsClient(nc) ? " " : " not"));
-// 
-// 			Game::client_t* client = Download::GetClient(nc);
-// 
+//
+//				Game::client_t* client = Download::GetClient(nc);
+//
 // 			if (client)
 // 			{
 // 				mg_printf(nc, "<br>Hello %s!", client->name);
@@ -539,7 +539,7 @@ namespace Components
 					"\r\n", mimeType.data(), buffer.size());
 
 				mg_send(nc, buffer.data(), static_cast<int>(buffer.size()));
- 			}
+			}
 			else
 			{
 				mg_printf(nc,

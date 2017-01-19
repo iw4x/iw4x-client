@@ -481,8 +481,8 @@ namespace Components
 		Utils::Hook(0x51C76C, AntiCheat::CinematicStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x418209, AntiCheat::SoundInitStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x60BE9D, AntiCheat::SoundInitStub, HOOK_CALL).install()->quick();
- 		Utils::Hook(0x60BE8E, AntiCheat::SoundInitDriverStub, HOOK_CALL).install()->quick();
- 		Utils::Hook(0x418204, AntiCheat::SoundInitDriverStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x60BE8E, AntiCheat::SoundInitDriverStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x418204, AntiCheat::SoundInitDriverStub, HOOK_CALL).install()->quick();
 		Renderer::OnFrame(AntiCheat::PerformScan);
 
 		// Detect aimbots

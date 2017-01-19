@@ -83,7 +83,7 @@ namespace Components
 			if (pos != std::string::npos)
 			{
 				caches = caches.substr(pos + str.size());
-				
+
 				pos = caches.find_first_of("\"");
 
 				if (pos != std::string::npos)

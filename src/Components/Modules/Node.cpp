@@ -728,7 +728,7 @@ namespace Components
 			Proto::Node::List list;
 			std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
 
-			if (data.empty() || !list.ParseFromString(data)) 
+			if (data.empty() || !list.ParseFromString(data))
 			{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Received invalid node list from %s!\n", address.getCString());
@@ -855,7 +855,7 @@ namespace Components
 		Command::Add("syncnodes", [] (Command::Params*)
 		{
 			Logger::Print("Resynchronizing nodes...\n");
-			
+
 			Node::LoadNodeRemotePreset();
 
 			std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);

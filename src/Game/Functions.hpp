@@ -98,7 +98,7 @@ namespace Game
 
 	typedef void(__cdecl * DB_EnumXAssets_Internal_t)(XAssetType type, void(*)(XAssetHeader, void *), void* userdata, bool overrides);
 	extern DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal;
-	
+
 	typedef XAssetHeader (__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* name);
 	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 

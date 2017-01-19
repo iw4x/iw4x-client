@@ -103,10 +103,10 @@ namespace Components
 		Utils::Hook::Set<int>(0x630B81, sizeof(Game::newMapArena_t));
 		Utils::Hook::Set<int>(0x631EBC, sizeof(Game::newMapArena_t));
 		Utils::Hook::Set<int>(0x6327AF, sizeof(Game::newMapArena_t));
- 
- 		Utils::Hook(0x420720, ArenaLength::ArenaMapOffsetHook1, HOOK_JUMP).install()->quick();
- 		Utils::Hook(0x49BD39, ArenaLength::ArenaMapOffsetHook2, HOOK_JUMP).install()->quick();
- 		Utils::Hook(0x632799, ArenaLength::ArenaMapOffsetHook3, HOOK_JUMP).install()->quick();
+
+		Utils::Hook(0x420720, ArenaLength::ArenaMapOffsetHook1, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x49BD39, ArenaLength::ArenaMapOffsetHook2, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x632799, ArenaLength::ArenaMapOffsetHook3, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x4064B2, ArenaLength::ArenaMapOffsetHook4, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Set<BYTE>(0x4A95F8, 32);

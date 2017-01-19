@@ -131,7 +131,7 @@ namespace Components
 			EXCEPTION_RECORD ExceptionRecord;
 			ZeroMemory(&ContextRecord, sizeof(CONTEXT));
 
-			__asm 
+			__asm
 			{
 				mov [ContextRecord.Eax], eax
 				mov [ContextRecord.Ecx], ecx
