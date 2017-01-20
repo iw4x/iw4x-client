@@ -26,6 +26,8 @@ namespace Components
 
 			case 3:
 				return Utils::String::VA("%d", ServerInfo::PlayerContainer.playerList[index].ping);
+			default: 
+				break;
 			}
 		}
 

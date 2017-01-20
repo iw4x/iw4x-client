@@ -121,6 +121,11 @@ namespace Components
 			{
 				return Utils::String::VA("%i", server->ping);
 			}
+
+			default:
+			{
+				break;
+			};
 		}
 
 		return "";

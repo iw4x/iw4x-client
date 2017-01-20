@@ -617,7 +617,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 2524) = vec2;
 
-				Game::Load_Stream(true, (void*)vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3044));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3044));
 			}
 
 			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 2520);
@@ -628,7 +628,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 2528) = vec2;
 
-				Game::Load_Stream(true, (void*)vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3046));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3046));
 			}
 		}
 		else
@@ -638,7 +638,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 2556) = vec2;
 
-				Game::Load_Stream(true, (void*)vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + ((Zones::ZoneVersion >= 318) ? 3076 : 3040)));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + ((Zones::ZoneVersion >= 318) ? 3076 : 3040)));
 			}
 
 			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 2552);
@@ -649,7 +649,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 2560) = vec2;
 
-				Game::Load_Stream(true, (void*)vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + ((Zones::ZoneVersion >= 318) ? 3078 : 3042)));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + ((Zones::ZoneVersion >= 318) ? 3078 : 3042)));
 			}
 		}
 
@@ -833,7 +833,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 3048) = vec2;
 
-				Game::Load_Stream(true, (void*)vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3044));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3044));
 			}
 
 			if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3052) == -1)
@@ -841,7 +841,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 3052) = vec2;
 
-				Game::Load_Stream(true, (void*)vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3046));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3046));
 			}
 		}
 		else
@@ -851,7 +851,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 3044) = vec2;
 
-				Game::Load_Stream(true, (void*)vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3040));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3040));
 			}
 
 			if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3048) == -1)
@@ -859,7 +859,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 3048) = vec2;
 
-				Game::Load_Stream(true, (void*)vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3042));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3042));
 			}
 		}
 
@@ -1305,7 +1305,7 @@ namespace Components
 
 			static_assert(offsetof(Game::Material, stateBitsEntry) == 24, "");
 
-			Game::Material* material = (Game::Material*)buffer;
+			Game::Material* material = reinterpret_cast<Game::Material*>(buffer);
 			memcpy(&material359, material, sizeof(material359));
 
 			material->name = material359.name;

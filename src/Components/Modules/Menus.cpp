@@ -20,7 +20,7 @@ namespace Components
 			return 0;
 
 		// Reserve it, if yes
-		Game::sourceFiles[i] = (Game::source_t*)1;
+		Game::sourceFiles[i] = reinterpret_cast<Game::source_t*>(1);
 
 		return i;
 	}
@@ -57,7 +57,6 @@ namespace Components
 		int handle = Menus::ReserveSourceHandle();
 		if (!Menus::IsValidSourceHandle(handle)) return 0; // No free source slot!
 
-		Game::source_t *source = nullptr;
 		Game::script_t *script = Menus::LoadMenuScript(name, buffer);
 
 		if (!script)
@@ -66,9 +65,9 @@ namespace Components
 			return 0;
 		}
 
-		script->next = NULL;
+		script->next = nullptr;
 
-		source = Utils::Memory::Allocate<Game::source_t>();
+		Game::source_t *source = Utils::Memory::Allocate<Game::source_t>();
 		if (!source)
 		{
 			Game::FreeMemory(script);
@@ -77,11 +76,11 @@ namespace Components
 
 		strncpy_s(source->filename, 64, "string", 64);
 		source->scriptstack = script;
-		source->tokens = NULL;
-		source->defines = NULL;
-		source->indentstack = NULL;
+		source->tokens = nullptr;
+		source->defines = nullptr;
+		source->indentstack = nullptr;
 		source->skip = 0;
-		source->definehash = (Game::define_t**)Utils::Memory::Allocate(4096);
+		source->definehash = static_cast<Game::define_t**>(Utils::Memory::Allocate(4096));
 
 		Game::sourceFiles[handle] = source;
 
@@ -513,7 +512,7 @@ namespace Components
 
 	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, std::string filename)
 	{
-		Game::XAssetHeader header = { 0 };
+		Game::XAssetHeader header = { nullptr };
 
 		Game::MenuList* menuList = Game::DB_FindXAssetHeader(type, filename.data()).menuList;
 		header.menuList = menuList;
@@ -602,7 +601,7 @@ namespace Components
 			}
 
 			// Clear last menu
-			dc->menus[--dc->menuCount] = 0;
+			dc->menus[--dc->menuCount] = nullptr;
 		}
 	}
 

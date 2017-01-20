@@ -6,36 +6,36 @@ namespace Components
 
 	HRESULT D3D9Ex::D3D9Device::QueryInterface(REFIID riid, void** ppvObj)
 	{
-		*ppvObj = NULL;
+		*ppvObj = nullptr;
 
 		HRESULT hRes = m_pIDirect3DDevice9->QueryInterface(riid, ppvObj);
 		if (hRes == NOERROR) *ppvObj = this;
 		return hRes;
 	}
 
-	ULONG D3D9Ex::D3D9Device::AddRef(void)
+	ULONG D3D9Ex::D3D9Device::AddRef()
 	{
 		return m_pIDirect3DDevice9->AddRef();
 	}
 
-	ULONG D3D9Ex::D3D9Device::Release(void)
+	ULONG D3D9Ex::D3D9Device::Release()
 	{
 		ULONG count = m_pIDirect3DDevice9->Release();
 		if (!count) delete this;
 		return count;
 	}
 
-	HRESULT D3D9Ex::D3D9Device::TestCooperativeLevel(void)
+	HRESULT D3D9Ex::D3D9Device::TestCooperativeLevel()
 	{
 		return m_pIDirect3DDevice9->TestCooperativeLevel();
 	}
 
-	UINT D3D9Ex::D3D9Device::GetAvailableTextureMem(void)
+	UINT D3D9Ex::D3D9Device::GetAvailableTextureMem()
 	{
 		return m_pIDirect3DDevice9->GetAvailableTextureMem();
 	}
 
-	HRESULT D3D9Ex::D3D9Device::EvictManagedResources(void)
+	HRESULT D3D9Ex::D3D9Device::EvictManagedResources()
 	{
 		return m_pIDirect3DDevice9->EvictManagedResources();
 	}
@@ -85,7 +85,7 @@ namespace Components
 		return m_pIDirect3DDevice9->GetSwapChain(iSwapChain, pSwapChain);
 	}
 
-	UINT D3D9Ex::D3D9Device::GetNumberOfSwapChains(void)
+	UINT D3D9Ex::D3D9Device::GetNumberOfSwapChains()
 	{
 		return m_pIDirect3DDevice9->GetNumberOfSwapChains();
 	}
@@ -227,12 +227,12 @@ namespace Components
 		return m_pIDirect3DDevice9->GetDepthStencilSurface(ppZStencilSurface);
 	}
 
-	HRESULT D3D9Ex::D3D9Device::BeginScene(void)
+	HRESULT D3D9Ex::D3D9Device::BeginScene()
 	{
 		return m_pIDirect3DDevice9->BeginScene();
 	}
 
-	HRESULT D3D9Ex::D3D9Device::EndScene(void)
+	HRESULT D3D9Ex::D3D9Device::EndScene()
 	{
 		return m_pIDirect3DDevice9->EndScene();
 	}
@@ -322,7 +322,7 @@ namespace Components
 		return m_pIDirect3DDevice9->CreateStateBlock(Type, ppSB);
 	}
 
-	HRESULT D3D9Ex::D3D9Device::BeginStateBlock(void)
+	HRESULT D3D9Ex::D3D9Device::BeginStateBlock()
 	{
 		return m_pIDirect3DDevice9->BeginStateBlock();
 	}
@@ -412,7 +412,7 @@ namespace Components
 		return m_pIDirect3DDevice9->SetSoftwareVertexProcessing(bSoftware);
 	}
 
-	BOOL D3D9Ex::D3D9Device::GetSoftwareVertexProcessing(void)
+	BOOL D3D9Ex::D3D9Device::GetSoftwareVertexProcessing()
 	{
 		return m_pIDirect3DDevice9->GetSoftwareVertexProcessing();
 	}
@@ -422,7 +422,7 @@ namespace Components
 		return m_pIDirect3DDevice9->SetNPatchMode(nSegments);
 	}
 
-	float D3D9Ex::D3D9Device::GetNPatchMode(void)
+	float D3D9Ex::D3D9Device::GetNPatchMode()
 	{
 		return m_pIDirect3DDevice9->GetNPatchMode();
 	}
@@ -629,7 +629,7 @@ namespace Components
 
 	HRESULT __stdcall D3D9Ex::D3D9::QueryInterface(REFIID riid, void** ppvObj)
 	{
-		*ppvObj = NULL;
+		*ppvObj = nullptr;
 
 		HRESULT hRes = m_pIDirect3D9->QueryInterface(riid, ppvObj);
 
@@ -641,12 +641,12 @@ namespace Components
 		return hRes;
 	}
 
-	ULONG __stdcall D3D9Ex::D3D9::AddRef(void)
+	ULONG __stdcall D3D9Ex::D3D9::AddRef()
 	{
 		return m_pIDirect3D9->AddRef();
 	}
 
-	ULONG __stdcall D3D9Ex::D3D9::Release(void)
+	ULONG __stdcall D3D9Ex::D3D9::Release()
 	{
 		ULONG count = m_pIDirect3D9->Release();
 		if (!count) delete this;
@@ -658,7 +658,7 @@ namespace Components
 		return m_pIDirect3D9->RegisterSoftwareDevice(pInitializeFunction);
 	}
 
-	UINT __stdcall D3D9Ex::D3D9::GetAdapterCount(void)
+	UINT __stdcall D3D9Ex::D3D9::GetAdapterCount()
 	{
 		return m_pIDirect3D9->GetAdapterCount();
 	}

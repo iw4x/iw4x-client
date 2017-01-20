@@ -11,7 +11,7 @@ namespace Components
 
 	Game::XAssetHeader MusicalTalent::ModifyAliases(Game::XAssetType type, std::string filename)
 	{
-		Game::XAssetHeader header = { 0 };
+		Game::XAssetHeader header = { nullptr };
 
 		if (MusicalTalent::SoundAliasList.find(Utils::String::ToLower(filename)) != MusicalTalent::SoundAliasList.end())
 		{

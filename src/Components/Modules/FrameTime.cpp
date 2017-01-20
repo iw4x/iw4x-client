@@ -27,7 +27,7 @@ namespace Components
 		timeout.tv_sec = msec / 1000;
 		timeout.tv_usec = (msec % 1000) * 1000;
 
-		int retval = select(highestfd + 1, &fdr, NULL, NULL, &timeout);
+		int retval = select(highestfd + 1, &fdr, nullptr, nullptr, &timeout);
 
 		if (retval == SOCKET_ERROR)
 		{

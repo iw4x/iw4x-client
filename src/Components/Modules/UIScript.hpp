@@ -15,13 +15,12 @@ namespace Components
 		class Token
 		{
 		public:
-			Token() : token(0) {};
-			Token(const char** args) : token(0) { this->parse(args); };
+			Token() : token(nullptr) {};
+			Token(const char** args) : token(nullptr) { this->parse(args); };
 			Token(const Token &obj) { this->token = obj.token; };
 
 			template<typename T> T get();
 			bool isValid();
-
 
 		private:
 			char* token;

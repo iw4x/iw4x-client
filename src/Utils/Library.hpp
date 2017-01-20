@@ -17,7 +17,7 @@ namespace Utils
 		{
 			if (!this->valid())
 			{
-				throw new std::runtime_error("Library not loaded!");
+				throw std::runtime_error("Library not loaded!");
 			}
 
 			return reinterpret_cast<T*>(GetProcAddress(this->getModule(), process.data()));

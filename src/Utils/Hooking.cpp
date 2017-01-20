@@ -22,7 +22,7 @@ namespace Utils
 			{
 				Hook::Signature::Container* container = &containers[k];
 
-				unsigned int j = 0;
+				unsigned int j;
 				for (j = 0; j < strlen(container->mask); ++j)
 				{
 					if (container->mask[j] != '?' &&container->signature[j] != address[j])

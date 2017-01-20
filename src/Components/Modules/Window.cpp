@@ -5,7 +5,7 @@ namespace Components
 	Dvar::Var Window::NoBorder;
 	Dvar::Var Window::NativeCursor;
 
-	HWND Window::MainWindow = 0;
+	HWND Window::MainWindow = nullptr;
 	BOOL Window::CursorVisible = TRUE;
 
 	int Window::Width()
@@ -143,14 +143,14 @@ namespace Components
 
 				if (Window::CursorVisible)
 				{
-					SetCursor(LoadCursor(NULL, IDC_ARROW));
+					SetCursor(LoadCursor(nullptr, IDC_ARROW));
 
-					while ((value = ShowCursor(TRUE)) < 0);
+					while ((value = ShowCursor(TRUE)) < 0) {};
 					while (value > 0) { value = ShowCursor(FALSE); } // Set display counter to 0
 				}
 				else
 				{
-					while ((value = ShowCursor(FALSE)) >= 0);
+					while ((value = ShowCursor(FALSE)) >= 0) {};
 					while (value < -1) { value = ShowCursor(TRUE); } // Set display counter to -1
 				}
 

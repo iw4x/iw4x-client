@@ -136,7 +136,8 @@ namespace Assets
 		{
 			Utils::Stream::Reader reader(builder->getAllocator(), mapFile.getBuffer());
 
-			if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xGfxW"))
+			__int64 magic = reader.read<__int64>();
+			if (std::memcmp(&magic, "IW4xGfxW", 8))
 			{
 				Components::Logger::Error("Reading gfxworld '%s' failed, header is invalid!", name.data());
 			}

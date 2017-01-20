@@ -37,7 +37,7 @@ namespace Utils
 		{
 			ltc_mp = ltm_desc;
 			register_prng(&fortuna_desc);
-			rng_make_prng(128, find_prng("fortuna"), &Rand::State, NULL);
+			rng_make_prng(128, find_prng("fortuna"), &Rand::State, nullptr);
 		}
 
 #pragma endregion
@@ -52,7 +52,7 @@ namespace Utils
 
 			ltc_mp = ltm_desc;
 
-			ecc_make_key(NULL, find_prng("sprng"), bits / 8, key.getKeyPtr());
+			ecc_make_key(nullptr, find_prng("sprng"), bits / 8, key.getKeyPtr());
 
 			return key;
 		}
@@ -68,7 +68,7 @@ namespace Utils
 
 			ltc_mp = ltm_desc;
 
-			ecc_sign_hash(reinterpret_cast<const uint8_t*>(message.data()), message.size(), buffer, &length, NULL, find_prng("sprng"), key.getKeyPtr());
+			ecc_sign_hash(reinterpret_cast<const uint8_t*>(message.data()), message.size(), buffer, &length, nullptr, find_prng("sprng"), key.getKeyPtr());
 
 			return std::string(reinterpret_cast<char*>(buffer), length);
 		}
@@ -96,7 +96,7 @@ namespace Utils
 
 			ltc_mp = ltm_desc;
 
-			rsa_make_key(NULL, find_prng("sprng"), bits / 8, 65537, key.getKeyPtr());
+			rsa_make_key(nullptr, find_prng("sprng"), bits / 8, 65537, key.getKeyPtr());
 
 			return key;
 		}

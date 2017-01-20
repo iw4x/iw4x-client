@@ -26,7 +26,7 @@ namespace Utils
 
 	void WebIO::openSession(std::string useragent)
 	{
-		this->hSession = InternetOpenA(useragent.data(), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+		this->hSession = InternetOpenA(useragent.data(), INTERNET_OPEN_TYPE_DIRECT, nullptr, nullptr, 0);
 	}
 
 	void WebIO::closeSession()
@@ -271,7 +271,7 @@ namespace Utils
 		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_RECEIVE_TIMEOUT, &m_timeout, sizeof(m_timeout));
 		//InternetSetOption(WebIO::m_hConnect, INTERNET_OPTION_SEND_TIMEOUT, &m_timeout, sizeof(m_timeout));
 
-		this->hFile = HttpOpenRequestA(this->hConnect, command, this->url.document.data(), NULL, NULL, acceptTypes, dwFlag, 0);
+		this->hFile = HttpOpenRequestA(this->hConnect, command, this->url.document.data(), nullptr, nullptr, acceptTypes, dwFlag, 0);
 
 		if (!this->hFile || this->hFile == INVALID_HANDLE_VALUE)
 		{
@@ -301,7 +301,7 @@ namespace Utils
 
 		DWORD statusCode = 404;
 		DWORD length = sizeof(statusCode);
-		if (HttpQueryInfo(this->hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &statusCode, &length, NULL) == FALSE || (statusCode != 200 && statusCode != 201))
+		if (HttpQueryInfo(this->hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &statusCode, &length, nullptr) == FALSE || (statusCode != 200 && statusCode != 201))
 		{
 			this->closeConnection();
 			return "";

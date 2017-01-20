@@ -4,6 +4,9 @@ namespace Steam
 {
 	class Utils
 	{
+	protected:
+		~Utils() = default;
+
 	public:
 		virtual unsigned int GetSecondsSinceAppActive();
 		virtual unsigned int GetSecondsSinceComputerActive();

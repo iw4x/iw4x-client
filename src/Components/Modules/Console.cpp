@@ -36,7 +36,7 @@ namespace Components
 		Utils::Hook::Xor<DWORD>(0xB2C538, 1);
 
 		// g_consoleField
-		Game::Field_Clear((void*)0xA1B6B0);
+		Game::Field_Clear(reinterpret_cast<void*>(0xA1B6B0));
 
 		// show console output?
 		Utils::Hook::Set<BYTE>(0xA15F38, 0);
@@ -142,7 +142,7 @@ namespace Components
 
 		if (c == ERR)
 		{
-			return NULL;
+			return nullptr;
 		}
 
 		switch (c)
@@ -241,7 +241,7 @@ namespace Components
 			break;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	void Console::Destroy()
@@ -388,7 +388,7 @@ namespace Components
 		Game::Sys_ShowConsole();
 
 		MSG message;
-		while (IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE && GetMessageA(&message, 0, 0, 0))
+		while (IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE && GetMessageA(&message, nullptr, 0, 0))
 		{
 			TranslateMessage(&message);
 			DispatchMessageA(&message);
@@ -397,7 +397,7 @@ namespace Components
 		if (Console::SkipShutdown) return;
 
 		if (Game::Sys_Milliseconds() - Console::LastRefresh > 100 &&
-			MessageBoxA(0, "The application is not responding anymore, do you want to force its termination?", "Application is not responding", MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
+			MessageBoxA(nullptr, "The application is not responding anymore, do you want to force its termination?", "Application is not responding", MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
 		{
 			// Force process termination
 			// if the main thread is not responding

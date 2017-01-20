@@ -342,7 +342,7 @@ namespace Components
 
 			unsigned long outLen = sizeof(FastFiles::CurrentKey);
 			rsa_import(FastFiles::ZoneKey, sizeof(FastFiles::ZoneKey), &key);
-			rsa_decrypt_key_ex(encKey, 256, FastFiles::CurrentKey.data, &outLen, NULL, NULL, hash, (Zones::Version() >= 359 ? 1 : 2), &stat, &key);
+			rsa_decrypt_key_ex(encKey, 256, FastFiles::CurrentKey.data, &outLen, nullptr, NULL, hash, (Zones::Version() >= 359 ? 1 : 2), &stat, &key);
 			rsa_free(&key);
 
 			ctr_start(aes, FastFiles::CurrentKey.iv, FastFiles::CurrentKey.key, sizeof(FastFiles::CurrentKey.key), 0, 0, &FastFiles::CurrentCTR);

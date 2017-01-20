@@ -4,6 +4,9 @@ namespace Steam
 {
 	class Friends
 	{
+	protected:
+		~Friends() = default;
+
 	public:
 		virtual const char *GetPersonaName();
 		virtual void SetPersonaName(const char *pchPersonaName);

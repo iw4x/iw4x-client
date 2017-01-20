@@ -19,7 +19,7 @@ namespace Components
 		class Var
 		{
 		public:
-			Var() : dvar(0) {};
+			Var() : dvar(nullptr) {};
 			Var(const Var &obj) { this->dvar = obj.dvar; };
 			Var(Game::dvar_t* _dvar) : dvar(_dvar) {};
 			Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {};
@@ -57,6 +57,6 @@ namespace Components
 	private:
 		static Utils::Signal<Callback> RegistrationSignal;
 
-		static Game::dvar_t* RegisterName(const char* name, const char* default, Game::dvar_flag flag, const char* description);
+		static Game::dvar_t* RegisterName(const char* name, const char* defaultVal, Game::dvar_flag flag, const char* description);
 	};
 }

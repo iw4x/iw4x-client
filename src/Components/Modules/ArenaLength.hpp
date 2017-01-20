@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class ArenaLength : public Component

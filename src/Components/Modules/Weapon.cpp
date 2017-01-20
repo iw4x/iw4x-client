@@ -4,7 +4,7 @@ namespace Components
 {
 	Game::XAssetHeader Weapon::WeaponFileLoad(Game::XAssetType /*type*/, std::string filename)
 	{
-		Game::XAssetHeader header = { 0 };
+		Game::XAssetHeader header = { nullptr };
 
 		// Try loading raw weapon
 		if (FileSystem::File(Utils::String::VA("weapons/mp/%s", filename.data())).exists())

@@ -114,7 +114,7 @@ namespace Utils
 				return std::string(this->tokenString.begin(), this->tokenString.end());
 			}
 
-			const std::string toString() const
+			std::string toString() const
 			{
 				return std::string(this->tokenString.begin(), this->tokenString.end());
 			}

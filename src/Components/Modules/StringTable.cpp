@@ -73,7 +73,7 @@ namespace Components
 	{
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [] (Game::XAssetType, std::string filename)
 		{
-			Game::XAssetHeader header = { 0 };
+			Game::XAssetHeader header = { nullptr };
 
 			filename = Utils::String::ToLower(filename);
 

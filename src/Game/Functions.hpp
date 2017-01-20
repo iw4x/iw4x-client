@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Game
 {
 	typedef void*(__cdecl * BG_LoadWeaponDef_LoadObj_t)(const char* filename);
@@ -147,10 +149,10 @@ namespace Game
 	typedef void(__cdecl * DB_XModelSurfsFixup_t)(XModel* model);
 	extern DB_XModelSurfsFixup_t DB_XModelSurfsFixup;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterBool_t)(const char* name, bool default, int flags, const char* description);
+	typedef dvar_t* (__cdecl * Dvar_RegisterBool_t)(const char* name, bool defaultVal, int flags, const char* description);
 	extern Dvar_RegisterBool_t Dvar_RegisterBool;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterFloat_t)(const char* name, float default, float min, float max, int flags, const char* description);
+	typedef dvar_t* (__cdecl * Dvar_RegisterFloat_t)(const char* name, float defaultVal, float min, float max, int flags, const char* description);
 	extern Dvar_RegisterFloat_t Dvar_RegisterFloat;
 
 	typedef dvar_t* (__cdecl * Dvar_RegisterVec2_t)(const char* name, float defx, float defy, float min, float max, int flags, const char* description);
@@ -162,13 +164,13 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_RegisterVec4_t)(const char* name, float defx, float defy, float defz, float defw, float min, float max, int flags, const char* description);
 	extern Dvar_RegisterVec4_t Dvar_RegisterVec4;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterInt_t)(const char* name, int default, int min, int max, int flags, const char* description);
+	typedef dvar_t* (__cdecl * Dvar_RegisterInt_t)(const char* name, int defaultVal, int min, int max, int flags, const char* description);
 	extern Dvar_RegisterInt_t Dvar_RegisterInt;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterEnum_t)(const char* name, char** enumValues, int default, int flags, const char* description);
+	typedef dvar_t* (__cdecl * Dvar_RegisterEnum_t)(const char* name, char** enumValues, int defaultVal, int flags, const char* description);
 	extern Dvar_RegisterEnum_t Dvar_RegisterEnum;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterString_t)(const char* name, const char* default, int, const char*);
+	typedef dvar_t* (__cdecl * Dvar_RegisterString_t)(const char* name, const char* defaultVal, int, const char*);
 	extern Dvar_RegisterString_t Dvar_RegisterString;
 
 	typedef dvar_t* (__cdecl * Dvar_RegisterColor_t)(const char* name, float r, float g, float b, float a, int flags, const char* description);
@@ -470,7 +472,7 @@ namespace Game
 	typedef float(__cdecl * Scr_GetFloat_t)(int);
 	extern Scr_GetFloat_t Scr_GetFloat;
 
-	typedef int(__cdecl * Scr_GetNumParam_t)(void);
+	typedef int(__cdecl * Scr_GetNumParam_t)();
 	extern Scr_GetNumParam_t Scr_GetNumParam;
 
 	typedef int(__cdecl * Scr_GetFunctionHandle_t)(const char*, const char*);

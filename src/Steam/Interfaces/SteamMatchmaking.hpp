@@ -23,6 +23,9 @@ namespace Steam
 
 	class Matchmaking
 	{
+	protected:
+		~Matchmaking() = default;
+
 	public:
 		virtual int GetFavoriteGameCount();
 		virtual bool GetFavoriteGame(int iGame, unsigned int *pnAppID, unsigned int *pnIP, unsigned short *pnConnPort, unsigned short *pnQueryPort, unsigned int *punFlags, unsigned int *pRTime32LastPlayedOnServer);

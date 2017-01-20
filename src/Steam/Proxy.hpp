@@ -14,6 +14,9 @@ namespace Steam
 {
 	class ISteamClient008
 	{
+	protected:
+		~ISteamClient008() = default;
+
 	public:
 		virtual void* CreateSteamPipe() = 0;
 		virtual bool ReleaseSteamPipe(void* hSteamPipe) = 0;
@@ -40,6 +43,9 @@ namespace Steam
 
 	class IClientUser
 	{
+	protected:
+		~IClientUser() = default;
+
 	public:
 		virtual int32_t GetHSteamUser() = 0;
 		virtual void LogOn(bool bInteractive, SteamID steamID) = 0;
@@ -262,6 +268,9 @@ namespace Steam
 
 	class IClientEngine
 	{
+	protected:
+		~IClientEngine() = default;
+
 	public:
 		virtual void* CreateSteamPipe() = 0;
 		virtual bool BReleaseSteamPipe(void* hSteamPipe) = 0;

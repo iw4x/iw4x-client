@@ -160,7 +160,7 @@ namespace Components
 
 		download->valid = true;
 		mg_mgr_init(&download->mgr, &fDownload);
-		mg_connect_http(&download->mgr, Download::DownloadHandler, url.data(), NULL, NULL);
+		mg_connect_http(&download->mgr, Download::DownloadHandler, url.data(), nullptr, nullptr);
 
 		while (fDownload.downloading && !fDownload.download->terminateThread)
 		{
@@ -343,7 +343,7 @@ namespace Components
 				for (auto i = list.begin(); i != list.end(); ++i)
 				{
 					std::string filename = path + "\\" + *i;
-					if (strstr(i->data(), "_svr_") == NULL && Utils::IO::FileExists(filename))
+					if (strstr(i->data(), "_svr_") == nullptr && Utils::IO::FileExists(filename))
 					{
 						std::map<std::string, json11::Json> file;
 						std::string fileBuffer = Utils::IO::ReadFile(path + "\\" + *i);
@@ -389,7 +389,7 @@ namespace Components
 
 			Utils::String::Replace(url, "%20", " ");
 
-			if (url.find_first_of("/") != std::string::npos || (!Utils::String::EndsWith(url, ".iwd") && url != "mod.ff") || strstr(url.data(), "_svr_") != NULL)
+			if (url.find_first_of("/") != std::string::npos || (!Utils::String::EndsWith(url, ".iwd") && url != "mod.ff") || strstr(url.data(), "_svr_") != nullptr)
 			{
 				Download::Forbid(nc);
 				return;
@@ -564,7 +564,7 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled())
 		{
-			mg_mgr_init(&Download::Mgr, NULL);
+			mg_mgr_init(&Download::Mgr, nullptr);
 
 			Network::OnStart([] ()
 			{

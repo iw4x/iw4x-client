@@ -52,7 +52,7 @@ namespace Components
 		class FileReader
 		{
 		public:
-			FileReader() : size(-1), name(), handle(0) {};
+			FileReader() : handle(0), size(-1), name() {};
 			FileReader(std::string file);
 			~FileReader();
 
@@ -72,7 +72,7 @@ namespace Components
 		class FileWriter
 		{
 		public:
-			FileWriter(std::string file, bool append = false) : filePath(file), handle(0) { this->open(append); };
+			FileWriter(std::string file, bool append = false) : handle(0), filePath(file) { this->open(append); };
 			~FileWriter() { this->close(); };
 
 			void write(std::string data);

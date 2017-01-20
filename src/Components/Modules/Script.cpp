@@ -165,7 +165,7 @@ namespace Components
 		if (!Game::Scr_LoadScript(script.data()))
 		{
 			Logger::Print("Script %s encountered an error while loading. (doesn't exist?)", script.data());
-			Logger::Error(1, (char*)0x70B810, script.data());
+			Logger::Error(1, reinterpret_cast<char*>(0x70B810), script.data());
 		}
 		else
 		{

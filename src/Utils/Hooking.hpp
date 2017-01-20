@@ -46,7 +46,7 @@ namespace Utils
 			static void* PopReturn(void* place);
 		};
 
-		Hook() : place(nullptr), stub(nullptr), initialized(false), installed(false), original(0), useJump(false), protection(0) { ZeroMemory(this->buffer, sizeof(this->buffer)); }
+		Hook() : initialized(false), installed(false), place(nullptr), stub(nullptr), original(nullptr), useJump(false), protection(0) { ZeroMemory(this->buffer, sizeof(this->buffer)); }
 
 		Hook(void* place, void* stub, bool useJump = true) : Hook() { this->initialize(place, stub, useJump); }
 		Hook(void* place, void(*stub)(), bool useJump = true) : Hook(place, reinterpret_cast<void*>(stub), useJump) {}

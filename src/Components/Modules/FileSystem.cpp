@@ -31,7 +31,7 @@ namespace Components
 		Game::DB_GetRawBuffer(rawfile, const_cast<char*>(this->buffer.data()), this->buffer.size());
 	}
 
-	FileSystem::FileReader::FileReader(std::string file) : name(file), handle(0)
+	FileSystem::FileReader::FileReader(std::string file) : handle(0), name(file)
 	{
 		this->size = Game::FS_FOpenFileReadCurrentThread(this->name.data(), &this->handle);
 	}
@@ -154,7 +154,7 @@ namespace Components
 		std::vector<std::string> fileList;
 
 		int numFiles = 0;
-		char** files = Game::Sys_ListFiles(path.data(), extension.data(), NULL, &numFiles, folders);
+		char** files = Game::Sys_ListFiles(path.data(), extension.data(), nullptr, &numFiles, folders);
 
 		if (files)
 		{

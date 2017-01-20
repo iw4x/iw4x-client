@@ -2,335 +2,334 @@
 
 namespace Game
 {
-	// C-Style casts are fine here, that's where we're doing our dirty stuff anyways...
-	BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj = (BG_LoadWeaponDef_LoadObj_t)0x57B5F0;
-
-	Cbuf_AddServerText_t Cbuf_AddServerText = (Cbuf_AddServerText_t)0x4BB9B0;
-	Cbuf_AddText_t Cbuf_AddText = (Cbuf_AddText_t)0x404B20;
-
-	CG_GetClientNum_t CG_GetClientNum = (CG_GetClientNum_t)0x433700;
-
-	CL_GetClientName_t CL_GetClientName = (CL_GetClientName_t)0x4563D0;
-	CL_IsCgameInitialized_t CL_IsCgameInitialized = (CL_IsCgameInitialized_t)0x43EB20;
-	CL_ConnectFromParty_t CL_ConnectFromParty = (CL_ConnectFromParty_t)0x433D30;
-	CL_DownloadsComplete_t CL_DownloadsComplete = (CL_DownloadsComplete_t)0x42CE90;
-	CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical = (CL_DrawStretchPicPhysical_t)0x4FC120;
-	CL_HandleRelayPacket_t CL_HandleRelayPacket = (CL_HandleRelayPacket_t)0x5A8C70;
-	CL_ResetViewport_t CL_ResetViewport = (CL_ResetViewport_t)0x4A8830;
-	CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f = (CL_SelectStringTableEntryInDvar_f_t)0x4A4560;
-
-	Cmd_AddCommand_t Cmd_AddCommand = (Cmd_AddCommand_t)0x470090;
-	Cmd_AddServerCommand_t Cmd_AddServerCommand = (Cmd_AddServerCommand_t)0x4DCE00;
-	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = (Cmd_ExecuteSingleCommand_t)0x609540;
-	Com_ClientPacketEvent_t Com_ClientPacketEvent = (Com_ClientPacketEvent_t)0x49F0B0;
-
-	Com_Error_t Com_Error = (Com_Error_t)0x4B22D0;
-	Com_Printf_t Com_Printf = (Com_Printf_t)0x402500;
-	Com_PrintMessage_t Com_PrintMessage = (Com_PrintMessage_t)0x4AA830;
-	Com_EndParseSession_t Com_EndParseSession = (Com_EndParseSession_t)0x4B80B0;
-	Com_BeginParseSession_t Com_BeginParseSession = (Com_BeginParseSession_t)0x4AAB80;
-	Com_SetSpaceDelimited_t Com_SetSpaceDelimited = (Com_SetSpaceDelimited_t)0x4FC710;
-	Com_Parse_t Com_Parse = (Com_Parse_t)0x474D60;
-	Com_SetSlowMotion_t Com_SetSlowMotion = (Com_SetSlowMotion_t)0x446E20;
-
-	Con_DrawMiniConsole_t Con_DrawMiniConsole = (Con_DrawMiniConsole_t)0x464F30;
-	Con_DrawSolidConsole_t Con_DrawSolidConsole = (Con_DrawSolidConsole_t)0x5A5040;
-
-	DB_AllocStreamPos_t DB_AllocStreamPos = (DB_AllocStreamPos_t)0x418380;
-	DB_PushStreamPos_t DB_PushStreamPos = (DB_PushStreamPos_t)0x458A20;
-	DB_PopStreamPos_t DB_PopStreamPos = (DB_PopStreamPos_t)0x4D1D60;
-
-	DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice = (DB_BeginRecoverLostDevice_t)0x4BFF90;
-	DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice = (DB_EndRecoverLostDevice_t)0x46B660;
-	DB_EnumXAssets_t DB_EnumXAssets = (DB_EnumXAssets_t)0x4B76D0;
-	DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal = (DB_EnumXAssets_Internal_t)0x5BB0A0;
-	DB_FindXAssetHeader_t DB_FindXAssetHeader = (DB_FindXAssetHeader_t)0x407930;
-	DB_GetRawBuffer_t DB_GetRawBuffer = (DB_GetRawBuffer_t)0x4CDC50;
-	DB_GetRawFileLen_t DB_GetRawFileLen = (DB_GetRawFileLen_t)0x4DAA80;
-	DB_GetLoadedFraction_t DB_GetLoadedFraction = (DB_GetLoadedFraction_t)0x468380;
-	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = (DB_GetXAssetNameHandler_t*)0x799328;
-	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = (DB_GetXAssetSizeHandler_t*)0x799488;
-	DB_GetXAssetTypeName_t DB_GetXAssetTypeName = (DB_GetXAssetTypeName_t)0x4CFCF0;
-	DB_IsXAssetDefault_t DB_IsXAssetDefault = (DB_IsXAssetDefault_t)0x48E6A0;
-	DB_LoadXAssets_t DB_LoadXAssets = (DB_LoadXAssets_t)0x4E5930;
-	DB_LoadXFileData_t DB_LoadXFileData = (DB_LoadXFileData_t)0x445460;
-	DB_ReadXFile_t DB_ReadXFile = (DB_ReadXFile_t)0x445460;
-	DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = (DB_ReadXFileUncompressed_t)0x4705E0;
-	DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = (DB_ReleaseXAssetHandler_t*)0x799AB8;
-	DB_SetXAssetName_t DB_SetXAssetName = (DB_SetXAssetName_t)0x453580;
-	DB_SetXAssetNameHandler_t* DB_SetXAssetNameHandlers = (DB_SetXAssetNameHandler_t*)0x7993D8;
-	DB_XModelSurfsFixup_t DB_XModelSurfsFixup = (DB_XModelSurfsFixup_t)0x5BAC50;
-
-	Dvar_RegisterBool_t Dvar_RegisterBool = (Dvar_RegisterBool_t)0x4CE1A0;
-	Dvar_RegisterFloat_t Dvar_RegisterFloat = (Dvar_RegisterFloat_t)0x648440;
-	Dvar_RegisterVec2_t Dvar_RegisterVec2 = (Dvar_RegisterVec2_t)0x4F6070;
-	Dvar_RegisterVec3_t Dvar_RegisterVec3 = (Dvar_RegisterVec3_t)0x4EF8E0;
-	Dvar_RegisterVec4_t Dvar_RegisterVec4 = (Dvar_RegisterVec4_t)0x4F28E0;
-	Dvar_RegisterInt_t Dvar_RegisterInt = (Dvar_RegisterInt_t)0x479830;
-	Dvar_RegisterEnum_t Dvar_RegisterEnum = (Dvar_RegisterEnum_t)0x412E40;
-	Dvar_RegisterString_t Dvar_RegisterString = (Dvar_RegisterString_t)0x4FC7E0;
-	Dvar_RegisterColor_t Dvar_RegisterColor = (Dvar_RegisterColor_t)0x4F28E0;//0x471500;
-
-	Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName = (Dvar_GetUnpackedColorByName_t)0x406530;
-	Dvar_FindVar_t Dvar_FindVar = (Dvar_FindVar_t)0x4D5390;
-	Dvar_InfoString_Big_t Dvar_InfoString_Big = (Dvar_InfoString_Big_t)0x4D98A0;
-	Dvar_SetCommand_t Dvar_SetCommand = (Dvar_SetCommand_t)0x4EE430;
-
-	Encode_Init_t Encode_Init = (Encode_Init_t)0x462AB0;
-
-	Field_Clear_t Field_Clear = (Field_Clear_t)0x437EB0;
-
-	FreeMemory_t FreeMemory = (FreeMemory_t)0x4D6640;
-
-	FS_FileExists_t FS_FileExists = (FS_FileExists_t)0x4DEFA0;
-	FS_FreeFile_t FS_FreeFile = (FS_FreeFile_t)0x4416B0;
-	FS_ReadFile_t FS_ReadFile = (FS_ReadFile_t)0x4F4B90;
-	FS_GetFileList_t FS_GetFileList = (FS_GetFileList_t)0x441BB0;
-	FS_FreeFileList_t FS_FreeFileList = (FS_FreeFileList_t)0x4A5DE0;
-	FS_FOpenFileAppend_t FS_FOpenFileAppend = (FS_FOpenFileAppend_t)0x410BB0;
-	FS_FOpenFileAppend_t FS_FOpenFileWrite = (FS_FOpenFileAppend_t)0x4BA530;
-	FS_FOpenFileRead_t FS_FOpenFileRead = (FS_FOpenFileRead_t)0x46CBF0;
-	FS_FOpenFileRead_t FS_FOpenFileReadDatabase = (FS_FOpenFileRead_t)0x42ECA0;
-	FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = (FS_FOpenFileReadForThread_t)0x643270;
-	FS_FCloseFile_t FS_FCloseFile = (FS_FCloseFile_t)0x462000;
-	FS_WriteFile_t FS_WriteFile = (FS_WriteFile_t)0x426450;
-	FS_Write_t FS_Write = (FS_Write_t)0x4C06E0;
-	FS_Read_t FS_Read = (FS_Read_t)0x4A04C0;
-	FS_Seek_t FS_Seek = (FS_Seek_t)0x4A63D0;
-	FS_FTell_t FS_FTell = (FS_FTell_t)0x4E6760;
-	FS_Remove_t FS_Remove = (FS_Remove_t)0x4660F0;
-	FS_Restart_t FS_Restart = (FS_Restart_t)0x461A50;
-	FS_BuildPathToFile_t FS_BuildPathToFile = (FS_BuildPathToFile_t)0x4702C0;
-
-	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = (G_SpawnEntitiesFromString_t)0x4D8840;
-
-	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = (GScr_LoadGameTypeScript_t)0x4ED9A0;
-
-	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = (Image_LoadFromFileWithReader_t)0x53ABF0;
-	Image_Release_t Image_Release = (Image_Release_t)0x51F010;
-
-	Key_SetCatcher_t Key_SetCatcher = (Key_SetCatcher_t)0x43BD00;
-
-	LargeLocalInit_t LargeLocalInit = (LargeLocalInit_t)0x4A62A0;
-
-	Load_Stream_t Load_Stream = (Load_Stream_t)0x470E30;
-	Load_XString_t Load_XString = (Load_XString_t)0x47FDA0;
-	Load_XModelPtr_t Load_XModelPtr = (Load_XModelPtr_t)0x4FCA70;
-	Load_XModelSurfsFixup_t Load_XModelSurfsFixup = (Load_XModelSurfsFixup_t)0x40D7A0;
-	Load_XStringArray_t Load_XStringArray = (Load_XStringArray_t)0x4977F0;
-	Load_XStringCustom_t Load_XStringCustom = (Load_XStringCustom_t)0x4E0DD0;
-	Load_FxEffectDefHandle_t Load_FxEffectDefHandle = (Load_FxEffectDefHandle_t)0x4D9B90;
-	Load_FxElemDef_t Load_FxElemDef = (Load_FxElemDef_t)0x45AD90;
-	Load_GfxImagePtr_t Load_GfxImagePtr = (Load_GfxImagePtr_t)0x4C13D0;
-	Load_Texture_t Load_Texture = (Load_Texture_t)0x51F4E0;
-	Load_GfxTextureLoad_t Load_GfxTextureLoad = (Load_GfxTextureLoad_t)0x4D3210;
-	Load_SndAliasCustom_t Load_SndAliasCustom = (Load_SndAliasCustom_t)0x49B6B0;
-	Load_MaterialHandle_t Load_MaterialHandle = (Load_MaterialHandle_t)0x403960;
-	Load_PhysCollmapPtr_t Load_PhysCollmapPtr = (Load_PhysCollmapPtr_t)0x47E990;
-	Load_PhysPresetPtr_t Load_PhysPresetPtr = (Load_PhysPresetPtr_t)0x4FAD30;
-	Load_TracerDefPtr_t Load_TracerDefPtr = (Load_TracerDefPtr_t)0x493090;
-	Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray = (Load_snd_alias_list_nameArray_t)0x4499F0;
-
-	Menus_CloseAll_t Menus_CloseAll = (Menus_CloseAll_t)0x4BA5B0;
-	Menus_OpenByName_t Menus_OpenByName = (Menus_OpenByName_t)0x4CCE60;
-	Menus_FindByName_t Menus_FindByName = (Menus_FindByName_t)0x487240;
-	Menu_IsVisible_t Menu_IsVisible = (Menu_IsVisible_t)0x4D77D0;
-	Menus_MenuIsInStack_t Menus_MenuIsInStack = (Menus_MenuIsInStack_t)0x47ACB0;
-
-	MSG_Init_t MSG_Init = (MSG_Init_t)0x45FCA0;
-	MSG_ReadData_t MSG_ReadData = (MSG_ReadData_t)0x4527C0;
-	MSG_ReadLong_t MSG_ReadLong = (MSG_ReadLong_t)0x4C9550;
-	MSG_ReadShort_t MSG_ReadShort = (MSG_ReadShort_t)0x40BDD0;
-	MSG_ReadInt64_t MSG_ReadInt64 = (MSG_ReadInt64_t)0x4F1850;
-	MSG_ReadString_t MSG_ReadString = (MSG_ReadString_t)0x60E2B0;
-	MSG_WriteByte_t MSG_WriteByte = (MSG_WriteByte_t)0x48C520;
-	MSG_WriteData_t MSG_WriteData = (MSG_WriteData_t)0x4F4120;
-	MSG_WriteLong_t MSG_WriteLong = (MSG_WriteLong_t)0x41CA20;
-	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = (MSG_WriteBitsCompress_t)0x4319D0;
-	MSG_ReadByte_t MSG_ReadByte = (MSG_ReadByte_t)0x4C1C20;
-	MSG_ReadBitsCompress_t MSG_ReadBitsCompress = (MSG_ReadBitsCompress_t)0x4DCC30;
-
-	NetadrToSockadr_t NetadrToSockadr = (NetadrToSockadr_t)0x4B4B40;
-
-	NET_AdrToString_t NET_AdrToString = (NET_AdrToString_t)0x469880;
-	NET_CompareAdr_t NET_CompareAdr = (NET_CompareAdr_t)0x4D0AA0;
-	NET_ErrorString_t NET_ErrorString = (NET_ErrorString_t)0x4E7720;
-	NET_Init_t NET_Init = (NET_Init_t)0x491860;
-	NET_IsLocalAddress_t NET_IsLocalAddress = (NET_IsLocalAddress_t)0x402BD0;
-	NET_StringToAdr_t NET_StringToAdr = (NET_StringToAdr_t)0x409010;
-	NET_OutOfBandPrint_t NET_OutOfBandPrint = (NET_OutOfBandPrint_t)0x4AEF00;
-	NET_OutOfBandData_t NET_OutOfBandData = (NET_OutOfBandData_t)0x49C7E0;
-
-	Live_MPAcceptInvite_t Live_MPAcceptInvite = (Live_MPAcceptInvite_t)0x420A6D;
-	Live_GetMapIndex_t Live_GetMapIndex = (Live_GetMapIndex_t)0x4F6440;
-
-	LoadModdableRawfile_t LoadModdableRawfile = (LoadModdableRawfile_t)0x61ABC0;
-
-	PC_ReadToken_t PC_ReadToken = (PC_ReadToken_t)0x4ACCD0;
-	PC_ReadTokenHandle_t PC_ReadTokenHandle = (PC_ReadTokenHandle_t)0x4D2060;
-	PC_SourceError_t PC_SourceError = (PC_SourceError_t)0x467A00;
-
-	Party_GetMaxPlayers_t Party_GetMaxPlayers = (Party_GetMaxPlayers_t)0x4F5D60;
-	PartyHost_CountMembers_t PartyHost_CountMembers = (PartyHost_CountMembers_t)0x497330;
-	PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = (PartyHost_GetMemberAddressBySlot_t)0x44E100;
-	PartyHost_GetMemberName_t PartyHost_GetMemberName = (PartyHost_GetMemberName_t)0x44BE90;
-
-	Playlist_ParsePlaylists_t Playlist_ParsePlaylists = (Playlist_ParsePlaylists_t)0x4295A0;
-
-	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = (R_AddCmdDrawStretchPic_t)0x509770;
-	R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = (R_AllocStaticIndexBuffer_t)0x51E7A0;
-	R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = (R_Cinematic_StartPlayback_Now_t)0x51C5B0;
-	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x505670;
-	R_AddCmdDrawText_t R_AddCmdDrawText = (R_AddCmdDrawText_t)0x509D80;
-	R_LoadGraphicsAssets_t R_LoadGraphicsAssets = (R_LoadGraphicsAssets_t)0x506AC0;
-	R_TextWidth_t R_TextWidth = (R_TextWidth_t)0x5056C0;
-	R_TextHeight_t R_TextHeight = (R_TextHeight_t)0x505770;
-	R_FlushSun_t R_FlushSun = (R_FlushSun_t)0x53FB50;
-
-	Scr_LoadGameType_t Scr_LoadGameType = (Scr_LoadGameType_t)0x4D9520;
-
-	Scr_LoadScript_t Scr_LoadScript = (Scr_LoadScript_t)0x45D940;
-	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = (Scr_GetFunctionHandle_t)0x4234F0;
-
-	Scr_GetFloat_t Scr_GetFloat = (Scr_GetFloat_t)0x443140;
-	Scr_GetNumParam_t Scr_GetNumParam = (Scr_GetNumParam_t)0x4B0E90;
+	BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj = BG_LoadWeaponDef_LoadObj_t(0x57B5F0);
+
+	Cbuf_AddServerText_t Cbuf_AddServerText = Cbuf_AddServerText_t(0x4BB9B0);
+	Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x404B20);
+
+	CG_GetClientNum_t CG_GetClientNum = CG_GetClientNum_t(0x433700);
+
+	CL_GetClientName_t CL_GetClientName = CL_GetClientName_t(0x4563D0);
+	CL_IsCgameInitialized_t CL_IsCgameInitialized = CL_IsCgameInitialized_t(0x43EB20);
+	CL_ConnectFromParty_t CL_ConnectFromParty = CL_ConnectFromParty_t(0x433D30);
+	CL_DownloadsComplete_t CL_DownloadsComplete = CL_DownloadsComplete_t(0x42CE90);
+	CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical = CL_DrawStretchPicPhysical_t(0x4FC120);
+	CL_HandleRelayPacket_t CL_HandleRelayPacket = CL_HandleRelayPacket_t(0x5A8C70);
+	CL_ResetViewport_t CL_ResetViewport = CL_ResetViewport_t(0x4A8830);
+	CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f = CL_SelectStringTableEntryInDvar_f_t(0x4A4560);
+
+	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
+	Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x4DCE00);
+	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = Cmd_ExecuteSingleCommand_t(0x609540);
+	Com_ClientPacketEvent_t Com_ClientPacketEvent = Com_ClientPacketEvent_t(0x49F0B0);
+
+	Com_Error_t Com_Error = Com_Error_t(0x4B22D0);
+	Com_Printf_t Com_Printf = Com_Printf_t(0x402500);
+	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4AA830);
+	Com_EndParseSession_t Com_EndParseSession = Com_EndParseSession_t(0x4B80B0);
+	Com_BeginParseSession_t Com_BeginParseSession = Com_BeginParseSession_t(0x4AAB80);
+	Com_SetSpaceDelimited_t Com_SetSpaceDelimited = Com_SetSpaceDelimited_t(0x4FC710);
+	Com_Parse_t Com_Parse = Com_Parse_t(0x474D60);
+	Com_SetSlowMotion_t Com_SetSlowMotion = Com_SetSlowMotion_t(0x446E20);
+
+	Con_DrawMiniConsole_t Con_DrawMiniConsole = Con_DrawMiniConsole_t(0x464F30);
+	Con_DrawSolidConsole_t Con_DrawSolidConsole = Con_DrawSolidConsole_t(0x5A5040);
+
+	DB_AllocStreamPos_t DB_AllocStreamPos = DB_AllocStreamPos_t(0x418380);
+	DB_PushStreamPos_t DB_PushStreamPos = DB_PushStreamPos_t(0x458A20);
+	DB_PopStreamPos_t DB_PopStreamPos = DB_PopStreamPos_t(0x4D1D60);
+
+	DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice = DB_BeginRecoverLostDevice_t(0x4BFF90);
+	DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice = DB_EndRecoverLostDevice_t(0x46B660);
+	DB_EnumXAssets_t DB_EnumXAssets = DB_EnumXAssets_t(0x4B76D0);
+	DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal = DB_EnumXAssets_Internal_t(0x5BB0A0);
+	DB_FindXAssetHeader_t DB_FindXAssetHeader = DB_FindXAssetHeader_t(0x407930);
+	DB_GetRawBuffer_t DB_GetRawBuffer = DB_GetRawBuffer_t(0x4CDC50);
+	DB_GetRawFileLen_t DB_GetRawFileLen = DB_GetRawFileLen_t(0x4DAA80);
+	DB_GetLoadedFraction_t DB_GetLoadedFraction = DB_GetLoadedFraction_t(0x468380);
+	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = reinterpret_cast<DB_GetXAssetNameHandler_t*>(0x799328);
+	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = reinterpret_cast<DB_GetXAssetSizeHandler_t*>(0x799488);
+	DB_GetXAssetTypeName_t DB_GetXAssetTypeName = DB_GetXAssetTypeName_t(0x4CFCF0);
+	DB_IsXAssetDefault_t DB_IsXAssetDefault = DB_IsXAssetDefault_t(0x48E6A0);
+	DB_LoadXAssets_t DB_LoadXAssets = DB_LoadXAssets_t(0x4E5930);
+	DB_LoadXFileData_t DB_LoadXFileData = DB_LoadXFileData_t(0x445460);
+	DB_ReadXFile_t DB_ReadXFile = DB_ReadXFile_t(0x445460);
+	DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = DB_ReadXFileUncompressed_t(0x4705E0);
+	DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = reinterpret_cast<DB_ReleaseXAssetHandler_t*>(0x799AB8);
+	DB_SetXAssetName_t DB_SetXAssetName = DB_SetXAssetName_t(0x453580);
+	DB_SetXAssetNameHandler_t* DB_SetXAssetNameHandlers = reinterpret_cast<DB_SetXAssetNameHandler_t*>(0x7993D8);
+	DB_XModelSurfsFixup_t DB_XModelSurfsFixup = DB_XModelSurfsFixup_t(0x5BAC50);
+
+	Dvar_RegisterBool_t Dvar_RegisterBool = Dvar_RegisterBool_t(0x4CE1A0);
+	Dvar_RegisterFloat_t Dvar_RegisterFloat = Dvar_RegisterFloat_t(0x648440);
+	Dvar_RegisterVec2_t Dvar_RegisterVec2 = Dvar_RegisterVec2_t(0x4F6070);
+	Dvar_RegisterVec3_t Dvar_RegisterVec3 = Dvar_RegisterVec3_t(0x4EF8E0);
+	Dvar_RegisterVec4_t Dvar_RegisterVec4 = Dvar_RegisterVec4_t(0x4F28E0);
+	Dvar_RegisterInt_t Dvar_RegisterInt = Dvar_RegisterInt_t(0x479830);
+	Dvar_RegisterEnum_t Dvar_RegisterEnum = Dvar_RegisterEnum_t(0x412E40);
+	Dvar_RegisterString_t Dvar_RegisterString = Dvar_RegisterString_t(0x4FC7E0);
+	Dvar_RegisterColor_t Dvar_RegisterColor = Dvar_RegisterColor_t(0x4F28E0);//0x471500;
+
+	Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName = Dvar_GetUnpackedColorByName_t(0x406530);
+	Dvar_FindVar_t Dvar_FindVar = Dvar_FindVar_t(0x4D5390);
+	Dvar_InfoString_Big_t Dvar_InfoString_Big = Dvar_InfoString_Big_t(0x4D98A0);
+	Dvar_SetCommand_t Dvar_SetCommand = Dvar_SetCommand_t(0x4EE430);
+
+	Encode_Init_t Encode_Init = Encode_Init_t(0x462AB0);
+
+	Field_Clear_t Field_Clear = Field_Clear_t(0x437EB0);
+
+	FreeMemory_t FreeMemory = FreeMemory_t(0x4D6640);
+
+	FS_FileExists_t FS_FileExists = FS_FileExists_t(0x4DEFA0);
+	FS_FreeFile_t FS_FreeFile = FS_FreeFile_t(0x4416B0);
+	FS_ReadFile_t FS_ReadFile = FS_ReadFile_t(0x4F4B90);
+	FS_GetFileList_t FS_GetFileList = FS_GetFileList_t(0x441BB0);
+	FS_FreeFileList_t FS_FreeFileList = FS_FreeFileList_t(0x4A5DE0);
+	FS_FOpenFileAppend_t FS_FOpenFileAppend = FS_FOpenFileAppend_t(0x410BB0);
+	FS_FOpenFileAppend_t FS_FOpenFileWrite = FS_FOpenFileAppend_t(0x4BA530);
+	FS_FOpenFileRead_t FS_FOpenFileRead = FS_FOpenFileRead_t(0x46CBF0);
+	FS_FOpenFileRead_t FS_FOpenFileReadDatabase = FS_FOpenFileRead_t(0x42ECA0);
+	FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = FS_FOpenFileReadForThread_t(0x643270);
+	FS_FCloseFile_t FS_FCloseFile = FS_FCloseFile_t(0x462000);
+	FS_WriteFile_t FS_WriteFile = FS_WriteFile_t(0x426450);
+	FS_Write_t FS_Write = FS_Write_t(0x4C06E0);
+	FS_Read_t FS_Read = FS_Read_t(0x4A04C0);
+	FS_Seek_t FS_Seek = FS_Seek_t(0x4A63D0);
+	FS_FTell_t FS_FTell = FS_FTell_t(0x4E6760);
+	FS_Remove_t FS_Remove = FS_Remove_t(0x4660F0);
+	FS_Restart_t FS_Restart = FS_Restart_t(0x461A50);
+	FS_BuildPathToFile_t FS_BuildPathToFile = FS_BuildPathToFile_t(0x4702C0);
+
+	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
+
+	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = GScr_LoadGameTypeScript_t(0x4ED9A0);
+
+	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x53ABF0);
+	Image_Release_t Image_Release = Image_Release_t(0x51F010);
+
+	Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x43BD00);
+
+	LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x4A62A0);
+
+	Load_Stream_t Load_Stream = Load_Stream_t(0x470E30);
+	Load_XString_t Load_XString = Load_XString_t(0x47FDA0);
+	Load_XModelPtr_t Load_XModelPtr = Load_XModelPtr_t(0x4FCA70);
+	Load_XModelSurfsFixup_t Load_XModelSurfsFixup = Load_XModelSurfsFixup_t(0x40D7A0);
+	Load_XStringArray_t Load_XStringArray = Load_XStringArray_t(0x4977F0);
+	Load_XStringCustom_t Load_XStringCustom = Load_XStringCustom_t(0x4E0DD0);
+	Load_FxEffectDefHandle_t Load_FxEffectDefHandle = Load_FxEffectDefHandle_t(0x4D9B90);
+	Load_FxElemDef_t Load_FxElemDef = Load_FxElemDef_t(0x45AD90);
+	Load_GfxImagePtr_t Load_GfxImagePtr = Load_GfxImagePtr_t(0x4C13D0);
+	Load_Texture_t Load_Texture = Load_Texture_t(0x51F4E0);
+	Load_GfxTextureLoad_t Load_GfxTextureLoad = Load_GfxTextureLoad_t(0x4D3210);
+	Load_SndAliasCustom_t Load_SndAliasCustom = Load_SndAliasCustom_t(0x49B6B0);
+	Load_MaterialHandle_t Load_MaterialHandle = Load_MaterialHandle_t(0x403960);
+	Load_PhysCollmapPtr_t Load_PhysCollmapPtr = Load_PhysCollmapPtr_t(0x47E990);
+	Load_PhysPresetPtr_t Load_PhysPresetPtr = Load_PhysPresetPtr_t(0x4FAD30);
+	Load_TracerDefPtr_t Load_TracerDefPtr = Load_TracerDefPtr_t(0x493090);
+	Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray = Load_snd_alias_list_nameArray_t(0x4499F0);
+
+	Menus_CloseAll_t Menus_CloseAll = Menus_CloseAll_t(0x4BA5B0);
+	Menus_OpenByName_t Menus_OpenByName = Menus_OpenByName_t(0x4CCE60);
+	Menus_FindByName_t Menus_FindByName = Menus_FindByName_t(0x487240);
+	Menu_IsVisible_t Menu_IsVisible = Menu_IsVisible_t(0x4D77D0);
+	Menus_MenuIsInStack_t Menus_MenuIsInStack = Menus_MenuIsInStack_t(0x47ACB0);
+
+	MSG_Init_t MSG_Init = MSG_Init_t(0x45FCA0);
+	MSG_ReadData_t MSG_ReadData = MSG_ReadData_t(0x4527C0);
+	MSG_ReadLong_t MSG_ReadLong = MSG_ReadLong_t(0x4C9550);
+	MSG_ReadShort_t MSG_ReadShort = MSG_ReadShort_t(0x40BDD0);
+	MSG_ReadInt64_t MSG_ReadInt64 = MSG_ReadInt64_t(0x4F1850);
+	MSG_ReadString_t MSG_ReadString = MSG_ReadString_t(0x60E2B0);
+	MSG_WriteByte_t MSG_WriteByte = MSG_WriteByte_t(0x48C520);
+	MSG_WriteData_t MSG_WriteData = MSG_WriteData_t(0x4F4120);
+	MSG_WriteLong_t MSG_WriteLong = MSG_WriteLong_t(0x41CA20);
+	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = MSG_WriteBitsCompress_t(0x4319D0);
+	MSG_ReadByte_t MSG_ReadByte = MSG_ReadByte_t(0x4C1C20);
+	MSG_ReadBitsCompress_t MSG_ReadBitsCompress = MSG_ReadBitsCompress_t(0x4DCC30);
+
+	NetadrToSockadr_t NetadrToSockadr = NetadrToSockadr_t(0x4B4B40);
+
+	NET_AdrToString_t NET_AdrToString = NET_AdrToString_t(0x469880);
+	NET_CompareAdr_t NET_CompareAdr = NET_CompareAdr_t(0x4D0AA0);
+	NET_ErrorString_t NET_ErrorString = NET_ErrorString_t(0x4E7720);
+	NET_Init_t NET_Init = NET_Init_t(0x491860);
+	NET_IsLocalAddress_t NET_IsLocalAddress = NET_IsLocalAddress_t(0x402BD0);
+	NET_StringToAdr_t NET_StringToAdr = NET_StringToAdr_t(0x409010);
+	NET_OutOfBandPrint_t NET_OutOfBandPrint = NET_OutOfBandPrint_t(0x4AEF00);
+	NET_OutOfBandData_t NET_OutOfBandData = NET_OutOfBandData_t(0x49C7E0);
+
+	Live_MPAcceptInvite_t Live_MPAcceptInvite = Live_MPAcceptInvite_t(0x420A6D);
+	Live_GetMapIndex_t Live_GetMapIndex = Live_GetMapIndex_t(0x4F6440);
+
+	LoadModdableRawfile_t LoadModdableRawfile = LoadModdableRawfile_t(0x61ABC0);
+
+	PC_ReadToken_t PC_ReadToken = PC_ReadToken_t(0x4ACCD0);
+	PC_ReadTokenHandle_t PC_ReadTokenHandle = PC_ReadTokenHandle_t(0x4D2060);
+	PC_SourceError_t PC_SourceError = PC_SourceError_t(0x467A00);
+
+	Party_GetMaxPlayers_t Party_GetMaxPlayers = Party_GetMaxPlayers_t(0x4F5D60);
+	PartyHost_CountMembers_t PartyHost_CountMembers = PartyHost_CountMembers_t(0x497330);
+	PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = PartyHost_GetMemberAddressBySlot_t(0x44E100);
+	PartyHost_GetMemberName_t PartyHost_GetMemberName = PartyHost_GetMemberName_t(0x44BE90);
+
+	Playlist_ParsePlaylists_t Playlist_ParsePlaylists = Playlist_ParsePlaylists_t(0x4295A0);
+
+	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = R_AddCmdDrawStretchPic_t(0x509770);
+	R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = R_AllocStaticIndexBuffer_t(0x51E7A0);
+	R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = R_Cinematic_StartPlayback_Now_t(0x51C5B0);
+	R_RegisterFont_t R_RegisterFont = R_RegisterFont_t(0x505670);
+	R_AddCmdDrawText_t R_AddCmdDrawText = R_AddCmdDrawText_t(0x509D80);
+	R_LoadGraphicsAssets_t R_LoadGraphicsAssets = R_LoadGraphicsAssets_t(0x506AC0);
+	R_TextWidth_t R_TextWidth = R_TextWidth_t(0x5056C0);
+	R_TextHeight_t R_TextHeight = R_TextHeight_t(0x505770);
+	R_FlushSun_t R_FlushSun = R_FlushSun_t(0x53FB50);
+
+	Scr_LoadGameType_t Scr_LoadGameType = Scr_LoadGameType_t(0x4D9520);
+
+	Scr_LoadScript_t Scr_LoadScript = Scr_LoadScript_t(0x45D940);
+	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = Scr_GetFunctionHandle_t(0x4234F0);
 
-	Scr_ExecThread_t Scr_ExecThread = (Scr_ExecThread_t)0x4AD0B0;
-	Scr_FreeThread_t Scr_FreeThread = (Scr_FreeThread_t)0x4BD320;
-
-	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = (Scr_ShutdownAllocNode_t)0x441650;
-
-	Script_Alloc_t Script_Alloc = (Script_Alloc_t)0x422E70;
-	Script_SetupTokens_t Script_SetupTokens = (Script_SetupTokens_t)0x4E6950;
-	Script_CleanString_t Script_CleanString = (Script_CleanString_t)0x498220;
+	Scr_GetFloat_t Scr_GetFloat = Scr_GetFloat_t(0x443140);
+	Scr_GetNumParam_t Scr_GetNumParam = Scr_GetNumParam_t(0x4B0E90);
 
-	SE_Load_t SE_Load = (SE_Load_t)0x502A30;
+	Scr_ExecThread_t Scr_ExecThread = Scr_ExecThread_t(0x4AD0B0);
+	Scr_FreeThread_t Scr_FreeThread = Scr_FreeThread_t(0x4BD320);
+
+	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = Scr_ShutdownAllocNode_t(0x441650);
 
-	SEH_StringEd_GetString_t SEH_StringEd_GetString = (SEH_StringEd_GetString_t)0x44BB30;
+	Script_Alloc_t Script_Alloc = Script_Alloc_t(0x422E70);
+	Script_SetupTokens_t Script_SetupTokens = Script_SetupTokens_t(0x4E6950);
+	Script_CleanString_t Script_CleanString = Script_CleanString_t(0x498220);
 
-	Dvar_SetStringByName_t Dvar_SetStringByName = (Dvar_SetStringByName_t)0x44F060;
+	SE_Load_t SE_Load = SE_Load_t(0x502A30);
 
-	SL_ConvertToString_t SL_ConvertToString = (SL_ConvertToString_t)0x4EC1D0;
-	SL_GetString_t SL_GetString = (SL_GetString_t)0x4CDC10;
+	SEH_StringEd_GetString_t SEH_StringEd_GetString = SEH_StringEd_GetString_t(0x44BB30);
 
-	SND_Init_t SND_Init = (SND_Init_t)0x46A630;
-	SND_InitDriver_t SND_InitDriver = (SND_InitDriver_t)0x4F5090;
+	Dvar_SetStringByName_t Dvar_SetStringByName = Dvar_SetStringByName_t(0x44F060);
 
-	SockadrToNetadr_t SockadrToNetadr = (SockadrToNetadr_t)0x4F8460;
+	SL_ConvertToString_t SL_ConvertToString = SL_ConvertToString_t(0x4EC1D0);
+	SL_GetString_t SL_GetString = SL_GetString_t(0x4CDC10);
 
-	Steam_JoinLobby_t Steam_JoinLobby = (Steam_JoinLobby_t)0x49CF70;
+	SND_Init_t SND_Init = SND_Init_t(0x46A630);
+	SND_InitDriver_t SND_InitDriver = SND_InitDriver_t(0x4F5090);
 
-	SV_GameClientNum_Score_t SV_GameClientNum_Score = (SV_GameClientNum_Score_t)0x469AC0;
-	SV_GameSendServerCommand_t SV_GameSendServerCommand = (SV_GameSendServerCommand_t)0x4BC3A0;
-	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = (SV_Cmd_TokenizeString_t)0x4B5780;
-	SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString = (SV_Cmd_EndTokenizedString_t)0x464750;
-	SV_DirectConnect_t SV_DirectConnect = (SV_DirectConnect_t)0x460480;
+	SockadrToNetadr_t SockadrToNetadr = SockadrToNetadr_t(0x4F8460);
 
-	Sys_Error_t Sys_Error = (Sys_Error_t)0x4E0200;
-	Sys_FreeFileList_t Sys_FreeFileList = (Sys_FreeFileList_t)0x4D8580;
-	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = (Sys_IsDatabaseReady_t)0x4CA4A0;
-	Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2 = (Sys_IsDatabaseReady2_t)0x441280;
-	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x4C37D0;
-	Sys_IsRenderThread_t Sys_IsRenderThread = (Sys_IsRenderThread_t)0x4B20E0;
-	Sys_IsServerThread_t Sys_IsServerThread = (Sys_IsServerThread_t)0x4B0270;
-	Sys_IsDatabaseThread_t Sys_IsDatabaseThread = (Sys_IsDatabaseThread_t)0x4C6020;
-	Sys_SendPacket_t Sys_SendPacket = (Sys_SendPacket_t)0x60FDC0;
-	Sys_ShowConsole_t Sys_ShowConsole = (Sys_ShowConsole_t)0x4305E0;
-	Sys_ListFiles_t Sys_ListFiles = (Sys_ListFiles_t)0x45A660;
-	Sys_Milliseconds_t Sys_Milliseconds = (Sys_Milliseconds_t)0x42A660;
+	Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x49CF70);
 
-	TeleportPlayer_t TeleportPlayer = (TeleportPlayer_t)0x496850;
+	SV_GameClientNum_Score_t SV_GameClientNum_Score = SV_GameClientNum_Score_t(0x469AC0);
+	SV_GameSendServerCommand_t SV_GameSendServerCommand = SV_GameSendServerCommand_t(0x4BC3A0);
+	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = SV_Cmd_TokenizeString_t(0x4B5780);
+	SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString = SV_Cmd_EndTokenizedString_t(0x464750);
+	SV_DirectConnect_t SV_DirectConnect = SV_DirectConnect_t(0x460480);
 
-	UI_AddMenuList_t UI_AddMenuList = (UI_AddMenuList_t)0x4533C0;
-	UI_CheckStringTranslation_t UI_CheckStringTranslation = (UI_CheckStringTranslation_t)0x4FB010;
-	UI_LoadMenus_t UI_LoadMenus = (UI_LoadMenus_t)0x641460;
-	UI_UpdateArenas_t UI_UpdateArenas = (UI_UpdateArenas_t)0x4A95B0;
-	UI_DrawHandlePic_t UI_DrawHandlePic = (UI_DrawHandlePic_t)0x4D0EA0;
-	UI_GetContext_t UI_GetContext = (UI_GetContext_t)0x4F8940;
-	UI_TextWidth_t UI_TextWidth = (UI_TextWidth_t)0x6315C0;
-	UI_DrawText_t UI_DrawText = (UI_DrawText_t)0x49C0D0;
+	Sys_Error_t Sys_Error = Sys_Error_t(0x4E0200);
+	Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x4D8580);
+	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = Sys_IsDatabaseReady_t(0x4CA4A0);
+	Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2 = Sys_IsDatabaseReady2_t(0x441280);
+	Sys_IsMainThread_t Sys_IsMainThread = Sys_IsMainThread_t(0x4C37D0);
+	Sys_IsRenderThread_t Sys_IsRenderThread = Sys_IsRenderThread_t(0x4B20E0);
+	Sys_IsServerThread_t Sys_IsServerThread = Sys_IsServerThread_t(0x4B0270);
+	Sys_IsDatabaseThread_t Sys_IsDatabaseThread = Sys_IsDatabaseThread_t(0x4C6020);
+	Sys_SendPacket_t Sys_SendPacket = Sys_SendPacket_t(0x60FDC0);
+	Sys_ShowConsole_t Sys_ShowConsole = Sys_ShowConsole_t(0x4305E0);
+	Sys_ListFiles_t Sys_ListFiles = Sys_ListFiles_t(0x45A660);
+	Sys_Milliseconds_t Sys_Milliseconds = Sys_Milliseconds_t(0x42A660);
 
-	Win_GetLanguage_t Win_GetLanguage = (Win_GetLanguage_t)0x45CBA0;
+	TeleportPlayer_t TeleportPlayer = TeleportPlayer_t(0x496850);
 
-	Vec3UnpackUnitVec_t Vec3UnpackUnitVec = (Vec3UnpackUnitVec_t)0x45CA90;
+	UI_AddMenuList_t UI_AddMenuList = UI_AddMenuList_t(0x4533C0);
+	UI_CheckStringTranslation_t UI_CheckStringTranslation = UI_CheckStringTranslation_t(0x4FB010);
+	UI_LoadMenus_t UI_LoadMenus = UI_LoadMenus_t(0x641460);
+	UI_UpdateArenas_t UI_UpdateArenas = UI_UpdateArenas_t(0x4A95B0);
+	UI_DrawHandlePic_t UI_DrawHandlePic = UI_DrawHandlePic_t(0x4D0EA0);
+	UI_GetContext_t UI_GetContext = UI_GetContext_t(0x4F8940);
+	UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x6315C0);
+	UI_DrawText_t UI_DrawText = UI_DrawText_t(0x49C0D0);
 
-	XAssetHeader* DB_XAssetPool = (XAssetHeader*)0x7998A8;
-	unsigned int* g_poolSize = (unsigned int*)0x7995E8;
+	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 
-	DWORD* cmd_id = (DWORD*)0x1AAC5D0;
-	DWORD* cmd_argc = (DWORD*)0x1AAC614;
-	char*** cmd_argv = (char***)0x1AAC634;
+	Vec3UnpackUnitVec_t Vec3UnpackUnitVec = Vec3UnpackUnitVec_t(0x45CA90);
 
-	DWORD* cmd_id_sv = (DWORD*)0x1ACF8A0;
-	DWORD* cmd_argc_sv = (DWORD*)0x1ACF8E4;
-	char*** cmd_argv_sv = (char***)0x1ACF904;
+	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
+	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
-	cmd_function_t** cmd_functions = (cmd_function_t**)0x1AAC658;
+	DWORD* cmd_id = reinterpret_cast<DWORD*>(0x1AAC5D0);
+	DWORD* cmd_argc = reinterpret_cast<DWORD*>(0x1AAC614);
+	char*** cmd_argv = reinterpret_cast<char***>(0x1AAC634);
 
-	source_t **sourceFiles = (source_t **)0x7C4A98;
-	keywordHash_t **menuParseKeywordHash = (keywordHash_t **)0x63AE928;
+	DWORD* cmd_id_sv = reinterpret_cast<DWORD*>(0x1ACF8A0);
+	DWORD* cmd_argc_sv = reinterpret_cast<DWORD*>(0x1ACF8E4);
+	char*** cmd_argv_sv = reinterpret_cast<char***>(0x1ACF904);
 
-	int* svs_numclients = (int*)0x31D938C;
-	client_t* svs_clients = (client_t*)0x31D9390;
+	cmd_function_t** cmd_functions = reinterpret_cast<cmd_function_t**>(0x1AAC658);
 
-	UiContext *uiContext = (UiContext *)0x62E2858;
+	source_t **sourceFiles = reinterpret_cast<source_t **>(0x7C4A98);
+	keywordHash_t **menuParseKeywordHash = reinterpret_cast<keywordHash_t **>(0x63AE928);
 
-	int* arenaCount = (int*)0x62E6930;
-	mapArena_t* arenas = (mapArena_t*)0x62E6934;
+	int* svs_numclients = reinterpret_cast<int*>(0x31D938C);
+	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);
 
-	int* gameTypeCount = (int*)0x62E50A0;
-	gameTypeName_t* gameTypes = (gameTypeName_t*)0x62E50A4;
+	UiContext *uiContext = reinterpret_cast<UiContext *>(0x62E2858);
 
-	searchpath_t* fs_searchpaths = (searchpath_t*)0x63D96E0;
+	int* arenaCount = reinterpret_cast<int*>(0x62E6930);
+	mapArena_t* arenas = reinterpret_cast<mapArena_t*>(0x62E6934);
 
-	XBlock** g_streamBlocks = (XBlock**)0x16E554C;
-	int* g_streamPos = (int*)0x16E5554;
-	int* g_streamPosIndex = (int*)0x16E5578;
+	int* gameTypeCount = reinterpret_cast<int*>(0x62E50A0);
+	gameTypeName_t* gameTypes = reinterpret_cast<gameTypeName_t*>(0x62E50A4);
 
-	bool* g_lobbyCreateInProgress = (bool*)0x66C9BC2;
-	party_t** partyIngame = (party_t**)0x1081C00;
-	PartyData_s** partyData = (PartyData_s**)0x107E500;
+	searchpath_t* fs_searchpaths = reinterpret_cast<searchpath_t*>(0x63D96E0);
 
-	int* numIP = (int*)0x64A1E68;
-	netIP_t* localIP = (netIP_t*)0x64A1E28;
+	XBlock** g_streamBlocks = reinterpret_cast<XBlock**>(0x16E554C);
+	int* g_streamPos = reinterpret_cast<int*>(0x16E5554);
+	int* g_streamPosIndex = reinterpret_cast<int*>(0x16E5578);
 
-	int* demoFile = (int*)0xA5EA1C;
-	int* demoPlaying = (int*)0xA5EA0C;
-	int* demoRecording = (int*)0xA5EA08;
-	int* serverMessageSequence = (int*)0xA3E9B4;
+	bool* g_lobbyCreateInProgress = reinterpret_cast<bool*>(0x66C9BC2);
+	party_t** partyIngame = reinterpret_cast<party_t**>(0x1081C00);
+	PartyData_s** partyData = reinterpret_cast<PartyData_s**>(0x107E500);
 
-	gentity_t* g_entities = (gentity_t*)0x18835D8;
+	int* numIP = reinterpret_cast<int*>(0x64A1E68);
+	netIP_t* localIP = reinterpret_cast<netIP_t*>(0x64A1E28);
 
-	netadr_t* connectedHost = (netadr_t*)0xA1E888;
+	int* demoFile = reinterpret_cast<int*>(0xA5EA1C);
+	int* demoPlaying = reinterpret_cast<int*>(0xA5EA0C);
+	int* demoRecording = reinterpret_cast<int*>(0xA5EA08);
+	int* serverMessageSequence = reinterpret_cast<int*>(0xA3E9B4);
 
-	SOCKET* ip_socket = (SOCKET*)0x64A3008;
+	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
 
-	uint32_t* com_frameTime = (uint32_t*)0x1AD8F3C;
+	netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0xA1E888);
 
-	SafeArea* safeArea = (SafeArea*)0xA15F3C;
+	SOCKET* ip_socket = reinterpret_cast<SOCKET*>(0x64A3008);
 
-	SpawnVar* spawnVars = (SpawnVar*)0x1A83DE8;
-	MapEnts** marMapEntsPtr = (MapEnts**)0x112AD34;
+	uint32_t* com_frameTime = reinterpret_cast<uint32_t*>(0x1AD8F3C);
 
-	IDirect3D9** d3d9 = (IDirect3D9**)0x66DEF84;
-	IDirect3DDevice9** dx_ptr = (IDirect3DDevice9**)0x66DEF88;
+	SafeArea* safeArea = reinterpret_cast<SafeArea*>(0xA15F3C);
 
-	mapname_t* mapnames = (mapname_t*)0x7471D0;
+	SpawnVar* spawnVars = reinterpret_cast<SpawnVar*>(0x1A83DE8);
+	MapEnts** marMapEntsPtr = reinterpret_cast<MapEnts**>(0x112AD34);
 
-	char*** varXString = (char***)0x112B340;
-	TracerDef*** varTracerDefPtr = (TracerDef***)0x112B3BC;
-	XModel*** varXModelPtr = (XModel***)0x112A934;
-	XModel** varXModel = (XModel**)0x112AE14;
-	PathData** varPathData = (PathData**)0x112AD7C;
-	const char** varConstChar = (const char**)0x112A774;
-	Material*** varMaterialHandle = (Material***)0x112A878;
-	FxEffectDef*** varFxEffectDefHandle = (FxEffectDef***)0x112ACC0;
-	PhysCollmap*** varPhysCollmapPtr = (PhysCollmap***)0x112B440;
-	PhysPreset*** varPhysPresetPtr = (PhysPreset***)0x112B378;
-	Game::MaterialPass** varMaterialPass = (Game::MaterialPass**)0x112A960;
-	snd_alias_list_t*** varsnd_alias_list_name = (snd_alias_list_t***)0x112AF38;
+	IDirect3D9** d3d9 = reinterpret_cast<IDirect3D9**>(0x66DEF84);
+	IDirect3DDevice9** dx_ptr = reinterpret_cast<IDirect3DDevice9**>(0x66DEF88);
 
-	FxElemField* s_elemFields = (FxElemField*)0x73B848;
+	mapname_t* mapnames = reinterpret_cast<mapname_t*>(0x7471D0);
+
+	char*** varXString = reinterpret_cast<char***>(0x112B340);
+	TracerDef*** varTracerDefPtr = reinterpret_cast<TracerDef***>(0x112B3BC);
+	XModel*** varXModelPtr = reinterpret_cast<XModel***>(0x112A934);
+	XModel** varXModel = reinterpret_cast<XModel**>(0x112AE14);
+	PathData** varPathData = reinterpret_cast<PathData**>(0x112AD7C);
+	const char** varConstChar = reinterpret_cast<const char**>(0x112A774);
+	Material*** varMaterialHandle = reinterpret_cast<Material***>(0x112A878);
+	FxEffectDef*** varFxEffectDefHandle = reinterpret_cast<FxEffectDef***>(0x112ACC0);
+	PhysCollmap*** varPhysCollmapPtr = reinterpret_cast<PhysCollmap***>(0x112B440);
+	PhysPreset*** varPhysPresetPtr = reinterpret_cast<PhysPreset***>(0x112B378);
+	Game::MaterialPass** varMaterialPass = reinterpret_cast<Game::MaterialPass**>(0x112A960);
+	snd_alias_list_t*** varsnd_alias_list_name = reinterpret_cast<snd_alias_list_t***>(0x112AF38);
+
+	FxElemField* s_elemFields = reinterpret_cast<FxElemField*>(0x73B848);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{

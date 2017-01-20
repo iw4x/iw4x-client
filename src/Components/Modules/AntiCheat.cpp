@@ -50,7 +50,7 @@ namespace Components
 
 	void AntiCheat::AssertCalleeModule(void* callee)
 	{
-		HMODULE hModuleSelf = nullptr, hModuleTarget = nullptr, hModuleProcess = GetModuleHandleA(NULL);
+		HMODULE hModuleSelf = nullptr, hModuleTarget = nullptr, hModuleProcess = GetModuleHandleA(nullptr);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &hModuleTarget);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(AntiCheat::AssertCalleeModule), &hModuleSelf);
 
@@ -69,9 +69,6 @@ namespace Components
 
 	void AntiCheat::InitLoadLibHook()
 	{
-		static uint8_t loadLibStub[] = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
-		static uint8_t loadLibExStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 }; // xor eax, eax; retn 0Ch
-
 		static uint8_t kernel32Str[] = { 0xB4, 0x9A, 0x8D, 0xB1, 0x9A, 0x93, 0xCC, 0xCD, 0xD1, 0x9B, 0x93, 0x93 }; // KerNel32.dll
 		static uint8_t loadLibAStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xBE }; // LoadLibraryA
 		static uint8_t loadLibWStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8 }; // LoadLibraryW
@@ -89,9 +86,11 @@ namespace Components
 				AntiCheat::LoadLibHook[0].initialize(loadLibA, LoadLibaryAStub, HOOK_JUMP);
 				AntiCheat::LoadLibHook[1].initialize(loadLibW, LoadLibaryWStub, HOOK_JUMP);
 #else
+				static uint8_t loadLibStub[] = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
 				AntiCheat::LoadLibHook[0].initialize(loadLibA, loadLibStub, HOOK_JUMP);
 				AntiCheat::LoadLibHook[1].initialize(loadLibW, loadLibStub, HOOK_JUMP);
 #endif
+				//static uint8_t loadLibExStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 }; // xor eax, eax; retn 0Ch
 				//AntiCheat::LoadLibHook[2].initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
 				//AntiCheat::LoadLibHook[3].initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
 			}
@@ -198,7 +197,7 @@ namespace Components
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &module);
 		GetModuleFileNameA(module, buffer, sizeof buffer);
 
-		MessageBoxA(0, Utils::String::VA("Loading library %s via %s %X", std::string(library.begin(), library.end()).data(), buffer, reinterpret_cast<uint32_t>(callee)), 0, 0);
+		MessageBoxA(nullptr, Utils::String::VA("Loading library %s via %s %X", std::string(library.begin(), library.end()).data(), buffer, reinterpret_cast<uint32_t>(callee)), nullptr, 0);
 
 		return LoadLibraryExW(library.data(), nullptr, 0);
 	}

@@ -5,6 +5,7 @@ namespace Assets
 	void IComWorld::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::ComWorld* asset = header.comWorld;
+
 		if (asset->lights)
 		{
 			for (int i = 0; i < asset->lightCount; ++i)

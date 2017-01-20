@@ -225,7 +225,7 @@ namespace Components
 		}
 		catch (const std::exception e)
 		{
-			MessageBoxA(0, Utils::String::VA("Invalid regular expression: %s", expression.data()), "Warning", MB_ICONEXCLAMATION);
+			MessageBoxA(nullptr, Utils::String::VA("Invalid regular expression: %s", expression.data()), "Warning", MB_ICONEXCLAMATION);
 			return;
 		}
 
@@ -523,7 +523,7 @@ namespace Components
 				{
 					if (pack.index == dlc)
 					{
-						ShellExecuteA(NULL, "open", pack.url.data(), 0, 0, SW_SHOWNORMAL);
+						ShellExecuteA(nullptr, "open", pack.url.data(), nullptr, nullptr, SW_SHOWNORMAL);
 						return;
 					}
 				}

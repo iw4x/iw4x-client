@@ -371,7 +371,7 @@ namespace Assets
 					{
 						AssertSize(Game::cbrushside_t, 8);
 
-						MessageBoxA(0, "BrushSide shouldn't be written in cBrush!", "WARNING", MB_ICONEXCLAMATION);
+						MessageBoxA(nullptr, "BrushSide shouldn't be written in cBrush!", "WARNING", MB_ICONEXCLAMATION);
 
 						buffer->align(Utils::Stream::ALIGN_4);
 						builder->storePointer(brush->sides);
@@ -588,7 +588,8 @@ namespace Assets
 
 		Utils::Stream::Reader reader(builder->getAllocator(), clipFile.getBuffer());
 
-		if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xClip"))
+		__int64 magic = reader.read<__int64>();
+		if (std::memcmp(&magic, "IW4xClip", 8))
 		{
 			Components::Logger::Error(0, "Reading clipMap_t '%s' failed, header is invalid!", name.data());
 		}

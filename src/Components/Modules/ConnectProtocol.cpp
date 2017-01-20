@@ -68,11 +68,11 @@ namespace Components
 			char regred[MAX_PATH] = { 0 };
 
 			// Check if the game has been moved.
-			openRes = RegQueryValueExA(hKey, nullptr, 0, 0, reinterpret_cast<BYTE*>(regred), &dwsize);
+			openRes = RegQueryValueExA(hKey, nullptr, nullptr, nullptr, reinterpret_cast<BYTE*>(regred), &dwsize);
 			if (openRes == ERROR_SUCCESS)
 			{
 				char* endPtr = strstr(regred, "\" \"%1\"");
-				if (endPtr != NULL)
+				if (endPtr != nullptr)
 				{
 					*endPtr = 0;
 				}
@@ -110,7 +110,7 @@ namespace Components
 		}
 
 		// Create SOFTWARE\\Classes\\iw4x
-		openRes = RegCreateKeyExA(hKey, "iw4x", 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
+		openRes = RegCreateKeyExA(hKey, "iw4x", 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, nullptr, &hKey, nullptr);
 
 		if (openRes != ERROR_SUCCESS)
 		{
@@ -128,7 +128,7 @@ namespace Components
 		}
 
 		// Create SOFTWARE\\Classes\\iw4x\\DefaultIcon
-		openRes = RegCreateKeyExA(hKey, "DefaultIcon", 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
+		openRes = RegCreateKeyExA(hKey, "DefaultIcon", 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, nullptr, &hKey, nullptr);
 
 		if (openRes != ERROR_SUCCESS)
 		{
@@ -136,7 +136,7 @@ namespace Components
 		}
 
 		data = Utils::String::VA("%s,1", ownPth);
-		openRes = RegSetValueExA(hKey, 0, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
+		openRes = RegSetValueExA(hKey, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
 		RegCloseKey(hKey);
 
 		if (openRes != ERROR_SUCCESS)
@@ -152,7 +152,7 @@ namespace Components
 			return false;
 		}
 
-		openRes = RegCreateKeyExA(hKey, "shell\\open\\command", 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hKey, 0);
+		openRes = RegCreateKeyExA(hKey, "shell\\open\\command", 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, nullptr, &hKey, nullptr);
 
 		if (openRes != ERROR_SUCCESS)
 		{
@@ -160,7 +160,7 @@ namespace Components
 		}
 
 		data = Utils::String::VA("\"%s\" \"%s\"", ownPth, "%1");
-		openRes = RegSetValueExA(hKey, 0, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
+		openRes = RegSetValueExA(hKey, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
 		RegCloseKey(hKey);
 
 		if (openRes != ERROR_SUCCESS)

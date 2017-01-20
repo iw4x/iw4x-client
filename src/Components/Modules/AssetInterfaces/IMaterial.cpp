@@ -25,7 +25,8 @@ namespace Assets
 
 		Utils::Stream::Reader reader(builder->getAllocator(), materialFile.getBuffer());
 
-		if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xMat" IW4X_MAT_VERSION))
+		__int64 magic = reader.read<__int64>();
+		if (std::memcmp(&magic, "IW4xMat" IW4X_MAT_VERSION, 8))
 		{
 			Components::Logger::Error(0, "Reading material '%s' failed, header is invalid!", name.data());
 		}
@@ -39,7 +40,7 @@ namespace Assets
 		material->surfaceTypeBits = reader.read<int>();
 		material->hashIndex = reader.read<unsigned __int16>();
 		char* stateBitsEntry = reader.readArray<char>(48);
-		memcpy(material->stateBitsEntry, stateBitsEntry, 48);
+		std::memcpy(material->stateBitsEntry, stateBitsEntry, 48);
 		material->textureCount = reader.readByte();
 		material->constantCount = reader.readByte();
 		material->stateBitsCount = reader.readByte();
@@ -297,7 +298,7 @@ namespace Assets
 				}
 				else
 				{
-					material->textureTable = 0;
+					material->textureTable = nullptr;
 				}
 
 				material->textureCount = static_cast<char>(textureList.size()) & 0xFF;

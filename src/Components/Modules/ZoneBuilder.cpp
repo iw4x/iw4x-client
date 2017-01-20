@@ -9,14 +9,15 @@ namespace Components
 
 	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::CommonAssets;
 
-	ZoneBuilder::Zone::Zone(std::string name) : dataMap("zone_source/" + name + ".csv"), zoneName(name), indexStart(0), externalSize(0), branding { 0 },
-
-		// Reserve 100MB by default.
-		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
-		// That way we can be sure it won't need to reallocate memory.
-		// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
-		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
-		buffer(0xC800000)
+	ZoneBuilder::Zone::Zone(std::string name) : indexStart(0), externalSize(0),
+	
+	// Reserve 100MB by default.
+	// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
+	// That way we can be sure it won't need to reallocate memory.
+	// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
+	// Well, decompressed maps can get way larger than 100MB, so let's increase that.
+	buffer(0xC800000),
+	zoneName(name), dataMap("zone_source/" + name + ".csv"), branding { nullptr }
 	{}
 
 	ZoneBuilder::Zone::~Zone()
@@ -268,7 +269,7 @@ namespace Components
 			}
 		}
 
-		return { 0 };
+		return { nullptr };
 	}
 
 	Game::XAsset* ZoneBuilder::Zone::getAsset(int index)
@@ -431,7 +432,7 @@ namespace Components
 		// AssetTable
 		for (auto asset : this->loadedAssets)
 		{
-			Game::XAsset entry = { asset.type, 0 };
+			Game::XAsset entry = { asset.type, nullptr };
 			Utils::Stream::ClearPointer(&entry.header.data);
 
 			this->buffer.save(&entry);
@@ -473,7 +474,7 @@ namespace Components
 	void ZoneBuilder::Zone::addBranding()
 	{
 		char* data = "FastFile built using IW4x ZoneTool!";
-		this->branding = { this->zoneName.data(), (int)strlen(data), 0, data };
+		this->branding = { this->zoneName.data(), static_cast<int>(strlen(data)), 0, data };
 
 		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
 		{
@@ -659,7 +660,7 @@ namespace Components
 
 	Game::XAssetHeader ZoneBuilder::GetEmptyAssetIfCommon(Game::XAssetType type, std::string name, ZoneBuilder::Zone* builder)
 	{
-		Game::XAssetHeader header = { 0 };
+		Game::XAssetHeader header = { nullptr };
 
 		if (type >= 0 && type < Game::XAssetType::ASSET_TYPE_COUNT)
 		{

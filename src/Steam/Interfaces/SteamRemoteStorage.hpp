@@ -4,6 +4,9 @@ namespace Steam
 {
 	class RemoteStorage
 	{
+	protected:
+		~RemoteStorage() = default;
+
 	public:
 		virtual bool FileWrite(const char *pchFile, const void *pvData, int cubData);
 		virtual int GetFileSize(const char *pchFile);

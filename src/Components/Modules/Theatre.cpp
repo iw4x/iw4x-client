@@ -203,7 +203,7 @@ namespace Components
 					info.author    = metaObject["author"].string_value();
 					info.gametype  = metaObject["gametype"].string_value();
 					info.mapname   = metaObject["mapname"].string_value();
-					info.length    = (int)metaObject["length"].number_value();
+					info.length    = static_cast<int>(metaObject["length"].number_value());
 					info.timeStamp = _atoi64(metaObject["timestamp"].string_value().data());
 
 					Theatre::Demos.push_back(info);
@@ -311,7 +311,7 @@ namespace Components
 				FileSystem::DeleteFile("demos", Utils::String::VA("%s.json", files[i].data()));
 			}
 
-			Command::Execute(Utils::String::VA("record auto_%lld", time(0)), true);
+			Command::Execute(Utils::String::VA("record auto_%lld", time(nullptr)), true);
 		}
 
 		return Utils::Hook::Call<DWORD()>(0x42BBB0)();

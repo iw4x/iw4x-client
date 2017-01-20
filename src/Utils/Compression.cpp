@@ -37,7 +37,7 @@ namespace Utils
 				return "";
 			}
 
-			int ret = 0;
+			int ret;
 			Utils::Memory::Allocator allocator;
 
 			uint8_t* dest = allocator.allocateArray<uint8_t>(CHUNK);

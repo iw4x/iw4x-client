@@ -94,7 +94,7 @@ namespace Components
 		~ZoneBuilder();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "ZoneBuilder"; };
+		const char* getName() override { return "ZoneBuilder"; };
 #endif
 
 		static bool IsEnabled();

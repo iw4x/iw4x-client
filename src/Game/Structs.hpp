@@ -1,3 +1,5 @@
+#pragma once
+
 #define PROTOCOL 0x92
 
 // This allows us to compile our structures in IDA, for easier reversing :3

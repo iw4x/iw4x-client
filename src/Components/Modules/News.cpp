@@ -51,7 +51,7 @@ namespace Components
 		ZeroMemory(&pInfo, sizeof(pInfo));
 		sInfo.cb = sizeof(sInfo);
 
-		CreateProcessA("updater.exe", NULL, NULL, NULL, false, NULL, NULL, NULL, &sInfo, &pInfo);
+		CreateProcessA("updater.exe", nullptr, nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
 
 		if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE)
 		{
@@ -105,7 +105,7 @@ namespace Components
 
 		Dvar::Register<int>("cl_updateoldversion", REVISION, REVISION, REVISION, Game::DVAR_FLAG_WRITEPROTECTED, "Current version number.");
 		Dvar::Register<int>("cl_updateversion", 0, 0, -1, Game::DVAR_FLAG_WRITEPROTECTED, "New version number.");
-		Dvar::Register<bool>("cl_updateavailable", 0, Game::DVAR_FLAG_WRITEPROTECTED, "New update is available.");
+		Dvar::Register<bool>("cl_updateavailable", false, Game::DVAR_FLAG_WRITEPROTECTED, "New update is available.");
 
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFUALT);

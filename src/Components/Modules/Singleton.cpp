@@ -22,9 +22,9 @@ namespace Components
 
 		if (Loader::PerformingUnitTests() || Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 
-		Singleton::FirstInstance = (CreateMutexA(NULL, FALSE, "iw4x_mutex") && GetLastError() != ERROR_ALREADY_EXISTS);
+		Singleton::FirstInstance = (CreateMutexA(nullptr, FALSE, "iw4x_mutex") && GetLastError() != ERROR_ALREADY_EXISTS);
 
-		if (!Singleton::FirstInstance && !ConnectProtocol::Used() && MessageBoxA(0, "Do you want to start another instance?", "Game already running", MB_ICONEXCLAMATION | MB_YESNO) == IDNO)
+		if (!Singleton::FirstInstance && !ConnectProtocol::Used() && MessageBoxA(nullptr, "Do you want to start another instance?", "Game already running", MB_ICONEXCLAMATION | MB_YESNO) == IDNO)
 		{
 			ExitProcess(0);
 		}

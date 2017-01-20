@@ -20,12 +20,12 @@ namespace Utils
 
 			bool isValid()
 			{
-				return (this->Object.use_count() > 0);
+				return (this->object.use_count() > 0);
 			}
 
 			void set(T object)
 			{
-				this->object = std::shared_ptr<T>(new T());
+				this->object = std::make_shared<T>();
 				*this->object.get() = object;
 			}
 
@@ -84,10 +84,10 @@ namespace Utils
 		{
 			std::lock_guard<std::mutex> _(this->mutex);
 
-			if (!this->Empty())
+			if (!this->empty())
 			{
 				// Create new chain entry
-				std::shared_ptr<Entry> currentObject = std::shared_ptr<Entry>(new Entry);
+				std::shared_ptr<Entry> currentObject = std::make_shared<Entry>();
 				*currentObject.get() = this->object;
 
 				// Add it to the chain

@@ -24,7 +24,7 @@ namespace Utils
 		class Reader
 		{
 		public:
-			Reader(Utils::Memory::Allocator* _allocator, std::string _buffer) : buffer(_buffer), allocator(_allocator), position(0) {}
+			Reader(Utils::Memory::Allocator* _allocator, std::string _buffer) : position(0), buffer(_buffer), allocator(_allocator) {}
 
 			std::string readString();
 			const char* readCString();

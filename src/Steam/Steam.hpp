@@ -32,14 +32,14 @@ struct GameID_t
 
 #pragma pack( pop )
 
-#include "Interfaces\SteamUser.hpp"
-#include "Interfaces\SteamUtils.hpp"
-#include "Interfaces\SteamFriends.hpp"
-#include "Interfaces\SteamGameServer.hpp"
-#include "Interfaces\SteamNetworking.hpp"
-#include "Interfaces\SteamMatchmaking.hpp"
-#include "Interfaces\SteamRemoteStorage.hpp"
-#include "Interfaces\SteamMasterServerUpdater.hpp"
+#include "Interfaces/SteamUser.hpp"
+#include "Interfaces/SteamUtils.hpp"
+#include "Interfaces/SteamFriends.hpp"
+#include "Interfaces/SteamGameServer.hpp"
+#include "Interfaces/SteamNetworking.hpp"
+#include "Interfaces/SteamMatchmaking.hpp"
+#include "Interfaces/SteamRemoteStorage.hpp"
+#include "Interfaces/SteamMasterServerUpdater.hpp"
 
 #include "Proxy.hpp"
 
@@ -61,6 +61,8 @@ namespace Steam
 			void SetICallback(int iCallback) { Callback = iCallback; }
 
 		protected:
+			~Base() = default;
+
 			unsigned char Flags;
 			int Callback;
 		};

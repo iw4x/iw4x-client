@@ -29,7 +29,8 @@ namespace Assets
 		{
 			Utils::Stream::Reader reader(builder->getAllocator(), imageFile.getBuffer());
 
-			if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xImg" IW4X_IMG_VERSION))
+			__int64 magic = reader.read<__int64>();
+			if (std::memcmp(&magic, "IW4xImg" IW4X_IMG_VERSION, 8))
 			{
 				Components::Logger::Error(0, "Reading image '%s' failed, header is invalid!", name.data());
 			}
@@ -130,6 +131,11 @@ namespace Assets
 				case Game::IWI_COMPRESSION::IWI_DXT5:
 				{
 					image->loadDef->format = 0x35545844;
+					break;
+				}
+
+				default:
+				{
 					break;
 				}
 			}

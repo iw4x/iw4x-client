@@ -157,7 +157,7 @@ namespace Utils
 
 			double bytesPerSecond = (1000.0 / milliseconds) * bytes;
 
-			int i = 0;
+			int i;
 			for (i = 0; bytesPerSecond > 1000 && i < ARRAY_SIZE(sizes); ++i) // 1024 or 1000?
 			{
 				bytesPerSecond /= 1000;
@@ -172,7 +172,7 @@ namespace Utils
 			unsigned long outlen = long(inputSize + (inputSize / 3.0) + 16);
 			unsigned char* outbuf = new unsigned char[outlen]; //Reserve output memory
 			base64_encode(reinterpret_cast<unsigned char*>(const_cast<char*>(input)), inputSize, outbuf, &outlen);
-			std::string ret((char*)outbuf, outlen);
+			std::string ret(reinterpret_cast<char*>(outbuf), outlen);
 			delete[] outbuf;
 			return ret;
 		}

@@ -5,7 +5,7 @@ namespace Utils
 	std::string GetMimeType(std::string url)
 	{
 		wchar_t* mimeType = nullptr;
-		FindMimeFromData(NULL, std::wstring(url.begin(), url.end()).data(), NULL, 0, NULL, 0, &mimeType, 0);
+		FindMimeFromData(nullptr, std::wstring(url.begin(), url.end()).data(), nullptr, 0, nullptr, 0, &mimeType, 0);
 
 		if (mimeType)
 		{
@@ -28,7 +28,7 @@ namespace Utils
 		DWORD errorMessageID = ::GetLastError();
 		LPSTR messageBuffer = nullptr;
 		size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+			nullptr, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr);
 		std::string message(messageBuffer, size);
 
 		OutputDebugStringA(Utils::String::VA("Last error code: 0x%08X (%s)\n", errorMessageID, message));

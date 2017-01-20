@@ -130,7 +130,7 @@ namespace Components
 
 	__declspec(naked) void UIFeeder::HandleKeyStub()
 	{
-		static int NextClickTime = 0;
+		static int nextClickTime = 0;
 
 		__asm
 		{
@@ -149,12 +149,12 @@ namespace Components
 			call Game::Sys_Milliseconds
 
 			// Check if allowed to click
-			cmp eax, NextClickTime
+			cmp eax, nextClickTime
 			jl continueOriginal
 
 			// Set next allowed click time to current time + 300ms
 			add eax, 300
-			mov NextClickTime, eax
+			mov nextClickTime, eax
 
 			// Get item cursor position ptr
 			mov ecx, ebx

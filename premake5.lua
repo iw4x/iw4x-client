@@ -341,7 +341,6 @@ workspace "iw4x"
 		if _OPTIONS["disable-base128"] then
 			defines { "DISABLE_BASE128" }
 		end
-		
 		if _OPTIONS["disable-steam-game"] then
 			defines { "DISABLE_STEAM_GAME" }
 		end

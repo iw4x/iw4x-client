@@ -1,12 +1,5 @@
 #include "STDInclude.hpp"
 
-// Stuff causes warnings
-#pragma warning(push)
-#pragma warning(disable: 4091)
-#include <dbghelp.h>
-#pragma comment(lib, "dbghelp.lib")
-#pragma warning(pop)
-
 namespace Components
 {
 	Utils::Hook Exception::SetFilterHook;

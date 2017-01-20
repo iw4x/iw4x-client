@@ -80,7 +80,8 @@ namespace Assets
 		{
 			Utils::Stream::Reader reader(builder->getAllocator(), modelFile.getBuffer());
 
-			if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xModl"))
+			__int64 magic = reader.read<__int64>();
+			if (std::memcmp(&magic, "IW4xModl", 8))
 			{
 				Components::Logger::Error(0, "Reading model '%s' failed, header is invalid!", name.data());
 			}

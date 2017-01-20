@@ -14,13 +14,13 @@ namespace Components
 
 	Minidump::~Minidump()
 	{
-		if (this->mapFileHandle != NULL && this->mapFileHandle != INVALID_HANDLE_VALUE)
+		if (this->mapFileHandle != nullptr && this->mapFileHandle != INVALID_HANDLE_VALUE)
 		{
 			CloseHandle(this->mapFileHandle);
 			this->mapFileHandle = INVALID_HANDLE_VALUE;
 		}
 
-		if (this->fileHandle != NULL && this->fileHandle != INVALID_HANDLE_VALUE)
+		if (this->fileHandle != nullptr && this->fileHandle != INVALID_HANDLE_VALUE)
 		{
 			CloseHandle(this->fileHandle);
 			this->fileHandle = INVALID_HANDLE_VALUE;
@@ -29,7 +29,7 @@ namespace Components
 
 	std::string Minidump::ToString()
 	{
-		if (!this->EnsureFileMapping()) return false;
+		if (!this->EnsureFileMapping()) return nullptr;
 
 		auto pBuf = MapViewOfFile(this->mapFileHandle, FILE_MAP_READ, 0, 0, 0);
 		if (!pBuf)
@@ -44,7 +44,7 @@ namespace Components
 #ifdef _WIN64
 		fileSize |= ((size_t)fileSizeHi << 32);
 #endif
-		std::string retval = std::string((const char*)pBuf, fileSize * sizeof(const char));
+		std::string retval = std::string(static_cast<const char*>(pBuf), fileSize * sizeof(const char));
 		UnmapViewOfFile(pBuf);
 		return retval;
 	}
@@ -74,7 +74,7 @@ namespace Components
 		PVOID stream;
 		ULONG streamSize;
 		return Minidump::GetStream(ExceptionStream, &directory, &stream, &streamSize);*/
-		return Minidump::GetStream(ExceptionStream, NULL, NULL, NULL);
+		return Minidump::GetStream(ExceptionStream, nullptr, nullptr, nullptr);
 	}
 
 	Minidump* Minidump::Create(std::string path, LPEXCEPTION_POINTERS exceptionInfo, int type)
@@ -84,14 +84,14 @@ namespace Components
 
 		// Do the dump generation
 		MINIDUMP_EXCEPTION_INFORMATION ex = { GetCurrentThreadId(), exceptionInfo, FALSE };
-		if (!MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), minidump->fileHandle, (MINIDUMP_TYPE)type, &ex, NULL, NULL))
+		if (!MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), minidump->fileHandle, static_cast<MINIDUMP_TYPE>(type), &ex, nullptr, nullptr))
 		{
 			Utils::OutputDebugLastError();
 			delete minidump;
 			return nullptr;
 		}
 
-		if (SetFilePointer(minidump->fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+		if (SetFilePointer(minidump->fileHandle, 0, nullptr, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 		{
 			Utils::OutputDebugLastError();
 			delete minidump;
@@ -109,10 +109,10 @@ namespace Components
 
 	bool Minidump::EnsureFileMapping()
 	{
-		if (this->mapFileHandle == NULL || this->mapFileHandle == INVALID_HANDLE_VALUE)
+		if (this->mapFileHandle == nullptr || this->mapFileHandle == INVALID_HANDLE_VALUE)
 		{
-			this->mapFileHandle = CreateFileMappingA(this->fileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
-			if (this->mapFileHandle == NULL || this->mapFileHandle == INVALID_HANDLE_VALUE)
+			this->mapFileHandle = CreateFileMappingA(this->fileHandle, nullptr, PAGE_READONLY, 0, 0, nullptr);
+			if (this->mapFileHandle == nullptr || this->mapFileHandle == INVALID_HANDLE_VALUE)
 			{
 				Utils::OutputDebugLastError();
 				return false;
@@ -127,9 +127,9 @@ namespace Components
 
 		minidump->fileHandle = CreateFileA(path.data(),
 			GENERIC_WRITE | GENERIC_READ, fileShare,
-			NULL, (fileShare & FILE_SHARE_WRITE) > 0 ? OPEN_ALWAYS : OPEN_EXISTING, NULL, NULL);
+			nullptr, (fileShare & FILE_SHARE_WRITE) > 0 ? OPEN_ALWAYS : OPEN_EXISTING, NULL, nullptr);
 
-		if (minidump->fileHandle == NULL || minidump->fileHandle == INVALID_HANDLE_VALUE)
+		if (minidump->fileHandle == nullptr || minidump->fileHandle == INVALID_HANDLE_VALUE)
 		{
 			Utils::OutputDebugLastError();
 			delete minidump;
@@ -172,7 +172,7 @@ namespace Components
 
 	bool MinidumpUpload::EnsureQueuedMinidumpsFolderExists()
 	{
-		BOOL success = CreateDirectoryA(MinidumpUpload::queuedMinidumpsFolder.data(), NULL);
+		BOOL success = CreateDirectoryA(MinidumpUpload::queuedMinidumpsFolder.data(), nullptr);
 
 		if (success != TRUE)
 		{
@@ -187,11 +187,11 @@ namespace Components
 		// Note that most of the Path* functions are DEPRECATED and they have been replaced by Cch variants that only work on Windows 8+.
 		// If you plan to drop support for Windows 7, please upgrade these calls to prevent accidental buffer overflows!
 
-		if (!EnsureQueuedMinidumpsFolderExists()) return NULL;
+		if (!EnsureQueuedMinidumpsFolderExists()) return nullptr;
 
 		// Current executable name
 		char exeFileName[MAX_PATH];
-		GetModuleFileNameA(NULL, exeFileName, MAX_PATH);
+		GetModuleFileNameA(nullptr, exeFileName, MAX_PATH);
 		PathStripPathA(exeFileName);
 		PathRemoveExtensionA(exeFileName);
 

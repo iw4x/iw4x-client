@@ -64,7 +64,7 @@ namespace Utils
 		void* pointer = this->read<void*>();
 		if (!this->hasPointer(pointer))
 		{
-			this->pointerMap[pointer] = 0;
+			this->pointerMap[pointer] = nullptr;
 		}
 		return pointer;
 	}
@@ -103,7 +103,7 @@ namespace Utils
 
 		if (this->criticalSectionState != 0)
 		{
-			MessageBoxA(0, Utils::String::VA("Invalid critical section state '%i' for stream destruction!", this->criticalSectionState), "WARNING", MB_ICONEXCLAMATION);
+			MessageBoxA(nullptr, Utils::String::VA("Invalid critical section state '%i' for stream destruction!", this->criticalSectionState), "WARNING", MB_ICONEXCLAMATION);
 		}
 	};
 
@@ -137,7 +137,7 @@ namespace Utils
 
 		if (this->isCriticalSection() && this->length() + (size * count) > this->capacity())
 		{
-			MessageBoxA(0, Utils::String::VA("Potential stream reallocation during critical operation detected! Writing data of the length 0x%X exceeds the allocated stream size of 0x%X\n", (size * count), this->capacity()), "ERROR", MB_ICONERROR);
+			MessageBoxA(nullptr, Utils::String::VA("Potential stream reallocation during critical operation detected! Writing data of the length 0x%X exceeds the allocated stream size of 0x%X\n", (size * count), this->capacity()), "ERROR", MB_ICONERROR);
 			__debugbreak();
 		}
 
@@ -145,7 +145,7 @@ namespace Utils
 
 		if (this->data() != data && this->isCriticalSection())
 		{
-			MessageBoxA(0, "Stream reallocation during critical operations not permitted!\nPlease increase the initial memory size or reallocate memory during non-critical sections!", "ERROR", MB_ICONERROR);
+			MessageBoxA(nullptr, "Stream reallocation during critical operations not permitted!\nPlease increase the initial memory size or reallocate memory during non-critical sections!", "ERROR", MB_ICONERROR);
 			__debugbreak();
 		}
 
@@ -337,7 +337,7 @@ namespace Utils
 	{
 		if (this->criticalSectionState < 0)
 		{
-			MessageBoxA(0, "CriticalSectionState in stream has been overrun!", "ERROR", MB_ICONERROR);
+			MessageBoxA(nullptr, "CriticalSectionState in stream has been overrun!", "ERROR", MB_ICONERROR);
 			__debugbreak();
 		}
 

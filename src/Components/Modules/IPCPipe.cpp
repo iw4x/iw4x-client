@@ -24,7 +24,7 @@ namespace Components
 		this->type = IPCTYPE_CLIENT;
 		this->setName(name);
 
-		this->pipe = CreateFileA(this->pipeFile, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		this->pipe = CreateFileA(this->pipeFile, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
 
 		if (INVALID_HANDLE_VALUE == this->pipe)
 		{
@@ -58,7 +58,7 @@ namespace Components
 		this->type = IPCTYPE_SERVER;
 		this->setName(name);
 
-		this->pipe = CreateNamedPipeA(this->pipeFile, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, sizeof(this->packet), sizeof(this->packet), NMPWAIT_USE_DEFAULT_WAIT, NULL);
+		this->pipe = CreateNamedPipeA(this->pipeFile, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, sizeof(this->packet), sizeof(this->packet), NMPWAIT_USE_DEFAULT_WAIT, nullptr);
 
 		if (INVALID_HANDLE_VALUE != this->pipe && this->pipe)
 		{
@@ -97,7 +97,7 @@ namespace Components
 		strcpy_s(_packet.buffer, data.data());
 
 		DWORD cbBytes;
-		return (WriteFile(this->pipe, &_packet, sizeof(_packet), &cbBytes, NULL) || GetLastError() == ERROR_IO_PENDING);
+		return (WriteFile(this->pipe, &_packet, sizeof(_packet), &cbBytes, nullptr) || GetLastError() == ERROR_IO_PENDING);
 	}
 
 	void Pipe::destroy()
@@ -140,7 +140,7 @@ namespace Components
 	{
 		if (!pipe || pipe->type != IPCTYPE_SERVER || pipe->pipe == INVALID_HANDLE_VALUE || !pipe->pipe) return;
 
-		if (ConnectNamedPipe(pipe->pipe, NULL) == FALSE)
+		if (ConnectNamedPipe(pipe->pipe, nullptr) == FALSE)
 		{
 			Logger::Print("Failed to initialize pipe reading.\n");
 			return;
@@ -153,7 +153,7 @@ namespace Components
 
 		while (pipe->threadAttached && pipe->pipe && pipe->pipe != INVALID_HANDLE_VALUE)
 		{
-			BOOL bResult = ReadFile(pipe->pipe, &pipe->packet, sizeof(pipe->packet), &cbBytes, NULL);
+			BOOL bResult = ReadFile(pipe->pipe, &pipe->packet, sizeof(pipe->packet), &cbBytes, nullptr);
 
 			if (bResult && cbBytes)
 			{
@@ -167,7 +167,7 @@ namespace Components
 				Logger::Print("Failed to read from client through pipe\n");
 
 				DisconnectNamedPipe(pipe->pipe);
-				ConnectNamedPipe(pipe->pipe, NULL);
+				ConnectNamedPipe(pipe->pipe, nullptr);
 				pipe->connectCallback();
 			}
 

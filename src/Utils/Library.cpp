@@ -2,9 +2,9 @@
 
 namespace Utils
 {
-	Library::Library(std::string buffer, bool _freeOnDestroy) : freeOnDestroy(_freeOnDestroy), module(nullptr)
+	Library::Library(std::string buffer, bool _freeOnDestroy) : module(nullptr), freeOnDestroy(_freeOnDestroy)
 	{
-		this->module = LoadLibraryExA(buffer.data(), NULL, 0);
+		this->module = LoadLibraryExA(buffer.data(), nullptr, 0);
 	}
 
 	Library::~Library()

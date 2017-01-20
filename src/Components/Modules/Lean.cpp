@@ -37,8 +37,8 @@ namespace Components
 			cmds->buttons |= BUTTON_FLAG_LEANRIGHT;
 		}
 
-		Lean::in_leanleft.wasPressed = 0;
-		Lean::in_leanright.wasPressed = 0;
+		Lean::in_leanleft.wasPressed = false;
+		Lean::in_leanright.wasPressed = false;
 	}
 
 	void __declspec(naked) Lean::CL_CmdButtonsStub()

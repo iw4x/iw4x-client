@@ -12,7 +12,7 @@ namespace Components
 
 	PlayerName::PlayerName()
 	{
-		if (0) // Disabled for now (comment out that line to enable it)
+#if(0) // Disabled for now
 		{
 			for (int i = 0; i < ARRAY_SIZE(PlayerName::PlayerNames); ++i)
 			{
@@ -21,6 +21,7 @@ namespace Components
 
 			Utils::Hook(Game::CL_GetClientName, PlayerName::GetClientName, HOOK_JUMP).install()->quick();
 		}
+#endif
 	}
 
 	PlayerName::~PlayerName()

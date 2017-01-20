@@ -62,7 +62,7 @@ namespace Components
 	{
 		if (Loader::IsPregame())
 		{
-			MessageBoxA(0, "Registering server commands in pregamestate is illegal!", nullptr, MB_ICONERROR);
+			MessageBoxA(nullptr, "Registering server commands in pregamestate is illegal!", nullptr, MB_ICONERROR);
 
 #ifdef DEBUG
 			__debugbreak();

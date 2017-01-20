@@ -12,7 +12,8 @@ namespace Assets
 		{
 			Utils::Stream::Reader reader(builder->getAllocator(), animFile.getBuffer());
 
-			if (reader.read<__int64>() != *reinterpret_cast<__int64*>("IW4xAnim"))
+			__int64 magic = reader.read<__int64>();
+			if (std::memcmp(&magic, "IW4xAnim", 8))
 			{
 				Components::Logger::Error(0, "Reading animation '%s' failed, header is invalid!", name.data());
 			}
