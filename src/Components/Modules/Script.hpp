@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Script : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Script();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Script"; };
+		const char* getName() override { return "Script"; };
 #endif
 
 		static int LoadScriptAndLabel(std::string script, std::string label);

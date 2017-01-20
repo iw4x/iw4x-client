@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IXModelSurfs : public Components::AssetHandler::IAsset

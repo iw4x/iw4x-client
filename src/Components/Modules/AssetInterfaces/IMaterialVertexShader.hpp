@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IMaterialVertexShader : public Components::AssetHandler::IAsset

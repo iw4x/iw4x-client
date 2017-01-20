@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Download : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Download();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Download"; };
+		const char* getName() override { return "Download"; };
 #endif
 
 		static void InitiateClientDownload(std::string mod);
@@ -16,7 +18,7 @@ namespace Components
 		class ClientDownload
 		{
 		public:
-			ClientDownload() : valid(false), running(false), terminateThread(false), totalBytes(0), downBytes(0), lastTimeStamp(0), timeStampBytes(0) {}
+			ClientDownload() : running(false), valid(false), terminateThread(false), totalBytes(0), downBytes(0), lastTimeStamp(0), timeStampBytes(0) {}
 			~ClientDownload() { this->clear(); }
 
 			bool running;

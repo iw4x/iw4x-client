@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class MusicalTalent : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~MusicalTalent();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "MusicalTalent"; };
+		const char* getName() override { return "MusicalTalent"; };
 #endif
 
 		static void Replace(std::string sound, const char* file);

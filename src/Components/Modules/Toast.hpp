@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Toast : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Toast();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Toast"; };
+		const char* getName() override { return "Toast"; };
 #endif
 
 		static void Show(std::string image, std::string title, std::string description, int length);

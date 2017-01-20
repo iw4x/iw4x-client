@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IRawFile : public Components::AssetHandler::IAsset

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Flags : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Flags();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Flags"; };
+		const char* getName() override { return "Flags"; };
 #endif
 
 		static bool HasFlag(std::string flag);

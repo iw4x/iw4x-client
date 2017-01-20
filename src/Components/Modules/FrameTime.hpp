@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class FrameTime : public Component
@@ -6,7 +8,7 @@ namespace Components
 		FrameTime();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "FrameTime"; };
+		const char* getName() override { return "FrameTime"; };
 #endif
 
 	private:

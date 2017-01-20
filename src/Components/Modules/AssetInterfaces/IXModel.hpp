@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IXModel : public Components::AssetHandler::IAsset

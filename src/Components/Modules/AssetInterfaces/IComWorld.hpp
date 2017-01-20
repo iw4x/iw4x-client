@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IComWorld : public Components::AssetHandler::IAsset

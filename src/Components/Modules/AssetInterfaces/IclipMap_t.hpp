@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IclipMap_t : public Components::AssetHandler::IAsset

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IStructuredDataDefSet : public Components::AssetHandler::IAsset

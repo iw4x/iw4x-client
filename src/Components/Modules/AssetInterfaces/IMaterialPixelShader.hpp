@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IMaterialPixelShader : public Components::AssetHandler::IAsset

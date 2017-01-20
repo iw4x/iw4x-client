@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Dedicated : public Component
@@ -9,7 +11,7 @@ namespace Components
 		~Dedicated();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Dedicated"; };
+		const char* getName() override { return "Dedicated"; };
 #endif
 
 		static bool IsEnabled();

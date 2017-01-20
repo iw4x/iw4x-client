@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Window : public Component
@@ -6,7 +8,7 @@ namespace Components
 		Window();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Window"; };
+		const char* getName() override { return "Window"; };
 #endif
 
 		static int Width();

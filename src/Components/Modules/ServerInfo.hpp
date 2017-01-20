@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class ServerInfo : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~ServerInfo();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "ServerInfo"; };
+		const char* getName() override { return "ServerInfo"; };
 #endif
 
 		static Utils::InfoString GetInfo();

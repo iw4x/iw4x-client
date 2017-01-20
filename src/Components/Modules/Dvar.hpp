@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Dvar : public Component
@@ -43,7 +45,7 @@ namespace Components
 		~Dvar();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Dvar"; };
+		const char* getName() override { return "Dvar"; };
 #endif
 
 		static void OnInit(Utils::Slot<Callback> callback);

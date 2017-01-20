@@ -1,3 +1,5 @@
+#pragma once
+
 #define OUTPUT_HEIGHT 250
 #define OUTPUT_MAX_TOP (OUTPUT_HEIGHT - (Console::Height - 2))
 
@@ -10,7 +12,7 @@ namespace Components
 		~Console();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Console"; };
+		const char* getName() override { return "Console"; };
 #endif
 
 		static void SetSkipShutdown();

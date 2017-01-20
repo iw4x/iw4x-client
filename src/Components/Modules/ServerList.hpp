@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class ServerList : public Component
@@ -28,7 +30,7 @@ namespace Components
 		~ServerList();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "ServerList"; };
+		const char* getName() override { return "ServerList"; };
 #endif
 
 		static void Refresh(UIScript::Token);

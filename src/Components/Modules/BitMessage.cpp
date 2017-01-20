@@ -2,10 +2,6 @@
 
 #ifndef DISABLE_BITMESSAGE
 
-#include <Shlwapi.h>
-
-using namespace Utils;
-
 namespace Components
 {
 	std::thread BitMessage::ShutDownThread;
@@ -109,6 +105,9 @@ namespace Components
 					break;
 				case 3: // Reconnecting
 					Logger::Print("%s: Reconnecting\n", node->Ip.data());
+					break;
+
+				default:
 					break;
 				}
 			}

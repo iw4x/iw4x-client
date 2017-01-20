@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IFxEffectDef : public Components::AssetHandler::IAsset

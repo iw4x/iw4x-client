@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class UIFeeder : public Component
@@ -18,7 +20,7 @@ namespace Components
 		~UIFeeder();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "UIFeeder"; };
+		const char* getName() override { return "UIFeeder"; };
 #endif
 
 		static void Add(float feeder, GetItemCount_t itemCountCb, GetItemText_t itemTextCb, Select_t selectCb);

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Localization : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Localization();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Localization"; };
+		const char* getName() override { return "Localization"; };
 #endif
 
 		static void Set(std::string key, std::string value);

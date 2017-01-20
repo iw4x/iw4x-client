@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IMapEnts : public Components::AssetHandler::IAsset

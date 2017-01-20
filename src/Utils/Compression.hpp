@@ -1,3 +1,5 @@
+#pragma once
+
 #define CHUNK 16384
 
 namespace Utils

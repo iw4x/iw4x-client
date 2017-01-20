@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Playlist : public Component
@@ -9,7 +11,7 @@ namespace Components
 		~Playlist();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Playlist"; };
+		const char* getName() override { return "Playlist"; };
 #endif
 
 		static void LoadPlaylist();

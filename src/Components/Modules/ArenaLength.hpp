@@ -6,7 +6,7 @@ namespace Components
 		ArenaLength();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "ArenaLength"; };
+		const char* getName() override { return "ArenaLength"; };
 #endif
 
 		static Game::newMapArena_t NewArenas[128];

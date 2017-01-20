@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IGfxLightDef : public Components::AssetHandler::IAsset

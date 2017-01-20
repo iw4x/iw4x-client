@@ -1,3 +1,5 @@
+#pragma once
+
 // write logs for ZoneBuilder
 //#define WRITE_LOGS
 #ifndef WRITE_LOGS // they take forever to run so only enable if needed

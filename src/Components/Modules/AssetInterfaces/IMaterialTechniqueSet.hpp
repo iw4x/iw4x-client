@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IMaterialTechniqueSet : public Components::AssetHandler::IAsset

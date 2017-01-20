@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Auth : public Component
@@ -7,10 +9,10 @@ namespace Components
 		~Auth();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Auth"; };
+		const char* getName() override { return "Auth"; };
 #endif
 
-		bool unitTest();
+		bool unitTest() override;
 
 		static void StoreKey();
 		static void LoadKey(bool force = false);

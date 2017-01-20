@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class StringTable : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~StringTable();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "StringTable"; };
+		const char* getName() override { return "StringTable"; };
 #endif
 
 	private:

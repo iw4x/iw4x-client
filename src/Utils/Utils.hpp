@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Utils
 {
 	std::string GetMimeType(std::string url);

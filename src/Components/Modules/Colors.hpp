@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Colors : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Colors();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Colors"; };
+		const char* getName() override { return "Colors"; };
 #endif
 
 		static void Strip(const char* in, char* out, int max);

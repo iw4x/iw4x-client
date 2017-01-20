@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class FileSystem : public Component
@@ -19,9 +21,9 @@ namespace Components
 			File() {};
 			File(std::string file) : filePath(file) { this->read(); };
 
-			bool exists() { return !this->buffer.empty(); };
-			std::string getName() { return this->filePath; };
-			std::string& getBuffer() { return this->buffer; };
+			bool exists() override { return !this->buffer.empty(); };
+			std::string getName() override { return this->filePath; };
+			std::string& getBuffer() override { return this->buffer; };
 
 		private:
 			std::string filePath;
@@ -36,9 +38,9 @@ namespace Components
 			RawFile() {};
 			RawFile(std::string file) : filePath(file) { this->read(); };
 
-			bool exists() { return !this->buffer.empty(); };
-			std::string getName() { return this->filePath; };
-			std::string& getBuffer() { return this->buffer; };
+			bool exists() override { return !this->buffer.empty(); };
+			std::string getName() override { return this->filePath; };
+			std::string& getBuffer() override { return this->buffer; };
 
 		private:
 			std::string filePath;
@@ -87,7 +89,7 @@ namespace Components
 		~FileSystem();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "FileSystem"; };
+		const char* getName() override { return "FileSystem"; };
 #endif
 
 		static std::vector<std::string> GetFileList(std::string path, std::string extension);

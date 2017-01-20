@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Bans : public Component
@@ -9,7 +11,7 @@ namespace Components
 		~Bans();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Bans"; };
+		const char* getName() override { return "Bans"; };
 #endif
 
 		static void BanClientNum(int num, std::string reason);

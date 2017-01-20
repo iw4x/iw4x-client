@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class ILoadedSound : public Components::AssetHandler::IAsset

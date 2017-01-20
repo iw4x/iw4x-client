@@ -1,3 +1,5 @@
+#pragma once
+
 #define XFILE_MAGIC_UNSIGNED 0x3030317566665749
 #define XFILE_VERSION 276
 

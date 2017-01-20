@@ -9,6 +9,8 @@
 		Small FTP and HTTP utility class using WinAPI
 */
 
+#pragma once
+
 namespace Utils
 {
 	class WebIO

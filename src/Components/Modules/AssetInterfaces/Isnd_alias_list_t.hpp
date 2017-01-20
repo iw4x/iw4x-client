@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class Isnd_alias_list_t : public Components::AssetHandler::IAsset

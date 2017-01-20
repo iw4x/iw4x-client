@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class AssetHandler : public Component
@@ -21,7 +23,7 @@ namespace Components
 		~AssetHandler();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "AssetHandler"; };
+		const char* getName() override { return "AssetHandler"; };
 #endif
 
 		static void OnFind(Game::XAssetType type, Utils::Slot<Callback> callback);
@@ -70,30 +72,30 @@ namespace Components
 	};
 }
 
-#include "AssetInterfaces\IXModel.hpp"
-#include "AssetInterfaces\IFxWorld.hpp"
-#include "AssetInterfaces\IMapEnts.hpp"
-#include "AssetInterfaces\IRawFile.hpp"
-#include "AssetInterfaces\IComWorld.hpp"
-#include "AssetInterfaces\IGfxImage.hpp"
-#include "AssetInterfaces\IGfxWorld.hpp"
-#include "AssetInterfaces\IMaterial.hpp"
-#include "AssetInterfaces\ISndCurve.hpp"
-#include "AssetInterfaces\IclipMap_t.hpp"
-#include "AssetInterfaces\IPhysPreset.hpp"
-#include "AssetInterfaces\IXAnimParts.hpp"
-#include "AssetInterfaces\IFxEffectDef.hpp"
-#include "AssetInterfaces\IGameWorldMp.hpp"
-#include "AssetInterfaces\IGameWorldSp.hpp"
-#include "AssetInterfaces\IGfxLightDef.hpp"
-#include "AssetInterfaces\ILoadedSound.hpp"
-#include "AssetInterfaces\IPhysCollmap.hpp"
-#include "AssetInterfaces\IStringTable.hpp"
-#include "AssetInterfaces\IXModelSurfs.hpp"
-#include "AssetInterfaces\ILocalizeEntry.hpp"
-#include "AssetInterfaces\Isnd_alias_list_t.hpp"
-#include "AssetInterfaces\IMaterialPixelShader.hpp"
-#include "AssetInterfaces\IMaterialTechniqueSet.hpp"
-#include "AssetInterfaces\IMaterialVertexShader.hpp"
-#include "AssetInterfaces\IStructuredDataDefSet.hpp"
-#include "AssetInterfaces\IMaterialVertexDeclaration.hpp"
+#include "AssetInterfaces/IXModel.hpp"
+#include "AssetInterfaces/IFxWorld.hpp"
+#include "AssetInterfaces/IMapEnts.hpp"
+#include "AssetInterfaces/IRawFile.hpp"
+#include "AssetInterfaces/IComWorld.hpp"
+#include "AssetInterfaces/IGfxImage.hpp"
+#include "AssetInterfaces/IGfxWorld.hpp"
+#include "AssetInterfaces/IMaterial.hpp"
+#include "AssetInterfaces/ISndCurve.hpp"
+#include "AssetInterfaces/IclipMap_t.hpp"
+#include "AssetInterfaces/IPhysPreset.hpp"
+#include "AssetInterfaces/IXAnimParts.hpp"
+#include "AssetInterfaces/IFxEffectDef.hpp"
+#include "AssetInterfaces/IGameWorldMp.hpp"
+#include "AssetInterfaces/IGameWorldSp.hpp"
+#include "AssetInterfaces/IGfxLightDef.hpp"
+#include "AssetInterfaces/ILoadedSound.hpp"
+#include "AssetInterfaces/IPhysCollmap.hpp"
+#include "AssetInterfaces/IStringTable.hpp"
+#include "AssetInterfaces/IXModelSurfs.hpp"
+#include "AssetInterfaces/ILocalizeEntry.hpp"
+#include "AssetInterfaces/Isnd_alias_list_t.hpp"
+#include "AssetInterfaces/IMaterialPixelShader.hpp"
+#include "AssetInterfaces/IMaterialTechniqueSet.hpp"
+#include "AssetInterfaces/IMaterialVertexShader.hpp"
+#include "AssetInterfaces/IStructuredDataDefSet.hpp"
+#include "AssetInterfaces/IMaterialVertexDeclaration.hpp"

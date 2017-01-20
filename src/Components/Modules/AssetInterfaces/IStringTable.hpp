@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IStringTable : public Components::AssetHandler::IAsset

@@ -22,16 +22,16 @@ namespace Components
 
 	bool ConnectProtocol::InstallProtocol()
 	{
-		HKEY hKey = NULL;
+		HKEY hKey = nullptr;
 		std::string data;
 
 		char ownPth[MAX_PATH] = { 0 };
 		char workdir[MAX_PATH] = { 0 };
 
 		DWORD dwsize = MAX_PATH;
-		HMODULE hModule = GetModuleHandle(NULL);
+		HMODULE hModule = GetModuleHandle(nullptr);
 
-		if (hModule != NULL)
+		if (hModule != nullptr)
 		{
 			if (GetModuleFileNameA(hModule, ownPth, MAX_PATH) == ERROR)
 			{
@@ -45,7 +45,7 @@ namespace Components
 			else
 			{
 				char* endPtr = strstr(workdir, "iw4x.exe");
-				if (endPtr != NULL)
+				if (endPtr != nullptr)
 				{
 					*endPtr = 0;
 				}
@@ -68,7 +68,7 @@ namespace Components
 			char regred[MAX_PATH] = { 0 };
 
 			// Check if the game has been moved.
-			openRes = RegQueryValueExA(hKey, 0, 0, 0, reinterpret_cast<BYTE*>(regred), &dwsize);
+			openRes = RegQueryValueExA(hKey, nullptr, 0, 0, reinterpret_cast<BYTE*>(regred), &dwsize);
 			if (openRes == ERROR_SUCCESS)
 			{
 				char* endPtr = strstr(regred, "\" \"%1\"");
@@ -84,7 +84,7 @@ namespace Components
 				RegCloseKey(hKey);
 				if (strcmp(regred + 1, ownPth))
 				{
-					openRes = RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
+					RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
 				}
 				else
 				{
@@ -93,12 +93,12 @@ namespace Components
 			}
 			else
 			{
-				openRes = RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
+				RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
 			}
 		}
 		else
 		{
-			openRes = RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
+			RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
 		}
 
 		// Open SOFTWARE\\Classes

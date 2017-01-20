@@ -1,4 +1,4 @@
-#include <StdInclude.hpp>
+#include "StdInclude.hpp"
 
 #define IW4X_CLIPMAP_VERSION 1
 

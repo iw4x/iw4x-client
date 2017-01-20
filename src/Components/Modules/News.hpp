@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class News : public Component
@@ -7,10 +9,10 @@ namespace Components
 		~News();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "News"; };
+		const char* getName() override { return "News"; };
 #endif
 
-		bool unitTest();
+		bool unitTest() override;
 
 	private:
 		static std::thread Thread;

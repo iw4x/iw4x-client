@@ -1,3 +1,5 @@
+#pragma once
+
 #define NETWORK_MAX_PACKETS_PER_SECOND 100'000
 
 namespace Components
@@ -57,7 +59,7 @@ namespace Components
 		~Network();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Network"; };
+		const char* getName() override { return "Network"; };
 #endif
 
 		static void Handle(std::string packet, Utils::Slot<Callback> callback);

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef DEBUG
 // Hide AntiCheat in embeded symbol names
 #define AntiCheat SubComponent
@@ -12,7 +14,7 @@ namespace Components
 		~AntiCheat();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "AntiCheat"; };
+		const char* getName() override { return "AntiCheat"; };
 #endif
 
 		static void CrashClient();

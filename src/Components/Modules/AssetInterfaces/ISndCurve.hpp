@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class ISndCurve : public Components::AssetHandler::IAsset

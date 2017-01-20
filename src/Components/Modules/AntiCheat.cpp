@@ -33,7 +33,7 @@ namespace Components
 	{
 #ifdef DEBUG_DETECTIONS
 		Logger::Flush();
-		MessageBoxA(0, "Check the log for more information!", "AntiCheat triggered", MB_ICONERROR);
+		MessageBoxA(nullptr, "Check the log for more information!", "AntiCheat triggered", MB_ICONERROR);
 		ExitProcess(0xFFFFFFFF);
 #else
 		static std::thread triggerThread;
@@ -200,7 +200,7 @@ namespace Components
 
 		MessageBoxA(0, Utils::String::VA("Loading library %s via %s %X", std::string(library.begin(), library.end()).data(), buffer, reinterpret_cast<uint32_t>(callee)), 0, 0);
 
-		return LoadLibraryExW(library.data(), NULL, 0);
+		return LoadLibraryExW(library.data(), nullptr, 0);
 	}
 
 	HANDLE WINAPI AntiCheat::LoadLibaryAStub(const char* library)
@@ -357,7 +357,7 @@ namespace Components
 
 		DWORD dwSize = 0;
 		PVOID pTokenInfo = nullptr;
-		if (GetTokenInformation(hToken, TokenUser, NULL, 0, &dwSize) || GetLastError() != ERROR_INSUFFICIENT_BUFFER) return GetLastError();
+		if (GetTokenInformation(hToken, TokenUser, nullptr, 0, &dwSize) || GetLastError() != ERROR_INSUFFICIENT_BUFFER) return GetLastError();
 
 		if (dwSize)
 		{
@@ -458,9 +458,9 @@ namespace Components
 			SE_KERNEL_OBJECT, // process object
 			OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
 			psidCurUser, // NULL, // Owner SID
-			NULL, // Group SID
+			nullptr, // Group SID
 			pDacl,
-			NULL // SACL
+			nullptr // SACL
 		);
 	}
 

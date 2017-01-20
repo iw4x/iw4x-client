@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class QuickPatch : public Component
@@ -9,10 +11,10 @@ namespace Components
 		~QuickPatch();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "QuickPatch"; };
+		const char* getName() override { return "QuickPatch"; };
 #endif
 
-		bool unitTest();
+		bool unitTest() override;
 
 		static void UnlockStats();
 		static void OnShutdown(Utils::Slot<Callback> callback);

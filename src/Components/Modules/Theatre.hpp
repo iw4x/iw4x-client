@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Theatre : public Component
@@ -6,7 +8,7 @@ namespace Components
 		Theatre();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Theatre"; };
+		const char* getName() override { return "Theatre"; };
 #endif
 
 	private:

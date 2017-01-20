@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class FastFiles : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~FastFiles();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "FastFiles"; };
+		const char* getName() override { return "FastFiles"; };
 #endif
 
 		static void AddZonePath(std::string path);

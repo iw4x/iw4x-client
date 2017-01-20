@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Command : public Component
@@ -49,7 +51,7 @@ namespace Components
 		~Command();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Command"; };
+		const char* getName() override { return "Command"; };
 #endif
 
 		static Game::cmd_function_t* Allocate();

@@ -9,33 +9,17 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <windows.h>
-//#include <stdio.h>
-//#include <string.h>
-//#include <wincrypt.h>
-//#include <time.h>
 #include <timeapi.h>
 #include <shellapi.h>
-//#include <shlwapi.h>
-//#include <WinSock2.h>
 #include <Wininet.h>
-//#include <Urlmon.h>
 #include <d3d9.h>
 #include <Aclapi.h>
 
-//#include <map>
-//#include <mutex>
-//#include <string>
-//#include <vector>
 #include <sstream>
 #include <fstream>
-//#include <utility>
-//#include <algorithm>
-//#include <functional>
 #include <cctype>
-//#include <locale>
 #include <regex>
 #include <thread>
-//#include <chrono>
 #include <future>
 #include <queue>
 #include <unordered_map>
@@ -44,7 +28,7 @@
 #include <filesystem>
 
 #ifdef ENABLE_DXSDK
-#include <D3dx9tex.h>
+#include <d3dx9tex.h>
 #pragma comment(lib, "D3dx9.lib")
 #endif
 
@@ -96,29 +80,29 @@ template <size_t S> class Sizer { };
 
 #pragma warning(pop)
 
-#include "Utils\IO.hpp"
-#include "Utils\CSV.hpp"
-#include "Utils\Time.hpp"
-#include "Utils\Cache.hpp"
-#include "Utils\Chain.hpp"
-#include "Utils\Utils.hpp"
-#include "Utils\WebIO.hpp"
-#include "Utils\Memory.hpp"
-#include "Utils\String.hpp"
-#include "Utils\Hooking.hpp"
-#include "Utils\Library.hpp"
-#include "Utils\InfoString.hpp"
-#include "Utils\Compression.hpp"
-#include "Utils\Cryptography.hpp"
+#include "Utils/IO.hpp"
+#include "Utils/CSV.hpp"
+#include "Utils/Time.hpp"
+#include "Utils/Cache.hpp"
+#include "Utils/Chain.hpp"
+#include "Utils/Utils.hpp"
+#include "Utils/WebIO.hpp"
+#include "Utils/Memory.hpp"
+#include "Utils/String.hpp"
+#include "Utils/Hooking.hpp"
+#include "Utils/Library.hpp"
+#include "Utils/InfoString.hpp"
+#include "Utils/Compression.hpp"
+#include "Utils/Cryptography.hpp"
 
-#include "Steam\Steam.hpp"
+#include "Steam/Steam.hpp"
 
-#include "Game\Structs.hpp"
-#include "Game\Functions.hpp"
+#include "Game/Structs.hpp"
+#include "Game/Functions.hpp"
 
-#include "Utils\Stream.hpp"
+#include "Utils/Stream.hpp"
 
-#include "Components\Loader.hpp"
+#include "Components/Loader.hpp"
 
 // Libraries
 #pragma comment(lib, "Winmm.lib")

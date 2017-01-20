@@ -62,7 +62,7 @@ namespace Components
 	{
 		if (Loader::IsPregame())
 		{
-			MessageBoxA(0, "Registering server commands in pregamestate is illegal!", 0, MB_ICONERROR);
+			MessageBoxA(0, "Registering server commands in pregamestate is illegal!", nullptr, MB_ICONERROR);
 
 #ifdef DEBUG
 			__debugbreak();
@@ -237,14 +237,14 @@ namespace Components
 			float pos[3] = { 0.0f, 0.0f, 0.0f };
 			float orientation[3] = { 0.0f, 0.0f, 0.0f };
 			
-			pos[0] = strtof(params->get(1), NULL);
-			pos[1] = strtof(params->get(2), NULL);
-			pos[2] = strtof(params->get(3), NULL);
+			pos[0] = strtof(params->get(1), nullptr);
+			pos[1] = strtof(params->get(2), nullptr);
+			pos[2] = strtof(params->get(3), nullptr);
 			
 			if(params->length() == 6)
 			{
-				orientation[0] = strtof(params->get(4), NULL);
-				orientation[1] = strtof(params->get(5), NULL);
+				orientation[0] = strtof(params->get(4), nullptr);
+				orientation[1] = strtof(params->get(5), nullptr);
 			}
 
 			Game::TeleportPlayer(&Game::g_entities[clientNum], pos, orientation);
@@ -258,7 +258,7 @@ namespace Components
 		{
 			if (params->length() > 1)
 			{
-				ShellExecuteA(NULL, "open", params->get(1), 0, 0, SW_SHOWNORMAL);
+				ShellExecuteA(nullptr, "open", params->get(1), nullptr, nullptr, SW_SHOWNORMAL);
 			}
 		});
 	}

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class ConnectProtocol : public Component
@@ -6,7 +8,7 @@ namespace Components
 		ConnectProtocol();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "ConnectProtocol"; };
+		const char* getName() override { return "ConnectProtocol"; };
 #endif
 
 		static bool IsEvaluated();

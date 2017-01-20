@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef _WIN64
 #define GAMEOVERLAY_LIB "gameoverlayrenderer64.dll"
 #define STEAMCLIENT_LIB "steamclient64.dll"

@@ -37,7 +37,7 @@ namespace Components
 	{
 	public:
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "MinidumpUpload"; };
+		const char* getName() override { return "MinidumpUpload"; };
 #endif
 		MinidumpUpload();
 		~MinidumpUpload();

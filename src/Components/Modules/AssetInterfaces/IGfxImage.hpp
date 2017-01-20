@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IGfxImage : public Components::AssetHandler::IAsset

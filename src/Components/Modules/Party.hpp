@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Party : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Party();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Party"; };
+		const char* getName() override { return "Party"; };
 #endif
 
 		static Network::Address Target();

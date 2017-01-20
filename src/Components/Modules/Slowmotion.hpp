@@ -1,3 +1,5 @@
+#pragma once
+
 #define BUTTON_FLAG_LEANLEFT 0x40
 #define BUTTON_FLAG_LEANRIGHT 0x80
 
@@ -9,7 +11,7 @@ namespace Components
 		SlowMotion();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "SlowMotion"; };
+		const char* getName() override { return "SlowMotion"; };
 #endif
 
 	private:

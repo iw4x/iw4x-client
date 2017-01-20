@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IPhysCollmap : public Components::AssetHandler::IAsset

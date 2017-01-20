@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class StructuredData : public Component
@@ -25,7 +27,7 @@ namespace Components
 		~StructuredData();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "StructuredData"; };
+		const char* getName() override { return "StructuredData"; };
 #endif
 
 	private:

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Discovery : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Discovery();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Discovery"; };
+		const char* getName() override { return "Discovery"; };
 #endif
 
 		static void Perform();

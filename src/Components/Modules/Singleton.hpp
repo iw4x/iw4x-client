@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Singleton : public Component
@@ -6,7 +8,7 @@ namespace Components
 		Singleton();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Singleton"; };
+		const char* getName() override { return "Singleton"; };
 #endif
 
 		static bool IsFirstInstance();

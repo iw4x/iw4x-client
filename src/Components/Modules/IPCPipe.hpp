@@ -1,3 +1,5 @@
+#pragma once
+
 #define IPC_MAX_RECONNECTS 3
 #define IPC_COMMAND_SIZE 100
 #define IPC_BUFFER_SIZE 0x2000
@@ -63,7 +65,7 @@ namespace Components
 		IPCPipe();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "IPCPipe"; };
+		const char* getName() override { return "IPCPipe"; };
 #endif
 
 		static bool Write(std::string command, std::string data);

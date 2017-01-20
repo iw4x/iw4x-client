@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_SOURCEFILES	64
 #undef LoadMenu
 
@@ -10,7 +12,7 @@ namespace Components
 		~Menus();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Menus"; };
+		const char* getName() override { return "Menus"; };
 #endif
 
 		static void FreeEverything();

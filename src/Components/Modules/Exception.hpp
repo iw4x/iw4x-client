@@ -1,4 +1,4 @@
-
+#pragma once
 
 namespace Components
 {
@@ -9,7 +9,7 @@ namespace Components
 		~Exception();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Exception"; };
+		const char* getName() override { return "Exception"; };
 #endif
 		static LPTOP_LEVEL_EXCEPTION_FILTER Hook();
 

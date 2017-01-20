@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Maps : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Maps();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Maps"; };
+		const char* getName() override { return "Maps"; };
 #endif
 
 		static void HandleAsSPMap();

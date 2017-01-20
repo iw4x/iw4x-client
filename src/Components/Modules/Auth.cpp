@@ -109,12 +109,10 @@ namespace Components
 			return;
 		}
 
-		if (address.isLoopback()
-// Simply connect, if we're in debug mode, we ignore all security checks
-#ifdef DEBUG
-			|| true
+		// Simply connect, if we're in debug mode, we ignore all security checks
+#ifndef DEBUG
+		if (address.isLoopback())
 #endif
-			)
 		{
 			if (!connectData.infostring().empty())
 			{
@@ -127,6 +125,7 @@ namespace Components
 				Network::Send(address, "error\nInvalid infostring data!");
 			}
 		}
+#ifndef DEBUG
 		else
 		{
 			// Validate proto data
@@ -204,6 +203,7 @@ namespace Components
 			Logger::Print("Verified XUID %llX (%d) from %s\n", xuid, userLevel, address.getCString());
 			Game::SV_DirectConnect(*address.get());
 		}
+#endif
 	}
 
 	__declspec(naked) void Auth::DirectConnectStub()

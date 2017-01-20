@@ -276,7 +276,7 @@ namespace Components
 
 	Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder, bool isSubAsset)
 	{
-		Game::XAssetHeader header = { 0 };
+		Game::XAssetHeader header = { nullptr };
 		if (type >= Game::XAssetType::ASSET_TYPE_COUNT) return header;
 
 		auto tempPool = &AssetHandler::TemporaryAssets[type];

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Threading : public Component
@@ -6,7 +8,7 @@ namespace Components
 		Threading();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Threading"; };
+		const char* getName() override { return "Threading"; };
 #endif
 
 	private:

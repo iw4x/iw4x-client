@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class ModelSurfs : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~ModelSurfs();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "ModelSurfs"; };
+		const char* getName() override { return "ModelSurfs"; };
 #endif
 
 	private:

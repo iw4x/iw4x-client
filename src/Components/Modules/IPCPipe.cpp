@@ -7,7 +7,7 @@ namespace Components
 
 #pragma region Pipe
 
-	Pipe::Pipe() : type(IPCTYPE_NONE), reconnectAttempt(0), pipe(INVALID_HANDLE_VALUE), connectCallback(0), threadAttached(false)
+	Pipe::Pipe() : connectCallback(0), pipe(INVALID_HANDLE_VALUE), threadAttached(false), type(IPCTYPE_NONE), reconnectAttempt(0)
 	{
 		this->destroy();
 	}

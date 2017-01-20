@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class RCon : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~RCon();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "RCon"; };
+		const char* getName() override { return "RCon"; };
 #endif
 
 	private:

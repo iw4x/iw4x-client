@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class Materials : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~Materials();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "Materials"; };
+		const char* getName() override { return "Materials"; };
 #endif
 
 		static int FormatImagePath(char* buffer, size_t size, int, int, const char* image);

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IMaterialVertexDeclaration : public Components::AssetHandler::IAsset

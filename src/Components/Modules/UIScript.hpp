@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class UIScript : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~UIScript();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "UIScript"; };
+		const char* getName() override { return "UIScript"; };
 #endif
 
 		class Token

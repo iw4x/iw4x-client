@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IXAnimParts : public Components::AssetHandler::IAsset

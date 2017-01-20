@@ -2,8 +2,8 @@
 
 #ifndef DISABLE_BITMESSAGE
 
-#define BITMESSAGE_KEYS_FILENAME std::string("players/bmk.dat")
-#define BITMESSAGE_OBJECT_STORAGE_FILENAME std::string("players/storage.dat")
+#define BITMESSAGE_KEYS_FILENAME "players/bmk.dat"s
+#define BITMESSAGE_OBJECT_STORAGE_FILENAME "players/storage.dat"s
 
 namespace Components
 {
@@ -14,7 +14,7 @@ namespace Components
 		~BitMessage();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "BitMessage"; };
+		const char* getName() override { return "BitMessage"; };
 #endif
 
 		static void SetDefaultTTL(time_t ttl);

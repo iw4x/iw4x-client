@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Assets
 {
 	class IGameWorldMp : public Components::AssetHandler::IAsset

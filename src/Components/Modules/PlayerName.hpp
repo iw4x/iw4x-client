@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class PlayerName : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~PlayerName();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "PlayerName"; };
+		const char* getName() override { return "PlayerName"; };
 #endif
 
 	private:

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Components
 {
 	class ModList : public Component
@@ -7,7 +9,7 @@ namespace Components
 		~ModList();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() { return "ModList"; };
+		const char* getName() override { return "ModList"; };
 #endif
 
 		static void RunMod(std::string mod);
