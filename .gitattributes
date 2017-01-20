@@ -1,3 +1,4 @@
 *.hpp eol=crlf
 *.cpp eol=crlf
 *.lua eol=crlf
+*.proto eol=crlf
