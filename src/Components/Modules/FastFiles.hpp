@@ -62,6 +62,8 @@ namespace Components
 
 		static void LoadZonesStub(Game::XZoneInfo *zoneInfo, unsigned int zoneCount);
 
+#ifdef DEBUG
 		static void LogStreamRead(int len);
+#endif
 	};
 }
