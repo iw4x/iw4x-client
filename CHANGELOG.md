@@ -4,13 +4,33 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.3.1] - 2017-01-21
+
+This is the second public Beta version.
+
+### Added
+
+- Add classic AK-47 to CAC.
+- Add servers to favorites when ingame.
+- Add delete favorites button in the serverlist.
+
+### Changed
+
+- Change maplist to a dynamic list.
+
+### Fixed
+
+- Fix list focus.
+- Fix mod restart loop.
+- Fix mod download status.
+- Fix modelsurf crash.
+- Fix floating AK-74u.
 
 ### Known issues
 
 - IW4x on Linux currently requires gnutls to be installed to access the Tor service via HTTPS.
 
-## [0.3.0] - 2016-01-14
+## [0.3.0] - 2017-01-14
 
 This is the first public Beta version.
 
