@@ -274,12 +274,12 @@ namespace Components
 		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname);
 	}
 
-	void UIFeeder::DoubleClickMapFeeder(const char* dvar_name, const char* name)
+	void UIFeeder::DoubleClickMapFeeder(const char* /*dvar_name*/, const char* /*name*/)
 	{
-		Dvar::Var(dvar_name).set(name);
+		//Game::Dvar_SetStringByName(dvar_name, name);
 
 		// Party_SetDisplayMapName
-		Utils::Hook::Call<void(const char*)>(0x503B50)(name);
+		//Utils::Hook::Call<void(const char*)>(0x503B50)(name);
 
 		Command::Execute("closemenu settings_map", false);
 	}

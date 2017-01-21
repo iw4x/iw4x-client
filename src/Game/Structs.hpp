@@ -3550,7 +3550,7 @@ namespace Game
 	};
 
 #pragma pack(push, 1)
-	struct  XFileHeader
+	struct XFileHeader
 	{
 		unsigned __int64 magic;
 		unsigned int version;
