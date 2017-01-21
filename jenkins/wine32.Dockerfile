@@ -1,7 +1,7 @@
 # Requires a decent modern Docker version (v1.10.x at least ideally)
 
 # Use semi-official Arch Linux image with fixed versioning
-FROM pritunl/archlinux:2016-09-10
+FROM pritunl/archlinux:2017-01-14
 
 # Environment variables
 ENV WINEPREFIX /wine32
