@@ -27,7 +27,7 @@ RUN \
 \
         wine-wrapper wineboot.exe -i &&\
         wget -Ovcredist_x86.exe https://download.microsoft.com/download/d/d/9/dd9a82d0-52ef-40db-8dab-795376989c03/vcredist_x86.exe &&\
-        WINEDEBUG=+all xvfb-run sh -c 'wine-wrapper vcredist_x86.exe /q' &&\
+        WINEDEBUG=+all-trace xvfb-run sh -c 'wine-wrapper vcredist_x86.exe /q' &&\
         rm vcredist_x86.exe &&\
 \
         pacman -Rs --noconfirm \
