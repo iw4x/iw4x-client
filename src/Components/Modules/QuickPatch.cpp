@@ -172,11 +172,6 @@ namespace Components
 		}, nullptr, false);
 	}
 
-	void QuickPatch::testFunc()
-	{
-
-	}
-
 	QuickPatch::QuickPatch()
 	{
 		// protocol version (workaround for hacks)
@@ -445,11 +440,6 @@ namespace Components
 		Command::Add("checkmaterials", [] (Command::Params*)
 		{
 			QuickPatch::CompareMaterialStateBits();
-		});
-
-		Command::Add("test", [](Command::Params*)
-		{
-			QuickPatch::testFunc();
 		});
 
 		// Dvars
