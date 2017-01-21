@@ -5,9 +5,9 @@ namespace Components
 	class UIFeeder : public Component
 	{
 	public:
-		typedef unsigned int(__cdecl * GetItemCount_t)();
-		typedef const char* (__cdecl * GetItemText_t)(unsigned int index, int column);
-		typedef void(__cdecl * Select_t)(unsigned int index);
+		typedef Utils::Slot<unsigned int()> GetItemCount_t;
+		typedef Utils::Slot<const char*(unsigned int /*index*/, int /*column*/)> GetItemText_t;
+		typedef Utils::Slot<void(unsigned int /*index*/)> Select_t;
 
 		struct Callbacks
 		{
@@ -51,9 +51,14 @@ namespace Components
 		static void HandleKeyStub();
 		static void PlaySoundStub();
 
+		static void Select(float feeder, unsigned int index);
+
 		static std::unordered_map<float, Callbacks> Feeders;
 
-		static void ApplyMapFeeder(Game::dvar_t* dvar, int num);
-		static void DoubleClickMapFeeder(const char* dvar_name, const char* name);
+		static unsigned int GetMapCount();
+		static const char* GetMapText(unsigned int index, int column);
+		static void SelectMap(unsigned int index);
+		static void ApplyMap(UIScript::Token token);
+		static void ApplyInitialMap(UIScript::Token token);
 	};
 }

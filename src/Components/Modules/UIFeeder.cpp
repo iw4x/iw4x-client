@@ -32,7 +32,11 @@ namespace Components
 
 	bool UIFeeder::SetItemSelection()
 	{
-		if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
+		if(UIFeeder::Current.feeder == 4.0f)
+		{
+			return true;
+		}
+		else if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
 		{
 			UIFeeder::Feeders[UIFeeder::Current.feeder].select(UIFeeder::Current.index);
 			return true;
@@ -251,43 +255,105 @@ namespace Components
 		}
 	}
 
-	void UIFeeder::ApplyMapFeeder(Game::dvar_t* dvar, int num)
+	void UIFeeder::Select(float feeder, unsigned int index)
 	{
-		Dvar::Var(dvar).set(num);
-
-		if (num < 0 || num >= *Game::arenaCount)
+		if(Game::uiContext->openMenuCount > 0)
 		{
-			num = 0;
+			Game::menuDef_t* menu = Game::uiContext->menuStack[Game::uiContext->openMenuCount - 1];
+
+			if (menu && menu->items)
+			{
+				for (int i = 0; i < menu->itemCount; ++i)
+				{
+					Game::itemDef_t* item = menu->items[i];
+					if (item && item->type == 6 && item->special == feeder)
+					{
+						item->cursorPos = static_cast<int>(index);
+						break;
+					}
+				}
+			}
 		}
-
-		// UI_SortArenas
-		Utils::Hook::Call<void()>(0x630AE0)();
-
-		int index = reinterpret_cast<int*>(0x633E934)[num];
-		const char* mapname = ArenaLength::NewArenas[index].mapName;
-		const char* description = ArenaLength::NewArenas[index].description;
-
-		Dvar::Var("ui_mapname").set(mapname);
-		Dvar::Var("ui_map_desc").set(Game::SEH_StringEd_GetString(description));
-
-		// Party_SetDisplayMapName
-		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname);
 	}
 
-	void UIFeeder::DoubleClickMapFeeder(const char* /*dvar_name*/, const char* /*name*/)
+	unsigned int UIFeeder::GetMapCount()
 	{
-		//Game::Dvar_SetStringByName(dvar_name, name);
+		Game::UI_UpdateArenas();
+		Game::UI_SortArenas();
+		return *Game::arenaCount;
+	}
 
-		// Party_SetDisplayMapName
-		//Utils::Hook::Call<void(const char*)>(0x503B50)(name);
+	const char* UIFeeder::GetMapText(unsigned int index, int /*column*/)
+	{
+		Game::UI_UpdateArenas();
+		Game::UI_SortArenas();
 
-		Command::Execute("closemenu settings_map", false);
+		if (index < static_cast<unsigned int>(*Game::arenaCount))
+		{
+			return Game::SEH_StringEd_GetString(ArenaLength::NewArenas[reinterpret_cast<int*>(0x633E934)[index]].uiName);
+		}
+
+		return "";
+	}
+
+	void UIFeeder::SelectMap(unsigned int index)
+	{
+		Game::UI_UpdateArenas();
+		Game::UI_SortArenas();
+
+		if (index < static_cast<unsigned int>(*Game::arenaCount))
+		{
+			index = reinterpret_cast<int*>(0x633E934)[index];
+			const char* mapname = ArenaLength::NewArenas[index].mapName;
+			const char* longname = ArenaLength::NewArenas[index].uiName;
+			const char* description = ArenaLength::NewArenas[index].description;
+
+			Dvar::Var("ui_map_name").set(mapname);
+			Dvar::Var("ui_map_long").set(Game::SEH_StringEd_GetString(longname));
+			Dvar::Var("ui_map_desc").set(Game::SEH_StringEd_GetString(description));
+		}
+	}
+
+	void UIFeeder::ApplyMap(UIScript::Token)
+	{
+		std::string mapname = Dvar::Var("ui_map_name").get<std::string>();
+
+		Dvar::Var("ui_mapname").set(mapname);
+		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname.data()); // Party_SetDisplayMapName
+	}
+
+	void UIFeeder::ApplyInitialMap(UIScript::Token)
+	{
+		std::string mapname = Dvar::Var("ui_mapname").get<std::string>();
+
+		Game::UI_UpdateArenas();
+		Game::UI_SortArenas();
+
+		for(unsigned int i = 0; i < static_cast<unsigned int>(*Game::arenaCount); ++i)
+		{
+			if(ArenaLength::NewArenas[i].mapName == mapname)
+			{
+				for (unsigned int j = 0; j < static_cast<unsigned int>(*Game::arenaCount); ++j)
+				{
+					if (reinterpret_cast<unsigned int*>(0x633E934)[j] == i)
+					{
+						UIFeeder::SelectMap(j);
+						UIFeeder::Select(5.0f, j);
+						break;
+					}
+				}
+
+				break;
+			}
+		}
 	}
 
 	UIFeeder::UIFeeder()
 	{
 		Dvar::OnInit([]()
 		{
+			Dvar::Register<const char*>("ui_map_long", "Afghan", Game::dvar_flag::DVAR_FLAG_NONE, "");
+			Dvar::Register<const char*>("ui_map_name", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "");
 			Dvar::Register<const char*>("ui_map_desc", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
 		});
 
@@ -315,9 +381,10 @@ namespace Components
 		// some thing overwriting feeder 2's data
 		Utils::Hook::Set<BYTE>(0x4A06A9, 0xEB);
 
-		// correct feeder 4
-		Utils::Hook(0x4C260E, UIFeeder::ApplyMapFeeder, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4E304D, UIFeeder::DoubleClickMapFeeder, HOOK_CALL).install()->quick();
+		// Use feeder 5 for maps, as feeder 4 selects on mouse over
+		UIFeeder::Add(5.0f, UIFeeder::GetMapCount, UIFeeder::GetMapText, UIFeeder::SelectMap);
+		UIScript::Add("ApplyMap", UIFeeder::ApplyMap);
+		UIScript::Add("ApplyInitialMap", UIFeeder::ApplyInitialMap);
 
 		// Fix feeder focus
 		//Utils::Hook::Nop(0x63B1DD, 2); // Flag 4 check (WINDOW_VISIBLE)

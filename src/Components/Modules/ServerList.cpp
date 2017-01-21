@@ -58,13 +58,13 @@ namespace Components
 
 		if (info)
 		{
-			return ServerList::GetServerText(info, column);
+			return ServerList::GetServerInfoText(info, column);
 		}
 
 		return "";
 	}
 
-	const char* ServerList::GetServerText(ServerList::ServerInfo* server, int column)
+	const char* ServerList::GetServerInfoText(ServerList::ServerInfo* server, int column)
 	{
 		if (!server) return "";
 
@@ -547,8 +547,8 @@ namespace Components
 				return ((info1->clients - info2->clients) * (ServerList::SortAsc ? 1 : -1));
 			}
 
-			std::string text1 = Colors::Strip(ServerList::GetServerText(info1, ServerList::SortKey));
-			std::string text2 = Colors::Strip(ServerList::GetServerText(info2, ServerList::SortKey));
+			std::string text1 = Colors::Strip(ServerList::GetServerInfoText(info1, ServerList::SortKey));
+			std::string text2 = Colors::Strip(ServerList::GetServerInfoText(info2, ServerList::SortKey));
 
 			// ASCII-based comparison
 			return (text1.compare(text2) * (ServerList::SortAsc ? 1 : -1));
