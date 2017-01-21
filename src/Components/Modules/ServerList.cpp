@@ -339,8 +339,6 @@ namespace Components
 			}
 		}
 
-		servers.push_back(server);
-
 		json11::Json data = json11::Json(servers);
 		Utils::IO::WriteFile("players/favourites.json", data.dump());
 

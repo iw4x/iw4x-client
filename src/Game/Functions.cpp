@@ -471,9 +471,12 @@ namespace Game
 
 	void MessageBox(std::string message, std::string title)
 	{
-		Dvar_SetStringByName("com_errorMessage", message.data());
-		Dvar_SetStringByName("com_errorTitle", title.data());
-		Cbuf_AddText(0, "openmenu error_popmenu_lobby");
+		if (!Game::CL_IsCgameInitialized())
+		{
+			Dvar_SetStringByName("com_errorMessage", message.data());
+			Dvar_SetStringByName("com_errorTitle", title.data());
+			Cbuf_AddText(0, "openmenu error_popmenu_lobby");
+		}
 	}
 
 	unsigned int R_HashString(const char* string)
