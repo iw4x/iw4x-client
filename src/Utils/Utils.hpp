@@ -34,18 +34,21 @@ namespace Utils
 	public:
 		void connect(Slot<T> slot)
 		{
-			slots.push_back(slot);
+			this->slots.push_back(slot);
 		}
 
 		void clear()
 		{
-			slots.clear();
+			this->slots.clear();
 		}
 
 		template <class ...Args>
 		void operator()(Args&&... args) const
 		{
-			for (auto& slot : slots)
+			std::vector<Slot<T>> copiedSlots;
+			Utils::Merge(&copiedSlots, this->slots);
+
+			for (auto slot : copiedSlots)
 			{
 				slot(std::forward<Args>(args)...);
 			}

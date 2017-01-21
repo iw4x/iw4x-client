@@ -17,16 +17,16 @@ namespace Components
 			pushad
 			call Renderer::FrameHandler
 			popad
+
 			jmp Renderer::DrawFrameHook.original
 		}
 	}
 
 	void Renderer::FrameHandler()
 	{
-		auto copy = Renderer::FrameSignal;
-		copy();
+		Renderer::FrameSignal();
 
-		copy = Renderer::FrameOnceSignal;
+		auto copy = Renderer::FrameOnceSignal;
 		Renderer::FrameOnceSignal.clear();
 		copy();
 	}
