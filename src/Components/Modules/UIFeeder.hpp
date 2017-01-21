@@ -54,5 +54,6 @@ namespace Components
 		static std::unordered_map<float, Callbacks> Feeders;
 
 		static void ApplyMapFeeder(Game::dvar_t* dvar, int num);
+		static void DoubleClickMapFeeder(const char* dvar_name, const char* name);
 	};
 }

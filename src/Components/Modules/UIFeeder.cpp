@@ -264,11 +264,24 @@ namespace Components
 		Utils::Hook::Call<void()>(0x630AE0)();
 
 		const char* mapname = ArenaLength::NewArenas[reinterpret_cast<int*>(0x633E934)[num]].mapName;
+		const char* description = ArenaLength::NewArenas[reinterpret_cast<int*>(0x633E934)[num]].description;
 
 		Dvar::Var("ui_mapname").set(mapname);
+		// this doesnt work for some reason
+		//Dvar::Var("ui_info_desc").set(description);
 
 		// Party_SetDisplayMapName
 		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname);
+	}
+
+	void UIFeeder::DoubleClickMapFeeder(const char* dvar_name, const char* name)
+	{
+		Dvar::Var(dvar_name).set(name);
+
+		// Party_SetDisplayMapName
+		Utils::Hook::Call<void(const char*)>(0x503B50)(name);
+
+		Command::Execute("closemenu settings_map", false);
 	}
 
 	UIFeeder::UIFeeder()
@@ -299,6 +312,7 @@ namespace Components
 
 		// correct feeder 4
 		Utils::Hook(0x4C260E, UIFeeder::ApplyMapFeeder, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4E304D, UIFeeder::DoubleClickMapFeeder, HOOK_CALL).install()->quick();
 
 		// Fix feeder focus
 		//Utils::Hook::Nop(0x63B1DD, 2); // Flag 4 check (WINDOW_VISIBLE)
