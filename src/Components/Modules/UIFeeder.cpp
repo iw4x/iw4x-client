@@ -263,12 +263,12 @@ namespace Components
 		// UI_SortArenas
 		Utils::Hook::Call<void()>(0x630AE0)();
 
-		const char* mapname = ArenaLength::NewArenas[reinterpret_cast<int*>(0x633E934)[num]].mapName;
-		const char* description = ArenaLength::NewArenas[reinterpret_cast<int*>(0x633E934)[num]].description;
+		int index = reinterpret_cast<int*>(0x633E934)[num];
+		const char* mapname = ArenaLength::NewArenas[index].mapName;
+		const char* description = ArenaLength::NewArenas[index].description;
 
 		Dvar::Var("ui_mapname").set(mapname);
-		// this doesnt work for some reason
-		//Dvar::Var("ui_info_desc").set(description);
+		Dvar::Var("ui_map_desc").set(Game::SEH_StringEd_GetString(description));
 
 		// Party_SetDisplayMapName
 		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname);
@@ -286,6 +286,11 @@ namespace Components
 
 	UIFeeder::UIFeeder()
 	{
+		Dvar::OnInit([]()
+		{
+			Dvar::Register<const char*>("ui_map_desc", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
+		});
+
 		// Get feeder item count
 		Utils::Hook(0x41A0D0, UIFeeder::GetItemCountStub, HOOK_JUMP).install()->quick();
 
