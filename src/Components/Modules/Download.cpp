@@ -11,9 +11,12 @@ namespace Components
 	{
 		if (Download::CLDownload.running) return;
 
-		Localization::SetTemp("MPUI_EST_TIME_LEFT", Utils::String::FormatTimeSpan(0));
-		Localization::SetTemp("MPUI_PROGRESS_DL", "(0/0) %");
-		Localization::SetTemp("MPUI_TRANS_RATE", "0.0 MB/s");
+		QuickPatch::Once([]()
+		{
+			Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(0));
+			Dvar::Var("ui_dl_progress").set("(0/0) %");
+			Dvar::Var("ui_dl_transRate").set("0.0 MB/s");
+		});
 
 		Command::Execute("openmenu mod_download_popmenu", false);
 
@@ -93,7 +96,22 @@ namespace Components
 				progress = (100.0 / fDownload->download->totalBytes) * fDownload->download->downBytes;
 			}
 
-			Localization::SetTemp("MPUI_PROGRESS_DL", Utils::String::VA("(%d/%d) %d%%", fDownload->index + 1, fDownload->download->files.size(), static_cast<unsigned int>(progress)));
+			static unsigned int dlIndex, dlSize, dlProgress;
+			dlIndex = fDownload->index + 1;
+			dlSize = fDownload->download->files.size();
+			dlProgress = static_cast<unsigned int>(progress);
+
+			static bool framePushed = false;
+
+			if (!framePushed)
+			{
+				framePushed = true;
+				QuickPatch::Once([]()
+				{
+					framePushed = false;
+					Dvar::Var("ui_dl_progress").set(Utils::String::VA("(%d/%d) %d%%", dlIndex, dlSize, dlProgress));
+				});
+			}
 
 			int delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp;
 			if (delta > 300)
@@ -112,8 +130,17 @@ namespace Components
 
 				if (doFormat)
 				{
-					Localization::SetTemp("MPUI_EST_TIME_LEFT", Utils::String::FormatTimeSpan(timeLeft));
-					Localization::SetTemp("MPUI_TRANS_RATE", Utils::String::FormatBandwidth(fDownload->download->timeStampBytes, delta));
+					static size_t dlTsBytes;
+					static int dlDelta, dlTimeLeft;
+					dlTimeLeft = timeLeft;
+					dlDelta = delta;
+					dlTsBytes = fDownload->download->timeStampBytes;
+
+					QuickPatch::Once([]()
+					{
+						Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(dlTimeLeft));
+						Dvar::Var("ui_dl_transRate").set(Utils::String::FormatBandwidth(dlTsBytes, dlDelta));
+					});
 				}
 
 				fDownload->download->timeStampBytes = 0;
@@ -222,7 +249,8 @@ namespace Components
 
 		if (download->terminateThread) return;
 
-		std::string mod = download->mod;
+		static std::string mod;
+		mod = download->mod;
 
 		for (unsigned int i = 0; i < download->files.size(); ++i)
 		{
@@ -236,11 +264,11 @@ namespace Components
 				download->thread.detach();
 				download->clear();
 
-				QuickPatch::Once([mod] ()
+				QuickPatch::Once([] ()
 				{
 					Dvar::Var("partyend_reason").set(mod);
+					mod.clear();
 
-					Localization::ClearTemp();
 					Command::Execute("closemenu mod_download_popmenu");
 					Command::Execute("openmenu menu_xboxlive_partyended");
 				});
@@ -255,13 +283,13 @@ namespace Components
 		download->clear();
 
 		// Run this on the main thread
-		QuickPatch::Once([mod] ()
+		QuickPatch::Once([] ()
 		{
 			auto fsGame = Dvar::Var("fs_game");
 			fsGame.set(mod);
 			fsGame.get<Game::dvar_t*>()->modified = true;
+			mod.clear();
 
-			Localization::ClearTemp();
 			Command::Execute("closemenu mod_download_popmenu", false);
 
 			if (Dvar::Var("cl_modVidRestart").get<bool>())
@@ -585,6 +613,13 @@ namespace Components
 		}
 		else
 		{
+			Dvar::OnInit([]()
+			{
+				Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
+				Dvar::Register<const char*>("ui_dl_progress", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
+				Dvar::Register<const char*>("ui_dl_transRate", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
+			});
+
 			UIScript::Add("mod_download_cancel", [] (UIScript::Token)
 			{
 				Download::CLDownload.clear();

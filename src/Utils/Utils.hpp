@@ -32,14 +32,36 @@ namespace Utils
 	class Signal
 	{
 	public:
+		Signal()
+		{
+			this->slots.clear();
+		}
+
+		Signal(Signal& obj) : Signal()
+		{
+			Utils::Merge(&this->slots, obj.getSlots());
+		}
+
 		void connect(Slot<T> slot)
 		{
-			this->slots.push_back(slot);
+			if (slot)
+			{
+				this->slots.push_back(slot);
+			}
+			else
+			{
+				__debugbreak();
+			}
 		}
 
 		void clear()
 		{
 			this->slots.clear();
+		}
+
+		std::vector<Slot<T>>& getSlots()
+		{
+			return this->slots;
 		}
 
 		template <class ...Args>
@@ -50,7 +72,10 @@ namespace Utils
 
 			for (auto slot : copiedSlots)
 			{
-				slot(std::forward<Args>(args)...);
+				if (slot)
+				{
+					slot(std::forward<Args>(args)...);
+				}
 			}
 		}
 

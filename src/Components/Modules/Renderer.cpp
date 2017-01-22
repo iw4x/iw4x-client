@@ -26,7 +26,7 @@ namespace Components
 	{
 		Renderer::FrameSignal();
 
-		auto copy = Renderer::FrameOnceSignal;
+		Utils::Signal<Renderer::Callback> copy(Renderer::FrameOnceSignal);
 		Renderer::FrameOnceSignal.clear();
 		copy();
 	}
