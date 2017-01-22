@@ -7,26 +7,32 @@ namespace Steam
 	std::map<uint64_t, Callbacks::Base*> Callbacks::ResultHandlers;
 	std::vector<Callbacks::Result> Callbacks::Results;
 	std::vector<Callbacks::Base*> Callbacks::CallbackList;
+	std::recursive_mutex Callbacks::Mutex;
 
 	uint64_t Callbacks::RegisterCall()
 	{
+		std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
 		Callbacks::Calls[++Callbacks::CallID] = false;
 		return Callbacks::CallID;
 	}
 
 	void Callbacks::RegisterCallback(Callbacks::Base* handler, int callback)
 	{
+		std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
 		handler->SetICallback(callback);
 		Callbacks::CallbackList.push_back(handler);
 	}
 
 	void Callbacks::RegisterCallResult(uint64_t call, Callbacks::Base* result)
 	{
+		std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
 		Callbacks::ResultHandlers[call] = result;
 	}
 
 	void Callbacks::ReturnCall(void* data, int size, int type, uint64_t call)
 	{
+		std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
+
 		Callbacks::Result result;
 
 		Callbacks::Calls[call] = true;
@@ -41,7 +47,12 @@ namespace Steam
 
 	void Callbacks::RunCallbacks()
 	{
-		for (auto result : Callbacks::Results)
+		std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
+
+		auto results = Callbacks::Results;
+		Callbacks::Results.clear();
+
+		for (auto result : results)
 		{
 			if (Callbacks::ResultHandlers.find(result.call) != Callbacks::ResultHandlers.end())
 			{
@@ -56,6 +67,19 @@ namespace Steam
 				}
 			}
 
+			if (result.data)
+			{
+				::Utils::Memory::Free(result.data);
+			}
+		}
+	}
+
+	void Callbacks::Uninitialize()
+	{
+		std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
+
+		for (auto result : Callbacks::Results)
+		{
 			if (result.data)
 			{
 				::Utils::Memory::Free(result.data);
@@ -111,6 +135,7 @@ namespace Steam
 		void SteamAPI_Shutdown()
 		{
 			Proxy::Uninititalize();
+			Callbacks::Uninitialize();
 		}
 
 		void SteamAPI_UnregisterCallResult()

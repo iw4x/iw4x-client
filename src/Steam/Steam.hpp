@@ -81,12 +81,15 @@ namespace Steam
 		static void ReturnCall(void* data, int size, int type, uint64_t call);
 		static void RunCallbacks();
 
+		static void Uninitialize();
+
 	private:
 		static uint64_t CallID;
 		static std::map<uint64_t, bool> Calls;
 		static std::map<uint64_t, Base*> ResultHandlers;
 		static std::vector<Result> Results;
 		static std::vector<Base*> CallbackList;
+		static std::recursive_mutex Mutex;
 	};
 
 	STEAM_EXPORT bool SteamAPI_Init();

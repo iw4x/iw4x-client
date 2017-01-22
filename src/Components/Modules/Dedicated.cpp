@@ -289,6 +289,9 @@ namespace Components
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) // Run zonebuilder as dedi :P
 		{
+			// Make sure all callbacks are handled
+			Dedicated::OnFrame(Steam::SteamAPI_RunCallbacks);
+
 			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't act as node");
 
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();

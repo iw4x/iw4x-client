@@ -26,9 +26,12 @@ namespace Components
 
 		static bool IsPregame();
 
+		static Utils::Memory::Allocator* GetAlloctor();
+
 	private:
 		static bool Pregame;
 		static std::vector<Component*> Components;
+		static Utils::Memory::Allocator MemAllocator;
 	};
 }
 

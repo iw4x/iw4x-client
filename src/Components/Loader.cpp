@@ -4,6 +4,7 @@ namespace Components
 {
 	bool Loader::Pregame = true;
 	std::vector<Component*> Loader::Components;
+	Utils::Memory::Allocator Loader::MemAllocator;
 
 	bool Loader::IsPregame()
 	{
@@ -13,6 +14,7 @@ namespace Components
 	void Loader::Initialize()
 	{
 		Loader::Pregame = true;
+		Loader::MemAllocator.clear();
 
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
@@ -97,6 +99,7 @@ namespace Components
 		}
 
 		Loader::Components.clear();
+		Loader::MemAllocator.clear();
 	}
 
 	bool Loader::PerformUnitTests()
@@ -141,5 +144,10 @@ namespace Components
 #endif
 			Loader::Components.push_back(component);
 		}
+	}
+
+	Utils::Memory::Allocator* Loader::GetAlloctor()
+	{
+		return &Loader::MemAllocator;
 	}
 }

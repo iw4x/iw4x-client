@@ -250,6 +250,7 @@ namespace Components
 		delwin(Console::InputWindow);
 		delwin(Console::InfoWindow);
 		endwin();
+		delscreen(SP);
 
 		Console::OutputWindow = nullptr;
 		Console::InputWindow = nullptr;

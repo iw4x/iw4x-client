@@ -42,6 +42,8 @@ namespace Main
 	void Uninitialize()
 	{
 		Components::Loader::Uninitialize();
+		Utils::Cache::Uninitialize();
+		google::protobuf::ShutdownProtobufLibrary();
 	}
 }
 
