@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ## [Unreleased]
 
+This is the third public Beta version.
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix missing models on village.
+
+### Known issues
+
+- IW4x on Linux currently requires gnutls to be installed to access the Tor service via HTTPS.
+
 ## [0.3.1] - 2017-01-21
 
 This is the second public Beta version.
