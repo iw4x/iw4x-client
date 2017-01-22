@@ -8,6 +8,9 @@
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 
+// Requires Visual Leak Detector plugin: http://vld.codeplex.com/
+//#include <vld.h>
+
 #include <windows.h>
 #include <timeapi.h>
 #include <shellapi.h>
