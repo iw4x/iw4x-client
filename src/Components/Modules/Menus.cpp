@@ -627,7 +627,7 @@ namespace Components
 		// Use the connect menu open call to update server motds
 		Utils::Hook(0x428E48, []()
 		{
-			if (!Party::GetMotd().empty())
+			if (!Party::GetMotd().empty() && Party::Target() == *Game::connectedHost)
 			{
 				Dvar::Var("didyouknow").set(Party::GetMotd());
 			}
