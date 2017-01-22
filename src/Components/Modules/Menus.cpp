@@ -28,6 +28,7 @@ namespace Components
 	Game::script_t* Menus::LoadMenuScript(std::string name, std::string buffer)
 	{
 		Game::script_t* script = Game::Script_Alloc(sizeof(Game::script_t) + 1 + buffer.length());
+		if (!script) return nullptr;
 
 		strcpy_s(script->filename, sizeof(script->filename), name.data());
 		script->buffer = reinterpret_cast<char*>(script + 1);
@@ -266,11 +267,7 @@ namespace Components
 
 		for (int i = 0; i < menuList->menuCount; ++i)
 		{
-			if (!menuList->menus[i])
-			{
-				continue;
-			}
-
+			if (!menuList->menus[i]) continue;
 			Utils::Merge(&menus, Menus::LoadMenu(menuList->menus[i]));
 		}
 
