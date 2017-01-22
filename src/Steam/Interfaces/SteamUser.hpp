@@ -4,9 +4,6 @@ namespace Steam
 {
 	class User
 	{
-	protected:
-		~User() = default;
-
 	public:
 		virtual int GetHSteamUser();
 		virtual bool LoggedOn();

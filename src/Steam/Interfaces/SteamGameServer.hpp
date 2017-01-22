@@ -4,9 +4,6 @@ namespace Steam
 {
 	class GameServer
 	{
-	protected:
-		~GameServer() = default;
-
 	public:
 		virtual void LogOn();
 		virtual void LogOff();
