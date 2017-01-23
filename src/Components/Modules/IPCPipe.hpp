@@ -38,6 +38,8 @@ namespace Components
 		void setCallback(std::string command, Utils::Slot<PacketCallback> callback);
 		void onConnect(Callback callback);
 
+		void destroy();
+
 	private:
 		Utils::Slot<void()> connectCallback;
 		std::map<std::string, Utils::Slot<PacketCallback>> packetCallbacks;
@@ -53,7 +55,6 @@ namespace Components
 		char pipeFile[MAX_PATH];
 		unsigned int reconnectAttempt;
 
-		void destroy();
 		void setName(std::string name);
 
 		static void ReceiveThread(Pipe* pipe);
@@ -67,6 +68,8 @@ namespace Components
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* getName() override { return "IPCPipe"; };
 #endif
+
+		void preDestroy() override;
 
 		static bool Write(std::string command, std::string data);
 		static void On(std::string command, Utils::Slot<Pipe::PacketCallback> callback);

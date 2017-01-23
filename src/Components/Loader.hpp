@@ -12,6 +12,10 @@ namespace Components
 		virtual const char* getName() { return "Unknown"; };
 #endif
 
+		// It's illegal to spawn threads in DLLMain, and apparently it causes problems if they are destroyed there as well.
+		// This method is called before DLLMain (if possible) and should to destroy threads.
+		// It's not 100% guaranteed that it's called outside DLLMain, as it depends on the game, but it's 100% guaranteed, that it is called at all.
+		virtual void preDestroy() {};
 		virtual bool unitTest() { return true; }; // Unit testing entry
 	};
 
@@ -20,6 +24,7 @@ namespace Components
 	public:
 		static void Initialize();
 		static void Uninitialize();
+		static void PreDestroy();
 		static bool PerformUnitTests();
 		static bool PerformingUnitTests();
 		static void Register(Component* component);
@@ -30,6 +35,7 @@ namespace Components
 
 	private:
 		static bool Pregame;
+		static bool Postgame;
 		static std::vector<Component*> Components;
 		static Utils::Memory::Allocator MemAllocator;
 	};

@@ -191,6 +191,11 @@ namespace Components
 
 	News::~News()
 	{
+
+	}
+
+	void News::preDestroy()
+	{
 		News::Terminate = true;
 
 		if (News::Thread.joinable())

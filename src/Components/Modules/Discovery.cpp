@@ -99,6 +99,11 @@ namespace Components
 
 	Discovery::~Discovery()
 	{
+
+	}
+
+	void Discovery::preDestroy()
+	{
 		Discovery::IsPerforming = false;
 		Discovery::IsTerminating = true;
 

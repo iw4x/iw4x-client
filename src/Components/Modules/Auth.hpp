@@ -12,6 +12,7 @@ namespace Components
 		const char* getName() override { return "Auth"; };
 #endif
 
+		void preDestroy() override;
 		bool unitTest() override;
 
 		static void StoreKey();

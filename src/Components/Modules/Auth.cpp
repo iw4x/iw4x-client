@@ -439,6 +439,11 @@ namespace Components
 
 	Auth::~Auth()
 	{
+		Auth::StoreKey();
+	}
+
+	void Auth::preDestroy()
+	{
 		Auth::TokenContainer.cancel = true;
 		Auth::TokenContainer.generating = false;
 
@@ -447,8 +452,6 @@ namespace Components
 		{
 			Auth::TokenContainer.thread.join();
 		}
-
-		Auth::StoreKey();
 	}
 
 	bool Auth::unitTest()

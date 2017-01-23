@@ -12,6 +12,8 @@ namespace Components
 		const char* getName() override { return "Download"; };
 #endif
 
+		void preDestroy() override;
+
 		static void InitiateClientDownload(std::string mod);
 
 	private:

@@ -3,6 +3,7 @@
 namespace Components
 {
 	bool Loader::Pregame = true;
+	bool Loader::Postgame = false;
 	std::vector<Component*> Loader::Components;
 	Utils::Memory::Allocator Loader::MemAllocator;
 
@@ -14,6 +15,7 @@ namespace Components
 	void Loader::Initialize()
 	{
 		Loader::Pregame = true;
+		Loader::Postgame = false;
 		Loader::MemAllocator.clear();
 
 		Loader::Register(new Flags());
@@ -86,6 +88,8 @@ namespace Components
 
 	void Loader::Uninitialize()
 	{
+		Loader::PreDestroy();
+
 		std::reverse(Loader::Components.begin(), Loader::Components.end());
 		for (auto component : Loader::Components)
 		{
@@ -100,6 +104,20 @@ namespace Components
 
 		Loader::Components.clear();
 		Loader::MemAllocator.clear();
+	}
+
+	void Loader::PreDestroy()
+	{
+		if(!Loader::Postgame)
+		{
+			Loader::Postgame = true;
+
+			std::reverse(Loader::Components.begin(), Loader::Components.end());
+			for (auto component : Loader::Components)
+			{
+				component->preDestroy();
+			}
+		}
 	}
 
 	bool Loader::PerformUnitTests()

@@ -174,6 +174,9 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
+		// Make sure preDestroy is called when the game shuts down
+		QuickPatch::OnShutdown(Loader::PreDestroy);
+
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
 

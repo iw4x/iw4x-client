@@ -12,6 +12,8 @@ namespace Components
 		const char* getName() override { return "Discovery"; };
 #endif
 
+		void preDestroy() override;
+
 		static void Perform();
 
 	private:

@@ -234,4 +234,10 @@ namespace Components
 			IPCPipe::Write("ping", "");
 		});
 	}
+
+	void IPCPipe::preDestroy()
+	{
+		//IPCPipe::ServerPipe.destroy();
+		//IPCPipe::ClientPipe.destroy();
+	}
 }

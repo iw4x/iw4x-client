@@ -12,6 +12,7 @@ namespace Components
 		const char* getName() override { return "News"; };
 #endif
 
+		void preDestroy() override;
 		bool unitTest() override;
 
 	private:

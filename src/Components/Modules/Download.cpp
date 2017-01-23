@@ -633,7 +633,11 @@ namespace Components
 		{
 			mg_mgr_free(&Download::Mgr);
 		}
-		else
+	}
+
+	void Download::preDestroy()
+	{
+		if (!Dedicated::IsEnabled())
 		{
 			Download::CLDownload.clear();
 		}
