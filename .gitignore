@@ -142,6 +142,7 @@ UpgradeLog*.htm
 *.nam
 *.til
 *.idb
+*.i64
 
 ### Custom user files
 # User scripts
