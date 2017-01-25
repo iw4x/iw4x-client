@@ -346,10 +346,38 @@ namespace Steam
 		static bool IsOverlayEnabled();
 		static bool BOverlayNeedsPresent();
 
-		static Friends* SteamFriends;
+		static void RunFrame();
+
+		static void RegisterCall(int32_t callId, uint32_t size, uint64_t call);
+
+		static void RegisterCallback(int32_t callId, void* callback);
+		static inline void RegisterCallback(int32_t callId, void(*callback)(void*)) { RegisterCallback(callId, static_cast<void*>(callback)); }
+		static void UnregisterCallback(int32_t callId);
+
+		static Friends15* SteamFriends;
 		static Utils* SteamUtils;
 
 	private:
+		typedef bool(SteamBGetCallbackFn)(void* hpipe, void *pCallbackMsg);
+		typedef void(SteamFreeLastCallbackFn)(void* hpipe);
+		typedef bool(SteamGetAPICallResultFn)(void* hpipe, uint64_t hSteamAPICall, void* pCallback, int cubCallback, int iCallbackExpected, bool* pbFailed);
+
+		struct CallContainer
+		{
+			uint64_t call;
+			bool handled;
+			int32_t callId;
+			uint32_t dataSize;
+		};
+
+		struct CallbackMsg
+		{
+			int32_t m_hSteamUser;
+			int m_iCallback;
+			uint8_t *m_pubParam;
+			int m_cubParam;
+		};
+
 		static ::Utils::Library Client;
 		static ::Utils::Library Overlay;
 
@@ -361,6 +389,18 @@ namespace Steam
 		static void* SteamUser;
 
 		static uint32_t AppId;
+
+		static std::recursive_mutex CallMutex;
+		static std::vector<CallContainer> Calls;
+		static std::unordered_map<int32_t, void*> Callbacks;
+
+		static std::function<SteamBGetCallbackFn> SteamBGetCallback;
+		static std::function<SteamFreeLastCallbackFn> SteamFreeLastCallback;
+		static std::function<SteamGetAPICallResultFn> SteamGetAPICallResult;
+
+		static void RunCallback(int32_t callId, void* data);
+
+		static void UnregisterCalls();
 
 		static std::string GetSteamDirectory();
 	};

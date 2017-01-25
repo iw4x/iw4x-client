@@ -76,6 +76,11 @@ namespace Utils
 			return Call<T>(reinterpret_cast<DWORD>(function));
 		}
 
+		template <typename T> static std::function<T> Call(void* function)
+		{
+			return Call<T>(reinterpret_cast<DWORD>(function));
+		}
+
 		static void SetString(void* place, const char* string, size_t length);
 		static void SetString(DWORD place, const char* string, size_t length);
 

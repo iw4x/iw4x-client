@@ -74,6 +74,19 @@ namespace Steam
 		}
 	}
 
+	void Callbacks::RunCallback(int32_t callback, void* data)
+	{
+		std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
+
+		for (auto cb : Callbacks::CallbackList)
+		{
+			if (cb && cb->GetICallback() == callback)
+			{
+				cb->Run(data);
+			}
+		}
+	}
+
 	void Callbacks::Uninitialize()
 	{
 		std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
@@ -94,9 +107,9 @@ namespace Steam
 		bool SteamAPI_Init()
 		{
 #ifndef DISABLE_STEAM_GAME
-			if (!Components::Flags::HasFlag("-nosteam"))
+			if (!Components::Flags::HasFlag("nosteam"))
 			{
-				Proxy::SetGame(10190);
+				//Proxy::SetGame(10190);
 			}
 #endif
 
@@ -107,9 +120,9 @@ namespace Steam
 			else
 			{
 #ifndef DISABLE_STEAM_GAME
-				if (!Components::Flags::HasFlag("-nosteam"))
+				if (!Components::Flags::HasFlag("nosteam"))
 				{
-					Proxy::SetMod("IW4x - Modern Warfare 2");
+					//Proxy::SetMod("IW4x - Modern Warfare 2");
 				}
 #endif
 			}
@@ -130,6 +143,7 @@ namespace Steam
 		void SteamAPI_RunCallbacks()
 		{
 			Callbacks::RunCallbacks();
+			Proxy::RunFrame();
 		}
 
 		void SteamAPI_Shutdown()

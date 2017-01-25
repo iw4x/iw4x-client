@@ -81,6 +81,8 @@ namespace Steam
 		static void ReturnCall(void* data, int size, int type, uint64_t call);
 		static void RunCallbacks();
 
+		static void RunCallback(int32_t callback, void* data);
+
 		static void Uninitialize();
 
 	private:
