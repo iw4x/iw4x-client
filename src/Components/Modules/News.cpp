@@ -159,29 +159,27 @@ namespace Components
 		if (!Utils::IsWineEnvironment())
 		{
 			News::Terminate = false;
-			News::Thread = std::thread([] ()
+			News::Thread = std::thread([]()
 			{
+				Localization::Set("MPUI_CHANGELOG_TEXT", Utils::Cache::GetFile("/iw4/changelog.txt"));
+
+				std::string data = Utils::Cache::GetFile("/iw4/motd.txt");
+
+				if (!data.empty())
 				{
-					Localization::Set("MPUI_CHANGELOG_TEXT", Utils::Cache::GetFile("/iw4/changelog.txt"));
+					Localization::Set("MPUI_MOTD_TEXT", data);
+				}
 
-					std::string data = Utils::Cache::GetFile("/iw4/motd.txt");
-
-					if (!data.empty())
+				if (!Loader::PerformingUnitTests())
+				{
+					while (!News::Terminate)
 					{
-						Localization::Set("MPUI_MOTD_TEXT", data);
-					}
+						News::CheckForUpdate();
 
-					if (!Loader::PerformingUnitTests())
-					{
-						while (!News::Terminate)
+						// Sleep for 3 minutes
+						for (int i = 0; i < 180 && !News::Terminate; ++i)
 						{
-							News::CheckForUpdate();
-
-							// Sleep for 3 minutes
-							for (int i = 0; i < 180 && !News::Terminate; ++i)
-							{
-								std::this_thread::sleep_for(1s);
-							}
+							std::this_thread::sleep_for(1s);
 						}
 					}
 				}

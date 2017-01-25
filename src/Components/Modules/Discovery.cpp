@@ -21,30 +21,28 @@ namespace Components
 		// Not sure if that's the best way though
 		Discovery::IsPerforming = false;
 		Discovery::IsTerminating = false;
-		Discovery::Thread = std::thread([] ()
+		Discovery::Thread = std::thread([]()
 		{
+			while (!Discovery::IsTerminating)
 			{
-				while (!Discovery::IsTerminating)
+				if (Discovery::IsPerforming)
 				{
-					if (Discovery::IsPerforming)
-					{
-						int start = Game::Sys_Milliseconds();
+					int start = Game::Sys_Milliseconds();
 
-						Logger::Print("Starting local server discovery...\n");
+					Logger::Print("Starting local server discovery...\n");
 
-						Discovery::Challenge = Utils::Cryptography::Rand::GenerateChallenge();
+					Discovery::Challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
-						unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").get<unsigned int>();
-						unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").get<unsigned int>();
-						Network::BroadcastRange(minPort, maxPort, Utils::String::VA("discovery %s", Discovery::Challenge.data()));
+					unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").get<unsigned int>();
+					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").get<unsigned int>();
+					Network::BroadcastRange(minPort, maxPort, Utils::String::VA("discovery %s", Discovery::Challenge.data()));
 
-						Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Sys_Milliseconds() - start);
+					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Sys_Milliseconds() - start);
 
-						Discovery::IsPerforming = false;
-					}
-
-					std::this_thread::sleep_for(50ms);
+					Discovery::IsPerforming = false;
 				}
+
+				std::this_thread::sleep_for(50ms);
 			}
 		});
 

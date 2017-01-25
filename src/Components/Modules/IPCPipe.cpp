@@ -109,12 +109,16 @@ namespace Components
 
 		if (this->pipe && INVALID_HANDLE_VALUE != this->pipe)
 		{
+			CancelIoEx(this->pipe, nullptr);
+			//DeleteFileA(this->pipeFile);
+
 			if (this->type == IPCTYPE_SERVER) DisconnectNamedPipe(this->pipe);
 
 			CloseHandle(this->pipe);
 			Logger::Print("Disconnected from the pipe.\n");
 		}
 
+		this->pipe = nullptr;
 		this->threadAttached = false;
 
 		if (this->thread.joinable())
@@ -140,42 +144,40 @@ namespace Components
 
 	void Pipe::ReceiveThread(Pipe* pipe)
 	{
+		if (!pipe || pipe->type != IPCTYPE_SERVER || pipe->pipe == INVALID_HANDLE_VALUE || !pipe->pipe) return;
+
+		if (ConnectNamedPipe(pipe->pipe, nullptr) == FALSE)
 		{
-			if (!pipe || pipe->type != IPCTYPE_SERVER || pipe->pipe == INVALID_HANDLE_VALUE || !pipe->pipe) return;
+			Logger::Print("Failed to initialize pipe reading.\n");
+			return;
+		}
 
-			if (ConnectNamedPipe(pipe->pipe, nullptr) == FALSE)
+		Logger::Print("Client connected to the pipe\n");
+		pipe->connectCallback();
+
+		DWORD cbBytes;
+
+		while (pipe->threadAttached && pipe->pipe && pipe->pipe != INVALID_HANDLE_VALUE)
+		{
+			BOOL bResult = ReadFile(pipe->pipe, &pipe->packet, sizeof(pipe->packet), &cbBytes, nullptr);
+
+			if (bResult && cbBytes)
 			{
-				Logger::Print("Failed to initialize pipe reading.\n");
-				return;
+				if (pipe->packetCallbacks.find(pipe->packet.command) != pipe->packetCallbacks.end())
+				{
+					pipe->packetCallbacks[pipe->packet.command](pipe->packet.buffer);
+				}
+			}
+			else if (pipe->threadAttached && pipe->pipe != INVALID_HANDLE_VALUE)
+			{
+				Logger::Print("Failed to read from client through pipe\n");
+
+				DisconnectNamedPipe(pipe->pipe);
+				ConnectNamedPipe(pipe->pipe, nullptr);
+				pipe->connectCallback();
 			}
 
-			Logger::Print("Client connected to the pipe\n");
-			pipe->connectCallback();
-
-			DWORD cbBytes;
-
-			while (pipe->threadAttached && pipe->pipe && pipe->pipe != INVALID_HANDLE_VALUE)
-			{
-				BOOL bResult = ReadFile(pipe->pipe, &pipe->packet, sizeof(pipe->packet), &cbBytes, nullptr);
-
-				if (bResult && cbBytes)
-				{
-					if (pipe->packetCallbacks.find(pipe->packet.command) != pipe->packetCallbacks.end())
-					{
-						pipe->packetCallbacks[pipe->packet.command](pipe->packet.buffer);
-					}
-				}
-				else if (pipe->threadAttached && pipe->pipe != INVALID_HANDLE_VALUE)
-				{
-					Logger::Print("Failed to read from client through pipe\n");
-
-					DisconnectNamedPipe(pipe->pipe);
-					ConnectNamedPipe(pipe->pipe, nullptr);
-					pipe->connectCallback();
-				}
-
-				ZeroMemory(&pipe->packet, sizeof(pipe->packet));
-			}
+			ZeroMemory(&pipe->packet, sizeof(pipe->packet));
 		}
 	}
 
@@ -237,7 +239,7 @@ namespace Components
 
 	void IPCPipe::preDestroy()
 	{
-		//IPCPipe::ServerPipe.destroy();
-		//IPCPipe::ClientPipe.destroy();
+		IPCPipe::ServerPipe.destroy();
+		IPCPipe::ClientPipe.destroy();
 	}
 }
