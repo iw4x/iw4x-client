@@ -145,45 +145,6 @@ namespace Components
 
 	Friends::Friends()
 	{
-		Command::Add("setpres", [](Command::Params* params)
-		{
-			if (Steam::Proxy::SteamFriends && params->length() >= 3)
-			{
-				Logger::Print("%d\n", Steam::Proxy::SteamFriends->SetRichPresence(params->get(1), params->get(2)));
-			}
-		});
-
-		Command::Add("getpres", [](Command::Params* params)
-		{
-			if (Steam::Proxy::SteamFriends && params->length() >= 3)
-			{
-				std::string player = params->get(1);
-				SteamID playerId;
-				playerId.Bits = 0;
-
-				int count = Steam::Proxy::SteamFriends->GetFriendCount(0x04);
-				for (int i = 0; i < count; ++i)
-				{
-					SteamID _friend = Steam::Proxy::SteamFriends->GetFriendByIndex(i, 0x04);
-					std::string _name = Steam::Proxy::SteamFriends->GetFriendPersonaName(_friend);
-					//Logger::Print("%d: %s\n", i, _name.data());
-
-					if (_name == player)
-					{
-						playerId = _friend;
-						break;
-					}
-				}
-
-				if (playerId.Bits)
-				{
-					Steam::Proxy::SteamFriends->RequestFriendRichPresence(playerId);
-					const char* pres = Steam::Proxy::SteamFriends->GetFriendRichPresence(playerId, params->get(2));
-					Logger::Print("%s: %s\n", player.data(), pres);
-				}
-			}
-		});
-
 		// Callback to update user information
 		Steam::Proxy::RegisterCallback(336, [](void* data)
 		{
