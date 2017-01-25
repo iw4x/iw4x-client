@@ -68,6 +68,7 @@ namespace Components
 #include "Modules/RCon.hpp"
 #include "Modules/Party.hpp" // Destroys the order, but requires network classes :D
 #include "Modules/Logger.hpp"
+#include "Modules/Friends.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Playlist.hpp"
 #include "Modules/RawFiles.hpp"

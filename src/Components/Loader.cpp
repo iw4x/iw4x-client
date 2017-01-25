@@ -42,6 +42,7 @@ namespace Components
 		Loader::Register(new Window());
 		Loader::Register(new Command());
 		Loader::Register(new Console());
+		Loader::Register(new Friends());
 		Loader::Register(new IPCPipe());
 		Loader::Register(new ModList());
 		Loader::Register(new Network());
