@@ -588,6 +588,19 @@ namespace Components
 				Console::ConsoleThread = std::thread(Console::ConsoleRunner);
 			}, HOOK_CALL).install()->quick();
 
+			Utils::Hook(0x4D69A2, []()
+			{
+				Console::SetSkipShutdown();
+
+				// Sys_DestroyConsole
+				Utils::Hook::Call<void()>(0x4528A0)();
+
+				if (Console::ConsoleThread.joinable())
+				{
+					Console::ConsoleThread.join();
+				}
+			}, HOOK_CALL).install()->quick();
+
 			QuickPatch::OnFrame([] ()
 			{
 				Console::LastRefresh = Game::Sys_Milliseconds();
@@ -611,6 +624,7 @@ namespace Components
 
 	Console::~Console()
 	{
+		Console::SetSkipShutdown();
 		if (Console::ConsoleThread.joinable())
 		{
 			Console::ConsoleThread.join();
