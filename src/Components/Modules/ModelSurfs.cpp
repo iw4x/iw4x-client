@@ -194,14 +194,14 @@ namespace Components
 					auto buffer = ModelSurfs::BufferMap.find(surface->triIndices);
 					if (buffer != ModelSurfs::BufferMap.end())
 					{
-						buffer->second->Release();
+						if(buffer->second) buffer->second->Release();
 						ModelSurfs::BufferMap.erase(buffer);
 					}
 
 					buffer = ModelSurfs::BufferMap.find(surface->verts0);
 					if (buffer != ModelSurfs::BufferMap.end())
 					{
-						buffer->second->Release();
+						if (buffer->second) buffer->second->Release();
 						ModelSurfs::BufferMap.erase(buffer);
 					}
 				}
