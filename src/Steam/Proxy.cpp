@@ -46,7 +46,7 @@ namespace Steam
 		gameID.m_nModID = 0x01010101;
 
 		char ourPath[MAX_PATH] = { 0 };
-		GetModuleFileNameA(GetModuleHandle(NULL), ourPath, sizeof(ourPath));
+		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
 
 		char ourDirectory[MAX_PATH] = { 0 };
 		GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
@@ -61,8 +61,6 @@ namespace Steam
 	{
 		char* command = "-parentProc ";
 		char* parentProc = strstr(GetCommandLineA(), command);
-
-		OutputDebugStringA(GetCommandLineA());
 
 		if (parentProc)
 		{

@@ -166,7 +166,7 @@ namespace Components
 			Friends::UpdateFriends();
 		});
 
-		UIFeeder::Add(15.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
+		UIFeeder::Add(6.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
 	}
 
 	Friends::~Friends()
