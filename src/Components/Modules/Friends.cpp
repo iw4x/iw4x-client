@@ -27,6 +27,8 @@ namespace Components
 		userInfo.online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
 		userInfo.name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
 		userInfo.statusName = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_status");
+		userInfo.prestige = Utils::Cryptography::Rand::GenerateInt() % (10 + 1);
+		userInfo.experience = Utils::Cryptography::Rand::GenerateInt() % (2516000 + 1);
 
 		//if (!userInfo.online) return;
 
@@ -100,25 +102,25 @@ namespace Components
 		case 0:
 		{
 			static char buffer[0x100];
+			ZeroMemory(buffer, sizeof(buffer));
 
-			std::string rankIcon = "rank_prestige9";
-			std::string result = "^\x02";
+			Game::Material* rankIcon = nullptr;
+			int rank = Game::CL_GetRankForXP(user.experience);
+			Game::CL_GetRankIcon(rank, user.prestige, &rankIcon);
 
-			char size = 0x30;
+			buffer[0] = '^';
+			buffer[1] = 2;
 
 			// Icon size
-			result.append(&size, 1);
-			result.append(&size, 1);
+			char size = 0x30;
+			buffer[2] = size; // Width
+			buffer[3] = size; // Height
 
 			// Icon name length
-			size = static_cast<char>(rankIcon.size());
-			result.append(&size, 1);
+			buffer[4] = static_cast<char>(strlen(rankIcon->name));
 
-			result.append(rankIcon);
-			result.append(" 70");
-
-			std::memcpy(buffer, result.data(), std::min(result.size() + 1, sizeof(buffer)));
-			buffer[sizeof(buffer) - 1] = 0;
+			strcat_s(buffer, rankIcon->name);
+			strcat_s(buffer, Utils::String::VA(" %i", rank));
 
 			return buffer;
 		}

@@ -35,6 +35,8 @@ namespace Components
 			Network::Address server;
 			std::string statusName;
 			bool online;
+			int experience;
+			int prestige;
 		};
 
 		static unsigned int CurrentFriend;

@@ -29,6 +29,12 @@ namespace Game
 	typedef void(_cdecl * CL_DrawStretchPicPhysical_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
 	extern CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical;
 
+	typedef int(_cdecl* CL_GetRankForXP_t)(int xp);
+	extern CL_GetRankForXP_t CL_GetRankForXP;
+
+	typedef void(__cdecl * CL_GetRankIcon_t)(int level, int prestige, Material** material);
+	extern CL_GetRankIcon_t CL_GetRankIcon;
+
 	typedef void(__cdecl * CL_HandleRelayPacket_t)(Game::msg_t* msg, int client);
 	extern CL_HandleRelayPacket_t CL_HandleRelayPacket;
 
