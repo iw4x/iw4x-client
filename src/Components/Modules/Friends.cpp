@@ -166,7 +166,7 @@ namespace Components
 			Friends::UpdateFriends();
 		});
 
-		UIFeeder::Add(39.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
+		UIFeeder::Add(15.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
 	}
 
 	Friends::~Friends()
@@ -176,7 +176,7 @@ namespace Components
 
 		if (Steam::Proxy::SteamFriends)
 		{
-			//Steam::Proxy::SteamFriends->ClearRichPresence();
+			Steam::Proxy::SteamFriends->SetRichPresence("iw4x_status", nullptr);
 		}
 
 		{
