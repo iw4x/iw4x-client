@@ -99,6 +99,7 @@ namespace Components
 
 	void AntiCheat::ReadIntegrityCheck()
 	{
+#ifdef PROCTECT_PROCESS
 		static Utils::Time::Interval check;
 
 		if(check.elapsed(20s))
@@ -118,6 +119,7 @@ namespace Components
 
 		// Set the integrity flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::READ_INTEGRITY_CHECK;
+#endif
 	}
 
 	void AntiCheat::FlagIntegrityCheck()
@@ -327,6 +329,7 @@ namespace Components
 
 	unsigned long AntiCheat::ProtectProcess()
 	{
+#ifdef PROCTECT_PROCESS
 		Utils::Memory::Allocator allocator;
 
 		HANDLE hToken = nullptr;
@@ -461,6 +464,9 @@ namespace Components
 			pDacl,
 			nullptr // SACL
 		);
+#else
+		return 0;
+#endif
 	}
 
 	AntiCheat::AntiCheat()

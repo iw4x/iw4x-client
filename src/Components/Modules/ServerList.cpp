@@ -773,7 +773,7 @@ namespace Components
 		Renderer::OnFrame(ServerList::Frame);
 
 		// This is placed here in case the anticheat has been disabled!
-#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
+#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT) && defined(PROCTECT_PROCESS)
 		Renderer::OnFrame(AntiCheat::ReadIntegrityCheck);
 #endif
 	}

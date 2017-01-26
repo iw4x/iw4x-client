@@ -5,6 +5,9 @@
 #define AntiCheat SubComponent
 #endif
 
+// Uncomment to enable process protection (conflicts with steam!)
+//#define PROCTECT_PROCESS
+
 namespace Components
 {
 	class AntiCheat : public Component
@@ -32,7 +35,10 @@ namespace Components
 			INITIALIZATION = (1 << 0),
 			MEMORY_SCAN = (1 << 1),
 			SCAN_INTEGRITY_CHECK = (1 << 2),
+
+#ifdef PROCTECT_PROCESS
 			READ_INTEGRITY_CHECK = (1 << 3),
+#endif
 
 			MAX_FLAG,
 		};
