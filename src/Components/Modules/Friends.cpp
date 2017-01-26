@@ -176,7 +176,7 @@ namespace Components
 
 		if (Steam::Proxy::SteamFriends)
 		{
-			Steam::Proxy::SteamFriends->ClearRichPresence();
+			//Steam::Proxy::SteamFriends->ClearRichPresence();
 		}
 
 		{
