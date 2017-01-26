@@ -134,6 +134,7 @@ namespace Components
 
 	__declspec(naked) void UIFeeder::HandleKeyStub()
 	{
+		// ReSharper disable once CppEntityNeverUsed
 		static int nextClickTime = 0;
 
 		__asm

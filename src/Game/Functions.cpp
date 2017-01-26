@@ -402,6 +402,7 @@ namespace Game
 
 	float UI_GetScoreboardLeft(void* a1)
 	{
+		// ReSharper disable once CppEntityNeverUsed
 		static int func = 0x590390;
 		float result = 0;
 

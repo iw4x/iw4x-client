@@ -706,6 +706,7 @@ namespace Components
 
 	ZoneBuilder::ZoneBuilder()
 	{
+		// ReSharper disable CppStaticAssertFailure
 		AssertSize(Game::XFileHeader, 21);
 		AssertSize(Game::XFile, 40);
 		static_assert(Game::MAX_XFILE_COUNT == 8, "XFile block enum is invalid!");
