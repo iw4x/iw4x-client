@@ -507,7 +507,7 @@ namespace Components
 			{ "con_outputWindowColor", { 0.25f, 0.25f, 0.25f, 0.85f } },
 		};
 
-		for (int i = 0; i < ARRAY_SIZE(patchedColors); ++i)
+		for (int i = 0; i < ARRAYSIZE(patchedColors); ++i)
 		{
 			if (std::string(name) == patchedColors[i].name)
 			{

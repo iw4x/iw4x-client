@@ -244,7 +244,7 @@ namespace Components
 			Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
 			if (arena->mapName == map)
 			{
-				for (int j = 0; j < ARRAY_SIZE(arena->keys); ++j)
+				for (int j = 0; j < ARRAYSIZE(arena->keys); ++j)
 				{
 					if (arena->keys[j] == "dependency"s)
 					{
@@ -267,7 +267,7 @@ namespace Components
 			Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
 			if (arena->mapName == map)
 			{
-				for (int j = 0; j < ARRAY_SIZE(arena->keys); ++j)
+				for (int j = 0; j < ARRAYSIZE(arena->keys); ++j)
 				{
 					if (arena->keys[j] == "allieschar"s)
 					{

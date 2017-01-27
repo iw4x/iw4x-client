@@ -1,5 +1,5 @@
 #include "STDInclude.hpp"
-#ifndef DISABLE_BASE128
+#ifdef ENABLE_BASE128
 #include "base128.h"
 #endif
 
@@ -158,7 +158,7 @@ namespace Utils
 			double bytesPerSecond = (1000.0 / milliseconds) * bytes;
 
 			int i;
-			for (i = 0; bytesPerSecond > 1000 && i < ARRAY_SIZE(sizes); ++i) // 1024 or 1000?
+			for (i = 0; bytesPerSecond > 1000 && i < ARRAYSIZE(sizes); ++i) // 1024 or 1000?
 			{
 				bytesPerSecond /= 1000;
 			}
@@ -166,6 +166,7 @@ namespace Utils
 			return Utils::String::VA("%.2f %s/s", static_cast<float>(bytesPerSecond), sizes[i]);
 		}
 
+#ifdef ENABLE_BASE64
 		// Encodes a given string in Base64
 		std::string EncodeBase64(const char* input, const unsigned long inputSize) 
 		{
@@ -182,8 +183,9 @@ namespace Utils
 		{
 			return EncodeBase64(input.data(), input.size());
 		}
+#endif
 
-#ifndef DISABLE_BASE128
+#ifdef ENABLE_BASE128
 		// Encodes a given string in Base128
 		std::string EncodeBase128(const std::string& input) 
 		{

@@ -83,6 +83,11 @@ template <size_t S> class Sizer { };
 
 #pragma warning(pop)
 
+#define ENABLE_BASE64
+#ifndef DISABLE_BASE128
+#define ENABLE_BASE128
+#endif
+
 #include "Utils/IO.hpp"
 #include "Utils/CSV.hpp"
 #include "Utils/Time.hpp"
