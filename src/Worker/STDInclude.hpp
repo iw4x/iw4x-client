@@ -70,22 +70,17 @@ template <size_t S> class Sizer { };
 #include "proto/rcon.pb.h"
 
 #pragma warning(pop)
-/*
-#include "Utils/IO.hpp"
-#include "Utils/CSV.hpp"
-#include "Utils/Time.hpp"
-#include "Utils/Cache.hpp"
-#include "Utils/Chain.hpp"
-#include "Utils/Utils.hpp"
-#include "Utils/WebIO.hpp"
-#include "Utils/Memory.hpp"
-#include "Utils/String.hpp"
-#include "Utils/Hooking.hpp"
-#include "Utils/Library.hpp"
-#include "Utils/InfoString.hpp"
-#include "Utils/Compression.hpp"
-#include "Utils/Cryptography.hpp"
-*/
+
+#include "../Utils/IO.hpp"
+#include "../Utils/Time.hpp"
+#include "../Utils/Chain.hpp"
+#include "../Utils/Utils.hpp"
+#include "../Utils/WebIO.hpp"
+#include "../Utils/Memory.hpp"
+#include "../Utils/String.hpp"
+#include "../Utils/Library.hpp"
+#include "../Utils/Compression.hpp"
+
 // Libraries
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Crypt32.lib")

@@ -406,8 +406,9 @@ workspace "iw4x"
 		-- Pre-build
 		prebuildcommands
 		{
-			"cd %{_MAIN_SCRIPT_DIR}",
+			"pushd %{_MAIN_SCRIPT_DIR}",
 			"tools\\premake5 generate-buildinfo",
+			"popd",
 		}
 
 		-- Post-build
@@ -480,14 +481,23 @@ workspace "iw4x"
 		]]
 		
 project "iw4xworker"
-		kind "WindowedApp"
 		language "C++"
 		flags { "C++14" }
 		files {
 			"./src/Worker/**.rc",
 			"./src/Worker/**.hpp",
 			"./src/Worker/**.cpp",
+			"./src/Utils/**.hpp",
+			"./src/Utils/**.cpp",
 			--"./src/**.proto",
+		}
+		removefiles {
+			"./src/Utils/CSV.*",
+			"./src/Utils/Cache.*",
+			"./src/Utils/Stream.*",
+			"./src/Utils/Hooking.*",
+			"./src/Utils/InfoString.*",
+			"./src/Utils/Cryptography.*",
 		}
 		includedirs {
 			"%{prj.location}/src",
@@ -519,8 +529,15 @@ project "iw4xworker"
 			vpaths
 			{
 				["Headers/*"] = { "./src/Worker/**.hpp" },
+				["Headers/Utils/*"] = { "./src/Utils/**.hpp" },
 				["Sources/*"] = { "./src/Worker/**.cpp" },
+				["Sources/Utils/*"] = { "./src/Utils/**.cpp" },
 				["Resource/*"] = { "./src/Worker/**.rc" },
+			}
+		else
+			vpaths
+			{
+				["Utils/*"] = { "./src/Utils/**" },
 			}
 		end
 
@@ -532,26 +549,27 @@ project "iw4xworker"
 		-- Pre-build
 		prebuildcommands
 		{
-			"cd %{_MAIN_SCRIPT_DIR}",
+			"pushd %{_MAIN_SCRIPT_DIR}",
 			"tools\\premake5 generate-buildinfo",
+			"popd",
 		}
 
 		-- Post-build
 		if _OPTIONS["copy-to"] then
 			saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
 			postbuildcommands {
-				"if not exist \"" .. saneCopyToPath .. "\" mkdir \"" .. saneCopyToPath .. "\"",
+				"if not exist \"" .. saneCopyToPath .. "\" mkdir \"" .. saneCopyToPath .. "iw4x\\\"",
 			}
 
 			if _OPTIONS["copy-pdb"] then
 				postbuildcommands {
-					"copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "\"",
+					"copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "iw4x\\\"",
 				}
 			end
 
 			-- This has to be the last one, as otherwise VisualStudio will succeed building even if copying fails
 			postbuildcommands {
-				"copy /y \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\"",
+				"copy /y \"$(TargetDir)*.exe\" \"" .. saneCopyToPath .. "iw4x\\\"",
 			}
 		end
 
@@ -564,7 +582,9 @@ project "iw4xworker"
 			flags { "Symbols" }
 		end
 
+		kind "ConsoleApp"
 		configuration "Release*"
+			kind "WindowedApp"
 			flags {
 				"FatalCompileWarnings",
 				"FatalLinkWarnings",
