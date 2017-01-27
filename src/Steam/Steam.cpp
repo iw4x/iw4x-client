@@ -106,25 +106,11 @@ namespace Steam
 	{
 		bool SteamAPI_Init()
 		{
-#ifndef DISABLE_STEAM_GAME
-			if (!Components::Flags::HasFlag("nosteam"))
-			{
-				//Proxy::SetGame(10190);
-			}
-#endif
+			Proxy::SetGame(10190);
 
-			if (!Proxy::Inititalize())
+			if (!Proxy::Inititalize(true))
 			{
 				OutputDebugStringA("Steamproxy not initialized properly");
-			}
-			else
-			{
-#ifndef DISABLE_STEAM_GAME
-				if (!Components::Flags::HasFlag("nosteam"))
-				{
-					//Proxy::SetMod("IW4x - Modern Warfare 2");
-				}
-#endif
 			}
 
 			return true;
@@ -143,7 +129,7 @@ namespace Steam
 		void SteamAPI_RunCallbacks()
 		{
 			Callbacks::RunCallbacks();
-			Proxy::RunFrame();
+			//Proxy::RunFrame();
 		}
 
 		void SteamAPI_Shutdown()
