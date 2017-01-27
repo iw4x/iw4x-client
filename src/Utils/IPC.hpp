@@ -29,7 +29,7 @@ namespace Utils
 		class Channel
 		{
 		public:
-			Channel(std::string _name, int queueSize = 100, int bufferSize = 1024, bool creator = false);
+			Channel(std::string _name, int _queueSize = 100, int _bufferSize = 1024, bool _remove = false);
 			~Channel();
 
 			bool receive(std::string* data);
@@ -47,6 +47,7 @@ namespace Utils
 
 			void sendMessage(std::string data);
 
+			bool remove;
 			std::unique_ptr<boost::interprocess::message_queue> queue;
 			std::string packet;
 			std::string name;

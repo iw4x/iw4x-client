@@ -12,12 +12,22 @@ namespace Components
 	{
 		IPCHandler::InitChannels();
 
+		Proto::IPC::Command command;
+		command.set_command(message);
+		command.set_data(data);
+
+		IPCHandler::WorkerChannel->send(command.SerializeAsString());
 	}
 
 	void IPCHandler::SendClient(std::string message, std::string data)
 	{
 		IPCHandler::InitChannels();
-		//IPCHandler::ClientChannel->send()
+
+		Proto::IPC::Command command;
+		command.set_command(message);
+		command.set_data(data);
+
+		IPCHandler::ClientChannel->send(command.SerializeAsString());
 	}
 
 	void IPCHandler::OnWorker(std::string message, IPCHandler::Callback callback)
@@ -58,6 +68,44 @@ namespace Components
 		if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hProcess);
 	}
 
+	void IPCHandler::HandleClient()
+	{
+		IPCHandler::InitChannels();
+
+		std::string packet;
+		if(IPCHandler::ClientChannel->receive(&packet))
+		{
+			Proto::IPC::Command command;
+			if(command.ParseFromString(packet))
+			{
+				auto callback = IPCHandler::ClientCallbacks.find(command.command());
+				if (callback != IPCHandler::ClientCallbacks.end())
+				{
+					callback->second(command.data());
+				}
+			}
+		}
+	}
+
+	void IPCHandler::HandleWorker()
+	{
+		IPCHandler::InitChannels();
+
+		std::string packet;
+		if (IPCHandler::WorkerChannel->receive(&packet))
+		{
+			Proto::IPC::Command command;
+			if (command.ParseFromString(packet))
+			{
+				auto callback = IPCHandler::WorkerCallbacks.find(command.command());
+				if (callback != IPCHandler::WorkerCallbacks.end())
+				{
+					callback->second(command.data());
+				}
+			}
+		}
+	}
+
 	IPCHandler::IPCHandler()
 	{
 		if (Dedicated::IsEnabled()) return;
@@ -67,11 +115,8 @@ namespace Components
 
 		QuickPatch::OnFrame([]()
 		{
-			std::string buffer;
-			if(IPCHandler::WorkerChannel->receive(&buffer))
-			{
-				Logger::Print("Data received: %s\n", buffer.data());
-			}
+			IPCHandler::HandleWorker();
+			IPCHandler::HandleClient();
 		});
 	}
 

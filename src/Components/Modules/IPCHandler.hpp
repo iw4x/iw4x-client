@@ -14,11 +14,11 @@ namespace Components
 		const char* getName() override { return "IPCHandler"; };
 #endif
 
-		void SendWorker(std::string message, std::string data);
-		void SendClient(std::string message, std::string data);
+		static void SendWorker(std::string message, std::string data);
+		static void SendClient(std::string message, std::string data);
 
-		void OnWorker(std::string message, Callback callback);
-		void OnClient(std::string message, Callback callback);
+		static void OnWorker(std::string message, Callback callback);
+		static void OnClient(std::string message, Callback callback);
 
 	private:
 		static std::unique_ptr<Utils::IPC::BidirectionalChannel> WorkerChannel;
@@ -29,5 +29,8 @@ namespace Components
 		
 		static void InitChannels();
 		static void StartWorker();
+
+		static void HandleClient();
+		static void HandleWorker();
 	};
 }

@@ -4,15 +4,15 @@ namespace Utils
 {
 	namespace IPC
 	{
-		Channel::Channel(std::string _name, int queueSize, int bufferSize, bool creator) : name(_name)
+		Channel::Channel(std::string _name, int _queueSize, int _bufferSize, bool _remove) : name(_name), remove(_remove)
 		{
-			if(creator) boost::interprocess::message_queue::remove(this->name.data());
-			queue.reset(new boost::interprocess::message_queue(boost::interprocess::open_or_create, this->name.data(), queueSize, bufferSize + sizeof(Channel::Header)));
+			if(this->remove) boost::interprocess::message_queue::remove(this->name.data());
+			queue.reset(new boost::interprocess::message_queue(boost::interprocess::open_or_create, this->name.data(), _queueSize, _bufferSize + sizeof(Channel::Header)));
 		}
 
 		Channel::~Channel()
 		{
-			boost::interprocess::message_queue::remove(this->name.data());
+			if (this->remove) boost::interprocess::message_queue::remove(this->name.data());
 		}
 
 		bool Channel::receive(std::string* data)
