@@ -204,6 +204,7 @@ require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/sqlite3"
 require "premake/zlib"
+require "premake/boost"
 
 base128.setup
 {
@@ -260,6 +261,10 @@ zlib.setup
 	},
 	source = path.join(depsBasePath, "zlib"),
 }
+boost.setup
+{
+	source = path.join(depsBasePath, "boost"),
+}
 
 workspace "iw4x"
 	location "./build"
@@ -302,34 +307,12 @@ workspace "iw4x"
 			"./src/**.cpp",
 			--"./src/**.proto",
 		}
+		removefiles {
+			"./src/Worker/**.*",
+		}
 		includedirs {
 			"%{prj.location}/src",
 			"./src",
-
-			-- boost includes
-			"./deps/boost/mpl/include",
-			"./deps/boost/core/include",
-			"./deps/boost/move/include",
-			"./deps/boost/assert/include",
-			"./deps/boost/predef/include",
-			"./deps/boost/config/include",
-			"./deps/boost/detail/include",
-			"./deps/boost/winapi/include",
-			"./deps/boost/integer/include",
-			"./deps/boost/tuple/include",
-			"./deps/boost/iterator/include",
-			"./deps/boost/utility/include",
-			"./deps/boost/container/include",
-			"./deps/boost/unordered/include",
-			"./deps/boost/date_time/include",
-			"./deps/boost/type_traits/include",
-			"./deps/boost/preprocessor/include",
-			"./deps/boost/smart_ptr/include",
-			"./deps/boost/throw_exception/include",
-			"./deps/boost/functional/include",
-			"./deps/boost/intrusive/include",
-			"./deps/boost/interprocess/include",
-			"./deps/boost/static_assert/include",
 		}
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
@@ -394,6 +377,7 @@ workspace "iw4x"
 		pdcurses.import()
 		protobuf.import()
 		zlib.import()
+		boost.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -494,6 +478,98 @@ workspace "iw4x"
 			}
 		filter {}
 		]]
+		
+project "iw4xworker"
+		kind "WindowedApp"
+		language "C++"
+		flags { "C++14" }
+		files {
+			"./src/Worker/**.rc",
+			"./src/Worker/**.hpp",
+			"./src/Worker/**.cpp",
+			--"./src/**.proto",
+		}
+		includedirs {
+			"%{prj.location}/src",
+			--"./src",
+			"./src/Worker",
+		}
+		resincludedirs {
+			"$(ProjectDir)src/Worker" -- fix for VS IDE
+		}
+
+		-- Pre-compiled header
+		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
+		pchsource "src/Worker/STDInclude.cpp" -- real path
+		buildoptions { "/Zm200" }
+
+		protobuf.import()
+		zlib.import()
+		boost.import()
+
+		-- fix vpaths for protobuf sources
+		vpaths
+		{
+			["*"] = { "./src/Worker/**" },
+			--["Proto/Generated"] = { "**.pb.*" }, -- meh.
+		}
+
+		-- Virtual paths
+		if not _OPTIONS["no-new-structure"] then
+			vpaths
+			{
+				["Headers/*"] = { "./src/Worker/**.hpp" },
+				["Sources/*"] = { "./src/Worker/**.cpp" },
+				["Resource/*"] = { "./src/Worker/**.rc" },
+			}
+		end
+
+		vpaths
+		{
+			["Docs/*"] = { "**.txt","**.md" },
+		}
+
+		-- Pre-build
+		prebuildcommands
+		{
+			"cd %{_MAIN_SCRIPT_DIR}",
+			"tools\\premake5 generate-buildinfo",
+		}
+
+		-- Post-build
+		if _OPTIONS["copy-to"] then
+			saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
+			postbuildcommands {
+				"if not exist \"" .. saneCopyToPath .. "\" mkdir \"" .. saneCopyToPath .. "\"",
+			}
+
+			if _OPTIONS["copy-pdb"] then
+				postbuildcommands {
+					"copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "\"",
+				}
+			end
+
+			-- This has to be the last one, as otherwise VisualStudio will succeed building even if copying fails
+			postbuildcommands {
+				"copy /y \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\"",
+			}
+		end
+
+		-- Specific configurations
+		flags { "UndefinedIdentifiers", "ExtraWarnings" }
+
+		if symbols ~= nil then
+			symbols "On"
+		else
+			flags { "Symbols" }
+		end
+
+		configuration "Release*"
+			flags {
+				"FatalCompileWarnings",
+				"FatalLinkWarnings",
+			}
+		configuration {}
 
 	group "External dependencies"
 		if not _OPTIONS["disable-bitmessage"] then
@@ -511,6 +587,7 @@ workspace "iw4x"
 		pdcurses.project()
 		protobuf.project()
 		zlib.project()
+		boost.project()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"
