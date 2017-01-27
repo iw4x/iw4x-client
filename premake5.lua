@@ -89,11 +89,6 @@ newoption {
 }
 
 newoption {
-	trigger = "disable-steam-game",
-	description = "Disable Steam's in-game setting."
-}
-
-newoption {
 	trigger = "enable-dxsdk",
 	description = "Enable DirectX SDK (required for GfxMap exporting)."
 }
@@ -204,6 +199,7 @@ require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/sqlite3"
 require "premake/zlib"
+require "premake/boost"
 
 base128.setup
 {
@@ -260,6 +256,10 @@ zlib.setup
 	},
 	source = path.join(depsBasePath, "zlib"),
 }
+boost.setup
+{
+	source = path.join(depsBasePath, "boost"),
+}
 
 workspace "iw4x"
 	location "./build"
@@ -304,7 +304,7 @@ workspace "iw4x"
 		}
 		includedirs {
 			"%{prj.location}/src",
-			"./src"
+			"./src",
 		}
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
@@ -341,9 +341,6 @@ workspace "iw4x"
 		if _OPTIONS["disable-base128"] then
 			defines { "DISABLE_BASE128" }
 		end
-		if _OPTIONS["disable-steam-game"] then
-			defines { "DISABLE_STEAM_GAME" }
-		end
 		if _OPTIONS["enable-dxsdk"] then
 			defines { "ENABLE_DXSDK" }
 			includedirs { "%DXSDK_DIR%Include" }
@@ -369,6 +366,7 @@ workspace "iw4x"
 		pdcurses.import()
 		protobuf.import()
 		zlib.import()
+		boost.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -397,8 +395,9 @@ workspace "iw4x"
 		-- Pre-build
 		prebuildcommands
 		{
-			"cd %{_MAIN_SCRIPT_DIR}",
+			"pushd %{_MAIN_SCRIPT_DIR}",
 			"tools\\premake5 generate-buildinfo",
+			"popd",
 		}
 
 		-- Post-build
@@ -486,6 +485,7 @@ workspace "iw4x"
 		pdcurses.project()
 		protobuf.project()
 		zlib.project()
+		boost.project()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"

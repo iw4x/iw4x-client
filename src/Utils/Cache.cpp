@@ -29,7 +29,7 @@ namespace Utils
 
 		if (Cache::ValidUrl.empty())
 		{
-			for (int i = 0; i < ARRAY_SIZE(Cache::Urls); i++)
+			for (int i = 0; i < ARRAYSIZE(Cache::Urls); i++)
 			{
 				std::string result = Utils::WebIO(useragent, Cache::GetUrl(Cache::Urls[i], path)).setTimeout(timeout)->get();
 

@@ -334,12 +334,10 @@ namespace Steam
 	class Proxy
 	{
 	public:
-		static bool Inititalize();
+		static bool Inititalize(bool overlayOnly = false);
 		static void Uninititalize();
 
 		static void SetGame(uint32_t appId);
-		static void SetMod(std::string mod);
-		static void RunMod();
 
 		//Overlay related proxies
 		static void SetOverlayNotificationPosition(uint32_t eNotificationPosition);

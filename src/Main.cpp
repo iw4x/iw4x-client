@@ -20,28 +20,43 @@ namespace Main
 		Main::EntryPointHook.uninstall();
 
 		Main::SetEnvironment();
-
 		Utils::Cryptography::Initialize();
-		Components::Loader::Initialize();
+
+		if(Worker::IsWorker())
+		{
+			Worker::Initialize();
+		}
+		else
+		{
+			Components::Loader::Initialize();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		if (Components::Loader::PerformingUnitTests())
-		{
-			DWORD result = (Components::Loader::PerformUnitTests() ? 0 : -1);
-			Components::Loader::Uninitialize();
-			ExitProcess(result);
-		}
+			if (Components::Loader::PerformingUnitTests())
+			{
+				DWORD result = (Components::Loader::PerformUnitTests() ? 0 : -1);
+				Components::Loader::Uninitialize();
+				ExitProcess(result);
+			}
 #else
-		if (Components::Flags::HasFlag("tests"))
-		{
-			Components::Logger::Print("Unit tests are disabled outside the debug environment!\n");
-		}
+			if (Components::Flags::HasFlag("tests"))
+			{
+				Components::Logger::Print("Unit tests are disabled outside the debug environment!\n");
+			}
 #endif
+		}
 	}
 
 	void Uninitialize()
 	{
-		Components::Loader::Uninitialize();
+		if(Worker::IsWorker())
+		{
+			Worker::Uninitialize();
+		}
+		else
+		{
+			Components::Loader::Uninitialize();
+		}
+
 		Utils::Cache::Uninitialize();
 		google::protobuf::ShutdownProtobufLibrary();
 	}
@@ -51,8 +66,6 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 {
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
-		Steam::Proxy::RunMod();
-
 		// Ensure we're working with our desired binary
 		if (Utils::Hook::Get<DWORD>(0x4C0FFF) != 0x6824748B)
 		{

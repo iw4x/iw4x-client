@@ -14,7 +14,7 @@ namespace Components
 	{
 #if(0) // Disabled for now
 		{
-			for (int i = 0; i < ARRAY_SIZE(PlayerName::PlayerNames); ++i)
+			for (int i = 0; i < ARRAYSIZE(PlayerName::PlayerNames); ++i)
 			{
 				PlayerName::PlayerNames[i] = "mumu";
 			}
@@ -26,7 +26,7 @@ namespace Components
 
 	PlayerName::~PlayerName()
 	{
-		for (int i = 0; i < ARRAY_SIZE(PlayerName::PlayerNames); ++i)
+		for (int i = 0; i < ARRAYSIZE(PlayerName::PlayerNames); ++i)
 		{
 			PlayerName::PlayerNames[i].clear();
 		}

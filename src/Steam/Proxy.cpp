@@ -5,17 +5,17 @@ namespace Steam
 	::Utils::Library Proxy::Client;
 	::Utils::Library Proxy::Overlay;
 
-	ISteamClient008* Proxy::SteamClient;
-	IClientEngine*   Proxy::ClientEngine;
-	IClientUser*     Proxy::ClientUser;
+	ISteamClient008* Proxy::SteamClient = nullptr;
+	IClientEngine*   Proxy::ClientEngine = nullptr;
+	IClientUser*     Proxy::ClientUser = nullptr;
 
-	void* Proxy::SteamPipe;
-	void* Proxy::SteamUser;
+	void* Proxy::SteamPipe = nullptr;
+	void* Proxy::SteamUser = nullptr;
 
-	Friends15* Proxy::SteamFriends;
-	Utils* Proxy::SteamUtils;
+	Friends15* Proxy::SteamFriends = nullptr;
+	Utils* Proxy::SteamUtils = nullptr;
 
-	uint32_t Proxy::AppId;
+	uint32_t Proxy::AppId = 0;
 
 	std::recursive_mutex Proxy::CallMutex;
 	std::vector<Proxy::CallContainer> Proxy::Calls;
@@ -29,54 +29,15 @@ namespace Steam
 	{
 		Proxy::AppId = appId;
 
-		SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", appId));
-		SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", appId & 0xFFFFFF));
+// 		if (!Components::Flags::HasFlag("nosteam"))
+// 		{
+// 			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", appId));
+// 			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", appId & 0xFFFFFF));
+// 
+// 			::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", appId), false);
+// 		}
 
-		::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", appId), false);
-	}
-
-	void Proxy::SetMod(std::string mod)
-	{
-#if 0
-		if (!Proxy::ClientUser) return;
-
-		GameID_t gameID;
-		gameID.m_nType = 1; // k_EGameIDTypeGameMod
-		gameID.m_nAppID = Proxy::AppId & 0xFFFFFF;
-		gameID.m_nModID = 0x01010101;
-
-		char ourPath[MAX_PATH] = { 0 };
-		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
-
-		char ourDirectory[MAX_PATH] = { 0 };
-		GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
-
-		char blob[1] = { 0 };
-		std::string cmdline = ::Utils::String::VA("\"%s\" -parentProc %d", ourPath, GetCurrentProcessId());
-		Proxy::ClientUser->SpawnProcess(blob, 0, ourPath, cmdline.data(), 0, ourDirectory, gameID, Proxy::AppId, mod.data(), 0);
-#endif
-	}
-
-	void Proxy::RunMod()
-	{
-		char* command = "-parentProc ";
-		char* parentProc = strstr(GetCommandLineA(), command);
-
-		if (parentProc)
-		{
-			parentProc += strlen(command);
-			int pid = atoi(parentProc);
-
-			HANDLE processHandle = OpenProcess(SYNCHRONIZE, FALSE, pid);
-
-			if (processHandle && processHandle != INVALID_HANDLE_VALUE)
-			{
-				WaitForSingleObject(processHandle, INFINITE);
-				CloseHandle(processHandle);
-			}
-
-			TerminateProcess(GetCurrentProcess(), 0);
-		}
+		remove("steam_appid.txt");
 	}
 
 	void Proxy::RegisterCall(int32_t callId, uint32_t size, uint64_t call)
@@ -142,13 +103,13 @@ namespace Steam
 		}
 
 		Proxy::CallbackMsg message;
-		while (Proxy::SteamBGetCallback(Proxy::SteamPipe, &message))
+		while (Proxy::SteamBGetCallback && Proxy::SteamFreeLastCallback && Proxy::SteamBGetCallback(Proxy::SteamPipe, &message))
 		{
 #ifdef DEBUG
-			Components::Logger::Print("Steam::Proxy: Callback dispatched: %d\n", message.m_iCallback);
+			printf("Callback dispatched: %d\n", message.m_iCallback);
 #endif
 
-			Steam::Callbacks::RunCallback(message.m_iCallback, message.m_pubParam);
+			//Steam::Callbacks::RunCallback(message.m_iCallback, message.m_pubParam);
 			Proxy::RunCallback(message.m_iCallback, message.m_pubParam);
 			Proxy::SteamFreeLastCallback(Proxy::SteamPipe);
 		}
@@ -163,7 +124,7 @@ namespace Steam
 					::Utils::Memory::Allocator allocator;
 
 #ifdef DEBUG
-					Components::Logger::Print("Steam::Proxy: Handling call: %d\n", call.callId);
+					printf("Handling call: %d\n", call.callId);
 #endif
 
 					call.handled = true;
@@ -172,7 +133,7 @@ namespace Steam
 					{
 #ifdef DEBUG
 						auto error = Proxy::SteamUtils->GetAPICallFailureReason(call.call);
-						Components::Logger::Print("Steam::Proxy: API call failed: %X Handle: %llX\n", error, call.call);
+						printf("API call failed: %X Handle: %llX\n", error, call.call);
 #endif
 						continue;
 					}
@@ -185,7 +146,7 @@ namespace Steam
 					{
 #ifdef DEBUG
 						auto error = Proxy::SteamUtils->GetAPICallFailureReason(call.call);
-						Components::Logger::Print("Steam::Proxy: GetAPICallResult failed: %X Handle: %llX\n", error, call.call);
+						printf("GetAPICallResult failed: %X Handle: %llX\n", error, call.call);
 #endif
 						continue;
 					}
@@ -198,16 +159,19 @@ namespace Steam
 		Proxy::UnregisterCalls();
 	}
 
-	bool Proxy::Inititalize()
+	bool Proxy::Inititalize(bool overlayOnly)
 	{
 		std::string directoy = Proxy::GetSteamDirectory();
 		if (directoy.empty()) return false;
 
 		SetDllDirectoryA(Proxy::GetSteamDirectory().data());
 
-		Proxy::Client = ::Utils::Library(STEAMCLIENT_LIB, false);
 		Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
-		if (!Proxy::Client.valid() || !Proxy::Overlay.valid()) return false;
+		if (!Proxy::Overlay.valid()) return false;
+		if (overlayOnly) return true;
+
+		Proxy::Client = ::Utils::Library(STEAMCLIENT_LIB, false);
+		if (!Proxy::Client.valid()) return false;
 
 		Proxy::SteamClient = Proxy::Client.get<ISteamClient008*(const char*, int*)>("CreateInterface")("SteamClient008", nullptr);
 		if(!Proxy::SteamClient) return false;

@@ -77,7 +77,7 @@ namespace Components
 		header.sectionHeader[Game::SECTION_FIXUP].buffer = allocator.allocateArray<char>(header.sectionHeader[Game::SECTION_FIXUP].size);
 
 		// Load section data
-		for (int i = 0; i < ARRAY_SIZE(header.sectionHeader); ++i)
+		for (int i = 0; i < ARRAYSIZE(header.sectionHeader); ++i)
 		{
 			model.seek(header.sectionHeader[i].offset, FS_SEEK_SET);
 			if (!model.read(header.sectionHeader[i].buffer, header.sectionHeader[i].size))

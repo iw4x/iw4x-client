@@ -18,6 +18,11 @@
 #include <d3d9.h>
 #include <Aclapi.h>
 
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#include <xutility>
+#pragma warning(pop)
+
 #include <sstream>
 #include <fstream>
 #include <cctype>
@@ -80,10 +85,17 @@ template <size_t S> class Sizer { };
 #include "proto/auth.pb.h"
 #include "proto/node.pb.h"
 #include "proto/rcon.pb.h"
+#include "proto/ipc.pb.h"
 
 #pragma warning(pop)
 
+#define ENABLE_BASE64
+#ifndef DISABLE_BASE128
+#define ENABLE_BASE128
+#endif
+
 #include "Utils/IO.hpp"
+#include "Utils/IPC.hpp"
 #include "Utils/CSV.hpp"
 #include "Utils/Time.hpp"
 #include "Utils/Cache.hpp"
@@ -106,6 +118,7 @@ template <size_t S> class Sizer { };
 #include "Utils/Stream.hpp"
 
 #include "Components/Loader.hpp"
+#include "Worker/Worker.hpp"
 
 // Libraries
 #pragma comment(lib, "Winmm.lib")

@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package Proto.IPC;
+
+message Command 
+{
+	bytes command  = 1;
+	bytes data = 2;
+}

@@ -6,7 +6,7 @@
 #endif
 
 // Uncomment to enable process protection (conflicts with steam!)
-//#define PROCTECT_PROCESS
+#define PROCTECT_PROCESS
 
 namespace Components
 {
