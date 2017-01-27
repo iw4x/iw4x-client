@@ -284,6 +284,18 @@ namespace Components
 			Logger::Print("Sending ping to pipe!\n");
 			IPCPipe::Write("ping", "");
 		});
+
+		STARTUPINFOA        sInfo;
+		PROCESS_INFORMATION pInfo;
+
+		ZeroMemory(&sInfo, sizeof(sInfo));
+		ZeroMemory(&pInfo, sizeof(pInfo));
+		sInfo.cb = sizeof(sInfo);
+
+		CreateProcessA("iw4x/iw4xworker.exe", const_cast<char*>(Utils::String::VA("-parentProc %d", GetCurrentProcessId())), nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
+
+		if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hThread);
+		if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hProcess);
 	}
 
 	void IPCPipe::preDestroy()
