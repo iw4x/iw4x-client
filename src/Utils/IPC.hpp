@@ -29,7 +29,7 @@ namespace Utils
 		class Channel
 		{
 		public:
-			Channel(std::string _name, int queueSize = 100, int bufferSize = 20);
+			Channel(std::string _name, int queueSize = 100, int bufferSize = 1024, bool creator = false);
 			~Channel();
 
 			bool receive(std::string* data);
@@ -50,6 +50,44 @@ namespace Utils
 			std::unique_ptr<boost::interprocess::message_queue> queue;
 			std::string packet;
 			std::string name;
+		};
+
+		class BidirectionalChannel
+		{
+		public:
+			BidirectionalChannel(std::string name, bool server, int queueSize = 100, int bufferSize = 1024) : isServer(server),
+			channel1(name, queueSize, bufferSize, server),
+			channel2(name + "2", queueSize, bufferSize, server)
+			{}
+
+			bool receive(std::string* data)
+			{
+				if(this->isServer)
+				{
+					return channel1.receive(data);
+				}
+				else
+				{
+					return channel2.receive(data);
+				}
+			}
+
+			void send(std::string data)
+			{
+				if (this->isServer)
+				{
+					return channel2.send(data);
+				}
+				else
+				{
+					return channel1.send(data);
+				}
+			}
+
+		private:
+			const bool isServer;
+			Channel channel1;
+			Channel channel2;
 		};
 	}
 }

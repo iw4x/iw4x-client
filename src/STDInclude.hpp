@@ -117,6 +117,7 @@ template <size_t S> class Sizer { };
 #include "Utils/Stream.hpp"
 
 #include "Components/Loader.hpp"
+#include "Worker/Worker.hpp"
 
 // Libraries
 #pragma comment(lib, "Winmm.lib")

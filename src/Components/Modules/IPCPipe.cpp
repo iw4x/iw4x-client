@@ -236,8 +236,7 @@ namespace Components
 			IPCPipe::Write("ping", "");
 		});
 
-		static Utils::IPC::Channel channel("iw4xChannel");
-		static Utils::IPC::Channel channel2("iw4xChannel2");
+		static Utils::IPC::BidirectionalChannel channel("iw4xChannel", !Worker::IsWorker());
 		channel.send("Hello world!");
 
 		Command::Add("ipcchan", [](Command::Params* params)
@@ -245,10 +244,32 @@ namespace Components
 			channel.send(params->join(1));
 		});
 
+		Command::Add("ipcchantest", [](Command::Params*)
+		{
+			std::string buffer;
+			buffer.reserve(2048);
+
+			for(int i = 0; i < 1020; ++i)
+			{
+				buffer.append("a", 1);
+			}
+
+			buffer.append("lolsnakerules!");
+
+			for (int i = 0; i < 1020; ++i)
+			{
+				buffer.append("a", 1);
+			}
+
+			buffer.append("lolsnakerules!");
+
+			channel.send(buffer);
+		});
+
 		QuickPatch::OnFrame([]()
 		{
 			std::string buffer;
-			if(channel2.receive(&buffer))
+			if(channel.receive(&buffer))
 			{
 				Logger::Print("Data received: %s\n", buffer.data());
 			}
@@ -261,7 +282,7 @@ namespace Components
 		ZeroMemory(&pInfo, sizeof(pInfo));
 		sInfo.cb = sizeof(sInfo);
 
-		CreateProcessA("iw4x/iw4xworker.exe", const_cast<char*>(Utils::String::VA("-parentProc %d", GetCurrentProcessId())), nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
+		CreateProcessA("iw4x.exe", const_cast<char*>(Utils::String::VA("-parent %d", GetCurrentProcessId())), nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
 
 		if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hThread);
 		if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hProcess);

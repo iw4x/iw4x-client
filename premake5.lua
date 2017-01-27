@@ -89,11 +89,6 @@ newoption {
 }
 
 newoption {
-	trigger = "disable-steam-game",
-	description = "Disable Steam's in-game setting."
-}
-
-newoption {
 	trigger = "enable-dxsdk",
 	description = "Enable DirectX SDK (required for GfxMap exporting)."
 }
@@ -307,9 +302,6 @@ workspace "iw4x"
 			"./src/**.cpp",
 			--"./src/**.proto",
 		}
-		removefiles {
-			"./src/Worker/**.*",
-		}
 		includedirs {
 			"%{prj.location}/src",
 			"./src",
@@ -348,9 +340,6 @@ workspace "iw4x"
 		end
 		if _OPTIONS["disable-base128"] then
 			defines { "DISABLE_BASE128" }
-		end
-		if _OPTIONS["disable-steam-game"] then
-			defines { "DISABLE_STEAM_GAME" }
 		end
 		if _OPTIONS["enable-dxsdk"] then
 			defines { "ENABLE_DXSDK" }
@@ -479,117 +468,6 @@ workspace "iw4x"
 			}
 		filter {}
 		]]
-		
-project "iw4xworker"
-		language "C++"
-		flags { "C++14" }
-		files {
-			"./src/Worker/**.rc",
-			"./src/Worker/**.hpp",
-			"./src/Worker/**.cpp",
-			"./src/Utils/**.hpp",
-			"./src/Utils/**.cpp",
-			--"./src/**.proto",
-		}
-		removefiles {
-			"./src/Utils/CSV.*",
-			"./src/Utils/Cache.*",
-			"./src/Utils/Stream.*",
-			"./src/Utils/Hooking.*",
-			"./src/Utils/InfoString.*",
-			"./src/Utils/Cryptography.*",
-		}
-		includedirs {
-			"%{prj.location}/src",
-			--"./src",
-			"./src/Worker",
-		}
-		resincludedirs {
-			"$(ProjectDir)src/Worker" -- fix for VS IDE
-		}
-
-		-- Pre-compiled header
-		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
-		pchsource "src/Worker/STDInclude.cpp" -- real path
-		buildoptions { "/Zm200" }
-
-		protobuf.import()
-		zlib.import()
-		boost.import()
-
-		-- fix vpaths for protobuf sources
-		vpaths
-		{
-			["*"] = { "./src/Worker/**" },
-			--["Proto/Generated"] = { "**.pb.*" }, -- meh.
-		}
-
-		-- Virtual paths
-		if not _OPTIONS["no-new-structure"] then
-			vpaths
-			{
-				["Headers/*"] = { "./src/Worker/**.hpp" },
-				["Headers/Utils/*"] = { "./src/Utils/**.hpp" },
-				["Sources/*"] = { "./src/Worker/**.cpp" },
-				["Sources/Utils/*"] = { "./src/Utils/**.cpp" },
-				["Resource/*"] = { "./src/Worker/**.rc" },
-			}
-		else
-			vpaths
-			{
-				["Utils/*"] = { "./src/Utils/**" },
-			}
-		end
-
-		vpaths
-		{
-			["Docs/*"] = { "**.txt","**.md" },
-		}
-
-		-- Pre-build
-		prebuildcommands
-		{
-			"pushd %{_MAIN_SCRIPT_DIR}",
-			"tools\\premake5 generate-buildinfo",
-			"popd",
-		}
-
-		-- Post-build
-		if _OPTIONS["copy-to"] then
-			saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
-			postbuildcommands {
-				"if not exist \"" .. saneCopyToPath .. "\" mkdir \"" .. saneCopyToPath .. "iw4x\\\"",
-			}
-
-			if _OPTIONS["copy-pdb"] then
-				postbuildcommands {
-					"copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "iw4x\\\"",
-				}
-			end
-
-			-- This has to be the last one, as otherwise VisualStudio will succeed building even if copying fails
-			postbuildcommands {
-				"copy /y \"$(TargetDir)*.exe\" \"" .. saneCopyToPath .. "iw4x\\\"",
-			}
-		end
-
-		-- Specific configurations
-		flags { "UndefinedIdentifiers", "ExtraWarnings" }
-
-		if symbols ~= nil then
-			symbols "On"
-		else
-			flags { "Symbols" }
-		end
-
-		kind "ConsoleApp"
-		configuration "Release*"
-			kind "WindowedApp"
-			flags {
-				"FatalCompileWarnings",
-				"FatalLinkWarnings",
-			}
-		configuration {}
 
 	group "External dependencies"
 		if not _OPTIONS["disable-bitmessage"] then
