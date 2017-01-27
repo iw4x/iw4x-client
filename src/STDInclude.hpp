@@ -85,6 +85,7 @@ template <size_t S> class Sizer { };
 #include "proto/auth.pb.h"
 #include "proto/node.pb.h"
 #include "proto/rcon.pb.h"
+#include "proto/ipc.pb.h"
 
 #pragma warning(pop)
 

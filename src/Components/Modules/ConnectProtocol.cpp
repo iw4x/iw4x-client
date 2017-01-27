@@ -212,10 +212,10 @@ namespace Components
 	ConnectProtocol::ConnectProtocol()
 	{
 		// IPC handler
-		IPCPipe::On("connect", [] (std::string data)
-		{
-			Command::Execute(Utils::String::VA("connect %s", data.data()), false);
-		});
+// 		IPCPipe::On("connect", [] (std::string data)
+// 		{
+// 			Command::Execute(Utils::String::VA("connect %s", data.data()), false);
+// 		});
 
 		// Invocation handler
 		QuickPatch::Once(ConnectProtocol::Invocation);
@@ -229,7 +229,7 @@ namespace Components
 		{
 			if (!Singleton::IsFirstInstance())
 			{
-				IPCPipe::Write("connect", ConnectProtocol::ConnectString);
+				//IPCPipe::Write("connect", ConnectProtocol::ConnectString);
 				ExitProcess(0);
 			}
 			else

@@ -29,8 +29,8 @@ namespace Worker
 			WaitForSingleObject(processHandle, INFINITE);
 			CloseHandle(processHandle);
 
-			this->terminate = true;
 			printf("Awaiting worker termination...\n");
+			this->terminate = true;
 			if (workerThread.joinable()) workerThread.join();
 			printf("Worker terminated\n");
 		}
@@ -39,7 +39,7 @@ namespace Worker
 	void Runner::worker()
 	{
 		printf("Worker started\n");
-		Utils::IPC::BidirectionalChannel channel("iw4xChannel", !Worker::IsWorker());
+		Utils::IPC::BidirectionalChannel channel("IW4x-Worker-Channel", !Worker::IsWorker());
 
 		while (!this->terminate)
 		{
