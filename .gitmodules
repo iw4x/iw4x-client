@@ -38,69 +38,92 @@
 [submodule "deps/boost/interprocess"]
 	path = deps/boost/interprocess
 	url = https://github.com/boostorg/interprocess.git
+	branch = develop
 [submodule "deps/boost/config"]
 	path = deps/boost/config
 	url = https://github.com/boostorg/config.git
+	branch = develop
 [submodule "deps/boost/date_time"]
 	path = deps/boost/date_time
 	url = https://github.com/boostorg/date_time.git
+	branch = develop
 [submodule "deps/boost/assert"]
 	path = deps/boost/assert
 	url = https://github.com/boostorg/assert.git
+	branch = develop
 [submodule "deps/boost/utility"]
 	path = deps/boost/utility
 	url = https://github.com/boostorg/utility.git
+	branch = develop
 [submodule "deps/boost/detail"]
 	path = deps/boost/detail
 	url = https://github.com/boostorg/detail.git
+	branch = develop
 [submodule "deps/boost/winapi"]
 	path = deps/boost/winapi
 	url = https://github.com/boostorg/winapi.git
+	branch = develop
 [submodule "deps/boost/integer"]
 	path = deps/boost/integer
 	url = https://github.com/boostorg/integer.git
+	branch = develop
 [submodule "deps/boost/move"]
 	path = deps/boost/move
 	url = https://github.com/boostorg/move.git
+	branch = develop
 [submodule "deps/boost/static_assert"]
 	path = deps/boost/static_assert
 	url = https://github.com/boostorg/static_assert.git
+	branch = develop
 [submodule "deps/boost/container"]
 	path = deps/boost/container
 	url = https://github.com/boostorg/container.git
+	branch = develop
 [submodule "deps/boost/intrusive"]
 	path = deps/boost/intrusive
 	url = https://github.com/boostorg/intrusive.git
+	branch = develop
 [submodule "deps/boost/core"]
 	path = deps/boost/core
 	url = https://github.com/boostorg/core.git
+	branch = develop
 [submodule "deps/boost/functional"]
 	path = deps/boost/functional
 	url = https://github.com/boostorg/functional.git
+	branch = develop
 [submodule "deps/boost/type_traits"]
 	path = deps/boost/type_traits
 	url = https://github.com/boostorg/type_traits.git
+	branch = develop
 [submodule "deps/boost/preprocessor"]
 	path = deps/boost/preprocessor
 	url = https://github.com/boostorg/preprocessor.git
+	branch = develop
 [submodule "deps/boost/smart_ptr"]
 	path = deps/boost/smart_ptr
 	url = https://github.com/boostorg/smart_ptr.git
+	branch = develop
 [submodule "deps/boost/throw_exception"]
 	path = deps/boost/throw_exception
 	url = https://github.com/boostorg/throw_exception.git
+	branch = develop
 [submodule "deps/boost/predef"]
 	path = deps/boost/predef
 	url = https://github.com/boostorg/predef.git
+	branch = develop
 [submodule "deps/boost/mpl"]
 	path = deps/boost/mpl
 	url = https://github.com/boostorg/mpl.git
+	branch = develop
 [submodule "deps/boost/unordered"]
 	path = deps/boost/unordered
 	url = https://github.com/boostorg/unordered.git
+	branch = develop
 [submodule "deps/boost/iterator"]
 	path = deps/boost/iterator
 	url = https://github.com/boostorg/iterator.git
+	branch = develop
 [submodule "deps/boost/tuple"]
 	path = deps/boost/tuple
 	url = https://github.com/boostorg/tuple.git
+	branch = develop
