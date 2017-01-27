@@ -304,7 +304,32 @@ workspace "iw4x"
 		}
 		includedirs {
 			"%{prj.location}/src",
-			"./src"
+			"./src",
+
+			-- boost includes
+			"./deps/boost/mpl/include",
+			"./deps/boost/core/include",
+			"./deps/boost/move/include",
+			"./deps/boost/assert/include",
+			"./deps/boost/predef/include",
+			"./deps/boost/config/include",
+			"./deps/boost/detail/include",
+			"./deps/boost/winapi/include",
+			"./deps/boost/integer/include",
+			"./deps/boost/tuple/include",
+			"./deps/boost/iterator/include",
+			"./deps/boost/utility/include",
+			"./deps/boost/container/include",
+			"./deps/boost/unordered/include",
+			"./deps/boost/date_time/include",
+			"./deps/boost/type_traits/include",
+			"./deps/boost/preprocessor/include",
+			"./deps/boost/smart_ptr/include",
+			"./deps/boost/throw_exception/include",
+			"./deps/boost/functional/include",
+			"./deps/boost/intrusive/include",
+			"./deps/boost/interprocess/include",
+			"./deps/boost/static_assert/include",
 		}
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
