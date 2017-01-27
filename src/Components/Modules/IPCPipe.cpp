@@ -1,22 +1,5 @@
 #include "STDInclude.hpp"
 
-namespace boost
-{
-	typedef unsigned long long ulong_long_type;
-}
-
-#pragma warning(push)
-#pragma warning(disable: 4091)
-#pragma warning(disable: 4996)
-
-#undef sleep
-//#define BOOST_DISABLE_WIN32
-#define BOOST_USE_WINDOWS_H
-#define BOOST_DATE_TIME_NO_LIB
-#include <boost/interprocess/ipc/message_queue.hpp>
-
-#pragma warning(pop)
-
 namespace Components
 {
 	Pipe IPCPipe::ServerPipe;
@@ -223,38 +206,6 @@ namespace Components
 
 	IPCPipe::IPCPipe()
 	{
-		Command::Add("mq1", [](Command::Params*)
-		{
-			boost::interprocess::message_queue::remove("message_queue");
-
-			//Create a message_queue.
-			boost::interprocess::message_queue mq(boost::interprocess::create_only, "message_queue", 100, sizeof(int));
-
-			int i = 1;
-			mq.send(&i, sizeof(i), 0);
-		});
-
-		Command::Add("mq2", [](Command::Params*)
-		{
-			boost::interprocess::message_queue mq(boost::interprocess::open_only, "message_queue");
-
-			unsigned int priority;
-			boost::interprocess::message_queue::size_type recvd_size;
-
-			//Receive 100 numbers
-			for (int i = 0; i < 3; ++i) {
-				int number;
-				if (!mq.try_receive(&number, sizeof(number), recvd_size, priority) || recvd_size != sizeof(number))
-				{
-					Logger::Print("Nothing received\n");
-				}
-				else
-				{
-					Logger::Print("Rec: %d\n", number);
-				}
-			}
-		});
-
 		if (Dedicated::IsEnabled()) return;
 
 		// Server pipe
@@ -283,6 +234,24 @@ namespace Components
 		{
 			Logger::Print("Sending ping to pipe!\n");
 			IPCPipe::Write("ping", "");
+		});
+
+		static Utils::IPC::Channel channel("iw4xChannel");
+		static Utils::IPC::Channel channel2("iw4xChannel2");
+		channel.send("Hello world!");
+
+		Command::Add("ipcchan", [](Command::Params* params)
+		{
+			channel.send(params->join(1));
+		});
+
+		QuickPatch::OnFrame([]()
+		{
+			std::string buffer;
+			if(channel2.receive(&buffer))
+			{
+				Logger::Print("Data received: %s\n", buffer.data());
+			}
 		});
 
 		STARTUPINFOA        sInfo;

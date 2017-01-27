@@ -4,9 +4,18 @@
 void worker(bool* terminator)
 {
 	printf("Worker started\n");
+	Utils::IPC::Channel channel("iw4xChannel");
+	Utils::IPC::Channel channel2("iw4xChannel2");
 
 	while(!*terminator)
 	{
+		std::string buffer;
+		if(channel.receive(&buffer))
+		{
+			printf("Data received: %s\n", buffer.data());
+			channel2.send("OK " + buffer);
+		}
+
 		std::this_thread::sleep_for(1ms);
 	}
 
@@ -51,7 +60,8 @@ int main()
 	if (runner.joinable()) runner.join();
 	printf("Worker terminated\n");
 
-	_getch();
+	//_getch();
 
+	google::protobuf::ShutdownProtobufLibrary();
 	return 0;
 }

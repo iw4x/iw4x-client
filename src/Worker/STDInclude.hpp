@@ -18,6 +18,11 @@
 #include <d3d9.h>
 #include <Aclapi.h>
 
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#include <xutility>
+#pragma warning(pop)
+
 #include <sstream>
 #include <fstream>
 #include <cctype>
@@ -72,6 +77,7 @@ template <size_t S> class Sizer { };
 #pragma warning(pop)
 
 #include "../Utils/IO.hpp"
+#include "../Utils/IPC.hpp"
 #include "../Utils/Time.hpp"
 #include "../Utils/Chain.hpp"
 #include "../Utils/Utils.hpp"
