@@ -8,6 +8,7 @@ namespace Worker
 	{
 		Runner runner(Worker::ProcessId);
 		runner.attachHandler(new Handlers::Friends());
+		runner.attachHandler(new Handlers::SteamCallbacks());
 		runner.run();
 		return 0;
 	}

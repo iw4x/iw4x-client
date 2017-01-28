@@ -8,10 +8,7 @@ namespace Components
 
 	void Friends::UpdateUserInfo(SteamID user)
 	{
-		if (!Steam::Proxy::SteamFriends) return;
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
-
-		Friends::Friend userInfo;
 
 		auto i = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [user] (Friends::Friend entry)
 		{
@@ -20,28 +17,30 @@ namespace Components
 
 		if(i != Friends::FriendsList.end())
 		{
-			userInfo = *i;
+			Proto::IPC::Function function;
+
+			function.set_name("getPresence");
+			*function.add_params() = Utils::String::VA("%llx", user.Bits);
+
+			std::string* key = function.add_params();
+
+			*key = "iw4x_status";
+			IPCHandler::SendWorker("friends", function.SerializeAsString());
+
+			*key = "iw4x_rank";
+			IPCHandler::SendWorker("friends", function.SerializeAsString());
+
+			*key = "iw4x_server";
+			IPCHandler::SendWorker("friends", function.SerializeAsString());
 		}
 
-		userInfo.userId = user;
-		userInfo.online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
+		/*userInfo.online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
 		userInfo.name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
 		userInfo.statusName = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_status");
 		userInfo.prestige = Utils::Cryptography::Rand::GenerateInt() % (10 + 1);
-		userInfo.experience = Utils::Cryptography::Rand::GenerateInt() % (2516000 + 1);
+		userInfo.experience = Utils::Cryptography::Rand::GenerateInt() % (2516000 + 1);*/
 
-		//if (!userInfo.online) return;
-
-		if (i != Friends::FriendsList.end())
-		{
-			*i = userInfo;
-		}
-		else
-		{
-			Friends::FriendsList.push_back(userInfo);
-		}
-
-		qsort(Friends::FriendsList.data(), Friends::FriendsList.size(), sizeof(Friends::Friend), [](const void* first, const void* second)
+/*		qsort(Friends::FriendsList.data(), Friends::FriendsList.size(), sizeof(Friends::Friend), [](const void* first, const void* second)
 		{
 			const Friends::Friend* friend1 = static_cast<const Friends::Friend*>(first);
 			const Friends::Friend* friend2 = static_cast<const Friends::Friend*>(second);
@@ -50,7 +49,7 @@ namespace Components
 			std::string name2 = Utils::String::ToLower(Colors::Strip(friend2->name));
 
 			return name1.compare(name2);
-		});
+		});*/
 	}
 
 	void Friends::UpdateFriends()
@@ -142,6 +141,41 @@ namespace Components
 			}
 		}
 	}
+	
+	void Friends::PresenceResponse(std::vector<std::string> params)
+	{
+		if (params.size() >= 3)
+		{
+			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+
+			SteamID id;
+			id.Bits = strtoull(params[0].data(), nullptr, 16);
+			std::string key = params[1];
+			std::string value = params[2];
+
+			auto entry = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [id](Friends::Friend entry)
+			{
+				return (entry.userId.Bits == id.Bits);
+			});
+
+			if (entry == Friends::FriendsList.end()) return;
+
+			if(key == "iw4x_status")
+			{
+				entry->statusName = value;
+			}
+			else if(key == "iw4x_rank")
+			{
+				if(value.size() == 4)
+				{
+					int data = *reinterpret_cast<int*>(const_cast<char*>(value.data()));
+
+					entry->experience = data & 0xFFFFFF;
+					entry->prestige = (data >> 24) & 0xFF;
+				}
+			}
+		}
+	}
 
 	void Friends::FriendsResponse(std::vector<std::string> params)
 	{
@@ -195,7 +229,7 @@ namespace Components
 		auto fInterface = IPCHandler::NewInterface("steamCallbacks");
 
 		// Callback to update user information
-		fInterface->map("304", [](std::vector<std::string> params)
+		fInterface->map("336", [](std::vector<std::string> params)
 		{
 			if (params.size() >= 1 && params[0].size() == sizeof(Friends::FriendRichPresenceUpdate))
 			{
@@ -228,6 +262,7 @@ namespace Components
 		fInterface = IPCHandler::NewInterface("friends");
 		fInterface->map("friendsResponse", Friends::FriendsResponse);
 		fInterface->map("nameResponse", Friends::NameResponse);
+		fInterface->map("presenceResponse", Friends::PresenceResponse);
 	}
 
 	Friends::~Friends()

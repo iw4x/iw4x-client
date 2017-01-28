@@ -93,7 +93,18 @@ namespace Handlers
 			response.set_name("presenceResponse");
 			*response.add_params() = Utils::String::VA("%llX", id.Bits);
 			*response.add_params() = params[1].data();
-			*response.add_params() = Steam::Proxy::SteamFriends->GetFriendRichPresence(id, params[1].data());
+
+			std::string* value = response.add_params();
+			*value = Steam::Proxy::SteamFriends->GetFriendRichPresence(id, params[1].data());
+
+			if (params[1] == "iw4x_rank")
+			{
+				int experience = Utils::Cryptography::Rand::GenerateInt() % (2516000 + 1);
+				int prestige = Utils::Cryptography::Rand::GenerateInt() % (10 + 1);
+
+				int data = (experience & 0xFFFFFF) | ((prestige << 24) & 0xFF);
+				*value = std::string(reinterpret_cast<char*>(&data), 4);
+			}
 
 			endpoint.send(this->getCommand(), response.SerializeAsString());
 		}

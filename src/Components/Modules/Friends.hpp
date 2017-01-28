@@ -15,11 +15,13 @@ namespace Components
 		static void UpdateFriends();
 
 	private:
+#pragma pack(push, 4)
 		struct FriendRichPresenceUpdate
 		{
 			SteamID m_steamIDFriend;	// friend who's rich presence has changed
 			int32_t m_nAppID;			// the appID of the game (should always be the current game)
 		};
+#pragma pack(pop)
 
 		struct PersonaStateChange
 		{
@@ -51,5 +53,6 @@ namespace Components
 
 		static void FriendsResponse(std::vector<std::string> params);
 		static void NameResponse(std::vector<std::string> params);
+		static void PresenceResponse(std::vector<std::string> params);
 	};
 }
