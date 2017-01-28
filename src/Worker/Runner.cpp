@@ -2,14 +2,16 @@
 
 namespace Worker
 {
+	Utils::IPC::BidirectionalChannel* Runner::Channel;
+
 	Runner::Runner(int pid) : processId(pid), terminate(false)
 	{
-		
+		Runner::Channel = nullptr;
 	}
 
 	Runner::~Runner()
 	{
-		
+		Runner::Channel = nullptr;
 	}
 
 	void Runner::run()
@@ -46,6 +48,7 @@ namespace Worker
 	{
 		printf("Worker started\n");
 		Utils::IPC::BidirectionalChannel channel("IW4x-Worker-Channel", !Worker::IsWorker());
+		Runner::Channel = &channel;
 
 		while (!this->terminate)
 		{
@@ -74,5 +77,6 @@ namespace Worker
 		}
 
 		printf("Terminating worker\n");
+		Runner::Channel = nullptr;
 	}
 }

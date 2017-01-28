@@ -192,18 +192,30 @@ namespace Components
 	{
 		Friends::UpdateFriends();
 
+		auto fInterface = IPCHandler::NewInterface("steamCallbacks");
+
 		// Callback to update user information
-		Steam::Proxy::RegisterCallback(336, [](void* data)
+		fInterface->map("304", [](std::vector<std::string> params)
 		{
-			Friends::FriendRichPresenceUpdate* update = static_cast<Friends::FriendRichPresenceUpdate*>(data);
-			Friends::UpdateUserInfo(update->m_steamIDFriend);
+			if (params.size() >= 1 && params[0].size() == sizeof(Friends::FriendRichPresenceUpdate))
+			{
+				const Friends::FriendRichPresenceUpdate* update = reinterpret_cast<const Friends::FriendRichPresenceUpdate*>(params[0].data());
+				Friends::UpdateUserInfo(update->m_steamIDFriend);
+			}
 		});
 
 		// Persona state has changed
-		Steam::Proxy::RegisterCallback(304, [](void* data)
+		fInterface->map("304", [](std::vector<std::string> params)
 		{
-			Friends::PersonaStateChange* state = static_cast<Friends::PersonaStateChange*>(data);
-			if(Steam::Proxy::SteamFriends) Steam::Proxy::SteamFriends->RequestFriendRichPresence(state->m_ulSteamID);
+			if(params.size() >= 1 && params[0].size() == sizeof(Friends::PersonaStateChange))
+			{
+				const Friends::PersonaStateChange* state = reinterpret_cast<const Friends::PersonaStateChange*>(params[0].data());
+
+				Proto::IPC::Function function;
+				function.set_name("requestPresence");
+				*function.add_params() = Utils::String::VA("%llx", state->m_ulSteamID.Bits);
+				IPCHandler::SendWorker("friends", function.SerializeAsString());
+			}
 		});
 
 		UIScript::Add("LoadFriends", [](UIScript::Token)
@@ -213,16 +225,13 @@ namespace Components
 
 		UIFeeder::Add(6.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
 
-		auto fInterface = IPCHandler::NewInterface("friends");
+		fInterface = IPCHandler::NewInterface("friends");
 		fInterface->map("friendsResponse", Friends::FriendsResponse);
 		fInterface->map("nameResponse", Friends::NameResponse);
 	}
 
 	Friends::~Friends()
 	{
-		Steam::Proxy::UnregisterCallback(304);
-		Steam::Proxy::UnregisterCallback(336);
-
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 			Friends::FriendsList.clear();

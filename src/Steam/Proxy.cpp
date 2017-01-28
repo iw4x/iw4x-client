@@ -82,7 +82,7 @@ namespace Steam
 		Proxy::Callbacks.erase(callId);
 	}
 
-	void Proxy::RunCallback(int32_t callId, void* data)
+	void Proxy::RunCallback(int32_t callId, void* data, size_t size)
 	{
 		std::lock_guard<std::recursive_mutex> _(Proxy::CallMutex);
 
@@ -90,6 +90,11 @@ namespace Steam
 		if (callback != Proxy::Callbacks.end())
 		{
 			::Utils::Hook::Call<void(void*)>(callback->second)(data);
+		}
+
+		if(Worker::IsWorker())
+		{
+			Handlers::SteamCallbacks::HandleCallback(callId, data, size);
 		}
 	}
 
@@ -110,7 +115,7 @@ namespace Steam
 #endif
 
 			//Steam::Callbacks::RunCallback(message.m_iCallback, message.m_pubParam);
-			Proxy::RunCallback(message.m_iCallback, message.m_pubParam);
+			Proxy::RunCallback(message.m_iCallback, message.m_pubParam, message.m_cubParam);
 			Proxy::SteamFreeLastCallback(Proxy::SteamPipe);
 		}
 
@@ -151,7 +156,7 @@ namespace Steam
 						continue;
 					}
 
-					Proxy::RunCallback(call.callId, buffer);
+					Proxy::RunCallback(call.callId, buffer, call.dataSize);
 				}
 			}
 		}

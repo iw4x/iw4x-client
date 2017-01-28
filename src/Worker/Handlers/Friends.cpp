@@ -92,6 +92,7 @@ namespace Handlers
 			Proto::IPC::Function response;
 			response.set_name("presenceResponse");
 			*response.add_params() = Utils::String::VA("%llX", id.Bits);
+			*response.add_params() = params[1].data();
 			*response.add_params() = Steam::Proxy::SteamFriends->GetFriendRichPresence(id, params[1].data());
 
 			endpoint.send(this->getCommand(), response.SerializeAsString());

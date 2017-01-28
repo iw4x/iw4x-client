@@ -43,6 +43,8 @@ namespace Worker
 
 		void attachHandler(Runner::Handler* handler);
 
+		static Utils::IPC::BidirectionalChannel* Channel;
+
 	private:
 		void worker();
 
@@ -53,3 +55,4 @@ namespace Worker
 }
 
 #include "Handlers/Friends.hpp"
+#include "Handlers/SteamCallbacks.hpp"
