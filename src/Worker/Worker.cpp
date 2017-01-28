@@ -21,7 +21,7 @@ namespace Worker
 		else
 		{
 #ifdef DEBUG
-			SetConsoleTitleA("IW4x Worker");
+			SetConsoleTitleA("IW4x: Worker");
 #else
 			FreeConsole();
 #endif

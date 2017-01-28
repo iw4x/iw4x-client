@@ -14,6 +14,7 @@ namespace Worker
 
 	void Runner::run()
 	{
+		printf("Attaching to parent process %d...\n", this->processId);
 		HANDLE processHandle = OpenProcess(SYNCHRONIZE, FALSE, this->processId);
 		if (!processHandle || processHandle == INVALID_HANDLE_VALUE)
 		{
