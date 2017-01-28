@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	Utils::Hook Renderer::DrawFrameHook;
 	Utils::Signal<Renderer::Callback> Renderer::FrameSignal;
 	Utils::Signal<Renderer::Callback> Renderer::FrameOnceSignal;
 	Utils::Signal<Renderer::BackendCallback> Renderer::BackendFrameSignal;
@@ -18,7 +17,8 @@ namespace Components
 			call Renderer::FrameHandler
 			popad
 
-			jmp Renderer::DrawFrameHook.original
+			push 5AC950h
+			retn
 		}
 	}
 
@@ -40,8 +40,8 @@ namespace Components
 			popad
 
 			mov eax, ds:66E1BF0h
-			mov ecx, 536A85h
-			jmp ecx
+			push 536A85h
+			retn
 		}
 	}
 
@@ -123,7 +123,7 @@ namespace Components
 // 		});
 
 		// Frame hook
-		Renderer::DrawFrameHook.initialize(0x5ACB99, Renderer::FrameStub, HOOK_CALL)->install();
+		Utils::Hook(0x5ACB99, Renderer::FrameStub, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x536A80, Renderer::BackendFrameStub, HOOK_JUMP).install()->quick();
 
@@ -142,7 +142,6 @@ namespace Components
 
 	Renderer::~Renderer()
 	{
-		Renderer::DrawFrameHook.uninstall();
 		Renderer::BackendFrameSignal.clear();
 		Renderer::FrameOnceSignal.clear();
 		Renderer::FrameSignal.clear();

@@ -39,6 +39,5 @@ namespace Components
 		static Utils::Signal<Callback> BeginRecoverDeviceSignal;
 
 		static Utils::Signal<BackendCallback> BackendFrameSignal;
-		static Utils::Hook DrawFrameHook;
 	};
 }
