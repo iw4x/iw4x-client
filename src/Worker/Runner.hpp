@@ -2,6 +2,29 @@
 
 namespace Worker
 {
+	class Endpoint
+	{
+	public:
+		Endpoint() : Endpoint(nullptr) {}
+		Endpoint(Utils::IPC::BidirectionalChannel* _channel) : channel(_channel) {}
+		Endpoint(const Endpoint& obj) : Endpoint(obj.channel) {}
+
+		void send(std::string message, std::string data)
+		{
+			if (this->channel)
+			{
+				Proto::IPC::Command command;
+				command.set_name(message);
+				command.set_data(data);
+
+				this->channel->send(command.SerializeAsString());
+			}
+		}
+
+	private:
+		Utils::IPC::BidirectionalChannel* channel;
+	};
+
 	class Runner
 	{
 	public:
@@ -10,7 +33,7 @@ namespace Worker
 		public:
 			virtual ~Handler() {};
 			virtual std::string getCommand() = 0;
-			virtual void handle(Utils::IPC::BidirectionalChannel* channel, std::string data) = 0;
+			virtual void handle(Endpoint endpoint, std::string data) = 0;
 		};
 
 		Runner(int pid);
@@ -18,13 +41,15 @@ namespace Worker
 
 		void run();
 
-		void attachHandler(std::shared_ptr<Handler> handler);
+		void attachHandler(Runner::Handler* handler);
 
 	private:
 		void worker();
 
 		int processId;
 		bool terminate;
-		std::map<std::string, std::shared_ptr<Handler>> handlers;
+		std::unordered_map<std::string, std::shared_ptr<Handler>> handlers;
 	};
 }
+
+#include "Handlers/Friends.hpp"

@@ -13,7 +13,7 @@ namespace Components
 		IPCHandler::InitChannels();
 
 		Proto::IPC::Command command;
-		command.set_command(message);
+		command.set_name(message);
 		command.set_data(data);
 
 		IPCHandler::WorkerChannel->send(command.SerializeAsString());
@@ -24,7 +24,7 @@ namespace Components
 		IPCHandler::InitChannels();
 
 		Proto::IPC::Command command;
-		command.set_command(message);
+		command.set_name(message);
 		command.set_data(data);
 
 		IPCHandler::ClientChannel->send(command.SerializeAsString());
@@ -78,7 +78,7 @@ namespace Components
 			Proto::IPC::Command command;
 			if(command.ParseFromString(packet))
 			{
-				auto callback = IPCHandler::ClientCallbacks.find(command.command());
+				auto callback = IPCHandler::ClientCallbacks.find(command.name());
 				if (callback != IPCHandler::ClientCallbacks.end())
 				{
 					callback->second(command.data());
@@ -97,7 +97,7 @@ namespace Components
 			Proto::IPC::Command command;
 			if (command.ParseFromString(packet))
 			{
-				auto callback = IPCHandler::WorkerCallbacks.find(command.command());
+				auto callback = IPCHandler::WorkerCallbacks.find(command.name());
 				if (callback != IPCHandler::WorkerCallbacks.end())
 				{
 					callback->second(command.data());

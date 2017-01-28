@@ -167,6 +167,34 @@ namespace Components
 		});
 
 		UIFeeder::Add(6.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
+
+		IPCHandler::OnWorker("friends", [](std::string data)
+		{
+			Proto::IPC::Function function;
+			if(function.ParseFromString(data))
+			{
+				if(function.name() == "friendsResponse")
+				{
+					auto params = function.params();
+
+					Logger::Print("Received friendslist: %d\n", params.size());
+
+					for(auto param : params)
+					{
+						Logger::Print("%s\n", param.data());
+					}
+				}
+			}
+		});
+
+		Command::Add("getFriends", [](Command::Params*)
+		{
+			Proto::IPC::Function function;
+			function.set_name("getFriends");
+			function.add_params()->append(Utils::String::VA("%d", 4));
+
+			IPCHandler::SendWorker("friends", function.SerializeAsString());
+		});
 	}
 
 	Friends::~Friends()

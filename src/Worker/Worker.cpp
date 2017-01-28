@@ -7,6 +7,7 @@ namespace Worker
 	int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, char* /*lpCmdLine*/, int /*nCmdShow*/)
 	{
 		Runner runner(Worker::ProcessId);
+		runner.attachHandler(new Handlers::Friends());
 		runner.run();
 		return 0;
 	}

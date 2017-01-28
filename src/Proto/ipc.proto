@@ -4,6 +4,12 @@ package Proto.IPC;
 
 message Command 
 {
-	bytes command  = 1;
+	bytes name  = 1;
 	bytes data = 2;
+}
+
+message Function
+{
+	bytes name = 1;
+	repeated bytes params = 2;
 }

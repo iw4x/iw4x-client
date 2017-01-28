@@ -1,65 +1,55 @@
 #include "STDInclude.hpp"
 
-namespace Worker
+namespace Handlers
 {
-	int ProcessId;
-	
-	int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, char* /*lpCmdLine*/, int /*nCmdShow*/)
+	void Friends::handle(Worker::Endpoint endpoint, std::string data)
 	{
-		Runner runner(Worker::ProcessId);
-		runner.run();
-		return 0;
-	}
-
-	void Initialize()
-	{
-		if(!Steam::Proxy::Inititalize())
+		Proto::IPC::Function function;
+		if (function.ParseFromString(data))
 		{
-			printf("Failed to initialize worker!\n");
-			ExitProcess(1);
-		}
-		else
-		{
-#ifdef DEBUG
-			SetConsoleTitleA("IW4x: Worker");
-#else
-			FreeConsole();
-#endif
+			auto handler = this->functions.find(function.name());
+			if (handler != this->functions.end())
+			{
+				printf("Handing function %s\n", function.name().data());
 
-			Utils::Hook(0x6BABA1, Worker::EntryPoint, HOOK_CALL).install()->quick();
+				auto params = function.params();
+				handler->second(endpoint, std::vector<std::string>(params.begin(), params.end()));
+			}
+			else
+			{
+				printf("No handler for function %s\n", function.name().data());
+			}
 		}
 	}
 
-	void Uninitialize()
+	void Friends::addFunction(std::string function, Friends::Callback callback)
 	{
-		Steam::Proxy::Uninititalize();
+		this->functions[function] = callback;
 	}
 
-	bool ParseWorkerFlag()
+	Friends::Friends()
 	{
-		char* command = "-parent ";
-		char* parentProc = strstr(GetCommandLineA(), command);
-
-		if (parentProc)
+		this->addFunction("getFriends", [&](Worker::Endpoint endpoint, std::vector<std::string> params)
 		{
-			parentProc += strlen(command);
-			Worker::ProcessId = atoi(parentProc);
+			if (params.size() >= 1 && Steam::Proxy::SteamFriends)
+			{
+				int flag = atoi(params[0].data());
+				int count = Steam::Proxy::SteamFriends->GetFriendCount(flag);
 
-			return true;
-		}
+				Proto::IPC::Function response;
+				response.set_name("friendsResponse");
 
-		return false;
-	}
+				for (int i = 0; i < count; ++i)
+				{
+					std::string* param = response.add_params();
+					SteamID id = Steam::Proxy::SteamFriends->GetFriendByIndex(i, flag);
 
-	bool IsWorker()
-	{
-		static Utils::Value<bool> flag;
+					param->clear();
+					param->append(Utils::String::VA("%llX", id.Bits));
+				}
 
-		if (!flag.isValid())
-		{
-			flag.set(Worker::ParseWorkerFlag());
-		}
-
-		return flag.get();
+				endpoint.send(this->getCommand(), response.SerializeAsString());
+			}
+		});
 	}
 }

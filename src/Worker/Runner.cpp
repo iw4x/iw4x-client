@@ -37,9 +37,9 @@ namespace Worker
 		}
 	}
 
-	void Runner::attachHandler(std::shared_ptr<Handler> handler)
+	void Runner::attachHandler(Runner::Handler* handler)
 	{
-		this->handlers[handler->getCommand()] = handler;
+		this->handlers[handler->getCommand()] = std::shared_ptr<Runner::Handler>(handler);
 	}
 
 	void Runner::worker()
@@ -57,15 +57,15 @@ namespace Worker
 				Proto::IPC::Command command;
 				if(command.ParseFromString(buffer))
 				{
-					auto handler = this->handlers.find(command.command());
+					auto handler = this->handlers.find(command.name());
 					if (handler != this->handlers.end())
 					{
-						printf("Handling command %s\n", command.command().data());
+						printf("Dispathcing command %s to handler\n", command.name().data());
 						handler->second->handle(&channel, command.data());
 					}
 					else
 					{
-						printf("No handler found for command %s\n", command.command().data());
+						printf("No handler found for command %s\n", command.name().data());
 					}
 				}
 			}
