@@ -765,6 +765,17 @@ namespace Components
 			};
 		});
 
+		Command::Add("playerCount", [](Command::Params*)
+		{
+			int count = 0;
+			for(auto server : ServerList::OnlineList)
+			{
+				count += server.clients;
+			}
+
+			Logger::Print("There are %d players playing.\n", count);
+		});
+
 		// Add required ownerDraws
 		UIScript::AddOwnerDraw(220, ServerList::UpdateSource);
 		UIScript::AddOwnerDraw(253, ServerList::UpdateGameType);
