@@ -27,29 +27,103 @@ namespace Handlers
 		this->functions[function] = callback;
 	}
 
+	void Friends::getFriends(Worker::Endpoint endpoint, std::vector<std::string> params)
+	{
+		if (params.size() >= 1 && Steam::Proxy::SteamFriends)
+		{
+			int flag = atoi(params[0].data());
+			int count = Steam::Proxy::SteamFriends->GetFriendCount(flag);
+
+			Proto::IPC::Function response;
+			response.set_name("friendsResponse");
+
+			for (int i = 0; i < count; ++i)
+			{
+				SteamID id = Steam::Proxy::SteamFriends->GetFriendByIndex(i, flag);
+				*response.add_params() = Utils::String::VA("%llX", id.Bits);
+			}
+
+			endpoint.send(this->getCommand(), response.SerializeAsString());
+		}
+	}
+
+	void Friends::getName(Worker::Endpoint endpoint, std::vector<std::string> params)
+	{
+		if(Steam::Proxy::SteamFriends)
+		{
+			std::string name;
+			SteamID id;
+
+			if(params.size() >= 1)
+			{
+				id.Bits = strtoull(params[0].data(), nullptr, 16);
+				name = Steam::Proxy::SteamFriends->GetFriendPersonaName(id);
+			}
+			else
+			{
+				id.Bits = 0;
+				name = Steam::Proxy::SteamFriends->GetPersonaName();
+			}
+
+			Proto::IPC::Function response;
+			response.set_name("nameResponse");
+			*response.add_params() = Utils::String::VA("%llX", id.Bits);
+			*response.add_params() = name;
+
+			endpoint.send(this->getCommand(), response.SerializeAsString());
+		}
+	}
+
+	void Friends::setPresence(Worker::Endpoint /*endpoint*/, std::vector<std::string> params)
+	{
+		if (params.size() >= 2 && Steam::Proxy::SteamFriends)
+		{
+			Steam::Proxy::SteamFriends->SetRichPresence(params[0].data(), params[1].data());
+		}
+	}
+
+	void Friends::getPresence(Worker::Endpoint endpoint, std::vector<std::string> params)
+	{
+		if (params.size() >= 2 && Steam::Proxy::SteamFriends)
+		{
+			SteamID id;
+			id.Bits = strtoull(params[0].data(), nullptr, 16);
+
+			Proto::IPC::Function response;
+			response.set_name("presenceResponse");
+			*response.add_params() = Utils::String::VA("%llX", id.Bits);
+			*response.add_params() = Steam::Proxy::SteamFriends->GetFriendRichPresence(id, params[1].data());
+
+			endpoint.send(this->getCommand(), response.SerializeAsString());
+		}
+	}
+
+	void Friends::requestPresence(Worker::Endpoint /*endpoint*/, std::vector<std::string> params)
+	{
+		if (params.size() >= 1 && Steam::Proxy::SteamFriends)
+		{
+			SteamID id;
+			id.Bits = strtoull(params[0].data(), nullptr, 16);
+
+			Steam::Proxy::SteamFriends->RequestFriendRichPresence(id);
+		}
+	}
+
 	Friends::Friends()
 	{
-		this->addFunction("getFriends", [&](Worker::Endpoint endpoint, std::vector<std::string> params)
+		using namespace std::placeholders;
+		this->addFunction("getFriends", std::bind(&Friends::getFriends, this, _1, _2));
+		this->addFunction("getName", std::bind(&Friends::getName, this, _1, _2));
+		this->addFunction("setPresence", std::bind(&Friends::setPresence, this, _1, _2));
+		this->addFunction("getPresence", std::bind(&Friends::getPresence, this, _1, _2));
+		this->addFunction("requestPresence", std::bind(&Friends::requestPresence, this, _1, _2));
+	}
+
+	Friends::~Friends()
+	{
+		if(Steam::Proxy::SteamFriends)
 		{
-			if (params.size() >= 1 && Steam::Proxy::SteamFriends)
-			{
-				int flag = atoi(params[0].data());
-				int count = Steam::Proxy::SteamFriends->GetFriendCount(flag);
-
-				Proto::IPC::Function response;
-				response.set_name("friendsResponse");
-
-				for (int i = 0; i < count; ++i)
-				{
-					std::string* param = response.add_params();
-					SteamID id = Steam::Proxy::SteamFriends->GetFriendByIndex(i, flag);
-
-					param->clear();
-					param->append(Utils::String::VA("%llX", id.Bits));
-				}
-
-				endpoint.send(this->getCommand(), response.SerializeAsString());
-			}
-		});
+			Steam::Proxy::SteamFriends->ClearRichPresence();
+		}
 	}
 }

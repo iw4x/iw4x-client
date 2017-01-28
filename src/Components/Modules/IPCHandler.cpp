@@ -8,6 +8,15 @@ namespace Components
 	std::unique_ptr<Utils::IPC::BidirectionalChannel> IPCHandler::WorkerChannel;
 	std::unique_ptr<Utils::IPC::BidirectionalChannel> IPCHandler::ClientChannel;
 
+	std::unordered_map<std::string, std::shared_ptr<IPCHandler::FunctionInterface>> IPCHandler::FunctionInterfaces;
+
+	std::shared_ptr<IPCHandler::FunctionInterface> IPCHandler::NewInterface(std::string command)
+	{
+		std::shared_ptr<IPCHandler::FunctionInterface> fInterface(new IPCHandler::FunctionInterface());
+		IPCHandler::FunctionInterfaces[command] = fInterface;
+		return fInterface;
+	}
+
 	void IPCHandler::SendWorker(std::string message, std::string data)
 	{
 		IPCHandler::InitChannels();
@@ -98,9 +107,14 @@ namespace Components
 			if (command.ParseFromString(packet))
 			{
 				auto callback = IPCHandler::WorkerCallbacks.find(command.name());
+				auto fInterface = IPCHandler::FunctionInterfaces.find(command.name());
 				if (callback != IPCHandler::WorkerCallbacks.end())
 				{
 					callback->second(command.data());
+				}
+				else if(fInterface != IPCHandler::FunctionInterfaces.end())
+				{
+					fInterface->second->handle(command.data());
 				}
 			}
 		}
@@ -122,7 +136,12 @@ namespace Components
 
 	IPCHandler::~IPCHandler()
 	{
+		IPCHandler::FunctionInterfaces.clear();
+
 		IPCHandler::WorkerCallbacks.clear();
 		IPCHandler::ClientCallbacks.clear();
+
+		IPCHandler::WorkerChannel.release();
+		IPCHandler::ClientChannel.release();
 	}
 }

@@ -60,7 +60,7 @@ namespace Worker
 					auto handler = this->handlers.find(command.name());
 					if (handler != this->handlers.end())
 					{
-						printf("Dispathcing command %s to handler\n", command.name().data());
+						printf("Dispatching command %s to handler\n", command.name().data());
 						handler->second->handle(&channel, command.data());
 					}
 					else

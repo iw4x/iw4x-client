@@ -45,7 +45,14 @@ namespace Utils
 				unsigned int fragmentPart;
 			};
 
-			void sendMessage(std::string data);
+			void enqueueMessage(std::string data);
+			void queueWorker();
+
+			bool terminateQueue;
+			std::condition_variable queueEvent;
+			std::mutex queueMutex;
+			std::thread queueThread;
+			std::queue<std::string> internalQueue;
 
 			bool remove;
 			std::unique_ptr<boost::interprocess::message_queue> queue;

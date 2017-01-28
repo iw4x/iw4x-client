@@ -48,5 +48,8 @@ namespace Components
 		static unsigned int GetFriendCount();
 		static const char* GetFriendText(unsigned int index, int column);
 		static void SelectFriend(unsigned int index);
+
+		static void FriendsResponse(std::vector<std::string> params);
+		static void NameResponse(std::vector<std::string> params);
 	};
 }
