@@ -190,6 +190,8 @@ namespace Components
 
 	Friends::Friends()
 	{
+		Friends::UpdateFriends();
+
 		// Callback to update user information
 		Steam::Proxy::RegisterCallback(336, [](void* data)
 		{
