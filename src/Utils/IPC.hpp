@@ -47,7 +47,6 @@ namespace Utils
 
 			void enqueueMessage(std::string data);
 			void queueWorker();
-			void queueWorker2();
 
 			bool terminateQueue;
 			std::condition_variable queueEvent;
