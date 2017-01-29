@@ -5,6 +5,8 @@ namespace Components
 	Utils::Signal<Dedicated::Callback> Dedicated::FrameSignal;
 	Utils::Signal<Dedicated::Callback> Dedicated::FrameOnceSignal;
 
+	SteamID Dedicated::PlayerGuids[18];
+
 	bool Dedicated::SendChat;
 
 	bool Dedicated::IsEnabled()
@@ -129,6 +131,25 @@ namespace Components
 		}
 	}
 
+	void Dedicated::TransmitGuids()
+	{
+		std::string list = Utils::String::VA("%c", 20);
+
+		for (int i = 0; i < 18; i++)
+		{
+			if (Game::svs_clients[i].state >= 3)
+			{
+				list.append(Utils::String::VA(" %llX", Game::svs_clients[i].steamid));
+			}
+			else
+			{
+				list.append(" 0");
+			}
+		}
+
+		Game::SV_GameSendServerCommand(-1, 0, list.data());
+	}
+
 	void Dedicated::TimeWrapStub(int code, const char* message)
 	{
 		static bool partyEnable;
@@ -150,6 +171,48 @@ namespace Components
 		});
 
 		Game::Com_Error(code, message);
+	}
+
+	__declspec(naked) void Dedicated::OnServerCommandStub()
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			call Dedicated::OnServerCommand
+
+			mov [esp + 20h], eax
+			popad
+			pop eax
+
+			test al, al
+			jnz returnSafe
+
+			push 5944AEh
+			retn
+
+		returnSafe:
+			push 594536h
+			retn
+		}
+	}
+
+	int Dedicated::OnServerCommand()
+	{
+		Command::ClientParams params;
+
+		if (params.length() > 17 && params.get(0)[0] == 20)
+		{
+			for (int client = 0; client < 18; client++)
+			{
+				Dedicated::PlayerGuids[client].Bits = strtoull(params.get(client + 1), nullptr, 16);
+			}
+
+			return 1;
+		}
+
+		return 0;
 	}
 
 	void Dedicated::MapRotate()
@@ -470,6 +533,30 @@ namespace Components
 				});
 			});
 		}
+		else
+		{
+			for(int i = 0; i < ARRAYSIZE(Dedicated::PlayerGuids); ++i)
+			{
+				Dedicated::PlayerGuids[i].Bits = 0;
+			}
+
+			// Intercept server commands
+			Utils::Hook(0x59449F, Dedicated::OnServerCommandStub, HOOK_JUMP).install()->quick();
+		}
+
+		QuickPatch::OnFrame([]()
+		{
+			if(Dvar::Var("sv_running").get<bool>())
+			{
+				static Utils::Time::Interval interval;
+
+				if(interval.elapsed(15s))
+				{
+					interval.update();
+					Dedicated::TransmitGuids();
+				}
+			}
+		});
 	}
 
 	Dedicated::~Dedicated()

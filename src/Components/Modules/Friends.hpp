@@ -16,6 +16,9 @@ namespace Components
 		static void UpdateRank();
 		static void UpdateHostname(Network::Address server, std::string hostname);
 
+		static void SetPresence(std::string key, std::string value);
+		static void ClearPresence(std::string key);
+
 	private:
 #pragma pack(push, 4)
 		struct FriendRichPresenceUpdate
@@ -35,6 +38,7 @@ namespace Components
 		{
 		public:
 			SteamID userId;
+			SteamID guid;
 			std::string name;
 			std::string playerName;
 			Network::Address server;
@@ -52,6 +56,8 @@ namespace Components
 		static void DisconnectStub();
 		static void ClearServer();
 		static void SetServer();
+
+		static bool IsClientInParty(int controller, int clientNum);
 
 		static void UpdateUserInfo(SteamID user);
 		static void UpdateState();

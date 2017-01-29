@@ -83,6 +83,7 @@ namespace Components
 			*function.add_params() = "iw4x_rank";
 			*function.add_params() = "iw4x_server";
 			*function.add_params() = "iw4x_playing";
+			*function.add_params() = "iw4x_guid";
 
 			IPCHandler::SendWorker("friends", function.SerializeAsString());
 	}
@@ -107,27 +108,53 @@ namespace Components
 		}
 	}
 
-	void Friends::SetServer()
+	void Friends::ClearPresence(std::string key)
 	{
 		Proto::IPC::Function function;
 		function.set_name("setPresence");
-		*function.add_params() = "iw4x_server";
-		*function.add_params() = Network::Address(*Game::connectedHost).getString();//reinterpret_cast<char*>(0x7ED3F8);
+		*function.add_params() = key;
 
 		IPCHandler::SendWorker("friends", function.SerializeAsString());
+	}
 
+	void Friends::SetPresence(std::string key, std::string value)
+	{
+		Proto::IPC::Function function;
+		function.set_name("setPresence");
+		*function.add_params() = key;
+		*function.add_params() = value;
+
+		IPCHandler::SendWorker("friends", function.SerializeAsString());
+	}
+
+	void Friends::SetServer()
+	{
+		Friends::SetPresence("iw4x_server", Network::Address(*Game::connectedHost).getString()); // reinterpret_cast<char*>(0x7ED3F8)
 		Friends::UpdateState();
 	}
 
 	void Friends::ClearServer()
 	{
-		Proto::IPC::Function function;
-		function.set_name("setPresence");
-		*function.add_params() = "iw4x_server";
-
-		IPCHandler::SendWorker("friends", function.SerializeAsString());
-
+		Friends::ClearPresence("iw4x_server");
 		Friends::UpdateState();
+	}
+
+	bool Friends::IsClientInParty(int /*controller*/, int clientNum)
+	{
+		if (clientNum < 0 || clientNum >= ARRAYSIZE(Dedicated::PlayerGuids)) return false;
+
+		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+		SteamID guid = Dedicated::PlayerGuids[clientNum];
+
+		for (auto entry : Friends::FriendsList)
+		{
+			if (entry.guid.Bits == guid.Bits && entry.playing && entry.online)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	void Friends::UpdateRank()
@@ -142,13 +169,7 @@ namespace Components
 		{
 			levelVal.set(level);
 
-			Proto::IPC::Function function;
-			function.set_name("setPresence");
-			*function.add_params() = "iw4x_rank";
-			*function.add_params() = std::string(reinterpret_cast<char*>(&level), 4);
-
-			IPCHandler::SendWorker("friends", function.SerializeAsString());
-
+			Friends::SetPresence("iw4x_rank", std::string(reinterpret_cast<char*>(&level), 4));
 			Friends::UpdateState();
 		}
 	}
@@ -299,6 +320,10 @@ namespace Components
 			{
 				entry->playing = atoi(value.data()) == 1;
 			}
+			else if(key == "iw4x_guid")
+			{
+				entry->guid.Bits = strtoull(value.data(), nullptr, 16);
+			}
 			else if (key == "iw4x_server")
 			{
 				Network::Address oldAddress = entry->server;
@@ -439,6 +464,9 @@ namespace Components
 		Utils::Hook(0x403582, Friends::DisconnectStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4CD023, Friends::SetServer, HOOK_JUMP).install()->quick();
 
+		// Show blue icons on the minimap
+		Utils::Hook(0x493130, Friends::IsClientInParty, HOOK_JUMP).install()->quick();
+
 		auto fInterface = IPCHandler::NewInterface("steamCallbacks");
 
 		// Callback to update user information
@@ -503,12 +531,8 @@ namespace Components
 		fInterface->map("presenceResponse", Friends::PresenceResponse);
 		fInterface->map("infoResponse", Friends::InfoResponse);
 
-		Proto::IPC::Function function;
-		function.set_name("setPresence");
-		*function.add_params() = "iw4x_playing";
-		*function.add_params() = "1";
-
-		IPCHandler::SendWorker("friends", function.SerializeAsString());
+		Friends::SetPresence("iw4x_playing", "1");
+		Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
 	}
 
 	Friends::~Friends()

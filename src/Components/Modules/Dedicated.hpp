@@ -14,6 +14,8 @@ namespace Components
 		const char* getName() override { return "Dedicated"; };
 #endif
 
+		static SteamID PlayerGuids[18];
+
 		static bool IsEnabled();
 
 		static void Heartbeat();
@@ -27,6 +29,9 @@ namespace Components
 
 		static bool SendChat;
 
+		static void OnServerCommandStub();
+		static int OnServerCommand();
+
 		static void MapRotate();
 		static void FrameHandler();
 		static void FrameStub();
@@ -39,6 +44,8 @@ namespace Components
 
 		static void PreSayStub();
 		static void PostSayStub();
+
+		static void TransmitGuids();
 
 		static void TimeWrapStub(int code, const char* message);
 	};
