@@ -129,7 +129,7 @@ namespace Components
 
 	IPCHandler::IPCHandler()
 	{
-		if (Dedicated::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || Loader::PerformingUnitTests()) return;
 
 		IPCHandler::InitChannels();
 		IPCHandler::StartWorker();
