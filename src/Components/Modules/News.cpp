@@ -96,9 +96,20 @@ namespace Components
 	{
 		if (ZoneBuilder::IsEnabled()) return; // Maybe also dedi?
 
+		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_FLAG_SAVED, "");
+
 		Dvar::Register<int>("cl_updateoldversion", REVISION, REVISION, REVISION, Game::DVAR_FLAG_WRITEPROTECTED, "Current version number.");
 		Dvar::Register<int>("cl_updateversion", 0, 0, -1, Game::DVAR_FLAG_WRITEPROTECTED, "New version number.");
 		Dvar::Register<bool>("cl_updateavailable", false, Game::DVAR_FLAG_WRITEPROTECTED, "New update is available.");
+
+		UIScript::Add("checkFirstLaunch", [](UIScript::Token)
+		{
+			if (Dvar::Var("g_firstLaunch").get<bool>())
+			{
+				Command::Execute("openmenu menu_first_launch", false);
+				//Dvar::Var("g_firstLaunch").set(false);
+			}
+		});
 
 		UIScript::Add("visitWebsite", [](UIScript::Token)
 		{
@@ -109,6 +120,7 @@ namespace Components
 		{
 			ShellExecuteA(nullptr, "open", Utils::Cache::GetStaticUrl("/wiki/").data(), nullptr, nullptr, SW_SHOWNORMAL);
 		});
+
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFUALT);
 
