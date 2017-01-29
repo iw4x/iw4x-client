@@ -100,6 +100,15 @@ namespace Components
 		Dvar::Register<int>("cl_updateversion", 0, 0, -1, Game::DVAR_FLAG_WRITEPROTECTED, "New version number.");
 		Dvar::Register<bool>("cl_updateavailable", false, Game::DVAR_FLAG_WRITEPROTECTED, "New update is available.");
 
+		UIScript::Add("visitWebsite", [](UIScript::Token)
+		{
+			ShellExecuteA(nullptr, "open", Utils::Cache::GetStaticUrl("").data(), nullptr, nullptr, SW_SHOWNORMAL);
+		});
+
+		UIScript::Add("visitWiki", [](UIScript::Token)
+		{
+			ShellExecuteA(nullptr, "open", Utils::Cache::GetStaticUrl("/wiki/").data(), nullptr, nullptr, SW_SHOWNORMAL);
+		});
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFUALT);
 
