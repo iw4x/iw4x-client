@@ -14,13 +14,12 @@ namespace Utils
 
 		Channel::~Channel()
 		{
-			{
-				std::lock_guard<std::mutex> _(this->queueMutex);
-				this->terminateQueue = true;
-				this->queueEvent.notify_all();
-			}
+			std::unique_lock<std::mutex> lock(this->queueMutex);
+			this->terminateQueue = true;
+			this->queueEvent.notify_all();
+			lock.unlock();
 
-			if(this->queueThread.joinable())
+			if (this->queueThread.joinable())
 			{
 				this->queueThread.join();
 			}
