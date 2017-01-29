@@ -8,48 +8,19 @@ namespace Components
 
 	void Friends::UpdateUserInfo(SteamID user)
 	{
-		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
-
-		auto i = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [user] (Friends::Friend entry)
-		{
-			return (entry.userId.Bits == user.Bits);
-		});
-
-		if(i != Friends::FriendsList.end())
-		{
 			Proto::IPC::Function function;
 
-			function.set_name("getPresence");
+			function.set_name("getInfo");
 			*function.add_params() = Utils::String::VA("%llx", user.Bits);
 
-			std::string* key = function.add_params();
+			*function.add_params() = "name";
+			*function.add_params() = "state";
+			*function.add_params() = "iw4x_name";
+			*function.add_params() = "iw4x_status";
+			*function.add_params() = "iw4x_rank";
+			*function.add_params() = "iw4x_server";
 
-			*key = "iw4x_status";
 			IPCHandler::SendWorker("friends", function.SerializeAsString());
-
-			*key = "iw4x_rank";
-			IPCHandler::SendWorker("friends", function.SerializeAsString());
-
-			*key = "iw4x_server";
-			IPCHandler::SendWorker("friends", function.SerializeAsString());
-		}
-
-		/*userInfo.online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
-		userInfo.name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
-		userInfo.statusName = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_status");
-		userInfo.prestige = Utils::Cryptography::Rand::GenerateInt() % (10 + 1);
-		userInfo.experience = Utils::Cryptography::Rand::GenerateInt() % (2516000 + 1);*/
-
-/*		qsort(Friends::FriendsList.data(), Friends::FriendsList.size(), sizeof(Friends::Friend), [](const void* first, const void* second)
-		{
-			const Friends::Friend* friend1 = static_cast<const Friends::Friend*>(first);
-			const Friends::Friend* friend2 = static_cast<const Friends::Friend*>(second);
-
-			std::string name1 = Utils::String::ToLower(Colors::Strip(friend1->name));
-			std::string name2 = Utils::String::ToLower(Colors::Strip(friend2->name));
-
-			return name1.compare(name2);
-		});*/
 	}
 
 	void Friends::UpdateFriends()
@@ -160,18 +131,67 @@ namespace Components
 
 			if (entry == Friends::FriendsList.end()) return;
 
-			if(key == "iw4x_status")
+			if (key == "iw4x_status")
 			{
 				entry->statusName = value;
 			}
-			else if(key == "iw4x_rank")
+			else if (key == "iw4x_server")
 			{
-				if(value.size() == 4)
+				entry->server = value;
+
+				// TODO: Query server here?
+				if (entry->server.getType() != Game::NA_BAD)
+				{
+					Node::AddNode(entry->server);
+					Network::SendCommand(entry->server, "getinfo", Utils::Cryptography::Rand::GenerateChallenge());
+				}
+			}
+			else if (key == "iw4x_rank")
+			{
+				if (value.size() == 4)
 				{
 					int data = *reinterpret_cast<int*>(const_cast<char*>(value.data()));
 
 					entry->experience = data & 0xFFFFFF;
 					entry->prestige = (data >> 24) & 0xFF;
+				}
+			}
+		}
+	}
+
+	void Friends::InfoResponse(std::vector<std::string> params)
+	{
+		if (params.size() >= 1)
+		{
+			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+
+			SteamID id;
+			id.Bits = strtoull(params[0].data(), nullptr, 16);
+
+			auto entry = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [id](Friends::Friend entry)
+			{
+				return (entry.userId.Bits == id.Bits);
+			});
+
+			if (entry == Friends::FriendsList.end()) return;
+
+			for(unsigned int i = 1; i < params.size(); i += 2)
+			{
+				if ((i + 1) >= params.size()) break;
+				std::string key = params[i];
+				std::string value = params[i + 1];
+
+				if(key == "name")
+				{
+					entry->name = value;
+				}
+				else if(key == "state")
+				{
+					entry->online = atoi(value.data()) != 0;
+				}
+				else
+				{
+					Friends::PresenceResponse({ Utils::String::VA("%llx", id.Bits), key, value });
 				}
 			}
 		}
@@ -204,18 +224,9 @@ namespace Components
 
 			Friends::FriendsList.push_back(entry);
 
+			Friends::UpdateUserInfo(id);
+
 			Proto::IPC::Function function;
-			function.set_name("getName");
-			*function.add_params() = Utils::String::VA("%llx", id.Bits);
-			IPCHandler::SendWorker("friends", function.SerializeAsString());
-
-			function.Clear();
-			function.set_name("getPresence");
-			*function.add_params() = Utils::String::VA("%llx", id.Bits);
-			*function.add_params() = "iw4x_status";
-			IPCHandler::SendWorker("friends", function.SerializeAsString());
-
-			function.Clear();
 			function.set_name("requestPresence");
 			*function.add_params() = Utils::String::VA("%llx", id.Bits);
 			IPCHandler::SendWorker("friends", function.SerializeAsString());
@@ -263,6 +274,7 @@ namespace Components
 		fInterface->map("friendsResponse", Friends::FriendsResponse);
 		fInterface->map("nameResponse", Friends::NameResponse);
 		fInterface->map("presenceResponse", Friends::PresenceResponse);
+		fInterface->map("infoResponse", Friends::InfoResponse);
 	}
 
 	Friends::~Friends()

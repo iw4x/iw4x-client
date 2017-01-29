@@ -54,5 +54,6 @@ namespace Components
 		static void FriendsResponse(std::vector<std::string> params);
 		static void NameResponse(std::vector<std::string> params);
 		static void PresenceResponse(std::vector<std::string> params);
+		static void InfoResponse(std::vector<std::string> params);
 	};
 }

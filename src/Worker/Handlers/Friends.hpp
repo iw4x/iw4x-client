@@ -22,5 +22,6 @@ namespace Handlers
 		void setPresence(Worker::Endpoint endpoint, std::vector<std::string> params);
 		void getPresence(Worker::Endpoint endpoint, std::vector<std::string> params);
 		void requestPresence(Worker::Endpoint endpoint, std::vector<std::string> params);
+		void getInfo(Worker::Endpoint endpoint, std::vector<std::string> params);
 	};
 }
