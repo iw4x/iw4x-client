@@ -76,9 +76,9 @@ namespace Handlers
 
 	void Friends::setPresence(Worker::Endpoint /*endpoint*/, std::vector<std::string> params)
 	{
-		if (params.size() >= 2 && Steam::Proxy::SteamFriends)
+		if (params.size() >= 1 && Steam::Proxy::SteamFriends)
 		{
-			Steam::Proxy::SteamFriends->SetRichPresence(params[0].data(), params[1].data());
+			Steam::Proxy::SteamFriends->SetRichPresence(params[0].data(), (params.size() >= 2 ? params[1].data() : nullptr));
 		}
 	}
 
@@ -141,14 +141,6 @@ namespace Handlers
 				{
 					*response.add_params() = Utils::String::VA("%d", Steam::Proxy::SteamFriends->GetFriendPersonaState(id));
 				}
-				/*else if (key == "iw4x_rank") // This is just a test
-				{
-					int experience = Utils::Cryptography::Rand::GenerateInt() % (2516000 + 1);
-					int prestige = Utils::Cryptography::Rand::GenerateInt() % (10 + 1);
-
-					int data = (experience & 0xFFFFFF) | ((prestige & 0xFF) << 24);
-					*response.add_params() = std::string(reinterpret_cast<char*>(&data), 4);
-				}*/
 				else
 				{
 					*response.add_params() = Steam::Proxy::SteamFriends->GetFriendRichPresence(id, key.data());
@@ -180,7 +172,7 @@ namespace Handlers
 	{
 		if(Steam::Proxy::SteamFriends)
 		{
-			Steam::Proxy::SteamFriends->ClearRichPresence();
+			Steam::Proxy::SteamFriends->SetRichPresence("iw4x_server", nullptr);
 		}
 
 		if(Steam::Proxy::SteamLegacyFriends)

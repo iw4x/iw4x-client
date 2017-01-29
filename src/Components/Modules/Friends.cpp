@@ -6,6 +6,59 @@ namespace Components
 	std::recursive_mutex Friends::Mutex;
 	std::vector<Friends::Friend> Friends::FriendsList;
 
+	void Friends::SortIndividualList(std::vector<Friends::Friend>* list)
+	{
+		qsort(list->data(), list->size(), sizeof(Friends::Friend), [](const void* first, const void* second)
+		{
+			const Friends::Friend* friend1 = static_cast<const Friends::Friend*>(first);
+			const Friends::Friend* friend2 = static_cast<const Friends::Friend*>(second);
+
+			std::string name1 = Utils::String::ToLower(Colors::Strip(friend1->name));
+			std::string name2 = Utils::String::ToLower(Colors::Strip(friend2->name));
+
+			return name1.compare(name2);
+		});
+	}
+
+	void Friends::SortList()
+	{
+		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+
+		std::vector<Friends::Friend> playingList;
+		std::vector<Friends::Friend> onlineList;
+		std::vector<Friends::Friend> offlineList;
+
+		// Split up the list
+		for(auto entry : Friends::FriendsList)
+		{
+			if(entry.online)
+			{
+				if(entry.server.getType() == Game::NA_BAD)
+				{
+					onlineList.push_back(entry);
+				}
+				else
+				{
+					playingList.push_back(entry);
+				}
+			}
+			else
+			{
+				offlineList.push_back(entry);
+			}
+		}
+
+		Friends::SortIndividualList(&playingList);
+		Friends::SortIndividualList(&onlineList);
+		Friends::SortIndividualList(&offlineList);
+
+		Friends::FriendsList.clear();
+
+		Utils::Merge(&Friends::FriendsList, playingList);
+		Utils::Merge(&Friends::FriendsList, onlineList);
+		Utils::Merge(&Friends::FriendsList, offlineList);
+	}
+
 	void Friends::UpdateUserInfo(SteamID user)
 	{
 			Proto::IPC::Function function;
@@ -28,6 +81,42 @@ namespace Components
 		Proto::IPC::Function function;
 		function.set_name("notifyChange");
 		IPCHandler::SendWorker("friends", function.SerializeAsString());
+	}
+
+	void Friends::UpdateHostname(Network::Address server, std::string hostname)
+	{
+		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+
+		for(auto& entry : Friends::FriendsList)
+		{
+			if(entry.server == server)
+			{
+				entry.serverName = hostname;
+			}
+		}
+	}
+
+	void Friends::SetServer()
+	{
+		Proto::IPC::Function function;
+		function.set_name("setPresence");
+		*function.add_params() = "iw4x_server";
+		*function.add_params() = Network::Address(*Game::connectedHost).getString();//reinterpret_cast<char*>(0x7ED3F8);
+
+		IPCHandler::SendWorker("friends", function.SerializeAsString());
+
+		Friends::UpdateState();
+	}
+
+	void Friends::ClearServer()
+	{
+		Proto::IPC::Function function;
+		function.set_name("setPresence");
+		*function.add_params() = "iw4x_server";
+
+		IPCHandler::SendWorker("friends", function.SerializeAsString());
+
+		Friends::UpdateState();
 	}
 
 	void Friends::UpdateRank()
@@ -64,7 +153,6 @@ namespace Components
 
 	unsigned int Friends::GetFriendCount()
 	{
-		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 		return Friends::FriendsList.size();
 	}
 
@@ -107,7 +195,27 @@ namespace Components
 			return Utils::String::VA("%s", user.name.data());
 
 		case 2:
-			return "Trickshot Isnipe server";
+		{		
+			if(user.online && user.server.getType() != Game::NA_BAD)
+			{
+				if(user.serverName.empty())
+				{
+					return Utils::String::VA("Playing on %s", user.server.getCString());
+				}
+				else
+				{
+					return Utils::String::VA("Playing on %s", user.serverName.data());
+				}
+			}
+			else if(user.online)
+			{
+				return "Online";
+			}
+			else
+			{
+				return "Offline";
+			}
+		}
 
 		default:
 			break;
@@ -143,8 +251,8 @@ namespace Components
 			}
 		}
 	}
-	
-	void Friends::PresenceResponse(std::vector<std::string> params)
+
+	void Friends::ParsePresence(std::vector<std::string> params, bool sort)
 	{
 		if (params.size() >= 3)
 		{
@@ -162,15 +270,26 @@ namespace Components
 
 			if (entry == Friends::FriendsList.end()) return;
 
-			if (key == "iw4x_status")
+			if (key == "iw4x_name")
 			{
-				entry->statusName = value;
+				entry->playerName = value;
 			}
 			else if (key == "iw4x_server")
 			{
-				entry->server = value;
+				Network::Address oldAddress = entry->server;
 
-				if (entry->server.getType() != Game::NA_BAD)
+				if (value.empty())
+				{
+					entry->server.setType(Game::NA_BAD);
+					entry->serverName.clear();
+				}
+				else if (entry->server != value)
+				{
+					entry->server = value;
+					entry->serverName.clear();
+				}
+
+				if (entry->server.getType() != Game::NA_BAD && entry->server != oldAddress)
 				{
 					Node::AddNode(entry->server);
 					Network::SendCommand(entry->server, "getinfo", Utils::Cryptography::Rand::GenerateChallenge());
@@ -186,7 +305,14 @@ namespace Components
 					entry->prestige = (data >> 24) & 0xFF;
 				}
 			}
+
+			if (sort) Friends::SortList();
 		}
+	}
+	
+	void Friends::PresenceResponse(std::vector<std::string> params)
+	{
+		Friends::ParsePresence(params, true);
 	}
 
 	void Friends::InfoResponse(std::vector<std::string> params)
@@ -221,9 +347,11 @@ namespace Components
 				}
 				else
 				{
-					Friends::PresenceResponse({ Utils::String::VA("%llx", id.Bits), key, value });
+					Friends::ParsePresence({ Utils::String::VA("%llx", id.Bits), key, value }, false);
 				}
 			}
+
+			Friends::SortList();
 		}
 	}
 
@@ -244,6 +372,7 @@ namespace Components
 			entry.online = false;
 			entry.prestige = 0;
 			entry.experience = 0;
+			entry.server.setType(Game::NA_BAD);
 
 			auto oldEntry = std::find_if(oldFriends.begin(), oldFriends.end(), [id](Friends::Friend entry)
 			{
@@ -263,9 +392,26 @@ namespace Components
 		}
 	}
 
+	__declspec(naked) void Friends::DisconnectStub()
+	{
+		__asm
+		{
+			pushad
+			call Friends::ClearServer
+			popad
+
+			push 467CC0h
+			retn
+		}
+	}
+
 	Friends::Friends()
 	{
 		Friends::UpdateFriends();
+
+		// Update state when connecting/disconnecting
+		Utils::Hook(0x403582, Friends::DisconnectStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4CD023, Friends::SetServer, HOOK_JUMP).install()->quick();
 
 		auto fInterface = IPCHandler::NewInterface("steamCallbacks");
 
@@ -296,6 +442,23 @@ namespace Components
 		UIScript::Add("LoadFriends", [](UIScript::Token)
 		{
 			Friends::UpdateFriends();
+		});
+
+		UIScript::Add("JoinFriend", [](UIScript::Token)
+		{
+			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+			if (Friends::CurrentFriend >= Friends::FriendsList.size()) return;
+
+			auto& user = Friends::FriendsList[Friends::CurrentFriend];
+
+			if(user.online && user.server.getType() != Game::NA_BAD)
+			{
+				Party::Connect(user.server);
+			}
+			else
+			{
+				Command::Execute("snd_playLocal exit_prestige", false);
+			}
 		});
 
 		QuickPatch::OnFrame([]()
