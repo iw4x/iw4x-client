@@ -13,6 +13,7 @@ namespace Steam
 	void* Proxy::SteamUser = nullptr;
 
 	Friends15* Proxy::SteamFriends = nullptr;
+	Friends2* Proxy::SteamLegacyFriends = nullptr;
 	Utils* Proxy::SteamUtils = nullptr;
 
 	uint32_t Proxy::AppId = 0;
@@ -207,6 +208,9 @@ namespace Steam
 
 		Proxy::SteamFriends = reinterpret_cast<Friends15*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamFriends015"));
 		if (!Proxy::SteamFriends) return false;
+
+		Proxy::SteamLegacyFriends = reinterpret_cast<Friends2*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamFriends002"));
+		if (!Proxy::SteamLegacyFriends) return false;
 
 		Proxy::SteamUtils = reinterpret_cast<Utils*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamUtils005"));
 		if (!Proxy::SteamUtils) return false;

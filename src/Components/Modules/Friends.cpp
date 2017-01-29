@@ -23,6 +23,34 @@ namespace Components
 			IPCHandler::SendWorker("friends", function.SerializeAsString());
 	}
 
+	void Friends::UpdateState()
+	{
+		Proto::IPC::Function function;
+		function.set_name("notifyChange");
+		IPCHandler::SendWorker("friends", function.SerializeAsString());
+	}
+
+	void Friends::UpdateRank()
+	{
+		static Utils::Value<int> levelVal;
+
+		int experience = Game::Live_GetXp(0);
+		int prestige = Game::Live_GetPrestige(0);
+		int level = (experience & 0xFFFFFF) | ((prestige & 0xFF) << 24);
+
+		if(!levelVal.isValid() || levelVal.get() != level)
+		{
+			levelVal.set(level);
+
+			Proto::IPC::Function function;
+			function.set_name("setPresence");
+			*function.add_params() = "iw4x_rank";
+			*function.add_params() = std::string(reinterpret_cast<char*>(&level), 4);
+
+			IPCHandler::SendWorker("friends", function.SerializeAsString());
+		}
+	}
+
 	void Friends::UpdateFriends()
 	{
 		Proto::IPC::Function function;
@@ -55,6 +83,7 @@ namespace Components
 			Game::Material* rankIcon = nullptr;
 			int rank = Game::CL_GetRankForXP(user.experience);
 			Game::CL_GetRankIcon(rank, user.prestige, &rankIcon);
+			if (!rankIcon) rankIcon = Game::DB_FindXAssetDefaultHeaderInternal(Game::XAssetType::ASSET_TYPE_MATERIAL).material;
 
 			buffer[0] = '^';
 			buffer[1] = 2;
@@ -68,7 +97,7 @@ namespace Components
 			buffer[4] = static_cast<char>(strlen(rankIcon->name));
 
 			strcat_s(buffer, rankIcon->name);
-			strcat_s(buffer, Utils::String::VA(" %i", rank));
+			strcat_s(buffer, Utils::String::VA(" %i", (rank + 1)));
 
 			return buffer;
 		}
@@ -139,7 +168,6 @@ namespace Components
 			{
 				entry->server = value;
 
-				// TODO: Query server here?
 				if (entry->server.getType() != Game::NA_BAD)
 				{
 					Node::AddNode(entry->server);
@@ -266,6 +294,14 @@ namespace Components
 		UIScript::Add("LoadFriends", [](UIScript::Token)
 		{
 			Friends::UpdateFriends();
+		});
+
+		QuickPatch::OnFrame([]()
+		{
+			if(*reinterpret_cast<bool*>(0x1AD5690)) // LiveStorage_DoWeHaveStats
+			{
+				Friends::UpdateRank();
+			}
 		});
 
 		UIFeeder::Add(6.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);

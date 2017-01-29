@@ -110,6 +110,13 @@ namespace Handlers
 		}
 	}
 
+	void Friends::notifyChange(Worker::Endpoint /*endpoint*/, std::vector<std::string> params)
+	{
+		// Ugly, but for now it works
+		int state = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
+		Steam::Proxy::SteamLegacyFriends->SetPersonaState((state == 1 ? 2 : 1));
+	}
+
 	void Friends::getInfo(Worker::Endpoint endpoint, std::vector<std::string> params)
 	{
 		if (params.size() >= 1 && Steam::Proxy::SteamFriends)
@@ -134,14 +141,14 @@ namespace Handlers
 				{
 					*response.add_params() = Utils::String::VA("%d", Steam::Proxy::SteamFriends->GetFriendPersonaState(id));
 				}
-				else if (key == "iw4x_rank") // This is just a test
+				/*else if (key == "iw4x_rank") // This is just a test
 				{
 					int experience = Utils::Cryptography::Rand::GenerateInt() % (2516000 + 1);
 					int prestige = Utils::Cryptography::Rand::GenerateInt() % (10 + 1);
 
-					int data = (experience & 0xFFFFFF) | ((prestige << 24) & 0xFF);
+					int data = (experience & 0xFFFFFF) | ((prestige & 0xFF) << 24);
 					*response.add_params() = std::string(reinterpret_cast<char*>(&data), 4);
-				}
+				}*/
 				else
 				{
 					*response.add_params() = Steam::Proxy::SteamFriends->GetFriendRichPresence(id, key.data());
@@ -152,7 +159,7 @@ namespace Handlers
 		}
 	}
 
-	Friends::Friends()
+	Friends::Friends() : personaState(1)
 	{
 		using namespace std::placeholders;
 		this->addFunction("getFriends", std::bind(&Friends::getFriends, this, _1, _2));
@@ -161,6 +168,12 @@ namespace Handlers
 		this->addFunction("getPresence", std::bind(&Friends::getPresence, this, _1, _2));
 		this->addFunction("requestPresence", std::bind(&Friends::requestPresence, this, _1, _2));
 		this->addFunction("getInfo", std::bind(&Friends::getInfo, this, _1, _2));
+		this->addFunction("notifyChange", std::bind(&Friends::notifyChange, this, _1, _2));
+
+		if (Steam::Proxy::SteamLegacyFriends)
+		{
+			this->personaState = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
+		}
 	}
 
 	Friends::~Friends()
@@ -168,6 +181,11 @@ namespace Handlers
 		if(Steam::Proxy::SteamFriends)
 		{
 			Steam::Proxy::SteamFriends->ClearRichPresence();
+		}
+
+		if(Steam::Proxy::SteamLegacyFriends)
+		{
+			Steam::Proxy::SteamLegacyFriends->SetPersonaState(this->personaState);
 		}
 	}
 }

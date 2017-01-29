@@ -412,6 +412,12 @@ namespace Game
 	typedef int(__cdecl * Live_GetMapIndex_t)(const char* mapname);
 	extern Live_GetMapIndex_t Live_GetMapIndex;
 
+	typedef int(__cdecl * Live_GetPrestige_t)(int controllerIndex);
+	extern Live_GetPrestige_t Live_GetPrestige;
+
+	typedef int(__cdecl * Live_GetXp_t)(int controllerIndex);
+	extern Live_GetXp_t Live_GetXp;
+
 	typedef char* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
 	extern LoadModdableRawfile_t LoadModdableRawfile;
 
@@ -697,6 +703,7 @@ namespace Game
 	const char *DB_GetXAssetName(XAsset *asset);
 	XAssetType DB_GetXAssetNameType(const char* name);
 	bool DB_IsZoneLoaded(const char* zone);
+	XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType type);
 
 	void FS_AddLocalizedGameDirectory(const char *path, const char *dir);
 

@@ -14,6 +14,8 @@ namespace Handlers
 		void handle(Worker::Endpoint endpoint, std::string data) override;
 
 	private:
+		int personaState;
+
 		std::unordered_map<std::string, Callback> functions;
 		void addFunction(std::string function, Callback callback);
 
@@ -23,5 +25,6 @@ namespace Handlers
 		void getPresence(Worker::Endpoint endpoint, std::vector<std::string> params);
 		void requestPresence(Worker::Endpoint endpoint, std::vector<std::string> params);
 		void getInfo(Worker::Endpoint endpoint, std::vector<std::string> params);
+		void notifyChange(Worker::Endpoint /*endpoint*/, std::vector<std::string> params);
 	};
 }

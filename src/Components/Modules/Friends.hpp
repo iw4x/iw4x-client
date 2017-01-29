@@ -13,6 +13,7 @@ namespace Components
 #endif
 
 		static void UpdateFriends();
+		static void UpdateRank();
 
 	private:
 #pragma pack(push, 4)
@@ -46,6 +47,7 @@ namespace Components
 		static std::vector<Friend> FriendsList;
 
 		static void UpdateUserInfo(SteamID user);
+		static void UpdateState();
 
 		static unsigned int GetFriendCount();
 		static const char* GetFriendText(unsigned int index, int column);

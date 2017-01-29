@@ -164,6 +164,8 @@ namespace Game
 
 	Live_MPAcceptInvite_t Live_MPAcceptInvite = Live_MPAcceptInvite_t(0x420A6D);
 	Live_GetMapIndex_t Live_GetMapIndex = Live_GetMapIndex_t(0x4F6440);
+	Live_GetPrestige_t Live_GetPrestige = Live_GetPrestige_t(0x430F90);
+	Live_GetXp_t Live_GetXp = Live_GetXp_t(0x404C60);
 
 	LoadModdableRawfile_t LoadModdableRawfile = LoadModdableRawfile_t(0x61ABC0);
 
@@ -459,6 +461,24 @@ namespace Game
 		}
 
 		return false;
+	}
+
+	XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType _type)
+	{
+		// ReSharper disable once CppEntityNeverUsed
+		static int func = 0x5BB210;
+		XAssetHeader result;
+
+		__asm
+		{
+			push edi
+			mov edi, _type
+			call func
+			pop edi
+			mov result, eax
+		}
+
+		return result;
 	}
 
 	void FS_AddLocalizedGameDirectory(const char *path, const char *dir)
