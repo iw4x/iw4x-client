@@ -31,6 +31,7 @@
 #include <future>
 #include <queue>
 #include <unordered_map>
+#include <queue>
 
 // Experimental C++17 features
 #include <filesystem>

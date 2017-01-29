@@ -4,14 +4,26 @@ namespace Utils
 {
 	namespace IPC
 	{
-		Channel::Channel(std::string _name, int _queueSize, int _bufferSize, bool _remove) : name(_name), remove(_remove)
+		Channel::Channel(std::string _name, int _queueSize, int _bufferSize, bool _remove) : terminateQueue(false), remove(_remove), name(_name)
 		{
 			if(this->remove) boost::interprocess::message_queue::remove(this->name.data());
 			queue.reset(new boost::interprocess::message_queue(boost::interprocess::open_or_create, this->name.data(), _queueSize, _bufferSize + sizeof(Channel::Header)));
+
+			this->queueThread = std::thread(&Channel::queueWorker, this);
 		}
 
 		Channel::~Channel()
 		{
+			std::unique_lock<std::mutex> lock(this->queueMutex);
+			this->terminateQueue = true;
+			this->queueEvent.notify_all();
+			lock.unlock();
+
+			if (this->queueThread.joinable())
+			{
+				this->queueThread.join();
+			}
+
 			if (this->remove) boost::interprocess::message_queue::remove(this->name.data());
 		}
 
@@ -84,19 +96,47 @@ namespace Utils
 				std::string buffer;
 				buffer.append(reinterpret_cast<char*>(&header), sizeof(Channel::Header));
 				buffer.append(data.data() + sentSize, header.fragmentSize);
-				Channel::sendMessage(buffer);
+				Channel::enqueueMessage(buffer);
 
 				sentSize += header.fragmentSize;
 			}
 		}
 
-		void Channel::sendMessage(std::string data)
+		void Channel::enqueueMessage(std::string data)
 		{
 			if (data.size() <= this->queue->get_max_msg_size())
 			{
-				while (!this->queue->try_send(data.data(), data.size(), 0))
+				std::lock_guard<std::mutex> _(this->queueMutex);
+				this->internalQueue.push(data);
+				this->queueEvent.notify_all();
+			}
+		}
+
+		void Channel::queueWorker()
+		{
+			while (!this->terminateQueue)
+			{
+				std::unique_lock<std::mutex> lock(this->queueMutex);
+
+				while(!this->terminateQueue && this->internalQueue.empty())
 				{
-					std::this_thread::sleep_for(100us);
+					this->queueEvent.wait(lock);
+				}
+
+				while(!this->terminateQueue && !this->internalQueue.empty())
+				{
+					std::string data = this->internalQueue.front();
+					this->internalQueue.pop();
+
+					if (data.size() <= this->queue->get_max_msg_size())
+					{
+						while (!this->terminateQueue && !this->queue->try_send(data.data(), data.size(), 0))
+						{
+							lock.unlock();
+							std::this_thread::sleep_for(1000us);
+							lock.lock();
+						}
+					}
 				}
 			}
 		}

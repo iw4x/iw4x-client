@@ -451,6 +451,7 @@ namespace Components
 			}
 
 			ServerList::Insert(address, info);
+			Friends::UpdateHostname(address, info.get("hostname"));
 		});
 	}
 

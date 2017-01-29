@@ -8,12 +8,22 @@ namespace Components
 	std::unique_ptr<Utils::IPC::BidirectionalChannel> IPCHandler::WorkerChannel;
 	std::unique_ptr<Utils::IPC::BidirectionalChannel> IPCHandler::ClientChannel;
 
+	std::unordered_map<std::string, std::shared_ptr<IPCHandler::FunctionInterface>> IPCHandler::FunctionInterfaces;
+
+	std::shared_ptr<IPCHandler::FunctionInterface> IPCHandler::NewInterface(std::string command)
+	{
+		std::shared_ptr<IPCHandler::FunctionInterface> fInterface(new IPCHandler::FunctionInterface());
+		IPCHandler::FunctionInterfaces[command] = fInterface;
+		return fInterface;
+	}
+
 	void IPCHandler::SendWorker(std::string message, std::string data)
 	{
 		IPCHandler::InitChannels();
+		if (!Singleton::IsFirstInstance()) return;
 
 		Proto::IPC::Command command;
-		command.set_command(message);
+		command.set_name(message);
 		command.set_data(data);
 
 		IPCHandler::WorkerChannel->send(command.SerializeAsString());
@@ -24,7 +34,7 @@ namespace Components
 		IPCHandler::InitChannels();
 
 		Proto::IPC::Command command;
-		command.set_command(message);
+		command.set_name(message);
 		command.set_data(data);
 
 		IPCHandler::ClientChannel->send(command.SerializeAsString());
@@ -42,9 +52,12 @@ namespace Components
 
 	void IPCHandler::InitChannels()
 	{
-		if (!IPCHandler::WorkerChannel)
+		if (Singleton::IsFirstInstance())
 		{
-			IPCHandler::WorkerChannel.reset(new Utils::IPC::BidirectionalChannel("IW4x-Worker-Channel", !Worker::IsWorker()));
+			if (!IPCHandler::WorkerChannel)
+			{
+				IPCHandler::WorkerChannel.reset(new Utils::IPC::BidirectionalChannel("IW4x-Worker-Channel", !Worker::IsWorker()));
+			}
 		}
 
 		if (!IPCHandler::ClientChannel)
@@ -55,6 +68,8 @@ namespace Components
 
 	void IPCHandler::StartWorker()
 	{
+		if (!Singleton::IsFirstInstance()) return;
+
 		STARTUPINFOA        sInfo;
 		PROCESS_INFORMATION pInfo;
 
@@ -78,7 +93,7 @@ namespace Components
 			Proto::IPC::Command command;
 			if(command.ParseFromString(packet))
 			{
-				auto callback = IPCHandler::ClientCallbacks.find(command.command());
+				auto callback = IPCHandler::ClientCallbacks.find(command.name());
 				if (callback != IPCHandler::ClientCallbacks.end())
 				{
 					callback->second(command.data());
@@ -90,6 +105,7 @@ namespace Components
 	void IPCHandler::HandleWorker()
 	{
 		IPCHandler::InitChannels();
+		if (!Singleton::IsFirstInstance()) return;
 
 		std::string packet;
 		if (IPCHandler::WorkerChannel->receive(&packet))
@@ -97,10 +113,15 @@ namespace Components
 			Proto::IPC::Command command;
 			if (command.ParseFromString(packet))
 			{
-				auto callback = IPCHandler::WorkerCallbacks.find(command.command());
+				auto callback = IPCHandler::WorkerCallbacks.find(command.name());
+				auto fInterface = IPCHandler::FunctionInterfaces.find(command.name());
 				if (callback != IPCHandler::WorkerCallbacks.end())
 				{
 					callback->second(command.data());
+				}
+				else if(fInterface != IPCHandler::FunctionInterfaces.end())
+				{
+					fInterface->second->handle(command.data());
 				}
 			}
 		}
@@ -122,7 +143,12 @@ namespace Components
 
 	IPCHandler::~IPCHandler()
 	{
+		IPCHandler::FunctionInterfaces.clear();
+
 		IPCHandler::WorkerCallbacks.clear();
 		IPCHandler::ClientCallbacks.clear();
+
+		IPCHandler::WorkerChannel.release();
+		IPCHandler::ClientChannel.release();
 	}
 }

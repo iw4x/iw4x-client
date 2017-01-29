@@ -353,6 +353,7 @@ namespace Steam
 		static void UnregisterCallback(int32_t callId);
 
 		static Friends15* SteamFriends;
+		static Friends2* SteamLegacyFriends;
 		static Utils* SteamUtils;
 
 	private:
@@ -396,7 +397,7 @@ namespace Steam
 		static std::function<SteamFreeLastCallbackFn> SteamFreeLastCallback;
 		static std::function<SteamGetAPICallResultFn> SteamGetAPICallResult;
 
-		static void RunCallback(int32_t callId, void* data);
+		static void RunCallback(int32_t callId, void* data, size_t size);
 
 		static void UnregisterCalls();
 

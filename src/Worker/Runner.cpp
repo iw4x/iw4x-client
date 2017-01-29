@@ -2,14 +2,16 @@
 
 namespace Worker
 {
+	Utils::IPC::BidirectionalChannel* Runner::Channel;
+
 	Runner::Runner(int pid) : processId(pid), terminate(false)
 	{
-		
+		Runner::Channel = nullptr;
 	}
 
 	Runner::~Runner()
 	{
-		
+		Runner::Channel = nullptr;
 	}
 
 	void Runner::run()
@@ -37,10 +39,16 @@ namespace Worker
 		}
 	}
 
+	void Runner::attachHandler(Runner::Handler* handler)
+	{
+		this->handlers[handler->getCommand()] = std::shared_ptr<Runner::Handler>(handler);
+	}
+
 	void Runner::worker()
 	{
 		printf("Worker started\n");
 		Utils::IPC::BidirectionalChannel channel("IW4x-Worker-Channel", !Worker::IsWorker());
+		Runner::Channel = &channel;
 
 		while (!this->terminate)
 		{
@@ -49,13 +57,26 @@ namespace Worker
 			std::string buffer;
 			if (channel.receive(&buffer))
 			{
-				printf("Data received: %s\n", buffer.data());
-				channel.send("OK " + buffer);
+				Proto::IPC::Command command;
+				if(command.ParseFromString(buffer))
+				{
+					auto handler = this->handlers.find(command.name());
+					if (handler != this->handlers.end())
+					{
+						printf("Dispatching command %s to handler\n", command.name().data());
+						handler->second->handle(&channel, command.data());
+					}
+					else
+					{
+						printf("No handler found for command %s\n", command.name().data());
+					}
+				}
 			}
 
 			std::this_thread::sleep_for(1ms);
 		}
 
 		printf("Terminating worker\n");
+		Runner::Channel = nullptr;
 	}
 }

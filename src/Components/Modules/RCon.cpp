@@ -106,7 +106,9 @@ namespace Components
 				static std::string outputBuffer;
 				outputBuffer.clear();
 
+#ifdef DEBUG
 				Logger::Print("Executing RCon request from %s: %s\n", address.getCString(), command.data());
+#endif
 
 				Logger::PipeOutput([] (std::string output)
 				{

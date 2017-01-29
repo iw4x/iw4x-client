@@ -13,6 +13,7 @@ namespace Steam
 	void* Proxy::SteamUser = nullptr;
 
 	Friends15* Proxy::SteamFriends = nullptr;
+	Friends2* Proxy::SteamLegacyFriends = nullptr;
 	Utils* Proxy::SteamUtils = nullptr;
 
 	uint32_t Proxy::AppId = 0;
@@ -82,7 +83,7 @@ namespace Steam
 		Proxy::Callbacks.erase(callId);
 	}
 
-	void Proxy::RunCallback(int32_t callId, void* data)
+	void Proxy::RunCallback(int32_t callId, void* data, size_t size)
 	{
 		std::lock_guard<std::recursive_mutex> _(Proxy::CallMutex);
 
@@ -90,6 +91,11 @@ namespace Steam
 		if (callback != Proxy::Callbacks.end())
 		{
 			::Utils::Hook::Call<void(void*)>(callback->second)(data);
+		}
+
+		if(Worker::IsWorker())
+		{
+			Handlers::SteamCallbacks::HandleCallback(callId, data, size);
 		}
 	}
 
@@ -110,7 +116,7 @@ namespace Steam
 #endif
 
 			//Steam::Callbacks::RunCallback(message.m_iCallback, message.m_pubParam);
-			Proxy::RunCallback(message.m_iCallback, message.m_pubParam);
+			Proxy::RunCallback(message.m_iCallback, message.m_pubParam, message.m_cubParam);
 			Proxy::SteamFreeLastCallback(Proxy::SteamPipe);
 		}
 
@@ -151,7 +157,7 @@ namespace Steam
 						continue;
 					}
 
-					Proxy::RunCallback(call.callId, buffer);
+					Proxy::RunCallback(call.callId, buffer, call.dataSize);
 				}
 			}
 		}
@@ -202,6 +208,9 @@ namespace Steam
 
 		Proxy::SteamFriends = reinterpret_cast<Friends15*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamFriends015"));
 		if (!Proxy::SteamFriends) return false;
+
+		Proxy::SteamLegacyFriends = reinterpret_cast<Friends2*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamFriends002"));
+		if (!Proxy::SteamLegacyFriends) return false;
 
 		Proxy::SteamUtils = reinterpret_cast<Utils*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamUtils005"));
 		if (!Proxy::SteamUtils) return false;
