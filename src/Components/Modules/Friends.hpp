@@ -40,6 +40,7 @@ namespace Components
 			Network::Address server;
 			std::string serverName;
 			bool online;
+			bool playing;
 			int experience;
 			int prestige;
 		};

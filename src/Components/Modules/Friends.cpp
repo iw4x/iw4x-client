@@ -24,6 +24,7 @@ namespace Components
 	{
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
+		std::vector<Friends::Friend> connectedList;
 		std::vector<Friends::Friend> playingList;
 		std::vector<Friends::Friend> onlineList;
 		std::vector<Friends::Friend> offlineList;
@@ -33,13 +34,20 @@ namespace Components
 		{
 			if(entry.online)
 			{
-				if(entry.server.getType() == Game::NA_BAD)
+				if (entry.playing)
 				{
-					onlineList.push_back(entry);
+					if (entry.server.getType() == Game::NA_BAD)
+					{
+						playingList.push_back(entry);
+					}
+					else
+					{
+						connectedList.push_back(entry);
+					}
 				}
 				else
 				{
-					playingList.push_back(entry);
+					onlineList.push_back(entry);
 				}
 			}
 			else
@@ -48,12 +56,14 @@ namespace Components
 			}
 		}
 
+		Friends::SortIndividualList(&connectedList);
 		Friends::SortIndividualList(&playingList);
 		Friends::SortIndividualList(&onlineList);
 		Friends::SortIndividualList(&offlineList);
 
 		Friends::FriendsList.clear();
 
+		Utils::Merge(&Friends::FriendsList, connectedList);
 		Utils::Merge(&Friends::FriendsList, playingList);
 		Utils::Merge(&Friends::FriendsList, onlineList);
 		Utils::Merge(&Friends::FriendsList, offlineList);
@@ -72,6 +82,7 @@ namespace Components
 			*function.add_params() = "iw4x_status";
 			*function.add_params() = "iw4x_rank";
 			*function.add_params() = "iw4x_server";
+			*function.add_params() = "iw4x_playing";
 
 			IPCHandler::SendWorker("friends", function.SerializeAsString());
 	}
@@ -196,20 +207,30 @@ namespace Components
 
 		case 2:
 		{		
-			if(user.online && user.server.getType() != Game::NA_BAD)
+			if(user.online)
 			{
-				if(user.serverName.empty())
+				if (user.playing)
 				{
-					return Utils::String::VA("Playing on %s", user.server.getCString());
+					if (user.server.getType() != Game::NA_BAD)
+					{
+						if (user.serverName.empty())
+						{
+							return Utils::String::VA("Playing on %s", user.server.getCString());
+						}
+						else
+						{
+							return Utils::String::VA("Playing on %s", user.serverName.data());
+						}
+					}
+					else
+					{
+						return "Playing IW4x";
+					}
 				}
 				else
 				{
-					return Utils::String::VA("Playing on %s", user.serverName.data());
+					return "Online";
 				}
-			}
-			else if(user.online)
-			{
-				return "Online";
 			}
 			else
 			{
@@ -273,6 +294,10 @@ namespace Components
 			if (key == "iw4x_name")
 			{
 				entry->playerName = value;
+			}
+			else if (key == "iw4x_playing")
+			{
+				entry->playing = atoi(value.data()) == 1;
 			}
 			else if (key == "iw4x_server")
 			{
@@ -370,6 +395,7 @@ namespace Components
 			Friends::Friend entry;
 			entry.userId = id;
 			entry.online = false;
+			entry.playing = false;
 			entry.prestige = 0;
 			entry.experience = 0;
 			entry.server.setType(Game::NA_BAD);
@@ -476,6 +502,13 @@ namespace Components
 		fInterface->map("nameResponse", Friends::NameResponse);
 		fInterface->map("presenceResponse", Friends::PresenceResponse);
 		fInterface->map("infoResponse", Friends::InfoResponse);
+
+		Proto::IPC::Function function;
+		function.set_name("setPresence");
+		*function.add_params() = "iw4x_playing";
+		*function.add_params() = "1";
+
+		IPCHandler::SendWorker("friends", function.SerializeAsString());
 	}
 
 	Friends::~Friends()

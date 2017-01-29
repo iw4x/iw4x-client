@@ -173,6 +173,7 @@ namespace Handlers
 		if(Steam::Proxy::SteamFriends)
 		{
 			Steam::Proxy::SteamFriends->SetRichPresence("iw4x_server", nullptr);
+			Steam::Proxy::SteamFriends->SetRichPresence("iw4x_playing", nullptr);
 		}
 
 		if(Steam::Proxy::SteamLegacyFriends)
