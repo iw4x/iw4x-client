@@ -498,20 +498,41 @@ namespace Components
 		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, Maps::EntryPool.data() + 1);
 	}
 
+	bool Maps::CheckMapInstalled(const char* mapname, bool error)
+	{
+		if (FastFiles::Exists(mapname)) return true;
+		if (!error) return false;
+
+		for (auto& pack : Maps::DlcPacks)
+		{
+			for (auto map : pack.maps)
+			{
+				if (map == std::string(mapname))
+				{
+					if(error) Components::Logger::SoftError("Missing DLC pack %s (%d) containing map %s (%s).\nPlease download it to play this map.", 
+						pack.name.data(), pack.index, Game::UI_LocalizeMapName(mapname), mapname);
+				}
+			}
+		}
+
+		if (error) Components::Logger::SoftError("Missing map file %s.\nYou may have a damaged installation or are attempting to load a non-existant map.", mapname);
+		return false;
+	}
+
 	Maps::Maps()
 	{
 		Dvar::OnInit([] ()
 		{
 			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
 
-			Maps::AddDlc({ 1, Utils::Cache::GetStaticUrl("/dlc/"), { "mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash" } });
-			Maps::AddDlc({ 2, Utils::Cache::GetStaticUrl("/dlc/"), { "mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2" } });
-			Maps::AddDlc({ 3, Utils::Cache::GetStaticUrl("/dlc/"), { "mp_nuked" } });
-			Maps::AddDlc({ 4, Utils::Cache::GetStaticUrl("/dlc/"), { "mp_cross_fire", "mp_cargoship", "mp_bloc" } });
-			Maps::AddDlc({ 5, Utils::Cache::GetStaticUrl("/dlc/"), { "mp_killhouse", "mp_bog_sh" } });
-			Maps::AddDlc({ 6, Utils::Cache::GetStaticUrl("/dlc/"), { "mp_cargoship_sh" } });
-			Maps::AddDlc({ 7, Utils::Cache::GetStaticUrl("/dlc/"), { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
-			Maps::AddDlc({ 8, Utils::Cache::GetStaticUrl("/dlc/"), { "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring" } });
+			Maps::AddDlc({ 1, "Stimulus Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash" } });
+			Maps::AddDlc({ 2, "Resergence Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2" } });
+			Maps::AddDlc({ 3, "Nuketown", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_nuked" } });
+			Maps::AddDlc({ 4, "Classics Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_cross_fire", "mp_cargoship", "mp_bloc" } });
+			Maps::AddDlc({ 5, "Classics Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_killhouse", "mp_bog_sh" } });
+			Maps::AddDlc({ 6, "Freighter", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_cargoship_sh" } });
+			Maps::AddDlc({ 7, "Resurrection Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
+			Maps::AddDlc({ 8, "Recycled Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring" } });
 
 			Maps::UpdateDlcStatus();
 

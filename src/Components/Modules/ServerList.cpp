@@ -89,6 +89,10 @@ namespace Components
 			{
 				if (server->svRunning)
 				{
+					if (!Maps::CheckMapInstalled(server->mapname.data()))
+					{
+						return Utils::String::VA("^1%s", Game::UI_LocalizeMapName(server->mapname.data()));
+					}
 					return Game::UI_LocalizeMapName(server->mapname.data());
 				}
 				else
@@ -711,6 +715,7 @@ namespace Components
 
 			if (info)
 			{
+				if (!Maps::CheckMapInstalled(info->mapname.data(), true)) return;
 				Party::Connect(info->addr);
 			}
 		});

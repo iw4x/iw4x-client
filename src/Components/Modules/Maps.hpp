@@ -20,11 +20,14 @@ namespace Components
 
 		static std::string CurrentMainZone;
 
+		static bool CheckMapInstalled(const char* mapname, bool error = false);
+
 	private:
 		class DLC
 		{
 		public:
 			int index;
+			std::string name;
 			std::string url;
 			std::vector<std::string> maps;
 		};
