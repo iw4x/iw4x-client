@@ -48,6 +48,8 @@ namespace Components
 			*function.add_params() = std::string(reinterpret_cast<char*>(&level), 4);
 
 			IPCHandler::SendWorker("friends", function.SerializeAsString());
+
+			Friends::UpdateState();
 		}
 	}
 
