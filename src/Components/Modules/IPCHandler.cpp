@@ -20,6 +20,7 @@ namespace Components
 	void IPCHandler::SendWorker(std::string message, std::string data)
 	{
 		IPCHandler::InitChannels();
+		if (!Singleton::IsFirstInstance()) return;
 
 		Proto::IPC::Command command;
 		command.set_name(message);
@@ -51,9 +52,12 @@ namespace Components
 
 	void IPCHandler::InitChannels()
 	{
-		if (!IPCHandler::WorkerChannel)
+		if (Singleton::IsFirstInstance())
 		{
-			IPCHandler::WorkerChannel.reset(new Utils::IPC::BidirectionalChannel("IW4x-Worker-Channel", !Worker::IsWorker()));
+			if (!IPCHandler::WorkerChannel)
+			{
+				IPCHandler::WorkerChannel.reset(new Utils::IPC::BidirectionalChannel("IW4x-Worker-Channel", !Worker::IsWorker()));
+			}
 		}
 
 		if (!IPCHandler::ClientChannel)
@@ -64,6 +68,8 @@ namespace Components
 
 	void IPCHandler::StartWorker()
 	{
+		if (!Singleton::IsFirstInstance()) return;
+
 		STARTUPINFOA        sInfo;
 		PROCESS_INFORMATION pInfo;
 
@@ -99,6 +105,7 @@ namespace Components
 	void IPCHandler::HandleWorker()
 	{
 		IPCHandler::InitChannels();
+		if (!Singleton::IsFirstInstance()) return;
 
 		std::string packet;
 		if (IPCHandler::WorkerChannel->receive(&packet))
