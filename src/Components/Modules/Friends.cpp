@@ -376,7 +376,7 @@ namespace Components
 
 			Friends::SetPresence("iw4x_playing", "1");
 			Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
-			Friends::UpdateState();
+			//Friends::UpdateState(); // Don't update state yet, stats will do that
 
 			Friends::UpdateFriends();
 		});
