@@ -110,7 +110,7 @@ namespace Steam
 			printf("Callback dispatched: %d\n", message.m_iCallback);
 #endif
 
-			//Steam::Callbacks::RunCallback(message.m_iCallback, message.m_pubParam);
+			Steam::Callbacks::RunCallback(message.m_iCallback, message.m_pubParam);
 			Proxy::RunCallback(message.m_iCallback, message.m_pubParam, message.m_cubParam);
 			Proxy::SteamFreeLastCallback(Proxy::SteamPipe);
 		}

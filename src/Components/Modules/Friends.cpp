@@ -384,6 +384,9 @@ namespace Components
 
 	Friends::~Friends()
 	{
+		Steam::Proxy::UnregisterCallback(336);
+		Steam::Proxy::UnregisterCallback(304);
+
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 			Friends::FriendsList.clear();

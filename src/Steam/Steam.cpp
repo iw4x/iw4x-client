@@ -129,7 +129,7 @@ namespace Steam
 		void SteamAPI_RunCallbacks()
 		{
 			Callbacks::RunCallbacks();
-			//Proxy::RunFrame();
+			Proxy::RunFrame();
 		}
 
 		void SteamAPI_Shutdown()
