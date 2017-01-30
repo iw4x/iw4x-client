@@ -21,42 +21,26 @@ namespace Main
 
 		Main::SetEnvironment();
 		Utils::Cryptography::Initialize();
-
-		if(Worker::IsWorker())
-		{
-			Worker::Initialize();
-		}
-		else
-		{
-			Components::Loader::Initialize();
+		Components::Loader::Initialize();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-			if (Components::Loader::PerformingUnitTests())
-			{
-				DWORD result = (Components::Loader::PerformUnitTests() ? 0 : -1);
-				Components::Loader::Uninitialize();
-				ExitProcess(result);
-			}
-#else
-			if (Components::Flags::HasFlag("tests"))
-			{
-				Components::Logger::Print("Unit tests are disabled outside the debug environment!\n");
-			}
-#endif
+		if (Components::Loader::PerformingUnitTests())
+		{
+			DWORD result = (Components::Loader::PerformUnitTests() ? 0 : -1);
+			Components::Loader::Uninitialize();
+			ExitProcess(result);
 		}
+#else
+		if (Components::Flags::HasFlag("tests"))
+		{
+			Components::Logger::Print("Unit tests are disabled outside the debug environment!\n");
+		}
+#endif
 	}
 
 	void Uninitialize()
 	{
-		if(Worker::IsWorker())
-		{
-			Worker::Uninitialize();
-		}
-		else
-		{
-			Components::Loader::Uninitialize();
-		}
-
+		Components::Loader::Uninitialize();
 		Utils::Cache::Uninitialize();
 		google::protobuf::ShutdownProtobufLibrary();
 	}

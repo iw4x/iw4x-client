@@ -49,6 +49,7 @@ namespace Components
 			int prestige;
 		};
 
+		static int InitialState;
 		static unsigned int CurrentFriend;
 		static std::recursive_mutex Mutex;
 		static std::vector<Friend> FriendsList;
@@ -68,12 +69,5 @@ namespace Components
 		static unsigned int GetFriendCount();
 		static const char* GetFriendText(unsigned int index, int column);
 		static void SelectFriend(unsigned int index);
-
-		static void ParsePresence(std::vector<std::string> params, bool sort);
-
-		static void FriendsResponse(std::vector<std::string> params);
-		static void NameResponse(std::vector<std::string> params);
-		static void PresenceResponse(std::vector<std::string> params);
-		static void InfoResponse(std::vector<std::string> params);
 	};
 }

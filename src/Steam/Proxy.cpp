@@ -83,7 +83,7 @@ namespace Steam
 		Proxy::Callbacks.erase(callId);
 	}
 
-	void Proxy::RunCallback(int32_t callId, void* data, size_t size)
+	void Proxy::RunCallback(int32_t callId, void* data, size_t /*size*/)
 	{
 		std::lock_guard<std::recursive_mutex> _(Proxy::CallMutex);
 
@@ -91,11 +91,6 @@ namespace Steam
 		if (callback != Proxy::Callbacks.end())
 		{
 			::Utils::Hook::Call<void(void*)>(callback->second)(data);
-		}
-
-		if(Worker::IsWorker())
-		{
-			Handlers::SteamCallbacks::HandleCallback(callId, data, size);
 		}
 	}
 
@@ -115,7 +110,7 @@ namespace Steam
 			printf("Callback dispatched: %d\n", message.m_iCallback);
 #endif
 
-			//Steam::Callbacks::RunCallback(message.m_iCallback, message.m_pubParam);
+			Steam::Callbacks::RunCallback(message.m_iCallback, message.m_pubParam);
 			Proxy::RunCallback(message.m_iCallback, message.m_pubParam, message.m_cubParam);
 			Proxy::SteamFreeLastCallback(Proxy::SteamPipe);
 		}
@@ -165,7 +160,7 @@ namespace Steam
 		Proxy::UnregisterCalls();
 	}
 
-	bool Proxy::Inititalize(bool overlayOnly)
+	bool Proxy::Inititalize()
 	{
 		std::string directoy = Proxy::GetSteamDirectory();
 		if (directoy.empty()) return false;
@@ -174,7 +169,6 @@ namespace Steam
 
 		Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
 		if (!Proxy::Overlay.valid()) return false;
-		if (overlayOnly) return true;
 
 		Proxy::Client = ::Utils::Library(STEAMCLIENT_LIB, false);
 		if (!Proxy::Client.valid()) return false;
