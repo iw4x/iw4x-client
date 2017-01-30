@@ -32,28 +32,10 @@ namespace Components
 		// Split up the list
 		for(auto entry : Friends::FriendsList)
 		{
-			if(entry.online)
-			{
-				if (entry.playing)
-				{
-					if (entry.server.getType() == Game::NA_BAD)
-					{
-						playingList.push_back(entry);
-					}
-					else
-					{
-						connectedList.push_back(entry);
-					}
-				}
-				else
-				{
-					onlineList.push_back(entry);
-				}
-			}
-			else
-			{
-				offlineList.push_back(entry);
-			}
+			if(!entry.online) offlineList.push_back(entry);
+			else if(!entry.playing) onlineList.push_back(entry);
+			else if (entry.server.getType() == Game::NA_BAD) playingList.push_back(entry);
+			else connectedList.push_back(entry);
 		}
 
 		Friends::SortIndividualList(&connectedList);
@@ -71,28 +53,62 @@ namespace Components
 
 	void Friends::UpdateUserInfo(SteamID user)
 	{
-			Proto::IPC::Function function;
+		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
-			function.set_name("getInfo");
-			*function.add_params() = Utils::String::VA("%llx", user.Bits);
+		auto entry = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [user](Friends::Friend entry)
+		{
+			return (entry.userId.Bits == user.Bits);
+		});
 
-			*function.add_params() = "name";
-			*function.add_params() = "state";
-			*function.add_params() = "iw4x_name";
-			*function.add_params() = "iw4x_status";
-			*function.add_params() = "iw4x_rank";
-			*function.add_params() = "iw4x_server";
-			*function.add_params() = "iw4x_playing";
-			*function.add_params() = "iw4x_guid";
+		if (entry == Friends::FriendsList.end() || !Steam::Proxy::SteamFriends) return;
 
-			IPCHandler::SendWorker("friends", function.SerializeAsString());
+		entry->name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
+		entry->playerName = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_name");
+		entry->online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
+		entry->playing = atoi(std::string(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_playing")).data()) == 1;
+		entry->guid.Bits = strtoull(std::string(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_guid")).data(), nullptr, 16);
+
+		std::string rank = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_rank");
+		if (rank.size() == 4)
+		{
+			int data = *reinterpret_cast<int*>(const_cast<char*>(rank.data()));
+
+			entry->experience = data & 0xFFFFFF;
+			entry->prestige = (data >> 24) & 0xFF;
+		}
+
+		std::string server = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_server");
+		Network::Address oldAddress = entry->server;
+
+		if (server.empty())
+		{
+			entry->server.setType(Game::NA_BAD);
+			entry->serverName.clear();
+		}
+		else if (entry->server != server)
+		{
+			entry->server = server;
+			entry->serverName.clear();
+		}
+
+		// Block localhost
+		if (entry->server.getType() == Game::NA_LOOPBACK) entry->server.setType(Game::NA_BAD);
+		if (entry->server.getType() != Game::NA_BAD && entry->server != oldAddress)
+		{
+			Node::AddNode(entry->server);
+			Network::SendCommand(entry->server, "getinfo", Utils::Cryptography::Rand::GenerateChallenge());
+		}
+
+		Friends::SortList();
 	}
 
 	void Friends::UpdateState()
 	{
-		Proto::IPC::Function function;
-		function.set_name("notifyChange");
-		IPCHandler::SendWorker("friends", function.SerializeAsString());
+		if(Steam::Proxy::SteamLegacyFriends)
+		{
+			int state = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
+			Steam::Proxy::SteamLegacyFriends->SetPersonaState((state == 1 ? 2 : 1));
+		}
 	}
 
 	void Friends::UpdateHostname(Network::Address server, std::string hostname)
@@ -110,21 +126,18 @@ namespace Components
 
 	void Friends::ClearPresence(std::string key)
 	{
-		Proto::IPC::Function function;
-		function.set_name("setPresence");
-		*function.add_params() = key;
-
-		IPCHandler::SendWorker("friends", function.SerializeAsString());
+		if (Steam::Proxy::SteamFriends)
+		{
+			Steam::Proxy::SteamFriends->SetRichPresence(key.data(), nullptr);
+		}
 	}
 
 	void Friends::SetPresence(std::string key, std::string value)
 	{
-		Proto::IPC::Function function;
-		function.set_name("setPresence");
-		*function.add_params() = key;
-		*function.add_params() = value;
-
-		IPCHandler::SendWorker("friends", function.SerializeAsString());
+		if (Steam::Proxy::SteamFriends)
+		{
+			Steam::Proxy::SteamFriends->SetRichPresence(key.data(), value.data());
+		}
 	}
 
 	void Friends::SetServer()
@@ -176,11 +189,42 @@ namespace Components
 
 	void Friends::UpdateFriends()
 	{
-		Proto::IPC::Function function;
-		function.set_name("getFriends");
-		*function.add_params() = Utils::String::VA("%d", 4);
+		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+		if (!Steam::Proxy::SteamFriends) return;
 
-		IPCHandler::SendWorker("friends", function.SerializeAsString());
+		auto oldFriends = Friends::FriendsList;
+		Friends::FriendsList.clear();
+
+		int count = Steam::Proxy::SteamFriends->GetFriendCount(4);
+
+		for (int i = 0; i < count; ++i)
+		{
+			SteamID id = Steam::Proxy::SteamFriends->GetFriendByIndex(i, 4);
+
+			Friends::Friend entry;
+			entry.userId = id;
+			entry.online = false;
+			entry.playing = false;
+			entry.prestige = 0;
+			entry.experience = 0;
+			entry.server.setType(Game::NA_BAD);
+
+			auto oldEntry = std::find_if(oldFriends.begin(), oldFriends.end(), [id](Friends::Friend entry)
+			{
+				return (entry.userId.Bits == id.Bits);
+			});
+
+			if (oldEntry != oldFriends.end()) entry = *oldEntry;
+
+			Friends::FriendsList.push_back(entry);
+
+			Friends::UpdateUserInfo(id);
+
+			if (Steam::Proxy::SteamFriends)
+			{
+				Steam::Proxy::SteamFriends->RequestFriendRichPresence(id);
+			}
+		}
 	}
 
 	unsigned int Friends::GetFriendCount()
@@ -228,35 +272,11 @@ namespace Components
 
 		case 2:
 		{		
-			if(user.online)
-			{
-				if (user.playing)
-				{
-					if (user.server.getType() != Game::NA_BAD)
-					{
-						if (user.serverName.empty())
-						{
-							return Utils::String::VA("Playing on %s", user.server.getCString());
-						}
-						else
-						{
-							return Utils::String::VA("Playing on %s", user.serverName.data());
-						}
-					}
-					else
-					{
-						return "Playing IW4x";
-					}
-				}
-				else
-				{
-					return "Online";
-				}
-			}
-			else
-			{
-				return "Offline";
-			}
+			if (!user.online) return "Offline";
+			if (!user.playing) return "Online";
+			if (user.server.getType() == Game::NA_BAD) return "Playing IW4x";
+			if (user.serverName.empty()) return Utils::String::VA("Playing on %s", user.server.getCString());
+			return Utils::String::VA("Playing on %s", user.serverName.data());
 		}
 
 		default:
@@ -274,178 +294,6 @@ namespace Components
 		Friends::CurrentFriend = index;
 	}
 
-	void Friends::NameResponse(std::vector<std::string> params)
-	{
-		if (params.size() >= 2)
-		{
-			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
-
-			SteamID id;
-			id.Bits = strtoull(params[0].data(), nullptr, 16);
-
-			for(auto& entry : Friends::FriendsList)
-			{
-				if(entry.userId.Bits == id.Bits)
-				{
-					entry.name = params[1];
-					break;
-				}
-			}
-		}
-	}
-
-	void Friends::ParsePresence(std::vector<std::string> params, bool sort)
-	{
-		if (params.size() >= 3)
-		{
-			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
-
-			SteamID id;
-			id.Bits = strtoull(params[0].data(), nullptr, 16);
-			std::string key = params[1];
-			std::string value = params[2];
-
-			auto entry = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [id](Friends::Friend entry)
-			{
-				return (entry.userId.Bits == id.Bits);
-			});
-
-			if (entry == Friends::FriendsList.end()) return;
-
-			if (key == "iw4x_name")
-			{
-				entry->playerName = value;
-			}
-			else if (key == "iw4x_playing")
-			{
-				entry->playing = atoi(value.data()) == 1;
-			}
-			else if(key == "iw4x_guid")
-			{
-				entry->guid.Bits = strtoull(value.data(), nullptr, 16);
-			}
-			else if (key == "iw4x_server")
-			{
-				Network::Address oldAddress = entry->server;
-
-				if (value.empty())
-				{
-					entry->server.setType(Game::NA_BAD);
-					entry->serverName.clear();
-				}
-				else if (entry->server != value)
-				{
-					entry->server = value;
-					entry->serverName.clear();
-				}
-
-				// Block localhost
-				if(entry->server.getType() == Game::NA_LOOPBACK) entry->server.setType(Game::NA_BAD);
-
-				if (entry->server.getType() != Game::NA_BAD && entry->server != oldAddress)
-				{
-					Node::AddNode(entry->server);
-					Network::SendCommand(entry->server, "getinfo", Utils::Cryptography::Rand::GenerateChallenge());
-				}
-			}
-			else if (key == "iw4x_rank")
-			{
-				if (value.size() == 4)
-				{
-					int data = *reinterpret_cast<int*>(const_cast<char*>(value.data()));
-
-					entry->experience = data & 0xFFFFFF;
-					entry->prestige = (data >> 24) & 0xFF;
-				}
-			}
-
-			if (sort) Friends::SortList();
-		}
-	}
-	
-	void Friends::PresenceResponse(std::vector<std::string> params)
-	{
-		Friends::ParsePresence(params, true);
-	}
-
-	void Friends::InfoResponse(std::vector<std::string> params)
-	{
-		if (params.size() >= 1)
-		{
-			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
-
-			SteamID id;
-			id.Bits = strtoull(params[0].data(), nullptr, 16);
-
-			auto entry = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [id](Friends::Friend entry)
-			{
-				return (entry.userId.Bits == id.Bits);
-			});
-
-			if (entry == Friends::FriendsList.end()) return;
-
-			for(unsigned int i = 1; i < params.size(); i += 2)
-			{
-				if ((i + 1) >= params.size()) break;
-				std::string key = params[i];
-				std::string value = params[i + 1];
-
-				if(key == "name")
-				{
-					entry->name = value;
-				}
-				else if(key == "state")
-				{
-					entry->online = atoi(value.data()) != 0;
-				}
-				else
-				{
-					Friends::ParsePresence({ Utils::String::VA("%llx", id.Bits), key, value }, false);
-				}
-			}
-
-			Friends::SortList();
-		}
-	}
-
-	void Friends::FriendsResponse(std::vector<std::string> params)
-	{
-		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
-
-		auto oldFriends = Friends::FriendsList;
-		Friends::FriendsList.clear();
-
-		for (auto param : params)
-		{
-			SteamID id;
-			id.Bits = strtoull(param.data(), nullptr, 16);
-
-			Friends::Friend entry;
-			entry.userId = id;
-			entry.online = false;
-			entry.playing = false;
-			entry.prestige = 0;
-			entry.experience = 0;
-			entry.server.setType(Game::NA_BAD);
-
-			auto oldEntry = std::find_if(oldFriends.begin(), oldFriends.end(), [id](Friends::Friend entry)
-			{
-				return (entry.userId.Bits == id.Bits);
-			});
-
-			if (oldEntry != oldFriends.end()) entry = *oldEntry;
-
-			Friends::FriendsList.push_back(entry);
-
-			Friends::UpdateUserInfo(id);
-
-			Proto::IPC::Function function;
-			function.set_name("requestPresence");
-			*function.add_params() = Utils::String::VA("%llx", id.Bits);
-			IPCHandler::SendWorker("friends", function.SerializeAsString());
-		}
-	}
-
 	__declspec(naked) void Friends::DisconnectStub()
 	{
 		__asm
@@ -461,7 +309,21 @@ namespace Components
 
 	Friends::Friends()
 	{
-		Friends::UpdateFriends();
+		// Callback to update user information
+		Steam::Proxy::RegisterCallback(336, [](void* data)
+		{
+			Friends::FriendRichPresenceUpdate* update = static_cast<Friends::FriendRichPresenceUpdate*>(data);
+			Friends::UpdateUserInfo(update->m_steamIDFriend);
+		});
+
+		// Persona state has changed
+		Steam::Proxy::RegisterCallback(304, [](void* data)
+		{
+			Friends::PersonaStateChange* state = static_cast<Friends::PersonaStateChange*>(data);
+			if (Steam::Proxy::SteamFriends) Steam::Proxy::SteamFriends->RequestFriendRichPresence(state->m_ulSteamID);
+		});
+
+		QuickPatch::Once(Friends::UpdateFriends);
 
 		// Update state when connecting/disconnecting
 		Utils::Hook(0x403582, Friends::DisconnectStub, HOOK_CALL).install()->quick();
@@ -469,32 +331,6 @@ namespace Components
 
 		// Show blue icons on the minimap
 		Utils::Hook(0x493130, Friends::IsClientInParty, HOOK_JUMP).install()->quick();
-
-		auto fInterface = IPCHandler::NewInterface("steamCallbacks");
-
-		// Callback to update user information
-		fInterface->map("336", [](std::vector<std::string> params)
-		{
-			if (params.size() >= 1 && params[0].size() == sizeof(Friends::FriendRichPresenceUpdate))
-			{
-				const Friends::FriendRichPresenceUpdate* update = reinterpret_cast<const Friends::FriendRichPresenceUpdate*>(params[0].data());
-				Friends::UpdateUserInfo(update->m_steamIDFriend);
-			}
-		});
-
-		// Persona state has changed
-		fInterface->map("304", [](std::vector<std::string> params)
-		{
-			if(params.size() >= 1 && params[0].size() == sizeof(Friends::PersonaStateChange))
-			{
-				const Friends::PersonaStateChange* state = reinterpret_cast<const Friends::PersonaStateChange*>(params[0].data());
-
-				Proto::IPC::Function function;
-				function.set_name("requestPresence");
-				*function.add_params() = Utils::String::VA("%llx", state->m_ulSteamID.Bits);
-				IPCHandler::SendWorker("friends", function.SerializeAsString());
-			}
-		});
 
 		UIScript::Add("LoadFriends", [](UIScript::Token)
 		{
@@ -527,12 +363,6 @@ namespace Components
 		});
 
 		UIFeeder::Add(6.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
-
-		fInterface = IPCHandler::NewInterface("friends");
-		fInterface->map("friendsResponse", Friends::FriendsResponse);
-		fInterface->map("nameResponse", Friends::NameResponse);
-		fInterface->map("presenceResponse", Friends::PresenceResponse);
-		fInterface->map("infoResponse", Friends::InfoResponse);
 
 		Friends::SetPresence("iw4x_playing", "1");
 		Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));

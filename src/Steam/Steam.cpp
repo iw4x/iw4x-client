@@ -108,7 +108,7 @@ namespace Steam
 		{
 			Proxy::SetGame(10190);
 
-			if (!Proxy::Inititalize(true))
+			if (!Proxy::Inititalize())
 			{
 				OutputDebugStringA("Steamproxy not initialized properly");
 			}
