@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	int Friends::InitialState;
 	unsigned int Friends::CurrentFriend;
 	std::recursive_mutex Friends::Mutex;
 	std::vector<Friends::Friend> Friends::FriendsList;
@@ -65,17 +66,10 @@ namespace Components
 		entry->name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
 		entry->playerName = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_name");
 		entry->online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
-		entry->playing = atoi(std::string(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_playing")).data()) == 1;
-		entry->guid.Bits = strtoull(std::string(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_guid")).data(), nullptr, 16);
-
-		std::string rank = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_rank");
-		if (rank.size() == 4)
-		{
-			int data = *reinterpret_cast<int*>(const_cast<char*>(rank.data()));
-
-			entry->experience = data & 0xFFFFFF;
-			entry->prestige = (data >> 24) & 0xFF;
-		}
+		entry->playing = atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_playing")) == 1;
+		entry->guid.Bits = strtoull(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_guid"), nullptr, 16);
+		entry->experience = atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_experience"));
+		entry->prestige = atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_prestige"));
 
 		std::string server = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_server");
 		Network::Address oldAddress = entry->server;
@@ -182,7 +176,8 @@ namespace Components
 		{
 			levelVal.set(level);
 
-			Friends::SetPresence("iw4x_rank", std::string(reinterpret_cast<char*>(&level), 4));
+			Friends::SetPresence("iw4x_experience", Utils::String::VA("%d", experience));
+			Friends::SetPresence("iw4x_prestige", Utils::String::VA("%d", prestige));
 			Friends::UpdateState();
 		}
 	}
@@ -220,10 +215,7 @@ namespace Components
 
 			Friends::UpdateUserInfo(id);
 
-			if (Steam::Proxy::SteamFriends)
-			{
-				Steam::Proxy::SteamFriends->RequestFriendRichPresence(id);
-			}
+			Steam::Proxy::SteamFriends->RequestFriendRichPresence(id);
 		}
 	}
 
@@ -323,8 +315,6 @@ namespace Components
 			if (Steam::Proxy::SteamFriends) Steam::Proxy::SteamFriends->RequestFriendRichPresence(state->m_ulSteamID);
 		});
 
-		QuickPatch::Once(Friends::UpdateFriends);
-
 		// Update state when connecting/disconnecting
 		Utils::Hook(0x403582, Friends::DisconnectStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4CD023, Friends::SetServer, HOOK_JUMP).install()->quick();
@@ -364,8 +354,32 @@ namespace Components
 
 		UIFeeder::Add(6.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
 
-		Friends::SetPresence("iw4x_playing", "1");
-		Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
+		QuickPatch::OnShutdown([]()
+		{
+			Friends::ClearPresence("iw4x_server");
+			Friends::ClearPresence("iw4x_playing");
+
+			Steam::Proxy::SteamFriends->ClearRichPresence();
+
+			if(Steam::Proxy::SteamLegacyFriends)
+			{
+				Steam::Proxy::SteamLegacyFriends->SetPersonaState(Friends::InitialState);
+			}
+		});
+
+		QuickPatch::Once([]()
+		{
+			if (Steam::Proxy::SteamLegacyFriends)
+			{
+				Friends::InitialState = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
+			}
+
+			Friends::SetPresence("iw4x_playing", "1");
+			Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
+			Friends::UpdateState();
+
+			Friends::UpdateFriends();
+		});
 	}
 
 	Friends::~Friends()

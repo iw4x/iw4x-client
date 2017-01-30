@@ -49,6 +49,7 @@ namespace Components
 			int prestige;
 		};
 
+		static int InitialState;
 		static unsigned int CurrentFriend;
 		static std::recursive_mutex Mutex;
 		static std::vector<Friend> FriendsList;
