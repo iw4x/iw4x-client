@@ -339,6 +339,9 @@ namespace Components
 					entry->serverName.clear();
 				}
 
+				// Block localhost
+				if(entry->server.getType() == Game::NA_LOOPBACK) entry->server.setType(Game::NA_BAD);
+
 				if (entry->server.getType() != Game::NA_BAD && entry->server != oldAddress)
 				{
 					Node::AddNode(entry->server);
