@@ -19,10 +19,15 @@ namespace Worker
 		printf("Attaching to parent process %d...\n", this->processId);
 		HANDLE processHandle = OpenProcess(SYNCHRONIZE, FALSE, this->processId);
 
-		if ((!processHandle || processHandle == INVALID_HANDLE_VALUE) && !Runner::isProcessAlive())
+		if ((!processHandle || processHandle == INVALID_HANDLE_VALUE))
 		{
-			printf("Unable to attach to parent process\n");
-			return;
+			printf("Passive attach failed, trying actively...\n");
+
+			if (!Runner::isProcessAlive())
+			{
+				printf("Unable to attach to parent process\n");
+				return;
+			}
 		}
 
 		printf("Successfully attached to parent process\n");

@@ -427,7 +427,7 @@ namespace Components
 		if (!AddAccessDeniedAce(pDacl, ACL_REVISION, dwPoison, psidArray[0])) return GetLastError();
 
 		// Standard and specific rights not explicitly denied
-		static const DWORD dwAllowed = ~dwPoison & 0x1FFF;
+		static const DWORD dwAllowed = (~dwPoison & 0x1FFF) | SYNCHRONIZE;
 		if (!AddAccessAllowedAce(pDacl, ACL_REVISION, dwAllowed, psidArray[1])) return GetLastError();
 
 		// Because of ACE ordering, System will effectively have dwAllowed even
