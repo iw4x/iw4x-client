@@ -17,6 +17,7 @@
 #include <Wininet.h>
 #include <d3d9.h>
 #include <Aclapi.h>
+#include <Psapi.h>
 
 #pragma warning(push)
 #pragma warning(disable: 4996)

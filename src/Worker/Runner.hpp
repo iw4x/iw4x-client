@@ -47,6 +47,7 @@ namespace Worker
 
 	private:
 		void worker();
+		bool isProcessAlive();
 
 		int processId;
 		bool terminate;
