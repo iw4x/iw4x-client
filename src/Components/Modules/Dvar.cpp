@@ -159,6 +159,7 @@ namespace Components
 			else
 			{
 				lastValidName = name;
+				Friends::UpdateName();
 			}
 		});
 

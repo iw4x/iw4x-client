@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	bool Friends::TriggerUpdate = false;
 	int Friends::InitialState;
 	unsigned int Friends::CurrentFriend;
 	std::recursive_mutex Friends::Mutex;
@@ -99,12 +100,19 @@ namespace Components
 		Friends::SortList();
 	}
 
-	void Friends::UpdateState()
+	void Friends::UpdateState(bool force)
 	{
-		if(Steam::Proxy::SteamLegacyFriends)
+		if(force)
 		{
-			int state = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
-			Steam::Proxy::SteamLegacyFriends->SetPersonaState((state == 1 ? 2 : 1));
+			if (Steam::Proxy::SteamLegacyFriends)
+			{
+				int state = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
+				Steam::Proxy::SteamLegacyFriends->SetPersonaState((state == 1 ? 2 : 1));
+			}
+		}
+		else
+		{
+			Friends::TriggerUpdate = true;
 		}
 	}
 
@@ -119,6 +127,12 @@ namespace Components
 				entry.serverName = hostname;
 			}
 		}
+	}
+
+	void Friends::UpdateName()
+	{
+		Friends::SetPresence("iw4x_name", Steam::SteamFriends()->GetPersonaName());
+		Friends::UpdateState();
 	}
 
 	void Friends::ClearPresence(std::string key)
@@ -263,8 +277,16 @@ namespace Components
 			return buffer;
 		}
 		case 1:
-			return Utils::String::VA("%s", user.name.data());
-
+		{
+			if (user.playerName.empty())
+			{
+				return Utils::String::VA("%s", user.name.data());
+			}
+			else
+			{
+				return Utils::String::VA("%s ^7(%s^7)", user.name.data(), user.playerName.data());
+			}
+		}
 		case 2:
 		{		
 			if (!user.online) return "Offline";
@@ -362,6 +384,19 @@ namespace Components
 
 		QuickPatch::OnFrame([]()
 		{
+			static Utils::Time::Interval interval;
+
+			if(interval.elapsed(5s))
+			{
+				interval.update();
+
+				if(Friends::TriggerUpdate)
+				{
+					Friends::TriggerUpdate = false;
+					Friends::UpdateState(true);
+				}
+			}
+
 			if(*reinterpret_cast<bool*>(0x1AD5690)) // LiveStorage_DoWeHaveStats
 			{
 				Friends::UpdateRank();
@@ -394,7 +429,8 @@ namespace Components
 
 			Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
 			Friends::UpdateTimeStamp();
-			//Friends::UpdateState(); // Don't update state yet, stats will do that
+			Friends::UpdateName();
+			Friends::UpdateState();
 
 			Friends::UpdateFriends();
 		});

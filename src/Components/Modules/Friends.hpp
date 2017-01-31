@@ -15,6 +15,7 @@ namespace Components
 		static void UpdateFriends();
 		static void UpdateRank();
 		static void UpdateHostname(Network::Address server, std::string hostname);
+		static void UpdateName();
 
 		static void SetPresence(std::string key, std::string value);
 		static void ClearPresence(std::string key);
@@ -49,6 +50,7 @@ namespace Components
 			int prestige;
 		};
 
+		static bool TriggerUpdate;
 		static int InitialState;
 		static unsigned int CurrentFriend;
 		static std::recursive_mutex Mutex;
@@ -61,7 +63,7 @@ namespace Components
 		static bool IsClientInParty(int controller, int clientNum);
 
 		static void UpdateUserInfo(SteamID user);
-		static void UpdateState();
+		static void UpdateState(bool force = false);
 
 		static void SortList();
 		static void SortIndividualList(std::vector<Friend>* list);
