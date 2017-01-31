@@ -44,7 +44,9 @@ namespace Components
 		Friends::SortIndividualList(&onlineList);
 		Friends::SortIndividualList(&offlineList);
 
+		size_t count = Friends::FriendsList.size();
 		Friends::FriendsList.clear();
+		Friends::FriendsList.reserve(count);
 
 		Utils::Merge(&Friends::FriendsList, connectedList);
 		Utils::Merge(&Friends::FriendsList, playingList);
@@ -391,8 +393,9 @@ namespace Components
 			}
 
 			Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
-			//Friends::UpdateState(); // Don't update state yet, stats will do that
 			Friends::UpdateTimeStamp();
+			//Friends::UpdateState(); // Don't update state yet, stats will do that
+
 			Friends::UpdateFriends();
 		});
 
