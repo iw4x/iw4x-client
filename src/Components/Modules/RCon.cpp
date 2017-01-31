@@ -119,7 +119,7 @@ namespace Components
 
 				Logger::PipeOutput(nullptr);
 
-				Network::SendCommand(address, "print", outputBuffer);
+				Network::Send(address, "print\n" + outputBuffer);
 				outputBuffer.clear();
 			}
 			else
