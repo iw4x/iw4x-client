@@ -697,6 +697,7 @@ namespace Components
 		Menus::Add("ui_mp/mod_download_popmenu.menu");
 		Menus::Add("ui_mp/popup_friends.menu");
 		Menus::Add("ui_mp/menu_first_launch.menu");
+		Menus::Add("ui_mp/startup_messages.menu");
 	}
 
 	Menus::~Menus()

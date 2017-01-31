@@ -83,6 +83,7 @@ namespace Components
 		Loader::Register(new MinidumpUpload());
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
+		Loader::Register(new StartupMessages());
 
 		Loader::Pregame = false;
 	}

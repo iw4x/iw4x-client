@@ -101,3 +101,4 @@ namespace Components
 #include "Modules/MinidumpUpload.hpp"
 #include "Modules/StructuredData.hpp"
 #include "Modules/ConnectProtocol.hpp"
+#include "Modules/StartupMessages.hpp"

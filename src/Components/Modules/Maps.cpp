@@ -432,6 +432,8 @@ namespace Components
 	void Maps::UpdateDlcStatus()
 	{
 		bool hasAllDlcs = true;
+		bool * hasDlc = new bool[DlcPacks.size()];
+		int i = 0;
 		for (auto& pack : Maps::DlcPacks)
 		{
 			bool hasAllMaps = true;
@@ -445,10 +447,20 @@ namespace Components
 				}
 			}
 
+			hasDlc[i++] = hasAllMaps;
 			Dvar::Var(Utils::String::VA("isDlcInstalled_%d", pack.index)).setRaw(hasAllMaps ? 1 : 0);
 		}
 
+		// Must have all of dlc 3 to 5 or it causes issues
+		static bool sentMessage = false;
+		if ((hasDlc[2] || hasDlc[3] || hasDlc[4]) && (!hasDlc[2] || !hasDlc[3] || !hasDlc[4]) && !sentMessage)
+		{
+			StartupMessages::AddMessage("Warning:\n You only have some of DLCs 3-5 which are all required to be installed to work. There may be issues with those maps.");
+			sentMessage = true;
+		}
+
 		Dvar::Var("isDlcInstalled_All").setRaw(hasAllDlcs ? 1 : 0);
+
 	}
 
 	void Maps::reallocateEntryPool()
