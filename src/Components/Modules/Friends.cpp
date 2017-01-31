@@ -431,13 +431,18 @@ namespace Components
 
 		QuickPatch::OnFrame([]()
 		{
-			static Utils::Time::Interval interval;
+			static Utils::Time::Interval timeInterval;
 			static Utils::Time::Interval sortInterval;
 			static Utils::Time::Interval stateInterval;
 
-			if (interval.elapsed(2min))
+			if (*reinterpret_cast<bool*>(0x1AD5690)) // LiveStorage_DoWeHaveStats
 			{
-				interval.update();
+				Friends::UpdateRank();
+			}
+
+			if (timeInterval.elapsed(2min))
+			{
+				timeInterval.update();
 				Friends::UpdateTimeStamp();
 				Friends::UpdateState();
 			}
@@ -455,18 +460,13 @@ namespace Components
 
 			if(sortInterval.elapsed(3s))
 			{
-				stateInterval.update();
+				sortInterval.update();
 
 				if (Friends::TriggerSort)
 				{
 					Friends::TriggerSort = false;
 					Friends::SortList(true);
 				}
-			}
-
-			if(*reinterpret_cast<bool*>(0x1AD5690)) // LiveStorage_DoWeHaveStats
-			{
-				Friends::UpdateRank();
 			}
 		});
 
