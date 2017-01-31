@@ -83,6 +83,7 @@ namespace Utils
 		std::vector<Slot<T>> slots;
 	};
 
+	// TODO: Replace with std::optional, once C++17 is fully available!
 	template <typename T>
 	class Value
 	{

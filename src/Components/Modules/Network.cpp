@@ -178,10 +178,11 @@ namespace Components
 	void Network::SendCommand(Game::netsrc_t type, Network::Address target, std::string command, std::string data)
 	{
 		// Use space as separator (possible separators are '\n', ' ').
-		// Though, our handler only needs exactly 1 char as separator and doesn't care which char it is
+		// Though, our handler only needs exactly 1 char as separator and doesn't care which char it is.
+		// EDIT: Most 3rd party tools expect a line break, so let's use that instead!
 		std::string packet;
 		packet.append(command);
-		packet.append(" ", 1);
+		packet.append("\n", 1);
 		packet.append(data);
 
 		Network::Send(type, target, packet);
