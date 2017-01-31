@@ -42,6 +42,7 @@ namespace Components
 			SteamID guid;
 			std::string name;
 			std::string playerName;
+			std::string cleanName;
 			Network::Address server;
 			std::string serverName;
 			bool online;
@@ -50,6 +51,7 @@ namespace Components
 			int prestige;
 		};
 
+		static bool TriggerSort;
 		static bool TriggerUpdate;
 		static int InitialState;
 		static unsigned int CurrentFriend;
@@ -65,7 +67,7 @@ namespace Components
 		static void UpdateUserInfo(SteamID user);
 		static void UpdateState(bool force = false);
 
-		static void SortList();
+		static void SortList(bool force = false);
 		static void SortIndividualList(std::vector<Friend>* list);
 
 		static unsigned int GetFriendCount();

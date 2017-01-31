@@ -2,7 +2,9 @@
 
 namespace Components
 {
+	bool Friends::TriggerSort = false;
 	bool Friends::TriggerUpdate = false;
+
 	int Friends::InitialState;
 	unsigned int Friends::CurrentFriend;
 	std::recursive_mutex Friends::Mutex;
@@ -15,15 +17,18 @@ namespace Components
 			const Friends::Friend* friend1 = static_cast<const Friends::Friend*>(first);
 			const Friends::Friend* friend2 = static_cast<const Friends::Friend*>(second);
 
-			std::string name1 = Utils::String::ToLower(Colors::Strip(friend1->name));
-			std::string name2 = Utils::String::ToLower(Colors::Strip(friend2->name));
-
-			return name1.compare(name2);
+			return friend1->cleanName.compare(friend2->cleanName);
 		});
 	}
 
-	void Friends::SortList()
+	void Friends::SortList(bool force)
 	{
+		if(!force)
+		{
+			Friends::TriggerSort = true;
+			return;
+		}
+
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
 		std::vector<Friends::Friend> connectedList;
@@ -68,6 +73,7 @@ namespace Components
 
 		entry->name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
 		entry->online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
+		entry->cleanName = Utils::String::ToLower(Colors::Strip(entry->name));
 
 		std::string guid = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_guid");
 		std::string name = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_name");
@@ -426,15 +432,35 @@ namespace Components
 		QuickPatch::OnFrame([]()
 		{
 			static Utils::Time::Interval interval;
+			static Utils::Time::Interval sortInterval;
+			static Utils::Time::Interval stateInterval;
 
-			if(interval.elapsed(5s))
+			if (interval.elapsed(2min))
 			{
 				interval.update();
+				Friends::UpdateTimeStamp();
+				Friends::UpdateState();
+			}
+
+			if(stateInterval.elapsed(5s))
+			{
+				stateInterval.update();
 
 				if(Friends::TriggerUpdate)
 				{
 					Friends::TriggerUpdate = false;
 					Friends::UpdateState(true);
+				}
+			}
+
+			if(sortInterval.elapsed(3s))
+			{
+				stateInterval.update();
+
+				if (Friends::TriggerSort)
+				{
+					Friends::TriggerSort = false;
+					Friends::SortList(true);
 				}
 			}
 
@@ -474,18 +500,6 @@ namespace Components
 			Friends::UpdateState();
 
 			Friends::UpdateFriends();
-		});
-
-		QuickPatch::OnFrame([]()
-		{
-			static Utils::Time::Interval interval;
-
-			if(interval.elapsed(2min))
-			{
-				interval.update();
-				Friends::UpdateTimeStamp();
-				Friends::UpdateState();
-			}
 		});
 	}
 
