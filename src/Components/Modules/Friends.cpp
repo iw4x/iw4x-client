@@ -373,7 +373,9 @@ namespace Components
 			Friends::ClearPresence("iw4x_server");
 			Friends::ClearPresence("iw4x_playing");
 
-			//Steam::Proxy::SteamFriends->ClearRichPresence();
+#ifdef DEBUG
+			Steam::Proxy::SteamFriends->ClearRichPresence();
+#endif
 
 			if(Steam::Proxy::SteamLegacyFriends)
 			{
