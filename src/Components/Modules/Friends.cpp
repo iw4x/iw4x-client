@@ -354,7 +354,7 @@ namespace Components
 
 	void Friends::UpdateTimeStamp()
 	{
-		Friends::SetPresence("iw4x_playing", Utils::String::VA("%d", Steam::Proxy::SteamUtils->GetServerRealTime()));
+		Friends::SetPresence("iw4x_playing", Utils::String::VA("%d", Steam::SteamUtils()->GetServerRealTime()));
 	}
 
 	bool Friends::IsOnline(unsigned __int64 timeStamp)
@@ -362,7 +362,7 @@ namespace Components
 		if (!Steam::Proxy::SteamUtils) return false;
 		static const unsigned __int64 duration = std::chrono::duration_cast<std::chrono::seconds>(5min).count();
 
-		return ((Steam::Proxy::SteamUtils->GetServerRealTime() - timeStamp) < duration);
+		return ((Steam::SteamUtils()->GetServerRealTime() - timeStamp) < duration);
 	}
 
 	void Friends::StoreFriendsList()
@@ -386,6 +386,8 @@ namespace Components
 
 	Friends::Friends()
 	{
+		if (Dedicated::IsEnabled() ||ZoneBuilder::IsEnabled()) return;
+
 		// Callback to update user information
 		Steam::Proxy::RegisterCallback(336, [](void* data)
 		{
@@ -505,6 +507,8 @@ namespace Components
 
 	Friends::~Friends()
 	{
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+
 		Friends::StoreFriendsList();
 
 		Steam::Proxy::UnregisterCallback(336);
