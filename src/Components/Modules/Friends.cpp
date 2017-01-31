@@ -67,11 +67,17 @@ namespace Components
 		if (entry == Friends::FriendsList.end() || !Steam::Proxy::SteamFriends) return;
 
 		entry->name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
-		entry->playerName = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_name");
 		entry->online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
-		entry->guid.Bits = strtoull(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_guid"), nullptr, 16);
-		entry->experience = atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_experience"));
-		entry->prestige = atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_prestige"));
+
+		std::string guid = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_guid");
+		std::string name = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_name");
+		std::string experience = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_experience");
+		std::string prestige = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_prestige");
+
+		if (!guid.empty()) entry->guid.Bits = strtoull(guid.data(), nullptr, 16);
+		if (!name.empty()) entry->playerName = name;
+		if (!experience.empty()) entry->experience = atoi(experience.data());
+		if (!prestige.empty()) entry->prestige = atoi(prestige.data());
 
 		std::string server = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_server");
 		Network::Address oldAddress = entry->server;
@@ -209,17 +215,33 @@ namespace Components
 
 		int count = Steam::Proxy::SteamFriends->GetFriendCount(4);
 
+		Proto::Friends::List list;
+		list.ParseFromString(Utils::IO::ReadFile("players/friends.dat"));
+
 		for (int i = 0; i < count; ++i)
 		{
 			SteamID id = Steam::Proxy::SteamFriends->GetFriendByIndex(i, 4);
 
 			Friends::Friend entry;
 			entry.userId = id;
+			entry.guid.Bits = 0;
 			entry.online = false;
 			entry.lastTime = 0;
 			entry.prestige = 0;
 			entry.experience = 0;
 			entry.server.setType(Game::NA_BAD);
+
+			for(auto storedFriend : list.friends())
+			{
+				if(entry.userId.Bits == strtoull(storedFriend.steamid().data(), nullptr, 16))
+				{
+					entry.playerName = storedFriend.name();
+					entry.experience = storedFriend.experience();
+					entry.prestige = storedFriend.prestige();
+					entry.guid.Bits = strtoull(storedFriend.guid().data(), nullptr, 16);
+					break;
+				}
+			}
 
 			auto oldEntry = std::find_if(oldFriends.begin(), oldFriends.end(), [id](Friends::Friend entry)
 			{
@@ -337,6 +359,25 @@ namespace Components
 		return ((Steam::Proxy::SteamUtils->GetServerRealTime() - timeStamp) < duration);
 	}
 
+	void Friends::StoreFriendsList()
+	{
+		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+
+		Proto::Friends::List list;
+		for(auto entry : Friends::FriendsList)
+		{
+			Proto::Friends::Friend* friendEntry = list.add_friends();
+
+			friendEntry->set_steamid(Utils::String::VA("%llX", entry.userId.Bits));
+			friendEntry->set_guid(Utils::String::VA("%llX", entry.guid.Bits));
+			friendEntry->set_name(entry.playerName);
+			friendEntry->set_experience(entry.experience);
+			friendEntry->set_prestige(entry.prestige);
+		}
+
+		Utils::IO::WriteFile("players/friends.dat", list.SerializeAsString());
+	}
+
 	Friends::Friends()
 	{
 		// Callback to update user information
@@ -450,6 +491,8 @@ namespace Components
 
 	Friends::~Friends()
 	{
+		Friends::StoreFriendsList();
+
 		Steam::Proxy::UnregisterCallback(336);
 		Steam::Proxy::UnregisterCallback(304);
 

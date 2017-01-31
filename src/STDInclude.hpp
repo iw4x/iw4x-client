@@ -88,6 +88,7 @@ template <size_t S> class Sizer { };
 #include "proto/node.pb.h"
 #include "proto/rcon.pb.h"
 #include "proto/ipc.pb.h"
+#include "proto/friends.pb.h"
 
 #pragma warning(pop)
 

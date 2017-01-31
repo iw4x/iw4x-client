@@ -75,5 +75,7 @@ namespace Components
 		static void UpdateTimeStamp();
 
 		static bool IsOnline(unsigned __int64 timeStamp);
+
+		static void StoreFriendsList();
 	};
 }
