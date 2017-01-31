@@ -44,7 +44,7 @@ namespace Components
 			Network::Address server;
 			std::string serverName;
 			bool online;
-			bool playing;
+			unsigned int lastTime;
 			int experience;
 			int prestige;
 		};
@@ -69,5 +69,9 @@ namespace Components
 		static unsigned int GetFriendCount();
 		static const char* GetFriendText(unsigned int index, int column);
 		static void SelectFriend(unsigned int index);
+
+		static void UpdateTimeStamp();
+
+		static bool IsOnline(unsigned int ts);
 	};
 }

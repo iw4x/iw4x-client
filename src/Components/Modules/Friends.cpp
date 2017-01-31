@@ -34,7 +34,7 @@ namespace Components
 		for(auto entry : Friends::FriendsList)
 		{
 			if(!entry.online) offlineList.push_back(entry);
-			else if(!entry.playing) onlineList.push_back(entry);
+			else if(!Friends::IsOnline(entry.lastTime)) onlineList.push_back(entry);
 			else if (entry.server.getType() == Game::NA_BAD) playingList.push_back(entry);
 			else connectedList.push_back(entry);
 		}
@@ -66,13 +66,14 @@ namespace Components
 		entry->name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
 		entry->playerName = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_name");
 		entry->online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
-		entry->playing = atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_playing")) == 1;
 		entry->guid.Bits = strtoull(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_guid"), nullptr, 16);
 		entry->experience = atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_experience"));
 		entry->prestige = atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_prestige"));
 
 		std::string server = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_server");
 		Network::Address oldAddress = entry->server;
+
+		entry->lastTime = static_cast<unsigned int>(atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_playing")));
 
 		if (server.empty())
 		{
@@ -155,7 +156,7 @@ namespace Components
 
 		for (auto entry : Friends::FriendsList)
 		{
-			if (entry.guid.Bits == guid.Bits && entry.playing && entry.online)
+			if (entry.guid.Bits == guid.Bits && Friends::IsOnline(entry.lastTime) && entry.online)
 			{
 				return true;
 			}
@@ -199,7 +200,7 @@ namespace Components
 			Friends::Friend entry;
 			entry.userId = id;
 			entry.online = false;
-			entry.playing = false;
+			entry.lastTime = 0;
 			entry.prestige = 0;
 			entry.experience = 0;
 			entry.server.setType(Game::NA_BAD);
@@ -265,7 +266,7 @@ namespace Components
 		case 2:
 		{		
 			if (!user.online) return "Offline";
-			if (!user.playing) return "Online";
+			if (!Friends::IsOnline(user.lastTime)) return "Online";
 			if (user.server.getType() == Game::NA_BAD) return "Playing IW4x";
 			if (user.serverName.empty()) return Utils::String::VA("Playing on %s", user.server.getCString());
 			return Utils::String::VA("Playing on %s", user.serverName.data());
@@ -297,6 +298,16 @@ namespace Components
 			push 467CC0h
 			retn
 		}
+	}
+
+	void Friends::UpdateTimeStamp()
+	{
+		Friends::SetPresence("iw4x_playing", Utils::String::VA("%d", Steam::Proxy::SteamUtils->GetServerRealTime()));
+	}
+
+	bool Friends::IsOnline(unsigned int ts)
+	{
+		return (Steam::Proxy::SteamUtils && ((Steam::Proxy::SteamUtils->GetServerRealTime() - ts) <= 5 * 60)); // % minutes
 	}
 
 	Friends::Friends()
@@ -374,11 +385,22 @@ namespace Components
 				Friends::InitialState = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
 			}
 
-			Friends::SetPresence("iw4x_playing", "1");
 			Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
 			//Friends::UpdateState(); // Don't update state yet, stats will do that
-
+			Friends::UpdateTimeStamp();
 			Friends::UpdateFriends();
+		});
+
+		QuickPatch::OnFrame([]()
+		{
+			static Utils::Time::Interval interval;
+
+			if(interval.elapsed(2min))
+			{
+				interval.update();
+				Friends::UpdateTimeStamp();
+				Friends::UpdateState();
+			}
 		});
 	}
 
