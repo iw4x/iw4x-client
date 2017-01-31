@@ -72,6 +72,6 @@ namespace Components
 
 		static void UpdateTimeStamp();
 
-		static bool IsOnline(unsigned int ts);
+		static bool IsOnline(unsigned __int64 timeStamp);
 	};
 }

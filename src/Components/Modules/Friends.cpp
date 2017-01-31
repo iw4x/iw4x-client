@@ -305,9 +305,12 @@ namespace Components
 		Friends::SetPresence("iw4x_playing", Utils::String::VA("%d", Steam::Proxy::SteamUtils->GetServerRealTime()));
 	}
 
-	bool Friends::IsOnline(unsigned int ts)
+	bool Friends::IsOnline(unsigned __int64 timeStamp)
 	{
-		return (Steam::Proxy::SteamUtils && ((Steam::Proxy::SteamUtils->GetServerRealTime() - ts) <= 5 * 60)); // % minutes
+		if (!Steam::Proxy::SteamUtils) return false;
+		static const unsigned __int64 duration = std::chrono::duration_cast<std::chrono::seconds>(5min).count();
+
+		return ((Steam::Proxy::SteamUtils->GetServerRealTime() - timeStamp) < duration);
 	}
 
 	Friends::Friends()
