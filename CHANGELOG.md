@@ -10,11 +10,20 @@ This is the third public Beta version.
 
 ### Added
 
+- Working friend system
+- Added nosteam flag
+
 ### Changed
+
+- Added join on enter in serverlist (request)
 
 ### Fixed
 
-- Fix missing models on village.
+- Fix missing models on village
+- Custom server motd is reset
+- Fixed various memory leaks
+- Fixed mouse pitch
+- Fixed compatibility with b3
 
 ### Known issues
 
