@@ -345,13 +345,16 @@ namespace Game
 		return poolEntry;
 	}
 
-	void Menu_FreeItemMemory(Game::itemDef_t* item)
+	__declspec(naked) void Menu_FreeItemMemory(Game::itemDef_t* /*item*/)
 	{
 		__asm
 		{
-			mov edi, item
+			pushad
+			mov edi, [esp + 24h]
 			mov eax, 63D880h
 			call eax
+			popad
+			retn
 		}
 	}
 
@@ -402,20 +405,22 @@ namespace Game
 		return gameType;
 	}
 
-	float UI_GetScoreboardLeft(void* a1)
+	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
 	{
-		// ReSharper disable once CppEntityNeverUsed
-		static int func = 0x590390;
-		float result = 0;
-
 		__asm
 		{
-			mov eax, a1
-			call func
-			mov result, eax
-		}
+			push eax
+			pushad
 
-		return result;
+			mov ecx, 590390h
+			mov eax, [esp + 28h]
+			call ecx
+			mov[esp + 20h], eax
+			popad
+			pop eax
+
+			retn
+		}
 	}
 
 	const char *DB_GetXAssetName(XAsset *asset)
@@ -463,32 +468,39 @@ namespace Game
 		return false;
 	}
 
-	XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType _type)
+	__declspec(naked) XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType /*type*/)
 	{
-		// ReSharper disable once CppEntityNeverUsed
-		static int func = 0x5BB210;
-		XAssetHeader result;
-
 		__asm
 		{
-			push edi
-			mov edi, _type
-			call func
-			pop edi
-			mov result, eax
-		}
+			push eax
+			pushad
 
-		return result;
+			mov eax, 5BB210h
+			mov edi, [esp + 28h]
+			call eax
+
+			mov [esp + 20h], eax
+			popad
+			pop eax
+
+			retn
+		}
 	}
 
-	void FS_AddLocalizedGameDirectory(const char *path, const char *dir)
+	__declspec(naked) void FS_AddLocalizedGameDirectory(const char* /*path*/, const char* /*dir*/)
 	{
 		__asm
 		{
-			mov ebx, path
-			mov eax, dir
+			pushad
+
+			mov ebx, [esp + 24h]
+			mov eax, [esp + 28h]
 			mov ecx, 642EF0h
 			call ecx
+
+			popad
+
+			retn
 		}
 	}
 
@@ -515,52 +527,57 @@ namespace Game
 		return hash;
 	}
 
-	void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun)
+	__declspec(naked) void R_LoadSunThroughDvars(const char* /*mapname*/, sunflare_t* /*sun*/)
 	{
 		__asm
 		{
-			push ecx
-			push sun
-			mov eax, mapname
+			pushad
+			push [esp + 28h]
+			mov eax, [esp + 28h]
 
 			mov ecx, 53F990h
 			call ecx
 
 			add esp, 4h
-			pop ecx
+			popad
+			retn
 		}
 	}
 
-	void R_SetSunFromDvars(sunflare_t* sun)
+	__declspec(naked) void R_SetSunFromDvars(sunflare_t* /*sun*/)
 	{
 		__asm
 		{
-			push esi
-			mov esi, sun
+			pushad
+			mov esi, [esp + 24h]
 
 			mov eax, 53F6D0h
-			call ecx
+			call eax
 
-			pop esi
+			popad
+			retn
 		}
 	}
 
-	void SV_KickClient(client_t* client, const char* reason)
+	__declspec(naked) void SV_KickClient(client_t* /*client*/, const char* /*reason*/)
 	{
 		__asm
 		{
-			push edi
-			push esi
+			pushad
+
 			mov edi, 0
-			mov esi, client
-			push reason
+			mov esi, [esp + 24h]
+			push[esp + 28h]
 			push 0
 			push 0
+
 			mov eax, 6249A0h
 			call eax
 			add esp, 0Ch
-			pop esi
-			pop edi
+
+			popad
+
+			retn
 		}
 	}
 
@@ -568,7 +585,7 @@ namespace Game
 	{
 		if (client->state < 5)
 		{
-			Components::Network::Send(client->addr, Utils::String::VA("error\n%s", reason.data()));
+			Components::Network::SendCommand(client->addr, "error", reason);
 		}
 
 		SV_KickClient(client, reason.data());
@@ -584,27 +601,29 @@ namespace Game
 		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x67, message.data()));
 	}
 
-	void IN_KeyUp(kbutton_t* button)
+	__declspec(naked) void IN_KeyUp(kbutton_t* /*button*/)
 	{
 		__asm
 		{
-			push esi
-			mov esi, button
+			pushad
+			mov esi, [esp + 24h]
 			mov eax, 5A5580h
 			call eax
-			pop esi
+			popad
+			retn
 		}
 	}
 
-	void IN_KeyDown(kbutton_t* button)
+	__declspec(naked) void IN_KeyDown(kbutton_t* /*button*/)
 	{
 		__asm
 		{
-			push esi
-			mov esi, button
+			pushad
+			mov esi, [esp + 24h]
 			mov eax, 5A54E0h
 			call eax
-			pop esi
+			popad
+			retn
 		}
 	}
 
@@ -639,23 +658,23 @@ namespace Game
 		}
 	}
 
-	void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len)
+	__declspec(naked) void Load_VertexBuffer(void* /*data*/, IDirect3DVertexBuffer9** /*where*/, int /*len*/)
 	{
 		__asm
 		{
-			push edi
-			push ebx
+			pushad
 
-			mov eax, len
-			mov edi, where
-			push data
+			mov eax, [esp + 2Ch]
+			mov edi, [esp + 28h]
+			push[esp + 24h]
 
 			mov ebx, 5112C0h
 			call ebx
 			add esp, 4
 
-			pop ebx
-			pop edi
+			popad
+
+			retn
 		}
 	}
 

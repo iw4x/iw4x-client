@@ -52,16 +52,21 @@ namespace Components
 	{
 		__asm
 		{
-			lea ecx, [esp + 10h]
+			pushad
+
+			lea ecx, [esp + 30h]
 			push ecx
 
 			call Script::StoreScriptName
 			add esp, 4h
 
+			popad
+
 			push ebp
 			mov ebp, ds:1CDEAA8h
-			mov ecx, 427DC3h
-			jmp ecx
+
+			push 427DC3h
+			retn
 		}
 	}
 
@@ -75,12 +80,14 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
 			call Script::RestoreScriptName
+			popad
 
 			mov ds:1CDEAA8h, ebp
 
-			mov eax, 427E77h
-			jmp eax
+			push 427E77h
+			retn
 		}
 	}
 

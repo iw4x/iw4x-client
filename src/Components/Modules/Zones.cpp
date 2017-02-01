@@ -126,9 +126,11 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
 			push edi
 			call Zones::LoadXModelLodInfo
 			add esp, 4h
+			popad
 
 			mov eax, [esp + 8h]
 			push eax

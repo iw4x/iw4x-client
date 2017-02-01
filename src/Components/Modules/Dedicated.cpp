@@ -67,7 +67,9 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
 			call Dedicated::PostInitialization
+			popad
 
 			// Start Com_EvenLoop
 			mov eax, 43D140h

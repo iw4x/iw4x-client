@@ -143,13 +143,17 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
+
 			push 1
-			push [esp + 8h]
+			push [esp + 28h]
 			call Logger::NetworkLog
 			add esp, 8h
 
-			mov eax, 4576C0h
-			jmp eax
+			popad
+
+			push 4576C0h
+			retn
 		}
 	}
 
@@ -161,22 +165,26 @@ namespace Components
 			test eax, eax
 			jz returnPrint
 
-			push [esp + 8h]
+			pushad
+			push [esp + 28h]
 			call Logger::PrintMessagePipe
 			add esp, 4h
+			popad
 			retn
 
 		returnPrint:
+			pushad
 			push 0
-			push [esp + 0Ch]
+			push [esp + 2Ch]
 			call Logger::NetworkLog
 			add esp, 8h
+			popad
 
 			push esi
 			mov esi, [esp + 0Ch]
 
-			mov eax, 4AA835h
-			jmp eax
+			push 4AA835h
+			retn
 		}
 	}
 

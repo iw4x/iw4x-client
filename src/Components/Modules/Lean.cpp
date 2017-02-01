@@ -49,9 +49,11 @@ namespace Components
 			mov ecx, 5A6510h
 			call ecx
 
+			pushad
 			push esi
 			call Lean::SetLeanFlags
 			pop esi
+			popad
 			retn
 		}
 	}

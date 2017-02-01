@@ -85,15 +85,17 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
 			call Theatre::WriteBaseline
+			popad
 
 			// Restore overwritten operation
 			mov ecx, 0A5E9C4h
 			mov [ecx], 0
 
 			// Return to original code
-			mov ecx, 5A863Ah
-			jmp ecx
+			push 5A863Ah
+			retn
 		}
 	}
 
@@ -110,8 +112,8 @@ namespace Components
 			retn
 
 		continue:
-			mov eax, 5A1AD0h
-			jmp eax
+			push 5A1AD0h
+			retn
 		}
 	}
 
@@ -129,8 +131,8 @@ namespace Components
 
 		continue:
 			mov eax, 0B2BB90h
-			mov esi, 5A8E08h
-			jmp esi
+			push 5A8E08h
+			retn
 		}
 	}
 
@@ -150,8 +152,8 @@ namespace Components
 			mov ecx, [esp + 10h]
 			push 10h
 			push ecx
-			mov eax, 4CB3F6h
-			jmp eax
+			push 4CB3F6h
+			retn
 		}
 	}
 

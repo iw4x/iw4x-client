@@ -99,11 +99,14 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
 			push eax
 			call ServerInfo::DrawScoreboardInfo
 			pop eax
-			mov ecx, 591B70h
-			jmp ecx
+			popad
+
+			push 591B70h
+			retn
 		}
 	}
 

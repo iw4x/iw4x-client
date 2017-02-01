@@ -54,12 +54,19 @@ namespace Components
 	{
 		__asm
 		{
+			push eax
+			pushad
+
 			push ecx
 			call Materials::ResolveMaterial
 			add esp, 4h
 
-			mov edx, 5310F0h
-			jmp edx
+			mov[esp + 20h], eax
+			popad
+			pop eax
+
+			push 5310F0h
+			retn
 		}
 	}
 
@@ -82,13 +89,21 @@ namespace Components
 	{
 		__asm
 		{
+			push eax
+			pushad
+
 			push edx // Material
 			push eax // offset
 			push ecx // String
 
 			call Materials::WriteDeathMessageIcon
+			add esp, 0Ch
 
-			add esp, 14h
+			mov[esp + 20h], eax
+			popad
+			pop eax
+
+			add esp, 8h
 			retn
 		}
 	}

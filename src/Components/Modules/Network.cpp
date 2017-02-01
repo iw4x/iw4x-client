@@ -302,10 +302,16 @@ namespace Components
 		__asm
 		{
 			lea eax, [esp + 0C54h]
+
+			pushad
+
 			push ebp // Command
 			push eax // Address pointer
 			call Network::DeployPacket
 			add esp, 8h
+
+			popad
+
 			mov al, 1
 			pop edi
 			pop esi

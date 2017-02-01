@@ -65,11 +65,15 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		{
 			__asm
 			{
+				pushad
+
 				// This has to be called, otherwise the hook is not uninstalled and we're looping into infinity
 				call Main::Initialize
 
-				mov eax, 6BAC0Fh
-				jmp eax
+				popad
+
+				push 6BAC0Fh
+				retn
 			}
 		})->install();
 	}

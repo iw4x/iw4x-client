@@ -84,8 +84,17 @@ namespace Components
 			push esi
 			push edi
 
+
+			push eax
+			pushad
+
 			// Check if custom handler should be bypassed
 			call AssetHandler::HasThreadBypass
+
+			mov [esp + 20h], eax
+			popad
+			pop eax
+
 
 			test al, al
 			jnz finishOriginal
@@ -93,12 +102,21 @@ namespace Components
 			mov ecx, [esp + 18h] // Asset type
 			mov ebx, [esp + 1Ch] // Filename
 
+
+			push eax
+			pushad
+
 			push ebx
 			push ecx
 
 			call AssetHandler::FindAsset
 
 			add esp, 8h
+
+			mov[esp + 20h], eax
+			popad
+			pop eax
+
 
 			test eax, eax
 			jnz finishFound
@@ -196,10 +214,17 @@ namespace Components
 	{
 		__asm
 		{
-			push [esp + 8]
-			push [esp + 8]
+			push eax
+			pushad
+
+			push [esp + 2Ch]
+			push [esp + 2Ch]
 			call AssetHandler::IsAssetEligible
 			add esp, 08h
+
+			mov [esp + 20h], eax
+			popad
+			pop eax
 
 			test al, al
 			jz doNotLoad

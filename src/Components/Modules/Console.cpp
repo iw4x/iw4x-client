@@ -452,7 +452,9 @@ namespace Components
 			// We need esi preserved here, so we have to backup 'all' registers when storing the safearea
 			call Game::Con_DrawSolidConsole
 
+			pushad
 			call Console::RestoreSafeArea
+			popad
 			retn
 		}
 	}

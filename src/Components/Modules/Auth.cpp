@@ -97,7 +97,7 @@ namespace Components
 		Network::SendCommand(sock, adr, "connect", connectData.SerializeAsString());
 	}
 
-	void Auth::ParseConnectData(Game::msg_t* msg, Game::netadr_t addr)
+	void Auth::ParseConnectData(Game::msg_t* msg, Game::netadr_t* addr)
 	{
 		Network::Address address(addr);
 
@@ -210,12 +210,17 @@ namespace Components
 	{
 		__asm
 		{
+			pushad
+			lea eax, [esp + 20h]
+			push eax
 			push esi
 			call Auth::ParseConnectData
 			pop esi
+			pop eax
+			popad
 
-			mov edi, 6265FEh
-			jmp edi
+			push 6265FEh
+			retn
 		}
 	}
 
