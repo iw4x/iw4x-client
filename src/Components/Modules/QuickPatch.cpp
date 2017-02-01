@@ -399,6 +399,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x46B710, 0x90C3C033);
 
 		// Fix mouse pitch adjustments
+		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_FLAG_SAVED, "");
 		UIScript::Add("updateui_mousePitch", [] (UIScript::Token)
 		{
 			if (Dvar::Var("ui_mousePitch").get<bool>())
