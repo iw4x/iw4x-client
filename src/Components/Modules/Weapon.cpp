@@ -78,14 +78,15 @@ namespace Components
 		Utils::Hook::Set(0x57B7D1, bg_weapAmmoTypes);
 		Utils::Hook::Set(0x57B7DA, bg_weapAmmoTypes);
 
-//		static int weaponStrings[WEAPON_LIMIT * 2]; // string + hash
-// 		Utils::Hook::Set<DWORD>(0x504E01, sizeof(weaponStrings));
-// 		Utils::Hook::Set<DWORD>(0x4C77DC, sizeof(weaponStrings));
-// 		Utils::Hook::Set(0x4B72DC, weaponStrings);
-// 		Utils::Hook::Set(0x4C77E2, weaponStrings);
-// 		Utils::Hook::Set(0x504E08, weaponStrings);
-// 		Utils::Hook::Set(0x795584, weaponStrings);
-// 		Utils::Hook::Set(0x4B72E8, &weaponStrings[1]);
+		static int weaponStrings[WEAPON_LIMIT * 2]; // string + hash
+		Utils::Hook::Set<DWORD>(0x504E01, sizeof(weaponStrings));
+		Utils::Hook::Set<DWORD>(0x4C77DC, sizeof(weaponStrings));
+		Utils::Hook::Set(0x4B72DC, weaponStrings);
+		Utils::Hook::Set(0x4C77E2, weaponStrings);
+		Utils::Hook::Set(0x504E08, weaponStrings);
+		Utils::Hook::Set(0x795584, weaponStrings);
+		Utils::Hook::Set(0x7955FC, weaponStrings);
+		Utils::Hook::Set(0x4B72E8, &weaponStrings[1]);
 
 
 		// Patch bg_weaponDefs on the stack
