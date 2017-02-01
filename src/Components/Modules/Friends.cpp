@@ -114,6 +114,8 @@ namespace Components
 
 	void Friends::UpdateState(bool force)
 	{
+		if (Dvar::Var("cl_anonymous").get<bool>()) return;
+
 		if(force)
 		{
 			if (Steam::Proxy::SteamLegacyFriends)
@@ -157,7 +159,7 @@ namespace Components
 
 	void Friends::SetPresence(std::string key, std::string value)
 	{
-		if (Steam::Proxy::SteamFriends)
+		if (Steam::Proxy::SteamFriends && !Dvar::Var("cl_anonymous").get<bool>())
 		{
 			Steam::Proxy::SteamFriends->SetRichPresence(key.data(), value.data());
 		}
@@ -387,6 +389,7 @@ namespace Components
 	Friends::Friends()
 	{
 		if (Dedicated::IsEnabled() ||ZoneBuilder::IsEnabled()) return;
+		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_FLAG_SAVED, "");
 
 		// Callback to update user information
 		Steam::Proxy::RegisterCallback(336, [](void* data)
@@ -494,6 +497,14 @@ namespace Components
 			if (Steam::Proxy::SteamLegacyFriends)
 			{
 				Friends::InitialState = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
+			}
+
+			if(Dvar::Var("cl_anonymous").get<bool>())
+			{
+				if (Steam::Proxy::SteamFriends)
+				{
+					Steam::Proxy::SteamFriends->ClearRichPresence();
+				}
 			}
 
 			Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
