@@ -1,5 +1,9 @@
 #pragma once
 
+// Increase the weapon limit
+// Was 1200 before
+#define WEAPON_LIMIT 2400
+
 namespace Components
 {
 	class Weapon : public Component
@@ -13,5 +17,6 @@ namespace Components
 
 	private:
 		static Game::XAssetHeader WeaponFileLoad(Game::XAssetType type, std::string filename);
+		static void PatchLimit();
 	};
 }
