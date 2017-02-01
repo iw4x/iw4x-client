@@ -20,10 +20,10 @@ This is the third public Beta version.
 ### Fixed
 
 - Fix missing models on village
-- Custom server motd is reset
+- Custom server motd is reset (request)
 - Fixed various memory leaks
-- Fixed mouse pitch
-- Fixed compatibility with b3
+- Fixed mouse pitch (request)
+- Fixed compatibility with b3 (request)
 
 ### Known issues
 
