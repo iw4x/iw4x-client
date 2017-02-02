@@ -215,6 +215,7 @@ namespace Components
 		// Disable host migration
 		Utils::Hook::Set<BYTE>(0x5B58B2, 0xEB);
 		Utils::Hook::Set<BYTE>(0x4D6171, 0);
+		Utils::Hook::Nop(0x4077A1, 5); // PartyMigrate_Frame
 
 		// Patch playlist stuff for non-party behavior
 		Utils::Hook::Set<Game::dvar_t**>(0x4A4093, &partyEnable);
