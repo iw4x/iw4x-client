@@ -598,12 +598,19 @@ namespace Components
 			{
 				mg_connection* nc = mg_bind(&Download::Mgr, Utils::String::VA("%hu", (Dvar::Var("net_port").get<int>() & 0xFFFF)), Download::EventHandler);
 
-				// Handle special requests
-				mg_register_http_endpoint(nc, "/info", Download::InfoHandler);
-				mg_register_http_endpoint(nc, "/list", Download::ListHandler);
-				mg_register_http_endpoint(nc, "/file", Download::FileHandler);
+				if (nc)
+				{
+					// Handle special requests
+					mg_register_http_endpoint(nc, "/info", Download::InfoHandler);
+					mg_register_http_endpoint(nc, "/list", Download::ListHandler);
+					mg_register_http_endpoint(nc, "/file", Download::FileHandler);
 
-				mg_set_protocol_http_websocket(nc);
+					mg_set_protocol_http_websocket(nc);
+				}
+				else
+				{
+					Logger::Print("Failed to bind TCP socket, moddownload won't work!\n");
+				}
 			});
 
 			QuickPatch::OnFrame([]
