@@ -88,48 +88,67 @@ namespace Components
 		Utils::Hook::Set(0x7955FC, weaponStrings);
 		Utils::Hook::Set(0x4B72E8, &weaponStrings[1]);
 
+		static char cg_weaponsArray[32 * WEAPON_LIMIT];
+		Utils::Hook::Set<DWORD>(0x4E3300, sizeof(cg_weaponsArray));
+		Utils::Hook::Set<DWORD>(0x4E3305, sizeof(cg_weaponsArray));
+		Utils::Hook::Set<DWORD>(0x4F1927, sizeof(cg_weaponsArray));
+		Utils::Hook::Set<DWORD>(0x4F192C, sizeof(cg_weaponsArray));
+		Utils::Hook::Set(0x4172D8, cg_weaponsArray);
+		Utils::Hook::Set(0x45C96F, cg_weaponsArray);
+		Utils::Hook::Set(0x45C9C7, cg_weaponsArray);
+		Utils::Hook::Set(0x47F417, cg_weaponsArray);
+		Utils::Hook::Set(0x4BA571, cg_weaponsArray);
+		Utils::Hook::Set(0x4E330B, cg_weaponsArray);
+		Utils::Hook::Set(0x4EF56C, cg_weaponsArray);
+		Utils::Hook::Set(0x4F1934, cg_weaponsArray);
+		Utils::Hook::Set(0x58B879, cg_weaponsArray);
+		Utils::Hook::Set(0x58B98A, cg_weaponsArray);
+		Utils::Hook::Set(0x58CCF7, cg_weaponsArray);
+		Utils::Hook::Set(0x59BF05, cg_weaponsArray);
+		Utils::Hook::Set(0x59C39B, cg_weaponsArray);
+		Utils::Hook::Set(0x446D30, &cg_weaponsArray[8]);
+		Utils::Hook::Set(0x59BD68, &cg_weaponsArray[13]);
+		Utils::Hook::Set(0x58D0AE, &cg_weaponsArray[20]);
+
+		static int cg_weaponsStaticArray[3 * WEAPON_LIMIT];
+		Utils::Hook::Set<DWORD>(0x4E3322, sizeof(cg_weaponsStaticArray));
+		Utils::Hook::Set<DWORD>(0x4F1912, sizeof(cg_weaponsStaticArray));
+		Utils::Hook::Set(0x4548DE, cg_weaponsStaticArray);
+		Utils::Hook::Set(0x4E3328, cg_weaponsStaticArray);
+		Utils::Hook::Set(0x4F1919, cg_weaponsStaticArray);
+		Utils::Hook::Set(0x59C095, cg_weaponsStaticArray);
 
 		// Patch bg_weaponDefs on the stack
 		Utils::Hook::Set<DWORD>(0x40C31D, sizeof(bg_weaponDefs));
 		Utils::Hook::Set<DWORD>(0x40C32F, sizeof(bg_weaponDefs));
-
 		Utils::Hook::Set<DWORD>(0x40C311, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
 		Utils::Hook::Set<DWORD>(0x40C45F, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
 		Utils::Hook::Set<DWORD>(0x40C478, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
 		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
 		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-
 		// Move second buffer pointers
 		Utils::Hook::Set<DWORD>(0x40C336, 0x12E4 + ((sizeof(bg_weaponDefs)) - (1200 * 4)));
 		Utils::Hook::Set<DWORD>(0x40C3C6, 0x12DC + ((sizeof(bg_weaponDefs)) - (1200 * 4)));
 		Utils::Hook::Set<DWORD>(0x40C3CE, 0x12DC + ((sizeof(bg_weaponDefs)) - (1200 * 4)));
-
 		// Move arg0 pointers
 		Utils::Hook::Set<DWORD>(0x40C365, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
 		Utils::Hook::Set<DWORD>(0x40C44E, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
 		Utils::Hook::Set<DWORD>(0x40C467, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-
 		// Move arg4 pointers
 		Utils::Hook::Set<DWORD>(0x40C344, 0x25B4 + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
 
-
 		// Patch bg_sharedAmmoCaps on the stack
 		Utils::Hook::Set<DWORD>(0x4F76E6, sizeof(bg_sharedAmmoCaps));
-
 		Utils::Hook::Set<DWORD>(0x4F7621, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
 		Utils::Hook::Set<DWORD>(0x4F76AF, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
 		Utils::Hook::Set<DWORD>(0x4F76DA, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
 		Utils::Hook::Set<DWORD>(0x4F77C5, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-
 		// Move arg0 pointers
 		Utils::Hook::Set<DWORD>(0x4F766D, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
 		Utils::Hook::Set<DWORD>(0x4F76B7, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
 		Utils::Hook::Set<DWORD>(0x4F76FB, 0x12EC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-
 		// Move arg4 pointers
 		Utils::Hook::Set<DWORD>(0x4F7630, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-
-		// TODO: Check 0x486E51
 	}
 
 	Weapon::Weapon()
