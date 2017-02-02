@@ -74,7 +74,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4B3625, sizeof(bg_weapAmmoTypes));
 		Utils::Hook::Set(0x4B362C, bg_weapAmmoTypes);
 		Utils::Hook::Set(0x4B3650, bg_weapAmmoTypes);
-		Utils::Hook::Set(0x57B782, bg_weapAmmoTypes);
+		Utils::Hook::Set(0x57B783, bg_weapAmmoTypes);
 		Utils::Hook::Set(0x57B7D1, bg_weapAmmoTypes);
 		Utils::Hook::Set(0x57B7DA, bg_weapAmmoTypes);
 
