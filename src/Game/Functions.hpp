@@ -2,6 +2,12 @@
 
 namespace Game
 {
+	typedef unsigned int(__cdecl * BG_GetNumWeapons_t)();
+	extern BG_GetNumWeapons_t BG_GetNumWeapons;
+
+	typedef const char*(__cdecl * BG_GetWeaponName_t)(unsigned int index);
+	extern BG_GetWeaponName_t BG_GetWeaponName;
+
 	typedef void*(__cdecl * BG_LoadWeaponDef_LoadObj_t)(const char* filename);
 	extern BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj;
 
@@ -28,6 +34,9 @@ namespace Game
 
 	typedef void(_cdecl * CL_DrawStretchPicPhysical_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
 	extern CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical;
+
+	typedef const char*(_cdecl* CL_GetConfigString_t)(int index);
+	extern CL_GetConfigString_t CL_GetConfigString;
 
 	typedef int(_cdecl* CL_GetRankForXP_t)(int xp);
 	extern CL_GetRankForXP_t CL_GetRankForXP;
@@ -540,6 +549,9 @@ namespace Game
 
 	typedef void(__cdecl * SV_Cmd_EndTokenizedString_t)();
 	extern SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString;
+
+	typedef void(__cdecl * SV_SetConfigstring_t)(int index, const char* string);
+	extern SV_SetConfigstring_t SV_SetConfigstring;
 
 	typedef void(__cdecl * SV_DirectConnect_t)(netadr_t adr);
 	extern SV_DirectConnect_t SV_DirectConnect;

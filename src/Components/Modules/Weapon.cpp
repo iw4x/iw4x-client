@@ -15,8 +15,79 @@ namespace Components
 		return header;
 	}
 
+	const char* Weapon::GetWeaponConfigString(int index)
+	{
+		int weaponIndex = index - 2804;
+
+		if(weaponIndex < 1200)
+		{
+			return Game::CL_GetConfigString(index);
+		}
+		else
+		{
+			return Game::CL_GetConfigString(weaponIndex + 2939);
+		}
+	}
+
+	void Weapon::SaveRegisteredWeapons()
+	{
+		*reinterpret_cast<DWORD*>(0x1A86098) = 0;
+
+		if (Game::BG_GetNumWeapons() > 1u)
+		{
+			for (unsigned int i = 1; i < Game::BG_GetNumWeapons() && i < 1200; ++i)
+			{
+				Game::SV_SetConfigstring(i + 2804, Game::BG_GetWeaponName(i));
+			}
+		}
+
+		if (Game::BG_GetNumWeapons() > 1200)
+		{
+			for (unsigned int i = 1200; i < Game::BG_GetNumWeapons(); ++i)
+			{
+				Game::SV_SetConfigstring(i + 2939, Game::BG_GetWeaponName(i));
+			}
+		}
+	}
+
 	void Weapon::PatchLimit()
 	{
+		// Commented out parts require a reallocation of the configstrings
+		// TODO: Increase the configstring limit accordingly
+
+		Utils::Hook::Set<DWORD>(0x403783, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x403E8C, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x41BC34, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x42EB42, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x44FA7B, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x474E0D, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x48E8F2, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x492647, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x494585, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x4945DB, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x4B1F96, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x4D4A99, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x4DD566, WEAPON_LIMIT);
+		//Utils::Hook::Set<DWORD>(0x4E3683, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x58609F, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x586CAE, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x58F7BE, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x58F7D9, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x58F82D, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5D6C8B, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5D6CF7, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5E24D5, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5E2604, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5E2828, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5E2B4F, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5E366C, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5F2614, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5F7187, WEAPON_LIMIT);
+		Utils::Hook::Set<DWORD>(0x5FECF9, WEAPON_LIMIT);
+
+		//Utils::Hook(0x4BD52D, Weapon::GetWeaponConfigString, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x45D170, Weapon::SaveRegisteredWeapons, HOOK_JUMP).install()->quick();
+
 		static int bg_weaponCompleteDefs[WEAPON_LIMIT];
 		Utils::Hook::Set<DWORD>(0x4B35E1, sizeof(bg_weaponCompleteDefs));
 		Utils::Hook::Set(0x44CE07, bg_weaponCompleteDefs);

@@ -18,5 +18,8 @@ namespace Components
 	private:
 		static Game::XAssetHeader WeaponFileLoad(Game::XAssetType type, std::string filename);
 		static void PatchLimit();
+
+		static const char* GetWeaponConfigString(int index);
+		static void SaveRegisteredWeapons();
 	};
 }
