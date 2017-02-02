@@ -357,6 +357,7 @@ namespace Components
 	void Friends::UpdateTimeStamp()
 	{
 		Friends::SetPresence("iw4x_playing", Utils::String::VA("%d", Steam::SteamUtils()->GetServerRealTime()));
+		Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
 	}
 
 	bool Friends::IsOnline(unsigned __int64 timeStamp)
@@ -507,7 +508,6 @@ namespace Components
 				}
 			}
 
-			Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
 			Friends::UpdateTimeStamp();
 			Friends::UpdateName();
 			Friends::UpdateState();
