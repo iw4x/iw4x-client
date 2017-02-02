@@ -115,8 +115,18 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4F1912, sizeof(cg_weaponsStaticArray));
 		Utils::Hook::Set(0x4548DE, cg_weaponsStaticArray);
 		Utils::Hook::Set(0x4E3328, cg_weaponsStaticArray);
+		Utils::Hook::Set(0x4EF57A, cg_weaponsStaticArray);
 		Utils::Hook::Set(0x4F1919, cg_weaponsStaticArray);
 		Utils::Hook::Set(0x59C095, cg_weaponsStaticArray);
+		Utils::Hook::Set(0x59C09D, cg_weaponsStaticArray);
+
+		static int unknownMaterialArray[WEAPON_LIMIT];
+		Utils::Hook::Set(0x4EF619, unknownMaterialArray);
+		Utils::Hook::Set(0x5896AB, unknownMaterialArray);
+
+		// Has to do with fx, but somehow lies within the material array
+		//Utils::Hook::Set(0x402069, unknownArray);
+		//Utils::Hook::Set(0x4E05D9, unknownArray);
 
 		// Patch bg_weaponDefs on the stack
 		Utils::Hook::Set<DWORD>(0x40C31D, sizeof(bg_weaponDefs));
@@ -153,7 +163,7 @@ namespace Components
 
 	Weapon::Weapon()
 	{
-		//Weapon::PatchLimit();
+		Weapon::PatchLimit();
 
 		// Intercept weapon loading
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_WEAPON, Weapon::WeaponFileLoad);
