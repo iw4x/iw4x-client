@@ -50,6 +50,55 @@ namespace Components
 		}
 	}
 
+	void Weapon::PatchConfigStrings()
+	{
+		// TODO: Patch configstrings inside the client's and server's game state
+
+		static short configStrings[MAX_CONFIGSTRINGS];
+
+		Utils::Hook::Set<DWORD>(0x4347A7, MAX_CONFIGSTRINGS);
+		Utils::Hook::Set<DWORD>(0x4982F4, MAX_CONFIGSTRINGS);
+		Utils::Hook::Set<DWORD>(0x4F88B6, MAX_CONFIGSTRINGS); // Save file
+		Utils::Hook::Set<DWORD>(0x5A1FA7, MAX_CONFIGSTRINGS);
+		Utils::Hook::Set<DWORD>(0x5A210D, MAX_CONFIGSTRINGS); // Game state
+		Utils::Hook::Set<DWORD>(0x5A840E, MAX_CONFIGSTRINGS);
+		Utils::Hook::Set<DWORD>(0x5A853C, MAX_CONFIGSTRINGS);
+		Utils::Hook::Set<DWORD>(0x5AC392, MAX_CONFIGSTRINGS);
+		Utils::Hook::Set<DWORD>(0x5AC3F5, MAX_CONFIGSTRINGS);
+		Utils::Hook::Set<DWORD>(0x5AC542, MAX_CONFIGSTRINGS); // Game state
+		Utils::Hook::Set<DWORD>(0x5EADF0, MAX_CONFIGSTRINGS);
+		Utils::Hook::Set<DWORD>(0x625388, MAX_CONFIGSTRINGS);
+		Utils::Hook::Set<DWORD>(0x625516, MAX_CONFIGSTRINGS);
+
+		Utils::Hook::Set(0x405B72, configStrings);
+		Utils::Hook::Set(0x468508, configStrings);
+		Utils::Hook::Set(0x47FD7C, configStrings);
+		Utils::Hook::Set(0x49830E, configStrings);
+		Utils::Hook::Set(0x498371, configStrings);
+		Utils::Hook::Set(0x4983D5, configStrings);
+		Utils::Hook::Set(0x4A74AD, configStrings);
+		Utils::Hook::Set(0x6252F5, configStrings);
+		Utils::Hook::Set(0x625372, configStrings);
+		Utils::Hook::Set(0x6253D3, configStrings);
+		Utils::Hook::Set(0x625480, configStrings);
+		Utils::Hook::Set(0x6254CB, configStrings);
+
+		// TODO: Check if all of these actually mark the end of the array
+		Utils::Hook::Set(0x405B8F, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x459121, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x45A476, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x49FD56, &configStrings[sizeof(configStrings)]);
+		Utils::Hook::Set(0x4A74C9, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x4C8196, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x4EBCE6, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x4F36D6, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x6081C4, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x608211, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x608274, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x6083D6, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x60848E, &configStrings[sizeof(configStrings)]);
+	}
+
 	void Weapon::PatchLimit()
 	{
 		// Commented out parts require a reallocation of the configstrings
@@ -235,6 +284,7 @@ namespace Components
 	Weapon::Weapon()
 	{
 		Weapon::PatchLimit();
+		//Weapon::PatchConfigStrings();
 
 		// Intercept weapon loading
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_WEAPON, Weapon::WeaponFileLoad);
