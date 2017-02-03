@@ -167,8 +167,11 @@ namespace Steam
 
 		SetDllDirectoryA(Proxy::GetSteamDirectory().data());
 
-		Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
-		if (!Proxy::Overlay.valid()) return false;
+		if (!Components::Dedicated::IsEnabled() || !Components::ZoneBuilder::IsEnabled())
+		{
+			Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
+			if (!Proxy::Overlay.valid()) return false;
+		}
 
 		Proxy::Client = ::Utils::Library(STEAMCLIENT_LIB, false);
 		if (!Proxy::Client.valid()) return false;
