@@ -52,10 +52,6 @@ namespace Components
 
 	void Weapon::PatchConfigStrings()
 	{
-		// TODO: Patch configstrings inside the client's and server's game state
-
-		static short configStrings[MAX_CONFIGSTRINGS];
-
 		Utils::Hook::Set<DWORD>(0x4347A7, MAX_CONFIGSTRINGS);
 		Utils::Hook::Set<DWORD>(0x4982F4, MAX_CONFIGSTRINGS);
 		Utils::Hook::Set<DWORD>(0x4F88B6, MAX_CONFIGSTRINGS); // Save file
@@ -70,6 +66,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x625388, MAX_CONFIGSTRINGS);
 		Utils::Hook::Set<DWORD>(0x625516, MAX_CONFIGSTRINGS);
 
+		static short configStrings[MAX_CONFIGSTRINGS];
 		Utils::Hook::Set(0x405B72, configStrings);
 		Utils::Hook::Set(0x468508, configStrings);
 		Utils::Hook::Set(0x47FD7C, configStrings);
@@ -77,6 +74,8 @@ namespace Components
 		Utils::Hook::Set(0x498371, configStrings);
 		Utils::Hook::Set(0x4983D5, configStrings);
 		Utils::Hook::Set(0x4A74AD, configStrings);
+		Utils::Hook::Set(0x4BAE7C, configStrings);
+		Utils::Hook::Set(0x4BAEC3, configStrings);
 		Utils::Hook::Set(0x6252F5, configStrings);
 		Utils::Hook::Set(0x625372, configStrings);
 		Utils::Hook::Set(0x6253D3, configStrings);
@@ -97,13 +96,75 @@ namespace Components
 		//Utils::Hook::Set(0x608274, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x6083D6, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x60848E, &configStrings[sizeof(configStrings)]);
+
+
+		// Patch client config strings
+		// The structure below is completely guessed and might be totally wrong
+		struct
+		{
+			int indexList[MAX_CONFIGSTRINGS];
+			char stringList[131072];
+			int count;
+		} clConfigStrings;
+
+		Utils::Hook::Set<DWORD>(0x44A333, sizeof(clConfigStrings));
+		Utils::Hook::Set<DWORD>(0x5A1F56, sizeof(clConfigStrings));
+		Utils::Hook::Set<DWORD>(0x5A2043, sizeof(clConfigStrings));
+
+		Utils::Hook::Set<DWORD>(0x5A2053, sizeof(clConfigStrings.indexList));
+		Utils::Hook::Set<DWORD>(0x5A2098, sizeof(clConfigStrings.indexList));
+		Utils::Hook::Set<DWORD>(0x5AC32C, sizeof(clConfigStrings.indexList));
+
+		Utils::Hook::Set(0x4235AC, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x434783, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x44A339, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x44ADB7, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5A1FE6, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5A2048, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5A205A, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5A2077, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5A2091, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5A20D7, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5A83FF, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5A84B0, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5A84E5, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5AC333, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5AC44A, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5AC4F3, &clConfigStrings.indexList);
+		Utils::Hook::Set(0x5AC57A, &clConfigStrings.indexList);
+
+		Utils::Hook::Set(0x4235B7, &clConfigStrings.stringList);
+		Utils::Hook::Set(0x43478D, &clConfigStrings.stringList);
+		Utils::Hook::Set(0x44ADBC, &clConfigStrings.stringList);
+		Utils::Hook::Set(0x5A1FEF, &clConfigStrings.stringList);
+		Utils::Hook::Set(0x5A20E6, &clConfigStrings.stringList);
+		Utils::Hook::Set(0x5AC457, &clConfigStrings.stringList);
+		Utils::Hook::Set(0x5AC502, &clConfigStrings.stringList);
+		Utils::Hook::Set(0x5AC586, &clConfigStrings.stringList);
+
+		Utils::Hook::Set(0x5A2071, &clConfigStrings.count);
+		Utils::Hook::Set(0x5A20CD, &clConfigStrings.count);
+		Utils::Hook::Set(0x5A20DC, &clConfigStrings.count);
+		Utils::Hook::Set(0x5A20F3, &clConfigStrings.count);
+		Utils::Hook::Set(0x5A2104, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC33F, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC43B, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC450, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC463, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC471, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC4C3, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC4E8, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC4F8, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC50F, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC528, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC56F, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC580, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC592, &clConfigStrings.count);
+		Utils::Hook::Set(0x5AC59F, &clConfigStrings.count);
 	}
 
 	void Weapon::PatchLimit()
 	{
-		// Commented out parts require a reallocation of the configstrings
-		// TODO: Increase the configstring limit accordingly
-
 		Utils::Hook::Set<DWORD>(0x403783, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x403E8C, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x41BC34, WEAPON_LIMIT);
@@ -117,7 +178,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4B1F96, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x4D4A99, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x4DD566, WEAPON_LIMIT);
-		//Utils::Hook::Set<DWORD>(0x4E3683, WEAPON_LIMIT);
+		//Utils::Hook::Set<DWORD>(0x4E3683, WEAPON_LIMIT); // Configstring
 		Utils::Hook::Set<DWORD>(0x58609F, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x586CAE, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x58F7BE, WEAPON_LIMIT);
