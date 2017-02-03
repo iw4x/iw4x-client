@@ -3,7 +3,7 @@
 // Increase the weapon limit
 // Was 1200 before
 #define WEAPON_LIMIT 2400
-#define MAX_CONFIGSTRINGS (4139 - 1200 + WEAPON_LIMIT + 1)
+#define MAX_CONFIGSTRINGS (4139 - 1200 + WEAPON_LIMIT)
 
 namespace Components
 {
@@ -23,5 +23,8 @@ namespace Components
 
 		static const char* GetWeaponConfigString(int index);
 		static void SaveRegisteredWeapons();
+
+		static void ParseConfigStrings();
+		static int ParseWeaponConfigStrings();
 	};
 }

@@ -18,15 +18,15 @@ namespace Components
 	const char* Weapon::GetWeaponConfigString(int index)
 	{
 		int weaponIndex = index - 2804;
+		if (index >= (1200 + 2804)) index += (2939 - 2804);
 
-		if(weaponIndex < 1200)
+		if(weaponIndex >= 1221)
 		{
-			return Game::CL_GetConfigString(index);
+			return "\0";
 		}
-		else
-		{
-			return Game::CL_GetConfigString(weaponIndex + 2939);
-		}
+
+		//Logger::Print("Getting weapon %i (%d): %s\n", weaponIndex, index, Game::CL_GetConfigString(index));
+		return Game::CL_GetConfigString(index);
 	}
 
 	void Weapon::SaveRegisteredWeapons()
@@ -35,18 +35,60 @@ namespace Components
 
 		if (Game::BG_GetNumWeapons() > 1u)
 		{
-			for (unsigned int i = 1; i < Game::BG_GetNumWeapons() && i < 1200; ++i)
+			for (unsigned int i = 1; i < Game::BG_GetNumWeapons(); ++i)
 			{
-				Game::SV_SetConfigstring(i + 2804, Game::BG_GetWeaponName(i));
+				//Logger::Print("Setting weapon %i (%d): %s\n", i, i + (i >= 1200 ? 2939 : 2804), Game::BG_GetWeaponName(i));
+				Game::SV_SetConfigstring(i  + (i >= 1200 ? 2939 : 2804), Game::BG_GetWeaponName(i));
 			}
 		}
+	}
 
-		if (Game::BG_GetNumWeapons() > 1200)
+	int Weapon::ParseWeaponConfigStrings()
+	{
+		Command::ClientParams params;
+		if (params.length() <= 1) return 0;
+		int index = atoi(params[1]);
+
+		if(index >= 4139)
 		{
-			for (unsigned int i = 1200; i < Game::BG_GetNumWeapons(); ++i)
-			{
-				Game::SV_SetConfigstring(i + 2939, Game::BG_GetWeaponName(i));
-			}
+			index -= 2939;
+		}
+		else if(index > 2804 && index <= 2804 + 1200)
+		{
+			index -= 2804;
+		}
+		else
+		{
+			return 0;
+		}
+
+		Utils::Hook::Call<void(int, int)>(0x4BD520)(0, index);
+		return 1;
+	}
+
+	__declspec(naked) void Weapon::ParseConfigStrings()
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			push edi
+			call Weapon::ParseWeaponConfigStrings
+			pop edi
+
+			mov [esp + 20h], eax
+			popad
+			pop eax
+
+			test eax, eax
+			jz continueParsing
+
+			retn
+
+		continueParsing:
+			push 592960h
+			retn
 		}
 	}
 
@@ -66,7 +108,15 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x625388, MAX_CONFIGSTRINGS);
 		Utils::Hook::Set<DWORD>(0x625516, MAX_CONFIGSTRINGS);
 
+		// Adjust weapon count index
+		// Actually this has to stay the way it is!
+		//Utils::Hook::Set<DWORD>(0x4EB7B3, MAX_CONFIGSTRINGS - 1);
+		//Utils::Hook::Set<DWORD>(0x5929BA, MAX_CONFIGSTRINGS - 1);
+		//Utils::Hook::Set<DWORD>(0x5E2FAA, MAX_CONFIGSTRINGS - 1);
+
 		static short configStrings[MAX_CONFIGSTRINGS];
+		ZeroMemory(&configStrings, sizeof(configStrings));
+
 		Utils::Hook::Set(0x405B72, configStrings);
 		Utils::Hook::Set(0x468508, configStrings);
 		Utils::Hook::Set(0x47FD7C, configStrings);
@@ -82,6 +132,13 @@ namespace Components
 		Utils::Hook::Set(0x625480, configStrings);
 		Utils::Hook::Set(0x6254CB, configStrings);
 
+		//Utils::Hook::Set(0x608095, configStrings[4139 - 0x16]);
+		//Utils::Hook::Set(0x6080BC, configStrings[4139 - 0x16]);
+		//Utils::Hook::Set(0x6082AC, configStrings[4139 - 0x16]);
+		//Utils::Hook::Set(0x6082B3, configStrings[4139 - 0x16]);
+
+		//Utils::Hook::Set(0x608856, configStrings[4139 - 0x14]);
+
 		// TODO: Check if all of these actually mark the end of the array
 		Utils::Hook::Set(0x405B8F, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x459121, &configStrings[sizeof(configStrings)]);
@@ -91,76 +148,84 @@ namespace Components
 		//Utils::Hook::Set(0x4C8196, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x4EBCE6, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x4F36D6, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x60807C, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x6080A9, &configStrings[sizeof(configStrings)]);
+		//Utils::Hook::Set(0x6080D0, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x6081C4, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x608211, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x608274, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x6083D6, &configStrings[sizeof(configStrings)]);
 		//Utils::Hook::Set(0x60848E, &configStrings[sizeof(configStrings)]);
 
+		Utils::Hook(0x593CA4, Weapon::ParseConfigStrings, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4BD52D, Weapon::GetWeaponConfigString, HOOK_CALL).install()->quick();
+		Utils::Hook(0x45D170, Weapon::SaveRegisteredWeapons, HOOK_JUMP).install()->quick();
 
-		// Patch client config strings
-		// The structure below is completely guessed and might be totally wrong
-		struct
+		// Patch game state
+		// The structure below is our own implementation of the gameState_t structure
+		struct newGameState_t
 		{
-			int indexList[MAX_CONFIGSTRINGS];
-			char stringList[131072];
-			int count;
-		} clConfigStrings;
+			int stringOffsets[MAX_CONFIGSTRINGS];
+			char stringData[131072]; // MAX_GAMESTATE_CHARS
+			int dataCount;
+		} gameState;
 
-		Utils::Hook::Set<DWORD>(0x44A333, sizeof(clConfigStrings));
-		Utils::Hook::Set<DWORD>(0x5A1F56, sizeof(clConfigStrings));
-		Utils::Hook::Set<DWORD>(0x5A2043, sizeof(clConfigStrings));
+		ZeroMemory(&gameState, sizeof(gameState));
 
-		Utils::Hook::Set<DWORD>(0x5A2053, sizeof(clConfigStrings.indexList));
-		Utils::Hook::Set<DWORD>(0x5A2098, sizeof(clConfigStrings.indexList));
-		Utils::Hook::Set<DWORD>(0x5AC32C, sizeof(clConfigStrings.indexList));
+		Utils::Hook::Set<DWORD>(0x44A333, sizeof(gameState));
+		Utils::Hook::Set<DWORD>(0x5A1F56, sizeof(gameState));
+		Utils::Hook::Set<DWORD>(0x5A2043, sizeof(gameState));
 
-		Utils::Hook::Set(0x4235AC, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x434783, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x44A339, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x44ADB7, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5A1FE6, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5A2048, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5A205A, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5A2077, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5A2091, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5A20D7, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5A83FF, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5A84B0, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5A84E5, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5AC333, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5AC44A, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5AC4F3, &clConfigStrings.indexList);
-		Utils::Hook::Set(0x5AC57A, &clConfigStrings.indexList);
+		Utils::Hook::Set<DWORD>(0x5A2053, sizeof(gameState.stringOffsets));
+		Utils::Hook::Set<DWORD>(0x5A2098, sizeof(gameState.stringOffsets));
+		Utils::Hook::Set<DWORD>(0x5AC32C, sizeof(gameState.stringOffsets));
 
-		Utils::Hook::Set(0x4235B7, &clConfigStrings.stringList);
-		Utils::Hook::Set(0x43478D, &clConfigStrings.stringList);
-		Utils::Hook::Set(0x44ADBC, &clConfigStrings.stringList);
-		Utils::Hook::Set(0x5A1FEF, &clConfigStrings.stringList);
-		Utils::Hook::Set(0x5A20E6, &clConfigStrings.stringList);
-		Utils::Hook::Set(0x5AC457, &clConfigStrings.stringList);
-		Utils::Hook::Set(0x5AC502, &clConfigStrings.stringList);
-		Utils::Hook::Set(0x5AC586, &clConfigStrings.stringList);
+		Utils::Hook::Set(0x4235AC, &gameState.stringOffsets);
+		Utils::Hook::Set(0x434783, &gameState.stringOffsets);
+		Utils::Hook::Set(0x44A339, &gameState.stringOffsets);
+		Utils::Hook::Set(0x44ADB7, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5A1FE6, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5A2048, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5A205A, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5A2077, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5A2091, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5A20D7, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5A83FF, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5A84B0, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5A84E5, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5AC333, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5AC44A, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5AC4F3, &gameState.stringOffsets);
+		Utils::Hook::Set(0x5AC57A, &gameState.stringOffsets);
 
-		Utils::Hook::Set(0x5A2071, &clConfigStrings.count);
-		Utils::Hook::Set(0x5A20CD, &clConfigStrings.count);
-		Utils::Hook::Set(0x5A20DC, &clConfigStrings.count);
-		Utils::Hook::Set(0x5A20F3, &clConfigStrings.count);
-		Utils::Hook::Set(0x5A2104, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC33F, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC43B, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC450, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC463, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC471, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC4C3, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC4E8, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC4F8, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC50F, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC528, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC56F, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC580, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC592, &clConfigStrings.count);
-		Utils::Hook::Set(0x5AC59F, &clConfigStrings.count);
+		Utils::Hook::Set(0x4235B7, &gameState.stringData);
+		Utils::Hook::Set(0x43478D, &gameState.stringData);
+		Utils::Hook::Set(0x44ADBC, &gameState.stringData);
+		Utils::Hook::Set(0x5A1FEF, &gameState.stringData);
+		Utils::Hook::Set(0x5A20E6, &gameState.stringData);
+		Utils::Hook::Set(0x5AC457, &gameState.stringData);
+		Utils::Hook::Set(0x5AC502, &gameState.stringData);
+		Utils::Hook::Set(0x5AC586, &gameState.stringData);
+
+		Utils::Hook::Set(0x5A2071, &gameState.dataCount);
+		Utils::Hook::Set(0x5A20CD, &gameState.dataCount);
+		Utils::Hook::Set(0x5A20DC, &gameState.dataCount);
+		Utils::Hook::Set(0x5A20F3, &gameState.dataCount);
+		Utils::Hook::Set(0x5A2104, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC33F, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC43B, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC450, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC463, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC471, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC4C3, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC4E8, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC4F8, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC50F, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC528, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC56F, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC580, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC592, &gameState.dataCount);
+		Utils::Hook::Set(0x5AC59F, &gameState.dataCount);
 	}
 
 	void Weapon::PatchLimit()
@@ -178,7 +243,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4B1F96, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x4D4A99, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x4DD566, WEAPON_LIMIT);
-		//Utils::Hook::Set<DWORD>(0x4E3683, WEAPON_LIMIT); // Configstring
+		Utils::Hook::Set<DWORD>(0x4E3683, WEAPON_LIMIT); // Configstring
 		Utils::Hook::Set<DWORD>(0x58609F, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x586CAE, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x58F7BE, WEAPON_LIMIT);
@@ -194,9 +259,6 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x5F2614, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x5F7187, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x5FECF9, WEAPON_LIMIT);
-
-		//Utils::Hook(0x4BD52D, Weapon::GetWeaponConfigString, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x45D170, Weapon::SaveRegisteredWeapons, HOOK_JUMP).install()->quick();
 
 		static int bg_weaponCompleteDefs[WEAPON_LIMIT];
 		Utils::Hook::Set<DWORD>(0x4B35E1, sizeof(bg_weaponCompleteDefs));
@@ -344,7 +406,7 @@ namespace Components
 
 	Weapon::Weapon()
 	{
-		Weapon::PatchLimit();
+		//Weapon::PatchLimit();
 		//Weapon::PatchConfigStrings();
 
 		// Intercept weapon loading
