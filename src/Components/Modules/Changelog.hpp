@@ -6,21 +6,17 @@ namespace Components
 	{
 	public:
 		Changelog();
+		~Changelog();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* getName() override { return "Changelog"; };
 #endif
 
-		class changelogLine
-		{
-		public:
-			std::string line;
-		};
+		static void LoadChangelog();
 
 	private:
-		static std::vector<changelogLine> Line;
-
-		static void LoadChangelog(UIScript::Token);
+		static std::mutex Mutex;
+		static std::vector<std::string> Lines;
 
 		static unsigned int GetChangelogCount();
 		static const char* GetChangelogText(unsigned int item, int column);

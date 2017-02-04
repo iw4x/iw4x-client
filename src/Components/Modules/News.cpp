@@ -165,7 +165,7 @@ namespace Components
 			News::Terminate = false;
 			News::Thread = std::thread([]()
 			{
-				//Changelog::LoadChangelog(UIScript::Token);
+				Changelog::LoadChangelog();
 
 				std::string data = Utils::Cache::GetFile("/iw4/motd.txt");
 

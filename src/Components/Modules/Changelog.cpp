@@ -2,64 +2,67 @@
 
 namespace Components
 {
-	std::vector<Changelog::changelogLine> Changelog::Line;
+	std::mutex Changelog::Mutex;
+	std::vector<std::string> Changelog::Lines;
 
-	void Changelog::LoadChangelog(UIScript::Token)
+	void Changelog::LoadChangelog()
 	{
-		if (!Changelog::Line.empty())
-			return;
+		//if (!Changelog::Lines.empty())
+		//	return;
 
-		std::vector<std::string> changelog;
-		Changelog::Line.clear();
+		std::lock_guard<std::mutex> _(Changelog::Mutex);
+		Changelog::Lines.clear();
+		std::string data = Utils::Cache::GetFile("/iw4/changelog.txt");
 
+		if (data.empty())
 		{
-			std::string uncleaned = Utils::Cache::GetFile("/iw4/changelog.txt");
-
-			if (uncleaned.empty())
-			{
-				uncleaned = "^1Unable to get changelog.";
-			}
-
-			changelog = Utils::String::Explode(uncleaned, '\n');
+			data = "^1Unable to get changelog.";
 		}
 
-		for (auto line : changelog)
+		Changelog::Lines = Utils::String::Explode(data, '\n');
+
+		for (auto& line : Changelog::Lines)
 		{
-			Changelog::changelogLine info;
-
 			Utils::String::Replace(line, "\r", "");
-			info.line = line;
-
-			Changelog::Line.push_back(info);
 		}
 	}
 
 	unsigned int Changelog::GetChangelogCount()
 	{
-		return Changelog::Line.size();
+		return Changelog::Lines.size();
 	}
 
 	// Omit column here
 	const char* Changelog::GetChangelogText(unsigned int item, int /*column*/)
 	{
-		if (item < Changelog::Line.size())
+		std::lock_guard<std::mutex> _(Changelog::Mutex);
+		if (item < Changelog::Lines.size())
 		{
-			std::string info = Changelog::Line[item].line;
-
-			return Utils::String::VA("%s", info.data());
+			return Utils::String::VA("%s", Changelog::Lines[item].data());
 		}
 
 		return "";
 	}
 
-	void Changelog::SelectChangelog(unsigned int index) { index; }
+	void Changelog::SelectChangelog(unsigned int /*index*/)
+	{
+		// Don't do anything in here
+	}
 
 	Changelog::Changelog()
 	{
-		// UIScripts
-		UIScript::Add("loadChangelog", Changelog::LoadChangelog);
+		std::lock_guard<std::mutex> _(Changelog::Mutex);
+		Changelog::Lines.clear();
 
 		// Changelog
 		UIFeeder::Add(39.0f, Changelog::GetChangelogCount, Changelog::GetChangelogText, Changelog::SelectChangelog);
+	}
+
+	Changelog::~Changelog()
+	{
+		{
+			std::lock_guard<std::mutex> _(Changelog::Mutex);
+			Changelog::Lines.clear();
+		}
 	}
 }
