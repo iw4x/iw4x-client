@@ -55,6 +55,7 @@ namespace Components
 #ifndef DISABLE_ANTICHEAT
 		Loader::Register(new AntiCheat());
 #endif
+		Loader::Register(new Changelog());
 		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());
 		Loader::Register(new Exception());

@@ -74,6 +74,7 @@ namespace Components
 #include "Modules/Renderer.hpp"
 #include "Modules/UIFeeder.hpp"
 #include "Modules/AntiCheat.hpp"
+#include "Modules/Changelog.hpp"
 #include "Modules/Dedicated.hpp"
 #include "Modules/Discovery.hpp"
 #include "Modules/Exception.hpp"

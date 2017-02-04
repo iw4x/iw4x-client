@@ -175,8 +175,6 @@ namespace Components
 			News::Terminate = false;
 			News::Thread = std::thread([]()
 			{
-				Localization::Set("MPUI_CHANGELOG_TEXT", Utils::Cache::GetFile("/iw4/changelog.txt"));
-
 				std::string data = Utils::Cache::GetFile("/iw4/motd.txt");
 
 				if (!data.empty())
