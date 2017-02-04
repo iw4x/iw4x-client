@@ -16,16 +16,6 @@ namespace Components
 			Logger::Print("Awaiting thread termination...\n");
 			News::Thread.join();
 
-			if (!strlen(Localization::Get("MPUI_CHANGELOG_TEXT")) || Localization::Get("MPUI_CHANGELOG_TEXT") == "Loading..."s)
-			{
-				Logger::Print("Failed to fetch changelog!\n");
-				result = false;
-			}
-			else
-			{
-				Logger::Print("Successfully fetched changelog.\n");
-			}
-
 			if (!strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
 			{
 				Logger::Print("Failed to fetch motd!\n");
