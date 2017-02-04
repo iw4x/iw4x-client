@@ -6,11 +6,19 @@ namespace Components
 
 	void Changelog::LoadChangelog(UIScript::Token)
 	{
+		if (!Changelog::Line.empty())
+			return;
+
 		std::vector<std::string> changelog;
 		Changelog::Line.clear();
 
 		{
 			std::string uncleaned = Utils::Cache::GetFile("/iw4/changelog.txt");
+
+			if (uncleaned.empty())
+			{
+				uncleaned = "\n\n^1Unable to get changelog.";
+			}
 
 			changelog = Utils::String::Explode(uncleaned, '\n');
 		}
