@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-#define NEWS_MOTD_DEFUALT "Welcome to IW4x Multiplayer!"
+#define NEWS_MOTD_DEFAULT "Welcome to IW4x Multiplayer!"
 
 namespace Components
 {
@@ -26,7 +26,7 @@ namespace Components
 				Logger::Print("Successfully fetched changelog.\n");
 			}
 
-			if (!strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFUALT))
+			if (!strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
 			{
 				Logger::Print("Failed to fetch motd!\n");
 				result = false;
@@ -122,7 +122,7 @@ namespace Components
 		});
 
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
-		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFUALT);
+		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFAULT);
 
 		if (Utils::IO::FileExists("updater.exe"))
 		{
