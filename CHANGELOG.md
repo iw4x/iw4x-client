@@ -16,6 +16,7 @@ This is the third public Beta version.
 ### Changed
 
 - Added join on enter in serverlist (request)
+- Redesigned changelog menu
 
 ### Fixed
 

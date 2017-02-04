@@ -17,7 +17,7 @@ namespace Components
 
 			if (uncleaned.empty())
 			{
-				uncleaned = "\n\n^1Unable to get changelog.";
+				uncleaned = "^1Unable to get changelog.";
 			}
 
 			changelog = Utils::String::Explode(uncleaned, '\n');
@@ -28,13 +28,10 @@ namespace Components
 			Changelog::changelogLine info;
 
 			Utils::String::Replace(line, "\r", "");
-			info.line = Utils::String::Trim(line);
+			info.line = line;
 
 			Changelog::Line.push_back(info);
 		}
-
-		// Reverse, latest demo first!
-		//std::reverse(Changelog::Line.begin(), Changelog::Line.end());
 	}
 
 	unsigned int Changelog::GetChangelogCount()
