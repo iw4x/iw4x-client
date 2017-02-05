@@ -1,6 +1,6 @@
 #pragma once
 
-#define PROTOCOL 0x92
+#define PROTOCOL 0x93
 
 // This allows us to compile our structures in IDA, for easier reversing :3
 #ifdef __cplusplus

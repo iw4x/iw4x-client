@@ -123,6 +123,7 @@ namespace Components
 		Utils::Hook::Set(0x625480, configStrings);
 		Utils::Hook::Set(0x6254CB, configStrings);
 
+		// This has nothing to do with configstrings
 		//Utils::Hook::Set(0x608095, configStrings[4139 - 0x16]);
 		//Utils::Hook::Set(0x6080BC, configStrings[4139 - 0x16]);
 		//Utils::Hook::Set(0x6082AC, configStrings[4139 - 0x16]);
@@ -131,6 +132,7 @@ namespace Components
 		//Utils::Hook::Set(0x608856, configStrings[4139 - 0x14]);
 
 		// TODO: Check if all of these actually mark the end of the array
+		// Only 2 actually mark the end, the rest is header data or so
 		Utils::Hook::Set(0x405B8F, &configStrings[ARRAYSIZE(configStrings)]);
 		//Utils::Hook::Set(0x459121, &configStrings[ARRAYSIZE(configStrings)]);
 		//Utils::Hook::Set(0x45A476, &configStrings[ARRAYSIZE(configStrings)]);
