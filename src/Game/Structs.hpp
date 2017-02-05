@@ -129,6 +129,7 @@ namespace Game
 		dvar_value_t _default; //48:64
 		dvar_maxmin_t min; //65:67
 		dvar_maxmin_t max; //68:72 woooo
+		bool(*callback)(dvar_t* dvar, dvar_value_t value);
 	} dvar_t;
 
 	typedef struct cmd_function_s

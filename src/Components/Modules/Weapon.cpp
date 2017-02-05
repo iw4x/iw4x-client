@@ -83,6 +83,12 @@ namespace Components
 		}
 	}
 
+	int Weapon::ClearConfigStrings(void* dest, int value, int size)
+	{
+		memset(Utils::Hook::Get<void*>(0x405B72), value, MAX_CONFIGSTRINGS * 2);
+		return Utils::Hook::Call<int(void*, int, int)>(0x4C98D0)(dest, value, size); // Com_Memset
+	}
+
 	void Weapon::PatchConfigStrings()
 	{
 		Utils::Hook::Set<DWORD>(0x4347A7, MAX_CONFIGSTRINGS);
@@ -150,6 +156,7 @@ namespace Components
 		//Utils::Hook::Set(0x6083D6, &configStrings[ARRAYSIZE(configStrings)]);
 		//Utils::Hook::Set(0x60848E, &configStrings[ARRAYSIZE(configStrings)]);
 
+		Utils::Hook(0x405BBE, Weapon::ClearConfigStrings, HOOK_CALL).install()->quick();
 		Utils::Hook(0x593CA4, Weapon::ParseConfigStrings, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4BD52D, Weapon::GetWeaponConfigString, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45D170, Weapon::SaveRegisteredWeapons, HOOK_JUMP).install()->quick();
