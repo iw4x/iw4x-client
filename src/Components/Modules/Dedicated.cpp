@@ -98,8 +98,15 @@ namespace Components
 			mov eax, [esp + 100h + 10h]
 
 			push eax
-			call EvaluateSay
+			pushad
+
+			push eax
+			call Dedicated::EvaluateSay
 			add esp, 4h
+
+			mov [esp + 20h], eax
+			popad
+			pop eax
 
 			mov [esp + 100h + 10h], eax
 
