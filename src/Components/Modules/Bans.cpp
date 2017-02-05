@@ -192,7 +192,7 @@ namespace Components
 			if (params->length() < 2) return;
 
 			std::string reason = "EXE_ERR_BANNED_PERM";
-			if (params->length() >= 3) reason = params->get(2);
+			if (params->length() >= 3) reason = params->join(2);
 
 			Bans::BanClientNum(atoi(params->get(1)), reason);
 		});
