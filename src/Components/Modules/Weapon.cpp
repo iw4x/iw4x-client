@@ -140,22 +140,22 @@ namespace Components
 		//Utils::Hook::Set(0x608856, configStrings[4139 - 0x14]);
 
 		// TODO: Check if all of these actually mark the end of the array
-		Utils::Hook::Set(0x405B8F, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x459121, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x45A476, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x49FD56, &configStrings[sizeof(configStrings)]);
-		Utils::Hook::Set(0x4A74C9, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x4C8196, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x4EBCE6, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x4F36D6, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x60807C, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x6080A9, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x6080D0, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x6081C4, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x608211, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x608274, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x6083D6, &configStrings[sizeof(configStrings)]);
-		//Utils::Hook::Set(0x60848E, &configStrings[sizeof(configStrings)]);
+		Utils::Hook::Set(0x405B8F, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x459121, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x45A476, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x49FD56, &configStrings[ARRAYSIZE(configStrings)]);
+		Utils::Hook::Set(0x4A74C9, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x4C8196, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x4EBCE6, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x4F36D6, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x60807C, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x6080A9, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x6080D0, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x6081C4, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x608211, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x608274, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x6083D6, &configStrings[ARRAYSIZE(configStrings)]);
+		//Utils::Hook::Set(0x60848E, &configStrings[ARRAYSIZE(configStrings)]);
 
 		Utils::Hook(0x593CA4, Weapon::ParseConfigStrings, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4BD52D, Weapon::GetWeaponConfigString, HOOK_CALL).install()->quick();
@@ -163,7 +163,7 @@ namespace Components
 
 		// Patch game state
 		// The structure below is our own implementation of the gameState_t structure
-		struct newGameState_t
+		static struct newGameState_t
 		{
 			int stringOffsets[MAX_CONFIGSTRINGS];
 			char stringData[131072]; // MAX_GAMESTATE_CHARS
@@ -406,8 +406,8 @@ namespace Components
 
 	Weapon::Weapon()
 	{
-		//Weapon::PatchLimit();
-		//Weapon::PatchConfigStrings();
+		Weapon::PatchLimit();
+		Weapon::PatchConfigStrings();
 
 		// Intercept weapon loading
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_WEAPON, Weapon::WeaponFileLoad);

@@ -3798,6 +3798,12 @@ namespace Game
 		/*CM_WorldTraceCallbacks*/ void *callbacks;
 	};
 
+	struct gameState_t
+	{
+		int stringOffsets[4139];
+		char stringData[131072];
+		int dataCount;
+	} gameState;
 
 #ifdef __cplusplus
 }
