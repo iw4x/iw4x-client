@@ -251,6 +251,18 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x5F7187, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x5FECF9, WEAPON_LIMIT);
 
+		// Reference: https://courses.engr.illinois.edu/ece390/books/artofasm/CH09/CH09-6.html (See 9.5.2 Division Without DIV and IDIV)
+		// And http://reverseengineering.stackexchange.com/questions/1397/how-can-i-reverse-optimized-integer-division-modulo-by-constant-operations
+		// The game's magic number is computed using this formula: (1 / 1200) * (2 ^ (32 + 7)
+		// I'm too lazy to generate the new magic number, so we can make use of the fact that using powers of 2 as scales allows to change the compensating shift
+		static_assert(((WEAPON_LIMIT / 1200) * 1200) == WEAPON_LIMIT && (WEAPON_LIMIT / 1200) != 0 && !((WEAPON_LIMIT / 1200) & ((WEAPON_LIMIT / 1200) - 1)), "WEAPON_LIMIT / 1200 is not a power of 2!");
+		const unsigned char compensation = 7 + static_cast<unsigned char>(log2(WEAPON_LIMIT / 1200)); // 7 is the compensation the game uses
+		Utils::Hook::Set<BYTE>(0x49263D, compensation);
+		Utils::Hook::Set<BYTE>(0x5E250C, compensation);
+		Utils::Hook::Set<BYTE>(0x5E2B43, compensation);
+		Utils::Hook::Set<BYTE>(0x5E352F, compensation);
+		Utils::Hook::Set<BYTE>(0x5FECEF, compensation);
+
 		static int bg_weaponCompleteDefs[WEAPON_LIMIT];
 		Utils::Hook::Set<DWORD>(0x4B35E1, sizeof(bg_weaponCompleteDefs));
 		Utils::Hook::Set(0x44CE07, bg_weaponCompleteDefs);
