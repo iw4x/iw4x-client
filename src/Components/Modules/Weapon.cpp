@@ -17,15 +17,7 @@ namespace Components
 
 	const char* Weapon::GetWeaponConfigString(int index)
 	{
-		int weaponIndex = index - 2804;
 		if (index >= (1200 + 2804)) index += (2939 - 2804);
-
-		if(weaponIndex >= 1221)
-		{
-			return "\0";
-		}
-
-		//Logger::Print("Getting weapon %i (%d): %s\n", weaponIndex, index, Game::CL_GetConfigString(index));
 		return Game::CL_GetConfigString(index);
 	}
 
@@ -37,7 +29,6 @@ namespace Components
 		{
 			for (unsigned int i = 1; i < Game::BG_GetNumWeapons(); ++i)
 			{
-				//Logger::Print("Setting weapon %i (%d): %s\n", i, i + (i >= 1200 ? 2939 : 2804), Game::BG_GetWeaponName(i));
 				Game::SV_SetConfigstring(i  + (i >= 1200 ? 2939 : 2804), Game::BG_GetWeaponName(i));
 			}
 		}
