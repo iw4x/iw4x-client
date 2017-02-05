@@ -688,6 +688,7 @@ namespace Components
 		});
 
 		// Define custom menus here
+		Menus::Add("ui_mp/changelog.menu");
 		Menus::Add("ui_mp/theater_menu.menu");
 		Menus::Add("ui_mp/pc_options_multi.menu");
 		Menus::Add("ui_mp/pc_options_game.menu");
@@ -698,6 +699,7 @@ namespace Components
 		Menus::Add("ui_mp/popup_friends.menu");
 		Menus::Add("ui_mp/menu_first_launch.menu");
 		Menus::Add("ui_mp/startup_messages.menu");
+		Menus::Add("ui_mp/pc_store.menu");
 	}
 
 	Menus::~Menus()
