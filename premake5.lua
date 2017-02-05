@@ -280,7 +280,7 @@ workspace "iw4x"
 	configuration "Release*"
 		defines { "NDEBUG" }
 		flags { "MultiProcessorCompile", "LinkTimeOptimization", "No64BitChecks" }
-		optimize "Full"
+		optimize "On"
 
 	configuration "Debug*"
 		defines { "DEBUG", "_DEBUG" }
