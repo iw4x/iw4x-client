@@ -51,9 +51,6 @@ namespace Components
 
 	Changelog::Changelog()
 	{
-		std::lock_guard<std::mutex> _(Changelog::Mutex);
-		Changelog::Lines.clear();
-
 		// Changelog
 		UIFeeder::Add(39.0f, Changelog::GetChangelogCount, Changelog::GetChangelogText, Changelog::SelectChangelog);
 	}
