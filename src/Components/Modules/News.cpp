@@ -160,7 +160,7 @@ namespace Components
 			}).detach();
 		});
 
-		if (!Utils::IsWineEnvironment())
+		if (!Utils::IsWineEnvironment() && !Loader::PerformingUnitTests())
 		{
 			News::Terminate = false;
 			News::Thread = std::thread([]()
