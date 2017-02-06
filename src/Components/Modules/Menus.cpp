@@ -700,6 +700,7 @@ namespace Components
 		Menus::Add("ui_mp/menu_first_launch.menu");
 		Menus::Add("ui_mp/startup_messages.menu");
 		Menus::Add("ui_mp/pc_store.menu");
+		Menus::Add("ui_mp/iw4x_credits.menu");
 	}
 
 	Menus::~Menus()
