@@ -375,9 +375,12 @@ namespace Components
 		Utils::Hook::Set(0x59C095, cg_weaponsStaticArray);
 		Utils::Hook::Set(0x59C09D, cg_weaponsStaticArray);
 
-		static int unknownMaterialArray[WEAPON_LIMIT];
-		Utils::Hook::Set(0x4EF619, unknownMaterialArray);
-		Utils::Hook::Set(0x5896AB, unknownMaterialArray);
+		// TODO: Check the offsets, icons are still wrong, but at least crashes are 'fixed'
+		static int unknownMaterialArray[WEAPON_LIMIT + 0x10];
+		Utils::Hook::Set(0x58D003, unknownMaterialArray);
+		Utils::Hook::Set(0x58969A, &unknownMaterialArray[0xC]);
+		Utils::Hook::Set(0x4EF619, &unknownMaterialArray[0x10]);
+		Utils::Hook::Set(0x5896AB, &unknownMaterialArray[0x10]);
 
 		// Has to do with fx, but somehow lies within the material array
 		//Utils::Hook::Set(0x402069, unknownArray);
