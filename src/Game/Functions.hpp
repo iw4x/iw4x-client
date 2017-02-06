@@ -719,7 +719,7 @@ namespace Game
 
 	void FS_AddLocalizedGameDirectory(const char *path, const char *dir);
 
-	void MessageBox(std::string message, std::string title);
+	void ShowMessageBox(std::string message, std::string title);
 
 	unsigned int R_HashString(const char* string);
 	void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);

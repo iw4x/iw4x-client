@@ -508,7 +508,8 @@ namespace Game
 		}
 	}
 
-	void MessageBox(std::string message, std::string title)
+	// this cant be MessageBox because windows.h has a define that converts it to MessageBoxW. which is just stupid
+	void ShowMessageBox(std::string message, std::string title)
 	{
 		if (!Game::CL_IsCgameInitialized())
 		{

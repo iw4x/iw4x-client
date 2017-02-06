@@ -484,7 +484,10 @@ namespace Components
 			Friends::ClearPresence("iw4x_playing");
 
 #ifdef DEBUG
-			Steam::Proxy::SteamFriends->ClearRichPresence();
+			if (Steam::Proxy::SteamFriends)
+			{
+				Steam::Proxy::SteamFriends->ClearRichPresence();
+			}
 #endif
 
 			if(Steam::Proxy::SteamLegacyFriends)
@@ -525,9 +528,8 @@ namespace Components
 		Steam::Proxy::UnregisterCallback(336);
 		Steam::Proxy::UnregisterCallback(304);
 
-		{
-			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
-			Friends::FriendsList.clear();
-		}
+		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+		Friends::FriendsList.clear();
+
 	}
 }

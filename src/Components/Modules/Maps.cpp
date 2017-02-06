@@ -521,13 +521,13 @@ namespace Components
 			{
 				if (map == std::string(mapname))
 				{
-					if(error) Components::Logger::SoftError("Missing DLC pack %s (%d) containing map %s (%s).\nPlease download it to play this map.", 
+					Components::Logger::SoftError("Missing DLC pack %s (%d) containing map %s (%s).\nPlease download it to play this map.",
 						pack.name.data(), pack.index, Game::UI_LocalizeMapName(mapname), mapname);
 				}
 			}
 		}
 
-		if (error) Components::Logger::SoftError("Missing map file %s.\nYou may have a damaged installation or are attempting to load a non-existant map.", mapname);
+		Components::Logger::SoftError("Missing map file %s.\nYou may have a damaged installation or are attempting to load a non-existant map.", mapname);
 		return false;
 	}
 
@@ -561,7 +561,7 @@ namespace Components
 					}
 				}
 
-				Game::MessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
+				Game::ShowMessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
 			});
 		});
 

@@ -149,7 +149,7 @@ namespace Components
 				{
 					Localization::ClearTemp();
 					Command::Execute("closemenu popup_reconnectingtoparty", false);
-					Game::MessageBox("Failed to download the updater!", "Error");
+					Game::ShowMessageBox("Failed to download the updater!", "Error");
 				}
 				else
 				{

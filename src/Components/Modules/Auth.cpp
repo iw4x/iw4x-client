@@ -41,7 +41,7 @@ namespace Components
 			{
 				if (Auth::TokenContainer.command.empty())
 				{
-					Game::MessageBox(Utils::String::VA("Your new security level is %d", Auth::GetSecurityLevel()), "Success");
+					Game::ShowMessageBox(Utils::String::VA("Your new security level is %d", Auth::GetSecurityLevel()), "Success");
 				}
 				else
 				{
