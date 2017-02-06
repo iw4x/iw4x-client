@@ -2,9 +2,8 @@
 
 namespace Components
 {
-	std::list<std::string> startupMessages;
-
-	int totalMessages = -1;
+	int StartupMessages::TotalMessages = -1;
+	std::list<std::string> StartupMessages::MessageList;
 
 	StartupMessages::StartupMessages()
 	{
@@ -17,26 +16,26 @@ namespace Components
 
 		UIScript::Add("nextStartupMessage", [](UIScript::Token)
 		{
-			if (!startupMessages.size()) return;
+			if (!StartupMessages::MessageList.size()) return;
 
-			if (totalMessages < 1)
+			if (StartupMessages::TotalMessages < 1)
 			{
-				totalMessages = startupMessages.size();
+				StartupMessages::TotalMessages = StartupMessages::MessageList.size();
 			}
 
-			std::string message = startupMessages.front();
-			startupMessages.pop_front();
+			std::string message = StartupMessages::MessageList.front();
+			StartupMessages::MessageList.pop_front();
 
 			Game::Dvar_SetStringByName("ui_startupMessage", message.data());
-			Game::Dvar_SetStringByName("ui_startupMessageTitle", Utils::String::VA("Messages (%d/%d)", totalMessages - startupMessages.size(), totalMessages));
-			Game::Dvar_SetStringByName("ui_startupNextButtonText", startupMessages.size() ? "Next" : "Close"); 
+			Game::Dvar_SetStringByName("ui_startupMessageTitle", Utils::String::VA("Messages (%d/%d)", StartupMessages::TotalMessages - StartupMessages::MessageList.size(), StartupMessages::TotalMessages));
+			Game::Dvar_SetStringByName("ui_startupNextButtonText", StartupMessages::MessageList.size() ? "Next" : "Close");
 			Game::Cbuf_AddText(0, "openmenu startup_messages");
 		});
 	}
 
 	void StartupMessages::AddMessage(std::string message)
 	{
-		startupMessages.push_back(message);
+		StartupMessages::MessageList.push_back(message);
 	}
 
 }
