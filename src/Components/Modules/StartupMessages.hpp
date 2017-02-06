@@ -14,7 +14,7 @@ namespace Components
 		static void AddMessage(std::string message);
 
 	private:
-		static int TotalMessages = -1;
+		static int TotalMessages;
 		static std::list<std::string> MessageList;
 	};
 }
