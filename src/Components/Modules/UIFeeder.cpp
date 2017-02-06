@@ -32,11 +32,7 @@ namespace Components
 
 	bool UIFeeder::SetItemSelection()
 	{
-		if(UIFeeder::Current.feeder == 4.0f)
-		{
-			return true;
-		}
-		else if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
+		if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
 		{
 			UIFeeder::Feeders[UIFeeder::Current.feeder].select(UIFeeder::Current.index);
 			return true;
@@ -339,13 +335,44 @@ namespace Components
 					if (reinterpret_cast<unsigned int*>(0x633E934)[j] == i)
 					{
 						UIFeeder::SelectMap(j);
-						UIFeeder::Select(5.0f, j);
+						UIFeeder::Select(60.0f, j);
 						break;
 					}
 				}
 
 				break;
 			}
+		}
+	}
+
+	int UIFeeder::CheckSelection(int feeder)
+	{
+		if (feeder == 62) return 0;
+		return 1;
+	}
+
+	__declspec(naked) void UIFeeder::CheckSelectionStub()
+	{
+		__asm
+		{
+			mov ecx, 6B5240h
+			call ecx // __ftol2_sse
+
+			push eax
+			call UIFeeder::CheckSelection
+
+			test al, al
+			jz returnSafe
+
+			pop eax
+			push 635A9Dh
+			retn
+
+		returnSafe:
+			pop eax
+			xor eax, eax
+			pop ecx
+			retn
 		}
 	}
 
@@ -379,11 +406,14 @@ namespace Components
 		// Play mouse over sound check
 		Utils::Hook(0x639D66, UIFeeder::PlaySoundStub, HOOK_CALL).install()->quick();
 
+		// Disable blinking
+		Utils::Hook(0x635A98, UIFeeder::CheckSelectionStub, HOOK_JUMP).install()->quick();
+
 		// some thing overwriting feeder 2's data
 		Utils::Hook::Set<BYTE>(0x4A06A9, 0xEB);
 
 		// Use feeder 5 for maps, as feeder 4 selects on mouse over
-		UIFeeder::Add(5.0f, UIFeeder::GetMapCount, UIFeeder::GetMapText, UIFeeder::SelectMap);
+		UIFeeder::Add(60.0f, UIFeeder::GetMapCount, UIFeeder::GetMapText, UIFeeder::SelectMap);
 		UIScript::Add("ApplyMap", UIFeeder::ApplyMap);
 		UIScript::Add("ApplyInitialMap", UIFeeder::ApplyInitialMap);
 

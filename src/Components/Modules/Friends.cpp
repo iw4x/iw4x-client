@@ -476,7 +476,7 @@ namespace Components
 			}
 		});
 
-		UIFeeder::Add(6.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
+		UIFeeder::Add(61.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
 
 		QuickPatch::OnShutdown([]()
 		{

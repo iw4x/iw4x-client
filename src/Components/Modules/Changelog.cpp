@@ -52,7 +52,7 @@ namespace Components
 	Changelog::Changelog()
 	{
 		// Changelog
-		UIFeeder::Add(39.0f, Changelog::GetChangelogCount, Changelog::GetChangelogText, Changelog::SelectChangelog);
+		UIFeeder::Add(62.0f, Changelog::GetChangelogCount, Changelog::GetChangelogText, Changelog::SelectChangelog);
 	}
 
 	Changelog::~Changelog()

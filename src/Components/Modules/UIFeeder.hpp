@@ -45,6 +45,8 @@ namespace Components
 		static bool SetItemSelection();
 
 		static bool CheckFeeder();
+		static int CheckSelection(int feeder);
+		static void CheckSelectionStub();
 
 		static void MouseEnterStub();
 		static void MouseSelectStub();
