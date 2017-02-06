@@ -6,8 +6,6 @@
 #pragma comment(lib, "dbghelp.lib")
 #pragma warning(pop)
 
-extern const int MiniDumpTiny;
-
 namespace Components
 {
 	// This class holds a Minidump and allows easy access to its aspects.
@@ -16,7 +14,7 @@ namespace Components
 	public:
 		~Minidump();
 
-		static Minidump* Create(std::string path, LPEXCEPTION_POINTERS exceptionInfo, int type = MiniDumpTiny);
+		static Minidump* Create(std::string path, LPEXCEPTION_POINTERS exceptionInfo, int type);
 		static Minidump* Open(std::string path);
 		bool GetStream(MINIDUMP_STREAM_TYPE type, PMINIDUMP_DIRECTORY* directoryPtr, PVOID* streamPtr, ULONG* streamSizePtr);
 		bool Check();
@@ -46,7 +44,7 @@ namespace Components
 		static bool Upload(Minidump* minidump);
 
 		// Generates a new minidump and saves it to the folder for queued minidumps.
-		static Minidump* CreateQueuedMinidump(LPEXCEPTION_POINTERS exceptionInfo, int minidumpType = MiniDumpTiny);
+		static Minidump* CreateQueuedMinidump(LPEXCEPTION_POINTERS exceptionInfo, int minidumpType);
 
 		// Browses the folder for queued minidumps and uploads each queued minidump.
 		// On Release builds this will also delete every successfully uploaded minidump.

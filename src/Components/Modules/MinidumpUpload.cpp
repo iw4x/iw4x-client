@@ -1,8 +1,6 @@
 #include "STDInclude.hpp"
 #include "Shlwapi.h"
 
-const int MiniDumpTiny = MiniDumpIgnoreInaccessibleMemory | /*MiniDumpWithModuleHeaders |*/ MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithTokenInformation | MiniDumpWithProcessThreadData | MiniDumpWithFullAuxiliaryState;
-
 namespace Components
 {
 

@@ -3,6 +3,7 @@
 namespace Components
 {
 	Utils::Hook Exception::SetFilterHook;
+	int Exception::MiniDumpType;
 
 	__declspec(noreturn) void Exception::ErrorLongJmp(jmp_buf _Buf, int _Value)
 	{
@@ -23,7 +24,7 @@ namespace Components
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 
-		auto minidump = MinidumpUpload::CreateQueuedMinidump(ExceptionInfo);
+		auto minidump = MinidumpUpload::CreateQueuedMinidump(ExceptionInfo, Exception::MiniDumpType);
 		if (!minidump)
 		{
 			OutputDebugStringA("Failed to create new minidump!");
@@ -61,8 +62,34 @@ namespace Components
 		return SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
 	}
 
+	void Exception::SetMiniDumpType()
+	{
+		Exception::MiniDumpType = MiniDumpIgnoreInaccessibleMemory;
+		Exception::MiniDumpType |= MiniDumpWithUnloadedModules;
+		Exception::MiniDumpType |= MiniDumpWithThreadInfo;
+		Exception::MiniDumpType |= MiniDumpWithFullMemoryInfo;
+		Exception::MiniDumpType |= MiniDumpWithHandleData;
+		Exception::MiniDumpType |= MiniDumpWithTokenInformation;
+		Exception::MiniDumpType |= MiniDumpWithProcessThreadData;
+		Exception::MiniDumpType |= MiniDumpWithFullAuxiliaryState;
+
+		if (Flags::HasFlag("bigminidumps"))
+		{
+			Exception::MiniDumpType |= MiniDumpWithModuleHeaders;
+			Exception::MiniDumpType |= MiniDumpWithCodeSegs;
+		}
+		else if (Flags::HasFlag("reallybigminidumps"))
+		{
+			Exception::MiniDumpType |= MiniDumpWithModuleHeaders;
+			Exception::MiniDumpType |= MiniDumpWithCodeSegs;
+			Exception::MiniDumpType |= MiniDumpWithDataSegs;
+		}
+	}
+
 	Exception::Exception()
 	{
+		SetMiniDumpType();
+
 #ifdef DEBUG
 		// Display DEBUG branding, so we know we're on a debug build
 		Renderer::OnFrame([]()
