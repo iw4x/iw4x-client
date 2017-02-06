@@ -10,21 +10,23 @@ This is the third public Beta version.
 
 ### Added
 
-- Working friend system
-- Added nosteam flag
+- Add working friend system.
 
 ### Changed
 
-- Added join on enter in serverlist (request)
-- Redesigned changelog menu
+- Add join on enter in serverlist (request),
+- Redesign changelog menu.
+- Increase weapon and configstring limit.
 
 ### Fixed
 
-- Fix missing models on village
-- Custom server motd is reset (request)
-- Fixed various memory leaks
-- Fixed mouse pitch (request)
-- Fixed compatibility with b3 (request)
+- Fix missing models on village.
+- Custom server motd is reset (request).
+- Fix various memory leaks.
+- Fix mouse pitch (request).
+- Fix compatibility with b3 (request).
+- Fix RCon bug
+- Fix dedi crash on linux
 
 ### Known issues
 
@@ -158,11 +160,11 @@ This version is an internal Pre-Alpha version.
 
 ### Added
 
-- IW5 material embedding.
+- Add IW5 material embedding system.
 
 ### Changed
 
-- Enhanced mod download with detailed progress display.
+- Enhance mod download with detailed progress display.
 
 ### Fixed
 
@@ -179,28 +181,28 @@ This version is an internal Pre-Alpha version.
 
 ### Added
 
-- Added `banclient` command which will permanently ban a client from a server. The ban will persist across restarts.
-- Added capabilities to save played games and replay them ("Theater").
-- Added code for generating and sending minidumps for debugging purposes. This feature is meant to be used only during the Open Beta and will be removed once the code goes to stable release.
-- Added commands that allow forwarding console and games log via UDP to other computers ("network logging").
-- Added D3D9Ex.
-- Added filters for server list.
-- Added handling for `iw4x://` URLs ("connect protocol"). For example, if IW4x is properly registered in Windows as URL handler for `iw4x://` URLs you can type `iw4x://ip:port`. If possible, this will connect to the server in an already running IW4x client.
-- Added lean support through new key bindings.
-- Added native cursor as replacement for the sometimes laggy in-game cursor. This change can be reverted in the settings menu.
-- Added news ticker.
-- Added remote console ("RCon").
-- Added support for BigBrotherBot.
-- Added support for hosting game mods in order to allow players to just join modded servers out of the box ("mod download").
-- Added Warfare2 text coloring.
-- Added zone builder. For more information see the respective documentation.
-- Implemented a completely decentralized peering network.
-- Implemented playlists which can be used for flexible map and gametype rotation.
-- Introduced security levels. This ensures that you need to "pay" with CPU power to verify your identity once before being able to join a server which reduces the interval at which people who get banned can circumvent server bans through using new identities. The default security level is 23.
-- IW4x resource files are in their own folder to prevent clogging up the main game directories.
-- Reintroduced parties, now also available for dedicated servers ("lobby servers").
+- Add `banclient` command which will permanently ban a client from a server. The ban will persist across restarts.
+- Add capabilities to save played games and replay them ("Theater").
+- Add code for generating and sending minidumps for debugging purposes. This feature is meant to be used only during the Open Beta and will be removed once the code goes to stable release.
+- Add commands that allow forwarding console and games log via UDP to other computers ("network logging").
+- Add D3D9Ex.
+- Add filters for server list.
+- Add handling for `iw4x://` URLs ("connect protocol"). For example, if IW4x is properly registered in Windows as URL handler for `iw4x://` URLs you can type `iw4x://ip:port`. If possible, this will connect to the server in an already running IW4x client.
+- Add lean support through new key bindings.
+- Add native cursor as replacement for the sometimes laggy in-game cursor. This change can be reverted in the settings menu.
+- Add news ticker.
+- Add remote console ("RCon").
+- Add support for BigBrotherBot.
+- Add support for hosting game mods in order to allow players to just join modded servers out of the box ("mod download").
+- Add Warfare2 text coloring.
+- Add zone builder. For more information see the respective documentation.
+- Implement a completely decentralized peering network.
+- Implement playlists which can be used for flexible map and gametype rotation.
+- Introduce security levels. This ensures that you need to "pay" with CPU power to verify your identity once before being able to join a server which reduces the interval at which people who get banned can circumvent server bans through using new identities. The default security level is 23.
+- Move IW4x resource files into their own folder to prevent clogging up the main game directories.
+- Reintroduce parties, now also available for dedicated servers ("lobby servers").
 
 ### Changed
 
-- Logs moved to `userraw` folder.
-- Replaced main menu background music.
+- Move logs to `userraw` folder.
+- Replace main menu background music.
