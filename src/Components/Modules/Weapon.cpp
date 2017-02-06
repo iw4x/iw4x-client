@@ -260,6 +260,8 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x5F7187, WEAPON_LIMIT);
 		Utils::Hook::Set<DWORD>(0x5FECF9, WEAPON_LIMIT);
 
+		Utils::Hook::Set<int>(0x586CC3, -(WEAPON_LIMIT));
+
 		// Reference: https://courses.engr.illinois.edu/ece390/books/artofasm/CH09/CH09-6.html (See 9.5.2 Division Without DIV and IDIV)
 		// And http://reverseengineering.stackexchange.com/questions/1397/how-can-i-reverse-optimized-integer-division-modulo-by-constant-operations
 		// The game's magic number is computed using this formula: (1 / 1200) * (2 ^ (32 + 7)
@@ -375,7 +377,6 @@ namespace Components
 		Utils::Hook::Set(0x59C095, cg_weaponsStaticArray);
 		Utils::Hook::Set(0x59C09D, cg_weaponsStaticArray);
 
-		// TODO: Check the offsets, icons are still wrong, but at least crashes are 'fixed'
 		static int unknownMaterialArray[WEAPON_LIMIT + 4];
 		Utils::Hook::Set(0x58D003, unknownMaterialArray);
 		Utils::Hook::Set(0x58969A, &unknownMaterialArray[3]);
