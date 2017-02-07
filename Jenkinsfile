@@ -120,12 +120,13 @@ def doUnitTests(name) {
 	unstash "$name"
 
 	// Get installed localization for correct zonefiles directory junction
-	def localization = readFile("$mw2dir/localization.txt").split("\r?\n")[0]
+	def localization = readFile("${tool "Modern Warfare 2"}/localization.txt").split("\r?\n")[0]
 
 	try {
 		timeout(time: 180, unit: "MINUTES") {
 			// Set up environment
 			if (isUnix()) {
+                def mw2dir = tool "Modern Warfare 2"
 				sh """
 				mkdir -p zone
 				for f in main zone/dlc \"zone/$localization\"; do
@@ -136,6 +137,7 @@ def doUnitTests(name) {
 				done
 				"""
 			} else {
+                def mw2dir = tool "Modern Warfare 2"
 				bat """
 				mklink /J \"main\" \"$mw2dir\\main\"
 				mkdir \"zone\"
