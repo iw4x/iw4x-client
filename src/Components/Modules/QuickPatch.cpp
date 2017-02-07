@@ -230,7 +230,7 @@ namespace Components
 		Utils::Hook::Nop(0x6310B8, 5); // Don't write the result
 		Dvar::OnInit([] ()
 		{
-			*reinterpret_cast<Game::dvar_t**>(0x62E4B64) = Game::Dvar_RegisterVec2("ui_buildLocation", -80.0f, 15.0f, -10000.0, 10000.0, Game::DVAR_FLAG_READONLY, "Where to draw the build number");
+			*reinterpret_cast<Game::dvar_t**>(0x62E4B64) = Game::Dvar_RegisterVec2("ui_buildLocation", -60.0f, 474.0f, -10000.0, 10000.0, Game::DVAR_FLAG_READONLY, "Where to draw the build number");
 		});
 
 		// console title
