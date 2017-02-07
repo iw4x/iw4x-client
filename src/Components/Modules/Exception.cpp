@@ -88,7 +88,7 @@ namespace Components
 
 	Exception::Exception()
 	{
-		SetMiniDumpType();
+		Exception::SetMiniDumpType();
 
 #ifdef DEBUG
 		// Display DEBUG branding, so we know we're on a debug build
