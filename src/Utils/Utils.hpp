@@ -48,10 +48,6 @@ namespace Utils
 			{
 				this->slots.push_back(slot);
 			}
-			else
-			{
-				__debugbreak();
-			}
 		}
 
 		void clear()
