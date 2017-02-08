@@ -157,8 +157,78 @@ namespace Components
 		}
 	}
 
+	void Localization::SetCredits()
+	{
+		static const char* staff[] =
+		{
+			"Snake",
+			"/dev/sr0",
+			"/dev/../",
+			"/dev/console",
+			"/dev/full",
+			"/dev//dev/tty0",
+			"/dev/urandom",
+		};
+
+		static const char* contributors[] =
+		{
+			"RezTech",
+			"Lithium",
+			"AmateurHailbut",
+			"Aoki",
+			"civil",
+			"Dasfonia",
+			"Dizzy",
+			"HardNougat",
+			"Killera",
+			"Revo",
+			"st0rm",
+			"VVLNT",
+			"Deity",
+		};
+
+		static const char* specials[] =
+		{
+			"NTAuthority",
+			"momo5502",
+			"TheApadayo",
+			"aerosoul94",
+		};
+
+		std::string credits = "^2The IW4x Team:^7\n";
+
+		for (int i = 0; i < ARRAYSIZE(staff); ++i)
+		{
+			credits.append(staff[i]);
+			credits.append("\n");
+		}
+
+		credits.append("\n^3Contributors:^7\n");
+
+		for (int i = 0; i < ARRAYSIZE(contributors); ++i)
+		{
+			credits.append(contributors[i]);
+			credits.append("\n");
+		}
+
+		credits.append("\n^5Special thanks to:^7\n");
+
+		for (int i = 0; i < ARRAYSIZE(specials); ++i)
+		{
+			credits.append(specials[i]);
+			credits.append("\n");
+		}
+
+		// I have no idea why, but the last 2 lines are invisible!
+		credits.append("-\n-");
+
+		Localization::Set("IW4X_CREDITS", credits);
+	}
+
 	Localization::Localization()
 	{
+		Localization::SetCredits();
+
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [] (Game::XAssetType, std::string filename)
 		{
 			Game::XAssetHeader header = { nullptr };

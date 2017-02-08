@@ -28,5 +28,6 @@ namespace Components
 		static void __stdcall SetStringStub(const char* key, const char* value, bool isEnglish);
 		static void LoadLanguageStrings();
 		static void SELoadLanguageStub();
+		static void SetCredits();
 	};
 }
