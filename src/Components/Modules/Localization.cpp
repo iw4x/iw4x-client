@@ -168,10 +168,6 @@ namespace Components
 			"/dev/full",
 			"/dev//dev/tty0",
 			"/dev/urandom",
-			//"BORUSSIA",
-			//"HelloJim",
-			//"Teddy",
-			//"Ghost",
 		};
 
 		static const char* contributors[] =
@@ -195,9 +191,9 @@ namespace Components
 		static const char* specials[] =
 		{
 			"NTAuthority",
-			"momo5502",
-			"TheApadayo",
 			"aerosoul94",
+			"ReactIW4",
+			"IW4Play",
 		};
 
 		std::string credits = "^2The IW4x Team:^7\n";
