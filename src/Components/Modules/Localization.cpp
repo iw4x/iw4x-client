@@ -168,11 +168,16 @@ namespace Components
 			"/dev/full",
 			"/dev//dev/tty0",
 			"/dev/urandom",
+			//"BORUSSIA",
+			//"HelloJim",
+			//"Teddy",
+			//"Ghost",
 		};
 
 		static const char* contributors[] =
 		{
 			"RezTech",
+			"a231",
 			"Lithium",
 			"AmateurHailbut",
 			"Aoki",
