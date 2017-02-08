@@ -102,8 +102,8 @@ namespace Components
 		}
 
 		// Block localhost
-		if (entry->server.getType() == Game::NA_LOOPBACK) entry->server.setType(Game::NA_BAD);
-		if (entry->server.getType() != Game::NA_BAD && entry->server != oldAddress)
+		if (entry->server.getType() == Game::NA_LOOPBACK || (entry->server.getType() == Game::NA_IP && entry->server.getIP().full == 0x0100007F)) entry->server.setType(Game::NA_BAD);
+		else if (entry->server.getType() != Game::NA_BAD && entry->server != oldAddress)
 		{
 			Node::AddNode(entry->server);
 			Network::SendCommand(entry->server, "getinfo", Utils::Cryptography::Rand::GenerateChallenge());
