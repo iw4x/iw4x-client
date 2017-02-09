@@ -5,6 +5,7 @@ namespace Utils
 	std::string GetMimeType(std::string url);
 	std::string ParseChallenge(std::string data);
 	void OutputDebugLastError();
+	std::string GetLastWindowsError();
 
 	bool IsWineEnvironment();
 

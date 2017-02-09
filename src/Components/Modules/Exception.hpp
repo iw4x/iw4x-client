@@ -14,7 +14,7 @@ namespace Components
 		static LPTOP_LEVEL_EXCEPTION_FILTER Hook();
 
 		static int MiniDumpType;
-		static void SetMiniDumpType();
+		static void SetMiniDumpType(bool codeseg, bool dataseg);
 
 	private:
 		static LONG WINAPI ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo);

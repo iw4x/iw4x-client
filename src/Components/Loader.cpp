@@ -20,6 +20,7 @@ namespace Components
 
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
+		Loader::Register(new Exception()); // install our exception handler as early as posssible to get better debug dumps from startup crashes
 
 		Loader::Register(new Auth());
 		Loader::Register(new Bans());
@@ -58,7 +59,6 @@ namespace Components
 		Loader::Register(new Changelog());
 		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());
-		Loader::Register(new Exception());
 		Loader::Register(new FastFiles());
 		Loader::Register(new FrameTime());
 		Loader::Register(new Gametypes());

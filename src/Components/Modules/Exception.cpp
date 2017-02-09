@@ -24,27 +24,52 @@ namespace Components
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 
+		const char* errorStr;
+		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
+		{
+			errorStr = "Termination because of a stack overflow.";
+		}
+		else
+		{
+			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
+		}
+
+		bool doFullDump = Flags::HasFlag("bigdumps") || Flags::HasFlag("reallybigdumps");
+		if (!doFullDump)
+		{
+			if (MessageBoxA(NULL, 
+				Utils::String::VA("IW4x has encountered an exception and needs to close.\n"
+								  "%s\n" // errorStr
+								  "Would you like to create a full crash dump for the developers? (this can be almost 100mb)", errorStr),
+					              "IW4x Error!", MB_YESNO | MB_ICONERROR) == IDYES)
+			{
+				doFullDump = true;
+			}
+		}
+
+		if (doFullDump)
+		{
+			Exception::SetMiniDumpType(true, false);
+		}
+
 		auto minidump = MinidumpUpload::CreateQueuedMinidump(ExceptionInfo, Exception::MiniDumpType);
 		if (!minidump)
 		{
+			MessageBoxA(NULL, "Minidump Error", 
+				Utils::String::VA("There was an error creating the minidump (%s)! Hit OK to close the program.", Utils::GetLastWindowsError()), MB_OK | MB_ICONERROR);
 			OutputDebugStringA("Failed to create new minidump!");
 			Utils::OutputDebugLastError();
+			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
 		}
 		else
 		{
 			delete minidump;
 		}
 
-		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
+		if (ExceptionInfo->ExceptionRecord->ExceptionFlags == EXCEPTION_NONCONTINUABLE)
 		{
-			Logger::Error("Termination because of a stack overflow.\n");
+			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
 		}
-		else
-		{
-			Logger::Error("Fatal error (0x%08X) at 0x%08X.", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
-		}
-
-		//TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
 
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
@@ -62,33 +87,29 @@ namespace Components
 		return SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
 	}
 
-	void Exception::SetMiniDumpType()
+	void Exception::SetMiniDumpType(bool codeseg, bool dataseg)
 	{
 		Exception::MiniDumpType = MiniDumpIgnoreInaccessibleMemory;
-		Exception::MiniDumpType |= MiniDumpWithUnloadedModules;
-		Exception::MiniDumpType |= MiniDumpWithThreadInfo;
-		Exception::MiniDumpType |= MiniDumpWithFullMemoryInfo;
 		Exception::MiniDumpType |= MiniDumpWithHandleData;
-		Exception::MiniDumpType |= MiniDumpWithTokenInformation;
+		Exception::MiniDumpType |= MiniDumpScanMemory;
 		Exception::MiniDumpType |= MiniDumpWithProcessThreadData;
-		Exception::MiniDumpType |= MiniDumpWithFullAuxiliaryState;
+		Exception::MiniDumpType |= MiniDumpWithFullMemoryInfo;
+		Exception::MiniDumpType |= MiniDumpWithThreadInfo;
+		//Exception::MiniDumpType |= MiniDumpWithModuleHeaders;
 
-		if (Flags::HasFlag("bigminidumps"))
+		if (codeseg)
 		{
-			Exception::MiniDumpType |= MiniDumpWithModuleHeaders;
 			Exception::MiniDumpType |= MiniDumpWithCodeSegs;
 		}
-		else if (Flags::HasFlag("reallybigminidumps"))
+		if (dataseg)
 		{
-			Exception::MiniDumpType |= MiniDumpWithModuleHeaders;
-			Exception::MiniDumpType |= MiniDumpWithCodeSegs;
 			Exception::MiniDumpType |= MiniDumpWithDataSegs;
 		}
 	}
 
 	Exception::Exception()
 	{
-		Exception::SetMiniDumpType();
+		Exception::SetMiniDumpType(Flags::HasFlag("bigminidumps"), Flags::HasFlag("reallybigminidumps"));
 
 #ifdef DEBUG
 		// Display DEBUG branding, so we know we're on a debug build
