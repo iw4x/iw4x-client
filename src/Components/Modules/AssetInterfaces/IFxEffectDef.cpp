@@ -4,8 +4,8 @@ namespace Assets
 {
 	void IFxEffectDef::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
-#if 0
-		Components::FileSystem::File rawFx(fmt::sprintf("fx/%s.efx", name.data()));
+#ifdef DEBUG
+		Components::FileSystem::File rawFx(Utils::String::VA("fx/%s.efx", name.data()));
 		if (rawFx.exists())
 		{
 			const char* session = rawFx.getBuffer().data();
@@ -30,12 +30,48 @@ namespace Assets
 			Game::FxEditorEffectDef efx;
 			ZeroMemory(&efx, sizeof(efx));
 
-// 			for (int i = 0; i < FX_ELEM_FIELD_COUNT; ++i)
-// 			{
-// 				Game::s_elemFields[i].handler(&session, efx.elems);
-// 			}
+			for (efx.elemCount = 0; ; ++efx.elemCount)
+			{
+				const char* value = Game::Com_Parse(&session);
+				if (!value) break;
+				if (*value != '{')
+				{
+					Components::Logger::Error("Expected '{' to start a new segment, found '%s' instead.\n", value);
+				}
+
+				if (efx.elemCount >= ARRAYSIZE(efx.elems))
+				{
+					Components::Logger::Error("Cannot have more than %i segments.\n", ARRAYSIZE(efx.elems));
+				}
+
+				Game::FxEditorElemDef* element = &efx.elems[efx.elemCount];
+				// TODO: Initialize some stuff here
+
+				while (true)
+				{
+					std::string newValue = Game::Com_Parse(&session);
+					if (newValue[0] != '}') break;
+
+					for (int i = 0; i < FX_ELEM_FIELD_COUNT; ++i)
+					{
+						if(Game::s_elemFields[i].keyName == std::string(newValue))
+						{
+							// TODO: Allow loading assets from raw!
+							if(Game::s_elemFields[i].handler(&session, element)) break;
+							Components::Logger::Error("Failed to parse element %s!\n", newValue);
+						}
+					}
+
+					if (!Game::Com_MatchToken(&session, ";", 1))
+					{
+						Components::Logger::Error("Expected token ';'\n");
+					}
+				}
+			}
 
 			Game::Com_EndParseSession();
+
+			// TODO: Convert editor fx to real fx
 		}
 #endif
 	}

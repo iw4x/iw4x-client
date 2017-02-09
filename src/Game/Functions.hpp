@@ -86,6 +86,9 @@ namespace Game
 	typedef char* (__cdecl * Com_Parse_t)(const char **data_p);
 	extern Com_Parse_t Com_Parse;
 
+	typedef bool (__cdecl * Com_MatchToken_t)(const char **data_p, const char* token, int size);
+	extern Com_MatchToken_t Com_MatchToken;
+
 	typedef void(__cdecl * Com_SetSlowMotion_t)(float start, float end, int duration);
 	extern Com_SetSlowMotion_t Com_SetSlowMotion;
 
