@@ -7,8 +7,8 @@ namespace Utils
 		bool FileExists(std::string file);
 		bool WriteFile(std::string file, std::string data, bool append = false);
 		bool ReadFile(std::string file, std::string* data);
-		size_t FileSize(std::string file);
 		std::string ReadFile(std::string file);
+		size_t FileSize(std::string file);
 		bool CreateDir(std::string dir);
 		std::vector<std::string> ListFiles(std::string dir);
 	}
