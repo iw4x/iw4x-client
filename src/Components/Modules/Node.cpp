@@ -199,27 +199,20 @@ namespace Components
 	void Node::DeleteInvalidNodes()
 	{
 		std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
-		std::vector<Node::NodeEntry> cleanNodes;
 
-		for (auto node : Node::Nodes)
+		for (auto i = Node::Nodes.begin(); i != Node::Nodes.end();)
 		{
-			if (node.state == Node::STATE_INVALID && (Game::Sys_Milliseconds() - node.lastHeard) > NODE_INVALID_DELETE)
+			if (i->state == Node::STATE_INVALID && (Game::Sys_Milliseconds() - i->lastHeard) > NODE_INVALID_DELETE)
 			{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
-				Logger::Print("Removing invalid node %s\n", node.address.getCString());
+				Logger::Print("Removing invalid node %s\n", i->address.getCString());
 #endif
+				i = Node::Nodes.erase(i);
 			}
 			else
 			{
-				cleanNodes.push_back(node);
+				++i;
 			}
-		}
-
-		if (cleanNodes.size() != Node::Nodes.size())
-		{
-			//Node::Nodes.clear();
-			//Utils::Merge(&Node::Nodes, cleanNodes);
-			Node::Nodes = cleanNodes;
 		}
 	}
 
