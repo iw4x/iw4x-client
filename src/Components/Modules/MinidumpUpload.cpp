@@ -240,11 +240,13 @@ namespace Components
 		{
 			do
 			{
-				if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) > 0)
-					continue; // ignore directory
+				if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) continue; // ignore directory
 
 				char fullPath[MAX_PATH_SIZE];
 				PathCombineA(fullPath, MinidumpUpload::queuedMinidumpsFolder.data(), ffd.cFileName);
+
+				// Only upload if less than 5MB
+				if(Utils::IO::FileSize(fullPath) > (5 * 1024 * 1024)) continue;
 
 				// Try to open this minidump
 				Logger::Print("Trying to upload %s...\n", fullPath);
@@ -268,7 +270,7 @@ namespace Components
 				// Delete minidump if possible
 				DeleteFileA(fullPath);
 #endif
-			} while (FindNextFileA(hFind, &ffd) != 0);
+			} while (FindNextFileA(hFind, &ffd));
 		}
 
 		Logger::Print("All minidumps uploaded.\n");

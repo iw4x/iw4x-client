@@ -57,11 +57,25 @@ namespace Utils
 					stream.close();
 					return true;
 				}
-
-				stream.close();
 			}
 
 			return false;
+		}
+
+		size_t FileSize(std::string file)
+		{
+			if (FileExists(file))
+			{
+				std::ifstream stream(file, std::ios::binary);
+
+				if(stream.good())
+				{
+					stream.seekg(0, std::ios::end);
+					return static_cast<size_t>(stream.tellg());
+				}
+			}
+
+			return 0;
 		}
 
 		bool CreateDirectory(std::string dir)
