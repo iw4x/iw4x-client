@@ -14,7 +14,7 @@ namespace Utils
 			auto pos = file.find_last_of("/\\");
 			if (pos != std::string::npos)
 			{
-				CreateDirectory(file.substr(0, pos));
+				CreateDir(file.substr(0, pos));
 			}
 
 			std::ofstream stream(file, std::ios::binary | std::ofstream::out | (append ? std::ofstream::app : std::ofstream::out));
@@ -78,7 +78,7 @@ namespace Utils
 			return 0;
 		}
 
-		bool CreateDirectory(std::string dir)
+		bool CreateDir(std::string dir)
 		{
 			return std::experimental::filesystem::create_directories(dir);
 		}

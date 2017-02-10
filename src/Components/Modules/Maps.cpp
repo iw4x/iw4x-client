@@ -346,7 +346,7 @@ namespace Components
 			}
 		}
 
-		Utils::IO::CreateDirectory(Utils::String::VA("raw/mapdump/%s/textures", world->baseName));
+		Utils::IO::CreateDir(Utils::String::VA("raw/mapdump/%s/textures", world->baseName));
 		mtl.append(Utils::String::VA("# Material Count: %d\n", materialCount));
 
 		Logger::Print("Exporting materials and faces...\n");

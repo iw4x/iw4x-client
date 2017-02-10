@@ -57,17 +57,14 @@ namespace Components
 		// Internally, this will compress the minidump and decorate it with proper markers and first-look headers.
 		static std::string Encode(std::string data, std::map<std::string, std::string> extraHeaders = {});
 
-		// Ensures the queued minidumps folder exists. Will return false if the directory can't be created and does not exist.
-		static bool EnsureQueuedMinidumpsFolderExists();
-
 		// Contains the path to the minidumps folder.
-		static const std::string queuedMinidumpsFolder;
+		static const std::string QueuedMinidumpsFolder;
 
 #ifdef DISABLE_BITMESSAGE
-		static const std::vector<std::string> targetUrls;
+		static const std::vector<std::string> TargetUrls;
 #else
-		static const std::string targetAddress;
-		static const unsigned int maxSegmentSize;
+		static const std::string TargetAddress;
+		static const unsigned int MaxSegmentSize;
 #endif
 	};
 }

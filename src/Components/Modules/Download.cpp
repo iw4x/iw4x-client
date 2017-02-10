@@ -202,7 +202,7 @@ namespace Components
 			return false;
 		}
 
-		Utils::IO::CreateDirectory(download->mod);
+		Utils::IO::CreateDir(download->mod);
 		Utils::IO::WriteFile(path, fDownload.buffer);
 
 		return true;

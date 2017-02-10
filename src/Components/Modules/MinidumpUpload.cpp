@@ -139,17 +139,17 @@ namespace Components
 #pragma endregion
 
 #pragma region Minidump uploader class implementation
-	const std::string MinidumpUpload::queuedMinidumpsFolder = "minidumps\\";
+	const std::string MinidumpUpload::QueuedMinidumpsFolder = "minidumps\\";
 
 #ifdef DISABLE_BITMESSAGE
-	const std::vector<std::string> MinidumpUpload::targetUrls =
+	const std::vector<std::string> MinidumpUpload::TargetUrls =
 	{
 		"https://reich.io/upload.php",
 		"https://hitlers.kz/upload.php"
 	};
 #else
-	const std::string MinidumpUpload::targetAddress = "BM-2cSksR7gyyFcNK7MaFoxGCjRJWxtoGckdj";
-	const unsigned int MinidumpUpload::maxSegmentSize = 200 * 1024; // 200 kB
+	const std::string MinidumpUpload::TargetAddress = "BM-2cSksR7gyyFcNK7MaFoxGCjRJWxtoGckdj";
+	const unsigned int MinidumpUpload::MaxSegmentSize = 200 * 1024; // 200 kB
 #endif
 
 	MinidumpUpload::MinidumpUpload()
@@ -168,24 +168,9 @@ namespace Components
 		}
 	}
 
-	bool MinidumpUpload::EnsureQueuedMinidumpsFolderExists()
-	{
-		BOOL success = CreateDirectoryA(MinidumpUpload::queuedMinidumpsFolder.data(), nullptr);
-
-		if (success != TRUE)
-		{
-			success = (GetLastError() == ERROR_ALREADY_EXISTS);
-		}
-
-		return (success == TRUE);
-	}
-
 	Minidump* MinidumpUpload::CreateQueuedMinidump(LPEXCEPTION_POINTERS exceptionInfo, int minidumpType)
 	{
-		// Note that most of the Path* functions are DEPRECATED and they have been replaced by Cch variants that only work on Windows 8+.
-		// If you plan to drop support for Windows 7, please upgrade these calls to prevent accidental buffer overflows!
-
-		if (!EnsureQueuedMinidumpsFolderExists()) return nullptr;
+		Utils::IO::CreateDir(MinidumpUpload::QueuedMinidumpsFolder);
 
 		// Current executable name
 		char exeFileName[MAX_PATH];
@@ -203,7 +188,7 @@ namespace Components
 
 		// Combine with queuedMinidumpsFolder
 		char filename[MAX_PATH] = { 0 };
-		PathCombineA(filename, MinidumpUpload::queuedMinidumpsFolder.data(), Utils::String::VA("%s-" VERSION "-%s.dmp", exeFileName, filenameFriendlyTime));
+		PathCombineA(filename, MinidumpUpload::QueuedMinidumpsFolder.data(), Utils::String::VA("%s-" VERSION "-%s.dmp", exeFileName, filenameFriendlyTime));
 
 		// Generate the dump
 		return Minidump::Create(filename, exceptionInfo, minidumpType);
@@ -214,28 +199,28 @@ namespace Components
 #ifndef DISABLE_BITMESSAGE
 		// Preload public key for our target that will receive minidumps
 		Logger::Print("About to send request for public key for minidump upload address.\n");
-		if (!BitMessage::RequestPublicKey(MinidumpUpload::targetAddress))
+		if (!BitMessage::RequestPublicKey(MinidumpUpload::TargetAddress))
 		{
 			Logger::Error("Failed to request public key for minidump collection address.\n");
 		}
 		Logger::Print("Waiting for public key for minidump upload address.\n");
-		if (!BitMessage::WaitForPublicKey(MinidumpUpload::targetAddress))
+		if (!BitMessage::WaitForPublicKey(MinidumpUpload::TargetAddress))
 		{
 			Logger::Error("Failed to fetch public key for minidump collection address.\n");
 		}
 #endif
 
 		// Check if folder exists
-		if (!PathIsDirectoryA(MinidumpUpload::queuedMinidumpsFolder.data()))
+		if (!PathIsDirectoryA(MinidumpUpload::QueuedMinidumpsFolder.data()))
 		{
 			// Nothing to upload
 			Logger::Print("No minidumps to upload.\n");
-			return PathFileExistsA(MinidumpUpload::queuedMinidumpsFolder.data()) == FALSE;
+			return PathFileExistsA(MinidumpUpload::QueuedMinidumpsFolder.data()) == FALSE;
 		}
 
 		// Walk through directory and search for valid minidumps
 		WIN32_FIND_DATAA ffd;
-		HANDLE hFind = FindFirstFileA(Utils::String::VA("%s\\*.dmp", MinidumpUpload::queuedMinidumpsFolder.data()), &ffd);
+		HANDLE hFind = FindFirstFileA(Utils::String::VA("%s\\*.dmp", MinidumpUpload::QueuedMinidumpsFolder.data()), &ffd);
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
 			do
@@ -243,7 +228,7 @@ namespace Components
 				if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) continue; // ignore directory
 
 				char fullPath[MAX_PATH_SIZE];
-				PathCombineA(fullPath, MinidumpUpload::queuedMinidumpsFolder.data(), ffd.cFileName);
+				PathCombineA(fullPath, MinidumpUpload::QueuedMinidumpsFolder.data(), ffd.cFileName);
 
 				// Only upload if less than 5MB
 				if(Utils::IO::FileSize(fullPath) > (5 * 1024 * 1024)) continue;
@@ -309,7 +294,7 @@ namespace Components
 
 #ifdef DISABLE_BITMESSAGE
 
-		for (auto& targetUrl : targetUrls)
+		for (auto& targetUrl : TargetUrls)
 		{
 			Utils::WebIO webio("Firefucks", targetUrl);
 
@@ -348,19 +333,19 @@ namespace Components
 		return false;
 #else
 		// BitMessage has a max msg size that is somewhere around 220 KB, split it up as necessary!
-		auto totalParts = compressedMinidump.size() / MinidumpUpload::maxSegmentSize + 1;
+		auto totalParts = compressedMinidump.size() / MinidumpUpload::MaxSegmentSize + 1;
 		extraHeaders.insert({ "Parts", Utils::String::VA("%d", totalParts) });
 
-		for (size_t offset = 0; offset < compressedMinidump.size(); offset += MinidumpUpload::maxSegmentSize)
+		for (size_t offset = 0; offset < compressedMinidump.size(); offset += MinidumpUpload::MaxSegmentSize)
 		{
 			auto extraPartHeaders = extraHeaders;
 
-			auto part = compressedMinidump.substr(offset, std::min(MinidumpUpload::maxSegmentSize, compressedMinidump.size() - offset));
-			auto partNum = offset / MinidumpUpload::maxSegmentSize + 1;
+			auto part = compressedMinidump.substr(offset, std::min(MinidumpUpload::MaxSegmentSize, compressedMinidump.size() - offset));
+			auto partNum = offset / MinidumpUpload::MaxSegmentSize + 1;
 			extraPartHeaders.insert({ "Part", Utils::String::VA("%d", partNum) });
 
 			Logger::Print("Uploading minidump %s (part %d out of %d, %d bytes)...\n", id.data(), partNum, totalParts, part.size());
-			BitMessage::SendMsg(MinidumpUpload::targetAddress, MinidumpUpload::Encode(part, extraPartHeaders));
+			BitMessage::SendMsg(MinidumpUpload::TargetAddress, MinidumpUpload::Encode(part, extraPartHeaders));
 		}
 
 		return true;
