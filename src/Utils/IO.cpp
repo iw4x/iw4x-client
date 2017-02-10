@@ -9,7 +9,7 @@ namespace Utils
 			return std::ifstream(file).good();
 		}
 
-		void WriteFile(std::string file, std::string data, bool append)
+		bool WriteFile(std::string file, std::string data, bool append)
 		{
 			auto pos = file.find_last_of("/\\");
 			if (pos != std::string::npos)
@@ -23,17 +23,28 @@ namespace Utils
 			{
 				stream.write(data.data(), data.size());
 				stream.close();
+				return true;
 			}
+
+			return false;
 		}
 
 		std::string ReadFile(std::string file)
 		{
-			std::string buffer;
+			std::string data;
+			ReadFile(file, &data);
+			return data;
+		}
+
+		bool ReadFile(std::string file, std::string* data)
+		{
+			if (!data) return false;
+			data->clear();
 
 			if (FileExists(file))
 			{
 				std::ifstream stream(file, std::ios::binary);
-				if (!stream.is_open()) return buffer;
+				if (!stream.is_open()) return false;
 
 				stream.seekg(0, std::ios::end);
 				std::streamsize size = stream.tellg();
@@ -41,16 +52,16 @@ namespace Utils
 
 				if (size > -1)
 				{
-					buffer.clear();
-					buffer.resize(static_cast<uint32_t>(size));
-
-					stream.read(const_cast<char*>(buffer.data()), size);
+					data->resize(static_cast<uint32_t>(size));
+					stream.read(const_cast<char*>(data->data()), size);
+					stream.close();
+					return true;
 				}
 
 				stream.close();
 			}
 
-			return buffer;
+			return false;
 		}
 
 		bool CreateDirectory(std::string dir)

@@ -423,10 +423,11 @@ namespace Components
 				return;
 			}
 
+			std::string file;
 			std::string fsGame = Dvar::Var("fs_game").get<std::string>();
 			std::string path = Dvar::Var("fs_basepath").get<std::string>() + "\\" + fsGame + "\\" + url;
 
-			if (fsGame.empty() || !Utils::IO::FileExists(path))
+			if (fsGame.empty() || !Utils::IO::ReadFile(path, &file))
 			{
 				mg_printf(nc,
 					"HTTP/1.1 404 Not Found\r\n"
@@ -437,8 +438,6 @@ namespace Components
 			}
 			else
 			{
-				std::string file = Utils::IO::ReadFile(path);
-
 				mg_printf(nc,
 					"HTTP/1.1 200 OK\r\n"
 					"Content-Type: application/octet-stream\r\n"
