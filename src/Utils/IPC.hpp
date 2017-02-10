@@ -8,6 +8,11 @@ namespace boost
 #pragma warning(push)
 #pragma warning(disable: 4091)
 #pragma warning(disable: 4996)
+#pragma warning(disable: 6248)
+#pragma warning(disable: 6282)
+#pragma warning(disable: 6285)
+#pragma warning(disable: 6388)
+#pragma warning(disable: 28159)
 #define _SCL_SECURE_NO_WARNINGS
 
 #ifdef sleep

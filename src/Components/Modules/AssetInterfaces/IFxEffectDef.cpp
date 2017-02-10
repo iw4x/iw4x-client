@@ -27,10 +27,11 @@ namespace Assets
 				Components::Logger::Error("Version %i is too high. I can only handle up to %i.\n", version, 2);
 			}
 
-			Game::FxEditorEffectDef efx;
-			ZeroMemory(&efx, sizeof(efx));
+			Utils::Memory::Allocator allocator;
+			Game::FxEditorEffectDef* efx = allocator.allocate<Game::FxEditorEffectDef>();
+			ZeroMemory(efx, sizeof(efx));
 
-			for (efx.elemCount = 0; ; ++efx.elemCount)
+			for (efx->elemCount = 0; ; ++efx->elemCount)
 			{
 				const char* value = Game::Com_Parse(&session);
 				if (!value) break;
@@ -39,12 +40,12 @@ namespace Assets
 					Components::Logger::Error("Expected '{' to start a new segment, found '%s' instead.\n", value);
 				}
 
-				if (efx.elemCount >= ARRAYSIZE(efx.elems))
+				if (efx->elemCount >= ARRAYSIZE(efx->elems))
 				{
-					Components::Logger::Error("Cannot have more than %i segments.\n", ARRAYSIZE(efx.elems));
+					Components::Logger::Error("Cannot have more than %i segments.\n", ARRAYSIZE(efx->elems));
 				}
 
-				Game::FxEditorElemDef* element = &efx.elems[efx.elemCount];
+				Game::FxEditorElemDef* element = &efx->elems[efx->elemCount];
 				// TODO: Initialize some stuff here
 
 				while (true)
