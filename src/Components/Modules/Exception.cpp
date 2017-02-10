@@ -19,15 +19,20 @@ namespace Components
 	{
 		FreeConsole();
 
-		if (IsWindow(Console::GetWindow()) != FALSE) DestroyWindow(Console::GetWindow());
-		if (IsWindow(Window::GetWindow()) != FALSE) DestroyWindow(Window::GetWindow());
-
-		// This makes sure we either destroy the windows or wait till they are destroyed
-		MSG msg;
-		while ((IsWindow(Window::GetWindow()) != FALSE || IsWindow(Console::GetWindow()) != FALSE) && GetMessage(&msg, nullptr, NULL, NULL))
+		if (IsWindow(Window::GetWindow()) != FALSE)
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			CloseWindow(Window::GetWindow());
+			DestroyWindow(Window::GetWindow());
+
+			std::this_thread::sleep_for(2s);
+
+			// This makes sure we either destroy the windows or wait till they are destroyed
+			MSG msg;
+			while (IsWindow(Window::GetWindow()) != FALSE && GetMessage(&msg, nullptr, NULL, NULL))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
 		}
 
 		// This only suspends the main game threads, which is enough for us
