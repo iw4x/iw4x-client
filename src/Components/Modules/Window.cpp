@@ -61,6 +61,11 @@ namespace Components
 		return ((point.x - rect.left) > 0 && (point.y - rect.top) > 0 && (rect.right - point.x) > 0 && (rect.bottom - point.y) > 0);
 	}
 
+	HWND Window::GetWindow()
+	{
+		return Window::MainWindow;
+	}
+
 	int Window::IsNoBorder()
 	{
 		return Window::NoBorder.get<bool>();

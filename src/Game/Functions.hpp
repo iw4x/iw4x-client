@@ -598,6 +598,9 @@ namespace Game
 	typedef void(__cdecl * Sys_ShowConsole_t)();
 	extern Sys_ShowConsole_t Sys_ShowConsole;
 
+	typedef void(__cdecl * Sys_SuspendOtherThreads_t)();
+	extern Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads;
+
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
 

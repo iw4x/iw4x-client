@@ -26,14 +26,7 @@ namespace Utils
 	void OutputDebugLastError()
 	{
 		DWORD errorMessageID = ::GetLastError();
-		LPSTR messageBuffer = nullptr;
-		size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			nullptr, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr);
-		std::string message(messageBuffer, size);
-
-		OutputDebugStringA(Utils::String::VA("Last error code: 0x%08X (%s)\n", errorMessageID, message));
-
-		LocalFree(messageBuffer);
+		OutputDebugStringA(Utils::String::VA("Last error code: 0x%08X (%s)\n", errorMessageID, GetLastWindowsError().data()));
 	}
 
 	std::string GetLastWindowsError()

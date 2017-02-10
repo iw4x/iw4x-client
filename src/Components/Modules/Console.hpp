@@ -19,6 +19,8 @@ namespace Components
 
 		static void FreeNativeConsole();
 
+		static HWND GetWindow();
+
 	private:
 		// Text-based console stuff
 		static WINDOW* OutputWindow;

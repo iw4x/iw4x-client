@@ -20,6 +20,8 @@ namespace Components
 
 		static bool IsCursorWithin(HWND window);
 
+		static HWND GetWindow();
+
 	private:
 		static BOOL CursorVisible;
 		static Dvar::Var NoBorder;

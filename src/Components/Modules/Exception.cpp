@@ -15,6 +15,25 @@ namespace Components
 		longjmp(_Buf, _Value);
 	}
 
+	void Exception::SuspendProcess()
+	{
+		FreeConsole();
+
+		if (IsWindow(Console::GetWindow()) != FALSE) DestroyWindow(Console::GetWindow());
+		if (IsWindow(Window::GetWindow()) != FALSE) DestroyWindow(Window::GetWindow());
+
+		// This makes sure we either destroy the windows or wait till they are destroyed
+		MSG msg;
+		while ((IsWindow(Window::GetWindow()) != FALSE || IsWindow(Console::GetWindow()) != FALSE) && GetMessage(&msg, nullptr, NULL, NULL))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+
+		// This only suspends the main game threads, which is enough for us
+		Game::Sys_SuspendOtherThreads();
+	}
+
 	LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
 	{
 		// Pass on harmless errors
@@ -34,10 +53,12 @@ namespace Components
 			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
 		}
 
+		Exception::SuspendProcess();
+
 		bool doFullDump = Flags::HasFlag("bigdumps") || Flags::HasFlag("reallybigdumps");
 		if (!doFullDump)
 		{
-			if (MessageBoxA(NULL, 
+			if (MessageBoxA(nullptr, 
 				Utils::String::VA("IW4x has encountered an exception and needs to close.\n"
 								  "%s\n" // errorStr
 								  "Would you like to create a full crash dump for the developers? (this can be almost 100mb)", errorStr),
@@ -55,8 +76,8 @@ namespace Components
 		auto minidump = MinidumpUpload::CreateQueuedMinidump(ExceptionInfo, Exception::MiniDumpType);
 		if (!minidump)
 		{
-			MessageBoxA(NULL, "Minidump Error", 
-				Utils::String::VA("There was an error creating the minidump (%s)! Hit OK to close the program.", Utils::GetLastWindowsError()), MB_OK | MB_ICONERROR);
+			MessageBoxA(nullptr, "Minidump Error", 
+				Utils::String::VA("There was an error creating the minidump (%s)! Hit OK to close the program.", Utils::GetLastWindowsError().data()), MB_OK | MB_ICONERROR);
 			OutputDebugStringA("Failed to create new minidump!");
 			Utils::OutputDebugLastError();
 			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);

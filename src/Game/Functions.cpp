@@ -244,6 +244,7 @@ namespace Game
 	Sys_IsDatabaseThread_t Sys_IsDatabaseThread = Sys_IsDatabaseThread_t(0x4C6020);
 	Sys_SendPacket_t Sys_SendPacket = Sys_SendPacket_t(0x60FDC0);
 	Sys_ShowConsole_t Sys_ShowConsole = Sys_ShowConsole_t(0x4305E0);
+	Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads = Sys_SuspendOtherThreads_t(0x45A190);
 	Sys_ListFiles_t Sys_ListFiles = Sys_ListFiles_t(0x45A660);
 	Sys_Milliseconds_t Sys_Milliseconds = Sys_Milliseconds_t(0x42A660);
 

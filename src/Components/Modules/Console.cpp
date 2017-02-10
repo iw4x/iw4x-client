@@ -75,9 +75,9 @@ namespace Components
 			wprintw(Console::InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (mapname.size() ? mapname.data() : "none"));
 			wnoutrefresh(Console::InfoWindow);
 		}
-		else if(IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE)
+		else if(IsWindow(Console::GetWindow()) != FALSE)
 		{
-			SetWindowTextA(*reinterpret_cast<HWND*>(0x64A3288), Utils::String::VA("IW4x(" VERSION ") : %s", hostname.data()));
+			SetWindowTextA(Console::GetWindow(), Utils::String::VA("IW4x(" VERSION ") : %s", hostname.data()));
 		}
 	}
 
@@ -389,7 +389,7 @@ namespace Components
 		Game::Sys_ShowConsole();
 
 		MSG message;
-		while (IsWindow(*reinterpret_cast<HWND*>(0x64A3288)) != FALSE && GetMessageA(&message, nullptr, 0, 0))
+		while (IsWindow(Console::GetWindow()) != FALSE && GetMessageA(&message, nullptr, 0, 0))
 		{
 			TranslateMessage(&message);
 			DispatchMessageA(&message);
@@ -492,6 +492,11 @@ namespace Components
 		{
 			FreeConsole();
 		}
+	}
+
+	HWND Console::GetWindow()
+	{
+		return *reinterpret_cast<HWND*>(0x64A3288);
 	}
 
 	Game::dvar_t* Console::RegisterConColor(const char* name, float r, float g, float b, float a, float min, float max, int flags, const char* description)
