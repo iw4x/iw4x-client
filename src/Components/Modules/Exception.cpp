@@ -64,9 +64,8 @@ namespace Components
 		if (!doFullDump)
 		{
 			if (MessageBoxA(nullptr, 
-				Utils::String::VA("IW4x has encountered an exception and needs to close.\n"
-								  "%s\n" // errorStr
-								  "Would you like to create a full crash dump for the developers? (this can be almost 100mb)", errorStr),
+				Utils::String::VA("%s\n\n" // errorStr
+								  "Would you like to create a full crash dump for the developers (this can be 100mb or more)?\nNo will create small dumps that are automatically uploaded.", errorStr),
 					              "IW4x Error!", MB_YESNO | MB_ICONERROR) == IDYES)
 			{
 				doFullDump = true;
