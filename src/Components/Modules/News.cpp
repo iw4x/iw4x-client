@@ -102,6 +102,7 @@ namespace Components
 			if (data.empty())
 			{
 				Localization::ClearTemp();
+				News::UpdaterArgs.clear();
 				Command::Execute("closemenu popup_reconnectingtoparty", false);
 				Game::ShowMessageBox("Failed to download the updater!", "Error");
 			}
