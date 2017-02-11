@@ -6,6 +6,7 @@ namespace Components
 {
 	bool News::Terminate;
 	std::thread News::Thread;
+	std::string News::UpdaterArgs;
 
 	bool News::unitTest()
 	{
@@ -41,7 +42,7 @@ namespace Components
 		ZeroMemory(&pInfo, sizeof(pInfo));
 		sInfo.cb = sizeof(sInfo);
 
-		CreateProcessA("updater.exe -update -c", nullptr, nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
+		CreateProcessA("updater.exe", const_cast<char*>(Utils::String::VA("updater.exe %s", News::UpdaterArgs.data())), nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
 
 		if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hThread);
 		if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hProcess);
@@ -82,8 +83,45 @@ namespace Components
 		}
 	}
 
+	void News::LaunchUpdater(std::string params)
+	{
+		if (News::Updating()) return;
+
+		News::UpdaterArgs = params;
+
+		Localization::SetTemp("MENU_RECONNECTING_TO_PARTY", "Downloading updater");
+		Command::Execute("openmenu popup_reconnectingtoparty", true);
+
+		// Run the updater on shutdown
+		Utils::Hook::Set(0x6D72A0, News::ExitProcessStub);
+
+		std::thread([]()
+		{
+			std::string data = Utils::Cache::GetFile("/iw4/updater.exe");
+
+			if (data.empty())
+			{
+				Localization::ClearTemp();
+				Command::Execute("closemenu popup_reconnectingtoparty", false);
+				Game::ShowMessageBox("Failed to download the updater!", "Error");
+			}
+			else
+			{
+				Console::SetSkipShutdown();
+				Utils::IO::WriteFile("updater.exe", data);
+				Command::Execute("wait 300; quit;", false);
+			}
+		}).detach();
+	}
+
+	bool News::Updating()
+	{
+		return !News::UpdaterArgs.empty();
+	}
+
 	News::News()
 	{
+		News::UpdaterArgs.clear();
 		if (ZoneBuilder::IsEnabled()) return; // Maybe also dedi?
 
 		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_FLAG_SAVED, "");
@@ -134,30 +172,7 @@ namespace Components
 		Command::Add("getautoupdate", [] (Command::Params*)
 		{
 			if (!Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean) return;
-
-			Localization::SetTemp("MENU_RECONNECTING_TO_PARTY", "Downloading updater");
-			Command::Execute("openmenu popup_reconnectingtoparty", true);
-
-			// Run the updater on shutdown
-			Utils::Hook::Set(0x6D72A0, News::ExitProcessStub);
-
-			std::thread([] ()
-			{
-				std::string data = Utils::Cache::GetFile("/iw4/updater.exe");
-
-				if (data.empty())
-				{
-					Localization::ClearTemp();
-					Command::Execute("closemenu popup_reconnectingtoparty", false);
-					Game::ShowMessageBox("Failed to download the updater!", "Error");
-				}
-				else
-				{
-					Console::SetSkipShutdown();
-					Utils::IO::WriteFile("updater.exe", data);
-					Command::Execute("wait 300; quit;", false);
-				}
-			}).detach();
+			News::LaunchUpdater("-update -c");
 		});
 
 		if (!Utils::IsWineEnvironment() && !Loader::PerformingUnitTests())
@@ -193,7 +208,7 @@ namespace Components
 
 	News::~News()
 	{
-
+		News::UpdaterArgs.clear();
 	}
 
 	void News::preDestroy()

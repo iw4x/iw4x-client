@@ -416,7 +416,6 @@ namespace Components
 		{
 			if (pack.index == dlc.index)
 			{
-				pack.url = dlc.url;
 				pack.maps = dlc.maps;
 				Maps::UpdateDlcStatus();
 				return;
@@ -536,14 +535,14 @@ namespace Components
 		{
 			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
 
-			Maps::AddDlc({ 1, "Stimulus Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash" } });
-			Maps::AddDlc({ 2, "Resergence Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2" } });
-			Maps::AddDlc({ 3, "Nuketown", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_nuked" } });
-			Maps::AddDlc({ 4, "Classics Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_cross_fire", "mp_cargoship", "mp_bloc" } });
-			Maps::AddDlc({ 5, "Classics Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_killhouse", "mp_bog_sh" } });
-			Maps::AddDlc({ 6, "Freighter", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_cargoship_sh" } });
-			Maps::AddDlc({ 7, "Resurrection Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
-			Maps::AddDlc({ 8, "Recycled Pack", Utils::Cache::GetStaticUrl("/dlc/"), { "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring" } });
+			Maps::AddDlc({ 1, "Stimulus Pack", { "mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash" } });
+			Maps::AddDlc({ 2, "Resergence Pack", { "mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2" } });
+			Maps::AddDlc({ 3, "Nuketown", { "mp_nuked" } });
+			Maps::AddDlc({ 4, "Classics Pack", { "mp_cross_fire", "mp_cargoship", "mp_bloc" } });
+			Maps::AddDlc({ 5, "Classics Pack", { "mp_killhouse", "mp_bog_sh" } });
+			Maps::AddDlc({ 6, "Freighter", { "mp_cargoship_sh" } });
+			Maps::AddDlc({ 7, "Resurrection Pack", { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
+			Maps::AddDlc({ 8, "Recycled Pack", { "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring" } });
 
 			Maps::UpdateDlcStatus();
 
@@ -555,7 +554,8 @@ namespace Components
 				{
 					if (pack.index == dlc)
 					{
-						ShellExecuteA(nullptr, "open", pack.url.data(), nullptr, nullptr, SW_SHOWNORMAL);
+						News::LaunchUpdater(Utils::String::VA("-dlc %i -c", pack.index));
+						//ShellExecuteA(nullptr, "open", pack.url.data(), nullptr, nullptr, SW_SHOWNORMAL);
 						return;
 					}
 				}

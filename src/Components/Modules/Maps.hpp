@@ -28,7 +28,6 @@ namespace Components
 		public:
 			int index;
 			std::string name;
-			std::string url;
 			std::vector<std::string> maps;
 		};
 
