@@ -164,6 +164,7 @@ namespace Components
 			"Snake",
 			"/dev/sr0",
 			"/dev/../",
+			"/dev/sdb",
 			"/dev/console",
 			"/dev/full",
 			"/dev//dev/tty0",
@@ -172,6 +173,8 @@ namespace Components
 
 		static const char* contributors[] =
 		{
+			"Slykuiper",
+			"Shadow the Hedgehog",
 			"RezTech",
 			"a231",
 			"Lithium",
