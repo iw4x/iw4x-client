@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.3.2] - 2017-02-12
 
 This is the third public Beta version.
 
@@ -12,6 +12,10 @@ This is the third public Beta version.
 
 - Add working friend system.
 - Add colored pings in the server list.
+- Add credits.
+- Add first launch menu.
+- Add AK-47 (Classic) attachments.
+- Add HUD icon for night vision goggles.
 
 ### Changed
 
@@ -19,6 +23,7 @@ This is the third public Beta version.
 - Redesign and refactor all fullscreen menus.
 - Increase weapon and configstring limit.
 - Allow creating full crash dumps if wanted.
+- Set default name from steam.
 
 ### Fixed
 
@@ -29,6 +34,10 @@ This is the third public Beta version.
 - Fix compatibility with B3 (request).
 - Fix RCon bug (request).
 - Fix dedicated server crash on linux.
+- Fix crash in mod download.
+- Fix peacekeeper reload sound.
+- Fix cl_maxpackets 125 in settings (request).
+- Fix deserteaglegold_mp icon.
 
 ### Known issues
 
