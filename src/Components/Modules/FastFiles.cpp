@@ -493,6 +493,11 @@ namespace Components
 		// XFile header loading
 		Utils::Hook(0x4159E2, FastFiles::ReadXFileHeader, HOOK_CALL).install()->quick();
 
+		// Replace internal ZLib
+		//Utils::Hook(0x44B160, inflateInit2_, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x453750, inflateEnd, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x49EA00, inflate, HOOK_JUMP).install()->quick();
+
 		// Add custom zone paths
 		FastFiles::AddZonePath("zone\\patch\\");
 		FastFiles::AddZonePath("zone\\dlc\\");

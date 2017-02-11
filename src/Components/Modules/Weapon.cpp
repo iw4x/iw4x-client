@@ -384,8 +384,8 @@ namespace Components
 		Utils::Hook::Set(0x5896AB, &unknownMaterialArray[4]);
 
 		// Has to do with fx, but somehow lies within the material array
-		//Utils::Hook::Set(0x402069, unknownArray);
-		//Utils::Hook::Set(0x4E05D9, unknownArray);
+		Utils::Hook::Set(0x402069, &unknownMaterialArray[32]);
+		Utils::Hook::Set(0x4E05D9, &unknownMaterialArray[32]);
 
 		// Patch bg_weaponDefs on the stack
 		Utils::Hook::Set<DWORD>(0x40C31D, sizeof(bg_weaponDefs));
