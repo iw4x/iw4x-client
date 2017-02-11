@@ -123,7 +123,18 @@ namespace Components
 
 			case Column::Ping:
 			{
-				return Utils::String::VA("%i", server->ping);
+				if(server->ping < 75) // Below this is a good ping
+				{
+					return Utils::String::VA("^2%i", server->ping);
+				}
+				else if(server->ping < 150) // Below this is a medium ping
+				{
+					return Utils::String::VA("^3%i", server->ping);
+				}
+				else
+				{
+					return Utils::String::VA("^1%i", server->ping);
+				}
 			}
 
 			default:
