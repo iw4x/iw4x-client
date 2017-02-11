@@ -11,22 +11,24 @@ This is the third public Beta version.
 ### Added
 
 - Add working friend system.
+- Add colored pings in the server list.
 
 ### Changed
 
-- Add join on enter in serverlist (request),
-- Redesign changelog menu.
+- Join when pressing enter in server list (request).
+- Redesign and refactor all fullscreen menus.
 - Increase weapon and configstring limit.
+- Allow creating full crash dumps if wanted.
 
 ### Fixed
 
 - Fix missing models on village.
-- Custom server motd is reset (request).
+- Fix custom server motd (request).
 - Fix various memory leaks.
 - Fix mouse pitch (request).
-- Fix compatibility with b3 (request).
-- Fix RCon bug
-- Fix dedi crash on linux
+- Fix compatibility with B3 (request).
+- Fix RCon bug (request).
+- Fix dedicated server crash on linux.
 
 ### Known issues
 
