@@ -138,7 +138,7 @@ namespace Components
 		}
 	}
 
-	void Friends::UpdateHostname(Network::Address server, std::string hostname)
+	void Friends::UpdateServer(Network::Address server, std::string hostname, std::string mapname)
 	{
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
@@ -147,6 +147,7 @@ namespace Components
 			if(entry.server == server)
 			{
 				entry.serverName = hostname;
+				entry.mapname = mapname;
 			}
 		}
 	}
@@ -225,6 +226,8 @@ namespace Components
 	{
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 		if (!Steam::Proxy::SteamFriends) return;
+
+		Game::UI_UpdateArenas();
 
 		int count = Steam::Proxy::SteamFriends->GetFriendCount(4);
 
@@ -350,7 +353,7 @@ namespace Components
 			if (!Friends::IsOnline(user.lastTime)) return "Online";
 			if (user.server.getType() == Game::NA_BAD) return "Playing IW4x";
 			if (user.serverName.empty()) return Utils::String::VA("Playing on %s", user.server.getCString());
-			return Utils::String::VA("Playing on %s", user.serverName.data());
+			return Utils::String::VA("Playing %s on %s", Game::UI_LocalizeMapName(user.mapname.data()), user.serverName.data());
 		}
 
 		default:

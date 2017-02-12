@@ -14,7 +14,7 @@ namespace Components
 
 		static void UpdateFriends();
 		static void UpdateRank();
-		static void UpdateHostname(Network::Address server, std::string hostname);
+		static void UpdateServer(Network::Address server, std::string hostname, std::string mapname);
 		static void UpdateName();
 
 		static void SetPresence(std::string key, std::string value);
@@ -45,6 +45,7 @@ namespace Components
 			std::string cleanName;
 			Network::Address server;
 			std::string serverName;
+			std::string mapname;
 			bool online;
 			unsigned int lastTime;
 			int experience;

@@ -452,7 +452,7 @@ namespace Components
 			}
 
 			ServerList::Insert(address, info);
-			Friends::UpdateHostname(address, info.get("hostname"));
+			Friends::UpdateServer(address, info.get("hostname"), info.get("mapname"));
 		});
 	}
 
