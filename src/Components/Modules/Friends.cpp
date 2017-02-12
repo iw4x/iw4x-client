@@ -419,6 +419,12 @@ namespace Components
 		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_FLAG_SAVED, "");
 		Dvar::Register<bool>("cl_notifyFriendState", false, Game::DVAR_FLAG_SAVED, ""); // False by default, might set default to true and add that to the options!
 
+		// Hook Live_ShowFriendsList
+		Utils::Hook(0x4D6C70, []()
+		{
+			Command::Execute("openmenu popup_friends", true);
+		}, HOOK_JUMP).install()->quick();
+
 		// Callback to update user information
 		Steam::Proxy::RegisterCallback(336, [](void* data)
 		{
