@@ -64,14 +64,17 @@ namespace Components
 			std::string error;
 			json11::Json client = json11::Json::parse(_client.data(), error);
 
-			std::string revisionString = client["revision"].string_value();
-
-			if (!revisionString.empty())
+			if (client["revision"].is_string())
 			{
-				int revision = atoi(revisionString.data());
+				std::string revisionString = client["revision"].string_value();
 
-				Dvar::Var("cl_updateversion").get<Game::dvar_t*>()->current.integer = revision;
-				Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean = (revision > REVISION);
+				if (!revisionString.empty())
+				{
+					int revision = atoi(revisionString.data());
+
+					Dvar::Var("cl_updateversion").get<Game::dvar_t*>()->current.integer = revision;
+					Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean = (revision > REVISION);
+				}
 			}
 		}
 	}
