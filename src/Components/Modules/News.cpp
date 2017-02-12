@@ -57,28 +57,21 @@ namespace Components
 
 	void News::CheckForUpdate()
 	{
-		std::string caches = Utils::Cache::GetFile("/iw4/caches.xml");
+		std::string _client = Utils::Cache::GetFile("/json/client");
 
-		if (!caches.empty())
+		if (!_client.empty())
 		{
-			std::string str = "<Cache ID=\"iw4x\" Version=\"";
-			auto pos = caches.find(str);
+			std::string error;
+			json11::Json client = json11::Json::parse(_client.data(), error);
 
-			if (pos != std::string::npos)
+			std::string revisionString = client["revision"].string_value();
+
+			if (!revisionString.empty())
 			{
-				caches = caches.substr(pos + str.size());
+				int revision = atoi(revisionString.data());
 
-				pos = caches.find_first_of("\"");
-
-				if (pos != std::string::npos)
-				{
-					caches = caches.substr(0, pos);
-
-					int version = atoi(caches.data());
-
-					Dvar::Var("cl_updateversion").get<Game::dvar_t*>()->current.integer = version;
-					Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean = (version > REVISION);
-				}
+				Dvar::Var("cl_updateversion").get<Game::dvar_t*>()->current.integer = revision;
+				Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean = (revision > REVISION);
 			}
 		}
 	}
