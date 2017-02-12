@@ -68,6 +68,7 @@ namespace Components
 #include "Modules/Party.hpp" // Destroys the order, but requires network classes :D
 #include "Modules/Logger.hpp"
 #include "Modules/Friends.hpp"
+#include "Modules/IPCPipe.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Playlist.hpp"
 #include "Modules/RawFiles.hpp"
@@ -86,7 +87,6 @@ namespace Components
 #include "Modules/Threading.hpp"
 #include "Modules/BitMessage.hpp"
 #include "Modules/FileSystem.hpp"
-#include "Modules/IPCHandler.hpp"
 #include "Modules/ModelSurfs.hpp"
 #include "Modules/PlayerName.hpp"
 #include "Modules/QuickPatch.hpp"

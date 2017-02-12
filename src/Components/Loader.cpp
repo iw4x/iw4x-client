@@ -44,6 +44,7 @@ namespace Components
 		Loader::Register(new Command());
 		Loader::Register(new Console());
 		Loader::Register(new Friends());
+		Loader::Register(new IPCPipe());
 		Loader::Register(new ModList());
 		Loader::Register(new Network());
 		Loader::Register(new Theatre());
@@ -68,7 +69,6 @@ namespace Components
 		Loader::Register(new BitMessage());
 #endif
 		Loader::Register(new FileSystem());
-		Loader::Register(new IPCHandler());
 		Loader::Register(new ModelSurfs());
 		Loader::Register(new PlayerName());
 		Loader::Register(new QuickPatch());

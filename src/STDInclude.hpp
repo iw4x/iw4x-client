@@ -19,11 +19,6 @@
 #include <Aclapi.h>
 #include <Psapi.h>
 
-#pragma warning(push)
-#pragma warning(disable: 4996)
-#include <xutility>
-#pragma warning(pop)
-
 #include <sstream>
 #include <fstream>
 #include <cctype>
@@ -98,7 +93,6 @@ template <size_t S> class Sizer { };
 #endif
 
 #include "Utils/IO.hpp"
-#include "Utils/IPC.hpp"
 #include "Utils/CSV.hpp"
 #include "Utils/Time.hpp"
 #include "Utils/Cache.hpp"
