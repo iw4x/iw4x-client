@@ -18,15 +18,19 @@ namespace Components
 
 		static void UnlockStats();
 		static void OnShutdown(Utils::Slot<Callback> callback);
-
 		static void OnFrame(Utils::Slot<Callback> callback);
+		static void OnReady(Utils::Slot<Callback> callback);
 		static void Once(Utils::Slot<Callback> callback);
 
 	private:
+		static bool ReadyPassed;
+		static Utils::Signal<Callback> ReadySignal;
 		static Utils::Signal<Callback> ShutdownSignal;
 
 		static int64_t* GetStatsID();
 		static void ShutdownStub(int num);
+
+		static void ReadyHandler();
 
 		static void SelectStringTableEntryInDvarStub();
 

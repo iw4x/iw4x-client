@@ -125,7 +125,10 @@ namespace Components
 
 	Toast::Toast()
 	{
-		Renderer::OnFrame(Toast::Handler);
+		QuickPatch::OnReady([]()
+		{
+			Renderer::OnFrame(Toast::Handler);
+		});
 
 		Command::Add("testtoast", [] (Command::Params*)
 		{

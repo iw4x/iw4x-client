@@ -198,14 +198,7 @@ namespace Components
 	{
 		if (ConnectProtocol::Used())
 		{
-			if (!FastFiles::Ready())
-			{
-				QuickPatch::Once(ConnectProtocol::Invocation);
-			}
-			else
-			{
-				Command::Execute(Utils::String::VA("connect %s", ConnectProtocol::ConnectString.data()), false);
-			}
+			Command::Execute(Utils::String::VA("connect %s", ConnectProtocol::ConnectString.data()), false);
 		}
 	}
 
@@ -218,7 +211,7 @@ namespace Components
 		});
 
 		// Invocation handler
-		QuickPatch::Once(ConnectProtocol::Invocation);
+		QuickPatch::OnReady(ConnectProtocol::Invocation);
 
 		ConnectProtocol::InstallProtocol();
 		ConnectProtocol::EvaluateProtocol();

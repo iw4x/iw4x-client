@@ -113,7 +113,8 @@ namespace Components
 
 		Friends::SortList();
 
-		if(Dvar::Var("cl_notifyFriendState").get<bool>() && gotOnline)
+		int notify = Dvar::Var("cl_notifyFriendState").get<int>();
+		if(gotOnline && (notify == -1 || (notify == 1 && !Game::CL_IsCgameInitialized())))
 		{
 			Toast::Show("cardicon_weed", entry->name, "Is playing IW4x", 3000);
 		}
@@ -417,7 +418,7 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled() ||ZoneBuilder::IsEnabled()) return;
 		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_FLAG_SAVED, "");
-		Dvar::Register<bool>("cl_notifyFriendState", false, Game::DVAR_FLAG_SAVED, ""); // False by default, might set default to true and add that to the options!
+		Dvar::Register<int>("cl_notifyFriendState", 1, -1, 1, Game::DVAR_FLAG_SAVED, "");
 
 		// Hook Live_ShowFriendsList
 		Utils::Hook(0x4D6C70, []()

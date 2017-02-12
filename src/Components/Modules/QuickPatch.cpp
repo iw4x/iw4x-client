@@ -2,12 +2,31 @@
 
 namespace Components
 {
+	bool QuickPatch::ReadyPassed = false;
+	Utils::Signal<QuickPatch::Callback> QuickPatch::ReadySignal;
 	Utils::Signal<QuickPatch::Callback> QuickPatch::ShutdownSignal;
 
 	int64_t* QuickPatch::GetStatsID()
 	{
 		static int64_t id = 0x110000100001337;
 		return &id;
+	}
+
+	void QuickPatch::OnReady(Utils::Slot<QuickPatch::Callback> callback)
+	{
+		if(QuickPatch::ReadyPassed) QuickPatch::Once(callback);
+		else QuickPatch::ReadySignal.connect(callback);
+	}
+
+	void QuickPatch::ReadyHandler()
+	{
+		if (!FastFiles::Ready()) QuickPatch::Once(QuickPatch::ReadyHandler);
+		else
+		{
+			QuickPatch::ReadyPassed = true;
+			QuickPatch::ReadySignal();
+			QuickPatch::ReadySignal.clear();
+		}
 	}
 
 	void QuickPatch::OnShutdown(Utils::Slot<QuickPatch::Callback> callback)
@@ -174,6 +193,9 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
+		QuickPatch::ReadyPassed = false;
+		QuickPatch::Once(QuickPatch::ReadyHandler);
+
 		// Make sure preDestroy is called when the game shuts down
 		QuickPatch::OnShutdown(Loader::PreDestroy);
 
@@ -485,6 +507,7 @@ namespace Components
 
 	QuickPatch::~QuickPatch()
 	{
+		QuickPatch::ReadySignal.clear();
 		QuickPatch::ShutdownSignal.clear();
 	}
 
