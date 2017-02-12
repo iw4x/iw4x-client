@@ -115,7 +115,7 @@ namespace Components
 
 		if(Dvar::Var("cl_notifyFriendState").get<bool>() && gotOnline)
 		{
-			Toast::Show("cardicon_weed", "Friends", Utils::String::VA("%s is playing IW4x", entry->name.data()), 3000);
+			Toast::Show("cardicon_weed", entry->name, "Is playing IW4x", 3000);
 		}
 	}
 
