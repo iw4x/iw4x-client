@@ -407,11 +407,7 @@ namespace Components
 			// We can not force the termination in this thread
 			// The destructor would be called in this thread
 			// and would try to join this thread, which is impossible
-			std::thread([] ()
-			{
-				std::this_thread::sleep_for(200ms);
-				ExitProcess(static_cast<uint32_t>(-1));
-			}).detach();
+			TerminateProcess(GetCurrentProcess(), 0xFFFFFFFF);
 		}
 		else
 		{
