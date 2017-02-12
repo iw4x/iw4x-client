@@ -193,18 +193,31 @@ namespace Game
 		vec2_t knots[16];
 	};
 
-	struct MssSound
+	struct _AILSOUNDINFO
 	{
-		char unknown1[8];
-		int size;
-		char unknown2[22];
-		char *data;	// size = soundSize
+		int format;
+		const void *data_ptr;
+		unsigned int data_len;
+		unsigned int rate;
+		int bits;
+		int channels;
+		unsigned int samples;
+		unsigned int block_size;
+		const void *initial_ptr;
 	};
 
+	/* 526 */
+	struct MssSound
+	{
+		_AILSOUNDINFO info;
+		char *data;
+	};
+
+	/* 527 */
 	struct LoadedSound
 	{
 		const char *name;
-		MssSound mssSound;
+		MssSound sound;
 	};
 
 	union SoundData
