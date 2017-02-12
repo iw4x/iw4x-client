@@ -116,7 +116,7 @@ namespace Components
 		int notify = Dvar::Var("cl_notifyFriendState").get<int>();
 		if(gotOnline && (notify == -1 || (notify == 1 && !Game::CL_IsCgameInitialized())))
 		{
-			Toast::Show("cardicon_weed", entry->name, "Is playing IW4x", 3000);
+			Toast::Show("cardicon_weed", entry->name, "is playing IW4x", 3000);
 		}
 	}
 
