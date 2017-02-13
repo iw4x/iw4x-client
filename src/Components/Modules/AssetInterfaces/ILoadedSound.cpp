@@ -5,8 +5,10 @@ namespace Assets
 	void ILoadedSound::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File soundFile(Utils::String::VA("sounds/%s", name.data()));
-		if (!soundFile.exists()) {
+		if (!soundFile.exists())
+		{
 			header->loadSnd = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).loadSnd;
+			return;
 		}
 
 		Game::LoadedSound* sound = builder->getAllocator()->allocate<Game::LoadedSound>();
@@ -16,9 +18,8 @@ namespace Assets
 			return;
 		}
 
-		static Game::LoadedSound* reference = nullptr;
-		if (!reference)
-			reference = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_LOADED_SOUND, "weapons/c4_detpack/c4_drop_dirt1.wav").loadSnd;
+		Game::LoadedSound* reference = nullptr;
+		if (!reference) reference = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_LOADED_SOUND, "weapons/c4_detpack/c4_drop_dirt1.wav").loadSnd;
 
 		memcpy(sound, reference, sizeof(Game::LoadedSound));
 		sound->sound.data = nullptr;
