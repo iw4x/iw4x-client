@@ -137,6 +137,11 @@ namespace Components
 			data.push_back({ "iw4x_patch_mp", 1, 0 });
 		}
 
+		if (Utils::IO::FileExists(Dvar::Var("fs_game").get<std::string>() + "/mod.ff"))
+		{
+			data.push_back({ "mod", 1, 0 });
+		}
+
 		return FastFiles::LoadDLCUIZones(data.data(), data.size(), sync);
 	}
 
@@ -210,7 +215,7 @@ namespace Components
 		std::string path = FastFiles::GetZoneLocation(file.data());
 		path.append(file);
 
-		if (!Utils::String::EndsWith(path.data(), ".ff"))
+		if (!Utils::String::EndsWith(path, ".ff"))
 		{
 			path.append(".ff");
 		}
@@ -229,7 +234,7 @@ namespace Components
 
 		std::vector<std::string> paths; 
 		std::string modDir = Dvar::Var("fs_game").get<std::string>();
-		if (file == "mod"s || file == "mod.ff"s || !modDir.empty())
+		if ((file == "mod"s || file == "mod.ff"s) && !modDir.empty())
 		{
 			paths.push_back(Utils::String::VA("%s\\", modDir.data()));
 		}
