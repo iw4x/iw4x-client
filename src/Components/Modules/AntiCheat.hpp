@@ -60,9 +60,11 @@ namespace Components
 		static void InstallLibHook();
 
 #ifdef DEBUG_LOAD_LIBRARY
-		static HANDLE LoadLibary(std::wstring library, void* callee);
+		static HANDLE LoadLibary(std::wstring library, HANDLE file, DWORD flags, void* callee);
 		static HANDLE WINAPI LoadLibaryAStub(const char* library);
 		static HANDLE WINAPI LoadLibaryWStub(const wchar_t* library);
+		static HANDLE WINAPI LoadLibaryExAStub(const char* library, HANDLE file, DWORD flags);
+		static HANDLE WINAPI LoadLibaryExWStub(const wchar_t* library, HANDLE file, DWORD flags);
 #endif
 
 		static void LostD3DStub();

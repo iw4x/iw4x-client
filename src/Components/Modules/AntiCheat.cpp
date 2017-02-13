@@ -74,25 +74,38 @@ namespace Components
 		static uint8_t loadLibWStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8 }; // LoadLibraryW
 
 		HMODULE kernel32 = GetModuleHandleA(Utils::String::XOR(std::string(reinterpret_cast<char*>(kernel32Str), sizeof kernel32Str), -1).data());
-
 		if (kernel32)
 		{
 			FARPROC loadLibA = GetProcAddress(kernel32, Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibAStr), sizeof loadLibAStr), -1).data());
 			FARPROC loadLibW = GetProcAddress(kernel32, Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibWStr), sizeof loadLibWStr), -1).data());
 
-			if (loadLibA && loadLibW)
+			std::string libExA = Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibAStr), sizeof loadLibAStr), -1);
+			std::string libExW = Utils::String::XOR(std::string(reinterpret_cast<char*>(loadLibWStr), sizeof loadLibWStr), -1);
+
+			libExA.insert(libExA.end() - 1, 'E');
+			libExA.insert(libExA.end() - 1, 'x');
+
+			libExW.insert(libExW.end() - 1, 'E');
+			libExW.insert(libExW.end() - 1, 'x');
+
+			FARPROC loadLibExA = GetProcAddress(kernel32, libExA.data());
+			FARPROC loadLibExW = GetProcAddress(kernel32, libExW.data());
+
+			if (loadLibA && loadLibW && loadLibExA && loadLibExW)
 			{
 #ifdef DEBUG_LOAD_LIBRARY
 				AntiCheat::LoadLibHook[0].initialize(loadLibA, LoadLibaryAStub, HOOK_JUMP);
 				AntiCheat::LoadLibHook[1].initialize(loadLibW, LoadLibaryWStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[2].initialize(loadLibExA, LoadLibaryAStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[3].initialize(loadLibExW, LoadLibaryWStub, HOOK_JUMP);
 #else
 				static uint8_t loadLibStub[] = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
+				static uint8_t loadLibExStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 }; // xor eax, eax; retn 0Ch
 				AntiCheat::LoadLibHook[0].initialize(loadLibA, loadLibStub, HOOK_JUMP);
 				AntiCheat::LoadLibHook[1].initialize(loadLibW, loadLibStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[2].initialize(loadLibExA, loadLibExStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[3].initialize(loadLibExW, loadLibExStub, HOOK_JUMP);
 #endif
-				//static uint8_t loadLibExStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 }; // xor eax, eax; retn 0Ch
-				//AntiCheat::LoadLibHook[2].initialize(LoadLibraryExA, loadLibExStub, HOOK_JUMP);
-				//AntiCheat::LoadLibHook[3].initialize(LoadLibraryExW, loadLibExStub, HOOK_JUMP);
 			}
 		}
 	}
@@ -191,7 +204,7 @@ namespace Components
 	}
 
 #ifdef DEBUG_LOAD_LIBRARY
-	HANDLE AntiCheat::LoadLibary(std::wstring library, void* callee)
+	HANDLE AntiCheat::LoadLibary(std::wstring library, HANDLE file, DWORD flags, void* callee)
 	{
 		HMODULE module;
 		char buffer[MAX_PATH] = { 0 };
@@ -201,18 +214,32 @@ namespace Components
 
 		MessageBoxA(nullptr, Utils::String::VA("Loading library %s via %s %X", std::string(library.begin(), library.end()).data(), buffer, reinterpret_cast<uint32_t>(callee)), nullptr, 0);
 
-		return LoadLibraryExW(library.data(), nullptr, 0);
+		AntiCheat::LoadLibHook[3].uninstall();
+		HANDLE h = LoadLibraryExW(library.data(), file, flags);
+		AntiCheat::LoadLibHook[3].install();
+		return h;
 	}
 
 	HANDLE WINAPI AntiCheat::LoadLibaryAStub(const char* library)
 	{
 		std::string lib(library);
-		return AntiCheat::LoadLibary(std::wstring(lib.begin(), lib.end()), _ReturnAddress());
+		return AntiCheat::LoadLibary(std::wstring(lib.begin(), lib.end()), nullptr, 0, _ReturnAddress());
 	}
 
 	HANDLE WINAPI AntiCheat::LoadLibaryWStub(const wchar_t* library)
 	{
-		return AntiCheat::LoadLibary(library, _ReturnAddress());
+		return AntiCheat::LoadLibary(library, nullptr, 0, _ReturnAddress());
+	}
+
+	HANDLE WINAPI AntiCheat::LoadLibaryExAStub(const char* library, HANDLE file, DWORD flags)
+	{
+		std::string lib(library);
+		return AntiCheat::LoadLibary(std::wstring(lib.begin(), lib.end()), file, flags, _ReturnAddress());
+	}
+
+	HANDLE WINAPI AntiCheat::LoadLibaryExWStub(const wchar_t* library, HANDLE file, DWORD flags)
+	{
+		return AntiCheat::LoadLibary(library, file, flags, _ReturnAddress());
 	}
 #endif
 
@@ -228,8 +255,8 @@ namespace Components
 	{
 		AntiCheat::LoadLibHook[0].install();
 		AntiCheat::LoadLibHook[1].install();
-		//AntiCheat::LoadLibHook[2].install();
-		//AntiCheat::LoadLibHook[3].install();
+		AntiCheat::LoadLibHook[2].install();
+		AntiCheat::LoadLibHook[3].install();
 	}
 
 	void AntiCheat::PatchWinAPI()
