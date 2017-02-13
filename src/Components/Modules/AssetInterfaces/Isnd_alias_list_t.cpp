@@ -5,8 +5,10 @@ namespace Assets
 	void Isnd_alias_list_t::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File aliasFile(Utils::String::VA("sounds/%s", name.data()));
-		if (!aliasFile.exists()) {
+		if (!aliasFile.exists())
+		{
 			header->sound = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).sound;
+			return;
 		}
 
 		Game::snd_alias_list_t* aliasList = builder->getAllocator()->allocate<Game::snd_alias_list_t>();
