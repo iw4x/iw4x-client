@@ -29,6 +29,7 @@ namespace Assets
 		if (chunkIDBuffer != 0x46464952) // RIFF
 		{
 			Components::Logger::Error(0, "Reading sound '%s' failed, header is invalid!", name.data());
+			return;
 		}
 
 		unsigned int chunkSize = reader.read<unsigned int>();
@@ -37,6 +38,7 @@ namespace Assets
 		if (format != 0x45564157) // WAVE
 		{
 			Components::Logger::Error(0, "Reading sound '%s' failed, header is invalid!", name.data());
+			return;
 		}
 
 		while (!sound->sound.data && !reader.end())
@@ -53,6 +55,7 @@ namespace Assets
 					if (sound->sound.info.format != 1 && sound->sound.info.format != 17)
 					{
 						Components::Logger::Error(0, "Reading sound '%s' failed, invalid format!", name.data());
+						return;
 					}
 
 					sound->sound.info.channels = reader.read<short>();
@@ -86,9 +89,10 @@ namespace Assets
 		if (!sound->sound.info.data_ptr)
 		{
 			Components::Logger::Error(0, "Reading sound '%s' failed, invalid format!", name.data());
+			return;
 		}
 
-		sound->name = _strdup(name.c_str());
+		sound->name = builder->getAllocator()->duplicateString(name.c_str());
 		header->loadSnd = sound;
 	}
 
