@@ -217,17 +217,17 @@ namespace Components
 
 		if (menus.empty())
 		{
-			// Try loading the original menu, if we can't load our custom one
-			Game::menuDef_t* originalMenu = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, menudef->window.name).menu;
-
-			if (originalMenu)
-			{
-				menus.push_back(originalMenu);
-			}
-			else
-			{
+// 			// Try loading the original menu, if we can't load our custom one
+// 			Game::menuDef_t* originalMenu = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, menudef->window.name).menu;
+//
+// 			if (originalMenu)
+// 			{
+// 				menus.push_back(originalMenu);
+// 			}
+// 			else
+// 			{
 				menus.push_back(menudef);
-			}
+// 			}
 		}
 
 		return menus;
