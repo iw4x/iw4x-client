@@ -42,7 +42,7 @@ namespace Components
 		static void StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset);
 
 	private:
-		static thread_local bool BypassState;
+		static thread_local int BypassState;
 
 		static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	thread_local bool AssetHandler::BypassState;
+	thread_local int AssetHandler::BypassState = 0;
 	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, Utils::Slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
 	Utils::Signal<AssetHandler::RestrictCallback> AssetHandler::RestrictSignal;
@@ -55,7 +55,7 @@ namespace Components
 		if (filename)
 		{
 			// Allow call DB_FindXAssetHeader within the hook
-			AssetHandler::BypassState = true;
+			++AssetHandler::BypassState;
 
 			if (AssetHandler::TypeCallbacks.find(type) != AssetHandler::TypeCallbacks.end())
 			{
@@ -63,7 +63,7 @@ namespace Components
 			}
 
 			// Disallow calling DB_FindXAssetHeader ;)
-			AssetHandler::BypassState = false;
+			--AssetHandler::BypassState;
 		}
 
 		return header;
@@ -71,7 +71,7 @@ namespace Components
 
 	int AssetHandler::HasThreadBypass()
 	{
-		return AssetHandler::BypassState & 1;
+		return AssetHandler::BypassState > 0;
 	}
 
 	__declspec(naked) void AssetHandler::FindAssetStub()
@@ -337,11 +337,14 @@ namespace Components
 
 	Game::XAssetHeader AssetHandler::FindOriginalAsset(Game::XAssetType type, const char* filename)
 	{
-		int originalState = AssetHandler::HasThreadBypass();
-
-		AssetHandler::BypassState = true;
+		++AssetHandler::BypassState;
 		Game::XAssetHeader header = Game::DB_FindXAssetHeader(type, filename);
-		if (!originalState) AssetHandler::BypassState = false;
+		--AssetHandler::BypassState;
+
+		if(AssetHandler::BypassState < 0)
+		{
+			Logger::Error("DB_FindXAssetHeader bypass state reached level below 0, what the fuck????");
+		}
 
 		return header;
 	}
