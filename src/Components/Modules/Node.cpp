@@ -132,6 +132,17 @@ namespace Components
 		}
 		else
 		{
+			int count = 0;
+			for(auto entry : Node::Nodes)
+			{
+				if(entry.state != Node::STATE_INVALID && entry.address.getIP().full == address.getIP().full)
+				{
+					count++;
+				}
+
+				if (count >= NODE_IP_LIMIT) return;
+			}
+
 			Node::NodeEntry entry;
 
 			entry.lastHeard = Game::Sys_Milliseconds();

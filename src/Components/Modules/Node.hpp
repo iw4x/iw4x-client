@@ -9,6 +9,8 @@
 #define NODE_STORE_INTERVAL    1000 * 60* 1   // Store nodes every minute
 #define SESSION_TIMEOUT        1000 * 10      // 10 seconds session timeout
 
+#define NODE_IP_LIMIT          15
+
 #define NODE_VERSION 4
 
 namespace Components
