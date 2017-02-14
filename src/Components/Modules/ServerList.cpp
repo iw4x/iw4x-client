@@ -503,7 +503,7 @@ namespace Components
 
 				if (info.get("gamename") == "IW4"
 					&& server.matchType 
-#ifndef DEBUG
+#if !defined(DEBUG) && !defined(VERSION_FILTER)
 					&& server.shortversion == SHORTVERSION
 #endif
 					)

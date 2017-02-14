@@ -1,5 +1,8 @@
 #pragma once
 
+// This enables version filtering
+//#define VERSION_FILTER
+
 namespace Components
 {
 	class ServerList : public Component
