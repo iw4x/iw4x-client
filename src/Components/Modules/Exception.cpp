@@ -15,6 +15,12 @@ namespace Components
 		longjmp(_Buf, _Value);
 	}
 
+	__declspec(noreturn) void Exception::LongJmp(jmp_buf _Buf, int _Value)
+	{
+		AssetHandler::ResetBypassState();
+		longjmp(_Buf, _Value);
+	}
+
 	void Exception::SuspendProcess()
 	{
 		FreeConsole();
@@ -162,6 +168,7 @@ namespace Components
 #endif
 
 		//Utils::Hook(0x4B241F, Exception::ErrorLongJmp, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6B8898, Exception::LongJmp, HOOK_JUMP).install()->quick();
 
 		Command::Add("mapTest", [](Command::Params* params)
 		{

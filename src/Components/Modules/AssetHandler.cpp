@@ -74,6 +74,15 @@ namespace Components
 		return AssetHandler::BypassState > 0;
 	}
 
+	void AssetHandler::ResetBypassState()
+	{
+		if(AssetHandler::HasThreadBypass())
+		{
+			// Maybe just decrement it?
+			AssetHandler::BypassState = 0;
+		}
+	}
+
 	__declspec(naked) void AssetHandler::FindAssetStub()
 	{
 		__asm

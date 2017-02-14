@@ -41,6 +41,8 @@ namespace Components
 		static void ClearTemporaryAssets();
 		static void StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset);
 
+		static void ResetBypassState();
+
 	private:
 		static thread_local int BypassState;
 
