@@ -67,7 +67,7 @@ namespace Components
 		Exception::SuspendProcess();
 
 		bool doFullDump = Flags::HasFlag("bigdumps") || Flags::HasFlag("reallybigdumps");
-		if (!doFullDump)
+		/*if (!doFullDump)
 		{
 			if (MessageBoxA(nullptr, 
 				Utils::String::VA("%s\n\n" // errorStr
@@ -76,7 +76,7 @@ namespace Components
 			{
 				doFullDump = true;
 			}
-		}
+		}*/
 
 		if (doFullDump)
 		{
