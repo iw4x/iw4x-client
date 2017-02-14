@@ -438,8 +438,8 @@ namespace Components
 
 		// Don't load bounce sounds for now, it causes crashes
 		// TODO: Actually check the weaponfiles and/or reset the soundtable correctly!
-		Utils::Hook::Nop(0x57A360, 5);
-		Utils::Hook::Nop(0x57A366, 6);
+		//Utils::Hook::Nop(0x57A360, 5);
+		//Utils::Hook::Nop(0x57A366, 6);
 
 		// Clear weapons independently from fs_game
 		//Utils::Hook::Nop(0x452C1D, 2);
