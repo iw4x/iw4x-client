@@ -31,6 +31,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix menu crash.
 - Fix typo in security increase popmenu.
 - Fix audio bug in options menu.
+- Potentially fix no-ammo bug.
 
 ## [0.3.2] - 2017-02-12
 
