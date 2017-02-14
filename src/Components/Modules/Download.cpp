@@ -414,7 +414,10 @@ namespace Components
 			std::string url(message->uri.p, message->uri.len);
 			Utils::String::Replace(url, "\\", "/");
 			
-			url = url.substr(6);
+			if (url.size() >= 6)
+			{
+				url = url.substr(6);
+			}
 
 			Utils::String::Replace(url, "%20", " ");
 
