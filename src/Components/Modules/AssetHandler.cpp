@@ -113,7 +113,7 @@ namespace Components
 
 			add esp, 8h
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 			pop eax
 

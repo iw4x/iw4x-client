@@ -33,7 +33,7 @@ namespace Components
 
 	MusicalTalent::MusicalTalent()
 	{
-		if (ZoneBuilder::IsEnabled()) return;
+		if (ZoneBuilder::IsEnabled() || Dedicated::IsEnabled()) return;
 
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_SOUND, MusicalTalent::ModifyAliases);
 
