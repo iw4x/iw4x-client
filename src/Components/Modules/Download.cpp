@@ -414,12 +414,6 @@ namespace Components
 			std::string url(message->uri.p, message->uri.len);
 			Utils::String::Replace(url, "\\", "/");
 			
-			if (url.length() < 6)
-			{
-				Download::Forbid(nc);
-				return;
-			}
-			
 			url = url.substr(6);
 
 			Utils::String::Replace(url, "%20", " ");
@@ -609,7 +603,7 @@ namespace Components
 					// Handle special requests
 					mg_register_http_endpoint(nc, "/info", Download::InfoHandler);
 					mg_register_http_endpoint(nc, "/list", Download::ListHandler);
-					mg_register_http_endpoint(nc, "/file", Download::FileHandler);
+					mg_register_http_endpoint(nc, "/file/", Download::FileHandler);
 
 					mg_set_protocol_http_websocket(nc);
 				}
