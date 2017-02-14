@@ -11,26 +11,26 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Added
 
 - Add mapname to friend status (request).
-- Add support for mod.ff.
 - Add option to toggle notify friend state.
+- Add support for mod.ff.
 
 ### Changed
 
-- Move build number location.
-- Limit dedicated servers to 15 instances per IP.
 - Disabled big minidump message box.
+- Limit dedicated servers to 15 instances per IP.
+- Move build number location.
 - Remove news ticker and friends button from theater.
 
 ### Fixed
 
+- Fix audio bug in options menu.
 - Fix crash caused by faulty file download requests to game hosts.
 - Fix friend sorting.
-- Fix weapon crash issue.
 - Fix game not starting issue under certain circumstances.
-- Fix vid_restart crash with connect protocol.
 - Fix menu crash.
 - Fix typo in security increase popmenu.
-- Fix audio bug in options menu.
+- Fix vid_restart crash with connect protocol.
+- Fix weapon crash issue.
 - Potentially fix no-ammo bug.
 
 ## [0.3.2] - 2017-02-12
