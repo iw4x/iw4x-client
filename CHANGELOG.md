@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
-- Fix a critical bugfix.
+- Fix crash caused by faulty file download requests to game hosts.
 - Fix friend sorting.
 - Fix weapon crash issue.
 - Fix game not starting issue under certain circumstances.
