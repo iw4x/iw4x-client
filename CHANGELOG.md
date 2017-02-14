@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.3.3] - to be released
+
+### Added
+
+- Add mapname to friend status (request).
+- Add support for mod.ff.
+- Add option to toggle notify friend state.
+
+### Changed
+
+- Move build number location.
+- Limit dedicated servers to 15 instances per IP.
+- Disabled big minidump message box.
+- Remove news ticker and friends button from theater.
+
+### Fixed
+
+- Fix a critical bugfix.
+- Fix friend sorting.
+- Fix weapon crash issue.
+- Fix game not starting issue under certain circumstances.
+- Fix vid_restart crash with connect protocol.
+- Fix menu crash.
+- Fix typo in security increase popmenu.
+- Fix audio bug in options menu.
+
 ## [0.3.2] - 2017-02-12
 
 This is the third public Beta version.
