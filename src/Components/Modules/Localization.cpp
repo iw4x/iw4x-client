@@ -161,34 +161,34 @@ namespace Components
 	{
 		static const char* staff[] =
 		{
-			"Snake",
-			"/dev/sr0",
 			"/dev/../",
-			"/dev/sdb",
 			"/dev/console",
 			"/dev/full",
+			"/dev/sdb",
+			"/dev/sr0",
 			"/dev//dev/tty0",
 			"/dev/urandom",
+			"Snake",
 		};
 
 		static const char* contributors[] =
 		{
-			"Slykuiper",
-			"Shadow the Hedgehog",
-			"RezTech",
 			"a231",
-			"Lithium",
 			"AmateurHailbut",
 			"Aoki",
 			"civil",
 			"Dasfonia",
+			"Deity",
 			"Dizzy",
 			"HardNougat",
 			"Killera",
+			"Lithium",
 			"Revo",
+			"RezTech",
+			"Shadow the Hedgehog",
+			"Slykuiper",
 			"st0rm",
 			"VVLNT",
-			"Deity",
 		};
 
 		static const char* specials[] =
