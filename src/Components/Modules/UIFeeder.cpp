@@ -347,7 +347,8 @@ namespace Components
 
 	int UIFeeder::CheckSelection(int feeder)
 	{
-		if (feeder == 62) return 0;
+		// Changelog and server info (player list) should not have the hover effect
+		if (feeder == 62 || feeder == 13) return 0;
 		return 1;
 	}
 
