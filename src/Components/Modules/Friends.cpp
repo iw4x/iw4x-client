@@ -114,7 +114,7 @@ namespace Components
 		Friends::SortList();
 
 		int notify = Dvar::Var("cl_notifyFriendState").get<int>();
-		if(gotOnline && (notify == -1 || (notify == 1 && !Game::CL_IsCgameInitialized())))
+		if(gotOnline && (notify == -1 || (notify == 1 && !Game::CL_IsCgameInitialized())) && !Dvar::Var("ui_streamFriendly").get<bool>())
 		{
 			Toast::Show("cardicon_weed", entry->name, "is playing IW4x", 3000);
 		}
