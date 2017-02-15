@@ -504,7 +504,7 @@ namespace Components
 				if (info.get("gamename") == "IW4"
 					&& server.matchType 
 #if !defined(DEBUG) && defined(VERSION_FILTER)
-					&& server.shortversion == SHORTVERSION
+					&& ServerList::CompareVersion(server.shortversion, SHORTVERSION)
 #endif
 					)
 				{
@@ -524,6 +524,26 @@ namespace Components
 				++i;
 			}
 		}
+	}
+
+	bool ServerList::CompareVersion(std::string version1, std::string version2)
+	{
+		std::vector<std::string> subVersions1 = Utils::String::Explode(version1, '.');
+		std::vector<std::string> subVersions2 = Utils::String::Explode(version2, '.');
+
+		while (subVersions1.size() >= 3) subVersions1.pop_back();
+		while (subVersions2.size() >= 3) subVersions2.pop_back();
+		if (subVersions1.size() != subVersions2.size()) return false;
+
+		for(unsigned int i = 0; i < subVersions1.size(); ++i)
+		{
+			if(atoi(subVersions1[i].data()) != atoi(subVersions2[i].data()))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	ServerList::ServerInfo* ServerList::GetCurrentServer()

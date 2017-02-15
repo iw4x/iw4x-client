@@ -126,6 +126,8 @@ namespace Components
 		static ServerInfo* GetServer(unsigned int index);
 		static std::vector<ServerInfo>* GetList();
 
+		static bool CompareVersion(std::string version1, std::string version2);
+
 		static int SortKey;
 		static bool SortAsc;
 
