@@ -78,6 +78,8 @@ namespace Components
 			}
 		}*/
 
+		MessageBoxA(nullptr, errorStr, "ERROR", MB_ICONERROR);
+
 		if (doFullDump)
 		{
 			Exception::SetMiniDumpType(true, false);
