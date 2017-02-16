@@ -145,6 +145,7 @@ namespace Steam
 		// friend iteration
 		virtual int32_t GetFriendCount(int iFriendFlags) = 0;
 		virtual uint32_t GetFriendArray(SteamID *, int8_t *, int32_t, int32_t) = 0;
+		virtual uint32_t GetFriendArrayInGame(SteamID *, int8_t *, int32_t) = 0;
 		virtual SteamID GetFriendByIndex(int32_t iFriend, int iFriendFlags) = 0;
 
 		virtual int32_t GetOnlineFriendCount() = 0;
@@ -159,6 +160,7 @@ namespace Steam
 		virtual int32_t GetSmallFriendAvatar(SteamID steamIDFriend) = 0;
 		virtual int32_t GetMediumFriendAvatar(SteamID steamIDFriend) = 0;
 		virtual int32_t GetLargeFriendAvatar(SteamID steamIDFriend) = 0;
+		virtual int32_t BGetFriendAvatarURL(void *, size_t, int, int, int) = 0;
 
 		// steam registry, accessed by friend
 		virtual void SetFriendRegValue(SteamID steamIDFriend, const char *pchKey, const char *pchValue) = 0;
@@ -179,7 +181,7 @@ namespace Steam
 		// accesses old friends names - returns an empty string when their are no more items in the history
 		virtual const char *GetFriendPersonaNameHistory(SteamID steamIDFriend, int32_t iPersonaName) = 0;
 
-		virtual uint32_t GetFriendSteamLevel(SteamID steamIDFriend) = 0;
+		//virtual uint32_t GetFriendSteamLevel(SteamID steamIDFriend) = 0;
 
 		virtual uint64_t RequestPersonaNameHistory(SteamID steamIDFriend) = 0;
 		virtual const char * GetFriendPersonaNameHistoryAndDate(SteamID steamIDFriend, int32_t iPersonaName, int * puTime) = 0;
