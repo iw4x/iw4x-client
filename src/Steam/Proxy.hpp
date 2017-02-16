@@ -284,7 +284,7 @@ namespace Steam
 		virtual void *GetIClientGameServer(void* hSteamUser, void* hSteamPipe, const char *pchVersion) = 0;
 		virtual void SetLocalIPBinding(uint32_t unIP, uint16_t usPort) = 0;
 		virtual char const *GetUniverseName(int eUniverse) = 0;
-		virtual void *GetIClientFriends(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
+		virtual IClientFriends *GetIClientFriends(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
 		virtual void *GetIClientUtils(void* hSteamPipe, char const* pchVersion) = 0;
 		virtual void *GetIClientBilling(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
 		virtual void *GetIClientMatchmaking(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
@@ -355,6 +355,7 @@ namespace Steam
 		static Friends15* SteamFriends;
 		static Friends2* SteamLegacyFriends;
 		static Utils* SteamUtils;
+		static IClientFriends* ClientFriends;
 
 	private:
 		typedef bool(SteamBGetCallbackFn)(void* hpipe, void *pCallbackMsg);

@@ -20,6 +20,8 @@ namespace Components
 		static void SetPresence(std::string key, std::string value);
 		static void ClearPresence(std::string key);
 
+		static void AddFriend(SteamID user);
+
 	private:
 #pragma pack(push, 4)
 		struct FriendRichPresenceUpdate

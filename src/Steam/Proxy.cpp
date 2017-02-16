@@ -8,6 +8,7 @@ namespace Steam
 	ISteamClient008* Proxy::SteamClient = nullptr;
 	IClientEngine*   Proxy::ClientEngine = nullptr;
 	IClientUser*     Proxy::ClientUser = nullptr;
+	IClientFriends*  Proxy::ClientFriends = nullptr;
 
 	void* Proxy::SteamPipe = nullptr;
 	void* Proxy::SteamUser = nullptr;
@@ -202,6 +203,9 @@ namespace Steam
 
 		Proxy::ClientUser = Proxy::ClientEngine->GetIClientUser(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTUSER_INTERFACE_VERSION001");
 		if (!Proxy::ClientUser) return false;
+
+		Proxy::ClientFriends = Proxy::ClientEngine->GetIClientFriends(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTFRIENDS_INTERFACE_VERSION001");
+		if (!Proxy::ClientFriends) return false;
 
 		Proxy::SteamFriends = reinterpret_cast<Friends15*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamFriends015"));
 		if (!Proxy::SteamFriends) return false;

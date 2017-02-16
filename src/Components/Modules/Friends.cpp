@@ -384,6 +384,21 @@ namespace Components
 		}
 	}
 
+	void Friends::AddFriend(SteamID user)
+	{
+		if(Steam::Proxy::ClientFriends)
+		{
+			if(Steam::Proxy::ClientFriends->AddFriend(user))
+			{
+				Toast::Show("cardicon_weed", Steam::Proxy::ClientFriends->GetFriendPersonaName(user), "friend request sent", 3000);
+			}
+			else
+			{
+				Toast::Show("cardicon_stop", Steam::Proxy::ClientFriends->GetFriendPersonaName(user), "unable to send friend request", 3000);
+			}
+		}
+	}
+
 	void Friends::UpdateTimeStamp()
 	{
 		Friends::SetPresence("iw4x_playing", Utils::String::VA("%d", Steam::SteamUtils()->GetServerRealTime()));
@@ -422,6 +437,15 @@ namespace Components
 		if (Dedicated::IsEnabled() ||ZoneBuilder::IsEnabled()) return;
 		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_FLAG_SAVED, "");
 		Dvar::Register<int>("cl_notifyFriendState", 1, -1, 1, Game::DVAR_FLAG_SAVED, "");
+
+		Command::Add("addFriend", [](Command::Params* params)
+		{
+			if (params->length() <= 1) return;
+			SteamID id;
+			id.Bits = atoll(params->get(1));
+
+			Friends::AddFriend(id);
+		});
 
 		// Hook Live_ShowFriendsList
 		Utils::Hook(0x4D6C70, []()
