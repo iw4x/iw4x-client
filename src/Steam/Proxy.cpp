@@ -89,8 +89,6 @@ namespace Steam
 		}
 	}
 
-	class KeyValuesBuilder { private: 	std::stringstream m_buffer; 	inline void PackBytes(const void* bytes, size_t size) { m_buffer << std::string(reinterpret_cast<const char*>(bytes), size); } 	inline void PackDataType(uint8_t type) { PackBytes(&type, 1); } 	inline void PackNullTerminated(const char* string) { PackBytes(string, strlen(string) + 1); } public: 	inline void PackString(const char* key, const char* value) { PackDataType(1); 		PackNullTerminated(key); 		PackNullTerminated(value); } 	inline void PackUint64(const char* key, uint64_t value) { PackDataType(7); 		PackNullTerminated(key); 		PackBytes(&value, sizeof(value)); } 	inline void PackEnd() { PackDataType(8); } 	inline std::string GetString() { return m_buffer.str(); } };
-
 	void Proxy::SetMod(std::string mod)
 	{
 		if (!Proxy::ClientUser || Components::Flags::HasFlag("nosteam")) return;
@@ -99,9 +97,6 @@ namespace Steam
 		gameID.m_nType = 1; // k_EGameIDTypeGameMod
 		gameID.m_nAppID = Proxy::AppId & 0xFFFFFF;
 		gameID.m_nModID = 0xBAADF00D;
-
-		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
-		clientApps.invoke<bool>("SetLocalAppConfig", 0, nullptr, 0);
 
 		char ourPath[MAX_PATH] = { 0 };
 		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
