@@ -31,7 +31,7 @@ typedef union
 		unsigned int m_nModID : 32;
 	};
 
-	unsigned long long Bits;
+	unsigned long long bits;
 } GameID_t;
 #pragma pack( pop )
 

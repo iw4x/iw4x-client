@@ -98,14 +98,31 @@ namespace Steam
 		gameID.m_nAppID = Proxy::AppId & 0xFFFFFF;
 		gameID.m_nModID = 0xBAADF00D;
 
-		char ourPath[MAX_PATH] = { 0 };
-		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
+		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
+		Interface clientShortcuts(Proxy::ClientEngine->GetIClientShortcuts(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTSHORTCUTS_INTERFACE_VERSION001"));
+		if (!clientApps || clientShortcuts) return;
 
-		char ourDirectory[MAX_PATH] = { 0 };
-		GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
+		KeyValuesBuilder builder;
+		builder.packString("name", mod.data());
+		builder.packUint64("gameid", gameID.bits);
+		builder.packString("installed", "1");
+		builder.packString("gamedir", "IW4x");
+		builder.packString("serverbrowsername", "IW4x");
+		builder.packEnd();
 
-		std::string cmdline = ::Utils::String::VA("\"%s\" -proc %d", ourPath, GetCurrentProcessId());
-		Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.Bits, Proxy::AppId, mod.data(), 0, 0);
+		std::string str = builder.getString();
+		uint32_t uniqueId = clientShortcuts.invoke<uint32_t>("GetUniqueLocalAppId");
+		if (clientApps.invoke<bool>("SetLocalAppConfig", uniqueId, str.data(), static_cast<uint32_t>(str.size())))
+		{
+			char ourPath[MAX_PATH] = { 0 };
+			GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
+
+			char ourDirectory[MAX_PATH] = { 0 };
+			GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
+
+			std::string cmdline = ::Utils::String::VA("\"%s\" -proc %d", ourPath, GetCurrentProcessId());
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
+		}
 	}
 
 	void Proxy::RunMod()

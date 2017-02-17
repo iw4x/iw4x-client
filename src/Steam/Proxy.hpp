@@ -131,6 +131,53 @@ namespace Steam
 		std::string getMethodName(unsigned char* methodPtr);
 	};
 
+	class KeyValuesBuilder
+	{
+	private:
+		std::stringstream m_buffer;
+
+		inline void packBytes(const void* bytes, size_t size)
+		{
+			m_buffer << std::string(reinterpret_cast<const char*>(bytes), size);
+		}
+
+		inline void packDataType(uint8_t type)
+		{
+			packBytes(&type, 1);
+		}
+
+		inline void packNullTerminated(const char* string)
+		{
+			packBytes(string, strlen(string) + 1);
+		}
+
+	public:
+		inline void packString(const char* key, const char* value)
+		{
+			packDataType(1);
+			packNullTerminated(key);
+			packNullTerminated(value);
+		}
+
+		inline void packUint64(const char* key, uint64_t value)
+		{
+			packDataType(7);
+			packNullTerminated(key);
+			packBytes(&value, sizeof(value));
+		}
+
+		inline void packEnd()
+		{
+			packDataType(8);
+		}
+
+		inline std::string getString()
+		{
+			return m_buffer.str();
+		}
+	};
+
+
 	class Proxy
 	{
 	public:
