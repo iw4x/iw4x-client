@@ -318,10 +318,10 @@ namespace Steam
 		{
 			if (Proxy::SteamUser)
 			{
-				//Proxy::SteamClient->ReleaseUser(Proxy::SteamPipe, Proxy::SteamUser);
+				Proxy::SteamClient->ReleaseUser(Proxy::SteamPipe, Proxy::SteamUser);
 			}
 
-			//Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
+			Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
 		}
 
 		Proxy::Client = ::Utils::Library();
