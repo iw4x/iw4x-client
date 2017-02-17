@@ -76,7 +76,7 @@ namespace Steam
 	{
 		Proxy::AppId = appId;
 
-		if (!Components::Flags::HasFlag("nosteam"))
+		if (!Components::Flags::HasFlag("nosteam") && !Components::Dedicated::IsEnabled())
 		{
 			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", appId));
 			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", appId & 0xFFFFFF));
@@ -91,7 +91,7 @@ namespace Steam
 
 	void Proxy::SetMod(std::string mod)
 	{
-		if (!Proxy::ClientUser || Components::Flags::HasFlag("nosteam")) return;
+		if (!Proxy::ClientUser || Components::Flags::HasFlag("nosteam") || Components::Dedicated::IsEnabled()) return;
 
 		GameID_t gameID;
 		gameID.m_nType = 1; // k_EGameIDTypeGameMod
@@ -104,13 +104,13 @@ namespace Steam
 		char ourDirectory[MAX_PATH] = { 0 };
 		GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
 
-		std::string cmdline = ::Utils::String::VA("\"%s\" -parentProc %d", ourPath, GetCurrentProcessId());
+		std::string cmdline = ::Utils::String::VA("\"%s\" -proc %d", ourPath, GetCurrentProcessId());
 		Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.Bits, Proxy::AppId, mod.data(), 0, 0);
 	}
 
 	void Proxy::RunMod()
 	{
-		char* command = "-parentProc ";
+		char* command = "-proc ";
 		char* parentProc = strstr(GetCommandLineA(), command);
 
 		if (parentProc)
