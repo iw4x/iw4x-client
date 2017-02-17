@@ -160,17 +160,19 @@ namespace Components
 
 	void Friends::ClearPresence(std::string key)
 	{
-		if (Steam::Proxy::SteamFriends)
+		if (Steam::Proxy::ClientFriends)
 		{
-			Steam::Proxy::SteamFriends->SetRichPresence(key.data(), nullptr);
+			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", 0, key.data(), nullptr);
+			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", Steam::Proxy::AppId, key.data(), nullptr);
 		}
 	}
 
 	void Friends::SetPresence(std::string key, std::string value)
 	{
-		if (Steam::Proxy::SteamFriends && !Dvar::Var("cl_anonymous").get<bool>())
+		if (Steam::Proxy::ClientFriends && !Dvar::Var("cl_anonymous").get<bool>())
 		{
-			Steam::Proxy::SteamFriends->SetRichPresence(key.data(), value.data());
+			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", 0, key.data(), value.data());
+			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", Steam::Proxy::AppId, key.data(), value.data());
 		}
 	}
 
@@ -584,9 +586,10 @@ namespace Components
 
 			if(Dvar::Var("cl_anonymous").get<bool>())
 			{
-				if (Steam::Proxy::SteamFriends)
+				if (Steam::Proxy::ClientFriends)
 				{
-					Steam::Proxy::SteamFriends->ClearRichPresence();
+					Steam::Proxy::ClientFriends.invoke<void>("ClearRichPresence", 0);
+					Steam::Proxy::ClientFriends.invoke<void>("ClearRichPresence", Steam::Proxy::AppId);
 				}
 			}
 

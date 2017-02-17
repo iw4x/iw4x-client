@@ -110,12 +110,12 @@ namespace Steam
 
 			if (!Proxy::Inititalize())
 			{
-				OutputDebugStringA("Steamproxy not initialized properly");
+				OutputDebugStringA("Steam proxy not initialized properly");
 				Components::StartupMessages::AddMessage("Warning:\nUnable to connect to Steam. Steam features will be unavailable");
 			}
 			else
 			{
-				Steam::Proxy::SetMod("IW4x - Modern Warfare 2");
+				Steam::Proxy::SetMod("IW4x \xF0\x9F\x90\x8D");
 			}
 
 			return true;
