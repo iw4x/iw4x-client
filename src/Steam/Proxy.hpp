@@ -204,7 +204,6 @@ namespace Steam
 		static void UnregisterCallback(int32_t callId);
 
 		static Friends15* SteamFriends;
-		static Friends2* SteamLegacyFriends;
 		static Utils* SteamUtils;
 		static User* SteamUser_;
 		static Interface ClientFriends;

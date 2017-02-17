@@ -111,14 +111,4 @@ namespace Steam
 		virtual uint64_t IsFollowing(SteamID steamID) = 0;
 		virtual uint64_t EnumerateFollowingList(uint32_t unStartIndex) = 0;
 	};
-
-	class Friends2
-	{
-	public:
-		virtual const char *GetPersonaName() = 0;
-		virtual void SetPersonaName(const char *pchPersonaName) = 0;
-		virtual int GetPersonaState() = 0;
-		virtual void SetPersonaState(int ePersonaState) = 0;
-		// [...]
-	};
 }

@@ -126,10 +126,10 @@ namespace Components
 
 		if(force)
 		{
-			if (Steam::Proxy::SteamLegacyFriends)
+			if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
 			{
-				int state = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
-				Steam::Proxy::SteamLegacyFriends->SetPersonaState((state == 1 ? 2 : 1));
+				int state = Steam::Proxy::SteamFriends->GetPersonaState();
+				Steam::Proxy::ClientFriends.invoke<void>("SetPersonaState", (state == 1 ? 2 : 1));
 			}
 		}
 		else
@@ -571,17 +571,17 @@ namespace Components
 			}
 #endif
 
-			if(Steam::Proxy::SteamLegacyFriends)
+			if(Steam::Proxy::ClientFriends)
 			{
-				Steam::Proxy::SteamLegacyFriends->SetPersonaState(Friends::InitialState);
+				Steam::Proxy::ClientFriends.invoke<void>("SetPersonaState", Friends::InitialState);
 			}
 		});
 
 		QuickPatch::Once([]()
 		{
-			if (Steam::Proxy::SteamLegacyFriends)
+			if (Steam::Proxy::SteamFriends)
 			{
-				Friends::InitialState = Steam::Proxy::SteamLegacyFriends->GetPersonaState();
+				Friends::InitialState = Steam::Proxy::SteamFriends->GetPersonaState();
 			}
 
 			if(Dvar::Var("cl_anonymous").get<bool>())
