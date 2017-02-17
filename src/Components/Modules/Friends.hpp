@@ -20,6 +20,9 @@ namespace Components
 		static void SetPresence(std::string key, std::string value);
 		static void ClearPresence(std::string key);
 
+		static void RequestPresence(SteamID user);
+		static std::string GetPresence(SteamID user, std::string key);
+
 		static void AddFriend(SteamID user);
 
 	private:

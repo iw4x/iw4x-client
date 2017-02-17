@@ -75,21 +75,21 @@ namespace Components
 		entry->online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
 		entry->cleanName = Utils::String::ToLower(Colors::Strip(entry->name));
 
-		std::string guid = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_guid");
-		std::string name = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_name");
-		std::string experience = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_experience");
-		std::string prestige = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_prestige");
+		std::string guid = Friends::GetPresence(user, "iw4x_guid");
+		std::string name = Friends::GetPresence(user, "iw4x_name");
+		std::string experience = Friends::GetPresence(user, "iw4x_experience");
+		std::string prestige = Friends::GetPresence(user, "iw4x_prestige");
 
 		if (!guid.empty()) entry->guid.Bits = strtoull(guid.data(), nullptr, 16);
 		if (!name.empty()) entry->playerName = name;
 		if (!experience.empty()) entry->experience = atoi(experience.data());
 		if (!prestige.empty()) entry->prestige = atoi(prestige.data());
 
-		std::string server = Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_server");
+		std::string server = Friends::GetPresence(user, "iw4x_server");
 		Network::Address oldAddress = entry->server;
 
 		bool gotOnline = Friends::IsOnline(entry->lastTime);
-		entry->lastTime = static_cast<unsigned int>(atoi(Steam::Proxy::SteamFriends->GetFriendRichPresence(user, "iw4x_playing")));
+		entry->lastTime = static_cast<unsigned int>(atoi(Friends::GetPresence(user, "iw4x_playing").data()));
 		gotOnline = !gotOnline && Friends::IsOnline(entry->lastTime);
 
 		if (server.empty())
@@ -172,6 +172,24 @@ namespace Components
 		{
 			Steam::Proxy::SteamFriends->SetRichPresence(key.data(), value.data());
 		}
+	}
+
+	void Friends::RequestPresence(SteamID user)
+	{
+		if(Steam::Proxy::ClientFriends)
+		{
+			Steam::Proxy::ClientFriends.invoke<void>("RequestFriendRichPresence", 0, user);
+			Steam::Proxy::ClientFriends.invoke<void>("RequestFriendRichPresence", Steam::Proxy::AppId, user);
+		}
+	}
+
+	std::string Friends::GetPresence(SteamID user, std::string key)
+	{
+		if (!Steam::Proxy::ClientFriends) return "";
+
+		std::string result = Steam::Proxy::ClientFriends.invoke<const char*>("GetFriendRichPresence", Steam::Proxy::AppId, user, key.data());
+		if (result.empty()) result = Steam::Proxy::ClientFriends.invoke<const char*>("GetFriendRichPresence", 0, user, key.data());
+		return result;
 	}
 
 	void Friends::SetServer()
@@ -291,7 +309,7 @@ namespace Components
 				++i;
 
 				Friends::UpdateUserInfo(id);
-				Steam::Proxy::SteamFriends->RequestFriendRichPresence(id);
+				Friends::RequestPresence(id);
 			}
 		}
 	}
@@ -386,15 +404,15 @@ namespace Components
 
 	void Friends::AddFriend(SteamID user)
 	{
-		if(Steam::Proxy::ClientFriends)
+		if(Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
 		{
-			if(Steam::Proxy::ClientFriends->AddFriend(user))
+			if(Steam::Proxy::ClientFriends.invoke<bool>("AddFriend", user))
 			{
-				Toast::Show("cardicon_weed", Steam::Proxy::ClientFriends->GetFriendPersonaName(user), "friend request sent", 3000);
+				Toast::Show("cardicon_weed", Steam::Proxy::SteamFriends->GetFriendPersonaName(user), "friend request sent", 3000);
 			}
 			else
 			{
-				Toast::Show("cardicon_stop", Steam::Proxy::ClientFriends->GetFriendPersonaName(user), "unable to send friend request", 3000);
+				Toast::Show("cardicon_stop", Steam::Proxy::SteamFriends->GetFriendPersonaName(user), "unable to send friend request", 3000);
 			}
 		}
 	}
@@ -464,7 +482,7 @@ namespace Components
 		Steam::Proxy::RegisterCallback(304, [](void* data)
 		{
 			Friends::PersonaStateChange* state = static_cast<Friends::PersonaStateChange*>(data);
-			if (Steam::Proxy::SteamFriends) Steam::Proxy::SteamFriends->RequestFriendRichPresence(state->m_ulSteamID);
+			Friends::RequestPresence(state->m_ulSteamID);
 		});
 
 		// Update state when connecting/disconnecting

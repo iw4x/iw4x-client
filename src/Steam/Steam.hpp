@@ -22,14 +22,17 @@ typedef union
 
 
 #pragma pack( push, 1 )
-
-struct GameID_t
+typedef union
 {
-	unsigned int m_nAppID : 24;
-	unsigned int m_nType : 8;
-	unsigned int m_nModID : 32;
-};
+	struct
+	{
+		unsigned int m_nAppID : 24;
+		unsigned int m_nType : 8;
+		unsigned int m_nModID : 32;
+	};
 
+	unsigned long long Bits;
+} GameID_t;
 #pragma pack( pop )
 
 #include "Interfaces/SteamUser.hpp"

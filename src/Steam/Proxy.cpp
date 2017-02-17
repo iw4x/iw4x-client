@@ -7,8 +7,8 @@ namespace Steam
 
 	ISteamClient008* Proxy::SteamClient = nullptr;
 	IClientEngine*   Proxy::ClientEngine = nullptr;
-	IClientUser*     Proxy::ClientUser = nullptr;
-	IClientFriends*  Proxy::ClientFriends = nullptr;
+	Interface        Proxy::ClientUser;
+	Interface        Proxy::ClientFriends;
 
 	void* Proxy::SteamPipe = nullptr;
 	void* Proxy::SteamUser = nullptr;
@@ -16,6 +16,7 @@ namespace Steam
 	Friends15* Proxy::SteamFriends = nullptr;
 	Friends2* Proxy::SteamLegacyFriends = nullptr;
 	Utils* Proxy::SteamUtils = nullptr;
+	User* Proxy::SteamUser_ = nullptr;
 
 	uint32_t Proxy::AppId = 0;
 
@@ -27,19 +28,113 @@ namespace Steam
 	std::function<Proxy::SteamFreeLastCallbackFn> Proxy::SteamFreeLastCallback;
 	std::function<Proxy::SteamGetAPICallResultFn> Proxy::SteamGetAPICallResult;
 
+	void* Interface::getMethod(std::string method)
+	{
+		if(this->methodCache.find(method) != this->methodCache.end())
+		{
+			return this->methodCache[method];
+		}
+
+		void* methodPtr = Interface::lookupMethod(method);
+		this->methodCache[method] = methodPtr;
+		return methodPtr;
+	}
+
+	void* Interface::lookupMethod(std::string method)
+	{
+		if (IsBadReadPtr(this->interfacePtr, 4)) return nullptr;
+		unsigned char** vftbl = *static_cast<unsigned char***>(this->interfacePtr);
+
+		while (!IsBadReadPtr(vftbl, 4) && !IsBadCodePtr((FARPROC(*vftbl))))
+		{
+			if(this->getMethodName(*vftbl) == method) return *vftbl;
+			++vftbl;
+		}
+
+		return nullptr;
+	}
+
+	std::string Interface::getMethodName(unsigned char* methodPtr)
+	{
+		for(;!IsBadReadPtr(methodPtr, 1); ++methodPtr)
+		{
+			if(methodPtr[0] == 0x68) // Push
+			{
+				char* name = *reinterpret_cast<char**>(&methodPtr[1]);
+				if(!IsBadReadPtr(name, 1)) return name;
+			}
+			else if(methodPtr[0] == 0xC2 && methodPtr[2] == 0) // __stdcall return
+			{
+				break;
+			}
+		}
+
+		return "";
+	}
+
 	void Proxy::SetGame(uint32_t appId)
 	{
 		Proxy::AppId = appId;
 
-// 		if (!Components::Flags::HasFlag("nosteam"))
-// 		{
-// 			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", appId));
-// 			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", appId & 0xFFFFFF));
-// 
-// 			::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", appId), false);
-// 		}
+		if (!Components::Flags::HasFlag("nosteam"))
+		{
+			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", appId));
+			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", appId & 0xFFFFFF));
 
-		remove("steam_appid.txt");
+			::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", appId), false);
+		}
+		else
+		{
+			remove("steam_appid.txt");
+		}
+	}
+
+	class KeyValuesBuilder { private: 	std::stringstream m_buffer; 	inline void PackBytes(const void* bytes, size_t size) { m_buffer << std::string(reinterpret_cast<const char*>(bytes), size); } 	inline void PackDataType(uint8_t type) { PackBytes(&type, 1); } 	inline void PackNullTerminated(const char* string) { PackBytes(string, strlen(string) + 1); } public: 	inline void PackString(const char* key, const char* value) { PackDataType(1); 		PackNullTerminated(key); 		PackNullTerminated(value); } 	inline void PackUint64(const char* key, uint64_t value) { PackDataType(7); 		PackNullTerminated(key); 		PackBytes(&value, sizeof(value)); } 	inline void PackEnd() { PackDataType(8); } 	inline std::string GetString() { return m_buffer.str(); } };
+
+	void Proxy::SetMod(std::string mod)
+	{
+		if (!Proxy::ClientUser || Components::Flags::HasFlag("nosteam")) return;
+
+		GameID_t gameID;
+		gameID.m_nType = 1; // k_EGameIDTypeGameMod
+		gameID.m_nAppID = Proxy::AppId & 0xFFFFFF;
+		gameID.m_nModID = 0xBAADF00D;
+
+		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
+		clientApps.invoke<bool>("SetLocalAppConfig", 0, nullptr, 0);
+
+		char ourPath[MAX_PATH] = { 0 };
+		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
+
+		char ourDirectory[MAX_PATH] = { 0 };
+		GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
+
+		std::string cmdline = ::Utils::String::VA("\"%s\" -parentProc %d", ourPath, GetCurrentProcessId());
+		Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.Bits, Proxy::AppId, mod.data(), 0, 0);
+	}
+
+	void Proxy::RunMod()
+	{
+		char* command = "-parentProc ";
+		char* parentProc = strstr(GetCommandLineA(), command);
+
+		if (parentProc)
+		{
+			FreeConsole();
+
+			parentProc += strlen(command);
+			int pid = atoi(parentProc);
+
+			HANDLE processHandle = OpenProcess(SYNCHRONIZE, FALSE, pid);
+
+			if (processHandle && processHandle != INVALID_HANDLE_VALUE)
+			{
+				WaitForSingleObject(processHandle, INFINITE);
+				CloseHandle(processHandle);
+			}
+
+			TerminateProcess(GetCurrentProcess(), 0);
+		}
 	}
 
 	void Proxy::RegisterCall(int32_t callId, uint32_t size, uint64_t call)
@@ -213,8 +308,11 @@ namespace Steam
 		Proxy::SteamLegacyFriends = reinterpret_cast<Friends2*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamFriends002"));
 		if (!Proxy::SteamLegacyFriends) return false;
 
-		Proxy::SteamUtils = reinterpret_cast<Utils*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamUtils005"));
+		Proxy::SteamUtils = reinterpret_cast<Utils*>(Proxy::SteamClient->GetISteamUtils(Proxy::SteamPipe, "SteamUtils005"));
 		if (!Proxy::SteamUtils) return false;
+
+		Proxy::SteamUser_ = reinterpret_cast<User*>(Proxy::SteamClient->GetISteamUser(Proxy::SteamUser, Proxy::SteamPipe, "SteamUser012"));
+		if (!Proxy::SteamUser_) return false;
 
 		return true;
 	}
