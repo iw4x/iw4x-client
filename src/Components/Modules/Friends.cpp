@@ -211,7 +211,7 @@ namespace Components
 		if (clientNum < 0 || clientNum >= ARRAYSIZE(Dedicated::PlayerGuids)) return false;
 
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
-		SteamID guid = Dedicated::PlayerGuids[clientNum];
+		SteamID guid = Dedicated::PlayerGuids[clientNum][0];
 
 		for (auto entry : Friends::FriendsList)
 		{

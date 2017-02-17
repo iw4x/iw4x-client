@@ -14,7 +14,7 @@ namespace Components
 		const char* getName() override { return "Dedicated"; };
 #endif
 
-		static SteamID PlayerGuids[18];
+		static SteamID PlayerGuids[18][2];
 
 		static bool IsEnabled();
 

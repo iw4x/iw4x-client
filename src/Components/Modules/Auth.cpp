@@ -86,6 +86,19 @@ namespace Components
 			return;
 		}
 
+		if(Steam::Proxy::SteamUser_)
+		{
+			infostr.set("realsteamId", Utils::String::VA("%llX", Steam::Proxy::SteamUser_->GetSteamID().Bits));
+		}
+
+		// Build new connect string
+		connectString.clear();
+		connectString.append(params[0]);
+		connectString.append(" ");
+		connectString.append(params[1]);
+		connectString.append(" ");
+		connectString.append("\"" + infostr.build() + "\"");
+
 		Game::SV_Cmd_EndTokenizedString();
 
 		Proto::Auth::Connect connectData;

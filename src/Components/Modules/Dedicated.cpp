@@ -5,7 +5,7 @@ namespace Components
 	Utils::Signal<Dedicated::Callback> Dedicated::FrameSignal;
 	Utils::Signal<Dedicated::Callback> Dedicated::FrameOnceSignal;
 
-	SteamID Dedicated::PlayerGuids[18];
+	SteamID Dedicated::PlayerGuids[18][2];
 
 	bool Dedicated::SendChat;
 
@@ -149,10 +149,13 @@ namespace Components
 			if (Game::svs_clients[i].state >= 3)
 			{
 				list.append(Utils::String::VA(" %llX", Game::svs_clients[i].steamid));
+
+				Utils::InfoString info(Game::svs_clients[i].connectInfoString);
+				list.append(Utils::String::VA(" %llX", strtoull(info.get("realsteamId").data(), nullptr, 16)));
 			}
 			else
 			{
-				list.append(" 0");
+				list.append(" 0 0");
 			}
 		}
 
@@ -211,11 +214,14 @@ namespace Components
 	{
 		Command::ClientParams params;
 
-		if (params.length() > 17 && params.get(0)[0] == 20)
+		ZeroMemory(Dedicated::PlayerGuids, sizeof(Dedicated::PlayerGuids));
+
+		if (params.length() >= (18 * 2 + 1) && params.get(0)[0] == 20)
 		{
 			for (int client = 0; client < 18; client++)
 			{
-				Dedicated::PlayerGuids[client].Bits = strtoull(params.get(client + 1), nullptr, 16);
+				Dedicated::PlayerGuids[client][0].Bits = strtoull(params.get(2 * client + 1), nullptr, 16);
+				Dedicated::PlayerGuids[client][1].Bits = strtoull(params.get(2 * client + 2), nullptr, 16);
 			}
 
 			return 1;
@@ -546,7 +552,8 @@ namespace Components
 		{
 			for(int i = 0; i < ARRAYSIZE(Dedicated::PlayerGuids); ++i)
 			{
-				Dedicated::PlayerGuids[i].Bits = 0;
+				Dedicated::PlayerGuids[i][0].Bits = 0;
+				Dedicated::PlayerGuids[i][1].Bits = 0;
 			}
 
 			// Intercept server commands
