@@ -115,7 +115,8 @@ namespace Steam
 			}
 			else
 			{
-				Steam::Proxy::SetMod("IW4x \xF0\x9F\x90\x8D");
+				Proxy::SetMod("IW4x \xF0\x9F\x90\x8D");
+				Proxy::RunGame();
 			}
 
 			return true;

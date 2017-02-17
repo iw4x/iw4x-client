@@ -185,6 +185,8 @@ namespace Steam
 		static void Uninititalize();
 
 		static void SetGame(uint32_t appId);
+		static void RunGame();
+
 		static void SetMod(std::string mod);
 		static void RunMod();
 

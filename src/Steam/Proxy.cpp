@@ -75,17 +75,17 @@ namespace Steam
 	void Proxy::SetGame(uint32_t appId)
 	{
 		Proxy::AppId = appId;
+		remove("steam_appid.txt");
+	}
 
+	void Proxy::RunGame()
+	{
 		if (!Components::Flags::HasFlag("nosteam") && !Components::Dedicated::IsEnabled())
 		{
-			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", appId));
-			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", appId & 0xFFFFFF));
+			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", Proxy::AppId));
+			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", Proxy::AppId & 0xFFFFFF));
 
-			::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", appId), false);
-		}
-		else
-		{
-			remove("steam_appid.txt");
+			::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", Proxy::AppId), false);
 		}
 	}
 
@@ -100,7 +100,7 @@ namespace Steam
 
 		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
 		Interface clientShortcuts(Proxy::ClientEngine->GetIClientShortcuts(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTSHORTCUTS_INTERFACE_VERSION001"));
-		if (!clientApps || clientShortcuts) return;
+		if (!clientApps || !clientShortcuts) return;
 
 		KeyValuesBuilder builder;
 		builder.packString("name", mod.data());
@@ -114,6 +114,9 @@ namespace Steam
 		uint32_t uniqueId = clientShortcuts.invoke<uint32_t>("GetUniqueLocalAppId");
 		if (clientApps.invoke<bool>("SetLocalAppConfig", uniqueId, str.data(), static_cast<uint32_t>(str.size())))
 		{
+			Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe, "CLIENTUTILS_INTERFACE_VERSION001"));
+			clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
+
 			char ourPath[MAX_PATH] = { 0 };
 			GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
 
