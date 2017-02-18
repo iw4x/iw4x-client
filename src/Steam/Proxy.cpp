@@ -312,7 +312,8 @@ namespace Steam
 
 			ShellExecuteA(nullptr, nullptr, steamExe.data(), "-silent", nullptr, 1);
 
-			std::this_thread::sleep_for(10s);
+			::Utils::Time::Interval interval;
+			while(!interval.elapsed(15s) && !Proxy::GetActiveUser()) std::this_thread::sleep_for(10ms);
 		}
 	}
 
@@ -323,7 +324,7 @@ namespace Steam
 
 		SetDllDirectoryA(Proxy::GetSteamDirectory().data());
 
-		if (!Components::Dedicated::IsEnabled() || !Components::ZoneBuilder::IsEnabled())
+		if (!Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
 		{
 			Proxy::StartSteamIfNecessary();
 
@@ -406,6 +407,21 @@ namespace Steam
 		}
 
 		return "";
+	}
+
+	uint32_t Proxy::GetActiveUser()
+	{
+		HKEY hRegKey;
+		uint32_t activeUser = 0;
+
+		if (RegOpenKeyExA(HKEY_CURRENT_USER, STEAM_REGISTRY_PROCESS_PATH, 0, KEY_QUERY_VALUE, &hRegKey) == ERROR_SUCCESS)
+		{
+			DWORD dwLength = sizeof(activeUser);
+			RegQueryValueExA(hRegKey, "ActiveUser", nullptr, nullptr, reinterpret_cast<BYTE*>(&activeUser), &dwLength);
+			RegCloseKey(hRegKey);
+		}
+
+		return activeUser;
 	}
 
 	void Proxy::SetOverlayNotificationPosition(uint32_t eNotificationPosition)

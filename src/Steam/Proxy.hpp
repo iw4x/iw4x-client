@@ -185,8 +185,6 @@ namespace Steam
 		static bool Inititalize();
 		static void Uninititalize();
 
-		static void StartSteamIfNecessary();
-
 		static void SetGame(uint32_t appId);
 		static void RunGame();
 
@@ -255,7 +253,9 @@ namespace Steam
 		static void RunCallback(int32_t callId, void* data, size_t size);
 
 		static void UnregisterCalls();
+		static void StartSteamIfNecessary();
 
+		static uint32_t GetActiveUser();
 		static std::string GetSteamDirectory();
 	};
 }
