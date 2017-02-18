@@ -8,6 +8,7 @@
 #define GAMEOVERLAY_LIB "gameoverlayrenderer.dll"
 #define STEAMCLIENT_LIB "steamclient.dll"
 #define STEAM_REGISTRY_PATH "Software\\Valve\\Steam"
+#define STEAM_REGISTRY_PROCESS_PATH "Software\\Valve\\Steam\\ActiveProcess"
 #endif
 
 namespace Steam
@@ -183,6 +184,8 @@ namespace Steam
 	public:
 		static bool Inititalize();
 		static void Uninititalize();
+
+		static void StartSteamIfNecessary();
 
 		static void SetGame(uint32_t appId);
 		static void RunGame();

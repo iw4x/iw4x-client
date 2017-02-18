@@ -102,6 +102,11 @@ namespace Steam
 		Callbacks::Results.clear();
 	}
 
+	bool Enabled()
+	{
+		return !Components::Flags::HasFlag("nosteam");
+	}
+
 	extern "C"
 	{
 		bool SteamAPI_Init()

@@ -79,18 +79,21 @@ namespace Steam
 
 	void Proxy::RunGame()
 	{
-		if (!Components::Flags::HasFlag("nosteam") && !Components::Dedicated::IsEnabled())
+		if (Steam::Enabled() && !Components::Dedicated::IsEnabled())
 		{
 			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", Proxy::AppId));
 			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", Proxy::AppId & 0xFFFFFF));
 
 			::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", Proxy::AppId), false);
+
+			Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe, "CLIENTUTILS_INTERFACE_VERSION001"));
+			clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 		}
 	}
 
 	void Proxy::SetMod(std::string mod)
 	{
-		if (!Proxy::ClientUser || Components::Flags::HasFlag("nosteam") || Components::Dedicated::IsEnabled()) return;
+		if (!Proxy::ClientUser || !Steam::Enabled() || Components::Dedicated::IsEnabled()) return;
 
 		GameID_t gameID;
 		gameID.type = 1; // k_EGameIDTypeGameMod
@@ -270,6 +273,49 @@ namespace Steam
 		Proxy::UnregisterCalls();
 	}
 
+	void Proxy::StartSteamIfNecessary()
+	{
+		if (!Steam::Enabled() || Proxy::GetSteamDirectory().empty()) return;
+
+		HKEY hRegKey;
+		DWORD pid = 0;
+		if (RegOpenKeyExA(HKEY_CURRENT_USER, STEAM_REGISTRY_PROCESS_PATH, 0, KEY_QUERY_VALUE, &hRegKey) != ERROR_SUCCESS) return;
+
+		DWORD dwLength = sizeof(pid);
+		RegQueryValueExA(hRegKey, "pid", nullptr, nullptr, reinterpret_cast<BYTE*>(&pid), &dwLength);
+		RegCloseKey(hRegKey);
+
+		if (pid)
+		{
+			HANDLE process = OpenProcess(PROCESS_QUERY_INFORMATION, 0, pid);
+			if (process)
+			{
+				::Utils::Memory::Allocator allocator;
+				allocator.reference(process, [](HANDLE hProcess)
+				{
+					CloseHandle(hProcess);
+				});
+
+				DWORD exitCode;
+				if (!GetExitCodeProcess(process, &exitCode)) return;
+				if (exitCode == STILL_ACTIVE) return;
+			}
+		}
+
+		std::string steamExe = Proxy::GetSteamDirectory() + "\\steam.exe";
+		if (::Utils::IO::FileExists(steamExe))
+		{
+			Components::Toast::Template templ = Components::Toast::Template(Components::Toast::Template::TextTwoLines);
+			templ.setTextField(L"IW4x", Components::Toast::Template::FirstLine);
+			templ.setTextField(L"Starting Steam...", Components::Toast::Template::SecondLine);
+			Components::Toast::ShowNative(templ);
+
+			ShellExecuteA(nullptr, nullptr, steamExe.data(), "-silent", nullptr, 1);
+
+			std::this_thread::sleep_for(10s);
+		}
+	}
+
 	bool Proxy::Inititalize()
 	{
 		std::string directoy = Proxy::GetSteamDirectory();
@@ -279,6 +325,8 @@ namespace Steam
 
 		if (!Components::Dedicated::IsEnabled() || !Components::ZoneBuilder::IsEnabled())
 		{
+			Proxy::StartSteamIfNecessary();
+
 			Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
 			if (!Proxy::Overlay.valid()) return false;
 		}
