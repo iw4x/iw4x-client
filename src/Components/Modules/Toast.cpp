@@ -20,6 +20,19 @@ namespace Components
 		return WinToastLib::WinToast::instance()->showToast(toast, Toast::ToastHandler);
 	}
 
+	std::string Toast::GetIcon()
+	{
+		char ourPath[MAX_PATH] = { 0 };
+		std::string file(ourPath, GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath)));
+
+		auto pos = file.find_last_of("/\\");
+		if(pos != std::string::npos) file = file.substr(0, pos);
+
+		file.append("\\iw4x\\images\\icon.png");
+		Utils::String::Replace(file, "/", "\\");
+		return file;
+	}
+
 	void Toast::Draw(UIToast* toast)
 	{
 		if (!toast) return;

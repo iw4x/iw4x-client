@@ -275,7 +275,11 @@ namespace Steam
 
 	void Proxy::StartSteamIfNecessary()
 	{
-		if (!Steam::Enabled() || Proxy::GetSteamDirectory().empty()) return;
+		if (Proxy::GetSteamDirectory().empty()
+#ifndef DEBUG
+			|| !Steam::Enabled()
+#endif
+			) return;
 
 		HKEY hRegKey;
 		DWORD pid = 0;
@@ -305,9 +309,13 @@ namespace Steam
 		std::string steamExe = Proxy::GetSteamDirectory() + "\\steam.exe";
 		if (::Utils::IO::FileExists(steamExe))
 		{
-			Components::Toast::Template templ = Components::Toast::Template(Components::Toast::Template::TextTwoLines);
+			Components::Toast::Template templ = Components::Toast::Template(Components::Toast::Template::ImageWithTwoLines);
 			templ.setTextField(L"IW4x", Components::Toast::Template::FirstLine);
 			templ.setTextField(L"Starting Steam...", Components::Toast::Template::SecondLine);
+
+			std::string icon = Components::Toast::GetIcon();
+			templ.setImagePath(std::wstring(icon.begin(), icon.end()));
+
 			Components::Toast::ShowNative(templ);
 
 			ShellExecuteA(nullptr, nullptr, steamExe.data(), "-silent", nullptr, 1);

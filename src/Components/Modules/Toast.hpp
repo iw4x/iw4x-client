@@ -18,6 +18,8 @@ namespace Components
 		static void Show(std::string image, std::string title, std::string description, int length);
 		static bool ShowNative(const WinToastLib::WinToastTemplate& toast);
 
+		static std::string GetIcon();
+
 	private:
 		class UIToast
 		{
