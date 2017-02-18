@@ -122,7 +122,7 @@ namespace Components
 
 	void Friends::UpdateState(bool force)
 	{
-		if (Dvar::Var("cl_anonymous").get<bool>()) return;
+		if (Dvar::Var("cl_anonymous").get<bool>() || Components::Flags::HasFlag("nosteam")) return;
 
 		if(force)
 		{
@@ -169,7 +169,7 @@ namespace Components
 
 	void Friends::SetPresence(std::string key, std::string value)
 	{
-		if (Steam::Proxy::ClientFriends && !Dvar::Var("cl_anonymous").get<bool>())
+		if (Steam::Proxy::ClientFriends && !Dvar::Var("cl_anonymous").get<bool>() && !Components::Flags::HasFlag("nosteam"))
 		{
 			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", 0, key.data(), value.data());
 			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", Steam::Proxy::AppId, key.data(), value.data());
@@ -584,7 +584,7 @@ namespace Components
 				Friends::InitialState = Steam::Proxy::SteamFriends->GetPersonaState();
 			}
 
-			if(Dvar::Var("cl_anonymous").get<bool>())
+			if(Dvar::Var("cl_anonymous").get<bool>() || Components::Flags::HasFlag("nosteam"))
 			{
 				if (Steam::Proxy::ClientFriends)
 				{
