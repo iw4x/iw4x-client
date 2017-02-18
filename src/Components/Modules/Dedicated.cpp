@@ -223,7 +223,7 @@ namespace Components
 				Dedicated::PlayerGuids[client][0].bits = strtoull(params.get(2 * client + 1), nullptr, 16);
 				Dedicated::PlayerGuids[client][1].bits = strtoull(params.get(2 * client + 2), nullptr, 16);
 
-				if(Steam::Proxy::SteamFriends)
+				if(Steam::Proxy::SteamFriends && Dedicated::PlayerGuids[client][1].bits != 0)
 				{
 					Steam::Proxy::SteamFriends->SetPlayedWith(Dedicated::PlayerGuids[client][1]);
 				}
