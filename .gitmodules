@@ -35,3 +35,6 @@
 	path = deps/protobuf
 	url = https://github.com/google/protobuf.git
 	branch = 3.2.x
+[submodule "deps/WinToast"]
+	path = deps/WinToast
+	url = https://github.com/mohabouje/WinToast.git

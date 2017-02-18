@@ -47,6 +47,7 @@ template <size_t S> class Sizer { };
 // Ignore the warnings, it's no our code!
 #pragma warning(push)
 #pragma warning(disable: 4005)
+#pragma warning(disable: 4091)
 #pragma warning(disable: 4100)
 #pragma warning(disable: 4389)
 #pragma warning(disable: 4702)
@@ -67,6 +68,7 @@ template <size_t S> class Sizer { };
 #ifndef DISABLE_BITMESSAGE
 #include <BitMRC.h>
 #endif
+#include <wintoastlib.h>
 
 #ifdef max
 #undef max

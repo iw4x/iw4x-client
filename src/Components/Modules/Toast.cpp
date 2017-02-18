@@ -5,11 +5,19 @@ namespace Components
 	std::queue<Toast::UIToast> Toast::Queue;
 	std::mutex Toast::Mutex;
 
+	WinToastLib::WinToastHandler* Toast::ToastHandler = nullptr;
+
 	void Toast::Show(std::string image, std::string title, std::string description, int length)
 	{
 		Toast::Mutex.lock();
 		Toast::Queue.push({ image, Utils::String::ToUpper(title), description, length, 0 });
 		Toast::Mutex.unlock();
+	}
+
+	bool Toast::ShowNative(const WinToastLib::WinToastTemplate& toast)
+	{
+		if (!Toast::ToastHandler) return false;
+		return WinToastLib::WinToast::instance()->showToast(toast, Toast::ToastHandler);
 	}
 
 	void Toast::Draw(UIToast* toast)
@@ -125,6 +133,12 @@ namespace Components
 
 	Toast::Toast()
 	{
+		Toast::ToastHandler = new WinToastLib::WinToastHandler;
+
+		WinToastLib::WinToast::instance()->setAppName(L"IW4x");
+		WinToastLib::WinToast::instance()->setAppUserModelId(WinToastLib::WinToast::configureAUMI(L"IW4x", L"IW4x", L"IW4x", L"0"));
+		WinToastLib::WinToast::instance()->initialize();
+
 		QuickPatch::OnReady([]()
 		{
 			Renderer::OnFrame(Toast::Handler);
@@ -139,5 +153,17 @@ namespace Components
 	Toast::~Toast()
 	{
 		Toast::Queue = std::queue<Toast::UIToast>();
+	}
+
+	void Toast::preDestroy()
+	{
+		// Destroying that on the main thread deadlocks, for whatever reason.
+		// I did not write the library, so whatever.
+		std::thread([]()
+		{
+			delete WinToastLib::WinToast::instance();
+			delete Toast::ToastHandler;
+			Toast::ToastHandler = nullptr;
+		}).join();
 	}
 }

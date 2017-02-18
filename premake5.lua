@@ -199,7 +199,7 @@ require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/sqlite3"
 require "premake/zlib"
-require "premake/boost"
+require "premake/WinToast"
 
 base128.setup
 {
@@ -256,9 +256,9 @@ zlib.setup
 	},
 	source = path.join(depsBasePath, "zlib"),
 }
-boost.setup
+WinToast.setup
 {
-	source = path.join(depsBasePath, "boost"),
+	source = path.join(depsBasePath, "WinToast"),
 }
 
 workspace "iw4x"
@@ -366,7 +366,7 @@ workspace "iw4x"
 		pdcurses.import()
 		protobuf.import()
 		zlib.import()
-		boost.import()
+		WinToast.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -485,7 +485,7 @@ workspace "iw4x"
 		pdcurses.project()
 		protobuf.project()
 		zlib.project()
-		boost.project()
+		WinToast.project()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"

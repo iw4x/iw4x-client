@@ -18,6 +18,8 @@ namespace Components
 		Loader::Postgame = false;
 		Loader::MemAllocator.clear();
 
+		CoInitialize(nullptr);
+
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
 		Loader::Register(new Exception()); // install our exception handler as early as posssible to get better debug dumps from startup crashes
@@ -107,6 +109,8 @@ namespace Components
 
 		Loader::Components.clear();
 		Loader::MemAllocator.clear();
+
+		CoUninitialize();
 	}
 
 	void Loader::PreDestroy()
