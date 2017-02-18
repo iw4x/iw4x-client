@@ -484,7 +484,7 @@ namespace Components
 
 	void Console::FreeNativeConsole()
 	{
-		if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled())
+		if (!Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")))
 		{
 			FreeConsole();
 		}
