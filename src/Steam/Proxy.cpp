@@ -314,6 +314,7 @@ namespace Steam
 
 			::Utils::Time::Interval interval;
 			while(!interval.elapsed(15s) && !Proxy::GetActiveUser()) std::this_thread::sleep_for(10ms);
+			std::this_thread::sleep_for(1s);
 		}
 	}
 
