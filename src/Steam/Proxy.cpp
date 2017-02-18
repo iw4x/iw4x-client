@@ -79,7 +79,7 @@ namespace Steam
 
 	void Proxy::RunGame()
 	{
-		if (Steam::Enabled() && !Components::Dedicated::IsEnabled())
+		if (Steam::Enabled() && !Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
 		{
 			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", Proxy::AppId));
 			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", Proxy::AppId & 0xFFFFFF));
@@ -93,7 +93,7 @@ namespace Steam
 
 	void Proxy::SetMod(std::string mod)
 	{
-		if (!Proxy::ClientUser || !Steam::Enabled() || Components::Dedicated::IsEnabled()) return;
+		if (!Proxy::ClientUser || !Steam::Enabled() || Components::Dedicated::IsEnabled() || Components::ZoneBuilder::IsEnabled()) return;
 
 		GameID_t gameID;
 		gameID.type = 1; // k_EGameIDTypeGameMod
