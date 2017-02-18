@@ -116,7 +116,7 @@ namespace Components
 		int notify = Dvar::Var("cl_notifyFriendState").get<int>();
 		if(gotOnline && (notify == -1 || (notify == 1 && !Game::CL_IsCgameInitialized())) && !Dvar::Var("ui_streamFriendly").get<bool>())
 		{
-			Toast::Show("cardicon_weed", entry->name, "is playing IW4x", 3000);
+			Toast::Show("cardicon_joystick", entry->name, "is playing IW4x", 3000);
 		}
 	}
 
@@ -410,7 +410,7 @@ namespace Components
 		{
 			if(Steam::Proxy::ClientFriends.invoke<bool>("AddFriend", user))
 			{
-				Toast::Show("cardicon_weed", Steam::Proxy::SteamFriends->GetFriendPersonaName(user), "friend request sent", 3000);
+				Toast::Show("cardicon_joystick", Steam::Proxy::SteamFriends->GetFriendPersonaName(user), "friend request sent", 3000);
 			}
 			else
 			{
