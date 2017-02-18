@@ -87,6 +87,14 @@ namespace Game
 		DVAR_FLAG_NONEXISTENT = 0xFFFFFFFF	//no such dvar
 	} dvar_flag;
 
+	enum DvarSetSource
+	{
+		DVAR_SOURCE_INTERNAL = 0x0,
+		DVAR_SOURCE_EXTERNAL = 0x1,
+		DVAR_SOURCE_SCRIPT = 0x2,
+		DVAR_SOURCE_DEVGUI = 0x3,
+	};
+
 	typedef enum
 	{
 		DVAR_TYPE_BOOL = 0,

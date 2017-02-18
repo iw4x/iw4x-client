@@ -58,5 +58,7 @@ namespace Components
 		static Utils::Signal<Callback> RegistrationSignal;
 
 		static Game::dvar_t* RegisterName(const char* name, const char* defaultVal, Game::dvar_flag flag, const char* description);
+
+		static Game::dvar_t* SetFromStringByNameExternal(const char* dvar, const char* value);
 	};
 }

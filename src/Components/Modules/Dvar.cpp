@@ -178,6 +178,11 @@ namespace Components
 		return Dvar::Register<const char*>(name, username.data(), Dvar::Flag(flag | Game::dvar_flag::DVAR_FLAG_SAVED).val, description).get<Game::dvar_t*>();
 	}
 
+	Game::dvar_t* Dvar::SetFromStringByNameExternal(const char* dvar, const char* value)
+	{
+		return Game::Dvar_SetFromStringByNameFromSource(dvar, value, Game::DvarSetSource::DVAR_SOURCE_EXTERNAL);
+	}
+
 	Dvar::Dvar()
 	{
 		// set flags of cg_drawFPS to archive
@@ -211,6 +216,15 @@ namespace Components
 
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).install()->quick();
+
+		// Don't allow setting cheat protected dvars via menus
+		Utils::Hook(0x63C897, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+		Utils::Hook(0x63CA96, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+		Utils::Hook(0x63CDB5, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+		Utils::Hook(0x635E47, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+
+		// Entirely block setting cheat dvars internally without sv_cheats
+		//Utils::Hook(0x4F52EC, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 	}
 
 	Dvar::~Dvar()
