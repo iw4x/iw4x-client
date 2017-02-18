@@ -511,9 +511,6 @@ namespace Components
 	{
 		Game::XAssetHeader header = { nullptr };
 
-		Game::MenuList* menuList = Game::DB_FindXAssetHeader(type, filename.data()).menuList;
-		header.menuList = menuList;
-
 		// Free the last menulist and ui context, as we have to rebuild it with the new menus
 		if (Menus::MenuListList.find(filename) != Menus::MenuListList.end())
 		{
@@ -527,10 +524,22 @@ namespace Components
 			Menus::RemoveMenuList(filename);
 		}
 
+		if(Utils::String::EndsWith(filename, ".menu"))
+		{
+			if (FileSystem::File(filename).exists())
+			{
+				header.menuList = Menus::LoadScriptMenu(filename.data());
+				if (header.menuList) return header;
+			}
+		}
+
+		Game::MenuList* menuList = Game::DB_FindXAssetHeader(type, filename.data()).menuList;
+		header.menuList = menuList;
+
 		if (menuList && reinterpret_cast<DWORD>(menuList) != 0xDDDDDDDD)
 		{
 			// Parse scriptmenus!
-			if ((menuList->menuCount > 0 && menuList->menus[0] && menuList->menus[0]->window.name == "default_menu"s) || Utils::String::EndsWith(filename, ".menu"))
+			if ((menuList->menuCount > 0 && menuList->menus[0] && menuList->menus[0]->window.name == "default_menu"s))
 			{
 				if (FileSystem::File(filename).exists())
 				{
