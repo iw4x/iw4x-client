@@ -66,7 +66,7 @@ namespace Components
 
 		auto entry = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [user](Friends::Friend entry)
 		{
-			return (entry.userId.Bits == user.Bits);
+			return (entry.userId.bits == user.bits);
 		});
 
 		if (entry == Friends::FriendsList.end() || !Steam::Proxy::SteamFriends) return;
@@ -80,7 +80,7 @@ namespace Components
 		std::string experience = Friends::GetPresence(user, "iw4x_experience");
 		std::string prestige = Friends::GetPresence(user, "iw4x_prestige");
 
-		if (!guid.empty()) entry->guid.Bits = strtoull(guid.data(), nullptr, 16);
+		if (!guid.empty()) entry->guid.bits = strtoull(guid.data(), nullptr, 16);
 		if (!name.empty()) entry->playerName = name;
 		if (!experience.empty()) entry->experience = atoi(experience.data());
 		if (!prestige.empty()) entry->prestige = atoi(prestige.data());
@@ -215,7 +215,7 @@ namespace Components
 
 		for (auto entry : Friends::FriendsList)
 		{
-			if (entry.guid.Bits == guid.Bits && Friends::IsOnline(entry.lastTime) && entry.online)
+			if (entry.guid.bits == guid.bits && Friends::IsOnline(entry.lastTime) && entry.online)
 			{
 				return true;
 			}
@@ -262,7 +262,7 @@ namespace Components
 
 			Friends::Friend entry;
 			entry.userId = id;
-			entry.guid.Bits = 0;
+			entry.guid.bits = 0;
 			entry.online = false;
 			entry.lastTime = 0;
 			entry.prestige = 0;
@@ -271,19 +271,19 @@ namespace Components
 
 			for(auto storedFriend : list.friends())
 			{
-				if(entry.userId.Bits == strtoull(storedFriend.steamid().data(), nullptr, 16))
+				if(entry.userId.bits == strtoull(storedFriend.steamid().data(), nullptr, 16))
 				{
 					entry.playerName = storedFriend.name();
 					entry.experience = storedFriend.experience();
 					entry.prestige = storedFriend.prestige();
-					entry.guid.Bits = strtoull(storedFriend.guid().data(), nullptr, 16);
+					entry.guid.bits = strtoull(storedFriend.guid().data(), nullptr, 16);
 					break;
 				}
 			}
 
 			auto oldEntry = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [id](Friends::Friend entry)
 			{
-				return (entry.userId.Bits == id.Bits);
+				return (entry.userId.bits == id.bits);
 			});
 
 			if (oldEntry != Friends::FriendsList.end()) entry = *oldEntry;
@@ -298,7 +298,7 @@ namespace Components
 
 			auto oldEntry = std::find_if(steamFriends.begin(), steamFriends.end(), [id](Friends::Friend entry)
 			{
-				return (entry.userId.Bits == id.Bits);
+				return (entry.userId.bits == id.bits);
 			});
 
 			if(oldEntry == steamFriends.end())
@@ -422,7 +422,7 @@ namespace Components
 	void Friends::UpdateTimeStamp()
 	{
 		Friends::SetPresence("iw4x_playing", Utils::String::VA("%d", Steam::SteamUtils()->GetServerRealTime()));
-		Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
+		Friends::SetPresence("iw4x_guid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().bits));
 	}
 
 	bool Friends::IsOnline(unsigned __int64 timeStamp)
@@ -442,8 +442,8 @@ namespace Components
 		{
 			Proto::Friends::Friend* friendEntry = list.add_friends();
 
-			friendEntry->set_steamid(Utils::String::VA("%llX", entry.userId.Bits));
-			friendEntry->set_guid(Utils::String::VA("%llX", entry.guid.Bits));
+			friendEntry->set_steamid(Utils::String::VA("%llX", entry.userId.bits));
+			friendEntry->set_guid(Utils::String::VA("%llX", entry.guid.bits));
 			friendEntry->set_name(entry.playerName);
 			friendEntry->set_experience(entry.experience);
 			friendEntry->set_prestige(entry.prestige);
@@ -462,7 +462,7 @@ namespace Components
 		{
 			if (params->length() <= 1) return;
 			SteamID id;
-			id.Bits = atoll(params->get(1));
+			id.bits = atoll(params->get(1));
 
 			Friends::AddFriend(id);
 		});

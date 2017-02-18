@@ -11,13 +11,13 @@ typedef union
 {
 	struct
 	{
-		unsigned int AccountID : 32;
-		unsigned int AccountInstance : 20;
-		unsigned int AccountType : 4;
-		int          Universe : 8;
+		unsigned int accountID : 32;
+		unsigned int accountInstance : 20;
+		unsigned int accountType : 4;
+		int          universe : 8;
 	};
 
-	unsigned long long Bits;
+	unsigned long long bits;
 } SteamID;
 
 
@@ -26,9 +26,9 @@ typedef union
 {
 	struct
 	{
-		unsigned int m_nAppID : 24;
-		unsigned int m_nType : 8;
-		unsigned int m_nModID : 32;
+		unsigned int appID : 24;
+		unsigned int type : 8;
+		unsigned int modID : 32;
 	};
 
 	unsigned long long bits;

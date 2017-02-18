@@ -9,11 +9,11 @@ namespace Components
 		Bans::BanList list;
 		Bans::LoadBans(&list);
 
-		if (entry.first.Bits)
+		if (entry.first.bits)
 		{
 			for (auto& idEntry : list.idList)
 			{
-				if (idEntry.Bits == entry.first.Bits)
+				if (idEntry.bits == entry.first.bits)
 				{
 					return true;
 				}
@@ -41,12 +41,12 @@ namespace Components
 
 		std::lock_guard<std::mutex> _(Bans::AccessMutex);
 
-		if (entry.first.Bits)
+		if (entry.first.bits)
 		{
 			bool found = false;
 			for (auto& idEntry : list.idList)
 			{
-				if (idEntry.Bits == entry.first.Bits)
+				if (idEntry.bits == entry.first.bits)
 				{
 					found = true;
 					break;
@@ -82,7 +82,7 @@ namespace Components
 
 		for (auto& idEntry : list.idList)
 		{
-			idVector.push_back(Utils::String::VA("%llX", idEntry.Bits));
+			idVector.push_back(Utils::String::VA("%llX", idEntry.bits));
 		}
 
 		for (auto& ipEntry : list.ipList)
@@ -138,7 +138,7 @@ namespace Components
 						if (idEntry.is_string())
 						{
 							SteamID id;
-							id.Bits = strtoull(idEntry.string_value().data(), nullptr, 16);
+							id.bits = strtoull(idEntry.string_value().data(), nullptr, 16);
 
 							list->idList.push_back(id);
 						}
@@ -178,7 +178,7 @@ namespace Components
 		Game::client_t* client = &Game::svs_clients[num];
 
 		SteamID guid;
-		guid.Bits = client->steamid;
+		guid.bits = client->steamid;
 
 		Bans::InsertBan({ guid, client->addr.ip });
 

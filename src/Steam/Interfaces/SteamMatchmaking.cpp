@@ -56,10 +56,10 @@ namespace Steam
 		LobbyCreated* retvals = ::Utils::Memory::Allocate<LobbyCreated>();
 		SteamID id;
 
-		id.AccountID = 1337132;
-		id.Universe = 1;
-		id.AccountType = 8;
-		id.AccountInstance = 0x40000;
+		id.accountID = 1337132;
+		id.universe = 1;
+		id.accountType = 8;
+		id.accountInstance = 0x40000;
 
 		retvals->m_eResult = 1;
 		retvals->m_ulSteamIDLobby = id;

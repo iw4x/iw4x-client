@@ -93,9 +93,9 @@ namespace Steam
 		if (!Proxy::ClientUser || Components::Flags::HasFlag("nosteam") || Components::Dedicated::IsEnabled()) return;
 
 		GameID_t gameID;
-		gameID.m_nType = 1; // k_EGameIDTypeGameMod
-		gameID.m_nAppID = Proxy::AppId & 0xFFFFFF;
-		gameID.m_nModID = 0xBAADF00D;
+		gameID.type = 1; // k_EGameIDTypeGameMod
+		gameID.appID = Proxy::AppId & 0xFFFFFF;
+		gameID.modID = 0xBAADF00D;
 
 		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
 		Interface clientShortcuts(Proxy::ClientEngine->GetIClientShortcuts(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTSHORTCUTS_INTERFACE_VERSION001"));

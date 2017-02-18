@@ -9,10 +9,10 @@ namespace Components
 	{
 		SteamID id;
 
-		id.AccountID = Game::Sys_Milliseconds();
-		id.Universe = 1;
-		id.AccountType = 8;
-		id.AccountInstance = 0x40000;
+		id.accountID = Game::Sys_Milliseconds();
+		id.universe = 1;
+		id.accountType = 8;
+		id.accountInstance = 0x40000;
 
 		return id;
 	}
@@ -39,9 +39,9 @@ namespace Components
 
 	const char* Party::GetLobbyInfo(SteamID lobby, std::string key)
 	{
-		if (Party::LobbyMap.find(lobby.Bits) != Party::LobbyMap.end())
+		if (Party::LobbyMap.find(lobby.bits) != Party::LobbyMap.end())
 		{
-			Network::Address address = Party::LobbyMap[lobby.Bits];
+			Network::Address address = Party::LobbyMap[lobby.bits];
 
 			if (key == "addr")
 			{
@@ -58,9 +58,9 @@ namespace Components
 
 	void Party::RemoveLobby(SteamID lobby)
 	{
-		if (Party::LobbyMap.find(lobby.Bits) != Party::LobbyMap.end())
+		if (Party::LobbyMap.find(lobby.bits) != Party::LobbyMap.end())
 		{
-			Party::LobbyMap.erase(Party::LobbyMap.find(lobby.Bits));
+			Party::LobbyMap.erase(Party::LobbyMap.find(lobby.bits));
 		}
 	}
 
@@ -115,7 +115,7 @@ namespace Components
 			}
 		}
 
-		Party::LobbyMap[id.Bits] = Party::Container.target;
+		Party::LobbyMap[id.bits] = Party::Container.target;
 
 		Game::Steam_JoinLobby(id, 0);
 	}
@@ -313,7 +313,7 @@ namespace Components
 			info.set("hostname", Dvar::Var("sv_hostname").get<const char*>());
 			info.set("gametype", Dvar::Var("g_gametype").get<const char*>());
 			info.set("fs_game", Dvar::Var("fs_game").get<const char*>());
-			info.set("xuid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().Bits));
+			info.set("xuid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().bits));
 			info.set("clients", Utils::String::VA("%i", clientCount));
 			info.set("sv_maxclients", Utils::String::VA("%i", maxclientCount));
 			info.set("protocol", Utils::String::VA("%i", PROTOCOL));

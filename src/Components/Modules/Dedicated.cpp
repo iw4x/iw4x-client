@@ -220,8 +220,8 @@ namespace Components
 		{
 			for (int client = 0; client < 18; client++)
 			{
-				Dedicated::PlayerGuids[client][0].Bits = strtoull(params.get(2 * client + 1), nullptr, 16);
-				Dedicated::PlayerGuids[client][1].Bits = strtoull(params.get(2 * client + 2), nullptr, 16);
+				Dedicated::PlayerGuids[client][0].bits = strtoull(params.get(2 * client + 1), nullptr, 16);
+				Dedicated::PlayerGuids[client][1].bits = strtoull(params.get(2 * client + 2), nullptr, 16);
 
 				if(Steam::Proxy::SteamFriends)
 				{
@@ -557,8 +557,8 @@ namespace Components
 		{
 			for(int i = 0; i < ARRAYSIZE(Dedicated::PlayerGuids); ++i)
 			{
-				Dedicated::PlayerGuids[i][0].Bits = 0;
-				Dedicated::PlayerGuids[i][1].Bits = 0;
+				Dedicated::PlayerGuids[i][0].bits = 0;
+				Dedicated::PlayerGuids[i][1].bits = 0;
 			}
 
 			// Intercept server commands

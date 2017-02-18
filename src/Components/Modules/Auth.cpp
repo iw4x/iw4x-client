@@ -88,7 +88,7 @@ namespace Components
 
 		if (!Components::Flags::HasFlag("nosteam") && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Proxy::SteamUser_)
 		{
-			infostr.set("realsteamId", Utils::String::VA("%llX", Steam::Proxy::SteamUser_->GetSteamID().Bits));
+			infostr.set("realsteamId", Utils::String::VA("%llX", Steam::Proxy::SteamUser_->GetSteamID().bits));
 		}
 
 		// Build new connect string
@@ -179,7 +179,7 @@ namespace Components
 			unsigned __int64 xuid = strtoull(steamId.data(), nullptr, 16);
 
 			SteamID guid;
-			guid.Bits = xuid;
+			guid.bits = xuid;
 
 			if (Bans::IsBanned({ guid, address.getIP() }))
 			{
@@ -424,7 +424,7 @@ namespace Components
 		// Guid command
 		Command::Add("guid", [] (Command::Params*)
 		{
-			Logger::Print("Your guid: %llX\n", Steam::SteamUser()->GetSteamID().Bits);
+			Logger::Print("Your guid: %llX\n", Steam::SteamUser()->GetSteamID().bits);
 		});
 
 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())

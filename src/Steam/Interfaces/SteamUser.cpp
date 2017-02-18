@@ -36,7 +36,7 @@ namespace Steam
 			}
 		}
 
-		id.Bits = idBits;
+		id.bits = idBits;
 		return id;
 	}
 
