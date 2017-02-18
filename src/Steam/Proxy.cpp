@@ -310,7 +310,7 @@ namespace Steam
 		if (::Utils::IO::FileExists(steamExe))
 		{
 			Components::Toast::Template templ = Components::Toast::Template(Components::Toast::Template::ImageWithTwoLines);
-			templ.setTextField(L"IW4x", Components::Toast::Template::FirstLine);
+			templ.setTextField(L"Please wait", Components::Toast::Template::FirstLine);
 			templ.setTextField(L"Starting Steam...", Components::Toast::Template::SecondLine);
 
 			std::string icon = Components::Toast::GetIcon();
