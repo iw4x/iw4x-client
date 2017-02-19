@@ -53,9 +53,24 @@ namespace Steam
 		return nullptr;
 	}
 
+	size_t Interface::getMethodParamSize(void* method)
+	{
+		unsigned char* methodPtr = static_cast<unsigned char*>(method);
+		for (; !IsBadReadPtr(methodPtr, 3); ++methodPtr)
+		{
+			if (methodPtr[0] == 0xC2 && methodPtr[2] == 0) // __stdcall return
+			{
+				return (static_cast<size_t>(methodPtr[1])/* / sizeof(void*)*/);
+			}
+		}
+
+		return 0;
+	}
+
+
 	std::string Interface::getMethodName(unsigned char* methodPtr)
 	{
-		for(;!IsBadReadPtr(methodPtr, 1); ++methodPtr)
+		for(;!IsBadReadPtr(methodPtr, 3); ++methodPtr)
 		{
 			if(methodPtr[0] == 0x68) // Push
 			{
@@ -100,21 +115,21 @@ namespace Steam
 		gameID.appID = Proxy::AppId & 0xFFFFFF;
 		gameID.modID = 0xBAADF00D;
 
-		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
-		Interface clientShortcuts(Proxy::ClientEngine->GetIClientShortcuts(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTSHORTCUTS_INTERFACE_VERSION001"));
-		if (!clientApps || !clientShortcuts) return;
-
-		KeyValuesBuilder builder;
-		builder.packString("name", mod.data());
-		builder.packUint64("gameid", gameID.bits);
-		builder.packString("installed", "1");
-		builder.packString("gamedir", "IW4x");
-		builder.packString("serverbrowsername", "IW4x");
-		builder.packEnd();
-
-		std::string str = builder.getString();
-		uint32_t uniqueId = clientShortcuts.invoke<uint32_t>("GetUniqueLocalAppId");
-		if (clientApps.invoke<bool>("SetLocalAppConfig", uniqueId, str.data(), static_cast<uint32_t>(str.size())))
+// 		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
+// 		Interface clientShortcuts(Proxy::ClientEngine->GetIClientShortcuts(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTSHORTCUTS_INTERFACE_VERSION001"));
+// 		if (!clientApps || !clientShortcuts) return;
+//
+// 		KeyValuesBuilder builder;
+// 		builder.packString("name", mod.data());
+// 		builder.packUint64("gameid", gameID.bits);
+// 		builder.packString("installed", "1");
+// 		builder.packString("gamedir", "IW4x");
+// 		builder.packString("serverbrowsername", "IW4x");
+// 		builder.packEnd();
+//
+// 		std::string str = builder.getString();
+// 		uint32_t uniqueId = clientShortcuts.invoke<uint32_t>("GetUniqueLocalAppId");
+// 		if (clientApps.invoke<bool>("SetLocalAppConfig", uniqueId, str.data(), static_cast<uint32_t>(str.size())))
 		{
 			Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe, "CLIENTUTILS_INTERFACE_VERSION001"));
 			clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
@@ -126,7 +141,30 @@ namespace Steam
 			GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
 
 			std::string cmdline = ::Utils::String::VA("\"%s\" -proc %d", ourPath, GetCurrentProcessId());
-			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
+
+			// As of 02/19/2017, the SpawnProcess method doesn't require the app id anymore,
+			// but only for those who participate in the beta.
+			// Therefore we have to check how many bytes the method expects as arguments
+			// and adapt our call accordingly!
+			size_t expectedParams = Proxy::ClientUser.paramSize("SpawnProcess");
+			if(expectedParams == 40) // Release
+			{
+				Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
+			}
+			else if(expectedParams == 36) // Beta
+			{
+				Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, mod.data(), 0, 0);
+			}
+			else if (expectedParams == 48) // Legacy, expects VAC blob
+			{
+				char blob[8] = { 0 };
+
+				Proxy::ClientUser.invoke<bool>("SpawnProcess", blob, 0, ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
+			}
+			else
+			{
+				OutputDebugStringA("Steam proxy was unable to match the arguments for SpawnProcess!\n");
+			}
 		}
 	}
 

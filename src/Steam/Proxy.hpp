@@ -111,10 +111,26 @@ namespace Steam
 		template<typename T, typename... Args>
 		T invoke(std::string methodName, Args... args)
 		{
-			if(!this->interfacePtr) throw std::runtime_error("No valid interface provided!");
+			if(!this->interfacePtr)
+			{
+				OutputDebugStringA(::Utils::String::VA("Steam interface pointer is invalid (%s)!\n", methodName.data()));
+				return T();
+			}
 
 			void* method = this->getMethod(methodName);
-			if (!method) throw std::runtime_error("Method not found!");
+			if (!method)
+			{
+				OutputDebugStringA(::Utils::String::VA("Steam interface method %s not found!\n", methodName.data()));
+				return T();
+			}
+
+			size_t argc = this->getMethodParamSize(method);
+			constexpr size_t passedArgc = Interface::AddSizes<sizeof(Args)...>::value;
+			if(passedArgc != argc)
+			{
+				OutputDebugStringA(::Utils::String::VA("Steam interface arguments for method %s do not match (expected %d bytes, but got %d bytes)!\n", methodName.data(), argc, passedArgc));
+				return T();
+			}
 
 			return reinterpret_cast<T(__thiscall*)(void*, Args ...)>(method)(this->interfacePtr, args...);
 		}
@@ -124,11 +140,28 @@ namespace Steam
 			return this->interfacePtr != nullptr;
 		}
 
+		size_t paramSize(std::string methodName)
+		{
+			void* method = this->getMethod(methodName);
+			if (method) return this->getMethodParamSize(method);
+
+			return 0;
+		}
+
 	private:
+		// TODO: Use fold expressions in C++17 once available
+		template<std::size_t ...>
+		struct AddSizes : std::integral_constant<std::size_t, 0> {};
+
+		// This recursively adds the sizes of the individual arguments while respecting the architecture of the CPU
+		template<std::size_t X, std::size_t ... Xs>
+		struct AddSizes<X, Xs...> : std::integral_constant<std::size_t, X + ((AddSizes<Xs...>::value + (sizeof(void*) - 1)) & ~(sizeof(void*) - 1))> {};
+
 		void* interfacePtr;
 		std::unordered_map<std::string, void*> methodCache;
 		void* getMethod(std::string method);
 		void* lookupMethod(std::string method);
+		size_t getMethodParamSize(void* method);
 		std::string getMethodName(unsigned char* methodPtr);
 	};
 
