@@ -437,6 +437,9 @@ namespace Components
 	{
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
+		// Only store our cache if we are logged in, otherwise it might be invalid
+		if (!Steam::Proxy::SteamUser_ || !Steam::Proxy::SteamUser_->LoggedOn()) return;
+
 		Proto::Friends::List list;
 		for(auto entry : Friends::FriendsList)
 		{
