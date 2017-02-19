@@ -57,6 +57,7 @@ namespace Components
 			int prestige;
 		};
 
+		static bool LoggedOn;
 		static bool TriggerSort;
 		static bool TriggerUpdate;
 		static int InitialState;

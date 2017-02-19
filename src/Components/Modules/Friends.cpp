@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	bool Friends::LoggedOn = false;
 	bool Friends::TriggerSort = false;
 	bool Friends::TriggerUpdate = false;
 
@@ -245,6 +246,8 @@ namespace Components
 	void Friends::UpdateFriends()
 	{
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+
+		Friends::LoggedOn = (Steam::Proxy::SteamUser_ && Steam::Proxy::SteamUser_->LoggedOn());
 		if (!Steam::Proxy::SteamFriends) return;
 
 		Game::UI_UpdateArenas();
@@ -438,7 +441,7 @@ namespace Components
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
 		// Only store our cache if we are logged in, otherwise it might be invalid
-		if (!Steam::Proxy::SteamUser_ || !Steam::Proxy::SteamUser_->LoggedOn()) return;
+		if (!Friends::LoggedOn) return;
 
 		Proto::Friends::List list;
 		for(auto entry : Friends::FriendsList)
@@ -457,6 +460,8 @@ namespace Components
 
 	Friends::Friends()
 	{
+		Friends::LoggedOn = false;
+
 		if (Dedicated::IsEnabled() ||ZoneBuilder::IsEnabled()) return;
 		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_FLAG_SAVED, "");
 		Dvar::Register<int>("cl_notifyFriendState", 1, -1, 1, Game::DVAR_FLAG_SAVED, "");
