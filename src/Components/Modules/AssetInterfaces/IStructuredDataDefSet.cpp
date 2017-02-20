@@ -14,27 +14,27 @@ namespace Assets
 			Game::StructuredDataEnum* destEnum = &destEnums[i];
 			Game::StructuredDataEnum* enum_ = &enums[i];
 
-			if (enum_->indices)
+			if (enum_->entries)
 			{
 				AssertSize(Game::StructuredDataEnumEntry, 8);
 				buffer->align(Utils::Stream::ALIGN_4);
 
 				Game::StructuredDataEnumEntry* destIndices = buffer->dest<Game::StructuredDataEnumEntry>();
-				buffer->saveArray(enum_->indices, enum_->numIndices);
+				buffer->saveArray(enum_->entries, enum_->entryCount);
 
-				for (int j = 0; j < enum_->numIndices; ++j)
+				for (int j = 0; j < enum_->entryCount; ++j)
 				{
 					Game::StructuredDataEnumEntry* destIndex = &destIndices[j];
-					Game::StructuredDataEnumEntry* index = &enum_->indices[j];
+					Game::StructuredDataEnumEntry* index = &enum_->entries[j];
 
-					if (index->key)
+					if (index->name)
 					{
-						buffer->saveString(index->key);
-						Utils::Stream::ClearPointer(&destIndex->key);
+						buffer->saveString(index->name);
+						Utils::Stream::ClearPointer(&destIndex->name);
 					}
 				}
 
-				Utils::Stream::ClearPointer(&destEnum->indices);
+				Utils::Stream::ClearPointer(&destEnum->entries);
 			}
 		}
 	}
@@ -51,18 +51,18 @@ namespace Assets
 			Game::StructuredDataStruct* destStruct = &destStructs[i];
 			Game::StructuredDataStruct* struct_ = &structs[i];
 
-			if (struct_->property)
+			if (struct_->properties)
 			{
 				AssertSize(Game::StructuredDataStructProperty, 16);
 				buffer->align(Utils::Stream::ALIGN_4);
 
 				Game::StructuredDataStructProperty* destProperties = buffer->dest<Game::StructuredDataStructProperty>();
-				buffer->saveArray(struct_->property, struct_->numProperties);
+				buffer->saveArray(struct_->properties, struct_->propertyCount);
 
-				for (int j = 0; j < struct_->numProperties; ++j)
+				for (int j = 0; j < struct_->propertyCount; ++j)
 				{
 					Game::StructuredDataStructProperty* destProperty = &destProperties[j];
-					Game::StructuredDataStructProperty* property = &struct_->property[j];
+					Game::StructuredDataStructProperty* property = &struct_->properties[j];
 
 					if (property->name)
 					{
@@ -71,7 +71,7 @@ namespace Assets
 					}
 				}
 
-				Utils::Stream::ClearPointer(&destStruct->property);
+				Utils::Stream::ClearPointer(&destStruct->properties);
 			}
 		}
 	}
@@ -93,25 +93,25 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		if (asset->data)
+		if (asset->defs)
 		{
 			AssertSize(Game::StructuredDataDef, 52);
 			buffer->align(Utils::Stream::ALIGN_4);
 
 			Game::StructuredDataDef* destDataArray = buffer->dest<Game::StructuredDataDef>();
-			buffer->saveArray(asset->data, asset->count);
+			buffer->saveArray(asset->defs, asset->defCount);
 
-			for (int i = 0; i < asset->count; ++i)
+			for (unsigned int i = 0; i < asset->defCount; ++i)
 			{
 				Game::StructuredDataDef* destData = &destDataArray[i];
-				Game::StructuredDataDef* data = &asset->data[i];
+				Game::StructuredDataDef* data = &asset->defs[i];
 
 				if (data->enums)
 				{
 					AssertSize(Game::StructuredDataEnum, 12);
 					buffer->align(Utils::Stream::ALIGN_4);
 
-					this->saveStructuredDataEnumArray(data->enums, data->numEnums, builder);
+					this->saveStructuredDataEnumArray(data->enums, data->enumCount, builder);
 					Utils::Stream::ClearPointer(&destData->enums);
 				}
 
@@ -120,7 +120,7 @@ namespace Assets
 					AssertSize(Game::StructuredDataStruct, 16);
 					buffer->align(Utils::Stream::ALIGN_4);
 
-					this->saveStructuredDataStructArray(data->structs, data->numStructs, builder);
+					this->saveStructuredDataStructArray(data->structs, data->structCount, builder);
 					Utils::Stream::ClearPointer(&destData->structs);
 				}
 
@@ -129,21 +129,21 @@ namespace Assets
 					AssertSize(Game::StructuredDataIndexedArray, 16);
 					buffer->align(Utils::Stream::ALIGN_4);
 
-					buffer->saveArray(data->indexedArrays, data->numIndexedArrays);
+					buffer->saveArray(data->indexedArrays, data->indexedArrayCount);
 					Utils::Stream::ClearPointer(&destData->indexedArrays);
 				}
 
-				if (data->enumArrays)
+				if (data->enumedArrays)
 				{
 					AssertSize(Game::StructuredDataEnumedArray, 16);
 					buffer->align(Utils::Stream::ALIGN_4);
 
-					buffer->saveArray(data->enumArrays, data->numEnumArrays);
-					Utils::Stream::ClearPointer(&destData->enumArrays);
+					buffer->saveArray(data->enumedArrays, data->enumedArrayCount);
+					Utils::Stream::ClearPointer(&destData->enumedArrays);
 				}
 			}
 
-			Utils::Stream::ClearPointer(&dest->data);
+			Utils::Stream::ClearPointer(&dest->defs);
 		}
 
 		buffer->popBlock();

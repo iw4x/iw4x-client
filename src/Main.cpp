@@ -50,6 +50,9 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 {
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
+		// Not sure if it conflicts with our TLS variables
+		//DisableThreadLibraryCalls(hModule);
+
 		Steam::Proxy::RunMod();
 
 		// Ensure we're working with our desired binary

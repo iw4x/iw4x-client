@@ -29,18 +29,18 @@ namespace Components
 
 		// Build index-sorted data vector
 		std::vector<const char*> dataVector;
-		for (int i = 0; i < dataEnum->numIndices; ++i)
+		for (int i = 0; i < dataEnum->entryCount; ++i)
 		{
 			int index = 0;
-			for (; index < dataEnum->numIndices; ++index)
+			for (; index < dataEnum->entryCount; ++index)
 			{
-				if (dataEnum->indices[index].index == i)
+				if (dataEnum->entries[index].index == i)
 				{
 					break;
 				}
 			}
 
-			dataVector.push_back(dataEnum->indices[index].key);
+			dataVector.push_back(dataEnum->entries[index].name);
 		}
 
 		// Rebase or add new entries
@@ -64,10 +64,10 @@ namespace Components
 
 		// Map data back to the game structure
 		Game::StructuredDataEnumEntry* indices = StructuredData::MemAllocator.allocateArray<Game::StructuredDataEnumEntry>(dataVector.size());
-		for (unsigned int i = 0; i < dataVector.size(); ++i)
+		for (unsigned short i = 0; i < dataVector.size(); ++i)
 		{
 			indices[i].index = i;
-			indices[i].key = dataVector[i];
+			indices[i].name = dataVector[i];
 		}
 
 		// Sort alphabetically
@@ -76,16 +76,50 @@ namespace Components
 			const Game::StructuredDataEnumEntry* entry1 = reinterpret_cast<const Game::StructuredDataEnumEntry*>(first);
 			const Game::StructuredDataEnumEntry* entry2 = reinterpret_cast<const Game::StructuredDataEnumEntry*>(second);
 
-			return std::string(entry1->key).compare(entry2->key);
+			return std::string(entry1->name).compare(entry2->name);
 		});
 
 		// Apply our patches
-		dataEnum->numIndices = dataVector.size();
-		dataEnum->indices = indices;
+		dataEnum->entryCount = dataVector.size();
+		dataEnum->entries = indices;
+	}
+
+	void StructuredData::PatchCustomClassLimit(Game::StructuredDataDef* data, int count)
+	{
+		const int customClassSize = 64;
+
+		for (int i = 0; i < data->structs[0].propertyCount; ++i)
+		{
+			// 3003 is the offset of the customClasses structure
+			if (data->structs[0].properties[i].offset >= 3643)
+			{
+				// -10 because 10 is the default amount of custom classes.
+				data->structs[0].properties[i].offset += ((count - 10) * customClassSize);
+			}
+		}
+
+		// update structure size
+		data->size += ((count - 10) * customClassSize);
+
+		// Update amount of custom classes
+		data->indexedArrays[5].arraySize = count;
+	}
+
+	void StructuredData::PatchAdditionalData(Game::StructuredDataDef* data, std::unordered_map<std::string, std::string>& patches)
+	{
+		for(auto& item : patches)
+		{
+			if(item.first == "classes")
+			{
+				StructuredData::PatchCustomClassLimit(data, atoi(item.second.data()));
+			}
+		}
 	}
 
 	StructuredData::StructuredData()
 	{
+		Utils::Hook::Set<BYTE>(0x60A2FE, 15); // 15 custom classes
+
 		// Only execute this when building zones
 		if (!ZoneBuilder::IsEnabled()) return;
 
@@ -98,19 +132,20 @@ namespace Components
 			Game::StructuredDataDefSet* data = asset.structuredData;
 			if (!data) return;
 
-			if (data->count != 1)
+			if (data->defCount != 1)
 			{
 				Logger::Error("PlayerDataDefSet contains more than 1 definition!");
 				return;
 			}
 
-			if (data->data[0].version != 155)
+			if (data->defs[0].version != 155)
 			{
 				Logger::Error("Initial PlayerDataDef is not version 155, patching not possible!");
 				return;
 			}
 
 			std::map<int, std::vector<std::vector<std::string>>> patchDefinitions;
+			std::map<int, std::unordered_map<std::string, std::string>> otherPatchDefinitions;
 
 			// First check if all versions are present
 			for (int i = 156;; ++i)
@@ -119,6 +154,7 @@ namespace Components
 				if (!definition.exists()) break;
 
 				std::vector<std::vector<std::string>> enumContainer;
+				std::unordered_map<std::string, std::string> otherPatches;
 
 				std::string errors;
 				json11::Json defData = json11::Json::parse(definition.getBuffer(), errors);
@@ -155,34 +191,48 @@ namespace Components
 					enumContainer.push_back(entryData);
 				}
 
+				auto other = defData["other"];
+
+				if(other.is_object())
+				{
+					for(auto& item : other.object_items())
+					{
+						if(item.second.is_string())
+						{
+							otherPatches[item.first] = item.second.string_value();
+						}
+					}
+				}
+
 				patchDefinitions[i] = enumContainer;
+				otherPatchDefinitions[i] = otherPatches;
 			}
 
 			// Nothing to patch
 			if (patchDefinitions.empty()) return;
 
 			// Reallocate the definition
-			Game::StructuredDataDef* newData = StructuredData::MemAllocator.allocateArray<Game::StructuredDataDef>(data->count + patchDefinitions.size());
-			std::memcpy(&newData[patchDefinitions.size()], data->data, sizeof Game::StructuredDataDef * data->count);
+			Game::StructuredDataDef* newData = StructuredData::MemAllocator.allocateArray<Game::StructuredDataDef>(data->defCount + patchDefinitions.size());
+			std::memcpy(&newData[patchDefinitions.size()], data->defs, sizeof Game::StructuredDataDef * data->defCount);
 
 			// Prepare the buffers
 			for (unsigned int i = 0; i < patchDefinitions.size(); ++i)
 			{
-				std::memcpy(&newData[i], data->data, sizeof Game::StructuredDataDef);
+				std::memcpy(&newData[i], data->defs, sizeof Game::StructuredDataDef);
 				newData[i].version = (patchDefinitions.size() - i) + 155;
 
 				// Reallocate the enum array
-				Game::StructuredDataEnum* newEnums = StructuredData::MemAllocator.allocateArray<Game::StructuredDataEnum>(data->data->numEnums);
-				std::memcpy(newEnums, data->data->enums, sizeof Game::StructuredDataEnum * data->data->numEnums);
+				Game::StructuredDataEnum* newEnums = StructuredData::MemAllocator.allocateArray<Game::StructuredDataEnum>(data->defs->enumCount);
+				std::memcpy(newEnums, data->defs->enums, sizeof Game::StructuredDataEnum * data->defs->enumCount);
 				newData[i].enums = newEnums;
 			}
 
 			// Apply new data
-			data->data = newData;
-			data->count += patchDefinitions.size();
+			data->defs = newData;
+			data->defCount += patchDefinitions.size();
 
 			// Patch the definition
-			for (int i = 0; i < data->count; ++i)
+			for (unsigned int i = 0; i < data->defCount; ++i)
 			{
 				// No need to patch version 155
 				if (newData[i].version == 155) continue;
@@ -190,6 +240,7 @@ namespace Components
 				if(patchDefinitions.find(newData[i].version) != patchDefinitions.end())
 				{
 					auto patchData = patchDefinitions[newData[i].version];
+					auto otherData = otherPatchDefinitions[newData[i].version];
 
 					// Invalid patch data
 					if (patchData.size() != StructuredData::PlayerDataType::ENUM_MAX)
@@ -206,6 +257,8 @@ namespace Components
 							StructuredData::PatchPlayerDataEnum(&newData[i], static_cast<StructuredData::PlayerDataType>(pType), patchData[pType]);
 						}
 					}
+
+					StructuredData::PatchAdditionalData(&newData[i], otherData);
 				}
 			}
 		});

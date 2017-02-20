@@ -32,6 +32,9 @@ namespace Components
 
 	private:
 		static void PatchPlayerDataEnum(Game::StructuredDataDef* data, PlayerDataType type, std::vector<std::string>& entries);
+		static void PatchAdditionalData(Game::StructuredDataDef* data, std::unordered_map<std::string, std::string>& patches);
+
+		static void PatchCustomClassLimit(Game::StructuredDataDef* data, int count);
 		static Utils::Memory::Allocator MemAllocator;
 
 		static const char* EnumTranslation[ENUM_MAX];

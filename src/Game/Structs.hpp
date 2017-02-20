@@ -1448,90 +1448,110 @@ namespace Game
 		FontEntry* characters;
 	} Font;
 
-	typedef enum
+	enum StructuredDataTypeCategory
 	{
-		STRUCTURED_DATA_INT = 0,
-		STRUCTURED_DATA_BYTE = 1,
-		STRUCTURED_DATA_BOOL = 2,
-		STRUCTURED_DATA_STRING = 3,
-		STRUCTURED_DATA_ENUM = 4,
-		STRUCTURED_DATA_STRUCT = 5,
-		STRUCTURED_DATA_INDEXEDARR = 6,
-		STRUCTURED_DATA_ENUMARR = 7,
-		STRUCTURED_DATA_FLOAT = 8,
-		STRUCTURED_DATA_SHORT = 9
-	} StructuredDataType;
+		DATA_INT = 0x0,
+		DATA_BYTE = 0x1,
+		DATA_BOOL = 0x2,
+		DATA_STRING = 0x3,
+		DATA_ENUM = 0x4,
+		DATA_STRUCT = 0x5,
+		DATA_INDEXED_ARRAY = 0x6,
+		DATA_ENUM_ARRAY = 0x7,
+		DATA_FLOAT = 0x8,
+		DATA_SHORT = 0x9,
+		DATA_COUNT = 0xA,
+	};
+
+#pragma pack(push,4)
+	struct StructuredDataEnumEntry
+	{
+		const char *name;
+		unsigned __int16 index;
+	};
+#pragma pack(pop)
+
+	struct StructuredDataEnum
+	{
+		int entryCount;
+		int reservedEntryCount;
+		StructuredDataEnumEntry *entries;
+	};
+
+	union StructuredDataTypeUnion
+	{
+		unsigned int stringDataLength;
+		int enumIndex;
+		int structIndex;
+		int indexedArrayIndex;
+		int enumedArrayIndex;
+	};
+
+	struct StructuredDataType
+	{
+		StructuredDataTypeCategory type;
+		StructuredDataTypeUnion u;
+	};
 
 	typedef struct
 	{
-		StructuredDataType type;
-		union
-		{
-			int index;
-		};
+		StructuredDataType item;
 		int offset;
 	} StructuredDataItem;
 
-	typedef struct
+#pragma pack(push,4)
+	struct StructuredDataStructProperty
 	{
-		const char* name;
-		StructuredDataItem item;
-	} StructuredDataStructProperty;
+		const char *name;
+		StructuredDataType item;
+		int offset;
+	};
+#pragma pack(pop)
 
-	typedef struct
+	struct StructuredDataStruct
 	{
-		int numProperties;
-		StructuredDataStructProperty* property;
-		int unknown1;
-		int unknown2;
-	} StructuredDataStruct;
+		int propertyCount;
+		StructuredDataStructProperty *properties;
+		int size;
+		unsigned int bitOffset;
+	};
 
-	typedef struct
+	struct StructuredDataIndexedArray
+	{
+		int arraySize;
+		StructuredDataType elementType;
+		unsigned int elementSize;
+	};
+
+	struct StructuredDataEnumedArray
 	{
 		int enumIndex;
-		StructuredDataItem item;
-	} StructuredDataEnumedArray;
+		StructuredDataType elementType;
+		unsigned int elementSize;
+	};
 
-	typedef struct
-	{
-		const char* key;
-		int index;
-	} StructuredDataEnumEntry;
-
-	typedef struct
-	{
-		int numIndices;
-		int unknown;
-		StructuredDataEnumEntry* indices;
-	} StructuredDataEnum;
-
-	typedef struct
-	{
-		int numItems;
-		StructuredDataItem item;
-	} StructuredDataIndexedArray;
-
-	typedef struct
+	struct StructuredDataDef
 	{
 		int version;
-		unsigned int hash;
-		int numEnums;
-		StructuredDataEnum* enums;
-		int numStructs;
-		StructuredDataStruct* structs;
-		int numIndexedArrays;
-		StructuredDataIndexedArray* indexedArrays;
-		int numEnumArrays;
-		StructuredDataEnumedArray* enumArrays;
-		StructuredDataItem rootItem;
-	} StructuredDataDef;
+		unsigned int formatChecksum;
+		int enumCount;
+		StructuredDataEnum *enums;
+		int structCount;
+		StructuredDataStruct *structs;
+		int indexedArrayCount;
+		StructuredDataIndexedArray *indexedArrays;
+		int enumedArrayCount;
+		StructuredDataEnumedArray *enumedArrays;
+		StructuredDataType rootType;
+		unsigned int size;
+	};
 
-	typedef struct
+	struct StructuredDataDefSet
 	{
-		const char* name;
-		int count;
-		StructuredDataDef* data;
-	} StructuredDataDefSet;
+		const char *name;
+		unsigned int defCount;
+		StructuredDataDef *defs;
+	};
 
 	typedef struct
 	{

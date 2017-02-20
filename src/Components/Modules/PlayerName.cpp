@@ -22,6 +22,10 @@ namespace Components
 			Utils::Hook(Game::CL_GetClientName, PlayerName::GetClientName, HOOK_JUMP).install()->quick();
 		}
 #endif
+
+		//const char* clanname = "ZOB";
+		//Utils::Hook::Set<const char*>(0x497656, clanname);
+		//Utils::Hook::Set<const char*>(0x497679, clanname);
 	}
 
 	PlayerName::~PlayerName()
