@@ -174,6 +174,7 @@ namespace Components
 		addId(0);
 		addId(10190);
 		addId(480);
+		addId(Steam::Proxy::AppId);
 
 		if (Steam::Proxy::SteamUtils)
 		{
@@ -646,8 +647,15 @@ namespace Components
 			{
 				if (Steam::Proxy::ClientFriends)
 				{
-					Steam::Proxy::ClientFriends.invoke<void>("ClearRichPresence", 0);
-					Steam::Proxy::ClientFriends.invoke<void>("ClearRichPresence", Steam::Proxy::AppId);
+					for (auto id : Friends::GetAppIdList())
+					{
+						Steam::Proxy::ClientFriends.invoke<void>("ClearRichPresence", id);
+					}
+				}
+
+				if(Steam::Proxy::SteamFriends)
+				{
+					Steam::Proxy::SteamFriends->ClearRichPresence();
 				}
 			}
 
