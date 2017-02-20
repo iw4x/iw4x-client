@@ -14,6 +14,7 @@ namespace Steam
 	void* Proxy::SteamUser = nullptr;
 
 	Friends15* Proxy::SteamFriends = nullptr;
+	Apps7* Proxy::SteamApps = nullptr;
 	Utils* Proxy::SteamUtils = nullptr;
 	User* Proxy::SteamUser_ = nullptr;
 
@@ -108,12 +109,18 @@ namespace Steam
 
 	void Proxy::SetMod(std::string mod)
 	{
-		if (!Proxy::ClientUser || !Steam::Enabled() || Components::Dedicated::IsEnabled() || Components::ZoneBuilder::IsEnabled()) return;
+		if (!Proxy::ClientUser || !Proxy::SteamApps || !Steam::Enabled() || Components::Dedicated::IsEnabled() || Components::ZoneBuilder::IsEnabled()) return;
+
+		if (!Proxy::SteamApps->BIsSubscribedApp(Proxy::AppId))
+		{
+			Proxy::AppId = 480; // Spacewar - Steam's demo app
+		}
 
 		GameID_t gameID;
 		gameID.type = 1; // k_EGameIDTypeGameMod
 		gameID.appID = Proxy::AppId & 0xFFFFFF;
 		gameID.modID = 0xBAADF00D;
+
 
 // 		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
 // 		Interface clientShortcuts(Proxy::ClientEngine->GetIClientShortcuts(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTSHORTCUTS_INTERFACE_VERSION001"));
@@ -411,6 +418,9 @@ namespace Steam
 
 		Proxy::ClientFriends = Proxy::ClientEngine->GetIClientFriends(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTFRIENDS_INTERFACE_VERSION001");
 		if (!Proxy::ClientFriends) return false;
+
+		Proxy::SteamApps = reinterpret_cast<Apps7*>(Proxy::SteamClient->GetISteamApps(Proxy::SteamUser, Proxy::SteamPipe, "STEAMAPPS_INTERFACE_VERSION007"));
+		if (!Proxy::SteamApps) return false;
 
 		Proxy::SteamFriends = reinterpret_cast<Friends15*>(Proxy::SteamClient->GetISteamFriends(Proxy::SteamUser, Proxy::SteamPipe, "SteamFriends015"));
 		if (!Proxy::SteamFriends) return false;

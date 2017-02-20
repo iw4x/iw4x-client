@@ -2,10 +2,19 @@
 
 namespace Steam
 {
-	struct FriendSessionStateInfo_t
+	struct FriendSessionStateInfo
 	{
 		uint32_t m_uiOnlineSessionInstances;
 		uint8_t m_uiPublishedToFriendsSessionInstance;
+	};
+
+	struct FriendGameInfo
+	{
+		GameID_t m_gameID;
+		uint32_t m_unGameIP;
+		uint16_t m_usGamePort;
+		uint16_t m_usQueryPort;
+		SteamID m_steamIDLobby;
 	};
 
 	class Friends
@@ -20,7 +29,7 @@ namespace Steam
 		virtual int GetFriendPersonaState(SteamID steamIDFriend);
 		virtual const char *GetFriendPersonaName(SteamID steamIDFriend);
 		virtual int GetFriendAvatar(SteamID steamIDFriend, int eAvatarSize);
-		virtual bool GetFriendGamePlayed(SteamID steamIDFriend, void *pFriendGameInfo);
+		virtual bool GetFriendGamePlayed(SteamID steamIDFriend, FriendGameInfo *pFriendGameInfo);
 		virtual const char *GetFriendPersonaNameHistory(SteamID steamIDFriend, int iPersonaName);
 		virtual bool HasFriend(SteamID steamIDFriend, int eFriendFlags);
 		virtual int GetClanCount();
@@ -49,7 +58,7 @@ namespace Steam
 		virtual int GetFriendPersonaState(SteamID steamIDFriend) = 0;
 		virtual const char *GetFriendPersonaName(SteamID steamIDFriend) = 0;
 		virtual bool GetFriendGamePlayed(SteamID steamID, void *pGamePlayInfo) = 0;
-		virtual const char *GetFriendPersonaNameHistory(SteamID steamIDFriend, int iPersonaName) = 0;
+		virtual const char *GetFriendPersonaNameHistory(SteamID steamIDFriend, FriendGameInfo iPersonaName) = 0;
 		virtual int GetFriendSteamLevel(SteamID steamIDFriend) = 0;
 		virtual const char *GetPlayerNickname(SteamID steamIDPlayer) = 0;
 		virtual int16_t GetFriendsGroupCount() = 0;

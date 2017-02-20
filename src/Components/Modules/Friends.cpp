@@ -159,21 +159,56 @@ namespace Components
 		Friends::UpdateState();
 	}
 
-	void Friends::ClearPresence(std::string key)
+	std::vector<int> Friends::GetAppIdList()
+	{
+		std::vector<int> ids;
+
+		auto addId = [&](int id)
+		{
+			if(std::find(ids.begin(), ids.end(), id) == ids.end())
+			{
+				ids.push_back(id);
+			}
+		};
+
+		addId(0);
+		addId(10190);
+		addId(480);
+
+		if (Steam::Proxy::SteamUtils)
+		{
+			addId(Steam::Proxy::SteamUtils->GetAppID());
+		}
+
+		return ids;
+	}
+
+	void Friends::SetRawPresence(const char* key, const char* value)
 	{
 		if (Steam::Proxy::ClientFriends)
 		{
-			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", 0, key.data(), nullptr);
-			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", Steam::Proxy::AppId, key.data(), nullptr);
+			auto appIds = Friends::GetAppIdList();
+
+			for (auto id : appIds)
+			{
+				Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", id, key, value);
+			}
+		}
+	}
+
+	void Friends::ClearPresence(std::string key)
+	{
+		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamUtils)
+		{
+			Friends::SetRawPresence(key.data(), nullptr);
 		}
 	}
 
 	void Friends::SetPresence(std::string key, std::string value)
 	{
-		if (Steam::Proxy::ClientFriends && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Enabled())
+		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamUtils && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Enabled())
 		{
-			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", 0, key.data(), value.data());
-			Steam::Proxy::ClientFriends.invoke<void>("SetRichPresence", Steam::Proxy::AppId, key.data(), value.data());
+			Friends::SetRawPresence(key.data(), value.data());
 		}
 	}
 
@@ -181,17 +216,15 @@ namespace Components
 	{
 		if(Steam::Proxy::ClientFriends)
 		{
-			Steam::Proxy::ClientFriends.invoke<void>("RequestFriendRichPresence", 0, user);
-			Steam::Proxy::ClientFriends.invoke<void>("RequestFriendRichPresence", Steam::Proxy::AppId, user);
+			Steam::Proxy::ClientFriends.invoke<void>("RequestFriendRichPresence", Friends::GetGame(user), user);
 		}
 	}
 
 	std::string Friends::GetPresence(SteamID user, std::string key)
 	{
-		if (!Steam::Proxy::ClientFriends) return "";
+		if (!Steam::Proxy::ClientFriends || !Steam::Proxy::SteamUtils) return "";
 
-		std::string result = Steam::Proxy::ClientFriends.invoke<const char*>("GetFriendRichPresence", Steam::Proxy::AppId, user, key.data());
-		if (result.empty()) result = Steam::Proxy::ClientFriends.invoke<const char*>("GetFriendRichPresence", 0, user, key.data());
+		std::string result = Steam::Proxy::ClientFriends.invoke<const char*>("GetFriendRichPresence", Friends::GetGame(user), user, key.data());
 		return result;
 	}
 
@@ -424,6 +457,19 @@ namespace Components
 				Toast::Show("cardicon_stop", Steam::Proxy::SteamFriends->GetFriendPersonaName(user), "unable to send friend request", 3000);
 			}
 		}
+	}
+
+	int Friends::GetGame(SteamID user)
+	{
+		int appId = 0;
+
+		Steam::FriendGameInfo info;
+		if (Steam::Proxy::SteamFriends && Steam::Proxy::SteamFriends->GetFriendGamePlayed(user, &info))
+		{
+			appId = info.m_gameID.appID;
+		}
+
+		return appId;
 	}
 
 	void Friends::UpdateTimeStamp()

@@ -25,6 +25,8 @@ namespace Components
 
 		static void AddFriend(SteamID user);
 
+		static int GetGame(SteamID user);
+
 	private:
 #pragma pack(push, 4)
 		struct FriendRichPresenceUpdate
@@ -86,5 +88,8 @@ namespace Components
 		static bool IsOnline(unsigned __int64 timeStamp);
 
 		static void StoreFriendsList();
+
+		static void SetRawPresence(const char* key, const char* value);
+		static std::vector<int> GetAppIdList();
 	};
 }

@@ -51,7 +51,7 @@ namespace Steam
 		return 0;
 	}
 
-	bool Friends::GetFriendGamePlayed(SteamID steamIDFriend, void *pFriendGameInfo)
+	bool Friends::GetFriendGamePlayed(SteamID steamIDFriend, FriendGameInfo *pFriendGameInfo)
 	{
 		return false;
 	}

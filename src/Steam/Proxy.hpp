@@ -102,6 +102,35 @@ namespace Steam
 		virtual void *GetIClientVR(char const * pchVersion) = 0;
 	};
 
+	class Apps7
+	{
+	public:
+		virtual bool BIsSubscribed() = 0;
+		virtual bool BIsLowViolence() = 0;
+		virtual bool BIsCybercafe() = 0;
+		virtual bool BIsVACBanned() = 0;
+		virtual const char *GetCurrentGameLanguage() = 0;
+		virtual const char *GetAvailableGameLanguages() = 0;
+		virtual bool BIsSubscribedApp(int nAppID) = 0;
+		virtual bool BIsDlcInstalled(int nAppID) = 0;
+		virtual uint32_t GetEarliestPurchaseUnixTime(int nAppID) = 0;
+		virtual bool BIsSubscribedFromFreeWeekend() = 0;
+		virtual int GetDLCCount() = 0;
+		virtual bool BGetDLCDataByIndex(int iDLC, int *pAppID, bool *pbAvailable, char *pchName, int cchNameBufferSize) = 0;
+		virtual void InstallDLC(int nAppID) = 0;
+		virtual void UninstallDLC(int nAppID) = 0;
+		virtual void RequestAppProofOfPurchaseKey(int nAppID) = 0;
+		virtual bool GetCurrentBetaName(char *pchName, int cchNameBufferSize) = 0;
+		virtual bool MarkContentCorrupt(bool bMissingFilesOnly) = 0;
+		virtual uint32_t GetInstalledDepots(int appID, void *pvecDepots, uint32_t cMaxDepots) = 0;
+		virtual uint32_t GetAppInstallDir(int appID, char *pchFolder, uint32_t cchFolderBufferSize) = 0;
+		virtual bool BIsAppInstalled(int appID) = 0;
+		virtual SteamID GetAppOwner() = 0;
+		virtual const char *GetLaunchQueryParam(const char *pchKey) = 0;
+		virtual bool GetDlcDownloadProgress(uint32_t, uint64_t *, uint64_t *) = 0;
+		virtual int GetAppBuildId() = 0;
+	};
+
 	class Interface
 	{
 	public:
@@ -238,6 +267,7 @@ namespace Steam
 		static void UnregisterCallback(int32_t callId);
 
 		static Friends15* SteamFriends;
+		static Apps7* SteamApps;
 		static Utils* SteamUtils;
 		static User* SteamUser_;
 		static Interface ClientFriends;
