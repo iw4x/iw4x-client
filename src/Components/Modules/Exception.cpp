@@ -88,8 +88,7 @@ namespace Components
 		auto minidump = MinidumpUpload::CreateQueuedMinidump(ExceptionInfo, Exception::MiniDumpType);
 		if (!minidump)
 		{
-			MessageBoxA(nullptr, "Minidump Error", 
-				Utils::String::VA("There was an error creating the minidump (%s)! Hit OK to close the program.", Utils::GetLastWindowsError().data()), MB_OK | MB_ICONERROR);
+			MessageBoxA(nullptr, Utils::String::VA("There was an error creating the minidump (%s)! Hit OK to close the program.", Utils::GetLastWindowsError().data()), "Minidump Error", MB_OK | MB_ICONERROR);
 			OutputDebugStringA("Failed to create new minidump!");
 			Utils::OutputDebugLastError();
 			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
