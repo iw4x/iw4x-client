@@ -365,6 +365,10 @@ namespace Components
 			{
 				return Utils::String::VA("%s", user.name.data());
 			}
+			else if (user.name == user.playerName)
+			{
+				return Utils::String::VA("%s", user.name.data());
+			}
 			else
 			{
 				return Utils::String::VA("%s ^7(%s^7)", user.name.data(), user.playerName.data());
