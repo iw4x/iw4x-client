@@ -200,6 +200,7 @@ require "premake/protobuf"
 require "premake/sqlite3"
 require "premake/zlib"
 require "premake/WinToast"
+require "premake/udis86"
 
 base128.setup
 {
@@ -259,6 +260,10 @@ zlib.setup
 WinToast.setup
 {
 	source = path.join(depsBasePath, "WinToast"),
+}
+udis86.setup
+{
+	source = path.join(depsBasePath, "udis86"),
 }
 
 workspace "iw4x"
@@ -367,6 +372,7 @@ workspace "iw4x"
 		protobuf.import()
 		zlib.import()
 		WinToast.import()
+		udis86.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -486,6 +492,7 @@ workspace "iw4x"
 		protobuf.project()
 		zlib.project()
 		WinToast.project()
+		udis86.project()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"
