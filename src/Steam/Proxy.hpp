@@ -318,6 +318,7 @@ namespace Steam
 		static void UnregisterCalls();
 		static void StartSteamIfNecessary();
 
+		static void ResetActiveUser();
 		static uint32_t GetActiveUser();
 		static std::string GetSteamDirectory();
 	};

@@ -365,11 +365,10 @@ namespace Steam
 
 			Components::Toast::ShowNative(templ);
 
-			uint32_t user = Proxy::GetActiveUser();
-			ShellExecuteA(nullptr, nullptr, steamExe.data(), "-silent", nullptr, 1);
+			// If steam has crashed, the user is not null, so we reset it to be able to check if steam started
+			if (Proxy::GetActiveUser()) Proxy::ResetActiveUser();
 
-			// If steam has crashed, the user is not null, therefore we can't check if login is done, so we wait 3 seconds so steam can reset it
-			if (user) std::this_thread::sleep_for(3ms);
+			ShellExecuteA(nullptr, nullptr, steamExe.data(), "-silent", nullptr, 1);
 
 			::Utils::Time::Interval interval;
 			while (!interval.elapsed(15s) && !Proxy::GetActiveUser()) std::this_thread::sleep_for(10ms);
@@ -485,6 +484,18 @@ namespace Steam
 		}
 
 		return activeUser;
+	}
+
+	void Proxy::ResetActiveUser()
+	{
+		HKEY hRegKey;
+		uint32_t activeUser = 0;
+
+		if (RegOpenKeyExA(HKEY_CURRENT_USER, STEAM_REGISTRY_PROCESS_PATH, 0, KEY_ALL_ACCESS, &hRegKey) == ERROR_SUCCESS)
+		{
+			RegSetValueExA(hRegKey, "ActiveUser", 0, REG_DWORD, reinterpret_cast<BYTE*>(&activeUser), sizeof(activeUser));
+			RegCloseKey(hRegKey);
+		}
 	}
 
 	void Proxy::SetOverlayNotificationPosition(uint32_t eNotificationPosition)
