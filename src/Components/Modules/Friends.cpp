@@ -206,6 +206,9 @@ namespace Components
 	{
 		if (Steam::Proxy::ClientFriends)
 		{
+			// Set the presence for all possible apps that IW4x might have to interact with.
+			// GetFriendRichPresence only reads values for the app that we are running,
+			// therefore our friends (and we as well) have to set the presence for those apps.
 			auto appIds = Friends::GetAppIdList();
 
 			for (auto id : appIds)
