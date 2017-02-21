@@ -181,6 +181,24 @@ namespace Components
 			addId(Steam::Proxy::SteamUtils->GetAppID());
 		}
 
+		if(Steam::Proxy::SteamFriends)
+		{
+			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+
+			char* mod = "IW4x";
+			unsigned int modId = *reinterpret_cast<unsigned int*>(mod) | 0x80000000;
+
+			// Split up the list
+			for (auto entry : Friends::FriendsList)
+			{
+				Steam::FriendGameInfo info;
+				if(Steam::Proxy::SteamFriends->GetFriendGamePlayed(entry.userId, &info) && info.m_gameID.modID == modId)
+				{
+					addId(info.m_gameID.appID);
+				}
+			}
+		}
+
 		return ids;
 	}
 
