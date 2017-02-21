@@ -365,10 +365,14 @@ namespace Steam
 
 			Components::Toast::ShowNative(templ);
 
+			uint32_t user = Proxy::GetActiveUser();
 			ShellExecuteA(nullptr, nullptr, steamExe.data(), "-silent", nullptr, 1);
 
+			// If steam has crashed, the user is not null, therefore we can't check if login is done, so we wait 3 seconds so steam can reset it
+			if (user) std::this_thread::sleep_for(3ms);
+
 			::Utils::Time::Interval interval;
-			while(!interval.elapsed(15s) && !Proxy::GetActiveUser()) std::this_thread::sleep_for(10ms);
+			while (!interval.elapsed(15s) && !Proxy::GetActiveUser()) std::this_thread::sleep_for(10ms);
 			std::this_thread::sleep_for(1s);
 		}
 	}
