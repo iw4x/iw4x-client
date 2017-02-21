@@ -69,6 +69,7 @@ template <size_t S> class Sizer { };
 #include <BitMRC.h>
 #endif
 #include <wintoastlib.h>
+#include <udis86.h>
 
 #ifdef max
 #undef max

@@ -38,3 +38,6 @@
 [submodule "deps/WinToast"]
 	path = deps/WinToast
 	url = https://github.com/mohabouje/WinToast.git
+[submodule "deps/udis86"]
+	path = deps/udis86
+	url = git@github.com:iw4x/udis86.git
