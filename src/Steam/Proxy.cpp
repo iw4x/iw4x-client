@@ -56,31 +56,55 @@ namespace Steam
 
 	size_t Interface::getMethodParamSize(void* method)
 	{
-		unsigned char* methodPtr = static_cast<unsigned char*>(method);
-		for (; !::Utils::Memory::IsBadReadPtr(methodPtr); ++methodPtr)
+		if (::Utils::Memory::IsBadCodePtr(method)) return 0;
+
+		ud_t ud;
+		ud_init(&ud);
+		ud_set_mode(&ud, 32);
+		ud_set_pc(&ud, reinterpret_cast<uint64_t>(method));
+		ud_set_input_buffer(&ud, reinterpret_cast<uint8_t*>(method), INT32_MAX);
+
+		while (true)
 		{
-			if (methodPtr[0] == 0xC2 && methodPtr[2] == 0) // __stdcall return
+			ud_disassemble(&ud);
+			if (ud_insn_mnemonic(&ud) == UD_Iret)
 			{
-				return (static_cast<size_t>(methodPtr[1])/* / sizeof(void*)*/);
+				auto operand = ud_insn_opr(&ud, 0);
+				if (operand->type == UD_OP_IMM && operand->size == 16)
+				{
+					return static_cast<size_t>(operand->lval.uword);
+				}
+
+				break;
 			}
 		}
 
 		return 0;
 	}
 
-
 	std::string Interface::getMethodName(unsigned char* methodPtr)
 	{
-		for(;!::Utils::Memory::IsBadReadPtr(methodPtr); ++methodPtr)
+		if (::Utils::Memory::IsBadCodePtr(methodPtr)) return "";
+
+		ud_t ud;
+		ud_init(&ud);
+		ud_set_mode(&ud, 32);
+		ud_set_pc(&ud, reinterpret_cast<uint64_t>(methodPtr));
+		ud_set_input_buffer(&ud, reinterpret_cast<uint8_t*>(methodPtr), INT32_MAX);
+
+		while (true)
 		{
-			if(methodPtr[0] == 0x68) // Push
+			ud_disassemble(&ud);
+			if (ud_insn_mnemonic(&ud) == UD_Iret) break;
+
+			if (ud_insn_mnemonic(&ud) == UD_Ipush)
 			{
-				char* name = *reinterpret_cast<char**>(&methodPtr[1]);
-				if(::Utils::Memory::IsBadReadPtr(name)) return name;
-			}
-			else if(methodPtr[0] == 0xC2 && methodPtr[2] == 0) // __stdcall return
-			{
-				break;
+				auto operand = ud_insn_opr(&ud, 0);
+				if (operand->type == UD_OP_IMM && operand->size == 32)
+				{
+					char* operandPtr = reinterpret_cast<char*>(operand->lval.udword);
+					if (!::Utils::Memory::IsBadReadPtr(operandPtr)) return operandPtr;
+				}
 			}
 		}
 
@@ -167,7 +191,6 @@ namespace Steam
 			else if (expectedParams == 48) // Legacy, expects VAC blob
 			{
 				char blob[8] = { 0 };
-
 				Proxy::ClientUser.invoke<bool>("SpawnProcess", blob, 0, ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
 			}
 			else
