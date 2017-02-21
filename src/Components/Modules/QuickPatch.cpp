@@ -66,7 +66,7 @@ namespace Components
 
 	void QuickPatch::UnlockStats()
 	{
-		if (Dedicated::Dedicated::IsEnabled()) return;
+		if (Dedicated::IsEnabled()) return;
 
 		if (Game::CL_IsCgameInitialized())
 		{
@@ -245,20 +245,17 @@ namespace Components
 		// version string
 		Utils::Hook::Set<char*>(0x60BD56, "IW4x (" VERSION ")");
 
-		if (!Dedicated::Dedicated::IsEnabled())
-		{
-			// version string color
-			static float buildLocColor[] = { 1.0f, 1.0f, 1.0f, 0.8f };
-			Utils::Hook::Set(0x43F710, buildLocColor);
+		// version string color
+		static float buildLocColor[] = { 1.0f, 1.0f, 1.0f, 0.8f };
+		Utils::Hook::Set(0x43F710, buildLocColor);
 
-			// Shift ui version string to the left (ui_buildlocation)
-			Utils::Hook::Nop(0x6310A0, 5); // Don't register the initial dvar
-			Utils::Hook::Nop(0x6310B8, 5); // Don't write the result
-			Dvar::OnInit([]()
-			{
-				*reinterpret_cast<Game::dvar_t**>(0x62E4B64) = Game::Dvar_RegisterVec2("ui_buildLocation", -60.0f, 474.0f, -10000.0, 10000.0, Game::DVAR_FLAG_READONLY, "Where to draw the build number");
-			});
-		}
+		// Shift ui version string to the left (ui_buildlocation)
+		Utils::Hook::Nop(0x6310A0, 5); // Don't register the initial dvar
+		Utils::Hook::Nop(0x6310B8, 5); // Don't write the result
+		Dvar::OnInit([] ()
+		{
+			*reinterpret_cast<Game::dvar_t**>(0x62E4B64) = Game::Dvar_RegisterVec2("ui_buildLocation", -60.0f, 474.0f, -10000.0, 10000.0, Game::DVAR_FLAG_READONLY, "Where to draw the build number");
+		});
 
 		// console title
 		if (ZoneBuilder::IsEnabled())
@@ -369,15 +366,12 @@ namespace Components
 			Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
 		}
 
-		if (!Dedicated::Dedicated::IsEnabled())
-		{
-			// intro stuff
-			Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
-			Utils::Hook::Nop(0x60BEF6, 5); // Don't reset the intro dvar
-			Utils::Hook::Set<char*>(0x60BED2, "unskippablecinematic IW_logo\n");
-			Utils::Hook::Set<char*>(0x51C2A4, "%s\\" BASEGAME "\\video\\%s.bik");
-			Utils::Hook::Set<DWORD>(0x51C2C2, 0x78A0AC);
-		}
+		// intro stuff
+		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
+		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset the intro dvar
+		Utils::Hook::Set<char*>(0x60BED2, "unskippablecinematic IW_logo\n");
+		Utils::Hook::Set<char*>(0x51C2A4, "%s\\" BASEGAME "\\video\\%s.bik");
+		Utils::Hook::Set<DWORD>(0x51C2C2, 0x78A0AC);
 
 		// Redirect logs
 		Utils::Hook::Set<char*>(0x5E44D8, "logs/games_mp.log");
@@ -428,22 +422,19 @@ namespace Components
 		// Patch SV_IsClientUsingOnlineStatsOffline
 		Utils::Hook::Set<DWORD>(0x46B710, 0x90C3C033);
 
-		if (!Dedicated::Dedicated::IsEnabled())
+		// Fix mouse pitch adjustments
+		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_FLAG_SAVED, "");
+		UIScript::Add("updateui_mousePitch", [] (UIScript::Token)
 		{
-			// Fix mouse pitch adjustments
-			Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_FLAG_SAVED, "");
-			UIScript::Add("updateui_mousePitch", [](UIScript::Token)
+			if (Dvar::Var("ui_mousePitch").get<bool>())
 			{
-				if (Dvar::Var("ui_mousePitch").get<bool>())
-				{
-					Dvar::Var("m_pitch").set(-0.022f);
-				}
-				else
-				{
-					Dvar::Var("m_pitch").set(0.022f);
-				}
-			});
-		}
+				Dvar::Var("m_pitch").set(-0.022f);
+			}
+			else
+			{
+				Dvar::Var("m_pitch").set(0.022f);
+			}
+		});
 
 		// Rename stat file
 		Utils::Hook::SetString(0x71C048, "iw4x.stat");

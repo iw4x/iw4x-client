@@ -204,7 +204,7 @@ namespace Components
 
 	ConnectProtocol::ConnectProtocol()
 	{
-		if (Dedicated::Dedicated::IsEnabled()) return;
+		if (Dedicated::IsEnabled()) return;
 
 		// IPC handler
 		IPCPipe::On("connect", [] (std::string data)

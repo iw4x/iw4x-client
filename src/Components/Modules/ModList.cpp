@@ -90,7 +90,7 @@ namespace Components
 
 	ModList::ModList()
 	{
-		if (Dedicated::Dedicated::IsEnabled()) return;
+		if (Dedicated::IsEnabled()) return;
 
 		ModList::CurrentMod = 0;
 		Dvar::Register("cl_modVidRestart", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Perform a vid_restart when loading a mod.");
