@@ -119,7 +119,9 @@ namespace Steam
 		GameID_t gameID;
 		gameID.type = 1; // k_EGameIDTypeGameMod
 		gameID.appID = Proxy::AppId & 0xFFFFFF;
-		gameID.modID = 0xBAADF00D;
+
+		char* modId = "IW4x";
+		gameID.modID = *reinterpret_cast<unsigned int*>(modId) | 0x80000000;
 
 
 // 		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
