@@ -42,10 +42,10 @@ namespace Steam
 
 	void* Interface::lookupMethod(std::string method)
 	{
-		if (IsBadReadPtr(this->interfacePtr, 4)) return nullptr;
+		if (::Utils::Memory::IsBadReadPtr(this->interfacePtr)) return nullptr;
 		unsigned char** vftbl = *static_cast<unsigned char***>(this->interfacePtr);
 
-		while (!IsBadReadPtr(vftbl, 4) && !IsBadCodePtr((FARPROC(*vftbl))))
+		while (!::Utils::Memory::IsBadReadPtr(vftbl) && !::Utils::Memory::IsBadCodePtr((FARPROC(*vftbl))))
 		{
 			if(this->getMethodName(*vftbl) == method) return *vftbl;
 			++vftbl;
@@ -57,7 +57,7 @@ namespace Steam
 	size_t Interface::getMethodParamSize(void* method)
 	{
 		unsigned char* methodPtr = static_cast<unsigned char*>(method);
-		for (; !IsBadReadPtr(methodPtr, 3); ++methodPtr)
+		for (; !::Utils::Memory::IsBadReadPtr(methodPtr); ++methodPtr)
 		{
 			if (methodPtr[0] == 0xC2 && methodPtr[2] == 0) // __stdcall return
 			{
@@ -71,12 +71,12 @@ namespace Steam
 
 	std::string Interface::getMethodName(unsigned char* methodPtr)
 	{
-		for(;!IsBadReadPtr(methodPtr, 3); ++methodPtr)
+		for(;!::Utils::Memory::IsBadReadPtr(methodPtr); ++methodPtr)
 		{
 			if(methodPtr[0] == 0x68) // Push
 			{
 				char* name = *reinterpret_cast<char**>(&methodPtr[1]);
-				if(!IsBadReadPtr(name, 1)) return name;
+				if(::Utils::Memory::IsBadReadPtr(name)) return name;
 			}
 			else if(methodPtr[0] == 0xC2 && methodPtr[2] == 0) // __stdcall return
 			{
@@ -322,11 +322,7 @@ namespace Steam
 
 	void Proxy::StartSteamIfNecessary()
 	{
-		if (Proxy::GetSteamDirectory().empty()
-#ifndef DEBUG
-			|| !Steam::Enabled()
-#endif
-			) return;
+		if (Proxy::GetSteamDirectory().empty() || !Steam::Enabled()) return;
 
 		HKEY hRegKey;
 		DWORD pid = 0;

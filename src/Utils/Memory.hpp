@@ -130,5 +130,8 @@ namespace Utils
 		static void FreeAlign(const void* data);
 
 		static bool IsSet(void* mem, char chr, size_t length);
+
+		static bool IsBadReadPtr(const void* ptr);
+		static bool IsBadCodePtr(const void* ptr);
 	};
 }
