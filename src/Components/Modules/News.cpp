@@ -121,7 +121,8 @@ namespace Components
 	News::News()
 	{
 		News::UpdaterArgs.clear();
-		if (ZoneBuilder::IsEnabled()) return; // Maybe also dedi?
+
+		if (ZoneBuilder::IsEnabled() && Dedicated::Dedicated::IsEnabled()) return; // Maybe also dedi?
 
 		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_FLAG_SAVED, "");
 
@@ -174,7 +175,7 @@ namespace Components
 			News::LaunchUpdater("-update -c");
 		});
 
-		if (!Utils::IsWineEnvironment() && !Loader::PerformingUnitTests())
+		if (!Utils::IsWineEnvironment() && !Loader::PerformingUnitTests() && !Dedicated::Dedicated::IsEnabled())
 		{
 			News::Terminate = false;
 			News::Thread = std::thread([]()
