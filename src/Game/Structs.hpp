@@ -1554,6 +1554,12 @@ namespace Game
 		StructuredDataDef *defs;
 	};
 
+	struct StructuredDataBuffer
+	{
+		char *data;
+		size_t size;		// 8188
+	};
+
 	typedef struct
 	{
 		StructuredDataDef* data;
