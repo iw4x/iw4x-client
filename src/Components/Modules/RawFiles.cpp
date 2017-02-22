@@ -17,6 +17,7 @@ namespace Components
 		Utils::Hook(0x59A6F8, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
 		Utils::Hook(0x57F1E6, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
 		Utils::Hook(0x57ED36, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x609832, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
 
 		// remove fs_game check for moddable rawfiles - allows non-fs_game to modify rawfiles
 		Utils::Hook::Nop(0x61AB76, 2);

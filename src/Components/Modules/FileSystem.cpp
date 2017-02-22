@@ -251,7 +251,14 @@ namespace Components
 
 	int FileSystem::ExecIsFSStub(const char* execFilename)
 	{
-		return !File(execFilename).exists();
+		bool result = !File(execFilename).exists();
+
+		if(execFilename =="mp/stats_init.cfg"s)
+		{
+			OutputDebugStringA("");
+		}
+
+		return result;
 	}
 
 	void FileSystem::FsStartupSync(const char* a1)
@@ -289,6 +296,9 @@ namespace Components
 
 		// Filesystem config checks
 		Utils::Hook(0x6098FD, FileSystem::ExecIsFSStub, HOOK_CALL).install()->quick();
+
+		// Don't strip the folders from the config name (otherwise our ExecIsFSStub fails)
+		Utils::Hook::Nop(0x6098F2, 5);
 
 		// Register additional folders
 		Utils::Hook(0x482647, FileSystem::StartupStub, HOOK_JUMP).install()->quick();
