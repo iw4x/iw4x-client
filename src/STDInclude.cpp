@@ -67,6 +67,10 @@ AssertSize(std::uint8_t, 1);
 // Ensure pointers are 4 bytes in size (32-bit)
 static_assert(sizeof(intptr_t) == 4 && sizeof(void*) == 4 && sizeof(size_t) == 4, "This doesn't seem to be a 32-bit environment!");
 
+#if !defined(_M_IX86)
+#error "Invalid processor achritecture!"
+#endif
+
 extern "C"
 {
     // Disable telemetry data logging
