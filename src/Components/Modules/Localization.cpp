@@ -260,6 +260,25 @@ namespace Components
 		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).install()->quick();
 
 		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
+
+		// Generate localized entries for custom classes above 10
+		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* /*restrict*/)
+		{
+			if (type != Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY) return;
+
+			if(name == "CLASS_SLOT1"s)
+			{
+				for(int i = 11; i <= NUM_CUSTOM_CLASSES; ++i)
+				{
+					std::string key = Utils::String::VA("CLASS_SLOT%i", i);
+
+					std::string value = asset.localize->value;
+					Utils::String::Replace(value, "1", Utils::String::VA("%i", i)); // Pretty ugly, but it should work
+
+					Localization::Set(key, value);
+				}
+			}
+		});
 	}
 
 	Localization::~Localization()

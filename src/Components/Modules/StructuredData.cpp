@@ -118,7 +118,8 @@ namespace Components
 
 	StructuredData::StructuredData()
 	{
-		Utils::Hook::Set<BYTE>(0x60A2FE, 15); // 15 custom classes
+		// 15 or more custom classes
+		Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
 
 		// Only execute this when building zones
 		if (!ZoneBuilder::IsEnabled()) return;
