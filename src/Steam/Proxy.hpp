@@ -146,14 +146,14 @@ namespace Steam
 				return T();
 			}
 
-			void* method = this->getMethod(methodName);
-			if (!method)
+			auto method = this->getMethod(methodName);
+			if (!method.first)
 			{
 				OutputDebugStringA(::Utils::String::VA("Steam interface method %s not found!\n", methodName.data()));
 				return T();
 			}
 
-			size_t argc = this->getMethodParamSize(method);
+			size_t argc = method.second;
 			constexpr size_t passedArgc = Interface::AddSizes<sizeof(Args)...>::value;
 			if(passedArgc != argc)
 			{
@@ -161,7 +161,7 @@ namespace Steam
 				return T();
 			}
 
-			return reinterpret_cast<T(__thiscall*)(void*, Args ...)>(method)(this->interfacePtr, args...);
+			return reinterpret_cast<T(__thiscall*)(void*, Args ...)>(method.first)(this->interfacePtr, args...);
 		}
 
 		explicit operator bool() const
@@ -171,14 +171,12 @@ namespace Steam
 
 		size_t paramSize(std::string methodName)
 		{
-			void* method = this->getMethod(methodName);
-			if (method) return this->getMethodParamSize(method);
-
-			return 0;
+			auto method = this->getMethod(methodName);
+			return method.second;
 		}
 
 	private:
-		// TODO: Use fold expressions in C++17 once available
+		// TODO: Use fold expressions once available (C++17)
 		template<std::size_t ...>
 		struct AddSizes : std::integral_constant<std::size_t, 0> {};
 
@@ -187,11 +185,10 @@ namespace Steam
 		struct AddSizes<X, Xs...> : std::integral_constant<std::size_t, X + ((AddSizes<Xs...>::value + (sizeof(void*) - 1)) & ~(sizeof(void*) - 1))> {};
 
 		void* interfacePtr;
-		std::unordered_map<std::string, void*> methodCache;
-		void* getMethod(std::string method);
-		void* lookupMethod(std::string method);
-		size_t getMethodParamSize(void* method);
-		std::string getMethodName(unsigned char* methodPtr);
+		std::unordered_map<std::string, std::pair<void*, uint16_t>> methodCache;
+		std::pair<void*, uint16_t> getMethod(std::string method);
+		std::pair<void*, uint16_t> lookupMethod(std::string method);
+		bool getMethodData(unsigned char* methodPtr, std::string* name, uint16_t* params);
 	};
 
 	class KeyValuesBuilder
