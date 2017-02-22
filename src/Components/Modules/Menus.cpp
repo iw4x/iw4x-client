@@ -276,7 +276,17 @@ namespace Components
 		{
 			for (auto menu : Menus::CustomMenus)
 			{
-				Utils::Merge(&menus, Menus::LoadMenu(menu));
+				bool hasMenu = false;
+				for(auto &loadedMenu : menus)
+				{
+					if(loadedMenu->window.name == menu)
+					{
+						hasMenu = true;
+						break;
+					}
+				}
+
+				if(!hasMenu) Utils::Merge(&menus, Menus::LoadMenu(menu));
 			}
 		}
 
@@ -710,6 +720,7 @@ namespace Components
 		Menus::Add("ui_mp/startup_messages.menu");
 		Menus::Add("ui_mp/pc_store.menu");
 		Menus::Add("ui_mp/iw4x_credits.menu");
+		Menus::Add("ui_mp/resetclass.menu");
 	}
 
 	Menus::~Menus()
