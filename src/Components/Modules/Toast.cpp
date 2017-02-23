@@ -146,6 +146,8 @@ namespace Components
 
 	Toast::Toast()
 	{
+		if (Dedicated::IsEnabled()) return;
+
 		Toast::ToastHandler = new WinToastLib::WinToastHandler;
 
 		WinToastLib::WinToast::instance()->setAppName(L"IW4x");
@@ -170,6 +172,8 @@ namespace Components
 
 	void Toast::preDestroy()
 	{
+		if (Dedicated::IsEnabled()) return;
+
 		// Destroying that on the main thread deadlocks, for whatever reason.
 		// I did not write the library, so whatever.
 		std::thread([]()
