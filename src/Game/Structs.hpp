@@ -1,6 +1,7 @@
 #pragma once
 
 #define PROTOCOL 0x93
+#define NUM_CUSTOM_CLASSES 15
 
 // This allows us to compile our structures in IDA, for easier reversing :3
 #ifdef __cplusplus
@@ -1551,6 +1552,12 @@ namespace Game
 		const char *name;
 		unsigned int defCount;
 		StructuredDataDef *defs;
+	};
+
+	struct StructuredDataBuffer
+	{
+		char *data;
+		size_t size;		// 8188
 	};
 
 	typedef struct

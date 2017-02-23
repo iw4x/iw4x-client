@@ -569,6 +569,8 @@ namespace Components
 
 	HRESULT D3D9Ex::D3D9Device::SetPixelShaderConstantF(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
 	{
+		// Use real bad readptr check here, cause the query takes too long
+		// TODO: Fix the actual error!
 		if (IsBadReadPtr(pConstantData, Vector4fCount * 16))
 		{
 			//Logger::Print("Invalid shader constant array!\n");

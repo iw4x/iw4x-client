@@ -28,63 +28,87 @@ namespace Steam
 	std::function<Proxy::SteamFreeLastCallbackFn> Proxy::SteamFreeLastCallback;
 	std::function<Proxy::SteamGetAPICallResultFn> Proxy::SteamGetAPICallResult;
 
-	void* Interface::getMethod(std::string method)
+	std::pair<void*, uint16_t> Interface::getMethod(std::string method)
 	{
 		if(this->methodCache.find(method) != this->methodCache.end())
 		{
 			return this->methodCache[method];
 		}
 
-		void* methodPtr = Interface::lookupMethod(method);
-		this->methodCache[method] = methodPtr;
-		return methodPtr;
+		auto methodData = Interface::lookupMethod(method);
+		this->methodCache[method] = methodData;
+		return methodData;
 	}
 
-	void* Interface::lookupMethod(std::string method)
+	std::pair<void*, uint16_t> Interface::lookupMethod(std::string method)
 	{
-		if (IsBadReadPtr(this->interfacePtr, 4)) return nullptr;
-		unsigned char** vftbl = *static_cast<unsigned char***>(this->interfacePtr);
-
-		while (!IsBadReadPtr(vftbl, 4) && !IsBadCodePtr((FARPROC(*vftbl))))
+		if (!::Utils::Memory::IsBadReadPtr(this->interfacePtr))
 		{
-			if(this->getMethodName(*vftbl) == method) return *vftbl;
-			++vftbl;
-		}
+			unsigned char** vftbl = *static_cast<unsigned char***>(this->interfacePtr);
 
-		return nullptr;
-	}
-
-	size_t Interface::getMethodParamSize(void* method)
-	{
-		unsigned char* methodPtr = static_cast<unsigned char*>(method);
-		for (; !IsBadReadPtr(methodPtr, 3); ++methodPtr)
-		{
-			if (methodPtr[0] == 0xC2 && methodPtr[2] == 0) // __stdcall return
+			while (!::Utils::Memory::IsBadReadPtr(vftbl) && !::Utils::Memory::IsBadCodePtr((FARPROC(*vftbl))))
 			{
-				return (static_cast<size_t>(methodPtr[1])/* / sizeof(void*)*/);
+				std::string name;
+				uint16_t params;
+
+				if (this->getMethodData(*vftbl, &name, &params) && name == method)
+				{
+					return{ *vftbl, params };
+				}
+
+				++vftbl;
 			}
 		}
 
-		return 0;
+		return { nullptr, 0 };
 	}
 
-
-	std::string Interface::getMethodName(unsigned char* methodPtr)
+	bool Interface::getMethodData(unsigned char* methodPtr, std::string* name, uint16_t* params)
 	{
-		for(;!IsBadReadPtr(methodPtr, 3); ++methodPtr)
+		name->clear();
+		*params = 0;
+		if (::Utils::Memory::IsBadCodePtr(methodPtr)) return false;
+
+		ud_t ud;
+		ud_init(&ud);
+		ud_set_mode(&ud, 32);
+		ud_set_pc(&ud, reinterpret_cast<uint64_t>(methodPtr));
+		ud_set_input_buffer(&ud, reinterpret_cast<uint8_t*>(methodPtr), INT32_MAX);
+
+		while (true)
 		{
-			if(methodPtr[0] == 0x68) // Push
+			ud_disassemble(&ud);
+
+			if (ud_insn_mnemonic(&ud) == UD_Iret)
 			{
-				char* name = *reinterpret_cast<char**>(&methodPtr[1]);
-				if(!IsBadReadPtr(name, 1)) return name;
-			}
-			else if(methodPtr[0] == 0xC2 && methodPtr[2] == 0) // __stdcall return
-			{
+				const ud_operand* operand = ud_insn_opr(&ud, 0);
+				if (!operand) break;
+
+				if (operand->type == UD_OP_IMM && operand->size == 16)
+				{
+					*params = operand->lval.uword;
+					return true;
+				}
+
 				break;
 			}
+
+			if (ud_insn_mnemonic(&ud) == UD_Ipush && name->empty())
+			{
+				auto operand = ud_insn_opr(&ud, 0);
+				if (operand->type == UD_OP_IMM && operand->size == 32)
+				{
+					char* operandPtr = reinterpret_cast<char*>(operand->lval.udword);
+					if (!::Utils::Memory::IsBadReadPtr(operandPtr))
+					{
+						name->clear();
+						name->append(operandPtr);
+					}
+				}
+			}
 		}
 
-		return "";
+		return false;
 	}
 
 	void Proxy::SetGame(uint32_t appId)
@@ -123,57 +147,38 @@ namespace Steam
 		char* modId = "IW4x";
 		gameID.modID = *reinterpret_cast<unsigned int*>(modId) | 0x80000000;
 
+		Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe, "CLIENTUTILS_INTERFACE_VERSION001"));
+		clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 
-// 		Interface clientApps(Proxy::ClientEngine->GetIClientApps(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTAPPS_INTERFACE_VERSION001"));
-// 		Interface clientShortcuts(Proxy::ClientEngine->GetIClientShortcuts(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTSHORTCUTS_INTERFACE_VERSION001"));
-// 		if (!clientApps || !clientShortcuts) return;
-//
-// 		KeyValuesBuilder builder;
-// 		builder.packString("name", mod.data());
-// 		builder.packUint64("gameid", gameID.bits);
-// 		builder.packString("installed", "1");
-// 		builder.packString("gamedir", "IW4x");
-// 		builder.packString("serverbrowsername", "IW4x");
-// 		builder.packEnd();
-//
-// 		std::string str = builder.getString();
-// 		uint32_t uniqueId = clientShortcuts.invoke<uint32_t>("GetUniqueLocalAppId");
-// 		if (clientApps.invoke<bool>("SetLocalAppConfig", uniqueId, str.data(), static_cast<uint32_t>(str.size())))
+		char ourPath[MAX_PATH] = { 0 };
+		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
+
+		char ourDirectory[MAX_PATH] = { 0 };
+		GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
+
+		std::string cmdline = ::Utils::String::VA("\"%s\" -proc %d", ourPath, GetCurrentProcessId());
+
+		// As of 02/19/2017, the SpawnProcess method doesn't require the app id anymore,
+		// but only for those who participate in the beta.
+		// Therefore we have to check how many bytes the method expects as arguments
+		// and adapt our call accordingly!
+		size_t expectedParams = Proxy::ClientUser.paramSize("SpawnProcess");
+		if (expectedParams == 40) // Release
 		{
-			Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe, "CLIENTUTILS_INTERFACE_VERSION001"));
-			clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
-
-			char ourPath[MAX_PATH] = { 0 };
-			GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
-
-			char ourDirectory[MAX_PATH] = { 0 };
-			GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
-
-			std::string cmdline = ::Utils::String::VA("\"%s\" -proc %d", ourPath, GetCurrentProcessId());
-
-			// As of 02/19/2017, the SpawnProcess method doesn't require the app id anymore,
-			// but only for those who participate in the beta.
-			// Therefore we have to check how many bytes the method expects as arguments
-			// and adapt our call accordingly!
-			size_t expectedParams = Proxy::ClientUser.paramSize("SpawnProcess");
-			if(expectedParams == 40) // Release
-			{
-				Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
-			}
-			else if(expectedParams == 36) // Beta
-			{
-				Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, mod.data(), 0, 0);
-			}
-			else if (expectedParams == 48) // Legacy, expects VAC blob
-			{
-				char blob[8] = { 0 };
-
-				Proxy::ClientUser.invoke<bool>("SpawnProcess", blob, 0, ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
-			}
-			else
-			{
-				OutputDebugStringA("Steam proxy was unable to match the arguments for SpawnProcess!\n");
-			}
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
+		}
+		else if (expectedParams == 36) // Beta
+		{
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, mod.data(), 0, 0);
+		}
+		else if (expectedParams == 48) // Legacy, expects VAC blob
+		{
+			char blob[8] = { 0 };
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", blob, 0, ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
+		}
+		else
+		{
+			OutputDebugStringA("Steam proxy was unable to match the arguments for SpawnProcess!\n");
 		}
 	}
 
@@ -322,11 +327,7 @@ namespace Steam
 
 	void Proxy::StartSteamIfNecessary()
 	{
-		if (Proxy::GetSteamDirectory().empty()
-#ifndef DEBUG
-			|| !Steam::Enabled()
-#endif
-			) return;
+		if (Proxy::GetSteamDirectory().empty() || !Steam::Enabled()) return;
 
 		HKEY hRegKey;
 		DWORD pid = 0;

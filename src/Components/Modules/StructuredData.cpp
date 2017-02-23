@@ -116,9 +116,41 @@ namespace Components
 		}
 	}
 
+	bool StructuredData::UpdateVersionOffsets(Game::StructuredDataDefSet *set, Game::StructuredDataBuffer *buffer, Game::StructuredDataDef *whatever)
+	{
+		Game::StructuredDataDef* newDef = &set->defs[0];
+		Game::StructuredDataDef* oldDef = &set->defs[0];
+
+		for(unsigned int i = 0; i < set->defCount; ++i)
+		{
+			if(newDef->version < set->defs[i].version)
+			{
+				newDef = &set->defs[i];
+			}
+
+			if(set->defs[i].version == *reinterpret_cast<int*>(buffer->data))
+			{
+				oldDef = &set->defs[i];
+			}
+		}
+
+		if (newDef->version >= 159 && oldDef->version <= 158)
+		{
+			// this should move the data 320 bytes infront
+			std::memmove(&buffer->data[3963], &buffer->data[3643], oldDef->size - 3643);
+		}
+
+		// StructuredData_UpdateVersion
+		return Utils::Hook::Call<bool(void*, void*, void*)>(0x456830)(set, buffer, whatever);
+	}
+
 	StructuredData::StructuredData()
 	{
-		Utils::Hook::Set<BYTE>(0x60A2FE, 15); // 15 custom classes
+		// Correctly upgrade stats
+		Utils::Hook(0x42F088, StructuredData::UpdateVersionOffsets, HOOK_CALL).install()->quick();
+
+		// 15 or more custom classes
+		Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
 
 		// Only execute this when building zones
 		if (!ZoneBuilder::IsEnabled()) return;
@@ -126,7 +158,7 @@ namespace Components
 		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string filename, bool* /*restrict*/)
 		{
 			// Only intercept playerdatadef loading
-			if (filename != "mp/playerdata.def" || type != Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF) return;
+			if (type != Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF || filename != "mp/playerdata.def") return;
 
 			// Store asset
 			Game::StructuredDataDefSet* data = asset.structuredData;
