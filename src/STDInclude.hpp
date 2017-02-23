@@ -49,6 +49,7 @@ template <size_t S> class Sizer { };
 #pragma warning(disable: 4005)
 #pragma warning(disable: 4091)
 #pragma warning(disable: 4100)
+#pragma warning(disable: 4244)
 #pragma warning(disable: 4389)
 #pragma warning(disable: 4702)
 #pragma warning(disable: 4996) // _CRT_SECURE_NO_WARNINGS
