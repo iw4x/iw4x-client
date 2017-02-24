@@ -174,13 +174,26 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled()) return;
 
-		// Destroying that on the main thread deadlocks, for whatever reason.
+		// Destroying that on the main thread deadlocks.
 		// I did not write the library, so whatever.
-		std::thread([]()
+		// If we are not in the postgame state,
+		// we are not allowed to spawn threads,
+		// so just don't uninitialize the library.
+		// That means we did not uninitialize the game
+		// correctly anyways.
+		if (Loader::IsPostgame())
 		{
-			delete WinToastLib::WinToast::instance();
+			std::thread([]()
+			{
+				delete WinToastLib::WinToast::instance();
+				delete Toast::ToastHandler;
+				Toast::ToastHandler = nullptr;
+			}).join();
+		}
+		else
+		{
 			delete Toast::ToastHandler;
 			Toast::ToastHandler = nullptr;
-		}).join();
+		}
 	}
 }
