@@ -261,6 +261,63 @@ namespace Components
 		return newList;
 	}
 
+	void Menus::SafeMergeMenus(std::vector<Game::menuDef_t*>* menus, std::vector<Game::menuDef_t*> newMenus)
+	{
+		// Check if we overwrote a menu
+		for (unsigned int i = 0; i < menus->size(); ++i)
+		{
+			// Try to find the native menu
+			bool found = false;
+			std::pair<Game::menuDef_t*, bool*> pair(menus->at(i), &found);
+			Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_MENU, [](Game::XAssetHeader header, void* data)
+			{
+				std::pair<Game::menuDef_t*, bool*>* pairPtr = reinterpret_cast<std::pair<Game::menuDef_t*, bool*>*>(data);
+
+				if(pairPtr->first == header.menu)
+				{
+					*pairPtr->second = true;
+				}
+
+			}, &pair, false);
+
+			// If there is none, try to find a custom menu
+			if (!found)
+			{
+				for (auto& entry : Menus::MenuList)
+				{
+					if (menus->at(i) == entry.second)
+					{
+						found = true;
+						break;
+					}
+				}
+			}
+
+			// Remove the menu if it has been deallocated (not found)
+			if (!found)
+			{
+				menus->erase(menus->begin() + i);
+				--i;
+				continue;
+			}
+
+			// Remove the menu if it has been loaded twice
+			for (auto& newMenu : newMenus)
+			{
+				if (menus->at(i)->window.name == std::string(newMenu->window.name))
+				{
+					Menus::RemoveMenu(menus->at(i));
+
+					menus->erase(menus->begin() + i);
+					--i;
+					break;
+				}
+			}
+		}
+
+		Utils::Merge(menus, newMenus);
+	}
+
 	Game::MenuList* Menus::LoadMenuList(Game::MenuList* menuList)
 	{
 		std::vector<Game::menuDef_t*> menus;
@@ -268,7 +325,7 @@ namespace Components
 		for (int i = 0; i < menuList->menuCount; ++i)
 		{
 			if (!menuList->menus[i]) continue;
-			Utils::Merge(&menus, Menus::LoadMenu(menuList->menus[i]));
+			Menus::SafeMergeMenus(&menus, Menus::LoadMenu(menuList->menus[i]));
 		}
 
 		// Load custom menus
@@ -286,7 +343,7 @@ namespace Components
 					}
 				}
 
-				if(!hasMenu) Utils::Merge(&menus, Menus::LoadMenu(menu));
+				if (!hasMenu) Menus::SafeMergeMenus(&menus, Menus::LoadMenu(menu));
 			}
 		}
 
