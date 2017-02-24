@@ -29,9 +29,9 @@ namespace Components
 
 		static Game::MenuList* LoadMenuList(Game::MenuList* menuList);
 		static Game::MenuList* LoadScriptMenu(const char* menu);
-		static std::vector<Game::menuDef_t*> LoadMenu(Game::menuDef_t* menudef);
-		static std::vector<Game::menuDef_t*> LoadMenu(std::string file);
-		static void SafeMergeMenus(std::vector<Game::menuDef_t*>* menus, std::vector<Game::menuDef_t*> newMenus);
+		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(Game::menuDef_t* menudef);
+		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(std::string file);
+		static void SafeMergeMenus(std::vector<std::pair<bool, Game::menuDef_t*>>* menus, std::vector<std::pair<bool, Game::menuDef_t*>> newMenus);
 
 		static Game::script_t* LoadMenuScript(std::string name, std::string buffer);
 		static int LoadMenuSource(std::string name, std::string buffer);

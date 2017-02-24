@@ -169,9 +169,9 @@ namespace Components
 		return menu;
 	}
 
-	std::vector<Game::menuDef_t*> Menus::LoadMenu(std::string menu)
+	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(std::string menu)
 	{
-		std::vector<Game::menuDef_t*> menus;
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
 		FileSystem::File menuFile(menu);
 
 		if (menuFile.exists())
@@ -200,7 +200,7 @@ namespace Components
 					if (!_stricmp(token.string, "menudef"))
 					{
 						Game::menuDef_t* menudef = Menus::ParseMenu(handle);
-						if (menudef) menus.push_back(menudef);
+						if (menudef) menus.push_back({ true, menudef }); // Custom menu
 					}
 				}
 
@@ -211,9 +211,9 @@ namespace Components
 		return menus;
 	}
 
-	std::vector<Game::menuDef_t*> Menus::LoadMenu(Game::menuDef_t* menudef)
+	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(Game::menuDef_t* menudef)
 	{
-		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", menudef->window.name));
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus = Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", menudef->window.name));
 
 		if (menus.empty())
 		{
@@ -222,11 +222,11 @@ namespace Components
 //
 // 			if (originalMenu)
 // 			{
-// 				menus.push_back(originalMenu);
+// 				menus.push_back({ false, originalMenu });
 // 			}
 // 			else
 // 			{
-				menus.push_back(menudef);
+			menus.push_back({ false, menudef }); // Native menu
 // 			}
 		}
 
@@ -235,7 +235,7 @@ namespace Components
 
 	Game::MenuList* Menus::LoadScriptMenu(const char* menu)
 	{
-		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(menu);
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus = Menus::LoadMenu(menu);
 		if (menus.empty()) return nullptr;
 
 		// Allocate new menu list
@@ -253,7 +253,10 @@ namespace Components
 		newList->menuCount = menus.size();
 
 		// Copy new menus
-		std::memcpy(newList->menus, menus.data(), menus.size() * sizeof(Game::menuDef_t *));
+		for(unsigned int i = 0; i < menus.size(); ++i)
+		{
+			newList->menus[i] = menus[i].second;
+		}
 
 		Menus::RemoveMenuList(newList->name);
 		Menus::MenuListList[newList->name] = newList;
@@ -261,31 +264,20 @@ namespace Components
 		return newList;
 	}
 
-	void Menus::SafeMergeMenus(std::vector<Game::menuDef_t*>* menus, std::vector<Game::menuDef_t*> newMenus)
+	void Menus::SafeMergeMenus(std::vector<std::pair<bool, Game::menuDef_t*>>* menus, std::vector<std::pair<bool, Game::menuDef_t*>> newMenus)
 	{
 		// Check if we overwrote a menu
 		for (unsigned int i = 0; i < menus->size(); ++i)
 		{
 			// Try to find the native menu
-			bool found = false;
-			std::pair<Game::menuDef_t*, bool*> pair(menus->at(i), &found);
-			Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_MENU, [](Game::XAssetHeader header, void* data)
-			{
-				std::pair<Game::menuDef_t*, bool*>* pairPtr = reinterpret_cast<std::pair<Game::menuDef_t*, bool*>*>(data);
-
-				if(pairPtr->first == header.menu)
-				{
-					*pairPtr->second = true;
-				}
-
-			}, &pair, false);
+			bool found = !menus->at(i).first; // Only if custom menu, try to find it
 
 			// If there is none, try to find a custom menu
 			if (!found)
 			{
 				for (auto& entry : Menus::MenuList)
 				{
-					if (menus->at(i) == entry.second)
+					if (menus->at(i).second == entry.second)
 					{
 						found = true;
 						break;
@@ -304,9 +296,9 @@ namespace Components
 			// Remove the menu if it has been loaded twice
 			for (auto& newMenu : newMenus)
 			{
-				if (menus->at(i)->window.name == std::string(newMenu->window.name))
+				if (menus->at(i).second->window.name == std::string(newMenu.second->window.name))
 				{
-					Menus::RemoveMenu(menus->at(i));
+					Menus::RemoveMenu(menus->at(i).second);
 
 					menus->erase(menus->begin() + i);
 					--i;
@@ -320,7 +312,7 @@ namespace Components
 
 	Game::MenuList* Menus::LoadMenuList(Game::MenuList* menuList)
 	{
-		std::vector<Game::menuDef_t*> menus;
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
 
 		for (int i = 0; i < menuList->menuCount; ++i)
 		{
@@ -336,7 +328,7 @@ namespace Components
 				bool hasMenu = false;
 				for(auto &loadedMenu : menus)
 				{
-					if(loadedMenu->window.name == menu)
+					if(loadedMenu.second->window.name == menu)
 					{
 						hasMenu = true;
 						break;
@@ -363,7 +355,10 @@ namespace Components
 		newList->menuCount = size;
 
 		// Copy new menus
-		std::memcpy(newList->menus, menus.data(), size * sizeof(Game::menuDef_t *));
+		for (unsigned int i = 0; i < menus.size(); ++i)
+		{
+			newList->menus[i] = menus[i].second;
+		}
 
 		Menus::RemoveMenuList(newList->name);
 		Menus::MenuListList[newList->name] = newList;
