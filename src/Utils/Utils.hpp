@@ -9,7 +9,7 @@ namespace Utils
 
 	bool IsWineEnvironment();
 
-	template <typename T> void Merge(std::vector<T>* target, T* source, size_t length)
+	template <typename T> inline void Merge(std::vector<T>* target, T* source, size_t length)
 	{
 		if (source)
 		{
@@ -20,7 +20,7 @@ namespace Utils
 		}
 	}
 
-	template <typename T> void Merge(std::vector<T>* target, std::vector<T> source)
+	template <typename T> inline void Merge(std::vector<T>* target, std::vector<T> source)
 	{
 		for (auto &entry : source)
 		{
