@@ -18,6 +18,10 @@ namespace Steam
 	Utils* Proxy::SteamUtils = nullptr;
 	User* Proxy::SteamUser_ = nullptr;
 
+	HANDLE Proxy::Process = nullptr;
+	HANDLE Proxy::CancelHandle = nullptr;
+	std::thread Proxy::WatchGuard;
+
 	uint32_t Proxy::AppId = 0;
 
 	std::recursive_mutex Proxy::CallMutex;
@@ -325,6 +329,41 @@ namespace Steam
 		Proxy::UnregisterCalls();
 	}
 
+	void Proxy::LaunchWatchGuard()
+	{
+		if (Proxy::WatchGuard.joinable()) return;
+
+		HKEY hRegKey;
+		DWORD pid = 0;
+		if (RegOpenKeyExA(HKEY_CURRENT_USER, STEAM_REGISTRY_PROCESS_PATH, 0, KEY_QUERY_VALUE, &hRegKey) != ERROR_SUCCESS) return;
+
+		DWORD dwLength = sizeof(pid);
+		RegQueryValueExA(hRegKey, "pid", nullptr, nullptr, reinterpret_cast<BYTE*>(&pid), &dwLength);
+		RegCloseKey(hRegKey);
+
+		Proxy::CancelHandle = CreateEventA(nullptr, TRUE, FALSE, "CancelEvent");
+		if (!Proxy::CancelHandle) return;
+
+		Proxy::Process = OpenProcess(SYNCHRONIZE, FALSE, pid);
+		if (!Proxy::Process) return;
+
+		Proxy::WatchGuard = std::thread([]()
+		{
+			HANDLE handles[] = { Proxy::Process, Proxy::CancelHandle };
+
+			DWORD result = WaitForMultipleObjects(ARRAYSIZE(handles), handles, FALSE, INFINITE);
+			CloseHandle(Proxy::Process);
+			CloseHandle(Proxy::CancelHandle);
+
+			if (result == WAIT_OBJECT_0)
+			{
+				Proxy::SteamPipe = nullptr;
+				Proxy::SteamUser = nullptr;
+				Proxy::Uninititalize();
+			}
+		});
+	}
+
 	void Proxy::StartSteamIfNecessary()
 	{
 		if (Proxy::GetSteamDirectory().empty() || !Steam::Enabled()) return;
@@ -346,6 +385,11 @@ namespace Steam
 				allocator.reference(process, [](HANDLE hProcess)
 				{
 					CloseHandle(hProcess);
+				});
+
+				allocator.reference(allocator.allocate(1), [](void*)
+				{
+					Proxy::LaunchWatchGuard();
 				});
 
 				DWORD exitCode;
@@ -375,6 +419,8 @@ namespace Steam
 			while (!interval.elapsed(15s) && !Proxy::GetActiveUser()) std::this_thread::sleep_for(10ms);
 			std::this_thread::sleep_for(1s);
 		}
+
+		Proxy::LaunchWatchGuard();
 	}
 
 	bool Proxy::Inititalize()
@@ -442,6 +488,30 @@ namespace Steam
 
 	void Proxy::Uninititalize()
 	{
+		if(Proxy::WatchGuard.get_id() != std::this_thread::get_id() && Proxy::WatchGuard.joinable())
+		{
+			if (Proxy::CancelHandle)
+			{
+				SetEvent(Proxy::CancelHandle);
+				Proxy::WatchGuard.join();
+			}
+			else
+			{
+				Proxy::WatchGuard.detach();
+			}
+		}
+
+		Proxy::Process = nullptr;
+		Proxy::CancelHandle = nullptr;
+
+		Proxy::ClientEngine = nullptr;
+		Proxy::ClientUser = nullptr;
+		Proxy::ClientFriends = nullptr;
+		Proxy::SteamApps = nullptr;
+		Proxy::SteamFriends = nullptr;
+		Proxy::SteamUtils = nullptr;
+		Proxy::SteamUser_ = nullptr;
+
 		if (Proxy::SteamClient && Proxy::SteamPipe)
 		{
 			if (Proxy::SteamUser)
@@ -452,6 +522,9 @@ namespace Steam
 			Proxy::SteamClient->ReleaseSteamPipe(Proxy::SteamPipe);
 		}
 
+		Proxy::SteamPipe = nullptr;
+		Proxy::SteamUser = nullptr;
+		Proxy::SteamClient = nullptr;
 		Proxy::Client = ::Utils::Library();
 		Proxy::Overlay = ::Utils::Library();
 	}

@@ -302,6 +302,10 @@ namespace Steam
 		static void* SteamPipe;
 		static void* SteamUser;
 
+		static HANDLE Process;
+		static HANDLE CancelHandle;
+		static std::thread WatchGuard;
+
 		static std::recursive_mutex CallMutex;
 		static std::vector<CallContainer> Calls;
 		static std::unordered_map<int32_t, void*> Callbacks;
@@ -314,6 +318,7 @@ namespace Steam
 
 		static void UnregisterCalls();
 		static void StartSteamIfNecessary();
+		static void LaunchWatchGuard();
 
 		static void ResetActiveUser();
 		static uint32_t GetActiveUser();
