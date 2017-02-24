@@ -116,8 +116,8 @@ namespace Components
 
 		if (!maxclientCount)
 		{
-			//maxclientCount = Dvar::Var("sv_maxclients").get<int>();
-			maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
+			maxclientCount = Dvar::Var("party_maxplayers").get<int>();
+			//maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
 		}
 
 		Utils::InfoString info(Game::Dvar_InfoString_Big(1024));
