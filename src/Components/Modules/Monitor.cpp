@@ -30,7 +30,7 @@ namespace Components
 		Utils::Time::Interval interval;
 		while(!interval.elapsed(15s))
 		{
-			Utils::Hook::Call<void()>(0x49F0B0)(); // Com_EventLoop
+			Utils::Hook::Call<void()>(0x49F0B0)(); // Com_ClientPacketEvent
 			Node::FrameHandler();
 			ServerList::Frame();
 

@@ -257,7 +257,7 @@ namespace Components
 
 	void Auth::StoreKey()
 	{
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && Auth::GuidKey.isValid())
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && !Monitor::IsEnabled() && Auth::GuidKey.isValid())
 		{
 			Proto::Auth::Certificate cert;
 			cert.set_token(Auth::GuidToken.toString());

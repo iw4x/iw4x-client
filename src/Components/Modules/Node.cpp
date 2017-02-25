@@ -25,8 +25,17 @@ namespace Components
 	void Node::LoadNodePreset()
 	{
 		Proto::Node::List list;
-		FileSystem::File defaultNodes("nodes_default.dat");
-		if (!defaultNodes.exists() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(defaultNodes.getBuffer()))) return;
+
+		if (Monitor::IsEnabled())
+		{
+			std::string nodes = Utils::IO::ReadFile("players/nodes_default.dat");
+			if (nodes.empty() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(nodes))) return;
+		}
+		else
+		{
+			FileSystem::File defaultNodes("nodes_default.dat");
+			if (!defaultNodes.exists() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(defaultNodes.getBuffer()))) return;
+		}
 
 		for (int i = 0; i < list.address_size(); ++i)
 		{
@@ -384,11 +393,14 @@ namespace Components
 		Node::SignatureKey = Utils::Cryptography::ECC::GenerateKey(512);
 
 		// Load stored nodes
-		Dvar::OnInit([] ()
+		auto loadNodes = []()
 		{
 			Node::LoadNodePreset();
 			Node::LoadNodes();
-		});
+		};
+
+		if (Monitor::IsEnabled()) Network::OnStart(loadNodes);
+		else Dvar::OnInit(loadNodes);
 
 		// Send deadline when shutting down
 		if (Dedicated::IsEnabled())
