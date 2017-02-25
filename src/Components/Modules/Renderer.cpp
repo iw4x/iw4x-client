@@ -94,6 +94,8 @@ namespace Components
 
 	Renderer::Renderer()
 	{
+		if (Dedicated::IsEnabled()) return;
+
 // 		Renderer::OnBackendFrame([] (IDirect3DDevice9* device)
 // 		{
 // 			if (Game::Sys_Milliseconds() % 2)

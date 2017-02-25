@@ -66,6 +66,8 @@ namespace Components
 
 	void QuickPatch::UnlockStats()
 	{
+		if (Dedicated::IsEnabled()) return;
+
 		if (Game::CL_IsCgameInitialized())
 		{
 			Toast::Show("cardicon_locked", "^1Error", "Not allowed while ingame.", 3000);

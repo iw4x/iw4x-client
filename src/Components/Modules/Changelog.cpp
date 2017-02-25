@@ -51,6 +51,8 @@ namespace Components
 
 	Changelog::Changelog()
 	{
+		if (Dedicated::IsEnabled()) return;
+
 		// Changelog
 		UIFeeder::Add(62.0f, Changelog::GetChangelogCount, Changelog::GetChangelogText, Changelog::SelectChangelog);
 	}

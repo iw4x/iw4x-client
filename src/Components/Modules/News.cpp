@@ -172,7 +172,7 @@ namespace Components
 		News::UpdaterArgs.clear();
 		News::UpdaterHash.clear();
 		News::UpdaterRefresh = 0;
-		if (ZoneBuilder::IsEnabled()) return; // Maybe also dedi?
+		if (ZoneBuilder::IsEnabled() || Dedicated::IsEnabled()) return; // Maybe also dedi?
 
 		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_FLAG_SAVED, "");
 
