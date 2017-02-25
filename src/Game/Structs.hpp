@@ -976,7 +976,7 @@ namespace Game
 		const char *enableDvar;
 		const char *localVar;
 		int dvarFlags;
-		const char *focusSound;
+		snd_alias_list_t *focusSound;
 		float special;
 		int cursorPos;
 		itemDefData_t typeData;
@@ -1009,7 +1009,7 @@ namespace Game
 	struct menuDef_t
 	{
 		windowDef_t window;
-		int font;
+		char* font;
 		int fullscreen;
 		int itemCount;
 		int fontIndex;

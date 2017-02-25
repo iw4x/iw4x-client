@@ -425,6 +425,7 @@ namespace Components
 		// Register asset interfaces
 		if (ZoneBuilder::IsEnabled())
 		{
+			AssetHandler::RegisterInterface(new Assets::IMenu());
 			AssetHandler::RegisterInterface(new Assets::IXModel());
 			AssetHandler::RegisterInterface(new Assets::IFxWorld());
 			AssetHandler::RegisterInterface(new Assets::IMapEnts());
