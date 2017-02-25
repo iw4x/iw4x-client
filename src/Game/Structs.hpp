@@ -1560,6 +1560,11 @@ namespace Game
 		size_t size;		// 8188
 	};
 
+	struct StructuredDataLookup
+	{
+		char pad[0x10];
+	};
+
 	typedef struct
 	{
 		StructuredDataDef* data;

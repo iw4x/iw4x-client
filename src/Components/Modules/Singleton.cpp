@@ -20,7 +20,7 @@ namespace Components
 
 		Console::FreeNativeConsole();
 
-		if (Loader::PerformingUnitTests() || Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+		if (Loader::PerformingUnitTests() || Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || Monitor::IsEnabled()) return;
 
 		Singleton::FirstInstance = (CreateMutexA(nullptr, FALSE, "iw4x_mutex") && GetLastError() != ERROR_ALREADY_EXISTS);
 
