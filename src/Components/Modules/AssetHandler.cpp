@@ -425,7 +425,6 @@ namespace Components
 		// Register asset interfaces
 		if (ZoneBuilder::IsEnabled())
 		{
-			AssetHandler::RegisterInterface(new Assets::IMenu());
 			AssetHandler::RegisterInterface(new Assets::IXModel());
 			AssetHandler::RegisterInterface(new Assets::IFxWorld());
 			AssetHandler::RegisterInterface(new Assets::IMapEnts());
@@ -438,6 +437,8 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::ISndCurve());
 			AssetHandler::RegisterInterface(new Assets::IMaterial());
 			AssetHandler::RegisterInterface(new Assets::IMenuList());
+			AssetHandler::RegisterInterface(new Assets::ImenuDef_t());
+
 #ifdef ENABLE_EXPERIMENTAL_MAP_CODE
 			AssetHandler::RegisterInterface(new Assets::IclipMap_t());
 #endif

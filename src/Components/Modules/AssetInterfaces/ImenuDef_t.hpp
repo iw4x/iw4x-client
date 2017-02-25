@@ -2,7 +2,7 @@
 
 namespace Assets
 {
-	class IMenu : public Components::AssetHandler::IAsset
+	class ImenuDef_t : public Components::AssetHandler::IAsset
 	{
 	public:
 		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_MENU; };

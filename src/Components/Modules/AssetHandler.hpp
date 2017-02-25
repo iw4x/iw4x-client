@@ -74,7 +74,6 @@ namespace Components
 	};
 }
 
-#include "AssetInterfaces/IMenu.hpp"
 #include "AssetInterfaces/IXModel.hpp"
 #include "AssetInterfaces/IFxWorld.hpp"
 #include "AssetInterfaces/IMapEnts.hpp"
@@ -85,6 +84,7 @@ namespace Components
 #include "AssetInterfaces/IMaterial.hpp"
 #include "AssetInterfaces/ISndCurve.hpp"
 #include "AssetInterfaces/IMenuList.hpp"
+#include "AssetInterfaces/ImenuDef_t.hpp"
 #include "AssetInterfaces/IclipMap_t.hpp"
 #include "AssetInterfaces/IPhysPreset.hpp"
 #include "AssetInterfaces/IXAnimParts.hpp"
