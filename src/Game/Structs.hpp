@@ -926,6 +926,7 @@ namespace Game
 		int feedId;
 		int speed;
 		int spacing;
+		char pad[16];
 	};
 
 	struct textScrollDef_s
