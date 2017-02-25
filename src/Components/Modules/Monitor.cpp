@@ -40,7 +40,7 @@ namespace Components
 		auto list = ServerList::GetList();
 		if (!list)
 		{
-			printf("1 IW4x player=0|server=0 Returned list was null");
+			printf("1 IW4x player=0|server=0 Returned list was null\n");
 			return 1;
 		}
 
@@ -52,7 +52,7 @@ namespace Components
 			players += list->at(i).clients;
 		}
 
-		printf("0 IW4x player=%d|server=%d\n", players, servers);
+		printf("0 IW4x player=%d|server=%d Servers successfully parsed\n", players, servers);
 
 		Utils::Hook::Call<void()>(0x430630)();  // LargeLocalReset
 		Utils::Hook::Call<void()>(0x4A0460)();  // Hunk_ClearTempMemory
