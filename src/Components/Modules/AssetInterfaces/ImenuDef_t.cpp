@@ -2,6 +2,30 @@
 
 namespace Assets
 {
+	void ImenuDef_t::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	{
+		Game::menuDef_t *asset = header.menu;
+
+		if (asset->window.background)
+		{
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->window.background);
+		}
+		
+		// mark items
+		for (int i = 0; i < asset->itemCount; i++)
+		{
+			if (asset->items[i]->window.background)
+			{
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->items[i]->window.background);
+			}
+
+			if (asset->items[i]->focusSound)
+			{
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, asset->items[i]->focusSound);
+			}
+		}
+	}
+
 	template <typename T> 
 	void save_windowDef_t(Game::windowDef_t* asset, T* dest, Components::ZoneBuilder::Zone* builder)
 	{
