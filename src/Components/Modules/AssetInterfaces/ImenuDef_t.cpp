@@ -49,6 +49,84 @@ namespace Assets
 		}
 	}
 
+	void save_Statement_s(Game::Statement_s* asset, Components::ZoneBuilder::Zone* builder);
+	void save_ExpressionSupportingData(Game::ExpressionSupportingData* asset, Components::ZoneBuilder::Zone* builder)
+	{
+		AssertSize(Game::ExpressionSupportingData, 24);
+		Utils::Stream* buffer = builder->getBuffer();
+
+		buffer->align(Utils::Stream::ALIGN_4);
+
+		Game::ExpressionSupportingData *dest = buffer->dest<Game::ExpressionSupportingData>();
+		buffer->save(asset);
+
+		if (asset->uifunctions.functions)
+		{
+			buffer->align(Utils::Stream::ALIGN_4);
+
+			Game::Statement_s **destStatement = buffer->dest<Game::Statement_s*>();
+			buffer->saveArray(asset->uifunctions.functions, asset->uifunctions.totalFunctions);
+
+			for (int i = 0; i < asset->uifunctions.totalFunctions; i++)
+			{
+				if (asset->uifunctions.functions[i])
+				{
+					Utils::Stream::ClearPointer(&destStatement[i]);
+
+					buffer->align(Utils::Stream::ALIGN_4);
+					save_Statement_s(asset->uifunctions.functions[i], builder);
+				}
+			}
+
+			Utils::Stream::ClearPointer(&dest->uifunctions.functions);
+		}
+
+		if (asset->staticDvarList.staticDvars)
+		{
+			buffer->align(Utils::Stream::ALIGN_4);
+
+			Game::StaticDvar **destStaticDvars = buffer->dest<Game::StaticDvar*>();
+			buffer->saveArray(asset->staticDvarList.staticDvars, asset->staticDvarList.numStaticDvars);
+
+			for (int i = 0; i < asset->staticDvarList.numStaticDvars; i++)
+			{
+				if (asset->staticDvarList.staticDvars[i])
+				{
+					Utils::Stream::ClearPointer(&destStaticDvars[i]);
+
+					buffer->align(Utils::Stream::ALIGN_4);
+					Game::StaticDvar *destStaticDvar = buffer->dest<Game::StaticDvar>();
+					buffer->save(asset->staticDvarList.staticDvars[i]);
+
+					if (asset->staticDvarList.staticDvars[i]->dvarName)
+					{
+						buffer->saveString(asset->staticDvarList.staticDvars[i]->dvarName);
+						Utils::Stream::ClearPointer(&destStaticDvar->dvarName);
+					}
+				}
+			}
+
+			Utils::Stream::ClearPointer(&dest->staticDvarList.staticDvars);
+		}
+
+		if (asset->uiStrings.strings)
+		{
+			buffer->align(Utils::Stream::ALIGN_4);
+
+			const char **destuiStrings = buffer->dest<const char*>();
+			buffer->saveArray(asset->uiStrings.strings, asset->uiStrings.totalStrings);
+
+			for (int i = 0; i < asset->uiStrings.totalStrings; i++)
+			{
+				if (asset->uiStrings.strings[i])
+				{
+					buffer->saveString(asset->uiStrings.strings[i]);
+					Utils::Stream::ClearPointer(&destuiStrings[i]);
+				}
+			}
+		}
+	}
+
 	void save_Statement_s(Game::Statement_s* asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::Statement_s, 24);
@@ -102,12 +180,9 @@ namespace Assets
 		}
 		if (asset->supportingData)
 		{
-			// for now
-			dest->supportingData = nullptr;
+			save_ExpressionSupportingData(asset->supportingData, builder);
+			Utils::Stream::ClearPointer(&dest->supportingData);
 		}
-
-		// fix me?
-		memset(&dest->unknown, 0, 12);
 	}
 
 	void save_MenuEventHandlerSet(Game::MenuEventHandlerSet* asset, Components::ZoneBuilder::Zone* builder)
@@ -363,8 +438,12 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
-		// fix me
-		dest->expressionData = nullptr;
+		// ExpressionSupportingData
+		if (asset->expressionData)
+		{
+			save_ExpressionSupportingData(asset->expressionData, builder);
+			Utils::Stream::ClearPointer(&dest->expressionData);
+		}
 
 		// Window data
 		save_windowDef_t<Game::menuDef_t>(&asset->window, dest, builder);
