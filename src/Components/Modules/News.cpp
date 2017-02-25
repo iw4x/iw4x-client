@@ -116,7 +116,7 @@ namespace Components
 			std::string error;
 			json11::Json client = json11::Json::parse(_client.data(), error);
 
-			int revisionNumber = 0;
+			int revisionNumber;
 
 			if (client["revision"].is_number())
 			{
@@ -171,7 +171,6 @@ namespace Components
 	{
 		News::UpdaterArgs.clear();
 		News::UpdaterHash.clear();
-		News::UpdaterRefresh = 0;
 		if (ZoneBuilder::IsEnabled() || Dedicated::IsEnabled()) return; // Maybe also dedi?
 
 		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_FLAG_SAVED, "");
