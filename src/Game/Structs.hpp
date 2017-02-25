@@ -1,6 +1,6 @@
 #pragma once
 
-#define PROTOCOL 0x93
+#define PROTOCOL 0x94
 #define NUM_CUSTOM_CLASSES 15
 
 // This allows us to compile our structures in IDA, for easier reversing :3

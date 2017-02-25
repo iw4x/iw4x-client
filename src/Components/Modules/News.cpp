@@ -7,6 +7,8 @@ namespace Components
 	bool News::Terminate;
 	std::thread News::Thread;
 	std::string News::UpdaterArgs;
+	std::string News::UpdaterHash;
+	int News::UpdaterRefresh;
 
 	bool News::unitTest()
 	{
@@ -48,6 +50,56 @@ namespace Components
 		if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hProcess);
 
 		TerminateProcess(GetCurrentProcess(), exitCode);
+	}
+
+	bool News::GetLatestUpdater()
+	{
+		if (Utils::IO::FileExists("updater.exe"))
+		{
+			// Generate hash of local updater.exe
+			std::string localUpdater = Utils::IO::ReadFile("updater.exe");
+			localUpdater = Utils::Cryptography::SHA1::Compute(localUpdater, true);
+
+			if (News::UpdaterHash.empty() || (News::UpdaterRefresh - Game::Sys_Milliseconds() > 900000)) // Check for updater Update every 15 mins max
+			{
+				News::UpdaterRefresh = Game::Sys_Milliseconds();
+				
+				std::string data = Utils::Cache::GetFile("/json/updater"); // {"updater.exe":{"SHA1":"*HASH*"}}
+
+				std::string error;
+				json11::Json listData = json11::Json::parse(data, error);
+
+				if (error.empty() || listData.is_object())
+				{
+					News::UpdaterHash = listData["updater.exe"]["SHA1"].string_value();
+				}
+			}
+
+			if (!News::UpdaterHash.empty() && localUpdater != News::UpdaterHash)
+			{
+				remove("updater.exe");
+			}
+		}
+
+		if (!Utils::IO::FileExists("updater.exe"))
+		{
+			return News::DownloadUpdater();
+		}
+
+		return true;
+	}
+
+	bool News::DownloadUpdater()
+	{
+		std::string data = Utils::Cache::GetFile("/iw4/updater.exe");
+
+		if (!data.empty())
+		{
+			Utils::IO::WriteFile("updater.exe", data);
+			return true;
+		}
+
+		return false;
 	}
 
 	const char* News::GetNewsText()
@@ -95,20 +147,17 @@ namespace Components
 
 		std::thread([]()
 		{
-			std::string data = Utils::Cache::GetFile("/iw4/updater.exe");
-
-			if (data.empty())
+			if (News::GetLatestUpdater())
+			{
+				Console::SetSkipShutdown();
+				Command::Execute("wait 300; quit;", false);
+			}
+			else
 			{
 				Localization::ClearTemp();
 				News::UpdaterArgs.clear();
 				Command::Execute("closemenu popup_reconnectingtoparty", false);
 				Game::ShowMessageBox("Failed to download the updater!", "Error");
-			}
-			else
-			{
-				Console::SetSkipShutdown();
-				Utils::IO::WriteFile("updater.exe", data);
-				Command::Execute("wait 300; quit;", false);
 			}
 		}).detach();
 	}
@@ -121,7 +170,8 @@ namespace Components
 	News::News()
 	{
 		News::UpdaterArgs.clear();
-
+		News::UpdaterHash.clear();
+		News::UpdaterRefresh = 0;
 		if (ZoneBuilder::IsEnabled() || Dedicated::IsEnabled()) return; // Maybe also dedi?
 
 		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_FLAG_SAVED, "");
@@ -152,10 +202,7 @@ namespace Components
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFAULT);
 
-		if (Utils::IO::FileExists("updater.exe"))
-		{
-			remove("updater.exe");
-		}
+		//News::GetLatestUpdater();
 
 		// make newsfeed (ticker) menu items not cut off based on safe area
 		Utils::Hook::Nop(0x63892D, 5);
@@ -209,6 +256,7 @@ namespace Components
 	News::~News()
 	{
 		News::UpdaterArgs.clear();
+		News::UpdaterHash.clear();
 	}
 
 	void News::preDestroy()

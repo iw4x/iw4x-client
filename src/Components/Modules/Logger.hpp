@@ -39,6 +39,9 @@ namespace Components
 		static void PrintMessagePipe(const char* data);
 		static void EnqueueMessage(std::string message);
 
+		static void BuildOSPathStub();
+		static void RedirectOSPath(const char* file, char* folder);
+
 		static void NetworkLog(const char* data, bool gLog);
 
 		static std::string Format(const char** message);

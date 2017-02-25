@@ -12,6 +12,11 @@ namespace Components
 		return Loader::Pregame;
 	}
 
+	bool Loader::IsPostgame()
+	{
+		return Loader::Postgame;
+	}
+
 	void Loader::Initialize()
 	{
 		Loader::Pregame = true;
@@ -93,7 +98,7 @@ namespace Components
 
 	void Loader::Uninitialize()
 	{
-		Loader::PreDestroy();
+		Loader::PreDestroyNoPostGame();
 
 		std::reverse(Loader::Components.begin(), Loader::Components.end());
 		for (auto component : Loader::Components)
@@ -119,11 +124,29 @@ namespace Components
 		{
 			Loader::Postgame = true;
 
-			std::reverse(Loader::Components.begin(), Loader::Components.end());
-			for (auto component : Loader::Components)
+			auto components = Loader::Components;
+
+			std::reverse(components.begin(), components.end());
+			for (auto component : components)
 			{
 				component->preDestroy();
 			}
+		}
+	}
+
+	void Loader::PreDestroyNoPostGame()
+	{
+		if (!Loader::Postgame)
+		{
+			auto components = Loader::Components;
+
+			std::reverse(components.begin(), components.end());
+			for (auto component : components)
+			{
+				component->preDestroy();
+			}
+
+			Loader::Postgame = true;
 		}
 	}
 

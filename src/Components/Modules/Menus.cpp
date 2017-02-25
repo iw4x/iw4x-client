@@ -169,9 +169,9 @@ namespace Components
 		return menu;
 	}
 
-	std::vector<Game::menuDef_t*> Menus::LoadMenu(std::string menu)
+	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(std::string menu)
 	{
-		std::vector<Game::menuDef_t*> menus;
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
 		FileSystem::File menuFile(menu);
 
 		if (menuFile.exists())
@@ -200,7 +200,7 @@ namespace Components
 					if (!_stricmp(token.string, "menudef"))
 					{
 						Game::menuDef_t* menudef = Menus::ParseMenu(handle);
-						if (menudef) menus.push_back(menudef);
+						if (menudef) menus.push_back({ true, menudef }); // Custom menu
 					}
 				}
 
@@ -211,9 +211,9 @@ namespace Components
 		return menus;
 	}
 
-	std::vector<Game::menuDef_t*> Menus::LoadMenu(Game::menuDef_t* menudef)
+	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(Game::menuDef_t* menudef)
 	{
-		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", menudef->window.name));
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus = Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", menudef->window.name));
 
 		if (menus.empty())
 		{
@@ -222,11 +222,11 @@ namespace Components
 //
 // 			if (originalMenu)
 // 			{
-// 				menus.push_back(originalMenu);
+// 				menus.push_back({ false, originalMenu });
 // 			}
 // 			else
 // 			{
-				menus.push_back(menudef);
+			menus.push_back({ false, menudef }); // Native menu
 // 			}
 		}
 
@@ -235,7 +235,7 @@ namespace Components
 
 	Game::MenuList* Menus::LoadScriptMenu(const char* menu)
 	{
-		std::vector<Game::menuDef_t*> menus = Menus::LoadMenu(menu);
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus = Menus::LoadMenu(menu);
 		if (menus.empty()) return nullptr;
 
 		// Allocate new menu list
@@ -253,7 +253,10 @@ namespace Components
 		newList->menuCount = menus.size();
 
 		// Copy new menus
-		std::memcpy(newList->menus, menus.data(), menus.size() * sizeof(Game::menuDef_t *));
+		for(unsigned int i = 0; i < menus.size(); ++i)
+		{
+			newList->menus[i] = menus[i].second;
+		}
 
 		Menus::RemoveMenuList(newList->name);
 		Menus::MenuListList[newList->name] = newList;
@@ -261,14 +264,60 @@ namespace Components
 		return newList;
 	}
 
+	void Menus::SafeMergeMenus(std::vector<std::pair<bool, Game::menuDef_t*>>* menus, std::vector<std::pair<bool, Game::menuDef_t*>> newMenus)
+	{
+		// Check if we overwrote a menu
+		for (unsigned int i = 0; i < menus->size(); ++i)
+		{
+			// Try to find the native menu
+			bool found = !menus->at(i).first; // Only if custom menu, try to find it
+
+			// If there is none, try to find a custom menu
+			if (!found)
+			{
+				for (auto& entry : Menus::MenuList)
+				{
+					if (menus->at(i).second == entry.second)
+					{
+						found = true;
+						break;
+					}
+				}
+			}
+
+			// Remove the menu if it has been deallocated (not found)
+			if (!found)
+			{
+				menus->erase(menus->begin() + i);
+				--i;
+				continue;
+			}
+
+			// Remove the menu if it has been loaded twice
+			for (auto& newMenu : newMenus)
+			{
+				if (menus->at(i).second->window.name == std::string(newMenu.second->window.name))
+				{
+					Menus::RemoveMenu(menus->at(i).second);
+
+					menus->erase(menus->begin() + i);
+					--i;
+					break;
+				}
+			}
+		}
+
+		Utils::Merge(menus, newMenus);
+	}
+
 	Game::MenuList* Menus::LoadMenuList(Game::MenuList* menuList)
 	{
-		std::vector<Game::menuDef_t*> menus;
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
 
 		for (int i = 0; i < menuList->menuCount; ++i)
 		{
 			if (!menuList->menus[i]) continue;
-			Utils::Merge(&menus, Menus::LoadMenu(menuList->menus[i]));
+			Menus::SafeMergeMenus(&menus, Menus::LoadMenu(menuList->menus[i]));
 		}
 
 		// Load custom menus
@@ -279,14 +328,14 @@ namespace Components
 				bool hasMenu = false;
 				for(auto &loadedMenu : menus)
 				{
-					if(loadedMenu->window.name == menu)
+					if(loadedMenu.second->window.name == menu)
 					{
 						hasMenu = true;
 						break;
 					}
 				}
 
-				if(!hasMenu) Utils::Merge(&menus, Menus::LoadMenu(menu));
+				if (!hasMenu) Menus::SafeMergeMenus(&menus, Menus::LoadMenu(menu));
 			}
 		}
 
@@ -306,7 +355,10 @@ namespace Components
 		newList->menuCount = size;
 
 		// Copy new menus
-		std::memcpy(newList->menus, menus.data(), size * sizeof(Game::menuDef_t *));
+		for (unsigned int i = 0; i < menus.size(); ++i)
+		{
+			newList->menus[i] = menus[i].second;
+		}
 
 		Menus::RemoveMenuList(newList->name);
 		Menus::MenuListList[newList->name] = newList;

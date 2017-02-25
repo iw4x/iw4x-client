@@ -25,11 +25,13 @@ namespace Components
 		static void Initialize();
 		static void Uninitialize();
 		static void PreDestroy();
+		static void PreDestroyNoPostGame();
 		static bool PerformUnitTests();
 		static bool PerformingUnitTests();
 		static void Register(Component* component);
 
 		static bool IsPregame();
+		static bool IsPostgame();
 
 		static Utils::Memory::Allocator* GetAlloctor();
 

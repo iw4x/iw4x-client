@@ -195,8 +195,50 @@ namespace Components
 		Logger::MessageMutex.unlock();
 	}
 
+	void Logger::RedirectOSPath(const char* file, char* folder)
+	{
+		if (Dvar::Var("g_log").get<std::string>() == file)
+		{
+			if (folder != "userraw"s)
+			{
+				if (Dvar::Var("g_log").get<bool>())
+				{
+					strcpy_s(folder, 256, "userraw");
+				}
+			}
+		}
+	}
+
+	__declspec(naked) void Logger::BuildOSPathStub()
+	{
+		__asm
+		{
+			pushad
+
+			push [esp + 28h]
+			push [esp + 30h]
+
+			call Logger::RedirectOSPath
+
+			add esp, 8h
+
+			popad
+
+			mov eax, [esp + 8h]
+			push ebp
+			push esi
+			mov esi, [esp + 0Ch]
+
+			push 64213Fh
+			retn
+		}
+	}
+
 	Logger::Logger()
 	{
+		Dvar::Register<bool>("iw4x_onelog", false, Game::dvar_flag::DVAR_FLAG_LATCHED | Game::dvar_flag::DVAR_FLAG_SAVED, "Only write the game log to the 'userraw' OS folder");
+		Utils::Hook(0x642139, Logger::BuildOSPathStub, HOOK_JUMP).install()->quick();
+
 		Logger::PipeOutput(nullptr);
 
 		QuickPatch::OnFrame(Logger::Frame);
