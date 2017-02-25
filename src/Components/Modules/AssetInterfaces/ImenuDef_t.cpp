@@ -345,6 +345,73 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->__indice); \
 		}
 
+	void save_itemDefData_t(Game::itemDefData_t* asset, int type, Game::itemDef_t* dest, Components::ZoneBuilder::Zone* builder)
+	{
+		Utils::Stream* buffer = builder->getBuffer();
+
+		// feeder
+		if (type == 6)
+		{
+			buffer->align(Utils::Stream::ALIGN_4);
+			Game::listBoxDef_s* destlb = buffer->dest<Game::listBoxDef_s>();
+			buffer->save(asset->listBox);
+
+			if (asset->listBox->doubleClick)
+			{
+				buffer->align(Utils::Stream::ALIGN_4);
+				save_MenuEventHandlerSet(asset->listBox->doubleClick, builder);
+			}
+
+			if (asset->listBox->selectIcon)
+			{
+				destlb->selectIcon = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->listBox->selectIcon).material;
+			}
+		}
+		// HexRays spaghetti
+		else if (type != 4
+			&& type != 9
+			&& type != 16
+			&& type != 18
+			&& type != 11
+			&& type != 14
+			&& type != 10
+			&& type != 17
+			&& type != 22
+			&& type != 23
+			&& type != 0)
+		{
+			switch (type)
+			{
+				// enum dvar
+			case 13:
+				buffer->saveString(asset->enumDvarName);
+				break;
+				// newsticker
+			case 20:
+				buffer->align(Utils::Stream::ALIGN_4);
+				buffer->save(asset->ticker);
+				break;
+				// textScrollDef
+			case 21:
+				buffer->align(Utils::Stream::ALIGN_4);
+				buffer->save(asset->scroll);
+				break;
+			case 12:
+			default:
+				Game::Com_Printf(0, "itemDefData for type %i is still todo.\n", type);
+				break;
+			}
+		}
+		// editFieldDef
+		else
+		{
+			buffer->align(Utils::Stream::ALIGN_4);
+			buffer->save(asset->multiDef);
+		}
+
+		Utils::Stream::ClearPointer(&dest->typeData.data);
+	}
+
 	void save_itemDef_t(Game::itemDef_t *asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::itemDef_t, 380);
@@ -412,8 +479,12 @@ namespace Assets
 			dest->focusSound = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_SOUND, asset->focusSound).sound;
 		}
 
-		// itemDefData (fix me)
-		dest->typeData.data = nullptr;
+		// itemDefData
+		if (asset->typeData.data)
+		{
+			// save_itemDefData_t(&asset->typeData, asset->type, dest, builder);
+			dest->typeData.data = nullptr;
+		}
 
 		// floatExpressions (fix me)
 		dest->floatExpressions = nullptr;
@@ -441,6 +512,7 @@ namespace Assets
 		// ExpressionSupportingData
 		if (asset->expressionData)
 		{
+			// dest->expressionData = nullptr;
 			save_ExpressionSupportingData(asset->expressionData, builder);
 			Utils::Stream::ClearPointer(&dest->expressionData);
 		}
