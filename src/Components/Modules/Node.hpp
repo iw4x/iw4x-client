@@ -34,6 +34,8 @@ namespace Components
 
 		static void LoadNodeRemotePreset();
 
+		static void FrameHandler();
+
 	private:
 		enum EntryState
 		{
@@ -91,8 +93,6 @@ namespace Components
 
 		static void DeleteInvalidNodes();
 		static void DeleteInvalidSessions();
-
-		static void FrameHandler();
 
 		static const char* GetStateName(EntryState state);
 	};

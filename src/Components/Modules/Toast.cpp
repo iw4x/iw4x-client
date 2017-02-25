@@ -146,7 +146,7 @@ namespace Components
 
 	Toast::Toast()
 	{
-		if (Dedicated::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || Monitor::IsEnabled()) return;
 
 		Toast::ToastHandler = new WinToastLib::WinToastHandler;
 
@@ -172,7 +172,7 @@ namespace Components
 
 	void Toast::preDestroy()
 	{
-		if (Dedicated::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || Monitor::IsEnabled()) return;
 
 		// Destroying that on the main thread deadlocks.
 		// I did not write the library, so whatever.

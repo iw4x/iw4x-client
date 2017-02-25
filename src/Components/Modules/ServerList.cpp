@@ -44,7 +44,7 @@ namespace Components
 
 	bool ServerList::IsOnlineList()
 	{
-		return (Dvar::Var("ui_netSource").get<int>() == 1);
+		return (Monitor::IsEnabled() || Dvar::Var("ui_netSource").get<int>() == 1);
 	}
 
 	unsigned int ServerList::GetServerCount()

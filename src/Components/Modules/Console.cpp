@@ -484,7 +484,7 @@ namespace Components
 
 	void Console::FreeNativeConsole()
 	{
-		if (!Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")))
+		if (!Monitor::IsEnabled() && !Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")))
 		{
 			FreeConsole();
 		}
@@ -574,10 +574,15 @@ namespace Components
 		if (Loader::PerformingUnitTests()) return;
 
 		// External console
-		if (Flags::HasFlag("stdout"))
+		if (Flags::HasFlag("stdout") || Monitor::IsEnabled())
 		{
-			Utils::Hook(0x4B2080, Console::StdOutPrint, HOOK_JUMP).install()->quick();
-			Utils::Hook(0x43D570, Console::StdOutError, HOOK_JUMP).install()->quick();
+#ifndef DEBUG
+			if (!Monitor::IsEnabled())
+#endif
+			{
+				Utils::Hook(0x4B2080, Console::StdOutPrint, HOOK_JUMP).install()->quick();
+				Utils::Hook(0x43D570, Console::StdOutError, HOOK_JUMP).install()->quick();
+			}
 		}
 		else if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
 		{

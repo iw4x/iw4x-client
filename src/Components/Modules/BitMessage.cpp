@@ -9,6 +9,8 @@ namespace Components
 
 	BitMessage::BitMessage()
 	{
+		if (Monitor::IsEnabled()) return;
+
 #ifdef DEBUG
 		Logger::Print("Initializing BitMessage...\n");
 #endif

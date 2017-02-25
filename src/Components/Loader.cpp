@@ -53,6 +53,7 @@ namespace Components
 		Loader::Register(new Friends());
 		Loader::Register(new IPCPipe());
 		Loader::Register(new ModList());
+		Loader::Register(new Monitor());
 		Loader::Register(new Network());
 		Loader::Register(new Theatre());
 		Loader::Register(new Download());

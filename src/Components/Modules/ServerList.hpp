@@ -48,6 +48,9 @@ namespace Components
 		static bool IsOfflineList();
 		static bool IsOnlineList();
 
+		static void Frame();
+		static std::vector<ServerInfo>* GetList();
+
 	private:
 		enum Column
 		{
@@ -115,8 +118,6 @@ namespace Components
 		static void UpdateSource();
 		static void UpdateGameType();
 
-		static void Frame();
-
 		static void SortList();
 
 		static void LoadFavourties();
@@ -124,7 +125,6 @@ namespace Components
 		static void RemoveFavourite(std::string server);
 
 		static ServerInfo* GetServer(unsigned int index);
-		static std::vector<ServerInfo>* GetList();
 
 		static bool CompareVersion(std::string version1, std::string version2);
 
