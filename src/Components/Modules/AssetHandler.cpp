@@ -436,6 +436,7 @@ namespace Components
 #endif
 			AssetHandler::RegisterInterface(new Assets::ISndCurve());
 			AssetHandler::RegisterInterface(new Assets::IMaterial());
+			AssetHandler::RegisterInterface(new Assets::IMenuList());
 #ifdef ENABLE_EXPERIMENTAL_MAP_CODE
 			AssetHandler::RegisterInterface(new Assets::IclipMap_t());
 #endif
