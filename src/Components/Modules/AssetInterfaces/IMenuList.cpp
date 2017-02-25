@@ -2,6 +2,18 @@
 
 namespace Assets
 {
+	void IMenuList::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	{
+		Game::MenuList *asset = header.menuList;
+
+		for (int i = 0; i < asset->menuCount; i++)
+		{
+			if (asset->menus[i])
+			{
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_MENU, asset->menus[i]);
+			}
+		}
+	}
 	void IMenuList::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::MenuList, 12);

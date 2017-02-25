@@ -327,7 +327,7 @@ namespace Assets
 		STATEMENT(materialExp);
 	}
 
-	void IMenu::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	void ImenuDef_t::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::menuDef_t, 400);
 
