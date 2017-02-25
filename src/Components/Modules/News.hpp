@@ -20,8 +20,13 @@ namespace Components
 
 	private:
 		static std::string UpdaterArgs;
+		static std::string UpdaterHash;
+		static int UpdaterRefresh;
 		static std::thread Thread;
+		
 		static bool Terminate;
+		static bool GetLatestUpdater();
+		static bool DownloadUpdater();
 
 		static void CheckForUpdate();
 		static void ExitProcessStub(unsigned int exitCode);
