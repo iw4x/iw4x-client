@@ -535,6 +535,7 @@ namespace Components
 		Friends::LoggedOn = false;
 
 		if (Dedicated::IsEnabled() ||ZoneBuilder::IsEnabled()) return;
+
 		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_FLAG_SAVED, "");
 		Dvar::Register<int>("cl_notifyFriendState", 1, -1, 1, Game::DVAR_FLAG_SAVED, "");
 

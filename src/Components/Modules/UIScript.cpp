@@ -116,6 +116,8 @@ namespace Components
 
 	UIScript::UIScript()
 	{
+		if (Dedicated::IsEnabled()) return;
+
 		// Install handler
 		Utils::Hook::RedirectJump(0x45EC59, UIScript::RunMenuScriptStub);
 

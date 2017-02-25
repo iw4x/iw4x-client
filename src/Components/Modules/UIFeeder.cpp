@@ -379,6 +379,8 @@ namespace Components
 
 	UIFeeder::UIFeeder()
 	{
+		if (Dedicated::IsEnabled()) return;
+
 		Dvar::OnInit([]()
 		{
 			Dvar::Register<const char*>("ui_map_long", "Afghan", Game::dvar_flag::DVAR_FLAG_NONE, "");
