@@ -21,7 +21,6 @@ namespace Components
 	private:
 		static std::string UpdaterArgs;
 		static std::string UpdaterHash;
-		static int UpdaterRefresh;
 		static std::thread Thread;
 		
 		static bool Terminate;

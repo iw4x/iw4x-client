@@ -8,7 +8,6 @@ namespace Components
 	std::thread News::Thread;
 	std::string News::UpdaterArgs;
 	std::string News::UpdaterHash;
-	int News::UpdaterRefresh;
 
 	bool News::unitTest()
 	{
@@ -60,9 +59,10 @@ namespace Components
 			std::string localUpdater = Utils::IO::ReadFile("updater.exe");
 			localUpdater = Utils::Cryptography::SHA1::Compute(localUpdater, true);
 
-			if (News::UpdaterHash.empty() || (News::UpdaterRefresh - Game::Sys_Milliseconds() > 900000)) // Check for updater Update every 15 mins max
+			static Utils::Time::Interval updateInterval;
+			if (News::UpdaterHash.empty() || updateInterval.elapsed(15min)) // Check for updater Update every 15 mins max
 			{
-				News::UpdaterRefresh = Game::Sys_Milliseconds();
+				updateInterval.update();
 				
 				std::string data = Utils::Cache::GetFile("/json/updater"); // {"updater.exe":{"SHA1":"*HASH*"}}
 
