@@ -23,6 +23,12 @@ namespace Assets
 			{
 				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, asset->items[i]->focusSound);
 			}
+
+			if (asset->items[i]->type == 6 && asset->items[i]->typeData.listBox &&
+				asset->items[i]->typeData.listBox->selectIcon)
+			{
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->items[i]->typeData.listBox->selectIcon);
+			}
 		}
 	}
 
