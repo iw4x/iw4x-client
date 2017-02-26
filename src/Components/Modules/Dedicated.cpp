@@ -410,6 +410,9 @@ namespace Components
 
 			Utils::Hook::Nop(0x45148B, 5);          // Disable splash screen
 
+			// do not trigger host migration, even if the server is a 'bad host'
+			Utils::Hook::Set<BYTE>(0x626AA8, 0xEB);
+
 			// isHost script call return 0
 			Utils::Hook::Set<DWORD>(0x5DEC04, 0);
 
