@@ -486,9 +486,23 @@ namespace Assets
 			dest->typeData.data = nullptr;
 		}
 
-		// floatExpressions (fix me)
-		dest->floatExpressions = nullptr;
-		dest->floatExpressionCount = 0;
+		// floatExpressions
+		if (asset->floatExpressions)
+		{
+			buffer->align(Utils::Stream::ALIGN_4);
+
+			Game::ItemFloatExpression* destExp = buffer->dest<Game::ItemFloatExpression>();
+			buffer->saveArray(asset->floatExpressions, asset->floatExpressionCount);
+
+			for (int i = 0; i < asset->floatExpressionCount; i++)
+			{
+				buffer->align(Utils::Stream::ALIGN_4);
+				save_Statement_s(asset->floatExpressions[i].expression, builder);
+				Utils::Stream::ClearPointer(&destExp->expression);
+			}
+
+			Utils::Stream::ClearPointer(&dest->floatExpressions);
+		}
 
 		// Statements
 		STATEMENT(visibleExp);
