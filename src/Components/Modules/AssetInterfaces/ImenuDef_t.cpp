@@ -350,6 +350,7 @@ namespace Assets
 		AssertSize(Game::newsTickerDef_s, 28);
 		AssertSize(Game::listBoxDef_s, 324);
 		AssertSize(Game::editFieldDef_s, 32);
+		AssertSize(Game::multiDef_s, 392);
 
 		Utils::Stream* buffer = builder->getBuffer();
 
@@ -401,6 +402,29 @@ namespace Assets
 				buffer->save(asset->scroll);
 				break;
 			case 12:
+				buffer->align(Utils::Stream::ALIGN_4);
+				Game::multiDef_s* destdef = buffer->dest<Game::multiDef_s>();
+				buffer->save(asset->multiDef);
+
+				for (int i = 0; i < 32; i++)
+				{
+					if (asset->multiDef->dvarList[i])
+					{
+						buffer->saveString(asset->multiDef->dvarList[i]);
+						Utils::Stream::ClearPointer(&destdef->dvarList[i]);
+					}
+				}
+
+				for (int i = 0; i < 32; i++)
+				{
+					if (asset->multiDef->dvarStr[i])
+					{
+						buffer->saveString(asset->multiDef->dvarStr[i]);
+						Utils::Stream::ClearPointer(&destdef->dvarStr[i]);
+					}
+				}
+
+				break;
 			default:
 				Game::Com_Printf(0, "itemDefData for type %i is still todo.\n", type);
 				break;
