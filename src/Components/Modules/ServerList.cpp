@@ -640,10 +640,12 @@ namespace Components
 			Network::SendCommand(server->target, "getinfo", server->challenge);
 
 			// Display in the menu, like in COD4
-			Localization::Set("MPUI_SERVERQUERIED", Utils::String::VA("Sent requests: %d/%d", ServerList::RefreshContainer.sentCount, ServerList::RefreshContainer.sendCount));
+			//Localization::Set("MPUI_SERVERQUERIED", Utils::String::VA("Sent requests: %d/%d", ServerList::RefreshContainer.sentCount, ServerList::RefreshContainer.sendCount));
 
 			if (SendServers <= 0) break;
 		}
+
+		ServerList::UpdateVisibleInfo();
 
 		ServerList::RefreshContainer.mutex.unlock();
 	}
@@ -680,9 +682,38 @@ namespace Components
 		ServerList::RefreshVisibleList(UIScript::Token());
 	}
 
+	void ServerList::UpdateVisibleInfo()
+	{
+		static int servers = 0;
+		static int players = 0;
+
+		auto list = ServerList::GetList();
+
+		if (list)
+		{
+			int newSevers = list->size();
+			int newPlayers = 0;
+
+			for (unsigned int i = 0; i < list->size(); ++i)
+			{
+				newPlayers += list->at(i).clients;
+			}
+
+			if (newSevers != servers || newPlayers != players)
+			{
+				servers = newSevers;
+				players = newPlayers;
+
+				Localization::Set("MPUI_SERVERQUERIED", Utils::String::VA("Servers: %i\nPlayers: %i", servers, players));
+			}
+		}
+	}
+
 	ServerList::ServerList()
 	{
 		ServerList::OnlineList.clear();
+		ServerList::OfflineList.clear();
+		ServerList::FavouriteList.clear();
 		ServerList::VisibleList.clear();
 
 		Dvar::OnInit([] ()
@@ -691,7 +722,8 @@ namespace Components
 			Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "Map of the selected server");
 		});
 
-		Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
+		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
+		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0");
 
 		Network::Handle("getServersResponse", [] (Network::Address address, std::string data)
 		{

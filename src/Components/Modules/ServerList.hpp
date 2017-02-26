@@ -51,6 +51,8 @@ namespace Components
 		static void Frame();
 		static std::vector<ServerInfo>* GetList();
 
+		static void UpdateVisibleInfo();
+
 	private:
 		enum Column
 		{
