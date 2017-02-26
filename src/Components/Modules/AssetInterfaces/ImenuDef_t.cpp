@@ -425,9 +425,6 @@ namespace Assets
 				}
 
 				break;
-			default:
-				Game::Com_Printf(0, "itemDefData for type %i is still todo.\n", type);
-				break;
 			}
 		}
 		// editFieldDef
