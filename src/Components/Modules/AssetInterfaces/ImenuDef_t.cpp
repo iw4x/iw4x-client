@@ -347,6 +347,10 @@ namespace Assets
 
 	void save_itemDefData_t(Game::itemDefData_t* asset, int type, Game::itemDef_t* dest, Components::ZoneBuilder::Zone* builder)
 	{
+		AssertSize(Game::newsTickerDef_s, 28);
+		AssertSize(Game::listBoxDef_s, 324);
+		AssertSize(Game::editFieldDef_s, 32);
+
 		Utils::Stream* buffer = builder->getBuffer();
 
 		// feeder
@@ -406,7 +410,7 @@ namespace Assets
 		else
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->multiDef);
+			buffer->save(asset->editField);
 		}
 
 		Utils::Stream::ClearPointer(&dest->typeData.data);
@@ -482,8 +486,7 @@ namespace Assets
 		// itemDefData
 		if (asset->typeData.data)
 		{
-			// save_itemDefData_t(&asset->typeData, asset->type, dest, builder);
-			dest->typeData.data = nullptr;
+			save_itemDefData_t(&asset->typeData, asset->type, dest, builder);
 		}
 
 		// floatExpressions
