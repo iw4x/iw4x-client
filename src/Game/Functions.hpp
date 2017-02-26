@@ -394,6 +394,12 @@ namespace Game
 	typedef void(__cdecl * MSG_WriteLong_t)(msg_t *msg, int c);
 	extern MSG_WriteLong_t MSG_WriteLong;
 
+	typedef void(*MSG_WriteShort_t)(msg_t* msg, short s);
+	extern MSG_WriteShort_t MSG_WriteShort;
+
+	typedef void(*MSG_WriteString_t)(msg_t* msg, const char *str);
+	extern MSG_WriteString_t MSG_WriteString;
+
 	typedef int(__cdecl * MSG_WriteBitsCompress_t)(bool trainHuffman, const char *from, char *to, int size);
 	extern MSG_WriteBitsCompress_t MSG_WriteBitsCompress;
 

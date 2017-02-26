@@ -106,3 +106,4 @@ namespace Components
 #include "Modules/StructuredData.hpp"
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/StartupMessages.hpp"
+#include "Modules/Stats.hpp"

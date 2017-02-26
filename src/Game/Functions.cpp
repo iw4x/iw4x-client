@@ -151,6 +151,8 @@ namespace Game
 	MSG_WriteByte_t MSG_WriteByte = MSG_WriteByte_t(0x48C520);
 	MSG_WriteData_t MSG_WriteData = MSG_WriteData_t(0x4F4120);
 	MSG_WriteLong_t MSG_WriteLong = MSG_WriteLong_t(0x41CA20);
+	MSG_WriteShort_t MSG_WriteShort = MSG_WriteShort_t(0x503B90);
+	MSG_WriteString_t MSG_WriteString = MSG_WriteString_t(0x463820);
 	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = MSG_WriteBitsCompress_t(0x4319D0);
 	MSG_ReadByte_t MSG_ReadByte = MSG_ReadByte_t(0x4C1C20);
 	MSG_ReadBitsCompress_t MSG_ReadBitsCompress = MSG_ReadBitsCompress_t(0x4DCC30);
