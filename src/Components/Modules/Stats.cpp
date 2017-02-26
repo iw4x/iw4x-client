@@ -2,6 +2,19 @@
 
 namespace Components
 {
+	bool Stats::IsMaxLevel()
+	{
+		// obtain statsbuffer (offset 4, first 4 bytes is statVersion.)
+		char* statsBuffer = Utils::Hook::Call<char *(int)>(0x4C49F0)(0) + 4;
+
+		// obtain experience from statsbuffer (offset 2056)
+		std::uint32_t experience = *reinterpret_cast<std::uint32_t*>(statsBuffer + 2056);
+
+		// 2516000 should be the max experience.
+		if (experience >= 2516000) return true;
+		return false;
+	}
+
 	void Stats::SendStats()
 	{
 		// check if we're connected to a server...

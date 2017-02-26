@@ -13,6 +13,7 @@ namespace Components
 #endif
 
 	private:
+		static bool IsMaxLevel();
 		static void UpdateClasses(UIScript::Token token);
 		static void SendStats();
 
