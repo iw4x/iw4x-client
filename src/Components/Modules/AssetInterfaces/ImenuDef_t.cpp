@@ -32,31 +32,7 @@ namespace Assets
 		}
 	}
 
-	template <typename T> 
-	void save_windowDef_t(Game::windowDef_t* asset, T* dest, Components::ZoneBuilder::Zone* builder)
-	{
-		Utils::Stream* buffer = builder->getBuffer();
-
-		if (asset->name)
-		{
-			buffer->saveString(asset->name);
-			Utils::Stream::ClearPointer(&dest->window.name);
-		}
-
-		if (asset->group)
-		{
-			buffer->saveString(asset->group);
-			Utils::Stream::ClearPointer(&dest->window.group);
-		}
-
-		if (asset->background)
-		{
-			dest->window.background = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->background).material;
-		}
-	}
-
-	void save_Statement_s(Game::Statement_s* asset, Components::ZoneBuilder::Zone* builder);
-	void save_ExpressionSupportingData(Game::ExpressionSupportingData* asset, Components::ZoneBuilder::Zone* builder)
+	void ImenuDef_t::save_ExpressionSupportingData(Game::ExpressionSupportingData* asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::ExpressionSupportingData, 24);
 		Utils::Stream* buffer = builder->getBuffer();
@@ -80,7 +56,7 @@ namespace Assets
 					Utils::Stream::ClearPointer(&destStatement[i]);
 
 					buffer->align(Utils::Stream::ALIGN_4);
-					save_Statement_s(asset->uifunctions.functions[i], builder);
+					this->save_Statement_s(asset->uifunctions.functions[i], builder);
 				}
 			}
 
@@ -133,7 +109,7 @@ namespace Assets
 		}
 	}
 
-	void save_Statement_s(Game::Statement_s* asset, Components::ZoneBuilder::Zone* builder)
+	void ImenuDef_t::save_Statement_s(Game::Statement_s* asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::Statement_s, 24);
 		Utils::Stream* buffer = builder->getBuffer();
@@ -176,7 +152,7 @@ namespace Assets
 					case 3:
 						if (asset->entries[i].data.operand.internals.function)
 						{
-							save_Statement_s(asset->entries[i].data.operand.internals.function, builder);
+							this->save_Statement_s(asset->entries[i].data.operand.internals.function, builder);
 							Utils::Stream::ClearPointer(&destEntries[i].data.operand.internals.function);
 						}
 						break;
@@ -186,12 +162,12 @@ namespace Assets
 		}
 		if (asset->supportingData)
 		{
-			save_ExpressionSupportingData(asset->supportingData, builder);
+			this->save_ExpressionSupportingData(asset->supportingData, builder);
 			Utils::Stream::ClearPointer(&dest->supportingData);
 		}
 	}
 
-	void save_MenuEventHandlerSet(Game::MenuEventHandlerSet* asset, Components::ZoneBuilder::Zone* builder)
+	void ImenuDef_t::save_MenuEventHandlerSet(Game::MenuEventHandlerSet* asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::MenuEventHandlerSet, 8);
 		Utils::Stream* buffer = builder->getBuffer();
@@ -243,7 +219,7 @@ namespace Assets
 							if (asset->eventHandlers[i]->eventData.conditionalScript->eventExpression)
 							{
 								buffer->align(Utils::Stream::ALIGN_4);
-								save_Statement_s(asset->eventHandlers[i]->eventData.conditionalScript->eventExpression, builder);
+								this->save_Statement_s(asset->eventHandlers[i]->eventData.conditionalScript->eventExpression, builder);
 								Utils::Stream::ClearPointer(&destConditionalScript->eventExpression);
 							}
 
@@ -251,7 +227,7 @@ namespace Assets
 							if (asset->eventHandlers[i]->eventData.conditionalScript->eventHandlerSet)
 							{
 								buffer->align(Utils::Stream::ALIGN_4);
-								save_MenuEventHandlerSet(asset->eventHandlers[i]->eventData.conditionalScript->eventHandlerSet, builder);
+								this->save_MenuEventHandlerSet(asset->eventHandlers[i]->eventData.conditionalScript->eventHandlerSet, builder);
 								Utils::Stream::ClearPointer(&destConditionalScript->eventHandlerSet);
 							}
 
@@ -264,7 +240,7 @@ namespace Assets
 						if (asset->eventHandlers[i]->eventData.elseScript)
 						{
 							buffer->align(Utils::Stream::ALIGN_4);
-							save_MenuEventHandlerSet(asset->eventHandlers[i]->eventData.elseScript, builder);
+							this->save_MenuEventHandlerSet(asset->eventHandlers[i]->eventData.elseScript, builder);
 							Utils::Stream::ClearPointer(&dest->eventData.elseScript);
 						}
 						break;
@@ -293,7 +269,7 @@ namespace Assets
 							if (asset->eventHandlers[i]->eventData.setLocalVarData->expression)
 							{
 								buffer->align(Utils::Stream::ALIGN_4);
-								save_Statement_s(asset->eventHandlers[i]->eventData.setLocalVarData->expression, builder);
+								this->save_Statement_s(asset->eventHandlers[i]->eventData.setLocalVarData->expression, builder);
 								Utils::Stream::ClearPointer(&destLocalVarData->expression);
 							}
 
@@ -308,7 +284,7 @@ namespace Assets
 		}
 	}
 
-	void save_ItemKeyHandler(Game::ItemKeyHandler* asset, Components::ZoneBuilder::Zone* builder)
+	void ImenuDef_t::save_ItemKeyHandler(Game::ItemKeyHandler* asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::ItemKeyHandler, 12);
 		Utils::Stream* buffer = builder->getBuffer();
@@ -326,7 +302,7 @@ namespace Assets
 			if (asset->action)
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
-				save_MenuEventHandlerSet(asset->action, builder);
+				this->save_MenuEventHandlerSet(asset->action, builder);
 				Utils::Stream::ClearPointer(&dest->action);
 			}
 
@@ -339,7 +315,7 @@ namespace Assets
 		if (asset->__indice) \
 		{ \
 			buffer->align(Utils::Stream::ALIGN_4); \
-			save_MenuEventHandlerSet(asset->__indice, builder); \
+			this->save_MenuEventHandlerSet(asset->__indice, builder); \
 			Utils::Stream::ClearPointer(&dest->__indice); \
 		}
 
@@ -347,11 +323,11 @@ namespace Assets
 		if (asset->__indice) \
 		{ \
 			buffer->align(Utils::Stream::ALIGN_4); \
-			save_Statement_s(asset->__indice, builder); \
+			this->save_Statement_s(asset->__indice, builder); \
 			Utils::Stream::ClearPointer(&dest->__indice); \
 		}
 
-	void save_itemDefData_t(Game::itemDefData_t* asset, int type, Game::itemDef_t* dest, Components::ZoneBuilder::Zone* builder)
+	void ImenuDef_t::save_itemDefData_t(Game::itemDefData_t* asset, int type, Game::itemDef_t* dest, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::newsTickerDef_s, 28);
 		AssertSize(Game::listBoxDef_s, 324);
@@ -370,7 +346,7 @@ namespace Assets
 			if (asset->listBox->doubleClick)
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
-				save_MenuEventHandlerSet(asset->listBox->doubleClick, builder);
+				this->save_MenuEventHandlerSet(asset->listBox->doubleClick, builder);
 			}
 
 			if (asset->listBox->selectIcon)
@@ -443,7 +419,7 @@ namespace Assets
 		Utils::Stream::ClearPointer(&dest->typeData.data);
 	}
 
-	void save_itemDef_t(Game::itemDef_t *asset, Components::ZoneBuilder::Zone* builder)
+	void ImenuDef_t::save_itemDef_t(Game::itemDef_t *asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::itemDef_t, 380);
 
@@ -488,7 +464,7 @@ namespace Assets
 		if (asset->onKey)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			save_ItemKeyHandler(asset->onKey, builder);
+			this->save_ItemKeyHandler(asset->onKey, builder);
 			Utils::Stream::ClearPointer(&dest->onKey);
 		}
 
@@ -513,7 +489,7 @@ namespace Assets
 		// itemDefData
 		if (asset->typeData.data)
 		{
-			save_itemDefData_t(&asset->typeData, asset->type, dest, builder);
+			this->save_itemDefData_t(&asset->typeData, asset->type, dest, builder);
 		}
 
 		// floatExpressions
@@ -527,7 +503,7 @@ namespace Assets
 			for (int i = 0; i < asset->floatExpressionCount; i++)
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
-				save_Statement_s(asset->floatExpressions[i].expression, builder);
+				this->save_Statement_s(asset->floatExpressions[i].expression, builder);
 				Utils::Stream::ClearPointer(&destExp->expression);
 			}
 
@@ -557,7 +533,7 @@ namespace Assets
 		if (asset->expressionData)
 		{
 			// dest->expressionData = nullptr;
-			save_ExpressionSupportingData(asset->expressionData, builder);
+			this->save_ExpressionSupportingData(asset->expressionData, builder);
 			Utils::Stream::ClearPointer(&dest->expressionData);
 		}
 
@@ -581,7 +557,7 @@ namespace Assets
 		if (asset->onKey)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			save_ItemKeyHandler(asset->onKey, builder);
+			this->save_ItemKeyHandler(asset->onKey, builder);
 			Utils::Stream::ClearPointer(&dest->onKey);
 		}
 
@@ -619,7 +595,7 @@ namespace Assets
 				if (asset->items[i])
 				{
 					buffer->align(Utils::Stream::ALIGN_4);
-					save_itemDef_t(asset->items[i], builder);
+					this->save_itemDef_t(asset->items[i], builder);
 				}
 			}
 		}
