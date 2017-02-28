@@ -40,15 +40,10 @@ namespace Components
 				// Stat packet index
 				Game::MSG_WriteByte(&msg, i);
 
-				// calculate packet size
-				size_t size = 8192 - (i * 1240);
-				if (size > 1240)
-					size = 1240;
-
 				// write stat packet data
 				if (statbuffer)
 				{
-					Game::MSG_WriteData(&msg, statbuffer, size);
+					Game::MSG_WriteData(&msg, statbuffer, std::min(8192 - (i * 1240), 1240));
 				}
 
 				// send statpacket
