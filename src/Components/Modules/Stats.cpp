@@ -19,13 +19,12 @@ namespace Components
 
 				// alloc
 				Game::msg_t msg;
+				char buffer[2048];
 				ZeroMemory(&msg, sizeof(msg));
-
-				Utils::Memory::Allocator allocator;
-				char* buffer = allocator.allocateArray<char>(2048);
+				ZeroMemory(&buffer, sizeof(buffer));
 
 				// init
-				Game::MSG_Init(&msg, buffer, 2048);
+				Game::MSG_Init(&msg, buffer, sizeof(buffer));
 				Game::MSG_WriteString(&msg, "stats");
 
 				// get stat buffer
