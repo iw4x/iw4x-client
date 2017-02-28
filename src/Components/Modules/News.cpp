@@ -237,6 +237,8 @@ namespace Components
 
 				if (!Loader::PerformingUnitTests())
 				{
+					News::GetLatestUpdater();
+
 					while (!News::Terminate)
 					{
 						News::CheckForUpdate();
