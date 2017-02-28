@@ -4,15 +4,8 @@ namespace Components
 {
 	bool Stats::IsMaxLevel()
 	{
-		// obtain statsbuffer (offset 4, first 4 bytes is statVersion.)
-		char* statsBuffer = Utils::Hook::Call<char *(int)>(0x4C49F0)(0) + 4;
-
-		// obtain experience from statsbuffer (offset 2056)
-		std::uint32_t experience = *reinterpret_cast<std::uint32_t*>(statsBuffer + 2056);
-
 		// 2516000 should be the max experience.
-		if (experience >= 2516000) return true;
-		return false;
+		return (Game::Live_GetXp(0) >= Game::CL_GetMaxXP());
 	}
 
 	void Stats::SendStats()
@@ -26,10 +19,10 @@ namespace Components
 
 				// alloc
 				Game::msg_t msg;
-				memset(&msg, 0, sizeof(Game::msg_t));
+				ZeroMemory(&msg, sizeof(msg));
 
-				char* buffer = new char[2048];
-				memset(buffer, 0, 2048);
+				Utils::Memory::Allocator allocator;
+				char* buffer = allocator.allocateArray<char>(2048);
 
 				// init
 				Game::MSG_Init(&msg, buffer, 2048);
@@ -43,7 +36,7 @@ namespace Components
 				}
 
 				// Client port?
-				Game::MSG_WriteShort(&msg, *(short*)0xA1E878);
+				Game::MSG_WriteShort(&msg, *reinterpret_cast<short*>(0xA1E878));
 
 				// Stat packet index
 				Game::MSG_WriteByte(&msg, i);
@@ -60,10 +53,7 @@ namespace Components
 				}
 
 				// send statpacket
-				Game::NET_OutOfBandData(Game::NS_CLIENT, *(Game::netadr_t*)0xA1E888, msg.data, msg.cursize);
-
-				// free memory
-				delete[] buffer;
+				Network::SendRaw(Game::NS_CLIENT, *reinterpret_cast<Game::netadr_t*>(0xA1E888), std::string(msg.data, msg.cursize));
 			}
 		}
 	}

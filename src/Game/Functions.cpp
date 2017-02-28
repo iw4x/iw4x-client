@@ -17,6 +17,7 @@ namespace Game
 	CL_DownloadsComplete_t CL_DownloadsComplete = CL_DownloadsComplete_t(0x42CE90);
 	CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical = CL_DrawStretchPicPhysical_t(0x4FC120);
 	CL_GetConfigString_t CL_GetConfigString = CL_GetConfigString_t(0x44ADB0);
+	CL_GetMaxRank_t CL_GetMaxRank = CL_GetMaxRank_t(0x44BA30);
 	CL_GetRankForXP_t CL_GetRankForXP = CL_GetRankForXP_t(0x4FF8A0);
 	CL_GetRankIcon_t CL_GetRankIcon = CL_GetRankIcon_t(0x4A7B30);
 	CL_HandleRelayPacket_t CL_HandleRelayPacket = CL_HandleRelayPacket_t(0x5A8C70);
@@ -230,6 +231,8 @@ namespace Game
 	SockadrToNetadr_t SockadrToNetadr = SockadrToNetadr_t(0x4F8460);
 
 	Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x49CF70);
+
+	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
 
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = SV_GameClientNum_Score_t(0x469AC0);
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = SV_GameSendServerCommand_t(0x4BC3A0);
@@ -721,5 +724,12 @@ namespace Game
 		{
 			g_parse[1056 * *(reinterpret_cast<DWORD*>(g_parse) + 4224) + 1032] = parse != 0;
 		}
+	}
+
+	int CL_GetMaxXP()
+	{
+		StringTable* rankTable = DB_FindXAssetHeader(ASSET_TYPE_STRINGTABLE, "mp/rankTable.csv").stringTable;
+		const char* maxrank = StringTable_Lookup(rankTable, 0, "maxrank", 1);
+		return atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
 	}
 }

@@ -38,6 +38,9 @@ namespace Game
 	typedef const char*(_cdecl* CL_GetConfigString_t)(int index);
 	extern CL_GetConfigString_t CL_GetConfigString;
 
+	typedef int(_cdecl* CL_GetMaxRank_t)();
+	extern CL_GetMaxRank_t CL_GetMaxRank;
+
 	typedef int(_cdecl* CL_GetRankForXP_t)(int xp);
 	extern CL_GetRankForXP_t CL_GetRankForXP;
 
@@ -553,6 +556,9 @@ namespace Game
 	typedef void(__cdecl * Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;
 
+	typedef const char*(__cdecl * StringTable_Lookup_t)(StringTable *table, const int comparisonColumn, const char *value, const int valueColumn);
+	extern StringTable_Lookup_t StringTable_Lookup;
+
 	typedef int(__cdecl* SV_GameClientNum_Score_t)(int clientID);
 	extern SV_GameClientNum_Score_t SV_GameClientNum_Score;
 
@@ -759,4 +765,6 @@ namespace Game
 
 	char* Com_GetParseThreadInfo();
 	void Com_SetParseNegativeNumbers(int parse);
+
+	int CL_GetMaxXP();
 }
