@@ -39,7 +39,7 @@ namespace Components
 		static void Refresh(UIScript::Token);
 		static void RefreshVisibleList(UIScript::Token);
 		static void UpdateVisibleList(UIScript::Token);
-		static void InsertRequest(Network::Address address, bool acquireMutex = true);
+		static void InsertRequest(Network::Address address);
 		static void Insert(Network::Address address, Utils::InfoString info);
 
 		static ServerInfo* GetCurrentServer();
@@ -109,7 +109,7 @@ namespace Components
 
 			Network::Address host;
 			std::vector<ServerContainer> servers;
-			std::mutex mutex;
+			std::recursive_mutex mutex;
 		};
 
 		static unsigned int GetServerCount();

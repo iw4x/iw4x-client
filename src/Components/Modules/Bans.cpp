@@ -120,11 +120,7 @@ namespace Components
 				Logger::Error("Failed to parse bans (bans.json): %s", error.data());
 			}
 
-			if (!list)
-			{
-				Bans::AccessMutex.unlock();
-				return;
-			}
+			if (!list) return;
 
 			if (banData.is_object())
 			{

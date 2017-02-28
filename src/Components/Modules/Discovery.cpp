@@ -80,7 +80,7 @@ namespace Components
 
 			if (ServerList::IsOfflineList())
 			{
-				ServerList::InsertRequest(address, true);
+				ServerList::InsertRequest(address);
 			}
 		});
 

@@ -778,7 +778,7 @@ namespace Components
 
 					if (!Dedicated::IsEnabled() && entry->isDedi && ServerList::IsOnlineList() && entry->protocol == PROTOCOL)
 					{
-						ServerList::InsertRequest(entry->address, true);
+						ServerList::InsertRequest(entry->address);
 					}
 
 					for (int i = 0; i < list.address_size(); ++i)

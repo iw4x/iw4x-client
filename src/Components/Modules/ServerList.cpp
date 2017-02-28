@@ -179,14 +179,14 @@ namespace Components
 		{
 			list->clear();
 
-			std::lock_guard<std::mutex> _(ServerList::RefreshContainer.mutex);
+			std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
 
 			ServerList::RefreshContainer.sendCount = 0;
 			ServerList::RefreshContainer.sentCount = 0;
 
 			for (auto server : tempList)
 			{
-				ServerList::InsertRequest(server.addr, false);
+				ServerList::InsertRequest(server.addr);
 			}
 		}
 	}
@@ -387,14 +387,14 @@ namespace Components
 			for (unsigned int i = 0; i < servers.size(); ++i)
 			{
 				if(!servers[i].is_string()) continue;
-				ServerList::InsertRequest(servers[i].string_value(), true);
+				ServerList::InsertRequest(servers[i].string_value());
 			}
 		}
 	}
 
-	void ServerList::InsertRequest(Network::Address address, bool acquireMutex)
+	void ServerList::InsertRequest(Network::Address address)
 	{
-		if (acquireMutex) ServerList::RefreshContainer.mutex.lock();
+		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
 
 		ServerList::Container::ServerContainer container;
 		container.sent = false;
@@ -430,13 +430,11 @@ namespace Components
 
 			++ServerList::RefreshContainer.sendCount;
 		}
-
-		if (acquireMutex) ServerList::RefreshContainer.mutex.unlock();
 	}
 
 	void ServerList::Insert(Network::Address address, Utils::InfoString info)
 	{
-		std::lock_guard<std::mutex> _(ServerList::RefreshContainer.mutex);
+		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
 
 		for (auto i = ServerList::RefreshContainer.servers.begin(); i != ServerList::RefreshContainer.servers.end();)
 		{
@@ -731,7 +729,7 @@ namespace Components
 
 			ServerList::RefreshContainer.awatingList = false;
 
-			std::lock_guard<std::mutex> _(ServerList::RefreshContainer.mutex);
+			std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
 
 			int offset = 0;
 			int count = ServerList::RefreshContainer.servers.size();
@@ -751,7 +749,7 @@ namespace Components
 				serverAddr.setPort(ntohs(entry[i].port));
 				serverAddr.setType(Game::NA_IP);
 
-				ServerList::InsertRequest(serverAddr, false);
+				ServerList::InsertRequest(serverAddr);
 			}
 
 			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.servers.size() - count);
