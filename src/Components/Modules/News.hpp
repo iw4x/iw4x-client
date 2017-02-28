@@ -22,7 +22,8 @@ namespace Components
 		static std::string UpdaterArgs;
 		static std::string UpdaterHash;
 		static std::thread Thread;
-		
+		static std::mutex UpdaterMutex;
+
 		static bool Terminate;
 		static bool GetLatestUpdater();
 		static bool DownloadUpdater();

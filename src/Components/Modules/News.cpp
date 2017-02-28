@@ -8,6 +8,7 @@ namespace Components
 	std::thread News::Thread;
 	std::string News::UpdaterArgs;
 	std::string News::UpdaterHash;
+	std::mutex News::UpdaterMutex;
 
 	bool News::unitTest()
 	{
@@ -53,6 +54,8 @@ namespace Components
 
 	bool News::GetLatestUpdater()
 	{
+		std::lock_guard<std::mutex> _(News::UpdaterMutex);
+
 		if (Utils::IO::FileExists("updater.exe"))
 		{
 			// Generate hash of local updater.exe
