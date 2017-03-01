@@ -152,6 +152,7 @@ namespace Assets
 					case 3:
 						if (asset->entries[i].data.operand.internals.function)
 						{
+							buffer->align(Utils::Stream::ALIGN_4);
 							this->save_Statement_s(asset->entries[i].data.operand.internals.function, builder);
 							Utils::Stream::ClearPointer(&destEntries[i].data.operand.internals.function);
 						}
@@ -252,11 +253,11 @@ namespace Assets
 					case 6:
 						if (asset->eventHandlers[i]->eventData.setLocalVarData)
 						{
+							buffer->align(Utils::Stream::ALIGN_4);
+
 							// header data
 							Game::SetLocalVarData *destLocalVarData = buffer->dest<Game::SetLocalVarData>();
 							buffer->save(asset->eventHandlers[i]->eventData.setLocalVarData);
-
-							buffer->align(Utils::Stream::ALIGN_4);
 
 							// localVarName
 							if (asset->eventHandlers[i]->eventData.setLocalVarData->localVarName)
@@ -291,9 +292,6 @@ namespace Assets
 
 		while (asset)
 		{
-			// align every indice
-			buffer->align(Utils::Stream::ALIGN_4);
-
 			// Write header
 			Game::ItemKeyHandler* dest = buffer->dest<Game::ItemKeyHandler>();
 			buffer->save(asset);
@@ -304,6 +302,12 @@ namespace Assets
 				buffer->align(Utils::Stream::ALIGN_4);
 				this->save_MenuEventHandlerSet(asset->action, builder);
 				Utils::Stream::ClearPointer(&dest->action);
+			}
+
+			if (asset->next)
+			{
+				// align every indice, besides the first one?
+				buffer->align(Utils::Stream::ALIGN_4);
 			}
 
 			// Next key handler
