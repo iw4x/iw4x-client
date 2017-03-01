@@ -12,8 +12,9 @@ namespace Components
 		const char* getName() override { return "Stats"; };
 #endif
 
-	private:
 		static bool IsMaxLevel();
+
+	private:
 		static void UpdateClasses(UIScript::Token token);
 		static void SendStats();
 

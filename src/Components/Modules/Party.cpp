@@ -130,7 +130,7 @@ namespace Components
 
 	DWORD Party::UIDvarIntStub(char* dvar)
 	{
-		if (!_stricmp(dvar, "onlinegame"))
+		if (!_stricmp(dvar, "onlinegame") && !Stats::IsMaxLevel())
 		{
 			return 0x649E660;
 		}
