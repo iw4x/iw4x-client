@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ## [Unreleased]
 
+### Added
+
+- Set played with status.
+- Add support for 15 classes.
+- Add iw4x_onelog dvar.
+- Add show server/playercount in server browser.
+
+### Changed
+
+- Do not show friend status notifications with stream friendly UI.
+- Reduce loaded modules for dedis.
+- Use joystick emblem for friend status.
+- Disable XP bar when max level.
+- Change fs_game display postition.
+- Replace Painkiller with Juiced from IW5.
+
+### Fixed
+
+- Fix AK weaponfiles.
+- Fix brightness slider.
+- Fix text length for column mod in server browser.
+
 ## [0.3.3] - 2017-02-14
 
 ### Added
