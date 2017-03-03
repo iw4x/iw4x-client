@@ -39,7 +39,7 @@ namespace Steam
 			return this->methodCache[method];
 		}
 
-		auto methodData = Interface::lookupMethod(method);
+		auto methodData = this->lookupMethod(method);
 		this->methodCache[method] = methodData;
 		return methodData;
 	}
@@ -48,16 +48,16 @@ namespace Steam
 	{
 		if (!::Utils::Memory::IsBadReadPtr(this->interfacePtr))
 		{
-			unsigned char** vftbl = *static_cast<unsigned char***>(this->interfacePtr);
+			auto* vftbl = this->interfacePtr->vftbl;
 
-			while (!::Utils::Memory::IsBadReadPtr(vftbl) && !::Utils::Memory::IsBadCodePtr((FARPROC(*vftbl))))
+			while (!::Utils::Memory::IsBadReadPtr(vftbl) && !::Utils::Memory::IsBadCodePtr(vftbl->func))
 			{
 				std::string name;
 				uint16_t params;
 
 				if (this->getMethodData(*vftbl, &name, &params) && name == method)
 				{
-					return{ *vftbl, params };
+					return{ vftbl->data, params };
 				}
 
 				++vftbl;
@@ -67,17 +67,17 @@ namespace Steam
 		return { nullptr, 0 };
 	}
 
-	bool Interface::getMethodData(unsigned char* methodPtr, std::string* name, uint16_t* params)
+	bool Interface::getMethodData(VInterface::VMethod method, std::string* name, uint16_t* params)
 	{
 		name->clear();
 		*params = 0;
-		if (::Utils::Memory::IsBadCodePtr(methodPtr)) return false;
+		if (::Utils::Memory::IsBadCodePtr(method.data)) return false;
 
 		ud_t ud;
 		ud_init(&ud);
 		ud_set_mode(&ud, 32);
-		ud_set_pc(&ud, reinterpret_cast<uint64_t>(methodPtr));
-		ud_set_input_buffer(&ud, reinterpret_cast<uint8_t*>(methodPtr), INT32_MAX);
+		ud_set_pc(&ud, method.value);
+		ud_set_input_buffer(&ud, method.data, INT32_MAX);
 
 		while (true)
 		{

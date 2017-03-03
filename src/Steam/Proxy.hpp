@@ -146,7 +146,7 @@ namespace Steam
 	{
 	public:
 		Interface() : interfacePtr(nullptr) {}
-		Interface(void* _interfacePtr) : interfacePtr(_interfacePtr) {}
+		Interface(void* _interfacePtr) : interfacePtr(static_cast<VInterface*>(_interfacePtr)) {}
 
 		template<typename T, typename... Args>
 		T invoke(std::string methodName, Args... args)
@@ -195,56 +195,66 @@ namespace Steam
 		template<std::size_t X, std::size_t ... Xs>
 		struct AddSizes<X, Xs...> : std::integral_constant<std::size_t, X + ((AddSizes<Xs...>::value + (sizeof(void*) - 1)) & ~(sizeof(void*) - 1))> {};
 
-		void* interfacePtr;
+		struct VInterface
+		{
+			union VMethod
+			{
+				unsigned char* data;
+				unsigned int value;
+				FARPROC func;
+			}* vftbl;
+		};
+
+		VInterface* interfacePtr;
 		std::unordered_map<std::string, std::pair<void*, uint16_t>> methodCache;
 		std::pair<void*, uint16_t> getMethod(std::string method);
 		std::pair<void*, uint16_t> lookupMethod(std::string method);
-		bool getMethodData(unsigned char* methodPtr, std::string* name, uint16_t* params);
+		bool getMethodData(VInterface::VMethod method, std::string* name, uint16_t* params);
 	};
 
 	class KeyValuesBuilder
 	{
 	private:
-		std::stringstream m_buffer;
+		std::string buffer;
 
 		inline void packBytes(const void* bytes, size_t size)
 		{
-			m_buffer << std::string(reinterpret_cast<const char*>(bytes), size);
+			this->buffer.append(reinterpret_cast<const char*>(bytes), size);
 		}
 
 		inline void packDataType(uint8_t type)
 		{
-			packBytes(&type, 1);
+			this->packBytes(&type, 1);
 		}
 
 		inline void packNullTerminated(const char* string)
 		{
-			packBytes(string, strlen(string) + 1);
+			this->packBytes(string, strlen(string) + 1);
 		}
 
 	public:
 		inline void packString(const char* key, const char* value)
 		{
-			packDataType(1);
-			packNullTerminated(key);
-			packNullTerminated(value);
+			this->packDataType(1);
+			this->packNullTerminated(key);
+			this->packNullTerminated(value);
 		}
 
 		inline void packUint64(const char* key, uint64_t value)
 		{
-			packDataType(7);
-			packNullTerminated(key);
-			packBytes(&value, sizeof(value));
+			this->packDataType(7);
+			this->packNullTerminated(key);
+			this->packBytes(&value, sizeof(value));
 		}
 
 		inline void packEnd()
 		{
-			packDataType(8);
+			this->packDataType(8);
 		}
 
 		inline std::string getString()
 		{
-			return m_buffer.str();
+			return this->buffer;
 		}
 	};
 
