@@ -10,8 +10,8 @@ namespace Steam
 	Interface        Proxy::ClientUser;
 	Interface        Proxy::ClientFriends;
 
-	void* Proxy::SteamPipe = nullptr;
-	void* Proxy::SteamUser = nullptr;
+	Proxy::Handle Proxy::SteamPipe = nullptr;
+	Proxy::Handle Proxy::SteamUser = nullptr;
 
 	Friends15* Proxy::SteamFriends = nullptr;
 	Apps7* Proxy::SteamApps = nullptr;

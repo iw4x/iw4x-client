@@ -10,6 +10,7 @@
 #define STEAM_REGISTRY_PATH "Software\\Valve\\Steam"
 #define STEAM_REGISTRY_PROCESS_PATH "Software\\Valve\\Steam\\ActiveProcess"
 #endif
+#include "STDInclude.hpp"
 
 namespace Steam
 {
@@ -42,64 +43,74 @@ namespace Steam
 	class IClientEngine
 	{
 	public:
-		virtual void* CreateSteamPipe() = 0;
-		virtual bool BReleaseSteamPipe(void* hSteamPipe) = 0;
-		virtual void* CreateGlobalUser(void** phSteamPipe) = 0;
-		virtual void* ConnectToGlobalUser(void* hSteamPipe) = 0;
-		virtual void* CreateLocalUser(void** phSteamPipe, int eAccountType) = 0;
-		virtual void CreatePipeToLocalUser(void* hSteamUser, void** phSteamPipe) = 0;
-		virtual void ReleaseUser(void* hSteamPipe, void* hUser) = 0;
-		virtual bool IsValidHSteamUserPipe(void* hSteamPipe, void* hUser) = 0;
-		virtual void *GetIClientUser(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientGameServer(void* hSteamUser, void* hSteamPipe, const char *pchVersion) = 0;
-		virtual void SetLocalIPBinding(uint32_t unIP, uint16_t usPort) = 0;
-		virtual char const *GetUniverseName(int eUniverse) = 0;
-		virtual void *GetIClientFriends(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientUtils(void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientBilling(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientMatchmaking(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientApps(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientMatchmakingServers(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void RunFrame() = 0;
-		virtual uint32_t GetIPCCallCount() = 0;
-		virtual void *GetIClientUserStats(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientGameServerStats(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientNetworking(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientRemoteStorage(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientScreenshots(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void SetWarningMessageHook(void* pFunction) = 0;
-		virtual void *GetIClientGameCoordinator(void* hSteamUser, void* hSteamPipe, const char *pchVersion) = 0;
-		virtual void SetOverlayNotificationPosition(int eNotificationPosition) = 0;
-		virtual void SetOverlayNotificationInsert(int32_t, int32_t) = 0;
-		virtual bool HookScreenshots(bool bHook) = 0;
-		virtual bool IsOverlayEnabled() = 0;
-		virtual bool GetAPICallResult(void* hSteamPipe, uint64_t hSteamAPICall, void* pCallback, int cubCallback, int iCallbackExpected, bool* pbFailed) = 0;
-		virtual void *GetIClientProductBuilder(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientDepotBuilder(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientNetworkDeviceManager(void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void ConCommandInit(void *pAccessor) = 0;
-		virtual void *GetIClientAppManager(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientConfigStore(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual bool BOverlayNeedsPresent() = 0;
-		virtual void *GetIClientGameStats(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientHTTP(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual bool BShutdownIfAllPipesClosed() = 0;
-		virtual void *GetIClientAudio(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientMusic(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientUnifiedMessages(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientController(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientParentalSettings(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientStreamLauncher(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientDeviceAuth(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientRemoteClientManager(void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void test() = 0; // Too lazy to correct the struct
-		virtual void *GetIClientStreamClient(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientShortcuts(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientRemoteControlManager(void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void Set_ClientAPI_CPostAPIResultInProcess(void(*)(uint64_t ulUnk, void * pUnk, uint32_t uUnk, int32_t iUnk)) = 0;
-		virtual void Remove_ClientAPI_CPostAPIResultInProcess(void(*)(uint64_t ulUnk, void * pUnk, uint32_t uUnk, int32_t iUnk)) = 0;
-		virtual void *GetIClientUGC(void* hSteamUser, void* hSteamPipe, char const* pchVersion) = 0;
-		virtual void *GetIClientVR(char const * pchVersion) = 0;
+		virtual unknown_ret CreateSteamPipe() = 0;
+		virtual unknown_ret BReleaseSteamPipe(int32) = 0;
+		virtual unknown_ret CreateGlobalUser(int32 *) = 0;
+		virtual unknown_ret ConnectToGlobalUser(int32) = 0;
+		virtual unknown_ret CreateLocalUser(int32 *, int) = 0;
+		virtual unknown_ret CreatePipeToLocalUser(int32, int32 *) = 0;
+		virtual unknown_ret ReleaseUser(int32, int32) = 0;
+		virtual unknown_ret IsValidHSteamUserPipe(int32, int32) = 0;
+		virtual unknown_ret GetIClientUser(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientGameServer(int32, int32, const char *) = 0;
+		virtual unknown_ret SetLocalIPBinding(uint32, uint16) = 0;
+		virtual unknown_ret GetUniverseName(int) = 0;
+		virtual unknown_ret GetIClientFriends(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientUtils(int32, const char *) = 0;
+		virtual unknown_ret GetIClientBilling(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientMatchmaking(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientApps(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientMatchmakingServers(int32, int32, const char *) = 0;
+		virtual unknown_ret RunFrame() = 0;
+		virtual unknown_ret GetIPCCallCount() = 0;
+		virtual unknown_ret GetIClientUserStats(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientGameServerStats(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientNetworking(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientRemoteStorage(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientScreenshots(int32, int32, const char *) = 0;
+		virtual unknown_ret SetWarningMessageHook(void(*)(int32, const char *)) = 0;
+		virtual unknown_ret GetIClientGameCoordinator(int32, int32, const char *) = 0;
+		virtual unknown_ret SetOverlayNotificationPosition(int) = 0;
+		virtual unknown_ret SetOverlayNotificationInset(int32, int32) = 0;
+		virtual unknown_ret HookScreenshots(bool) = 0;
+		virtual unknown_ret IsOverlayEnabled() = 0;
+		virtual unknown_ret GetAPICallResult(int32, uint64, void *, int32, int32, bool *) = 0;
+		virtual unknown_ret GetIClientProductBuilder(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientDepotBuilder(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientNetworkDeviceManager(int32, const char *) = 0;
+		virtual unknown_ret ConCommandInit(void *) = 0;
+		virtual unknown_ret GetIClientAppManager(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientConfigStore(int32, int32, const char *) = 0;
+		virtual unknown_ret BOverlayNeedsPresent() = 0;
+		virtual unknown_ret GetIClientGameStats(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientHTTP(int32, int32, const char *) = 0;
+		virtual unknown_ret BShutdownIfAllPipesClosed() = 0;
+		virtual unknown_ret GetIClientAudio(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientMusic(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientUnifiedMessages(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientController(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientParentalSettings(int32, const char *) = 0;
+		virtual unknown_ret GetIClientStreamLauncher(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientDeviceAuth(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientRemoteClientManager(int32, const char *) = 0;
+		virtual unknown_ret GetIClientStreamClient(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientShortcuts(int32, int32, const char *) = 0;
+		virtual unknown_ret Set_ClientAPI_CPostAPIResultInProcess(void(*)(uint64, void *, uint32, int32)) = 0;
+		virtual unknown_ret Remove_ClientAPI_CPostAPIResultInProcess(void(*)(uint64, void *, uint32, int32)) = 0;
+		virtual unknown_ret GetIClientUGC(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientInventory(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientVR(int32, const char *) = 0;
+		virtual unknown_ret GetIClientTabletop(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientHTMLSurface(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientVideo(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientControllerSerialized(int32, const char *) = 0;
+		virtual unknown_ret GetIClientAppDisableUpdate(int32, int32, const char *) = 0;
+		virtual unknown_ret Set_Client_API_CCheckCallbackRegisteredInProcess(uint32(*)(int32)) = 0;
+		virtual unknown_ret GetIClientBluetoothManager(int32, const char *) = 0;
+		//virtual unknown_ret ~CSteamClient() = 0;
+		//virtual unknown_ret ~CSteamClient() = 0;
+		virtual unknown_ret GetIPCServerMap() = 0;
+		virtual unknown_ret OnDebugTextArrived(const char *) = 0;
 	};
 
 	class Apps7
@@ -276,20 +287,36 @@ namespace Steam
 		typedef void(SteamFreeLastCallbackFn)(void* hpipe);
 		typedef bool(SteamGetAPICallResultFn)(void* hpipe, uint64_t hSteamAPICall, void* pCallback, int cubCallback, int iCallbackExpected, bool* pbFailed);
 
-		struct CallContainer
+		class CallContainer
 		{
+		public:
 			uint64_t call;
 			bool handled;
 			int32_t callId;
 			uint32_t dataSize;
 		};
 
-		struct CallbackMsg
+		class CallbackMsg
 		{
+		public:
 			int32_t m_hSteamUser;
 			int m_iCallback;
 			uint8_t *m_pubParam;
 			int m_cubParam;
+		};
+
+		class Handle
+		{
+		public:
+			Handle(void* _handle) : handle(_handle) {}
+			Handle(int32_t _handle) : Handle(reinterpret_cast<void*>(_handle)) {}
+			Handle() : Handle(nullptr) {}
+
+			operator int32_t() const { return reinterpret_cast<int32_t>(this->handle); }
+			operator void*() const { return this->handle; }
+
+		private:
+			void* handle;
 		};
 
 		static ::Utils::Library Client;
@@ -299,8 +326,8 @@ namespace Steam
 		static IClientEngine*   ClientEngine;
 		static Interface        ClientUser;
 
-		static void* SteamPipe;
-		static void* SteamUser;
+		static Handle SteamPipe;
+		static Handle SteamUser;
 
 		static HANDLE Process;
 		static HANDLE CancelHandle;
