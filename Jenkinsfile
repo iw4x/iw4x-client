@@ -193,6 +193,12 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 		gitlabCommitStatus("Checkout & Versioning") {
 			node("windows") {
 				jobWorkspace("versioning") {
+					if (env.BRANCH_NAME == 'master')
+					{
+					  echo 'Reset build environment'
+					  deleteDir()
+					}
+
 					retry(5) {
 						checkout scm
 					}
