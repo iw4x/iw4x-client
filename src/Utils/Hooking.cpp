@@ -44,6 +44,11 @@ namespace Utils
 		Hook::Signature::signatures.push_back(container);
 	}
 
+	void Hook::Interceptor::Install(void* place, void* stub)
+	{
+		return Hook::Interceptor::Install(place, static_cast<void(*)()>(stub));
+	}
+
 	void Hook::Interceptor::Install(void* place, void(*stub)())
 	{
 		return Hook::Interceptor::Install(reinterpret_cast<void**>(place), stub);

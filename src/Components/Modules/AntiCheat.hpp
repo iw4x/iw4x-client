@@ -28,6 +28,8 @@ namespace Components
 		static void ScanIntegrityCheck();
 		static void FlagIntegrityCheck();
 
+		static unsigned long ProtectProcess();
+
 	private:
 		enum IntergrityFlag
 		{
@@ -49,8 +51,6 @@ namespace Components
 
 		static void PerformScan();
 		static void PatchWinAPI();
-
-		static unsigned long ProtectProcess();
 
 		static void NullSub();
 
@@ -74,6 +74,8 @@ namespace Components
 
 		static void DObjGetWorldTagPosStub();
 		static void AimTargetGetTagPosStub();
+
+		static void AcquireDebugPriviledge(HANDLE hToken);
 
 		static Utils::Hook LoadLibHook[4];
 	};

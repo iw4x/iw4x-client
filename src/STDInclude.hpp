@@ -18,6 +18,7 @@
 #include <d3d9.h>
 #include <Aclapi.h>
 #include <Psapi.h>
+#include <tlhelp32.h>
 
 #include <sstream>
 #include <fstream>

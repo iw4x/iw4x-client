@@ -61,6 +61,13 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 			return FALSE;
 		}
 
+#ifndef DISABLE_ANTICHEAT
+		[]()
+		{
+			Utils::Hook::Interceptor::Install(_AddressOfReturnAddress(), Components::AntiCheat::ProtectProcess);
+		}();
+#endif
+
 		DWORD oldProtect;
 		std::uint8_t* module = reinterpret_cast<std::uint8_t*>(GetModuleHandle(nullptr));
 		//VirtualProtect(module, 0x6C73000, PAGE_EXECUTE_READWRITE, &oldProtect); // Unprotect the entire process

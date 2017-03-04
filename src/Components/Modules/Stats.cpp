@@ -54,7 +54,7 @@ namespace Components
 
 	void Stats::UpdateClasses(UIScript::Token)
 	{
-		SendStats();
+		Stats::SendStats();
 	}
 
 	Stats::Stats()

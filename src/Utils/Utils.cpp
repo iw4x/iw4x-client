@@ -47,4 +47,28 @@ namespace Utils
 
 		return (GetProcAddress(hntdll, "wine_get_version") != nullptr);
 	}
+
+	unsigned long GetParentProcessId()
+	{
+		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		if (hSnapshot == INVALID_HANDLE_VALUE) return 0;
+
+		Utils::Memory::Allocator allocator;
+		allocator.reference(hSnapshot, [](void* handle) { CloseHandle(handle); });
+
+		PROCESSENTRY32 pe32;
+		ZeroMemory(&pe32, sizeof(pe32));
+		pe32.dwSize = sizeof(pe32);
+
+		DWORD pid = GetCurrentProcessId();
+		while (Process32Next(hSnapshot, &pe32))
+		{
+			if (pe32.th32ProcessID == pid)
+			{
+				return pe32.th32ParentProcessID;
+			}
+		}
+
+		return 0;
+	}
 }

@@ -9,6 +9,8 @@ namespace Utils
 
 	bool IsWineEnvironment();
 
+	unsigned long GetParentProcessId();
+
 	template <typename T> inline void Merge(std::vector<T>* target, T* source, size_t length)
 	{
 		if (source)

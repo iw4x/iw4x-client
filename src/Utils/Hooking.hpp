@@ -34,6 +34,7 @@ namespace Utils
 		class Interceptor
 		{
 		public:
+			static void Install(void* place, void* stub);
 			static void Install(void* place, void(*stub)());
 			static void Install(void** place, void(*stub)());
 
