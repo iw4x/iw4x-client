@@ -59,11 +59,13 @@ namespace Components
 
 	void Renderer::Once(Utils::Slot<Renderer::Callback> callback)
 	{
+		if (Dedicated::IsEnabled()) return;
 		Renderer::FrameOnceSignal.connect(callback);
 	}
 
 	void Renderer::OnFrame(Utils::Slot<Renderer::Callback> callback)
 	{
+		if (Dedicated::IsEnabled()) return;
 		Renderer::FrameSignal.connect(callback);
 	}
 

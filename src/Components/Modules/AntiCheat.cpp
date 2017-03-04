@@ -357,7 +357,7 @@ namespace Components
 	unsigned long AntiCheat::ProtectProcess()
 	{
 #ifdef PROCTECT_PROCESS
-
+		if (Dedicated::IsEnabled()) return 0;
 		Utils::Memory::Allocator allocator;
 
 		HANDLE hToken = nullptr;
