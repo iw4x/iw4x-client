@@ -148,6 +148,11 @@ namespace Components
 
 	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, std::string name)
 	{
+		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light") && asset.material->sortKey == 43)
+		{
+			asset.material->sortKey = 44;
+		}
+
 		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && (name == "wc/codo_ui_viewer_black_decal3" || name == "wc/codo_ui_viewer_black_decal2" || name == "wc/hint_arrows01" || name == "wc/hint_arrows02"))
 		{
 			asset.material->sortKey = 0xE;
