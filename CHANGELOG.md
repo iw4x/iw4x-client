@@ -18,6 +18,12 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 -
 
+## [0.4.1] - 2017-03-10
+
+### Fixed
+
+- Fix command line argument parsing.
+
 ## [0.4.0] - 2017-03-10
 
 ### Added
