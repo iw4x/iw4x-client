@@ -64,7 +64,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 #ifndef DISABLE_ANTICHEAT
 		[]()
 		{
-			Utils::Hook::Interceptor::Install(_AddressOfReturnAddress(), Components::AntiCheat::ProtectProcess);
+			Components::AntiCheat::ProtectProcess();
 		}();
 #endif
 
