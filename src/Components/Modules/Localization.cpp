@@ -169,6 +169,7 @@ namespace Components
 			"/dev//dev/tty0",
 			"/dev/urandom",
 			"Snake",
+			"lsb_release -a",
 		};
 
 		static const char* contributors[] =
