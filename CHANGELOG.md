@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+### Fixed
+
+-
+
+## [0.4.0] - 2017-03-10
+
+### Added
+
 - Set played with status.
 - Add support for 15 classes.
 - Add iw4x_onelog dvar.
@@ -27,6 +41,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix AK weaponfiles.
 - Fix brightness slider.
 - Fix text length for column mod in server browser.
+- Fix Raffica Sights.
 
 ## [0.3.3] - 2017-02-14
 
