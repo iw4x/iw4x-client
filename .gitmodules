@@ -24,7 +24,7 @@
 	branch = master
 [submodule "deps/bitmrc"]
 	path = deps/bitmrc
-	url = git@github.com:iw4x-dev-urandom/BitMRC.git
+	url = git@github.com:iw4x/BitMRC.git
 	branch = master
 	fetchRecurseSubmodules = true
 [submodule "deps/base128"]
