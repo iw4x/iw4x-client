@@ -6,6 +6,7 @@ namespace Utils
 	{
 		"https://iw4xcachep26muba.onion.to",
 		"https://iw4xcachep26muba.onion.link",
+		"https://iw4xcachep26muba.onion.rip",
 		/*"https://iw4xcachejnetuln.onion.to",
 		"https://iw4xcachedjodc4y.onion.to",
 		*/
