@@ -6,6 +6,8 @@ namespace Components
 
 	bool Flags::HasFlag(std::string flag)
 	{
+		Flags::ParseFlags();
+
 		for (auto entry : Flags::EnabledFlags)
 		{
 			if (Utils::String::ToLower(entry) == Utils::String::ToLower(flag))
@@ -19,6 +21,10 @@ namespace Components
 
 	void Flags::ParseFlags()
 	{
+		static bool flagsParsed = false;
+		if (flagsParsed) return;
+		flagsParsed = true;
+
 		int numArgs;
 		LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &numArgs);
 
