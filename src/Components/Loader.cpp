@@ -23,7 +23,7 @@ namespace Components
 		Loader::Postgame = false;
 		Loader::MemAllocator.clear();
 
-		CoInitialize(nullptr);
+		if(!Loader::PerformingUnitTests()) CoInitialize(nullptr);
 
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
@@ -117,7 +117,7 @@ namespace Components
 		Loader::Components.clear();
 		Loader::MemAllocator.clear();
 
-		CoUninitialize();
+		if (!Loader::PerformingUnitTests()) CoUninitialize();
 	}
 
 	void Loader::PreDestroy()
