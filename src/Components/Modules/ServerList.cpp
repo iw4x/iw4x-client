@@ -245,7 +245,7 @@ namespace Components
 	void ServerList::Refresh(UIScript::Token)
 	{
 		Dvar::Var("ui_serverSelected").set(false);
-		Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
+		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 
 // 		ServerList::OnlineList.clear();
 // 		ServerList::OfflineList.clear();
