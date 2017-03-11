@@ -385,7 +385,7 @@ namespace Components
 			}
 		});
 
-		AntiCheat::AcquireDebugPriviledge(hToken);
+		//AntiCheat::AcquireDebugPriviledge(hToken);
 
 		DWORD dwSize = 0;
 		PVOID pTokenInfo = nullptr;
