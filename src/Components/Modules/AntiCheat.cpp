@@ -119,7 +119,7 @@ namespace Components
 		{
 			check.update();
 
-			if (HANDLE h = OpenProcess(PROCESS_VM_READ, TRUE, GetCurrentProcessId()))
+			if (HANDLE h = OpenProcess(PROCESS_VM_READ, FALSE, GetCurrentProcessId()))
 			{
 #ifdef DEBUG_DETECTIONS
 				Logger::Print("AntiCheat: Process integrity check failed");
