@@ -361,9 +361,9 @@ namespace Components
 		Utils::Memory::Allocator allocator;
 
 		HANDLE hToken = nullptr;
-		if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_READ, &hToken))
+		if (!OpenProcessToken(GetCurrentProcess(), /*TOKEN_ADJUST_PRIVILEGES | */TOKEN_READ, &hToken))
 		{
-			if (!OpenThreadToken(GetCurrentThread(), TOKEN_ADJUST_PRIVILEGES | TOKEN_READ, TRUE, &hToken))
+			if (!OpenThreadToken(GetCurrentThread(), /*TOKEN_ADJUST_PRIVILEGES | */TOKEN_READ, TRUE, &hToken))
 			{
 				return GetLastError();
 			}
@@ -442,12 +442,21 @@ namespace Components
 		if (!pDacl || !InitializeAcl(pDacl, dwSize, ACL_REVISION)) return GetLastError();
 
 		// Just give access to what steam needs
-		static const DWORD dwPoison = 0UL | ~(SYNCHRONIZE | GENERIC_EXECUTE | GENERIC_ALL);
+		//static const DWORD dwPoison = 0UL | ~(SYNCHRONIZE | GENERIC_EXECUTE | GENERIC_ALL);
+		static const DWORD dwPoison =
+			/*READ_CONTROL |*/ WRITE_DAC | WRITE_OWNER |
+			PROCESS_CREATE_PROCESS | PROCESS_CREATE_THREAD |
+			PROCESS_DUP_HANDLE | PROCESS_QUERY_INFORMATION |
+			PROCESS_SET_QUOTA | PROCESS_SET_INFORMATION |
+			PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE |
+			// In addition to protected process
+			PROCESS_SUSPEND_RESUME | PROCESS_TERMINATE;
 
 		if (!AddAccessDeniedAce(pDacl, ACL_REVISION, dwPoison, psidArray[0])) return GetLastError();
 
 		// Standard and specific rights not explicitly denied
-		static const DWORD dwAllowed = 0UL | SYNCHRONIZE;
+		//static const DWORD dwAllowed = 0UL | SYNCHRONIZE;
+		static const DWORD dwAllowed = (~dwPoison & 0x1FFF) | SYNCHRONIZE;
 		if (!AddAccessAllowedAce(pDacl, ACL_REVISION, dwAllowed, psidArray[1])) return GetLastError();
 
 		// Because of ACE ordering, System will effectively have dwAllowed even
