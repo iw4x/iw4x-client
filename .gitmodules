@@ -22,15 +22,6 @@
 	path = deps/mongoose
 	url = https://github.com/cesanta/mongoose.git
 	branch = master
-[submodule "deps/bitmrc"]
-	path = deps/bitmrc
-	url = git@github.com:iw4x/BitMRC.git
-	branch = master
-	fetchRecurseSubmodules = true
-[submodule "deps/base128"]
-	path = deps/base128
-	url = https://github.com/seizu/base128.git
-	branch = master
 [submodule "deps/protobuf"]
 	path = deps/protobuf
 	url = https://github.com/google/protobuf.git

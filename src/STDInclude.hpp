@@ -20,6 +20,11 @@
 #include <Psapi.h>
 #include <tlhelp32.h>
 
+#pragma warning(push)
+#pragma warning(disable: 4091)
+#include <dbghelp.h>
+#pragma warning(pop)
+
 #include <sstream>
 #include <fstream>
 #include <cctype>
@@ -67,9 +72,6 @@ template <size_t S> class Sizer { };
 #include <mongoose.h>
 #include <json11.hpp>
 #include <tomcrypt.h>
-#ifndef DISABLE_BITMESSAGE
-#include <BitMRC.h>
-#endif
 #include <wintoastlib.h>
 #include <udis86.h>
 
@@ -91,11 +93,6 @@ template <size_t S> class Sizer { };
 #include "proto/friends.pb.h"
 
 #pragma warning(pop)
-
-#define ENABLE_BASE64
-#ifndef DISABLE_BASE128
-#define ENABLE_BASE128
-#endif
 
 #include "Utils/IO.hpp"
 #include "Utils/CSV.hpp"
@@ -131,6 +128,7 @@ template <size_t S> class Sizer { };
 #pragma comment(lib, "Urlmon.lib")
 #pragma comment(lib, "Advapi32.lib")
 #pragma comment(lib, "rpcrt4.lib")
+#pragma comment(lib, "dbghelp.lib")
 
 // Enable additional literals
 using namespace std::literals;

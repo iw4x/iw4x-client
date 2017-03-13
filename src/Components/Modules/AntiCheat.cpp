@@ -513,6 +513,7 @@ namespace Components
 
 	AntiCheat::AntiCheat()
 	{
+		time(nullptr);
 		AntiCheat::Flags = NO_FLAG;
 		AntiCheat::Hash.clear();
 

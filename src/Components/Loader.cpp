@@ -74,9 +74,6 @@ namespace Components
 		Loader::Register(new Gametypes());
 		Loader::Register(new Materials());
 		Loader::Register(new Threading());
-#ifndef DISABLE_BITMESSAGE
-		Loader::Register(new BitMessage());
-#endif
 		Loader::Register(new FileSystem());
 		Loader::Register(new ModelSurfs());
 		Loader::Register(new PlayerName());
@@ -90,7 +87,6 @@ namespace Components
 		Loader::Register(new AssetHandler());
 		Loader::Register(new Localization());
 		Loader::Register(new MusicalTalent());
-		Loader::Register(new MinidumpUpload());
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
 		Loader::Register(new StartupMessages());

@@ -85,17 +85,33 @@ namespace Components
 			Exception::SetMiniDumpType(true, false);
 		}
 
-		auto minidump = MinidumpUpload::CreateQueuedMinidump(ExceptionInfo, Exception::MiniDumpType);
-		if (!minidump)
+		// Current executable name
+		char exeFileName[MAX_PATH];
+		GetModuleFileNameA(nullptr, exeFileName, MAX_PATH);
+		PathStripPathA(exeFileName);
+		PathRemoveExtensionA(exeFileName);
+
+		// Generate filename
+		char filenameFriendlyTime[MAX_PATH];
+		__time64_t time;
+		tm ltime;
+		_time64(&time);
+		_localtime64_s(&ltime, &time);
+		strftime(filenameFriendlyTime, sizeof(filenameFriendlyTime) - 1, "%Y%m%d%H%M%S", &ltime);
+
+		// Combine with queuedMinidumpsFolder
+		char filename[MAX_PATH] = { 0 };
+		PathCombineA(filename, "minidumps\\", Utils::String::VA("%s-" VERSION "-%s.dmp", exeFileName, filenameFriendlyTime));
+
+		DWORD fileShare = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		HANDLE hFile = CreateFileA(filename, GENERIC_WRITE | GENERIC_READ, fileShare, nullptr, (fileShare & FILE_SHARE_WRITE) > 0 ? OPEN_ALWAYS : OPEN_EXISTING, NULL, nullptr);
+		MINIDUMP_EXCEPTION_INFORMATION ex = { GetCurrentThreadId(), ExceptionInfo, FALSE };
+		if (!!MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, static_cast<MINIDUMP_TYPE>(Exception::MiniDumpType), &ex, nullptr, nullptr))
 		{
 			MessageBoxA(nullptr, Utils::String::VA("There was an error creating the minidump (%s)! Hit OK to close the program.", Utils::GetLastWindowsError().data()), "Minidump Error", MB_OK | MB_ICONERROR);
 			OutputDebugStringA("Failed to create new minidump!");
 			Utils::OutputDebugLastError();
 			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
-		}
-		else
-		{
-			delete minidump;
 		}
 
 		if (ExceptionInfo->ExceptionRecord->ExceptionFlags == EXCEPTION_NONCONTINUABLE)
@@ -241,6 +257,21 @@ namespace Components
 			Exception::ExceptionFilter(&eptr);
 		});
 #pragma warning(pop)
+
+		if (Utils::IO::FileExists("crash-helper.exe"))
+		{
+			STARTUPINFOA        sInfo;
+			PROCESS_INFORMATION pInfo;
+
+			ZeroMemory(&sInfo, sizeof(sInfo));
+			ZeroMemory(&pInfo, sizeof(pInfo));
+			sInfo.cb = sizeof(sInfo);
+
+			CreateProcessA("crash-helper.exe", const_cast<char*>(Utils::String::VA("crash-helper.exe %s", VERSION)), nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
+
+			if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hThread);
+			if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hProcess);
+		}
 	}
 
 	Exception::~Exception()

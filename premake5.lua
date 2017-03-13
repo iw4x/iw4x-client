@@ -74,18 +74,8 @@ newoption {
 }
 
 newoption {
-	trigger = "disable-bitmessage",
-	description = "Disable use of BitMessage completely."
-}
-
-newoption {
 	trigger = "disable-node-log",
 	description = "Disable debugging messages for Nodes in Debug builds."
-}
-
-newoption {
-	trigger = "disable-base128",
-	description = "Disable base128 encoding for minidumps."
 }
 
 newoption {
@@ -188,35 +178,19 @@ newaction {
 
 depsBasePath = "./deps"
 
-require "premake/base128"
-require "premake/bitmrc"
 require "premake/json11"
-require "premake/libcryptopp"
 require "premake/libtomcrypt"
 require "premake/libtommath"
 require "premake/mongoose"
 require "premake/pdcurses"
 require "premake/protobuf"
-require "premake/sqlite3"
 require "premake/zlib"
 require "premake/WinToast"
 require "premake/udis86"
 
-base128.setup
-{
-	source = path.join(depsBasePath, "base128"),
-}
-bitmrc.setup
-{
-	source = path.join(depsBasePath, "bitmrc"),
-}
 json11.setup
 {
 	source = path.join(depsBasePath, "json11"),
-}
-libcryptopp.setup
-{
-	source = path.join(depsBasePath, "bitmrc/libcryptopp"),
 }
 libtomcrypt.setup
 {
@@ -245,10 +219,6 @@ pdcurses.setup
 protobuf.setup
 {
 	source = path.join(depsBasePath, "protobuf"),
-}
-sqlite3.setup
-{
-	source = path.join(depsBasePath, "bitmrc/windows/sqlite3"),
 }
 zlib.setup
 {
@@ -334,17 +304,8 @@ workspace "iw4x"
 		if _OPTIONS["force-exception-handler"] then
 			defines { "FORCE_EXCEPTION_HANDLER" }
 		end
-		if _OPTIONS["disable-bitmessage"] then
-			defines { "DISABLE_BITMESSAGE" }
-			removefiles {
-				"./src/Components/Modules/BitMessage.*",
-			}
-		end
 		if _OPTIONS["disable-node-log"] then
 			defines { "DISABLE_NODE_LOG"}
-		end
-		if _OPTIONS["disable-base128"] then
-			defines { "DISABLE_BASE128" }
 		end
 		if _OPTIONS["enable-dxsdk"] then
 			defines { "ENABLE_DXSDK" }
@@ -358,12 +319,6 @@ workspace "iw4x"
 		buildoptions { "/Zm200" }
 
 		-- Dependency libraries
-		if not _OPTIONS["disable-bitmessage"] then
-			bitmrc.import()
-		end
-		if not _OPTIONS["disable-base128"] then
-			base128.import()
-		end
 		json11.import()
 		libtomcrypt.import()
 		libtommath.import()
@@ -476,14 +431,6 @@ workspace "iw4x"
 		]]
 
 	group "External dependencies"
-		if not _OPTIONS["disable-bitmessage"] then
-			bitmrc.project()
-			libcryptopp.project()
-			sqlite3.project()
-		end
-		if not _OPTIONS["disable-base128"] then
-			base128.project()
-		end
 		json11.project()
 		libtomcrypt.project()
 		libtommath.project()
