@@ -258,19 +258,26 @@ namespace Components
 		});
 #pragma warning(pop)
 
-		if (Utils::IO::FileExists("crash-helper.exe"))
+		// Check if folder exists && crash-helper exists
+		if (PathIsDirectoryA("minidumps\\") && Utils::IO::FileExists("crash-helper.exe"))
 		{
-			STARTUPINFOA        sInfo;
-			PROCESS_INFORMATION pInfo;
+			// Walk through directory and search for valid minidumps
+			WIN32_FIND_DATAA ffd;
+			HANDLE hFind = FindFirstFileA(Utils::String::VA("%s\\*.dmp", "minidumps"), &ffd);
+			if (hFind != INVALID_HANDLE_VALUE)
+			{
+				STARTUPINFOA        sInfo;
+				PROCESS_INFORMATION pInfo;
 
-			ZeroMemory(&sInfo, sizeof(sInfo));
-			ZeroMemory(&pInfo, sizeof(pInfo));
-			sInfo.cb = sizeof(sInfo);
+				ZeroMemory(&sInfo, sizeof(sInfo));
+				ZeroMemory(&pInfo, sizeof(pInfo));
+				sInfo.cb = sizeof(sInfo);
 
-			CreateProcessA("crash-helper.exe", const_cast<char*>(Utils::String::VA("crash-helper.exe %s", VERSION)), nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
+				CreateProcessA("crash-helper.exe", const_cast<char*>(Utils::String::VA("crash-helper.exe %s", VERSION)), nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
 
-			if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hThread);
-			if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hProcess);
+				if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hThread);
+				if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hProcess);
+			}
 		}
 	}
 
