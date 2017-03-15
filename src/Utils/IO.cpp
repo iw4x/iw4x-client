@@ -83,6 +83,16 @@ namespace Utils
 			return std::experimental::filesystem::create_directories(dir);
 		}
 
+		bool DirectoryExists(std::string directory)
+		{
+			return std::experimental::filesystem::is_directory(directory);
+		}
+
+		bool DirectoryIsEmpty(std::string directory)
+		{
+			return std::experimental::filesystem::is_empty(directory);
+		}
+
 		std::vector<std::string> ListFiles(std::string dir)
 		{
 			std::vector<std::string> files;

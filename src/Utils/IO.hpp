@@ -10,6 +10,8 @@ namespace Utils
 		std::string ReadFile(std::string file);
 		size_t FileSize(std::string file);
 		bool CreateDir(std::string dir);
+		bool DirectoryExists(std::string file);
+		bool DirectoryIsEmpty(std::string file);
 		std::vector<std::string> ListFiles(std::string dir);
 	}
 }

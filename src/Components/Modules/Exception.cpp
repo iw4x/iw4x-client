@@ -259,12 +259,10 @@ namespace Components
 #pragma warning(pop)
 
 		// Check if folder exists && crash-helper exists
-		if (PathIsDirectoryA("minidumps\\") && Utils::IO::FileExists("crash-helper.exe"))
+		
+		if (Utils::IO::DirectoryExists("minidumps\\") && Utils::IO::FileExists("crash-helper.exe"))
 		{
-			// Walk through directory and search for valid minidumps
-			WIN32_FIND_DATAA ffd;
-			HANDLE hFind = FindFirstFileA(Utils::String::VA("%s\\*.dmp", "minidumps"), &ffd);
-			if (hFind != INVALID_HANDLE_VALUE)
+			if (!Utils::IO::DirectoryIsEmpty("minidumps\\"))
 			{
 				STARTUPINFOA        sInfo;
 				PROCESS_INFORMATION pInfo;
