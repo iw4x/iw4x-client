@@ -587,7 +587,7 @@ namespace Assets
 		}
 
 		Game::clipMap_t* orgClipMap = nullptr;
-		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MAP_ENTS, [](Game::XAssetHeader header, void* clipMap)
+		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, [](Game::XAssetHeader header, void* clipMap)
 		{
 			if (!*reinterpret_cast<void**>(clipMap))
 			{
