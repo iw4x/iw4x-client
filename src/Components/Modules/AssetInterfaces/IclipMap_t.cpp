@@ -586,6 +586,17 @@ namespace Assets
 			return;
 		}
 
+		Game::clipMap_t* orgClipMap = nullptr;
+		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MAP_ENTS, [](Game::XAssetHeader header, void* clipMap)
+		{
+			if (!*reinterpret_cast<void**>(clipMap))
+			{
+				*reinterpret_cast<Game::clipMap_t**>(clipMap) = header.clipMap;
+			}
+		}, &orgClipMap, false);
+
+		if (orgClipMap) std::memcpy(clipMap, orgClipMap, sizeof Game::clipMap_t);
+
 		Utils::Stream::Reader reader(builder->getAllocator(), clipFile.getBuffer());
 
 		__int64 magic = reader.read<__int64>();
@@ -878,6 +889,11 @@ namespace Assets
 			Utils::Stream::ClearPointer(&clipMap->dynEntPoseList[i]);
 			Utils::Stream::ClearPointer(&clipMap->dynEntClientList[i]);
 			Utils::Stream::ClearPointer(&clipMap->dynEntCollList[i]);
+		}
+
+		if(!reader.end())
+		{
+			Components::Logger::Error("Clipmap data left!");
 		}
 
 		header->clipMap = clipMap;

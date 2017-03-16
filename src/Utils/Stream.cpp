@@ -26,7 +26,7 @@ namespace Utils
 			return this->buffer[this->position++];
 		}
 
-		return 0;
+		throw std::runtime_error("Reading past the buffer");
 	}
 
 	void* Stream::Reader::read(size_t size, size_t count)
@@ -43,7 +43,7 @@ namespace Utils
 			return _buffer;
 		}
 
-		return nullptr;
+		throw std::runtime_error("Reading past the buffer");
 	}
 
 	bool Stream::Reader::end()

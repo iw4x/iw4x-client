@@ -2476,7 +2476,6 @@ namespace Game
 		char edgeCount[2][3];
 	};
 
-
 	struct cLeaf_t
 	{
 		unsigned __int16 firstCollAabbIndex;
