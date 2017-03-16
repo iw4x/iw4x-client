@@ -18,6 +18,19 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 -
 
+## [0.4.2] - 2017-03-16
+
+### Changed
+
+- Disable unnecessary dvar update in server browser.
+- Update bot names.
+
+### Fixed
+
+- Fix process permissions.
+- Fix classic AK-47 color bleedthrough.
+- Re-aligned the MG4's Raffica iron sights.
+
 ## [0.4.1] - 2017-03-10
 
 ### Fixed
@@ -47,7 +60,9 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix AK weaponfiles.
 - Fix brightness slider.
 - Fix text length for column mod in server browser.
-- Fix Raffica Sights.
+- Changed the L86 LSW to use the correct HUD icon.
+- Re-aligned the M93 Raffica's iron sights.
+- Re-aligned the Desert Eagle's iron sights.
 
 ## [0.3.3] - 2017-02-14
 
