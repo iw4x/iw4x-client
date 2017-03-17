@@ -183,10 +183,20 @@ namespace Assets
 
 			// GfxWorldDpvsPlanes
 			{
-				// TODO: Add pointer support
 				if (asset->dpvsPlanes.planes)
 				{
+					void* oldPtr = asset->dpvsPlanes.planes;
 					asset->dpvsPlanes.planes = reader.readArray<Game::cplane_t>(asset->planeCount);
+
+					if (builder->getAllocator()->isPointerMapped(oldPtr))
+					{
+						asset->dpvsPlanes.planes = builder->getAllocator()->getPointer<Game::cplane_t>(oldPtr);
+					}
+					else
+					{
+						builder->getAllocator()->mapPointer(oldPtr, asset->dpvsPlanes.planes);
+						Components::Logger::Print("GfxWorld dpvs planes not mapped. This shouldn't happen. Make sure to load the ClipMap first!\n");
+					}
 				}
 
 				if (asset->dpvsPlanes.nodes)
