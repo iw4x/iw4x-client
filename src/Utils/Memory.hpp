@@ -104,10 +104,31 @@ namespace Utils
 				return data;
 			}
 
+			bool isPointerMapped(void* ptr)
+			{
+				return this->ptrMap.find(ptr) != this->ptrMap.end();
+			}
+
+			template <typename T> T* getPointer(void* oldPtr)
+			{
+				if (this->isPointerMapped(oldPtr))
+				{
+					return reinterpret_cast<T*>(this->ptrMap[oldPtr]);
+				}
+
+				return nullptr;
+			}
+
+			void mapPointer(void* oldPtr, void* newPtr)
+			{
+				this->ptrMap[oldPtr] = newPtr;
+			}
+
 		private:
 			std::vector<void*> pool;
 			std::map<void*, FreeCallback> refMemory;
 			std::mutex mutex;
+			std::map<void*, void*> ptrMap;
 		};
 
 		static void* AllocateAlign(size_t length, size_t alignment);
