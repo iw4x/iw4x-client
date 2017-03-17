@@ -635,7 +635,18 @@ namespace Assets
 
 		if (clipMap->numCPlanes)
 		{
+			void* oldPtr = reader.read<void*>();
 			clipMap->cPlanes = reader.readArray<Game::cplane_t>(clipMap->numCPlanes);
+
+			if (builder->getAllocator()->isPointerMapped(oldPtr))
+			{
+				clipMap->cPlanes = builder->getAllocator()->getPointer<Game::cplane_t>(oldPtr);
+				Components::Logger::Print("ClipMap dpvs planes already mapped. This shouldn't happen. Make sure to load the ClipMap before the GfxWorld!\n");
+			}
+			else
+			{
+				builder->getAllocator()->mapPointer(oldPtr, clipMap->cPlanes);
+			}
 		}
 
 		if (clipMap->numStaticModels)
