@@ -101,12 +101,13 @@ namespace Components
 
 		// Combine with queuedMinidumpsFolder
 		char filename[MAX_PATH] = { 0 };
+		Utils::IO::CreateDir("minidumps");
 		PathCombineA(filename, "minidumps\\", Utils::String::VA("%s-" VERSION "-%s.dmp", exeFileName, filenameFriendlyTime));
 
 		DWORD fileShare = FILE_SHARE_READ | FILE_SHARE_WRITE;
 		HANDLE hFile = CreateFileA(filename, GENERIC_WRITE | GENERIC_READ, fileShare, nullptr, (fileShare & FILE_SHARE_WRITE) > 0 ? OPEN_ALWAYS : OPEN_EXISTING, NULL, nullptr);
 		MINIDUMP_EXCEPTION_INFORMATION ex = { GetCurrentThreadId(), ExceptionInfo, FALSE };
-		if (!!MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, static_cast<MINIDUMP_TYPE>(Exception::MiniDumpType), &ex, nullptr, nullptr))
+		if (!MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, static_cast<MINIDUMP_TYPE>(Exception::MiniDumpType), &ex, nullptr, nullptr))
 		{
 			MessageBoxA(nullptr, Utils::String::VA("There was an error creating the minidump (%s)! Hit OK to close the program.", Utils::GetLastWindowsError().data()), "Minidump Error", MB_OK | MB_ICONERROR);
 			OutputDebugStringA("Failed to create new minidump!");
