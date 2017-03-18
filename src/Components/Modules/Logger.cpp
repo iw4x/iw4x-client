@@ -205,7 +205,7 @@ namespace Components
 		{
 			if (folder != "userraw"s)
 			{
-				if (Dvar::Var("g_log").get<bool>())
+				if (Dvar::Var("iw4x_onelog").get<bool>())
 				{
 					strcpy_s(folder, 256, "userraw");
 				}
