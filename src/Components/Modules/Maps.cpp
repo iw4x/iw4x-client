@@ -465,6 +465,11 @@ namespace Components
 	{
 		AssertSize(Game::XAssetEntry, 16);
 
+		Command::Add("skipModel", [](Command::Params*)
+		{
+			Utils::Hook::Nop(0x541F02, 6);
+		});
+
 		Maps::EntryPool.clear();
 
 		if (ZoneBuilder::IsEnabled())
