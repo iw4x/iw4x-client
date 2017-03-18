@@ -2959,10 +2959,11 @@ namespace Game
 	{
 		float mins[3];
 		float maxs[3];
-		int pad;
 		unsigned __int16 childCount;
 		unsigned __int16 surfaceCount;
 		unsigned __int16 startSurfIndex;
+		unsigned __int16 surfaceCountNoDecal;
+		unsigned __int16 startSurfIndexNoDecal;
 		unsigned __int16 smodelIndexCount;
 		unsigned __int16 *smodelIndexes;
 		int childrenOffset;

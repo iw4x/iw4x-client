@@ -1053,7 +1053,7 @@ namespace Assets
 							{
 								buffer->align(Utils::Stream::ALIGN_2);
 
-								for (int k = 0; k < aabbTree->smodelIndexCount; ++k)
+								for (unsigned short k = 0; k < aabbTree->smodelIndexCount; ++k)
 								{
 									builder->storePointer(&aabbTree->smodelIndexes[k]);
 									buffer->save(&aabbTree->smodelIndexes[k]);
