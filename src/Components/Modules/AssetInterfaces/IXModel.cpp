@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-#define IW4X_MODEL_VERSION 4
+#define IW4X_MODEL_VERSION 5
 
 namespace Assets
 {
@@ -87,9 +87,20 @@ namespace Assets
 			}
 
 			int version = reader.read<int>();
-			if (version != IW4X_MODEL_VERSION)
+			if (version != IW4X_MODEL_VERSION
+
+// Legacy model support (the code is backwards compatible)
+#if IW4X_MODEL_VERSION == 5
+				&& (version + 1) != IW4X_MODEL_VERSION
+#endif
+				)
 			{
 				Components::Logger::Error(0, "Reading model '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_MODEL_VERSION, version);
+			}
+
+			if(version == 4)
+			{
+				Components::Logger::Print("WARNING: Model '%s' is in legacy format, please update it!\n", name.data());
 			}
 
 			Game::XModel* asset = reader.readObject<Game::XModel>();
@@ -210,14 +221,80 @@ namespace Assets
 				}
 				else
 				{
-					Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, { asset->physPreset });
+					Game::PhysPreset* preset = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset->name, builder).physPreset;
+					if(preset)
+					{
+						asset->physPreset = preset;
+					}
+					else
+					{
+						Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_PHYSPRESET, { asset->physPreset });
+					}
 				}
 			}
 
 			if (asset->physCollmap)
 			{
-				// TODO
-				asset->physCollmap = nullptr;
+				if (version == 4)
+				{
+					asset->physCollmap = nullptr;
+				}
+				else
+				{
+					Game::PhysCollmap* collmap = reader.readObject<Game::PhysCollmap>();
+					asset->physCollmap = collmap;
+
+					if (collmap->name)
+					{
+						collmap->name = reader.readCString();
+					}
+
+					if (collmap->geoms)
+					{
+						collmap->geoms = reader.readArray<Game::PhysGeomInfo>(collmap->count);
+
+						for (unsigned int i = 0; i < collmap->count; ++i)
+						{
+							Game::PhysGeomInfo* geom = &collmap->geoms[i];
+
+							if (geom->brush)
+							{
+								Game::BrushWrapper* brush = reader.readObject<Game::BrushWrapper>();
+								geom->brush = brush;
+								{
+									if (brush->brush.sides)
+									{
+										brush->brush.sides = reader.readArray<Game::cbrushside_t>(brush->brush.numsides);
+										for (unsigned short j = 0; j < brush->brush.numsides; ++j)
+										{
+											Game::cbrushside_t* side = &brush->brush.sides[j];
+
+											// TODO: Add pointer support
+											if (side->plane)
+											{
+												side->plane = reader.readObject<Game::cplane_t>();
+											}
+										}
+									}
+
+									if (brush->brush.baseAdjacentSide)
+									{
+										brush->brush.baseAdjacentSide = reader.readArray<char>(brush->totalEdgeCount);
+									}
+								}
+
+								// TODO: Add pointer support
+								if (brush->planes)
+								{
+									brush->planes = reader.readArray<Game::cplane_t>(brush->brush.numsides);
+								}
+							}
+						}
+					}
+
+					Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, { asset->physCollmap });
+					//asset->physCollmap = nullptr;
+				}
 			}
 
 			if (!reader.end())
