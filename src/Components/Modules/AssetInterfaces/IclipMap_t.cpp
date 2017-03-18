@@ -681,7 +681,7 @@ namespace Assets
 			for (int i = 0; i < clipMap->numCBrushSides; ++i)
 			{
 				int planeIndex = reader.read<int>();
-				if (planeIndex < 0 || planeIndex > clipMap->numCBrushSides)
+				if (planeIndex < 0 || planeIndex >= clipMap->numCPlanes)
 				{
 					Components::Logger::Error("invalid plane index");
 					return;
@@ -704,7 +704,7 @@ namespace Assets
 			for (int i = 0; i < clipMap->numCNodes; ++i)
 			{
 				int planeIndex = reader.read<int>();
-				if (planeIndex < 0 || planeIndex > clipMap->numCPlanes)
+				if (planeIndex < 0 || planeIndex >= clipMap->numCPlanes)
 				{
 					Components::Logger::Error("invalid plane index\n");
 					return;
