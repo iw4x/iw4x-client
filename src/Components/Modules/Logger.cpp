@@ -53,6 +53,10 @@ namespace Components
 
 	void Logger::ErrorPrint(int error, std::string message)
 	{
+#ifdef DEBUG
+		if (IsDebuggerPresent()) __debugbreak();
+#endif
+
 		return Game::Com_Error(error, "%s", message.data());
 	}
 
