@@ -1350,8 +1350,8 @@ namespace Game
 
 	struct Bounds
 	{
-		vec3_t midPoint;
-		vec3_t halfSize;
+		vec3_t midPoint; // mins
+		vec3_t halfSize; // maxs
 	};
 
 	struct TriggerModel
@@ -1700,20 +1700,22 @@ namespace Game
 		char edgeCount;
 	};
 
-	struct cbrushWrapper_t
+	struct cbrush_t
 	{
-		short count;
-		cbrushside_t* brushSide;
-		char * brushEdge;
-		char pad[24];
+		unsigned __int16 numsides;
+		unsigned __int16 glassPieceIndex;
+		cbrushside_t *sides;
+		char *baseAdjacentSide;
+		__int16 axialMaterialNum[2][3];
+		char firstAdjacentSideOffsets[2][3];
+		char edgeCount[2][3];
 	};
 
 #pragma pack(push, 4)
 	struct BrushWrapper
 	{
-		float mins[3];
-		float maxs[3];
-		cbrushWrapper_t brush;
+		Bounds bounds;
+		cbrush_t brush;
 		int totalEdgeCount;
 		cplane_t *planes;
 	};
@@ -2463,17 +2465,6 @@ namespace Game
 	{
 		cplane_t* plane;
 		short children[2];
-	};
-
-	struct cbrush_t
-	{
-		unsigned __int16 numsides;
-		unsigned __int16 glassPieceIndex;
-		cbrushside_t *sides;
-		char *baseAdjacentSide;
-		__int16 axialMaterialNum[2][3];
-		char firstAdjacentSideOffsets[2][3];
-		char edgeCount[2][3];
 	};
 
 	struct cLeaf_t

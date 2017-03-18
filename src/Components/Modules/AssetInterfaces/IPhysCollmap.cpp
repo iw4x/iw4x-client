@@ -13,22 +13,22 @@ namespace Assets
 
 		// Save_cbrushWrapper_t
 		{
-			AssertSize(Game::cbrushWrapper_t, 36);
+			AssertSize(Game::cbrush_t, 36);
 
-			if (brush->brush.brushSide)
+			if (brush->brush.sides)
 			{
 				AssertSize(Game::cbrushside_t, 8);
 
 				buffer->align(Utils::Stream::ALIGN_4);
 
 				Game::cbrushside_t* destBrushSide = buffer->dest<Game::cbrushside_t>();
-				buffer->saveArray(brush->brush.brushSide, brush->brush.count);
+				buffer->saveArray(brush->brush.sides, brush->brush.numsides);
 
 				// Save_cbrushside_tArray
-				for (short i = 0; i < brush->brush.count; ++i)
+				for (unsigned short i = 0; i < brush->brush.numsides; ++i)
 				{
 					Game::cbrushside_t* destSide = &destBrushSide[i];
-					Game::cbrushside_t* side = &brush->brush.brushSide[i];
+					Game::cbrushside_t* side = &brush->brush.sides[i];
 
 					if (side->plane)
 					{
@@ -47,13 +47,13 @@ namespace Assets
 					}
 				}
 
-				Utils::Stream::ClearPointer(&destBrush->brush.brushSide);
+				Utils::Stream::ClearPointer(&destBrush->brush.sides);
 			}
 
-			if (brush->brush.brushEdge)
+			if (brush->brush.baseAdjacentSide)
 			{
-				buffer->save(brush->brush.brushEdge, brush->totalEdgeCount);
-				Utils::Stream::ClearPointer(&destBrush->brush.brushEdge);
+				buffer->save(brush->brush.baseAdjacentSide, brush->totalEdgeCount);
+				Utils::Stream::ClearPointer(&destBrush->brush.baseAdjacentSide);
 			}
 		}
 
@@ -63,14 +63,19 @@ namespace Assets
 
 			if (builder->hasPointer(brush->planes))
 			{
+				Components::Logger::Print("Loading cplane pointer before the array has been written. Not sure if this is correct!\n");
 				destBrush->planes = builder->getPointer(brush->planes);
 			}
 			else
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
-				builder->storePointer(brush->planes);
 
-				buffer->save(brush->planes, sizeof(Game::cplane_t));
+				for (unsigned short j = 0; j < brush->brush.numsides; ++j)
+				{
+					builder->storePointer(&brush->planes[j]);
+					buffer->save(&brush->planes[j]);
+				}
+
 				Utils::Stream::ClearPointer(&destBrush->planes);
 			}
 		}
