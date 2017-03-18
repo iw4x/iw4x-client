@@ -146,25 +146,28 @@ namespace Components
 
 	StructuredData::StructuredData()
 	{
-		// Correctly upgrade stats
-		Utils::Hook(0x42F088, StructuredData::UpdateVersionOffsets, HOOK_CALL).install()->quick();
-
-		// 15 or more custom classes
-		Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
-
-		// Reset empty names
-		Command::Add("checkClasses", [](Command::Params*)
-		{
-			for (int i = 0; i < NUM_CUSTOM_CLASSES; ++i)
-			{
-				// TODO: Correctly lookup using structured data
-				char* className = (reinterpret_cast<char*>(0x1AD3694) - 4 + 3003 + (64 * i) + 0x29);
-				if (!*className) strcpy_s(className, 24, Game::SEH_StringEd_GetString(Utils::String::VA("CLASS_SLOT%i", i + 1)));
-			}
-		});
-
 		// Only execute this when building zones
-		if (!ZoneBuilder::IsEnabled()) return;
+		if (!ZoneBuilder::IsEnabled())
+		{
+			// Correctly upgrade stats
+			Utils::Hook(0x42F088, StructuredData::UpdateVersionOffsets, HOOK_CALL).install()->quick();
+
+			// 15 or more custom classes
+			Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
+
+			// Reset empty names
+			Command::Add("checkClasses", [](Command::Params*)
+			{
+				for (int i = 0; i < NUM_CUSTOM_CLASSES; ++i)
+				{
+					// TODO: Correctly lookup using structured data
+					char* className = (reinterpret_cast<char*>(0x1AD3694) - 4 + 3003 + (64 * i) + 0x29);
+					if (!*className) strcpy_s(className, 24, Game::SEH_StringEd_GetString(Utils::String::VA("CLASS_SLOT%i", i + 1)));
+				}
+			});
+
+			return;
+		}
 
 		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string filename, bool* /*restrict*/)
 		{
