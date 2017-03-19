@@ -231,7 +231,19 @@ namespace Assets
 
 							if (aabbTree->smodelIndexes)
 							{
-								aabbTree->smodelIndexes = reader.readArray<unsigned short>(aabbTree->smodelIndexCount);
+								void* oldPointer = aabbTree->smodelIndexes;
+								if(builder->getAllocator()->isPointerMapped(oldPointer))
+								{
+									// We still have to read it
+									reader.readArray<unsigned short>(aabbTree->smodelIndexCount);
+
+									aabbTree->smodelIndexes = builder->getAllocator()->getPointer<unsigned short>(oldPointer);
+								}
+								else
+								{
+									aabbTree->smodelIndexes = reader.readArray<unsigned short>(aabbTree->smodelIndexCount);
+									builder->getAllocator()->mapPointer(oldPointer, aabbTree->smodelIndexes);
+								}
 							}
 						}
 					}
