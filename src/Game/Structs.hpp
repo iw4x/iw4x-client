@@ -3100,20 +3100,21 @@ namespace Game
 
 #pragma pack(push, 4)
 
+	struct GfxPortal;
+
 	struct GfxPortalWritable
 	{
-		char isQueued;
-		char isAncestor;
+		bool isQueued;
+		bool isAncestor;
 		char recursionDepth;
 		char hullPointCount;
 		float(*hullPoints)[2];
+		GfxPortal *queuedParent;
 	};
 
 	struct DpvsPlane
 	{
 		float coeffs[4];
-		char side[3];
-		char pad;
 	};
 
 	struct GfxPortal
