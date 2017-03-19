@@ -156,6 +156,9 @@ namespace Components
 
 	Game::G_GlassData* Maps::GetWorldData()
 	{
+		Logger::Print("Waiting for database...\n");
+		while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);
+
 		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::IsSPMap)
 		{
 			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].data;
