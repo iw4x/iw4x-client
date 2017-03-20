@@ -162,7 +162,7 @@ namespace Components
 					}
 				}
 
-				if (!this->loadAsset(this->dataMap.getElementAt(i, 0), this->dataMap.getElementAt(i, 1), false))
+				if (!this->loadAssetByName(this->dataMap.getElementAt(i, 0), this->dataMap.getElementAt(i, 1), false))
 				{
 					return false;
 				}
@@ -178,16 +178,16 @@ namespace Components
 
 		const char* name = Game::DB_GetXAssetName(&asset);
 
-		if (name) return this->loadAsset(type, std::string(name), isSubAsset);
+		if (name) return this->loadAssetByName(type, std::string(name), isSubAsset);
 		else return false;
 	}
 
-	bool ZoneBuilder::Zone::loadAsset(Game::XAssetType type, std::string name, bool isSubAsset)
+	bool ZoneBuilder::Zone::loadAssetByName(Game::XAssetType type, std::string name, bool isSubAsset)
 	{
-		return this->loadAsset(Game::DB_GetXAssetTypeName(type), name, isSubAsset);
+		return this->loadAssetByName(Game::DB_GetXAssetTypeName(type), name, isSubAsset);
 	}
 
-	bool ZoneBuilder::Zone::loadAsset(std::string typeName, std::string name, bool isSubAsset)
+	bool ZoneBuilder::Zone::loadAssetByName(std::string typeName, std::string name, bool isSubAsset)
 	{
 		Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 

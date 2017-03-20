@@ -35,7 +35,7 @@ namespace Components
 
 			bool hasAlias(Game::XAsset asset);
 			Game::XAssetHeader saveSubAsset(Game::XAssetType type, void* ptr);
-			bool loadAsset(Game::XAssetType type, std::string name, bool isSubAsset = true);
+			bool loadAssetByName(Game::XAssetType type, std::string name, bool isSubAsset = true);
 			bool loadAsset(Game::XAssetType type, void* data, bool isSubAsset = true);
 
 			int addScriptString(unsigned short gameIndex);
@@ -55,7 +55,7 @@ namespace Components
 			void loadFastFiles();
 
 			bool loadAssets();
-			bool loadAsset(std::string type, std::string name, bool isSubAsset = true);
+			bool loadAssetByName(std::string type, std::string name, bool isSubAsset = true);
 
 			void saveData();
 			void writeZone();

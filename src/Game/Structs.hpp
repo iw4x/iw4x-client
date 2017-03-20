@@ -3367,15 +3367,15 @@ namespace Game
 		float cosHalfFovExpanded;
 		float rotationLimit;
 		float translationLimit;
-		char* name;
+		const char *defName;
 	};
 
 	struct ComWorld
 	{
-		char *name;
+		const char *name;
 		int isInUse;
-		int lightCount;
-		ComPrimaryLight* lights;
+		unsigned int primaryLightCount;
+		ComPrimaryLight *primaryLights;
 	};
 
 #pragma pack(push, 4)
