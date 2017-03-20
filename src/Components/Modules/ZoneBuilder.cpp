@@ -98,6 +98,11 @@ namespace Components
 		Logger::Print("Saving...\n");
 		this->saveData();
 
+		if(this->buffer.hasBlock())
+		{
+			Logger::Error("Non-popped blocks left!\n");
+		}
+
 		Logger::Print("Compressing...\n");
 		this->writeZone();
 	}

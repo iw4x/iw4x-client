@@ -98,7 +98,7 @@ namespace Utils
 
 		for (unsigned int i = 0; i < row.size(); ++i)
 		{
-			if (row[i] == ',' && !isString) // FLush entry
+			if (row[i] == ',' && !isString) // Flush entry
 			{
 				_row.push_back(element);
 				element.clear();

@@ -246,6 +246,11 @@ namespace Utils
 		return false;
 	}
 
+	bool Stream::hasBlock()
+	{
+		return !this->streamStack.empty();
+	}
+
 	bool Stream::isValidBlock(Game::XFILE_BLOCK_TYPES stream)
 	{
 		return (stream < Game::MAX_XFILE_COUNT && stream >= Game::XFILE_BLOCK_TEMP);

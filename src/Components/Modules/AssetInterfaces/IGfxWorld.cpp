@@ -909,7 +909,7 @@ namespace Assets
 		SaveLogExit();
 	}
 
-	void IGfxWorld::saveGfxWorldDpvsDynamic(Game::GfxWorldDpvsDynamic* asset, Game::GfxWorldDpvsDynamic* dest, Components::ZoneBuilder::Zone* builder)
+	void IGfxWorld::saveGfxWorldDpvsDynamic(Game::GfxWorldDpvsDynamic* asset, Game::GfxWorldDpvsDynamic* dest, int cellCount, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::GfxWorldDpvsDynamic, 48);
 
@@ -921,14 +921,14 @@ namespace Assets
 		if (asset->dynEntCellBits[0])
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->dynEntCellBits[0], asset->dynEntClientWordCount[0]);
+			buffer->save(asset->dynEntCellBits[0], 4, asset->dynEntClientWordCount[0] * cellCount);
 			Utils::Stream::ClearPointer(&dest->dynEntCellBits[0]);
 		}
 
 		if (asset->dynEntCellBits[1])
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->dynEntCellBits[1], asset->dynEntClientWordCount[1]);
+			buffer->save(asset->dynEntCellBits[1], 4, asset->dynEntClientWordCount[1] * cellCount);
 			Utils::Stream::ClearPointer(&dest->dynEntCellBits[1]);
 		}
 
@@ -1188,14 +1188,14 @@ namespace Assets
 		if (asset->cellCasterBits)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->cellCasterBits, cellCount * ((cellCount + 31) >> 5));
+			buffer->save(asset->cellCasterBits, 4, cellCount * ((cellCount + 31) >> 5));
 			Utils::Stream::ClearPointer(&dest->cellCasterBits);
 		}
 
 		if (asset->cellHasSunLitSurfsBits)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->cellHasSunLitSurfsBits, ((cellCount + 31) >> 5));
+			buffer->save(asset->cellHasSunLitSurfsBits, 4, ((cellCount + 31) >> 5));
 			Utils::Stream::ClearPointer(&dest->cellHasSunLitSurfsBits);
 		}
 
@@ -1332,7 +1332,7 @@ namespace Assets
 		}
 
 		this->saveGfxWorldDpvsStatic(asset, &asset->dpvs, &dest->dpvs, asset->dpvsPlanes.cellCount, builder);
-		this->saveGfxWorldDpvsDynamic(&asset->dpvsDyn, &dest->dpvsDyn, builder);
+		this->saveGfxWorldDpvsDynamic(&asset->dpvsDyn, &dest->dpvsDyn, asset->dpvsPlanes.cellCount, builder);
 
 		if (asset->heroOnlyLights)
 		{

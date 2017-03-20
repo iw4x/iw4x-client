@@ -117,6 +117,7 @@ namespace Utils
 		void increaseBlockSize(unsigned int size);
 		Game::XFILE_BLOCK_TYPES getCurrentBlock();
 		unsigned int getBlockSize(Game::XFILE_BLOCK_TYPES stream);
+		bool hasBlock();
 
 		DWORD getPackedOffset();
 

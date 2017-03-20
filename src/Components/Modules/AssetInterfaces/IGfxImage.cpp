@@ -52,6 +52,11 @@ namespace Assets
 			image->loaded = true;
 			image->loadDef->flags = 0;
 
+			if(image->loadDef->resourceSize != image->dataLen1)
+			{
+				Components::Logger::Error("Resource size doesn't match the data length (%s)!\n", name.data());
+			}
+
 			if (Utils::String::StartsWith(name, "*lightmap"))
 			{
 				image->loadDef->dimensions[0] = 0;
