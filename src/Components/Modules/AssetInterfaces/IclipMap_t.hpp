@@ -15,7 +15,7 @@ namespace Assets
 		class SModelQuadtree
 		{
 		public:
-			SModelQuadtree(Game::cStaticModel_t* modelList, int numModels)
+			SModelQuadtree(Game::cStaticModel_t* /*modelList*/, int numModels)
 			{
 				numValues = 0;
 
