@@ -156,7 +156,9 @@ namespace Assets
 		}
 
 		SaveLogExit();
+		buffer->popBlock();
 	}
+
 	void IFxWorld::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::FxWorld* asset = header.fxWorld;
