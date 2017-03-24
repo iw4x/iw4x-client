@@ -720,6 +720,10 @@ namespace Components
 			Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "Map of the selected server");
 		});
 
+		// Fix ui_netsource dvar
+		Utils::Hook::Nop(0x4CDEEC, 5); // Don't reset the netsource when gametypes aren't loaded
+		Dvar::Register<int>("ui_netSource", 1, 0, 2, Game::DVAR_FLAG_SAVED, reinterpret_cast<const char*>(0x6D9F08));
+
 		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0");
 
