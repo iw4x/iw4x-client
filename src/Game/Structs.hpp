@@ -2473,8 +2473,7 @@ namespace Game
 		unsigned __int16 collAabbCount;
 		int brushContents;
 		int terrainContents;
-		float mins[3];
-		float maxs[3];
+		Bounds bounds;
 		int leafBrushNode;
 	};
 
@@ -2494,8 +2493,7 @@ namespace Game
 
 	struct cmodel_t
 	{
-		float mins[3];
-		float maxs[3];
+		Bounds bounds;
 		float radius;
 		cLeaf_t leaf;
 	};
@@ -2588,7 +2586,6 @@ namespace Game
 		unsigned __int16 firstChild;
 		unsigned __int16 childCount;
 	};
-
 
 	struct clipMap_t
 	{
@@ -2957,8 +2954,7 @@ namespace Game
 
 	struct GfxAabbTree
 	{
-		float mins[3];
-		float maxs[3];
+		Bounds bounds;
 		unsigned __int16 childCount;
 		unsigned __int16 surfaceCount;
 		unsigned __int16 startSurfIndex;
@@ -2993,8 +2989,7 @@ namespace Game
 
 	struct GfxStaticModelInst
 	{
-		float mins[3];
-		float maxs[3];
+		Bounds bounds;
 		float lightingOrigin[3];
 	};
 
@@ -3129,8 +3124,7 @@ namespace Game
 
 	struct GfxCell
 	{
-		float mins[3];
-		float maxs[3];
+		Bounds bounds;
 		int portalCount;
 		GfxPortal *portals;
 		char reflectionProbeCount;
@@ -3162,8 +3156,7 @@ namespace Game
 
 	struct GfxBrushModelWritable
 	{
-		float mins[3];
-		float maxs[3];
+		Bounds bounds;
 	};
 
 	struct GfxBrushModel
