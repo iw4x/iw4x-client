@@ -768,7 +768,7 @@ namespace Components
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
 
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* restrict)
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* /*restrict*/)
 			{
 				// This is used to track which assets can be stored as empty assets
 				if (FastFiles::Current() == "common_mp")
@@ -779,11 +779,6 @@ namespace Components
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{
 					ZoneBuilder::TraceAssets.push_back({ type, name });
-				}
-
-				if(FastFiles::Current() == "iw4_credits"s && type == Game::XAssetType::ASSET_TYPE_COMWORLD)
-				{
-					*restrict = true;
 				}
 			});
 
