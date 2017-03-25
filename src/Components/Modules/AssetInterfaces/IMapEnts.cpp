@@ -8,7 +8,7 @@ namespace Assets
 		Utils::String::Replace(name, "mp/", "");
 		Utils::String::Replace(name, ".d3dbsp", "");
 
-		Components::FileSystem::File ents(Utils::String::VA("mapents/%s.ents", name.c_str()));
+		Components::FileSystem::File ents(Utils::String::VA("mapents/%s.ents", name.data()));
 		if (ents.exists())
 		{
 			Game::MapEnts* entites = builder->getAllocator()->allocate<Game::MapEnts>();
@@ -37,17 +37,28 @@ namespace Assets
 			}
 			else
 			{
-				entites->name = builder->getAllocator()->duplicateString(Utils::String::VA("maps/mp/%s.d3dbsp", name.data()));
 				entites->stageCount = 1;
 				entites->stages = builder->getAllocator()->allocate<Game::Stage>();
 				entites->stages[0].stageName = "stage 0";
 				entites->stages[0].flags = 0x10400;
 			}
 
-			entites->entityString = builder->getAllocator()->duplicateString(ents.getBuffer());
-			entites->numEntityChars = ents.getBuffer().size() + 1;
+			std::string entityString = ents.getBuffer();
+
+			entites->name = builder->getAllocator()->duplicateString(Utils::String::VA("maps/mp/%s.d3dbsp", name.data()));
+			entites->entityString = builder->getAllocator()->duplicateString(entityString);
+			entites->numEntityChars = entityString.size() + 1;
 
 			header->mapEnts = entites;
+		}
+	}
+
+	void IMapEnts::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+	{
+		Utils::Entities memEnts(header.mapEnts->entityString, header.mapEnts->numEntityChars);
+		for(auto& model : memEnts.getModels())
+		{
+			builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_XMODEL, model, false);
 		}
 	}
 
