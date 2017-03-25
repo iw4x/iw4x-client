@@ -149,7 +149,7 @@ namespace Assets
 			{
 				asset->materialHandles = reader.readArray<Game::Material*>(asset->numsurfs);
 
-				for (char i = 0; i < asset->numsurfs; ++i)
+				for (unsigned char i = 0; i < asset->numsurfs; ++i)
 				{
 					if (asset->materialHandles[i])
 					{
@@ -320,7 +320,7 @@ namespace Assets
 
 		if (asset->materialHandles)
 		{
-			for (char i = 0; i < asset->numsurfs; ++i)
+			for (unsigned char i = 0; i < asset->numsurfs; ++i)
 			{
 				if (asset->materialHandles[i])
 				{
@@ -422,7 +422,7 @@ namespace Assets
 			Game::Material** destMaterials = buffer->dest<Game::Material*>();
 			buffer->saveArray(asset->materialHandles, asset->numsurfs);
 
-			for (char i = 0; i < asset->numsurfs; ++i)
+			for (unsigned char i = 0; i < asset->numsurfs; ++i)
 			{
 				if (asset->materialHandles[i])
 				{

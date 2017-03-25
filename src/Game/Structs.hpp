@@ -1797,7 +1797,7 @@ namespace Game
 		const char *name;
 		char numBones;
 		char numRootBones;
-		char numsurfs;
+		unsigned char numsurfs;
 		char lodRampType;
 		float scale;
 		unsigned int noScalePartBits[6];
