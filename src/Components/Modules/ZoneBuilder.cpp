@@ -246,6 +246,11 @@ namespace Components
 			const char* assetName = Game::DB_GetXAssetName(asset);
 			if (assetName[0] == ',') ++assetName;
 
+			if(this->getAssetName(type, assetName) == name)
+			{
+				return i;
+			}
+
 			if (name == assetName)
 			{
 				return i;
