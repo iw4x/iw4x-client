@@ -15,9 +15,11 @@ namespace Components
 		{
 		public:
 			Zone(std::string zoneName);
+			Zone();
 			~Zone();
 
 			void build();
+			void buildTechsets();
 
 			Utils::Stream* getBuffer();
 			Utils::Memory::Allocator* getAllocator();

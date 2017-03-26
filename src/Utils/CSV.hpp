@@ -5,6 +5,7 @@ namespace Utils
 	class CSV
 	{
 	public:
+		CSV() { }
 		CSV(std::string file, bool isFile = true, bool allowComments = true);
 		~CSV();
 

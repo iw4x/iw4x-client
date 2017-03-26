@@ -10,14 +10,18 @@ namespace Components
 	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::CommonAssets;
 
 	ZoneBuilder::Zone::Zone(std::string name) : indexStart(0), externalSize(0),
-	
-	// Reserve 100MB by default.
-	// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
-	// That way we can be sure it won't need to reallocate memory.
-	// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
-	// Well, decompressed maps can get way larger than 100MB, so let's increase that.
-	buffer(0xC800000),
-	zoneName(name), dataMap("zone_source/" + name + ".csv"), branding { nullptr }
+
+		// Reserve 100MB by default.
+		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
+		// That way we can be sure it won't need to reallocate memory.
+		// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
+		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
+		buffer(0xC800000),
+		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{ nullptr }
+	{}
+
+	ZoneBuilder::Zone::Zone() : indexStart(0), externalSize(0), buffer(0xC800000),
+		zoneName("null_zone"), dataMap(), branding{ nullptr }
 	{}
 
 	ZoneBuilder::Zone::~Zone()
@@ -105,6 +109,59 @@ namespace Components
 
 		Logger::Print("Compressing...\n");
 		this->writeZone();
+	}
+
+	static bool buildingTechsets = false;
+	static std::string techsetCSV = "";
+
+	void ZoneBuilder::Zone::Zone::buildTechsets()
+	{
+		buildingTechsets = true;
+		techsetCSV = "";
+
+		this->zoneName = "iw4_techsets";
+
+		// load all fastfiles in the zone dir and make a fastfile that contains all the techsets in those fastfiles
+
+		std::string zone_dir = "zone/english";
+
+		auto files = Utils::IO::ListFiles(zone_dir);
+		std::string extension = ".ff";
+		std::string load_suffix = "_load.ff";
+		for (auto it : files)
+		{
+			if (!it.compare(it.length() - extension.length(), extension.length(), extension))
+			{
+				// ignore _load fastfiles
+				if (!it.compare(it.length() - load_suffix.length(), load_suffix.length(), load_suffix))
+					continue;
+				techsetCSV += "require,"s + it.substr(zone_dir.length() + 1, it.length() - zone_dir.length() - 4) + "\r\n"s;
+			}
+		}
+
+		this->dataMap = Utils::CSV(techsetCSV, false);
+
+		this->loadFastFiles(); // this also builds the asset list cause we're just dumping the entire DB
+
+		this->dataMap = Utils::CSV(techsetCSV, false); // update with asset list and not just requires
+
+		Logger::Print("Linking assets...\n");
+		if (!this->loadAssets()) return;
+
+		this->addBranding();
+
+		Logger::Print("Saving...\n");
+		this->saveData();
+
+		if (this->buffer.hasBlock())
+		{
+			Logger::Error("Non-popped blocks left!\n");
+		}
+
+		Logger::Print("Compressing...\n");
+		this->writeZone();
+
+		buildingTechsets = false;
 	}
 
 	void ZoneBuilder::Zone::loadFastFiles()
@@ -849,6 +906,22 @@ namespace Components
 
 					Command::Execute(Utils::String::VA("buildzone %s", source.data()), true);
 				}
+			});
+
+			Command::Add("buildtechsets", [](Command::Params*)
+			{
+				Zone().buildTechsets();
+			});
+
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* restrict)
+			{
+				if (buildingTechsets && type != Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET)
+				{
+					*restrict = true;
+					return;
+				}
+
+				techsetCSV += "techset,"s + name + "\r\n"s;
 			});
 
 			Command::Add("listassets", [](Command::Params* params)
