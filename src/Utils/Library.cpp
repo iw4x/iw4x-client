@@ -9,12 +9,10 @@ namespace Utils
 
 	Library::~Library()
 	{
-		if (this->freeOnDestroy && this->valid())
+		if (this->freeOnDestroy)
 		{
-			FreeLibrary(this->getModule());
+			this->free();
 		}
-
-		this->module = nullptr;
 	}
 
 	bool Library::valid()
@@ -25,5 +23,15 @@ namespace Utils
 	HMODULE Library::getModule()
 	{
 		return this->module;
+	}
+
+	void Library::free()
+	{
+		if (this->valid())
+		{
+			FreeLibrary(this->getModule());
+		}
+
+		this->module = nullptr;
 	}
 }

@@ -23,6 +23,8 @@ namespace Utils
 			return reinterpret_cast<T*>(GetProcAddress(this->getModule(), process.data()));
 		}
 
+		void free();
+
 	private:
 		HMODULE module;
 		bool freeOnDestroy;

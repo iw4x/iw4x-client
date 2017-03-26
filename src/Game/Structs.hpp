@@ -3162,10 +3162,10 @@ namespace Game
 	struct GfxBrushModel
 	{
 		GfxBrushModelWritable writable;
-		float bounds[2][3];
+		Bounds bounds;
 		unsigned int surfaceCount;
 		unsigned int startSurfIndex;
-		int pad;
+		unsigned int surfaceCountNoDecal;
 	};
 
 	struct MaterialMemory
