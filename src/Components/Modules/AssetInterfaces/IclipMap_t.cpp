@@ -1,6 +1,7 @@
 #include "StdInclude.hpp"
 
 #define IW4X_CLIPMAP_VERSION 1
+#define SMODEL_QUADTREE_DEPTH 6
 
 #ifdef ENABLE_EXPERIMENTAL_MAP_CODE
 
@@ -883,15 +884,35 @@ namespace Assets
 
 		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, Utils::String::VA("maps/mp/%s.d3dbsp", name.data()), builder).mapEnts;
 
-		// This mustn't be null and has to have at least 1 'valid' entry.
-		if (!clipMap->smodelNodeCount || !clipMap->smodelNodes)
-		{
-			clipMap->smodelNodeCount = 1;
-			clipMap->smodelNodes = builder->getAllocator()->allocateArray<Game::SModelAabbNode>(clipMap->smodelNodeCount);
+		//SModelQuadtree* quadtree = new SModelQuadtree(clipMap->staticModelList, clipMap->numStaticModels);
 
-			clipMap->smodelNodes[0].bounds.halfSize[0] = -131072.000f;
-			clipMap->smodelNodes[0].bounds.halfSize[1] = -131072.000f;
-			clipMap->smodelNodes[0].bounds.halfSize[2] = -131072.000f;
+		clipMap->smodelNodeCount = 1;
+		clipMap->smodelNodes = builder->getAllocator()->allocateArray<Game::SModelAabbNode>(clipMap->smodelNodeCount);
+
+		clipMap->smodelNodes[0].childCount = clipMap->numStaticModels;
+		clipMap->smodelNodes[0].firstChild = 0;
+
+		for (int i = 0; i < clipMap->numStaticModels; ++i)
+		{
+			clipMap->smodelNodes[0].bounds.midPoint[0] += clipMap->staticModelList[i].origin[0];
+			clipMap->smodelNodes[0].bounds.midPoint[1] += clipMap->staticModelList[i].origin[1];
+			clipMap->smodelNodes[0].bounds.midPoint[2] += clipMap->staticModelList[i].origin[2];
+		}
+
+		clipMap->smodelNodes[0].bounds.midPoint[0] /= clipMap->numStaticModels;
+		clipMap->smodelNodes[0].bounds.midPoint[1] /= clipMap->numStaticModels;
+		clipMap->smodelNodes[0].bounds.midPoint[2] /= clipMap->numStaticModels;
+
+		float* nodePos = clipMap->smodelNodes[0].bounds.midPoint;
+
+		for (int i = 0; i < clipMap->numStaticModels; ++i)
+		{
+			if (fabs(nodePos[0] - clipMap->staticModelList[i].origin[0]) > clipMap->smodelNodes[0].bounds.halfSize[0])
+				clipMap->smodelNodes[0].bounds.halfSize[0] = fabs(nodePos[0] - clipMap->staticModelList[i].origin[0]);
+			if (fabs(nodePos[1] - clipMap->staticModelList[i].origin[1]) > clipMap->smodelNodes[0].bounds.halfSize[1])
+				clipMap->smodelNodes[0].bounds.halfSize[1] = fabs(nodePos[1] - clipMap->staticModelList[i].origin[1]);
+			if (fabs(nodePos[1] - clipMap->staticModelList[i].origin[2]) > clipMap->smodelNodes[0].bounds.halfSize[2])
+				clipMap->smodelNodes[0].bounds.halfSize[2] = fabs(nodePos[2] - clipMap->staticModelList[i].origin[2]);
 		}
 
 		// These mustn't be null, but they don't need to be valid.
@@ -902,7 +923,7 @@ namespace Assets
 			Utils::Stream::ClearPointer(&clipMap->dynEntCollList[i]);
 		}
 
-		if(!reader.end())
+		if (!reader.end())
 		{
 			Components::Logger::Error("Clipmap data left!");
 		}

@@ -15,13 +15,17 @@ namespace Assets
 		class SModelQuadtree
 		{
 		public:
-			SModelQuadtree(Game::cStaticModel_t* /*modelList*/, int numModels)
+			SModelQuadtree()
+			{
+			}
+
+			SModelQuadtree(Game::cStaticModel_t* modelList, int numModels)
 			{
 				numValues = 0;
 
 				for (int i = 0; i < numModels; ++i)
 				{
-
+					insert(&modelList[i]);
 				}
 			}
 
@@ -35,8 +39,13 @@ namespace Assets
 				{
 					if (numValues == 4) // split
 					{
-						numValues++;
+						// create children objects
 						for (int i = 0; i < 4; ++i)
+						{
+							children[i] = new SModelQuadtree();
+						}
+
+						for (int i = 0; i < numValues; ++i)
 						{
 							if (item->origin[0] > x && values[i]->origin[1] > y)
 								children[0]->insert(values[i]);
@@ -54,8 +63,12 @@ namespace Assets
 						{
 							children[i]->halfX = halfX / 2;
 							children[i]->halfY = halfY / 2;
-							children[i]->halfZ = halfZ / 2;
+							children[i]->halfZ = halfZ;
 						}
+
+						// update origins here
+
+						numValues++;
 					}
 
 					if (item->origin[0] > x && item->origin[1] > y)
