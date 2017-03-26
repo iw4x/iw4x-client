@@ -280,6 +280,10 @@ namespace Components
 				}
 			}
 		});
+
+#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
+		AntiCheat::PatchVirtualProtect(VirtualProtect, VirtualProtectEx);
+#endif
 	}
 
 	Localization::~Localization()

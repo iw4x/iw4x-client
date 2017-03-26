@@ -11,6 +11,10 @@ namespace Utils
 
 	unsigned long GetParentProcessId();
 
+	size_t GetModuleSize(HMODULE module);
+
+	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
+
 	template <typename T> inline void Merge(std::vector<T>* target, T* source, size_t length)
 	{
 		if (source)

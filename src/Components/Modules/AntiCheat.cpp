@@ -5,6 +5,7 @@ namespace Components
 	Utils::Time::Interval AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::LoadLibHook[4];
+	Utils::Hook AntiCheat::VirtualProtectHook[2];
 	unsigned long AntiCheat::Flags = NO_FLAG;
 
 	// This function does nothing, it only adds the two passed variables and returns the value
@@ -57,7 +58,7 @@ namespace Components
 		if (!hModuleSelf || !hModuleTarget || !hModuleProcess || (hModuleTarget != hModuleSelf && hModuleTarget != hModuleProcess))
 		{
 #ifdef DEBUG_DETECTIONS
-			char buffer[MAX_PATH] = { 0 };
+			char buffer[MAX_PATH] = {0};
 			GetModuleFileNameA(hModuleTarget, buffer, sizeof buffer);
 
 			Logger::Print(Utils::String::VA("AntiCheat: Callee assertion failed: %X %s", reinterpret_cast<uint32_t>(callee), buffer));
@@ -69,9 +70,9 @@ namespace Components
 
 	void AntiCheat::InitLoadLibHook()
 	{
-		static uint8_t kernel32Str[] = { 0xB4, 0x9A, 0x8D, 0xB1, 0x9A, 0x93, 0xCC, 0xCD, 0xD1, 0x9B, 0x93, 0x93 }; // KerNel32.dll
-		static uint8_t loadLibAStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xBE }; // LoadLibraryA
-		static uint8_t loadLibWStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8 }; // LoadLibraryW
+		static uint8_t kernel32Str[] = {0xB4, 0x9A, 0x8D, 0xB1, 0x9A, 0x93, 0xCC, 0xCD, 0xD1, 0x9B, 0x93, 0x93}; // KerNel32.dll
+		static uint8_t loadLibAStr[] = {0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xBE}; // LoadLibraryA
+		static uint8_t loadLibWStr[] = {0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8}; // LoadLibraryW
 
 		HMODULE kernel32 = GetModuleHandleA(Utils::String::XOR(std::string(reinterpret_cast<char*>(kernel32Str), sizeof kernel32Str), -1).data());
 		if (kernel32)
@@ -115,7 +116,7 @@ namespace Components
 #ifdef PROCTECT_PROCESS
 		static Utils::Time::Interval check;
 
-		if(check.elapsed(20s))
+		if (check.elapsed(20s))
 		{
 			check.update();
 
@@ -207,7 +208,7 @@ namespace Components
 	HANDLE AntiCheat::LoadLibary(std::wstring library, HANDLE file, DWORD flags, void* callee)
 	{
 		HMODULE module;
-		char buffer[MAX_PATH] = { 0 };
+		char buffer[MAX_PATH] = {0};
 
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &module);
 		GetModuleFileNameA(module, buffer, sizeof buffer);
@@ -354,6 +355,49 @@ namespace Components
 		}
 	}
 
+	bool AntiCheat::IsPageChangeAllowed(void* callee, void* addr, size_t len)
+	{
+		HMODULE hModuleSelf = nullptr, hModuleTarget = nullptr, hModuleMain = GetModuleHandle(nullptr);
+		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &hModuleTarget);
+		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(AntiCheat::IsPageChangeAllowed), &hModuleSelf);
+
+		size_t mainSize = Utils::GetModuleSize(hModuleMain), selfSize = Utils::GetModuleSize(hModuleSelf);
+		DWORD self = DWORD(hModuleSelf), main = DWORD(hModuleMain), address = DWORD(addr);
+
+		// If the address that should be changed is within our module or the main binary, then we need to check if we are changing it or someone else
+		if(Utils::HasIntercection(self, selfSize, address, len) || Utils::HasIntercection(main, mainSize, address, len))
+		{
+			if (!hModuleSelf || !hModuleTarget || (hModuleTarget != hModuleSelf))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	BOOL WINAPI AntiCheat::VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
+	{
+		if (!AntiCheat::IsPageChangeAllowed(_ReturnAddress(), lpAddress, dwSize)) return FALSE;
+
+		AntiCheat::VirtualProtectHook[0].uninstall(false);
+		BOOL result = VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
+		AntiCheat::VirtualProtectHook[0].install(false);
+
+		return result;
+	}
+
+	BOOL WINAPI AntiCheat::VirtualProtectExStub(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
+	{
+		if (GetCurrentProcess() == hProcess && !AntiCheat::IsPageChangeAllowed(_ReturnAddress(), lpAddress, dwSize)) return FALSE;
+
+		AntiCheat::VirtualProtectHook[1].uninstall(false);
+		BOOL result = VirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect, lpflOldProtect);
+		AntiCheat::VirtualProtectHook[1].install(false);
+
+		return result;
+	}
+
 	unsigned long AntiCheat::ProtectProcess()
 	{
 #ifdef PROCTECT_PROCESS
@@ -370,20 +414,20 @@ namespace Components
 		}
 
 		auto freeSid = [] (void* sid)
-		{
-			if (sid)
 			{
-				FreeSid(reinterpret_cast<PSID>(sid));
-			}
-		};
+				if (sid)
+				{
+					FreeSid(reinterpret_cast<PSID>(sid));
+				}
+			};
 
 		allocator.reference(hToken, [] (void* hToken)
-		{
-			if (hToken)
-			{
-				CloseHandle(hToken);
-			}
-		});
+		                    {
+			                    if (hToken)
+			                    {
+				                    CloseHandle(hToken);
+			                    }
+		                    });
 
 		//AntiCheat::AcquireDebugPriviledge(hToken);
 
@@ -419,9 +463,9 @@ namespace Components
 		const PSID psidArray[] =
 		{
 			psidEveryone, /* Deny most rights to everyone */
-			psidCurUser,  /* Allow what was not denied */
-			psidSystem,   /* Full control */
-			psidAdmins,   /* Full control */
+			psidCurUser, /* Allow what was not denied */
+			psidSystem, /* Full control */
+			psidAdmins, /* Full control */
 		};
 
 		// Determine required size of the ACL
@@ -497,10 +541,11 @@ namespace Components
 		return 0;
 #endif
 	}
+
 	void AntiCheat::AcquireDebugPriviledge(HANDLE hToken)
 	{
 		LUID luid;
-		TOKEN_PRIVILEGES tp = { 0 };
+		TOKEN_PRIVILEGES tp = {0};
 		DWORD cb = sizeof(TOKEN_PRIVILEGES);
 		if (!LookupPrivilegeValueW(nullptr, SE_DEBUG_NAME, &luid)) return;
 
@@ -511,6 +556,12 @@ namespace Components
 		//if (GetLastError() != ERROR_SUCCESS) return;
 	}
 
+	void AntiCheat::PatchVirtualProtect(void* vp, void* vpex)
+	{
+		AntiCheat::VirtualProtectHook[1].initialize(vpex, AntiCheat::VirtualProtectExStub, HOOK_JUMP)->install(true, true);
+		AntiCheat::VirtualProtectHook[0].initialize(vp, AntiCheat::VirtualProtectStub, HOOK_JUMP)->install(true, true);
+	}
+
 	AntiCheat::AntiCheat()
 	{
 		time(nullptr);
@@ -519,9 +570,9 @@ namespace Components
 
 #ifdef DEBUG
 		Command::Add("penis", [] (Command::Params*)
-		{
-			AntiCheat::CrashClient();
-		});
+		             {
+			             AntiCheat::CrashClient();
+		             });
 #else
 
 		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).install()->quick();

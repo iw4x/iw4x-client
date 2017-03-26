@@ -30,6 +30,8 @@ namespace Components
 
 		static unsigned long ProtectProcess();
 
+		static void PatchVirtualProtect(void* vp, void* vpex);
+
 	private:
 		enum IntergrityFlag
 		{
@@ -54,6 +56,7 @@ namespace Components
 
 		static void NullSub();
 
+		static bool IsPageChangeAllowed(void* callee, void* addr, size_t len);
 		static void AssertCalleeModule(void* callee);
 
 		static void UninstallLibHook();
@@ -67,6 +70,9 @@ namespace Components
 		static HANDLE WINAPI LoadLibaryExWStub(const wchar_t* library, HANDLE file, DWORD flags);
 #endif
 
+		static BOOL WINAPI VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD  flNewProtect, PDWORD lpflOldProtect);
+		static BOOL WINAPI VirtualProtectExStub(HANDLE hProcess,LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect,PDWORD lpflOldProtect);
+
 		static void LostD3DStub();
 		static void CinematicStub();
 		static void SoundInitStub(int a1, int a2, int a3);
@@ -78,5 +84,6 @@ namespace Components
 		static void AcquireDebugPriviledge(HANDLE hToken);
 
 		static Utils::Hook LoadLibHook[4];
+		static Utils::Hook VirtualProtectHook[2];
 	};
 }
