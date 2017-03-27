@@ -35,7 +35,7 @@ namespace Utils
 			{
 				std::string model = entity["model"];
 
-				if(!model.empty() && model[0] != '*') // Skip brushmodels
+				if(!model.empty() && model[0] != '*' && model[0] != '?') // Skip brushmodels
 				{
 					if (std::find(models.begin(), models.end(), model) == models.end())
 					{
