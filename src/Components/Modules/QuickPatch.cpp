@@ -498,7 +498,7 @@ namespace Components
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* /*restrict*/)
 			{
 				// they're basically the same right?
-				if (type == Game::ASSET_TYPE_PIXELSHADER | type == Game::ASSET_TYPE_VERTEXSHADER)
+				if (type == Game::ASSET_TYPE_PIXELSHADER || type == Game::ASSET_TYPE_VERTEXSHADER)
 				{
 					Utils::IO::CreateDir("userraw/shader_bin");
 

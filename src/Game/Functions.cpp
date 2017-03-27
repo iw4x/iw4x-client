@@ -196,6 +196,7 @@ namespace Game
 	R_TextWidth_t R_TextWidth = R_TextWidth_t(0x5056C0);
 	R_TextHeight_t R_TextHeight = R_TextHeight_t(0x505770);
 	R_FlushSun_t R_FlushSun = R_FlushSun_t(0x53FB50);
+	R_SortWorldSurfaces_t R_SortWorldSurfaces = R_SortWorldSurfaces_t(0x53DC10);
 
 	Scr_LoadGameType_t Scr_LoadGameType = Scr_LoadGameType_t(0x4D9520);
 
@@ -731,5 +732,26 @@ namespace Game
 		StringTable* rankTable = DB_FindXAssetHeader(ASSET_TYPE_STRINGTABLE, "mp/rankTable.csv").stringTable;
 		const char* maxrank = StringTable_Lookup(rankTable, 0, "maxrank", 1);
 		return atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
+	}
+
+	void SortWorldSurfaces(GfxWorld* world)
+	{
+		DWORD* specular1 = reinterpret_cast<DWORD*>(0x69F105C);
+		DWORD* specular2 = reinterpret_cast<DWORD*>(0x69F92D4);
+		DWORD saveSpecular1 = *specular1;
+		DWORD saveSpecular2 = *specular2;
+
+		GfxWorld** gameWorld = reinterpret_cast<GfxWorld**>(0x66DEE94);
+		GfxWorld* saveWorld = *gameWorld;
+
+		*specular1 = 1;
+		*specular2 = 1;
+		*gameWorld = world;
+
+		R_SortWorldSurfaces();
+
+		*gameWorld = saveWorld;
+		*specular1 = saveSpecular1;
+		*specular2 = saveSpecular2;
 	}
 }

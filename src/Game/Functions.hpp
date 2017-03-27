@@ -499,6 +499,9 @@ namespace Game
 	typedef void(__cdecl * R_FlushSun_t)();
 	extern R_FlushSun_t R_FlushSun;
 
+	typedef GfxWorld*(__cdecl * R_SortWorldSurfaces_t)();
+	extern R_SortWorldSurfaces_t R_SortWorldSurfaces;
+
 	typedef void(__cdecl * Scr_ShutdownAllocNode_t)();
 	extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
 
@@ -767,4 +770,6 @@ namespace Game
 	void Com_SetParseNegativeNumbers(int parse);
 
 	int CL_GetMaxXP();
+
+	void SortWorldSurfaces(GfxWorld* world);
 }

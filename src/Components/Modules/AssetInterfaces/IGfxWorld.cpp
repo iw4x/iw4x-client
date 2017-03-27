@@ -36,6 +36,7 @@ namespace Assets
 			}
 		}
 
+		/*
 		std::sort(surfs.begin(), surfs.end(), [](Game::GfxSurface* a, Game::GfxSurface* b)
 		{
 			if (a->material->name == nullptr && b->material->name == nullptr) return false;
@@ -52,6 +53,7 @@ namespace Assets
 		}
 
 		asset->surfaces = tmpBuffer;
+		*/
 
 		if (asset->surfacesBounds)
 		{
@@ -432,6 +434,8 @@ namespace Assets
 			{
 				asset->heroOnlyLights = reader.readArray<Game::GfxHeroOnlyLight>(asset->heroOnlyLightCount);
 			}
+
+			Game::SortWorldSurfaces(asset);
 		}
 	}
 
