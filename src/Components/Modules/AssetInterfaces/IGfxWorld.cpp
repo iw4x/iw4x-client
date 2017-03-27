@@ -18,6 +18,8 @@ namespace Assets
 			asset->smodelInsts = reader->readArray<Game::GfxStaticModelInst>(asset->smodelCount);
 		}
 
+		std::vector<Game::GfxSurface*> surfs;
+
 		if (asset->surfaces)
 		{
 			asset->surfaces = reader->readArray<Game::GfxSurface>(world->surfaceCount);
@@ -25,6 +27,7 @@ namespace Assets
 			for (unsigned int i = 0; i < world->surfaceCount; ++i)
 			{
 				Game::GfxSurface* surface = &asset->surfaces[i];
+				surfs.push_back(&asset->surfaces[i]);
 
 				if (surface->material)
 				{
@@ -32,6 +35,23 @@ namespace Assets
 				}
 			}
 		}
+
+		std::sort(surfs.begin(), surfs.end(), [](Game::GfxSurface* a, Game::GfxSurface* b)
+		{
+			if (a->material->name == nullptr && b->material->name == nullptr) return false;
+			if (a->material->name == nullptr && b->material->name != nullptr) return true;
+			if (a->material->name != nullptr && b->material->name == nullptr) return false;
+			return strcmp(a->material->name, b->material->name) == 0;
+		});
+
+		Game::GfxSurface* tmpBuffer = builder->getAllocator()->allocateArray<Game::GfxSurface>(world->surfaceCount);
+
+		for (unsigned int i = 0; i < world->surfaceCount; ++i)
+		{
+			std::memcpy(&tmpBuffer[i], surfs[i], sizeof(Game::GfxSurface));
+		}
+
+		asset->surfaces = tmpBuffer;
 
 		if (asset->surfacesBounds)
 		{

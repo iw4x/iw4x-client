@@ -545,7 +545,17 @@ namespace Game
 
 	struct GfxDrawSurfFields
 	{
-		__int64 _bf0;
+		unsigned __int64 objectId : 16;
+		unsigned __int64 reflectionProbeIndex : 8;
+		unsigned __int64 hasGfxEntIndex : 1;
+		unsigned __int64 customIndex : 5;
+		unsigned __int64 materialSortedIndex : 12;
+		unsigned __int64 prepass : 2;
+		unsigned __int64 useHeroLighting : 1;
+		unsigned __int64 sceneLightIndex : 8;
+		unsigned __int64 surfType : 4;
+		unsigned __int64 primarySortKey : 6;
+		unsigned __int64 unused : 1;
 	};
 
 	union GfxDrawSurf
@@ -558,6 +568,7 @@ namespace Game
 	{
 		unsigned int loadBits[2];
 	};
+
 
 #pragma pack(push, 4)
 	struct Material
@@ -3051,6 +3062,8 @@ namespace Game
 		vec3_t axis[3];
 		float scale;
 	};
+
+
 
 	struct GfxStaticModelDrawInst
 	{
