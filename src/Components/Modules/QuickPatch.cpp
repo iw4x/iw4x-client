@@ -470,6 +470,181 @@ namespace Components
 			QuickPatch::CompareMaterialStateBits();
 		});
 
+		Command::Add("dumptechsets", [](Command::Params* param)
+		{
+			if (param->length() != 2)
+			{
+				Logger::Print("usage: dumptechsets <fastfile> | all\n");
+				return;
+			}
+			std::vector<std::string> fastfiles;
+
+			if (param->get(1) == "all"s)
+			{
+				for (std::string f : Utils::IO::ListFiles("zone/english"))
+					fastfiles.push_back(f.substr(7, f.length() - 10));
+				for (std::string f : Utils::IO::ListFiles("zone/dlc"))
+					fastfiles.push_back(f.substr(3, f.length() - 6));
+				for (std::string f : Utils::IO::ListFiles("zone/patch"))
+					fastfiles.push_back(f.substr(5, f.length() - 8));
+			}
+			else
+			{
+				fastfiles.push_back(param->get(1));
+			}
+
+			int count = 0;
+
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* /*restrict*/)
+			{
+				// they're basically the same right?
+				if (type == Game::ASSET_TYPE_PIXELSHADER | type == Game::ASSET_TYPE_VERTEXSHADER)
+				{
+					Utils::IO::CreateDir("userraw/shader_bin");
+
+					const char* formatString;
+					if (type == Game::ASSET_TYPE_PIXELSHADER)
+					{
+						formatString = "userraw/shader_bin/%.ps";
+					}
+					else
+					{
+						formatString = "userraw/shader_bin/%.vs";
+					}
+
+					if (Utils::IO::FileExists(Utils::String::VA(formatString, name))) return;
+
+					Utils::Stream* buffer = new Utils::Stream(0x1000);
+					Game::MaterialPixelShader* dest = buffer->dest<Game::MaterialPixelShader>();
+					buffer->save(asset.pixelShader);
+
+					if (asset.pixelShader->loadDef.physicalPart)
+					{
+						buffer->save(asset.pixelShader->loadDef.physicalPart, 4, asset.pixelShader->loadDef.cachedPartSize & 0xFFFF);
+						Utils::Stream::ClearPointer(&dest->loadDef.physicalPart);
+					}
+
+					Utils::IO::WriteFile(Utils::String::VA(formatString, name), buffer->toBuffer());
+				}
+
+				static std::map<const void*, unsigned int> pointerMap;
+
+				// Check if the given pointer has already been mapped
+				std::function<bool(const void*)> hasPointer = [](const void* pointer)
+				{
+					return (pointerMap.find(pointer) != pointerMap.end());
+				};
+
+				// Get stored offset for given file pointer
+				std::function<unsigned int(const void*)> getPointer = [hasPointer](const void* pointer)
+				{
+					if (hasPointer(pointer))
+					{
+						return pointerMap[pointer];
+					}
+
+					return 0U;
+				};
+
+				std::function<void(const void*, unsigned int)> storePointer = [hasPointer](const void* ptr, unsigned int offset)
+				{
+					if (hasPointer(ptr)) return;
+					pointerMap[ptr] = offset;
+				};
+
+				if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
+				{
+					Utils::IO::CreateDir("userraw/techsets");
+					Utils::Stream* buffer = new Utils::Stream(0x1000);
+					Game::MaterialTechniqueSet* dest = buffer->dest<Game::MaterialTechniqueSet>();
+					buffer->save(asset.techniqueSet);
+
+					if (asset.techniqueSet->name)
+					{
+						buffer->saveString(asset.techniqueSet->name);
+						Utils::Stream::ClearPointer(&dest->name);
+					}
+
+					for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
+					{
+						Game::MaterialTechnique* technique = asset.techniqueSet->techniques[i];
+
+						if (technique)
+						{
+							dest->techniques[i] = reinterpret_cast<Game::MaterialTechnique*>(getPointer(technique));
+							if (!dest->techniques)
+							{
+								// Size-check is obsolete, as the structure is dynamic
+								buffer->align(Utils::Stream::ALIGN_4);
+								//storePointer(technique, buffer->);
+
+								Game::MaterialTechnique* destTechnique = buffer->dest<Game::MaterialTechnique>();
+								buffer->save(technique, 8);
+
+								// Save_MaterialPassArray
+								Game::MaterialPass* destPasses = buffer->dest<Game::MaterialPass>();
+								buffer->saveArray(technique->passes, technique->numPasses);
+
+								for (short j = 0; j < technique->numPasses; ++j)
+								{
+									AssertSize(Game::MaterialPass, 20);
+
+									Game::MaterialPass* destPass = &destPasses[j];
+									Game::MaterialPass* pass = &technique->passes[j];
+
+									if (pass->vertexDecl)
+									{
+
+									}
+
+
+									if (pass->argumentDef)
+									{
+										buffer->align(Utils::Stream::ALIGN_4);
+										buffer->saveArray(pass->argumentDef, pass->argCount1 + pass->argCount2 + pass->argCount3);
+										Utils::Stream::ClearPointer(&destPass->argumentDef);
+									}
+								}
+
+								if (technique->name)
+								{
+									buffer->saveString(technique->name);
+									Utils::Stream::ClearPointer(&destTechnique->name);
+								}
+
+								Utils::Stream::ClearPointer(&dest->techniques[i]);
+							}
+						}
+					}
+				}
+			});
+
+			for (std::string fastfile : fastfiles)
+			{
+				if (!Game::DB_IsZoneLoaded(fastfile.data()))
+				{
+					Game::XZoneInfo info;
+					info.name = fastfile.data();
+					info.allocFlags = 0x20;
+					info.freeFlags = 0;
+
+					Game::DB_LoadXAssets(&info, 1, true);
+				}
+
+				// unload the fastfiles so we don't run out of memory or asset pools
+				if (count % 5)
+				{
+					Game::XZoneInfo info;
+					info.name = nullptr;
+					info.allocFlags = 0x0;
+					info.freeFlags = 0x20;
+					Game::DB_LoadXAssets(&info, 1, true);
+				}
+				
+				count++;
+			}
+		});
+
 		// Dvars
 		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_FLAG_SAVED, "Stream friendly UI");
 
