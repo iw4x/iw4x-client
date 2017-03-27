@@ -435,6 +435,15 @@ namespace Assets
 				asset->heroOnlyLights = reader.readArray<Game::GfxHeroOnlyLight>(asset->heroOnlyLightCount);
 			}
 
+			// We need to temporarily allocate a runtime buffer
+			// It's not accessed during the building process,
+			// but as we're interacting with the runtime, we have to
+			// allocate a valid buffer for the time we're using it.
+			if (asset->dpvs.surfaceMaterials)
+			{
+				asset->dpvs.surfaceMaterials = builder->getAllocator()->allocateArray<Game::GfxDrawSurf>(asset->surfaceCount);
+			}
+
 			Game::SortWorldSurfaces(asset);
 		}
 	}
