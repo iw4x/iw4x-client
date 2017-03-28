@@ -3176,9 +3176,10 @@ namespace Game
 	{
 		GfxBrushModelWritable writable;
 		Bounds bounds;
-		unsigned int surfaceCount;
-		unsigned int startSurfIndex;
-		unsigned int surfaceCountNoDecal;
+		float radius;
+		unsigned short surfaceCount;
+		unsigned short startSurfIndex;
+		unsigned short surfaceCountNoDecal;
 	};
 
 	struct MaterialMemory
