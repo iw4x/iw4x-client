@@ -18,8 +18,6 @@ namespace Assets
 			asset->smodelInsts = reader->readArray<Game::GfxStaticModelInst>(asset->smodelCount);
 		}
 
-		std::vector<Game::GfxSurface*> surfs;
-
 		if (asset->surfaces)
 		{
 			asset->surfaces = reader->readArray<Game::GfxSurface>(world->surfaceCount);
@@ -27,7 +25,6 @@ namespace Assets
 			for (unsigned int i = 0; i < world->surfaceCount; ++i)
 			{
 				Game::GfxSurface* surface = &asset->surfaces[i];
-				surfs.push_back(&asset->surfaces[i]);
 
 				if (surface->material)
 				{
@@ -434,17 +431,6 @@ namespace Assets
 			{
 				asset->heroOnlyLights = reader.readArray<Game::GfxHeroOnlyLight>(asset->heroOnlyLightCount);
 			}
-
-			// We need to temporarily allocate a runtime buffer
-			// It's not accessed during the building process,
-			// but as we're interacting with the runtime, we have to
-			// allocate a valid buffer for the time we're using it.
-			if (asset->dpvs.surfaceMaterials)
-			{
-				asset->dpvs.surfaceMaterials = builder->getAllocator()->allocateArray<Game::GfxDrawSurf>(asset->surfaceCount);
-			}
-
-			Game::SortWorldSurfaces(asset);
 		}
 	}
 
@@ -1174,7 +1160,7 @@ namespace Assets
 		this->saveGfxLightGrid(&asset->lightGrid, &dest->lightGrid, builder);
 
 		if (asset->models)
-		{
+		{		
 			AssertSize(Game::GfxBrushModel, 60);
 			SaveLogEnter("GfxBrushModel");
 

@@ -754,4 +754,41 @@ namespace Game
 		*specular1 = saveSpecular1;
 		*specular2 = saveSpecular2;
 	}
+
+	void R_AddDebugLine(float* color, float* v1, float* v2)
+	{
+		void* debugglobals = reinterpret_cast<void*> (Utils::Hook::Get<int>(0x66DAD78) + 268772);
+		void* func = reinterpret_cast<void*> (0x51CEB0);
+		__asm
+		{
+			mov eax, v2
+			push eax
+			mov eax, v1
+			push eax
+			mov esi, debugglobals
+			mov edi, color
+			call func
+			add esp, 8
+		}
+	}
+
+	void R_AddDebugString(float *color, float *pos, float scale, char *string)
+	{
+		void* debugglobals = reinterpret_cast<void*> (Utils::Hook::Get<int>(0x66DAD78) + 268772);
+		void* func = reinterpret_cast<void*> (0x51D0A0);
+		__asm
+		{
+			mov eax, string
+			push eax
+			mov eax, scale
+			push eax
+			mov eax, color
+			push eax
+			mov eax, pos
+			push eax
+			mov edi, debugglobals
+			call func
+			add esp, 16
+		}
+	}
 }
