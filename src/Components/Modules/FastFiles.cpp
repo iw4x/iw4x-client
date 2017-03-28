@@ -239,6 +239,27 @@ namespace Components
 			paths.push_back(Utils::String::VA("%s\\", modDir.data()));
 		}
 
+		if(Utils::String::StartsWith(file, "mp_"))
+		{
+			std::string zone = file;
+			if(Utils::String::EndsWith(zone, ".ff"))
+			{
+				Utils::String::Replace(zone, ".ff", "");
+			}
+
+			std::string filename = zone;
+
+			if (Utils::String::EndsWith(zone, "_load"))
+			{
+				Utils::String::Replace(zone, "_load", "");
+			}
+
+			if(Utils::IO::FileExists(Utils::String::VA("usermaps\\%s\\%s.ff", zone.data(), filename.data())))
+			{
+				return Utils::String::VA("usermaps\\%s\\", zone.data());
+			}
+		}
+
 		Utils::Merge(&paths, FastFiles::ZonePaths);
 		
 		for (auto &path : paths)

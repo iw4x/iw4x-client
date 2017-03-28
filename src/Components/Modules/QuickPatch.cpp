@@ -673,16 +673,17 @@ namespace Components
 
 			float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
 
-			Game::GfxWorld** gameWorld = reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-			if (!*gameWorld) return;
+			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			if (!gameWorld) return;
 
-			for (int i = 0; i < (*gameWorld)->dpvsPlanes.cellCount; ++i)
+			for (int i = 0; i < gameWorld->dpvsPlanes.cellCount; ++i)
 			{
-				for (int j = 0; j < (*gameWorld)->aabbTreeCounts[i].aabbTreeCount; ++j)
+				for (int j = 0; j < gameWorld->aabbTreeCounts[i].aabbTreeCount; ++j)
 				{
 					Game::vec3_t v1, v2, v3, v4, v5, v6, v7, v8;
-					float* center = (*gameWorld)->aabbTrees[i].aabbTree[j].bounds.midPoint;
-					float* halfSize = (*gameWorld)->aabbTrees[i].aabbTree[j].bounds.halfSize;
+					float* center = gameWorld->aabbTrees[i].aabbTree[j].bounds.midPoint;
+					float* halfSize = gameWorld->aabbTrees[i].aabbTree[j].bounds.halfSize;
+
 					v1[0] = center[0] - halfSize[0];
 					v1[1] = center[1] - halfSize[1];
 					v1[2] = center[2] - halfSize[2];
