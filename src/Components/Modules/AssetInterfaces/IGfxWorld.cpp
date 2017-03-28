@@ -1160,7 +1160,7 @@ namespace Assets
 		this->saveGfxLightGrid(&asset->lightGrid, &dest->lightGrid, builder);
 
 		if (asset->models)
-		{		
+		{
 			AssertSize(Game::GfxBrushModel, 60);
 			SaveLogEnter("GfxBrushModel");
 

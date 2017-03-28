@@ -651,12 +651,12 @@ namespace Components
 			if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)
 			{
 				Game::GfxWorld* world = asset.gfxWorld;
-				Utils::Stream* buffer = new Utils::Stream(0x1000);
+				Utils::Stream buffer(0x1000);
 				for (unsigned int i = 0; i < world->dpvs.staticSurfaceCount; ++i)
 				{
-					buffer->saveString(Utils::String::VA("%s\n", world->dpvs.surfaces[world->dpvs.sortedSurfIndex[i]].material->name));
+					buffer.saveString(Utils::String::VA("%s\n", world->dpvs.surfaces[world->dpvs.sortedSurfIndex[i]].material->name));
 				}
-				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer->toBuffer());
+				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer.toBuffer());
 
 				storedWorld = asset.gfxWorld;
 			}
@@ -674,6 +674,7 @@ namespace Components
 			float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
 
 			Game::GfxWorld** gameWorld = reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			if (!*gameWorld) return;
 
 			for (int i = 0; i < (*gameWorld)->dpvsPlanes.cellCount; ++i)
 			{
