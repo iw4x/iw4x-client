@@ -1,5 +1,7 @@
 #include "STDInclude.hpp"
 #include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/vector_angle.hpp>
 
 namespace Components
 {
@@ -587,9 +589,8 @@ namespace Components
 					glm::vec2 point = selfOrigin + (result[0] * right);
 					glm::vec2 path = glm::normalize(modelOrigin - point);
 
-					//if(path != forward) // This would work if floats were accurate (both vectors are normalized)
-					// As the method above doesn't work, just compare signs and skip to the next model if they don't equal
-					if ((path[0] < 0) == (forward[0] >= 0) && (path[1] < 0) == (forward[1] >= 0)) continue;
+					// If the angle is bigger than 1, skip (can either be 0° (0) or 180° (PI))
+					if(glm::angle(path, forward) > 1) continue;
 				}
 
 				gameWorld->dpvs.smodelVisData[0][i] = 1;
