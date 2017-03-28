@@ -589,7 +589,7 @@ namespace Components
 
 					//if(path != forward) // This would work if floats were accurate (both vectors are normalized)
 					// As the method above doesn't work, just compare signs and skip to the next model if they don't equal
-					if ((path[0] < 0) == (forward[0] > 0) && (path[1] < 0) == (forward[1] > 0)) continue;
+					if ((path[0] < 0) == (forward[0] >= 0) && (path[1] < 0) == (forward[1] >= 0)) continue;
 				}
 
 				gameWorld->dpvs.smodelVisData[0][i] = 1;
