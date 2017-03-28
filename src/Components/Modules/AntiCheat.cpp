@@ -569,10 +569,10 @@ namespace Components
 		AntiCheat::Hash.clear();
 
 #ifdef DEBUG
-		Command::Add("penis", [] (Command::Params*)
-		             {
-			             AntiCheat::CrashClient();
-		             });
+		Command::Add("penis", [](Command::Params*)
+		{
+			AntiCheat::CrashClient();
+		});
 #else
 
 		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).install()->quick();

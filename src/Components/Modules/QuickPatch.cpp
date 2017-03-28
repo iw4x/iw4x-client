@@ -644,27 +644,24 @@ namespace Components
 			}
 		});
 
-		static Game::GfxWorld* storedWorld = nullptr;
-
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* /*restrict*/)
 		{
 			if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)
 			{
-				Game::GfxWorld* world = asset.gfxWorld;
-				Utils::Stream buffer(0x1000);
-				for (unsigned int i = 0; i < world->dpvs.staticSurfaceCount; ++i)
-				{
-					buffer.saveString(Utils::String::VA("%s\n", world->dpvs.surfaces[world->dpvs.sortedSurfIndex[i]].material->name));
-				}
-				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer.toBuffer());
+				std::string buffer;
 
-				storedWorld = asset.gfxWorld;
+				for (unsigned int i = 0; i < asset.gfxWorld->dpvs.staticSurfaceCount; ++i)
+				{
+					buffer.append(Utils::String::VA("%s\n", asset.gfxWorld->dpvs.surfaces[asset.gfxWorld->dpvs.sortedSurfIndex[i]].material->name));
+				}
+
+				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer);
 			}
 		});
 
-		Dvar::OnInit([]()
+		Dvar::OnInit([]
 		{
-			Dvar::Register<bool>("r_drawAabbTrees", false, Game::DVAR_FLAG_USERCREATED, "draw aabb trees");
+			Dvar::Register<bool>("r_drawAabbTrees", false, Game::DVAR_FLAG_USERCREATED, "Draw aabb trees");
 		});
 
 		Renderer::OnFrame([]()

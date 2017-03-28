@@ -468,11 +468,6 @@ namespace Components
 	{
 		AssertSize(Game::XAssetEntry, 16);
 
-		Command::Add("skipModel", [](Command::Params*)
-		{
-			Utils::Hook::Nop(0x541F02, 6);
-		});
-
 		Maps::EntryPool.clear();
 
 		if (ZoneBuilder::IsEnabled())
@@ -539,6 +534,165 @@ namespace Components
 
 	Maps::Maps()
 	{
+		// Set AABBTree
+		//Utils::Hook::Nop(0x54A575, 2);
+		//Utils::Hook::Nop(0x54A589, 2);
+		//Utils::Hook::Set<WORD>(0x54A506, 0xE990);
+
+		// Reset while drawing
+		//Utils::Hook::Nop(0x542073, 4);
+		//Utils::Hook::Nop(0x54209B, 4);
+		//Utils::Hook::Nop(0x541FAB, 4);
+
+		// Reset dpvs
+		//Utils::Hook::Nop(0x5185A3, 5);
+
+		Dvar::OnInit([]()
+		{
+			Dvar::Register<bool>("r_forceForwardModels", false, 0, "Force drawing all static models in front of the player");
+		});
+
+		// Hook R_ClearDpvsSceneView to force drawing all models in front of us
+		Utils::Hook(0x50EF39, []()
+		{
+			Utils::Hook::Call<void()>(0x518530)(); // R_ClearDpvsSceneView
+
+			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			if (!Game::CL_IsCgameInitialized() || !gameWorld || !Dvar::Var("r_forceForwardModels").get<bool>()) return;
+
+			Game::vec3_t forward;
+			Game::vec3_t right;
+			Game::AngleVectors(reinterpret_cast<float*>(0x85F650), forward, right, nullptr);
+			float* selfOrigin = reinterpret_cast<float*>(0x85B708);
+
+			auto normalizeVector = [](float* vector, int dim)
+			{
+				float length = 0;
+
+				for (int i = 0; i < dim; ++i)
+				{
+					length += std::pow(vector[i], 2);
+				}
+
+				length = std::sqrt(length);
+				for (int i = 0; i < dim; ++i)
+				{
+					vector[i] /= length;
+				}
+			};
+
+			// Move 200 units back
+			normalizeVector(forward, 2);
+			forward[0] *= 200.0f;
+			forward[1] *= 200.0f;
+
+			Game::vec3_t selfOriginAdjusted = { selfOrigin[0] - forward[0], selfOrigin[1] - forward[1], selfOrigin[2] };
+			selfOrigin = selfOriginAdjusted;
+
+			for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
+			{
+				float* origin = gameWorld->dpvs.smodelDrawInsts[i].placement.origin;
+
+				struct Matrix // 2x2
+				{
+					Game::vec2_t row1;
+					Game::vec2_t row2;
+
+					// a b
+					// c d
+					Matrix(float a, float b, float c, float d)
+					{
+						this->row1[0] = a;
+						this->row1[1] = b;
+
+						this->row2[0] = c;
+						this->row2[1] = d;
+					}
+
+					void solve(float* inOut) // Ax=b -> sovle x for b -> store in b
+					{
+						bool swapped = false;
+						if (this->row1[0] == 0)
+						{
+							std::swap(this->row1, this->row2);
+							std::swap(inOut[0], inOut[1]);
+							swapped = true;
+						}
+
+						// Normalize pivot a to 1
+						this->row1[1] /= this->row1[0];
+						inOut[0] /= this->row1[0];
+						this->row1[0] = 1;
+
+						this->row2[1] -= this->row1[1] * this->row2[0]; // This should be 0
+						inOut[1] -= inOut[0] * this->row2[0];
+						this->row2[0] = 0; // This is now zero
+
+						if (this->row2[1] == 0)
+						{
+							inOut[1] = 0;
+						}
+						else
+						{
+							// Normalize pivot d to 1
+							inOut[1] /= this->row2[1];
+							this->row2[1] = 1;
+
+							inOut[0] -= this->row1[1] * inOut[1];
+						}
+
+						if (swapped) std::swap(inOut[0], inOut[1]);
+					}
+				};
+
+				struct Line
+				{
+					Game::vec2_t point;
+					Game::vec2_t direction;
+
+					Line(float* p, float* dir)
+					{
+						std::memcpy(this->point, p, sizeof this->point);
+						std::memcpy(this->direction, dir, sizeof this->direction);
+					}
+
+					void cross(Line &line, float* out)
+					{
+						Matrix matrix(direction[0], -(line.direction[0]), direction[1], -(line.direction[1]));
+
+						out[0] = line.point[0] - this->point[0];
+						out[1] = line.point[1] - this->point[1];
+						matrix.solve(out);
+
+						float scale = out[0]; // 0 is direction scale for this, 1 is scale for line
+						out[0] = this->point[0] + (this->direction[0] * scale);
+						out[1] = this->point[1] + (this->direction[1] * scale);
+					}
+				};
+
+				Line border(selfOrigin, right);
+				Line object(origin, forward);
+
+				Game::vec2_t borderPoint;
+				border.cross(object, borderPoint);
+
+				Game::vec2_t direction = { origin[0] - borderPoint[0], origin[1] - borderPoint[1] };
+
+				// Direction and forward normalized should be equal, we just skip normalization here and compare signs
+				if(((direction[0] <= 0 && forward[0] <= 0) || ((direction[0] >= 0 && forward[0] >= 0))) && ((direction[1] <= 0 && forward[1] <= 0) || ((direction[1] >= 0 && forward[1] >= 0))))
+				{
+					gameWorld->dpvs.smodelVisData[0][i] = 1;
+					gameWorld->dpvs.smodelVisData[1][i] = 1;
+					gameWorld->dpvs.smodelVisData[2][i] = 1;
+				}
+			}
+		}, HOOK_CALL).install()->quick();
+
+		Command::Add("skipModel", [](Command::Params*)
+		{
+			Utils::Hook::Nop(0x541F02, 6);
+		});
+
 		Dvar::OnInit([] ()
 		{
 			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");

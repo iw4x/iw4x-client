@@ -294,7 +294,6 @@ namespace Assets
 
 					if (cell->reflectionProbes)
 					{
-						// no align for char
 						cell->reflectionProbes = reader.readArray<char>(cell->reflectionProbeCount);
 					}
 				}
@@ -311,7 +310,6 @@ namespace Assets
 
 				if (asset->lightGrid.rawRowData)
 				{
-					// no align for char
 					asset->lightGrid.rawRowData = reader.readArray<char>(asset->lightGrid.rawRowDataSize);
 				}
 

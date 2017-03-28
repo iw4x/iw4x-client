@@ -2,6 +2,9 @@
 
 namespace Game
 {
+	typedef void(__cdecl * AngleVectors_t)(float *angles, float *forward, float *right, float *up);
+	extern AngleVectors_t AngleVectors;
+
 	typedef unsigned int(__cdecl * BG_GetNumWeapons_t)();
 	extern BG_GetNumWeapons_t BG_GetNumWeapons;
 
