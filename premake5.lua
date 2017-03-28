@@ -187,6 +187,7 @@ require "premake/protobuf"
 require "premake/zlib"
 require "premake/WinToast"
 require "premake/udis86"
+require "premake/glm"
 
 json11.setup
 {
@@ -234,6 +235,10 @@ WinToast.setup
 udis86.setup
 {
 	source = path.join(depsBasePath, "udis86"),
+}
+glm.setup
+{
+	source = path.join(depsBasePath, "glm"),
 }
 
 workspace "iw4x"
@@ -328,6 +333,7 @@ workspace "iw4x"
 		zlib.import()
 		WinToast.import()
 		udis86.import()
+		glm.import();
 
 		-- fix vpaths for protobuf sources
 		vpaths
