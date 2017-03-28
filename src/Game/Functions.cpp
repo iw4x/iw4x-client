@@ -681,7 +681,7 @@ namespace Game
 
 			mov eax, [esp + 2Ch]
 			mov edi, [esp + 28h]
-			push[esp + 24h]
+			push [esp + 24h]
 
 			mov ebx, 5112C0h
 			call ebx
@@ -755,40 +755,63 @@ namespace Game
 		*specular2 = saveSpecular2;
 	}
 
-	void R_AddDebugLine(float* color, float* v1, float* v2)
+	__declspec(naked) void R_AddDebugLine(float* /*color*/, float* /*v1*/, float* /*v2*/)
 	{
-		void* debugglobals = reinterpret_cast<void*> (Utils::Hook::Get<int>(0x66DAD78) + 268772);
-		void* func = reinterpret_cast<void*> (0x51CEB0);
 		__asm
 		{
-			mov eax, v2
+			pushad
+
+			mov eax, [esp + 2Ch] // v2
 			push eax
-			mov eax, v1
+
+			mov eax, [esp + 2Ch] // v1
 			push eax
-			mov esi, debugglobals
-			mov edi, color
-			call func
-			add esp, 8
+
+			// debugglobals
+			mov edi, ds:66DAD78h
+			add edi, 268772
+
+			mov edi, [esp + 2Ch] // color
+
+			mov eax, 51CEB0h
+			call eax
+
+			add esp, 8h
+
+			popad
+			retn
 		}
 	}
 
-	void R_AddDebugString(float *color, float *pos, float scale, char *string)
+	__declspec(naked) void R_AddDebugString(float* /*color*/, float* /*pos*/, float /*scale*/, const char* /*string*/)
 	{
-		void* debugglobals = reinterpret_cast<void*> (Utils::Hook::Get<int>(0x66DAD78) + 268772);
-		void* func = reinterpret_cast<void*> (0x51D0A0);
 		__asm
 		{
-			mov eax, string
+			pushad
+
+			mov eax, [esp + 30h] // string
 			push eax
-			mov eax, scale
+
+			mov eax, [esp + 30h] // scale
 			push eax
-			mov eax, color
+
+			mov eax, [esp + 2Ch] // color
 			push eax
-			mov eax, pos
+
+			mov eax, [esp + 34h] // pos
 			push eax
-			mov edi, debugglobals
-			call func
-			add esp, 16
+
+			// debugglobals
+			mov edi, ds:66DAD78h
+			add edi, 268772
+
+			mov eax, 51D0A0h
+			call eax
+
+			add esp, 10h
+
+			popad
+			retn
 		}
 	}
 }

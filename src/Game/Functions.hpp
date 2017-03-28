@@ -773,5 +773,5 @@ namespace Game
 
 	void SortWorldSurfaces(GfxWorld* world);
 	void R_AddDebugLine(float* color, float* v1, float* v2);
-	void R_AddDebugString(float *color, float *pos, float scale, char *str);
+	void R_AddDebugString(float *color, float *pos, float scale, const char *str);
 }
