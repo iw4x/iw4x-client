@@ -503,6 +503,31 @@ namespace Game
 		}
 	}
 
+	__declspec(naked) XAssetEntry* DB_FindXAssetEntry(XAssetType /*type*/, const char* /*name*/)
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			mov edi, [esp + 2Ch] // name
+			push edi
+
+			mov edi, [esp + 2Ch] // type
+
+			mov eax, 5BB1B0h
+			call eax
+
+			add esp, 4h
+
+			mov[esp + 20h], eax
+			popad
+			pop eax
+
+			retn
+		}
+	}
+
 	__declspec(naked) void FS_AddLocalizedGameDirectory(const char* /*path*/, const char* /*dir*/)
 	{
 		__asm
@@ -770,8 +795,8 @@ namespace Game
 			push eax
 
 			// debugglobals
-			mov edi, ds:66DAD78h
-			add edi, 268772
+			mov esi, ds:66DAD78h
+			add esi, 268772
 
 			mov edi, [esp + 2Ch] // color
 

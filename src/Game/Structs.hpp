@@ -3063,8 +3063,6 @@ namespace Game
 		float scale;
 	};
 
-
-
 	struct GfxStaticModelDrawInst
 	{
 		GfxPackedPlacement placement;
@@ -3123,6 +3121,12 @@ namespace Game
 	struct DpvsPlane
 	{
 		float coeffs[4];
+	};
+
+	struct DpvsPlanes
+	{
+		DpvsPlane *planes;
+		int count;
 	};
 
 	struct GfxPortal

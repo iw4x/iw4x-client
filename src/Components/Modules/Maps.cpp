@@ -571,7 +571,7 @@ namespace Components
 
 			float* _selfOrigin = reinterpret_cast<float*>(0x85B708);
 			glm::vec2 selfOrigin(_selfOrigin[0], _selfOrigin[1]);
-			selfOrigin -= (glm::normalize(forward) * 200.0f); // Move 200 units back
+			selfOrigin -= (forward * 200.0f); // Move 200 units back
 
 			for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
 			{

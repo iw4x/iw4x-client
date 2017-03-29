@@ -746,6 +746,7 @@ namespace Game
 	XAssetType DB_GetXAssetNameType(const char* name);
 	bool DB_IsZoneLoaded(const char* zone);
 	XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType type);
+	XAssetEntry* DB_FindXAssetEntry(XAssetType type, const char* name);
 
 	void FS_AddLocalizedGameDirectory(const char *path, const char *dir);
 
