@@ -156,7 +156,6 @@ namespace Components
 			}
 		}
 
-
 		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && (name == "wc/codo_ui_viewer_black_decal3" || name == "wc/codo_ui_viewer_black_decal2" || name == "wc/hint_arrows01" || name == "wc/hint_arrows02"))
 		{
 			asset.material->sortKey = 0xE;

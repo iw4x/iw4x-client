@@ -38,6 +38,7 @@ namespace Components
 	private:
 		static bool Pregame;
 		static bool Postgame;
+		static bool ComInitialized;
 		static std::vector<Component*> Components;
 		static Utils::Memory::Allocator MemAllocator;
 	};

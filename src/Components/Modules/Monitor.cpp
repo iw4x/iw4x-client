@@ -1,5 +1,6 @@
 #include "STDInclude.hpp"
 #undef getch
+#undef ungetch
 #include <conio.h>
 
 namespace Components

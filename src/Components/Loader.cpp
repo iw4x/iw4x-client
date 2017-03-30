@@ -4,6 +4,7 @@ namespace Components
 {
 	bool Loader::Pregame = true;
 	bool Loader::Postgame = false;
+	bool Loader::ComInitialized = false;
 	std::vector<Component*> Loader::Components;
 	Utils::Memory::Allocator Loader::MemAllocator;
 
@@ -23,7 +24,7 @@ namespace Components
 		Loader::Postgame = false;
 		Loader::MemAllocator.clear();
 
-		if(!Loader::PerformingUnitTests()) CoInitialize(nullptr);
+		if (!Loader::PerformingUnitTests()) Loader::ComInitialized = (CoInitialize(nullptr) == S_OK);
 
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
@@ -113,7 +114,7 @@ namespace Components
 		Loader::Components.clear();
 		Loader::MemAllocator.clear();
 
-		if (!Loader::PerformingUnitTests()) CoUninitialize();
+		if (!Loader::PerformingUnitTests() && Loader::ComInitialized) CoUninitialize();
 	}
 
 	void Loader::PreDestroy()

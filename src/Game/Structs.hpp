@@ -3047,7 +3047,7 @@ namespace Game
 		char lightmapIndex;
 		char reflectionProbeIndex;
 		char primaryLightIndex;
-		char castsSunShadow;
+		char flag;
 	};
 
 	struct GfxSurfaceBounds
