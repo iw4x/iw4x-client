@@ -535,22 +535,13 @@ namespace Components
 
 	Maps::Maps()
 	{
-		// Set AABBTree
-		//Utils::Hook::Nop(0x54A575, 2);
-		//Utils::Hook::Nop(0x54A589, 2);
-		//Utils::Hook::Set<WORD>(0x54A506, 0xE990);
-
-		// Reset while drawing
-		//Utils::Hook::Nop(0x542073, 4);
-		//Utils::Hook::Nop(0x54209B, 4);
-		//Utils::Hook::Nop(0x541FAB, 4);
-
-		// Reset dpvs
-		//Utils::Hook::Nop(0x5185A3, 5);
-
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<bool>("r_forceForwardModels", false, 0, "Force drawing all static models in front of the player");
+			bool value = false;
+#ifdef DEBUG
+			value = true;
+#endif
+			Dvar::Register<bool>("r_disableModelWorkaround", value, 0, "Disable static model drawing workaround for custom maps");
 		});
 
 		// Hook R_ClearDpvsSceneView to force drawing all models in front of us
@@ -559,7 +550,7 @@ namespace Components
 			Utils::Hook::Call<void()>(0x518530)(); // R_ClearDpvsSceneView
 
 			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-			if (!Game::CL_IsCgameInitialized() || !gameWorld || !Dvar::Var("r_forceForwardModels").get<bool>()) return;
+			if (!Game::CL_IsCgameInitialized() || !gameWorld || Dvar::Var("r_disableModelWorkaround").get<bool>() || gameWorld->mapVtxChecksum != 0xDEADBEEF) return;
 
 			Game::vec3_t _forward, _right;
 			Game::AngleVectors(reinterpret_cast<float*>(0x85F650), _forward, _right, nullptr);
@@ -575,30 +566,28 @@ namespace Components
 			{
 				float* _origin = gameWorld->dpvs.smodelDrawInsts[i].placement.origin;
 				glm::vec2 modelOrigin(_origin[0], _origin[1]);
-				glm::mat2x2 matrix(right[0], -(forward[0]), right[1], -(forward[1]));
 
-				// If matrix is singular just draw the models
-				if (glm::determinant(matrix) != 0)
+				if ((selfOrigin - modelOrigin).length() <= gameWorld->dpvs.smodelDrawInsts[i].cullDist * 1.0f)
 				{
-					glm::mat2x2 invMatrix = glm::inverse(matrix);
-					glm::vec2 solve = modelOrigin - selfOrigin;
-					glm::vec2 result = invMatrix * solve;
-					glm::vec2 path = modelOrigin - (selfOrigin + (result[0] * right));
+					// If matrix is singular just draw the models
+					glm::mat2x2 matrix(right[0], -(forward[0]), right[1], -(forward[1]));
+					if (glm::determinant(matrix) != 0)
+					{
+						glm::mat2x2 invMatrix = glm::inverse(matrix);
+						glm::vec2 solve = modelOrigin - selfOrigin;
+						glm::vec2 result = invMatrix * solve;
+						glm::vec2 path = modelOrigin - (selfOrigin + (result[0] * right));
 
-					// Compare signs and skip to the next model if they don't equal
-					if ((path[0] < 0) == (forward[0] >= 0) && (path[1] < 0) == (forward[1] >= 0)) continue;
+						// Compare signs and skip to the next model if they don't equal
+						if ((path[0] < 0) == (forward[0] >= 0) && (path[1] < 0) == (forward[1] >= 0)) continue;
+					}
+
+					gameWorld->dpvs.smodelVisData[0][i] = 1;
+					gameWorld->dpvs.smodelVisData[1][i] = 1;
+					gameWorld->dpvs.smodelVisData[2][i] = 1;
 				}
-
-				gameWorld->dpvs.smodelVisData[0][i] = 1;
-				gameWorld->dpvs.smodelVisData[1][i] = 1;
-				gameWorld->dpvs.smodelVisData[2][i] = 1;
 			}
 		}, HOOK_CALL).install()->quick();
-
-		Command::Add("skipModel", [](Command::Params*)
-		{
-			Utils::Hook::Nop(0x541F02, 6);
-		});
 
 		Dvar::OnInit([] ()
 		{

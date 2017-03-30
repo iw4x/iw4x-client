@@ -85,7 +85,7 @@ namespace Utils
 	{
 		for (auto i = this->entities.begin(); i != this->entities.end();)
 		{
-			if (i->find("weaponinfo") != i->end())
+			if (i->find("weaponinfo") != i->end() || (i->find("targetname") != i->end() && (*i)["targetname"] == "oldschool_pickup"s))
 			{
 				if (!keepTurrets || i->find("classname") == i->end() || (*i)["classname"] != "misc_turret"s)
 				{
