@@ -206,7 +206,7 @@ namespace Components
 
 	IPCPipe::IPCPipe()
 	{
-		if (Dedicated::IsEnabled() || Monitor::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || Monitor::IsEnabled() || Loader::PerformingUnitTests()) return;
 
 		// Server pipe
 		IPCPipe::ServerPipe.onConnect(IPCPipe::ConnectClient);
