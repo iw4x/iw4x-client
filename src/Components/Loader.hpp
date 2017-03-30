@@ -32,6 +32,7 @@ namespace Components
 
 		static bool IsPregame();
 		static bool IsPostgame();
+		static bool IsComInitialized();
 
 		static Utils::Memory::Allocator* GetAlloctor();
 

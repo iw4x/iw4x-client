@@ -18,12 +18,18 @@ namespace Components
 		return Loader::Postgame;
 	}
 
+	bool Loader::IsComInitialized()
+	{
+		return Loader::ComInitialized;
+	}
+
 	void Loader::Initialize()
 	{
 		Loader::Pregame = true;
 		Loader::Postgame = false;
 		Loader::MemAllocator.clear();
 
+		Loader::ComInitialized = false;
 		if (!Loader::PerformingUnitTests()) Loader::ComInitialized = (CoInitialize(nullptr) == S_OK);
 
 		Loader::Register(new Flags());

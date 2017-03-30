@@ -16,7 +16,7 @@ namespace Components
 
 	bool Toast::ShowNative(const WinToastLib::WinToastTemplate& toast)
 	{
-		if (!Toast::ToastHandler) return false;
+		if (!Loader::IsComInitialized() || !Toast::ToastHandler) return false;
 		return WinToastLib::WinToast::instance()->showToast(toast, Toast::ToastHandler);
 	}
 
@@ -146,13 +146,16 @@ namespace Components
 
 	Toast::Toast()
 	{
-		if (Dedicated::IsEnabled() || Monitor::IsEnabled() || Loader::PerformingUnitTests()) return;
+		if (Dedicated::IsEnabled() || Monitor::IsEnabled()) return;
 
-		Toast::ToastHandler = new WinToastLib::WinToastHandler;
+		if (Loader::IsComInitialized())
+		{
+			Toast::ToastHandler = new WinToastLib::WinToastHandler;
 
-		WinToastLib::WinToast::instance()->setAppName(L"IW4x");
-		WinToastLib::WinToast::instance()->setAppUserModelId(WinToastLib::WinToast::configureAUMI(L"IW4x", L"IW4x", L"IW4x", L"0"));
-		WinToastLib::WinToast::instance()->initialize();
+			WinToastLib::WinToast::instance()->setAppName(L"IW4x");
+			WinToastLib::WinToast::instance()->setAppUserModelId(WinToastLib::WinToast::configureAUMI(L"IW4x", L"IW4x", L"IW4x", L"0"));
+			WinToastLib::WinToast::instance()->initialize();
+		}
 
 		QuickPatch::OnReady([]()
 		{
@@ -172,7 +175,7 @@ namespace Components
 
 	void Toast::preDestroy()
 	{
-		if (Dedicated::IsEnabled() || Monitor::IsEnabled() || Loader::PerformingUnitTests()) return;
+		if (Dedicated::IsEnabled() || Monitor::IsEnabled() || !Loader::IsComInitialized()) return;
 
 		// Destroying that on the main thread deadlocks.
 		// I did not write the library, so whatever.
