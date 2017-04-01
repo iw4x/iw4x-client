@@ -250,7 +250,7 @@ namespace Assets
 
 							if (aabbTree->smodelIndexes)
 							{
-								void* oldPointer = aabbTree->smodelIndexes;
+								unsigned short* oldPointer = aabbTree->smodelIndexes;
 								if(builder->getAllocator()->isPointerMapped(oldPointer))
 								{
 									// We still have to read it
@@ -261,7 +261,11 @@ namespace Assets
 								else
 								{
 									aabbTree->smodelIndexes = reader.readArray<unsigned short>(aabbTree->smodelIndexCount);
-									builder->getAllocator()->mapPointer(oldPointer, aabbTree->smodelIndexes);
+
+									for (unsigned short k = 0; k < aabbTree->smodelIndexCount; ++k)
+									{
+										builder->getAllocator()->mapPointer(&oldPointer[k], &aabbTree->smodelIndexes[k]);
+									}
 								}
 							}
 						}
