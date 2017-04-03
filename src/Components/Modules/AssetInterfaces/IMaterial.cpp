@@ -41,6 +41,7 @@ namespace Assets
 		if (asset->techniqueSet)
 		{
 			std::string techset = reader.readString();
+			if (!techset.empty() && techset.front() == ',') techset.erase(techset.begin());
 			asset->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techset.data(), builder).techniqueSet;
 
 			const char* techsetSuffix[] =
@@ -57,6 +58,7 @@ namespace Assets
 
 				if(asset->techniqueSet)
 				{
+					if (asset->techniqueSet->name[0] == ',') continue;
 					Components::Logger::Print("Techset '%s' has been mapped to '%s'\n", techset.data(), asset->techniqueSet->name);
 				}
 			}
