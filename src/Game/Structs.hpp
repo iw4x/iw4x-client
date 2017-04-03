@@ -3129,6 +3129,21 @@ namespace Game
 		int count;
 	};
 
+	struct DpvsClipPlaneSet
+	{
+		DpvsPlane *planes[16];
+		unsigned int count;
+	};
+
+	struct __declspec(align(8)) DpvsStaticCellCmd
+	{
+		DpvsPlane *planes;
+		GfxAabbTree *tree;
+		char planeCount;
+		char frustumPlaneCount;
+		unsigned __int16 sceneViewType;
+	};
+
 	struct GfxPortal
 	{
 		GfxPortalWritable writable;

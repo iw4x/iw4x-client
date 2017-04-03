@@ -550,7 +550,7 @@ namespace Components
 			Utils::Hook::Call<void()>(0x518530)(); // R_ClearDpvsSceneView
 
 			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-			if (!Game::CL_IsCgameInitialized() || !gameWorld || Dvar::Var("r_disableModelWorkaround").get<bool>() || gameWorld->mapVtxChecksum != 0xDEADBEEF) return;
+			if (!Game::CL_IsCgameInitialized() || !gameWorld || Dvar::Var("r_disableModelWorkaround").get<bool>() || gameWorld->checksum != 0xDEADBEEF) return;
 
 			Game::vec3_t _forward, _right;
 			Game::AngleVectors(reinterpret_cast<float*>(0x85F650), _forward, _right, nullptr);
