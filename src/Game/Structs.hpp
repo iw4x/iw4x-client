@@ -3135,7 +3135,8 @@ namespace Game
 		unsigned int count;
 	};
 
-	struct __declspec(align(8)) DpvsStaticCellCmd
+#pragma pack(push, 1)
+	struct DpvsStaticCellCmd
 	{
 		DpvsPlane *planes;
 		GfxAabbTree *tree;
@@ -3143,6 +3144,7 @@ namespace Game
 		char frustumPlaneCount;
 		unsigned __int16 sceneViewType;
 	};
+#pragma pack(pop)
 
 	struct GfxPortal
 	{

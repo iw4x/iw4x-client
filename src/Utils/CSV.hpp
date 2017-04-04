@@ -15,7 +15,10 @@ namespace Utils
 
 		std::string getElementAt(size_t row, size_t column);
 
+		bool isValid() { return this->valid; }
+
 	private:
+		bool valid;
 		std::vector<std::vector<std::string>> dataMap;
 
 		void parse(std::string file, bool isFile = true, bool allowComments = true);

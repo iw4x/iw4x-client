@@ -92,6 +92,12 @@ namespace Components
 
 	void ZoneBuilder::Zone::Zone::build()
 	{
+		if(!this->dataMap.isValid())
+		{
+			Logger::Print("Unable to load CSV for '%s'!\n", this->zoneName.data());
+			return;
+		}
+
 		this->loadFastFiles();
 
 		Logger::Print("Linking assets...\n");

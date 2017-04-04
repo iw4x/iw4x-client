@@ -4,6 +4,7 @@ namespace Utils
 {
 	CSV::CSV(std::string file, bool isFile, bool allowComments)
 	{
+		this->valid = false;
 		this->parse(file, isFile, allowComments);
 	}
 
@@ -72,6 +73,7 @@ namespace Utils
 		{
 			if (!Utils::IO::FileExists(file)) return;
 			buffer = Utils::IO::ReadFile(file);
+			this->valid = true;
 		}
 		else
 		{
