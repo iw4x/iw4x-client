@@ -657,6 +657,11 @@ namespace Components
 
 				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer);
 			}
+
+			if (type == Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS)
+			{
+				OutputDebugStringA("");
+			}
 		});
 
 		Dvar::OnInit([]
@@ -670,66 +675,15 @@ namespace Components
 
 			float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
 
-			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
+			Game::GfxWorld* gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
 			if (!gameWorld) return;
 
 			for (int i = 0; i < gameWorld->dpvsPlanes.cellCount; ++i)
 			{
 				for (int j = 0; j < gameWorld->aabbTreeCounts[i].aabbTreeCount; ++j)
 				{
-					Game::vec3_t v1, v2, v3, v4, v5, v6, v7, v8;
-					float* center = gameWorld->aabbTrees[i].aabbTree[j].bounds.midPoint;
-					float* halfSize = gameWorld->aabbTrees[i].aabbTree[j].bounds.halfSize;
-
-					v1[0] = center[0] - halfSize[0];
-					v1[1] = center[1] - halfSize[1];
-					v1[2] = center[2] - halfSize[2];
-
-					v2[0] = center[0] + halfSize[0];
-					v2[1] = center[1] - halfSize[1];
-					v2[2] = center[2] - halfSize[2];
-
-					v3[0] = center[0] - halfSize[0];
-					v3[1] = center[1] + halfSize[1];
-					v3[2] = center[2] - halfSize[2];
-
-					v4[0] = center[0] + halfSize[0];
-					v4[1] = center[1] + halfSize[1];
-					v4[2] = center[2] - halfSize[2];
-
-					v5[0] = center[0] - halfSize[0];
-					v5[1] = center[1] - halfSize[1];
-					v5[2] = center[2] + halfSize[2];
-
-					v6[0] = center[0] + halfSize[0];
-					v6[1] = center[1] - halfSize[1];
-					v6[2] = center[2] + halfSize[2];
-
-					v7[0] = center[0] - halfSize[0];
-					v7[1] = center[1] + halfSize[1];
-					v7[2] = center[2] + halfSize[2];
-
-					v8[0] = center[0] + halfSize[0];
-					v8[1] = center[1] + halfSize[1];
-					v8[2] = center[2] + halfSize[2];
-
-					// bottom
-					Game::R_AddDebugLine(cyan, v1, v2);
-					Game::R_AddDebugLine(cyan, v2, v4);
-					Game::R_AddDebugLine(cyan, v4, v3);
-					Game::R_AddDebugLine(cyan, v3, v1);
-
-					// top
-					Game::R_AddDebugLine(cyan, v5, v6);
-					Game::R_AddDebugLine(cyan, v6, v8);
-					Game::R_AddDebugLine(cyan, v8, v7);
-					Game::R_AddDebugLine(cyan, v7, v5);
-
-					// verticals
-					Game::R_AddDebugLine(cyan, v1, v5);
-					Game::R_AddDebugLine(cyan, v2, v6);
-					Game::R_AddDebugLine(cyan, v3, v7);
-					Game::R_AddDebugLine(cyan, v4, v8);
+					Game::R_AddDebugBounds(cyan, &gameWorld->aabbTrees[i].aabbTree[j].bounds);
 				}
 			}
 		});

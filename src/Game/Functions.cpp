@@ -841,4 +841,61 @@ namespace Game
 			retn
 		}
 	}
+
+	void R_AddDebugBounds(float* color, Bounds* b)
+	{
+		Game::vec3_t v1, v2, v3, v4, v5, v6, v7, v8;
+		float* center = b->midPoint;
+		float* halfSize = b->halfSize;
+
+		v1[0] = center[0] - halfSize[0];
+		v1[1] = center[1] - halfSize[1];
+		v1[2] = center[2] - halfSize[2];
+
+		v2[0] = center[0] + halfSize[0];
+		v2[1] = center[1] - halfSize[1];
+		v2[2] = center[2] - halfSize[2];
+
+		v3[0] = center[0] - halfSize[0];
+		v3[1] = center[1] + halfSize[1];
+		v3[2] = center[2] - halfSize[2];
+
+		v4[0] = center[0] + halfSize[0];
+		v4[1] = center[1] + halfSize[1];
+		v4[2] = center[2] - halfSize[2];
+
+		v5[0] = center[0] - halfSize[0];
+		v5[1] = center[1] - halfSize[1];
+		v5[2] = center[2] + halfSize[2];
+
+		v6[0] = center[0] + halfSize[0];
+		v6[1] = center[1] - halfSize[1];
+		v6[2] = center[2] + halfSize[2];
+
+		v7[0] = center[0] - halfSize[0];
+		v7[1] = center[1] + halfSize[1];
+		v7[2] = center[2] + halfSize[2];
+
+		v8[0] = center[0] + halfSize[0];
+		v8[1] = center[1] + halfSize[1];
+		v8[2] = center[2] + halfSize[2];
+
+		// bottom
+		Game::R_AddDebugLine(color, v1, v2);
+		Game::R_AddDebugLine(color, v2, v4);
+		Game::R_AddDebugLine(color, v4, v3);
+		Game::R_AddDebugLine(color, v3, v1);
+
+		// top
+		Game::R_AddDebugLine(color, v5, v6);
+		Game::R_AddDebugLine(color, v6, v8);
+		Game::R_AddDebugLine(color, v8, v7);
+		Game::R_AddDebugLine(color, v7, v5);
+
+		// verticals
+		Game::R_AddDebugLine(color, v1, v5);
+		Game::R_AddDebugLine(color, v2, v6);
+		Game::R_AddDebugLine(color, v3, v7);
+		Game::R_AddDebugLine(color, v4, v8);
+	}
 }
