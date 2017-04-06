@@ -282,6 +282,9 @@ namespace Game
 	typedef int(__cdecl * FS_BuildPathToFile_t)(const char*, const char*, const char*, char**);
 	extern FS_BuildPathToFile_t FS_BuildPathToFile;
 
+	typedef iwd_t*(__cdecl * FS_IsShippedIWD_t)(const char* fullpath, const char* iwd);
+	extern FS_IsShippedIWD_t FS_IsShippedIWD;
+
 	typedef void(__cdecl* G_SpawnEntitiesFromString_t)();
 	extern G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString;
 
@@ -658,6 +661,9 @@ namespace Game
 	typedef void (__cdecl * Vec3UnpackUnitVec_t)(PackedUnitVec, vec3_t *);
 	extern Vec3UnpackUnitVec_t Vec3UnpackUnitVec;
 
+	typedef void(__cdecl * unzClose_t)(void* handle);
+	extern unzClose_t unzClose;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
@@ -685,7 +691,7 @@ namespace Game
 	extern int* gameTypeCount;
 	extern gameTypeName_t* gameTypes;
 
-	extern searchpath_t* fs_searchpaths;
+	extern searchpath_t** fs_searchpaths;
 
 	extern XBlock** g_streamBlocks;
 	extern int* g_streamPos;

@@ -657,11 +657,6 @@ namespace Components
 
 				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer);
 			}
-
-			if (type == Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS)
-			{
-				OutputDebugStringA("");
-			}
 		});
 
 		Dvar::OnInit([]
@@ -675,7 +670,7 @@ namespace Components
 
 			float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
 
-			Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
+			//Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
 			Game::GfxWorld* gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
 			if (!gameWorld) return;
 

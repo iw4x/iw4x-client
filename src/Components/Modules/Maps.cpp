@@ -3,19 +3,102 @@
 
 namespace Components
 {
+	Maps::UserMapContainer Maps::UserMap;
 	std::string Maps::CurrentMainZone;
 	std::vector<std::pair<std::string, std::string>> Maps::DependencyList;
 	std::vector<std::string> Maps::CurrentDependencies;
 
-	bool Maps::IsSPMap;
+	bool Maps::SPMap;
 	std::vector<Maps::DLC> Maps::DlcPacks;
 	std::vector<Game::XAssetEntry> Maps::EntryPool;
+
+	Maps::UserMapContainer* Maps::GetUserMap()
+	{
+		return &Maps::UserMap;
+	}
+
+	void Maps::UserMapContainer::loadIwd()
+	{
+		if (this->isValid() && !this->searchPath.iwd)
+		{
+			std::string iwdName = Utils::String::VA("%s.iwd", this->mapname.data());
+			std::string path = Utils::String::VA("%s\\usermaps\\%s\\%s", Dvar::Var("fs_basepath").get<const char*>(), this->mapname.data(), iwdName.data());
+
+			this->searchPath.iwd = Game::FS_IsShippedIWD(path.data(), iwdName.data());
+
+			if (this->searchPath.iwd)
+			{
+				this->searchPath.bLocalized = false;
+				this->searchPath.ignore = 0;
+				this->searchPath.ignorePureCheck = 0;
+				this->searchPath.language = 0;
+				this->searchPath.dir = nullptr;
+				this->searchPath.next = *Game::fs_searchpaths;
+				*Game::fs_searchpaths = &this->searchPath;
+			}
+		}
+	}
+
+	void Maps::UserMapContainer::reloadIwd()
+	{
+		if (this->isValid() && this->wasFreed)
+		{
+			this->wasFreed = false;
+			this->searchPath.iwd = nullptr;
+			this->loadIwd();
+		}
+	}
+
+	void Maps::UserMapContainer::handlePackfile(void* packfile)
+	{
+		if(this->isValid() && this->searchPath.iwd == packfile)
+		{
+			this->wasFreed = true;
+		}
+	}
+
+	void Maps::UserMapContainer::freeIwd()
+	{
+		if(this->isValid() && this->searchPath.iwd && !this->wasFreed)
+		{
+			this->wasFreed = true;
+
+			// Unchain our searchpath
+			for(Game::searchpath_t** pathPtr = Game::fs_searchpaths; *pathPtr; pathPtr = &(*pathPtr)->next)
+			{
+				if(*pathPtr == &this->searchPath)
+				{
+					*pathPtr = (*pathPtr)->next;
+					break;
+				}
+			}
+
+			Game::unzClose(this->searchPath.iwd->handle);
+
+			auto _free = Utils::Hook::Call<void(void*)>(0x6B5CF2);
+			_free(this->searchPath.iwd->buildBuffer);
+			_free(this->searchPath.iwd);
+
+			ZeroMemory(&this->searchPath, sizeof this->searchPath);
+		}
+	}
+
+	void Maps::UnloadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
+	{
+		Game::DB_LoadXAssets(zoneInfo, zoneCount, sync);
+
+		if (Maps::UserMap.isValid())
+		{
+			Maps::UserMap.freeIwd();
+			Maps::UserMap.clear();
+		}
+	}
 
 	void Maps::LoadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
 	{
 		if (!zoneInfo) return;
 
-		Maps::IsSPMap = false;
+		Maps::SPMap = false;
 		Maps::CurrentMainZone = zoneInfo->name;
 
 		Maps::CurrentDependencies.clear();
@@ -160,7 +243,7 @@ namespace Components
 		Logger::Print("Waiting for database...\n");
 		while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);
 
-		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::IsSPMap)
+		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::SPMap)
 		{
 			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].data;
 		}
@@ -217,7 +300,7 @@ namespace Components
 
 	void Maps::HandleAsSPMap()
 	{
-		Maps::IsSPMap = true;
+		Maps::SPMap = true;
 	}
 
 	void Maps::AddDependency(std::string expression, std::string zone)
@@ -288,6 +371,83 @@ namespace Components
 		}
 
  		return { team_axis, team_allies };
+	}
+
+	void Maps::PrepareUsermap(const char* mapname)
+	{
+		if(Maps::UserMap.isValid())
+		{
+			Maps::UserMap.freeIwd();
+			Maps::UserMap.clear();
+		}
+
+		if(Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", mapname)) && Utils::IO::FileExists(Utils::String::VA("usermaps/%s/%s.ff", mapname, mapname)))
+		{
+			Maps::UserMap = Maps::UserMapContainer(mapname);
+			Maps::UserMap.loadIwd();
+		}
+		else
+		{
+			Maps::UserMap.clear();
+		}
+	}
+
+	unsigned int Maps::GetUsermapHash(std::string map)
+	{
+		if (Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", map.data())))
+		{
+			std::string zoneHash;
+			std::string zonePath = Utils::String::VA("usermaps/%s/%s.ff", map.data(), map.data());
+			if (Utils::IO::FileExists(zonePath))
+			{
+				zoneHash = Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(zonePath));
+			}
+
+			std::string iwdHash;
+			std::string iwdPath = Utils::String::VA("usermaps/%s/%s.iwd", map.data(), map.data());
+			if(Utils::IO::FileExists(iwdPath))
+			{
+				iwdHash = Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(iwdPath));
+			}
+
+			return Utils::Cryptography::JenkinsOneAtATime::Compute(zoneHash + iwdHash);
+		}
+
+		return 0;
+	}
+
+	__declspec(naked) void Maps::SpawnServerStub()
+	{
+		__asm
+		{
+			pushad
+
+			push [esp + 24h]
+			call Maps::PrepareUsermap
+			pop eax
+
+			popad
+
+			push 4A7120h // SV_SpawnServer
+			retn
+		}
+	}
+
+	__declspec(naked) void Maps::LoadMapLoadscreenStub()
+	{
+		__asm
+		{
+			pushad
+
+			push[esp + 24h]
+			call Maps::PrepareUsermap
+			pop eax
+
+			popad
+
+			push 4D8030h // LoadMapLoadscreen
+			retn
+		}
 	}
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
@@ -638,8 +798,9 @@ namespace Components
 		// Intercept BSP name resolving
 		Utils::Hook(0x4C5979, Maps::GetBSPName, HOOK_CALL).install()->quick();
 
-		// Intercept map zone loading
+		// Intercept map zone loading/unloading
 		Utils::Hook(0x42C2AF, Maps::LoadMapZones, HOOK_CALL).install()->quick();
+		Utils::Hook(0x60B477, Maps::UnloadMapZones, HOOK_CALL).install()->quick();
 
 		// Ignore SP entities
 		Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).install()->quick();
@@ -649,6 +810,15 @@ namespace Components
 
 		// Allow loading raw suns
 		Utils::Hook(0x51B46A, Maps::LoadRawSun, HOOK_CALL).install()->quick();
+
+		// Intercept map loading for usermap initialization
+		Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x62493E, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x42CF58, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x487CDD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4CA3E9, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A9D51, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5B34DD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);

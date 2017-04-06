@@ -5,6 +5,41 @@ namespace Components
 	class Maps : public Component
 	{
 	public:
+		class UserMapContainer
+		{
+		public:
+			UserMapContainer() : wasFreed(false) { }
+			UserMapContainer(std::string _mapname) : wasFreed(false), mapname(_mapname)
+			{
+				ZeroMemory(&this->searchPath, sizeof this->searchPath);
+				this->hash = Maps::GetUsermapHash(this->mapname);
+			}
+
+			~UserMapContainer()
+			{
+				this->freeIwd();
+				this->clear();
+			}
+
+			unsigned int getHash() { return this->hash; }
+			std::string getName() { return this->mapname; }
+			bool isValid() { return !this->mapname.empty(); }
+			void clear() { this->mapname.clear(); }
+
+			void loadIwd();
+			void freeIwd();
+
+			void reloadIwd();
+
+			void handlePackfile(void* packfile);
+
+		private:
+			bool wasFreed;
+			unsigned int hash;
+			std::string mapname;
+			Game::searchpath_t searchPath;
+		};
+
 		Maps();
 		~Maps();
 
@@ -22,6 +57,9 @@ namespace Components
 
 		static bool CheckMapInstalled(const char* mapname, bool error = false);
 
+		static UserMapContainer* GetUserMap();
+		static unsigned int GetUsermapHash(std::string map);
+
 	private:
 		class DLC
 		{
@@ -31,7 +69,8 @@ namespace Components
 			std::vector<std::string> maps;
 		};
 
-		static bool IsSPMap;
+		static bool SPMap;
+		static UserMapContainer UserMap;
 		static std::vector<DLC> DlcPacks;
 		static std::vector<Game::XAssetEntry> EntryPool;
 
@@ -41,6 +80,7 @@ namespace Components
 		static void GetBSPName(char* buffer, size_t size, const char* format, const char* mapname);
 		static void LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict);
 		static void LoadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
+		static void UnloadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 
 		static void OverrideMapEnts(Game::MapEnts* ents);
 
@@ -57,6 +97,12 @@ namespace Components
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
 		static void ExportMap(Game::GfxWorld* world);
 #endif
+
+		static void PrepareUsermap(const char* mapname);
+		static void SpawnServerStub();
+		static void LoadMapLoadscreenStub();
+
+		static void IwdFreeStub(Game::iwd_t* iwd);
 
 		void reallocateEntryPool();
 	};

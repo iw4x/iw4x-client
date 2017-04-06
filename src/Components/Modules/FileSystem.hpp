@@ -115,5 +115,7 @@ namespace Components
 		static void FsRestartSync(int a1, int a2);
 		static void DelayLoadImagesSync();
 		static int LoadTextureSync(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
+
+		static void IwdFreeStub(Game::iwd_t* iwd);
 	};
 }

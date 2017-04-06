@@ -109,6 +109,7 @@ namespace Game
 	FS_Remove_t FS_Remove = FS_Remove_t(0x4660F0);
 	FS_Restart_t FS_Restart = FS_Restart_t(0x461A50);
 	FS_BuildPathToFile_t FS_BuildPathToFile = FS_BuildPathToFile_t(0x4702C0);
+	FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
 
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
 
@@ -274,6 +275,8 @@ namespace Game
 
 	Vec3UnpackUnitVec_t Vec3UnpackUnitVec = Vec3UnpackUnitVec_t(0x45CA90);
 
+	unzClose_t unzClose = unzClose_t(0x41BF20);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
@@ -301,7 +304,7 @@ namespace Game
 	int* gameTypeCount = reinterpret_cast<int*>(0x62E50A0);
 	gameTypeName_t* gameTypes = reinterpret_cast<gameTypeName_t*>(0x62E50A4);
 
-	searchpath_t* fs_searchpaths = reinterpret_cast<searchpath_t*>(0x63D96E0);
+	searchpath_t** fs_searchpaths = reinterpret_cast<searchpath_t**>(0x63D96E0);
 
 	XBlock** g_streamBlocks = reinterpret_cast<XBlock**>(0x16E554C);
 	int* g_streamPos = reinterpret_cast<int*>(0x16E5554);

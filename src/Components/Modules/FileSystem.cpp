@@ -270,7 +270,8 @@ namespace Components
 	void FileSystem::FsRestartSync(int a1, int a2)
 	{
 		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
-		return Utils::Hook::Call<void(int, int)>(0x461A50)(a1, a2); // FS_Restart
+		Utils::Hook::Call<void(int, int)>(0x461A50)(a1, a2); // FS_Restart
+		Maps::GetUserMap()->reloadIwd();
 	}
 
 	void FileSystem::DelayLoadImagesSync()
@@ -283,6 +284,12 @@ namespace Components
 	{
 		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
 		return Game::Load_Texture(loadDef, image);
+	}
+
+	void FileSystem::IwdFreeStub(Game::iwd_t* iwd)
+	{
+		Maps::GetUserMap()->handlePackfile(iwd);
+		Utils::Hook::Call<void(void*)>(0x4291A0)(iwd);
 	}
 
 	FileSystem::FileSystem()
@@ -325,6 +332,9 @@ namespace Components
 		// Synchronize db image loading
 		Utils::Hook(0x415AB8, FileSystem::DelayLoadImagesSync, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4D32BC, FileSystem::LoadTextureSync, HOOK_CALL).install()->quick();
+
+		// Handle IWD freeing
+		Utils::Hook(0x642F60, FileSystem::IwdFreeStub, HOOK_CALL).install()->quick();
 	}
 
 	FileSystem::~FileSystem()
