@@ -780,7 +780,6 @@ namespace Components
 
 			if (info)
 			{
-				if (!Maps::CheckMapInstalled(info->mapname.data(), true)) return;
 				Party::Connect(info->addr);
 			}
 		});

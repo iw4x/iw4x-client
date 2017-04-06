@@ -325,6 +325,11 @@ namespace Components
 			info.set("securityLevel", Utils::String::VA("%i", Dvar::Var("sv_securityLevel").get<int>()));
 			info.set("sv_running", (Dvar::Var("sv_running").get<bool>() ? "1" : "0"));
 
+			if (Maps::GetUserMap()->isValid())
+			{
+				info.set("usermaphash", Utils::String::VA("%i", Maps::GetUserMap()->getHash()));
+			}
+
 			if (Dedicated::IsEnabled())
 			{
 				info.set("sv_motd", Dvar::Var("sv_motd").get<std::string>());
@@ -372,6 +377,8 @@ namespace Components
 
 					Party::Container.matchType = atoi(info.get("matchtype").data());
 					uint32_t securityLevel = static_cast<uint32_t>(atoi(info.get("securityLevel").data()));
+					bool isUsermap = !info.get("usermaphash").empty();
+					unsigned int usermapHash = atoi(info.get("usermaphash").data());
 
 					std::string mod = Dvar::Var("fs_game").get<std::string>();
 
@@ -393,6 +400,15 @@ namespace Components
 					{
 						Party::ConnectError("Invalid join response: Unknown matchtype");
 					}
+					else if (Party::Container.info.get("mapname").empty() || Party::Container.info.get("gametype").empty())
+					{
+						Party::ConnectError("Invalid map or gametype.");
+					}
+					else if(isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
+					{
+						Command::Execute("closemenu popup_reconnectingtoparty");
+						Download::InitiateMapDownload(info.get("mapname"));
+					}
 					else if(!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
@@ -411,6 +427,8 @@ namespace Components
 					}
 					else
 					{
+						if (!Maps::CheckMapInstalled(Party::Container.info.get("mapname").data(), true)) return;
+
 						Party::Container.motd = info.get("sv_motd");
 
 						if (Party::Container.matchType == 1) // Party
@@ -432,10 +450,6 @@ namespace Components
 							if (atoi(Party::Container.info.get("clients").data()) >= atoi(Party::Container.info.get("sv_maxclients").data()))
 							{
 								Party::ConnectError("@EXE_SERVERISFULL");
-							}
-							if (Party::Container.info.get("mapname") == "" || Party::Container.info.get("gametype") == "")
-							{
-								Party::ConnectError("Invalid map or gametype.");
 							}
 							else
 							{

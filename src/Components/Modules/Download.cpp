@@ -7,7 +7,12 @@ namespace Components
 
 #pragma region Client
 
-	void Download::InitiateClientDownload(std::string mod)
+	void Download::InitiateMapDownload(std::string map)
+	{
+		Download::InitiateClientDownload(map, true);
+	}
+
+	void Download::InitiateClientDownload(std::string mod, bool map)
 	{
 		if (Download::CLDownload.running) return;
 
@@ -21,6 +26,7 @@ namespace Components
 		Command::Execute("openmenu mod_download_popmenu", false);
 
 		Download::CLDownload.running = true;
+		Download::CLDownload.isMap = map;
 		Download::CLDownload.mod = mod;
 		Download::CLDownload.terminateThread = false;
 		Download::CLDownload.totalBytes = 0;
@@ -39,8 +45,11 @@ namespace Components
 		std::string error;
 		json11::Json listData = json11::Json::parse(list, error);
 
-
-		if (!error.empty() || !listData.is_array()) return false;
+		if (!error.empty() || !listData.is_array())
+		{
+			Logger::Print("Error: %s\n", error.data());
+			return false;
+		}
 
 		download->totalBytes = 0;
 
@@ -163,6 +172,11 @@ namespace Components
 		auto file = download->files[index];
 
 		std::string path = download->mod + "/" + file.name;
+		if (download->isMap)
+		{
+			path = "usermaps/" + path;
+		}
+
 		if (Utils::IO::FileExists(path))
 		{
 			std::string data = Utils::IO::ReadFile(path);
@@ -174,7 +188,7 @@ namespace Components
 			}
 		}
 
-		std::string url = "http://" + download->target.getString() + "/file/" + file.name;
+		std::string url = "http://" + download->target.getString() + "/file/" + (download->isMap ? "map/" : "") + file.name;
 
 		Download::FileDownload fDownload;
 		fDownload.file = file;
@@ -202,7 +216,7 @@ namespace Components
 			return false;
 		}
 
-		Utils::IO::CreateDir(download->mod);
+		Utils::IO::CreateDir("usermaps/" + download->mod);
 		Utils::IO::WriteFile(path, fDownload.buffer);
 
 		return true;
@@ -213,8 +227,8 @@ namespace Components
 		if (!download) download = &Download::CLDownload;
 
 		std::string host = "http://" + download->target.getString();
-		std::string list = Utils::WebIO("IW4x", host + "/list").setTimeout(5000)->get();
 
+		std::string list = Utils::WebIO("IW4x", host + (download->isMap ? "/map" : "/list")).setTimeout(5000)->get();
 		if (list.empty())
 		{
 			if (download->terminateThread) return;
@@ -222,8 +236,9 @@ namespace Components
 			download->thread.detach();
 			download->clear();
 
-			QuickPatch::Once([] ()
+			QuickPatch::Once([]()
 			{
+				Command::Execute("closemenu mod_download_popmenu");
 				Party::ConnectError("Failed to download the modlist!");
 			});
 
@@ -239,8 +254,9 @@ namespace Components
 			download->thread.detach();
 			download->clear();
 
-			QuickPatch::Once([] ()
+			QuickPatch::Once([]()
 			{
+				Command::Execute("closemenu mod_download_popmenu");
 				Party::ConnectError("Failed to parse the modlist!");
 			});
 
@@ -264,7 +280,7 @@ namespace Components
 				download->thread.detach();
 				download->clear();
 
-				QuickPatch::Once([] ()
+				QuickPatch::Once([]()
 				{
 					Dvar::Var("partyend_reason").set(mod);
 					mod.clear();
@@ -282,23 +298,33 @@ namespace Components
 		download->thread.detach();
 		download->clear();
 
-		// Run this on the main thread
-		QuickPatch::Once([] ()
+		if(download->isMap)
 		{
-			auto fsGame = Dvar::Var("fs_game");
-			fsGame.set(mod);
-			fsGame.get<Game::dvar_t*>()->modified = true;
-			mod.clear();
-
-			Command::Execute("closemenu mod_download_popmenu", false);
-
-			if (Dvar::Var("cl_modVidRestart").get<bool>())
+			QuickPatch::Once([]()
 			{
-				Command::Execute("vid_restart", false);
-			}
+				Command::Execute("reconnect", false);
+			});
+		}
+		else
+		{
+			// Run this on the main thread
+			QuickPatch::Once([]()
+			{
+				auto fsGame = Dvar::Var("fs_game");
+				fsGame.set(mod);
+				fsGame.get<Game::dvar_t*>()->modified = true;
+				mod.clear();
 
-			Command::Execute("reconnect", false);
-		});
+				Command::Execute("closemenu mod_download_popmenu", false);
+
+				if (Dvar::Var("cl_modVidRestart").get<bool>())
+				{
+					Command::Execute("vid_restart", false);
+				}
+
+				Command::Execute("reconnect", false);
+			});
+		}
 	}
 
 #pragma endregion
@@ -341,6 +367,58 @@ namespace Components
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 	}
 
+	void Download::MapHandler(mg_connection *nc, int ev, void* /*ev_data*/)
+	{
+		// Only handle http requests
+		if (ev != MG_EV_HTTP_REQUEST) return;
+
+		static std::string mapnamePre;
+		static json11::Json jsonList;
+
+		std::string mapname = Maps::GetUserMap()->getName();
+		if(!Maps::GetUserMap()->isValid())
+		{
+			mapnamePre.clear();
+			jsonList = std::vector<json11::Json>();
+		}
+		else if (!mapname.empty() && mapname != mapnamePre)
+		{
+			std::vector<json11::Json> fileList;
+
+			mapnamePre = mapname;
+
+			std::string path = Dvar::Var("fs_basepath").get<std::string>() + "\\usermaps\\" + mapname;
+
+			std::vector<std::string> list = { mapname + ".ff", mapname + "_load.ff", mapname + ".iwd" };
+			for (auto i = list.begin(); i != list.end(); ++i)
+			{
+				std::string filename = path + "\\" + *i;
+				if (strstr(i->data(), "_svr_") == nullptr && Utils::IO::FileExists(filename))
+				{
+					std::map<std::string, json11::Json> file;
+					std::string fileBuffer = Utils::IO::ReadFile(filename);
+
+					file["name"] = *i;
+					file["size"] = static_cast<int>(fileBuffer.size());
+					file["hash"] = Utils::Cryptography::SHA256::Compute(fileBuffer, true);
+
+					fileList.push_back(file);
+				}
+			}
+
+			jsonList = fileList;
+		}
+
+		mg_printf(nc,
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: application/json\r\n"
+			"Connection: close\r\n"
+			"\r\n"
+			"%s", jsonList.dump().data());
+
+		nc->flags |= MG_F_SEND_AND_CLOSE;
+	}
+
 	void Download::ListHandler(mg_connection* nc, int ev, void* /*ev_data*/)
 	{
 		// Only handle http requests
@@ -374,7 +452,7 @@ namespace Components
 					if (strstr(i->data(), "_svr_") == nullptr && Utils::IO::FileExists(filename))
 					{
 						std::map<std::string, json11::Json> file;
-						std::string fileBuffer = Utils::IO::ReadFile(path + "\\" + *i);
+						std::string fileBuffer = Utils::IO::ReadFile(filename);
 
 						file["name"] = *i;
 						file["size"] = static_cast<int>(fileBuffer.size());
@@ -413,7 +491,7 @@ namespace Components
 		{
 			std::string url(message->uri.p, message->uri.len);
 			Utils::String::Replace(url, "\\", "/");
-			
+
 			if (url.size() >= 6)
 			{
 				url = url.substr(6);
@@ -421,17 +499,35 @@ namespace Components
 
 			Utils::String::Replace(url, "%20", " ");
 
-			if (url.find_first_of("/") != std::string::npos || (!Utils::String::EndsWith(url, ".iwd") && url != "mod.ff") || strstr(url.data(), "_svr_") != nullptr)
+			bool isMap = false;
+			if (Utils::String::StartsWith(url, "map/"))
 			{
-				Download::Forbid(nc);
-				return;
+				isMap = true;
+				url = url.substr(4);
+
+				std::string mapname = Maps::GetUserMap()->getName();
+				if(!Maps::GetUserMap()->isValid() || (url != (mapname + ".ff") && url != (mapname + ".iwd") && url != (mapname + "_load.ff")))
+				{
+					Download::Forbid(nc);
+					return;
+				}
+
+				url = Utils::String::VA("usermaps\\%s\\%s", mapname.data(), url.data());
+			}
+			else
+			{
+				if (url.find_first_of("/") != std::string::npos || (!Utils::String::EndsWith(url, ".iwd") && url != "mod.ff") || strstr(url.data(), "_svr_") != nullptr)
+				{
+					Download::Forbid(nc);
+					return;
+				}
 			}
 
 			std::string file;
 			std::string fsGame = Dvar::Var("fs_game").get<std::string>();
-			std::string path = Dvar::Var("fs_basepath").get<std::string>() + "\\" + fsGame + "\\" + url;
+			std::string path = Dvar::Var("fs_basepath").get<std::string>() + "\\" + (isMap ? "" : fsGame + "\\") + url;
 
-			if (fsGame.empty() || !Utils::IO::ReadFile(path, &file))
+			if ((!isMap && fsGame.empty()) || !Utils::IO::ReadFile(path, &file))
 			{
 				mg_printf(nc,
 					"HTTP/1.1 404 Not Found\r\n"
@@ -606,6 +702,7 @@ namespace Components
 					// Handle special requests
 					mg_register_http_endpoint(nc, "/info", Download::InfoHandler);
 					mg_register_http_endpoint(nc, "/list", Download::ListHandler);
+					mg_register_http_endpoint(nc, "/map", Download::MapHandler);
 					mg_register_http_endpoint(nc, "/file/", Download::FileHandler);
 
 					mg_set_protocol_http_websocket(nc);

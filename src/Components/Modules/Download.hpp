@@ -14,18 +14,20 @@ namespace Components
 
 		void preDestroy() override;
 
-		static void InitiateClientDownload(std::string mod);
+		static void InitiateClientDownload(std::string mod, bool map = false);
+		static void InitiateMapDownload(std::string map);
 
 	private:
 		class ClientDownload
 		{
 		public:
-			ClientDownload() : running(false), valid(false), terminateThread(false), totalBytes(0), downBytes(0), lastTimeStamp(0), timeStampBytes(0) {}
+			ClientDownload(bool _isMap = false) : running(false), valid(false), terminateThread(false), isMap(_isMap), totalBytes(0), downBytes(0), lastTimeStamp(0), timeStampBytes(0) {}
 			~ClientDownload() { this->clear(); }
 
 			bool running;
 			bool valid;
 			bool terminateThread;
+			bool isMap;
 			mg_mgr mgr;
 			Network::Address target;
 			std::string mod;
@@ -86,6 +88,7 @@ namespace Components
 
 		static void EventHandler(mg_connection *nc, int ev, void *ev_data);
 		static void ListHandler(mg_connection *nc, int ev, void *ev_data);
+		static void MapHandler(mg_connection *nc, int ev, void *ev_data);
 		static void FileHandler(mg_connection *nc, int ev, void *ev_data);
 		static void InfoHandler(mg_connection *nc, int ev, void *ev_data);
 		static void DownloadHandler(mg_connection *nc, int ev, void *ev_data);
