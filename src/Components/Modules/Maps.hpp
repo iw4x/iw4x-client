@@ -55,7 +55,7 @@ namespace Components
 
 		static std::string CurrentMainZone;
 
-		static bool CheckMapInstalled(const char* mapname, bool error = false);
+		static bool CheckMapInstalled(const char* mapname, bool error = false, bool dlcIsTrue = false);
 
 		static UserMapContainer* GetUserMap();
 		static unsigned int GetUsermapHash(std::string map);
@@ -102,7 +102,8 @@ namespace Components
 		static void SpawnServerStub();
 		static void LoadMapLoadscreenStub();
 
-		static void IwdFreeStub(Game::iwd_t* iwd);
+		static int TriggerReconnectForMap(const char* mapname);
+		static void RotateCheckStub();
 
 		void reallocateEntryPool();
 	};

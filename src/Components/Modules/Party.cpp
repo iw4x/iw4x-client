@@ -267,7 +267,7 @@ namespace Components
 		{
 			if (Party::Container.valid)
 			{
-				if ((Game::Sys_Milliseconds() - Party::Container.joinTime) > 5000)
+				if ((Game::Sys_Milliseconds() - Party::Container.joinTime) > 10'000)
 				{
 					Party::Container.valid = false;
 					Party::ConnectError("Server connection timed out.");
@@ -276,7 +276,7 @@ namespace Components
 
 			if (Party::Container.awaitingPlaylist)
 			{
-				if ((Game::Sys_Milliseconds() - Party::Container.requestTime) > 5000)
+				if ((Game::Sys_Milliseconds() - Party::Container.requestTime) > 5'000)
 				{
 					Party::Container.awaitingPlaylist = false;
 					Party::ConnectError("Playlist request timed out.");

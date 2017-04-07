@@ -321,22 +321,23 @@ namespace Components
 
 	void Theatre::MapChangeStub()
 	{
-		if (*Game::demoRecording)
-		{
-			Command::Execute("stoprecord", true);
-		}
-
+		Theatre::StopRecording();
 		Utils::Hook::Call<void()>(0x464A60)();
 	}
 
+	// DANGEROUS, DON'T USE THIS ONE!
 	void Theatre::MapChangeSVStub(char* a1, char* a2)
+	{
+		Theatre::StopRecording();
+		Utils::Hook::Call<void(char*, char*)>(0x487C50)(a1, a2);
+	}
+
+	void Theatre::StopRecording()
 	{
 		if (*Game::demoRecording)
 		{
 			Command::Execute("stoprecord", true);
 		}
-
-		Utils::Hook::Call<void(char*, char*)>(0x487C50)(a1, a2);
 	}
 
 	Theatre::Theatre()
@@ -359,7 +360,7 @@ namespace Components
 		// Autorecording
 		Utils::Hook(0x5A1D6A, Theatre::InitCGameStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4A712A, Theatre::MapChangeStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5AA91C, Theatre::MapChangeSVStub, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x5AA91C, Theatre::MapChangeSVStub, HOOK_CALL).install()->quick();
 
 		// UIScripts
 		UIScript::Add("loadDemos", Theatre::LoadDemos);

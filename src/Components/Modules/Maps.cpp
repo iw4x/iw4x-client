@@ -51,7 +51,7 @@ namespace Components
 
 	void Maps::UserMapContainer::handlePackfile(void* packfile)
 	{
-		if(this->isValid() && this->searchPath.iwd == packfile)
+		if (this->isValid() && this->searchPath.iwd == packfile)
 		{
 			this->wasFreed = true;
 		}
@@ -59,14 +59,14 @@ namespace Components
 
 	void Maps::UserMapContainer::freeIwd()
 	{
-		if(this->isValid() && this->searchPath.iwd && !this->wasFreed)
+		if (this->isValid() && this->searchPath.iwd && !this->wasFreed)
 		{
 			this->wasFreed = true;
 
 			// Unchain our searchpath
-			for(Game::searchpath_t** pathPtr = Game::fs_searchpaths; *pathPtr; pathPtr = &(*pathPtr)->next)
+			for (Game::searchpath_t** pathPtr = Game::fs_searchpaths; *pathPtr; pathPtr = &(*pathPtr)->next)
 			{
-				if(*pathPtr == &this->searchPath)
+				if (*pathPtr == &this->searchPath)
 				{
 					*pathPtr = (*pathPtr)->next;
 					break;
@@ -83,7 +83,7 @@ namespace Components
 		}
 	}
 
-	void Maps::UnloadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
+	void Maps::UnloadMapZones(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync)
 	{
 		Game::DB_LoadXAssets(zoneInfo, zoneCount, sync);
 
@@ -94,7 +94,7 @@ namespace Components
 		}
 	}
 
-	void Maps::LoadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync)
+	void Maps::LoadMapZones(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync)
 	{
 		if (!zoneInfo) return;
 
@@ -147,7 +147,7 @@ namespace Components
 		std::string patchZone = Utils::String::VA("patch_%s", zoneInfo->name);
 		if (FastFiles::Exists(patchZone))
 		{
-			data.push_back({ patchZone.data(), zoneInfo->allocFlags, zoneInfo->freeFlags });
+			data.push_back({patchZone.data(), zoneInfo->allocFlags, zoneInfo->freeFlags});
 		}
 
 		return FastFiles::LoadLocalizeZones(data.data(), data.size(), sync);
@@ -156,17 +156,17 @@ namespace Components
 	void Maps::OverrideMapEnts(Game::MapEnts* ents)
 	{
 		auto callback = [] (Game::XAssetHeader header, void* ents)
-		{
-			Game::MapEnts* mapEnts = reinterpret_cast<Game::MapEnts*>(ents);
-			Game::clipMap_t* clipMap = header.clipMap;
-
-			if (clipMap && mapEnts && !_stricmp(mapEnts->name, clipMap->name))
 			{
-				clipMap->mapEnts = mapEnts;
-				//*Game::marMapEntsPtr = mapEnts;
-				//Game::G_SpawnEntitiesFromString();
-			}
-		};
+				Game::MapEnts* mapEnts = reinterpret_cast<Game::MapEnts*>(ents);
+				Game::clipMap_t* clipMap = header.clipMap;
+
+				if (clipMap && mapEnts && !_stricmp(mapEnts->name, clipMap->name))
+				{
+					clipMap->mapEnts = mapEnts;
+					//*Game::marMapEntsPtr = mapEnts;
+					//Game::G_SpawnEntitiesFromString();
+				}
+			};
 
 		// Internal doesn't lock the thread, as locking is impossible, due to executing this in the thread that holds the current lock
 		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, callback, ents, true);
@@ -316,7 +316,7 @@ namespace Components
 			return;
 		}
 
-		Maps::DependencyList.push_back({ expression, zone });
+		Maps::DependencyList.push_back({expression, zone});
 	}
 
 	int Maps::IgnoreEntityStub(const char* entity)
@@ -370,18 +370,18 @@ namespace Components
 			}
 		}
 
- 		return { team_axis, team_allies };
+		return {team_axis, team_allies};
 	}
 
 	void Maps::PrepareUsermap(const char* mapname)
 	{
-		if(Maps::UserMap.isValid())
+		if (Maps::UserMap.isValid())
 		{
 			Maps::UserMap.freeIwd();
 			Maps::UserMap.clear();
 		}
 
-		if(Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", mapname)) && Utils::IO::FileExists(Utils::String::VA("usermaps/%s/%s.ff", mapname, mapname)))
+		if (Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", mapname)) && Utils::IO::FileExists(Utils::String::VA("usermaps/%s/%s.ff", mapname, mapname)))
 		{
 			Maps::UserMap = Maps::UserMapContainer(mapname);
 			Maps::UserMap.loadIwd();
@@ -405,7 +405,7 @@ namespace Components
 
 			std::string iwdHash;
 			std::string iwdPath = Utils::String::VA("usermaps/%s/%s.iwd", map.data(), map.data());
-			if(Utils::IO::FileExists(iwdPath))
+			if (Utils::IO::FileExists(iwdPath))
 			{
 				iwdHash = Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(iwdPath));
 			}
@@ -414,6 +414,52 @@ namespace Components
 		}
 
 		return 0;
+	}
+
+	int Maps::TriggerReconnectForMap(const char* mapname)
+	{
+		Theatre::StopRecording();
+
+		if(!Maps::CheckMapInstalled(mapname, false, true))
+		{
+			// Reconnecting forces the client to download the new map
+			Command::Execute("disconnect", false);
+			Command::Execute("awaitDatabase", false); // Wait for the database to load
+			Command::Execute("wait 100", false);
+			Command::Execute("openmenu popup_reconnectingtoparty", false);
+			Command::Execute("wait 8000", false); // Seems like 8000ms?
+			Command::Execute("closemenu popup_reconnectingtoparty", false);
+			Command::Execute("reconnect", false);
+			return true;
+		}
+
+		return false;
+	}
+
+	__declspec(naked) void Maps::RotateCheckStub()
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			push [esp + 28h]
+			call Maps::TriggerReconnectForMap
+			add esp, 4h
+
+			mov[esp + 20h], eax
+
+			popad
+			pop eax
+
+			test eax, eax
+			jnz skipRotation
+
+			push 487C50h // Rotate map
+
+		skipRotation:
+			retn
+		}
 	}
 
 	__declspec(naked) void Maps::SpawnServerStub()
@@ -439,7 +485,7 @@ namespace Components
 		{
 			pushad
 
-			push[esp + 24h]
+			push [esp + 24h]
 			call Maps::PrepareUsermap
 			pop eax
 
@@ -622,7 +668,6 @@ namespace Components
 		}
 
 		Dvar::Var("isDlcInstalled_All").setRaw(hasAllDlcs ? 1 : 0);
-
 	}
 
 	void Maps::reallocateEntryPool()
@@ -672,10 +717,10 @@ namespace Components
 		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, Maps::EntryPool.data() + 1);
 	}
 
-	bool Maps::CheckMapInstalled(const char* mapname, bool error)
+	// dlcIsTrue serves as a check if the map is a custom map and if it's missing
+	bool Maps::CheckMapInstalled(const char* mapname, bool error, bool dlcIsTrue)
 	{
 		if (FastFiles::Exists(mapname)) return true;
-		if (!error) return false;
 
 		for (auto& pack : Maps::DlcPacks)
 		{
@@ -683,104 +728,109 @@ namespace Components
 			{
 				if (map == std::string(mapname))
 				{
-					Components::Logger::SoftError("Missing DLC pack %s (%d) containing map %s (%s).\nPlease download it to play this map.",
-						pack.name.data(), pack.index, Game::UI_LocalizeMapName(mapname), mapname);
+					if (error)
+					{
+						Components::Logger::SoftError("Missing DLC pack %s (%d) containing map %s (%s).\nPlease download it to play this map.",
+							pack.name.data(), pack.index, Game::UI_LocalizeMapName(mapname), mapname);
+					}
+
+					return dlcIsTrue;
 				}
 			}
 		}
 
-		Components::Logger::SoftError("Missing map file %s.\nYou may have a damaged installation or are attempting to load a non-existant map.", mapname);
+		if (error) Components::Logger::SoftError("Missing map file %s.\nYou may have a damaged installation or are attempting to load a non-existant map.", mapname);
 		return false;
 	}
 
 	Maps::Maps()
 	{
 		Dvar::OnInit([]()
-		{
-			bool value = false;
+			{
+				bool value = false;
 #ifdef DEBUG
 			value = true;
 #endif
-			Dvar::Register<bool>("r_disableModelWorkaround", value, 0, "Disable static model drawing workaround for custom maps");
-		});
+				Dvar::Register<bool>("r_disableModelWorkaround", value, 0, "Disable static model drawing workaround for custom maps");
+			});
 
 		// Hook R_ClearDpvsSceneView to force drawing all models in front of us
 		Utils::Hook(0x50EF39, []()
-		{
-			Utils::Hook::Call<void()>(0x518530)(); // R_ClearDpvsSceneView
+		            {
+			            Utils::Hook::Call<void()>(0x518530)(); // R_ClearDpvsSceneView
 
-			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-			if (!Game::CL_IsCgameInitialized() || !gameWorld || Dvar::Var("r_disableModelWorkaround").get<bool>() || gameWorld->checksum != 0xDEADBEEF) return;
+			            Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			            if (!Game::CL_IsCgameInitialized() || !gameWorld || Dvar::Var("r_disableModelWorkaround").get<bool>() || gameWorld->checksum != 0xDEADBEEF) return;
 
-			Game::vec3_t _forward, _right;
-			Game::AngleVectors(reinterpret_cast<float*>(0x85F650), _forward, _right, nullptr);
+			            Game::vec3_t _forward, _right;
+			            Game::AngleVectors(reinterpret_cast<float*>(0x85F650), _forward, _right, nullptr);
 
-			glm::vec2 right(_right[0], _right[1]);
-			glm::vec2 forward = glm::normalize(glm::vec2(_forward[0], _forward[1]));
+			            glm::vec2 right(_right[0], _right[1]);
+			            glm::vec2 forward = glm::normalize(glm::vec2(_forward[0], _forward[1]));
 
-			float* _selfOrigin = reinterpret_cast<float*>(0x85B708);
-			glm::vec2 selfOrigin(_selfOrigin[0], _selfOrigin[1]);
-			selfOrigin -= (forward * 200.0f); // Move 200 units back
+			            float* _selfOrigin = reinterpret_cast<float*>(0x85B708);
+			            glm::vec2 selfOrigin(_selfOrigin[0], _selfOrigin[1]);
+			            selfOrigin -= (forward * 200.0f); // Move 200 units back
 
-			for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
-			{
-				float* _origin = gameWorld->dpvs.smodelDrawInsts[i].placement.origin;
-				glm::vec2 modelOrigin(_origin[0], _origin[1]);
+			            for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
+			            {
+				            float* _origin = gameWorld->dpvs.smodelDrawInsts[i].placement.origin;
+				            glm::vec2 modelOrigin(_origin[0], _origin[1]);
 
-				if ((selfOrigin - modelOrigin).length() <= gameWorld->dpvs.smodelDrawInsts[i].cullDist * 1.0f)
-				{
-					// If matrix is singular just draw the models
-					glm::mat2x2 matrix(right[0], -(forward[0]), right[1], -(forward[1]));
-					if (glm::determinant(matrix) != 0)
-					{
-						glm::mat2x2 invMatrix = glm::inverse(matrix);
-						glm::vec2 solve = modelOrigin - selfOrigin;
-						glm::vec2 result = invMatrix * solve;
-						glm::vec2 path = modelOrigin - (selfOrigin + (result[0] * right));
+				            if ((selfOrigin - modelOrigin).length() <= gameWorld->dpvs.smodelDrawInsts[i].cullDist * 1.0f)
+				            {
+					            // If matrix is singular just draw the models
+					            glm::mat2x2 matrix(right[0], -(forward[0]), right[1], -(forward[1]));
+					            if (glm::determinant(matrix) != 0)
+					            {
+						            glm::mat2x2 invMatrix = glm::inverse(matrix);
+						            glm::vec2 solve = modelOrigin - selfOrigin;
+						            glm::vec2 result = invMatrix * solve;
+						            glm::vec2 path = modelOrigin - (selfOrigin + (result[0] * right));
 
-						// Compare signs and skip to the next model if they don't equal
-						if ((path[0] < 0) == (forward[0] >= 0) && (path[1] < 0) == (forward[1] >= 0)) continue;
-					}
+						            // Compare signs and skip to the next model if they don't equal
+						            if ((path[0] < 0) == (forward[0] >= 0) && (path[1] < 0) == (forward[1] >= 0)) continue;
+					            }
 
-					gameWorld->dpvs.smodelVisData[0][i] = 1;
-					gameWorld->dpvs.smodelVisData[1][i] = 1;
-					gameWorld->dpvs.smodelVisData[2][i] = 1;
-				}
-			}
-		}, HOOK_CALL).install()->quick();
+					            gameWorld->dpvs.smodelVisData[0][i] = 1;
+					            gameWorld->dpvs.smodelVisData[1][i] = 1;
+					            gameWorld->dpvs.smodelVisData[2][i] = 1;
+				            }
+			            }
+		            }, HOOK_CALL).install()->quick();
 
 		Dvar::OnInit([] ()
-		{
-			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
-
-			Maps::AddDlc({ 1, "Stimulus Pack", { "mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash" } });
-			Maps::AddDlc({ 2, "Resergence Pack", { "mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2" } });
-			Maps::AddDlc({ 3, "Nuketown", { "mp_nuked" } });
-			Maps::AddDlc({ 4, "Classics Pack", { "mp_cross_fire", "mp_cargoship", "mp_bloc" } });
-			Maps::AddDlc({ 5, "Classics Pack", { "mp_killhouse", "mp_bog_sh" } });
-			Maps::AddDlc({ 6, "Freighter", { "mp_cargoship_sh" } });
-			Maps::AddDlc({ 7, "Resurrection Pack", { "mp_shipment_long", "mp_rust_long", "mp_firingrange" } });
-			Maps::AddDlc({ 8, "Recycled Pack", { "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring" } });
-
-			Maps::UpdateDlcStatus();
-
-			UIScript::Add("downloadDLC", [] (UIScript::Token token)
 			{
-				int dlc = token.get<int>();
+				Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
 
-				for (auto pack : Maps::DlcPacks)
-				{
-					if (pack.index == dlc)
-					{
-						News::LaunchUpdater(Utils::String::VA("-dlc %i -c", pack.index));
-						//ShellExecuteA(nullptr, "open", pack.url.data(), nullptr, nullptr, SW_SHOWNORMAL);
-						return;
-					}
-				}
+				Maps::AddDlc({1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"}});
+				Maps::AddDlc({2, "Resergence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"}});
+				Maps::AddDlc({3, "Nuketown", {"mp_nuked"}});
+				Maps::AddDlc({4, "Classics Pack", {"mp_cross_fire", "mp_cargoship", "mp_bloc"}});
+				Maps::AddDlc({5, "Classics Pack", {"mp_killhouse", "mp_bog_sh"}});
+				Maps::AddDlc({6, "Freighter", {"mp_cargoship_sh"}});
+				Maps::AddDlc({7, "Resurrection Pack", {"mp_shipment_long", "mp_rust_long", "mp_firingrange"}});
+				Maps::AddDlc({8, "Recycled Pack", {"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"}});
 
-				Game::ShowMessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
+				Maps::UpdateDlcStatus();
+
+				UIScript::Add("downloadDLC", [] (UIScript::Token token)
+				              {
+					              int dlc = token.get<int>();
+
+					              for (auto pack : Maps::DlcPacks)
+					              {
+						              if (pack.index == dlc)
+						              {
+							              News::LaunchUpdater(Utils::String::VA("-dlc %i -c", pack.index));
+							              //ShellExecuteA(nullptr, "open", pack.url.data(), nullptr, nullptr, SW_SHOWNORMAL);
+							              return;
+						              }
+					              }
+
+					              Game::ShowMessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
+				              });
 			});
-		});
 
 		// Restrict asset loading
 		AssetHandler::OnLoad(Maps::LoadAssetRestrict);
@@ -819,6 +869,10 @@ namespace Components
 		Utils::Hook(0x4CA3E9, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A9D51, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5B34DD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+
+		// Download the map before a maprotation if necessary
+		// Conflicts with Theater's SV map rotation check, but this one is safer!
+		Utils::Hook(0x5AA91C, Maps::RotateCheckStub, HOOK_CALL).install()->quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
