@@ -746,91 +746,88 @@ namespace Components
 	Maps::Maps()
 	{
 		Dvar::OnInit([]()
-			{
-				bool value = false;
+		{
+			bool value = false;
 #ifdef DEBUG
 			value = true;
 #endif
-				Dvar::Register<bool>("r_disableModelWorkaround", value, 0, "Disable static model drawing workaround for custom maps");
-			});
+			Dvar::Register<bool>("r_disableModelWorkaround", value, 0, "Disable static model drawing workaround for custom maps");
+		});
 
 		// Hook R_ClearDpvsSceneView to force drawing all models in front of us
 		Utils::Hook(0x50EF39, []()
-		            {
-			            Utils::Hook::Call<void()>(0x518530)(); // R_ClearDpvsSceneView
+		{
+			Utils::Hook::Call<void()>(0x518530)(); // R_ClearDpvsSceneView
 
-			            Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-			            if (!Game::CL_IsCgameInitialized() || !gameWorld || Dvar::Var("r_disableModelWorkaround").get<bool>() || gameWorld->checksum != 0xDEADBEEF) return;
+			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			if (!Game::CL_IsCgameInitialized() || !gameWorld || Dvar::Var("r_disableModelWorkaround").get<bool>() || gameWorld->checksum != 0xDEADBEEF) return;
 
-			            Game::vec3_t _forward, _right;
-			            Game::AngleVectors(reinterpret_cast<float*>(0x85F650), _forward, _right, nullptr);
+			Game::vec3_t _forward, _right;
+			Game::AngleVectors(reinterpret_cast<float*>(0x85F650), _forward, _right, nullptr);
 
-			            glm::vec2 right(_right[0], _right[1]);
-			            glm::vec2 forward = glm::normalize(glm::vec2(_forward[0], _forward[1]));
+			glm::vec2 right(_right[0], _right[1]);
+			glm::vec2 forward = glm::normalize(glm::vec2(_forward[0], _forward[1]));
 
-			            float* _selfOrigin = reinterpret_cast<float*>(0x85B708);
-			            glm::vec2 selfOrigin(_selfOrigin[0], _selfOrigin[1]);
-			            selfOrigin -= (forward * 200.0f); // Move 200 units back
+			float* _selfOrigin = reinterpret_cast<float*>(0x85B708);
+			glm::vec2 selfOrigin(_selfOrigin[0], _selfOrigin[1]);
+			selfOrigin -= (forward * 200.0f); // Move 200 units back
 
-			            for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
-			            {
-				            float* _origin = gameWorld->dpvs.smodelDrawInsts[i].placement.origin;
-				            glm::vec2 modelOrigin(_origin[0], _origin[1]);
-
-				            if ((selfOrigin - modelOrigin).length() <= gameWorld->dpvs.smodelDrawInsts[i].cullDist * 1.0f)
-				            {
-					            // If matrix is singular just draw the models
-					            glm::mat2x2 matrix(right[0], -(forward[0]), right[1], -(forward[1]));
-					            if (glm::determinant(matrix) != 0)
-					            {
-						            glm::mat2x2 invMatrix = glm::inverse(matrix);
-						            glm::vec2 solve = modelOrigin - selfOrigin;
-						            glm::vec2 result = invMatrix * solve;
-						            glm::vec2 path = modelOrigin - (selfOrigin + (result[0] * right));
-
-						            // Compare signs and skip to the next model if they don't equal
-						            if ((path[0] < 0) == (forward[0] >= 0) && (path[1] < 0) == (forward[1] >= 0)) continue;
-					            }
-
-					            gameWorld->dpvs.smodelVisData[0][i] = 1;
-					            gameWorld->dpvs.smodelVisData[1][i] = 1;
-					            gameWorld->dpvs.smodelVisData[2][i] = 1;
-				            }
-			            }
-		            }, HOOK_CALL).install()->quick();
-
-		Dvar::OnInit([] ()
+			for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
 			{
-				Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
+				float* _origin = gameWorld->dpvs.smodelDrawInsts[i].placement.origin;
+				glm::vec2 modelOrigin(_origin[0], _origin[1]);
 
-				Maps::AddDlc({1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"}});
-				Maps::AddDlc({2, "Resergence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"}});
-				Maps::AddDlc({3, "Nuketown", {"mp_nuked"}});
-				Maps::AddDlc({4, "Classics Pack", {"mp_cross_fire", "mp_cargoship", "mp_bloc"}});
-				Maps::AddDlc({5, "Classics Pack", {"mp_killhouse", "mp_bog_sh"}});
-				Maps::AddDlc({6, "Freighter", {"mp_cargoship_sh"}});
-				Maps::AddDlc({7, "Resurrection Pack", {"mp_shipment_long", "mp_rust_long", "mp_firingrange"}});
-				Maps::AddDlc({8, "Recycled Pack", {"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"}});
+				// If matrix is singular just draw the models
+				glm::mat2x2 matrix(right[0], -(forward[0]), right[1], -(forward[1]));
+				if (glm::determinant(matrix) != 0)
+				{
+					glm::mat2x2 invMatrix = glm::inverse(matrix);
+					glm::vec2 solve = modelOrigin - selfOrigin;
+					glm::vec2 result = invMatrix * solve;
+					glm::vec2 path = modelOrigin - (selfOrigin + (result[0] * right));
 
-				Maps::UpdateDlcStatus();
+					// Compare signs and skip to the next model if they don't equal
+					if ((path[0] < 0) == (forward[0] >= 0) && (path[1] < 0) == (forward[1] >= 0)) continue;
+				}
 
-				UIScript::Add("downloadDLC", [] (UIScript::Token token)
-				              {
-					              int dlc = token.get<int>();
+				gameWorld->dpvs.smodelVisData[0][i] = 1;
+				gameWorld->dpvs.smodelVisData[1][i] = 1;
+				gameWorld->dpvs.smodelVisData[2][i] = 1;
+			}
+		}, HOOK_CALL).install()->quick();
 
-					              for (auto pack : Maps::DlcPacks)
-					              {
-						              if (pack.index == dlc)
-						              {
-							              News::LaunchUpdater(Utils::String::VA("-dlc %i -c", pack.index));
-							              //ShellExecuteA(nullptr, "open", pack.url.data(), nullptr, nullptr, SW_SHOWNORMAL);
-							              return;
-						              }
-					              }
+		Dvar::OnInit([]()
+		{
+			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
 
-					              Game::ShowMessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
-				              });
+			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
+			Maps::AddDlc({ 2, "Resergence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
+			Maps::AddDlc({ 3, "Nuketown", {"mp_nuked"} });
+			Maps::AddDlc({ 4, "Classics Pack", {"mp_cross_fire", "mp_cargoship", "mp_bloc"} });
+			Maps::AddDlc({ 5, "Classics Pack", {"mp_killhouse", "mp_bog_sh"} });
+			Maps::AddDlc({ 6, "Freighter", {"mp_cargoship_sh"} });
+			Maps::AddDlc({ 7, "Resurrection Pack", {"mp_shipment_long", "mp_rust_long", "mp_firingrange"} });
+			Maps::AddDlc({ 8, "Recycled Pack", {"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
+
+			Maps::UpdateDlcStatus();
+
+			UIScript::Add("downloadDLC", [](UIScript::Token token)
+			{
+				int dlc = token.get<int>();
+
+				for (auto pack : Maps::DlcPacks)
+				{
+					if (pack.index == dlc)
+					{
+						News::LaunchUpdater(Utils::String::VA("-dlc %i -c", pack.index));
+						//ShellExecuteA(nullptr, "open", pack.url.data(), nullptr, nullptr, SW_SHOWNORMAL);
+						return;
+					}
+				}
+
+				Game::ShowMessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
 			});
+		});
 
 		// Restrict asset loading
 		AssetHandler::OnLoad(Maps::LoadAssetRestrict);
@@ -900,7 +897,7 @@ namespace Components
 		//Maps::AddDependency("mp_shipment", "mp_shipment_long");
 
 #if defined(DEBUG) && defined(ENABLE_DXSDK)
-		Command::Add("dumpmap", [] (Command::Params*)
+		Command::Add("dumpmap", [](Command::Params*)
 		{
 			if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 			{
@@ -909,7 +906,7 @@ namespace Components
 			}
 
 			Game::GfxWorld* world = nullptr;
-			Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_GFXWORLD, [] (Game::XAssetHeader header, void* world)
+			Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_GFXWORLD, [](Game::XAssetHeader header, void* world)
 			{
 				*reinterpret_cast<Game::GfxWorld**>(world) = header.gfxWorld;
 			}, &world, false);
