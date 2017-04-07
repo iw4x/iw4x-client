@@ -826,6 +826,9 @@ namespace Components
 			Utils::Hook::Nop(0x5BB422, 5);
 			Utils::Hook::Nop(0x5BB43A, 5);
 
+			// Don't read stats
+			Utils::Hook(0x4875E1, 0x487717, HOOK_JUMP).install()->quick();
+
 			// Increase asset pools
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODELSURFS, 8192);
