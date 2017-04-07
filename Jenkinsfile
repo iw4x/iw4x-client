@@ -254,7 +254,6 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 						}
 					}
 				}
-				/* Temporarily disabled
 				executions["$testName on Linux"] = {
 					node("docker && linux && amd64") {
 						wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
@@ -279,9 +278,9 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 						}
 					}
 				}
-				*/
 			}
-			parallel executions
+			/* Temporarily disabled
+			parallel executions*/
 		}
 	}
 
