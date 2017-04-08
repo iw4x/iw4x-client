@@ -12,6 +12,14 @@ namespace Components
 	std::vector<Maps::DLC> Maps::DlcPacks;
 	std::vector<Game::XAssetEntry> Maps::EntryPool;
 
+	const char* Maps::UserMapFiles[4] =
+	{
+		".ff",
+		"_load.ff",
+		".iwd",
+		".arena",
+	};
+
 	Maps::UserMapContainer* Maps::GetUserMap()
 	{
 		return &Maps::UserMap;
@@ -81,6 +89,25 @@ namespace Components
 
 			ZeroMemory(&this->searchPath, sizeof this->searchPath);
 		}
+	}
+
+	const char* Maps::LoadArenaFileStub(const char* name, char* buffer, int size)
+	{
+		std::string data  = Game::LoadModdableRawfile(0, name);
+
+		if(Maps::UserMap.isValid())
+		{
+			std::string mapname = Maps::UserMap.getName();
+			std::string arena = Utils::String::VA("usermaps/%s/%s.arena", mapname.data(), mapname.data());
+
+			if (Utils::IO::FileExists(arena))
+			{
+				data.append(Utils::IO::ReadFile(arena));
+			}
+		}
+
+		strncpy_s(buffer, size, data.data(), data.size());
+		return buffer;
 	}
 
 	void Maps::UnloadMapZones(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync)
@@ -396,21 +423,18 @@ namespace Components
 	{
 		if (Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", map.data())))
 		{
-			std::string zoneHash;
-			std::string zonePath = Utils::String::VA("usermaps/%s/%s.ff", map.data(), map.data());
-			if (Utils::IO::FileExists(zonePath))
+			std::string hash;
+
+			for(int i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
 			{
-				zoneHash = Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(zonePath));
+				std::string filePath = Utils::String::VA("usermaps/%s/%s%s", map.data(), map.data(), Maps::UserMapFiles[i]);
+				if (Utils::IO::FileExists(filePath))
+				{
+					hash.append(Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(filePath)));
+				}
 			}
 
-			std::string iwdHash;
-			std::string iwdPath = Utils::String::VA("usermaps/%s/%s.iwd", map.data(), map.data());
-			if (Utils::IO::FileExists(iwdPath))
-			{
-				iwdHash = Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(iwdPath));
-			}
-
-			return Utils::Cryptography::JenkinsOneAtATime::Compute(zoneHash + iwdHash);
+			return Utils::Cryptography::JenkinsOneAtATime::Compute(hash);
 		}
 
 		return 0;
@@ -870,6 +894,9 @@ namespace Components
 		// Download the map before a maprotation if necessary
 		// Conflicts with Theater's SV map rotation check, but this one is safer!
 		Utils::Hook(0x5AA91C, Maps::RotateCheckStub, HOOK_CALL).install()->quick();
+
+		// Load usermap arena file
+		Utils::Hook(0x630A88, Maps::LoadArenaFileStub, HOOK_CALL).install()->quick();
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP, 1);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);

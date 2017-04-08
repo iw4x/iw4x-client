@@ -13,7 +13,7 @@ namespace Components
 		Utils::Hook(0x5FA46C, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5FA4D6, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
 		Utils::Hook(0x6321EF, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
-		Utils::Hook(0x630A88, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x630A88, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick(); // Arena parsing, handled by usermap hook
 		Utils::Hook(0x59A6F8, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
 		Utils::Hook(0x57F1E6, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();
 		Utils::Hook(0x57ED36, RawFiles::LoadModdableRawfileFunc, HOOK_CALL).install()->quick();

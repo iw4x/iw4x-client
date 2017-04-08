@@ -8,11 +8,12 @@ namespace Components
 		class UserMapContainer
 		{
 		public:
-			UserMapContainer() : wasFreed(false) { }
+			UserMapContainer() : wasFreed(false), hash(0) {}
 			UserMapContainer(std::string _mapname) : wasFreed(false), mapname(_mapname)
 			{
 				ZeroMemory(&this->searchPath, sizeof this->searchPath);
 				this->hash = Maps::GetUsermapHash(this->mapname);
+				Game::UI_UpdateArenas();
 			}
 
 			~UserMapContainer()
@@ -24,7 +25,12 @@ namespace Components
 			unsigned int getHash() { return this->hash; }
 			std::string getName() { return this->mapname; }
 			bool isValid() { return !this->mapname.empty(); }
-			void clear() { this->mapname.clear(); }
+			void clear()
+			{
+				bool wasValid = this->isValid();
+				this->mapname.clear();
+				if(wasValid) Game::UI_UpdateArenas();
+			}
 
 			void loadIwd();
 			void freeIwd();
@@ -54,6 +60,7 @@ namespace Components
 		static std::vector<std::string> GetDependenciesForMap(std::string map);
 
 		static std::string CurrentMainZone;
+		static const char* UserMapFiles[4];
 
 		static bool CheckMapInstalled(const char* mapname, bool error = false, bool dlcIsTrue = false);
 
@@ -104,6 +111,8 @@ namespace Components
 
 		static int TriggerReconnectForMap(const char* mapname);
 		static void RotateCheckStub();
+
+		static const char* LoadArenaFileStub(const char* name, char* buffer, int size);
 
 		void reallocateEntryPool();
 	};

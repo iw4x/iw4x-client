@@ -389,16 +389,15 @@ namespace Components
 
 			std::string path = Dvar::Var("fs_basepath").get<std::string>() + "\\usermaps\\" + mapname;
 
-			std::vector<std::string> list = { mapname + ".ff", mapname + "_load.ff", mapname + ".iwd" };
-			for (auto i = list.begin(); i != list.end(); ++i)
+			for (int i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
 			{
-				std::string filename = path + "\\" + *i;
-				if (strstr(i->data(), "_svr_") == nullptr && Utils::IO::FileExists(filename))
+				std::string filename = path + "\\" + mapname + Maps::UserMapFiles[i];
+				if (Utils::IO::FileExists(filename))
 				{
 					std::map<std::string, json11::Json> file;
 					std::string fileBuffer = Utils::IO::ReadFile(filename);
 
-					file["name"] = *i;
+					file["name"] = mapname + Maps::UserMapFiles[i];
 					file["size"] = static_cast<int>(fileBuffer.size());
 					file["hash"] = Utils::Cryptography::SHA256::Compute(fileBuffer, true);
 
@@ -506,7 +505,18 @@ namespace Components
 				url = url.substr(4);
 
 				std::string mapname = Maps::GetUserMap()->getName();
-				if(!Maps::GetUserMap()->isValid() || (url != (mapname + ".ff") && url != (mapname + ".iwd") && url != (mapname + "_load.ff")))
+
+				bool isValidFile = false;
+				for (int i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
+				{
+					if(url == (mapname + Maps::UserMapFiles[i]))
+					{
+						isValidFile = true;
+						break;
+					}
+				}
+
+				if(!Maps::GetUserMap()->isValid() || !isValidFile)
 				{
 					Download::Forbid(nc);
 					return;
@@ -702,7 +712,7 @@ namespace Components
 					// Handle special requests
 					mg_register_http_endpoint(nc, "/info", Download::InfoHandler);
 					mg_register_http_endpoint(nc, "/list", Download::ListHandler);
-					mg_register_http_endpoint(nc, "/map", Download::MapHandler);
+					mg_register_http_endpoint(nc, "/map",  Download::MapHandler);
 					mg_register_http_endpoint(nc, "/file/", Download::FileHandler);
 
 					mg_set_protocol_http_websocket(nc);
