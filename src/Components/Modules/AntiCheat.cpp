@@ -615,5 +615,10 @@ namespace Components
 		{
 			AntiCheat::LoadLibHook[i].uninstall();
 		}
+
+		for (int i = 0; i < ARRAYSIZE(AntiCheat::VirtualProtectHook); ++i)
+		{
+			AntiCheat::VirtualProtectHook[i].uninstall(false);
+		}
 	}
 }
