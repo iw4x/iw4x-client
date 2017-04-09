@@ -32,17 +32,20 @@ namespace Components
 			std::string iwdName = Utils::String::VA("%s.iwd", this->mapname.data());
 			std::string path = Utils::String::VA("%s\\usermaps\\%s\\%s", Dvar::Var("fs_basepath").get<const char*>(), this->mapname.data(), iwdName.data());
 
-			this->searchPath.iwd = Game::FS_IsShippedIWD(path.data(), iwdName.data());
-
-			if (this->searchPath.iwd)
+			if (Utils::IO::FileExists(path))
 			{
-				this->searchPath.bLocalized = false;
-				this->searchPath.ignore = 0;
-				this->searchPath.ignorePureCheck = 0;
-				this->searchPath.language = 0;
-				this->searchPath.dir = nullptr;
-				this->searchPath.next = *Game::fs_searchpaths;
-				*Game::fs_searchpaths = &this->searchPath;
+				this->searchPath.iwd = Game::FS_IsShippedIWD(path.data(), iwdName.data());
+
+				if (this->searchPath.iwd)
+				{
+					this->searchPath.bLocalized = false;
+					this->searchPath.ignore = 0;
+					this->searchPath.ignorePureCheck = 0;
+					this->searchPath.language = 0;
+					this->searchPath.dir = nullptr;
+					this->searchPath.next = *Game::fs_searchpaths;
+					*Game::fs_searchpaths = &this->searchPath;
+				}
 			}
 		}
 	}
