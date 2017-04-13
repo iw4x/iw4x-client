@@ -719,6 +719,11 @@ namespace Components
 		// Remove missing tag message
 		Utils::Hook::Nop(0x4EBF1A, 5);
 #endif
+
+		if(Flags::HasFlag("nointro"))
+		{
+			Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
+		}
 	}
 
 	QuickPatch::~QuickPatch()
