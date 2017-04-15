@@ -597,7 +597,10 @@ namespace Assets
 
 			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
 			{
-				imageDest[i] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->reflectionImages[i]).image;
+				if (asset->reflectionImages[i])
+				{
+					imageDest[i] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->reflectionImages[i]).image;
+				}
 			}
 
 			Utils::Stream::ClearPointer(&dest->reflectionImages);
