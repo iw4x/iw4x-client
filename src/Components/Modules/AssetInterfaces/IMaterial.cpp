@@ -120,6 +120,9 @@ namespace Assets
 
 		header->material = asset;
 
+		static thread_local bool replacementFound;
+		replacementFound = false;
+
 		// Find correct sortkey by comparing techsets
 		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void* data)
 		{
@@ -137,8 +140,15 @@ namespace Assets
 				std::memcpy(material->stateBitsEntry, header.material->stateBitsEntry, 48);
 				material->constantCount = header.material->constantCount;
 				material->constantTable = header.material->constantTable;
+
+				replacementFound = true;
 			}
 		}, asset, false);
+
+		if(!replacementFound)
+		{
+			Components::Logger::Print("No replacment found for material %s with technset %s\n", asset->name, asset->techniqueSet->name);
+		}
 
 		if (!reader.end())
 		{
