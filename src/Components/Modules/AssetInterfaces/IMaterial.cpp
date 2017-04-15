@@ -52,14 +52,20 @@ namespace Assets
 				"_eyeoffset",
 			};
 
-			for(int i = 0; i < ARRAYSIZE(techsetSuffix) && !asset->techniqueSet; ++i)
+			if (!asset->techniqueSet)
 			{
-				asset->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techset + techsetSuffix[i]).data(), builder).techniqueSet;
-
-				if(asset->techniqueSet)
+				for (int i = 0; i < ARRAYSIZE(techsetSuffix); ++i)
 				{
-					if (asset->techniqueSet->name[0] == ',') continue;
-					Components::Logger::Print("Techset '%s' has been mapped to '%s'\n", techset.data(), asset->techniqueSet->name);
+					Game::MaterialTechniqueSet* techsetPtr = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techset + techsetSuffix[i]).data(), builder).techniqueSet;
+
+					if (techsetPtr)
+					{
+						asset->techniqueSet = techsetPtr;
+
+						if (asset->techniqueSet->name[0] == ',') continue; // Try to find a better one
+						Components::Logger::Print("Techset '%s' has been mapped to '%s'\n", techset.data(), asset->techniqueSet->name);
+						break;
+					}
 				}
 			}
 
@@ -126,28 +132,31 @@ namespace Assets
 		// Find correct sortkey by comparing techsets
 		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void* data)
 		{
-			Game::Material* material = reinterpret_cast<Game::Material*>(data);
-			const char* name = material->techniqueSet->name;
-			if (name[0] == ',') ++name;
-
-			if (std::string(name) == header.material->techniqueSet->name)
+			if (!replacementFound)
 			{
-				material->sortKey = header.material->sortKey;
+				Game::Material* material = reinterpret_cast<Game::Material*>(data);
+				const char* name = material->techniqueSet->name;
+				if (name[0] == ',') ++name;
 
-				// This is temp, as nobody has time to fix materials
-				material->stateBitsCount = header.material->stateBitsCount;
-				material->stateBitTable = header.material->stateBitTable;
-				std::memcpy(material->stateBitsEntry, header.material->stateBitsEntry, 48);
-				material->constantCount = header.material->constantCount;
-				material->constantTable = header.material->constantTable;
+				if (std::string(name) == header.material->techniqueSet->name)
+				{
+					material->sortKey = header.material->sortKey;
 
-				replacementFound = true;
+					// This is temp, as nobody has time to fix materials
+					material->stateBitsCount = header.material->stateBitsCount;
+					material->stateBitTable = header.material->stateBitTable;
+					std::memcpy(material->stateBitsEntry, header.material->stateBitsEntry, 48);
+					material->constantCount = header.material->constantCount;
+					material->constantTable = header.material->constantTable;
+
+					replacementFound = true;
+				}
 			}
 		}, asset, false);
 
 		if(!replacementFound)
 		{
-			Components::Logger::Print("No replacment found for material %s with technset %s\n", asset->name, asset->techniqueSet->name);
+			Components::Logger::Print("No replacement found for material %s with techset %s\n", asset->name, asset->techniqueSet->name);
 		}
 
 		if (!reader.end())
