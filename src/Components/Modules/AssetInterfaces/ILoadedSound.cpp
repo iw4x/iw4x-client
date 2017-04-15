@@ -21,7 +21,7 @@ namespace Assets
 		Game::LoadedSound* reference = nullptr;
 		if (!reference) reference = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_LOADED_SOUND, "weapons/c4_detpack/c4_drop_dirt1.wav").loadSnd;
 
-		memcpy(sound, reference, sizeof(Game::LoadedSound));
+		std::memcpy(sound, reference, sizeof(Game::LoadedSound));
 		sound->sound.data = nullptr;
 
 		Utils::Stream::Reader reader(builder->getAllocator(), soundFile.getBuffer());
@@ -68,7 +68,7 @@ namespace Assets
 					// skip any extra parameters
 					if (chunkSize > 16)
 					{
-						reader.seek(chunkSize - 16);
+						reader.seekRelative(chunkSize - 16);
 					}
 				}
 				break;
@@ -81,7 +81,7 @@ namespace Assets
 			default:
 				if (chunkSize > 0)
 				{
-					reader.seek(chunkSize);
+					reader.seekRelative(chunkSize);
 				}
 				break;
 			}

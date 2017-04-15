@@ -2,8 +2,6 @@
 
 #define IW4X_GFXMAP_VERSION 1
 
-#ifdef ENABLE_EXPERIMENTAL_MAP_CODE
-
 namespace Assets
 {
 	void IGfxWorld::loadGfxWorldDpvsStatic(Game::GfxWorld* world, Game::GfxWorldDpvsStatic* asset, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader)
@@ -1367,5 +1365,3 @@ namespace Assets
 		SaveLogExit();
 	}
 }
-
-#endif

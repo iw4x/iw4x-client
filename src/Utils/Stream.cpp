@@ -59,6 +59,11 @@ namespace Utils
 		}
 	}
 
+	void Stream::Reader::seekRelative(unsigned int _position)
+	{
+		return this->seek(_position + this->position);
+	}
+
 	void* Stream::Reader::readPointer()
 	{
 		void* pointer = this->read<void*>();

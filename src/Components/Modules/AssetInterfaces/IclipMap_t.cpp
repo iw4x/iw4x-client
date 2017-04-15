@@ -2,8 +2,6 @@
 
 #define IW4X_CLIPMAP_VERSION 1
 
-#ifdef ENABLE_EXPERIMENTAL_MAP_CODE
-
 namespace Assets
 {
 	void IclipMap_t::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
@@ -913,5 +911,3 @@ namespace Assets
 		header->clipMap = clipMap;
 	}
 }
-
-#endif

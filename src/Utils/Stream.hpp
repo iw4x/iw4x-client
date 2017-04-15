@@ -54,6 +54,7 @@ namespace Utils
 
 			bool end();
 			void seek(unsigned int position);
+			void seekRelative(unsigned int position);
 
 			void* readPointer();
 			void mapPointer(void* oldPointer, void* newPointer);
