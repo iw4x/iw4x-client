@@ -8,7 +8,7 @@ namespace Utils
 
 		while (char byte = this->readByte())
 		{
-			str.append(&byte, 1);
+			str.push_back(byte);
 		}
 
 		return str;

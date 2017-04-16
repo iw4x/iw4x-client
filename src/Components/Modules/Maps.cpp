@@ -774,57 +774,6 @@ namespace Components
 	{
 		Dvar::OnInit([]()
 		{
-			bool value = false;
-#ifdef DEBUG
-			value = true;
-#endif
-			Dvar::Register<bool>("r_disableModelWorkaround", value, 0, "Disable static model drawing workaround for custom maps");
-		});
-
-		// Hook R_ClearDpvsSceneView to force drawing all models in front of us
-		Utils::Hook(0x50EF39, []()
-		{
-			Utils::Hook::Call<void()>(0x518530)(); // R_ClearDpvsSceneView
-
-			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-			if (!Game::CL_IsCgameInitialized() || !gameWorld || Dvar::Var("r_disableModelWorkaround").get<bool>() || gameWorld->checksum != 0xDEADBEEF) return;
-
-			Game::vec3_t _forward, _right;
-			Game::AngleVectors(reinterpret_cast<float*>(0x85F650), _forward, _right, nullptr);
-
-			glm::vec2 right(_right[0], _right[1]);
-			glm::vec2 forward = glm::normalize(glm::vec2(_forward[0], _forward[1]));
-
-			float* _selfOrigin = reinterpret_cast<float*>(0x85B708);
-			glm::vec2 selfOrigin(_selfOrigin[0], _selfOrigin[1]);
-			selfOrigin -= (forward * 200.0f); // Move 200 units back
-
-			for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
-			{
-				float* _origin = gameWorld->dpvs.smodelDrawInsts[i].placement.origin;
-				glm::vec2 modelOrigin(_origin[0], _origin[1]);
-
-				// If matrix is singular just draw the models
-				glm::mat2x2 matrix(right[0], -(forward[0]), right[1], -(forward[1]));
-				if (glm::determinant(matrix) != 0)
-				{
-					glm::mat2x2 invMatrix = glm::inverse(matrix);
-					glm::vec2 solve = modelOrigin - selfOrigin;
-					glm::vec2 result = invMatrix * solve;
-					glm::vec2 path = modelOrigin - (selfOrigin + (result[0] * right));
-
-					// Compare signs and skip to the next model if they don't equal
-					if ((path[0] < 0) == (forward[0] >= 0) && (path[1] < 0) == (forward[1] >= 0)) continue;
-				}
-
-				gameWorld->dpvs.smodelVisData[0][i] = 1;
-				gameWorld->dpvs.smodelVisData[1][i] = 1;
-				gameWorld->dpvs.smodelVisData[2][i] = 1;
-			}
-		}, HOOK_CALL).install()->quick();
-
-		Dvar::OnInit([]()
-		{
 			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
@@ -855,6 +804,11 @@ namespace Components
 				Game::ShowMessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
 			});
 		});
+
+#ifndef DEBUG
+		// Don't sort static models
+		Utils::Hook::Nop(0x53D815, 2);
+#endif
 
 		// Restrict asset loading
 		AssetHandler::OnLoad(Maps::LoadAssetRestrict);
