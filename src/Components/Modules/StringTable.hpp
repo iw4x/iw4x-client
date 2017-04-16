@@ -13,7 +13,6 @@ namespace Components
 #endif
 
 	private:
-		static Utils::Memory::Allocator MemAllocator;
 		static std::unordered_map<std::string, Game::StringTable*> StringTableMap;
 
 		static int Hash(const char* data);

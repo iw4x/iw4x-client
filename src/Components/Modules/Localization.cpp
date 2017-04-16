@@ -4,40 +4,40 @@ namespace Components
 {
 	std::recursive_mutex Localization::LocalizeMutex;
 	Dvar::Var Localization::UseLocalization;
-	Utils::Memory::Allocator Localization::MemAllocator;
 	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
 	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::TempLocalizeMap;
 
 	void Localization::Set(std::string key, std::string value)
 	{
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
 
 		if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
 		{
 			Game::LocalizeEntry* entry = Localization::LocalizeMap[key];
 
-			char* newStaticValue = Localization::MemAllocator.duplicateString(value);
+			char* newStaticValue = allocator->duplicateString(value);
 			if (!newStaticValue) return;
-			if (entry->value) Localization::MemAllocator.free(entry->value);
+			if (entry->value) allocator->free(entry->value);
 			entry->value = newStaticValue;
 			return;
 		}
 
-		Game::LocalizeEntry* entry = Localization::MemAllocator.allocate<Game::LocalizeEntry>();
+		Game::LocalizeEntry* entry = allocator->allocate<Game::LocalizeEntry>();
 		if (!entry) return;
 
-		entry->name = Localization::MemAllocator.duplicateString(key);
+		entry->name = allocator->duplicateString(key);
 		if (!entry->name)
 		{
-			Localization::MemAllocator.free(entry);
+			allocator->free(entry);
 			return;
 		}
 
-		entry->value = Localization::MemAllocator.duplicateString(value);
+		entry->value = allocator->duplicateString(value);
 		if (!entry->value)
 		{
-			Localization::MemAllocator.free(entry->name);
-			Localization::MemAllocator.free(entry);
+			allocator->free(entry->name);
+			allocator->free(entry);
 			return;
 		}
 
@@ -76,30 +76,31 @@ namespace Components
 	void Localization::SetTemp(std::string key, std::string value)
 	{
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
 
 		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
 		{
 			Game::LocalizeEntry* entry = Localization::TempLocalizeMap[key];
-			if(entry->value) Localization::MemAllocator.free(entry->value);
-			entry->value = Localization::MemAllocator.duplicateString(value);
+			if(entry->value) allocator->free(entry->value);
+			entry->value = allocator->duplicateString(value);
 		}
 		else
 		{
-			Game::LocalizeEntry* entry = Localization::MemAllocator.allocate<Game::LocalizeEntry>();
+			Game::LocalizeEntry* entry = allocator->allocate<Game::LocalizeEntry>();
 			if (!entry) return;
 
-			entry->name = Localization::MemAllocator.duplicateString(key);
+			entry->name = allocator->duplicateString(key);
 			if (!entry->name)
 			{
-				Localization::MemAllocator.free(entry);
+				allocator->free(entry);
 				return;
 			}
 
-			entry->value = Localization::MemAllocator.duplicateString(value);
+			entry->value = allocator->duplicateString(value);
 			if (!entry->value)
 			{
-				Localization::MemAllocator.free(entry->name);
-				Localization::MemAllocator.free(entry);
+				allocator->free(entry->name);
+				allocator->free(entry);
 				return;
 			}
 
@@ -110,14 +111,15 @@ namespace Components
 	void Localization::ClearTemp()
 	{
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
 
 		for (auto i = Localization::TempLocalizeMap.begin(); i != Localization::TempLocalizeMap.end(); ++i)
 		{
 			if (i->second)
 			{
-				if (i->second->name)  Localization::MemAllocator.free(i->second->name);
-				if (i->second->value) Localization::MemAllocator.free(i->second->value);
-				Localization::MemAllocator.free(i->second);
+				if (i->second->name)  allocator->free(i->second->name);
+				if (i->second->value) allocator->free(i->second->value);
+				allocator->free(i->second);
 			}
 		}
 
@@ -289,8 +291,6 @@ namespace Components
 	Localization::~Localization()
 	{
 		Localization::ClearTemp();
-
 		Localization::LocalizeMap.clear();
-		Localization::MemAllocator.clear();
 	}
 }

@@ -55,6 +55,8 @@ namespace Components
 
 	int Menus::LoadMenuSource(std::string name, std::string buffer)
 	{
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+
 		int handle = Menus::ReserveSourceHandle();
 		if (!Menus::IsValidSourceHandle(handle)) return 0; // No free source slot!
 
@@ -68,7 +70,7 @@ namespace Components
 
 		script->next = nullptr;
 
-		Game::source_t *source = Utils::Memory::Allocate<Game::source_t>();
+		Game::source_t *source = allocator->allocate<Game::source_t>();
 		if (!source)
 		{
 			Game::FreeMemory(script);
@@ -81,7 +83,7 @@ namespace Components
 		source->defines = nullptr;
 		source->indentstack = nullptr;
 		source->skip = 0;
-		source->definehash = static_cast<Game::define_t**>(Utils::Memory::Allocate(4096));
+		source->definehash = static_cast<Game::define_t**>(allocator->allocate(4096));
 
 		Game::sourceFiles[handle] = source;
 
@@ -112,21 +114,23 @@ namespace Components
 
 	Game::menuDef_t* Menus::ParseMenu(int handle)
 	{
-		Game::menuDef_t* menu = Utils::Memory::Allocate<Game::menuDef_t>();
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+
+		Game::menuDef_t* menu = allocator->allocate<Game::menuDef_t>();
 		if (!menu) return nullptr;
 
-		menu->items = Utils::Memory::AllocateArray<Game::itemDef_t*>(512);
+		menu->items = allocator->allocateArray<Game::itemDef_t*>(512);
 		if (!menu->items)
 		{
-			Utils::Memory::Free(menu);
+			allocator->free(menu);
 			return nullptr;
 		}
 
 		Game::pc_token_t token;
 		if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] != '{')
 		{
-			Utils::Memory::Free(menu->items);
-			Utils::Memory::Free(menu);
+			allocator->free(menu->items);
+			allocator->free(menu);
 			return nullptr;
 		}
 
@@ -235,21 +239,23 @@ namespace Components
 
 	Game::MenuList* Menus::LoadScriptMenu(const char* menu)
 	{
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+
 		std::vector<std::pair<bool, Game::menuDef_t*>> menus = Menus::LoadMenu(menu);
 		if (menus.empty()) return nullptr;
 
 		// Allocate new menu list
-		Game::MenuList* newList = Utils::Memory::Allocate<Game::MenuList>();
+		Game::MenuList* newList = allocator->allocate<Game::MenuList>();
 		if (!newList) return nullptr;
 
-		newList->menus = Utils::Memory::AllocateArray<Game::menuDef_t*>(menus.size());
+		newList->menus = allocator->allocateArray<Game::menuDef_t*>(menus.size());
 		if (!newList->menus)
 		{
-			Utils::Memory::Free(newList);
+			allocator->free(newList);
 			return nullptr;
 		}
 
-		newList->name = Utils::Memory::DuplicateString(menu);
+		newList->name = allocator->duplicateString(menu);
 		newList->menuCount = menus.size();
 
 		// Copy new menus
@@ -312,6 +318,8 @@ namespace Components
 
 	Game::MenuList* Menus::LoadMenuList(Game::MenuList* menuList)
 	{
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+
 		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
 
 		for (int i = 0; i < menuList->menuCount; ++i)
@@ -340,18 +348,18 @@ namespace Components
 		}
 
 		// Allocate new menu list
-		Game::MenuList* newList = Utils::Memory::Allocate<Game::MenuList>();
+		Game::MenuList* newList = allocator->allocate<Game::MenuList>();
 		if (!newList) return menuList;
 
 		size_t size = menus.size();
-		newList->menus = Utils::Memory::AllocateArray<Game::menuDef_t*>(size);
+		newList->menus = allocator->allocateArray<Game::menuDef_t*>(size);
 		if (!newList->menus)
 		{
-			Utils::Memory::Free(newList);
+			allocator->free(newList);
 			return menuList;
 		}
 
-		newList->name = Utils::Memory::DuplicateString(menuList->name);
+		newList->name = allocator->duplicateString(menuList->name);
 		newList->menuCount = size;
 
 		// Copy new menus
@@ -368,6 +376,8 @@ namespace Components
 
 	void Menus::FreeMenuSource(int handle)
 	{
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+
 		if (!Menus::IsValidSourceHandle(handle)) return;
 
 		Game::source_t *source = Game::sourceFiles[handle];
@@ -397,18 +407,20 @@ namespace Components
 		{
 			Game::indent_t* indent = source->indentstack;
 			source->indentstack = source->indentstack->next;
-			Utils::Memory::Free(indent);
+			allocator->free(indent);
 		}
 
-		if (source->definehash) Utils::Memory::Free(source->definehash);
+		if (source->definehash) allocator->free(source->definehash);
 
-		Utils::Memory::Free(source);
+		allocator->free(source);
 
 		Game::sourceFiles[handle] = nullptr;
 	}
 
 	void Menus::FreeMenu(Game::menuDef_t* menudef)
 	{
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+
 		// Do i need to free expressions and strings?
 		// Or does the game take care of it?
 		// Seems like it does...
@@ -423,30 +435,31 @@ namespace Components
 			//	Game::Menu_FreeItemMemory(menudef->items[i]);
 			//}
 
-			Utils::Memory::Free(menudef->items);
+			allocator->free(menudef->items);
 		}
 
-		Utils::Memory::Free(menudef);
+		allocator->free(menudef);
 	}
 
 	void Menus::FreeMenuList(Game::MenuList* menuList)
 	{
 		if (!menuList) return;
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
 
 		// Keep our compiler happy
 		Game::MenuList list = { menuList->name, menuList->menuCount, menuList->menus };
 
 		if (list.name)
 		{
-			Utils::Memory::Free(list.name);
+			allocator->free(list.name);
 		}
 
 		if (list.menus)
 		{
-			Utils::Memory::Free(list.menus);
+			allocator->free(list.menus);
 		}
 
-		Utils::Memory::Free(menuList);
+		allocator->free(menuList);
 	}
 
 	void Menus::RemoveMenu(std::string menu)

@@ -1190,7 +1190,7 @@ namespace Components
 				AssertSize(image359, 52);
 
 				// Copy to new struct
-				memcpy(&image359, buffer, sizeof(image359));
+				std::memcpy(&image359, buffer, sizeof(image359));
 
 				// Convert to old struct
 				Game::GfxImage* image = reinterpret_cast<Game::GfxImage*>(buffer);
@@ -1212,7 +1212,7 @@ namespace Components
 			}
 			else
 			{
-				memcpy(buffer + 28, buffer + (size - 4), 4);
+				std::memcpy(buffer + 28, buffer + (size - 4), 4);
 			}
 		}
 

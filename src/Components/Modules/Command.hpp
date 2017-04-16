@@ -65,7 +65,6 @@ namespace Components
 		static Game::cmd_function_t* Find(std::string command);
 
 	private:
-		static Utils::Memory::Allocator MemAllocator;
 		static std::unordered_map<std::string, Utils::Slot<Callback>> FunctionMap;
 		static std::unordered_map<std::string, Utils::Slot<Callback>> FunctionMapSV;
 

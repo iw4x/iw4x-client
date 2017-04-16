@@ -20,7 +20,6 @@ namespace Components
 
 	private:
 		static std::recursive_mutex LocalizeMutex;
-		static Utils::Memory::Allocator MemAllocator;
 		static std::unordered_map<std::string, Game::LocalizeEntry*> LocalizeMap;
 		static std::unordered_map<std::string, Game::LocalizeEntry*> TempLocalizeMap;
 		static Dvar::Var UseLocalization;

@@ -125,10 +125,10 @@ namespace Utils
 			}
 
 		private:
-			std::vector<void*> pool;
-			std::map<void*, FreeCallback> refMemory;
 			std::mutex mutex;
-			std::map<void*, void*> ptrMap;
+			std::vector<void*> pool;
+			std::unordered_map<void*, void*> ptrMap;
+			std::unordered_map<void*, FreeCallback> refMemory;
 		};
 
 		static void* AllocateAlign(size_t length, size_t alignment);

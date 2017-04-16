@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	Utils::Memory::Allocator StringTable::MemAllocator;
 	std::unordered_map<std::string, Game::StringTable*> StringTable::StringTableMap;
 
 	int StringTable::Hash(const char* data)
@@ -21,6 +20,8 @@ namespace Components
 
 	Game::StringTable* StringTable::LoadObject(std::string filename)
 	{
+		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+
 		filename = Utils::String::ToLower(filename);
 
 		Game::StringTable* table = nullptr;
@@ -30,15 +31,15 @@ namespace Components
 		{
 			Utils::CSV parsedTable(rawTable.getBuffer(), false, false);
 
-			table = StringTable::MemAllocator.allocate<Game::StringTable>();
+			table = allocator->allocate<Game::StringTable>();
 
 			if (table)
 			{
-				table->name = StringTable::MemAllocator.duplicateString(filename);
+				table->name = allocator->duplicateString(filename);
 				table->columnCount = parsedTable.getColumns();
 				table->rowCount = parsedTable.getRows();
 
-				table->values = StringTable::MemAllocator.allocateArray<Game::StringTableCell>(table->columnCount * table->rowCount);
+				table->values = allocator->allocateArray<Game::StringTableCell>(table->columnCount * table->rowCount);
 
 				if (!table->values)
 				{
@@ -53,7 +54,7 @@ namespace Components
 
 						Game::StringTableCell* cell = &table->values[i * table->columnCount + j];
 						cell->hash = StringTable::Hash(value.data());
-						cell->string = StringTable::MemAllocator.duplicateString(value);
+						cell->string = allocator->duplicateString(value);
 						//if (!cell->string) cell->string = ""; // We have to assume it allocated successfully
 					}
 				}
@@ -93,6 +94,5 @@ namespace Components
 	StringTable::~StringTable()
 	{
 		StringTable::StringTableMap.clear();
-		StringTable::MemAllocator.clear();
 	}
 }

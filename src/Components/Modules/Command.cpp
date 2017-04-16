@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	Utils::Memory::Allocator Command::MemAllocator;
 	std::unordered_map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMap;
 	std::unordered_map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMapSV;
 
@@ -130,7 +129,7 @@ namespace Components
 
 	Game::cmd_function_t* Command::Allocate()
 	{
-		return Command::MemAllocator.allocate<Game::cmd_function_t>();
+		return Loader::GetAlloctor()->allocate<Game::cmd_function_t>();
 	}
 
 	void Command::MainCallback()
@@ -265,7 +264,6 @@ namespace Components
 
 	Command::~Command()
 	{
-		Command::MemAllocator.clear();
 		Command::FunctionMap.clear();
 		Command::FunctionMapSV.clear();
 	}
