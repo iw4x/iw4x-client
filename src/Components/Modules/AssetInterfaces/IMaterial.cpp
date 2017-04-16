@@ -154,7 +154,7 @@ namespace Assets
 			}
 		}, asset, false);
 
-		if(!replacementFound)
+		if(!replacementFound && asset->techniqueSet)
 		{
 			Components::Logger::Print("No replacement found for material %s with techset %s\n", asset->name, asset->techniqueSet->name);
 		}
