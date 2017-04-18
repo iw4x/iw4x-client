@@ -1,5 +1,4 @@
 #include "STDInclude.hpp"
-#include <glm/glm.hpp>
 
 namespace Components
 {

@@ -87,7 +87,7 @@ namespace Utils
 		return this->pointerMap.find(pointer) != this->pointerMap.end();
 	}
 
-	Stream::Stream() : criticalSectionState(0)
+	Stream::Stream() : ptrAssertion(false), criticalSectionState(0)
 	{
 		memset(this->blockSize, 0, sizeof(this->blockSize));
 
@@ -120,6 +120,25 @@ namespace Utils
 	size_t Stream::capacity()
 	{
 		return this->buffer.capacity();
+	}
+
+	void Stream::assertPointer(const void* pointer, size_t length)
+	{
+		if (!this->ptrAssertion) return;
+
+		for (auto& entry : this->ptrList)
+		{
+			unsigned int ePtr = reinterpret_cast<unsigned int>(entry.first);
+			unsigned int tPtr = reinterpret_cast<unsigned int>(pointer);
+
+			if(Utils::HasIntercection(ePtr, entry.second, tPtr, length))
+			{
+				MessageBoxA(nullptr, "Duplicate data written!", "ERROR", MB_ICONERROR);
+				__debugbreak();
+			}
+		}
+
+		this->ptrList.push_back({ pointer, length });
 	}
 
 	char* Stream::save(const void* _str, size_t size, size_t count)
@@ -155,6 +174,7 @@ namespace Utils
 		}
 
 		this->increaseBlockSize(stream, size * count);
+		this->assertPointer(_str, size * count);
 
 		return this->at() - (size * count);
 	}

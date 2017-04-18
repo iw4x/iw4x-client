@@ -31,25 +31,6 @@ namespace Assets
 			}
 		}
 
-		/*
-		std::sort(surfs.begin(), surfs.end(), [](Game::GfxSurface* a, Game::GfxSurface* b)
-		{
-			if (a->material->name == nullptr && b->material->name == nullptr) return false;
-			if (a->material->name == nullptr && b->material->name != nullptr) return true;
-			if (a->material->name != nullptr && b->material->name == nullptr) return false;
-			return strcmp(a->material->name, b->material->name) == 0;
-		});
-
-		Game::GfxSurface* tmpBuffer = builder->getAllocator()->allocateArray<Game::GfxSurface>(world->surfaceCount);
-
-		for (unsigned int i = 0; i < world->surfaceCount; ++i)
-		{
-			std::memcpy(&tmpBuffer[i], surfs[i], sizeof(Game::GfxSurface));
-		}
-
-		asset->surfaces = tmpBuffer;
-		*/
-
 		if (asset->surfacesBounds)
 		{
 			asset->surfacesBounds = reader->readArray<Game::GfxSurfaceBounds>(world->surfaceCount);
@@ -66,7 +47,6 @@ namespace Assets
 				if (model->model)
 				{
 					model->model = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, reader->readString().data(), builder).model;
-					//reader->readString(); model->model = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_XMODEL, "void").model; // Use red-fx for now
 				}
 			}
 		}
@@ -997,6 +977,8 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->baseName);
 		}
 
+		//buffer->setPointerAssertion(true);
+
 		if (asset->skies)
 		{
 			AssertSize(Game::GfxSky, 16);
@@ -1364,6 +1346,7 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->heroOnlyLights);
 		}
 
+		//buffer->setPointerAssertion(false);
 		buffer->popBlock();
 		SaveLogExit();
 	}

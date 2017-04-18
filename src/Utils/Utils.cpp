@@ -81,6 +81,6 @@ namespace Utils
 
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2)
 	{
-		return !((base1 + len1) < base2 || (base2 + len2) < base1);
+		return !(base1 + len1 <= base2 || base2 + len2 <= base1);
 	}
 }

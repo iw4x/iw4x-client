@@ -15,6 +15,9 @@ namespace Utils
 	class Stream
 	{
 	private:
+		bool ptrAssertion;
+		std::vector<std::pair<const void*, size_t>> ptrList;
+
 		int criticalSectionState;
 		unsigned int blockSize[Game::MAX_XFILE_COUNT];
 		std::vector<Game::XFILE_BLOCK_TYPES> streamStack;
@@ -132,6 +135,12 @@ namespace Utils
 		{
 			*object = reinterpret_cast<T*>(-1);
 		}
+
+		void setPointerAssertion(bool value)
+		{
+			this->ptrAssertion = value;
+		}
+		void assertPointer(const void* pointer, size_t length);
 
 		void toBuffer(std::string& outBuffer);
 		std::string toBuffer();
