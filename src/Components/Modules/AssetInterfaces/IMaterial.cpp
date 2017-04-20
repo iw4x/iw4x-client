@@ -58,9 +58,17 @@ namespace Assets
 
 			if (!asset->techniqueSet)
 			{
+				// Workaround for effect techsets having _nofog suffix
+				std::string suffix;
+				if(Utils::String::StartsWith(techset, "effect_") && Utils::String::EndsWith(techset, "_nofog"))
+				{
+					suffix = "_nofog";
+					Utils::String::Replace(techset, suffix, "");
+				}
+
 				for (int i = 0; i < ARRAYSIZE(techsetSuffix); ++i)
 				{
-					Game::MaterialTechniqueSet* techsetPtr = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techset + techsetSuffix[i]).data(), builder).techniqueSet;
+					Game::MaterialTechniqueSet* techsetPtr = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techset + techsetSuffix[i] + suffix).data(), builder).techniqueSet;
 
 					if (techsetPtr)
 					{
