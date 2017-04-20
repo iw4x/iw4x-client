@@ -50,6 +50,10 @@ namespace Assets
 				"_add_lin",
 				"_replace",
 				"_eyeoffset",
+
+				"_add",
+				"_blend",
+				"_blend_nofog",
 			};
 
 			if (!asset->techniqueSet)

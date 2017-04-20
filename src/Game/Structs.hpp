@@ -2181,7 +2181,7 @@ namespace Game
 		const void *anonymous;
 		Material *material;
 		XModel *xmodel;
-		FxEffectDefRef *effectDef;
+		FxEffectDefRef effectDef;
 		const char *soundName;
 	};
 
@@ -2204,21 +2204,18 @@ namespace Game
 
 	struct FxTrailVertex
 	{
-		/*
 		float pos[2];
 		float normal[2];
-		float texCoord[2];
-		*/
-		char pad[20];
+		float texCoord;
 	};
 
 	struct FxTrailDef
 	{
 		int scrollTimeMsec;
 		int repeatDist;
-		float splitArcDist;
-		int splitDist;
-		int splitTime;
+		float invSplitDist;
+		float invSplitArcDist;
+		float invSplitTime;
 		int vertCount;
 		FxTrailVertex *verts;
 		int indCount;
@@ -2316,11 +2313,13 @@ namespace Game
 		//If elemType is 0xB, then use markVisuals
 		//If elemType is not 0xB and visualCount == 1, then use visual
 		//If elemType is not 0xB and visualCount != 1, then use visualsArray
+
+		// Those are probably bounds!
 		vec3_t collMins;
 		vec3_t collMaxs;
-		FxEffectDefRef *effectOnImpact;
-		FxEffectDefRef *effectOnDeath;
-		FxEffectDefRef *effectEmitted;
+		FxEffectDefRef effectOnImpact;
+		FxEffectDefRef effectOnDeath;
+		FxEffectDefRef effectEmitted;
 		FxFloatRange emitDist;
 		FxFloatRange emitDistVariance;
 		FxElemExtendedDef extendedDef;
@@ -2329,7 +2328,8 @@ namespace Game
 		//If elemType != 3 && elemType != 6 use unknownBytes (size = 1)
 		char sortOrder;
 		char lightingFrac;
-		char unused[2];
+		char useItemClip;
+		char unused[1];
 	};
 
 	struct FxEffectDef
@@ -2655,7 +2655,11 @@ namespace Game
 
 	struct G_GlassPiece
 	{
-		char pad[12];
+		unsigned __int16 damageTaken;
+		unsigned __int16 collapseTime;
+		int lastStateChangeTime;
+		char impactDir;
+		char impactPos[2];
 	};
 
 	struct G_GlassName

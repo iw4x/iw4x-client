@@ -809,6 +809,9 @@ namespace Components
 		Utils::Hook::Nop(0x53D815, 2);
 #endif
 
+		// Don't draw smodels
+		//Utils::Hook::Set<BYTE>(0x541E40, 0xC3);
+
 		// Restrict asset loading
 		AssetHandler::OnLoad(Maps::LoadAssetRestrict);
 
