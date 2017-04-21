@@ -77,11 +77,13 @@ namespace Components
 
 	std::string Logger::Format(const char** message)
 	{
-		char buffer[0x1000] = { 0 };
+		const size_t bufferSize = 0x10000;
+		Utils::Memory::Allocator allocator;
+		char* buffer = allocator.allocateArray<char>(bufferSize);
 
 		va_list ap = reinterpret_cast<char*>(const_cast<char**>(&message[1]));
 		//va_start(ap, *message);
-		_vsnprintf_s(buffer, sizeof(buffer), *message, ap);
+		_vsnprintf_s(buffer, bufferSize, bufferSize, *message, ap);
 		va_end(ap);
 
 		return buffer;
