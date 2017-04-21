@@ -955,6 +955,31 @@ namespace Components
 					Logger::Print("%s: %X %X %X\n", header.material->name, header.material->sortKey & 0xFF, header.material->gameFlags & 0xFF, header.material->stateFlags & 0xFF);
 				}, nullptr, false);
 			});
+
+			Command::Add("iwiDump", [](Command::Params* params)
+			{
+				if (params->length() < 2) return;
+
+				std::string path = Utils::String::VA("%s\\mods\\%s\\images", Dvar::Var("fs_basepath").get<const char*>(), params->get(1));
+				std::vector<std::string> images = FileSystem::GetSysFileList(path, "iwi", false);
+
+				for(auto i = images.begin(); i != images.end();)
+				{
+					*i = Utils::String::VA("images/%s", i->data());
+
+					if(FileSystem::File(*i).exists())
+					{
+						i = images.erase(i);
+						continue;
+					}
+
+					++i;
+				}
+
+				Logger::Print("------------------- BEGIN IWI DUMP -------------------\n");
+				Logger::Print("%s\n", json11::Json(images).dump().data());
+				Logger::Print("------------------- END IWI DUMP -------------------\n");
+			});
 		}
 	}
 
