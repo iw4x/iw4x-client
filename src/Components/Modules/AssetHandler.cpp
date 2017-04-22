@@ -173,17 +173,17 @@ namespace Components
 			{
 				if (asset.techniqueSet->techniques[i])
 				{
-					for (int j = 0; j < asset.techniqueSet->techniques[i]->numPasses; ++j)
+					for (int j = 0; j < asset.techniqueSet->techniques[i]->passCount; ++j)
 					{
-						Game::MaterialPass* pass = &asset.techniqueSet->techniques[i]->passes[j];
+						Game::MaterialPass* pass = &asset.techniqueSet->techniques[i]->passArray[j];
 
-						for (int k = 0; k < (pass->argCount1 + pass->argCount2 + pass->argCount3); ++k)
+						for (int k = 0; k < (pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount); ++k)
 						{
-							if (pass->argumentDef[k].type == D3DSHADER_PARAM_REGISTER_TYPE::D3DSPR_CONSTINT)
+							if (pass->args[k].type == D3DSHADER_PARAM_REGISTER_TYPE::D3DSPR_CONSTINT)
 							{
-								if (pass->argumentDef[k].paramID == -28132)
+								if (pass->args[k].u.codeConst.index == -28132)
 								{
-									pass->argumentDef[k].paramID = 2644;
+									pass->args[k].u.codeConst.index = 2644;
 								}
 							}
 						}

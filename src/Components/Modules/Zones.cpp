@@ -1069,7 +1069,7 @@ namespace Components
 		bool result = Game::Load_Stream(atStreamStart, argument, size);
 
 		Game::MaterialPass* curPass = *Game::varMaterialPass;
-		int count = curPass->argCount1 + curPass->argCount2 + curPass->argCount3;
+		int count = curPass->perPrimArgCount + curPass->perObjArgCount + curPass->stableArgCount;
 
 		for (int i = 0; i < count && (Zones::ZoneVersion >= VERSION_ALPHA2); ++i)
 		{
@@ -1084,40 +1084,40 @@ namespace Components
 			// >= 58 fixes foliage without bad side effects
 			// >= 53 still has broken shadow mapping
 			// >= 23 is still broken somehow
-			if (arg->paramID >= 58 && arg->paramID <= 135) // >= 34 would be 31 in iw4 terms
+			if (arg->u.codeConst.index >= 58 && arg->u.codeConst.index <= 135) // >= 34 would be 31 in iw4 terms
 			{
-				arg->paramID -= 3;
+				arg->u.codeConst.index -= 3;
 
 				if (Zones::Version() >= 359/* && arg->paramID <= 113*/)
 				{
-					arg->paramID -= 7;
+					arg->u.codeConst.index -= 7;
 
-					if (arg->paramID <= 53)
+					if (arg->u.codeConst.index <= 53)
 					{
-						arg->paramID += 1;
+						arg->u.codeConst.index += 1;
 					}
 				}
 			}
 			// >= 21 works fine for specular, but breaks trees
 			// >= 4 is too low, breaks specular
-			else if (arg->paramID >= 11 && arg->paramID < 58)
+			else if (arg->u.codeConst.index >= 11 && arg->u.codeConst.index < 58)
 			{
-				arg->paramID -= 2;
+				arg->u.codeConst.index -= 2;
 
 				if (Zones::Version() >= 359)
 				{
-					if (arg->paramID > 15 && arg->paramID < 30)
+					if (arg->u.codeConst.index > 15 && arg->u.codeConst.index < 30)
 					{
-						arg->paramID -= 1;
+						arg->u.codeConst.index -= 1;
 
-						if (arg->paramID == 19)
+						if (arg->u.codeConst.index == 19)
 						{
-							arg->paramID = 21;
+							arg->u.codeConst.index = 21;
 						}
 					}
-					else if (arg->paramID >= 50)
+					else if (arg->u.codeConst.index >= 50)
 					{
-						arg->paramID += 6;
+						arg->u.codeConst.index += 6;
 					}
 				}
 			}

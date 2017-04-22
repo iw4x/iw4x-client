@@ -19,11 +19,11 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		if (asset->loadDef.physicalPart)
+		if (asset->prog.loadDef.program)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->save(asset->loadDef.physicalPart, 4, asset->loadDef.cachedPartSize & 0xFFFF);
-			Utils::Stream::ClearPointer(&dest->loadDef.physicalPart);
+			buffer->saveArray(asset->prog.loadDef.program, asset->prog.loadDef.programSize);
+			Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
 		}
 
 		buffer->popBlock();

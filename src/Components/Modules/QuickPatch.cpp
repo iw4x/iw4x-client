@@ -514,17 +514,17 @@ namespace Components
 
 					if (Utils::IO::FileExists(Utils::String::VA(formatString, name))) return;
 
-					Utils::Stream* buffer = new Utils::Stream(0x1000);
-					Game::MaterialPixelShader* dest = buffer->dest<Game::MaterialPixelShader>();
-					buffer->save(asset.pixelShader);
+					Utils::Stream buffer(0x1000);
+					Game::MaterialPixelShader* dest = buffer.dest<Game::MaterialPixelShader>();
+					buffer.save(asset.pixelShader);
 
-					if (asset.pixelShader->loadDef.physicalPart)
+					if (asset.pixelShader->prog.loadDef.program)
 					{
-						buffer->save(asset.pixelShader->loadDef.physicalPart, 4, asset.pixelShader->loadDef.cachedPartSize & 0xFFFF);
-						Utils::Stream::ClearPointer(&dest->loadDef.physicalPart);
+						buffer.saveArray(asset.pixelShader->prog.loadDef.program, asset.pixelShader->prog.loadDef.programSize);
+						Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
 					}
 
-					Utils::IO::WriteFile(Utils::String::VA(formatString, name), buffer->toBuffer());
+					Utils::IO::WriteFile(Utils::String::VA(formatString, name), buffer.toBuffer());
 				}
 
 				static std::map<const void*, unsigned int> pointerMap;
@@ -583,25 +583,25 @@ namespace Components
 
 								// Save_MaterialPassArray
 								Game::MaterialPass* destPasses = buffer->dest<Game::MaterialPass>();
-								buffer->saveArray(technique->passes, technique->numPasses);
+								buffer->saveArray(technique->passArray, technique->passCount);
 
-								for (short j = 0; j < technique->numPasses; ++j)
+								for (short j = 0; j < technique->passCount; ++j)
 								{
 									AssertSize(Game::MaterialPass, 20);
 
 									Game::MaterialPass* destPass = &destPasses[j];
-									Game::MaterialPass* pass = &technique->passes[j];
+									Game::MaterialPass* pass = &technique->passArray[j];
 
 									if (pass->vertexDecl)
 									{
 
 									}
 
-									if (pass->argumentDef)
+									if (pass->args)
 									{
 										buffer->align(Utils::Stream::ALIGN_4);
-										buffer->saveArray(pass->argumentDef, pass->argCount1 + pass->argCount2 + pass->argCount3);
-										Utils::Stream::ClearPointer(&destPass->argumentDef);
+										buffer->saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+										Utils::Stream::ClearPointer(&destPass->args);
 									}
 								}
 

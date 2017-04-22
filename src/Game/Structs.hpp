@@ -4,7 +4,11 @@
 #define NUM_CUSTOM_CLASSES 15
 
 // This allows us to compile our structures in IDA, for easier reversing :3
-#ifdef __cplusplus
+#ifndef __cplusplus
+#define IDA
+#endif
+
+#ifndef IDA
 namespace Game
 {
 #endif
@@ -336,7 +340,7 @@ namespace Game
 		union
 		{
 			GfxImageLoadDef* loadDef;
-#ifdef __cplusplus
+#ifndef IDA
 			IDirect3DBaseTexture9 *basemap;
 			IDirect3DTexture9 *map;
 			IDirect3DVolumeTexture9 *volmap;
@@ -405,48 +409,107 @@ namespace Game
 		MaterialTextureDefInfo info;
 	};
 
+	struct GfxShaderConstantBlock
+	{
+		unsigned int count;
+		unsigned __int16 dest[16];
+		const float *value[16];
+	};
+
+	struct MaterialArgumentCodeConst
+	{
+		unsigned __int16 index;
+		char firstRow;
+		char rowCount;
+	};
+
+	union MaterialArgumentDef
+	{
+		const float *literalConst;
+		MaterialArgumentCodeConst codeConst;
+		unsigned int codeSampler;
+		unsigned int nameHash;
+	};
+
 	struct MaterialShaderArgument
 	{
-		short type;
-		short dest;
-		short paramID;
-		short more;
+		unsigned __int16 type;
+		unsigned __int16 dest;
+		MaterialArgumentDef u;
+	};
+
+	struct MaterialStreamRouting
+	{
+		char source;
+		char dest;
+	};
+
+	struct MaterialVertexStreamRouting
+	{
+		MaterialStreamRouting data[14];
+#ifdef IDA
+		void
+#else
+		IDirect3DVertexDeclaration9
+#endif
+		*decl[16];
 	};
 
 	struct MaterialVertexDeclaration
 	{
 		const char* name;
-		int unknown;
-		char pad[28];
-		/*IDirect3DVertexDeclaration9**/void* declarations[16];
+		char streamCount;
+		bool hasOptionalSource;
+		bool isLoaded;
+		MaterialVertexStreamRouting routing;
 	};
 
 	struct GfxPixelShaderLoadDef
 	{
-		char *cachedPart;
-		char *physicalPart;
-		unsigned __int16 cachedPartSize;
-		unsigned __int16 physicalPartSize;
+		unsigned int *program;
+		unsigned __int16 programSize;
+		unsigned __int16 loadForRenderer;
+	};
+
+	struct MaterialPixelShaderProgram
+	{
+#ifdef IDA
+		void
+#else
+		IDirect3DPixelShader9
+#endif
+		*ps;
+		GfxPixelShaderLoadDef loadDef;
 	};
 
 	struct MaterialPixelShader
 	{
 		const char* name;
-		GfxPixelShaderLoadDef loadDef;
+		MaterialPixelShaderProgram prog;
 	};
 
 	struct GfxVertexShaderLoadDef
 	{
-		char *cachedPart;
-		char *physicalPart;
-		unsigned __int16 cachedPartSize;
-		unsigned __int16 physicalPartSize;
+		unsigned int *program;
+		unsigned __int16 programSize;
+		unsigned __int16 loadForRenderer;
+	};
+
+	struct MaterialVertexShaderProgram
+	{
+#ifdef IDA
+		void
+#else
+		IDirect3DVertexShader9
+#endif
+		*vs;
+		GfxVertexShaderLoadDef loadDef;
 	};
 
 	struct MaterialVertexShader
 	{
-		const char* name;
-		GfxVertexShaderLoadDef loadDef;
+		const char *name;
+		MaterialVertexShaderProgram prog;
 	};
 
 	struct MaterialPass
@@ -454,19 +517,19 @@ namespace Game
 		MaterialVertexDeclaration* vertexDecl;
 		MaterialVertexShader* vertexShader;
 		MaterialPixelShader* pixelShader;
-		char argCount1;
-		char argCount2;
-		char argCount3;
-		char unk;
-		MaterialShaderArgument* argumentDef;
+		char perPrimArgCount;
+		char perObjArgCount;
+		char stableArgCount;
+		char customSamplerFlags;
+		MaterialShaderArgument* args;
 	};
 
 	struct MaterialTechnique
 	{
-		char* name;
-		short pad2;
-		short numPasses;
-		MaterialPass passes[1];
+		const char *name;
+		unsigned __int16 flags;
+		unsigned __int16 passCount;
+		MaterialPass passArray[1];
 	};
 
 	enum MaterialTechniqueType
@@ -3773,7 +3836,7 @@ namespace Game
 		fileInIwd_s *buildBuffer;
 	};
 
-#ifndef __cplusplus
+#ifdef IDA
 	typedef void _iobuf;
 #endif
 
@@ -3884,6 +3947,6 @@ namespace Game
 		int dataCount;
 	} gameState;
 
-#ifdef __cplusplus
+#ifndef IDA
 }
 #endif

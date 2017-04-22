@@ -19,6 +19,8 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
+		AssertSize(Game::MaterialVertexStreamRouting, 92);
+
 		buffer->popBlock();
 	}
 }

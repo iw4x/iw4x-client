@@ -12,9 +12,9 @@ namespace Assets
 
 			if (!technique) continue;
 
-			for (short j = 0; j < technique->numPasses; ++j)
+			for (short j = 0; j < technique->passCount; ++j)
 			{
-				Game::MaterialPass* pass = &technique->passes[j];
+				Game::MaterialPass* pass = &technique->passArray[j];
 
 				if (pass->vertexDecl)
 				{
@@ -75,14 +75,14 @@ namespace Assets
 
 					// Save_MaterialPassArray
 					Game::MaterialPass* destPasses = buffer->dest<Game::MaterialPass>();
-					buffer->saveArray(technique->passes, technique->numPasses);
+					buffer->saveArray(technique->passArray, technique->passCount);
 
-					for (short j = 0; j < technique->numPasses; ++j)
+					for (short j = 0; j < technique->passCount; ++j)
 					{
 						AssertSize(Game::MaterialPass, 20);
 
 						Game::MaterialPass* destPass = &destPasses[j];
-						Game::MaterialPass* pass = &technique->passes[j];
+						Game::MaterialPass* pass = &technique->passArray[j];
 
 						if (pass->vertexDecl)
 						{
@@ -99,11 +99,11 @@ namespace Assets
 							destPass->pixelShader = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PIXELSHADER, pass->pixelShader).pixelShader;
 						}
 
-						if (pass->argumentDef)
+						if (pass->args)
 						{
 							buffer->align(Utils::Stream::ALIGN_4);
-							buffer->saveArray(pass->argumentDef, pass->argCount1 + pass->argCount2 + pass->argCount3);
-							Utils::Stream::ClearPointer(&destPass->argumentDef);
+							buffer->saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+							Utils::Stream::ClearPointer(&destPass->args);
 						}
 					}
 
