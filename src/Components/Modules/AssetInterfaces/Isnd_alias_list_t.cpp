@@ -102,21 +102,21 @@ namespace Assets
 			}
 
 			alias->sequence = sequence.int_value();
-			alias->volMin = volMin.int_value();
-			alias->volMax = volMax.int_value();
-			alias->pitchMin = pitchMin.int_value();
-			alias->pitchMax = pitchMax.int_value();
-			alias->distMin = distMin.int_value();
-			alias->distMax = distMax.int_value();
+			alias->volMin = float(volMin.number_value());
+			alias->volMax = float(volMax.number_value());
+			alias->pitchMin = float(pitchMin.number_value());
+			alias->pitchMax = float(pitchMax.number_value());
+			alias->distMin = float(distMin.number_value());
+			alias->distMax = float(distMax.number_value());
 			alias->flags = flags.int_value();
-			alias->slavePercentage = slavePercentage.int_value();
-			alias->probability = probability.int_value();
-			alias->lfePercentage = lfePercentage.int_value();
-			alias->centerPercentage = centerPercentage.int_value();
+			alias->slavePercentage = float(slavePercentage.number_value());
+			alias->probability = float(probability.number_value());
+			alias->lfePercentage = float(lfePercentage.number_value());
+			alias->centerPercentage = float(centerPercentage.number_value());
 			alias->startDelay = startDelay.int_value();
-			alias->envelopMin = envelopMin.int_value();
-			alias->envelopMax = envelopMax.int_value();
-			alias->envelopPercentage = envelopPercentage.int_value();
+			alias->envelopMin = float(envelopMin.number_value());
+			alias->envelopMax = float(envelopMax.number_value());
+			alias->envelopPercentage = float(envelopPercentage.number_value());
 			
 			if (volumeFalloffCurve.is_string())
 			{
