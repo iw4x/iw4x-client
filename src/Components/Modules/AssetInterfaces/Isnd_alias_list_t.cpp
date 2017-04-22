@@ -85,7 +85,43 @@ namespace Assets
 			CHECK(volumeFalloffCurve, string) && CHECK(envelopMin, number) && CHECK(envelopMax, number) && CHECK(envelopPercentage, number) &&
 			CHECK(speakerMap, string))
 		{
+
 			alias->soundFile->exists = true;
+
+			if (subtitle.is_string())
+			{
+				alias->subtitle = subtitle.string_value().data();
+			}
+			if (secondaryAliasName.is_string())
+			{
+				alias->secondaryAliasName = secondaryAliasName.string_value().data();
+			}
+			if (chainAliasName.is_string())
+			{
+				alias->chainAliasName = chainAliasName.string_value().data();
+			}
+
+			alias->sequence = sequence.int_value();
+			alias->volMin = volMin.int_value();
+			alias->volMax = volMax.int_value();
+			alias->pitchMin = pitchMin.int_value();
+			alias->pitchMax = pitchMax.int_value();
+			alias->distMin = distMin.int_value();
+			alias->distMax = distMax.int_value();
+			alias->flags = flags.int_value();
+			alias->slavePercentage = slavePercentage.int_value();
+			alias->probability = probability.int_value();
+			alias->lfePercentage = lfePercentage.int_value();
+			alias->centerPercentage = centerPercentage.int_value();
+			alias->startDelay = startDelay.int_value();
+			alias->envelopMin = envelopMin.int_value();
+			alias->envelopMax = envelopMax.int_value();
+			alias->envelopPercentage = envelopPercentage.int_value();
+			
+			if (volumeFalloffCurve.is_string())
+			{
+				alias->volumeFalloffCurve = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, volumeFalloffCurve.string_value(), builder).sndCurve;
+			}
 
 			if (type.string_value() == "loaded"s)
 			{
