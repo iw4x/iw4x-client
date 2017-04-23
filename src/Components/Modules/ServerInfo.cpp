@@ -73,7 +73,7 @@ namespace Components
 
 	void ServerInfo::DrawScoreboardInfo(void* a1)
 	{
-		Game::Font* font = Game::R_RegisterFont("fonts/bigfont");
+		Game::Font* font = Game::R_RegisterFont("fonts/bigfont", 0);
 		void* cxt = Game::UI_GetContext(a1);
 
 		std::string addressText = Network::Address(*Game::connectedHost).getString();

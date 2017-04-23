@@ -532,7 +532,7 @@ namespace Components
 		{
 			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").get<bool>()) return;
 
-			Game::Font* font = Game::R_RegisterFont("fonts/consoleFont"); // Inlining that seems to skip xpos, no idea why xD
+			Game::Font* font = Game::R_RegisterFont("fonts/consoleFont", 0); // Inlining that seems to skip xpos, no idea why xD
 			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
 			Game::R_AddCmdDrawText(Utils::String::VA("Loading FastFile: %s", FastFiles::Current().data()), 0x7FFFFFFF, font, 5.0f, static_cast<float>(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 		});

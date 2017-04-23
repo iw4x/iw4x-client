@@ -478,7 +478,7 @@ namespace Game
 	typedef void(__cdecl * Playlist_ParsePlaylists_t)(const char* data);
 	extern Playlist_ParsePlaylists_t Playlist_ParsePlaylists;
 
-	typedef Font* (__cdecl * R_RegisterFont_t)(const char* asset);
+	typedef Font* (__cdecl * R_RegisterFont_t)(const char* asset, int safe);
 	extern R_RegisterFont_t R_RegisterFont;
 
 	typedef void(__cdecl * R_AddCmdDrawText_t)(const char *text, int maxChars, Font *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
