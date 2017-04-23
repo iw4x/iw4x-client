@@ -1194,7 +1194,8 @@ namespace Game
 
 	typedef struct gentity_s
 	{
-		unsigned char pad[312]; // 0
+		int number;
+		unsigned char pad[308]; // 4
 		float origin[3]; // 312
 		float angles[3]; // 324
 		char pad2[8];

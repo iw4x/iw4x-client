@@ -508,6 +508,9 @@ namespace Game
 	typedef GfxWorld*(__cdecl * R_SortWorldSurfaces_t)();
 	extern R_SortWorldSurfaces_t R_SortWorldSurfaces;
 
+	typedef void(__cdecl * Scr_AddString_t)(const char* str);
+	extern Scr_AddString_t Scr_AddString;
+
 	typedef void(__cdecl * Scr_ShutdownAllocNode_t)();
 	extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
 
@@ -531,6 +534,9 @@ namespace Game
 
 	typedef int(__cdecl * Scr_FreeThread_t)(int);
 	extern Scr_FreeThread_t Scr_FreeThread;
+
+	typedef void(__cdecl * Scr_Notify_t)(gentity_t *ent, unsigned __int16 stringValue, unsigned int paramcount);
+	extern Scr_Notify_t Scr_Notify;
 
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
@@ -568,6 +574,9 @@ namespace Game
 	typedef const char*(__cdecl * StringTable_Lookup_t)(StringTable *table, const int comparisonColumn, const char *value, const int valueColumn);
 	extern StringTable_Lookup_t StringTable_Lookup;
 
+	typedef gentity_t*(__cdecl* SV_AddTestClient_t)();
+	extern SV_AddTestClient_t SV_AddTestClient;
+
 	typedef int(__cdecl* SV_GameClientNum_Score_t)(int clientID);
 	extern SV_GameClientNum_Score_t SV_GameClientNum_Score;
 
@@ -585,6 +594,9 @@ namespace Game
 
 	typedef void(__cdecl * SV_DirectConnect_t)(netadr_t adr);
 	extern SV_DirectConnect_t SV_DirectConnect;
+
+	typedef bool(__cdecl * SV_Loaded_t)();
+	extern SV_Loaded_t SV_Loaded;
 
 	typedef int(__cdecl * Sys_Error_t)(int, char *, ...);
 	extern Sys_Error_t Sys_Error;

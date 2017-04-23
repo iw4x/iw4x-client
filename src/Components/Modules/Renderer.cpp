@@ -9,6 +9,8 @@ namespace Components
 	Utils::Signal<Renderer::Callback> Renderer::EndRecoverDeviceSignal;
 	Utils::Signal<Renderer::Callback> Renderer::BeginRecoverDeviceSignal;
 
+	std::vector<Renderer::DelayedSlot> Renderer::DelayedSlots;
+
 	__declspec(naked) void Renderer::FrameStub()
 	{
 		__asm
@@ -24,6 +26,7 @@ namespace Components
 
 	void Renderer::FrameHandler()
 	{
+		Renderer::DelaySignal();
 		Renderer::FrameSignal();
 
 		Utils::Signal<Renderer::Callback> copy(Renderer::FrameOnceSignal);
@@ -82,6 +85,34 @@ namespace Components
 	void Renderer::OnDeviceRecoveryBegin(Utils::Slot<Renderer::Callback> callback)
 	{
 		Renderer::BeginRecoverDeviceSignal.connect(callback);
+	}
+
+	void Renderer::OnDelay(Utils::Slot<Renderer::Callback> callback, std::chrono::nanoseconds delay)
+	{
+		Renderer::DelayedSlot slot;
+		slot.callback = callback;
+		slot.delay = delay;
+
+		Renderer::DelayedSlots.push_back(slot);
+	}
+
+	void Renderer::DelaySignal()
+	{
+		Utils::Signal<Renderer::Callback> signal;
+
+		for(auto i = Renderer::DelayedSlots.begin(); i != Renderer::DelayedSlots.end();)
+		{
+			if(i->interval.elapsed(i->delay))
+			{
+				signal.connect(i->callback);
+				i = Renderer::DelayedSlots.erase(i);
+				continue;
+			}
+
+			++i;
+		}
+
+		signal();
 	}
 
 	int Renderer::Width()

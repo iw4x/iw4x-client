@@ -212,6 +212,9 @@ namespace Game
 	Scr_ExecThread_t Scr_ExecThread = Scr_ExecThread_t(0x4AD0B0);
 	Scr_FreeThread_t Scr_FreeThread = Scr_FreeThread_t(0x4BD320);
 
+	Scr_AddString_t Scr_AddString = Scr_AddString_t(0x412310);
+	Scr_Notify_t Scr_Notify = Scr_Notify_t(0x4A4750);
+
 	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = Scr_ShutdownAllocNode_t(0x441650);
 
 	Script_Alloc_t Script_Alloc = Script_Alloc_t(0x422E70);
@@ -238,12 +241,14 @@ namespace Game
 
 	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
 
+	SV_AddTestClient_t SV_AddTestClient = SV_AddTestClient_t(0x48AD30);
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = SV_GameClientNum_Score_t(0x469AC0);
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = SV_GameSendServerCommand_t(0x4BC3A0);
 	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = SV_Cmd_TokenizeString_t(0x4B5780);
 	SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString = SV_Cmd_EndTokenizedString_t(0x464750);
 	SV_DirectConnect_t SV_DirectConnect = SV_DirectConnect_t(0x460480);
 	SV_SetConfigstring_t SV_SetConfigstring = SV_SetConfigstring_t(0x4982E0);
+	SV_Loaded_t SV_Loaded = SV_Loaded_t(0x4EE3E0);
 
 	Sys_Error_t Sys_Error = Sys_Error_t(0x4E0200);
 	Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x4D8580);
