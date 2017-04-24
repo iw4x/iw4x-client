@@ -17,6 +17,6 @@ namespace Components
 
 		static void BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port);
 
-		static unsigned int Spawn(unsigned int count);
+		static void Spawn(unsigned int count);
 	};
 }
