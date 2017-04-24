@@ -87,13 +87,7 @@ namespace Assets
 			}
 
 			int version = reader.read<int>();
-			if (version != IW4X_MODEL_VERSION
-
-// Legacy model support (the code is backwards compatible)
-#if IW4X_MODEL_VERSION == 5
-				&& (version + 1) != IW4X_MODEL_VERSION
-#endif
-				)
+			if (version != IW4X_MODEL_VERSION)
 			{
 				Components::Logger::Error(0, "Reading model '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_MODEL_VERSION, version);
 			}
