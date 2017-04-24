@@ -632,6 +632,14 @@ namespace Game
 		unsigned int loadBits[2];
 	};
 
+	struct infoParm_t
+	{
+		const char *name;
+		int clearSolid;
+		int surfaceFlags;
+		int contents;
+		int toolFlags;
+	};
 
 #pragma pack(push, 4)
 	struct Material

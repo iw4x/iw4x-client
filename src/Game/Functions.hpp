@@ -753,6 +753,8 @@ namespace Game
 
 	extern FxElemField* s_elemFields;
 
+	extern infoParm_t* infoParams;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);

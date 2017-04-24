@@ -360,6 +360,8 @@ namespace Game
 
 	FxElemField* s_elemFields = reinterpret_cast<FxElemField*>(0x73B848);
 
+	infoParm_t* infoParams = reinterpret_cast<infoParm_t*>(0x79D260); // Count 0x1E
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();

@@ -114,6 +114,9 @@ namespace Components
 
 		static const char* LoadArenaFileStub(const char* name, char* buffer, int size);
 
+		static void HideModel();
+		static void HideModelStub();
+
 		void reallocateEntryPool();
 	};
 }

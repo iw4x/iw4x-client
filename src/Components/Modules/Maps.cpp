@@ -769,14 +769,47 @@ namespace Components
 		return false;
 	}
 
+	void Maps::HideModel()
+	{
+		Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+		if (!gameWorld) return;
+
+		std::string model = Dvar::Var("r_hideModel").get<std::string>();
+		if (model.empty()) return;
+
+		for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
+		{
+			if (gameWorld->dpvs.smodelDrawInsts[i].model->name == model)
+			{
+				gameWorld->dpvs.smodelVisData[0][i] = 0;
+				gameWorld->dpvs.smodelVisData[1][i] = 0;
+				gameWorld->dpvs.smodelVisData[2][i] = 0;
+			}
+		}
+	}
+
+	__declspec(naked) void Maps::HideModelStub()
+	{
+		__asm
+		{
+			pushad
+			call Maps::HideModel
+			popad
+
+			push 541E40h
+			retn
+		}
+	}
+
 	Maps::Maps()
 	{
 		Dvar::OnInit([]()
 		{
 			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
+			Dvar::Register<bool>("r_listSModels", false, Game::DVAR_FLAG_NONE, "Display a list of visible SModels");
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
-			Maps::AddDlc({ 2, "Resergence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
+			Maps::AddDlc({ 2, "Resurgence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
 			Maps::AddDlc({ 3, "Nuketown", {"mp_nuked"} });
 			Maps::AddDlc({ 4, "Classics Pack", {"mp_cross_fire", "mp_cargoship", "mp_bloc"} });
 			Maps::AddDlc({ 5, "Classics Pack", {"mp_killhouse", "mp_bog_sh"} });
@@ -804,7 +837,8 @@ namespace Components
 			});
 		});
 
-#ifndef DEBUG
+//#define SORT_SMODELS
+#if !defined(DEBUG) || !defined(SORT_SMODELS)
 		// Don't sort static models
 		Utils::Hook::Nop(0x53D815, 2);
 #endif
@@ -908,6 +942,38 @@ namespace Components
 			}
 		});
 #endif
+
+		// Allow hiding specific smodels
+		Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();
+
+		Renderer::OnFrame([]()
+		{
+			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			if (!Game::CL_IsCgameInitialized() || !gameWorld || !Dvar::Var("r_listSModels").get<bool>()) return;
+
+			std::map<std::string, int> models;
+			for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
+			{
+				if (gameWorld->dpvs.smodelVisData[0][i])
+				{
+					std::string name = gameWorld->dpvs.smodelDrawInsts[i].model->name;
+
+					if (models.find(name) == models.end()) models[name] = 1;
+					else models[name]++;
+				}
+			}
+
+			Game::Font* font = Game::R_RegisterFont("fonts/smallFont", 0);
+			int height = Game::R_TextHeight(font);
+			float scale = 0.75;
+			float color[4] = { 0, 1.0f, 0, 1.0f };
+
+			unsigned int i = 0;
+			for (auto& model : models)
+			{
+				Game::R_AddCmdDrawText(Utils::String::VA("%d %s", model.second, model.first.data()), 0x7FFFFFFF, font, 15.0f, (height * scale + 1) * (i++ + 1) + 15.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
+			}
+		});
 	}
 
 	Maps::~Maps()
