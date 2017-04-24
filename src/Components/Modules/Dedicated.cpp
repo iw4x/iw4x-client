@@ -144,7 +144,7 @@ namespace Components
 	{
 		std::string list = Utils::String::VA("%c", 20);
 
-		for (int i = 0; i < 18; i++)
+		for (int i = 0; i < 18; ++i)
 		{
 			if (Game::svs_clients[i].state >= 3)
 			{

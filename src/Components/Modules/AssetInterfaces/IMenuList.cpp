@@ -6,7 +6,7 @@ namespace Assets
 	{
 		Game::MenuList *asset = header.menuList;
 
-		for (int i = 0; i < asset->menuCount; i++)
+		for (int i = 0; i < asset->menuCount; ++i)
 		{
 			if (asset->menus[i])
 			{
@@ -39,7 +39,7 @@ namespace Assets
 			Game::menuDef_t **destMenus = buffer->dest<Game::menuDef_t*>();
 			buffer->saveArray(asset->menus, asset->menuCount);
 
-			for (int i = 0; i < asset->menuCount; i++)
+			for (int i = 0; i < asset->menuCount; ++i)
 			{
 				destMenus[i] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MENU, asset->menus[i]).menu;
 			}

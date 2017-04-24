@@ -36,7 +36,7 @@ namespace Assets
 				buffer->align(Utils::Stream::ALIGN_4);
 
 				// not sure if this is neede but both brushside and brushedge need it and it can't hurt
-				for (int i = 0; i < asset->numCPlanes; i++)
+				for (int i = 0; i < asset->numCPlanes; ++i)
 				{
 					builder->storePointer(&asset->cPlanes[i]);
 					buffer->save(&asset->cPlanes[i]);

@@ -12,7 +12,7 @@ namespace Assets
 		}
 		
 		// mark items
-		for (int i = 0; i < asset->itemCount; i++)
+		for (int i = 0; i < asset->itemCount; ++i)
 		{
 			if (asset->items[i]->window.background)
 			{
@@ -49,7 +49,7 @@ namespace Assets
 			Game::Statement_s **destStatement = buffer->dest<Game::Statement_s*>();
 			buffer->saveArray(asset->uifunctions.functions, asset->uifunctions.totalFunctions);
 
-			for (int i = 0; i < asset->uifunctions.totalFunctions; i++)
+			for (int i = 0; i < asset->uifunctions.totalFunctions; ++i)
 			{
 				if (asset->uifunctions.functions[i])
 				{
@@ -70,7 +70,7 @@ namespace Assets
 			Game::StaticDvar **destStaticDvars = buffer->dest<Game::StaticDvar*>();
 			buffer->saveArray(asset->staticDvarList.staticDvars, asset->staticDvarList.numStaticDvars);
 
-			for (int i = 0; i < asset->staticDvarList.numStaticDvars; i++)
+			for (int i = 0; i < asset->staticDvarList.numStaticDvars; ++i)
 			{
 				if (asset->staticDvarList.staticDvars[i])
 				{
@@ -98,7 +98,7 @@ namespace Assets
 			const char **destuiStrings = buffer->dest<const char*>();
 			buffer->saveArray(asset->uiStrings.strings, asset->uiStrings.totalStrings);
 
-			for (int i = 0; i < asset->uiStrings.totalStrings; i++)
+			for (int i = 0; i < asset->uiStrings.totalStrings; ++i)
 			{
 				if (asset->uiStrings.strings[i])
 				{
@@ -128,7 +128,7 @@ namespace Assets
 			buffer->save(asset->entries, sizeof(Game::expressionEntry), asset->numEntries);
 
 			// Loop through entries
-			for (int i = 0; i < asset->numEntries; i++)
+			for (int i = 0; i < asset->numEntries; ++i)
 			{
 				if (asset->entries[i].type)
 				{
@@ -186,7 +186,7 @@ namespace Assets
 			buffer->save(asset->eventHandlers, sizeof(Game::MenuEventHandler*), asset->eventHandlerCount);
 
 			// Loop through eventHandlers
-			for (int i = 0; i < asset->eventHandlerCount; i++)
+			for (int i = 0; i < asset->eventHandlerCount; ++i)
 			{
 				if (asset->eventHandlers[i])
 				{
@@ -392,7 +392,7 @@ namespace Assets
 				Game::multiDef_s* destdef = buffer->dest<Game::multiDef_s>();
 				buffer->save(asset->multiDef);
 
-				for (int i = 0; i < 32; i++)
+				for (int i = 0; i < 32; ++i)
 				{
 					if (asset->multiDef->dvarList[i])
 					{
@@ -401,7 +401,7 @@ namespace Assets
 					}
 				}
 
-				for (int i = 0; i < 32; i++)
+				for (int i = 0; i < 32; ++i)
 				{
 					if (asset->multiDef->dvarStr[i])
 					{
@@ -504,7 +504,7 @@ namespace Assets
 			Game::ItemFloatExpression* destExp = buffer->dest<Game::ItemFloatExpression>();
 			buffer->saveArray(asset->floatExpressions, asset->floatExpressionCount);
 
-			for (int i = 0; i < asset->floatExpressionCount; i++)
+			for (int i = 0; i < asset->floatExpressionCount; ++i)
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
 				this->save_Statement_s(asset->floatExpressions[i].expression, builder);
@@ -594,7 +594,7 @@ namespace Assets
 			buffer->align(Utils::Stream::ALIGN_4);
 			buffer->saveArray(asset->items, asset->itemCount);
 
-			for (int i = 0; i < asset->itemCount; i++)
+			for (int i = 0; i < asset->itemCount; ++i)
 			{
 				if (asset->items[i])
 				{

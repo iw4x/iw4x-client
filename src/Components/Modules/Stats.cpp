@@ -13,7 +13,7 @@ namespace Components
 		// check if we're connected to a server...
 		if (*reinterpret_cast<std::uint32_t*>(0xB2C540) >= 7)
 		{
-			for (unsigned char i = 0; i < 7; i++)
+			for (unsigned char i = 0; i < 7; ++i)
 			{
 				Game::Com_Printf(0, "Sending stat packet %i to server.\n", i);
 
