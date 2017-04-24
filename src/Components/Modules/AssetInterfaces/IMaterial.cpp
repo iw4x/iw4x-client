@@ -60,7 +60,7 @@ namespace Assets
 			{
 				// Workaround for effect techsets having _nofog suffix
 				std::string suffix;
-				if(Utils::String::StartsWith(techset, "effect_") && Utils::String::EndsWith(techset, "_nofog"))
+				if (Utils::String::StartsWith(techset, "effect_") && Utils::String::EndsWith(techset, "_nofog"))
 				{
 					suffix = "_nofog";
 					Utils::String::Replace(techset, suffix, "");
@@ -166,7 +166,7 @@ namespace Assets
 			}
 		}, asset, false);
 
-		if(!replacementFound && asset->techniqueSet)
+		if (!replacementFound && asset->techniqueSet)
 		{
 			Components::Logger::Print("No replacement found for material %s with techset %s\n", asset->name, asset->techniqueSet->name);
 		}
