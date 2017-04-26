@@ -51,9 +51,9 @@ namespace Assets
 				"_replace",
 				"_eyeoffset",
 
-				"_add",
 				"_blend",
 				"_blend_nofog",
+				"_add",
 			};
 
 			if (!asset->techniqueSet)
