@@ -264,11 +264,11 @@ namespace Components
 		}
 		else if (Dedicated::IsEnabled())
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" VERSION "): Dedicated");
+			Utils::Hook::Set<char*>(0x4289E8, "IW4x (" VERSION "): Dedicated");
 		}
 		else
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (r" VERSION "): Console");
+			Utils::Hook::Set<char*>(0x4289E8, "IW4x (" VERSION "): Console");
 		}
 
 		// window title
