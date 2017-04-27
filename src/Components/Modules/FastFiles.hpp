@@ -41,6 +41,8 @@ namespace Components
 		static bool IsIW4xZone;
 		static bool StreamRead;
 
+		static char LastByteRead;
+
 		static Key CurrentKey;
 		static symmetric_CTR CurrentCTR;
 		static std::vector<std::string> ZonePaths;
@@ -61,6 +63,9 @@ namespace Components
 		static int InflateInitDecrypt(z_streamp strm, const char *version, int stream_size);
 
 		static void LoadZonesStub(Game::XZoneInfo *zoneInfo, unsigned int zoneCount);
+
+		static void ReadXFile(void* buffer, int size);
+		static void ReadXFileStub(char* buffer, int size);
 
 #ifdef DEBUG
 		static void LogStreamRead(int len);

@@ -9,6 +9,8 @@ namespace Components
 	bool FastFiles::IsIW4xZone = false;
 	bool FastFiles::StreamRead = false;
 
+	char FastFiles::LastByteRead = 0;
+
 	unsigned int FastFiles::CurrentZone;
 	unsigned int FastFiles::MaxZones;
 
@@ -332,6 +334,7 @@ namespace Components
 	void FastFiles::ReadHeaderStub(unsigned int* header, int size)
 	{
 		FastFiles::IsIW4xZone = false;
+		FastFiles::LastByteRead = 0;
 		Game::DB_ReadXFileUncompressed(header, size);
 
 		if (header[0] == XFILE_HEADER_IW4X)
@@ -439,6 +442,36 @@ namespace Components
 		Utils::Hook::Call<void(Game::XZoneInfo*, unsigned int)>(0x5BBAC0)(zoneInfo, zoneCount);
 	}
 
+	__declspec(naked) void FastFiles::ReadXFile(void* /*buffer*/, int /*size*/)
+	{
+		__asm
+		{
+			mov eax, [esp + 4]
+			mov ecx, [esp + 8]
+
+			push 445468h
+			retn
+		}
+	}
+
+	void FastFiles::ReadXFileStub(char* buffer, int size)
+	{
+		FastFiles::ReadXFile(buffer, size);
+
+		if(FastFiles::IsIW4xZone)
+		{
+			for(int i = 0; i < size; ++i)
+			{
+				buffer[i] ^= FastFiles::LastByteRead;
+				Utils::RotLeft(buffer[i], 4);
+				buffer[i] ^= -1;
+				Utils::RotRight(buffer[i], 6);
+
+				FastFiles::LastByteRead = buffer[i];
+			}
+		}
+	}
+
 #ifdef DEBUG
 	void FastFiles::LogStreamRead(int len)
 	{
@@ -465,6 +498,9 @@ namespace Components
 
 		// Allow loading IW4x zones
 		Utils::Hook(0x4157B8, FastFiles::ReadHeaderStub, HOOK_CALL).install()->quick();
+
+		// Obfuscate zone data
+		Utils::Hook(Game::DB_ReadXFile, FastFiles::ReadXFileStub, HOOK_JUMP).install()->quick();
 
 		// Allow custom zone loading
 		if (!ZoneBuilder::IsEnabled())

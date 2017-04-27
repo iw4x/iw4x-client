@@ -4,7 +4,7 @@
 #define XFILE_VERSION 276
 
 #define XFILE_HEADER_IW4X 0x78345749 // 'IW4x'
-#define XFILE_VERSION_IW4X 1
+#define XFILE_VERSION_IW4X 2
 
 namespace Components
 {
@@ -97,6 +97,7 @@ namespace Components
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		const char* getName() override { return "ZoneBuilder"; };
+		bool unitTest() override;
 #endif
 
 		static bool IsEnabled();

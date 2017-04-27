@@ -15,6 +15,25 @@ namespace Utils
 
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
 
+	template <typename T> inline void RotLeft(T& object, size_t bits)
+	{
+		bits %= sizeof(T) * 8;
+
+		T sign = 1;
+		sign = sign << (sizeof(T) * 8 - 1);
+
+		bool negative = (object & sign) != 0;
+		object &= ~sign;
+		object = (object << bits) | (object >> (sizeof(T) * 8 - bits));
+		object |= T(negative) << ((sizeof(T) * 8 - 1 + bits) % (sizeof(T) * 8));
+	}
+
+	template <typename T> inline void RotRight(T& object, size_t bits)
+	{
+		bits %= (sizeof(T) * 8);
+		RotLeft<T>(object, ((sizeof(T) * 8) - bits));
+	}
+
 	template <typename T> inline void Merge(std::vector<T>* target, T* source, size_t length)
 	{
 		if (source)

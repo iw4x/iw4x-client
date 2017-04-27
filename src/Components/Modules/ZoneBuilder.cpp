@@ -445,6 +445,18 @@ namespace Components
 #ifndef DEBUG
 		// Insert a random byte, this will destroy the whole alignment and result in a crash, if not handled
 		zoneBuffer.insert(zoneBuffer.begin(), static_cast<char>(Utils::Cryptography::Rand::GenerateInt()));
+
+		char lastByte = 0;
+		for(unsigned int i = 0; i < zoneBuffer.size(); ++i )
+		{
+			char oldLastByte = lastByte;
+			lastByte = zoneBuffer[i];
+
+			Utils::RotLeft(zoneBuffer[i], 6);
+			zoneBuffer[i] ^= -1;
+			Utils::RotRight(zoneBuffer[i], 4);
+			zoneBuffer[i] ^= oldLastByte;
+		}
 #endif
 
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
@@ -988,4 +1000,37 @@ namespace Components
 		assert(ZoneBuilder::MemAllocator.empty());
 		ZoneBuilder::CommonAssets.clear();
 	}
+
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
+	bool ZoneBuilder::unitTest()
+	{
+		printf("Testing circular bit shifting (left)...");
+
+		unsigned int integer = 0x80000000;
+		Utils::RotLeft(integer, 1);
+
+		if(integer != 1)
+		{
+			printf("Error\n");
+			printf("Bit shifting failed: %X\n", integer);
+			return false;
+		}
+
+		printf("Success\n");
+		printf("Testing circular bit shifting (right)...");
+
+		unsigned char byte = 0b00000011;
+		Utils::RotRight(byte, 2);
+
+		if (byte != 0b11000000)
+		{
+			printf("Error\n");
+			printf("Bit shifting failed %X\n", byte & 0xFF);
+			return false;
+		}
+
+		printf("Success\n");
+		return true;
+	}
+#endif
 }
