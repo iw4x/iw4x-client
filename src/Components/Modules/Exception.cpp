@@ -25,6 +25,12 @@ namespace Components
 	{
 		FreeConsole();
 
+		if(IsWindow(Console::GetWindow()) != FALSE)
+		{
+			CloseWindow(Console::GetWindow());
+			DestroyWindow(Console::GetWindow());
+		}
+
 		if (IsWindow(Window::GetWindow()) != FALSE)
 		{
 			CloseWindow(Window::GetWindow());
@@ -34,10 +40,16 @@ namespace Components
 
 			// This makes sure we either destroy the windows or wait till they are destroyed
 			MSG msg;
-			while (IsWindow(Window::GetWindow()) != FALSE && GetMessage(&msg, nullptr, NULL, NULL))
+			Utils::Time::Interval interval;
+			while (IsWindow(Window::GetWindow()) != FALSE && !interval.elapsed(2s))
 			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
+				if (PeekMessage(&msg, nullptr, NULL, NULL, PM_REMOVE))
+				{
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+
+				std::this_thread::sleep_for(10ms);
 			}
 		}
 
