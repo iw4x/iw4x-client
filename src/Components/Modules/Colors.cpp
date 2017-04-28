@@ -139,9 +139,9 @@ namespace Components
 		return index;
 	}
 
-	unsigned int Colors::ColorIndex(unsigned char index)
+	unsigned int Colors::ColorIndex(char index)
 	{
-		unsigned int result = index - '0';
+		char result = index - '0';
 		if (result >= Colors::ColorTable.size() || result < 0) result = 7;
 		return result;
 	}

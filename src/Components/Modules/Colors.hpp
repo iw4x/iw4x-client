@@ -33,7 +33,7 @@ namespace Components
 		static char* GetClientName(int localClientNum, int index, char *buf, size_t size);
 		static void PatchColorLimit(char limit);
 
-		static unsigned int ColorIndex(unsigned char);
+		static unsigned int ColorIndex(char index);
 		static void LookupColor(DWORD* color, char index);
 		static void LookupColorStub();
 		static char* CleanStrStub(char* string);

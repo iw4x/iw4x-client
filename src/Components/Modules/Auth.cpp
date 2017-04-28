@@ -313,7 +313,7 @@ namespace Components
 			Command::Execute("openmenu security_increase_popmenu", true);
 
 			// Start thread
-			Auth::TokenContainer.thread = std::thread([&level] ()
+			Auth::TokenContainer.thread = std::thread([&level]()
 			{
 				Auth::TokenContainer.generating = true;
 				Auth::TokenContainer.hashes = 0;
@@ -388,8 +388,7 @@ namespace Components
 
 			// Allow canceling that shit
 			if (cancel && *cancel) return;
-		}
-		while (level < zeroBits);
+		} while (level < zeroBits);
 
 		token = computeToken;
 	}
@@ -422,14 +421,14 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4D0D60, 0xC301B0);
 
 		// Guid command
-		Command::Add("guid", [] (Command::Params*)
+		Command::Add("guid", [](Command::Params*)
 		{
 			Logger::Print("Your guid: %llX\n", Steam::SteamUser()->GetSteamID().bits);
 		});
 
 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
-			Command::Add("securityLevel", [] (Command::Params* params)
+			Command::Add("securityLevel", [](Command::Params* params)
 			{
 				if (params->length() < 2)
 				{
@@ -448,7 +447,7 @@ namespace Components
 			});
 		}
 
-		UIScript::Add("security_increase_cancel", [] (UIScript::Token)
+		UIScript::Add("security_increase_cancel", [](UIScript::Token)
 		{
 			Auth::TokenContainer.cancel = true;
 			Logger::Print("Token incrementation process canceled!\n");
