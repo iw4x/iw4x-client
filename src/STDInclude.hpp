@@ -22,8 +22,8 @@
 
 #pragma warning(push)
 #pragma warning(disable: 4091)
+#pragma warning(disable: 4244)
 #include <dbghelp.h>
-#pragma warning(pop)
 
 #include <sstream>
 #include <fstream>
@@ -37,6 +37,8 @@
 
 // Experimental C++17 features
 #include <filesystem>
+
+#pragma warning(pop)
 
 #ifdef ENABLE_DXSDK
 #include <d3dx9tex.h>

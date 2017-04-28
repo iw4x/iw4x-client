@@ -512,7 +512,7 @@ namespace Components
 						formatString = "userraw/shader_bin/%.vs";
 					}
 
-					if (Utils::IO::FileExists(Utils::String::VA(formatString, name))) return;
+					if (Utils::IO::FileExists(Utils::String::VA(formatString, name.data()))) return;
 
 					Utils::Stream buffer(0x1000);
 					Game::MaterialPixelShader* dest = buffer.dest<Game::MaterialPixelShader>();
@@ -524,7 +524,7 @@ namespace Components
 						Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
 					}
 
-					Utils::IO::WriteFile(Utils::String::VA(formatString, name), buffer.toBuffer());
+					Utils::IO::WriteFile(Utils::String::VA(formatString, name.data()), buffer.toBuffer());
 				}
 
 				static std::map<const void*, unsigned int> pointerMap;
