@@ -227,6 +227,24 @@ namespace Components
 		Game::GScr_LoadGameTypeScript();
 	}
 
+	int Script::SetExpFogStub()
+	{
+		if(Game::Scr_GetNumParam() == 6)
+		{
+			Game::VariableValue*& scr_stack = *reinterpret_cast<Game::VariableValue**>(0x2040D00);
+			if(scr_stack)
+			{
+				Game::Scr_AddFloat(0); // Push transition time onto the stack
+				Game::VariableValue transitionTime;
+				std::memcpy(&transitionTime, scr_stack, sizeof Game::VariableValue);
+				std::memmove(&scr_stack[0], &scr_stack[1], sizeof(Game::VariableValue) * 6);
+				std::memcpy(&scr_stack[6], &transitionTime, sizeof Game::VariableValue);
+			}
+		}
+
+		return Game::Scr_GetNumParam();
+	}
+
 	Script::Script()
 	{
 		Utils::Hook(0x612DB0, Script::StoreFunctionNameStub, HOOK_JUMP).install()->quick();
@@ -239,6 +257,8 @@ namespace Components
 
 		Utils::Hook(0x48EFFE, Script::LoadGameType, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45D44A, Script::LoadGameTypeScript, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
 	}
 
 	Script::~Script()

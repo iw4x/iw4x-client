@@ -511,6 +511,9 @@ namespace Game
 	typedef void(__cdecl * Scr_AddString_t)(const char* str);
 	extern Scr_AddString_t Scr_AddString;
 
+	typedef int(__cdecl * Scr_AddFloat_t)(float);
+	extern Scr_AddFloat_t Scr_AddFloat;
+
 	typedef void(__cdecl * Scr_ShutdownAllocNode_t)();
 	extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
 

@@ -34,5 +34,7 @@ namespace Components
 
 		static void LoadGameType();
 		static void LoadGameTypeScript();
+
+		static int SetExpFogStub();
 	};
 }

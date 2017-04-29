@@ -142,7 +142,7 @@ namespace Components
 	unsigned int Colors::ColorIndex(char index)
 	{
 		char result = index - '0';
-		if (result >= Colors::ColorTable.size() || result < 0) result = 7;
+		if (static_cast<unsigned int>(result) >= Colors::ColorTable.size() || result < 0) result = 7;
 		return result;
 	}
 
