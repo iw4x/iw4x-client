@@ -696,6 +696,13 @@ namespace Components
 		Dvar::Var("isDlcInstalled_All").setRaw(hasAllDlcs ? 1 : 0);
 	}
 
+	bool Maps::IsCustomMap()
+	{
+		Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+		if(gameWorld) return gameWorld->checksum == 0xDEADBEEF;
+		return false;
+	}
+
 	Game::XAssetEntry* Maps::GetAssetEntryPool()
 	{
 		if(Maps::EntryPool.empty())
@@ -811,6 +818,36 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* Maps::GetDistortionDvar()
+	{
+		Game::dvar_t*& r_distortion = *reinterpret_cast<Game::dvar_t**>(0x69F0DCC);
+
+		if(Maps::IsCustomMap())
+		{
+			static Game::dvar_t noDistortion;
+			ZeroMemory(&noDistortion, sizeof noDistortion);
+			return &noDistortion;
+		}
+
+		return r_distortion;
+	}
+
+	__declspec(naked) void Maps::SetDistortionStub()
+	{
+		__asm
+		{
+			push eax
+			pushad
+			call Maps::GetDistortionDvar
+
+			mov [esp + 20h], eax
+			popad
+
+			pop eax
+			retn
+		}
+	}
+
 	Maps::Maps()
 	{
 		Dvar::OnInit([]()
@@ -884,6 +921,8 @@ namespace Components
 
 		// Allow loading raw suns
 		Utils::Hook(0x51B46A, Maps::LoadRawSun, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x50AA47, Maps::SetDistortionStub, HOOK_CALL).install()->quick();
 
 		// Intercept map loading for usermap initialization
 		Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();

@@ -68,6 +68,7 @@ namespace Components
 		static unsigned int GetUsermapHash(std::string map);
 
 		static Game::XAssetEntry* GetAssetEntryPool();
+		static bool IsCustomMap();
 
 	private:
 		class DLC
@@ -118,6 +119,9 @@ namespace Components
 
 		static void HideModel();
 		static void HideModelStub();
+
+		static Game::dvar_t* GetDistortionDvar();
+		static void SetDistortionStub();
 
 		void reallocateEntryPool();
 	};
