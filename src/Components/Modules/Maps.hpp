@@ -67,6 +67,8 @@ namespace Components
 		static UserMapContainer* GetUserMap();
 		static unsigned int GetUsermapHash(std::string map);
 
+		static Game::XAssetEntry* GetAssetEntryPool();
+
 	private:
 		class DLC
 		{

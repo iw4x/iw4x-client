@@ -363,6 +363,9 @@ namespace Game
 
 	infoParm_t* infoParams = reinterpret_cast<infoParm_t*>(0x79D260); // Count 0x1E
 
+	XZone* g_zones = reinterpret_cast<XZone*>(0x14C0F80);
+	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x12412B0);
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
@@ -476,6 +479,19 @@ namespace Game
 		return ASSET_TYPE_INVALID;
 	}
 
+	int DB_GetZoneIndex(std::string name)
+	{
+		for (int i = 0; i < 32; ++i)
+		{
+			if (Game::g_zones[i].name == name)
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
 	bool DB_IsZoneLoaded(const char* zone)
 	{
 		int zoneCount = Utils::Hook::Get<int>(0x1261BCC);
@@ -493,6 +509,48 @@ namespace Game
 		}
 
 		return false;
+	}
+
+	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides, bool lock)
+	{
+		volatile long* lockVar = reinterpret_cast<volatile long*>(0x16B8A54);
+		if (lock) InterlockedIncrement(lockVar);
+
+		while (lock && *reinterpret_cast<volatile long*>(0x16B8A58)) std::this_thread::sleep_for(1ms);
+
+		unsigned int index = 0;
+		do
+		{
+			unsigned short hashIndex = db_hashTable[index];
+			if (hashIndex)
+			{
+				do
+				{
+					XAssetEntry* asset = &Components::Maps::GetAssetEntryPool()[hashIndex];
+					hashIndex = asset->nextHash;
+					if (asset->asset.type == type)
+					{
+						callback(asset);
+						if (overrides)
+						{
+							unsigned short overrideIndex = asset->nextOverride;
+							if (asset->nextOverride)
+							{
+								do
+								{
+									asset = &Components::Maps::GetAssetEntryPool()[overrideIndex];
+									callback(asset);
+									overrideIndex = asset->nextOverride;
+								} while (overrideIndex);
+							}
+						}
+					}
+				} while (hashIndex);
+			}
+			++index;
+		} while (index < 74000);
+
+		if(lock) InterlockedDecrement(lockVar);
 	}
 
 	__declspec(naked) XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType /*type*/)

@@ -3674,7 +3674,7 @@ namespace Game
 	{
 		XAsset asset;
 		char zoneIndex;
-		bool inuse;
+		volatile char inuse;
 		unsigned __int16 nextHash;
 		unsigned __int16 nextOverride;
 		unsigned __int16 usageFrame;
@@ -3753,6 +3753,26 @@ namespace Game
 	{
 		XFile xFile;
 		XAssetList assetList;
+	};
+
+	struct XZoneMemory
+	{
+		XBlock blocks[MAX_XFILE_COUNT];
+		char *lockedVertexData;
+		char *lockedIndexData;
+		void *vertexBuffer;
+		void *indexBuffer;
+	};
+
+	struct XZone
+	{
+		int unk;
+		char name[64];
+		int flags;
+		int allocType;
+		XZoneMemory mem;
+		int fileSize;
+		char modZone;
 	};
 
 	struct XNKID

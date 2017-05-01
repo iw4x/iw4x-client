@@ -555,13 +555,13 @@ namespace Components
 				if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
 				{
 					Utils::IO::CreateDir("userraw/techsets");
-					Utils::Stream* buffer = new Utils::Stream(0x1000);
-					Game::MaterialTechniqueSet* dest = buffer->dest<Game::MaterialTechniqueSet>();
-					buffer->save(asset.techniqueSet);
+					Utils::Stream buffer(0x1000);
+					Game::MaterialTechniqueSet* dest = buffer.dest<Game::MaterialTechniqueSet>();
+					buffer.save(asset.techniqueSet);
 
 					if (asset.techniqueSet->name)
 					{
-						buffer->saveString(asset.techniqueSet->name);
+						buffer.saveString(asset.techniqueSet->name);
 						Utils::Stream::ClearPointer(&dest->name);
 					}
 
@@ -575,15 +575,15 @@ namespace Components
 							if (!dest->techniques)
 							{
 								// Size-check is obsolete, as the structure is dynamic
-								buffer->align(Utils::Stream::ALIGN_4);
+								buffer.align(Utils::Stream::ALIGN_4);
 								//storePointer(technique, buffer->);
 
-								Game::MaterialTechnique* destTechnique = buffer->dest<Game::MaterialTechnique>();
-								buffer->save(technique, 8);
+								Game::MaterialTechnique* destTechnique = buffer.dest<Game::MaterialTechnique>();
+								buffer.save(technique, 8);
 
 								// Save_MaterialPassArray
-								Game::MaterialPass* destPasses = buffer->dest<Game::MaterialPass>();
-								buffer->saveArray(technique->passArray, technique->passCount);
+								Game::MaterialPass* destPasses = buffer.dest<Game::MaterialPass>();
+								buffer.saveArray(technique->passArray, technique->passCount);
 
 								for (short j = 0; j < technique->passCount; ++j)
 								{
@@ -599,15 +599,15 @@ namespace Components
 
 									if (pass->args)
 									{
-										buffer->align(Utils::Stream::ALIGN_4);
-										buffer->saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+										buffer.align(Utils::Stream::ALIGN_4);
+										buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
 										Utils::Stream::ClearPointer(&destPass->args);
 									}
 								}
 
 								if (technique->name)
 								{
-									buffer->saveString(technique->name);
+									buffer.saveString(technique->name);
 									Utils::Stream::ClearPointer(&destTechnique->name);
 								}
 

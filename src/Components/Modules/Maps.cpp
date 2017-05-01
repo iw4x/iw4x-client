@@ -696,6 +696,16 @@ namespace Components
 		Dvar::Var("isDlcInstalled_All").setRaw(hasAllDlcs ? 1 : 0);
 	}
 
+	Game::XAssetEntry* Maps::GetAssetEntryPool()
+	{
+		if(Maps::EntryPool.empty())
+		{
+			return reinterpret_cast<Game::XAssetEntry*>(0x134CAD8);
+		}
+
+		return Maps::EntryPool.data();
+	}
+
 	void Maps::reallocateEntryPool()
 	{
 		AssertSize(Game::XAssetEntry, 16);

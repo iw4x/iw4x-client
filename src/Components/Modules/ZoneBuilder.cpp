@@ -7,8 +7,6 @@ namespace Components
 	std::string ZoneBuilder::TraceZone;
 	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::TraceAssets;
 
-	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::CommonAssets;
-
 	ZoneBuilder::Zone::Zone(std::string name) : indexStart(0), externalSize(0),
 
 		// Reserve 100MB by default.
@@ -749,21 +747,25 @@ namespace Components
 
 		if (type >= 0 && type < Game::XAssetType::ASSET_TYPE_COUNT)
 		{
-			for (auto& asset : ZoneBuilder::CommonAssets)
+			int zoneIndex = Game::DB_GetZoneIndex("common_mp");
+
+			if (zoneIndex > 0)
 			{
-				if (asset.first == type && asset.second == name)
+				Game::DB_EnumXAssetEntries(type, [&](Game::XAssetEntry* entry)
 				{
-					// Allocate an empty asset (filled with zeros)
-					header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
+					if (!header.data && entry->zoneIndex == zoneIndex && Game::DB_GetXAssetName(&entry->asset) == name)
+					{
+						// Allocate an empty asset (filled with zeros)
+						header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
 
-					// Set the name to the original name, so it can be stored
-					Game::DB_SetXAssetNameHandlers[type](&header, name.data());
-					AssetHandler::StoreTemporaryAsset(type, header);
+						// Set the name to the original name, so it can be stored
+						Game::DB_SetXAssetNameHandlers[type](&header, name.data());
+						AssetHandler::StoreTemporaryAsset(type, header);
 
-					// Set the name to the empty name
-					Game::DB_SetXAssetNameHandlers[type](&header, builder->getAllocator()->duplicateString("," + name));
-					break;
-				}
+						// Set the name to the empty name
+						Game::DB_SetXAssetNameHandlers[type](&header, builder->getAllocator()->duplicateString("," + name));
+					}
+				}, true, true);
 			}
 		}
 
@@ -853,12 +855,6 @@ namespace Components
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* /*restrict*/)
 			{
-				// This is used to track which assets can be stored as empty assets
-				if (FastFiles::Current() == "common_mp")
-				{
-					ZoneBuilder::CommonAssets.push_back({ type, name });
-				}
-
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{
 					ZoneBuilder::TraceAssets.push_back({ type, name });
@@ -998,7 +994,6 @@ namespace Components
 	ZoneBuilder::~ZoneBuilder()
 	{
 		assert(ZoneBuilder::MemAllocator.empty());
-		ZoneBuilder::CommonAssets.clear();
 	}
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)

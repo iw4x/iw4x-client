@@ -142,29 +142,30 @@ namespace Assets
 		replacementFound = false;
 
 		// Find correct sortkey by comparing techsets
-		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void* data)
+		Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset](Game::XAssetEntry* entry)
 		{
 			if (!replacementFound)
 			{
-				Game::Material* material = reinterpret_cast<Game::Material*>(data);
-				const char* name = material->techniqueSet->name;
+				Game::XAssetHeader header = entry->asset.header;
+
+				const char* name = asset->techniqueSet->name;
 				if (name[0] == ',') ++name;
 
 				if (std::string(name) == header.material->techniqueSet->name)
 				{
-					material->sortKey = header.material->sortKey;
+					asset->sortKey = header.material->sortKey;
 
 					// This is temp, as nobody has time to fix materials
-					material->stateBitsCount = header.material->stateBitsCount;
-					material->stateBitTable = header.material->stateBitTable;
-					std::memcpy(material->stateBitsEntry, header.material->stateBitsEntry, 48);
-					material->constantCount = header.material->constantCount;
-					material->constantTable = header.material->constantTable;
+					asset->stateBitsCount = header.material->stateBitsCount;
+					asset->stateBitTable = header.material->stateBitTable;
+					std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
+					asset->constantCount = header.material->constantCount;
+					asset->constantTable = header.material->constantTable;
 
 					replacementFound = true;
 				}
 			}
-		}, asset, false);
+		}, false, false);
 
 		if (!replacementFound && asset->techniqueSet)
 		{

@@ -758,6 +758,9 @@ namespace Game
 
 	extern infoParm_t* infoParams;
 
+	extern XZone* g_zones;
+	extern unsigned short* db_hashTable;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
@@ -767,7 +770,9 @@ namespace Game
 
 	const char *DB_GetXAssetName(XAsset *asset);
 	XAssetType DB_GetXAssetNameType(const char* name);
+	int DB_GetZoneIndex(std::string name);
 	bool DB_IsZoneLoaded(const char* zone);
+	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides, bool lock);
 	XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType type);
 	XAssetEntry* DB_FindXAssetEntry(XAssetType type, const char* name);
 
