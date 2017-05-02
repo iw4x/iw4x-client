@@ -66,7 +66,7 @@ namespace Components
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 
-		const char* errorStr;
+		std::string errorStr;
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{
 			errorStr = "Termination because of a stack overflow.";
@@ -90,7 +90,7 @@ namespace Components
 			}
 		}*/
 
-		MessageBoxA(nullptr, errorStr, "ERROR", MB_ICONERROR);
+		MessageBoxA(nullptr, errorStr.data(), "ERROR", MB_ICONERROR);
 
 		if (doFullDump)
 		{
