@@ -83,7 +83,7 @@ namespace Assets
 
 			if (!asset->techniqueSet)
 			{
-				Components::Logger::Error("Techset '%s' not found!", techset.data());
+				Components::Logger::Error("Missing techset: '%s' not found", techset.data());
 			}
 		}
 
