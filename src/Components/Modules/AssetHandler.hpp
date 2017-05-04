@@ -71,6 +71,7 @@ namespace Components
 		static void ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, std::string name);
 
 		static int HasThreadBypass();
+		static void SetBypassState(bool value);
 	};
 }
 

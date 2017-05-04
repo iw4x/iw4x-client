@@ -55,7 +55,7 @@ namespace Components
 		if (filename)
 		{
 			// Allow call DB_FindXAssetHeader within the hook
-			++AssetHandler::BypassState;
+			AssetHandler::SetBypassState(true);
 
 			if (AssetHandler::TypeCallbacks.find(type) != AssetHandler::TypeCallbacks.end())
 			{
@@ -63,7 +63,7 @@ namespace Components
 			}
 
 			// Disallow calling DB_FindXAssetHeader ;)
-			--AssetHandler::BypassState;
+			AssetHandler::SetBypassState(false);
 		}
 
 		return header;
@@ -72,6 +72,16 @@ namespace Components
 	int AssetHandler::HasThreadBypass()
 	{
 		return AssetHandler::BypassState > 0;
+	}
+
+	void AssetHandler::SetBypassState(bool value)
+	{
+		AssetHandler::BypassState += (value ? 1 : -1);
+		if (AssetHandler::BypassState < 0)
+		{
+			AssetHandler::BypassState = 0;
+			Logger::Error("Bypass state is below 0!");
+		}
 	}
 
 	void AssetHandler::ResetBypassState()
@@ -354,14 +364,9 @@ namespace Components
 
 	Game::XAssetHeader AssetHandler::FindOriginalAsset(Game::XAssetType type, const char* filename)
 	{
-		++AssetHandler::BypassState;
+		AssetHandler::SetBypassState(true);
 		Game::XAssetHeader header = Game::DB_FindXAssetHeader(type, filename);
-		--AssetHandler::BypassState;
-
-		if(AssetHandler::BypassState < 0)
-		{
-			Logger::Error("DB_FindXAssetHeader bypass state reached level below 0, what the fuck????");
-		}
+		AssetHandler::SetBypassState(false);
 
 		return header;
 	}
