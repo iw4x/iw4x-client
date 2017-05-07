@@ -70,7 +70,7 @@ BEGIN
 #endif
             VALUE "FileVersion", SHORTVERSION 
             VALUE "InternalName", "iw4x"
-            VALUE "LegalCopyright", "No rights reserved."
+            VALUE "LegalCopyright", "Copyright 2017 The IW4x Team. All rights reserved."
             VALUE "OriginalFilename", "iw4x.dll"
             VALUE "ProductName", "IW4x"
             VALUE "ProductVersion", SHORTVERSION
