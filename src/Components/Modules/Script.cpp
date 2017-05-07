@@ -234,13 +234,16 @@ namespace Components
 			Game::VariableValue*& scr_stack = *reinterpret_cast<Game::VariableValue**>(0x2040D00);
 			if(scr_stack)
 			{
-				Game::Scr_AddFloat(0); // Push transition time onto the stack
-				Game::VariableValue transitionTime;
-				std::memcpy(&transitionTime, scr_stack, sizeof Game::VariableValue);
-				std::memmove(&scr_stack[0], &scr_stack[1], sizeof(Game::VariableValue) * 6);
-				std::memcpy(&scr_stack[6], &transitionTime, sizeof Game::VariableValue);
+				std::memmove(&scr_stack[-4], &scr_stack[-5], sizeof(Game::VariableValue) * 6);
+				scr_stack += 1;
+				scr_stack[-6].type = Game::VAR_FLOAT;
+				scr_stack[-6].u.floatValue = 0;
+
+				++*reinterpret_cast<DWORD*>(0x2040D0C);
 			}
 		}
+
+		MessageBoxA(0, Utils::String::VA("%d", Game::Scr_GetNumParam()), "ZOOB", 0);
 
 		return Game::Scr_GetNumParam();
 	}
