@@ -243,8 +243,6 @@ namespace Components
 			}
 		}
 
-		MessageBoxA(0, Utils::String::VA("%d", Game::Scr_GetNumParam()), "ZOOB", 0);
-
 		return Game::Scr_GetNumParam();
 	}
 
