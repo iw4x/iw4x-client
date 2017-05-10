@@ -401,7 +401,7 @@ namespace Steam
 		std::string steamExe = Proxy::GetSteamDirectory() + "\\steam.exe";
 		if (::Utils::IO::FileExists(steamExe))
 		{
-			Components::Toast::Template templ = Components::Toast::Template(Components::Toast::Template::ImageWithTwoLines);
+			Components::Toast::Template templ = Components::Toast::Template(Components::Toast::Template::ImageAndText02);
 			templ.setTextField(L"Please wait", Components::Toast::Template::FirstLine);
 			templ.setTextField(L"Starting Steam...", Components::Toast::Template::SecondLine);
 
