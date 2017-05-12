@@ -31,12 +31,19 @@ namespace Components
 			int start;
 		};
 
+		class WinToastHandler: public WinToastLib::IWinToastHandler {
+		public:
+			void toastActivated() const override {};
+			void toastDismissed(WinToastLib::IWinToastHandler::WinToastDismissalReason /*state*/) const override {};
+			void toastFailed() const override {};
+		};
+
 		static void Handler();
 		static void Draw(UIToast* toast);
 
 		static std::queue<UIToast> Queue;
 		static std::mutex Mutex;
 
-		static WinToastLib::WinToastHandler* ToastHandler;
+		static WinToastHandler* ToastHandler;
 	};
 }

@@ -5,7 +5,7 @@ namespace Components
 	std::queue<Toast::UIToast> Toast::Queue;
 	std::mutex Toast::Mutex;
 
-	WinToastLib::WinToastHandler* Toast::ToastHandler = nullptr;
+	Toast::WinToastHandler* Toast::ToastHandler = nullptr;
 
 	void Toast::Show(std::string image, std::string title, std::string description, int length)
 	{
@@ -17,7 +17,7 @@ namespace Components
 	bool Toast::ShowNative(const WinToastLib::WinToastTemplate& toast)
 	{
 		if (!Loader::IsComInitialized() || !Toast::ToastHandler) return false;
-		return WinToastLib::WinToast::instance()->showToast(toast, Toast::ToastHandler);
+		return WinToastLib::WinToast::instance()->showToast(toast, Toast::ToastHandler) != 0;
 	}
 
 	std::string Toast::GetIcon()
@@ -150,7 +150,7 @@ namespace Components
 
 		if (Loader::IsComInitialized())
 		{
-			Toast::ToastHandler = new WinToastLib::WinToastHandler;
+			Toast::ToastHandler = new Toast::WinToastHandler;
 
 			WinToastLib::WinToast::instance()->setAppName(L"IW4x");
 			WinToastLib::WinToast::instance()->setAppUserModelId(WinToastLib::WinToast::configureAUMI(L"IW4x", L"IW4x", L"IW4x", L"0"));
