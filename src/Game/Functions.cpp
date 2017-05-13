@@ -216,6 +216,7 @@ namespace Game
 	Scr_AddFloat_t Scr_AddFloat = Scr_AddFloat_t(0x61E860);
 	Scr_Notify_t Scr_Notify = Scr_Notify_t(0x4A4750);
 
+	Scr_RegisterFunction_t Scr_RegisterFunction = Scr_RegisterFunction_t(0x492D50);
 	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = Scr_ShutdownAllocNode_t(0x441650);
 
 	Script_Alloc_t Script_Alloc = Script_Alloc_t(0x422E70);

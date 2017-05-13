@@ -541,6 +541,9 @@ namespace Game
 	typedef void(__cdecl * Scr_Notify_t)(gentity_t *ent, unsigned __int16 stringValue, unsigned int paramcount);
 	extern Scr_Notify_t Scr_Notify;
 
+	typedef void(__cdecl * Scr_RegisterFunction_t)(scr_function_t function);
+	extern Scr_RegisterFunction_t Scr_RegisterFunction;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 

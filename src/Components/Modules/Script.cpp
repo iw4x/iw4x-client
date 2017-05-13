@@ -4,6 +4,7 @@ namespace Components
 {
 	std::string Script::ScriptName;
 	std::vector<int> Script::ScriptHandles;
+	std::vector<Script::Function> Script::ScriptFunctions;
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
 
@@ -217,14 +218,76 @@ namespace Components
 			}
 
 			int handle = Script::LoadScriptAndLabel(file, "init");
-
-			if (handle)
+			if (handle) Script::ScriptHandles.push_back(handle);
+			else
 			{
-				Script::ScriptHandles.push_back(handle);
+				handle = Script::LoadScriptAndLabel(file, "main");
+				if (handle) Script::ScriptHandles.push_back(handle);
 			}
 		}
 
 		Game::GScr_LoadGameTypeScript();
+	}
+
+	void Script::AddFunction(std::string name, Game::scr_function_t function, bool isDev)
+	{
+		for(auto i = Script::ScriptFunctions.begin(); i != Script::ScriptFunctions.end();)
+		{
+			if(i->getName() == name)
+			{
+				i = Script::ScriptFunctions.erase(i);
+				continue;
+			}
+
+			++i;
+		}
+
+		Script::ScriptFunctions.push_back({ name, function, isDev });
+	}
+
+	Game::scr_function_t Script::GetFunction(const char** name, int* isDev)
+	{
+		if (name && *name) OutputDebugStringA(*name);
+
+		for (auto& function : Script::ScriptFunctions)
+		{
+			if (name)
+			{
+				if(std::string(*name) == function.getName())
+				{
+					*name = function.getName();
+					*isDev = function.isDev();
+					return function.getFunction();
+				}
+			}
+			else
+			{
+				Game::Scr_RegisterFunction(function.getFunction());
+			}
+		}
+
+		return nullptr;
+	}
+
+	__declspec(naked) void Script::GetFunctionStub()
+	{
+		__asm
+		{
+			push [esp + 8h]
+			push [esp + 8h]
+
+			mov eax, 5FA2B0h
+			call eax
+
+			test eax, eax
+			jnz returnSafe
+
+			call Script::GetFunction
+
+		returnSafe:
+			add esp, 8h
+			retn
+		}
 	}
 
 	int Script::SetExpFogStub()
@@ -259,6 +322,8 @@ namespace Components
 		Utils::Hook(0x48EFFE, Script::LoadGameType, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45D44A, Script::LoadGameTypeScript, HOOK_CALL).install()->quick();
 
+		Utils::Hook(0x44E72E, Script::GetFunctionStub, HOOK_CALL).install()->quick();
+
 		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
 	}
 
@@ -267,5 +332,6 @@ namespace Components
 		Script::ScriptName.clear();
 		Script::ScriptHandles.clear();
 		Script::ScriptNameStack.clear();
+		Script::ScriptFunctions.clear();
 	}
 }

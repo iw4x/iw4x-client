@@ -18,6 +18,9 @@ namespace Game
 	typedef vec_t vec3_t[3];
 	typedef vec_t vec4_t[4];
 
+	typedef int scr_entref_t;
+	typedef void(__cdecl * scr_function_t)(scr_entref_t);
+
 	typedef enum
 	{
 		ASSET_TYPE_PHYSPRESET = 0,
