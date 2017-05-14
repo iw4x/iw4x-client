@@ -2,6 +2,12 @@
 
 namespace Game
 {
+	typedef void(__cdecl * AddRefToObject_t)(unsigned int id);
+	extern AddRefToObject_t AddRefToObject;
+
+	typedef unsigned int(__cdecl * AllocObject_t)();
+	extern AllocObject_t AllocObject;
+
 	typedef void(__cdecl * AngleVectors_t)(float *angles, float *forward, float *right, float *up);
 	extern AngleVectors_t AngleVectors;
 
@@ -508,11 +514,20 @@ namespace Game
 	typedef GfxWorld*(__cdecl * R_SortWorldSurfaces_t)();
 	extern R_SortWorldSurfaces_t R_SortWorldSurfaces;
 
+	typedef void(__cdecl * RemoveRefToObject_t)(unsigned int id);
+	extern RemoveRefToObject_t RemoveRefToObject;
+
 	typedef void(__cdecl * Scr_AddString_t)(const char* str);
 	extern Scr_AddString_t Scr_AddString;
 
-	typedef int(__cdecl * Scr_AddFloat_t)(float);
+	typedef void(__cdecl * Scr_AddInt_t)(int num);
+	extern Scr_AddInt_t Scr_AddInt;
+
+	typedef void(__cdecl * Scr_AddFloat_t)(float);
 	extern Scr_AddFloat_t Scr_AddFloat;
+
+	typedef void(__cdecl * Scr_AddObject_t)(unsigned int id);
+	extern Scr_AddObject_t Scr_AddObject;
 
 	typedef void(__cdecl * Scr_ShutdownAllocNode_t)();
 	extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
@@ -523,8 +538,17 @@ namespace Game
 	typedef int(__cdecl * Scr_LoadScript_t)(const char*);
 	extern Scr_LoadScript_t Scr_LoadScript;
 
+	typedef char* (__cdecl * Scr_GetString_t)(int);
+	extern Scr_GetString_t Scr_GetString;
+
 	typedef float(__cdecl * Scr_GetFloat_t)(int);
 	extern Scr_GetFloat_t Scr_GetFloat;
+
+	typedef int(__cdecl * Scr_GetInt_t)(int);
+	extern Scr_GetInt_t Scr_GetInt;
+
+	typedef unsigned int(__cdecl * Scr_GetObject_t)(int);
+	extern Scr_GetObject_t Scr_GetObject;
 
 	typedef int(__cdecl * Scr_GetNumParam_t)();
 	extern Scr_GetNumParam_t Scr_GetNumParam;
@@ -540,6 +564,9 @@ namespace Game
 
 	typedef void(__cdecl * Scr_Notify_t)(gentity_t *ent, unsigned __int16 stringValue, unsigned int paramcount);
 	extern Scr_Notify_t Scr_Notify;
+
+	typedef void(__cdecl * Scr_ClearOutParams_t)();
+	extern Scr_ClearOutParams_t Scr_ClearOutParams;
 
 	typedef void(__cdecl * Scr_RegisterFunction_t)(scr_function_t function);
 	extern Scr_RegisterFunction_t Scr_RegisterFunction;
@@ -764,6 +791,8 @@ namespace Game
 	extern XZone* g_zones;
 	extern unsigned short* db_hashTable;
 
+	extern ScriptContainer* scriptContainer;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_t* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
@@ -792,6 +821,7 @@ namespace Game
 
 	void Scr_iPrintLn(int clientNum, std::string message);
 	void Scr_iPrintLnBold(int clientNum, std::string message);
+	void Scr_NotifyId(unsigned int id, unsigned __int16 stringValue, unsigned int paramcount);
 
 	void IN_KeyUp(kbutton_t* button);
 	void IN_KeyDown(kbutton_t* button);

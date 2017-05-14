@@ -8,6 +8,8 @@ namespace Components
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
 
+	Utils::Signal<Script::Callback> Script::VMShutdownSignal;
+
 	void Script::FunctionError()
 	{
 		std::string funcName = Game::SL_ConvertToString(Script::FunctionName);
@@ -245,22 +247,25 @@ namespace Components
 		Script::ScriptFunctions.push_back({ name, function, isDev });
 	}
 
-	Game::scr_function_t Script::GetFunction(const char** name, int* isDev)
+	void Script::OnVMShutdown(Utils::Slot<Script::Callback> callback)
 	{
-		if (name && *name) OutputDebugStringA(*name);
+		Script::VMShutdownSignal.connect(callback);
+	}
 
+	Game::scr_function_t Script::GetFunction(void* caller, const char** name, int* isDev)
+	{
 		for (auto& function : Script::ScriptFunctions)
 		{
-			if (name)
+			if (name && *name)
 			{
-				if(std::string(*name) == function.getName())
+				if(Utils::String::ToLower(*name) == Utils::String::ToLower(function.getName()))
 				{
 					*name = function.getName();
 					*isDev = function.isDev();
 					return function.getFunction();
 				}
 			}
-			else
+			else if(caller == reinterpret_cast<void*>(0x465781))
 			{
 				Game::Scr_RegisterFunction(function.getFunction());
 			}
@@ -273,37 +278,39 @@ namespace Components
 	{
 		__asm
 		{
-			push [esp + 8h]
-			push [esp + 8h]
-
-			mov eax, 5FA2B0h
-			call eax
-
 			test eax, eax
 			jnz returnSafe
 
+			sub esp, 8h
+			push [esp + 10h]
 			call Script::GetFunction
+			add esp, 0Ch
 
 		returnSafe:
-			add esp, 8h
+			pop edi
+			pop esi
 			retn
 		}
 	}
 
+	void Script::ScrShutdownSystemStub(int num)
+	{
+		Script::VMShutdownSignal();
+
+		// Scr_ShutdownSystem
+		Utils::Hook::Call<void(int)>(0x421EE0)(num);
+	}
+
 	int Script::SetExpFogStub()
 	{
-		if(Game::Scr_GetNumParam() == 6)
+		if (Game::Scr_GetNumParam() == 6)
 		{
-			Game::VariableValue*& scr_stack = *reinterpret_cast<Game::VariableValue**>(0x2040D00);
-			if(scr_stack)
-			{
-				std::memmove(&scr_stack[-4], &scr_stack[-5], sizeof(Game::VariableValue) * 6);
-				scr_stack += 1;
-				scr_stack[-6].type = Game::VAR_FLOAT;
-				scr_stack[-6].u.floatValue = 0;
+			std::memmove(&Game::scriptContainer->stack[-4], &Game::scriptContainer->stack[-5], sizeof(Game::VariableValue) * 6);
+			Game::scriptContainer->stack += 1;
+			Game::scriptContainer->stack[-6].type = Game::VAR_FLOAT;
+			Game::scriptContainer->stack[-6].u.floatValue = 0;
 
-				++*reinterpret_cast<DWORD*>(0x2040D0C);
-			}
+			++Game::scriptContainer->numParam;
 		}
 
 		return Game::Scr_GetNumParam();
@@ -322,9 +329,18 @@ namespace Components
 		Utils::Hook(0x48EFFE, Script::LoadGameType, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45D44A, Script::LoadGameTypeScript, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x44E72E, Script::GetFunctionStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x44E736, Script::GetFunctionStub, HOOK_JUMP).install()->quick(); // Scr_GetFunction
+		//Utils::Hook(0x4EC8E5, Script::GetFunctionStub, HOOK_JUMP).install()->quick(); // Scr_GetMethod
 
 		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x47548B, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D06BA, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
+
+		Script::AddFunction("debugBox", [](Game::scr_entref_t)
+		{
+			MessageBoxA(nullptr, Game::Scr_GetString(0), "DEBUG", 0);
+		}, true);
 	}
 
 	Script::~Script()
@@ -333,5 +349,6 @@ namespace Components
 		Script::ScriptHandles.clear();
 		Script::ScriptNameStack.clear();
 		Script::ScriptFunctions.clear();
+		Script::VMShutdownSignal.clear();
 	}
 }

@@ -2,6 +2,9 @@
 
 namespace Game
 {
+	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
+	AllocObject_t AllocObject = AllocObject_t(0x434320);
+
 	AngleVectors_t AngleVectors = AngleVectors_t(0x4691A0);
 
 	BG_GetNumWeapons_t BG_GetNumWeapons = BG_GetNumWeapons_t(0x4F5CC0);
@@ -201,20 +204,29 @@ namespace Game
 	R_FlushSun_t R_FlushSun = R_FlushSun_t(0x53FB50);
 	R_SortWorldSurfaces_t R_SortWorldSurfaces = R_SortWorldSurfaces_t(0x53DC10);
 
+	RemoveRefToObject_t RemoveRefToObject = RemoveRefToObject_t(0x437190);
+
 	Scr_LoadGameType_t Scr_LoadGameType = Scr_LoadGameType_t(0x4D9520);
 
 	Scr_LoadScript_t Scr_LoadScript = Scr_LoadScript_t(0x45D940);
 	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = Scr_GetFunctionHandle_t(0x4234F0);
 
+	Scr_GetString_t Scr_GetString = Scr_GetString_t(0x425900);
 	Scr_GetFloat_t Scr_GetFloat = Scr_GetFloat_t(0x443140);
+	Scr_GetInt_t Scr_GetInt = Scr_GetInt_t(0x4F31D0);
+	Scr_GetObject_t Scr_GetObject = Scr_GetObject_t(0x462100);
 	Scr_GetNumParam_t Scr_GetNumParam = Scr_GetNumParam_t(0x4B0E90);
 
 	Scr_ExecThread_t Scr_ExecThread = Scr_ExecThread_t(0x4AD0B0);
 	Scr_FreeThread_t Scr_FreeThread = Scr_FreeThread_t(0x4BD320);
 
 	Scr_AddString_t Scr_AddString = Scr_AddString_t(0x412310);
+	Scr_AddInt_t Scr_AddInt = Scr_AddInt_t(0x41D7D0);
 	Scr_AddFloat_t Scr_AddFloat = Scr_AddFloat_t(0x61E860);
+	Scr_AddObject_t Scr_AddObject = Scr_AddObject_t(0x430F40);
 	Scr_Notify_t Scr_Notify = Scr_Notify_t(0x4A4750);
+
+	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
 
 	Scr_RegisterFunction_t Scr_RegisterFunction = Scr_RegisterFunction_t(0x492D50);
 	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = Scr_ShutdownAllocNode_t(0x441650);
@@ -366,6 +378,8 @@ namespace Game
 
 	XZone* g_zones = reinterpret_cast<XZone*>(0x14C0F80);
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x12412B0);
+
+	ScriptContainer* scriptContainer = reinterpret_cast<ScriptContainer*>(0x2040D00);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
@@ -711,6 +725,27 @@ namespace Game
 	void Scr_iPrintLnBold(int clientNum, std::string message)
 	{
 		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x67, message.data()));
+	}
+
+	__declspec(naked) void Scr_NotifyId(unsigned int /*id*/, unsigned __int16 /*stringValue*/, unsigned int /*paramcount*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 2Ch] // paramcount
+
+			push [esp + 28h] // stringValue
+			push [esp + 28h] // id
+
+			mov edx, 61E670h // Scr_NotifyId
+			call edx
+
+			add esp, 8h
+
+			popad
+			retn
+		}
 	}
 
 	__declspec(naked) void IN_KeyUp(kbutton_t* /*button*/)

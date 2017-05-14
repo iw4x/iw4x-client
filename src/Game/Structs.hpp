@@ -18,7 +18,7 @@ namespace Game
 	typedef vec_t vec3_t[3];
 	typedef vec_t vec4_t[4];
 
-	typedef int scr_entref_t;
+	typedef unsigned int scr_entref_t;
 	typedef void(__cdecl * scr_function_t)(scr_entref_t);
 
 	typedef enum
@@ -4042,6 +4042,17 @@ namespace Game
 	{
 		VariableUnion u;
 		int type;
+	};
+
+	struct ScriptContainer
+	{
+		Game::VariableValue* stack;
+		char unk1;
+		char unk2;
+		char unk3;
+		char pad;
+		DWORD unk4;
+		int numParam;
 	};
 
 #ifndef IDA

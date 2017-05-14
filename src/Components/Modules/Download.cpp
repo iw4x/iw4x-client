@@ -4,6 +4,7 @@ namespace Components
 {
 	mg_mgr Download::Mgr;
 	Download::ClientDownload Download::CLDownload;
+	std::vector<Download::ScriptDownload> Download::ScriptDownloads;
 
 #pragma region Client
 
@@ -87,7 +88,7 @@ namespace Components
 		{
 			if (hm->message.p)
 			{
-				fDownload->downloading = false;
+				fDownload->downloading = true;
 				return;
 			}
 		}
@@ -200,6 +201,7 @@ namespace Components
 		Utils::String::Replace(url, " ", "%20");
 
 		download->valid = true;
+		ZeroMemory(&download->mgr, sizeof download->mgr);
 		mg_mgr_init(&download->mgr, &fDownload);
 		mg_connect_http(&download->mgr, Download::DownloadHandler, url.data(), nullptr, nullptr);
 
@@ -701,6 +703,7 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled())
 		{
+			ZeroMemory(&Download::Mgr, sizeof Download::Mgr);
 			mg_mgr_init(&Download::Mgr, nullptr);
 
 			Network::OnStart([] ()
@@ -742,6 +745,53 @@ namespace Components
 				Download::CLDownload.clear();
 			});
 		}
+
+		QuickPatch::OnFrame([]()
+		{
+			for(auto i = Download::ScriptDownloads.begin(); i != Download::ScriptDownloads.end();)
+			{
+				i->work();
+
+				if(i->isDone())
+				{
+					i = Download::ScriptDownloads.erase(i);
+				}
+				else ++i;
+			}
+		});
+
+		Script::OnVMShutdown([]()
+		{
+			Download::ScriptDownloads.clear();
+		});
+
+		Script::AddFunction("httpGet", [](Game::scr_entref_t)
+		{
+			if (Game::Scr_GetNumParam() < 1) return;
+
+			std::string url = Game::Scr_GetString(0);
+			unsigned int object = Game::AllocObject();
+
+			Game::Scr_AddObject(object);
+
+			Download::ScriptDownloads.push_back({ url, object });
+			Game::RemoveRefToObject(object);
+		});
+
+		Script::AddFunction("httpCancel", [](Game::scr_entref_t)
+		{
+			if (Game::Scr_GetNumParam() < 1) return;
+
+			unsigned int object = Game::Scr_GetObject(0);
+			for(auto& download : Download::ScriptDownloads)
+			{
+				if(object == download.getObject())
+				{
+					download.notifyDone(false, std::string());
+					break;
+				}
+			}
+		});
 	}
 
 	Download::~Download()
@@ -758,5 +808,7 @@ namespace Components
 		{
 			Download::CLDownload.clear();
 		}
+
+		Download::ScriptDownloads.clear();
 	}
 }
