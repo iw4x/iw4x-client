@@ -21,8 +21,10 @@ namespace Components
 		static void OnFrame(Utils::Slot<Callback> callback);
 		static void OnReady(Utils::Slot<Callback> callback);
 		static void Once(Utils::Slot<Callback> callback);
+		static int GetFrameTime() { return FrameTime; }
 
 	private:
+		static int FrameTime;
 		static bool ReadyPassed;
 		static Utils::Signal<Callback> ReadySignal;
 		static Utils::Signal<Callback> ShutdownSignal;

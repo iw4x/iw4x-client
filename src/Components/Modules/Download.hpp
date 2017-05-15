@@ -1,4 +1,5 @@
 #pragma once
+#include "Game/Functions.hpp"
 
 namespace Components
 {
@@ -86,35 +87,13 @@ namespace Components
 		class ScriptDownload
 		{
 		public:
-			ScriptDownload(std::string _url, unsigned int _object) : url(_url), object(_object), mgr(new mg_mgr), totalSize(0), receivedSize(0), done(false)
+			ScriptDownload(std::string _url, unsigned int _object) : url(_url), object(_object), webIO(nullptr), done(false), notifyRequired(false), totalSize(0), currentSize(0)
 			{
 				Game::AddRefToObject(this->getObject());
-
-				ZeroMemory(this->getMgr(), sizeof(*this->getMgr()));
-				mg_mgr_init(this->getMgr(), this);
-				mg_connect_http(this->getMgr(), ScriptDownload::Handler, this->getUrl().data(), nullptr, nullptr);
 			}
 
-			ScriptDownload(ScriptDownload&& other) noexcept
-			{
-				this->operator=(std::move(other));
-			}
-
-			ScriptDownload& operator=(ScriptDownload&& other) noexcept
-			{
-				this->object = other.object;
-				this->done = other.done;
-				this->totalSize = other.totalSize;
-				this->receivedSize = other.receivedSize;
-				this->url = std::move(other.url);
-				this->mgr = std::move(other.mgr);
-
-				this->getMgr()->user_data = this;
-
-				other.object = 0;
-
-				return *this;
-			}
+			ScriptDownload(ScriptDownload&& other) noexcept = delete;
+			ScriptDownload& operator=(ScriptDownload&& other) noexcept = delete;
 
 			~ScriptDownload()
 			{
@@ -122,105 +101,115 @@ namespace Components
 				{
 					Game::RemoveRefToObject(this->getObject());
 					this->object = 0;
-
-					mg_mgr_free(this->getMgr());
 				}
-			}
 
-			void work()
-			{
-				mg_mgr_poll(this->getMgr(), 0);
-			}
-
-			void notifyProgress(size_t bytes)
-			{
-				this->receivedSize += bytes;
-
-				Game::Scr_AddInt(static_cast<int>(this->totalSize));
-				Game::Scr_AddInt(static_cast<int>(this->receivedSize));
-				Game::Scr_NotifyId(this->getObject(), Game::SL_GetString("progress", 0), 2);
-			}
-
-			void setSize(char* buf, size_t len)
-			{
-				if(buf && !this->totalSize)
+				if(this->workerThread.joinable())
 				{
-					std::string data(buf, len);
-					auto pos = data.find("Content-Length: ");
-					if(pos != std::string::npos)
-					{
-						data = data.substr(pos + 16);
+					this->workerThread.join();
+				}
 
-						pos = data.find("\r\n");
-						if (pos != std::string::npos)
-						{
-							data = data.substr(0, pos);
+				this->destroyWebIO();
+			}
 
-							this->totalSize = size_t(atoll(data.data()));
-							return;
-						}
-					}
-
-					this->totalSize = ~0ul;
+			void startWorking()
+			{
+				if(!this->isWorking())
+				{
+					this->workerThread = std::thread(std::bind(&ScriptDownload::handler, this));
 				}
 			}
 
-			void notifyDone(bool success, std::string result)
+			bool isWorking()
 			{
-				if (this->isDone()) return;
+				return this->workerThread.joinable();
+			}
 
-				Game::Scr_AddString(result.data()); // No binary data supported yet
-				Game::Scr_AddInt(success);
-				Game::Scr_NotifyId(this->getObject(), Game::SL_GetString("done", 0), 2);
+			void notifyProgress()
+			{
+				if (this->notifyRequired)
+				{
+					this->notifyRequired = false;
 
-				this->done = true;
+					if (Game::Scr_IsSystemActive())
+					{
+						Game::Scr_AddInt(static_cast<int>(this->totalSize));
+						Game::Scr_AddInt(static_cast<int>(this->currentSize));
+						Game::Scr_NotifyId(this->getObject(), Game::SL_GetString("progress", 0), 2);
+					}
+				}
+			}
+
+			void updateProgress(size_t _currentSize, size_t _toalSize)
+			{
+				this->currentSize = _currentSize;
+				this->totalSize = _toalSize;
+				this->notifyRequired = true;
+			}
+
+			void notifyDone()
+			{
+				if (!this->isDone()) return;
+
+				if (Game::Scr_IsSystemActive())
+				{
+					Game::Scr_AddString(this->result.data()); // No binary data supported yet
+					Game::Scr_AddInt(this->success);
+					Game::Scr_NotifyId(this->getObject(), Game::SL_GetString("done", 0), 2);
+				}
 			}
 
 			bool isDone() { return this->done; };
 
 			std::string getUrl() { return this->url; }
-			mg_mgr* getMgr() { return this->mgr.get(); }
 			unsigned int getObject() { return this->object; }
+
+			void cancel()
+			{
+				if(this->webIO)
+				{
+					this->webIO->cancelDownload();
+				}
+			}
 
 		private:
 			std::string url;
+			std::string result;
 			unsigned int object;
-			std::shared_ptr<mg_mgr> mgr;
-
-			size_t totalSize;
-			size_t receivedSize;
+			std::thread workerThread;
+			Utils::WebIO* webIO;
 
 			bool done;
+			bool success;
+			bool notifyRequired;
+			size_t totalSize;
+			size_t currentSize;
 
-			static void Handler(mg_connection *nc, int ev, void* ev_data)
+			void handler()
 			{
-				http_message* hm = reinterpret_cast<http_message*>(ev_data);
-				ScriptDownload* object = reinterpret_cast<ScriptDownload*>(nc->mgr->user_data);
+				this->destroyWebIO();
 
-				if (ev == MG_EV_RECV)
-				{
-					object->setSize(nc->recv_mbuf.buf, nc->recv_mbuf.len);
+				this->webIO = new Utils::WebIO("IW4x");
+				this->webIO->setProgressCallback(std::bind(&ScriptDownload::updateProgress, this, std::placeholders::_1, std::placeholders::_2));
 
-					size_t bytes = static_cast<size_t>(*reinterpret_cast<int*>(ev_data));
-					object->notifyProgress(bytes);
-				}
-				else if (ev == MG_EV_HTTP_REPLY)
+				this->result = this->webIO->get(this->url, &this->success);
+
+				this->destroyWebIO();
+				this->done = true;
+			}
+
+			void destroyWebIO()
+			{
+				if (this->webIO)
 				{
-					object->notifyDone(true, std::string(hm->body.p, hm->body.len));
-				}
-				else if(ev == MG_EV_CONNECT)
-				{
-					if (*static_cast<int*>(ev_data))
-					{
-						object->notifyDone(false, std::string());
-					}
+					delete this->webIO;
+					this->webIO = nullptr;
 				}
 			}
 		};
 
 		static mg_mgr Mgr;
 		static ClientDownload CLDownload;
-		static std::vector<ScriptDownload> ScriptDownloads;
+		static std::vector<std::shared_ptr<ScriptDownload>> ScriptDownloads;
 
 		static void EventHandler(mg_connection *nc, int ev, void *ev_data);
 		static void ListHandler(mg_connection *nc, int ev, void *ev_data);

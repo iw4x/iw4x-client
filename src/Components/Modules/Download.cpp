@@ -4,7 +4,7 @@ namespace Components
 {
 	mg_mgr Download::Mgr;
 	Download::ClientDownload Download::CLDownload;
-	std::vector<Download::ScriptDownload> Download::ScriptDownloads;
+	std::vector<std::shared_ptr<Download::ScriptDownload>> Download::ScriptDownloads;
 
 #pragma region Client
 
@@ -748,15 +748,36 @@ namespace Components
 
 		QuickPatch::OnFrame([]()
 		{
+			int workingCount = 0;
+
 			for(auto i = Download::ScriptDownloads.begin(); i != Download::ScriptDownloads.end();)
 			{
-				i->work();
+				auto download = *i;
 
-				if(i->isDone())
+				if(download->isDone())
 				{
+					download->notifyDone();
 					i = Download::ScriptDownloads.erase(i);
+					continue;
 				}
-				else ++i;
+
+				if (download->isWorking())
+				{
+					download->notifyProgress();
+					++workingCount;
+				}
+
+				++i;
+			}
+
+			for(auto& download : Download::ScriptDownloads)
+			{
+				if (workingCount > 5) break;
+				if(!download->isWorking())
+				{
+					download->startWorking();
+					++workingCount;
+				}
 			}
 		});
 
@@ -765,33 +786,36 @@ namespace Components
 			Download::ScriptDownloads.clear();
 		});
 
-		Script::AddFunction("httpGet", [](Game::scr_entref_t)
+		if (Dedicated::IsEnabled() || Flags::HasFlag("scriptablehttp"))
 		{
-			if (Game::Scr_GetNumParam() < 1) return;
-
-			std::string url = Game::Scr_GetString(0);
-			unsigned int object = Game::AllocObject();
-
-			Game::Scr_AddObject(object);
-
-			Download::ScriptDownloads.push_back({ url, object });
-			Game::RemoveRefToObject(object);
-		});
-
-		Script::AddFunction("httpCancel", [](Game::scr_entref_t)
-		{
-			if (Game::Scr_GetNumParam() < 1) return;
-
-			unsigned int object = Game::Scr_GetObject(0);
-			for(auto& download : Download::ScriptDownloads)
+			Script::AddFunction("httpGet", [](Game::scr_entref_t)
 			{
-				if(object == download.getObject())
+				if (Game::Scr_GetNumParam() < 1) return;
+
+				std::string url = Game::Scr_GetString(0);
+				unsigned int object = Game::AllocObject();
+
+				Game::Scr_AddObject(object);
+
+				Download::ScriptDownloads.push_back(std::make_shared<ScriptDownload>(url, object));
+				Game::RemoveRefToObject(object);
+			});
+
+			Script::AddFunction("httpCancel", [](Game::scr_entref_t)
+			{
+				if (Game::Scr_GetNumParam() < 1) return;
+
+				unsigned int object = Game::Scr_GetObject(0);
+				for (auto& download : Download::ScriptDownloads)
 				{
-					download.notifyDone(false, std::string());
-					break;
+					if (object == download->getObject())
+					{
+						download->cancel();
+						break;
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 
 	Download::~Download()

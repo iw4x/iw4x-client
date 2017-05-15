@@ -68,6 +68,7 @@ namespace Components
 #include "Modules/Monitor.hpp"
 #include "Modules/Network.hpp"
 #include "Modules/Theatre.hpp"
+#include "Modules/QuickPatch.hpp"
 #include "Modules/Node.hpp"
 #include "Modules/RCon.hpp"
 #include "Modules/Party.hpp" // Destroys the order, but requires network classes :D
@@ -93,7 +94,6 @@ namespace Components
 #include "Modules/FileSystem.hpp"
 #include "Modules/ModelSurfs.hpp"
 #include "Modules/PlayerName.hpp"
-#include "Modules/QuickPatch.hpp"
 #include "Modules/ServerInfo.hpp"
 #include "Modules/ServerList.hpp"
 #include "Modules/SlowMotion.hpp"

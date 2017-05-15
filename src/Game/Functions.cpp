@@ -230,6 +230,7 @@ namespace Game
 
 	Scr_RegisterFunction_t Scr_RegisterFunction = Scr_RegisterFunction_t(0x492D50);
 	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = Scr_ShutdownAllocNode_t(0x441650);
+	Scr_IsSystemActive_t Scr_IsSystemActive = Scr_IsSystemActive_t(0x4B24E0);
 
 	Script_Alloc_t Script_Alloc = Script_Alloc_t(0x422E70);
 	Script_SetupTokens_t Script_SetupTokens = Script_SetupTokens_t(0x4E6950);

@@ -30,13 +30,13 @@ namespace Utils
 		std::string postFile(std::string url, std::string data, std::string fieldName, std::string fileName);
 		std::string postFile(std::string data, std::string fieldName, std::string fileName);
 
-		std::string post(std::string url, WebIO::Params params);
-		std::string post(std::string url, std::string body);
-		std::string post(WebIO::Params params);
-		std::string post(std::string body);
+		std::string post(std::string url, WebIO::Params params, bool* success= nullptr);
+		std::string post(std::string url, std::string body, bool* success = nullptr);
+		std::string post(WebIO::Params params, bool* success = nullptr);
+		std::string post(std::string body, bool* success = nullptr);
 
-		std::string get(std::string url);
-		std::string get();
+		std::string get(std::string url, bool* success = nullptr);
+		std::string get(bool* success = nullptr);
 
 		WebIO* setTimeout(DWORD mseconds);
 
@@ -62,6 +62,9 @@ namespace Utils
 		bool uploadFileData(std::string file, std::string data);
 		bool downloadFileData(std::string file, std::string &data);
 
+		void setProgressCallback(std::function<void(size_t, size_t)> callback);
+		void cancelDownload() { this->cancel = true; }
+
 	private:
 
 		enum Command
@@ -79,6 +82,8 @@ namespace Utils
 			std::string raw;
 		};
 
+		bool cancel;
+
 		bool isFTP;
 		std::string username;
 		std::string password;
@@ -91,11 +96,13 @@ namespace Utils
 
 		DWORD timeout;
 
+		std::function<void(size_t, size_t)> progressCallback;
+
 		std::string buildPostBody(WebIO::Params params);
 
 		bool isSecuredConnection();
 
-		std::string execute(const char* command, std::string body, WebIO::Params headers = WebIO::Params());
+		std::string execute(const char* command, std::string body, WebIO::Params headers = WebIO::Params(), bool* success = nullptr);
 
 		bool listElements(std::string directory, std::vector<std::string> &list, bool files);
 

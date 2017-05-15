@@ -10,7 +10,7 @@ namespace Utils
 		this->setURL(url);
 	}
 
-	WebIO::WebIO(std::string useragent) : timeout(5000) // 5 seconds timeout by default
+	WebIO::WebIO(std::string useragent) : cancel(false), timeout(5000), hSession(nullptr) // 5 seconds timeout by default
 	{
 		this->openSession(useragent);
 	}
@@ -26,12 +26,13 @@ namespace Utils
 
 	void WebIO::openSession(std::string useragent)
 	{
+		this->closeSession();
 		this->hSession = InternetOpenA(useragent.data(), INTERNET_OPEN_TYPE_DIRECT, nullptr, nullptr, 0);
 	}
 
 	void WebIO::closeSession()
 	{
-		InternetCloseHandle(this->hSession);
+		if(this->hSession) InternetCloseHandle(this->hSession);
 	}
 
 	void WebIO::SetCredentials(std::string _username, std::string _password)
@@ -183,37 +184,37 @@ namespace Utils
 		return this->execute("POST", body, headers);
 	}
 
-	std::string WebIO::post(std::string _url, std::string body)
+	std::string WebIO::post(std::string _url, std::string body, bool* success)
 	{
 		this->setURL(_url);
-		return this->post(body);
+		return this->post(body, success);
 	}
 
-	std::string WebIO::post(std::string _url, WebIO::Params params)
+	std::string WebIO::post(std::string _url, WebIO::Params params, bool* success)
 	{
 		this->setURL(_url);
-		return this->post(params);
+		return this->post(params, success);
 	}
 
-	std::string WebIO::post(WebIO::Params params)
+	std::string WebIO::post(WebIO::Params params, bool* success)
 	{
-		return this->post(this->buildPostBody(params));
+		return this->post(this->buildPostBody(params), success);
 	}
 
-	std::string WebIO::post(std::string body)
+	std::string WebIO::post(std::string body, bool* success)
 	{
-		return this->execute("POST", body);
+		return this->execute("POST", body, WebIO::Params(), success);
 	}
 
-	std::string WebIO::get(std::string _url)
+	std::string WebIO::get(std::string _url, bool* success)
 	{
 		this->setURL(_url);
-		return this->get();
+		return this->get(success);
 	}
 
-	std::string WebIO::get()
+	std::string WebIO::get(bool* success)
 	{
-		return this->execute("GET", "");
+		return this->execute("GET", "", WebIO::Params(), success);
 	}
 
 	bool WebIO::openConnection()
@@ -257,8 +258,9 @@ namespace Utils
 		return this;
 	}
 
-	std::string WebIO::execute(const char* command, std::string body, WebIO::Params headers)
+	std::string WebIO::execute(const char* command, std::string body, WebIO::Params headers, bool* success)
 	{
+		if (success) *success = false;
 		if (!this->openConnection()) return "";
 
 		const char *acceptTypes[] = { "application/x-www-form-urlencoded", nullptr };
@@ -307,19 +309,36 @@ namespace Utils
 			return "";
 		}
 
+		DWORD contentLength = 0;
+		length = sizeof(statusCode);
+		if (HttpQueryInfo(this->hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_CONTENT_LENGTH, &contentLength, &length, nullptr) == FALSE)
+		{
+			this->closeConnection();
+			return "";
+		}
+
 		std::string returnBuffer;
+		returnBuffer.reserve(contentLength);
 
 		DWORD size = 0;
 		char buffer[0x2001] = { 0 };
 
 		while (InternetReadFile(this->hFile, buffer, 0x2000, &size))
 		{
+			if(this->cancel)
+			{
+				this->closeConnection();
+				return "";
+			}
+
 			returnBuffer.append(buffer, size);
+			if (this->progressCallback) this->progressCallback(returnBuffer.size(), contentLength);
 			if (!size) break;
 		}
 
 		this->closeConnection();
 
+		if (success) *success = true;
 		return returnBuffer;
 	}
 
@@ -538,5 +557,10 @@ namespace Utils
 		}
 
 		return false;
+	}
+
+	void WebIO::setProgressCallback(std::function<void(size_t, size_t)> callback)
+	{
+		this->progressCallback = callback;
 	}
 }

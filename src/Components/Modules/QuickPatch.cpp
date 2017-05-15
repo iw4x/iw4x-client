@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	int QuickPatch::FrameTime = 0;
 	bool QuickPatch::ReadyPassed = false;
 	Utils::Signal<QuickPatch::Callback> QuickPatch::ReadySignal;
 	Utils::Signal<QuickPatch::Callback> QuickPatch::ShutdownSignal;
@@ -197,6 +198,12 @@ namespace Components
 	{
 		QuickPatch::ReadyPassed = false;
 		QuickPatch::Once(QuickPatch::ReadyHandler);
+
+		QuickPatch::FrameTime = 0;
+		QuickPatch::OnFrame([]()
+		{
+			QuickPatch::FrameTime = Game::Sys_Milliseconds();
+		});
 
 		// Make sure preDestroy is called when the game shuts down
 		QuickPatch::OnShutdown(Loader::PreDestroy);

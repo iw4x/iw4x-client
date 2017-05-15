@@ -571,6 +571,9 @@ namespace Game
 	typedef void(__cdecl * Scr_RegisterFunction_t)(scr_function_t function);
 	extern Scr_RegisterFunction_t Scr_RegisterFunction;
 
+	typedef bool(__cdecl * Scr_IsSystemActive_t)();
+	extern Scr_IsSystemActive_t Scr_IsSystemActive;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 
