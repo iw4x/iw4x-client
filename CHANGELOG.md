@@ -8,15 +8,11 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
--
-
-### Changed
-
--
+- Add new nicknames for bots.
 
 ### Fixed
 
--
+- Fix server list only showing local servers by default instead of Internet servers.
 
 ## [0.4.2] - 2017-03-16
 
