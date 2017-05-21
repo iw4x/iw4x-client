@@ -114,5 +114,8 @@ namespace Components
 		static Utils::Memory::Allocator MemAllocator;
 		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
 		static void ReleaseTexture(Game::XAssetHeader header);
+
+		static void EndInitStub();
+		static void EndInit();
 	};
 }

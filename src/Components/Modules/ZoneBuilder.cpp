@@ -791,6 +791,69 @@ namespace Components
 		}
 	}
 
+	
+	Game::XZoneInfo baseZones_old [] = { { "code_pre_gfx_mp", 0, 0 },
+		{ "localized_code_pre_gfx_mp", 0, 0 },
+		{ "code_post_gfx_mp", 0, 0 },
+		{ "localized_code_post_gfx_mp", 0, 0 },
+		{ "common_mp", 0, 0 }
+	};
+	
+
+	Game::XZoneInfo baseZones [] = {
+		{ "defaults", 0, 0 },
+		{ "shaders", 0, 0 },
+		{ "common_mp", 0, 0 }
+	};
+
+	void ZoneBuilder::EndInit()
+	{
+		// do other init stuff
+		DWORD R_RegisterDvars = 0x5196C0;
+		DWORD NET_Init = 0x491860;
+		DWORD SND_InitDriver = 0x4F5090;
+		DWORD SND_Init = 0x46A630;
+		DWORD G_SetupWeaponDef = 0x4E1F30;
+		__asm
+		{
+			call R_RegisterDvars
+			call NET_Init
+			call SND_InitDriver
+			call SND_Init
+		}
+
+		// now load default assets and shaders
+		if (FastFiles::Exists("defaults") && FastFiles::Exists("shaders"))
+		{
+			Game::DB_LoadXAssets(baseZones, 3, 0);
+		}
+		else
+		{
+			Logger::Print("Warning: Missing new init zones (defaults.ff & shaders.ff). You will need to load fastfiles to manually obtain techsets.\n");
+			Game::DB_LoadXAssets(baseZones_old, 5, 0);
+		}
+
+		Logger::Print("Waiting for fastiles to load...");
+		while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);
+		Logger::Print("Done!\n");
+
+		// defaults need to load before we do this
+		__asm
+		{
+			call G_SetupWeaponDef
+		}
+	}
+
+	void __declspec(naked) ZoneBuilder::EndInitStub()
+	{
+		__asm
+		{
+			add esp, 0x14
+			call ZoneBuilder::EndInit
+			retn
+		}
+	}
+
 	ZoneBuilder::ZoneBuilder()
 	{
 		// ReSharper disable CppStaticAssertFailure
@@ -852,6 +915,12 @@ namespace Components
 			// hunk size (was 300 MiB)
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
+
+			// Further neuter Com_Init
+			Utils::Hook(0x60BBCE, ZoneBuilder::EndInitStub, HOOK_JUMP).install()->quick();
+
+			// dont run Live_Frame
+			Utils::Hook::Nop(0x48A0AF, 5);
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* /*restrict*/)
 			{
