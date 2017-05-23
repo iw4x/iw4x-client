@@ -829,7 +829,10 @@ namespace Components
 		Utils::Hook::Call<void()>(0x4A62A0)();  // LargeLocalInit
 		Utils::Hook::Call<void()>(0x4DCC10)();  // Sys_InitCmdEvents
 		Utils::Hook::Call<void()>(0x64A020)();  // PMem_Init
-		Game::Sys_ShowConsole();
+		if (!Flags::HasFlag("stdout"))
+		{
+			Game::Sys_ShowConsole();
+		}
 		Utils::Hook::Call<void(unsigned int)>(0x502580)(static_cast<unsigned int>(__rdtsc())); // Netchan_Init
 		Utils::Hook::Call<void()>(0x429080)();  // FS_InitFileSystem
 		Utils::Hook::Call<void()>(0x4BFBE0)();  // Con_InitChannels
@@ -840,8 +843,13 @@ namespace Components
 		Utils::Hook::Call<void()>(0x46A630)();  // SND_Init
 		//Utils::Hook::Call<void()>(0x4D3660)();  // SV_Init
 		//Utils::Hook::Call<void()>(0x4121E0)();  // SV_InitServerThread
-
+		//Utils::Hook::Call<void()>(0x464A90)();  // Com_ParseCommandLine
 		Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
+
+		Command::Add("quit", [](Command::Params*)
+		{
+			ZoneBuilder::Quit();
+		});
 
 		// now load default assets and shaders
 		if (FastFiles::Exists("defaults") && FastFiles::Exists("shaders"))
@@ -865,7 +873,27 @@ namespace Components
 		// defaults need to load before we do this
 		Utils::Hook::Call<void()>(0x4E1F30)();  // G_SetupWeaponDef
 
-		Utils::Hook::Set<int>(0x1AD8F68, 1); // com_fullyInitialized = 1
+		// so for this i'm going to say that we just run the commands (after + signs) 
+		// and don't spawn into a shell because why not?
+		if (Flags::HasFlag("stdout"))
+		{
+			int numArgs;
+			LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &numArgs);
+			for (int i = 0; i < numArgs; ++i)
+			{
+				std::wstring arg(argv[i]);
+				if (arg[0] == L'+')
+				{
+					Game::Cbuf_AddText(0, Utils::String::VA("%s\n", std::string(++arg.begin(), arg.end()).c_str()));
+				}
+			}
+
+			Utils::Hook::Call<void()>(0x440EC0)(); // DB_Update
+			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
+			Utils::Hook::Call<void(int, int)>(0x4E2C80)(0, 0); // Cbuf_Execute
+
+			return 0;
+		}
 
 		// now run main loop until quit
 		while (1)
@@ -876,6 +904,8 @@ namespace Components
 			Utils::Hook::Call<void()>(0x43EBB0)(); // check for quit
 			std::this_thread::sleep_for(100ms);
 		}
+
+		return 0;
 	}
 
 	void ZoneBuilder::Quit()
