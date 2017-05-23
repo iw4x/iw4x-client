@@ -115,7 +115,7 @@ namespace Components
 		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
 		static void ReleaseTexture(Game::XAssetHeader header);
 
-		static void EndInitStub();
-		static void EndInit();
+		static int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
+		static void Quit();
 	};
 }

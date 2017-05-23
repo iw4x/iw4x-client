@@ -794,64 +794,89 @@ namespace Components
 	
 	Game::XZoneInfo baseZones_old [] = { { "code_pre_gfx_mp", 0, 0 },
 		{ "localized_code_pre_gfx_mp", 0, 0 },
+		//{ "patch_code_pre_gfx_mp", 0, 0}, 
 		{ "code_post_gfx_mp", 0, 0 },
 		{ "localized_code_post_gfx_mp", 0, 0 },
-		{ "common_mp", 0, 0 }
+		{ "common_mp", 0, 0 },
+		{ "localized_common_mp", 0, 0 }
 	};
 	
 
 	Game::XZoneInfo baseZones [] = {
 		{ "defaults", 0, 0 },
 		{ "shaders", 0, 0 },
-		{ "common_mp", 0, 0 }
+		{ "common_mp", 0, 0 },
+		{ "localized_common_mp", 0, 0 }
 	};
 
-	void ZoneBuilder::EndInit()
+	int __stdcall ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
 	{
-		// do other init stuff
-		DWORD R_RegisterDvars = 0x5196C0;
-		DWORD NET_Init = 0x491860;
-		DWORD SND_InitDriver = 0x4F5090;
-		DWORD SND_Init = 0x46A630;
-		DWORD G_SetupWeaponDef = 0x4E1F30;
-		__asm
-		{
-			call R_RegisterDvars
-			call NET_Init
-			call SND_InitDriver
-			call SND_Init
-		}
+		Utils::Hook::Call<void()>(0x42F0A0)();	 // Com_InitCriticalSections
+		Utils::Hook::Call<void()>(0x4301B0)();  // Com_InitMainThread
+		Utils::Hook::Call<void(int)>(0x406D10)(0);  // Win_InitLocalization
+		Utils::Hook::Call<void()>(0x4FF220)();  // Com_InitParse
+		Utils::Hook::Call<void()>(0x4D8220)();  // Dvar_Init
+		Utils::Hook::Call<void()>(0x4D2280)();  // SL_Init
+		Utils::Hook::Call<void()>(0x48F660)();  // Cmd_Init
+		Utils::Hook::Call<void()>(0x4D9210)();  // Cbuf_Init
+		Utils::Hook::Call<void()>(0x47F390)();  // Swap_Init
+		Utils::Hook::Call<void()>(0x60AD10)();  // Com_InitDvars
+		Utils::Hook::Call<void()>(0x420830)();  // Com_InitHunkMemory
+		Utils::Hook::Call<void()>(0x4A62A0)();  // LargeLocalInit
+		Utils::Hook::Call<void()>(0x4DCC10)();  // Sys_InitCmdEvents
+		Utils::Hook::Call<void()>(0x64A020)();  // PMem_Init
+		Game::Sys_ShowConsole();
+		Utils::Hook::Call<void(unsigned int)>(0x502580)(static_cast<unsigned int>(__rdtsc())); // Netchan_Init
+		Utils::Hook::Call<void()>(0x429080)();  // FS_InitFileSystem
+		Utils::Hook::Call<void()>(0x4BFBE0)();  // Con_InitChannels
+		Utils::Hook::Call<void()>(0x4E0FB0)();  // DB_InitThread
+		Utils::Hook::Call<void()>(0x5196C0)();  // R_RegisterDvars
+		Game::NET_Init();
+		Utils::Hook::Call<void()>(0x4F5090)();  // SND_InitDriver
+		Utils::Hook::Call<void()>(0x46A630)();  // SND_Init
+		//Utils::Hook::Call<void()>(0x4D3660)();  // SV_Init
+		//Utils::Hook::Call<void()>(0x4121E0)();  // SV_InitServerThread
+
+		Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
 
 		// now load default assets and shaders
 		if (FastFiles::Exists("defaults") && FastFiles::Exists("shaders"))
 		{
-			Game::DB_LoadXAssets(baseZones, 3, 0);
+			Game::DB_LoadXAssets(baseZones, ARRAYSIZE(baseZones), 0);
 		}
 		else
 		{
 			Logger::Print("Warning: Missing new init zones (defaults.ff & shaders.ff). You will need to load fastfiles to manually obtain techsets.\n");
-			Game::DB_LoadXAssets(baseZones_old, 5, 0);
+			Game::DB_LoadXAssets(baseZones_old, ARRAYSIZE(baseZones_old), 0);
 		}
 
 		Logger::Print("Waiting for fastiles to load...");
-		while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);
+		while (!Game::Sys_IsDatabaseReady())
+		{
+			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
+			std::this_thread::sleep_for(100ms);
+		}
 		Logger::Print("Done!\n");
 
 		// defaults need to load before we do this
-		__asm
+		Utils::Hook::Call<void()>(0x4E1F30)();  // G_SetupWeaponDef
+
+		Utils::Hook::Set<int>(0x1AD8F68, 1); // com_fullyInitialized = 1
+
+		// now run main loop until quit
+		while (1)
 		{
-			call G_SetupWeaponDef
+			Utils::Hook::Call<void()>(0x440EC0)(); // DB_Update
+			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
+			Utils::Hook::Call<void(int,int)>(0x4E2C80)(0, 0); // Cbuf_Execute
+			Utils::Hook::Call<void()>(0x43EBB0)(); // check for quit
+			std::this_thread::sleep_for(100ms);
 		}
 	}
 
-	void __declspec(naked) ZoneBuilder::EndInitStub()
+	void ZoneBuilder::Quit()
 	{
-		__asm
-		{
-			add esp, 0x14
-			call ZoneBuilder::EndInit
-			retn
-		}
+		TerminateProcess(GetCurrentProcess(), 0);
 	}
 
 	ZoneBuilder::ZoneBuilder()
@@ -916,11 +941,11 @@ namespace Components
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
 
-			// Further neuter Com_Init
-			Utils::Hook(0x60BBCE, ZoneBuilder::EndInitStub, HOOK_JUMP).install()->quick();
+			// set new entry point
+			Utils::Hook(0x4513DA, ZoneBuilder::EntryPoint, HOOK_JUMP).install()->quick();
 
-			// dont run Live_Frame
-			Utils::Hook::Nop(0x48A0AF, 5);
+			// set quit handler
+			Utils::Hook(0x4D4000, ZoneBuilder::Quit, HOOK_JUMP).install()->quick();
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* /*restrict*/)
 			{
