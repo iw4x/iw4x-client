@@ -832,6 +832,7 @@ namespace Components
 		if (!Flags::HasFlag("stdout"))
 		{
 			Game::Sys_ShowConsole();
+			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
 		}
 		Utils::Hook::Call<void(unsigned int)>(0x502580)(static_cast<unsigned int>(__rdtsc())); // Netchan_Init
 		Utils::Hook::Call<void()>(0x429080)();  // FS_InitFileSystem
@@ -849,6 +850,11 @@ namespace Components
 		Command::Add("quit", [](Command::Params*)
 		{
 			ZoneBuilder::Quit();
+		});
+
+		Command::Add("error", [](Command::Params*)
+		{
+			Game::Com_Error(0, "This is a test %s\n", "error");
 		});
 
 		// now load default assets and shaders
@@ -886,6 +892,16 @@ namespace Components
 
 			return 0;
 		}
+
+		Logger::Print(" --------------------------------------------------------------------------------\n");
+		Logger::Print(" IW4x ZoneBuilder (" VERSION ")\n");
+		Logger::Print(" Commands:\n");
+		Logger::Print("\t-buildzone [zone]: builds a zone from a csv located in zone_source\n");
+		Logger::Print("\t-buildall: builds all zones in zone_source\n");
+		Logger::Print("\t-verifyzone [zone]: loads and verifies the specified zone\n");
+		Logger::Print("\t-listassets [assettype]: lists all loaded assets of the specified type\n");
+		Logger::Print("\t-quit: quits the program\n");
+		Logger::Print(" --------------------------------------------------------------------------------\n");
 
 		// now run main loop until quit
 		while (true)
@@ -926,14 +942,6 @@ namespace Components
 		va_end(args);
 
 		if (!level) ExitProcess(1);
-	}
-
-	__declspec(naked) void ZoneBuilder::HandleErrorStub()
-	{
-		__asm
-		{
-			jmp ZoneBuilder::HandleError
-		}
 	}
 
 	ZoneBuilder::ZoneBuilder()
