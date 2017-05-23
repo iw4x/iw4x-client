@@ -798,7 +798,9 @@ namespace Components
 		{ "code_post_gfx_mp", 0, 0 },
 		{ "localized_code_post_gfx_mp", 0, 0 },
 		{ "common_mp", 0, 0 },
-		{ "localized_common_mp", 0, 0 }
+		{ "localized_common_mp", 0, 0 },
+		{ "ui_mp", 0, 0 },
+		{ "localized_ui_mp", 0, 0 }
 	};
 	
 
@@ -806,7 +808,9 @@ namespace Components
 		{ "defaults", 0, 0 },
 		{ "shaders", 0, 0 },
 		{ "common_mp", 0, 0 },
-		{ "localized_common_mp", 0, 0 }
+		{ "localized_common_mp", 0, 0 },
+		{ "ui_mp", 0, 0 },
+		{ "localized_ui_mp", 0, 0 }
 	};
 
 	int __stdcall ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
@@ -879,6 +883,26 @@ namespace Components
 		TerminateProcess(GetCurrentProcess(), 0);
 	}
 
+	void ZoneBuilder::HandleError(int level, const char* format, ...)
+	{
+		char buffer[256];
+		va_list args;
+		va_start(args, format);
+		vsnprintf_s(buffer, 256, format, args);
+		MessageBoxA(NULL, buffer, "Error!", MB_OK | MB_ICONERROR);
+		va_end(args);
+
+		if (!level) ZoneBuilder::Quit();
+	}
+
+	__declspec(naked) void ZoneBuilder::HandleErrorStub()
+	{
+		__asm
+		{
+			jmp ZoneBuilder::HandleError
+		}
+	}
+
 	ZoneBuilder::ZoneBuilder()
 	{
 		// ReSharper disable CppStaticAssertFailure
@@ -946,6 +970,9 @@ namespace Components
 
 			// set quit handler
 			Utils::Hook(0x4D4000, ZoneBuilder::Quit, HOOK_JUMP).install()->quick();
+
+			// handle com_error calls
+			Utils::Hook(0x4B22D0, ZoneBuilder::HandleError, HOOK_JUMP).install()->quick();
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* /*restrict*/)
 			{

@@ -117,5 +117,7 @@ namespace Components
 
 		static int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
 		static void Quit();
+		static void HandleError(int level, const char* format, ...);
+		static void HandleErrorStub();
 	};
 }
