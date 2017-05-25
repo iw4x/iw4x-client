@@ -902,7 +902,8 @@ namespace Components
 
 	void ZoneBuilder::Quit()
 	{
-		TerminateProcess(GetCurrentProcess(), 0);
+		//TerminateProcess(GetCurrentProcess(), 0);
+		ExitProcess(0);
 	}
 
 	void ZoneBuilder::HandleError(int level, const char* format, ...)
@@ -911,10 +912,20 @@ namespace Components
 		va_list args;
 		va_start(args, format);
 		vsnprintf_s(buffer, 256, format, args);
-		MessageBoxA(nullptr, buffer, "Error!", MB_OK | MB_ICONERROR);
+
+		if (!Flags::HasFlag("stdout"))
+		{
+			MessageBoxA(nullptr, buffer, "Error!", MB_OK | MB_ICONERROR);
+		}
+		else
+		{
+			perror(buffer);
+			fflush(stderr);
+		}
+
 		va_end(args);
 
-		if (!level) ZoneBuilder::Quit();
+		if (!level) ExitProcess(1);
 	}
 
 	__declspec(naked) void ZoneBuilder::HandleErrorStub()
