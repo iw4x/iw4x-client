@@ -210,6 +210,8 @@ namespace Components
 		static mg_mgr Mgr;
 		static ClientDownload CLDownload;
 		static std::vector<std::shared_ptr<ScriptDownload>> ScriptDownloads;
+		static std::thread ServerThread;
+		static bool Terminate;
 
 		static void EventHandler(mg_connection *nc, int ev, void *ev_data);
 		static void ListHandler(mg_connection *nc, int ev, void *ev_data);

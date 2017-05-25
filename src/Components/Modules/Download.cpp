@@ -6,6 +6,9 @@ namespace Components
 	Download::ClientDownload Download::CLDownload;
 	std::vector<std::shared_ptr<Download::ScriptDownload>> Download::ScriptDownloads;
 
+	std::thread Download::ServerThread;
+	bool Download::Terminate;
+
 #pragma region Client
 
 	void Download::InitiateMapDownload(std::string map)
@@ -703,6 +706,7 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled())
 		{
+			Download::Terminate = false;
 			ZeroMemory(&Download::Mgr, sizeof Download::Mgr);
 			mg_mgr_init(&Download::Mgr, nullptr);
 
@@ -726,9 +730,13 @@ namespace Components
 				}
 			});
 
-			QuickPatch::OnFrame([]
+			Download::Terminate = false;
+			Download::ServerThread = std::thread([]
 			{
-				mg_mgr_poll(&Download::Mgr, 0);
+				while (!Download::Terminate)
+				{
+					mg_mgr_poll(&Download::Mgr, 100);
+				}
 			});
 		}
 		else
@@ -820,6 +828,12 @@ namespace Components
 
 	Download::~Download()
 	{
+		Download::Terminate = true;
+		if (Download::ServerThread.joinable())
+		{
+			Download::ServerThread.join();
+		}
+
 		if (Dedicated::IsEnabled())
 		{
 			mg_mgr_free(&Download::Mgr);

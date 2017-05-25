@@ -453,9 +453,7 @@ namespace Components
 			Command::Execute("awaitDatabase", false); // Wait for the database to load
 			Command::Execute("wait 100", false);
 			Command::Execute("openmenu popup_reconnectingtoparty", false);
-			Command::Execute("wait 8000", false); // Seems like 8000ms?
-			Command::Execute("closemenu popup_reconnectingtoparty", false);
-			Command::Execute("reconnect", false);
+			Command::Execute("delayReconnect", false);
 			return true;
 		}
 
@@ -932,6 +930,15 @@ namespace Components
 		Utils::Hook(0x4CA3E9, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A9D51, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5B34DD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+
+		Command::Add("delayReconnect", [](Command::Params*)
+		{
+			Renderer::OnDelay([]()
+			{
+				Command::Execute("closemenu popup_reconnectingtoparty", false);
+				Command::Execute("reconnect", false);
+			}, 6s);
+		});
 
 		// Download the map before a maprotation if necessary
 		// Conflicts with Theater's SV map rotation check, but this one is safer!
