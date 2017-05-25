@@ -313,8 +313,7 @@ namespace Utils
 		length = sizeof(statusCode);
 		if (HttpQueryInfo(this->hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_CONTENT_LENGTH, &contentLength, &length, nullptr) == FALSE)
 		{
-			this->closeConnection();
-			return "";
+			contentLength = 0;
 		}
 
 		std::string returnBuffer;
