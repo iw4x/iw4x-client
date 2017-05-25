@@ -815,7 +815,7 @@ namespace Components
 
 	int __stdcall ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
 	{
-		Utils::Hook::Call<void()>(0x42F0A0)();	 // Com_InitCriticalSections
+		Utils::Hook::Call<void()>(0x42F0A0)();	// Com_InitCriticalSections
 		Utils::Hook::Call<void()>(0x4301B0)();  // Com_InitMainThread
 		Utils::Hook::Call<void(int)>(0x406D10)(0);  // Win_InitLocalization
 		Utils::Hook::Call<void()>(0x4FF220)();  // Com_InitParse
@@ -877,16 +877,8 @@ namespace Components
 		// and don't spawn into a shell because why not?
 		if (Flags::HasFlag("stdout"))
 		{
-			int numArgs;
-			LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &numArgs);
-			for (int i = 0; i < numArgs; ++i)
-			{
-				std::wstring arg(argv[i]);
-				if (arg[0] == L'+')
-				{
-					Game::Cbuf_AddText(0, Utils::String::VA("%s\n", std::string(++arg.begin(), arg.end()).c_str()));
-				}
-			}
+			Utils::Hook::Call<void(const char*)>(0x464A90)(GetCommandLineA()); // Com_ParseCommandLine
+			Utils::Hook::Call<void()>(0x60C3D0)(); // Com_AddStartupCommands
 
 			Utils::Hook::Call<void()>(0x440EC0)(); // DB_Update
 			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
@@ -896,7 +888,7 @@ namespace Components
 		}
 
 		// now run main loop until quit
-		while (1)
+		while (true)
 		{
 			Utils::Hook::Call<void()>(0x440EC0)(); // DB_Update
 			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
@@ -919,7 +911,7 @@ namespace Components
 		va_list args;
 		va_start(args, format);
 		vsnprintf_s(buffer, 256, format, args);
-		MessageBoxA(NULL, buffer, "Error!", MB_OK | MB_ICONERROR);
+		MessageBoxA(nullptr, buffer, "Error!", MB_OK | MB_ICONERROR);
 		va_end(args);
 
 		if (!level) ZoneBuilder::Quit();
@@ -994,6 +986,23 @@ namespace Components
 			// hunk size (was 300 MiB)
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
+
+			// change fs_game domain func
+			Utils::Hook::Set<int(*)(Game::dvar_t*, Game::dvar_value_t)>(0x643203, [](Game::dvar_t* dvar, Game::dvar_value_t value)
+			{
+				int result = Utils::Hook::Call<int(Game::dvar_t*, Game::dvar_value_t)>(0x642FC0)(dvar, value);
+
+				if(result)
+				{
+					if(std::string(value.string) != dvar->current.string)
+					{
+						dvar->current.string = value.string;
+						Game::FS_Restart(0, 0);
+					}
+				}
+
+				return result;
+			});
 
 			// set new entry point
 			Utils::Hook(0x4513DA, ZoneBuilder::EntryPoint, HOOK_JUMP).install()->quick();
