@@ -115,59 +115,6 @@ namespace Components
 		this->writeZone();
 	}
 
-	static bool buildingTechsets = false;
-	static std::string techsetCSV = "";
-
-	void ZoneBuilder::Zone::Zone::buildTechsets()
-	{
-		buildingTechsets = true;
-		techsetCSV = "";
-
-		this->zoneName = "iw4_techsets";
-
-		// load all fastfiles in the zone dir and make a fastfile that contains all the techsets in those fastfiles
-
-		std::string zone_dir = "zone/english";
-
-		auto files = Utils::IO::ListFiles(zone_dir);
-		std::string extension = ".ff";
-		std::string load_suffix = "_load.ff";
-		for (auto it : files)
-		{
-			if (!it.compare(it.length() - extension.length(), extension.length(), extension))
-			{
-				// ignore _load fastfiles
-				if (!it.compare(it.length() - load_suffix.length(), load_suffix.length(), load_suffix))
-					continue;
-				techsetCSV += "require,"s + it.substr(zone_dir.length() + 1, it.length() - zone_dir.length() - 4) + "\r\n"s;
-			}
-		}
-
-		this->dataMap = Utils::CSV(techsetCSV, false);
-
-		this->loadFastFiles(); // this also builds the asset list cause we're just dumping the entire DB
-
-		this->dataMap = Utils::CSV(techsetCSV, false); // update with asset list and not just requires
-
-		Logger::Print("Linking assets...\n");
-		if (!this->loadAssets()) return;
-
-		this->addBranding();
-
-		Logger::Print("Saving...\n");
-		this->saveData();
-
-		if (this->buffer.hasBlock())
-		{
-			Logger::Error("Non-popped blocks left!\n");
-		}
-
-		Logger::Print("Compressing...\n");
-		this->writeZone();
-
-		buildingTechsets = false;
-	}
-
 	void ZoneBuilder::Zone::loadFastFiles()
 	{
 		Logger::Print("Loading required FastFiles...\n");
@@ -791,26 +738,70 @@ namespace Components
 		}
 	}
 
-	
-	Game::XZoneInfo baseZones_old [] = { { "code_pre_gfx_mp", 0, 0 },
-		{ "localized_code_pre_gfx_mp", 0, 0 },
-		//{ "patch_code_pre_gfx_mp", 0, 0}, 
-		{ "code_post_gfx_mp", 0, 0 },
-		{ "localized_code_post_gfx_mp", 0, 0 },
-		{ "common_mp", 0, 0 },
-		{ "localized_common_mp", 0, 0 },
-		{ "ui_mp", 0, 0 },
-		{ "localized_ui_mp", 0, 0 }
-	};
-	
+	bool ZoneBuilder::mainThreadInterrupted;
+	DWORD ZoneBuilder::interruptingThreadId;
 
-	Game::XZoneInfo baseZones [] = {
-		{ "defaults", 0, 0 },
-		{ "shaders", 0, 0 },
-		{ "common_mp", 0, 0 },
-		{ "localized_common_mp", 0, 0 },
-		{ "ui_mp", 0, 0 },
-		{ "localized_ui_mp", 0, 0 }
+	void ZoneBuilder::AssumeMainThreadRole()
+	{
+		ZoneBuilder::mainThreadInterrupted = true;
+		ZoneBuilder::interruptingThreadId = GetCurrentThreadId();
+	}
+
+	void ZoneBuilder::ResetThreadRole()
+	{
+		ZoneBuilder::mainThreadInterrupted = false;
+		ZoneBuilder::interruptingThreadId = 0x0;
+	}
+
+	bool ZoneBuilder::IsThreadMainThreadHook()
+	{
+		// this is the thread that is interrupting so let it act as the main thread
+		if (ZoneBuilder::mainThreadInterrupted && GetCurrentThreadId() == ZoneBuilder::interruptingThreadId)
+		{
+			return true;
+		}
+
+		// block the main thread from doing anything "main thread" specific while
+		// the other thread is interrupting
+		
+		//while (ZoneBuilder::mainThreadInterrupted) std::this_thread::sleep_for(100ms);
+
+		// normal functionality
+		return GetCurrentThreadId() == Utils::Hook::Get<DWORD>(0x1CDE7FC);
+	}
+
+	DWORD WINAPI ZoneBuilder::CommandsThread(LPVOID)
+	{
+		while (1)
+		{
+			// Cbuf_Execute doesn't work outside the main thread so hijack it
+			ZoneBuilder::AssumeMainThreadRole();
+			Utils::Hook::Call<void(int, int)>(0x4E2C80)(0, 0); // Cbuf_Execute
+			ZoneBuilder::ResetThreadRole();
+			Sleep(200);
+		}
+		return 0;
+	}
+
+	static Game::XZoneInfo baseZones_old[] = {
+		{ "code_pre_gfx_mp", Game::ZoneAllocFlags::DB_ZONE_CODE, 0 },
+		{ "localized_code_pre_gfx_mp", Game::ZoneAllocFlags::DB_ZONE_CODE_LOC, 0 },
+		{ "code_post_gfx_mp", Game::ZoneAllocFlags::DB_ZONE_CODE, 0 },
+		{ "localized_code_post_gfx_mp", Game::ZoneAllocFlags::DB_ZONE_CODE_LOC, 0 },
+		{ "common_mp", Game::ZoneAllocFlags::DB_ZONE_COMMON, 0 },
+		{ "localized_common_mp", Game::ZoneAllocFlags::DB_ZONE_COMMON_LOC, 0 },
+		{ "ui_mp", Game::ZoneAllocFlags::DB_ZONE_GAME, 0 },
+		{ "localized_ui_mp", Game::ZoneAllocFlags::DB_ZONE_GAME, 0 }
+	};
+
+
+	static Game::XZoneInfo baseZones[] = {
+		{ "defaults", Game::ZoneAllocFlags::DB_ZONE_CODE, 0 },
+		{ "techsets",  Game::ZoneAllocFlags::DB_ZONE_CODE, 0 },
+		{ "common_mp",  Game::ZoneAllocFlags::DB_ZONE_COMMON, 0 },
+		{ "localized_common_mp",  Game::ZoneAllocFlags::DB_ZONE_COMMON_LOC, 0 },
+		{ "ui_mp",  Game::ZoneAllocFlags::DB_ZONE_GAME, 0 },
+		{ "localized_ui_mp",  Game::ZoneAllocFlags::DB_ZONE_GAME, 0 }
 	};
 
 	int __stdcall ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
@@ -847,6 +838,9 @@ namespace Components
 		//Utils::Hook::Call<void()>(0x464A90)();  // Com_ParseCommandLine
 		Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
 
+		DWORD id = 0x12345678;
+		CreateThread(0, 0, CommandsThread, 0, 0, &id);
+
 		Command::Add("quit", [](Command::Params*)
 		{
 			ZoneBuilder::Quit();
@@ -858,13 +852,13 @@ namespace Components
 		});
 
 		// now load default assets and shaders
-		if (FastFiles::Exists("defaults") && FastFiles::Exists("shaders"))
+		if (FastFiles::Exists("defaults") && FastFiles::Exists("techsets"))
 		{
 			Game::DB_LoadXAssets(baseZones, ARRAYSIZE(baseZones), 0);
 		}
 		else
 		{
-			Logger::Print("Warning: Missing new init zones (defaults.ff & shaders.ff). You will need to load fastfiles to manually obtain techsets.\n");
+			Logger::Print("Warning: Missing new init zones (defaults.ff & techsets.ff). You will need to load fastfiles to manually obtain techsets.\n");
 			Game::DB_LoadXAssets(baseZones_old, ARRAYSIZE(baseZones_old), 0);
 		}
 
@@ -904,13 +898,18 @@ namespace Components
 		Logger::Print(" --------------------------------------------------------------------------------\n");
 
 		// now run main loop until quit
+		unsigned int frames = 0;
 		while (true)
 		{
-			Utils::Hook::Call<void()>(0x440EC0)(); // DB_Update
+			if (frames % 100 == 0)
+			{
+				Utils::Hook::Call<void()>(0x440EC0)(); // DB_Update
+				Utils::Hook::Call<void()>(0x43EBB0)(); // check for quit
+			}
+
 			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
-			Utils::Hook::Call<void(int,int)>(0x4E2C80)(0, 0); // Cbuf_Execute
-			Utils::Hook::Call<void()>(0x43EBB0)(); // check for quit
-			std::this_thread::sleep_for(100ms);
+			Sleep(1);
+			frames++;
 		}
 
 		return 0;
@@ -942,6 +941,48 @@ namespace Components
 		va_end(args);
 
 		if (!level) ExitProcess(1);
+	}
+
+	__declspec(naked) void ZoneBuilder::SoftErrorAssetOverflow()
+	{
+		// fuck with the stack to return to before DB_AddXAsset
+		__asm
+		{
+			add esp, 12 // exit from DB_AllocXAssetEntry
+			pop edi
+			pop esi
+			pop ebp
+			pop ebx
+			add esp, 14h
+			mov eax, [esp + 8]
+			retn
+		}
+	}
+
+	std::string ZoneBuilder::FindMaterialByTechnique(std::string techniqueName)
+	{
+		static bool replacementFound = false;
+		replacementFound = false; // the above one only runs the first time
+
+		const char* ret = "default";
+
+		Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [techniqueName, &ret](Game::XAssetEntry* entry)
+		{
+			if (!replacementFound)
+			{
+				Game::XAssetHeader header = entry->asset.header;
+				std::string name = techniqueName;
+				if (name[0] == ',') name = name.substr(1);
+				if (name == header.material->techniqueSet->name)
+				{
+					ret = header.material->name;
+					replacementFound = true;
+				}
+			}
+		}, false, false);
+
+		if (replacementFound) return ret;
+		return ""s;
 	}
 
 	ZoneBuilder::ZoneBuilder()
@@ -1000,7 +1041,33 @@ namespace Components
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODELSURFS, 8192);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 14336);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, 1536);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PIXELSHADER, 0x4000);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, 0x2000);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXDECL, 0x400);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FONT, 32);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_RAWFILE, 2048);
+
+			// patch g_copyInfo because we're using so many more assets than originally intended
+			int newLimit = 0x2000;
+			int* g_copyInfo_new = Utils::Memory::AllocateArray<int>(newLimit);
+			Utils::Hook::Set<int*>(0x494083, g_copyInfo_new); // DB_DelayLoadImages
+			Utils::Hook::Set<int*>(0x5BB9CC, g_copyInfo_new); // DB_AddXAsset
+			Utils::Hook::Set<int*>(0x5BC723, g_copyInfo_new); // DB_PostLoadXZone
+			Utils::Hook::Set<int*>(0x5BC759, g_copyInfo_new);
+			Utils::Hook::Set<int>(0x5BB9AD, newLimit); // limit check
+
+			// this one lets us keep loading zones and it will ignore assets when the pool is filled
+			/*
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, std::string, bool* restrict)
+			{
+				//if (*static_cast<int*>(Game::DB_XAssetPool[type].data) == 0)
+				if(Game::g_poolSize[type] == 0)
+				{
+					*restrict = true;
+				}
+			});
+			*/
 
 			// hunk size (was 300 MiB)
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
@@ -1032,6 +1099,15 @@ namespace Components
 			// handle com_error calls
 			Utils::Hook(0x4B22D0, ZoneBuilder::HandleError, HOOK_JUMP).install()->quick();
 
+			// thread fuckery hooks
+			Utils::Hook(0x4C37D0, ZoneBuilder::IsThreadMainThreadHook, HOOK_JUMP).install()->quick();
+			
+			// remove overriding asset messages
+			Utils::Hook::Nop(0x5BC74E, 5);
+
+			// don't remap techsets
+			Utils::Hook::Nop(0x5BC791, 5);
+
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* /*restrict*/)
 			{
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
@@ -1050,7 +1126,7 @@ namespace Components
 
 				Game::XZoneInfo info;
 				info.name = zone.data();
-				info.allocFlags = 0x20;
+				info.allocFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
 				info.freeFlags = 0;
 
 				Logger::Print("Loading zone '%s'...\n", zone.data());
@@ -1061,7 +1137,7 @@ namespace Components
 				auto assets = ZoneBuilder::EndAssetTrace();
 
 				Logger::Print("Unloading zone '%s'...\n", zone.data());
-				info.freeFlags = 0x20;
+				info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
 				info.allocFlags = 0;
 				info.name = nullptr;
 
@@ -1104,20 +1180,269 @@ namespace Components
 				}
 			});
 
-			Command::Add("buildtechsets", [](Command::Params*)
+			static std::set<std::string> curTechsets_list;
+			static std::set<std::string> techsets_list;
+
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, std::string name, bool*)
 			{
-				Zone().buildTechsets();
+				if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
+				{
+					if (name[0] == ',') return; // skip techsets from common_mp
+					if (techsets_list.find(name) == techsets_list.end())
+					{
+						curTechsets_list.emplace(name);
+						techsets_list.emplace(name);
+					}
+				}
 			});
 
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* restrict)
+			Command::Add("buildtechsets", [](Command::Params*)
 			{
-				if (buildingTechsets && type != Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET)
+				Utils::IO::CreateDir("zone_source/techsets");
+				Utils::IO::CreateDir("zone/techsets");
+
+				std::string csvStr;
+
+				auto fileList = Utils::IO::ListFiles("zone/english");
+				for (auto zone : fileList)
 				{
-					*restrict = true;
-					return;
+					Utils::String::Replace(zone, "zone/english/", "");
+					Utils::String::Replace(zone, ".ff", "");
+
+					if (Utils::IO::FileExists("zone/techsets/" + zone + "_techsets.ff"))
+					{
+						Logger::Print("Skipping previously generated zone %s\n", zone.data());
+						continue;
+					}
+
+					if (zone.find("_load") != std::string::npos)
+					{
+						Logger::Print("Skipping loadscreen zone %s\n", zone.data());
+						continue;
+					}
+
+					if (Game::DB_IsZoneLoaded(zone.c_str()) || !FastFiles::Exists(zone))
+					{
+						continue;
+					}
+
+					if (zone[0] == '.') continue; // fucking mac dotfiles
+
+					curTechsets_list.clear(); // clear from last run
+
+					// load the zone
+					Game::XZoneInfo info;
+					info.name = zone.c_str();
+					info.allocFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+					info.freeFlags = 0x0;
+					Game::DB_LoadXAssets(&info, 1, 0);
+
+					while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms); // wait till its fully loaded
+
+					if (curTechsets_list.size() == 0)
+					{
+						Logger::Print("Skipping empty zone %s\n", zone.data());
+						// unload zone
+						info.name = nullptr;
+						info.allocFlags = 0x0;
+						info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+						Game::DB_LoadXAssets(&info, 1, true);
+						continue;
+					}
+
+					// ok so we're just gonna use the materials because they will use the techsets
+					csvStr.clear();
+					for (auto tech : curTechsets_list)
+					{
+						std::string mat = ZoneBuilder::FindMaterialByTechnique(tech);
+						if (mat.length() == 0) 
+						{
+							csvStr.append("techset," + tech + "\n");
+						}
+						else
+						{
+							csvStr.append("material," + mat + "\n");
+						}
+					}
+
+					// save csv
+					Utils::IO::WriteFile("zone_source/techsets/" + zone + "_techsets.csv", csvStr.data());
+
+					// build the techset zone
+					std::string zoneName = "techsets/" + zone + "_techsets";
+					Logger::Print("Building zone '%s'...\n", zoneName.data());
+					Zone(zoneName).build();
+
+					// unload original zone
+					info.name = nullptr;
+					info.allocFlags = 0x0;
+					info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+					Game::DB_LoadXAssets(&info, 1, true);
+
+					while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(10ms); // wait till its fully loaded
 				}
 
-				techsetCSV += "techset,"s + name + "\r\n"s;
+				curTechsets_list.clear();
+				techsets_list.clear();
+
+				Game::DB_EnumXAssets(Game::ASSET_TYPE_TECHNIQUE_SET, [](Game::XAssetHeader header, void*)
+				{
+					curTechsets_list.emplace(header.techniqueSet->name);
+					techsets_list.emplace(header.techniqueSet->name);
+				}, nullptr, false);
+
+				// HACK: set language to 'techsets' to load from that dir
+				char* language = Utils::Hook::Get<char*>(0x649E740);
+				Utils::Hook::Set<char*>(0x649E740, "techsets");
+
+				// load generated techset fastfiles
+				auto list = Utils::IO::ListFiles("zone/techsets");
+				int i = 0;
+				int subCount = 0;
+				for (auto it : list)
+				{
+					Utils::String::Replace(it, "zone/techsets/", "");
+					Utils::String::Replace(it, ".ff", "");
+
+					if (it.find("_techsets") == std::string::npos) continue; // skip files we didn't generate for this
+
+					if (!Game::DB_IsZoneLoaded(it.data()))
+					{
+						Game::XZoneInfo info;
+						info.name = it.data();
+						info.allocFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+						info.freeFlags = 0;
+
+						Game::DB_LoadXAssets(&info, 1, 0);
+						while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(10ms); // wait till its fully loaded
+					}
+					else
+					{
+						Logger::Print("Zone '%s' already loaded\n", it.data());
+					}
+
+					if (i == 20) // cap at 20 just to be safe
+					{
+						// create csv with the techsets in it
+						csvStr.clear();
+						for (auto tech : curTechsets_list)
+						{
+							std::string mat = ZoneBuilder::FindMaterialByTechnique(tech);
+							if (mat.length() == 0)
+							{
+								csvStr.append("techset," + tech + "\n");
+							}
+							else
+							{
+								csvStr.append("material," + mat + "\n");
+							}
+						}
+
+						std::string tempZoneFile = Utils::String::VA("zone_source/techsets/techsets%d.csv", subCount);
+						std::string tempZone = Utils::String::VA("techsets/techsets%d", subCount);
+
+						Utils::IO::WriteFile(tempZoneFile, csvStr.data());
+
+						Logger::Print("Building zone '%s'...\n", tempZone.data());
+						Zone(tempZone).build();
+
+						// unload all zones
+						Game::XZoneInfo info;
+						info.name = nullptr;
+						info.allocFlags = 0x0;
+						info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+						Game::DB_LoadXAssets(&info, 1, true);
+
+						Utils::Hook::Set<char*>(0x649E740, "techsets");
+
+						i = 0;
+						subCount++;
+						curTechsets_list.clear();
+						techsets_list.clear();
+					}
+
+					i++;
+				}
+
+				// last iteration
+				if (i != 0)
+				{
+					// create csv with the techsets in it
+					csvStr.clear();
+					for (auto tech : curTechsets_list)
+					{
+						std::string mat = ZoneBuilder::FindMaterialByTechnique(tech);
+						if (mat.length() == 0)
+						{
+							Logger::Print("Couldn't find a material for techset %s. Sort Keys will be incorrect.\n", tech.c_str());
+							csvStr.append("techset," + tech + "\n");
+						}
+						else
+						{
+							csvStr.append("material," + mat + "\n");
+						}
+					}
+
+					std::string tempZoneFile = Utils::String::VA("zone_source/techsets/techsets%d.csv", subCount);
+					std::string tempZone = Utils::String::VA("techsets/techsets%d", subCount);
+
+					Utils::IO::WriteFile(tempZoneFile, csvStr.data());
+
+					Logger::Print("Building zone '%s'...\n", tempZone.data());
+					Zone(tempZone).build();
+
+					// unload all zones
+					Game::XZoneInfo info;
+					info.name = nullptr;
+					info.allocFlags = 0x0;
+					info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+					Game::DB_LoadXAssets(&info, 1, true);
+
+					subCount++;
+				}
+
+				// build final techsets fastfile
+				if (subCount > 24)
+				{
+					Logger::ErrorPrint(1, "How did you have 576 fastfiles?\n");
+				}
+
+				curTechsets_list.clear();
+				techsets_list.clear();
+
+				for (int j = 0; j < subCount; ++j)
+				{
+					Game::XZoneInfo info;
+					info.name = Utils::String::VA("techsets%d", j);
+					info.allocFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+					info.freeFlags = 0;
+
+					Game::DB_LoadXAssets(&info, 1, 0);
+					while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(10ms); // wait till its fully loaded
+				}
+
+				// create csv with the techsets in it
+				csvStr.clear();
+				for (auto tech : curTechsets_list)
+				{
+					std::string mat = ZoneBuilder::FindMaterialByTechnique(tech);
+					if (mat.length() == 0)
+					{
+						csvStr.append("techset," + tech + "\n");
+					}
+					else
+					{
+						csvStr.append("material," + mat + "\n");
+					}
+				}
+
+				Utils::IO::WriteFile("zone_source/techsets/techsets.csv", csvStr.data());
+
+				// set language back
+				Utils::Hook::Set<char*>(0x649E740, language);
+
+				Logger::Print("Building zone 'techsets/techsets'...\n");
+				Zone("techsets/techsets").build();
 			});
 
 			Command::Add("listassets", [](Command::Params* params)
@@ -1133,6 +1458,30 @@ namespace Components
 						Logger::Print("%s\n", Game::DB_GetXAssetName(&asset));
 					}, &type, false);
 				}
+			});
+
+			Command::Add("loadtempzone", [](Command::Params* params)
+			{
+				if (params->length() < 2) return;
+
+				if (FastFiles::Exists(params->get(1)))
+				{
+					Game::XZoneInfo info;
+					info.name = params->get(1);
+					info.allocFlags = 0x80;
+					info.freeFlags = 0x0;
+					Game::DB_LoadXAssets(&info, 1, 0);
+				}
+			});
+
+			Command::Add("unloadtempzones", [](Command::Params*)
+			{
+				Game::XZoneInfo info;
+				info.name = nullptr;
+				info.allocFlags = 0x0;
+				info.freeFlags = 0x80;
+				Game::DB_LoadXAssets(&info, 1, true);
+				AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
 			});
 
 			Command::Add("materialInfoDump", [](Command::Params*)

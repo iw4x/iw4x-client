@@ -19,7 +19,6 @@ namespace Components
 			~Zone();
 
 			void build();
-			void buildTechsets();
 
 			Utils::Stream* getBuffer();
 			Utils::Memory::Allocator* getAllocator();
@@ -115,9 +114,20 @@ namespace Components
 		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
 		static void ReleaseTexture(Game::XAssetHeader header);
 
+		static std::string FindMaterialByTechnique(std::string name);
+
 		static int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
 		static void Quit();
 		static void HandleError(int level, const char* format, ...);
-		static void HandleErrorStub();
+		static void SoftErrorAssetOverflow();
+
+		static void AssumeMainThreadRole();
+		static void ResetThreadRole();
+
+		static bool IsThreadMainThreadHook();
+		static DWORD WINAPI CommandsThread(LPVOID);
+
+		static bool mainThreadInterrupted;
+		static DWORD interruptingThreadId;
 	};
 }

@@ -285,6 +285,18 @@ namespace Game
 		int count;
 	};
 
+	enum ZoneAllocFlags
+	{
+		DB_ZONE_CODE_LOC = 0x0,
+		DB_ZONE_COMMON_LOC = 0x1,
+		DB_ZONE_CODE = 0x2,
+		DB_ZONE_COMMON = 0x4,
+		DB_ZONE_GAME = 0x8,
+		DB_ZONE_MOD = 0x10,
+		DB_ZONE_LOAD = 0x20,
+		DB_ZONE_DEV = 0x40
+	};
+
 	typedef struct
 	{
 		const char *name;
