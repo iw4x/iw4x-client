@@ -848,6 +848,31 @@ namespace Components
 		}
 	}
 
+	int Maps::DatabaseReadyDelayed()
+{
+		static bool ready = false;
+		static Utils::Time::Interval interval;
+
+		if(Game::Sys_IsDatabaseReady())
+		{
+			if(!ready)
+			{
+				ready = true;
+				interval.update();
+			}
+			else if(interval.elapsed(2s))
+			{
+				return 1;
+			}
+		}
+		else
+		{
+			ready = false;
+		}
+
+		return 0;
+	}
+
 	Maps::Maps()
 	{
 		Dvar::OnInit([]()
@@ -928,7 +953,11 @@ namespace Components
 		// Allow loading raw suns
 		Utils::Hook(0x51B46A, Maps::LoadRawSun, HOOK_CALL).install()->quick();
 
+		// Disable distortion on custom maps
 		Utils::Hook(0x50AA47, Maps::SetDistortionStub, HOOK_CALL).install()->quick();
+
+		// Delay material sorting
+		Utils::Hook(0x50AAE6, Maps::DatabaseReadyDelayed, HOOK_CALL).install()->quick();
 
 		// Intercept map loading for usermap initialization
 		Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
