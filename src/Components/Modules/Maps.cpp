@@ -902,6 +902,12 @@ namespace Components
 		// Hunk debugging
 		Utils::Hook::Set<BYTE>(0x4FF57B, 0xCC);
 		Utils::Hook::Nop(0x4FF57C, 4);
+#else
+		// Temporarily disable distortion warnings
+		Utils::Hook::Nop(0x50DBFF, 5);
+		Utils::Hook::Nop(0x50DC4F, 5);
+		Utils::Hook::Nop(0x50DCA3, 5);
+		Utils::Hook::Nop(0x50DCFE, 5);
 #endif
 
 		// Intercept BSP name resolving
