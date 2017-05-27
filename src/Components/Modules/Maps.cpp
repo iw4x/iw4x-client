@@ -269,17 +269,19 @@ namespace Components
 
 	Game::G_GlassData* Maps::GetWorldData()
 	{
-		Logger::Print("Waiting for database...\n");
-		while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);
-
+		Game::G_GlassData** dataPtr;
 		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::SPMap)
 		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].data;
+			dataPtr = &Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].data;
 		}
 		else
 		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp[0].data;
+			dataPtr = &Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp[0].data;
 		}
+
+		Logger::Print("Waiting for database...\n");
+		while(!*dataPtr) std::this_thread::sleep_for(1ms);
+		return *dataPtr;
 	}
 
 	__declspec(naked) void Maps::GetWorldDataStub()
