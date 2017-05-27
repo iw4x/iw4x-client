@@ -21,6 +21,8 @@ namespace Components
 
 		static HWND GetWindow();
 
+		static void ShowAsyncConsole();
+
 	private:
 		// Text-based console stuff
 		static WINDOW* OutputWindow;

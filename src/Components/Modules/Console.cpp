@@ -495,6 +495,11 @@ namespace Components
 		return *reinterpret_cast<HWND*>(0x64A3288);
 	}
 
+	void Console::ShowAsyncConsole()
+	{
+		Console::ConsoleThread = std::thread(Console::ConsoleRunner);
+	}
+
 	Game::dvar_t* Console::RegisterConColor(const char* name, float r, float g, float b, float a, float min, float max, int flags, const char* description)
 	{
 		static struct
@@ -593,7 +598,7 @@ namespace Components
 
 			Utils::Hook(0x60BB68, [] ()
 			{
-				Console::ConsoleThread = std::thread(Console::ConsoleRunner);
+				Console::ShowAsyncConsole();
 			}, HOOK_CALL).install()->quick();
 
 			Utils::Hook(0x4D69A2, []()

@@ -811,7 +811,7 @@ namespace Components
 		Utils::Hook::Call<void()>(0x64A020)();  // PMem_Init
 		if (!Flags::HasFlag("stdout"))
 		{
-			Game::Sys_ShowConsole();
+			Console::ShowAsyncConsole();
 			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
 		}
 		Utils::Hook::Call<void(unsigned int)>(0x502580)(static_cast<unsigned int>(__rdtsc())); // Netchan_Init
@@ -1088,7 +1088,6 @@ namespace Components
 				return result;
 			});
 
-#ifdef ENABLE_EXPERIMENTAL_ENTRYPOINT
 			// set new entry point
 			Utils::Hook(0x4513DA, ZoneBuilder::EntryPoint, HOOK_JUMP).install()->quick();
 
@@ -1100,7 +1099,9 @@ namespace Components
 
 			// thread fuckery hooks
 			Utils::Hook(0x4C37D0, ZoneBuilder::IsThreadMainThreadHook, HOOK_JUMP).install()->quick();
-#endif
+
+			// Don't exec startup config in fs_restart
+			Utils::Hook::Set<BYTE>(0x461B48, 0xEB);
 			
 			// remove overriding asset messages
 			Utils::Hook::Nop(0x5BC74E, 5);
