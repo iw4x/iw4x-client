@@ -873,13 +873,13 @@ namespace Components
 		// defaults need to load before we do this
 		Utils::Hook::Call<void()>(0x4E1F30)();  // G_SetupWeaponDef
 
+		Utils::Hook::Call<void(const char*)>(0x464A90)(GetCommandLineA()); // Com_ParseCommandLine
+		Utils::Hook::Call<void()>(0x60C3D0)(); // Com_AddStartupCommands
+
 		// so for this i'm going to say that we just run the commands (after + signs) 
 		// and don't spawn into a shell because why not?
 		if (Flags::HasFlag("stdout"))
 		{
-			Utils::Hook::Call<void(const char*)>(0x464A90)(GetCommandLineA()); // Com_ParseCommandLine
-			Utils::Hook::Call<void()>(0x60C3D0)(); // Com_AddStartupCommands
-
 			Utils::Hook::Call<void()>(0x440EC0)(); // DB_Update
 			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
 			Utils::Hook::Call<void(int, int)>(0x4E2C80)(0, 0); // Cbuf_Execute
