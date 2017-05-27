@@ -125,9 +125,11 @@ namespace Components
 		static void ResetThreadRole();
 
 		static bool IsThreadMainThreadHook();
-		static DWORD WINAPI CommandsThread(LPVOID);
 
-		static bool mainThreadInterrupted;
-		static DWORD interruptingThreadId;
+		static bool MainThreadInterrupted;
+		static DWORD InterruptingThreadId;
+
+		static bool Terminate;
+		static std::thread CommandThread;
 	};
 }

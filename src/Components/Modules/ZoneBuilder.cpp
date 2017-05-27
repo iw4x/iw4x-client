@@ -7,6 +7,11 @@ namespace Components
 	std::string ZoneBuilder::TraceZone;
 	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::TraceAssets;
 
+	bool ZoneBuilder::MainThreadInterrupted;
+	DWORD ZoneBuilder::InterruptingThreadId;
+	bool ZoneBuilder::Terminate;
+	std::thread ZoneBuilder::CommandThread;
+
 	ZoneBuilder::Zone::Zone(std::string name) : indexStart(0), externalSize(0),
 
 		// Reserve 100MB by default.
@@ -738,25 +743,22 @@ namespace Components
 		}
 	}
 
-	bool ZoneBuilder::mainThreadInterrupted;
-	DWORD ZoneBuilder::interruptingThreadId;
-
 	void ZoneBuilder::AssumeMainThreadRole()
 	{
-		ZoneBuilder::mainThreadInterrupted = true;
-		ZoneBuilder::interruptingThreadId = GetCurrentThreadId();
+		ZoneBuilder::MainThreadInterrupted = true;
+		ZoneBuilder::InterruptingThreadId = GetCurrentThreadId();
 	}
 
 	void ZoneBuilder::ResetThreadRole()
 	{
-		ZoneBuilder::mainThreadInterrupted = false;
-		ZoneBuilder::interruptingThreadId = 0x0;
+		ZoneBuilder::MainThreadInterrupted = false;
+		ZoneBuilder::InterruptingThreadId = 0x0;
 	}
 
 	bool ZoneBuilder::IsThreadMainThreadHook()
 	{
 		// this is the thread that is interrupting so let it act as the main thread
-		if (ZoneBuilder::mainThreadInterrupted && GetCurrentThreadId() == ZoneBuilder::interruptingThreadId)
+		if (ZoneBuilder::MainThreadInterrupted && GetCurrentThreadId() == ZoneBuilder::InterruptingThreadId)
 		{
 			return true;
 		}
@@ -768,19 +770,6 @@ namespace Components
 
 		// normal functionality
 		return GetCurrentThreadId() == Utils::Hook::Get<DWORD>(0x1CDE7FC);
-	}
-
-	DWORD WINAPI ZoneBuilder::CommandsThread(LPVOID)
-	{
-		while (1)
-		{
-			// Cbuf_Execute doesn't work outside the main thread so hijack it
-			ZoneBuilder::AssumeMainThreadRole();
-			Utils::Hook::Call<void(int, int)>(0x4E2C80)(0, 0); // Cbuf_Execute
-			ZoneBuilder::ResetThreadRole();
-			Sleep(200);
-		}
-		return 0;
 	}
 
 	static Game::XZoneInfo baseZones_old[] = {
@@ -838,8 +827,17 @@ namespace Components
 		//Utils::Hook::Call<void()>(0x464A90)();  // Com_ParseCommandLine
 		Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
 
-		DWORD id = 0x12345678;
-		CreateThread(0, 0, CommandsThread, 0, 0, &id);
+		ZoneBuilder::Terminate = false;
+		ZoneBuilder::CommandThread = std::thread([]()
+		{
+			while (!ZoneBuilder::Terminate)
+			{
+				ZoneBuilder::AssumeMainThreadRole();
+				Utils::Hook::Call<void(int, int)>(0x4E2C80)(0, 0); // Cbuf_Execute
+				ZoneBuilder::ResetThreadRole();
+				std::this_thread::sleep_for(1ms);
+			}
+		});
 
 		Command::Add("quit", [](Command::Params*)
 		{
@@ -862,7 +860,7 @@ namespace Components
 			Game::DB_LoadXAssets(baseZones_old, ARRAYSIZE(baseZones_old), 0);
 		}
 
-		Logger::Print("Waiting for fastiles to load...");
+		Logger::Print("Waiting for fastiles to load...\n");
 		while (!Game::Sys_IsDatabaseReady())
 		{
 			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
@@ -908,7 +906,7 @@ namespace Components
 			}
 
 			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
-			Sleep(1);
+			std::this_thread::sleep_for(1ms);
 			frames++;
 		}
 
@@ -982,7 +980,7 @@ namespace Components
 		}, false, false);
 
 		if (replacementFound) return ret;
-		return ""s;
+		return "";
 	}
 
 	ZoneBuilder::ZoneBuilder()
@@ -1090,6 +1088,7 @@ namespace Components
 				return result;
 			});
 
+#ifdef ENABLE_EXPERIMENTAL_ENTRYPOINT
 			// set new entry point
 			Utils::Hook(0x4513DA, ZoneBuilder::EntryPoint, HOOK_JUMP).install()->quick();
 
@@ -1101,6 +1100,7 @@ namespace Components
 
 			// thread fuckery hooks
 			Utils::Hook(0x4C37D0, ZoneBuilder::IsThreadMainThreadHook, HOOK_JUMP).install()->quick();
+#endif
 			
 			// remove overriding asset messages
 			Utils::Hook::Nop(0x5BC74E, 5);
@@ -1522,6 +1522,12 @@ namespace Components
 	ZoneBuilder::~ZoneBuilder()
 	{
 		assert(ZoneBuilder::MemAllocator.empty());
+
+		ZoneBuilder::Terminate = true;
+		if(ZoneBuilder::CommandThread.joinable())
+		{
+			ZoneBuilder::CommandThread.join();
+		}
 	}
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
