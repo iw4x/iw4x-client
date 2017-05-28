@@ -189,17 +189,17 @@ namespace Components
 		// Debug material comparison
 		Utils::Hook::Set<void*>(0x523894, Materials::MaterialComparePrint);
 
-		// Synchronize material sorting
-		Utils::Hook(0x50AAFE, Materials::MaterialSort, HOOK_CALL).install()->quick();
-
 		// Don't compare remapped techsets
 		Utils::Hook::Set<BYTE>(0x523490, 0xEB);
 		Utils::Hook::Set<BYTE>(0x5234A0, 0xEB);
 
+		// Synchronize material sorting
+		//Utils::Hook(0x50AAFE, Materials::MaterialSort, HOOK_CALL).install()->quick();
+
 		// Synchronize techset remapping
-		Utils::Hook(0x50AAD8, Materials::OverrideTechsets, HOOK_CALL).install()->quick();
-		Utils::Hook(0x518BB8, Materials::OverrideTechsets, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5BC791, Materials::OverrideTechsets, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x50AAD8, Materials::OverrideTechsets, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x518BB8, Materials::OverrideTechsets, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x5BC791, Materials::OverrideTechsets, HOOK_CALL).install()->quick();
 
 #ifdef DEBUG
 		if (Flags::HasFlag("dump"))
