@@ -126,6 +126,12 @@ namespace Components
 		return _snprintf_s(buffer, size, size, "images/%s.iwi", image);
 	}
 
+	int Materials::MaterialComparePrint(Game::Material* m1, Game::Material* m2)
+	{
+		//__debugbreak();
+		return Utils::Hook::Call<int(Game::Material*, Game::Material*)>(0x5235B0)(m1, m2);
+	}
+
 #ifdef DEBUG
 	void Materials::DumpImageCfg(int, const char*, const char* material)
 	{
@@ -140,12 +146,6 @@ namespace Components
 			fprintf(fp, "dumpraw %s\n", material);
 			fclose(fp);
 		}
-	}
-
-	int Materials::MaterialComparePrint(Game::Material* m1, Game::Material* m2)
-	{
-		//__debugbreak();
-		return Utils::Hook::Call<int(Game::Material*, Game::Material*)>(0x5235B0)(m1, m2);
 	}
 
 #endif
@@ -169,6 +169,9 @@ namespace Components
 		// Resolve preview images to loadscreens
 		Utils::Hook(0x53AC19, Materials::FormatImagePath, HOOK_CALL).install()->quick();
 
+		// Debug material comparison
+		Utils::Hook::Set<void*>(0x523894, Materials::MaterialComparePrint);
+
 #ifdef DEBUG
 		if (Flags::HasFlag("dump"))
 		{
@@ -182,8 +185,6 @@ namespace Components
 			Utils::Hook::Nop(0x51F5AC, 5);
 			Utils::Hook::Nop(0x51F4C4, 5);
 		}
-
-		Utils::Hook::Set<void*>(0x523894, Materials::MaterialComparePrint);
 #endif
 
 // 		Renderer::OnFrame([] ()

@@ -4049,7 +4049,6 @@ namespace Game
 		unsigned int entityOffset;
 	};
 
-	/* 3765 */
 	struct VariableValue
 	{
 		VariableUnion u;
@@ -4058,7 +4057,7 @@ namespace Game
 
 	struct ScriptContainer
 	{
-		Game::VariableValue* stack;
+		VariableValue* stack;
 		char unk1;
 		char unk2;
 		char unk3;

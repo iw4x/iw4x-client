@@ -848,29 +848,9 @@ namespace Components
 		}
 	}
 
-	int Maps::DatabaseReadyDelayed()
-{
-		static bool ready = false;
-		static Utils::Time::Interval interval;
-
-		if(Game::Sys_IsDatabaseReady())
-		{
-			if(!ready)
-			{
-				ready = true;
-				interval.update();
-			}
-			else if(interval.elapsed(2s))
-			{
-				return 1;
-			}
-		}
-		else
-		{
-			ready = false;
-		}
-
-		return 0;
+	int Maps::DatabaseAndTechsetsReady()
+	{
+		return (Game::Sys_IsDatabaseReady() && !*reinterpret_cast<bool*>(0x69F9AFD)); // Make sure techsets are not dirty
 	}
 
 	Maps::Maps()
@@ -956,8 +936,8 @@ namespace Components
 		// Disable distortion on custom maps
 		Utils::Hook(0x50AA47, Maps::SetDistortionStub, HOOK_CALL).install()->quick();
 
-		// Delay material sorting
-		Utils::Hook(0x50AAE6, Maps::DatabaseReadyDelayed, HOOK_CALL).install()->quick();
+		// Only sort materials when techsets are clean
+		Utils::Hook(0x50AAE6, Maps::DatabaseAndTechsetsReady, HOOK_CALL).install()->quick();
 
 		// Intercept map loading for usermap initialization
 		Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
