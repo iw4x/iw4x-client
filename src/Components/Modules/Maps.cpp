@@ -269,19 +269,17 @@ namespace Components
 
 	Game::G_GlassData* Maps::GetWorldData()
 	{
-		Game::G_GlassData** dataPtr;
+		Logger::Print("Waiting for database...\n");
+		while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(10ms);
+
 		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::SPMap)
 		{
-			dataPtr = &Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].data;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].data;
 		}
 		else
 		{
-			dataPtr = &Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp[0].data;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp[0].data;
 		}
-
-		Logger::Print("Waiting for database...\n");
-		while(!*dataPtr) std::this_thread::sleep_for(1ms);
-		return *dataPtr;
 	}
 
 	__declspec(naked) void Maps::GetWorldDataStub()
@@ -848,11 +846,6 @@ namespace Components
 		}
 	}
 
-	int Maps::DatabaseAndTechsetsReady()
-	{
-		return (Game::Sys_IsDatabaseReady() && !*reinterpret_cast<bool*>(0x69F9AFD)); // Make sure techsets are not dirty
-	}
-
 	Maps::Maps()
 	{
 		Dvar::OnInit([]()
@@ -935,9 +928,6 @@ namespace Components
 
 		// Disable distortion on custom maps
 		Utils::Hook(0x50AA47, Maps::SetDistortionStub, HOOK_CALL).install()->quick();
-
-		// Only sort materials when techsets are clean
-		Utils::Hook(0x50AAE6, Maps::DatabaseAndTechsetsReady, HOOK_CALL).install()->quick();
 
 		// Intercept map loading for usermap initialization
 		Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();

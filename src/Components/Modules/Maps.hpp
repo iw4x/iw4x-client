@@ -123,8 +123,6 @@ namespace Components
 		static Game::dvar_t* GetDistortionDvar();
 		static void SetDistortionStub();
 
-		static int DatabaseAndTechsetsReady();
-
 		void reallocateEntryPool();
 	};
 }
