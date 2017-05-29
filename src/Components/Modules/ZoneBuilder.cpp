@@ -1204,10 +1204,10 @@ namespace Components
 
 				std::string csvStr;
 
-				auto fileList = Utils::IO::ListFiles("zone/english");
+				auto fileList = Utils::IO::ListFiles(Utils::String::VA("zone/%s", Game::Win_GetLanguage()));
 				for (auto zone : fileList)
 				{
-					Utils::String::Replace(zone, "zone/english/", "");
+					Utils::String::Replace(zone, Utils::String::VA("zone/%s/", Game::Win_GetLanguage()), "");
 					Utils::String::Replace(zone, ".ff", "");
 
 					if (Utils::IO::FileExists("zone/techsets/" + zone + "_techsets.ff"))
