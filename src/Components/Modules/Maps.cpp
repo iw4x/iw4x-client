@@ -846,6 +846,52 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* Maps::GetSpecularDvar()
+	{
+		Game::dvar_t*& r_specular = *reinterpret_cast<Game::dvar_t**>(0x69F0D94);
+
+		if (Maps::IsCustomMap())
+		{
+			static Game::dvar_t noSpecular;
+			ZeroMemory(&noSpecular, sizeof noSpecular);
+			return &noSpecular;
+		}
+
+		return r_specular;
+	}
+
+	__declspec(naked) void Maps::SetSpecularStub1()
+	{
+		__asm
+		{
+			push eax
+			pushad
+			call Maps::GetSpecularDvar
+
+			mov[esp + 20h], eax
+			popad
+
+			pop eax
+			retn
+		}
+	}
+
+	__declspec(naked) void Maps::SetSpecularStub2()
+	{
+		__asm
+		{
+			push eax
+			pushad
+			call Maps::GetSpecularDvar
+
+			mov[esp + 20h], eax
+			popad
+
+			pop edx
+			retn
+		}
+	}
+
 	Maps::Maps()
 	{
 		Dvar::OnInit([]()
@@ -928,6 +974,13 @@ namespace Components
 
 		// Disable distortion on custom maps
 		Utils::Hook(0x50AA47, Maps::SetDistortionStub, HOOK_CALL).install()->quick();
+
+		// Disable speculars on custom maps
+		Utils::Hook(0x525EA6, Maps::SetSpecularStub1, HOOK_CALL).install()->quick();
+		Utils::Hook(0x51FBC7, Maps::SetSpecularStub2, HOOK_CALL).install()->quick();
+		Utils::Hook(0x522A2E, Maps::SetSpecularStub2, HOOK_CALL).install()->quick();
+		Utils::Hook::Nop(0x51FBCC, 1);
+		Utils::Hook::Nop(0x522A33, 1);
 
 		// Intercept map loading for usermap initialization
 		Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();

@@ -123,6 +123,10 @@ namespace Components
 		static Game::dvar_t* GetDistortionDvar();
 		static void SetDistortionStub();
 
+		static Game::dvar_t* GetSpecularDvar();
+		static void SetSpecularStub1();
+		static void SetSpecularStub2();
+
 		void reallocateEntryPool();
 	};
 }
