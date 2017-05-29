@@ -102,7 +102,31 @@ namespace Assets
 						if (pass->args)
 						{
 							buffer->align(Utils::Stream::ALIGN_4);
+							Game::MaterialShaderArgument* destArgs = buffer->dest<Game::MaterialShaderArgument>();
 							buffer->saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+
+							for(int k = 0; k < pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount; ++k)
+							{
+								Game::MaterialShaderArgument* arg = &pass->args[k];
+								Game::MaterialShaderArgument* destArg = &destArgs[k];
+
+								if(arg->type == 1 || arg->type == 7)
+								{
+									if (builder->hasPointer(arg->u.literalConst))
+									{
+										destArg->u.literalConst = builder->getPointer(arg->u.literalConst);
+									}
+									else
+									{
+										buffer->align(Utils::Stream::ALIGN_4);
+										builder->storePointer(arg->u.literalConst);
+
+										buffer->saveArray(arg->u.literalConst, 4);
+										Utils::Stream::ClearPointer(&destArg->u.literalConst);
+									}
+								}
+							}
+
 							Utils::Stream::ClearPointer(&destPass->args);
 						}
 					}
