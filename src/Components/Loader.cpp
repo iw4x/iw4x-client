@@ -30,7 +30,7 @@ namespace Components
 		Loader::MemAllocator.clear();
 
 		Loader::ComInitialized = false;
-		if (!Loader::PerformingUnitTests()) Loader::ComInitialized = (CoInitialize(nullptr) == S_OK);
+		if (!Loader::PerformingUnitTests() && !Utils::IsWineEnvironment()) Loader::ComInitialized = (CoInitialize(nullptr) == S_OK);
 
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
@@ -120,7 +120,7 @@ namespace Components
 		Loader::Components.clear();
 		Loader::MemAllocator.clear();
 
-		if (!Loader::PerformingUnitTests() && Loader::ComInitialized) CoUninitialize();
+		if (!Loader::PerformingUnitTests() && !Utils::IsWineEnvironment() && Loader::ComInitialized) CoUninitialize();
 	}
 
 	void Loader::PreDestroy()
