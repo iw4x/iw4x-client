@@ -15,7 +15,6 @@ namespace Components
 		static int FormatImagePath(char* buffer, size_t size, int, int, const char* image);
 
 	private:
-		static std::mutex TechsetMutex;
 		static int ImageNameLength;
 
 		static Utils::Hook ImageVersionCheckHook;
@@ -34,7 +33,5 @@ namespace Components
 #endif
 
 		static int MaterialComparePrint(Game::Material* m1, Game::Material* m2);
-		static void OverrideTechsets();
-		static void MaterialSort();
 	};
 }
