@@ -256,7 +256,15 @@ namespace Components
 				return;
 			}
 
-			Party::Connect(Network::Address(params->get(1)));
+			if(Game::CL_IsCgameInitialized())
+			{
+				Command::Execute("disconnect", false);
+				Command::Execute(Utils::String::VA("%s", params->join(0).data()), false);
+			}
+			else
+			{
+				Party::Connect(Network::Address(params->get(1)));
+			}
 		});
 		Command::Add("reconnect", [] (Command::Params*)
 		{
