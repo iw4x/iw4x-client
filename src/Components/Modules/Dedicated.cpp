@@ -531,8 +531,8 @@ namespace Components
 
 				for (int client = 0; client < 18; client++)
 				{
-					Dedicated::PlayerGuids[client][0].bits = strtoull(params.get(2 * client + 1), nullptr, 16);
-					Dedicated::PlayerGuids[client][1].bits = strtoull(params.get(2 * client + 2), nullptr, 16);
+					Dedicated::PlayerGuids[client][0].bits = strtoull(params->get(2 * client + 1), nullptr, 16);
+					Dedicated::PlayerGuids[client][1].bits = strtoull(params->get(2 * client + 2), nullptr, 16);
 
 					if (Steam::Proxy::SteamFriends && Dedicated::PlayerGuids[client][1].bits != 0)
 					{
