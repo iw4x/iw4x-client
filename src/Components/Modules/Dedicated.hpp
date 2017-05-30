@@ -29,9 +29,6 @@ namespace Components
 
 		static bool SendChat;
 
-		static void OnServerCommandStub();
-		static int OnServerCommand();
-
 		static void MapRotate();
 		static void FrameHandler();
 		static void FrameStub();
