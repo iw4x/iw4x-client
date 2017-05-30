@@ -169,61 +169,40 @@ namespace Assets
 			}
 		}, false, false);
 
-		for (int i = 0; i < ARRAYSIZE(techsetSuffix) && !replacementFound && asset->techniqueSet; ++i)
+		if (!replacementFound)
 		{
-			const char* _name = asset->techniqueSet->name;
-			if (_name[0] == ',') ++_name;
-			std::string modifiedTechsetName = _name;
+			auto techsetMatches = [](Game::Material* m1, Game::Material* m2)
+			{
+				Game::MaterialTechniqueSet* t1 = m1->techniqueSet;
+				Game::MaterialTechniqueSet* t2 = m2->techniqueSet;
+				if (!t1 || !t2) return false;
+				if (t1->remappedTechniques && t2->remappedTechniques && std::string(t1->remappedTechniques->name) == t2->remappedTechniques->name) return true;
 
-			if (!Utils::String::EndsWith(modifiedTechsetName, techsetSuffix[i])) continue;
-			modifiedTechsetName = modifiedTechsetName.substr(0, modifiedTechsetName.size() - strlen(techsetSuffix[i]));
+				for (int i = 0; i < ARRAYSIZE(t1->techniques); ++i)
+				{
+					if (!t1->techniques[i] && !t2->techniques[i]) continue;;
+					if (!t1->techniques[i] || !t2->techniques[i]) return false;
 
-			Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset, modifiedTechsetName](Game::XAssetEntry* entry)
+					if (t1->techniques[i]->flags != t1->techniques[i]->flags) return false;
+				}
+
+				return true;
+			};
+
+			Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset, techsetMatches](Game::XAssetEntry* entry)
 			{
 				if (!replacementFound)
 				{
 					Game::XAssetHeader header = entry->asset.header;
 
-					if (modifiedTechsetName == header.material->techniqueSet->name)
+					if (techsetMatches(header.material, asset))
 					{
+						Components::Logger::Print("Material %s with techset %s has been mapped to %s\n", asset->name, asset->techniqueSet->name, header.material->techniqueSet->name);
 						asset->sortKey = header.material->sortKey;
-
-						// This is temp, as nobody has time to fix materials
-// 						asset->stateBitsCount = header.material->stateBitsCount;
-// 						asset->stateBitTable = header.material->stateBitTable;
-// 						std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
-// 						asset->constantCount = header.material->constantCount;
-// 						asset->constantTable = header.material->constantTable;
-
 						replacementFound = true;
 					}
 				}
 			}, false, false);
-
-			if (!replacementFound)
-			{
-				Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset, modifiedTechsetName](Game::XAssetEntry* entry)
-				{
-					if (!replacementFound)
-					{
-						Game::XAssetHeader header = entry->asset.header;
-
-						if (Utils::String::StartsWith(header.material->techniqueSet->name, modifiedTechsetName))
-						{
-							asset->sortKey = header.material->sortKey;
-
-							// This is temp, as nobody has time to fix materials
-// 							asset->stateBitsCount = header.material->stateBitsCount;
-// 							asset->stateBitTable = header.material->stateBitTable;
-// 							std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
-// 							asset->constantCount = header.material->constantCount;
-// 							asset->constantTable = header.material->constantTable;
-
-							replacementFound = true;
-						}
-					}
-				}, false, false);
-			}
 		}
 
 		if (!replacementFound && asset->techniqueSet)
