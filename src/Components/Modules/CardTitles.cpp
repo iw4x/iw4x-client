@@ -150,11 +150,11 @@ namespace Components
 
 		for (int i = 0; i < 18; i++)
 		{
-			char playerTitle[18] = { 0 };
+			char playerTitle[18];
 
 			if (Game::svs_clients[i].state >= 3)
 			{
-				strncpy_s(playerTitle, Game::Info_ValueForKey(Game::svs_clients[i].connectInfoString, "customTitle"), 18);
+				strncpy_s(playerTitle, Game::Info_ValueForKey(Game::svs_clients[i].connectInfoString, "customTitle"), 17);
 			}
 			else
 			{
@@ -164,7 +164,7 @@ namespace Components
 			list = Utils::String::VA("%s\\%s\\%s", list, std::to_string(i).c_str(), playerTitle);
 		}
 
-		list = Utils::String::VA("%c customTitles \"%s", 20, list);
+		list = Utils::String::VA("%c customTitles \"%s\"", 21, list);
 		Game::SV_GameSendServerCommand(-1, 0, list);
 	}
 
@@ -189,10 +189,10 @@ namespace Components
 	CardTitles::CardTitles()
 	{
 		Dvar::OnInit([]() {
-			CardTitles::CustomTitleDvar = Game::Dvar_RegisterString("cardtitle", "", Game::dvar_flag::DVAR_FLAG_SAVED, "Custom card title");
+			CardTitles::CustomTitleDvar = Game::Dvar_RegisterString("customtitle", "", Game::dvar_flag::DVAR_FLAG_USERINFO | Game::dvar_flag::DVAR_FLAG_SAVED, "Custom card title");
 		});
 
-		ServerCommands::OnCommand(20, [](Command::Params* params) {
+		ServerCommands::OnCommand(21, [](Command::Params* params) {
 
 			if (params->get(1) == "customTitles"s && !Flags::HasFlag("dedicated"))
 			{
@@ -210,10 +210,6 @@ namespace Components
 		CardTitles::CustomTitles.resize(18);
 
 		Utils::Hook(0x62EB26, GetPlayerCardClientInfoStub).install()->quick();
-
-		// Translation fixup
-		// Utils::Hook(0x63A2D9, LocalizationSkipHookStub).install()->quick();
-		// Utils::Hook::Nop(0x63A2D5, 3);
 
 		// Table lookup stuff
 		Utils::Hook(0x62DCC1, TableLookupByRowHookStub).install()->quick();

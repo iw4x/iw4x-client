@@ -457,9 +457,10 @@ namespace Components
 				{
 					static std::uint64_t LastUpdate = 0;
 
-					if ((GetTickCount64() - LastUpdate) > 120 * 1000)
+					if ((GetTickCount64() - LastUpdate) > 10000)
 					{
 						CardTitles::SendCustomTitlesToClients();
+						LastUpdate = GetTickCount64();
 					}
 				});
 

@@ -54,6 +54,7 @@ namespace Components
 	{
 	public:
 		static Game::dvar_t* CustomTitleDvar;
+		static std::vector < std::string > CustomTitles;
 
 		static void SendCustomTitlesToClients();
 		static void ParseCustomTitles(const char * msg);
@@ -62,13 +63,9 @@ namespace Components
 		~CardTitles();
 
 	private:
-		static std::vector < std::string > CustomTitles;
-
 		static CClient * GetClientByIndex(std::uint32_t index);
 		static std::int32_t GetPlayerCardClientInfo(std::int32_t lookupResult, playercarddata_s * data);
 		static void GetPlayerCardClientInfoStub();
-		static const char* LocalizationSkipHook(const char * string);
-		static void LocalizationSkipHookStub();
 		static const char* TableLookupByRowHook(Game::Operand * operand, tablelookuprequest_s * request);
 		static void TableLookupByRowHookStub();
 
