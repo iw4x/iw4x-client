@@ -95,7 +95,7 @@ namespace Components
 		// Server command fail hooks
 		Utils::Hook(0x593C1F, OnServerCommandPreFailStub).install()->quick();
 		Utils::Hook(0x5944BB, OnServerCommandFailPrintStub).install()->quick();
-		Utils::Hook::Set(0x5944D3, 0xEB);
+		Utils::Hook::Set<std::uint8_t>(0x5944D3, 0xEB);
 	}
 
 	ServerCommands::~ServerCommands()
