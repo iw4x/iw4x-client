@@ -60,6 +60,8 @@ namespace Components
 	public:
 		static Game::dvar_t* CustomTitleDvar;
 
+		static void ParseCustomTitles(char * msg);
+
 		CardTitles();
 		~CardTitles();
 

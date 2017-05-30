@@ -166,10 +166,43 @@ namespace Components
 		}
 	}
 
+	void CardTitles::ParseCustomTitles(char* msg) 
+	{
+		char* playerTitle;
+		for (int i = 0; i < 18; i++) 
+		{
+			playerTitle = msg; // nullptr; // (msg, std::to_string(i).c_str());
+
+			if (playerTitle != nullptr) 
+			{
+				CustomTitles[i] = playerTitle;
+			}
+			else 
+			{
+				CustomTitles[i] = "";
+			}
+		}
+	}
+
 	CardTitles::CardTitles()
 	{
 		Dvar::OnInit([]() {
 			CardTitles::CustomTitleDvar = Game::Dvar_RegisterString("cardtitle", "", Game::dvar_flag::DVAR_FLAG_SAVED, "Custom card title");
+		});
+
+		ServerCommands::OnCommand(20, [](Command::Params* params) {
+
+			if (params->get(1) == "customTitles"s && !Flags::HasFlag("dedicated"))
+			{
+				if (params->length() == 3)
+				{
+					CardTitles::ParseCustomTitles(params->get(2));
+					return true;
+				}
+			}
+
+			return false;
+
 		});
 
 		CardTitles::CustomTitles.resize(18);
