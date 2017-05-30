@@ -973,7 +973,7 @@ namespace Components
 		Utils::Hook(0x51B46A, Maps::LoadRawSun, HOOK_CALL).install()->quick();
 
 		// Disable distortion on custom maps
-		Utils::Hook(0x50AA47, Maps::SetDistortionStub, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x50AA47, Maps::SetDistortionStub, HOOK_CALL).install()->quick();
 
 		// Disable speculars on custom maps
 		Utils::Hook(0x525EA6, Maps::SetSpecularStub1, HOOK_CALL).install()->quick();
