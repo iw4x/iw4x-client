@@ -397,6 +397,9 @@ namespace Game
 	typedef char* (__cdecl * MSG_ReadString_t)(msg_t* msg);
 	extern MSG_ReadString_t MSG_ReadString;
 
+	typedef char* (__cdecl * MSG_ReadStringLine_t)(msg_t *msg, char *string, unsigned int maxChars);
+	extern MSG_ReadStringLine_t MSG_ReadStringLine;
+
 	typedef int(__cdecl * MSG_ReadByte_t)(msg_t* msg);
 	extern MSG_ReadByte_t MSG_ReadByte;
 

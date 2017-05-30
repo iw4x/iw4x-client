@@ -34,7 +34,7 @@ namespace Utils
 
 				this->refMemory.clear();
 
-				for (auto data : this->pool)
+				for (auto& data : this->pool)
 				{
 					Memory::Free(data);
 				}

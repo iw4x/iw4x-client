@@ -435,7 +435,7 @@ namespace Utils
 		for (auto file : list) this->deleteFile(file);
 
 		this->listDirectories(".", list);
-		for (auto dir : list) this->deleteDirectory(dir);
+		for (auto& dir : list) this->deleteDirectory(dir);
 
 		this->setDirectory(tempDir);
 

@@ -92,7 +92,7 @@ namespace Utils
 			std::vector<Slot<T>> copiedSlots;
 			Utils::Merge(&copiedSlots, this->slots);
 
-			for (auto slot : copiedSlots)
+			for (auto& slot : copiedSlots)
 			{
 				if (slot)
 				{

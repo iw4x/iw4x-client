@@ -2,8 +2,6 @@
 
 namespace Main
 {
-	Utils::Hook EntryPointHook;
-
 	void SetEnvironment()
 	{
 		wchar_t exeName[512];
@@ -17,8 +15,6 @@ namespace Main
 
 	void Initialize()
 	{
-		Main::EntryPointHook.uninstall();
-
 		Main::SetEnvironment();
 		Utils::Cryptography::Initialize();
 		Components::Loader::Initialize();
@@ -44,6 +40,20 @@ namespace Main
 		Utils::Cache::Uninitialize();
 		google::protobuf::ShutdownProtobufLibrary();
 	}
+
+	__declspec(naked) void EntryPoint()
+	{
+		__asm
+		{
+			pushad
+			call Main::Initialize
+			popad
+
+			push 6BAC14h // Continue init routine
+			push 6CA062h // ___security_init_cookie
+			retn
+		}
+	}
 }
 
 BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*lpReserved*/)
@@ -56,10 +66,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		Steam::Proxy::RunMod();
 
 		// Ensure we're working with our desired binary
-		if (Utils::Hook::Get<DWORD>(0x4C0FFF) != 0x6824748B)
-		{
-			return FALSE;
-		}
+		if (Utils::Hook::Get<DWORD>(0x4C0FFF) != 0x6824748B) return FALSE;
 
 #ifndef DISABLE_ANTICHEAT
 		[]()
@@ -73,21 +80,8 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		//VirtualProtect(module, 0x6C73000, PAGE_EXECUTE_READWRITE, &oldProtect); // Unprotect the entire process
 		VirtualProtect(module + 0x1000, 0x2D6000, PAGE_EXECUTE_READ, &oldProtect); // Protect the .text segment
 
-		Main::EntryPointHook.initialize(0x6BAC0F, [] ()
-		{
-			__asm
-			{
-				pushad
-
-				// This has to be called, otherwise the hook is not uninstalled and we're looping into infinity
-				call Main::Initialize
-
-				popad
-
-				push 6BAC0Fh
-				retn
-			}
-		})->install();
+		// Install entry point hook
+		Utils::Hook(0x6BAC0F, Main::EntryPoint, HOOK_JUMP).install()->quick();
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{

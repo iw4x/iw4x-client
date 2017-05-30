@@ -221,7 +221,7 @@ namespace Components
 			return false;
 		}
 
-		Utils::IO::CreateDir("usermaps/" + download->mod);
+		if (download->isMap) Utils::IO::CreateDir("usermaps/" + download->mod);
 		Utils::IO::WriteFile(path, fDownload.buffer);
 
 		return true;

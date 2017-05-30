@@ -3945,19 +3945,22 @@ namespace Game
 	};
 #pragma pack(pop)
 
-	// Probably incomplete or wrong!
 #pragma pack(push, 4)
 	struct usercmd_s
 	{
 		int serverTime;
 		int buttons;
-		char weapon;
-		char offHandIndex;
 		int angles[3];
+		unsigned __int16 weapon;
+		unsigned __int16 primaryWeaponForAltMode;
+		unsigned __int16 offHandIndex;
 		char forwardmove;
 		char rightmove;
 		float meleeChargeYaw;
 		char meleeChargeDist;
+		char selectedLoc[2];
+		char selectedLocAngle;
+		char remoteControlAngles[2];
 	};
 #pragma pack(pop)
 
