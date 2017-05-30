@@ -3,6 +3,7 @@
 namespace Components
 {
 	std::unordered_map < std::int32_t, std::function < bool(Command::Params*) > > ServerCommands::Commands;
+	std::uint32_t ServerCommands::lastServerCommand;
 
 	void ServerCommands::OnCommand(std::int32_t cmd, std::function < bool(Command::Params*) > cb)
 	{
@@ -44,32 +45,55 @@ namespace Components
 		}
 	}
 
-	/*void __declspec(naked) OnServerCommandPreFailStub()
+	void __declspec(naked) ServerCommands::OnServerCommandPreFailStub()
 	{
-		static DWORD jmpAbove = 0x0059449F;
-		static DWORD jmpContinue = 0x00593C28;
+		__asm
+		{
+			mov lastServerCommand, ecx;
+			cmp ecx, 0x79;
 
-		__asm mov lastServerCommand, ecx;
+			jl above;
 
-		if (lastServerCommand > 0x79)
-			__asm jmp jmpAbove;
-		else
-			__asm jmp jmpContinue;
+			push 0x59449F;
+			retn;
+
+		above:
+			push 0x593C28;
+			retn;
+		}
 	}
 
-	void OnServerCommandFailPrint(int type, const char *trash, ...)
+	void ServerCommands::OnServerCommandFailPrint(int type, const char *trash, ...)
 	{
+		Command::ClientParams params(*Game::cmd_id);
 		const char *cmd = "";
 
-		for (int i = 1; i < Cmd_Argc(); i++)
-			cmd = va("%s %s", cmd, Cmd_Argv(i));
+		for (int i = 1; i < params.length(); i++)
+			cmd = Utils::String::VA("%s %s", cmd, params.get(i));
 
-		Com_Printf(type, "Unknown client game command: %i %s\n", lastServerCommand, cmd);
-	}*/
+		Game::Com_Printf(type, "Unknown client game command: %i %s\n", lastServerCommand, cmd);
+	}
+
+	void __declspec(naked) ServerCommands::OnServerCommandFailPrintStub()
+	{
+		__asm
+		{
+			call OnServerCommandFailPrint;
+
+			push 0x5944C0;
+			retn;
+		}
+	}
 
 	ServerCommands::ServerCommands()
 	{
+		// Server command receive hook
 		Utils::Hook(0x59449F, OnServerCommandStub).install()->quick();
+
+		// Server command fail hooks
+		Utils::Hook(0x593C1F, OnServerCommandPreFailStub).install()->quick();
+		Utils::Hook(0x5944BB, OnServerCommandFailPrintStub).install()->quick();
+		Utils::Hook::Set(0x5944D3, 0xEB);
 	}
 
 	ServerCommands::~ServerCommands()

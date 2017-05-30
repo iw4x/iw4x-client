@@ -166,12 +166,12 @@ namespace Components
 		}
 	}
 
-	void CardTitles::ParseCustomTitles(char* msg) 
+	void CardTitles::ParseCustomTitles(const char* msg) 
 	{
-		char* playerTitle;
+		const char* playerTitle;
 		for (int i = 0; i < 18; i++) 
 		{
-			playerTitle = msg; // nullptr; // (msg, std::to_string(i).c_str());
+			playerTitle = Utils::Hook::Call<const char*(const char*, const char*)>(0x47C820)(msg, std::to_string(i).c_str());
 
 			if (playerTitle != nullptr) 
 			{
