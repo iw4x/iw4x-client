@@ -423,8 +423,8 @@ namespace Components
 	void* Weapon::LoadNoneWeaponHook()
 	{
 		// load anim scripts now, rather than a bit later on
-		((void(*)())0x4E46A0)();
-		Utils::Hook::Nop(0x4B3670, 5);
+		Utils::Hook::Call<void()>(0x4E46A0)();
+
 		return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_WEAPON, "none").data;
 	}
 
@@ -452,6 +452,8 @@ namespace Components
 		// Skip double loading for fs_game
 		Utils::Hook::Set<BYTE>(0x4081FD, 0xEB);
 
+		// Weapon swap fix
+		Utils::Hook::Nop(0x4B3670, 5);
 		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub).install()->quick();
 
 		// Don't load bounce sounds for now, it causes crashes
