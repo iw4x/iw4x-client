@@ -65,7 +65,7 @@ namespace Components
 	{
 		__asm 
 		{
-			cmp byte ptr[edi + 01h], FFh;	// Check if skip prefix exists (edi + 0x00 = @)
+			cmp byte ptr[edi + 01h], 0FFh;	// Check if skip prefix exists (edi + 0x00 = @)
 			jne back;
 			add edi, 2;						// Ignore the 0x40 and 0xFF prefix (Localize and Skip prefix)
 			jmp jumpback;
