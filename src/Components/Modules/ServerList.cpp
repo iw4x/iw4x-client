@@ -184,7 +184,7 @@ namespace Components
 			ServerList::RefreshContainer.sendCount = 0;
 			ServerList::RefreshContainer.sentCount = 0;
 
-			for (auto server : tempList)
+			for (auto& server : tempList)
 			{
 				ServerList::InsertRequest(server.addr);
 			}
@@ -255,11 +255,13 @@ namespace Components
 		if (list) list->clear();
 
 		ServerList::VisibleList.clear();
-		ServerList::RefreshContainer.mutex.lock();
-		ServerList::RefreshContainer.servers.clear();
-		ServerList::RefreshContainer.sendCount = 0;
-		ServerList::RefreshContainer.sentCount = 0;
-		ServerList::RefreshContainer.mutex.unlock();
+
+		{
+			std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
+			ServerList::RefreshContainer.servers.clear();
+			ServerList::RefreshContainer.sendCount = 0;
+			ServerList::RefreshContainer.sentCount = 0;
+		}
 
 		if (ServerList::IsOfflineList())
 		{
@@ -417,7 +419,7 @@ namespace Components
 			auto list = ServerList::GetList();
 			if (list)
 			{
-				for (auto server : *list)
+				for (auto& server : *list)
 				{
 					if (server.addr == container.target)
 					{
@@ -604,8 +606,7 @@ namespace Components
 
 	void ServerList::Frame()
 	{
-		// This is bad practice and might even cause undefined behaviour!
-		if (!ServerList::RefreshContainer.mutex.try_lock()) return;
+		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
 
 		if (ServerList::RefreshContainer.awatingList)
 		{
@@ -644,8 +645,6 @@ namespace Components
 		}
 
 		ServerList::UpdateVisibleInfo();
-
-		ServerList::RefreshContainer.mutex.unlock();
 	}
 
 	void ServerList::UpdateSource()
@@ -865,9 +864,10 @@ namespace Components
 		ServerList::FavouriteList.clear();
 		ServerList::VisibleList.clear();
 
-		ServerList::RefreshContainer.mutex.lock();
-		ServerList::RefreshContainer.awatingList = false;
-		ServerList::RefreshContainer.servers.clear();
-		ServerList::RefreshContainer.mutex.unlock();
+		{
+			std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
+			ServerList::RefreshContainer.awatingList = false;
+			ServerList::RefreshContainer.servers.clear();
+		}
 	}
 }

@@ -14,7 +14,7 @@ namespace Components
 		if (nodes.empty()) return;
 
 		auto nodeList = Utils::String::Explode(nodes, '\n');
-		for (auto node : nodeList)
+		for (auto& node : nodeList)
 		{
 			Utils::String::Replace(node, "\r", "");
 			node = Utils::String::Trim(node);
@@ -71,7 +71,7 @@ namespace Components
 		//list.set_is_dedi(Dedicated::IsDedicated());
 
 		std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
-		for (auto node : Node::Nodes)
+		for (auto& node : Node::Nodes)
 		{
 			if (node.state == Node::STATE_VALID && node.registered)
 			{
@@ -114,7 +114,7 @@ namespace Components
 		unsigned int count = 0;
 		std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
 
-		for (auto node : Node::Nodes)
+		for (auto& node : Node::Nodes)
 		{
 			if (node.state == Node::STATE_VALID)
 			{
@@ -416,7 +416,7 @@ namespace Components
 				packet.set_signature(Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, challenge));
 
 				std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
-				for (auto node : Node::Nodes)
+				for (auto& node : Node::Nodes)
 				{
 					Network::SendCommand(node.address, "nodeDeregister", packet.SerializeAsString());
 				}
@@ -846,7 +846,7 @@ namespace Components
 			Logger::Print("Nodes: %d (%d)\n", Node::Nodes.size(), Node::GetValidNodeCount());
 
 			std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
-			for (auto node : Node::Nodes)
+			for (auto& node : Node::Nodes)
 			{
 				Logger::Print("%s\t(%s)\n", node.address.getCString(), Node::GetStateName(node.state));
 			}
@@ -894,6 +894,33 @@ namespace Components
 				Node::LoadNodeRemotePreset();
 			}).detach();
 		});
+
+		if (Dedicated::IsEnabled())
+		{
+			Network::Handle("getServersRequest", [](Network::Address target, std::string)
+			{
+				std::string data;
+
+				{
+					std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
+					for (auto& node : Node::Nodes)
+					{
+						if (node.state == Node::STATE_VALID && node.isDedi)
+						{
+							Game::netIP_t ip = node.address.getIP();
+							unsigned short port = htons(node.address.getPort());
+							data.append(reinterpret_cast<char*>(&ip.full), 4);
+							data.append(reinterpret_cast<char*>(&port), 2);
+							data.append("\\");
+						}
+					}
+
+					data.append("EOT");
+				}
+
+				Network::SendCommand(target, "getServersResponse", data);
+			});
+		}
 	}
 
 	Node::~Node()

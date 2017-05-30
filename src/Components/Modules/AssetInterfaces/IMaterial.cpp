@@ -307,7 +307,7 @@ namespace Assets
 		{
 			std::vector<Game::MaterialTextureDef> textureList;
 
-			for (auto texture : textures.array_items())
+			for (auto& texture : textures.array_items())
 			{
 				if (!texture.is_array()) continue;
 				if (textureList.size() >= 0xFF) break;

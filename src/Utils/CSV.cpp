@@ -10,16 +10,6 @@ namespace Utils
 
 	CSV::~CSV()
 	{
-		for (auto row : this->dataMap)
-		{
-			for (auto entry : row)
-			{
-				entry.clear();
-			}
-
-			row.clear();
-		}
-
 		this->dataMap.clear();
 	}
 
@@ -84,7 +74,7 @@ namespace Utils
 		{
 			auto rows = Utils::String::Explode(buffer, '\n');
 
-			for (auto row : rows)
+			for (auto& row : rows)
 			{
 				this->parseRow(row, allowComments);
 			}
