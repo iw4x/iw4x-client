@@ -872,7 +872,17 @@ namespace Components
 		{
 			Logger::Print("Resynchronizing nodes...\n");
 
-			Node::LoadNodeRemotePreset();
+			static bool threadRunning = false;
+
+			if (!threadRunning)
+			{
+				threadRunning = true;
+				std::thread([]()
+				{
+					Node::LoadNodeRemotePreset();
+					threadRunning = false;
+				}).detach();
+			}
 
 			std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
 			for (auto& node : Node::Nodes)
