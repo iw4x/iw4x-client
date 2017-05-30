@@ -112,8 +112,9 @@ namespace Components
 		static void SpawnServerStub();
 		static void LoadMapLoadscreenStub();
 
-		static int TriggerReconnectForMap(const char* mapname);
+		static int TriggerReconnectForMap(Game::msg_t* msg, const char* mapname);
 		static void RotateCheckStub();
+		static void LoadNewMapCommand(char* buffer, size_t size, const char* format, const char* mapname, const char* gametype);
 
 		static const char* LoadArenaFileStub(const char* name, char* buffer, int size);
 

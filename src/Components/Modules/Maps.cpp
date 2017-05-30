@@ -442,11 +442,20 @@ namespace Components
 		return 0;
 	}
 
-	int Maps::TriggerReconnectForMap(const char* mapname)
+	void Maps::LoadNewMapCommand(char* buffer, size_t size, const char* /*format*/, const char* mapname, const char* gametype)
+	{
+		unsigned int hash = Maps::GetUsermapHash(mapname);
+		_snprintf_s(buffer, size, size, "loadingnewmap\n%s\n%s\n%d", mapname, gametype, hash);
+	}
+
+	int Maps::TriggerReconnectForMap(Game::msg_t* msg, const char* mapname)
 	{
 		Theatre::StopRecording();
 
-		if(!Maps::CheckMapInstalled(mapname, false, true))
+		char hashBuf[100] = { 0 };
+		unsigned int hash = atoi(Game::MSG_ReadStringLine(msg, hashBuf, sizeof hashBuf));
+
+		if(!Maps::CheckMapInstalled(mapname, false, true) || hash && hash != Maps::GetUsermapHash(mapname))
 		{
 			// Reconnecting forces the client to download the new map
 			Command::Execute("disconnect", false);
@@ -468,8 +477,9 @@ namespace Components
 			pushad
 
 			push [esp + 28h]
+			push ebp
 			call Maps::TriggerReconnectForMap
-			add esp, 4h
+			add esp, 8h
 
 			mov[esp + 20h], eax
 
@@ -999,6 +1009,11 @@ namespace Components
 				Command::Execute("reconnect", false);
 			}, 6s);
 		});
+
+		if(Dedicated::IsEnabled())
+		{
+			Utils::Hook(0x4A7251, Maps::LoadNewMapCommand, HOOK_CALL).install()->quick();
+		}
 
 		// Download the map before a maprotation if necessary
 		// Conflicts with Theater's SV map rotation check, but this one is safer!
