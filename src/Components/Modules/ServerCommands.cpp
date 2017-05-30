@@ -36,11 +36,11 @@ namespace Components
 			test al, al;
 			jnz jumpback;
 
-			push 0x5944AE;
+			push 5944AEh;
 			retn;
 
 		jumpback:
-			push 0x594536;
+			push 594536h;
 			retn;
 		}
 	}
@@ -50,15 +50,15 @@ namespace Components
 		__asm
 		{
 			mov lastServerCommand, ecx;
-			cmp ecx, 0x79;
+			cmp ecx, 79h;
 
 			jl above;
 
-			push 0x59449F;
+			push 59449Fh;
 			retn;
 
 		above:
-			push 0x593C28;
+			push 593C28h;
 			retn;
 		}
 	}
@@ -78,9 +78,11 @@ namespace Components
 	{
 		__asm
 		{
+			pushad;
 			call OnServerCommandFailPrint;
+			popad;
 
-			push 0x5944C0;
+			push 5944C0h;
 			retn;
 		}
 	}
@@ -98,6 +100,6 @@ namespace Components
 
 	ServerCommands::~ServerCommands()
 	{
-
+		Commands.clear();
 	}
 }

@@ -49,14 +49,14 @@ namespace Components
 			push esi;
 			push eax;
 			call GetPlayerCardClientInfo;
-			add esp, 0x08;
+			add esp, 8;
 
 			pop esi;
 			pop ebp;
-			mov[ebx + 0x4], eax;
+			mov[ebx + 4], eax;
 			pop ebx;
 
-			push 0x62EB2C;
+			push 62EB2Ch;
 			retn;
 		}
 	}
@@ -65,23 +65,23 @@ namespace Components
 	{
 		__asm 
 		{
-			cmp byte ptr[edi + 0x01], 0xFF; // Check if skip prefix exists (edi + 0x00 = @)
+			cmp byte ptr[edi + 01h], FFh;	// Check if skip prefix exists (edi + 0x00 = @)
 			jne back;
-			add edi, 0x02;					// Ignore the 0x40 and 0xFF prefix (Localize and Skip prefix)
+			add edi, 2;						// Ignore the 0x40 and 0xFF prefix (Localize and Skip prefix)
 			jmp jumpback;
 
 		back:
-			add edi, 0x01;
+			add edi, 1;
 			push edi;
 
-			mov eax, 0x4F1700;
+			mov eax, 4F1700h;
 			call eax;
 
-			add esp, 0x04;
+			add esp, 4;
 			mov edi, eax;
 
 		jumpback:
-			push 0x63A2E3;
+			push 63A2E3h;
 			retn;
 		}
 	}
@@ -125,7 +125,7 @@ namespace Components
 								mov eax, title;
 								pop ecx;
 								mov ecx, currentLookupRequest;
-								mov ecx, DWORD ptr[ecx + 0x04];
+								mov ecx, DWORD ptr[ecx + 4];
 								retn;
 							}
 						}
@@ -143,7 +143,7 @@ namespace Components
 								mov eax, title;
 								pop ecx;
 								mov ecx, currentLookupRequest;
-								mov ecx, DWORD ptr[ecx + 0x04];
+								mov ecx, DWORD ptr[ecx + 4];
 								retn;
 							}
 						}
@@ -158,10 +158,10 @@ namespace Components
 		// Continue with the normal lookup request because we did not use our custom result
 		__asm 
 		{
-			mov eax, [esi + 0x50];
-			cmp eax, 0x3;
+			mov eax, [esi + 50h];
+			cmp eax, 3;
 
-			push 0x62DCC7;
+			push 62DCC7h;
 			retn;
 		}
 	}
@@ -216,6 +216,6 @@ namespace Components
 
 	CardTitles::~CardTitles()
 	{
-
+		CustomTitles.clear();
 	}
 }
