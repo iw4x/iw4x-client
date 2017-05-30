@@ -61,103 +61,81 @@ namespace Components
 		}
 	}
 
-	void __declspec(naked) CardTitles::LocalizationSkipHookStub()
+	const char* CardTitles::TableLookupByRowHook(Game::Operand* operand, tablelookuprequest_s* request)
 	{
-		__asm 
+		std::uint8_t prefix =	(request->tableRow >> (8 * 3)) & 0xFF;
+		std::uint8_t data =		(request->tableRow >> (8 * 2)) & 0xFF;
+		const char* title = nullptr;
+
+		if (request->tablename == "mp/cardTitleTable.csv"s)
 		{
-			cmp byte ptr[edi + 01h], 0FFh;	// Check if skip prefix exists (edi + 0x00 = @)
-			jne back;
-			add edi, 2;						// Ignore the 0x40 and 0xFF prefix (Localize and Skip prefix)
-			jmp jumpback;
+			if (prefix != 0x00)
+			{
+				// Column 1 = CardTitle
+				if (request->tableColumn == 1)
+				{
+					if (prefix == 0xFE)
+					{
+						// 0xFF in front of the title to skip localization. Or else it will wait for a couple of seconds for the asset of type localize
+						if (*CustomTitleDvar->current.string)
+						{
+							title = Utils::String::VA("\x15%s", CustomTitleDvar->current.string);
 
-		back:
-			add edi, 1;
-			push edi;
+							// prepare return value
+							operand->internals.stringVal.string = title;
+							operand->dataType = Game::VAL_STRING;
 
-			mov eax, 4F1700h;
-			call eax;
+							return title;
+						}
+					}
+					else if (prefix == 0xFF)
+					{
+						if (!CustomTitles[data].empty())
+						{
+							title = Utils::String::VA("\x15%s", CustomTitles[data].data());
 
-			add esp, 4;
-			mov edi, eax;
+							// prepare return value
+							operand->internals.stringVal.string = title;
+							operand->dataType = Game::VAL_STRING;
 
-		jumpback:
-			push 63A2E3h;
-			retn;
+							return title;
+						}
+					}
+				}
+
+				// If the title was changed it already returned at this point so...
+				// Remove prefix and data to make being readable to the normal lookuprequest
+				request->tableRow = static_cast<std::int32_t>(*(reinterpret_cast<WORD*>(&request->tableRow)));
+			}
 		}
+
+		return nullptr;
 	}
 
 	void __declspec(naked) CardTitles::TableLookupByRowHookStub()
 	{
-		static tablelookuprequest_s*	currentLookupRequest;
-		static tablelookupresult_s*		currentLookupResult;
-		static std::int32_t				prefix;
-		static std::int32_t				data;
-		static const char*				title;
-
 		__asm 
 		{
-			mov currentLookupRequest, esi;
-			mov currentLookupResult, ebx;
-		}
+			push esi;
+			push ebx;
+			
+			pushad;
+			call TableLookupByRowHook;
+			cmp eax, 0;
+			popad;
 
-		prefix = (currentLookupRequest->tableRow >> (8 * 3)) & 0xff;
-		data = (currentLookupRequest->tableRow >> (8 * 2)) & 0xff;
+			jz OriginalTitle;
 
-		//So we don't accidentally mess up other tables that might have a ridiculous amount of rows. Who knows.
-		if (!strcmp(currentLookupRequest->tablename, "mp/cardTitleTable.csv")) 
-		{
-			if (prefix != 0x00) 
-			{
-				// Column 1 = CardTitle
-				if (currentLookupRequest->tableColumn == 1) 
-				{ 
-					if (prefix == 0xFE) 
-					{
-						// 0xFF in front of the title to skip localization. Or else it will wait for a couple of seconds for the asset of type localize
-						if ((BYTE)*CustomTitleDvar->current.string) 
-						{
-							title = Utils::String::VA("\xFF%s", CustomTitleDvar->current.string);
-							currentLookupResult->result = title;
-							currentLookupResult->dunno = 2; // Seems to be nessecary. Don't ask me why.
+			add esp, 8;
 
-							__asm 
-							{
-								mov eax, title;
-								pop ecx;
-								mov ecx, currentLookupRequest;
-								mov ecx, DWORD ptr[ecx + 4];
-								retn;
-							}
-						}
-					}
-					else if (prefix == 0xFF) 
-					{
-						if (!CustomTitles[data].empty()) 
-						{
-							title = Utils::String::VA("\xFF%s", CustomTitles[data].data());
-							currentLookupResult->result = title;
-							currentLookupResult->dunno = 2;
+			pop ecx;
+			mov ecx, DWORD ptr[esi + 4];
+			retn;
 
-							__asm 
-							{
-								mov eax, title;
-								pop ecx;
-								mov ecx, currentLookupRequest;
-								mov ecx, DWORD ptr[ecx + 4];
-								retn;
-							}
-						}
-					}
-				}
-				// If the title was changed it already returned at this point so...
-				// Remove prefix and data to make being readable to the normal lookuprequest
-				currentLookupRequest->tableRow = static_cast<std::int32_t>(*(reinterpret_cast<WORD*>(&currentLookupRequest->tableRow)));
-			}
-		}
+		OriginalTitle:
 
-		// Continue with the normal lookup request because we did not use our custom result
-		__asm 
-		{
+			add esp, 8;
+
 			mov eax, [esi + 50h];
 			cmp eax, 3;
 
@@ -208,9 +186,13 @@ namespace Components
 		CardTitles::CustomTitles.resize(18);
 
 		Utils::Hook(0x62EB26, GetPlayerCardClientInfoStub).install()->quick();
-		Utils::Hook(0x63A2D5, LocalizationSkipHookStub).install()->quick();
-		Utils::Hook(0x62DCC1, TableLookupByRowHookStub).install()->quick();
 
+		// Translation fixup
+		// Utils::Hook(0x63A2D9, LocalizationSkipHookStub).install()->quick();
+		// Utils::Hook::Nop(0x63A2D5, 3);
+
+		// Table lookup stuff
+		Utils::Hook(0x62DCC1, TableLookupByRowHookStub).install()->quick();
 		Utils::Hook::Nop(0x62DCC6, 1);
 	}
 

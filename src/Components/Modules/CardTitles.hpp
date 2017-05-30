@@ -11,11 +11,6 @@ namespace Components
 		std::uint8_t padding3[4];
 		std::int32_t tableColumn;
 	};
-	struct tablelookupresult_s
-	{
-		std::uint32_t dunno;
-		const char* result;
-	};
 	struct playercarddata_s
 	{
 		std::uint32_t padding;
@@ -71,7 +66,9 @@ namespace Components
 		static CClient * GetClientByIndex(std::uint32_t index);
 		static std::int32_t GetPlayerCardClientInfo(std::int32_t lookupResult, playercarddata_s * data);
 		static void GetPlayerCardClientInfoStub();
+		static const char* LocalizationSkipHook(const char * string);
 		static void LocalizationSkipHookStub();
+		static const char* TableLookupByRowHook(Game::Operand * operand, tablelookuprequest_s * request);
 		static void TableLookupByRowHookStub();
 
 	};
