@@ -304,6 +304,9 @@ namespace Game
 	typedef void(__cdecl * Image_Release_t)(GfxImage* image);
 	extern Image_Release_t Image_Release;
 
+	typedef char*(__cdecl * Info_ValueForKey_t)(const char* infoString, const char* key);
+	extern Info_ValueForKey_t Info_ValueForKey;
+
 	typedef void(__cdecl * Key_SetCatcher_t)(int localClientNum, int catcher);
 	extern Key_SetCatcher_t Key_SetCatcher;
 

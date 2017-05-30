@@ -55,6 +55,7 @@ namespace Components
 	public:
 		static Game::dvar_t* CustomTitleDvar;
 
+		static void SendCustomTitlesToClients();
 		static void ParseCustomTitles(const char * msg);
 
 		CardTitles();
@@ -70,6 +71,7 @@ namespace Components
 		static void LocalizationSkipHookStub();
 		static const char* TableLookupByRowHook(Game::Operand * operand, tablelookuprequest_s * request);
 		static void TableLookupByRowHookStub();
+
 
 	};
 }

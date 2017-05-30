@@ -452,6 +452,17 @@ namespace Components
 				// Post initialization point
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
 
+				// Custom cardtitles
+				Dedicated::OnFrame([]()
+				{
+					static std::uint64_t LastUpdate = 0;
+
+					if ((GetTickCount64() - LastUpdate) > 120 * 1000)
+					{
+						CardTitles::SendCustomTitlesToClients();
+					}
+				});
+
 #ifdef USE_LEGACY_SERVER_LIST
 
 				// Heartbeats

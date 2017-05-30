@@ -144,12 +144,36 @@ namespace Components
 		}
 	}
 
+	void CardTitles::SendCustomTitlesToClients() 
+	{
+		const char* list = "";
+
+		for (int i = 0; i < 18; i++)
+		{
+			char playerTitle[18] = { 0 };
+
+			if (Game::svs_clients[i].state >= 3)
+			{
+				strncpy_s(playerTitle, Game::Info_ValueForKey(Game::svs_clients[i].connectInfoString, "customTitle"), 18);
+			}
+			else
+			{
+				memset(playerTitle, 0, 18);
+			}
+
+			list = Utils::String::VA("%s\\%s\\%s", list, std::to_string(i).c_str(), playerTitle);
+		}
+
+		list = Utils::String::VA("%c customTitles \"%s", 20, list);
+		Game::SV_GameSendServerCommand(-1, 0, list);
+	}
+
 	void CardTitles::ParseCustomTitles(const char* msg) 
 	{
 		const char* playerTitle;
 		for (int i = 0; i < 18; i++) 
 		{
-			playerTitle = Utils::Hook::Call<const char*(const char*, const char*)>(0x47C820)(msg, std::to_string(i).c_str());
+			playerTitle = Game::Info_ValueForKey(msg, std::to_string(i).c_str());
 
 			if (playerTitle != nullptr) 
 			{
