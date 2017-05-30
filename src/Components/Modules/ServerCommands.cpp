@@ -63,12 +63,12 @@ namespace Components
 		}
 	}
 
-	void ServerCommands::OnServerCommandFailPrint(int type, const char *trash, ...)
+	void ServerCommands::OnServerCommandFailPrint(int type, const char *, ...)
 	{
 		Command::ClientParams params(*Game::cmd_id);
 		const char *cmd = "";
 
-		for (int i = 1; i < params.length(); i++)
+		for (std::size_t i = 1; i < params.length(); i++)
 			cmd = Utils::String::VA("%s %s", cmd, params.get(i));
 
 		Game::Com_Printf(type, "Unknown client game command: %i %s\n", lastServerCommand, cmd);
