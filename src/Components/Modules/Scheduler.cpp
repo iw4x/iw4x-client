@@ -47,6 +47,8 @@ namespace Components
 
 	void Scheduler::FrameHandler()
 	{
+		Scheduler::ReadyHandler();
+
 		Scheduler::DelaySignal();
 		Scheduler::FrameSignal();
 

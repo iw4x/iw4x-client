@@ -231,6 +231,11 @@ namespace Components
 			{
 				// Only skip intro here, invocation will be done later.
 				Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
+
+				Scheduler::OnDelay([]()
+				{
+					Command::Execute("openmenu popup_reconnectingtoparty", false);
+				}, 8s);
 			}
 		}
 	}
