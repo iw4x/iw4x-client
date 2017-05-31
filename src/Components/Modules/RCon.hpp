@@ -8,10 +8,6 @@ namespace Components
 		RCon();
 		~RCon();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "RCon"; };
-#endif
-
 	private:
 		class Container
 		{

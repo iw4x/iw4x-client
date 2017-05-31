@@ -11,10 +11,6 @@ namespace Components
 
 		typedef WinToastLib::WinToastTemplate Template;
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Toast"; };
-#endif
-
 		static void Show(std::string image, std::string title, std::string description, int length);
 		static bool ShowNative(const WinToastLib::WinToastTemplate& toast);
 

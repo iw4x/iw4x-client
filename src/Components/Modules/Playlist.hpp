@@ -10,10 +10,6 @@ namespace Components
 		Playlist();
 		~Playlist();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Playlist"; };
-#endif
-
 		static void LoadPlaylist();
 
 		static std::string ReceivedPlaylistBuffer;

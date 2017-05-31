@@ -8,9 +8,6 @@ namespace Components
 		Exception();
 		~Exception();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Exception"; };
-#endif
 		static LPTOP_LEVEL_EXCEPTION_FILTER Hook();
 
 		static void SetMiniDumpType(bool codeseg, bool dataseg);

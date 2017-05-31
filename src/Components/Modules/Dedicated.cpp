@@ -185,56 +185,6 @@ namespace Components
 		Game::Com_Error(code, message);
 	}
 
-	__declspec(naked) void Dedicated::OnServerCommandStub()
-	{
-		__asm
-		{
-			push eax
-			pushad
-
-			call Dedicated::OnServerCommand
-
-			mov [esp + 20h], eax
-			popad
-			pop eax
-
-			test al, al
-			jnz returnSafe
-
-			push 5944AEh
-			retn
-
-		returnSafe:
-			push 594536h
-			retn
-		}
-	}
-
-	int Dedicated::OnServerCommand()
-	{
-		Command::ClientParams params;
-
-		ZeroMemory(Dedicated::PlayerGuids, sizeof(Dedicated::PlayerGuids));
-
-		if (params.length() >= (18 * 2 + 1) && params.get(0)[0] == 20)
-		{
-			for (int client = 0; client < 18; client++)
-			{
-				Dedicated::PlayerGuids[client][0].bits = strtoull(params.get(2 * client + 1), nullptr, 16);
-				Dedicated::PlayerGuids[client][1].bits = strtoull(params.get(2 * client + 2), nullptr, 16);
-
-				if(Steam::Proxy::SteamFriends && Dedicated::PlayerGuids[client][1].bits != 0)
-				{
-					Steam::Proxy::SteamFriends->SetPlayedWith(Dedicated::PlayerGuids[client][1]);
-				}
-			}
-
-			return 1;
-		}
-
-		return 0;
-	}
-
 	void Dedicated::MapRotate()
 	{
 		if (!Dedicated::IsEnabled() && Dvar::Var("sv_dontrotate").get<bool>())
@@ -452,6 +402,20 @@ namespace Components
 				// Post initialization point
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
 
+				// Transmit custom data
+				Dedicated::OnFrame([]()
+				{
+					static std::uint64_t LastUpdate = 0;
+
+					if ((GetTickCount64() - LastUpdate) > 10000)
+					{
+						CardTitles::SendCustomTitlesToClients();
+						Clantags::SendClantagsToClients();
+
+						LastUpdate = GetTickCount64();
+					}
+				});
+
 #ifdef USE_LEGACY_SERVER_LIST
 
 				// Heartbeats
@@ -565,7 +529,21 @@ namespace Components
 			}
 
 			// Intercept server commands
-			Utils::Hook(0x59449F, Dedicated::OnServerCommandStub, HOOK_JUMP).install()->quick();
+			ServerCommands::OnCommand(20, [](Command::Params* params)
+			{
+				for (int client = 0; client < 18; client++)
+				{
+					Dedicated::PlayerGuids[client][0].bits = strtoull(params->get(2 * client + 1), nullptr, 16);
+					Dedicated::PlayerGuids[client][1].bits = strtoull(params->get(2 * client + 2), nullptr, 16);
+
+					if (Steam::Proxy::SteamFriends && Dedicated::PlayerGuids[client][1].bits != 0)
+					{
+						Steam::Proxy::SteamFriends->SetPlayedWith(Dedicated::PlayerGuids[client][1]);
+					}
+				}
+
+				return true;
+			});
 		}
 
 		QuickPatch::OnFrame([]()

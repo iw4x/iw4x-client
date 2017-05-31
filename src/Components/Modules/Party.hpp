@@ -8,10 +8,6 @@ namespace Components
 		Party();
 		~Party();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Party"; };
-#endif
-
 		static Network::Address Target();
 		static void Connect(Network::Address target);
 		static const char* GetLobbyInfo(SteamID lobby, std::string key);

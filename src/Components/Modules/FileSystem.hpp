@@ -88,10 +88,6 @@ namespace Components
 		FileSystem();
 		~FileSystem();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "FileSystem"; };
-#endif
-
 		static std::vector<std::string> GetFileList(std::string path, std::string extension);
 		static std::vector<std::string> GetSysFileList(std::string path, std::string extension, bool folders = false);
 		static void DeleteFile(std::string folder, std::string file);

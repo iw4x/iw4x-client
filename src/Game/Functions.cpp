@@ -121,6 +121,8 @@ namespace Game
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x53ABF0);
 	Image_Release_t Image_Release = Image_Release_t(0x51F010);
 
+	Info_ValueForKey_t Info_ValueForKey = Info_ValueForKey_t(0x47C820);
+
 	Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x43BD00);
 
 	LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x4A62A0);

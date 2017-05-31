@@ -8,10 +8,6 @@ namespace Components
 		Logger();
 		~Logger();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Logger"; };
-#endif
-
 		static void MessagePrint(int channel, std::string message);
 		static void Print(int channel, const char* message, ...);
 		static void Print(const char* message, ...);

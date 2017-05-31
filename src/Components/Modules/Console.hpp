@@ -11,10 +11,6 @@ namespace Components
 		Console();
 		~Console();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Console"; };
-#endif
-
 		static void SetSkipShutdown();
 
 		static void FreeNativeConsole();

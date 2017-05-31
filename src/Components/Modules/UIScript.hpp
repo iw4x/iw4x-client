@@ -8,10 +8,6 @@ namespace Components
 		UIScript();
 		~UIScript();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "UIScript"; };
-#endif
-
 		class Token
 		{
 		public:

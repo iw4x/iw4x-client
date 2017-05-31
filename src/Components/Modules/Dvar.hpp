@@ -44,10 +44,6 @@ namespace Components
 		Dvar();
 		~Dvar();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Dvar"; };
-#endif
-
 		static void OnInit(Utils::Slot<Callback> callback);
 
 		// Only strings and bools use this type of declaration

@@ -11,10 +11,6 @@ namespace Components
 		Menus();
 		~Menus();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Menus"; };
-#endif
-
 		static void FreeEverything();
 
 		static void Add(std::string menu);

@@ -50,10 +50,6 @@ namespace Components
 		Command();
 		~Command();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Command"; };
-#endif
-
 		static Game::cmd_function_t* Allocate();
 
 		static void Add(const char* name, Utils::Slot<Callback> callback);

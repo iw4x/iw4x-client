@@ -8,10 +8,6 @@ namespace Components
 		Materials();
 		~Materials();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Materials"; };
-#endif
-
 		static int FormatImagePath(char* buffer, size_t size, int, int, const char* image);
 
 	private:

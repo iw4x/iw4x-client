@@ -10,10 +10,6 @@ namespace Components
 		Bans();
 		~Bans();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Bans"; };
-#endif
-
 		static void BanClientNum(int num, std::string reason);
 
 		static bool IsBanned(Entry entry);

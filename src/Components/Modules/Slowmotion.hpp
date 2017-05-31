@@ -10,10 +10,6 @@ namespace Components
 	public:
 		SlowMotion();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "SlowMotion"; };
-#endif
-
 	private:
 		static int Delay;
 

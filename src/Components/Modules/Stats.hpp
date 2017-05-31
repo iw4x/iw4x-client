@@ -8,10 +8,6 @@ namespace Components
 		Stats();
 		~Stats();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Stats"; };
-#endif
-
 		static bool IsMaxLevel();
 
 	private:

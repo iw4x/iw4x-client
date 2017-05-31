@@ -8,10 +8,6 @@ namespace Components
 		ServerInfo();
 		~ServerInfo();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "ServerInfo"; };
-#endif
-
 		static Utils::InfoString GetInfo();
 
 	private:

@@ -58,10 +58,6 @@ namespace Components
 		Network();
 		~Network();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Network"; };
-#endif
-
 		static void Handle(std::string packet, Utils::Slot<Callback> callback);
 		static void OnStart(Utils::Slot<CallbackRaw> callback);
 

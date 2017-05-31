@@ -64,6 +64,7 @@ namespace Components
 		Loader::Register(new Monitor());
 		Loader::Register(new Network());
 		Loader::Register(new Theatre());
+		Loader::Register(new Clantags());
 		Loader::Register(new Download());
 		Loader::Register(new Playlist());
 		Loader::Register(new RawFiles());
@@ -81,6 +82,7 @@ namespace Components
 		Loader::Register(new Gametypes());
 		Loader::Register(new Materials());
 		Loader::Register(new Threading());
+		Loader::Register(new CardTitles());
 		Loader::Register(new FileSystem());
 		Loader::Register(new ModelSurfs());
 		Loader::Register(new PlayerName());
@@ -94,6 +96,7 @@ namespace Components
 		Loader::Register(new AssetHandler());
 		Loader::Register(new Localization());
 		Loader::Register(new MusicalTalent());
+		Loader::Register(new ServerCommands());
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
 		Loader::Register(new StartupMessages());
@@ -111,7 +114,7 @@ namespace Components
 #ifdef DEBUG
 			if(!Loader::PerformingUnitTests())
 			{
-				Logger::Print("Unregistering component: %s\n", component->getName());
+				Logger::Print("Unregistering component: %s\n", component->getName().data());
 			}
 #endif
 			delete component;
@@ -164,7 +167,7 @@ namespace Components
 		for (auto component : Loader::Components)
 		{
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-			Logger::Print("Testing '%s'...\n", component->getName());
+			Logger::Print("Testing '%s'...\n", component->getName().data());
 #endif
 			auto startTime = std::chrono::high_resolution_clock::now();
 			bool testRes = component->unitTest();
@@ -192,7 +195,7 @@ namespace Components
 #ifdef DEBUG
 			if(!Loader::PerformingUnitTests())
 			{
-				Logger::Print("Component registered: %s\n", component->getName());
+				Logger::Print("Component registered: %s\n", component->getName().data());
 			}
 #endif
 			Loader::Components.push_back(component);

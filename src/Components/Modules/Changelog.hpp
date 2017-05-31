@@ -8,10 +8,6 @@ namespace Components
 		Changelog();
 		~Changelog();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Changelog"; };
-#endif
-
 		static void LoadChangelog();
 
 	private:

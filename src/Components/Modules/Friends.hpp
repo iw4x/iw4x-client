@@ -8,10 +8,6 @@ namespace Components
 		Friends();
 		~Friends();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Friends"; };
-#endif
-
 		static void UpdateFriends();
 		static void UpdateRank();
 		static void UpdateServer(Network::Address server, std::string hostname, std::string mapname);

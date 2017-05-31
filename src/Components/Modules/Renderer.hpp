@@ -11,10 +11,6 @@ namespace Components
 		Renderer();
 		~Renderer();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Renderer"; };
-#endif
-
 		static int Width();
 		static int Height();
 

@@ -10,10 +10,6 @@ namespace Components
 		Dedicated();
 		~Dedicated();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Dedicated"; };
-#endif
-
 		static SteamID PlayerGuids[18][2];
 
 		static bool IsEnabled();
@@ -28,9 +24,6 @@ namespace Components
 		static Utils::Signal<Callback> FrameOnceSignal;
 
 		static bool SendChat;
-
-		static void OnServerCommandStub();
-		static int OnServerCommand();
 
 		static void MapRotate();
 		static void FrameHandler();

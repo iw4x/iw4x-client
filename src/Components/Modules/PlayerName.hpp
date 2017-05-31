@@ -8,10 +8,6 @@ namespace Components
 		PlayerName();
 		~PlayerName();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "PlayerName"; };
-#endif
-
 	private:
 		static std::string PlayerNames[18];
 

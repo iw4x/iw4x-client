@@ -12,10 +12,6 @@ namespace Components
 		Zones();
 		~Zones();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Zones"; };
-#endif
-
 		static void SetVersion(int version);
 
 		static int Version() { return Zones::ZoneVersion; };

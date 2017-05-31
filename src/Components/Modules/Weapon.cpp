@@ -420,6 +420,22 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4F7630, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
 	}
 
+	void* Weapon::LoadNoneWeaponHook()
+	{
+		// load anim scripts now, rather than a bit later on
+		Utils::Hook::Call<void()>(0x4E46A0)();
+
+		return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_WEAPON, "none").data;
+	}
+
+	void __declspec(naked) Weapon::LoadNoneWeaponHookStub()
+	{
+		__asm
+		{
+			jmp LoadNoneWeaponHook
+		}
+	}
+
 	Weapon::Weapon()
 	{
 		Weapon::PatchLimit();
@@ -435,6 +451,10 @@ namespace Components
 
 		// Skip double loading for fs_game
 		Utils::Hook::Set<BYTE>(0x4081FD, 0xEB);
+
+		// Weapon swap fix
+		Utils::Hook::Nop(0x4B3670, 5);
+		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub).install()->quick();
 
 		// Don't load bounce sounds for now, it causes crashes
 		// TODO: Actually check the weaponfiles and/or reset the soundtable correctly!

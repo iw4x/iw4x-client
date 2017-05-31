@@ -7,10 +7,6 @@ namespace Components
 	public:
 		ConnectProtocol();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "ConnectProtocol"; };
-#endif
-
 		static bool IsEvaluated();
 		static bool Used();
 

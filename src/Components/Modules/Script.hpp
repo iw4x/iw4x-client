@@ -26,10 +26,6 @@ namespace Components
 		Script();
 		~Script();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Script"; };
-#endif
-
 		static int LoadScriptAndLabel(std::string script, std::string label);
 		static void AddFunction(std::string name, Game::scr_function_t function, bool isDev = false);
 

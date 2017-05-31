@@ -7,10 +7,6 @@ namespace Components
 	public:
 		Gametypes();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Gametypes"; };
-#endif
-
 	private:
 		static unsigned int GetGametypeCount();
 		static const char* GetGametypeText(unsigned int index, int column);

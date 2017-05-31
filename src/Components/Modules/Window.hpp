@@ -7,10 +7,6 @@ namespace Components
 	public:
 		Window();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Window"; };
-#endif
-
 		static int Width();
 		static int Height();
 		static int Width(HWND window);
