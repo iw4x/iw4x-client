@@ -11,12 +11,13 @@ namespace Components
 		static void OnCommand(std::int32_t cmd, std::function<bool(Command::Params*)> cb);
 
 	private:
-		static std::unordered_map < std::int32_t, std::function < bool(Command::Params*) > > Commands;
+		static std::unordered_map<std::int32_t, std::function<bool(Command::Params*)>> Commands;
+		static std::uint32_t LastServerCommand;
+
 		static bool OnServerCommand();
 		static void OnServerCommandStub();
 		static void OnServerCommandPreFailStub();
 		static void OnServerCommandFailPrint(int type, const char * trash, ...);
 		static void OnServerCommandFailPrintStub();
-		static std::uint32_t lastServerCommand;
 	};
 }

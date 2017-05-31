@@ -2,25 +2,25 @@
 
 namespace Components
 {
-	std::unordered_map < std::int32_t, std::function < bool(Command::Params*) > > ServerCommands::Commands;
-	std::uint32_t ServerCommands::lastServerCommand;
+	std::unordered_map<std::int32_t, std::function<bool(Command::Params*)>> ServerCommands::Commands;
+	std::uint32_t ServerCommands::LastServerCommand;
 
-	void ServerCommands::OnCommand(std::int32_t cmd, std::function < bool(Command::Params*) > cb)
+	void ServerCommands::OnCommand(std::int32_t cmd, std::function<bool(Command::Params*)> cb)
 	{
-		Commands[cmd] = cb;
+		ServerCommands::Commands[cmd] = cb;
 	}
 
 	bool ServerCommands::OnServerCommand()
 	{
 		Command::ClientParams params(*Game::cmd_id);
 		
-		for (auto &ServerCommandCB : Commands)
+		for (auto &serverCommandCB : ServerCommands::Commands)
 		{
 			if (params.length() >= 1)
 			{
-				if (params.get(0)[0] == ServerCommandCB.first)
+				if (params.get(0)[0] == serverCommandCB.first)
 				{
-					return ServerCommandCB.second(&params);
+					return serverCommandCB.second(&params);
 				}
 			}
 		}
@@ -28,78 +28,79 @@ namespace Components
 		return false;
 	}
 
-	void __declspec(naked) ServerCommands::OnServerCommandStub()
+	__declspec(naked) void ServerCommands::OnServerCommandStub()
 	{
 		__asm
 		{
-			call OnServerCommand;
-			test al, al;
-			jnz jumpback;
+			push eax
+			pushad
+			call ServerCommands::OnServerCommand
+			mov [esp + 20h], eax
+			popad
+			pop eax
 
-			push 5944AEh;
-			retn;
+			test al, al
+			jnz jumpback
+
+			push 5944AEh
+			retn
 
 		jumpback:
-			push 594536h;
-			retn;
+			push 594536h
+			retn
 		}
 	}
 
-	void __declspec(naked) ServerCommands::OnServerCommandPreFailStub()
+	__declspec(naked) void ServerCommands::OnServerCommandPreFailStub()
 	{
 		__asm
 		{
-			mov lastServerCommand, ecx;
-			cmp ecx, 79h;
+			mov ServerCommands::LastServerCommand, ecx
+			cmp ecx, 79h
 
-			jl above;
+			jl above
 
-			push 59449Fh;
-			retn;
+			push 59449Fh
+			retn
 
 		above:
-			push 593C28h;
-			retn;
+			push 593C28h
+			retn
 		}
 	}
 
 	void ServerCommands::OnServerCommandFailPrint(int type, const char *, ...)
 	{
 		Command::ClientParams params(*Game::cmd_id);
-		const char *cmd = "";
-
-		for (std::size_t i = 1; i < params.length(); i++)
-			cmd = Utils::String::VA("%s %s", cmd, params.get(i));
-
-		Game::Com_Printf(type, "Unknown client game command: %i %s\n", lastServerCommand, cmd);
+		Game::Com_Printf(type, "Unknown client game command: %i %s\n", LastServerCommand, params.join(1));
 	}
 
-	void __declspec(naked) ServerCommands::OnServerCommandFailPrintStub()
+	__declspec(naked) void ServerCommands::OnServerCommandFailPrintStub()
 	{
 		__asm
 		{
-			pushad;
-			call OnServerCommandFailPrint;
-			popad;
+			pushad
+			call ServerCommands::OnServerCommandFailPrint
+			popad
 
-			push 5944C0h;
-			retn;
+			push 5944C0h
+			retn
 		}
 	}
 
 	ServerCommands::ServerCommands()
 	{
 		// Server command receive hook
-		Utils::Hook(0x59449F, OnServerCommandStub).install()->quick();
+		Utils::Hook(0x59449F, ServerCommands::OnServerCommandStub).install()->quick();
 
 		// Server command fail hooks
-		Utils::Hook(0x593C1F, OnServerCommandPreFailStub).install()->quick();
-		Utils::Hook(0x5944BB, OnServerCommandFailPrintStub).install()->quick();
+		Utils::Hook(0x593C1F, ServerCommands::OnServerCommandPreFailStub).install()->quick();
+		Utils::Hook(0x5944BB, ServerCommands::OnServerCommandFailPrintStub).install()->quick();
 		Utils::Hook::Set<std::uint8_t>(0x5944D3, 0xEB);
 	}
 
 	ServerCommands::~ServerCommands()
 	{
-		Commands.clear();
+		ServerCommands::Commands.clear();
 	}
 }

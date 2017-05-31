@@ -529,8 +529,8 @@ namespace Components
 			}
 
 			// Intercept server commands
-			ServerCommands::OnCommand(20, [](Command::Params* params) {
-
+			ServerCommands::OnCommand(20, [](Command::Params* params)
+			{
 				for (int client = 0; client < 18; client++)
 				{
 					Dedicated::PlayerGuids[client][0].bits = strtoull(params->get(2 * client + 1), nullptr, 16);
@@ -543,9 +543,7 @@ namespace Components
 				}
 
 				return true;
-
 			});
-
 		}
 
 		QuickPatch::OnFrame([]()
