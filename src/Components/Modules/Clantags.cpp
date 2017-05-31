@@ -2,98 +2,81 @@
 
 namespace Components
 {
-	std::vector < std::string > Clantags::Tags;
-	const char* CurrentName;
+	std::string Clantags::Tags[18];
 
 	void Clantags::ParseClantags(const char* infoString)
 	{
-		const char* clantag;
 		for (int i = 0; i < 18; i++)
 		{
-			clantag = Game::Info_ValueForKey(infoString, std::to_string(i).c_str());
+			const char* clantag = Game::Info_ValueForKey(infoString, std::to_string(i).data());
 
-			if (clantag != nullptr)
-			{
-				Tags[i] = _strdup(clantag);
-			}
-			else
-			{
-				Tags[i] = "";
-			}
+			if (clantag) Tags[i] = clantag;
+			else Tags[i].clear();
 		}
 	}
 
 	void Clantags::SendClantagsToClients()
 	{
-		const char* list = "";
+		std::string list;
 
 		for (int i = 0; i < 18; i++)
 		{
-			char clantag[5];
+			char clantag[5] = { 0 };
 
 			if (Game::svs_clients[i].state >= 3)
 			{
 				strncpy_s(clantag, Game::Info_ValueForKey(Game::svs_clients[i].connectInfoString, "iw4x_clantag"), 4);
 			}
-			else
-			{
-				memset(clantag, 0, 5);
-			}
 
-			list = Utils::String::VA("%s\\%s\\%s", list, std::to_string(i).c_str(), clantag);
+			list.append(Utils::String::VA("\\%s\\%s", std::to_string(i).data(), clantag));
 		}
 
-		list = Utils::String::VA("%c clantags \"%s\"", 22, list);
-		Game::SV_GameSendServerCommand(-1, 0, list);
+		std::string command = Utils::String::VA("%c clantags \"%s\"", 22, list.data());
+		Game::SV_GameSendServerCommand(-1, 0, command.data());
 	}
 
-	void Clantags::GetUserClantag(std::uint32_t clientnum, const char* playername)
+	const char* Clantags::GetUserClantag(std::uint32_t clientnum, const char* playername)
 	{
-		if (Tags[clientnum].empty())
-		{
-			CurrentName = playername;
-			return;
-		}
-
-		CurrentName = Utils::String::VA("[%s] %s", Tags[clientnum].data(), playername);
+		if (Tags[clientnum].empty()) return playername;
+		return Utils::String::VA("[%s] %s", Tags[clientnum].data(), playername);
 	}
 
 	void __declspec(naked) Clantags::DrawPlayerNameOnScoreboard()
 	{
-		static DWORD drawstringfunc = 0x5909E0;
-
 		__asm
 		{
-			pushad;
+			push eax
+			pushad
 
-			push edi;
-			push [ebp];
+			push edi
+			push [ebp]
 
-			call GetUserClantag;
-			add esp, 8;
+			call Clantags::GetUserClantag
+			add esp, 8
 
-			popad;
+			mov [esp + 20h], eax
 
-			mov edi, CurrentName;
+			popad
+			pop edi
 
-			call drawstringfunc;
-
-			push 591247h;
-			retn;
+			push 591247h // Return address
+			push 5909E0h // Draw string func
+			retn
 		}
 	}
 
 	Clantags::Clantags()
 	{
 		// Create clantag dvar
-		Dvar::OnInit([]() {
-			CardTitles::CustomTitleDvar = Game::Dvar_RegisterString("iw4x_clantag", "", Game::dvar_flag::DVAR_FLAG_USERINFO | Game::dvar_flag::DVAR_FLAG_SAVED, "If set, your clantag will be shown on the scoreboard.");
+		Dvar::OnInit([]()
+		{
+			Dvar::Register<const char*>("iw4x_clantag", "", Game::dvar_flag::DVAR_FLAG_USERINFO | Game::dvar_flag::DVAR_FLAG_SAVED, "If set, your clantag will be shown on the scoreboard.");
 		});
 
 		// Servercommand hook
-		ServerCommands::OnCommand(22, [](Command::Params* params) {
-
-			if (params->get(1) == "clantags"s && !Flags::HasFlag("dedicated"))
+		ServerCommands::OnCommand(22, [](Command::Params* params)
+		{
+			if (params->get(1) == "clantags"s && !Dedicated::IsEnabled())
 			{
 				if (params->length() == 3)
 				{
@@ -103,18 +86,22 @@ namespace Components
 			}
 
 			return false;
-
 		});
 
-		// Resize clantags array
-		Tags.resize(18);
+		for (int i = 0; i < ARRAYSIZE(Clantags::Tags); ++i)
+		{
+			Clantags::Tags[i].clear();
+		}
 		
 		// Draw clantag before playername
-		Utils::Hook(0x591242, DrawPlayerNameOnScoreboard).install()->quick();
+		Utils::Hook(0x591242, Clantags::DrawPlayerNameOnScoreboard).install()->quick();
 	}
 
 	Clantags::~Clantags()
 	{
-		Tags.clear();
+		for (int i = 0; i < ARRAYSIZE(Clantags::Tags); ++i)
+		{
+			Clantags::Tags[i].clear();
+		}
 	}
 }
