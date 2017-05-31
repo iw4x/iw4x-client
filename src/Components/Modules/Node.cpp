@@ -405,7 +405,7 @@ namespace Components
 		// Send deadline when shutting down
 		if (Dedicated::IsEnabled())
 		{
-			QuickPatch::OnShutdown([] ()
+			Scheduler::OnShutdown([] ()
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 

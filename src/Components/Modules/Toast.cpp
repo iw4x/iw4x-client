@@ -157,7 +157,7 @@ namespace Components
 			WinToastLib::WinToast::instance()->initialize();
 		}
 
-		QuickPatch::OnReady([]()
+		Scheduler::OnReady([]()
 		{
 			Scheduler::OnFrame(Toast::Handler);
 		});

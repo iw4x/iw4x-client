@@ -142,7 +142,7 @@ namespace Components
 		Dvar::RegistrationSignal();
 
 		// Name watcher
-		Renderer::OnFrame([] ()
+		Scheduler::OnFrame([] ()
 		{
 			static std::string lastValidName = "Unknown Soldier";
 			std::string name = Dvar::Var("name").get<char*>();

@@ -37,5 +37,7 @@ namespace Components
 
 		static void ReadyHandler();
 		static void DelaySignal();
+
+		static void ShutdownStub(int num);
 	};
 }

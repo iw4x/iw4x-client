@@ -334,8 +334,6 @@ namespace Components
 		Utils::Hook::Set<char*>(0x60B279, CLIENT_CONFIG);
 		Utils::Hook::Set<char*>(0x60BBD4, CLIENT_CONFIG);
 
-		Utils::Hook(0x4D697A, QuickPatch::ShutdownStub, HOOK_CALL).install()->quick();
-
 		// Disable profile system
 //		Utils::Hook::Nop(0x60BEB1, 5);          // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.
 //		Utils::Hook::Nop(0x60BEB8, 5);          // GamerProfile_LogInProfile
@@ -657,7 +655,7 @@ namespace Components
 
 		// Constantly draw the mini console
 		Utils::Hook::Set<BYTE>(0x412A45, 0xEB);
-		Renderer::OnFrame([] ()
+		Scheduler::OnFrame([] ()
 		{
 			if (*reinterpret_cast<Game::Font**>(0x62E4BAC))
 			{

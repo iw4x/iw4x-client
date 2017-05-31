@@ -1003,7 +1003,7 @@ namespace Components
 
 		Command::Add("delayReconnect", [](Command::Params*)
 		{
-			Renderer::OnDelay([]()
+			Scheduler::OnDelay([]()
 			{
 				Command::Execute("closemenu popup_reconnectingtoparty", false);
 				Command::Execute("reconnect", false);
@@ -1077,7 +1077,7 @@ namespace Components
 		// Allow hiding specific smodels
 		Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();
 
-		Renderer::OnFrame([]()
+		Scheduler::OnFrame([]()
 		{
 			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
 			if (!Game::CL_IsCgameInitialized() || !gameWorld || !Dvar::Var("r_listSModels").get<bool>()) return;

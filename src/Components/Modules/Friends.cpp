@@ -640,7 +640,7 @@ namespace Components
 
 		UIFeeder::Add(61.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
 
-		QuickPatch::OnShutdown([]()
+		Scheduler::OnShutdown([]()
 		{
 			Friends::ClearPresence("iw4x_server");
 			Friends::ClearPresence("iw4x_playing");

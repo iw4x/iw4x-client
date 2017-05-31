@@ -572,7 +572,7 @@ namespace Components
 
 		if (Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
-			Dedicated::OnFrame(Console::RefreshStatus);
+			Scheduler::OnFrame(Console::RefreshStatus);
 		}
 
 		// Code below is not necessary when performing unit tests!

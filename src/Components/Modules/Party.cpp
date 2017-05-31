@@ -271,7 +271,7 @@ namespace Components
 			Party::Connect(Party::Container.target);
 		});
 
-		Renderer::OnFrame([] ()
+		Scheduler::OnFrame([] ()
 		{
 			if (Party::Container.valid)
 			{

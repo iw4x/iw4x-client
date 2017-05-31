@@ -853,7 +853,7 @@ namespace Components
 
 		// This is placed here in case the anticheat has been disabled!
 #if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT) && defined(PROCTECT_PROCESS)
-		Scheduler::OnFrame(AntiCheat::ReadIntegrityCheck);
+		if(!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled()) Scheduler::OnFrame(AntiCheat::ReadIntegrityCheck);
 #endif
 	}
 

@@ -15,14 +15,28 @@ namespace Components
 		Scheduler::FrameOnceSignal.connect(callback);
 	}
 
+	void Scheduler::OnShutdown(Utils::Slot<Scheduler::Callback> callback)
+	{
+		Scheduler::ShutdownSignal.connect(callback);
+	}
+
 	void Scheduler::OnFrame(Utils::Slot<Scheduler::Callback> callback)
 	{
 		Scheduler::FrameSignal.connect(callback);
 	}
 
+	void Scheduler::OnReady(Utils::Slot<Scheduler::Callback> callback)
+	{
+		if (Scheduler::ReadyPassed) Scheduler::Once(callback);
+		else Scheduler::ReadySignal.connect(callback);
+	}
+
 	void Scheduler::ReadyHandler()
 	{
-		if (!FastFiles::Ready()) Scheduler::Once(Scheduler::ReadyHandler);
+		if (!FastFiles::Ready())
+		{
+			Scheduler::Once(Scheduler::ReadyHandler);
+		}
 		else
 		{
 			Scheduler::ReadyPassed = true;
@@ -69,15 +83,30 @@ namespace Components
 		signal();
 	}
 
+	void Scheduler::ShutdownStub(int num)
+	{
+		Scheduler::ShutdownSignal();
+		Utils::Hook::Call<void(int)>(0x46B370)(num);
+	}
+
+
 	Scheduler::Scheduler()
 	{
 		Scheduler::ReadyPassed = false;
 		Scheduler::Once(Scheduler::ReadyHandler);
+
+		Utils::Hook(0x4D697A, Scheduler::ShutdownStub, HOOK_CALL).install()->quick();
 	}
 
 	Scheduler::~Scheduler()
 	{
-		Scheduler::FrameOnceSignal.clear();
+		Scheduler::ReadySignal.clear();
+		Scheduler::ShutdownSignal.clear();
+
 		Scheduler::FrameSignal.clear();
+		Scheduler::FrameOnceSignal.clear();
+		Scheduler::DelayedSlots.clear();
+
+		Scheduler::ReadyPassed = false;
 	}
 }

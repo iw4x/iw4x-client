@@ -213,7 +213,7 @@ namespace Components
 		});
 
 		// Invocation handler
-		QuickPatch::OnReady(ConnectProtocol::Invocation);
+		Scheduler::OnReady(ConnectProtocol::Invocation);
 
 		ConnectProtocol::InstallProtocol();
 		ConnectProtocol::EvaluateProtocol();

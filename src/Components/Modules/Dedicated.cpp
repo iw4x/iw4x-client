@@ -380,7 +380,7 @@ namespace Components
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
 
 				// Transmit custom data
-				Dedicated::OnFrame([]()
+				Scheduler::OnFrame([]()
 				{
 					static std::uint64_t LastUpdate = 0;
 
@@ -396,7 +396,7 @@ namespace Components
 #ifdef USE_LEGACY_SERVER_LIST
 
 				// Heartbeats
-				Dedicated::OnFrame([] ()
+				Scheduler::OnFrame([] ()
 				{
 					static int LastHeartbeat = 0;
 
