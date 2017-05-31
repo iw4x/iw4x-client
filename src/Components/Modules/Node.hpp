@@ -90,6 +90,8 @@ namespace Components
 		static void DeleteInvalidNodes();
 		static void DeleteInvalidSessions();
 
+		static unsigned short GetPort();
+
 		static const char* GetStateName(EntryState state);
 	};
 }

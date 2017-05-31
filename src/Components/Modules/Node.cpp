@@ -261,7 +261,7 @@ namespace Components
 			entry->challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
 			Proto::Node::Packet packet;
-			packet.set_port(Network::GetPort());
+			packet.set_port(Node::GetPort());
 			packet.set_challenge(entry->challenge);
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
@@ -389,6 +389,7 @@ namespace Components
 
 		// ZoneBuilder doesn't require node stuff
 		if (ZoneBuilder::IsEnabled()) return;
+		Dvar::Register<bool>("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
 
 		// Generate our ECDSA key
 		Node::SignatureKey = Utils::Cryptography::ECC::GenerateKey(512);
@@ -413,7 +414,7 @@ namespace Components
 				std::string challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
 				Proto::Node::Packet packet;
-				packet.set_port(Network::GetPort());
+				packet.set_port(Node::GetPort());
 				packet.set_challenge(challenge);
 				packet.set_signature(Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, challenge));
 
@@ -467,7 +468,7 @@ namespace Components
 				packet.set_challenge(challenge);
 				packet.set_signature(signature);
 				packet.set_publickey(Node::SignatureKey.getPublicKey());
-				packet.set_port(Network::GetPort());
+				packet.set_port(Node::GetPort());
 
 				entry->lastTime = Game::Sys_Milliseconds();
 				entry->challenge = challenge;
@@ -951,6 +952,12 @@ namespace Components
 			Node::Nodes.clear();
 			Node::Sessions.clear();
 		}
+	}
+
+	unsigned short Node::GetPort()
+	{
+		if (Dvar::Var("net_natFix").get<bool>()) return 0;
+		return Network::GetPort();
 	}
 
 	bool Node::unitTest()
