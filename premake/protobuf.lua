@@ -61,6 +61,7 @@ function protobuf.project()
 		-- not our code, ignore POSIX usage warnings for now
 		defines { "_SCL_SECURE_NO_WARNINGS" }
 		warnings "Off"
+		linkoptions { "-IGNORE:4221" }
 
 		-- always build as static lib, as we include our custom classes and therefore can't perform shared linking
 		kind "StaticLib"
