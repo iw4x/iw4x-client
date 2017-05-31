@@ -10,8 +10,8 @@ namespace Components
 		{
 			const char* clantag = Game::Info_ValueForKey(infoString, std::to_string(i).data());
 
-			if (clantag) Tags[i] = clantag;
-			else Tags[i].clear();
+			if (clantag) Clantags::Tags[i] = clantag;
+			else Clantags::Tags[i].clear();
 		}
 	}
 
@@ -19,7 +19,7 @@ namespace Components
 	{
 		std::string list;
 
-		for (int i = 0; i < 18; i++)
+		for (int i = 0; i < 18; ++i)
 		{
 			char clantag[5] = { 0 };
 
@@ -37,11 +37,11 @@ namespace Components
 
 	const char* Clantags::GetUserClantag(std::uint32_t clientnum, const char* playername)
 	{
-		if (Tags[clientnum].empty()) return playername;
-		return Utils::String::VA("[%s] %s", Tags[clientnum].data(), playername);
+		if (Clantags::Tags[clientnum].empty()) return playername;
+		return Utils::String::VA("[%s] %s", Clantags::Tags[clientnum].data(), playername);
 	}
 
-	void __declspec(naked) Clantags::DrawPlayerNameOnScoreboard()
+	__declspec(naked) void Clantags::DrawPlayerNameOnScoreboard()
 	{
 		__asm
 		{
