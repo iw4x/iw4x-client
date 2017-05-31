@@ -194,7 +194,7 @@ namespace Components
 		});
 
 		// Verify the list on startup
-		QuickPatch::Once([] ()
+		Scheduler::Once([] ()
 		{
 			Bans::BanList list;
 			Bans::LoadBans(&list);

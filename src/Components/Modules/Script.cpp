@@ -8,7 +8,7 @@ namespace Components
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
 
-	Utils::Signal<Script::Callback> Script::VMShutdownSignal;
+	Utils::Signal<Scheduler::Callback> Script::VMShutdownSignal;
 
 	void Script::FunctionError()
 	{
@@ -247,7 +247,7 @@ namespace Components
 		Script::ScriptFunctions.push_back({ name, function, isDev });
 	}
 
-	void Script::OnVMShutdown(Utils::Slot<Script::Callback> callback)
+	void Script::OnVMShutdown(Utils::Slot<Scheduler::Callback> callback)
 	{
 		Script::VMShutdownSignal.connect(callback);
 	}

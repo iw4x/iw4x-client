@@ -404,7 +404,7 @@ namespace Components
 		Auth::LoadKey(true);
 		Steam::SteamUser()->GetSteamID();
 
-		QuickPatch::OnFrame(Auth::Frame);
+		Scheduler::OnFrame(Auth::Frame);
 
 		// Register dvar
 		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");

@@ -42,20 +42,20 @@ namespace Components
 	{
 		for (unsigned int i = 0; i < count; ++i)
 		{
-			Renderer::OnDelay([]()
+			Scheduler::OnDelay([]()
 			{
 				for (int i = 0; i < 3; ++i)
 				{
 					Game::gentity_t* entRef = Game::SV_AddTestClient();
 					if (entRef)
 					{
-						Renderer::OnDelay([entRef]()
+						Scheduler::OnDelay([entRef]()
 						{
 							Game::Scr_AddString("autoassign");
 							Game::Scr_AddString("team_marinesopfor");
 							Game::Scr_Notify(entRef, Game::SL_GetString("menuresponse", 0), 2);
 
-							Renderer::OnDelay([entRef]()
+							Scheduler::OnDelay([entRef]()
 							{
 								Game::Scr_AddString(Utils::String::VA("class%d", Utils::Cryptography::Rand::GenerateInt() % 5));
 								Game::Scr_AddString("changeclass");

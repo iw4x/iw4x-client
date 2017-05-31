@@ -564,7 +564,7 @@ namespace Components
 		FastFiles::AddZonePath("zone\\patch\\");
 		FastFiles::AddZonePath("zone\\dlc\\");
 
-		Renderer::OnFrame([] ()
+		Scheduler::OnFrame([] ()
 		{
 			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").get<bool>()) return;
 

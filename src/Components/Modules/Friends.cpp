@@ -597,7 +597,7 @@ namespace Components
 			}
 		});
 
-		QuickPatch::OnFrame([]()
+		Scheduler::OnFrame([]()
 		{
 			static Utils::Time::Interval timeInterval;
 			static Utils::Time::Interval sortInterval;
@@ -658,7 +658,7 @@ namespace Components
 			}
 		});
 
-		QuickPatch::Once([]()
+		Scheduler::Once([]()
 		{
 			if (Steam::Proxy::SteamFriends)
 			{

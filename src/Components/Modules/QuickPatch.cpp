@@ -3,66 +3,11 @@
 namespace Components
 {
 	int QuickPatch::FrameTime = 0;
-	bool QuickPatch::ReadyPassed = false;
-	Utils::Signal<QuickPatch::Callback> QuickPatch::ReadySignal;
-	Utils::Signal<QuickPatch::Callback> QuickPatch::ShutdownSignal;
 
 	int64_t* QuickPatch::GetStatsID()
 	{
 		static int64_t id = 0x110000100001337;
 		return &id;
-	}
-
-	void QuickPatch::OnReady(Utils::Slot<QuickPatch::Callback> callback)
-	{
-		if(QuickPatch::ReadyPassed) QuickPatch::Once(callback);
-		else QuickPatch::ReadySignal.connect(callback);
-	}
-
-	void QuickPatch::ReadyHandler()
-	{
-		if (!FastFiles::Ready()) QuickPatch::Once(QuickPatch::ReadyHandler);
-		else
-		{
-			QuickPatch::ReadyPassed = true;
-			QuickPatch::ReadySignal();
-			QuickPatch::ReadySignal.clear();
-		}
-	}
-
-	void QuickPatch::OnShutdown(Utils::Slot<QuickPatch::Callback> callback)
-	{
-		QuickPatch::ShutdownSignal.connect(callback);
-	}
-
-	void QuickPatch::ShutdownStub(int num)
-	{
-		QuickPatch::ShutdownSignal();
-		Utils::Hook::Call<void(int)>(0x46B370)(num);
-	}
-
-	void QuickPatch::OnFrame(Utils::Slot<QuickPatch::Callback> callback)
-	{
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
-		{
-			Dedicated::OnFrame(callback);
-		}
-		else
-		{
-			Renderer::OnFrame(callback);
-		}
-	}
-
-	void QuickPatch::Once(Utils::Slot<QuickPatch::Callback> callback)
-	{
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
-		{
-			Dedicated::Once(callback);
-		}
-		else
-		{
-			Renderer::Once(callback);
-		}
 	}
 
 	void QuickPatch::UnlockStats()
@@ -196,17 +141,14 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
-		QuickPatch::ReadyPassed = false;
-		QuickPatch::Once(QuickPatch::ReadyHandler);
-
 		QuickPatch::FrameTime = 0;
-		QuickPatch::OnFrame([]()
+		Scheduler::OnFrame([]()
 		{
 			QuickPatch::FrameTime = Game::Sys_Milliseconds();
 		});
 
 		// Make sure preDestroy is called when the game shuts down
-		QuickPatch::OnShutdown(Loader::PreDestroy);
+		Scheduler::OnShutdown(Loader::PreDestroy);
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
@@ -671,7 +613,7 @@ namespace Components
 			Dvar::Register<bool>("r_drawAabbTrees", false, Game::DVAR_FLAG_USERCREATED, "Draw aabb trees");
 		});
 
-		Renderer::OnFrame([]()
+		Scheduler::OnFrame([]()
 		{
 			if (!Game::CL_IsCgameInitialized() || !Dvar::Var("r_drawAabbTrees").get<bool>()) return;
 
@@ -735,8 +677,7 @@ namespace Components
 
 	QuickPatch::~QuickPatch()
 	{
-		QuickPatch::ReadySignal.clear();
-		QuickPatch::ShutdownSignal.clear();
+
 	}
 
 	bool QuickPatch::unitTest()

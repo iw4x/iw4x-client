@@ -140,7 +140,7 @@ namespace Components
 		Utils::Hook(0x48E5D3, Window::DrawCursorStub, HOOK_CALL).install()->quick();
 
 		// Draw the cursor if necessary
-		Renderer::OnFrame([] ()
+		Scheduler::OnFrame([] ()
 		{
 			if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 			{

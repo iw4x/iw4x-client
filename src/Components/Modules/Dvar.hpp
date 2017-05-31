@@ -5,8 +5,6 @@ namespace Components
 	class Dvar : public Component
 	{
 	public:
-		typedef void(Callback)();
-
 		class Flag
 		{
 		public:
@@ -44,14 +42,14 @@ namespace Components
 		Dvar();
 		~Dvar();
 
-		static void OnInit(Utils::Slot<Callback> callback);
+		static void OnInit(Utils::Slot<Scheduler::Callback> callback);
 
 		// Only strings and bools use this type of declaration
 		template<typename T> static Var Register(const char* name, T value, Flag flag, const char* description);
 		template<typename T> static Var Register(const char* name, T value, T min, T max, Flag flag, const char* description);
 
 	private:
-		static Utils::Signal<Callback> RegistrationSignal;
+		static Utils::Signal<Scheduler::Callback> RegistrationSignal;
 
 		static Game::dvar_t* RegisterName(const char* name, const char* defaultVal, Game::dvar_flag flag, const char* description);
 

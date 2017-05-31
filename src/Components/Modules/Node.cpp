@@ -895,7 +895,7 @@ namespace Components
 		});
 
 		// Install frame handlers
-		QuickPatch::OnFrame(Node::FrameHandler);
+		Scheduler::OnFrame(Node::FrameHandler);
 
 		Network::OnStart([] ()
 		{

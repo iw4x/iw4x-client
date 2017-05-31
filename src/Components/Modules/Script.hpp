@@ -6,8 +6,6 @@ namespace Components
 	class Script : public Component
 	{
 	public:
-		typedef void(Callback)();
-
 		class Function
 		{
 		public:
@@ -29,7 +27,7 @@ namespace Components
 		static int LoadScriptAndLabel(std::string script, std::string label);
 		static void AddFunction(std::string name, Game::scr_function_t function, bool isDev = false);
 
-		static void OnVMShutdown(Utils::Slot<Callback> callback);
+		static void OnVMShutdown(Utils::Slot<Scheduler::Callback> callback);
 
 	private:
 		static std::string ScriptName;
@@ -38,7 +36,7 @@ namespace Components
 		static std::vector<std::string> ScriptNameStack;
 		static unsigned short FunctionName;
 
-		static Utils::Signal<Callback> VMShutdownSignal;
+		static Utils::Signal<Scheduler::Callback> VMShutdownSignal;
 
 		static void CompileError(unsigned int offset, const char* message, ...);
 		static void PrintSourcePos(const char* filename, unsigned int offset);

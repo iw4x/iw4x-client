@@ -418,7 +418,7 @@ namespace Components
 		Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).install()->quick();
 
 		// Log missing empty assets
-		QuickPatch::OnFrame([] ()
+		Scheduler::OnFrame([] ()
 		{
 			if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
 			{

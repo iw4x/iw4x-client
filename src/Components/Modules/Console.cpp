@@ -614,7 +614,7 @@ namespace Components
 				}
 			}, HOOK_CALL).install()->quick();
 
-			QuickPatch::OnFrame([] ()
+			Scheduler::OnFrame([] ()
 			{
 				Console::LastRefresh = Game::Sys_Milliseconds();
 			});

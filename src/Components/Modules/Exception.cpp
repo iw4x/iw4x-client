@@ -174,7 +174,7 @@ namespace Components
 
 #ifdef DEBUG
 		// Display DEBUG branding, so we know we're on a debug build
-		Renderer::OnFrame([]()
+		Scheduler::OnFrame([]()
 		{
 			Game::Font* font = Game::R_RegisterFont("fonts/normalFont", 0);
 			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };

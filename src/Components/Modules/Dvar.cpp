@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	Utils::Signal<Dvar::Callback> Dvar::RegistrationSignal;
+	Utils::Signal<Scheduler::Callback> Dvar::RegistrationSignal;
 
 	Dvar::Var::Var(std::string dvarName) : Var()
 	{
@@ -131,7 +131,7 @@ namespace Components
 		return Game::Dvar_RegisterInt(name, value, min, max, flag.val, description);
 	}
 
-	void Dvar::OnInit(Utils::Slot<Dvar::Callback> callback)
+	void Dvar::OnInit(Utils::Slot<Scheduler::Callback> callback)
 	{
 		Dvar::RegistrationSignal.connect(callback);
 	}

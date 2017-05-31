@@ -2,9 +2,6 @@
 
 namespace Components
 {
-	Utils::Signal<Dedicated::Callback> Dedicated::FrameSignal;
-	Utils::Signal<Dedicated::Callback> Dedicated::FrameOnceSignal;
-
 	SteamID Dedicated::PlayerGuids[18][2];
 
 	bool Dedicated::SendChat;
@@ -170,7 +167,7 @@ namespace Components
 		partyEnable = Dvar::Var("party_enable").get<bool>();
 		mapname = Dvar::Var("mapname").get<std::string>();
 
-		QuickPatch::Once([]()
+		Scheduler::Once([]()
 		{
 			Dvar::Var("party_enable").set(partyEnable);
 
@@ -280,32 +277,12 @@ namespace Components
 		Network::SendCommand(master, "heartbeat", "IW4");
 	}
 
-	void Dedicated::Once(Utils::Slot<Dedicated::Callback> callback)
-	{
-		Dedicated::FrameOnceSignal.connect(callback);
-	}
-
-	void Dedicated::OnFrame(Utils::Slot<Dedicated::Callback> callback)
-	{
-		Dedicated::FrameSignal.connect(callback);
-	}
-
-	void Dedicated::FrameHandler()
-	{
-		auto copy = Dedicated::FrameSignal;
-		copy();
-
-		copy = Dedicated::FrameOnceSignal;
-		Dedicated::FrameOnceSignal.clear();
-		copy();
-	}
-
 	__declspec(naked) void Dedicated::FrameStub()
 	{
 		__asm
 		{
 			pushad
-			call Dedicated::FrameHandler
+			call Scheduler::FrameHandler
 			popad
 
 			push 5A8E80h
@@ -323,7 +300,7 @@ namespace Components
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) // Run zonebuilder as dedi :P
 		{
 			// Make sure all callbacks are handled
-			Dedicated::OnFrame(Steam::SteamAPI_RunCallbacks);
+			Scheduler::OnFrame(Steam::SteamAPI_RunCallbacks);
 
 			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't act as node");
 
@@ -546,7 +523,7 @@ namespace Components
 			});
 		}
 
-		QuickPatch::OnFrame([]()
+		Scheduler::OnFrame([]()
 		{
 			if(Dvar::Var("sv_running").get<bool>())
 			{
@@ -563,7 +540,6 @@ namespace Components
 
 	Dedicated::~Dedicated()
 	{
-		Dedicated::FrameOnceSignal.clear();
-		Dedicated::FrameSignal.clear();
+
 	}
 }

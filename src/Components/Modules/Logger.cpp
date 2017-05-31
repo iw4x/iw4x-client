@@ -247,7 +247,7 @@ namespace Components
 
 		Logger::PipeOutput(nullptr);
 
-		QuickPatch::OnFrame(Logger::Frame);
+		Scheduler::OnFrame(Logger::Frame);
 
 		Utils::Hook(0x4B0218, Logger::GameLogStub, HOOK_CALL).install()->quick();
 		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).install()->quick();

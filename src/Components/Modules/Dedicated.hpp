@@ -5,8 +5,6 @@ namespace Components
 	class Dedicated : public Component
 	{
 	public:
-		typedef void(Callback)();
-
 		Dedicated();
 		~Dedicated();
 
@@ -16,18 +14,10 @@ namespace Components
 
 		static void Heartbeat();
 
-		static void OnFrame(Utils::Slot<Callback> callback);
-		static void Once(Utils::Slot<Callback> callback);
-
 	private:
-		static Utils::Signal<Callback> FrameSignal;
-		static Utils::Signal<Callback> FrameOnceSignal;
-
 		static bool SendChat;
 
 		static void MapRotate();
-		static void FrameHandler();
-		static void FrameStub();
 		static void InitDedicatedServer();
 
 		static void PostInitialization();
@@ -37,6 +27,8 @@ namespace Components
 
 		static void PreSayStub();
 		static void PostSayStub();
+
+		static void FrameStub();
 
 		static void TransmitGuids();
 

@@ -20,7 +20,7 @@ namespace Components
 	{
 		if (Download::CLDownload.running) return;
 
-		QuickPatch::Once([]()
+		Scheduler::Once([]()
 		{
 			Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(0));
 			Dvar::Var("ui_dl_progress").set("(0/0) %");
@@ -119,7 +119,7 @@ namespace Components
 			if (!framePushed)
 			{
 				framePushed = true;
-				QuickPatch::Once([]()
+				Scheduler::Once([]()
 				{
 					framePushed = false;
 					Dvar::Var("ui_dl_progress").set(Utils::String::VA("(%d/%d) %d%%", dlIndex, dlSize, dlProgress));
@@ -149,7 +149,7 @@ namespace Components
 					dlDelta = delta;
 					dlTsBytes = fDownload->download->timeStampBytes;
 
-					QuickPatch::Once([]()
+					Scheduler::Once([]()
 					{
 						Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(dlTimeLeft));
 						Dvar::Var("ui_dl_transRate").set(Utils::String::FormatBandwidth(dlTsBytes, dlDelta));
@@ -241,7 +241,7 @@ namespace Components
 			download->thread.detach();
 			download->clear();
 
-			QuickPatch::Once([]()
+			Scheduler::Once([]()
 			{
 				Command::Execute("closemenu mod_download_popmenu");
 				Party::ConnectError("Failed to download the modlist!");
@@ -259,7 +259,7 @@ namespace Components
 			download->thread.detach();
 			download->clear();
 
-			QuickPatch::Once([]()
+			Scheduler::Once([]()
 			{
 				Command::Execute("closemenu mod_download_popmenu");
 				Party::ConnectError("Failed to parse the modlist!");
@@ -285,7 +285,7 @@ namespace Components
 				download->thread.detach();
 				download->clear();
 
-				QuickPatch::Once([]()
+				Scheduler::Once([]()
 				{
 					Dvar::Var("partyend_reason").set(mod);
 					mod.clear();
@@ -305,7 +305,7 @@ namespace Components
 
 		if(download->isMap)
 		{
-			QuickPatch::Once([]()
+			Scheduler::Once([]()
 			{
 				Command::Execute("reconnect", false);
 			});
@@ -313,7 +313,7 @@ namespace Components
 		else
 		{
 			// Run this on the main thread
-			QuickPatch::Once([]()
+			Scheduler::Once([]()
 			{
 				auto fsGame = Dvar::Var("fs_game");
 				fsGame.set(mod);
@@ -754,7 +754,7 @@ namespace Components
 			});
 		}
 
-		QuickPatch::OnFrame([]()
+		Scheduler::OnFrame([]()
 		{
 			int workingCount = 0;
 

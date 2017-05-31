@@ -64,6 +64,7 @@ namespace Components
 	};
 }
 
+#include "Modules/Scheduler.hpp"
 #include "Modules/Auth.hpp"
 #include "Modules/Bans.hpp"
 #include "Modules/Bots.hpp"

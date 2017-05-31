@@ -159,7 +159,7 @@ namespace Components
 
 		QuickPatch::OnReady([]()
 		{
-			Renderer::OnFrame(Toast::Handler);
+			Scheduler::OnFrame(Toast::Handler);
 		});
 
 		Command::Add("testtoast", [] (Command::Params*)

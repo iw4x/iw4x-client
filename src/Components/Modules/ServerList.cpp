@@ -849,11 +849,11 @@ namespace Components
 		UIScript::AddOwnerDraw(253, ServerList::UpdateGameType);
 
 		// Add frame callback
-		Renderer::OnFrame(ServerList::Frame);
+		Scheduler::OnFrame(ServerList::Frame);
 
 		// This is placed here in case the anticheat has been disabled!
 #if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT) && defined(PROCTECT_PROCESS)
-		Renderer::OnFrame(AntiCheat::ReadIntegrityCheck);
+		Scheduler::OnFrame(AntiCheat::ReadIntegrityCheck);
 #endif
 	}
 
