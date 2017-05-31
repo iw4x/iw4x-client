@@ -7,7 +7,7 @@ namespace Components
 
 	CClient* CardTitles::GetClientByIndex(std::uint32_t index)
 	{
-		return reinterpret_cast<CClient*>(0x8E77B0 + (sizeof CClient * index));
+		return &reinterpret_cast<CClient*>(0x8E77B0)[index];
 	}
 
 	std::int32_t CardTitles::GetPlayerCardClientInfo(std::int32_t lookupResult, playercarddata_s* data)
@@ -25,7 +25,6 @@ namespace Components
 			for (auto clientNum = 0; clientNum < 18; clientNum++)
 			{
 				CClient* c = GetClientByIndex(clientNum);
-
 				if (c != nullptr) 
 				{
 					if (!strcmp(data->name, c->Name)) 
@@ -82,14 +81,17 @@ namespace Components
 				{
 					if (prefix == 0xFE)
 					{
-						// 0xFF in front of the title to skip localization. Or else it will wait for a couple of seconds for the asset of type localize
-						const char* title = Utils::String::VA("\x15%s", CustomTitleDvar.get<const char*>());
+						if (!CustomTitleDvar.get<std::string>().empty())
+						{
+							// 0xFF in front of the title to skip localization. Or else it will wait for a couple of seconds for the asset of type localize
+							const char* title = Utils::String::VA("\x15%s", CustomTitleDvar.get<const char*>());
 
-						// prepare return value
-						operand->internals.stringVal.string = title;
-						operand->dataType = Game::VAL_STRING;
+							// prepare return value
+							operand->internals.stringVal.string = title;
+							operand->dataType = Game::VAL_STRING;
 
-						return title;
+							return title;
+						}
 					}
 					else if (prefix == 0xFF)
 					{
@@ -115,41 +117,43 @@ namespace Components
 		return nullptr;
 	}
 
-	void __declspec(naked) CardTitles::TableLookupByRowHookStub()
+	__declspec(naked) void CardTitles::TableLookupByRowHookStub()
 	{
 		__asm 
 		{
-			push esi;
-			push ebx;
-			
-			pushad;
-			call TableLookupByRowHook;
-			cmp eax, 0;
-			popad;
+			push eax
+			pushad
 
-			jz OriginalTitle;
+			push esi
+			push ebx
 
-			add esp, 8;
+			call TableLookupByRowHook
+			add esp, 8
 
-			pop ecx;
-			mov ecx, DWORD ptr[esi + 4];
-			retn;
+			mov [esp + 20h], eax
+			popad
+			pop eax
+
+			cmp eax, 0
+			jz OriginalTitle
+
+			pop ecx
+			mov ecx, DWORD ptr[esi + 4]
+			retn
 
 		OriginalTitle:
 
-			add esp, 8;
+			mov eax, [esi + 50h]
+			cmp eax, 3
 
-			mov eax, [esi + 50h];
-			cmp eax, 3;
-
-			push 62DCC7h;
-			retn;
+			push 62DCC7h
+			retn
 		}
 	}
 
 	void CardTitles::SendCustomTitlesToClients() 
 	{
-		const char* list = "";
+		std::string list;
 
 		for (int i = 0; i < 18; i++)
 		{
@@ -164,11 +168,11 @@ namespace Components
 				memset(playerTitle, 0, 18);
 			}
 
-			list = Utils::String::VA("%s\\%s\\%s", list, std::to_string(i).c_str(), playerTitle);
+			list.append(Utils::String::VA("\\%s\\%s", std::to_string(i).c_str(), playerTitle));
 		}
 
-		list = Utils::String::VA("%c customTitles \"%s\"", 21, list);
-		Game::SV_GameSendServerCommand(-1, 0, list);
+		std::string command = Utils::String::VA("%c customTitles \"%s\"", 21, list.data());
+		Game::SV_GameSendServerCommand(-1, 0, command.data());
 	}
 
 	void CardTitles::ParseCustomTitles(const char* msg) 
@@ -177,8 +181,8 @@ namespace Components
 		{
 			const char* playerTitle = Game::Info_ValueForKey(msg, std::to_string(i).c_str());
 
-			if (playerTitle) CustomTitles[i] = playerTitle;
-			else CustomTitles[i].clear();
+			if (playerTitle) CardTitles::CustomTitles[i] = playerTitle;
+			else CardTitles::CustomTitles[i].clear();
 		}
 	}
 
@@ -209,10 +213,10 @@ namespace Components
 			CardTitles::CustomTitles[i].clear();
 		}
 
-		Utils::Hook(0x62EB26, GetPlayerCardClientInfoStub).install()->quick();
+		Utils::Hook(0x62EB26, CardTitles::GetPlayerCardClientInfoStub).install()->quick();
 
 		// Table lookup stuff
-		Utils::Hook(0x62DCC1, TableLookupByRowHookStub).install()->quick();
+		Utils::Hook(0x62DCC1, CardTitles::TableLookupByRowHookStub).install()->quick();
 		Utils::Hook::Nop(0x62DCC6, 1);
 	}
 
