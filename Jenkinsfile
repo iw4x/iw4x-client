@@ -279,8 +279,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 					}
 				}
 			}
-			/* Temporarily disabled
-			parallel executions*/
+			parallel executions
 		}
 	}
 
