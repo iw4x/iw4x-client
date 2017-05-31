@@ -25,7 +25,7 @@ namespace Components
 
 			if (Game::svs_clients[i].state >= 3)
 			{
-				strncpy_s(clantag, Game::Info_ValueForKey(Game::svs_clients[i].connectInfoString, "iw4x_clantag"), 4);
+				strncpy_s(clantag, Game::Info_ValueForKey(Game::svs_clients[i].connectInfoString, "clantag"), 4);
 			}
 
 			list.append(Utils::String::VA("\\%s\\%s", std::to_string(i).data(), clantag));
@@ -70,7 +70,7 @@ namespace Components
 		// Create clantag dvar
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<const char*>("iw4x_clantag", "", Game::dvar_flag::DVAR_FLAG_USERINFO | Game::dvar_flag::DVAR_FLAG_SAVED, "If set, your clantag will be shown on the scoreboard.");
+			Dvar::Register<const char*>("clantag", "", Game::dvar_flag::DVAR_FLAG_USERINFO | Game::dvar_flag::DVAR_FLAG_SAVED, "If set, your clantag will be shown on the scoreboard.");
 		});
 
 		// Servercommand hook
