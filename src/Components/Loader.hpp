@@ -9,7 +9,12 @@ namespace Components
 		virtual ~Component() {};
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		virtual const char* getName() { return "Unknown"; };
+		virtual std::string getName()
+		{
+			std::string name = typeid(*this).name();
+			Utils::String::Replace(name, "class Components::", "");
+			return name;
+		};
 #endif
 
 		// It's illegal to spawn threads in DLLMain, and apparently it causes problems if they are destroyed there as well.
@@ -33,6 +38,20 @@ namespace Components
 		static bool IsPregame();
 		static bool IsPostgame();
 		static bool IsComInitialized();
+
+		template <typename T>
+		static T* GetInstance()
+		{
+			for (auto& component : Loader::Components)
+			{
+				if (typeid(*component) == typeid(T))
+				{
+					return reinterpret_cast<T*>(component);
+				}
+			}
+
+			return nullptr;
+		}
 
 		static Utils::Memory::Allocator* GetAlloctor();
 

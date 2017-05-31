@@ -8,10 +8,6 @@ namespace Components
 		ModList();
 		~ModList();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "ModList"; };
-#endif
-
 		static void RunMod(std::string mod);
 
 	private:

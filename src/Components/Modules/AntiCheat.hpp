@@ -16,10 +16,6 @@ namespace Components
 		AntiCheat();
 		~AntiCheat();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "AntiCheat"; };
-#endif
-
 		static void CrashClient();
 
 		static void InitLoadLibHook();

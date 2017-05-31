@@ -7,10 +7,6 @@ namespace Components
 	public:
 		Theatre();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Theatre"; };
-#endif
-
 		static void StopRecording();
 
 	private:

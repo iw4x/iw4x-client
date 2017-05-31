@@ -8,10 +8,6 @@ namespace Components
 		Auth();
 		~Auth();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Auth"; };
-#endif
-
 		void preDestroy() override;
 		bool unitTest() override;
 

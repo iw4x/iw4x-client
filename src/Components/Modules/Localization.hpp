@@ -8,10 +8,6 @@ namespace Components
 		Localization();
 		~Localization();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Localization"; };
-#endif
-
 		static void Set(std::string key, std::string value);
 		static const char* Get(const char* key);
 

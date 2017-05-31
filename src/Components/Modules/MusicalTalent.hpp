@@ -8,10 +8,6 @@ namespace Components
 		MusicalTalent();
 		~MusicalTalent();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "MusicalTalent"; };
-#endif
-
 		static void Replace(std::string sound, const char* file);
 
 	private:

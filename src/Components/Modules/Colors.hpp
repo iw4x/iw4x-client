@@ -8,10 +8,6 @@ namespace Components
 		Colors();
 		~Colors();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Colors"; };
-#endif
-
 		static void Strip(const char* in, char* out, int max);
 		static std::string Strip(std::string in);
 

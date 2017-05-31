@@ -8,10 +8,6 @@ namespace Components
 		FastFiles();
 		~FastFiles();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "FastFiles"; };
-#endif
-
 		static void AddZonePath(std::string path);
 		static std::string Current();
 		static bool Ready();

@@ -10,10 +10,6 @@ namespace Components
 	public:
 		Lean();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Lean"; };
-#endif
-
 	private:
 		static Game::kbutton_t in_leanleft;
 		static Game::kbutton_t in_leanright;

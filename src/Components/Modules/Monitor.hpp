@@ -7,10 +7,6 @@ namespace Components
 	public:
 		Monitor();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Monitor"; };
-#endif
-
 		static bool IsEnabled();
 
 	private:

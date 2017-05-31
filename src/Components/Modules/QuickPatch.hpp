@@ -10,10 +10,6 @@ namespace Components
 		QuickPatch();
 		~QuickPatch();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "QuickPatch"; };
-#endif
-
 		bool unitTest() override;
 
 		static void UnlockStats();

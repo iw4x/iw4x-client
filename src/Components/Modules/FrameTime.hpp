@@ -7,10 +7,6 @@ namespace Components
 	public:
 		FrameTime();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "FrameTime"; };
-#endif
-
 	private:
 		static void SVFrameWaitStub();
 		static void SVFrameWaitFunc();

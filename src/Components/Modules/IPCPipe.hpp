@@ -65,10 +65,6 @@ namespace Components
 	public:
 		IPCPipe();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "IPCPipe"; };
-#endif
-
 		void preDestroy() override;
 
 		static bool Write(std::string command, std::string data);

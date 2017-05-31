@@ -22,10 +22,6 @@ namespace Components
 		AssetHandler();
 		~AssetHandler();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "AssetHandler"; };
-#endif
-
 		static void OnFind(Game::XAssetType type, Utils::Slot<Callback> callback);
 		static void OnLoad(Utils::Slot<RestrictCallback> callback);
 

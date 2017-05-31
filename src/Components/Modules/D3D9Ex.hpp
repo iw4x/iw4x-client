@@ -7,10 +7,6 @@ namespace Components
 	public:
 		D3D9Ex();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "D3D9Ex"; };
-#endif
-
 	private:
 
 		class D3D9Device : public IDirect3DDevice9

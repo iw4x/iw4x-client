@@ -32,10 +32,6 @@ namespace Components
 		ServerList();
 		~ServerList();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "ServerList"; };
-#endif
-
 		static void Refresh(UIScript::Token);
 		static void RefreshVisibleList(UIScript::Token);
 		static void UpdateVisibleList(UIScript::Token);

@@ -21,10 +21,6 @@ namespace Components
 		Node();
 		~Node();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Node"; };
-#endif
-
 		bool unitTest() override;
 
 		static void SyncNodeList();

@@ -8,10 +8,6 @@ namespace Components
 		ModelSurfs();
 		~ModelSurfs();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "ModelSurfs"; };
-#endif
-
 	private:
 		static std::unordered_map<void*, IUnknown*> BufferMap;
 		static std::unordered_map<std::string, Game::CModelAllocData*> AllocMap;

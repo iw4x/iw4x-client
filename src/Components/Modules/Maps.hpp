@@ -49,10 +49,6 @@ namespace Components
 		Maps();
 		~Maps();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Maps"; };
-#endif
-
 		static void HandleAsSPMap();
 		static void AddDependency(std::string expression, std::string zone);
 

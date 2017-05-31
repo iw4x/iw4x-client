@@ -9,10 +9,6 @@ namespace Components
 		Download();
 		~Download();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "Download"; };
-#endif
-
 		void preDestroy() override;
 
 		static void InitiateClientDownload(std::string mod, bool map = false);

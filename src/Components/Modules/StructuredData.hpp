@@ -26,10 +26,6 @@ namespace Components
 		StructuredData();
 		~StructuredData();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		const char* getName() override { return "StructuredData"; };
-#endif
-
 	private:
 		static bool UpdateVersionOffsets(Game::StructuredDataDefSet *set, Game::StructuredDataBuffer *buffer, Game::StructuredDataDef *oldDef);
 
