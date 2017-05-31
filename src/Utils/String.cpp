@@ -3,25 +3,51 @@
 #include "base128.h"
 #endif
 
-#define VA_BUFFER_COUNT		32
-#define VA_BUFFER_SIZE		65536
-
 namespace Utils
 {
 	namespace String
 	{
+		VAProvider::VAProvider(size_t buffers) : currentBuffer(0)
+		{
+			this->stringBuffers.resize(buffers);
+		}
+
+		char* VAProvider::get(const char* format, va_list ap)
+		{
+			++this->currentBuffer %= this->stringBuffers.size();
+			auto& buffer = this->stringBuffers[this->currentBuffer];
+
+			if (!buffer.first || !buffer.second)
+			{
+				buffer.first = 256;
+				if (buffer.second) this->allocator.free(buffer.second);
+				buffer.second = this->allocator.allocateArray<char>(buffer.first + 1);
+			}
+
+			while(true)
+			{
+				int res = vsnprintf_s(buffer.second, buffer.first, _TRUNCATE, format, ap);
+				if (res > 0) break; // Success
+				if (res == 0) return ""; // Error
+
+				buffer.first *= 2;
+
+				this->allocator.free(buffer.second);
+				buffer.second = this->allocator.allocateArray<char>(buffer.first + 1);
+			}
+
+			return buffer.second;
+		}
+
 		const char *VA(const char *fmt, ...)
 		{
-			static char g_vaBuffer[VA_BUFFER_COUNT][VA_BUFFER_SIZE];
-			static int g_vaNextBufferIndex = 0;
+			static thread_local VAProvider provider;
 
 			va_list ap;
 			va_start(ap, fmt);
-			char* dest = g_vaBuffer[g_vaNextBufferIndex];
-			vsnprintf_s(g_vaBuffer[g_vaNextBufferIndex], VA_BUFFER_SIZE, fmt, ap);
-			g_vaNextBufferIndex = (g_vaNextBufferIndex + 1) % VA_BUFFER_COUNT;
+			const char* result = provider.get(fmt, ap);
 			va_end(ap);
-			return dest;
+			return result;
 		}
 
 		std::string ToLower(std::string input)

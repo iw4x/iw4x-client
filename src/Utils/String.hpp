@@ -4,6 +4,20 @@ namespace Utils
 {
 	namespace String
 	{
+		class VAProvider
+		{
+		public:
+			VAProvider(size_t buffers = 8);
+
+			char* get(const char* format, va_list ap);
+
+		private:
+			size_t currentBuffer;
+			std::vector<std::pair<size_t,char*>> stringBuffers;
+
+			Utils::Memory::Allocator allocator;
+		};
+
 		const char *VA(const char *fmt, ...);
 
 		int IsSpace(int c);

@@ -43,5 +43,8 @@ namespace Components
 		Utils::Hook(0x627695, 0x627040, HOOK_CALL).install()->quick();
 		Utils::Hook(0x43D1C7, Threading::PacketEventStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x6272E3, Threading::FrameEpilogueStub, HOOK_JUMP).install()->quick();
+
+		// Make VA thread safe
+		Utils::Hook(0x4785B0, Utils::String::VA, HOOK_JUMP).install()->quick();
 	}
 }
