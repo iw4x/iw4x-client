@@ -175,7 +175,7 @@ def doUnitTests(name) {
 // Returns the IW4x executable branch to use
 def iw4xExecutableBranch() {
 	try {
-	    return IW4X_EXECUTABLE_BRANCH;
+		return IW4X_EXECUTABLE_BRANCH;
 	} catch(MissingPropertyException) {
 		return "master";
 	}
@@ -195,8 +195,8 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 				jobWorkspace("versioning") {
 					if (env.BRANCH_NAME == 'master')
 					{
-					  echo 'Reset build environment'
-					  deleteDir()
+						echo 'Reset build environment'
+						deleteDir()
 					}
 
 					retry(5) {
@@ -241,46 +241,51 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 	stage("Testing") {
 		gitlabCommitStatus("Testing") {
 			executions = [:]
-			timeout(10) {
-			  for (int i = 0; i < testing.size(); i++) {
-			  	def entry = testing.get(i)
+			try {
+				timeout(10) {
+					for (int i = 0; i < testing.size(); i++) {
+						def entry = testing.get(i)
 
-			  	def testName = entry[0]
-			  	def test = entry[1]
+						def testName = entry[0]
+						def test = entry[1]
 
-			  	executions["$testName on Windows"] = {
-			  		node("windows") {
-			  			jobWorkspace(test.WorkspaceID) {
-			  				doUnitTests(test.StashName)
-			  			}
-			  		}
-			  	}
-			  	executions["$testName on Linux"] = {
-			  		node("docker && linux && amd64") {
-			  			wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-			  				try {
-			  					def image = null
-			  					dir("src") {
-			  						unstash "jenkins-files"
-			  						image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
-			  						deleteDir()
-			  					}
-			  					image.inside {
-			  						doUnitTests(test.StashName)
-			  					}
-			  				} catch (Exception e) {
-			  					if (isUnix()) {
-			  						manager.buildUnstable()
-			  						manager.addWarningBadge "$testName unit test failed on Linux"
-			  					} else {
-			  						throw e
-			  					}
-			  				}
-			  			}
-			  		}
-			  	}
-			  }
-			  parallel executions
+						executions["$testName on Windows"] = {
+							node("windows") {
+								jobWorkspace(test.WorkspaceID) {
+									doUnitTests(test.StashName)
+								}
+							}
+						}
+						executions["$testName on Linux"] = {
+							node("docker && linux && amd64") {
+								wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+									try {
+										def image = null
+										dir("src") {
+											unstash "jenkins-files"
+											image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
+											deleteDir()
+										}
+										image.inside {
+											doUnitTests(test.StashName)
+										}
+									} catch (Exception e) {
+										if (isUnix()) {
+											manager.buildUnstable()
+											manager.addWarningBadge "$testName unit test failed on Linux"
+										} else {
+											throw e
+										}
+									}
+								}
+							}
+						}
+					}
+					parallel executions
+				}
+			} catch (Exception e) {
+				manager.buildUnstable()
+				manager.addWarningBadge "Tests ran too long."
 			}
 		}
 	}
