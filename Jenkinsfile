@@ -123,7 +123,7 @@ def doUnitTests(name) {
 	def localization = readFile("${tool "Modern Warfare 2"}/localization.txt").split("\r?\n")[0]
 
 	try {
-		timeout(time: 180, unit: "MINUTES") {
+		timeout(time: 10, unit: "MINUTES") {
 			// Set up environment
 			if (isUnix()) {
                 def mw2dir = tool "Modern Warfare 2"
@@ -241,51 +241,37 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 	stage("Testing") {
 		gitlabCommitStatus("Testing") {
 			executions = [:]
-			try {
-				timeout(10) {
-					for (int i = 0; i < testing.size(); i++) {
-						def entry = testing.get(i)
+			for (int i = 0; i < testing.size(); i++) {
+				def entry = testing.get(i)
 
-						def testName = entry[0]
-						def test = entry[1]
+				def testName = entry[0]
+				def test = entry[1]
 
-						executions["$testName on Windows"] = {
-							node("windows") {
-								jobWorkspace(test.WorkspaceID) {
+				executions["$testName on Windows"] = {
+					node("windows") {
+						jobWorkspace(test.WorkspaceID) {
+							doUnitTests(test.StashName)
+						}
+					}
+				}
+				executions["$testName on Linux"] = {
+					node("docker && linux && amd64") {
+						wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+							try {
+								def image = null
+								dir("src") {
+									unstash "jenkins-files"
+									image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
+									deleteDir()
+								}
+								image.inside {
 									doUnitTests(test.StashName)
 								}
 							}
 						}
-						executions["$testName on Linux"] = {
-							node("docker && linux && amd64") {
-								wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-									try {
-										def image = null
-										dir("src") {
-											unstash "jenkins-files"
-											image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
-											deleteDir()
-										}
-										image.inside {
-											doUnitTests(test.StashName)
-										}
-									} catch (Exception e) {
-										if (isUnix()) {
-											manager.buildUnstable()
-											manager.addWarningBadge "$testName unit test failed on Linux"
-										} else {
-											throw e
-										}
-									}
-								}
-							}
-						}
 					}
-					parallel executions
 				}
-			} catch (Exception e) {
-				manager.buildUnstable()
-				manager.addWarningBadge "Tests ran too long."
+				parallel executions
 			}
 		}
 	}
