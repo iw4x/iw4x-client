@@ -257,16 +257,14 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 				executions["$testName on Linux"] = {
 					node("docker && linux && amd64") {
 						wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-							try {
-								def image = null
-								dir("src") {
-									unstash "jenkins-files"
-									image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
-									deleteDir()
-								}
-								image.inside {
-									doUnitTests(test.StashName)
-								}
+							def image = null
+							dir("src") {
+								unstash "jenkins-files"
+								image = docker.build("github.com/IW4x/iw4x-client-testing-wine32", "--rm --force-rm -f jenkins/wine32.Dockerfile jenkins")
+								deleteDir()
+							}
+							image.inside {
+								doUnitTests(test.StashName)
 							}
 						}
 					}
