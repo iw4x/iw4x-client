@@ -712,7 +712,7 @@ namespace Components
 
 			Network::OnStart([] ()
 			{
-				mg_connection* nc = mg_bind(&Download::Mgr, Utils::String::VA("%hu", (Dvar::Var("net_port").get<int>() & 0xFFFF)), Download::EventHandler);
+				mg_connection* nc = mg_bind(&Download::Mgr, Utils::String::VA("%hu", Network::GetPort()), Download::EventHandler);
 
 				if (nc)
 				{

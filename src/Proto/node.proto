@@ -8,6 +8,10 @@ message Packet
 	bytes challenge = 1;
 	bytes signature = 2;
 	bytes publickey = 3;
+
+	// The port is used to check if a dedi sends data through a redirected port.
+	// This usually means the port is not forwarded
+	uint32 port     = 4;
 }
 
 message List

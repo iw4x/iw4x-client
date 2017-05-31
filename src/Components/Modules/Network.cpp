@@ -98,7 +98,7 @@ namespace Components
 	bool Network::Address::isSelf()
 	{
 		if (Game::NET_IsLocalAddress(this->address)) return true; // Loopback
-		if (this->getPort() != (Dvar::Var("net_port").get<int>() & 0xFFFF)) return false; // Port not equal
+		if (this->getPort() != Network::GetPort()) return false; // Port not equal
 
 		for (int i = 0; i < *Game::numIP; ++i)
 		{
@@ -285,6 +285,11 @@ namespace Components
 	void Network::NetworkStart()
 	{
 		Network::StartupSignal();
+	}
+
+	unsigned short Network::GetPort()
+	{
+		return static_cast<unsigned short>(Dvar::Var(0x64A3004).get<unsigned int>());
 	}
 
 	__declspec(naked) void Network::NetworkStartStub()

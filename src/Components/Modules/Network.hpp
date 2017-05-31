@@ -58,6 +58,8 @@ namespace Components
 		Network();
 		~Network();
 
+		static unsigned short GetPort();
+
 		static void Handle(std::string packet, Utils::Slot<Callback> callback);
 		static void OnStart(Utils::Slot<CallbackRaw> callback);
 

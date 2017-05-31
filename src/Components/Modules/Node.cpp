@@ -261,6 +261,7 @@ namespace Components
 			entry->challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
 			Proto::Node::Packet packet;
+			packet.set_port(Network::GetPort());
 			packet.set_challenge(entry->challenge);
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
@@ -412,6 +413,7 @@ namespace Components
 				std::string challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
 				Proto::Node::Packet packet;
+				packet.set_port(Network::GetPort());
 				packet.set_challenge(challenge);
 				packet.set_signature(Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, challenge));
 
@@ -428,6 +430,11 @@ namespace Components
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
+				Proto::Node::Packet packet;
+				if (!packet.ParseFromString(data)) return;
+				if (packet.challenge().empty()) return;
+				if (packet.port() && packet.port() != address.getPort()) return;
+
 				// Create a new entry, if we don't already know it
 				if (!Node::FindNode(address))
 				{
@@ -441,10 +448,6 @@ namespace Components
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Received registration request from %s\n", address.getCString());
 #endif
-
-				Proto::Node::Packet packet;
-				if (!packet.ParseFromString(data)) return;
-				if (packet.challenge().empty()) return;
 
 				std::string signature = Utils::Cryptography::ECC::SignMessage(Node::SignatureKey, packet.challenge());
 				std::string challenge = Utils::Cryptography::Rand::GenerateChallenge();
@@ -464,6 +467,7 @@ namespace Components
 				packet.set_challenge(challenge);
 				packet.set_signature(signature);
 				packet.set_publickey(Node::SignatureKey.getPublicKey());
+				packet.set_port(Network::GetPort());
 
 				entry->lastTime = Game::Sys_Milliseconds();
 				entry->challenge = challenge;
@@ -489,6 +493,7 @@ namespace Components
 				if (packet.challenge().empty()) return;
 				if (packet.publickey().empty()) return;
 				if (packet.signature().empty()) return;
+				if (packet.port() && packet.port() != address.getPort()) return;
 
 				std::string challenge = packet.challenge();
 				std::string publicKey = packet.publickey();
@@ -549,6 +554,7 @@ namespace Components
 				if (!packet.ParseFromString(data)) return;
 				if (packet.signature().empty()) return;
 				if (packet.publickey().empty()) return;
+				if (packet.port() && packet.port() != address.getPort()) return;
 
 				std::string publicKey = packet.publickey();
 				std::string signature = packet.signature();
@@ -627,6 +633,7 @@ namespace Components
 				if (!packet.ParseFromString(data)) return;
 				if (packet.challenge().empty()) return;
 				if (packet.signature().empty()) return;
+				if (packet.port() && packet.port() != address.getPort()) return;
 
 				std::string challenge = packet.challenge();
 				std::string signature = packet.signature();
