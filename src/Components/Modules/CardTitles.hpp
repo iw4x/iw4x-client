@@ -53,8 +53,8 @@ namespace Components
 	class CardTitles : public Component
 	{
 	public:
-		static Game::dvar_t* CustomTitleDvar;
-		static std::vector < std::string > CustomTitles;
+		static Dvar::Var CustomTitleDvar;
+		static std::string CustomTitles[18];
 
 		static void SendCustomTitlesToClients();
 		static void ParseCustomTitles(const char * msg);
