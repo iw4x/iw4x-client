@@ -126,7 +126,7 @@ def doUnitTests(name) {
 		timeout(time: 10, unit: "MINUTES") {
 			// Set up environment
 			if (isUnix()) {
-                def mw2dir = tool "Modern Warfare 2"
+				def mw2dir = tool "Modern Warfare 2"
 				sh """
 				mkdir -p zone
 				for f in main zone/dlc \"zone/$localization\"; do
@@ -137,7 +137,7 @@ def doUnitTests(name) {
 				done
 				"""
 			} else {
-                def mw2dir = tool "Modern Warfare 2"
+				def mw2dir = tool "Modern Warfare 2"
 				bat """
 				mklink /J \"main\" \"$mw2dir\\main\"
 				mkdir \"zone\"
