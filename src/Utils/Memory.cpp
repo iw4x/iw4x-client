@@ -6,6 +6,7 @@ namespace Utils
 	{
 		void* data = _aligned_malloc(length, alignment);
 		assert(data != nullptr);
+		ZeroMemory(data, length);
 		return data;
 	}
 

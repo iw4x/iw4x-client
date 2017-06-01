@@ -81,6 +81,7 @@ namespace Components
 		Loader::Register(new FrameTime());
 		Loader::Register(new Gametypes());
 		Loader::Register(new Materials());
+		Loader::Register(new Scheduler());
 		Loader::Register(new Threading());
 		Loader::Register(new CardTitles());
 		Loader::Register(new FileSystem());
