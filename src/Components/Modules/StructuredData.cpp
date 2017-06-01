@@ -146,14 +146,17 @@ namespace Components
 
 	StructuredData::StructuredData()
 	{
-		// Only execute this when building zones
+		// Do not execute this when building zones
 		if (!ZoneBuilder::IsEnabled())
 		{
-			// Correctly upgrade stats
-			Utils::Hook(0x42F088, StructuredData::UpdateVersionOffsets, HOOK_CALL).install()->quick();
+			if (!Flags::HasFlag("stdout"))
+			{
+				// Correctly upgrade stats
+				Utils::Hook(0x42F088, StructuredData::UpdateVersionOffsets, HOOK_CALL).install()->quick();
 
-			// 15 or more custom classes
-			Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
+				// 15 or more custom classes
+				Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
+			}
 
 			// Reset empty names
 			Command::Add("checkClasses", [](Command::Params*)

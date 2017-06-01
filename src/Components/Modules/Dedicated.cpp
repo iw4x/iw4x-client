@@ -36,8 +36,11 @@ namespace Components
 
 		if (Dvar::Var("com_logFilter").get<bool>())
 		{
-			Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
-			Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
+			if (!Flags::HasFlag("stdout"))
+			{
+				Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
+				Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
+			}
 		}
 
 		Utils::Hook::Call<void()>(0x4F84C0)();

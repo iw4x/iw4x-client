@@ -62,8 +62,11 @@ namespace Components
 
 	ServerCommands::ServerCommands()
 	{
-		// Server command receive hook
-		Utils::Hook(0x59449F, ServerCommands::OnServerCommandStub).install()->quick();
+		if (!Flags::HasFlag("stdout"))
+		{
+			// Server command receive hook
+			Utils::Hook(0x59449F, ServerCommands::OnServerCommandStub).install()->quick();
+		}
 	}
 
 	ServerCommands::~ServerCommands()
