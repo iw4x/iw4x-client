@@ -159,6 +159,16 @@ def doUnitTests(name) {
 				}
 			}
 		}
+	} catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+		currentBuild.result = 'UNSTABLE'
+		println("${name} unit test interrupted (ran too long?)")
+	} catch (Exception e) {
+		println("${name} unit test failed.")
+		if (isUnix()) {
+			currentBuild.result = 'UNSTABLE'
+		} else {
+			throw e
+		}
 	} finally {
 		// In all cases make sure to at least remove the directory junctions!
 		if (!isUnix()) {
