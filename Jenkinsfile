@@ -279,7 +279,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 						}
 					}
 				}
-				/*parallel executions*/
+				parallel executions
 			}
 		}
 	}
