@@ -35,13 +35,23 @@ namespace Components
 			push eax
 			pushad
 			call ServerCommands::OnServerCommand
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
 			test al, al
 			jnz jumpback
 
+			test eax, eax
+			jle error
+
+			mov eax, DWORD PTR[edx * 4 + 1AAC634h]
+			mov eax, [eax]
+
+			push 5944B3h
+			retn
+
+		error:
 			push 5944AEh
 			retn
 
@@ -92,11 +102,11 @@ namespace Components
 	{
 		// Server command receive hook
 		Utils::Hook(0x59449F, ServerCommands::OnServerCommandStub).install()->quick();
-
+		
 		// Server command fail hooks
-		Utils::Hook(0x593C1F, ServerCommands::OnServerCommandPreFailStub).install()->quick();
-		Utils::Hook(0x5944BB, ServerCommands::OnServerCommandFailPrintStub).install()->quick();
-		Utils::Hook::Set<std::uint8_t>(0x5944D3, 0xEB);
+		// Utils::Hook(0x593C1F, ServerCommands::OnServerCommandPreFailStub).install()->quick();
+		// Utils::Hook(0x5944BB, ServerCommands::OnServerCommandFailPrintStub).install()->quick();
+		// Utils::Hook::Set<std::uint8_t>(0x5944D3, 0xEB);
 	}
 
 	ServerCommands::~ServerCommands()
