@@ -655,13 +655,16 @@ namespace Components
 
 		// Constantly draw the mini console
 		Utils::Hook::Set<BYTE>(0x412A45, 0xEB);
-		Scheduler::OnFrame([] ()
-		{
-			if (*reinterpret_cast<Game::Font**>(0x62E4BAC))
+
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled()) {
+			Scheduler::OnFrame([]()
 			{
-				Game::Con_DrawMiniConsole(0, 2, 4, (Game::CL_IsCgameInitialized() ? 1.0f : 0.4f));
-			}
-		});
+				if (*reinterpret_cast<Game::Font**>(0x62E4BAC))
+				{
+					Game::Con_DrawMiniConsole(0, 2, 4, (Game::CL_IsCgameInitialized() ? 1.0f : 0.4f));
+				}
+			});
+		}
 #else
 		// Remove missing tag message
 		Utils::Hook::Nop(0x4EBF1A, 5);
