@@ -174,21 +174,23 @@ namespace Components
 
 #ifdef DEBUG
 		// Display DEBUG branding, so we know we're on a debug build
-		Scheduler::OnFrame([]()
-		{
-			Game::Font* font = Game::R_RegisterFont("fonts/normalFont", 0);
-			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-			// Change the color when attaching a debugger
-			if (IsDebuggerPresent())
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled()) {
+			Scheduler::OnFrame([]()
 			{
-				color[0] = 0.6588f;
-				color[1] = 1.0000f;
-				color[2] = 0.0000f;
-			}
+				Game::Font* font = Game::R_RegisterFont("fonts/normalFont", 0);
+				float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-			Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
-		});
+				// Change the color when attaching a debugger
+				if (IsDebuggerPresent())
+				{
+					color[0] = 0.6588f;
+					color[1] = 1.0000f;
+					color[2] = 0.0000f;
+				}
+
+				Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
+			});
+		}
 #endif
 #if !defined(DEBUG) || defined(FORCE_EXCEPTION_HANDLER)
 		Exception::SetFilterHook.initialize(SetUnhandledExceptionFilter, Exception::SetUnhandledExceptionFilterStub, HOOK_JUMP);
