@@ -582,7 +582,7 @@ namespace Components
 		Utils::Hook(0x60BE9D, AntiCheat::SoundInitStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x60BE8E, AntiCheat::SoundInitDriverStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x418204, AntiCheat::SoundInitDriverStub, HOOK_CALL).install()->quick();
-		if(!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled()) Scheduler::OnFrame(AntiCheat::PerformScan);
+		Scheduler::OnFrame(AntiCheat::PerformScan, true);
 
 		// Detect aimbots
 		Utils::Hook(0x426580, AntiCheat::DObjGetWorldTagPosStub, HOOK_JUMP).install()->quick();

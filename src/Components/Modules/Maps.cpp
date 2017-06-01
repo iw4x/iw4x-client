@@ -1007,7 +1007,7 @@ namespace Components
 			{
 				Command::Execute("closemenu popup_reconnectingtoparty", false);
 				Command::Execute("reconnect", false);
-			}, 6s);
+			}, 6s, true);
 		});
 
 		if(Dedicated::IsEnabled())
@@ -1104,7 +1104,7 @@ namespace Components
 			{
 				Game::R_AddCmdDrawText(Utils::String::VA("%d %s", model.second, model.first.data()), 0x7FFFFFFF, font, 15.0f, (height * scale + 1) * (i++ + 1) + 15.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 			}
-		});
+		}, true);
 	}
 
 	Maps::~Maps()

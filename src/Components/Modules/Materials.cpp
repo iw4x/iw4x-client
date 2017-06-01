@@ -193,7 +193,7 @@ namespace Components
 // 			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 //
 // 			Game::R_AddCmdDrawText("test^==preview_mp_rustzob", 0x7FFFFFFF, font, 500.0f, 150.0f, 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
-// 		});
+// 		}, true);
 	}
 
 	Materials::~Materials()

@@ -11,10 +11,10 @@ namespace Components
 		~Scheduler();
 
 		static void OnShutdown(Utils::Slot<Callback> callback);
-		static void OnFrame(Utils::Slot<Callback> callback);
-		static void OnReady(Utils::Slot<Callback> callback);
-		static void Once(Utils::Slot<Callback> callback);
-		static void OnDelay(Utils::Slot<Callback> callback, std::chrono::nanoseconds delay);
+		static void OnFrame(Utils::Slot<Callback> callback, bool clientOnly = false);
+		static void OnReady(Utils::Slot<Callback> callback, bool clientOnly = false);
+		static void Once(Utils::Slot<Callback> callback, bool clientOnly = false);
+		static void OnDelay(Utils::Slot<Callback> callback, std::chrono::nanoseconds delay, bool clientOnly = false);
 
 		static void FrameHandler();
 

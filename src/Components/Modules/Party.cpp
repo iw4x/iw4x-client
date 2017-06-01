@@ -290,7 +290,7 @@ namespace Components
 					Party::ConnectError("Playlist request timed out.");
 				}
 			}
-		});
+		}, true);
 
 		// Basic info handler
 		Network::Handle("getInfo", [] (Network::Address address, std::string data)

@@ -10,8 +10,9 @@ namespace Components
 	Utils::Signal<Scheduler::Callback> Scheduler::FrameOnceSignal;
 	std::vector<Scheduler::DelayedSlot> Scheduler::DelayedSlots;
 
-	void Scheduler::Once(Utils::Slot<Scheduler::Callback> callback)
+	void Scheduler::Once(Utils::Slot<Scheduler::Callback> callback, bool clientOnly)
 	{
+		if (clientOnly && (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())) return;
 		Scheduler::FrameOnceSignal.connect(callback);
 	}
 
@@ -20,13 +21,15 @@ namespace Components
 		Scheduler::ShutdownSignal.connect(callback);
 	}
 
-	void Scheduler::OnFrame(Utils::Slot<Scheduler::Callback> callback)
+	void Scheduler::OnFrame(Utils::Slot<Scheduler::Callback> callback, bool clientOnly)
 	{
+		if (clientOnly && (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())) return;
 		Scheduler::FrameSignal.connect(callback);
 	}
 
-	void Scheduler::OnReady(Utils::Slot<Scheduler::Callback> callback)
+	void Scheduler::OnReady(Utils::Slot<Scheduler::Callback> callback, bool clientOnly)
 	{
+		if (clientOnly && (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())) return;
 		if (Scheduler::ReadyPassed) Scheduler::Once(callback);
 		else Scheduler::ReadySignal.connect(callback);
 	}
@@ -57,8 +60,10 @@ namespace Components
 		copy();
 	}
 
-	void Scheduler::OnDelay(Utils::Slot<Scheduler::Callback> callback, std::chrono::nanoseconds delay)
+	void Scheduler::OnDelay(Utils::Slot<Scheduler::Callback> callback, std::chrono::nanoseconds delay, bool clientOnly)
 	{
+		if (clientOnly && (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())) return;
+
 		Scheduler::DelayedSlot slot;
 		slot.callback = callback;
 		slot.delay = delay;

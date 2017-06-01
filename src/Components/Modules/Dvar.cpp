@@ -161,7 +161,7 @@ namespace Components
 				lastValidName = name;
 				Friends::UpdateName();
 			}
-		});
+		}, true);
 
 		std::string username = "Unknown Soldier";
 
