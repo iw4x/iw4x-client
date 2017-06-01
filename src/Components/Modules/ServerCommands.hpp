@@ -12,12 +12,8 @@ namespace Components
 
 	private:
 		static std::unordered_map<std::int32_t, std::function<bool(Command::Params*)>> Commands;
-		static std::uint32_t LastServerCommand;
 
 		static bool OnServerCommand();
 		static void OnServerCommandStub();
-		static void OnServerCommandPreFailStub();
-		static void OnServerCommandFailPrint(int type, const char * trash, ...);
-		static void OnServerCommandFailPrintStub();
 	};
 }
