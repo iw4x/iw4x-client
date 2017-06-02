@@ -31,7 +31,7 @@
 	url = https://github.com/mohabouje/WinToast.git
 [submodule "deps/udis86"]
 	path = deps/udis86
-	url = git@github.com:iw4x/udis86.git
+	url = ../udis86.git
 [submodule "deps/glm"]
 	path = deps/glm
 	url = https://github.com/g-truc/glm.git
