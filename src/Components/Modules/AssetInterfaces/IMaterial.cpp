@@ -25,6 +25,8 @@ namespace Assets
 			"_add",
 			"_nofog",
 			"_nocast",
+
+			"_add_lin_nofog",
 		};
 
 		Components::FileSystem::File materialFile(Utils::String::VA("materials/%s.iw4xMaterial", name.data()));
