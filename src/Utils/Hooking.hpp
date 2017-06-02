@@ -61,7 +61,7 @@ namespace Utils
 		Hook* initialize(void* place, void* stub, bool useJump = true);
 		Hook* initialize(DWORD place, void* stub, bool useJump = true);
 		Hook* initialize(DWORD place, void(*stub)(), bool useJump = true); // For lambdas
-		Hook* install(bool unprotect = true, bool keepUnportected = false);
+		Hook* install(bool unprotect = true, bool keepUnprotected = false);
 		Hook* uninstall(bool unprotect = true);
 
 		void* getAddress();

@@ -139,7 +139,7 @@ namespace Utils
 		return this;
 	}
 
-	Hook* Hook::install(bool unprotect, bool keepUnportected)
+	Hook* Hook::install(bool unprotect, bool keepUnprotected)
 	{
 		std::lock_guard<std::mutex> _(this->stateMutex);
 
@@ -159,7 +159,7 @@ namespace Utils
 
 		*reinterpret_cast<size_t*>(code + 1) = reinterpret_cast<size_t>(this->stub) - (reinterpret_cast<size_t>(this->place) + 5);
 
-		if (unprotect && !keepUnportected) VirtualProtect(this->place, sizeof(this->buffer), this->protection, &this->protection);
+		if (unprotect && !keepUnprotected) VirtualProtect(this->place, sizeof(this->buffer), this->protection, &this->protection);
 
 		FlushInstructionCache(GetCurrentProcess(), this->place, sizeof(this->buffer));
 
