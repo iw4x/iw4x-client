@@ -129,8 +129,6 @@ namespace Components
 
 			Logger::Print("Pipe thread terminated.\n");
 		}
-
-		this->thread = std::thread();
 	}
 
 	void Pipe::setName(std::string name)

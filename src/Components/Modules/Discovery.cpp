@@ -109,7 +109,5 @@ namespace Components
 		{
 			Discovery::Thread.join();
 		}
-
-		Discovery::Thread = std::thread();
 	}
 }

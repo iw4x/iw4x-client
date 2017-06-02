@@ -828,12 +828,6 @@ namespace Components
 
 	Download::~Download()
 	{
-		Download::Terminate = true;
-		if (Download::ServerThread.joinable())
-		{
-			Download::ServerThread.join();
-		}
-
 		if (Dedicated::IsEnabled())
 		{
 			mg_mgr_free(&Download::Mgr);
@@ -842,6 +836,12 @@ namespace Components
 
 	void Download::preDestroy()
 	{
+		Download::Terminate = true;
+		if (Download::ServerThread.joinable())
+		{
+			Download::ServerThread.join();
+		}
+
 		if (!Dedicated::IsEnabled())
 		{
 			Download::CLDownload.clear();
