@@ -8,38 +8,29 @@ namespace Utils
 		class VAProvider
 		{
 		public:
+			VAProvider() : currentBuffer(0) {}
+
 			typename std::enable_if<(Buffers != 0 && MinBufferSize != 0), char*>::type
 			get(const char* format, va_list ap)
 			{
-				std::lock_guard<std::mutex> _(this->accessMutex);
+				++this->currentBuffer %= ARRAYSIZE(this->stringPool);
+				auto entry = &this->stringPool[this->currentBuffer];
 
-				auto threadBuffers = this->stringBuffers.find(std::this_thread::get_id());
-				if (threadBuffers == this->stringBuffers.end())
+				if (!entry->size || !entry->buffer)
 				{
-					this->stringBuffers[std::this_thread::get_id()] = Pool();
-					threadBuffers = this->stringBuffers.find(std::this_thread::get_id());
-				}
-
-				if (!threadBuffers->second.stringPool.size()) threadBuffers->second.stringPool.resize(Buffers);
-
-				++threadBuffers->second.currentBuffer %= threadBuffers->second.stringPool.size();
-				auto& entry = threadBuffers->second.stringPool[threadBuffers->second.currentBuffer];
-
-				if (!entry.size || !entry.buffer)
-				{
-					entry = Entry(MinBufferSize);
+					*entry = Entry(MinBufferSize);
 				}
 
 				while (true)
 				{
-					int res = vsnprintf_s(entry.buffer, entry.size, _TRUNCATE, format, ap);
+					int res = vsnprintf_s(entry->buffer, entry->size, _TRUNCATE, format, ap);
 					if (res > 0) break; // Success
 					if (res == 0) return ""; // Error
 
-					entry.doubleSize();
+					entry->doubleSize();
 				}
 
-				return entry.buffer;
+				return entry->buffer;
 			}
 
 		private:
@@ -73,20 +64,8 @@ namespace Utils
 				char* buffer;
 			};
 
-			class Pool
-			{
-			public:
-				Pool() : currentBuffer(0)
-				{
-					this->stringPool.resize(Buffers);
-				}
-
-				size_t currentBuffer;
-				std::vector<Entry> stringPool;
-			};
-
-			std::mutex accessMutex;
-			std::unordered_map<std::thread::id, Pool> stringBuffers;
+			size_t currentBuffer;
+			Entry stringPool[Buffers];
 		};
 
 		const char *VA(const char *fmt, ...);

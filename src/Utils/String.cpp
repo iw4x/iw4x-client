@@ -9,7 +9,7 @@ namespace Utils
 	{
 		const char *VA(const char *fmt, ...)
 		{
-			static VAProvider<8, 256> provider;
+			static thread_local VAProvider<8, 256> provider;
 
 			va_list ap;
 			va_start(ap, fmt);
