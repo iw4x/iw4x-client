@@ -413,21 +413,21 @@ namespace Components
 			}
 		}
 
-		auto freeSid = [] (void* sid)
+		auto freeSid = [](void* sid)
+		{
+			if (sid)
 			{
-				if (sid)
-				{
-					FreeSid(reinterpret_cast<PSID>(sid));
-				}
-			};
+				FreeSid(reinterpret_cast<PSID>(sid));
+			}
+		};
 
-		allocator.reference(hToken, [] (void* hToken)
-		                    {
-			                    if (hToken)
-			                    {
-				                    CloseHandle(hToken);
-			                    }
-		                    });
+		allocator.reference(hToken, [](void* hToken)
+		{
+			if (hToken)
+			{
+				CloseHandle(hToken);
+			}
+		});
 
 		//AntiCheat::AcquireDebugPriviledge(hToken);
 
