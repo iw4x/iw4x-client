@@ -284,7 +284,7 @@ namespace Components
 		});
 
 #if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
-		AntiCheat::PatchVirtualProtect(VirtualProtect, VirtualProtectEx);
+		if(!Dedicated::IsEnabled()) AntiCheat::PatchVirtualProtect(VirtualProtect, VirtualProtectEx);
 #endif
 	}
 
