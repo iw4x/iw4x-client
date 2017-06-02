@@ -284,7 +284,10 @@ namespace Components
 		});
 
 #if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
-		if(!Dedicated::IsEnabled()) AntiCheat::PatchVirtualProtect(VirtualProtect, VirtualProtectEx);
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && !Utils::IsWineEnvironment() && !Loader::PerformingUnitTests())
+		{
+			AntiCheat::PatchVirtualProtect(VirtualProtect, VirtualProtectEx);
+		}
 #endif
 	}
 
