@@ -6,7 +6,8 @@ namespace Utils
 	{
 		bool FileExists(std::string file)
 		{
-			return std::ifstream(file).good();
+			//return std::ifstream(file).good();
+			return GetFileAttributesA(file.data()) != INVALID_FILE_ATTRIBUTES;
 		}
 
 		bool WriteFile(std::string file, std::string data, bool append)
