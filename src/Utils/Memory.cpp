@@ -2,11 +2,13 @@
 
 namespace Utils
 {
+	Utils::Memory::Allocator Memory::MemAllocator;
+
 	void* Memory::AllocateAlign(size_t length, size_t alignment)
 	{
 		void* data = _aligned_malloc(length, alignment);
 		assert(data != nullptr);
-		ZeroMemory(data, length);
+		if(data) ZeroMemory(data, length);
 		return data;
 	}
 
@@ -94,5 +96,10 @@ namespace Utils
 			return b;
 		}
 		return true;
+	}
+
+	Utils::Memory::Allocator* Memory::GetAllocator()
+	{
+		return &Memory::MemAllocator;
 	}
 }

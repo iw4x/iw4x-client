@@ -72,6 +72,8 @@ namespace Components
 		std::uint8_t prefix =	(request->tableRow >> (8 * 3)) & 0xFF;
 		std::uint8_t data =		(request->tableRow >> (8 * 2)) & 0xFF;
 
+		if (data >= ARRAYSIZE(CardTitles::CustomTitles)) return nullptr;
+
 		if (request->tablename == "mp/cardTitleTable.csv"s)
 		{
 			if (prefix != 0x00)
@@ -81,10 +83,10 @@ namespace Components
 				{
 					if (prefix == 0xFE)
 					{
-						if (!CustomTitleDvar.get<std::string>().empty())
+						if (!CardTitles::CustomTitleDvar.get<std::string>().empty())
 						{
 							// 0xFF in front of the title to skip localization. Or else it will wait for a couple of seconds for the asset of type localize
-							const char* title = Utils::String::VA("\x15%s", CustomTitleDvar.get<const char*>());
+							const char* title = Utils::String::VA("\x15%s", CardTitles::CustomTitleDvar.get<const char*>());
 
 							// prepare return value
 							operand->internals.stringVal.string = title;
@@ -95,9 +97,9 @@ namespace Components
 					}
 					else if (prefix == 0xFF)
 					{
-						if (!CustomTitles[data].empty())
+						if (!CardTitles::CustomTitles[data].empty())
 						{
-							const char* title = Utils::String::VA("\x15%s", CustomTitles[data].data());
+							const char* title = Utils::String::VA("\x15%s", CardTitles::CustomTitles[data].data());
 
 							// prepare return value
 							operand->internals.stringVal.string = title;

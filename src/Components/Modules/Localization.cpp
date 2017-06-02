@@ -10,7 +10,7 @@ namespace Components
 	void Localization::Set(std::string key, std::string value)
 	{
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
 		{
@@ -76,7 +76,7 @@ namespace Components
 	void Localization::SetTemp(std::string key, std::string value)
 	{
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
 		{
@@ -111,7 +111,7 @@ namespace Components
 	void Localization::ClearTemp()
 	{
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		for (auto i = Localization::TempLocalizeMap.begin(); i != Localization::TempLocalizeMap.end(); ++i)
 		{

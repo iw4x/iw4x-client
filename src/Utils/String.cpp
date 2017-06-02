@@ -7,41 +7,9 @@ namespace Utils
 {
 	namespace String
 	{
-		VAProvider::VAProvider(size_t buffers) : currentBuffer(0)
-		{
-			this->stringBuffers.resize(buffers);
-		}
-
-		char* VAProvider::get(const char* format, va_list ap)
-		{
-			++this->currentBuffer %= this->stringBuffers.size();
-			auto& buffer = this->stringBuffers[this->currentBuffer];
-
-			if (!buffer.first || !buffer.second)
-			{
-				buffer.first = 256;
-				if (buffer.second) this->allocator.free(buffer.second);
-				buffer.second = this->allocator.allocateArray<char>(buffer.first + 1);
-			}
-
-			while(true)
-			{
-				int res = vsnprintf_s(buffer.second, buffer.first, _TRUNCATE, format, ap);
-				if (res > 0) break; // Success
-				if (res == 0) return ""; // Error
-
-				buffer.first *= 2;
-
-				this->allocator.free(buffer.second);
-				buffer.second = this->allocator.allocateArray<char>(buffer.first + 1);
-			}
-
-			return buffer.second;
-		}
-
 		const char *VA(const char *fmt, ...)
 		{
-			static thread_local VAProvider provider;
+			static VAProvider<8, 256> provider;
 
 			va_list ap;
 			va_start(ap, fmt);

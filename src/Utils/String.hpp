@@ -4,18 +4,89 @@ namespace Utils
 {
 	namespace String
 	{
+		template <size_t Buffers, size_t MinBufferSize>
 		class VAProvider
 		{
 		public:
-			VAProvider(size_t buffers = 8);
+			typename std::enable_if<(Buffers != 0 && MinBufferSize != 0), char*>::type
+			get(const char* format, va_list ap)
+			{
+				std::lock_guard<std::mutex> _(this->accessMutex);
 
-			char* get(const char* format, va_list ap);
+				auto threadBuffers = this->stringBuffers.find(std::this_thread::get_id());
+				if (threadBuffers == this->stringBuffers.end())
+				{
+					this->stringBuffers[std::this_thread::get_id()] = Pool();
+					threadBuffers = this->stringBuffers.find(std::this_thread::get_id());
+				}
+
+				if (!threadBuffers->second.stringPool.size()) threadBuffers->second.stringPool.resize(Buffers);
+
+				++threadBuffers->second.currentBuffer %= threadBuffers->second.stringPool.size();
+				auto& entry = threadBuffers->second.stringPool[threadBuffers->second.currentBuffer];
+
+				if (!entry.size || !entry.buffer)
+				{
+					entry = Entry(MinBufferSize);
+				}
+
+				while (true)
+				{
+					int res = vsnprintf_s(entry.buffer, entry.size, _TRUNCATE, format, ap);
+					if (res > 0) break; // Success
+					if (res == 0) return ""; // Error
+
+					entry.doubleSize();
+				}
+
+				return entry.buffer;
+			}
 
 		private:
-			size_t currentBuffer;
-			std::vector<std::pair<size_t,char*>> stringBuffers;
+			class Entry
+			{
+			public:
+				Entry(size_t _size = MinBufferSize) : size(_size), buffer(nullptr)
+				{
+					if (this->size < MinBufferSize) this->size = MinBufferSize;
+					this->allocate();
+				}
 
-			Utils::Memory::Allocator allocator;
+				~Entry()
+				{
+					if(this->buffer) Utils::Memory::GetAllocator()->free(this->buffer);
+				}
+
+				void allocate()
+				{
+					if (this->buffer) Utils::Memory::GetAllocator()->free(this->buffer);
+					this->buffer = Utils::Memory::GetAllocator()->allocateArray<char>(this->size + 1);
+				}
+
+				void doubleSize()
+				{
+					this->size *= 2;
+					this->allocate();
+				}
+
+				size_t size;
+				char* buffer;
+			};
+
+			class Pool
+			{
+			public:
+				Pool() : currentBuffer(0)
+				{
+					this->stringPool.resize(Buffers);
+				}
+
+				size_t currentBuffer;
+				std::vector<Entry> stringPool;
+			};
+
+			std::mutex accessMutex;
+			std::unordered_map<std::thread::id, Pool> stringBuffers;
 		};
 
 		const char *VA(const char *fmt, ...);

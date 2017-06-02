@@ -129,7 +129,7 @@ namespace Components
 
 	Game::cmd_function_t* Command::Allocate()
 	{
-		return Loader::GetAlloctor()->allocate<Game::cmd_function_t>();
+		return Utils::Memory::GetAllocator()->allocate<Game::cmd_function_t>();
 	}
 
 	void Command::MainCallback()

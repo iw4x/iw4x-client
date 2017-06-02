@@ -154,5 +154,10 @@ namespace Utils
 
 		static bool IsBadReadPtr(const void* ptr);
 		static bool IsBadCodePtr(const void* ptr);
+
+		static Utils::Memory::Allocator* GetAllocator();
+
+	private:
+		static Utils::Memory::Allocator MemAllocator;
 	};
 }

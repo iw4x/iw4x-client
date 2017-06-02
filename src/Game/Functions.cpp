@@ -388,7 +388,7 @@ namespace Game
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
-		XAssetHeader poolEntry = { Components::Loader::GetAlloctor()->allocate(newSize * elSize) };
+		XAssetHeader poolEntry = { Utils::Memory::GetAllocator()->allocate(newSize * elSize) };
 		DB_XAssetPool[type] = poolEntry;
 		g_poolSize[type] = newSize;
 		return poolEntry;

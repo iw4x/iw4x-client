@@ -20,7 +20,7 @@ namespace Components
 
 	Game::StringTable* StringTable::LoadObject(std::string filename)
 	{
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		filename = Utils::String::ToLower(filename);
 

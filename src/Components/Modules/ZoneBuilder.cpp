@@ -921,7 +921,7 @@ namespace Components
 
 	void ZoneBuilder::HandleError(int level, const char* format, ...)
 	{
-		char buffer[256];
+		char buffer[256] = { 0 };
 		va_list args;
 		va_start(args, format);
 		vsnprintf_s(buffer, 256, format, args);

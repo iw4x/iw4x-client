@@ -55,7 +55,7 @@ namespace Components
 
 	int Menus::LoadMenuSource(std::string name, std::string buffer)
 	{
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		int handle = Menus::ReserveSourceHandle();
 		if (!Menus::IsValidSourceHandle(handle)) return 0; // No free source slot!
@@ -114,7 +114,7 @@ namespace Components
 
 	Game::menuDef_t* Menus::ParseMenu(int handle)
 	{
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		Game::menuDef_t* menu = allocator->allocate<Game::menuDef_t>();
 		if (!menu) return nullptr;
@@ -239,7 +239,7 @@ namespace Components
 
 	Game::MenuList* Menus::LoadScriptMenu(const char* menu)
 	{
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		std::vector<std::pair<bool, Game::menuDef_t*>> menus = Menus::LoadMenu(menu);
 		if (menus.empty()) return nullptr;
@@ -318,7 +318,7 @@ namespace Components
 
 	Game::MenuList* Menus::LoadMenuList(Game::MenuList* menuList)
 	{
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
 
@@ -376,7 +376,7 @@ namespace Components
 
 	void Menus::FreeMenuSource(int handle)
 	{
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		if (!Menus::IsValidSourceHandle(handle)) return;
 
@@ -419,7 +419,7 @@ namespace Components
 
 	void Menus::FreeMenu(Game::menuDef_t* menudef)
 	{
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		// Do i need to free expressions and strings?
 		// Or does the game take care of it?
@@ -444,7 +444,7 @@ namespace Components
 	void Menus::FreeMenuList(Game::MenuList* menuList)
 	{
 		if (!menuList) return;
-		Utils::Memory::Allocator* allocator = Loader::GetAlloctor();
+		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		// Keep our compiler happy
 		Game::MenuList list = { menuList->name, menuList->menuCount, menuList->menus };
