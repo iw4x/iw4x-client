@@ -1522,7 +1522,9 @@ namespace Components
 
 	ZoneBuilder::~ZoneBuilder()
 	{
+#if DEBUG
 		assert(ZoneBuilder::MemAllocator.empty());
+#endif
 
 		ZoneBuilder::Terminate = true;
 		if(ZoneBuilder::CommandThread.joinable())
