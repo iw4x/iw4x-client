@@ -89,7 +89,7 @@ namespace Components
 
 	void Console::RefreshOutput()
 	{
-		prefresh(Console::OutputWindow, ((Console::OutputTop > 0) ? (Console::OutputTop - 1) : 0), 0, 1, 0, Console::Height - 2, Console::Width);
+		prefresh(Console::OutputWindow, ((Console::OutputTop > 0) ? (Console::OutputTop - 1) : 0), 0, 1, 0, Console::Height - 2, Console::Width - 1);
 	}
 
 	void Console::ScrollOutput(int amount)
