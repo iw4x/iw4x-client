@@ -11,7 +11,7 @@
 
 #define NODE_IP_LIMIT          15
 
-#define NODE_VERSION 4
+#define NODE_VERSION 5
 
 namespace Components
 {
