@@ -109,7 +109,6 @@ namespace Components
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, std::string name, Zone* builder);
 
 	private:
-		static Utils::Memory::Allocator MemAllocator;
 		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
 		static void ReleaseTexture(Game::XAssetHeader header);
 

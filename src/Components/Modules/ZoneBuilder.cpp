@@ -2,8 +2,6 @@
 
 namespace Components
 {
-	Utils::Memory::Allocator ZoneBuilder::MemAllocator;
-
 	std::string ZoneBuilder::TraceZone;
 	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::TraceAssets;
 
@@ -727,7 +725,7 @@ namespace Components
 	int ZoneBuilder::StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)
 	{
 		size_t size = 16 + (*loadDef)->resourceSize;
-		void* data = ZoneBuilder::MemAllocator.allocate(size);
+		void* data = Utils::Memory::GetAllocator()->allocate(size);
 		std::memcpy(data, *loadDef, size);
 
 		image->loadDef = reinterpret_cast<Game::GfxImageLoadDef *>(data);
@@ -739,7 +737,7 @@ namespace Components
 	{
 		if (header.image && header.image->loadDef)
 		{
-			ZoneBuilder::MemAllocator.free(header.image->loadDef);
+			Utils::Memory::GetAllocator()->free(header.image->loadDef);
 		}
 	}
 
@@ -1522,10 +1520,6 @@ namespace Components
 
 	ZoneBuilder::~ZoneBuilder()
 	{
-#if DEBUG
-		assert(ZoneBuilder::MemAllocator.empty());
-#endif
-
 		ZoneBuilder::Terminate = true;
 		if(ZoneBuilder::CommandThread.joinable())
 		{
