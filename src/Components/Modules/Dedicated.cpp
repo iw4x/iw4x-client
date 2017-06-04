@@ -382,19 +382,17 @@ namespace Components
 				// Transmit custom data
 				Scheduler::OnFrame([]()
 				{
-					static std::uint64_t LastUpdate = 0;
-
-					if ((GetTickCount64() - LastUpdate) > 10000)
+					static Utils::Time::Interval interval;
+					if (interval.elapsed(10s))
 					{
+						interval.update();
+
 						CardTitles::SendCustomTitlesToClients();
 						Clantags::SendClantagsToClients();
-
-						LastUpdate = GetTickCount64();
 					}
 				});
 
 #ifdef USE_LEGACY_SERVER_LIST
-
 				// Heartbeats
 				Scheduler::OnFrame([] ()
 				{
