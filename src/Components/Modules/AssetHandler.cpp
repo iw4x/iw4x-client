@@ -424,7 +424,7 @@ namespace Components
 		Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).install()->quick();
 
 		// Intercept missing asset messages
-		Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
+		if(!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
 
 		// Log missing empty assets
 		Scheduler::OnFrame([] ()
