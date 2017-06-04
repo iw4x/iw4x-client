@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ## [Unreleased]
 
+## [0.5.0] - 2017-06-04
+
 ### Added
 
 - Add GSC download (request).
