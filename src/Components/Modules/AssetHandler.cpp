@@ -399,6 +399,12 @@ namespace Components
 		}
 	}
 
+	void AssetHandler::MissingAssetError(int severity, const char* format, const char* type, const char* name)
+	{
+		if(Dedicated::IsEnabled() && Game::DB_GetXAssetNameType(type) == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET) return;
+		Utils::Hook::Call<void(int, const char*, const char*, const char*)>(0x4F8C70)(severity, format, type, name); // Print error
+	}
+
 	AssetHandler::AssetHandler()
 	{
 		Dvar::Register<bool>("r_noVoid", false, Game::DVAR_FLAG_SAVED, "Disable void model (red fx)");
@@ -416,6 +422,9 @@ namespace Components
 
 		// Store empty assets
 		Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).install()->quick();
+
+		// Intercept missing asset messages
+		Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
 
 		// Log missing empty assets
 		Scheduler::OnFrame([] ()

@@ -68,6 +68,8 @@ namespace Components
 
 		static int HasThreadBypass();
 		static void SetBypassState(bool value);
+
+		static void MissingAssetError(int severity, const char* format, const char* type, const char* name);
 	};
 }
 
