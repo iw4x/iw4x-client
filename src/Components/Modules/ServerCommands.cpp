@@ -2,9 +2,9 @@
 
 namespace Components
 {
-	std::unordered_map<std::int32_t, std::function<bool(Command::Params*)>> ServerCommands::Commands;
+	std::unordered_map<std::int32_t, Utils::Slot<bool(Command::Params*)>> ServerCommands::Commands;
 
-	void ServerCommands::OnCommand(std::int32_t cmd, std::function<bool(Command::Params*)> cb)
+	void ServerCommands::OnCommand(std::int32_t cmd, Utils::Slot<bool(Command::Params*)> cb)
 	{
 		ServerCommands::Commands[cmd] = cb;
 	}
