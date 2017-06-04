@@ -230,15 +230,15 @@ namespace Components
 			News::Thread = std::thread([]()
 			{
 				Changelog::LoadChangelog();
+				if (News::Terminate) return;
 
 				std::string data = Utils::Cache::GetFile("/iw4/motd.txt");
-
 				if (!data.empty())
 				{
 					Localization::Set("MPUI_MOTD_TEXT", data);
 				}
 
-				if (!Loader::PerformingUnitTests())
+				if (!Loader::PerformingUnitTests() && !News::Terminate)
 				{
 					News::GetLatestUpdater();
 
