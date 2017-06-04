@@ -554,6 +554,13 @@ namespace Components
 			Command::Execute("openmenu popup_friends", true);
 		}, HOOK_JUMP).install()->quick();
 
+		// Avatar callback
+// 		Steam::Proxy::RegisterCallback(333, [](void* data)
+// 		{
+// 			MessageBoxA(0, 0, 0, 0);
+// 			
+// 		});
+
 		// Callback to update user information
 		Steam::Proxy::RegisterCallback(336, [](void* data)
 		{
@@ -687,6 +694,64 @@ namespace Components
 
 			Friends::UpdateFriends();
 		});
+
+		Command::Add("testavatar", [](Command::Params*)
+		{
+			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
+
+			for(auto user : Friends::FriendsList)
+			{
+				Logger::Print("Fetching %s...\n", user.name.data());
+				int index = Steam::Proxy::SteamFriends->GetSmallFriendAvatar(user.userId);
+
+
+
+				if (!Steam::Proxy::SteamUtils) return;
+
+				static Game::GfxImage image = { nullptr };
+				if (image.map) Game::Image_Release(&image);
+				static Game::Material* material = nullptr;
+
+				unsigned int width, height;
+				Steam::Proxy::SteamUtils->GetImageSize(index, &width, &height);
+				Game::Image_Setup(&image, static_cast<short>(width), static_cast<short>(height), 1, 0x1000003, D3DFMT_A8R8G8B8);
+
+				D3DLOCKED_RECT lockedRect;
+				image.map->LockRect(0, &lockedRect, nullptr, 0);
+
+				unsigned char* buffer = static_cast<unsigned char*>(lockedRect.pBits);
+
+				Steam::Proxy::SteamUtils->GetImageRGBA(index, buffer, width * height * 4);
+
+				for (unsigned int i = 0; i < width * height * 4; i += 4)
+				{
+					unsigned char r = buffer[i + 0];
+					unsigned char g = buffer[i + 1];
+					unsigned char b = buffer[i + 2];
+					unsigned char a = buffer[i + 3];
+
+					buffer[i + 0] = a;
+					buffer[i + 1] = r;
+					buffer[i + 2] = g;
+					buffer[i + 3] = b;
+				}
+
+				image.map->UnlockRect(0);
+
+				if (!material)
+				{
+					material = Materials::Create("avatar", &image);
+
+					Scheduler::OnFrame([]()
+					{
+						float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+						Game::CL_DrawStretchPicPhysical(10.0f, 10.0f, 100.0f, 100.0f, 0, 0, 1.0f, 1.0f, color, material);
+					});
+				}
+
+				break;
+			}
+		});
 	}
 
 	Friends::~Friends()
@@ -695,6 +760,7 @@ namespace Components
 
 		Friends::StoreFriendsList();
 
+		//Steam::Proxy::UnregisterCallback(333);
 		Steam::Proxy::UnregisterCallback(336);
 		Steam::Proxy::UnregisterCallback(304);
 

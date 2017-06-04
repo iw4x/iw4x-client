@@ -5,6 +5,75 @@ namespace Components
 	int Materials::ImageNameLength;
 	Utils::Hook Materials::ImageVersionCheckHook;
 
+	std::vector<Game::Material*> Materials::MaterialTable;
+
+	Game::Material* Materials::Create(std::string name, Game::GfxImage* image)
+	{
+		Game::Material* material = Utils::Memory::GetAllocator()->allocate<Game::Material>();
+		Game::MaterialTextureDef* texture = Utils::Memory::GetAllocator()->allocate<Game::MaterialTextureDef>();
+
+		material->textureCount = 1;
+		material->textureTable = texture;
+
+		material->name = Utils::Memory::GetAllocator()->duplicateString(name);
+		material->sortKey = 0x22;
+		material->textureAtlasColumnCount = 1;
+		material->textureAtlasRowCount = 1;
+
+		for(int i = 0; i < 48; ++i)
+		{
+			if(i != 4) material->stateBitsEntry[i] = -1;
+		}
+
+		material->stateFlags = 3;
+		material->cameraRegion = 4;
+		material->techniqueSet = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_TECHNIQUE_SET, "2d").techniqueSet;
+
+		material->textureTable->nameHash = Game::R_HashString("colorMap");
+		material->textureTable->nameStart = 'c';
+		material->textureTable->nameEnd = 'p';
+		material->textureTable->sampleState = -30;
+		material->textureTable->info.image = image;
+
+		Game::Material* cursor = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "ui_cursor").material;
+		if(cursor)
+		{
+			material->stateBitTable = cursor->stateBitTable;
+			material->stateBitsCount = cursor->stateBitsCount;
+		}
+
+		Materials::MaterialTable.push_back(material);
+
+		return material;
+	}
+
+	void Materials::Delete(Game::Material* material)
+	{
+		if (!material) return;
+
+		auto mat = std::find(Materials::MaterialTable.begin(), Materials::MaterialTable.end(), material);
+		if(mat != Materials::MaterialTable.end())
+		{
+			Materials::MaterialTable.erase(mat);
+		}
+
+		Utils::Memory::GetAllocator()->free(material->textureTable);
+		Utils::Memory::GetAllocator()->free(material->name);
+		Utils::Memory::GetAllocator()->free(material);
+	}
+
+	void Materials::DeleteAll()
+	{
+		std::vector<Game::Material*> materials;
+		Utils::Merge(&materials, Materials::MaterialTable);
+		Materials::MaterialTable.clear();
+
+		for(auto& material : materials)
+		{
+			Materials::Delete(material);
+		}
+	}
+
 	__declspec(naked) void Materials::ImageVersionCheck()
 	{
 		__asm
@@ -198,6 +267,8 @@ namespace Components
 
 	Materials::~Materials()
 	{
+		Materials::DeleteAll();
+
 		Materials::ImageVersionCheckHook.uninstall();
 	}
 }

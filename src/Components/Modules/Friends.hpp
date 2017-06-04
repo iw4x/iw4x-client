@@ -32,6 +32,14 @@ namespace Components
 		};
 #pragma pack(pop)
 
+		struct AvatarImageLoaded
+		{
+			SteamID m_steamID; // steamid the avatar has been loaded for
+			int m_iImage; // the image index of the now loaded image
+			int m_iWide; // width of the loaded image
+			int m_iTall; // height of the loaded image
+		};
+
 		struct PersonaStateChange
 		{
 			SteamID m_ulSteamID;	// steamID of the friend who changed

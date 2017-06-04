@@ -870,6 +870,31 @@ namespace Game
 		return atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
 	}
 
+	__declspec(naked) void Image_Setup(GfxImage* /*image*/, unsigned int /*width*/, unsigned int /*height*/, unsigned int /*depth*/, unsigned int /*flags*/, int /*format*/)
+	{
+		__asm
+		{
+			pushad
+			xor edi, edi
+
+			mov eax, [esp + 24h]         // image
+			mov di, word ptr [esp + 28h] // width
+			push [esp + 38h]             // format
+			push [esp + 38h]             // flags
+			push 0
+			push [esp + 3Ch]             // depth
+			push [esp + 3Ch]             // height
+
+			mov ecx, 54AF50h
+			call ecx
+
+			add esp, 14h
+
+			popad
+			retn
+		}
+	}
+
 	void SortWorldSurfaces(GfxWorld* world)
 	{
 		DWORD* specular1 = reinterpret_cast<DWORD*>(0x69F105C);
