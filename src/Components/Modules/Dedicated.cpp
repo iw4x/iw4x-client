@@ -347,6 +347,11 @@ namespace Components
 			Utils::Hook::Set<BYTE>(0x4D3C67, 0); // ?
 			Utils::Hook::Set<DWORD>(0x4D3C69, 1000);
 
+			// Manually register sv_network_fps
+			Utils::Hook::Nop(0x4D3C7B, 5);
+			Utils::Hook::Nop(0x4D3C8E, 5);
+			*reinterpret_cast<Game::dvar_t**>(0x62C7C00) = Dvar::Register<int>("sv_network_fps", 1000, 20, 1000, Game::dvar_flag::DVAR_FLAG_NONE, "Number of times per second the server checks for net messages").get<Game::dvar_t*>();
+
 			// r_loadForRenderer default to 0
 			Utils::Hook::Set<BYTE>(0x519DDF, 0);
 
