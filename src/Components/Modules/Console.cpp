@@ -621,6 +621,13 @@ namespace Components
 		}
 		else if (Dedicated::IsEnabled()/* || ZoneBuilder::IsEnabled()*/)
 		{
+			DWORD type = GetFileType(GetStdHandle(STD_INPUT_HANDLE));
+			if (type != FILE_TYPE_CHAR)
+			{
+				MessageBoxA(nullptr, "Console not supported, please use '-stdout' or '-console' flag!", "ERRROR", MB_ICONERROR);
+				TerminateProcess(GetCurrentProcess(), 1);
+			}
+
 			Utils::Hook::Nop(0x60BB58, 11);
 
 			Utils::Hook(0x4305E0, Console::Create, HOOK_JUMP).install()->quick();
