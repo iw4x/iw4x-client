@@ -9,11 +9,16 @@ namespace Utils
 	{
 		const char *VA(const char *fmt, ...)
 		{
+			static VAProvider<4, 100> globalProvider;
 			static thread_local VAProvider<8, 256> provider;
 
 			va_list ap;
 			va_start(ap, fmt);
-			const char* result = provider.get(fmt, ap);
+
+			const char* result;
+			if(Components::Loader::IsUninitializing()) result = globalProvider.get(fmt, ap);
+			else result = provider.get(fmt, ap);
+
 			va_end(ap);
 			return result;
 		}

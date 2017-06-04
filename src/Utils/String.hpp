@@ -8,17 +8,19 @@ namespace Utils
 		class VAProvider
 		{
 		public:
-			VAProvider() : currentBuffer(0) {}
+			static_assert(Buffers != 0 && MinBufferSize != 0, "Buffers and MinBufferSize mustn't be 0");
 
-			typename std::enable_if<(Buffers != 0 && MinBufferSize != 0), char*>::type
-			get(const char* format, va_list ap)
+			VAProvider() : currentBuffer(0) {}
+			~VAProvider() {}
+
+			char* get(const char* format, va_list ap)
 			{
 				++this->currentBuffer %= ARRAYSIZE(this->stringPool);
 				auto entry = &this->stringPool[this->currentBuffer];
 
 				if (!entry->size || !entry->buffer)
 				{
-					*entry = Entry(MinBufferSize);
+					throw std::runtime_error("String pool not initialized");
 				}
 
 				while (true)
@@ -46,6 +48,8 @@ namespace Utils
 				~Entry()
 				{
 					if(this->buffer) Utils::Memory::GetAllocator()->free(this->buffer);
+					this->size = 0;
+					this->buffer = nullptr;
 				}
 
 				void allocate()
@@ -63,6 +67,7 @@ namespace Utils
 				size_t size;
 				char* buffer;
 			};
+
 
 			size_t currentBuffer;
 			Entry stringPool[Buffers];
