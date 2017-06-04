@@ -25,7 +25,7 @@ namespace Utils
 		~WebIO();
 
 		void setURL(std::string url);
-		void SetCredentials(std::string username, std::string password);
+		void setCredentials(std::string username, std::string password);
 
 		std::string postFile(std::string url, std::string data, std::string fieldName, std::string fileName);
 		std::string postFile(std::string data, std::string fieldName, std::string fileName);
@@ -62,7 +62,7 @@ namespace Utils
 		bool uploadFileData(std::string file, std::string data);
 		bool downloadFileData(std::string file, std::string &data);
 
-		void setProgressCallback(std::function<void(size_t, size_t)> callback);
+		void setProgressCallback(Utils::Slot<void(size_t, size_t)> callback);
 		void cancelDownload() { this->cancel = true; }
 
 	private:
@@ -96,7 +96,7 @@ namespace Utils
 
 		DWORD timeout;
 
-		std::function<void(size_t, size_t)> progressCallback;
+		Utils::Slot<void(size_t, size_t)> progressCallback;
 
 		std::string buildPostBody(WebIO::Params params);
 

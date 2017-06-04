@@ -35,7 +35,7 @@ namespace Utils
 		if(this->hSession) InternetCloseHandle(this->hSession);
 	}
 
-	void WebIO::SetCredentials(std::string _username, std::string _password)
+	void WebIO::setCredentials(std::string _username, std::string _password)
 	{
 		this->username.clear();
 		this->password.clear();
@@ -558,7 +558,7 @@ namespace Utils
 		return false;
 	}
 
-	void WebIO::setProgressCallback(std::function<void(size_t, size_t)> callback)
+	void WebIO::setProgressCallback(Utils::Slot<void(size_t, size_t)> callback)
 	{
 		this->progressCallback = callback;
 	}
