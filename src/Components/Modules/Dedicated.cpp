@@ -393,7 +393,7 @@ namespace Components
 						interval.update();
 
 						CardTitles::SendCustomTitlesToClients();
-						Clantags::SendClantagsToClients();
+						//Clantags::SendClantagsToClients();
 					}
 				});
 

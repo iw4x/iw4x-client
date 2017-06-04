@@ -35,10 +35,15 @@ namespace Components
 		Game::SV_GameSendServerCommand(-1, 0, command.data());
 	}
 
-	const char* Clantags::GetUserClantag(std::uint32_t clientnum, const char* playername)
+	const char* Clantags::GetUserClantag(std::uint32_t /*clientnum*/, const char* playername)
 	{
+#if 0
 		if (Clantags::Tags[clientnum].empty()) return playername;
 		return Utils::String::VA("[%s] %s", Clantags::Tags[clientnum].data(), playername);
+#else
+		return playername;
+#endif
+
 	}
 
 	__declspec(naked) void Clantags::DrawPlayerNameOnScoreboard()
