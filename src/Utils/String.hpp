@@ -68,7 +68,6 @@ namespace Utils
 				char* buffer;
 			};
 
-
 			size_t currentBuffer;
 			Entry stringPool[Buffers];
 		};

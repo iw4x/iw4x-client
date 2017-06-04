@@ -908,6 +908,7 @@ namespace Components
 			frames++;
 		}
 
+		// ReSharper disable once CppUnreachableCode
 		return 0;
 	}
 
