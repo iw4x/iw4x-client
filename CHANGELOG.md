@@ -8,11 +8,19 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
+- Add basic clan tag support. Clan tag can be set via `clantag` dvar and currently will only be displayed on the in-game scoreboard.
+- Add GSC download (request).
 - Add new nicknames for bots.
+
+### Changed
+
+- Increase maximum FOV to 120.
 
 ### Fixed
 
+- Fix `iw4x_onelog` dvar not working properly and instead being implemented via `g_log`.
 - Fix server list only showing local servers by default instead of Internet servers.
+- Fix some deadlock situations on game shutdown.
 
 ## [0.4.2] - 2017-03-16
 
