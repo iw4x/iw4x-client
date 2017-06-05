@@ -18,11 +18,11 @@ namespace Components
 		// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
 		buffer(0xC800000),
-		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{ nullptr }
+		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{ nullptr }, assetDepth(0)
 	{}
 
-	ZoneBuilder::Zone::Zone() : indexStart(0), externalSize(0), buffer(0xC800000),
-		zoneName("null_zone"), dataMap(), branding{ nullptr }
+	ZoneBuilder::Zone::Zone() : indexStart(0), externalSize(0), buffer(0xC800000), zoneName("null_zone"),
+		dataMap(), branding{ nullptr }, assetDepth(0)
 	{}
 
 	ZoneBuilder::Zone::~Zone()

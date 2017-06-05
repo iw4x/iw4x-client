@@ -6,9 +6,9 @@ namespace Assets
 {
 	void IFxEffectDef::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		if (!header->data) this->loadEfx(header, name, builder);    // Check if we have an editor fx
-		if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
-		if (!header->data) this->loadBinary(header, name, builder); // Check if we need to import a new one into the game
+		if (!header->data)                                   this->loadEfx(header, name, builder);    // Check if we have an editor fx
+		if (!header->data /*&& !builder->isPrimaryAsset()*/) this->loadNative(header, name, builder); // Check if there is a native one
+		if (!header->data)                                   this->loadBinary(header, name, builder); // Check if we need to import a new one into the game
 	}
 
 	void IFxEffectDef::loadFxElemVisuals(Game::FxElemVisuals* visuals, char elemType, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader)

@@ -332,6 +332,8 @@ namespace Components
 
 	Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder, bool isSubAsset)
 	{
+		ZoneBuilder::Zone::AssetRecursionMarker _(builder);
+
 		Game::XAssetHeader header = { nullptr };
 		if (type >= Game::XAssetType::ASSET_TYPE_COUNT) return header;
 

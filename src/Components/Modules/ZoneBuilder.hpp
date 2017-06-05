@@ -14,6 +14,23 @@ namespace Components
 		class Zone
 		{
 		public:
+			class AssetRecursionMarker
+			{
+			public:
+				AssetRecursionMarker(Zone* _builder) : builder(_builder)
+				{
+					this->builder->increaseAssetDepth();
+				}
+
+				~AssetRecursionMarker()
+				{
+					this->builder->decreaseAssetDepth();
+				}
+
+			private:
+				Zone* builder;
+			};
+
 			Zone(std::string zoneName);
 			Zone();
 			~Zone();
@@ -52,6 +69,10 @@ namespace Components
 
 			void incrementExternalSize(unsigned int size);
 
+			void increaseAssetDepth() { ++this->assetDepth; }
+			void decreaseAssetDepth() { --this->assetDepth; }
+			bool isPrimaryAsset() { return this->assetDepth <= 1; }
+
 		private:
 			void loadFastFiles();
 
@@ -89,6 +110,8 @@ namespace Components
 			std::vector<std::pair<Game::XAsset, uint32_t>> aliasList;
 
 			Game::RawFile branding;
+
+			size_t assetDepth;
 		};
 
 		ZoneBuilder();
