@@ -7,10 +7,16 @@ namespace Components
 
 	Toast::WinToastHandler* Toast::ToastHandler = nullptr;
 
-	void Toast::Show(std::string image, std::string title, std::string description, int length)
+	void Toast::Show(std::string image, std::string title, std::string description, int length, Utils::Slot<void()> callback)
+	{
+		Game::Material* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
+		return Show(material, title, description, length, callback);
+	}
+
+	void Toast::Show(Game::Material* material, std::string title, std::string description, int length, Utils::Slot<void()> callback)
 	{
 		Toast::Mutex.lock();
-		Toast::Queue.push({ image, Utils::String::ToUpper(title), description, length, 0 });
+		Toast::Queue.push({ material, Utils::String::ToUpper(title), description, length, 0, callback });
 		Toast::Mutex.unlock();
 	}
 
@@ -54,7 +60,6 @@ namespace Components
 		float descSize = 0.9f;
 
 		Game::Material* white = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "white").material;
-		Game::Material* image = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, toast->image.data()).material;
 		Game::Font* font = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/objectiveFont").font;
 		Game::Font* descfont = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/normalFont").font;
 		Game::vec4_t wColor = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -111,7 +116,10 @@ namespace Components
 		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height + bHeight / 2), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, white);                               // Bottom
 
 		// Image
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + iOffsetLeft), static_cast<float>(height - bHeight / 2 + iOffset), imgDim * 1.0f, imgDim * 1.0f, 0, 0, 1.0f, 1.0f, wColor, image);
+		if (toast->image && toast->image->textureTable && toast->image->textureCount && toast->image->textureTable->info.image && toast->image->textureTable->info.image->map)
+		{
+			Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + iOffsetLeft), static_cast<float>(height - bHeight / 2 + iOffset), imgDim * 1.0f, imgDim * 1.0f, 0, 0, 1.0f, 1.0f, wColor, toast->image);
+		}
 
 		// Text
 		float leftText = width / 2 - bWidth / 2 - cornerSize + iOffsetLeft * 2 + imgDim;
@@ -136,6 +144,7 @@ namespace Components
 
 		if ((toast->start + toast->length) < Game::Sys_Milliseconds())
 		{
+			if(toast->callback) toast->callback();
 			Toast::Queue.pop();
 		}
 		else

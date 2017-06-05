@@ -10,7 +10,15 @@ namespace Components
 
 		static int FormatImagePath(char* buffer, size_t size, int, int, const char* image);
 
+		static Game::Material* Create(std::string name, Game::GfxImage* image);
+		static void Delete(Game::Material* material, bool deleteImage = false);
+
+		static Game::GfxImage* CreateImage(std::string name, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
+		static void DeleteImage(Game::GfxImage* image);
+
 	private:
+		static std::vector<Game::GfxImage*> ImageTable;
+		static std::vector<Game::Material*> MaterialTable;
 		static int ImageNameLength;
 
 		static Utils::Hook ImageVersionCheckHook;
@@ -29,5 +37,7 @@ namespace Components
 #endif
 
 		static int MaterialComparePrint(Game::Material* m1, Game::Material* m2);
+
+		static void DeleteAll();
 	};
 }

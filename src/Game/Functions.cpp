@@ -394,19 +394,6 @@ namespace Game
 		return poolEntry;
 	}
 
-	__declspec(naked) void Menu_FreeItemMemory(Game::itemDef_t* /*item*/)
-	{
-		__asm
-		{
-			pushad
-			mov edi, [esp + 24h]
-			mov eax, 63D880h
-			call eax
-			popad
-			retn
-		}
-	}
-
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{
 		if (!stringtable || !stringtable->values || row >= stringtable->rowCount || column >= stringtable->columnCount) return "";
@@ -452,24 +439,6 @@ namespace Game
 		}
 
 		return gameType;
-	}
-
-	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
-	{
-		__asm
-		{
-			push eax
-			pushad
-
-			mov ecx, 590390h
-			mov eax, [esp + 28h]
-			call ecx
-			mov[esp + 20h], eax
-			popad
-			pop eax
-
-			retn
-		}
 	}
 
 	const char *DB_GetXAssetName(XAsset *asset)
@@ -572,67 +541,6 @@ namespace Game
 		if(lock) InterlockedDecrement(lockVar);
 	}
 
-	__declspec(naked) XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType /*type*/)
-	{
-		__asm
-		{
-			push eax
-			pushad
-
-			mov eax, 5BB210h
-			mov edi, [esp + 28h]
-			call eax
-
-			mov [esp + 20h], eax
-			popad
-			pop eax
-
-			retn
-		}
-	}
-
-	__declspec(naked) XAssetEntry* DB_FindXAssetEntry(XAssetType /*type*/, const char* /*name*/)
-	{
-		__asm
-		{
-			push eax
-			pushad
-
-			mov edi, [esp + 2Ch] // name
-			push edi
-
-			mov edi, [esp + 2Ch] // type
-
-			mov eax, 5BB1B0h
-			call eax
-
-			add esp, 4h
-
-			mov[esp + 20h], eax
-			popad
-			pop eax
-
-			retn
-		}
-	}
-
-	__declspec(naked) void FS_AddLocalizedGameDirectory(const char* /*path*/, const char* /*dir*/)
-	{
-		__asm
-		{
-			pushad
-
-			mov ebx, [esp + 24h]
-			mov eax, [esp + 28h]
-			mov ecx, 642EF0h
-			call ecx
-
-			popad
-
-			retn
-		}
-	}
-
 	// this cant be MessageBox because windows.h has a define that converts it to MessageBoxW. which is just stupid
 	void ShowMessageBox(std::string message, std::string title)
 	{
@@ -657,60 +565,6 @@ namespace Game
 		return hash;
 	}
 
-	__declspec(naked) void R_LoadSunThroughDvars(const char* /*mapname*/, sunflare_t* /*sun*/)
-	{
-		__asm
-		{
-			pushad
-			push [esp + 28h]
-			mov eax, [esp + 28h]
-
-			mov ecx, 53F990h
-			call ecx
-
-			add esp, 4h
-			popad
-			retn
-		}
-	}
-
-	__declspec(naked) void R_SetSunFromDvars(sunflare_t* /*sun*/)
-	{
-		__asm
-		{
-			pushad
-			mov esi, [esp + 24h]
-
-			mov eax, 53F6D0h
-			call eax
-
-			popad
-			retn
-		}
-	}
-
-	__declspec(naked) void SV_KickClient(client_t* /*client*/, const char* /*reason*/)
-	{
-		__asm
-		{
-			pushad
-
-			mov edi, 0
-			mov esi, [esp + 24h]
-			push[esp + 28h]
-			push 0
-			push 0
-
-			mov eax, 6249A0h
-			call eax
-			add esp, 0Ch
-
-			popad
-
-			retn
-		}
-	}
-
 	void SV_KickClientError(client_t* client, std::string reason)
 	{
 		if (client->state < 5)
@@ -729,53 +583,6 @@ namespace Game
 	void Scr_iPrintLnBold(int clientNum, std::string message)
 	{
 		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x67, message.data()));
-	}
-
-	__declspec(naked) void Scr_NotifyId(unsigned int /*id*/, unsigned __int16 /*stringValue*/, unsigned int /*paramcount*/)
-	{
-		__asm
-		{
-			pushad
-
-			mov eax, [esp + 2Ch] // paramcount
-
-			push [esp + 28h] // stringValue
-			push [esp + 28h] // id
-
-			mov edx, 61E670h // Scr_NotifyId
-			call edx
-
-			add esp, 8h
-
-			popad
-			retn
-		}
-	}
-
-	__declspec(naked) void IN_KeyUp(kbutton_t* /*button*/)
-	{
-		__asm
-		{
-			pushad
-			mov esi, [esp + 24h]
-			mov eax, 5A5580h
-			call eax
-			popad
-			retn
-		}
-	}
-
-	__declspec(naked) void IN_KeyDown(kbutton_t* /*button*/)
-	{
-		__asm
-		{
-			pushad
-			mov esi, [esp + 24h]
-			mov eax, 5A54E0h
-			call eax
-			popad
-			retn
-		}
 	}
 
 	int FS_FOpenFileReadCurrentThread(const char* file, int* fh)
@@ -806,26 +613,6 @@ namespace Game
 			{
 				(*storeHere)->Unlock();
 			}
-		}
-	}
-
-	__declspec(naked) void Load_VertexBuffer(void* /*data*/, IDirect3DVertexBuffer9** /*where*/, int /*len*/)
-	{
-		__asm
-		{
-			pushad
-
-			mov eax, [esp + 2Ch]
-			mov edi, [esp + 28h]
-			push [esp + 24h]
-
-			mov ebx, 5112C0h
-			call ebx
-			add esp, 4
-
-			popad
-
-			retn
 		}
 	}
 
@@ -891,6 +678,300 @@ namespace Game
 		*specular2 = saveSpecular2;
 	}
 
+	void R_AddDebugBounds(float* color, Bounds* b)
+	{
+		Game::vec3_t v1, v2, v3, v4, v5, v6, v7, v8;
+		float* center = b->midPoint;
+		float* halfSize = b->halfSize;
+
+		v1[0] = center[0] - halfSize[0];
+		v1[1] = center[1] - halfSize[1];
+		v1[2] = center[2] - halfSize[2];
+
+		v2[0] = center[0] + halfSize[0];
+		v2[1] = center[1] - halfSize[1];
+		v2[2] = center[2] - halfSize[2];
+
+		v3[0] = center[0] - halfSize[0];
+		v3[1] = center[1] + halfSize[1];
+		v3[2] = center[2] - halfSize[2];
+
+		v4[0] = center[0] + halfSize[0];
+		v4[1] = center[1] + halfSize[1];
+		v4[2] = center[2] - halfSize[2];
+
+		v5[0] = center[0] - halfSize[0];
+		v5[1] = center[1] - halfSize[1];
+		v5[2] = center[2] + halfSize[2];
+
+		v6[0] = center[0] + halfSize[0];
+		v6[1] = center[1] - halfSize[1];
+		v6[2] = center[2] + halfSize[2];
+
+		v7[0] = center[0] - halfSize[0];
+		v7[1] = center[1] + halfSize[1];
+		v7[2] = center[2] + halfSize[2];
+
+		v8[0] = center[0] + halfSize[0];
+		v8[1] = center[1] + halfSize[1];
+		v8[2] = center[2] + halfSize[2];
+
+		// bottom
+		Game::R_AddDebugLine(color, v1, v2);
+		Game::R_AddDebugLine(color, v2, v4);
+		Game::R_AddDebugLine(color, v4, v3);
+		Game::R_AddDebugLine(color, v3, v1);
+
+		// top
+		Game::R_AddDebugLine(color, v5, v6);
+		Game::R_AddDebugLine(color, v6, v8);
+		Game::R_AddDebugLine(color, v8, v7);
+		Game::R_AddDebugLine(color, v7, v5);
+
+		// verticals
+		Game::R_AddDebugLine(color, v1, v5);
+		Game::R_AddDebugLine(color, v2, v6);
+		Game::R_AddDebugLine(color, v3, v7);
+		Game::R_AddDebugLine(color, v4, v8);
+	}
+
+#pragma optimize("", off)
+	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			mov ecx, 590390h
+			mov eax, [esp + 28h]
+			call ecx
+			mov[esp + 20h], eax
+			popad
+			pop eax
+
+			retn
+		}
+	}
+
+	__declspec(naked) XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType /*type*/)
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			mov eax, 5BB210h
+			mov edi, [esp + 28h]
+			call eax
+
+			mov[esp + 20h], eax
+			popad
+			pop eax
+
+			retn
+		}
+	}
+
+	__declspec(naked) XAssetEntry* DB_FindXAssetEntry(XAssetType /*type*/, const char* /*name*/)
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			mov edi, [esp + 2Ch] // name
+			push edi
+
+			mov edi, [esp + 2Ch] // type
+
+			mov eax, 5BB1B0h
+			call eax
+
+			add esp, 4h
+
+			mov[esp + 20h], eax
+			popad
+			pop eax
+
+			retn
+		}
+	}
+
+	__declspec(naked) void FS_AddLocalizedGameDirectory(const char* /*path*/, const char* /*dir*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov ebx, [esp + 24h]
+			mov eax, [esp + 28h]
+			mov ecx, 642EF0h
+			call ecx
+
+			popad
+
+			retn
+		}
+	}
+
+	__declspec(naked) void R_LoadSunThroughDvars(const char* /*mapname*/, sunflare_t* /*sun*/)
+	{
+		__asm
+		{
+			pushad
+			push [esp + 28h]
+			mov eax, [esp + 28h]
+
+			mov ecx, 53F990h
+			call ecx
+
+			add esp, 4h
+			popad
+			retn
+		}
+	}
+
+	__declspec(naked) void R_SetSunFromDvars(sunflare_t* /*sun*/)
+	{
+		__asm
+		{
+			pushad
+			mov esi, [esp + 24h]
+
+			mov eax, 53F6D0h
+			call eax
+
+			popad
+			retn
+		}
+	}
+
+	__declspec(naked) void SV_KickClient(client_t* /*client*/, const char* /*reason*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov edi, 0
+			mov esi, [esp + 24h]
+			push [esp + 28h]
+			push 0
+			push 0
+
+			mov eax, 6249A0h
+			call eax
+			add esp, 0Ch
+
+			popad
+
+			retn
+		}
+	}
+
+	__declspec(naked) void Scr_NotifyId(unsigned int /*id*/, unsigned __int16 /*stringValue*/, unsigned int /*paramcount*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 2Ch] // paramcount
+
+			push [esp + 28h] // stringValue
+			push [esp + 28h] // id
+
+			mov edx, 61E670h // Scr_NotifyId
+			call edx
+
+			add esp, 8h
+
+			popad
+			retn
+		}
+	}
+
+	__declspec(naked) void IN_KeyUp(kbutton_t* /*button*/)
+	{
+		__asm
+		{
+			pushad
+			mov esi, [esp + 24h]
+			mov eax, 5A5580h
+			call eax
+			popad
+			retn
+		}
+	}
+
+	__declspec(naked) void IN_KeyDown(kbutton_t* /*button*/)
+	{
+		__asm
+		{
+			pushad
+			mov esi, [esp + 24h]
+			mov eax, 5A54E0h
+			call eax
+			popad
+			retn
+		}
+	}
+
+	__declspec(naked) void Load_VertexBuffer(void* /*data*/, IDirect3DVertexBuffer9** /*where*/, int /*len*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 2Ch]
+			mov edi, [esp + 28h]
+			push [esp + 24h]
+
+			mov ebx, 5112C0h
+			call ebx
+			add esp, 4
+
+			popad
+
+			retn
+		}
+	}
+
+	__declspec(naked) void Image_Setup(GfxImage* /*image*/, unsigned int /*width*/, unsigned int /*height*/, unsigned int /*depth*/, unsigned int /*flags*/, _D3DFORMAT /*format*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 24h] // image
+			mov edi, [esp + 28h] // width
+			push [esp + 38h]     // format
+			push [esp + 38h]     // flags
+			push [esp + 38h]     // depth
+			push [esp + 38h]     // height
+
+			mov ecx, 54AF50h
+			call ecx
+
+			add esp, 10h
+
+			popad
+			retn
+		}
+	}
+
+	__declspec(naked) void Menu_FreeItemMemory(itemDef_t* /*item*/)
+	{
+		__asm
+		{
+			pushad
+			mov edi, [esp + 24h]
+			mov eax, 63D880h
+			call eax
+			popad
+			retn
+		}
+	}
+
 	__declspec(naked) void R_AddDebugLine(float* /*color*/, float* /*v1*/, float* /*v2*/)
 	{
 		__asm
@@ -950,61 +1031,5 @@ namespace Game
 			retn
 		}
 	}
-
-	void R_AddDebugBounds(float* color, Bounds* b)
-	{
-		Game::vec3_t v1, v2, v3, v4, v5, v6, v7, v8;
-		float* center = b->midPoint;
-		float* halfSize = b->halfSize;
-
-		v1[0] = center[0] - halfSize[0];
-		v1[1] = center[1] - halfSize[1];
-		v1[2] = center[2] - halfSize[2];
-
-		v2[0] = center[0] + halfSize[0];
-		v2[1] = center[1] - halfSize[1];
-		v2[2] = center[2] - halfSize[2];
-
-		v3[0] = center[0] - halfSize[0];
-		v3[1] = center[1] + halfSize[1];
-		v3[2] = center[2] - halfSize[2];
-
-		v4[0] = center[0] + halfSize[0];
-		v4[1] = center[1] + halfSize[1];
-		v4[2] = center[2] - halfSize[2];
-
-		v5[0] = center[0] - halfSize[0];
-		v5[1] = center[1] - halfSize[1];
-		v5[2] = center[2] + halfSize[2];
-
-		v6[0] = center[0] + halfSize[0];
-		v6[1] = center[1] - halfSize[1];
-		v6[2] = center[2] + halfSize[2];
-
-		v7[0] = center[0] - halfSize[0];
-		v7[1] = center[1] + halfSize[1];
-		v7[2] = center[2] + halfSize[2];
-
-		v8[0] = center[0] + halfSize[0];
-		v8[1] = center[1] + halfSize[1];
-		v8[2] = center[2] + halfSize[2];
-
-		// bottom
-		Game::R_AddDebugLine(color, v1, v2);
-		Game::R_AddDebugLine(color, v2, v4);
-		Game::R_AddDebugLine(color, v4, v3);
-		Game::R_AddDebugLine(color, v3, v1);
-
-		// top
-		Game::R_AddDebugLine(color, v5, v6);
-		Game::R_AddDebugLine(color, v6, v8);
-		Game::R_AddDebugLine(color, v8, v7);
-		Game::R_AddDebugLine(color, v7, v5);
-
-		// verticals
-		Game::R_AddDebugLine(color, v1, v5);
-		Game::R_AddDebugLine(color, v2, v6);
-		Game::R_AddDebugLine(color, v3, v7);
-		Game::R_AddDebugLine(color, v4, v8);
-	}
+#pragma optimize("", on)
 }
