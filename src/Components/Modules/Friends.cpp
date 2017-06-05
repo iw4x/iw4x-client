@@ -13,12 +13,9 @@ namespace Components
 
 	void Friends::SortIndividualList(std::vector<Friends::Friend>* list)
 	{
-		qsort(list->data(), list->size(), sizeof(Friends::Friend), [](const void* first, const void* second)
+		std::sort(list->begin(), list->end(), [](Friends::Friend const& friend1, Friends::Friend const& friend2)
 		{
-			const Friends::Friend* friend1 = static_cast<const Friends::Friend*>(first);
-			const Friends::Friend* friend2 = static_cast<const Friends::Friend*>(second);
-
-			return friend1->cleanName.compare(friend2->cleanName);
+			return friend1.cleanName.compare(friend2.cleanName) <= 0;
 		});
 	}
 

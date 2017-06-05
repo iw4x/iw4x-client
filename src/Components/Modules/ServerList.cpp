@@ -553,11 +553,12 @@ namespace Components
 
 	void ServerList::SortList()
 	{
-		qsort(ServerList::VisibleList.data(), ServerList::VisibleList.size(), sizeof(int), [] (const void* first, const void* second)
-		{
-			const unsigned int server1 = *static_cast<const unsigned int*>(first);
-			const unsigned int server2 = *static_cast<const unsigned int*>(second);
+		// Only sort when the serverlist is open
+		Game::menuDef_t* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
+		if(!menu || !Game::Menu_IsVisible(Game::uiContext, menu)) return;
 
+		std::sort(ServerList::VisibleList.begin(), ServerList::VisibleList.end(), [] (unsigned int const &server1, unsigned int const &server2)
+		{
 			ServerInfo* info1 = nullptr;
 			ServerInfo* info2 = nullptr;
 
@@ -573,18 +574,18 @@ namespace Components
 			// Numerical comparisons
 			if (ServerList::SortKey == ServerList::Column::Ping)
 			{
-				return ((info1->ping - info2->ping) * (ServerList::SortAsc ? 1 : -1));
+				return ((info1->ping < info2->ping) ^ !ServerList::SortAsc);
 			}
 			else if (ServerList::SortKey == ServerList::Column::Players)
 			{
-				return ((info1->clients - info2->clients) * (ServerList::SortAsc ? 1 : -1));
+				return ((info1->clients < info2->clients) ^ !ServerList::SortAsc);
 			}
 
 			std::string text1 = Colors::Strip(ServerList::GetServerInfoText(info1, ServerList::SortKey));
 			std::string text2 = Colors::Strip(ServerList::GetServerInfoText(info2, ServerList::SortKey));
 
 			// ASCII-based comparison
-			return (text1.compare(text2) * (ServerList::SortAsc ? 1 : -1));
+			return ((text1.compare(text2) <= 0) ^ !ServerList::SortAsc);
 		});
 	}
 
