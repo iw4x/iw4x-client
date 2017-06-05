@@ -557,6 +557,12 @@ namespace Components
 			std::swap(buffer[i + 0], buffer[i + 2]);
 		}
 
+		// Steam rounds the corners and somehow fuck up the pixels there
+		buffer[3] = 0;                                                // top-left
+		buffer[(width - 1) * 4 + 3] = 0;                              // top-right
+		buffer[((height - 1) * width * 4) + 3] = 0;                   // bottom-left
+		buffer[((height - 1) * width * 4) + (width - 1) * 4 + 3] = 0; // bottom-right
+
 		image->map->UnlockRect(0);
 
 		return Materials::Create(Utils::String::VA("avatar_%llX", user.bits), image);
