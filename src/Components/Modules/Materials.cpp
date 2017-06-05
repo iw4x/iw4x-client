@@ -47,7 +47,7 @@ namespace Components
 		return material;
 	}
 
-	void Materials::Delete(Game::Material* material)
+	void Materials::Delete(Game::Material* material, bool deleteImage)
 	{
 		if (!material) return;
 
@@ -57,9 +57,37 @@ namespace Components
 			Materials::MaterialTable.erase(mat);
 		}
 
+		if (deleteImage)
+		{
+			for (char i = 0; i < material->textureCount; ++i)
+			{
+				Materials::DeleteImage(material->textureTable[i].info.image);
+			}
+		}
+
 		Utils::Memory::GetAllocator()->free(material->textureTable);
 		Utils::Memory::GetAllocator()->free(material->name);
 		Utils::Memory::GetAllocator()->free(material);
+	}
+
+	Game::GfxImage* Materials::CreateImage(std::string name, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format)
+	{
+		Game::GfxImage* image = Utils::Memory::GetAllocator()->allocate<Game::GfxImage>();
+		image->name = Utils::Memory::GetAllocator()->duplicateString(name);
+
+		Game::Image_Setup(image, width, height, depth, flags, format);
+
+		return image;
+	}
+
+	void Materials::DeleteImage(Game::GfxImage* image)
+	{
+		if (!image) return;
+
+		Game::Image_Release(image);
+
+		Utils::Memory::GetAllocator()->free(image->name);
+		Utils::Memory::GetAllocator()->free(image);
 	}
 
 	void Materials::DeleteAll()

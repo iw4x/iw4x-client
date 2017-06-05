@@ -95,5 +95,7 @@ namespace Components
 
 		static void SetRawPresence(const char* key, const char* value);
 		static std::vector<int> GetAppIdList();
+
+		static Game::Material* CreateAvatar(SteamID user);
 	};
 }

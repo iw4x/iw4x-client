@@ -117,7 +117,11 @@ namespace Components
 		int notify = Dvar::Var("cl_notifyFriendState").get<int>();
 		if(gotOnline && (notify == -1 || (notify == 1 && !Game::CL_IsCgameInitialized())) && !Dvar::Var("ui_streamFriendly").get<bool>())
 		{
-			Toast::Show("cardicon_joystick", entry->name, "is playing IW4x", 3000);
+			Game::Material* material = Friends::CreateAvatar(user);
+			Toast::Show(material, entry->name, "is playing IW4x", 3000, [material]()
+			{
+				Materials::Delete(material, true);
+			});
 		}
 	}
 
@@ -530,6 +534,34 @@ namespace Components
 		Utils::IO::WriteFile("players/friends.dat", list.SerializeAsString());
 	}
 
+	Game::Material* Friends::CreateAvatar(SteamID user)
+	{
+		if (!Steam::Proxy::SteamUtils || !Steam::Proxy::SteamFriends) return nullptr;
+
+		int index = Steam::Proxy::SteamFriends->GetMediumFriendAvatar(user);
+
+		unsigned int width, height;
+		Steam::Proxy::SteamUtils->GetImageSize(index, &width, &height);
+
+		Game::GfxImage* image = Materials::CreateImage(Utils::String::VA("texture_%llX", user.bits), width, height, 1, 0x1000003, D3DFMT_A8R8G8B8);
+
+		D3DLOCKED_RECT lockedRect;
+		image->map->LockRect(0, &lockedRect, nullptr, 0);
+
+		unsigned char* buffer = static_cast<unsigned char*>(lockedRect.pBits);
+		Steam::Proxy::SteamUtils->GetImageRGBA(index, buffer, width * height * 4);
+
+		// Swap red and blue channel
+		for (unsigned int i = 0; i < width * height * 4; i += 4)
+		{
+			std::swap(buffer[i + 0], buffer[i + 2]);
+		}
+
+		image->map->UnlockRect(0);
+
+		return Materials::Create(Utils::String::VA("avatar_%llX", user.bits), image);
+	}
+
 	Friends::Friends()
 	{
 		Friends::LoggedOn = false;
@@ -553,13 +585,6 @@ namespace Components
 		{
 			Command::Execute("openmenu popup_friends", true);
 		}, HOOK_JUMP).install()->quick();
-
-		// Avatar callback
-// 		Steam::Proxy::RegisterCallback(333, [](void* data)
-// 		{
-// 			MessageBoxA(0, 0, 0, 0);
-// 			
-// 		});
 
 		// Callback to update user information
 		Steam::Proxy::RegisterCallback(336, [](void* data)
@@ -699,11 +724,10 @@ namespace Components
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
-			for(auto user : Friends::FriendsList)
+			for (auto user : Friends::FriendsList)
 			{
 				Logger::Print("Fetching %s...\n", user.name.data());
-				int index = Steam::Proxy::SteamFriends->GetSmallFriendAvatar(user.userId);
-
+				int index = Steam::Proxy::SteamFriends->GetMediumFriendAvatar(user.userId);
 
 
 				if (!Steam::Proxy::SteamUtils) return;
@@ -715,25 +739,18 @@ namespace Components
 				unsigned int width, height;
 				Steam::Proxy::SteamUtils->GetImageSize(index, &width, &height);
 				Game::Image_Setup(&image, static_cast<short>(width), static_cast<short>(height), 1, 0x1000003, D3DFMT_A8R8G8B8);
+				Logger::Print("%dx%d\n", width, height);
 
 				D3DLOCKED_RECT lockedRect;
 				image.map->LockRect(0, &lockedRect, nullptr, 0);
 
 				unsigned char* buffer = static_cast<unsigned char*>(lockedRect.pBits);
-
 				Steam::Proxy::SteamUtils->GetImageRGBA(index, buffer, width * height * 4);
 
+				// Swap red and blue channel
 				for (unsigned int i = 0; i < width * height * 4; i += 4)
 				{
-					unsigned char r = buffer[i + 0];
-					unsigned char g = buffer[i + 1];
-					unsigned char b = buffer[i + 2];
-					unsigned char a = buffer[i + 3];
-
-					buffer[i + 0] = a;
-					buffer[i + 1] = r;
-					buffer[i + 2] = g;
-					buffer[i + 3] = b;
+					std::swap(buffer[i + 0], buffer[i + 2]);
 				}
 
 				image.map->UnlockRect(0);
@@ -760,7 +777,6 @@ namespace Components
 
 		Friends::StoreFriendsList();
 
-		//Steam::Proxy::UnregisterCallback(333);
 		Steam::Proxy::UnregisterCallback(336);
 		Steam::Proxy::UnregisterCallback(304);
 

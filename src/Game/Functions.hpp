@@ -845,7 +845,7 @@ namespace Game
 
 	int CL_GetMaxXP();
 
-	void Image_Setup(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, int format);
+	void Image_Setup(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
 
 	void SortWorldSurfaces(GfxWorld* world);
 	void R_AddDebugLine(float* color, float* v1, float* v2);
