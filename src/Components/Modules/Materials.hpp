@@ -17,6 +17,7 @@ namespace Components
 		static void DeleteImage(Game::GfxImage* image);
 
 	private:
+		static std::vector<Game::GfxImage*> ImageTable;
 		static std::vector<Game::Material*> MaterialTable;
 		static int ImageNameLength;
 

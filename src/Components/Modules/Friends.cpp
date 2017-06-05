@@ -115,7 +115,7 @@ namespace Components
 		Friends::SortList();
 
 		int notify = Dvar::Var("cl_notifyFriendState").get<int>();
-		if(gotOnline && (notify == -1 || (notify == 1 && !Game::CL_IsCgameInitialized())) && !Dvar::Var("ui_streamFriendly").get<bool>())
+		if (gotOnline && (notify == -1 || (notify == 1 && !Game::CL_IsCgameInitialized())) && !Dvar::Var("ui_streamFriendly").get<bool>())
 		{
 			Game::Material* material = Friends::CreateAvatar(user);
 			Toast::Show(material, entry->name, "is playing IW4x", 3000, [material]()

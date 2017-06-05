@@ -5,6 +5,7 @@ namespace Components
 	int Materials::ImageNameLength;
 	Utils::Hook Materials::ImageVersionCheckHook;
 
+	std::vector<Game::GfxImage*> Materials::ImageTable;
 	std::vector<Game::Material*> Materials::MaterialTable;
 
 	Game::Material* Materials::Create(std::string name, Game::GfxImage* image)
@@ -51,12 +52,6 @@ namespace Components
 	{
 		if (!material) return;
 
-		auto mat = std::find(Materials::MaterialTable.begin(), Materials::MaterialTable.end(), material);
-		if(mat != Materials::MaterialTable.end())
-		{
-			Materials::MaterialTable.erase(mat);
-		}
-
 		if (deleteImage)
 		{
 			for (char i = 0; i < material->textureCount; ++i)
@@ -68,6 +63,12 @@ namespace Components
 		Utils::Memory::GetAllocator()->free(material->textureTable);
 		Utils::Memory::GetAllocator()->free(material->name);
 		Utils::Memory::GetAllocator()->free(material);
+
+		auto mat = std::find(Materials::MaterialTable.begin(), Materials::MaterialTable.end(), material);
+		if (mat != Materials::MaterialTable.end())
+		{
+			Materials::MaterialTable.erase(mat);
+		}
 	}
 
 	Game::GfxImage* Materials::CreateImage(std::string name, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format)
@@ -76,6 +77,8 @@ namespace Components
 		image->name = Utils::Memory::GetAllocator()->duplicateString(name);
 
 		Game::Image_Setup(image, width, height, depth, flags, format);
+
+		Materials::ImageTable.push_back(image);
 
 		return image;
 	}
@@ -88,6 +91,12 @@ namespace Components
 
 		Utils::Memory::GetAllocator()->free(image->name);
 		Utils::Memory::GetAllocator()->free(image);
+
+		auto img = std::find(Materials::ImageTable.begin(), Materials::ImageTable.end(), image);
+		if (img != Materials::ImageTable.end())
+		{
+			Materials::ImageTable.erase(img);
+		}
 	}
 
 	void Materials::DeleteAll()
@@ -99,6 +108,15 @@ namespace Components
 		for(auto& material : materials)
 		{
 			Materials::Delete(material);
+		}
+
+		std::vector<Game::GfxImage*> images;
+		Utils::Merge(&images, Materials::ImageTable);
+		Materials::ImageTable.clear();
+
+		for (auto& image : images)
+		{
+			Materials::DeleteImage(image);
 		}
 	}
 
@@ -284,13 +302,22 @@ namespace Components
 		}
 #endif
 
-// 		Scheduler::OnFrame([] ()
-// 		{
-// 			Game::Font* font = Game::R_RegisterFont("fonts/normalFont");
-// 			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-//
-// 			Game::R_AddCmdDrawText("test^==preview_mp_rustzob", 0x7FFFFFFF, font, 500.0f, 150.0f, 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
-// 		}, true);
+		Renderer::OnDeviceRecoveryBegin([]()
+		{
+			for (auto& image : Materials::ImageTable)
+			{
+				Game::Image_Release(image);
+				image->map = nullptr;
+			}
+		});
+
+		Renderer::OnDeviceRecoveryEnd([]()
+		{
+			for (auto& image : Materials::ImageTable)
+			{
+				Utils::Hook::Call<void(void*)>(0x51F7B0)(image);
+			}
+		});
 	}
 
 	Materials::~Materials()
