@@ -6,19 +6,23 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ## [Unreleased]
 
+## [0.5.0] - 2017-06-04
+
 ### Added
 
-- Add basic clan tag support. Clan tag can be set via `clantag` dvar and currently will only be displayed on the in-game scoreboard.
-- Add GSC download (request).
-- Add new nicknames for bots.
+- Add GSC functionality to download files via HTTP(S) (request).
+- Implement preliminary custom map support.
 
 ### Changed
 
+- Add new nicknames for bots.
+- Bumped Fastfile version. If you built fastfiles with the zone builder (e.g. mod.ff) you have to rebuild them!
+- Default `sv_network_fps` to `1000` on dedicated game servers.
 - Increase maximum FOV to 120.
 
 ### Fixed
 
-- Fix `iw4x_onelog` dvar not working properly and instead being implemented via `g_log`.
+- Fix `iw4x_onelog` dvar.
 - Fix server list only showing local servers by default instead of Internet servers.
 - Fix some deadlock situations on game shutdown.
 
