@@ -722,56 +722,6 @@ namespace Components
 
 			Friends::UpdateFriends();
 		});
-
-		Command::Add("testavatar", [](Command::Params*)
-		{
-			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
-
-			for (auto user : Friends::FriendsList)
-			{
-				Logger::Print("Fetching %s...\n", user.name.data());
-				int index = Steam::Proxy::SteamFriends->GetMediumFriendAvatar(user.userId);
-
-
-				if (!Steam::Proxy::SteamUtils) return;
-
-				static Game::GfxImage image = { nullptr };
-				if (image.map) Game::Image_Release(&image);
-				static Game::Material* material = nullptr;
-
-				unsigned int width, height;
-				Steam::Proxy::SteamUtils->GetImageSize(index, &width, &height);
-				Game::Image_Setup(&image, static_cast<short>(width), static_cast<short>(height), 1, 0x1000003, D3DFMT_A8R8G8B8);
-				Logger::Print("%dx%d\n", width, height);
-
-				D3DLOCKED_RECT lockedRect;
-				image.map->LockRect(0, &lockedRect, nullptr, 0);
-
-				unsigned char* buffer = static_cast<unsigned char*>(lockedRect.pBits);
-				Steam::Proxy::SteamUtils->GetImageRGBA(index, buffer, width * height * 4);
-
-				// Swap red and blue channel
-				for (unsigned int i = 0; i < width * height * 4; i += 4)
-				{
-					std::swap(buffer[i + 0], buffer[i + 2]);
-				}
-
-				image.map->UnlockRect(0);
-
-				if (!material)
-				{
-					material = Materials::Create("avatar", &image);
-
-					Scheduler::OnFrame([]()
-					{
-						float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-						Game::CL_DrawStretchPicPhysical(10.0f, 10.0f, 100.0f, 100.0f, 0, 0, 1.0f, 1.0f, color, material);
-					});
-				}
-
-				break;
-			}
-		});
 	}
 
 	Friends::~Friends()
