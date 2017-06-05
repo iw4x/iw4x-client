@@ -49,15 +49,17 @@ namespace Components
 		if (!Localization::UseLocalization.get<bool>()) return key;
 
 		Game::LocalizeEntry* entry = nullptr;
-		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
+		{
+			std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 
-		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
-		{
-			entry = Localization::TempLocalizeMap[key];
-		}
-		else if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
-		{
-			entry = Localization::LocalizeMap[key];
+			if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
+			{
+				entry = Localization::TempLocalizeMap[key];
+			}
+			else if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
+			{
+				entry = Localization::LocalizeMap[key];
+			}
 		}
 
 		if (!entry || !entry->value)
