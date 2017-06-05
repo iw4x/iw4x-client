@@ -64,7 +64,7 @@ namespace Components
 		return "";
 	}
 
-	const char* ServerList::GetServerInfoText(ServerList::ServerInfo* server, int column)
+	const char* ServerList::GetServerInfoText(ServerList::ServerInfo* server, int column, bool sorting)
 	{
 		if (!server) return "";
 
@@ -89,7 +89,7 @@ namespace Components
 			{
 				if (server->svRunning)
 				{
-					if (!Maps::CheckMapInstalled(server->mapname.data()))
+					if (!sorting && !Maps::CheckMapInstalled(server->mapname.data()))
 					{
 						return Utils::String::VA("^1%s", Game::UI_LocalizeMapName(server->mapname.data()));
 					}
@@ -581,8 +581,8 @@ namespace Components
 				return ((info1->clients < info2->clients) ^ !ServerList::SortAsc);
 			}
 
-			std::string text1 = Colors::Strip(ServerList::GetServerInfoText(info1, ServerList::SortKey));
-			std::string text2 = Colors::Strip(ServerList::GetServerInfoText(info2, ServerList::SortKey));
+			std::string text1 = Utils::String::ToLower(Colors::Strip(ServerList::GetServerInfoText(info1, ServerList::SortKey, true)));
+			std::string text2 = Utils::String::ToLower(Colors::Strip(ServerList::GetServerInfoText(info2, ServerList::SortKey, true)));
 
 			// ASCII-based comparison
 			return ((text1.compare(text2) <= 0) ^ !ServerList::SortAsc);

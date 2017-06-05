@@ -110,7 +110,7 @@ namespace Components
 
 		static unsigned int GetServerCount();
 		static const char* GetServerText(unsigned int index, int column);
-		static const char* GetServerInfoText(ServerInfo* server, int column);
+		static const char* GetServerInfoText(ServerInfo* server, int column, bool sorting = false);
 		static void SelectServer(unsigned int index);
 
 		static void UpdateSource();
