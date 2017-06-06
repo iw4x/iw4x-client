@@ -124,6 +124,23 @@ namespace Components
 		return Window::MainWindow;
 	}
 
+	void Window::ApplyCursor()
+	{
+		bool isLoading = !FastFiles::Ready();
+		SetCursor(LoadCursor(nullptr, isLoading ? IDC_WAIT : IDC_ARROW));
+	}
+
+	BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+	{
+		if(Msg == WM_SETCURSOR)
+		{
+			Window::ApplyCursor();
+			return TRUE;
+		}
+
+		return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x4731F0)(hWnd, Msg, wParam, lParam);
+	}
+
 	Window::Window()
 	{
 		// Borderless window
@@ -145,11 +162,10 @@ namespace Components
 			if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 			{
 				int value = 0;
+				Window::ApplyCursor();
 
 				if (Window::CursorVisible)
 				{
-					SetCursor(LoadCursor(nullptr, IDC_ARROW));
-
 					while ((value = ShowCursor(TRUE)) < 0) {};
 					while (value > 0) { value = ShowCursor(FALSE); } // Set display counter to 0
 				}
@@ -165,5 +181,8 @@ namespace Components
 
 		// Don't let the game interact with the native cursor
 		Utils::Hook::Set(0x6D7348, Window::ShowCursorHook);
+
+		// Use custom message handler
+		Utils::Hook::Set(0x64D298, Window::MessageHandler);
 	}
 }
