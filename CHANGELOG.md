@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ## [Unreleased]
 
+### Added
+
+- Show friend avatars when they play IW4x (request)
+
+### Changed
+
+
+
+### Fixed
+
+- Fix lags and frame drops caused by server sorting
+- Fix demos on custom maps
+
 ## [0.5.0] - 2017-06-04
 
 ### Added
