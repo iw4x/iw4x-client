@@ -17,7 +17,6 @@ namespace Components
 		static int FrameTime;
 
 		static int64_t* GetStatsID();
-		static void ShutdownStub(int num);
 
 		static void SelectStringTableEntryInDvarStub();
 

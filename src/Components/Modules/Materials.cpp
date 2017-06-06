@@ -120,6 +120,21 @@ namespace Components
 		}
 	}
 
+	bool Materials::IsValid(Game::Material* material)
+	{
+		if (!material || !material->textureCount || !material->textureTable) return false;
+
+		for(char i = 0; i < material->textureCount; ++i)
+		{
+			if (!material->textureTable[i].info.image || !material->textureTable[i].info.image->map)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	__declspec(naked) void Materials::ImageVersionCheck()
 	{
 		__asm
@@ -311,13 +326,13 @@ namespace Components
 			}
 		});
 
-		Renderer::OnDeviceRecoveryEnd([]()
+		/*Renderer::OnDeviceRecoveryEnd([]()
 		{
 			for (auto& image : Materials::ImageTable)
 			{
 				Utils::Hook::Call<void(void*)>(0x51F7B0)(image);
 			}
-		});
+		});*/
 	}
 
 	Materials::~Materials()

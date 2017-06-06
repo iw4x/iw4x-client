@@ -71,6 +71,29 @@ namespace Components
 		return Utils::Hook::Get<int>(0x66E1C6C);
 	}
 
+	void Renderer::PreVidRestart()
+	{
+		Renderer::BeginRecoverDeviceSignal();
+	}
+
+	void Renderer::PostVidRestart()
+	{
+		Renderer::EndRecoverDeviceSignal();
+	}
+
+	__declspec(naked) void Renderer::PostVidRestartStub()
+	{
+		__asm
+		{
+			pushad
+			call Renderer::PostVidRestart
+			popad
+
+			push 4F84C0h
+			retn
+		}
+	}
+
 	Renderer::Renderer()
 	{
 		if (Dedicated::IsEnabled()) return;
@@ -108,17 +131,25 @@ namespace Components
 
 		Utils::Hook(0x536A80, Renderer::BackendFrameStub, HOOK_JUMP).install()->quick();
 
+		// Begin device recovery (not D3D9Ex)
 		Utils::Hook(0x508298, [] ()
 		{
 			Game::DB_BeginRecoverLostDevice();
 			Renderer::BeginRecoverDeviceSignal();
 		}, HOOK_CALL).install()->quick();
 
+		// End device recovery (not D3D9Ex)
 		Utils::Hook(0x508355, [] ()
 		{
 			Renderer::EndRecoverDeviceSignal();
 			Game::DB_EndRecoverLostDevice();
 		}, HOOK_CALL).install()->quick();
+
+		// Begin vid_restart
+		Utils::Hook(0x4CA2FD, Renderer::PreVidRestart, HOOK_CALL).install()->quick();
+
+		// End vid_restart
+		Utils::Hook(0x4CA3A7, Renderer::PostVidRestartStub, HOOK_CALL).install()->quick();
 	}
 
 	Renderer::~Renderer()

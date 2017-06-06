@@ -24,6 +24,10 @@ namespace Components
 		static void BackendFrameStub();
 		static void BackendFrameHandler();
 
+		static void PreVidRestart();
+		static void PostVidRestart();
+		static void PostVidRestartStub();
+
 		static Utils::Signal<Scheduler::Callback> EndRecoverDeviceSignal;
 		static Utils::Signal<Scheduler::Callback> BeginRecoverDeviceSignal;
 

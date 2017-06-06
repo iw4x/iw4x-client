@@ -59,9 +59,9 @@ namespace Components
 		float fontSize = 0.9f;
 		float descSize = 0.9f;
 
-		Game::Material* white = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "white").material;
-		Game::Font* font = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/objectiveFont").font;
-		Game::Font* descfont = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/normalFont").font;
+		Game::Material* white = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "white").material; if (!white) return;
+		Game::Font* font = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/objectiveFont").font; if (!font) return;
+		Game::Font* descfont = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/normalFont").font; if (!descfont) return;
 		Game::vec4_t wColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Game::vec4_t bgColor = { 0.0f, 0.0f, 0.0f, 0.5f };
 		Game::vec4_t borderColor = { 1.0f, 1.0f, 1.0f, 0.2f };
@@ -116,10 +116,9 @@ namespace Components
 		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height + bHeight / 2), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, white);                               // Bottom
 
 		// Image
-		if (toast->image && toast->image->textureTable && toast->image->textureCount && toast->image->textureTable->info.image && toast->image->textureTable->info.image->map)
-		{
-			Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + iOffsetLeft), static_cast<float>(height - bHeight / 2 + iOffset), imgDim * 1.0f, imgDim * 1.0f, 0, 0, 1.0f, 1.0f, wColor, toast->image);
-		}
+		Game::Material* image = toast->image;
+		if (!Materials::IsValid(image)) image = Game::DB_FindXAssetDefaultHeaderInternal(Game::XAssetType::ASSET_TYPE_MATERIAL).material;
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + iOffsetLeft), static_cast<float>(height - bHeight / 2 + iOffset), imgDim * 1.0f, imgDim * 1.0f, 0, 0, 1.0f, 1.0f, wColor, image);
 
 		// Text
 		float leftText = width / 2 - bWidth / 2 - cornerSize + iOffsetLeft * 2 + imgDim;

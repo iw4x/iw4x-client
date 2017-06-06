@@ -16,6 +16,8 @@ namespace Components
 		static Game::GfxImage* CreateImage(std::string name, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
 		static void DeleteImage(Game::GfxImage* image);
 
+		static bool IsValid(Game::Material* material);
+
 	private:
 		static std::vector<Game::GfxImage*> ImageTable;
 		static std::vector<Game::Material*> MaterialTable;
