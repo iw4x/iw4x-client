@@ -210,11 +210,11 @@ namespace Assets
 			{
 				if (node[i].leafBrushCount > 0)
 				{
-					if (node[i].data.brushes)
+					if (node[i].data.leaf.brushes)
 					{
-						if (builder->hasPointer(node[i].data.brushes))
+						if (builder->hasPointer(node[i].data.leaf.brushes))
 						{
-							node[i].data.brushes = builder->getPointer(node[i].data.brushes);
+							node[i].data.leaf.brushes = builder->getPointer(node[i].data.leaf.brushes);
 						}
 						else
 						{
@@ -222,11 +222,11 @@ namespace Assets
 
 							for (short j = 0; j < node[i].leafBrushCount; ++j)
 							{
-								builder->storePointer(&node[i].data.brushes[j]);
-								buffer->save(&node[i].data.brushes[j]);
+								builder->storePointer(&node[i].data.leaf.brushes[j]);
+								buffer->save(&node[i].data.leaf.brushes[j]);
 							}
 
-							Utils::Stream::ClearPointer(&node[i].data.brushes);
+							Utils::Stream::ClearPointer(&node[i].data.leaf.brushes);
 						}
 					}
 				}
@@ -727,7 +727,7 @@ namespace Assets
 
 				if (clipMap->cLeafBrushNodes[i].leafBrushCount > 0)
 				{
-					clipMap->cLeafBrushNodes[i].data.brushes = reader.readArray<unsigned short>(clipMap->cLeafBrushNodes[i].leafBrushCount);
+					clipMap->cLeafBrushNodes[i].data.leaf.brushes = reader.readArray<unsigned short>(clipMap->cLeafBrushNodes[i].leafBrushCount);
 				}
 			}
 		}
@@ -884,6 +884,30 @@ namespace Assets
 
 		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, Utils::String::VA("maps/mp/%s.d3dbsp", name.data()), builder).mapEnts;
 
+		// add triggers to mapEnts
+		/*
+		std::list<Game::TriggerSlab> slabs;
+		std::list<Game::TriggerHull> hulls;
+		std::list<Game::TriggerModel> models;
+		
+		for (int i = 0; i < clipMap->numCModels; ++i)
+		{
+			Game::cLeafBrushNode_t* node = &clipMap->cLeafBrushNodes[clipMap->cModels[i].leaf.leafBrushNode];
+			if (!node->leafBrushCount) continue; // skip empty brushes
+
+			int baseHull = hulls.size();
+			for (int j = 0; j < node->leafBrushCount; ++j)
+			{
+				Game::cbrush_t* brush = &clipMap->cBrushes[node->data.leaf.brushes[j]];
+				int baseSlab = slabs.size();
+				for (int k = 0; k < brush->numsides; ++k)
+				{
+					Game::TriggerSlab curSlab;
+				}
+			}
+		}
+		*/
+		
 		// This mustn't be null and has to have at least 1 'valid' entry.
 		if (!clipMap->smodelNodeCount || !clipMap->smodelNodes)
 		{
