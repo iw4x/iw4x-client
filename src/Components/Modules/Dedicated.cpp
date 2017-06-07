@@ -396,19 +396,18 @@ namespace Components
 			});
 
 #ifdef USE_LEGACY_SERVER_LIST
-				// Heartbeats
-				Scheduler::OnFrame([] ()
-				{
-					static int LastHeartbeat = 0;
+			// Heartbeats
+			Scheduler::OnFrame([] ()
+			{
+				static int LastHeartbeat = 0;
 
-					if (Dvar::Var("sv_maxclients").get<int>() > 0 && !LastHeartbeat || (Game::Com_Milliseconds() - LastHeartbeat) > 120 * 1000)
-					{
-						LastHeartbeat = Game::Com_Milliseconds();
-						Dedicated::Heartbeat();
-					}
-				});
+				if (Dvar::Var("sv_maxclients").get<int>() > 0 && !LastHeartbeat || (Game::Com_Milliseconds() - LastHeartbeat) > 120 * 1000)
+				{
+					LastHeartbeat = Game::Com_Milliseconds();
+					Dedicated::Heartbeat();
+				}
+			});
 #endif
-			}
 
 			Dvar::OnInit([] ()
 			{
