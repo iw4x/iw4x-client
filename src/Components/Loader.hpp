@@ -38,7 +38,6 @@ namespace Components
 		static bool IsPregame();
 		static bool IsPostgame();
 		static bool IsUninitializing();
-		static bool IsComInitialized();
 
 		template <typename T>
 		static T* GetInstance()
@@ -58,7 +57,6 @@ namespace Components
 		static bool Pregame;
 		static bool Postgame;
 		static bool Uninitializing;
-		static bool ComInitialized;
 		static std::vector<Component*> Components;
 	};
 }

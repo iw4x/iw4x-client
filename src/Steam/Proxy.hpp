@@ -354,7 +354,6 @@ namespace Steam
 		static void RunCallback(int32_t callId, void* data, size_t size);
 
 		static void UnregisterCalls();
-		static void StartSteamIfNecessary();
 		static void LaunchWatchGuard();
 
 		static void ResetActiveUser();

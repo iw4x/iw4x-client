@@ -364,65 +364,6 @@ namespace Steam
 		});
 	}
 
-	void Proxy::StartSteamIfNecessary()
-	{
-		if (Proxy::GetSteamDirectory().empty() || !Steam::Enabled()) return;
-
-		HKEY hRegKey;
-		DWORD pid = 0;
-		if (RegOpenKeyExA(HKEY_CURRENT_USER, STEAM_REGISTRY_PROCESS_PATH, 0, KEY_QUERY_VALUE, &hRegKey) != ERROR_SUCCESS) return;
-
-		DWORD dwLength = sizeof(pid);
-		RegQueryValueExA(hRegKey, "pid", nullptr, nullptr, reinterpret_cast<BYTE*>(&pid), &dwLength);
-		RegCloseKey(hRegKey);
-
-		if (pid)
-		{
-			HANDLE process = OpenProcess(PROCESS_QUERY_INFORMATION, 0, pid);
-			if (process)
-			{
-				::Utils::Memory::Allocator allocator;
-				allocator.reference(process, [](HANDLE hProcess)
-				{
-					CloseHandle(hProcess);
-				});
-
-				allocator.reference(allocator.allocate(1), [](void*)
-				{
-					Proxy::LaunchWatchGuard();
-				});
-
-				DWORD exitCode;
-				if (!GetExitCodeProcess(process, &exitCode)) return;
-				if (exitCode == STILL_ACTIVE) return;
-			}
-		}
-
-		std::string steamExe = Proxy::GetSteamDirectory() + "\\steam.exe";
-		if (::Utils::IO::FileExists(steamExe))
-		{
-			Components::Toast::Template templ = Components::Toast::Template(Components::Toast::Template::ImageAndText02);
-			templ.setTextField(L"Please wait", Components::Toast::Template::FirstLine);
-			templ.setTextField(L"Starting Steam...", Components::Toast::Template::SecondLine);
-
-			std::string icon = Components::Toast::GetIcon();
-			templ.setImagePath(std::wstring(icon.begin(), icon.end()));
-
-			Components::Toast::ShowNative(templ);
-
-			// If steam has crashed, the user is not null, so we reset it to be able to check if steam started
-			if (Proxy::GetActiveUser()) Proxy::ResetActiveUser();
-
-			ShellExecuteA(nullptr, nullptr, steamExe.data(), "-silent", nullptr, 1);
-
-			::Utils::Time::Interval interval;
-			while (!interval.elapsed(15s) && !Proxy::GetActiveUser()) std::this_thread::sleep_for(10ms);
-			std::this_thread::sleep_for(1s);
-		}
-
-		Proxy::LaunchWatchGuard();
-	}
-
 	bool Proxy::Inititalize()
 	{
 		std::string directoy = Proxy::GetSteamDirectory();
@@ -432,7 +373,7 @@ namespace Steam
 
 		if (!Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
 		{
-			Proxy::StartSteamIfNecessary();
+			Proxy::LaunchWatchGuard();
 
 			Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
 			if (!Proxy::Overlay.valid()) return false;

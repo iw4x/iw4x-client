@@ -20,6 +20,7 @@
 #include <Aclapi.h>
 #include <Psapi.h>
 #include <tlhelp32.h>
+#include <Shlwapi.h>
 
 #pragma warning(push)
 #pragma warning(disable: 4091)
@@ -76,7 +77,6 @@ template <size_t S> class Sizer { };
 #include <mongoose.h>
 #include <json11.hpp>
 #include <tomcrypt.h>
-#include <wintoastlib.h>
 #include <udis86.h>
 
 #ifdef max

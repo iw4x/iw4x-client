@@ -5,7 +5,6 @@ namespace Components
 	bool Loader::Pregame = true;
 	bool Loader::Postgame = false;
 	bool Loader::Uninitializing = false;
-	bool Loader::ComInitialized = false;
 	std::vector<Component*> Loader::Components;
 
 	bool Loader::IsPregame()
@@ -23,20 +22,12 @@ namespace Components
 		return Loader::Uninitializing;
 	}
 
-	bool Loader::IsComInitialized()
-	{
-		return Loader::ComInitialized;
-	}
-
 	void Loader::Initialize()
 	{
 		Loader::Pregame = true;
 		Loader::Postgame = false;
 		Loader::Uninitializing = false;
 		Utils::Memory::GetAllocator()->clear();
-
-		Loader::ComInitialized = false;
-		if (!Loader::PerformingUnitTests() && !Utils::IsWineEnvironment()) Loader::ComInitialized = (CoInitialize(nullptr) == S_OK);
 
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
@@ -130,8 +121,6 @@ namespace Components
 
 		Loader::Components.clear();
 		Utils::Memory::GetAllocator()->clear();
-
-		if (!Loader::PerformingUnitTests() && !Utils::IsWineEnvironment() && Loader::ComInitialized) CoUninitialize();
 		Loader::Uninitializing = false;
 	}
 

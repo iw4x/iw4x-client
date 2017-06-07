@@ -5,8 +5,6 @@ namespace Components
 	std::queue<Toast::UIToast> Toast::Queue;
 	std::mutex Toast::Mutex;
 
-	Toast::WinToastHandler* Toast::ToastHandler = nullptr;
-
 	void Toast::Show(std::string image, std::string title, std::string description, int length, Utils::Slot<void()> callback)
 	{
 		Game::Material* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
@@ -18,12 +16,6 @@ namespace Components
 		Toast::Mutex.lock();
 		Toast::Queue.push({ material, Utils::String::ToUpper(title), description, length, 0, callback });
 		Toast::Mutex.unlock();
-	}
-
-	bool Toast::ShowNative(const WinToastLib::WinToastTemplate& toast)
-	{
-		if (!Loader::IsComInitialized() || !Toast::ToastHandler) return false;
-		return WinToastLib::WinToast::instance()->showToast(toast, Toast::ToastHandler) != 0;
 	}
 
 	std::string Toast::GetIcon()
@@ -156,15 +148,6 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled() || Monitor::IsEnabled()) return;
 
-		if (Loader::IsComInitialized())
-		{
-			Toast::ToastHandler = new Toast::WinToastHandler;
-
-			WinToastLib::WinToast::instance()->setAppName(L"IW4x");
-			WinToastLib::WinToast::instance()->setAppUserModelId(WinToastLib::WinToast::configureAUMI(L"IW4x", L"IW4x", L"IW4x", L"0"));
-			WinToastLib::WinToast::instance()->initialize();
-		}
-
 		Scheduler::OnReady([]()
 		{
 			Scheduler::OnFrame(Toast::Handler);
@@ -179,32 +162,5 @@ namespace Components
 	Toast::~Toast()
 	{
 		Toast::Queue = std::queue<Toast::UIToast>();
-	}
-
-	void Toast::preDestroy()
-	{
-		if (Dedicated::IsEnabled() || Monitor::IsEnabled() || !Loader::IsComInitialized()) return;
-
-		// Destroying that on the main thread deadlocks.
-		// I did not write the library, so whatever.
-		// If we are not in the postgame state,
-		// we are not allowed to spawn threads,
-		// so just don't uninitialize the library.
-		// That means we did not uninitialize the game
-		// correctly anyways.
-		if (Loader::IsPostgame())
-		{
-			std::thread([]()
-			{
-				delete WinToastLib::WinToast::instance();
-				delete Toast::ToastHandler;
-				Toast::ToastHandler = nullptr;
-			}).join();
-		}
-		else
-		{
-			delete Toast::ToastHandler;
-			Toast::ToastHandler = nullptr;
-		}
 	}
 }
