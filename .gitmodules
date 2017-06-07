@@ -26,9 +26,6 @@
 	path = deps/protobuf
 	url = https://github.com/google/protobuf.git
 	branch = master
-[submodule "deps/WinToast"]
-	path = deps/WinToast
-	url = https://github.com/mohabouje/WinToast.git
 [submodule "deps/udis86"]
 	path = deps/udis86
 	url = ../udis86.git

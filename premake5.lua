@@ -185,7 +185,6 @@ require "premake/mongoose"
 require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/zlib"
-require "premake/WinToast"
 require "premake/udis86"
 require "premake/glm"
 
@@ -227,10 +226,6 @@ zlib.setup
 		"ZLIB_CONST",
 	},
 	source = path.join(depsBasePath, "zlib"),
-}
-WinToast.setup
-{
-	source = path.join(depsBasePath, "WinToast"),
 }
 udis86.setup
 {
@@ -331,7 +326,6 @@ workspace "iw4x"
 		pdcurses.import()
 		protobuf.import()
 		zlib.import()
-		WinToast.import()
 		udis86.import()
 		glm.import();
 
@@ -444,7 +438,6 @@ workspace "iw4x"
 		pdcurses.project()
 		protobuf.project()
 		zlib.project()
-		WinToast.project()
 		udis86.project()
 
 rule "ProtobufCompiler"
