@@ -297,7 +297,7 @@ namespace Components
 		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_FLAG_CHEAT, "");
 		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_FLAG_LATCHED, "Removes ~95% of unneeded lines from the log");
 
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) // Run zonebuilder as dedi :P
+		if (Dedicated::IsEnabled())
 		{
 			// Make sure all callbacks are handled
 			Scheduler::OnFrame(Steam::SteamAPI_RunCallbacks);
@@ -379,23 +379,21 @@ namespace Components
 			Utils::Hook(0x62737D, Dedicated::TimeWrapStub, HOOK_CALL).install()->quick();
 			//Utils::Hook::Set<DWORD>(0x62735C, 50'000); // Time wrap after 50 seconds (for testing - i don't want to wait 3 weeks)
 
-			if (!ZoneBuilder::IsEnabled())
+			// Post initialization point
+			Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
+
+			// Transmit custom data
+			Scheduler::OnFrame([]()
 			{
-				// Post initialization point
-				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
-
-				// Transmit custom data
-				Scheduler::OnFrame([]()
+				static Utils::Time::Interval interval;
+				if (interval.elapsed(10s))
 				{
-					static Utils::Time::Interval interval;
-					if (interval.elapsed(10s))
-					{
-						interval.update();
+					interval.update();
 
-						CardTitles::SendCustomTitlesToClients();
-						//Clantags::SendClantagsToClients();
-					}
-				});
+					CardTitles::SendCustomTitlesToClients();
+					//Clantags::SendClantagsToClients();
+				}
+			});
 
 #ifdef USE_LEGACY_SERVER_LIST
 				// Heartbeats
