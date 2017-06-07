@@ -133,6 +133,14 @@ namespace Components
 
 			Dvar::Var("cl_updateversion").get<Game::dvar_t*>()->current.integer = revisionNumber;
 			Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean = (revisionNumber > REVISION);
+
+			// if there is an update then show the toast, but only once
+			static bool showToast = true;
+			if (revisionNumber > REVISION && showToast)
+			{
+				Toast::Show("cardicon_gears", "^4Update Available", "There is an update available for your client!", 5000);
+				showToast = false;
+			}
 		}
 	}
 
