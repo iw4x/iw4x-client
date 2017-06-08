@@ -238,6 +238,7 @@ workspace "iw4x"
 	configurations { "Debug", "Release" }
 	architecture "x32"
 	platforms "x86"
+	exceptionhandling ("SEH")
 
 	-- VS 2015 toolset only
 	toolset "msc-140"
