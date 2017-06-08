@@ -186,7 +186,6 @@ require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/zlib"
 require "premake/udis86"
-require "premake/glm"
 
 json11.setup
 {
@@ -230,10 +229,6 @@ zlib.setup
 udis86.setup
 {
 	source = path.join(depsBasePath, "udis86"),
-}
-glm.setup
-{
-	source = path.join(depsBasePath, "glm"),
 }
 
 workspace "iw4x"
@@ -327,7 +322,6 @@ workspace "iw4x"
 		protobuf.import()
 		zlib.import()
 		udis86.import()
-		glm.import();
 
 		-- fix vpaths for protobuf sources
 		vpaths
