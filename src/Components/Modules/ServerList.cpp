@@ -557,36 +557,38 @@ namespace Components
 		Game::menuDef_t* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
 		if(!menu || !Game::Menu_IsVisible(Game::uiContext, menu)) return;
 
-		std::sort(ServerList::VisibleList.begin(), ServerList::VisibleList.end(), [] (unsigned int const &server1, unsigned int const &server2)
+		std::sort(ServerList::VisibleList.begin(), ServerList::VisibleList.end(), [] (const unsigned int &server1, const unsigned int &server2) -> bool
 		{
 			ServerInfo* info1 = nullptr;
 			ServerInfo* info2 = nullptr;
 
 			auto list = ServerList::GetList();
-			if (!list) return 0;
+			if (!list) return false;
 
 			if (list->size() > server1) info1 = &(*list)[server1];
 			if (list->size() > server2) info2 = &(*list)[server2];
 
-			if (!info1) return 1;
-			if (!info2) return -1;
+			if (!info1) return false;
+			if (!info2) return false;
 
 			// Numerical comparisons
 			if (ServerList::SortKey == ServerList::Column::Ping)
 			{
-				return ((info1->ping < info2->ping) ^ !ServerList::SortAsc);
+				return info1->ping < info2->ping;
 			}
 			else if (ServerList::SortKey == ServerList::Column::Players)
 			{
-				return ((info1->clients < info2->clients) ^ !ServerList::SortAsc);
+				return info1->clients < info2->clients;
 			}
 
 			std::string text1 = Utils::String::ToLower(Colors::Strip(ServerList::GetServerInfoText(info1, ServerList::SortKey, true)));
 			std::string text2 = Utils::String::ToLower(Colors::Strip(ServerList::GetServerInfoText(info2, ServerList::SortKey, true)));
 
 			// ASCII-based comparison
-			return ((text1.compare(text2) <= 0) ^ !ServerList::SortAsc);
+			return text1.compare(text2) < 0;
 		});
+
+		if (!ServerList::SortAsc) std::reverse(ServerList::VisibleList.begin(), ServerList::VisibleList.end());
 	}
 
 	ServerList::ServerInfo* ServerList::GetServer(unsigned int index)
