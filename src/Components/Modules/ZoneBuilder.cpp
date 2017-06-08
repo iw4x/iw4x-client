@@ -1047,7 +1047,7 @@ namespace Components
 
 			// patch g_copyInfo because we're using so many more assets than originally intended
 			int newLimit = 0x2000;
-			int* g_copyInfo_new = Utils::Memory::AllocateArray<int>(newLimit);
+			int* g_copyInfo_new = Utils::Memory::GetAllocator()->allocateArray<int>(newLimit);
 			Utils::Hook::Set<int*>(0x494083, g_copyInfo_new); // DB_DelayLoadImages
 			Utils::Hook::Set<int*>(0x5BB9CC, g_copyInfo_new); // DB_AddXAsset
 			Utils::Hook::Set<int*>(0x5BC723, g_copyInfo_new); // DB_PostLoadXZone
