@@ -297,7 +297,7 @@ namespace Components
 		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_FLAG_CHEAT, "");
 		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_FLAG_LATCHED, "Removes ~95% of unneeded lines from the log");
 
-		if (Dedicated::IsEnabled())
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			// Make sure all callbacks are handled
 			Scheduler::OnFrame(Steam::SteamAPI_RunCallbacks);
@@ -379,124 +379,127 @@ namespace Components
 			Utils::Hook(0x62737D, Dedicated::TimeWrapStub, HOOK_CALL).install()->quick();
 			//Utils::Hook::Set<DWORD>(0x62735C, 50'000); // Time wrap after 50 seconds (for testing - i don't want to wait 3 weeks)
 
-			// Post initialization point
-			Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
-
-			// Transmit custom data
-			Scheduler::OnFrame([]()
+			if (!ZoneBuilder::IsEnabled())
 			{
-				static Utils::Time::Interval interval;
-				if (interval.elapsed(10s))
-				{
-					interval.update();
+				// Post initialization point
+				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
 
-					CardTitles::SendCustomTitlesToClients();
-					//Clantags::SendClantagsToClients();
-				}
-			});
+				// Transmit custom data
+				Scheduler::OnFrame([]()
+				{
+					static Utils::Time::Interval interval;
+					if (interval.elapsed(10s))
+					{
+						interval.update();
+
+						CardTitles::SendCustomTitlesToClients();
+						//Clantags::SendClantagsToClients();
+					}
+				});
 
 #ifdef USE_LEGACY_SERVER_LIST
-			// Heartbeats
-			Scheduler::Once(Dedicated::Heartbeat);
-			Scheduler::OnFrame([] ()
-			{
-				static Utils::Time::Interval interval;
-
-				if (Dvar::Var("sv_maxclients").get<int>() > 0 && interval.elapsed(2min))
+				// Heartbeats
+				Scheduler::Once(Dedicated::Heartbeat);
+				Scheduler::OnFrame([]()
 				{
-					interval.update();
-					Dedicated::Heartbeat();
-				}
-			});
+					static Utils::Time::Interval interval;
+
+					if (Dvar::Var("sv_maxclients").get<int>() > 0 && interval.elapsed(2min))
+					{
+						interval.update();
+						Dedicated::Heartbeat();
+					}
+				});
 #endif
 
-			Dvar::OnInit([] ()
-			{
-				Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_FLAG_NONE, "The name to pose as for 'say' commands");
-				Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_FLAG_NONE, "A custom message of the day for servers");
-
-				// Say command
-				Command::AddSV("say", [] (Command::Params* params)
+				Dvar::OnInit([]()
 				{
-					if (params->length() < 2) return;
+					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_FLAG_NONE, "The name to pose as for 'say' commands");
+					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_FLAG_NONE, "A custom message of the day for servers");
 
-					std::string message = params->join(1);
-					std::string name = Dvar::Var("sv_sayName").get<std::string>();
-
-					if (!name.empty())
+					// Say command
+					Command::AddSV("say", [](Command::Params* params)
 					{
-						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-						Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
-					}
-					else
-					{
-						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-						Game::Com_Printf(15, "Console: %s\n", message.data());
-					}
-				});
+						if (params->length() < 2) return;
 
-				// Tell command
-				Command::AddSV("tell", [] (Command::Params* params)
-				{
-					if (params->length() < 3) return;
+						std::string message = params->join(1);
+						std::string name = Dvar::Var("sv_sayName").get<std::string>();
 
-					int client = atoi(params->get(1));
-					std::string message = params->join(2);
-					std::string name = Dvar::Var("sv_sayName").get<std::string>();
-
-					if (!name.empty())
-					{
-						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-						Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
-					}
-					else
-					{
-						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-						Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
-					}
-				});
-
-				// Sayraw command
-				Command::AddSV("sayraw", [] (Command::Params* params)
-				{
-					if (params->length() < 2) return;
-
-					std::string message = params->join(1);
-					Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
-					Game::Com_Printf(15, "Raw: %s\n", message.data());
-				});
-
-				// Tellraw command
-				Command::AddSV("tellraw", [] (Command::Params* params)
-				{
-					if (params->length() < 3) return;
-
-					int client = atoi(params->get(1));
-					std::string message = params->join(2);
-					Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
-					Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
-				});
-
-				// ! command
-				Command::AddSV("!", [] (Command::Params* params)
-				{
-					if (params->length() != 2) return;
-
-					int client = -1;
-					if (params->get(1) != "all"s)
-					{
-						client = atoi(params->get(1));
-
-						if (client >= *reinterpret_cast<int*>(0x31D938C))
+						if (!name.empty())
 						{
-							Game::Com_Printf(0, "Invalid player.\n");
-							return;
+							Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+							Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
 						}
-					}
+						else
+						{
+							Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+							Game::Com_Printf(15, "Console: %s\n", message.data());
+						}
+					});
 
-					Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"\"", 106));
+					// Tell command
+					Command::AddSV("tell", [](Command::Params* params)
+					{
+						if (params->length() < 3) return;
+
+						int client = atoi(params->get(1));
+						std::string message = params->join(2);
+						std::string name = Dvar::Var("sv_sayName").get<std::string>();
+
+						if (!name.empty())
+						{
+							Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+							Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
+						}
+						else
+						{
+							Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+							Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
+						}
+					});
+
+					// Sayraw command
+					Command::AddSV("sayraw", [](Command::Params* params)
+					{
+						if (params->length() < 2) return;
+
+						std::string message = params->join(1);
+						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
+						Game::Com_Printf(15, "Raw: %s\n", message.data());
+					});
+
+					// Tellraw command
+					Command::AddSV("tellraw", [](Command::Params* params)
+					{
+						if (params->length() < 3) return;
+
+						int client = atoi(params->get(1));
+						std::string message = params->join(2);
+						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
+						Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
+					});
+
+					// ! command
+					Command::AddSV("!", [](Command::Params* params)
+					{
+						if (params->length() != 2) return;
+
+						int client = -1;
+						if (params->get(1) != "all"s)
+						{
+							client = atoi(params->get(1));
+
+							if (client >= *reinterpret_cast<int*>(0x31D938C))
+							{
+								Game::Com_Printf(0, "Invalid player.\n");
+								return;
+							}
+						}
+
+						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"\"", 106));
+					});
 				});
-			});
+			}
 		}
 		else
 		{
