@@ -15,7 +15,7 @@ namespace Components
 	{
 		std::sort(list->begin(), list->end(), [](Friends::Friend const& friend1, Friends::Friend const& friend2)
 		{
-			return friend1.cleanName.compare(friend2.cleanName) <= 0;
+			return friend1.cleanName.compare(friend2.cleanName) < 0;
 		});
 	}
 
