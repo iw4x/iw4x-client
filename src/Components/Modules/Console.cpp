@@ -250,7 +250,15 @@ namespace Components
 		delwin(Console::InputWindow);
 		delwin(Console::InfoWindow);
 		endwin();
-		delscreen(SP);
+
+		try
+		{
+			delscreen(SP);
+		}
+		catch (...)
+		{
+			OutputDebugStringA("Failed to free PDCurses screen\n");
+		}
 
 		Console::OutputWindow = nullptr;
 		Console::InputWindow = nullptr;
