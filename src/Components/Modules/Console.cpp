@@ -246,13 +246,12 @@ namespace Components
 
 	void Console::Destroy()
 	{
-		delwin(Console::OutputWindow);
-		delwin(Console::InputWindow);
-		delwin(Console::InfoWindow);
-		endwin();
-
 		try
 		{
+			delwin(Console::OutputWindow);
+			delwin(Console::InputWindow);
+			delwin(Console::InfoWindow);
+			endwin();
 			delscreen(SP);
 		}
 		catch (...)

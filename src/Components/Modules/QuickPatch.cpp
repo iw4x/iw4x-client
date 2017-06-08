@@ -260,20 +260,17 @@ namespace Components
 		// spawn upnp thread when UPNP_init returns
 		Utils::Hook::Hook(0x47982B, []()
 		{
-			std::thread upnpThread([]()
+			std::thread([]()
 			{
 				// check natpmpstate
 				// state 4 is no more devices to query
-				while (true)
+				while (Utils::Hook::Get<int>(0x66CE200) < 4)
 				{
-					if (Utils::Hook::Get<int>(0x66CE200) < 4)
-					{
-						Utils::Hook::Call<void()>(0x4D7030)();
-					}
+					Utils::Hook::Call<void()>(0x4D7030)();
 					std::this_thread::sleep_for(500ms);
 				}
-			});
-		}, HOOK_JUMP);
+			}).detach();
+		}, HOOK_JUMP).install()->quick();
 
 		// disable the IWNet IP detection (default 'got ipdetect' flag to 1)
 		Utils::Hook::Set<BYTE>(0x649D6F0, 1);

@@ -397,13 +397,14 @@ namespace Components
 
 #ifdef USE_LEGACY_SERVER_LIST
 			// Heartbeats
+			Scheduler::Once(Dedicated::Heartbeat);
 			Scheduler::OnFrame([] ()
 			{
-				static int LastHeartbeat = 0;
+				static Utils::Time::Interval interval;
 
-				if (Dvar::Var("sv_maxclients").get<int>() > 0 && !LastHeartbeat || (Game::Com_Milliseconds() - LastHeartbeat) > 120 * 1000)
+				if (Dvar::Var("sv_maxclients").get<int>() > 0 && interval.elapsed(2min))
 				{
-					LastHeartbeat = Game::Com_Milliseconds();
+					interval.update();
 					Dedicated::Heartbeat();
 				}
 			});
