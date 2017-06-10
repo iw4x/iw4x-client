@@ -27,6 +27,9 @@ namespace Components
 		static unsigned long ProtectProcess();
 
 		static void PatchVirtualProtect(void* vp, void* vpex);
+		static void PatchThreadCreation();
+
+		static void VerifyThreadIntegrity();
 
 	private:
 		enum IntergrityFlag
@@ -79,7 +82,16 @@ namespace Components
 
 		static void AcquireDebugPriviledge(HANDLE hToken);
 
-		static Utils::Hook LoadLibHook[4];
+		static NTSTATUS NTAPI NtCreateThreadExStub(PHANDLE hThread, ACCESS_MASK desiredAccess, LPVOID objectAttributes, HANDLE processHandle, LPTHREAD_START_ROUTINE startAddress, LPVOID parameter, BOOL createSuspended, DWORD stackZeroBits, DWORD sizeOfStackCommit, DWORD sizeOfStackReserve, LPVOID bytesBuffer);
+		static int ValidateThreadTermination(void* addr);
+		static void ThreadEntryPointStub();
+
+		static std::mutex ThreadMutex;
+		static std::vector<DWORD> OwnThreadIds;
+		static std::map<DWORD, std::shared_ptr<Utils::Hook>> ThreadHookMap;
+
+		static Utils::Hook CreateThreadHook;
+		static Utils::Hook LoadLibHook[6];
 		static Utils::Hook VirtualProtectHook[2];
 	};
 }

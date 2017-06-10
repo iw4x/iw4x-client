@@ -72,6 +72,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		[]()
 		{
 			Components::AntiCheat::ProtectProcess();
+			Components::AntiCheat::PatchThreadCreation();
 		}();
 #endif
 
@@ -86,6 +87,15 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{
 		Main::Uninitialize();
+	}
+	else if(ul_reason_for_call == DLL_THREAD_ATTACH)
+	{
+#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
+		[]()
+		{
+			Components::AntiCheat::VerifyThreadIntegrity();
+		}();
+#endif
 	}
 
 	return TRUE;

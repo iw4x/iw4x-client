@@ -79,6 +79,37 @@ namespace Utils
 		return ntHeader->OptionalHeader.SizeOfImage;
 	}
 
+	void* GetThreadStartAddress(HANDLE hThread)
+	{
+		HMODULE ntdll = Utils::GetNTDLL();
+		if (!ntdll) return nullptr;
+
+
+		static uint8_t ntQueryInformationThread[] = { 0xB1, 0x8B, 0xAE, 0x8A, 0x9A, 0x8D, 0x86, 0xB6, 0x91, 0x99, 0x90, 0x8D, 0x92, 0x9E, 0x8B, 0x96, 0x90, 0x91, 0xAB, 0x97, 0x8D, 0x9A, 0x9E, 0x9B }; // NtQueryInformationThread
+		NtQueryInformationThread_t NtQueryInformationThread = NtQueryInformationThread_t(GetProcAddress(ntdll, Utils::String::XOR(std::string(reinterpret_cast<char*>(ntQueryInformationThread), sizeof ntQueryInformationThread), -1).data()));
+		if (!NtQueryInformationThread) return nullptr;
+
+		HANDLE dupHandle, currentProcess = GetCurrentProcess();
+		if (!DuplicateHandle(currentProcess, hThread, currentProcess, &dupHandle, THREAD_QUERY_INFORMATION, FALSE, 0))
+		{
+			SetLastError(ERROR_ACCESS_DENIED);
+			return nullptr;
+		}
+
+		void* address = nullptr;
+		NTSTATUS status = NtQueryInformationThread(dupHandle, ThreadQuerySetWin32StartAddress, &address, sizeof(address), nullptr);
+		CloseHandle(dupHandle);
+
+		if (status != 0) return nullptr;
+		return address;
+	}
+
+	HMODULE GetNTDLL()
+	{
+		static uint8_t ntdll[] = { 0x91, 0x8B, 0x9B, 0x93, 0x93, 0xD1, 0x9B, 0x93, 0x93 }; // ntdll.dll
+		return GetModuleHandleA(Utils::String::XOR(std::string(reinterpret_cast<char*>(ntdll), sizeof ntdll), -1).data());
+	}
+
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2)
 	{
 		return !(base1 + len1 <= base2 || base2 + len2 <= base1);
