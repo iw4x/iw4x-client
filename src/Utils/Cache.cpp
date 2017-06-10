@@ -18,7 +18,7 @@ namespace Utils
 
 		// Dead
 		//"https://iw4xcachep26muba.onion.link",
-		//"https://iw4xcachep26muba.onion.to",
+		"https://iw4xcachep26muba.onion.to",
 
 		// Not registered yet
 		//"https://iw4xcachejnetuln.onion.to",
