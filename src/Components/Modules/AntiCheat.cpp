@@ -4,9 +4,14 @@ namespace Components
 {
 	Utils::Time::Interval AntiCheat::LastCheck;
 	std::string AntiCheat::Hash;
-	Utils::Hook AntiCheat::LoadLibHook[4];
+	Utils::Hook AntiCheat::CreateThreadHook;
+	Utils::Hook AntiCheat::LoadLibHook[6];
 	Utils::Hook AntiCheat::VirtualProtectHook[2];
 	unsigned long AntiCheat::Flags = NO_FLAG;
+
+	std::mutex AntiCheat::ThreadMutex;
+	std::vector<DWORD> AntiCheat::OwnThreadIds;
+	std::map<DWORD, std::shared_ptr<Utils::Hook>> AntiCheat::ThreadHookMap;
 
 	// This function does nothing, it only adds the two passed variables and returns the value
 	// The only important thing it does is to clean the first parameter, and then return
@@ -70,9 +75,9 @@ namespace Components
 
 	void AntiCheat::InitLoadLibHook()
 	{
-		static uint8_t kernel32Str[] = {0xB4, 0x9A, 0x8D, 0xB1, 0x9A, 0x93, 0xCC, 0xCD, 0xD1, 0x9B, 0x93, 0x93}; // KerNel32.dll
-		static uint8_t loadLibAStr[] = {0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xBE}; // LoadLibraryA
-		static uint8_t loadLibWStr[] = {0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8}; // LoadLibraryW
+		static uint8_t kernel32Str[] = { 0xB4, 0x9A, 0x8D, 0xB1, 0x9A, 0x93, 0xCC, 0xCD, 0xD1, 0x9B, 0x93, 0x93 }; // KerNel32.dll
+		static uint8_t loadLibAStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xBE }; // LoadLibraryA
+		static uint8_t loadLibWStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8 }; // LoadLibraryW
 
 		HMODULE kernel32 = GetModuleHandleA(Utils::String::XOR(std::string(reinterpret_cast<char*>(kernel32Str), sizeof kernel32Str), -1).data());
 		if (kernel32)
@@ -109,6 +114,26 @@ namespace Components
 #endif
 			}
 		}
+
+		static uint8_t ldrLoadDllStub[] = { 0x33, 0xC0, 0xC2, 0x10, 0x00 };
+		static uint8_t ldrLoadDll[] = { 0xB3, 0x9B, 0x8D, 0xB3, 0x90, 0x9E, 0x9B, 0xBB, 0x93, 0x93 }; // LdrLoadDll
+
+		HMODULE ntdll = Utils::GetNTDLL();
+		AntiCheat::LoadLibHook[4].initialize(GetProcAddress(ntdll, Utils::String::XOR(std::string(reinterpret_cast<char*>(ldrLoadDll), sizeof ldrLoadDll), -1).data()), ldrLoadDllStub, HOOK_JUMP);
+
+		// Patch LdrpLoadDll
+		Utils::Hook::Signature::Container container;
+		container.signature = "\x8B\xFF\x55\x8B\xEC\x83\xE4\xF8\x81\xEC\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC4\x89\x84\x24\x00\x00\x00\x00\x53\x8B\x5D\x10\x56\x57";
+		container.mask = "xxxxxxxxxx????x????xxxxx????xxxxxx";
+		container.callback = [](char* addr)
+		{
+			static uint8_t ldrpLoadDllStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 };
+			AntiCheat::LoadLibHook[5].initialize(addr, ldrpLoadDllStub, HOOK_JUMP);
+		};
+
+		Utils::Hook::Signature signature(ntdll, Utils::GetModuleSize(ntdll));
+		signature.add(container);
+		signature.process();
 	}
 
 	void AntiCheat::ReadIntegrityCheck()
@@ -254,10 +279,10 @@ namespace Components
 
 	void AntiCheat::InstallLibHook()
 	{
-		AntiCheat::LoadLibHook[0].install();
-		AntiCheat::LoadLibHook[1].install();
-		AntiCheat::LoadLibHook[2].install();
-		AntiCheat::LoadLibHook[3].install();
+		for(int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
+		{
+			AntiCheat::LoadLibHook[i].install();
+		}
 	}
 
 	void AntiCheat::PatchWinAPI()
@@ -389,7 +414,7 @@ namespace Components
 
 	BOOL WINAPI AntiCheat::VirtualProtectExStub(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
 	{
-		if (GetCurrentProcess() == hProcess && !AntiCheat::IsPageChangeAllowed(_ReturnAddress(), lpAddress, dwSize)) return FALSE;
+		if (GetCurrentProcessId() == GetProcessId(hProcess) && !AntiCheat::IsPageChangeAllowed(_ReturnAddress(), lpAddress, dwSize)) return FALSE;
 
 		AntiCheat::VirtualProtectHook[1].uninstall(false);
 		BOOL result = VirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect, lpflOldProtect);
@@ -562,6 +587,164 @@ namespace Components
 		AntiCheat::VirtualProtectHook[0].initialize(vp, AntiCheat::VirtualProtectStub, HOOK_JUMP)->install(true, true);
 	}
 
+	NTSTATUS NTAPI AntiCheat::NtCreateThreadExStub(PHANDLE phThread,ACCESS_MASK desiredAccess,LPVOID objectAttributes,HANDLE processHandle,LPTHREAD_START_ROUTINE startAddress,LPVOID parameter,BOOL createSuspended,DWORD stackZeroBits,DWORD sizeOfStackCommit,DWORD sizeOfStackReserve,LPVOID bytesBuffer)
+	{
+		HANDLE hThread = nullptr;
+		std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
+
+		AntiCheat::CreateThreadHook.uninstall();
+		NTSTATUS result = NtCreateThreadEx_t(AntiCheat::CreateThreadHook.getAddress())(&hThread, desiredAccess, objectAttributes, processHandle, startAddress, parameter, createSuspended, stackZeroBits, sizeOfStackCommit, sizeOfStackReserve, bytesBuffer);
+		AntiCheat::CreateThreadHook.install();
+
+		if (phThread) *phThread = hThread;
+
+		if (GetProcessId(processHandle) == GetCurrentProcessId())
+		{
+			AntiCheat::OwnThreadIds.push_back(GetThreadId(hThread));
+		}
+
+		return result;
+	}
+
+	void AntiCheat::PatchThreadCreation()
+	{
+		HMODULE ntdll = Utils::GetNTDLL();
+		if (ntdll)
+		{
+			static uint8_t ntCreateThreadEx[] = { 0xB1, 0x8B, 0xBC, 0x8D, 0x9A, 0x9E, 0x8B, 0x9A, 0xAB, 0x97, 0x8D, 0x9A, 0x9E, 0x9B, 0xBA, 0x87 }; // NtCreateThreadEx
+			FARPROC createThread = GetProcAddress(ntdll, Utils::String::XOR(std::string(reinterpret_cast<char*>(ntCreateThreadEx), sizeof ntCreateThreadEx), -1).data());
+			if (createThread)
+			{
+				AntiCheat::CreateThreadHook.initialize(createThread, AntiCheat::NtCreateThreadExStub, HOOK_JUMP)->install();
+			}
+		}
+	}
+
+	int AntiCheat::ValidateThreadTermination(void* addr)
+	{
+		{
+			std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
+
+			DWORD id = GetCurrentThreadId();
+			auto threadHook = AntiCheat::ThreadHookMap.find(id);
+			if (threadHook != AntiCheat::ThreadHookMap.end())
+			{
+				threadHook->second->uninstall(false);
+				AntiCheat::ThreadHookMap.erase(threadHook); // Uninstall and delete the hook
+				return 1; // Kill
+			}
+		}
+
+		while(true)
+		{
+			std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
+
+			// It would be better to wait for the thread
+			// but we don't know if there are multiple hooks at the same address
+			bool found = false;
+			for (auto threadHook : AntiCheat::ThreadHookMap)
+			{
+				if (threadHook.second->getAddress() == addr)
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found) break;
+			std::this_thread::sleep_for(10ms);
+		}
+
+		return 0; // Don't kill
+	}
+
+	__declspec(naked) void AntiCheat::ThreadEntryPointStub()
+	{
+		__asm
+		{
+			push eax
+			push eax
+			pushad
+
+			// Reinitialize the return address
+			mov eax, [esp + 28h]
+			sub eax, 5
+			mov [esp + 28h], eax
+
+			push eax
+			call AntiCheat::ValidateThreadTermination
+			add esp, 4h
+
+			mov [esp + 20h], eax
+
+			popad
+
+			pop eax
+
+			test eax, eax
+			jz dontKill
+
+			pop eax
+			add esp, 4h // Remove return address (simulate a jump hook)
+			retn
+
+		dontKill:
+			pop eax
+			retn
+		}
+	}
+
+	void AntiCheat::VerifyThreadIntegrity()
+	{
+		bool kill = true;
+		{
+			std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
+
+			auto threadHook = std::find(AntiCheat::OwnThreadIds.begin(), AntiCheat::OwnThreadIds.end(), GetCurrentThreadId());
+			if (threadHook != AntiCheat::OwnThreadIds.end())
+			{
+				AntiCheat::OwnThreadIds.erase(threadHook);
+				kill = false;
+			}
+		}
+
+		if (kill)
+		{
+			static bool first = true;
+			if (first) first = false; // We can't control the main thread, as it's spawned externally
+			else 
+			{
+				std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
+
+				HMODULE ntdll = Utils::GetNTDLL(), targetModule;
+				if (!ntdll) return; // :(
+
+				void* address = Utils::GetThreadStartAddress(GetCurrentThread());
+				if (address)
+				{
+					GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(address), &targetModule);
+					if (targetModule == ntdll) return; // Better not kill kernel threads
+
+					DWORD id = GetCurrentThreadId();
+					{
+						auto threadHook = AntiCheat::ThreadHookMap.find(id);
+						if (threadHook != AntiCheat::ThreadHookMap.end())
+						{
+							threadHook->second->uninstall(false);
+							AntiCheat::ThreadHookMap.erase(threadHook);
+						}
+					}
+
+					std::shared_ptr<Utils::Hook> hook = std::make_shared<Utils::Hook>();
+					AntiCheat::ThreadHookMap[id] = hook;
+
+					// Hook the entry point of the thread to properly terminate it
+					hook->initialize(address, AntiCheat::ThreadEntryPointStub, HOOK_CALL)->install(true, true);
+				}
+			}
+		}
+	}
+
 	AntiCheat::AntiCheat()
 	{
 		time(nullptr);
@@ -610,6 +793,9 @@ namespace Components
 	{
 		AntiCheat::Flags = NO_FLAG;
 		AntiCheat::Hash.clear();
+
+		AntiCheat::OwnThreadIds.clear();
+		AntiCheat::ThreadHookMap.clear();
 
 		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
 		{

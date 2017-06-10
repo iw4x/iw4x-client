@@ -1,5 +1,10 @@
 #pragma once
 
+typedef LONG NTSTATUS;
+typedef NTSTATUS(NTAPI *NtCreateThreadEx_t)(PHANDLE hThread, ACCESS_MASK DesiredAccess, LPVOID ObjectAttributes, HANDLE ProcessHandle, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, BOOL CreateSuspended, DWORD StackZeroBits, DWORD SizeOfStackCommit, DWORD SizeOfStackReserve, LPVOID lpBytesBuffer);
+typedef NTSTATUS(NTAPI* NtQueryInformationThread_t)(HANDLE ThreadHandle, LONG ThreadInformationClass, PVOID ThreadInformation, ULONG ThreadInformationLength, PULONG ReturnLength);
+#define ThreadQuerySetWin32StartAddress 9
+
 namespace Utils
 {
 	std::string GetMimeType(std::string url);
@@ -10,8 +15,9 @@ namespace Utils
 	bool IsWineEnvironment();
 
 	unsigned long GetParentProcessId();
-
 	size_t GetModuleSize(HMODULE module);
+	void* GetThreadStartAddress(HANDLE hThread);
+	HMODULE GetNTDLL();
 
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
 
