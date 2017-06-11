@@ -201,12 +201,12 @@ namespace Components
 
 		UIScript::Add("visitWebsite", [](UIScript::Token)
 		{
-			ShellExecuteA(nullptr, "open", Utils::Cache::GetStaticUrl("").data(), nullptr, nullptr, SW_SHOWNORMAL);
+			Utils::OpenUrl(Utils::Cache::GetStaticUrl(""));
 		});
 
 		UIScript::Add("visitWiki", [](UIScript::Token)
 		{
-			ShellExecuteA(nullptr, "open", Utils::Cache::GetStaticUrl("/wiki/").data(), nullptr, nullptr, SW_SHOWNORMAL);
+			Utils::OpenUrl(Utils::Cache::GetStaticUrl("/wiki/"));
 		});
 
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
