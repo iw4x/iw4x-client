@@ -286,12 +286,12 @@ namespace Components
 			}
 		});
 
-#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && !Utils::IsWineEnvironment() && !Loader::PerformingUnitTests())
-		{
-			AntiCheat::PatchVirtualProtect(VirtualProtect, VirtualProtectEx);
-		}
-#endif
+// #if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
+// 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && !Utils::IsWineEnvironment() && !Loader::PerformingUnitTests())
+// 		{
+// 			AntiCheat::PatchVirtualProtect(VirtualProtect, VirtualProtectEx);
+// 		}
+// #endif
 	}
 
 	Localization::~Localization()

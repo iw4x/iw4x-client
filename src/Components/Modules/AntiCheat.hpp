@@ -33,7 +33,6 @@ namespace Components
 
 		static void QuickCodeScanner_1();
 		static void QuickCodeScanner_2();
-		static void QuickCodeScanner_3();
 
 	private:
 		enum IntergrityFlag
