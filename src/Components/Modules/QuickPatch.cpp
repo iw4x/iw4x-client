@@ -256,6 +256,7 @@ namespace Components
 		// dont run UPNP stuff on main thread
 		Utils::Hook::Set<BYTE>(0x48A135, 0xC3);
 		Utils::Hook::Set<BYTE>(0x48A151, 0xC3);
+		Utils::Hook::Nop(0x684080, 5); // Don't spam the console
 
 		// spawn upnp thread when UPNP_init returns
 		Utils::Hook::Hook(0x47982B, []()
