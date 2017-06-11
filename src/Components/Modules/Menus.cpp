@@ -766,6 +766,10 @@ namespace Components
 			}
 		});
 
+#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
+		Scheduler::OnFrame(AntiCheat::QuickCodeScanner_2);
+#endif
+
 		Command::Add("mp_QuickMessage", [] (Command::Params*)
 		{
 			Command::Execute("openmenu quickmessage");
