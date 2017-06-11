@@ -138,8 +138,11 @@ namespace Components
 			static bool showToast = true;
 			if (revisionNumber > REVISION && showToast)
 			{
-				Toast::Show("cardicon_gears", "^4Update Available", "There is an update available for your client!", 5000);
 				showToast = false;
+				Scheduler::OnReady([]()
+				{
+					Toast::Show("cardicon_gears", "^4Update Available", "There is an update available for your client!", 5000);
+				});
 			}
 		}
 	}
