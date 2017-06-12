@@ -49,7 +49,7 @@ namespace Main
 			call Main::Initialize
 			popad
 
-			push 6BAC14h // Continue init routine
+			push 6BAA2Fh // Continue init routine
 			push 6CA062h // ___security_init_cookie
 			retn
 		}
