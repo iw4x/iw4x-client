@@ -20,6 +20,7 @@ namespace Components
 			std::string mod;
 			std::string shortversion;
 			int clients;
+			int bots;
 			int maxClients;
 			bool password;
 			int ping;

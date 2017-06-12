@@ -103,7 +103,7 @@ namespace Components
 
 			case Column::Players:
 			{
-				return Utils::String::VA("%i (%i)", server->clients, server->maxClients);
+				return Utils::String::VA("%i/%i (%i)", server->clients, server->maxClients, server->bots);
 			}
 
 			case Column::Gametype:
@@ -460,6 +460,7 @@ namespace Components
 				server.mod = info.get("fs_game");
 				server.matchType = atoi(info.get("matchtype").data());
 				server.clients = atoi(info.get("clients").data());
+				server.bots = atoi(info.get("bots").data());
 				server.securityLevel = atoi(info.get("securityLevel").data());
 				server.maxClients = atoi(info.get("sv_maxclients").data());
 				server.password = (atoi(info.get("isPrivate").data()) != 0);

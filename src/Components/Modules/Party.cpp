@@ -295,6 +295,7 @@ namespace Components
 		// Basic info handler
 		Network::Handle("getInfo", [] (Network::Address address, std::string data)
 		{
+			int botCount = 0;
 			int clientCount = 0;
 			int maxclientCount = *Game::svs_numclients;
 
@@ -304,7 +305,8 @@ namespace Components
 				{
 					if (Game::svs_clients[i].state >= 3)
 					{
-						++clientCount;
+						if (Game::svs_clients[i].isBot) ++botCount;
+						else ++clientCount;
 					}
 				}
 			}
@@ -323,6 +325,7 @@ namespace Components
 			info.set("fs_game", Dvar::Var("fs_game").get<const char*>());
 			info.set("xuid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().bits));
 			info.set("clients", Utils::String::VA("%i", clientCount));
+			info.set("bots", Utils::String::VA("%i", botCount));
 			info.set("sv_maxclients", Utils::String::VA("%i", maxclientCount));
 			info.set("protocol", Utils::String::VA("%i", PROTOCOL));
 			info.set("shortversion", SHORTVERSION);
