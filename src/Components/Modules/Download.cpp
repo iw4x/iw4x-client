@@ -192,7 +192,32 @@ namespace Components
 			}
 		}
 
-		std::string url = "http://" + download->target.getString() + "/file/" + (download->isMap ? "map/" : "") + file.name;
+		std::string host = "http://" + download->target.getString();
+		std::string fastHost = "http://" + Dvar::Var("sv_wwwBaseUrl").get<std::string>();
+
+		std::string url;
+
+		// file directory for fasthost looks like this
+		// /-usermaps
+		//  /-mp_test
+		//    -mp_test.ff
+		//    -mp_test.iwd
+		//   /-mp_whatever
+		//	  /-mp_whatever.ff
+		// /-mods
+		//  /-mod1
+		//	  -mod1.iwd
+		//    -mod.ff
+		//  /-mod2
+		//     ...
+		if (Dvar::Var("sv_wwwDownload").get<bool>())
+		{
+			url = fastHost + path;
+		}
+		else
+		{
+			url = host + "/file/" + (download->isMap ? "map/" : "") + file.name;
+		}
 
 		Download::FileDownload fDownload;
 		fDownload.file = file;
@@ -737,6 +762,12 @@ namespace Components
 				{
 					mg_mgr_poll(&Download::Mgr, 100);
 				}
+			});
+
+			Dvar::OnInit([]()
+			{
+				Dvar::Register<bool>("sv_wwwDownload", false, Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to true to enable downloading maps/mods from an external server.");
+				Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to the base url for the external map download.");
 			});
 		}
 		else
