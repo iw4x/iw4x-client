@@ -190,7 +190,7 @@ namespace Components
 	{
 		if (component)
 		{
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 			if(!Loader::PerformingUnitTests())
 			{
 				Logger::Print("Component registered: %s\n", component->getName().data());

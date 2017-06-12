@@ -110,6 +110,15 @@ namespace Utils
 		return GetModuleHandleA(Utils::String::XOR(std::string(reinterpret_cast<char*>(ntdll), sizeof ntdll), -1).data());
 	}
 
+	void OpenUrl(std::string url)
+	{
+		try
+		{
+			ShellExecuteA(nullptr, "open", url.data(), nullptr, nullptr, SW_SHOWNORMAL);
+		}
+		catch (...) {}
+	}
+
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2)
 	{
 		return !(base1 + len1 <= base2 || base2 + len2 <= base1);

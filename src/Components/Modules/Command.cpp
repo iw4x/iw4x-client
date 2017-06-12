@@ -257,7 +257,7 @@ namespace Components
 		{
 			if (params->length() > 1)
 			{
-				ShellExecuteA(nullptr, "open", params->get(1), nullptr, nullptr, SW_SHOWNORMAL);
+				Utils::OpenUrl(params->get(1));
 			}
 		});
 	}

@@ -19,6 +19,8 @@ namespace Utils
 	void* GetThreadStartAddress(HANDLE hThread);
 	HMODULE GetNTDLL();
 
+	void OpenUrl(std::string url);
+
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
 
 	template <typename T> inline void RotLeft(T& object, size_t bits)

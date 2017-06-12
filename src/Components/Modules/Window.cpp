@@ -127,7 +127,7 @@ namespace Components
 	void Window::ApplyCursor()
 	{
 		bool isLoading = !FastFiles::Ready();
-		SetCursor(LoadCursor(nullptr, isLoading ? IDC_WAIT : IDC_ARROW));
+		SetCursor(LoadCursor(nullptr, isLoading ? IDC_APPSTARTING : IDC_ARROW));
 	}
 
 	BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
