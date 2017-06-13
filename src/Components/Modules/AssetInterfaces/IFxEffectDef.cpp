@@ -255,7 +255,7 @@ namespace Assets
 						{
 							// TODO: Allow loading assets from raw!
 							if (Game::s_elemFields[i].handler(&session, element)) break;
-							Components::Logger::Error("Failed to parse element %s!\n", newValue);
+							Components::Logger::Error("Failed to parse element %s!\n", newValue.data());
 						}
 					}
 

@@ -240,9 +240,6 @@ workspace "iw4x"
 	platforms "x86"
 	exceptionhandling ("SEH")
 
-	-- VS 2015 toolset only
-	toolset "msc-140"
-
 	flags { "StaticRuntime" }
 
 	configuration "windows"
@@ -266,7 +263,7 @@ workspace "iw4x"
 	project "iw4x"
 		kind "SharedLib"
 		language "C++"
-		flags { "C++14" }
+		cppdialect "C++17"
 		files {
 			"./src/**.rc",
 			"./src/**.hpp",
@@ -376,7 +373,8 @@ workspace "iw4x"
 		end
 
 		-- Specific configurations
-		flags { "UndefinedIdentifiers", "ExtraWarnings" }
+		flags { "UndefinedIdentifiers" }
+		warnings "Extra"
 
 		if symbols ~= nil then
 			symbols "On"
