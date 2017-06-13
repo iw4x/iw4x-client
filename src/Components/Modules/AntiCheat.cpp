@@ -232,7 +232,7 @@ namespace Components
 	void AntiCheat::QuickCodeScanner_1()
 	{
 		static Utils::Time::Interval interval;
-		static Utils::Value<std::string> hashVal;
+		static std::optional<std::string> hashVal;
 
 		if (!interval.elapsed(11s)) return;
 		interval.update();
@@ -243,30 +243,30 @@ namespace Components
 		uint8_t* textBase = reinterpret_cast<uint8_t*>(0x400FFF);
 		std::string hash = Utils::Cryptography::SHA256::Compute(textBase + 1, textSize + 1, false);
 
-		if (hashVal.isValid() && hash != hashVal.get())
+		if (hashVal.has_value() && hash != hashVal.value())
 		{
 			Utils::Hook::Set<BYTE>(0x42A667, 0x90); // Crash
 		}
 
-		hashVal.set(hash);
+		hashVal.emplace(hash);
 	}
 
 	void AntiCheat::QuickCodeScanner_2()
 	{
 		static Utils::Time::Interval interval;
-		static Utils::Value<std::string> hashVal;
+		static std::optional<std::string> hashVal;
 
 		if (!interval.elapsed(12s)) return;
 		interval.update();
 
 		// Hash .text segment
 		std::string hash = Utils::Cryptography::SHA1::Compute(reinterpret_cast<uint8_t*>(0x401000), 0x2D6000, false);
-		if (hashVal.isValid() && hash != hashVal.get())
+		if (hashVal.has_value() && hash != hashVal.value())
 		{
 			Utils::Hook::Set<BYTE>(0x40797C, 0x90); // Crash
 		}
 
-		hashVal.set(hash);
+		hashVal.emplace(hash);
 	}
 
 #ifdef DEBUG_LOAD_LIBRARY

@@ -113,14 +113,20 @@ namespace Utils
 		// trim from start
 		std::string &LTrim(std::string &s)
 		{
-			s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(IsSpace))));
+			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int val)
+			{
+				return !IsSpace(val);
+			}));
 			return s;
 		}
 
 		// trim from end
 		std::string &RTrim(std::string &s)
 		{
-			s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(IsSpace))).base(), s.end());
+			s.erase(std::find_if(s.rbegin(), s.rend(), [](int val)
+			{
+				return !IsSpace(val);
+			}).base(), s.end());
 			return s;
 		}
 

@@ -7,14 +7,14 @@ namespace Components
 {
 	bool Monitor::IsEnabled()
 	{
-		static Utils::Value<bool> flag;
+		static std::optional<bool> flag;
 
-		if (!flag.isValid())
+		if (!flag.has_value())
 		{
-			flag.set(Flags::HasFlag("monitor"));
+			flag.emplace(Flags::HasFlag("monitor"));
 		}
 
-		return flag.get();
+		return flag.value();
 	}
 
 	int __stdcall Monitor::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)

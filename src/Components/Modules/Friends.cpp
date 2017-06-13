@@ -283,15 +283,15 @@ namespace Components
 
 	void Friends::UpdateRank()
 	{
-		static Utils::Value<int> levelVal;
+		static std::optional<int> levelVal;
 
 		int experience = Game::Live_GetXp(0);
 		int prestige = Game::Live_GetPrestige(0);
 		int level = (experience & 0xFFFFFF) | ((prestige & 0xFF) << 24);
 
-		if(!levelVal.isValid() || levelVal.get() != level)
+		if(!levelVal.has_value() || levelVal.value() != level)
 		{
-			levelVal.set(level);
+			levelVal.emplace(level);
 
 			Friends::SetPresence("iw4x_experience", Utils::String::VA("%d", experience));
 			Friends::SetPresence("iw4x_prestige", Utils::String::VA("%d", prestige));

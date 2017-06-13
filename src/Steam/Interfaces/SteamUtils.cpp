@@ -21,9 +21,9 @@ namespace Steam
 
 	unsigned int Utils::GetServerRealTime()
 	{
-		static ::Utils::Value<unsigned int> timeDelta;
+		static ::std::optional<unsigned int> timeDelta;
 
-		if(!timeDelta.isValid())
+		if(!timeDelta.has_value())
 		{
 			unsigned int steamTime = static_cast<unsigned int>(time(nullptr));
 
@@ -32,10 +32,10 @@ namespace Steam
 				steamTime = Steam::Proxy::SteamUtils->GetServerRealTime();
 			}
 
-			timeDelta.set(steamTime - (Game::Sys_Milliseconds() / 1000));
+			timeDelta.emplace(steamTime - (Game::Sys_Milliseconds() / 1000));
 		}
 
-		return timeDelta.get() + (Game::Sys_Milliseconds() / 1000);
+		return timeDelta.value() + (Game::Sys_Milliseconds() / 1000);
 	}
 
 	const char* Utils::GetIPCountry()

@@ -736,6 +736,21 @@ namespace Components
 		}
 
 		printf("Success\n");
+
+		printf("Testing trimming...");
+		std::string trim1 = " 1 ";
+		std::string trim2 = "   1";
+		std::string trim3 = "1   ";
+
+		Utils::String::Trim(trim1);
+		Utils::String::LTrim(trim2);
+		Utils::String::RTrim(trim3);
+
+		if (trim1 != "1") return false;
+		if (trim2 != "1") return false;
+		if (trim3 != "1") return false;
+
+		printf("Success\n");
 		return true;
 	}
 }

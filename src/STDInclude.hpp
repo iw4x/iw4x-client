@@ -5,6 +5,7 @@
 
 #ifndef RC_INVOKED
 
+#define _HAS_CXX17 1
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 
@@ -39,6 +40,7 @@
 
 // Experimental C++17 features
 #include <filesystem>
+#include <optional>
 
 #pragma warning(pop)
 
