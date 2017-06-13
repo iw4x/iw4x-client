@@ -235,6 +235,7 @@ workspace "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
+	buildlog "%{wks.location}/obj/%{cfg.architecture}/%{cfg.buildcfg}/%{prj.name}/%{prj.name}.log"
 	configurations { "Debug", "Release" }
 	architecture "x32"
 	platforms "x86"
@@ -263,7 +264,6 @@ workspace "iw4x"
 	project "iw4x"
 		kind "SharedLib"
 		language "C++"
-		cppdialect "C++17"
 		files {
 			"./src/**.rc",
 			"./src/**.hpp",
