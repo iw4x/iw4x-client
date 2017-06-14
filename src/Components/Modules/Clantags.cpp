@@ -56,7 +56,7 @@ namespace Components
 			push edi
 			push [ebp]
 
-			call Clantags::GetUserClantag
+			call ClanTags::GetUserClantag
 			add esp, 8
 
 			mov [esp + 20h], eax
