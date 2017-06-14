@@ -153,11 +153,11 @@ namespace Utils
 		void leaveCriticalSection();
 		bool isCriticalSection();
 
-        // for recording zb writes
+		// for recording zb writes
 #ifdef WRITE_LOGS
-        int structLevel;
-        void enterStruct(const char* structName);
-        void leaveStruct();
+		int structLevel;
+		void enterStruct(const char* structName);
+		void leaveStruct();
 #endif
 
 		// This represents packed offset in streams:

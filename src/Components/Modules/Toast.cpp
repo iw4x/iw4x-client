@@ -24,7 +24,7 @@ namespace Components
 		std::string file(ourPath, GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath)));
 
 		auto pos = file.find_last_of("/\\");
-		if(pos != std::string::npos) file = file.substr(0, pos);
+		if (pos != std::string::npos) file = file.substr(0, pos);
 
 		file.append("\\iw4x\\images\\icon.png");
 		Utils::String::Replace(file, "/", "\\");
@@ -55,7 +55,7 @@ namespace Components
 		Game::Font* font = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/objectiveFont").font; if (!font) return;
 		Game::Font* descfont = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/normalFont").font; if (!descfont) return;
 		Game::vec4_t wColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-		Game::vec4_t bgColor = { 0.0f, 0.0f, 0.0f, 0.5f };
+		Game::vec4_t bgColor = { 0.0f, 0.0f, 0.0f, 0.8f };
 		Game::vec4_t borderColor = { 1.0f, 1.0f, 1.0f, 0.2f };
 
 		height /= 5;
@@ -135,7 +135,7 @@ namespace Components
 
 		if ((toast->start + toast->length) < Game::Sys_Milliseconds())
 		{
-			if(toast->callback) toast->callback();
+			if (toast->callback) toast->callback();
 			Toast::Queue.pop();
 		}
 		else
@@ -153,7 +153,7 @@ namespace Components
 			Scheduler::OnFrame(Toast::Handler);
 		});
 
-		Command::Add("testtoast", [] (Command::Params*)
+		Command::Add("testtoast", [](Command::Params*)
 		{
 			Toast::Show("cardicon_prestige10", "Test", "This is a test toast", 3000);
 		});

@@ -37,5 +37,4 @@ namespace Components
 	{
 		StartupMessages::MessageList.push_back(message);
 	}
-
 }

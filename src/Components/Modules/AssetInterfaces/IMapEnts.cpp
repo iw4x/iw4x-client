@@ -56,7 +56,7 @@ namespace Assets
 	void IMapEnts::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Utils::Entities memEnts(header.mapEnts->entityString, header.mapEnts->numEntityChars);
-		for(auto& model : memEnts.getModels())
+		for (auto& model : memEnts.getModels())
 		{
 			builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_XMODEL, model, false);
 		}

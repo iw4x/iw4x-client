@@ -32,7 +32,7 @@ namespace Utils
 
 	void WebIO::closeSession()
 	{
-		if(this->hSession) InternetCloseHandle(this->hSession);
+		if (this->hSession) InternetCloseHandle(this->hSession);
 	}
 
 	void WebIO::setCredentials(std::string _username, std::string _password)
@@ -324,7 +324,7 @@ namespace Utils
 
 		while (InternetReadFile(this->hFile, buffer, 0x2000, &size))
 		{
-			if(this->cancel)
+			if (this->cancel)
 			{
 				this->closeConnection();
 				return "";

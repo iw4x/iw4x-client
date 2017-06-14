@@ -104,7 +104,7 @@ namespace Components
 			call FrameTime::ComFrameWait
 			add esp, 4
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 			pop eax
 			mov ecx, eax

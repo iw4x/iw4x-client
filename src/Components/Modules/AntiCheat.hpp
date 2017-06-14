@@ -31,8 +31,8 @@ namespace Components
 
 		static void VerifyThreadIntegrity();
 
-		static void QuickCodeScanner_1();
-		static void QuickCodeScanner_2();
+		static void QuickCodeScanner1();
+		static void QuickCodeScanner2();
 
 	private:
 		enum IntergrityFlag
@@ -73,7 +73,7 @@ namespace Components
 #endif
 
 		static BOOL WINAPI VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD  flNewProtect, PDWORD lpflOldProtect);
-		static BOOL WINAPI VirtualProtectExStub(HANDLE hProcess,LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect,PDWORD lpflOldProtect);
+		static BOOL WINAPI VirtualProtectExStub(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect);
 
 		static void LostD3DStub();
 		static void CinematicStub();

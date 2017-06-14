@@ -21,9 +21,9 @@ namespace Components
 		material->textureAtlasColumnCount = 1;
 		material->textureAtlasRowCount = 1;
 
-		for(int i = 0; i < 48; ++i)
+		for (int i = 0; i < 48; ++i)
 		{
-			if(i != 4) material->stateBitsEntry[i] = -1;
+			if (i != 4) material->stateBitsEntry[i] = -1;
 		}
 
 		material->stateFlags = 3;
@@ -37,7 +37,7 @@ namespace Components
 		material->textureTable->info.image = image;
 
 		Game::Material* cursor = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "ui_cursor").material;
-		if(cursor)
+		if (cursor)
 		{
 			material->stateBitTable = cursor->stateBitTable;
 			material->stateBitsCount = cursor->stateBitsCount;
@@ -105,7 +105,7 @@ namespace Components
 		Utils::Merge(&materials, Materials::MaterialTable);
 		Materials::MaterialTable.clear();
 
-		for(auto& material : materials)
+		for (auto& material : materials)
 		{
 			Materials::Delete(material);
 		}
@@ -124,7 +124,7 @@ namespace Components
 	{
 		if (!material || !material->textureCount || !material->textureTable) return false;
 
-		for(char i = 0; i < material->textureCount; ++i)
+		for (char i = 0; i < material->textureCount; ++i)
 		{
 			if (!material->textureTable[i].info.image || !material->textureTable[i].info.image->map)
 			{
@@ -191,7 +191,7 @@ namespace Components
 			call Materials::ResolveMaterial
 			add esp, 4h
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 			pop eax
 
@@ -229,7 +229,7 @@ namespace Components
 			call Materials::WriteDeathMessageIcon
 			add esp, 0Ch
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 			pop eax
 

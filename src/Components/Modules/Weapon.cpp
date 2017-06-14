@@ -29,7 +29,7 @@ namespace Components
 		{
 			for (unsigned int i = 1; i < Game::BG_GetNumWeapons(); ++i)
 			{
-				Game::SV_SetConfigstring(i  + (i >= 1200 ? 2939 : 2804), Game::BG_GetWeaponName(i));
+				Game::SV_SetConfigstring(i + (i >= 1200 ? 2939 : 2804), Game::BG_GetWeaponName(i));
 			}
 		}
 	}
@@ -40,11 +40,11 @@ namespace Components
 		if (params.length() <= 1) return 0;
 		int index = atoi(params[1]);
 
-		if(index >= 4139)
+		if (index >= 4139)
 		{
 			index -= 2939;
 		}
-		else if(index > 2804 && index <= 2804 + 1200)
+		else if (index > 2804 && index <= 2804 + 1200)
 		{
 			index -= 2804;
 		}

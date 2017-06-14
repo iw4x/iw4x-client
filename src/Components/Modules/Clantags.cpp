@@ -2,20 +2,20 @@
 
 namespace Components
 {
-	std::string Clantags::Tags[18];
+	std::string ClanTags::Tags[18];
 
-	void Clantags::ParseClantags(const char* infoString)
+	void ClanTags::ParseClantags(const char* infoString)
 	{
 		for (int i = 0; i < 18; i++)
 		{
 			const char* clantag = Game::Info_ValueForKey(infoString, std::to_string(i).data());
 
-			if (clantag) Clantags::Tags[i] = clantag;
-			else Clantags::Tags[i].clear();
+			if (clantag) ClanTags::Tags[i] = clantag;
+			else ClanTags::Tags[i].clear();
 		}
 	}
 
-	void Clantags::SendClantagsToClients()
+	void ClanTags::SendClantagsToClients()
 	{
 		std::string list;
 
@@ -35,18 +35,18 @@ namespace Components
 		Game::SV_GameSendServerCommand(-1, 0, command.data());
 	}
 
-	const char* Clantags::GetUserClantag(std::uint32_t /*clientnum*/, const char* playername)
+	const char* ClanTags::GetUserClantag(std::uint32_t /*clientnum*/, const char* playername)
 	{
 #if 0
-		if (Clantags::Tags[clientnum].empty()) return playername;
-		return Utils::String::VA("[%s] %s", Clantags::Tags[clientnum].data(), playername);
+		if (ClanTags::Tags[clientnum].empty()) return playername;
+		return Utils::String::VA("[%s] %s", ClanTags::Tags[clientnum].data(), playername);
 #else
 		return playername;
 #endif
 
 	}
 
-	__declspec(naked) void Clantags::DrawPlayerNameOnScoreboard()
+	__declspec(naked) void ClanTags::DrawPlayerNameOnScoreboard()
 	{
 		__asm
 		{
@@ -70,7 +70,7 @@ namespace Components
 		}
 	}
 
-	Clantags::Clantags()
+	ClanTags::ClanTags()
 	{
 		// Create clantag dvar
 		Dvar::OnInit([]()
@@ -85,7 +85,7 @@ namespace Components
 			{
 				if (params->length() == 3)
 				{
-					Clantags::ParseClantags(params->get(2));
+					ClanTags::ParseClantags(params->get(2));
 					return true;
 				}
 			}
@@ -93,20 +93,20 @@ namespace Components
 			return false;
 		});
 
-		for (int i = 0; i < ARRAYSIZE(Clantags::Tags); ++i)
+		for (int i = 0; i < ARRAYSIZE(ClanTags::Tags); ++i)
 		{
-			Clantags::Tags[i].clear();
+			ClanTags::Tags[i].clear();
 		}
-		
+
 		// Draw clantag before playername
-		Utils::Hook(0x591242, Clantags::DrawPlayerNameOnScoreboard).install()->quick();
+		Utils::Hook(0x591242, ClanTags::DrawPlayerNameOnScoreboard).install()->quick();
 	}
 
-	Clantags::~Clantags()
+	ClanTags::~ClanTags()
 	{
-		for (int i = 0; i < ARRAYSIZE(Clantags::Tags); ++i)
+		for (int i = 0; i < ARRAYSIZE(ClanTags::Tags); ++i)
 		{
-			Clantags::Tags[i].clear();
+			ClanTags::Tags[i].clear();
 		}
 	}
 }

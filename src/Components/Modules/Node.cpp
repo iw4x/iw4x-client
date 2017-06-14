@@ -142,9 +142,9 @@ namespace Components
 		else
 		{
 			int count = 0;
-			for(auto entry : Node::Nodes)
+			for (auto entry : Node::Nodes)
 			{
-				if(entry.state != Node::STATE_INVALID && entry.address.getIP().full == address.getIP().full)
+				if (entry.state != Node::STATE_INVALID && entry.address.getIP().full == address.getIP().full)
 				{
 					count++;
 				}
@@ -407,7 +407,7 @@ namespace Components
 		// Send deadline when shutting down
 		if (Dedicated::IsEnabled())
 		{
-			Scheduler::OnShutdown([] ()
+			Scheduler::OnShutdown([]()
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
@@ -427,7 +427,7 @@ namespace Components
 
 			// This is the handler that accepts registration requests from other nodes
 			// If you want to get accepted as node, you have to send a request to this handler
-			Network::Handle("nodeRegisterRequest", [] (Network::Address address, std::string data)
+			Network::Handle("nodeRegisterRequest", [](Network::Address address, std::string data)
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
@@ -477,7 +477,7 @@ namespace Components
 				Network::SendCommand(address, "nodeRegisterSynchronize", packet.SerializeAsString());
 			});
 
-			Network::Handle("nodeRegisterSynchronize", [] (Network::Address address, std::string data)
+			Network::Handle("nodeRegisterSynchronize", [](Network::Address address, std::string data)
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
@@ -538,7 +538,7 @@ namespace Components
 				Network::SendCommand(address, "nodeRegisterAcknowledge", packet.SerializeAsString());
 			});
 
-			Network::Handle("nodeRegisterAcknowledge", [] (Network::Address address, std::string data)
+			Network::Handle("nodeRegisterAcknowledge", [](Network::Address address, std::string data)
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
@@ -622,7 +622,7 @@ namespace Components
 				}
 			});
 
-			Network::Handle("nodeDeregister", [] (Network::Address address, std::string data)
+			Network::Handle("nodeDeregister", [](Network::Address address, std::string data)
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
@@ -658,7 +658,7 @@ namespace Components
 				}
 			});
 
-			Network::Handle("sessionRequest", [] (Network::Address address, std::string data)
+			Network::Handle("sessionRequest", [](Network::Address address, std::string data)
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
@@ -687,7 +687,7 @@ namespace Components
 				Network::SendCommand(address, "sessionInitialize", session->challenge);
 			});
 
-			Network::Handle("sessionSynchronize", [] (Network::Address address, std::string data)
+			Network::Handle("sessionSynchronize", [](Network::Address address, std::string data)
 			{
 				if (Dvar::Var("sv_lanOnly").get<bool>()) return;
 
@@ -747,7 +747,7 @@ namespace Components
 			});
 		}
 
-		Network::Handle("nodeListResponse", [] (Network::Address address, std::string data)
+		Network::Handle("nodeListResponse", [](Network::Address address, std::string data)
 		{
 			Proto::Node::List list;
 			std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
@@ -828,7 +828,7 @@ namespace Components
 
 		// If we receive that response, our request was not permitted
 		// So we either have to register as node, or register a remote session
-		Network::Handle("nodeListError", [] (Network::Address address, std::string data)
+		Network::Handle("nodeListError", [](Network::Address address, std::string data)
 		{
 			if (Dedicated::IsEnabled())
 			{
@@ -849,7 +849,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("listnodes", [] (Command::Params*)
+		Command::Add("listnodes", [](Command::Params*)
 		{
 			Logger::Print("Nodes: %d (%d)\n", Node::Nodes.size(), Node::GetValidNodeCount());
 
@@ -860,7 +860,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("addnode", [] (Command::Params* params)
+		Command::Add("addnode", [](Command::Params* params)
 		{
 			if (params->length() < 2) return;
 
@@ -876,7 +876,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("syncnodes", [] (Command::Params*)
+		Command::Add("syncnodes", [](Command::Params*)
 		{
 			Logger::Print("Resynchronizing nodes...\n");
 
@@ -905,9 +905,9 @@ namespace Components
 		// Install frame handlers
 		Scheduler::OnFrame(Node::FrameHandler);
 
-		Network::OnStart([] ()
+		Network::OnStart([]()
 		{
-			std::thread([] ()
+			std::thread([]()
 			{
 				Node::LoadNodeRemotePreset();
 			}).detach();

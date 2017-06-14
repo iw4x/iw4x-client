@@ -109,7 +109,7 @@ namespace Components
 		Game::CL_GetClientName(localClientNum, index, buf, size);
 
 		// Append clantag to username & remove the colors
-		strncpy_s(buf, size, Colors::Strip(Clantags::GetUserClantag(index, buf)).data(), size);
+		strncpy_s(buf, size, Colors::Strip(ClanTags::GetUserClantag(index, buf)).data(), size);
 
 		return buf;
 	}

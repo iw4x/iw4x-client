@@ -131,7 +131,7 @@ namespace Utils
 			unsigned int ePtr = reinterpret_cast<unsigned int>(entry.first);
 			unsigned int tPtr = reinterpret_cast<unsigned int>(pointer);
 
-			if(Utils::HasIntercection(ePtr, entry.second, tPtr, length))
+			if (Utils::HasIntercection(ePtr, entry.second, tPtr, length))
 			{
 				MessageBoxA(nullptr, "Duplicate data written!", "ERROR", MB_ICONERROR);
 				__debugbreak();
@@ -290,7 +290,7 @@ namespace Utils
 
 #ifdef WRITE_LOGS
 		std::string data = fmt::sprintf("%*s%d\n", this->structLevel, "", size);
-		if(stream == Game::XFILE_BLOCK_RUNTIME) data = fmt::sprintf("%*s(%d)\n", this->structLevel, "", size);
+		if (stream == Game::XFILE_BLOCK_RUNTIME) data = fmt::sprintf("%*s(%d)\n", this->structLevel, "", size);
 		Utils::IO::WriteFile("userraw/logs/zb_writes.log", data, true);
 #endif
 	}

@@ -889,7 +889,7 @@ namespace Assets
 		std::list<Game::TriggerSlab> slabs;
 		std::list<Game::TriggerHull> hulls;
 		std::list<Game::TriggerModel> models;
-		
+
 		for (int i = 0; i < clipMap->numCModels; ++i)
 		{
 			Game::cLeafBrushNode_t* node = &clipMap->cLeafBrushNodes[clipMap->cModels[i].leaf.leafBrushNode];
@@ -907,7 +907,7 @@ namespace Assets
 			}
 		}
 		*/
-		
+
 		// This mustn't be null and has to have at least 1 'valid' entry.
 		if (!clipMap->smodelNodeCount || !clipMap->smodelNodes)
 		{
@@ -927,7 +927,7 @@ namespace Assets
 			Utils::Stream::ClearPointer(&clipMap->dynEntCollList[i]);
 		}
 
-		if(!reader.end())
+		if (!reader.end())
 		{
 			Components::Logger::Error("Clipmap data left!");
 		}

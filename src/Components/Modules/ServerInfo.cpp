@@ -26,7 +26,7 @@ namespace Components
 
 			case 3:
 				return Utils::String::VA("%d", ServerInfo::PlayerContainer.playerList[index].ping);
-			default: 
+			default:
 				break;
 			}
 		}
@@ -46,7 +46,7 @@ namespace Components
 
 		ServerList::ServerInfo* info = ServerList::GetCurrentServer();
 
-		if(info)
+		if (info)
 		{
 			Dvar::Var("uiSi_ServerName").set(info->hostname);
 			Dvar::Var("uiSi_MaxClients").set(info->clients);
@@ -173,7 +173,7 @@ namespace Components
 		// Add uifeeder
 		UIFeeder::Add(13.0f, ServerInfo::GetPlayerCount, ServerInfo::GetPlayerText, ServerInfo::SelectPlayer);
 
-		Network::Handle("getStatus", [] (Network::Address address, std::string data)
+		Network::Handle("getStatus", [](Network::Address address, std::string data)
 		{
 			std::string playerList;
 
@@ -209,7 +209,7 @@ namespace Components
 			Network::SendCommand(address, "statusResponse", "\\" + info.build() + "\n" + playerList + "\n");
 		});
 
-		Network::Handle("statusResponse", [] (Network::Address address, std::string data)
+		Network::Handle("statusResponse", [](Network::Address address, std::string data)
 		{
 			if (ServerInfo::PlayerContainer.target == address)
 			{

@@ -183,7 +183,7 @@ namespace Components
 
 	Bans::Bans()
 	{
-		Command::Add("banclient", [] (Command::Params* params)
+		Command::Add("banclient", [](Command::Params* params)
 		{
 			if (params->length() < 2) return;
 
@@ -194,7 +194,7 @@ namespace Components
 		});
 
 		// Verify the list on startup
-		Scheduler::Once([] ()
+		Scheduler::Once([]()
 		{
 			Bans::BanList list;
 			Bans::LoadBans(&list);

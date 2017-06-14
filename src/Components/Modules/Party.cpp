@@ -47,7 +47,7 @@ namespace Components
 			{
 				return Utils::String::VA("%d", address.getIP().full);
 			}
-			else if (key =="port")
+			else if (key == "port")
 			{
 				return Utils::String::VA("%d", address.getPort());
 			}
@@ -249,14 +249,14 @@ namespace Components
 		// Patch Live_PlayerHasLoopbackAddr
 		//Utils::Hook::Set<DWORD>(0x418F30, 0x90C3C033);
 
-		Command::Add("connect", [] (Command::Params* params)
+		Command::Add("connect", [](Command::Params* params)
 		{
 			if (params->length() < 2)
 			{
 				return;
 			}
 
-			if(Game::CL_IsCgameInitialized())
+			if (Game::CL_IsCgameInitialized())
 			{
 				Command::Execute("disconnect", false);
 				Command::Execute(Utils::String::VA("%s", params->join(0).data()), false);
@@ -266,12 +266,12 @@ namespace Components
 				Party::Connect(Network::Address(params->get(1)));
 			}
 		});
-		Command::Add("reconnect", [] (Command::Params*)
+		Command::Add("reconnect", [](Command::Params*)
 		{
 			Party::Connect(Party::Container.target);
 		});
 
-		Scheduler::OnFrame([] ()
+		Scheduler::OnFrame([]()
 		{
 			if (Party::Container.valid)
 			{
@@ -293,7 +293,7 @@ namespace Components
 		}, true);
 
 		// Basic info handler
-		Network::Handle("getInfo", [] (Network::Address address, std::string data)
+		Network::Handle("getInfo", [](Network::Address address, std::string data)
 		{
 			int botCount = 0;
 			int clientCount = 0;
@@ -373,7 +373,7 @@ namespace Components
 			Network::SendCommand(address, "infoResponse", "\\" + info.build());
 		});
 
-		Network::Handle("infoResponse", [] (Network::Address address, std::string data)
+		Network::Handle("infoResponse", [](Network::Address address, std::string data)
 		{
 			Utils::InfoString info(data);
 
@@ -407,7 +407,7 @@ namespace Components
 					{
 						Party::ConnectError("Server is not hosting a match.");
 					}
-					else if(Party::Container.matchType > 2 || Party::Container.matchType < 0)
+					else if (Party::Container.matchType > 2 || Party::Container.matchType < 0)
 					{
 						Party::ConnectError("Invalid join response: Unknown matchtype");
 					}
@@ -415,12 +415,12 @@ namespace Components
 					{
 						Party::ConnectError("Invalid map or gametype.");
 					}
-					else if(isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
+					else if (isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Download::InitiateMapDownload(info.get("mapname"));
 					}
-					else if(!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
+					else if (!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Download::InitiateClientDownload(info.get("fs_game"));

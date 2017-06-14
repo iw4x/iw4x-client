@@ -83,7 +83,7 @@ namespace Components
 		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
 		{
 			Game::LocalizeEntry* entry = Localization::TempLocalizeMap[key];
-			if(entry->value) allocator->free(entry->value);
+			if (entry->value) allocator->free(entry->value);
 			entry->value = allocator->duplicateString(value);
 		}
 		else
@@ -239,7 +239,7 @@ namespace Components
 	{
 		Localization::SetCredits();
 
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [] (Game::XAssetType, std::string filename)
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [](Game::XAssetType, std::string filename)
 		{
 			Game::XAssetHeader header = { nullptr };
 			std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
@@ -272,9 +272,9 @@ namespace Components
 		{
 			if (type != Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY) return;
 
-			if(name == "CLASS_SLOT1"s)
+			if (name == "CLASS_SLOT1"s)
 			{
-				for(int i = 11; i <= NUM_CUSTOM_CLASSES; ++i)
+				for (int i = 11; i <= NUM_CUSTOM_CLASSES; ++i)
 				{
 					std::string key = Utils::String::VA("CLASS_SLOT%i", i);
 

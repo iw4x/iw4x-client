@@ -132,7 +132,7 @@ namespace Components
 
 	BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	{
-		if(Msg == WM_SETCURSOR)
+		if (Msg == WM_SETCURSOR)
 		{
 			Window::ApplyCursor();
 			return TRUE;
@@ -157,7 +157,7 @@ namespace Components
 		Utils::Hook(0x48E5D3, Window::DrawCursorStub, HOOK_CALL).install()->quick();
 
 		// Draw the cursor if necessary
-		Scheduler::OnFrame([] ()
+		Scheduler::OnFrame([]()
 		{
 			if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 			{

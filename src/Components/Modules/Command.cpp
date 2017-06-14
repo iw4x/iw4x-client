@@ -163,7 +163,7 @@ namespace Components
 		// Disable native noclip command
 		Utils::Hook::Nop(0x474846, 5);
 
-		Command::Add("noclip", [] (Command::Params*)
+		Command::Add("noclip", [](Command::Params*)
 		{
 			int clientNum = Game::CG_GetClientNum();
 			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
@@ -186,7 +186,7 @@ namespace Components
 			Toast::Show("cardicon_abduction", "Success", "Noclip toggled", 3000);
 		});
 
-		Command::Add("ufo", [] (Command::Params*)
+		Command::Add("ufo", [](Command::Params*)
 		{
 			int clientNum = Game::CG_GetClientNum();
 			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
@@ -235,12 +235,12 @@ namespace Components
 
 			float pos[3] = { 0.0f, 0.0f, 0.0f };
 			float orientation[3] = { 0.0f, 0.0f, 0.0f };
-			
+
 			pos[0] = strtof(params->get(1), nullptr);
 			pos[1] = strtof(params->get(2), nullptr);
 			pos[2] = strtof(params->get(3), nullptr);
-			
-			if(params->length() == 6)
+
+			if (params->length() == 6)
 			{
 				orientation[0] = strtof(params->get(4), nullptr);
 				orientation[1] = strtof(params->get(5), nullptr);

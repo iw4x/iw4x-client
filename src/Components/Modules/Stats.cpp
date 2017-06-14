@@ -70,6 +70,7 @@ namespace Components
 
 		// ToDo: Allow playerdata changes in setPlayerData UI script.
 	}
+
 	Stats::~Stats()
 	{
 

@@ -34,7 +34,7 @@ namespace Components
 			push eax
 			pushad
 			call ServerCommands::OnServerCommand
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 			pop eax
 

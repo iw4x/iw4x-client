@@ -22,7 +22,7 @@ namespace Components
 		// remove fs_game check for moddable rawfiles - allows non-fs_game to modify rawfiles
 		Utils::Hook::Nop(0x61AB76, 2);
 
-		Command::Add("dumpraw", [] (Command::Params* params)
+		Command::Add("dumpraw", [](Command::Params* params)
 		{
 			if (params->length() < 2)
 			{

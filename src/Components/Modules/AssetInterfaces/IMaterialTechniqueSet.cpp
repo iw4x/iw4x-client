@@ -105,12 +105,12 @@ namespace Assets
 							Game::MaterialShaderArgument* destArgs = buffer->dest<Game::MaterialShaderArgument>();
 							buffer->saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
 
-							for(int k = 0; k < pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount; ++k)
+							for (int k = 0; k < pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount; ++k)
 							{
 								Game::MaterialShaderArgument* arg = &pass->args[k];
 								Game::MaterialShaderArgument* destArg = &destArgs[k];
 
-								if(arg->type == 1 || arg->type == 7)
+								if (arg->type == 1 || arg->type == 7)
 								{
 									if (builder->hasPointer(arg->u.literalConst))
 									{

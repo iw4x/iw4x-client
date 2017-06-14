@@ -303,7 +303,7 @@ namespace Components
 		download->thread.detach();
 		download->clear();
 
-		if(download->isMap)
+		if (download->isMap)
 		{
 			Scheduler::Once([]()
 			{
@@ -381,7 +381,7 @@ namespace Components
 		static json11::Json jsonList;
 
 		std::string mapname = Maps::GetUserMap()->getName();
-		if(!Maps::GetUserMap()->isValid())
+		if (!Maps::GetUserMap()->isValid())
 		{
 			mapnamePre.clear();
 			jsonList = std::vector<json11::Json>();
@@ -514,14 +514,14 @@ namespace Components
 				bool isValidFile = false;
 				for (int i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
 				{
-					if(url == (mapname + Maps::UserMapFiles[i]))
+					if (url == (mapname + Maps::UserMapFiles[i]))
 					{
 						isValidFile = true;
 						break;
 					}
 				}
 
-				if(!Maps::GetUserMap()->isValid() || !isValidFile)
+				if (!Maps::GetUserMap()->isValid() || !isValidFile)
 				{
 					Download::Forbid(nc);
 					return;
@@ -710,7 +710,7 @@ namespace Components
 			ZeroMemory(&Download::Mgr, sizeof Download::Mgr);
 			mg_mgr_init(&Download::Mgr, nullptr);
 
-			Network::OnStart([] ()
+			Network::OnStart([]()
 			{
 				mg_connection* nc = mg_bind(&Download::Mgr, Utils::String::VA("%hu", Network::GetPort()), Download::EventHandler);
 
@@ -719,7 +719,7 @@ namespace Components
 					// Handle special requests
 					mg_register_http_endpoint(nc, "/info", Download::InfoHandler);
 					mg_register_http_endpoint(nc, "/list", Download::ListHandler);
-					mg_register_http_endpoint(nc, "/map",  Download::MapHandler);
+					mg_register_http_endpoint(nc, "/map", Download::MapHandler);
 					mg_register_http_endpoint(nc, "/file/", Download::FileHandler);
 
 					mg_set_protocol_http_websocket(nc);
@@ -748,7 +748,7 @@ namespace Components
 				Dvar::Register<const char*>("ui_dl_transRate", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
 			});
 
-			UIScript::Add("mod_download_cancel", [] (UIScript::Token)
+			UIScript::Add("mod_download_cancel", [](UIScript::Token)
 			{
 				Download::CLDownload.clear();
 			});
@@ -758,11 +758,11 @@ namespace Components
 		{
 			int workingCount = 0;
 
-			for(auto i = Download::ScriptDownloads.begin(); i != Download::ScriptDownloads.end();)
+			for (auto i = Download::ScriptDownloads.begin(); i != Download::ScriptDownloads.end();)
 			{
 				auto download = *i;
 
-				if(download->isDone())
+				if (download->isDone())
 				{
 					download->notifyDone();
 					i = Download::ScriptDownloads.erase(i);
@@ -778,10 +778,10 @@ namespace Components
 				++i;
 			}
 
-			for(auto& download : Download::ScriptDownloads)
+			for (auto& download : Download::ScriptDownloads)
 			{
 				if (workingCount > 5) break;
-				if(!download->isWorking())
+				if (!download->isWorking())
 				{
 					download->startWorking();
 					++workingCount;

@@ -61,7 +61,7 @@ namespace Components
 		Loader::Register(new Monitor());
 		Loader::Register(new Network());
 		Loader::Register(new Theatre());
-		//Loader::Register(new Clantags());
+		//Loader::Register(new ClanTags());
 		Loader::Register(new Download());
 		Loader::Register(new Playlist());
 		Loader::Register(new RawFiles());
@@ -111,7 +111,7 @@ namespace Components
 		for (auto component : Loader::Components)
 		{
 #ifdef DEBUG
-			if(!Loader::PerformingUnitTests())
+			if (!Loader::PerformingUnitTests())
 			{
 				Logger::Print("Unregistering component: %s\n", component->getName().data());
 			}
@@ -126,7 +126,7 @@ namespace Components
 
 	void Loader::PreDestroy()
 	{
-		if(!Loader::Postgame)
+		if (!Loader::Postgame)
 		{
 			Loader::Postgame = true;
 
@@ -191,7 +191,7 @@ namespace Components
 		if (component)
 		{
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-			if(!Loader::PerformingUnitTests())
+			if (!Loader::PerformingUnitTests())
 			{
 				Logger::Print("Component registered: %s\n", component->getName().data());
 			}

@@ -99,7 +99,7 @@ namespace Components
 					this->object = 0;
 				}
 
-				if(this->workerThread.joinable())
+				if (this->workerThread.joinable())
 				{
 					this->workerThread.join();
 				}
@@ -109,7 +109,7 @@ namespace Components
 
 			void startWorking()
 			{
-				if(!this->isWorking())
+				if (!this->isWorking())
 				{
 					this->workerThread = std::thread(std::bind(&ScriptDownload::handler, this));
 				}
@@ -161,7 +161,7 @@ namespace Components
 
 			void cancel()
 			{
-				if(this->webIO)
+				if (this->webIO)
 				{
 					this->webIO->cancelDownload();
 				}

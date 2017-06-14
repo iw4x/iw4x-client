@@ -29,7 +29,7 @@ namespace Components
 			{
 				bool wasValid = this->isValid();
 				this->mapname.clear();
-				if(wasValid) Game::UI_UpdateArenas();
+				if (wasValid) Game::UI_UpdateArenas();
 			}
 
 			void loadIwd();

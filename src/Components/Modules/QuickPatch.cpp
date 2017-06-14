@@ -102,7 +102,7 @@ namespace Components
 
 	void QuickPatch::CompareMaterialStateBits()
 	{
-		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MATERIAL, [] (Game::XAssetHeader header, void* /*unused*/)
+		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void* /*unused*/)
 		{
 			bool first = true;
 			Game::Material* material = header.material;
@@ -201,7 +201,7 @@ namespace Components
 		// Shift ui version string to the left (ui_buildlocation)
 		Utils::Hook::Nop(0x6310A0, 5); // Don't register the initial dvar
 		Utils::Hook::Nop(0x6310B8, 5); // Don't write the result
-		Dvar::OnInit([] ()
+		Dvar::OnInit([]()
 		{
 			*reinterpret_cast<Game::dvar_t**>(0x62E4B64) = Game::Dvar_RegisterVec2("ui_buildLocation", -60.0f, 474.0f, -10000.0, 10000.0, Game::DVAR_FLAG_READONLY, "Where to draw the build number");
 		});
@@ -389,7 +389,7 @@ namespace Components
 
 		// Fix mouse pitch adjustments
 		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_FLAG_SAVED, "");
-		UIScript::Add("updateui_mousePitch", [] (UIScript::Token)
+		UIScript::Add("updateui_mousePitch", [](UIScript::Token)
 		{
 			if (Dvar::Var("ui_mousePitch").get<bool>())
 			{
@@ -420,17 +420,17 @@ namespace Components
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
 
-		Command::Add("unlockstats", [] (Command::Params*)
+		Command::Add("unlockstats", [](Command::Params*)
 		{
 			QuickPatch::UnlockStats();
 		});
 
-		Command::Add("crash", [] (Command::Params*)
+		Command::Add("crash", [](Command::Params*)
 		{
 			throw new std::exception();
 		});
 
-		Command::Add("checkmaterials", [] (Command::Params*)
+		Command::Add("checkmaterials", [](Command::Params*)
 		{
 			QuickPatch::CompareMaterialStateBits();
 		});
@@ -686,7 +686,7 @@ namespace Components
 		Utils::Hook::Nop(0x4EBF1A, 5);
 #endif
 
-		if(Flags::HasFlag("nointro"))
+		if (Flags::HasFlag("nointro"))
 		{
 			Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
 		}

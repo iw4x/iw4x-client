@@ -160,8 +160,8 @@ namespace Components
 				Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
 				if (!newSurfs) continue;
 
- 				surfs->surfaces = newSurfs->surfaces;
- 				surfs->numSurfaces = newSurfs->numSurfaces;
+				surfs->surfaces = newSurfs->surfaces;
+				surfs->numSurfaces = newSurfs->numSurfaces;
 
 				model->lodInfo[i].surfs = newSurfs->surfaces;
 				std::memcpy(&model->lodInfo[i].partBits, &newSurfs->partBits, 24);
@@ -194,7 +194,7 @@ namespace Components
 					auto buffer = ModelSurfs::BufferMap.find(surface->triIndices);
 					if (buffer != ModelSurfs::BufferMap.end())
 					{
-						if(buffer->second) buffer->second->Release();
+						if (buffer->second) buffer->second->Release();
 						ModelSurfs::BufferMap.erase(buffer);
 					}
 
@@ -235,7 +235,7 @@ namespace Components
 
 	void ModelSurfs::EndRecover()
 	{
-		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_XMODELSURFS, [] (Game::XAssetHeader header, void* /*userdata*/)
+		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_XMODELSURFS, [](Game::XAssetHeader header, void* /*userdata*/)
 		{
 			ModelSurfs::CreateBuffers(header.surfaces);
 		}, nullptr, false);

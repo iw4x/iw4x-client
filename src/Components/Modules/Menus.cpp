@@ -259,7 +259,7 @@ namespace Components
 		newList->menuCount = menus.size();
 
 		// Copy new menus
-		for(unsigned int i = 0; i < menus.size(); ++i)
+		for (unsigned int i = 0; i < menus.size(); ++i)
 		{
 			newList->menus[i] = menus[i].second;
 		}
@@ -334,9 +334,9 @@ namespace Components
 			for (auto menu : Menus::CustomMenus)
 			{
 				bool hasMenu = false;
-				for(auto &loadedMenu : menus)
+				for (auto &loadedMenu : menus)
 				{
-					if(loadedMenu.second->window.name == menu)
+					if (loadedMenu.second->window.name == menu)
 					{
 						hasMenu = true;
 						break;
@@ -465,7 +465,7 @@ namespace Components
 	void Menus::RemoveMenu(std::string menu)
 	{
 		auto i = Menus::MenuList.find(menu);
-		if(i != Menus::MenuList.end())
+		if (i != Menus::MenuList.end())
 		{
 			if (i->second) Menus::FreeMenu(i->second);
 			i = Menus::MenuList.erase(i);
@@ -599,7 +599,7 @@ namespace Components
 			Menus::RemoveMenuList(filename);
 		}
 
-		if(Utils::String::EndsWith(filename, ".menu"))
+		if (Utils::String::EndsWith(filename, ".menu"))
 		{
 			if (FileSystem::File(filename).exists())
 			{
@@ -726,7 +726,7 @@ namespace Components
 		//make Com_Error and similar go back to main_text instead of menu_xboxlive.
 		Utils::Hook::SetString(0x6FC790, "main_text");
 
-		Command::Add("openmenu", [] (Command::Params* params)
+		Command::Add("openmenu", [](Command::Params* params)
 		{
 			if (params->length() != 2)
 			{
@@ -743,7 +743,7 @@ namespace Components
 			Game::Menus_OpenByName(Game::uiContext, params->get(1));
 		});
 
-		Command::Add("reloadmenus", [] (Command::Params*)
+		Command::Add("reloadmenus", [](Command::Params*)
 		{
 			// Close all menus
 			Game::Menus_CloseAll(Game::uiContext);
@@ -767,10 +767,10 @@ namespace Components
 		});
 
 #if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
-		Scheduler::OnFrame(AntiCheat::QuickCodeScanner_2);
+		Scheduler::OnFrame(AntiCheat::QuickCodeScanner2);
 #endif
 
-		Command::Add("mp_QuickMessage", [] (Command::Params*)
+		Command::Add("mp_QuickMessage", [](Command::Params*)
 		{
 			Command::Execute("openmenu quickmessage");
 		});

@@ -481,7 +481,7 @@ namespace Components
 			call Maps::TriggerReconnectForMap
 			add esp, 8h
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 
 			popad
 			pop eax
@@ -878,7 +878,7 @@ namespace Components
 			pushad
 			call Maps::GetSpecularDvar
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 
 			pop eax
@@ -894,7 +894,7 @@ namespace Components
 			pushad
 			call Maps::GetSpecularDvar
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 
 			pop edx

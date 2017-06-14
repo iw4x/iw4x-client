@@ -86,7 +86,7 @@ namespace Components
 
 	void AssetHandler::ResetBypassState()
 	{
-		if(AssetHandler::HasThreadBypass())
+		if (AssetHandler::HasThreadBypass())
 		{
 			// Maybe just decrement it?
 			AssetHandler::BypassState = 0;
@@ -362,7 +362,7 @@ namespace Components
 		if (!header.data)
 		{
 			header = Game::DB_FindXAssetHeader(type, filename.data());
-			if(header.data) Components::AssetHandler::StoreTemporaryAsset(type, header); // Might increase efficiency...
+			if (header.data) Components::AssetHandler::StoreTemporaryAsset(type, header); // Might increase efficiency...
 		}
 
 		return header;
@@ -403,7 +403,7 @@ namespace Components
 
 	void AssetHandler::MissingAssetError(int severity, const char* format, const char* type, const char* name)
 	{
-		if(Dedicated::IsEnabled() && Game::DB_GetXAssetNameType(type) == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET) return;
+		if (Dedicated::IsEnabled() && Game::DB_GetXAssetNameType(type) == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET) return;
 		Utils::Hook::Call<void(int, const char*, const char*, const char*)>(0x4F8C70)(severity, format, type, name); // Print error
 	}
 
@@ -426,10 +426,10 @@ namespace Components
 		Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).install()->quick();
 
 		// Intercept missing asset messages
-		if(!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
+		if (!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
 
 		// Log missing empty assets
-		Scheduler::OnFrame([] ()
+		Scheduler::OnFrame([]()
 		{
 			if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
 			{
@@ -442,7 +442,7 @@ namespace Components
 			}
 		});
 
-		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
+		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
 		{
 			if (Dvar::Var("r_noVoid").get<bool>() && type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void")
 			{

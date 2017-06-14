@@ -16,7 +16,7 @@ namespace Utils
 			va_start(ap, fmt);
 
 			const char* result;
-			if(Components::Loader::IsUninitializing()) result = globalProvider.get(fmt, ap);
+			if (Components::Loader::IsUninitializing()) result = globalProvider.get(fmt, ap);
 			else result = provider.get(fmt, ap);
 
 			va_end(ap);
@@ -149,7 +149,7 @@ namespace Utils
 
 		std::string FormatBandwidth(size_t bytes, int milliseconds)
 		{
-			static char* sizes[] = 
+			static char* sizes[] =
 			{
 				"B",
 				"KB",
@@ -173,7 +173,7 @@ namespace Utils
 
 #ifdef ENABLE_BASE64
 		// Encodes a given string in Base64
-		std::string EncodeBase64(const char* input, const unsigned long inputSize) 
+		std::string EncodeBase64(const char* input, const unsigned long inputSize)
 		{
 			unsigned long outlen = long(inputSize + (inputSize / 3.0) + 16);
 			unsigned char* outbuf = new unsigned char[outlen]; //Reserve output memory
@@ -184,7 +184,7 @@ namespace Utils
 		}
 
 		// Encodes a given string in Base64
-		std::string EncodeBase64(const std::string& input) 
+		std::string EncodeBase64(const std::string& input)
 		{
 			return EncodeBase64(input.data(), input.size());
 		}
@@ -192,7 +192,7 @@ namespace Utils
 
 #ifdef ENABLE_BASE128
 		// Encodes a given string in Base128
-		std::string EncodeBase128(const std::string& input) 
+		std::string EncodeBase128(const std::string& input)
 		{
 			base128 encoder;
 
@@ -209,7 +209,7 @@ namespace Utils
 #endif
 
 		// Generates a UUID and returns the string representation of it
-		std::string GenerateUUIDString() 
+		std::string GenerateUUIDString()
 		{
 			// Generate UUID data
 			UUID uuid;

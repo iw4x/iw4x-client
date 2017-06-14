@@ -234,17 +234,17 @@ namespace Components
 	{
 		const char* dir = Dvar::Var("fs_basepath").get<const char*>();
 
-		std::vector<std::string> paths; 
+		std::vector<std::string> paths;
 		std::string modDir = Dvar::Var("fs_game").get<std::string>();
 		if ((file == "mod"s || file == "mod.ff"s) && !modDir.empty())
 		{
 			paths.push_back(Utils::String::VA("%s\\", modDir.data()));
 		}
 
-		if(Utils::String::StartsWith(file, "mp_"))
+		if (Utils::String::StartsWith(file, "mp_"))
 		{
 			std::string zone = file;
-			if(Utils::String::EndsWith(zone, ".ff"))
+			if (Utils::String::EndsWith(zone, ".ff"))
 			{
 				Utils::String::Replace(zone, ".ff", "");
 			}
@@ -256,14 +256,14 @@ namespace Components
 				Utils::String::Replace(zone, "_load", "");
 			}
 
-			if(Utils::IO::FileExists(Utils::String::VA("usermaps\\%s\\%s.ff", zone.data(), filename.data())))
+			if (Utils::IO::FileExists(Utils::String::VA("usermaps\\%s\\%s.ff", zone.data(), filename.data())))
 			{
 				return Utils::String::VA("usermaps\\%s\\", zone.data());
 			}
 		}
 
 		Utils::Merge(&paths, FastFiles::ZonePaths);
-		
+
 		for (auto &path : paths)
 		{
 			std::string absoluteFile = Utils::String::VA("%s\\%s%s", dir, path.data(), file);
@@ -458,9 +458,9 @@ namespace Components
 	{
 		FastFiles::ReadXFile(buffer, size);
 
-		if(FastFiles::IsIW4xZone)
+		if (FastFiles::IsIW4xZone)
 		{
-			for(int i = 0; i < size; ++i)
+			for (int i = 0; i < size; ++i)
 			{
 				buffer[i] ^= FastFiles::LastByteRead;
 				Utils::RotLeft(buffer[i], 4);
@@ -564,14 +564,14 @@ namespace Components
 		FastFiles::AddZonePath("zone\\patch\\");
 		FastFiles::AddZonePath("zone\\dlc\\");
 
-		Scheduler::OnFrame([] ()
+		Scheduler::OnFrame([]()
 		{
 			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").get<bool>()) return;
 
 			Game::Font* font = Game::R_RegisterFont("fonts/consoleFont", 0);
 			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
 
-			std::uint32_t FFTotalSize =		*reinterpret_cast<std::uint32_t*>(0x10AA5D8);
+			std::uint32_t FFTotalSize = *reinterpret_cast<std::uint32_t*>(0x10AA5D8);
 			std::uint32_t FFCurrentOffset = *reinterpret_cast<std::uint32_t*>(0x10AA608);
 
 			float fastfileLoadProgress = (float(FFCurrentOffset) / float(FFTotalSize)) * 100.0f;
@@ -587,7 +587,7 @@ namespace Components
 			Game::R_AddCmdDrawText(Utils::String::VA("Loading FastFile: %s [%0.1f%%]", FastFiles::Current().data(), fastfileLoadProgress), 0x7FFFFFFF, font, 5.0f, static_cast<float>(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 		}, true);
 
-		Command::Add("loadzone", [] (Command::Params* params)
+		Command::Add("loadzone", [](Command::Params* params)
 		{
 			if (params->length() < 2) return;
 

@@ -253,7 +253,7 @@ namespace Components
 	{
 		bool result = !File(execFilename).exists();
 
-		if(execFilename =="mp/stats_init.cfg"s)
+		if (execFilename == "mp/stats_init.cfg"s)
 		{
 			OutputDebugStringA("");
 		}

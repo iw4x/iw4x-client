@@ -46,7 +46,7 @@ namespace Assets
 		if (surf->verts0)
 		{
 			AssertSize(Game::GfxPackedVertex, 32);
-			
+
 			buffer->align(Utils::Stream::ALIGN_16);
 			buffer->saveArray(surf->verts0, surf->vertCount);
 			Utils::Stream::ClearPointer(&destSurf->verts0);

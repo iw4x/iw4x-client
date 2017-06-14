@@ -10,7 +10,7 @@ namespace Assets
 		{
 			builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->window.background);
 		}
-		
+
 		// mark items
 		for (int i = 0; i < asset->itemCount; ++i)
 		{

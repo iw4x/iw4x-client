@@ -375,7 +375,7 @@ namespace Components
 		// Install packet deploy hook
 		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);
 
-		Network::Handle("resolveAddress", [] (Address address, std::string data)
+		Network::Handle("resolveAddress", [](Address address, std::string data)
 		{
 			Network::SendRaw(address, address.getString());
 		});

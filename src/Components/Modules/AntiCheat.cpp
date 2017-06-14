@@ -45,7 +45,7 @@ namespace Components
 		static std::thread triggerThread;
 		if (!triggerThread.joinable())
 		{
-			triggerThread = std::thread([] ()
+			triggerThread = std::thread([]()
 			{
 				std::this_thread::sleep_for(43s);
 				Utils::Hook::Set<BYTE>(0x41BA2C, 0xEB);
@@ -63,7 +63,7 @@ namespace Components
 		if (!hModuleSelf || !hModuleTarget || !hModuleProcess || (hModuleTarget != hModuleSelf && hModuleTarget != hModuleProcess))
 		{
 #ifdef DEBUG_DETECTIONS
-			char buffer[MAX_PATH] = {0};
+			char buffer[MAX_PATH] = { 0 };
 			GetModuleFileNameA(hModuleTarget, buffer, sizeof buffer);
 
 			Logger::Print(Utils::String::VA("AntiCheat: Callee assertion failed: %X %s", reinterpret_cast<uint32_t>(callee), buffer));
@@ -229,7 +229,7 @@ namespace Components
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::MEMORY_SCAN;
 	}
 
-	void AntiCheat::QuickCodeScanner_1()
+	void AntiCheat::QuickCodeScanner1()
 	{
 		static Utils::Time::Interval interval;
 		static std::optional<std::string> hashVal;
@@ -251,7 +251,7 @@ namespace Components
 		hashVal.emplace(hash);
 	}
 
-	void AntiCheat::QuickCodeScanner_2()
+	void AntiCheat::QuickCodeScanner2()
 	{
 		static Utils::Time::Interval interval;
 		static std::optional<std::string> hashVal;
@@ -273,7 +273,7 @@ namespace Components
 	HANDLE AntiCheat::LoadLibary(std::wstring library, HANDLE file, DWORD flags, void* callee)
 	{
 		HMODULE module;
-		char buffer[MAX_PATH] = {0};
+		char buffer[MAX_PATH] = { 0 };
 
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &module);
 		GetModuleFileNameA(module, buffer, sizeof buffer);
@@ -319,7 +319,7 @@ namespace Components
 
 	void AntiCheat::InstallLibHook()
 	{
-		for(int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
+		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
 		{
 			AntiCheat::LoadLibHook[i].install();
 		}
@@ -430,7 +430,7 @@ namespace Components
 		DWORD self = DWORD(hModuleSelf), main = DWORD(hModuleMain), address = DWORD(addr);
 
 		// If the address that should be changed is within our module or the main binary, then we need to check if we are changing it or someone else
-		if(Utils::HasIntercection(self, selfSize, address, len) || Utils::HasIntercection(main, mainSize, address, len))
+		if (Utils::HasIntercection(self, selfSize, address, len) || Utils::HasIntercection(main, mainSize, address, len))
 		{
 			if (!hModuleSelf || !hModuleTarget || (hModuleTarget != hModuleSelf))
 			{
@@ -610,7 +610,7 @@ namespace Components
 	void AntiCheat::AcquireDebugPriviledge(HANDLE hToken)
 	{
 		LUID luid;
-		TOKEN_PRIVILEGES tp = {0};
+		TOKEN_PRIVILEGES tp = { 0 };
 		DWORD cb = sizeof(TOKEN_PRIVILEGES);
 		if (!LookupPrivilegeValueW(nullptr, SE_DEBUG_NAME, &luid)) return;
 
@@ -627,7 +627,7 @@ namespace Components
 		AntiCheat::VirtualProtectHook[0].initialize(vp, AntiCheat::VirtualProtectStub, HOOK_JUMP)->install(true, true);
 	}
 
-	NTSTATUS NTAPI AntiCheat::NtCreateThreadExStub(PHANDLE phThread,ACCESS_MASK desiredAccess,LPVOID objectAttributes,HANDLE processHandle,LPTHREAD_START_ROUTINE startAddress,LPVOID parameter,BOOL createSuspended,DWORD stackZeroBits,DWORD sizeOfStackCommit,DWORD sizeOfStackReserve,LPVOID bytesBuffer)
+	NTSTATUS NTAPI AntiCheat::NtCreateThreadExStub(PHANDLE phThread, ACCESS_MASK desiredAccess, LPVOID objectAttributes, HANDLE processHandle, LPTHREAD_START_ROUTINE startAddress, LPVOID parameter, BOOL createSuspended, DWORD stackZeroBits, DWORD sizeOfStackCommit, DWORD sizeOfStackReserve, LPVOID bytesBuffer)
 	{
 		HANDLE hThread = nullptr;
 		std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
@@ -675,7 +675,7 @@ namespace Components
 			}
 		}
 
-		while(true)
+		while (true)
 		{
 			std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
 
@@ -752,7 +752,7 @@ namespace Components
 		{
 			static bool first = true;
 			if (first) first = false; // We can't control the main thread, as it's spawned externally
-			else 
+			else
 			{
 				std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
 
@@ -819,7 +819,7 @@ namespace Components
 
 		// Prevent external processes from accessing our memory
 		AntiCheat::ProtectProcess();
-		Renderer::OnDeviceRecoveryEnd([] ()
+		Renderer::OnDeviceRecoveryEnd([]()
 		{
 			AntiCheat::ProtectProcess();
 		});

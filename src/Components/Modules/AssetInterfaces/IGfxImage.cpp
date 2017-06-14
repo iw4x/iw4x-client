@@ -52,7 +52,7 @@ namespace Assets
 			image->loaded = true;
 			image->loadDef->flags = 0;
 
-			if(image->loadDef->resourceSize != image->dataLen1)
+			if (image->loadDef->resourceSize != image->dataLen1)
 			{
 				Components::Logger::Error("Resource size doesn't match the data length (%s)!\n", name.data());
 			}
@@ -66,7 +66,7 @@ namespace Assets
 
 			header->image = image;
 		}
-		else if(name[0] != '*')
+		else if (name[0] != '*')
 		{
 			char nameBuffer[MAX_PATH] = { 0 };
 			Components::Materials::FormatImagePath(nameBuffer, sizeof(nameBuffer), 0, 0, name.data());
@@ -109,40 +109,40 @@ namespace Assets
 
 			switch (iwiHeader->format)
 			{
-				case Game::IWI_COMPRESSION::IWI_ARGB:
-				{
-					image->loadDef->format = 21;
-					break;
-				}
+			case Game::IWI_COMPRESSION::IWI_ARGB:
+			{
+				image->loadDef->format = 21;
+				break;
+			}
 
-				case Game::IWI_COMPRESSION::IWI_RGB8:
-				{
-					image->loadDef->format = 20;
-					break;
-				}
+			case Game::IWI_COMPRESSION::IWI_RGB8:
+			{
+				image->loadDef->format = 20;
+				break;
+			}
 
-				case Game::IWI_COMPRESSION::IWI_DXT1:
-				{
-					image->loadDef->format = 0x31545844;
-					break;
-				}
+			case Game::IWI_COMPRESSION::IWI_DXT1:
+			{
+				image->loadDef->format = 0x31545844;
+				break;
+			}
 
-				case Game::IWI_COMPRESSION::IWI_DXT3:
-				{
-					image->loadDef->format = 0x33545844;
-					break;
-				}
+			case Game::IWI_COMPRESSION::IWI_DXT3:
+			{
+				image->loadDef->format = 0x33545844;
+				break;
+			}
 
-				case Game::IWI_COMPRESSION::IWI_DXT5:
-				{
-					image->loadDef->format = 0x35545844;
-					break;
-				}
+			case Game::IWI_COMPRESSION::IWI_DXT5:
+			{
+				image->loadDef->format = 0x35545844;
+				break;
+			}
 
-				default:
-				{
-					break;
-				}
+			default:
+			{
+				break;
+			}
 			}
 
 			header->image = image;

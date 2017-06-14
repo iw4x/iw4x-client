@@ -75,7 +75,7 @@ namespace Components
 			wprintw(Console::InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (mapname.size() ? mapname.data() : "none"));
 			wnoutrefresh(Console::InfoWindow);
 		}
-		else if(IsWindow(Console::GetWindow()) != FALSE)
+		else if (IsWindow(Console::GetWindow()) != FALSE)
 		{
 			SetWindowTextA(Console::GetWindow(), Utils::String::VA("IW4x(" VERSION ") : %s", hostname.data()));
 		}
@@ -603,7 +603,7 @@ namespace Components
 			// Redirect input (]command)
 			Utils::Hook(0x47025A, 0x4F5770, HOOK_CALL).install()->quick();
 
-			Utils::Hook(0x60BB68, [] ()
+			Utils::Hook(0x60BB68, []()
 			{
 				Console::ShowAsyncConsole();
 			}, HOOK_CALL).install()->quick();
@@ -621,7 +621,7 @@ namespace Components
 				}
 			}, HOOK_CALL).install()->quick();
 
-			Scheduler::OnFrame([] ()
+			Scheduler::OnFrame([]()
 			{
 				Console::LastRefresh = Game::Sys_Milliseconds();
 			});

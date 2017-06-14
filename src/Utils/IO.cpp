@@ -69,7 +69,7 @@ namespace Utils
 			{
 				std::ifstream stream(file, std::ios::binary);
 
-				if(stream.good())
+				if (stream.good())
 				{
 					stream.seekg(0, std::ios::end);
 					return static_cast<size_t>(stream.tellg());

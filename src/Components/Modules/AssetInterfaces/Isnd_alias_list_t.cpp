@@ -78,7 +78,7 @@ namespace Assets
 #define CHECK(x, type) (x.is_##type##() || x.is_null())
 
 		// TODO: actually support all of those properties
-		if (CHECK(type, string) && CHECK(subtitle, string) && CHECK(secondaryAliasName, string) && CHECK(chainAliasName, string) && 
+		if (CHECK(type, string) && CHECK(subtitle, string) && CHECK(secondaryAliasName, string) && CHECK(chainAliasName, string) &&
 			CHECK(soundFile, string) && CHECK(sequence, number) && CHECK(volMin, number) && CHECK(volMax, number) && CHECK(pitchMin, number) &&
 			CHECK(pitchMax, number) && CHECK(distMin, number) && CHECK(distMax, number) && CHECK(flags, number) && CHECK(slavePercentage, number) &&
 			CHECK(probability, number) && CHECK(lfePercentage, number) && CHECK(centerPercentage, number) && CHECK(startDelay, number) &&
@@ -117,7 +117,7 @@ namespace Assets
 			alias->envelopMin = float(envelopMin.number_value());
 			alias->envelopMax = float(envelopMax.number_value());
 			alias->envelopPercentage = float(envelopPercentage.number_value());
-			
+
 			if (volumeFalloffCurve.is_string())
 			{
 				alias->volumeFalloffCurve = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, volumeFalloffCurve.string_value(), builder).sndCurve;
@@ -148,7 +148,7 @@ namespace Assets
 		}
 
 #undef CHECK
-		
+
 	}
 
 	void Isnd_alias_list_t::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
