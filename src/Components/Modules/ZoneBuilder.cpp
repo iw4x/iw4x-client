@@ -506,7 +506,7 @@ namespace Components
 	// Add branding asset
 	void ZoneBuilder::Zone::addBranding()
 	{
-		char* data = "FastFile built using IW4x ZoneTool!";
+		char* data = "FastFile built using the IW4x ZoneBuilder!";
 		this->branding = { this->zoneName.data(), static_cast<int>(strlen(data)), 0, data };
 
 		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
