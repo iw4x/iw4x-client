@@ -105,7 +105,7 @@ def doBuild(cfg) {
 	useShippedPremake {
 		def outputDir = pwd()
 		def msbuild = tool "Microsoft.NET MSBuild 14.0"
-		bat "premake5 vs2015 ${cfg.PremakeArgs}"
+		bat "premake5 vs2017 ${cfg.PremakeArgs}"
 		bat "\"${msbuild}\" build\\iw4x.sln \"/p:OutDir=$outputDir\\\\\" \"/p:Configuration=${cfg.MSBuildConfiguration}\""
 	}
 
