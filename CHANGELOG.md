@@ -9,9 +9,11 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Added
 
 - Show friend avatars when they play IW4x (request)
+- Implement cursor with hourglass while loading fastfiles
+- Add toast if an update is available when the game starts
+- Show bots in parenthesis after the number of players in the serverlist(request)
 
 ### Changed
-
 
 
 ### Fixed
