@@ -15,7 +15,7 @@
 
 ## How to compile
 
-- Run `premake5 vs2015` or use the delivered `generate.bat`.
+- Run `premake5 vs2017` or use the delivered `generate.bat`.
 - Build via solution file in `build\iw4x.sln`. (You can use the `build.bat` script to do it quick and easy.)
 
 ## Premake arguments
