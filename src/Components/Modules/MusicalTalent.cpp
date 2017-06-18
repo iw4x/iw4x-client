@@ -17,9 +17,9 @@ namespace Components
 		{
 			Game::snd_alias_list_t* aliases = Game::DB_FindXAssetHeader(type, filename.data()).sound;
 
-			if (aliases)
+			if (aliases && aliases->count > 0 && aliases->head && aliases->head->soundFile)
 			{
-				if (aliases->head->soundFile->type == 2)
+				if (aliases->head->soundFile->type == Game::snd_alias_type_t::SAT_STREAMED)
 				{
 					aliases->head->soundFile->data.stream.name = MusicalTalent::SoundAliasList[Utils::String::ToLower(filename)];
 				}
