@@ -154,7 +154,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x5AC2CF, 0xEB); // CL_ParseGamestate
 		Utils::Hook::Set<BYTE>(0x5AC2C3, 0xEB); // CL_ParseGamestate
 
-		// AnonymousAddRequest
+												// AnonymousAddRequest
 		Utils::Hook::Set<BYTE>(0x5B5E18, 0xEB);
 		Utils::Hook::Set<BYTE>(0x5B5E64, 0xEB);
 		Utils::Hook::Nop(0x5B5E5C, 2);
@@ -217,7 +217,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4D6171, 0);
 		Utils::Hook::Nop(0x4077A1, 5); // PartyMigrate_Frame
 
-		// Patch playlist stuff for non-party behavior
+									   // Patch playlist stuff for non-party behavior
 		Utils::Hook::Set<Game::dvar_t**>(0x4A4093, &partyEnable);
 		Utils::Hook::Set<Game::dvar_t**>(0x4573F1, &partyEnable);
 		Utils::Hook::Set<Game::dvar_t**>(0x5B1A0C, &partyEnable);
@@ -370,6 +370,9 @@ namespace Components
 				info.set("matchtype", "0");
 			}
 
+			info.set("wwwDownload", (Dvar::Var("sv_wwwDownload").get<bool>() ? "1" : "0"));
+			info.set("wwwUrl", Dvar::Var("sv_wwwBaseUrl").get<std::string>());
+
 			Network::SendCommand(address, "infoResponse", "\\" + info.build());
 		});
 
@@ -392,6 +395,18 @@ namespace Components
 					unsigned int usermapHash = atoi(info.get("usermaphash").data());
 
 					std::string mod = Dvar::Var("fs_game").get<std::string>();
+
+					// set fast server stuff here so its updated when we go to download stuff
+					if (info.get("wwwDownload") == "1"s)
+					{
+						Dvar::Var("sv_wwwDownload").set(true);
+						Dvar::Var("sv_wwwBaseUrl").set(info.get("wwwUrl"));
+					}
+					else
+					{
+						Dvar::Var("sv_wwwDownload").set(false);
+						Dvar::Var("sv_wwwBaseUrl").set("");
+					}
 
 					if (info.get("challenge") != Party::Container.challenge)
 					{
