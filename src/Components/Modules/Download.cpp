@@ -38,8 +38,6 @@ namespace Components
 				Party::ConnectError("A password is required to connect to this server!");
 				return;
 			}
-
-			Download::CLDownload.isPrivate = needPassword;
 			Download::CLDownload.hashedPassword = Utils::Cryptography::SHA256::Compute(pass);
 		}
 
@@ -51,6 +49,7 @@ namespace Components
 		Download::CLDownload.lastTimeStamp = 0;
 		Download::CLDownload.downBytes = 0;
 		Download::CLDownload.timeStampBytes = 0;
+		Download::CLDownload.isPrivate = needPassword;
 		Download::CLDownload.target = Party::Target();
 		Download::CLDownload.thread = std::thread(Download::ModDownloader, &Download::CLDownload);
 	}
