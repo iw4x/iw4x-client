@@ -415,15 +415,19 @@ namespace Components
 					{
 						Party::ConnectError("Invalid map or gametype.");
 					}
+					else if (Party::Container.info.get("isPrivate") == "1"s && !Dvar::Var("password").get<std::string>().length())
+					{
+						Party::ConnectError("A password is required to join this server! Set it at the bottom of the serverlist.");
+					}
 					else if (isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
-						Download::InitiateMapDownload(info.get("mapname"));
+						Download::InitiateMapDownload(info.get("mapname"), info.get("isPrivate") == "1");
 					}
 					else if (!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
-						Download::InitiateClientDownload(info.get("fs_game"));
+						Download::InitiateClientDownload(info.get("fs_game"), info.get("isPrivate") == "1"s);
 					}
 					else if (!Dvar::Var("fs_game").get<std::string>().empty() && info.get("fs_game").empty())
 					{

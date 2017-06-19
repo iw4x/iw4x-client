@@ -11,8 +11,8 @@ namespace Components
 
 		void preDestroy() override;
 
-		static void InitiateClientDownload(std::string mod, bool map = false);
-		static void InitiateMapDownload(std::string map);
+		static void InitiateClientDownload(std::string mod, bool needPassword, bool map = false);
+		static void InitiateMapDownload(std::string map, bool needPassword);
 
 	private:
 		class ClientDownload
@@ -25,8 +25,10 @@ namespace Components
 			bool valid;
 			bool terminateThread;
 			bool isMap;
+			bool isPrivate;
 			mg_mgr mgr;
 			Network::Address target;
+			std::string hashedPassword;
 			std::string mod;
 			std::thread thread;
 
@@ -208,6 +210,8 @@ namespace Components
 		static std::vector<std::shared_ptr<ScriptDownload>> ScriptDownloads;
 		static std::thread ServerThread;
 		static bool Terminate;
+
+		static bool VerifyPassword(mg_connection *nc, http_message* message);
 
 		static void EventHandler(mg_connection *nc, int ev, void *ev_data);
 		static void ListHandler(mg_connection *nc, int ev, void *ev_data);
