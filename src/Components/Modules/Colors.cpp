@@ -86,6 +86,20 @@ namespace Components
 		return std::string(buffer);
 	}
 
+	void Colors::UserInfoCopy(char* buffer, const char* name, size_t size)
+	{
+		Utils::Memory::Allocator allocator;
+
+		if (!Dvar::Var("sv_allowColoredNames").get<bool>())
+		{
+			Colors::Strip(name, buffer, size);
+		}
+		else
+		{
+			strncpy_s(buffer, size, name, size);
+		}
+	}
+
 	__declspec(naked) void Colors::ClientUserinfoChanged()
 	{
 		__asm
@@ -97,7 +111,7 @@ namespace Components
 			push ecx // name
 			push edx // buffer
 
-			call strncpy
+			call Colors::UserInfoCopy
 
 			add esp, 0Ch
 			retn
@@ -227,6 +241,7 @@ namespace Components
 		// Register dvar
 		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare² color code style.");
 		Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
+		Dvar::Register<bool>("sv_allowColoredNames", true, Game::dvar_flag::DVAR_FLAG_NONE, "Allow colored names on the server");
 
 		// Add our colors
 		Colors::Add(0, 0, 0);       // 0  - Black
