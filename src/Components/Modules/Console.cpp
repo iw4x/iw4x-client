@@ -491,7 +491,7 @@ namespace Components
 
 	void Console::FreeNativeConsole()
 	{
-		if (!Monitor::IsEnabled() && !Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")))
+		if (!Monitor::IsEnabled() && !Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")) && !Loader::PerformingUnitTests())
 		{
 			FreeConsole();
 		}
@@ -643,7 +643,7 @@ namespace Components
 			Utils::Hook(0x43D570, Console::Error, HOOK_JUMP).install()->quick();
 			Utils::Hook(0x4859A5, Console::Input, HOOK_CALL).install()->quick();
 		}
-		else
+		else if(!Loader::PerformingUnitTests())
 		{
 			FreeConsole();
 		}

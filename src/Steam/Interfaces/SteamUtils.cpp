@@ -6,12 +6,12 @@ namespace Steam
 {
 	unsigned int Utils::GetSecondsSinceAppActive()
 	{
-		return 0;
+		return Game::Sys_Milliseconds() / 1000;
 	}
 
 	unsigned int Utils::GetSecondsSinceComputerActive()
 	{
-		return 0;
+		return timeGetTime();
 	}
 
 	int Utils::GetConnectedUniverse()
@@ -21,12 +21,10 @@ namespace Steam
 
 	unsigned int Utils::GetServerRealTime()
 	{
-		static ::std::optional<unsigned int> timeDelta;
-
+		static std::optional<unsigned int> timeDelta;
 		if(!timeDelta.has_value())
 		{
 			unsigned int steamTime = static_cast<unsigned int>(time(nullptr));
-
 			if(Steam::Proxy::SteamUtils)
 			{
 				steamTime = Steam::Proxy::SteamUtils->GetServerRealTime();
@@ -40,6 +38,11 @@ namespace Steam
 
 	const char* Utils::GetIPCountry()
 	{
+		if (Steam::Proxy::SteamUtils)
+		{
+			return Steam::Proxy::SteamUtils->GetIPCountry();
+		}
+
 		return "US";
 	}
 
@@ -60,6 +63,11 @@ namespace Steam
 
 	unsigned char Utils::GetCurrentBatteryPower()
 	{
+		if (Steam::Proxy::SteamUtils)
+		{
+			return Steam::Proxy::SteamUtils->GetCurrentBatteryPower();
+		}
+
 		return 255;
 	}
 

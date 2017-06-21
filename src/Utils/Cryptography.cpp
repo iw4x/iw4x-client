@@ -48,10 +48,8 @@ namespace Utils
 		{
 			ECC::Key key;
 
-			register_prng(&sprng_desc);
-
 			ltc_mp = ltm_desc;
-
+			register_prng(&sprng_desc);
 			ecc_make_key(nullptr, find_prng("sprng"), bits / 8, key.getKeyPtr());
 
 			return key;
@@ -64,10 +62,8 @@ namespace Utils
 			uint8_t buffer[512];
 			DWORD length = sizeof(buffer);
 
-			register_prng(&sprng_desc);
-
 			ltc_mp = ltm_desc;
-
+			register_prng(&sprng_desc);
 			ecc_sign_hash(reinterpret_cast<const uint8_t*>(message.data()), message.size(), buffer, &length, nullptr, find_prng("sprng"), key.getKeyPtr());
 
 			return std::string(reinterpret_cast<char*>(buffer), length);

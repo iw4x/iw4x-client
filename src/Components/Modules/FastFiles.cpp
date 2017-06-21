@@ -345,12 +345,10 @@ namespace Components
 			{
 				Logger::Error("The fastfile you are trying to load is outdated (%d, expected %d)", header[1], XFILE_VERSION_IW4X);
 			}
-#ifdef DEBUG
 			else if (header[1] > XFILE_VERSION_IW4X)
 			{
-				Logger::Error("You are loading a fastfile that is too new (%d, expected %d), how's that possible?", header[1], XFILE_VERSION_IW4X);
+				Logger::Error("You are loading a fastfile that is too new (%d, expected %d), update your game", header[1], XFILE_VERSION_IW4X);
 			}
-#endif
 
 			*reinterpret_cast<unsigned __int64*>(header) = XFILE_MAGIC_UNSIGNED;
 		}
