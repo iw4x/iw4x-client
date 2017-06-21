@@ -1034,17 +1034,6 @@ namespace Components
 			// Don't read stats
 			Utils::Hook(0x4875E1, 0x487717, HOOK_JUMP).install()->quick();
 
-			// Increase asset pools
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODELSURFS, 8192);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 14336);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PIXELSHADER, 0x4000);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, 0x2000);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXDECL, 0x400);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FONT, 32);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_RAWFILE, 2048);
-
 			// patch g_copyInfo because we're using so many more assets than originally intended
 			int newLimit = 0x2000;
 			int* g_copyInfo_new = Utils::Memory::GetAllocator()->allocateArray<int>(newLimit);

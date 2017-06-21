@@ -407,8 +407,57 @@ namespace Components
 		Utils::Hook::Call<void(int, const char*, const char*, const char*)>(0x4F8C70)(severity, format, type, name); // Print error
 	}
 
+	void AssetHandler::reallocateEntryPool()
+	{
+		AssertSize(Game::XAssetEntry, 16);
+
+		size_t size = (ZoneBuilder::IsEnabled() ? 1183968 : 789312);
+		Game::XAssetEntry* entryPool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
+
+		// Apply new size
+		Utils::Hook::Set<DWORD>(0x5BAEB0, size);
+
+		// Apply new pool
+		DWORD patches[] =
+		{
+			0x48E6F4,
+			0x4C67E4,
+			0x4C8584,
+			0x5BAEA8,
+			0x5BB0C4,
+			0x5BB0F5,
+			0x5BB1D4,
+			0x5BB235,
+			0x5BB278,
+			0x5BB34C,
+			0x5BB484,
+			0x5BB570,
+			0x5BB6B7,
+			0x5BB844,
+			0x5BB98D,
+			0x5BBA66,
+			0x5BBB8D,
+			0x5BBCB1,
+			0x5BBD9B,
+			0x5BBE4C,
+			0x5BBF14,
+			0x5BBF54,
+			0x5BBFB8
+		};
+
+		for (int i = 0; i < ARRAYSIZE(patches); ++i)
+		{
+			Utils::Hook::Set<Game::XAssetEntry*>(patches[i], entryPool);
+		}
+
+		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAE91, entryPool + 1);
+		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, entryPool + 1);
+	}
+
 	AssetHandler::AssetHandler()
 	{
+		this->reallocateEntryPool();
+
 		Dvar::Register<bool>("r_noVoid", false, Game::DVAR_FLAG_SAVED, "Disable void model (red fx)");
 
 		AssetHandler::ClearTemporaryAssets();
@@ -450,9 +499,31 @@ namespace Components
 			}
 		});
 
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP, 1);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, ZoneBuilder::IsEnabled() ? 14336 : 7168);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FX, 1200);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XANIMPARTS, 8192);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL, 5125);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PHYSPRESET, 128);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PIXELSHADER, ZoneBuilder::IsEnabled() ? 0x4000 : 10000);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, ZoneBuilder::IsEnabled() ? 0x2000 : 3072);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MATERIAL, 8192);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXDECL, ZoneBuilder::IsEnabled() ? 0x400 : 196);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, WEAPON_LIMIT);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMPACT_FX, 8);
+
 		// Register asset interfaces
 		if (ZoneBuilder::IsEnabled())
 		{
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODELSURFS, 8192);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FONT, 32);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_RAWFILE, 2048);
+
 			AssetHandler::RegisterInterface(new Assets::IFont_s());
 			AssetHandler::RegisterInterface(new Assets::IXModel());
 			AssetHandler::RegisterInterface(new Assets::IFxWorld());
