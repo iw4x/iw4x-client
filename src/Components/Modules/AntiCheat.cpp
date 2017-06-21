@@ -102,8 +102,8 @@ namespace Components
 #ifdef DEBUG_LOAD_LIBRARY
 				AntiCheat::LoadLibHook[0].initialize(loadLibA, LoadLibaryAStub, HOOK_JUMP);
 				AntiCheat::LoadLibHook[1].initialize(loadLibW, LoadLibaryWStub, HOOK_JUMP);
-				AntiCheat::LoadLibHook[2].initialize(loadLibExA, LoadLibaryAStub, HOOK_JUMP);
-				AntiCheat::LoadLibHook[3].initialize(loadLibExW, LoadLibaryWStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[2].initialize(loadLibExA, LoadLibaryExAStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[3].initialize(loadLibExW, LoadLibaryExWStub, HOOK_JUMP);
 #else
 				static uint8_t loadLibStub[] = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
 				static uint8_t loadLibExStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 }; // xor eax, eax; retn 0Ch
@@ -119,7 +119,7 @@ namespace Components
 		static uint8_t ldrLoadDll[] = { 0xB3, 0x9B, 0x8D, 0xB3, 0x90, 0x9E, 0x9B, 0xBB, 0x93, 0x93 }; // LdrLoadDll
 
 		HMODULE ntdll = Utils::GetNTDLL();
-		AntiCheat::LoadLibHook[4].initialize(GetProcAddress(ntdll, Utils::String::XOR(std::string(reinterpret_cast<char*>(ldrLoadDll), sizeof ldrLoadDll), -1).data()), ldrLoadDllStub, HOOK_JUMP);
+		//AntiCheat::LoadLibHook[4].initialize(GetProcAddress(ntdll, Utils::String::XOR(std::string(reinterpret_cast<char*>(ldrLoadDll), sizeof ldrLoadDll), -1).data()), ldrLoadDllStub, HOOK_JUMP);
 
 		// Patch LdrpLoadDll
 		Utils::Hook::Signature::Container container;
@@ -133,7 +133,7 @@ namespace Components
 
 		Utils::Hook::Signature signature(ntdll, Utils::GetModuleSize(ntdll));
 		signature.add(container);
-		signature.process();
+		//signature.process();
 	}
 
 	void AntiCheat::ReadIntegrityCheck()
