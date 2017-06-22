@@ -447,7 +447,7 @@ namespace Components
 							// Send playlist request
 							Party::Container.requestTime = Game::Sys_Milliseconds();
 							Party::Container.awaitingPlaylist = true;
-							Network::SendCommand(Party::Container.target, "getplaylist");
+							Network::SendCommand(Party::Container.target, "getplaylist", Dvar::Var("password").get<std::string>());
 
 							// This is not a safe method
 							// TODO: Fix actual error!
