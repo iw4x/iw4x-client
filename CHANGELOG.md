@@ -8,8 +8,8 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
-- Show friend avatars when they play IW4x (request)
-- Cod4 style fast download for usermaps
+- Show friend avatars when they play IW4x (request).
+- Add fast download option for custom mods/maps based on Call of Duty 4.
 - Display a toast when an update is available.
 - Use the hourglass cursor while loading assets (with the native cursor feature).
 - Show bots in parenthesis after the number of players in the serverlist (request).
@@ -20,9 +20,9 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
-- Fix lags and frame drops caused by server sorting
-- Fix demos on custom maps
-- Can no longer join a lobby with an incorrect password
+- Fix lags and frame drops caused by server sorting.
+- Fix demos on custom maps.
+- Can no longer join a lobby or server with an incorrect password.
 - Fix lags and frame drops caused by server sorting.
 - Fix demos on custom maps.
 
@@ -71,7 +71,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Set played with status.
 - Add support for 15 classes.
-- Add iw4x_onelog dvar.
+- Add `iw4x_onelog` dvar.
 - Add show server/playercount in server browser.
 
 ### Changed
@@ -231,7 +231,7 @@ This is the second public Alpha version.
     - Rust (mp_rust_long)
     - Shipment (mp_shipment/mp_shipment_long)
 
-- Add sv_motd dvar for server owners to set custom motd (will be visible in the loadscreen).
+- Add `sv_motd` Dvar for server owners to set custom motd (will be visible in the loadscreen).
 - Add Zonebuilder support for sounds and fx.
 - Add command setviewpos.
 - Add high-definition loadscreens.
@@ -240,7 +240,7 @@ This is the second public Alpha version.
 
 - Rename Arctic Wet Work map to it's official name (Freighter).
 - Complete redesign of the main menus.
-- Allow cl_maxpackets to be set up to 125.
+- Allow `cl_maxpackets` to be set up to 125.
 
 ### Fixed
 
