@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Added
 
 - Show friend avatars when they play IW4x (request)
+- Cod4 style fast download for usermaps
 
 ### Changed
 
@@ -18,6 +19,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Fix lags and frame drops caused by server sorting
 - Fix demos on custom maps
+- Can no longer join a lobby with an incorrect password
 
 ## [0.5.0] - 2017-06-04
 
