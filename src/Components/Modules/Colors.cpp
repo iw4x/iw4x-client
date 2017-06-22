@@ -208,12 +208,12 @@ namespace Components
 	{
 		__asm
 		{
-			push ebx
-			push [esp + 8h] // Index
+			pushad
+			push [esp + 24h] // Index
 			push esi        // Color ref
 			call Colors::LookupColor
 			add esp, 8h
-			pop ebx
+			popad
 			retn
 		}
 	}
