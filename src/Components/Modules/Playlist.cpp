@@ -114,7 +114,7 @@ namespace Components
 		}
 	}
 
-	void Playlist::PlaylistInvalidPassword(Network::Address address, std::string data)
+	void Playlist::PlaylistInvalidPassword(Network::Address /*address*/, std::string /*data*/)
 	{
 		Party::PlaylistError("Error: Invalid Password for Party.");
 	}

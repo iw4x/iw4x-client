@@ -641,7 +641,7 @@ namespace Components
 		}
 	}
 
-	void Download::InfoHandler(mg_connection* nc, int ev, void* ev_data)
+	void Download::InfoHandler(mg_connection* nc, int ev, void* /*ev_data*/)
 	{
 		// Only handle http requests
 		if (ev != MG_EV_HTTP_REQUEST) return;
