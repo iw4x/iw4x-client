@@ -154,7 +154,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x5AC2CF, 0xEB); // CL_ParseGamestate
 		Utils::Hook::Set<BYTE>(0x5AC2C3, 0xEB); // CL_ParseGamestate
 
-		// AnonymousAddRequest
+												// AnonymousAddRequest
 		Utils::Hook::Set<BYTE>(0x5B5E18, 0xEB);
 		Utils::Hook::Set<BYTE>(0x5B5E64, 0xEB);
 		Utils::Hook::Nop(0x5B5E5C, 2);
@@ -217,7 +217,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4D6171, 0);
 		Utils::Hook::Nop(0x4077A1, 5); // PartyMigrate_Frame
 
-		// Patch playlist stuff for non-party behavior
+									   // Patch playlist stuff for non-party behavior
 		Utils::Hook::Set<Game::dvar_t**>(0x4A4093, &partyEnable);
 		Utils::Hook::Set<Game::dvar_t**>(0x4573F1, &partyEnable);
 		Utils::Hook::Set<Game::dvar_t**>(0x5B1A0C, &partyEnable);
@@ -370,6 +370,9 @@ namespace Components
 				info.set("matchtype", "0");
 			}
 
+			info.set("wwwDownload", (Dvar::Var("sv_wwwDownload").get<bool>() ? "1" : "0"));
+			info.set("wwwUrl", Dvar::Var("sv_wwwBaseUrl").get<std::string>());
+
 			Network::SendCommand(address, "infoResponse", "\\" + info.build());
 		});
 
@@ -393,6 +396,18 @@ namespace Components
 
 					std::string mod = Dvar::Var("fs_game").get<std::string>();
 
+					// set fast server stuff here so its updated when we go to download stuff
+					if (info.get("wwwDownload") == "1"s)
+					{
+						Dvar::Var("sv_wwwDownload").set(true);
+						Dvar::Var("sv_wwwBaseUrl").set(info.get("wwwUrl"));
+					}
+					else
+					{
+						Dvar::Var("sv_wwwDownload").set(false);
+						Dvar::Var("sv_wwwBaseUrl").set("");
+					}
+
 					if (info.get("challenge") != Party::Container.challenge)
 					{
 						Party::ConnectError("Invalid join response: Challenge mismatch.");
@@ -415,15 +430,19 @@ namespace Components
 					{
 						Party::ConnectError("Invalid map or gametype.");
 					}
+					else if (Party::Container.info.get("isPrivate") == "1"s && !Dvar::Var("password").get<std::string>().length())
+					{
+						Party::ConnectError("A password is required to join this server! Set it at the bottom of the serverlist.");
+					}
 					else if (isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
-						Download::InitiateMapDownload(info.get("mapname"));
+						Download::InitiateMapDownload(info.get("mapname"), info.get("isPrivate") == "1");
 					}
 					else if (!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
-						Download::InitiateClientDownload(info.get("fs_game"));
+						Download::InitiateClientDownload(info.get("fs_game"), info.get("isPrivate") == "1"s);
 					}
 					else if (!Dvar::Var("fs_game").get<std::string>().empty() && info.get("fs_game").empty())
 					{

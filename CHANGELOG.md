@@ -10,16 +10,21 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Show friend avatars when they play IW4x (request)
 - Cod4 style fast download for usermaps
+- Display a toast when an update is available.
+- Use the hourglass cursor while loading assets (with the native cursor feature).
+- Show bots in parenthesis after the number of players in the serverlist (request).
 
 ### Changed
 
-
+- Show friend avatars when they play IW4x (request).
 
 ### Fixed
 
 - Fix lags and frame drops caused by server sorting
 - Fix demos on custom maps
 - Can no longer join a lobby with an incorrect password
+- Fix lags and frame drops caused by server sorting.
+- Fix demos on custom maps.
 
 ## [0.5.0] - 2017-06-04
 
