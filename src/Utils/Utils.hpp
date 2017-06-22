@@ -68,16 +68,23 @@ namespace Utils
 	public:
 		Signal()
 		{
+			std::lock_guard<std::recursive_mutex> _(this->mutex);
+
 			this->slots.clear();
 		}
 
 		Signal(Signal& obj) : Signal()
 		{
+			std::lock_guard<std::recursive_mutex> _(this->mutex);
+			std::lock_guard<std::recursive_mutex> __(obj.mutex);
+
 			Utils::Merge(&this->slots, obj.getSlots());
 		}
 
 		void connect(Slot<T> slot)
 		{
+			std::lock_guard<std::recursive_mutex> _(this->mutex);
+
 			if (slot)
 			{
 				this->slots.push_back(slot);
@@ -86,6 +93,8 @@ namespace Utils
 
 		void clear()
 		{
+			std::lock_guard<std::recursive_mutex> _(this->mutex);
+
 			this->slots.clear();
 		}
 
@@ -97,6 +106,8 @@ namespace Utils
 		template <class ...Args>
 		void operator()(Args&&... args) const
 		{
+			std::lock_guard<std::recursive_mutex> _(this->mutex);
+
 			std::vector<Slot<T>> copiedSlots;
 			Utils::Merge(&copiedSlots, this->slots);
 
@@ -110,6 +121,7 @@ namespace Utils
 		}
 
 	private:
+		mutable std::recursive_mutex mutex;
 		std::vector<Slot<T>> slots;
 	};
 }

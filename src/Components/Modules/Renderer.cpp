@@ -3,6 +3,7 @@
 namespace Components
 {
 	Utils::Signal<Renderer::BackendCallback> Renderer::BackendFrameSignal;
+	Utils::Signal<Renderer::BackendCallback> Renderer::SingleBackendFrameSignal;
 
 	Utils::Signal<Scheduler::Callback> Renderer::EndRecoverDeviceSignal;
 	Utils::Signal<Scheduler::Callback> Renderer::BeginRecoverDeviceSignal;
@@ -41,9 +42,20 @@ namespace Components
 		if (device)
 		{
 			device->AddRef();
+
 			Renderer::BackendFrameSignal(device);
+
+			Utils::Signal<Renderer::BackendCallback> copy(Renderer::SingleBackendFrameSignal);
+			Renderer::SingleBackendFrameSignal.clear();
+			copy(device);
+
 			device->Release();
 		}
+	}
+
+	void Renderer::OnNextBackendFrame(Utils::Slot<Renderer::BackendCallback> callback)
+	{
+		Renderer::SingleBackendFrameSignal.connect(callback);
 	}
 
 	void Renderer::OnBackendFrame(Utils::Slot<Renderer::BackendCallback> callback)
@@ -63,12 +75,12 @@ namespace Components
 
 	int Renderer::Width()
 	{
-		return Utils::Hook::Get<int>(0x66E1C68);
+		return reinterpret_cast<LPPOINT>(0x66E1C68)->x;
 	}
 
 	int Renderer::Height()
 	{
-		return Utils::Hook::Get<int>(0x66E1C6C);
+		return reinterpret_cast<LPPOINT>(0x66E1C68)->y;
 	}
 
 	void Renderer::PreVidRestart()
@@ -155,6 +167,7 @@ namespace Components
 	Renderer::~Renderer()
 	{
 		Renderer::BackendFrameSignal.clear();
+		Renderer::SingleBackendFrameSignal.clear();
 
 		Renderer::EndRecoverDeviceSignal.clear();
 		Renderer::BeginRecoverDeviceSignal.clear();

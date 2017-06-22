@@ -14,6 +14,7 @@ namespace Components
 		static int Height();
 
 		static void OnBackendFrame(Utils::Slot<BackendCallback> callback);
+		static void OnNextBackendFrame(Utils::Slot<BackendCallback> callback);
 		static void OnDeviceRecoveryEnd(Utils::Slot<Scheduler::Callback> callback);
 		static void OnDeviceRecoveryBegin(Utils::Slot<Scheduler::Callback> callback);
 
@@ -32,5 +33,6 @@ namespace Components
 		static Utils::Signal<Scheduler::Callback> BeginRecoverDeviceSignal;
 
 		static Utils::Signal<BackendCallback> BackendFrameSignal;
+		static Utils::Signal<BackendCallback> SingleBackendFrameSignal;
 	};
 }
