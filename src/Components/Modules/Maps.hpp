@@ -29,7 +29,7 @@ namespace Components
 			{
 				bool wasValid = this->isValid();
 				this->mapname.clear();
-				if(wasValid) Game::UI_UpdateArenas();
+				if (wasValid) Game::UI_UpdateArenas();
 			}
 
 			void loadIwd();
@@ -78,7 +78,6 @@ namespace Components
 		static bool SPMap;
 		static UserMapContainer UserMap;
 		static std::vector<DLC> DlcPacks;
-		static std::vector<Game::XAssetEntry> EntryPool;
 
 		static std::vector<std::pair<std::string, std::string>> DependencyList;
 		static std::vector<std::string> CurrentDependencies;
@@ -123,7 +122,5 @@ namespace Components
 		static Game::dvar_t* GetSpecularDvar();
 		static void SetSpecularStub1();
 		static void SetSpecularStub2();
-
-		void reallocateEntryPool();
 	};
 }

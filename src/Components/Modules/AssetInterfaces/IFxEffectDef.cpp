@@ -255,7 +255,7 @@ namespace Assets
 						{
 							// TODO: Allow loading assets from raw!
 							if (Game::s_elemFields[i].handler(&session, element)) break;
-							Components::Logger::Error("Failed to parse element %s!\n", newValue);
+							Components::Logger::Error("Failed to parse element %s!\n", newValue.data());
 						}
 					}
 
@@ -282,45 +282,45 @@ namespace Assets
 	{
 		switch (elemType)
 		{
-			case 7:
+		case 7:
+		{
+			if (visuals->xmodel)
 			{
-				if (visuals->xmodel)
-				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel);
-				}
-
-				break;
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel);
 			}
 
-			case 8:
-			case 9:
-				break;
+			break;
+		}
 
-			case 0xA:
+		case 8:
+		case 9:
+			break;
+
+		case 0xA:
+		{
+			builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName, false);
+			break;
+		}
+
+		case 0xC:
+		{
+			if (visuals->effectDef.handle)
 			{
-				builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName, false);
-				break;
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, visuals->effectDef.handle, false);
 			}
 
-			case 0xC:
-			{
-				if (visuals->effectDef.handle)
-				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, visuals->effectDef.handle, false);
-				}
+			break;
+		}
 
-				break;
+		default:
+		{
+			if (visuals->material)
+			{
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material);
 			}
 
-			default:
-			{
-				if (visuals->material)
-				{
-					builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material);
-				}
-
-				break;
-			}
+			break;
+		}
 		}
 	}
 
@@ -390,51 +390,51 @@ namespace Assets
 
 		switch (elemType)
 		{
-			case 7:
+		case 7:
+		{
+			if (visuals->xmodel)
 			{
-				if (visuals->xmodel)
-				{
-					destVisuals->xmodel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel).model;
-				}
-
-				break;
+				destVisuals->xmodel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel).model;
 			}
 
-			case 8:
-			case 9:
-				break;
+			break;
+		}
 
-			case 0xA:
+		case 8:
+		case 9:
+			break;
+
+		case 0xA:
+		{
+			if (visuals->soundName)
 			{
-				if (visuals->soundName)
-				{
-					buffer->saveString(visuals->soundName);
-					Utils::Stream::ClearPointer(&destVisuals->soundName);
-				}
-
-				break;
+				buffer->saveString(visuals->soundName);
+				Utils::Stream::ClearPointer(&destVisuals->soundName);
 			}
 
-			case 0xC:
-			{
-				if (visuals->effectDef.handle)
-				{
-					buffer->saveString(visuals->effectDef.handle->name);
-					Utils::Stream::ClearPointer(&destVisuals->effectDef.handle);
-				}
+			break;
+		}
 
-				break;
+		case 0xC:
+		{
+			if (visuals->effectDef.handle)
+			{
+				buffer->saveString(visuals->effectDef.handle->name);
+				Utils::Stream::ClearPointer(&destVisuals->effectDef.handle);
 			}
 
-			default:
-			{
-				if (visuals->material)
-				{
-					destVisuals->material = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material).material;
-				}
+			break;
+		}
 
-				break;
+		default:
+		{
+			if (visuals->material)
+			{
+				destVisuals->material = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, visuals->material).material;
 			}
+
+			break;
+		}
 		}
 	}
 
@@ -516,7 +516,7 @@ namespace Assets
 							Utils::Stream::ClearPointer(&destElemDef->visuals.markArray);
 						}
 					}
-					else if(elemDef->visualCount > 1)
+					else if (elemDef->visualCount > 1)
 					{
 						if (elemDef->visuals.array)
 						{

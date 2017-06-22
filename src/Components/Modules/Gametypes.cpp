@@ -32,7 +32,7 @@ namespace Components
 	{
 		std::vector<std::string> gametypes;
 
-		auto pushGametype = [&] (std::string gametype)
+		auto pushGametype = [&](std::string gametype)
 		{
 			auto pos = gametype.find_last_of("/\\");
 			if (pos != std::string::npos)
@@ -58,7 +58,7 @@ namespace Components
 		std::vector<std::string> rawGametypes = FileSystem::GetFileList("maps/mp/gametypes/", "txt");
 
 		// Get the gametypes we can find in the database
-		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_RAWFILE, [] (Game::XAssetHeader header, void* data)
+		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_RAWFILE, [](Game::XAssetHeader header, void* data)
 		{
 			std::string name = header.rawfile->name;
 			std::vector<std::string>* rawGametypes = reinterpret_cast<std::vector<std::string>*>(data);
@@ -102,7 +102,7 @@ namespace Components
 		// This is placed here in case the anticheat has been disabled!
 		// Make sure this is called after every onther anticheat check!
 #if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
-		Utils::Hook(0x5ACBA3, [] () // Somewhere in the renderer, past other renderer hooks!
+		Utils::Hook(0x5ACBA3, []() // Somewhere in the renderer, past other renderer hooks!
 		{
 			AntiCheat::FlagIntegrityCheck();
 			return Utils::Hook::Call<void()>(0x50AB20)();

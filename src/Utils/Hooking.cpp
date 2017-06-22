@@ -185,7 +185,7 @@ namespace Utils
 
 		this->installed = false;
 
-		if(unprotect) VirtualProtect(this->place, sizeof(this->buffer), PAGE_EXECUTE_READWRITE, &this->protection);
+		if (unprotect) VirtualProtect(this->place, sizeof(this->buffer), PAGE_EXECUTE_READWRITE, &this->protection);
 
 		std::memcpy(this->place, this->buffer, sizeof(this->buffer));
 

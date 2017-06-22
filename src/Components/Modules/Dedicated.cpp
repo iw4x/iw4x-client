@@ -8,14 +8,14 @@ namespace Components
 
 	bool Dedicated::IsEnabled()
 	{
-		static Utils::Value<bool> flag;
+		static std::optional<bool> flag;
 
-		if (!flag.isValid())
+		if (!flag.has_value())
 		{
-			flag.set(Flags::HasFlag("dedicated"));
+			flag.emplace(Flags::HasFlag("dedicated"));
 		}
 
-		return flag.get();
+		return flag.value();
 	}
 
 	void Dedicated::InitDedicatedServer()
@@ -503,7 +503,7 @@ namespace Components
 		}
 		else
 		{
-			for(int i = 0; i < ARRAYSIZE(Dedicated::PlayerGuids); ++i)
+			for (int i = 0; i < ARRAYSIZE(Dedicated::PlayerGuids); ++i)
 			{
 				Dedicated::PlayerGuids[i][0].bits = 0;
 				Dedicated::PlayerGuids[i][1].bits = 0;
@@ -529,11 +529,11 @@ namespace Components
 
 		Scheduler::OnFrame([]()
 		{
-			if(Dvar::Var("sv_running").get<bool>())
+			if (Dvar::Var("sv_running").get<bool>())
 			{
 				static Utils::Time::Interval interval;
 
-				if(interval.elapsed(15s))
+				if (interval.elapsed(15s))
 				{
 					interval.update();
 					Dedicated::TransmitGuids();

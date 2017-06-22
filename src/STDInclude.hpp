@@ -5,6 +5,7 @@
 
 #ifndef RC_INVOKED
 
+#define _HAS_CXX17 1
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 
@@ -33,12 +34,12 @@
 #include <regex>
 #include <thread>
 #include <future>
-#include <queue>
 #include <unordered_map>
 #include <queue>
 
 // Experimental C++17 features
 #include <filesystem>
+#include <optional>
 
 #pragma warning(pop)
 

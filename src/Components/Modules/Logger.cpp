@@ -257,9 +257,9 @@ namespace Components
 			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).install()->quick();
 		}
 
-		Dvar::OnInit([] ()
+		Dvar::OnInit([]()
 		{
-			Command::AddSV("log_add", [] (Command::Params* params)
+			Command::AddSV("log_add", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
 
@@ -271,7 +271,7 @@ namespace Components
 				}
 			});
 
-			Command::AddSV("log_del", [] (Command::Params* params)
+			Command::AddSV("log_del", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
 
@@ -299,7 +299,7 @@ namespace Components
 				}
 			});
 
-			Command::AddSV("log_list", [] (Command::Params*)
+			Command::AddSV("log_list", [](Command::Params*)
 			{
 				Logger::Print("# ID: Address\n");
 				Logger::Print("-------------\n");
@@ -310,7 +310,7 @@ namespace Components
 				}
 			});
 
-			Command::AddSV("g_log_add", [] (Command::Params* params)
+			Command::AddSV("g_log_add", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
 
@@ -322,7 +322,7 @@ namespace Components
 				}
 			});
 
-			Command::AddSV("g_log_del", [] (Command::Params* params)
+			Command::AddSV("g_log_del", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
 
@@ -350,7 +350,7 @@ namespace Components
 				}
 			});
 
-			Command::AddSV("g_log_list", [] (Command::Params*)
+			Command::AddSV("g_log_list", [](Command::Params*)
 			{
 				Logger::Print("# ID: Address\n");
 				Logger::Print("-------------\n");

@@ -72,7 +72,7 @@ namespace Components
 
 	StringTable::StringTable()
 	{
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [] (Game::XAssetType, std::string filename)
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [](Game::XAssetType, std::string filename)
 		{
 			Game::XAssetHeader header = { nullptr };
 

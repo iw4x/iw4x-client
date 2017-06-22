@@ -71,7 +71,7 @@ namespace Components
 		}
 
 		// Sort alphabetically
-		qsort(indices, dataVector.size(), sizeof(Game::StructuredDataEnumEntry), [] (const void* first, const void* second)
+		qsort(indices, dataVector.size(), sizeof(Game::StructuredDataEnumEntry), [](const void* first, const void* second)
 		{
 			const Game::StructuredDataEnumEntry* entry1 = reinterpret_cast<const Game::StructuredDataEnumEntry*>(first);
 			const Game::StructuredDataEnumEntry* entry2 = reinterpret_cast<const Game::StructuredDataEnumEntry*>(second);
@@ -107,9 +107,9 @@ namespace Components
 
 	void StructuredData::PatchAdditionalData(Game::StructuredDataDef* data, std::unordered_map<std::string, std::string>& patches)
 	{
-		for(auto& item : patches)
+		for (auto& item : patches)
 		{
-			if(item.first == "classes")
+			if (item.first == "classes")
 			{
 				StructuredData::PatchCustomClassLimit(data, atoi(item.second.data()));
 			}
@@ -121,14 +121,14 @@ namespace Components
 		Game::StructuredDataDef* newDef = &set->defs[0];
 		Game::StructuredDataDef* oldDef = &set->defs[0];
 
-		for(unsigned int i = 0; i < set->defCount; ++i)
+		for (unsigned int i = 0; i < set->defCount; ++i)
 		{
-			if(newDef->version < set->defs[i].version)
+			if (newDef->version < set->defs[i].version)
 			{
 				newDef = &set->defs[i];
 			}
 
-			if(set->defs[i].version == *reinterpret_cast<int*>(buffer->data))
+			if (set->defs[i].version == *reinterpret_cast<int*>(buffer->data))
 			{
 				oldDef = &set->defs[i];
 			}
@@ -171,7 +171,7 @@ namespace Components
 			return;
 		}
 
-		AssetHandler::OnLoad([] (Game::XAssetType type, Game::XAssetHeader asset, std::string filename, bool* /*restrict*/)
+		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string filename, bool* /*restrict*/)
 		{
 			// Only intercept playerdatadef loading
 			if (type != Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF || filename != "mp/playerdata.def") return;
@@ -241,11 +241,11 @@ namespace Components
 
 				auto other = defData["other"];
 
-				if(other.is_object())
+				if (other.is_object())
 				{
-					for(auto& item : other.object_items())
+					for (auto& item : other.object_items())
 					{
-						if(item.second.is_string())
+						if (item.second.is_string())
 						{
 							otherPatches[item.first] = item.second.string_value();
 						}
@@ -285,7 +285,7 @@ namespace Components
 				// No need to patch version 155
 				if (newData[i].version == 155) continue;
 
-				if(patchDefinitions.find(newData[i].version) != patchDefinitions.end())
+				if (patchDefinitions.find(newData[i].version) != patchDefinitions.end())
 				{
 					auto patchData = patchDefinitions[newData[i].version];
 					auto otherData = otherPatchDefinitions[newData[i].version];

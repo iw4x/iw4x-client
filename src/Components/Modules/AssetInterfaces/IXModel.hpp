@@ -14,6 +14,6 @@ namespace Assets
 	private:
 		void loadXModelSurfs(Game::XModelSurfs* asset, Utils::Stream::Reader* reader);
 		void loadXSurface(Game::XSurface* surf, Utils::Stream::Reader* reader);
-		void loadXSurfaceCollisionTree(Game::XSurfaceCollisionTree* entry,  Utils::Stream::Reader* reader);
+		void loadXSurfaceCollisionTree(Game::XSurfaceCollisionTree* entry, Utils::Stream::Reader* reader);
 	};
 }

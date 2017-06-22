@@ -25,6 +25,8 @@ namespace Components
 
 		static DWORD HsvToRgb(HsvColor hsv);
 
+		static void UserInfoCopy(char* buffer, const char* name, size_t size);
+
 		static void ClientUserinfoChanged();
 		static char* GetClientName(int localClientNum, int index, char *buf, size_t size);
 		static void PatchColorLimit(char limit);

@@ -70,77 +70,77 @@ namespace Components
 
 		switch (column)
 		{
-			case Column::Password:
-			{
-				return (server->password ? "X" : "");
-			}
+		case Column::Password:
+		{
+			return (server->password ? "X" : "");
+		}
 
-			case Column::Matchtype:
-			{
-				return ((server->matchType == 1) ? "P" : "M");
-			}
+		case Column::Matchtype:
+		{
+			return ((server->matchType == 1) ? "P" : "M");
+		}
 
-			case Column::Hostname:
-			{
-				return server->hostname.data();
-			}
+		case Column::Hostname:
+		{
+			return server->hostname.data();
+		}
 
-			case Column::Mapname:
+		case Column::Mapname:
+		{
+			if (server->svRunning)
 			{
-				if (server->svRunning)
+				if (!sorting && !Maps::CheckMapInstalled(server->mapname.data()))
 				{
-					if (!sorting && !Maps::CheckMapInstalled(server->mapname.data()))
-					{
-						return Utils::String::VA("^1%s", Game::UI_LocalizeMapName(server->mapname.data()));
-					}
-					return Game::UI_LocalizeMapName(server->mapname.data());
+					return Utils::String::VA("^1%s", Game::UI_LocalizeMapName(server->mapname.data()));
 				}
-				else
-				{
-					return Utils::String::VA("^3%s", Game::UI_LocalizeMapName(server->mapname.data()));
-				}
+				return Game::UI_LocalizeMapName(server->mapname.data());
+			}
+			else
+			{
+				return Utils::String::VA("^3%s", Game::UI_LocalizeMapName(server->mapname.data()));
+			}
+		}
+
+		case Column::Players:
+		{
+			return Utils::String::VA("%i/%i (%i)", server->clients, server->maxClients, server->bots);
+		}
+
+		case Column::Gametype:
+		{
+			return Game::UI_LocalizeGameType(server->gametype.data());
+		}
+
+		case Column::Mod:
+		{
+			if (server->mod != "")
+			{
+				return (server->mod.data() + 5);
 			}
 
-			case Column::Players:
+			return "";
+		}
+
+		case Column::Ping:
+		{
+			if (server->ping < 75) // Below this is a good ping
 			{
-				return Utils::String::VA("%i/%i (%i)", server->clients, server->maxClients, server->bots);
+				return Utils::String::VA("^2%i", server->ping);
 			}
-
-			case Column::Gametype:
+			else if (server->ping < 150) // Below this is a medium ping
 			{
-				return Game::UI_LocalizeGameType(server->gametype.data());
+				return Utils::String::VA("^3%i", server->ping);
 			}
-
-			case Column::Mod:
+			else
 			{
-				if (server->mod != "")
-				{
-					return (server->mod.data() + 5);
-				}
-
-				return "";
+				return Utils::String::VA("^1%i", server->ping);
 			}
+		}
 
-			case Column::Ping:
-			{
-				if(server->ping < 75) // Below this is a good ping
-				{
-					return Utils::String::VA("^2%i", server->ping);
-				}
-				else if(server->ping < 150) // Below this is a medium ping
-				{
-					return Utils::String::VA("^3%i", server->ping);
-				}
-				else
-				{
-					return Utils::String::VA("^1%i", server->ping);
-				}
-			}
-
-			default:
-			{
-				break;
-			};
+		default:
+		{
+			break;
+		};
 		}
 
 		return "";
@@ -234,7 +234,7 @@ namespace Components
 			if ((ui_browserMod == 0 && info->mod.size()) || (ui_browserMod == 1 && !info->mod.size())) continue;
 
 			// Filter by gametype
-			if (ui_joinGametype > 0 && (ui_joinGametype -1) < *Game::gameTypeCount  && Game::gameTypes[(ui_joinGametype - 1)].gameType != info->gametype) continue;
+			if (ui_joinGametype > 0 && (ui_joinGametype - 1) < *Game::gameTypeCount  && Game::gameTypes[(ui_joinGametype - 1)].gameType != info->gametype) continue;
 
 			ServerList::VisibleList.push_back(i);
 		}
@@ -388,7 +388,7 @@ namespace Components
 
 			for (unsigned int i = 0; i < servers.size(); ++i)
 			{
-				if(!servers[i].is_string()) continue;
+				if (!servers[i].is_string()) continue;
 				ServerList::InsertRequest(servers[i].string_value());
 			}
 		}
@@ -503,7 +503,7 @@ namespace Components
 				}
 
 				if (info.get("gamename") == "IW4"
-					&& server.matchType 
+					&& server.matchType
 #if !defined(DEBUG) && defined(VERSION_FILTER)
 					&& ServerList::CompareVersion(server.shortversion, SHORTVERSION)
 #endif
@@ -536,9 +536,9 @@ namespace Components
 		while (subVersions2.size() >= 3) subVersions2.pop_back();
 		if (subVersions1.size() != subVersions2.size()) return false;
 
-		for(unsigned int i = 0; i < subVersions1.size(); ++i)
+		for (unsigned int i = 0; i < subVersions1.size(); ++i)
 		{
-			if(atoi(subVersions1[i].data()) != atoi(subVersions2[i].data()))
+			if (atoi(subVersions1[i].data()) != atoi(subVersions2[i].data()))
 			{
 				return false;
 			}
@@ -556,9 +556,9 @@ namespace Components
 	{
 		// Only sort when the serverlist is open
 		Game::menuDef_t* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
-		if(!menu || !Game::Menu_IsVisible(Game::uiContext, menu)) return;
+		if (!menu || !Game::Menu_IsVisible(Game::uiContext, menu)) return;
 
-		std::sort(ServerList::VisibleList.begin(), ServerList::VisibleList.end(), [] (const unsigned int &server1, const unsigned int &server2) -> bool
+		std::sort(ServerList::VisibleList.begin(), ServerList::VisibleList.end(), [](const unsigned int &server1, const unsigned int &server2) -> bool
 		{
 			ServerInfo* info1 = nullptr;
 			ServerInfo* info2 = nullptr;
@@ -625,7 +625,7 @@ namespace Components
 
 		// Send requests to 10 servers each frame
 		int SendServers = 10;
-		
+
 		for (unsigned int i = 0; i < ServerList::RefreshContainer.servers.size(); ++i)
 		{
 			ServerList::Container::ServerContainer* server = &ServerList::RefreshContainer.servers[i];
@@ -717,7 +717,7 @@ namespace Components
 		ServerList::FavouriteList.clear();
 		ServerList::VisibleList.clear();
 
-		Dvar::OnInit([] ()
+		Dvar::OnInit([]()
 		{
 			Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_FLAG_NONE, "Whether a server has been selected in the serverlist");
 			Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "Map of the selected server");
@@ -730,7 +730,7 @@ namespace Components
 		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0");
 
-		Network::Handle("getServersResponse", [] (Network::Address address, std::string data)
+		Network::Handle("getServersResponse", [](Network::Address address, std::string data)
 		{
 			if (ServerList::RefreshContainer.host != address) return; // Only parse from host we sent to
 
@@ -743,11 +743,10 @@ namespace Components
 			ServerList::MasterEntry* entry = nullptr;
 
 			// Find first entry
-			do 
+			do
 			{
 				entry = reinterpret_cast<ServerList::MasterEntry*>(const_cast<char*>(data.data()) + offset++);
-			}
-			while (!entry->HasSeparator() && !entry->IsEndToken());
+			} while (!entry->HasSeparator() && !entry->IsEndToken());
 
 			for (int i = 0; !entry[i].IsEndToken() && entry[i].HasSeparator(); ++i)
 			{
@@ -777,7 +776,7 @@ namespace Components
 		UIScript::Add("RefreshFilter", ServerList::UpdateVisibleList);
 
 		UIScript::Add("RefreshServers", ServerList::Refresh);
-		UIScript::Add("JoinServer", [] (UIScript::Token)
+		UIScript::Add("JoinServer", [](UIScript::Token)
 		{
 			ServerList::ServerInfo* info = ServerList::GetServer(ServerList::CurrentServer);
 
@@ -786,7 +785,7 @@ namespace Components
 				Party::Connect(info->addr);
 			}
 		});
-		UIScript::Add("ServerSort", [] (UIScript::Token token)
+		UIScript::Add("ServerSort", [](UIScript::Token token)
 		{
 			int key = token.get<int>();
 
@@ -803,7 +802,7 @@ namespace Components
 			Logger::Print("Sorting server list by token: %d\n", ServerList::SortKey);
 			ServerList::SortList();
 		});
-		UIScript::Add("CreateListFavorite", [] (UIScript::Token)
+		UIScript::Add("CreateListFavorite", [](UIScript::Token)
 		{
 			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
 
@@ -812,11 +811,11 @@ namespace Components
 				ServerList::StoreFavourite(info->addr.getString());
 			}
 		});
-		UIScript::Add("CreateFavorite", [] (UIScript::Token)
+		UIScript::Add("CreateFavorite", [](UIScript::Token)
 		{
 			ServerList::StoreFavourite(Dvar::Var("ui_favoriteAddress").get<std::string>());
 		});
-		UIScript::Add("CreateCurrentServerFavorite", [] (UIScript::Token)
+		UIScript::Add("CreateCurrentServerFavorite", [](UIScript::Token)
 		{
 			if (Game::CL_IsCgameInitialized())
 			{
@@ -827,7 +826,7 @@ namespace Components
 				}
 			}
 		});
-		UIScript::Add("DeleteFavorite", [] (UIScript::Token)
+		UIScript::Add("DeleteFavorite", [](UIScript::Token)
 		{
 			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
 
@@ -840,7 +839,7 @@ namespace Components
 		Command::Add("playerCount", [](Command::Params*)
 		{
 			int count = 0;
-			for(auto server : ServerList::OnlineList)
+			for (auto server : ServerList::OnlineList)
 			{
 				count += server.clients;
 			}

@@ -31,11 +31,11 @@ namespace Utils
 
 		for (auto& entity : this->entities)
 		{
-			if(entity.find("model") != entity.end())
+			if (entity.find("model") != entity.end())
 			{
 				std::string model = entity["model"];
 
-				if(!model.empty() && model[0] != '*' && model[0] != '?') // Skip brushmodels
+				if (!model.empty() && model[0] != '*' && model[0] != '?') // Skip brushmodels
 				{
 					if (std::find(models.begin(), models.end(), model) == models.end())
 					{
@@ -50,12 +50,12 @@ namespace Utils
 
 	void Entities::deleteTriggers()
 	{
-		for(auto i = this->entities.begin(); i != this->entities.end();)
+		for (auto i = this->entities.begin(); i != this->entities.end();)
 		{
-			if(i->find("classname") != i->end())
+			if (i->find("classname") != i->end())
 			{
 				std::string classname = (*i)["classname"];
-				if(Utils::String::StartsWith(classname, "trigger_"))
+				if (Utils::String::StartsWith(classname, "trigger_"))
 				{
 					i = this->entities.erase(i);
 					continue;
@@ -65,7 +65,7 @@ namespace Utils
 			++i;
 		}
 	}
-	
+
 	void Entities::convertTurrets()
 	{
 		for (auto& entity : this->entities)
@@ -105,64 +105,64 @@ namespace Utils
 		std::string value;
 		std::unordered_map<std::string, std::string> entity;
 
-		for(unsigned int i = 0; i < buffer.size(); ++i)
+		for (unsigned int i = 0; i < buffer.size(); ++i)
 		{
 			char character = buffer[i];
-			if(character == '{')
+			if (character == '{')
 			{
 				entity.clear();
 			}
 
-			switch(character)
+			switch (character)
 			{
-				case '{':
-				{
-					entity.clear();
-					break;
-				}
+			case '{':
+			{
+				entity.clear();
+				break;
+			}
 
-				case '}':
-				{
-					this->entities.push_back(entity);
-					entity.clear();
-					break;
-				}
+			case '}':
+			{
+				this->entities.push_back(entity);
+				entity.clear();
+				break;
+			}
 
-				case '"':
+			case '"':
+			{
+				if (parseState == PARSE_AWAIT_KEY)
 				{
-					if (parseState == PARSE_AWAIT_KEY)
-					{
-						key.clear();
-						parseState = PARSE_READ_KEY;
-					}
-					else if (parseState == PARSE_READ_KEY)
-					{
-						parseState = PARSE_AWAIT_VALUE;
-					}
-					else if (parseState == PARSE_AWAIT_VALUE)
-					{
-						value.clear();
-						parseState = PARSE_READ_VALUE;
-					}
-					else if (parseState == PARSE_READ_VALUE)
-					{
-						entity[Utils::String::ToLower(key)] = value;
-						parseState = PARSE_AWAIT_KEY;
-					}
-					else
-					{
-						throw std::runtime_error("Parsing error!");
-					}
-					break;
+					key.clear();
+					parseState = PARSE_READ_KEY;
 				}
-
-				default:
+				else if (parseState == PARSE_READ_KEY)
 				{
-					if(parseState == PARSE_READ_KEY) key.push_back(character);
-					else if (parseState == PARSE_READ_VALUE) value.push_back(character);
-
-					break;
+					parseState = PARSE_AWAIT_VALUE;
 				}
+				else if (parseState == PARSE_AWAIT_VALUE)
+				{
+					value.clear();
+					parseState = PARSE_READ_VALUE;
+				}
+				else if (parseState == PARSE_READ_VALUE)
+				{
+					entity[Utils::String::ToLower(key)] = value;
+					parseState = PARSE_AWAIT_KEY;
+				}
+				else
+				{
+					throw std::runtime_error("Parsing error!");
+				}
+				break;
+			}
+
+			default:
+			{
+				if (parseState == PARSE_READ_KEY) key.push_back(character);
+				else if (parseState == PARSE_READ_VALUE) value.push_back(character);
+
+				break;
+			}
 			}
 		}
 	}

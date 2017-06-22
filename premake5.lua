@@ -235,13 +235,11 @@ workspace "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
+	buildlog "%{wks.location}/obj/%{cfg.architecture}/%{cfg.buildcfg}/%{prj.name}/%{prj.name}.log"
 	configurations { "Debug", "Release" }
 	architecture "x32"
 	platforms "x86"
 	exceptionhandling ("SEH")
-
-	-- VS 2015 toolset only
-	toolset "msc-140"
 
 	flags { "StaticRuntime" }
 
@@ -266,7 +264,6 @@ workspace "iw4x"
 	project "iw4x"
 		kind "SharedLib"
 		language "C++"
-		flags { "C++14" }
 		files {
 			"./src/**.rc",
 			"./src/**.hpp",
@@ -376,7 +373,8 @@ workspace "iw4x"
 		end
 
 		-- Specific configurations
-		flags { "UndefinedIdentifiers", "ExtraWarnings" }
+		flags { "UndefinedIdentifiers" }
+		warnings "Extra"
 
 		if symbols ~= nil then
 			symbols "On"

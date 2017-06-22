@@ -216,19 +216,19 @@ namespace Components
 			IPCPipe::ClientPipe.connect(IPC_PIPE_NAME_SERVER);
 		}
 
-		IPCPipe::On("ping", [] (std::string data)
+		IPCPipe::On("ping", [](std::string data)
 		{
 			Logger::Print("Received ping form pipe, sending pong!\n");
 			IPCPipe::Write("pong", data);
 		});
 
-		IPCPipe::On("pong", [] (std::string data)
+		IPCPipe::On("pong", [](std::string data)
 		{
 			Logger::Print("Received pong form pipe!\n");
 		});
 
 		// Test pipe functionality by sending pings
-		Command::Add("ipcping", [] (Command::Params*)
+		Command::Add("ipcping", [](Command::Params*)
 		{
 			Logger::Print("Sending ping to pipe!\n");
 			IPCPipe::Write("ping", "");

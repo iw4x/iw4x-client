@@ -506,7 +506,7 @@ namespace Components
 	// Add branding asset
 	void ZoneBuilder::Zone::addBranding()
 	{
-		char* data = "FastFile built using IW4x ZoneTool!";
+		char* data = "FastFile built using the IW4x ZoneBuilder!";
 		this->branding = { this->zoneName.data(), static_cast<int>(strlen(data)), 0, data };
 
 		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
@@ -664,14 +664,14 @@ namespace Components
 
 	bool ZoneBuilder::IsEnabled()
 	{
-		static Utils::Value<bool> flag;
+		static std::optional<bool> flag;
 
-		if (!flag.isValid())
+		if (!flag.has_value())
 		{
-			flag.set(Flags::HasFlag("zonebuilder"));
+			flag.emplace(Flags::HasFlag("zonebuilder"));
 		}
 
-		return (flag.get() && !Dedicated::IsEnabled());
+		return (flag.value() && !Dedicated::IsEnabled());
 	}
 
 	void ZoneBuilder::BeginAssetTrace(std::string zone)
@@ -1033,17 +1033,6 @@ namespace Components
 
 			// Don't read stats
 			Utils::Hook(0x4875E1, 0x487717, HOOK_JUMP).install()->quick();
-
-			// Increase asset pools
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODELSURFS, 8192);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 14336);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PIXELSHADER, 0x4000);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, 0x2000);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXDECL, 0x400);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FONT, 32);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_RAWFILE, 2048);
 
 			// patch g_copyInfo because we're using so many more assets than originally intended
 			int newLimit = 0x2000;

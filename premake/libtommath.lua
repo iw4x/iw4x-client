@@ -36,9 +36,6 @@ function libtommath.project()
 			path.join(libtommath.settings.source, "*.c"),
 		}
 
-		-- dependencies
-		libtommath.import()
-
 		-- not our code, ignore POSIX usage warnings for now
 		warnings "Off"
 

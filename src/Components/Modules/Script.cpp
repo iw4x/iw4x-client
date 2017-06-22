@@ -233,9 +233,9 @@ namespace Components
 
 	void Script::AddFunction(std::string name, Game::scr_function_t function, bool isDev)
 	{
-		for(auto i = Script::ScriptFunctions.begin(); i != Script::ScriptFunctions.end();)
+		for (auto i = Script::ScriptFunctions.begin(); i != Script::ScriptFunctions.end();)
 		{
-			if(i->getName() == name)
+			if (i->getName() == name)
 			{
 				i = Script::ScriptFunctions.erase(i);
 				continue;
@@ -258,14 +258,14 @@ namespace Components
 		{
 			if (name && *name)
 			{
-				if(Utils::String::ToLower(*name) == Utils::String::ToLower(function.getName()))
+				if (Utils::String::ToLower(*name) == Utils::String::ToLower(function.getName()))
 				{
 					*name = function.getName();
 					*isDev = function.isDev();
 					return function.getFunction();
 				}
 			}
-			else if(caller == reinterpret_cast<void*>(0x465781))
+			else if (caller == reinterpret_cast<void*>(0x465781))
 			{
 				Game::Scr_RegisterFunction(function.getFunction());
 			}

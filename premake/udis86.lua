@@ -40,6 +40,5 @@ function udis86.project()
 		-- not our code, ignore POSIX usage warnings for now
 		warnings "Off"
 
-		kind "SharedLib"
-			kind "StaticLib"
+		kind "StaticLib"
 end

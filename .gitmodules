@@ -21,7 +21,7 @@
 [submodule "deps/mongoose"]
 	path = deps/mongoose
 	url = https://github.com/cesanta/mongoose.git
-	branch = master
+	branch = dev
 [submodule "deps/protobuf"]
 	path = deps/protobuf
 	url = https://github.com/google/protobuf.git

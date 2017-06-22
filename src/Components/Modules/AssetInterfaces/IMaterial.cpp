@@ -356,7 +356,7 @@ namespace Assets
 				}
 			}
 
-			if(!replaceTexture)
+			if (!replaceTexture)
 			{
 				if (!textureList.empty())
 				{

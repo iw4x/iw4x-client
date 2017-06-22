@@ -204,7 +204,7 @@ namespace Components
 			test al, al
 			jnz continue
 
-			mov[edi + 130h], esi
+			mov [edi + 130h], esi
 
 		continue:
 			mov eax, 639D75h
@@ -254,7 +254,7 @@ namespace Components
 
 	void UIFeeder::Select(float feeder, unsigned int index)
 	{
-		if(Game::uiContext->openMenuCount > 0)
+		if (Game::uiContext->openMenuCount > 0)
 		{
 			Game::menuDef_t* menu = Game::uiContext->menuStack[Game::uiContext->openMenuCount - 1];
 
@@ -326,9 +326,9 @@ namespace Components
 		Game::UI_UpdateArenas();
 		Game::UI_SortArenas();
 
-		for(unsigned int i = 0; i < static_cast<unsigned int>(*Game::arenaCount); ++i)
+		for (unsigned int i = 0; i < static_cast<unsigned int>(*Game::arenaCount); ++i)
 		{
-			if(ArenaLength::NewArenas[i].mapName == mapname)
+			if (ArenaLength::NewArenas[i].mapName == mapname)
 			{
 				for (unsigned int j = 0; j < static_cast<unsigned int>(*Game::arenaCount); ++j)
 				{

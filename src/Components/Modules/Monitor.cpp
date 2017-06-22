@@ -7,14 +7,14 @@ namespace Components
 {
 	bool Monitor::IsEnabled()
 	{
-		static Utils::Value<bool> flag;
+		static std::optional<bool> flag;
 
-		if (!flag.isValid())
+		if (!flag.has_value())
 		{
-			flag.set(Flags::HasFlag("monitor"));
+			flag.emplace(Flags::HasFlag("monitor"));
 		}
 
-		return flag.get();
+		return flag.value();
 	}
 
 	int __stdcall Monitor::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
@@ -29,7 +29,7 @@ namespace Components
 		Game::NET_Init();
 
 		Utils::Time::Interval interval;
-		while(!interval.elapsed(15s))
+		while (!interval.elapsed(15s))
 		{
 			Utils::Hook::Call<void()>(0x49F0B0)(); // Com_ClientPacketEvent
 			Node::FrameHandler();
@@ -48,7 +48,7 @@ namespace Components
 		int servers = list->size();
 		int players = 0;
 
-		for(unsigned int i = 0; i < list->size(); ++i)
+		for (unsigned int i = 0; i < list->size(); ++i)
 		{
 			players += list->at(i).clients;
 		}

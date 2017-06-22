@@ -46,7 +46,7 @@ namespace Components
 			}
 		});
 
-		Network::Handle("discovery", [] (Network::Address address, std::string data)
+		Network::Handle("discovery", [](Network::Address address, std::string data)
 		{
 			if (address.isSelf()) return;
 
@@ -60,7 +60,7 @@ namespace Components
 			Network::SendCommand(address, "discoveryResponse", data);
 		});
 
-		Network::Handle("discoveryResponse", [] (Network::Address address, std::string data)
+		Network::Handle("discoveryResponse", [](Network::Address address, std::string data)
 		{
 			if (address.isSelf()) return;
 
@@ -87,7 +87,7 @@ namespace Components
 		// This is placed here in case the anticheat has been disabled!
 		// Make sure this is called after the memory scan!
 #if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
-		Utils::Hook(0x5ACB9E, [] () // Somewhere in the renderer, past the scan check
+		Utils::Hook(0x5ACB9E, []() // Somewhere in the renderer, past the scan check
 		{
 			AntiCheat::ScanIntegrityCheck();
 			return Utils::Hook::Call<void()>(0x4AA720)();

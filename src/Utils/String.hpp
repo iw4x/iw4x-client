@@ -47,7 +47,7 @@ namespace Utils
 
 				~Entry()
 				{
-					if(this->buffer) Utils::Memory::GetAllocator()->free(this->buffer);
+					if (this->buffer) Utils::Memory::GetAllocator()->free(this->buffer);
 					this->size = 0;
 					this->buffer = nullptr;
 				}

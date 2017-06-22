@@ -74,7 +74,7 @@ namespace Assets
 
 	void IXModel::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
 	{
-		if(!builder->isPrimaryAsset())
+		if (!builder->isPrimaryAsset())
 		{
 			header->model = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).model;
 			if (header->model) return;
@@ -98,7 +98,7 @@ namespace Assets
 				Components::Logger::Error(0, "Reading model '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_MODEL_VERSION, version);
 			}
 
-			if(version == 4)
+			if (version == 4)
 			{
 				Components::Logger::Print("WARNING: Model '%s' is in legacy format, please update it!\n", name.data());
 			}
@@ -222,7 +222,7 @@ namespace Assets
 				else
 				{
 					Game::PhysPreset* preset = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_PHYSPRESET, asset->physPreset->name, builder).physPreset;
-					if(preset)
+					if (preset)
 					{
 						asset->physPreset = preset;
 					}

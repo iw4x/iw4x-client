@@ -222,14 +222,12 @@ namespace Game
 		const void *initial_ptr;
 	};
 
-	/* 526 */
 	struct MssSound
 	{
 		_AILSOUNDINFO info;
 		char *data;
 	};
 
-	/* 527 */
 	struct LoadedSound
 	{
 		const char *name;
@@ -242,7 +240,7 @@ namespace Game
 		StreamedSound stream;
 	};
 
-	struct SoundFile	// 0xC
+	struct SoundFile
 	{
 		snd_alias_type_t type;
 		bool exists;

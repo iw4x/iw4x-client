@@ -9,7 +9,6 @@ namespace Components
 
 	bool Maps::SPMap;
 	std::vector<Maps::DLC> Maps::DlcPacks;
-	std::vector<Game::XAssetEntry> Maps::EntryPool;
 
 	const char* Maps::UserMapFiles[4] =
 	{
@@ -481,7 +480,7 @@ namespace Components
 			call Maps::TriggerReconnectForMap
 			add esp, 8h
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 
 			popad
 			pop eax
@@ -713,59 +712,7 @@ namespace Components
 
 	Game::XAssetEntry* Maps::GetAssetEntryPool()
 	{
-		if(Maps::EntryPool.empty())
-		{
-			return reinterpret_cast<Game::XAssetEntry*>(0x134CAD8);
-		}
-
-		return Maps::EntryPool.data();
-	}
-
-	void Maps::reallocateEntryPool()
-	{
-		AssertSize(Game::XAssetEntry, 16);
-
-		Maps::EntryPool.clear();
-
-		if (ZoneBuilder::IsEnabled())
-		{
-			Maps::EntryPool.resize(1183968);
-		}
-		else
-		{
-			Maps::EntryPool.resize(789312);
-		}
-
-		// Apply new size
-		Utils::Hook::Set<DWORD>(0x5BAEB0, Maps::EntryPool.size());
-
-		// Apply new pool
-		Utils::Hook::Set<Game::XAssetEntry*>(0x48E6F4, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x4C67E4, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x4C8584, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA8, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB0C4, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB0F5, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB1D4, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB235, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB278, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB34C, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB484, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB570, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB6B7, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB844, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BB98D, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BBA66, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BBB8D, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BBCB1, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BBD9B, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BBE4C, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BBF14, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BBF54, Maps::EntryPool.data());
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BBFB8, Maps::EntryPool.data());
-
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAE91, Maps::EntryPool.data() + 1);
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, Maps::EntryPool.data() + 1);
+		return *reinterpret_cast<Game::XAssetEntry**>(0x48E6F4);
 	}
 
 	// dlcIsTrue serves as a check if the map is a custom map and if it's missing
@@ -878,7 +825,7 @@ namespace Components
 			pushad
 			call Maps::GetSpecularDvar
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 
 			pop eax
@@ -894,7 +841,7 @@ namespace Components
 			pushad
 			call Maps::GetSpecularDvar
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 
 			pop edx
@@ -1022,24 +969,6 @@ namespace Components
 		// Load usermap arena file
 		Utils::Hook(0x630A88, Maps::LoadArenaFileStub, HOOK_CALL).install()->quick();
 
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP, 1);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FX, 1200);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XANIMPARTS, 8192);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL, 5125);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PHYSPRESET, 128);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PIXELSHADER, 10000);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, 3072);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MATERIAL, 8192);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXDECL, 196);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, WEAPON_LIMIT);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMPACT_FX, 8);
-
-		this->reallocateEntryPool();
-
 		// Dependencies
 		//Maps::AddDependency("oilrig", "mp_subbase");
 		//Maps::AddDependency("gulag", "mp_subbase");
@@ -1113,7 +1042,5 @@ namespace Components
 		Maps::DependencyList.clear();
 		Maps::CurrentMainZone.clear();
 		Maps::CurrentDependencies.clear();
-
-		Maps::EntryPool.clear();
 	}
 }

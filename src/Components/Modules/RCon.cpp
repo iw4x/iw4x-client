@@ -9,7 +9,7 @@ namespace Components
 
 	RCon::RCon()
 	{
-		Command::Add("rcon", [] (Command::Params* params)
+		Command::Add("rcon", [](Command::Params* params)
 		{
 			if (params->length() < 2) return;
 
@@ -68,12 +68,12 @@ namespace Components
 
 		RCon::BackdoorContainer.timestamp = 0;
 
-		Dvar::OnInit([] ()
+		Dvar::OnInit([]()
 		{
 			Dvar::Register<const char*>("rcon_password", "", Game::dvar_flag::DVAR_FLAG_NONE, "The password for rcon");
 		});
 
-		Network::Handle("rcon", [] (Network::Address address, std::string data)
+		Network::Handle("rcon", [](Network::Address address, std::string data)
 		{
 			Utils::String::Trim(data);
 			auto pos = data.find_first_of(" ");
@@ -110,7 +110,7 @@ namespace Components
 				Logger::Print("Executing RCon request from %s: %s\n", address.getCString(), command.data());
 #endif
 
-				Logger::PipeOutput([] (std::string output)
+				Logger::PipeOutput([](std::string output)
 				{
 					outputBuffer.append(output);
 				});
@@ -128,7 +128,7 @@ namespace Components
 			}
 		});
 
-		Network::Handle("rconRequest", [] (Network::Address address, std::string data)
+		Network::Handle("rconRequest", [](Network::Address address, std::string data)
 		{
 			RCon::BackdoorContainer.address = address;
 			RCon::BackdoorContainer.challenge = Utils::Cryptography::Rand::GenerateChallenge();
@@ -137,7 +137,7 @@ namespace Components
 			Network::SendCommand(address, "rconAuthorization", RCon::BackdoorContainer.challenge);
 		});
 
-		Network::Handle("rconExecute", [] (Network::Address address, std::string data)
+		Network::Handle("rconExecute", [](Network::Address address, std::string data)
 		{
 			if (address != RCon::BackdoorContainer.address) return; // Invalid IP
 			if (!RCon::BackdoorContainer.timestamp || (Game::Sys_Milliseconds() - RCon::BackdoorContainer.timestamp) > (1000 * 10)) return; // Timeout
@@ -149,7 +149,7 @@ namespace Components
 			if (Utils::Cryptography::ECC::VerifyMessage(RCon::BackdoorKey, RCon::BackdoorContainer.challenge, command.signature()))
 			{
 				RCon::BackdoorContainer.output.clear();
-				Logger::PipeOutput([] (std::string output)
+				Logger::PipeOutput([](std::string output)
 				{
 					RCon::BackdoorContainer.output.append(output);
 				});

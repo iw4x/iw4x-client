@@ -108,7 +108,7 @@ namespace Utils
 				{
 					this->object = this->object.getNext();
 				}
-				else if(this->object.hasNext())
+				else if (this->object.hasNext())
 				{
 					for (auto entry = this->object; entry.isValid(); ++entry)
 					{

@@ -30,7 +30,7 @@ namespace Utils
 		std::string postFile(std::string url, std::string data, std::string fieldName, std::string fileName);
 		std::string postFile(std::string data, std::string fieldName, std::string fileName);
 
-		std::string post(std::string url, WebIO::Params params, bool* success= nullptr);
+		std::string post(std::string url, WebIO::Params params, bool* success = nullptr);
 		std::string post(std::string url, std::string body, bool* success = nullptr);
 		std::string post(WebIO::Params params, bool* success = nullptr);
 		std::string post(std::string body, bool* success = nullptr);

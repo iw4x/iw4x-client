@@ -8,7 +8,7 @@ namespace Components
 		class Flag
 		{
 		public:
-			Flag(Game::dvar_flag flag) : val(flag){};
+			Flag(Game::dvar_flag flag) : val(flag) {};
 			Flag(int flag) : Flag(static_cast<Game::dvar_flag>(flag)) {};
 
 			Game::dvar_flag val;

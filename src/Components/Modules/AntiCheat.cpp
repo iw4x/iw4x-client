@@ -45,7 +45,7 @@ namespace Components
 		static std::thread triggerThread;
 		if (!triggerThread.joinable())
 		{
-			triggerThread = std::thread([] ()
+			triggerThread = std::thread([]()
 			{
 				std::this_thread::sleep_for(43s);
 				Utils::Hook::Set<BYTE>(0x41BA2C, 0xEB);
@@ -63,7 +63,7 @@ namespace Components
 		if (!hModuleSelf || !hModuleTarget || !hModuleProcess || (hModuleTarget != hModuleSelf && hModuleTarget != hModuleProcess))
 		{
 #ifdef DEBUG_DETECTIONS
-			char buffer[MAX_PATH] = {0};
+			char buffer[MAX_PATH] = { 0 };
 			GetModuleFileNameA(hModuleTarget, buffer, sizeof buffer);
 
 			Logger::Print(Utils::String::VA("AntiCheat: Callee assertion failed: %X %s", reinterpret_cast<uint32_t>(callee), buffer));
@@ -102,8 +102,8 @@ namespace Components
 #ifdef DEBUG_LOAD_LIBRARY
 				AntiCheat::LoadLibHook[0].initialize(loadLibA, LoadLibaryAStub, HOOK_JUMP);
 				AntiCheat::LoadLibHook[1].initialize(loadLibW, LoadLibaryWStub, HOOK_JUMP);
-				AntiCheat::LoadLibHook[2].initialize(loadLibExA, LoadLibaryAStub, HOOK_JUMP);
-				AntiCheat::LoadLibHook[3].initialize(loadLibExW, LoadLibaryWStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[2].initialize(loadLibExA, LoadLibaryExAStub, HOOK_JUMP);
+				AntiCheat::LoadLibHook[3].initialize(loadLibExW, LoadLibaryExWStub, HOOK_JUMP);
 #else
 				static uint8_t loadLibStub[] = { 0x33, 0xC0, 0xC2, 0x04, 0x00 }; // xor eax, eax; retn 04h
 				static uint8_t loadLibExStub[] = { 0x33, 0xC0, 0xC2, 0x0C, 0x00 }; // xor eax, eax; retn 0Ch
@@ -119,7 +119,7 @@ namespace Components
 		static uint8_t ldrLoadDll[] = { 0xB3, 0x9B, 0x8D, 0xB3, 0x90, 0x9E, 0x9B, 0xBB, 0x93, 0x93 }; // LdrLoadDll
 
 		HMODULE ntdll = Utils::GetNTDLL();
-		AntiCheat::LoadLibHook[4].initialize(GetProcAddress(ntdll, Utils::String::XOR(std::string(reinterpret_cast<char*>(ldrLoadDll), sizeof ldrLoadDll), -1).data()), ldrLoadDllStub, HOOK_JUMP);
+		//AntiCheat::LoadLibHook[4].initialize(GetProcAddress(ntdll, Utils::String::XOR(std::string(reinterpret_cast<char*>(ldrLoadDll), sizeof ldrLoadDll), -1).data()), ldrLoadDllStub, HOOK_JUMP);
 
 		// Patch LdrpLoadDll
 		Utils::Hook::Signature::Container container;
@@ -133,7 +133,7 @@ namespace Components
 
 		Utils::Hook::Signature signature(ntdll, Utils::GetModuleSize(ntdll));
 		signature.add(container);
-		signature.process();
+		//signature.process();
 	}
 
 	void AntiCheat::ReadIntegrityCheck()
@@ -229,10 +229,10 @@ namespace Components
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::MEMORY_SCAN;
 	}
 
-	void AntiCheat::QuickCodeScanner_1()
+	void AntiCheat::QuickCodeScanner1()
 	{
 		static Utils::Time::Interval interval;
-		static Utils::Value<std::string> hashVal;
+		static std::optional<std::string> hashVal;
 
 		if (!interval.elapsed(11s)) return;
 		interval.update();
@@ -243,37 +243,37 @@ namespace Components
 		uint8_t* textBase = reinterpret_cast<uint8_t*>(0x400FFF);
 		std::string hash = Utils::Cryptography::SHA256::Compute(textBase + 1, textSize + 1, false);
 
-		if (hashVal.isValid() && hash != hashVal.get())
+		if (hashVal.has_value() && hash != hashVal.value())
 		{
 			Utils::Hook::Set<BYTE>(0x42A667, 0x90); // Crash
 		}
 
-		hashVal.set(hash);
+		hashVal.emplace(hash);
 	}
 
-	void AntiCheat::QuickCodeScanner_2()
+	void AntiCheat::QuickCodeScanner2()
 	{
 		static Utils::Time::Interval interval;
-		static Utils::Value<std::string> hashVal;
+		static std::optional<std::string> hashVal;
 
 		if (!interval.elapsed(12s)) return;
 		interval.update();
 
 		// Hash .text segment
 		std::string hash = Utils::Cryptography::SHA1::Compute(reinterpret_cast<uint8_t*>(0x401000), 0x2D6000, false);
-		if (hashVal.isValid() && hash != hashVal.get())
+		if (hashVal.has_value() && hash != hashVal.value())
 		{
 			Utils::Hook::Set<BYTE>(0x40797C, 0x90); // Crash
 		}
 
-		hashVal.set(hash);
+		hashVal.emplace(hash);
 	}
 
 #ifdef DEBUG_LOAD_LIBRARY
 	HANDLE AntiCheat::LoadLibary(std::wstring library, HANDLE file, DWORD flags, void* callee)
 	{
 		HMODULE module;
-		char buffer[MAX_PATH] = {0};
+		char buffer[MAX_PATH] = { 0 };
 
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &module);
 		GetModuleFileNameA(module, buffer, sizeof buffer);
@@ -319,7 +319,7 @@ namespace Components
 
 	void AntiCheat::InstallLibHook()
 	{
-		for(int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
+		for (int i = 0; i < ARRAYSIZE(AntiCheat::LoadLibHook); ++i)
 		{
 			AntiCheat::LoadLibHook[i].install();
 		}
@@ -430,7 +430,7 @@ namespace Components
 		DWORD self = DWORD(hModuleSelf), main = DWORD(hModuleMain), address = DWORD(addr);
 
 		// If the address that should be changed is within our module or the main binary, then we need to check if we are changing it or someone else
-		if(Utils::HasIntercection(self, selfSize, address, len) || Utils::HasIntercection(main, mainSize, address, len))
+		if (Utils::HasIntercection(self, selfSize, address, len) || Utils::HasIntercection(main, mainSize, address, len))
 		{
 			if (!hModuleSelf || !hModuleTarget || (hModuleTarget != hModuleSelf))
 			{
@@ -610,7 +610,7 @@ namespace Components
 	void AntiCheat::AcquireDebugPriviledge(HANDLE hToken)
 	{
 		LUID luid;
-		TOKEN_PRIVILEGES tp = {0};
+		TOKEN_PRIVILEGES tp = { 0 };
 		DWORD cb = sizeof(TOKEN_PRIVILEGES);
 		if (!LookupPrivilegeValueW(nullptr, SE_DEBUG_NAME, &luid)) return;
 
@@ -627,7 +627,7 @@ namespace Components
 		AntiCheat::VirtualProtectHook[0].initialize(vp, AntiCheat::VirtualProtectStub, HOOK_JUMP)->install(true, true);
 	}
 
-	NTSTATUS NTAPI AntiCheat::NtCreateThreadExStub(PHANDLE phThread,ACCESS_MASK desiredAccess,LPVOID objectAttributes,HANDLE processHandle,LPTHREAD_START_ROUTINE startAddress,LPVOID parameter,BOOL createSuspended,DWORD stackZeroBits,DWORD sizeOfStackCommit,DWORD sizeOfStackReserve,LPVOID bytesBuffer)
+	NTSTATUS NTAPI AntiCheat::NtCreateThreadExStub(PHANDLE phThread, ACCESS_MASK desiredAccess, LPVOID objectAttributes, HANDLE processHandle, LPTHREAD_START_ROUTINE startAddress, LPVOID parameter, BOOL createSuspended, DWORD stackZeroBits, DWORD sizeOfStackCommit, DWORD sizeOfStackReserve, LPVOID bytesBuffer)
 	{
 		HANDLE hThread = nullptr;
 		std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
@@ -675,7 +675,7 @@ namespace Components
 			}
 		}
 
-		while(true)
+		while (true)
 		{
 			std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
 
@@ -752,7 +752,7 @@ namespace Components
 		{
 			static bool first = true;
 			if (first) first = false; // We can't control the main thread, as it's spawned externally
-			else 
+			else
 			{
 				std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
 
@@ -819,7 +819,7 @@ namespace Components
 
 		// Prevent external processes from accessing our memory
 		AntiCheat::ProtectProcess();
-		Renderer::OnDeviceRecoveryEnd([] ()
+		Renderer::OnDeviceRecoveryEnd([]()
 		{
 			AntiCheat::ProtectProcess();
 		});

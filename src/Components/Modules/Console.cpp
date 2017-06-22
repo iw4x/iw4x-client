@@ -75,7 +75,7 @@ namespace Components
 			wprintw(Console::InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (mapname.size() ? mapname.data() : "none"));
 			wnoutrefresh(Console::InfoWindow);
 		}
-		else if(IsWindow(Console::GetWindow()) != FALSE)
+		else if (IsWindow(Console::GetWindow()) != FALSE)
 		{
 			SetWindowTextA(Console::GetWindow(), Utils::String::VA("IW4x(" VERSION ") : %s", hostname.data()));
 		}
@@ -491,7 +491,7 @@ namespace Components
 
 	void Console::FreeNativeConsole()
 	{
-		if (!Monitor::IsEnabled() && !Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")))
+		if (!Monitor::IsEnabled() && !Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")) && !Loader::PerformingUnitTests())
 		{
 			FreeConsole();
 		}
@@ -603,7 +603,7 @@ namespace Components
 			// Redirect input (]command)
 			Utils::Hook(0x47025A, 0x4F5770, HOOK_CALL).install()->quick();
 
-			Utils::Hook(0x60BB68, [] ()
+			Utils::Hook(0x60BB68, []()
 			{
 				Console::ShowAsyncConsole();
 			}, HOOK_CALL).install()->quick();
@@ -621,7 +621,7 @@ namespace Components
 				}
 			}, HOOK_CALL).install()->quick();
 
-			Scheduler::OnFrame([] ()
+			Scheduler::OnFrame([]()
 			{
 				Console::LastRefresh = Game::Sys_Milliseconds();
 			});
@@ -643,7 +643,7 @@ namespace Components
 			Utils::Hook(0x43D570, Console::Error, HOOK_JUMP).install()->quick();
 			Utils::Hook(0x4859A5, Console::Input, HOOK_CALL).install()->quick();
 		}
-		else
+		else if(!Loader::PerformingUnitTests())
 		{
 			FreeConsole();
 		}

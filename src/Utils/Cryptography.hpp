@@ -154,7 +154,7 @@ namespace Utils
 				{
 					ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
 				};
-				Key(ecc_key* key) : Key() { if(key) std::memmove(this->getKeyPtr(), key, sizeof(*key)); };
+				Key(ecc_key* key) : Key() { if (key) std::memmove(this->getKeyPtr(), key, sizeof(*key)); };
 				Key(ecc_key key) : Key(&key) {};
 				~Key()
 				{

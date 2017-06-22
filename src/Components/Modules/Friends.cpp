@@ -21,7 +21,7 @@ namespace Components
 
 	void Friends::SortList(bool force)
 	{
-		if(!force)
+		if (!force)
 		{
 			Friends::TriggerSort = true;
 			return;
@@ -35,10 +35,10 @@ namespace Components
 		std::vector<Friends::Friend> offlineList;
 
 		// Split up the list
-		for(auto entry : Friends::FriendsList)
+		for (auto entry : Friends::FriendsList)
 		{
-			if(!entry.online) offlineList.push_back(entry);
-			else if(!Friends::IsOnline(entry.lastTime)) onlineList.push_back(entry);
+			if (!entry.online) offlineList.push_back(entry);
+			else if (!Friends::IsOnline(entry.lastTime)) onlineList.push_back(entry);
 			else if (entry.server.getType() == Game::NA_BAD) playingList.push_back(entry);
 			else connectedList.push_back(entry);
 		}
@@ -126,7 +126,7 @@ namespace Components
 	{
 		if (Dvar::Var("cl_anonymous").get<bool>() || !Steam::Enabled()) return;
 
-		if(force)
+		if (force)
 		{
 			if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
 			{
@@ -144,9 +144,9 @@ namespace Components
 	{
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
-		for(auto& entry : Friends::FriendsList)
+		for (auto& entry : Friends::FriendsList)
 		{
-			if(entry.server == server)
+			if (entry.server == server)
 			{
 				entry.serverName = hostname;
 				entry.mapname = mapname;
@@ -164,9 +164,9 @@ namespace Components
 	{
 		std::vector<int> ids;
 
-		auto addId = [&](int id)
+		const auto addId = [&](int id)
 		{
-			if(std::find(ids.begin(), ids.end(), id) == ids.end())
+			if (std::find(ids.begin(), ids.end(), id) == ids.end())
 			{
 				ids.push_back(id);
 			}
@@ -182,18 +182,17 @@ namespace Components
 			addId(Steam::Proxy::SteamUtils->GetAppID());
 		}
 
-		if(Steam::Proxy::SteamFriends)
+		if (Steam::Proxy::SteamFriends)
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
-			char* mod = "IW4x";
-			unsigned int modId = *reinterpret_cast<unsigned int*>(mod) | 0x80000000;
+			const unsigned int modId = *reinterpret_cast<unsigned int*>("IW4x") | 0x80000000;
 
 			// Split up the list
 			for (auto entry : Friends::FriendsList)
 			{
 				Steam::FriendGameInfo info;
-				if(Steam::Proxy::SteamFriends->GetFriendGamePlayed(entry.userId, &info) && info.m_gameID.modID == modId)
+				if (Steam::Proxy::SteamFriends->GetFriendGamePlayed(entry.userId, &info) && info.m_gameID.modID == modId)
 				{
 					addId(info.m_gameID.appID);
 				}
@@ -237,7 +236,7 @@ namespace Components
 
 	void Friends::RequestPresence(SteamID user)
 	{
-		if(Steam::Proxy::ClientFriends)
+		if (Steam::Proxy::ClientFriends)
 		{
 			Steam::Proxy::ClientFriends.invoke<void>("RequestFriendRichPresence", Friends::GetGame(user), user);
 		}
@@ -283,15 +282,15 @@ namespace Components
 
 	void Friends::UpdateRank()
 	{
-		static Utils::Value<int> levelVal;
+		static std::optional<int> levelVal;
 
 		int experience = Game::Live_GetXp(0);
 		int prestige = Game::Live_GetPrestige(0);
 		int level = (experience & 0xFFFFFF) | ((prestige & 0xFF) << 24);
 
-		if(!levelVal.isValid() || levelVal.get() != level)
+		if (!levelVal.has_value() || levelVal.value() != level)
 		{
-			levelVal.set(level);
+			levelVal.emplace(level);
 
 			Friends::SetPresence("iw4x_experience", Utils::String::VA("%d", experience));
 			Friends::SetPresence("iw4x_prestige", Utils::String::VA("%d", prestige));
@@ -328,9 +327,9 @@ namespace Components
 			entry.experience = 0;
 			entry.server.setType(Game::NA_BAD);
 
-			for(auto storedFriend : list.friends())
+			for (auto storedFriend : list.friends())
 			{
-				if(entry.userId.bits == strtoull(storedFriend.steamid().data(), nullptr, 16))
+				if (entry.userId.bits == strtoull(storedFriend.steamid().data(), nullptr, 16))
 				{
 					entry.playerName = storedFriend.name();
 					entry.experience = storedFriend.experience();
@@ -351,7 +350,7 @@ namespace Components
 			steamFriends.push_back(entry);
 		}
 
-		for(auto i = Friends::FriendsList.begin(); i != Friends::FriendsList.end();)
+		for (auto i = Friends::FriendsList.begin(); i != Friends::FriendsList.end();)
 		{
 			SteamID id = i->userId;
 
@@ -360,7 +359,7 @@ namespace Components
 				return (entry.userId.bits == id.bits);
 			});
 
-			if(oldEntry == steamFriends.end())
+			if (oldEntry == steamFriends.end())
 			{
 				i = Friends::FriendsList.erase(i);
 			}
@@ -387,7 +386,7 @@ namespace Components
 
 		auto user = Friends::FriendsList[index];
 
-		switch(column)
+		switch (column)
 		{
 		case 0:
 		{
@@ -431,7 +430,7 @@ namespace Components
 			}
 		}
 		case 2:
-		{		
+		{
 			if (!user.online) return "Offline";
 			if (!Friends::IsOnline(user.lastTime)) return "Online";
 			if (user.server.getType() == Game::NA_BAD) return "Playing IW4x";
@@ -469,9 +468,9 @@ namespace Components
 
 	void Friends::AddFriend(SteamID user)
 	{
-		if(Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
+		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
 		{
-			if(Steam::Proxy::ClientFriends.invoke<bool>("AddFriend", user))
+			if (Steam::Proxy::ClientFriends.invoke<bool>("AddFriend", user))
 			{
 				Toast::Show("cardicon_joystick", Steam::Proxy::SteamFriends->GetFriendPersonaName(user), "friend request sent", 3000);
 			}
@@ -517,7 +516,7 @@ namespace Components
 		if (!Friends::LoggedOn) return;
 
 		Proto::Friends::List list;
-		for(auto entry : Friends::FriendsList)
+		for (auto entry : Friends::FriendsList)
 		{
 			Proto::Friends::Friend* friendEntry = list.add_friends();
 
@@ -622,7 +621,7 @@ namespace Components
 
 			auto& user = Friends::FriendsList[Friends::CurrentFriend];
 
-			if(user.online && user.server.getType() != Game::NA_BAD)
+			if (user.online && user.server.getType() != Game::NA_BAD)
 			{
 				Party::Connect(user.server);
 			}
@@ -650,18 +649,18 @@ namespace Components
 				Friends::UpdateState();
 			}
 
-			if(stateInterval.elapsed(5s))
+			if (stateInterval.elapsed(5s))
 			{
 				stateInterval.update();
 
-				if(Friends::TriggerUpdate)
+				if (Friends::TriggerUpdate)
 				{
 					Friends::TriggerUpdate = false;
 					Friends::UpdateState(true);
 				}
 			}
 
-			if(sortInterval.elapsed(1s))
+			if (sortInterval.elapsed(1s))
 			{
 				sortInterval.update();
 
@@ -687,7 +686,7 @@ namespace Components
 			}
 #endif
 
-			if(Steam::Proxy::ClientFriends)
+			if (Steam::Proxy::ClientFriends)
 			{
 				Steam::Proxy::ClientFriends.invoke<void>("SetPersonaState", Friends::InitialState);
 			}
@@ -700,7 +699,7 @@ namespace Components
 				Friends::InitialState = Steam::Proxy::SteamFriends->GetPersonaState();
 			}
 
-			if(Dvar::Var("cl_anonymous").get<bool>() || !Steam::Enabled())
+			if (Dvar::Var("cl_anonymous").get<bool>() || !Steam::Enabled())
 			{
 				if (Steam::Proxy::ClientFriends)
 				{
@@ -710,7 +709,7 @@ namespace Components
 					}
 				}
 
-				if(Steam::Proxy::SteamFriends)
+				if (Steam::Proxy::SteamFriends)
 				{
 					Steam::Proxy::SteamFriends->ClearRichPresence();
 				}

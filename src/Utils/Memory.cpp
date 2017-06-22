@@ -8,7 +8,7 @@ namespace Utils
 	{
 		void* data = _aligned_malloc(length, alignment);
 		assert(data != nullptr);
-		if(data) ZeroMemory(data, length);
+		if (data) ZeroMemory(data, length);
 		return data;
 	}
 

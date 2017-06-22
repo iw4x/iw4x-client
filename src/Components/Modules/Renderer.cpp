@@ -132,14 +132,14 @@ namespace Components
 		Utils::Hook(0x536A80, Renderer::BackendFrameStub, HOOK_JUMP).install()->quick();
 
 		// Begin device recovery (not D3D9Ex)
-		Utils::Hook(0x508298, [] ()
+		Utils::Hook(0x508298, []()
 		{
 			Game::DB_BeginRecoverLostDevice();
 			Renderer::BeginRecoverDeviceSignal();
 		}, HOOK_CALL).install()->quick();
 
 		// End device recovery (not D3D9Ex)
-		Utils::Hook(0x508355, [] ()
+		Utils::Hook(0x508355, []()
 		{
 			Renderer::EndRecoverDeviceSignal();
 			Game::DB_EndRecoverLostDevice();

@@ -45,6 +45,16 @@ namespace Components
 
 	void Playlist::PlaylistRequest(Network::Address address, std::string data)
 	{
+		std::string password = Dvar::Var("g_password").get<std::string>();
+		if (password.length())
+		{
+			if (password != data)
+			{
+				Network::SendCommand(address, "playlistInvalidPassword");
+				return;
+			}
+		}
+
 		Logger::Print("Received playlist request, sending currently stored buffer.\n");
 
 		std::string compressedList = Utils::Compression::ZLib::Compress(Playlist::CurrentPlaylistBuffer);
@@ -102,6 +112,11 @@ namespace Components
 		{
 			Logger::Print("Received stray playlist response, ignoring it.\n");
 		}
+	}
+
+	void Playlist::PlaylistInvalidPassword(Network::Address /*address*/, std::string /*data*/)
+	{
+		Party::PlaylistError("Error: Invalid Password for Party.");
 	}
 
 	void Playlist::MapNameCopy(char *dest, const char *src, int destsize)
@@ -173,6 +188,7 @@ namespace Components
 
 		Network::Handle("getPlaylist", PlaylistRequest);
 		Network::Handle("playlistResponse", PlaylistReponse);
+		Network::Handle("playlistInvalidPassword", PlaylistInvalidPassword);
 	}
 
 	Playlist::~Playlist()

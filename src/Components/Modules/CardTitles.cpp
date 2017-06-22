@@ -20,14 +20,14 @@ namespace Components
 		{
 			returnResult += 0xFE000000;
 		}
-		else 
+		else
 		{
 			for (auto clientNum = 0; clientNum < 18; clientNum++)
 			{
 				CClient* c = GetClientByIndex(clientNum);
-				if (c != nullptr) 
+				if (c != nullptr)
 				{
-					if (!strcmp(data->name, c->Name)) 
+					if (!strcmp(data->name, c->Name))
 					{
 						// Since a 4 byte integer is overkill for a row num: We can use it to store the customprefix + clientNum and use a 2 byte integer for the row number
 						returnResult += 0xFF000000;
@@ -43,7 +43,7 @@ namespace Components
 
 	void __declspec(naked) CardTitles::GetPlayerCardClientInfoStub()
 	{
-		__asm 
+		__asm
 		{
 			push eax
 			pushad
@@ -59,7 +59,7 @@ namespace Components
 
 			pop esi
 			pop ebp
-			mov[ebx + 4], eax
+			mov [ebx + 4], eax
 			pop ebx
 
 			push 62EB2Ch
@@ -69,8 +69,8 @@ namespace Components
 
 	const char* CardTitles::TableLookupByRowHook(Game::Operand* operand, tablelookuprequest_s* request)
 	{
-		std::uint8_t prefix =	(request->tableRow >> (8 * 3)) & 0xFF;
-		std::uint8_t data =		(request->tableRow >> (8 * 2)) & 0xFF;
+		std::uint8_t prefix = (request->tableRow >> (8 * 3)) & 0xFF;
+		std::uint8_t data = (request->tableRow >> (8 * 2)) & 0xFF;
 
 		if (data >= ARRAYSIZE(CardTitles::CustomTitles)) return nullptr;
 
@@ -121,7 +121,7 @@ namespace Components
 
 	__declspec(naked) void CardTitles::TableLookupByRowHookStub()
 	{
-		__asm 
+		__asm
 		{
 			push eax
 			pushad
@@ -153,7 +153,7 @@ namespace Components
 		}
 	}
 
-	void CardTitles::SendCustomTitlesToClients() 
+	void CardTitles::SendCustomTitlesToClients()
 	{
 		std::string list;
 
@@ -177,7 +177,7 @@ namespace Components
 		Game::SV_GameSendServerCommand(-1, 0, command.data());
 	}
 
-	void CardTitles::ParseCustomTitles(const char* msg) 
+	void CardTitles::ParseCustomTitles(const char* msg)
 	{
 		for (int i = 0; i < 18; ++i)
 		{
@@ -210,7 +210,7 @@ namespace Components
 
 		});
 
-		for(int i = 0; i < ARRAYSIZE(CardTitles::CustomTitles); ++i)
+		for (int i = 0; i < ARRAYSIZE(CardTitles::CustomTitles); ++i)
 		{
 			CardTitles::CustomTitles[i].clear();
 		}

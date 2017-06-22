@@ -11,12 +11,12 @@ namespace Components
 
 #pragma region Client
 
-	void Download::InitiateMapDownload(std::string map)
+	void Download::InitiateMapDownload(std::string map, bool needPassword)
 	{
-		Download::InitiateClientDownload(map, true);
+		Download::InitiateClientDownload(map, needPassword, true);
 	}
 
-	void Download::InitiateClientDownload(std::string mod, bool map)
+	void Download::InitiateClientDownload(std::string mod, bool needPassword, bool map)
 	{
 		if (Download::CLDownload.running) return;
 
@@ -29,6 +29,18 @@ namespace Components
 
 		Command::Execute("openmenu mod_download_popmenu", false);
 
+		if (needPassword)
+		{
+			std::string pass = Dvar::Var("password").get<std::string>();
+			if (!pass.length())
+			{
+				// shouldn't ever happen but this is safe
+				Party::ConnectError("A password is required to connect to this server!");
+				return;
+			}
+			Download::CLDownload.hashedPassword = Utils::Cryptography::SHA256::Compute(pass);
+		}
+
 		Download::CLDownload.running = true;
 		Download::CLDownload.isMap = map;
 		Download::CLDownload.mod = mod;
@@ -37,6 +49,7 @@ namespace Components
 		Download::CLDownload.lastTimeStamp = 0;
 		Download::CLDownload.downBytes = 0;
 		Download::CLDownload.timeStampBytes = 0;
+		Download::CLDownload.isPrivate = needPassword;
 		Download::CLDownload.target = Party::Target();
 		Download::CLDownload.thread = std::thread(Download::ModDownloader, &Download::CLDownload);
 	}
@@ -216,7 +229,8 @@ namespace Components
 		}
 		else
 		{
-			url = host + "/file/" + (download->isMap ? "map/" : "") + file.name;
+			url = host + "/file/" + (download->isMap ? "map/" : "") + file.name
+				+ (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 		}
 
 		Download::FileDownload fDownload;
@@ -258,7 +272,9 @@ namespace Components
 
 		std::string host = "http://" + download->target.getString();
 
-		std::string list = Utils::WebIO("IW4x", host + (download->isMap ? "/map" : "/list")).setTimeout(5000)->get();
+		std::string listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
+
+		std::string list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->get();
 		if (list.empty())
 		{
 			if (download->terminateThread) return;
@@ -328,7 +344,7 @@ namespace Components
 		download->thread.detach();
 		download->clear();
 
-		if(download->isMap)
+		if (download->isMap)
 		{
 			Scheduler::Once([]()
 			{
@@ -386,6 +402,31 @@ namespace Components
 		return nullptr;
 	}
 
+	bool Download::VerifyPassword(mg_connection *nc, http_message* message)
+	{
+		std::string g_password = Dvar::Var("g_password").get<std::string>();
+
+		if (!g_password.size()) return true;
+
+		// sha256 hashes are 64 chars long but we're gonna be safe here
+		char buffer[128] = { 0 };
+		int passLen = mg_get_http_var(&message->query_string, "password", buffer, sizeof buffer);
+
+		if (passLen <= 0 || std::string(buffer, passLen) != g_password)//Utils::Cryptography::SHA256::Compute(g_password))
+		{
+			mg_printf(nc, ("HTTP/1.1 403 Forbidden\r\n"s +
+				"Content-Type: text/html\r\n"s +
+				"Connection: close\r\n"s +
+				"\r\n"s +
+				((passLen == 0) ? "Password Required"s : "Invalid Password"s)).c_str());
+
+			nc->flags |= MG_F_SEND_AND_CLOSE;
+			return false;
+		}
+
+		return true;
+	}
+
 	void Download::Forbid(mg_connection *nc)
 	{
 		mg_printf(nc, "HTTP/1.1 403 Forbidden\r\n"
@@ -397,16 +438,18 @@ namespace Components
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 	}
 
-	void Download::MapHandler(mg_connection *nc, int ev, void* /*ev_data*/)
+	void Download::MapHandler(mg_connection *nc, int ev, void* ev_data)
 	{
 		// Only handle http requests
 		if (ev != MG_EV_HTTP_REQUEST) return;
+
+		if (!Download::VerifyPassword(nc, reinterpret_cast<http_message*>(ev_data))) return;
 
 		static std::string mapnamePre;
 		static json11::Json jsonList;
 
 		std::string mapname = Maps::GetUserMap()->getName();
-		if(!Maps::GetUserMap()->isValid())
+		if (!Maps::GetUserMap()->isValid())
 		{
 			mapnamePre.clear();
 			jsonList = std::vector<json11::Json>();
@@ -448,10 +491,12 @@ namespace Components
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 	}
 
-	void Download::ListHandler(mg_connection* nc, int ev, void* /*ev_data*/)
+	void Download::ListHandler(mg_connection* nc, int ev, void* ev_data)
 	{
 		// Only handle http requests
 		if (ev != MG_EV_HTTP_REQUEST) return;
+
+		if (!Download::VerifyPassword(nc, reinterpret_cast<http_message*>(ev_data))) return;
 
 // 		if (!Download::IsClient(nc))
 // 		{
@@ -512,6 +557,8 @@ namespace Components
 
 		http_message* message = reinterpret_cast<http_message*>(ev_data);
 
+		//if (!Download::VerifyPassword(nc, message)) return;
+
 // 		if (!Download::IsClient(nc))
 // 		{
 // 			Download::Forbid(nc);
@@ -539,14 +586,14 @@ namespace Components
 				bool isValidFile = false;
 				for (int i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
 				{
-					if(url == (mapname + Maps::UserMapFiles[i]))
+					if (url == (mapname + Maps::UserMapFiles[i]))
 					{
 						isValidFile = true;
 						break;
 					}
 				}
 
-				if(!Maps::GetUserMap()->isValid() || !isValidFile)
+				if (!Maps::GetUserMap()->isValid() || !isValidFile)
 				{
 					Download::Forbid(nc);
 					return;
@@ -597,7 +644,7 @@ namespace Components
 		// Only handle http requests
 		if (ev != MG_EV_HTTP_REQUEST) return;
 
-		//http_message* message = reinterpret_cast<http_message*>(ev_data);
+		//if (!Download::VerifyPassword(nc, reinterpret_cast<http_message*>(ev_data))) return;
 
 		Utils::InfoString status = ServerInfo::GetInfo();
 
@@ -735,7 +782,7 @@ namespace Components
 			ZeroMemory(&Download::Mgr, sizeof Download::Mgr);
 			mg_mgr_init(&Download::Mgr, nullptr);
 
-			Network::OnStart([] ()
+			Network::OnStart([]()
 			{
 				mg_connection* nc = mg_bind(&Download::Mgr, Utils::String::VA("%hu", Network::GetPort()), Download::EventHandler);
 
@@ -744,7 +791,7 @@ namespace Components
 					// Handle special requests
 					mg_register_http_endpoint(nc, "/info", Download::InfoHandler);
 					mg_register_http_endpoint(nc, "/list", Download::ListHandler);
-					mg_register_http_endpoint(nc, "/map",  Download::MapHandler);
+					mg_register_http_endpoint(nc, "/map", Download::MapHandler);
 					mg_register_http_endpoint(nc, "/file/", Download::FileHandler);
 
 					mg_set_protocol_http_websocket(nc);
@@ -781,7 +828,7 @@ namespace Components
 				Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to the base url for the external map download.");
 			});
 
-			UIScript::Add("mod_download_cancel", [] (UIScript::Token)
+			UIScript::Add("mod_download_cancel", [](UIScript::Token)
 			{
 				Download::CLDownload.clear();
 			});
@@ -791,11 +838,11 @@ namespace Components
 		{
 			int workingCount = 0;
 
-			for(auto i = Download::ScriptDownloads.begin(); i != Download::ScriptDownloads.end();)
+			for (auto i = Download::ScriptDownloads.begin(); i != Download::ScriptDownloads.end();)
 			{
 				auto download = *i;
 
-				if(download->isDone())
+				if (download->isDone())
 				{
 					download->notifyDone();
 					i = Download::ScriptDownloads.erase(i);
@@ -811,10 +858,10 @@ namespace Components
 				++i;
 			}
 
-			for(auto& download : Download::ScriptDownloads)
+			for (auto& download : Download::ScriptDownloads)
 			{
 				if (workingCount > 5) break;
-				if(!download->isWorking())
+				if (!download->isWorking())
 				{
 					download->startWorking();
 					++workingCount;

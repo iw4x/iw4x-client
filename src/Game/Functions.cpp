@@ -746,7 +746,7 @@ namespace Game
 			mov ecx, 590390h
 			mov eax, [esp + 28h]
 			call ecx
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 			pop eax
 
@@ -765,7 +765,7 @@ namespace Game
 			mov edi, [esp + 28h]
 			call eax
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 			pop eax
 
@@ -790,7 +790,7 @@ namespace Game
 
 			add esp, 4h
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 			pop eax
 
