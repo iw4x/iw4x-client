@@ -408,11 +408,9 @@ namespace Components
 
 		if (!g_password.size()) return true;
 
-		Utils::Memory::Allocator* alloc = Utils::Memory::GetAllocator();
-
 		// sha256 hashes are 64 chars long but we're gonna be safe here
-		char* buffer = alloc->allocateArray<char>(128);
-		int passLen = mg_get_http_var(&message->query_string, "password", buffer, 128);
+		char buffer[128] = { 0 };
+		int passLen = mg_get_http_var(&message->query_string, "password", buffer, sizeof buffer);
 
 		if (passLen <= 0 || std::string(buffer, passLen) != g_password)//Utils::Cryptography::SHA256::Compute(g_password))
 		{
