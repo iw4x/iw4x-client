@@ -237,7 +237,7 @@ workspace "iw4x"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
 	buildlog "%{wks.location}/obj/%{cfg.architecture}/%{cfg.buildcfg}/%{prj.name}/%{prj.name}.log"
 	configurations { "Debug", "Release" }
-	architecture "x32"
+	architecture "x86"
 	platforms "x86"
 	exceptionhandling ("SEH")
 
