@@ -35,11 +35,6 @@ namespace Utils
 			return input;
 		}
 
-		bool EndsWith(std::string haystack, std::string needle)
-		{
-			return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
-		}
-
 		std::string DumpHex(std::string data, std::string separator)
 		{
 			std::string result;
@@ -102,6 +97,11 @@ namespace Utils
 		bool StartsWith(std::string haystack, std::string needle)
 		{
 			return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data(), needle.size()));
+		}
+
+		bool EndsWith(std::string haystack, std::string needle)
+		{
+			return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data() + (haystack.size() - needle.size()), needle.size()));
 		}
 
 		int IsSpace(int c)
