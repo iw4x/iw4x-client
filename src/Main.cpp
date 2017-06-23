@@ -68,7 +68,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		// Ensure we're working with our desired binary
 		if (Utils::Hook::Get<DWORD>(0x4C0FFF) != 0x6824748B) return FALSE;
 
-#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
+#ifndef DISABLE_ANTICHEAT
 		[]()
 		{
 			Components::AntiCheat::ProtectProcess();
@@ -90,7 +90,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 	}
 	else if(ul_reason_for_call == DLL_THREAD_ATTACH)
 	{
-#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
+#ifndef DISABLE_ANTICHEAT
 		[]()
 		{
 			Components::AntiCheat::VerifyThreadIntegrity();

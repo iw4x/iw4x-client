@@ -855,7 +855,7 @@ namespace Components
 		Scheduler::OnFrame(ServerList::Frame);
 
 		// This is placed here in case the anticheat has been disabled!
-#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT) && defined(PROCTECT_PROCESS)
+#if !defined(DISABLE_ANTICHEAT) && defined(PROCTECT_PROCESS)
 		Scheduler::OnFrame(AntiCheat::ReadIntegrityCheck, true);
 #endif
 	}

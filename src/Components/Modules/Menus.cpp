@@ -766,7 +766,7 @@ namespace Components
 			}
 		});
 
-#if !defined(DEBUG) && !defined(DISABLE_ANTICHEAT)
+#ifndef DISABLE_ANTICHEAT
 		Scheduler::OnFrame(AntiCheat::QuickCodeScanner2);
 #endif
 
