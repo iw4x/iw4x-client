@@ -18,7 +18,7 @@ namespace Components
 		{
 			Utils::String::Replace(node, "\r", "");
 			node = Utils::String::Trim(node);
-			Node::AddNode(node);
+			Node::AddNode(node, true);
 		}
 	}
 
@@ -39,7 +39,7 @@ namespace Components
 
 		for (int i = 0; i < list.address_size(); ++i)
 		{
-			Node::AddNode(list.address(i));
+			Node::AddNode(list.address(i), true);
 		}
 	}
 
@@ -125,7 +125,7 @@ namespace Components
 		return count;
 	}
 
-	void Node::AddNode(Network::Address address)
+	void Node::AddNode(Network::Address address, bool def)
 	{
 #ifdef DEBUG
 		if (!address.isValid() || address.isSelf()) return;
@@ -137,6 +137,7 @@ namespace Components
 		Node::NodeEntry* existingEntry = Node::FindNode(address);
 		if (existingEntry)
 		{
+			existingEntry->def = false;
 			existingEntry->lastHeard = Game::Sys_Milliseconds();
 		}
 		else
@@ -155,6 +156,7 @@ namespace Components
 			Node::NodeEntry entry;
 
 			entry.lastHeard = Game::Sys_Milliseconds();
+			entry.def = def;
 			entry.lastTime = 0;
 			entry.lastListQuery = 0;
 			entry.registered = false;
@@ -222,7 +224,7 @@ namespace Components
 
 		for (auto i = Node::Nodes.begin(); i != Node::Nodes.end();)
 		{
-			if (i->state == Node::STATE_INVALID && (Game::Sys_Milliseconds() - i->lastHeard) > NODE_INVALID_DELETE)
+			if (i->state == Node::STATE_INVALID && ((Game::Sys_Milliseconds() - i->lastHeard) > NODE_INVALID_DELETE || i->def))
 			{
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
 				Logger::Print("Removing invalid node %s\n", i->address.getCString());
@@ -520,6 +522,7 @@ namespace Components
 				// Mark as registered
 				entry->lastTime = Game::Sys_Milliseconds();
 				entry->state = Node::STATE_VALID;
+				entry->def = false;
 				entry->registered = true;
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
@@ -566,6 +569,7 @@ namespace Components
 				{
 					entry->lastTime = Game::Sys_Milliseconds();
 					entry->state = Node::STATE_VALID;
+					entry->def = false;
 					entry->registered = true;
 
 #if defined(DEBUG) && !defined(DISABLE_NODE_LOG)
@@ -641,6 +645,7 @@ namespace Components
 
 				if (Utils::Cryptography::ECC::VerifyMessage(entry->publicKey, challenge, signature))
 				{
+					entry->def = true;
 					entry->lastHeard = Game::Sys_Milliseconds();
 					entry->lastTime = Game::Sys_Milliseconds();
 					entry->registered = false;
@@ -736,6 +741,7 @@ namespace Components
 				if (!entry) return;
 
 				entry->state = Node::STATE_VALID;
+				entry->def = false;
 				entry->registered = true;
 				entry->lastTime = Game::Sys_Milliseconds();
 
@@ -773,6 +779,7 @@ namespace Components
 					entry->protocol = list.protocol();
 					entry->version = list.version();
 					entry->state = Node::STATE_VALID;
+					entry->def = false;
 					entry->lastTime = Game::Sys_Milliseconds();
 
 #ifndef DEBUG
@@ -858,6 +865,21 @@ namespace Components
 			{
 				Logger::Print("%s\t(%s)\n", node.address.getCString(), Node::GetStateName(node.state));
 			}
+		});
+
+		Command::Add("nodeinfo", [](Command::Params*)
+		{
+			std::lock_guard<std::recursive_mutex> _(Node::NodeMutex);
+			unsigned int valid = 0, invalid = 0, negotiating = 0, total = Node::Nodes.size();
+
+			for (auto& node : Node::Nodes)
+			{
+				valid += static_cast<unsigned int>(node.state == Node::STATE_VALID);
+				invalid += static_cast<unsigned int>(node.state == Node::STATE_INVALID);
+				negotiating += static_cast<unsigned int>(node.state == Node::STATE_NEGOTIATING);
+			}
+
+			Logger::Print("Total:       %d\nValid:       %d\nNegotiating: %d\nInvalid:     %d\n\n", total, valid, negotiating, invalid);
 		});
 
 		Command::Add("addnode", [](Command::Params* params)

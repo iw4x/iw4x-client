@@ -24,7 +24,7 @@ namespace Components
 		bool unitTest() override;
 
 		static void SyncNodeList();
-		static void AddNode(Network::Address address);
+		static void AddNode(Network::Address address, bool def = false);
 
 		static unsigned int GetValidNodeCount();
 
@@ -54,6 +54,8 @@ namespace Components
 			int lastTime;          // Last time we heard anything from the server itself
 			int lastHeard;         // Last time we heard something of the server at all (refs form other nodes)
 			int lastListQuery;     // Last time we got the list of the node
+
+			bool def;
 
 			// This is only relevant for clients
 			bool isDedi;
