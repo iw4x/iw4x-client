@@ -74,11 +74,6 @@ newoption {
 }
 
 newoption {
-	trigger = "disable-node-log",
-	description = "Disable debugging messages for Nodes in Debug builds."
-}
-
-newoption {
 	trigger = "enable-dxsdk",
 	description = "Enable DirectX SDK (required for GfxMap exporting)."
 }
@@ -296,9 +291,6 @@ workspace "iw4x"
 		end
 		if _OPTIONS["force-exception-handler"] then
 			defines { "FORCE_EXCEPTION_HANDLER" }
-		end
-		if _OPTIONS["disable-node-log"] then
-			defines { "DISABLE_NODE_LOG"}
 		end
 		if _OPTIONS["enable-dxsdk"] then
 			defines { "ENABLE_DXSDK" }
