@@ -304,7 +304,6 @@ namespace Components
 			if (params->length() < 2) return;
 			Node::Add({ params->get(1) });
 		});
-
 	}
 
 	Node::~Node()
