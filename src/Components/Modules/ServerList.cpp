@@ -687,6 +687,7 @@ namespace Components
 	{
 		static int servers = 0;
 		static int players = 0;
+		static int bots = 0;
 
 		auto list = ServerList::GetList();
 
@@ -694,18 +695,21 @@ namespace Components
 		{
 			int newSevers = list->size();
 			int newPlayers = 0;
+			int newBots = 0;
 
 			for (unsigned int i = 0; i < list->size(); ++i)
 			{
 				newPlayers += list->at(i).clients;
+				newBots += list->at(i).bots;
 			}
 
-			if (newSevers != servers || newPlayers != players)
+			if (newSevers != servers || newPlayers != players || newBots != bots)
 			{
 				servers = newSevers;
 				players = newPlayers;
+				bots = newBots;
 
-				Localization::Set("MPUI_SERVERQUERIED", Utils::String::VA("Servers: %i\nPlayers: %i", servers, players));
+				Localization::Set("MPUI_SERVERQUERIED", Utils::String::VA("Servers: %i\nPlayers: %i (%i)", servers, players, bots));
 			}
 		}
 	}
@@ -728,7 +732,7 @@ namespace Components
 		Dvar::Register<int>("ui_netSource", 1, 0, 2, Game::DVAR_FLAG_SAVED, reinterpret_cast<const char*>(0x6D9F08));
 
 		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
-		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0");
+		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0 (0)");
 
 		Network::Handle("getServersResponse", [](Network::Address address, std::string data)
 		{
