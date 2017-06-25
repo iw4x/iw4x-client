@@ -169,6 +169,8 @@ namespace Components
 
 			++i;
 		}
+
+		Node::StoreNodes(false);
 	}
 
 	void Node::Synchronize()
@@ -250,11 +252,6 @@ namespace Components
 		Session::Send(address, "nodeListResponse", list.SerializeAsString());
 	}
 
-	void Node::HandleRequest(Network::Address address, std::string /*data*/)
-	{
-		Node::SendList(address);
-	}
-
 	unsigned short Node::GetPort()
 	{
 		if (Dvar::Var("net_natFix").get<bool>()) return 0;
@@ -268,7 +265,10 @@ namespace Components
 
 		Scheduler::OnFrame(Node::RunFrame);
 		Session::Handle("nodeListResponse", Node::HandleResponse);
-		Session::Handle("nodeListRequest", Node::HandleRequest);
+		Session::Handle("nodeListRequest", [](Network::Address address, std::string)
+		{
+			Node::SendList(address);
+		});
 
 		// Load stored nodes
 		auto loadNodes = []()

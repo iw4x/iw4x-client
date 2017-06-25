@@ -47,7 +47,6 @@ namespace Components
 		static std::vector<Entry> Nodes;
 
 		static void HandleResponse(Network::Address address, std::string data);
-		static void HandleRequest(Network::Address address, std::string data);
 
 		static void SendList(Network::Address address);
 
