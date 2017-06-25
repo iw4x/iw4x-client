@@ -13,5 +13,15 @@ namespace Utils
 		{
 			return ((std::chrono::high_resolution_clock::now() - this->lastPoint) >= nsecs);
 		}
+
+		std::chrono::high_resolution_clock::duration Point::diff(Point point)
+		{
+			return point.lastPoint - this->lastPoint;
+		}
+
+		bool Point::after(Point point)
+		{
+			return this->diff(point).count() < 0;
+		}
 	}
 }

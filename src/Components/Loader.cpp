@@ -60,6 +60,7 @@ namespace Components
 		Loader::Register(new ModList());
 		Loader::Register(new Monitor());
 		Loader::Register(new Network());
+		Loader::Register(new Session());
 		Loader::Register(new Theatre());
 		//Loader::Register(new ClanTags());
 		Loader::Register(new Download());

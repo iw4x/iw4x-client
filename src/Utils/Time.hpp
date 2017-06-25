@@ -6,7 +6,7 @@ namespace Utils
 	{
 		class Interval
 		{
-		private:
+		protected:
 			std::chrono::high_resolution_clock::time_point lastPoint;
 
 		public:
@@ -14,6 +14,15 @@ namespace Utils
 
 			void update();
 			bool elapsed(std::chrono::nanoseconds nsecs);
+		};
+
+		class Point : public Interval
+		{
+		public:
+			Point() : Interval() {}
+
+			std::chrono::high_resolution_clock::duration diff(Point point);
+			bool after(Point point);
 		};
 	}
 }

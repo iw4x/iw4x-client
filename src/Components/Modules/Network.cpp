@@ -14,7 +14,7 @@ namespace Components
 	{
 		Game::SockadrToNetadr(addr, &this->address);
 	}
-	bool Network::Address::operator==(const Network::Address &obj)
+	bool Network::Address::operator==(const Network::Address &obj) const
 	{
 		return Game::NET_CompareAdr(this->address, obj.address);
 	}
@@ -67,11 +67,11 @@ namespace Components
 	{
 		return &this->address;
 	}
-	const char* Network::Address::getCString()
+	const char* Network::Address::getCString() const
 	{
 		return Game::NET_AdrToString(this->address);
 	}
-	std::string Network::Address::getString()
+	std::string Network::Address::getString() const
 	{
 		return this->getCString();
 	}
@@ -123,18 +123,6 @@ namespace Components
 	{
 		return (this->getType() != Game::netadrtype_t::NA_BAD);
 	}
-	void Network::Address::serialize(Proto::Network::Address* protoAddress)
-	{
-		protoAddress->set_ip(this->getIP().full);
-		protoAddress->set_port(this->getPort() & 0xFFFF);
-	}
-	void Network::Address::deserialize(const Proto::Network::Address& protoAddress)
-	{
-		this->setIP(protoAddress.ip());
-		this->setPort(static_cast<uint16_t>(protoAddress.port()));
-		this->setType(Game::netadrtype_t::NA_IP);
-	}
-
 	void Network::Handle(std::string packet, Utils::Slot<Network::Callback> callback)
 	{
 		Network::PacketHandlers[Utils::String::ToLower(packet)] = callback;

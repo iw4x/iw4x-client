@@ -24,7 +24,7 @@ namespace Components
 
 	void Party::Connect(Network::Address target)
 	{
-		Node::AddNode(target);
+		Node::Add(target);
 
 		Party::Container.valid = true;
 		Party::Container.awaitingPlaylist = false;

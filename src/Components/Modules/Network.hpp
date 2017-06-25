@@ -19,9 +19,8 @@ namespace Components
 			Address(Game::netadr_t addr) : address(addr) {}
 			Address(Game::netadr_t* addr) : Address(*addr) {}
 			Address(const Address& obj) : address(obj.address) {};
-			Address(const Proto::Network::Address& addr) { this->deserialize(addr); };
-			bool operator!=(const Address &obj) { return !(*this == obj); };
-			bool operator==(const Address &obj);
+			bool operator!=(const Address &obj) const { return !(*this == obj); };
+			bool operator==(const Address &obj) const;
 
 			void setPort(unsigned short port);
 			unsigned short getPort();
@@ -37,16 +36,13 @@ namespace Components
 			void toSockAddr(sockaddr* addr);
 			void toSockAddr(sockaddr_in* addr);
 			Game::netadr_t* get();
-			const char* getCString();
-			std::string getString();
+			const char* getCString() const;
+			std::string getString() const;
 
 			bool isLocal();
 			bool isSelf();
 			bool isValid();
 			bool isLoopback();
-
-			void serialize(Proto::Network::Address* protoAddress);
-			void deserialize(const Proto::Network::Address& protoAddress);
 
 		private:
 			Game::netadr_t address;
@@ -94,3 +90,12 @@ namespace Components
 		static void PacketErrorCheck();
 	};
 }
+
+template <>
+struct std::hash<Components::Network::Address>
+{
+	std::size_t operator()(const Components::Network::Address& k) const
+	{
+		return (std::hash<std::string>()(k.getString()));
+	}
+};

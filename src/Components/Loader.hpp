@@ -92,6 +92,7 @@ namespace Components
 #include "Modules/Logger.hpp"
 #include "Modules/Friends.hpp"
 #include "Modules/IPCPipe.hpp"
+#include "Modules/Session.hpp"
 #include "Modules/ClanTags.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Playlist.hpp"

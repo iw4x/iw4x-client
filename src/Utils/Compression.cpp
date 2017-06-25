@@ -8,6 +8,7 @@ namespace Utils
 		{
 			Utils::Memory::Allocator allocator;
 			unsigned long length = (data.size() * 2);
+			if (!length) length = 2;
 
 			// Make sure the buffer is large enough
 			if (length < 100) length *= 10;
@@ -16,7 +17,6 @@ namespace Utils
 
 			if (compress2(reinterpret_cast<Bytef*>(buffer), &length, reinterpret_cast<Bytef*>(const_cast<char*>(data.data())), data.size(), Z_BEST_COMPRESSION) != Z_OK)
 			{
-				Utils::Memory::Free(buffer);
 				return "";
 			}
 

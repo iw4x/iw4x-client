@@ -1,23 +1,16 @@
 syntax = "proto3";
 
 package Proto.Node;
-import "network.proto";
-
-message Packet 
-{
-	bytes challenge = 1;
-	bytes signature = 2;
-	bytes publickey = 3;
-
-	// The port is used to check if a dedi sends data through a redirected port.
-	// This usually means the port is not forwarded
-	uint32 port     = 4;
-}
 
 message List
 {
-	bool is_dedi = 1;
-	repeated Network.Address address = 2; 
-	uint32 protocol = 3;
-	uint32 version = 4;
+	repeated bytes nodes = 1;
+
+	// The port is used to check if a dedi sends data through a redirected port.
+	// This usually means the port is not forwarded
+	uint32 port = 2;
+
+	// Additional data
+	bool isNode = 3;
+	uint64 protocol = 4;
 }

@@ -32,7 +32,8 @@ namespace Components
 		while (!interval.elapsed(15s))
 		{
 			Utils::Hook::Call<void()>(0x49F0B0)(); // Com_ClientPacketEvent
-			Node::FrameHandler();
+			Session::RunFrame();
+			Node::RunFrame();
 			ServerList::Frame();
 
 			std::this_thread::sleep_for(10ms);

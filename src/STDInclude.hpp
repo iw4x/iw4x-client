@@ -89,7 +89,7 @@ template <size_t S> class Sizer { };
 #endif
 
 // Protobuf
-#include "proto/network.pb.h"
+#include "proto/session.pb.h"
 #include "proto/party.pb.h"
 #include "proto/auth.pb.h"
 #include "proto/node.pb.h"

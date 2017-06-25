@@ -283,7 +283,7 @@ namespace Components
 			Network::SendCommand(ServerList::RefreshContainer.host, "getservers", Utils::String::VA("IW4 %i full empty", PROTOCOL));
 			//Network::SendCommand(ServerList::RefreshContainer.Host, "getservers", "0 full empty");
 #else
-			Node::SyncNodeList();
+			Node::Synchronize();
 #endif
 		}
 		else if (ServerList::IsFavouriteList())
