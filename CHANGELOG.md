@@ -8,7 +8,6 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
-- Show friend avatars when they play IW4x (request).
 - Add fast download option for custom mods/maps based on Call of Duty 4.
 - Display a toast when an update is available.
 - Use the hourglass cursor while loading assets (with the native cursor feature).
@@ -17,6 +16,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Changed
 
 - Show friend avatars when they play IW4x (request).
+- Rewrite and optimize the entire node system.
 
 ### Fixed
 
@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Can no longer join a lobby or server with an incorrect password.
 - Fix lags and frame drops caused by server sorting.
 - Fix demos on custom maps.
+- Fix crashes caused by a bug in file/data compression
 
 ## [0.5.0] - 2017-06-04
 
