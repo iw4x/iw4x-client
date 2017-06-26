@@ -12,5 +12,12 @@ namespace Utils
 			static std::string Compress(std::string data);
 			static std::string Decompress(std::string data);
 		};
+
+		class ZStd
+		{
+		public:
+			static std::string Compress(std::string data);
+			static std::string Decompress(std::string data);
+		};
 	};
 }
