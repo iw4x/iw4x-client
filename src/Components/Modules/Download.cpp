@@ -32,13 +32,13 @@ namespace Components
 		if (needPassword)
 		{
 			std::string pass = Dvar::Var("password").get<std::string>();
-			if (!pass.length())
+			if (pass.empty())
 			{
 				// shouldn't ever happen but this is safe
 				Party::ConnectError("A password is required to connect to this server!");
 				return;
 			}
-			Download::CLDownload.hashedPassword = Utils::Cryptography::SHA256::Compute(pass);
+			Download::CLDownload.password = pass;
 		}
 
 		Download::CLDownload.running = true;
@@ -230,7 +230,7 @@ namespace Components
 		else
 		{
 			url = host + "/file/" + (download->isMap ? "map/" : "") + file.name
-				+ (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
+				+ (download->isPrivate ? ("?password=" + download->password) : "");
 		}
 
 		Download::FileDownload fDownload;
@@ -272,7 +272,7 @@ namespace Components
 
 		std::string host = "http://" + download->target.getString();
 
-		std::string listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
+		std::string listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->password) : "");
 
 		std::string list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->get();
 		if (list.empty())
@@ -405,8 +405,7 @@ namespace Components
 	bool Download::VerifyPassword(mg_connection *nc, http_message* message)
 	{
 		std::string g_password = Dvar::Var("g_password").get<std::string>();
-
-		if (!g_password.size()) return true;
+		if (g_password.empty()) return true;
 
 		// sha256 hashes are 64 chars long but we're gonna be safe here
 		char buffer[128] = { 0 };
@@ -810,12 +809,6 @@ namespace Components
 					mg_mgr_poll(&Download::Mgr, 100);
 				}
 			});
-
-			Dvar::OnInit([]()
-			{
-				Dvar::Register<bool>("sv_wwwDownload", false, Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to true to enable downloading maps/mods from an external server.");
-				Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to the base url for the external map download.");
-			});
 		}
 		else
 		{
@@ -824,8 +817,6 @@ namespace Components
 				Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
 				Dvar::Register<const char*>("ui_dl_progress", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
 				Dvar::Register<const char*>("ui_dl_transRate", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
-				Dvar::Register<bool>("sv_wwwDownload", false, Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to true to enable downloading maps/mods from an external server.");
-				Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to the base url for the external map download.");
 			});
 
 			UIScript::Add("mod_download_cancel", [](UIScript::Token)
@@ -833,6 +824,12 @@ namespace Components
 				Download::CLDownload.clear();
 			});
 		}
+
+		Dvar::OnInit([]()
+		{
+			Dvar::Register<bool>("sv_wwwDownload", false, Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to true to enable downloading maps/mods from an external server.");
+			Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to the base url for the external map download.");
+		});
 
 		Scheduler::OnFrame([]()
 		{
