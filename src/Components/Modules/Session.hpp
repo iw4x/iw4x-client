@@ -1,6 +1,6 @@
 #pragma once
 
-#define SESSION_TIMEOUT 10s
+#define SESSION_TIMEOUT (10 * 1000) //10s
 #define SESSION_MAX_RETRIES 3
 #define SESSION_REQUEST_LIMIT 3
 

@@ -16,13 +16,18 @@ namespace Utils
 			bool elapsed(std::chrono::nanoseconds nsecs);
 		};
 
-		class Point : public Interval
+		class Point
 		{
 		public:
-			Point() : Interval() {}
+			Point();
 
-			std::chrono::high_resolution_clock::duration diff(Point point);
+			void update();
+			int diff(Point point);
 			bool after(Point point);
+			bool elapsed(int milliseconds);
+
+		private:
+			int lastPoint;
 		};
 	}
 }

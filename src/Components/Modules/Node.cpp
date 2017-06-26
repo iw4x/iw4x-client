@@ -110,6 +110,7 @@ namespace Components
 
 		static Utils::Time::Interval interval;
 		if (!force && !interval.elapsed(1min)) return;
+		interval.update();
 
 		Proto::Node::List list;
 

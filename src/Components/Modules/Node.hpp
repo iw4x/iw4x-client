@@ -1,6 +1,6 @@
 #pragma once
 
-#define NODE_HALFLIFE 3min
+#define NODE_HALFLIFE (3 * 60 * 1000) //3min
 #define NODE_REQUEST_LIMIT 3
 
 namespace Components
