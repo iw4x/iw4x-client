@@ -4,7 +4,9 @@ namespace Utils
 {
 	namespace Compression
 	{
-		std::string ZLib::Compress(std::string data)
+		std::mutex Deflate::Mutex;
+
+		std::string Deflate::Compress(std::string data)
 		{
 			Utils::Memory::Allocator allocator;
 			unsigned long length = (data.size() * 2);
@@ -15,7 +17,8 @@ namespace Utils
 
 			char* buffer = allocator.allocateArray<char>(length);
 
-			if (compress2(reinterpret_cast<Bytef*>(buffer), &length, reinterpret_cast<Bytef*>(const_cast<char*>(data.data())), data.size(), Z_BEST_COMPRESSION) != Z_OK)
+			int level = (ZWRAP_isUsingZSTDcompression() ? ZSTD_maxCLevel() : Z_BEST_COMPRESSION);
+			if (compress2(reinterpret_cast<Bytef*>(buffer), &length, reinterpret_cast<Bytef*>(const_cast<char*>(data.data())), data.size(), level) != Z_OK)
 			{
 				return "";
 			}
@@ -26,7 +29,7 @@ namespace Utils
 			return data;
 		}
 
-		std::string ZLib::Decompress(std::string data)
+		std::string Deflate::Decompress(std::string data)
 		{
 			z_stream stream;
 			ZeroMemory(&stream, sizeof(stream));
@@ -69,6 +72,43 @@ namespace Utils
 
 			inflateEnd(&stream);
 			return buffer;
+		}
+
+		std::string Deflate::ZLib::Compress(std::string data)
+		{
+			Deflate::Semaphore _(DEFLATE_ZLIB);
+			return Deflate::Compress(data);
+		}
+
+		std::string Deflate::ZLib::Decompress(std::string data)
+		{
+			Deflate::Semaphore _(DEFLATE_ZLIB);
+			return Deflate::Decompress(data);
+		}
+
+		std::string Deflate::ZStd::Compress(std::string data)
+		{
+			Deflate::Semaphore _(DEFLATE_ZSTD);
+			return Deflate::Compress(data);
+		}
+
+		std::string Deflate::ZStd::Decompress(std::string data)
+		{
+			Deflate::Semaphore _(DEFLATE_ZSTD);
+			return Deflate::Decompress(data);
+		}
+
+		Deflate::Semaphore::Semaphore(bool zstd)
+		{
+			Deflate::Mutex.lock();
+			this->state = ZWRAP_isUsingZSTDcompression();
+			ZWRAP_useZSTDcompression(zstd);
+		}
+
+		Deflate::Semaphore::~Semaphore()
+		{
+			ZWRAP_useZSTDcompression(this->state);
+			Deflate::Mutex.unlock();
 		}
 	};
 }

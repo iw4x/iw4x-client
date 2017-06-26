@@ -29,3 +29,7 @@
 [submodule "deps/udis86"]
 	path = deps/udis86
 	url = ../udis86.git
+[submodule "deps/zstd"]
+	path = deps/zstd
+	url = https://github.com/facebook/zstd.git
+	branch = dev

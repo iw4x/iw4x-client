@@ -73,7 +73,12 @@ template <size_t S> class Sizer { };
 #pragma warning(disable: 6386)
 #pragma warning(disable: 6387)
 
-#include <zlib.h>
+// #include <zlib.h>
+#include <zstd.h>
+
+#define ZWRAP_USE_ZSTD 1
+#include <zstd_zlibwrapper.h>
+
 #include <curses.h>
 #include <mongoose.h>
 #include <json11.hpp>
