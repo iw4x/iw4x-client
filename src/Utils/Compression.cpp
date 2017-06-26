@@ -17,7 +17,8 @@ namespace Utils
 
 			char* buffer = allocator.allocateArray<char>(length);
 
-			if (compress2(reinterpret_cast<Bytef*>(buffer), &length, reinterpret_cast<Bytef*>(const_cast<char*>(data.data())), data.size(), Z_BEST_COMPRESSION) != Z_OK)
+			int level = (ZWRAP_isUsingZSTDcompression() ? ZSTD_maxCLevel() : Z_BEST_COMPRESSION);
+			if (compress2(reinterpret_cast<Bytef*>(buffer), &length, reinterpret_cast<Bytef*>(const_cast<char*>(data.data())), data.size(), level) != Z_OK)
 			{
 				return "";
 			}
