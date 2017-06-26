@@ -57,7 +57,7 @@ namespace Components
 
 		Logger::Print("Received playlist request, sending currently stored buffer.\n");
 
-		std::string compressedList = Utils::Compression::ZLib::Compress(Playlist::CurrentPlaylistBuffer);
+		std::string compressedList = Utils::Compression::Deflate::ZStd::Compress(Playlist::CurrentPlaylistBuffer);
 
 		Proto::Party::Playlist list;
 		list.set_hash(Utils::Cryptography::JenkinsOneAtATime::Compute(compressedList));
@@ -95,7 +95,7 @@ namespace Components
 					}
 
 					// Decompress buffer
-					Playlist::ReceivedPlaylistBuffer = Utils::Compression::ZLib::Decompress(compressedData);
+					Playlist::ReceivedPlaylistBuffer = Utils::Compression::Deflate::ZStd::Decompress(compressedData);
 
 					// Load and continue connection
 					Logger::Print("Received playlist, loading and continuing connection...\n");

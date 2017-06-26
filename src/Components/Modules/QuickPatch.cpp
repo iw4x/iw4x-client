@@ -718,8 +718,32 @@ namespace Components
 
 		for (int i = 0; i < 21; ++i)
 		{
-			std::string compressed = Utils::Compression::ZLib::Compress(test);
-			std::string decompressed = Utils::Compression::ZLib::Decompress(compressed);
+			std::string compressed = Utils::Compression::Deflate::ZLib::Compress(test);
+			std::string decompressed = Utils::Compression::Deflate::ZLib::Decompress(compressed);
+
+			if (test != decompressed)
+			{
+				printf("Error\n");
+				printf("Compressing %d bytes and decompressing failed!\n", test.size());
+				return false;
+			}
+
+			auto size = test.size();
+			for (unsigned int j = 0; j < size; ++j)
+			{
+				test.append(Utils::String::VA("%c", Utils::Cryptography::Rand::GenerateInt()));
+			}
+		}
+
+		printf("Success\n");
+		printf("Testing ZStd compression...");
+
+		test = Utils::String::VA("%c", Utils::Cryptography::Rand::GenerateInt());
+
+		for (int i = 0; i < 21; ++i)
+		{
+			std::string compressed = Utils::Compression::Deflate::ZStd::Compress(test);
+			std::string decompressed = Utils::Compression::Deflate::ZStd::Decompress(compressed);
 
 			if (test != decompressed)
 			{

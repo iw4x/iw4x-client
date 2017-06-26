@@ -34,6 +34,9 @@ namespace Components
 		static unsigned int CurrentZone;
 		static unsigned int MaxZones;
 
+		static bool UseZstd;
+		static Utils::Compression::Deflate::Semaphore* ZlibLock;
+
 		static bool IsIW4xZone;
 		static bool StreamRead;
 
@@ -62,6 +65,10 @@ namespace Components
 
 		static void ReadXFile(void* buffer, int size);
 		static void ReadXFileStub(char* buffer, int size);
+
+		static int InflateInitStub(z_streamp strm, const char *version, int stream_size);
+		static int InflateStub(z_streamp strm, int flush);
+		static int InflateEndStub(z_streamp strm);
 
 #ifdef DEBUG
 		static void LogStreamRead(int len);

@@ -4,7 +4,9 @@ namespace Utils
 {
 	namespace Compression
 	{
-		std::string ZLib::Compress(std::string data)
+		std::mutex Deflate::Mutex;
+
+		std::string Deflate::Compress(std::string data)
 		{
 			Utils::Memory::Allocator allocator;
 			unsigned long length = (data.size() * 2);
@@ -26,7 +28,7 @@ namespace Utils
 			return data;
 		}
 
-		std::string ZLib::Decompress(std::string data)
+		std::string Deflate::Decompress(std::string data)
 		{
 			z_stream stream;
 			ZeroMemory(&stream, sizeof(stream));
@@ -71,71 +73,41 @@ namespace Utils
 			return buffer;
 		}
 
-
-
-
-		std::string ZStd::Compress(std::string data)
+		std::string Deflate::ZLib::Compress(std::string data)
 		{
-			Utils::Memory::Allocator allocator;
-
-			size_t length = (ZSTD_compressBound(data.size() + 1) + 1) * 2;
-			char* buffer = allocator.allocateArray<char>(length);
-
-			length = ZSTD_compress(buffer, length, data.data(), data.size(), ZSTD_maxCLevel());
-			if (length <= 0/* || ZSTD_isError()*/)
-			{
-				return "";
-			}
-
-			data.clear();
-			data.append(buffer, length);
-
-			return data;
+			Deflate::Semaphore _(DEFLATE_ZLIB);
+			return Deflate::Compress(data);
 		}
 
-		std::string ZStd::Decompress(std::string data)
+		std::string Deflate::ZLib::Decompress(std::string data)
 		{
-			z_stream stream;
-			ZeroMemory(&stream, sizeof(stream));
-			std::string buffer;
+			Deflate::Semaphore _(DEFLATE_ZLIB);
+			return Deflate::Decompress(data);
+		}
 
-			if (inflateInit(&stream) != Z_OK)
-			{
-				return "";
-			}
+		std::string Deflate::ZStd::Compress(std::string data)
+		{
+			Deflate::Semaphore _(DEFLATE_ZSTD);
+			return Deflate::Compress(data);
+		}
 
-			int ret;
-			Utils::Memory::Allocator allocator;
+		std::string Deflate::ZStd::Decompress(std::string data)
+		{
+			Deflate::Semaphore _(DEFLATE_ZSTD);
+			return Deflate::Decompress(data);
+		}
 
-			uint8_t* dest = allocator.allocateArray<uint8_t>(CHUNK);
-			const char* dataPtr = data.data();
+		Deflate::Semaphore::Semaphore(bool zstd)
+		{
+			Deflate::Mutex.lock();
+			this->state = ZWRAP_isUsingZSTDcompression();
+			ZWRAP_useZSTDcompression(zstd);
+		}
 
-			do
-			{
-				stream.avail_in = std::min(static_cast<size_t>(CHUNK), data.size() - (dataPtr - data.data()));
-				stream.next_in = reinterpret_cast<const uint8_t*>(dataPtr);
-				dataPtr += stream.avail_in;
-
-				do
-				{
-					stream.avail_out = CHUNK;
-					stream.next_out = dest;
-
-					ret = inflate(&stream, Z_NO_FLUSH);
-					if (ret != Z_OK && ret != Z_STREAM_END)
-					{
-						inflateEnd(&stream);
-						return "";
-					}
-
-					buffer.append(reinterpret_cast<const char*>(dest), CHUNK - stream.avail_out);
-
-				} while (stream.avail_out == 0);
-
-			} while (ret != Z_STREAM_END);
-
-			inflateEnd(&stream);
-			return buffer;
+		Deflate::Semaphore::~Semaphore()
+		{
+			ZWRAP_useZSTDcompression(this->state);
+			Deflate::Mutex.unlock();
 		}
 	};
 }
