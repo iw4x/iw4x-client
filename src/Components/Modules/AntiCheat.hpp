@@ -4,7 +4,9 @@
 // Hide AntiCheat in embeded symbol names
 #define AntiCheat SubComponent
 #else
-#define DISABLE_ANTICHEAT
+# ifndef DISABLE_ANTICHEAT
+#  define DISABLE_ANTICHEAT
+# endif
 #endif
 
 // Uncomment to enable process protection (conflicts with steam!)
