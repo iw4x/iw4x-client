@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Display a toast when an update is available.
 - Use the hourglass cursor while loading assets (with the native cursor feature).
 - Show bots in parenthesis after the number of players in the serverlist (request).
+- Add GSC command `level waittill("say", string, player);` (request).
 
 ### Changed
 
