@@ -523,6 +523,9 @@ namespace Game
 	typedef void(__cdecl * RemoveRefToObject_t)(unsigned int id);
 	extern RemoveRefToObject_t RemoveRefToObject;
 
+	typedef void(__cdecl * Scr_AddEntity_t)(gentity_s const*);
+	extern Scr_AddEntity_t Scr_AddEntity;
+
 	typedef void(__cdecl * Scr_AddString_t)(const char* str);
 	extern Scr_AddString_t Scr_AddString;
 
@@ -570,6 +573,9 @@ namespace Game
 
 	typedef void(__cdecl * Scr_Notify_t)(gentity_t *ent, unsigned __int16 stringValue, unsigned int paramcount);
 	extern Scr_Notify_t Scr_Notify;
+
+	typedef void(__cdecl * Scr_NotifyLevel_t)(unsigned __int16 stringValue, unsigned int paramcount);
+	extern Scr_NotifyLevel_t Scr_NotifyLevel;
 
 	typedef void(__cdecl * Scr_ClearOutParams_t)();
 	extern Scr_ClearOutParams_t Scr_ClearOutParams;

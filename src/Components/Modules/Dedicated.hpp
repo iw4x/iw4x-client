@@ -23,7 +23,7 @@ namespace Components
 		static void PostInitialization();
 		static void PostInitializationStub();
 
-		static const char* EvaluateSay(char* text);
+		static const char* EvaluateSay(char* text, Game::gentity_t* player);
 
 		static void PreSayStub();
 		static void PostSayStub();

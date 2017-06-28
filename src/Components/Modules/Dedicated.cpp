@@ -74,7 +74,7 @@ namespace Components
 		}
 	}
 
-	const char* Dedicated::EvaluateSay(char* text)
+	const char* Dedicated::EvaluateSay(char* text, Game::gentity_t* player)
 	{
 		Dedicated::SendChat = true;
 
@@ -84,6 +84,10 @@ namespace Components
 			text[1] = text[0];
 			++text;
 		}
+
+		Game::Scr_AddEntity(player);
+		Game::Scr_AddString(text + 1);
+		Game::Scr_NotifyLevel(Game::SL_GetString("say", 0), 2);
 
 		return text;
 	}
@@ -97,9 +101,10 @@ namespace Components
 			push eax
 			pushad
 
+			push[esp + 100h + 28h]
 			push eax
 			call Dedicated::EvaluateSay
-			add esp, 4h
+			add esp, 8h
 
 			mov [esp + 20h], eax
 			popad
