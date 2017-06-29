@@ -260,6 +260,7 @@ namespace Game
 	Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x49CF70);
 
 	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
+	StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
 
 	SV_AddTestClient_t SV_AddTestClient = SV_AddTestClient_t(0x48AD30);
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = SV_GameClientNum_Score_t(0x469AC0);

@@ -622,6 +622,9 @@ namespace Game
 	typedef const char*(__cdecl * StringTable_Lookup_t)(StringTable *table, const int comparisonColumn, const char *value, const int valueColumn);
 	extern StringTable_Lookup_t StringTable_Lookup;
 
+	typedef int(__cdecl * StringTable_HashString_t)(const char* string);
+	extern StringTable_HashString_t StringTable_HashString;
+
 	typedef gentity_t*(__cdecl* SV_AddTestClient_t)();
 	extern SV_AddTestClient_t SV_AddTestClient;
 

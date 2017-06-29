@@ -91,8 +91,6 @@ namespace Components
 
 		// Don't create stat backup
 		Utils::Hook::Nop(0x402CE6, 2);
-
-
 	}
 
 	Stats::~Stats()

@@ -11,7 +11,6 @@ namespace Components
 	private:
 		static std::unordered_map<std::string, Game::StringTable*> StringTableMap;
 
-		static int Hash(const char* data);
 		static Game::StringTable* LoadObject(std::string filename);
 	};
 }

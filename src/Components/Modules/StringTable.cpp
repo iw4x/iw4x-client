@@ -4,20 +4,6 @@ namespace Components
 {
 	std::unordered_map<std::string, Game::StringTable*> StringTable::StringTableMap;
 
-	int StringTable::Hash(const char* data)
-	{
-		int hash = 0;
-
-		while (*data != 0)
-		{
-			hash = tolower(*data) + (31 * hash);
-
-			++data;
-		}
-
-		return hash;
-	}
-
 	Game::StringTable* StringTable::LoadObject(std::string filename)
 	{
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
@@ -53,7 +39,7 @@ namespace Components
 						std::string value = parsedTable.getElementAt(i, j);
 
 						Game::StringTableCell* cell = &table->values[i * table->columnCount + j];
-						cell->hash = StringTable::Hash(value.data());
+						cell->hash = Game::StringTable_HashString(value.data());
 						cell->string = allocator->duplicateString(value);
 						//if (!cell->string) cell->string = ""; // We have to assume it allocated successfully
 					}
