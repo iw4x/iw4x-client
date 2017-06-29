@@ -14,5 +14,6 @@ namespace Components
 		static void UpdateClasses(UIScript::Token token);
 		static void SendStats();
 
+		static int64_t* GetStatsID();
 	};
 }

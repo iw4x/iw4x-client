@@ -2,6 +2,12 @@
 
 namespace Components
 {
+	int64_t* Stats::GetStatsID()
+	{
+		static int64_t id = 0x110000100001337;
+		return &id;
+	}
+
 	bool Stats::IsMaxLevel()
 	{
 		// 2516000 should be the max experience.
@@ -69,6 +75,24 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4376FD, 0xEB);
 
 		// ToDo: Allow playerdata changes in setPlayerData UI script.
+
+		// Rename stat file
+		Utils::Hook::SetString(0x71C048, "iw4x.stat");
+
+		// Patch stats steamid
+		Utils::Hook::Nop(0x682EBF, 20);
+		Utils::Hook::Nop(0x6830B1, 20);
+		Utils::Hook(0x682EBF, Stats::GetStatsID, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6830B1, Stats::GetStatsID, HOOK_CALL).install()->quick();
+		//Utils::Hook::Set<BYTE>(0x68323A, 0xEB);
+
+		// Never use remote stat saving
+		Utils::Hook::Set<BYTE>(0x682F39, 0xEB);
+
+		// Don't create stat backup
+		Utils::Hook::Nop(0x402CE6, 2);
+
+
 	}
 
 	Stats::~Stats()

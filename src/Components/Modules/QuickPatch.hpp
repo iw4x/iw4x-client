@@ -16,8 +16,6 @@ namespace Components
 	private:
 		static int FrameTime;
 
-		static int64_t* GetStatsID();
-
 		static void SelectStringTableEntryInDvarStub();
 
 		static int MsgReadBitsCompressCheckSV(const char *from, char *to, int size);

@@ -4,12 +4,6 @@ namespace Components
 {
 	int QuickPatch::FrameTime = 0;
 
-	int64_t* QuickPatch::GetStatsID()
-	{
-		static int64_t id = 0x110000100001337;
-		return &id;
-	}
-
 	void QuickPatch::UnlockStats()
 	{
 		if (Dedicated::IsEnabled()) return;
@@ -400,16 +394,6 @@ namespace Components
 				Dvar::Var("m_pitch").set(0.022f);
 			}
 		});
-
-		// Rename stat file
-		Utils::Hook::SetString(0x71C048, "iw4x.stat");
-
-		// Patch stats steamid
-		Utils::Hook::Nop(0x682EBF, 20);
-		Utils::Hook::Nop(0x6830B1, 20);
-		Utils::Hook(0x682EBF, QuickPatch::GetStatsID, HOOK_CALL).install()->quick();
-		Utils::Hook(0x6830B1, QuickPatch::GetStatsID, HOOK_CALL).install()->quick();
-		//Utils::Hook::Set<BYTE>(0x68323A, 0xEB);
 
 		// Exploit fixes
 		Utils::Hook::Set<BYTE>(0x412370, 0xC3);                                                      // SV_SteamAuthClient
