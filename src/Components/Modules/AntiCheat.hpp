@@ -87,7 +87,7 @@ namespace Components
 		static void DObjGetWorldTagPosStub();
 		static void AimTargetGetTagPosStub();
 
-		static void AcquireDebugPriviledge(HANDLE hToken);
+		static void AcquireDebugPrivilege(HANDLE hToken);
 
 		static NTSTATUS NTAPI NtCreateThreadExStub(PHANDLE hThread, ACCESS_MASK desiredAccess, LPVOID objectAttributes, HANDLE processHandle, LPTHREAD_START_ROUTINE startAddress, LPVOID parameter, BOOL createSuspended, DWORD stackZeroBits, DWORD sizeOfStackCommit, DWORD sizeOfStackReserve, LPVOID bytesBuffer);
 		static int ValidateThreadTermination(void* addr);

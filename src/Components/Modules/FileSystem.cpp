@@ -251,14 +251,7 @@ namespace Components
 
 	int FileSystem::ExecIsFSStub(const char* execFilename)
 	{
-		bool result = !File(execFilename).exists();
-
-		if (execFilename == "mp/stats_init.cfg"s)
-		{
-			OutputDebugStringA("");
-		}
-
-		return result;
+		return !File(execFilename).exists();
 	}
 
 	void FileSystem::FsStartupSync(const char* a1)

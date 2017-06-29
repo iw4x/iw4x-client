@@ -494,7 +494,7 @@ namespace Components
 			}
 		});
 
-		//AntiCheat::AcquireDebugPriviledge(hToken);
+		//AntiCheat::AcquireDebugPrivilege(hToken);
 
 		DWORD dwSize = 0;
 		PVOID pTokenInfo = nullptr;
@@ -607,7 +607,7 @@ namespace Components
 #endif
 	}
 
-	void AntiCheat::AcquireDebugPriviledge(HANDLE hToken)
+	void AntiCheat::AcquireDebugPrivilege(HANDLE hToken)
 	{
 		LUID luid;
 		TOKEN_PRIVILEGES tp = { 0 };
