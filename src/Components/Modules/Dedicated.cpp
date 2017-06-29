@@ -54,6 +54,8 @@ namespace Components
 		Command::Execute("xstartprivatematch");
 		//Command::Execute("xstartlobby");
 		Command::Execute("sv_network_fps 1000");
+		Command::Execute("cl_maxpackets 125");
+		Command::Execute("snaps 30");
 		Command::Execute("com_maxfps 125");
 
 		// Process command line?

@@ -348,6 +348,13 @@ namespace Components
 		// increase cl_maxpackets limit
 		Utils::Hook::Set<BYTE>(0x4050A1, 125);
 
+		// increase snaps
+		//Utils::Hook::Set<BYTE>(0x405357, 40);
+
+		// default maxpackets and snaps
+		Utils::Hook::Set<BYTE>(0x40535B, 30);
+		Utils::Hook::Set<BYTE>(0x4050A5, 125);
+
 		// Parse port as short in Net_AddrToString
 		Utils::Hook::Set<char*>(0x4698E3, "%u.%u.%u.%u:%hu");
 

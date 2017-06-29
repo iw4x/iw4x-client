@@ -74,13 +74,21 @@ namespace Components
 		}
 	}
 
+	void SlowMotion::DrawConnectionInterruptedStub(int a1)
+	{
+		if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
+		{
+			Utils::Hook::Call<void(int)>(0x454A70)(a1);
+		}
+	}
+
 	SlowMotion::SlowMotion()
 	{
-		if (Dedicated::IsEnabled())
-		{
-			SlowMotion::Delay = 0;
-			Utils::Hook(0x5F5FF2, SlowMotion::SetSlowMotion, HOOK_JUMP).install()->quick();
-			Utils::Hook(0x60B38A, SlowMotion::ApplySlowMotionStub, HOOK_CALL).install()->quick();
-		}
+		SlowMotion::Delay = 0;
+		Utils::Hook(0x5F5FF2, SlowMotion::SetSlowMotion, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x60B38A, SlowMotion::ApplySlowMotionStub, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x4A54ED, SlowMotion::DrawConnectionInterruptedStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A54FB, SlowMotion::DrawConnectionInterruptedStub, HOOK_CALL).install()->quick();
 	}
 }
