@@ -41,6 +41,12 @@ namespace Components
 
 			LocalFree(argv);
 		}
+
+		// Workaround for wine
+		if (Utils::IsWineEnvironment() && Dedicated::IsEnabled() && !Flags::HasFlag("console") && !Flags::HasFlag("stdout"))
+		{
+			Flags::EnabledFlags.push_back("stdout");
+		}
 	}
 
 	Flags::Flags()

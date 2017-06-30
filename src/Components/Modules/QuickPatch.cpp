@@ -294,8 +294,11 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4DACA2, 0xEB);
 
 		// require Windows 6 (Vista)
-		Utils::Hook::Set<BYTE>(0x467ADF, 6);
-		Utils::Hook::Set<char>(0x6DF5D6, '6');
+		if (!Utils::IsWineEnvironment())
+		{
+			Utils::Hook::Set<BYTE>(0x467ADF, 6);
+			Utils::Hook::Set<char>(0x6DF5D6, '6');
+		}
 
 		// disable 'ignoring asset' notices
 		Utils::Hook::Nop(0x5BB902, 5);
