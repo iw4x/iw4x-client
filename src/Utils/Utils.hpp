@@ -19,6 +19,8 @@ namespace Utils
 	void* GetThreadStartAddress(HANDLE hThread);
 	HMODULE GetNTDLL();
 
+	void SetEnvironment();
+
 	void OpenUrl(std::string url);
 
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);

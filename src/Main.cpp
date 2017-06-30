@@ -2,20 +2,9 @@
 
 namespace Main
 {
-	void SetEnvironment()
-	{
-		wchar_t exeName[512];
-		GetModuleFileName(GetModuleHandle(nullptr), exeName, sizeof(exeName) / 2);
-
-		wchar_t* exeBaseName = wcsrchr(exeName, L'\\');
-		exeBaseName[0] = L'\0';
-
-		SetCurrentDirectory(exeName);
-	}
-
 	void Initialize()
 	{
-		Main::SetEnvironment();
+		Utils::SetEnvironment();
 		Utils::Cryptography::Initialize();
 		Components::Loader::Initialize();
 
@@ -71,8 +60,11 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 #ifndef DISABLE_ANTICHEAT
 		[]()
 		{
-			Components::AntiCheat::ProtectProcess();
-			Components::AntiCheat::PatchThreadCreation();
+			if (!Components::Dedicated::IsEnabled())
+			{
+				Components::AntiCheat::ProtectProcess();
+				Components::AntiCheat::PatchThreadCreation();
+			}
 		}();
 #endif
 
@@ -88,12 +80,15 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 	{
 		Main::Uninitialize();
 	}
-	else if(ul_reason_for_call == DLL_THREAD_ATTACH)
+	else if (ul_reason_for_call == DLL_THREAD_ATTACH)
 	{
 #ifndef DISABLE_ANTICHEAT
 		[]()
 		{
-			Components::AntiCheat::VerifyThreadIntegrity();
+			if (!Components::Dedicated::IsEnabled())
+			{
+				Components::AntiCheat::VerifyThreadIntegrity();
+			}
 		}();
 #endif
 	}

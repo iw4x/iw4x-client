@@ -104,6 +104,17 @@ namespace Utils
 		return address;
 	}
 
+	void SetEnvironment()
+	{
+		wchar_t exeName[512];
+		GetModuleFileName(GetModuleHandle(nullptr), exeName, sizeof(exeName) / 2);
+
+		wchar_t* exeBaseName = wcsrchr(exeName, L'\\');
+		exeBaseName[0] = L'\0';
+
+		SetCurrentDirectory(exeName);
+	}
+
 	HMODULE GetNTDLL()
 	{
 		static uint8_t ntdll[] = { 0x91, 0x8B, 0x9B, 0x93, 0x93, 0xD1, 0x9B, 0x93, 0x93 }; // ntdll.dll
