@@ -12,21 +12,25 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Display a toast when an update is available.
 - Use the hourglass cursor while loading assets (with the native cursor feature).
 - Show bots in parenthesis after the number of players in the serverlist (request).
-- Add GSC command `level waittill("say", string, player);` (request).
+- Add GSC event `level waittill("say", string, player);` (request).
+- Restrict unauthorized mod download for password protected servers.
+- Add OMA support for 15 classes.
 
 ### Changed
 
 - Show friend avatars when they play IW4x (request).
 - Rewrite and optimize the entire node system.
+- Remove syncnode command for nodesystem.
+- Remove steam start.
 
 ### Fixed
 
 - Fix lags and frame drops caused by server sorting.
 - Fix demos on custom maps.
 - Can no longer join a lobby or server with an incorrect password.
-- Fix lags and frame drops caused by server sorting.
-- Fix demos on custom maps.
-- Fix crashes caused by a bug in file/data compression
+- Fix crashes caused by a bug in file/data compression.
+- Improve overall stability.
+- Reenable slowmotion with possible fix.
 
 ## [0.5.0] - 2017-06-04
 
