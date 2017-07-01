@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
+## [0.5.2] - 2017-07-02
+
+### Fixed
+
+- Fix dedicated server crash.
+
 ## [0.5.1] - 2017-07-02
 
 ### Added
