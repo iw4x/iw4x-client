@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.5.1] - 2017-07-02
+
+### Added
+
 - Add fast download option for custom mods/maps based on Call of Duty 4.
 - Display a toast when an update is available.
 - Use the hourglass cursor while loading assets (with the native cursor feature).
@@ -30,7 +38,6 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Can no longer join a lobby or server with an incorrect password.
 - Fix crashes caused by a bug in file/data compression.
 - Improve overall stability.
-- Reenable slowmotion with possible fix.
 
 ## [0.5.0] - 2017-06-04
 
