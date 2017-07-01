@@ -96,7 +96,7 @@ namespace Components
 		}
 		else
 		{
-			strncpy_s(buffer, size, name, size);
+			strncpy_s(buffer, size, name, _TRUNCATE);
 		}
 	}
 
@@ -105,7 +105,7 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp + 4h] // length
-			sub eax, 1
+			//sub eax, 1
 			push eax
 
 			push ecx // name
