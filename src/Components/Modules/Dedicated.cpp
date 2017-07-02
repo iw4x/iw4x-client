@@ -304,6 +304,11 @@ namespace Components
 		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_FLAG_CHEAT, "");
 		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_FLAG_LATCHED, "Removes ~95% of unneeded lines from the log");
 
+		// Intercept chat sending
+		Utils::Hook(0x4D000B, Dedicated::PreSayStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D00D4, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D0110, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
+
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			// Make sure all callbacks are handled
@@ -376,11 +381,6 @@ namespace Components
 
 			// Dedicated frame handler
 			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).install()->quick();
-
-			// Intercept chat sending
-			Utils::Hook(0x4D000B, Dedicated::PreSayStub, HOOK_CALL).install()->quick();
-			Utils::Hook(0x4D00D4, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
-			Utils::Hook(0x4D0110, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
 
 			// Intercept time wrapping
 			Utils::Hook(0x62737D, Dedicated::TimeWrapStub, HOOK_CALL).install()->quick();
