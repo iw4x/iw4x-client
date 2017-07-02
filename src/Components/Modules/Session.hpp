@@ -4,6 +4,8 @@
 #define SESSION_MAX_RETRIES 3
 #define SESSION_REQUEST_LIMIT 3
 
+#define DISABLE_SESSION
+
 namespace Components
 {
 	class Session : public Component

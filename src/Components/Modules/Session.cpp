@@ -17,6 +17,9 @@ namespace Components
 
 	void Session::Send(Network::Address target, std::string command, std::string data)
 	{
+#ifdef DISABLE_SESSION
+		Network::SendCommand(target, command, data);
+#else
 		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 
 		auto queue = Session::PacketQueue.find(target);
@@ -33,12 +36,17 @@ namespace Components
 		packet->tries = 0;
 
 		queue->second.push(packet);
+#endif
 	}
 
 	void Session::Handle(std::string packet, Utils::Slot<Network::Callback> callback)
 	{
+#ifdef DISABLE_SESSION
+		Network::Handle(packet, callback);
+#else
 		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 		Session::PacketHandlers[packet] = callback;
+#endif
 	}
 
 	void Session::RunFrame()
@@ -104,6 +112,7 @@ namespace Components
 
 	Session::Session()
 	{
+#ifndef DISABLE_SESSION
 		Session::SignatureKey = Utils::Cryptography::ECC::GenerateKey(512);
 		//Scheduler::OnFrame(Session::RunFrame);
 
@@ -161,6 +170,7 @@ namespace Components
 
 			handler->second(address, dataPacket.data());
 		});
+#endif
 	}
 
 	Session::~Session()
