@@ -38,7 +38,8 @@ namespace Components
 				Party::ConnectError("A password is required to connect to this server!");
 				return;
 			}
-			Download::CLDownload.password = pass;
+
+			Download::CLDownload.hashedPassword = Utils::Cryptography::SHA256::Compute(pass);
 		}
 
 		Download::CLDownload.running = true;
@@ -230,7 +231,7 @@ namespace Components
 		else
 		{
 			url = host + "/file/" + (download->isMap ? "map/" : "") + file.name
-				+ (download->isPrivate ? ("?password=" + download->password) : "");
+				+ (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 		}
 
 		Download::FileDownload fDownload;
@@ -272,7 +273,7 @@ namespace Components
 
 		std::string host = "http://" + download->target.getString();
 
-		std::string listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->password) : "");
+		std::string listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 
 		std::string list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->get();
 		if (list.empty())
@@ -411,7 +412,7 @@ namespace Components
 		char buffer[128] = { 0 };
 		int passLen = mg_get_http_var(&message->query_string, "password", buffer, sizeof buffer);
 
-		if (passLen <= 0 || std::string(buffer, passLen) != g_password)//Utils::Cryptography::SHA256::Compute(g_password))
+		if (passLen <= 0 || std::string(buffer, passLen) != Utils::Cryptography::SHA256::Compute(g_password))
 		{
 			mg_printf(nc, ("HTTP/1.1 403 Forbidden\r\n"s +
 				"Content-Type: text/html\r\n"s +

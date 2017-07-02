@@ -28,7 +28,7 @@ namespace Components
 			bool isPrivate;
 			mg_mgr mgr;
 			Network::Address target;
-			std::string password;
+			std::string hashedPassword;
 			std::string mod;
 			std::thread thread;
 
