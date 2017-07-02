@@ -12,6 +12,17 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
+## [0.5.3] - 2017-07-02
+
+### Added
+
+- Increase webserver security.
+
+### Fixed
+
+- Reduce lags introduced by nodes.
+- Fix modlist download.
+
 ## [0.5.2] - 2017-07-02
 
 ### Fixed
@@ -34,7 +45,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Show friend avatars when they play IW4x (request).
 - Rewrite and optimize the entire node system.
-- Remove syncnode command for nodesystem.
+- Remove syncnode command for node system.
 - Remove steam start.
 
 ### Fixed
