@@ -38,6 +38,9 @@ namespace Components
 		static void QuickCodeScanner1();
 		static void QuickCodeScanner2();
 
+		static void UninstallLibHook();
+		static void InstallLibHook();
+
 	private:
 		enum IntergrityFlag
 		{
@@ -64,9 +67,6 @@ namespace Components
 
 		static bool IsPageChangeAllowed(void* callee, void* addr, size_t len);
 		static void AssertCalleeModule(void* callee);
-
-		static void UninstallLibHook();
-		static void InstallLibHook();
 
 #ifdef DEBUG_LOAD_LIBRARY
 		static HANDLE LoadLibary(std::wstring library, HANDLE file, DWORD flags, void* callee);
