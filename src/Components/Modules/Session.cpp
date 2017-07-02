@@ -107,16 +107,19 @@ namespace Components
 		Session::SignatureKey = Utils::Cryptography::ECC::GenerateKey(512);
 		//Scheduler::OnFrame(Session::RunFrame);
 
-		Session::Terminate = false;
-		Session::Thread = std::thread([]()
+		if (!Loader::PerformingUnitTests())
 		{
-			while (!Session::Terminate)
+			Session::Terminate = false;
+			Session::Thread = std::thread([]()
 			{
-				Session::RunFrame();
-				Session::HandleSignatures();
-				std::this_thread::sleep_for(20ms);
-			}
-		});
+				while (!Session::Terminate)
+				{
+					Session::RunFrame();
+					Session::HandleSignatures();
+					std::this_thread::sleep_for(20ms);
+				}
+			});
+		}
 
 		Network::Handle("sessionSyn", [](Network::Address address, std::string data)
 		{
@@ -165,6 +168,7 @@ namespace Components
 		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 		Session::PacketHandlers.clear();
 		Session::PacketQueue.clear();
+		Session::SignatureQueue = std::queue<std::pair<Network::Address, std::string>>();
 
 		Session::SignatureKey.free();
 	}
