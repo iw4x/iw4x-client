@@ -32,7 +32,7 @@ namespace Components
 		while (!interval.elapsed(15s))
 		{
 			Utils::Hook::Call<void()>(0x49F0B0)(); // Com_ClientPacketEvent
-			Session::RunFrame();
+			//Session::RunFrame();
 			Node::RunFrame();
 			ServerList::Frame();
 

@@ -2,6 +2,9 @@
 
 namespace Components
 {
+	bool Session::Terminate;
+	std::thread Session::Thread;
+
 	std::recursive_mutex Session::Mutex;
 	std::unordered_map<Network::Address, Session::Frame> Session::Sessions;
 	std::unordered_map<Network::Address, std::queue<std::shared_ptr<Session::Packet>>> Session::PacketQueue;
@@ -9,6 +12,8 @@ namespace Components
 	Utils::Cryptography::ECC::Key Session::SignatureKey;
 
 	std::map<std::string, Utils::Slot<Network::Callback>> Session::PacketHandlers;
+
+	std::queue<std::pair<Network::Address, std::string>> Session::SignatureQueue;
 
 	void Session::Send(Network::Address target, std::string command, std::string data)
 	{
@@ -54,7 +59,8 @@ namespace Components
 				if (packet->tries <= SESSION_MAX_RETRIES)
 				{
 					packet->tries++;
-					packet->lastTry.emplace(Utils::Time::Point());
+					if(!packet->lastTry.has_value()) packet->lastTry.emplace(Utils::Time::Point());
+					packet->lastTry->update();
 
 					Network::SendCommand(queue->first, "sessionSyn");
 				}
@@ -68,18 +74,56 @@ namespace Components
 		}
 	}
 
+	void Session::HandleSignatures()
+	{
+		while (!Session::SignatureQueue.empty())
+		{
+			std::unique_lock<std::recursive_mutex> lock(Session::Mutex);
+			auto signature = Session::SignatureQueue.front();
+			Session::SignatureQueue.pop();
+
+			auto queue = Session::PacketQueue.find(signature.first);
+			if (queue == Session::PacketQueue.end()) continue;
+
+			if (!queue->second.empty())
+			{
+				std::shared_ptr<Session::Packet> packet = queue->second.front();
+				queue->second.pop();
+				lock.unlock();
+
+				Proto::Session::Packet dataPacket;
+				dataPacket.set_publickey(Session::SignatureKey.getPublicKey());
+				dataPacket.set_signature(Utils::Cryptography::ECC::SignMessage(Session::SignatureKey, signature.second));
+				dataPacket.set_command(packet->command);
+				dataPacket.set_data(packet->data);
+
+				Network::SendCommand(signature.first, "sessionFin", dataPacket.SerializeAsString());
+			}
+		}
+	}
+
 	Session::Session()
 	{
 		Session::SignatureKey = Utils::Cryptography::ECC::GenerateKey(512);
+		//Scheduler::OnFrame(Session::RunFrame);
 
-		Scheduler::OnFrame(Session::RunFrame);
+		Session::Terminate = false;
+		Session::Thread = std::thread([]()
+		{
+			while (!Session::Terminate)
+			{
+				Session::RunFrame();
+				Session::HandleSignatures();
+				std::this_thread::sleep_for(20ms);
+			}
+		});
 
 		Network::Handle("sessionSyn", [](Network::Address address, std::string data)
 		{
-			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
-
 			Session::Frame frame;
 			frame.challenge = Utils::Cryptography::Rand::GenerateChallenge();
+
+			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 			Session::Sessions[address] = frame;
 
 			Network::SendCommand(address, "sessionAck", frame.challenge);
@@ -88,23 +132,7 @@ namespace Components
 		Network::Handle("sessionAck", [](Network::Address address, std::string data)
 		{
 			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
-
-			auto queue = Session::PacketQueue.find(address);
-			if (queue == Session::PacketQueue.end()) return;
-
-			if (!queue->second.empty())
-			{
-				std::shared_ptr<Session::Packet> packet = queue->second.front();
-				queue->second.pop();
-
-				Proto::Session::Packet dataPacket;
-				dataPacket.set_publickey(Session::SignatureKey.getPublicKey());
-				dataPacket.set_signature(Utils::Cryptography::ECC::SignMessage(Session::SignatureKey, data));
-				dataPacket.set_command(packet->command);
-				dataPacket.set_data(packet->data);
-
-				Network::SendCommand(address, "sessionFin", dataPacket.SerializeAsString());
-			}
+			Session::SignatureQueue.push({ address, data });
 		});
 
 		Network::Handle("sessionFin", [](Network::Address address, std::string data)
@@ -139,6 +167,15 @@ namespace Components
 		Session::PacketQueue.clear();
 
 		Session::SignatureKey.free();
+	}
+
+	void Session::preDestroy()
+	{
+		Session::Terminate = true;
+		if (Session::Thread.joinable())
+		{
+			Session::Thread.join();
+		}
 	}
 
 	bool Session::unitTest()

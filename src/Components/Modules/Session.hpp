@@ -30,13 +30,14 @@ namespace Components
 		~Session();
 
 		bool unitTest() override;
+		void preDestroy() override;
 
 		static void Send(Network::Address target, std::string command, std::string data = "");
 		static void Handle(std::string packet, Utils::Slot<Network::Callback> callback);
 
-		static void RunFrame();
-
 	private:
+		static bool Terminate;
+		static std::thread Thread;
 		static std::recursive_mutex Mutex;
 		static std::unordered_map<Network::Address, Frame> Sessions;
 		static std::unordered_map<Network::Address, std::queue<std::shared_ptr<Packet>>> PacketQueue;
@@ -44,5 +45,10 @@ namespace Components
 		static Utils::Cryptography::ECC::Key SignatureKey;
 
 		static std::map<std::string, Utils::Slot<Network::Callback>> PacketHandlers;
+
+		static std::queue<std::pair<Network::Address, std::string>> SignatureQueue;
+
+		static void RunFrame();
+		static void HandleSignatures();
 	};
 }
