@@ -39,7 +39,7 @@ namespace Components
 				return;
 			}
 
-			Download::CLDownload.hashedPassword = Utils::Cryptography::SHA256::Compute(pass);
+			Download::CLDownload.hashedPassword = Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(pass), "");
 		}
 
 		Download::CLDownload.running = true;
@@ -412,7 +412,7 @@ namespace Components
 		char buffer[128] = { 0 };
 		int passLen = mg_get_http_var(&message->query_string, "password", buffer, sizeof buffer);
 
-		if (passLen <= 0 || std::string(buffer, passLen) != Utils::Cryptography::SHA256::Compute(g_password))
+		if (passLen <= 0 || std::string(buffer, passLen) != Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(g_password), ""))
 		{
 			mg_printf(nc, ("HTTP/1.1 403 Forbidden\r\n"s +
 				"Content-Type: text/html\r\n"s +
