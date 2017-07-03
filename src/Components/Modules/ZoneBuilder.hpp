@@ -4,7 +4,7 @@
 #define XFILE_VERSION 276
 
 #define XFILE_HEADER_IW4X 0x78345749 // 'IW4x'
-#define XFILE_VERSION_IW4X 4
+#define XFILE_VERSION_IW4X 3
 
 namespace Components
 {

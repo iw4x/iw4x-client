@@ -410,7 +410,7 @@ namespace Components
 #ifdef DEBUG
 		zoneBuffer = Utils::Compression::Deflate::ZLib::Compress(zoneBuffer);
 #else
-		zoneBuffer = Utils::Compression::Deflate::ZStd::Compress(zoneBuffer);
+		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 #endif
 
 		outBuffer.append(zoneBuffer);

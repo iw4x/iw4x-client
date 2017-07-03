@@ -8,35 +8,9 @@ namespace Utils
 {
 	namespace Compression
 	{
-		class Deflate
+		class ZLib
 		{
 		public:
-			class ZLib
-			{
-			public:
-				static std::string Compress(std::string data);
-				static std::string Decompress(std::string data);
-			};
-
-			class ZStd
-			{
-			public:
-				static std::string Compress(std::string data, bool safe = true);
-				static std::string Decompress(std::string data, bool safe = true);
-			};
-
-			class Semaphore
-			{
-			public:
-				Semaphore(bool zstd);
-				~Semaphore();
-
-			private:
-				int state;
-			};
-
-		private:
-			static std::mutex Mutex;
 			static std::string Compress(std::string data);
 			static std::string Decompress(std::string data);
 		};

@@ -39,7 +39,7 @@ namespace Components
 	DWORD Playlist::StorePlaylistStub(const char** buffer)
 	{
 		Playlist::MapRelocation.clear();
-		Playlist::CurrentPlaylistBuffer = Utils::Compression::Deflate::ZStd::Compress(*buffer);
+		Playlist::CurrentPlaylistBuffer = Utils::Compression::ZLib::Compress(*buffer);
 		return Utils::Hook::Call<DWORD(const char**)>(0x4C0350)(buffer);
 	}
 
@@ -95,7 +95,7 @@ namespace Components
 					}
 
 					// Decompress buffer
-					Playlist::ReceivedPlaylistBuffer = Utils::Compression::Deflate::ZStd::Decompress(compressedData);
+					Playlist::ReceivedPlaylistBuffer = Utils::Compression::ZLib::Decompress(compressedData);
 
 					// Load and continue connection
 					Logger::Print("Received playlist, loading and continuing connection...\n");

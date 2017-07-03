@@ -180,7 +180,6 @@ require "premake/mongoose"
 require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/zlib"
-require "premake/zstd"
 require "premake/udis86"
 
 json11.setup
@@ -221,10 +220,6 @@ zlib.setup
 		"ZLIB_CONST",
 	},
 	source = path.join(depsBasePath, "zlib"),
-}
-zstd.setup
-{
-	source = path.join(depsBasePath, "zstd"),
 }
 udis86.setup
 {
@@ -316,7 +311,6 @@ workspace "iw4x"
 		pdcurses.import()
 		protobuf.import()
 		zlib.import()
-		zstd.import()
 		udis86.import()
 
 		-- fix vpaths for protobuf sources
@@ -429,7 +423,6 @@ workspace "iw4x"
 		pdcurses.project()
 		protobuf.project()
 		zlib.project()
-		zstd.project()
 		udis86.project()
 
 rule "ProtobufCompiler"

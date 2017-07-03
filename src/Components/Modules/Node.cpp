@@ -68,12 +68,12 @@ namespace Components
 		if (Monitor::IsEnabled())
 		{
 			std::string nodes = Utils::IO::ReadFile("players/nodes_default.dat");
-			if (nodes.empty() || !list.ParseFromString(Utils::Compression::Deflate::ZStd::Decompress(nodes))) return;
+			if (nodes.empty() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(nodes))) return;
 		}
 		else
 		{
 			FileSystem::File defaultNodes("nodes_default.dat");
-			if (!defaultNodes.exists() || !list.ParseFromString(Utils::Compression::Deflate::ZStd::Decompress(defaultNodes.getBuffer()))) return;
+			if (!defaultNodes.exists() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(defaultNodes.getBuffer()))) return;
 		}
 
 		for (int i = 0; i < list.nodes_size(); ++i)
@@ -91,7 +91,7 @@ namespace Components
 	{
 		Proto::Node::List list;
 		std::string nodes = Utils::IO::ReadFile("players/nodes.dat");
-		if (nodes.empty() || !list.ParseFromString(Utils::Compression::Deflate::ZStd::Decompress(nodes))) return;
+		if (nodes.empty() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(nodes))) return;
 
 		for (int i = 0; i < list.nodes_size(); ++i)
 		{
@@ -127,7 +127,7 @@ namespace Components
 		}
 		Node::Mutex.unlock();
 
-		Utils::IO::WriteFile("players/nodes.dat", Utils::Compression::Deflate::ZStd::Compress(list.SerializeAsString()));
+		Utils::IO::WriteFile("players/nodes.dat", Utils::Compression::ZLib::Compress(list.SerializeAsString()));
 	}
 
 	void Node::Add(Network::Address address)

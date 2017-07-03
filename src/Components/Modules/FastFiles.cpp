@@ -6,9 +6,6 @@ namespace Components
 	symmetric_CTR FastFiles::CurrentCTR;
 	std::vector<std::string> FastFiles::ZonePaths;
 
-	bool FastFiles::UseZstd = false;
-	Utils::Compression::Deflate::Semaphore* FastFiles::ZlibLock = nullptr;
-
 	bool FastFiles::IsIW4xZone = false;
 	bool FastFiles::StreamRead = false;
 
@@ -336,28 +333,21 @@ namespace Components
 
 	void FastFiles::ReadHeaderStub(unsigned int* header, int size)
 	{
-		FastFiles::UseZstd = false;
 		FastFiles::IsIW4xZone = false;
 		FastFiles::LastByteRead = 0;
 		Game::DB_ReadXFileUncompressed(header, size);
 
 		if (header[0] == XFILE_HEADER_IW4X)
 		{
-			FastFiles::UseZstd = true;
 			FastFiles::IsIW4xZone = true;
 
-			static_assert((XFILE_VERSION_IW4X - 1) == 3, "FastFile backwards-compatibility not granted!");
-			if (header[1] == XFILE_VERSION_IW4X - 1)
-			{
-				FastFiles::UseZstd = false;
-			}
-			else if (header[1] < XFILE_VERSION_IW4X)
+			if (header[1] < XFILE_VERSION_IW4X)
 			{
 				Logger::Error("The fastfile you are trying to load is outdated (%d, expected %d)", header[1], XFILE_VERSION_IW4X);
 			}
 			else if (header[1] > XFILE_VERSION_IW4X)
 			{
-				Logger::Error("You are loading a fastfile that is too new (%d, expected %d), update your game", header[1], XFILE_VERSION_IW4X);
+				Logger::Error("You are loading a fastfile that is too new (%d, expected %d), update your game or rebuild the fastfile", header[1], XFILE_VERSION_IW4X);
 			}
 
 			*reinterpret_cast<unsigned __int64*>(header) = XFILE_MAGIC_UNSIGNED;
@@ -406,9 +396,8 @@ namespace Components
 			ctr_decrypt(strm->next_in, const_cast<unsigned char*>(strm->next_in), strm->avail_in, &FastFiles::CurrentCTR);
 		}
 
-		//return Utils::Hook::Call<int(z_streamp, const char*, int)>(0x4D8090)(strm, version, stream_size);
+		return Utils::Hook::Call<int(z_streamp, const char*, int)>(0x4D8090)(strm, version, stream_size);
 		//return inflateInit_(strm, version, stream_size);
-		return FastFiles::InflateInitStub(strm, version, stream_size);
 	}
 
 	void FastFiles::AuthLoadInflateDecryptBaseFunc(unsigned char* buffer)
@@ -495,44 +484,6 @@ namespace Components
 	}
 #endif
 
-	int FastFiles::InflateInitStub(z_streamp strm, const char *version, int stream_size)
-	{
-		if (FastFiles::UseZstd)
-		{
-			if (FastFiles::ZlibLock) delete FastFiles::ZlibLock;
-			FastFiles::ZlibLock = new Utils::Compression::Deflate::Semaphore(DEFLATE_ZSTD);
-
-			return inflateInit_(strm, version, stream_size);
-		}
-
-		return Utils::Hook::Call<int(z_streamp, const char*, int)>(0x4D8090)(strm, version, stream_size);
-	}
-
-	int FastFiles::InflateStub(z_streamp strm, int flush)
-	{
-		if (FastFiles::UseZstd)
-		{
-			return inflate(strm, flush);
-		}
-
-		return Utils::Hook::Call<int(z_streamp, int)>(0x49EA00)(strm, flush);
-	}
-
-	int FastFiles::InflateEndStub(z_streamp strm)
-	{
-		if (FastFiles::UseZstd && FastFiles::ZlibLock)
-		{
-			int result = inflateEnd(strm);
-
-			delete FastFiles::ZlibLock;
-			FastFiles::ZlibLock = nullptr;
-
-			return result;
-		}
-
-		return Utils::Hook::Call<int(z_streamp)>(0x453750)(strm);
-	}
-
 	FastFiles::FastFiles()
 	{
 		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display current loaded zone.");
@@ -602,14 +553,6 @@ namespace Components
 		// XFile header loading
 		Utils::Hook(0x4159E2, FastFiles::ReadXFileHeader, HOOK_CALL).install()->quick();
 
-		// Replace internal ZLib
-		//Utils::Hook(0x4D0306, FastFiles::InflateInitStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4D034B, FastFiles::InflateInitStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x480A1A, FastFiles::InflateStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x5B99DE, FastFiles::InflateStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x449D8F, FastFiles::InflateEndStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x449DA3, FastFiles::InflateEndStub, HOOK_CALL).install()->quick();
-
 		// Add custom zone paths
 		FastFiles::AddZonePath("zone\\patch\\");
 		FastFiles::AddZonePath("zone\\dlc\\");
@@ -670,12 +613,6 @@ namespace Components
 
 	FastFiles::~FastFiles()
 	{
-		if (FastFiles::ZlibLock)
-		{
-			delete FastFiles::ZlibLock;
-			FastFiles::ZlibLock = nullptr;
-		}
-
 		FastFiles::ZonePaths.clear();
 	}
 }
