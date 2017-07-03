@@ -117,20 +117,23 @@ namespace Components
 
 		Utils::Hook(0x4D697A, Scheduler::ShutdownStub, HOOK_CALL).install()->quick();
 
-		Scheduler::AsyncTerminate = false;
-		Scheduler::AsyncThread = std::thread([]()
+		if (!Loader::PerformUnitTests())
 		{
-			while (!Scheduler::AsyncTerminate)
+			Scheduler::AsyncTerminate = false;
+			Scheduler::AsyncThread = std::thread([]()
 			{
-				Scheduler::AsyncFrameSignal();
+				while (!Scheduler::AsyncTerminate)
+				{
+					Scheduler::AsyncFrameSignal();
 
-				Utils::Signal<Scheduler::Callback> copy(Scheduler::AsyncFrameOnceSignal);
-				Scheduler::AsyncFrameOnceSignal.clear();
-				copy();
+					Utils::Signal<Scheduler::Callback> copy(Scheduler::AsyncFrameOnceSignal);
+					Scheduler::AsyncFrameOnceSignal.clear();
+					copy();
 
-				std::this_thread::sleep_for(16ms);
-			}
-		});
+					std::this_thread::sleep_for(16ms);
+				}
+			});
+		}
 	}
 
 	Scheduler::~Scheduler()
