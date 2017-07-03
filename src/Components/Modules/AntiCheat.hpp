@@ -57,7 +57,6 @@ namespace Components
 		};
 
 		static Utils::Time::Interval LastCheck;
-		static std::string Hash;
 		static unsigned long Flags;
 
 		static void PerformScan();

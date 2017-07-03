@@ -3,7 +3,6 @@
 namespace Components
 {
 	Utils::Time::Interval AntiCheat::LastCheck;
-	std::string AntiCheat::Hash;
 	Utils::Hook AntiCheat::CreateThreadHook;
 	Utils::Hook AntiCheat::LoadLibHook[6];
 	Utils::Hook AntiCheat::VirtualProtectHook[2];
@@ -200,6 +199,8 @@ namespace Components
 
 	void AntiCheat::PerformScan()
 	{
+		static std::optional<unsigned int> hashVal;
+
 		// Perform check only every 20 seconds
 		if (!AntiCheat::LastCheck.elapsed(20s)) return;
 		AntiCheat::LastCheck.update();
@@ -207,16 +208,17 @@ namespace Components
 		// Hash .text segment
 		// Add 1 to each value, so searching in memory doesn't reveal anything
 		size_t textSize = 0x2D6001;
-		uint8_t* textBase = reinterpret_cast<uint8_t*>(0x401001);
-		std::string hash = Utils::Cryptography::SHA512::Compute(textBase - 1, textSize - 1, false);
+		char* textBase = reinterpret_cast<char*>(0x401001);
+
+		unsigned int hash = Utils::Cryptography::JenkinsOneAtATime::Compute(textBase - 1, textSize - 1);
 
 		// Set the hash, if none is set
-		if (AntiCheat::Hash.empty())
+		if (!hashVal.has_value())
 		{
-			AntiCheat::Hash = hash;
+			hashVal.emplace(hash);
 		}
 		// Crash if the hashes don't match
-		else if (AntiCheat::Hash != hash)
+		else if (hashVal.value() != hash)
 		{
 #ifdef DEBUG_DETECTIONS
 			Logger::Print("AntiCheat: Memory scan failed");
@@ -232,7 +234,7 @@ namespace Components
 	void AntiCheat::QuickCodeScanner1()
 	{
 		static Utils::Time::Interval interval;
-		static std::optional<std::string> hashVal;
+		static std::optional<unsigned int> hashVal;
 
 		if (!interval.elapsed(32s)) return;
 		interval.update();
@@ -240,8 +242,8 @@ namespace Components
 		// Hash .text segment
 		// Add 1 to each value, so searching in memory doesn't reveal anything
 		size_t textSize = 0x2D5FFF;
-		uint8_t* textBase = reinterpret_cast<uint8_t*>(0x400FFF);
-		std::string hash = Utils::Cryptography::SHA256::Compute(textBase + 1, textSize + 1, false);
+		char* textBase = reinterpret_cast<char*>(0x400FFF);
+		unsigned int hash = Utils::Cryptography::JenkinsOneAtATime::Compute(textBase + 1, textSize + 1);
 
 		if (hashVal.has_value() && hash != hashVal.value())
 		{
@@ -254,13 +256,13 @@ namespace Components
 	void AntiCheat::QuickCodeScanner2()
 	{
 		static Utils::Time::Interval interval;
-		static std::optional<std::string> hashVal;
+		static std::optional<unsigned int> hashVal;
 
 		if (!interval.elapsed(42s)) return;
 		interval.update();
 
 		// Hash .text segment
-		std::string hash = Utils::Cryptography::SHA1::Compute(reinterpret_cast<uint8_t*>(0x401000), 0x2D6000, false);
+		unsigned int hash = Utils::Cryptography::JenkinsOneAtATime::Compute(reinterpret_cast<char*>(0x401000), 0x2D6000);
 		if (hashVal.has_value() && hash != hashVal.value())
 		{
 			Utils::Hook::Set<BYTE>(0x40797C, 0x90); // Crash
@@ -788,7 +790,6 @@ namespace Components
 	{
 		time(nullptr);
 		AntiCheat::Flags = NO_FLAG;
-		AntiCheat::Hash.clear();
 
 #ifdef DEBUG
 		Command::Add("penis", [](Command::Params*)
@@ -831,8 +832,6 @@ namespace Components
 	AntiCheat::~AntiCheat()
 	{
 		AntiCheat::Flags = NO_FLAG;
-		AntiCheat::Hash.clear();
-
 		AntiCheat::OwnThreadIds.clear();
 		AntiCheat::ThreadHookMap.clear();
 
