@@ -106,6 +106,7 @@ namespace Components
 				dataPacket.set_data(packet->data);
 
 				Network::SendCommand(signature.first, "sessionFin", dataPacket.SerializeAsString());
+				std::this_thread::sleep_for(3ms);
 			}
 		}
 	}
