@@ -39,7 +39,7 @@ namespace Components
 	DWORD Playlist::StorePlaylistStub(const char** buffer)
 	{
 		Playlist::MapRelocation.clear();
-		Playlist::CurrentPlaylistBuffer = *buffer;
+		Playlist::CurrentPlaylistBuffer = Utils::Compression::Deflate::ZStd::Compress(*buffer);
 		return Utils::Hook::Call<DWORD(const char**)>(0x4C0350)(buffer);
 	}
 
@@ -57,7 +57,7 @@ namespace Components
 
 		Logger::Print("Received playlist request, sending currently stored buffer.\n");
 
-		std::string compressedList = Utils::Compression::Deflate::ZStd::Compress(Playlist::CurrentPlaylistBuffer);
+		std::string compressedList = Playlist::CurrentPlaylistBuffer;
 
 		Proto::Party::Playlist list;
 		list.set_hash(Utils::Cryptography::JenkinsOneAtATime::Compute(compressedList));

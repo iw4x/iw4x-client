@@ -10,11 +10,16 @@ namespace Components
 		Scheduler();
 		~Scheduler();
 
+		void preDestroy() override;
+
 		static void OnShutdown(Utils::Slot<Callback> callback);
 		static void OnFrame(Utils::Slot<Callback> callback, bool clientOnly = false);
 		static void OnReady(Utils::Slot<Callback> callback, bool clientOnly = false);
 		static void Once(Utils::Slot<Callback> callback, bool clientOnly = false);
 		static void OnDelay(Utils::Slot<Callback> callback, std::chrono::nanoseconds delay, bool clientOnly = false);
+
+		static void OnFrameAsync(Utils::Slot<Callback> callback);
+		static void OnceAsync(Utils::Slot<Callback> callback);
 
 		static void FrameHandler();
 
@@ -27,6 +32,9 @@ namespace Components
 			Utils::Slot<Callback> callback;
 		};
 
+		static bool AsyncTerminate;
+		static std::thread AsyncThread;
+
 		static Utils::Signal<Callback> FrameSignal;
 		static Utils::Signal<Callback> FrameOnceSignal;
 		static std::vector<DelayedSlot> DelayedSlots;
@@ -34,6 +42,9 @@ namespace Components
 		static bool ReadyPassed;
 		static Utils::Signal<Callback> ReadySignal;
 		static Utils::Signal<Callback> ShutdownSignal;
+
+		static Utils::Signal<Callback> AsyncFrameSignal;
+		static Utils::Signal<Callback> AsyncFrameOnceSignal;
 
 		static void ReadyHandler();
 		static void DelaySignal();

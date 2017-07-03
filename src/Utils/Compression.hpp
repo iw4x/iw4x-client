@@ -21,8 +21,8 @@ namespace Utils
 			class ZStd
 			{
 			public:
-				static std::string Compress(std::string data);
-				static std::string Decompress(std::string data);
+				static std::string Compress(std::string data, bool safe = true);
+				static std::string Decompress(std::string data, bool safe = true);
 			};
 
 			class Semaphore

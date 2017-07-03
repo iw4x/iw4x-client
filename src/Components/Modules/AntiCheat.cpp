@@ -200,8 +200,8 @@ namespace Components
 
 	void AntiCheat::PerformScan()
 	{
-		// Perform check only every 10 seconds
-		if (!AntiCheat::LastCheck.elapsed(10s)) return;
+		// Perform check only every 20 seconds
+		if (!AntiCheat::LastCheck.elapsed(20s)) return;
 		AntiCheat::LastCheck.update();
 
 		// Hash .text segment
@@ -234,7 +234,7 @@ namespace Components
 		static Utils::Time::Interval interval;
 		static std::optional<std::string> hashVal;
 
-		if (!interval.elapsed(11s)) return;
+		if (!interval.elapsed(32s)) return;
 		interval.update();
 
 		// Hash .text segment
@@ -256,7 +256,7 @@ namespace Components
 		static Utils::Time::Interval interval;
 		static std::optional<std::string> hashVal;
 
-		if (!interval.elapsed(12s)) return;
+		if (!interval.elapsed(42s)) return;
 		interval.update();
 
 		// Hash .text segment

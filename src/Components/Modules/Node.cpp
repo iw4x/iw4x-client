@@ -114,7 +114,7 @@ namespace Components
 
 		Proto::Node::List list;
 
-		std::lock_guard<std::recursive_mutex> _(Node::Mutex);
+		Node::Mutex.lock();
 		for (auto& node : Node::Nodes)
 		{
 			if (node.isValid())
@@ -125,6 +125,7 @@ namespace Components
 				str->append(reinterpret_cast<char*>(&addr), sizeof(addr));
 			}
 		}
+		Node::Mutex.unlock();
 
 		Utils::IO::WriteFile("players/nodes.dat", Utils::Compression::Deflate::ZStd::Compress(list.SerializeAsString()));
 	}
@@ -169,8 +170,6 @@ namespace Components
 
 			++i;
 		}
-
-		Node::StoreNodes(false);
 	}
 
 	void Node::Synchronize()
@@ -262,6 +261,11 @@ namespace Components
 	{
 		if (ZoneBuilder::IsEnabled()) return;
 		Dvar::Register<bool>("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
+
+		Scheduler::OnFrameAsync([]()
+		{
+			Node::StoreNodes(false);
+		});
 
 		Scheduler::OnFrame(Node::RunFrame);
 		Session::Handle("nodeListResponse", Node::HandleResponse);

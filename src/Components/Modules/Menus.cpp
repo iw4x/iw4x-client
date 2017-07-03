@@ -767,7 +767,7 @@ namespace Components
 		});
 
 #ifndef DISABLE_ANTICHEAT
-		Scheduler::OnFrame(AntiCheat::QuickCodeScanner2);
+		Scheduler::OnFrameAsync(AntiCheat::QuickCodeScanner2);
 #endif
 
 		Command::Add("mp_QuickMessage", [](Command::Params*)

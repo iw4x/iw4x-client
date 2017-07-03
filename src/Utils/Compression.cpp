@@ -86,16 +86,61 @@ namespace Utils
 			return Deflate::Decompress(data);
 		}
 
-		std::string Deflate::ZStd::Compress(std::string data)
+		std::string Deflate::ZStd::Compress(std::string data, bool safe)
 		{
-			Deflate::Semaphore _(DEFLATE_ZSTD);
-			return Deflate::Compress(data);
+			if (safe)
+			{
+				Utils::Memory::Allocator allocator;
+
+				size_t size = data.size() + 100;
+				size = ZSTD_compressBound(size);
+				char* buffer = allocator.allocateArray<char>(size);
+
+				size = ZSTD_compress(buffer, size, data.data(), data.size(), ZSTD_maxCLevel());
+				if (size == 0 || ZSTD_isError(size)) return "";
+
+				return std::string(buffer, size);
+			}
+			else
+			{
+				Deflate::Semaphore _(DEFLATE_ZSTD);
+				return Deflate::Compress(data);
+			}
 		}
 
-		std::string Deflate::ZStd::Decompress(std::string data)
+		std::string Deflate::ZStd::Decompress(std::string data, bool safe)
 		{
-			Deflate::Semaphore _(DEFLATE_ZSTD);
-			return Deflate::Decompress(data);
+			if (safe)
+			{
+				if (data.empty()) return "";
+
+				Utils::Memory::Allocator allocator;
+
+				size_t size = data.size() + 100;
+				size = ZSTD_compressBound(size);
+				size_t maxSize = size;
+				char* buffer = allocator.allocateArray<char>(size);
+
+				while(true)
+				{
+					size = ZSTD_decompress(buffer, size, data.data(), data.size());
+					if (!ZSTD_isError(size)) break;
+
+					maxSize++;
+					maxSize *= 2;
+					size = maxSize;
+
+					allocator.free(buffer);
+					buffer = allocator.allocateArray<char>(size);
+				}
+
+				return std::string(buffer, size);
+			}
+			else
+			{
+				Deflate::Semaphore _(DEFLATE_ZSTD);
+				return Deflate::Decompress(data);
+			}
 		}
 
 		Deflate::Semaphore::Semaphore(bool zstd)
