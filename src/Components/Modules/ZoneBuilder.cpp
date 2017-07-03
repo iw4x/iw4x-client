@@ -407,12 +407,7 @@ namespace Components
 		}
 #endif
 
-#ifdef DEBUG
-		zoneBuffer = Utils::Compression::Deflate::ZLib::Compress(zoneBuffer);
-#else
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
-#endif
-
 		outBuffer.append(zoneBuffer);
 
 		std::string outFile = "zone/" + this->zoneName + ".ff";
