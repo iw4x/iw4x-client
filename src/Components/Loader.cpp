@@ -112,7 +112,7 @@ namespace Components
 		for (auto component : Loader::Components)
 		{
 #ifdef DEBUG
-			if (!Loader::PerformingUnitTests())
+			if (!Loader::IsPerformingUnitTests())
 			{
 				Logger::Print("Unregistering component: %s\n", component->getName().data());
 			}
@@ -178,7 +178,7 @@ namespace Components
 		return result;
 	}
 
-	bool Loader::PerformingUnitTests()
+	bool Loader::IsPerformingUnitTests()
 	{
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		return Flags::HasFlag("tests");
@@ -192,7 +192,7 @@ namespace Components
 		if (component)
 		{
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-			if (!Loader::PerformingUnitTests())
+			if (!Loader::IsPerformingUnitTests())
 			{
 				Logger::Print("Component registered: %s\n", component->getName().data());
 			}

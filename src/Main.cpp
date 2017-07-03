@@ -9,7 +9,7 @@ namespace Main
 		Components::Loader::Initialize();
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		if (Components::Loader::PerformingUnitTests())
+		if (Components::Loader::IsPerformingUnitTests())
 		{
 			DWORD result = (Components::Loader::PerformUnitTests() ? 0 : -1);
 			Components::Loader::Uninitialize();

@@ -117,7 +117,7 @@ namespace Components
 		Session::SignatureKey = Utils::Cryptography::ECC::GenerateKey(512);
 		//Scheduler::OnFrame(Session::RunFrame);
 
-		if (!Loader::PerformingUnitTests())
+		if (!Loader::IsPerformingUnitTests())
 		{
 			Session::Terminate = false;
 			Session::Thread = std::thread([]()

@@ -235,7 +235,7 @@ namespace Components
 			News::LaunchUpdater("-update -c");
 		});
 
-		if (!Utils::IsWineEnvironment() && !Loader::PerformingUnitTests())
+		if (!Utils::IsWineEnvironment() && !Loader::IsPerformingUnitTests())
 		{
 			News::Terminate = false;
 			News::Thread = std::thread([]()
@@ -249,7 +249,7 @@ namespace Components
 					Localization::Set("MPUI_MOTD_TEXT", data);
 				}
 
-				if (!Loader::PerformingUnitTests() && !News::Terminate)
+				if (!Loader::IsPerformingUnitTests() && !News::Terminate)
 				{
 					News::GetLatestUpdater();
 

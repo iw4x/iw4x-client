@@ -491,7 +491,7 @@ namespace Components
 
 	void Console::FreeNativeConsole()
 	{
-		if (!Monitor::IsEnabled() && !Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")) && !Loader::PerformingUnitTests())
+		if (!Monitor::IsEnabled() && !Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")) && !Loader::IsPerformingUnitTests())
 		{
 			FreeConsole();
 		}
@@ -583,7 +583,7 @@ namespace Components
 		}
 
 		// Code below is not necessary when performing unit tests!
-		if (Loader::PerformingUnitTests()) return;
+		if (Loader::IsPerformingUnitTests()) return;
 
 		// External console
 		if (Flags::HasFlag("stdout") || Monitor::IsEnabled())
@@ -643,7 +643,7 @@ namespace Components
 			Utils::Hook(0x43D570, Console::Error, HOOK_JUMP).install()->quick();
 			Utils::Hook(0x4859A5, Console::Input, HOOK_CALL).install()->quick();
 		}
-		else if(!Loader::PerformingUnitTests())
+		else if(!Loader::IsPerformingUnitTests())
 		{
 			FreeConsole();
 		}

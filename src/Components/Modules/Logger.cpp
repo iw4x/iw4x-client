@@ -29,7 +29,7 @@ namespace Components
 
 	void Logger::MessagePrint(int channel, std::string message)
 	{
-		if (Flags::HasFlag("stdout") || Loader::PerformingUnitTests())
+		if (Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests())
 		{
 			printf("%s", message.data());
 			fflush(stdout);
@@ -252,7 +252,7 @@ namespace Components
 		Utils::Hook(0x4B0218, Logger::GameLogStub, HOOK_CALL).install()->quick();
 		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).install()->quick();
 
-		if (Loader::PerformingUnitTests())
+		if (Loader::IsPerformingUnitTests())
 		{
 			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).install()->quick();
 		}

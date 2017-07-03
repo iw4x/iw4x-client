@@ -63,7 +63,7 @@ namespace Components
 		if (INVALID_HANDLE_VALUE != this->pipe && this->pipe)
 		{
 			// Only create the thread, when not performing unit tests!
-			if (!Loader::PerformingUnitTests())
+			if (!Loader::IsPerformingUnitTests())
 			{
 				this->threadAttached = true;
 				this->thread = std::thread(Pipe::ReceiveThread, this);
@@ -204,7 +204,7 @@ namespace Components
 
 	IPCPipe::IPCPipe()
 	{
-		if (Dedicated::IsEnabled() || Monitor::IsEnabled() || Loader::PerformingUnitTests() || ZoneBuilder::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || Monitor::IsEnabled() || Loader::IsPerformingUnitTests() || ZoneBuilder::IsEnabled()) return;
 
 		// Server pipe
 		IPCPipe::ServerPipe.onConnect(IPCPipe::ConnectClient);

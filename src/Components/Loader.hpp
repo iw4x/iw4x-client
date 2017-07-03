@@ -32,7 +32,7 @@ namespace Components
 		static void PreDestroy();
 		static void PreDestroyNoPostGame();
 		static bool PerformUnitTests();
-		static bool PerformingUnitTests();
+		static bool IsPerformingUnitTests();
 		static void Register(Component* component);
 
 		static bool IsPregame();

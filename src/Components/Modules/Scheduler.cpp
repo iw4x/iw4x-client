@@ -117,7 +117,7 @@ namespace Components
 
 		Utils::Hook(0x4D697A, Scheduler::ShutdownStub, HOOK_CALL).install()->quick();
 
-		if (!Loader::PerformUnitTests())
+		if (!Loader::IsPerformingUnitTests())
 		{
 			Scheduler::AsyncTerminate = false;
 			Scheduler::AsyncThread = std::thread([]()
