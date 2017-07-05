@@ -181,6 +181,7 @@ require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/zlib"
 require "premake/udis86"
+require "premake/iw4mvm"
 
 json11.setup
 {
@@ -218,12 +219,22 @@ zlib.setup
 {
 	defines = {
 		"ZLIB_CONST",
+		"ssize_t=int"
 	},
 	source = path.join(depsBasePath, "zlib"),
 }
 udis86.setup
 {
 	source = path.join(depsBasePath, "udis86"),
+}
+iw4mvm.setup
+{
+	defines = {
+		"IW4X",
+		"DETOURS_X86",
+		"DETOURS_32BIT",
+	},
+	source = path.join(depsBasePath, "iw4mvm"),
 }
 
 workspace "iw4x"
@@ -312,6 +323,7 @@ workspace "iw4x"
 		protobuf.import()
 		zlib.import()
 		udis86.import()
+		iw4mvm.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -424,6 +436,7 @@ workspace "iw4x"
 		protobuf.project()
 		zlib.project()
 		udis86.project()
+		iw4mvm.project()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"

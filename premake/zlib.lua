@@ -21,7 +21,6 @@ function zlib.includes()
 	if not zlib.settings then error("You need to call zlib.setup first") end
 
 	includedirs { zlib.settings.source }
-	defines { "ssize_t=int" }
 	defines(zlib.settings.defines)
 end
 
@@ -46,9 +45,5 @@ function zlib.project()
 		-- not our code, ignore POSIX usage warnings for now
 		warnings "Off"
 
-		kind "SharedLib"
-		--configuration "*Static"
-			defines { "_LIB" }
-			removedefines { "_USRDLL", "_DLL", "ZLIB_DLL" }
-			kind "StaticLib"
+		kind "StaticLib"
 end

@@ -89,6 +89,7 @@ namespace Components
 #include "Modules/Node.hpp"
 #include "Modules/RCon.hpp"
 #include "Modules/Party.hpp" // Destroys the order, but requires network classes :D
+#include "Modules/IW4MVM.hpp"
 #include "Modules/Logger.hpp"
 #include "Modules/Friends.hpp"
 #include "Modules/IPCPipe.hpp"

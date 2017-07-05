@@ -29,3 +29,6 @@
 [submodule "deps/udis86"]
 	path = deps/udis86
 	url = ../udis86.git
+[submodule "deps/iw4mvm"]
+	path = deps/iw4mvm
+	url = ../../luckyy/IW4MVM_IW4X.git

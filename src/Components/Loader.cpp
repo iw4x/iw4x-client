@@ -49,6 +49,9 @@ namespace Components
 		Loader::Register(new Zones());
 		Loader::Register(new Colors());
 		Loader::Register(new D3D9Ex());
+#if !defined(VLD_RPTHOOK_INSTALL) || defined(VLDEnable) // IW4MVM uses detours which produces memory leaks, but those are not really relevant
+		Loader::Register(new IW4MVM());
+#endif
 		Loader::Register(new Logger());
 		Loader::Register(new Script());
 		Loader::Register(new Weapon());
