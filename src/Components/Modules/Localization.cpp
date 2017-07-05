@@ -202,7 +202,8 @@ namespace Components
 			"aerosoul94",
 			"ReactIW4",
 			"IW4Play",
-			"Rocket V2"
+			"Rocket V2",
+			"luckyy"
 		};
 
 		std::string credits = "^2The IW4x Team:^7\n";
