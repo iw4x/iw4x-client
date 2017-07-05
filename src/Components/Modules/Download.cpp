@@ -110,6 +110,12 @@ namespace Components
 			}
 		}
 
+		if (ev == MG_EV_CLOSE)
+		{
+			fDownload->downloading = false;
+			return;
+		}
+
 		if (ev == MG_EV_RECV)
 		{
 			size_t bytes = static_cast<size_t>(*reinterpret_cast<int*>(ev_data));
@@ -207,7 +213,24 @@ namespace Components
 		}
 
 		std::string host = "http://" + download->target.getString();
-		std::string fastHost = "http://" + Dvar::Var("sv_wwwBaseUrl").get<std::string>();
+		std::string fastHost = Dvar::Var("sv_wwwBaseUrl").get<std::string>();
+		if (Utils::String::StartsWith(fastHost, "https://"))
+		{
+			download->thread.detach();
+			download->clear();
+
+			Scheduler::Once([]()
+			{
+				Command::Execute("closemenu mod_download_popmenu");
+				Party::ConnectError("HTTPS not supported for downloading!");
+			});
+
+			return 0;
+		}
+		else if (!Utils::String::StartsWith(fastHost, "http://"))
+		{
+			fastHost = "http://" + fastHost;
+		}
 
 		std::string url;
 
@@ -226,6 +249,7 @@ namespace Components
 		//     ...
 		if (Dvar::Var("sv_wwwDownload").get<bool>())
 		{
+			if (!Utils::String::EndsWith(fastHost, "/")) fastHost.append("/");
 			url = fastHost + path;
 		}
 		else
@@ -233,6 +257,8 @@ namespace Components
 			url = host + "/file/" + (download->isMap ? "map/" : "") + file.name
 				+ (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 		}
+
+		Logger::Print("Downloading from url %s", url.data());
 
 		Download::FileDownload fDownload;
 		fDownload.file = file;
@@ -256,7 +282,7 @@ namespace Components
 		mg_mgr_free(&download->mgr);
 		download->valid = false;
 
-		if (fDownload.buffer.size() != file.size || Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(fDownload.buffer), "") != file.hash)
+		if (fDownload.buffer.size() != file.size || Utils::Cryptography::SHA256::Compute(fDownload.buffer, true) != file.hash)
 		{
 			return false;
 		}
@@ -412,7 +438,7 @@ namespace Components
 		char buffer[128] = { 0 };
 		int passLen = mg_get_http_var(&message->query_string, "password", buffer, sizeof buffer);
 
-		if (passLen <= 0 || std::string(buffer, passLen) != Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(g_password), ""))
+		if (passLen <= 0 || std::string(buffer, passLen) != Utils::Cryptography::SHA256::Compute(g_password, true))
 		{
 			mg_printf(nc, ("HTTP/1.1 403 Forbidden\r\n"s +
 				"Content-Type: text/html\r\n"s +
