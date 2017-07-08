@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.5.4] - 2017-07-08
+
+### Added
+
 - Add IW4MVM by luckyy
 
 ### Changed
