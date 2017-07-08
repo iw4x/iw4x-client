@@ -273,17 +273,17 @@ namespace Components
 	void Menus::SafeMergeMenus(std::vector<std::pair<bool, Game::menuDef_t*>>* menus, std::vector<std::pair<bool, Game::menuDef_t*>> newMenus)
 	{
 		// Check if we overwrote a menu
-		for (unsigned int i = 0; i < menus->size(); ++i)
+		for (auto i = menus->begin(); i != menus->end();)
 		{
 			// Try to find the native menu
-			bool found = !menus->at(i).first; // Only if custom menu, try to find it
+			bool found = !i->first; // Only if custom menu, try to find it
 
 			// If there is none, try to find a custom menu
 			if (!found)
 			{
 				for (auto& entry : Menus::MenuList)
 				{
-					if (menus->at(i).second == entry.second)
+					if (i->second == entry.second)
 					{
 						found = true;
 						break;
@@ -294,23 +294,26 @@ namespace Components
 			// Remove the menu if it has been deallocated (not found)
 			if (!found)
 			{
-				menus->erase(menus->begin() + i);
-				--i;
+				i = menus->erase(i);
 				continue;
 			}
+
+			bool increment = true;
 
 			// Remove the menu if it has been loaded twice
 			for (auto& newMenu : newMenus)
 			{
-				if (menus->at(i).second->window.name == std::string(newMenu.second->window.name))
+				if (i->second->window.name == std::string(newMenu.second->window.name))
 				{
-					Menus::RemoveMenu(menus->at(i).second);
+					Menus::RemoveMenu(i->second);
 
-					menus->erase(menus->begin() + i);
-					--i;
+					i = menus->erase(i);
+					increment = false;
 					break;
 				}
 			}
+
+			if(increment) ++i;
 		}
 
 		Utils::Merge(menus, newMenus);
