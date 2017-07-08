@@ -13,6 +13,13 @@ namespace Components
 
 		client_main::Init();
 		Scheduler::Once(client_main::PostInit);
+		Scheduler::OnFrame([]()
+		{
+			if (!Game::CL_IsCgameInitialized())
+			{
+				Dvar::Var("com_timescale").setRaw(1.0f);
+			}
+		});
 
 		VirtualProtect(module + 0x1000, 0x2D6000, PAGE_EXECUTE_READ, &oldProtect);
 	}

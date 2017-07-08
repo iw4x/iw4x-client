@@ -118,6 +118,14 @@ namespace Components
 		}
 	}
 
+	void Dvar::Var::setRaw(float value)
+	{
+		if (this->dvar)
+		{
+			this->dvar->current.value = value;
+		}
+	}
+
 	template<> static Dvar::Var Dvar::Register(const char* name, bool value, Dvar::Flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterBool(name, value, flag.val, description);
