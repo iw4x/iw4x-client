@@ -10,9 +10,16 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Add IW4MVM by luckyy
 
-### Changed
-
 ### Fixed
+
+- Fix cheat-protected dvars.
+- Fix fast download.
+- Fix servers not being listed in the server browser.
+- Fix some FPS drop issues.
+
+### Known issues
+
+- HTTPS is not supported for fast downloads at the moment.
 
 ## [0.5.3] - 2017-07-02
 
