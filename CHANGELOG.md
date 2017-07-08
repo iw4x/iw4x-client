@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Add IW4MVM by luckyy
 
+### Changed
+
+- Dragunov is now a semi-auto sniper weapon instead of a bolt sniper weapon.
+
 ### Fixed
 
 - Fix cheat-protected dvars.
