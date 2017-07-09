@@ -136,6 +136,8 @@ namespace Components
 		if (address.isLocal() || address.isSelf()) return;
 #endif
 
+		if (!address.isValid()) return;
+
 		std::lock_guard<std::recursive_mutex> _(Node::Mutex);
 		for (auto& session : Node::Nodes)
 		{
