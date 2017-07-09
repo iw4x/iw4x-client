@@ -16,18 +16,17 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
-- Add IW4MVM by luckyy
+- Integrate IW4MVM by luckyy.
 
 ### Changed
 
-- Dragunov is now a semi-auto sniper weapon instead of a bolt sniper weapon.
+- Displayed stats for Dragunov have been changed, has no effect on actual game play.
 
 ### Fixed
 
-- Fix cheat-protected dvars.
-- Fix fast download.
+- Fix fast download failing when the target host is missing a trailing slash.
 - Fix servers not being listed in the server browser.
-- Fix some FPS drop issues.
+- Fix some FPS drop issues caused by compression code.
 
 ### Known issues
 
