@@ -121,7 +121,7 @@ namespace Components
 	}
 	bool Network::Address::isValid()
 	{
-		return (this->getType() != Game::netadrtype_t::NA_BAD);
+		return (this->getType() != Game::netadrtype_t::NA_BAD && this->getType() >= Game::netadrtype_t::NA_BOT && this->getType() <= Game::netadrtype_t::NA_IP);
 	}
 	void Network::Handle(std::string packet, Utils::Slot<Network::Callback> callback)
 	{
@@ -153,6 +153,8 @@ namespace Components
 
 	void Network::SendRaw(Game::netsrc_t type, Network::Address target, std::string data)
 	{
+		if (!target.isValid()) return;
+
 		// NET_OutOfBandData doesn't seem to work properly
 		//Game::NET_OutOfBandData(type, *target.Get(), data.data(), data.size());
 		Game::Sys_SendPacket(type, data.size(), data.data(), *target.get());
