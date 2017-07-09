@@ -186,6 +186,31 @@ namespace Components
 		return Dvar::Register<const char*>(name, username.data(), Dvar::Flag(flag | Game::dvar_flag::DVAR_FLAG_SAVED).val, description).get<Game::dvar_t*>();
 	}
 
+	Game::dvar_t* Dvar::SetFromStringByNameSafeExternal(const char* dvar, const char* value)
+	{
+		static const char* exceptions[] =
+		{
+			"ui_showEndOfGame",
+			"systemlink",
+			"splitscreen",
+			"onlinegame",
+			"party_maxplayers",
+			"xblive_privateserver",
+			"xblive_rankedmatch",
+			"ui_mptype",
+		};
+
+		for (int i = 0; i < ARRAYSIZE(exceptions); ++i)
+		{
+			if (Utils::String::ToLower(dvar) == Utils::String::ToLower(exceptions[i]))
+			{
+				return Game::Dvar_SetFromStringByName(dvar, value);
+			}
+		}
+
+		return Dvar::SetFromStringByNameExternal(dvar, value);
+	}
+
 	Game::dvar_t* Dvar::SetFromStringByNameExternal(const char* dvar, const char* value)
 	{
 		return Game::Dvar_SetFromStringByNameFromSource(dvar, value, Game::DvarSetSource::DVAR_SOURCE_EXTERNAL);
@@ -231,11 +256,16 @@ namespace Components
 		Utils::Hook(0x63CA96, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 		Utils::Hook(0x63CDB5, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 		Utils::Hook(0x635E47, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-		Utils::Hook(0x63444C, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+
+		// SetDvar
+		Utils::Hook(0x63444C, Dvar::SetFromStringByNameSafeExternal, HOOK_CALL).install()->quick();
+
+		// Slider
 		Utils::Hook(0x636159, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 		Utils::Hook(0x636189, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-		Utils::Hook(0x636207, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 		Utils::Hook(0x6364EA, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x636207, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 		Utils::Hook(0x636608, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 		Utils::Hook(0x636695, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 
