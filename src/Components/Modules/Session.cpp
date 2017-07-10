@@ -18,7 +18,26 @@ namespace Components
 	void Session::Send(Network::Address target, std::string command, std::string data)
 	{
 #ifdef DISABLE_SESSION
+		class DelayedResend
+		{
+		public:
+			Network::Address target;
+			std::string command;
+			std::string data;
+		};
+
+		DelayedResend* delayData = new DelayedResend;
+		delayData->target = target;
+		delayData->command = command;
+		delayData->data = data;
+
 		Network::SendCommand(target, command, data);
+
+		Scheduler::OnDelay([delayData]()
+		{
+			Network::SendCommand(delayData->target, delayData->command, delayData->data);
+			delete delayData;
+		}, 500ms + std::chrono::milliseconds(rand() % 200));
 #else
 		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 
