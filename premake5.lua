@@ -245,7 +245,7 @@ workspace "iw4x"
 	configurations { "Debug", "Release" }
 	architecture "x86"
 	platforms "x86"
-	exceptionhandling ("SEH")
+	--exceptionhandling ("SEH")
 
 	flags { "StaticRuntime" }
 

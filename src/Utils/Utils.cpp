@@ -121,13 +121,18 @@ namespace Utils
 		return GetModuleHandleA(Utils::String::XOR(std::string(reinterpret_cast<char*>(ntdll), sizeof ntdll), -1).data());
 	}
 
+	void SafeShellExecute(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd)
+	{
+		__try
+		{
+			ShellExecuteA(hwnd, lpOperation, lpFile, lpParameters, lpDirectory, nShowCmd);
+		}
+		__finally {}
+	}
+
 	void OpenUrl(std::string url)
 	{
-		try
-		{
-			ShellExecuteA(nullptr, "open", url.data(), nullptr, nullptr, SW_SHOWNORMAL);
-		}
-		catch (...) {}
+		SafeShellExecute(nullptr, "open", url.data(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
 
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2)
