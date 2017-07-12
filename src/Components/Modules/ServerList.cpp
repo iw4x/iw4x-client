@@ -558,7 +558,7 @@ namespace Components
 		Game::menuDef_t* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
 		if (!menu || !Game::Menu_IsVisible(Game::uiContext, menu)) return;
 
-		std::sort(ServerList::VisibleList.begin(), ServerList::VisibleList.end(), [](const unsigned int &server1, const unsigned int &server2) -> bool
+		std::stable_sort(ServerList::VisibleList.begin(), ServerList::VisibleList.end(), [](const unsigned int &server1, const unsigned int &server2) -> bool
 		{
 			ServerInfo* info1 = nullptr;
 			ServerInfo* info2 = nullptr;

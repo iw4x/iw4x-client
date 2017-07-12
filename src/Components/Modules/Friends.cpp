@@ -13,7 +13,7 @@ namespace Components
 
 	void Friends::SortIndividualList(std::vector<Friends::Friend>* list)
 	{
-		std::sort(list->begin(), list->end(), [](Friends::Friend const& friend1, Friends::Friend const& friend2)
+		std::stable_sort(list->begin(), list->end(), [](Friends::Friend const& friend1, Friends::Friend const& friend2)
 		{
 			return friend1.cleanName.compare(friend2.cleanName) < 0;
 		});
