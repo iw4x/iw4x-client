@@ -264,7 +264,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 						}
 					}
 				}
-				executions["$testName on Linux"] = {
+				/*executions["$testName on Linux"] = {
 					node("docker && linux && amd64") {
 						wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
 							def image = null
@@ -278,7 +278,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 							}
 						}
 					}
-				}
+				}*/
 				parallel executions
 			}
 		}
