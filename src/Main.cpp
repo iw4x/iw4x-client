@@ -60,7 +60,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 #ifndef DISABLE_ANTICHEAT
 		[]()
 		{
-			if (!Components::Dedicated::IsEnabled())
+			if (!Components::Dedicated::IsEnabled() && !Components::Loader::IsPerformingUnitTests())
 			{
 				Components::AntiCheat::ProtectProcess();
 				Components::AntiCheat::PatchThreadCreation();
@@ -84,7 +84,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 #ifndef DISABLE_ANTICHEAT
 		[]()
 		{
-			if (!Components::Dedicated::IsEnabled())
+			if (!Components::Dedicated::IsEnabled() && !Components::Loader::IsPerformingUnitTests())
 			{
 				Components::AntiCheat::VerifyThreadIntegrity();
 			}

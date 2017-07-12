@@ -181,7 +181,7 @@ namespace Components
 		return result;
 	}
 
-	bool Loader::IsPerformingUnitTests()
+	bool inline Loader::IsPerformingUnitTests()
 	{
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		return Flags::HasFlag("tests");
