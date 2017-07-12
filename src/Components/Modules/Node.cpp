@@ -39,6 +39,7 @@ namespace Components
 
 		Session::Send(this->address, "nodeListRequest");
 		Node::SendList(this->address);
+		NODE_LOG("Sent request to %s\n", this->address.getCString());
 	}
 
 	void Node::Entry::reset()
@@ -154,7 +155,13 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
 
+		static Utils::Time::Interval frameLimit;
+		int interval = static_cast<int>(1000.0f / Dvar::Var("net_serverFrames").get<int>());
+		if (!frameLimit.elapsed(std::chrono::milliseconds(interval))) return;
+		frameLimit.update();
+
 		std::lock_guard<std::recursive_mutex> _(Node::Mutex);
+		Dvar::Var queryLimit("net_serverQueryLimit");
 
 		int sentRequests = 0;
 		for (auto i = Node::Nodes.begin(); i != Node::Nodes.end();)
@@ -164,7 +171,7 @@ namespace Components
 				i = Node::Nodes.erase(i);
 				continue;
 			}
-			else if (sentRequests < NODE_REQUEST_LIMIT && i->requiresRequest())
+			else if (sentRequests < queryLimit.get<int>() && i->requiresRequest())
 			{
 				++sentRequests;
 				i->sendRequest();
@@ -191,6 +198,8 @@ namespace Components
 		Proto::Node::List list;
 		if (!list.ParseFromString(data)) return;
 
+		NODE_LOG("Received response from %s\n", address.getCString());
+
 		std::lock_guard<std::recursive_mutex> _(Node::Mutex);
 
 		for (int i = 0; i < list.nodes_size(); ++i)
@@ -207,7 +216,12 @@ namespace Components
 		{
 			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && list.protocol() == PROTOCOL)
 			{
+				NODE_LOG("Inserting %s into the serverlist\n", address.getCString());
 				ServerList::InsertRequest(address);
+			}
+			else
+			{
+				NODE_LOG("Dropping serverlist insertion for %s\n", address.getCString());
 			}
 
 			for (auto& node : Node::Nodes)

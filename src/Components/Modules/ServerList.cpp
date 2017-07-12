@@ -610,6 +610,11 @@ namespace Components
 
 	void ServerList::Frame()
 	{
+		static Utils::Time::Interval frameLimit;
+		int interval = static_cast<int>(1000.0f / Dvar::Var("net_serverFrames").get<int>());
+		if (!frameLimit.elapsed(std::chrono::milliseconds(interval))) return;
+		frameLimit.update();
+
 		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
 
 		if (ServerList::RefreshContainer.awatingList)
@@ -623,17 +628,15 @@ namespace Components
 			}
 		}
 
-		// Send requests to 10 servers each frame
-		int SendServers = 10;
-
-		for (unsigned int i = 0; i < ServerList::RefreshContainer.servers.size(); ++i)
+		int requestLimit = Dvar::Var("net_serverQueryLimit").get<int>();
+		for (unsigned int i = 0; i < ServerList::RefreshContainer.servers.size() && requestLimit > 0; ++i)
 		{
 			ServerList::Container::ServerContainer* server = &ServerList::RefreshContainer.servers[i];
 			if (server->sent) continue;
 
 			// Found server we can send a request to
 			server->sent = true;
-			SendServers--;
+			requestLimit--;
 
 			server->sendTime = Game::Sys_Milliseconds();
 			server->challenge = Utils::Cryptography::Rand::GenerateChallenge();
@@ -644,8 +647,6 @@ namespace Components
 
 			// Display in the menu, like in COD4
 			//Localization::Set("MPUI_SERVERQUERIED", Utils::String::VA("Sent requests: %d/%d", ServerList::RefreshContainer.sentCount, ServerList::RefreshContainer.sendCount));
-
-			if (SendServers <= 0) break;
 		}
 
 		ServerList::UpdateVisibleInfo();
@@ -725,6 +726,9 @@ namespace Components
 		{
 			Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_FLAG_NONE, "Whether a server has been selected in the serverlist");
 			Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "Map of the selected server");
+
+			Dvar::Register<int>("net_serverQueryLimit", 3, 1, 10, Dedicated::IsEnabled() ? 0 : Game::dvar_flag::DVAR_FLAG_SAVED, "Amount of server queries per frame");
+			Dvar::Register<int>("net_serverFrames", 60, 1, 1000, Dedicated::IsEnabled() ? 0 : Game::dvar_flag::DVAR_FLAG_SAVED, "Amount of server query frames per second");
 		});
 
 		// Fix ui_netsource dvar

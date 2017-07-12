@@ -1,7 +1,12 @@
 #pragma once
 
 #define NODE_HALFLIFE (3 * 60 * 1000) //3min
-#define NODE_REQUEST_LIMIT 3
+
+#ifdef NODE_LOG_MESSAGES
+#define NODE_LOG(x, ...) Logger::Print(x, __VA_ARGS__)
+#else
+#define NODE_LOG(x, ...)
+#endif
 
 namespace Components
 {
