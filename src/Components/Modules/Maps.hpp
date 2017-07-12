@@ -65,6 +65,7 @@ namespace Components
 
 		static Game::XAssetEntry* GetAssetEntryPool();
 		static bool IsCustomMap();
+		static bool IsUserMap(std::string mapname);
 
 	private:
 		class DLC

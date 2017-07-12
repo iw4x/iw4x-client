@@ -409,7 +409,7 @@ namespace Components
 			Maps::UserMap.clear();
 		}
 
-		if (Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", mapname)) && Utils::IO::FileExists(Utils::String::VA("usermaps/%s/%s.ff", mapname, mapname)))
+		if (Maps::IsUserMap(mapname))
 		{
 			Maps::UserMap = Maps::UserMapContainer(mapname);
 			Maps::UserMap.loadIwd();
@@ -708,6 +708,11 @@ namespace Components
 		Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
 		if(gameWorld) return gameWorld->checksum == 0xDEADBEEF;
 		return false;
+	}
+
+	bool Maps::IsUserMap(std::string mapname)
+	{
+		return Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", mapname.data())) && Utils::IO::FileExists(Utils::String::VA("usermaps/%s/%s.ff", mapname.data(), mapname.data()));
 	}
 
 	Game::XAssetEntry* Maps::GetAssetEntryPool()

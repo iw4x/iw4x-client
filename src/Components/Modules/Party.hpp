@@ -19,6 +19,9 @@ namespace Components
 
 		static void ConnectError(std::string message);
 
+		static bool IsInUserMapLobby();
+		static bool IsInLobby();
+
 		static std::string GetMotd();
 
 	private:

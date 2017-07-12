@@ -474,8 +474,8 @@ namespace Components
 		static std::string mapnamePre;
 		static json11::Json jsonList;
 
-		std::string mapname = Maps::GetUserMap()->getName();
-		if (!Maps::GetUserMap()->isValid())
+		std::string mapname = (Party::IsInUserMapLobby() ? Dvar::Var("ui_mapname").get<std::string>() : Maps::GetUserMap()->getName());
+		if (!Maps::GetUserMap()->isValid() && !Party::IsInUserMapLobby())
 		{
 			mapnamePre.clear();
 			jsonList = std::vector<json11::Json>();
@@ -607,7 +607,7 @@ namespace Components
 				isMap = true;
 				url = url.substr(4);
 
-				std::string mapname = Maps::GetUserMap()->getName();
+				std::string mapname = (Party::IsInUserMapLobby() ? Dvar::Var("ui_mapname").get<std::string>() : Maps::GetUserMap()->getName());
 
 				bool isValidFile = false;
 				for (int i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
@@ -619,7 +619,7 @@ namespace Components
 					}
 				}
 
-				if (!Maps::GetUserMap()->isValid() || !isValidFile)
+				if ((!Maps::GetUserMap()->isValid() && !Party::IsInUserMapLobby()) || !isValidFile)
 				{
 					Download::Forbid(nc);
 					return;

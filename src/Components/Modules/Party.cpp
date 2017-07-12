@@ -138,6 +138,16 @@ namespace Components
 		return Utils::Hook::Call<DWORD(char*)>(0x4D5390)(dvar);
 	}
 
+	bool Party::IsInLobby()
+	{
+		return (!Dvar::Var("sv_running").get<bool>() && Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>());
+	}
+
+	bool Party::IsInUserMapLobby()
+	{
+		return (Party::IsInLobby() && Maps::IsUserMap(Dvar::Var("ui_mapname").get<const char*>()));
+	}
+
 	Party::Party()
 	{
 		static Game::dvar_t* partyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::dvar_flag::DVAR_FLAG_NONE, "Enable party system").get<Game::dvar_t*>();
@@ -336,20 +346,24 @@ namespace Components
 			info.set("securityLevel", Utils::String::VA("%i", Dvar::Var("sv_securityLevel").get<int>()));
 			info.set("sv_running", (Dvar::Var("sv_running").get<bool>() ? "1" : "0"));
 
+			// Ensure mapname is set
+			if (info.get("mapname").empty() || Party::IsInLobby())
+			{
+				info.set("mapname", Dvar::Var("ui_mapname").get<const char*>());
+			}
+
 			if (Maps::GetUserMap()->isValid())
 			{
 				info.set("usermaphash", Utils::String::VA("%i", Maps::GetUserMap()->getHash()));
+			}
+			else if (Party::IsInUserMapLobby())
+			{
+				info.set("usermaphash", Utils::String::VA("%i", Maps::GetUsermapHash(info.get("mapname"))));
 			}
 
 			if (Dedicated::IsEnabled())
 			{
 				info.set("sv_motd", Dvar::Var("sv_motd").get<std::string>());
-			}
-
-			// Ensure mapname is set
-			if (info.get("mapname").empty() || (Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>() && !Dvar::Var("sv_running").get<bool>()))
-			{
-				info.set("mapname", Dvar::Var("ui_mapname").get<const char*>());
 			}
 
 			// Set matchtype
