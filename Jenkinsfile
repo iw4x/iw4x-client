@@ -257,14 +257,14 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 				def testName = entry[0]
 				def test = entry[1]
 
-				executions["$testName on Windows"] = {
+				/*executions["$testName on Windows"] = {
 					node("windows") {
 						jobWorkspace(test.WorkspaceID) {
 							doUnitTests(test.StashName)
 						}
 					}
 				}
-				/*executions["$testName on Linux"] = {
+				executions["$testName on Linux"] = {
 					node("docker && linux && amd64") {
 						wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
 							def image = null
