@@ -73,6 +73,12 @@ namespace Components
 		return size;
 	}
 
+	int QuickPatch::SVCanReplaceServerCommand(Game::client_t* /*client*/, const char* /*cmd*/)
+	{
+		// This is a fix copied from V2. As I don't have time to investigate, let's simply trust them
+		return -1;
+	}
+
 	void QuickPatch::SelectStringTableEntryInDvarStub()
 	{
 		Command::ClientParams args;
@@ -400,6 +406,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x5A8C70, 0xC3);                                                      // CL_HandleRelayPacket
 		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
 		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
+		Utils::Hook(0x407376, QuickPatch::SVCanReplaceServerCommand , HOOK_CALL).install()->quick(); // SV_CanReplaceServerCommand
 
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
