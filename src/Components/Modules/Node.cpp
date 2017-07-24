@@ -5,6 +5,8 @@ namespace Components
 	std::recursive_mutex Node::Mutex;
 	std::vector<Node::Entry> Node::Nodes;
 
+	bool Node::wasIngame;
+
 	bool Node::Entry::isValid()
 	{
 		return (this->lastResponse.has_value() && !this->lastResponse->elapsed(NODE_HALFLIFE * 2));
@@ -14,7 +16,7 @@ namespace Components
 	{
 		if (!this->lastResponse.has_value())
 		{
-			if (this->lastRequest.has_value() && this->lastRequest->elapsed(NODE_HALFLIFE) && this->creationPoint.elapsed(NODE_HALFLIFE))
+			if (this->lastRequest.has_value() && this->lastRequest->elapsed(NODE_HALFLIFE))
 			{
 				return true;
 			}
@@ -154,6 +156,24 @@ namespace Components
 	void Node::RunFrame()
 	{
 		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
+
+		if (Game::CL_IsCgameInitialized())
+		{
+			wasIngame = true;
+			return; // don't run while ingame because it can still cause lag spikes on lower end PCs
+		}
+
+		if (wasIngame) // our last frame we were ingame and now we aren't so touch all nodes
+		{
+			for (auto i = Node::Nodes.begin(); i != Node::Nodes.end();++i)
+			{
+				// clearing the last request and response times makes the 
+				// dispatcher think its a new node and will force a refresh
+				i->lastRequest.reset();
+				i->lastResponse.reset();
+			}
+			wasIngame = false;
+		}
 
 		static Utils::Time::Interval frameLimit;
 		int interval = static_cast<int>(1000.0f / Dvar::Var("net_serverFrames").get<int>());

@@ -27,7 +27,6 @@ namespace Components
 
 			std::optional<Utils::Time::Point> lastRequest;
 			std::optional<Utils::Time::Point> lastResponse;
-			Utils::Time::Point creationPoint;
 
 			bool isValid();
 			bool isDead();
@@ -50,6 +49,7 @@ namespace Components
 	private:
 		static std::recursive_mutex Mutex;
 		static std::vector<Entry> Nodes;
+		static bool wasIngame;
 
 		static void HandleResponse(Network::Address address, std::string data);
 
