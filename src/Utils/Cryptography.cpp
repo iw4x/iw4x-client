@@ -40,6 +40,31 @@ namespace Utils
 			rng_make_prng(128, find_prng("fortuna"), &Rand::State, nullptr);
 		}
 
+		std::string Rand::GetRandomBytes(size_t size)
+		{
+			Utils::Memory::Allocator allocator;
+			char* data = allocator.allocateArray<char>(size);
+
+			Rand::GetRandomBytes(data, size);
+
+			return std::string(data, size);
+		}
+
+		void Rand::GetRandomBytes(void* data, size_t size)
+		{
+			char* dataPtr = reinterpret_cast<char*>(data);
+			while (size > 0)
+			{
+				uint32_t num = Rand::GenerateInt();
+				size_t len = std::min(size, sizeof(num));
+
+				std::memmove(dataPtr, &num, len);
+
+				dataPtr += len;
+				size -= len;
+			}
+		}
+
 #pragma endregion
 
 #pragma region ECC

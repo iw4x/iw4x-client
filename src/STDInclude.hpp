@@ -80,6 +80,7 @@ template <size_t S> class Sizer { };
 #include <json11.hpp>
 #include <tomcrypt.h>
 #include <udis86.h>
+#include <dht.h>
 
 #ifdef max
 #undef max
@@ -90,10 +91,9 @@ template <size_t S> class Sizer { };
 #endif
 
 // Protobuf
-#include "proto/session.pb.h"
+#include "proto/network.pb.h"
 #include "proto/party.pb.h"
 #include "proto/auth.pb.h"
-#include "proto/node.pb.h"
 #include "proto/rcon.pb.h"
 #include "proto/ipc.pb.h"
 #include "proto/friends.pb.h"

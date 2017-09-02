@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package Proto.Network;
+
+message Node
+{
+	bytes id = 1;
+	bytes address = 2;
+}
+
+message Nodes
+{
+	repeated Node nodes = 1;
+}

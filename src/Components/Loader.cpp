@@ -33,6 +33,7 @@ namespace Components
 		Loader::Register(new Singleton());
 		Loader::Register(new Exception()); // install our exception handler as early as posssible to get better debug dumps from startup crashes
 
+		Loader::Register(new DHT());
 		Loader::Register(new Auth());
 		Loader::Register(new Bans());
 		Loader::Register(new Bots());
@@ -40,7 +41,6 @@ namespace Components
 		Loader::Register(new Lean());
 		Loader::Register(new Maps());
 		Loader::Register(new News());
-		Loader::Register(new Node());
 		Loader::Register(new RCon());
 		Loader::Register(new Stats());
 		Loader::Register(new Menus());
@@ -63,7 +63,6 @@ namespace Components
 		Loader::Register(new ModList());
 		Loader::Register(new Monitor());
 		Loader::Register(new Network());
-		Loader::Register(new Session());
 		Loader::Register(new Theatre());
 		//Loader::Register(new ClanTags());
 		Loader::Register(new Download());
