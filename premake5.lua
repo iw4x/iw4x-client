@@ -182,6 +182,7 @@ require "premake/protobuf"
 require "premake/zlib"
 require "premake/udis86"
 require "premake/iw4mvm"
+require "premake/dht"
 
 json11.setup
 {
@@ -235,6 +236,10 @@ iw4mvm.setup
 		"DETOURS_32BIT",
 	},
 	source = path.join(depsBasePath, "iw4mvm"),
+}
+dht.setup
+{
+	source = path.join(depsBasePath, "dht"),
 }
 
 workspace "iw4x"
@@ -324,6 +329,7 @@ workspace "iw4x"
 		zlib.import()
 		udis86.import()
 		iw4mvm.import()
+		dht.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -437,6 +443,7 @@ workspace "iw4x"
 		zlib.project()
 		udis86.project()
 		iw4mvm.project()
+		dht.project()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"
