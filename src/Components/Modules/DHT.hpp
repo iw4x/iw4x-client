@@ -11,9 +11,9 @@ namespace Components
 		typedef unsigned char Id[20];
 
 		DHT();
-		~DHT();
+		void preDestroy() override;
 
-		static void OnData(std::string data, Network::Address address);
+		static void OnData(char* buf, int len, sockaddr* from, int fromlen);
 
 		static void Insert(std::string data, Utils::Slot<void(std::vector<Network::Address>)> callback);
 
@@ -28,8 +28,9 @@ namespace Components
 
 		static void Hash(std::string data, void* out, size_t size);
 
+		static void BootstrapDone();
+
 	private:
-		static SOCKET Socket;
 		static std::mutex Mutex;
 		static std::vector<Network::Address> Nodes;
 		static std::map<std::basic_string<uint8_t>, Utils::Slot<void(std::vector<Network::Address>)>> Handlers;
@@ -38,9 +39,6 @@ namespace Components
 
 		static void StoreNodes(bool force);
 		static void LoadNodes();
-
-		static void InitSocket();
-		static void SocketFrame();
 
 		static void Bootstrap(Network::Address node);
 	};

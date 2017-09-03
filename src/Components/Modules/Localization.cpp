@@ -287,6 +287,8 @@ namespace Components
 			}
 		});
 
+		Localization::Set("PLATFORM_POPUP_CONNECTION", "Connecting to the DHT network");
+
 // #ifndef DISABLE_ANTICHEAT
 // 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && !Utils::IsWineEnvironment() && !Loader::IsPerformingUnitTests())
 // 		{
