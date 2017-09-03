@@ -1,5 +1,7 @@
 #pragma once
 
+#define COMPILE_IW4MVM
+
 namespace Components
 {
 	class IW4MVM : public Component

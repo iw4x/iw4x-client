@@ -1,5 +1,8 @@
 #include "STDInclude.hpp"
+
+#ifdef COMPILE_IW4MVM
 #include <IW4MVM/client_main.h>
+#endif
 
 namespace Components
 {
@@ -11,8 +14,10 @@ namespace Components
 		std::uint8_t* module = reinterpret_cast<std::uint8_t*>(GetModuleHandle(nullptr));
 		VirtualProtect(module + 0x1000, 0x2D6000, PAGE_EXECUTE_READWRITE, &oldProtect);
 
+#ifdef COMPILE_IW4MVM
 		client_main::Init();
 		Scheduler::Once(client_main::PostInit);
+#endif
 		Scheduler::OnFrame([]()
 		{
 			if (!Game::CL_IsCgameInitialized())
