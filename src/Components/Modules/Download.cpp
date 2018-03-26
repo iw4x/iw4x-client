@@ -802,7 +802,7 @@ namespace Components
 
 	Download::Download()
 	{
-		if (Dedicated::IsEnabled())
+		if (!ZoneBuilder::IsEnabled())
 		{
 			Download::Terminate = false;
 			ZeroMemory(&Download::Mgr, sizeof Download::Mgr);
