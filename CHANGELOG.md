@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
+- Implement DHT into node network code.
+
 ### Changed
 
 ### Fixed
