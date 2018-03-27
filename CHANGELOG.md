@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
+- Fix mods not working in private matches.
+
 ## [0.5.4] - 2017-07-09
 
 ### Added
