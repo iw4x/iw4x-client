@@ -160,9 +160,9 @@ namespace Assets
 					asset->sortKey = header.material->sortKey;
 
 					// This is temp, as nobody has time to fix materials
-					asset->stateBitsCount = header.material->stateBitsCount;
-					asset->stateBitTable = header.material->stateBitTable;
-					std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
+// 					asset->stateBitsCount = header.material->stateBitsCount;
+// 					asset->stateBitTable = header.material->stateBitTable;
+// 					std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
 					asset->constantCount = header.material->constantCount;
 					asset->constantTable = header.material->constantTable;
 
@@ -216,6 +216,31 @@ namespace Assets
 		if (!reader.end())
 		{
 			Components::Logger::Error("Material data left!");
+		}
+
+		char baseIndex = 0;
+		for (char i = 0; i < asset->stateBitsCount; ++i)
+		{
+			auto stateBits = asset->stateBitTable[i];
+			if (stateBits.loadBits[0] == 0x18128812 &&
+				stateBits.loadBits[1] == 0xD) // Seems to be like a default stateBit causing a 'generic' initialization
+			{
+				baseIndex = i;
+				break;
+			}
+		}
+
+		for (int i = 0; i < 48; ++i)
+		{
+			if (!asset->techniqueSet->techniques[i] && asset->stateBitsEntry[i] != -1)
+			{
+				asset->stateBitsEntry[i] = -1;
+			}
+
+			if (asset->techniqueSet->techniques[i] && asset->stateBitsEntry[i] == -1)
+			{
+				asset->stateBitsEntry[i] = baseIndex;
+			}
 		}
 	}
 
