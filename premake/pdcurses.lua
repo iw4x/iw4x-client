@@ -36,8 +36,8 @@ function pdcurses.project()
 		{
 			path.join(pdcurses.settings.source, "pdcurses/*.c"),
 			path.join(pdcurses.settings.source, "pdcurses/*.h"),
-			path.join(pdcurses.settings.source, "win32/*.c"),
-			path.join(pdcurses.settings.source, "win32/*.h"),
+			path.join(pdcurses.settings.source, "wincon/*.c"),
+			path.join(pdcurses.settings.source, "wincon/*.h"),
 		}
 
 		-- not our code, ignore POSIX usage warnings for now
