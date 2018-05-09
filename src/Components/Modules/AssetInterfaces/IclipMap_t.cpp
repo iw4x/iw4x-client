@@ -770,7 +770,7 @@ namespace Assets
 				if (clipMap->partitions[i].borderCount > 0)
 				{
 					int index = reader.read<int>();
-					if (index < 0 || index > clipMap->partitionCount)
+					if (index < 0 || index > clipMap->borderCount)
 					{
 						Components::Logger::Error("invalid border index\n");
 						return;
