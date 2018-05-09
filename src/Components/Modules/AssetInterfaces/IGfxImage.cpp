@@ -45,27 +45,31 @@ namespace Assets
 			image->cardMemory.platform[0] = reader.read<int>();
 			image->cardMemory.platform[1] = image->cardMemory.platform[0];
 
-			image->texture.loadDef = reinterpret_cast<Game::GfxImageLoadDef*>(reader.readArray<char>(image->cardMemory.platform[0] + 16));
+			Game::GfxImageLoadDefIW3* loadDef = reinterpret_cast<Game::GfxImageLoadDefIW3*>(reader.readArray<char>(image->cardMemory.platform[0] + 16));
+			image->texture.loadDef = reinterpret_cast<Game::GfxImageLoadDef*>(builder->getAllocator()->allocateArray<char>(image->cardMemory.platform[0] + 16));
 
-			// TODO: Fix that, this is clearly wrong
-			auto dimensions = reinterpret_cast<unsigned short*>(&image->texture.loadDef->pad[2]);
-			image->height = dimensions[0];
-			image->width = dimensions[1];
-			image->depth = dimensions[2];
-
-			image->delayLoadPixels = true;
-			image->texture.loadDef->flags = 0;
+			image->texture.loadDef->levelCount = loadDef->levelCount;
+			image->texture.loadDef->flags = loadDef->flags;
+			image->texture.loadDef->format = loadDef->format;
+			image->texture.loadDef->resourceSize = loadDef->resourceSize;
 
 			if (image->texture.loadDef->resourceSize != image->cardMemory.platform[0])
 			{
 				Components::Logger::Error("Resource size doesn't match the data length (%s)!\n", name.data());
 			}
 
+			std::memcpy(image->texture.loadDef->data, loadDef->data, image->texture.loadDef->resourceSize);
+
+			image->height = loadDef->dimensions[0];
+			image->width = loadDef->dimensions[1];
+			image->depth = loadDef->dimensions[2];
+
+			image->delayLoadPixels = true;
+			//image->texture.loadDef->flags = 0;
+
 			if (Utils::String::StartsWith(name, "*lightmap"))
 			{
-				dimensions[0] = 0;
-				dimensions[1] = 2;
-				dimensions[2] = 0;
+				image->texture.loadDef->flags = 2;
 			}
 
 			header->image = image;

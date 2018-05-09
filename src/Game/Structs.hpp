@@ -595,6 +595,16 @@ namespace Game
 		MaterialTechnique *techniques[48];
 	};
 
+	struct GfxImageLoadDefIW3
+	{
+		char levelCount;
+		char flags;
+		__int16 dimensions[3];
+		int format;
+		int resourceSize;
+		char data[1];
+	};
+
 	struct __declspec(align(4)) GfxImageLoadDef
 	{
 		char levelCount;
