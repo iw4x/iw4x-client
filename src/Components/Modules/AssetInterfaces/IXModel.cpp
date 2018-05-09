@@ -61,13 +61,13 @@ namespace Assets
 			asset->name = reader->readCString();
 		}
 
-		if (asset->surfaces)
+		if (asset->surfs)
 		{
-			asset->surfaces = reader->readArray<Game::XSurface>(asset->numSurfaces);
+			asset->surfs = reader->readArray<Game::XSurface>(asset->numsurfs);
 
-			for (int i = 0; i < asset->numSurfaces; ++i)
+			for (int i = 0; i < asset->numsurfs; ++i)
 			{
-				this->loadXSurface(&asset->surfaces[i], reader);
+				this->loadXSurface(&asset->surfs[i], reader);
 			}
 		}
 	}
@@ -168,7 +168,7 @@ namespace Assets
 						this->loadXModelSurfs(asset->lodInfo[i].modelSurfs, &reader);
 						Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, { asset->lodInfo[i].modelSurfs });
 
-						asset->lodInfo[i].surfs = asset->lodInfo[i].modelSurfs->surfaces;
+						asset->lodInfo[i].surfs = asset->lodInfo[i].modelSurfs->surfs;
 
 						// Zero that for now, it breaks the models.
 						// TODO: Figure out how that can be converted
@@ -257,10 +257,10 @@ namespace Assets
 						{
 							Game::PhysGeomInfo* geom = &collmap->geoms[i];
 
-							if (geom->brush)
+							if (geom->brushWrapper)
 							{
 								Game::BrushWrapper* brush = reader.readObject<Game::BrushWrapper>();
-								geom->brush = brush;
+								geom->brushWrapper = brush;
 								{
 									if (brush->brush.sides)
 									{
@@ -272,7 +272,7 @@ namespace Assets
 											// TODO: Add pointer support
 											if (side->plane)
 											{
-												side->plane = reader.readObject<Game::cplane_t>();
+												side->plane = reader.readObject<Game::cplane_s>();
 											}
 										}
 									}
@@ -286,7 +286,7 @@ namespace Assets
 								// TODO: Add pointer support
 								if (brush->planes)
 								{
-									brush->planes = reader.readArray<Game::cplane_t>(brush->brush.numsides);
+									brush->planes = reader.readArray<Game::cplane_s>(brush->brush.numsides);
 								}
 							}
 						}
@@ -441,7 +441,7 @@ namespace Assets
 			{
 				if (asset->lodInfo[i].modelSurfs)
 				{
-					dest->lodInfo[i].modelSurfs = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, asset->lodInfo[i].modelSurfs).surfaces;
+					dest->lodInfo[i].modelSurfs = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, asset->lodInfo[i].modelSurfs).modelSurfs;
 				}
 			}
 		}

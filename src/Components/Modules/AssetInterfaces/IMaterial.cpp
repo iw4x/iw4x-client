@@ -49,9 +49,9 @@ namespace Assets
 
 		Game::Material* asset = reader.readObject<Game::Material>();
 
-		if (asset->name)
+		if (asset->info.name)
 		{
-			asset->name = reader.readCString();
+			asset->info.name = reader.readCString();
 		}
 
 		if (asset->techniqueSet)
@@ -101,10 +101,10 @@ namespace Assets
 
 				if (textureDef->semantic == SEMANTIC_WATER_MAP)
 				{
-					if (textureDef->info.water)
+					if (textureDef->u.water)
 					{
 						Game::water_t* water = reader.readObject<Game::water_t>();
-						textureDef->info.water = water;
+						textureDef->u.water = water;
 
 						// Save_water_t
 						if (water->H0)
@@ -123,9 +123,9 @@ namespace Assets
 						}
 					}
 				}
-				else if (textureDef->info.image)
+				else if (textureDef->u.image)
 				{
-					textureDef->info.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
+					textureDef->u.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
 				}
 			}
 		}
@@ -135,9 +135,9 @@ namespace Assets
 			asset->constantTable = reader.readArray<Game::MaterialConstantDef>(asset->constantCount);
 		}
 
-		if (asset->stateBitTable)
+		if (asset->stateBitsTable)
 		{
-			asset->stateBitTable = reader.readArray<Game::GfxStateBits>(asset->stateBitsCount);
+			asset->stateBitsTable = reader.readArray<Game::GfxStateBits>(asset->stateBitsCount);
 		}
 
 		header->material = asset;
@@ -157,7 +157,7 @@ namespace Assets
 
 				if (std::string(name) == header.material->techniqueSet->name)
 				{
-					asset->sortKey = header.material->sortKey;
+					asset->info.sortKey = header.material->info.sortKey;
 
 					// This is temp, as nobody has time to fix materials
 // 					asset->stateBitsCount = header.material->stateBitsCount;
@@ -178,7 +178,7 @@ namespace Assets
 				Game::MaterialTechniqueSet* t1 = m1->techniqueSet;
 				Game::MaterialTechniqueSet* t2 = m2->techniqueSet;
 				if (!t1 || !t2) return false;
-				if (t1->remappedTechniques && t2->remappedTechniques && std::string(t1->remappedTechniques->name) == t2->remappedTechniques->name) return true;
+				if (t1->remappedTechniqueSet && t2->remappedTechniqueSet && std::string(t1->remappedTechniqueSet->name) == t2->remappedTechniqueSet->name) return true;
 
 				for (int i = 0; i < ARRAYSIZE(t1->techniques); ++i)
 				{
@@ -199,8 +199,8 @@ namespace Assets
 
 					if (techsetMatches(header.material, asset))
 					{
-						Components::Logger::Print("Material %s with techset %s has been mapped to %s\n", asset->name, asset->techniqueSet->name, header.material->techniqueSet->name);
-						asset->sortKey = header.material->sortKey;
+						Components::Logger::Print("Material %s with techset %s has been mapped to %s\n", asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name);
+						asset->info.sortKey = header.material->info.sortKey;
 						replacementFound = true;
 					}
 				}
@@ -210,7 +210,7 @@ namespace Assets
 		if (!replacementFound && asset->techniqueSet)
 		{
 
-			Components::Logger::Print("No replacement found for material %s with techset %s\n", asset->name, asset->techniqueSet->name);
+			Components::Logger::Print("No replacement found for material %s with techset %s\n", asset->info.name, asset->techniqueSet->name);
 		}
 
 		if (!reader.end())
@@ -221,7 +221,7 @@ namespace Assets
 		char baseIndex = 0;
 		for (char i = 0; i < asset->stateBitsCount; ++i)
 		{
-			auto stateBits = asset->stateBitTable[i];
+			auto stateBits = asset->stateBitsTable[i];
 			if (stateBits.loadBits[0] == 0x18128812 &&
 				stateBits.loadBits[1] == 0xD) // Seems to be like a default stateBit causing a 'generic' initialization
 			{
@@ -290,10 +290,10 @@ namespace Assets
 
 		// Copy base material to our structure
 		std::memcpy(material, baseMaterial, sizeof(Game::Material));
-		material->name = builder->getAllocator()->duplicateString(name);
+		material->info.name = builder->getAllocator()->duplicateString(name);
 
-		material->textureAtlasRowCount = 1;
-		material->textureAtlasColumnCount = 1;
+		material->info.textureAtlasRowCount = 1;
+		material->info.textureAtlasColumnCount = 1;
 
 		// Load animation frames
 		auto anims = infoData["anims"];
@@ -308,12 +308,12 @@ namespace Assets
 
 				if (animCoordX.is_number())
 				{
-					material->textureAtlasColumnCount = static_cast<char>(animCoordX.number_value()) & 0xFF;
+					material->info.textureAtlasColumnCount = static_cast<char>(animCoordX.number_value()) & 0xFF;
 				}
 
 				if (animCoordY.is_number())
 				{
-					material->textureAtlasRowCount = static_cast<char>(animCoordY.number_value()) & 0xFF;
+					material->info.textureAtlasRowCount = static_cast<char>(animCoordY.number_value()) & 0xFF;
 				}
 			}
 		}
@@ -349,12 +349,12 @@ namespace Assets
 				Game::MaterialTextureDef textureDef;
 
 				textureDef.semantic = 0; // No water image
-				textureDef.sampleState = -30;
+				textureDef.samplerState = -30;
 				textureDef.nameEnd = map.string_value().back();
 				textureDef.nameStart = map.string_value().front();
 				textureDef.nameHash = Game::R_HashString(map.string_value().data());
 
-				textureDef.info.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, image.string_value(), builder).image;
+				textureDef.u.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, image.string_value(), builder).image;
 
 				if (replaceTexture)
 				{
@@ -365,14 +365,14 @@ namespace Assets
 						if (material->textureTable[i].nameHash == textureDef.nameHash)
 						{
 							applied = true;
-							material->textureTable[i].info.image = textureDef.info.image;
+							material->textureTable[i].u.image = textureDef.u.image;
 							break;
 						}
 					}
 
 					if (!applied)
 					{
-						Components::Logger::Error(0, "Unable to find texture for map '%s' in %s!", map.string_value().data(), baseMaterial->name);
+						Components::Logger::Error(0, "Unable to find texture for map '%s' in %s!", map.string_value().data(), baseMaterial->info.name);
 					}
 				}
 				else
@@ -422,18 +422,18 @@ namespace Assets
 		{
 			for (char i = 0; i < asset->textureCount; ++i)
 			{
-				if (asset->textureTable[i].info.image)
+				if (asset->textureTable[i].u.image)
 				{
 					if (asset->textureTable[i].semantic == SEMANTIC_WATER_MAP)
 					{
-						if (asset->textureTable[i].info.water->image)
+						if (asset->textureTable[i].u.water->image)
 						{
-							builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.water->image);
+							builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].u.water->image);
 						}
 					}
 					else
 					{
-						builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].info.image);
+						builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->textureTable[i].u.image);
 					}
 				}
 			}
@@ -451,10 +451,10 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
-		if (asset->name)
+		if (asset->info.name)
 		{
-			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
-			Utils::Stream::ClearPointer(&dest->name);
+			buffer->saveString(builder->getAssetName(this->getType(), asset->info.name));
+			Utils::Stream::ClearPointer(&dest->info.name);
 		}
 
 		if (asset->techniqueSet)
@@ -489,13 +489,13 @@ namespace Assets
 						AssertSize(Game::water_t, 68);
 
 						Game::water_t* destWater = buffer->dest<Game::water_t>();
-						Game::water_t* water = textureDef->info.water;
+						Game::water_t* water = textureDef->u.water;
 
 						if (water)
 						{
 							buffer->align(Utils::Stream::ALIGN_4);
 							buffer->save(water);
-							Utils::Stream::ClearPointer(&destTextureDef->info.water);
+							Utils::Stream::ClearPointer(&destTextureDef->u.water);
 
 							// Save_water_t
 							if (water->H0)
@@ -518,9 +518,9 @@ namespace Assets
 							}
 						}
 					}
-					else if (textureDef->info.image)
+					else if (textureDef->u.image)
 					{
-						destTextureDef->info.image = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, textureDef->info.image).image;
+						destTextureDef->u.image = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, textureDef->u.image).image;
 					}
 				}
 
@@ -546,19 +546,19 @@ namespace Assets
 			}
 		}
 
-		if (asset->stateBitTable)
+		if (asset->stateBitsTable)
 		{
-			if (builder->hasPointer(asset->stateBitTable))
+			if (builder->hasPointer(asset->stateBitsTable))
 			{
-				dest->stateBitTable = builder->getPointer(asset->stateBitTable);
+				dest->stateBitsTable = builder->getPointer(asset->stateBitsTable);
 			}
 			else
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
-				builder->storePointer(asset->stateBitTable);
+				builder->storePointer(asset->stateBitsTable);
 
-				buffer->save(asset->stateBitTable, 8, asset->stateBitsCount);
-				Utils::Stream::ClearPointer(&dest->stateBitTable);
+				buffer->save(asset->stateBitsTable, 8, asset->stateBitsCount);
+				Utils::Stream::ClearPointer(&dest->stateBitsTable);
 			}
 		}
 

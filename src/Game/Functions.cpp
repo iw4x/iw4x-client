@@ -962,7 +962,7 @@ namespace Game
 		}
 	}
 
-	__declspec(naked) void Menu_FreeItemMemory(itemDef_t* /*item*/)
+	__declspec(naked) void Menu_FreeItemMemory(itemDef_s* /*item*/)
 	{
 		__asm
 		{

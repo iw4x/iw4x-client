@@ -53,7 +53,7 @@ namespace Components
 				}
 
 				// send statpacket
-				Network::SendRaw(Game::NS_CLIENT, *reinterpret_cast<Game::netadr_t*>(0xA1E888), std::string(msg.data, msg.cursize));
+				Network::SendRaw(Game::NS_CLIENT1, *reinterpret_cast<Game::netadr_t*>(0xA1E888), std::string(msg.data, msg.cursize));
 			}
 		}
 	}

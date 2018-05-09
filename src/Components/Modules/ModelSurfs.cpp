@@ -18,9 +18,9 @@ namespace Components
 
 	void ModelSurfs::CreateBuffers(Game::XModelSurfs* surfs)
 	{
-		for (int i = 0; i < surfs->numSurfaces; ++i)
+		for (int i = 0; i < surfs->numsurfs; ++i)
 		{
-			Game::XSurface* surface = &surfs->surfaces[i];
+			Game::XSurface* surface = &surfs->surfs[i];
 			if (surface->zoneHandle == -1)
 			{
 				IDirect3DVertexBuffer9* vertexBuffer = nullptr;
@@ -79,7 +79,7 @@ namespace Components
 		// Load section data
 		for (int i = 0; i < ARRAYSIZE(header.sectionHeader); ++i)
 		{
-			model.seek(header.sectionHeader[i].offset, FS_SEEK_SET);
+			model.seek(header.sectionHeader[i].offset, Game::FS_SEEK_SET);
 			if (!model.read(header.sectionHeader[i].buffer, header.sectionHeader[i].size))
 			{
 				Logger::Error("Reading section %d for model %s failed!", i, name.data());
@@ -106,8 +106,8 @@ namespace Components
 
 		AssertSize(Game::XSurface, 64);
 		Game::XModelSurfs* modelSurfs = reinterpret_cast<Game::XModelSurfs*>(allocationData->mainArray);
-		Game::XSurface* tempSurfaces = allocator.allocateArray<Game::XSurface>(modelSurfs->numSurfaces);
-		char* surfaceData = reinterpret_cast<char*>(modelSurfs->surfaces);
+		Game::XSurface* tempSurfaces = allocator.allocateArray<Game::XSurface>(modelSurfs->numsurfs);
+		char* surfaceData = reinterpret_cast<char*>(modelSurfs->surfs);
 
 		if (ModelSurfs::AllocMap.find(modelSurfs->name) != ModelSurfs::AllocMap.end())
 		{
@@ -125,7 +125,7 @@ namespace Components
 		ModelSurfs::AllocMap[modelSurfs->name] = allocationData;
 		*reinterpret_cast<void**>(reinterpret_cast<char*>(allocationData->mainArray) + 44) = allocationData;
 
-		for (int i = 0; i < modelSurfs->numSurfaces; ++i)
+		for (int i = 0; i < modelSurfs->numsurfs; ++i)
 		{
 			char* source = &surfaceData[i * 84];
 
@@ -136,7 +136,7 @@ namespace Components
 			tempSurfaces[i].zoneHandle = -1; // Fake handle for buffer interception
 		}
 
-		std::memcpy(surfaceData, tempSurfaces, 64 * modelSurfs->numSurfaces);
+		std::memcpy(surfaceData, tempSurfaces, 64 * modelSurfs->numsurfs);
 
 		ModelSurfs::CreateBuffers(modelSurfs);
 
@@ -154,19 +154,19 @@ namespace Components
 		{
 			Game::XModelSurfs* surfs = model->lodInfo[i].modelSurfs;
 
-			if (!surfs->surfaces)
+			if (!surfs->surfs)
 			{
 				AssertOffset(Game::XModelLodInfo, partBits, 12);
 				Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
 				if (!newSurfs) continue;
 
-				surfs->surfaces = newSurfs->surfaces;
-				surfs->numSurfaces = newSurfs->numSurfaces;
+				surfs->surfs = newSurfs->surfs;
+				surfs->numsurfs = newSurfs->numsurfs;
 
-				model->lodInfo[i].surfs = newSurfs->surfaces;
+				model->lodInfo[i].surfs = newSurfs->surfs;
 				std::memcpy(&model->lodInfo[i].partBits, &newSurfs->partBits, 24);
 
-				short numSurfs = static_cast<short>(newSurfs->numSurfaces);
+				short numSurfs = static_cast<short>(newSurfs->numsurfs);
 				model->lodInfo[i].numsurfs = numSurfs;
 				model->lodInfo[i].surfIndex = surfCount;
 				surfCount += numSurfs;
@@ -181,9 +181,9 @@ namespace Components
 	void ModelSurfs::ReleaseModelSurf(Game::XAssetHeader header)
 	{
 		bool hasCustomSurface = false;
-		for (int i = 0; i < header.surfaces->numSurfaces && header.surfaces->surfaces; ++i)
+		for (int i = 0; i < header.modelSurfs->numsurfs && header.modelSurfs->surfs; ++i)
 		{
-			Game::XSurface* surface = &header.surfaces->surfaces[i];
+			Game::XSurface* surface = &header.modelSurfs->surfs[i];
 
 			if (surface->zoneHandle == -1)
 			{
@@ -210,7 +210,7 @@ namespace Components
 
 		if (hasCustomSurface && !ModelSurfs::AllocMap.empty())
 		{
-			auto allocData = ModelSurfs::AllocMap.find(header.surfaces->name);
+			auto allocData = ModelSurfs::AllocMap.find(header.modelSurfs->name);
 			if (allocData != ModelSurfs::AllocMap.end())
 			{
 				Utils::Memory::FreeAlign(allocData->second->indexBuffer);
@@ -237,7 +237,7 @@ namespace Components
 	{
 		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, [](Game::XAssetHeader header, void* /*userdata*/)
 		{
-			ModelSurfs::CreateBuffers(header.surfaces);
+			ModelSurfs::CreateBuffers(header.modelSurfs);
 		}, nullptr, false);
 	}
 

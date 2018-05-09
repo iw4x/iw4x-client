@@ -22,26 +22,26 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		if (asset->cPlanes)
+		if (asset->planes)
 		{
-			AssertSize(Game::cplane_t, 20);
+			AssertSize(Game::cplane_s, 20);
 			SaveLogEnter("cplane_t");
 
-			if (builder->hasPointer(asset->cPlanes))
+			if (builder->hasPointer(asset->planes))
 			{
-				dest->cPlanes = builder->getPointer(asset->cPlanes);
+				dest->planes = builder->getPointer(asset->planes);
 			}
 			else
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
 
 				// not sure if this is needed but both brushside and brushedge need it and it can't hurt
-				for (int i = 0; i < asset->numCPlanes; ++i)
+				for (int i = 0; i < asset->planeCount; ++i)
 				{
-					builder->storePointer(&asset->cPlanes[i]);
-					buffer->save(&asset->cPlanes[i]);
+					builder->storePointer(&asset->planes[i]);
+					buffer->save(&asset->planes[i]);
 				}
-				Utils::Stream::ClearPointer(&dest->cPlanes);
+				Utils::Stream::ClearPointer(&dest->planes);
 			}
 
 			SaveLogExit();
@@ -50,15 +50,15 @@ namespace Assets
 		if (asset->staticModelList)
 		{
 
-			AssertSize(Game::cStaticModel_t, 76);
+			AssertSize(Game::cStaticModel_s, 76);
 			SaveLogEnter("cStaticModel_t");
 
 			// xmodel is already stored
 			buffer->align(Utils::Stream::ALIGN_4);
-			Game::cStaticModel_t* destStaticModelList = buffer->dest<Game::cStaticModel_t>();
+			Game::cStaticModel_s* destStaticModelList = buffer->dest<Game::cStaticModel_s>();
 			buffer->saveArray(asset->staticModelList, asset->numStaticModels);
 
-			for (int i = 0; i < asset->numStaticModels; ++i)
+			for (unsigned int i = 0; i < asset->numStaticModels; ++i)
 			{
 				if (asset->staticModelList[i].xmodel)
 				{
@@ -79,7 +79,7 @@ namespace Assets
 			Game::ClipMaterial* mats = buffer->dest<Game::ClipMaterial>();
 			buffer->saveArray(asset->materials, asset->numMaterials);
 
-			for (int i = 0; i < asset->numMaterials; ++i)
+			for (unsigned int i = 0; i < asset->numMaterials; ++i)
 			{
 				buffer->saveString(asset->materials[i].name);
 				Utils::Stream::ClearPointer(&mats[i].name);
@@ -89,7 +89,7 @@ namespace Assets
 			SaveLogExit();
 		}
 
-		if (asset->cBrushSides)
+		if (asset->brushsides)
 		{
 			AssertSize(Game::cbrushside_t, 8);
 			SaveLogEnter("cbrushside_t");
@@ -97,17 +97,17 @@ namespace Assets
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cbrushside_t* sides = buffer->dest<Game::cbrushside_t>();
 			// we need the pointer to each of these to be stored so we can't write them all at once
-			for (int i = 0; i < asset->numCBrushSides; ++i)
+			for (unsigned int i = 0; i < asset->numBrushSides; ++i)
 			{
-				builder->storePointer(&asset->cBrushSides[i]); // for reference in cBrush
-				buffer->save(&asset->cBrushSides[i]);
+				builder->storePointer(&asset->brushsides[i]); // for reference in cBrush
+				buffer->save(&asset->brushsides[i]);
 			}
 
-			for (int i = 0; i < asset->numCBrushSides; ++i)
+			for (unsigned int i = 0; i < asset->numBrushSides; ++i)
 			{
 				if (sides[i].plane)
 				{
-					AssertSize(Game::cplane_t, 20);
+					AssertSize(Game::cplane_s, 20);
 
 					if (builder->hasPointer(sides[i].plane))
 					{
@@ -124,35 +124,35 @@ namespace Assets
 				}
 			}
 
-			Utils::Stream::ClearPointer(&dest->cBrushSides);
+			Utils::Stream::ClearPointer(&dest->brushsides);
 			SaveLogExit();
 		}
 
-		if (asset->cBrushEdges)
+		if (asset->brushEdges)
 		{
 			SaveLogEnter("cBrushEdge");
 
 			// no align for char
-			for (int i = 0; i < asset->numCBrushEdges; ++i)
+			for (unsigned int i = 0; i < asset->numBrushEdges; ++i)
 			{
-				builder->storePointer(&asset->cBrushEdges[i]); // for reference in cBrush
-				buffer->save(&asset->cBrushEdges[i]);
+				builder->storePointer(&asset->brushEdges[i]); // for reference in cBrush
+				buffer->save(&asset->brushEdges[i]);
 			}
-			Utils::Stream::ClearPointer(&dest->cBrushEdges);
+			Utils::Stream::ClearPointer(&dest->brushEdges);
 
 			SaveLogExit();
 		}
 
-		if (asset->cNodes)
+		if (asset->nodes)
 		{
 			AssertSize(Game::cNode_t, 8);
 			SaveLogEnter("cNode_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::cNode_t* nodes = buffer->dest<Game::cNode_t>();
-			buffer->saveArray(asset->cNodes, asset->numCNodes);
+			buffer->saveArray(asset->nodes, asset->numNodes);
 
-			for (int i = 0; i < asset->numCNodes; ++i)
+			for (unsigned int i = 0; i < asset->numNodes; ++i)
 			{
 				if (nodes[i].plane)
 				{
@@ -171,42 +171,42 @@ namespace Assets
 				}
 			}
 
-			Utils::Stream::ClearPointer(&dest->cNodes);
+			Utils::Stream::ClearPointer(&dest->nodes);
 			SaveLogExit();
 		}
 
-		if (asset->cLeaf)
+		if (asset->leafs)
 		{
 			AssertSize(Game::cLeaf_t, 40);
 			SaveLogEnter("cLeaf_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->cLeaf, asset->numCLeaf);
-			Utils::Stream::ClearPointer(&dest->cLeaf);
+			buffer->saveArray(asset->leafs, asset->numLeafs);
+			Utils::Stream::ClearPointer(&dest->leafs);
 			SaveLogExit();
 		}
 
-		if (asset->leafBrushes)
+		if (asset->leafbrushes)
 		{
 			SaveLogEnter("cLeafBrush_t");
 
 			buffer->align(Utils::Stream::ALIGN_2);
-			buffer->saveArray(asset->leafBrushes, asset->numLeafBrushes);
-			Utils::Stream::ClearPointer(&dest->leafBrushes);
+			buffer->saveArray(asset->leafbrushes, asset->numLeafBrushes);
+			Utils::Stream::ClearPointer(&dest->leafbrushes);
 
 			SaveLogExit();
 		}
 
-		if (asset->cLeafBrushNodes)
+		if (asset->leafbrushNodes)
 		{
-			AssertSize(Game::cLeafBrushNode_t, 20);
+			AssertSize(Game::cLeafBrushNode_s, 20);
 			SaveLogEnter("cLeafBrushNode_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			Game::cLeafBrushNode_t* node = buffer->dest<Game::cLeafBrushNode_t>();
-			buffer->saveArray(asset->cLeafBrushNodes, asset->numCLeafBrushNodes);
+			Game::cLeafBrushNode_s* node = buffer->dest<Game::cLeafBrushNode_s>();
+			buffer->saveArray(asset->leafbrushNodes, asset->leafbrushNodesCount);
 
-			for (int i = 0; i < asset->numCLeafBrushNodes; ++i)
+			for (unsigned int i = 0; i < asset->leafbrushNodesCount; ++i)
 			{
 				if (node[i].leafBrushCount > 0)
 				{
@@ -232,17 +232,17 @@ namespace Assets
 				}
 			}
 
-			Utils::Stream::ClearPointer(&dest->cLeafBrushNodes);
+			Utils::Stream::ClearPointer(&dest->leafbrushNodes);
 			SaveLogExit();
 		}
 
-		if (asset->leafSurfaces)
+		if (asset->leafsurfaces)
 		{
 			SaveLogEnter("cLeafSurface_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->leafSurfaces, asset->numLeafSurfaces);
-			Utils::Stream::ClearPointer(&dest->leafSurfaces);
+			buffer->saveArray(asset->leafsurfaces, asset->numLeafSurfaces);
+			Utils::Stream::ClearPointer(&dest->leafsurfaces);
 
 			SaveLogExit();
 		}
@@ -252,54 +252,54 @@ namespace Assets
 			AssertSize(Game::vec3_t, 12);
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->verts, asset->numVerts);
+			buffer->saveArray(asset->verts, asset->vertCount);
 			Utils::Stream::ClearPointer(&dest->verts);
 		}
 
 		if (asset->triIndices)
 		{
 			buffer->align(Utils::Stream::ALIGN_2);
-			buffer->save(asset->triIndices, 6, asset->numTriIndices);
+			buffer->save(asset->triIndices, 6, asset->triCount);
 			Utils::Stream::ClearPointer(&dest->triIndices);
 		}
 
 		if (asset->triEdgeIsWalkable)
 		{
 			// no align for char
-			buffer->save(asset->triEdgeIsWalkable, 1, 4 * ((3 * asset->numTriIndices + 31) >> 5));
+			buffer->save(asset->triEdgeIsWalkable, 1, 4 * ((3 * asset->triCount + 31) >> 5));
 			Utils::Stream::ClearPointer(&dest->triEdgeIsWalkable);
 		}
 
-		if (asset->collisionBorders)
+		if (asset->borders)
 		{
 			AssertSize(Game::CollisionBorder, 28);
 			SaveLogEnter("CollisionBorder");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 
-			for (int i = 0; i < asset->numCollisionBorders; ++i)
+			for (int i = 0; i < asset->borderCount; ++i)
 			{
-				builder->storePointer(&asset->collisionBorders[i]);
-				buffer->save(&asset->collisionBorders[i]);
+				builder->storePointer(&asset->borders[i]);
+				buffer->save(&asset->borders[i]);
 			}
 
-			Utils::Stream::ClearPointer(&dest->collisionBorders);
+			Utils::Stream::ClearPointer(&dest->borders);
 			SaveLogExit();
 		}
 
-		if (asset->collisionPartitions)
+		if (asset->partitions)
 		{
 			AssertSize(Game::CollisionPartition, 12);
 			SaveLogEnter("CollisionPartition");
 
 			buffer->align(Utils::Stream::ALIGN_4);
 			Game::CollisionPartition* destPartitions = buffer->dest<Game::CollisionPartition>();
-			buffer->saveArray(asset->collisionPartitions, asset->numCollisionPartitions);
+			buffer->saveArray(asset->partitions, asset->partitionCount);
 
-			for (int i = 0; i < asset->numCollisionPartitions; ++i)
+			for (int i = 0; i < asset->partitionCount; ++i)
 			{
 				Game::CollisionPartition* destPartition = &destPartitions[i];
-				Game::CollisionPartition* partition = &asset->collisionPartitions[i];
+				Game::CollisionPartition* partition = &asset->partitions[i];
 
 				if (partition->borders)
 				{
@@ -317,47 +317,47 @@ namespace Assets
 				}
 			}
 
-			Utils::Stream::ClearPointer(&dest->collisionPartitions);
+			Utils::Stream::ClearPointer(&dest->partitions);
 			SaveLogExit();
 		}
 
-		if (asset->collisionAABBTrees)
+		if (asset->aabbTrees)
 		{
 			AssertSize(Game::CollisionAabbTree, 32);
 			SaveLogEnter("CollisionAabbTree");
 
 			buffer->align(Utils::Stream::ALIGN_16);
-			buffer->saveArray(asset->collisionAABBTrees, asset->numCollisionAABBTrees);
-			Utils::Stream::ClearPointer(&dest->collisionAABBTrees);
+			buffer->saveArray(asset->aabbTrees, asset->aabbTreeCount);
+			Utils::Stream::ClearPointer(&dest->aabbTrees);
 
 			SaveLogExit();
 		}
 
-		if (asset->cModels)
+		if (asset->cmodels)
 		{
 			AssertSize(Game::cmodel_t, 68);
 			SaveLogEnter("cmodel_t");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->cModels, asset->numCModels);
-			Utils::Stream::ClearPointer(&dest->cModels);
+			buffer->saveArray(asset->cmodels, asset->numSubModels);
+			Utils::Stream::ClearPointer(&dest->cmodels);
 
 			SaveLogExit();
 		}
 
-		if (asset->cBrushes)
+		if (asset->brushes)
 		{
 			AssertSize(Game::cbrush_t, 36);
 			SaveLogEnter("cbrush_t");
 
 			buffer->align(Utils::Stream::ALIGN_128);
 			Game::cbrush_t* destBrushes = buffer->dest<Game::cbrush_t>();
-			buffer->saveArray(asset->cBrushes, asset->numCBrushes);
+			buffer->saveArray(asset->brushes, asset->numBrushes);
 
-			for (short i = 0; i < asset->numCBrushes; ++i)
+			for (short i = 0; i < asset->numBrushes; ++i)
 			{
 				Game::cbrush_t* destBrush = &destBrushes[i];
-				Game::cbrush_t* brush = &asset->cBrushes[i];
+				Game::cbrush_t* brush = &asset->brushes[i];
 
 				if (brush->sides)
 				{
@@ -411,27 +411,27 @@ namespace Assets
 				}
 			}
 
-			Utils::Stream::ClearPointer(&dest->cBrushes);
+			Utils::Stream::ClearPointer(&dest->brushes);
 			SaveLogExit();
 		}
 
-		if (asset->cBrushBounds)
+		if (asset->brushBounds)
 		{
 			AssertSize(Game::Bounds, 24);
 			SaveLogEnter("Bounds");
 
 			buffer->align(Utils::Stream::ALIGN_128);
-			buffer->saveArray(asset->cBrushBounds, asset->numCBrushes);
-			Utils::Stream::ClearPointer(&dest->cBrushBounds);
+			buffer->saveArray(asset->brushBounds, asset->numBrushes);
+			Utils::Stream::ClearPointer(&dest->brushBounds);
 
 			SaveLogExit();
 		}
 
-		if (asset->cBrushContents)
+		if (asset->brushContents)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->cBrushContents, asset->numCBrushes);
-			Utils::Stream::ClearPointer(&dest->cBrushContents);
+			buffer->saveArray(asset->brushContents, asset->numBrushes);
+			Utils::Stream::ClearPointer(&dest->brushContents);
 		}
 
 		if (asset->smodelNodes)
@@ -532,7 +532,7 @@ namespace Assets
 	void IclipMap_t::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::clipMap_t* asset = header.clipMap;
-		for (int i = 0; i < asset->numStaticModels; ++i)
+		for (unsigned int i = 0; i < asset->numStaticModels; ++i)
 		{
 			Game::XModel* m = asset->staticModelList[i].xmodel;
 			if (m)
@@ -611,46 +611,46 @@ namespace Assets
 
 		clipMap->name = reader.readCString();
 
-		clipMap->numCPlanes = reader.read<int>();
+		clipMap->planeCount = reader.read<int>();
 		clipMap->numStaticModels = reader.read<int>();
 		clipMap->numMaterials = reader.read<int>();
-		clipMap->numCBrushSides = reader.read<int>();
-		clipMap->numCBrushEdges = reader.read<int>();
-		clipMap->numCNodes = reader.read<int>();
-		clipMap->numCLeaf = reader.read<int>();
-		clipMap->numCLeafBrushNodes = reader.read<int>();
+		clipMap->numBrushSides = reader.read<int>();
+		clipMap->numBrushEdges = reader.read<int>();
+		clipMap->numNodes = reader.read<int>();
+		clipMap->numLeafs = reader.read<int>();
+		clipMap->leafbrushNodesCount = reader.read<int>();
 		clipMap->numLeafBrushes = reader.read<int>();
 		clipMap->numLeafSurfaces = reader.read<int>();
-		clipMap->numVerts = reader.read<int>();
-		clipMap->numTriIndices = reader.read<int>();
-		clipMap->numCollisionBorders = reader.read<int>();
-		clipMap->numCollisionPartitions = reader.read<int>();
-		clipMap->numCollisionAABBTrees = reader.read<int>();
-		clipMap->numCModels = reader.read<int>();
-		clipMap->numCBrushes = reader.read<short>();
+		clipMap->vertCount = reader.read<int>();
+		clipMap->triCount = reader.read<int>();
+		clipMap->borderCount = reader.read<int>();
+		clipMap->partitionCount = reader.read<int>();
+		clipMap->aabbTreeCount = reader.read<int>();
+		clipMap->numSubModels = reader.read<int>();
+		clipMap->numBrushes = reader.read<short>();
 		clipMap->dynEntCount[0] = reader.read<unsigned __int16>();
 		clipMap->dynEntCount[1] = reader.read<unsigned __int16>();
 
-		if (clipMap->numCPlanes)
+		if (clipMap->planeCount)
 		{
 			void* oldPtr = reader.read<void*>();
-			clipMap->cPlanes = reader.readArray<Game::cplane_t>(clipMap->numCPlanes);
+			clipMap->planes = reader.readArray<Game::cplane_s>(clipMap->planeCount);
 
 			if (builder->getAllocator()->isPointerMapped(oldPtr))
 			{
-				clipMap->cPlanes = builder->getAllocator()->getPointer<Game::cplane_t>(oldPtr);
+				clipMap->planes = builder->getAllocator()->getPointer<Game::cplane_s>(oldPtr);
 				Components::Logger::Print("ClipMap dpvs planes already mapped. This shouldn't happen. Make sure to load the ClipMap before the GfxWorld!\n");
 			}
 			else
 			{
-				builder->getAllocator()->mapPointer(oldPtr, clipMap->cPlanes);
+				builder->getAllocator()->mapPointer(oldPtr, clipMap->planes);
 			}
 		}
 
 		if (clipMap->numStaticModels)
 		{
-			clipMap->staticModelList = builder->getAllocator()->allocateArray<Game::cStaticModel_t>(clipMap->numStaticModels);
-			for (int i = 0; i < clipMap->numStaticModels; ++i)
+			clipMap->staticModelList = builder->getAllocator()->allocateArray<Game::cStaticModel_s>(clipMap->numStaticModels);
+			for (unsigned int i = 0; i < clipMap->numStaticModels; ++i)
 			{
 				std::string modelName = reader.readString();
 				if (modelName != "NONE"s)
@@ -665,179 +665,179 @@ namespace Assets
 		if (clipMap->numMaterials)
 		{
 			clipMap->materials = builder->getAllocator()->allocateArray<Game::ClipMaterial>(clipMap->numMaterials);
-			for (int j = 0; j < clipMap->numMaterials; ++j)
+			for (unsigned int j = 0; j < clipMap->numMaterials; ++j)
 			{
 				clipMap->materials[j].name = reader.readArray<char>(64);
-				clipMap->materials[j].unk = reader.read<int>();
-				clipMap->materials[j].unk2 = reader.read<int>();
+				clipMap->materials[j].surfaceFlags = reader.read<int>();
+				clipMap->materials[j].contents = reader.read<int>();
 			}
 		}
 
-		if (clipMap->numCBrushSides)
+		if (clipMap->numBrushSides)
 		{
-			clipMap->cBrushSides = builder->getAllocator()->allocateArray<Game::cbrushside_t>(clipMap->numCBrushSides);
-			for (int i = 0; i < clipMap->numCBrushSides; ++i)
+			clipMap->brushsides = builder->getAllocator()->allocateArray<Game::cbrushside_t>(clipMap->numBrushSides);
+			for (unsigned int i = 0; i < clipMap->numBrushSides; ++i)
 			{
 				int planeIndex = reader.read<int>();
-				if (planeIndex < 0 || planeIndex >= clipMap->numCPlanes)
+				if (planeIndex < 0 || planeIndex >= clipMap->planeCount)
 				{
 					Components::Logger::Error("invalid plane index");
 					return;
 				}
-				clipMap->cBrushSides[i].plane = &clipMap->cPlanes[planeIndex];
-				clipMap->cBrushSides[i].materialNum = static_cast<unsigned short>(reader.read<int>()); // materialNum
-				clipMap->cBrushSides[i].firstAdjacentSideOffset = static_cast<char>(reader.read<short>()); // firstAdjacentSide
-				clipMap->cBrushSides[i].edgeCount = reader.read<char>(); // edgeCount
+				clipMap->brushsides[i].plane = &clipMap->planes[planeIndex];
+				clipMap->brushsides[i].materialNum = static_cast<unsigned short>(reader.read<int>()); // materialNum
+				clipMap->brushsides[i].firstAdjacentSideOffset = static_cast<char>(reader.read<short>()); // firstAdjacentSide
+				clipMap->brushsides[i].edgeCount = reader.read<char>(); // edgeCount
 			}
 		}
 
-		if (clipMap->numCBrushEdges)
+		if (clipMap->numBrushEdges)
 		{
-			clipMap->cBrushEdges = reader.readArray<char>(clipMap->numCBrushEdges);
+			clipMap->brushEdges = reader.readArray<char>(clipMap->numBrushEdges);
 		}
 
-		if (clipMap->numCNodes)
+		if (clipMap->numNodes)
 		{
-			clipMap->cNodes = builder->getAllocator()->allocateArray<Game::cNode_t>(clipMap->numCNodes);
-			for (int i = 0; i < clipMap->numCNodes; ++i)
+			clipMap->nodes = builder->getAllocator()->allocateArray<Game::cNode_t>(clipMap->numNodes);
+			for (unsigned int i = 0; i < clipMap->numNodes; ++i)
 			{
 				int planeIndex = reader.read<int>();
-				if (planeIndex < 0 || planeIndex >= clipMap->numCPlanes)
+				if (planeIndex < 0 || planeIndex >= clipMap->planeCount)
 				{
 					Components::Logger::Error("invalid plane index\n");
 					return;
 				}
-				clipMap->cNodes[i].plane = &clipMap->cPlanes[planeIndex];
-				clipMap->cNodes[i].children[0] = reader.read<short>();
-				clipMap->cNodes[i].children[1] = reader.read<short>();
+				clipMap->nodes[i].plane = &clipMap->planes[planeIndex];
+				clipMap->nodes[i].children[0] = reader.read<short>();
+				clipMap->nodes[i].children[1] = reader.read<short>();
 			}
 		}
 
-		if (clipMap->numCLeaf)
+		if (clipMap->numLeafs)
 		{
-			clipMap->cLeaf = reader.readArray<Game::cLeaf_t>(clipMap->numCLeaf);
+			clipMap->leafs = reader.readArray<Game::cLeaf_t>(clipMap->numLeafs);
 		}
 
-		if (clipMap->numCLeafBrushNodes)
+		if (clipMap->leafbrushNodesCount)
 		{
-			clipMap->cLeafBrushNodes = builder->getAllocator()->allocateArray<Game::cLeafBrushNode_t>(clipMap->numCLeafBrushNodes);
-			for (int i = 0; i < clipMap->numCLeafBrushNodes; ++i)
+			clipMap->leafbrushNodes = builder->getAllocator()->allocateArray<Game::cLeafBrushNode_s>(clipMap->leafbrushNodesCount);
+			for (unsigned int i = 0; i < clipMap->leafbrushNodesCount; ++i)
 			{
-				clipMap->cLeafBrushNodes[i] = reader.read<Game::cLeafBrushNode_t>();
+				clipMap->leafbrushNodes[i] = reader.read<Game::cLeafBrushNode_s>();
 
-				if (clipMap->cLeafBrushNodes[i].leafBrushCount > 0)
+				if (clipMap->leafbrushNodes[i].leafBrushCount > 0)
 				{
-					clipMap->cLeafBrushNodes[i].data.leaf.brushes = reader.readArray<unsigned short>(clipMap->cLeafBrushNodes[i].leafBrushCount);
+					clipMap->leafbrushNodes[i].data.leaf.brushes = reader.readArray<unsigned short>(clipMap->leafbrushNodes[i].leafBrushCount);
 				}
 			}
 		}
 
 		if (clipMap->numLeafBrushes)
 		{
-			clipMap->leafBrushes = reader.readArray<short>(clipMap->numLeafBrushes);
+			clipMap->leafbrushes = reader.readArray<unsigned short>(clipMap->numLeafBrushes);
 		}
 
 		if (clipMap->numLeafSurfaces)
 		{
-			clipMap->leafSurfaces = reader.readArray<int>(clipMap->numLeafSurfaces);
+			clipMap->leafsurfaces = reader.readArray<unsigned int>(clipMap->numLeafSurfaces);
 		}
 
-		if (clipMap->numVerts)
+		if (clipMap->vertCount)
 		{
-			clipMap->verts = reader.readArray<Game::vec3_t>(clipMap->numVerts);
+			clipMap->verts = reader.readArray<Game::vec3_t>(clipMap->vertCount);
 		}
 
-		if (clipMap->numTriIndices)
+		if (clipMap->triCount)
 		{
-			clipMap->triIndices = reader.readArray<short>(clipMap->numTriIndices * 3);
-			clipMap->triEdgeIsWalkable = reader.readArray<bool>(4 * ((3 * clipMap->numTriIndices + 31) >> 5));
+			clipMap->triIndices = reader.readArray<unsigned short>(clipMap->triCount * 3);
+			clipMap->triEdgeIsWalkable = reader.readArray<char>(4 * ((3 * clipMap->triCount + 31) >> 5));
 		}
 
-		if (clipMap->numCollisionBorders)
+		if (clipMap->borderCount)
 		{
-			clipMap->collisionBorders = reader.readArray<Game::CollisionBorder>(clipMap->numCollisionBorders);
+			clipMap->borders = reader.readArray<Game::CollisionBorder>(clipMap->borderCount);
 		}
 
-		if (clipMap->numCollisionPartitions)
+		if (clipMap->partitionCount)
 		{
-			clipMap->collisionPartitions = builder->getAllocator()->allocateArray<Game::CollisionPartition>(clipMap->numCollisionPartitions);
-			for (int i = 0; i < clipMap->numCollisionPartitions; ++i)
+			clipMap->partitions = builder->getAllocator()->allocateArray<Game::CollisionPartition>(clipMap->partitionCount);
+			for (int i = 0; i < clipMap->partitionCount; ++i)
 			{
-				clipMap->collisionPartitions[i].triCount = reader.read<char>();
-				clipMap->collisionPartitions[i].borderCount = reader.read<char>();
-				clipMap->collisionPartitions[i].firstTri = reader.read<int>();
+				clipMap->partitions[i].triCount = reader.read<char>();
+				clipMap->partitions[i].borderCount = reader.read<char>();
+				clipMap->partitions[i].firstTri = reader.read<int>();
 
-				if (clipMap->collisionPartitions[i].borderCount > 0)
+				if (clipMap->partitions[i].borderCount > 0)
 				{
 					int index = reader.read<int>();
-					if (index < 0 || index > clipMap->numCollisionBorders)
+					if (index < 0 || index > clipMap->partitionCount)
 					{
 						Components::Logger::Error("invalid border index\n");
 						return;
 					}
-					clipMap->collisionPartitions[i].borders = &clipMap->collisionBorders[index];
+					clipMap->partitions[i].borders = &clipMap->borders[index];
 				}
 			}
 		}
 
-		if (clipMap->numCollisionAABBTrees)
+		if (clipMap->aabbTreeCount)
 		{
-			clipMap->collisionAABBTrees = reader.readArray<Game::CollisionAabbTree>(clipMap->numCollisionAABBTrees);
+			clipMap->aabbTrees = reader.readArray<Game::CollisionAabbTree>(clipMap->aabbTreeCount);
 		}
 
-		if (clipMap->numCModels)
+		if (clipMap->numSubModels)
 		{
-			clipMap->cModels = reader.readArray<Game::cmodel_t>(clipMap->numCModels);
+			clipMap->cmodels = reader.readArray<Game::cmodel_t>(clipMap->numSubModels);
 		}
 
-		if (clipMap->numCBrushes)
+		if (clipMap->numBrushes)
 		{
-			clipMap->cBrushes = builder->getAllocator()->allocateArray<Game::cbrush_t>(clipMap->numCBrushes);
-			memset(clipMap->cBrushes, 0, sizeof(Game::cbrush_t) * clipMap->numCBrushes);
-			for (int i = 0; i < clipMap->numCBrushes; ++i)
+			clipMap->brushes = builder->getAllocator()->allocateArray<Game::cbrush_t>(clipMap->numBrushes);
+			memset(clipMap->brushes, 0, sizeof(Game::cbrush_t) * clipMap->numBrushes);
+			for (int i = 0; i < clipMap->numBrushes; ++i)
 			{
-				clipMap->cBrushes[i].numsides = reader.read<unsigned int>() & 0xFFFF; // todo: check for overflow here
-				if (clipMap->cBrushes[i].numsides > 0)
+				clipMap->brushes[i].numsides = reader.read<unsigned int>() & 0xFFFF; // todo: check for overflow here
+				if (clipMap->brushes[i].numsides > 0)
 				{
-					int index = reader.read<int>();
-					if (index < 0 || index > clipMap->numCBrushSides)
+					unsigned int index = reader.read<unsigned int>();
+					if (index < 0 || index > clipMap->numBrushSides)
 					{
 						Components::Logger::Error("invalid side index\n");
 						return;
 					}
-					clipMap->cBrushes[i].sides = &clipMap->cBrushSides[index];
+					clipMap->brushes[i].sides = &clipMap->brushsides[index];
 				}
 				else
 				{
-					clipMap->cBrushes[i].sides = nullptr;
+					clipMap->brushes[i].sides = nullptr;
 				}
 
-				int index = reader.read<int>();
-				if (index > clipMap->numCBrushEdges)
+				unsigned int index = reader.read<unsigned int>();
+				if (index > clipMap->numBrushEdges)
 				{
 					Components::Logger::Error("invalid edge index\n");
 					return;
 				}
-				clipMap->cBrushes[i].baseAdjacentSide = &clipMap->cBrushEdges[index];
+				clipMap->brushes[i].baseAdjacentSide = &clipMap->brushEdges[index];
 
 				char* tmp = reader.readArray<char>(12);
-				memcpy(&clipMap->cBrushes[i].axialMaterialNum, tmp, 12);
+				memcpy(&clipMap->brushes[i].axialMaterialNum, tmp, 12);
 
 				//todo check for overflow
 				for (int r = 0; r < 2; ++r)
 				{
 					for (int c = 0; c < 3; ++c)
 					{
-						clipMap->cBrushes[i].firstAdjacentSideOffsets[r][c] = reader.read<short>() & 0xFF;
+						clipMap->brushes[i].firstAdjacentSideOffsets[r][c] = reader.read<short>() & 0xFF;
 					}
 				}
 
 				tmp = reader.readArray<char>(6);
-				memcpy(&clipMap->cBrushes[i].edgeCount, tmp, 6);
+				memcpy(&clipMap->brushes[i].edgeCount, tmp, 6);
 			}
 
-			clipMap->cBrushBounds = reader.readArray<Game::Bounds>(clipMap->numCBrushes);
-			clipMap->cBrushContents = reader.readArray<int>(clipMap->numCBrushes);
+			clipMap->brushBounds = reader.readArray<Game::Bounds>(clipMap->numBrushes);
+			clipMap->brushContents = reader.readArray<int>(clipMap->numBrushes);
 		}
 
 		for (int x = 0; x < 2; ++x)

@@ -19,7 +19,7 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		if (asset->data)
+		if (asset->g_glassData)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
 
@@ -28,28 +28,28 @@ namespace Assets
 				AssertSize(Game::G_GlassData, 128);
 
 				Game::G_GlassData* destGlass = buffer->dest<Game::G_GlassData>();
-				buffer->save(asset->data);
+				buffer->save(asset->g_glassData);
 
-				if (asset->data->glassPieces)
+				if (asset->g_glassData->glassPieces)
 				{
 					AssertSize(Game::G_GlassPiece, 12);
 					buffer->align(Utils::Stream::ALIGN_4);
-					buffer->saveArray(asset->data->glassPieces, asset->data->pieceCount);
+					buffer->saveArray(asset->g_glassData->glassPieces, asset->g_glassData->pieceCount);
 					Utils::Stream::ClearPointer(&destGlass->glassPieces);
 				}
 
-				if (asset->data->glassNames)
+				if (asset->g_glassData->glassNames)
 				{
 					AssertSize(Game::G_GlassName, 12);
 					buffer->align(Utils::Stream::ALIGN_4);
 
 					Game::G_GlassName* destGlassNames = buffer->dest<Game::G_GlassName>();
-					buffer->saveArray(asset->data->glassNames, asset->data->glassNameCount);
+					buffer->saveArray(asset->g_glassData->glassNames, asset->g_glassData->glassNameCount);
 
-					for (unsigned int i = 0; i < asset->data->glassNameCount; ++i)
+					for (unsigned int i = 0; i < asset->g_glassData->glassNameCount; ++i)
 					{
 						Game::G_GlassName* destGlassName = &destGlassNames[i];
-						Game::G_GlassName* glassName = &asset->data->glassNames[i];
+						Game::G_GlassName* glassName = &asset->g_glassData->glassNames[i];
 
 						if (glassName->nameStr)
 						{
@@ -69,7 +69,7 @@ namespace Assets
 				}
 			}
 
-			Utils::Stream::ClearPointer(&dest->data);
+			Utils::Stream::ClearPointer(&dest->g_glassData);
 		}
 
 		buffer->popBlock();

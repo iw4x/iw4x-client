@@ -41,7 +41,7 @@ namespace Assets
 							buffer->align(Utils::Stream::ALIGN_4);
 							builder->storePointer(side->plane);
 
-							buffer->save(side->plane, sizeof(Game::cplane_t));
+							buffer->save(side->plane, sizeof(Game::cplane_s));
 							Utils::Stream::ClearPointer(&destSide->plane);
 						}
 					}
@@ -59,7 +59,7 @@ namespace Assets
 
 		if (brush->planes)
 		{
-			AssertSize(Game::cplane_t, 20);
+			AssertSize(Game::cplane_s, 20);
 
 			if (builder->hasPointer(brush->planes))
 			{
@@ -95,12 +95,12 @@ namespace Assets
 			Game::PhysGeomInfo* destGeom = &destGeoms[i];
 			Game::PhysGeomInfo* geom = &geoms[i];
 
-			if (geom->brush)
+			if (geom->brushWrapper)
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
 
-				this->saveBrushWrapper(builder, geom->brush);
-				Utils::Stream::ClearPointer(&destGeom->brush);
+				this->saveBrushWrapper(builder, geom->brushWrapper);
+				Utils::Stream::ClearPointer(&destGeom->brushWrapper);
 			}
 		}
 	}

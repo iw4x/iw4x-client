@@ -21,7 +21,7 @@ namespace Components
 			{
 				if (aliases->head->soundFile->type == Game::snd_alias_type_t::SAT_STREAMED)
 				{
-					aliases->head->soundFile->data.stream.name = MusicalTalent::SoundAliasList[Utils::String::ToLower(filename)];
+					aliases->head->soundFile->u.streamSnd.filename.info.raw.name = MusicalTalent::SoundAliasList[Utils::String::ToLower(filename)];
 				}
 
 				header.sound = aliases;

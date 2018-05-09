@@ -273,11 +273,11 @@ namespace Components
 
 		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::SPMap)
 		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].data;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].g_glassData;
 		}
 		else
 		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp[0].data;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp[0].g_glassData;
 		}
 	}
 
@@ -1028,7 +1028,7 @@ namespace Components
 				}
 			}
 
-			Game::Font* font = Game::R_RegisterFont("fonts/smallFont", 0);
+			Game::Font_s* font = Game::R_RegisterFont("fonts/smallFont", 0);
 			int height = Game::R_TextHeight(font);
 			float scale = 0.75;
 			float color[4] = { 0, 1.0f, 0, 1.0f };

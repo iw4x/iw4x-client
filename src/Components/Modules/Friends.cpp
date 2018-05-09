@@ -407,9 +407,9 @@ namespace Components
 			buffer[3] = size; // Height
 
 			// Icon name length
-			buffer[4] = static_cast<char>(strlen(rankIcon->name));
+			buffer[4] = static_cast<char>(strlen(rankIcon->info.name));
 
-			strcat_s(buffer, rankIcon->name);
+			strcat_s(buffer, rankIcon->info.name);
 			strcat_s(buffer, Utils::String::VA(" %i", (rank + 1)));
 
 			return buffer;
@@ -542,7 +542,7 @@ namespace Components
 		Game::GfxImage* image = Materials::CreateImage(Utils::String::VA("texture_%llX", user.bits), width, height, 1, 0x1000003, D3DFMT_A8R8G8B8);
 
 		D3DLOCKED_RECT lockedRect;
-		image->map->LockRect(0, &lockedRect, nullptr, 0);
+		image->texture.map->LockRect(0, &lockedRect, nullptr, 0);
 
 		unsigned char* buffer = static_cast<unsigned char*>(lockedRect.pBits);
 		Steam::Proxy::SteamUtils->GetImageRGBA(index, buffer, width * height * 4);
@@ -559,7 +559,7 @@ namespace Components
 		buffer[((height - 1) * width * 4) + 3] = 0;                   // bottom-left
 		buffer[((height - 1) * width * 4) + (width - 1) * 4 + 3] = 0; // bottom-right
 
-		image->map->UnlockRect(0);
+		image->texture.map->UnlockRect(0);
 
 		return Materials::Create(Utils::String::VA("avatar_%llX", user.bits), image);
 	}

@@ -15,9 +15,9 @@ namespace Assets
 				//std::string data = Utils::Compression::ZLib::Compress(rawFile.getBuffer());
 
 				asset->name = builder->getAllocator()->duplicateString(name);
-				asset->compressedData = builder->getAllocator()->duplicateString(rawFile.getBuffer());
-				asset->sizeCompressed = 0;//data.size();
-				asset->sizeUnCompressed = rawFile.getBuffer().size();
+				asset->buffer = builder->getAllocator()->duplicateString(rawFile.getBuffer());
+				asset->compressedLen = 0;//data.size();
+				asset->len = rawFile.getBuffer().size();
 
 				header->rawfile = asset;
 			}
@@ -41,18 +41,18 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		if (asset->compressedData)
+		if (asset->buffer)
 		{
-			if (asset->sizeCompressed)
+			if (asset->compressedLen)
 			{
-				buffer->save(asset->compressedData, asset->sizeCompressed);
+				buffer->save(asset->buffer, asset->compressedLen);
 			}
 			else
 			{
-				buffer->save(asset->compressedData, asset->sizeUnCompressed + 1);
+				buffer->save(asset->buffer, asset->len + 1);
 			}
 
-			Utils::Stream::ClearPointer(&dest->compressedData);
+			Utils::Stream::ClearPointer(&dest->buffer);
 		}
 
 		buffer->popBlock();

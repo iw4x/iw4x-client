@@ -19,7 +19,10 @@ namespace Assets
 		image->name = builder->getAllocator()->duplicateString(name);
 		image->semantic = 2;
 		image->category = 0;
-		image->cardMemory = 0;
+		image->picmip.platform[0] = 0;
+		image->picmip.platform[1] = 0;
+		image->noPicmip = 0;
+		image->track = 0;
 
 		const char* tempName = image->name;
 		if (tempName[0] == '*') tempName++;
@@ -35,33 +38,34 @@ namespace Assets
 				Components::Logger::Error(0, "Reading image '%s' failed, header is invalid!", name.data());
 			}
 
-			AssertSize(Game::MapType, 1);
-			image->mapType = reader.read<Game::MapType>();
+			image->mapType = reader.read<char>();
 			image->semantic = reader.read<char>();
 			image->category = reader.read<char>();
 
-			image->dataLen1 = reader.read<int>();
-			image->dataLen2 = image->dataLen1;
+			image->cardMemory.platform[0] = reader.read<int>();
+			image->cardMemory.platform[1] = image->cardMemory.platform[0];
 
-			image->loadDef = reinterpret_cast<Game::GfxImageLoadDef*>(reader.readArray<char>(image->dataLen1 + 16));
+			image->texture.loadDef = reinterpret_cast<Game::GfxImageLoadDef*>(reader.readArray<char>(image->cardMemory.platform[0] + 16));
 
-			image->height = image->loadDef->dimensions[0];
-			image->width = image->loadDef->dimensions[1];
-			image->depth = image->loadDef->dimensions[2];
+			// TODO: Fix that, this is clearly wrong
+			auto dimensions = reinterpret_cast<unsigned short*>(&image->texture.loadDef->pad[2]);
+			image->height = dimensions[0];
+			image->width = dimensions[1];
+			image->depth = dimensions[2];
 
-			image->loaded = true;
-			image->loadDef->flags = 0;
+			image->delayLoadPixels = true;
+			image->texture.loadDef->flags = 0;
 
-			if (image->loadDef->resourceSize != image->dataLen1)
+			if (image->texture.loadDef->resourceSize != image->cardMemory.platform[0])
 			{
 				Components::Logger::Error("Resource size doesn't match the data length (%s)!\n", name.data());
 			}
 
 			if (Utils::String::StartsWith(name, "*lightmap"))
 			{
-				image->loadDef->dimensions[0] = 0;
-				image->loadDef->dimensions[1] = 2;
-				image->loadDef->dimensions[2] = 0;
+				dimensions[0] = 0;
+				dimensions[1] = 2;
+				dimensions[2] = 0;
 			}
 
 			header->image = image;
@@ -89,53 +93,52 @@ namespace Assets
 			}
 
 			image->mapType = Game::MAPTYPE_2D;
-			image->dataLen1 = iwiHeader->fileSizeForPicmip[0] - 32;
-			image->dataLen2 = iwiHeader->fileSizeForPicmip[0] - 32;
+			//image->dataLen1 = iwiHeader->fileSizeForPicmip[0] - 32;
+			//image->dataLen2 = iwiHeader->fileSizeForPicmip[0] - 32;
 
-			image->loadDef = builder->getAllocator()->allocate<Game::GfxImageLoadDef>();
-			if (!image->loadDef)
+			image->texture.loadDef = builder->getAllocator()->allocate<Game::GfxImageLoadDef>();
+			if (!image->texture.loadDef)
 			{
 				Components::Logger::Error("Failed to allocate GfxImageLoadDef structure!");
 				return;
 			}
 
-			std::memcpy(image->loadDef->dimensions, iwiHeader->dimensions, 6);
-			image->loadDef->flags = 0;
-			image->loadDef->levelCount = 0;
+			image->texture.loadDef->flags = 0;
+			image->texture.loadDef->levelCount = 0;
 
-			image->height = image->loadDef->dimensions[0];
-			image->width = image->loadDef->dimensions[1];
-			image->depth = image->loadDef->dimensions[2];
+			image->height = iwiHeader->dimensions[0];
+			image->width = iwiHeader->dimensions[1];
+			image->depth = iwiHeader->dimensions[2];
 
 			switch (iwiHeader->format)
 			{
-			case Game::IWI_COMPRESSION::IWI_ARGB:
+			case Game::IMG_FORMAT_BITMAP_RGBA:
 			{
-				image->loadDef->format = 21;
+				image->texture.loadDef->format = 21;
 				break;
 			}
 
-			case Game::IWI_COMPRESSION::IWI_RGB8:
+			case Game::IMG_FORMAT_BITMAP_RGB:
 			{
-				image->loadDef->format = 20;
+				image->texture.loadDef->format = 20;
 				break;
 			}
 
-			case Game::IWI_COMPRESSION::IWI_DXT1:
+			case Game::IMG_FORMAT_DXT1:
 			{
-				image->loadDef->format = 0x31545844;
+				image->texture.loadDef->format = 0x31545844;
 				break;
 			}
 
-			case Game::IWI_COMPRESSION::IWI_DXT3:
+			case Game::IMG_FORMAT_DXT3:
 			{
-				image->loadDef->format = 0x33545844;
+				image->texture.loadDef->format = 0x33545844;
 				break;
 			}
 
-			case Game::IWI_COMPRESSION::IWI_DXT5:
+			case Game::IMG_FORMAT_DXT5:
 			{
-				image->loadDef->format = 0x35545844;
+				image->texture.loadDef->format = 0x35545844;
 				break;
 			}
 
@@ -152,7 +155,6 @@ namespace Assets
 	void IGfxImage::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::GfxImage, 32);
-		AssertSize(Game::MapType, 1);
 
 		Utils::Stream* buffer = builder->getBuffer();
 		Game::GfxImage* asset = header.image;
@@ -169,21 +171,21 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_TEMP);
 
-		if (asset->loadDef)
+		if (asset->texture.loadDef)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
 
 			Game::GfxImageLoadDef* destTexture = buffer->dest<Game::GfxImageLoadDef>();
-			buffer->save(asset->loadDef, 16, 1);
+			buffer->save(asset->texture.loadDef, 16, 1);
 
-			builder->incrementExternalSize(asset->loadDef->resourceSize);
+			builder->incrementExternalSize(asset->texture.loadDef->resourceSize);
 
 			if (destTexture->resourceSize > 0)
 			{
-				buffer->save(asset->loadDef->data, asset->loadDef->resourceSize);
+				buffer->save(asset->texture.loadDef->data, asset->texture.loadDef->resourceSize);
 			}
 
-			Utils::Stream::ClearPointer(&dest->loadDef);
+			Utils::Stream::ClearPointer(&dest->texture.loadDef);
 		}
 
 		buffer->popBlock();

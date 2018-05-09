@@ -561,7 +561,7 @@ namespace Components
 		{
 			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").get<bool>()) return;
 
-			Game::Font* font = Game::R_RegisterFont("fonts/consoleFont", 0);
+			Game::Font_s* font = Game::R_RegisterFont("fonts/consoleFont", 0);
 			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
 
 			std::uint32_t FFTotalSize = *reinterpret_cast<std::uint32_t*>(0x10AA5D8);

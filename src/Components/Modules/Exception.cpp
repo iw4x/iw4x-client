@@ -184,7 +184,7 @@ namespace Components
 		// Display DEBUG branding, so we know we're on a debug build
 		Scheduler::OnFrame([]()
 		{
-			Game::Font* font = Game::R_RegisterFont("fonts/normalFont", 0);
+			Game::Font_s* font = Game::R_RegisterFont("fonts/normalFont", 0);
 			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 			// Change the color when attaching a debugger

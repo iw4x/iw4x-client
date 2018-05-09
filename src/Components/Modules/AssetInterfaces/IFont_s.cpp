@@ -6,21 +6,21 @@ namespace Assets
 	{
 		Game::Font_s *asset = header.font;
 
-		if (asset->image)
+		if (asset->material)
 		{
-			builder->loadAsset(Game::ASSET_TYPE_MATERIAL, asset->image);
+			builder->loadAsset(Game::ASSET_TYPE_MATERIAL, asset->material);
 		}
 
-		if (asset->glowImage)
+		if (asset->glowMaterial)
 		{
-			builder->loadAsset(Game::ASSET_TYPE_MATERIAL, asset->glowImage);
+			builder->loadAsset(Game::ASSET_TYPE_MATERIAL, asset->glowMaterial);
 		}
 	}
 
 	void IFont_s::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::Font_s, 24);
-		AssertSize(Game::FontEntry, 24);
+		AssertSize(Game::Glyph, 24);
 
 		Utils::Stream* buffer = builder->getBuffer();
 		Game::Font_s* asset = header.font;
@@ -30,20 +30,20 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
-		if (asset->name)
+		if (asset->fontName)
 		{
-			buffer->saveString(asset->name);
-			Utils::Stream::ClearPointer(&dest->name);
+			buffer->saveString(asset->fontName);
+			Utils::Stream::ClearPointer(&dest->fontName);
 		}
 
-		dest->image = builder->saveSubAsset(Game::ASSET_TYPE_MATERIAL, asset->image).material;
-		dest->glowImage = builder->saveSubAsset(Game::ASSET_TYPE_MATERIAL, asset->glowImage).material;
+		dest->material = builder->saveSubAsset(Game::ASSET_TYPE_MATERIAL, asset->material).material;
+		dest->glowMaterial = builder->saveSubAsset(Game::ASSET_TYPE_MATERIAL, asset->glowMaterial).material;
 
-		if (asset->characters)
+		if (asset->glyphs)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->characters, asset->entries);
-			Utils::Stream::ClearPointer(&dest->characters);
+			buffer->saveArray(asset->glyphs, asset->glyphCount);
+			Utils::Stream::ClearPointer(&dest->glyphs);
 		}
 
 		buffer->popBlock();

@@ -109,7 +109,7 @@ namespace Assets
 			alias->distMin = float(distMin.number_value());
 			alias->distMax = float(distMax.number_value());
 			alias->flags = flags.int_value();
-			alias->slavePercentage = float(slavePercentage.number_value());
+			alias->___u15.slavePercentage = float(slavePercentage.number_value());
 			alias->probability = float(probability.number_value());
 			alias->lfePercentage = float(lfePercentage.number_value());
 			alias->centerPercentage = float(centerPercentage.number_value());
@@ -126,15 +126,15 @@ namespace Assets
 			if (type.string_value() == "loaded"s)
 			{
 				alias->soundFile->type = Game::SAT_LOADED;
-				alias->soundFile->data.loaded = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, soundFile.string_value(), builder).loadSnd;
+				alias->soundFile->u.loadSnd = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, soundFile.string_value(), builder).loadSnd;
 			}
 			else if (type.string_value() == "streamed"s)
 			{
 				alias->soundFile->type = Game::SAT_STREAMED;
 				std::string streamedFile = soundFile.string_value();
 				int split = streamedFile.find_last_of('/');
-				alias->soundFile->data.stream.dir = builder->getAllocator()->duplicateString(streamedFile.substr(0, split).c_str());
-				alias->soundFile->data.stream.name = builder->getAllocator()->duplicateString(streamedFile.substr(split).c_str());
+				alias->soundFile->u.streamSnd.filename.info.raw.dir = builder->getAllocator()->duplicateString(streamedFile.substr(0, split).c_str());
+				alias->soundFile->u.streamSnd.filename.info.raw.name = builder->getAllocator()->duplicateString(streamedFile.substr(split).c_str());
 			}
 			else
 			{
@@ -161,7 +161,7 @@ namespace Assets
 
 			if (alias->soundFile && alias->soundFile->type == Game::snd_alias_type_t::SAT_LOADED)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->u.loadSnd);
 			}
 
 			if (alias->volumeFalloffCurve)
@@ -182,10 +182,10 @@ namespace Assets
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
 
-		if (asset->name)
+		if (asset->aliasName)
 		{
-			buffer->saveString(builder->getAssetName(this->getType(), asset->name));
-			Utils::Stream::ClearPointer(&dest->name);
+			buffer->saveString(builder->getAssetName(this->getType(), asset->aliasName));
+			Utils::Stream::ClearPointer(&dest->aliasName);
 		}
 
 		if (asset->head)
@@ -209,10 +209,10 @@ namespace Assets
 					Game::snd_alias_t* destAlias = &destHead[i];
 					Game::snd_alias_t* alias = &asset->head[i];
 
-					if (alias->name)
+					if (alias->aliasName)
 					{
-						buffer->saveString(alias->name);
-						Utils::Stream::ClearPointer(&destAlias->name);
+						buffer->saveString(alias->aliasName);
+						Utils::Stream::ClearPointer(&destAlias->aliasName);
 					}
 
 					if (alias->subtitle)
@@ -233,10 +233,10 @@ namespace Assets
 						Utils::Stream::ClearPointer(&destAlias->chainAliasName);
 					}
 
-					if (alias->string4)
+					if (alias->mixerGroup)
 					{
-						buffer->saveString(alias->string4);
-						Utils::Stream::ClearPointer(&destAlias->string4);
+						buffer->saveString(alias->mixerGroup);
+						Utils::Stream::ClearPointer(&destAlias->mixerGroup);
 					}
 
 					if (alias->soundFile)
@@ -259,22 +259,22 @@ namespace Assets
 							{
 								if (alias->soundFile->type == Game::snd_alias_type_t::SAT_LOADED)
 								{
-									destSoundFile->data.loaded = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->data.loaded).loadSnd;
+									destSoundFile->u.loadSnd = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->u.loadSnd).loadSnd;
 								}
 								else
 								{
 									// Save_StreamedSound
 									{
-										if (alias->soundFile->data.stream.dir)
+										if (alias->soundFile->u.streamSnd.filename.info.raw.dir)
 										{
-											buffer->saveString(alias->soundFile->data.stream.dir);
-											Utils::Stream::ClearPointer(&destSoundFile->data.stream.dir);
+											buffer->saveString(alias->soundFile->u.streamSnd.filename.info.raw.dir);
+											Utils::Stream::ClearPointer(&destSoundFile->u.streamSnd.filename.info.raw.dir);
 										}
 
-										if (alias->soundFile->data.stream.name)
+										if (alias->soundFile->u.streamSnd.filename.info.raw.name)
 										{
-											buffer->saveString(alias->soundFile->data.stream.name);
-											Utils::Stream::ClearPointer(&destSoundFile->data.stream.name);
+											buffer->saveString(alias->soundFile->u.streamSnd.filename.info.raw.name);
+											Utils::Stream::ClearPointer(&destSoundFile->u.streamSnd.filename.info.raw.name);
 										}
 									}
 								}

@@ -6,11 +6,11 @@ namespace Assets
 	{
 		Game::GameWorldSp* asset = header.gameWorldSp;
 
-		if (asset->pathData.nodes)
+		if (asset->path.nodes)
 		{
-			for (unsigned int i = 0; i < asset->pathData.nodeCount; ++i)
+			for (unsigned int i = 0; i < asset->path.nodeCount; ++i)
 			{
-				Game::pathnode_t* node = &asset->pathData.nodes[i];
+				Game::pathnode_t* node = &asset->path.nodes[i];
 
 				for (char j = 0; j < 5; ++j)
 				{
@@ -104,47 +104,47 @@ namespace Assets
 	{
 		Utils::Stream* buffer = builder->getBuffer();
 
-		if (trackSegment->name)
+		if (trackSegment->targetName)
 		{
-			buffer->saveString(trackSegment->name);
-			Utils::Stream::ClearPointer(&destTrackSegment->name);
+			buffer->saveString(trackSegment->targetName);
+			Utils::Stream::ClearPointer(&destTrackSegment->targetName);
 		}
 
-		if (trackSegment->trackSectors)
+		if (trackSegment->sectors)
 		{
 			AssertSize(Game::VehicleTrackSector, 60);
 			buffer->align(Utils::Stream::ALIGN_4);
 
 			Game::VehicleTrackSector* destTrackSectors = buffer->dest<Game::VehicleTrackSector>();
-			buffer->saveArray(trackSegment->trackSectors, trackSegment->trackSectorCount);
+			buffer->saveArray(trackSegment->sectors, trackSegment->sectorCount);
 
-			for (int i = 0; i < trackSegment->trackSectorCount; ++i)
+			for (unsigned int i = 0; i < trackSegment->sectorCount; ++i)
 			{
 				Game::VehicleTrackSector* destTrackSector = &destTrackSectors[i];
-				Game::VehicleTrackSector* trackSector = &trackSegment->trackSectors[i];
+				Game::VehicleTrackSector* trackSector = &trackSegment->sectors[i];
 
-				if (trackSector->trackObstacles)
+				if (trackSector->obstacles)
 				{
 					AssertSize(Game::VehicleTrackObstacle, 12);
 					buffer->align(Utils::Stream::ALIGN_4);
-					buffer->saveArray(trackSector->trackObstacles, trackSector->trackObstacleCount);
-					Utils::Stream::ClearPointer(&destTrackSector->trackObstacles);
+					buffer->saveArray(trackSector->obstacles, trackSector->obstacleCount);
+					Utils::Stream::ClearPointer(&destTrackSector->obstacles);
 				}
 			}
 		}
 
-		if (trackSegment->trackSegments1)
+		if (trackSegment->nextBranches)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			this->saveVehicleTrackSegment_ptrArray(trackSegment->trackSegments1, trackSegment->trackSegmentCount1, builder);
-			Utils::Stream::ClearPointer(&destTrackSegment->trackSegments1);
+			this->saveVehicleTrackSegment_ptrArray(trackSegment->nextBranches, trackSegment->nextBranchesCount, builder);
+			Utils::Stream::ClearPointer(&destTrackSegment->nextBranches);
 		}
 
-		if (trackSegment->trackSegments2)
+		if (trackSegment->prevBranches)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			this->saveVehicleTrackSegment_ptrArray(trackSegment->trackSegments2, trackSegment->trackSegmentCount2, builder);
-			Utils::Stream::ClearPointer(&destTrackSegment->trackSegments2);
+			this->saveVehicleTrackSegment_ptrArray(trackSegment->prevBranches, trackSegment->prevBranchesCount, builder);
+			Utils::Stream::ClearPointer(&destTrackSegment->prevBranches);
 		}
 	}
 
@@ -169,18 +169,18 @@ namespace Assets
 		{
 			AssertSize(Game::PathData, 40);
 
-			if (asset->pathData.nodes)
+			if (asset->path.nodes)
 			{
 				AssertSize(Game::pathnode_t, 136);
 				buffer->align(Utils::Stream::ALIGN_4);
 
 				Game::pathnode_t* destNodes = buffer->dest<Game::pathnode_t>();
-				buffer->saveArray(asset->pathData.nodes, asset->pathData.nodeCount);
+				buffer->saveArray(asset->path.nodes, asset->path.nodeCount);
 
-				for (unsigned int i = 0; i < asset->pathData.nodeCount; ++i)
+				for (unsigned int i = 0; i < asset->path.nodeCount; ++i)
 				{
 					Game::pathnode_t* destNode = &destNodes[i];
-					Game::pathnode_t* node = &asset->pathData.nodes[i];
+					Game::pathnode_t* node = &asset->path.nodes[i];
 
 					AssertSize(Game::pathnode_constant_t, 64);
 
@@ -198,59 +198,59 @@ namespace Assets
 					}
 				}
 
-				Utils::Stream::ClearPointer(&dest->pathData.nodes);
+				Utils::Stream::ClearPointer(&dest->path.nodes);
 			}
 
 			buffer->pushBlock(Game::XFILE_BLOCK_RUNTIME);
 
-			if (asset->pathData.basenodes)
+			if (asset->path.basenodes)
 			{
 				AssertSize(Game::pathbasenode_t, 16);
 
 				buffer->align(Utils::Stream::ALIGN_16);
-				buffer->saveArray(asset->pathData.basenodes, asset->pathData.nodeCount);
-				Utils::Stream::ClearPointer(&dest->pathData.basenodes);
+				buffer->saveArray(asset->path.basenodes, asset->path.nodeCount);
+				Utils::Stream::ClearPointer(&dest->path.basenodes);
 			}
 
 			buffer->popBlock();
 
-			if (asset->pathData.chainNodeForNode)
+			if (asset->path.chainNodeForNode)
 			{
 				buffer->align(Utils::Stream::ALIGN_2);
-				buffer->saveArray(asset->pathData.chainNodeForNode, asset->pathData.nodeCount);
-				Utils::Stream::ClearPointer(&dest->pathData.chainNodeForNode);
+				buffer->saveArray(asset->path.chainNodeForNode, asset->path.nodeCount);
+				Utils::Stream::ClearPointer(&dest->path.chainNodeForNode);
 			}
 
-			if (asset->pathData.nodeForChainNode)
+			if (asset->path.nodeForChainNode)
 			{
 				buffer->align(Utils::Stream::ALIGN_2);
-				buffer->saveArray(asset->pathData.nodeForChainNode, asset->pathData.nodeCount);
-				Utils::Stream::ClearPointer(&dest->pathData.nodeForChainNode);
+				buffer->saveArray(asset->path.nodeForChainNode, asset->path.nodeCount);
+				Utils::Stream::ClearPointer(&dest->path.nodeForChainNode);
 			}
 
-			if (asset->pathData.pathVis)
+			if (asset->path.pathVis)
 			{
-				buffer->saveArray(asset->pathData.pathVis, asset->pathData.visBytes);
-				Utils::Stream::ClearPointer(&dest->pathData.pathVis);
+				buffer->saveArray(asset->path.pathVis, asset->path.visBytes);
+				Utils::Stream::ClearPointer(&dest->path.pathVis);
 			}
 
-			if (asset->pathData.nodeTree)
+			if (asset->path.nodeTree)
 			{
 				AssertSize(Game::pathnode_tree_t, 16);
 				buffer->align(Utils::Stream::ALIGN_4);
 
 				Game::pathnode_tree_t* destNodeTrees = buffer->dest<Game::pathnode_tree_t>();
-				buffer->saveArray(asset->pathData.nodeTree, asset->pathData.nodeTreeCount);
+				buffer->saveArray(asset->path.nodeTree, asset->path.nodeTreeCount);
 
-				for (int i = 0; i < asset->pathData.nodeTreeCount; ++i)
+				for (int i = 0; i < asset->path.nodeTreeCount; ++i)
 				{
 					Game::pathnode_tree_t* destNodeTree = &destNodeTrees[i];
-					Game::pathnode_tree_t* nodeTree = &asset->pathData.nodeTree[i];
+					Game::pathnode_tree_t* nodeTree = &asset->path.nodeTree[i];
 
 					this->savepathnode_tree_info_t(nodeTree, destNodeTree, builder);
 				}
 
-				Utils::Stream::ClearPointer(&dest->pathData.nodeTree);
+				Utils::Stream::ClearPointer(&dest->path.nodeTree);
 			}
 		}
 
@@ -258,11 +258,11 @@ namespace Assets
 		{
 			AssertSize(Game::VehicleTrack, 8);
 
-			if (asset->vehicleTrack.trackSegments)
+			if (asset->vehicleTrack.segments)
 			{
-				if (builder->hasPointer(asset->vehicleTrack.trackSegments))
+				if (builder->hasPointer(asset->vehicleTrack.segments))
 				{
-					dest->vehicleTrack.trackSegments = builder->getPointer(asset->vehicleTrack.trackSegments);
+					dest->vehicleTrack.segments = builder->getPointer(asset->vehicleTrack.segments);
 				}
 				else
 				{
@@ -271,26 +271,26 @@ namespace Assets
 					buffer->align(Utils::Stream::ALIGN_4);
 					Game::VehicleTrackSegment* destTrackSegments = buffer->dest<Game::VehicleTrackSegment>();
 
-					for (int i = 0; i < asset->vehicleTrack.trackSegmentCount; ++i)
+					for (unsigned int i = 0; i < asset->vehicleTrack.segmentCount; ++i)
 					{
-						builder->storePointer(&asset->vehicleTrack.trackSegments[i]);
-						buffer->save(&asset->vehicleTrack.trackSegments[i]);
+						builder->storePointer(&asset->vehicleTrack.segments[i]);
+						buffer->save(&asset->vehicleTrack.segments[i]);
 					}
 
-					for (int i = 0; i < asset->vehicleTrack.trackSegmentCount; ++i)
+					for (unsigned int i = 0; i < asset->vehicleTrack.segmentCount; ++i)
 					{
 						Game::VehicleTrackSegment* destTrackSegment = &destTrackSegments[i];
-						Game::VehicleTrackSegment* trackSegment = &asset->vehicleTrack.trackSegments[i];
+						Game::VehicleTrackSegment* trackSegment = &asset->vehicleTrack.segments[i];
 
 						this->saveVehicleTrackSegment(trackSegment, destTrackSegment, builder);
 					}
 
-					Utils::Stream::ClearPointer(&dest->vehicleTrack.trackSegments);
+					Utils::Stream::ClearPointer(&dest->vehicleTrack.segments);
 				}
 			}
 		}
 
-		if (asset->data)
+		if (asset->g_glassData)
 		{
 			// Save_G_GlassData
 			{
@@ -298,28 +298,28 @@ namespace Assets
 				buffer->align(Utils::Stream::ALIGN_4);
 
 				Game::G_GlassData* destGlass = buffer->dest<Game::G_GlassData>();
-				buffer->save(asset->data);
+				buffer->save(asset->g_glassData);
 
-				if (asset->data->glassPieces)
+				if (asset->g_glassData->glassPieces)
 				{
 					AssertSize(Game::G_GlassPiece, 12);
 					buffer->align(Utils::Stream::ALIGN_4);
-					buffer->saveArray(asset->data->glassPieces, asset->data->pieceCount);
+					buffer->saveArray(asset->g_glassData->glassPieces, asset->g_glassData->pieceCount);
 					Utils::Stream::ClearPointer(&destGlass->glassPieces);
 				}
 
-				if (asset->data->glassNames)
+				if (asset->g_glassData->glassNames)
 				{
 					AssertSize(Game::G_GlassName, 12);
 					buffer->align(Utils::Stream::ALIGN_4);
 
 					Game::G_GlassName* destGlassNames = buffer->dest<Game::G_GlassName>();
-					buffer->saveArray(asset->data->glassNames, asset->data->glassNameCount);
+					buffer->saveArray(asset->g_glassData->glassNames, asset->g_glassData->glassNameCount);
 
-					for (unsigned int i = 0; i < asset->data->glassNameCount; ++i)
+					for (unsigned int i = 0; i < asset->g_glassData->glassNameCount; ++i)
 					{
 						Game::G_GlassName* destGlassName = &destGlassNames[i];
-						Game::G_GlassName* glassName = &asset->data->glassNames[i];
+						Game::G_GlassName* glassName = &asset->g_glassData->glassNames[i];
 
 						if (glassName->nameStr)
 						{
@@ -339,7 +339,7 @@ namespace Assets
 				}
 			}
 
-			Utils::Stream::ClearPointer(&dest->data);
+			Utils::Stream::ClearPointer(&dest->g_glassData);
 		}
 
 		buffer->popBlock();

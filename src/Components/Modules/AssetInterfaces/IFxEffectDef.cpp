@@ -17,9 +17,9 @@ namespace Assets
 		{
 		case Game::FX_ELEM_TYPE_MODEL:
 		{
-			if (visuals->xmodel)
+			if (visuals->model)
 			{
-				visuals->xmodel = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, reader->readString().data(), builder).model;
+				visuals->model = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, reader->readString().data(), builder).model;
 			}
 
 			break;
@@ -119,14 +119,14 @@ namespace Assets
 
 								for (char j = 0; j < elemDef->visualCount; ++j)
 								{
-									if (elemDef->visuals.markArray[j].data[0])
+									if (elemDef->visuals.markArray[j].materials[0])
 									{
-										elemDef->visuals.markArray[j].data[0] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, buffer.readString().data(), builder).material;
+										elemDef->visuals.markArray[j].materials[0] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, buffer.readString().data(), builder).material;
 									}
 
-									if (elemDef->visuals.markArray[j].data[1])
+									if (elemDef->visuals.markArray[j].materials[1])
 									{
-										elemDef->visuals.markArray[j].data[1] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, buffer.readString().data(), builder).material;
+										elemDef->visuals.markArray[j].materials[1] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, buffer.readString().data(), builder).material;
 									}
 								}
 							}
@@ -171,10 +171,10 @@ namespace Assets
 						{
 							// Save_FxTrailDef
 							{
-								if (elemDef->extendedDef.trailDef)
+								if (elemDef->extended.trailDef)
 								{
 									Game::FxTrailDef* trailDef = buffer.readObject<Game::FxTrailDef>();
-									elemDef->extendedDef.trailDef = trailDef;
+									elemDef->extended.trailDef = trailDef;
 
 									if (trailDef->verts)
 									{
@@ -188,7 +188,7 @@ namespace Assets
 								}
 							}
 						}
-						else if (elemDef->extendedDef.trailDef)
+						else if (elemDef->extended.trailDef)
 						{
 							Components::Logger::Error("Fx element of type %d has traildef, that's impossible?\n", elemDef->elemType);
 						}
@@ -284,9 +284,9 @@ namespace Assets
 		{
 		case 7:
 		{
-			if (visuals->xmodel)
+			if (visuals->model)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->model);
 			}
 
 			break;
@@ -339,14 +339,14 @@ namespace Assets
 					{
 						for (char j = 0; j < elemDef->visualCount; ++j)
 						{
-							if (elemDef->visuals.markArray[j].data[0])
+							if (elemDef->visuals.markArray[j].materials[0])
 							{
-								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]);
+								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].materials[0]);
 							}
 
-							if (elemDef->visuals.markArray[j].data[1])
+							if (elemDef->visuals.markArray[j].materials[1])
 							{
-								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]);
+								builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].materials[1]);
 							}
 						}
 					}
@@ -392,9 +392,9 @@ namespace Assets
 		{
 		case 7:
 		{
-			if (visuals->xmodel)
+			if (visuals->model)
 			{
-				destVisuals->xmodel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->xmodel).model;
+				destVisuals->model = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, visuals->model).model;
 			}
 
 			break;
@@ -502,14 +502,14 @@ namespace Assets
 
 							for (char j = 0; j < elemDef->visualCount; ++j)
 							{
-								if (elemDef->visuals.markArray[j].data[0])
+								if (elemDef->visuals.markArray[j].materials[0])
 								{
-									destMarkArray[j].data[0] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[0]).material;
+									destMarkArray[j].materials[0] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].materials[0]).material;
 								}
 
-								if (elemDef->visuals.markArray[j].data[1])
+								if (elemDef->visuals.markArray[j].materials[1])
 								{
-									destMarkArray[j].data[1] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].data[1]).material;
+									destMarkArray[j].materials[1] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, elemDef->visuals.markArray[j].materials[1]).material;
 								}
 							}
 
@@ -560,18 +560,18 @@ namespace Assets
 
 				// Save_FxElemExtendedDefPtr
 				{
-					AssertSize(Game::FxElemExtendedDef, 4);
+					AssertSize(Game::FxElemExtendedDefPtr, 4);
 
 					if (elemDef->elemType == 3)
 					{
 						// Save_FxTrailDef
 						{
-							if (elemDef->extendedDef.trailDef)
+							if (elemDef->extended.trailDef)
 							{
 								AssertSize(Game::FxTrailDef, 36);
 								buffer->align(Utils::Stream::ALIGN_4);
 
-								Game::FxTrailDef* trailDef = elemDef->extendedDef.trailDef;
+								Game::FxTrailDef* trailDef = elemDef->extended.trailDef;
 								Game::FxTrailDef* destTrailDef = buffer->dest<Game::FxTrailDef>();
 								buffer->save(trailDef);
 
@@ -592,27 +592,27 @@ namespace Assets
 									Utils::Stream::ClearPointer(&destTrailDef->inds);
 								}
 
-								Utils::Stream::ClearPointer(&destElemDef->extendedDef.trailDef);
+								Utils::Stream::ClearPointer(&destElemDef->extended.trailDef);
 							}
 						}
 					}
 					else if (elemDef->elemType == 6)
 					{
-						if (elemDef->extendedDef.sparkFountain)
+						if (elemDef->extended.sparkFountainDef)
 						{
-							AssertSize(Game::FxSparkFountain, 52);
+							AssertSize(Game::FxSparkFountainDef, 52);
 							buffer->align(Utils::Stream::ALIGN_4);
 
-							buffer->save(elemDef->extendedDef.sparkFountain);
-							Utils::Stream::ClearPointer(&destElemDef->extendedDef.sparkFountain);
+							buffer->save(elemDef->extended.sparkFountainDef);
+							Utils::Stream::ClearPointer(&destElemDef->extended.sparkFountainDef);
 						}
 					}
 					else
 					{
-						if (elemDef->extendedDef.unknownBytes)
+						if (elemDef->extended.unknownDef)
 						{
-							buffer->save(elemDef->extendedDef.unknownBytes);
-							Utils::Stream::ClearPointer(&destElemDef->extendedDef.unknownBytes);
+							buffer->save(reinterpret_cast<char*>(elemDef->extended.unknownDef));
+							Utils::Stream::ClearPointer(&destElemDef->extended.unknownDef);
 						}
 					}
 				}

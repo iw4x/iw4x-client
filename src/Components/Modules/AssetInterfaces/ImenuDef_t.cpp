@@ -331,7 +331,7 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->__indice); \
 		}
 
-	void ImenuDef_t::save_itemDefData_t(Game::itemDefData_t* asset, int type, Game::itemDef_t* dest, Components::ZoneBuilder::Zone* builder)
+	void ImenuDef_t::save_itemDefData_t(Game::itemDefData_t* asset, int type, Game::itemDef_s* dest, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::newsTickerDef_s, 28);
 		AssertSize(Game::listBoxDef_s, 324);
@@ -347,10 +347,10 @@ namespace Assets
 			Game::listBoxDef_s* destlb = buffer->dest<Game::listBoxDef_s>();
 			buffer->save(asset->listBox);
 
-			if (asset->listBox->doubleClick)
+			if (asset->listBox->onDoubleClick)
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
-				this->save_MenuEventHandlerSet(asset->listBox->doubleClick, builder);
+				this->save_MenuEventHandlerSet(asset->listBox->onDoubleClick, builder);
 			}
 
 			if (asset->listBox->selectIcon)
@@ -390,22 +390,22 @@ namespace Assets
 			case 12:
 				buffer->align(Utils::Stream::ALIGN_4);
 				Game::multiDef_s* destdef = buffer->dest<Game::multiDef_s>();
-				buffer->save(asset->multiDef);
+				buffer->save(asset->multi);
 
 				for (int i = 0; i < 32; ++i)
 				{
-					if (asset->multiDef->dvarList[i])
+					if (asset->multi->dvarList[i])
 					{
-						buffer->saveString(asset->multiDef->dvarList[i]);
+						buffer->saveString(asset->multi->dvarList[i]);
 						Utils::Stream::ClearPointer(&destdef->dvarList[i]);
 					}
 				}
 
 				for (int i = 0; i < 32; ++i)
 				{
-					if (asset->multiDef->dvarStr[i])
+					if (asset->multi->dvarStr[i])
 					{
-						buffer->saveString(asset->multiDef->dvarStr[i]);
+						buffer->saveString(asset->multi->dvarStr[i]);
 						Utils::Stream::ClearPointer(&destdef->dvarStr[i]);
 					}
 				}
@@ -423,17 +423,17 @@ namespace Assets
 		Utils::Stream::ClearPointer(&dest->typeData.data);
 	}
 
-	void ImenuDef_t::save_itemDef_t(Game::itemDef_t *asset, Components::ZoneBuilder::Zone* builder)
+	void ImenuDef_t::save_itemDef_s(Game::itemDef_s *asset, Components::ZoneBuilder::Zone* builder)
 	{
-		AssertSize(Game::itemDef_t, 380);
+		AssertSize(Game::itemDef_s, 380);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::itemDef_t* dest = buffer->dest<Game::itemDef_t>();
+		Game::itemDef_s* dest = buffer->dest<Game::itemDef_s>();
 
 		buffer->save(asset);
 
 		// window data
-		save_windowDef_t<Game::itemDef_t>(&asset->window, dest, builder);
+		save_windowDef_t<Game::itemDef_s>(&asset->window, dest, builder);
 
 		// text
 		if (asset->text)
@@ -553,9 +553,9 @@ namespace Assets
 
 		// MenuEventHandlerSets
 		EVENTHANDLERSET(onOpen);
-		EVENTHANDLERSET(onRequestClose);
+		EVENTHANDLERSET(onCloseRequest);
 		EVENTHANDLERSET(onClose);
-		EVENTHANDLERSET(onEsc);
+		EVENTHANDLERSET(onESC);
 
 		// ItemKeyHandler
 		if (asset->onKey)
@@ -574,10 +574,10 @@ namespace Assets
 			buffer->saveString(asset->allowedBinding);
 			Utils::Stream::ClearPointer(&dest->allowedBinding);
 		}
-		if (asset->soundLoop)
+		if (asset->soundName)
 		{
-			buffer->saveString(asset->soundLoop);
-			Utils::Stream::ClearPointer(&dest->soundLoop);
+			buffer->saveString(asset->soundName);
+			Utils::Stream::ClearPointer(&dest->soundName);
 		}
 
 		// Statements
@@ -599,7 +599,7 @@ namespace Assets
 				if (asset->items[i])
 				{
 					buffer->align(Utils::Stream::ALIGN_4);
-					this->save_itemDef_t(asset->items[i], builder);
+					this->save_itemDef_s(asset->items[i], builder);
 				}
 			}
 		}

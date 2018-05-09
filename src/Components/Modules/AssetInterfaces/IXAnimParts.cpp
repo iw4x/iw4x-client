@@ -33,22 +33,22 @@ namespace Assets
 					xanim->name = reader.readCString();
 				}
 
-				if (xanim->tagnames)
+				if (xanim->names)
 				{
-					xanim->tagnames = builder->getAllocator()->allocateArray<short>(xanim->boneCount[Game::XAnimPartType::PART_TYPE_ALL]);
-					for (int i = 0; i < xanim->boneCount[Game::XAnimPartType::PART_TYPE_ALL]; ++i)
+					xanim->names = builder->getAllocator()->allocateArray<unsigned short>(xanim->boneCount[Game::PART_TYPE_ALL]);
+					for (int i = 0; i < xanim->boneCount[Game::PART_TYPE_ALL]; ++i)
 					{
-						xanim->tagnames[i] = Game::SL_GetString(reader.readCString(), 0);
+						xanim->names[i] = Game::SL_GetString(reader.readCString(), 0);
 					}
 				}
 
-				if (xanim->notetracks)
+				if (xanim->notify)
 				{
-					xanim->notetracks = reader.readArray<Game::XAnimNotifyInfo>(xanim->notetrackCount);
+					xanim->notify = reader.readArray<Game::XAnimNotifyInfo>(xanim->notifyCount);
 
-					for (int i = 0; i < xanim->notetrackCount; ++i)
+					for (int i = 0; i < xanim->notifyCount; ++i)
 					{
-						xanim->notetracks[i].name = Game::SL_GetString(reader.readCString(), 0);
+						xanim->notify[i].name = Game::SL_GetString(reader.readCString(), 0);
 					}
 				}
 
@@ -84,13 +84,13 @@ namespace Assets
 
 				if (xanim->indices.data)
 				{
-					if (xanim->framecount < 256)
+					if (xanim->numframes < 256)
 					{
-						xanim->indices._1 = reader.readArray<char>(xanim->indexcount);
+						xanim->indices._1 = reader.readArray<char>(xanim->indexCount);
 					}
 					else
 					{
-						xanim->indices._2 = reader.readArray<unsigned short>(xanim->indexcount);
+						xanim->indices._2 = reader.readArray<unsigned short>(xanim->indexCount);
 					}
 				}
 
@@ -108,19 +108,19 @@ namespace Assets
 	{
 		Game::XAnimParts* asset = header.parts;
 
-		if (asset->tagnames)
+		if (asset->names)
 		{
-			for (char i = 0; i < asset->boneCount[Game::XAnimPartType::PART_TYPE_ALL]; ++i)
+			for (char i = 0; i < asset->boneCount[Game::PART_TYPE_ALL]; ++i)
 			{
-				builder->addScriptString(asset->tagnames[i]);
+				builder->addScriptString(asset->names[i]);
 			}
 		}
 
-		if (asset->notetracks)
+		if (asset->notify)
 		{
-			for (char i = 0; i < asset->notetrackCount; ++i)
+			for (char i = 0; i < asset->notifyCount; ++i)
 			{
-				builder->addScriptString(asset->notetracks[i].name);
+				builder->addScriptString(asset->notify[i].name);
 			}
 		}
 	}
@@ -183,11 +183,11 @@ namespace Assets
 
 				if (framecount > 0xFF)
 				{
-					buffer->save(delta->quat2->u.frames.indices, 2, delta->quat2->size + 1);
+					buffer->save(delta->quat2->u.frames.indices._1, 2, delta->quat2->size + 1);
 				}
 				else
 				{
-					buffer->save(delta->quat2->u.frames.indices, 1, delta->quat2->size + 1);
+					buffer->save(delta->quat2->u.frames.indices._1, 1, delta->quat2->size + 1);
 				}
 
 				if (delta->quat2->u.frames.frames)
@@ -215,11 +215,11 @@ namespace Assets
 
 				if (framecount > 0xFF)
 				{
-					buffer->save(delta->quat->u.frames.indices, 2, delta->quat->size + 1);
+					buffer->save(delta->quat->u.frames.indices._1, 2, delta->quat->size + 1);
 				}
 				else
 				{
-					buffer->save(delta->quat->u.frames.indices, 1, delta->quat->size + 1);
+					buffer->save(delta->quat->u.frames.indices._1, 1, delta->quat->size + 1);
 				}
 
 				if (delta->quat->u.frames.frames)
@@ -254,45 +254,45 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		if (asset->tagnames)
+		if (asset->names)
 		{
 			buffer->align(Utils::Stream::ALIGN_2);
 
 			unsigned short* destTagnames = buffer->dest<unsigned short>();
-			buffer->saveArray(asset->tagnames, asset->boneCount[Game::XAnimPartType::PART_TYPE_ALL]);
+			buffer->saveArray(asset->names, asset->boneCount[Game::PART_TYPE_ALL]);
 
-			for (char i = 0; i < asset->boneCount[Game::XAnimPartType::PART_TYPE_ALL]; ++i)
+			for (char i = 0; i < asset->boneCount[Game::PART_TYPE_ALL]; ++i)
 			{
 				builder->mapScriptString(&destTagnames[i]);
 			}
 
-			Utils::Stream::ClearPointer(&dest->tagnames);
+			Utils::Stream::ClearPointer(&dest->names);
 		}
 
-		if (asset->notetracks)
+		if (asset->notify)
 		{
 			AssertSize(Game::XAnimNotifyInfo, 8);
 			buffer->align(Utils::Stream::ALIGN_4);
 
 			Game::XAnimNotifyInfo* destNotetracks = buffer->dest<Game::XAnimNotifyInfo>();
-			buffer->saveArray(asset->notetracks, asset->notetrackCount);
+			buffer->saveArray(asset->notify, asset->notifyCount);
 
-			for (char i = 0; i < asset->notetrackCount; ++i)
+			for (char i = 0; i < asset->notifyCount; ++i)
 			{
 				builder->mapScriptString(&destNotetracks[i].name);
 			}
 
-			Utils::Stream::ClearPointer(&dest->notetracks);
+			Utils::Stream::ClearPointer(&dest->notify);
 		}
 
-		if (asset->delta)
+		if (asset->deltaPart)
 		{
 			AssertSize(Game::XAnimDeltaPart, 12);
 			buffer->align(Utils::Stream::ALIGN_4);
 
-			this->saveXAnimDeltaPart(asset->delta, asset->framecount, builder);
+			this->saveXAnimDeltaPart(asset->deltaPart, asset->numframes, builder);
 
-			Utils::Stream::ClearPointer(&dest->delta);
+			Utils::Stream::ClearPointer(&dest->deltaPart);
 		}
 
 		if (asset->dataByte)
@@ -337,14 +337,14 @@ namespace Assets
 
 		if (asset->indices.data)
 		{
-			if (asset->framecount > 0xFF)
+			if (asset->numframes > 0xFF)
 			{
 				buffer->align(Utils::Stream::ALIGN_2);
-				buffer->saveArray(asset->indices._2, asset->indexcount);
+				buffer->saveArray(asset->indices._2, asset->indexCount);
 			}
 			else
 			{
-				buffer->saveArray(asset->indices._1, asset->indexcount);
+				buffer->saveArray(asset->indices._1, asset->indexCount);
 			}
 
 			Utils::Stream::ClearPointer(&dest->indices.data);

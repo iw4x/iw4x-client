@@ -54,19 +54,19 @@ namespace Assets
 
 	void IGfxWorld::loadGfxWorldDraw(Game::GfxWorldDraw* asset, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader)
 	{
-		if (asset->reflectionImages)
+		if (asset->reflectionProbes)
 		{
-			asset->reflectionImages = reader->readArray<Game::GfxImage*>(asset->reflectionProbeCount);
+			asset->reflectionProbes = reader->readArray<Game::GfxImage*>(asset->reflectionProbeCount);
 
 			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
 			{
-				asset->reflectionImages[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+				asset->reflectionProbes[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
 			}
 		}
 
-		if (asset->reflectionProbes)
+		if (asset->reflectionProbeOrigins)
 		{
-			asset->reflectionProbes = reader->readArray<Game::GfxReflectionProbe>(asset->reflectionProbeCount);
+			asset->reflectionProbeOrigins = reader->readArray<Game::GfxReflectionProbe>(asset->reflectionProbeCount);
 		}
 
 		if (asset->lightmaps)
@@ -89,14 +89,14 @@ namespace Assets
 			}
 		}
 
-		if (asset->skyImage)
+		if (asset->lightmapOverridePrimary)
 		{
-			asset->skyImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+			asset->lightmapOverridePrimary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
 		}
 
-		if (asset->outdoorImage)
+		if (asset->lightmapOverrideSecondary)
 		{
-			asset->outdoorImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+			asset->lightmapOverrideSecondary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
 		}
 
 		// saveGfxWorldVertexData
@@ -183,11 +183,11 @@ namespace Assets
 				if (asset->dpvsPlanes.planes)
 				{
 					void* oldPtr = asset->dpvsPlanes.planes;
-					asset->dpvsPlanes.planes = reader.readArray<Game::cplane_t>(asset->planeCount);
+					asset->dpvsPlanes.planes = reader.readArray<Game::cplane_s>(asset->planeCount);
 
 					if (builder->getAllocator()->isPointerMapped(oldPtr))
 					{
-						asset->dpvsPlanes.planes = builder->getAllocator()->getPointer<Game::cplane_t>(oldPtr);
+						asset->dpvsPlanes.planes = builder->getAllocator()->getPointer<Game::cplane_s>(oldPtr);
 					}
 					else
 					{
@@ -418,11 +418,11 @@ namespace Assets
 	{
 		Game::GfxWorld* asset = header.gfxWorld;
 
-		if (asset->draw.reflectionImages)
+		if (asset->draw.reflectionProbes)
 		{
 			for (unsigned int i = 0; i < asset->draw.reflectionProbeCount; ++i)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.reflectionImages[i]);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.reflectionProbes[i]);
 			}
 		}
 
@@ -442,14 +442,14 @@ namespace Assets
 			}
 		}
 
-		if (asset->draw.skyImage)
+		if (asset->draw.lightmapOverridePrimary)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.skyImage);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.lightmapOverridePrimary);
 		}
 
-		if (asset->draw.outdoorImage)
+		if (asset->draw.lightmapOverrideSecondary)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.outdoorImage);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->draw.lightmapOverrideSecondary);
 		}
 
 		if (asset->sun.spriteMaterial)
@@ -527,7 +527,7 @@ namespace Assets
 			}
 			else
 			{
-				AssertSize(Game::cplane_t, 20);
+				AssertSize(Game::cplane_s, 20);
 
 				buffer->align(Utils::Stream::ALIGN_4);
 
@@ -568,32 +568,32 @@ namespace Assets
 
 		Utils::Stream* buffer = builder->getBuffer();
 
-		if (asset->reflectionImages)
+		if (asset->reflectionProbes)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
 
 			Game::GfxImage** imageDest = buffer->dest<Game::GfxImage*>();
-			buffer->saveArray(asset->reflectionImages, asset->reflectionProbeCount);
+			buffer->saveArray(asset->reflectionProbes, asset->reflectionProbeCount);
 
 			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
 			{
-				if (asset->reflectionImages[i])
+				if (asset->reflectionProbes[i])
 				{
-					imageDest[i] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->reflectionImages[i]).image;
+					imageDest[i] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->reflectionProbes[i]).image;
 				}
 			}
 
-			Utils::Stream::ClearPointer(&dest->reflectionImages);
+			Utils::Stream::ClearPointer(&dest->reflectionProbes);
 		}
 
-		if (asset->reflectionProbes)
+		if (asset->reflectionProbeOrigins)
 		{
 			AssertSize(Game::GfxReflectionProbe, 12);
 			SaveLogEnter("GfxReflectionProbe");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->reflectionProbes, asset->reflectionProbeCount);
-			Utils::Stream::ClearPointer(&dest->reflectionProbes);
+			buffer->saveArray(asset->reflectionProbeOrigins, asset->reflectionProbeCount);
+			Utils::Stream::ClearPointer(&dest->reflectionProbeOrigins);
 
 			SaveLogExit();
 		}
@@ -602,7 +602,7 @@ namespace Assets
 
 		if (asset->reflectionProbeTextures)
 		{
-			AssertSize(Game::GfxRawTexture, 4);
+			AssertSize(Game::GfxTexture, 4);
 			SaveLogEnter("GfxRawTexture");
 
 			buffer->align(Utils::Stream::ALIGN_4);
@@ -662,14 +662,14 @@ namespace Assets
 
 		buffer->popBlock();
 
-		if (asset->skyImage)
+		if (asset->lightmapOverridePrimary)
 		{
-			dest->skyImage = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->skyImage).image;
+			dest->lightmapOverridePrimary = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->lightmapOverridePrimary).image;
 		}
 
-		if (asset->outdoorImage)
+		if (asset->lightmapOverrideSecondary)
 		{
-			dest->outdoorImage = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->outdoorImage).image;
+			dest->lightmapOverrideSecondary = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_IMAGE, asset->lightmapOverrideSecondary).image;
 		}
 
 		// saveGfxWorldVertexData

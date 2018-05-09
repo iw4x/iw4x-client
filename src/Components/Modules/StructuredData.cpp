@@ -40,7 +40,7 @@ namespace Components
 				}
 			}
 
-			dataVector.push_back(dataEnum->entries[index].name);
+			dataVector.push_back(dataEnum->entries[index].string);
 		}
 
 		// Rebase or add new entries
@@ -67,16 +67,16 @@ namespace Components
 		for (unsigned short i = 0; i < dataVector.size(); ++i)
 		{
 			indices[i].index = i;
-			indices[i].name = dataVector[i];
+			indices[i].string = dataVector[i];
 		}
 
 		// Sort alphabetically
-		qsort(indices, dataVector.size(), sizeof(Game::StructuredDataEnumEntry), [](const void* first, const void* second)
+		qsort(indices, dataVector.size(), sizeof(Game::StructuredDataEnumEntry), [](void const* first, void const* second)
 		{
 			const Game::StructuredDataEnumEntry* entry1 = reinterpret_cast<const Game::StructuredDataEnumEntry*>(first);
 			const Game::StructuredDataEnumEntry* entry2 = reinterpret_cast<const Game::StructuredDataEnumEntry*>(second);
 
-			return std::string(entry1->name).compare(entry2->name);
+			return std::string(entry1->string).compare(entry2->string);
 		});
 
 		// Apply our patches
@@ -177,7 +177,7 @@ namespace Components
 			if (type != Game::XAssetType::ASSET_TYPE_STRUCTURED_DATA_DEF || filename != "mp/playerdata.def") return;
 
 			// Store asset
-			Game::StructuredDataDefSet* data = asset.structuredData;
+			Game::StructuredDataDefSet* data = asset.structuredDataDefSet;
 			if (!data) return;
 
 			if (data->defCount != 1)

@@ -2,6 +2,8 @@
 
 #define PROTOCOL 0x95
 #define NUM_CUSTOM_CLASSES 15
+#define SEMANTIC_WATER_MAP 11
+#define FX_ELEM_FIELD_COUNT 90
 
 // This allows us to compile our structures in IDA, for easier reversing :3
 #ifndef __cplusplus
@@ -119,57 +121,13 @@ namespace Game
 		DVAR_TYPE_COUNT = 0xA,
 	} dvar_type;
 
-	union DvarValue
-	{
-		bool enabled;
-		int integer;
-		unsigned int unsignedInt;
-		float value;
-		float vector[4];
-		const char *string;
-		char color[4];
-	};
-
-	union DvarLimits
-	{
-		struct StringLimit
-		{
-			int stringCount;
-			const char **strings;
-		};
-
-		struct IntLimit
-		{
-			int min;
-			int max;
-		};
-
-		struct FloatLimit
-		{
-			float min;
-			float max;
-		};
-
-		StringLimit enumeration;
-		IntLimit integer;
-		FloatLimit value;
-		FloatLimit vector;
-	};
-
-	struct dvar_t
-	{
-		const char *name;
-		const char *description;
-		unsigned int flags;
-		char type;
-		bool modified;
-		DvarValue current;
-		DvarValue latched;
-		DvarValue reset;
-		DvarLimits domain;
-		bool(__cdecl *domainFunc)(dvar_t *, DvarValue);
-		dvar_t *hashNext;
-	};
+	struct FxEffectDef;
+	struct pathnode_t;
+	struct pathnode_tree_t;
+	struct GfxPortal;
+	struct Statement_s;
+	struct MenuEventHandlerSet;
+	struct menuDef_t;
 
 	typedef struct cmd_function_s
 	{
@@ -192,211 +150,496 @@ namespace Game
 	};
 #pragma pack(pop)
 
-	struct SpeakerLevels
+	struct __declspec(align(4)) PhysPreset
 	{
-		int speaker;
-		int numLevels;
-		float levels[2];
+		const char *name;
+		int type;
+		float mass;
+		float bounce;
+		float friction;
+		float bulletForceScale;
+		float explosiveForceScale;
+		const char *sndAliasPrefix;
+		float piecesSpreadFraction;
+		float piecesUpwardVelocity;
+		bool tempDefaultToCylinder;
+		bool perSurfaceSndAlias;
 	};
 
-	struct ChannelMap
+	struct Bounds
 	{
-		int entryCount;	// how many entries are used
-		SpeakerLevels speakers[6];
+		float midPoint[3];
+		float halfSize[3];
 	};
 
-	struct SpeakerMap
+	struct cplane_s
 	{
+		float normal[3];
+		float dist;
+		char type;
+		char pad[3];
+	};
+
+	struct cbrushside_t
+	{
+		cplane_s *plane;
+		unsigned __int16 materialNum;
+		char firstAdjacentSideOffset;
+		char edgeCount;
+	};
+
+	struct cbrush_t
+	{
+		unsigned __int16 numsides;
+		unsigned __int16 glassPieceIndex;
+		cbrushside_t *sides;
+		char *baseAdjacentSide;
+		__int16 axialMaterialNum[2][3];
+		char firstAdjacentSideOffsets[2][3];
+		char edgeCount[2][3];
+	};
+
+	struct BrushWrapper
+	{
+		Bounds bounds;
+		cbrush_t brush;
+		int totalEdgeCount;
+		cplane_s *planes;
+	};
+
+	struct PhysGeomInfo
+	{
+		BrushWrapper *brushWrapper;
+		int type;
+		float orientation[3][3];
+		Bounds bounds;
+	};
+
+	struct PhysMass
+	{
+		float centerOfMass[3];
+		float momentsOfInertia[3];
+		float productsOfInertia[3];
+	};
+
+	struct PhysCollmap
+	{
+		const char *name;
+		unsigned int count;
+		PhysGeomInfo *geoms;
+		PhysMass mass;
+		Bounds bounds;
+	};
+
+	union XAnimIndices
+	{
+		char *_1;
+		unsigned __int16 *_2;
+		void *data;
+	};
+
+	struct XAnimNotifyInfo
+	{
+		unsigned __int16 name;
+		float time;
+	};
+
+	union XAnimDynamicFrames
+	{
+		char(*_1)[3];
+		unsigned __int16(*_2)[3];
+	};
+
+	union XAnimDynamicIndices
+	{
+		char _1[1];
+		unsigned __int16 _2[1];
+	};
+
+	struct __declspec(align(4)) XAnimPartTransFrames
+	{
+		float mins[3];
+		float size[3];
+		XAnimDynamicFrames frames;
+		XAnimDynamicIndices indices;
+	};
+
+	union XAnimPartTransData
+	{
+		XAnimPartTransFrames frames;
+		float frame0[3];
+	};
+
+	struct XAnimPartTrans
+	{
+		unsigned __int16 size;
+		char smallTrans;
+		XAnimPartTransData u;
+	};
+
+	struct __declspec(align(4)) XAnimDeltaPartQuatDataFrames2
+	{
+		__int16(*frames)[2];
+		XAnimDynamicIndices indices;
+	};
+
+	union XAnimDeltaPartQuatData2
+	{
+		XAnimDeltaPartQuatDataFrames2 frames;
+		__int16 frame0[2];
+	};
+
+	struct XAnimDeltaPartQuat2
+	{
+		unsigned __int16 size;
+		XAnimDeltaPartQuatData2 u;
+	};
+
+	struct __declspec(align(4)) XAnimDeltaPartQuatDataFrames
+	{
+		__int16(*frames)[4];
+		XAnimDynamicIndices indices;
+	};
+
+	union XAnimDeltaPartQuatData
+	{
+		XAnimDeltaPartQuatDataFrames frames;
+		__int16 frame0[4];
+	};
+
+	struct XAnimDeltaPartQuat
+	{
+		unsigned __int16 size;
+		XAnimDeltaPartQuatData u;
+	};
+
+	struct XAnimDeltaPart
+	{
+		XAnimPartTrans *trans;
+		XAnimDeltaPartQuat2 *quat2;
+		XAnimDeltaPartQuat *quat;
+	};
+
+	struct XAnimParts
+	{
+		const char *name;
+		unsigned __int16 dataByteCount;
+		unsigned __int16 dataShortCount;
+		unsigned __int16 dataIntCount;
+		unsigned __int16 randomDataByteCount;
+		unsigned __int16 randomDataIntCount;
+		unsigned __int16 numframes;
+		char flags;
+		char boneCount[10];
+		char notifyCount;
+		char assetType;
 		bool isDefault;
-		const char *name;
-		ChannelMap channelMaps[2][2];
+		unsigned int randomDataShortCount;
+		unsigned int indexCount;
+		float framerate;
+		float frequency;
+		unsigned __int16 *names;
+		char *dataByte;
+		__int16 *dataShort;
+		int *dataInt;
+		__int16 *randomDataShort;
+		char *randomDataByte;
+		int *randomDataInt;
+		XAnimIndices indices;
+		XAnimNotifyInfo *notify;
+		XAnimDeltaPart *deltaPart;
 	};
 
-	enum snd_alias_type_t : char
+	struct XSurfaceVertexInfo
 	{
-		SAT_UNKNOWN = 0x0,
-		SAT_LOADED = 0x1,
-		SAT_STREAMED = 0x2
+		__int16 vertCount[4];
+		unsigned __int16 *vertsBlend;
 	};
 
-	struct StreamedSound
+	union GfxColor
 	{
-		const char *dir;
-		const char *name;
+		unsigned int packed;
+		char array[4];
 	};
 
-	struct SndCurve
+	union PackedTexCoords
 	{
-		const char *filename;
-		unsigned __int16 knotCount;
-		vec2_t knots[16];
+		unsigned int packed;
 	};
 
-	struct _AILSOUNDINFO
+	union PackedUnitVec
 	{
-		int format;
-		const void *data_ptr;
-		unsigned int data_len;
-		unsigned int rate;
-		int bits;
-		int channels;
-		unsigned int samples;
-		unsigned int block_size;
-		const void *initial_ptr;
+		unsigned int packed;
+		char array[4];
 	};
 
-	struct MssSound
+	struct GfxPackedVertex
 	{
-		_AILSOUNDINFO info;
-		char *data;
+		float xyz[3];
+		float binormalSign;
+		GfxColor color;
+		PackedTexCoords texCoord;
+		PackedUnitVec normal;
+		PackedUnitVec tangent;
 	};
 
-	struct LoadedSound
+	struct XSurfaceCollisionAabb
 	{
-		const char *name;
-		MssSound sound;
+		unsigned __int16 mins[3];
+		unsigned __int16 maxs[3];
 	};
 
-	union SoundData
+	struct XSurfaceCollisionNode
 	{
-		LoadedSound* loaded;
-		StreamedSound stream;
+		XSurfaceCollisionAabb aabb;
+		unsigned __int16 childBeginIndex;
+		unsigned __int16 childCount;
 	};
 
-	struct SoundFile
+	struct XSurfaceCollisionLeaf
 	{
-		snd_alias_type_t type;
-		bool exists;
-		SoundData data;
+		unsigned __int16 triangleBeginIndex;
 	};
 
-	struct snd_alias_t
+	struct XSurfaceCollisionTree
 	{
-		const char *name;
-		const char *subtitle;
-		const char *secondaryAliasName;
-		const char *chainAliasName;
-		const char *string4;
-		SoundFile *soundFile;
-		int sequence;
-		float volMin;
-		float volMax;
-		float pitchMin;
-		float pitchMax;
-		float distMin;
-		float distMax;
-		int flags;
-		float slavePercentage;
-		float probability;
-		float lfePercentage;
-		float centerPercentage;
-		int startDelay;
-		int pad;
-		SndCurve *volumeFalloffCurve;
-		float envelopMin;
-		float envelopMax;
-		float envelopPercentage;
-		SpeakerMap *speakerMap;
+		float trans[3];
+		float scale[3];
+		unsigned int nodeCount;
+		XSurfaceCollisionNode *nodes;
+		unsigned int leafCount;
+		XSurfaceCollisionLeaf *leafs;
 	};
 
-	struct snd_alias_list_t
+	struct XRigidVertList
 	{
-		const char *name;
-		snd_alias_t *head;
-		int count;
+		unsigned __int16 boneOffset;
+		unsigned __int16 vertCount;
+		unsigned __int16 triOffset;
+		unsigned __int16 triCount;
+		XSurfaceCollisionTree *collisionTree;
 	};
 
-	enum ZoneAllocFlags
+	struct XSurface
 	{
-		DB_ZONE_CODE_LOC = 0x0,
-		DB_ZONE_COMMON_LOC = 0x1,
-		DB_ZONE_CODE = 0x2,
-		DB_ZONE_COMMON = 0x4,
-		DB_ZONE_GAME = 0x8,
-		DB_ZONE_MOD = 0x10,
-		DB_ZONE_LOAD = 0x20,
-		DB_ZONE_DEV = 0x40
+		char tileMode;
+		bool deformed;
+		unsigned __int16 vertCount;
+		unsigned __int16 triCount;
+		char zoneHandle;
+		unsigned __int16 baseTriIndex;
+		unsigned __int16 baseVertIndex;
+		unsigned __int16 *triIndices;
+		XSurfaceVertexInfo vertInfo;
+		GfxPackedVertex *verts0;
+		unsigned int vertListCount;
+		XRigidVertList *vertList;
+		int partBits[6];
 	};
 
-	typedef struct
+	struct XModelSurfs
 	{
 		const char *name;
-		int allocFlags;
-		int freeFlags;
-	} XZoneInfo;
-
-	struct expression_s;
-	struct statement_s;
-	struct menuDef_t;
-	enum operationEnum;
-
-	enum IWI_COMPRESSION
-	{
-		IWI_INVALID = 0x0,
-		IWI_ARGB = 0x1,
-		IWI_RGB8 = 0x2,
-		IWI_DXT1 = 0xB,
-		IWI_DXT3 = 0xC,
-		IWI_DXT5 = 0xD,
+		XSurface *surfs;
+		unsigned __int16 numsurfs;
+		int partBits[6];
 	};
 
-	struct GfxImageFileHeader
+	struct DObjAnimMat
 	{
-		char tag[3];
-		char version;
-		int flags;
-		char format;
-		short dimensions[3];
-		int fileSizeForPicmip[4];
+		float quat[4];
+		float trans[3];
+		float transWeight;
+	};
+
+	struct GfxDrawSurfFields
+	{
+		unsigned __int64 objectId : 16;
+		unsigned __int64 reflectionProbeIndex : 8;
+		unsigned __int64 hasGfxEntIndex : 1;
+		unsigned __int64 customIndex : 5;
+		unsigned __int64 materialSortedIndex : 12;
+		unsigned __int64 prepass : 2;
+		unsigned __int64 useHeroLighting : 1;
+		unsigned __int64 sceneLightIndex : 8;
+		unsigned __int64 surfType : 4;
+		unsigned __int64 primarySortKey : 6;
+		unsigned __int64 unused : 1;
+	};
+
+	union GfxDrawSurf
+	{
+		GfxDrawSurfFields fields;
+		unsigned __int64 packed;
+	};
+
+	struct /*__declspec(align(4))*/ MaterialInfo
+	{
+		const char *name;
+		char gameFlags;
+		char sortKey;
+		char textureAtlasRowCount;
+		char textureAtlasColumnCount;
+		GfxDrawSurf drawSurf;
+		unsigned int surfaceTypeBits;
+		unsigned __int16 hashIndex;
+	};
+
+	struct MaterialStreamRouting
+	{
+		char source;
+		char dest;
+	};
+
+	struct MaterialVertexStreamRouting
+	{
+		MaterialStreamRouting data[13];
+		IDirect3DVertexDeclaration9 *decl[16];
+	};
+
+	struct MaterialVertexDeclaration
+	{
+		const char *name;
+		char streamCount;
+		bool hasOptionalSource;
+		MaterialVertexStreamRouting routing;
+	};
+
+	struct GfxVertexShaderLoadDef
+	{
+		unsigned int *program;
+		unsigned __int16 programSize;
+		unsigned __int16 loadForRenderer;
+	};
+
+	struct MaterialVertexShaderProgram
+	{
+		IDirect3DVertexShader9 *vs;
+		GfxVertexShaderLoadDef loadDef;
+	};
+
+	struct MaterialVertexShader
+	{
+		const char *name;
+		MaterialVertexShaderProgram prog;
+	};
+
+	struct GfxPixelShaderLoadDef
+	{
+		unsigned int *program;
+		unsigned __int16 programSize;
+		unsigned __int16 loadForRenderer;
+	};
+
+	struct MaterialPixelShaderProgram
+	{
+		IDirect3DPixelShader9 *ps;
+		GfxPixelShaderLoadDef loadDef;
+	};
+
+	struct MaterialPixelShader
+	{
+		const char *name;
+		MaterialPixelShaderProgram prog;
+	};
+
+	struct MaterialArgumentCodeConst
+	{
+		unsigned __int16 index;
+		char firstRow;
+		char rowCount;
+	};
+
+	union MaterialArgumentDef
+	{
+		const float *literalConst;
+		MaterialArgumentCodeConst codeConst;
+		unsigned int codeSampler;
+		unsigned int nameHash;
+	};
+
+	struct MaterialShaderArgument
+	{
+		unsigned __int16 type;
+		unsigned __int16 dest;
+		MaterialArgumentDef u;
+	};
+
+	struct MaterialPass
+	{
+		MaterialVertexDeclaration *vertexDecl;
+		MaterialVertexShader *vertexShader;
+		MaterialPixelShader *pixelShader;
+		char perPrimArgCount;
+		char perObjArgCount;
+		char stableArgCount;
+		char customSamplerFlags;
+		MaterialShaderArgument *args;
+	};
+
+	struct MaterialTechnique
+	{
+		const char *name;
+		unsigned __int16 flags;
+		unsigned __int16 passCount;
+		MaterialPass passArray[1];
+	};
+
+	struct MaterialTechniqueSet
+	{
+		const char *name;
+		char worldVertFormat;
+		bool hasBeenUploaded;
+		char unused[1];
+		MaterialTechniqueSet *remappedTechniqueSet;
+		MaterialTechnique *techniques[48];
 	};
 
 	struct __declspec(align(4)) GfxImageLoadDef
 	{
 		char levelCount;
-		char flags;
-		__int16 dimensions[3];
+		char pad[3];
+		int flags;
 		int format;
 		int resourceSize;
 		char data[1];
 	};
 
-	enum MapType : char
+	union GfxTexture
 	{
-		MAPTYPE_NONE = 0x0,
-		MAPTYPE_INVALID1 = 0x1,
-		MAPTYPE_INVALID2 = 0x2,
-		MAPTYPE_2D = 0x3,
-		MAPTYPE_3D = 0x4,
-		MAPTYPE_CUBE = 0x5,
-		MAPTYPE_COUNT = 0x6,
+		IDirect3DBaseTexture9 *basemap;
+		IDirect3DTexture9 *map;
+		IDirect3DVolumeTexture9 *volmap;
+		IDirect3DCubeTexture9 *cubemap;
+		GfxImageLoadDef *loadDef;
+	};
+
+	struct Picmip
+	{
+		char platform[2];
+	};
+
+	struct CardMemory
+	{
+		int platform[2];
 	};
 
 	struct GfxImage
 	{
-		union
-		{
-			GfxImageLoadDef* loadDef;
-#ifndef IDA
-			IDirect3DBaseTexture9 *basemap;
-			IDirect3DTexture9 *map;
-			IDirect3DVolumeTexture9 *volmap;
-			IDirect3DCubeTexture9 *cubemap;
-#endif
-		};
-
-		MapType mapType;
+		GfxTexture texture;
+		char mapType;
 		char semantic;
 		char category;
-		char flags;
-		int cardMemory;
-		int dataLen1;
-		int dataLen2;
-		short height;
-		short width;
-		short depth;
-		char loaded;
-		char pad;
-		char* name;
+		bool useSrgbReads;
+		Picmip picmip;
+		bool noPicmip;
+		char track;
+		CardMemory cardMemory;
+		unsigned __int16 width;
+		unsigned __int16 height;
+		unsigned __int16 depth;
+		bool delayLoadPixels;
+		const char *name;
 	};
 
 	struct WaterWritable
@@ -427,12 +670,10 @@ namespace Game
 		GfxImage *image;
 	};
 
-#define SEMANTIC_WATER_MAP 11
-
 	union MaterialTextureDefInfo
 	{
-		GfxImage *image;	// MaterialTextureDef->semantic != SEMANTIC_WATER_MAP
-		water_t *water;		// MaterialTextureDef->semantic == SEMANTIC_WATER_MAP
+		GfxImage *image;
+		water_t *water;
 	};
 
 	struct MaterialTextureDef
@@ -440,227 +681,16 @@ namespace Game
 		unsigned int nameHash;
 		char nameStart;
 		char nameEnd;
-		char sampleState;
+		char samplerState;
 		char semantic;
-		MaterialTextureDefInfo info;
-	};
-
-	struct GfxShaderConstantBlock
-	{
-		unsigned int count;
-		unsigned __int16 dest[16];
-		const float *value[16];
-	};
-
-	struct MaterialArgumentCodeConst
-	{
-		unsigned __int16 index;
-		char firstRow;
-		char rowCount;
-	};
-
-	union MaterialArgumentDef
-	{
-		const float *literalConst;
-		MaterialArgumentCodeConst codeConst;
-		unsigned int codeSampler;
-		unsigned int nameHash;
-	};
-
-	struct MaterialShaderArgument
-	{
-		unsigned __int16 type;
-		unsigned __int16 dest;
-		MaterialArgumentDef u;
-	};
-
-	struct MaterialStreamRouting
-	{
-		char source;
-		char dest;
-	};
-
-	struct MaterialVertexStreamRouting
-	{
-		MaterialStreamRouting data[14];
-#ifdef IDA
-		void
-#else
-		IDirect3DVertexDeclaration9
-#endif
-		*decl[16];
-	};
-
-	struct MaterialVertexDeclaration
-	{
-		const char* name;
-		char streamCount;
-		bool hasOptionalSource;
-		bool isLoaded;
-		MaterialVertexStreamRouting routing;
-	};
-
-	struct GfxPixelShaderLoadDef
-	{
-		unsigned int *program;
-		unsigned __int16 programSize;
-		unsigned __int16 loadForRenderer;
-	};
-
-	struct MaterialPixelShaderProgram
-	{
-#ifdef IDA
-		void
-#else
-		IDirect3DPixelShader9
-#endif
-		*ps;
-		GfxPixelShaderLoadDef loadDef;
-	};
-
-	struct MaterialPixelShader
-	{
-		const char* name;
-		MaterialPixelShaderProgram prog;
-	};
-
-	struct GfxVertexShaderLoadDef
-	{
-		unsigned int *program;
-		unsigned __int16 programSize;
-		unsigned __int16 loadForRenderer;
-	};
-
-	struct MaterialVertexShaderProgram
-	{
-#ifdef IDA
-		void
-#else
-		IDirect3DVertexShader9
-#endif
-		*vs;
-		GfxVertexShaderLoadDef loadDef;
-	};
-
-	struct MaterialVertexShader
-	{
-		const char *name;
-		MaterialVertexShaderProgram prog;
-	};
-
-	struct MaterialPass
-	{
-		MaterialVertexDeclaration* vertexDecl;
-		MaterialVertexShader* vertexShader;
-		MaterialPixelShader* pixelShader;
-		char perPrimArgCount;
-		char perObjArgCount;
-		char stableArgCount;
-		char customSamplerFlags;
-		MaterialShaderArgument* args;
-	};
-
-	struct MaterialTechnique
-	{
-		const char *name;
-		unsigned __int16 flags;
-		unsigned __int16 passCount;
-		MaterialPass passArray[1];
-	};
-
-	enum MaterialTechniqueType
-	{
-		TECHNIQUE_DEPTH_PREPASS = 0x0,
-		TECHNIQUE_BUILD_FLOAT_Z = 0x1,
-		TECHNIQUE_BUILD_SHADOWMAP_DEPTH = 0x2,
-		TECHNIQUE_BUILD_SHADOWMAP_COLOR = 0x3,
-		TECHNIQUE_UNLIT = 0x4,
-		TECHNIQUE_EMISSIVE = 0x5,
-		TECHNIQUE_EMISSIVE_DFOG = 0x6,
-		TECHNIQUE_EMISSIVE_SHADOW = 0x7,
-		TECHNIQUE_EMISSIVE_SHADOW_DFOG = 0x8,
-		TECHNIQUE_LIT_BEGIN = 0x9,
-		TECHNIQUE_LIT = 0x9,
-		TECHNIQUE_LIT_DFOG = 0xA,
-		TECHNIQUE_LIT_SUN = 0xB,
-		TECHNIQUE_LIT_SUN_DFOG = 0xC,
-		TECHNIQUE_LIT_SUN_SHADOW = 0xD,
-		TECHNIQUE_LIT_SUN_SHADOW_DFOG = 0xE,
-		TECHNIQUE_LIT_SPOT = 0xF,
-		TECHNIQUE_LIT_SPOT_DFOG = 0x10,
-		TECHNIQUE_LIT_SPOT_SHADOW = 0x11,
-		TECHNIQUE_LIT_SPOT_SHADOW_DFOG = 0x12,
-		TECHNIQUE_LIT_OMNI = 0x13,
-		TECHNIQUE_LIT_OMNI_DFOG = 0x14,
-		TECHNIQUE_LIT_OMNI_SHADOW = 0x15,
-		TECHNIQUE_LIT_OMNI_SHADOW_DFOG = 0x16,
-		TECHNIQUE_LIT_INSTANCED = 0x17,
-		TECHNIQUE_LIT_INSTANCED_DFOG = 0x18,
-		TECHNIQUE_LIT_INSTANCED_SUN = 0x19,
-		TECHNIQUE_LIT_INSTANCED_SUN_DFOG = 0x1A,
-		TECHNIQUE_LIT_INSTANCED_SUN_SHADOW = 0x1B,
-		TECHNIQUE_LIT_INSTANCED_SUN_SHADOW_DFOG = 0x1C,
-		TECHNIQUE_LIT_INSTANCED_SPOT = 0x1D,
-		TECHNIQUE_LIT_INSTANCED_SPOT_DFOG = 0x1E,
-		TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW = 0x1F,
-		TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW_DFOG = 0x20,
-		TECHNIQUE_LIT_INSTANCED_OMNI = 0x21,
-		TECHNIQUE_LIT_INSTANCED_OMNI_DFOG = 0x22,
-		TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW = 0x23,
-		TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW_DFOG = 0x24,
-		TECHNIQUE_LIT_END = 0x25,
-		TECHNIQUE_LIGHT_SPOT = 0x25,
-		TECHNIQUE_LIGHT_OMNI = 0x26,
-		TECHNIQUE_LIGHT_SPOT_SHADOW = 0x27,
-		TECHNIQUE_FAKELIGHT_NORMAL = 0x28,
-		TECHNIQUE_FAKELIGHT_VIEW = 0x29,
-		TECHNIQUE_SUNLIGHT_PREVIEW = 0x2A,
-		TECHNIQUE_CASE_TEXTURE = 0x2B,
-		TECHNIQUE_WIREFRAME_SOLID = 0x2C,
-		TECHNIQUE_WIREFRAME_SHADED = 0x2D,
-		TECHNIQUE_DEBUG_BUMPMAP = 0x2E,
-		TECHNIQUE_DEBUG_BUMPMAP_INSTANCED = 0x2F,
-		TECHNIQUE_COUNT = 0x30,
-		TECHNIQUE_TOTAL_COUNT = 0x31,
-		TECHNIQUE_NONE = 0x32,
-	};
-
-	struct MaterialTechniqueSet
-	{
-		const char* name;
-		char worldVertFormat;
-		bool hasBeenUploaded;
-		char unused[1];
-		MaterialTechniqueSet* remappedTechniques;
-		MaterialTechnique* techniques[48];
+		MaterialTextureDefInfo u;
 	};
 
 	struct MaterialConstantDef
 	{
-		int nameHash;
+		unsigned int nameHash;
 		char name[12];
-		vec4_t literal;
-	};
-
-	struct GfxDrawSurfFields
-	{
-		unsigned __int64 objectId : 16;
-		unsigned __int64 reflectionProbeIndex : 8;
-		unsigned __int64 hasGfxEntIndex : 1;
-		unsigned __int64 customIndex : 5;
-		unsigned __int64 materialSortedIndex : 12;
-		unsigned __int64 prepass : 2;
-		unsigned __int64 useHeroLighting : 1;
-		unsigned __int64 sceneLightIndex : 8;
-		unsigned __int64 surfType : 4;
-		unsigned __int64 primarySortKey : 6;
-		unsigned __int64 unused : 1;
-	};
-
-	union GfxDrawSurf
-	{
-		GfxDrawSurfFields fields;
-		unsigned __int64 packed;
+		float literal[4];
 	};
 
 	struct GfxStateBits
@@ -668,27 +698,9 @@ namespace Game
 		unsigned int loadBits[2];
 	};
 
-	struct infoParm_t
-	{
-		const char *name;
-		int clearSolid;
-		int surfaceFlags;
-		int contents;
-		int toolFlags;
-	};
-
-#pragma pack(push, 4)
 	struct Material
 	{
-		const char *name;
-		char gameFlags;
-		char sortKey;
-		char textureAtlasRowCount;
-		char textureAtlasColumnCount;
-		GfxDrawSurf drawSurf;
-		int surfaceTypeBits;
-		unsigned __int16 hashIndex;
-		unsigned __int16 pad;
+		MaterialInfo info;
 		char stateBitsEntry[48];
 		char textureCount;
 		char constantCount;
@@ -698,75 +710,1595 @@ namespace Game
 		MaterialTechniqueSet *techniqueSet;
 		MaterialTextureDef *textureTable;
 		MaterialConstantDef *constantTable;
-		GfxStateBits *stateBitTable;
+		GfxStateBits *stateBitsTable;
 	};
-#pragma pack(pop)
 
-	struct TracerDef
+	struct XModelLodInfo
 	{
-		const char * name;
-		Material * material;
-		unsigned int drawInterval;
-		float speed;
-		float beamLength;
-		float beamWidth;
-		float screwRadius;
-		float screwDist;
-		float colors[5][4];
+		float dist;
+		unsigned __int16 numsurfs;
+		unsigned __int16 surfIndex;
+		XModelSurfs *modelSurfs;
+		int partBits[6];
+		XSurface *surfs;
+		char lod;
+		char smcBaseIndexPlusOne;
+		char smcSubIndexMask;
+		char smcBucket;
 	};
 
-	struct keyname_t
+	struct XModelCollTri_s
+	{
+		float plane[4];
+		float svec[4];
+		float tvec[4];
+	};
+
+	struct XModelCollSurf_s
+	{
+		XModelCollTri_s *collTris;
+		int numCollTris;
+		Bounds bounds;
+		int boneIdx;
+		int contents;
+		int surfFlags;
+	};
+
+	struct XBoneInfo
+	{
+		Bounds bounds;
+		float radiusSquared;
+	};
+
+	struct XModel
 	{
 		const char *name;
-		int keynum;
+		char numBones;
+		char numRootBones;
+		char numsurfs;
+		char lodRampType;
+		float scale;
+		unsigned int noScalePartBits[6];
+		unsigned __int16 *boneNames;
+		char *parentList;
+		__int16 *quats;
+		float *trans;
+		char *partClassification;
+		DObjAnimMat *baseMat;
+		Material **materialHandles;
+		XModelLodInfo lodInfo[4];
+		char maxLoadedLod;
+		char numLods;
+		char collLod;
+		char flags;
+		XModelCollSurf_s *collSurfs;
+		int numCollSurfs;
+		int contents;
+		XBoneInfo *boneInfo;
+		float radius;
+		Bounds bounds;
+		int memUsage;
+		bool bad;
+		PhysPreset *physPreset;
+		PhysCollmap *physCollmap;
 	};
 
-	struct ItemFloatExpressionEntry
+	struct _AILSOUNDINFO
 	{
-		int target;
-		const char *s1;
-		const char *s2;
+		int format;
+		const void *data_ptr;
+		unsigned int data_len;
+		unsigned int rate;
+		int bits;
+		int channels;
+		unsigned int samples;
+		unsigned int block_size;
+		const void *initial_ptr;
 	};
 
-	// Taken from menudefinition.h
-	enum itemTextStyle
+	struct MssSound
 	{
-		ITEM_TEXTSTYLE_NORMAL            = 0,   // normal text
-		ITEM_TEXTSTYLE_SHADOWED          = 3,   // drop shadow ( need a color for this )
-		ITEM_TEXTSTYLE_SHADOWEDMORE      = 6,   // drop shadow ( need a color for this )
-		ITEM_TEXTSTYLE_BORDERED          = 7,   // border (stroke)
-		ITEM_TEXTSTYLE_BORDEREDMORE      = 8,   // more border :P
-		ITEM_TEXTSTYLE_MONOSPACE         = 128,
-		ITEM_TEXTSTYLE_MONOSPACESHADOWED = 132,
+		_AILSOUNDINFO info;
+		char *data;
 	};
 
-#define ITEM_TYPE_TEXT				0		// simple text
-#define ITEM_TYPE_BUTTON			1		// button, basically text with a border
-#define ITEM_TYPE_RADIOBUTTON		2		// toggle button, may be grouped
-#define ITEM_TYPE_CHECKBOX			3		// check box
-#define ITEM_TYPE_EDITFIELD 		4		// editable text, associated with a dvar
-#define ITEM_TYPE_COMBO 			5		// drop down list
-#define ITEM_TYPE_LISTBOX			6		// scrollable list
-#define ITEM_TYPE_MODEL 			7		// model
-#define ITEM_TYPE_OWNERDRAW 		8		// owner draw, name specs what it is
-#define ITEM_TYPE_NUMERICFIELD		9		// editable text, associated with a dvar
-#define ITEM_TYPE_SLIDER			10		// mouse speed, volume, etc.
-#define ITEM_TYPE_YESNO 			11		// yes no dvar setting
-#define ITEM_TYPE_MULTI 			12		// multiple list setting, enumerated
-#define ITEM_TYPE_DVARENUM 			13		// multiple list setting, enumerated from a dvar
-#define ITEM_TYPE_BIND				14		// bind
-#define ITEM_TYPE_MENUMODEL 		15		// special menu model
-#define ITEM_TYPE_VALIDFILEFIELD	16		// text must be valid for use in a dos filename
-#define ITEM_TYPE_DECIMALFIELD		17		// editable text, associated with a dvar, which allows decimal input
-#define ITEM_TYPE_UPREDITFIELD		18		// editable text, associated with a dvar
-#define ITEM_TYPE_GAME_MESSAGE_WINDOW 19	// game message window
-#define ITEM_TYPE_NEWSTICKER		20		// horizontal scrollbox
-#define ITEM_TYPE_TEXTSCROLL		21		// vertical scrollbox
-#define ITEM_TYPE_EMAILFIELD		22
-#define ITEM_TYPE_PASSWORDFIELD		23
+	struct LoadedSound
+	{
+		const char *name;
+		MssSound sound;
+	};
 
-	struct MenuEventHandlerSet;
-	struct Statement_s;
+	struct StreamFileNameRaw
+	{
+		const char *dir;
+		const char *name;
+	};
+
+	union StreamFileInfo
+	{
+		StreamFileNameRaw raw;
+	};
+
+	struct StreamFileName
+	{
+		StreamFileInfo info;
+	};
+
+	struct StreamedSound
+	{
+		StreamFileName filename;
+	};
+
+	union SoundFileRef
+	{
+		LoadedSound *loadSnd;
+		StreamedSound streamSnd;
+	};
+
+	enum snd_alias_type_t
+	{
+		SAT_UNKNOWN = 0x0,
+		SAT_LOADED = 0x1,
+		SAT_STREAMED = 0x2,
+		SAT_VOICED = 0x3,
+		SAT_COUNT = 0x4,
+	};
+
+	struct SoundFile
+	{
+		char type;
+		char exists;
+		SoundFileRef u;
+	};
+
+	union $C8D87EB0090687D323381DFB7A82089C
+	{
+		float slavePercentage;
+		float masterPercentage;
+	};
+
+	struct SndCurve
+	{
+		const char *filename;
+		unsigned __int16 knotCount;
+		float knots[16][2];
+	};
+
+	struct MSSSpeakerLevels
+	{
+		int speaker;
+		int numLevels;
+		float levels[2];
+	};
+
+	struct MSSChannelMap
+	{
+		int speakerCount;
+		MSSSpeakerLevels speakers[6];
+	};
+
+	struct SpeakerMap
+	{
+		bool isDefault;
+		const char *name;
+		MSSChannelMap channelMaps[2][2];
+	};
+
+	const struct snd_alias_t
+	{
+		const char *aliasName;
+		const char *subtitle;
+		const char *secondaryAliasName;
+		const char *chainAliasName;
+		const char *mixerGroup;
+		SoundFile *soundFile;
+		int sequence;
+		float volMin;
+		float volMax;
+		float pitchMin;
+		float pitchMax;
+		float distMin;
+		float distMax;
+		float velocityMin;
+		int flags;
+		$C8D87EB0090687D323381DFB7A82089C ___u15;
+		float probability;
+		float lfePercentage;
+		float centerPercentage;
+		int startDelay;
+		SndCurve *volumeFalloffCurve;
+		float envelopMin;
+		float envelopMax;
+		float envelopPercentage;
+		SpeakerMap *speakerMap;
+	};
+
+	struct snd_alias_list_t
+	{
+		const char *aliasName;
+		snd_alias_t *head;
+		int count;
+	};
+
+	struct cStaticModel_s
+	{
+		XModel *xmodel;
+		float origin[3];
+		float invScaledAxis[3][3];
+		Bounds absBounds;
+	};
+
+	struct ClipMaterial
+	{
+		const char *name;
+		int surfaceFlags;
+		int contents;
+	};
+
+	struct cNode_t
+	{
+		cplane_s *plane;
+		__int16 children[2];
+	};
+
+	struct cLeaf_t
+	{
+		unsigned __int16 firstCollAabbIndex;
+		unsigned __int16 collAabbCount;
+		int brushContents;
+		int terrainContents;
+		Bounds bounds;
+		int leafBrushNode;
+	};
+
+	struct cLeafBrushNodeLeaf_t
+	{
+		unsigned __int16 *brushes;
+	};
+
+	struct cLeafBrushNodeChildren_t
+	{
+		float dist;
+		float range;
+		unsigned __int16 childOffset[2];
+	};
+
+	union cLeafBrushNodeData_t
+	{
+		cLeafBrushNodeLeaf_t leaf;
+		cLeafBrushNodeChildren_t children;
+	};
+
+	struct cLeafBrushNode_s
+	{
+		char axis;
+		__int16 leafBrushCount;
+		int contents;
+		cLeafBrushNodeData_t data;
+	};
+
+	struct CollisionBorder
+	{
+		float distEq[3];
+		float zBase;
+		float zSlope;
+		float start;
+		float length;
+	};
+
+	struct CollisionPartition
+	{
+		char triCount;
+		char borderCount;
+		char firstVertSegment;
+		int firstTri;
+		CollisionBorder *borders;
+	};
+
+	union CollisionAabbTreeIndex
+	{
+		int firstChildIndex;
+		int partitionIndex;
+	};
+
+	struct CollisionAabbTree
+	{
+		float midPoint[3];
+		unsigned __int16 materialIndex;
+		unsigned __int16 childCount;
+		float halfSize[3];
+		CollisionAabbTreeIndex u;
+	};
+
+	struct cmodel_t
+	{
+		Bounds bounds;
+		float radius;
+		cLeaf_t leaf;
+	};
+
+	struct TriggerModel
+	{
+		int contents;
+		unsigned __int16 hullCount;
+		unsigned __int16 firstHull;
+	};
+
+	struct TriggerHull
+	{
+		Bounds bounds;
+		int contents;
+		unsigned __int16 slabCount;
+		unsigned __int16 firstSlab;
+	};
+
+	struct TriggerSlab
+	{
+		float dir[3];
+		float midPoint;
+		float halfSize;
+	};
+
+	struct MapTriggers
+	{
+		unsigned int count;
+		TriggerModel *models;
+		unsigned int hullCount;
+		TriggerHull *hulls;
+		unsigned int slabCount;
+		TriggerSlab *slabs;
+	};
+
+	struct /*__declspec(align(2))*/ Stage
+	{
+		const char *name;
+		float origin[3];
+		unsigned __int16 triggerIndex;
+		char sunPrimaryLightIndex;
+	};
+
+	struct __declspec(align(4)) MapEnts
+	{
+		const char *name;
+		char *entityString;
+		int numEntityChars;
+		MapTriggers trigger;
+		Stage *stages;
+		char stageCount;
+	};
+
+	struct SModelAabbNode
+	{
+		Bounds bounds;
+		unsigned __int16 firstChild;
+		unsigned __int16 childCount;
+	};
+
+	enum DynEntityType
+	{
+		DYNENT_TYPE_INVALID = 0x0,
+		DYNENT_TYPE_CLUTTER = 0x1,
+		DYNENT_TYPE_DESTRUCT = 0x2,
+		DYNENT_TYPE_COUNT = 0x3,
+	};
+
+	struct GfxPlacement
+	{
+		float quat[4];
+		float origin[3];
+	};
+
+	struct FxSpawnDefLooping
+	{
+		int intervalMsec;
+		int count;
+	};
+
+	struct FxIntRange
+	{
+		int base;
+		int amplitude;
+	};
+
+	struct FxSpawnDefOneShot
+	{
+		FxIntRange count;
+	};
+
+	union FxSpawnDef
+	{
+		FxSpawnDefLooping looping;
+		FxSpawnDefOneShot oneShot;
+	};
+
+	struct FxFloatRange
+	{
+		float base;
+		float amplitude;
+	};
+
+	struct FxElemAtlas
+	{
+		char behavior;
+		char index;
+		char fps;
+		char loopCount;
+		char colIndexBits;
+		char rowIndexBits;
+		__int16 entryCount;
+	};
+
+	struct FxElemVec3Range
+	{
+		float base[3];
+		float amplitude[3];
+	};
+
+	struct FxElemVelStateInFrame
+	{
+		FxElemVec3Range velocity;
+		FxElemVec3Range totalDelta;
+	};
+
+	const struct FxElemVelStateSample
+	{
+		FxElemVelStateInFrame local;
+		FxElemVelStateInFrame world;
+	};
+
+	struct FxElemVisualState
+	{
+		char color[4];
+		float rotationDelta;
+		float rotationTotal;
+		float size[2];
+		float scale;
+	};
+
+	const struct FxElemVisStateSample
+	{
+		FxElemVisualState base;
+		FxElemVisualState amplitude;
+	};
+
+	struct FxElemMarkVisuals
+	{
+		Material *materials[2];
+	};
+
+	union FxEffectDefRef
+	{
+		FxEffectDef *handle;
+		const char *name;
+	};
+
+	union FxElemVisuals
+	{
+		const void *anonymous;
+		Material *material;
+		XModel *model;
+		FxEffectDefRef effectDef;
+		const char *soundName;
+	};
+
+	union FxElemDefVisuals
+	{
+		FxElemMarkVisuals *markArray;
+		FxElemVisuals *array;
+		FxElemVisuals instance;
+	};
+
+	struct FxTrailVertex
+	{
+		float pos[2];
+		float normal[2];
+		float texCoord;
+	};
+
+	struct FxTrailDef
+	{
+		int scrollTimeMsec;
+		int repeatDist;
+		float invSplitDist;
+		float invSplitArcDist;
+		float invSplitTime;
+		int vertCount;
+		FxTrailVertex *verts;
+		int indCount;
+		unsigned __int16 *inds;
+	};
+
+	struct FxSparkFountainDef
+	{
+		float gravity;
+		float bounceFrac;
+		float bounceRand;
+		float sparkSpacing;
+		float sparkLength;
+		int sparkCount;
+		float loopTime;
+		float velMin;
+		float velMax;
+		float velConeFrac;
+		float restSpeed;
+		float boostTime;
+		float boostFactor;
+	};
+
+	union FxElemExtendedDefPtr
+	{
+		FxTrailDef *trailDef;
+		FxSparkFountainDef *sparkFountainDef;
+		void *unknownDef;
+	};
+
+	const struct FxElemDef
+	{
+		int flags;
+		FxSpawnDef spawn;
+		FxFloatRange spawnRange;
+		FxFloatRange fadeInRange;
+		FxFloatRange fadeOutRange;
+		float spawnFrustumCullRadius;
+		FxIntRange spawnDelayMsec;
+		FxIntRange lifeSpanMsec;
+		FxFloatRange spawnOrigin[3];
+		FxFloatRange spawnOffsetRadius;
+		FxFloatRange spawnOffsetHeight;
+		FxFloatRange spawnAngles[3];
+		FxFloatRange angularVelocity[3];
+		FxFloatRange initialRotation;
+		FxFloatRange gravity;
+		FxFloatRange reflectionFactor;
+		FxElemAtlas atlas;
+		char elemType;
+		char visualCount;
+		char velIntervalCount;
+		char visStateIntervalCount;
+		FxElemVelStateSample *velSamples;
+		FxElemVisStateSample *visSamples;
+		FxElemDefVisuals visuals;
+		Bounds collBounds;
+		FxEffectDefRef effectOnImpact;
+		FxEffectDefRef effectOnDeath;
+		FxEffectDefRef effectEmitted;
+		FxFloatRange emitDist;
+		FxFloatRange emitDistVariance;
+		FxElemExtendedDefPtr extended;
+		char sortOrder;
+		char lightingFrac;
+		char useItemClip;
+		char fadeInfo;
+	};
+
+	struct FxEffectDef
+	{
+		const char *name;
+		int flags;
+		int totalSize;
+		int msecLoopingLife;
+		int elemDefCountLooping;
+		int elemDefCountOneShot;
+		int elemDefCountEmission;
+		FxElemDef *elemDefs;
+	};
+
+	struct DynEntityDef
+	{
+		DynEntityType type;
+		GfxPlacement pose;
+		XModel *xModel;
+		unsigned __int16 brushModel;
+		unsigned __int16 physicsBrushModel;
+		FxEffectDef *destroyFx;
+		PhysPreset *physPreset;
+		int health;
+		PhysMass mass;
+		int contents;
+	};
+
+	struct DynEntityPose
+	{
+		GfxPlacement pose;
+		float radius;
+	};
+
+	struct DynEntityClient
+	{
+		int physObjId;
+		unsigned __int16 flags;
+		unsigned __int16 lightingHandle;
+		int health;
+	};
+
+	struct DynEntityColl
+	{
+		unsigned __int16 sector;
+		unsigned __int16 nextEntInSector;
+		float linkMins[2];
+		float linkMaxs[2];
+	};
+
+#pragma warning(push)
+#pragma warning(disable: 4324)
+	struct __declspec(align(64)) clipMap_t
+	{
+		const char *name;
+		int isInUse;
+		int planeCount;
+		cplane_s *planes;
+		unsigned int numStaticModels;
+		cStaticModel_s *staticModelList;
+		unsigned int numMaterials;
+		ClipMaterial *materials;
+		unsigned int numBrushSides;
+		cbrushside_t *brushsides;
+		unsigned int numBrushEdges;
+		char *brushEdges;
+		unsigned int numNodes;
+		cNode_t *nodes;
+		unsigned int numLeafs;
+		cLeaf_t *leafs;
+		unsigned int leafbrushNodesCount;
+		cLeafBrushNode_s *leafbrushNodes;
+		unsigned int numLeafBrushes;
+		unsigned __int16 *leafbrushes;
+		unsigned int numLeafSurfaces;
+		unsigned int *leafsurfaces;
+		unsigned int vertCount;
+		float(*verts)[3];
+		int triCount;
+		unsigned __int16 *triIndices;
+		char *triEdgeIsWalkable;
+		int borderCount;
+		CollisionBorder *borders;
+		int partitionCount;
+		CollisionPartition *partitions;
+		int aabbTreeCount;
+		CollisionAabbTree *aabbTrees;
+		unsigned int numSubModels;
+		cmodel_t *cmodels;
+		unsigned __int16 numBrushes;
+		cbrush_t *brushes;
+		Bounds *brushBounds;
+		int *brushContents;
+		MapEnts *mapEnts;
+		unsigned __int16 smodelNodeCount;
+		SModelAabbNode *smodelNodes;
+		unsigned __int16 dynEntCount[2];
+		DynEntityDef *dynEntDefList[2];
+		DynEntityPose *dynEntPoseList[2];
+		DynEntityClient *dynEntClientList[2];
+		DynEntityColl *dynEntCollList[2];
+		unsigned int checksum;
+	};
+#pragma warning(pop)
+
+	struct ComPrimaryLight
+	{
+		char type;
+		char canUseShadowMap;
+		char exponent;
+		char unused;
+		float color[3];
+		float dir[3];
+		float origin[3];
+		float radius;
+		float cosHalfFovOuter;
+		float cosHalfFovInner;
+		float cosHalfFovExpanded;
+		float rotationLimit;
+		float translationLimit;
+		const char *defName;
+	};
+
+	struct ComWorld
+	{
+		const char *name;
+		int isInUse;
+		unsigned int primaryLightCount;
+		ComPrimaryLight *primaryLights;
+	};
+
+	enum nodeType
+	{
+		NODE_ERROR = 0x0,
+		NODE_PATHNODE = 0x1,
+		NODE_COVER_STAND = 0x2,
+		NODE_COVER_CROUCH = 0x3,
+		NODE_COVER_CROUCH_WINDOW = 0x4,
+		NODE_COVER_PRONE = 0x5,
+		NODE_COVER_RIGHT = 0x6,
+		NODE_COVER_LEFT = 0x7,
+		NODE_AMBUSH = 0x8,
+		NODE_EXPOSED = 0x9,
+		NODE_CONCEALMENT_STAND = 0xA,
+		NODE_CONCEALMENT_CROUCH = 0xB,
+		NODE_CONCEALMENT_PRONE = 0xC,
+		NODE_DOOR = 0xD,
+		NODE_DOOR_INTERIOR = 0xE,
+		NODE_SCRIPTED = 0xF,
+		NODE_NEGOTIATION_BEGIN = 0x10,
+		NODE_NEGOTIATION_END = 0x11,
+		NODE_TURRET = 0x12,
+		NODE_GUARD = 0x13,
+		NODE_NUMTYPES = 0x14,
+		NODE_DONTLINK = 0x14,
+	};
+
+	enum PathNodeErrorCode
+	{
+		PNERR_NONE = 0x0,
+		PNERR_INSOLID = 0x1,
+		PNERR_FLOATING = 0x2,
+		PNERR_NOLINK = 0x3,
+		PNERR_DUPLICATE = 0x4,
+		PNERR_NOSTANCE = 0x5,
+		PNERR_INVALIDDOOR = 0x6,
+		PNERR_NOANGLES = 0x7,
+		PNERR_BADPLACEMENT = 0x8,
+		NUM_PATH_NODE_ERRORS = 0x9,
+	};
+
+	union $23305223CFD097B6F79557BDD2047E6C
+	{
+		float minUseDistSq;
+		PathNodeErrorCode error;
+	};
+
+	struct pathlink_s
+	{
+		float fDist;
+		unsigned __int16 nodeNum;
+		char disconnectCount;
+		char negotiationLink;
+		char flags;
+		char ubBadPlaceCount[3];
+	};
+
+	struct pathnode_constant_t
+	{
+		nodeType type;
+		unsigned __int16 spawnflags;
+		unsigned __int16 targetname;
+		unsigned __int16 script_linkName;
+		unsigned __int16 script_noteworthy;
+		unsigned __int16 target;
+		unsigned __int16 animscript;
+		int animscriptfunc;
+		float vOrigin[3];
+		float fAngle;
+		float forward[2];
+		float fRadius;
+		$23305223CFD097B6F79557BDD2047E6C ___u12;
+		__int16 wOverlapNode[2];
+		unsigned __int16 totalLinkCount;
+		pathlink_s *Links;
+	};
+
+	struct pathnode_dynamic_t
+	{
+		void *pOwner;
+		int iFreeTime;
+		int iValidTime[3];
+		int dangerousNodeTime[3];
+		int inPlayerLOSTime;
+		__int16 wLinkCount;
+		__int16 wOverlapCount;
+		__int16 turretEntNumber;
+		char userCount;
+		bool hasBadPlaceLink;
+	};
+
+	union $73F238679C0419BE2C31C6559E8604FC
+	{
+		float nodeCost;
+		int linkIndex;
+	};
+
+	struct pathnode_transient_t
+	{
+		int iSearchFrame;
+		pathnode_t *pNextOpen;
+		pathnode_t *pPrevOpen;
+		pathnode_t *pParent;
+		float fCost;
+		float fHeuristic;
+		$73F238679C0419BE2C31C6559E8604FC ___u6;
+	};
+
+	struct pathnode_t
+	{
+		pathnode_constant_t constant;
+		pathnode_dynamic_t dynamic;
+		pathnode_transient_t transient;
+	};
+
+	struct pathbasenode_t
+	{
+		float vOrigin[3];
+		unsigned int type;
+	};
+
+	struct pathnode_tree_nodes_t
+	{
+		int nodeCount;
+		unsigned __int16 *nodes;
+	};
+
+	union pathnode_tree_info_t
+	{
+		pathnode_tree_t *child[2];
+		pathnode_tree_nodes_t s;
+	};
+
+	struct pathnode_tree_t
+	{
+		int axis;
+		float dist;
+		pathnode_tree_info_t u;
+	};
+
+	struct PathData
+	{
+		unsigned int nodeCount;
+		pathnode_t *nodes;
+		pathbasenode_t *basenodes;
+		unsigned int chainNodeCount;
+		unsigned __int16 *chainNodeForNode;
+		unsigned __int16 *nodeForChainNode;
+		int visBytes;
+		char *pathVis;
+		int nodeTreeCount;
+		pathnode_tree_t *nodeTree;
+	};
+
+	struct VehicleTrackObstacle
+	{
+		float origin[2];
+		float radius;
+	};
+
+	struct VehicleTrackSector
+	{
+		float startEdgeDir[2];
+		float startEdgeDist;
+		float leftEdgeDir[2];
+		float leftEdgeDist;
+		float rightEdgeDir[2];
+		float rightEdgeDist;
+		float sectorLength;
+		float sectorWidth;
+		float totalPriorLength;
+		float totalFollowingLength;
+		VehicleTrackObstacle *obstacles;
+		unsigned int obstacleCount;
+	};
+
+	struct VehicleTrackSegment
+	{
+		const char *targetName;
+		VehicleTrackSector *sectors;
+		unsigned int sectorCount;
+		VehicleTrackSegment **nextBranches;
+		unsigned int nextBranchesCount;
+		VehicleTrackSegment **prevBranches;
+		unsigned int prevBranchesCount;
+		float endEdgeDir[2];
+		float endEdgeDist;
+		float totalLength;
+	};
+
+	struct VehicleTrack
+	{
+		VehicleTrackSegment *segments;
+		unsigned int segmentCount;
+	};
+
+	struct /*__declspec(align(2))*/ G_GlassPiece
+	{
+		unsigned __int16 damageTaken;
+		unsigned __int16 collapseTime;
+		int lastStateChangeTime;
+		char impactDir;
+		char impactPos[2];
+	};
+
+	struct G_GlassName
+	{
+		char *nameStr;
+		unsigned __int16 name;
+		unsigned __int16 pieceCount;
+		unsigned __int16 *pieceIndices;
+	};
+
+	struct G_GlassData
+	{
+		G_GlassPiece *glassPieces;
+		unsigned int pieceCount;
+		unsigned __int16 damageToWeaken;
+		unsigned __int16 damageToDestroy;
+		unsigned int glassNameCount;
+		G_GlassName *glassNames;
+		char pad[108];
+	};
+
+	struct GameWorldSp
+	{
+		const char *name;
+		PathData path;
+		VehicleTrack vehicleTrack;
+		G_GlassData *g_glassData;
+	};
+
+	struct GameWorldMp
+	{
+		const char *name;
+		G_GlassData *g_glassData;
+	};
+
+	struct FxGlassDef
+	{
+		float halfThickness;
+		float texVecs[2][2];
+		GfxColor color;
+		Material *material;
+		Material *materialShattered;
+		PhysPreset *physPreset;
+	};
+
+	struct FxSpatialFrame
+	{
+		float quat[4];
+		float origin[3];
+	};
+
+	struct $E43DBA5037697D705289B74D87E76C70
+	{
+		FxSpatialFrame frame;
+		float radius;
+	};
+
+	union FxGlassPiecePlace
+	{
+		$E43DBA5037697D705289B74D87E76C70 __s0;
+		unsigned int nextFree;
+	};
+
+	struct FxGlassPieceState
+	{
+		float texCoordOrigin[2];
+		unsigned int supportMask;
+		unsigned __int16 initIndex;
+		unsigned __int16 geoDataStart;
+		char defIndex;
+		char pad[5];
+		char vertCount;
+		char holeDataCount;
+		char crackDataCount;
+		char fanDataCount;
+		unsigned __int16 flags;
+		float areaX2;
+	};
+
+	struct FxGlassPieceDynamics
+	{
+		int fallTime;
+		int physObjId;
+		int physJointId;
+		float vel[3];
+		float avel[3];
+	};
+
+	struct FxGlassVertex
+	{
+		__int16 x;
+		__int16 y;
+	};
+
+	struct FxGlassHoleHeader
+	{
+		unsigned __int16 uniqueVertCount;
+		char touchVert;
+		char pad[1];
+	};
+
+	struct FxGlassCrackHeader
+	{
+		unsigned __int16 uniqueVertCount;
+		char beginVertIndex;
+		char endVertIndex;
+	};
+
+	union FxGlassGeometryData
+	{
+		FxGlassVertex vert;
+		FxGlassHoleHeader hole;
+		FxGlassCrackHeader crack;
+		char asBytes[4];
+		__int16 anonymous[2];
+	};
+
+	struct FxGlassInitPieceState
+	{
+		FxSpatialFrame frame;
+		float radius;
+		float texCoordOrigin[2];
+		unsigned int supportMask;
+		float areaX2;
+		char defIndex;
+		char vertCount;
+		char fanDataCount;
+		char pad[1];
+	};
+
+	struct FxGlassSystem
+	{
+		int time;
+		int prevTime;
+		unsigned int defCount;
+		unsigned int pieceLimit;
+		unsigned int pieceWordCount;
+		unsigned int initPieceCount;
+		unsigned int cellCount;
+		unsigned int activePieceCount;
+		unsigned int firstFreePiece;
+		unsigned int geoDataLimit;
+		unsigned int geoDataCount;
+		unsigned int initGeoDataCount;
+		FxGlassDef *defs;
+		FxGlassPiecePlace *piecePlaces;
+		FxGlassPieceState *pieceStates;
+		FxGlassPieceDynamics *pieceDynamics;
+		FxGlassGeometryData *geoData;
+		unsigned int *isInUse;
+		unsigned int *cellBits;
+		char *visData;
+		float(*linkOrg)[3];
+		float *halfThickness;
+		unsigned __int16 *lightingHandles;
+		FxGlassInitPieceState *initPieceStates;
+		FxGlassGeometryData *initGeoData;
+		bool needToCompactData;
+		char initCount;
+		float effectChanceAccum;
+		int lastPieceDeletionTime;
+	};
+
+	struct FxWorld
+	{
+		const char *name;
+		FxGlassSystem glassSys;
+	};
+
+	struct __declspec(align(4)) GfxSky
+	{
+		int skySurfCount;
+		int *skyStartSurfs;
+		GfxImage *skyImage;
+		char skySamplerState;
+	};
+
+	struct GfxWorldDpvsPlanes
+	{
+		int cellCount;
+		cplane_s *planes;
+		unsigned __int16 *nodes;
+		unsigned int *sceneEntCellBits;
+	};
+
+	struct GfxCellTreeCount
+	{
+		int aabbTreeCount;
+	};
+
+	struct GfxAabbTree
+	{
+		Bounds bounds;
+		unsigned __int16 childCount;
+		unsigned __int16 surfaceCount;
+		unsigned __int16 startSurfIndex;
+		unsigned __int16 surfaceCountNoDecal;
+		unsigned __int16 startSurfIndexNoDecal;
+		unsigned __int16 smodelIndexCount;
+		unsigned __int16 *smodelIndexes;
+		int childrenOffset;
+	};
+
+	struct GfxCellTree
+	{
+		GfxAabbTree *aabbTree;
+	};
+
+	struct GfxPortalWritable
+	{
+		bool isQueued;
+		bool isAncestor;
+		char recursionDepth;
+		char hullPointCount;
+		float(*hullPoints)[2];
+		GfxPortal *queuedParent;
+	};
+
+	struct DpvsPlane
+	{
+		float coeffs[4];
+	};
+
+	struct GfxPortal
+	{
+		GfxPortalWritable writable;
+		DpvsPlane plane;
+		float(*vertices)[3];
+		unsigned __int16 cellIndex;
+		char vertexCount;
+		float hullAxis[2][3];
+	};
+
+	struct GfxCell
+	{
+		Bounds bounds;
+		int portalCount;
+		GfxPortal *portals;
+		char reflectionProbeCount;
+		char *reflectionProbes;
+	};
+
+	struct GfxReflectionProbe
+	{
+		float origin[3];
+	};
+
+	struct GfxLightmapArray
+	{
+		GfxImage *primary;
+		GfxImage *secondary;
+	};
+
+	struct GfxWorldVertex
+	{
+		float xyz[3];
+		float binormalSign;
+		GfxColor color;
+		float texCoord[2];
+		float lmapCoord[2];
+		PackedUnitVec normal;
+		PackedUnitVec tangent;
+	};
+
+	struct GfxWorldVertexData
+	{
+		GfxWorldVertex *vertices;
+		IDirect3DVertexBuffer9 *worldVb;
+	};
+
+	struct GfxWorldVertexLayerData
+	{
+		char *data;
+		IDirect3DVertexBuffer9 *layerVb;
+	};
+
+	struct GfxWorldDraw
+	{
+		unsigned int reflectionProbeCount;
+		GfxImage **reflectionProbes;
+		GfxReflectionProbe *reflectionProbeOrigins;
+		GfxTexture *reflectionProbeTextures;
+		int lightmapCount;
+		GfxLightmapArray *lightmaps;
+		GfxTexture *lightmapPrimaryTextures;
+		GfxTexture *lightmapSecondaryTextures;
+		GfxImage *lightmapOverridePrimary;
+		GfxImage *lightmapOverrideSecondary;
+		unsigned int vertexCount;
+		GfxWorldVertexData vd;
+		unsigned int vertexLayerDataSize;
+		GfxWorldVertexLayerData vld;
+		unsigned int indexCount;
+		unsigned __int16 *indices;
+	};
+
+	struct GfxLightGridEntry
+	{
+		unsigned __int16 colorsIndex;
+		char primaryLightIndex;
+		char needsTrace;
+	};
+
+	struct GfxLightGridColors
+	{
+		char rgb[56][3];
+	};
+
+	struct GfxLightGrid
+	{
+		bool hasLightRegions;
+		unsigned int lastSunPrimaryLightIndex;
+		unsigned __int16 mins[3];
+		unsigned __int16 maxs[3];
+		unsigned int rowAxis;
+		unsigned int colAxis;
+		unsigned __int16 *rowDataStart;
+		unsigned int rawRowDataSize;
+		char *rawRowData;
+		unsigned int entryCount;
+		GfxLightGridEntry *entries;
+		unsigned int colorCount;
+		GfxLightGridColors *colors;
+	};
+
+	struct GfxBrushModelWritable
+	{
+		Bounds bounds;
+	};
+
+	struct __declspec(align(4)) GfxBrushModel
+	{
+		GfxBrushModelWritable writable;
+		Bounds bounds;
+		float radius;
+		unsigned __int16 surfaceCount;
+		unsigned __int16 startSurfIndex;
+		unsigned __int16 surfaceCountNoDecal;
+	};
+
+	struct MaterialMemory
+	{
+		Material *material;
+		int memory;
+	};
+
+	struct sunflare_t
+	{
+		bool hasValidData;
+		Material *spriteMaterial;
+		Material *flareMaterial;
+		float spriteSize;
+		float flareMinSize;
+		float flareMinDot;
+		float flareMaxSize;
+		float flareMaxDot;
+		float flareMaxAlpha;
+		int flareFadeInTime;
+		int flareFadeOutTime;
+		float blindMinDot;
+		float blindMaxDot;
+		float blindMaxDarken;
+		int blindFadeInTime;
+		int blindFadeOutTime;
+		float glareMinDot;
+		float glareMaxDot;
+		float glareMaxLighten;
+		int glareFadeInTime;
+		int glareFadeOutTime;
+		float sunFxPosition[3];
+	};
+
+	struct XModelDrawInfo
+	{
+		char hasGfxEntIndex;
+		char lod;
+		unsigned __int16 surfId;
+	};
+
+	struct GfxSceneDynModel
+	{
+		XModelDrawInfo info;
+		unsigned __int16 dynEntId;
+	};
+
+	struct BModelDrawInfo
+	{
+		unsigned __int16 surfId;
+	};
+
+	struct GfxSceneDynBrush
+	{
+		BModelDrawInfo info;
+		unsigned __int16 dynEntId;
+	};
+
+	struct GfxShadowGeometry
+	{
+		unsigned __int16 surfaceCount;
+		unsigned __int16 smodelCount;
+		unsigned __int16 *sortedSurfIndex;
+		unsigned __int16 *smodelIndex;
+	};
+
+	struct GfxLightRegionAxis
+	{
+		float dir[3];
+		float midPoint;
+		float halfSize;
+	};
+
+	struct GfxLightRegionHull
+	{
+		float kdopMidPoint[9];
+		float kdopHalfSize[9];
+		unsigned int axisCount;
+		GfxLightRegionAxis *axis;
+	};
+
+	struct GfxLightRegion
+	{
+		unsigned int hullCount;
+		GfxLightRegionHull *hulls;
+	};
+
+	struct GfxStaticModelInst
+	{
+		Bounds bounds;
+		float lightingOrigin[3];
+	};
+
+	struct srfTriangles_t
+	{
+		unsigned int vertexLayerData;
+		unsigned int firstVertex;
+		unsigned __int16 vertexCount;
+		unsigned __int16 triCount;
+		unsigned int baseIndex;
+	};
+
+	struct GfxSurfaceLightingAndFlagsFields
+	{
+		char lightmapIndex;
+		char reflectionProbeIndex;
+		char primaryLightIndex;
+		char flags;
+	};
+
+	union GfxSurfaceLightingAndFlags
+	{
+		GfxSurfaceLightingAndFlagsFields fields;
+		unsigned int packed;
+	};
+
+	struct GfxSurface
+	{
+		srfTriangles_t tris;
+		Material *material;
+		GfxSurfaceLightingAndFlags laf;
+	};
+
+	struct GfxSurfaceBounds
+	{
+		Bounds bounds;
+	};
+
+	struct GfxPackedPlacement
+	{
+		float origin[3];
+		float axis[3][3];
+		float scale;
+	};
+
+	struct GfxStaticModelDrawInst
+	{
+		GfxPackedPlacement placement;
+		XModel *model;
+		unsigned __int16 cullDist;
+		unsigned __int16 lightingHandle;
+		char reflectionProbeIndex;
+		char primaryLightIndex;
+		char flags;
+		char firstMtlSkinIndex;
+		GfxColor groundLighting;
+		unsigned __int16 cacheId[4];
+	};
+
+	struct GfxWorldDpvsStatic
+	{
+		unsigned int smodelCount;
+		unsigned int staticSurfaceCount;
+		unsigned int staticSurfaceCountNoDecal;
+		unsigned int litOpaqueSurfsBegin;
+		unsigned int litOpaqueSurfsEnd;
+		unsigned int litTransSurfsBegin;
+		unsigned int litTransSurfsEnd;
+		unsigned int shadowCasterSurfsBegin;
+		unsigned int shadowCasterSurfsEnd;
+		unsigned int emissiveSurfsBegin;
+		unsigned int emissiveSurfsEnd;
+		unsigned int smodelVisDataCount;
+		unsigned int surfaceVisDataCount;
+		char *smodelVisData[3];
+		char *surfaceVisData[3];
+		unsigned __int16 *sortedSurfIndex;
+		GfxStaticModelInst *smodelInsts;
+		GfxSurface *surfaces;
+		GfxSurfaceBounds *surfacesBounds;
+		GfxStaticModelDrawInst *smodelDrawInsts;
+		GfxDrawSurf *surfaceMaterials;
+		unsigned int *surfaceCastsSunShadow;
+		volatile int usageCount;
+	};
+
+	struct GfxWorldDpvsDynamic
+	{
+		unsigned int dynEntClientWordCount[2];
+		unsigned int dynEntClientCount[2];
+		unsigned int *dynEntCellBits[2];
+		char *dynEntVisData[2][3];
+	};
+
+	struct GfxHeroOnlyLight
+	{
+		char type;
+		char unused[3];
+		float color[3];
+		float dir[3];
+		float origin[3];
+		float radius;
+		float cosHalfFovOuter;
+		float cosHalfFovInner;
+		int exponent;
+	};
+
+	struct __declspec(align(4)) GfxWorld
+	{
+		const char *name;
+		const char *baseName;
+		int planeCount;
+		int nodeCount;
+		unsigned int surfaceCount;
+		int skyCount;
+		GfxSky *skies;
+		unsigned int lastSunPrimaryLightIndex;
+		unsigned int primaryLightCount;
+		unsigned int sortKeyLitDecal;
+		unsigned int sortKeyEffectDecal;
+		unsigned int sortKeyEffectAuto;
+		unsigned int sortKeyDistortion;
+		GfxWorldDpvsPlanes dpvsPlanes;
+		GfxCellTreeCount *aabbTreeCounts;
+		GfxCellTree *aabbTrees;
+		GfxCell *cells;
+		GfxWorldDraw draw;
+		GfxLightGrid lightGrid;
+		int modelCount;
+		GfxBrushModel *models;
+		Bounds bounds;
+		unsigned int checksum;
+		int materialMemoryCount;
+		MaterialMemory *materialMemory;
+		sunflare_t sun;
+		float outdoorLookupMatrix[4][4];
+		GfxImage *outdoorImage;
+		unsigned int *cellCasterBits;
+		unsigned int *cellHasSunLitSurfsBits;
+		GfxSceneDynModel *sceneDynModel;
+		GfxSceneDynBrush *sceneDynBrush;
+		unsigned int *primaryLightEntityShadowVis;
+		unsigned int *primaryLightDynEntShadowVis[2];
+		char *nonSunPrimaryLightForModelDynEnt;
+		GfxShadowGeometry *shadowGeom;
+		GfxLightRegion *lightRegion;
+		GfxWorldDpvsStatic dpvs;
+		GfxWorldDpvsDynamic dpvsDyn;
+		unsigned int mapVtxChecksum;
+		unsigned int heroOnlyLightCount;
+		GfxHeroOnlyLight *heroOnlyLights;
+		char fogTypesAllowed;
+	};
+
+	struct __declspec(align(4)) GfxLightImage
+	{
+		GfxImage *image;
+		char samplerState;
+	};
+
+	struct GfxLightDef
+	{
+		const char *name;
+		GfxLightImage attenuation;
+		int lmapLookupStart;
+	};
+
+	struct Glyph
+	{
+		unsigned __int16 letter;
+		char x0;
+		char y0;
+		char dx;
+		char pixelWidth;
+		char pixelHeight;
+		float s0;
+		float t0;
+		float s1;
+		float t1;
+	};
+
+	struct Font_s
+	{
+		const char *fontName;
+		int pixelHeight;
+		int glyphCount;
+		Material *material;
+		Material *glowMaterial;
+		Glyph *glyphs;
+	};
+
+	struct __declspec(align(4)) rectDef_s
+	{
+		float x;
+		float y;
+		float w;
+		float h;
+		char horzAlign;
+		char vertAlign;
+	};
+
+	struct windowDef_t
+	{
+		const char *name;
+		rectDef_s rect;
+		rectDef_s rectClient;
+		const char *group;
+		int style;
+		int border;
+		int ownerDraw;
+		int ownerDrawFlags;
+		float borderSize;
+		int staticFlags;
+		int dynamicFlags[1];
+		int nextTime;
+		float foreColor[4];
+		float backColor[4];
+		float borderColor[4];
+		float outlineColor[4];
+		float disableColor[4];
+		Material *background;
+	};
+
+	enum expDataType
+	{
+		VAL_INT = 0x0,
+		VAL_FLOAT = 0x1,
+		VAL_STRING = 0x2,
+		NUM_INTERNAL_DATATYPES = 0x3,
+		VAL_FUNCTION = 0x3,
+		NUM_DATATYPES = 0x4,
+	};
+
+	struct ExpressionString
+	{
+		const char *string;
+	};
+
+	union operandInternalDataUnion
+	{
+		int intVal;
+		float floatVal;
+		ExpressionString stringVal;
+		Statement_s *function;
+	};
+
+	struct Operand
+	{
+		expDataType dataType;
+		operandInternalDataUnion internals;
+	};
+
+	// This enum is unknown
+	enum operationEnum
+	{
+		BLUB
+	};
+
+	union entryInternalData
+	{
+		operationEnum op;
+		Operand operand;
+	};
+
+	struct expressionEntry
+	{
+		int type;
+		entryInternalData data;
+	};
 
 	struct UIFunctionList
 	{
@@ -774,10 +2306,61 @@ namespace Game
 		Statement_s **functions;
 	};
 
+	union DvarValue
+	{
+		bool enabled;
+		int integer;
+		unsigned int unsignedInt;
+		float value;
+		float vector[4];
+		const char *string;
+		char color[4];
+	};
+
+	struct $BFBB53559BEAC4289F32B924847E59CB
+	{
+		int stringCount;
+		const char **strings;
+	};
+
+	struct $9CA192F9DB66A3CB7E01DE78A0DEA53D
+	{
+		int min;
+		int max;
+	};
+
+	struct $251C2428A496074035CACA7AAF3D55BD
+	{
+		float min;
+		float max;
+	};
+
+	union DvarLimits
+	{
+		$BFBB53559BEAC4289F32B924847E59CB enumeration;
+		$9CA192F9DB66A3CB7E01DE78A0DEA53D integer;
+		$251C2428A496074035CACA7AAF3D55BD value;
+		$251C2428A496074035CACA7AAF3D55BD vector;
+	};
+
+	struct dvar_t
+	{
+		const char *name;
+		const char *description;
+		unsigned int flags;
+		char type;
+		bool modified;
+		DvarValue current;
+		DvarValue latched;
+		DvarValue reset;
+		DvarLimits domain;
+		bool(__cdecl *domainFunc)(dvar_t *, DvarValue);
+		dvar_t *hashNext;
+	};
+
 	struct StaticDvar
 	{
-		/*dvar_t*/
-		void *dvar;
+		dvar_t *dvar;
 		char *dvarName;
 	};
 
@@ -800,67 +2383,25 @@ namespace Game
 		StringList uiStrings;
 	};
 
-	enum expDataType : int
-	{
-		VAL_INT = 0x0,
-		VAL_FLOAT = 0x1,
-		VAL_STRING = 0x2,
-		VAL_FUNCTION = 0x3,
-	};
-
-	struct ExpressionString
-	{
-		const char *string;
-	};
-
-	union operandInternalDataUnion
-	{
-		int intVal;
-		float floatVal;
-		ExpressionString stringVal;
-		Statement_s *function;
-	};
-
-	struct Operand
-	{
-		expDataType dataType;
-		operandInternalDataUnion internals;
-	};
-
-	union entryInternalData
-	{
-		//operationEnum op;
-		Operand operand;
-	};
-
-	/* expressionEntry->type */
-#define OPERATOR	0
-#define OPERAND		1
-
-	struct expressionEntry	// 0xC
-	{
-		int type;
-		entryInternalData data;
-	};
-
-	struct Statement_s	// 0x18
+	struct Statement_s
 	{
 		int numEntries;
 		expressionEntry *entries;
 		ExpressionSupportingData *supportingData;
-		char unknown[0xC];	// ?
+		int lastExecuteTime;
+		Operand lastResult;
+	};
+
+	struct ConditionalScript
+	{
+		MenuEventHandlerSet *eventHandlerSet;
+		Statement_s *eventExpression;
 	};
 
 	struct SetLocalVarData
 	{
 		const char *localVarName;
 		Statement_s *expression;
-	};
-
-	struct ConditionalScript
-	{
-		MenuEventHandlerSet *eventHandlerSet;
-		Statement_s *eventExpression;  // loads this first
 	};
 
 	union EventData
@@ -871,22 +2412,10 @@ namespace Game
 		SetLocalVarData *setLocalVarData;
 	};
 
-	enum EventType
-	{
-		EVENT_UNCONDITIONAL = 0x0,
-		EVENT_IF = 0x1,
-		EVENT_ELSE = 0x2,
-		EVENT_SET_LOCAL_VAR_BOOL = 0x3,
-		EVENT_SET_LOCAL_VAR_INT = 0x4,
-		EVENT_SET_LOCAL_VAR_FLOAT = 0x5,
-		EVENT_SET_LOCAL_VAR_STRING = 0x6,
-		EVENT_COUNT = 0x7,
-	};
-
-	struct MenuEventHandler
+	struct __declspec(align(4)) MenuEventHandler
 	{
 		EventData eventData;
-		EventType eventType;
+		char eventType;
 	};
 
 	struct MenuEventHandlerSet
@@ -902,94 +2431,31 @@ namespace Game
 		ItemKeyHandler *next;
 	};
 
-#pragma pack(push, 4)
-	struct rectDef_s
+	struct columnInfo_s
 	{
-		float x;
-		float y;
-		float w;
-		float h;
-		char horzAlign;
-		char vertAlign;
-	};
-#pragma pack(pop)
-
-	/* windowDef_t->dynamicFlags */
-	// 0x1
-#define WINDOWDYNAMIC_HASFOCUS		0x00000002
-#define WINDOWDYNAMIC_VISIBLE		0x00000004
-#define WINDOWDYNAMIC_FADEOUT		0x00000010
-#define WINDOWDYNAMIC_FADEIN		0x00000020
-	// 0x40
-	// 0x80
-#define WINDOWDYNAMIC_CLOSED		0x00000800
-	// 0x2000
-#define WINDOWDYNAMIC_BACKCOLOR		0x00008000
-#define WINDOWDYNAMIC_FORECOLOR		0x00010000
-
-	/* windowDef_t->staticFlags */
-#define WINDOWSTATIC_DECORATION				0x00100000
-#define WINDOWSTATIC_HORIZONTALSCROLL			0x00200000
-#define WINDOWSTATIC_SCREENSPACE				0x00400000
-#define WINDOWSTATIC_AUTOWRAPPED				0x00800000
-#define WINDOWSTATIC_POPUP						0x01000000
-#define WINDOWSTATIC_OUTOFBOUNDSCLICK			0x02000000
-#define WINDOWSTATIC_LEGACYSPLITSCREENSCALE	0x04000000
-#define WINDOWSTATIC_HIDDENDURINGFLASH			0x10000000
-#define WINDOWSTATIC_HIDDENDURINGSCOPE			0x20000000
-#define WINDOWSTATIC_HIDDENDURINGUI			0x40000000
-#define WINDOWSTATIC_TEXTONLYFOCUS				0x80000000
-
-	struct windowDef_t // 0xA4
-	{
-		const char *name;	// 0x00
-		rectDef_s rect;
-		rectDef_s rectClient;
-		char *group;		// 0x2C
-		int style;			// 0x30
-		int border;			// 0x34
-		int ownerDraw;		// 0x38
-		int ownerDrawFlags;	// 0x3C
-		float borderSize;	// 0x40
-		int staticFlags;	// 0x44
-		int dynamicFlags;	// 0x48
-		int nextTime;		// 0x4C
-		float foreColor[4];	// 0x50
-		float backColor[4];	// 0x60
-		float borderColor[4];// 0x70
-		float outlineColor[4];// 0x80
-		float disableColor[4];// 0x90
-		Material *background;	// 0xA0
+		int pos;
+		int width;
+		int maxChars;
+		int alignment;
 	};
 
-	enum ItemFloatExpressionTarget
+	struct listBoxDef_s
 	{
-		ITEM_FLOATEXP_TGT_RECT_X = 0x0,
-		ITEM_FLOATEXP_TGT_RECT_Y = 0x1,
-		ITEM_FLOATEXP_TGT_RECT_W = 0x2,
-		ITEM_FLOATEXP_TGT_RECT_H = 0x3,
-		ITEM_FLOATEXP_TGT_FORECOLOR_R = 0x4,
-		ITEM_FLOATEXP_TGT_FORECOLOR_G = 0x5,
-		ITEM_FLOATEXP_TGT_FORECOLOR_B = 0x6,
-		ITEM_FLOATEXP_TGT_FORECOLOR_RGB = 0x7,
-		ITEM_FLOATEXP_TGT_FORECOLOR_A = 0x8,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_R = 0x9,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_G = 0xA,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_B = 0xB,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_RGB = 0xC,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_A = 0xD,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_R = 0xE,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_G = 0xF,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_B = 0x10,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_RGB = 0x11,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_A = 0x12,
-		ITEM_FLOATEXP_TGT__COUNT = 0x13,
-	};
-
-	struct ItemFloatExpression
-	{
-		ItemFloatExpressionTarget target;
-		Statement_s *expression;
+		int mousePos;
+		int startPos[1];
+		int endPos[1];
+		int drawPadding;
+		float elementWidth;
+		float elementHeight;
+		int elementStyle;
+		int numColumns;
+		columnInfo_s columnInfo[16];
+		MenuEventHandlerSet *onDoubleClick;
+		int notselectable;
+		int noScrollBars;
+		int usePaging;
+		float selectBorder[4];
+		Material *selectIcon;
 	};
 
 	struct editFieldDef_s
@@ -1004,7 +2470,7 @@ namespace Game
 		int paintOffset;
 	};
 
-	struct multiDef_s	// 0x188
+	struct multiDef_s
 	{
 		const char *dvarList[32];
 		const char *dvarStr[32];
@@ -1013,38 +2479,15 @@ namespace Game
 		int strDef;
 	};
 
-	struct columnInfo_s
-	{
-		int xpos;
-		int width;
-		int maxChars;
-		int alignment;
-	};
-
-	struct listBoxDef_s	// 0x144
-	{
-		// somethings not right here
-		int startPos[2];
-		int endPos[2];
-		float elementWidth;
-		float elementHeight;
-		int elementStyle;
-		int numColumns;
-		columnInfo_s columnInfo[16];
-		MenuEventHandlerSet *doubleClick;	// 0xC8
-		int notselectable;
-		int noscrollbars;
-		int usepaging;
-		float selectBorder[4];
-		Material *selectIcon;
-	};
-
 	struct newsTickerDef_s
 	{
 		int feedId;
 		int speed;
 		int spacing;
-		char pad[16];
+		int lastTime;
+		int start;
+		int end;
+		float x;
 	};
 
 	struct textScrollDef_s
@@ -1056,31 +2499,37 @@ namespace Game
 	{
 		listBoxDef_s *listBox;
 		editFieldDef_s *editField;
-		newsTickerDef_s *ticker;
-		multiDef_s *multiDef;
+		multiDef_s *multi;
 		const char *enumDvarName;
+		newsTickerDef_s *ticker;
 		textScrollDef_s *scroll;
 		void *data;
 	};
 
-	struct itemDef_t
+	struct ItemFloatExpression
+	{
+		int target;
+		Statement_s *expression;
+	};
+
+	struct itemDef_s
 	{
 		windowDef_t window;
-		rectDef_s textRect;
+		rectDef_s textRect[1];
 		int type;
 		int dataType;
 		int alignment;
 		int fontEnum;
 		int textAlignMode;
-		float textAlignX;
-		float textAlignY;
-		float textScale;
+		float textalignx;
+		float textaligny;
+		float textscale;
 		int textStyle;
 		int gameMsgWindowIndex;
 		int gameMsgWindowMode;
 		const char *text;
-		int textSaveGameInfo;
-		int parent;
+		int itemFlags;
+		menuDef_t *parent;
 		MenuEventHandlerSet *mouseEnterText;
 		MenuEventHandlerSet *mouseExitText;
 		MenuEventHandlerSet *mouseEnter;
@@ -1097,7 +2546,7 @@ namespace Game
 		int dvarFlags;
 		snd_alias_list_t *focusSound;
 		float special;
-		int cursorPos;
+		int cursorPos[1];
 		itemDefData_t typeData;
 		int imageTrack;
 		int floatExpressionCount;
@@ -1115,9 +2564,10 @@ namespace Game
 		int lastSoundPlayedTime;
 	};
 
-	struct menuTransition	// 0x18
+	struct menuTransition
 	{
 		int transitionType;
+		int targetField;
 		int startTime;
 		float startVal;
 		float endVal;
@@ -1128,398 +2578,714 @@ namespace Game
 	struct menuDef_t
 	{
 		windowDef_t window;
-		char* font;
-		int fullscreen;
+		const char *font;
+		int fullScreen;
 		int itemCount;
 		int fontIndex;
-		int cursorItems;
+		int cursorItem[1];
 		int fadeCycle;
 		float fadeClamp;
 		float fadeAmount;
 		float fadeInAmount;
 		float blurRadius;
 		MenuEventHandlerSet *onOpen;
-		MenuEventHandlerSet *onRequestClose;
+		MenuEventHandlerSet *onCloseRequest;
 		MenuEventHandlerSet *onClose;
-		MenuEventHandlerSet *onEsc;
+		MenuEventHandlerSet *onESC;
 		ItemKeyHandler *onKey;
 		Statement_s *visibleExp;
 		const char *allowedBinding;
-		const char *soundLoop;
+		const char *soundName;
 		int imageTrack;
 		float focusColor[4];
 		Statement_s *rectXExp;
 		Statement_s *rectYExp;
-		Statement_s *rectHExp;
 		Statement_s *rectWExp;
+		Statement_s *rectHExp;
 		Statement_s *openSoundExp;
 		Statement_s *closeSoundExp;
-		itemDef_t **items;
-		char unknown[112];
+		itemDef_s **items;
+		menuTransition scaleTransition[1];
+		menuTransition alphaTransition[1];
+		menuTransition xTransition[1];
+		menuTransition yTransition[1];
 		ExpressionSupportingData *expressionData;
 	};
 
 	struct MenuList
 	{
-		char *name;
+		const char *name;
 		int menuCount;
 		menuDef_t **menus;
 	};
 
-#define FS_SEEK_CUR 0
-#define FS_SEEK_END 1
-#define FS_SEEK_SET 2
-
-	enum FsListBehavior_e
-	{
-		FS_LIST_PURE_ONLY = 0x0,
-		FS_LIST_ALL = 0x1,
-	};
-
-	typedef enum
-	{
-		NA_BOT,
-		NA_BAD,					// an address lookup failed
-		NA_LOOPBACK,
-		NA_BROADCAST,
-		NA_IP,
-		NA_IP6, // custom type
-	} netadrtype_t;
-
-	typedef enum
-	{
-		NS_CLIENT,
-		NS_SERVER
-	} netsrc_t;
-
-	typedef union
-	{
-		unsigned char bytes[4];
-		DWORD full;
-	} netIP_t;
-
-	typedef struct
-	{
-		netadrtype_t type;
-		netIP_t ip;
-		unsigned short port;
-		unsigned char ipx[8];
-	} netadr_t;
-
-	typedef struct
-	{
-		int overflowed;
-		int readOnly;
-		char *data;
-		char *splitData;
-		int maxsize;
-		int cursize;
-		int splitSize;
-		int readcount;
-		int bit;
-		int lastEntityRef;
-	} msg_t;
-
-	enum playerFlag
-	{
-		PLAYER_FLAG_NOCLIP = 1 << 0,
-		PLAYER_FLAG_UFO    = 1 << 1,
-		PLAYER_FLAG_FROZEN = 1 << 2,
-	};
-
-	typedef struct gclient_s
-	{
-		unsigned char pad[12764];
-		unsigned int team;
-		char pad2[436];
-		int flags;
-		char pad3[724];
-	} gclient_t;
-
-	typedef struct gentity_s
-	{
-		int number;
-		unsigned char pad[308]; // 4
-		float origin[3]; // 312
-		float angles[3]; // 324
-		char pad2[8];
-		gclient_t* client; // 344
-		unsigned char pad3[28];
-		short classname;
-		short pad4;
-		unsigned char pad5[248];
-	} gentity_t;
-
-#pragma pack(push, 1)
-	typedef struct client_s
-	{
-		// 0
-		int state;
-		// 4
-		char pad[36];
-		// 40
-		netadr_t addr;
-		// 60
-		char pad1[1568];
-		// 1628
-		char connectInfoString[1024];
-		// 2652
-		char pad2[133192];
-		// 135844
-		char name[16];
-		// 135860
-		char pad3[12];
-		// 135872
-		int snapNum;
-		// 135876
-		int pad4;
-		// 135880
-		short ping;
-		// 135882
-		//char pad5[142390];
-		char pad5[133158];
-		// 269040
-		int isBot;
-		// 269044
-		char pad6[9228];
-		// 278272
-		unsigned __int64 steamid;
-		// 278280
-		char pad7[403592];
-	} client_t;
-#pragma pack(pop)
-
-	// Q3TA precompiler code
-
-	//undef if binary numbers of the form 0b... or 0B... are not allowed
-#define BINARYNUMBERS
-	//undef if not using the token.intvalue and token.floatvalue
-#define NUMBERVALUE
-	//use dollar sign also as punctuation
-#define DOLLAR
-
-	//maximum token length
-#define MAX_TOKEN					1024
-
-	//punctuation
-	typedef struct punctuation_s
-	{
-		char *p;						//punctuation character(s)
-		int n;							//punctuation indication
-		struct punctuation_s *next;		//next punctuation
-	} punctuation_t;
-
-	//token
-	typedef struct token_s
-	{
-		char string[MAX_TOKEN];			//available token
-		int type;						//last read token type
-		int subtype;					//last read token sub type
-#ifdef NUMBERVALUE
-		unsigned long int intvalue;	//integer value
-		long double floatvalue;			//floating point value
-#endif //NUMBERVALUE
-		char *whitespace_p;				//start of white space before token
-		char *endwhitespace_p;			//start of white space before token
-		int line;						//line the token was on
-		int linescrossed;				//lines crossed in white space
-		struct token_s *next;			//next token in chain
-	} token_t;
-
-	//script file
-	typedef struct script_s
-	{
-		char filename[64];				//file name of the script
-		char *buffer;					//buffer containing the script
-		char *script_p;					//current pointer in the script
-		char *end_p;					//pointer to the end of the script
-		char *lastscript_p;				//script pointer before reading token
-		char *whitespace_p;				//begin of the white space
-		char *endwhitespace_p;			//end of the white space
-		int length;						//length of the script in bytes
-		int line;						//current line in script
-		int lastline;					//line before reading token
-		int tokenavailable;				//set by UnreadLastToken
-		int flags;						//several script flags
-		punctuation_t *punctuations;	//the punctuations used in the script
-		punctuation_t **punctuationtable;
-		token_t token;					//available token
-		struct script_s *next;			//next script in a chain
-	} script_t;
-
-	//macro definitions
-	typedef struct define_s
-	{
-		char *name;							//define name
-		int flags;							//define flags
-		int builtin;						// > 0 if builtin define
-		int numparms;						//number of define parameters
-		token_t *parms;						//define parameters
-		token_t *tokens;					//macro tokens (possibly containing parm tokens)
-		struct define_s *next;				//next defined macro in a list
-		struct define_s *hashnext;			//next define in the hash chain
-	} define_t;
-
-	//indents
-	//used for conditional compilation directives:
-	//#if, #else, #elif, #ifdef, #ifndef
-	typedef struct indent_s
-	{
-		int type;								//indent type
-		int skip;								//true if skipping current indent
-		script_t *script;						//script the indent was in
-		struct indent_s *next;					//next indent on the indent stack
-	} indent_t;
-
-	//source file
-	typedef struct source_s
-	{
-		char filename[64];					//file name of the script
-		char includepath[64];					//path to include files
-		punctuation_t *punctuations;			//punctuations to use
-		script_t *scriptstack;					//stack with scripts of the source
-		token_t *tokens;						//tokens to read first
-		define_t *defines;						//list with macro definitions
-		define_t **definehash;					//hash chain with defines
-		indent_t *indentstack;					//stack with indents
-		int skip;								// > 0 if skipping conditional code
-		token_t token;							//last read token
-	} source_t;
-
-#define MAX_TOKENLENGTH		1024
-
-	typedef struct pc_token_s
-	{
-		int type;
-		int subtype;
-		int intvalue;
-		float floatvalue;
-		char string[MAX_TOKENLENGTH];
-	} pc_token_t;
-
-	//token types
-#define TT_STRING					1			// string
-#define TT_LITERAL					2			// literal
-#define TT_NUMBER					3			// number
-#define TT_NAME						4			// name
-#define TT_PUNCTUATION				5			// punctuation
-
-#define KEYWORDHASH_SIZE	512
-
-	typedef struct keywordHash_s
-	{
-		char *keyword;
-		bool(*func)(menuDef_t *item, int handle);
-		//struct keywordHash_s *next;
-	} keywordHash_t;
-
-	enum UILocalVarType
-	{
-		UILOCALVAR_INT = 0x0,
-		UILOCALVAR_FLOAT = 0x1,
-		UILOCALVAR_STRING = 0x2,
-	};
-
-	struct UILocalVar
-	{
-		UILocalVarType type;
-		const char *name;
-		union
-		{
-			int integer;
-			float value;
-			const char *string;
-		};
-	};
-
-	struct UILocalVarContext
-	{
-		UILocalVar table[256];
-	};
-
-	struct UiContext
-	{
-// 		int localClientNum;
-// 		float bias;
-// 		int realTime;
-// 		int frameTime;
-// 		int cursorx;
-// 		int cursory;
-// 		int debug;
-// 		int screenWidth;
-// 		int screenHeight;
-// 		float screenAspect;
-// 		float FPS;
-// 		float blurRadiusOut;
-		char pad[56];
-		menuDef_t *menus[512];
-		char pad2[512];
-		int menuCount;
-		// Unsure if below is correct
-		menuDef_t *menuStack[16];
-		int openMenuCount;
-		UILocalVarContext localVars;
-	};
-
 	struct LocalizeEntry
 	{
-		const char* value;
-		const char* name;
+		const char *value;
+		const char *name;
 	};
 
-	struct Bounds
+	enum weapType_t
 	{
-		vec3_t midPoint; // mins
-		vec3_t halfSize; // maxs
+		WEAPTYPE_BULLET = 0x0,
+		WEAPTYPE_GRENADE = 0x1,
+		WEAPTYPE_PROJECTILE = 0x2,
+		WEAPTYPE_RIOTSHIELD = 0x3,
+		WEAPTYPE_NUM = 0x4,
 	};
 
-	struct TriggerModel
+	enum weapClass_t
 	{
-		int contents;
-		unsigned short hullCount;
-		unsigned short firstHull;
+		WEAPCLASS_RIFLE = 0x0,
+		WEAPCLASS_SNIPER = 0x1,
+		WEAPCLASS_MG = 0x2,
+		WEAPCLASS_SMG = 0x3,
+		WEAPCLASS_SPREAD = 0x4,
+		WEAPCLASS_PISTOL = 0x5,
+		WEAPCLASS_GRENADE = 0x6,
+		WEAPCLASS_ROCKETLAUNCHER = 0x7,
+		WEAPCLASS_TURRET = 0x8,
+		WEAPCLASS_THROWINGKNIFE = 0x9,
+		WEAPCLASS_NON_PLAYER = 0xA,
+		WEAPCLASS_ITEM = 0xB,
+		WEAPCLASS_NUM = 0xC,
 	};
 
-	struct TriggerHull
+	enum PenetrateType
 	{
-		Bounds bounds;
-		int contents;
-		unsigned short slabCount;
-		unsigned short firstSlab;
+		PENETRATE_TYPE_NONE = 0x0,
+		PENETRATE_TYPE_SMALL = 0x1,
+		PENETRATE_TYPE_MEDIUM = 0x2,
+		PENETRATE_TYPE_LARGE = 0x3,
+		PENETRATE_TYPE_COUNT = 0x4,
 	};
 
-	struct TriggerSlab
+	enum weapInventoryType_t
 	{
-		vec3_t dir;
-		float midPoint;
-		float halfSize;
+		WEAPINVENTORY_PRIMARY = 0x0,
+		WEAPINVENTORY_OFFHAND = 0x1,
+		WEAPINVENTORY_ITEM = 0x2,
+		WEAPINVENTORY_ALTMODE = 0x3,
+		WEAPINVENTORY_EXCLUSIVE = 0x4,
+		WEAPINVENTORY_SCAVENGER = 0x5,
+		WEAPINVENTORYCOUNT = 0x6,
 	};
 
-	struct MapTriggers
+	enum weapFireType_t
 	{
-		int modelCount;
-		TriggerModel* models; // sizeof 8
-		int hullCount;
-		TriggerHull* hulls; // sizeof 32
-		int slabCount;
-		TriggerSlab* slabs; // sizeof 20
+		WEAPON_FIRETYPE_FULLAUTO = 0x0,
+		WEAPON_FIRETYPE_SINGLESHOT = 0x1,
+		WEAPON_FIRETYPE_BURSTFIRE2 = 0x2,
+		WEAPON_FIRETYPE_BURSTFIRE3 = 0x3,
+		WEAPON_FIRETYPE_BURSTFIRE4 = 0x4,
+		WEAPON_FIRETYPE_DOUBLEBARREL = 0x5,
+		WEAPON_FIRETYPECOUNT = 0x6,
+		WEAPON_FIRETYPE_BURSTFIRE_FIRST = 0x2,
+		WEAPON_FIRETYPE_BURSTFIRE_LAST = 0x4,
 	};
 
-	struct Stage
+	enum OffhandClass
 	{
-		char * stageName;
-		float offset[3];
-		int flags;
+		OFFHAND_CLASS_NONE = 0x0,
+		OFFHAND_CLASS_FRAG_GRENADE = 0x1,
+		OFFHAND_CLASS_SMOKE_GRENADE = 0x2,
+		OFFHAND_CLASS_FLASH_GRENADE = 0x3,
+		OFFHAND_CLASS_THROWINGKNIFE = 0x4,
+		OFFHAND_CLASS_OTHER = 0x5,
+		OFFHAND_CLASS_COUNT = 0x6,
 	};
 
-	struct MapEnts
+	enum weapStance_t
+	{
+		WEAPSTANCE_STAND = 0x0,
+		WEAPSTANCE_DUCK = 0x1,
+		WEAPSTANCE_PRONE = 0x2,
+		WEAPSTANCE_NUM = 0x3,
+	};
+
+	enum activeReticleType_t
+	{
+		VEH_ACTIVE_RETICLE_NONE = 0x0,
+		VEH_ACTIVE_RETICLE_PIP_ON_A_STICK = 0x1,
+		VEH_ACTIVE_RETICLE_BOUNCING_DIAMOND = 0x2,
+		VEH_ACTIVE_RETICLE_COUNT = 0x3,
+	};
+
+	enum weaponIconRatioType_t
+	{
+		WEAPON_ICON_RATIO_1TO1 = 0x0,
+		WEAPON_ICON_RATIO_2TO1 = 0x1,
+		WEAPON_ICON_RATIO_4TO1 = 0x2,
+		WEAPON_ICON_RATIO_COUNT = 0x3,
+	};
+
+	enum ammoCounterClipType_t
+	{
+		AMMO_COUNTER_CLIP_NONE = 0x0,
+		AMMO_COUNTER_CLIP_MAGAZINE = 0x1,
+		AMMO_COUNTER_CLIP_SHORTMAGAZINE = 0x2,
+		AMMO_COUNTER_CLIP_SHOTGUN = 0x3,
+		AMMO_COUNTER_CLIP_ROCKET = 0x4,
+		AMMO_COUNTER_CLIP_BELTFED = 0x5,
+		AMMO_COUNTER_CLIP_ALTWEAPON = 0x6,
+		AMMO_COUNTER_CLIP_COUNT = 0x7,
+	};
+
+	enum weapOverlayReticle_t
+	{
+		WEAPOVERLAYRETICLE_NONE = 0x0,
+		WEAPOVERLAYRETICLE_CROSSHAIR = 0x1,
+		WEAPOVERLAYRETICLE_NUM = 0x2,
+	};
+
+	enum WeapOverlayInteface_t
+	{
+		WEAPOVERLAYINTERFACE_NONE = 0x0,
+		WEAPOVERLAYINTERFACE_JAVELIN = 0x1,
+		WEAPOVERLAYINTERFACE_TURRETSCOPE = 0x2,
+		WEAPOVERLAYINTERFACECOUNT = 0x3,
+	};
+
+	enum weapProjExposion_t
+	{
+		WEAPPROJEXP_GRENADE = 0x0,
+		WEAPPROJEXP_ROCKET = 0x1,
+		WEAPPROJEXP_FLASHBANG = 0x2,
+		WEAPPROJEXP_NONE = 0x3,
+		WEAPPROJEXP_DUD = 0x4,
+		WEAPPROJEXP_SMOKE = 0x5,
+		WEAPPROJEXP_HEAVY = 0x6,
+		WEAPPROJEXP_NUM = 0x7,
+	};
+
+	enum WeapStickinessType
+	{
+		WEAPSTICKINESS_NONE = 0x0,
+		WEAPSTICKINESS_ALL = 0x1,
+		WEAPSTICKINESS_ALL_ORIENT = 0x2,
+		WEAPSTICKINESS_GROUND = 0x3,
+		WEAPSTICKINESS_GROUND_WITH_YAW = 0x4,
+		WEAPSTICKINESS_KNIFE = 0x5,
+		WEAPSTICKINESS_COUNT = 0x6,
+	};
+
+	enum guidedMissileType_t
+	{
+		MISSILE_GUIDANCE_NONE = 0x0,
+		MISSILE_GUIDANCE_SIDEWINDER = 0x1,
+		MISSILE_GUIDANCE_HELLFIRE = 0x2,
+		MISSILE_GUIDANCE_JAVELIN = 0x3,
+		MISSILE_GUIDANCE_COUNT = 0x4,
+	};
+
+	struct TracerDef
 	{
 		const char *name;
-		char *entityString;
-		int numEntityChars;
-		MapTriggers trigger;
-		Stage * stages;
-		char stageCount;
+		Material *material;
+		unsigned int drawInterval;
+		float speed;
+		float beamLength;
+		float beamWidth;
+		float screwRadius;
+		float screwDist;
+		float colors[5][4];
+	};
+
+	struct __declspec(align(4)) WeaponDef
+	{
+		const char *szOverlayName;
+		XModel **gunXModel;
+		XModel *handXModel;
+		const char **szXAnimsRightHanded;
+		const char **szXAnimsLeftHanded;
+		const char *szModeName;
+		unsigned __int16 *notetrackSoundMapKeys;
+		unsigned __int16 *notetrackSoundMapValues;
+		unsigned __int16 *notetrackRumbleMapKeys;
+		unsigned __int16 *notetrackRumbleMapValues;
+		int playerAnimType;
+		weapType_t weapType;
+		weapClass_t weapClass;
+		PenetrateType penetrateType;
+		weapInventoryType_t inventoryType;
+		weapFireType_t fireType;
+		OffhandClass offhandClass;
+		weapStance_t stance;
+		FxEffectDef *viewFlashEffect;
+		FxEffectDef *worldFlashEffect;
+		snd_alias_list_t *pickupSound;
+		snd_alias_list_t *pickupSoundPlayer;
+		snd_alias_list_t *ammoPickupSound;
+		snd_alias_list_t *ammoPickupSoundPlayer;
+		snd_alias_list_t *projectileSound;
+		snd_alias_list_t *pullbackSound;
+		snd_alias_list_t *pullbackSoundPlayer;
+		snd_alias_list_t *fireSound;
+		snd_alias_list_t *fireSoundPlayer;
+		snd_alias_list_t *fireSoundPlayerAkimbo;
+		snd_alias_list_t *fireLoopSound;
+		snd_alias_list_t *fireLoopSoundPlayer;
+		snd_alias_list_t *fireStopSound;
+		snd_alias_list_t *fireStopSoundPlayer;
+		snd_alias_list_t *fireLastSound;
+		snd_alias_list_t *fireLastSoundPlayer;
+		snd_alias_list_t *emptyFireSound;
+		snd_alias_list_t *emptyFireSoundPlayer;
+		snd_alias_list_t *meleeSwipeSound;
+		snd_alias_list_t *meleeSwipeSoundPlayer;
+		snd_alias_list_t *meleeHitSound;
+		snd_alias_list_t *meleeMissSound;
+		snd_alias_list_t *rechamberSound;
+		snd_alias_list_t *rechamberSoundPlayer;
+		snd_alias_list_t *reloadSound;
+		snd_alias_list_t *reloadSoundPlayer;
+		snd_alias_list_t *reloadEmptySound;
+		snd_alias_list_t *reloadEmptySoundPlayer;
+		snd_alias_list_t *reloadStartSound;
+		snd_alias_list_t *reloadStartSoundPlayer;
+		snd_alias_list_t *reloadEndSound;
+		snd_alias_list_t *reloadEndSoundPlayer;
+		snd_alias_list_t *detonateSound;
+		snd_alias_list_t *detonateSoundPlayer;
+		snd_alias_list_t *nightVisionWearSound;
+		snd_alias_list_t *nightVisionWearSoundPlayer;
+		snd_alias_list_t *nightVisionRemoveSound;
+		snd_alias_list_t *nightVisionRemoveSoundPlayer;
+		snd_alias_list_t *altSwitchSound;
+		snd_alias_list_t *altSwitchSoundPlayer;
+		snd_alias_list_t *raiseSound;
+		snd_alias_list_t *raiseSoundPlayer;
+		snd_alias_list_t *firstRaiseSound;
+		snd_alias_list_t *firstRaiseSoundPlayer;
+		snd_alias_list_t *putawaySound;
+		snd_alias_list_t *putawaySoundPlayer;
+		snd_alias_list_t *scanSound;
+		snd_alias_list_t **bounceSound;
+		FxEffectDef *viewShellEjectEffect;
+		FxEffectDef *worldShellEjectEffect;
+		FxEffectDef *viewLastShotEjectEffect;
+		FxEffectDef *worldLastShotEjectEffect;
+		Material *reticleCenter;
+		Material *reticleSide;
+		int iReticleCenterSize;
+		int iReticleSideSize;
+		int iReticleMinOfs;
+		activeReticleType_t activeReticleType;
+		float vStandMove[3];
+		float vStandRot[3];
+		float strafeMove[3];
+		float strafeRot[3];
+		float vDuckedOfs[3];
+		float vDuckedMove[3];
+		float vDuckedRot[3];
+		float vProneOfs[3];
+		float vProneMove[3];
+		float vProneRot[3];
+		float fPosMoveRate;
+		float fPosProneMoveRate;
+		float fStandMoveMinSpeed;
+		float fDuckedMoveMinSpeed;
+		float fProneMoveMinSpeed;
+		float fPosRotRate;
+		float fPosProneRotRate;
+		float fStandRotMinSpeed;
+		float fDuckedRotMinSpeed;
+		float fProneRotMinSpeed;
+		XModel **worldModel;
+		XModel *worldClipModel;
+		XModel *rocketModel;
+		XModel *knifeModel;
+		XModel *worldKnifeModel;
+		Material *hudIcon;
+		weaponIconRatioType_t hudIconRatio;
+		Material *pickupIcon;
+		weaponIconRatioType_t pickupIconRatio;
+		Material *ammoCounterIcon;
+		weaponIconRatioType_t ammoCounterIconRatio;
+		ammoCounterClipType_t ammoCounterClip;
+		int iStartAmmo;
+		const char *szAmmoName;
+		int iAmmoIndex;
+		const char *szClipName;
+		int iClipIndex;
+		int iMaxAmmo;
+		int shotCount;
+		const char *szSharedAmmoCapName;
+		int iSharedAmmoCapIndex;
+		int iSharedAmmoCap;
+		int damage;
+		int playerDamage;
+		int iMeleeDamage;
+		int iDamageType;
+		int iFireDelay;
+		int iMeleeDelay;
+		int meleeChargeDelay;
+		int iDetonateDelay;
+		int iRechamberTime;
+		int rechamberTimeOneHanded;
+		int iRechamberBoltTime;
+		int iHoldFireTime;
+		int iDetonateTime;
+		int iMeleeTime;
+		int meleeChargeTime;
+		int iReloadTime;
+		int reloadShowRocketTime;
+		int iReloadEmptyTime;
+		int iReloadAddTime;
+		int iReloadStartTime;
+		int iReloadStartAddTime;
+		int iReloadEndTime;
+		int iDropTime;
+		int iRaiseTime;
+		int iAltDropTime;
+		int quickDropTime;
+		int quickRaiseTime;
+		int iBreachRaiseTime;
+		int iEmptyRaiseTime;
+		int iEmptyDropTime;
+		int sprintInTime;
+		int sprintLoopTime;
+		int sprintOutTime;
+		int stunnedTimeBegin;
+		int stunnedTimeLoop;
+		int stunnedTimeEnd;
+		int nightVisionWearTime;
+		int nightVisionWearTimeFadeOutEnd;
+		int nightVisionWearTimePowerUp;
+		int nightVisionRemoveTime;
+		int nightVisionRemoveTimePowerDown;
+		int nightVisionRemoveTimeFadeInStart;
+		int fuseTime;
+		int aiFuseTime;
+		float autoAimRange;
+		float aimAssistRange;
+		float aimAssistRangeAds;
+		float aimPadding;
+		float enemyCrosshairRange;
+		float moveSpeedScale;
+		float adsMoveSpeedScale;
+		float sprintDurationScale;
+		float fAdsZoomInFrac;
+		float fAdsZoomOutFrac;
+		Material *overlayMaterial;
+		Material *overlayMaterialLowRes;
+		Material *overlayMaterialEMP;
+		Material *overlayMaterialEMPLowRes;
+		weapOverlayReticle_t overlayReticle;
+		WeapOverlayInteface_t overlayInterface;
+		float overlayWidth;
+		float overlayHeight;
+		float overlayWidthSplitscreen;
+		float overlayHeightSplitscreen;
+		float fAdsBobFactor;
+		float fAdsViewBobMult;
+		float fHipSpreadStandMin;
+		float fHipSpreadDuckedMin;
+		float fHipSpreadProneMin;
+		float hipSpreadStandMax;
+		float hipSpreadDuckedMax;
+		float hipSpreadProneMax;
+		float fHipSpreadDecayRate;
+		float fHipSpreadFireAdd;
+		float fHipSpreadTurnAdd;
+		float fHipSpreadMoveAdd;
+		float fHipSpreadDuckedDecay;
+		float fHipSpreadProneDecay;
+		float fHipReticleSidePos;
+		float fAdsIdleAmount;
+		float fHipIdleAmount;
+		float adsIdleSpeed;
+		float hipIdleSpeed;
+		float fIdleCrouchFactor;
+		float fIdleProneFactor;
+		float fGunMaxPitch;
+		float fGunMaxYaw;
+		float swayMaxAngle;
+		float swayLerpSpeed;
+		float swayPitchScale;
+		float swayYawScale;
+		float swayHorizScale;
+		float swayVertScale;
+		float swayShellShockScale;
+		float adsSwayMaxAngle;
+		float adsSwayLerpSpeed;
+		float adsSwayPitchScale;
+		float adsSwayYawScale;
+		float adsSwayHorizScale;
+		float adsSwayVertScale;
+		float adsViewErrorMin;
+		float adsViewErrorMax;
+		PhysCollmap *physCollmap;
+		float dualWieldViewModelOffset;
+		weaponIconRatioType_t killIconRatio;
+		int iReloadAmmoAdd;
+		int iReloadStartAdd;
+		int ammoDropStockMin;
+		int ammoDropClipPercentMin;
+		int ammoDropClipPercentMax;
+		int iExplosionRadius;
+		int iExplosionRadiusMin;
+		int iExplosionInnerDamage;
+		int iExplosionOuterDamage;
+		float damageConeAngle;
+		float bulletExplDmgMult;
+		float bulletExplRadiusMult;
+		int iProjectileSpeed;
+		int iProjectileSpeedUp;
+		int iProjectileSpeedForward;
+		int iProjectileActivateDist;
+		float projLifetime;
+		float timeToAccelerate;
+		float projectileCurvature;
+		XModel *projectileModel;
+		weapProjExposion_t projExplosion;
+		FxEffectDef *projExplosionEffect;
+		FxEffectDef *projDudEffect;
+		snd_alias_list_t *projExplosionSound;
+		snd_alias_list_t *projDudSound;
+		WeapStickinessType stickiness;
+		float lowAmmoWarningThreshold;
+		float ricochetChance;
+		float *parallelBounce;
+		float *perpendicularBounce;
+		FxEffectDef *projTrailEffect;
+		FxEffectDef *projBeaconEffect;
+		float vProjectileColor[3];
+		guidedMissileType_t guidedMissileType;
+		float maxSteeringAccel;
+		int projIgnitionDelay;
+		FxEffectDef *projIgnitionEffect;
+		snd_alias_list_t *projIgnitionSound;
+		float fAdsAimPitch;
+		float fAdsCrosshairInFrac;
+		float fAdsCrosshairOutFrac;
+		int adsGunKickReducedKickBullets;
+		float adsGunKickReducedKickPercent;
+		float fAdsGunKickPitchMin;
+		float fAdsGunKickPitchMax;
+		float fAdsGunKickYawMin;
+		float fAdsGunKickYawMax;
+		float fAdsGunKickAccel;
+		float fAdsGunKickSpeedMax;
+		float fAdsGunKickSpeedDecay;
+		float fAdsGunKickStaticDecay;
+		float fAdsViewKickPitchMin;
+		float fAdsViewKickPitchMax;
+		float fAdsViewKickYawMin;
+		float fAdsViewKickYawMax;
+		float fAdsViewScatterMin;
+		float fAdsViewScatterMax;
+		float fAdsSpread;
+		int hipGunKickReducedKickBullets;
+		float hipGunKickReducedKickPercent;
+		float fHipGunKickPitchMin;
+		float fHipGunKickPitchMax;
+		float fHipGunKickYawMin;
+		float fHipGunKickYawMax;
+		float fHipGunKickAccel;
+		float fHipGunKickSpeedMax;
+		float fHipGunKickSpeedDecay;
+		float fHipGunKickStaticDecay;
+		float fHipViewKickPitchMin;
+		float fHipViewKickPitchMax;
+		float fHipViewKickYawMin;
+		float fHipViewKickYawMax;
+		float fHipViewScatterMin;
+		float fHipViewScatterMax;
+		float fightDist;
+		float maxDist;
+		const char *accuracyGraphName[2];
+		float(*originalAccuracyGraphKnots[2])[2];
+		unsigned __int16 originalAccuracyGraphKnotCount[2];
+		int iPositionReloadTransTime;
+		float leftArc;
+		float rightArc;
+		float topArc;
+		float bottomArc;
+		float accuracy;
+		float aiSpread;
+		float playerSpread;
+		float minTurnSpeed[2];
+		float maxTurnSpeed[2];
+		float pitchConvergenceTime;
+		float yawConvergenceTime;
+		float suppressTime;
+		float maxRange;
+		float fAnimHorRotateInc;
+		float fPlayerPositionDist;
+		const char *szUseHintString;
+		const char *dropHintString;
+		int iUseHintStringIndex;
+		int dropHintStringIndex;
+		float horizViewJitter;
+		float vertViewJitter;
+		float scanSpeed;
+		float scanAccel;
+		int scanPauseTime;
+		const char *szScript;
+		float fOOPosAnimLength[2];
+		int minDamage;
+		int minPlayerDamage;
+		float fMaxDamageRange;
+		float fMinDamageRange;
+		float destabilizationRateTime;
+		float destabilizationCurvatureMax;
+		int destabilizeDistance;
+		float *locationDamageMultipliers;
+		const char *fireRumble;
+		const char *meleeImpactRumble;
+		TracerDef *tracerType;
+		float turretScopeZoomRate;
+		float turretScopeZoomMin;
+		float turretScopeZoomMax;
+		float turretOverheatUpRate;
+		float turretOverheatDownRate;
+		float turretOverheatPenalty;
+		snd_alias_list_t *turretOverheatSound;
+		FxEffectDef *turretOverheatEffect;
+		const char *turretBarrelSpinRumble;
+		float turretBarrelSpinSpeed;
+		float turretBarrelSpinUpTime;
+		float turretBarrelSpinDownTime;
+		snd_alias_list_t *turretBarrelSpinMaxSnd;
+		snd_alias_list_t *turretBarrelSpinUpSnd[4];
+		snd_alias_list_t *turretBarrelSpinDownSnd[4];
+		snd_alias_list_t *missileConeSoundAlias;
+		snd_alias_list_t *missileConeSoundAliasAtBase;
+		float missileConeSoundRadiusAtTop;
+		float missileConeSoundRadiusAtBase;
+		float missileConeSoundHeight;
+		float missileConeSoundOriginOffset;
+		float missileConeSoundVolumescaleAtCore;
+		float missileConeSoundVolumescaleAtEdge;
+		float missileConeSoundVolumescaleCoreSize;
+		float missileConeSoundPitchAtTop;
+		float missileConeSoundPitchAtBottom;
+		float missileConeSoundPitchTopSize;
+		float missileConeSoundPitchBottomSize;
+		float missileConeSoundCrossfadeTopSize;
+		float missileConeSoundCrossfadeBottomSize;
+		bool sharedAmmo;
+		bool lockonSupported;
+		bool requireLockonToFire;
+		bool bigExplosion;
+		bool noAdsWhenMagEmpty;
+		bool avoidDropCleanup;
+		bool inheritsPerks;
+		bool crosshairColorChange;
+		bool bRifleBullet;
+		bool armorPiercing;
+		bool bBoltAction;
+		bool aimDownSight;
+		bool bRechamberWhileAds;
+		bool bBulletExplosiveDamage;
+		bool bCookOffHold;
+		bool bClipOnly;
+		bool noAmmoPickup;
+		bool adsFireOnly;
+		bool cancelAutoHolsterWhenEmpty;
+		bool disableSwitchToWhenEmpty;
+		bool suppressAmmoReserveDisplay;
+		bool laserSightDuringNightvision;
+		bool markableViewmodel;
+		bool noDualWield;
+		bool flipKillIcon;
+		bool bNoPartialReload;
+		bool bSegmentedReload;
+		bool blocksProne;
+		bool silenced;
+		bool isRollingGrenade;
+		bool projExplosionEffectForceNormalUp;
+		bool bProjImpactExplode;
+		bool stickToPlayers;
+		bool hasDetonator;
+		bool disableFiring;
+		bool timedDetonation;
+		bool rotate;
+		bool holdButtonToThrow;
+		bool freezeMovementWhenFiring;
+		bool thermalScope;
+		bool altModeSameWeapon;
+		bool turretBarrelSpinEnabled;
+		bool missileConeSoundEnabled;
+		bool missileConeSoundPitchshiftEnabled;
+		bool missileConeSoundCrossfadeEnabled;
+		bool offhandHoldIsCancelable;
+	};
+
+	enum ImpactType
+	{
+		IMPACT_TYPE_NONE = 0x0,
+		IMPACT_TYPE_BULLET_SMALL = 0x1,
+		IMPACT_TYPE_BULLET_LARGE = 0x2,
+		IMPACT_TYPE_BULLET_AP = 0x3,
+		IMPACT_TYPE_BULLET_EXPLODE = 0x4,
+		IMPACT_TYPE_SHOTGUN = 0x5,
+		IMPACT_TYPE_SHOTGUN_EXPLODE = 0x6,
+		IMPACT_TYPE_GRENADE_BOUNCE = 0x7,
+		IMPACT_TYPE_GRENADE_EXPLODE = 0x8,
+		IMPACT_TYPE_ROCKET_EXPLODE = 0x9,
+		IMPACT_TYPE_PROJECTILE_DUD = 0xA,
+		IMPACT_TYPE_COUNT = 0xB,
+	};
+
+	struct /*__declspec(align(2))*/ WeaponCompleteDef
+	{
+		const char *szInternalName;
+		WeaponDef *weapDef;
+		const char *szDisplayName;
+		unsigned __int16 *hideTags;
+		const char **szXAnims;
+		float fAdsZoomFov;
+		int iAdsTransInTime;
+		int iAdsTransOutTime;
+		int iClipSize;
+		ImpactType impactType;
+		int iFireTime;
+		weaponIconRatioType_t dpadIconRatio;
+		float penetrateMultiplier;
+		float fAdsViewKickCenterSpeed;
+		float fHipViewKickCenterSpeed;
+		const char *szAltWeaponName;
+		unsigned int altWeaponIndex;
+		int iAltRaiseTime;
+		Material *killIcon;
+		Material *dpadIcon;
+		int fireAnimLength;
+		int iFirstRaiseTime;
+		int ammoDropStockMax;
+		float adsDofStart;
+		float adsDofEnd;
+		unsigned __int16 accuracyGraphKnotCount[2];
+		float(*accuracyGraphKnots[2])[2];
+		bool motionTracker;
+		bool enhanced;
+		bool dpadIconShowsAmmo;
+	};
+
+	struct SndDriverGlobals
+	{
+		const char *name;
+	};
+
+	struct FxImpactEntry
+	{
+		FxEffectDef *nonflesh[31];
+		FxEffectDef *flesh[4];
+	};
+
+	struct FxImpactTable
+	{
+		const char *name;
+		FxImpactEntry *table;
+	};
+
+	struct RawFile
+	{
+		const char *name;
+		int compressedLen;
+		int len;
+		const char *buffer;
 	};
 
 	struct StringTableCell
@@ -1536,38 +3302,60 @@ namespace Game
 		StringTableCell *values;
 	};
 
-	struct RawFile
+	enum LbColType
 	{
-		const char* name;
-		int sizeCompressed;
-		int sizeUnCompressed;
-		char * compressedData;
+		LBCOL_TYPE_NUMBER = 0x0,
+		LBCOL_TYPE_TIME = 0x1,
+		LBCOL_TYPE_LEVELXP = 0x2,
+		LBCOL_TYPE_PRESTIGE = 0x3,
+		LBCOL_TYPE_BIGNUMBER = 0x4,
+		LBCOL_TYPE_PERCENT = 0x5,
+		LBCOL_TYPE_COUNT = 0x6,
 	};
 
-	struct FontEntry
+	enum LbAggType
 	{
-		unsigned short character;
-		unsigned char padLeft;
-		unsigned char padTop;
-		unsigned char padRight;
-		unsigned char width;
-		unsigned char height;
-		unsigned char const0;
-		float uvLeft;
-		float uvTop;
-		float uvRight;
-		float uvBottom;
+		LBAGG_TYPE_MIN = 0x0,
+		LBAGG_TYPE_MAX = 0x1,
+		LBAGG_TYPE_SUM = 0x2,
+		LBAGG_TYPE_LAST = 0x3,
+		LBAGG_TYPE_COUNT = 0x4,
 	};
 
-	typedef struct Font_s
+	struct LbColumnDef
 	{
-		char* name;
-		int size;
-		int entries;
-		Material* image;
-		Material* glowImage;
-		FontEntry* characters;
-	} Font;
+		const char *name;
+		int id;
+		int propertyId;
+		bool hidden;
+		const char *statName;
+		LbColType type;
+		int precision;
+		LbAggType agg;
+	};
+
+	struct LeaderboardDef
+	{
+		const char *name;
+		int id;
+		int columnCount;
+		int xpColId;
+		int prestigeColId;
+		LbColumnDef *columns;
+	};
+
+	struct __declspec(align(4)) StructuredDataEnumEntry
+	{
+		const char *string;
+		unsigned __int16 index;
+	};
+
+	struct StructuredDataEnum
+	{
+		int entryCount;
+		int reservedEntryCount;
+		StructuredDataEnumEntry *entries;
+	};
 
 	enum StructuredDataTypeCategory
 	{
@@ -1582,21 +3370,6 @@ namespace Game
 		DATA_FLOAT = 0x8,
 		DATA_SHORT = 0x9,
 		DATA_COUNT = 0xA,
-	};
-
-#pragma pack(push,4)
-	struct StructuredDataEnumEntry
-	{
-		const char *name;
-		unsigned __int16 index;
-	};
-#pragma pack(pop)
-
-	struct StructuredDataEnum
-	{
-		int entryCount;
-		int reservedEntryCount;
-		StructuredDataEnumEntry *entries;
 	};
 
 	union StructuredDataTypeUnion
@@ -1614,20 +3387,12 @@ namespace Game
 		StructuredDataTypeUnion u;
 	};
 
-	typedef struct
-	{
-		StructuredDataType item;
-		int offset;
-	} StructuredDataItem;
-
-#pragma pack(push,4)
 	struct StructuredDataStructProperty
 	{
 		const char *name;
-		StructuredDataType item;
-		int offset;
+		StructuredDataType type;
+		unsigned int offset;
 	};
-#pragma pack(pop)
 
 	struct StructuredDataStruct
 	{
@@ -1677,2033 +3442,233 @@ namespace Game
 	struct StructuredDataBuffer
 	{
 		char *data;
-		size_t size;		// 8188
+		unsigned int size;
 	};
 
-	struct StructuredDataLookup
+	enum VehicleType
 	{
-		char pad[0x10];
+		VEH_WHEELS_4 = 0x0,
+		VEH_TANK = 0x1,
+		VEH_PLANE = 0x2,
+		VEH_BOAT = 0x3,
+		VEH_ARTILLERY = 0x4,
+		VEH_HELICOPTER = 0x5,
+		VEH_SNOWMOBILE = 0x6,
+		VEH_TYPE_COUNT = 0x7,
 	};
 
-	typedef struct
+	enum VehicleAxleType
 	{
-		StructuredDataDef* data;
-		StructuredDataItem* item;
-		int offset;
-		int error;
-	} structuredDataFindState_t;
-
-	struct XSurfaceCollisionLeaf
-	{
-		unsigned __int16 triangleBeginIndex;
+		VEH_AXLE_FRONT = 0x0,
+		VEH_AXLE_REAR = 0x1,
+		VEH_AXLE_ALL = 0x2,
+		VEH_AXLE_COUNT = 0x3,
 	};
 
-	struct XSurfaceCollisionAabb
+	struct VehiclePhysDef
 	{
-		unsigned __int16 mins[3];
-		unsigned __int16 maxs[3];
-	};
-
-	struct XSurfaceCollisionNode
-	{
-		XSurfaceCollisionAabb aabb;
-		unsigned __int16 childBeginIndex;
-		unsigned __int16 childCount;
-	};
-
-	struct XSurfaceCollisionTree
-	{
-		float trans[3];
-		float scale[3];
-		unsigned int nodeCount;
-		XSurfaceCollisionNode *nodes;
-		unsigned int leafCount;
-		XSurfaceCollisionLeaf *leafs;
-	};
-
-	struct XRigidVertList
-	{
-		unsigned __int16 boneOffset;
-		unsigned __int16 vertCount;
-		unsigned __int16 triOffset;
-		unsigned __int16 triCount;
-		XSurfaceCollisionTree *collisionTree;
-	};
-
-	union PackedTexCoords
-	{
-		unsigned int packed;
-	};
-
-	union GfxColor
-	{
-		unsigned int packed;
-		char array[4];
-		unsigned char uArray[4];
-	};
-
-	union PackedUnitVec
-	{
-		unsigned int packed;
-	};
-
-	struct GfxPackedVertex
-	{
-		float xyz[3];
-		float binormalSign;
-		GfxColor color;
-		PackedTexCoords texCoord;
-		PackedUnitVec normal;
-		PackedUnitVec tangent;
-	};
-
-	struct XSurfaceVertexInfo
-	{
-		__int16 vertCount[4];
-		unsigned __int16 *vertsBlend;
-	};
-
-	struct XSurface
-	{
-		char tileMode;
-		bool deformed;
-		unsigned __int16 vertCount;
-		unsigned __int16 triCount;
-		char zoneHandle;
-		unsigned __int16 baseTriIndex;
-		unsigned __int16 baseVertIndex;
-		unsigned __int16 *triIndices;
-		XSurfaceVertexInfo vertInfo;
-		GfxPackedVertex *verts0;
-		unsigned int vertListCount;
-		XRigidVertList *vertList;
-		int partBits[6];
-	};
-
-	struct XModelSurfs
-	{
-		const char* name;
-		XSurface* surfaces;
-		int numSurfaces;
-		int partBits[6];
-	};
-
-	struct XModelLodInfo
-	{
-		float dist;
-		unsigned __int16 numsurfs;
-		unsigned __int16 surfIndex;
-		XModelSurfs *modelSurfs;
-		int partBits[6];
-		XSurface *surfs;
-		char lod;
-		char smcBaseIndexPlusOne;
-		char smcSubIndexMask;
-		char smcBucket;
-	};
-
-	struct cplane_t
-	{
-		float normal[3];
-		float dist;
-		char type;
-		char signbits;
-		char pad[2];
-	};
-
-	struct cbrushside_t
-	{
-		cplane_t *plane;
-		unsigned __int16 materialNum;
-		char firstAdjacentSideOffset;
-		char edgeCount;
-	};
-
-	struct cbrush_t
-	{
-		unsigned __int16 numsides;
-		unsigned __int16 glassPieceIndex;
-		cbrushside_t *sides;
-		char *baseAdjacentSide;
-		__int16 axialMaterialNum[2][3];
-		char firstAdjacentSideOffsets[2][3];
-		char edgeCount[2][3];
-	};
-
-#pragma pack(push, 4)
-	struct BrushWrapper
-	{
-		Bounds bounds;
-		cbrush_t brush;
-		int totalEdgeCount;
-		cplane_t *planes;
-	};
-#pragma pack(pop)
-
-	struct PhysGeomInfo
-	{
-		BrushWrapper *brush;
-		int type;
-		float orientation[3][3];
-		float offset[3];
-		float halfLengths[3];
-	};
-
-	struct PhysMass
-	{
-		float centerOfMass[3];
-		float momentsOfInertia[3];
-		float productsOfInertia[3];
-	};
-
-	struct PhysCollmap
-	{
-		const char *name;
-		unsigned int count;
-		PhysGeomInfo *geoms;
-		char unknown[0x18];
-		PhysMass mass;
-	};
-
-	struct DObjAnimMat
-	{
-		float quat[4];
-		float trans[3];
-		float transWeight;
-	};
-
-	struct XModelCollTri_s
-	{
-		float plane[4];
-		float svec[4];
-		float tvec[4];
-	};
-
-	struct XModelCollSurf_s
-	{
-		XModelCollTri_s *collTris;
-		int numCollTris;
-		Bounds bounds;
-		int boneIdx;
-		int contents;
-		int surfFlags;
-	};
-
-	struct PhysPreset
-	{
-		const char *name;
-		int type;
-		float mass;
-		float bounce;
-		float friction;
-		float bulletForceScale;
-		float explosiveForceScale;
-		const char *sndAliasPrefix;
-		float piecesSpreadFraction;
-		float piecesUpwardVelocity;
-		bool tempDefaultToCylinder;
-	};
-
-	struct XBoneInfo
-	{
-		float offset[3];
-		float bounds[3];
-		float radiusSquared;
-	};
-
-	struct XModel
-	{
-		const char *name;
-		char numBones;
-		char numRootBones;
-		unsigned char numsurfs;
-		char lodRampType;
-		float scale;
-		unsigned int noScalePartBits[6];
-		unsigned __int16 *boneNames;
-		char *parentList;
-		__int16 *quats;
-		float *trans;
-		char *partClassification;
-		DObjAnimMat *baseMat;
-		Material **materialHandles;
-		XModelLodInfo lodInfo[4];
-		char maxLoadedLod;
-		char numLods;
-		char collLod;
-		char flags;
-		XModelCollSurf_s *collSurfs;
-		int numCollSurfs;
-		int contents;
-		XBoneInfo *boneInfo;
-		float radius;
-		Bounds bounds;
-		int memUsage;
-		bool bad;
+		int physicsEnabled;
+		const char *physPresetName;
 		PhysPreset *physPreset;
-		PhysCollmap *physCollmap;
-	};
-
-	struct CModelAllocData
-	{
-		void* mainArray;
-		void* vertexBuffer;
-		void* indexBuffer;
-	};
-
-	struct CModelSectionHeader
-	{
-		int size;
-		int offset;
-		int fixupStart;
-		int fixupCount;
-		void* buffer;
-	};
-
-	enum CModelSection
-	{
-		SECTION_MAIN = 0,
-		SECTION_INDEX = 1,
-		SECTION_VERTEX = 2,
-		SECTION_FIXUP = 3,
-	};
-
-	struct CModelHeader
-	{
-		int version;
-		unsigned int signature;
-		CModelSectionHeader sectionHeader[4];
-	};
-
-	struct DSkelPartBits
-	{
-		int anim[4];
-		int control[4];
-		int skel[4];
-	};
-
-	struct DSkel
-	{
-		DSkelPartBits partBits;
-		int timeStamp;
-		DObjAnimMat *mat;
-	};
-
-#pragma pack(push, 2)
-	struct DObj
-	{
-		/*XAnimTree_s*/void *tree;
-		unsigned __int16 duplicateParts;
-		unsigned __int16 entnum;
-		char duplicatePartsSize;
-		char numModels;
-		char numBones;
-		char pad;
-		unsigned int ignoreCollision;
-		volatile int locked;
-		DSkel skel;
-		float radius;
-		int hidePartBits[4];
-		char pad2[56];
-		XModel **models;
-	};
-#pragma pack(pop)
-
-	union XAnimDynamicIndices
-	{
-		char _1[1];
-		unsigned __int16 _2[1];
-	};
-
-	union XAnimDynamicFrames
-	{
-		char(*_1)[3];
-		unsigned __int16(*_2)[3];
-	};
-
-	struct XAnimNotifyInfo
-	{
-		unsigned __int16 name;
-		float time;
-	};
-
-	union XAnimIndices
-	{
-		char* _1;
-		unsigned short *_2;
-		void* data;
-	};
-
-	struct XAnimPartTransFrames
-	{
-		float mins[3];
-		float size[3];
-		XAnimDynamicFrames frames;
-		XAnimDynamicIndices indices;
-	};
-
-	union XAnimPartTransData
-	{
-		XAnimPartTransFrames frames;
-		float frame0[3];
-	};
-
-	struct XAnimPartTrans
-	{
-		unsigned __int16 size;
-		char smallTrans;
-		XAnimPartTransData u;
-	};
-
-	struct XAnimDeltaPartQuatDataFrames2
-	{
-		__int16 *frames;
-		char indices[1];
-	};
-
-	union XAnimDeltaPartQuatData2
-	{
-		XAnimDeltaPartQuatDataFrames2 frames;
-		__int16 frame0[2];
-	};
-
-	struct XAnimDeltaPartQuat2
-	{
-		unsigned __int16 size;
-		XAnimDeltaPartQuatData2 u;
-	};
-
-	struct XAnimDeltaPartQuatDataFrames
-	{
-		__int16 *frames;
-		char indices[1];
-	};
-
-	union XAnimDeltaPartQuatData
-	{
-		XAnimDeltaPartQuatDataFrames frames;
-		__int16 frame0[4];
-	};
-
-	struct XAnimDeltaPartQuat
-	{
-		unsigned __int16 size;
-		XAnimDeltaPartQuatData u;
-	};
-
-	struct XAnimDeltaPart
-	{
-		XAnimPartTrans *trans;
-		XAnimDeltaPartQuat2 *quat2;
-		XAnimDeltaPartQuat *quat;
-	};
-
-	enum XAnimPartType
-	{
-		PART_TYPE_NO_QUAT = 0x0,
-		PART_TYPE_HALF_QUAT = 0x1,
-		PART_TYPE_FULL_QUAT = 0x2,
-		PART_TYPE_HALF_QUAT_NO_SIZE = 0x3,
-		PART_TYPE_FULL_QUAT_NO_SIZE = 0x4,
-		PART_TYPE_SMALL_TRANS = 0x5,
-		PART_TYPE_TRANS = 0x6,
-		PART_TYPE_TRANS_NO_SIZE = 0x7,
-		PART_TYPE_NO_TRANS = 0x8,
-		PART_TYPE_ALL = 0x9,
-	};
-
-	enum XAnimFlags
-	{
-		XANIM_LOOP_SYNC_TIME = 0x1,
-		XANIM_NONLOOP_SYNC_TIME = 0x2,
-		XANIM_SYNC_ROOT = 0x4,
-		XANIM_COMPLETE = 0x8,
-		XANIM_ADDITIVE = 0x10,
-		XANIM_CLIENT = 0x20,
-		XANIM_SEPARATE = 0x40,
-		XANIM_FORCELOAD = 0x80,
-		XANIM_PROPOGATE_FLAGS = 0x63,
-	};
-
-	struct XAnimParts
-	{
-		const char * name; // 0
-		unsigned short dataByteCount; // 4
-		unsigned short dataShortCount; // 6
-		unsigned short dataIntCount; // 8
-		unsigned short randomDataByteCount; // 10 - 0xA
-		unsigned short randomDataIntCount;// 12 - 0xC
-		unsigned short framecount; // 14 - 0xE
-		char bLoop; // 16
-		char boneCount[10]; // 17
-		char notetrackCount; // 27
-		bool pad1; // 28
-		bool bDelta; // 29
-		char assetType; // 30
-		char pad2; // 31
-		int randomDataShortCount; // 32 - 0x20
-		int indexcount; // 36 - 0x24
-		float framerate; // 40 - 0x28
-		float frequency; // 44 - 0x2C
-		short * tagnames; // 48 - 0x30
-		char *dataByte;// 52 - 0x34
-		short *dataShort; // 56 - 0x38
-		int *dataInt; // 60 - 0x3C
-		short *randomDataShort; // 64 - 0x40
-		char *randomDataByte; // 68 - 0x44
-		int *randomDataInt; // 72 - 0x48
-		XAnimIndices indices; // 76 - 0x4C
-		XAnimNotifyInfo* notetracks; // 80 - 0x50
-		XAnimDeltaPart * delta; // 84 - 0x54
-								// 88 - 0x58
-	};
-
-/* FxEffectDef::flags */
-#define FX_ELEM_LOOPING             0x1
-#define FX_ELEM_USE_RAND_COLOR      0x2
-#define FX_ELEM_USE_RAND_ALPHA      0x4
-#define FX_ELEM_USE_RAND_SIZE0      0x8
-#define FX_ELEM_USE_RAND_SIZE1      0x10
-#define FX_ELEM_USE_RAND_SCALE      0x20
-#define FX_ELEM_USE_RAND_ROT_DELTA  0x40
-#define FX_ELEM_MOD_COLOR_BY_ALPHA  0x80
-#define FX_ELEM_USE_RAND_VEL0       0x100
-#define FX_ELEM_USE_RAND_VEL1       0x200
-#define FX_ELEM_USE_BACK_COMPAT_VEL 0x400
-#define FX_ELEM_ABS_VEL0            0x800
-#define FX_ELEM_ABS_VEL1            0x1000
-#define FX_ELEM_PLAY_ON_TOUCH       0x2000
-#define FX_ELEM_PLAY_ON_DEATH       0x4000
-#define FX_ELEM_PLAY_ON_RUN         0x8000
-#define FX_ELEM_BOUNDING_SPHERE     0x10000
-#define FX_ELEM_USE_ITEM_CLIP       0x20000
-#define FX_ELEM_DECAL_FADE_IN       0x40000
-#define FX_ELEM_DISABLED            0x80000000
-
-/* FxElemDef::flags */
-#define FX_ELEM_SPAWN_RELATIVE_TO_EFFECT   0x2
-#define FX_ELEM_SPAWN_FRUSTUM_CULL         0x4
-#define FX_ELEM_RUNNER_USES_RAND_ROT       0x8
-#define FX_ELEM_SPAWN_OFFSET_NONE          0x0
-#define FX_ELEM_SPAWN_OFFSET_SPHERE        0x10
-#define FX_ELEM_SPAWN_OFFSET_CYLINDER      0x20
-#define FX_ELEM_SPAWN_OFFSET_MASK          0x30
-#define FX_ELEM_RUN_RELATIVE_TO_WORLD      0x0
-#define FX_ELEM_RUN_RELATIVE_TO_SPAWN      0x40
-#define FX_ELEM_RUN_RELATIVE_TO_EFFECT     0x80
-#define FX_ELEM_RUN_RELATIVE_TO_OFFSET     0xC0
-#define FX_ELEM_RUN_MASK                   0xC0
-#define FX_ELEM_USE_COLLISION              0x100
-#define FX_ELEM_DIE_ON_TOUCH               0x200
-#define FX_ELEM_DRAW_PAST_FOG              0x400
-#define FX_ELEM_DRAW_WITH_VIEWMODEL        0x800
-#define FX_ELEM_BLOCK_SIGHT                0x1000
-#define FX_ELEM_HAS_VELOCITY_GRAPH_LOCAL   0x1000000
-#define FX_ELEM_HAS_VELOCITY_GRAPH_WORLD   0x2000000
-#define FX_ELEM_HAS_GRAVITY                0x4000000
-#define FX_ELEM_USE_MODEL_PHYSICS          0x8000000
-#define FX_ELEM_NONUNIFORM_SCALE           0x10000000
-#define FX_ELEM_CLOUD_SHAPE_CUBE           0x0
-#define FX_ELEM_CLOUD_SHAPE_SPHERE_LARGE   0x20000000
-#define FX_ELEM_CLOUD_SHAPE_SPHERE_MEDIUM  0x40000000
-#define FX_ELEM_CLOUD_SHAPE_SPHERE_SMALL   0x60000000
-#define FX_ELEM_CLOUD_MASK                 0x60000000
-#define FX_ELEM_DISABLE_FOUNTAIN_COLLISION 0x80000000
-#define FX_ELEM_DRAW_IN_THERMAL_ONLY       0x2000
-#define FX_ELEM_TRAIL_ORIENT_BY_VELOCITY   0x4000
-#define FX_ELEM_EMIT_ORIENT_BY_ELEM        0x8000
-
-/* FxElemAtlas::behavior */
-#define FX_ATLAS_START_MASK        0x3
-#define FX_ATLAS_START_FIXED       0x0
-#define FX_ATLAS_START_RANDOM      0x1
-#define FX_ATLAS_START_INDEXED     0x2
-#define FX_ATLAS_PLAY_OVER_LIFE    0x4
-#define FX_ATLAS_LOOP_ONLY_N_TIMES 0x8
-
-	enum FxElemType : char
-	{
-		FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
-		FX_ELEM_TYPE_SPRITE_ORIENTED  = 0x1,
-		FX_ELEM_TYPE_TAIL             = 0x2,
-		FX_ELEM_TYPE_TRAIL            = 0x3,
-		FX_ELEM_TYPE_CLOUD            = 0x4,
-		FX_ELEM_TYPE_SPARKCLOUD       = 0x5,
-		FX_ELEM_TYPE_SPARKFOUNTAIN    = 0x6,
-		FX_ELEM_TYPE_MODEL            = 0x7,
-		FX_ELEM_TYPE_OMNI_LIGHT       = 0x8,
-		FX_ELEM_TYPE_SPOT_LIGHT       = 0x9,
-		FX_ELEM_TYPE_SOUND            = 0xA,
-		FX_ELEM_TYPE_DECAL            = 0xB,
-		FX_ELEM_TYPE_RUNNER           = 0xC,
-		FX_ELEM_TYPE_COUNT            = 0xD,
-		FX_ELEM_TYPE_LAST_SPRITE      = 0x3,
-		FX_ELEM_TYPE_LAST_DRAWN       = 0x9,
-	};
-
-	struct FxElemVec3Range
-	{
-		float base[3];
-		float amplitude[3];
-	};
-
-	struct FxIntRange
-	{
-		int base;
-		int amplitude;
-	};
-
-	struct FxFloatRange
-	{
-		float base;
-		float amplitude;
-	};
-
-	struct FxSpawnDefLooping
-	{
-		int intervalMsec;
-		int count;
-	};
-
-	struct FxSpawnDefOneShot
-	{
-		FxIntRange count;
-	};
-
-	union FxSpawnDef
-	{
-		FxSpawnDefLooping looping;
-		FxSpawnDefOneShot oneShot;
-	};
-
-	struct FxEffectDef;
-
-	union FxEffectDefRef
-	{
-		FxEffectDef *handle;
-		const char *name;
-	};
-
-	union FxElemVisuals
-	{
-		const void *anonymous;
-		Material *material;
-		XModel *xmodel;
-		FxEffectDefRef effectDef;
-		const char *soundName;
-	};
-
-	struct FxElemMarkVisuals
-	{
-		Material* data[2];
-	};
-
-	union FxElemDefVisuals
-	{
-		FxElemVisuals instance;
-		//If parent FxElemDef::elemType == 0x7, use xmodel
-		//If parent FxElemDef::elemType == 0xC, use effectDef
-		//If parent FxElemDef::elemType == 0xA, use soundName
-		//If parent FxElemDef::elemType != 0x9 || 0x8, use material
-
-		FxElemVisuals *array;			//Total count = parent FxElemDef::visualCount
-		FxElemMarkVisuals *markArray;		//Total count = parent FxElemDef::visualCount
-	};
-
-	struct FxTrailVertex
-	{
-		float pos[2];
-		float normal[2];
-		float texCoord;
-	};
-
-	struct FxTrailDef
-	{
-		int scrollTimeMsec;
-		int repeatDist;
-		float invSplitDist;
-		float invSplitArcDist;
-		float invSplitTime;
-		int vertCount;
-		FxTrailVertex *verts;
-		int indCount;
-		unsigned __int16 *inds;
-	};
-
-	struct FxSparkFountain
-	{
-		float sparkFountainGravity;
-		float sparkFountainBounceFrac;
-		float sparkFountainBounceRand;
-		float sparkFountainSparkSpacing;
-		float sparkFountainSparkLength;
-		int sparkFountainSparkCount;
-		float sparkFountainLoopTime;
-		float sparkFountainVelMin;
-		float sparkFountainVelMax;
-		float sparkFountainVelConeAngle;
-		float sparkFountainRestSpeed;
-		float sparkFountainBoostTime;
-		float sparkFountainBoostFactor;
-	};
-
-	union FxElemExtendedDef
-	{
-		char *unknownBytes;
-		FxSparkFountain *sparkFountain;
-		FxTrailDef *trailDef;
-	};
-
-	struct FxElemAtlas
-	{
-		char behavior;
-		char index;
-		char fps;
-		char loopCount;
-		char colIndexBits;
-		char rowIndexBits;
-		__int16 entryCount;
-	};
-
-	struct FxElemVelStateInFrame
-	{
-		FxElemVec3Range velocity;
-		FxElemVec3Range totalDelta;
-	};
-
-	struct FxElemVelStateSample
-	{
-		FxElemVelStateInFrame local;
-		FxElemVelStateInFrame world;
-	};
-
-	struct FxElemVisualState
-	{
-		char color[4];
-		float rotationDelta;
-		float rotationTotal;
-		float size[2];
-		float scale;
-	};
-
-	struct FxElemVisStateSample
-	{
-		FxElemVisualState base;
-		FxElemVisualState amplitude;
-	};
-
-	struct FxElemDef	// 0xFC
-	{
-		int flags;
-		FxSpawnDef spawn;
-		FxFloatRange spawnRange;
-		FxFloatRange fadeInRange;
-		FxFloatRange fadeOutRange;
-		float spawnFrustumCullRadius;
-		FxIntRange spawnDelayMsec;
-		FxIntRange lifeSpanMsec;
-		FxFloatRange spawnOrigin[3];
-		FxFloatRange spawnOffsetRadius;
-		FxFloatRange spawnOffsetHeight;
-		FxFloatRange spawnAngles[3];
-		FxFloatRange angularVelocity[3];
-		FxFloatRange initialRotation;
-		FxFloatRange gravity;
-		FxFloatRange reflectionFactor;
-		FxElemAtlas atlas;
-		char elemType;
-		char visualCount;
-		char velIntervalCount;
-		char visStateIntervalCount;
-		FxElemVelStateSample *velSamples;	// count = velIntervalCount
-		FxElemVisStateSample *visSamples;	// count = visStateIntervalCount
-		FxElemDefVisuals visuals;
-		//If elemType is 0xB, then use markVisuals
-		//If elemType is not 0xB and visualCount == 1, then use visual
-		//If elemType is not 0xB and visualCount != 1, then use visualsArray
-
-		// Those are probably bounds!
-		vec3_t collMins;
-		vec3_t collMaxs;
-		FxEffectDefRef effectOnImpact;
-		FxEffectDefRef effectOnDeath;
-		FxEffectDefRef effectEmitted;
-		FxFloatRange emitDist;
-		FxFloatRange emitDistVariance;
-		FxElemExtendedDef extendedDef;
-		//If elemType == 3, then use trailDef
-		//If elemType == 6, then use sparkFountain
-		//If elemType != 3 && elemType != 6 use unknownBytes (size = 1)
-		char sortOrder;
-		char lightingFrac;
-		char useItemClip;
-		char unused[1];
-	};
-
-	struct FxEffectDef
-	{
-		const char *name;
-		int flags;
-		int totalSize;
-		int msecLoopingLife;
-		int elemDefCountLooping;
-		int elemDefCountOneShot;
-		int elemDefCountEmission;
-		FxElemDef *elemDefs;		//Count = elemDefCountOneShot + elemDefCountEmission + elemDefCountLooping
-	};
-
-#define FX_ELEM_FIELD_COUNT 90
-
-	struct FxEditorElemAtlas
-	{
-		int behavior;
-		int index;
-		int fps;
-		int loopCount;
-		int indexRange;
-		int colIndexBits;
-		int rowIndexBits;
-		int entryCount;
-	};
-
-	struct FxCurve
-	{
-		int dimensionCount;
-		int keyCount;
-		float keys[1];
-	};
-
-	struct FxEditorTrailDef
-	{
-		FxTrailVertex verts[64];
-		int vertCount;
-		unsigned __int16 inds[128];
-		int indCount;
-	};
-
-	struct FxEditorElemDef
-	{
-		char name[48];
-		int editorFlags;
-		int flags;
-		FxFloatRange spawnRange;
-		FxFloatRange fadeInRange;
-		FxFloatRange fadeOutRange;
-		float spawnFrustumCullRadius;
-		FxSpawnDefLooping spawnLooping;
-		FxSpawnDefOneShot spawnOneShot;
-		FxIntRange spawnDelayMsec;
-		FxIntRange lifeSpanMsec;
-		FxFloatRange spawnOrigin[3];
-		FxFloatRange spawnOffsetRadius;
-		FxFloatRange spawnOffsetHeight;
-		FxFloatRange spawnAngles[3];
-		FxFloatRange angularVelocity[3];
-		FxFloatRange initialRotation;
-		FxFloatRange gravity;
-		FxFloatRange elasticity;
-		FxEditorElemAtlas atlas;
-		float velScale[2][3];
-		FxCurve *velShape[2][3][2];
-		float rotationScale;
-		FxCurve *rotationShape[2];
-		float sizeScale[2];
-		FxCurve *sizeShape[2][2];
-		float scaleScale;
-		FxCurve *scaleShape[2];
-		FxCurve *color[2];
-		FxCurve *alpha[2];
-		float lightingFrac;
-		float decalFadeInTime;
-		float collOffset[3];
-		float collRadius;
-		FxEffectDef *effectOnImpact;
-		FxEffectDef *effectOnDeath;
-		int sortOrder;
-		FxEffectDef *emission;
-		FxFloatRange emitDist;
-		FxFloatRange emitDistVariance;
-		char elemType;
-		__declspec(align(4)) int visualCount;
-		union
-		{
-			FxElemVisuals visuals[32];
-			FxElemMarkVisuals markVisuals[16];
-		} visuals;
-		int trailSplitDist;
-		int trailSplitArcDist;
-		int trailSplitTime;
-		int trailRepeatDist;
-		float trailScrollTime;
-		FxEditorTrailDef trailDef;
-		int sparkFountainGravity;
-		int sparkFountainBounceFrac;
-		int sparkFountainBounceRand;
-		int sparkFountainSparkSpacing;
-		int sparkFountainSparkLength;
-		int sparkFountainSparkCount;
-		int sparkFountainLoopTime;
-		int sparkFountainVelMin;
-		int sparkFountainVelMax;
-		int sparkFountainVelConeAngle;
-		int sparkFountainRestSpeed;
-		int sparkFountainBoostTime;
-		int sparkFountainBoostFactor;
-	};
-
-	struct FxEditorEffectDef
-	{
-		char name[64];
-		int elemCount;
-		FxEditorElemDef elems[32];
-	};
-
-	struct FxElemField
-	{
-		const char *keyName;
-		bool(__cdecl *handler)(const char**, FxEditorElemDef*);
-	};
-
-	struct cStaticModel_t
-	{
-		XModel *xmodel;
-		float origin[3];
-		float invScaledAxis[3][3];
-		float absmin[3];
-		float absmax[3];
-	};
-
-	struct ClipMaterial
-	{
-		char* name;
-		int unk;
-		int unk2;
-	};
-
-	struct cNode_t
-	{
-		cplane_t* plane;
-		short children[2];
-	};
-
-	struct cLeaf_t
-	{
-		unsigned __int16 firstCollAabbIndex;
-		unsigned __int16 collAabbCount;
-		int brushContents;
-		int terrainContents;
-		Bounds bounds;
-		int leafBrushNode;
-	};
-
-	struct cLeafBrushNodeLeaf_t
-	{
-		unsigned __int16 *brushes;
-	};
-
-	struct cLeafBrushNodeChildren_t
-	{
-		float dist;
-		float range;
-		unsigned __int16 childOffset[2];
-	};
-
-	union cLeafBrushNodeData_t
-	{
-		cLeafBrushNodeLeaf_t leaf;
-		cLeafBrushNodeChildren_t children;
-	};
-
-	struct cLeafBrushNode_t
-	{
-		char axis;
-		__int16 leafBrushCount;
-		int contents;
-		cLeafBrushNodeData_t data;
-	};
-
-	struct cmodel_t
-	{
-		Bounds bounds;
-		float radius;
-		cLeaf_t leaf;
-	};
-
-	enum DynEntityType
-	{
-		DYNENT_TYPE_INVALID = 0x0,
-		DYNENT_TYPE_CLUTTER = 0x1,
-		DYNENT_TYPE_DESTRUCT = 0x2,
-		DYNENT_TYPE_COUNT = 0x3,
-	};
-
-	struct GfxPlacement
-	{
-		float quat[4];
-		float origin[3];
-	};
-
-	struct DynEntityDef
-	{
-		DynEntityType type;
-		GfxPlacement pose;
-		XModel *xModel;
-		unsigned __int16 brushModel;
-		unsigned __int16 physicsBrushModel;
-		FxEffectDef *destroyFx;
-		PhysPreset *physPreset;
-		int health;
-		PhysMass mass;
-		int contents;
-	};
-
-	struct DynEntityPose
-	{
-		GfxPlacement pose;
-		float radius;
-	};
-
-	struct DynEntityClient
-	{
-		int physObjId;
-		unsigned __int16 flags;
-		unsigned __int16 lightingHandle;
-		int health;
-	};
-
-	struct DynEntityColl
-	{
-		unsigned __int16 sector;
-		unsigned __int16 nextEntInSector;
-		float linkMins[2];
-		float linkMaxs[2];
-	};
-
-	struct CollisionBorder
-	{
-		float distEq[3];
-		float zBase;
-		float zSlope;
-		float start;
-		float length;
-	};
-
-	struct CollisionPartition
-	{
-		char triCount;
-		char borderCount;
-		int firstTri;
-		CollisionBorder *borders;
-	};
-
-	union CollisionAabbTreeIndex
-	{
-		int firstChildIndex;
-		int partitionIndex;
-	};
-
-	struct CollisionAabbTree
-	{
-		float midPoint[3];
-		unsigned __int16 materialIndex;
-		unsigned __int16 childCount;
-		float halfSize[3];
-		CollisionAabbTreeIndex u;
-	};
-
-	struct SModelAabbNode
-	{
-		Bounds bounds;
-		unsigned __int16 firstChild;
-		unsigned __int16 childCount;
-	};
-
-	struct clipMap_t
-	{
-		const char* name;
-		int isInUse; // +8
-		int numCPlanes; // +8
-		cplane_t* cPlanes; // sizeof 20, +12
-		int numStaticModels; // +16
-		cStaticModel_t* staticModelList; // sizeof 76, +20
-		int numMaterials; // +24
-		ClipMaterial* materials; // sizeof 12 with a string (possibly name?), +28
-		int numCBrushSides; // +32
-		cbrushside_t* cBrushSides; // sizeof 8, +36
-		int numCBrushEdges; // +40
-		char* cBrushEdges; // +44
-		int numCNodes; // +48
-		cNode_t* cNodes; // sizeof 8, +52
-		int numCLeaf; // +56
-		cLeaf_t* cLeaf; // +60
-		int numCLeafBrushNodes; // +64
-		cLeafBrushNode_t* cLeafBrushNodes; // +68
-		int numLeafBrushes; // +72
-		short* leafBrushes; // +76
-		int numLeafSurfaces; // +80
-		int* leafSurfaces; // +84
-		int numVerts; // +88
-		vec3_t* verts; // +92
-		int numTriIndices; // +96
-		short* triIndices; // +100
-		bool* triEdgeIsWalkable; // +104
-		int numCollisionBorders; // +108
-		CollisionBorder* collisionBorders;// sizeof 28, +112
-		int numCollisionPartitions; // +116
-		CollisionPartition* collisionPartitions; // sizeof 12, +120
-		int numCollisionAABBTrees; // +124
-		CollisionAabbTree* collisionAABBTrees;// sizeof 32, +128
-		int numCModels; // +132
-		cmodel_t* cModels; // sizeof 68, +136
-		short numCBrushes; // +140
-		short pad2; // +142
-		cbrush_t * cBrushes; // sizeof 36, +144
-		Bounds* cBrushBounds; // same count as cBrushes, +148
-		int * cBrushContents; // same count as cBrushes, +152
-		MapEnts * mapEnts; // +156
-		unsigned __int16 smodelNodeCount;
-		short pad; // +160
-		SModelAabbNode *smodelNodes;
-		unsigned __int16 dynEntCount[2];
-		DynEntityDef *dynEntDefList[2];
-		DynEntityPose *dynEntPoseList[2];
-		DynEntityClient *dynEntClientList[2];
-		DynEntityColl *dynEntCollList[2];
-		unsigned int checksum;
-		char unknown5[0x30];
-	}; // +256
-
-	struct G_GlassPiece
-	{
-		unsigned __int16 damageTaken;
-		unsigned __int16 collapseTime;
-		int lastStateChangeTime;
-		char impactDir;
-		char impactPos[2];
-	};
-
-	struct G_GlassName
-	{
-		char *nameStr;
-		__int16 name;
-		unsigned __int16 pieceCount;
-		unsigned __int16 *pieceIndices;
-	};
-
-	struct G_GlassData
-	{
-		G_GlassPiece *glassPieces;
-		unsigned int pieceCount;
-		unsigned __int16 damageToWeaken;
-		unsigned __int16 damageToDestroy;
-		unsigned int glassNameCount;
-		G_GlassName *glassNames;
-		char pad[108];
-	};
-
-	struct pathbasenode_t
-	{
-		float vOrigin[3];
-		unsigned int type;
-	};
-
-	struct pathnode_tree_nodes_t
-	{
-		int nodeCount;
-		unsigned __int16 *nodes;
-	};
-
-	struct pathnode_tree_t;
-
-	union pathnode_tree_info_t
-	{
-		pathnode_tree_t *child[2];
-		pathnode_tree_nodes_t s;
-	};
-
-	struct pathnode_tree_t
-	{
-		int axis;
-		float dist;
-		pathnode_tree_info_t u;
-	};
-
-	enum nodeType
-	{
-		NODE_BADNODE = 0x0,
-		NODE_PATHNODE = 0x1,
-		NODE_COVER_STAND = 0x2,
-		NODE_COVER_CROUCH = 0x3,
-		NODE_COVER_CROUCH_WINDOW = 0x4,
-		NODE_COVER_PRONE = 0x5,
-		NODE_COVER_RIGHT = 0x6,
-		NODE_COVER_LEFT = 0x7,
-		NODE_COVER_WIDE_RIGHT = 0x8,
-		NODE_COVER_WIDE_LEFT = 0x9,
-		NODE_CONCEALMENT_STAND = 0xA,
-		NODE_CONCEALMENT_CROUCH = 0xB,
-		NODE_CONCEALMENT_PRONE = 0xC,
-		NODE_REACQUIRE = 0xD,
-		NODE_BALCONY = 0xE,
-		NODE_SCRIPTED = 0xF,
-		NODE_NEGOTIATION_BEGIN = 0x10,
-		NODE_NEGOTIATION_END = 0x11,
-		NODE_TURRET = 0x12,
-		NODE_GUARD = 0x13,
-		NODE_NUMTYPES = 0x14,
-		NODE_DONTLINK = 0x14,
-	};
-
-	struct pathlink_s
-	{
-		float fDist;
-		unsigned __int16 nodeNum;
-		char disconnectCount;
-		char negotiationLink;
-		char ubBadPlaceCount[4];
-	};
-
-	struct pathnode_constant_t
-	{
-		nodeType type;
-		unsigned __int16 spawnflags;
-		unsigned __int16 targetname;
-		unsigned __int16 script_linkName;
-		unsigned __int16 script_noteworthy;
-		unsigned __int16 target;
-		unsigned __int16 animscript;
-		int animscriptfunc;
-		float vOrigin[3];
-		float fAngle;
-		float forward[2];
-		float fRadius;
-		float minUseDistSq;
-		__int16 wOverlapNode[2];
-// 		__int16 wChainId;
-// 		__int16 wChainDepth;
-// 		__int16 wChainParent;
-		unsigned __int16 totalLinkCount;
-		pathlink_s *Links;
-	};
-
-	struct pathnode_dynamic_t
-	{
-		void *pOwner;
-		int iFreeTime;
-		int iValidTime[3];
-		int inPlayerLOSTime;
-		__int16 wLinkCount;
-		__int16 wOverlapCount;
-		__int16 turretEntNumber;
-		__int16 userCount;
-	};
-
-	struct pathnode_t;
-
-	struct pathnode_transient_t
-	{
-		int iSearchFrame;
-		pathnode_t *pNextOpen;
-		pathnode_t *pPrevOpen;
-		pathnode_t *pParent;
-		float fCost;
-		float fHeuristic;
-		float costFactor;
-	};
-
-	struct pathnode_t
-	{
-		pathnode_constant_t constant;
-		pathnode_dynamic_t dynamic;
-		pathnode_transient_t transient;
-		char pad[12];
-	};
-
-	struct PathData
-	{
-		unsigned int nodeCount;
-		pathnode_t *nodes;
-		pathbasenode_t *basenodes;
-		unsigned int chainNodeCount;
-		unsigned __int16 *chainNodeForNode;
-		unsigned __int16 *nodeForChainNode;
-		int visBytes;
-		char *pathVis;
-		int nodeTreeCount;
-		pathnode_tree_t *nodeTree;
-	};
-
-	struct VehicleTrackObstacle
-	{
-		char pad[12];
-	};
-
-	struct VehicleTrackSector
-	{
-		char pad[52];
-		VehicleTrackObstacle* trackObstacles;
-		int trackObstacleCount;
-	};
-
-	struct VehicleTrackSegment
-	{
-		const char* name;
-		VehicleTrackSector* trackSectors;
-		int trackSectorCount;
-		VehicleTrackSegment** trackSegments1;
-		int trackSegmentCount1;
-		VehicleTrackSegment** trackSegments2;
-		int trackSegmentCount2;
-		int pad[4];
-	};
-
-	struct VehicleTrack
-	{
-		VehicleTrackSegment* trackSegments;
-		int trackSegmentCount;
-	};
-
-	struct GameWorldSp
-	{
-		const char* name;
-		PathData pathData;
-		VehicleTrack vehicleTrack;
-		G_GlassData* data;
-	};
-
-	struct GameWorldMp
-	{
-		const char* name;
-		G_GlassData* data;
+		const char *accelGraphName;
+		VehicleAxleType steeringAxle;
+		VehicleAxleType powerAxle;
+		VehicleAxleType brakingAxle;
+		float topSpeed;
+		float reverseSpeed;
+		float maxVelocity;
+		float maxPitch;
+		float maxRoll;
+		float suspensionTravelFront;
+		float suspensionTravelRear;
+		float suspensionStrengthFront;
+		float suspensionDampingFront;
+		float suspensionStrengthRear;
+		float suspensionDampingRear;
+		float frictionBraking;
+		float frictionCoasting;
+		float frictionTopSpeed;
+		float frictionSide;
+		float frictionSideRear;
+		float velocityDependentSlip;
+		float rollStability;
+		float rollResistance;
+		float pitchResistance;
+		float yawResistance;
+		float uprightStrengthPitch;
+		float uprightStrengthRoll;
+		float targetAirPitch;
+		float airYawTorque;
+		float airPitchTorque;
+		float minimumMomentumForCollision;
+		float collisionLaunchForceScale;
+		float wreckedMassScale;
+		float wreckedBodyFriction;
+		float minimumJoltForNotify;
+		float slipThresholdFront;
+		float slipThresholdRear;
+		float slipFricScaleFront;
+		float slipFricScaleRear;
+		float slipFricRateFront;
+		float slipFricRateRear;
+		float slipYawTorque;
 	};
 
 	struct VehicleDef
 	{
-		const char* name;
-		char pad[408];
-		void* weaponDef;
-		char pad2[304];
+		const char *name;
+		VehicleType type;
+		const char *useHintString;
+		int health;
+		int quadBarrel;
+		float texScrollScale;
+		float topSpeed;
+		float accel;
+		float rotRate;
+		float rotAccel;
+		float maxBodyPitch;
+		float maxBodyRoll;
+		float fakeBodyAccelPitch;
+		float fakeBodyAccelRoll;
+		float fakeBodyVelPitch;
+		float fakeBodyVelRoll;
+		float fakeBodySideVelPitch;
+		float fakeBodyPitchStrength;
+		float fakeBodyRollStrength;
+		float fakeBodyPitchDampening;
+		float fakeBodyRollDampening;
+		float fakeBodyBoatRockingAmplitude;
+		float fakeBodyBoatRockingPeriod;
+		float fakeBodyBoatRockingRotationPeriod;
+		float fakeBodyBoatRockingFadeoutSpeed;
+		float boatBouncingMinForce;
+		float boatBouncingMaxForce;
+		float boatBouncingRate;
+		float boatBouncingFadeinSpeed;
+		float boatBouncingFadeoutSteeringAngle;
+		float collisionDamage;
+		float collisionSpeed;
+		float killcamOffset[3];
+		int playerProtected;
+		int bulletDamage;
+		int armorPiercingDamage;
+		int grenadeDamage;
+		int projectileDamage;
+		int projectileSplashDamage;
+		int heavyExplosiveDamage;
+		VehiclePhysDef vehPhysDef;
+		float boostDuration;
+		float boostRechargeTime;
+		float boostAcceleration;
+		float suspensionTravel;
+		float maxSteeringAngle;
+		float steeringLerp;
+		float minSteeringScale;
+		float minSteeringSpeed;
+		int camLookEnabled;
+		float camLerp;
+		float camPitchInfluence;
+		float camRollInfluence;
+		float camFovIncrease;
+		float camFovOffset;
+		float camFovSpeed;
+		const char *turretWeaponName;
+		WeaponCompleteDef *turretWeapon;
+		float turretHorizSpanLeft;
+		float turretHorizSpanRight;
+		float turretVertSpanUp;
+		float turretVertSpanDown;
+		float turretRotRate;
+		snd_alias_list_t *turretSpinSnd;
+		snd_alias_list_t *turretStopSnd;
+		int trophyEnabled;
+		float trophyRadius;
+		float trophyInactiveRadius;
+		int trophyAmmoCount;
+		float trophyReloadTime;
+		unsigned __int16 trophyTags[4];
+		Material *compassFriendlyIcon;
+		Material *compassEnemyIcon;
+		int compassIconWidth;
+		int compassIconHeight;
+		snd_alias_list_t *idleLowSnd;
+		snd_alias_list_t *idleHighSnd;
+		snd_alias_list_t *engineLowSnd;
+		snd_alias_list_t *engineHighSnd;
+		float engineSndSpeed;
+		snd_alias_list_t *engineStartUpSnd;
+		int engineStartUpLength;
+		snd_alias_list_t *engineShutdownSnd;
+		snd_alias_list_t *engineIdleSnd;
+		snd_alias_list_t *engineSustainSnd;
+		snd_alias_list_t *engineRampUpSnd;
+		int engineRampUpLength;
+		snd_alias_list_t *engineRampDownSnd;
+		int engineRampDownLength;
+		snd_alias_list_t *suspensionSoftSnd;
+		float suspensionSoftCompression;
+		snd_alias_list_t *suspensionHardSnd;
+		float suspensionHardCompression;
+		snd_alias_list_t *collisionSnd;
+		float collisionBlendSpeed;
+		snd_alias_list_t *speedSnd;
+		float speedSndBlendSpeed;
+		const char *surfaceSndPrefix;
+		snd_alias_list_t *surfaceSnds[31];
+		float surfaceSndBlendSpeed;
+		float slideVolume;
+		float slideBlendSpeed;
+		float inAirPitch;
 	};
 
-	struct XModelDrawInfo
-	{
-		unsigned __int16 lod;
-		unsigned __int16 surfId;
-	};
-
-	struct GfxSceneDynModel
-	{
-		XModelDrawInfo info;
-		unsigned __int16 dynEntId;
-	};
-
-	struct BModelDrawInfo
-	{
-		unsigned __int16 surfId;
-	};
-
-	struct GfxSceneDynBrush
-	{
-		BModelDrawInfo info;
-		unsigned __int16 dynEntId;
-	};
-
-	struct GfxStreamingAabbTree
-	{
-		unsigned __int16 firstItem;
-		unsigned __int16 itemCount;
-		unsigned __int16 firstChild;
-		unsigned __int16 childCount;
-		float mins[3];
-		float maxs[3];
-	};
-
-	struct GfxWorldStreamInfo
-	{
-		int aabbTreeCount;
-		GfxStreamingAabbTree *aabbTrees;
-		int leafRefCount;
-		int *leafRefs;
-	};
-
-	struct GfxWorldVertex
-	{
-		float xyz[3];
-		float binormalSign;
-		GfxColor color;
-		float texCoord[2];
-		float lmapCoord[2];
-		PackedUnitVec normal;
-		PackedUnitVec tangent;
-	};
-
-	struct GfxWorldVertexData
-	{
-		GfxWorldVertex *vertices;
-		void/*IDirect3DVertexBuffer9*/* worldVb;
-	};
-
-#pragma pack(push, 4)
-	struct GfxLightImage
-	{
-		GfxImage *image;
-		char samplerState;
-	};
-#pragma pack(pop)
-
-	struct GfxLightDef
+	struct AddonMapEnts
 	{
 		const char *name;
-		GfxLightImage attenuation;
-		int lmapLookupStart;
-	};
-
-	struct GfxLight
-	{
-		char type;
-		char canUseShadowMap;
-		char unused[2];
-		float color[3];
-		float dir[3];
-		float origin[3];
-		float radius;
-		float cosHalfFovOuter;
-		float cosHalfFovInner;
-		int exponent;
-		unsigned int spotShadowIndex;
-		GfxLightDef *def;
-	};
-
-	struct GfxReflectionProbe
-	{
-		float origin[3];
-	};
-
-	struct GfxWorldDpvsPlanes
-	{
-		int cellCount;
-		cplane_t *planes;
-		unsigned __int16 *nodes;
-		unsigned int *sceneEntCellBits; //Size = cellCount << 11
-	};
-
-	struct GfxAabbTree
-	{
-		Bounds bounds;
-		unsigned __int16 childCount;
-		unsigned __int16 surfaceCount;
-		unsigned __int16 startSurfIndex;
-		unsigned __int16 surfaceCountNoDecal;
-		unsigned __int16 startSurfIndexNoDecal;
-		unsigned __int16 smodelIndexCount;
-		unsigned __int16 *smodelIndexes;
-		int childrenOffset;
-	};
-
-	struct GfxCellTree
-	{
-		GfxAabbTree *aabbTree;
-	};
-
-	struct GfxCellTreeCount
-	{
-		int aabbTreeCount;
-	};
-
-	struct GfxLightGridEntry
-	{
-		unsigned __int16 colorsIndex;
-		char primaryLightIndex;
-		char needsTrace;
-	};
-
-	struct GfxLightGridColors
-	{
-		char rgb[56][3];
-	};
-
-	struct GfxStaticModelInst
-	{
-		Bounds bounds;
-		float lightingOrigin[3];
-	};
-
-	enum surfaceType_t
-	{
-		SF_TRIANGLES = 0x0,
-		SF_TRIANGLES_NO_SUN_SHADOW = 0x1,
-		SF_BEGIN_STATICMODEL = 0x2,
-		SF_STATICMODEL_RIGID = 0x2,
-		SF_STATICMODEL_INSTANCED = 0x3,
-		SF_STATICMODEL_RIGID_NO_SUN_SHADOW = 0x4,
-		SF_STATICMODEL_INSTANCED_NO_SUN_SHADOW = 0x5,
-		SF_END_STATICMODEL = 0x6,
-		SF_BMODEL = 0x6,
-		SF_BEGIN_XMODEL = 0x7,
-		SF_XMODEL_RIGID = 0x7,
-		SF_XMODEL_SKINNED = 0x8,
-		SF_END_XMODEL = 0x9,
-		SF_BEGIN_FX = 0x9,
-		SF_CODE = 0x9,
-		SF_GLASS = 0xA,
-		SF_MARK = 0xB,
-		SF_SPARK = 0xC,
-		SF_PARTICLE_CLOUD = 0xD,
-		SF_PARTICLE_SPARK_CLOUD = 0xE,
-		SF_END_FX = 0xF,
-		SF_NUM_SURFACE_TYPES = 0xF,
-		SF_FORCE_32_BITS = 0xFFFFFFFF,
-	};
-
-	struct srfTriangles_t
-	{
-		int vertexLayerData;
-		int firstVertex;
-		unsigned __int16 vertexCount;
-		unsigned __int16 triCount;
-		int baseIndex;
-	};
-
-	struct GfxSurface
-	{
-		srfTriangles_t tris;
-		Material *material;
-		char lightmapIndex;
-		char reflectionProbeIndex;
-		char primaryLightIndex;
-		char flag;
-	};
-
-	struct GfxSurfaceBounds
-	{
-		Bounds bounds;
-		//char flags;
-	};
-
-	struct GfxPackedPlacement
-	{
-		float origin[3];
-		vec3_t axis[3];
-		float scale;
-	};
-
-	struct GfxStaticModelDrawInst
-	{
-		GfxPackedPlacement placement;
-		XModel *model;
-		unsigned __int16 cullDist;
-		unsigned __int16 lightingHandle;
-		char reflectionProbeIndex;
-		char primaryLightIndex;
-		char flags;
-		char firstMtlSkinIndex;
-		GfxColor groundLighting;
-		unsigned __int16 cacheId[4];
-	};
-
-	struct GfxWorldDpvsStatic
-	{
-		unsigned int smodelCount;
-		unsigned int staticSurfaceCount;
-		unsigned int staticSurfaceCountNoDecal;
-		unsigned int litOpaqueSurfsBegin;
-		unsigned int litOpaqueSurfsEnd;
-		unsigned int litTransSurfsBegin;
-		unsigned int litTransSurfsEnd;
-		unsigned int shadowCasterSurfsBegin;
-		unsigned int shadowCasterSurfsEnd;
-		unsigned int emissiveSurfsBegin;
-		unsigned int emissiveSurfsEnd;
-		unsigned int smodelVisDataCount;
-		unsigned int surfaceVisDataCount;
-		char *smodelVisData[3];
-		char *surfaceVisData[3];
-		unsigned __int16 *sortedSurfIndex;
-		GfxStaticModelInst *smodelInsts;
-		GfxSurface *surfaces;
-		GfxSurfaceBounds *surfacesBounds;
-		GfxStaticModelDrawInst *smodelDrawInsts;
-		GfxDrawSurf *surfaceMaterials;
-		unsigned int *surfaceCastsSunShadow;
-		volatile int usageCount;
-	};
-
-#pragma pack(push, 4)
-
-	struct GfxPortal;
-
-	struct GfxPortalWritable
-	{
-		bool isQueued;
-		bool isAncestor;
-		char recursionDepth;
-		char hullPointCount;
-		float(*hullPoints)[2];
-		GfxPortal *queuedParent;
-	};
-
-	struct DpvsPlane
-	{
-		float coeffs[4];
-	};
-
-	struct DpvsPlanes
-	{
-		DpvsPlane *planes;
-		int count;
-	};
-
-	struct DpvsClipPlaneSet
-	{
-		DpvsPlane *planes[16];
-		unsigned int count;
-	};
-
-#pragma pack(push, 1)
-	struct DpvsStaticCellCmd
-	{
-		DpvsPlane *planes;
-		GfxAabbTree *tree;
-		char planeCount;
-		char frustumPlaneCount;
-		unsigned __int16 sceneViewType;
-	};
-#pragma pack(pop)
-
-	struct GfxPortal
-	{
-		GfxPortalWritable writable;
-		DpvsPlane plane;
-		vec3_t* vertices;
-		unsigned __int16 cellIndex;
-		char vertexCount;
-		float hullAxis[2][3];
-	};
-
-	struct GfxCell
-	{
-		Bounds bounds;
-		int portalCount;
-		GfxPortal *portals;
-		char reflectionProbeCount;
-		char *reflectionProbes;
-	};
-
-	struct GfxLightmapArray
-	{
-		GfxImage *primary;
-		GfxImage *secondary;
-	};
-
-	struct GfxLightGrid
-	{
-		bool hasLightRegions;
-		unsigned int sunPrimaryLightIndex;
-		unsigned __int16 mins[3];
-		unsigned __int16 maxs[3];
-		unsigned int rowAxis;
-		unsigned int colAxis;
-		unsigned __int16 *rowDataStart;
-		unsigned int rawRowDataSize;
-		char *rawRowData;
-		unsigned int entryCount;
-		GfxLightGridEntry *entries;
-		unsigned int colorCount;
-		GfxLightGridColors *colors;
-	};
-
-	struct GfxBrushModelWritable
-	{
-		Bounds bounds;
-	};
-
-	struct GfxBrushModel
-	{
-		GfxBrushModelWritable writable;
-		Bounds bounds;
-		float radius;
-		unsigned short surfaceCount;
-		unsigned short startSurfIndex;
-		unsigned short surfaceCountNoDecal;
-	};
-
-	struct MaterialMemory
-	{
-		Material *material;
-		int memory;
-	};
-
-	struct sunflare_t
-	{
-		bool hasValidData;
-		Material *spriteMaterial;
-		Material *flareMaterial;
-		float spriteSize;
-		float flareMinSize;
-		float flareMinDot;
-		float flareMaxSize;
-		float flareMaxDot;
-		float flareMaxAlpha;
-		int flareFadeInTime;
-		int flareFadeOutTime;
-		float blindMinDot;
-		float blindMaxDot;
-		float blindMaxDarken;
-		int blindFadeInTime;
-		int blindFadeOutTime;
-		float glareMinDot;
-		float glareMaxDot;
-		float glareMaxLighten;
-		int glareFadeInTime;
-		int glareFadeOutTime;
-		float sunFxPosition[3];
-	};
-
-	struct GfxShadowGeometry
-	{
-		unsigned __int16 surfaceCount;
-		unsigned __int16 smodelCount;
-		unsigned __int16 *sortedSurfIndex;
-		unsigned __int16 *smodelIndex;
-	};
-
-	struct GfxLightRegionAxis
-	{
-		float dir[3];
-		float midPoint;
-		float halfSize;
-	};
-
-	struct GfxLightRegionHull
-	{
-		float kdopMidPoint[9];
-		float kdopHalfSize[9];
-		unsigned int axisCount;
-		GfxLightRegionAxis *axis;
-	};
-
-	struct GfxLightRegion
-	{
-		unsigned int hullCount;
-		GfxLightRegionHull *hulls;
-	};
-
-	struct GfxWorldDpvsDynamic
-	{
-		unsigned int dynEntClientWordCount[2];
-		unsigned int dynEntClientCount[2];
-		unsigned int *dynEntCellBits[2];
-		char *dynEntVisData[2][3];
-	};
-
-	struct SunLightParseParams
-	{
-		char name[64];
-		float ambientScale;
-		float ambientColor[3];
-		float diffuseFraction;
-		float sunLight;
-		float sunColor[3];
-		float diffuseColor[3];
-		bool diffuseColorHasBeenSet;
-		float angles[3];
-	};
-
-	struct GfxWorldVertexLayerData
-	{
-		char *data;
-		void/*IDirect3DVertexBuffer9*/* layerVb;
-	};
-
-	typedef unsigned int GfxRawTexture;
-
-	struct GfxWorldDraw
-	{
-		unsigned int reflectionProbeCount;
-		GfxImage * * reflectionImages;
-		GfxReflectionProbe *reflectionProbes;
-		GfxRawTexture * reflectionProbeTextures; //Count = refelctionProbeCount
-		int lightmapCount;
-		GfxLightmapArray *lightmaps;
-		GfxRawTexture * lightmapPrimaryTextures; //Count = lightmapCount
-		GfxRawTexture * lightmapSecondaryTextures; //Count = lightmapCount
-		GfxImage *skyImage;
-		GfxImage *outdoorImage;
-		unsigned int vertexCount;
-		GfxWorldVertexData vd;
-		unsigned int vertexLayerDataSize;
-		GfxWorldVertexLayerData vld;
-		int indexCount;
-		unsigned __int16 *indices;
-	};
-
-	struct GfxSky
-	{
-		int skySurfCount;
-		int * skyStartSurfs;
-		GfxImage * skyImage;
-		int skySamplerState;
-	};
-
-	struct GfxHeroOnlyLight
-	{
-		char pad[56];
-	};
-
-	struct GfxWorld
-	{
-		const char *name;
-		const char *baseName;
-		int planeCount;
-		int nodeCount;
-		unsigned int surfaceCount;
-		int skyCount;
-		GfxSky *skies;
-		unsigned int lastSunPrimaryLightIndex;
-		unsigned int primaryLightCount;
-		unsigned int sortKeyLitDecal;
-		unsigned int sortKeyEffectDecal;
-		unsigned int sortKeyEffectAuto;
-		unsigned int sortKeyDistortion;
-		GfxWorldDpvsPlanes dpvsPlanes;
-		GfxCellTreeCount *aabbTreeCounts;
-		GfxCellTree *aabbTrees;
-		GfxCell *cells;
-		GfxWorldDraw draw;
-		GfxLightGrid lightGrid;
-		int modelCount;
-		GfxBrushModel *models;
-		Bounds bounds;
-		unsigned int checksum;
-		int materialMemoryCount;
-		MaterialMemory *materialMemory;
-		sunflare_t sun;
-		float outdoorLookupMatrix[4][4];
-		GfxImage *outdoorImage;
-		unsigned int *cellCasterBits;
-		unsigned int *cellHasSunLitSurfsBits;
-		GfxSceneDynModel *sceneDynModel;
-		GfxSceneDynBrush *sceneDynBrush;
-		unsigned int *primaryLightEntityShadowVis;
-		unsigned int *primaryLightDynEntShadowVis[2];
-		char *nonSunPrimaryLightForModelDynEnt;
-		GfxShadowGeometry *shadowGeom;
-		GfxLightRegion *lightRegion;
-		GfxWorldDpvsStatic dpvs;
-		GfxWorldDpvsDynamic dpvsDyn;
-		unsigned int mapVtxChecksum;
-		unsigned int heroOnlyLightCount;
-		GfxHeroOnlyLight *heroOnlyLights;
-		char fogTypesAllowed;
-	};
-#pragma pack(pop)
-
-	struct rgpStruct
-	{
-		int pad[2117];
-		GfxWorld* world;
-	};
-
-	struct ComPrimaryLight
-	{
-		char type;
-		char canUseShadowMap;
-		char exponent;
-		char unused;
-		float color[3];
-		float dir[3];
-		float origin[3];
-		float radius;
-		float cosHalfFovOuter;
-		float cosHalfFovInner;
-		float cosHalfFovExpanded;
-		float rotationLimit;
-		float translationLimit;
-		const char *defName;
-	};
-
-	struct ComWorld
-	{
-		const char *name;
-		int isInUse;
-		unsigned int primaryLightCount;
-		ComPrimaryLight *primaryLights;
-	};
-
-#pragma pack(push, 4)
-	struct FxGlassDef
-	{
-		float halfThickness;
-		float texVecs[2][2];
-		GfxColor color;
-		Material *material;
-		Material *materialShattered;
-		PhysPreset *physPreset;
-	};
-#pragma pack(pop)
-
-	struct FxSpatialFrame
-	{
-		float quat[4];
-		float origin[3];
-	};
-
-	union FxGlassPiecePlace
-	{
-		struct
-		{
-			FxSpatialFrame frame;
-			float radius;
-		};
-		unsigned int nextFree;
-	};
-
-	struct FxGlassPieceState
-	{
-		float texCoordOrigin[2];
-		unsigned int supportMask;
-		unsigned __int16 initIndex;
-		unsigned __int16 geoDataStart;
-		unsigned __int16 lightingIndex;
-		char defIndex;
-		char pad[3];
-		char vertCount;
-		char holeDataCount;
-		char crackDataCount;
-		char fanDataCount;
-		unsigned __int16 flags;
-		float areaX2;
-	};
-
-	struct FxGlassPieceDynamics
-	{
-		char pad[36];
-	};
-
-	struct FxGlassVertex
-	{
-		__int16 x;
-		__int16 y;
-	};
-
-	struct FxGlassHoleHeader
-	{
-		unsigned __int16 uniqueVertCount;
-		char touchVert;
-		char pad[1];
-	};
-
-	struct FxGlassCrackHeader
-	{
-		unsigned __int16 uniqueVertCount;
-		char beginVertIndex;
-		char endVertIndex;
-	};
-
-	union FxGlassGeometryData
-	{
-		FxGlassVertex vert;
-		FxGlassHoleHeader hole;
-		FxGlassCrackHeader crack;
-		char asBytes[4];
-		__int16 anonymous[2];
-	};
-
-#pragma pack(push, 4)
-	struct FxGlassInitPieceState //Note, on MW3 this is missing 4 bytes, just not sure whats missing yet
-	{
-		/*
-		FxSpatialFrame frame;
-		float radius;
-		float texCoordOrigin[2];
-		unsigned int supportMask;
-		float areaX2;
-		unsigned __int16 lightingIndex;
-		char defIndex;
-		char vertCount;
-		char fanDataCount;
-		*/
-		char pad[52];
-	};
-#pragma pack(pop)
-
-#pragma pack(push, 8)
-	struct FxGlassSystem
-	{
-		int time;
-		int prevTime;
-		unsigned int defCount;
-		unsigned int pieceLimit;
-		unsigned int pieceWordCount;
-		unsigned int initPieceCount;
-		unsigned int cellCount;
-		unsigned int activePieceCount;
-		unsigned int firstFreePiece;
-		unsigned int geoDataLimit;
-		unsigned int geoDataCount;
-		unsigned int initGeoDataCount;
-		FxGlassDef *defs;
-		FxGlassPiecePlace *piecePlaces;
-		FxGlassPieceState *pieceStates;
-		FxGlassPieceDynamics *pieceDynamics;
-		FxGlassGeometryData *geoData;
-		unsigned int *isInUse;
-		unsigned int *cellBits;
-		char *visData;
-		float(*linkOrg)[3];
-		float *halfThickness;
-		unsigned __int16 *lightingHandles;
-		FxGlassInitPieceState *initPieceStates;
-		FxGlassGeometryData *initGeoData;
-		bool needToCompactData;
-		char initCount;
-		float effectChanceAccum;
-		int lastPieceDeletionTime;
-	};
-#pragma pack(pop)
-
-	struct FxWorld
-	{
-		const char * name;
-		FxGlassSystem glassSys;
+		char *entityString;
+		int numEntityChars;
+		MapTriggers trigger;
 	};
 
 	union XAssetHeader
 	{
 		void *data;
-
+		PhysPreset *physPreset;
+		PhysCollmap *physCollmap;
+		XAnimParts *parts;
+		XModelSurfs *modelSurfs;
+		XModel *model;
+		Material *material;
+		MaterialPixelShader *pixelShader;
+		MaterialVertexShader *vertexShader;
+		MaterialVertexDeclaration *vertexDecl;
+		MaterialTechniqueSet *techniqueSet;
+		GfxImage *image;
+		snd_alias_list_t *sound;
+		SndCurve *sndCurve;
+		LoadedSound *loadSnd;
+		clipMap_t *clipMap;
+		ComWorld *comWorld;
+		GameWorldSp *gameWorldSp;
+		GameWorldMp *gameWorldMp;
+		MapEnts *mapEnts;
+		FxWorld *fxWorld;
+		GfxWorld *gfxWorld;
+		GfxLightDef *lightDef;
+		Font_s *font;
 		MenuList *menuList;
 		menuDef_t *menu;
-		Material *material;
-		snd_alias_list_t* sound;
-		LocalizeEntry* localize;
-		StringTable* stringTable;
-		MapEnts* mapEnts;
-		RawFile* rawfile;
-		GfxImage* image;
-		Font* font;
-		MaterialTechniqueSet* techniqueSet;
-		MaterialVertexDeclaration* vertexDecl;
-		MaterialVertexShader* vertexShader;
-		MaterialPixelShader* pixelShader;
-		StructuredDataDefSet* structuredData;
-		XModel* model;
-		PhysPreset* physPreset;
-		PhysCollmap* physCollmap;
-		XModelSurfs* surfaces;
-		XAnimParts* parts;
-		clipMap_t* clipMap;
-		FxEffectDef* fx;
-		GameWorldMp* gameWorldMp;
-		GameWorldSp* gameWorldSp;
-		TracerDef* tracer;
-		VehicleDef* vehicle;
-		FxWorld* fxWorld;
-		GfxWorld* gfxWorld;
-		GfxLightDef* lightDef;
-		SndCurve* sndCurve;
-		LoadedSound* loadSnd;
-		ComWorld* comWorld;
+		LocalizeEntry *localize;
+		WeaponCompleteDef *weapon;
+		SndDriverGlobals *sndDriverGlobals;
+		FxEffectDef *fx;
+		FxImpactTable *impactFx;
+		RawFile *rawfile;
+		StringTable *stringTable;
+		LeaderboardDef *leaderboardDef;
+		StructuredDataDefSet *structuredDataDefSet;
+		TracerDef *tracerDef;
+		VehicleDef *vehDef;
+		AddonMapEnts *addonMapEnts;
 	};
 
 	struct XAsset
@@ -4101,6 +4066,560 @@ namespace Game
 		DWORD unk4;
 		int numParam;
 	};
+
+	enum UILocalVarType
+	{
+		UILOCALVAR_INT = 0x0,
+		UILOCALVAR_FLOAT = 0x1,
+		UILOCALVAR_STRING = 0x2,
+	};
+
+	union $B42A88463653BDCDFC5664844B4491DA
+	{
+		int integer;
+		float value;
+		const char *string;
+	};
+
+	struct UILocalVar
+	{
+		UILocalVarType type;
+		const char *name;
+		$B42A88463653BDCDFC5664844B4491DA u;
+	};
+
+	struct UILocalVarContext
+	{
+		UILocalVar table[256];
+	};
+
+	struct $1942E78D15753E2013144570239460A8
+	{
+		float x;
+		float y;
+		int lastMoveTime;
+	};
+
+	struct UiContext
+	{
+		int localClientNum;
+		float bias;
+		int realTime;
+		int frameTime;
+		$1942E78D15753E2013144570239460A8 cursor;
+		int isCursorVisible;
+		int paintFull;
+		int screenWidth;
+		int screenHeight;
+		float screenAspect;
+		float FPS;
+		float blurRadiusOut;
+		menuDef_t *Menus[640];
+		int menuCount;
+		menuDef_t *menuStack[16];
+		int openMenuCount;
+		UILocalVarContext localVars;
+	};
+
+	struct msg_t
+	{
+		int overflowed;
+		int readOnly;
+		char *data;
+		char *splitData;
+		int maxsize;
+		int cursize;
+		int splitSize;
+		int readcount;
+		int bit;
+		int lastEntityRef;
+	};
+
+	struct XZoneInfo
+	{
+		const char *name;
+		int allocFlags;
+		int freeFlags;
+	};
+
+	enum FsListBehavior_e
+	{
+		FS_LIST_PURE_ONLY = 0x0,
+		FS_LIST_ALL = 0x1,
+	};
+
+	enum netsrc_t
+	{
+		NS_CLIENT1 = 0x0,
+		NS_SERVER = 0x1,
+		NS_MAXCLIENTS = 0x1,
+		NS_PACKET = 0x2,
+	};
+
+	enum netadrtype_t
+	{
+		NA_BOT = 0x0,
+		NA_BAD = 0x1,
+		NA_LOOPBACK = 0x2,
+		NA_BROADCAST = 0x3,
+		NA_IP = 0x4,
+		NA_IPX = 0x5,
+		NA_BROADCAST_IPX = 0x6,
+	};
+
+	typedef union
+	{
+		unsigned char bytes[4];
+		DWORD full;
+	} netIP_t;
+
+	struct netadr_t
+	{
+		netadrtype_t type;
+		//char ip[4];
+		netIP_t ip;
+		unsigned __int16 port;
+		char ipx[10];
+	};
+
+	struct FxEditorElemAtlas
+	{
+		int behavior;
+		int index;
+		int fps;
+		int loopCount;
+		int colIndexBits;
+		int rowIndexBits;
+		int entryCount;
+	};
+
+	struct FxCurve
+	{
+		int dimensionCount;
+		int keyCount;
+		float keys[1];
+	};
+
+	union $81775853B5F1E1C6748A82ED93FC367C
+	{
+		FxElemVisuals visuals[32];
+		FxElemMarkVisuals markVisuals[16];
+	};
+
+	struct FxEditorTrailDef
+	{
+		FxTrailVertex verts[64];
+		int vertCount;
+		unsigned __int16 inds[128];
+		int indCount;
+	};
+
+	struct FxEditorElemDef
+	{
+		char name[48];
+		int editorFlags;
+		int flags;
+		FxFloatRange spawnRange;
+		FxFloatRange fadeInRange;
+		FxFloatRange fadeOutRange;
+		float spawnFrustumCullRadius;
+		FxSpawnDefLooping spawnLooping;
+		FxSpawnDefOneShot spawnOneShot;
+		FxIntRange spawnDelayMsec;
+		FxIntRange lifeSpanMsec;
+		FxFloatRange spawnOrigin[3];
+		FxFloatRange spawnOffsetRadius;
+		FxFloatRange spawnOffsetHeight;
+		FxFloatRange spawnAngles[3];
+		FxFloatRange angularVelocity[3];
+		FxFloatRange initialRotation;
+		FxFloatRange gravity;
+		FxFloatRange elasticity;
+		FxEditorElemAtlas atlas;
+		float velScale[2][3];
+		FxCurve *velShape[2][3][2];
+		float rotationScale;
+		FxCurve *rotationShape[2];
+		float sizeScale[2];
+		FxCurve *sizeShape[2][2];
+		float scaleScale;
+		FxCurve *scaleShape[2];
+		FxCurve *color[2];
+		FxCurve *alpha[2];
+		float lightingFrac;
+		float decalFadeInTime;
+		float collOffset[3];
+		float collRadius;
+		FxEffectDef *effectOnImpact;
+		FxEffectDef *effectOnDeath;
+		int sortOrder;
+		FxEffectDef *emission;
+		FxFloatRange emitDist;
+		FxFloatRange emitDistVariance;
+		char elemType;
+		int visualCount;
+		$81775853B5F1E1C6748A82ED93FC367C ___u42;
+		int trailSplitDist;
+		int trailSplitArcDist;
+		int trailSplitTime;
+		int trailRepeatDist;
+		float trailScrollTime;
+		FxEditorTrailDef trailDef;
+		float sparkFountainGravity;
+		float sparkFountainBounceFrac;
+		float sparkFountainBounceRand;
+		float sparkFountainSparkSpacing;
+		float sparkFountainSparkLength;
+		int sparkFountainSparkCount;
+		float sparkFountainLoopTime;
+		float sparkFountainVelMin;
+		float sparkFountainVelMax;
+		float sparkFountainVelConeAngle;
+		float sparkFountainRestSpeed;
+		float sparkFountainBoostTime;
+		float sparkFountainBoostFactor;
+	};
+
+	struct FxEditorEffectDef
+	{
+		char name[64];
+		int elemCount;
+		FxEditorElemDef elems[32];
+	};
+
+	struct FxElemField
+	{
+		const char *keyName;
+		bool(__cdecl *handler)(const char **, FxEditorElemDef *);
+	};
+
+	enum $18B36A54AD92993D0728595D3504B7CB
+	{
+		FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
+		FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
+		FX_ELEM_TYPE_TAIL = 0x2,
+		FX_ELEM_TYPE_TRAIL = 0x3,
+		FX_ELEM_TYPE_CLOUD = 0x4,
+		FX_ELEM_TYPE_SPARK_CLOUD = 0x5,
+		FX_ELEM_TYPE_SPARK_FOUNTAIN = 0x6,
+		FX_ELEM_TYPE_MODEL = 0x7,
+		FX_ELEM_TYPE_OMNI_LIGHT = 0x8,
+		FX_ELEM_TYPE_SPOT_LIGHT = 0x9,
+		FX_ELEM_TYPE_SOUND = 0xA,
+		FX_ELEM_TYPE_DECAL = 0xB,
+		FX_ELEM_TYPE_RUNNER = 0xC,
+		FX_ELEM_TYPE_COUNT = 0xD,
+		FX_ELEM_TYPE_LAST_SPRITE = 0x3,
+		FX_ELEM_TYPE_LAST_DRAWN = 0x9,
+	};
+
+	struct infoParm_t
+	{
+		char *name;
+		int clearSolid;
+		int surfaceFlags;
+		int contents;
+		int toolFlags;
+	};
+
+	struct GfxImageFileHeader
+	{
+		char tag[3];
+		char version;
+		unsigned int flags;
+		char format;
+		char unused;
+		__int16 dimensions[3];
+		int fileSizeForPicmip[4];
+	};
+
+	enum $1FA877C9772E9F0892A93F52A91453E9
+	{
+		MAPTYPE_NONE = 0x0,
+		MAPTYPE_INVALID1 = 0x1,
+		MAPTYPE_1D = 0x2,
+		MAPTYPE_2D = 0x3,
+		MAPTYPE_3D = 0x4,
+		MAPTYPE_CUBE = 0x5,
+		MAPTYPE_COUNT = 0x6,
+	};
+
+	enum GfxImageFileFormat
+	{
+		IMG_FORMAT_INVALID = 0x0,
+		IMG_FORMAT_BITMAP_RGBA = 0x1,
+		IMG_FORMAT_BITMAP_RGB = 0x2,
+		IMG_FORMAT_BITMAP_LUMINANCE_ALPHA = 0x3,
+		IMG_FORMAT_BITMAP_LUMINANCE = 0x4,
+		IMG_FORMAT_BITMAP_ALPHA = 0x5,
+		IMG_FORMAT_WAVELET_RGBA = 0x6,
+		IMG_FORMAT_WAVELET_RGB = 0x7,
+		IMG_FORMAT_WAVELET_LUMINANCE_ALPHA = 0x8,
+		IMG_FORMAT_WAVELET_LUMINANCE = 0x9,
+		IMG_FORMAT_WAVELET_ALPHA = 0xA,
+		IMG_FORMAT_DXT1 = 0xB,
+		IMG_FORMAT_DXT3 = 0xC,
+		IMG_FORMAT_DXT5 = 0xD,
+		IMG_FORMAT_DXN = 0xE,
+		IMG_FORMAT_DXT3A_AS_LUMINANCE = 0xF,
+		IMG_FORMAT_DXT5A_AS_LUMINANCE = 0x10,
+		IMG_FORMAT_DXT3A_AS_ALPHA = 0x11,
+		IMG_FORMAT_DXT5A_AS_ALPHA = 0x12,
+		IMG_FORMAT_DXT1_AS_LUMINANCE_ALPHA = 0x13,
+		IMG_FORMAT_DXN_AS_LUMINANCE_ALPHA = 0x14,
+		IMG_FORMAT_DXT1_AS_LUMINANCE = 0x15,
+		IMG_FORMAT_DXT1_AS_ALPHA = 0x16,
+		IMG_FORMAT_COUNT = 0x17,
+	};
+
+	enum $25EF9448C800B18F0C83DB367159AFD6
+	{
+		PART_TYPE_NO_QUAT = 0x0,
+		PART_TYPE_HALF_QUAT = 0x1,
+		PART_TYPE_FULL_QUAT = 0x2,
+		PART_TYPE_HALF_QUAT_NO_SIZE = 0x3,
+		PART_TYPE_FULL_QUAT_NO_SIZE = 0x4,
+		PART_TYPE_SMALL_TRANS = 0x5,
+		PART_TYPE_TRANS = 0x6,
+		PART_TYPE_TRANS_NO_SIZE = 0x7,
+		PART_TYPE_NO_TRANS = 0x8,
+		PART_TYPE_ALL = 0x9,
+		PART_TYPE_COUNT = 0xA,
+	};
+
+	enum $EDD38D6A57EF43793B1F773859FC039A
+	{
+		FS_SEEK_CUR = 0x0,
+		FS_SEEK_END = 0x1,
+		FS_SEEK_SET = 0x2,
+	};
+
+#pragma region CUSTOM
+
+	enum itemTextStyle
+	{
+		ITEM_TEXTSTYLE_NORMAL = 0,   // normal text
+		ITEM_TEXTSTYLE_SHADOWED = 3,   // drop shadow ( need a color for this )
+		ITEM_TEXTSTYLE_SHADOWEDMORE = 6,   // drop shadow ( need a color for this )
+		ITEM_TEXTSTYLE_BORDERED = 7,   // border (stroke)
+		ITEM_TEXTSTYLE_BORDEREDMORE = 8,   // more border :P
+		ITEM_TEXTSTYLE_MONOSPACE = 128,
+		ITEM_TEXTSTYLE_MONOSPACESHADOWED = 132,
+	};
+
+	enum $53C66D4FC2874B6934A17E4ED449BCEB
+	{
+		// 		DB_ZONE_COMMON = 0x1,
+		// 		DB_ZONE_UI = 0x2,
+		// 		DB_ZONE_GAME = 0x4,
+		// 		DB_ZONE_LOAD = 0x8,
+		// 		DB_ZONE_DEV = 0x10,
+		// 		DB_ZONE_TRANSIENT = 0x20,
+		DB_ZONE_CODE_LOC = 0x0,
+		DB_ZONE_COMMON_LOC = 0x1,
+		DB_ZONE_CODE = 0x2,
+		DB_ZONE_COMMON = 0x4,
+		DB_ZONE_GAME = 0x8,
+		DB_ZONE_MOD = 0x10,
+		DB_ZONE_LOAD = 0x20,
+		DB_ZONE_DEV = 0x40
+	};
+
+	enum playerFlag
+	{
+		PLAYER_FLAG_NOCLIP = 1 << 0,
+		PLAYER_FLAG_UFO = 1 << 1,
+		PLAYER_FLAG_FROZEN = 1 << 2,
+	};
+
+	typedef struct gclient_s
+	{
+		unsigned char pad[12764];
+		unsigned int team;
+		char pad2[436];
+		int flags;
+		char pad3[724];
+	} gclient_t;
+
+	typedef struct gentity_s
+	{
+		int number;
+		unsigned char pad[308]; // 4
+		float origin[3]; // 312
+		float angles[3]; // 324
+		char pad2[8];
+		gclient_t* client; // 344
+		unsigned char pad3[28];
+		short classname;
+		short pad4;
+		unsigned char pad5[248];
+	} gentity_t;
+
+#pragma pack(push, 1)
+	typedef struct client_s
+	{
+		// 0
+		int state;
+		// 4
+		char pad[36];
+		// 40
+		netadr_t addr;
+		// 60
+		char pad1[1568];
+		// 1628
+		char connectInfoString[1024];
+		// 2652
+		char pad2[133192];
+		// 135844
+		char name[16];
+		// 135860
+		char pad3[12];
+		// 135872
+		int snapNum;
+		// 135876
+		int pad4;
+		// 135880
+		short ping;
+		// 135882
+		//char pad5[142390];
+		char pad5[133158];
+		// 269040
+		int isBot;
+		// 269044
+		char pad6[9228];
+		// 278272
+		unsigned __int64 steamid;
+		// 278280
+		char pad7[403592];
+	} client_t;
+#pragma pack(pop)
+
+	struct CModelAllocData
+	{
+		void* mainArray;
+		void* vertexBuffer;
+		void* indexBuffer;
+	};
+
+	struct CModelSectionHeader
+	{
+		int size;
+		int offset;
+		int fixupStart;
+		int fixupCount;
+		void* buffer;
+	};
+
+	enum CModelSection
+	{
+		SECTION_MAIN = 0,
+		SECTION_INDEX = 1,
+		SECTION_VERTEX = 2,
+		SECTION_FIXUP = 3,
+	};
+
+	struct CModelHeader
+	{
+		int version;
+		unsigned int signature;
+		CModelSectionHeader sectionHeader[4];
+	};
+
+	typedef struct punctuation_s
+	{
+		char *p;						//punctuation character(s)
+		int n;							//punctuation indication
+		struct punctuation_s *next;		//next punctuation
+	} punctuation_t;
+
+#define MAX_TOKEN 1024
+#define MAX_TOKENLENGTH 1024
+
+	typedef struct token_s
+	{
+		char string[MAX_TOKEN];			//available token
+		int type;						//last read token type
+		int subtype;					//last read token sub type
+		unsigned long int intvalue;	//integer value
+		long double floatvalue;			//floating point value
+		char *whitespace_p;				//start of white space before token
+		char *endwhitespace_p;			//start of white space before token
+		int line;						//line the token was on
+		int linescrossed;				//lines crossed in white space
+		struct token_s *next;			//next token in chain
+	} token_t;
+
+	typedef struct script_s
+	{
+		char filename[64];				//file name of the script
+		char *buffer;					//buffer containing the script
+		char *script_p;					//current pointer in the script
+		char *end_p;					//pointer to the end of the script
+		char *lastscript_p;				//script pointer before reading token
+		char *whitespace_p;				//begin of the white space
+		char *endwhitespace_p;			//end of the white space
+		int length;						//length of the script in bytes
+		int line;						//current line in script
+		int lastline;					//line before reading token
+		int tokenavailable;				//set by UnreadLastToken
+		int flags;						//several script flags
+		punctuation_t *punctuations;	//the punctuations used in the script
+		punctuation_t **punctuationtable;
+		token_t token;					//available token
+		struct script_s *next;			//next script in a chain
+	} script_t;
+
+	typedef struct define_s
+	{
+		char *name;							//define name
+		int flags;							//define flags
+		int builtin;						// > 0 if builtin define
+		int numparms;						//number of define parameters
+		token_t *parms;						//define parameters
+		token_t *tokens;					//macro tokens (possibly containing parm tokens)
+		struct define_s *next;				//next defined macro in a list
+		struct define_s *hashnext;			//next define in the hash chain
+	} define_t;
+
+	typedef struct indent_s
+	{
+		int type;								//indent type
+		int skip;								//true if skipping current indent
+		script_t *script;						//script the indent was in
+		struct indent_s *next;					//next indent on the indent stack
+	} indent_t;
+
+	typedef struct source_s
+	{
+		char filename[64];					//file name of the script
+		char includepath[64];					//path to include files
+		punctuation_t *punctuations;			//punctuations to use
+		script_t *scriptstack;					//stack with scripts of the source
+		token_t *tokens;						//tokens to read first
+		define_t *defines;						//list with macro definitions
+		define_t **definehash;					//hash chain with defines
+		indent_t *indentstack;					//stack with indents
+		int skip;								// > 0 if skipping conditional code
+		token_t token;							//last read token
+	} source_t;
+
+	typedef struct pc_token_s
+	{
+		int type;
+		int subtype;
+		int intvalue;
+		float floatvalue;
+		char string[MAX_TOKENLENGTH];
+	} pc_token_t;
+
+	typedef struct keywordHash_s
+	{
+		char *keyword;
+		bool(*func)(menuDef_t *item, int handle);
+		//struct keywordHash_s *next;
+	} keywordHash_t;
+
+#pragma endregion
 
 #ifndef IDA
 }

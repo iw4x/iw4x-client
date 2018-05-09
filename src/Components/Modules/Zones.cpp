@@ -1169,7 +1169,7 @@ namespace Components
 				struct
 				{
 					Game::GfxImageLoadDef* texture;
-					Game::MapType mapType;
+					char mapType;
 					char semantic;
 					char category;
 					char flags;
@@ -1197,18 +1197,19 @@ namespace Components
 				image->mapType = image359.mapType;
 				image->semantic = image359.semantic;
 				image->category = image359.category;
-				image->flags = image359.flags;
-				image->cardMemory = image359.cardMemory;
-				image->dataLen1 = image359.dataLen1;
-				image->dataLen2 = image359.dataLen2;
+				image->useSrgbReads = image359.flags;
+				//image->cardMemory = image359.cardMemory;
+				//image->dataLen1 = image359.dataLen1;
+				//image->dataLen2 = image359.dataLen2;
+				std::memcpy(image->picmip.platform, &image359.cardMemory, sizeof(int) * 3);
 				image->height = image359.height;
 				image->width = image359.width;
 				image->depth = image359.depth;
-				image->loaded = image359.loaded;
+				image->delayLoadPixels = image359.loaded;
 				image->name = image359.name;
 
 				// Used for later stuff
-				image->pad = image359.pad3[1];
+				(&image->delayLoadPixels)[1] = image359.pad3[1];
 			}
 			else
 			{
@@ -1310,21 +1311,21 @@ namespace Components
 			Game::Material* material = reinterpret_cast<Game::Material*>(buffer);
 			memcpy(&material359, material, sizeof(material359));
 
-			material->name = material359.name;
-			material->sortKey = material359.sortKey;
-			material->textureAtlasRowCount = material359.textureAtlasRowCount;
-			material->textureAtlasColumnCount = material359.textureAtlasColumnCount;
-			material->gameFlags = material359.gameFlags;
+			material->info.name = material359.name;
+			material->info.sortKey = material359.sortKey;
+			material->info.textureAtlasRowCount = material359.textureAtlasRowCount;
+			material->info.textureAtlasColumnCount = material359.textureAtlasColumnCount;
+			material->info.gameFlags = material359.gameFlags;
 
 			// Probably wrong
-			material->surfaceTypeBits = 0;//material359.surfaceTypeBits;
+			material->info.surfaceTypeBits = 0;//material359.surfaceTypeBits;
 
 			// Pretty sure that's wrong
 			// Actually, it's not
 			// yes it was lol
-			memcpy(&material->drawSurf.packed, material359.drawSurfBegin, 8);
+			memcpy(&material->info.drawSurf.packed, material359.drawSurfBegin, 8);
 
-			memcpy(&material->surfaceTypeBits, &material359.drawSurf[0], 6); // copies both surfaceTypeBits and hashIndex
+			memcpy(&material->info.surfaceTypeBits, &material359.drawSurf[0], 6); // copies both surfaceTypeBits and hashIndex
 			//material->drawSurf[8] = material359.drawSurf[0];
 			//material->drawSurf[9] = material359.drawSurf[1];
 			//material->drawSurf[10] = material359.drawSurf[2];

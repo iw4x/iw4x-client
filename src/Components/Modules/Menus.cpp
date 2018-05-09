@@ -119,7 +119,7 @@ namespace Components
 		Game::menuDef_t* menu = allocator->allocate<Game::menuDef_t>();
 		if (!menu) return nullptr;
 
-		menu->items = allocator->allocateArray<Game::itemDef_t*>(512);
+		menu->items = allocator->allocateArray<Game::itemDef_s*>(512);
 		if (!menu->items)
 		{
 			allocator->free(menu);
@@ -532,9 +532,9 @@ namespace Components
 			// Replace every old instance with our new one in the ui context
 			for (int j = 0; j < Game::uiContext->menuCount; ++j)
 			{
-				if (Game::uiContext->menus[j] == oldMenu)
+				if (Game::uiContext->Menus[j] == oldMenu)
 				{
-					Game::uiContext->menus[j] = menu;
+					Game::uiContext->Menus[j] = menu;
 				}
 			}
 
@@ -670,7 +670,7 @@ namespace Components
 		int i = 0;
 		for (; i < dc->menuCount; ++i)
 		{
-			if (dc->menus[i] == menu)
+			if (dc->Menus[i] == menu)
 			{
 				break;
 			}
@@ -681,11 +681,11 @@ namespace Components
 		{
 			for (; i < dc->menuCount - 1; ++i)
 			{
-				dc->menus[i] = dc->menus[i + 1];
+				dc->Menus[i] = dc->Menus[i + 1];
 			}
 
 			// Clear last menu
-			dc->menus[--dc->menuCount] = nullptr;
+			dc->Menus[--dc->menuCount] = nullptr;
 		}
 	}
 

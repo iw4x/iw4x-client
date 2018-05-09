@@ -95,7 +95,7 @@ namespace Assets
 		AssertSize(Game::XModelSurfs, 36);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::XModelSurfs* asset = header.surfaces;
+		Game::XModelSurfs* asset = header.modelSurfs;
 		Game::XModelSurfs* dest = buffer->dest<Game::XModelSurfs>();
 		buffer->save(asset);
 
@@ -107,21 +107,21 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->name);
 		}
 
-		if (asset->surfaces)
+		if (asset->surfs)
 		{
 			AssertSize(Game::XSurface, 64);
 
 			buffer->align(Utils::Stream::ALIGN_4);
 
 			Game::XSurface* destSurfaces = buffer->dest<Game::XSurface>();
-			buffer->saveArray(asset->surfaces, asset->numSurfaces);
+			buffer->saveArray(asset->surfs, asset->numsurfs);
 
-			for (int i = 0; i < asset->numSurfaces; ++i)
+			for (int i = 0; i < asset->numsurfs; ++i)
 			{
-				this->saveXSurface(&asset->surfaces[i], &destSurfaces[i], builder);
+				this->saveXSurface(&asset->surfs[i], &destSurfaces[i], builder);
 			}
 
-			Utils::Stream::ClearPointer(&dest->surfaces);
+			Utils::Stream::ClearPointer(&dest->surfs);
 		}
 
 		buffer->popBlock();

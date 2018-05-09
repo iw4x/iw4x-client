@@ -490,10 +490,10 @@ namespace Game
 	typedef void(__cdecl * Playlist_ParsePlaylists_t)(const char* data);
 	extern Playlist_ParsePlaylists_t Playlist_ParsePlaylists;
 
-	typedef Font* (__cdecl * R_RegisterFont_t)(const char* asset, int safe);
+	typedef Font_s* (__cdecl * R_RegisterFont_t)(const char* asset, int safe);
 	extern R_RegisterFont_t R_RegisterFont;
 
-	typedef void(__cdecl * R_AddCmdDrawText_t)(const char *text, int maxChars, Font *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
+	typedef void(__cdecl * R_AddCmdDrawText_t)(const char *text, int maxChars, Font_s *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
 	extern R_AddCmdDrawText_t R_AddCmdDrawText;
 
 	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
@@ -508,10 +508,10 @@ namespace Game
 	typedef void(__cdecl * R_LoadGraphicsAssets_t)();
 	extern R_LoadGraphicsAssets_t R_LoadGraphicsAssets;
 
-	typedef int(__cdecl * R_TextWidth_t)(const char* text, int maxlength, Font* font);
+	typedef int(__cdecl * R_TextWidth_t)(const char* text, int maxlength, Font_s* font);
 	extern R_TextWidth_t R_TextWidth;
 
-	typedef int(__cdecl * R_TextHeight_t)(Font* font);
+	typedef int(__cdecl * R_TextHeight_t)(Font_s* font);
 	extern R_TextHeight_t R_TextHeight;
 
 	typedef void(__cdecl * R_FlushSun_t)();
@@ -712,10 +712,10 @@ namespace Game
 	typedef void* (__cdecl * UI_GetContext_t)(void*);
 	extern UI_GetContext_t UI_GetContext;
 
-	typedef int(__cdecl * UI_TextWidth_t)(const char *text, int maxChars, Font *font, float scale);
+	typedef int(__cdecl * UI_TextWidth_t)(const char *text, int maxChars, Font_s *font, float scale);
 	extern UI_TextWidth_t UI_TextWidth;
 
-	typedef void(__cdecl * UI_DrawText_t)(void* scrPlace, const char *text, int maxChars, Font *font, float x, float y, int horzAlign, int vertAlign, float scale, const float *color, int style);
+	typedef void(__cdecl * UI_DrawText_t)(void* scrPlace, const char *text, int maxChars, Font_s *font, float x, float y, int horzAlign, int vertAlign, float scale, const float *color, int style);
 	extern UI_DrawText_t UI_DrawText;
 
 	typedef const char * (__cdecl * Win_GetLanguage_t)();
@@ -812,7 +812,7 @@ namespace Game
 	extern ScriptContainer* scriptContainer;
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
-	void Menu_FreeItemMemory(Game::itemDef_t* item);
+	void Menu_FreeItemMemory(Game::itemDef_s* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
 	const char* UI_LocalizeMapName(const char* mapName);
 	const char* UI_LocalizeGameType(const char* gameType);

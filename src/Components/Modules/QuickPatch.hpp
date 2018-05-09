@@ -22,7 +22,5 @@ namespace Components
 
 		static int MsgReadBitsCompressCheckSV(const char *from, char *to, int size);
 		static int MsgReadBitsCompressCheckCL(const char *from, char *to, int size);
-
-		static void CompareMaterialStateBits();
 	};
 }

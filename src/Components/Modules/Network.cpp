@@ -148,7 +148,7 @@ namespace Components
 
 	void Network::Send(Network::Address target, std::string data)
 	{
-		Network::Send(Game::netsrc_t::NS_CLIENT, target, data);
+		Network::Send(Game::netsrc_t::NS_CLIENT1, target, data);
 	}
 
 	void Network::SendRaw(Game::netsrc_t type, Network::Address target, std::string data)
@@ -162,7 +162,7 @@ namespace Components
 
 	void Network::SendRaw(Network::Address target, std::string data)
 	{
-		Network::SendRaw(Game::netsrc_t::NS_CLIENT, target, data);
+		Network::SendRaw(Game::netsrc_t::NS_CLIENT1, target, data);
 	}
 
 	void Network::SendCommand(Game::netsrc_t type, Network::Address target, std::string command, std::string data)
@@ -180,7 +180,7 @@ namespace Components
 
 	void Network::SendCommand(Network::Address target, std::string command, std::string data)
 	{
-		Network::SendCommand(Game::netsrc_t::NS_CLIENT, target, command, data);
+		Network::SendCommand(Game::netsrc_t::NS_CLIENT1, target, command, data);
 	}
 
 	void Network::Broadcast(unsigned short port, std::string data)
@@ -191,7 +191,7 @@ namespace Components
 		target.setIP(INADDR_BROADCAST);
 		target.setType(Game::netadrtype_t::NA_BROADCAST);
 
-		Network::Send(Game::netsrc_t::NS_CLIENT, target, data);
+		Network::Send(Game::netsrc_t::NS_CLIENT1, target, data);
 	}
 
 	void Network::BroadcastRange(unsigned int min, unsigned int max, std::string data)

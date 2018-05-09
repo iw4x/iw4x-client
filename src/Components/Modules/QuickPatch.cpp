@@ -100,45 +100,6 @@ namespace Components
 		Game::CL_SelectStringTableEntryInDvar_f();
 	}
 
-	void QuickPatch::CompareMaterialStateBits()
-	{
-		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void* /*unused*/)
-		{
-			bool first = true;
-			Game::Material* material = header.material;
-			Logger::Print(6, "Checking material %s...", material->name);
-			#define COMPARE_TECHNIQUES(x) if(!(material->stateBitsEntry[(Game::MaterialTechniqueType:: ## x)] == material->stateBitsEntry[(Game::MaterialTechniqueType:: ## x ## _DFOG)])) \
-											 { \
-											 	 	if(first) { Logger::Print("\nMismatch in material %s:\n", material->name); first = false; } \
-													Logger::Print(6, #x " != " #x "_DFOG\n"); \
-													Logger::Print("0x02%hhx %hhb\n", material->stateBitsEntry[(Game::MaterialTechniqueType:: ## x)], material->stateBitsEntry[(Game::MaterialTechniqueType:: ## x)]); \
-													Logger::Print("0x02%hhx %hhb\n", material->stateBitsEntry[(Game::MaterialTechniqueType:: ## x ## _DFOG)], material->stateBitsEntry[(Game::MaterialTechniqueType:: ## x ## _DFOG)]); \
-											 }
-			COMPARE_TECHNIQUES(TECHNIQUE_EMISSIVE)
-			COMPARE_TECHNIQUES(TECHNIQUE_EMISSIVE_SHADOW)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_SUN)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_SUN_SHADOW)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_SPOT)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_SPOT_SHADOW)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_OMNI)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_OMNI_SHADOW)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_INSTANCED)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_INSTANCED_SUN)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_INSTANCED_SUN_SHADOW)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_INSTANCED_SPOT)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_INSTANCED_OMNI)
-			COMPARE_TECHNIQUES(TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW)
-			#undef COMPARE_TECHNIQUES
-			if(first)
-			{
-				Logger::Print(6, "no mismatches found\n");
-			}
-
-		}, nullptr, false);
-	}
-
 	QuickPatch::QuickPatch()
 	{
 		QuickPatch::FrameTime = 0;
@@ -427,11 +388,6 @@ namespace Components
 			throw new std::exception();
 		});
 
-		Command::Add("checkmaterials", [](Command::Params*)
-		{
-			QuickPatch::CompareMaterialStateBits();
-		});
-
 		Command::Add("dumptechsets", [](Command::Params* param)
 		{
 			if (param->length() != 2)
@@ -614,7 +570,7 @@ namespace Components
 
 				for (unsigned int i = 0; i < asset.gfxWorld->dpvs.staticSurfaceCount; ++i)
 				{
-					buffer.append(Utils::String::VA("%s\n", asset.gfxWorld->dpvs.surfaces[asset.gfxWorld->dpvs.sortedSurfIndex[i]].material->name));
+					buffer.append(Utils::String::VA("%s\n", asset.gfxWorld->dpvs.surfaces[asset.gfxWorld->dpvs.sortedSurfIndex[i]].material->info.name));
 				}
 
 				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer);
@@ -673,7 +629,7 @@ namespace Components
 
 		Scheduler::OnFrame([]()
 		{
-			if (*reinterpret_cast<Game::Font**>(0x62E4BAC))
+			if (*reinterpret_cast<Game::Font_s**>(0x62E4BAC))
 			{
 				Game::Con_DrawMiniConsole(0, 2, 4, (Game::CL_IsCgameInitialized() ? 1.0f : 0.4f));
 			}

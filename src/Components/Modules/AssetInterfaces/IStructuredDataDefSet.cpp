@@ -27,10 +27,10 @@ namespace Assets
 					Game::StructuredDataEnumEntry* destIndex = &destIndices[j];
 					Game::StructuredDataEnumEntry* index = &enum_->entries[j];
 
-					if (index->name)
+					if (index->string)
 					{
-						buffer->saveString(index->name);
-						Utils::Stream::ClearPointer(&destIndex->name);
+						buffer->saveString(index->string);
+						Utils::Stream::ClearPointer(&destIndex->string);
 					}
 				}
 
@@ -81,7 +81,7 @@ namespace Assets
 		AssertSize(Game::StructuredDataDefSet, 12);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::StructuredDataDefSet* asset = header.structuredData;
+		Game::StructuredDataDefSet* asset = header.structuredDataDefSet;
 		Game::StructuredDataDefSet* dest = buffer->dest<Game::StructuredDataDefSet>();
 		buffer->save(asset);
 

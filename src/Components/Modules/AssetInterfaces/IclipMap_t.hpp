@@ -19,7 +19,7 @@ namespace Assets
 			{
 			}
 
-			SModelQuadtree(Game::cStaticModel_t* modelList, int numModels)
+			SModelQuadtree(Game::cStaticModel_s* modelList, int numModels)
 			{
 				numValues = 0;
 
@@ -29,7 +29,7 @@ namespace Assets
 				}
 			}
 
-			void insert(Game::cStaticModel_t* item)
+			void insert(Game::cStaticModel_s* item)
 			{
 				if (numValues < 4) // add here
 				{
@@ -84,7 +84,7 @@ namespace Assets
 
 		private:
 			SModelQuadtree* children[4];
-			Game::cStaticModel_t* values[4];
+			Game::cStaticModel_s* values[4];
 			int numValues;
 			float x, y, z;
 			float halfX, halfY, halfZ;

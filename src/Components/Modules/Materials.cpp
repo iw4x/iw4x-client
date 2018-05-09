@@ -16,10 +16,10 @@ namespace Components
 		material->textureCount = 1;
 		material->textureTable = texture;
 
-		material->name = Utils::Memory::GetAllocator()->duplicateString(name);
-		material->sortKey = 0x22;
-		material->textureAtlasColumnCount = 1;
-		material->textureAtlasRowCount = 1;
+		material->info.name = Utils::Memory::GetAllocator()->duplicateString(name);
+		material->info.sortKey = 0x22;
+		material->info.textureAtlasColumnCount = 1;
+		material->info.textureAtlasRowCount = 1;
 
 		for (int i = 0; i < 48; ++i)
 		{
@@ -33,13 +33,13 @@ namespace Components
 		material->textureTable->nameHash = Game::R_HashString("colorMap");
 		material->textureTable->nameStart = 'c';
 		material->textureTable->nameEnd = 'p';
-		material->textureTable->sampleState = -30;
-		material->textureTable->info.image = image;
+		material->textureTable->samplerState = -30;
+		material->textureTable->u.image = image;
 
 		Game::Material* cursor = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "ui_cursor").material;
 		if (cursor)
 		{
-			material->stateBitTable = cursor->stateBitTable;
+			material->stateBitsTable = cursor->stateBitsTable;
 			material->stateBitsCount = cursor->stateBitsCount;
 		}
 
@@ -56,12 +56,12 @@ namespace Components
 		{
 			for (char i = 0; i < material->textureCount; ++i)
 			{
-				Materials::DeleteImage(material->textureTable[i].info.image);
+				Materials::DeleteImage(material->textureTable[i].u.image);
 			}
 		}
 
 		Utils::Memory::GetAllocator()->free(material->textureTable);
-		Utils::Memory::GetAllocator()->free(material->name);
+		Utils::Memory::GetAllocator()->free(material->info.name);
 		Utils::Memory::GetAllocator()->free(material);
 
 		auto mat = std::find(Materials::MaterialTable.begin(), Materials::MaterialTable.end(), material);
@@ -126,7 +126,7 @@ namespace Components
 
 		for (char i = 0; i < material->textureCount; ++i)
 		{
-			if (!material->textureTable[i].info.image || !material->textureTable[i].info.image->map)
+			if (!material->textureTable[i].u.image || !material->textureTable[i].u.image->texture.map)
 			{
 				return false;
 			}
@@ -207,10 +207,10 @@ namespace Components
 			material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
 		}
 
-		int length = strlen(material->name);
+		int length = strlen(material->info.name);
 		string[offset++] = static_cast<char>(length);
 
-		strncpy_s(string + offset, 1024 - offset, material->name, length);
+		strncpy_s(string + offset, 1024 - offset, material->info.name, length);
 
 		return offset + length;
 	}
@@ -322,7 +322,7 @@ namespace Components
 			for (auto& image : Materials::ImageTable)
 			{
 				Game::Image_Release(image);
-				image->map = nullptr;
+				image->texture.map = nullptr;
 			}
 		});
 

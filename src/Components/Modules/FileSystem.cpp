@@ -65,16 +65,16 @@ namespace Components
 		if (!this->exists()) return std::string();
 
 		int position = Game::FS_FTell(this->handle);
-		this->seek(0, FS_SEEK_SET);
+		this->seek(0, Game::FS_SEEK_SET);
 
 		char* buffer = allocator.allocateArray<char>(this->size);
 		if (!this->read(buffer, this->size))
 		{
-			this->seek(position, FS_SEEK_SET);
+			this->seek(position, Game::FS_SEEK_SET);
 			return std::string();
 		}
 
-		this->seek(position, FS_SEEK_SET);
+		this->seek(position, Game::FS_SEEK_SET);
 
 		return std::string(buffer, this->size);
 	}

@@ -159,11 +159,11 @@ namespace Components
 
 			// Get item cursor position ptr
 			mov ecx, ebx
-			add ecx, Game::itemDef_t::cursorPos
+			add ecx, Game::itemDef_s::cursorPos
 
 			// Get item listbox ptr
 			mov edx, ebx
-			add edx, Game::itemDef_t::typeData
+			add edx, Game::itemDef_s::typeData
 
 			// Get listbox cursor pos
 			mov edx, [edx]
@@ -262,10 +262,10 @@ namespace Components
 			{
 				for (int i = 0; i < menu->itemCount; ++i)
 				{
-					Game::itemDef_t* item = menu->items[i];
+					Game::itemDef_s* item = menu->items[i];
 					if (item && item->type == 6 && item->special == feeder)
 					{
-						item->cursorPos = static_cast<int>(index);
+						item->cursorPos[0] = static_cast<int>(index);
 						break;
 					}
 				}

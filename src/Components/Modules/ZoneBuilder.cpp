@@ -728,16 +728,16 @@ namespace Components
 		void* data = Utils::Memory::GetAllocator()->allocate(size);
 		std::memcpy(data, *loadDef, size);
 
-		image->loadDef = reinterpret_cast<Game::GfxImageLoadDef *>(data);
+		image->texture.loadDef = reinterpret_cast<Game::GfxImageLoadDef *>(data);
 
 		return 0;
 	}
 
 	void ZoneBuilder::ReleaseTexture(Game::XAssetHeader header)
 	{
-		if (header.image && header.image->loadDef)
+		if (header.image && header.image->texture.loadDef)
 		{
-			Utils::Memory::GetAllocator()->free(header.image->loadDef);
+			Utils::Memory::GetAllocator()->free(header.image->texture.loadDef);
 		}
 	}
 
@@ -771,24 +771,24 @@ namespace Components
 	}
 
 	static Game::XZoneInfo baseZones_old[] = {
-		{ "code_pre_gfx_mp", Game::ZoneAllocFlags::DB_ZONE_CODE, 0 },
-		{ "localized_code_pre_gfx_mp", Game::ZoneAllocFlags::DB_ZONE_CODE_LOC, 0 },
-		{ "code_post_gfx_mp", Game::ZoneAllocFlags::DB_ZONE_CODE, 0 },
-		{ "localized_code_post_gfx_mp", Game::ZoneAllocFlags::DB_ZONE_CODE_LOC, 0 },
-		{ "common_mp", Game::ZoneAllocFlags::DB_ZONE_COMMON, 0 },
-		{ "localized_common_mp", Game::ZoneAllocFlags::DB_ZONE_COMMON_LOC, 0 },
-		{ "ui_mp", Game::ZoneAllocFlags::DB_ZONE_GAME, 0 },
-		{ "localized_ui_mp", Game::ZoneAllocFlags::DB_ZONE_GAME, 0 }
+		{ "code_pre_gfx_mp", Game::DB_ZONE_CODE, 0 },
+		{ "localized_code_pre_gfx_mp", Game::DB_ZONE_CODE_LOC, 0 },
+		{ "code_post_gfx_mp", Game::DB_ZONE_CODE, 0 },
+		{ "localized_code_post_gfx_mp", Game::DB_ZONE_CODE_LOC, 0 },
+		{ "common_mp", Game::DB_ZONE_COMMON, 0 },
+		{ "localized_common_mp", Game::DB_ZONE_COMMON_LOC, 0 },
+		{ "ui_mp", Game::DB_ZONE_GAME, 0 },
+		{ "localized_ui_mp", Game::DB_ZONE_GAME, 0 }
 	};
 
 
 	static Game::XZoneInfo baseZones[] = {
-		{ "defaults", Game::ZoneAllocFlags::DB_ZONE_CODE, 0 },
-		{ "techsets",  Game::ZoneAllocFlags::DB_ZONE_CODE, 0 },
-		{ "common_mp",  Game::ZoneAllocFlags::DB_ZONE_COMMON, 0 },
-		{ "localized_common_mp",  Game::ZoneAllocFlags::DB_ZONE_COMMON_LOC, 0 },
-		{ "ui_mp",  Game::ZoneAllocFlags::DB_ZONE_GAME, 0 },
-		{ "localized_ui_mp",  Game::ZoneAllocFlags::DB_ZONE_GAME, 0 }
+		{ "defaults", Game::DB_ZONE_CODE, 0 },
+		{ "techsets",  Game::DB_ZONE_CODE, 0 },
+		{ "common_mp",  Game::DB_ZONE_COMMON, 0 },
+		{ "localized_common_mp",  Game::DB_ZONE_COMMON_LOC, 0 },
+		{ "ui_mp",  Game::DB_ZONE_GAME, 0 },
+		{ "localized_ui_mp",  Game::DB_ZONE_GAME, 0 }
 	};
 
 	int __stdcall ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
@@ -972,7 +972,7 @@ namespace Components
 				if (name[0] == ',') name = name.substr(1);
 				if (name == header.material->techniqueSet->name)
 				{
-					ret = header.material->name;
+					ret = header.material->info.name;
 					replacementFound = true;
 				}
 			}
@@ -1115,7 +1115,7 @@ namespace Components
 
 				Game::XZoneInfo info;
 				info.name = zone.data();
-				info.allocFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+				info.allocFlags = Game::DB_ZONE_MOD;
 				info.freeFlags = 0;
 
 				Logger::Print("Loading zone '%s'...\n", zone.data());
@@ -1126,7 +1126,7 @@ namespace Components
 				auto assets = ZoneBuilder::EndAssetTrace();
 
 				Logger::Print("Unloading zone '%s'...\n", zone.data());
-				info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+				info.freeFlags = Game::DB_ZONE_MOD;
 				info.allocFlags = 0;
 				info.name = nullptr;
 
@@ -1222,7 +1222,7 @@ namespace Components
 					// load the zone
 					Game::XZoneInfo info;
 					info.name = zone.c_str();
-					info.allocFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+					info.allocFlags = Game::DB_ZONE_MOD;
 					info.freeFlags = 0x0;
 					Game::DB_LoadXAssets(&info, 1, 0);
 
@@ -1234,7 +1234,7 @@ namespace Components
 						// unload zone
 						info.name = nullptr;
 						info.allocFlags = 0x0;
-						info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+						info.freeFlags = Game::DB_ZONE_MOD;
 						Game::DB_LoadXAssets(&info, 1, true);
 						continue;
 					}
@@ -1265,7 +1265,7 @@ namespace Components
 					// unload original zone
 					info.name = nullptr;
 					info.allocFlags = 0x0;
-					info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+					info.freeFlags = Game::DB_ZONE_MOD;
 					Game::DB_LoadXAssets(&info, 1, true);
 
 					while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(10ms); // wait till its fully loaded
@@ -1299,7 +1299,7 @@ namespace Components
 					{
 						Game::XZoneInfo info;
 						info.name = it.data();
-						info.allocFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+						info.allocFlags = Game::DB_ZONE_MOD;
 						info.freeFlags = 0;
 
 						Game::DB_LoadXAssets(&info, 1, 0);
@@ -1339,7 +1339,7 @@ namespace Components
 						Game::XZoneInfo info;
 						info.name = nullptr;
 						info.allocFlags = 0x0;
-						info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+						info.freeFlags = Game::DB_ZONE_MOD;
 						Game::DB_LoadXAssets(&info, 1, true);
 
 						Utils::Hook::Set<char*>(0x649E740, "techsets");
@@ -1384,7 +1384,7 @@ namespace Components
 					Game::XZoneInfo info;
 					info.name = nullptr;
 					info.allocFlags = 0x0;
-					info.freeFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+					info.freeFlags = Game::DB_ZONE_MOD;
 					Game::DB_LoadXAssets(&info, 1, true);
 
 					subCount++;
@@ -1403,7 +1403,7 @@ namespace Components
 				{
 					Game::XZoneInfo info;
 					info.name = Utils::String::VA("techsets%d", j);
-					info.allocFlags = Game::ZoneAllocFlags::DB_ZONE_MOD;
+					info.allocFlags = Game::DB_ZONE_MOD;
 					info.freeFlags = 0;
 
 					Game::DB_LoadXAssets(&info, 1, 0);
@@ -1477,7 +1477,7 @@ namespace Components
 			{
 				Game::DB_EnumXAssets(Game::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void*)
 				{
-					Logger::Print("%s: %X %X %X\n", header.material->name, header.material->sortKey & 0xFF, header.material->gameFlags & 0xFF, header.material->stateFlags & 0xFF);
+					Logger::Print("%s: %X %X %X\n", header.material->info.name, header.material->info.sortKey & 0xFF, header.material->info.gameFlags & 0xFF, header.material->stateFlags & 0xFF);
 				}, nullptr, false);
 			});
 

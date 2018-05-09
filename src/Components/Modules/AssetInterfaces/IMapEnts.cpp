@@ -39,8 +39,9 @@ namespace Assets
 			{
 				entites->stageCount = 1;
 				entites->stages = builder->getAllocator()->allocate<Game::Stage>();
-				entites->stages[0].stageName = "stage 0";
-				entites->stages[0].flags = 0x10400;
+				entites->stages[0].name = "stage 0";
+				entites->stages[0].triggerIndex = 0x400;
+				entites->stages[0].sunPrimaryLightIndex = 0x1;
 			}
 
 			std::string entityString = ents.getBuffer();
@@ -92,7 +93,7 @@ namespace Assets
 			AssertSize(Game::TriggerModel, 8);
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->trigger.models, asset->trigger.modelCount);
+			buffer->saveArray(asset->trigger.models, asset->trigger.count);
 			Utils::Stream::ClearPointer(&dest->trigger.models);
 		}
 
@@ -128,10 +129,10 @@ namespace Assets
 				Game::Stage* destStage = &destStages[i];
 				Game::Stage* stage = &asset->stages[i];
 
-				if (stage->stageName)
+				if (stage->name)
 				{
-					buffer->saveString(stage->stageName);
-					Utils::Stream::ClearPointer(&destStage->stageName);
+					buffer->saveString(stage->name);
+					Utils::Stream::ClearPointer(&destStage->name);
 				}
 			}
 
