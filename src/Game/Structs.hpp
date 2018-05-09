@@ -23,51 +23,54 @@ namespace Game
 
 	typedef enum
 	{
-		ASSET_TYPE_PHYSPRESET = 0,
-		ASSET_TYPE_PHYS_COLLMAP = 1,
-		ASSET_TYPE_XANIMPARTS = 2,
-		ASSET_TYPE_XMODELSURFS = 3,
-		ASSET_TYPE_XMODEL = 4,
-		ASSET_TYPE_MATERIAL = 5,
-		ASSET_TYPE_PIXELSHADER = 6,
-		ASSET_TYPE_VERTEXSHADER = 7,
-		ASSET_TYPE_VERTEXDECL = 8,
-		ASSET_TYPE_TECHNIQUE_SET = 9,
-		ASSET_TYPE_IMAGE = 10,
-		ASSET_TYPE_SOUND = 11,
-		ASSET_TYPE_SOUND_CURVE = 12,
-		ASSET_TYPE_LOADED_SOUND = 13,
-		ASSET_TYPE_CLIPMAP = 14,
-		ASSET_TYPE_CLIPMAP_PVS = 15,
-		ASSET_TYPE_COMWORLD = 16,
-		ASSET_TYPE_GAMEWORLD_SP = 17,
-		ASSET_TYPE_GAMEWORLD_MP = 18,
-		ASSET_TYPE_MAP_ENTS = 19,
-		ASSET_TYPE_FX_MAP = 20,
-		ASSET_TYPE_GFXWORLD = 21,
-		ASSET_TYPE_LIGHT_DEF = 22,
-		ASSET_TYPE_UI_MAP = 23,
-		ASSET_TYPE_FONT = 24,
-		ASSET_TYPE_MENULIST = 25,
-		ASSET_TYPE_MENU = 26,
-		ASSET_TYPE_LOCALIZE_ENTRY = 27,
-		ASSET_TYPE_WEAPON = 28,
-		ASSET_TYPE_SNDDRIVER_GLOBALS = 29,
-		ASSET_TYPE_FX = 30,
-		ASSET_TYPE_IMPACT_FX = 31,
-		ASSET_TYPE_AITYPE = 32,
-		ASSET_TYPE_MPTYPE = 33,
-		ASSET_TYPE_CHARACTER = 34,
-		ASSET_TYPE_XMODELALIAS = 35,
-		ASSET_TYPE_RAWFILE = 36,
-		ASSET_TYPE_STRINGTABLE = 37,
-		ASSET_TYPE_LEADERBOARDDEF = 38,
-		ASSET_TYPE_STRUCTUREDDATADEF = 39,
-		ASSET_TYPE_TRACER = 40,
-		ASSET_TYPE_VEHICLE = 41,
-		ASSET_TYPE_ADDON_MAP_ENTS = 42,
-
-		ASSET_TYPE_COUNT,
+		enum XAssetType
+	{
+		ASSET_TYPE_PHYSPRESET = 0x0,
+		ASSET_TYPE_PHYSCOLLMAP = 0x1,
+		ASSET_TYPE_XANIMPARTS = 0x2,
+		ASSET_TYPE_XMODEL_SURFS = 0x3,
+		ASSET_TYPE_XMODEL = 0x4,
+		ASSET_TYPE_MATERIAL = 0x5,
+		ASSET_TYPE_PIXELSHADER = 0x6,
+		ASSET_TYPE_VERTEXSHADER = 0x7,
+		ASSET_TYPE_VERTEXDECL = 0x8,
+		ASSET_TYPE_TECHNIQUE_SET = 0x9,
+		ASSET_TYPE_IMAGE = 0xA,
+		ASSET_TYPE_SOUND = 0xB,
+		ASSET_TYPE_SOUND_CURVE = 0xC,
+		ASSET_TYPE_LOADED_SOUND = 0xD,
+		ASSET_TYPE_CLIPMAP_SP = 0xE,
+		ASSET_TYPE_CLIPMAP_MP = 0xF,
+		ASSET_TYPE_COMWORLD = 0x10,
+		ASSET_TYPE_GAMEWORLD_SP = 0x11,
+		ASSET_TYPE_GAMEWORLD_MP = 0x12,
+		ASSET_TYPE_MAP_ENTS = 0x13,
+		ASSET_TYPE_FXWORLD = 0x14,
+		ASSET_TYPE_GFXWORLD = 0x15,
+		ASSET_TYPE_LIGHT_DEF = 0x16,
+		ASSET_TYPE_UI_MAP = 0x17,
+		ASSET_TYPE_FONT = 0x18,
+		ASSET_TYPE_MENULIST = 0x19,
+		ASSET_TYPE_MENU = 0x1A,
+		ASSET_TYPE_LOCALIZE_ENTRY = 0x1B,
+		ASSET_TYPE_WEAPON = 0x1C,
+		ASSET_TYPE_SNDDRIVER_GLOBALS = 0x1D,
+		ASSET_TYPE_FX = 0x1E,
+		ASSET_TYPE_IMPACT_FX = 0x1F,
+		ASSET_TYPE_AITYPE = 0x20,
+		ASSET_TYPE_MPTYPE = 0x21,
+		ASSET_TYPE_CHARACTER = 0x22,
+		ASSET_TYPE_XMODELALIAS = 0x23,
+		ASSET_TYPE_RAWFILE = 0x24,
+		ASSET_TYPE_STRINGTABLE = 0x25,
+		ASSET_TYPE_LEADERBOARD = 0x26,
+		ASSET_TYPE_STRUCTURED_DATA_DEF = 0x27,
+		ASSET_TYPE_TRACER = 0x28,
+		ASSET_TYPE_VEHICLE = 0x29,
+		ASSET_TYPE_ADDON_MAP_ENTS = 0x2A,
+		ASSET_TYPE_COUNT = 0x2B,
+		ASSET_TYPE_STRING = 0x2B,
+		ASSET_TYPE_ASSETLIST = 0x2C,
 		ASSET_TYPE_INVALID = -1,
 	} XAssetType;
 
@@ -105,48 +108,70 @@ namespace Game
 
 	typedef enum
 	{
-		DVAR_TYPE_BOOL = 0,
-		DVAR_TYPE_FLOAT = 1,
-		DVAR_TYPE_FLOAT_2 = 2,
-		DVAR_TYPE_FLOAT_3 = 3,
-		DVAR_TYPE_FLOAT_4 = 4,
-		DVAR_TYPE_INT = 5,
-		DVAR_TYPE_ENUM = 6,
-		DVAR_TYPE_STRING = 7,
-		DVAR_TYPE_COLOR = 8,
-		//DVAR_TYPE_INT64	= 9 only in Tx
+		DVAR_TYPE_BOOL = 0x0,
+		DVAR_TYPE_FLOAT = 0x1,
+		DVAR_TYPE_FLOAT_2 = 0x2,
+		DVAR_TYPE_FLOAT_3 = 0x3,
+		DVAR_TYPE_FLOAT_4 = 0x4,
+		DVAR_TYPE_INT = 0x5,
+		DVAR_TYPE_ENUM = 0x6,
+		DVAR_TYPE_STRING = 0x7,
+		DVAR_TYPE_COLOR = 0x8,
+		DVAR_TYPE_FLOAT_3_COLOR = 0x9,
+		DVAR_TYPE_COUNT = 0xA,
 	} dvar_type;
-	// 67/72 bytes figured out
-	union dvar_value_t {
-		char*	string;
-		int		integer;
-		float	value;
-		bool	boolean;
-		float	vec2[2];
-		float	vec3[3];
-		float	vec4[4];
-		unsigned char	color[4]; //to get float: multiply by 0.003921568859368563 - BaberZz
-		//__int64 integer64; only in Tx
+
+	union DvarValue
+	{
+		bool enabled;
+		int integer;
+		unsigned int unsignedInt;
+		float value;
+		float vector[4];
+		const char *string;
+		char color[4];
 	};
-	union dvar_maxmin_t {
-		int i;
-		float f;
+
+	union DvarLimits
+	{
+		struct StringLimit
+		{
+			int stringCount;
+			const char **strings;
+		};
+
+		struct IntLimit
+		{
+			int min;
+			int max;
+		};
+
+		struct FloatLimit
+		{
+			float min;
+			float max;
+		};
+
+		StringLimit enumeration;
+		IntLimit integer;
+		FloatLimit value;
+		FloatLimit vector;
 	};
+
 	typedef struct dvar_t
 	{
-		//startbyte:endbyte
-		const char* name; //0:3
-		const char*	description; //4:7
-		unsigned int flags; //8:11
-		char type; //12:12
-		bool modified; //13:15
-		dvar_value_t current; //16:31
-		dvar_value_t latched; //32:47
-		dvar_value_t _default; //48:64
-		dvar_maxmin_t min; //65:67
-		dvar_maxmin_t max; //68:72 woooo
-		bool(*callback)(dvar_t* dvar, dvar_value_t value);
-	} dvar_t;
+		const char *name;
+		const char *description;
+		unsigned int flags;
+		char type;
+		bool modified;
+		DvarValue current;
+		DvarValue latched;
+		DvarValue reset;
+		DvarLimits domain;
+		bool(__cdecl *domainFunc)(dvar_t *, DvarValue);
+		dvar_t *hashNext;
+	};
 
 	typedef struct cmd_function_s
 	{
@@ -155,7 +180,7 @@ namespace Game
 		const char *autoCompleteDir;
 		const char *autoCompleteExt;
 		void(__cdecl *function)();
-		bool isKey; // Looks like this is true when the command is a key/button
+		int flags;
 	} cmd_function_t;
 
 #pragma pack(push, 4)
