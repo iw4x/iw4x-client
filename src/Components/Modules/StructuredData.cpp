@@ -174,7 +174,7 @@ namespace Components
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string filename, bool* /*restrict*/)
 		{
 			// Only intercept playerdatadef loading
-			if (type != Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF || filename != "mp/playerdata.def") return;
+			if (type != Game::XAssetType::ASSET_TYPE_STRUCTURED_DATA_DEF || filename != "mp/playerdata.def") return;
 
 			// Store asset
 			Game::StructuredDataDefSet* data = asset.structuredData;

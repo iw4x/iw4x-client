@@ -186,7 +186,7 @@ namespace Assets
 	}
 	void IFxWorld::load(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
-		Game::FxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FX_MAP, name.data()).fxWorld;
+		Game::FxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FXWORLD, name.data()).fxWorld;
 		if (map) return;
 
 		Components::Logger::Error("Missing fx_map %s... you can't make them yet you idiot.", name.data());

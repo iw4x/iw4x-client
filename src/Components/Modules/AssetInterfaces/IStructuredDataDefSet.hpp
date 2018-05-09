@@ -5,7 +5,7 @@ namespace Assets
 	class IStructuredDataDefSet : public Components::AssetHandler::IAsset
 	{
 	public:
-		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_STRUCTUREDDATADEF; };
+		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_STRUCTURED_DATA_DEF; };
 
 		virtual void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 

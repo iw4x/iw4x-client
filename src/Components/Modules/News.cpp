@@ -132,7 +132,7 @@ namespace Components
 			else return;
 
 			Dvar::Var("cl_updateversion").get<Game::dvar_t*>()->current.integer = revisionNumber;
-			Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean = (revisionNumber > REVISION);
+			Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.enabled = (revisionNumber > REVISION);
 
 			// if there is an update then show the toast, but only once
 			static bool showToast = true;
@@ -231,7 +231,7 @@ namespace Components
 
 		Command::Add("getautoupdate", [](Command::Params*)
 		{
-			if (!Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.boolean) return;
+			if (!Dvar::Var("cl_updateavailable").get<Game::dvar_t*>()->current.enabled) return;
 			News::LaunchUpdater("-update -c");
 		});
 

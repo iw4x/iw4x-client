@@ -519,7 +519,7 @@ namespace Components
 		if (ZoneBuilder::IsEnabled())
 		{
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODELSURFS, 8192);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, 8192);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FONT, 32);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_RAWFILE, 2048);

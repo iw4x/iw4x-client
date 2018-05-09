@@ -24,7 +24,7 @@ namespace Components
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING && this->dvar->current.string)
 		{
-			return this->dvar->current.string;
+			return const_cast<char*>(this->dvar->current.string);
 		}
 
 		return "";
@@ -61,7 +61,7 @@ namespace Components
 
 		if (this->dvar && (this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_2 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_3 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_4))
 		{
-			return this->dvar->current.vec4;
+			return this->dvar->current.vector;
 		}
 
 		return val;
@@ -70,7 +70,7 @@ namespace Components
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
 		{
-			return this->dvar->current.boolean;
+			return this->dvar->current.enabled;
 		}
 
 		return false;

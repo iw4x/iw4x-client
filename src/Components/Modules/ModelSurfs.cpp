@@ -235,7 +235,7 @@ namespace Components
 
 	void ModelSurfs::EndRecover()
 	{
-		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_XMODELSURFS, [](Game::XAssetHeader header, void* /*userdata*/)
+		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, [](Game::XAssetHeader header, void* /*userdata*/)
 		{
 			ModelSurfs::CreateBuffers(header.surfaces);
 		}, nullptr, false);
@@ -329,7 +329,7 @@ namespace Components
 		ModelSurfs::BufferMap.clear();
 
 		// Install release handler
-		Game::DB_ReleaseXAssetHandlers[Game::XAssetType::ASSET_TYPE_XMODELSURFS] = ModelSurfs::ReleaseModelSurf;
+		Game::DB_ReleaseXAssetHandlers[Game::XAssetType::ASSET_TYPE_XMODEL_SURFS] = ModelSurfs::ReleaseModelSurf;
 
 		// Install device recovery handlers
 		Renderer::OnDeviceRecoveryBegin(ModelSurfs::BeginRecover);

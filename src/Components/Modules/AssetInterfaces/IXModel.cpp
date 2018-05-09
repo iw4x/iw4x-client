@@ -166,7 +166,7 @@ namespace Assets
 					{
 						asset->lodInfo[i].modelSurfs = reader.readObject<Game::XModelSurfs>();
 						this->loadXModelSurfs(asset->lodInfo[i].modelSurfs, &reader);
-						Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, { asset->lodInfo[i].modelSurfs });
+						Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, { asset->lodInfo[i].modelSurfs });
 
 						asset->lodInfo[i].surfs = asset->lodInfo[i].modelSurfs->surfaces;
 
@@ -292,7 +292,7 @@ namespace Assets
 						}
 					}
 
-					Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, { asset->physCollmap });
+					Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP, { asset->physCollmap });
 					//asset->physCollmap = nullptr;
 				}
 			}
@@ -333,7 +333,7 @@ namespace Assets
 		{
 			if (asset->lodInfo[i].modelSurfs)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lodInfo[i].modelSurfs);
+				builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, asset->lodInfo[i].modelSurfs);
 			}
 		}
 
@@ -344,7 +344,7 @@ namespace Assets
 
 		if (asset->physCollmap)
 		{
-			builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap);
+			builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP, asset->physCollmap);
 		}
 	}
 
@@ -441,7 +441,7 @@ namespace Assets
 			{
 				if (asset->lodInfo[i].modelSurfs)
 				{
-					dest->lodInfo[i].modelSurfs = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODELSURFS, asset->lodInfo[i].modelSurfs).surfaces;
+					dest->lodInfo[i].modelSurfs = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, asset->lodInfo[i].modelSurfs).surfaces;
 				}
 			}
 		}
@@ -490,7 +490,7 @@ namespace Assets
 
 		if (asset->physCollmap)
 		{
-			dest->physCollmap = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP, asset->physCollmap).physCollmap;
+			dest->physCollmap = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP, asset->physCollmap).physCollmap;
 		}
 
 		buffer->popBlock();

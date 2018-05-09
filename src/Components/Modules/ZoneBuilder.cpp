@@ -1060,9 +1060,9 @@ namespace Components
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
 
 			// change fs_game domain func
-			Utils::Hook::Set<int(*)(Game::dvar_t*, Game::dvar_value_t)>(0x643203, [](Game::dvar_t* dvar, Game::dvar_value_t value)
+			Utils::Hook::Set<int(*)(Game::dvar_t*, Game::DvarValue)>(0x643203, [](Game::dvar_t* dvar, Game::DvarValue value)
 			{
-				int result = Utils::Hook::Call<int(Game::dvar_t*, Game::dvar_value_t)>(0x642FC0)(dvar, value);
+				int result = Utils::Hook::Call<int(Game::dvar_t*, Game::DvarValue)>(0x642FC0)(dvar, value);
 
 				if(result)
 				{

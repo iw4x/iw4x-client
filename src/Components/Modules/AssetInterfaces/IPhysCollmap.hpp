@@ -5,7 +5,7 @@ namespace Assets
 	class IPhysCollmap : public Components::AssetHandler::IAsset
 	{
 	public:
-		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_PHYS_COLLMAP; };
+		virtual Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP; };
 
 		virtual void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 

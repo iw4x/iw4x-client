@@ -21,9 +21,7 @@ namespace Game
 	typedef unsigned int scr_entref_t;
 	typedef void(__cdecl * scr_function_t)(scr_entref_t);
 
-	typedef enum
-	{
-		enum XAssetType
+	enum XAssetType
 	{
 		ASSET_TYPE_PHYSPRESET = 0x0,
 		ASSET_TYPE_PHYSCOLLMAP = 0x1,
@@ -72,7 +70,7 @@ namespace Game
 		ASSET_TYPE_STRING = 0x2B,
 		ASSET_TYPE_ASSETLIST = 0x2C,
 		ASSET_TYPE_INVALID = -1,
-	} XAssetType;
+	};
 
 	typedef enum
 	{
@@ -158,7 +156,7 @@ namespace Game
 		FloatLimit vector;
 	};
 
-	typedef struct dvar_t
+	struct dvar_t
 	{
 		const char *name;
 		const char *description;

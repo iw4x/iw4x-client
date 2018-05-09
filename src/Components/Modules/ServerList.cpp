@@ -674,7 +674,7 @@ namespace Components
 
 		int source = netSource.get<int>();
 
-		if (++source > netSource.get<Game::dvar_t*>()->max.i)
+		if (++source > netSource.get<Game::dvar_t*>()->domain.integer.max)
 		{
 			source = 0;
 		}
