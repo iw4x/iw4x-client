@@ -444,6 +444,13 @@ workspace "iw4x"
 		udis86.project()
 		iw4mvm.project()
 		dht.project()
+		
+workspace "*"
+	buildoptions {
+				"/std:c++latest"
+			}
+	systemversion "10.0.16299.0"
+	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"
