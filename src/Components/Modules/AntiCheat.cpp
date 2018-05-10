@@ -329,40 +329,30 @@ namespace Components
 
 	void AntiCheat::PatchWinAPI()
 	{
-		AntiCheat::UninstallLibHook();
+		LibUnlocker _;
 
 		// Initialize directx
 		Utils::Hook::Call<void()>(0x5078C0)();
-
-		AntiCheat::InstallLibHook();
 	}
 
 	void AntiCheat::SoundInitStub(int a1, int a2, int a3)
 	{
-		AntiCheat::UninstallLibHook();
-
+		LibUnlocker _;
 		Game::SND_Init(a1, a2, a3);
-
-		AntiCheat::InstallLibHook();
 	}
 
 	void AntiCheat::SoundInitDriverStub()
 	{
-		AntiCheat::UninstallLibHook();
-
+		LibUnlocker _;
 		Game::SND_InitDriver();
-
-		AntiCheat::InstallLibHook();
 	}
 
 	void AntiCheat::LostD3DStub()
 	{
-		AntiCheat::UninstallLibHook();
+		LibUnlocker _;
 
 		// Reset directx
 		Utils::Hook::Call<void()>(0x508070)();
-
-		AntiCheat::InstallLibHook();
 	}
 
 	__declspec(naked) void AntiCheat::CinematicStub()

@@ -20,6 +20,19 @@ namespace Components
 		AntiCheat();
 		~AntiCheat();
 
+		class LibUnlocker
+		{
+		public:
+			LibUnlocker()
+			{
+				UninstallLibHook();
+			}
+			~LibUnlocker()
+			{
+				InstallLibHook();
+			}
+		};
+
 		static void CrashClient();
 
 		static void InitLoadLibHook();

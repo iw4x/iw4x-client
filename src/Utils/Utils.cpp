@@ -123,11 +123,21 @@ namespace Utils
 
 	void SafeShellExecute(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd)
 	{
-		__try
+#ifndef DISABLE_ANTICHEAT
+		Components::AntiCheat::LibUnlocker _;
+#endif
+
+		[=]()
 		{
-			ShellExecuteA(hwnd, lpOperation, lpFile, lpParameters, lpDirectory, nShowCmd);
-		}
-		__finally {}
+			__try
+			{
+				ShellExecuteA(hwnd, lpOperation, lpFile, lpParameters, lpDirectory, nShowCmd);
+			}
+			__finally
+			{}
+		}();
+
+		std::this_thread::yield();
 	}
 
 	void OpenUrl(std::string url)
