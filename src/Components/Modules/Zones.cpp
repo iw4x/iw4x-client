@@ -1178,8 +1178,8 @@ namespace Components
 					int dataLen1;
 					int dataLen2;
 					char pad2[4]; // ?
-					short height;
 					short width;
+					short height;
 					short depth;
 					char loaded;
 					char pad3[5];

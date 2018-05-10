@@ -18,11 +18,6 @@ namespace Assets
 
 		image->name = builder->getAllocator()->duplicateString(name);
 		image->semantic = 2;
-		image->category = 0;
-		image->picmip.platform[0] = 0;
-		image->picmip.platform[1] = 0;
-		image->noPicmip = 0;
-		image->track = 0;
 
 		const char* tempName = image->name;
 		if (tempName[0] == '*') tempName++;
@@ -42,35 +37,30 @@ namespace Assets
 			image->semantic = reader.read<char>();
 			image->category = reader.read<char>();
 
-			image->cardMemory.platform[0] = reader.read<int>();
-			image->cardMemory.platform[1] = image->cardMemory.platform[0];
+			int dataLength = reader.read<int>();
+			image->cardMemory.platform[0] = dataLength;
+			image->cardMemory.platform[1] = dataLength;
 
-			Game::GfxImageLoadDefIW3* loadDef = reinterpret_cast<Game::GfxImageLoadDefIW3*>(reader.readArray<char>(image->cardMemory.platform[0] + 16));
-			image->texture.loadDef = reinterpret_cast<Game::GfxImageLoadDef*>(builder->getAllocator()->allocateArray<char>(image->cardMemory.platform[0] + 16));
+			Game::GfxImageLoadDefIW3 loadDef;
+			image->texture.loadDef = reinterpret_cast<Game::GfxImageLoadDef*>(reader.readArray<char>(dataLength + 16));
+			std::memcpy(&loadDef, image->texture.loadDef, sizeof(loadDef));
 
-			image->texture.loadDef->levelCount = loadDef->levelCount;
-			image->texture.loadDef->flags = loadDef->flags;
-			image->texture.loadDef->format = loadDef->format;
-			image->texture.loadDef->resourceSize = loadDef->resourceSize;
+			image->texture.loadDef->levelCount = loadDef.levelCount;
+			image->texture.loadDef->flags = loadDef.flags;
+			image->texture.loadDef->format = loadDef.format;
+			image->texture.loadDef->resourceSize = loadDef.resourceSize;
+			ZeroMemory(image->texture.loadDef->pad, 3);
 
-			if (image->texture.loadDef->resourceSize != image->cardMemory.platform[0])
+			if (image->texture.loadDef->resourceSize != dataLength)
 			{
 				Components::Logger::Error("Resource size doesn't match the data length (%s)!\n", name.data());
 			}
 
-			std::memcpy(image->texture.loadDef->data, loadDef->data, image->texture.loadDef->resourceSize);
-
-			image->height = loadDef->dimensions[0];
-			image->width = loadDef->dimensions[1];
-			image->depth = loadDef->dimensions[2];
+			image->width = loadDef.dimensions[0];
+			image->height = loadDef.dimensions[1];
+			image->depth = loadDef.dimensions[2];
 
 			image->delayLoadPixels = true;
-			//image->texture.loadDef->flags = 0;
-
-			if (Utils::String::StartsWith(name, "*lightmap"))
-			{
-				image->texture.loadDef->flags = 2;
-			}
 
 			header->image = image;
 		}
@@ -97,8 +87,8 @@ namespace Assets
 			}
 
 			image->mapType = Game::MAPTYPE_2D;
-			//image->dataLen1 = iwiHeader->fileSizeForPicmip[0] - 32;
-			//image->dataLen2 = iwiHeader->fileSizeForPicmip[0] - 32;
+			image->cardMemory.platform[0] = iwiHeader->fileSizeForPicmip[0] - 32;
+			image->cardMemory.platform[1] = iwiHeader->fileSizeForPicmip[0] - 32;
 
 			image->texture.loadDef = builder->getAllocator()->allocate<Game::GfxImageLoadDef>();
 			if (!image->texture.loadDef)
@@ -107,11 +97,11 @@ namespace Assets
 				return;
 			}
 
-			image->texture.loadDef->flags = 0;
+			image->texture.loadDef->flags = iwiHeader->flags;
 			image->texture.loadDef->levelCount = 0;
 
-			image->height = iwiHeader->dimensions[0];
-			image->width = iwiHeader->dimensions[1];
+			image->width = iwiHeader->dimensions[0];
+			image->height = iwiHeader->dimensions[1];
 			image->depth = iwiHeader->dimensions[2];
 
 			switch (iwiHeader->format)
