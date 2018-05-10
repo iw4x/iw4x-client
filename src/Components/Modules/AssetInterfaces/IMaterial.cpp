@@ -160,9 +160,9 @@ namespace Assets
 					asset->info.sortKey = header.material->info.sortKey;
 
 					// This is temp, as nobody has time to fix materials
-// 					asset->stateBitsCount = header.material->stateBitsCount;
-// 					asset->stateBitTable = header.material->stateBitTable;
-// 					std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
+					asset->stateBitsCount = header.material->stateBitsCount;
+					asset->stateBitsTable = header.material->stateBitsTable;
+					std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
 					asset->constantCount = header.material->constantCount;
 					asset->constantTable = header.material->constantTable;
 
@@ -218,7 +218,7 @@ namespace Assets
 			Components::Logger::Error("Material data left!");
 		}
 
-		char baseIndex = 0;
+		/*char baseIndex = 0;
 		for (char i = 0; i < asset->stateBitsCount; ++i)
 		{
 			auto stateBits = asset->stateBitsTable[i];
@@ -241,7 +241,7 @@ namespace Assets
 			{
 				asset->stateBitsEntry[i] = baseIndex;
 			}
-		}
+		}*/
 	}
 
 	void IMaterial::loadNative(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
