@@ -341,6 +341,32 @@ namespace Components
 		{
 			MessageBoxA(nullptr, Game::Scr_GetString(0), "DEBUG", 0);
 		}, true);
+
+		// Script::AddFunction("playviewmodelfx", [](Game::scr_entref_t /*index*/)
+		// {
+		// 	/*auto Scr_Error = Utils::Hook::Call<void(const char*)>(0x42EF40);
+		// 	if (index >> 16)
+		// 	{
+		// 		Scr_Error("not an entity");
+		// 		return;
+		// 	}*/
+
+		// 	// obtain FX name
+		// 	auto fxName = Game::Scr_GetString(0);
+		// 	auto fx = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FX, fxName).fx;
+
+		// 	auto tagName = Game::Scr_GetString(1);
+		// 	auto tagIndex = Game::SL_GetString(tagName, 0);
+
+		// 	/*char boneIndex = -2;
+		// 	if (!Game::CG_GetBoneIndex(2048, tagIndex, &boneIndex))
+		// 	{
+		// 		Scr_Error(Utils::String::VA("Unknown bone %s.\n", tagName));
+		// 		return;
+		// 	}*/
+
+		// 	Game::CG_PlayBoltedEffect(0, fx, 2048, tagIndex);
+		// });
 	}
 
 	Script::~Script()

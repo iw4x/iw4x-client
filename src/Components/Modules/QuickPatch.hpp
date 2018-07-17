@@ -22,5 +22,10 @@ namespace Components
 
 		static int MsgReadBitsCompressCheckSV(const char *from, char *to, int size);
 		static int MsgReadBitsCompressCheckCL(const char *from, char *to, int size);
+
+		static void JavelinResetHookStub();
+
+		static int QuickPatch::InvalidNameCheck(char *dest, char *source, int size);
+		static void QuickPatch::InvalidNameStub();
 	};
 }

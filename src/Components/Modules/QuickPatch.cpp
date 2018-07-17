@@ -100,6 +100,64 @@ namespace Components
 		Game::CL_SelectStringTableEntryInDvar_f();
 	}
 
+	__declspec(naked) void QuickPatch::JavelinResetHookStub()
+	{
+		__asm
+		{
+			mov eax, 577A10h;
+			call eax;
+			pop edi;
+			mov dword ptr [esi+34h], 0;
+			pop esi;
+			pop ebx;
+			retn;
+		}
+	}
+
+	int QuickPatch::InvalidNameCheck(char *dest, char *source, int size)
+	{
+		strncpy(dest, source, size - 1);
+		dest[size - 1] = 0;
+
+		for (int i = 0; i < size - 1; i++)
+		{
+			if (dest[i] > 125 || dest[i] < 32) 
+			{
+				return false;
+			}
+		}
+
+		return true;
+
+	}
+
+	__declspec(naked) void QuickPatch::InvalidNameStub()
+	{
+		static char* kick_reason = "Invalid name detected.";
+
+		__asm
+		{
+			call InvalidNameCheck;
+			cmp eax, 1;
+
+			jne invalidName;
+
+		invalidName:
+			pushad;
+			push 1;
+			push kick_reason;
+			push edi;
+			mov eax, 0x004D1600;
+			call eax;
+			add esp, 12;
+			popad;
+
+			// return
+			push 0x00401988;
+			retn;
+		}
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		QuickPatch::FrameTime = 0;
@@ -107,6 +165,12 @@ namespace Components
 		{
 			QuickPatch::FrameTime = Game::Sys_Milliseconds();
 		});
+
+		// Disallow invalid player names
+		Utils::Hook(0x401983, QuickPatch::InvalidNameStub, HOOK_JUMP).install()->quick();
+
+		// Javelin fix
+		Utils::Hook(0x578F52, QuickPatch::JavelinResetHookStub, HOOK_JUMP).install()->quick();
 
 		// Make sure preDestroy is called when the game shuts down
 		Scheduler::OnShutdown(Loader::PreDestroy);

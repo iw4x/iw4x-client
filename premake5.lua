@@ -284,6 +284,10 @@ workspace "iw4x"
 		includedirs {
 			"%{prj.location}/src",
 			"./src",
+			"./lib/include",
+		}
+		syslibdirs {
+			"./lib/bin",
 		}
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE

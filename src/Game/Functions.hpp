@@ -29,6 +29,12 @@ namespace Game
 	typedef int(__cdecl * CG_GetClientNum_t)();
 	extern CG_GetClientNum_t CG_GetClientNum;
 
+	typedef std::int32_t(__cdecl* CG_PlayBoltedEffect_t) (std::int32_t, FxEffectDef*, std::int32_t, std::uint32_t);
+	extern CG_PlayBoltedEffect_t CG_PlayBoltedEffect;
+
+	typedef std::int32_t(__cdecl* CG_GetBoneIndex_t)(std::int32_t, std::uint32_t name, char* index);
+	extern CG_GetBoneIndex_t CG_GetBoneIndex;
+	
 	typedef char*(__cdecl * CL_GetClientName_t)(int localClientNum, int index, char *buf, size_t size);
 	extern CL_GetClientName_t CL_GetClientName;
 

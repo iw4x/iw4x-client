@@ -36,6 +36,7 @@ namespace Components
 
 	void AntiCheat::CrashClient()
 	{
+		__VMProtectBeginUltra("");
 #ifdef DEBUG_DETECTIONS
 		Logger::Flush();
 		MessageBoxA(nullptr, "Check the log for more information!", "AntiCheat triggered", MB_ICONERROR);
@@ -51,10 +52,12 @@ namespace Components
 			});
 		}
 #endif
+		__VMProtectEnd;
 	}
 
 	void AntiCheat::AssertCalleeModule(void* callee)
 	{
+		__VMProtectBeginUltra("");
 		HMODULE hModuleSelf = nullptr, hModuleTarget = nullptr, hModuleProcess = GetModuleHandleA(nullptr);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &hModuleTarget);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(AntiCheat::AssertCalleeModule), &hModuleSelf);
@@ -70,10 +73,12 @@ namespace Components
 
 			AntiCheat::CrashClient();
 		}
+		__VMProtectEnd;
 	}
 
 	void AntiCheat::InitLoadLibHook()
 	{
+		__VMProtectBeginUltra("");
 		static uint8_t kernel32Str[] = { 0xB4, 0x9A, 0x8D, 0xB1, 0x9A, 0x93, 0xCC, 0xCD, 0xD1, 0x9B, 0x93, 0x93 }; // KerNel32.dll
 		static uint8_t loadLibAStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xBE }; // LoadLibraryA
 		static uint8_t loadLibWStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8 }; // LoadLibraryW
@@ -133,10 +138,13 @@ namespace Components
 		Utils::Hook::Signature signature(ntdll, Utils::GetModuleSize(ntdll));
 		signature.add(container);
 		//signature.process();
+
+		__VMProtectEnd;
 	}
 
 	void AntiCheat::ReadIntegrityCheck()
 	{
+		__VMProtectBeginUltra("");
 #ifdef PROCTECT_PROCESS
 		static Utils::Time::Interval check;
 
@@ -158,10 +166,12 @@ namespace Components
 		// Set the integrity flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::READ_INTEGRITY_CHECK;
 #endif
+		__VMProtectEnd;
 	}
 
 	void AntiCheat::FlagIntegrityCheck()
 	{
+		__VMProtectBeginUltra("");
 		static Utils::Time::Interval check;
 
 		if (check.elapsed(30s))
@@ -179,10 +189,12 @@ namespace Components
 				AntiCheat::CrashClient();
 			}
 		}
+		__VMProtectEnd;
 	}
 
 	void AntiCheat::ScanIntegrityCheck()
 	{
+		__VMProtectBeginUltra("");
 		// If there was no check within the last 40 seconds, crash!
 		if (AntiCheat::LastCheck.elapsed(40s))
 		{
@@ -195,10 +207,12 @@ namespace Components
 
 		// Set the integrity flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::SCAN_INTEGRITY_CHECK;
+		__VMProtectEnd;
 	}
 
 	void AntiCheat::PerformScan()
 	{
+		__VMProtectBeginUltra("");
 		static std::optional<unsigned int> hashVal;
 
 		// Perform check only every 20 seconds
@@ -229,10 +243,12 @@ namespace Components
 
 		// Set the memory scan flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::MEMORY_SCAN;
+		__VMProtectEnd;
 	}
 
 	void AntiCheat::QuickCodeScanner1()
 	{
+		__VMProtectBeginUltra("");
 		static Utils::Time::Interval interval;
 		static std::optional<unsigned int> hashVal;
 
@@ -251,10 +267,12 @@ namespace Components
 		}
 
 		hashVal.emplace(hash);
+		__VMProtectEnd;
 	}
 
 	void AntiCheat::QuickCodeScanner2()
 	{
+		__VMProtectBeginUltra("");
 		static Utils::Time::Interval interval;
 		static std::optional<unsigned int> hashVal;
 
@@ -269,6 +287,7 @@ namespace Components
 		}
 
 		hashVal.emplace(hash);
+		__VMProtectEnd;
 	}
 
 #ifdef DEBUG_LOAD_LIBRARY
@@ -414,6 +433,7 @@ namespace Components
 
 	bool AntiCheat::IsPageChangeAllowed(void* callee, void* addr, size_t len)
 	{
+		__VMProtectBeginUltra("");
 		HMODULE hModuleSelf = nullptr, hModuleTarget = nullptr, hModuleMain = GetModuleHandle(nullptr);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &hModuleTarget);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(AntiCheat::IsPageChangeAllowed), &hModuleSelf);
@@ -430,34 +450,41 @@ namespace Components
 			}
 		}
 
+		__VMProtectEnd;
 		return true;
 	}
 
 	BOOL WINAPI AntiCheat::VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
 	{
+		__VMProtectBeginUltra("");
 		if (!AntiCheat::IsPageChangeAllowed(_ReturnAddress(), lpAddress, dwSize)) return FALSE;
 
 		AntiCheat::VirtualProtectHook[0].uninstall(false);
 		BOOL result = VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
 		AntiCheat::VirtualProtectHook[0].install(false);
 
+		__VMProtectEnd;
 		return result;
 	}
 
 	BOOL WINAPI AntiCheat::VirtualProtectExStub(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
 	{
+		__VMProtectBeginUltra("");
 		if (GetCurrentProcessId() == GetProcessId(hProcess) && !AntiCheat::IsPageChangeAllowed(_ReturnAddress(), lpAddress, dwSize)) return FALSE;
 
 		AntiCheat::VirtualProtectHook[1].uninstall(false);
 		BOOL result = VirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect, lpflOldProtect);
 		AntiCheat::VirtualProtectHook[1].install(false);
 
+		__VMProtectEnd;
 		return result;
 	}
 
 	unsigned long AntiCheat::ProtectProcess()
 	{
 #ifdef PROCTECT_PROCESS
+		__VMProtectBeginUltra("");
+
 		Utils::Memory::Allocator allocator;
 
 		HANDLE hToken = nullptr;
@@ -584,6 +611,8 @@ namespace Components
 		if (!InitializeSecurityDescriptor(pSecDesc, SECURITY_DESCRIPTOR_REVISION)) return GetLastError();
 		if (!SetSecurityDescriptorDacl(pSecDesc, TRUE, pDacl, FALSE)) return GetLastError();
 
+		__VMProtectEnd;
+
 		return SetSecurityInfo(
 			GetCurrentProcess(),
 			SE_KERNEL_OBJECT, // process object
@@ -600,6 +629,8 @@ namespace Components
 
 	void AntiCheat::AcquireDebugPrivilege(HANDLE hToken)
 	{
+		__VMProtectBeginUltra("");
+
 		LUID luid;
 		TOKEN_PRIVILEGES tp = { 0 };
 		DWORD cb = sizeof(TOKEN_PRIVILEGES);
@@ -610,16 +641,22 @@ namespace Components
 		tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 		AdjustTokenPrivileges(hToken, FALSE, &tp, cb, nullptr, nullptr);
 		//if (GetLastError() != ERROR_SUCCESS) return;
+
+		__VMProtectEnd;
 	}
 
 	void AntiCheat::PatchVirtualProtect(void* vp, void* vpex)
 	{
+		__VMProtectBeginUltra("");
 		AntiCheat::VirtualProtectHook[1].initialize(vpex, AntiCheat::VirtualProtectExStub, HOOK_JUMP)->install(true, true);
 		AntiCheat::VirtualProtectHook[0].initialize(vp, AntiCheat::VirtualProtectStub, HOOK_JUMP)->install(true, true);
+		__VMProtectEnd;
 	}
 
 	NTSTATUS NTAPI AntiCheat::NtCreateThreadExStub(PHANDLE phThread, ACCESS_MASK desiredAccess, LPVOID objectAttributes, HANDLE processHandle, LPTHREAD_START_ROUTINE startAddress, LPVOID parameter, BOOL createSuspended, DWORD stackZeroBits, DWORD sizeOfStackCommit, DWORD sizeOfStackReserve, LPVOID bytesBuffer)
 	{
+		__VMProtectBeginUltra("");
+
 		HANDLE hThread = nullptr;
 		std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
 
@@ -634,11 +671,15 @@ namespace Components
 			AntiCheat::OwnThreadIds.push_back(GetThreadId(hThread));
 		}
 
+		__VMProtectEnd;
+
 		return result;
 	}
 
 	void AntiCheat::PatchThreadCreation()
 	{
+		__VMProtectBeginUltra("");
+
 		HMODULE ntdll = Utils::GetNTDLL();
 		if (ntdll)
 		{
@@ -649,10 +690,13 @@ namespace Components
 				AntiCheat::CreateThreadHook.initialize(createThread, AntiCheat::NtCreateThreadExStub, HOOK_JUMP)->install();
 			}
 		}
+
+		__VMProtectEnd;
 	}
 
 	int AntiCheat::ValidateThreadTermination(void* addr)
 	{
+		__VMProtectBeginUltra("");
 		{
 			std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
 
@@ -685,6 +729,8 @@ namespace Components
 			if (!found) break;
 			std::this_thread::sleep_for(10ms);
 		}
+
+		__VMProtectEnd;
 
 		return 0; // Don't kill
 	}
@@ -727,6 +773,7 @@ namespace Components
 
 	void AntiCheat::VerifyThreadIntegrity()
 	{
+		__VMProtectBeginUltra("");
 		bool kill = true;
 		{
 			std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
@@ -774,10 +821,13 @@ namespace Components
 				}
 			}
 		}
+		__VMProtectEnd;
 	}
 
 	AntiCheat::AntiCheat()
 	{
+		__VMProtectBeginUltra("");
+
 		time(nullptr);
 		AntiCheat::Flags = NO_FLAG;
 
@@ -817,6 +867,8 @@ namespace Components
 		// Set the integrity flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::INITIALIZATION;
 #endif
+
+		__VMProtectEnd;
 	}
 
 	AntiCheat::~AntiCheat()

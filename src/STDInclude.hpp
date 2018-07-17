@@ -8,6 +8,7 @@
 #define _HAS_CXX17 1
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
+#define _CRT_SECURE_NO_WARNINGS
 
 // Requires Visual Leak Detector plugin: http://vld.codeplex.com/
 #define VLD_FORCE_ENABLE
@@ -88,6 +89,17 @@ template <size_t S> class Sizer { };
 
 #ifdef min
 #undef min
+#endif
+
+// VMProtect
+// #define USE_VMP
+#ifdef USE_VMP
+#include <VMProtect/VMProtectSDK.h>
+#define __VMProtectBeginUltra VMProtectBeginUltra
+#define __VMProtectEnd VMProtectEnd()
+#else
+#define __VMProtectBeginUltra
+#define __VMProtectEnd
 #endif
 
 // Protobuf
