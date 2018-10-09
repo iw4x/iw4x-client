@@ -32,6 +32,3 @@
 [submodule "deps/iw4mvm"]
 	path = deps/iw4mvm
 	url = ../../luckyy/IW4MVM_IW4X.git
-[submodule "deps/dht"]
-	path = deps/dht
-	url = ../dht.git
