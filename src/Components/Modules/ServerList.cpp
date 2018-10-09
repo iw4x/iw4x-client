@@ -283,7 +283,7 @@ namespace Components
 			Network::SendCommand(ServerList::RefreshContainer.host, "getservers", Utils::String::VA("IW4 %i full empty", PROTOCOL));
 			//Network::SendCommand(ServerList::RefreshContainer.Host, "getservers", "0 full empty");
 #else
-			DHT::Search();
+			Node::Synchronize();
 #endif
 		}
 		else if (ServerList::IsFavouriteList())
@@ -392,22 +392,6 @@ namespace Components
 				ServerList::InsertRequest(servers[i].string_value());
 			}
 		}
-	}
-
-	void ServerList::InsertRequestIfNotInList(Network::Address address)
-	{
-		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
-
-		auto list = ServerList::GetList();
-		if (list)
-		{
-			for (auto& server : *list)
-			{
-				if (server.addr == address) return;
-			}
-		}
-
-		ServerList::InsertRequest(address);
 	}
 
 	void ServerList::InsertRequest(Network::Address address)

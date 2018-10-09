@@ -7,26 +7,6 @@ namespace Components
 	std::thread Discovery::Thread;
 	std::string Discovery::Challenge;
 
-	std::mutex Discovery::Mutex;
-	std::vector<Network::Address> Discovery::LocalServers;
-
-	std::vector<Network::Address> Discovery::GetLocalServers()
-	{
-		std::lock_guard<std::mutex> _(Discovery::Mutex);
-		return Discovery::LocalServers;
-	}
-
-	void Discovery::InsertServer(Network::Address server)
-	{
-		if (!server.isLocal()) return;
-		std::lock_guard<std::mutex> _(Discovery::Mutex);
-
-		if (std::find(Discovery::LocalServers.begin(), Discovery::LocalServers.end(), server) == Discovery::LocalServers.end())
-		{
-			Discovery::LocalServers.push_back(server);
-		}
-	}
-
 	void Discovery::Perform()
 	{
 		Discovery::IsPerforming = true;
@@ -47,9 +27,6 @@ namespace Components
 			{
 				if (Discovery::IsPerforming)
 				{
-					std::lock_guard<std::mutex> _(Discovery::Mutex);
-					Discovery::LocalServers.clear();
-
 					int start = Game::Sys_Milliseconds();
 
 					Logger::Print("Starting local server discovery...\n");
@@ -69,23 +46,6 @@ namespace Components
 			}
 		});
 
-		if (Dedicated::IsEnabled())
-		{
-			Network::OnStart([]()
-			{
-				Scheduler::OnFrame([]()
-				{
-					static std::optional<Utils::Time::Interval> interval;
-					if (!interval.has_value() || interval->elapsed(10min))
-					{
-						if (!interval.has_value()) interval.emplace(Utils::Time::Interval());
-						interval->update();
-						Discovery::Perform();
-					}
-				});
-			});
-		}
-
 		Network::Handle("discovery", [](Network::Address address, std::string data)
 		{
 			if (address.isSelf()) return;
@@ -98,8 +58,6 @@ namespace Components
 
 			Logger::Print("Received discovery request from %s\n", address.getCString());
 			Network::SendCommand(address, "discoveryResponse", data);
-
-			Discovery::InsertServer(address);
 		});
 
 		Network::Handle("discoveryResponse", [](Network::Address address, std::string data)
@@ -119,7 +77,6 @@ namespace Components
 			}
 
 			Logger::Print("Received discovery response from: %s\n", address.getCString());
-			Discovery::InsertServer(address);
 
 			if (ServerList::IsOfflineList())
 			{

@@ -24,7 +24,7 @@ namespace Components
 
 	void Party::Connect(Network::Address target)
 	{
-		DHT::Add(target);
+		Node::Add(target);
 
 		Party::Container.valid = true;
 		Party::Container.awaitingPlaylist = false;
@@ -346,27 +346,6 @@ namespace Components
 			info.set("securityLevel", Utils::String::VA("%i", Dvar::Var("sv_securityLevel").get<int>()));
 			info.set("sv_running", (Dvar::Var("sv_running").get<bool>() ? "1" : "0"));
 
-			if (Dedicated::IsEnabled())
-			{
-				std::vector<Network::Address> servers = Discovery::GetLocalServers();
-				std::vector<unsigned short> ports;
-
-				std::string portString;
-				for (auto& server : servers)
-				{
-					unsigned short port = server.getPort();
-					if (std::find(ports.begin(), ports.end(), port) == ports.end())
-					{
-						ports.push_back(port);
-
-						if (!portString.empty()) portString.push_back(',');
-						portString.append(Utils::String::VA("%hu", port & 0xFFFF));
-					}
-				}
-
-				info.set("siblings", portString);
-			}
-
 			// Ensure mapname is set
 			if (info.get("mapname").empty() || Party::IsInLobby())
 			{
@@ -526,23 +505,6 @@ namespace Components
 								Game::CL_ConnectFromParty(0, &hostInfo, *Party::Container.target.get(), 0, 0, Party::Container.info.get("mapname").data(), Party::Container.info.get("gametype").data());
 							}
 						}
-					}
-				}
-			}
-
-			std::string siblings = info.get("siblings");
-			if (!siblings.empty() && !address.isLocal())
-			{
-				Network::Address sibling(address);
-				std::vector<std::string> ports = Utils::String::Explode(siblings, ',');
-				
-				for (auto& port : ports)
-				{
-					sibling.setPort(SHORT(atoi(port.data())));
-
-					if (ServerList::IsOnlineList())
-					{
-						ServerList::InsertRequestIfNotInList(sibling);
 					}
 				}
 			}

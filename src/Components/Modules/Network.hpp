@@ -18,7 +18,6 @@ namespace Components
 			Address(sockaddr_in* addr) : Address(reinterpret_cast<sockaddr*>(addr)) {}
 			Address(Game::netadr_t addr) : address(addr) {}
 			Address(Game::netadr_t* addr) : Address(*addr) {}
-			Address(const char* addr) : Address(std::string(addr)) {}
 			Address(const Address& obj) : address(obj.address) {};
 			bool operator!=(const Address &obj) const { return !(*this == obj); };
 			bool operator==(const Address &obj) const;

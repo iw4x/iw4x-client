@@ -140,9 +140,6 @@ namespace Utils
 			static uint32_t GenerateInt();
 			static void Initialize();
 
-			static std::string GetRandomBytes(size_t size);
-			static void GetRandomBytes(void* data, size_t size);
-
 		private:
 			static prng_state State;
 		};
