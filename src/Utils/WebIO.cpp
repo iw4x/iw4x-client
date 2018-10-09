@@ -57,11 +57,12 @@ namespace Utils
 		}
 
 		PARSEDURLA pURL;
+		ZeroMemory(&pURL, sizeof(pURL));
 		pURL.cbSize = sizeof(pURL);
 		ParseURLA(_url.data(), &pURL);
 
 		// Parse protocol
-		if (pURL.cchProtocol && pURL.cchProtocol != 0xCCCCCCCC && pURL.pszProtocol)
+		if (pURL.cchProtocol && pURL.pszProtocol)
 		{
 			for (UINT i = 0; i < pURL.cchProtocol; ++i)
 			{
@@ -77,7 +78,7 @@ namespace Utils
 		// Parse suffix
 		std::string server;
 
-		if (pURL.cchSuffix && pURL.cchSuffix != 0xCCCCCCCC && pURL.pszSuffix)
+		if (pURL.cchSuffix && pURL.pszSuffix)
 		{
 			server.append(pURL.pszSuffix, pURL.cchSuffix);
 		}

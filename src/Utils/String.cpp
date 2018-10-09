@@ -207,23 +207,5 @@ namespace Utils
 			return retval;
 		}
 #endif
-
-		// Generates a UUID and returns the string representation of it
-		std::string GenerateUUIDString()
-		{
-			// Generate UUID data
-			UUID uuid;
-			if (!UuidCreate(&uuid))
-			{
-				// Convert to string representation
-				char* strdata = nullptr;
-				if (!UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&strdata)))
-				{
-					return std::string(strdata);
-				}
-			}
-
-			return "";
-		}
 	}
 }

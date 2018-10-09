@@ -96,7 +96,5 @@ namespace Utils
 		std::string EncodeBase64(const std::string& input);
 
 		std::string EncodeBase128(const std::string& input);
-
-		std::string GenerateUUIDString();
 	}
 }
