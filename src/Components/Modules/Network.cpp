@@ -336,52 +336,6 @@ namespace Components
 		}
 	}
 
-	int __stdcall Network::SendTo(SOCKET s, const char * buf, int len, int flags, const sockaddr* to, int tolen)
-	{
-		static char buffer[0x20000];
-
-		if (len <= 4 || *reinterpret_cast<const int*>(buf) != -1)
-		{
-			if (len + 4 > sizeof(buffer))
-			{
-				Logger::Error("Network layer 1: Packet exceeds buffer length!\n");
-			}
-
-			std::memmove(buffer + 4, buf, len);
-			*reinterpret_cast<int*>(buffer) = -2;
-
-			len += 4;
-			buf = buffer;
-		}
-
-		return sendto(s, buf, len, flags, to, tolen);
-	}
-
-	int __stdcall Network::RecvFrom(SOCKET s, char* buf, int len, int flags, sockaddr* from, int * fromlen)
-	{
-		int size = recvfrom(s, buf, len, flags, from, fromlen);
-		if (size >= 4)
-		{
-			int magic = *reinterpret_cast<int*>(buf);
-
-			if (magic == -2)
-			{
-				size -= 4;
-				std::memmove(buf, buf + 4, size);
-			}
-			else if (magic != -1)
-			{
-				if (len > size) buf[size] = 0;
-				DHT::OnData(buf, size, from, *fromlen);
-
-				size = -1;
-				WSASetLastError(WSAEWOULDBLOCK);
-			}
-		}
-
-		return size;
-	}
-
 	Network::Network()
 	{
 		AssertSize(Game::netadr_t, 20);
@@ -417,10 +371,6 @@ namespace Components
 
 		// Install packet deploy hook
 		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);
-
-		// Intercept the games native network IO interaction
-		Utils::Hook::Set(0x6D740C, Network::SendTo);
-		Utils::Hook::Set(0x6D7464, Network::RecvFrom);
 
 		Network::Handle("resolveAddress", [](Address address, std::string data)
 		{

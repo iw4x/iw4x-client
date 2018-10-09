@@ -284,7 +284,7 @@ namespace Components
 		Utils::Hook::Nop(0x684080, 5); // Don't spam the console
 
 		// spawn upnp thread when UPNP_init returns
-		/*Utils::Hook::Hook(0x47982B, []()
+		Utils::Hook::Hook(0x47982B, []()
 		{
 			std::thread([]()
 			{
@@ -296,16 +296,10 @@ namespace Components
 					std::this_thread::sleep_for(500ms);
 				}
 			}).detach();
-		}, HOOK_JUMP).install()->quick();*/
-
-		// Completely disable UPNP, as it conflicts with our new network protocol
-		Utils::Hook::Set<BYTE>(0x4797F2, 0xC3);
+		}, HOOK_JUMP).install()->quick();
 
 		// disable the IWNet IP detection (default 'got ipdetect' flag to 1)
-		//Utils::Hook::Set<BYTE>(0x649D6F0, 1);
-
-		// Tell the game we're already trying to receive our IP
-		Utils::Hook(0x48C5C0, 0x4513B4, HOOK_JUMP).install()->quick();
+		Utils::Hook::Set<BYTE>(0x649D6F0, 1);
 
 		// Fix stats sleeping
 		Utils::Hook::Set<BYTE>(0x6832BA, 0xEB);

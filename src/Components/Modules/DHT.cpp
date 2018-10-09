@@ -43,6 +43,7 @@ extern "C" int dht_gettimeofday(struct timeval *tp, struct timezone* /*tzp*/)
 
 namespace Components
 {
+	SOCKET DHT::Socket;
 	std::mutex DHT::Mutex;
 	std::vector<Network::Address> DHT::Nodes;
 	std::map<std::basic_string<uint8_t>, Utils::Slot<void(std::vector<Network::Address>)>> DHT::Handlers;
@@ -63,12 +64,6 @@ namespace Components
 	{
 		std::basic_string<uint8_t> hashStr(hash, 20);
 		DHT::Handlers[hashStr] = callback;
-	}
-
-	void DHT::BootstrapDone()
-	{
-		// Tell the game we got our external ip
-		Utils::Hook::Set<BYTE>(0x649D6F0, 1);
 	}
 
 	void DHT::Hash(std::string data, void* out, size_t size)
@@ -120,10 +115,11 @@ namespace Components
 		}
 	}
 
-	void DHT::OnData(char* buf, int len, sockaddr* from, int fromlen)
+	void DHT::OnData(std::string data, Network::Address address)
 	{
 		time_t tosleep = 0;
-		dht_periodic(buf, len, from, fromlen, &tosleep, DHT::Callback, NULL);
+		sockaddr addr = address.getSockAddr();
+		dht_periodic(data.data(), data.size(), &addr, sizeof(addr), &tosleep, DHT::Callback, NULL);
 	}
 
 	void DHT::StoreNodes(bool force)
@@ -217,8 +213,29 @@ namespace Components
 		}
 	}
 
+	void DHT::SocketFrame()
+	{
+		static char buffer[0x2001];
+
+		sockaddr_in addr;
+		int addrLen = sizeof(addr);
+
+		while (true)
+		{
+			int len = recvfrom(DHT::Socket, buffer, sizeof buffer, 0, reinterpret_cast<sockaddr*>(&addr), &addrLen);
+			if (len <= 0) break;
+
+			Network::Address address(&addr);
+
+			std::string data(buffer, len);
+			DHT::OnData(data, address);
+		}
+	}
+
 	void DHT::RunFrame()
 	{
+		DHT::SocketFrame();
+
 		time_t tosleep = 0;
 		dht_periodic(NULL, 0, NULL, 0, &tosleep, DHT::Callback, NULL);
 		DHT::StoreNodes(false);
@@ -237,6 +254,36 @@ namespace Components
 	{
 		sockaddr addr = node.getSockAddr();
 		dht_ping_node(&addr, sizeof(addr));
+	}
+
+	void DHT::InitSocket()
+	{
+		WSAData data;
+		WSAStartup(MAKEWORD(2, 2), &data);
+
+		DHT::Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+		int broadcastOn = 1;
+		setsockopt(DHT::Socket, SOL_SOCKET, SO_BROADCAST, LPSTR(&broadcastOn), sizeof(broadcastOn));
+
+		unsigned long nonBlocking = 1;
+		ioctlsocket(DHT::Socket, FIONBIO, &nonBlocking);
+
+		sockaddr_in addr;
+		ZeroMemory(&addr, sizeof(addr));
+
+		addr.sin_family = AF_INET;
+		addr.sin_addr.s_addr = INADDR_ANY;
+
+		unsigned short port = DHT_PORT;
+		while (port < DHT_PORT + DHT_RANGE)
+		{
+			addr.sin_port = htons(port++);
+			if (bind(DHT::Socket, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) != SOCKET_ERROR)
+			{
+				break;
+			}
+		}
 	}
 
 	DHT::DHT()
@@ -267,21 +314,22 @@ namespace Components
 				Utils::IO::WriteFile(file, idData);
 			}
 
-			dht_init(INT(*Game::ip_socket), -1, reinterpret_cast<unsigned char*>(idData.data()), reinterpret_cast<unsigned char*>("JC\0\0"));
+			DHT::InitSocket();
+			dht_init(INT(DHT::Socket), -1, reinterpret_cast<unsigned char*>(idData.data()), reinterpret_cast<unsigned char*>("JC\0\0"));
 
 			DHT::LoadNodes();
 			Scheduler::OnFrame(DHT::RunFrame);
 
 			DHT::Bootstrap("router.bittorrent.com:6881");
+			DHT::Bootstrap("router.utorrent.com:6881");
 			DHT::Bootstrap("dht.transmissionbt.com:6881");
+			//DHT::Bootstrap("router.bitcomet.com:6881"); // Blacklisted
  			DHT::Bootstrap("dht.aelitis.com:6881");
 		});
 
-		auto callback = [](std::vector<Network::Address> addresses)
+		DHT::Insert("IW4x", [](std::vector<Network::Address> addresses)
 		{
 			std::lock_guard<std::mutex> _(DHT::Mutex);
-
-			DHT::BootstrapDone();
 
 			for (auto& address : addresses)
 			{
@@ -300,9 +348,7 @@ namespace Components
 
 				Logger::Print("Received %s\n", address.getCString());
 			}
-		};
-
-		DHT::Insert("xPROTO_IW4x", callback);
+		});
 
 		Command::Add("addnode", [](Command::Params* params)
 		{
@@ -313,11 +359,14 @@ namespace Components
 		});
 	}
 
-	void DHT::preDestroy()
+	DHT::~DHT()
 	{
 		DHT::Handlers.clear();
 
 		DHT::StoreNodes(true);
 		dht_uninit();
+
+		closesocket(DHT::Socket);
+		WSACleanup();
 	}
 }

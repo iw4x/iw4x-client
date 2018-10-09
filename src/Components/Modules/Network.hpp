@@ -89,9 +89,6 @@ namespace Components
 		static void NetworkStartStub();
 
 		static void PacketErrorCheck();
-
-		static int __stdcall SendTo(SOCKET s, const char * buf, int len, int flags, const sockaddr* to, int tolen);
-		static int __stdcall RecvFrom(SOCKET s, char* buf, int len, int flags, sockaddr* from, int * fromlen);
 	};
 }
 
