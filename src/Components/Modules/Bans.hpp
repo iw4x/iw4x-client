@@ -11,6 +11,8 @@ namespace Components
 		~Bans();
 
 		static void BanClientNum(int num, std::string reason);
+		static void UnbanClient(SteamID id);
+		static void UnbanClient(Game::netIP_t ip);
 
 		static bool IsBanned(Entry entry);
 		static void InsertBan(Entry entry);
@@ -23,7 +25,8 @@ namespace Components
 			std::vector<Game::netIP_t> ipList;
 		};
 
-		static std::mutex AccessMutex;
+		static std::recursive_mutex AccessMutex;
 		static void LoadBans(BanList* list);
+		static void SaveBans(BanList* list);
 	};
 }
