@@ -79,6 +79,11 @@ namespace Components
 		return -1;
 	}
 
+	long QuickPatch::AtolAdjustPlayerLimit(const char* string)
+	{
+		return std::min(atol(string), 18l);
+	}
+
 	void QuickPatch::SelectStringTableEntryInDvarStub()
 	{
 		Command::ClientParams args;
@@ -432,6 +437,8 @@ namespace Components
 		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
 		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
 		Utils::Hook(0x407376, QuickPatch::SVCanReplaceServerCommand , HOOK_CALL).install()->quick(); // SV_CanReplaceServerCommand
+		Utils::Hook(0x5B67ED, QuickPatch::AtolAdjustPlayerLimit     , HOOK_CALL).install()->quick(); // PartyHost_HandleJoinPartyRequest
+
 
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
