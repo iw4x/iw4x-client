@@ -55,7 +55,12 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		Steam::Proxy::RunMod();
 
 		// Ensure we're working with our desired binary
-		if (Utils::Hook::Get<DWORD>(0x4C0FFF) != 0x6824748B) return FALSE;
+		char* module = reinterpret_cast<char*>(GetModuleHandle(nullptr));
+		auto hash = Utils::Cryptography::JenkinsOneAtATime::Compute(module, 0x2D6000);
+		if (hash != 0x1678FD9F)
+		{
+			return FALSE;
+		}
 
 #ifndef DISABLE_ANTICHEAT
 		[]()
@@ -69,7 +74,6 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 #endif
 
 		DWORD oldProtect;
-		std::uint8_t* module = reinterpret_cast<std::uint8_t*>(GetModuleHandle(nullptr));
 		VirtualProtect(module + 0x1000, 0x2D6000, PAGE_EXECUTE_READ, &oldProtect); // Protect the .text segment
 
 		// Install entry point hook
