@@ -8,6 +8,7 @@ namespace Components
 
 	std::thread Download::ServerThread;
 	bool Download::Terminate;
+    bool Download::ServerRunning;
 
 #pragma region Client
 
@@ -802,9 +803,8 @@ namespace Components
 
 	Download::Download()
 	{
-		if (Dedicated::IsEnabled())
+		if (Dedicated::IsEnabled() || Dvar::Var("mod_force_download_server").get<bool>())
 		{
-			Download::Terminate = false;
 			ZeroMemory(&Download::Mgr, sizeof Download::Mgr);
 			mg_mgr_init(&Download::Mgr, nullptr);
 
@@ -828,6 +828,7 @@ namespace Components
 				}
 			});
 
+            Download::ServerRunning = true;
 			Download::Terminate = false;
 			Download::ServerThread = std::thread([]
 			{
@@ -856,6 +857,11 @@ namespace Components
 		{
 			Dvar::Register<bool>("sv_wwwDownload", false, Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to true to enable downloading maps/mods from an external server.");
 			Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to the base url for the external map download.");
+
+            // Force users to enable this because we don't want to accidentally turn everyone's pc into a http server into all their files again
+            // not saying we are but ya know... accidents happen
+            // by having it saved we force the user to enable it in config_mp because it only checks the dvar on startup to see if we should init download or not
+            Dvar::Register<bool>("mod_force_download_server", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Set to true to force the client to run the download server for mods (for mods in private matches).");
 		});
 
 		Scheduler::OnFrame([]()
@@ -932,7 +938,7 @@ namespace Components
 
 	Download::~Download()
 	{
-		if (Dedicated::IsEnabled())
+		if (Download::ServerRunning)
 		{
 			mg_mgr_free(&Download::Mgr);
 		}

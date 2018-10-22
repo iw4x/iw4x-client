@@ -210,6 +210,7 @@ namespace Components
 		static std::vector<std::shared_ptr<ScriptDownload>> ScriptDownloads;
 		static std::thread ServerThread;
 		static bool Terminate;
+        static bool ServerRunning;
 
 		static bool VerifyPassword(mg_connection *nc, http_message* message);
 
