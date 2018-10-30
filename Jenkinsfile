@@ -200,7 +200,7 @@ properties([
 gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"]) {
 	// First though let's give this build a proper name
 	stage("Checkout & Versioning") {
-		gitlabCommitStatus("Checkout & Versioning") {
+		gitlabCommitStatus(name: "Checkout & Versioning") {
 			node("windows") {
 				jobWorkspace("versioning") {
 					if (env.BRANCH_NAME == 'master')
@@ -227,7 +227,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 
 	// For each available configuration generate a normal build and a unit test build.
 	stage("Build") {
-		gitlabCommitStatus("Build") {
+		gitlabCommitStatus(name: "Build") {
 			def executions = [:]
 			for (int i = 0; i < configurations.size(); i++) {
 				def entry = configurations[i]
@@ -249,7 +249,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 
 	// Run unit tests on each configuration.
 	stage("Testing") {
-		gitlabCommitStatus("Testing") {
+		gitlabCommitStatus(name: "Testing") {
 			executions = [:]
 			for (int i = 0; i < testing.size(); i++) {
 				def entry = testing.get(i)
@@ -286,7 +286,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 
 	// Collect all the binaries and give each configuration its own subfolder
 	stage("Archiving") {
-		gitlabCommitStatus("Archiving") {
+		gitlabCommitStatus(name: "Archiving") {
 			node("windows") { // any node will do
 				jobWorkspace("archiving") {
 					try {
