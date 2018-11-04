@@ -803,7 +803,7 @@ namespace Components
 
 	Download::Download()
 	{
-		if (Dedicated::IsEnabled() || Dvar::Var("mod_force_download_server").get<bool>())
+		if (Dedicated::IsEnabled() /*|| Dvar::Var("mod_force_download_server").get<bool>()*/)
 		{
 			ZeroMemory(&Download::Mgr, sizeof Download::Mgr);
 			mg_mgr_init(&Download::Mgr, nullptr);
