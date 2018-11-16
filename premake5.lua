@@ -246,6 +246,7 @@ workspace "iw4x"
 	architecture "x86"
 	platforms "x86"
 	--exceptionhandling ("SEH")
+	rtti ("Off")
 
 	flags { "StaticRuntime" }
 
