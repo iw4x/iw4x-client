@@ -246,7 +246,6 @@ workspace "iw4x"
 	architecture "x86"
 	platforms "x86"
 	--exceptionhandling ("SEH")
-	rtti ("Off")
 
 	flags { "StaticRuntime" }
 
@@ -257,6 +256,10 @@ workspace "iw4x"
 		defines { "NDEBUG" }
 		flags { "MultiProcessorCompile", "LinkTimeOptimization", "No64BitChecks" }
 		optimize "On"
+
+		if not _OPTIONS["force-unit-tests"] then
+			rtti ("Off")
+		end
 
 	configuration "Debug*"
 		defines { "DEBUG", "_DEBUG" }
