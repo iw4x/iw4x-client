@@ -119,13 +119,15 @@ namespace Components
 		}
 	}
 
-	int QuickPatch::InvalidNameCheck(char *dest, char *source, int size)
+	bool QuickPatch::InvalidNameCheck(char *dest, char *source, int size)
 	{
 		strncpy(dest, source, size - 1);
 		dest[size - 1] = 0;
 
 		for (int i = 0; i < size - 1; i++)
 		{
+			if (!dest[i]) break;
+
 			if (dest[i] > 125 || dest[i] < 32) 
 			{
 				return false;
@@ -133,7 +135,6 @@ namespace Components
 		}
 
 		return true;
-
 	}
 
 	__declspec(naked) void QuickPatch::InvalidNameStub()
@@ -143,11 +144,10 @@ namespace Components
 		__asm
 		{
 			call InvalidNameCheck;
-			cmp eax, 1;
+			test al, al
 
-			jne invalidName;
+			jnz returnSafe;
 
-		invalidName:
 			pushad;
 			push 1;
 			push kick_reason;
@@ -157,7 +157,7 @@ namespace Components
 			add esp, 12;
 			popad;
 
-			// return
+		returnSafe:
 			push 0x00401988;
 			retn;
 		}

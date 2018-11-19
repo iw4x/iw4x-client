@@ -27,7 +27,7 @@ namespace Components
 
 		static void JavelinResetHookStub();
 
-		static int QuickPatch::InvalidNameCheck(char *dest, char *source, int size);
+		static bool QuickPatch::InvalidNameCheck(char *dest, char *source, int size);
 		static void QuickPatch::InvalidNameStub();
 	};
 }
