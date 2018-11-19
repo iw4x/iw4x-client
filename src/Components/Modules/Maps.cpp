@@ -595,7 +595,7 @@ namespace Components
 		Logger::Print("Exporting materials and faces...\n");
 		for (int m = 0; m < materialCount; ++m)
 		{
-			std::string name = materials[m]->name;
+			std::string name = materials[m]->info.name;
 
 			auto pos = name.find_last_of("/");
 			if (pos != std::string::npos)
@@ -606,7 +606,7 @@ namespace Components
 			map.append(Utils::String::VA("\nusemtl %s\n", name.data()));
 			map.append("s off\n");
 
-			Game::GfxImage* image = materials[m]->textureTable[0].info.image;
+			Game::GfxImage* image = materials[m]->textureTable[0].u.image;
 
 			for (char l = 0; l < materials[m]->textureCount; ++l)
 			{
@@ -614,13 +614,13 @@ namespace Components
 				{
 					if (materials[m]->textureTable[l].nameEnd == 'p')
 					{
-						image = materials[m]->textureTable[l].info.image; // Hopefully our colorMap
+						image = materials[m]->textureTable[l].u.image; // Hopefully our colorMap
 					}
 				}
 			}
 
 			std::string _name = Utils::String::VA("raw/mapdump/%s/textures/%s.png", world->baseName, image->name);
-			D3DXSaveTextureToFile(std::wstring(_name.begin(), _name.end()).data(), D3DXIFF_PNG, image->map, NULL);
+			D3DXSaveTextureToFile(std::wstring(_name.begin(), _name.end()).data(), D3DXIFF_PNG, image->texture.map, NULL);
 
 			mtl.append(Utils::String::VA("\nnewmtl %s\n", name.data()));
 			mtl.append("Ka 1.0000 1.0000 1.0000\n");
