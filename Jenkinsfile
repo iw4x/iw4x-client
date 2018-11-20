@@ -257,7 +257,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 				def testName = entry[0]
 				def test = entry[1]
 
-				/*executions["$testName on Windows"] = {
+				executions["$testName on Windows"] = {
 					node("windows") {
 						jobWorkspace(test.WorkspaceID) {
 							doUnitTests(test.StashName)
@@ -278,7 +278,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 							}
 						}
 					}
-				}*/
+				}
 				parallel executions
 			}
 		}
