@@ -40,7 +40,6 @@ RUN \
         rm -rf /tmp/* /var/tmp/* /usr/share/man/* /usr/share/info/* /usr/share/doc/* &&\
         pacman -Scc --noconfirm &&\
         paccache -rk0 &&\
-        pacman-optimize &&\
         rm -rf /var/lib/pacman/sync/*
 
 USER 0
