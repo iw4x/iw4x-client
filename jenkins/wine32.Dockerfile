@@ -23,6 +23,7 @@ RUN \
                 wine \
                 wget \
                 xorg-server-xvfb \
+				pacman-contrib \
                 &&\
 \
         wine-wrapper wineboot.exe -i &&\
