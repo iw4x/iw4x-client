@@ -214,7 +214,7 @@ gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"])
 					}
 
 					useShippedPremake {
-						def version = bat(returnStdout: true, script: '@premake5 version').split("\r?\n")[1]
+						def version = bat(returnStdout: true, script: '@premake5 version').split("\r?\n")[2]
 
 						currentBuild.setDisplayName "$version (#${env.BUILD_NUMBER})"
 					}
