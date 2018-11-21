@@ -652,7 +652,7 @@ namespace Components
 					int b = world->draw.indices[indexOffset + j * 3 + 1] + vertOffset;
 					int c = world->draw.indices[indexOffset + j * 3 + 2] + vertOffset;
 
-					map.append(Utils::String::VA("f %d/%d %d/%d %d/%d\n", a, a, b, b, c, c));
+					map.append(Utils::String::VA("f %d/%d/%d %d/%d/%d %d/%d/%d\n", a, a, a, b, b, b, c, c, c));
 				}
 			}
 		}
