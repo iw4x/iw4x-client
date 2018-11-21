@@ -566,6 +566,16 @@ namespace Components
 			map.append(Utils::String::VA("vt %.6f %.6f\n", world->draw.vd.vertices[i].texCoord[0], -world->draw.vd.vertices[i].texCoord[1]));
 		}
 
+		Logger::Print("Writing normals...\n");
+		for (unsigned int i = 0; i < world->draw.vertexCount; ++i)
+		{
+			Game::vec3_t normal;
+			Game::Vec3UnpackUnitVec(world->draw.vd.vertices[i].normal, &normal);
+			map.append(Utils::String::VA("vn %.6f %.6f %.6f\n", normal[0], normal[1], normal[2]));
+		}
+
+		map.append("\n");
+
 		Logger::Print("Searching materials...\n");
 		int materialCount = 0;
 		Game::Material** materials = allocator.allocateArray<Game::Material*>(world->dpvs.staticSurfaceCount);
