@@ -57,5 +57,6 @@ function libtomcrypt.project()
 
 		defines { "_LIB" }
 		removedefines { "_DLL", "_USRDLL" }
+		linkoptions { "-IGNORE:4221" }
 		kind "StaticLib"
 end
