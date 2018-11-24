@@ -25,7 +25,7 @@
 [submodule "deps/protobuf"]
 	path = deps/protobuf
 	url = https://github.com/google/protobuf.git
-	branch = 3.5.x
+	branch = 3.6.x
 [submodule "deps/udis86"]
 	path = deps/udis86
 	url = ../udis86.git
