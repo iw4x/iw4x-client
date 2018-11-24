@@ -169,7 +169,7 @@ namespace Steam
 		size_t expectedParams = Proxy::ClientUser.paramSize("SpawnProcess");
 		if (expectedParams == 40) // Release
 		{
-			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
 		}
 		else if (expectedParams == 36) // Beta
 		{
@@ -403,7 +403,7 @@ namespace Steam
 		Proxy::SteamUser = Proxy::SteamClient->ConnectToGlobalUser(Proxy::SteamPipe);
 		if (!Proxy::SteamUser) return false;
 
-		Proxy::ClientEngine = Proxy::Client.get<IClientEngine*(const char*, int*)>("CreateInterface")("CLIENTENGINE_INTERFACE_VERSION004", nullptr);
+		Proxy::ClientEngine = Proxy::Client.get<IClientEngine*(const char*, int*)>("CreateInterface")("CLIENTENGINE_INTERFACE_VERSION005", nullptr);
 		if (!Proxy::ClientEngine) return false;
 
 		Proxy::ClientUser = Proxy::ClientEngine->GetIClientUser(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTUSER_INTERFACE_VERSION001");

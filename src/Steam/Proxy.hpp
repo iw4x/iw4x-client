@@ -95,10 +95,11 @@ namespace Steam
 		virtual unknown_ret GetIClientRemoteClientManager(int32, const char *) = 0;
 		virtual unknown_ret GetIClientStreamClient(int32, int32, const char *) = 0;
 		virtual unknown_ret GetIClientShortcuts(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientRemoteControlManager(int32) = 0;
 		virtual unknown_ret Set_ClientAPI_CPostAPIResultInProcess(void(*)(uint64, void *, uint32, int32)) = 0;
 		virtual unknown_ret Remove_ClientAPI_CPostAPIResultInProcess(void(*)(uint64, void *, uint32, int32)) = 0;
 		virtual unknown_ret GetIClientUGC(int32, int32, const char *) = 0;
-		virtual unknown_ret GetIClientInventory(int32, int32, const char *) = 0;
+		//virtual unknown_ret GetIClientInventory(int32, int32, const char *) = 0;
 		virtual unknown_ret GetIClientVR(int32, const char *) = 0;
 		virtual unknown_ret GetIClientTabletop(int32, int32, const char *) = 0;
 		virtual unknown_ret GetIClientHTMLSurface(int32, int32, const char *) = 0;
