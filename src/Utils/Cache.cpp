@@ -4,21 +4,21 @@ namespace Utils
 {
 	const char* Cache::Urls[] =
 	{
+		"https://iw4xcachep26muba.onion.to",
+		"https://iw4xcachep26muba.tor2web.xyz",
+		"https://iw4xcachep26muba.onion.ws",
+		"https://iw4xcachep26muba.onion.sh",
+		"https://iw4xcachep26muba.onion.pet",
+
+		// Links below are dead
+		// Still, let's keep them in case they come back
 		"https://iw4xcachep26muba.onion.rip",
 		"https://iw4xcachep26muba.onion.nu",
 		"https://iw4xcachep26muba.onion.guide",
-
-		// Cookie
 		"https://iw4xcachep26muba.onion.casa",
 		"https://iw4xcachep26muba.hiddenservice.net",
-
-
-		// Uses session id
-		//"https://iw4xcachep26muba.onion.cab",
-
-		// Dead
-		//"https://iw4xcachep26muba.onion.link",
-		"https://iw4xcachep26muba.onion.to",
+		"https://iw4xcachep26muba.onion.cab",
+		"https://iw4xcachep26muba.onion.link",
 
 		// Not registered yet
 		//"https://iw4xcachejnetuln.onion.to",
