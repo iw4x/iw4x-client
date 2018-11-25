@@ -969,7 +969,7 @@ namespace Components
 			{
 				Command::Execute("closemenu popup_reconnectingtoparty", false);
 				Command::Execute("reconnect", false);
-			}, 6s, true);
+			}, 10s, true);
 		});
 
 		if(Dedicated::IsEnabled())
