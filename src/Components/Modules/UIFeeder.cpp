@@ -167,7 +167,7 @@ namespace Components
 
 			// Get listbox cursor pos
 			mov edx, [edx]
-			add edx, Game::listBoxDef_s::startPos
+			add edx, Game::listBoxDef_s::mousePos
 			mov edx, [edx]
 
 			// Resolve item cursor pos pointer
