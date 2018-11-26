@@ -55,13 +55,14 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		Steam::Proxy::RunMod();
 
 		// Ensure we're working with our desired binary
-		char* textSegment = reinterpret_cast<char*>(0x401000);
-		auto hash = Utils::Cryptography::JenkinsOneAtATime::Compute(textSegment, 0x2D531F);
-		if (hash != 0x54684DBE
+		char* module = reinterpret_cast<char*>(0x400000);
+		auto hash1 = Utils::Cryptography::JenkinsOneAtATime::Compute(module + 0x1000, 0x2D531F);  // .text
+		auto hash2 = Utils::Cryptography::JenkinsOneAtATime::Compute(module + 0x2D75FC, 0xBDA04); // .rdata
+		if ((hash1 != 0x54684DBE
 #ifdef DEBUG
-			&& hash != 0x8AADE716
+			&& hash1 != 0x8AADE716
 #endif
-			)
+			) || hash2 != 0x8030ec53)
 		{
 			return FALSE;
 		}
@@ -78,7 +79,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 #endif
 
 		DWORD oldProtect;
-		VirtualProtect(textSegment, 0x2D6000, PAGE_EXECUTE_READ, &oldProtect); // Protect the .text segment
+		VirtualProtect(module + 0x1000, 0x2D6000, PAGE_EXECUTE_READ, &oldProtect); // Protect the .text segment
 
 		// Install entry point hook
 		Utils::Hook(0x6BAC0F, Main::EntryPoint, HOOK_JUMP).install()->quick();
