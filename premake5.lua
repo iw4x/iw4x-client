@@ -247,7 +247,7 @@ workspace "iw4x"
 	platforms "x86"
 	--exceptionhandling ("SEH")
 
-	flags { "StaticRuntime" }
+	staticruntime "On"
 
 	configuration "windows"
 		defines { "_WINDOWS", "WIN32" }
