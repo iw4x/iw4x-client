@@ -200,6 +200,7 @@ libtommath.setup
 {
 	defines = {
 		"LTM_DESC",
+		"__STDC_IEC_559__",
 	},
 	source = path.join(depsBasePath, "libtommath"),
 }
