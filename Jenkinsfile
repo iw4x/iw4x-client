@@ -193,8 +193,10 @@ def iw4xExecutableBranch() {
 
 // Job properties
 properties([
-	[$class: "GitLabConnectionProperty", gitLabConnection: "iw4x"],
-	buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '30'))
+	buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '30')),
+	disableConcurrentBuilds(),
+	gitLabConnection('iw4x'),
+	[$class: 'LeastLoadDisabledProperty', leastLoadDisabled: false]
 ])
 
 gitlabBuilds(builds: ["Checkout & Versioning", "Build", "Testing", "Archiving"]) {
