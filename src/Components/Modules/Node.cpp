@@ -153,6 +153,13 @@ namespace Components
 		Node::Nodes.push_back(node);
 	}
 
+	std::vector<Node::Entry> Node::GetNodes()
+	{
+		std::lock_guard<std::recursive_mutex> _(Node::Mutex);
+
+		return Node::Nodes;
+	}
+
 	void Node::RunFrame()
 	{
 		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
@@ -264,6 +271,7 @@ namespace Components
 			Node::Nodes.push_back(entry);
 		}
 	}
+
 	void Node::SendList(Network::Address address)
 	{
 		Proto::Node::List list;

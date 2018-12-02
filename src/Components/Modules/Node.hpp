@@ -41,6 +41,7 @@ namespace Components
 		~Node();
 
 		static void Add(Network::Address address);
+		static std::vector<Entry> GetNodes();
 		static void RunFrame();
 		static void Synchronize();
 
