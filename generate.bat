@@ -1,4 +1,4 @@
 @echo off
 echo Updating submodules...
-git submodule update --init --recursive
-tools\premake5 %* vs2017
+call git submodule update --init --recursive
+call tools\premake5 %* vs2017
