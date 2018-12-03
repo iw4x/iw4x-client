@@ -475,13 +475,9 @@ namespace Components
 		// Build server list
 		for (auto& node : Node::GetNodes())
 		{
-			std::map<std::string, json11::Json> serverInfo;
-			serverInfo["address"] = "127.0.0.1:28960";
-			
 			if (node.isValid())
 			{
-				serverInfo["address"] = node.address.getCString();
-				servers.push_back(serverInfo);
+				servers.push_back(json11::Json{ node });
 			}
 		}
 

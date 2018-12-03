@@ -50,6 +50,11 @@ namespace Components
 		this->lastRequest.reset();
 	}
 
+	json11::Json Node::Entry::to_json() const
+	{
+		return this->address.getString();
+	}
+
 	void Node::LoadNodeRemotePreset()
 	{
 		std::string nodes = Utils::Cache::GetFile("/iw4/nodes.txt");

@@ -35,6 +35,7 @@ namespace Components
 			void sendRequest();
 
 			void reset();
+			json11::Json to_json() const;
 		};
 
 		Node();
