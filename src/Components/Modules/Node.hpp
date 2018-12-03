@@ -35,12 +35,14 @@ namespace Components
 			void sendRequest();
 
 			void reset();
+			json11::Json to_json() const;
 		};
 
 		Node();
 		~Node();
 
 		static void Add(Network::Address address);
+		static std::vector<Entry> GetNodes();
 		static void RunFrame();
 		static void Synchronize();
 

@@ -217,6 +217,7 @@ namespace Components
 		static void EventHandler(mg_connection *nc, int ev, void *ev_data);
 		static void ListHandler(mg_connection *nc, int ev, void *ev_data);
 		static void MapHandler(mg_connection *nc, int ev, void *ev_data);
+		static void ServerlistHandler(mg_connection *nc, int ev, void *ev_data);
 		static void FileHandler(mg_connection *nc, int ev, void *ev_data);
 		static void InfoHandler(mg_connection *nc, int ev, void *ev_data);
 		static void DownloadHandler(mg_connection *nc, int ev, void *ev_data);

@@ -465,6 +465,33 @@ namespace Components
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 	}
 
+	void Download::ServerlistHandler(mg_connection* nc, int ev, void* /*ev_data*/)
+	{
+		// Only handle http requests
+		if (ev != MG_EV_HTTP_REQUEST) return;
+
+		std::vector<json11::Json> servers;
+
+		// Build server list
+		for (auto& node : Node::GetNodes())
+		{
+			if (node.isValid())
+			{
+				servers.push_back(json11::Json{ node });
+			}
+		}
+
+		mg_printf(nc,
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: application/json\r\n"
+			"Connection: close\r\n"
+			"Access-Control-Allow-Origin: *\r\n"
+			"\r\n"
+			"%s", json11::Json(servers).dump().data());
+
+		nc->flags |= MG_F_SEND_AND_CLOSE;
+	}
+
 	void Download::MapHandler(mg_connection *nc, int ev, void* ev_data)
 	{
 		// Only handle http requests
@@ -819,6 +846,7 @@ namespace Components
 					mg_register_http_endpoint(nc, "/list", Download::ListHandler);
 					mg_register_http_endpoint(nc, "/map", Download::MapHandler);
 					mg_register_http_endpoint(nc, "/file/", Download::FileHandler);
+					mg_register_http_endpoint(nc, "/serverlist", Download::ServerlistHandler);
 
 					mg_set_protocol_http_websocket(nc);
 				}

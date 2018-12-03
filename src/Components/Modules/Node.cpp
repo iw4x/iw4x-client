@@ -50,6 +50,11 @@ namespace Components
 		this->lastRequest.reset();
 	}
 
+	json11::Json Node::Entry::to_json() const
+	{
+		return this->address.getString();
+	}
+
 	void Node::LoadNodeRemotePreset()
 	{
 		std::string nodes = Utils::Cache::GetFile("/iw4/nodes.txt");
@@ -151,6 +156,13 @@ namespace Components
 		node.address = address;
 
 		Node::Nodes.push_back(node);
+	}
+
+	std::vector<Node::Entry> Node::GetNodes()
+	{
+		std::lock_guard<std::recursive_mutex> _(Node::Mutex);
+
+		return Node::Nodes;
 	}
 
 	void Node::RunFrame()
@@ -264,6 +276,7 @@ namespace Components
 			Node::Nodes.push_back(entry);
 		}
 	}
+
 	void Node::SendList(Network::Address address)
 	{
 		Proto::Node::List list;
