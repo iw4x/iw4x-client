@@ -451,7 +451,7 @@ workspace "*"
 	buildoptions {
 				"/std:c++latest"
 			}
-	systemversion "10.0.17134.0"
+	systemversion "10.0.17763.0"
 	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
 
 rule "ProtobufCompiler"
