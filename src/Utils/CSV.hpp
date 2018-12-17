@@ -6,7 +6,7 @@ namespace Utils
 	{
 	public:
 		CSV() { }
-		CSV(std::string file, bool isFile = true, bool allowComments = true);
+		CSV(const std::string& file, bool isFile = true, bool allowComments = true);
 		~CSV();
 
 		int getRows();
@@ -21,7 +21,7 @@ namespace Utils
 		bool valid;
 		std::vector<std::vector<std::string>> dataMap;
 
-		void parse(std::string file, bool isFile = true, bool allowComments = true);
-		void parseRow(std::string row, bool allowComments = true);
+		void parse(const std::string& file, bool isFile = true, bool allowComments = true);
+		void parseRow(const std::string& row, bool allowComments = true);
 	};
 }

@@ -58,11 +58,11 @@ namespace Components
 
 	StringTable::StringTable()
 	{
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [](Game::XAssetType, std::string filename)
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [](Game::XAssetType, const std::string& _filename)
 		{
 			Game::XAssetHeader header = { nullptr };
 
-			filename = Utils::String::ToLower(filename);
+			std::string filename = Utils::String::ToLower(_filename);
 
 			if (StringTable::StringTableMap.find(filename) != StringTable::StringTableMap.end())
 			{

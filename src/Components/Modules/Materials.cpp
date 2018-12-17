@@ -8,7 +8,7 @@ namespace Components
 	std::vector<Game::GfxImage*> Materials::ImageTable;
 	std::vector<Game::Material*> Materials::MaterialTable;
 
-	Game::Material* Materials::Create(std::string name, Game::GfxImage* image)
+	Game::Material* Materials::Create(const std::string& name, Game::GfxImage* image)
 	{
 		Game::Material* material = Utils::Memory::GetAllocator()->allocate<Game::Material>();
 		Game::MaterialTextureDef* texture = Utils::Memory::GetAllocator()->allocate<Game::MaterialTextureDef>();
@@ -71,7 +71,7 @@ namespace Components
 		}
 	}
 
-	Game::GfxImage* Materials::CreateImage(std::string name, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format)
+	Game::GfxImage* Materials::CreateImage(const std::string& name, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format)
 	{
 		Game::GfxImage* image = Utils::Memory::GetAllocator()->allocate<Game::GfxImage>();
 		image->name = Utils::Memory::GetAllocator()->duplicateString(name);

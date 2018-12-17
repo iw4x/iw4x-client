@@ -4,7 +4,7 @@
 
 namespace Assets
 {
-	void IFxEffectDef::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IFxEffectDef::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		if (!header->data)                                   this->loadEfx(header, name, builder);    // Check if we have an editor fx
 		if (!header->data /*&& !builder->isPrimaryAsset()*/) this->loadNative(header, name, builder); // Check if there is a native one
@@ -63,7 +63,7 @@ namespace Assets
 		}
 	}
 
-	void IFxEffectDef::loadBinary(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IFxEffectDef::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File fxFile(Utils::String::VA("fx/%s.iw4xFx", name.data()));
 
@@ -198,7 +198,7 @@ namespace Assets
 		}
 	}
 
-	void IFxEffectDef::loadEfx(Game::XAssetHeader* /*header*/, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
+	void IFxEffectDef::loadEfx(Game::XAssetHeader* /*header*/, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
 #ifdef DEBUG
 		Components::FileSystem::File rawFx(Utils::String::VA("fx/%s.efx", name.data()));
@@ -270,10 +270,12 @@ namespace Assets
 
 			// TODO: Convert editor fx to real fx
 		}
+#else
+		(name);
 #endif
 	}
 
-	void IFxEffectDef::loadNative(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
+	void IFxEffectDef::loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
 		header->fx = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).fx;
 	}

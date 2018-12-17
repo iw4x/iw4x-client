@@ -19,7 +19,7 @@ namespace Components
 		{
 		public:
 			File() {};
-			File(std::string file) : filePath(file) { this->read(); };
+			File(const std::string& file) : filePath(file) { this->read(); };
 
 			bool exists() override { return !this->buffer.empty(); };
 			std::string getName() override { return this->filePath; };
@@ -36,7 +36,7 @@ namespace Components
 		{
 		public:
 			RawFile() {};
-			RawFile(std::string file) : filePath(file) { this->read(); };
+			RawFile(const std::string& file) : filePath(file) { this->read(); };
 
 			bool exists() override { return !this->buffer.empty(); };
 			std::string getName() override { return this->filePath; };
@@ -53,7 +53,7 @@ namespace Components
 		{
 		public:
 			FileReader() : handle(0), size(-1), name() {};
-			FileReader(std::string file);
+			FileReader(const std::string& file);
 			~FileReader();
 
 			bool exists();
@@ -72,10 +72,10 @@ namespace Components
 		class FileWriter
 		{
 		public:
-			FileWriter(std::string file, bool append = false) : handle(0), filePath(file) { this->open(append); };
+			FileWriter(const std::string& file, bool append = false) : handle(0), filePath(file) { this->open(append); };
 			~FileWriter() { this->close(); };
 
-			void write(std::string data);
+			void write(const std::string& data);
 
 		private:
 			int handle;
@@ -88,9 +88,9 @@ namespace Components
 		FileSystem();
 		~FileSystem();
 
-		static std::vector<std::string> GetFileList(std::string path, std::string extension);
-		static std::vector<std::string> GetSysFileList(std::string path, std::string extension, bool folders = false);
-		static void DeleteFile(std::string folder, std::string file);
+		static std::vector<std::string> GetFileList(const std::string& path, const std::string& extension);
+		static std::vector<std::string> GetSysFileList(const std::string& path, const std::string& extension, bool folders = false);
+		static void DeleteFile(const std::string& folder, const std::string& file);
 
 	private:
 		static std::mutex Mutex;

@@ -8,8 +8,8 @@ namespace Components
 		Toast();
 		~Toast();
 
-		static void Show(std::string image, std::string title, std::string description, int length, Utils::Slot<void()> callback = Utils::Slot<void()>());
-		static void Show(Game::Material* material, std::string title, std::string description, int length, Utils::Slot<void()> callback = Utils::Slot<void()>());
+		static void Show(const std::string& image, const std::string& title, const std::string& description, int length, Utils::Slot<void()> callback = Utils::Slot<void()>());
+		static void Show(Game::Material* material, const std::string& title, const std::string& description, int length, Utils::Slot<void()> callback = Utils::Slot<void()>());
 
 		static std::string GetIcon();
 

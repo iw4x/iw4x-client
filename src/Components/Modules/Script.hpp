@@ -9,7 +9,7 @@ namespace Components
 		class Function
 		{
 		public:
-			Function(std::string _name, Game::scr_function_t _callback, bool _dev) : name(_name), callback(_callback), dev(_dev) {}
+			Function(const std::string& _name, Game::scr_function_t _callback, bool _dev) : name(_name), callback(_callback), dev(_dev) {}
 
 			const char* getName() const { return this->name.data(); }
 			bool isDev() const { return this->dev; }
@@ -24,8 +24,8 @@ namespace Components
 		Script();
 		~Script();
 
-		static int LoadScriptAndLabel(std::string script, std::string label);
-		static void AddFunction(std::string name, Game::scr_function_t function, bool isDev = false);
+		static int LoadScriptAndLabel(const std::string& script, const std::string& label);
+		static void AddFunction(const std::string& name, Game::scr_function_t function, bool isDev = false);
 
 		static void OnVMShutdown(Utils::Slot<Scheduler::Callback> callback);
 

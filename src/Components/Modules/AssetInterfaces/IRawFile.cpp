@@ -2,7 +2,7 @@
 
 namespace Assets
 {
-	void IRawFile::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IRawFile::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File rawFile(name);
 

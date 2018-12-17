@@ -6,7 +6,7 @@ namespace Components
 	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
 	std::map<std::string, Utils::Slot<Network::Callback>> Network::PacketHandlers;
 
-	Network::Address::Address(std::string addrString)
+	Network::Address::Address(const std::string& addrString)
 	{
 		Game::NET_StringToAdr(addrString.data(), &this->address);
 	}
@@ -123,7 +123,7 @@ namespace Components
 	{
 		return (this->getType() != Game::netadrtype_t::NA_BAD && this->getType() >= Game::netadrtype_t::NA_BOT && this->getType() <= Game::netadrtype_t::NA_IP);
 	}
-	void Network::Handle(std::string packet, Utils::Slot<Network::Callback> callback)
+	void Network::Handle(const std::string& packet, Utils::Slot<Network::Callback> callback)
 	{
 		Network::PacketHandlers[Utils::String::ToLower(packet)] = callback;
 	}
@@ -133,7 +133,7 @@ namespace Components
 		Network::StartupSignal.connect(callback);
 	}
 
-	void Network::Send(Game::netsrc_t type, Network::Address target, std::string data)
+	void Network::Send(Game::netsrc_t type, Network::Address target, const std::string& data)
 	{
 		// NET_OutOfBandPrint only supports non-binary data!
 		//Game::NET_OutOfBandPrint(type, *target.Get(), data.data());
@@ -146,12 +146,12 @@ namespace Components
 		Network::SendRaw(type, target, rawData);
 	}
 
-	void Network::Send(Network::Address target, std::string data)
+	void Network::Send(Network::Address target, const std::string& data)
 	{
 		Network::Send(Game::netsrc_t::NS_CLIENT1, target, data);
 	}
 
-	void Network::SendRaw(Game::netsrc_t type, Network::Address target, std::string data)
+	void Network::SendRaw(Game::netsrc_t type, Network::Address target, const std::string& data)
 	{
 		if (!target.isValid()) return;
 
@@ -160,12 +160,12 @@ namespace Components
 		Game::Sys_SendPacket(type, data.size(), data.data(), *target.get());
 	}
 
-	void Network::SendRaw(Network::Address target, std::string data)
+	void Network::SendRaw(Network::Address target, const std::string& data)
 	{
 		Network::SendRaw(Game::netsrc_t::NS_CLIENT1, target, data);
 	}
 
-	void Network::SendCommand(Game::netsrc_t type, Network::Address target, std::string command, std::string data)
+	void Network::SendCommand(Game::netsrc_t type, Network::Address target, const std::string& command, const std::string& data)
 	{
 		// Use space as separator (possible separators are '\n', ' ').
 		// Though, our handler only needs exactly 1 char as separator and doesn't care which char it is.
@@ -178,12 +178,12 @@ namespace Components
 		Network::Send(type, target, packet);
 	}
 
-	void Network::SendCommand(Network::Address target, std::string command, std::string data)
+	void Network::SendCommand(Network::Address target, const std::string& command, const std::string& data)
 	{
 		Network::SendCommand(Game::netsrc_t::NS_CLIENT1, target, command, data);
 	}
 
-	void Network::Broadcast(unsigned short port, std::string data)
+	void Network::Broadcast(unsigned short port, const std::string& data)
 	{
 		Address target;
 
@@ -194,7 +194,7 @@ namespace Components
 		Network::Send(Game::netsrc_t::NS_CLIENT1, target, data);
 	}
 
-	void Network::BroadcastRange(unsigned int min, unsigned int max, std::string data)
+	void Network::BroadcastRange(unsigned int min, unsigned int max, const std::string& data)
 	{
 		for (unsigned int i = min; i < max; ++i)
 		{
@@ -202,7 +202,7 @@ namespace Components
 		}
 	}
 
-	void Network::BroadcastAll(std::string data)
+	void Network::BroadcastAll(const std::string& data)
 	{
 		Network::BroadcastRange(100, 65536, data);
 	}
@@ -372,7 +372,7 @@ namespace Components
 		// Install packet deploy hook
 		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);
 
-		Network::Handle("resolveAddress", [](Address address, std::string data)
+		Network::Handle("resolveAddress", [](Address address, const std::string& /*data*/)
 		{
 			Network::SendRaw(address, address.getString());
 		});

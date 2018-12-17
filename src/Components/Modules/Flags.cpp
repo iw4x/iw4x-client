@@ -4,7 +4,7 @@ namespace Components
 {
 	std::vector<std::string> Flags::EnabledFlags;
 
-	bool Flags::HasFlag(std::string flag)
+	bool Flags::HasFlag(const std::string& flag)
 	{
 		Flags::ParseFlags();
 

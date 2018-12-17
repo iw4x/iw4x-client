@@ -72,7 +72,7 @@ namespace Assets
 		}
 	}
 
-	void IXModel::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IXModel::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		if (!builder->isPrimaryAsset())
 		{

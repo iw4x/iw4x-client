@@ -27,7 +27,7 @@ namespace Components
 		typedef void(Callback)(Token token);
 		typedef void(CallbackRaw)();
 
-		static void Add(std::string name, Utils::Slot<Callback> callback);
+		static void Add(const std::string& name, Utils::Slot<Callback> callback);
 		static void AddOwnerDraw(int ownerdraw, Utils::Slot<CallbackRaw> callback);
 
 	private:

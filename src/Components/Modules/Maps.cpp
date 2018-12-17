@@ -201,7 +201,7 @@ namespace Components
 		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_CLIPMAP_SP, callback, ents, true);
 	}
 
-	void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict)
+	void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* restrict)
 	{
 		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()
 			&& (FastFiles::Current() != "mp_shipment_long" || Maps::CurrentMainZone != "mp_shipment")) // Shipment is a special case
@@ -331,7 +331,7 @@ namespace Components
 		Maps::SPMap = true;
 	}
 
-	void Maps::AddDependency(std::string expression, std::string zone)
+	void Maps::AddDependency(const std::string& expression, const std::string& zone)
 	{
 		// Test expression before adding it
 		try
@@ -352,7 +352,7 @@ namespace Components
 		return (Utils::String::StartsWith(entity, "dyn_") || Utils::String::StartsWith(entity, "node_") || Utils::String::StartsWith(entity, "actor_"));
 	}
 
-	std::vector<std::string> Maps::GetDependenciesForMap(std::string map)
+	std::vector<std::string> Maps::GetDependenciesForMap(const std::string& map)
 	{
 		for (int i = 0; i < *Game::arenaCount; ++i)
 		{
@@ -372,7 +372,7 @@ namespace Components
 		return {};
 	}
 
-	std::pair<std::string, std::string> Maps::GetTeamsForMap(std::string map)
+	std::pair<std::string, std::string> Maps::GetTeamsForMap(const std::string& map)
 	{
 		std::string team_axis = "opforce_composite";
 		std::string team_allies = "us_army";
@@ -420,7 +420,7 @@ namespace Components
 		}
 	}
 
-	unsigned int Maps::GetUsermapHash(std::string map)
+	unsigned int Maps::GetUsermapHash(const std::string& map)
 	{
 		if (Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", map.data())))
 		{
@@ -720,7 +720,7 @@ namespace Components
 		return false;
 	}
 
-	bool Maps::IsUserMap(std::string mapname)
+	bool Maps::IsUserMap(const std::string& mapname)
 	{
 		return Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", mapname.data())) && Utils::IO::FileExists(Utils::String::VA("usermaps/%s/%s.ff", mapname.data(), mapname.data()));
 	}

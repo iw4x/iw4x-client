@@ -11,8 +11,8 @@ namespace Components
 
 		void preDestroy() override;
 
-		static void InitiateClientDownload(std::string mod, bool needPassword, bool map = false);
-		static void InitiateMapDownload(std::string map, bool needPassword);
+		static void InitiateClientDownload(const std::string& mod, bool needPassword, bool map = false);
+		static void InitiateMapDownload(const std::string& map, bool needPassword);
 
 	private:
 		class ClientDownload
@@ -85,7 +85,7 @@ namespace Components
 		class ScriptDownload
 		{
 		public:
-			ScriptDownload(std::string _url, unsigned int _object) : url(_url), object(_object), webIO(nullptr), done(false), notifyRequired(false), totalSize(0), currentSize(0)
+			ScriptDownload(const std::string& _url, unsigned int _object) : url(_url), object(_object), webIO(nullptr), done(false), notifyRequired(false), totalSize(0), currentSize(0)
 			{
 				Game::AddRefToObject(this->getObject());
 			}
@@ -227,7 +227,7 @@ namespace Components
 		static void Forbid(mg_connection *nc);
 
 		static void ModDownloader(ClientDownload* download);
-		static bool ParseModList(ClientDownload* download, std::string list);
+		static bool ParseModList(ClientDownload* download, const std::string& list);
 		static bool DownloadFile(ClientDownload* download, unsigned int index);
 	};
 }

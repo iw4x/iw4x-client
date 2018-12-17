@@ -10,7 +10,7 @@ namespace Components
 		Bans();
 		~Bans();
 
-		static void BanClientNum(int num, std::string reason);
+		static void BanClientNum(int num, const std::string& reason);
 		static void UnbanClient(SteamID id);
 		static void UnbanClient(Game::netIP_t ip);
 

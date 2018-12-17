@@ -19,23 +19,23 @@ namespace Utils
 		typedef std::map<std::string, std::string> Params;
 
 		WebIO();
-		WebIO(std::string useragent);
-		WebIO(std::string useragent, std::string url);
+		WebIO(const std::string& useragent);
+		WebIO(const std::string& useragent, const std::string& url);
 
 		~WebIO();
 
 		void setURL(std::string url);
-		void setCredentials(std::string username, std::string password);
+		void setCredentials(const std::string& username, const std::string& password);
 
-		std::string postFile(std::string url, std::string data, std::string fieldName, std::string fileName);
-		std::string postFile(std::string data, std::string fieldName, std::string fileName);
+		std::string postFile(const std::string& url, const std::string& data, const std::string& fieldName, const std::string& fileName);
+		std::string postFile(const std::string& data, std::string fieldName, std::string fileName);
 
-		std::string post(std::string url, WebIO::Params params, bool* success = nullptr);
-		std::string post(std::string url, std::string body, bool* success = nullptr);
+		std::string post(const std::string& url, WebIO::Params params, bool* success = nullptr);
+		std::string post(const std::string& url, const std::string& body, bool* success = nullptr);
 		std::string post(WebIO::Params params, bool* success = nullptr);
-		std::string post(std::string body, bool* success = nullptr);
+		std::string post(const std::string& body, bool* success = nullptr);
 
-		std::string get(std::string url, bool* success = nullptr);
+		std::string get(const std::string& url, bool* success = nullptr);
 		std::string get(bool* success = nullptr);
 
 		WebIO* setTimeout(DWORD mseconds);
@@ -44,23 +44,23 @@ namespace Utils
 		bool connect();
 		void disconnect(); // Not necessary
 
-		bool setDirectory(std::string directory);
+		bool setDirectory(const std::string&directory);
 		bool setRelativeDirectory(std::string directory);
 		bool getDirectory(std::string &directory);
-		bool createDirectory(std::string directory);
-		bool deleteDirectory(std::string directory);
-		bool renameDirectory(std::string directory, std::string newDir);
+		bool createDirectory(const std::string& directory);
+		bool deleteDirectory(const std::string& directory);
+		bool renameDirectory(const std::string& directory, const std::string& newDir);
 
-		bool listDirectories(std::string directory, std::vector<std::string> &list);
-		bool listFiles(std::string directory, std::vector<std::string> &list);
+		bool listDirectories(const std::string& directory, std::vector<std::string> &list);
+		bool listFiles(const std::string& directory, std::vector<std::string> &list);
 
-		bool deleteFile(std::string file);
-		bool renameFile(std::string file, std::string newFile);
-		bool uploadFile(std::string file, std::string localfile);
-		bool downloadFile(std::string file, std::string localfile);
+		bool deleteFile(const std::string& file);
+		bool renameFile(const std::string& file, const std::string& newFile);
+		bool uploadFile(const std::string& file, const std::string& localfile);
+		bool downloadFile(const std::string& file, const std::string& localfile);
 
-		bool uploadFileData(std::string file, std::string data);
-		bool downloadFileData(std::string file, std::string &data);
+		bool uploadFileData(const std::string& file,const std::string& data);
+		bool downloadFileData(const std::string& file, std::string &data);
 
 		void setProgressCallback(Utils::Slot<void(size_t, size_t)> callback);
 		void cancelDownload() { this->cancel = true; }
@@ -102,11 +102,11 @@ namespace Utils
 
 		bool isSecuredConnection();
 
-		std::string execute(const char* command, std::string body, WebIO::Params headers = WebIO::Params(), bool* success = nullptr);
+		std::string execute(const char* command, const std::string& body, WebIO::Params headers = WebIO::Params(), bool* success = nullptr);
 
-		bool listElements(std::string directory, std::vector<std::string> &list, bool files);
+		bool listElements(const std::string& directory, std::vector<std::string> &list, bool files);
 
-		void openSession(std::string useragent);
+		void openSession(const std::string& useragent);
 		void closeSession();
 
 		bool openConnection();

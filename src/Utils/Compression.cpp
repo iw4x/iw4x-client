@@ -4,7 +4,7 @@ namespace Utils
 {
 	namespace Compression
 	{
-		std::string ZLib::Compress(std::string data)
+		std::string ZLib::Compress(const std::string& data)
 		{
 			Utils::Memory::Allocator allocator;
 			unsigned long length = (data.size() * 2);
@@ -19,13 +19,10 @@ namespace Utils
 				return "";
 			}
 
-			data.clear();
-			data.append(buffer, length);
-
-			return data;
+			return std::string(buffer, length);
 		}
 
-		std::string ZLib::Decompress(std::string data)
+		std::string ZLib::Decompress(const std::string& data)
 		{
 			z_stream stream;
 			ZeroMemory(&stream, sizeof(stream));

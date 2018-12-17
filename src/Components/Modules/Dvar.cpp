@@ -4,7 +4,7 @@ namespace Components
 {
 	Utils::Signal<Scheduler::Callback> Dvar::RegistrationSignal;
 
-	Dvar::Var::Var(std::string dvarName) : Var()
+	Dvar::Var::Var(const std::string& dvarName) : Var()
 	{
 		this->dvar = Game::Dvar_FindVar(dvarName.data());
 
@@ -91,7 +91,7 @@ namespace Components
 			Game::Dvar_SetCommand(this->dvar->name, string);
 		}
 	}
-	void Dvar::Var::set(std::string string)
+	void Dvar::Var::set(const std::string& string)
 	{
 		this->set(string.data());
 	}

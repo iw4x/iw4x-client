@@ -4,12 +4,12 @@ namespace Components
 {
 	std::unordered_map<std::string, const char*> MusicalTalent::SoundAliasList;
 
-	void MusicalTalent::Replace(std::string sound, const char* file)
+	void MusicalTalent::Replace(const std::string& sound, const char* file)
 	{
 		MusicalTalent::SoundAliasList[Utils::String::ToLower(sound)] = file;
 	}
 
-	Game::XAssetHeader MusicalTalent::ModifyAliases(Game::XAssetType type, std::string filename)
+	Game::XAssetHeader MusicalTalent::ModifyAliases(Game::XAssetType type, const std::string& filename)
 	{
 		Game::XAssetHeader header = { nullptr };
 

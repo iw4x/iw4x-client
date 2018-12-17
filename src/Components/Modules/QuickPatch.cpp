@@ -478,7 +478,7 @@ namespace Components
 
 			int count = 0;
 
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* /*restrict*/)
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
 			{
 				// they're basically the same right?
 				if (type == Game::ASSET_TYPE_PIXELSHADER || type == Game::ASSET_TYPE_VERTEXSHADER)
@@ -627,7 +627,7 @@ namespace Components
 			}
 		});
 
-		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* /*restrict*/)
+		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& /*name*/, bool* /*restrict*/)
 		{
 			if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)
 			{

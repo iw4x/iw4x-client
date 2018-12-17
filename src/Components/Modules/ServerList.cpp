@@ -292,7 +292,7 @@ namespace Components
 		}
 	}
 
-	void ServerList::StoreFavourite(std::string server)
+	void ServerList::StoreFavourite(const std::string& server)
 	{
 		//json11::Json::parse()
 		std::vector<std::string> servers;
@@ -331,7 +331,7 @@ namespace Components
 		Game::ShowMessageBox("Server added to favourites.", "Success");
 	}
 
-	void ServerList::RemoveFavourite(std::string server)
+	void ServerList::RemoveFavourite(const std::string& server)
 	{
 		std::vector<std::string> servers;
 
@@ -527,7 +527,7 @@ namespace Components
 		}
 	}
 
-	bool ServerList::CompareVersion(std::string version1, std::string version2)
+	bool ServerList::CompareVersion(const std::string& version1, const std::string& version2)
 	{
 		std::vector<std::string> subVersions1 = Utils::String::Explode(version1, '.');
 		std::vector<std::string> subVersions2 = Utils::String::Explode(version2, '.');
@@ -738,7 +738,7 @@ namespace Components
 		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0 (0)");
 
-		Network::Handle("getServersResponse", [](Network::Address address, std::string data)
+		Network::Handle("getServersResponse", [](Network::Address address, const std::string& data)
 		{
 			if (ServerList::RefreshContainer.host != address) return; // Only parse from host we sent to
 

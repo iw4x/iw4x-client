@@ -37,7 +37,7 @@ namespace Components
 		Command::Execute("openmenu popup_reconnectingtoparty");
 	}
 
-	const char* Party::GetLobbyInfo(SteamID lobby, std::string key)
+	const char* Party::GetLobbyInfo(SteamID lobby, const std::string& key)
 	{
 		if (Party::LobbyMap.find(lobby.bits) != Party::LobbyMap.end())
 		{
@@ -64,7 +64,7 @@ namespace Components
 		}
 	}
 
-	void Party::ConnectError(std::string message)
+	void Party::ConnectError(const std::string& message)
 	{
 		Localization::ClearTemp();
 		Command::Execute("closemenu popup_reconnectingtoparty");
@@ -120,7 +120,7 @@ namespace Components
 		Game::Steam_JoinLobby(id, 0);
 	}
 
-	void Party::PlaylistError(std::string error)
+	void Party::PlaylistError(const std::string& error)
 	{
 		Party::Container.valid = false;
 		Party::Container.awaitingPlaylist = false;
@@ -303,7 +303,7 @@ namespace Components
 		}, true);
 
 		// Basic info handler
-		Network::Handle("getInfo", [](Network::Address address, std::string data)
+		Network::Handle("getInfo", [](Network::Address address, const std::string& data)
 		{
 			int botCount = 0;
 			int clientCount = 0;
@@ -390,7 +390,7 @@ namespace Components
 			Network::SendCommand(address, "infoResponse", "\\" + info.build());
 		});
 
-		Network::Handle("infoResponse", [](Network::Address address, std::string data)
+		Network::Handle("infoResponse", [](Network::Address address, const std::string& data)
 		{
 			Utils::InfoString info(data);
 

@@ -147,7 +147,7 @@ namespace Components
 		}
 	}
 
-	void News::LaunchUpdater(std::string params)
+	void News::LaunchUpdater(const std::string& params)
 	{
 		if (News::Updating()) return;
 

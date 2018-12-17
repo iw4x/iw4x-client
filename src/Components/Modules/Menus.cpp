@@ -25,7 +25,7 @@ namespace Components
 		return i;
 	}
 
-	Game::script_t* Menus::LoadMenuScript(std::string name, std::string buffer)
+	Game::script_t* Menus::LoadMenuScript(const std::string& name, const std::string& buffer)
 	{
 		Game::script_t* script = Game::Script_Alloc(sizeof(Game::script_t) + 1 + buffer.length());
 		if (!script) return nullptr;
@@ -53,7 +53,7 @@ namespace Components
 		return script;
 	}
 
-	int Menus::LoadMenuSource(std::string name, std::string buffer)
+	int Menus::LoadMenuSource(const std::string& name, const std::string& buffer)
 	{
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
@@ -173,7 +173,7 @@ namespace Components
 		return menu;
 	}
 
-	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(std::string menu)
+	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(const std::string& menu)
 	{
 		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
 		FileSystem::File menuFile(menu);
@@ -465,7 +465,7 @@ namespace Components
 		allocator->free(menuList);
 	}
 
-	void Menus::RemoveMenu(std::string menu)
+	void Menus::RemoveMenu(const std::string& menu)
 	{
 		auto i = Menus::MenuList.find(menu);
 		if (i != Menus::MenuList.end())
@@ -491,7 +491,7 @@ namespace Components
 		}
 	}
 
-	void Menus::RemoveMenuList(std::string menuList)
+	void Menus::RemoveMenuList(const std::string& menuList)
 	{
 		auto i = Menus::MenuListList.find(menuList);
 		if (i != Menus::MenuListList.end())
@@ -580,12 +580,12 @@ namespace Components
 		Menus::MenuList.clear();
 	}
 
-	Game::XAssetHeader Menus::MenuLoad(Game::XAssetType /*type*/, std::string filename)
+	Game::XAssetHeader Menus::MenuLoad(Game::XAssetType /*type*/, const std::string& filename)
 	{
 		return { Game::Menus_FindByName(Game::uiContext, filename.data()) };
 	}
 
-	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, std::string filename)
+	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, const std::string& filename)
 	{
 		Game::XAssetHeader header = { nullptr };
 
@@ -689,7 +689,7 @@ namespace Components
 		}
 	}
 
-	void Menus::Add(std::string menu)
+	void Menus::Add(const std::string& menu)
 	{
 		Menus::CustomMenus.push_back(menu);
 	}

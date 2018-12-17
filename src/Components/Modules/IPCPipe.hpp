@@ -25,17 +25,17 @@ namespace Components
 			IPCTYPE_CLIENT
 		};
 
-		typedef void(__cdecl PacketCallback)(std::string data);
+		typedef void(__cdecl PacketCallback)(const std::string& data);
 		typedef void(__cdecl Callback)();
 
 		Pipe();
 		~Pipe();
 
-		bool connect(std::string name);
-		bool create(std::string name);
+		bool connect(const std::string& name);
+		bool create(const std::string& name);
 
-		bool write(std::string command, std::string data);
-		void setCallback(std::string command, Utils::Slot<PacketCallback> callback);
+		bool write(const std::string& command, const std::string& data);
+		void setCallback(const std::string& command, Utils::Slot<PacketCallback> callback);
 		void onConnect(Callback callback);
 
 		void destroy();
@@ -55,7 +55,7 @@ namespace Components
 		char pipeFile[MAX_PATH];
 		unsigned int reconnectAttempt;
 
-		void setName(std::string name);
+		void setName(const std::string& name);
 
 		static void ReceiveThread(Pipe* pipe);
 	};
@@ -67,8 +67,8 @@ namespace Components
 
 		void preDestroy() override;
 
-		static bool Write(std::string command, std::string data);
-		static void On(std::string command, Utils::Slot<Pipe::PacketCallback> callback);
+		static bool Write(const std::string& command, const std::string& data);
+		static void On(const std::string& command, Utils::Slot<Pipe::PacketCallback> callback);
 
 	private:
 		static Pipe ServerPipe;

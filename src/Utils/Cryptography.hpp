@@ -11,8 +11,8 @@ namespace Utils
 		public:
 			Token() { this->tokenString.clear(); };
 			Token(const Token& obj) : tokenString(obj.tokenString) { };
-			Token(std::string token) : tokenString(token.begin(), token.end()) { };
-			Token(std::basic_string<uint8_t> token) : tokenString(token.begin(), token.end()) { };
+			Token(const std::string& token) : tokenString(token.begin(), token.end()) { };
+			Token(const std::basic_string<uint8_t>& token) : tokenString(token.begin(), token.end()) { };
 
 			Token& operator++ ()
 			{
@@ -187,7 +187,7 @@ namespace Utils
 					return "";
 				}
 
-				void set(std::string pubKeyBuffer)
+				void set(const std::string& pubKeyBuffer)
 				{
 					this->free();
 
@@ -197,7 +197,7 @@ namespace Utils
 					}
 				}
 
-				void deserialize(std::string key)
+				void deserialize(const std::string& key)
 				{
 					this->free();
 
@@ -240,8 +240,8 @@ namespace Utils
 			};
 
 			static Key GenerateKey(int bits);
-			static std::string SignMessage(Key key, std::string message);
-			static bool VerifyMessage(Key key, std::string message, std::string signature);
+			static std::string SignMessage(Key key, const std::string& message);
+			static bool VerifyMessage(Key key, const std::string& message, const std::string& signature);
 		};
 
 		class RSA
@@ -289,50 +289,50 @@ namespace Utils
 			};
 
 			static Key GenerateKey(int bits);
-			static std::string SignMessage(Key key, std::string message);
-			static bool VerifyMessage(Key key, std::string message, std::string signature);
+			static std::string SignMessage(Key key, const std::string& message);
+			static bool VerifyMessage(Key key, const std::string& message, const std::string& signature);
 		};
 
 		class DES3
 		{
 		public:
 			static void Initialize();
-			static std::string Encrypt(std::string text, std::string iv, std::string key);
-			static std::string Decrpyt(std::string text, std::string iv, std::string key);
+			static std::string Encrypt(const std::string& text, const std::string& iv, const std::string& key);
+			static std::string Decrpyt(const std::string& text, const std::string& iv, const std::string& key);
 		};
 
 		class Tiger
 		{
 		public:
-			static std::string Compute(std::string data, bool hex = false);
+			static std::string Compute(const std::string& data, bool hex = false);
 			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
 		};
 
 		class SHA1
 		{
 		public:
-			static std::string Compute(std::string data, bool hex = false);
+			static std::string Compute(const std::string& data, bool hex = false);
 			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
 		};
 
 		class SHA256
 		{
 		public:
-			static std::string Compute(std::string data, bool hex = false);
+			static std::string Compute(const std::string& data, bool hex = false);
 			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
 		};
 
 		class SHA512
 		{
 		public:
-			static std::string Compute(std::string data, bool hex = false);
+			static std::string Compute(const std::string& data, bool hex = false);
 			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
 		};
 
 		class JenkinsOneAtATime
 		{
 		public:
-			static unsigned int Compute(std::string data);
+			static unsigned int Compute(const std::string& data);
 			static unsigned int Compute(const char *key, size_t len);
 		};
 	}

@@ -10,14 +10,14 @@ namespace Components
 
 		static void UpdateFriends();
 		static void UpdateRank();
-		static void UpdateServer(Network::Address server, std::string hostname, std::string mapname);
+		static void UpdateServer(Network::Address server, const std::string& hostname, const std::string& mapname);
 		static void UpdateName();
 
-		static void SetPresence(std::string key, std::string value);
-		static void ClearPresence(std::string key);
+		static void SetPresence(const std::string& key, const std::string& value);
+		static void ClearPresence(const std::string& key);
 
 		static void RequestPresence(SteamID user);
-		static std::string GetPresence(SteamID user, std::string key);
+		static std::string GetPresence(SteamID user, const std::string& key);
 
 		static void AddFriend(SteamID user);
 

@@ -212,7 +212,7 @@ namespace Components
 	}
 
 	// Name is a bit weird, due to FasFileS and ExistS :P
-	bool FastFiles::Exists(std::string file)
+	bool FastFiles::Exists(const std::string& file)
 	{
 		std::string path = FastFiles::GetZoneLocation(file.data());
 		path.append(file);
@@ -284,7 +284,7 @@ namespace Components
 		return Utils::String::VA("zone\\%s\\", Game::Win_GetLanguage());
 	}
 
-	void FastFiles::AddZonePath(std::string path)
+	void FastFiles::AddZonePath(const std::string& path)
 	{
 		FastFiles::ZonePaths.push_back(path);
 	}

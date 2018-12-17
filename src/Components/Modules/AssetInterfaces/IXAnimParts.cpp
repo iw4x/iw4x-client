@@ -4,7 +4,7 @@
 
 namespace Assets
 {
-	void IXAnimParts::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IXAnimParts::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File animFile(Utils::String::VA("xanim/%s.iw4xAnim", name.data()));
 

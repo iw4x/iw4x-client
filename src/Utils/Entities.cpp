@@ -98,7 +98,7 @@ namespace Utils
 		}
 	}
 
-	void Entities::parse(std::string buffer)
+	void Entities::parse(const std::string& buffer)
 	{
 		int parseState = 0;
 		std::string key;

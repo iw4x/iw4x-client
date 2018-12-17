@@ -164,7 +164,7 @@ namespace Components
 		}
 	}
 
-	void Bans::BanClientNum(int num, std::string reason)
+	void Bans::BanClientNum(int num, const std::string& reason)
 	{
 		if (!Dvar::Var("sv_running").get<bool>())
 		{

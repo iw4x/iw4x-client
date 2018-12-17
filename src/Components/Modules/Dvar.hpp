@@ -21,13 +21,13 @@ namespace Components
 			Var(const Var &obj) { this->dvar = obj.dvar; };
 			Var(Game::dvar_t* _dvar) : dvar(_dvar) {};
 			Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {};
-			Var(std::string dvarName);
+			Var(const std::string& dvarName);
 
 			template<typename T> T get();
 
 			void set(char* string);
 			void set(const char* string);
-			void set(std::string string);
+			void set(const std::string& string);
 
 			void set(int integer);
 			void set(float value);

@@ -2,12 +2,12 @@
 
 namespace Utils
 {
-	void InfoString::set(std::string key, std::string value)
+	void InfoString::set(const std::string& key, const std::string& value)
 	{
 		this->keyValuePairs[key] = value;
 	}
 
-	std::string InfoString::get(std::string key)
+	std::string InfoString::get(const std::string& key)
 	{
 		if (this->keyValuePairs.find(key) != this->keyValuePairs.end())
 		{

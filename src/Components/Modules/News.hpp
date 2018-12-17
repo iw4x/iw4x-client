@@ -11,7 +11,7 @@ namespace Components
 		void preDestroy() override;
 		bool unitTest() override;
 
-		static void LaunchUpdater(std::string params);
+		static void LaunchUpdater(const std::string& params);
 		static bool Updating();
 
 	private:

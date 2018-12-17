@@ -8,7 +8,7 @@ namespace Components
 		Flags();
 		~Flags();
 
-		static bool HasFlag(std::string flag);
+		static bool HasFlag(const std::string& flag);
 
 	private:
 		static std::vector<std::string> EnabledFlags;

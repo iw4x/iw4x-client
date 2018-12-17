@@ -55,7 +55,7 @@ namespace Utils
 			return key;
 		}
 
-		std::string ECC::SignMessage(Key key, std::string message)
+		std::string ECC::SignMessage(Key key, const std::string& message)
 		{
 			if (!key.isValid()) return "";
 
@@ -69,7 +69,7 @@ namespace Utils
 			return std::string(reinterpret_cast<char*>(buffer), length);
 		}
 
-		bool ECC::VerifyMessage(Key key, std::string message, std::string signature)
+		bool ECC::VerifyMessage(Key key, const std::string& message, const std::string& signature)
 		{
 			if (!key.isValid()) return false;
 
@@ -97,7 +97,7 @@ namespace Utils
 			return key;
 		}
 
-		std::string RSA::SignMessage(RSA::Key key, std::string message)
+		std::string RSA::SignMessage(RSA::Key key, const std::string& message)
 		{
 			if (!key.isValid()) return "";
 
@@ -114,7 +114,7 @@ namespace Utils
 			return std::string(reinterpret_cast<char*>(buffer), length);
 		}
 
-		bool RSA::VerifyMessage(Key key, std::string message, std::string signature)
+		bool RSA::VerifyMessage(Key key, const std::string& message, const std::string& signature)
 		{
 			if (!key.isValid()) return false;
 
@@ -135,7 +135,7 @@ namespace Utils
 			register_cipher(&des3_desc);
 		}
 
-		std::string DES3::Encrypt(std::string text, std::string iv, std::string key)
+		std::string DES3::Encrypt(const std::string& text, const std::string& iv, const std::string& key)
 		{
 			std::string encData;
 			encData.resize(text.size());
@@ -150,7 +150,7 @@ namespace Utils
 			return encData;
 		}
 
-		std::string DES3::Decrpyt(std::string data, std::string iv, std::string key)
+		std::string DES3::Decrpyt(const std::string& data, const std::string& iv, const std::string& key)
 		{
 			std::string decData;
 			decData.resize(data.size());
@@ -169,7 +169,7 @@ namespace Utils
 
 #pragma region Tiger
 
-		std::string Tiger::Compute(std::string data, bool hex)
+		std::string Tiger::Compute(const std::string& data, bool hex)
 		{
 			return Tiger::Compute(reinterpret_cast<const uint8_t*>(data.data()), data.size(), hex);
 		}
@@ -193,7 +193,7 @@ namespace Utils
 
 #pragma region SHA1
 
-		std::string SHA1::Compute(std::string data, bool hex)
+		std::string SHA1::Compute(const std::string& data, bool hex)
 		{
 			return SHA1::Compute(reinterpret_cast<const uint8_t*>(data.data()), data.size(), hex);
 		}
@@ -217,7 +217,7 @@ namespace Utils
 
 #pragma region SHA256
 
-		std::string SHA256::Compute(std::string data, bool hex)
+		std::string SHA256::Compute(const std::string& data, bool hex)
 		{
 			return SHA256::Compute(reinterpret_cast<const uint8_t*>(data.data()), data.size(), hex);
 		}
@@ -241,7 +241,7 @@ namespace Utils
 
 #pragma region SHA512
 
-		std::string SHA512::Compute(std::string data, bool hex)
+		std::string SHA512::Compute(const std::string& data, bool hex)
 		{
 			return SHA512::Compute(reinterpret_cast<const uint8_t*>(data.data()), data.size(), hex);
 		}
@@ -265,7 +265,7 @@ namespace Utils
 
 #pragma region JenkinsOneAtATime
 
-		unsigned int JenkinsOneAtATime::Compute(std::string data)
+		unsigned int JenkinsOneAtATime::Compute(const std::string& data)
 		{
 			return JenkinsOneAtATime::Compute(data.data(), data.size());
 		}

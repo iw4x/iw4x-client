@@ -35,7 +35,7 @@ namespace Utils
 			return input;
 		}
 
-		std::string DumpHex(std::string data, std::string separator)
+		std::string DumpHex(const std::string& data, const std::string& separator)
 		{
 			std::string result;
 
@@ -83,7 +83,7 @@ namespace Utils
 			return result;
 		}
 
-		void Replace(std::string &string, std::string find, std::string replace)
+		void Replace(std::string &string, const std::string& find, const std::string& replace)
 		{
 			size_t nPos = 0;
 
@@ -94,12 +94,12 @@ namespace Utils
 			}
 		}
 
-		bool StartsWith(std::string haystack, std::string needle)
+		bool StartsWith(const std::string& haystack, const std::string& needle)
 		{
 			return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data(), needle.size()));
 		}
 
-		bool EndsWith(std::string haystack, std::string needle)
+		bool EndsWith(const std::string& haystack, const std::string& needle)
 		{
 			return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data() + (haystack.size() - needle.size()), needle.size()));
 		}

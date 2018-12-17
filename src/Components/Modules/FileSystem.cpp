@@ -31,7 +31,7 @@ namespace Components
 		Game::DB_GetRawBuffer(rawfile, const_cast<char*>(this->buffer.data()), this->buffer.size());
 	}
 
-	FileSystem::FileReader::FileReader(std::string file) : handle(0), name(file)
+	FileSystem::FileReader::FileReader(const std::string& file) : handle(0), name(file)
 	{
 		this->size = Game::FS_FOpenFileReadCurrentThread(this->name.data(), &this->handle);
 	}
@@ -97,7 +97,7 @@ namespace Components
 		}
 	}
 
-	void FileSystem::FileWriter::write(std::string data)
+	void FileSystem::FileWriter::write(const std::string& data)
 	{
 		if (this->handle)
 		{
@@ -126,7 +126,7 @@ namespace Components
 		}
 	}
 
-	std::vector<std::string> FileSystem::GetFileList(std::string path, std::string extension)
+	std::vector<std::string> FileSystem::GetFileList(const std::string& path, const std::string& extension)
 	{
 		std::vector<std::string> fileList;
 
@@ -149,7 +149,7 @@ namespace Components
 		return fileList;
 	}
 
-	std::vector<std::string> FileSystem::GetSysFileList(std::string path, std::string extension, bool folders)
+	std::vector<std::string> FileSystem::GetSysFileList(const std::string& path, const std::string& extension, bool folders)
 	{
 		std::vector<std::string> fileList;
 
@@ -172,7 +172,7 @@ namespace Components
 		return fileList;
 	}
 
-	void FileSystem::DeleteFile(std::string folder, std::string file)
+	void FileSystem::DeleteFile(const std::string& folder, const std::string& file)
 	{
 		char path[MAX_PATH] = { 0 };
 		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").get<const char*>(), reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));

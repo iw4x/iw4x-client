@@ -207,7 +207,7 @@ namespace Components
 		if (Dedicated::IsEnabled()) return;
 
 		// IPC handler
-		IPCPipe::On("connect", [](std::string data)
+		IPCPipe::On("connect", [](const std::string& data)
 		{
 			Command::Execute(Utils::String::VA("connect %s", data.data()), false);
 		});

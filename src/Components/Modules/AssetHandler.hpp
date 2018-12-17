@@ -13,11 +13,11 @@ namespace Components
 			virtual void mark(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
 			virtual void save(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
 			virtual void dump(Game::XAssetHeader /*header*/) { /*ErrorTypeNotSupported(this);*/ };
-			virtual void load(Game::XAssetHeader* /*header*/, std::string name, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
+			virtual void load(Game::XAssetHeader* /*header*/, const std::string& /*name*/, ZoneBuilder::Zone* /*builder*/) { /*ErrorTypeNotSupported(this);*/ };
 		};
 
-		typedef Game::XAssetHeader(Callback)(Game::XAssetType type, std::string name);
-		typedef void(RestrictCallback)(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict);
+		typedef Game::XAssetHeader(Callback)(Game::XAssetType type, const std::string& name);
+		typedef void(RestrictCallback)(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* restrict);
 
 		AssetHandler();
 		~AssetHandler();
@@ -32,7 +32,7 @@ namespace Components
 		static void ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder);
 
 		static Game::XAssetHeader FindOriginalAsset(Game::XAssetType type, const char* filename);
-		static Game::XAssetHeader FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder, bool isSubAsset = true);
+		static Game::XAssetHeader FindAssetForZone(Game::XAssetType type, const std::string& filename, ZoneBuilder::Zone* builder, bool isSubAsset = true);
 
 		static void ClearTemporaryAssets();
 		static void StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset);
@@ -64,7 +64,7 @@ namespace Components
 		static void StoreEmptyAsset(Game::XAssetType type, const char* name);
 		static void StoreEmptyAssetStub();
 
-		static void ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, std::string name);
+		static void ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name);
 
 		static int HasThreadBypass();
 		static void SetBypassState(bool value);

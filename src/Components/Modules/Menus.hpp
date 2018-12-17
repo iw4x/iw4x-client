@@ -13,24 +13,24 @@ namespace Components
 
 		static void FreeEverything();
 
-		static void Add(std::string menu);
+		static void Add(const std::string& menu);
 
 	private:
 		static std::unordered_map<std::string, Game::menuDef_t*> MenuList;
 		static std::unordered_map<std::string, Game::MenuList*> MenuListList;
 		static std::vector<std::string> CustomMenus;
 
-		static Game::XAssetHeader MenuLoad(Game::XAssetType type, std::string filename);
-		static Game::XAssetHeader MenuFileLoad(Game::XAssetType type, std::string filename);
+		static Game::XAssetHeader MenuLoad(Game::XAssetType type, const std::string& filename);
+		static Game::XAssetHeader MenuFileLoad(Game::XAssetType type, const std::string& filename);
 
 		static Game::MenuList* LoadMenuList(Game::MenuList* menuList);
 		static Game::MenuList* LoadScriptMenu(const char* menu);
 		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(Game::menuDef_t* menudef);
-		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(std::string file);
+		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(const std::string& file);
 		static void SafeMergeMenus(std::vector<std::pair<bool, Game::menuDef_t*>>* menus, std::vector<std::pair<bool, Game::menuDef_t*>> newMenus);
 
-		static Game::script_t* LoadMenuScript(std::string name, std::string buffer);
-		static int LoadMenuSource(std::string name, std::string buffer);
+		static Game::script_t* LoadMenuScript(const std::string& name, const std::string& buffer);
+		static int LoadMenuSource(const std::string& name, const std::string& buffer);
 
 		static int ReserveSourceHandle();
 		static bool IsValidSourceHandle(int handle);
@@ -42,9 +42,9 @@ namespace Components
 		static void FreeMenuList(Game::MenuList* menuList);
 		static void FreeMenu(Game::menuDef_t* menudef);
 
-		static void RemoveMenu(std::string menu);
+		static void RemoveMenu(const std::string& menu);
 		static void RemoveMenu(Game::menuDef_t* menudef);
-		static void RemoveMenuList(std::string menuList);
+		static void RemoveMenuList(const std::string& menuList);
 		static void RemoveMenuList(Game::MenuList* menuList);
 
 		static void OverrideMenu(Game::menuDef_t *menu);

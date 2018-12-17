@@ -9,7 +9,7 @@ namespace Components
 		{
 		public:
 			UserMapContainer() : wasFreed(false), hash(0) {}
-			UserMapContainer(std::string _mapname) : wasFreed(false), mapname(_mapname)
+			UserMapContainer(const std::string& _mapname) : wasFreed(false), mapname(_mapname)
 			{
 				ZeroMemory(&this->searchPath, sizeof this->searchPath);
 				this->hash = Maps::GetUsermapHash(this->mapname);
@@ -50,10 +50,10 @@ namespace Components
 		~Maps();
 
 		static void HandleAsSPMap();
-		static void AddDependency(std::string expression, std::string zone);
+		static void AddDependency(const std::string& expression, const std::string& zone);
 
-		static std::pair<std::string, std::string> GetTeamsForMap(std::string map);
-		static std::vector<std::string> GetDependenciesForMap(std::string map);
+		static std::pair<std::string, std::string> GetTeamsForMap(const std::string& map);
+		static std::vector<std::string> GetDependenciesForMap(const std::string& map);
 
 		static std::string CurrentMainZone;
 		static const char* UserMapFiles[4];
@@ -61,11 +61,11 @@ namespace Components
 		static bool CheckMapInstalled(const char* mapname, bool error = false, bool dlcIsTrue = false);
 
 		static UserMapContainer* GetUserMap();
-		static unsigned int GetUsermapHash(std::string map);
+		static unsigned int GetUsermapHash(const std::string& map);
 
 		static Game::XAssetEntry* GetAssetEntryPool();
 		static bool IsCustomMap();
-		static bool IsUserMap(std::string mapname);
+		static bool IsUserMap(const std::string& mapname);
 
 	private:
 		class DLC
@@ -84,7 +84,7 @@ namespace Components
 		static std::vector<std::string> CurrentDependencies;
 
 		static void GetBSPName(char* buffer, size_t size, const char* format, const char* mapname);
-		static void LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* restrict);
+		static void LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* restrict);
 		static void LoadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 		static void UnloadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 

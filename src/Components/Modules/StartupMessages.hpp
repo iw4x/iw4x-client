@@ -7,7 +7,7 @@ namespace Components
 	public:
 		StartupMessages();
 
-		static void AddMessage(std::string message);
+		static void AddMessage(const std::string& message);
 
 	private:
 		static int TotalMessages;

@@ -2,7 +2,7 @@
 
 namespace Utils
 {
-	Library::Library(std::string buffer, bool _freeOnDestroy) : module(nullptr), freeOnDestroy(_freeOnDestroy)
+	Library::Library(const std::string& buffer, bool _freeOnDestroy) : module(nullptr), freeOnDestroy(_freeOnDestroy)
 	{
 		this->module = LoadLibraryExA(buffer.data(), nullptr, 0);
 	}

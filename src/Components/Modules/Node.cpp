@@ -225,7 +225,7 @@ namespace Components
 		}
 	}
 
-	void Node::HandleResponse(Network::Address address, std::string data)
+	void Node::HandleResponse(Network::Address address, const std::string& data)
 	{
 		Proto::Node::List list;
 		if (!list.ParseFromString(data)) return;
@@ -318,7 +318,7 @@ namespace Components
 
 		Scheduler::OnFrame(Node::RunFrame);
 		Session::Handle("nodeListResponse", Node::HandleResponse);
-		Session::Handle("nodeListRequest", [](Network::Address address, std::string)
+		Session::Handle("nodeListRequest", [](Network::Address address, const std::string&)
 		{
 			Node::SendList(address);
 		});

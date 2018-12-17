@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	Game::XAssetHeader Weapon::WeaponFileLoad(Game::XAssetType /*type*/, std::string filename)
+	Game::XAssetHeader Weapon::WeaponFileLoad(Game::XAssetType /*type*/, const std::string& filename)
 	{
 		Game::XAssetHeader header = { nullptr };
 

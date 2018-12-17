@@ -472,7 +472,7 @@ namespace Game
 		return ASSET_TYPE_INVALID;
 	}
 
-	int DB_GetZoneIndex(std::string name)
+	int DB_GetZoneIndex(const std::string& name)
 	{
 		for (int i = 0; i < 32; ++i)
 		{
@@ -547,7 +547,7 @@ namespace Game
 	}
 
 	// this cant be MessageBox because windows.h has a define that converts it to MessageBoxW. which is just stupid
-	void ShowMessageBox(std::string message, std::string title)
+	void ShowMessageBox(const std::string& message, const std::string& title)
 	{
 		if (!Game::CL_IsCgameInitialized())
 		{
@@ -570,7 +570,7 @@ namespace Game
 		return hash;
 	}
 
-	void SV_KickClientError(client_t* client, std::string reason)
+	void SV_KickClientError(client_t* client, const std::string& reason)
 	{
 		if (client->state < 5)
 		{
@@ -580,12 +580,12 @@ namespace Game
 		SV_KickClient(client, reason.data());
 	}
 
-	void Scr_iPrintLn(int clientNum, std::string message)
+	void Scr_iPrintLn(int clientNum, const std::string& message)
 	{
 		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x66, message.data()));
 	}
 
-	void Scr_iPrintLnBold(int clientNum, std::string message)
+	void Scr_iPrintLnBold(int clientNum, const std::string& message)
 	{
 		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x67, message.data()));
 	}

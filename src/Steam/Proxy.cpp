@@ -32,7 +32,7 @@ namespace Steam
 	std::function<Proxy::SteamFreeLastCallbackFn> Proxy::SteamFreeLastCallback;
 	std::function<Proxy::SteamGetAPICallResultFn> Proxy::SteamGetAPICallResult;
 
-	std::pair<void*, uint16_t> Interface::getMethod(std::string method)
+	std::pair<void*, uint16_t> Interface::getMethod(const std::string& method)
 	{
 		if(this->methodCache.find(method) != this->methodCache.end())
 		{
@@ -44,7 +44,7 @@ namespace Steam
 		return methodData;
 	}
 
-	std::pair<void*, uint16_t> Interface::lookupMethod(std::string method)
+	std::pair<void*, uint16_t> Interface::lookupMethod(const std::string& method)
 	{
 		if (!::Utils::Memory::IsBadReadPtr(this->interfacePtr))
 		{
@@ -135,7 +135,7 @@ namespace Steam
 		}
 	}
 
-	void Proxy::SetMod(std::string mod)
+	void Proxy::SetMod(const std::string& mod)
 	{
 		if (!Proxy::ClientUser || !Proxy::SteamApps || !Steam::Enabled() || Components::Dedicated::IsEnabled() || Components::ZoneBuilder::IsEnabled()) return;
 

@@ -140,7 +140,7 @@ namespace Components
 		}
 	}
 
-	void Friends::UpdateServer(Network::Address server, std::string hostname, std::string mapname)
+	void Friends::UpdateServer(Network::Address server, const std::string& hostname, const std::string& mapname)
 	{
 		std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
@@ -218,7 +218,7 @@ namespace Components
 		}
 	}
 
-	void Friends::ClearPresence(std::string key)
+	void Friends::ClearPresence(const std::string& key)
 	{
 		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamUtils)
 		{
@@ -226,7 +226,7 @@ namespace Components
 		}
 	}
 
-	void Friends::SetPresence(std::string key, std::string value)
+	void Friends::SetPresence(const std::string& key, const std::string& value)
 	{
 		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamUtils && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Enabled())
 		{
@@ -242,7 +242,7 @@ namespace Components
 		}
 	}
 
-	std::string Friends::GetPresence(SteamID user, std::string key)
+	std::string Friends::GetPresence(SteamID user, const std::string& key)
 	{
 		if (!Steam::Proxy::ClientFriends || !Steam::Proxy::SteamUtils) return "";
 

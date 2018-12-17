@@ -53,7 +53,7 @@ namespace Components
 		static std::vector<Entry> Nodes;
 		static bool wasIngame;
 
-		static void HandleResponse(Network::Address address, std::string data);
+		static void HandleResponse(Network::Address address, const std::string& data);
 
 		static void SendList(Network::Address address);
 

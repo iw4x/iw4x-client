@@ -5,7 +5,7 @@ namespace Components
 	std::vector<std::string> ModList::Mods;
 	unsigned int ModList::CurrentMod;
 
-	bool ModList::HasMod(std::string modName)
+	bool ModList::HasMod(const std::string& modName)
 	{
 		auto list = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").get<std::string>() + "\\mods", "", true);
 
@@ -72,7 +72,7 @@ namespace Components
 		}
 	}
 
-	void ModList::RunMod(std::string mod)
+	void ModList::RunMod(const std::string& mod)
 	{
 		auto fsGame = Dvar::Var("fs_game");
 		fsGame.set(Utils::String::VA("mods/%s", mod.data()));

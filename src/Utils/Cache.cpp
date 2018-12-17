@@ -27,17 +27,17 @@ namespace Utils
 	std::string Cache::ValidUrl;
 	std::mutex Cache::CacheMutex;
 
-	std::string Cache::GetStaticUrl(std::string path)
+	std::string Cache::GetStaticUrl(const std::string& path)
 	{
 		return Cache::Urls[0] + path;
 	}
 
-	std::string Cache::GetUrl(std::string url, std::string path)
+	std::string Cache::GetUrl(const std::string& url, const std::string& path)
 	{
 		return url + path;
 	}
 
-	std::string Cache::GetFile(std::string path, int timeout, std::string useragent)
+	std::string Cache::GetFile(const std::string& path, int timeout, const std::string& useragent)
 	{
 		std::lock_guard<std::mutex> _(Cache::CacheMutex);
 

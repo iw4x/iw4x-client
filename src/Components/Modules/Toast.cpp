@@ -5,13 +5,13 @@ namespace Components
 	std::queue<Toast::UIToast> Toast::Queue;
 	std::mutex Toast::Mutex;
 
-	void Toast::Show(std::string image, std::string title, std::string description, int length, Utils::Slot<void()> callback)
+	void Toast::Show(const std::string& image, const std::string& title, const std::string& description, int length, Utils::Slot<void()> callback)
 	{
 		Game::Material* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
 		return Show(material, title, description, length, callback);
 	}
 
-	void Toast::Show(Game::Material* material, std::string title, std::string description, int length, Utils::Slot<void()> callback)
+	void Toast::Show(Game::Material* material, const std::string& title, const std::string& description, int length, Utils::Slot<void()> callback)
 	{
 		Toast::Mutex.lock();
 		Toast::Queue.push({ material, Utils::String::ToUpper(title), description, length, 0, callback });

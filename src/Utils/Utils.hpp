@@ -7,8 +7,8 @@ typedef NTSTATUS(NTAPI* NtQueryInformationThread_t)(HANDLE ThreadHandle, LONG Th
 
 namespace Utils
 {
-	std::string GetMimeType(std::string url);
-	std::string ParseChallenge(std::string data);
+	std::string GetMimeType(const std::string& url);
+	std::string ParseChallenge(const std::string& data);
 	void OutputDebugLastError();
 	std::string GetLastWindowsError();
 
@@ -21,7 +21,7 @@ namespace Utils
 
 	void SetEnvironment();
 
-	void OpenUrl(std::string url);
+	void OpenUrl(const std::string& url);
 
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
 

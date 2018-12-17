@@ -826,7 +826,7 @@ namespace Game
 
 	const char *DB_GetXAssetName(XAsset *asset);
 	XAssetType DB_GetXAssetNameType(const char* name);
-	int DB_GetZoneIndex(std::string name);
+	int DB_GetZoneIndex(const std::string& name);
 	bool DB_IsZoneLoaded(const char* zone);
 	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides, bool lock);
 	XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType type);
@@ -834,17 +834,17 @@ namespace Game
 
 	void FS_AddLocalizedGameDirectory(const char *path, const char *dir);
 
-	void ShowMessageBox(std::string message, std::string title);
+	void ShowMessageBox(const std::string& message, const std::string& title);
 
 	unsigned int R_HashString(const char* string);
 	void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
 	void R_SetSunFromDvars(sunflare_t* sun);
 
 	void SV_KickClient(client_t* client, const char* reason);
-	void SV_KickClientError(client_t* client, std::string reason);
+	void SV_KickClientError(client_t* client, const std::string& reason);
 
-	void Scr_iPrintLn(int clientNum, std::string message);
-	void Scr_iPrintLnBold(int clientNum, std::string message);
+	void Scr_iPrintLn(int clientNum, const std::string& message);
+	void Scr_iPrintLnBold(int clientNum, const std::string& message);
 	void Scr_NotifyId(unsigned int id, unsigned __int16 stringValue, unsigned int paramcount);
 
 	void IN_KeyUp(kbutton_t* button);

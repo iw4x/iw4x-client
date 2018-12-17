@@ -31,7 +31,7 @@ namespace Components
 				Zone* builder;
 			};
 
-			Zone(std::string zoneName);
+			Zone(const std::string& zoneName);
 			Zone();
 			~Zone();
 
@@ -53,17 +53,17 @@ namespace Components
 
 			bool hasAlias(Game::XAsset asset);
 			Game::XAssetHeader saveSubAsset(Game::XAssetType type, void* ptr);
-			bool loadAssetByName(Game::XAssetType type, std::string name, bool isSubAsset = true);
+			bool loadAssetByName(Game::XAssetType type, const std::string& name, bool isSubAsset = true);
 			bool loadAsset(Game::XAssetType type, void* data, bool isSubAsset = true);
 
 			int addScriptString(unsigned short gameIndex);
-			int addScriptString(std::string str);
-			int findScriptString(std::string str);
+			int addScriptString(const std::string& str);
+			int findScriptString(const std::string& str);
 
 			void mapScriptString(unsigned short* gameIndex);
 
-			void renameAsset(Game::XAssetType type, std::string asset, std::string newName);
-			std::string getAssetName(Game::XAssetType type, std::string asset);
+			void renameAsset(Game::XAssetType type, const std::string& asset, const std::string& newName);
+			std::string getAssetName(Game::XAssetType type, const std::string& asset);
 
 			void store(Game::XAssetHeader header);
 
@@ -77,7 +77,7 @@ namespace Components
 			void loadFastFiles();
 
 			bool loadAssets();
-			bool loadAssetByName(std::string type, std::string name, bool isSubAsset = true);
+			bool loadAssetByName(const std::string& type, std::string name, bool isSubAsset = true);
 
 			void saveData();
 			void writeZone();
@@ -126,16 +126,16 @@ namespace Components
 		static std::string TraceZone;
 		static std::vector<std::pair<Game::XAssetType, std::string>> TraceAssets;
 
-		static void BeginAssetTrace(std::string zone);
+		static void BeginAssetTrace(const std::string& zone);
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 
-		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, std::string name, Zone* builder);
+		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
 
 	private:
 		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
 		static void ReleaseTexture(Game::XAssetHeader header);
 
-		static std::string FindMaterialByTechnique(std::string name);
+		static std::string FindMaterialByTechnique(const std::string& name);
 
 		static int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
 		static void Quit();

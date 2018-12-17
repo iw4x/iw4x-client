@@ -27,7 +27,7 @@ namespace Utils
 		class Reader
 		{
 		public:
-			Reader(Utils::Memory::Allocator* _allocator, std::string _buffer) : position(0), buffer(_buffer), allocator(_allocator) {}
+			Reader(Utils::Memory::Allocator* _allocator, const std::string& _buffer) : position(0), buffer(_buffer), allocator(_allocator) {}
 
 			std::string readString();
 			const char* readCString();
@@ -104,14 +104,14 @@ namespace Utils
 			return save(array, sizeof(T), count);
 		}
 
-		char* saveString(std::string string);
+		char* saveString(const std::string& string);
 		char* saveString(const char* string);
 		char* saveString(const char* string, size_t len);
 		char* saveByte(unsigned char byte, size_t count = 1);
 		char* saveNull(size_t count = 1);
 		char* saveMax(size_t count = 1);
 
-		char* saveText(std::string string);
+		char* saveText(const std::string& string);
 
 		void align(Alignment align);
 		bool pushBlock(Game::XFILE_BLOCK_TYPES stream);

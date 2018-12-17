@@ -9,7 +9,7 @@ namespace Components
 		~Colors();
 
 		static void Strip(const char* in, char* out, int max);
-		static std::string Strip(std::string in);
+		static std::string Strip(const std::string& in);
 
 		static char Add(uint8_t r, uint8_t g, uint8_t b);
 

@@ -2,7 +2,7 @@
 
 namespace Assets
 {
-	void Isnd_alias_list_t::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void Isnd_alias_list_t::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File aliasFile(Utils::String::VA("sounds/%s", name.data()));
 		if (!aliasFile.exists())

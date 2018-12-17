@@ -8,10 +8,10 @@ namespace Components
 		Localization();
 		~Localization();
 
-		static void Set(std::string key, std::string value);
+		static void Set(const std::string& key, const std::string& value);
 		static const char* Get(const char* key);
 
-		static void SetTemp(std::string key, std::string value);
+		static void SetTemp(const std::string& key, const std::string& value);
 		static void ClearTemp();
 
 	private:

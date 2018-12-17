@@ -6,11 +6,11 @@ namespace Utils
 	{
 	public:
 		InfoString() {};
-		InfoString(std::string buffer) : InfoString() { this->parse(buffer); };
+		InfoString(const std::string& buffer) : InfoString() { this->parse(buffer); };
 		InfoString(const InfoString &obj) : keyValuePairs(obj.keyValuePairs) {};
 
-		void set(std::string key, std::string value);
-		std::string get(std::string key);
+		void set(const std::string& key, const std::string& value);
+		std::string get(const std::string& key);
 
 		std::string build();
 

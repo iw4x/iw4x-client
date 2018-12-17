@@ -21,7 +21,7 @@ namespace Components
 		static void SetBuffer(char streamHandle, void* buffer, IUnknown** bufferOut, int* offsetOut);
 
 		static void CreateBuffers(Game::XModelSurfs* surfs);
-		static Game::XModelSurfs* LoadXModelSurfaces(std::string name);
+		static Game::XModelSurfs* LoadXModelSurfaces(const std::string& name);
 		static bool LoadSurfaces(Game::XModel* model);
 		static void XModelSurfsFixup(Game::XModel* model);
 

@@ -122,8 +122,9 @@ namespace Assets
 		}
 	}
 
-	void IGfxWorld::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IGfxWorld::load(Game::XAssetHeader* header, const std::string& _name, Components::ZoneBuilder::Zone* builder)
 	{
+		std::string name = _name;
 		Utils::String::Replace(name, "maps/mp/", "");
 		Utils::String::Replace(name, ".d3dbsp", "");
 

@@ -95,7 +95,7 @@ namespace Utils
 				return (this->pool.empty() && this->refMemory.empty());
 			}
 
-			char* duplicateString(std::string string)
+			char* duplicateString(const std::string& string)
 			{
 				std::lock_guard<std::mutex> _(this->mutex);
 
@@ -142,7 +142,7 @@ namespace Utils
 			return static_cast<T*>(Allocate(count * sizeof(T)));
 		}
 
-		static char* DuplicateString(std::string string);
+		static char* DuplicateString(const std::string& string);
 
 		static void Free(void* data);
 		static void Free(const void* data);

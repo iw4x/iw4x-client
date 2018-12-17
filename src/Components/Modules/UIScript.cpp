@@ -48,7 +48,7 @@ namespace Components
 		}
 	}
 
-	void UIScript::Add(std::string name, Utils::Slot<UIScript::Callback> callback)
+	void UIScript::Add(const std::string& name, Utils::Slot<UIScript::Callback> callback)
 	{
 		UIScript::UIScripts[name] = callback;
 	}

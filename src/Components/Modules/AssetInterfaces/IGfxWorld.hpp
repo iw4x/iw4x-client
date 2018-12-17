@@ -9,7 +9,7 @@ namespace Assets
 
 		virtual void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		virtual void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
-		virtual void load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder) override;
+		virtual void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
 	private:
 		void saveGfxWorldDpvsPlanes(Game::GfxWorld* world, Game::GfxWorldDpvsPlanes* asset, Game::GfxWorldDpvsPlanes* dest, Components::ZoneBuilder::Zone* builder);
 		void saveGfxWorldDraw(Game::GfxWorldDraw* asset, Game::GfxWorldDraw* dest, Components::ZoneBuilder::Zone* builder);

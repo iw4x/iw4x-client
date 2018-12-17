@@ -4,13 +4,13 @@ namespace Utils
 {
 	namespace IO
 	{
-		bool FileExists(std::string file)
+		bool FileExists(const std::string& file)
 		{
 			//return std::ifstream(file).good();
 			return GetFileAttributesA(file.data()) != INVALID_FILE_ATTRIBUTES;
 		}
 
-		bool WriteFile(std::string file, std::string data, bool append)
+		bool WriteFile(const std::string& file, const std::string& data, bool append)
 		{
 			auto pos = file.find_last_of("/\\");
 			if (pos != std::string::npos)
@@ -30,14 +30,14 @@ namespace Utils
 			return false;
 		}
 
-		std::string ReadFile(std::string file)
+		std::string ReadFile(const std::string& file)
 		{
 			std::string data;
 			ReadFile(file, &data);
 			return data;
 		}
 
-		bool ReadFile(std::string file, std::string* data)
+		bool ReadFile(const std::string& file, std::string* data)
 		{
 			if (!data) return false;
 			data->clear();
@@ -63,7 +63,7 @@ namespace Utils
 			return false;
 		}
 
-		size_t FileSize(std::string file)
+		size_t FileSize(const std::string& file)
 		{
 			if (FileExists(file))
 			{
@@ -79,22 +79,22 @@ namespace Utils
 			return 0;
 		}
 
-		bool CreateDir(std::string dir)
+		bool CreateDir(const std::string& dir)
 		{
 			return std::experimental::filesystem::create_directories(dir);
 		}
 
-		bool DirectoryExists(std::string directory)
+		bool DirectoryExists(const std::string& directory)
 		{
 			return std::experimental::filesystem::is_directory(directory);
 		}
 
-		bool DirectoryIsEmpty(std::string directory)
+		bool DirectoryIsEmpty(const std::string& directory)
 		{
 			return std::experimental::filesystem::is_empty(directory);
 		}
 
-		std::vector<std::string> ListFiles(std::string dir)
+		std::vector<std::string> ListFiles(const std::string& dir)
 		{
 			std::vector<std::string> files;
 

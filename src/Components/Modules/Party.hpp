@@ -10,14 +10,14 @@ namespace Components
 
 		static Network::Address Target();
 		static void Connect(Network::Address target);
-		static const char* GetLobbyInfo(SteamID lobby, std::string key);
+		static const char* GetLobbyInfo(SteamID lobby, const std::string& key);
 		static void RemoveLobby(SteamID lobby);
 
 		static bool PlaylistAwaiting();
 		static void PlaylistContinue();
-		static void PlaylistError(std::string error);
+		static void PlaylistError(const std::string& error);
 
-		static void ConnectError(std::string message);
+		static void ConnectError(const std::string& message);
 
 		static bool IsInUserMapLobby();
 		static bool IsInLobby();

@@ -8,13 +8,13 @@ namespace Components
 		ModList();
 		~ModList();
 
-		static void RunMod(std::string mod);
+		static void RunMod(const std::string& mod);
 
 	private:
 		static std::vector<std::string> Mods;
 		static unsigned int CurrentMod;
 
-		static bool HasMod(std::string modName);
+		static bool HasMod(const std::string& modName);
 
 		static unsigned int GetItemCount();
 		static const char* GetItemText(unsigned int index, int column);

@@ -33,7 +33,7 @@ namespace Components
 		});
 	}
 
-	void StartupMessages::AddMessage(std::string message)
+	void StartupMessages::AddMessage(const std::string& message)
 	{
 		StartupMessages::MessageList.push_back(message);
 	}

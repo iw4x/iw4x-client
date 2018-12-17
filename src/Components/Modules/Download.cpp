@@ -12,12 +12,12 @@ namespace Components
 
 #pragma region Client
 
-	void Download::InitiateMapDownload(std::string map, bool needPassword)
+	void Download::InitiateMapDownload(const std::string& map, bool needPassword)
 	{
 		Download::InitiateClientDownload(map, needPassword, true);
 	}
 
-	void Download::InitiateClientDownload(std::string mod, bool needPassword, bool map)
+	void Download::InitiateClientDownload(const std::string& mod, bool needPassword, bool map)
 	{
 		if (Download::CLDownload.running) return;
 
@@ -56,7 +56,7 @@ namespace Components
 		Download::CLDownload.thread = std::thread(Download::ModDownloader, &Download::CLDownload);
 	}
 
-	bool Download::ParseModList(ClientDownload* download, std::string list)
+	bool Download::ParseModList(ClientDownload* download, const std::string& list)
 	{
 		if (!download) return false;
 		download->files.clear();

@@ -110,7 +110,7 @@ namespace Components
 		}
 	}
 
-	Game::cmd_function_t* Command::Find(std::string command)
+	Game::cmd_function_t* Command::Find(const std::string& command)
 	{
 		Game::cmd_function_t* cmdFunction = *Game::cmd_functions;
 

@@ -6,14 +6,14 @@ namespace Utils
 	{
 	public:
 		Library() : module(nullptr), freeOnDestroy(false) {};
-		Library(std::string buffer, bool freeOnDestroy = true);
+		Library(const std::string& buffer, bool freeOnDestroy = true);
 		~Library();
 
 		bool valid();
 		HMODULE getModule();
 
 		template <typename T>
-		std::function<T> get(std::string process)
+		std::function<T> get(const std::string& process)
 		{
 			if (!this->valid())
 			{

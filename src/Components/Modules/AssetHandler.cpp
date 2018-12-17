@@ -156,7 +156,7 @@ namespace Components
 		}
 	}
 
-	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, std::string name)
+	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name)
 	{
 		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
 		{
@@ -330,7 +330,7 @@ namespace Components
 		}
 	}
 
-	Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, std::string filename, ZoneBuilder::Zone* builder, bool isSubAsset)
+	Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, const std::string& filename, ZoneBuilder::Zone* builder, bool isSubAsset)
 	{
 		ZoneBuilder::Zone::AssetRecursionMarker _(builder);
 

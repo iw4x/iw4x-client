@@ -17,7 +17,7 @@ namespace Components
 		this->destroy();
 	}
 
-	bool Pipe::connect(std::string name)
+	bool Pipe::connect(const std::string& name)
 	{
 		this->destroy();
 
@@ -51,7 +51,7 @@ namespace Components
 		return true;
 	}
 
-	bool Pipe::create(std::string name)
+	bool Pipe::create(const std::string& name)
 	{
 		this->destroy();
 
@@ -83,12 +83,12 @@ namespace Components
 		this->connectCallback = callback;
 	}
 
-	void Pipe::setCallback(std::string command, Utils::Slot<Pipe::PacketCallback> callback)
+	void Pipe::setCallback(const std::string& command, Utils::Slot<Pipe::PacketCallback> callback)
 	{
 		this->packetCallbacks[command] = callback;
 	}
 
-	bool Pipe::write(std::string command, std::string data)
+	bool Pipe::write(const std::string& command, const std::string& data)
 	{
 		if (this->type != IPCTYPE_CLIENT || this->pipe == INVALID_HANDLE_VALUE) return false;
 
@@ -131,7 +131,7 @@ namespace Components
 		}
 	}
 
-	void Pipe::setName(std::string name)
+	void Pipe::setName(const std::string& name)
 	{
 		memset(this->pipeName, 0, sizeof(this->pipeName));
 		memset(this->pipeFile, 0, sizeof(this->pipeFile));
@@ -191,13 +191,13 @@ namespace Components
 	}
 
 	// Writes to the process on the other end of the pipe
-	bool IPCPipe::Write(std::string command, std::string data)
+	bool IPCPipe::Write(const std::string& command, const std::string& data)
 	{
 		return IPCPipe::ClientPipe.write(command, data);
 	}
 
 	// Installs a callback for receiving commands from the process on the other end of the pipe
-	void IPCPipe::On(std::string command, Utils::Slot<Pipe::PacketCallback> callback)
+	void IPCPipe::On(const std::string& command, Utils::Slot<Pipe::PacketCallback> callback)
 	{
 		IPCPipe::ServerPipe.setCallback(command, callback);
 	}
@@ -216,13 +216,13 @@ namespace Components
 			IPCPipe::ClientPipe.connect(IPC_PIPE_NAME_SERVER);
 		}
 
-		IPCPipe::On("ping", [](std::string data)
+		IPCPipe::On("ping", [](const std::string& data)
 		{
 			Logger::Print("Received ping form pipe, sending pong!\n");
 			IPCPipe::Write("pong", data);
 		});
 
-		IPCPipe::On("pong", [](std::string data)
+		IPCPipe::On("pong", [](const std::string& /*data*/)
 		{
 			Logger::Print("Received pong form pipe!\n");
 		});

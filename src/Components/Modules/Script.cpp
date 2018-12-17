@@ -168,7 +168,7 @@ namespace Components
 		Logger::Error(5, "script compile error\n%s\n%s\n(see console for actual details)\n", msgbuf, Script::ScriptName.data());
 	}
 
-	int Script::LoadScriptAndLabel(std::string script, std::string label)
+	int Script::LoadScriptAndLabel(const std::string& script, const std::string& label)
 	{
 		Logger::Print("Loading script %s.gsc...\n", script.data());
 
@@ -231,7 +231,7 @@ namespace Components
 		Game::GScr_LoadGameTypeScript();
 	}
 
-	void Script::AddFunction(std::string name, Game::scr_function_t function, bool isDev)
+	void Script::AddFunction(const std::string& name, Game::scr_function_t function, bool isDev)
 	{
 		for (auto i = Script::ScriptFunctions.begin(); i != Script::ScriptFunctions.end();)
 		{

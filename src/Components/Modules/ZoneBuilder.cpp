@@ -10,7 +10,7 @@ namespace Components
 	bool ZoneBuilder::Terminate;
 	std::thread ZoneBuilder::CommandThread;
 
-	ZoneBuilder::Zone::Zone(std::string name) : indexStart(0), externalSize(0),
+	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
 
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
@@ -198,12 +198,12 @@ namespace Components
 		else return false;
 	}
 
-	bool ZoneBuilder::Zone::loadAssetByName(Game::XAssetType type, std::string name, bool isSubAsset)
+	bool ZoneBuilder::Zone::loadAssetByName(Game::XAssetType type, const std::string& name, bool isSubAsset)
 	{
 		return this->loadAssetByName(Game::DB_GetXAssetTypeName(type), name, isSubAsset);
 	}
 
-	bool ZoneBuilder::Zone::loadAssetByName(std::string typeName, std::string name, bool isSubAsset)
+	bool ZoneBuilder::Zone::loadAssetByName(const std::string& typeName, std::string name, bool isSubAsset)
 	{
 		Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 
@@ -564,7 +564,7 @@ namespace Components
 		return 0;
 	}
 
-	int ZoneBuilder::Zone::addScriptString(std::string str)
+	int ZoneBuilder::Zone::addScriptString(const std::string& str)
 	{
 		return this->addScriptString(Game::SL_GetString(str.data(), 0));
 	}
@@ -599,7 +599,7 @@ namespace Components
 	}
 
 	// Find a local scriptString
-	int ZoneBuilder::Zone::findScriptString(std::string str)
+	int ZoneBuilder::Zone::findScriptString(const std::string& str)
 	{
 		for (unsigned int i = 0; i < this->scriptStrings.size(); ++i)
 		{
@@ -619,7 +619,7 @@ namespace Components
 	}
 
 	// Store a new name for a given asset
-	void ZoneBuilder::Zone::renameAsset(Game::XAssetType type, std::string asset, std::string newName)
+	void ZoneBuilder::Zone::renameAsset(Game::XAssetType type, const std::string& asset, const std::string& newName)
 	{
 		if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
 		{
@@ -632,7 +632,7 @@ namespace Components
 	}
 
 	// Return the new name for a given asset
-	std::string ZoneBuilder::Zone::getAssetName(Game::XAssetType type, std::string asset)
+	std::string ZoneBuilder::Zone::getAssetName(Game::XAssetType type, const std::string& asset)
 	{
 		if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
 		{
@@ -674,7 +674,7 @@ namespace Components
 		return (flag.value() && !Dedicated::IsEnabled());
 	}
 
-	void ZoneBuilder::BeginAssetTrace(std::string zone)
+	void ZoneBuilder::BeginAssetTrace(const std::string& zone)
 	{
 		ZoneBuilder::TraceZone = zone;
 	}
@@ -691,7 +691,7 @@ namespace Components
 		return AssetTrace;
 	}
 
-	Game::XAssetHeader ZoneBuilder::GetEmptyAssetIfCommon(Game::XAssetType type, std::string name, ZoneBuilder::Zone* builder)
+	Game::XAssetHeader ZoneBuilder::GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, ZoneBuilder::Zone* builder)
 	{
 		Game::XAssetHeader header = { nullptr };
 
@@ -956,7 +956,7 @@ namespace Components
 		}
 	}
 
-	std::string ZoneBuilder::FindMaterialByTechnique(std::string techniqueName)
+	std::string ZoneBuilder::FindMaterialByTechnique(const std::string& techniqueName)
 	{
 		static bool replacementFound = false;
 		replacementFound = false; // the above one only runs the first time
@@ -1045,7 +1045,7 @@ namespace Components
 
 			// this one lets us keep loading zones and it will ignore assets when the pool is filled
 			/*
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, std::string, bool* restrict)
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, const std::string&, bool* restrict)
 			{
 				//if (*static_cast<int*>(Game::DB_XAssetPool[type].data) == 0)
 				if(Game::g_poolSize[type] == 0)
@@ -1097,7 +1097,7 @@ namespace Components
 			// don't remap techsets
 			Utils::Hook::Nop(0x5BC791, 5);
 
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, std::string name, bool* /*restrict*/)
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, const std::string& name, bool* /*restrict*/)
 			{
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{
@@ -1172,7 +1172,7 @@ namespace Components
 			static std::set<std::string> curTechsets_list;
 			static std::set<std::string> techsets_list;
 
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, std::string name, bool*)
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, const std::string& name, bool*)
 			{
 				if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
 				{

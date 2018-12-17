@@ -11,7 +11,7 @@ namespace Components
 		{
 		public:
 			Address() { setType(Game::netadrtype_t::NA_BAD); };
-			Address(std::string addrString);
+			Address(const std::string& addrString);
 			Address(sockaddr* addr);
 			Address(sockaddr addr) : Address(&addr) {}
 			Address(sockaddr_in addr) : Address(&addr) {}
@@ -48,7 +48,7 @@ namespace Components
 			Game::netadr_t address;
 		};
 
-		typedef void(Callback)(Address address, std::string data);
+		typedef void(Callback)(Address address, const std::string& data);
 		typedef void(CallbackRaw)();
 
 		Network();
@@ -56,24 +56,24 @@ namespace Components
 
 		static unsigned short GetPort();
 
-		static void Handle(std::string packet, Utils::Slot<Callback> callback);
+		static void Handle(const std::string& packet, Utils::Slot<Callback> callback);
 		static void OnStart(Utils::Slot<CallbackRaw> callback);
 
 		// Send quake-styled binary data
-		static void Send(Address target, std::string data);
-		static void Send(Game::netsrc_t type, Address target, std::string data);
+		static void Send(Address target, const std::string& data);
+		static void Send(Game::netsrc_t type, Address target, const std::string& data);
 
 		// Allows sending raw data without quake header
-		static void SendRaw(Address target, std::string data);
-		static void SendRaw(Game::netsrc_t type, Address target, std::string data);
+		static void SendRaw(Address target, const std::string& data);
+		static void SendRaw(Game::netsrc_t type, Address target, const std::string& data);
 
 		// Send quake-style command using binary data
-		static void SendCommand(Address target, std::string command, std::string data = "");
-		static void SendCommand(Game::netsrc_t type, Address target, std::string command, std::string data = "");
+		static void SendCommand(Address target, const std::string& command, const std::string& data = "");
+		static void SendCommand(Game::netsrc_t type, Address target, const std::string& command, const std::string& data = "");
 
-		static void Broadcast(unsigned short port, std::string data);
-		static void BroadcastRange(unsigned int min, unsigned int max, std::string data);
-		static void BroadcastAll(std::string data);
+		static void Broadcast(unsigned short port, const std::string& data);
+		static void BroadcastRange(unsigned int min, unsigned int max, const std::string& data);
+		static void BroadcastAll(const std::string& data);
 
 	private:
 		static std::string SelectedPacket;

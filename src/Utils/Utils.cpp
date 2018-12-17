@@ -2,7 +2,7 @@
 
 namespace Utils
 {
-	std::string GetMimeType(std::string url)
+	std::string GetMimeType(const std::string& url)
 	{
 		wchar_t* mimeType = nullptr;
 		FindMimeFromData(nullptr, std::wstring(url.begin(), url.end()).data(), nullptr, 0, nullptr, 0, &mimeType, 0);
@@ -16,7 +16,7 @@ namespace Utils
 		return "application/octet-stream";
 	}
 
-	std::string ParseChallenge(std::string data)
+	std::string ParseChallenge(const std::string& data)
 	{
 		auto pos = data.find_first_of("\n ");
 		if (pos == std::string::npos) return data;
@@ -140,7 +140,7 @@ namespace Utils
 		std::this_thread::yield();
 	}
 
-	void OpenUrl(std::string url)
+	void OpenUrl(const std::string& url)
 	{
 		SafeShellExecute(nullptr, "open", url.data(), nullptr, nullptr, SW_SHOWNORMAL);
 	}

@@ -58,7 +58,7 @@ namespace Components
 		static void AddRawSV(const char* name, void(*callback)());
 		static void Execute(std::string command, bool sync = true);
 
-		static Game::cmd_function_t* Find(std::string command);
+		static Game::cmd_function_t* Find(const std::string& command);
 
 	private:
 		static std::unordered_map<std::string, Utils::Slot<Callback>> FunctionMap;

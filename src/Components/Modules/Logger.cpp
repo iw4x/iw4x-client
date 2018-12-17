@@ -5,7 +5,7 @@ namespace Components
 	std::mutex Logger::MessageMutex;
 	std::vector<std::string> Logger::MessageQueue;
 	std::vector<Network::Address> Logger::LoggingAddresses[2];
-	void(*Logger::PipeCallback)(std::string) = nullptr;
+	void(*Logger::PipeCallback)(const std::string&) = nullptr;
 
 	bool Logger::IsConsoleReady()
 	{
@@ -27,7 +27,7 @@ namespace Components
 		return Logger::MessagePrint(channel, Logger::Format(&message));
 	}
 
-	void Logger::MessagePrint(int channel, std::string message)
+	void Logger::MessagePrint(int channel, const std::string& message)
 	{
 		if (Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests())
 		{
@@ -51,7 +51,7 @@ namespace Components
 		}
 	}
 
-	void Logger::ErrorPrint(int error, std::string message)
+	void Logger::ErrorPrint(int error, const std::string& message)
 	{
 #ifdef DEBUG
 		if (IsDebuggerPresent()) __debugbreak();
@@ -121,7 +121,7 @@ namespace Components
 		Logger::MessageQueue.clear();
 	}
 
-	void Logger::PipeOutput(void(*callback)(std::string))
+	void Logger::PipeOutput(void(*callback)(const std::string&))
 	{
 		Logger::PipeCallback = callback;
 	}
@@ -194,7 +194,7 @@ namespace Components
 		}
 	}
 
-	void Logger::EnqueueMessage(std::string message)
+	void Logger::EnqueueMessage(const std::string& message)
 	{
 		Logger::MessageMutex.lock();
 		Logger::MessageQueue.push_back(message);

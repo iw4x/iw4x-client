@@ -4,14 +4,14 @@
 
 namespace Assets
 {
-	void IMaterial::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IMaterial::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		if (!header->data) this->loadJson(header, name, builder);   // Check if we want to override materials
 		if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
 		if (!header->data) this->loadBinary(header, name, builder); // Check if we need to import a new one into the game
 	}
 
-	void IMaterial::loadBinary(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IMaterial::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		static const char* techsetSuffix[] =
 		{
@@ -244,12 +244,12 @@ namespace Assets
 		}*/
 	}
 
-	void IMaterial::loadNative(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* /*builder*/)
+	void IMaterial::loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
 		header->material = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).material;
 	}
 
-	void IMaterial::loadJson(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void IMaterial::loadJson(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File materialInfo(Utils::String::VA("materials/%s.json", name.data()));
 

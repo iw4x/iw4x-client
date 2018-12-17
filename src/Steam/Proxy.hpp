@@ -150,7 +150,7 @@ namespace Steam
 		Interface(void* _interfacePtr) : interfacePtr(static_cast<VInterface*>(_interfacePtr)) {}
 
 		template<typename T, typename... Args>
-		T invoke(std::string methodName, Args... args)
+		T invoke(const std::string& methodName, Args... args)
 		{
 			if(!this->interfacePtr)
 			{
@@ -181,7 +181,7 @@ namespace Steam
 			return this->interfacePtr != nullptr;
 		}
 
-		size_t paramSize(std::string methodName)
+		size_t paramSize(const std::string& methodName)
 		{
 			auto method = this->getMethod(methodName);
 			return method.second;
@@ -208,8 +208,8 @@ namespace Steam
 
 		VInterface* interfacePtr;
 		std::unordered_map<std::string, std::pair<void*, uint16_t>> methodCache;
-		std::pair<void*, uint16_t> getMethod(std::string method);
-		std::pair<void*, uint16_t> lookupMethod(std::string method);
+		std::pair<void*, uint16_t> getMethod(const std::string& method);
+		std::pair<void*, uint16_t> lookupMethod(const std::string& method);
 		bool getMethodData(VInterface::VMethod method, std::string* name, uint16_t* params);
 	};
 
@@ -269,7 +269,7 @@ namespace Steam
 		static void SetGame(uint32_t appId);
 		static void RunGame();
 
-		static void SetMod(std::string mod);
+		static void SetMod(const std::string& mod);
 		static void RunMod();
 
 		//Overlay related proxies

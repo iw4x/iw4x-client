@@ -43,7 +43,7 @@ namespace Components
 		return Utils::Hook::Call<DWORD(const char**)>(0x4C0350)(buffer);
 	}
 
-	void Playlist::PlaylistRequest(Network::Address address, std::string data)
+	void Playlist::PlaylistRequest(Network::Address address, const std::string& data)
 	{
 		std::string password = Dvar::Var("g_password").get<std::string>();
 		if (password.length())
@@ -66,7 +66,7 @@ namespace Components
 		Network::SendCommand(address, "playlistResponse", list.SerializeAsString());
 	}
 
-	void Playlist::PlaylistReponse(Network::Address address, std::string data)
+	void Playlist::PlaylistReponse(Network::Address address, const std::string& data)
 	{
 		if (Party::PlaylistAwaiting())
 		{
@@ -114,7 +114,7 @@ namespace Components
 		}
 	}
 
-	void Playlist::PlaylistInvalidPassword(Network::Address /*address*/, std::string /*data*/)
+	void Playlist::PlaylistInvalidPassword(Network::Address /*address*/, const std::string& /*data*/)
 	{
 		Party::PlaylistError("Error: Invalid Password for Party.");
 	}

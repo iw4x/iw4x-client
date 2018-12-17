@@ -8,10 +8,10 @@ namespace Components
 		Logger();
 		~Logger();
 
-		static void MessagePrint(int channel, std::string message);
+		static void MessagePrint(int channel, const std::string& message);
 		static void Print(int channel, const char* message, ...);
 		static void Print(const char* message, ...);
-		static void ErrorPrint(int error, std::string message);
+		static void ErrorPrint(int error, const std::string& message);
 		static void Error(const char* message, ...);
 		static void Error(int error, const char* message, ...);
 		static void SoftError(const char* message, ...);
@@ -19,7 +19,7 @@ namespace Components
 
 		static void PrintStub(int channel, const char* message, ...);
 
-		static void PipeOutput(void(*callback)(std::string));
+		static void PipeOutput(void(*callback)(const std::string&));
 
 		static void Flush();
 
@@ -27,13 +27,13 @@ namespace Components
 		static std::mutex MessageMutex;
 		static std::vector<std::string> MessageQueue;
 		static std::vector<Network::Address> LoggingAddresses[2];
-		static void(*PipeCallback)(std::string);
+		static void(*PipeCallback)(const std::string&);
 
 		static void Frame();
 		static void GameLogStub();
 		static void PrintMessageStub();
 		static void PrintMessagePipe(const char* data);
-		static void EnqueueMessage(std::string message);
+		static void EnqueueMessage(const std::string& message);
 
 		static void BuildOSPathStub();
 		static void RedirectOSPath(const char* file, char* folder);

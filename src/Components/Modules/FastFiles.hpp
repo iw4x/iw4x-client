@@ -8,10 +8,10 @@ namespace Components
 		FastFiles();
 		~FastFiles();
 
-		static void AddZonePath(std::string path);
+		static void AddZonePath(const std::string& path);
 		static std::string Current();
 		static bool Ready();
-		static bool Exists(std::string file);
+		static bool Exists(const std::string& file);
 
 		static void LoadLocalizeZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 

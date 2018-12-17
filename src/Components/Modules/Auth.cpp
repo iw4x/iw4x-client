@@ -237,7 +237,7 @@ namespace Components
 		}
 	}
 
-	unsigned __int64 Auth::GetKeyHash(std::string key)
+	unsigned __int64 Auth::GetKeyHash(const std::string& key)
 	{
 		std::string hash = Utils::Cryptography::SHA1::Compute(key);
 
@@ -299,7 +299,7 @@ namespace Components
 		return Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
 	}
 
-	void Auth::IncreaseSecurityLevel(uint32_t level, std::string command)
+	void Auth::IncreaseSecurityLevel(uint32_t level, const std::string& command)
 	{
 		if (Auth::GetSecurityLevel() >= level) return;
 
@@ -329,7 +329,7 @@ namespace Components
 		}
 	}
 
-	uint32_t Auth::GetZeroBits(Utils::Cryptography::Token token, std::string publicKey)
+	uint32_t Auth::GetZeroBits(Utils::Cryptography::Token token, const std::string& publicKey)
 	{
 		std::string message = publicKey + token.toString();
 		std::string hash = Utils::Cryptography::SHA512::Compute(message, false);
@@ -359,7 +359,7 @@ namespace Components
 		return bits;
 	}
 
-	void Auth::IncrementToken(Utils::Cryptography::Token& token, Utils::Cryptography::Token& computeToken, std::string publicKey, uint32_t zeroBits, bool* cancel, uint64_t* count)
+	void Auth::IncrementToken(Utils::Cryptography::Token& token, Utils::Cryptography::Token& computeToken, const std::string& publicKey, uint32_t zeroBits, bool* cancel, uint64_t* count)
 	{
 		if (zeroBits > 512) return; // Not possible, due to SHA512
 

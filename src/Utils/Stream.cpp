@@ -191,7 +191,7 @@ namespace Utils
 		return this->data() + ret;
 	}
 
-	char* Stream::saveString(std::string string)
+	char* Stream::saveString(const std::string& string)
 	{
 		return this->saveString(string.data()/*, string.size()*/);
 	}
@@ -215,7 +215,7 @@ namespace Utils
 		return this->data() + ret;
 	}
 
-	char* Stream::saveText(std::string string)
+	char* Stream::saveText(const std::string& string)
 	{
 		return this->save(string.data(), string.length());
 	}

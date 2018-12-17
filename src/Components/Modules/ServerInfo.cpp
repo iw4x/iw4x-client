@@ -173,7 +173,7 @@ namespace Components
 		// Add uifeeder
 		UIFeeder::Add(13.0f, ServerInfo::GetPlayerCount, ServerInfo::GetPlayerText, ServerInfo::SelectPlayer);
 
-		Network::Handle("getStatus", [](Network::Address address, std::string data)
+		Network::Handle("getStatus", [](Network::Address address, const std::string& data)
 		{
 			std::string playerList;
 
@@ -209,7 +209,7 @@ namespace Components
 			Network::SendCommand(address, "statusResponse", "\\" + info.build() + "\n" + playerList + "\n");
 		});
 
-		Network::Handle("statusResponse", [](Network::Address address, std::string data)
+		Network::Handle("statusResponse", [](Network::Address address, const std::string& data)
 		{
 			if (ServerInfo::PlayerContainer.target == address)
 			{

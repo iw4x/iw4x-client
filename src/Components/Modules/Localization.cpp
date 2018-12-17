@@ -7,7 +7,7 @@ namespace Components
 	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
 	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::TempLocalizeMap;
 
-	void Localization::Set(std::string key, std::string value)
+	void Localization::Set(const std::string& key, const std::string& value)
 	{
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
@@ -75,7 +75,7 @@ namespace Components
 		return key;
 	}
 
-	void Localization::SetTemp(std::string key, std::string value)
+	void Localization::SetTemp(const std::string& key, const std::string& value)
 	{
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
@@ -240,7 +240,7 @@ namespace Components
 	{
 		Localization::SetCredits();
 
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [](Game::XAssetType, std::string filename)
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [](Game::XAssetType, const std::string& filename)
 		{
 			Game::XAssetHeader header = { nullptr };
 			std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
@@ -269,7 +269,7 @@ namespace Components
 		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
 
 		// Generate localized entries for custom classes above 10
-		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool* /*restrict*/)
+		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
 		{
 			if (type != Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY) return;
 

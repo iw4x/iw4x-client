@@ -2,7 +2,7 @@
 
 namespace Assets
 {
-	void ILoadedSound::load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder)
+	void ILoadedSound::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File soundFile(Utils::String::VA("sounds/%s", name.data()));
 		if (!soundFile.exists())

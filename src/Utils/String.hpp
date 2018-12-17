@@ -77,10 +77,10 @@ namespace Utils
 		int IsSpace(int c);
 		std::string ToLower(std::string input);
 		std::string ToUpper(std::string input);
-		bool EndsWith(std::string haystack, std::string needle);
+		bool EndsWith(const std::string& haystack, const std::string& needle);
 		std::vector<std::string> Explode(const std::string& str, char delim);
-		void Replace(std::string &string, std::string find, std::string replace);
-		bool StartsWith(std::string haystack, std::string needle);
+		void Replace(std::string &string, const std::string& find, const std::string& replace);
+		bool StartsWith(const std::string& haystack, const std::string& needle);
 		std::string &LTrim(std::string &s);
 		std::string &RTrim(std::string &s);
 		std::string &Trim(std::string &s);
@@ -88,9 +88,9 @@ namespace Utils
 		std::string FormatTimeSpan(int milliseconds);
 		std::string FormatBandwidth(size_t bytes, int milliseconds);
 
-		std::string DumpHex(std::string data, std::string separator = " ");
+		std::string DumpHex(const std::string& data, const std::string& separator = " ");
 
-		std::string XOR(std::string str, char value);
+		std::string XOR(const std::string str, char value);
 
 		std::string EncodeBase64(const char* input, const unsigned long inputSize);
 		std::string EncodeBase64(const std::string& input);

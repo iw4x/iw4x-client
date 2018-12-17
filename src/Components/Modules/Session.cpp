@@ -15,7 +15,7 @@ namespace Components
 
 	std::queue<std::pair<Network::Address, std::string>> Session::SignatureQueue;
 
-	void Session::Send(Network::Address target, std::string command, std::string data)
+	void Session::Send(Network::Address target, const std::string& command, const std::string& data)
 	{
 #ifdef DISABLE_SESSION
 		class DelayedResend
@@ -58,7 +58,7 @@ namespace Components
 #endif
 	}
 
-	void Session::Handle(std::string packet, Utils::Slot<Network::Callback> callback)
+	void Session::Handle(const std::string& packet, Utils::Slot<Network::Callback> callback)
 	{
 #ifdef DISABLE_SESSION
 		Network::Handle(packet, callback);
@@ -150,7 +150,7 @@ namespace Components
 			});
 		}
 
-		Network::Handle("sessionSyn", [](Network::Address address, std::string data)
+		Network::Handle("sessionSyn", [](Network::Address address, const std::string& data)
 		{
 			Session::Frame frame;
 			frame.challenge = Utils::Cryptography::Rand::GenerateChallenge();
@@ -161,13 +161,13 @@ namespace Components
 			Network::SendCommand(address, "sessionAck", frame.challenge);
 		});
 
-		Network::Handle("sessionAck", [](Network::Address address, std::string data)
+		Network::Handle("sessionAck", [](Network::Address address, const std::string& data)
 		{
 			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 			Session::SignatureQueue.push({ address, data });
 		});
 
-		Network::Handle("sessionFin", [](Network::Address address, std::string data)
+		Network::Handle("sessionFin", [](Network::Address address, const std::string& data)
 		{
 			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 

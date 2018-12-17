@@ -7,7 +7,7 @@ namespace Utils
 	public:
 		Entities() {};
 		Entities(const char* string, size_t lenPlusOne) : Entities(std::string(string, lenPlusOne - 1)) {}
-		Entities(std::string buffer) : Entities() { this->parse(buffer); };
+		Entities(const std::string& buffer) : Entities() { this->parse(buffer); };
 		Entities(const Entities &obj) : entities(obj.entities) {};
 
 		std::string build();
@@ -27,6 +27,6 @@ namespace Utils
 		};
 
 		std::vector<std::unordered_map<std::string, std::string>> entities;
-		void parse(std::string buffer);
+		void parse(const std::string& buffer);
 	};
 }

@@ -5,12 +5,12 @@ namespace Utils
 {
 	WebIO::WebIO() : WebIO("WebIO") {}
 
-	WebIO::WebIO(std::string useragent, std::string url) : WebIO(useragent)
+	WebIO::WebIO(const std::string& useragent, const std::string& url) : WebIO(useragent)
 	{
 		this->setURL(url);
 	}
 
-	WebIO::WebIO(std::string useragent) : cancel(false), timeout(5000), hSession(nullptr) // 5 seconds timeout by default
+	WebIO::WebIO(const std::string& useragent) : cancel(false), timeout(5000), hSession(nullptr) // 5 seconds timeout by default
 	{
 		this->openSession(useragent);
 	}
@@ -24,7 +24,7 @@ namespace Utils
 		this->closeSession();
 	}
 
-	void WebIO::openSession(std::string useragent)
+	void WebIO::openSession(const std::string& useragent)
 	{
 		this->closeSession();
 		this->hSession = InternetOpenA(useragent.data(), INTERNET_OPEN_TYPE_DIRECT, nullptr, nullptr, 0);
@@ -35,13 +35,10 @@ namespace Utils
 		if (this->hSession) InternetCloseHandle(this->hSession);
 	}
 
-	void WebIO::setCredentials(std::string _username, std::string _password)
+	void WebIO::setCredentials(const std::string& _username, const std::string& _password)
 	{
-		this->username.clear();
-		this->password.clear();
-
-		this->username.append(_username.begin(), _username.end());
-		this->password.append(_password.begin(), _password.end());
+		this->username = _username;
+		this->password = _password;
 	}
 
 	void WebIO::setURL(std::string _url)
@@ -152,13 +149,13 @@ namespace Utils
 		return body;
 	}
 
-	std::string WebIO::postFile(std::string _url, std::string data, std::string fieldName, std::string fileName)
+	std::string WebIO::postFile(const std::string& _url, const std::string& data, const std::string& fieldName, const std::string& fileName)
 	{
 		this->setURL(_url);
 		return this->postFile(data, fieldName, fileName);
 	}
 
-	std::string WebIO::postFile(std::string data, std::string fieldName, std::string fileName)
+	std::string WebIO::postFile(const std::string& data, std::string fieldName, std::string fileName)
 	{
 		WebIO::Params headers;
 
@@ -185,13 +182,13 @@ namespace Utils
 		return this->execute("POST", body, headers);
 	}
 
-	std::string WebIO::post(std::string _url, std::string body, bool* success)
+	std::string WebIO::post(const std::string& _url, const std::string& body, bool* success)
 	{
 		this->setURL(_url);
 		return this->post(body, success);
 	}
 
-	std::string WebIO::post(std::string _url, WebIO::Params params, bool* success)
+	std::string WebIO::post(const std::string& _url, WebIO::Params params, bool* success)
 	{
 		this->setURL(_url);
 		return this->post(params, success);
@@ -202,12 +199,12 @@ namespace Utils
 		return this->post(this->buildPostBody(params), success);
 	}
 
-	std::string WebIO::post(std::string body, bool* success)
+	std::string WebIO::post(const std::string& body, bool* success)
 	{
 		return this->execute("POST", body, WebIO::Params(), success);
 	}
 
-	std::string WebIO::get(std::string _url, bool* success)
+	std::string WebIO::get(const std::string& _url, bool* success)
 	{
 		this->setURL(_url);
 		return this->get(success);
@@ -259,7 +256,7 @@ namespace Utils
 		return this;
 	}
 
-	std::string WebIO::execute(const char* command, std::string body, WebIO::Params headers, bool* success)
+	std::string WebIO::execute(const char* command, const std::string& body, WebIO::Params headers, bool* success)
 	{
 		if (success) *success = false;
 		if (!this->openConnection()) return "";
@@ -357,7 +354,7 @@ namespace Utils
 		this->closeConnection();
 	}
 
-	bool WebIO::setDirectory(std::string directory)
+	bool WebIO::setDirectory(const std::string& directory)
 	{
 		return (FtpSetCurrentDirectoryA(this->hConnect, directory.data()) == TRUE);
 	}
@@ -417,13 +414,13 @@ namespace Utils
 		}
 	}
 
-	bool WebIO::createDirectory(std::string directory)
+	bool WebIO::createDirectory(const std::string& directory)
 	{
 		return (FtpCreateDirectoryA(this->hConnect, directory.data()) == TRUE);
 	}
 
 	// Recursively delete a directory
-	bool WebIO::deleteDirectory(std::string directory)
+	bool WebIO::deleteDirectory(const std::string& directory)
 	{
 		std::string tempDir;
 		this->getDirectory(tempDir);
@@ -443,12 +440,12 @@ namespace Utils
 		return (FtpRemoveDirectoryA(this->hConnect, directory.data()) == TRUE);
 	}
 
-	bool WebIO::renameDirectory(std::string directory, std::string newDir)
+	bool WebIO::renameDirectory(const std::string& directory, const std::string& newDir)
 	{
 		return (FtpRenameFileA(this->hConnect, directory.data(), newDir.data()) == TRUE); // According to the internetz, this should work
 	}
 
-	bool WebIO::listElements(std::string directory, std::vector<std::string> &list, bool files)
+	bool WebIO::listElements(const std::string& directory, std::vector<std::string> &list, bool files)
 	{
 		list.clear();
 
@@ -486,37 +483,37 @@ namespace Utils
 		return result;
 	}
 
-	bool WebIO::listDirectories(std::string directory, std::vector<std::string> &list)
+	bool WebIO::listDirectories(const std::string& directory, std::vector<std::string> &list)
 	{
 		return this->listElements(directory, list, false);
 	}
 
-	bool WebIO::listFiles(std::string directory, std::vector<std::string> &list)
+	bool WebIO::listFiles(const std::string& directory, std::vector<std::string> &list)
 	{
 		return this->listElements(directory, list, true);
 	}
 
-	bool WebIO::uploadFile(std::string file, std::string localfile)
+	bool WebIO::uploadFile(const std::string& file, const std::string& localfile)
 	{
 		return (FtpPutFileA(this->hConnect, localfile.data(), file.data(), FTP_TRANSFER_TYPE_BINARY, NULL) == TRUE);
 	}
 
-	bool WebIO::deleteFile(std::string file)
+	bool WebIO::deleteFile(const std::string& file)
 	{
 		return (FtpDeleteFileA(this->hConnect, file.data()) == TRUE);
 	}
 
-	bool WebIO::renameFile(std::string file, std::string newFile)
+	bool WebIO::renameFile(const std::string& file, const std::string& newFile)
 	{
 		return (FtpRenameFileA(this->hConnect, file.data(), newFile.data()) == TRUE);
 	}
 
-	bool WebIO::downloadFile(std::string file, std::string localfile)
+	bool WebIO::downloadFile(const std::string& file, const std::string& localfile)
 	{
 		return (FtpGetFileA(this->hConnect, file.data(), localfile.data(), FALSE, NULL, FTP_TRANSFER_TYPE_BINARY, 0) == TRUE);
 	}
 
-	bool WebIO::uploadFileData(std::string file, std::string data)
+	bool WebIO::uploadFileData(const std::string& file, const std::string& data)
 	{
 		bool result = false;
 		this->hFile = FtpOpenFileA(this->hConnect, file.data(), GENERIC_WRITE, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
@@ -535,7 +532,7 @@ namespace Utils
 		return result;
 	}
 
-	bool WebIO::downloadFileData(std::string file, std::string &data)
+	bool WebIO::downloadFileData(const std::string& file, std::string &data)
 	{
 		data.clear();
 

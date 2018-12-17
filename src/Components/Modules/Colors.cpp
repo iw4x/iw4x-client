@@ -79,7 +79,7 @@ namespace Components
 		*out = '\0';
 	}
 
-	std::string Colors::Strip(std::string in)
+	std::string Colors::Strip(const std::string& in)
 	{
 		char buffer[1000] = { 0 }; // Should be more than enough
 		Colors::Strip(in.data(), buffer, sizeof(buffer));

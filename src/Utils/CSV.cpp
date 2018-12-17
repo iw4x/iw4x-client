@@ -2,7 +2,7 @@
 
 namespace Utils
 {
-	CSV::CSV(std::string file, bool isFile, bool allowComments)
+	CSV::CSV(const std::string& file, bool isFile, bool allowComments)
 	{
 		this->valid = false;
 		this->parse(file, isFile, allowComments);
@@ -55,7 +55,7 @@ namespace Utils
 		return "";
 	}
 
-	void CSV::parse(std::string file, bool isFile, bool allowComments)
+	void CSV::parse(const std::string& file, bool isFile, bool allowComments)
 	{
 		std::string buffer;
 
@@ -81,7 +81,7 @@ namespace Utils
 		}
 	}
 
-	void CSV::parseRow(std::string row, bool allowComments)
+	void CSV::parseRow(const std::string& row, bool allowComments)
 	{
 		bool isString = false;
 		std::string element;

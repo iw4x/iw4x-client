@@ -120,12 +120,12 @@ namespace Components
 		static void SortList();
 
 		static void LoadFavourties();
-		static void StoreFavourite(std::string server);
-		static void RemoveFavourite(std::string server);
+		static void StoreFavourite(const std::string& server);
+		static void RemoveFavourite(const std::string& server);
 
 		static ServerInfo* GetServer(unsigned int index);
 
-		static bool CompareVersion(std::string version1, std::string version2);
+		static bool CompareVersion(const std::string& version1, const std::string& version2);
 
 		static int SortKey;
 		static bool SortAsc;
