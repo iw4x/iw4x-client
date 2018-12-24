@@ -4756,7 +4756,7 @@ namespace Game
 		R_RENDERTARGET_NONE = 0xD,
 	};
 
-	struct __declspec(align(16)) GfxCmdBufState
+	struct /*__declspec(align(16))*/ GfxCmdBufState
 	{
 		char refSamplerState[16];
 		unsigned int samplerState[16];

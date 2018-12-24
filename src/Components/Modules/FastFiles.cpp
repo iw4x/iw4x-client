@@ -484,7 +484,7 @@ namespace Components
 	}
 #endif
 
-	void FastFiles::Load_XSurfaceArray(int atStreamStart, int count)
+	void FastFiles::Load_XSurfaceArray(int atStreamStart, int /*count*/)
 	{
 		// read the actual count from the varXModelSurfs ptr
 		auto surface = *reinterpret_cast<Game::XModelSurfs**>(0x0112A95C);
