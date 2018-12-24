@@ -66,5 +66,8 @@ namespace Components
 #ifdef DEBUG
 		static void LogStreamRead(int len);
 #endif
+
+		static void Load_XSurfaceArray(int atStreamStart, int count);
+
 	};
 }

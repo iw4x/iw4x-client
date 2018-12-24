@@ -106,6 +106,60 @@ namespace Components
 		}
 	}
 
+	void Renderer::R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state)
+	{
+		Game::Com_Error(0, "Tried to use '%s' when it isn't valid for material '%s' and technique '%s'",
+			sampler, state->material->info.name, state->technique->name);
+	}
+
+	__declspec(naked) void Renderer::StoreGfxBufContextPtrStub1()
+	{
+		__asm
+		{
+			// original code
+			mov eax, DWORD PTR[eax * 4 + 0066E600Ch];
+
+			// store GfxCmdBufContext
+			/*push edx;
+			mov edx, [esp + 24h];
+			mov gfxState, edx;
+			pop edx;*/
+
+			// show error
+			pushad;
+			push[esp + 24h + 20h];
+			push eax;
+			call R_TextureFromCodeError;
+			add esp, 8;
+			popad;
+
+			// go back
+			push 0x0054CAC1;
+			retn;
+		}
+	}
+
+	__declspec(naked) void Renderer::StoreGfxBufContextPtrStub2()
+	{
+		__asm
+		{
+			// original code
+			mov edx, DWORD PTR[eax * 4 + 0066E600Ch];
+
+			// show error
+			pushad;
+			push ebx;
+			push edx;
+			call R_TextureFromCodeError;
+			add esp, 8;
+			popad;
+
+			// go back
+			push 0x0054CFA4;
+			retn;
+		}
+	}
+
 	Renderer::Renderer()
 	{
 		if (Dedicated::IsEnabled()) return;
@@ -137,6 +191,10 @@ namespace Components
 // 				buffer->UnlockRect();
 // 			}
 // 		});
+
+		// Log broken materials
+		Utils::Hook(0x0054CAAA, Renderer::StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x0054CF8D, Renderer::StoreGfxBufContextPtrStub2, HOOK_JUMP).install()->quick();
 
 		// Frame hook
 		Utils::Hook(0x5ACB99, Renderer::FrameStub, HOOK_CALL).install()->quick();

@@ -4629,6 +4629,175 @@ namespace Game
 		//struct keywordHash_s *next;
 	} keywordHash_t;
 
+	enum MaterialTechniqueType
+	{
+		TECHNIQUE_DEPTH_PREPASS = 0x0,
+		TECHNIQUE_BUILD_FLOAT_Z = 0x1,
+		TECHNIQUE_BUILD_SHADOWMAP_DEPTH = 0x2,
+		TECHNIQUE_BUILD_SHADOWMAP_COLOR = 0x3,
+		TECHNIQUE_UNLIT = 0x4,
+		TECHNIQUE_EMISSIVE = 0x5,
+		TECHNIQUE_EMISSIVE_DFOG = 0x6,
+		TECHNIQUE_EMISSIVE_SHADOW = 0x7,
+		TECHNIQUE_EMISSIVE_SHADOW_DFOG = 0x8,
+		TECHNIQUE_LIT_BEGIN = 0x9,
+		TECHNIQUE_LIT = 0x9,
+		TECHNIQUE_LIT_DFOG = 0xA,
+		TECHNIQUE_LIT_SUN = 0xB,
+		TECHNIQUE_LIT_SUN_DFOG = 0xC,
+		TECHNIQUE_LIT_SUN_SHADOW = 0xD,
+		TECHNIQUE_LIT_SUN_SHADOW_DFOG = 0xE,
+		TECHNIQUE_LIT_SPOT = 0xF,
+		TECHNIQUE_LIT_SPOT_DFOG = 0x10,
+		TECHNIQUE_LIT_SPOT_SHADOW = 0x11,
+		TECHNIQUE_LIT_SPOT_SHADOW_DFOG = 0x12,
+		TECHNIQUE_LIT_OMNI = 0x13,
+		TECHNIQUE_LIT_OMNI_DFOG = 0x14,
+		TECHNIQUE_LIT_OMNI_SHADOW = 0x15,
+		TECHNIQUE_LIT_OMNI_SHADOW_DFOG = 0x16,
+		TECHNIQUE_LIT_INSTANCED = 0x17,
+		TECHNIQUE_LIT_INSTANCED_DFOG = 0x18,
+		TECHNIQUE_LIT_INSTANCED_SUN = 0x19,
+		TECHNIQUE_LIT_INSTANCED_SUN_DFOG = 0x1A,
+		TECHNIQUE_LIT_INSTANCED_SUN_SHADOW = 0x1B,
+		TECHNIQUE_LIT_INSTANCED_SUN_SHADOW_DFOG = 0x1C,
+		TECHNIQUE_LIT_INSTANCED_SPOT = 0x1D,
+		TECHNIQUE_LIT_INSTANCED_SPOT_DFOG = 0x1E,
+		TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW = 0x1F,
+		TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW_DFOG = 0x20,
+		TECHNIQUE_LIT_INSTANCED_OMNI = 0x21,
+		TECHNIQUE_LIT_INSTANCED_OMNI_DFOG = 0x22,
+		TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW = 0x23,
+		TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW_DFOG = 0x24,
+		TECHNIQUE_LIT_END = 0x25,
+		TECHNIQUE_LIGHT_SPOT = 0x25,
+		TECHNIQUE_LIGHT_OMNI = 0x26,
+		TECHNIQUE_LIGHT_SPOT_SHADOW = 0x27,
+		TECHNIQUE_FAKELIGHT_NORMAL = 0x28,
+		TECHNIQUE_FAKELIGHT_VIEW = 0x29,
+		TECHNIQUE_SUNLIGHT_PREVIEW = 0x2A,
+		TECHNIQUE_CASE_TEXTURE = 0x2B,
+		TECHNIQUE_WIREFRAME_SOLID = 0x2C,
+		TECHNIQUE_WIREFRAME_SHADED = 0x2D,
+		TECHNIQUE_DEBUG_BUMPMAP = 0x2E,
+		TECHNIQUE_DEBUG_BUMPMAP_INSTANCED = 0x2F,
+		TECHNIQUE_COUNT = 0x30,
+		TECHNIQUE_TOTAL_COUNT = 0x31,
+		TECHNIQUE_NONE = 0x32,
+	};
+
+	enum MaterialVertexDeclType
+	{
+		VERTDECL_GENERIC = 0x0,
+		VERTDECL_PACKED = 0x1,
+		VERTDECL_WORLD = 0x2,
+		VERTDECL_WORLD_T1N0 = 0x3,
+		VERTDECL_WORLD_T1N1 = 0x4,
+		VERTDECL_WORLD_T2N0 = 0x5,
+		VERTDECL_WORLD_T2N1 = 0x6,
+		VERTDECL_WORLD_T2N2 = 0x7,
+		VERTDECL_WORLD_T3N0 = 0x8,
+		VERTDECL_WORLD_T3N1 = 0x9,
+		VERTDECL_WORLD_T3N2 = 0xA,
+		VERTDECL_WORLD_T4N0 = 0xB,
+		VERTDECL_WORLD_T4N1 = 0xC,
+		VERTDECL_WORLD_T4N2 = 0xD,
+		VERTDECL_POS_TEX = 0xE,
+		VERTDECL_STATICMODELCACHE = 0xF,
+		VERTDECL_COUNT = 0x10,
+	};
+
+	struct $A6DFE8F2BEFD3E7315B44D22E582538B
+	{
+		unsigned int stride;
+		IDirect3DVertexBuffer9 *vb;
+		unsigned int offset;
+	};
+
+	struct GfxCmdBufPrimState
+	{
+		IDirect3DDevice9 *device;
+		IDirect3DIndexBuffer9 *indexBuffer;
+		MaterialVertexDeclType vertDeclType;
+		$A6DFE8F2BEFD3E7315B44D22E582538B streams[2];
+		IDirect3DVertexDeclaration9 *vertexDecl;
+	};
+
+	enum GfxDepthRangeType
+	{
+		GFX_DEPTH_RANGE_SCENE = 0x0,
+		GFX_DEPTH_RANGE_VIEWMODEL = 0x2,
+		GFX_DEPTH_RANGE_FULL = 0xFFFFFFFF,
+	};
+
+	struct GfxViewport
+	{
+		int x;
+		int y;
+		int width;
+		int height;
+	};
+
+	enum GfxRenderTargetId
+	{
+		R_RENDERTARGET_SAVED_SCREEN = 0x0,
+		R_RENDERTARGET_FRAME_BUFFER = 0x1,
+		R_RENDERTARGET_SCENE = 0x2,
+		R_RENDERTARGET_RESOLVED_POST_SUN = 0x3,
+		R_RENDERTARGET_RESOLVED_SCENE = 0x4,
+		R_RENDERTARGET_FLOAT_Z = 0x5,
+		R_RENDERTARGET_PINGPONG_0 = 0x6,
+		R_RENDERTARGET_PINGPONG_1 = 0x7,
+		R_RENDERTARGET_POST_EFFECT_0 = 0x8,
+		R_RENDERTARGET_POST_EFFECT_1 = 0x9,
+		R_RENDERTARGET_SHADOWMAP_LARGE = 0xA,
+		R_RENDERTARGET_SHADOWMAP_SMALL = 0xB,
+		R_RENDERTARGET_COUNT = 0xC,
+		R_RENDERTARGET_NONE = 0xD,
+	};
+
+	struct __declspec(align(16)) GfxCmdBufState
+	{
+		char refSamplerState[16];
+		unsigned int samplerState[16];
+		GfxTexture *samplerTexture[16];
+		GfxCmdBufPrimState prim;
+		Material *material;
+		MaterialTechniqueType techType;
+		MaterialTechnique *technique;
+		MaterialPass *pass;
+		unsigned int passIndex;
+		GfxDepthRangeType depthRangeType;
+		float depthRangeNear;
+		float depthRangeFar;
+		unsigned __int64 vertexShaderConstState[64];
+		unsigned __int64 pixelShaderConstState[256];
+		char alphaRef;
+		unsigned int refStateBits[2];
+		unsigned int activeStateBits[2];
+		MaterialPixelShader *pixelShader;
+		MaterialVertexShader *vertexShader;
+		unsigned int scissorX;
+		unsigned int scissorY;
+		unsigned int scissorW;
+		unsigned int scissorH;
+		unsigned int pixPrimarySortKey;
+		unsigned int pixSceneLightIndex;
+		Material *pixMaterial;
+		MaterialTechnique *pixTechnique;
+		int pixCombine;
+		GfxViewport viewport;
+		GfxRenderTargetId renderTargetId;
+		Material *origMaterial;
+		MaterialTechniqueType origTechType;
+	};
+
+	struct GfxCmdBufContext
+	{
+		/*GfxCmdBufSourceState*/ void *source;
+		GfxCmdBufState *state;
+	};
+
 #pragma endregion
 
 #ifndef IDA

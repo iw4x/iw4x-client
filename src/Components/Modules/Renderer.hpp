@@ -29,6 +29,10 @@ namespace Components
 		static void PostVidRestart();
 		static void PostVidRestartStub();
 
+		static void R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state);
+		static void StoreGfxBufContextPtrStub1();
+		static void StoreGfxBufContextPtrStub2();
+
 		static Utils::Signal<Scheduler::Callback> EndRecoverDeviceSignal;
 		static Utils::Signal<Scheduler::Callback> BeginRecoverDeviceSignal;
 

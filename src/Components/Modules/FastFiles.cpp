@@ -484,9 +484,21 @@ namespace Components
 	}
 #endif
 
+	void FastFiles::Load_XSurfaceArray(int atStreamStart, int count)
+	{
+		// read the actual count from the varXModelSurfs ptr
+		auto surface = *reinterpret_cast<Game::XModelSurfs**>(0x0112A95C);
+
+		// call original read function with the correct count
+		return Utils::Hook::Call<void(int, int)>(0x004925B0)(atStreamStart, surface->numsurfs);
+	}
+
 	FastFiles::FastFiles()
 	{
 		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display current loaded zone.");
+
+		// Fix XSurface assets
+		Utils::Hook(0x0048E8A5, FastFiles::Load_XSurfaceArray, HOOK_CALL).install()->quick();
 
 		// Redirect zone paths
 		Utils::Hook(0x44DA90, FastFiles::GetZoneLocation, HOOK_JUMP).install()->quick();
