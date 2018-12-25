@@ -160,6 +160,12 @@ namespace Components
 		}
 	}
 
+	int Renderer::DrawTechsetForMaterial(int a1, float a2, float a3, const char* material, Game::vec4_t* color, int a6)
+	{
+		auto mat = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, Utils::String::VA("wc/%s", material)).material;
+		return Utils::Hook::Call<int(int, float, float, const char*, Game::vec4_t*, int)>(0x005033E0)(a1, a2, a3, Utils::String::VA("%s (^3%s^7)", mat->info.name, mat->techniqueSet->name), color, a6);
+	}
+
 	Renderer::Renderer()
 	{
 		if (Dedicated::IsEnabled()) return;
@@ -195,6 +201,10 @@ namespace Components
 		// Log broken materials
 		Utils::Hook(0x0054CAAA, Renderer::StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x0054CF8D, Renderer::StoreGfxBufContextPtrStub2, HOOK_JUMP).install()->quick();
+
+		// Enhance cg_drawMaterial
+		Utils::Hook::Set(0x005086DA, "^3solid^7");
+		Utils::Hook(0x00580F53, Renderer::DrawTechsetForMaterial, HOOK_CALL).install()->quick();
 
 		// Frame hook
 		Utils::Hook(0x5ACB99, Renderer::FrameStub, HOOK_CALL).install()->quick();

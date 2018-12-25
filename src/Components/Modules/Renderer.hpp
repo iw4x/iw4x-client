@@ -33,6 +33,8 @@ namespace Components
 		static void StoreGfxBufContextPtrStub1();
 		static void StoreGfxBufContextPtrStub2();
 
+		static int DrawTechsetForMaterial(int a1, float a2, float a3, const char* material, Game::vec4_t* color, int a6);
+
 		static Utils::Signal<Scheduler::Callback> EndRecoverDeviceSignal;
 		static Utils::Signal<Scheduler::Callback> BeginRecoverDeviceSignal;
 
