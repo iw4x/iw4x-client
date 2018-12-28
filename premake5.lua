@@ -219,8 +219,7 @@ protobuf.setup
 zlib.setup
 {
 	defines = {
-		"ZLIB_CONST",
-		"ssize_t=int"
+		"ZLIB_CONST"
 	},
 	source = path.join(depsBasePath, "zlib"),
 }
