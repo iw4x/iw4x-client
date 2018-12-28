@@ -5,7 +5,7 @@ namespace Components
 	std::recursive_mutex Node::Mutex;
 	std::vector<Node::Entry> Node::Nodes;
 
-	bool Node::wasIngame;
+	bool Node::wasIngame = false;
 
 	bool Node::Entry::isValid()
 	{
@@ -169,7 +169,7 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
 
-		if (Game::CL_IsCgameInitialized())
+		if (!Dedicated::IsEnabled() && Game::CL_IsCgameInitialized())
 		{
 			wasIngame = true;
 			return; // don't run while ingame because it can still cause lag spikes on lower end PCs
