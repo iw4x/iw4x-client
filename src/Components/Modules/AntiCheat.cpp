@@ -869,12 +869,10 @@ namespace Components
         // crash client if they are using process suspension to inject dlls during startup (aka before we got to here)
         // maybe tweak this value depending on what the above logging reveals during testing,
         // but 5 seconds seems about right for now
-#ifndef DISABLE_ANTICHEAT
         int time = diffSt.wMilliseconds + (diffSt.wSecond * 1000) + (diffSt.wMinute * 1000 * 60);
         if (time > 5000) {
             Components::AntiCheat::CrashClient();
         }
-#endif
 
         // use below for logging when using StartSuspended.exe
         // FILE* f = fopen("times.txt", "a");
