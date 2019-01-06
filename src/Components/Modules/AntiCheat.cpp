@@ -926,10 +926,7 @@ namespace Components
 		// Set the integrity flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::INITIALIZATION;
 
-        
 #endif
-        // check and log startup times
-        AntiCheat::CheckStartupTime();
 
 		__VMProtectEnd;
 	}
