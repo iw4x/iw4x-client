@@ -824,6 +824,66 @@ namespace Components
 		__VMProtectEnd;
 	}
 
+    void AntiCheat::SystemTimeDiff(LPSYSTEMTIME stA, LPSYSTEMTIME stB, LPSYSTEMTIME stC) {
+        FILETIME ftA, ftB, ftC;
+        ULARGE_INTEGER uiA, uiB, uiC;
+
+        SystemTimeToFileTime(stA, &ftA);
+        SystemTimeToFileTime(stB, &ftB);
+        uiA.HighPart = ftA.dwHighDateTime;
+        uiA.LowPart = ftA.dwLowDateTime;
+        uiB.HighPart = ftB.dwHighDateTime;
+        uiB.LowPart = ftB.dwLowDateTime;
+
+        uiC.QuadPart = uiA.QuadPart - uiB.QuadPart;
+
+        ftC.dwHighDateTime = uiC.HighPart;
+        ftC.dwLowDateTime = uiC.LowPart;
+        FileTimeToSystemTime(&ftC, stC);
+    }
+
+    void AntiCheat::CheckStartupTime()
+    {
+        __VMProtectBeginUltra("");
+        FILETIME creation, exit, kernel, user;
+        SYSTEMTIME current, creationSt, diffSt;
+
+        GetSystemTime(&current);
+        GetProcessTimes(GetCurrentProcess(), &creation, &exit, &kernel, &user);
+
+        FileTimeToSystemTime(&creation, &creationSt);
+        AntiCheat::SystemTimeDiff(&current, &creationSt, &diffSt);
+
+#ifdef DEBUG
+        char buf[512];
+        snprintf(buf, 512, "creation: %d:%d:%d:%d\n", creationSt.wHour, creationSt.wMinute, creationSt.wSecond, creationSt.wMilliseconds);
+        OutputDebugStringA(buf);
+
+        snprintf(buf, 512, "current: %d:%d:%d:%d\n", current.wHour, current.wMinute, current.wSecond, current.wMilliseconds);
+        OutputDebugStringA(buf);
+
+        snprintf(buf, 512, "diff: %d:%d:%d:%d\n", diffSt.wHour, diffSt.wMinute, diffSt.wSecond, diffSt.wMilliseconds);
+        OutputDebugStringA(buf);
+#endif
+
+        // crash client if they are using process suspension to inject dlls during startup (aka before we got to here)
+        // maybe tweak this value depending on what the above logging reveals during testing,
+        // but 5 seconds seems about right for now
+#ifndef DISABLE_ANTICHEAT
+        int time = diffSt.wMilliseconds + (diffSt.wSecond * 1000) + (diffSt.wMinute * 1000 * 60);
+        if (time > 5000) {
+            Components::AntiCheat::CrashClient();
+        }
+#endif
+
+        // use below for logging when using StartSuspended.exe
+        // FILE* f = fopen("times.txt", "a");
+        // fwrite(buf, 1, strlen(buf), f);
+        // fclose(f);
+
+        __VMProtectEnd;
+    }
+
 	AntiCheat::AntiCheat()
 	{
 		__VMProtectBeginUltra("");
@@ -868,6 +928,8 @@ namespace Components
 
         
 #endif
+        // check and log startup times
+        AntiCheat::CheckStartupTime();
 
 		__VMProtectEnd;
 	}
