@@ -6,6 +6,7 @@ namespace Assets
 {
 	void IWeapon::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
+        return;
 	}
 
 	void IWeapon::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
@@ -45,35 +46,35 @@ namespace Assets
         
 
         // now load all sub-assets properly
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->killIcon);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->dpadIcon);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->reticleCenter);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->reticleSide);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->hudIcon);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->pickupIcon);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->ammoCounterIcon);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterial);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterialLowRes);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterialEMP);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterialEMPLowRes);
+        if (asset->killIcon) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->killIcon);
+        if (asset->dpadIcon) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->dpadIcon);
+        if (asset->weapDef->reticleCenter) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->reticleCenter);
+        if (asset->weapDef->reticleSide) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->reticleSide);
+        if (asset->weapDef->hudIcon) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->hudIcon);
+        if (asset->weapDef->pickupIcon) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->pickupIcon);
+        if (asset->weapDef->ammoCounterIcon) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->ammoCounterIcon);
+        if (asset->weapDef->overlayMaterial) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterial);
+        if (asset->weapDef->overlayMaterialLowRes) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterialLowRes);
+        if (asset->weapDef->overlayMaterialEMP) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterialEMP);
+        if (asset->weapDef->overlayMaterialEMPLowRes) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterialEMPLowRes);
 
         for (int i = 0; i < 16; i++)
         {
-            builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->gunXModel[i]);
+            if (asset->weapDef->gunXModel[i]) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->gunXModel[i]);
         }
 
         builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->handXModel);
 
         for (int i = 0; i < 16; i++)
         {
-            builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldModel[i]);
+            if (asset->weapDef->worldModel[i]) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldModel[i]);
         }
 
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldClipModel);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->rocketModel);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->knifeModel);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldKnifeModel);
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->projectileModel);
+        if (asset->weapDef->worldClipModel) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldClipModel);
+        if (asset->weapDef->rocketModel) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->rocketModel);
+        if (asset->weapDef->knifeModel) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->knifeModel);
+        if (asset->weapDef->worldKnifeModel) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldKnifeModel);
+        if (asset->weapDef->projectileModel) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->projectileModel);
 
         if (asset->weapDef->physCollmap)
         {
@@ -103,7 +104,10 @@ namespace Assets
 
     void IWeapon::writeWeaponDef(Game::WeaponDef* def, Components::ZoneBuilder::Zone* builder, Utils::Stream* buffer)
     {
+        AssertSize(Game::WeaponDef, 0x684);
+
         Game::WeaponDef* dest = buffer->dest<Game::WeaponDef>();
+        buffer->save(def);
 
         if (def->szOverlayName)
         {
@@ -113,10 +117,16 @@ namespace Assets
 
         if (def->gunXModel)
         {
+            buffer->align(Utils::Stream::ALIGN_4);
             Game::XModel** pointerTable = buffer->dest<Game::XModel*>();
-            buffer->saveMax(16);
+            buffer->saveMax(16 * sizeof(Game::XModel*));
             for (int i = 0; i < 16; i++)
             {
+                if (!def->gunXModel[i])
+                {
+                    pointerTable[i] = NULL;
+                    continue;
+                }
                 pointerTable[i] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def->gunXModel[i]).model;
             }
             Utils::Stream::ClearPointer(&dest->gunXModel);
@@ -131,7 +141,7 @@ namespace Assets
         {
             buffer->align(Utils::Stream::ALIGN_4);
             int* poinerTable = buffer->dest<int>();
-            buffer->saveMax(37); // array of 37 string pointers
+            buffer->saveMax(37 * sizeof(char*)); // array of 37 string pointers
             for (int i = 0; i < 37; i++)
             {
                 if (!def->szXAnimsRightHanded[i]) {
@@ -150,7 +160,7 @@ namespace Assets
         {
             buffer->align(Utils::Stream::ALIGN_4);
             int* poinerTable = buffer->dest<int>();
-            buffer->saveMax(37); // array of 37 string pointers
+            buffer->saveMax(37 * sizeof(char*)); // array of 37 string pointers
             for (int i = 0; i < 37; i++)
             {
                 if (!def->szXAnimsLeftHanded[i]) {
@@ -179,6 +189,8 @@ namespace Assets
             for (int i = 0; i < 16; i++) {
                 builder->mapScriptString(&scriptStringTable[i]);
             }
+
+            Utils::Stream::ClearPointer(&dest->notetrackSoundMapKeys);
         }
 
         if (def->notetrackSoundMapValues)
@@ -189,6 +201,8 @@ namespace Assets
             for (int i = 0; i < 16; i++) {
                 builder->mapScriptString(&scriptStringTable[i]);
             }
+
+            Utils::Stream::ClearPointer(&dest->notetrackSoundMapValues);
         }
 
         if (def->notetrackRumbleMapKeys)
@@ -199,6 +213,8 @@ namespace Assets
             for (int i = 0; i < 16; i++) {
                 builder->mapScriptString(&scriptStringTable[i]);
             }
+
+            Utils::Stream::ClearPointer(&dest->notetrackRumbleMapKeys);
         }
 
         if (def->notetrackRumbleMapValues)
@@ -209,23 +225,326 @@ namespace Assets
             for (int i = 0; i < 16; i++) {
                 builder->mapScriptString(&scriptStringTable[i]);
             }
+
+            Utils::Stream::ClearPointer(&dest->notetrackRumbleMapValues);
         }
 
-        if (def->viewFlashEffect)
+        // viewFlashEffect)
+        // worldFlashEffect
+
+        // This is compressed because I don't want to write the same piece of code 47 times
+        // TODO: verify that this is saving the aliases correctly because the old code looks wrong and this looks right but the old code worked so go figure
+        Game::snd_alias_list_t ** allSounds = &def->pickupSound;
+        Game::snd_alias_list_t ** allSoundsDest = &dest->pickupSound;
+        for (int i = 0; i < 47; i++) {
+            if (!allSounds[i]) continue;
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
+            buffer->saveString(allSounds[i]->aliasName);
+            Utils::Stream::ClearPointer(&allSoundsDest[i]);
+        }
+
+        if (def->bounceSound)
         {
-            // not implemented yet
+            buffer->align(Utils::Stream::ALIGN_4);
+            int* ptrs = buffer->dest<int>();
+            buffer->saveMax(37 * sizeof(Game::snd_alias_list_t*));
+
+            for (int i = 0; i < 37; i++)
+            {
+                if (!def->bounceSound[i])
+                {
+                    ptrs[i] = 0;
+                    continue;
+                }
+
+                buffer->saveMax();
+                buffer->saveString(def->bounceSound[i]->aliasName);
+            }
+
+            Utils::Stream::ClearPointer(&dest->bounceSound);
         }
 
-        if (def->worldFlashEffect)
+        // viewShellEjectEffect
+        // worldShellEjectEffect
+        // viewShellLastShotEjectEffect
+        // worldShellLastShotEjectEffect
+
+        if (def->reticleCenter)
         {
-            // not implemented yet
+            dest->reticleCenter = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, def->reticleCenter).material;
         }
 
-        // etc. i'm bored so i'm going to work somewhere else for a bit
+        if (def->reticleSide)
+        {
+            dest->reticleSide = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, def->reticleSide).material;
+        }
+
+        if (def->worldModel)
+        {
+            Game::XModel** pointerTable = buffer->dest<Game::XModel*>();
+            buffer->saveMax(16 * sizeof(Game::XModel*));
+            for (int i = 0; i < 16; i++)
+            {
+                if (!def->worldModel[i])
+                {
+                    pointerTable[i] = NULL;
+                    continue;
+                }
+                pointerTable[i] = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def->worldModel[i]).model;
+            }
+            Utils::Stream::ClearPointer(&dest->worldModel);
+        }
+
+        if (def->worldClipModel)
+        {
+            dest->worldClipModel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def->worldClipModel).model;
+        }
+
+        if (def->rocketModel)
+        {
+            dest->rocketModel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def->rocketModel).model;
+        }
+
+        if (def->knifeModel)
+        {
+            dest->knifeModel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def->knifeModel).model;
+        }
+
+        if (def->worldKnifeModel)
+        {
+            dest->worldKnifeModel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def->worldKnifeModel).model;
+        }
+
+        if (def->hudIcon)
+        {
+            dest->hudIcon = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, def->hudIcon).material;
+        }
+
+        if (def->pickupIcon)
+        {
+            dest->pickupIcon = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, def->pickupIcon).material;
+        }
+
+        if (def->ammoCounterIcon)
+        {
+            dest->ammoCounterIcon = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, def->ammoCounterIcon).material;
+        }
+
+        if (def->szAmmoName)
+        {
+            buffer->saveString(def->szAmmoName);
+            Utils::Stream::ClearPointer(&dest->szAmmoName);
+        }
+
+        if (def->szClipName)
+        {
+            buffer->saveString(def->szClipName);
+            Utils::Stream::ClearPointer(&dest->szClipName);
+        }
+
+        if (def->szSharedAmmoCapName)
+        {
+            buffer->saveString(def->szSharedAmmoCapName);
+            Utils::Stream::ClearPointer(&dest->szSharedAmmoCapName);
+        }
+
+        if (def->overlayMaterial)
+        {
+            dest->overlayMaterial = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, def->overlayMaterial).material;
+        }
+
+        if (def->overlayMaterialLowRes)
+        {
+            dest->overlayMaterialLowRes = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, def->overlayMaterialLowRes).material;
+        }
+
+        if (def->overlayMaterialEMP)
+        {
+            dest->overlayMaterialEMP = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, def->overlayMaterialEMP).material;
+        }
+
+        if (def->overlayMaterialEMPLowRes)
+        {
+            dest->overlayMaterialEMPLowRes = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, def->overlayMaterialEMPLowRes).material;
+        }
+
+        if (def->physCollmap)
+        {
+            dest->physCollmap = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP, def->overlayMaterialEMPLowRes).physCollmap;
+        }
+
+        if (def->projectileModel)
+        {
+            dest->projectileModel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def->projectileModel).model;
+        }
+
+        // projExplosionEffect
+        // projDudEffect
+
+        if (def->projExplosionSound)
+        {
+            buffer->saveMax(4);
+            buffer->saveString(def->projExplosionSound->aliasName);
+            Utils::Stream::ClearPointer(&dest->projExplosionSound);
+        }
+
+        if (def->projDudSound)
+        {
+            buffer->saveMax(4);
+            buffer->saveString(def->projDudSound->aliasName);
+            Utils::Stream::ClearPointer(&dest->projDudSound);
+        }
+
+        if (def->parallelBounce)
+        {
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveArray(def->parallelBounce, 31);
+            Utils::Stream::ClearPointer(&dest->parallelBounce);
+        }
+
+        if (def->perpendicularBounce)
+        {
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveArray(def->perpendicularBounce, 31);
+            Utils::Stream::ClearPointer(&dest->perpendicularBounce);
+        }
+
+        // projTrailEffect
+        // projBeaconEffect
+        // projIgnitionEffect
+
+        if (def->projIgnitionSound)
+        {
+            buffer->saveMax(4);
+            buffer->saveString(def->projIgnitionSound->aliasName);
+            Utils::Stream::ClearPointer(&dest->projIgnitionSound);
+        }
+
+        if (def->accuracyGraphName[0])
+        {
+            buffer->saveString(def->accuracyGraphName[0]);
+            Utils::Stream::ClearPointer(&dest->accuracyGraphName[0]);
+        }
+
+        if (def->originalAccuracyGraphKnots[0])
+        {
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveArray(def->originalAccuracyGraphKnots[0], def->originalAccuracyGraphKnotCount[0]);
+            Utils::Stream::ClearPointer(&dest->originalAccuracyGraphKnots[0]);
+        }
+
+        if (def->accuracyGraphName[1])
+        {
+            buffer->saveString(def->accuracyGraphName[1]);
+            Utils::Stream::ClearPointer(&dest->accuracyGraphName[1]);
+        }
+
+        if (def->originalAccuracyGraphKnots[1])
+        {
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveArray(def->originalAccuracyGraphKnots[1], def->originalAccuracyGraphKnotCount[1]);
+            Utils::Stream::ClearPointer(&dest->originalAccuracyGraphKnots[1]);
+        }
+
+        if (def->szUseHintString)
+        {
+            buffer->saveString(def->szUseHintString);
+            Utils::Stream::ClearPointer(&dest->szUseHintString);
+        }
+
+        if (def->dropHintString)
+        {
+            buffer->saveString(def->dropHintString);
+            Utils::Stream::ClearPointer(&dest->dropHintString);
+        }
+
+        if (def->szScript)
+        {
+            buffer->saveString(def->szScript);
+            Utils::Stream::ClearPointer(&dest->szScript);
+        }
+        
+        if (def->locationDamageMultipliers)
+        {
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveArray(def->locationDamageMultipliers, 20);
+            Utils::Stream::ClearPointer(&dest->locationDamageMultipliers);
+        }
+
+        if (def->fireRumble)
+        {
+            buffer->saveString(def->fireRumble);
+            Utils::Stream::ClearPointer(&dest->fireRumble);
+        }
+
+        if (def->meleeImpactRumble)
+        {
+            buffer->saveString(def->meleeImpactRumble);
+            Utils::Stream::ClearPointer(&dest->meleeImpactRumble);
+        }
+
+        if (def->tracerType)
+        {
+            dest->tracerType = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_TRACER, def->tracerType).tracerDef;
+        }
+
+        if (def->turretOverheatSound)
+        {
+            buffer->saveMax(4);
+            buffer->saveString(def->turretOverheatSound->aliasName);
+            Utils::Stream::ClearPointer(&dest->turretOverheatSound);
+        }
+
+        // turretOverheatEffect
+
+        if (def->turretBarrelSpinRumble)
+        {
+            buffer->saveString(def->turretBarrelSpinRumble);
+            Utils::Stream::ClearPointer(&dest->turretBarrelSpinRumble);
+        }
+
+        if (def->turretBarrelSpinMaxSnd)
+        {
+            buffer->saveMax(4);
+            buffer->saveString(def->turretBarrelSpinMaxSnd->aliasName);
+            Utils::Stream::ClearPointer(&dest->turretBarrelSpinMaxSnd);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            if (!def->turretBarrelSpinUpSnd[i]) continue;
+
+            buffer->saveMax(4);
+            buffer->saveString(def->turretBarrelSpinUpSnd[i]->aliasName);
+            Utils::Stream::ClearPointer(&dest->turretBarrelSpinUpSnd[i]);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            if (!def->turretBarrelSpinDownSnd[i]) continue;
+
+            buffer->saveMax(4);
+            buffer->saveString(def->turretBarrelSpinDownSnd[i]->aliasName);
+            Utils::Stream::ClearPointer(&dest->turretBarrelSpinDownSnd[i]);
+        }
+
+        if (def->missileConeSoundAlias)
+        {
+            buffer->saveMax(4);
+            buffer->saveString(def->missileConeSoundAlias->aliasName);
+            Utils::Stream::ClearPointer(&dest->missileConeSoundAlias);
+        }
+
+        if (def->missileConeSoundAliasAtBase)
+        {
+            buffer->saveMax(4);
+            buffer->saveString(def->missileConeSoundAliasAtBase->aliasName);
+            Utils::Stream::ClearPointer(&dest->missileConeSoundAliasAtBase);
+        }
     }
 
 	void IWeapon::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
+        AssertSize(Game::WeaponCompleteDef, 0x74);
+
 		Utils::Stream* buffer = builder->getBuffer();
 		Game::WeaponCompleteDef* asset = header.weapon;
 		Game::WeaponCompleteDef* dest = buffer->dest<Game::WeaponCompleteDef>();
@@ -253,18 +572,23 @@ namespace Assets
             Utils::Stream::ClearPointer(&dest->szDisplayName);
         }
 
-		if (asset->hideTags)
-		{
+        if (asset->hideTags)
+        {
             buffer->align(Utils::Stream::ALIGN_2);
-			buffer->save(asset->hideTags, 32);
-			Utils::Stream::ClearPointer(&dest->hideTags);
-		}
+            unsigned short* scriptStringTable = buffer->dest<unsigned short>();
+            buffer->saveArray(asset->hideTags, 32);
+            for (int i = 0; i < 32; i++) {
+                builder->mapScriptString(&scriptStringTable[i]);
+            }
+
+            Utils::Stream::ClearPointer(&dest->hideTags);
+        }
 
 		if (asset->szXAnims)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
             int* poinerTable = buffer->dest<int>();
-            buffer->saveMax(37); // array of 37 string pointers
+            buffer->saveMax(37 * sizeof(char*)); // array of 37 string pointers
             for (int i = 0; i < 37; i++)
             {
                 if (!asset->szXAnims[i]) {
@@ -287,12 +611,12 @@ namespace Assets
 
         if (asset->killIcon)
         {
-            asset->killIcon = builder->saveSubAsset(Game::ASSET_TYPE_MATERIAL, asset->killIcon).material;
+            dest->killIcon = builder->saveSubAsset(Game::ASSET_TYPE_MATERIAL, asset->killIcon).material;
         }
 
         if (asset->dpadIcon)
         {
-            asset->dpadIcon = builder->saveSubAsset(Game::ASSET_TYPE_MATERIAL, asset->dpadIcon).material;
+            dest->dpadIcon = builder->saveSubAsset(Game::ASSET_TYPE_MATERIAL, asset->dpadIcon).material;
         }
 
 		if (asset->accuracyGraphKnots[0])
