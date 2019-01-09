@@ -525,6 +525,7 @@ namespace Components
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_RAWFILE, 2048);
 
 			AssetHandler::RegisterInterface(new Assets::IFont_s());
+            AssetHandler::RegisterInterface(new Assets::IWeapon());
 			AssetHandler::RegisterInterface(new Assets::IXModel());
 			AssetHandler::RegisterInterface(new Assets::IFxWorld());
 			AssetHandler::RegisterInterface(new Assets::IMapEnts());

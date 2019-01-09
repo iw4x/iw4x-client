@@ -76,6 +76,7 @@ namespace Components
 }
 
 #include "AssetInterfaces/IFont_s.hpp"
+#include "AssetInterfaces/IWeapon.hpp"
 #include "AssetInterfaces/IXModel.hpp"
 #include "AssetInterfaces/IFxWorld.hpp"
 #include "AssetInterfaces/IMapEnts.hpp"
@@ -105,3 +106,4 @@ namespace Components
 #include "AssetInterfaces/IMaterialVertexShader.hpp"
 #include "AssetInterfaces/IStructuredDataDefSet.hpp"
 #include "AssetInterfaces/IMaterialVertexDeclaration.hpp"
+
