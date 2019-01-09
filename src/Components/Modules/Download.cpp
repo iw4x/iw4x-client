@@ -701,9 +701,11 @@ namespace Components
 		//if (!Download::VerifyPassword(nc, reinterpret_cast<http_message*>(ev_data))) return;
 
 		Utils::InfoString status = ServerInfo::GetInfo();
+		Utils::InfoString host = ServerInfo::GetHostInfo();
 
 		std::map<std::string, json11::Json> info;
 		info["status"] = status.to_json();
+		info["host"] = host.to_json();
 
 		std::vector<json11::Json> players;
 
