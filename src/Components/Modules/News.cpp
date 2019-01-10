@@ -214,7 +214,7 @@ namespace Components
 
 		UIScript::Add("visitDiscord", [](UIScript::Token)
 		{
-			Utils::OpenUrl("https://discord.gg/dtQNP4N");
+			Utils::OpenUrl("https://discord.gg/sKeVmR3");
 		});
 
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
