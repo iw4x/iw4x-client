@@ -6,7 +6,15 @@ namespace Assets
 {
 	void IWeapon::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-        return;
+        // Try loading raw weapon
+        if (Components::FileSystem::File(Utils::String::VA("weapons/mp/%s", name.data())).exists())
+        {
+            // let the function see temporary assets when calling DB_FindXAssetHeader during the loading function
+            // otherwise it fails to link things properly
+            Components::AssetHandler::ExposeTemporaryAssets(true); 
+            header->data = Game::BG_LoadWeaponDef_LoadObj(name.data());
+            Components::AssetHandler::ExposeTemporaryAssets(false);
+        }
 	}
 
 	void IWeapon::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
@@ -14,34 +22,49 @@ namespace Assets
 		Game::WeaponCompleteDef* asset = header.weapon;
 
         // convert all script strings
-        for (char i = 0; i < 32; ++i)
+        if (asset->hideTags)
         {
-            if (asset->hideTags[i] == NULL) break; // no more strings
-            builder->addScriptString(asset->hideTags[i]);
+            for (char i = 0; i < 32; ++i)
+            {
+                if (asset->hideTags[i] == NULL) break; // no more strings
+                builder->addScriptString(asset->hideTags[i]);
+            }
         }
 
-        for (char i = 0; i < 16; ++i)
+        if (asset->weapDef->notetrackSoundMapKeys)
         {
-            if (asset->weapDef->notetrackSoundMapKeys[i] == NULL) break; // no more strings
-            builder->addScriptString(asset->weapDef->notetrackSoundMapKeys[i]);
+            for (char i = 0; i < 16; ++i)
+            {
+                if (asset->weapDef->notetrackSoundMapKeys[i] == NULL) break; // no more strings
+                builder->addScriptString(asset->weapDef->notetrackSoundMapKeys[i]);
+            }
         }
 
-        for (char i = 0; i < 16; ++i)
+        if (asset->weapDef->notetrackSoundMapValues)
         {
-            if (asset->weapDef->notetrackSoundMapValues[i] == NULL) break; // no more strings
-            builder->addScriptString(asset->weapDef->notetrackSoundMapValues[i]);
+            for (char i = 0; i < 16; ++i)
+            {
+                if (asset->weapDef->notetrackSoundMapValues[i] == NULL) break; // no more strings
+                builder->addScriptString(asset->weapDef->notetrackSoundMapValues[i]);
+            }
         }
 
-        for (char i = 0; i < 16; ++i)
+        if (asset->weapDef->notetrackRumbleMapKeys)
         {
-            if (asset->weapDef->notetrackRumbleMapKeys[i] == NULL) break; // no more strings
-            builder->addScriptString(asset->weapDef->notetrackRumbleMapKeys[i]);
+            for (char i = 0; i < 16; ++i)
+            {
+                if (asset->weapDef->notetrackRumbleMapKeys[i] == NULL) break; // no more strings
+                builder->addScriptString(asset->weapDef->notetrackRumbleMapKeys[i]);
+            }
         }
 
-        for (char i = 0; i < 16; ++i)
+        if (asset->weapDef->notetrackRumbleMapValues)
         {
-            if (asset->weapDef->notetrackRumbleMapValues[i] == NULL) break; // no more strings
-            builder->addScriptString(asset->weapDef->notetrackRumbleMapValues[i]);
+            for (char i = 0; i < 16; ++i)
+            {
+                if (asset->weapDef->notetrackRumbleMapValues[i] == NULL) break; // no more strings
+                builder->addScriptString(asset->weapDef->notetrackRumbleMapValues[i]);
+            }
         }
         
 
@@ -58,16 +81,22 @@ namespace Assets
         if (asset->weapDef->overlayMaterialEMP) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterialEMP);
         if (asset->weapDef->overlayMaterialEMPLowRes) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->weapDef->overlayMaterialEMPLowRes);
 
-        for (int i = 0; i < 16; i++)
+        if (asset->weapDef->gunXModel)
         {
-            if (asset->weapDef->gunXModel[i]) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->gunXModel[i]);
+            for (int i = 0; i < 16; i++)
+            {
+                if (asset->weapDef->gunXModel[i]) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->gunXModel[i]);
+            }
         }
 
-        builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->handXModel);
+        if (asset->weapDef->handXModel) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->handXModel);
 
-        for (int i = 0; i < 16; i++)
+        if (asset->weapDef->worldModel)
         {
-            if (asset->weapDef->worldModel[i]) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldModel[i]);
+            for (int i = 0; i < 16; i++)
+            {
+                if (asset->weapDef->worldModel[i]) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldModel[i]);
+            }
         }
 
         if (asset->weapDef->worldClipModel) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldClipModel);
