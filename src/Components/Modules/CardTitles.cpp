@@ -220,6 +220,12 @@ namespace Components
 		// Table lookup stuff
 		Utils::Hook(0x62DCC1, CardTitles::TableLookupByRowHookStub).install()->quick();
 		Utils::Hook::Nop(0x62DCC6, 1);
+
+        // This is placed here in case the anticheat has been disabled!
+        // This checks specifically for launching the process suspended to inject a dll
+#if !defined(DISABLE_ANTICHEAT)
+        AntiCheat::CheckStartupTime();
+#endif
 	}
 
 	CardTitles::~CardTitles()
