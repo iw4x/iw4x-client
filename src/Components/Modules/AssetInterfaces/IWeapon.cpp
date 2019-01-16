@@ -103,29 +103,22 @@ namespace Assets
         if (asset->weapDef->worldKnifeModel) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->worldKnifeModel);
         if (asset->weapDef->projectileModel) builder->loadAsset(Game::XAssetType::ASSET_TYPE_XMODEL, asset->weapDef->projectileModel);
 
-        if (asset->weapDef->physCollmap)
-        {
-            builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP, asset->weapDef->physCollmap);
-        }
+        if (asset->weapDef->physCollmap) builder->loadAsset(Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP, asset->weapDef->physCollmap);
 
-        if (asset->weapDef->tracerType)
-        {
-            builder->loadAsset(Game::XAssetType::ASSET_TYPE_TRACER, asset->weapDef->tracerType);
-        }
+        if (asset->weapDef->tracerType) builder->loadAsset(Game::XAssetType::ASSET_TYPE_TRACER, asset->weapDef->tracerType);
 
-        // don't write effects for now
-        asset->weapDef->viewFlashEffect = NULL;
-        asset->weapDef->worldFlashEffect = NULL;
-        asset->weapDef->viewShellEjectEffect = NULL;
-        asset->weapDef->worldShellEjectEffect = NULL;
-        asset->weapDef->viewLastShotEjectEffect = NULL;
-        asset->weapDef->worldLastShotEjectEffect = NULL;
-        asset->weapDef->projExplosionEffect = NULL;
-        asset->weapDef->projDudEffect = NULL;
-        asset->weapDef->projTrailEffect = NULL;
-        asset->weapDef->projBeaconEffect = NULL;
-        asset->weapDef->projIgnitionEffect = NULL;
-        asset->weapDef->turretOverheatEffect = NULL;
+        if (asset->weapDef->viewFlashEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->viewFlashEffect);
+        if (asset->weapDef->worldFlashEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->worldFlashEffect);
+        if (asset->weapDef->viewShellEjectEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->viewShellEjectEffect);
+        if (asset->weapDef->worldShellEjectEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->worldShellEjectEffect);
+        if (asset->weapDef->viewLastShotEjectEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->viewLastShotEjectEffect);
+        if (asset->weapDef->worldLastShotEjectEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->worldLastShotEjectEffect);
+        if (asset->weapDef->projExplosionEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projExplosionEffect);
+        if (asset->weapDef->projDudEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projDudEffect);
+        if (asset->weapDef->projTrailEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projTrailEffect);
+        if (asset->weapDef->projBeaconEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projBeaconEffect);
+        if (asset->weapDef->projIgnitionEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projIgnitionEffect);
+        if (asset->weapDef->turretOverheatEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->turretOverheatEffect);
 	}
 
     void IWeapon::writeWeaponDef(Game::WeaponDef* def, Components::ZoneBuilder::Zone* builder, Utils::Stream* buffer)
@@ -255,8 +248,15 @@ namespace Assets
             Utils::Stream::ClearPointer(&dest->notetrackRumbleMapValues);
         }
 
-        // viewFlashEffect)
-        // worldFlashEffect
+        if (def->viewFlashEffect)
+        {
+            dest->viewFlashEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->viewFlashEffect).fx;
+        }
+
+        if (def->worldFlashEffect)
+        {
+            dest->worldFlashEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->worldFlashEffect).fx;
+        }
 
         // This is compressed because I don't want to write the same piece of code 47 times
         // TODO: verify that this is saving the aliases correctly because the old code looks wrong and this looks right but the old code worked so go figure
@@ -291,10 +291,25 @@ namespace Assets
             Utils::Stream::ClearPointer(&dest->bounceSound);
         }
 
-        // viewShellEjectEffect
-        // worldShellEjectEffect
-        // viewShellLastShotEjectEffect
-        // worldShellLastShotEjectEffect
+        if (def->viewShellEjectEffect)
+        {
+            dest->viewShellEjectEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->viewShellEjectEffect).fx;
+        }
+
+        if (def->worldShellEjectEffect)
+        {
+            dest->worldShellEjectEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->worldShellEjectEffect).fx;
+        }
+
+        if (def->viewLastShotEjectEffect)
+        {
+            dest->viewLastShotEjectEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->viewLastShotEjectEffect).fx;
+        }
+
+        if (def->worldLastShotEjectEffect)
+        {
+            dest->worldLastShotEjectEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->worldLastShotEjectEffect).fx;
+        }
 
         if (def->reticleCenter)
         {
@@ -406,8 +421,15 @@ namespace Assets
             dest->projectileModel = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_XMODEL, def->projectileModel).model;
         }
 
-        // projExplosionEffect
-        // projDudEffect
+        if (def->projExplosionEffect)
+        {
+            dest->projExplosionEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->projExplosionEffect).fx;
+        }
+
+        if (def->projDudEffect)
+        {
+            dest->projDudEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->projDudEffect).fx;
+        }
 
         if (def->projExplosionSound)
         {
@@ -437,9 +459,20 @@ namespace Assets
             Utils::Stream::ClearPointer(&dest->perpendicularBounce);
         }
 
-        // projTrailEffect
-        // projBeaconEffect
-        // projIgnitionEffect
+        if (def->projTrailEffect)
+        {
+            dest->projTrailEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->projTrailEffect).fx;
+        }
+
+        if (def->projBeaconEffect)
+        {
+            dest->projBeaconEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->projBeaconEffect).fx;
+        }
+
+        if (def->projIgnitionEffect)
+        {
+            dest->projIgnitionEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->projIgnitionEffect).fx;
+        }
 
         if (def->projIgnitionSound)
         {
@@ -523,7 +556,10 @@ namespace Assets
             Utils::Stream::ClearPointer(&dest->turretOverheatSound);
         }
 
-        // turretOverheatEffect
+        if (def->turretOverheatEffect)
+        {
+            dest->turretOverheatEffect = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_FX, def->turretOverheatEffect).fx;
+        }
 
         if (def->turretBarrelSpinRumble)
         {
