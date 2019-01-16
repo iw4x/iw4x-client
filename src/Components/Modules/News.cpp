@@ -212,6 +212,11 @@ namespace Components
 			Utils::OpenUrl(Utils::Cache::GetStaticUrl("/wiki/"));
 		});
 
+		UIScript::Add("visitDiscord", [](UIScript::Token)
+		{
+			Utils::OpenUrl("https://discord.gg/sKeVmR3");
+		});
+
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFAULT);
 

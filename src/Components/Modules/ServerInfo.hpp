@@ -8,6 +8,7 @@ namespace Components
 		ServerInfo();
 		~ServerInfo();
 
+		static Utils::InfoString GetHostInfo();
 		static Utils::InfoString GetInfo();
 
 	private:

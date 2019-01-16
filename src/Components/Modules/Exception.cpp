@@ -176,54 +176,6 @@ namespace Components
 		}
 	}
 
-    // this isn't in a lambda because the compiler complains when we use inline assembly inside of a lambda
-    void Exception::DebugMinidumpCommand(Command::Params*)
-    {
-#pragma warning(push)
-#pragma warning(disable:4740) // flow in or out of inline asm code suppresses global optimization
-        // The following code was taken from VC++ 8.0 CRT (invarg.c: line 104)
-
-        CONTEXT ContextRecord;
-        EXCEPTION_RECORD ExceptionRecord;
-        ZeroMemory(&ContextRecord, sizeof(CONTEXT));
-
-        __asm
-        {
-            mov[ContextRecord.Eax], eax
-            mov[ContextRecord.Ecx], ecx
-            mov[ContextRecord.Edx], edx
-            mov[ContextRecord.Ebx], ebx
-            mov[ContextRecord.Esi], esi
-            mov[ContextRecord.Edi], edi
-            mov word ptr[ContextRecord.SegSs], ss
-            mov word ptr[ContextRecord.SegCs], cs
-            mov word ptr[ContextRecord.SegDs], ds
-            mov word ptr[ContextRecord.SegEs], es
-            mov word ptr[ContextRecord.SegFs], fs
-            mov word ptr[ContextRecord.SegGs], gs
-
-            pushfd
-            pop[ContextRecord.EFlags]
-        }
-
-        ContextRecord.ContextFlags = CONTEXT_CONTROL;
-        ContextRecord.Eip = reinterpret_cast<DWORD>(_ReturnAddress());
-        ContextRecord.Esp = reinterpret_cast<DWORD>(_AddressOfReturnAddress());
-        ContextRecord.Ebp = *reinterpret_cast<DWORD*>(_AddressOfReturnAddress()) - 1;
-
-        ZeroMemory(&ExceptionRecord, sizeof(EXCEPTION_RECORD));
-
-        ExceptionRecord.ExceptionCode = EXCEPTION_BREAKPOINT;
-        ExceptionRecord.ExceptionAddress = _ReturnAddress();
-
-        EXCEPTION_POINTERS eptr;
-        eptr.ExceptionRecord = &ExceptionRecord;
-        eptr.ContextRecord = &ContextRecord;
-
-        Exception::ExceptionFilter(&eptr);
-#pragma warning(pop)
-    }
-
 	Exception::Exception()
 	{
 		Exception::SetMiniDumpType(Flags::HasFlag("bigminidumps"), Flags::HasFlag("reallybigminidumps"));
@@ -279,9 +231,6 @@ namespace Components
 			auto oldHandler = Exception::Hook();
 			Logger::Print("Old exception handler was 0x%010X.\n", oldHandler);
 		});
-
-
-		Command::Add("debug_minidump", Exception::DebugMinidumpCommand);
 
 		// Check if folder exists && crash-helper exists
 

@@ -72,9 +72,7 @@ namespace Components
 		Loader::Register(new Renderer());
 		Loader::Register(new UIFeeder());
 		Loader::Register(new UIScript());
-#ifndef DISABLE_ANTICHEAT
 		Loader::Register(new AntiCheat());
-#endif
 		Loader::Register(new Changelog());
 		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());
