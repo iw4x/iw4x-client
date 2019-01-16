@@ -207,6 +207,9 @@ namespace Components
 	{
 		Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 
+        if (name.find(" ", 0) != std::string::npos)
+            Logger::Print("Warning: asset with name '%s' contains spaces. Check your zone source file to ensure this is correct!\n", name.data());
+
 		// Sanitize name for empty assets
 		if (name[0] == ',') name.erase(name.begin());
 
