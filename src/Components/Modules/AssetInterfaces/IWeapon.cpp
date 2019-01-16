@@ -11,9 +11,13 @@ namespace Assets
         {
             // let the function see temporary assets when calling DB_FindXAssetHeader during the loading function
             // otherwise it fails to link things properly
-            Components::AssetHandler::ExposeTemporaryAssets(true); 
+            Components::AssetHandler::ExposeTemporaryAssets(true);
+            IWeapon::CurrentBuilder = builder;
+
             header->data = Game::BG_LoadWeaponDef_LoadObj(name.data());
+
             Components::AssetHandler::ExposeTemporaryAssets(false);
+            IWeapon::CurrentBuilder = nullptr;
         }
 	}
 
@@ -286,7 +290,7 @@ namespace Assets
                     continue;
                 }
 
-                buffer->saveMax();
+                buffer->saveMax(sizeof(Game::snd_alias_list_t*));
                 buffer->saveString(def->bounceSound[i]->aliasName);
             }
 

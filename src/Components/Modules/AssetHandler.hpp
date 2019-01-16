@@ -39,8 +39,11 @@ namespace Components
 
 		static void ResetBypassState();
 
+        static void ExposeTemporaryAssets(bool expose);
+
 	private:
 		static thread_local int BypassState;
+        static bool ShouldSearchTempAssets;
 
 		static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
@@ -55,6 +58,7 @@ namespace Components
 		static void RegisterInterface(IAsset* iAsset);
 
 		static Game::XAssetHeader FindAsset(Game::XAssetType type, const char* filename);
+        static Game::XAssetHeader FindTemporaryAsset(Game::XAssetType type, const char* filename);
 		static bool IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
 		static void FindAssetStub();
 		static void AddAssetStub();

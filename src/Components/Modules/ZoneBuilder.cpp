@@ -701,21 +701,20 @@ namespace Components
 
 			if (zoneIndex > 0)
 			{
-				Game::DB_EnumXAssetEntries(type, [&](Game::XAssetEntry* entry)
-				{
-					if (!header.data && entry->zoneIndex == zoneIndex && Game::DB_GetXAssetName(&entry->asset) == name)
-					{
-						// Allocate an empty asset (filled with zeros)
-						header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
+                Game::XAssetEntry* entry = Game::DB_FindXAssetEntry(type, name.data());
 
-						// Set the name to the original name, so it can be stored
-						Game::DB_SetXAssetNameHandlers[type](&header, name.data());
-						AssetHandler::StoreTemporaryAsset(type, header);
+                if (entry->zoneIndex == zoneIndex)
+                {
+                    // Allocate an empty asset (filled with zeros)
+                    header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
 
-						// Set the name to the empty name
-						Game::DB_SetXAssetNameHandlers[type](&header, builder->getAllocator()->duplicateString("," + name));
-					}
-				}, true, true);
+                    // Set the name to the original name, so it can be stored
+                    Game::DB_SetXAssetNameHandlers[type](&header, name.data());
+                    AssetHandler::StoreTemporaryAsset(type, header);
+
+                    // Set the name to the empty name
+                    Game::DB_SetXAssetNameHandlers[type](&header, builder->getAllocator()->duplicateString("," + name));
+                }
 			}
 		}
 
