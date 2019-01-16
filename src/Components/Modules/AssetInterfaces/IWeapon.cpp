@@ -1,7 +1,5 @@
 #include "STDInclude.hpp"
 
-#define IW4X_MODEL_VERSION 5
-
 namespace Assets
 {
 	void IWeapon::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
@@ -12,12 +10,8 @@ namespace Assets
             // let the function see temporary assets when calling DB_FindXAssetHeader during the loading function
             // otherwise it fails to link things properly
             Components::AssetHandler::ExposeTemporaryAssets(true);
-            IWeapon::CurrentBuilder = builder;
-
             header->data = Game::BG_LoadWeaponDef_LoadObj(name.data());
-
             Components::AssetHandler::ExposeTemporaryAssets(false);
-            IWeapon::CurrentBuilder = nullptr;
         }
 	}
 
@@ -116,8 +110,7 @@ namespace Assets
 
         if (asset->weapDef->tracerType)
         {
-            //builder->loadAsset(Game::XAssetType::ASSET_TYPE_TRACER, asset->weapDef->tracerType);
-            asset->weapDef->tracerType = NULL;
+            builder->loadAsset(Game::XAssetType::ASSET_TYPE_TRACER, asset->weapDef->tracerType);
         }
 
         // don't write effects for now
@@ -271,6 +264,7 @@ namespace Assets
         Game::snd_alias_list_t ** allSoundsDest = &dest->pickupSound;
         for (int i = 0; i < 47; i++) {
             if (!allSounds[i]) continue;
+            buffer->align(Utils::Stream::ALIGN_4);
             buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(allSounds[i]->aliasName);
             Utils::Stream::ClearPointer(&allSoundsDest[i]);
@@ -314,6 +308,7 @@ namespace Assets
 
         if (def->worldModel)
         {
+            buffer->align(Utils::Stream::ALIGN_4);
             Game::XModel** pointerTable = buffer->dest<Game::XModel*>();
             buffer->saveMax(16 * sizeof(Game::XModel*));
             for (int i = 0; i < 16; i++)

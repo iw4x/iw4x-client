@@ -576,8 +576,9 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::ISndCurve());
 			AssetHandler::RegisterInterface(new Assets::IMaterial());
 			AssetHandler::RegisterInterface(new Assets::IMenuList());
+            AssetHandler::RegisterInterface(new Assets::IclipMap_t());
 			AssetHandler::RegisterInterface(new Assets::ImenuDef_t());
-			AssetHandler::RegisterInterface(new Assets::IclipMap_t());
+            AssetHandler::RegisterInterface(new Assets::ITracerDef());
 			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
 			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
 			AssetHandler::RegisterInterface(new Assets::IFxEffectDef());

@@ -1110,7 +1110,7 @@ namespace Components
 			Command::Add("verifyzone", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
-                
+                /*
                 Utils::Hook(0x4AE9C2, [] {
                     Game::WeaponCompleteDef** varPtr = (Game::WeaponCompleteDef**)0x112A9F4;
                     Game::WeaponCompleteDef* var = *varPtr;
@@ -1125,7 +1125,7 @@ namespace Components
                     OutputDebugStringA("");
                     Utils::Hook::Call<void()>(0x4D1D60)(); // DB_PopStreamPos
                 }, HOOK_JUMP).install()->quick();
-                
+                */
 
 				std::string zone = params->get(1);
 
