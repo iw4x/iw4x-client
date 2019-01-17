@@ -4,7 +4,7 @@ namespace Assets
 {
     void IMenuList::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
     {
-        header->menuList = Components::Menus::LoadCustomMenuList(name, builder->getAllocator());
+        header->menuList = Components::Menus::LoadMenuList(name);
 
         for (int i = 0; i < header->menuList->menuCount; i++)
         {

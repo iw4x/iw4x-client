@@ -373,6 +373,9 @@ namespace Game
 	typedef void(__cdecl * Menus_CloseAll_t)(UiContext *dc);
 	extern Menus_CloseAll_t Menus_CloseAll;
 
+    typedef void(__cdecl * Menus_CloseRequest_t)(UiContext *dc, menuDef_t* menu);
+    extern Menus_CloseRequest_t Menus_CloseRequest;
+
 	typedef int(__cdecl * Menus_OpenByName_t)(UiContext *dc, const char *p);
 	extern Menus_OpenByName_t Menus_OpenByName;
 
