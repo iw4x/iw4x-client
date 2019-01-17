@@ -2,6 +2,16 @@
 
 namespace Assets
 {
+    void IMenuList::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+    {
+        header->menuList = Components::Menus::LoadCustomMenuList(name, builder->getAllocator());
+
+        for (int i = 0; i < header->menuList->menuCount; i++)
+        {
+            ImenuDef_t::LoadedMenus[header->menuList->menus[i]->window.name] = header->menuList->menus[i];
+        }
+
+    }
 	void IMenuList::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::MenuList *asset = header.menuList;

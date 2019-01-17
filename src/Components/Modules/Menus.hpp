@@ -15,13 +15,15 @@ namespace Components
 
 		static void Add(const std::string& menu);
 
+        static Game::MenuList* Menus::LoadCustomMenuList(const std::string& menu, Utils::Memory::Allocator* allocator);
+
 	private:
 		static std::unordered_map<std::string, Game::menuDef_t*> MenuList;
 		static std::unordered_map<std::string, Game::MenuList*> MenuListList;
 		static std::vector<std::string> CustomMenus;
 
-		static Game::XAssetHeader MenuLoad(Game::XAssetType type, const std::string& filename);
-		static Game::XAssetHeader MenuFileLoad(Game::XAssetType type, const std::string& filename);
+		static Game::XAssetHeader MenuFindHook(Game::XAssetType type, const std::string& filename);
+		static Game::XAssetHeader MenuListFindHook(Game::XAssetType type, const std::string& filename);
 
 		static Game::MenuList* LoadMenuList(Game::MenuList* menuList);
 		static Game::MenuList* LoadScriptMenu(const char* menu);
@@ -52,6 +54,8 @@ namespace Components
 		static bool IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu);
 
 		static void RemoveMenuFromContext(Game::UiContext *dc, Game::menuDef_t *menu);
+
+        static void RegisterCustomMenusHook();
 
 		// Ugly!
 		static int KeywordHash(char* key);

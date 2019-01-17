@@ -2,6 +2,22 @@
 
 namespace Assets
 {
+
+    std::unordered_map<std::string, Game::menuDef_t*> ImenuDef_t::LoadedMenus;
+
+    void ImenuDef_t::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+    {
+        // search menus loaded by a menufile
+        for (auto i = ImenuDef_t::LoadedMenus.begin(); i != ImenuDef_t::LoadedMenus.end(); ++i)
+        {
+            if (i->first == name) {
+                header->menu = i->second;
+                return;
+            }
+        }
+    }
+
+
 	void ImenuDef_t::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::menuDef_t *asset = header.menu;
