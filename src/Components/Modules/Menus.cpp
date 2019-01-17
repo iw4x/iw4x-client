@@ -345,7 +345,7 @@ namespace Components
 		return { Game::Menus_FindByName(Game::uiContext, filename.data()) };
 	}
 
-	Game::XAssetHeader Menus::MenuListFindHook(Game::XAssetType type, const std::string& filename)
+	Game::XAssetHeader Menus::MenuListFindHook(Game::XAssetType /*type*/, const std::string& filename)
 	{
 		Game::XAssetHeader header = { nullptr };
 
@@ -392,7 +392,7 @@ namespace Components
         Menus::UiContextMenus[menu->window.name] = { priority, menu };
     }
 
-    std::pair<int, Game::menuDef_t*> Menus::FindMenuInContext(Game::UiContext* ctx, const std::string& name)
+    std::pair<int, Game::menuDef_t*> Menus::FindMenuInContext(Game::UiContext* /*ctx*/, const std::string& name)
     {
         auto entry = Menus::UiContextMenus.find(name);
         if (entry == Menus::UiContextMenus.end()) return { 0, nullptr };
@@ -438,10 +438,9 @@ namespace Components
 
             // check if menu already exists in context and replace if priority is higher
             std::pair<int, Game::menuDef_t*> ctxEntry = Menus::FindMenuInContext(ctx, cur->window.name);
-
             if (ctxEntry.second) // if menu ptr is null then it wasnt found
             {
-                if (insertPriority > ctxEntry.first) // compare priorities to see if we should replace
+                if (insertPriority >= ctxEntry.first) // compare priorities to see if we should replace
                 {
                     Menus::ReplaceMenuInContext(ctx, insertPriority, cur);
                 }
@@ -460,21 +459,31 @@ namespace Components
 
     void Menus::RegisterMenuLists()
     {
-        Utils::Hook::Call<void()>(0x401700)(); // call original load functions
+        Utils::Hook::Call<void()>(0x401700)(); // reset ui context
 
-        // attempt to load iw4x menus
-        Game::XAssetHeader header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENULIST, "ui_mp/iw4x.txt");
-        if (header.data && !(header.menuList->menuCount == 1 && !_stricmp("default_menu", header.menuList->menus[0]->window.name)))
+        // we can't call DB_FindXAssetHeader here because it blocks the rest of loading waiting on those 2 menulsits
+        // TODO: Figure out a better way to trigger the custom menulist loading because if you skip the intro the 
+        // custom menus won't have loaded until a few seconds later. All overridden menus are already
+        // loaded so it isn't a black screen but it wont show the first time intro, credits, etc.
+        // as soon as this loads those start to work again
+        // if we just trigger this here it blocks the intro from showing because of the FindXAssetHeader calls
+        // that are waiting for zones to finish loading
+        Scheduler::OnReady([]()
         {
-            Menus::AddMenuListToContext(Game::uiContext, header.menuList, 1);
-        }
+            // attempt to load iw4x menus            
+            Game::XAssetHeader header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENULIST, "ui_mp/iw4x.txt");
+            if (header.data && !(header.menuList->menuCount == 1 && !_stricmp("default_menu", header.menuList->menus[0]->window.name)))
+            {
+                Menus::AddMenuListToContext(Game::uiContext, header.menuList, 1);
+            }
 
-        // attempt to load mod menus
-        header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENULIST, "ui_mp/mod.txt");
-        if (header.data && !(header.menuList->menuCount == 1 && !_stricmp("default_menu", header.menuList->menus[0]->window.name)))
-        {
-            Menus::AddMenuListToContext(Game::uiContext, header.menuList, 1);
-        }
+            // attempt to load mod menus
+            header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENULIST, "ui_mp/mod.txt");
+            if (header.data && !(header.menuList->menuCount == 1 && !_stricmp("default_menu", header.menuList->menus[0]->window.name)))
+            {
+                Menus::AddMenuListToContext(Game::uiContext, header.menuList, 1);
+            }
+        }, true);
     }
 
     void Menus::ResetContextHook(int a1)
@@ -501,13 +510,27 @@ namespace Components
 		//Utils::Hook::Nop(0x428E48, 5);
 
         // register custom menufiles if they exist
-        Utils::Hook(0x4A58C3, Menus::RegisterMenuLists, HOOK_CALL).install()->quick();
+         Utils::Hook(0x4A58C3, Menus::RegisterMenuLists, HOOK_CALL).install()->quick();
 
         // take control of menus in uiContext
         Utils::Hook(0x4533C0, Menus::AddMenuListToContext, HOOK_JUMP).install()->quick();
 
         // reset our list on UiContext reset
         Utils::Hook(0x4B5422, Menus::ResetContextHook, HOOK_CALL).install()->quick();
+
+        // grab custom lists as they are loaded otherwise DB takes up to 20 seconds to load intro
+        /*
+        AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
+        {
+            if (type != Game::XAssetType::ASSET_TYPE_MENULIST) return;
+
+            if (name == "ui_mp/iw4x.txt" || name == "ui_mp/mod.txt")
+            {
+                Menus::AddMenuListToContext(Game::uiContext, asset.menuList, 1);
+            }
+        });
+
+        */
 
 		// Use the connect menu open call to update server motds
 		Utils::Hook(0x428E48, []()
@@ -562,8 +585,7 @@ namespace Components
 			}
 			else
 			{
-				// re-register all menus
-                Menus::RegisterMenuLists();
+                Menus::RegisterMenuLists(); // register custom menus
 
 				// Reopen main menu
 				Game::Menus_OpenByName(Game::uiContext, "main_text");

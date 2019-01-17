@@ -2,7 +2,7 @@
 
 namespace Assets
 {
-    void IMenuList::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+    void IMenuList::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
     {
         header->menuList = Components::Menus::LoadMenuList(name);
 

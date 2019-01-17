@@ -5,7 +5,7 @@ namespace Assets
 
     std::unordered_map<std::string, Game::menuDef_t*> ImenuDef_t::LoadedMenus;
 
-    void ImenuDef_t::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+    void ImenuDef_t::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
     {
         // search menus loaded by a menufile
         for (auto i = ImenuDef_t::LoadedMenus.begin(); i != ImenuDef_t::LoadedMenus.end(); ++i)
@@ -15,6 +15,14 @@ namespace Assets
                 return;
             }
         }
+
+        // load from disk
+        auto menus = Components::Menus::LoadMenu(Utils::String::VA("ui_mp/%s.menu", name.data()));
+
+        if (menus.size() == 0) return;
+        if (menus.size() > 1) Components::Logger::Print("Menu '%s' on disk has more than one menudef in it. Only saving the first one\n", name.data());
+
+        header->menu = menus[0].second;
     }
 
 
