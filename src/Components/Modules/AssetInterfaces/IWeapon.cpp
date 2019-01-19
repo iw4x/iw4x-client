@@ -2,7 +2,7 @@
 
 namespace Assets
 {
-	void IWeapon::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+	void IWeapon::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
         // Try loading raw weapon
         if (Components::FileSystem::File(Utils::String::VA("weapons/mp/%s", name.data())).exists())

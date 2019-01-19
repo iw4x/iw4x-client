@@ -2,7 +2,7 @@
 
 namespace Assets
 {
-    void ITracerDef::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+    void ITracerDef::load(Game::XAssetHeader* /*header*/, const std::string& /*name*/, Components::ZoneBuilder::Zone* /*builder*/)
     {
         return; // don't load from filesystem right now
     }
