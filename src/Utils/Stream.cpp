@@ -289,8 +289,8 @@ namespace Utils
 		}
 
 #ifdef WRITE_LOGS
-		std::string data = fmt::sprintf("%*s%d\n", this->structLevel, "", size);
-		if (stream == Game::XFILE_BLOCK_RUNTIME) data = fmt::sprintf("%*s(%d)\n", this->structLevel, "", size);
+		std::string data = Utils::String::VA("%*s%d\n", this->structLevel, "", size);
+		if (stream == Game::XFILE_BLOCK_RUNTIME) data = Utils::String::VA("%*s(%d)\n", this->structLevel, "", size);
 		Utils::IO::WriteFile("userraw/logs/zb_writes.log", data, true);
 #endif
 	}
@@ -379,7 +379,7 @@ namespace Utils
 	{
 		if (this->structLevel >= 0)
 		{
-			Utils::IO::WriteFile("userraw/logs/zb_writes.log", fmt::sprintf("%*s%s\n", this->structLevel++, "", structName), true);
+			Utils::IO::WriteFile("userraw/logs/zb_writes.log", Utils::String::VA("%*s%s\n", this->structLevel++, "", structName), true);
 		}
 	}
 
@@ -391,7 +391,7 @@ namespace Utils
 			return;
 		}
 
-		Utils::IO::WriteFile("userraw/logs/zb_writes.log", fmt::sprintf("%*s-----\n", this->structLevel, ""), true);
+		Utils::IO::WriteFile("userraw/logs/zb_writes.log", Utils::String::VA("%*s-----\n", this->structLevel, ""), true);
 	}
 #endif
 }
