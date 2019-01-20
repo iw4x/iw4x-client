@@ -27,7 +27,10 @@ namespace Components
 
 		static void JavelinResetHookStub();
 
-		static bool QuickPatch::InvalidNameCheck(char *dest, char *source, int size);
-		static void QuickPatch::InvalidNameStub();
+		static bool InvalidNameCheck(char *dest, char *source, int size);
+		static void InvalidNameStub();
+
+		static Game::dvar_t* sv_enableBounces;
+		static void BounceStub();
 	};
 }

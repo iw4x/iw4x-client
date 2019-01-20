@@ -163,6 +163,34 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* QuickPatch::sv_enableBounces;
+	__declspec(naked) void QuickPatch::BounceStub()
+	{
+		__asm
+		{
+			// check the value of sv_enableBounces
+			push eax;
+			mov eax, sv_enableBounces;
+			cmp byte ptr[eax + 16], 1;
+			pop eax;
+
+			// always bounce if sv_enableBounces is set to 1
+			je bounce;
+
+			// original code
+			cmp dword ptr[esp + 24h], 0;
+			jnz dontBounce;
+
+		bounce:
+			push 0x004B1B34;
+			retn;
+
+		dontBounce:
+			push 0x004B1B48;
+			retn;
+		}
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		QuickPatch::FrameTime = 0;
@@ -170,6 +198,10 @@ namespace Components
 		{
 			QuickPatch::FrameTime = Game::Sys_Milliseconds();
 		});
+
+		// bounce dvar
+		sv_enableBounces = Game::Dvar_RegisterBool("sv_enableBounces", false, Game::DVAR_FLAG_REPLICATED, "Dasfonia is a meme");
+		Utils::Hook(0x4B1B2D, QuickPatch::BounceStub, HOOK_JUMP).install()->quick();
 
 		// Disallow invalid player names
 		Utils::Hook(0x401983, QuickPatch::InvalidNameStub, HOOK_JUMP).install()->quick();
