@@ -4,17 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [unreleased] - xxxx-xx-xx
 
 ### Added
 
-- Implement DHT into node network code.
+- Add host information to /info endpoint (request)
+
+## [0.6.0] - 2018-12-30
+
+### Added
+
+- Implement unbanclient command.
+- Implement /serverlist api endpoint on dedicated servers
+- Add dvar to control the server query rate (net_serverQueryLimit & net_serverFrames)
 
 ### Changed
 
+- Update dependencies
+ 
 ### Fixed
 
 - Fix mods not working in private matches.
+- Fix multiple game structures (map tools)
+- Fix multiple vulnerability's
+- Fix lag spikes on lower end PCs
+- Fix invalid name check
+- Fix openLink command crash issue
+- Fix lobby server map downloading
+- Fix steam integration
+
+### Known issues
+
+- HTTPS is not supported for fast downloads at the moment.
 
 ## [0.5.4] - 2017-07-09
 

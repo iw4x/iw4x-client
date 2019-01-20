@@ -86,7 +86,11 @@ namespace Steam
 			if (ud_insn_mnemonic(&ud) == UD_Iret)
 			{
 				const ud_operand* operand = ud_insn_opr(&ud, 0);
-				if (!operand) break;
+				if (!operand)
+				{
+					*params = 0;
+					return true;
+				}
 
 				if (operand->type == UD_OP_IMM && operand->size == 16)
 				{
@@ -110,6 +114,8 @@ namespace Steam
 					}
 				}
 			}
+
+			if (*reinterpret_cast<unsigned char*>(ud.pc) == 0xCC) break;
 		}
 
 		return false;

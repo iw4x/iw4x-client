@@ -23,6 +23,8 @@ namespace Components
 
 		static int GetGame(SteamID user);
 
+		static bool IsInvisible();
+
 	private:
 #pragma pack(push, 4)
 		struct FriendRichPresenceUpdate
