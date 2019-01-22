@@ -3,8 +3,6 @@
 namespace Components
 {
 	std::unordered_map<std::string, Game::menuDef_t*> Menus::DiskMenuList;
-    std::unordered_map<std::string, Game::MenuList*> Menus::DiskMenuListList;
-    std::unordered_map<std::string, std::pair<int, Game::menuDef_t*>> Menus::UiContextMenus;
 
 	int Menus::ReserveSourceHandle()
 	{
@@ -169,9 +167,9 @@ namespace Components
 		return menu;
 	}
 
-	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(const std::string& menu)
+	std::vector<Game::menuDef_t*> Menus::LoadMenu(const std::string& menu)
 	{
-		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
+		std::vector<Game::menuDef_t*> menus;
 		FileSystem::File menuFile(menu);
 
 		if (menuFile.exists())
@@ -200,7 +198,7 @@ namespace Components
 					if (!_stricmp(token.string, "menudef"))
 					{
 						Game::menuDef_t* menudef = Menus::ParseMenu(handle);
-						if (menudef) menus.push_back({ true, menudef }); // Custom menu
+						if (menudef) menus.push_back(menudef); // Custom menu
 					}
 				}
 
@@ -208,38 +206,13 @@ namespace Components
 			}
 		}
 
+        // store loaded menus to be freed later
+        for (auto it = menus.begin(); it != menus.end(); ++it)
+        {
+            Menus::DiskMenuList[(*it)->window.name] = *it;
+        }
+
 		return menus;
-	}
-
-    // Can be used to load scriptmenus or menulists
-	Game::MenuList* Menus::LoadMenuList(const std::string& name)
-	{
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
-		std::vector<std::pair<bool, Game::menuDef_t*>> menus = Menus::LoadMenu(name);
-		if (menus.empty()) return nullptr;
-
-		// Allocate new menu list
-		Game::MenuList* newList = allocator->allocate<Game::MenuList>();
-		if (!newList) return nullptr;
-
-		newList->menus = allocator->allocateArray<Game::menuDef_t*>(menus.size());
-		if (!newList->menus)
-		{
-			allocator->free(newList);
-			return nullptr;
-		}
-
-		newList->name = allocator->duplicateString(name);
-		newList->menuCount = menus.size();
-
-		// Copy new menus
-		for (unsigned int i = 0; i < menus.size(); ++i)
-		{
-			newList->menus[i] = menus[i].second;
-		}
-
-		return newList;
 	}
 
 	void Menus::FreeMenuSource(int handle)
@@ -300,65 +273,14 @@ namespace Components
 		allocator->free(menudef);
 	}
 
-	void Menus::FreeDiskMenuList(Game::MenuList* menuList)
-	{
-		if (!menuList) return;
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
-		// Keep our compiler happy
-		Game::MenuList list = { menuList->name, menuList->menuCount, menuList->menus };
-
-		if (list.name)
-		{
-			allocator->free(list.name);
-		}
-
-		if (list.menus)
-		{
-			allocator->free(list.menus);
-		}
-
-		allocator->free(menuList);
-	}
-
 	void Menus::FreeEverything()
 	{
-		for (auto i = Menus::DiskMenuListList.begin(); i != Menus::DiskMenuListList.end(); ++i)
-		{
-			Menus::FreeDiskMenuList(i->second);
-		}
-
-		Menus::DiskMenuListList.clear();
-
 		for (auto i = Menus::DiskMenuList.begin(); i != Menus::DiskMenuList.end(); ++i)
 		{
 			Menus::FreeDiskMenu(i->second);
 		}
 
 		Menus::DiskMenuList.clear();
-
-        Menus::UiContextMenus.clear();
-	}
-
-	Game::XAssetHeader Menus::MenuFindHook(Game::XAssetType /*type*/, const std::string& filename)
-    {
-		return { Game::Menus_FindByName(Game::uiContext, filename.data()) };
-	}
-
-	Game::XAssetHeader Menus::MenuListFindHook(Game::XAssetType /*type*/, const std::string& filename)
-	{
-		Game::XAssetHeader header = { nullptr };
-
-        // if menulist or scriptmenu exists on the disk, then load it
-		if (FileSystem::File(filename).exists())
-		{
-			header.menuList = Menus::LoadMenuList(filename.data());
-			if (header.menuList) return header;
-		}
-
-        // we don't need to modify any base assets here
-
-		return header;
 	}
 
 	bool Menus::IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu)
@@ -382,72 +304,55 @@ namespace Components
 		return Game::Menu_IsVisible(dc, menu);
 	}
 
-    void Menus::AddMenuToContext(Game::UiContext* ctx, int priority, Game::menuDef_t* menu)
-    {
-        if(ctx->menuCount < MAX_MENUS_IN_CONTEXT)
-        {
-            ctx->Menus[ctx->menuCount++] = menu;
-        }
-
-        Menus::UiContextMenus[menu->window.name] = { priority, menu };
-    }
-
-    std::pair<int, Game::menuDef_t*> Menus::FindMenuInContext(Game::UiContext* /*ctx*/, const std::string& name)
-    {
-        auto entry = Menus::UiContextMenus.find(name);
-        if (entry == Menus::UiContextMenus.end()) return { 0, nullptr };
-        return entry->second;
-    }
-
-    // overwrite entry in uiContext, update it in our list, and free it if it was a disk menu
-    void Menus::ReplaceMenuInContext(Game::UiContext* ctx, int priority, Game::menuDef_t* menu)
-    {
-        for (int i = 0; i < ctx->menuCount; i++)
-        {
-            Game::menuDef_t* cur = ctx->Menus[i];
-            if (!_stricmp(cur->window.name, menu->window.name))
-            {
-                // check if it was a disk menu and free it if it was
-                if (Menus::DiskMenuList.find(cur->window.name) != Menus::DiskMenuList.end())
-                {
-                    Menus::FreeDiskMenu(cur);
-                }
-
-                // replace entry in context
-                ctx->Menus[i] = menu;
-                break;
-            }
-        }
-
-        // update our list
-        Menus::UiContextMenus[menu->window.name] = { priority, menu };
-    }  
-
-    // enforce priority on what menus get loaded
-    // builtin < iw4x < mod
     void Menus::AddMenuListToContext(Game::UiContext* ctx, Game::MenuList* list, int close)
     {
-        int insertPriority = Menus::MenuContextPriority::PRIORITY_BUILTIN;
+        // scriptmenu
+        if (std::string(list->name).find(".menu") != std::string::npos)
+        {
+            auto menus = Menus::LoadMenu(list->name);
 
-        if (!strncmp(list->name, "ui_mp/iw4x.txt", 13)) insertPriority = Menus::MenuContextPriority::PRIORITY_IW4X;
-        if (!strncmp(list->name, "ui_mp/mod.txt", 12)) insertPriority = Menus::MenuContextPriority::PRIORITY_MOD;
+            if (menus.size())
+            {
+                Logger::Print("Overriding menu '%s'\n", list->name);
+                for (auto it = menus.begin(); it != menus.end(); ++it)
+                {
+                    if (ctx->menuCount < MAX_MENUS_IN_CONTEXT)
+                    {
+                        ctx->Menus[ctx->menuCount++] = *it;
+                    }
+
+                    if (close)
+                    {
+                        Game::Menus_CloseRequest(ctx, *it);
+                    }
+                }
+
+                return; // don't add original menus
+            }
+        }
+            
 
         for (int i = 0; i < list->menuCount; i++)
         {
             Game::menuDef_t* cur = list->menus[i];
 
-            // check if menu already exists in context and replace if priority is higher
-            std::pair<int, Game::menuDef_t*> ctxEntry = Menus::FindMenuInContext(ctx, cur->window.name);
-            if (ctxEntry.second) // if menu ptr is null then it wasnt found
+            if (cur->window.name == reinterpret_cast<const char*>(0xDDDDDDDD))
             {
-                if (insertPriority >= ctxEntry.first) // compare priorities to see if we should replace
-                {
-                    Menus::ReplaceMenuInContext(ctx, insertPriority, cur);
-                }
+                DebugBreak();
             }
-            else // otherwise just insert
+
+            auto menus = Menus::LoadMenu(Utils::String::VA("ui_mp/%s.menu", cur->window.name));
+
+            if (menus.size())
             {
-                Menus::AddMenuToContext(ctx, insertPriority, cur);
+                Logger::Print("Overriding menu '%s'\n", cur->window.name);
+                if (menus.size() > 1) Logger::Print("Disk menu has more than one definition Using only the first one.\n");
+                cur = menus[0]; // replace menu in context with loaded one
+            }
+
+            if (ctx->menuCount < MAX_MENUS_IN_CONTEXT)
+            {
+                ctx->Menus[ctx->menuCount++] = cur;
             }
 
             if (close)
@@ -468,7 +373,8 @@ namespace Components
         // as soon as this loads those start to work again
         // if we just trigger this here it blocks the intro from showing because of the FindXAssetHeader calls
         // that are waiting for zones to finish loading
-        Scheduler::OnReady([]()
+
+        auto loadCustomMenus = []()
         {
             // attempt to load iw4x menus            
             Game::XAssetHeader header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENULIST, "ui_mp/iw4x.txt");
@@ -483,7 +389,16 @@ namespace Components
             {
                 Menus::AddMenuListToContext(Game::uiContext, header.menuList, 1);
             }
-        }, true);
+        };
+
+        if (!FastFiles::Ready())
+        {
+            Scheduler::OnReady(loadCustomMenus, true);
+        }
+        else
+        {
+            loadCustomMenus();
+        }
     }
 
     void Menus::ResetContextHook(int a1)
@@ -502,10 +417,6 @@ namespace Components
 		// Ensure everything is zero'ed
 		Menus::FreeEverything();
 
-		// Intercept asset finding
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, Menus::MenuFindHook);
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENULIST, Menus::MenuListFindHook);
-
 		// Don't open connect menu
 		//Utils::Hook::Nop(0x428E48, 5);
 
@@ -517,20 +428,6 @@ namespace Components
 
         // reset our list on UiContext reset
         Utils::Hook(0x4B5422, Menus::ResetContextHook, HOOK_CALL).install()->quick();
-
-        // grab custom lists as they are loaded otherwise DB takes up to 20 seconds to load intro
-        /*
-        AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
-        {
-            if (type != Game::XAssetType::ASSET_TYPE_MENULIST) return;
-
-            if (name == "ui_mp/iw4x.txt" || name == "ui_mp/mod.txt")
-            {
-                Menus::AddMenuListToContext(Game::uiContext, asset.menuList, 1);
-            }
-        });
-
-        */
 
 		// Use the connect menu open call to update server motds
 		Utils::Hook(0x428E48, []()
