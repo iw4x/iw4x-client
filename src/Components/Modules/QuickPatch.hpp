@@ -32,5 +32,10 @@ namespace Components
 
 		static Game::dvar_t* sv_enableBounces;
 		static void BounceStub();
+
+		static Game::dvar_t* r_customAspectRatio;
+		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* name, char** enumValues, int defaultVal, int flags, const char* description);
+		static void SetAspectRatioStub();
+		static void SetAspectRatio();
 	};
 }

@@ -191,6 +191,63 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* QuickPatch::r_customAspectRatio;
+	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* name, char**, int defaultVal, int flags, const char* description)
+	{
+		static std::vector < char * > values =
+		{
+			"auto",
+			"standard",
+			"wide 16:10",
+			"wide 16:9",
+			"custom",
+			nullptr,
+		};
+
+		// register custom aspect ratio dvar
+		r_customAspectRatio = Game::Dvar_RegisterFloat("r_customAspectRatio", 16.0f / 9.0f, 4.0f / 3.0f, 63.0f / 9.0f, flags, "Screen aspect ratio. Divide the width by the height in order to get the aspect ratio value. For example: 16 / 9 = 1,77");
+
+		// register enumeration dvar
+		return Game::Dvar_RegisterEnum(name, values.data(), defaultVal, flags, description);
+	}
+
+	void QuickPatch::SetAspectRatio()
+	{
+		// set the aspect ratio
+		Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio->current.value);
+	}
+
+	__declspec(naked) void QuickPatch::SetAspectRatioStub()
+	{
+		__asm
+		{
+			cmp eax, 4;
+			ja goToDefaultCase;
+			je useCustomRatio;
+
+			// execute switch statement code
+			push 0x005063FC;
+			retn;
+
+		goToDefaultCase:
+			push 0x005064FC;
+			retn;
+
+		useCustomRatio:
+			// set custom resolution
+			pushad;
+			call SetAspectRatio;
+			popad;
+
+			// set widescreen to 1
+			mov eax, 1;
+
+			// continue execution
+			push 0x00506495;
+			retn;
+		}
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		QuickPatch::FrameTime = 0;
@@ -208,6 +265,10 @@ namespace Components
 
 		// Javelin fix
 		Utils::Hook(0x578F52, QuickPatch::JavelinResetHookStub, HOOK_JUMP).install()->quick();
+
+		// Add ultrawide support
+		Utils::Hook(0x0051B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
+		Utils::Hook(0x005063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
 
 		// Make sure preDestroy is called when the game shuts down
 		Scheduler::OnShutdown(Loader::PreDestroy);
