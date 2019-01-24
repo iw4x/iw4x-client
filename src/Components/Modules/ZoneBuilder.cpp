@@ -410,6 +410,8 @@ namespace Components
 		}
 #endif
 
+        Utils::IO::WriteFile("uncompressed", zoneBuffer);
+
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 		outBuffer.append(zoneBuffer);
 
@@ -704,21 +706,20 @@ namespace Components
 
 			if (zoneIndex > 0)
 			{
-				Game::DB_EnumXAssetEntries(type, [&](Game::XAssetEntry* entry)
-				{
-					if (!header.data && entry->zoneIndex == zoneIndex && Game::DB_GetXAssetName(&entry->asset) == name)
-					{
-						// Allocate an empty asset (filled with zeros)
-						header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
+                Game::XAssetEntry* entry = Game::DB_FindXAssetEntry(type, name.data());
 
-						// Set the name to the original name, so it can be stored
-						Game::DB_SetXAssetNameHandlers[type](&header, name.data());
-						AssetHandler::StoreTemporaryAsset(type, header);
+                if (entry->zoneIndex == zoneIndex)
+                {
+                    // Allocate an empty asset (filled with zeros)
+                    header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
 
-						// Set the name to the empty name
-						Game::DB_SetXAssetNameHandlers[type](&header, builder->getAllocator()->duplicateString("," + name));
-					}
-				}, true, true);
+                    // Set the name to the original name, so it can be stored
+                    Game::DB_SetXAssetNameHandlers[type](&header, name.data());
+                    AssetHandler::StoreTemporaryAsset(type, header);
+
+                    // Set the name to the empty name
+                    Game::DB_SetXAssetNameHandlers[type](&header, builder->getAllocator()->duplicateString("," + name));
+                }
 			}
 		}
 
@@ -1109,12 +1110,29 @@ namespace Components
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{
 					ZoneBuilder::TraceAssets.push_back({ type, name });
+                    OutputDebugStringA((name + "\n").data());
 				}
 			});
 
 			Command::Add("verifyzone", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
+                /*
+                Utils::Hook(0x4AE9C2, [] {
+                    Game::WeaponCompleteDef** varPtr = (Game::WeaponCompleteDef**)0x112A9F4;
+                    Game::WeaponCompleteDef* var = *varPtr;
+                    OutputDebugStringA("");
+                    Utils::Hook::Call<void()>(0x4D1D60)(); // DB_PopStreamPos
+                }, HOOK_JUMP).install()->quick();
+
+
+                Utils::Hook(0x4AE9B4, [] {
+                    Game::WeaponCompleteDef** varPtr = (Game::WeaponCompleteDef**)0x112A9F4;
+                    Game::WeaponCompleteDef* var = *varPtr;
+                    OutputDebugStringA("");
+                    Utils::Hook::Call<void()>(0x4D1D60)(); // DB_PopStreamPos
+                }, HOOK_JUMP).install()->quick();
+                */
 
 				std::string zone = params->get(1);
 

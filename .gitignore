@@ -143,6 +143,7 @@ UpgradeLog*.htm
 *.til
 *.idb
 *.i64
+ida/*
 
 ### Custom user files
 # User scripts

@@ -3,6 +3,7 @@
 namespace Components
 {
 	thread_local int AssetHandler::BypassState = 0;
+    bool AssetHandler::ShouldSearchTempAssets = false;
 	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, Utils::Slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
 	Utils::Signal<AssetHandler::RestrictCallback> AssetHandler::RestrictSignal;
@@ -69,6 +70,21 @@ namespace Components
 		return header;
 	}
 
+    Game::XAssetHeader AssetHandler::FindTemporaryAsset(Game::XAssetType type, const char* filename)
+    {
+        Game::XAssetHeader header = { nullptr };
+        if (type >= Game::XAssetType::ASSET_TYPE_COUNT) return header;
+
+        auto tempPool = &AssetHandler::TemporaryAssets[type];
+        auto entry = tempPool->find(filename);
+        if (entry != tempPool->end())
+        {
+            header = { entry->second };
+        }
+
+        return header;
+    }    
+
 	int AssetHandler::HasThreadBypass()
 	{
 		return AssetHandler::BypassState > 0;
@@ -116,7 +132,7 @@ namespace Components
 
 
 			test al, al
-			jnz finishOriginal
+			jnz checkTempAssets
 
 			mov ecx, [esp + 18h] // Asset type
 			mov ebx, [esp + 1Ch] // Filename
@@ -139,9 +155,28 @@ namespace Components
 
 			test eax, eax
 			jnz finishFound
+            
+        checkTempAssets:
+            mov al, AssetHandler::ShouldSearchTempAssets // check to see if enabled
+            test eax, eax
+            jz finishOriginal
 
-		finishOriginal:
-			// Asset not found using custom handlers, redirect to DB_FindXAssetHeader
+            mov ecx, [esp + 18h] // Asset type
+            mov ebx, [esp + 1Ch] // Filename
+
+            push ebx
+            push ecx
+
+            call AssetHandler::FindTemporaryAsset
+
+            add esp, 8h
+
+            test eax, eax
+            jnz finishFound
+            
+        finishOriginal:
+			// Asset not found using custom handlers or in temp assets or bypasses were enabled
+            // redirect to DB_FindXAssetHeader
 			mov ebx, ds:6D7190h // InterlockedDecrement
 			mov eax, 40793Bh
 			jmp eax
@@ -454,6 +489,11 @@ namespace Components
 		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, entryPool + 1);
 	}
 
+    void AssetHandler::ExposeTemporaryAssets(bool expose)
+    {
+        AssetHandler::ShouldSearchTempAssets = expose;
+    }
+
 	AssetHandler::AssetHandler()
 	{
 		this->reallocateEntryPool();
@@ -525,6 +565,7 @@ namespace Components
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_RAWFILE, 2048);
 
 			AssetHandler::RegisterInterface(new Assets::IFont_s());
+            AssetHandler::RegisterInterface(new Assets::IWeapon());
 			AssetHandler::RegisterInterface(new Assets::IXModel());
 			AssetHandler::RegisterInterface(new Assets::IFxWorld());
 			AssetHandler::RegisterInterface(new Assets::IMapEnts());
@@ -535,8 +576,9 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::ISndCurve());
 			AssetHandler::RegisterInterface(new Assets::IMaterial());
 			AssetHandler::RegisterInterface(new Assets::IMenuList());
+            AssetHandler::RegisterInterface(new Assets::IclipMap_t());
 			AssetHandler::RegisterInterface(new Assets::ImenuDef_t());
-			AssetHandler::RegisterInterface(new Assets::IclipMap_t());
+            AssetHandler::RegisterInterface(new Assets::ITracerDef());
 			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
 			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
 			AssetHandler::RegisterInterface(new Assets::IFxEffectDef());
