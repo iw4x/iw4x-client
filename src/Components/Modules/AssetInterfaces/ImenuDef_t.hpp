@@ -9,7 +9,9 @@ namespace Assets
 
 		virtual void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		virtual void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
-		// virtual void load(Game::XAssetHeader* header, std::string name, Components::ZoneBuilder::Zone* builder) override;
+		virtual void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
+
+        static std::unordered_map<std::string, Game::menuDef_t*> LoadedMenus;
 
 	private:
 		template <typename T> void save_windowDef_t(Game::windowDef_t* asset, T* dest, Components::ZoneBuilder::Zone* builder)

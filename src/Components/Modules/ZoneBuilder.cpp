@@ -871,6 +871,10 @@ namespace Components
 
 		// defaults need to load before we do this
 		Utils::Hook::Call<void()>(0x4E1F30)();  // G_SetupWeaponDef
+        Utils::Hook::Call<void()>(0x4454C0)();  // Item_SetupKeywordHash (for loading menus)
+        Utils::Hook::Call<void()>(0x501BC0)();  // Menu_SetupKeywordHash (for loading menus)
+        Utils::Hook::Call<void()>(0x4A1280)();  // something related to uiInfoArray
+        
 
 		Utils::Hook::Call<void(const char*)>(0x464A90)(GetCommandLineA()); // Com_ParseCommandLine
 		Utils::Hook::Call<void()>(0x60C3D0)(); // Com_AddStartupCommands

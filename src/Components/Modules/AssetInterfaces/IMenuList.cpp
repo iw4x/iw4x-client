@@ -2,6 +2,36 @@
 
 namespace Assets
 {
+    void IMenuList::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+    {
+        Utils::Memory::Allocator* allocator = builder->getAllocator();
+
+        // actually gets the whole list
+        std::vector<Game::menuDef_t*> menus = Components::Menus::LoadMenu(name);
+        if (menus.empty()) return;
+
+        // Allocate new menu list
+        Game::MenuList* newList = allocator->allocate<Game::MenuList>();
+        if (!newList) return;
+
+        newList->menus = allocator->allocateArray<Game::menuDef_t*>(menus.size());
+        if (!newList->menus)
+        {
+            allocator->free(newList);
+            return;
+        }
+
+        newList->name = allocator->duplicateString(name);
+        newList->menuCount = menus.size();
+
+        // Copy new menus
+        for (unsigned int i = 0; i < menus.size(); ++i)
+        {
+            newList->menus[i] = menus[i];
+        }
+
+        header->menuList = newList;
+    }
 	void IMenuList::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::MenuList *asset = header.menuList;
