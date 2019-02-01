@@ -12,8 +12,9 @@ namespace Assets
 		virtual void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
 
 	private:
-		void loadXModelSurfs(Game::XModelSurfs* asset, Utils::Stream::Reader* reader);
-		void loadXSurface(Game::XSurface* surf, Utils::Stream::Reader* reader);
+        std::map<void*, void*> triIndicies;
+		void loadXModelSurfs(Game::XModelSurfs* asset, Utils::Stream::Reader* reader, Components::ZoneBuilder::Zone* builder);
+		void loadXSurface(Game::XSurface* surf, Utils::Stream::Reader* reader, Components::ZoneBuilder::Zone* builder);
 		void loadXSurfaceCollisionTree(Game::XSurfaceCollisionTree* entry, Utils::Stream::Reader* reader);
 	};
 }

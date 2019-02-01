@@ -81,12 +81,16 @@ namespace Assets
 
 		// Access index block
 		buffer->pushBlock(Game::XFILE_BLOCK_INDEX);
-		if (surf->triIndices)
-		{
-			buffer->align(Utils::Stream::ALIGN_16);
-			buffer->saveArray(surf->triIndices, surf->triCount * 3);
-			Utils::Stream::ClearPointer(&destSurf->triIndices);
-		}
+        if (builder->hasPointer(surf->triIndices))
+        {
+            destSurf->triIndices = builder->getPointer(surf->triIndices);
+        }
+        else
+        {
+            buffer->align(Utils::Stream::ALIGN_16);
+            buffer->saveArray(surf->triIndices, surf->triCount * 3);
+            Utils::Stream::ClearPointer(&destSurf->triIndices);
+        }
 		buffer->popBlock();
 	}
 

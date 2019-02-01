@@ -223,8 +223,7 @@ namespace Components
 
 		Game::XAssetHeader assetHeader = AssetHandler::FindAssetForZone(type, name, this, isSubAsset);
 		if (!assetHeader.data)
-		{
-			Logger::Error("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));
+		{			Logger::Error("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));
 			return false;
 		}
 
@@ -708,7 +707,7 @@ namespace Components
 			{
                 Game::XAssetEntry* entry = Game::DB_FindXAssetEntry(type, name.data());
 
-                if (entry->zoneIndex == zoneIndex)
+                if (entry && entry->zoneIndex == zoneIndex)
                 {
                     // Allocate an empty asset (filled with zeros)
                     header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
