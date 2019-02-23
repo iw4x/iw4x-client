@@ -136,7 +136,7 @@ namespace Steam
 
 			::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", Proxy::AppId), false);
 
-			Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe, "CLIENTUTILS_INTERFACE_VERSION001"));
+			Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
 			clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 		}
 	}
@@ -157,7 +157,7 @@ namespace Steam
 		char* modId = "IW4x";
 		gameID.modID = *reinterpret_cast<unsigned int*>(modId) | 0x80000000;
 
-		Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe, "CLIENTUTILS_INTERFACE_VERSION001"));
+		Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
 		clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 
 		char ourPath[MAX_PATH] = { 0 };
@@ -412,10 +412,10 @@ namespace Steam
 		Proxy::ClientEngine = Proxy::Client.get<IClientEngine*(const char*, int*)>("CreateInterface")("CLIENTENGINE_INTERFACE_VERSION005", nullptr);
 		if (!Proxy::ClientEngine) return false;
 
-		Proxy::ClientUser = Proxy::ClientEngine->GetIClientUser(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTUSER_INTERFACE_VERSION001");
+		Proxy::ClientUser = Proxy::ClientEngine->GetIClientUser(Proxy::SteamUser, Proxy::SteamPipe);
 		if (!Proxy::ClientUser) return false;
 
-		Proxy::ClientFriends = Proxy::ClientEngine->GetIClientFriends(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTFRIENDS_INTERFACE_VERSION001");
+		Proxy::ClientFriends = Proxy::ClientEngine->GetIClientFriends(Proxy::SteamUser, Proxy::SteamPipe);
 		if (!Proxy::ClientFriends) return false;
 
 		Proxy::SteamApps = reinterpret_cast<Apps7*>(Proxy::SteamClient->GetISteamApps(Proxy::SteamUser, Proxy::SteamPipe, "STEAMAPPS_INTERFACE_VERSION007"));

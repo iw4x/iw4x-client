@@ -51,12 +51,12 @@ namespace Steam
 		virtual unknown_ret CreatePipeToLocalUser(int32, int32 *) = 0;
 		virtual unknown_ret ReleaseUser(int32, int32) = 0;
 		virtual unknown_ret IsValidHSteamUserPipe(int32, int32) = 0;
-		virtual unknown_ret GetIClientUser(int32, int32, const char *) = 0;
+		virtual unknown_ret GetIClientUser(int32, int32) = 0;
 		virtual unknown_ret GetIClientGameServer(int32, int32, const char *) = 0;
 		virtual unknown_ret SetLocalIPBinding(uint32, uint16) = 0;
 		virtual unknown_ret GetUniverseName(int) = 0;
-		virtual unknown_ret GetIClientFriends(int32, int32, const char *) = 0;
-		virtual unknown_ret GetIClientUtils(int32, const char *) = 0;
+		virtual unknown_ret GetIClientFriends(int32, int32) = 0;
+		virtual unknown_ret GetIClientUtils(int32) = 0;
 		virtual unknown_ret GetIClientBilling(int32, int32, const char *) = 0;
 		virtual unknown_ret GetIClientMatchmaking(int32, int32, const char *) = 0;
 		virtual unknown_ret GetIClientApps(int32, int32, const char *) = 0;
