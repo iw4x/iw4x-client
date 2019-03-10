@@ -553,6 +553,13 @@ namespace Components
 		// Patch SV_IsClientUsingOnlineStatsOffline
 		Utils::Hook::Set<DWORD>(0x46B710, 0x90C3C033);
 
+		// Fix mouse lag
+		Utils::Hook::Nop(0x4731F5, 8);
+		Scheduler::OnFrame([]()
+		{
+			SetThreadExecutionState(ES_DISPLAY_REQUIRED);
+		});
+
 		// Fix mouse pitch adjustments
 		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_FLAG_SAVED, "");
 		UIScript::Add("updateui_mousePitch", [](UIScript::Token)
