@@ -23,7 +23,7 @@ RUN \
                 wine \
                 wget \
                 xorg-server-xvfb \
-		pacman-contrib \
+                pacman-contrib \
 		awk \
                 &&\
 \
