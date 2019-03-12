@@ -10,7 +10,7 @@ ENV WINEDEBUG -all
 
 # Install Wine (32-bit)
 RUN \
-        echo -e "#!/bin/sh\nwine \$@\nretval=\$?\ntail --pid=\$(pidof wineserver 2>/dev/null||echo 0) -f /dev/null\nexit \$retval" > /usr/local/bin/wine-wrapper &&\
+        echo -e "#!/bin/sh\nwine \$@\nretval=\$?\nwineserver -w\nexit \$retval" > /usr/local/bin/wine-wrapper &&\
         chmod +x /usr/local/bin/wine-wrapper &&\
 \
         (\
@@ -19,6 +19,7 @@ RUN \
                 echo 'Include = /etc/pacman.d/mirrorlist'\
         ) >> /etc/pacman.conf &&\
         pacman -Sy --noconfirm \
+                awk \
                 lib32-gnutls \
                 wine \
                 wget \
@@ -40,7 +41,6 @@ RUN \
         find /. -name "*~" -type f -delete &&\
         rm -rf /tmp/* /var/tmp/* /usr/share/man/* /usr/share/info/* /usr/share/doc/* &&\
         pacman -Scc --noconfirm &&\
-        paccache -rk0 &&\
         rm -rf /var/lib/pacman/sync/*
 
 USER 0
