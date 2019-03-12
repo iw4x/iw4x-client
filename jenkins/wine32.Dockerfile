@@ -25,7 +25,7 @@ RUN \
                 wget \
                 xorg-server-xvfb \
                 pacman-contrib \
-		awk \
+                awk \
                 &&\
 \
         wine-wrapper wineboot.exe -i &&\
