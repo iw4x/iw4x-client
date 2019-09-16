@@ -331,7 +331,7 @@ workspace "iw4x"
 		protobuf.import()
 		zlib.import()
 		udis86.import()
-		iw4mvm.import()
+		--iw4mvm.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -444,7 +444,7 @@ workspace "iw4x"
 		protobuf.project()
 		zlib.project()
 		udis86.project()
-		iw4mvm.project()
+		--iw4mvm.project()
 		
 workspace "*"
 	buildoptions {

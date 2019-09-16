@@ -1,6 +1,7 @@
 #pragma once
 
-#define COMPILE_IW4MVM
+// Disabled for public release
+//#define COMPILE_IW4MVM
 
 namespace Components
 {
