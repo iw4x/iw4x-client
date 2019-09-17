@@ -6,6 +6,7 @@
 #ifndef RC_INVOKED
 
 #define _HAS_CXX17 1
+#define _HAS_CXX20 1
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #define _CRT_SECURE_NO_WARNINGS
@@ -66,6 +67,7 @@ template <size_t S> class Sizer { };
 #pragma warning(disable: 4702)
 #pragma warning(disable: 4800)
 #pragma warning(disable: 4996) // _CRT_SECURE_NO_WARNINGS
+#pragma warning(disable: 5054)
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6011)
 #pragma warning(disable: 6031)

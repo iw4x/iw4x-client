@@ -1,4 +1,8 @@
-![IW4x: Client](https://github.com/IW4x/iw4x-data/raw/master/assets/iw4x_logo.png)
+![license](https://img.shields.io/github/license/IW4x/iw4x-client.svg)
+![forks](https://img.shields.io/github/forks/IW4x/iw4x-client.svg)
+![stars](https://img.shields.io/github/stars/IW4x/iw4x-client.svg)
+![issues](https://img.shields.io/github/issues/IW4x/iw4x-client.svg)
+[![discord](https://discordapp.com/api/guilds/219514629703860235/widget.png)](https://discord.gg/sKeVmR3)
 
 # IW4x: Client
 
@@ -16,7 +20,7 @@
 
 ## How to compile
 
-- Run `premake5 vs2017` or use the delivered `generate.bat`.
+- Run `premake5 vs2019` or use the delivered `generate.bat`.
 - Build via solution file in `build\iw4x.sln`. (You can use the `build.bat` script to do it quick and easy.)
 
 ## Premake arguments
@@ -35,3 +39,10 @@
 | `--disable-base128`         | Disable base128 encoding for minidumps.        |
 | `--no-new-structure`        | Do not use new virtual path structure (separating headers and source files). |
 | `--enable-dxsdk`            | Enable DirectX SDK (required for GfxMap exporting). |
+
+## Disclaimer
+
+This software has been created purely for the purposes of
+academic research. It is not intended to be used to attack
+other systems. Project maintainers are not responsible or
+liable for misuse of the software. Use responsibly.
