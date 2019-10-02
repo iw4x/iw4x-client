@@ -41,6 +41,8 @@ namespace Components
 
         static void ExposeTemporaryAssets(bool expose);
 
+		static void OffsetToAlias(Utils::Stream::Offset* offset);
+		
 	private:
 		static thread_local int BypassState;
         static bool ShouldSearchTempAssets;
@@ -62,8 +64,6 @@ namespace Components
 		static bool IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
 		static void FindAssetStub();
 		static void AddAssetStub();
-
-		static void OffsetToAlias(Utils::Stream::Offset* offset);
 
 		static void StoreEmptyAsset(Game::XAssetType type, const char* name);
 		static void StoreEmptyAssetStub();

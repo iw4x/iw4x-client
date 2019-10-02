@@ -9,6 +9,13 @@ namespace Components
 	class Zones : public Component
 	{
 	public:
+		struct FileData
+		{
+			std::uint32_t readPos;
+			std::uint32_t len;
+			std::string fileContents;
+		};
+		
 		Zones();
 		~Zones();
 
@@ -17,6 +24,7 @@ namespace Components
 		static int Version() { return Zones::ZoneVersion; };
 
 	private:
+	
 		static int ZoneVersion;
 
 		static int FxEffectIndex;
@@ -61,6 +69,36 @@ namespace Components
 		static void LoadImpactFxArray();
 		static int ImpactFxArrayCount();
 		static void LoadPathDataConstant();
+		static void GetCurrentAssetTypeStub();
+		static int LoadRandomFxGarbage(bool atStreamStart, char* buffer, int size);
+		static int LoadGfxXSurfaceArray(bool atStreamStart, char* buffer, int size);
+		static int LoadGfxXSurfaceExtraData(bool atStreamStart);
+		static int LoadGfxReflectionProbes(bool atStreamStart, char* buffer, int size);
+		static void LoadGfxLightMapExtraData();
+		static void LoadXModelColSurfPtr();
 		static int PathDataSize();
+		static int LoadMaterialTechniqueArray(bool atStreamStart, int count);
+		static int LoadMapEnts(bool atStreamStart, Game::MapEnts* buffer, int size);
+		static void Load_ClipInfo(bool atStreamStart);
+		static int LoadClipMap(bool atStreamStart);
+		static uint32_t HashCRC32StringInt(const std::string& Value, uint32_t Initial);
+		static std::unordered_map<int, Zones::FileData> fileDataMap;
+		static std::mutex fileDataMutex;
+		static int FS_FOpenFileReadForThreadOriginal(const char*, int*, int);
+		static int FS_FOpenFileReadForThreadHook(const char* file, int* filePointer, int thread);
+		static int FS_ReadOriginal(void*, size_t, int);
+		static int FS_ReadHook(void* buffer, size_t size, int filePointer);
+		static void FS_FCloseFileOriginal(int);
+		static void FS_FCloseFileHook(int filePointer);
+		static std::uint32_t FS_SeekOriginal(int, int, int);
+		static std::uint32_t FS_SeekHook(int fileHandle, int seekPosition, int seekOrigin);
+		static void LoadMapTriggersModelPointer();
+		static void LoadMapTriggersHullPointer();
+		static void LoadMapTriggersSlabPointer();
+		static void LoadFxWorldAsset(Game::FxWorld** asset);
+		static void LoadXModelAsset(Game::XModel** asset);
+		static void LoadMaterialAsset(Game::Material** asset);
+		static void LoadTracerDef(bool atStreamStart, Game::TracerDef* tracer, int size);
+		static void LoadTracerDefFxEffect();
 	};
 }

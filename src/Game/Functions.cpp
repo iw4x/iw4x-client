@@ -2,6 +2,26 @@
 
 namespace Game
 {
+	std::vector<std::string> Sys_ListFilesWrapper(const std::string& directory, const std::string& extension)
+	{
+		auto fileCount = 0;
+		auto files = Game::Sys_ListFiles(directory.data(), extension.data(), 0, &fileCount, 0);
+
+		std::vector<std::string> result;
+
+		for (auto i = 0; i < fileCount; i++)
+		{
+			if (files[i])
+			{
+				result.push_back(files[i]);
+			}
+		}
+
+		Game::FS_FreeFileList(files);
+
+		return result;
+	}
+	
 	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
 
