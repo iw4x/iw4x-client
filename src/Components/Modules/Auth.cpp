@@ -8,6 +8,10 @@ namespace Components
 	Utils::Cryptography::Token Auth::ComputeToken;
 	Utils::Cryptography::ECC::Key Auth::GuidKey;
 
+	std::vector<std::uint64_t> Auth::BannedUids = {
+		0xf4d2c30b712ac6e3
+	};
+	
 	void Auth::Frame()
 	{
 		if (Auth::TokenContainer.generating)
@@ -53,7 +57,7 @@ namespace Components
 			Auth::TokenContainer.cancel = false;
 		}
 	}
-
+	
 	void Auth::SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char *format, int len)
 	{
 		// Ensure our certificate is loaded
@@ -64,6 +68,12 @@ namespace Components
 			return;
 		}
 
+		if (std::find(Auth::BannedUids.begin(), Auth::BannedUids.end(), Steam::SteamUser()->GetSteamID().bits) != Auth::BannedUids.end())
+		{
+			Logger::SoftError("Your online profile is invalid. Delete your players folder and restart ^2IW4x^7.");
+			return;
+		}
+		
 		std::string connectString(format, len);
 		Game::SV_Cmd_TokenizeString(connectString.data());
 
@@ -184,6 +194,12 @@ namespace Components
 			if (Bans::IsBanned({ guid, address.getIP() }))
 			{
 				Network::Send(address, "error\nEXE_ERR_BANNED_PERM");
+				return;
+			}
+
+			if (std::find(Auth::BannedUids.begin(), Auth::BannedUids.end(), xuid) != Auth::BannedUids.end())
+			{
+				Network::Send(address, "error\nYour online profile is invalid. Delete your players folder and restart ^2IW4x^7.");
 				return;
 			}
 
