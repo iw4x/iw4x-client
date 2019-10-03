@@ -13,6 +13,8 @@ namespace Components
 
 		static void StoreKey();
 		static void LoadKey(bool force = false);
+		static void GenerateKey();
+		
 		static unsigned __int64 GetKeyHash();
 		static unsigned __int64 GetKeyHash(const std::string& key);
 

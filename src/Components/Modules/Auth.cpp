@@ -70,7 +70,8 @@ namespace Components
 
 		if (std::find(Auth::BannedUids.begin(), Auth::BannedUids.end(), Steam::SteamUser()->GetSteamID().bits) != Auth::BannedUids.end())
 		{
-			Logger::SoftError("Your online profile is invalid. Delete your players folder and restart ^2IW4x^7.");
+			Auth::GenerateKey();
+			Logger::SoftError("Your online profile is invalid. A new key has been generated.");
 			return;
 		}
 		
@@ -284,6 +285,14 @@ namespace Components
 		}
 	}
 
+	void Auth::GenerateKey()
+	{
+		Auth::GuidToken.clear();
+		Auth::ComputeToken.clear();
+		Auth::GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
+		Auth::StoreKey();
+	}
+
 	void Auth::LoadKey(bool force)
 	{
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
@@ -303,10 +312,7 @@ namespace Components
 
 		if (!Auth::GuidKey.isValid())
 		{
-			Auth::GuidToken.clear();
-			Auth::ComputeToken.clear();
-			Auth::GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
-			Auth::StoreKey();
+			Auth::GenerateKey();
 		}
 	}
 
