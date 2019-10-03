@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Add host information to /info endpoint (request)
 
+### Changed
+
+- Stats are now separate for each mod (#6). Player stats are copied to `fs_game` folder if no stats exist for this mod yet. Keep in mind this also means that level, XP and classes will not be synchronized with the main stats file after this point.
+
 ## [0.6.0] - 2018-12-30
 
 ### Added

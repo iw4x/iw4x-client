@@ -1,4 +1,5 @@
 gitVersioningCommand = "git describe --tags --dirty --always"
+gitCurrentBranchCommand = "git symbolic-ref -q --short HEAD"
 
 -- Quote the given string input as a C string
 function cstrquote(value)
@@ -86,8 +87,19 @@ newaction {
 		local proc = assert(io.popen(gitVersioningCommand, "r"))
 		local gitDescribeOutput = assert(proc:read('*a')):gsub("%s+", "")
 		proc:close()
+		local version = gitDescribeOutput
 
-		print(gitDescribeOutput)
+		proc = assert(io.popen(gitCurrentBranchCommand, "r"))
+		local gitCurrentBranchOutput = assert(proc:read('*a')):gsub("%s+", "")
+		local gitCurrentBranchSuccess = proc:close()
+		if gitCurrentBranchSuccess then
+			-- We got a branch name, check if it is a feature branch
+			if gitCurrentBranchOutput ~= "develop" and gitCurrentBranchOutput ~= "master" then
+				version = version .. "-" .. gitCurrentBranchOutput
+			end
+		end
+
+		print(version)
 		os.exit(0)
 	end
 }
