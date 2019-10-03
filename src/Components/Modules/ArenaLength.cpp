@@ -112,5 +112,9 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4A95F8, 32);
 
 		Utils::Hook::Set<int>(0x42F22B, offsetof(Game::newMapArena_t, mapName) - offsetof(Game::newMapArena_t, other));
+
+		// patch max arena count
+		constexpr auto arenaCount = sizeof(ArenaLength::NewArenas) / sizeof(Game::newMapArena_t);
+		Utils::Hook::Set<std::uint32_t>(0x630AA3, arenaCount);
 	}
 }

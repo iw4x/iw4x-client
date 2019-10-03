@@ -320,7 +320,7 @@ namespace Components
 		Zones::SetVersion(*version);
 
 		// Allow loading of codo versions
-		if (*version >= VERSION_ALPHA2 && *version <= 360)
+		if ((*version >= VERSION_ALPHA2 && *version <= 360) || (*version >= 423 && *version <= 461))
 		{
 			*version = XFILE_VERSION;
 		}
@@ -369,7 +369,7 @@ namespace Components
 
 			unsigned long outLen = sizeof(FastFiles::CurrentKey);
 			rsa_import(FastFiles::ZoneKey, sizeof(FastFiles::ZoneKey), &key);
-			rsa_decrypt_key_ex(encKey, 256, FastFiles::CurrentKey.data, &outLen, nullptr, NULL, hash, (Zones::Version() >= 359 ? 1 : 2), &stat, &key);
+			rsa_decrypt_key_ex(encKey, 256, FastFiles::CurrentKey.data, &outLen, nullptr, NULL, hash, Zones::Version() >= 359 ? 1 : 2, &stat, &key);
 			rsa_free(&key);
 
 			ctr_start(aes, FastFiles::CurrentKey.iv, FastFiles::CurrentKey.key, sizeof(FastFiles::CurrentKey.key), 0, 0, &FastFiles::CurrentCTR);
@@ -484,7 +484,7 @@ namespace Components
 	}
 #endif
 
-	void FastFiles::Load_XSurfaceArray(int atStreamStart, int /*count*/)
+	void FastFiles::Load_XSurfaceArray(int atStreamStart, [[maybe_unused]] int count)
 	{
 		// read the actual count from the varXModelSurfs ptr
 		auto surface = *reinterpret_cast<Game::XModelSurfs**>(0x0112A95C);

@@ -128,7 +128,7 @@ namespace Components
 
 		Maps::SPMap = false;
 		Maps::CurrentMainZone = zoneInfo->name;
-
+		
 		Maps::CurrentDependencies.clear();
 		for (auto i = Maps::DependencyList.begin(); i != Maps::DependencyList.end(); ++i)
 		{
@@ -149,7 +149,7 @@ namespace Components
 
 		std::vector<Game::XZoneInfo> data;
 		Utils::Merge(&data, zoneInfo, zoneCount);
-
+		
 		Game::XZoneInfo team;
 		team.allocFlags = zoneInfo->allocFlags;
 		team.freeFlags = zoneInfo->freeFlags;
@@ -252,12 +252,8 @@ namespace Components
 				asset.mapEnts->entityString = const_cast<char*>(mapEntities.data());
 				asset.mapEnts->numEntityChars = mapEntities.size() + 1;
 			}
-
-			// Apply new mapEnts
-			// This doesn't work, entities are spawned before the patch file is loaded
-			//Maps::OverrideMapEnts(asset.mapEnts);
 		}
-
+		
 		// This is broken
 		if ((type == Game::XAssetType::ASSET_TYPE_MENU || type == Game::XAssetType::ASSET_TYPE_MENULIST) && Zones::Version() >= 359)
 		{
@@ -271,14 +267,13 @@ namespace Components
 		Logger::Print("Waiting for database...\n");
 		while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(10ms);
 
-		if (!Utils::String::StartsWith(Maps::CurrentMainZone, "mp_") || Maps::SPMap)
+		if (!Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp || !Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp->name || 
+			!Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp->g_glassData || Maps::SPMap)
 		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp[0].g_glassData;
+			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP].gameWorldSp->g_glassData;
 		}
-		else
-		{
-			return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp[0].g_glassData;
-		}
+
+		return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp->g_glassData;
 	}
 
 	__declspec(naked) void Maps::GetWorldDataStub()
@@ -864,6 +859,17 @@ namespace Components
 		}
 	}
 
+	void Maps::G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2)
+	{
+		if (Maps::CurrentMainZone == "mp_backlot_sh"s || Maps::CurrentMainZone == "mp_con_spring"s || 
+			Maps::CurrentMainZone == "mp_mogadishu_sh"s || Maps::CurrentMainZone == "mp_nightshift_sh"s)
+		{
+			return;
+		}
+
+		Utils::Hook::Call<void(Game::gentity_s*, int, int)>(0x408910)(ent, unk, unk2);
+	}
+	
 	Maps::Maps()
 	{
 		Dvar::OnInit([]()
@@ -874,8 +880,8 @@ namespace Components
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
 			Maps::AddDlc({ 2, "Resurgence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
 			Maps::AddDlc({ 3, "Nuketown", {"mp_nuked"} });
-			Maps::AddDlc({ 4, "Classics Pack", {"mp_cross_fire", "mp_cargoship", "mp_bloc"} });
-			Maps::AddDlc({ 5, "Classics Pack", {"mp_killhouse", "mp_bog_sh"} });
+			Maps::AddDlc({ 4, "Classics Pack #1", {"mp_cross_fire", "mp_cargoship", "mp_bloc"} });
+			Maps::AddDlc({ 5, "Classics Pack #2", {"mp_killhouse", "mp_bog_sh"} });
 			Maps::AddDlc({ 6, "Freighter", {"mp_cargoship_sh"} });
 			Maps::AddDlc({ 7, "Resurrection Pack", {"mp_shipment_long", "mp_rust_long", "mp_firingrange"} });
 			Maps::AddDlc({ 8, "Recycled Pack", {"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
@@ -900,6 +906,10 @@ namespace Components
 			});
 		});
 
+		// disable turrets on CoD:OL 448+ maps for now
+		Utils::Hook(0x5EE577, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
+		Utils::Hook(0x44A4D5, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
+		
 //#define SORT_SMODELS
 #if !defined(DEBUG) || !defined(SORT_SMODELS)
 		// Don't sort static models

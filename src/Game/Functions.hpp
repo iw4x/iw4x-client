@@ -2,6 +2,26 @@
 
 namespace Game
 {
+	template <typename T> static void DB_ConvertOffsetToPointer(T* pointer)
+	{
+		Utils::Hook::Call<void(T*)>(0x4A82B0)(pointer);
+	}
+	template <typename T> static T** DB_InsertPointer()
+	{
+		static auto DB_InsertPointer_Address = 0x43B290;
+		T** retval = nullptr;
+		
+		__asm
+		{
+			call DB_InsertPointer_Address;
+			mov retval, eax;
+		}
+
+		return retval;
+	}
+
+	std::vector<std::string> Sys_ListFilesWrapper(const std::string& directory, const std::string& extension);
+	
 	typedef void(__cdecl * AddRefToObject_t)(unsigned int id);
 	extern AddRefToObject_t AddRefToObject;
 
@@ -319,7 +339,7 @@ namespace Game
 	typedef void(__cdecl * LargeLocalInit_t)();
 	extern LargeLocalInit_t LargeLocalInit;
 
-	typedef bool(__cdecl * Load_Stream_t)(bool atStreamStart, const void *ptr, int size);
+	typedef bool(__cdecl * Load_Stream_t)(bool atStreamStart, const void *ptr, unsigned int size);
 	extern Load_Stream_t Load_Stream;
 
 	typedef void(__cdecl * Load_XString_t)(bool atStreamStart);

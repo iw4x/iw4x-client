@@ -123,5 +123,6 @@ namespace Components
 		static Game::dvar_t* GetSpecularDvar();
 		static void SetSpecularStub1();
 		static void SetSpecularStub2();
+		static void G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2);
 	};
 }
