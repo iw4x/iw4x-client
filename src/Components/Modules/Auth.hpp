@@ -13,6 +13,8 @@ namespace Components
 
 		static void StoreKey();
 		static void LoadKey(bool force = false);
+		static void GenerateKey();
+		
 		static unsigned __int64 GetKeyHash();
 		static unsigned __int64 GetKeyHash(const std::string& key);
 
@@ -41,7 +43,8 @@ namespace Components
 		static Utils::Cryptography::Token GuidToken;
 		static Utils::Cryptography::Token ComputeToken;
 		static Utils::Cryptography::ECC::Key GuidKey;
-
+		static std::vector<std::uint64_t> BannedUids;
+		
 		static void SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char *format, int len);
 		static void ParseConnectData(Game::msg_t* msg, Game::netadr_t* addr);
 		static void DirectConnectStub();

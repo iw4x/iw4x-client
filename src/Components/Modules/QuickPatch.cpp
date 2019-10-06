@@ -128,7 +128,7 @@ namespace Components
 		{
 			if (!dest[i]) break;
 
-			if (dest[i] > 125 || dest[i] < 32) 
+			if (dest[i] > 125 || dest[i] < 32 || dest[i] == '%') 
 			{
 				return false;
 			}
