@@ -13,7 +13,7 @@ namespace Assets
         if (menus.size() == 0) return;
         if (menus.size() > 1) Components::Logger::Print("Menu '%s' on disk has more than one menudef in it. Only saving the first one\n", name.data());
 
-        header->menu = menus[0];
+        header->menu = menus[0].second;
     }
 
 

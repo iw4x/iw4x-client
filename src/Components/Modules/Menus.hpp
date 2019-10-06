@@ -1,7 +1,6 @@
 #pragma once
 
 #define MAX_SOURCEFILES	64
-#define MAX_MENUS_IN_CONTEXT 640
 #undef LoadMenu
 
 namespace Components
@@ -13,31 +12,51 @@ namespace Components
 		~Menus();
 
 		static void FreeEverything();
-        static void RegisterMenuLists();
 
-        // used to load assets for zonebuilder
-        static std::vector<Game::menuDef_t*> LoadMenu(const std::string& file);
+		static void Add(const std::string& menu);
 
+		static Game::MenuList* Menus::LoadCustomMenuList(const std::string& menu, Utils::Memory::Allocator* allocator);
+		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(Game::menuDef_t* menudef);
+		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(const std::string& file);
+		
 	private:
-		static std::unordered_map<std::string, Game::menuDef_t*> DiskMenuList;
+		static std::unordered_map<std::string, Game::menuDef_t*> MenuList;
+		static std::unordered_map<std::string, Game::MenuList*> MenuListList;
+		static std::vector<std::string> CustomMenus;
 
-        // Loading
-        static int ReserveSourceHandle();
-        static bool IsValidSourceHandle(int handle);
-        static Game::menuDef_t* ParseMenu(int handle);
-        static Game::script_t* LoadMenuScript(const std::string& name, const std::string& buffer);
-        static int LoadMenuSource(const std::string& name, const std::string& buffer);
+		static Game::XAssetHeader MenuFindHook(Game::XAssetType type, const std::string& filename);
+		static Game::XAssetHeader MenuListFindHook(Game::XAssetType type, const std::string& filename);
 
-        // Freeing
+		static Game::MenuList* LoadMenuList(Game::MenuList* menuList);
+		static Game::MenuList* LoadScriptMenu(const char* menu);
+
+		static void SafeMergeMenus(std::vector<std::pair<bool, Game::menuDef_t*>>* menus, std::vector<std::pair<bool, Game::menuDef_t*>> newMenus);
+
+		static Game::script_t* LoadMenuScript(const std::string& name, const std::string& buffer);
+		static int LoadMenuSource(const std::string& name, const std::string& buffer);
+
+		static int ReserveSourceHandle();
+		static bool IsValidSourceHandle(int handle);
+
+		static Game::menuDef_t* ParseMenu(int handle);
+
 		static void FreeMenuSource(int handle);
-		static void FreeDiskMenu(Game::menuDef_t* menudef);
 
-        // Etc.
-		static bool IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu);
+		static void FreeMenuList(Game::MenuList* menuList);
+		static void FreeMenu(Game::menuDef_t* menudef);
 
-        // Manage menus in uiContext
-        static void AddMenuListToContext(Game::UiContext* ctx, Game::MenuList* list, int close);
-        static void ResetContextHook(int a1);
+		static void RemoveMenu(const std::string& menu);
+		static void RemoveMenu(Game::menuDef_t* menudef);
+		static void RemoveMenuList(const std::string& menuList);
+		static void RemoveMenuList(Game::MenuList* menuList);
+
+		static void OverrideMenu(Game::menuDef_t* menu);
+
+		static bool IsMenuVisible(Game::UiContext* dc, Game::menuDef_t* menu);
+
+		static void RemoveMenuFromContext(Game::UiContext* dc, Game::menuDef_t* menu);
+
+		static void RegisterCustomMenusHook();
 
 		// Ugly!
 		static int KeywordHash(char* key);

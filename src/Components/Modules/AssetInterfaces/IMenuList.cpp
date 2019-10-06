@@ -7,7 +7,7 @@ namespace Assets
         Utils::Memory::Allocator* allocator = builder->getAllocator();
 
         // actually gets the whole list
-        std::vector<Game::menuDef_t*> menus = Components::Menus::LoadMenu(name);
+        auto menus = Components::Menus::LoadMenu(name);
         if (menus.empty()) return;
 
         // Allocate new menu list
@@ -27,7 +27,7 @@ namespace Assets
         // Copy new menus
         for (unsigned int i = 0; i < menus.size(); ++i)
         {
-            newList->menus[i] = menus[i];
+            newList->menus[i] = menus[i].second;
         }
 
         header->menuList = newList;
