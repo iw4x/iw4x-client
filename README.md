@@ -3,7 +3,7 @@
 ![stars](https://img.shields.io/github/stars/IW4x/iw4x-client.svg)
 ![issues](https://img.shields.io/github/issues/IW4x/iw4x-client.svg)
 [![build status](https://ci.appveyor.com/api/projects/status/rvljq0ooxen0oexm/branch/develop?svg=true)](https://ci.appveyor.com/project/iw4x/iw4x-client/branch/develop)
-[![discord](https://discordapp.com/api/guilds/219514629703860235/widget.png)](https://discord.gg/sKeVmR3)
+[![discord](https://img.shields.io/endpoint?url=https%3A%2F%2Frunkit.io%2Fmomo5502%2Fiw4x-discord%2Fbranches%2Fmaster)](https://discord.gg/sKeVmR3)
 
 # IW4x: Client
 
