@@ -303,6 +303,9 @@ namespace Components
 		sv_enableBounces = Game::Dvar_RegisterBool("sv_enableBounces", false, Game::DVAR_FLAG_REPLICATED, "Enables bouncing on the server");
 		Utils::Hook(0x4B1B2D, QuickPatch::BounceStub, HOOK_JUMP).install()->quick();
 
+		// Intermission time dvar
+		Game::Dvar_RegisterInt("scr_intermissionTime", 10, 1, 120, Game::DVAR_FLAG_REPLICATED, "Time in seconds before match serever loads the next map");
+
 		// Disallow invalid player names
 		Utils::Hook(0x401983, QuickPatch::InvalidNameStub, HOOK_JUMP).install()->quick();
 
