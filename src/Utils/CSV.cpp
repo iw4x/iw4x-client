@@ -4,7 +4,6 @@ namespace Utils
 {
 	CSV::CSV(const std::string& file, bool isFile, bool allowComments)
 	{
-		this->valid = false;
 		this->parse(file, isFile, allowComments);
 	}
 

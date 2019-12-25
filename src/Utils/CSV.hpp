@@ -18,7 +18,7 @@ namespace Utils
 		bool isValid() { return this->valid; }
 
 	private:
-		bool valid;
+		bool valid = false;
 		std::vector<std::vector<std::string>> dataMap;
 
 		void parse(const std::string& file, bool isFile = true, bool allowComments = true);
