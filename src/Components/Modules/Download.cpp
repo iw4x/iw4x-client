@@ -259,7 +259,7 @@ namespace Components
 				+ (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 		}
 
-		Logger::Print("Downloading from url %s", url.data());
+		Logger::Print("Downloading from url %s\n", url.data());
 
 		Download::FileDownload fDownload;
 		fDownload.file = file;
@@ -277,7 +277,7 @@ namespace Components
 
 		while (fDownload.downloading && !fDownload.download->terminateThread)
 		{
-			mg_mgr_poll(&download->mgr, 0);
+			mg_mgr_poll(&download->mgr, 100);
 		}
 
 		mg_mgr_free(&download->mgr);
