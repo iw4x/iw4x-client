@@ -250,6 +250,7 @@ iw4mvm.setup
 }
 
 workspace "iw4x"
+	startproject "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
@@ -462,7 +463,7 @@ workspace "*"
 	buildoptions {
 				"/std:c++latest"
 			}
-	systemversion "10.0.17763.0"
+	systemversion "latest"
 	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
 
 rule "ProtobufCompiler"
