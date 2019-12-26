@@ -194,6 +194,7 @@ require "premake/protobuf"
 require "premake/zlib"
 require "premake/udis86"
 require "premake/iw4mvm"
+require "premake/dxsdk"
 
 json11.setup
 {
@@ -247,6 +248,10 @@ iw4mvm.setup
 		"DETOURS_32BIT",
 	},
 	source = path.join(depsBasePath, "iw4mvm"),
+}
+dxsdk.setup
+{
+	source = path.join(depsBasePath, "dxsdk"),
 }
 
 workspace "iw4x"
@@ -324,11 +329,11 @@ workspace "iw4x"
 		if _OPTIONS["force-exception-handler"] then
 			defines { "FORCE_EXCEPTION_HANDLER" }
 		end
-		if _OPTIONS["enable-dxsdk"] then
+		--if _OPTIONS["enable-dxsdk"] then
 			defines { "ENABLE_DXSDK" }
-			includedirs { "%DXSDK_DIR%Include" }
-			libdirs { "%DXSDK_DIR%Lib/x86" }
-		end
+		--	includedirs { "%DXSDK_DIR%Include" }
+		--	libdirs { "%DXSDK_DIR%Lib/x86" }
+		--end
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
@@ -345,6 +350,7 @@ workspace "iw4x"
 		zlib.import()
 		udis86.import()
 		--iw4mvm.import()
+		dxsdk.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths

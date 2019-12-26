@@ -29,3 +29,6 @@
 [submodule "deps/udis86"]
 	path = deps/udis86
 	url = https://github.com/vmt/udis86.git
+[submodule "deps/dxsdk"]
+	path = deps/dxsdk
+	url = https://github.com/devKlausS/dxsdk.git
