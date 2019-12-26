@@ -76,7 +76,7 @@ namespace Components
 			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
 		}
 
-		Exception::SuspendProcess();
+		//Exception::SuspendProcess();
 
 		bool doFullDump = Flags::HasFlag("bigdumps") || Flags::HasFlag("reallybigdumps");
 		/*if (!doFullDump)
@@ -131,14 +131,14 @@ namespace Components
 			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
 		}
 
-#ifndef DISABLE_ANTICHEAT
-		AntiCheat::InstallLibHook();
-#endif
-
-		if (ExceptionInfo->ExceptionRecord->ExceptionFlags == EXCEPTION_NONCONTINUABLE)
+		//if (ExceptionInfo->ExceptionRecord->ExceptionFlags == EXCEPTION_NONCONTINUABLE)
 		{
 			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
 		}
+
+#ifndef DISABLE_ANTICHEAT
+		AntiCheat::InstallLibHook();
+#endif
 
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
