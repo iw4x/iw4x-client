@@ -4,6 +4,8 @@ namespace Utils
 {
 	const char* Cache::Urls[] =
 	{
+		"https://iw4x.org",
+		
 		"https://iw4xcachep26muba.onion.to",
 		"https://iw4xcachep26muba.tor2web.xyz",
 		"https://iw4xcachep26muba.onion.ws",
