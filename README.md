@@ -40,7 +40,6 @@
 | `--disable-bitmessage`      | Disable use of BitMessage completely.          |
 | `--disable-base128`         | Disable base128 encoding for minidumps.        |
 | `--no-new-structure`        | Do not use new virtual path structure (separating headers and source files). |
-| `--enable-dxsdk`            | Enable DirectX SDK (required for GfxMap exporting). |
 
 ## Disclaimer
 

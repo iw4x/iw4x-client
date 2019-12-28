@@ -100,10 +100,6 @@ namespace Components
 		static void AddDlc(DLC dlc);
 		static void UpdateDlcStatus();
 
-#if defined(DEBUG) && defined(ENABLE_DXSDK)
-		static void ExportMap(Game::GfxWorld* world);
-#endif
-
 		static void PrepareUsermap(const char* mapname);
 		static void SpawnServerStub();
 		static void LoadMapLoadscreenStub();

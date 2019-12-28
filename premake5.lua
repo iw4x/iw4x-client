@@ -74,11 +74,6 @@ newoption {
 	description = "Upload minidumps even for Debug builds."
 }
 
-newoption {
-	trigger = "enable-dxsdk",
-	description = "Enable DirectX SDK (required for GfxMap exporting)."
-}
-
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -329,11 +324,6 @@ workspace "iw4x"
 		if _OPTIONS["force-exception-handler"] then
 			defines { "FORCE_EXCEPTION_HANDLER" }
 		end
-		--if _OPTIONS["enable-dxsdk"] then
-			defines { "ENABLE_DXSDK" }
-		--	includedirs { "%DXSDK_DIR%Include" }
-		--	libdirs { "%DXSDK_DIR%Lib/x86" }
-		--end
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
