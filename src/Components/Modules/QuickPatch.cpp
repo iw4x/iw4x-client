@@ -119,6 +119,26 @@ namespace Components
 		}
 	}
 
+	__declspec(naked) int QuickPatch::SVGameClientNum()
+	{
+		_asm
+		{
+			mov eax, [esp + 4] // index
+			mov ecx, 1A831A8h
+			mov ecx, [ecx]
+			imul eax, 366Ch
+			lea edx, [eax + ecx + 3134h]
+			cmp edx, 0
+			jnz valid_player_state
+			mov eax, 0
+			ret
+
+			valid_player_state:
+			mov eax, [eax + ecx + 3134h]
+			ret
+		}
+	}
+
 	bool QuickPatch::InvalidNameCheck(char *dest, char *source, int size)
 	{
 		strncpy(dest, source, size - 1);
@@ -588,6 +608,9 @@ namespace Components
 
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
+
+		// Patch SV_GameClientNum for edge case generating status
+		Utils::Hook(0x624DE2, QuickPatch::SVGameClientNum, HOOK_CALL).install()->quick();
 
 		Command::Add("unlockstats", [](Command::Params*)
 		{
