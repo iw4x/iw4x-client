@@ -175,11 +175,11 @@ namespace Steam
 		size_t expectedParams = Proxy::ClientUser.paramSize("SpawnProcess");
 		if (expectedParams == 40) // Release
 		{
-			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
+			Proxy::ClientUser.invoke("SpawnProcess", ourPath, cmdline.data(), ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
 		}
 		else if (expectedParams == 36) // Beta
 		{
-			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, mod.data(), 0, 0);
+			Proxy::ClientUser.invoke("SpawnProcess", ourPath, cmdline.data(), ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
 		}
 		else if (expectedParams == 48) // Legacy, expects VAC blob
 		{
