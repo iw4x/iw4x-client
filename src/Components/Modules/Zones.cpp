@@ -2908,11 +2908,12 @@ namespace Components
 
 			// check if file should be skipped
 			auto skipFile = false;
-			if (!strncmp(&file[strlen(file) - 5], ".iwi", 4))
+
+			if (strlen(file) > 5 && ((strncmp(&file[strlen(file) - 4], ".iwi", 4) != 0)))
 			{
 				skipFile = true;
 			}
-			else if (memcmp(&fileBuffer[0], "IWi", 4))
+			else if (readSize >= 3 && (!memcmp(&fileBuffer[0], "IWi", 3)))
 			{
 				skipFile = true;
 			}
