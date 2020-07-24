@@ -2908,23 +2908,14 @@ namespace Components
 
 			// check if file should be skipped
 			auto skipFile = false;
-			if (!strncmp(&file[strlen(file) - 4], ".iwi", 4))
-			{
-				if (readSize > 3 && !memcmp(&fileBuffer[0], "IWi", 3))
-				{
-					skipFile = true;
-				}
-			}
-			else if (strstr(file, "weapons"))
+
+			if (strlen(file) > 5 && ((strncmp(&file[strlen(file) - 4], ".iwi", 4) != 0)))
 			{
 				skipFile = true;
 			}
-			else
+			else if (readSize >= 3 && (!memcmp(&fileBuffer[0], "IWi", 3)))
 			{
-				if (readSize > 8 && *reinterpret_cast<std::uint32_t*>(&fileBuffer[4]) == 0xe9c9c447)
-				{
-					skipFile = true;
-				}
+				skipFile = true;
 			}
 			
 			// if the header seems encrypted...
