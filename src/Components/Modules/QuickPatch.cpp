@@ -326,6 +326,9 @@ namespace Components
 		// Intermission time dvar
 		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_FLAG_REPLICATED | Game::DVAR_FLAG_SAVED | Game::DVAR_FLAG_DEDISAVED, "Time in seconds before match server loads the next map");
 
+		//Dvar for enabling mod-specific stats
+		Game::Dvar_RegisterBool("scr_modStats", false, Game::DVAR_FLAG_REPLICATED, "Saves stats separately for the loaded mod");
+
 		// Disallow invalid player names
 		Utils::Hook(0x401983, QuickPatch::InvalidNameStub, HOOK_JUMP).install()->quick();
 
