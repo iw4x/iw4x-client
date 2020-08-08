@@ -67,7 +67,7 @@ namespace Components
 	{
 		const auto fs_game = Game::Dvar_FindVar("fs_game");
 
-		if (Dvar::Var("scr_modStats").get<bool>() && fs_game && fs_game->current.string && strlen(fs_game->current.string) && !strncmp(fs_game->current.string, "mods/", 5))
+		if (fs_game && fs_game->current.string && strlen(fs_game->current.string) && !strncmp(fs_game->current.string, "mods/", 5))
 		{
 			folder = fs_game->current.string;
 		}
