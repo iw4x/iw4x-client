@@ -9,7 +9,9 @@ namespace Components
 	Utils::Cryptography::ECC::Key Auth::GuidKey;
 
 	std::vector<std::uint64_t> Auth::BannedUids = {
-		0xf4d2c30b712ac6e3
+		0xf4d2c30b712ac6e3,
+		0xf7e33c4081337fa3,
+		0x6f5597f103cc50e9
 	};
 	
 	void Auth::Frame()
