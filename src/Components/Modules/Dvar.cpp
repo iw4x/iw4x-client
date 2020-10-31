@@ -256,6 +256,8 @@ namespace Components
 		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).install()->quick();
 
 		// un-cheat safeArea_* and add archive flags
+		Utils::Hook::Xor<INT>(0x42E3F5, Game::dvar_flag::DVAR_FLAG_READONLY | Game::dvar_flag::DVAR_FLAG_SAVED); //safeArea_adjusted_horizontal
+		Utils::Hook::Xor<INT>(0x42E423, Game::dvar_flag::DVAR_FLAG_READONLY | Game::dvar_flag::DVAR_FLAG_SAVED); //safeArea_adjusted_vertical
 		Utils::Hook::Xor<BYTE>(0x42E398, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED); //safeArea_horizontal
 		Utils::Hook::Xor<BYTE>(0x42E3C4, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED); //safeArea_vertical
 
