@@ -2908,23 +2908,14 @@ namespace Components
 
 			// check if file should be skipped
 			auto skipFile = false;
-			if (!strncmp(&file[strlen(file) - 4], ".iwi", 4))
-			{
-				if (readSize > 3 && !memcmp(&fileBuffer[0], "IWi", 3))
-				{
-					skipFile = true;
-				}
-			}
-			else if (strstr(file, "weapons"))
+
+			if (strlen(file) > 5 && ((strncmp(&file[strlen(file) - 4], ".iwi", 4) != 0)))
 			{
 				skipFile = true;
 			}
-			else
+			else if (readSize >= 3 && (!memcmp(&fileBuffer[0], "IWi", 3)))
 			{
-				if (readSize > 8 && *reinterpret_cast<std::uint32_t*>(&fileBuffer[4]) == 0xe9c9c447)
-				{
-					skipFile = true;
-				}
+				skipFile = true;
 			}
 			
 			// if the header seems encrypted...
@@ -3409,9 +3400,11 @@ namespace Components
 		Utils::Hook(0x45A806, RelocateFileCount, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45A6A0, RelocateFileCount, HOOK_CALL).install()->quick();
 		
+#ifndef DEBUG
 		// Ignore missing soundaliases for now
 		// TODO: Include them in the dependency zone!
 		Utils::Hook::Nop(0x644207, 5);
+#endif
 
 		// Block Mark_pathnode_constant_t
 		Utils::Hook::Set<BYTE>(0x4F74B0, 0xC3);

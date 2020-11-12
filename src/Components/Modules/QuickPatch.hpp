@@ -19,6 +19,7 @@ namespace Components
 		static void SelectStringTableEntryInDvarStub();
 
 		static int SVCanReplaceServerCommand(Game::client_t *client, const char *cmd);
+		static int SVGameClientNum();
 
 		static int MsgReadBitsCompressCheckSV(const char *from, char *to, int size);
 		static int MsgReadBitsCompressCheckCL(const char *from, char *to, int size);
@@ -37,5 +38,10 @@ namespace Components
 		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* name, char** enumValues, int defaultVal, int flags, const char* description);
 		static void SetAspectRatioStub();
 		static void SetAspectRatio();
+
+		static Game::dvar_t* g_playerCollision;
+		static void PlayerCollisionStub();
+		static Game::dvar_t* g_playerEjection;
+		static void PlayerEjectionStub();
 	};
 }

@@ -60,6 +60,7 @@ namespace Components
 		Loader::Register(new Console());
 		Loader::Register(new Friends());
 		Loader::Register(new IPCPipe());
+		Loader::Register(new MapDump());
 		Loader::Register(new ModList());
 		Loader::Register(new Monitor());
 		Loader::Register(new Network());
@@ -100,6 +101,8 @@ namespace Components
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
 		Loader::Register(new StartupMessages());
+
+		Loader::Register(new Client());
 
 		Loader::Pregame = false;
 	}

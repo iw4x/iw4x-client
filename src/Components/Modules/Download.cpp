@@ -120,65 +120,7 @@ namespace Components
 		if (ev == MG_EV_RECV)
 		{
 			size_t bytes = static_cast<size_t>(*reinterpret_cast<int*>(ev_data));
-			fDownload->receivedBytes += bytes;
-			fDownload->download->downBytes += bytes;
-			fDownload->download->timeStampBytes += bytes;
-
-			double progress = 0;
-			if (fDownload->download->totalBytes)
-			{
-				progress = (100.0 / fDownload->download->totalBytes) * fDownload->download->downBytes;
-			}
-
-			static unsigned int dlIndex, dlSize, dlProgress;
-			dlIndex = fDownload->index + 1;
-			dlSize = fDownload->download->files.size();
-			dlProgress = static_cast<unsigned int>(progress);
-
-			static bool framePushed = false;
-
-			if (!framePushed)
-			{
-				framePushed = true;
-				Scheduler::Once([]()
-				{
-					framePushed = false;
-					Dvar::Var("ui_dl_progress").set(Utils::String::VA("(%d/%d) %d%%", dlIndex, dlSize, dlProgress));
-				});
-			}
-
-			int delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp;
-			if (delta > 300)
-			{
-				bool doFormat = fDownload->download->lastTimeStamp != 0;
-				fDownload->download->lastTimeStamp = Game::Sys_Milliseconds();
-
-				size_t dataLeft = fDownload->download->totalBytes - fDownload->download->downBytes;
-
-				int timeLeft = 0;
-				if (fDownload->download->timeStampBytes)
-				{
-					double timeLeftD = ((1.0 * dataLeft) / fDownload->download->timeStampBytes) * delta;
-					timeLeft = static_cast<int>(timeLeftD);
-				}
-
-				if (doFormat)
-				{
-					static size_t dlTsBytes;
-					static int dlDelta, dlTimeLeft;
-					dlTimeLeft = timeLeft;
-					dlDelta = delta;
-					dlTsBytes = fDownload->download->timeStampBytes;
-
-					Scheduler::Once([]()
-					{
-						Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(dlTimeLeft));
-						Dvar::Var("ui_dl_transRate").set(Utils::String::FormatBandwidth(dlTsBytes, dlDelta));
-					});
-				}
-
-				fDownload->download->timeStampBytes = 0;
-			}
+			Download::DownloadProgress(fDownload, bytes);
 		}
 
 		if (ev == MG_EV_HTTP_REPLY)
@@ -259,7 +201,7 @@ namespace Components
 				+ (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 		}
 
-		Logger::Print("Downloading from url %s", url.data());
+		Logger::Print("Downloading from url %s\n", url.data());
 
 		Download::FileDownload fDownload;
 		fDownload.file = file;
@@ -270,17 +212,42 @@ namespace Components
 
 		Utils::String::Replace(url, " ", "%20");
 
+		// Just a speedtest ;)
+		//download->totalBytes = 1048576000;
+		//url = "http://speed.hetzner.de/1GB.bin";
+
 		download->valid = true;
-		ZeroMemory(&download->mgr, sizeof download->mgr);
+		/*ZeroMemory(&download->mgr, sizeof download->mgr);
 		mg_mgr_init(&download->mgr, &fDownload);
 		mg_connect_http(&download->mgr, Download::DownloadHandler, url.data(), nullptr, nullptr);
 
 		while (fDownload.downloading && !fDownload.download->terminateThread)
 		{
-			mg_mgr_poll(&download->mgr, 0);
+			mg_mgr_poll(&download->mgr, 100);
 		}
 
-		mg_mgr_free(&download->mgr);
+		mg_mgr_free(&download->mgr);*/
+
+		fDownload.downloading = true;
+
+		Utils::WebIO webIO;
+		webIO.setProgressCallback([&fDownload, &webIO](size_t bytes, size_t)
+		{
+			if(!fDownload.downloading || fDownload.download->terminateThread)
+			{
+				webIO.cancelDownload();
+				return;
+			}
+
+			Download::DownloadProgress(&fDownload, bytes - fDownload.receivedBytes);
+		});
+
+		bool result = false;
+		fDownload.buffer = webIO.get(url, &result);
+		if (!result) fDownload.buffer.clear();
+
+		fDownload.downloading = false;
+
 		download->valid = false;
 
 		if (fDownload.buffer.size() != file.size || Utils::Cryptography::SHA256::Compute(fDownload.buffer, true) != file.hash)
@@ -428,6 +395,69 @@ namespace Components
 		}
 
 		return nullptr;
+	}
+
+	void Download::DownloadProgress(FileDownload* fDownload, size_t bytes)
+	{
+		fDownload->receivedBytes += bytes;
+		fDownload->download->downBytes += bytes;
+		fDownload->download->timeStampBytes += bytes;
+
+		static volatile bool framePushed = false;
+
+		if (!framePushed)
+		{
+			double progress = 0;
+			if (fDownload->download->totalBytes)
+			{
+				progress = (100.0 / fDownload->download->totalBytes) * fDownload->download->downBytes;
+			}
+
+			static unsigned int dlIndex, dlSize, dlProgress;
+			dlIndex = fDownload->index + 1;
+			dlSize = fDownload->download->files.size();
+			dlProgress = static_cast<unsigned int>(progress);
+
+			framePushed = true;
+			Scheduler::Once([]()
+			{
+				framePushed = false;
+				Dvar::Var("ui_dl_progress").set(Utils::String::VA("(%d/%d) %d%%", dlIndex, dlSize, dlProgress));
+			});
+		}
+
+		int delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp;
+		if (delta > 300)
+		{
+			bool doFormat = fDownload->download->lastTimeStamp != 0;
+			fDownload->download->lastTimeStamp = Game::Sys_Milliseconds();
+
+			auto dataLeft = fDownload->download->totalBytes - fDownload->download->downBytes;
+
+			int timeLeft = 0;
+			if (fDownload->download->timeStampBytes)
+			{
+				double timeLeftD = ((1.0 * dataLeft) / fDownload->download->timeStampBytes) * delta;
+				timeLeft = static_cast<int>(timeLeftD);
+			}
+
+			if (doFormat)
+			{
+				static size_t dlTsBytes;
+				static int dlDelta, dlTimeLeft;
+				dlTimeLeft = timeLeft;
+				dlDelta = delta;
+				dlTsBytes = fDownload->download->timeStampBytes;
+
+				Scheduler::Once([]()
+				{
+					Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(dlTimeLeft));
+					Dvar::Var("ui_dl_transRate").set(Utils::String::FormatBandwidth(dlTsBytes, dlDelta));
+				});
+			}
+
+			fDownload->download->timeStampBytes = 0;
+		}
 	}
 
 	bool Download::VerifyPassword(mg_connection *nc, http_message* message)

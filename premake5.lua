@@ -74,11 +74,6 @@ newoption {
 	description = "Upload minidumps even for Debug builds."
 }
 
-newoption {
-	trigger = "enable-dxsdk",
-	description = "Enable DirectX SDK (required for GfxMap exporting)."
-}
-
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -194,6 +189,7 @@ require "premake/protobuf"
 require "premake/zlib"
 require "premake/udis86"
 require "premake/iw4mvm"
+require "premake/dxsdk"
 
 json11.setup
 {
@@ -248,8 +244,13 @@ iw4mvm.setup
 	},
 	source = path.join(depsBasePath, "iw4mvm"),
 }
+dxsdk.setup
+{
+	source = path.join(depsBasePath, "dxsdk"),
+}
 
 workspace "iw4x"
+	startproject "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
@@ -323,11 +324,6 @@ workspace "iw4x"
 		if _OPTIONS["force-exception-handler"] then
 			defines { "FORCE_EXCEPTION_HANDLER" }
 		end
-		if _OPTIONS["enable-dxsdk"] then
-			defines { "ENABLE_DXSDK" }
-			includedirs { "%DXSDK_DIR%Include" }
-			libdirs { "%DXSDK_DIR%Lib/x86" }
-		end
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
@@ -344,6 +340,7 @@ workspace "iw4x"
 		zlib.import()
 		udis86.import()
 		--iw4mvm.import()
+		dxsdk.import()
 
 		-- fix vpaths for protobuf sources
 		vpaths
@@ -462,7 +459,7 @@ workspace "*"
 	buildoptions {
 				"/std:c++latest"
 			}
-	systemversion "10.0.17763.0"
+	systemversion "latest"
 	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
 
 rule "ProtobufCompiler"

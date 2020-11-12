@@ -66,6 +66,7 @@ namespace Components
 	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, size_t length)
 	{
 		const auto fs_game = Game::Dvar_FindVar("fs_game");
+
 		if (fs_game && fs_game->current.string && strlen(fs_game->current.string) && !strncmp(fs_game->current.string, "mods/", 5))
 		{
 			folder = fs_game->current.string;

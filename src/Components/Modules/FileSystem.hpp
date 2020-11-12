@@ -90,7 +90,7 @@ namespace Components
 
 		static std::vector<std::string> GetFileList(const std::string& path, const std::string& extension);
 		static std::vector<std::string> GetSysFileList(const std::string& path, const std::string& extension, bool folders = false);
-		static void DeleteFile(const std::string& folder, const std::string& file);
+		static bool DeleteFile(const std::string& folder, const std::string& file);
 
 	private:
 		static std::mutex Mutex;
@@ -109,6 +109,7 @@ namespace Components
 
 		static void FsStartupSync(const char* a1);
 		static void FsRestartSync(int a1, int a2);
+		static void FsShutdownSync(int a1);
 		static void DelayLoadImagesSync();
 		static int LoadTextureSync(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
 
