@@ -19,7 +19,7 @@ namespace Components
 		static void SelectStringTableEntryInDvarStub();
 
 		static int SVCanReplaceServerCommand(Game::client_t *client, const char *cmd);
-		static int SVGameClientNum();
+		static int G_GetClientScore();
 
 		static int MsgReadBitsCompressCheckSV(const char *from, char *to, int size);
 		static int MsgReadBitsCompressCheckCL(const char *from, char *to, int size);

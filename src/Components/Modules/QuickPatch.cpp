@@ -119,22 +119,22 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) int QuickPatch::SVGameClientNum()
+	__declspec(naked) int QuickPatch::G_GetClientScore()
 	{
-		_asm
+		__asm
 		{
-			mov eax, [esp + 4] // index
-			mov ecx, 1A831A8h
-			mov ecx, [ecx]
-			imul eax, 366Ch
-			lea edx, [eax + ecx + 3134h]
-			cmp edx, 0
-			jnz valid_player_state
-			mov eax, 0
-			ret
+			mov eax, [esp + 4]		// index
+			mov ecx, ds : 1A831A8h	// level: &g_clients
 
-			valid_player_state:
+			test ecx, ecx;
+			jz invalid_ptr;
+			
+			imul eax, 366Ch
 			mov eax, [eax + ecx + 3134h]
+			ret
+			
+		invalid_ptr:
+			xor eax, eax
 			ret
 		}
 	}
@@ -680,8 +680,8 @@ namespace Components
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
 
-		// Patch SV_GameClientNum for edge case generating status
-		Utils::Hook(0x624DE2, QuickPatch::SVGameClientNum, HOOK_CALL).install()->quick();
+		// Patch G_GetClientScore for uninitialised game
+		Utils::Hook(0x469AC0, QuickPatch::G_GetClientScore, HOOK_JUMP).install()->quick();
 
 		// Ignore call to print 'Offhand class mismatch when giving weapon...'
 		Utils::Hook(0x5D9047, 0x4BB9B0, HOOK_CALL).install()->quick();
