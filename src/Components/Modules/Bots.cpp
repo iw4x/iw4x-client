@@ -18,6 +18,8 @@
 #define KEY_MASK_ADS            524288
 #define KEY_MASK_USE            0x28
 
+#define MAX_G_BOTAI_ENTRIES     18
+
 namespace Components
 {
 	std::vector<std::string> Bots::BotNames;
@@ -33,7 +35,7 @@ namespace Components
 		unsigned short weapon;
 	} BotMovementInfo_t;
 
-	BotMovementInfo_t g_botai[18];
+	BotMovementInfo_t g_botai[MAX_G_BOTAI_ENTRIES];
 
 	struct BotAction_t
 	{
@@ -80,7 +82,7 @@ namespace Components
 
 	bool Bots::IsValidClientNum(unsigned int cNum)
 	{
-		return (cNum >= 0) && (cNum < sizeof(g_botai) / sizeof(BotMovementInfo_t));
+		return (cNum >= 0) && (cNum < MAX_G_BOTAI_ENTRIES);
 	}
 
 	void Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
@@ -165,6 +167,45 @@ namespace Components
 		// Stop default behavour of bots spinning and shooting
 		Utils::Hook(0x627021, 0x4BB9B0, HOOK_CALL).install()->quick();
 		Utils::Hook(0x627241, 0x4BB9B0, HOOK_CALL).install()->quick();
+
+		// zero the bot command array
+		for (int i = 0; i < MAX_G_BOTAI_ENTRIES; i++)
+		{
+			g_botai[i] = { 0 };
+			g_botai[i].weapon = 1; // prevent the bots from defaulting to the 'none' weapon
+		}
+
+		// have the bots perform the command every server frame
+		Scheduler::OnFrame([]()
+		{
+			if (!Game::SV_Loaded())
+				return;
+
+			int time = *Game::svs_time;
+			for (int i = 0; i < *Game::svs_numclients; ++i)
+			{
+				Game::client_t* client = &Game::svs_clients[i];
+
+				if (client->state < 3)
+					continue;
+
+				if (!client->isBot)
+					continue;
+
+				Game::usercmd_s ucmd = { 0 };
+
+				ucmd.serverTime = time;
+
+				ucmd.buttons = g_botai[i].buttons;
+				ucmd.forwardmove = g_botai[i].forward;
+				ucmd.rightmove = g_botai[i].right;
+				ucmd.weapon = g_botai[i].weapon;
+
+				client->deltaMessage = client->outgoingSequence - 1;
+
+				Game::SV_ClientThink(client, &ucmd);
+			}
+		});
 
 		Command::Add("spawnBot", [](Command::Params* params)
 		{
