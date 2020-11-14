@@ -35,7 +35,7 @@ namespace Components
 		unsigned short weapon;
 	} BotMovementInfo_t;
 
-	BotMovementInfo_t g_botai[MAX_G_BOTAI_ENTRIES];
+	static BotMovementInfo_t g_botai[MAX_G_BOTAI_ENTRIES];
 
 	struct BotAction_t
 	{
@@ -43,7 +43,7 @@ namespace Components
 		int key;
 	};
 
-	const BotAction_t BotActions[] =
+	static const BotAction_t BotActions[] =
 	{
 		{ "gostand",    KEY_MASK_JUMP       },
 		{ "gocrouch",   KEY_MASK_CROUCH     },
@@ -82,7 +82,7 @@ namespace Components
 
 	bool Bots::IsValidClientNum(unsigned int cNum)
 	{
-		return (cNum >= 0) && (cNum < MAX_G_BOTAI_ENTRIES);
+		return (cNum >= 0) && (cNum < *Game::svs_numclients);
 	}
 
 	void Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
@@ -412,7 +412,8 @@ namespace Components
 				return;
 
 			int time = *Game::svs_time;
-			for (int i = 0; i < *Game::svs_numclients; ++i)
+			int numClients = *Game::svs_numclients;
+			for (int i = 0; i < numClients; ++i)
 			{
 				Game::client_t* client = &Game::svs_clients[i];
 
