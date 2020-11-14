@@ -153,7 +153,237 @@ namespace Components
 
 	void Bots::AddMethods()
 	{
+		Script::AddFunction("SetPing", [](Game::scr_entref_t id) // gsc: self SetPing(<int>)
+		{
+			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_INTEGER)
+			{
+				Game::Scr_Error("^1SetPing: Needs one integer parameter!\n");
+				return;
+			}
 
+			auto ping = Game::Scr_GetInt(0);
+
+			if (ping < 0 || ping > 999)
+			{
+				Game::Scr_Error("^1SetPing: Ping needs to between 0 and 999!\n");
+				return;
+			}
+
+			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
+			Game::client_t* client = Script::getClientFromEnt(gentity);
+			unsigned int clientNum = GetClientNum(client);
+
+			if (!Bots::IsValidClientNum(clientNum))
+			{
+				Game::Scr_Error("^1SetPing: Need to call on a player entity!\n");
+				return;
+			}
+
+			if (client->state < 3)
+			{
+				Game::Scr_Error("^1SetPing: Need to call on a connected player!\n");
+				return;
+			}
+
+			if (!client->isBot)
+			{
+				Game::Scr_Error("^1SetPing: Can only call on a bot!\n");
+				return;
+			}
+
+			client->ping = (short)ping;
+		});
+
+		Script::AddFunction("isBot", [](Game::scr_entref_t id) // Usage: <bot> isBot();
+		{
+			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
+			Game::client_t* client = Script::getClientFromEnt(gentity);
+			unsigned int clientNum = GetClientNum(client);
+
+			if (!Bots::IsValidClientNum(clientNum))
+			{
+				Game::Scr_Error("^1isBot: Need to call on a player entity!\n");
+				return;
+			}
+
+			if (client->state < 3)
+			{
+				Game::Scr_Error("^1isBot: Needs to be connected.\n");
+				return;
+			}
+
+			Game::Scr_AddInt(client->isBot);
+		});
+
+		Script::AddFunction("botStop", [](Game::scr_entref_t id) // Usage: <bot> botStop();
+		{
+			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
+			Game::client_t* client = Script::getClientFromEnt(gentity);
+			unsigned int clientNum = GetClientNum(client);
+
+			if (!Bots::IsValidClientNum(clientNum))
+			{
+				Game::Scr_Error("^1botStop: Need to call on a player entity!\n");
+				return;
+			}
+
+			if (client->state < 3)
+			{
+				Game::Scr_Error("^1botStop: Needs to be connected.\n");
+				return;
+			}
+
+			if (!client->isBot)
+			{
+				Game::Scr_Error("^1botStop: Can only call on a bot!\n");
+				return;
+			}
+
+			g_botai[clientNum] = { 0 };
+			g_botai[clientNum].weapon = 1;
+		});
+
+		Script::AddFunction("botWeapon", [](Game::scr_entref_t id) // Usage: <bot> botWeapon(<str>);
+		{
+			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			{
+				Game::Scr_Error("^1botWeapon: Needs one string parameter!\n");
+				return;
+			}
+
+			auto weapon = Game::Scr_GetString(0);
+
+			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
+			Game::client_t* client = Script::getClientFromEnt(gentity);
+			unsigned int clientNum = GetClientNum(client);
+
+			if (!Bots::IsValidClientNum(clientNum))
+			{
+				Game::Scr_Error("^1botWeapon: Need to call on a player entity!\n");
+				return;
+			}
+
+			if (client->state < 3)
+			{
+				Game::Scr_Error("^1botWeapon: Needs to be connected.\n");
+				return;
+			}
+
+			if (!client->isBot)
+			{
+				Game::Scr_Error("^1botWeapon: Can only call on a bot!\n");
+				return;
+			}
+
+			if (weapon == ""s)
+			{
+				g_botai[clientNum].weapon = 1;
+				return;
+			}
+
+			int weapId = Game::G_GetWeaponIndexForName(weapon);
+
+			g_botai[clientNum].weapon = (unsigned short)weapId;
+		});
+
+		Script::AddFunction("botAction", [](Game::scr_entref_t id) // Usage: <bot> botAction(<str action>);
+		{
+			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			{
+				Game::Scr_Error("^1botAction: Needs one string parameter!\n");
+				return;
+			}
+
+			auto action = Game::Scr_GetString(0);
+
+			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
+			Game::client_t* client = Script::getClientFromEnt(gentity);
+			unsigned int clientNum = GetClientNum(client);
+
+			if (!Bots::IsValidClientNum(clientNum))
+			{
+				Game::Scr_Error("^1botAction: Need to call on a player entity!\n");
+				return;
+			}
+
+			if (client->state < 3)
+			{
+				Game::Scr_Error("^1botAction: Needs to be connected.\n");
+				return;
+			}
+
+			if (!client->isBot)
+			{
+				Game::Scr_Error("^1botAction: Can only call on a bot!\n");
+				return;
+			}
+			if (action[0] != '+' && action[0] != '-')
+			{
+				Game::Scr_Error("^1botAction: Sign for action must be '+' or '-'.\n");
+				return;
+			}
+
+			for (size_t i = 0; i < sizeof(BotActions) / sizeof(BotAction_t); ++i)
+			{
+				if (strcmp(&action[1], BotActions[i].action))
+					continue;
+
+				if (action[0] == '+')
+					g_botai[clientNum].buttons |= BotActions[i].key;
+				else
+					g_botai[clientNum].buttons &= ~(BotActions[i].key);
+
+				return;
+			}
+
+			Game::Scr_Error("^1botAction: Unknown action.\n");
+		});
+
+		Script::AddFunction("botMovement", [](Game::scr_entref_t id) // Usage: <bot> botMovement(<int>, <int>);
+		{
+			if (Game::Scr_GetNumParam() != 2 || Game::Scr_GetType(0) != Game::VAR_INTEGER || Game::Scr_GetType(1) != Game::VAR_INTEGER)
+			{
+				Game::Scr_Error("^1botMovement: Needs two integer parameters!\n");
+				return;
+			}
+
+			auto forwardInt = Game::Scr_GetInt(0);
+			auto rightInt = Game::Scr_GetInt(1);
+
+			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
+			Game::client_t* client = Script::getClientFromEnt(gentity);
+			unsigned int clientNum = GetClientNum(client);
+
+			if (!Bots::IsValidClientNum(clientNum))
+			{
+				Game::Scr_Error("^1botMovement: Need to call on a player entity!\n");
+				return;
+			}
+
+			if (client->state < 3)
+			{
+				Game::Scr_Error("^1botMovement: Needs to be connected.\n");
+				return;
+			}
+
+			if (!client->isBot)
+			{
+				Game::Scr_Error("^1botMovement: Can only call on a bot!\n");
+				return;
+			}
+
+			if (forwardInt > 127)
+				forwardInt = 127;
+			if (forwardInt < -127)
+				forwardInt = -127;
+			if (rightInt > 127)
+				rightInt = 127;
+			if (rightInt < -127)
+				rightInt = -127;
+
+			g_botai[clientNum].forward = (int8)forwardInt;
+			g_botai[clientNum].right = (int8)rightInt;
+		});
 	}
 
 	Bots::Bots()
