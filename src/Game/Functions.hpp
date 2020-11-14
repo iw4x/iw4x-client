@@ -462,6 +462,9 @@ namespace Game
 	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t a, netadr_t b);
 	extern NET_CompareAdr_t NET_CompareAdr;
 
+	typedef void(__cdecl * NET_DeferPacketToClient_t)(netadr_t *, msg_t *);
+	extern NET_DeferPacketToClient_t NET_DeferPacketToClient;
+
 	typedef const char* (__cdecl * NET_ErrorString_t)();
 	extern NET_ErrorString_t NET_ErrorString;
 
