@@ -69,6 +69,20 @@ namespace Components
 		{ "9",          33554432            },
 	};
 
+	unsigned int Bots::GetClientNum(Game::client_s* cl)
+	{
+		unsigned int num;
+
+		num = ((byte*)cl - (byte*)Game::svs_clients) / sizeof(Game::client_s);
+
+		return num;
+	}
+
+	bool Bots::IsValidClientNum(unsigned int cNum)
+	{
+		return (cNum >= 0) && (cNum < sizeof(g_botai) / sizeof(BotMovementInfo_t));
+	}
+
 	void Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
 		static int botId = 0;
@@ -135,6 +149,11 @@ namespace Components
 		}
 	}
 
+	void Bots::AddMethods()
+	{
+
+	}
+
 	Bots::Bots()
 	{
 		// Replace connect string
@@ -172,6 +191,8 @@ namespace Components
 
 			Bots::Spawn(count);
 		});
+
+		Bots::AddMethods();
 	}
 
 	Bots::~Bots()
