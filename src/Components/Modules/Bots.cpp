@@ -78,6 +78,10 @@ namespace Components
 		// Intercept sprintf for the connect string
 		Utils::Hook(0x48ADAB, Bots::BuildConnectString, HOOK_CALL).install()->quick();
 
+		// Stop default behavour of bots spinning and shooting
+		Utils::Hook(0x627021, 0x4BB9B0, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627241, 0x4BB9B0, HOOK_CALL).install()->quick();
+
 		Command::Add("spawnBot", [](Command::Params* params)
 		{
 			unsigned int count = 1;
