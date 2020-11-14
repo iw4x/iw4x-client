@@ -1,8 +1,73 @@
 #include "STDInclude.hpp"
 
+#define KEY_MASK_FIRE           1
+#define KEY_MASK_SPRINT         2
+#define KEY_MASK_MELEE          4
+#define KEY_MASK_RELOAD         16
+#define KEY_MASK_LEANLEFT       64
+#define KEY_MASK_LEANRIGHT      128
+#define KEY_MASK_PRONE          256
+#define KEY_MASK_CROUCH         512
+#define KEY_MASK_JUMP           1024
+#define KEY_MASK_ADS_MODE       2048
+#define KEY_MASK_TEMP_ACTION    4096
+#define KEY_MASK_HOLDBREATH     8192
+#define KEY_MASK_FRAG           16384
+#define KEY_MASK_SMOKE          32768
+#define KEY_MASK_NIGHTVISION    262144
+#define KEY_MASK_ADS            524288
+#define KEY_MASK_USE            0x28
+
 namespace Components
 {
 	std::vector<std::string> Bots::BotNames;
+
+	typedef struct BotMovementInfo_t
+	{
+		/* Actions */
+		int buttons;
+		/* Movement */
+		int8 forward;
+		int8 right;
+		/* Weapon */
+		unsigned short weapon;
+	} BotMovementInfo_t;
+
+	BotMovementInfo_t g_botai[18];
+
+	struct BotAction_t
+	{
+		const char* action;
+		int key;
+	};
+
+	const BotAction_t BotActions[] =
+	{
+		{ "gostand",    KEY_MASK_JUMP       },
+		{ "gocrouch",   KEY_MASK_CROUCH     },
+		{ "goprone",    KEY_MASK_PRONE      },
+		{ "fire",       KEY_MASK_FIRE       },
+		{ "melee",      KEY_MASK_MELEE      },
+		{ "frag",       KEY_MASK_FRAG       },
+		{ "smoke",      KEY_MASK_SMOKE      },
+		{ "reload",     KEY_MASK_RELOAD     },
+		{ "sprint",     KEY_MASK_SPRINT     },
+		{ "leanleft",   KEY_MASK_LEANLEFT   },
+		{ "leanright",  KEY_MASK_LEANRIGHT  },
+		{ "ads",        KEY_MASK_ADS_MODE   },
+		{ "holdbreath", KEY_MASK_HOLDBREATH },
+		{ "use",        KEY_MASK_USE        },
+		{ "0",          8                   },
+		{ "1",          32                  },
+		{ "2",          65536               },
+		{ "3",          131072              },
+		{ "4",          1048576             },
+		{ "5",          2097152             },
+		{ "6",          4194304             },
+		{ "7",          8388608             },
+		{ "8",          16777216            },
+		{ "9",          33554432            },
+	};
 
 	void Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
