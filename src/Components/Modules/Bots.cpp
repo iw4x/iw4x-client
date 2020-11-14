@@ -82,7 +82,7 @@ namespace Components
 
 	bool Bots::IsValidClientNum(unsigned int cNum)
 	{
-		return (cNum >= 0) && (cNum < *Game::svs_numclients);
+		return (cNum >= 0) && (cNum < (unsigned int)*Game::svs_numclients);
 	}
 
 	void Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
