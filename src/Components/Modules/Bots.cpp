@@ -88,6 +88,7 @@ namespace Components
 	void Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
 		static int botId = 0;
+		const char* botName;
 
 		if (Bots::BotNames.empty())
 		{
@@ -108,15 +109,19 @@ namespace Components
 					}
 				}
 			}
-
-			if (Bots::BotNames.empty())
-			{
-				Bots::BotNames.push_back("bot");
-			}
 		}
 
-		botId %= Bots::BotNames.size();
-		strncpy_s(buffer, 0x400, Utils::String::VA(connectString, num, Bots::BotNames[botId++].data(), protocol, checksum, statVer, statStuff, port), 0x400);
+		if (!Bots::BotNames.empty())
+		{
+			botId %= Bots::BotNames.size();
+			botName = Bots::BotNames[botId++].data();
+		}
+		else
+		{
+			botName = Utils::String::VA("bot%d", ++botId);
+		}
+
+		strncpy_s(buffer, 0x400, Utils::String::VA(connectString, num, botName, protocol, checksum, statVer, statStuff, port), 0x400);
 	}
 
 	void Bots::Spawn(unsigned int count)
