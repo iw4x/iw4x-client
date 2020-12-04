@@ -840,6 +840,8 @@ namespace Game
 
 	extern ScriptContainer* scriptContainer;
 
+	extern clientstate_t* clcState;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
