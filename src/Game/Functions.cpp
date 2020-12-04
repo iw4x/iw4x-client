@@ -411,6 +411,8 @@ namespace Game
 
 	ScriptContainer* scriptContainer = reinterpret_cast<ScriptContainer*>(0x2040D00);
 
+	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
