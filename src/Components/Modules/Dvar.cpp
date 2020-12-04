@@ -227,6 +227,9 @@ namespace Components
 
 		// un-cheat cg_fov and add archive flags
 		Utils::Hook::Xor<BYTE>(0x4F8E35, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
+		
+		// un-cheat cg_fovscale and add archive flags
+		Utils::Hook::Xor<BYTE>(0x4F8E68, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
 
 		// un-cheat cg_debugInfoCornerOffset and add archive flags
 		Utils::Hook::Xor<BYTE>(0x4F8FC2, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
