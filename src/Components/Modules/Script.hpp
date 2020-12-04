@@ -38,6 +38,7 @@ namespace Components
 		static std::vector<Function> ScriptFunctions;
 		static std::vector<std::string> ScriptNameStack;
 		static unsigned short FunctionName;
+		static std::unordered_map<std::string, std::string> ScriptStorage;
 
 		static Utils::Signal<Scheduler::Callback> VMShutdownSignal;
 
@@ -62,5 +63,7 @@ namespace Components
 		static void ScrShutdownSystemStub(int);
 
 		static int SetExpFogStub();
+
+		static void AddFunctions();
 	};
 }
