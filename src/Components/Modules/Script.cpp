@@ -7,6 +7,7 @@ namespace Components
 	std::vector<Script::Function> Script::ScriptFunctions;
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
+	std::unordered_map<std::string, std::string> Script::ScriptStorage;
 
 	Utils::Signal<Scheduler::Callback> Script::VMShutdownSignal;
 
@@ -331,6 +332,127 @@ namespace Components
 		return &Game::svs_clients[gentity->number];
 	}
 
+	void Script::AddFunctions()
+	{
+		// System time
+		Script::AddFunction("GetSystemTime", [](Game::scr_entref_t) // gsc: GetSystemTime()
+		{
+			SYSTEMTIME time;
+			GetSystemTime(&time);
+
+			Game::Scr_AddInt(time.wSecond);
+		});
+
+		Script::AddFunction("GetSystemMilliseconds", [](Game::scr_entref_t) // gsc: GetSystemMilliseconds()
+		{
+			SYSTEMTIME time;
+			GetSystemTime(&time);
+
+			Game::Scr_AddInt(time.wMilliseconds);
+		});
+
+		// Print to console, even without being in 'developer 1'.
+		Script::AddFunction("PrintConsole", [](Game::scr_entref_t) // gsc: PrintConsole(<string>)
+		{
+			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			{
+				Game::Scr_Error("^1PrintConsole: Needs one string parameter!\n");
+				return;
+			}
+
+			auto str = Game::Scr_GetString(0);
+
+			Game::Com_Printf(0, str);
+		});
+
+		// Executes command to the console
+		Script::AddFunction("Exec", [](Game::scr_entref_t) // gsc: Exec(<string>)
+		{
+			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			{
+				Game::Scr_Error("^1Exec: Needs one string parameter!\n");
+				return;
+			}
+
+			auto str = Game::Scr_GetString(0);
+
+			Command::Execute(str, false);
+		});
+
+
+		// Script Storage Funcs
+		Script::AddFunction("StorageSet", [](Game::scr_entref_t) // gsc: StorageSet(<str key>, <str data>);
+		{
+			if (Game::Scr_GetNumParam() != 2 || Game::Scr_GetType(0) != Game::VAR_STRING || Game::Scr_GetType(1) != Game::VAR_STRING)
+			{
+				Game::Scr_Error("^1StorageSet: Needs two string parameters!\n");
+				return;
+			}
+
+			std::string key = Game::Scr_GetString(0);
+			std::string data = Game::Scr_GetString(1);
+
+			Script::ScriptStorage.insert_or_assign(key, data);
+		});
+
+		Script::AddFunction("StorageRemove", [](Game::scr_entref_t) // gsc: StorageRemove(<str key>);
+		{
+			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			{
+				Game::Scr_Error("^1StorageRemove: Needs one string parameter!\n");
+				return;
+			}
+
+			std::string key = Game::Scr_GetString(0);
+
+			if (!Script::ScriptStorage.contains(key))
+			{
+				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key.c_str()));
+				return;
+			}
+
+			Script::ScriptStorage.erase(key);
+		});
+
+		Script::AddFunction("StorageGet", [](Game::scr_entref_t) // gsc: StorageGet(<str key>);
+		{
+			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			{
+				Game::Scr_Error("^1StorageGet: Needs one string parameter!\n");
+				return;
+			}
+
+			std::string key = Game::Scr_GetString(0);
+
+			if (!Script::ScriptStorage.contains(key))
+			{
+				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key.c_str()));
+				return;
+			}
+
+			auto data = Script::ScriptStorage.at(key);
+			Game::Scr_AddString(data.c_str());
+		});
+
+		Script::AddFunction("StorageHas", [](Game::scr_entref_t) // gsc: StorageHas(<str key>);
+		{
+			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			{
+				Game::Scr_Error("^1StorageHas: Needs one string parameter!\n");
+				return;
+			}
+
+			std::string key = Game::Scr_GetString(0);
+
+			Game::Scr_AddInt(Script::ScriptStorage.contains(key));
+		});
+
+		Script::AddFunction("StorageClear", [](Game::scr_entref_t) // gsc: StorageClear();
+		{
+			Script::ScriptStorage.clear();
+		});
+	}
+
 	Script::Script()
 	{
 		Utils::Hook(0x612DB0, Script::StoreFunctionNameStub, HOOK_JUMP).install()->quick();
@@ -356,6 +478,8 @@ namespace Components
 		{
 			MessageBoxA(nullptr, Game::Scr_GetString(0), "DEBUG", 0);
 		}, true);
+
+		Script::AddFunctions();
 
 		// Script::AddFunction("playviewmodelfx", [](Game::scr_entref_t /*index*/)
 		// {
@@ -391,5 +515,7 @@ namespace Components
 		Script::ScriptNameStack.clear();
 		Script::ScriptFunctions.clear();
 		Script::VMShutdownSignal.clear();
+
+		Script::ScriptStorage.clear();
 	}
 }

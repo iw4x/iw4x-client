@@ -317,6 +317,9 @@ namespace Game
 	typedef iwd_t*(__cdecl * FS_IsShippedIWD_t)(const char* fullpath, const char* iwd);
 	extern FS_IsShippedIWD_t FS_IsShippedIWD;
 
+	typedef int(__cdecl* G_GetWeaponIndexForName_t)(char*);
+	extern G_GetWeaponIndexForName_t G_GetWeaponIndexForName;
+
 	typedef void(__cdecl* G_SpawnEntitiesFromString_t)();
 	extern G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString;
 
@@ -461,6 +464,9 @@ namespace Game
 
 	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t a, netadr_t b);
 	extern NET_CompareAdr_t NET_CompareAdr;
+
+	typedef void(__cdecl * NET_DeferPacketToClient_t)(netadr_t *, msg_t *);
+	extern NET_DeferPacketToClient_t NET_DeferPacketToClient;
 
 	typedef const char* (__cdecl * NET_ErrorString_t)();
 	extern NET_ErrorString_t NET_ErrorString;
@@ -615,6 +621,12 @@ namespace Game
 	typedef bool(__cdecl * Scr_IsSystemActive_t)();
 	extern Scr_IsSystemActive_t Scr_IsSystemActive;
 
+	typedef int(__cdecl* Scr_GetType_t)(int);
+	extern Scr_GetType_t Scr_GetType;
+
+	typedef void(__cdecl* Scr_Error_t)(const char*);
+	extern Scr_Error_t Scr_Error;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 
@@ -677,6 +689,9 @@ namespace Game
 
 	typedef bool(__cdecl * SV_Loaded_t)();
 	extern SV_Loaded_t SV_Loaded;
+
+	typedef void(__cdecl* SV_ClientThink_t)(client_s*, usercmd_s*);
+	extern SV_ClientThink_t SV_ClientThink;
 
 	typedef int(__cdecl * Sys_Error_t)(int, char *, ...);
 	extern Sys_Error_t Sys_Error;
@@ -769,6 +784,7 @@ namespace Game
 
 	extern cmd_function_t** cmd_functions;
 
+	extern int* svs_time;
 	extern int* svs_numclients;
 	extern client_t* svs_clients;
 

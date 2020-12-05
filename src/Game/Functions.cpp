@@ -136,6 +136,7 @@ namespace Game
 	FS_BuildPathToFile_t FS_BuildPathToFile = FS_BuildPathToFile_t(0x4702C0);
 	FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
 
+	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
 
 	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = GScr_LoadGameTypeScript_t(0x4ED9A0);
@@ -194,6 +195,7 @@ namespace Game
 
 	NET_AdrToString_t NET_AdrToString = NET_AdrToString_t(0x469880);
 	NET_CompareAdr_t NET_CompareAdr = NET_CompareAdr_t(0x4D0AA0);
+	NET_DeferPacketToClient_t NET_DeferPacketToClient = NET_DeferPacketToClient_t(0x4C8AA0);
 	NET_ErrorString_t NET_ErrorString = NET_ErrorString_t(0x4E7720);
 	NET_Init_t NET_Init = NET_Init_t(0x491860);
 	NET_IsLocalAddress_t NET_IsLocalAddress = NET_IsLocalAddress_t(0x402BD0);
@@ -253,6 +255,8 @@ namespace Game
 	Scr_AddObject_t Scr_AddObject = Scr_AddObject_t(0x430F40);
 	Scr_Notify_t Scr_Notify = Scr_Notify_t(0x4A4750);
 	Scr_NotifyLevel_t Scr_NotifyLevel = Scr_NotifyLevel_t(0x4D9C30);
+	Scr_Error_t Scr_Error = Scr_Error_t(0x61E8B0);
+	Scr_GetType_t Scr_GetType = Scr_GetType_t(0x422900);
 
 	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
 
@@ -293,6 +297,7 @@ namespace Game
 	SV_DirectConnect_t SV_DirectConnect = SV_DirectConnect_t(0x460480);
 	SV_SetConfigstring_t SV_SetConfigstring = SV_SetConfigstring_t(0x4982E0);
 	SV_Loaded_t SV_Loaded = SV_Loaded_t(0x4EE3E0);
+	SV_ClientThink_t SV_ClientThink = SV_ClientThink_t(0x44ADD0);
 
 	Sys_Error_t Sys_Error = Sys_Error_t(0x4E0200);
 	Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x4D8580);
@@ -342,6 +347,7 @@ namespace Game
 	source_t **sourceFiles = reinterpret_cast<source_t **>(0x7C4A98);
 	keywordHash_t **menuParseKeywordHash = reinterpret_cast<keywordHash_t **>(0x63AE928);
 
+	int* svs_time = reinterpret_cast<int*>(0x31D9384);
 	int* svs_numclients = reinterpret_cast<int*>(0x31D938C);
 	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);
 

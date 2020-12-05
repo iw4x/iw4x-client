@@ -4481,7 +4481,15 @@ namespace Game
 		// 0
 		clientstate_t state;
 		// 4
-		char pad[36];
+		char _pad[4];
+		// 8
+		int deltaMessage;
+		// 12
+		char __pad[12];
+		// 24
+		int outgoingSequence;
+		// 28
+		char pad[12];
 		// 40
 		netadr_t addr;
 		// 60

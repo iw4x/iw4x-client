@@ -58,7 +58,7 @@ namespace Components
 
 		static void Handle(const std::string& packet, Utils::Slot<Callback> callback);
 		static void OnStart(Utils::Slot<CallbackRaw> callback);
-
+		
 		// Send quake-styled binary data
 		static void Send(Address target, const std::string& data);
 		static void Send(Game::netsrc_t type, Address target, const std::string& data);
@@ -88,6 +88,7 @@ namespace Components
 		static void NetworkStartStub();
 
 		static void PacketErrorCheck();
+		static void NET_DeferPacketToClientStub(Game::netadr_t* from, Game::msg_t* msg);
 	};
 }
 
