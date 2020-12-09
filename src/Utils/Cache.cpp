@@ -4,27 +4,15 @@ namespace Utils
 {
 	const char* Cache::Urls[] =
 	{
-		"https://iw4x.org",
+		"https://xlabs.dev",
+		"https://raw.githubusercontent.com/XLabsProject/iw4x-client"
 		
-		"https://iw4xcachep26muba.onion.to",
-		"https://iw4xcachep26muba.tor2web.xyz",
-		"https://iw4xcachep26muba.onion.ws",
-		"https://iw4xcachep26muba.onion.sh",
-		"https://iw4xcachep26muba.onion.pet",
+		//Links to old onion site - deprecated
+		//"https://iw4xcachep26muba.tor2web.xyz",
+		//"https://iw4xcachep26muba.onion.ws",
+		//"https://iw4xcachep26muba.onion.sh",
+		//"https://iw4xcachep26muba.onion.pet",
 
-		// Links below are dead
-		// Still, let's keep them in case they come back
-		"https://iw4xcachep26muba.onion.rip",
-		"https://iw4xcachep26muba.onion.nu",
-		"https://iw4xcachep26muba.onion.guide",
-		"https://iw4xcachep26muba.onion.casa",
-		"https://iw4xcachep26muba.hiddenservice.net",
-		"https://iw4xcachep26muba.onion.cab",
-		"https://iw4xcachep26muba.onion.link",
-
-		// Not registered yet
-		//"https://iw4xcachejnetuln.onion.to",
-		//"https://iw4xcachedjodc4y.onion.to",
 	};
 	std::string Cache::ValidUrl;
 	std::mutex Cache::CacheMutex;
