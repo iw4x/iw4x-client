@@ -486,7 +486,7 @@ namespace Components
 
 			std::string key = Game::Scr_GetString(0);
 
-			if (!Script::ScriptStorage.contains(key))
+			if (!Script::ScriptStorage.count(key))
 			{
 				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key.c_str()));
 				return;
@@ -505,7 +505,7 @@ namespace Components
 
 			std::string key = Game::Scr_GetString(0);
 
-			if (!Script::ScriptStorage.contains(key))
+			if (!Script::ScriptStorage.count(key))
 			{
 				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key.c_str()));
 				return;
@@ -525,7 +525,7 @@ namespace Components
 
 			std::string key = Game::Scr_GetString(0);
 
-			Game::Scr_AddInt(Script::ScriptStorage.contains(key));
+			Game::Scr_AddInt(Script::ScriptStorage.count(key));
 		});
 
 		Script::AddFunction("StorageClear", [](Game::scr_entref_t) // gsc: StorageClear();
