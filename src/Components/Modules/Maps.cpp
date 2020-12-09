@@ -766,8 +766,7 @@ namespace Components
 				{
 					if (pack.index == dlc)
 					{
-						News::LaunchUpdater(Utils::String::VA("-dlc %i -c", pack.index));
-						//ShellExecuteA(nullptr, "open", pack.url.data(), nullptr, nullptr, SW_SHOWNORMAL);
+						ShellExecute(0, 0, L"https://xlabs.dev/support_iw4x_client.html", 0, 0, SW_SHOW);
 						return;
 					}
 				}
