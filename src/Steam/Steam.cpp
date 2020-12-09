@@ -111,6 +111,7 @@ namespace Steam
 	{
 		bool SteamAPI_Init()
 		{
+			//The latest steam update has broke IW4x's steam integration. As of now the best way of dealing with this is to just disable it. This has been commented out so that if fixed, this may be easily enabled once again.
 			/*Proxy::SetGame(10190);
 
 			if (!Proxy::Inititalize())
