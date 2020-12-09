@@ -111,7 +111,8 @@ namespace Steam
 	{
 		bool SteamAPI_Init()
 		{
-			Proxy::SetGame(10190);
+			//The latest steam update has broke IW4x's steam integration. As of now the best way of dealing with this is to just disable it. This has been commented out so that if fixed, this may be easily enabled once again.
+			/*Proxy::SetGame(10190);
 
 			if (!Proxy::Inititalize())
 			{
@@ -122,7 +123,7 @@ namespace Steam
 			{
 				Proxy::SetMod("IW4x: Modern Warfare 2");
 				Proxy::RunGame();
-			}
+			}*/
 
 			return true;
 		}
