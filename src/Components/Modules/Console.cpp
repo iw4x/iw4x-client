@@ -537,7 +537,7 @@ namespace Components
 	Console::Console()
 	{
 		// Console '%s: %s> ' string
-		Utils::Hook::Set<char*>(0x5A44B4, "IW4x: " VERSION "> ");
+		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x: " VERSION "> ");
 
 		// Patch console color
 		static float consoleColor[] = { 0.70f, 1.00f, 0.00f, 1.00f };

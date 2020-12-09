@@ -154,7 +154,7 @@ namespace Steam
 		gameID.type = 1; // k_EGameIDTypeGameMod
 		gameID.appID = Proxy::AppId & 0xFFFFFF;
 
-		char* modId = "IW4x";
+		char* modId = const_cast<char*>("IW4x");
 		gameID.modID = *reinterpret_cast<unsigned int*>(modId) | 0x80000000;
 
 		Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
@@ -194,7 +194,7 @@ namespace Steam
 
 	void Proxy::RunMod()
 	{
-		char* command = "-proc ";
+		const char* command = "-proc ";
 		char* parentProc = strstr(GetCommandLineA(), command);
 
 		if (parentProc)

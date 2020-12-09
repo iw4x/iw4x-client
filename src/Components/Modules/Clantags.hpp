@@ -13,7 +13,7 @@ namespace Components
 		~ClanTags();
 
 	private:
-		static std::string ClanTags::Tags[18];
+		static std::string Tags[18];
 
 		static void DrawPlayerNameOnScoreboard();
 

@@ -210,7 +210,7 @@ namespace Components
 		// Force xblive_privatematch 0 and rename it
 		//Utils::Hook::Set<BYTE>(0x420A6A, 4);
 		Utils::Hook::Set<BYTE>(0x420A6C, 0);
-		Utils::Hook::Set<char*>(0x420A6E, "xblive_privateserver");
+		Utils::Hook::Set<const char*>(0x420A6E, "xblive_privateserver");
 
 		// Remove migration shutdown, it causes crashes and will be destroyed when erroring anyways
 		Utils::Hook::Nop(0x5A8E1C, 12);
@@ -244,9 +244,9 @@ namespace Components
 		//Utils::Hook(0x4D5D51, Party::RegisterMinPlayers, HOOK_CALL).install()->quick();
 
 		// Set ui_maxclients to sv_maxclients
-		Utils::Hook::Set<char*>(0x42618F, "sv_maxclients");
-		Utils::Hook::Set<char*>(0x4D3756, "sv_maxclients");
-		Utils::Hook::Set<char*>(0x5E3772, "sv_maxclients");
+		Utils::Hook::Set<const char*>(0x42618F, "sv_maxclients");
+		Utils::Hook::Set<const char*>(0x4D3756, "sv_maxclients");
+		Utils::Hook::Set<const char*>(0x5E3772, "sv_maxclients");
 
 		// Unlatch maxclient dvars
 		Utils::Hook::Xor<BYTE>(0x426187, Game::dvar_flag::DVAR_FLAG_LATCHED);

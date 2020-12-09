@@ -27,7 +27,7 @@ namespace Components
 			return const_cast<char*>(this->dvar->current.string);
 		}
 
-		return "";
+		return const_cast<char*>("");
 	}
 	template <> const char* Dvar::Var::get()
 	{

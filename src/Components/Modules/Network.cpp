@@ -364,7 +364,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4050A5, 125);
 
 		// Parse port as short in Net_AddrToString
-		Utils::Hook::Set<char*>(0x4698E3, "%u.%u.%u.%u:%hu");
+		Utils::Hook::Set<const char*>(0x4698E3, "%u.%u.%u.%u:%hu");
 
 		// Install startup handler
 		Utils::Hook(0x4FD4D4, Network::NetworkStartStub, HOOK_JUMP).install()->quick();

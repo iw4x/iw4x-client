@@ -25,7 +25,7 @@ namespace Components
 
 	char* Command::ClientParams::get(size_t index)
 	{
-		if (index >= this->length()) return "";
+		if (index >= this->length()) return const_cast<char*>("");
 		return Game::cmd_argv[this->commandId][index];
 	}
 
@@ -36,7 +36,7 @@ namespace Components
 
 	char* Command::ServerParams::get(size_t index)
 	{
-		if (index >= this->length()) return "";
+		if (index >= this->length()) return const_cast<char*>("");
 		return Game::cmd_argv_sv[this->commandId][index];
 	}
 
