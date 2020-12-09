@@ -149,7 +149,7 @@ namespace Utils
 
 		std::string FormatBandwidth(size_t bytes, int milliseconds)
 		{
-			static char* sizes[] =
+			static const char* sizes[] =
 			{
 				"B",
 				"KB",

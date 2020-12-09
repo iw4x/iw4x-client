@@ -15,7 +15,7 @@ namespace Components
 
 		static void Add(const std::string& menu);
 
-		static Game::MenuList* Menus::LoadCustomMenuList(const std::string& menu, Utils::Memory::Allocator* allocator);
+		static Game::MenuList* LoadCustomMenuList(const std::string& menu, Utils::Memory::Allocator* allocator);
 		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(Game::menuDef_t* menudef);
 		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(const std::string& file);
 		

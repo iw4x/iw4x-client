@@ -693,7 +693,7 @@ namespace Game
 
 	void Vec3Normalize(vec3_t& vec)
 	{
-		const auto length = std::sqrt(std::pow(vec[0], 2) + std::pow(vec[1], 2) + std::pow(vec[2], 2));
+		const float length = static_cast<float>(std::sqrt(std::pow(vec[0], 2) + std::pow(vec[1], 2) + std::pow(vec[2], 2)));
 		vec[0] /= length;
 		vec[1] /= length;
 		vec[2] /= length;

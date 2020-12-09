@@ -15,7 +15,7 @@ namespace Utils
 	bool IsWineEnvironment();
 
 	unsigned long GetParentProcessId();
-	size_t GetModuleSize(HMODULE module);
+	size_t GetModuleSize(HMODULE);
 	void* GetThreadStartAddress(HANDLE hThread);
 	HMODULE GetNTDLL();
 

@@ -159,7 +159,7 @@ namespace Components
 
 	__declspec(naked) void QuickPatch::InvalidNameStub()
 	{
-		static char* kick_reason = "Invalid name detected.";
+		static const char* kick_reason = "Invalid name detected.";
 
 		__asm
 		{
@@ -216,11 +216,11 @@ namespace Components
 	{
 		static std::vector < char * > values =
 		{
-			"auto",
-			"standard",
-			"wide 16:10",
-			"wide 16:9",
-			"custom",
+			const_cast<char*>("auto"),
+			const_cast<char*>("standard"),
+			const_cast<char*>("wide 16:10"),
+			const_cast<char*>("wide 16:9"),
+			const_cast<char*>("custom"),
 			nullptr,
 		};
 
@@ -443,16 +443,16 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);
 
 		// fs_basegame
-		Utils::Hook::Set<char*>(0x6431D1, BASEGAME);
+		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
 
 		// UI version string
-		Utils::Hook::Set<char*>(0x43F73B, "IW4x: " VERSION);
+		Utils::Hook::Set<const char*>(0x43F73B, "IW4x: " VERSION);
 
 		// console version string
-		Utils::Hook::Set<char*>(0x4B12BB, "IW4x " VERSION " (built " __DATE__ " " __TIME__ ")");
+		Utils::Hook::Set<const char*>(0x4B12BB, "IW4x " VERSION " (built " __DATE__ " " __TIME__ ")");
 
 		// version string
-		Utils::Hook::Set<char*>(0x60BD56, "IW4x (" VERSION ")");
+		Utils::Hook::Set<const char*>(0x60BD56, "IW4x (" VERSION ")");
 
 		// version string color
 		static float buildLocColor[] = { 1.0f, 1.0f, 1.0f, 0.8f };
@@ -469,33 +469,33 @@ namespace Components
 		// console title
 		if (ZoneBuilder::IsEnabled())
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (" VERSION "): ZoneBuilder");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): ZoneBuilder");
 		}
 		else if (Dedicated::IsEnabled())
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (" VERSION "): Dedicated");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Dedicated");
 		}
 		else
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (" VERSION "): Console");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Console");
 		}
 
 		// window title
-		Utils::Hook::Set<char*>(0x5076A0, "IW4x: Multiplayer");
+		Utils::Hook::Set<const char*>(0x5076A0, "IW4x: Multiplayer");
 
 		// sv_hostname
-		Utils::Hook::Set<char*>(0x4D378B, "IW4Host");
+		Utils::Hook::Set<const char*>(0x4D378B, "IW4Host");
 
 		// shortversion
-		Utils::Hook::Set<char*>(0x60BD91, SHORTVERSION);
+		Utils::Hook::Set<const char*>(0x60BD91, SHORTVERSION);
 
 		// console logo
-		Utils::Hook::Set<char*>(0x428A66, BASEGAME "/images/logo.bmp");
+		Utils::Hook::Set<const char*>(0x428A66, BASEGAME "/images/logo.bmp");
 
 		// splash logo
-		Utils::Hook::Set<char*>(0x475F9E, BASEGAME "/images/splash.bmp");
+		Utils::Hook::Set<const char*>(0x475F9E, BASEGAME "/images/splash.bmp");
 
-		Utils::Hook::Set<char*>(0x4876C6, "Successfully read stats data\n");
+		Utils::Hook::Set<const char*>(0x4876C6, "Successfully read stats data\n");
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
@@ -596,21 +596,21 @@ namespace Components
 		// intro stuff
 		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
 		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset the intro dvar
-		Utils::Hook::Set<char*>(0x60BED2, "unskippablecinematic IW_logo\n");
-		Utils::Hook::Set<char*>(0x51C2A4, "%s\\" BASEGAME "\\video\\%s.bik");
+		Utils::Hook::Set<const char*>(0x60BED2, "unskippablecinematic IW_logo\n");
+		Utils::Hook::Set<const char*>(0x51C2A4, "%s\\" BASEGAME "\\video\\%s.bik");
 		Utils::Hook::Set<DWORD>(0x51C2C2, 0x78A0AC);
 
 		// Redirect logs
-		Utils::Hook::Set<char*>(0x5E44D8, "logs/games_mp.log");
-		Utils::Hook::Set<char*>(0x60A90C, "logs/console_mp.log");
-		Utils::Hook::Set<char*>(0x60A918, "logs/console_mp.log");
+		Utils::Hook::Set<const char*>(0x5E44D8, "logs/games_mp.log");
+		Utils::Hook::Set<const char*>(0x60A90C, "logs/console_mp.log");
+		Utils::Hook::Set<const char*>(0x60A918, "logs/console_mp.log");
 
 		// Rename config
-		Utils::Hook::Set<char*>(0x461B4B, CLIENT_CONFIG);
-		Utils::Hook::Set<char*>(0x47DCBB, CLIENT_CONFIG);
-		Utils::Hook::Set<char*>(0x6098F8, CLIENT_CONFIG);
-		Utils::Hook::Set<char*>(0x60B279, CLIENT_CONFIG);
-		Utils::Hook::Set<char*>(0x60BBD4, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x461B4B, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x47DCBB, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x6098F8, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x60B279, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x60BBD4, CLIENT_CONFIG);
 
 		// Disable profile system
 //		Utils::Hook::Nop(0x60BEB1, 5);          // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.

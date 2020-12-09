@@ -24,7 +24,7 @@ namespace Steam
 		{
 			if (Components::Dedicated::IsEnabled() || Components::ZoneBuilder::IsEnabled()) // Dedi guid
 			{
-				idBits = *reinterpret_cast<unsigned __int64*>(static_cast<char*>("DEDICATE"));
+				idBits = *reinterpret_cast<unsigned __int64*>(const_cast<char*>("DEDICATE"));
 			}
 			else if (Components::Singleton::IsFirstInstance()) // ECDSA guid
 			{

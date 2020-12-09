@@ -31,7 +31,7 @@ namespace Components
 			if (mode != "append"s && mode != "write"s)
 			{
 				Game::Com_Printf(0, "^3fileWrite: mode not defined or was wrong, defaulting to 'write'\n");
-				mode = "write";
+				mode = const_cast<char*>("write");
 			}
 
 			if (mode == "write"s)
