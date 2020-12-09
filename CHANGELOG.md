@@ -4,15 +4,50 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [unreleased] - xxxx-xx-xx
+## [0.6.1 Community] - 2020-12-05
 
 ### Added
 
 - Add host information to /info endpoint (request)
+- Add fileWrite GSC Function (#36)
+- Add fileRead GSC Function (#36)
+- Add fileExists GSC Function (#36)
+- Add fileRemove GSC Function (#36)
+- Add botMovement GSC Function (#46)
+- Add botAction GSC Function (#46)
+- Add botWeapon GSC Function (#46)
+- Add botStop GSC Function (#46)
+- Add isBot GSC Function (#46)
+- Add setPing GSC Function (#46)
+- Add GetSystemTime and GetSystemTimeMilliseconds GSC Functions (#46)
+- Add PrintConsole GSC Function (#46)
+- Add Exec GSC Function (#46)
+- Add getIP GSC Method (#36)
+- Add getPing GSC Method (#36)
+- Add scr_intermissionTime GSC Function (#25)
+- Add g_playerCollision Dvar (#36)
+- Add g_playerEjection Dvar (#36)
+- Add r_specularCustomMaps Dvar (#36)
+- Unlock safeArea_horizontal and safeArea_vertical Dvars (#42)
+- Unlock cg_fovscale Dvar (#47)
 
 ### Changed
 
 - Stats are now separate for each mod (#6). Player stats are copied to `fs_game` folder if no stats exist for this mod yet. Keep in mind this also means that level, XP and classes will not be synchronized with the main stats file after this point.
+- Reduced duration of toasts (#48)
+- Removed old updater functionality
+- Use old bot names if bots.txt is not found (#46)
+- Removed Steam integration because Steam updates kept breaking it (#51)
+
+### Fixed
+
+- Fixed a node system related crash (#45)
+- Fixed an issue that made dedicated servers crash when info was requested during map rotation (#43)
+- Fixed an issue where the game was trying to decrypt gsc files which caused it to crash when loading mods (#35)
+
+
+#######################End of official IW4x Development - Project goes Open Source#######################
+
 
 ## [0.6.0] - 2018-12-30
 
