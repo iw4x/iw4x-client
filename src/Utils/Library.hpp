@@ -5,7 +5,7 @@ namespace Utils
 	class Library
 	{
 	public:
-		Library() : module(nullptr), freeOnDestroy(false) {};
+		Library() : _module(nullptr), freeOnDestroy(false) {};
 		Library(const std::string& buffer, bool freeOnDestroy = true);
 		~Library();
 
@@ -26,7 +26,7 @@ namespace Utils
 		void free();
 
 	private:
-		HMODULE module;
+		HMODULE _module;
 		bool freeOnDestroy;
 	};
 }

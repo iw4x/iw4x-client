@@ -7,6 +7,6 @@ namespace Components
 	public:
 		RawFiles();
 
-		static void* RawFiles::LoadModdableRawfileFunc(const char* filename);
+		static void* LoadModdableRawfileFunc(const char* filename);
 	};
 }

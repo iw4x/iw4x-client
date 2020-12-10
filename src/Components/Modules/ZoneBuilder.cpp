@@ -510,7 +510,7 @@ namespace Components
 	// Add branding asset
 	void ZoneBuilder::Zone::addBranding()
 	{
-		char* data = "FastFile built using the IW4x ZoneBuilder!";
+		const char* data = "FastFile built using the IW4x ZoneBuilder!";
 		this->branding = { this->zoneName.data(), static_cast<int>(strlen(data)), 0, data };
 
 		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
@@ -1306,7 +1306,7 @@ namespace Components
 
 				// HACK: set language to 'techsets' to load from that dir
 				char* language = Utils::Hook::Get<char*>(0x649E740);
-				Utils::Hook::Set<char*>(0x649E740, "techsets");
+				Utils::Hook::Set<const char*>(0x649E740, "techsets");
 
 				// load generated techset fastfiles
 				auto list = Utils::IO::ListFiles("zone/techsets");
@@ -1366,7 +1366,7 @@ namespace Components
 						info.freeFlags = Game::DB_ZONE_MOD;
 						Game::DB_LoadXAssets(&info, 1, true);
 
-						Utils::Hook::Set<char*>(0x649E740, "techsets");
+						Utils::Hook::Set<const char*>(0x649E740, "techsets");
 
 						i = 0;
 						subCount++;

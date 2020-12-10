@@ -371,7 +371,7 @@ namespace Components
 		UIFeeder::Add(10.0f, Theatre::GetDemoCount, Theatre::GetDemoText, Theatre::SelectDemo);
 
 		// set the configstrings stuff to load the default (empty) string table; this should allow demo recording on all gametypes/maps
-		if (!Dedicated::IsEnabled()) Utils::Hook::Set<char*>(0x47440B, "mp/defaultStringTable.csv");
+		if (!Dedicated::IsEnabled()) Utils::Hook::Set<const char*>(0x47440B, "mp/defaultStringTable.csv");
 
 		// Change font size
 		Utils::Hook::Set<BYTE>(0x5AC854, 2);
