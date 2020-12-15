@@ -8,6 +8,7 @@ namespace Components
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
 	std::unordered_map<std::string, std::string> Script::ScriptStorage;
+	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
 
 	Utils::Signal<Scheduler::Callback> Script::VMShutdownSignal;
 
@@ -289,8 +290,88 @@ namespace Components
 		}
 	}
 
+	void Script::StoreScriptBaseProgramNum()
+	{
+		Script::ScriptBaseProgramNum.insert_or_assign(Utils::Hook::Get<int>(0x1CFEEF8), Script::ScriptName);
+	}
+
+	void Script::Scr_PrintPrevCodePos(int scriptPos)
+	{
+		int bestCodePos = -1;
+		int nextCodePos = -1;
+		int offset = -1;
+		std::string file;
+
+		for (auto kv : Script::ScriptBaseProgramNum)
+		{
+			int codePos = kv.first;
+
+			if (codePos > scriptPos)
+			{
+				if (nextCodePos == -1 || codePos < nextCodePos)
+					nextCodePos = codePos;
+
+				continue;
+			}
+
+			if (codePos < bestCodePos)
+				continue;
+
+			bestCodePos = codePos;
+
+			file = kv.second;
+			offset = scriptPos - bestCodePos;
+		}
+
+		if (bestCodePos == -1)
+			return;
+
+		float onehundred = 100.0;
+
+		Logger::Print(23, "\n@ %d (%d - %d)\n", scriptPos, bestCodePos, nextCodePos);
+		Logger::Print(23, "in %s (%.1f%% through the source)\n\n", file.c_str(), ((offset * onehundred) / (nextCodePos - bestCodePos)));
+	}
+
+	__declspec(naked) void Script::Scr_PrintPrevCodePosStub()
+	{
+		__asm
+		{
+			push esi
+			call Script::Scr_PrintPrevCodePos
+			add esp, 4h
+
+			pop esi
+			retn
+		}
+	}
+
+	__declspec(naked) void Script::StoreScriptBaseProgramNumStub()
+	{
+		__asm
+		{
+			// execute our hook
+			pushad
+			pusha
+
+			call Script::StoreScriptBaseProgramNum
+
+			popa
+			popad
+
+			// execute overwritten code caused by the jump hook
+			sub     eax, ds:201A460h // gScrVarPub_programBuffer
+			add     esp, 0Ch
+			mov     ds : 1CFEEF8h, eax // gScrCompilePub_programLen
+
+			// jump back to the original code
+			push    426C3Bh
+			retn
+		}
+	}
+
 	void Script::OnVMShutdown(Utils::Slot<Scheduler::Callback> callback)
 	{
+		Script::ScriptBaseProgramNum.clear();
 		Script::VMShutdownSignal.connect(callback);
 	}
 
@@ -458,6 +539,17 @@ namespace Components
 		Utils::Hook(0x612DB0, Script::StoreFunctionNameStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x427E71, Script::RestoreScriptNameStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x427DBC, Script::StoreScriptNameStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x426C2D, Script::StoreScriptBaseProgramNumStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x42281B, Script::Scr_PrintPrevCodePosStub, HOOK_JUMP).install()->quick();
+
+		// enable scr_error printing if in developer
+		Dvar::OnInit([]()
+		{
+			int developer = Dvar::Var("developer").get<int>();
+
+			if (developer > 0)
+				Utils::Hook::Set<BYTE>(0x48D8C7, 0x75);
+		});
 
 		Utils::Hook(0x612E8D, Script::FunctionError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x612EA2, Script::FunctionError, HOOK_CALL).install()->quick();
@@ -517,5 +609,6 @@ namespace Components
 		Script::VMShutdownSignal.clear();
 
 		Script::ScriptStorage.clear();
+		Script::ScriptBaseProgramNum.clear();
 	}
 }
