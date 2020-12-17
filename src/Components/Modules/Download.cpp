@@ -964,36 +964,35 @@ namespace Components
 			Download::ScriptDownloads.clear();
 		});
 
-		if (Dedicated::IsEnabled() || Flags::HasFlag("scriptablehttp"))
+		Script::AddFunction("httpGet", [](Game::scr_entref_t)
 		{
-			Script::AddFunction("httpGet", [](Game::scr_entref_t)
+			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp")) return;
+			if (Game::Scr_GetNumParam() < 1) return;
+
+			std::string url = Game::Scr_GetString(0);
+			unsigned int object = Game::AllocObject();
+
+			Game::Scr_AddObject(object);
+
+			Download::ScriptDownloads.push_back(std::make_shared<ScriptDownload>(url, object));
+			Game::RemoveRefToObject(object);
+		});
+
+		Script::AddFunction("httpCancel", [](Game::scr_entref_t)
+		{
+			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp")) return;
+			if (Game::Scr_GetNumParam() < 1) return;
+
+			unsigned int object = Game::Scr_GetObject(0);
+			for (auto& download : Download::ScriptDownloads)
 			{
-				if (Game::Scr_GetNumParam() < 1) return;
-
-				std::string url = Game::Scr_GetString(0);
-				unsigned int object = Game::AllocObject();
-
-				Game::Scr_AddObject(object);
-
-				Download::ScriptDownloads.push_back(std::make_shared<ScriptDownload>(url, object));
-				Game::RemoveRefToObject(object);
-			});
-
-			Script::AddFunction("httpCancel", [](Game::scr_entref_t)
-			{
-				if (Game::Scr_GetNumParam() < 1) return;
-
-				unsigned int object = Game::Scr_GetObject(0);
-				for (auto& download : Download::ScriptDownloads)
+				if (object == download->getObject())
 				{
-					if (object == download->getObject())
-					{
-						download->cancel();
-						break;
-					}
+					download->cancel();
+					break;
 				}
-			});
-		}
+			}
+		});
 	}
 
 	Download::~Download()

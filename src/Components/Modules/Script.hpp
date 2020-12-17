@@ -39,7 +39,7 @@ namespace Components
 		static std::vector<std::string> ScriptNameStack;
 		static unsigned short FunctionName;
 		static std::unordered_map<std::string, std::string> ScriptStorage;
-		static std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
+		static std::unordered_map<int, std::string> ScriptBaseProgramNum;
 
 		static Utils::Signal<Scheduler::Callback> VMShutdownSignal;
 
