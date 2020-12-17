@@ -10,6 +10,8 @@ namespace Steam
 	Interface        Proxy::ClientUser;
 	Interface        Proxy::ClientFriends;
 
+	Interface        Proxy::Placeholder;
+
 	Proxy::Handle Proxy::SteamPipe = nullptr;
 	Proxy::Handle Proxy::SteamUser = nullptr;
 
@@ -414,6 +416,9 @@ namespace Steam
 
 		Proxy::ClientUser = Proxy::ClientEngine->GetIClientUser(Proxy::SteamUser, Proxy::SteamPipe);
 		if (!Proxy::ClientUser) return false;
+
+		//temporary fix required since Steam runtime update v0.20201203.1 (an additional function was added by steam)
+		Proxy::Placeholder = Proxy::ClientEngine->Placeholder(0);
 
 		Proxy::ClientFriends = Proxy::ClientEngine->GetIClientFriends(Proxy::SteamUser, Proxy::SteamPipe);
 		if (!Proxy::ClientFriends) return false;
