@@ -30,23 +30,24 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add r_specularCustomMaps Dvar (#36)
 - Unlock safeArea_horizontal and safeArea_vertical Dvars (#42)
 - Unlock cg_fovscale Dvar (#47)
+- Print script runtime errors when developer mode is enabled (#55)
 
 ### Changed
 
 - Stats are now separate for each mod (#6). Player stats are copied to `fs_game` folder if no stats exist for this mod yet. Keep in mind this also means that level, XP and classes will not be synchronized with the main stats file after this point.
 - Reduced duration of toasts (#48)
-- Removed old updater functionality
+- Removed old updater functionality (#54)
 - Use old bot names if bots.txt is not found (#46)
-- Removed Steam integration because Steam updates kept breaking it (#51)
 
 ### Fixed
 
 - Fixed a node system related crash (#45)
 - Fixed an issue that made dedicated servers crash when info was requested during map rotation (#43)
 - Fixed an issue where the game was trying to decrypt gsc files which caused it to crash when loading mods (#35)
+- Fixed an issue causing the game to crash when Steam was running in the background (#56)
 
 
-#######################End of official IW4x Development - Project goes Open Source#######################
+####End of official IW4x Development - Project goes Open Source####
 
 
 ## [0.6.0] - 2018-12-30
