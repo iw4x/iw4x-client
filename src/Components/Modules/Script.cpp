@@ -9,6 +9,7 @@ namespace Components
 	unsigned short Script::FunctionName;
 	std::unordered_map<std::string, std::string> Script::ScriptStorage;
 	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
+	int Script::LastFrameTime = -1;
 
 	Utils::Signal<Scheduler::Callback> Script::VMShutdownSignal;
 
@@ -565,6 +566,24 @@ namespace Components
 
 		Utils::Hook(0x47548B, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4D06BA, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
+
+		Scheduler::OnFrame([]()
+		{
+			if (!Game::SV_Loaded())
+				return;
+
+			int nowMs = Game::Sys_Milliseconds();
+
+			if (Script::LastFrameTime != -1)
+			{
+				int timeTaken = static_cast<int>((nowMs - Script::LastFrameTime) * Dvar::Var("timescale").get<float>());
+
+				if (timeTaken >= 500)
+					Logger::Print(23, "Hitch warning: %i msec frame time\n", timeTaken);
+			}
+
+			Script::LastFrameTime = nowMs;
+		});
 
 		Script::AddFunction("debugBox", [](Game::scr_entref_t)
 		{
