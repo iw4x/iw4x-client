@@ -231,26 +231,6 @@ namespace Components
 			auto oldHandler = Exception::Hook();
 			Logger::Print("Old exception handler was 0x%010X.\n", oldHandler);
 		});
-
-		// Check if folder exists && crash-helper exists
-
-		if (Utils::IO::DirectoryExists("minidumps\\") && Utils::IO::FileExists("crash-helper.exe"))
-		{
-			if (!Utils::IO::DirectoryIsEmpty("minidumps\\"))
-			{
-				STARTUPINFOA        sInfo;
-				PROCESS_INFORMATION pInfo;
-
-				ZeroMemory(&sInfo, sizeof(sInfo));
-				ZeroMemory(&pInfo, sizeof(pInfo));
-				sInfo.cb = sizeof(sInfo);
-
-				CreateProcessA("crash-helper.exe", const_cast<char*>(Utils::String::VA("crash-helper.exe %s", VERSION)), nullptr, nullptr, false, NULL, nullptr, nullptr, &sInfo, &pInfo);
-
-				if (pInfo.hThread && pInfo.hThread != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hThread);
-				if (pInfo.hProcess && pInfo.hProcess != INVALID_HANDLE_VALUE) CloseHandle(pInfo.hProcess);
-			}
-		}
 	}
 
 	Exception::~Exception()

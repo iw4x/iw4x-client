@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.6.1 Community] - 2020-12-05
+## [0.6.1] - 2020-12-22
 
 ### Added
 
@@ -30,7 +30,6 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add r_specularCustomMaps Dvar (#36)
 - Unlock safeArea_horizontal and safeArea_vertical Dvars (#42)
 - Unlock cg_fovscale Dvar (#47)
-- Print script runtime errors when developer mode is enabled (#55)
 
 ### Changed
 
@@ -45,10 +44,11 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fixed an issue that made dedicated servers crash when info was requested during map rotation (#43)
 - Fixed an issue where the game was trying to decrypt gsc files which caused it to crash when loading mods (#35)
 - Fixed an issue causing the game to crash when Steam was running in the background (#56)
+- Fixed slow download speed when using fast download
 
+### Known issues
 
-####End of official IW4x Development - Project goes Open Source####
-
+- HTTPS is not supported for fast downloads at the moment.
 
 ## [0.6.0] - 2018-12-30
 
