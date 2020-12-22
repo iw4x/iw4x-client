@@ -188,6 +188,7 @@ namespace Components
 			"Dss0",
 			"H3X1C",
 			"HardNougat",
+			"Homura",
 			"INeedGames",
 			"Killera",
 			"Lithium",
