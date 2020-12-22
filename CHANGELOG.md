@@ -35,15 +35,15 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Stats are now separate for each mod (#6). Player stats are copied to `fs_game` folder if no stats exist for this mod yet. Keep in mind this also means that level, XP and classes will not be synchronized with the main stats file after this point.
 - Reduced duration of toasts (#48)
-- Removed old updater functionality
+- Removed old updater functionality (#54)
 - Use old bot names if bots.txt is not found (#46)
-- Removed Steam integration because Steam updates kept breaking it (#51)
 
 ### Fixed
 
 - Fixed a node system related crash (#45)
 - Fixed an issue that made dedicated servers crash when info was requested during map rotation (#43)
 - Fixed an issue where the game was trying to decrypt gsc files which caused it to crash when loading mods (#35)
+- Fixed an issue causing the game to crash when Steam was running in the background (#56)
 - Fixed slow download speed when using fast download
 
 ### Known issues
