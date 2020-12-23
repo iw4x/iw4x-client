@@ -39,6 +39,10 @@ namespace Components
 		static void SetAspectRatioStub();
 		static void SetAspectRatio();
 
+		static Game::dvar_t* g_antilag;
+		static void ClientEventsFireWeaponStub();
+		static void ClientEventsFireWeaponMeleeStub();
+
 		static Game::dvar_t* g_playerCollision;
 		static void PlayerCollisionStub();
 		static Game::dvar_t* g_playerEjection;
