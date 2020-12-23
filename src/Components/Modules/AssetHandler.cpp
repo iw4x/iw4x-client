@@ -3,6 +3,7 @@
 namespace Components
 {
 	thread_local int AssetHandler::BypassState = 0;
+    bool AssetHandler::ShouldSearchTempAssets = false;
 	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, Utils::Slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
 	Utils::Signal<AssetHandler::RestrictCallback> AssetHandler::RestrictSignal;
@@ -69,6 +70,21 @@ namespace Components
 		return header;
 	}
 
+    Game::XAssetHeader AssetHandler::FindTemporaryAsset(Game::XAssetType type, const char* filename)
+    {
+        Game::XAssetHeader header = { nullptr };
+        if (type >= Game::XAssetType::ASSET_TYPE_COUNT) return header;
+
+        auto tempPool = &AssetHandler::TemporaryAssets[type];
+        auto entry = tempPool->find(filename);
+        if (entry != tempPool->end())
+        {
+            header = { entry->second };
+        }
+
+        return header;
+    }    
+
 	int AssetHandler::HasThreadBypass()
 	{
 		return AssetHandler::BypassState > 0;
@@ -116,7 +132,7 @@ namespace Components
 
 
 			test al, al
-			jnz finishOriginal
+			jnz checkTempAssets
 
 			mov ecx, [esp + 18h] // Asset type
 			mov ebx, [esp + 1Ch] // Filename
@@ -139,9 +155,28 @@ namespace Components
 
 			test eax, eax
 			jnz finishFound
+            
+        checkTempAssets:
+            mov al, AssetHandler::ShouldSearchTempAssets // check to see if enabled
+            test eax, eax
+            jz finishOriginal
 
-		finishOriginal:
-			// Asset not found using custom handlers, redirect to DB_FindXAssetHeader
+            mov ecx, [esp + 18h] // Asset type
+            mov ebx, [esp + 1Ch] // Filename
+
+            push ebx
+            push ecx
+
+            call AssetHandler::FindTemporaryAsset
+
+            add esp, 8h
+
+            test eax, eax
+            jnz finishFound
+            
+        finishOriginal:
+			// Asset not found using custom handlers or in temp assets or bypasses were enabled
+            // redirect to DB_FindXAssetHeader
 			mov ebx, ds:6D7190h // InterlockedDecrement
 			mov eax, 40793Bh
 			jmp eax
@@ -181,7 +216,7 @@ namespace Components
 		}
 
 		// Fix shader const stuff
-		if (type == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET && Zones::Version() >= 359)
+		if (type == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET && Zones::Version() >= 359 && Zones::Version() < 448)
 		{
 			for (int i = 0; i < 48; ++i)
 			{
@@ -454,6 +489,11 @@ namespace Components
 		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, entryPool + 1);
 	}
 
+    void AssetHandler::ExposeTemporaryAssets(bool expose)
+    {
+        AssetHandler::ShouldSearchTempAssets = expose;
+    }
+
 	AssetHandler::AssetHandler()
 	{
 		this->reallocateEntryPool();
@@ -493,6 +533,210 @@ namespace Components
 
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
 		{
+#ifdef DEBUG
+// #define DUMP_TECHSETS
+#ifdef DUMP_TECHSETS
+			if (type == Game::XAssetType::ASSET_TYPE_VERTEXDECL && !name.empty() && name[0] != ',')
+			{
+				std::filesystem::create_directories("techsets/vertexdecl");
+
+				auto vertexdecl = asset.vertexDecl;
+
+				std::vector<json11::Json> routingData;
+				for (int i = 0; i < vertexdecl->streamCount; i++)
+				{
+					routingData.push_back(json11::Json::object
+						{
+							{ "source", (int)vertexdecl->routing.data[i].source },
+							{ "dest", (int)vertexdecl->routing.data[i].dest },
+						});
+				}
+
+				std::vector<json11::Json> declData;
+				for (int i = 0; i < 16; i++)
+				{
+					if (vertexdecl->routing.decl[i])
+					{
+						routingData.push_back(int(vertexdecl->routing.decl[i]));
+					}
+					else
+					{
+						routingData.push_back(nullptr);
+					}
+				}
+
+				json11::Json vertexData = json11::Json::object
+				{
+					{ "name", vertexdecl->name },
+					{ "streamCount", vertexdecl->streamCount },
+					{ "hasOptionalSource", vertexdecl->hasOptionalSource },
+					{ "routing", routingData },
+					{ "decl", declData },
+				};
+
+				auto stringData = vertexData.dump();
+
+				auto fp = fopen(Utils::String::VA("techsets/vertexdecl/%s.%s.json", vertexdecl->name, Zones::Version() > 276 ? "codo" : "iw4"), "wb");
+				fwrite(&stringData[0], stringData.size(), 1, fp);
+				fclose(fp);
+			}
+
+			if (type == Game::ASSET_TYPE_TECHNIQUE_SET && !name.empty() && name[0] != ',')
+			{
+				std::filesystem::create_directory("techsets");
+				std::filesystem::create_directories("techsets/techniques");
+				
+				auto techset = asset.techniqueSet;
+
+				std::vector<json11::Json> techniques;
+				for (int technique = 0; technique < 48; technique++)
+				{
+					auto curTech = techset->techniques[technique];
+					if (curTech)
+					{
+						std::vector<json11::Json> passDataArray;
+						for (int pass = 0; pass < curTech->passCount; pass++)
+						{
+							auto curPass = &curTech->passArray[pass];
+
+							std::vector<json11::Json> argDataArray;
+							for (int arg = 0; arg < curPass->perObjArgCount + curPass->perPrimArgCount + curPass->stableArgCount; arg++)
+							{
+								auto curArg = &curPass->args[arg];
+
+								if (curArg->type == 1 || curArg->type == 7)
+								{
+									std::vector<float> literalConsts;
+									if (curArg->u.literalConst != 0)
+									{
+										literalConsts.push_back(curArg->u.literalConst[0]);
+										literalConsts.push_back(curArg->u.literalConst[1]);
+										literalConsts.push_back(curArg->u.literalConst[2]);
+										literalConsts.push_back(curArg->u.literalConst[3]);
+									}
+
+									json11::Json argData = json11::Json::object
+									{
+										{ "type", curArg->type },
+										{ "value", literalConsts },
+									};
+									argDataArray.push_back(argData);
+								}
+								else if (curArg->type == 3 || curArg->type == 5)
+								{
+									json11::Json argData = json11::Json::object
+									{
+										{ "type", curArg->type },
+										{ "firstRow", curArg->u.codeConst.firstRow },
+										{ "rowCount", curArg->u.codeConst.rowCount },
+										{ "index", curArg->u.codeConst.index },
+									};
+									argDataArray.push_back(argData);
+								}
+								else
+								{
+									json11::Json argData = json11::Json::object
+									{
+										{ "type", curArg->type },
+										{ "value", static_cast<int>(curArg->u.codeSampler) },
+									};
+									argDataArray.push_back(argData);
+								}
+							}
+
+							json11::Json passData = json11::Json::object
+							{
+								{ "perObjArgCount", curPass->perObjArgCount },
+								{ "perPrimArgCount", curPass->perPrimArgCount },
+								{ "stableArgCount", curPass->stableArgCount },
+								{ "args", argDataArray },
+								{ "pixelShader", curPass->pixelShader ? curPass->pixelShader->name : "" },
+								{ "vertexShader", curPass->vertexShader ? curPass->vertexShader->name : "" },
+								{ "vertexDecl", curPass->vertexDecl ? curPass->vertexDecl->name : "" },
+							};
+							passDataArray.push_back(passData);
+						}
+
+						json11::Json techData = json11::Json::object
+						{
+							{ "name", curTech->name },
+							{ "index", technique },
+							{ "flags", curTech->flags },
+							{ "numPasses", curTech->passCount },
+							{ "pass", passDataArray },
+						};
+
+						auto stringData = techData.dump();
+						
+						auto fp = fopen(Utils::String::VA("techsets/techniques/%s.%s.json", curTech->name, Zones::Version() > 276 ? "codo" : "iw4"), "wb");
+						fwrite(&stringData[0], stringData.size(), 1, fp);
+						fclose(fp);
+						
+						json11::Json techsetTechnique = json11::Json::object
+						{
+							{ "name", curTech->name },
+							{ "index", technique },
+						};
+						techniques.push_back(techsetTechnique);
+					}
+					else
+					{
+						techniques.push_back(nullptr);
+					}
+				}
+
+				json11::Json techsetData = json11::Json::object
+				{
+					{ "name", techset->name },
+					{ "techniques", techniques },
+				};
+
+				auto stringData = techsetData.dump();
+
+				auto fp = fopen(Utils::String::VA("techsets/%s.%s.json", techset->name, Zones::Version() > 276 ? "codo" : "iw4"), "wb");
+				fwrite(&stringData[0], stringData.size(), 1, fp);
+				fclose(fp);
+			}
+#endif
+
+			if (type == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET && Zones::Version() >= 460)
+			{
+				auto techset = asset.techniqueSet;
+				if (techset)
+				{
+					for (int t = 0; t < 48; t++)
+					{
+						if (techset->techniques[t])
+						{
+							for (int p = 0; p < techset->techniques[t]->passCount; p++)
+							{
+								for (int a = 0; a < techset->techniques[t]->passArray[p].perObjArgCount +
+									techset->techniques[t]->passArray[p].perPrimArgCount +
+									techset->techniques[t]->passArray[p].stableArgCount; a++)
+								{
+									auto arg = &techset->techniques[t]->passArray[p].args[a];
+									if (arg->type == 3 || arg->type == 5)
+									{
+										if (arg->u.codeConst.index > 140)
+										{
+											OutputDebugStringA(Utils::String::VA("codeConst %i is out of range for %s::%s[%i]\n", arg->u.codeConst.index,
+												techset->name, techset->techniques[t]->name, p));
+
+											if (!ZoneBuilder::IsEnabled())
+											{
+												__debugbreak();
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+#endif
+			
 			if (Dvar::Var("r_noVoid").get<bool>() && type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void")
 			{
 				asset.model->numLods = 0;
@@ -500,16 +744,16 @@ namespace Components
 		});
 
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP, 1);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, ZoneBuilder::IsEnabled() ? 14336 : 7168);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FX, 1200);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, ZoneBuilder::IsEnabled() ? 14336 * 2 : 7168);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700 * 2);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FX, 1200 * 2);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XANIMPARTS, 8192);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL, 5125);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XANIMPARTS, 8192 * 2);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL, 5125 * 2);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PHYSPRESET, 128);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PIXELSHADER, ZoneBuilder::IsEnabled() ? 0x4000 : 10000);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, ZoneBuilder::IsEnabled() ? 0x2000 : 3072);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MATERIAL, 8192);
+		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MATERIAL, 8192 * 2);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXDECL, ZoneBuilder::IsEnabled() ? 0x400 : 196);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, WEAPON_LIMIT);
 		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
@@ -519,12 +763,14 @@ namespace Components
 		if (ZoneBuilder::IsEnabled())
 		{
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, 8192);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, 8192 * 2);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FONT, 32);
 			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_RAWFILE, 2048);
+			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LEADERBOARD, 500);
 
 			AssetHandler::RegisterInterface(new Assets::IFont_s());
+            AssetHandler::RegisterInterface(new Assets::IWeapon());
 			AssetHandler::RegisterInterface(new Assets::IXModel());
 			AssetHandler::RegisterInterface(new Assets::IFxWorld());
 			AssetHandler::RegisterInterface(new Assets::IMapEnts());
@@ -535,8 +781,9 @@ namespace Components
 			AssetHandler::RegisterInterface(new Assets::ISndCurve());
 			AssetHandler::RegisterInterface(new Assets::IMaterial());
 			AssetHandler::RegisterInterface(new Assets::IMenuList());
+            AssetHandler::RegisterInterface(new Assets::IclipMap_t());
 			AssetHandler::RegisterInterface(new Assets::ImenuDef_t());
-			AssetHandler::RegisterInterface(new Assets::IclipMap_t());
+            AssetHandler::RegisterInterface(new Assets::ITracerDef());
 			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
 			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
 			AssetHandler::RegisterInterface(new Assets::IFxEffectDef());

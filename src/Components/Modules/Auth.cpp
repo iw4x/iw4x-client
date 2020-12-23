@@ -8,6 +8,12 @@ namespace Components
 	Utils::Cryptography::Token Auth::ComputeToken;
 	Utils::Cryptography::ECC::Key Auth::GuidKey;
 
+	std::vector<std::uint64_t> Auth::BannedUids = {
+		0xf4d2c30b712ac6e3,
+		0xf7e33c4081337fa3,
+		0x6f5597f103cc50e9
+	};
+	
 	void Auth::Frame()
 	{
 		if (Auth::TokenContainer.generating)
@@ -53,7 +59,7 @@ namespace Components
 			Auth::TokenContainer.cancel = false;
 		}
 	}
-
+	
 	void Auth::SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char *format, int len)
 	{
 		// Ensure our certificate is loaded
@@ -64,6 +70,13 @@ namespace Components
 			return;
 		}
 
+		if (std::find(Auth::BannedUids.begin(), Auth::BannedUids.end(), Steam::SteamUser()->GetSteamID().bits) != Auth::BannedUids.end())
+		{
+			Auth::GenerateKey();
+			Logger::SoftError("Your online profile is invalid. A new key has been generated.");
+			return;
+		}
+		
 		std::string connectString(format, len);
 		Game::SV_Cmd_TokenizeString(connectString.data());
 
@@ -86,7 +99,7 @@ namespace Components
 			return;
 		}
 
-		if (Steam::Enabled() && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Proxy::SteamUser_)
+		if (Steam::Enabled() && !Friends::IsInvisible() && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Proxy::SteamUser_)
 		{
 			infostr.set("realsteamId", Utils::String::VA("%llX", Steam::Proxy::SteamUser_->GetSteamID().bits));
 		}
@@ -187,6 +200,12 @@ namespace Components
 				return;
 			}
 
+			if (std::find(Auth::BannedUids.begin(), Auth::BannedUids.end(), xuid) != Auth::BannedUids.end())
+			{
+				Network::Send(address, "error\nYour online profile is invalid. Delete your players folder and restart ^2IW4x^7.");
+				return;
+			}
+
 			if (xuid != Auth::GetKeyHash(connectData.publickey()))
 			{
 				Network::Send(address, "error\nXUID doesn't match the certificate!");
@@ -268,6 +287,14 @@ namespace Components
 		}
 	}
 
+	void Auth::GenerateKey()
+	{
+		Auth::GuidToken.clear();
+		Auth::ComputeToken.clear();
+		Auth::GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
+		Auth::StoreKey();
+	}
+
 	void Auth::LoadKey(bool force)
 	{
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
@@ -287,10 +314,7 @@ namespace Components
 
 		if (!Auth::GuidKey.isValid())
 		{
-			Auth::GuidToken.clear();
-			Auth::ComputeToken.clear();
-			Auth::GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
-			Auth::StoreKey();
+			Auth::GenerateKey();
 		}
 	}
 

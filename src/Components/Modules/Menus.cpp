@@ -60,7 +60,7 @@ namespace Components
 		int handle = Menus::ReserveSourceHandle();
 		if (!Menus::IsValidSourceHandle(handle)) return 0; // No free source slot!
 
-		Game::script_t *script = Menus::LoadMenuScript(name, buffer);
+		Game::script_t* script = Menus::LoadMenuScript(name, buffer);
 
 		if (!script)
 		{
@@ -70,7 +70,7 @@ namespace Components
 
 		script->next = nullptr;
 
-		Game::source_t *source = allocator->allocate<Game::source_t>();
+		Game::source_t* source = allocator->allocate<Game::source_t>();
 		if (!source)
 		{
 			Game::FreeMemory(script);
@@ -83,7 +83,7 @@ namespace Components
 		source->defines = nullptr;
 		source->indentstack = nullptr;
 		source->skip = 0;
-		source->definehash = static_cast<Game::define_t**>(allocator->allocate(4096));
+		source->definehash = static_cast<Game::define_t * *>(allocator->allocate(4096));
 
 		Game::sourceFiles[handle] = source;
 
@@ -173,6 +173,69 @@ namespace Components
 		return menu;
 	}
 
+	Game::MenuList* Menus::LoadCustomMenuList(const std::string& menu, Utils::Memory::Allocator* allocator)
+	{
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
+		FileSystem::File menuFile(menu);
+
+		if (!menuFile.exists()) return nullptr;
+
+		Game::pc_token_t token;
+		int handle = Menus::LoadMenuSource(menu, menuFile.getBuffer());
+
+		if (Menus::IsValidSourceHandle(handle))
+		{
+			while (true)
+			{
+				ZeroMemory(&token, sizeof(token));
+
+				if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] == '}')
+				{
+					break;
+				}
+
+				if (!_stricmp(token.string, "loadmenu"))
+				{
+					Game::PC_ReadTokenHandle(handle, &token);
+
+					Utils::Merge(&menus, Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", token.string)));
+				}
+
+				if (!_stricmp(token.string, "menudef"))
+				{
+					Game::menuDef_t* menudef = Menus::ParseMenu(handle);
+					if (menudef) menus.push_back({ true, menudef }); // Custom menu
+				}
+			}
+
+			Menus::FreeMenuSource(handle);
+		}
+
+		if (menus.empty()) return nullptr;
+
+		// Allocate new menu list
+		Game::MenuList* list = allocator->allocate<Game::MenuList>();
+		if (!list) return nullptr;
+
+		list->menus = allocator->allocateArray<Game::menuDef_t*>(menus.size());
+		if (!list->menus)
+		{
+			allocator->free(list);
+			return nullptr;
+		}
+
+		list->name = allocator->duplicateString(menu);
+		list->menuCount = menus.size();
+
+		// Copy new menus
+		for (unsigned int i = 0; i < menus.size(); ++i)
+		{
+			list->menus[i] = menus[i].second;
+		}
+
+		return list;
+	}
+
 	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(const std::string& menu)
 	{
 		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
@@ -221,15 +284,15 @@ namespace Components
 
 		if (menus.empty())
 		{
-// 			// Try loading the original menu, if we can't load our custom one
-// 			Game::menuDef_t* originalMenu = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, menudef->window.name).menu;
-//
-// 			if (originalMenu)
-// 			{
-// 				menus.push_back({ false, originalMenu });
-// 			}
-// 			else
-// 			{
+			// 			// Try loading the original menu, if we can't load our custom one
+			// 			Game::menuDef_t* originalMenu = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, menudef->window.name).menu;
+			//
+			// 			if (originalMenu)
+			// 			{
+			// 				menus.push_back({ false, originalMenu });
+			// 			}
+			// 			else
+			// 			{
 			menus.push_back({ false, menudef }); // Native menu
 // 			}
 		}
@@ -313,7 +376,7 @@ namespace Components
 				}
 			}
 
-			if(increment) ++i;
+			if (increment) ++i;
 		}
 
 		Utils::Merge(menus, newMenus);
@@ -337,7 +400,7 @@ namespace Components
 			for (auto menu : Menus::CustomMenus)
 			{
 				bool hasMenu = false;
-				for (auto &loadedMenu : menus)
+				for (auto& loadedMenu : menus)
 				{
 					if (loadedMenu.second->window.name == menu)
 					{
@@ -383,7 +446,7 @@ namespace Components
 
 		if (!Menus::IsValidSourceHandle(handle)) return;
 
-		Game::source_t *source = Game::sourceFiles[handle];
+		Game::source_t* source = Game::sourceFiles[handle];
 
 		while (source->scriptstack)
 		{
@@ -517,7 +580,7 @@ namespace Components
 	// EDIT: We might also remove the old instances inside RemoveMenu
 	// EDIT2: Removing old instances without having a menu to replace them with might leave a nullptr
 	// EDIT3: Wouldn't it be better to check if the new menu we're trying to load has already been loaded and not was not deallocated and return that one instead of loading a new one?
-	void Menus::OverrideMenu(Game::menuDef_t *menu)
+	void Menus::OverrideMenu(Game::menuDef_t* menu)
 	{
 		if (!menu || !menu->window.name) return;
 		std::string name = menu->window.name;
@@ -580,12 +643,12 @@ namespace Components
 		Menus::MenuList.clear();
 	}
 
-	Game::XAssetHeader Menus::MenuLoad(Game::XAssetType /*type*/, const std::string& filename)
+	Game::XAssetHeader Menus::MenuFindHook(Game::XAssetType /*type*/, const std::string& filename)
 	{
 		return { Game::Menus_FindByName(Game::uiContext, filename.data()) };
 	}
 
-	Game::XAssetHeader Menus::MenuFileLoad(Game::XAssetType type, const std::string& filename)
+	Game::XAssetHeader Menus::MenuListFindHook(Game::XAssetType type, const std::string& filename)
 	{
 		Game::XAssetHeader header = { nullptr };
 
@@ -643,7 +706,7 @@ namespace Components
 		return header;
 	}
 
-	bool Menus::IsMenuVisible(Game::UiContext *dc, Game::menuDef_t *menu)
+	bool Menus::IsMenuVisible(Game::UiContext* dc, Game::menuDef_t* menu)
 	{
 		if (menu && menu->window.name)
 		{
@@ -664,7 +727,7 @@ namespace Components
 		return Game::Menu_IsVisible(dc, menu);
 	}
 
-	void Menus::RemoveMenuFromContext(Game::UiContext *dc, Game::menuDef_t *menu)
+	void Menus::RemoveMenuFromContext(Game::UiContext* dc, Game::menuDef_t* menu)
 	{
 		// Search menu in context
 		int i = 0;
@@ -694,6 +757,54 @@ namespace Components
 		Menus::CustomMenus.push_back(menu);
 	}
 
+	void Menus::RegisterCustomMenusHook()
+	{
+		Game::UiContext* uiInfoArray = (Game::UiContext*)0x62E2858;
+		// Game::MenuList list;
+
+		Utils::Hook::Call<void()>(0x401700)(); // call original load functions
+		//Game::XAssetHeader header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENULIST, "ui_mp/iw4x.txt");
+		//if (header.data && !(header.menuList->menuCount == 1 && !_stricmp("default_menu", header.menuList->menus[0]->window.name)))
+		//{
+		//	// Utils::Hook::Call<void(void*, Game::MenuList*, int)>(0x401700)(uiInfoArray, header.menuList, 1); // add loaded menus
+		//	std::memcpy(&list, header.data, sizeof(Game::MenuList));
+
+		//	for (int i = 0; i < uiInfoArray->menuCount; i++)
+		//	{
+		//		for (int j = 0; j < list.menuCount; j++)
+		//		{
+		//			if (!list.menus[j]) continue; // skip already used entries
+		//			if (!stricmp(list.menus[j]->window.name, uiInfoArray->Menus[i]->window.name))
+		//			{
+		//				uiInfoArray->Menus[i] = list.menus[j]; // overwrite UiContext pointer
+		//				list.menus[j] = nullptr; // clear entries that already exist so we don't add them later
+		//			}
+		//		}
+		//	}
+
+		//	for (int i = 0; i < list.menuCount; i++)
+		//	{
+		//		if (list.menus[i])
+		//		{
+		//			uiInfoArray->Menus[uiInfoArray->menuCount++] = list.menus[i];
+		//		}
+		//	}
+		//}
+
+		for (int i = 0; i < uiInfoArray->menuCount; i++)
+		{
+			OutputDebugStringA(Utils::String::VA("%s\n", uiInfoArray->Menus[i]->window.name));
+		}
+
+		/*
+		header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENULIST, "ui_mp/mod.txt");
+		if (header.data && !(header.menuList->menuCount == 1 && !_stricmp("default_menu", header.menuList->menus[0]->window.name)))
+		{
+			Utils::Hook::Call<void(void*, Game::MenuList*, int)>(0x401700)(uiInfoArray, header.menuList, 1); // add loaded menus
+		}
+		*/
+	}
+
 	Menus::Menus()
 	{
 		if (Dedicated::IsEnabled()) return;
@@ -702,97 +813,101 @@ namespace Components
 		Menus::FreeEverything();
 
 		// Intercept asset finding
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, Menus::MenuLoad);
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENULIST, Menus::MenuFileLoad);
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, Menus::MenuFindHook);
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENULIST, Menus::MenuListFindHook);
 
 		// Don't open connect menu
 		//Utils::Hook::Nop(0x428E48, 5);
 
+		// register custom menufiles if they exist
+		Utils::Hook(0x4A58C3, Menus::RegisterCustomMenusHook, HOOK_CALL).install()->quick();
+
 		// Use the connect menu open call to update server motds
 		Utils::Hook(0x428E48, []()
-		{
-			if (!Party::GetMotd().empty() && Party::Target() == *Game::connectedHost)
 			{
-				Dvar::Var("didyouknow").set(Party::GetMotd());
-			}
-		}, HOOK_CALL).install()->quick();
+				if (!Party::GetMotd().empty() && Party::Target() == *Game::connectedHost)
+				{
+					Dvar::Var("didyouknow").set(Party::GetMotd());
+				}
+			}, HOOK_CALL).install()->quick();
 
-		// Intercept menu painting
-		Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).install()->quick();
+			// Intercept menu painting
+			Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).install()->quick();
 
-		// disable the 2 new tokens in ItemParse_rect
-		Utils::Hook::Set<BYTE>(0x640693, 0xEB);
+			// disable the 2 new tokens in ItemParse_rect
+			Utils::Hook::Set<BYTE>(0x640693, 0xEB);
 
-		// don't load ASSET_TYPE_MENU assets for every menu (might cause patch menus to fail)
-		Utils::Hook::Nop(0x453406, 5);
+			// don't load ASSET_TYPE_MENU assets for every menu (might cause patch menus to fail)
+			Utils::Hook::Nop(0x453406, 5);
 
-		//make Com_Error and similar go back to main_text instead of menu_xboxlive.
-		Utils::Hook::SetString(0x6FC790, "main_text");
+			//make Com_Error and similar go back to main_text instead of menu_xboxlive.
+			Utils::Hook::SetString(0x6FC790, "main_text");
 
-		Command::Add("openmenu", [](Command::Params* params)
-		{
-			if (params->length() != 2)
-			{
-				Logger::Print("USAGE: openmenu <menu name>\n");
-				return;
-			}
+			Command::Add("openmenu", [](Command::Params* params)
+				{
+					if (params->length() != 2)
+					{
+						Logger::Print("USAGE: openmenu <menu name>\n");
+						return;
+					}
 
-			// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
-			if (Dvar::Var("cl_ingame").get<bool>())
-			{
-				Game::Key_SetCatcher(0, 16);
-			}
+					// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
+					if (Dvar::Var("cl_ingame").get<bool>())
+					{
+						Game::Key_SetCatcher(0, 16);
+					}
 
-			Game::Menus_OpenByName(Game::uiContext, params->get(1));
-		});
+					Game::Menus_OpenByName(Game::uiContext, params->get(1));
+				});
 
-		Command::Add("reloadmenus", [](Command::Params*)
-		{
-			// Close all menus
-			Game::Menus_CloseAll(Game::uiContext);
+			Command::Add("reloadmenus", [](Command::Params*)
+				{
+					// Close all menus
+					Game::Menus_CloseAll(Game::uiContext);
 
-			// Free custom menus
-			Menus::FreeEverything();
+					// Free custom menus
+					Menus::FreeEverything();
 
-			// Only disconnect if in-game, context is updated automatically!
-			if (Game::CL_IsCgameInitialized())
-			{
-				Game::Cbuf_AddText(0, "disconnect\n");
-			}
-			else
-			{
-				// Reinitialize ui context
-				Utils::Hook::Call<void()>(0x401700)();
+					// Only disconnect if in-game, context is updated automatically!
+					if (Game::CL_IsCgameInitialized())
+					{
+						Game::Cbuf_AddText(0, "disconnect\n");
+					}
+					else
+					{
+						// Reinitialize ui context
+						Utils::Hook::Call<void()>(0x401700)();
 
-				// Reopen main menu
-				Game::Menus_OpenByName(Game::uiContext, "main_text");
-			}
-		});
+						// Reopen main menu
+						Game::Menus_OpenByName(Game::uiContext, "main_text");
+					}
+				});
 
 #ifndef DISABLE_ANTICHEAT
-		Scheduler::OnFrameAsync(AntiCheat::QuickCodeScanner2);
+			Scheduler::OnFrameAsync(AntiCheat::QuickCodeScanner2);
 #endif
 
-		Command::Add("mp_QuickMessage", [](Command::Params*)
-		{
-			Command::Execute("openmenu quickmessage");
-		});
+			Command::Add("mp_QuickMessage", [](Command::Params*)
+				{
+					Command::Execute("openmenu quickmessage");
+				});
 
-		// Define custom menus here
-		Menus::Add("ui_mp/changelog.menu");
-		Menus::Add("ui_mp/theater_menu.menu");
-		Menus::Add("ui_mp/pc_options_multi.menu");
-		Menus::Add("ui_mp/pc_options_game.menu");
-		Menus::Add("ui_mp/stats_reset.menu");
-		Menus::Add("ui_mp/stats_unlock.menu");
-		Menus::Add("ui_mp/security_increase_popmenu.menu");
-		Menus::Add("ui_mp/mod_download_popmenu.menu");
-		Menus::Add("ui_mp/popup_friends.menu");
-		Menus::Add("ui_mp/menu_first_launch.menu");
-		Menus::Add("ui_mp/startup_messages.menu");
-		Menus::Add("ui_mp/pc_store.menu");
-		Menus::Add("ui_mp/iw4x_credits.menu");
-		Menus::Add("ui_mp/resetclass.menu");
+			// Define custom menus here
+			Menus::Add("ui_mp/changelog.menu");
+			Menus::Add("ui_mp/theater_menu.menu");
+			Menus::Add("ui_mp/pc_options_multi.menu");
+			Menus::Add("ui_mp/pc_options_game.menu");
+			Menus::Add("ui_mp/stats_reset.menu");
+			Menus::Add("ui_mp/stats_unlock.menu");
+			Menus::Add("ui_mp/security_increase_popmenu.menu");
+			Menus::Add("ui_mp/mod_download_popmenu.menu");
+			Menus::Add("ui_mp/popup_friends.menu");
+			Menus::Add("ui_mp/menu_first_launch.menu");
+			Menus::Add("ui_mp/startup_messages.menu");
+			Menus::Add("ui_mp/pc_store.menu");
+			Menus::Add("ui_mp/iw4x_credits.menu");
+			Menus::Add("ui_mp/resetclass.menu");
+			Menus::Add("ui_mp/popup_customtitle.menu");
 	}
 
 	Menus::~Menus()

@@ -2,6 +2,26 @@
 
 namespace Game
 {
+	template <typename T> static void DB_ConvertOffsetToPointer(T* pointer)
+	{
+		Utils::Hook::Call<void(T*)>(0x4A82B0)(pointer);
+	}
+	template <typename T> static T** DB_InsertPointer()
+	{
+		static auto DB_InsertPointer_Address = 0x43B290;
+		T** retval = nullptr;
+		
+		__asm
+		{
+			call DB_InsertPointer_Address;
+			mov retval, eax;
+		}
+
+		return retval;
+	}
+
+	std::vector<std::string> Sys_ListFilesWrapper(const std::string& directory, const std::string& extension);
+	
 	typedef void(__cdecl * AddRefToObject_t)(unsigned int id);
 	extern AddRefToObject_t AddRefToObject;
 
@@ -297,6 +317,9 @@ namespace Game
 	typedef iwd_t*(__cdecl * FS_IsShippedIWD_t)(const char* fullpath, const char* iwd);
 	extern FS_IsShippedIWD_t FS_IsShippedIWD;
 
+	typedef int(__cdecl* G_GetWeaponIndexForName_t)(char*);
+	extern G_GetWeaponIndexForName_t G_GetWeaponIndexForName;
+
 	typedef void(__cdecl* G_SpawnEntitiesFromString_t)();
 	extern G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString;
 
@@ -319,7 +342,7 @@ namespace Game
 	typedef void(__cdecl * LargeLocalInit_t)();
 	extern LargeLocalInit_t LargeLocalInit;
 
-	typedef bool(__cdecl * Load_Stream_t)(bool atStreamStart, const void *ptr, int size);
+	typedef bool(__cdecl * Load_Stream_t)(bool atStreamStart, const void *ptr, unsigned int size);
 	extern Load_Stream_t Load_Stream;
 
 	typedef void(__cdecl * Load_XString_t)(bool atStreamStart);
@@ -372,6 +395,9 @@ namespace Game
 
 	typedef void(__cdecl * Menus_CloseAll_t)(UiContext *dc);
 	extern Menus_CloseAll_t Menus_CloseAll;
+
+    typedef void(__cdecl * Menus_CloseRequest_t)(UiContext *dc, menuDef_t* menu);
+    extern Menus_CloseRequest_t Menus_CloseRequest;
 
 	typedef int(__cdecl * Menus_OpenByName_t)(UiContext *dc, const char *p);
 	extern Menus_OpenByName_t Menus_OpenByName;
@@ -438,6 +464,9 @@ namespace Game
 
 	typedef bool(__cdecl * NET_CompareAdr_t)(netadr_t a, netadr_t b);
 	extern NET_CompareAdr_t NET_CompareAdr;
+
+	typedef void(__cdecl * NET_DeferPacketToClient_t)(netadr_t *, msg_t *);
+	extern NET_DeferPacketToClient_t NET_DeferPacketToClient;
 
 	typedef const char* (__cdecl * NET_ErrorString_t)();
 	extern NET_ErrorString_t NET_ErrorString;
@@ -592,6 +621,12 @@ namespace Game
 	typedef bool(__cdecl * Scr_IsSystemActive_t)();
 	extern Scr_IsSystemActive_t Scr_IsSystemActive;
 
+	typedef int(__cdecl* Scr_GetType_t)(int);
+	extern Scr_GetType_t Scr_GetType;
+
+	typedef void(__cdecl* Scr_Error_t)(const char*);
+	extern Scr_Error_t Scr_Error;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 
@@ -654,6 +689,9 @@ namespace Game
 
 	typedef bool(__cdecl * SV_Loaded_t)();
 	extern SV_Loaded_t SV_Loaded;
+
+	typedef void(__cdecl* SV_ClientThink_t)(client_s*, usercmd_s*);
+	extern SV_ClientThink_t SV_ClientThink;
 
 	typedef int(__cdecl * Sys_Error_t)(int, char *, ...);
 	extern Sys_Error_t Sys_Error;
@@ -746,6 +784,7 @@ namespace Game
 
 	extern cmd_function_t** cmd_functions;
 
+	extern int* svs_time;
 	extern int* svs_numclients;
 	extern client_t* svs_clients;
 
@@ -817,6 +856,8 @@ namespace Game
 
 	extern ScriptContainer* scriptContainer;
 
+	extern clientstate_t* clcState;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
@@ -861,6 +902,10 @@ namespace Game
 	int CL_GetMaxXP();
 
 	void Image_Setup(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
+
+	void Vec3Normalize(vec3_t& vec);
+	void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out);
+	void MatrixVecMultiply(const float(&mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution);
 
 	void SortWorldSurfaces(GfxWorld* world);
 	void R_AddDebugLine(float* color, float* v1, float* v2);

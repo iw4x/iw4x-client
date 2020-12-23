@@ -2,6 +2,26 @@
 
 namespace Game
 {
+	std::vector<std::string> Sys_ListFilesWrapper(const std::string& directory, const std::string& extension)
+	{
+		auto fileCount = 0;
+		auto files = Game::Sys_ListFiles(directory.data(), extension.data(), 0, &fileCount, 0);
+
+		std::vector<std::string> result;
+
+		for (auto i = 0; i < fileCount; i++)
+		{
+			if (files[i])
+			{
+				result.push_back(files[i]);
+			}
+		}
+
+		Game::FS_FreeFileList(files);
+
+		return result;
+	}
+	
 	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
 
@@ -116,6 +136,7 @@ namespace Game
 	FS_BuildPathToFile_t FS_BuildPathToFile = FS_BuildPathToFile_t(0x4702C0);
 	FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
 
+	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
 
 	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = GScr_LoadGameTypeScript_t(0x4ED9A0);
@@ -148,6 +169,7 @@ namespace Game
 	Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray = Load_snd_alias_list_nameArray_t(0x4499F0);
 
 	Menus_CloseAll_t Menus_CloseAll = Menus_CloseAll_t(0x4BA5B0);
+    Menus_CloseRequest_t Menus_CloseRequest = Menus_CloseRequest_t(0x430D50);
 	Menus_OpenByName_t Menus_OpenByName = Menus_OpenByName_t(0x4CCE60);
 	Menus_FindByName_t Menus_FindByName = Menus_FindByName_t(0x487240);
 	Menu_IsVisible_t Menu_IsVisible = Menu_IsVisible_t(0x4D77D0);
@@ -173,6 +195,7 @@ namespace Game
 
 	NET_AdrToString_t NET_AdrToString = NET_AdrToString_t(0x469880);
 	NET_CompareAdr_t NET_CompareAdr = NET_CompareAdr_t(0x4D0AA0);
+	NET_DeferPacketToClient_t NET_DeferPacketToClient = NET_DeferPacketToClient_t(0x4C8AA0);
 	NET_ErrorString_t NET_ErrorString = NET_ErrorString_t(0x4E7720);
 	NET_Init_t NET_Init = NET_Init_t(0x491860);
 	NET_IsLocalAddress_t NET_IsLocalAddress = NET_IsLocalAddress_t(0x402BD0);
@@ -232,6 +255,8 @@ namespace Game
 	Scr_AddObject_t Scr_AddObject = Scr_AddObject_t(0x430F40);
 	Scr_Notify_t Scr_Notify = Scr_Notify_t(0x4A4750);
 	Scr_NotifyLevel_t Scr_NotifyLevel = Scr_NotifyLevel_t(0x4D9C30);
+	Scr_Error_t Scr_Error = Scr_Error_t(0x61E8B0);
+	Scr_GetType_t Scr_GetType = Scr_GetType_t(0x422900);
 
 	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
 
@@ -272,6 +297,7 @@ namespace Game
 	SV_DirectConnect_t SV_DirectConnect = SV_DirectConnect_t(0x460480);
 	SV_SetConfigstring_t SV_SetConfigstring = SV_SetConfigstring_t(0x4982E0);
 	SV_Loaded_t SV_Loaded = SV_Loaded_t(0x4EE3E0);
+	SV_ClientThink_t SV_ClientThink = SV_ClientThink_t(0x44ADD0);
 
 	Sys_Error_t Sys_Error = Sys_Error_t(0x4E0200);
 	Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x4D8580);
@@ -321,6 +347,7 @@ namespace Game
 	source_t **sourceFiles = reinterpret_cast<source_t **>(0x7C4A98);
 	keywordHash_t **menuParseKeywordHash = reinterpret_cast<keywordHash_t **>(0x63AE928);
 
+	int* svs_time = reinterpret_cast<int*>(0x31D9384);
 	int* svs_numclients = reinterpret_cast<int*>(0x31D938C);
 	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);
 
@@ -389,6 +416,8 @@ namespace Game
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x12412B0);
 
 	ScriptContainer* scriptContainer = reinterpret_cast<ScriptContainer*>(0x2040D00);
+
+	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
@@ -660,6 +689,43 @@ namespace Game
 		StringTable* rankTable = DB_FindXAssetHeader(ASSET_TYPE_STRINGTABLE, "mp/rankTable.csv").stringTable;
 		const char* maxrank = StringTable_Lookup(rankTable, 0, "maxrank", 1);
 		return atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
+	}
+
+	void Vec3Normalize(vec3_t& vec)
+	{
+		const float length = static_cast<float>(std::sqrt(std::pow(vec[0], 2) + std::pow(vec[1], 2) + std::pow(vec[2], 2)));
+		vec[0] /= length;
+		vec[1] /= length;
+		vec[2] /= length;
+	}
+
+	void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out)
+	{
+		unsigned int v3; // xmm1_4
+
+		if (LOWORD(in.packed))
+			v3 = ((in.packed & 0x8000) << 16) | (((((in.packed & 0x3FFF) << 14) - (~(LOWORD(in.packed) << 14) & 0x10000000)) ^ 0x80000001) >> 1);
+		else
+			v3 = 0;
+
+		(*out)[0] = *reinterpret_cast<float*>(&v3);
+
+		if (HIWORD(in.packed))
+			v3 = ((HIWORD(in.packed) & 0x8000) << 16) | (((((HIWORD(in.packed) & 0x3FFF) << 14)
+				- (~(HIWORD(in.packed) << 14) & 0x10000000)) ^ 0x80000001) >> 1);
+		else
+			v3 = 0;
+
+		(*out)[1] = *reinterpret_cast<float*>(&v3);
+	}
+
+	void MatrixVecMultiply(const float (& mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution)
+	{
+		vec3_t res;
+		res[0] = mulMat[0][0] * mulVec[0] + mulMat[1][0] * mulVec[1] + mulMat[2][0] * mulVec[2];
+		res[1] = mulMat[0][1] * mulVec[0] + mulMat[1][1] * mulVec[1] + mulMat[2][1] * mulVec[2];
+		res[2] = mulMat[0][2] * mulVec[0] + mulMat[1][2] * mulVec[1] + mulMat[2][2] * mulVec[2];
+		std::memmove(&solution[0], &res[0], sizeof(res));
 	}
 
 	void SortWorldSurfaces(GfxWorld* world)

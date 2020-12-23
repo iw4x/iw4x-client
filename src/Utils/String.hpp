@@ -13,7 +13,7 @@ namespace Utils
 			VAProvider() : currentBuffer(0) {}
 			~VAProvider() {}
 
-			char* get(const char* format, va_list ap)
+			const char* get(const char* format, va_list ap)
 			{
 				++this->currentBuffer %= ARRAYSIZE(this->stringPool);
 				auto entry = &this->stringPool[this->currentBuffer];

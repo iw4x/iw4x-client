@@ -81,24 +81,24 @@ namespace Utils
 
 		bool CreateDir(const std::string& dir)
 		{
-			return std::experimental::filesystem::create_directories(dir);
+			return std::filesystem::create_directories(dir);
 		}
 
 		bool DirectoryExists(const std::string& directory)
 		{
-			return std::experimental::filesystem::is_directory(directory);
+			return std::filesystem::is_directory(directory);
 		}
 
 		bool DirectoryIsEmpty(const std::string& directory)
 		{
-			return std::experimental::filesystem::is_empty(directory);
+			return std::filesystem::is_empty(directory);
 		}
 
 		std::vector<std::string> ListFiles(const std::string& dir)
 		{
 			std::vector<std::string> files;
 
-			for (auto& file : std::experimental::filesystem::directory_iterator(dir))
+			for (auto& file : std::filesystem::directory_iterator(dir))
 			{
 				files.push_back(file.path().generic_string());
 			}

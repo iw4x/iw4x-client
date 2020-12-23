@@ -124,7 +124,7 @@ namespace Components
 
 	void Friends::UpdateState(bool force)
 	{
-		if (Dvar::Var("cl_anonymous").get<bool>() || !Steam::Enabled()) return;
+		if (Dvar::Var("cl_anonymous").get<bool>() || Friends::IsInvisible() || !Steam::Enabled()) return;
 
 		if (force)
 		{
@@ -186,7 +186,7 @@ namespace Components
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
-			const unsigned int modId = *reinterpret_cast<unsigned int*>("IW4x") | 0x80000000;
+			const unsigned int modId = *reinterpret_cast<unsigned int*>(const_cast<char*>("IW4x")) | 0x80000000;
 
 			// Split up the list
 			for (auto entry : Friends::FriendsList)
@@ -228,7 +228,7 @@ namespace Components
 
 	void Friends::SetPresence(const std::string& key, const std::string& value)
 	{
-		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamUtils && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Enabled())
+		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamUtils && !Dvar::Var("cl_anonymous").get<bool>() && !Friends::IsInvisible() && Steam::Enabled())
 		{
 			Friends::SetRawPresence(key.data(), value.data());
 		}
@@ -494,6 +494,11 @@ namespace Components
 		return appId;
 	}
 
+	bool Friends::IsInvisible()
+	{
+		return Friends::InitialState == 7;
+	}
+
 	void Friends::UpdateTimeStamp()
 	{
 		Friends::SetPresence("iw4x_playing", Utils::String::VA("%d", Steam::SteamUtils()->GetServerRealTime()));
@@ -696,10 +701,10 @@ namespace Components
 		{
 			if (Steam::Proxy::SteamFriends)
 			{
-				Friends::InitialState = Steam::Proxy::SteamFriends->GetPersonaState();
+				Friends::InitialState = Steam::Proxy::SteamFriends->GetFriendPersonaState(Steam::Proxy::SteamUser_->GetSteamID());
 			}
 
-			if (Dvar::Var("cl_anonymous").get<bool>() || !Steam::Enabled())
+			if (Dvar::Var("cl_anonymous").get<bool>() || Friends::IsInvisible() || !Steam::Enabled())
 			{
 				if (Steam::Proxy::ClientFriends)
 				{

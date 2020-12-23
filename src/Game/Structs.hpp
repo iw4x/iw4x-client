@@ -121,6 +121,16 @@ namespace Game
 		DVAR_TYPE_COUNT = 0xA,
 	} dvar_type;
 
+	typedef enum
+	{
+		CS_FREE = 0x0,
+		CS_UNKNOWN1 = 0x1,
+		CS_UNKNOWN2 = 0x2,
+		CS_CONNECTED = 0x3,
+		CS_CLIENTLOADING = 0x4,
+		CS_ACTIVE = 0x5,
+	} clientstate_t;
+
 	struct FxEffectDef;
 	struct pathnode_t;
 	struct pathnode_tree_t;
@@ -4469,9 +4479,17 @@ namespace Game
 	typedef struct client_s
 	{
 		// 0
-		int state;
+		clientstate_t state;
 		// 4
-		char pad[36];
+		char _pad[4];
+		// 8
+		int deltaMessage;
+		// 12
+		char __pad[12];
+		// 24
+		int outgoingSequence;
+		// 28
+		char pad[12];
 		// 40
 		netadr_t addr;
 		// 60

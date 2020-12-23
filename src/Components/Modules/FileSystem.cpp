@@ -172,11 +172,11 @@ namespace Components
 		return fileList;
 	}
 
-	void FileSystem::DeleteFile(const std::string& folder, const std::string& file)
+	bool FileSystem::DeleteFile(const std::string& folder, const std::string& file)
 	{
 		char path[MAX_PATH] = { 0 };
 		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").get<const char*>(), reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
-		Game::FS_Remove(path);
+		return Game::FS_Remove(path);
 	}
 
 	int FileSystem::ReadFile(const char* path, char** buffer)
@@ -263,8 +263,16 @@ namespace Components
 	void FileSystem::FsRestartSync(int a1, int a2)
 	{
 		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		Maps::GetUserMap()->freeIwd();
 		Utils::Hook::Call<void(int, int)>(0x461A50)(a1, a2); // FS_Restart
 		Maps::GetUserMap()->reloadIwd();
+	}
+
+	void FileSystem::FsShutdownSync(int a1)
+	{
+		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		Maps::GetUserMap()->freeIwd();
+		Utils::Hook::Call<void(int)>(0x4A46C0)(a1); // FS_Shutdown
 	}
 
 	void FileSystem::DelayLoadImagesSync()
@@ -321,6 +329,10 @@ namespace Components
 		Utils::Hook(0x4A745B, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // SV_SpawnServer
 		Utils::Hook(0x4C8609, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // FS_ConditionalRestart
 		Utils::Hook(0x5AC68E, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
+
+		// Synchronize filesystem stops
+		Utils::Hook(0x461A55, FileSystem::FsShutdownSync, HOOK_CALL).install()->quick(); // FS_Restart
+		Utils::Hook(0x4D40DB, FileSystem::FsShutdownSync, HOOK_CALL).install()->quick(); // Com_Quitf
 
 		// Synchronize db image loading
 		Utils::Hook(0x415AB8, FileSystem::DelayLoadImagesSync, HOOK_CALL).install()->quick();

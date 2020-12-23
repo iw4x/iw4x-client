@@ -185,15 +185,23 @@ namespace Components
 			"Dasfonia",
 			"Deity",
 			"Dizzy",
+			"Dss0",
+			"H3X1C",
 			"HardNougat",
+			"Homura",
+			"INeedGames",
 			"Killera",
 			"Lithium",
+			"OneFourOne",
+			"quaK",
+			"RaidMax",
 			"Revo",
 			"RezTech",
 			"Shadow the Hedgehog",
 			"Slykuiper",
 			"st0rm",
 			"VVLNT",
+			"X3RX35"
 		};
 
 		static const char* specials[] =
@@ -202,7 +210,7 @@ namespace Components
 			"aerosoul94",
 			"ReactIW4",
 			"IW4Play",
-			"Rocket V2",
+			"V2",
 			"luckyy"
 		};
 

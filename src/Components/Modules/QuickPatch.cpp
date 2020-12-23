@@ -119,6 +119,26 @@ namespace Components
 		}
 	}
 
+	__declspec(naked) int QuickPatch::G_GetClientScore()
+	{
+		__asm
+		{
+			mov eax, [esp + 4]		// index
+			mov ecx, ds : 1A831A8h	// level: &g_clients
+
+			test ecx, ecx;
+			jz invalid_ptr;
+			
+			imul eax, 366Ch
+			mov eax, [eax + ecx + 3134h]
+			ret
+			
+		invalid_ptr:
+			xor eax, eax
+			ret
+		}
+	}
+
 	bool QuickPatch::InvalidNameCheck(char *dest, char *source, int size)
 	{
 		strncpy(dest, source, size - 1);
@@ -128,7 +148,7 @@ namespace Components
 		{
 			if (!dest[i]) break;
 
-			if (dest[i] > 125 || dest[i] < 32) 
+			if (dest[i] > 125 || dest[i] < 32 || dest[i] == '%') 
 			{
 				return false;
 			}
@@ -139,7 +159,7 @@ namespace Components
 
 	__declspec(naked) void QuickPatch::InvalidNameStub()
 	{
-		static char* kick_reason = "Invalid name detected.";
+		static const char* kick_reason = "Invalid name detected.";
 
 		__asm
 		{
@@ -163,6 +183,219 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* QuickPatch::g_antilag;
+
+	__declspec(naked) void QuickPatch::ClientEventsFireWeaponStub()
+	{
+		__asm
+		{
+			// check g_antilag dvar value
+			mov eax, g_antilag;
+			cmp byte ptr[eax + 16], 1;
+
+			// do antilag if 1
+			je fireWeapon
+
+			// do not do antilag if 0
+			mov eax, 0x1A83554 // level.time
+			mov ecx, [eax]
+
+		fireWeapon:
+			push    edx
+			push    ecx
+			push    edi
+			mov     eax, 0x4A4D50 // FireWeapon
+			call    eax
+			add     esp, 0Ch
+			pop     edi
+			pop     ecx
+			retn
+		}
+	}
+
+	__declspec(naked) void QuickPatch::ClientEventsFireWeaponMeleeStub()
+	{
+		__asm
+		{
+			// check g_antilag dvar value
+			mov eax, g_antilag;
+			cmp byte ptr[eax + 16], 1;
+
+			// do antilag if 1
+			je fireWeaponMelee
+
+			// do not do antilag if 0
+			mov eax, 0x1A83554 // level.time
+			mov edx, [eax]
+
+		fireWeaponMelee:
+			push    edx
+			push    edi
+			mov     eax, 0x4F2470 // FireWeaponMelee
+			call    eax
+			add     esp, 8
+			pop     edi
+			pop     ecx
+			retn
+		}
+	}
+
+	Game::dvar_t* QuickPatch::sv_enableBounces;
+	__declspec(naked) void QuickPatch::BounceStub()
+	{
+		__asm
+		{
+			// check the value of sv_enableBounces
+			push eax;
+			mov eax, sv_enableBounces;
+			cmp byte ptr[eax + 16], 1;
+			pop eax;
+
+			// always bounce if sv_enableBounces is set to 1
+			je bounce;
+
+			// original code
+			cmp dword ptr[esp + 24h], 0;
+			jnz dontBounce;
+
+		bounce:
+			push 0x004B1B34;
+			retn;
+
+		dontBounce:
+			push 0x004B1B48;
+			retn;
+		}
+	}
+
+	Game::dvar_t* QuickPatch::r_customAspectRatio;
+	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* name, char**, int defaultVal, int flags, const char* description)
+	{
+		static std::vector < char * > values =
+		{
+			const_cast<char*>("auto"),
+			const_cast<char*>("standard"),
+			const_cast<char*>("wide 16:10"),
+			const_cast<char*>("wide 16:9"),
+			const_cast<char*>("custom"),
+			nullptr,
+		};
+
+		// register custom aspect ratio dvar
+		r_customAspectRatio = Game::Dvar_RegisterFloat("r_customAspectRatio", 16.0f / 9.0f, 4.0f / 3.0f, 63.0f / 9.0f, flags, "Screen aspect ratio. Divide the width by the height in order to get the aspect ratio value. For example: 16 / 9 = 1,77");
+
+		// register enumeration dvar
+		return Game::Dvar_RegisterEnum(name, values.data(), defaultVal, flags, description);
+	}
+
+	void QuickPatch::SetAspectRatio()
+	{
+		// set the aspect ratio
+		Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio->current.value);
+	}
+
+	__declspec(naked) void QuickPatch::SetAspectRatioStub()
+	{
+		__asm
+		{
+			cmp eax, 4;
+			ja goToDefaultCase;
+			je useCustomRatio;
+
+			// execute switch statement code
+			push 0x005063FC;
+			retn;
+
+		goToDefaultCase:
+			push 0x005064FC;
+			retn;
+
+		useCustomRatio:
+			// set custom resolution
+			pushad;
+			call SetAspectRatio;
+			popad;
+
+			// set widescreen to 1
+			mov eax, 1;
+
+			// continue execution
+			push 0x00506495;
+			retn;
+		}
+	}
+
+	Game::dvar_t* QuickPatch::g_playerCollision;
+	__declspec(naked) void QuickPatch::PlayerCollisionStub()
+	{
+		__asm
+		{
+			// check the value of g_playerCollision
+			push eax;
+			mov eax, g_playerCollision;
+			cmp byte ptr[eax + 16], 0;
+			pop eax;
+
+			// dont collide if g_playerCollision is set to 0
+			je dontcollide;
+
+			// original code
+			mov eax, dword ptr[esp + 0xa0];
+			jmp collide;
+
+		collide:
+			push 0x00478376;
+			retn;
+
+		dontcollide:
+			mov eax, dword ptr[esp + 0xa0];
+			mov ecx, dword ptr[esp + 9ch];
+			push eax;
+			push ecx;
+			lea edx, [esp + 48h];
+			push edx;
+			mov eax, esi;
+			push 0x0047838b;
+			retn;
+		}
+	}
+
+	Game::dvar_t* QuickPatch::g_playerEjection;
+	__declspec(naked) void QuickPatch::PlayerEjectionStub()
+	{
+		__asm
+		{
+			// check the value of g_playerEjection
+			push eax;
+			mov eax, g_playerEjection;
+			cmp byte ptr[eax + 16], 0;
+			pop eax;
+
+			// dont eject if g_playerEjection is set to 0
+			je donteject;
+
+			// original code
+			cmp dword ptr[ebx + 19ch], edi;
+			jle eject;
+
+		eject:
+			push 0x005d8152;
+			retn;
+
+		donteject:
+			push 0x005d815b;
+			retn;
+		}
+	}
+
+	template <typename T> std::function < T > ImportFunction(const std::string& dll, const std::string& function)
+	{
+		auto dllHandle = GetModuleHandleA(&dll[0]);
+		auto procAddr = GetProcAddress(dllHandle, &function[0]);
+
+		return std::function < T >(reinterpret_cast<T*>(procAddr));
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		QuickPatch::FrameTime = 0;
@@ -171,11 +404,69 @@ namespace Components
 			QuickPatch::FrameTime = Game::Sys_Milliseconds();
 		});
 
+		// quit_hard
+		Command::Add("quit_hard", [](Command::Params*)
+		{
+			typedef enum _HARDERROR_RESPONSE_OPTION {
+				OptionAbortRetryIgnore,
+				OptionOk,
+				OptionOkCancel,
+				OptionRetryCancel,
+				OptionYesNo,
+				OptionYesNoCancel,
+				OptionShutdownSystem
+			} HARDERROR_RESPONSE_OPTION, *PHARDERROR_RESPONSE_OPTION;
+
+			typedef enum _HARDERROR_RESPONSE {
+				ResponseReturnToCaller,
+				ResponseNotHandled,
+				ResponseAbort,
+				ResponseCancel,
+				ResponseIgnore,
+				ResponseNo,
+				ResponseOk,
+				ResponseRetry,
+				ResponseYes
+			} HARDERROR_RESPONSE, *PHARDERROR_RESPONSE;
+
+			BOOLEAN hasPerms;
+			HARDERROR_RESPONSE response;
+
+			auto result = ImportFunction<NTSTATUS __stdcall(ULONG, BOOLEAN, BOOLEAN, PBOOLEAN)>("ntdll.dll", "RtlAdjustPrivilege")
+				(19, true, false, &hasPerms);
+
+			result = ImportFunction<NTSTATUS __stdcall(NTSTATUS, ULONG, LPCSTR, PVOID, HARDERROR_RESPONSE_OPTION, PHARDERROR_RESPONSE)>("ntdll.dll", "NtRaiseHardError")
+				(0xC000007B /*0x0000000A*/, 0, nullptr, nullptr, OptionShutdownSystem, &response);
+		});
+
+		// bounce dvar
+		sv_enableBounces = Game::Dvar_RegisterBool("sv_enableBounces", false, Game::DVAR_FLAG_REPLICATED, "Enables bouncing on the server");
+		Utils::Hook(0x4B1B2D, QuickPatch::BounceStub, HOOK_JUMP).install()->quick();
+
+		// Intermission time dvar
+		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_FLAG_REPLICATED | Game::DVAR_FLAG_DEDISAVED, "Time in seconds before match server loads the next map");
+
+		// Player Collision dvar
+		g_playerCollision = Game::Dvar_RegisterBool("g_playerCollision", true, Game::DVAR_FLAG_REPLICATED, "Flag whether player collision is on or off");
+		Utils::Hook(0x47836F, QuickPatch::PlayerCollisionStub, HOOK_JUMP).install()->quick();
+
+		// Player Ejection dvar
+		g_playerEjection = Game::Dvar_RegisterBool("g_playerEjection", true, Game::DVAR_FLAG_REPLICATED, "Flag whether player ejection is on or off");
+		Utils::Hook(0x5D814A, QuickPatch::PlayerEjectionStub, HOOK_JUMP).install()->quick();
+
+		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_FLAG_REPLICATED, "Perform antilag");
+		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMeleeStub, HOOK_JUMP).install()->quick();
+
 		// Disallow invalid player names
 		Utils::Hook(0x401983, QuickPatch::InvalidNameStub, HOOK_JUMP).install()->quick();
 
 		// Javelin fix
 		Utils::Hook(0x578F52, QuickPatch::JavelinResetHookStub, HOOK_JUMP).install()->quick();
+
+		// Add ultrawide support
+		Utils::Hook(0x0051B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
+		Utils::Hook(0x005063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
 
 		// Make sure preDestroy is called when the game shuts down
 		Scheduler::OnShutdown(Loader::PreDestroy);
@@ -213,16 +504,16 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);
 
 		// fs_basegame
-		Utils::Hook::Set<char*>(0x6431D1, BASEGAME);
+		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
 
 		// UI version string
-		Utils::Hook::Set<char*>(0x43F73B, "IW4x: " VERSION);
+		Utils::Hook::Set<const char*>(0x43F73B, "IW4x: " VERSION);
 
 		// console version string
-		Utils::Hook::Set<char*>(0x4B12BB, "IW4x " VERSION " (built " __DATE__ " " __TIME__ ")");
+		Utils::Hook::Set<const char*>(0x4B12BB, "IW4x " VERSION " (built " __DATE__ " " __TIME__ ")");
 
 		// version string
-		Utils::Hook::Set<char*>(0x60BD56, "IW4x (" VERSION ")");
+		Utils::Hook::Set<const char*>(0x60BD56, "IW4x (" VERSION ")");
 
 		// version string color
 		static float buildLocColor[] = { 1.0f, 1.0f, 1.0f, 0.8f };
@@ -239,33 +530,33 @@ namespace Components
 		// console title
 		if (ZoneBuilder::IsEnabled())
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (" VERSION "): ZoneBuilder");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): ZoneBuilder");
 		}
 		else if (Dedicated::IsEnabled())
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (" VERSION "): Dedicated");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Dedicated");
 		}
 		else
 		{
-			Utils::Hook::Set<char*>(0x4289E8, "IW4x (" VERSION "): Console");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Console");
 		}
 
 		// window title
-		Utils::Hook::Set<char*>(0x5076A0, "IW4x: Multiplayer");
+		Utils::Hook::Set<const char*>(0x5076A0, "IW4x: Multiplayer");
 
 		// sv_hostname
-		Utils::Hook::Set<char*>(0x4D378B, "IW4Host");
+		Utils::Hook::Set<const char*>(0x4D378B, "IW4Host");
 
 		// shortversion
-		Utils::Hook::Set<char*>(0x60BD91, SHORTVERSION);
+		Utils::Hook::Set<const char*>(0x60BD91, SHORTVERSION);
 
 		// console logo
-		Utils::Hook::Set<char*>(0x428A66, BASEGAME "/images/logo.bmp");
+		Utils::Hook::Set<const char*>(0x428A66, BASEGAME "/images/logo.bmp");
 
 		// splash logo
-		Utils::Hook::Set<char*>(0x475F9E, BASEGAME "/images/splash.bmp");
+		Utils::Hook::Set<const char*>(0x475F9E, BASEGAME "/images/splash.bmp");
 
-		Utils::Hook::Set<char*>(0x4876C6, "Successfully read stats data\n");
+		Utils::Hook::Set<const char*>(0x4876C6, "Successfully read stats data\n");
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
@@ -366,21 +657,21 @@ namespace Components
 		// intro stuff
 		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
 		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset the intro dvar
-		Utils::Hook::Set<char*>(0x60BED2, "unskippablecinematic IW_logo\n");
-		Utils::Hook::Set<char*>(0x51C2A4, "%s\\" BASEGAME "\\video\\%s.bik");
+		Utils::Hook::Set<const char*>(0x60BED2, "unskippablecinematic IW_logo\n");
+		Utils::Hook::Set<const char*>(0x51C2A4, "%s\\" BASEGAME "\\video\\%s.bik");
 		Utils::Hook::Set<DWORD>(0x51C2C2, 0x78A0AC);
 
 		// Redirect logs
-		Utils::Hook::Set<char*>(0x5E44D8, "logs/games_mp.log");
-		Utils::Hook::Set<char*>(0x60A90C, "logs/console_mp.log");
-		Utils::Hook::Set<char*>(0x60A918, "logs/console_mp.log");
+		Utils::Hook::Set<const char*>(0x5E44D8, "logs/games_mp.log");
+		Utils::Hook::Set<const char*>(0x60A90C, "logs/console_mp.log");
+		Utils::Hook::Set<const char*>(0x60A918, "logs/console_mp.log");
 
 		// Rename config
-		Utils::Hook::Set<char*>(0x461B4B, CLIENT_CONFIG);
-		Utils::Hook::Set<char*>(0x47DCBB, CLIENT_CONFIG);
-		Utils::Hook::Set<char*>(0x6098F8, CLIENT_CONFIG);
-		Utils::Hook::Set<char*>(0x60B279, CLIENT_CONFIG);
-		Utils::Hook::Set<char*>(0x60BBD4, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x461B4B, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x47DCBB, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x6098F8, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x60B279, CLIENT_CONFIG);
+		Utils::Hook::Set<const char*>(0x60BBD4, CLIENT_CONFIG);
 
 		// Disable profile system
 //		Utils::Hook::Nop(0x60BEB1, 5);          // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.
@@ -417,6 +708,13 @@ namespace Components
 		// Patch SV_IsClientUsingOnlineStatsOffline
 		Utils::Hook::Set<DWORD>(0x46B710, 0x90C3C033);
 
+		// Fix mouse lag
+		Utils::Hook::Nop(0x4731F5, 8);
+		Scheduler::OnFrame([]()
+		{
+			SetThreadExecutionState(ES_DISPLAY_REQUIRED);
+		});
+
 		// Fix mouse pitch adjustments
 		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_FLAG_SAVED, "");
 		UIScript::Add("updateui_mousePitch", [](UIScript::Token)
@@ -442,6 +740,12 @@ namespace Components
 
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
+
+		// Patch G_GetClientScore for uninitialised game
+		Utils::Hook(0x469AC0, QuickPatch::G_GetClientScore, HOOK_JUMP).install()->quick();
+
+		// Ignore call to print 'Offhand class mismatch when giving weapon...'
+		Utils::Hook(0x5D9047, 0x4BB9B0, HOOK_CALL).install()->quick();
 
 		Command::Add("unlockstats", [](Command::Params*)
 		{
@@ -652,18 +956,21 @@ namespace Components
 			if (!Game::CL_IsCgameInitialized() || !Dvar::Var("r_drawAabbTrees").get<bool>()) return;
 
 			float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
+            float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 
-			//Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
-			Game::GfxWorld* gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-			if (!gameWorld) return;
+			Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
+			//Game::GfxWorld* gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			if (!clipMap) return;
 
-			for (int i = 0; i < gameWorld->dpvsPlanes.cellCount; ++i)
-			{
-				for (int j = 0; j < gameWorld->aabbTreeCounts[i].aabbTreeCount; ++j)
-				{
-					Game::R_AddDebugBounds(cyan, &gameWorld->aabbTrees[i].aabbTree[j].bounds);
-				}
-			}
+            for (unsigned short i = 0; i < clipMap->smodelNodeCount; ++i)
+            {
+                Game::R_AddDebugBounds(cyan, &clipMap->smodelNodes[i].bounds);
+            }
+
+            for (unsigned int i = 0; i < clipMap->numStaticModels; i += 2)
+            {
+                Game::R_AddDebugBounds(red, &clipMap->staticModelList[i].absBounds);
+            }			
 		});
 
 

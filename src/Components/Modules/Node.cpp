@@ -169,7 +169,7 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
 
-		if (!Dedicated::IsEnabled() && Game::CL_IsCgameInitialized())
+		if (!Dedicated::IsEnabled() && *Game::clcState > 0)
 		{
 			wasIngame = true;
 			return; // don't run while ingame because it can still cause lag spikes on lower end PCs
@@ -279,25 +279,48 @@ namespace Components
 
 	void Node::SendList(Network::Address address)
 	{
-		Proto::Node::List list;
-		list.set_isnode(Dedicated::IsEnabled());
-		list.set_protocol(PROTOCOL);
-		list.set_port(Node::GetPort());
-
 		std::lock_guard<std::recursive_mutex> _(Node::Mutex);
 
-		for (auto& node : Node::Nodes)
-		{
-			if (node.isValid())
-			{
-				std::string* str = list.add_nodes();
+		// need to keep the message size below 1404 bytes else recipient will just drop it
+		std::vector<std::string> nodeListReponseMessages;
 
-				sockaddr addr = node.address.getSockAddr();
-				str->append(reinterpret_cast<char*>(&addr), sizeof(addr));
+		for (size_t curNode = 0; curNode < Node::Nodes.size();)
+		{
+			Proto::Node::List list;
+			list.set_isnode(Dedicated::IsEnabled());
+			list.set_protocol(PROTOCOL);
+			list.set_port(Node::GetPort());
+
+			for (size_t i = 0; i < NODE_MAX_NODES_TO_SEND;)
+			{
+				if (curNode >= Node::Nodes.size())
+					break;
+
+				auto node = Node::Nodes.at(curNode++);
+
+				if (node.isValid())
+				{
+					std::string* str = list.add_nodes();
+
+					sockaddr addr = node.address.getSockAddr();
+					str->append(reinterpret_cast<char*>(&addr), sizeof(addr));
+
+					i++;
+				}
 			}
+
+			nodeListReponseMessages.push_back(list.SerializeAsString());
 		}
 
-		Session::Send(address, "nodeListResponse", list.SerializeAsString());
+		size_t i = 0;
+		for (auto& nodeListData : nodeListReponseMessages)
+		{
+			Scheduler::OnDelay([nodeListData, i, address]()
+			{
+				NODE_LOG("Sending %d nodeListResponse length to %s\n", nodeListData.length(), address.getCString());
+				Session::Send(address, "nodeListResponse", nodeListData);
+			}, NODE_SEND_RATE * i++);
+		}
 	}
 
 	unsigned short Node::GetPort()

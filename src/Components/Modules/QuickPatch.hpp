@@ -19,6 +19,7 @@ namespace Components
 		static void SelectStringTableEntryInDvarStub();
 
 		static int SVCanReplaceServerCommand(Game::client_t *client, const char *cmd);
+		static int G_GetClientScore();
 
 		static int MsgReadBitsCompressCheckSV(const char *from, char *to, int size);
 		static int MsgReadBitsCompressCheckCL(const char *from, char *to, int size);
@@ -27,7 +28,24 @@ namespace Components
 
 		static void JavelinResetHookStub();
 
-		static bool QuickPatch::InvalidNameCheck(char *dest, char *source, int size);
-		static void QuickPatch::InvalidNameStub();
+		static bool InvalidNameCheck(char *dest, char *source, int size);
+		static void InvalidNameStub();
+
+		static Game::dvar_t* sv_enableBounces;
+		static void BounceStub();
+
+		static Game::dvar_t* r_customAspectRatio;
+		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* name, char** enumValues, int defaultVal, int flags, const char* description);
+		static void SetAspectRatioStub();
+		static void SetAspectRatio();
+
+		static Game::dvar_t* g_antilag;
+		static void ClientEventsFireWeaponStub();
+		static void ClientEventsFireWeaponMeleeStub();
+
+		static Game::dvar_t* g_playerCollision;
+		static void PlayerCollisionStub();
+		static Game::dvar_t* g_playerEjection;
+		static void PlayerEjectionStub();
 	};
 }

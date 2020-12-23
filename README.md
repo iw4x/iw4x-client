@@ -2,7 +2,9 @@
 ![forks](https://img.shields.io/github/forks/IW4x/iw4x-client.svg)
 ![stars](https://img.shields.io/github/stars/IW4x/iw4x-client.svg)
 ![issues](https://img.shields.io/github/issues/IW4x/iw4x-client.svg)
-[![discord](https://discordapp.com/api/guilds/219514629703860235/widget.png)](https://discord.gg/sKeVmR3)
+[![build status](https://ci.appveyor.com/api/projects/status/rvljq0ooxen0oexm/branch/develop?svg=true)](https://ci.appveyor.com/project/iw4x/iw4x-client/branch/develop)
+[![discord](https://img.shields.io/endpoint?url=https://momo5502.com/iw4x/members-badge.php)](https://discord.gg/sKeVmR3)
+[![patreon](https://img.shields.io/badge/patreon-support-blue.svg?logo=patreon)](https://www.patreon.com/iw4x)
 
 # IW4x: Client
 
@@ -38,7 +40,6 @@
 | `--disable-bitmessage`      | Disable use of BitMessage completely.          |
 | `--disable-base128`         | Disable base128 encoding for minidumps.        |
 | `--no-new-structure`        | Do not use new virtual path structure (separating headers and source files). |
-| `--enable-dxsdk`            | Enable DirectX SDK (required for GfxMap exporting). |
 
 ## Disclaimer
 

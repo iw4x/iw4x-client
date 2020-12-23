@@ -27,7 +27,7 @@ namespace Components
 			return const_cast<char*>(this->dvar->current.string);
 		}
 
-		return "";
+		return const_cast<char*>("");
 	}
 	template <> const char* Dvar::Var::get()
 	{
@@ -138,6 +138,10 @@ namespace Components
 	{
 		return Game::Dvar_RegisterInt(name, value, min, max, flag.val, description);
 	}
+	template<> static Dvar::Var Dvar::Register(const char* name, float value, float min, float max, Dvar::Flag flag, const char* description)
+	{
+		return Game::Dvar_RegisterFloat(name, value, min, max, flag.val, description);
+	}
 
 	void Dvar::OnInit(Utils::Slot<Scheduler::Callback> callback)
 	{
@@ -223,6 +227,9 @@ namespace Components
 
 		// un-cheat cg_fov and add archive flags
 		Utils::Hook::Xor<BYTE>(0x4F8E35, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
+		
+		// un-cheat cg_fovscale and add archive flags
+		Utils::Hook::Xor<BYTE>(0x4F8E68, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
 
 		// un-cheat cg_debugInfoCornerOffset and add archive flags
 		Utils::Hook::Xor<BYTE>(0x4F8FC2, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
@@ -250,6 +257,12 @@ namespace Components
 
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).install()->quick();
+
+		// un-cheat safeArea_* and add archive flags
+		Utils::Hook::Xor<INT>(0x42E3F5, Game::dvar_flag::DVAR_FLAG_READONLY | Game::dvar_flag::DVAR_FLAG_SAVED); //safeArea_adjusted_horizontal
+		Utils::Hook::Xor<INT>(0x42E423, Game::dvar_flag::DVAR_FLAG_READONLY | Game::dvar_flag::DVAR_FLAG_SAVED); //safeArea_adjusted_vertical
+		Utils::Hook::Xor<BYTE>(0x42E398, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED); //safeArea_horizontal
+		Utils::Hook::Xor<BYTE>(0x42E3C4, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED); //safeArea_vertical
 
 		// Don't allow setting cheat protected dvars via menus
 		Utils::Hook(0x63C897, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();

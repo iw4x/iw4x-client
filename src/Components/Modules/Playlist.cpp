@@ -150,7 +150,7 @@ namespace Components
 	Playlist::Playlist()
 	{
 		// Default playlists
-		Utils::Hook::Set<char*>(0x60B06E, "playlists_default.info");
+		Utils::Hook::Set<const char*>(0x60B06E, "playlists_default.info");
 
 		// disable playlist download function
 		Utils::Hook::Set<BYTE>(0x4D4790, 0xC3);

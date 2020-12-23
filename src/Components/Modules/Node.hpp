@@ -1,6 +1,8 @@
 #pragma once
 
 #define NODE_HALFLIFE (3 * 60 * 1000) //3min
+#define NODE_MAX_NODES_TO_SEND 64
+#define NODE_SEND_RATE 500ms
 
 #ifdef NODE_LOG_MESSAGES
 #define NODE_LOG(x, ...) Logger::Print(x, __VA_ARGS__)

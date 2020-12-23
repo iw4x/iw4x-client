@@ -17,7 +17,7 @@ namespace Assets
 		}
 	}
 
-	void IXModel::loadXSurface(Game::XSurface* surf, Utils::Stream::Reader* reader)
+	void IXModel::loadXSurface(Game::XSurface* surf, Utils::Stream::Reader* reader, Components::ZoneBuilder::Zone* builder)
 	{
 		if (surf->vertInfo.vertsBlend)
 		{
@@ -48,13 +48,23 @@ namespace Assets
 		}
 
 		// Access index block
-		if (surf->triIndices)
-		{
-			surf->triIndices = reader->readArray<unsigned short>(surf->triCount * 3);
-		}
+        if (surf->triIndices)
+        {
+            void* oldPtr = surf->triIndices;
+            surf->triIndices = reader->readArray<unsigned short>(surf->triCount * 3);
+
+            if (builder->getAllocator()->isPointerMapped(oldPtr))
+            {
+                surf->triIndices = builder->getAllocator()->getPointer<unsigned short>(oldPtr);
+            }
+            else
+            {
+                builder->getAllocator()->mapPointer(oldPtr, surf->triIndices);
+            }
+        }
 	}
 
-	void IXModel::loadXModelSurfs(Game::XModelSurfs* asset, Utils::Stream::Reader* reader)
+	void IXModel::loadXModelSurfs(Game::XModelSurfs* asset, Utils::Stream::Reader* reader, Components::ZoneBuilder::Zone* builder)
 	{
 		if (asset->name)
 		{
@@ -67,7 +77,7 @@ namespace Assets
 
 			for (int i = 0; i < asset->numsurfs; ++i)
 			{
-				this->loadXSurface(&asset->surfs[i], reader);
+				this->loadXSurface(&asset->surfs[i], reader, builder);
 			}
 		}
 	}
@@ -165,7 +175,7 @@ namespace Assets
 					if (asset->lodInfo[i].modelSurfs)
 					{
 						asset->lodInfo[i].modelSurfs = reader.readObject<Game::XModelSurfs>();
-						this->loadXModelSurfs(asset->lodInfo[i].modelSurfs, &reader);
+						this->loadXModelSurfs(asset->lodInfo[i].modelSurfs, &reader, builder);
 						Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, { asset->lodInfo[i].modelSurfs });
 
 						asset->lodInfo[i].surfs = asset->lodInfo[i].modelSurfs->surfs;
@@ -293,7 +303,7 @@ namespace Assets
 					}
 
 					Components::AssetHandler::StoreTemporaryAsset(Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP, { asset->physCollmap });
-					//asset->physCollmap = nullptr;
+					// asset->physCollmap = nullptr;
 				}
 			}
 

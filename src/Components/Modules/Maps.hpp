@@ -100,10 +100,6 @@ namespace Components
 		static void AddDlc(DLC dlc);
 		static void UpdateDlcStatus();
 
-#if defined(DEBUG) && defined(ENABLE_DXSDK)
-		static void ExportMap(Game::GfxWorld* world);
-#endif
-
 		static void PrepareUsermap(const char* mapname);
 		static void SpawnServerStub();
 		static void LoadMapLoadscreenStub();
@@ -123,5 +119,6 @@ namespace Components
 		static Game::dvar_t* GetSpecularDvar();
 		static void SetSpecularStub1();
 		static void SetSpecularStub2();
+		static void G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2);
 	};
 }

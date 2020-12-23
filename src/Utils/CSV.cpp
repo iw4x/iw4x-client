@@ -4,7 +4,6 @@ namespace Utils
 {
 	CSV::CSV(const std::string& file, bool isFile, bool allowComments)
 	{
-		this->valid = false;
 		this->parse(file, isFile, allowComments);
 	}
 
@@ -111,7 +110,7 @@ namespace Utils
 				//++i;
 				continue;
 			}
-			else if (!isString && row[i] == '#' && allowComments) // Skip comments. I know CSVs usually don't have comments, but in this case it's useful
+			else if (!isString && (row[i] == '#' || (row[i] == '/' && (i + 1) < row.size() && row[i + 1] == '/') ) && allowComments) // Skip comments. I know CSVs usually don't have comments, but in this case it's useful
 			{
 				return;
 			}

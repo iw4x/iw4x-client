@@ -45,10 +45,8 @@
 
 #pragma warning(pop)
 
-#ifdef ENABLE_DXSDK
 #include <d3dx9tex.h>
 #pragma comment(lib, "D3dx9.lib")
-#endif
 
 // Usefull for debugging
 template <size_t S> class Sizer { };

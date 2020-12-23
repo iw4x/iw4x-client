@@ -26,7 +26,7 @@ namespace Components
 			bool terminateThread;
 			bool isMap;
 			bool isPrivate;
-			mg_mgr mgr;
+			//mg_mgr mgr;
 			Network::Address target;
 			std::string hashedPassword;
 			std::string mod;
@@ -64,7 +64,7 @@ namespace Components
 				if (this->valid)
 				{
 					this->valid = false;
-					mg_mgr_free(&(this->mgr));
+					//mg_mgr_free(&(this->mgr));
 				}
 			}
 		};
@@ -211,6 +211,8 @@ namespace Components
 		static std::thread ServerThread;
 		static bool Terminate;
         static bool ServerRunning;
+
+		static void DownloadProgress(FileDownload* fDownload, size_t bytes);
 
 		static bool VerifyPassword(mg_connection *nc, http_message* message);
 

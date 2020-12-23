@@ -336,6 +336,12 @@ namespace Components
 		}
 	}
 
+	void Network::NET_DeferPacketToClientStub(Game::netadr_t* from, Game::msg_t* msg)
+	{
+		if (msg->cursize > 0 && msg->cursize <= 1404)
+			Game::NET_DeferPacketToClient(from, msg);
+	}
+
 	Network::Network()
 	{
 		AssertSize(Game::netadr_t, 20);
@@ -358,7 +364,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4050A5, 125);
 
 		// Parse port as short in Net_AddrToString
-		Utils::Hook::Set<char*>(0x4698E3, "%u.%u.%u.%u:%hu");
+		Utils::Hook::Set<const char*>(0x4698E3, "%u.%u.%u.%u:%hu");
 
 		// Install startup handler
 		Utils::Hook(0x4FD4D4, Network::NetworkStartStub, HOOK_JUMP).install()->quick();
@@ -371,6 +377,9 @@ namespace Components
 
 		// Install packet deploy hook
 		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);
+
+		// Fix packets causing buffer overflow
+		Utils::Hook(0x6267E3, Network::NET_DeferPacketToClientStub, HOOK_CALL).install()->quick();
 
 		Network::Handle("resolveAddress", [](Address address, const std::string& /*data*/)
 		{

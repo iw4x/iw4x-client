@@ -2,9 +2,9 @@
 
 namespace Utils
 {
-	Library::Library(const std::string& buffer, bool _freeOnDestroy) : module(nullptr), freeOnDestroy(_freeOnDestroy)
+	Library::Library(const std::string& buffer, bool _freeOnDestroy) : _module(nullptr), freeOnDestroy(_freeOnDestroy)
 	{
-		this->module = LoadLibraryExA(buffer.data(), nullptr, 0);
+		this->_module = LoadLibraryExA(buffer.data(), nullptr, 0);
 	}
 
 	Library::~Library()
@@ -22,7 +22,7 @@ namespace Utils
 
 	HMODULE Library::getModule()
 	{
-		return this->module;
+		return this->_module;
 	}
 
 	void Library::free()
@@ -32,6 +32,6 @@ namespace Utils
 			FreeLibrary(this->getModule());
 		}
 
-		this->module = nullptr;
+		this->_module = nullptr;
 	}
 }

@@ -207,6 +207,9 @@ namespace Components
 	{
 		Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 
+        if (name.find(" ", 0) != std::string::npos)
+            Logger::Print("Warning: asset with name '%s' contains spaces. Check your zone source file to ensure this is correct!\n", name.data());
+
 		// Sanitize name for empty assets
 		if (name[0] == ',') name.erase(name.begin());
 
@@ -220,8 +223,7 @@ namespace Components
 
 		Game::XAssetHeader assetHeader = AssetHandler::FindAssetForZone(type, name, this, isSubAsset);
 		if (!assetHeader.data)
-		{
-			Logger::Error("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));
+		{			Logger::Error("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));
 			return false;
 		}
 
@@ -407,6 +409,8 @@ namespace Components
 		}
 #endif
 
+        Utils::IO::WriteFile("uncompressed", zoneBuffer);
+
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 		outBuffer.append(zoneBuffer);
 
@@ -506,7 +510,7 @@ namespace Components
 	// Add branding asset
 	void ZoneBuilder::Zone::addBranding()
 	{
-		char* data = "FastFile built using the IW4x ZoneBuilder!";
+		const char* data = "FastFile built using the IW4x ZoneBuilder!";
 		this->branding = { this->zoneName.data(), static_cast<int>(strlen(data)), 0, data };
 
 		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
@@ -701,21 +705,20 @@ namespace Components
 
 			if (zoneIndex > 0)
 			{
-				Game::DB_EnumXAssetEntries(type, [&](Game::XAssetEntry* entry)
-				{
-					if (!header.data && entry->zoneIndex == zoneIndex && Game::DB_GetXAssetName(&entry->asset) == name)
-					{
-						// Allocate an empty asset (filled with zeros)
-						header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
+                Game::XAssetEntry* entry = Game::DB_FindXAssetEntry(type, name.data());
 
-						// Set the name to the original name, so it can be stored
-						Game::DB_SetXAssetNameHandlers[type](&header, name.data());
-						AssetHandler::StoreTemporaryAsset(type, header);
+                if (entry && entry->zoneIndex == zoneIndex)
+                {
+                    // Allocate an empty asset (filled with zeros)
+                    header.data = builder->getAllocator()->allocate(Game::DB_GetXAssetSizeHandlers[type]());
 
-						// Set the name to the empty name
-						Game::DB_SetXAssetNameHandlers[type](&header, builder->getAllocator()->duplicateString("," + name));
-					}
-				}, true, true);
+                    // Set the name to the original name, so it can be stored
+                    Game::DB_SetXAssetNameHandlers[type](&header, name.data());
+                    AssetHandler::StoreTemporaryAsset(type, header);
+
+                    // Set the name to the empty name
+                    Game::DB_SetXAssetNameHandlers[type](&header, builder->getAllocator()->duplicateString("," + name));
+                }
 			}
 		}
 
@@ -868,6 +871,10 @@ namespace Components
 
 		// defaults need to load before we do this
 		Utils::Hook::Call<void()>(0x4E1F30)();  // G_SetupWeaponDef
+        Utils::Hook::Call<void()>(0x4454C0)();  // Item_SetupKeywordHash (for loading menus)
+        Utils::Hook::Call<void()>(0x501BC0)();  // Menu_SetupKeywordHash (for loading menus)
+        Utils::Hook::Call<void()>(0x4A1280)();  // something related to uiInfoArray
+        
 
 		Utils::Hook::Call<void(const char*)>(0x464A90)(GetCommandLineA()); // Com_ParseCommandLine
 		Utils::Hook::Call<void()>(0x60C3D0)(); // Com_AddStartupCommands
@@ -1102,12 +1109,29 @@ namespace Components
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{
 					ZoneBuilder::TraceAssets.push_back({ type, name });
+                    OutputDebugStringA((name + "\n").data());
 				}
 			});
 
 			Command::Add("verifyzone", [](Command::Params* params)
 			{
 				if (params->length() < 2) return;
+                /*
+                Utils::Hook(0x4AE9C2, [] {
+                    Game::WeaponCompleteDef** varPtr = (Game::WeaponCompleteDef**)0x112A9F4;
+                    Game::WeaponCompleteDef* var = *varPtr;
+                    OutputDebugStringA("");
+                    Utils::Hook::Call<void()>(0x4D1D60)(); // DB_PopStreamPos
+                }, HOOK_JUMP).install()->quick();
+
+
+                Utils::Hook(0x4AE9B4, [] {
+                    Game::WeaponCompleteDef** varPtr = (Game::WeaponCompleteDef**)0x112A9F4;
+                    Game::WeaponCompleteDef* var = *varPtr;
+                    OutputDebugStringA("");
+                    Utils::Hook::Call<void()>(0x4D1D60)(); // DB_PopStreamPos
+                }, HOOK_JUMP).install()->quick();
+                */
 
 				std::string zone = params->get(1);
 
@@ -1282,7 +1306,7 @@ namespace Components
 
 				// HACK: set language to 'techsets' to load from that dir
 				char* language = Utils::Hook::Get<char*>(0x649E740);
-				Utils::Hook::Set<char*>(0x649E740, "techsets");
+				Utils::Hook::Set<const char*>(0x649E740, "techsets");
 
 				// load generated techset fastfiles
 				auto list = Utils::IO::ListFiles("zone/techsets");
@@ -1342,7 +1366,7 @@ namespace Components
 						info.freeFlags = Game::DB_ZONE_MOD;
 						Game::DB_LoadXAssets(&info, 1, true);
 
-						Utils::Hook::Set<char*>(0x649E740, "techsets");
+						Utils::Hook::Set<const char*>(0x649E740, "techsets");
 
 						i = 0;
 						subCount++;

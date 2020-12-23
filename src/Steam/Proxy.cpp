@@ -10,6 +10,8 @@ namespace Steam
 	Interface        Proxy::ClientUser;
 	Interface        Proxy::ClientFriends;
 
+	Interface        Proxy::Placeholder;
+
 	Proxy::Handle Proxy::SteamPipe = nullptr;
 	Proxy::Handle Proxy::SteamUser = nullptr;
 
@@ -86,7 +88,11 @@ namespace Steam
 			if (ud_insn_mnemonic(&ud) == UD_Iret)
 			{
 				const ud_operand* operand = ud_insn_opr(&ud, 0);
-				if (!operand) break;
+				if (!operand)
+				{
+					*params = 0;
+					return true;
+				}
 
 				if (operand->type == UD_OP_IMM && operand->size == 16)
 				{
@@ -110,6 +116,8 @@ namespace Steam
 					}
 				}
 			}
+
+			if (*reinterpret_cast<unsigned char*>(ud.pc) == 0xCC) break;
 		}
 
 		return false;
@@ -130,7 +138,7 @@ namespace Steam
 
 			::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", Proxy::AppId), false);
 
-			Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe, "CLIENTUTILS_INTERFACE_VERSION001"));
+			Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
 			clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 		}
 	}
@@ -148,10 +156,10 @@ namespace Steam
 		gameID.type = 1; // k_EGameIDTypeGameMod
 		gameID.appID = Proxy::AppId & 0xFFFFFF;
 
-		char* modId = "IW4x";
+		char* modId = const_cast<char*>("IW4x");
 		gameID.modID = *reinterpret_cast<unsigned int*>(modId) | 0x80000000;
 
-		Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe, "CLIENTUTILS_INTERFACE_VERSION001"));
+		Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
 		clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 
 		char ourPath[MAX_PATH] = { 0 };
@@ -169,11 +177,11 @@ namespace Steam
 		size_t expectedParams = Proxy::ClientUser.paramSize("SpawnProcess");
 		if (expectedParams == 40) // Release
 		{
-			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
 		}
 		else if (expectedParams == 36) // Beta
 		{
-			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, mod.data(), 0, 0);
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
 		}
 		else if (expectedParams == 48) // Legacy, expects VAC blob
 		{
@@ -188,7 +196,7 @@ namespace Steam
 
 	void Proxy::RunMod()
 	{
-		char* command = "-proc ";
+		const char* command = "-proc ";
 		char* parentProc = strstr(GetCommandLineA(), command);
 
 		if (parentProc)
@@ -406,10 +414,13 @@ namespace Steam
 		Proxy::ClientEngine = Proxy::Client.get<IClientEngine*(const char*, int*)>("CreateInterface")("CLIENTENGINE_INTERFACE_VERSION005", nullptr);
 		if (!Proxy::ClientEngine) return false;
 
-		Proxy::ClientUser = Proxy::ClientEngine->GetIClientUser(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTUSER_INTERFACE_VERSION001");
+		Proxy::ClientUser = Proxy::ClientEngine->GetIClientUser(Proxy::SteamUser, Proxy::SteamPipe);
 		if (!Proxy::ClientUser) return false;
 
-		Proxy::ClientFriends = Proxy::ClientEngine->GetIClientFriends(Proxy::SteamUser, Proxy::SteamPipe, "CLIENTFRIENDS_INTERFACE_VERSION001");
+		//temporary fix required since Steam runtime update v0.20201203.1 (an additional function was added by steam)
+		Proxy::Placeholder = Proxy::ClientEngine->Placeholder(0);
+
+		Proxy::ClientFriends = Proxy::ClientEngine->GetIClientFriends(Proxy::SteamUser, Proxy::SteamPipe);
 		if (!Proxy::ClientFriends) return false;
 
 		Proxy::SteamApps = reinterpret_cast<Apps7*>(Proxy::SteamClient->GetISteamApps(Proxy::SteamUser, Proxy::SteamPipe, "STEAMAPPS_INTERFACE_VERSION007"));

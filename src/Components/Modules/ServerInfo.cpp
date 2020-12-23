@@ -110,6 +110,19 @@ namespace Components
 		}
 	}
 
+	Utils::InfoString ServerInfo::GetHostInfo()
+	{
+		Utils::InfoString info;
+
+		// TODO: Possibly add all Dvar starting with _
+		info.set("admin", Dvar::Var("_Admin").get<const char*>());
+		info.set("website", Dvar::Var("_Website").get<const char*>());
+		info.set("email", Dvar::Var("_Email").get<const char*>());
+		info.set("location", Dvar::Var("_Location").get<const char*>());
+
+		return info;
+	}
+
 	Utils::InfoString ServerInfo::GetInfo()
 	{
 		int maxclientCount = *Game::svs_numclients;

@@ -18,7 +18,7 @@ namespace Utils
 			{
 				if (this->tokenString.empty())
 				{
-					this->tokenString.append(reinterpret_cast<uint8_t*>("\0"), 1);
+					this->tokenString.append(reinterpret_cast<uint8_t*>(const_cast<char *>("\0")), 1);
 				}
 				else
 				{
@@ -31,7 +31,7 @@ namespace Utils
 							if (!i)
 							{
 								// Prepend here, as /dev/urandom says so ;) https://github.com/IW4x/iw4x-client-node/wikis/technical-information#incrementing-the-token
-								this->tokenString = std::basic_string<uint8_t>(reinterpret_cast<uint8_t*>("\0"), 1) + this->tokenString;
+								this->tokenString = std::basic_string<uint8_t>(reinterpret_cast<uint8_t*>(const_cast<char*>("\0")), 1) + this->tokenString;
 								break;
 							}
 						}

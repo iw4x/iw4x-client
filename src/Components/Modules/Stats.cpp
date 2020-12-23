@@ -63,6 +63,18 @@ namespace Components
 		Stats::SendStats();
 	}
 
+	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, size_t length)
+	{
+		const auto fs_game = Game::Dvar_FindVar("fs_game");
+
+		if (fs_game && fs_game->current.string && strlen(fs_game->current.string) && !strncmp(fs_game->current.string, "mods/", 5))
+		{
+			folder = fs_game->current.string;
+		}
+
+		return Utils::Hook::Call<int(char*, const char*, const char*, size_t)>(0x426450)(dest, folder, buffer, length);
+	}
+
 	Stats::Stats()
 	{
 		// This UIScript should be added in the onClose code of the cac_popup menu,
@@ -91,6 +103,9 @@ namespace Components
 
 		// Don't create stat backup
 		Utils::Hook::Nop(0x402CE6, 2);
+
+		// Write stats to mod folder if a mod is loaded
+		Utils::Hook(0x682F7B, Stats::SaveStats, HOOK_CALL).install()->quick();
 	}
 
 	Stats::~Stats()

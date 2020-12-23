@@ -2,6 +2,21 @@
 
 namespace Assets
 {
+
+    std::unordered_map<std::string, Game::menuDef_t*> ImenuDef_t::LoadedMenus;
+
+    void ImenuDef_t::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
+    {
+        // load from disk
+        auto menus = Components::Menus::LoadMenu(Utils::String::VA("ui_mp/%s.menu", name.data()));
+
+        if (menus.size() == 0) return;
+        if (menus.size() > 1) Components::Logger::Print("Menu '%s' on disk has more than one menudef in it. Only saving the first one\n", name.data());
+
+        header->menu = menus[0].second;
+    }
+
+
 	void ImenuDef_t::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::menuDef_t *asset = header.menu;
@@ -36,6 +51,10 @@ namespace Assets
 	{
 		AssertSize(Game::ExpressionSupportingData, 24);
 		Utils::Stream* buffer = builder->getBuffer();
+
+#ifdef WRITE_LOGS
+        buffer->enterStruct("ExpressionSupportingData");
+#endif
 
 		buffer->align(Utils::Stream::ALIGN_4);
 
@@ -107,12 +126,20 @@ namespace Assets
 				}
 			}
 		}
+#ifdef WRITE_LOGS
+        buffer->leaveStruct();
+#endif
 	}
 
 	void ImenuDef_t::save_Statement_s(Game::Statement_s* asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::Statement_s, 24);
+        AssertSize(Game::expressionEntry, 12);
 		Utils::Stream* buffer = builder->getBuffer();
+
+#ifdef WRITE_LOGS
+        buffer->enterStruct("Statement_s");
+#endif
 
 		// Write header data
 		Game::Statement_s *dest = buffer->dest<Game::Statement_s>();
@@ -121,6 +148,9 @@ namespace Assets
 		// Write statement entries
 		if (asset->entries)
 		{
+#ifdef WRITE_LOGS
+            buffer->enterStruct("statement entries");
+#endif
 			buffer->align(Utils::Stream::ALIGN_4);
 
 			// Write entries
@@ -130,6 +160,9 @@ namespace Assets
 			// Loop through entries
 			for (int i = 0; i < asset->numEntries; ++i)
 			{
+#ifdef WRITE_LOGS
+                buffer->enterStruct("entry");
+#endif
 				if (asset->entries[i].type)
 				{
 					switch (asset->entries[i].data.operand.dataType)
@@ -159,19 +192,33 @@ namespace Assets
 						break;
 					}
 				}
+#ifdef WRITE_LOGS
+                buffer->leaveStruct();
+#endif
 			}
+#ifdef WRITE_LOGS
+            buffer->leaveStruct();
+#endif
 		}
+
 		if (asset->supportingData)
 		{
 			this->save_ExpressionSupportingData(asset->supportingData, builder);
 			Utils::Stream::ClearPointer(&dest->supportingData);
 		}
+#ifdef WRITE_LOGS
+        buffer->leaveStruct();
+#endif
 	}
 
 	void ImenuDef_t::save_MenuEventHandlerSet(Game::MenuEventHandlerSet* asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::MenuEventHandlerSet, 8);
 		Utils::Stream* buffer = builder->getBuffer();
+
+#ifdef WRITE_LOGS
+        buffer->enterStruct("MenuEventHandlerSet");
+#endif
 
 		// Write header data
 		Game::MenuEventHandlerSet *destset = buffer->dest<Game::MenuEventHandlerSet>();
@@ -191,6 +238,9 @@ namespace Assets
 				if (asset->eventHandlers[i])
 				{
 					buffer->align(Utils::Stream::ALIGN_4);
+#ifdef WRITE_LOGS
+                    buffer->enterStruct("MenuEventHandler");
+#endif
 
 					// Write menu event handler
 					Game::MenuEventHandler *dest = buffer->dest<Game::MenuEventHandler>();
@@ -278,17 +328,27 @@ namespace Assets
 						}
 						break;
 					}
+#ifdef WRITE_LOGS
+                    buffer->leaveStruct();
+#endif
 				}
 			}
 
 			Utils::Stream::ClearPointer(&destset->eventHandlers);
 		}
+#ifdef WRITE_LOGS
+        buffer->leaveStruct();
+#endif
 	}
 
 	void ImenuDef_t::save_ItemKeyHandler(Game::ItemKeyHandler* asset, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::ItemKeyHandler, 12);
 		Utils::Stream* buffer = builder->getBuffer();
+
+#ifdef WRITE_LOGS
+        buffer->enterStruct("ItemKeyHandler");
+#endif
 
 		while (asset)
 		{
@@ -313,6 +373,9 @@ namespace Assets
 			// Next key handler
 			asset = asset->next;
 		}
+#ifdef WRITE_LOGS
+        buffer->leaveStruct();
+#endif
 	}
 
 #define EVENTHANDLERSET(__indice) \
@@ -339,6 +402,10 @@ namespace Assets
 		AssertSize(Game::multiDef_s, 392);
 
 		Utils::Stream* buffer = builder->getBuffer();
+
+#ifdef WRITE_LOGS
+        buffer->enterStruct("itemDefData_t");
+#endif
 
 		// feeder
 		if (type == 6)
@@ -421,6 +488,10 @@ namespace Assets
 		}
 
 		Utils::Stream::ClearPointer(&dest->typeData.data);
+
+#ifdef WRITE_LOGS
+        buffer->leaveStruct();
+#endif
 	}
 
 	void ImenuDef_t::save_itemDef_s(Game::itemDef_s *asset, Components::ZoneBuilder::Zone* builder)
@@ -429,6 +500,15 @@ namespace Assets
 
 		Utils::Stream* buffer = builder->getBuffer();
 		Game::itemDef_s* dest = buffer->dest<Game::itemDef_s>();
+
+#ifdef WRITE_LOGS
+        if (asset->window.name)
+            buffer->enterStruct(Utils::String::VA("itemDef_s: name = '%s'", asset->window.name));
+        else if (asset->window.background)
+            buffer->enterStruct(Utils::String::VA("itemDef_s: bg = '%s'", asset->window.background->info.name));
+        else 
+            buffer->enterStruct("itemDef_s");
+#endif
 
 		buffer->save(asset);
 
@@ -458,6 +538,7 @@ namespace Assets
 			buffer->saveString(asset->dvar);
 			Utils::Stream::ClearPointer(&dest->dvar);
 		}
+
 		if (asset->dvarTest)
 		{
 			buffer->saveString(asset->dvarTest);
@@ -478,6 +559,7 @@ namespace Assets
 			buffer->saveString(asset->enableDvar);
 			Utils::Stream::ClearPointer(&dest->enableDvar);
 		}
+
 		if (asset->localVar)
 		{
 			buffer->saveString(asset->localVar);
@@ -500,6 +582,9 @@ namespace Assets
 		if (asset->floatExpressions)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
+#ifdef WRITE_LOGS
+            buffer->enterStruct("floatExpressions");
+#endif
 
 			Game::ItemFloatExpression* destExp = buffer->dest<Game::ItemFloatExpression>();
 			buffer->saveArray(asset->floatExpressions, asset->floatExpressionCount);
@@ -508,10 +593,14 @@ namespace Assets
 			{
 				buffer->align(Utils::Stream::ALIGN_4);
 				this->save_Statement_s(asset->floatExpressions[i].expression, builder);
-				Utils::Stream::ClearPointer(&destExp->expression);
+				Utils::Stream::ClearPointer(&destExp[i].expression);
 			}
 
 			Utils::Stream::ClearPointer(&dest->floatExpressions);
+
+#ifdef WRITE_LOGS
+            buffer->leaveStruct();
+#endif
 		}
 
 		// Statements
@@ -519,16 +608,23 @@ namespace Assets
 		STATEMENT(disabledExp);
 		STATEMENT(textExp);
 		STATEMENT(materialExp);
+
+#ifdef WRITE_LOGS
+        buffer->leaveStruct();
+#endif
 	}
 
 	void ImenuDef_t::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::menuDef_t, 400);
 
+#ifdef WRITE_LOGS
+        buffer->enterStruct("ImenuDef_t");
+#endif
+
 		Utils::Stream* buffer = builder->getBuffer();
 		Game::menuDef_t* asset = header.menu;
 		Game::menuDef_t* dest = buffer->dest<Game::menuDef_t>();
-
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
@@ -603,6 +699,9 @@ namespace Assets
 				}
 			}
 		}
+#ifdef WRITE_LOGS
+        buffer->leaveStruct();
+#endif
 
 		buffer->popBlock();
 	}
