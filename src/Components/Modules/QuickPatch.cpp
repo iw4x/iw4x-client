@@ -183,6 +183,63 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* QuickPatch::g_antilag;
+
+	__declspec(naked) void QuickPatch::ClientEventsFireWeaponStub()
+	{
+		__asm
+		{
+			// check g_antilag dvar value
+			mov eax, g_antilag;
+			cmp byte ptr[eax + 16], 1;
+
+			// do antilag if 1
+			je fireWeapon
+
+			// do not do antilag if 0
+			mov eax, 0x1A83554 // level.time
+			mov ecx, [eax]
+
+		fireWeapon:
+			push    edx
+			push    ecx
+			push    edi
+			mov     eax, 0x4A4D50 // FireWeapon
+			call    eax
+			add     esp, 0Ch
+			pop     edi
+			pop     ecx
+			retn
+		}
+	}
+
+	__declspec(naked) void QuickPatch::ClientEventsFireWeaponMeleeStub()
+	{
+		__asm
+		{
+			// check g_antilag dvar value
+			mov eax, g_antilag;
+			cmp byte ptr[eax + 16], 1;
+
+			// do antilag if 1
+			je fireWeaponMelee
+
+			// do not do antilag if 0
+			mov eax, 0x1A83554 // level.time
+			mov edx, [eax]
+
+		fireWeaponMelee:
+			push    edx
+			push    edi
+			mov     eax, 0x4F2470 // FireWeaponMelee
+			call    eax
+			add     esp, 8
+			pop     edi
+			pop     ecx
+			retn
+		}
+	}
+
 	Game::dvar_t* QuickPatch::sv_enableBounces;
 	__declspec(naked) void QuickPatch::BounceStub()
 	{
@@ -396,6 +453,10 @@ namespace Components
 		// Player Ejection dvar
 		g_playerEjection = Game::Dvar_RegisterBool("g_playerEjection", true, Game::DVAR_FLAG_REPLICATED, "Flag whether player ejection is on or off");
 		Utils::Hook(0x5D814A, QuickPatch::PlayerEjectionStub, HOOK_JUMP).install()->quick();
+
+		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_FLAG_REPLICATED, "Perform antilag");
+		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMeleeStub, HOOK_JUMP).install()->quick();
 
 		// Disallow invalid player names
 		Utils::Hook(0x401983, QuickPatch::InvalidNameStub, HOOK_JUMP).install()->quick();
