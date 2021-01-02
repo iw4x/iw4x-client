@@ -9,6 +9,7 @@ namespace Components
 
 	private:
 		static XINPUT_STATE xiStates[XUSER_MAX_COUNT];
+		static int xiPlayerNum;
 
 		static void CL_FrameStub();
 		static void PollXInputDevices();
