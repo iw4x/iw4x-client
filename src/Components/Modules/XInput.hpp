@@ -16,5 +16,9 @@ namespace Components
 
 		static void CL_CreateCmdStub();
 		static void CL_GamepadMove(int, Game::usercmd_s*);
-	};
+
+		static void MSG_WriteDeltaUsercmdKeyStub();
+
+		static void MSG_ReadDeltaUsercmdKeyStub();
+	}
 }
