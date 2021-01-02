@@ -103,6 +103,7 @@ namespace Components
 		Loader::Register(new StartupMessages());
 
 		Loader::Register(new Client());
+		Loader::Register(new XInput());
 
 		Loader::Pregame = false;
 	}
