@@ -93,13 +93,32 @@ namespace Components
 
 	__declspec(naked) void XInput::MSG_ReadDeltaUsercmdKeyStub()
 	{
+		__asm
+		{
+			// return back
+			push 0x4921BF
+			ret
+		}
+	}
 
+	__declspec(naked) void XInput::MSG_ReadDeltaUsercmdKeyStub2()
+	{
+		__asm
+		{
+			// return back
+			push 3
+			push esi
+			push 0x492085
+			ret
+		}
 	}
 
 	XInput::XInput()
 	{
+		// poll xinput devices every client frame
 		Utils::Hook(0x486970, XInput::CL_FrameStub, HOOK_JUMP).install()->quick();
 
+		// use the xinput state when creating a usercmd
 		Utils::Hook(0x5A6DB9, XInput::CL_CreateCmdStub, HOOK_JUMP).install()->quick();
 
 		// package the forward and right move components in the move buttons
@@ -109,6 +128,12 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x60E501, 8);
 		Utils::Hook::Set<BYTE>(0x60E5CD, 8);
 
-		//Utils::Hook(0x5A6DB9, XInput::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
+		// make sure to parse the movement data properally and apply it
+		Utils::Hook(0x492191, XInput::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x492061, XInput::MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
+
+		// read two bytes instead of one for receiveing movement data
+		Utils::Hook::Set<BYTE>(0x492049, 8);
+		Utils::Hook::Set<BYTE>(0x492177, 8);
 	}
 }

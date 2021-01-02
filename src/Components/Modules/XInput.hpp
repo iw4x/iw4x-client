@@ -20,5 +20,6 @@ namespace Components
 		static void MSG_WriteDeltaUsercmdKeyStub();
 
 		static void MSG_ReadDeltaUsercmdKeyStub();
-	}
+		static void MSG_ReadDeltaUsercmdKeyStub2();
+	};
 }
