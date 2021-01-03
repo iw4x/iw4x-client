@@ -3,13 +3,14 @@
 namespace Components
 {
 	XINPUT_STATE XInput::xiStates[XUSER_MAX_COUNT];
+	XINPUT_STATE XInput::lastxiState = { 0 };
 	int XInput::xiPlayerNum = -1;
 
 	void XInput::PollXInputDevices()
 	{
 		XInput::xiPlayerNum = -1;
 
-		for (int i = XUSER_MAX_COUNT; i >= 0; i--)
+		for (int i = XUSER_MAX_COUNT - 1; i >= 0; i--)
 		{
 			if (XInputGetState(i, &xiStates[i]) == ERROR_SUCCESS)
 				XInput::xiPlayerNum = i;
@@ -46,6 +47,149 @@ namespace Components
 
 			Game::cl_angles[0] -= (xiState->Gamepad.sThumbRY / 32767.0f);
 			Game::cl_angles[1] -= (xiState->Gamepad.sThumbRX / 32767.0f);
+
+			bool pressingLeftTrigger = xiState->Gamepad.bLeftTrigger / 255.f > 0.5;
+			if (pressingLeftTrigger != XInput::lastxiState.Gamepad.bLeftTrigger / 255.f > 0.5)
+			{
+				if (pressingLeftTrigger)
+					Command::Execute("+speed");
+				else
+					Command::Execute("-speed");
+			}
+
+			bool pressingRightTrigger = xiState->Gamepad.bRightTrigger / 255.f > 0.5;
+			if (pressingRightTrigger != XInput::lastxiState.Gamepad.bRightTrigger / 255.f > 0.5)
+			{
+				if (pressingRightTrigger)
+					Command::Execute("+attack");
+				else
+					Command::Execute("-attack");
+			}
+
+			bool pressingWeapChange = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0;
+			if (pressingWeapChange != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0))
+			{
+				if (pressingWeapChange)
+					Command::Execute("weapnext");
+			}
+
+			bool pressingReload = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0;
+			if (pressingReload != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0))
+			{
+				if (pressingReload)
+					Command::Execute("+usereload");
+				else
+					Command::Execute("-usereload");
+			}
+
+			bool pressingJump = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
+			if (pressingJump != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0))
+			{
+				if (pressingJump)
+					Command::Execute("+gostand");
+				else
+					Command::Execute("-gostand");
+			}
+
+			bool pressingKnife = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
+			if (pressingKnife != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0))
+			{
+				if (pressingKnife)
+					Command::Execute("+melee");
+				else
+					Command::Execute("-melee");
+			}
+
+			bool pressingSprint = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
+			if (pressingSprint != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0))
+			{
+				if (pressingSprint)
+					Command::Execute("+breath_sprint");
+				else
+					Command::Execute("-breath_sprint");
+			}
+
+			bool pressingStance = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
+			if (pressingStance != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0))
+			{
+				if (pressingStance)
+					Command::Execute("+stance");
+				else
+					Command::Execute("-stance");
+			}
+
+			bool pressingSmoke = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
+			if (pressingSmoke != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0))
+			{
+				if (pressingSmoke)
+					Command::Execute("+smoke");
+				else
+					Command::Execute("-smoke");
+			}
+
+			bool pressingFrag = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
+			if (pressingFrag != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0))
+			{
+				if (pressingFrag)
+					Command::Execute("+frag");
+				else
+					Command::Execute("-frag");
+			}
+
+			bool pressingScore = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
+			if (pressingScore != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0))
+			{
+				if (pressingScore)
+					Command::Execute("+scores");
+				else
+					Command::Execute("-scores");
+			}
+
+			bool pressingAlt = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
+			if (pressingAlt != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0))
+			{
+				if (pressingAlt)
+					Command::Execute("+actionslot 2");
+				else
+					Command::Execute("-actionslot 2");
+			}
+
+			bool pressingKillstreak = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
+			if (pressingKillstreak != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0))
+			{
+				if (pressingKillstreak)
+					Command::Execute("+actionslot 3");
+				else
+					Command::Execute("-actionslot 3");
+			}
+
+			bool pressingNight = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
+			if (pressingNight != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0))
+			{
+				if (pressingNight)
+					Command::Execute("+actionslot 4");
+				else
+					Command::Execute("-actionslot 4");
+			}
+
+			bool pressingUp = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
+			if (pressingUp != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0))
+			{
+				if (pressingUp)
+					Command::Execute("+actionslot 1");
+				else
+					Command::Execute("-actionslot 1");
+			}
+
+			bool pressingStart = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0;
+			if (pressingStart != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0))
+			{
+				if (pressingStart)
+					Command::Execute("togglemenu");
+			}
+
+
+			memcpy(&XInput::lastxiState, xiState, sizeof XINPUT_STATE);
 		}
 	}
 

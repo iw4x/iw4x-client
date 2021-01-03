@@ -49,6 +49,9 @@ namespace Game
 	typedef int(__cdecl * CG_GetClientNum_t)();
 	extern CG_GetClientNum_t CG_GetClientNum;
 
+	typedef void(__cdecl * CG_NextWeapon_f_t)();
+	extern CG_NextWeapon_f_t CG_NextWeapon_f;
+
 	typedef std::int32_t(__cdecl* CG_PlayBoltedEffect_t) (std::int32_t, FxEffectDef*, std::int32_t, std::uint32_t);
 	extern CG_PlayBoltedEffect_t CG_PlayBoltedEffect;
 
