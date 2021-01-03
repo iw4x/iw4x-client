@@ -91,10 +91,39 @@ namespace Components
 		}
 	}
 
+	void XInput::ApplyMovement(Game::msg_t* msg, int key, Game::usercmd_s* from, Game::usercmd_s* to)
+	{
+		char forward;
+		char right;
+
+		if (Game::MSG_ReadBit(msg))
+		{
+			short movementBits = static_cast<short>(key ^ Game::MSG_ReadBits(msg, 16));
+
+			forward = static_cast<char>(movementBits);
+			right = static_cast<char>(movementBits >> 8);
+		}
+		else
+		{
+			forward = from->forwardmove;
+			right = from->rightmove;
+		}
+		
+		to->forwardmove = forward;
+		to->rightmove = right;
+	}
+
 	__declspec(naked) void XInput::MSG_ReadDeltaUsercmdKeyStub()
 	{
 		__asm
 		{
+			push ebx // to
+			push ebp // from
+			push edi // key
+			push esi // msg
+			call XInput::ApplyMovement
+			add     esp, 10h
+
 			// return back
 			push 0x4921BF
 			ret
@@ -105,6 +134,13 @@ namespace Components
 	{
 		__asm
 		{
+			push ebx // to
+			push ebp // from
+			push edi // key
+			push esi // msg
+			call XInput::ApplyMovement
+			add     esp, 10h
+
 			// return back
 			push 3
 			push esi
@@ -124,16 +160,12 @@ namespace Components
 		// package the forward and right move components in the move buttons
 		Utils::Hook(0x60E38D, XInput::MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
 
-		// send two bytes instead of one for sending movement data
-		Utils::Hook::Set<BYTE>(0x60E501, 8);
-		Utils::Hook::Set<BYTE>(0x60E5CD, 8);
+		// send two bytes for sending movement data
+		Utils::Hook::Set<BYTE>(0x60E501, 16);
+		Utils::Hook::Set<BYTE>(0x60E5CD, 16);
 
 		// make sure to parse the movement data properally and apply it
-		Utils::Hook(0x492191, XInput::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x492061, XInput::MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
-
-		// read two bytes instead of one for receiveing movement data
-		Utils::Hook::Set<BYTE>(0x492049, 8);
-		Utils::Hook::Set<BYTE>(0x492177, 8);
+		Utils::Hook(0x492127, XInput::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x492009, XInput::MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
 	}
 }

@@ -420,6 +420,12 @@ namespace Game
 	typedef int(__cdecl * MSG_ReadLong_t)(msg_t* msg);
 	extern MSG_ReadLong_t MSG_ReadLong;
 
+	typedef int(__cdecl * MSG_ReadBit_t)(msg_t* msg);
+	extern MSG_ReadBit_t MSG_ReadBit;
+
+	typedef int(__cdecl * MSG_ReadBits_t)(msg_t* msg, int bits);
+	extern MSG_ReadBits_t MSG_ReadBits;
+
 	typedef short(__cdecl * MSG_ReadShort_t)(msg_t* msg);
 	extern MSG_ReadShort_t MSG_ReadShort;
 

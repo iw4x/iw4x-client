@@ -19,6 +19,8 @@ namespace Components
 
 		static void MSG_WriteDeltaUsercmdKeyStub();
 
+		static void ApplyMovement(Game::msg_t* msg, int key, Game::usercmd_s* from, Game::usercmd_s* to);
+
 		static void MSG_ReadDeltaUsercmdKeyStub();
 		static void MSG_ReadDeltaUsercmdKeyStub2();
 	};
