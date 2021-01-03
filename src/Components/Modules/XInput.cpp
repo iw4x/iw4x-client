@@ -43,6 +43,9 @@ namespace Components
 
 			cmd->rightmove = static_cast<BYTE>(xiState->Gamepad.sThumbLX / 256);
 			cmd->forwardmove = static_cast<BYTE>(xiState->Gamepad.sThumbLY / 256);
+
+			Game::cl_angles[0] -= (xiState->Gamepad.sThumbRY / 32767.0f);
+			Game::cl_angles[1] -= (xiState->Gamepad.sThumbRX / 32767.0f);
 		}
 	}
 

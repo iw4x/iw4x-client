@@ -790,6 +790,8 @@ namespace Game
 
 	extern cmd_function_t** cmd_functions;
 
+	extern float* cl_angles;
+
 	extern int* svs_time;
 	extern int* svs_numclients;
 	extern client_t* svs_clients;
