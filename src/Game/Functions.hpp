@@ -794,6 +794,7 @@ namespace Game
 	extern cmd_function_t** cmd_functions;
 
 	extern float* cl_angles;
+	extern float* cgameFOVSensitivityScale;
 
 	extern int* svs_time;
 	extern int* svs_numclients;
