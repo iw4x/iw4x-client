@@ -112,6 +112,9 @@ namespace Components
 				const unsigned int vertOffset = surface->tris.firstVertex + 1;
 				const unsigned int indexOffset = surface->tris.baseIndex;
 
+				// Fuck cube maps for now
+				if(this->findImage(surface->material, "colorMap")->mapType == 5) continue;
+
 				auto& f = this->getFaceList(surface->material);
 
 				for (unsigned short j = 0; j < surface->tris.triCount; ++j)
@@ -332,33 +335,31 @@ namespace Components
 			this->object_.append("\n");
 		}
 
-		void writeMaterial(Game::Material* material)
+		Game::GfxImage* findImage(Game::Material* material, const std::string& type) const
 		{
-			std::string name = material->info.name;
+			Game::GfxImage* image = nullptr;
 
-			const auto pos = name.find_last_of('/');
-			if (pos != std::string::npos)
-			{
-				name = name.substr(pos + 1);
-			}
-
-			this->object_.append(Utils::String::VA("usemtl %s\n", name.data()));
-			this->object_.append("s off\n");
-
-			Game::GfxImage *image = nullptr;
+			const auto hash = Game::R_HashString(type.data());
 
 			for (char l = 0; l < material->textureCount; ++l)
 			{
-				if (material->textureTable[l].nameStart == 'c' && material->textureTable[l].nameEnd == 'p')
+				if (material->textureTable[l].nameHash == hash)
 				{
-					image = material->textureTable[l].u.image; // Hopefully our colorMap
+					image = material->textureTable[l].u.image; // Hopefully our map
+					break;
 				}
 			}
 
+			return image;
+		}
+
+		Game::GfxImage* extractImage(Game::Material* material, const std::string& type) const
+		{
+			auto* image = this->findImage(material, type);
+
 			if (!image)
 			{
-				Logger::Print("Failed to get color map for material: %s\n", material->info.name);
-				return;
+				return image;
 			}
 
 			// TODO: This is still wrong.
@@ -383,12 +384,42 @@ namespace Components
 				D3DXSaveTextureToFileA(_name.data(), D3DXIFF_PNG, image->texture.map, nullptr);
 			}
 
+			return image;
+		}
+
+		void writeMaterial(Game::Material* material)
+		{
+			std::string name = material->info.name;
+
+			const auto pos = name.find_last_of('/');
+			if (pos != std::string::npos)
+			{
+				name = name.substr(pos + 1);
+			}
+
+			this->object_.append(Utils::String::VA("usemtl %s\n", name.data()));
+			this->object_.append("s off\n");
+
+			auto* colorMap = this->extractImage(material, "colorMap");
+			auto* normalMap = this->extractImage(material, "normalMap");
+			auto* specularMap = this->extractImage(material, "specularMap");
+
 			this->material_.append(Utils::String::VA("\nnewmtl %s\n", name.data()));
 			this->material_.append("Ka 1.0000 1.0000 1.0000\n");
 			this->material_.append("Kd 1.0000 1.0000 1.0000\n");
 			this->material_.append("illum 1\n");
-			this->material_.append(Utils::String::VA("map_Ka textures/%s.png\n", image->name));
-			this->material_.append(Utils::String::VA("map_Kd textures/%s.png\n", image->name));
+			this->material_.append(Utils::String::VA("map_Ka textures/%s.png\n", colorMap->name));
+			this->material_.append(Utils::String::VA("map_Kd textures/%s.png\n", colorMap->name));
+
+			if (specularMap)
+			{
+				this->material_.append(Utils::String::VA("map_Ks textures/%s.png\n", specularMap->name));
+			}
+
+			if (normalMap)
+			{
+				this->material_.append(Utils::String::VA("bump textures/%s.png\n", normalMap->name));
+			}
 		}
 
 		void writeFaces()
