@@ -456,10 +456,7 @@ workspace "iw4x"
 		--iw4mvm.project()
 		
 workspace "*"
-	buildoptions {
-				"/std:c++latest"
-			}
-	systemversion "latest"
+	cppdialect "C++17"
 	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
 
 rule "ProtobufCompiler"
