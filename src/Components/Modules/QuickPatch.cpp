@@ -973,6 +973,41 @@ namespace Components
             }			
 		});
 
+		Dvar::OnInit([]
+			{
+				Dvar::Register<bool>("r_drawSceneModelBoundingBoxes", false, Game::DVAR_FLAG_CHEAT, "Draw scene model bounding boxes");
+			});
+
+		Scheduler::OnFrame([]()
+		{
+			if (!Game::CL_IsCgameInitialized() || !Dvar::Var("r_drawSceneModelBoundingBoxes").get<bool>()) return;
+			
+            float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+            float blue[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+
+			auto* scene = Game::scene;
+
+			for(auto i = 0; i < scene->sceneModelCount; i++)
+			{
+				if(!scene->sceneModel[i].model)
+					continue;
+
+				auto b = scene->sceneModel[i].model->bounds;
+				b.midPoint[0] += scene->sceneModel[i].placement.base.origin[0];
+				b.midPoint[1] += scene->sceneModel[i].placement.base.origin[1];
+				b.midPoint[2] += scene->sceneModel[i].placement.base.origin[2];
+				b.halfSize[0] *= scene->sceneModel[i].placement.scale;
+				b.halfSize[1] *= scene->sceneModel[i].placement.scale;
+				b.halfSize[2] *= scene->sceneModel[i].placement.scale;
+				Game::R_AddDebugBounds(red, &b, &scene->sceneModel[i].placement.base.quat);
+			}
+
+			for(auto i = 0; i < scene->sceneDObjCount; i++)
+			{
+				Game::R_AddDebugBounds(blue, &scene->sceneDObj[i].cull.bounds);
+			}
+		});
+
 
 		// Dvars
 		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_FLAG_SAVED, "Stream friendly UI");

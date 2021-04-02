@@ -4844,6 +4844,278 @@ namespace Game
 		GfxCmdBufState *state;
 	};
 
+	struct GfxDrawGroupSetupFields
+	{
+		unsigned __int16 materialSortedIndex : 15;
+		unsigned __int16 useHeroLighting : 1;
+		char sceneLightIndex;
+		char surfType;
+	};
+
+	union GfxDrawGroupSetup
+	{
+		GfxDrawGroupSetupFields fields;
+		unsigned int packed;
+	};
+
+	struct GfxMarkSurfLightingFields
+	{
+		char lmapIndex;
+		char reflectionProbeIndex;
+		unsigned __int16 modelIndex;
+	};
+
+	union GfxMarkSurfLighting
+	{
+		GfxMarkSurfLightingFields fields;
+		unsigned int packed;
+	};
+
+	struct GfxMarkSurf
+	{
+		GfxDrawGroupSetup drawGroup;
+		unsigned __int16* indices;
+		unsigned __int16 triCount;
+		char modelType;
+		char pad;
+		GfxMarkSurfLighting lighting;
+	};
+
+	struct GfxCodeSurf
+	{
+		GfxDrawGroupSetup drawGroup;
+		unsigned int triCount;
+		unsigned __int16* indices;
+		unsigned __int16 argOffset;
+		unsigned __int16 argCount;
+	};
+
+	struct __declspec(align(4)) GfxGlassSurf
+	{
+		GfxDrawGroupSetup drawGroup;
+		char pad;
+		char reflectionProbeIndex;
+		unsigned __int16 triCount;
+		unsigned __int16* indices;
+		unsigned __int16 lightingHandle;
+	};
+
+	struct GfxCloudSurfFields
+	{
+		unsigned __int16 materialSortedIndex;
+		char cloudDataIndex;
+		char surfType;
+	};
+
+	union GfxCloudSurf
+	{
+		GfxCloudSurfFields fields;
+		unsigned int packed;
+	};
+
+	struct GfxSparkSurfFields
+	{
+		unsigned __int16 materialSortedIndex;
+		unsigned __int16 sparkDataIndex;
+	};
+
+	union GfxSparkSurf
+	{
+		GfxSparkSurfFields fields;
+		unsigned int packed;
+	};
+
+	struct GfxSceneDef
+	{
+		int time;
+		float floatTime;
+		float viewOffset[3];
+		GfxImage* sunShadowImage;
+		float sunShadowPixelAdjust[4];
+	};
+
+	struct GfxLight
+	{
+		char type;
+		char canUseShadowMap;
+		char unused[2];
+		float color[3];
+		float dir[3];
+		float origin[3];
+		float radius;
+		float cosHalfFovOuter;
+		float cosHalfFovInner;
+		int exponent;
+		unsigned int spotShadowIndex;
+		GfxLightDef* def;
+	};
+
+	struct GfxVisibleLight
+	{
+		char pad[0x2004];
+	};
+
+	struct GfxEntity
+	{
+		unsigned int renderFxFlags;
+		float materialTime;
+	};
+
+	struct GfxSkinnedXModelSurfs
+	{
+		void* firstSurf;
+	};
+
+	struct GfxSceneEntityCull
+	{
+		volatile unsigned int state;
+		Bounds bounds;
+		GfxSkinnedXModelSurfs skinnedSurfs;
+	};
+
+	union GfxSceneEntityInfo
+	{
+		void/*cpose_t*/* pose;
+		unsigned __int16* cachedLightingHandle;
+	};
+
+	struct GfxSceneEntity
+	{
+		float lightingOrigin[3];
+		GfxPlacement placement;
+		GfxSceneEntityCull cull;
+		char lods[32];
+		unsigned __int32 gfxEntIndex : 7;
+		unsigned __int32 entnum : 12;
+		unsigned __int32 renderFxFlags : 13;
+		void/*DObj*/* obj;
+		GfxSceneEntityInfo info;
+		char reflectionProbeIndex;
+	};
+
+	struct GfxScaledPlacement
+	{
+		GfxPlacement base;
+		float scale;
+	};
+
+	struct GfxSceneModel
+	{
+		XModelDrawInfo info;
+		XModel* model;
+		void/*DObj*/* obj;
+		GfxScaledPlacement placement;
+		unsigned __int32 gfxEntIndex : 7;
+		unsigned __int32 entnum : 12;
+		unsigned __int32 renderFxFlags : 13;
+		float radius;
+		unsigned __int16* cachedLightingHandle;
+		float lightingOrigin[3];
+		char reflectionProbeIndex;
+		char lod;
+	};
+
+	struct __declspec(align(4)) GfxSceneBrush
+	{
+		BModelDrawInfo info;
+		unsigned __int16 entnum;
+		GfxBrushModel* bmodel;
+		GfxPlacement placement;
+		char reflectionProbeIndex;
+	};
+
+	union GfxSceneGlass
+	{
+		struct
+		{
+			bool rendered;
+			char reflectionProbeIndex;
+			unsigned __int16 lightingHandle;
+		};
+		unsigned int packed;
+	};
+
+	union GfxEntCellRefInfo
+	{
+		float radius;
+		GfxBrushModel* bmodel;
+	};
+
+	struct GfxSceneDpvs
+	{
+		unsigned int localClientNum;
+		char* entVisData[7];
+		unsigned __int16* sceneXModelIndex;
+		unsigned __int16* sceneDObjIndex;
+		GfxEntCellRefInfo* entInfo[4];
+	};
+
+	struct __declspec(align(64)) GfxScene
+	{
+		GfxCodeSurf codeEmissiveSurfs[2048];
+		GfxCodeSurf codeTransSurfs[640];
+		GfxMarkSurf markSurfs[1536];
+		GfxGlassSurf glassSurfs[768];
+		GfxCloudSurf cloudSurfs[256];
+		GfxDrawSurf drawSurfsDepthHack[32];
+		GfxDrawSurf drawSurfsLitOpaque[8192];
+		GfxDrawSurf drawSurfsLitTrans[2048];
+		GfxDrawSurf drawSurfsEmissive[8192];
+		GfxDrawSurf drawSurfsSunShadow0[4096];
+		GfxDrawSurf drawSurfsSunShadow1[8192];
+		GfxDrawSurf drawSurfsSpotShadow0[896];
+		GfxDrawSurf drawSurfsSpotShadow1[896];
+		GfxDrawSurf drawSurfsSpotShadow2[896];
+		GfxDrawSurf drawSurfsSpotShadow3[896];
+		unsigned int sceneLightIsUsed[32];
+		unsigned int cachedSceneLightIsUsed[4][32];
+		GfxSparkSurf sparkSurfs[64];
+		unsigned int drawSurfLimit[10];
+		volatile int drawSurfCount[10];
+		GfxDrawSurf* drawSurfs[10];
+		volatile int codeSurfUser[2];
+		volatile int markMeshGuard;
+		unsigned int codeEmissiveSurfCount;
+		unsigned int codeTransSurfCount;
+		unsigned int markSurfCount;
+		unsigned int glassSurfCount;
+		GfxSceneDef def;
+		unsigned int addedLightCount;
+		GfxLight addedLight[32];
+		bool isAddedLightCulled[32];
+		float dynamicSpotLightNearPlaneOffset;
+		float dynamicSpotLightLength;
+		GfxVisibleLight visLight[4];
+		GfxVisibleLight visLightShadow[1];
+		unsigned int* entOverflowedDrawBuf;
+		volatile int gfxEntCount;
+		GfxEntity gfxEnts[128];
+		int sceneDObjCount;
+		int preClientSceneDObjCount;
+		int sceneDObjCountAtMark;
+		GfxSceneEntity sceneDObj[520];
+		char sceneDObjVisData[7][512];
+		int sceneDObjMarkableViewmodelIndex;
+		unsigned int sceneDObjFirstViewmodelIndex;
+		unsigned int sceneDObjViewmodelCount;
+		volatile int sceneModelCount;
+		int sceneModelCountAtMark;
+		int sceneDObjModelCount;
+		GfxSceneModel sceneModel[1024];
+		char sceneModelVisData[7][1024];
+		volatile int sceneBrushCount;
+		int sceneBrushCountAtMark;
+		GfxSceneBrush sceneBrush[512];
+		char sceneBrushVisData[3][512];
+		GfxSceneGlass sceneGlass[1024];
+		unsigned int sceneDynModelCount;
+		unsigned int sceneDynBrushCount;
+		int gfxEntCountAtMark;
+		GfxSceneDpvs dpvs;
+		int updateSound;
+		int allowAddDObj;
+	};
+
 #pragma endregion
 
 #ifndef IDA

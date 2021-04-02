@@ -858,6 +858,8 @@ namespace Game
 
 	extern clientstate_t* clcState;
 
+	extern GfxScene* scene;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
@@ -906,9 +908,12 @@ namespace Game
 	void Vec3Normalize(vec3_t& vec);
 	void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out);
 	void MatrixVecMultiply(const float(&mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution);
+	void QuatRot(vec3_t* vec, const vec4_t* quat);
+	void QuatMultiply(const vec4_t* q1, const vec4_t* q2, vec4_t* res);
 
 	void SortWorldSurfaces(GfxWorld* world);
 	void R_AddDebugLine(float* color, float* v1, float* v2);
 	void R_AddDebugString(float *color, float *pos, float scale, const char *str);
 	void R_AddDebugBounds(float* color, Bounds* b);
+	void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4]);
 }
