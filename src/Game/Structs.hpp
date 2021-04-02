@@ -4477,15 +4477,30 @@ namespace Game
 	typedef struct gentity_s
 	{
 		int number;
-		unsigned char pad[308]; // 4
+		unsigned char pad[139]; // 4
+		unsigned int brushModel;
+		unsigned char pad3[165];
 		float origin[3]; // 312
 		float angles[3]; // 324
 		char pad2[8];
 		gclient_t* client; // 344
-		unsigned char pad3[28];
+		void /*Turret*/ *turret;
+		//Vehicle *vehicle;
+		int physObjId;
+		unsigned __int16 model;
+		char physicsObject;
+		char takedamage;
+		char active;
+		char handler;
+		char team;
+		bool freeAfterEvent;
+		__int16 padding_short;
 		short classname;
-		short pad4;
-		unsigned char pad5[248];
+		unsigned __int16 script_classname;
+		unsigned __int16 script_linkName;
+		unsigned __int16 target;
+		unsigned __int16 targetname;
+		unsigned char pad5[242];
 	} gentity_t;
 
 #pragma pack(push, 1)
