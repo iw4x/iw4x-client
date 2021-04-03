@@ -1049,6 +1049,61 @@ namespace Components
 			});
 
 
+		Dvar::OnInit([]
+		{
+			Dvar::Register<bool>("r_drawTriggers", false, Game::DVAR_FLAG_CHEAT, "Draw triggers");
+		});
+
+		Scheduler::OnFrame([]()
+		{
+			if (!Game::CL_IsCgameInitialized() || !Dvar::Var("r_drawTriggers").get<bool>()) return;
+
+            float hurt[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+            float hurtTouch[4] = { 0.75f, 0.0f, 0.0f, 1.0f };
+            float damage[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+            float once[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
+            float multiple[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+
+			auto* entities = Game::g_entities;
+			for(auto i = 0u; i < 0x800; i++)
+			{
+				auto* ent = &entities[i];
+
+				if(ent->r.isInUse)
+				{
+					auto b = ent->r.box;
+					b.midPoint[0] += ent->r.currentOrigin[0];
+					b.midPoint[1] += ent->r.currentOrigin[1];
+					b.midPoint[2] += ent->r.currentOrigin[2];
+
+					switch(ent->handler)
+					{
+					case Game::ENT_HANDLER_TRIGGER_HURT:
+						Game::R_AddDebugBounds(hurt, &b);
+						break;
+
+					case Game::ENT_HANDLER_TRIGGER_HURT_TOUCH:
+						Game::R_AddDebugBounds(hurtTouch, &b);
+						break;
+
+					case Game::ENT_HANDLER_TRIGGER_DAMAGE:
+						Game::R_AddDebugBounds(damage, &b);
+						break;
+
+					case Game::ENT_HANDLER_TRIGGER_MULTIPLE:
+						if(ent->spawnflags & 0x40)
+						    Game::R_AddDebugBounds(once, &b);
+						else
+							Game::R_AddDebugBounds(multiple, &b);
+						break;
+
+					default:
+						break;
+					}
+				}
+			}
+		});
+
 
 		// Dvars
 		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_FLAG_SAVED, "Stream friendly UI");

@@ -4474,7 +4474,6 @@ namespace Game
 		char pad3[724];
 	} gclient_t;
 
-
 	/* 1571 */
 	struct DSkelPartBits
 	{
@@ -4510,20 +4509,114 @@ namespace Game
 		XModel** models;
 	};
 
-	typedef struct gentity_s
+
+	struct LerpEntityState
+	{
+		char pad[0x70];
+	};
+
+	struct clientLinkInfo_t
+	{
+		__int16 parentId;
+		char tagName;
+		char flags;
+	};
+
+	struct entityState_s
 	{
 		int number;
-		unsigned char pad[139]; // 4
-		unsigned int brushModelIndex;
-		unsigned char pad3[135];
-		int brushModelContents;
-		unsigned char pad4[26];
-		float origin[3]; // 312
-		float angles[3]; // 324
-		char pad2[8];
+		int eType;
+		LerpEntityState lerp;
+		int time2;
+		int otherEntityNum;
+		int attackerEntityNum;
+		int groundEntityNum;
+		int loopSound;
+		int surfType;
+
+		union
+		{
+			int brushModel;
+			int triggerModel;
+			int item;
+			int xmodel;
+			int primaryLight;
+		} index;
+
+		int clientNum;
+		int iHeadIcon;
+		int iHeadIconTeam;
+		int solid;
+		unsigned int eventParm;
+		int eventSequence;
+		int events[4];
+		unsigned int eventParms[4];
+		unsigned __int16 weapon;
+		int legsAnim;
+		int torsoAnim;
+		int un1;
+		int un2;
+		clientLinkInfo_t clientLinkInfo;
+		unsigned int partBits[6];
+		int clientMask[1];
+	};
+
+	struct EntHandle
+	{
+		unsigned __int16 number;
+		unsigned __int16 infoIndex;
+	};
+
+	struct entityShared_t
+	{
+		char isLinked;
+		char modelType;
+		char svFlags;
+		char isInUse;
+		Bounds box;
+		int contents;
+		Bounds absBox;
+		float currentOrigin[3];
+		float currentAngles[3];
+		EntHandle ownerNum;
+		int eventTime;
+	};
+
+	enum EntHandler
+	{
+		ENT_HANDLER_NULL = 0x0,
+		ENT_HANDLER_TRIGGER_MULTIPLE = 0x1,
+		ENT_HANDLER_TRIGGER_HURT = 0x2,
+		ENT_HANDLER_TRIGGER_HURT_TOUCH = 0x3,
+		ENT_HANDLER_TRIGGER_DAMAGE = 0x4,
+		ENT_HANDLER_SCRIPT_MOVER = 0x5,
+		ENT_HANDLER_SCRIPT_MODEL = 0x6,
+		ENT_HANDLER_GRENADE = 0x7,
+		ENT_HANDLER_TIMED_OBJECT = 0x8,
+		ENT_HANDLER_ROCKET = 0x9,
+		ENT_HANDLER_CLIENT = 0xA,
+		ENT_HANDLER_CLIENT_SPECTATOR = 0xB,
+		ENT_HANDLER_CLIENT_DEAD = 0xC,
+		ENT_HANDLER_PLAYER_CLONE = 0xD,
+		ENT_HANDLER_TURRET_INIT = 0xE,
+		ENT_HANDLER_TURRET = 0xF,
+		ENT_HANDLER_DROPPED_ITEM = 0x10,
+		ENT_HANDLER_ITEM_INIT = 0x11,
+		ENT_HANDLER_ITEM = 0x12,
+		ENT_HANDLER_PRIMARY_LIGHT = 0x13,
+		ENT_HANDLER_PLAYER_BLOCK = 0x14,
+		ENT_HANDLER_VEHICLE = 0x15,
+
+		ENT_HANDLER_COUNT
+	};
+
+	typedef struct gentity_s
+	{
+		entityState_s s;
+		entityShared_t r;
 		gclient_t* client; // 344
-		void /*Turret*/ *turret;
-		//Vehicle *vehicle;
+		void /*Turret*/* turret;
+		void /*Vehicle*/* vehicle;
 		int physObjId;
 		unsigned __int16 model;
 		char physicsObject;
@@ -4538,7 +4631,27 @@ namespace Game
 		unsigned __int16 script_linkName;
 		unsigned __int16 target;
 		unsigned __int16 targetname;
-		unsigned char pad5[242];
+		unsigned int attachIgnoreCollision;
+		int spawnflags;
+		int flags;
+		int eventTime;
+		int clipmask;
+		int processedFrame;
+		EntHandle parent;
+		int nextthink;
+		int health;
+		int maxHealth;
+		int damage;
+		int count;
+		EntHandle missileTargetEnt;
+		EntHandle remoteControlledOwner;
+		gentity_s* tagChildren;
+		unsigned __int16 attachModelNames[19];
+		unsigned __int16 attachTagNames[19];
+		int useCount;
+		gentity_s* nextFree;
+		int birthTime;
+		char pad[100];
 	} gentity_t;
 
 #pragma pack(push, 1)
