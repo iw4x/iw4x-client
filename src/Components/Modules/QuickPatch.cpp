@@ -976,6 +976,7 @@ namespace Components
 		Dvar::OnInit([]
 			{
 				Dvar::Register<bool>("r_drawSceneModelBoundingBoxes", false, Game::DVAR_FLAG_CHEAT, "Draw scene model bounding boxes");
+				Dvar::Register<bool>("r_drawSceneModelCollisions", false, Game::DVAR_FLAG_CHEAT, "Draw scene model collisions");
 			});
 
 		Scheduler::OnFrame([]()
@@ -1004,9 +1005,49 @@ namespace Components
 
 			for(auto i = 0; i < scene->sceneDObjCount; i++)
 			{
+				scene->sceneDObj[i].cull.bounds.halfSize[0] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[0]);
+				scene->sceneDObj[i].cull.bounds.halfSize[1] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[1]);
+				scene->sceneDObj[i].cull.bounds.halfSize[2] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[2]);
+
+				if (scene->sceneDObj[i].cull.bounds.halfSize[0] < 0 ||
+					scene->sceneDObj[i].cull.bounds.halfSize[1] < 0 ||
+					scene->sceneDObj[i].cull.bounds.halfSize[2] < 0) {
+
+					Components::Logger::Print("WARNING: Negative half size for DOBJ %s, this will cause culling issues!", scene->sceneDObj[i].obj->models[0]->name);
+				}
+
 				Game::R_AddDebugBounds(blue, &scene->sceneDObj[i].cull.bounds);
 			}
 		});
+
+		Scheduler::OnFrame([]()
+			{
+				if (!Game::CL_IsCgameInitialized()) return;
+				if (!Dvar::Var("r_drawSceneModelCollisions").get<bool>()) return;
+
+				float green[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+
+				auto* scene = Game::scene;
+
+				for (auto i = 0; i < scene->sceneModelCount; i++)
+				{
+					if (!scene->sceneModel[i].model)
+						continue;
+
+					for (auto j = 0; j < scene->sceneModel[i].model->numCollSurfs; j++) {
+						auto b = scene->sceneModel[i].model->collSurfs[j].bounds;
+						b.midPoint[0] += scene->sceneModel[i].placement.base.origin[0];
+						b.midPoint[1] += scene->sceneModel[i].placement.base.origin[1];
+						b.midPoint[2] += scene->sceneModel[i].placement.base.origin[2];
+						b.halfSize[0] *= scene->sceneModel[i].placement.scale;
+						b.halfSize[1] *= scene->sceneModel[i].placement.scale;
+						b.halfSize[2] *= scene->sceneModel[i].placement.scale;
+
+						Game::R_AddDebugBounds(green, &b, &scene->sceneModel[i].placement.base.quat);
+					}
+				}
+			});
+
 
 
 		// Dvars
