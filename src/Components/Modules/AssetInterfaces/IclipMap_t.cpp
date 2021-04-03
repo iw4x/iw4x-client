@@ -886,28 +886,61 @@ namespace Assets
 		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, Utils::String::VA("maps/mp/%s.d3dbsp", name.data()), builder).mapEnts;
 
 		// add triggers to mapEnts
-		/*
-		std::list<Game::TriggerSlab> slabs;
-		std::list<Game::TriggerHull> hulls;
-		std::list<Game::TriggerModel> models;
 
-		for (int i = 0; i < clipMap->numCModels; ++i)
+		std::vector<Game::TriggerSlab> slabs;
+		std::vector<Game::TriggerHull> hulls;
+		std::vector<Game::TriggerModel> models;
+
+		clipMap->mapEnts->trigger.count = clipMap->numSubModels;
+		clipMap->mapEnts->trigger.hullCount = clipMap->numSubModels;
+		clipMap->mapEnts->trigger.slabCount = 0;
+
+		for (int i = 0; i < clipMap->numSubModels; ++i)
 		{
-			Game::cLeafBrushNode_t* node = &clipMap->cLeafBrushNodes[clipMap->cModels[i].leaf.leafBrushNode];
+			Game::TriggerHull trigHull = {};
+			trigHull.bounds = clipMap->cmodels[i].bounds;
+			trigHull.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
+
+			Game::TriggerModel trigMod = {};
+			trigMod.hullCount = 1;
+			trigMod.firstHull = 0;
+			trigMod.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
+
+			auto* node = &clipMap->leafbrushNodes[clipMap->cmodels[i].leaf.leafBrushNode];
+
 			if (!node->leafBrushCount) continue; // skip empty brushes
 
 			int baseHull = hulls.size();
 			for (int j = 0; j < node->leafBrushCount; ++j)
 			{
-				Game::cbrush_t* brush = &clipMap->cBrushes[node->data.leaf.brushes[j]];
-				int baseSlab = slabs.size();
+				auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
+
+				auto baseSlab = slabs.size();
 				for (int k = 0; k < brush->numsides; ++k)
 				{
 					Game::TriggerSlab curSlab;
+					curSlab.dir[0] = brush->sides[k].plane->normal[0];
+					curSlab.dir[1] = brush->sides[k].plane->normal[1];
+					curSlab.dir[2] = brush->sides[k].plane->normal[2];
+					curSlab.halfSize = brush->sides[k].plane->dist;
+					curSlab.midPoint = 0.0f; // ??
+
+					slabs.emplace_back(curSlab);
+					clipMap->mapEnts->trigger.slabCount++;
 				}
+
+				trigHull.firstSlab = baseSlab;
+				trigHull.slabCount = slabs.size() - baseSlab;
 			}
+
+			models.emplace_back(trigMod);
+			hulls.emplace_back(trigHull);
 		}
-		*/
+
+		clipMap->mapEnts->trigger.models = &models[0];
+		clipMap->mapEnts->trigger.hulls = &hulls[0];
+		clipMap->mapEnts->trigger.slabs = &slabs[0];
+
 
 		// This mustn't be null and has to have at least 1 'valid' entry.
 		if (!clipMap->smodelNodeCount || !clipMap->smodelNodes)
