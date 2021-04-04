@@ -5130,6 +5130,38 @@ namespace Game
 		unsigned __int16* cachedLightingHandle;
 	};
 
+	struct DSkelPartBits
+	{
+		int anim[6];
+		int control[6];
+		int worldCtrl[6];
+		int skel[6];
+	};
+
+	struct DSkel
+	{
+		DSkelPartBits partBits;
+		int timeStamp;
+		/*DObjAnimMat*/void* mat;
+	};
+
+	struct DObj
+	{
+		/*XAnimTree_s*/ void* tree;
+		unsigned __int16 duplicateParts;
+		unsigned __int16 entnum;
+		char duplicatePartsSize;
+		char numModels;
+		char numBones;
+		char flags;
+		unsigned int ignoreCollision;
+		volatile int locked;
+		DSkel skel;
+		float radius;
+		unsigned int hidePartBits[6];
+		XModel** models;
+	};
+
 	struct GfxSceneEntity
 	{
 		float lightingOrigin[3];
