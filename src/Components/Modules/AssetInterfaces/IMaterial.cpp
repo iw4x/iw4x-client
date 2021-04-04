@@ -29,6 +29,12 @@ namespace Assets
 			"_add_lin_nofog",
 		};
 
+		std::map<std::string, std::string> techSetCorrespondance = {
+			{"effect_zfeather_outdoor", "effect_zfeather_blend"},
+			{"effect", "effect_blend"},
+			{"effect_nofog", "effect_blend_nofog"}
+		};
+
 		Components::FileSystem::File materialFile(Utils::String::VA("materials/%s.iw4xMaterial", name.data()));
 		if (!materialFile.exists()) return;
 
@@ -185,11 +191,12 @@ namespace Assets
 					if (!t1->techniques[i] && !t2->techniques[i]) continue;;
 					if (!t1->techniques[i] || !t2->techniques[i]) return false;
 
-					if (t1->techniques[i]->flags != t1->techniques[i]->flags) return false;
+					if (t1->techniques[i]->flags != t2->techniques[i]->flags) return false;
 				}
 
 				return true;
 			};
+
 
 			Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset, techsetMatches](Game::XAssetEntry* entry)
 			{
@@ -209,8 +216,42 @@ namespace Assets
 
 		if (!replacementFound && asset->techniqueSet)
 		{
-
 			Components::Logger::Print("No replacement found for material %s with techset %s\n", asset->info.name, asset->techniqueSet->name);
+			std::string techName = asset->techniqueSet->name;
+			if (techSetCorrespondance.find(techName) != techSetCorrespondance.end()) {
+				auto iw4TechSetName = techSetCorrespondance[techName];
+				Game::XAssetEntry* entry = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, iw4TechSetName.data());
+
+				if (entry) {
+					asset->techniqueSet = entry->asset.header.techniqueSet;
+
+					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset](Game::XAssetEntry* entry)
+						{
+							if (!replacementFound)
+							{
+								Game::XAssetHeader header = entry->asset.header;
+
+								if (header.material->techniqueSet == asset->techniqueSet)
+								{
+									Components::Logger::Print("Material %s with techset %s has been mapped (last chance!) to %s\n", asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name);
+									asset->info.sortKey = header.material->info.sortKey;
+									replacementFound = true;
+								}
+							}
+						}, false, false);
+
+					if (!replacementFound) {
+						Components::Logger::Print("Could not find any loaded material with techset %s, so I cannot set the sortkey for material %s\n", asset->techniqueSet->name,  asset->info.name);
+					}
+				}
+				else {
+					Components::Logger::Print("Could not find any loaded techset with iw4 name %s for iw3 techset %s\n", iw4TechSetName, asset->techniqueSet->name);
+				}
+			}
+			else {
+				Components::Logger::Print("Could not match iw3 techset %s with any of the techsets I know! This is a critical error, the map will not be playable.\n", asset->techniqueSet->name);
+			}
+
 		}
 
 		if (!reader.end())
