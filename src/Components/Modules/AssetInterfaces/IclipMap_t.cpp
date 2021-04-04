@@ -587,12 +587,12 @@ namespace Assets
 
 		Game::clipMap_t* orgClipMap = nullptr;
 		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_CLIPMAP_MP, [](Game::XAssetHeader header, void* clipMap)
-		{
-			if (!*reinterpret_cast<void**>(clipMap))
 			{
-				*reinterpret_cast<Game::clipMap_t**>(clipMap) = header.clipMap;
-			}
-		}, &orgClipMap, false);
+				if (!*reinterpret_cast<void**>(clipMap))
+				{
+					*reinterpret_cast<Game::clipMap_t**>(clipMap) = header.clipMap;
+				}
+			}, &orgClipMap, false);
 
 		if (orgClipMap) std::memcpy(clipMap, orgClipMap, sizeof Game::clipMap_t);
 
@@ -887,13 +887,18 @@ namespace Assets
 
 		// add triggers to mapEnts
 
-		std::vector<Game::TriggerSlab> slabs;
-		std::vector<Game::TriggerHull> hulls;
-		std::vector<Game::TriggerModel> models;
+
 
 		clipMap->mapEnts->trigger.count = clipMap->numSubModels;
 		clipMap->mapEnts->trigger.hullCount = clipMap->numSubModels;
-		clipMap->mapEnts->trigger.slabCount = 0;
+		clipMap->mapEnts->trigger.slabCount = clipMap->numSubModels * 1000;
+
+		Game::TriggerHull* hulls = builder->getAllocator()->allocateArray<Game::TriggerHull>(clipMap->mapEnts->trigger.hullCount * sizeof(Game::TriggerHull));
+		Game::TriggerModel* models = builder->getAllocator()->allocateArray<Game::TriggerModel>(clipMap->mapEnts->trigger.count * sizeof(Game::TriggerModel));
+		Game::TriggerSlab* slabs = builder->getAllocator()->allocateArray<Game::TriggerSlab>(clipMap->mapEnts->trigger.slabCount * sizeof(Game::TriggerSlab));
+
+		int hullCountSoFar = 0;
+		int slabCountSoFar = 0;
 
 		for (int i = 0; i < clipMap->numSubModels; ++i)
 		{
@@ -910,12 +915,12 @@ namespace Assets
 
 			if (!node->leafBrushCount) continue; // skip empty brushes
 
-			int baseHull = hulls.size();
+			int baseHull = hullCountSoFar;
 			for (int j = 0; j < node->leafBrushCount; ++j)
 			{
 				auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
 
-				auto baseSlab = slabs.size();
+				auto baseSlab = slabCountSoFar;
 				for (int k = 0; k < brush->numsides; ++k)
 				{
 					Game::TriggerSlab curSlab;
@@ -925,22 +930,22 @@ namespace Assets
 					curSlab.halfSize = brush->sides[k].plane->dist;
 					curSlab.midPoint = 0.0f; // ??
 
-					slabs.emplace_back(curSlab);
-					clipMap->mapEnts->trigger.slabCount++;
+					slabs[slabCountSoFar] = curSlab;
+					slabCountSoFar++;
 				}
 
 				trigHull.firstSlab = baseSlab;
-				trigHull.slabCount = slabs.size() - baseSlab;
+				trigHull.slabCount = slabCountSoFar - baseSlab;
 			}
 
-			models.emplace_back(trigMod);
-			hulls.emplace_back(trigHull);
+			models[i] = trigMod;
+			hulls[i] = trigHull;
+			hullCountSoFar++;
 		}
 
-		clipMap->mapEnts->trigger.models = &models[0];
+		clipMap->mapEnts->trigger.models = &models[0];;
 		clipMap->mapEnts->trigger.hulls = &hulls[0];
 		clipMap->mapEnts->trigger.slabs = &slabs[0];
-
 
 		// This mustn't be null and has to have at least 1 'valid' entry.
 		if (!clipMap->smodelNodeCount || !clipMap->smodelNodes)

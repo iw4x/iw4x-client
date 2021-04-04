@@ -1071,7 +1071,7 @@ namespace Components
 
 				if(ent->r.isInUse)
 				{
-					auto b = ent->r.box;
+					Game::Bounds b = ent->r.box;
 					b.midPoint[0] += ent->r.currentOrigin[0];
 					b.midPoint[1] += ent->r.currentOrigin[1];
 					b.midPoint[2] += ent->r.currentOrigin[2];
@@ -1098,6 +1098,13 @@ namespace Components
 						break;
 
 					default:
+						float rv = std::min((float)ent->handler, (float)5) / 5;
+						float gv = std::clamp((float)ent->handler-5, (float)0, (float)5) / 5;
+						float bv = std::clamp((float)ent->handler - 10, (float)0, (float)5) / 5;
+
+						float color[4] = { rv, gv, bv, 1.0f };
+
+						Game::R_AddDebugBounds(color, &b);
 						break;
 					}
 				}
