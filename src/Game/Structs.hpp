@@ -4474,12 +4474,50 @@ namespace Game
 		char pad3[724];
 	} gclient_t;
 
+
+	/* 1571 */
+	struct DSkelPartBits
+	{
+		int anim[6];
+		int control[6];
+		int worldCtrl[6];
+		int skel[6];
+	};
+
+	/* 1572 */
+	struct DSkel
+	{
+		DSkelPartBits partBits;
+		int timeStamp;
+		/*DObjAnimMat*/void *mat;
+	};
+
+	/* 1573 */
+	struct DObj
+	{
+		/*XAnimTree_s*/ void* tree;
+		unsigned __int16 duplicateParts;
+		unsigned __int16 entnum;
+		char duplicatePartsSize;
+		char numModels;
+		char numBones;
+		char flags;
+		unsigned int ignoreCollision;
+		volatile int locked;
+		DSkel skel;
+		float radius;
+		unsigned int hidePartBits[6];
+		XModel** models;
+	};
+
 	typedef struct gentity_s
 	{
 		int number;
 		unsigned char pad[139]; // 4
-		unsigned int brushModel;
-		unsigned char pad3[165];
+		unsigned int brushModelIndex;
+		unsigned char pad3[135];
+		int brushModelContents;
+		unsigned char pad4[26];
 		float origin[3]; // 312
 		float angles[3]; // 324
 		char pad2[8];
@@ -4988,7 +5026,7 @@ namespace Game
 		unsigned __int32 gfxEntIndex : 7;
 		unsigned __int32 entnum : 12;
 		unsigned __int32 renderFxFlags : 13;
-		void/*DObj*/* obj;
+		DObj* obj;
 		GfxSceneEntityInfo info;
 		char reflectionProbeIndex;
 	};
@@ -5003,7 +5041,7 @@ namespace Game
 	{
 		XModelDrawInfo info;
 		XModel* model;
-		void/*DObj*/* obj;
+		DObj* obj;
 		GfxScaledPlacement placement;
 		unsigned __int32 gfxEntIndex : 7;
 		unsigned __int32 entnum : 12;
