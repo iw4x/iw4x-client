@@ -891,9 +891,7 @@ namespace Assets
 			Game::TriggerHull* hulls = builder->getAllocator()->allocateArray<Game::TriggerHull>(clipMap->mapEnts->trigger.hullCount);
 			Game::TriggerModel* models = builder->getAllocator()->allocateArray<Game::TriggerModel>(clipMap->mapEnts->trigger.count);
 
-			int slabCountSoFar = 0;
-
-			for (int i = 0; i < clipMap->numSubModels; ++i)
+			for (unsigned int i = 0; i < clipMap->numSubModels; ++i)
 			{
 				models[i] = reader.read<Game::TriggerModel>();
 				hulls[i] = reader.read<Game::TriggerHull>();
@@ -902,7 +900,7 @@ namespace Assets
 			size_t slabCount = reader.read<size_t>();
 			clipMap->mapEnts->trigger.slabCount = slabCount;
 			Game::TriggerSlab* slabs = builder->getAllocator()->allocateArray<Game::TriggerSlab>(clipMap->mapEnts->trigger.slabCount);
-			for (int i = 0; i < clipMap->mapEnts->trigger.slabCount; i++) {
+			for (unsigned int i = 0; i < clipMap->mapEnts->trigger.slabCount; i++) {
 				slabs[i] = reader.read<Game::TriggerSlab>();
 			}
 
