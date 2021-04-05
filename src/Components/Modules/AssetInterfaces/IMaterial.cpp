@@ -32,7 +32,22 @@ namespace Assets
 		std::map<std::string, std::string> techSetCorrespondance = {
 			{"effect_zfeather_outdoor", "effect_zfeather_blend"},
 			{"effect", "effect_blend"},
-			{"effect_nofog", "effect_blend_nofog"}
+			{"effect_nofog", "effect_blend_nofog"},
+			{"wc_unlit_add", "wc_unlit_add_lin"},
+			{"wc_unlit_multiply", "wc_unlit_multiply_lin"},
+			{"wc_unlit_falloff_add", "wc_unlit_falloff_add_lin_ua"},
+			{"mc_unlit_replace", "mc_unlit_replace_lin"},
+			{"mc_unlit_nofog", "mc_unlit_blend_nofog_ua"},
+			{"wc_unlit", "wc_unlit_add"},
+			{"wc_unlit_multiply_lin", "wc_unlit_multiply_lin"},
+			{"wc_unlit_blend", "wc_unlit_blend_lin"},
+			{"mc_unlit", "mc_unlit_replace_lin"}/*,
+			{"", ""},
+			{"", ""},
+			{"", ""},
+			{"", ""},
+			{"", ""},
+			{"", ""},*/
 		};
 
 		Components::FileSystem::File materialFile(Utils::String::VA("materials/%s.iw4xMaterial", name.data()));
