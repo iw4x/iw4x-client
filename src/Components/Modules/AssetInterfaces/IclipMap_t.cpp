@@ -885,29 +885,31 @@ namespace Assets
 
 		// add triggers to mapEnts
 		if (version >= 2) {
-			clipMap->mapEnts->trigger.count = clipMap->numSubModels;
-			clipMap->mapEnts->trigger.hullCount = clipMap->numSubModels;
+			if (clipMap->numSubModels > 0) {
+				clipMap->mapEnts->trigger.count = clipMap->numSubModels;
+				clipMap->mapEnts->trigger.hullCount = clipMap->numSubModels;
 
-			Game::TriggerHull* hulls = builder->getAllocator()->allocateArray<Game::TriggerHull>(clipMap->mapEnts->trigger.hullCount);
-			Game::TriggerModel* models = builder->getAllocator()->allocateArray<Game::TriggerModel>(clipMap->mapEnts->trigger.count);
+				Game::TriggerHull* hulls = builder->getAllocator()->allocateArray<Game::TriggerHull>(clipMap->mapEnts->trigger.hullCount);
+				Game::TriggerModel* models = builder->getAllocator()->allocateArray<Game::TriggerModel>(clipMap->mapEnts->trigger.count);
 
-			for (unsigned int i = 0; i < clipMap->numSubModels; ++i)
-			{
-				models[i] = reader.read<Game::TriggerModel>();
-				hulls[i] = reader.read<Game::TriggerHull>();
+				for (unsigned int i = 0; i < clipMap->numSubModels; ++i)
+				{
+					models[i] = reader.read<Game::TriggerModel>();
+					hulls[i] = reader.read<Game::TriggerHull>();
+				}
+
+				size_t slabCount = reader.read<size_t>();
+				clipMap->mapEnts->trigger.slabCount = slabCount;
+				Game::TriggerSlab* slabs = builder->getAllocator()->allocateArray<Game::TriggerSlab>(clipMap->mapEnts->trigger.slabCount);
+				for (unsigned int i = 0; i < clipMap->mapEnts->trigger.slabCount; i++) {
+					slabs[i] = reader.read<Game::TriggerSlab>();
+				}
+
+
+				clipMap->mapEnts->trigger.models = &models[0];
+				clipMap->mapEnts->trigger.hulls = &hulls[0];
+				clipMap->mapEnts->trigger.slabs = &slabs[0];
 			}
-
-			size_t slabCount = reader.read<size_t>();
-			clipMap->mapEnts->trigger.slabCount = slabCount;
-			Game::TriggerSlab* slabs = builder->getAllocator()->allocateArray<Game::TriggerSlab>(clipMap->mapEnts->trigger.slabCount);
-			for (unsigned int i = 0; i < clipMap->mapEnts->trigger.slabCount; i++) {
-				slabs[i] = reader.read<Game::TriggerSlab>();
-			}
-
-
-			clipMap->mapEnts->trigger.models = &models[0];
-			clipMap->mapEnts->trigger.hulls = &hulls[0];
-			clipMap->mapEnts->trigger.slabs = &slabs[0];
 		}
 
 		clipMap->checksum = reader.read<int>();
