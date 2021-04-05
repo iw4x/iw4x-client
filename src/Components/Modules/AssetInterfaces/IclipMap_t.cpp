@@ -1,6 +1,6 @@
 #include "StdInclude.hpp"
 
-#define IW4X_CLIPMAP_VERSION 1
+#define IW4X_CLIPMAP_VERSION 2
 
 namespace Assets
 {
@@ -605,7 +605,7 @@ namespace Assets
 		}
 
 		int version = reader.read<int>();
-		if (version != IW4X_CLIPMAP_VERSION)
+		if (version > IW4X_CLIPMAP_VERSION)
 		{
 			Components::Logger::Error(0, "Reading clipmap '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_CLIPMAP_VERSION, version);
 		}
@@ -881,77 +881,38 @@ namespace Assets
 		clipMap->smodelNodeCount = reader.read<unsigned short>();
 		clipMap->smodelNodes = reader.readArray<Game::SModelAabbNode>(clipMap->smodelNodeCount);
 
-		clipMap->checksum = reader.read<int>();
-
 		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, Utils::String::VA("maps/mp/%s.d3dbsp", name.data()), builder).mapEnts;
 
 		// add triggers to mapEnts
+		if (version >= 2) {
+			clipMap->mapEnts->trigger.count = clipMap->numSubModels;
+			clipMap->mapEnts->trigger.hullCount = clipMap->numSubModels;
 
-		clipMap->mapEnts->trigger.count = clipMap->numSubModels;
-		clipMap->mapEnts->trigger.hullCount = clipMap->numSubModels;
-		clipMap->mapEnts->trigger.slabCount = clipMap->numSubModels * 1000;
+			Game::TriggerHull* hulls = builder->getAllocator()->allocateArray<Game::TriggerHull>(clipMap->mapEnts->trigger.hullCount);
+			Game::TriggerModel* models = builder->getAllocator()->allocateArray<Game::TriggerModel>(clipMap->mapEnts->trigger.count);
 
-		Game::TriggerHull* hulls = builder->getAllocator()->allocateArray<Game::TriggerHull>(clipMap->mapEnts->trigger.hullCount * sizeof(Game::TriggerHull));
-		Game::TriggerModel* models = builder->getAllocator()->allocateArray<Game::TriggerModel>(clipMap->mapEnts->trigger.count * sizeof(Game::TriggerModel));
-		Game::TriggerSlab* slabs = builder->getAllocator()->allocateArray<Game::TriggerSlab>(clipMap->mapEnts->trigger.slabCount * sizeof(Game::TriggerSlab));
+			int slabCountSoFar = 0;
 
-		int hullCountSoFar = 0;
-		int slabCountSoFar = 0;
-		//int skipped = 0;
-
-		Utils::Entities memEnts(clipMap->mapEnts->entityString);
-
-		std::vector<int> radioTriggers = memEnts.getRadioTriggerModels();
-
-		for (int i = 0; i < clipMap->numSubModels; ++i)
-		{
-			Game::TriggerHull trigHull = {};
-			trigHull.bounds = clipMap->cmodels[i].bounds;
-			trigHull.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
-
-			Game::TriggerModel trigMod = {};
-			trigMod.hullCount = 1;
-			trigMod.firstHull = i /*- skipped*/;
-			trigMod.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
-
-			auto* node = &clipMap->leafbrushNodes[clipMap->cmodels[i].leaf.leafBrushNode];
-
-			if (node->leafBrushCount) {
-				////skipped++;
-				//continue; // skip empty brushes
-
-				int baseHull = hullCountSoFar;
-				for (int j = 0; j < node->leafBrushCount; ++j)
-				{
-					auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
-
-					auto baseSlab = slabCountSoFar;
-					for (int k = 0; k < brush->numsides; ++k)
-					{
-						Game::TriggerSlab curSlab;
-						curSlab.dir[0] = brush->sides[k].plane->normal[0];
-						curSlab.dir[1] = brush->sides[k].plane->normal[1];
-						curSlab.dir[2] = brush->sides[k].plane->normal[2];
-						curSlab.halfSize = brush->sides[k].plane->dist;
-						curSlab.midPoint = 0.0f; // ??
-
-						slabs[slabCountSoFar] = curSlab;
-						slabCountSoFar++;
-					}
-
-					trigHull.firstSlab = baseSlab;
-					trigHull.slabCount = slabCountSoFar - baseSlab;
-				}
+			for (int i = 0; i < clipMap->numSubModels; ++i)
+			{
+				models[i] = reader.read<Game::TriggerModel>();
+				hulls[i] = reader.read<Game::TriggerHull>();
 			}
 
-			models[i/* - skipped*/] = trigMod;
-			hulls[i/* - skipped*/] = trigHull;
-			hullCountSoFar++;
+			size_t slabCount = reader.read<size_t>();
+			clipMap->mapEnts->trigger.slabCount = slabCount;
+			Game::TriggerSlab* slabs = builder->getAllocator()->allocateArray<Game::TriggerSlab>(clipMap->mapEnts->trigger.slabCount);
+			for (int i = 0; i < clipMap->mapEnts->trigger.slabCount; i++) {
+				slabs[i] = reader.read<Game::TriggerSlab>();
+			}
+
+
+			clipMap->mapEnts->trigger.models = &models[0];
+			clipMap->mapEnts->trigger.hulls = &hulls[0];
+			clipMap->mapEnts->trigger.slabs = &slabs[0];
 		}
 
-		clipMap->mapEnts->trigger.models = &models[0];
-		clipMap->mapEnts->trigger.hulls = &hulls[0];
-		clipMap->mapEnts->trigger.slabs = &slabs[0];
+		clipMap->checksum = reader.read<int>();
 
 		// This mustn't be null and has to have at least 1 'valid' entry.
 		if (!clipMap->smodelNodeCount || !clipMap->smodelNodes)
