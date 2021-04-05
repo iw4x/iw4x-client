@@ -887,8 +887,6 @@ namespace Assets
 
 		// add triggers to mapEnts
 
-
-
 		clipMap->mapEnts->trigger.count = clipMap->numSubModels;
 		clipMap->mapEnts->trigger.hullCount = clipMap->numSubModels;
 		clipMap->mapEnts->trigger.slabCount = clipMap->numSubModels * 1000;
@@ -899,6 +897,11 @@ namespace Assets
 
 		int hullCountSoFar = 0;
 		int slabCountSoFar = 0;
+		//int skipped = 0;
+
+		Utils::Entities memEnts(clipMap->mapEnts->entityString);
+
+		std::vector<int> radioTriggers = memEnts.getRadioTriggerModels();
 
 		for (int i = 0; i < clipMap->numSubModels; ++i)
 		{
@@ -908,42 +911,45 @@ namespace Assets
 
 			Game::TriggerModel trigMod = {};
 			trigMod.hullCount = 1;
-			trigMod.firstHull = 0;
+			trigMod.firstHull = i /*- skipped*/;
 			trigMod.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
 
 			auto* node = &clipMap->leafbrushNodes[clipMap->cmodels[i].leaf.leafBrushNode];
 
-			if (!node->leafBrushCount) continue; // skip empty brushes
+			if (node->leafBrushCount) {
+				////skipped++;
+				//continue; // skip empty brushes
 
-			int baseHull = hullCountSoFar;
-			for (int j = 0; j < node->leafBrushCount; ++j)
-			{
-				auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
-
-				auto baseSlab = slabCountSoFar;
-				for (int k = 0; k < brush->numsides; ++k)
+				int baseHull = hullCountSoFar;
+				for (int j = 0; j < node->leafBrushCount; ++j)
 				{
-					Game::TriggerSlab curSlab;
-					curSlab.dir[0] = brush->sides[k].plane->normal[0];
-					curSlab.dir[1] = brush->sides[k].plane->normal[1];
-					curSlab.dir[2] = brush->sides[k].plane->normal[2];
-					curSlab.halfSize = brush->sides[k].plane->dist;
-					curSlab.midPoint = 0.0f; // ??
+					auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
 
-					slabs[slabCountSoFar] = curSlab;
-					slabCountSoFar++;
+					auto baseSlab = slabCountSoFar;
+					for (int k = 0; k < brush->numsides; ++k)
+					{
+						Game::TriggerSlab curSlab;
+						curSlab.dir[0] = brush->sides[k].plane->normal[0];
+						curSlab.dir[1] = brush->sides[k].plane->normal[1];
+						curSlab.dir[2] = brush->sides[k].plane->normal[2];
+						curSlab.halfSize = brush->sides[k].plane->dist;
+						curSlab.midPoint = 0.0f; // ??
+
+						slabs[slabCountSoFar] = curSlab;
+						slabCountSoFar++;
+					}
+
+					trigHull.firstSlab = baseSlab;
+					trigHull.slabCount = slabCountSoFar - baseSlab;
 				}
-
-				trigHull.firstSlab = baseSlab;
-				trigHull.slabCount = slabCountSoFar - baseSlab;
 			}
 
-			models[i] = trigMod;
-			hulls[i] = trigHull;
+			models[i/* - skipped*/] = trigMod;
+			hulls[i/* - skipped*/] = trigHull;
 			hullCountSoFar++;
 		}
 
-		clipMap->mapEnts->trigger.models = &models[0];;
+		clipMap->mapEnts->trigger.models = &models[0];
 		clipMap->mapEnts->trigger.hulls = &hulls[0];
 		clipMap->mapEnts->trigger.slabs = &slabs[0];
 
