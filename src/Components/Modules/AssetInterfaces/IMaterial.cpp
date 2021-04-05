@@ -245,7 +245,7 @@ namespace Assets
 					}
 				}
 				else {
-					Components::Logger::Print("Could not find any loaded techset with iw4 name %s for iw3 techset %s\n", iw4TechSetName, asset->techniqueSet->name);
+					Components::Logger::Print("Could not find any loaded techset with iw4 name %s for iw3 techset %s\n", iw4TechSetName.data(), asset->techniqueSet->name);
 				}
 			}
 			else {
