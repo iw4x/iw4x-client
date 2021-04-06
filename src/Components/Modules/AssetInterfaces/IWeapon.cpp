@@ -274,9 +274,9 @@ namespace Assets
         {
             buffer->align(Utils::Stream::ALIGN_4);
             int* ptrs = buffer->dest<int>();
-            buffer->saveMax(37 * sizeof(Game::snd_alias_list_t*));
+            buffer->saveMax(31 * sizeof(Game::snd_alias_list_t*));
 
-            for (int i = 0; i < 37; i++)
+            for (int i = 0; i < 31; i++)
             {
                 if (!def->bounceSound[i])
                 {
@@ -433,14 +433,16 @@ namespace Assets
 
         if (def->projExplosionSound)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->projExplosionSound->aliasName);
             Utils::Stream::ClearPointer(&dest->projExplosionSound);
         }
 
         if (def->projDudSound)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->projDudSound->aliasName);
             Utils::Stream::ClearPointer(&dest->projDudSound);
         }
@@ -476,7 +478,8 @@ namespace Assets
 
         if (def->projIgnitionSound)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->projIgnitionSound->aliasName);
             Utils::Stream::ClearPointer(&dest->projIgnitionSound);
         }
@@ -551,7 +554,8 @@ namespace Assets
 
         if (def->turretOverheatSound)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->turretOverheatSound->aliasName);
             Utils::Stream::ClearPointer(&dest->turretOverheatSound);
         }
@@ -569,7 +573,8 @@ namespace Assets
 
         if (def->turretBarrelSpinMaxSnd)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->turretBarrelSpinMaxSnd->aliasName);
             Utils::Stream::ClearPointer(&dest->turretBarrelSpinMaxSnd);
         }
@@ -577,7 +582,8 @@ namespace Assets
         for (int i = 0; i < 4; i++) {
             if (!def->turretBarrelSpinUpSnd[i]) continue;
 
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->turretBarrelSpinUpSnd[i]->aliasName);
             Utils::Stream::ClearPointer(&dest->turretBarrelSpinUpSnd[i]);
         }
@@ -585,21 +591,24 @@ namespace Assets
         for (int i = 0; i < 4; i++) {
             if (!def->turretBarrelSpinDownSnd[i]) continue;
 
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->turretBarrelSpinDownSnd[i]->aliasName);
             Utils::Stream::ClearPointer(&dest->turretBarrelSpinDownSnd[i]);
         }
 
         if (def->missileConeSoundAlias)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->missileConeSoundAlias->aliasName);
             Utils::Stream::ClearPointer(&dest->missileConeSoundAlias);
         }
 
         if (def->missileConeSoundAliasAtBase)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->missileConeSoundAliasAtBase->aliasName);
             Utils::Stream::ClearPointer(&dest->missileConeSoundAliasAtBase);
         }
