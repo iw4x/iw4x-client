@@ -750,7 +750,9 @@ namespace Components
 	}
 
 	int16 Maps::CM_TriggerModelBounds(int modelPointer, Game::Bounds* bounds) {
-		//Game::MapEnts* ents = *reinterpret_cast<Game::MapEnts**>(0x1AA651C);  // Use me for debugging
+#ifdef DEBUG
+		Game::MapEnts* ents = *reinterpret_cast<Game::MapEnts**>(0x1AA651C);  // Use me for debugging
+#endif
 		return Utils::Hook::Call<int16(int, Game::Bounds*)>(0x4416C0)(modelPointer, bounds);
 	}
 	

@@ -206,7 +206,8 @@ namespace Assets
 					if (!t1->techniques[i] && !t2->techniques[i]) continue;;
 					if (!t1->techniques[i] || !t2->techniques[i]) return false;
 
-					if (t1->techniques[i]->flags != t2->techniques[i]->flags) return false;
+					// Apparently, this is really not that important
+					//if (t1->techniques[i]->flags != t2->techniques[i]->flags) return false; 
 				}
 
 				return true;
@@ -238,8 +239,6 @@ namespace Assets
 				Game::XAssetEntry* entry = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, iw4TechSetName.data());
 
 				if (entry) {
-					asset->techniqueSet = entry->asset.header.techniqueSet;
-
 					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset](Game::XAssetEntry* entry)
 						{
 							if (!replacementFound)
@@ -264,9 +263,8 @@ namespace Assets
 				}
 			}
 			else {
-				Components::Logger::Print("Could not match iw3 techset %s with any of the techsets I know! This is a critical error, the map will not be playable.\n", asset->techniqueSet->name);
+				Components::Logger::Print("Could not match iw3 techset %s with any of the techsets I know! This is a critical error, there's a good chance the map will not be playable.\n", asset->techniqueSet->name);
 			}
-
 		}
 
 		if (!reader.end())
