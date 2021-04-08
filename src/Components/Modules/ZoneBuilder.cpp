@@ -223,10 +223,6 @@ namespace Components
 
 		Game::XAssetHeader assetHeader = AssetHandler::FindAssetForZone(type, name, this, isSubAsset);
 
-		if (type == Game::XAssetType::ASSET_TYPE_LOADED_SOUND) {
-			Logger::Print("Loading loaded_sound '%s'\n", name.data());
-		}
-
 		if (!assetHeader.data)
 		{		
 			Logger::Error("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));

@@ -906,7 +906,7 @@ namespace Game
 
 	struct MSSChannelMap
 	{
-		int speakerCount;
+		unsigned int speakerCount;
 		MSSSpeakerLevels speakers[6];
 	};
 
@@ -950,7 +950,7 @@ namespace Game
 	{
 		const char *aliasName;
 		snd_alias_t *head;
-		int count;
+		unsigned int count;
 	};
 
 	struct cStaticModel_s
