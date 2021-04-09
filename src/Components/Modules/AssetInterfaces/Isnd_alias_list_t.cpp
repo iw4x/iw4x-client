@@ -25,6 +25,15 @@ namespace Assets
 		auto aliases = aliasesContainer.array_items();
 
 		aliasList->count = aliases.size();
+
+		// Allocate
+		aliasList->head = builder->getAllocator()->allocateArray<Game::snd_alias_t>(aliasList->count);
+		if (!aliasList->head)
+		{
+			Components::Logger::Print("Error allocating memory for sound alias structure!\n");
+			return;
+		}
+
 		aliasList->aliasName = builder->getAllocator()->duplicateString(infoData["aliasName"].string_value().c_str());
 
 		for (size_t i = 0; i < aliasList->count; i++)
@@ -34,14 +43,6 @@ namespace Assets
 			if (!infoData.is_object())
 			{
 				Components::Logger::Error("Failed to load sound %s!", name.c_str());
-				return;
-			}
-
-			// Allocate
-			aliasList->head = builder->getAllocator()->allocate<Game::snd_alias_t>();
-			if (!aliasList->head)
-			{
-				Components::Logger::Print("Error allocating memory for sound alias structure!\n");
 				return;
 			}
 
@@ -281,21 +282,29 @@ namespace Assets
 
 				if (volumeFalloffCurve.is_string())
 				{
-					alias->volumeFalloffCurve = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, volumeFalloffCurve.string_value(), builder).sndCurve;
+					alias->volumeFalloffCurve = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, "$default" /*volumeFalloffCurve.string_value().c_str()*/, builder).sndCurve;
 				}
 
-				if (type.number_value() == 1) // Loaded
+				if (type.number_value() == Game::snd_alias_type_t::SAT_LOADED) // Loaded
 				{
 					alias->soundFile->type = Game::SAT_LOADED;
-					alias->soundFile->u.loadSnd = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, soundFile.string_value(), builder).loadSnd;
+					alias->soundFile->u.loadSnd = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, soundFile.string_value().c_str(), builder).loadSnd;
 				}
-				else if (type.number_value() == 2) // Streamed 
+				else if (type.number_value() == Game::snd_alias_type_t::SAT_STREAMED) // Streamed 
 				{
 					alias->soundFile->type = Game::SAT_STREAMED;
 					std::string streamedFile = soundFile.string_value();
+					std::string directory = ""s;
 					int split = streamedFile.find_last_of('/');
-					alias->soundFile->u.streamSnd.filename.info.raw.dir = builder->getAllocator()->duplicateString(streamedFile.substr(0, split).c_str());
-					alias->soundFile->u.streamSnd.filename.info.raw.name = builder->getAllocator()->duplicateString(streamedFile.substr(split).c_str());
+
+					if (split >= 0)
+					{
+						directory = streamedFile.substr(split);
+						streamedFile = streamedFile.substr(0, split);
+					}
+
+					alias->soundFile->u.streamSnd.filename.info.raw.dir = builder->getAllocator()->duplicateString(directory.c_str());
+					alias->soundFile->u.streamSnd.filename.info.raw.name = builder->getAllocator()->duplicateString(streamedFile.c_str());
 				}
 				else
 				{
@@ -303,10 +312,7 @@ namespace Assets
 					return;
 				}
 
-				if (i == 0)
-				{
-					aliasList->head = alias;
-				}
+				aliasList->head[i] = *alias;
 			}
 			else
 			{
