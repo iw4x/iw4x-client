@@ -282,17 +282,38 @@ namespace Assets
 
 				if (volumeFalloffCurve.is_string())
 				{
-					alias->volumeFalloffCurve = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, "$default" /*volumeFalloffCurve.string_value().c_str()*/, builder).sndCurve;
+					std::string fallOffCurve = volumeFalloffCurve.string_value();
+
+					if (fallOffCurve.size() == 0)
+					{
+						fallOffCurve = "$default";
+					}
+
+					auto curve = Components::AssetHandler::FindAssetForZone(
+						Game::XAssetType::ASSET_TYPE_SOUND_CURVE, 
+						fallOffCurve.c_str(),
+						builder
+					).sndCurve;
+
+					alias->volumeFalloffCurve = curve;
 				}
+
+				// Clear the flags from type
+				alias->flags &= ~(0b111 << 7);
 
 				if (type.number_value() == Game::snd_alias_type_t::SAT_LOADED) // Loaded
 				{
 					alias->soundFile->type = Game::SAT_LOADED;
 					alias->soundFile->u.loadSnd = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, soundFile.string_value().c_str(), builder).loadSnd;
+					
+					// Set the type
+					alias->flags |= (Game::SAT_LOADED & 0b111) << 7;
+
 				}
 				else if (type.number_value() == Game::snd_alias_type_t::SAT_STREAMED) // Streamed 
 				{
 					alias->soundFile->type = Game::SAT_STREAMED;
+					alias->flags |= (Game::SAT_STREAMED & 0b111) << 7;
 					std::string streamedFile = soundFile.string_value();
 					std::string directory = ""s;
 					int split = streamedFile.find_last_of('/');
