@@ -298,22 +298,15 @@ namespace Assets
 					alias->volumeFalloffCurve = curve;
 				}
 
-				// Clear the flags from type
-				alias->flags &= ~(0b111 << 7);
-
-				if (type.number_value() == Game::snd_alias_type_t::SAT_LOADED) // Loaded
+				if (static_cast<Game::snd_alias_type_t>(type.number_value()) == Game::snd_alias_type_t::SAT_LOADED) // Loaded
 				{
 					alias->soundFile->type = Game::SAT_LOADED;
 					alias->soundFile->u.loadSnd = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, soundFile.string_value().c_str(), builder).loadSnd;
-					
-					// Set the type
-					alias->flags |= (Game::SAT_LOADED & 0b111) << 7;
-
 				}
-				else if (type.number_value() == Game::snd_alias_type_t::SAT_STREAMED) // Streamed 
+				else if (static_cast<Game::snd_alias_type_t>(type.number_value()) == Game::snd_alias_type_t::SAT_STREAMED) // Streamed 
 				{
 					alias->soundFile->type = Game::SAT_STREAMED;
-					alias->flags |= (Game::SAT_STREAMED & 0b111) << 7;
+
 					std::string streamedFile = soundFile.string_value();
 					std::string directory = ""s;
 					int split = streamedFile.find_last_of('/');
@@ -363,7 +356,12 @@ namespace Assets
 
 			if (alias->volumeFalloffCurve)
 			{
-				builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, alias->volumeFalloffCurve);
+				if (!builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, alias->volumeFalloffCurve))
+				{
+					// (Should never happen, but just in case)
+					alias->volumeFalloffCurve->filename = "$default";
+					builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, alias->volumeFalloffCurve);
+				}
 			}
 		}
 	}
