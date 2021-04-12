@@ -313,8 +313,8 @@ namespace Assets
 
 					if (split >= 0)
 					{
-						directory = streamedFile.substr(split);
-						streamedFile = streamedFile.substr(0, split);
+						directory = streamedFile.substr(0, split);
+						streamedFile = streamedFile.substr(split+1);
 					}
 
 					alias->soundFile->u.streamSnd.filename.info.raw.dir = builder->getAllocator()->duplicateString(directory.c_str());

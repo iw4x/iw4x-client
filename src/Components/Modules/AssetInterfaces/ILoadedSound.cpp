@@ -60,8 +60,8 @@ namespace Assets
 					}
 
 					sound->sound.info.channels = reader.read<short>();
-					sound->sound.info.samples = reader.read<int>();
 					sound->sound.info.rate = reader.read<int>();
+					sound->sound.info.samples = reader.read<int>();
 					sound->sound.info.block_size = reader.read<short>();
 					sound->sound.info.bits = reader.read<short>();
 
