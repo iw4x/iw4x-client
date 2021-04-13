@@ -170,8 +170,13 @@ namespace Assets
         LoadWeapSound(putawaySoundPlayer);
         LoadWeapSound(scanSound);
 
-        // No idea how to handle this!
-        //if (asset->weapDef->bounceSound && *asset->weapDef->bounceSound) builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, *asset->weapDef->bounceSound);
+        if (asset->weapDef->bounceSound)
+        {
+            for (size_t i = 0; i < 31; i++)
+            {
+                LoadWeapSound(bounceSound[i]);
+            }
+        }
 
         LoadWeapSound(projExplosionSound);
         LoadWeapSound(projDudSound);

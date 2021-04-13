@@ -34,7 +34,7 @@ namespace Assets
 			return;
 		}
 
-		aliasList->aliasName = builder->getAllocator()->duplicateString(infoData["aliasName"].string_value().c_str());
+		aliasList->aliasName = builder->getAllocator()->duplicateString(name.c_str());
 
 		for (size_t i = 0; i < aliasList->count; i++)
 		{
@@ -79,6 +79,7 @@ namespace Assets
 			auto envelopMax = head["envelopMax"];
 			auto envelopPercentage = head["envelopPercentage"];
 			auto speakerMap = head["speakerMap"];
+			auto aliasName = head["aliasName"];
 
 			// Fix casing
 			if (soundFile.is_null())
@@ -107,6 +108,11 @@ namespace Assets
 			if (!CHECK(subtitle, string))
 			{
 				Components::Logger::Print("%s is not string but %d (%s)\n", "subtitle", subtitle.type(), subtitle.dump().c_str());
+			}
+
+			if (!CHECK(aliasName, string))
+			{
+				Components::Logger::Print("%s is not string but %d (%s)\n", "aliasName", aliasName.type(), aliasName.dump().c_str());
 			}
 
 			if (!CHECK(secondaryAliasName, string))
@@ -195,7 +201,7 @@ namespace Assets
 			}
 
 
-			if (CHECK(type, number) && CHECK(subtitle, string) && CHECK(secondaryAliasName, string) && CHECK(chainAliasName, string) &&
+			if (CHECK(type, number) && CHECK(aliasName, string) && CHECK(subtitle, string) && CHECK(secondaryAliasName, string) && CHECK(chainAliasName, string) &&
 				CHECK(soundFile, string) && CHECK(sequence, number) && CHECK(volMin, number) && CHECK(volMax, number) && CHECK(pitchMin, number) &&
 				CHECK(pitchMax, number) && CHECK(distMin, number) && CHECK(distMax, number) && CHECK(flags, number) && CHECK(slavePercentage, number) &&
 				CHECK(probability, number) && CHECK(lfePercentage, number) && CHECK(centerPercentage, number) && CHECK(startDelay, number) &&
@@ -204,7 +210,7 @@ namespace Assets
 			{
 
 				alias->soundFile->exists = true;
-				alias->aliasName = aliasList->aliasName;
+				alias->aliasName = builder->getAllocator()->duplicateString(aliasName.string_value().c_str());
 
 				if (subtitle.is_string())
 				{
