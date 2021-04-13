@@ -15,9 +15,9 @@ namespace Assets
         }
 	}
 
-	void IWeapon::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
-	{
-		Game::WeaponCompleteDef* asset = header.weapon;
+    void IWeapon::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+    {
+        Game::WeaponCompleteDef* asset = header.weapon;
 
         // convert all script strings
         if (asset->hideTags)
@@ -64,7 +64,7 @@ namespace Assets
                 builder->addScriptString(asset->weapDef->notetrackRumbleMapValues[i]);
             }
         }
-        
+
 
         // now load all sub-assets properly
         if (asset->killIcon) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->killIcon);
@@ -119,7 +119,75 @@ namespace Assets
         if (asset->weapDef->projBeaconEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projBeaconEffect);
         if (asset->weapDef->projIgnitionEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projIgnitionEffect);
         if (asset->weapDef->turretOverheatEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->turretOverheatEffect);
-	}
+
+#define LoadWeapSound(sound) if (asset->weapDef->##sound##) builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, asset->weapDef->##sound##)
+
+        LoadWeapSound(pickupSound);
+        LoadWeapSound(pickupSoundPlayer);
+        LoadWeapSound(ammoPickupSound);
+        LoadWeapSound(ammoPickupSoundPlayer);
+        LoadWeapSound(projectileSound);
+        LoadWeapSound(pullbackSound);
+        LoadWeapSound(pullbackSoundPlayer);
+        LoadWeapSound(fireSound);
+        LoadWeapSound(fireSoundPlayer);
+        LoadWeapSound(fireSoundPlayerAkimbo);
+        LoadWeapSound(fireLoopSound);
+        LoadWeapSound(fireLoopSoundPlayer);
+        LoadWeapSound(fireStopSound);
+        LoadWeapSound(fireStopSoundPlayer);
+        LoadWeapSound(fireLastSound);
+        LoadWeapSound(fireLastSoundPlayer);
+        LoadWeapSound(emptyFireSound);
+        LoadWeapSound(emptyFireSoundPlayer);
+        LoadWeapSound(meleeSwipeSound);
+        LoadWeapSound(meleeSwipeSoundPlayer);
+        LoadWeapSound(meleeHitSound);
+        LoadWeapSound(meleeMissSound);
+        LoadWeapSound(rechamberSound);
+        LoadWeapSound(rechamberSoundPlayer);
+        LoadWeapSound(reloadSound);
+        LoadWeapSound(reloadSoundPlayer);
+        LoadWeapSound(reloadEmptySound);
+        LoadWeapSound(reloadEmptySoundPlayer);
+        LoadWeapSound(reloadStartSound);
+        LoadWeapSound(reloadStartSoundPlayer);
+        LoadWeapSound(reloadEndSound);
+        LoadWeapSound(reloadEndSoundPlayer);
+        LoadWeapSound(detonateSound);
+        LoadWeapSound(detonateSoundPlayer);
+        LoadWeapSound(nightVisionWearSound);
+        LoadWeapSound(nightVisionWearSoundPlayer);
+        LoadWeapSound(nightVisionRemoveSound);
+        LoadWeapSound(nightVisionRemoveSoundPlayer);
+        LoadWeapSound(altSwitchSound);
+        LoadWeapSound(altSwitchSoundPlayer);
+        LoadWeapSound(raiseSound);
+        LoadWeapSound(raiseSoundPlayer);
+        LoadWeapSound(firstRaiseSound);
+        LoadWeapSound(firstRaiseSoundPlayer);
+        LoadWeapSound(putawaySound);
+        LoadWeapSound(putawaySoundPlayer);
+        LoadWeapSound(scanSound);
+
+        // No idea how to handle this!
+        //if (asset->weapDef->bounceSound && *asset->weapDef->bounceSound) builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, *asset->weapDef->bounceSound);
+
+        LoadWeapSound(projExplosionSound);
+        LoadWeapSound(projDudSound);
+        LoadWeapSound(projIgnitionSound);
+        LoadWeapSound(turretOverheatSound);
+        LoadWeapSound(turretBarrelSpinMaxSnd);
+
+        for (size_t i = 0; i < 4; i++)
+        {
+            LoadWeapSound(turretBarrelSpinUpSnd[i]);
+            LoadWeapSound(turretBarrelSpinDownSnd[i]);
+        }
+
+        LoadWeapSound(missileConeSoundAlias);
+        LoadWeapSound(missileConeSoundAliasAtBase);
+    }
 
     void IWeapon::writeWeaponDef(Game::WeaponDef* def, Components::ZoneBuilder::Zone* builder, Utils::Stream* buffer)
     {
