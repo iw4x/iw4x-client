@@ -973,7 +973,48 @@ namespace Components
 				Dvar::Register<bool>("r_drawSceneModelBoundingBoxes", false, Game::DVAR_FLAG_CHEAT, "Draw scene model bounding boxes");
 				Dvar::Register<bool>("r_drawSceneModelCollisions", false, Game::DVAR_FLAG_CHEAT, "Draw scene model collisions");
 				Dvar::Register<bool>("r_drawTriggers", false, Game::DVAR_FLAG_CHEAT, "Draw triggers");
+				Dvar::Register<bool>("r_drawModelNames", false, Game::DVAR_FLAG_CHEAT, "Draw all model names");
 				Dvar::Register<bool>("r_drawAabbTrees", false, Game::DVAR_FLAG_USERCREATED, "Draw aabb trees");
+			});
+
+		Scheduler::OnFrame([]()
+			{
+				if (!Game::CL_IsCgameInitialized() || !Dvar::Var("r_drawModelNames").get<bool>()) return;
+
+				float sceneModelsColor[4] = { 1.0f, 1.0f, 0.0f, 1.0f };
+				float dobjsColor[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
+				float staticModelsColor[4] = { 1.0f, 0.0f, 1.0f, 1.0f };
+
+				auto mapName = Dvar::Var("mapname").get<const char*>();
+				auto* scene = Game::scene;
+				auto world = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName))->asset.header.gfxWorld;
+
+				for (auto i = 0; i < scene->sceneModelCount; i++)
+				{
+					if (!scene->sceneModel[i].model)
+						continue;
+
+					Game::R_AddDebugString(sceneModelsColor, scene->sceneModel[i].placement.base.origin, 1.0, scene->sceneModel[i].model->name);
+				}	
+
+				for (auto i = 0; i < scene->sceneDObjCount; i++)
+				{
+					if (scene->sceneDObj[i].obj) {
+						for (size_t j = 0; j < scene->sceneDObj[i].obj->numModels; j++)
+						{
+							Game::R_AddDebugString(dobjsColor, scene->sceneDObj[i].placement.origin, 1.0, scene->sceneDObj[i].obj->models[j]->name);
+						}
+					}
+				}
+
+				// Static models
+				for (auto i = 0; i < world->dpvs.smodelCount; i++)
+				{
+					auto staticModel = world->dpvs.smodelDrawInsts[i];
+					if (staticModel.model) {
+						Game::R_AddDebugString(staticModelsColor, staticModel.placement.origin, 1.0, staticModel.model->name);
+					}
+				}
 			});
 
 		Scheduler::OnFrame([]()
