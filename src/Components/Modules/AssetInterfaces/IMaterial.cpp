@@ -38,14 +38,17 @@ namespace Assets
 			{"wc_unlit_add", "wc_unlit_add_lin"},
 			{"wc_unlit_multiply", "wc_unlit_multiply_lin"},
 			{"wc_unlit_falloff_add", "wc_unlit_falloff_add_lin_ua"},
-			{"wc_unlit", "wc_unlit_add"},
+			{"wc_unlit", "wc_unlit_add_lin"},
+			{"wc_unlit_alphatest", "wc_unlit_blend_lin_ua"},
 			{"wc_unlit_multiply_lin", "wc_unlit_multiply_lin"},
 			{"wc_unlit_blend", "wc_unlit_blend_lin"},
 			{"wc_unlit_replace", "wc_unlit_replace_lin"},
 
 			{"mc_unlit_replace", "mc_unlit_replace_lin"},
 			{"mc_unlit_nofog", "mc_unlit_blend_nofog_ua"},
-			{"mc_unlit", "mc_unlit_blend_lin"}/*,
+			{"mc_unlit", "mc_unlit_blend_lin"},
+			{"mc_unlit_alphatest", "mc_unlit_blend_lin"}
+			/*,
 			{"", ""},
 			{"", ""},
 			{"", ""},
@@ -241,7 +244,8 @@ namespace Assets
 				auto iw4TechSetName = techSetCorrespondance[techName];
 				Game::XAssetEntry* iw4TechSet = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, iw4TechSetName.data());
 
-				if (iw4TechSet) {
+				if (iw4TechSet) 
+				{
 					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset, iw4TechSet](Game::XAssetEntry* entry)
 						{
 							if (!replacementFound)
@@ -253,21 +257,32 @@ namespace Assets
 									Components::Logger::Print("Material %s with techset %s has been mapped to %s (last chance!)\n", asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name);
 									asset->info.sortKey = header.material->info.sortKey;
 									asset->techniqueSet = iw4TechSet->asset.header.techniqueSet;
+
+									// this is terrible!
+									asset->stateBitsCount = header.material->stateBitsCount;
+									asset->stateBitsTable = header.material->stateBitsTable;
+									std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
+									asset->constantCount = header.material->constantCount;
+									asset->constantTable = header.material->constantTable;
+
 									replacementFound = true;
 								}
 							}
 						}, false, false);
 
-					if (!replacementFound) {
+					if (!replacementFound) 
+					{
 						Components::Logger::Print("Could not find any loaded material with techset %s (in replacement of %s), so I cannot set the sortkey for material %s\n", iw4TechSetName.data(), asset->techniqueSet->name,  asset->info.name);
 					}
 				}
-				else {
+				else 
+				{
 					Components::Logger::Print("Could not find any loaded techset with iw4 name %s for iw3 techset %s\n", iw4TechSetName.data(), asset->techniqueSet->name);
 				}
 			}
-			else {
-				Components::Logger::Print("Could not match iw3 techset %s with any of the techsets I know! This is a critical error, there's a good chance the map will not be playable.\n", techName.c_str());
+			else 
+			{
+				Components::Logger::Print("Could not match iw3 techset %s with any of the techsets I know! This is a critical error, there's a good chance the map will not be playable.\n", techName.data());
 			}
 		}
 

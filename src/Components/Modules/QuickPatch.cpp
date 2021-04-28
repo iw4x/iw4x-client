@@ -951,7 +951,7 @@ namespace Components
 			if (!Game::CL_IsCgameInitialized() || !Dvar::Var("r_drawAabbTrees").get<bool>()) return;
 
 			float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
-            float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+			float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 
 			Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
 			//Game::GfxWorld* gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
