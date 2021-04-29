@@ -120,5 +120,7 @@ namespace Components
 		static void SetSpecularStub1();
 		static void SetSpecularStub2();
 		static void G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2);
+		static bool SV_SetTriggerModelHook(Game::gentity_s* ent);
+		static int16 CM_TriggerModelBounds(int brushModelPointer, Game::Bounds* bounds);
 	};
 }

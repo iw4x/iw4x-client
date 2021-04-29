@@ -411,7 +411,7 @@ namespace Components
 		{
 			Logger::Error(5, "Entity: %i is not a client", gentity);
 		}
-		return &Game::svs_clients[gentity->number];
+		return &Game::svs_clients[gentity->s.number];
 	}
 
 	void Script::AddFunctions()

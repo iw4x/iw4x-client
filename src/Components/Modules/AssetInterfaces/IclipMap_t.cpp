@@ -1,6 +1,6 @@
 #include "StdInclude.hpp"
 
-#define IW4X_CLIPMAP_VERSION 1
+#define IW4X_CLIPMAP_VERSION 2
 
 namespace Assets
 {
@@ -587,12 +587,12 @@ namespace Assets
 
 		Game::clipMap_t* orgClipMap = nullptr;
 		Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_CLIPMAP_MP, [](Game::XAssetHeader header, void* clipMap)
-		{
-			if (!*reinterpret_cast<void**>(clipMap))
 			{
-				*reinterpret_cast<Game::clipMap_t**>(clipMap) = header.clipMap;
-			}
-		}, &orgClipMap, false);
+				if (!*reinterpret_cast<void**>(clipMap))
+				{
+					*reinterpret_cast<Game::clipMap_t**>(clipMap) = header.clipMap;
+				}
+			}, &orgClipMap, false);
 
 		if (orgClipMap) std::memcpy(clipMap, orgClipMap, sizeof Game::clipMap_t);
 
@@ -605,7 +605,7 @@ namespace Assets
 		}
 
 		int version = reader.read<int>();
-		if (version != IW4X_CLIPMAP_VERSION)
+		if (version > IW4X_CLIPMAP_VERSION)
 		{
 			Components::Logger::Error(0, "Reading clipmap '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_CLIPMAP_VERSION, version);
 		}
@@ -881,33 +881,38 @@ namespace Assets
 		clipMap->smodelNodeCount = reader.read<unsigned short>();
 		clipMap->smodelNodes = reader.readArray<Game::SModelAabbNode>(clipMap->smodelNodeCount);
 
-		clipMap->checksum = reader.read<int>();
-
 		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, Utils::String::VA("maps/mp/%s.d3dbsp", name.data()), builder).mapEnts;
 
 		// add triggers to mapEnts
-		/*
-		std::list<Game::TriggerSlab> slabs;
-		std::list<Game::TriggerHull> hulls;
-		std::list<Game::TriggerModel> models;
+		if (version >= 2) {
+			if (clipMap->numSubModels > 0) {
+				clipMap->mapEnts->trigger.count = clipMap->numSubModels;
+				clipMap->mapEnts->trigger.hullCount = clipMap->numSubModels;
 
-		for (int i = 0; i < clipMap->numCModels; ++i)
-		{
-			Game::cLeafBrushNode_t* node = &clipMap->cLeafBrushNodes[clipMap->cModels[i].leaf.leafBrushNode];
-			if (!node->leafBrushCount) continue; // skip empty brushes
+				Game::TriggerHull* hulls = builder->getAllocator()->allocateArray<Game::TriggerHull>(clipMap->mapEnts->trigger.hullCount);
+				Game::TriggerModel* models = builder->getAllocator()->allocateArray<Game::TriggerModel>(clipMap->mapEnts->trigger.count);
 
-			int baseHull = hulls.size();
-			for (int j = 0; j < node->leafBrushCount; ++j)
-			{
-				Game::cbrush_t* brush = &clipMap->cBrushes[node->data.leaf.brushes[j]];
-				int baseSlab = slabs.size();
-				for (int k = 0; k < brush->numsides; ++k)
+				for (unsigned int i = 0; i < clipMap->numSubModels; ++i)
 				{
-					Game::TriggerSlab curSlab;
+					models[i] = reader.read<Game::TriggerModel>();
+					hulls[i] = reader.read<Game::TriggerHull>();
 				}
+
+				size_t slabCount = reader.read<size_t>();
+				clipMap->mapEnts->trigger.slabCount = slabCount;
+				Game::TriggerSlab* slabs = builder->getAllocator()->allocateArray<Game::TriggerSlab>(clipMap->mapEnts->trigger.slabCount);
+				for (unsigned int i = 0; i < clipMap->mapEnts->trigger.slabCount; i++) {
+					slabs[i] = reader.read<Game::TriggerSlab>();
+				}
+
+
+				clipMap->mapEnts->trigger.models = &models[0];
+				clipMap->mapEnts->trigger.hulls = &hulls[0];
+				clipMap->mapEnts->trigger.slabs = &slabs[0];
 			}
 		}
-		*/
+
+		clipMap->checksum = reader.read<int>();
 
 		// This mustn't be null and has to have at least 1 'valid' entry.
 		if (!clipMap->smodelNodeCount || !clipMap->smodelNodes)

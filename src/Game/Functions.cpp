@@ -419,6 +419,8 @@ namespace Game
 
 	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
 
+	GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
@@ -728,6 +730,29 @@ namespace Game
 		std::memmove(&solution[0], &res[0], sizeof(res));
 	}
 
+	void QuatRot(vec3_t* vec, const vec4_t* quat)
+	{
+		vec4_t q{ (*quat)[3],(*quat)[0],(*quat)[1],(*quat)[2] };
+
+		vec4_t res{ 0, (*vec)[0], (*vec)[1], (*vec)[2] };
+		vec4_t res2;
+		vec4_t quat_conj{ q[0], -q[1], -q[2], -q[3] };
+		QuatMultiply(&q, &res, &res2);
+		QuatMultiply(&res2, &quat_conj, &res);
+
+		(*vec)[0] = res[1];
+		(*vec)[1] = res[2];
+		(*vec)[2] = res[3];
+	}
+
+	void QuatMultiply(const vec4_t* q1, const vec4_t* q2, vec4_t* res)
+	{
+		(*res)[0] = (*q2)[0] * (*q1)[0] - (*q2)[1] * (*q1)[1] - (*q2)[2] * (*q1)[2] - (*q2)[3] * (*q1)[3];
+		(*res)[1] = (*q2)[0] * (*q1)[1] + (*q2)[1] * (*q1)[0] - (*q2)[2] * (*q1)[3] + (*q2)[3] * (*q1)[2];
+		(*res)[2] = (*q2)[0] * (*q1)[2] + (*q2)[1] * (*q1)[3] + (*q2)[2] * (*q1)[0] - (*q2)[3] * (*q1)[1];
+		(*res)[3] = (*q2)[0] * (*q1)[3] - (*q2)[1] * (*q1)[2] + (*q2)[2] * (*q1)[1] + (*q2)[3] * (*q1)[0];
+	}
+
 	void SortWorldSurfaces(GfxWorld* world)
 	{
 		DWORD* specular1 = reinterpret_cast<DWORD*>(0x69F105C);
@@ -805,6 +830,73 @@ namespace Game
 		Game::R_AddDebugLine(color, v3, v7);
 		Game::R_AddDebugLine(color, v4, v8);
 	}
+
+	void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4])
+	{
+		vec3_t v[8];
+		auto* center = b->midPoint;
+		auto* halfSize = b->halfSize;
+
+		v[0][0] = -halfSize[0];
+		v[0][1] = -halfSize[1];
+		v[0][2] = -halfSize[2];
+
+		v[1][0] = halfSize[0];
+		v[1][1] = -halfSize[1];
+		v[1][2] = -halfSize[2];
+
+		v[2][0] = -halfSize[0];
+		v[2][1] = halfSize[1];
+		v[2][2] = -halfSize[2];
+
+		v[3][0] = halfSize[0];
+		v[3][1] = halfSize[1];
+		v[3][2] = -halfSize[2];
+
+		v[4][0] = -halfSize[0];
+		v[4][1] = -halfSize[1];
+		v[4][2] = halfSize[2];
+
+		v[5][0] = halfSize[0];
+		v[5][1] = -halfSize[1];
+		v[5][2] = halfSize[2];
+
+		v[6][0] = -halfSize[0];
+		v[6][1] = halfSize[1];
+		v[6][2] = halfSize[2];
+
+		v[7][0] = halfSize[0];
+		v[7][1] = halfSize[1];
+		v[7][2] = halfSize[2];
+
+		for(auto& vec : v)
+		{
+			QuatRot(&vec, quat);
+			vec[0] += center[0];
+			vec[1] += center[1];
+			vec[2] += center[2];
+		}
+
+		// bottom
+		Game::R_AddDebugLine(color, v[0], v[1]);
+		Game::R_AddDebugLine(color, v[1], v[3]);
+		Game::R_AddDebugLine(color, v[3], v[2]);
+		Game::R_AddDebugLine(color, v[2], v[0]);
+
+		// top
+		Game::R_AddDebugLine(color, v[4], v[5]);
+		Game::R_AddDebugLine(color, v[5], v[7]);
+		Game::R_AddDebugLine(color, v[7], v[6]);
+		Game::R_AddDebugLine(color, v[6], v[4]);
+
+		// verticals
+		Game::R_AddDebugLine(color, v[0], v[4]);
+		Game::R_AddDebugLine(color, v[1], v[5]);
+		Game::R_AddDebugLine(color, v[2], v[6]);
+		Game::R_AddDebugLine(color, v[3], v[7]);
+	}
+
+
 
 #pragma optimize("", off)
 	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
