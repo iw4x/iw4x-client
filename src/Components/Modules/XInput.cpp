@@ -8,15 +8,15 @@ namespace Components
 	std::chrono::milliseconds XInput::timeAtFirstHeldMaxLookX = 0ms; // "For how much time in miliseconds has the player been holding a horizontal direction on their stick, fully" (-1.0 or 1.0)
 	bool XInput::isHoldingMaxLookX = false;
 
-	float XInput::lockedSensitivityMultiplier = 0.6f;
-	float XInput::unlockedSensitivityMultiplier = 1.2f;
-	float XInput::generalSensitivityMultiplier = 1.3f;
+	float XInput::lockedSensitivityMultiplier = 0.5f;
+	float XInput::generalXSensitivityMultiplier = 1.6f;
+	float XInput::generalYSensitivityMultiplier = 0.8f;
 
 	std::chrono::milliseconds XInput::msBeforeUnlockingSensitivity = 250ms;
 
 	std::vector<XInput::ActionMapping> mappings = {
 		XInput::ActionMapping(XINPUT_GAMEPAD_A, "gostand"),
-		//XInput::ActionMapping(XINPUT_GAMEPAD_B, "stance", true, true),
+		XInput::ActionMapping(XINPUT_GAMEPAD_B, "stance"),
 		XInput::ActionMapping(XINPUT_GAMEPAD_X, "usereload"),
 		XInput::ActionMapping(XINPUT_GAMEPAD_Y, "weapnext", false),
 		XInput::ActionMapping(XINPUT_GAMEPAD_LEFT_SHOULDER, "smoke"),
@@ -107,12 +107,9 @@ namespace Components
 					if (hasBeenHoldingLeftXForMs < XInput::msBeforeUnlockingSensitivity) {
 						viewStickX *= XInput::lockedSensitivityMultiplier;
 					}
-					else {
-						viewStickX *= XInput::unlockedSensitivityMultiplier;
-					}
 #else
 					float coeff = std::clamp(hasBeenHoldingLeftXForMs.count()/(float)XInput::msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
-					viewStickX *= std::lerp(XInput::lockedSensitivityMultiplier, XInput::unlockedSensitivityMultiplier, coeff);
+					viewStickX *= std::lerp(XInput::lockedSensitivityMultiplier, 1.0f, coeff);
 #endif
 				}
 			}
@@ -122,8 +119,8 @@ namespace Components
 			}
 
 
-			Game::cl_angles[0] -= viewStickY;
-			Game::cl_angles[1] -= viewStickX * generalSensitivityMultiplier;
+			Game::cl_angles[0] -= viewStickY * generalYSensitivityMultiplier;
+			Game::cl_angles[1] -= viewStickX * generalXSensitivityMultiplier;
 
 			bool pressingLeftTrigger = xiState->Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ? true : false;
 			if (pressingLeftTrigger != XInput::lastXiState.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
@@ -157,9 +154,6 @@ namespace Components
 				else if (mapping.wasPressed) {
 					if (xiState->Gamepad.wButtons & mapping.input) {
 						// Button still pressed, do not send info
-						if (mapping.spamWhenHeld) {
-							Command::Execute(action.c_str());
-						}
 					}
 					else {
 						mappings[i].wasPressed = false;
@@ -169,7 +163,9 @@ namespace Components
 				}
 
 				if (xiState->Gamepad.wButtons & mapping.input) {
-					Command::Execute(action.c_str());
+					if (mapping.spamWhenHeld || !mappings[i].wasPressed) {
+						Command::Execute(action.c_str());
+					}
 					mappings[i].wasPressed = true;
 				}
 				else if (mapping.isReversible && mapping.wasPressed) {
@@ -177,16 +173,6 @@ namespace Components
 					Command::Execute(antiAction.c_str());
 				}
 			}
-
-			bool pressingStance = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
-			if (pressingStance != ((XInput::lastXiState.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0))
-			{
-				if (pressingStance)
-					Command::Execute("+stance");
-				else
-					Command::Execute("-stance");
-			}
-
 
 			memcpy(&XInput::lastXiState, xiState, sizeof XINPUT_STATE);
 		}

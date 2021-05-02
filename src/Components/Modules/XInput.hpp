@@ -32,8 +32,8 @@ namespace Components
 		static std::chrono::milliseconds timeAtFirstHeldMaxLookX;
 		static std::chrono::milliseconds msBeforeUnlockingSensitivity;
 		static float lockedSensitivityMultiplier;
-		static float unlockedSensitivityMultiplier;
-		static float generalSensitivityMultiplier;
+		static float generalXSensitivityMultiplier;
+		static float generalYSensitivityMultiplier;
 
 		static void Vibrate(int leftVal = 0, int rightVal = 0);
 
