@@ -1655,16 +1655,46 @@ namespace Components
 				image->delayLoadPixels = image359.loaded;
 				image->name = image359.name;
 
+				FixImageCategory(image);
+
 				// Used for later stuff
 				(&image->delayLoadPixels)[1] = image359.pad3[1];
 			}
 			else
 			{
 				std::memcpy(buffer + 28, buffer + (size - 4), 4);
+
+				Game::GfxImage* image = reinterpret_cast<Game::GfxImage*>(buffer);
+				FixImageCategory(image);
 			}
 		}
 
 		return result;
+	}
+
+	void Zones::FixImageCategory(Game::GfxImage* image) {
+		// CODO makes use of additional enumerator values (9, 10, 11) that don't exist in IW4
+		// We have to translate them. 9 is for Reflection probes,  11 is for Compass,  10 is for Lightmap
+		switch (image->category)
+		{
+			case 9:
+				image->category = Game::ImageCategory::IMG_CATEGORY_AUTO_GENERATED;
+				break;
+			case 10:
+				image->category = Game::ImageCategory::IMG_CATEGORY_LIGHTMAP;
+				break;
+			case 11:
+				image->category = Game::ImageCategory::IMG_CATEGORY_LOAD_FROM_FILE;
+				break;
+		}
+
+
+		if (image->category > 7 || image->category < 0) {
+
+#ifdef DEBUG
+			if (IsDebuggerPresent()) __debugbreak();
+#endif
+		}
 	}
 
 	bool Zones::LoadXAsset(bool atStreamStart, char* buffer, int size)

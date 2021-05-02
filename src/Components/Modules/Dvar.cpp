@@ -225,6 +225,9 @@ namespace Components
 		// set flags of cg_drawFPS to archive
 		Utils::Hook::Or<BYTE>(0x4F8F69, Game::dvar_flag::DVAR_FLAG_SAVED);
 
+		// un-cheat camera_thirdPersonCrosshairOffset and add archive flags
+		Utils::Hook::Xor<BYTE>(0x447B41, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
+		
 		// un-cheat cg_fov and add archive flags
 		Utils::Hook::Xor<BYTE>(0x4F8E35, Game::dvar_flag::DVAR_FLAG_CHEAT | Game::dvar_flag::DVAR_FLAG_SAVED);
 		

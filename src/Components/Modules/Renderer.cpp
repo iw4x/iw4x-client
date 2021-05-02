@@ -108,7 +108,7 @@ namespace Components
 
 	void Renderer::R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state)
 	{
-		Game::Com_Error(0, "Tried to use '%s' when it isn't valid for material '%s' and technique '%s'",
+		Game::Com_Error(0, "Tried to use sampler '%s' when it isn't valid for material '%s' and technique '%s'",
 			sampler, state->material->info.name, state->technique->name);
 	}
 

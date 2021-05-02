@@ -15,9 +15,9 @@ namespace Assets
         }
 	}
 
-	void IWeapon::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
-	{
-		Game::WeaponCompleteDef* asset = header.weapon;
+    void IWeapon::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
+    {
+        Game::WeaponCompleteDef* asset = header.weapon;
 
         // convert all script strings
         if (asset->hideTags)
@@ -64,7 +64,7 @@ namespace Assets
                 builder->addScriptString(asset->weapDef->notetrackRumbleMapValues[i]);
             }
         }
-        
+
 
         // now load all sub-assets properly
         if (asset->killIcon) builder->loadAsset(Game::XAssetType::ASSET_TYPE_MATERIAL, asset->killIcon);
@@ -119,7 +119,80 @@ namespace Assets
         if (asset->weapDef->projBeaconEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projBeaconEffect);
         if (asset->weapDef->projIgnitionEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projIgnitionEffect);
         if (asset->weapDef->turretOverheatEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->turretOverheatEffect);
-	}
+
+#define LoadWeapSound(sound) if (asset->weapDef->##sound##) builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, asset->weapDef->##sound##)
+
+        LoadWeapSound(pickupSound);
+        LoadWeapSound(pickupSoundPlayer);
+        LoadWeapSound(ammoPickupSound);
+        LoadWeapSound(ammoPickupSoundPlayer);
+        LoadWeapSound(projectileSound);
+        LoadWeapSound(pullbackSound);
+        LoadWeapSound(pullbackSoundPlayer);
+        LoadWeapSound(fireSound);
+        LoadWeapSound(fireSoundPlayer);
+        LoadWeapSound(fireSoundPlayerAkimbo);
+        LoadWeapSound(fireLoopSound);
+        LoadWeapSound(fireLoopSoundPlayer);
+        LoadWeapSound(fireStopSound);
+        LoadWeapSound(fireStopSoundPlayer);
+        LoadWeapSound(fireLastSound);
+        LoadWeapSound(fireLastSoundPlayer);
+        LoadWeapSound(emptyFireSound);
+        LoadWeapSound(emptyFireSoundPlayer);
+        LoadWeapSound(meleeSwipeSound);
+        LoadWeapSound(meleeSwipeSoundPlayer);
+        LoadWeapSound(meleeHitSound);
+        LoadWeapSound(meleeMissSound);
+        LoadWeapSound(rechamberSound);
+        LoadWeapSound(rechamberSoundPlayer);
+        LoadWeapSound(reloadSound);
+        LoadWeapSound(reloadSoundPlayer);
+        LoadWeapSound(reloadEmptySound);
+        LoadWeapSound(reloadEmptySoundPlayer);
+        LoadWeapSound(reloadStartSound);
+        LoadWeapSound(reloadStartSoundPlayer);
+        LoadWeapSound(reloadEndSound);
+        LoadWeapSound(reloadEndSoundPlayer);
+        LoadWeapSound(detonateSound);
+        LoadWeapSound(detonateSoundPlayer);
+        LoadWeapSound(nightVisionWearSound);
+        LoadWeapSound(nightVisionWearSoundPlayer);
+        LoadWeapSound(nightVisionRemoveSound);
+        LoadWeapSound(nightVisionRemoveSoundPlayer);
+        LoadWeapSound(altSwitchSound);
+        LoadWeapSound(altSwitchSoundPlayer);
+        LoadWeapSound(raiseSound);
+        LoadWeapSound(raiseSoundPlayer);
+        LoadWeapSound(firstRaiseSound);
+        LoadWeapSound(firstRaiseSoundPlayer);
+        LoadWeapSound(putawaySound);
+        LoadWeapSound(putawaySoundPlayer);
+        LoadWeapSound(scanSound);
+
+        if (asset->weapDef->bounceSound)
+        {
+            for (size_t i = 0; i < 31; i++)
+            {
+                LoadWeapSound(bounceSound[i]);
+            }
+        }
+
+        LoadWeapSound(projExplosionSound);
+        LoadWeapSound(projDudSound);
+        LoadWeapSound(projIgnitionSound);
+        LoadWeapSound(turretOverheatSound);
+        LoadWeapSound(turretBarrelSpinMaxSnd);
+
+        for (size_t i = 0; i < 4; i++)
+        {
+            LoadWeapSound(turretBarrelSpinUpSnd[i]);
+            LoadWeapSound(turretBarrelSpinDownSnd[i]);
+        }
+
+        LoadWeapSound(missileConeSoundAlias);
+        LoadWeapSound(missileConeSoundAliasAtBase);
+    }
 
     void IWeapon::writeWeaponDef(Game::WeaponDef* def, Components::ZoneBuilder::Zone* builder, Utils::Stream* buffer)
     {
@@ -274,9 +347,9 @@ namespace Assets
         {
             buffer->align(Utils::Stream::ALIGN_4);
             int* ptrs = buffer->dest<int>();
-            buffer->saveMax(37 * sizeof(Game::snd_alias_list_t*));
+            buffer->saveMax(31 * sizeof(Game::snd_alias_list_t*));
 
-            for (int i = 0; i < 37; i++)
+            for (int i = 0; i < 31; i++)
             {
                 if (!def->bounceSound[i])
                 {
@@ -433,14 +506,16 @@ namespace Assets
 
         if (def->projExplosionSound)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->projExplosionSound->aliasName);
             Utils::Stream::ClearPointer(&dest->projExplosionSound);
         }
 
         if (def->projDudSound)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->projDudSound->aliasName);
             Utils::Stream::ClearPointer(&dest->projDudSound);
         }
@@ -476,7 +551,8 @@ namespace Assets
 
         if (def->projIgnitionSound)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->projIgnitionSound->aliasName);
             Utils::Stream::ClearPointer(&dest->projIgnitionSound);
         }
@@ -551,7 +627,8 @@ namespace Assets
 
         if (def->turretOverheatSound)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->turretOverheatSound->aliasName);
             Utils::Stream::ClearPointer(&dest->turretOverheatSound);
         }
@@ -569,7 +646,8 @@ namespace Assets
 
         if (def->turretBarrelSpinMaxSnd)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->turretBarrelSpinMaxSnd->aliasName);
             Utils::Stream::ClearPointer(&dest->turretBarrelSpinMaxSnd);
         }
@@ -577,7 +655,8 @@ namespace Assets
         for (int i = 0; i < 4; i++) {
             if (!def->turretBarrelSpinUpSnd[i]) continue;
 
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->turretBarrelSpinUpSnd[i]->aliasName);
             Utils::Stream::ClearPointer(&dest->turretBarrelSpinUpSnd[i]);
         }
@@ -585,21 +664,24 @@ namespace Assets
         for (int i = 0; i < 4; i++) {
             if (!def->turretBarrelSpinDownSnd[i]) continue;
 
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->turretBarrelSpinDownSnd[i]->aliasName);
             Utils::Stream::ClearPointer(&dest->turretBarrelSpinDownSnd[i]);
         }
 
         if (def->missileConeSoundAlias)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->missileConeSoundAlias->aliasName);
             Utils::Stream::ClearPointer(&dest->missileConeSoundAlias);
         }
 
         if (def->missileConeSoundAliasAtBase)
         {
-            buffer->saveMax(4);
+            buffer->align(Utils::Stream::ALIGN_4);
+            buffer->saveMax(sizeof(Game::snd_alias_list_t*));
             buffer->saveString(def->missileConeSoundAliasAtBase->aliasName);
             Utils::Stream::ClearPointer(&dest->missileConeSoundAliasAtBase);
         }

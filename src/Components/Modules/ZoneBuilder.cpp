@@ -44,7 +44,7 @@ namespace Components
 
 			if (!found)
 			{
-				Logger::Error("Asset %s of type %s was loaded, but not written!", name.data(), Game::DB_GetXAssetTypeName(subAsset.type));
+				Logger::Print("Asset %s of type %s was loaded, but not written!", name.data(), Game::DB_GetXAssetTypeName(subAsset.type));
 			}
 		}
 
@@ -222,8 +222,10 @@ namespace Components
 		}
 
 		Game::XAssetHeader assetHeader = AssetHandler::FindAssetForZone(type, name, this, isSubAsset);
+
 		if (!assetHeader.data)
-		{			Logger::Error("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));
+		{		
+			Logger::Error("Error: Missing asset '%s' of type '%s'\n", name.data(), Game::DB_GetXAssetTypeName(type));
 			return false;
 		}
 

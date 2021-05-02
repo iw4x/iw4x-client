@@ -100,5 +100,6 @@ namespace Components
 		static void LoadMaterialAsset(Game::Material** asset);
 		static void LoadTracerDef(bool atStreamStart, Game::TracerDef* tracer, int size);
 		static void LoadTracerDefFxEffect();
+		static void FixImageCategory(Game::GfxImage* image);
 	};
 }

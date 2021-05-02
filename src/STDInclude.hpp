@@ -5,8 +5,8 @@
 
 #ifndef RC_INVOKED
 
-#define _HAS_CXX17 1
-#define _HAS_CXX20 1
+//#define _HAS_CXX17 1
+//#define _HAS_CXX20 1
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #define _CRT_SECURE_NO_WARNINGS
@@ -38,6 +38,7 @@
 #include <future>
 #include <unordered_map>
 #include <queue>
+#include <algorithm>
 
 // Experimental C++17 features
 #include <filesystem>
