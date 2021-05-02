@@ -3,8 +3,51 @@
 namespace Components
 {
 	XINPUT_STATE XInput::xiStates[XUSER_MAX_COUNT];
-	XINPUT_STATE XInput::lastxiState = { 0 };
+	XINPUT_STATE XInput::lastXiState = { 0 };
 	int XInput::xiPlayerNum = -1;
+	std::chrono::milliseconds XInput::timeAtFirstHeldMaxLookX = 0ms; // "For how much time in miliseconds has the player been holding a horizontal direction on their stick, fully" (-1.0 or 1.0)
+	bool XInput::isHoldingMaxLookX = false;
+
+	float XInput::lockedSensitivityMultiplier = 0.6f;
+	float XInput::unlockedSensitivityMultiplier = 1.2f;
+	float XInput::generalSensitivityMultiplier = 1.3f;
+
+	std::chrono::milliseconds XInput::msBeforeUnlockingSensitivity = 250ms;
+
+	std::vector<XInput::ActionMapping> mappings = {
+		XInput::ActionMapping(XINPUT_GAMEPAD_A, "gostand"),
+		//XInput::ActionMapping(XINPUT_GAMEPAD_B, "stance", true, true),
+		XInput::ActionMapping(XINPUT_GAMEPAD_X, "usereload"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_Y, "weapnext", false),
+		XInput::ActionMapping(XINPUT_GAMEPAD_LEFT_SHOULDER, "smoke"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_RIGHT_SHOULDER, "frag"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_LEFT_THUMB,  "breath_sprint"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_RIGHT_THUMB, "melee"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_START, "togglemenu", false),
+		XInput::ActionMapping(XINPUT_GAMEPAD_BACK, "scores"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_RIGHT, "actionslot 3"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_LEFT, "actionslot 2"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_UP, "actionslot 1"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_DOWN, "actionslot 4"),
+	};
+
+
+	void XInput::Vibrate(int leftVal, int rightVal)
+	{
+		// Create a Vibraton State
+		XINPUT_VIBRATION Vibration;
+
+		// Zeroise the Vibration
+		ZeroMemory(&Vibration, sizeof(XINPUT_VIBRATION));
+
+		// Set the Vibration Values
+		Vibration.wLeftMotorSpeed = leftVal;
+		Vibration.wRightMotorSpeed = rightVal;
+
+		// Vibrate the controller
+		XInputSetState(xiPlayerNum, &Vibration);
+	}
+
 
 	void XInput::PollXInputDevices()
 	{
@@ -42,14 +85,48 @@ namespace Components
 		{
 			XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
 
-			cmd->rightmove = static_cast<BYTE>(xiState->Gamepad.sThumbLX / 256);
-			cmd->forwardmove = static_cast<BYTE>(xiState->Gamepad.sThumbLY / 256);
+			// Deadzones
+			float moveStickX = abs(xiState->Gamepad.sThumbLX) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLX / (float)std::numeric_limits<SHORT>().max() : .0f;
+			float moveStickY = abs(xiState->Gamepad.sThumbLY) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLY / (float)std::numeric_limits<SHORT>().max() : .0f;
 
-			Game::cl_angles[0] -= (xiState->Gamepad.sThumbRY / 32767.0f);
-			Game::cl_angles[1] -= (xiState->Gamepad.sThumbRX / 32767.0f);
+			float viewStickX = abs(xiState->Gamepad.sThumbRX) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRX / (float)std::numeric_limits<SHORT>().max() : .0f;
+			float viewStickY = abs(xiState->Gamepad.sThumbRY) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRY / (float)std::numeric_limits<SHORT>().max() : .0f;
 
-			bool pressingLeftTrigger = xiState->Gamepad.bLeftTrigger / 255.f > 0.5;
-			if (pressingLeftTrigger != XInput::lastxiState.Gamepad.bLeftTrigger / 255.f > 0.5)
+			cmd->rightmove = moveStickX * std::numeric_limits<char>().max();
+			cmd->forwardmove = moveStickY * std::numeric_limits<char>().max();
+
+			// Gamepad horizontal acceleration on view
+			if (abs(viewStickX) > 0.9f) {
+				if (!XInput::isHoldingMaxLookX) {
+					XInput::isHoldingMaxLookX = true;
+					XInput::timeAtFirstHeldMaxLookX = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+				}
+				else {
+					std::chrono::milliseconds hasBeenHoldingLeftXForMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) - XInput::timeAtFirstHeldMaxLookX;
+#ifdef STEP_SENSITIVITY
+					if (hasBeenHoldingLeftXForMs < XInput::msBeforeUnlockingSensitivity) {
+						viewStickX *= XInput::lockedSensitivityMultiplier;
+					}
+					else {
+						viewStickX *= XInput::unlockedSensitivityMultiplier;
+					}
+#else
+					float coeff = std::clamp(hasBeenHoldingLeftXForMs.count()/(float)XInput::msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
+					viewStickX *= std::lerp(XInput::lockedSensitivityMultiplier, XInput::unlockedSensitivityMultiplier, coeff);
+#endif
+				}
+			}
+			else{
+				XInput::isHoldingMaxLookX = false;
+				XInput::timeAtFirstHeldMaxLookX = 0ms;
+			}
+
+
+			Game::cl_angles[0] -= viewStickY;
+			Game::cl_angles[1] -= viewStickX * generalSensitivityMultiplier;
+
+			bool pressingLeftTrigger = xiState->Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ? true : false;
+			if (pressingLeftTrigger != XInput::lastXiState.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
 			{
 				if (pressingLeftTrigger)
 					Command::Execute("+speed");
@@ -57,8 +134,8 @@ namespace Components
 					Command::Execute("-speed");
 			}
 
-			bool pressingRightTrigger = xiState->Gamepad.bRightTrigger / 255.f > 0.5;
-			if (pressingRightTrigger != XInput::lastxiState.Gamepad.bRightTrigger / 255.f > 0.5)
+			bool pressingRightTrigger = xiState->Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ? true : false;
+			if (pressingRightTrigger != XInput::lastXiState.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
 			{
 				if (pressingRightTrigger)
 					Command::Execute("+attack");
@@ -66,51 +143,43 @@ namespace Components
 					Command::Execute("-attack");
 			}
 
-			bool pressingWeapChange = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0;
-			if (pressingWeapChange != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0))
+			// Buttons (on/off) mappings
+			for (size_t i = 0; i < mappings.size(); i++)
 			{
-				if (pressingWeapChange)
-					Command::Execute("weapnext");
+				auto mapping = mappings[i];
+				auto action = mapping.action;
+				auto antiAction = mapping.action;
+
+				if (mapping.isReversible) {
+					action = "+" + mapping.action;
+					antiAction = "-" + mapping.action;
+				}
+				else if (mapping.wasPressed) {
+					if (xiState->Gamepad.wButtons & mapping.input) {
+						// Button still pressed, do not send info
+						if (mapping.spamWhenHeld) {
+							Command::Execute(action.c_str());
+						}
+					}
+					else {
+						mappings[i].wasPressed = false;
+					}
+
+					continue;
+				}
+
+				if (xiState->Gamepad.wButtons & mapping.input) {
+					Command::Execute(action.c_str());
+					mappings[i].wasPressed = true;
+				}
+				else if (mapping.isReversible && mapping.wasPressed) {
+					mappings[i].wasPressed = false;
+					Command::Execute(antiAction.c_str());
+				}
 			}
 
-			bool pressingReload = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0;
-			if (pressingReload != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0))
-			{
-				if (pressingReload)
-					Command::Execute("+usereload");
-				else
-					Command::Execute("-usereload");
-			}
-
-			bool pressingJump = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
-			if (pressingJump != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0))
-			{
-				if (pressingJump)
-					Command::Execute("+gostand");
-				else
-					Command::Execute("-gostand");
-			}
-
-			bool pressingKnife = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
-			if (pressingKnife != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0))
-			{
-				if (pressingKnife)
-					Command::Execute("+melee");
-				else
-					Command::Execute("-melee");
-			}
-
-			bool pressingSprint = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
-			if (pressingSprint != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0))
-			{
-				if (pressingSprint)
-					Command::Execute("+breath_sprint");
-				else
-					Command::Execute("-breath_sprint");
-			}
-
-			bool pressingStance = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
-			if (pressingStance != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0))
+			bool pressingStance = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
+			if (pressingStance != ((XInput::lastXiState.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0))
 			{
 				if (pressingStance)
 					Command::Execute("+stance");
@@ -118,78 +187,8 @@ namespace Components
 					Command::Execute("-stance");
 			}
 
-			bool pressingSmoke = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
-			if (pressingSmoke != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0))
-			{
-				if (pressingSmoke)
-					Command::Execute("+smoke");
-				else
-					Command::Execute("-smoke");
-			}
 
-			bool pressingFrag = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
-			if (pressingFrag != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0))
-			{
-				if (pressingFrag)
-					Command::Execute("+frag");
-				else
-					Command::Execute("-frag");
-			}
-
-			bool pressingScore = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
-			if (pressingScore != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0))
-			{
-				if (pressingScore)
-					Command::Execute("+scores");
-				else
-					Command::Execute("-scores");
-			}
-
-			bool pressingAlt = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
-			if (pressingAlt != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0))
-			{
-				if (pressingAlt)
-					Command::Execute("+actionslot 2");
-				else
-					Command::Execute("-actionslot 2");
-			}
-
-			bool pressingKillstreak = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
-			if (pressingKillstreak != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0))
-			{
-				if (pressingKillstreak)
-					Command::Execute("+actionslot 3");
-				else
-					Command::Execute("-actionslot 3");
-			}
-
-			bool pressingNight = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
-			if (pressingNight != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0))
-			{
-				if (pressingNight)
-					Command::Execute("+actionslot 4");
-				else
-					Command::Execute("-actionslot 4");
-			}
-
-			bool pressingUp = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
-			if (pressingUp != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0))
-			{
-				if (pressingUp)
-					Command::Execute("+actionslot 1");
-				else
-					Command::Execute("-actionslot 1");
-			}
-
-			bool pressingStart = (xiState->Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0;
-			if (pressingStart != ((XInput::lastxiState.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0))
-			{
-				if (pressingStart)
-					Command::Execute("togglemenu");
-			}
-
-
-			memcpy(&XInput::lastxiState, xiState, sizeof XINPUT_STATE);
+			memcpy(&XInput::lastXiState, xiState, sizeof XINPUT_STATE);
 		}
 	}
 
@@ -222,16 +221,16 @@ namespace Components
 			add esp, 0Ch
 
 			// put both forward move and rightmove values in the movement button
-			mov   dl, byte ptr [edi+1Ah] // to_forwardMove
-			mov   dh, byte ptr [edi+1Bh] // to_rightMove
+			mov   dl, byte ptr[edi + 1Ah] // to_forwardMove
+			mov   dh, byte ptr[edi + 1Bh] // to_rightMove
 
-			mov     [esp+30h], dx // to_buttons
+			mov[esp + 30h], dx // to_buttons
 
-			mov   dl, byte ptr [ebp+1Ah] // from_forwardMove
-			mov   dh, byte ptr [ebp+1Bh] // from_rightMove
+			mov   dl, byte ptr[ebp + 1Ah] // from_forwardMove
+			mov   dh, byte ptr[ebp + 1Bh] // from_rightMove
 
-			mov     [esp+2Ch], dx // from_buttons
-			
+			mov[esp + 2Ch], dx // from_buttons
+
 			// return back
 			push 0x60E40E
 			retn
@@ -255,7 +254,7 @@ namespace Components
 			forward = from->forwardmove;
 			right = from->rightmove;
 		}
-		
+
 		to->forwardmove = forward;
 		to->rightmove = right;
 	}

@@ -7,10 +7,35 @@ namespace Components
 	public:
 		XInput();
 
+		struct ActionMapping {
+			int input;
+			std::string action;
+			bool isReversible;
+			bool wasPressed = false;
+			bool spamWhenHeld = false;
+
+			ActionMapping(int input, std::string action, bool isReversible = true, bool spamWhenHeld = false)
+			{
+				this->action = action;
+				this->isReversible = isReversible;
+				this->input = input;
+				this->spamWhenHeld = spamWhenHeld;
+			}
+		};
+
 	private:
 		static XINPUT_STATE xiStates[XUSER_MAX_COUNT];
 		static int xiPlayerNum;
-		static XINPUT_STATE lastxiState;
+		static XINPUT_STATE lastXiState;
+
+		static bool isHoldingMaxLookX;
+		static std::chrono::milliseconds timeAtFirstHeldMaxLookX;
+		static std::chrono::milliseconds msBeforeUnlockingSensitivity;
+		static float lockedSensitivityMultiplier;
+		static float unlockedSensitivityMultiplier;
+		static float generalSensitivityMultiplier;
+
+		static void Vibrate(int leftVal = 0, int rightVal = 0);
 
 		static void CL_FrameStub();
 		static void PollXInputDevices();
