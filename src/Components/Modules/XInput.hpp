@@ -42,11 +42,6 @@ namespace Components
 
 		static bool isHoldingMaxLookX;
 		static std::chrono::milliseconds timeAtFirstHeldMaxLookX;
-		static std::chrono::milliseconds msBeforeUnlockingSensitivity;
-		static float lockedSensitivityMultiplier;
-		static float generalXSensitivityMultiplier;
-		static float generalYSensitivityMultiplier;
-		static float adsMultiplier;
 		static bool isADS;
 
 		static std::chrono::milliseconds lastNavigationTime;

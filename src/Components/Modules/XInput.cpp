@@ -1,24 +1,19 @@
 #include "STDInclude.hpp"
 
+#define XINPUT_SENSITIVITY_MULTIPLIER 4 // Arbitrary value I multiply the xinput senstivity dvar with to get nicer values (0-10 range or something)
+
 namespace Components
 {
 	XINPUT_STATE XInput::xiStates[XUSER_MAX_COUNT];
 	XINPUT_STATE XInput::lastXiState = { 0 };
 	int XInput::xiPlayerNum = -1;
-	std::chrono::milliseconds XInput::timeAtFirstHeldMaxLookX = 0ms; // "For how much time in miliseconds has the player been holding a horizontal direction on their stick, fully" (-1.0 or 1.0)
+	std::chrono::milliseconds XInput::timeAtFirstHeldMaxLookX = 0ms; // "For how much time in milliseconds has the player been holding a horizontal direction on their stick, fully" (-1.0 or 1.0)
 	bool XInput::isHoldingMaxLookX = false;
 	bool XInput::isADS;
-
-	float XInput::lockedSensitivityMultiplier = 0.45f;
-	float XInput::generalXSensitivityMultiplier = 3 * 1.5f;
-	float XInput::generalYSensitivityMultiplier = 4 * 0.8f;
-	float XInput::adsMultiplier = 0.3f;
 
 	float XInput::lastMenuNavigationDirection = .0f;
 	std::chrono::milliseconds XInput::lastNavigationTime = 0ms;
 	std::chrono::milliseconds XInput::msBetweenNavigations = 220ms;
-
-	std::chrono::milliseconds XInput::msBeforeUnlockingSensitivity = 350ms;
 
 	std::vector<XInput::ActionMapping> mappings = {
 		XInput::ActionMapping(XINPUT_GAMEPAD_A, "gostand"),
@@ -31,10 +26,10 @@ namespace Components
 		XInput::ActionMapping(XINPUT_GAMEPAD_RIGHT_THUMB, "melee"),
 		XInput::ActionMapping(XINPUT_GAMEPAD_START, "togglemenu", false),
 		XInput::ActionMapping(XINPUT_GAMEPAD_BACK, "scores"),
-		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_RIGHT, "actionslot 3"),
-		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_LEFT, "actionslot 2"),
-		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_UP, "actionslot 1"),
-		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_DOWN, "actionslot 4"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_LEFT, "actionslot 3"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_RIGHT, "actionslot 2"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_DOWN, "actionslot 1"),
+		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_UP, "actionslot 4"),
 	};
 
 	std::vector<XInput::MenuMapping> menuMappings = {
@@ -343,7 +338,13 @@ namespace Components
 		{
 			XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
 
-			float viewSensitivityMultiplier = Dvar::Var("xinput_sensitivity").get<float>();
+			float viewSensitivityMultiplier = Dvar::Var("xpad_sensitivity").get<float>() * XINPUT_SENSITIVITY_MULTIPLIER;
+
+			float lockedSensitivityMultiplier = Dvar::Var("xpad_early_multiplier").get<float>();
+			float generalXSensitivityMultiplier = Dvar::Var("xpad_horizontal_multiplier").get<float>();
+			float generalYSensitivityMultiplier = Dvar::Var("xpad_vertical_multiplier").get<float>();
+			std::chrono::milliseconds msBeforeUnlockingSensitivity = std::chrono::milliseconds(Dvar::Var("xpad_early_time").get<int>());
+
 			float viewStickX = abs(xiState->Gamepad.sThumbRX) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRX / (float)std::numeric_limits<SHORT>().max() : .0f;
 			float viewStickY = abs(xiState->Gamepad.sThumbRY) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRY / (float)std::numeric_limits<SHORT>().max() : .0f;
 
@@ -356,12 +357,12 @@ namespace Components
 				else {
 					std::chrono::milliseconds hasBeenHoldingLeftXForMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) - XInput::timeAtFirstHeldMaxLookX;
 #ifdef STEP_SENSITIVITY
-					if (hasBeenHoldingLeftXForMs < XInput::msBeforeUnlockingSensitivity) {
-						viewStickX *= XInput::lockedSensitivityMultiplier;
+					if (hasBeenHoldingLeftXForMs < msBeforeUnlockingSensitivity) {
+						viewStickX *= lockedSensitivityMultiplier;
 					}
 #else
-					float coeff = std::clamp(hasBeenHoldingLeftXForMs.count() / (float)XInput::msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
-					viewStickX *= XInput::lockedSensitivityMultiplier + coeff * (1.0f - XInput::lockedSensitivityMultiplier);
+					float coeff = std::clamp(hasBeenHoldingLeftXForMs.count() / (float)msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
+					viewStickX *= lockedSensitivityMultiplier + coeff * (1.0f - lockedSensitivityMultiplier);
 #endif
 				}
 			}
@@ -376,7 +377,7 @@ namespace Components
 
 			// DO NOT use clientActive->usingAds ! It only works for toggle ADS
 			if (Game::PM_IsAdsAllowed(ps) && XInput::isADS) {
-				adsMultiplier = XInput::adsMultiplier;
+				adsMultiplier = Dvar::Var("xpad_ads_multiplier").get<float>();
 			}
 
 			if (viewStickX != 0 || viewStickY != 0) {
@@ -443,7 +444,12 @@ namespace Components
 
 		Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
 
-		Game::Dvar_RegisterFloat("xinput_sensitivity", 1.0f, 0.01f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
+		Game::Dvar_RegisterFloat("xpad_sensitivity", 1.0f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
+		Game::Dvar_RegisterInt("xpad_early_time", 350, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");
+		Game::Dvar_RegisterFloat("xpad_early_multiplier", 0.45f, 0.01f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied during xpad_early_time when moving the view stick");
+		Game::Dvar_RegisterFloat("xpad_horizontal_multiplier", 1.5f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Horizontal view sensitivity multiplier");
+		Game::Dvar_RegisterFloat("xpad_vertical_multiplier", 0.8f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Vertical view sensitivity multiplier");
+		Game::Dvar_RegisterFloat("xpad_ads_multiplier", 0.3f, 0.1f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied when aiming down the sights.");
 
 		PollXInputDevices();
 
