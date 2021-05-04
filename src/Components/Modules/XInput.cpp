@@ -8,11 +8,15 @@ namespace Components
 	std::chrono::milliseconds XInput::timeAtFirstHeldMaxLookX = 0ms; // "For how much time in miliseconds has the player been holding a horizontal direction on their stick, fully" (-1.0 or 1.0)
 	bool XInput::isHoldingMaxLookX = false;
 
-	float XInput::lockedSensitivityMultiplier = 0.5f;
-	float XInput::generalXSensitivityMultiplier = 1.6f;
+	float XInput::lockedSensitivityMultiplier = 0.45f;
+	float XInput::generalXSensitivityMultiplier = 1.5f;
 	float XInput::generalYSensitivityMultiplier = 0.8f;
 
-	std::chrono::milliseconds XInput::msBeforeUnlockingSensitivity = 250ms;
+	float XInput::lastMenuNavigationDirection = .0f;
+	std::chrono::milliseconds XInput::lastNavigationTime = 0ms;
+	std::chrono::milliseconds XInput::msBetweenNavigations = 220ms;
+
+	std::chrono::milliseconds XInput::msBeforeUnlockingSensitivity = 350ms;
 
 	std::vector<XInput::ActionMapping> mappings = {
 		XInput::ActionMapping(XINPUT_GAMEPAD_A, "gostand"),
@@ -31,6 +35,14 @@ namespace Components
 		XInput::ActionMapping(XINPUT_GAMEPAD_DPAD_DOWN, "actionslot 4"),
 	};
 
+	std::vector<XInput::MenuMapping> menuMappings = {
+		XInput::MenuMapping(XINPUT_GAMEPAD_A, Game::keyNum_t::K_KP_ENTER),
+		XInput::MenuMapping(XINPUT_GAMEPAD_B, Game::keyNum_t::K_ESCAPE),
+		XInput::MenuMapping(XINPUT_GAMEPAD_DPAD_RIGHT, Game::keyNum_t::K_KP_RIGHTARROW),
+		XInput::MenuMapping(XINPUT_GAMEPAD_DPAD_LEFT, Game::keyNum_t::K_KP_LEFTARROW),
+		XInput::MenuMapping(XINPUT_GAMEPAD_DPAD_UP, Game::keyNum_t::K_KP_UPARROW),
+		XInput::MenuMapping(XINPUT_GAMEPAD_DPAD_DOWN, Game::keyNum_t::K_KP_DOWNARROW)
+	};
 
 	void XInput::Vibrate(int leftVal, int rightVal)
 	{
@@ -108,12 +120,12 @@ namespace Components
 						viewStickX *= XInput::lockedSensitivityMultiplier;
 					}
 #else
-					float coeff = std::clamp(hasBeenHoldingLeftXForMs.count()/(float)XInput::msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
-					viewStickX *= XInput::lockedSensitivityMultiplier + coeff * (1.0f -XInput::lockedSensitivityMultiplier);
+					float coeff = std::clamp(hasBeenHoldingLeftXForMs.count() / (float)XInput::msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
+					viewStickX *= XInput::lockedSensitivityMultiplier + coeff * (1.0f - XInput::lockedSensitivityMultiplier);
 #endif
 				}
 			}
-			else{
+			else {
 				XInput::isHoldingMaxLookX = false;
 				XInput::timeAtFirstHeldMaxLookX = 0ms;
 			}
@@ -281,6 +293,67 @@ namespace Components
 		}
 	}
 
+	void XInput::MenuNavigate() {
+
+		Game::menuDef_t* menuDef = Game::Menu_GetFocused(Game::uiContext);
+
+#define SIGN(d) ((d > 0) - (d < 0))
+
+		if (menuDef) {
+			PollXInputDevices();
+
+			if (XInput::xiPlayerNum != -1)
+			{
+				XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
+
+				// Up/Down
+				float moveStickX = abs(xiState->Gamepad.sThumbLX) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLX / (float)std::numeric_limits<SHORT>().max() : .0f;
+				float moveStickY = abs(xiState->Gamepad.sThumbLY) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLY / (float)std::numeric_limits<SHORT>().max() : .0f;
+
+				std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+				std::chrono::milliseconds timeSinceLastNavigation = now - lastNavigationTime;
+				bool canNavigate = timeSinceLastNavigation > msBetweenNavigations;
+
+				if (moveStickY > .0f) {
+					if (canNavigate || SIGN(moveStickY) != SIGN(lastMenuNavigationDirection)) {
+						Game::Menu_SetPrevCursorItem(Game::uiContext, menuDef, 1);
+						lastMenuNavigationDirection = moveStickY;
+						lastNavigationTime = now;
+					}
+				}
+				else if (moveStickY < .0f) {
+					if (canNavigate || SIGN(moveStickY) != SIGN(lastMenuNavigationDirection)) {
+						Game::Menu_SetNextCursorItem(Game::uiContext, menuDef, 1);
+						lastMenuNavigationDirection = moveStickY;
+						lastNavigationTime = now;
+					}
+				}
+				else {
+					lastMenuNavigationDirection = .0f;
+				}
+
+				for (size_t i = 0; i < menuMappings.size(); i++)
+				{
+					MenuMapping mapping = menuMappings[i];
+					auto action = mapping.keystroke;
+
+					if (mapping.wasPressed) {
+						if (xiState->Gamepad.wButtons & mapping.input) {
+							// Button still pressed, do not send info
+						}
+						else {
+							menuMappings[i].wasPressed = false;
+						}
+					}
+					else if(xiState->Gamepad.wButtons & mapping.input){
+						Game::UI_KeyEvent(0, mapping.keystroke, 1);
+						menuMappings[i].wasPressed = true;
+					}
+				}
+			}
+		}
+	}
+
 	XInput::XInput()
 	{
 		// poll xinput devices every client frame
@@ -306,5 +379,6 @@ namespace Components
 			Vibrate(3000, 3000);
 		}
 
+		Scheduler::OnFrame(MenuNavigate);
 	}
 }

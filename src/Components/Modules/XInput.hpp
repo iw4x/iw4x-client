@@ -23,6 +23,18 @@ namespace Components
 			}
 		};
 
+		struct MenuMapping {
+			int input;
+			Game::keyNum_t keystroke;
+			bool wasPressed = false;
+
+			MenuMapping(int input, Game::keyNum_t keystroke)
+			{
+				this->keystroke = keystroke;
+				this->input = input;
+			}
+		};
+
 	private:
 		static XINPUT_STATE xiStates[XUSER_MAX_COUNT];
 		static int xiPlayerNum;
@@ -35,6 +47,10 @@ namespace Components
 		static float generalXSensitivityMultiplier;
 		static float generalYSensitivityMultiplier;
 
+		static std::chrono::milliseconds lastNavigationTime;
+		static std::chrono::milliseconds msBetweenNavigations;
+		static float lastMenuNavigationDirection;
+
 		static void Vibrate(int leftVal = 0, int rightVal = 0);
 
 		static void CL_FrameStub();
@@ -42,6 +58,7 @@ namespace Components
 
 		static void CL_CreateCmdStub();
 		static void CL_GamepadMove(int, Game::usercmd_s*);
+		static void MenuNavigate();
 
 		static void MSG_WriteDeltaUsercmdKeyStub();
 

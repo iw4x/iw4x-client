@@ -414,6 +414,15 @@ namespace Game
 	typedef bool(__cdecl * Menus_MenuIsInStack_t)(UiContext *dc, menuDef_t *menu);
 	extern Menus_MenuIsInStack_t Menus_MenuIsInStack;
 
+	typedef menuDef_t*(__cdecl* Menu_GetFocused_t)(UiContext* ctx);
+	extern Menu_GetFocused_t Menu_GetFocused;
+
+	typedef void(__cdecl* Menu_HandleKey_t)(UiContext* ctx, menuDef_t* menu, Game::keyNum_t key, int down);
+	extern Menu_HandleKey_t Menu_HandleKey;
+
+	typedef bool(__cdecl* UI_KeyEvent_t)(int clientNum, Game::keyNum_t key, int down);
+	extern UI_KeyEvent_t UI_KeyEvent;
+	
 	typedef void(__cdecl * MSG_Init_t)(msg_t *buf, char *data, int length);
 	extern MSG_Init_t MSG_Init;
 
@@ -874,6 +883,8 @@ namespace Game
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);
+	void Menu_SetNextCursorItem(Game::UiContext* ctx, Game::menuDef_t* currentMenu, int unk = 1);
+	void Menu_SetPrevCursorItem(Game::UiContext* ctx, Game::menuDef_t* currentMenu, int unk = 1);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
 	const char* UI_LocalizeMapName(const char* mapName);
 	const char* UI_LocalizeGameType(const char* gameType);
