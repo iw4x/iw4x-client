@@ -104,8 +104,11 @@ namespace Components
 			float viewStickX = abs(xiState->Gamepad.sThumbRX) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRX / (float)std::numeric_limits<SHORT>().max() : .0f;
 			float viewStickY = abs(xiState->Gamepad.sThumbRY) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRY / (float)std::numeric_limits<SHORT>().max() : .0f;
 
-			cmd->rightmove = moveStickX * std::numeric_limits<char>().max();
-			cmd->forwardmove = moveStickY * std::numeric_limits<char>().max();
+			if (moveStickX != 0 || moveStickY != 0) {
+				// We check for 0:0 again so we don't overwrite keyboard input in case the user doesn't feel like using their gamepad, even though its plugged in
+				cmd->rightmove = moveStickX * std::numeric_limits<char>().max();
+				cmd->forwardmove = moveStickY * std::numeric_limits<char>().max();
+			}
 
 			// Gamepad horizontal acceleration on view
 			if (abs(viewStickX) > 0.9f) {
