@@ -109,7 +109,7 @@ namespace Components
 					}
 #else
 					float coeff = std::clamp(hasBeenHoldingLeftXForMs.count()/(float)XInput::msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
-					viewStickX *= std::lerp(XInput::lockedSensitivityMultiplier, 1.0f, coeff);
+					viewStickX *= XInput::lockedSensitivityMultiplier + coeff * (1.0f -XInput::lockedSensitivityMultiplier);
 #endif
 				}
 			}
