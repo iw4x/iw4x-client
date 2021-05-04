@@ -296,8 +296,15 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x60E501, 16);
 		Utils::Hook::Set<BYTE>(0x60E5CD, 16);
 
-		// make sure to parse the movement data properally and apply it
+		// make sure to parse the movement data properly and apply it
 		Utils::Hook(0x492127, XInput::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x492009, XInput::MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
+
+		PollXInputDevices();
+
+		if (xiPlayerNum >= 0) {
+			Vibrate(3000, 3000);
+		}
+
 	}
 }
