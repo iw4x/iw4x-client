@@ -51,6 +51,10 @@ namespace Components
 		static std::chrono::milliseconds msBetweenNavigations;
 		static float lastMenuNavigationDirection;
 
+		static void CL_GetMouseMovementCl(Game::clientActive_t* result, float* mx, float* my);
+
+		static void MouseOverride(Game::clientActive_t* clientActive, float* my, float* mx);
+		static char MovementOverride(int a1, Game::usercmd_s* cmd);
 		static void Vibrate(int leftVal = 0, int rightVal = 0);
 
 		static void CL_FrameStub();

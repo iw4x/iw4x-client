@@ -9,14 +9,16 @@ namespace Components
 	bool XInput::isHoldingMaxLookX = false;
 
 	float XInput::lockedSensitivityMultiplier = 0.45f;
-	float XInput::generalXSensitivityMultiplier = 1.5f;
-	float XInput::generalYSensitivityMultiplier = 0.8f;
+	float XInput::generalXSensitivityMultiplier = 3 * 1.5f;
+	float XInput::generalYSensitivityMultiplier = 4 * 0.8f;
 
 	float XInput::lastMenuNavigationDirection = .0f;
 	std::chrono::milliseconds XInput::lastNavigationTime = 0ms;
 	std::chrono::milliseconds XInput::msBetweenNavigations = 220ms;
 
 	std::chrono::milliseconds XInput::msBeforeUnlockingSensitivity = 350ms;
+
+	float sensitivityMultiplier = 1.0f;
 
 	std::vector<XInput::ActionMapping> mappings = {
 		XInput::ActionMapping(XINPUT_GAMEPAD_A, "gostand"),
@@ -101,49 +103,23 @@ namespace Components
 			float moveStickX = abs(xiState->Gamepad.sThumbLX) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLX / (float)std::numeric_limits<SHORT>().max() : .0f;
 			float moveStickY = abs(xiState->Gamepad.sThumbLY) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLY / (float)std::numeric_limits<SHORT>().max() : .0f;
 
-			float viewStickX = abs(xiState->Gamepad.sThumbRX) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRX / (float)std::numeric_limits<SHORT>().max() : .0f;
-			float viewStickY = abs(xiState->Gamepad.sThumbRY) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRY / (float)std::numeric_limits<SHORT>().max() : .0f;
-
 			if (moveStickX != 0 || moveStickY != 0) {
 				// We check for 0:0 again so we don't overwrite keyboard input in case the user doesn't feel like using their gamepad, even though its plugged in
 				cmd->rightmove = moveStickX * std::numeric_limits<char>().max();
 				cmd->forwardmove = moveStickY * std::numeric_limits<char>().max();
 			}
 
-			// Gamepad horizontal acceleration on view
-			if (abs(viewStickX) > 0.9f) {
-				if (!XInput::isHoldingMaxLookX) {
-					XInput::isHoldingMaxLookX = true;
-					XInput::timeAtFirstHeldMaxLookX = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-				}
-				else {
-					std::chrono::milliseconds hasBeenHoldingLeftXForMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) - XInput::timeAtFirstHeldMaxLookX;
-#ifdef STEP_SENSITIVITY
-					if (hasBeenHoldingLeftXForMs < XInput::msBeforeUnlockingSensitivity) {
-						viewStickX *= XInput::lockedSensitivityMultiplier;
-					}
-#else
-					float coeff = std::clamp(hasBeenHoldingLeftXForMs.count() / (float)XInput::msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
-					viewStickX *= XInput::lockedSensitivityMultiplier + coeff * (1.0f - XInput::lockedSensitivityMultiplier);
-#endif
-				}
-			}
-			else {
-				XInput::isHoldingMaxLookX = false;
-				XInput::timeAtFirstHeldMaxLookX = 0ms;
-			}
-
-
-			Game::cl_angles[0] -= viewStickY * generalYSensitivityMultiplier;
-			Game::cl_angles[1] -= viewStickX * generalXSensitivityMultiplier;
-
 			bool pressingLeftTrigger = xiState->Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ? true : false;
 			if (pressingLeftTrigger != XInput::lastXiState.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
 			{
-				if (pressingLeftTrigger)
+				if (pressingLeftTrigger) {
+					Command::Execute("+toggleads_throw");
 					Command::Execute("+speed");
-				else
+				}
+				else {
+					Command::Execute("-toggleads_throw");
 					Command::Execute("-speed");
+				}
 			}
 
 			bool pressingRightTrigger = xiState->Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ? true : false;
@@ -348,12 +324,90 @@ namespace Components
 							menuMappings[i].wasPressed = false;
 						}
 					}
-					else if(xiState->Gamepad.wButtons & mapping.input){
+					else if (xiState->Gamepad.wButtons & mapping.input) {
 						Game::UI_KeyEvent(0, mapping.keystroke, 1);
 						menuMappings[i].wasPressed = true;
 					}
 				}
 			}
+		}
+	}
+
+	void XInput::MouseOverride(Game::clientActive_t* clientActive, float* mx, float* my) {
+
+		XInput::CL_GetMouseMovementCl(clientActive, mx, my);
+
+		if (XInput::xiPlayerNum != -1)
+		{
+			XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
+
+			float viewSensitivityMultiplier = Dvar::Var("xinput_sensitivity").get<float>();
+			float viewStickX = abs(xiState->Gamepad.sThumbRX) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRX / (float)std::numeric_limits<SHORT>().max() : .0f;
+			float viewStickY = abs(xiState->Gamepad.sThumbRY) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRY / (float)std::numeric_limits<SHORT>().max() : .0f;
+
+			// Gamepad horizontal acceleration on view
+			if (abs(viewStickX) > 0.9f) {
+				if (!XInput::isHoldingMaxLookX) {
+					XInput::isHoldingMaxLookX = true;
+					XInput::timeAtFirstHeldMaxLookX = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+				}
+				else {
+					std::chrono::milliseconds hasBeenHoldingLeftXForMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) - XInput::timeAtFirstHeldMaxLookX;
+#ifdef STEP_SENSITIVITY
+					if (hasBeenHoldingLeftXForMs < XInput::msBeforeUnlockingSensitivity) {
+						viewStickX *= XInput::lockedSensitivityMultiplier;
+					}
+#else
+					float coeff = std::clamp(hasBeenHoldingLeftXForMs.count() / (float)XInput::msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
+					viewStickX *= XInput::lockedSensitivityMultiplier + coeff * (1.0f - XInput::lockedSensitivityMultiplier);
+#endif
+				}
+			}
+			else {
+				XInput::isHoldingMaxLookX = false;
+				XInput::timeAtFirstHeldMaxLookX = 0ms;
+			}
+
+			if (viewStickX != 0 || viewStickY != 0) {
+				*(my) = viewStickX * viewSensitivityMultiplier * generalXSensitivityMultiplier;
+				*(mx) = -viewStickY * viewSensitivityMultiplier * generalYSensitivityMultiplier;
+			}
+		}
+
+	}
+
+
+	// Game -> Client DLL
+	__declspec(naked) void CL_GetMouseMovementStub()
+	{
+		__asm
+		{
+			push edx;
+			push ecx;
+			push eax;
+			call XInput::MouseOverride;
+			add esp, 0xC;
+			ret;
+		}
+	}
+
+
+	// Client DLL -> Game
+	void XInput::CL_GetMouseMovementCl(Game::clientActive_t* result, float* mx, float* my)
+	{
+		__asm
+		{
+			push ebx;
+			push ecx;
+			push edx;
+			mov eax, result;
+			mov ecx, mx;
+			mov edx, my;
+			mov ebx, 5A60E0h;
+			call ebx;
+			pop edx;
+			pop ecx;
+			pop ebx;
 		}
 	}
 
@@ -375,6 +429,10 @@ namespace Components
 		// make sure to parse the movement data properly and apply it
 		Utils::Hook(0x492127, XInput::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x492009, XInput::MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
+
+		Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
+
+		Game::Dvar_RegisterFloat("xinput_sensitivity", 1.0f, 0.01f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
 
 		PollXInputDevices();
 
