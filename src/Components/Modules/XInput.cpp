@@ -7,18 +7,18 @@ namespace Components
 	int XInput::xiPlayerNum = -1;
 	std::chrono::milliseconds XInput::timeAtFirstHeldMaxLookX = 0ms; // "For how much time in miliseconds has the player been holding a horizontal direction on their stick, fully" (-1.0 or 1.0)
 	bool XInput::isHoldingMaxLookX = false;
+	bool XInput::isADS;
 
 	float XInput::lockedSensitivityMultiplier = 0.45f;
 	float XInput::generalXSensitivityMultiplier = 3 * 1.5f;
 	float XInput::generalYSensitivityMultiplier = 4 * 0.8f;
+	float XInput::adsMultiplier = 0.3f;
 
 	float XInput::lastMenuNavigationDirection = .0f;
 	std::chrono::milliseconds XInput::lastNavigationTime = 0ms;
 	std::chrono::milliseconds XInput::msBetweenNavigations = 220ms;
 
 	std::chrono::milliseconds XInput::msBeforeUnlockingSensitivity = 350ms;
-
-	float sensitivityMultiplier = 1.0f;
 
 	std::vector<XInput::ActionMapping> mappings = {
 		XInput::ActionMapping(XINPUT_GAMEPAD_A, "gostand"),
@@ -97,6 +97,8 @@ namespace Components
 	{
 		if (XInput::xiPlayerNum != -1)
 		{
+			Game::clientActive_t*  clientActive = reinterpret_cast<Game::clientActive_t*>(0xB2C698);
+
 			XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
 
 			// Deadzones
@@ -113,12 +115,12 @@ namespace Components
 			if (pressingLeftTrigger != XInput::lastXiState.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
 			{
 				if (pressingLeftTrigger) {
-					Command::Execute("+toggleads_throw");
-					Command::Execute("+speed");
+					Command::Execute("+speed_throw");
+					XInput::isADS = true;
 				}
 				else {
-					Command::Execute("-toggleads_throw");
-					Command::Execute("-speed");
+					Command::Execute("-speed_throw");
+					XInput::isADS = false;
 				}
 			}
 
@@ -368,9 +370,18 @@ namespace Components
 				XInput::timeAtFirstHeldMaxLookX = 0ms;
 			}
 
+			float adsMultiplier = 1.0f;
+
+			auto ps = &clientActive->snap.ps;
+
+			// DO NOT use clientActive->usingAds ! It only works for toggle ADS
+			if (Game::PM_IsAdsAllowed(ps) && XInput::isADS) {
+				adsMultiplier = XInput::adsMultiplier;
+			}
+
 			if (viewStickX != 0 || viewStickY != 0) {
-				*(my) = viewStickX * viewSensitivityMultiplier * generalXSensitivityMultiplier;
-				*(mx) = -viewStickY * viewSensitivityMultiplier * generalYSensitivityMultiplier;
+				*(my) = viewStickX * viewSensitivityMultiplier * generalXSensitivityMultiplier * adsMultiplier;
+				*(mx) = -viewStickY * viewSensitivityMultiplier * generalYSensitivityMultiplier * adsMultiplier;
 			}
 		}
 

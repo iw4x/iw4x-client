@@ -111,6 +111,39 @@ namespace Game
 		IMG_CATEGORY_TEMP = 0x7,
 	} ;
 
+	enum buttons_t
+	{
+		KB_LEFT = 0x0,
+		KB_RIGHT = 0x1,
+		KB_FORWARD = 0x2,
+		KB_BACK = 0x3,
+		KB_LOOKUP = 0x4,
+		KB_LOOKDOWN = 0x5,
+		KB_MOVELEFT = 0x6,
+		KB_MOVERIGHT = 0x7,
+		KB_STRAFE = 0x8,
+		KB_SPEED = 0x9,
+		KB_UP = 0xA,
+		KB_DOWN = 0xB,
+		KB_ANYUP = 0xC,
+		KB_MLOOK = 0xD,
+		KB_ATTACK = 0xE,
+		KB_BREATH = 0xF,
+		KB_FRAG = 0x10,
+		KB_OFFHANDSECONDARY = 0x11,
+		KB_MELEE = 0x12,
+		KB_ACTIVATE = 0x13,
+		KB_RELOAD = 0x14,
+		KB_USE_RELOAD = 0x15,
+		KB_PRONE = 0x16,
+		KB_CROUCH = 0x17,
+		KB_THROW = 0x18,
+		KB_SPRINT = 0x19,
+		KB_NIGHTVISION = 0x1A,
+		KB_TALK = 0x1B,
+		NUM_BUTTONS = 0x1C
+	};
+
 	enum DvarSetSource
 	{
 		DVAR_SOURCE_INTERNAL = 0x0,

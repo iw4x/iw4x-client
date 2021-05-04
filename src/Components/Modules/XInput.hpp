@@ -46,6 +46,8 @@ namespace Components
 		static float lockedSensitivityMultiplier;
 		static float generalXSensitivityMultiplier;
 		static float generalYSensitivityMultiplier;
+		static float adsMultiplier;
+		static bool isADS;
 
 		static std::chrono::milliseconds lastNavigationTime;
 		static std::chrono::milliseconds msBetweenNavigations;

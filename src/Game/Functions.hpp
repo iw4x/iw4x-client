@@ -900,6 +900,8 @@ namespace Game
 
 	void FS_AddLocalizedGameDirectory(const char *path, const char *dir);
 
+	bool PM_IsAdsAllowed(Game::playerState_s* playerState);
+
 	void ShowMessageBox(const std::string& message, const std::string& title);
 
 	unsigned int R_HashString(const char* string);
