@@ -548,7 +548,7 @@ namespace Components
 		{
 			int developer = Dvar::Var("developer").get<int>();
 
-			if (developer > 0)
+			if (developer > 0 && Dedicated::IsEnabled())
 				Utils::Hook::Set<BYTE>(0x48D8C7, 0x75);
 		});
 
