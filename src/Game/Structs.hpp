@@ -1097,6 +1097,13 @@ namespace Game
 		int stunTime;
 	};
 
+	enum LocSelInputState
+	{
+		LOC_SEL_INPUT_NONE = 0x0,
+		LOC_SEL_INPUT_CONFIRM = 0x1,
+		LOC_SEL_INPUT_CANCEL = 0x2,
+	};
+
 	struct clSnapshot_t
 	{
 		playerState_s ps;

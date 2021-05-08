@@ -49,6 +49,7 @@ namespace Components
 		static float lastMenuNavigationDirection;
 
 		static void CL_GetMouseMovementCl(Game::clientActive_t* result, float* mx, float* my);
+		static int unk_CheckKeyHook(int localClientNum, Game::keyNum_t keyCode);
 
 		static void MouseOverride(Game::clientActive_t* clientActive, float* my, float* mx);
 		static char MovementOverride(int a1, Game::usercmd_s* cmd);

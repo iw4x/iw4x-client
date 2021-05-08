@@ -92,8 +92,6 @@ namespace Components
 	{
 		if (XInput::xiPlayerNum != -1)
 		{
-			Game::clientActive_t*  clientActive = reinterpret_cast<Game::clientActive_t*>(0xB2C698);
-
 			XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
 
 			// Deadzones
@@ -122,10 +120,12 @@ namespace Components
 			bool pressingRightTrigger = xiState->Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ? true : false;
 			if (pressingRightTrigger != XInput::lastXiState.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
 			{
-				if (pressingRightTrigger)
+				if (pressingRightTrigger) {
 					Command::Execute("+attack");
-				else
+				}
+				else {
 					Command::Execute("-attack");
+				}
 			}
 
 			// Buttons (on/off) mappings
@@ -330,6 +330,29 @@ namespace Components
 		}
 	}
 
+	int XInput::unk_CheckKeyHook(int localClientNum, Game::keyNum_t keyCode) {
+
+		if (XInput::xiPlayerNum != -1)
+		{
+			XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
+
+			if (keyCode == Game::keyNum_t::K_MOUSE2) {
+				bool pressingLeftTrigger = xiState->Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ? true : false;
+				if (pressingLeftTrigger != XInput::lastXiState.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+				{
+					if (pressingLeftTrigger) {
+						return 1;
+					}
+					else {
+						return 0;
+					}
+				}
+			}
+		}
+
+		Utils::Hook::Call<int(int, Game::keyNum_t)>(0x48B2D0)(localClientNum, keyCode);
+	}
+
 	void XInput::MouseOverride(Game::clientActive_t* clientActive, float* mx, float* my) {
 
 		XInput::CL_GetMouseMovementCl(clientActive, mx, my);
@@ -383,6 +406,23 @@ namespace Components
 			if (viewStickX != 0 || viewStickY != 0) {
 				*(my) = viewStickX * viewSensitivityMultiplier * generalXSensitivityMultiplier * adsMultiplier;
 				*(mx) = -viewStickY * viewSensitivityMultiplier * generalYSensitivityMultiplier * adsMultiplier;
+			}
+
+			// Handling killstreaks
+			bool pressingRightTrigger = xiState->Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ? true : false;
+			if (pressingRightTrigger != XInput::lastXiState.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+			{
+				bool* isInPredator = reinterpret_cast<bool*>(0x8EE3B8);
+
+				if (pressingRightTrigger) {
+					Utils::Hook::Set(0xA1C4F4, Game::LOC_SEL_INPUT_CONFIRM);
+					if (*isInPredator) {
+						// Yea, that's how we boost
+						// Command::execute is sync by default so the predator event gets fired properly
+						Command::Execute("+attack");
+						Command::Execute("-attack");
+					}
+				}
 			}
 		}
 
@@ -441,8 +481,10 @@ namespace Components
 		// make sure to parse the movement data properly and apply it
 		Utils::Hook(0x492127, XInput::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x492009, XInput::MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
-
+		
 		Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A6829, unk_CheckKeyHook, HOOK_CALL).install()->quick();
 
 		Game::Dvar_RegisterFloat("xpad_sensitivity", 1.0f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
 		Game::Dvar_RegisterInt("xpad_early_time", 350, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");

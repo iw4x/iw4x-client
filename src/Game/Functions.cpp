@@ -148,6 +148,7 @@ namespace Game
 	Info_ValueForKey_t Info_ValueForKey = Info_ValueForKey_t(0x47C820);
 
 	Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x43BD00);
+	Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive = Key_IsKeyCatcherActive_t(0x4DA010);
 
 	LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x4A62A0);
 
