@@ -1,6 +1,7 @@
 #include "STDInclude.hpp"
 
 #define XINPUT_SENSITIVITY_MULTIPLIER 4 // Arbitrary value I multiply the xinput senstivity dvar with to get nicer values (0-10 range or something)
+#define SIGN(d) ((d > 0) - (d < 0))
 
 namespace Components
 {
@@ -40,6 +41,18 @@ namespace Components
 		XInput::MenuMapping(XINPUT_GAMEPAD_DPAD_UP, Game::keyNum_t::K_KP_UPARROW),
 		XInput::MenuMapping(XINPUT_GAMEPAD_DPAD_DOWN, Game::keyNum_t::K_KP_DOWNARROW)
 	};
+
+	void GetLeftStick01Value(XINPUT_STATE* xiState, float& x, float& y) {
+		float maxValue = (float)(std::numeric_limits<SHORT>().max() - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+		x = abs(xiState->Gamepad.sThumbLX) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? (xiState->Gamepad.sThumbLX - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE * SIGN(xiState->Gamepad.sThumbLX)) / maxValue : .0f;
+		y = abs(xiState->Gamepad.sThumbLY) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? (xiState->Gamepad.sThumbLY - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE * SIGN(xiState->Gamepad.sThumbLY)) / maxValue : .0f;
+	}
+
+	void GetRightStick01Value(XINPUT_STATE* xiState, float& x, float& y) {
+		float maxValue = (float)(std::numeric_limits<SHORT>().max() - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+		x = abs(xiState->Gamepad.sThumbRX) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? (xiState->Gamepad.sThumbRX - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE * SIGN(xiState->Gamepad.sThumbRX)) / maxValue : .0f;
+		y = abs(xiState->Gamepad.sThumbRY) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? (xiState->Gamepad.sThumbRY - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE * SIGN(xiState->Gamepad.sThumbRY)) / maxValue : .0f;
+	}
 
 	void XInput::Vibrate(int leftVal, int rightVal)
 	{
@@ -95,9 +108,9 @@ namespace Components
 			XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
 
 			// Deadzones
-			float moveStickX = abs(xiState->Gamepad.sThumbLX) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLX / (float)std::numeric_limits<SHORT>().max() : .0f;
-			float moveStickY = abs(xiState->Gamepad.sThumbLY) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLY / (float)std::numeric_limits<SHORT>().max() : .0f;
-
+			float moveStickX, moveStickY;
+			GetLeftStick01Value(xiState, moveStickX, moveStickY);
+			
 			if (moveStickX != 0 || moveStickY != 0) {
 				// We check for 0:0 again so we don't overwrite keyboard input in case the user doesn't feel like using their gamepad, even though its plugged in
 				cmd->rightmove = moveStickX * std::numeric_limits<char>().max();
@@ -273,8 +286,6 @@ namespace Components
 
 		Game::menuDef_t* menuDef = Game::Menu_GetFocused(Game::uiContext);
 
-#define SIGN(d) ((d > 0) - (d < 0))
-
 		if (menuDef) {
 			PollXInputDevices();
 
@@ -283,7 +294,6 @@ namespace Components
 				XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
 
 				// Up/Down
-				float moveStickX = abs(xiState->Gamepad.sThumbLX) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLX / (float)std::numeric_limits<SHORT>().max() : .0f;
 				float moveStickY = abs(xiState->Gamepad.sThumbLY) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ? xiState->Gamepad.sThumbLY / (float)std::numeric_limits<SHORT>().max() : .0f;
 
 				std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
@@ -311,7 +321,6 @@ namespace Components
 				for (size_t i = 0; i < menuMappings.size(); i++)
 				{
 					MenuMapping mapping = menuMappings[i];
-					auto action = mapping.keystroke;
 
 					if (mapping.wasPressed) {
 						if (xiState->Gamepad.wButtons & mapping.input) {
@@ -368,8 +377,8 @@ namespace Components
 			float generalYSensitivityMultiplier = Dvar::Var("xpad_vertical_multiplier").get<float>();
 			std::chrono::milliseconds msBeforeUnlockingSensitivity = std::chrono::milliseconds(Dvar::Var("xpad_early_time").get<int>());
 
-			float viewStickX = abs(xiState->Gamepad.sThumbRX) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRX / (float)std::numeric_limits<SHORT>().max() : .0f;
-			float viewStickY = abs(xiState->Gamepad.sThumbRY) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ? xiState->Gamepad.sThumbRY / (float)std::numeric_limits<SHORT>().max() : .0f;
+			float viewStickX, viewStickY;
+			GetRightStick01Value(xiState, viewStickX, viewStickY);
 
 			// Gamepad horizontal acceleration on view
 			if (abs(viewStickX) > 0.9f) {
@@ -392,6 +401,7 @@ namespace Components
 			else {
 				XInput::isHoldingMaxLookX = false;
 				XInput::timeAtFirstHeldMaxLookX = 0ms;
+				viewStickX *= lockedSensitivityMultiplier;
 			}
 
 			float adsMultiplier = 1.0f;
@@ -481,17 +491,17 @@ namespace Components
 		// make sure to parse the movement data properly and apply it
 		Utils::Hook(0x492127, XInput::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x492009, XInput::MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
-		
+
 		Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A6829, unk_CheckKeyHook, HOOK_CALL).install()->quick();
 
-		Game::Dvar_RegisterFloat("xpad_sensitivity", 1.0f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
-		Game::Dvar_RegisterInt("xpad_early_time", 350, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");
-		Game::Dvar_RegisterFloat("xpad_early_multiplier", 0.45f, 0.01f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied during xpad_early_time when moving the view stick");
+		Game::Dvar_RegisterFloat("xpad_sensitivity", 1.9f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
+		Game::Dvar_RegisterInt("xpad_early_time", 200, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");
+		Game::Dvar_RegisterFloat("xpad_early_multiplier", 0.25f, 0.01f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied during xpad_early_time when moving the view stick");
 		Game::Dvar_RegisterFloat("xpad_horizontal_multiplier", 1.5f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Horizontal view sensitivity multiplier");
 		Game::Dvar_RegisterFloat("xpad_vertical_multiplier", 0.8f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Vertical view sensitivity multiplier");
-		Game::Dvar_RegisterFloat("xpad_ads_multiplier", 0.3f, 0.1f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied when aiming down the sights.");
+		Game::Dvar_RegisterFloat("xpad_ads_multiplier", 0.7f, 0.1f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied when aiming down the sights.");
 
 		PollXInputDevices();
 
