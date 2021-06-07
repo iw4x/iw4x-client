@@ -120,7 +120,6 @@ namespace Assets
 			{
 				Components::Logger::Error("Missing techset: '%s' not found", techsetName.data());
 			}
-			}
 		}
 
 		if (asset->textureTable)
