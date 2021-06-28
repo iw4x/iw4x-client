@@ -142,6 +142,13 @@ namespace Utils
 			return static_cast<T*>(Allocate(count * sizeof(T)));
 		}
 
+		template <typename T> static inline T* Duplicate(T* original)
+		{
+			T* data = Memory::Allocate<T>();
+			std::memcpy(data, original, sizeof(T));
+			return data;
+		}
+
 		static char* DuplicateString(const std::string& string);
 
 		static void Free(void* data);
