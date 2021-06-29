@@ -1,7 +1,82 @@
 #include "STDInclude.hpp"
 
+#define STB_TRUETYPE_IMPLEMENTATION
+#include <stb_truetype.h>
+
 namespace Assets
 {
+	namespace
+	{
+		int PackFonts(const uint8_t* data, std::vector<uint16_t>& charset, Game::Glyph* glyphs, float pixel_height, unsigned char* pixels, int pw, int ph, int yOffset)
+		{
+			stbtt_fontinfo f;
+			f.userdata = NULL;
+
+			if (!stbtt_InitFont(&f, data, 0))
+				return -1;
+
+			std::memset(pixels, 0, pw * ph);
+
+			int x = 1, y = 1, bottom_y = 1;
+
+			float scale = stbtt_ScaleForPixelHeight(&f, pixel_height);
+
+			int i = 0;
+
+			for (auto& ch : charset)
+			{
+				int advance, lsb, x0, y0, x1, y1, gw, gh;
+
+				int g = stbtt_FindGlyphIndex(&f, ch);
+
+				stbtt_GetGlyphHMetrics(&f, g, &advance, &lsb);
+				stbtt_GetGlyphBitmapBox(&f, g, scale, scale, &x0, &y0, &x1, &y1);
+
+				gw = x1 - x0;
+				gh = y1 - y0;
+
+				if (x + gw + 1 >= pw)
+				{
+					// Advance to next row
+					y = bottom_y;
+					x = 1;
+				}
+
+				if (y + gh + 1 >= ph)
+				{
+					// Check if we have ran out of the room
+					return -i;
+				}
+
+				stbtt_MakeGlyphBitmap(&f, pixels + x + y * pw, gw, gh, pw, scale, scale, g);
+
+				auto& glyph = glyphs[i++];
+
+				glyph.letter = ch;
+				glyph.s0 = x / static_cast<float>(pw);
+				glyph.s1 = (x + gw) / static_cast<float>(pw);
+				glyph.t0 = y / static_cast<float>(ph);
+				glyph.t1 = (y + gh) / static_cast<float>(ph);
+				glyph.pixelWidth = static_cast<char>(gw);
+				glyph.pixelHeight = static_cast<char>(gh);
+				glyph.x0 = static_cast<char>(x0);
+				glyph.y0 = static_cast<char>(y0 + yOffset);
+				glyph.dx = static_cast<char>(roundf(scale * advance));
+
+				// Advance to next col
+				x = x + gw + 1;
+
+				// Expand bottom of current row if current glyph is bigger
+				if (y + gh + 1 > bottom_y)
+				{
+					bottom_y = y + gh + 1;
+				}
+			}
+
+			return bottom_y;
+		}
+	}
+
 	void IFont_s::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::Font_s *asset = header.font;
@@ -14,6 +89,157 @@ namespace Assets
 		if (asset->glowMaterial)
 		{
 			builder->loadAsset(Game::ASSET_TYPE_MATERIAL, asset->glowMaterial);
+		}
+	}
+
+	void IFont_s::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone*)
+	{
+		Components::FileSystem::File fontDefFile(Utils::String::VA("%s.json", name.data()));
+		Components::FileSystem::File fontFile(Utils::String::VA("%s.ttf", name.data()));
+
+		if (fontDefFile.exists() && fontFile.exists())
+		{
+			std::string errors;
+			auto fontDef = json11::Json::parse(fontDefFile.getBuffer(), errors);
+
+			if (!errors.empty())
+			{
+				Components::Logger::Error("Font define %s is broken: %s.", name.data(), errors.data());
+			}
+
+			if (!fontDef.is_object())
+			{
+				Components::Logger::Error("Font define %s is invaild.", name.data(), errors.data());
+			}
+
+			int w = fontDef["textureWidth"].int_value();
+			int h = fontDef["textureHeight"].int_value();
+			
+			int size = fontDef["size"].int_value();
+			int yOffset = fontDef["yOffset"].int_value();
+
+			uint8_t* pixels = Utils::Memory::AllocateArray<uint8_t>(w * h);
+
+			// Setup assets
+			auto* texName = Utils::Memory::DuplicateString(Utils::String::VA("if_%s", name.data() + 6 /* skip "fonts/" */));
+			auto* fontName = Utils::Memory::DuplicateString(name.data());
+			auto* glowMaterialName = Utils::Memory::DuplicateString(Utils::String::VA("%s_glow", name.data()));
+
+			auto* image = Utils::Memory::Duplicate(Game::DB_FindXAssetHeader(Game::ASSET_TYPE_IMAGE, "gamefonts_pc").image);
+			image->name = texName;
+			
+			auto* material = Utils::Memory::Duplicate(Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "fonts/gamefonts_pc").material);
+			material->textureTable = Utils::Memory::Duplicate(material->textureTable);
+			material->textureTable->u.image = image;
+			material->info.name = fontName;
+
+			auto* glowMaterial = Utils::Memory::Duplicate(Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "fonts/gamefonts_pc_glow").material);
+			glowMaterial->textureTable = material->textureTable;
+			glowMaterial->info.name = glowMaterialName;
+
+			std::vector<uint16_t> charset;
+
+			if (fontDef["charset"].is_array())
+			{
+				for (auto& ch : fontDef["charset"].array_items())
+					charset.push_back(static_cast<uint16_t>(ch.int_value()));
+
+				// order matters
+				std::sort(charset.begin(), charset.end());
+
+				for (uint16_t i = 32; i < 128; i++)
+				{
+					if (std::find(charset.begin(), charset.end(), i) == charset.end())
+					{
+						Components::Logger::Error("Font %s missing codepoint %d.", name.data(), i);
+					}
+				}
+			}
+			else
+			{
+				for (uint16_t i = 32; i < 128; i++)
+					charset.push_back(i);
+			}
+
+			auto* font = Utils::Memory::Allocate<Game::Font_s>();
+
+			font->fontName = fontName;
+			font->pixelHeight = size;
+			font->material = material;
+			font->glowMaterial = glowMaterial;
+			font->glyphCount = charset.size();
+			font->glyphs = Utils::Memory::AllocateArray<Game::Glyph>(charset.size());
+
+			// Generate glyph data
+			int result = PackFonts(reinterpret_cast<const uint8_t*>(fontFile.getBuffer().data()), charset, font->glyphs, static_cast<float>(size), pixels, w, h, yOffset);
+
+			if (result == -1)
+			{
+				Components::Logger::Error("Truetype font %s is broken.", name.data());
+			}
+			else if (result < 0)
+			{
+				Components::Logger::Error("Texture size of font %s is not enough.", name.data());
+			}
+			else if(h - result > size)
+			{
+				Components::Logger::Print("Warn: Texture of font %s have too much left over space: %d\n", name.data(), h - result);
+			}
+
+			header->font = font;
+
+			// Save generated materials
+			Game::XAssetHeader tmpHeader;
+
+			tmpHeader.image = image;
+			Components::AssetHandler::StoreTemporaryAsset(Game::ASSET_TYPE_IMAGE, tmpHeader);
+
+			tmpHeader.material = material;
+			Components::AssetHandler::StoreTemporaryAsset(Game::ASSET_TYPE_MATERIAL, tmpHeader);
+
+			tmpHeader.material = glowMaterial;
+			Components::AssetHandler::StoreTemporaryAsset(Game::ASSET_TYPE_MATERIAL, tmpHeader);
+
+			// Save generated image
+			Utils::IO::CreateDir("userraw\\images");
+			
+			int fileSize = w * h * 4;
+			int iwiHeaderSize = static_cast<int>(sizeof(Game::GfxImageFileHeader));
+
+			Game::GfxImageFileHeader iwiHeader =
+			{
+				{ 'I', 'W', 'i' },
+				/* version */
+				8,
+				/* flags */
+				2,
+				/* format */
+				Game::IMG_FORMAT_BITMAP_RGBA,
+				0,
+				/* dimensions(x, y, z) */
+				{ static_cast<short>(w), static_cast<short>(h), 1 },
+				/* fileSizeForPicmip (mipSize in bytes + sizeof(GfxImageFileHeader)) */
+				{ fileSize + iwiHeaderSize, fileSize, fileSize, fileSize }
+			};
+
+			std::string outIwi;
+			outIwi.resize(fileSize + sizeof(Game::GfxImageFileHeader));
+
+			std::memcpy(outIwi.data(), &iwiHeader, sizeof(Game::GfxImageFileHeader));
+
+			// Generate RGBA data
+			auto* rgbaPixels = outIwi.data() + sizeof(Game::GfxImageFileHeader);
+
+			for (int i = 0; i < w * h * 4; i += 4)
+			{
+				rgbaPixels[i + 0] = static_cast<char>(255);
+				rgbaPixels[i + 1] = static_cast<char>(255);
+				rgbaPixels[i + 2] = static_cast<char>(255);
+				rgbaPixels[i + 3] = static_cast<char>(pixels[i / 4]);
+			}
+
+			Utils::IO::WriteFile(Utils::String::VA("userraw\\images\\%s.iwi", texName), outIwi);
+			Utils::Memory::Free(pixels);
 		}
 	}
 
