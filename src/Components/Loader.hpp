@@ -130,6 +130,5 @@ namespace Components
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/StartupMessages.hpp"
 #include "Modules/Stats.hpp"
-#include "Modules/Images.hpp"
 
 #include "Modules/Client.hpp"

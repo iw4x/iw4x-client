@@ -202,14 +202,43 @@ namespace Assets
 
 			// Save generated image
 			Utils::IO::CreateDir("userraw\\images");
-			std::string buf = Utils::String::VA("P5\n%d\n%d\n255\n", w, h);
 			
-			int headerSize = buf.size();
+			int fileSize = w * h * 4;
+			int iwiHeaderSize = static_cast<int>(sizeof(Game::GfxImageFileHeader));
 
-			buf.resize(headerSize + w * h);
-			std::memcpy(buf.data() + headerSize, pixels, w * h);
+			Game::GfxImageFileHeader iwiHeader =
+			{
+				{ 'I', 'W', 'i' },
+				/* version */
+				8,
+				/* flags */
+				2,
+				/* format */
+				Game::IMG_FORMAT_BITMAP_RGBA,
+				0,
+				/* dimensions(x, y, z) */
+				{ static_cast<short>(w), static_cast<short>(h), 1 },
+				/* fileSizeForPicmip (mipSize in bytes + sizeof(GfxImageFileHeader)) */
+				{ fileSize + iwiHeaderSize, fileSize, fileSize, fileSize }
+			};
 
-			Utils::IO::WriteFile(Utils::String::VA("userraw\\images\\%s.pgm", texName), buf);
+			std::string outIwi;
+			outIwi.resize(fileSize + sizeof(Game::GfxImageFileHeader));
+
+			std::memcpy(outIwi.data(), &iwiHeader, sizeof(Game::GfxImageFileHeader));
+
+			// Generate RGBA data
+			auto* rgbaPixels = outIwi.data() + sizeof(Game::GfxImageFileHeader);
+
+			for (int i = 0; i < w * h * 4; i += 4)
+			{
+				rgbaPixels[i + 0] = static_cast<char>(255);
+				rgbaPixels[i + 1] = static_cast<char>(255);
+				rgbaPixels[i + 2] = static_cast<char>(255);
+				rgbaPixels[i + 3] = static_cast<char>(pixels[i / 4]);
+			}
+
+			Utils::IO::WriteFile(Utils::String::VA("userraw\\images\\%s.iwi", texName), outIwi);
 			Utils::Memory::Free(pixels);
 		}
 	}
