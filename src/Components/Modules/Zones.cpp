@@ -3637,6 +3637,9 @@ namespace Components
 		Utils::Hook(0x4B8FF5, Zones::Loadsunflare_t, HOOK_CALL).install()->quick();
 		Utils::Hook(0x418998, Zones::GameMapSpPatchStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP).install()->quick();
+
+		Utils::Hook(0x4B4EA1, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4B4F0C, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
 		
 		Utils::Hook(0x4F4D3B, [] ()
 		{
