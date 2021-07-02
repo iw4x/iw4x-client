@@ -3482,11 +3482,9 @@ namespace Components
 	char* Zones::ParseShellShock_Stub(const char** data_p)
 	{
 		auto token = Game::Com_Parse(data_p);
-		if (Zones::Version() >= VERSION_LATEST_CODO) {
-			if (shellshock_replace_list.find(token) != shellshock_replace_list.end())
-			{
-				return shellshock_replace_list[token].data();
-			}
+		if (shellshock_replace_list.find(token) != shellshock_replace_list.end())
+		{
+			return shellshock_replace_list[token].data();
 		}
 		return token;
 	}
