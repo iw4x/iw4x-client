@@ -396,6 +396,28 @@ namespace Components
 		return std::function < T >(reinterpret_cast<T*>(procAddr));
 	}
 
+	int __cdecl G_ParseSpawnVars(Game::SpawnVar* spawnVar){
+		if (Zones::Version() >= VERSION_ALPHA2) {
+			for (auto i = 0; i < spawnVar->numSpawnVars; i++)
+			{
+				char** kvPair = spawnVar->spawnVars[i];
+				auto key = kvPair[0];
+				auto val = kvPair[1];
+				
+				bool isSpecOps = strncmp(key, "script_specialops", 16) == 0;
+				bool isSpecOpsOnly = *val == 49; // 49 => Ascii "1"
+
+				if (isSpecOps && isSpecOpsOnly) {
+					spawnVar->spawnVars[i] = nullptr;
+				}
+			}
+		}
+
+		Components::Logger::Print("G_SpawnString: %s %d\n", spawnVar->spawnVarChars, spawnVar->numSpawnVarChars);
+		
+		return Utils::Hook::Call<int(Game::SpawnVar*)>(0x4B3410)(spawnVar);
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		QuickPatch::FrameTime = 0;
@@ -438,6 +460,10 @@ namespace Components
 			result = ImportFunction<NTSTATUS __stdcall(NTSTATUS, ULONG, LPCSTR, PVOID, HARDERROR_RESPONSE_OPTION, PHARDERROR_RESPONSE)>("ntdll.dll", "NtRaiseHardError")
 				(0xC000007B /*0x0000000A*/, 0, nullptr, nullptr, OptionShutdownSystem, &response);
 		});
+
+		Utils::Hook(0x4D8845, G_ParseSpawnVars, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D8880, G_ParseSpawnVars, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D886A, G_ParseSpawnVars, HOOK_CALL).install()->quick();
 
 		// bounce dvar
 		sv_enableBounces = Game::Dvar_RegisterBool("sv_enableBounces", false, Game::DVAR_FLAG_REPLICATED, "Enables bouncing on the server");
