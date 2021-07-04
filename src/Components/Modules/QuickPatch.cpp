@@ -396,58 +396,7 @@ namespace Components
 		return std::function < T >(reinterpret_cast<T*>(procAddr));
 	}
 
-	//int __cdecl G_ParseSpawnVars(Game::SpawnVar* spawnVar){
-	//	if (Zones::Version() >= VERSION_ALPHA2) {
-	//		bool shouldBeRemoved = false;
-
-
-	//		for (auto i = 0; i < spawnVar->numSpawnVars; i++)
-	//		{
-	//			char** kvPair = spawnVar->spawnVars[i];
-	//			auto key = kvPair[0];
-	//			auto val = kvPair[1];
-	//			
-	//			bool isSpecOps = strncmp(key, "script_specialops", 16) == 0;
-	//			bool isSpecOpsOnly = *val == 49; // 49 => Ascii "1"
-
-	//			if (isSpecOps && isSpecOpsOnly) {
-	//				shouldBeRemoved = true;
-	//				break;
-	//			}
-	//		}
-
-	//		if (shouldBeRemoved) {
-	//			for (auto i = 0; i < spawnVar->numSpawnVars; i++)
-	//			{
-	//				char** kvPair = spawnVar->spawnVars[i];
-	//				auto key = kvPair[0];
-	//				auto val = kvPair[1];
-
-	//				bool isClassName = strncmp(key, "classname", 9) == 0;
-
-	//				if (isClassName) {
-	//					val = "dyn_lmao";
-	//				}
-	//			}
-	//		} 
-
-	//		if (shouldBeRemoved) {
-	//			spawnVar->numSpawnVars = 0;
-	//			spawnVar->numSpawnVarChars = 0;
-	//			spawnVar->spawnVarsValid = false;
-
-	//			//Components::Logger::Print("G_SpawnString: Removed %s\n", spawnVar->spawnVarChars);
-	//		}
-	//	}
-	//	
-	//	return Utils::Hook::Call<int(Game::SpawnVar*)>(0x4B3410)(spawnVar);
-	//}
-
-	BOOL __cdecl IsDynClassname(char* a1) {
-		//if (Zones::Version() >= VERSION_ALPHA2) {
-			bool shouldBeRemoved = false;
-
-
+	bool QuickPatch::IsDynClassnameStub(char* a1) {
 			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
 			{
 				char** kvPair = Game::spawnVars->spawnVars[i];
@@ -462,14 +411,9 @@ namespace Components
 					return true; // This will prevent spawning hopefully;
 				}
 			}
-		//}
 
-		return Utils::Hook::Call<BOOL(char*)>(0x444810)(a1);
+		return Utils::Hook::Call<bool(char*)>(0x444810)(a1);
 	}
-
-	//void __cdecl G_SpawnItem(Game::gentity_s* a1, signed int a2) {
-
-	//}
 
 	QuickPatch::QuickPatch()
 	{
@@ -514,11 +458,7 @@ namespace Components
 				(0xC000007B /*0x0000000A*/, 0, nullptr, nullptr, OptionShutdownSystem, &response);
 		});
 
-		Utils::Hook(0x5FBD6E, IsDynClassname, HOOK_CALL).install()->quick();
-
-		//Utils::Hook(0x4D8845, G_ParseSpawnVars, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x4D8880, G_ParseSpawnVars, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x4D886A, G_ParseSpawnVars, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassnameStub, HOOK_CALL).install()->quick();
 
 		// bounce dvar
 		sv_enableBounces = Game::Dvar_RegisterBool("sv_enableBounces", false, Game::DVAR_FLAG_REPLICATED, "Enables bouncing on the server");
