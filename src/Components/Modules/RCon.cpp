@@ -25,9 +25,13 @@ namespace Components
 			}
 			else
 			{
-				if (!RCon::Password.empty() && *reinterpret_cast<int*>(0xB2C540) >= 5) // Get our state
+				auto addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
+				if (!RCon::Password.empty()) 
 				{
-					Network::Address target(reinterpret_cast<Game::netadr_t*>(0xA5EA44));
+					Network::Address target(addr);
+					if (!target.isValid()) {
+						target = Party::Target();
+					}
 
 					if (target.isValid())
 					{
@@ -107,9 +111,7 @@ namespace Components
 				static std::string outputBuffer;
 				outputBuffer.clear();
 
-#ifdef DEBUG
 				Logger::Print("Executing RCon request from %s: %s\n", address.getCString(), command.data());
-#endif
 
 				Logger::PipeOutput([](const std::string& output)
 				{
