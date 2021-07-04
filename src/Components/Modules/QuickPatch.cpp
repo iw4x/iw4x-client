@@ -407,7 +407,6 @@ namespace Components
 				bool isSpecOpsOnly = *val == 49; // 49 => Ascii "1"
 
 				if (isSpecOps && isSpecOpsOnly) {
-					Components::Logger::Print("Prevented spawning of entity: %s\n", Game::spawnVars->spawnVarChars);
 					return true; // This will prevent spawning hopefully;
 				}
 			}
