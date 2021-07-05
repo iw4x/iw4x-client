@@ -396,21 +396,26 @@ namespace Components
 		return std::function < T >(reinterpret_cast<T*>(procAddr));
 	}
 
-	bool QuickPatch::IsDynClassnameStub(char* a1) {
-			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
+	bool QuickPatch::IsDynClassnameStub(char* a1) 
+	{
+		for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
+		{
+			char** kvPair = Game::spawnVars->spawnVars[i];
+			auto key = kvPair[0];
+			auto val = kvPair[1];
+
+			bool isSpecOps = strncmp(key, "script_specialops", 17) == 0;
+			bool isSpecOpsOnly = val[0] == '1' && val[1] == '\0';
+
+			if (isSpecOps && isSpecOpsOnly) 
 			{
-				char** kvPair = Game::spawnVars->spawnVars[i];
-				auto key = kvPair[0];
-				auto val = kvPair[1];
-
-				bool isSpecOps = strncmp(key, "script_specialops", 16) == 0;
-				bool isSpecOpsOnly = *val == 49; // 49 => Ascii "1"
-
-				if (isSpecOps && isSpecOpsOnly) {
-					return true; // This will prevent spawning hopefully;
-				}
+				// This will prevent spawning of any entity that contains "script_specialops: '1'" 
+				// It removes extra hitboxes / meshes on 461+ CODO multiplayer maps
+				return true; 
 			}
+		}
 
+		// Passthrough to the game's own IsDynClassname
 		return Utils::Hook::Call<bool(char*)>(0x444810)(a1);
 	}
 
@@ -457,6 +462,7 @@ namespace Components
 				(0xC000007B /*0x0000000A*/, 0, nullptr, nullptr, OptionShutdownSystem, &response);
 		});
 
+		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassnameStub, HOOK_CALL).install()->quick();
 
 		// bounce dvar
