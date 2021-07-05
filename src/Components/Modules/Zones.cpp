@@ -8,6 +8,26 @@ namespace Components
 	int Zones::FxEffectIndex;
 	char* Zones::FxEffectStrings[64];
 
+	static std::unordered_map<std::string, std::string> vision_replace_list = {
+		{ "511","r_glow" },
+		{ "516","r_glowRadius0" },
+		{ "512","r_glowBloomCutoff" },
+		{ "513","r_glowBloomDesaturation" },
+		{ "514","r_glowBloomIntensity0" },
+		{ "520","r_filmEnable" },
+		{ "522","r_filmContrast" },
+		{ "521","r_filmBrightness" },
+		{ "523","r_filmDesaturation" },
+		{ "524","r_filmDesaturationDark" },
+		{ "525","r_filmInvert" },
+		{ "526","r_filmLightTint" },
+		{ "527","r_filmMediumTint" },
+		{ "528","r_filmDarkTint" },
+		{ "529","r_primaryLightUseTweaks" },
+		{ "530","r_primaryLightTweakDiffuseStrength" },
+		{ "531","r_primaryLightTweakSpecularStrength" },
+	};
+
 	Game::XAssetType currentAssetType = Game::XAssetType::ASSET_TYPE_INVALID;
 	Game::XAssetType previousAssetType = Game::XAssetType::ASSET_TYPE_INVALID;
 	
@@ -223,30 +243,20 @@ namespace Components
 
 		int size = 3112;
 
-		if (Zones::ZoneVersion >= 318)
-		{
+		if (Zones::ZoneVersion >= 461)
+			size = 4124;
+		else if (Zones::ZoneVersion >= 460)
+			size = 4120;
+		else if (Zones::ZoneVersion >= 365)
+			size = 3124;
+		else if (Zones::ZoneVersion >= 359)
+			size = 3120;
+		else if (Zones::ZoneVersion >= 332)
+			size = 3068;
+		else if (Zones::ZoneVersion >= 318)
 			size = 3156;
 
-			if (Zones::ZoneVersion >= 332)
-			{
-				size = 3068; // We didn't adapt that, but who the fuck cares!
-
-				if (Zones::ZoneVersion >= 359)
-				{
-					size = 3120;
-
-					if (Zones::ZoneVersion >= 365)
-					{
-						size = 3124;
-						
-						if (Zones::ZoneVersion >= 460)
-						{
-							size = 4120;
-						}
-					}
-				}
-			}
-		}
+		int offsetShift = (Zones::ZoneVersion >= 461) ? 4 : 0;
 
 		// and do the stuff
 		Game::Load_Stream(true, varWeaponCompleteDef, size);
@@ -270,7 +280,7 @@ namespace Components
 
 		if (Zones::ZoneVersion >= 359)
 		{
-			auto count = (Zones::Version() == 460) ? 52 : 56;
+			auto count = (Zones::Version() >= 460) ? 52 : 56;
 			for (int offset = 20; offset <= count; offset += 4)
 			{
 				*Game::varXModelPtr = reinterpret_cast<Game::XModel**>(varWeaponCompleteDef + offset);
@@ -299,7 +309,7 @@ namespace Components
 
 		if (Zones::ZoneVersion >= 359)
 		{
-			auto stringCount = (Zones::Version() == 460) ? 62 : 52;
+			auto stringCount = (Zones::Version() >= 460) ? 62 : 52;
 			auto arraySize = stringCount * 4;
 			
 			// 236
@@ -395,8 +405,8 @@ namespace Components
 		// 980
 		if (Zones::ZoneVersion >= 359)
 		{
-			auto offset = (Zones::Version() == 460) ? 1476 : 916;
-			auto count = (Zones::Version() == 460) ? 57 : 52;
+			auto offset = (Zones::Version() >= 460) ? 1476 : 916;
+			auto count = (Zones::Version() >= 461) ? 58 : (Zones::Version() >= 460) ? 57 : 52;
 			
 			// 53 soundalias name references; up to and including 1124
 			for (int i = 0; i < count; ++i, offset += 4)
@@ -809,7 +819,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 3204) = vec2;
 
-				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3776));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3776 + offsetShift));
 			}
 
 			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3200);
@@ -820,7 +830,7 @@ namespace Components
 				void* vec2 = Game::DB_AllocStreamPos(3);
 				*reinterpret_cast<void**>(varWeaponCompleteDef + 3208) = vec2;
 
-				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3778));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3778 + offsetShift));
 			}
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -868,22 +878,22 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3288);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3288 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3292);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3292 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3324);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3324 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3328);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3328 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3484);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3484 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3488);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3488 + offsetShift);
 			Game::Load_XString(false);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -929,37 +939,37 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef * *>(varWeaponCompleteDef + 3492);
+			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef * *>(varWeaponCompleteDef + 3492 + offsetShift);
 			Game::Load_TracerDefPtr(false);
 
-			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef * *>(varWeaponCompleteDef + 3496);
+			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef * *>(varWeaponCompleteDef + 3496 + offsetShift);
 			Game::Load_TracerDefPtr(false);
 
-			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef * *>(varWeaponCompleteDef + 3500);
+			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef * *>(varWeaponCompleteDef + 3500 + offsetShift);
 			Game::Load_TracerDefPtr(false);
 			
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3528);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3528 + offsetShift);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name); // 2848
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 3532);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 3532 + offsetShift);
 			Game::Load_FxEffectDefHandle(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3536);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3536 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3552);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3552 + offsetShift);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3556);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3556 + offsetShift);
 			Game::Load_snd_alias_list_nameArray(false, 4);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3572);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3572 + offsetShift);
 			Game::Load_snd_alias_list_nameArray(false, 4);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3588);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3588 + offsetShift);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3592);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3592 + offsetShift);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -1023,7 +1033,7 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			for (int i = 0, offset = 3660; i < 6; ++i, offset += 4)
+			for (int i = 0, offset = 3660 + offsetShift; i < 6; ++i, offset += 4)
 			{
 				*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + offset);
 				Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
@@ -1058,25 +1068,25 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3712);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3712 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3728);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3728 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3732);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3732 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3740);
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3740 + offsetShift);
 			Game::Load_MaterialHandle(false);
 
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3744);
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3744 + offsetShift);
 			Game::Load_MaterialHandle(false);
 
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3748);
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3748 + offsetShift);
 			Game::Load_MaterialHandle(false);
 
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3752);
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3752 + offsetShift);
 			Game::Load_MaterialHandle(false);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -1127,35 +1137,35 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3780) == -1)
+			if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3780 + offsetShift) == -1)
 			{
 				void* vec2 = Game::DB_AllocStreamPos(3);
-				*reinterpret_cast<void**>(varWeaponCompleteDef + 3780) = vec2;
+				*reinterpret_cast<void**>(varWeaponCompleteDef + 3780 + offsetShift) = vec2;
 
-				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3776));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3776 + offsetShift));
 			}
 
-			if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3784) == -1)
+			if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3784 + offsetShift) == -1)
 			{
 				void* vec2 = Game::DB_AllocStreamPos(3);
-				*reinterpret_cast<void**>(varWeaponCompleteDef + 3784) = vec2;
+				*reinterpret_cast<void**>(varWeaponCompleteDef + 3784 + offsetShift) = vec2;
 
-				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3778));
+				Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3778 + offsetShift));
 			}
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3876);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3876 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3880);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3880 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3884);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3884 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3996);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3996 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 4012);
+			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 4012 + offsetShift);
 			Game::Load_XString(false);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -3445,6 +3455,18 @@ namespace Components
 		
 		Game::DB_PopStreamPos();
 	}
+
+	char* Zones::ParseVision_Stub(const char** data_p)
+	{
+		auto token = Game::Com_Parse(data_p);
+
+		if (vision_replace_list.find(token) != vision_replace_list.end())
+		{
+			return vision_replace_list[token].data();
+		}
+
+		return token;
+	}
 	
 	Zones::Zones()
 	{
@@ -3613,6 +3635,10 @@ namespace Components
 
 		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).install()->quick();
 		Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).install()->quick();
+
+		// Fix newer vision file
+		Utils::Hook(0x59A849, ParseVision_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x59A8AD, ParseVision_Stub, HOOK_CALL).install()->quick();
 
 #ifdef DEBUG
 		// Easy dirty disk debugging
