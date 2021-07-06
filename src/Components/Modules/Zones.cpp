@@ -8,6 +8,38 @@ namespace Components
 	int Zones::FxEffectIndex;
 	char* Zones::FxEffectStrings[64];
 
+	static std::unordered_map<std::string, std::string> shellshock_replace_list = {
+		{ "66","bg_shock_screenType" },
+		{ "67","bg_shock_screenBlurBlendTime"},
+		{ "68","bg_shock_screenBlurBlendFadeTime"},
+		{ "69","bg_shock_screenFlashWhiteFadeTime"},
+		{ "70","bg_shock_screenFlashShotFadeTime"},
+		{ "71","bg_shock_viewKickPeriod"},
+		{ "72","bg_shock_viewKickRadius"},
+		{ "73","bg_shock_viewKickFadeTime"},
+		{ "78","bg_shock_sound"},
+		{ "74","bg_shock_soundLoop"},
+		{ "75","bg_shock_soundLoopSilent"},
+		{ "76","bg_shock_soundEnd"},
+		{ "77","bg_shock_soundEndAbort"},
+		{ "79","bg_shock_soundFadeInTime"},
+		{ "80","bg_shock_soundFadeOutTime"},
+		{ "81","bg_shock_soundLoopFadeTime"},
+		{ "82","bg_shock_soundLoopEndDelay"},
+		{ "83","bg_shock_soundRoomType"},
+		{ "84","bg_shock_soundDryLevel"},
+		{ "85","bg_shock_soundWetLevel"},
+		{ "86","bg_shock_soundModEndDelay"},
+
+		// guessed, not sure
+		{ "87","bg_shock_lookControl"},
+		{ "88","bg_shock_lookControl_maxpitchspeed"},
+		{ "89","bg_shock_lookControl_maxyawspeed"},
+		{ "90","bg_shock_lookControl_mousesensitivityscale"},
+		{ "91","bg_shock_lookControl_fadeTime"},
+		{ "92","bg_shock_movement"}
+	};
+
 	static std::unordered_map<std::string, std::string> vision_replace_list = {
 		{ "511","r_glow" },
 		{ "516","r_glowRadius0" },
@@ -3468,6 +3500,17 @@ namespace Components
 		return token;
 	}
 	
+	char* Zones::ParseShellShock_Stub(const char** data_p)
+	{
+		auto token = Game::Com_Parse(data_p);
+		if (shellshock_replace_list.find(token) != shellshock_replace_list.end())
+		{
+			return shellshock_replace_list[token].data();
+		}
+		return token;
+	}
+
+
 	Zones::Zones()
 	{
 		Zones::ZoneVersion = 0;
@@ -3613,6 +3656,9 @@ namespace Components
 		Utils::Hook(0x4B8FF5, Zones::Loadsunflare_t, HOOK_CALL).install()->quick();
 		Utils::Hook(0x418998, Zones::GameMapSpPatchStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP).install()->quick();
+
+		Utils::Hook(0x4B4EA1, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4B4F0C, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
 		
 		Utils::Hook(0x4F4D3B, [] ()
 		{

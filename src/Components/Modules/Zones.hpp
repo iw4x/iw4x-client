@@ -3,6 +3,7 @@
 #define VERSION_ALPHA2 316
 #define VERSION_ALPHA3 318//319
 #define VERSION_ALPHA3_DEC 319
+#define VERSION_LATEST_CODO 461
 
 namespace Components
 {
@@ -101,6 +102,7 @@ namespace Components
 		static void LoadTracerDef(bool atStreamStart, Game::TracerDef* tracer, int size);
 		static void LoadTracerDefFxEffect();
 		static void FixImageCategory(Game::GfxImage* image);
+		static char* ParseShellShock_Stub(const char** data_p);
 		static char* ParseVision_Stub(const char** data_p);
 	};
 }
