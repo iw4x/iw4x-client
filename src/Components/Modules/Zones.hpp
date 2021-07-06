@@ -103,5 +103,6 @@ namespace Components
 		static void LoadTracerDefFxEffect();
 		static void FixImageCategory(Game::GfxImage* image);
 		static char* ParseShellShock_Stub(const char** data_p);
+		static char* ParseVision_Stub(const char** data_p);
 	};
 }
