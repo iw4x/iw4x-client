@@ -378,7 +378,7 @@ namespace Components
 
 		Game::XFileHeader header =
 		{
-#ifdef DEBUG
+#ifndef GENERATE_IW4X_SPECIFIC_ZONES
 			XFILE_MAGIC_UNSIGNED,
 #else
 			XFILE_HEADER_IW4X | (static_cast<unsigned __int64>(XFILE_VERSION_IW4X) << 32),
@@ -394,7 +394,7 @@ namespace Components
 
 		std::string zoneBuffer = this->buffer.toBuffer();
 
-#ifndef DEBUG
+#ifdef GENERATE_IW4X_SPECIFIC_ZONES
 		// Insert a random byte, this will destroy the whole alignment and result in a crash, if not handled
 		zoneBuffer.insert(zoneBuffer.begin(), static_cast<char>(Utils::Cryptography::Rand::GenerateInt()));
 
