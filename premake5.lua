@@ -76,7 +76,7 @@ newoption {
 
 newoption {
 	trigger = "generate_iw4x_specific_zones",
-	description = "Generates zones that can only be loaded by IW4X."
+	description = "Generates zones that can only be loaded by IW4x."
 }
 
 newaction {
