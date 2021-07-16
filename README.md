@@ -40,7 +40,7 @@
 | `--disable-bitmessage`      | Disable use of BitMessage completely.          |
 | `--disable-base128`         | Disable base128 encoding for minidumps.        |
 | `--no-new-structure`        | Do not use new virtual path structure (separating headers and source files). |
-| `--generate_iw4x_specific_zones`  | Generates zones that can only be loaded by IW4x. |
+| `--iw4x-zones`              | Zonebuilder generates iw4x zones that cannot be loaded without IW4x specific patches. |
 
 ## Command line arguments
 

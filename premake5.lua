@@ -75,8 +75,8 @@ newoption {
 }
 
 newoption {
-	trigger = "generate_iw4x_specific_zones",
-	description = "Generates zones that can only be loaded by IW4x."
+	trigger = "iw4x-zones",
+	description = "Zonebuilder generates iw4x zones that cannot be loaded without IW4x specific patches."
 }
 
 newaction {
@@ -329,7 +329,7 @@ workspace "iw4x"
 		if _OPTIONS["force-exception-handler"] then
 			defines { "FORCE_EXCEPTION_HANDLER" }
 		end
-		if _OPTIONS["generate_iw4x_specific_zones"] then
+		if _OPTIONS["iw4x-zones"] then
 			defines { "GENERATE_IW4X_SPECIFIC_ZONES" }
 		end
 
