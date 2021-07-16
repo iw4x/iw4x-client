@@ -74,6 +74,11 @@ newoption {
 	description = "Upload minidumps even for Debug builds."
 }
 
+newoption {
+	trigger = "generate_iw4x_specific_zones",
+	description = "Generates zones that can only be loaded by IW4X."
+}
+
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -323,6 +328,9 @@ workspace "iw4x"
 		end
 		if _OPTIONS["force-exception-handler"] then
 			defines { "FORCE_EXCEPTION_HANDLER" }
+		end
+		if _OPTIONS["generate_iw4x_specific_zones"] then
+			defines { "GENERATE_IW4X_SPECIFIC_ZONES" }
 		end
 
 		-- Pre-compiled header
