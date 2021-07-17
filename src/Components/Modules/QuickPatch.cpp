@@ -341,9 +341,6 @@ namespace Components
 
 			// original code
 			mov eax, dword ptr[esp + 0xa0];
-			jmp collide;
-
-		collide:
 			push 0x00478376;
 			retn;
 
@@ -374,11 +371,6 @@ namespace Components
 			// dont eject if g_playerEjection is set to 0
 			je donteject;
 
-			// original code
-			cmp dword ptr[ebx + 19ch], edi;
-			jle eject;
-
-		eject:
 			push 0x005d8152;
 			retn;
 
