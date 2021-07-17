@@ -121,7 +121,7 @@ namespace Components
 	}
 	bool Network::Address::isValid()
 	{
-		return (this->getType() != Game::netadrtype_t::NA_BAD && this->getType() >= Game::netadrtype_t::NA_BOT && this->getType() <= Game::netadrtype_t::NA_IP && this->address.ip.full != 0);
+		return (this->getType() != Game::netadrtype_t::NA_BAD && this->getType() >= Game::netadrtype_t::NA_BOT && this->getType() <= Game::netadrtype_t::NA_IP);
 	}
 	void Network::Handle(const std::string& packet, Utils::Slot<Network::Callback> callback)
 	{

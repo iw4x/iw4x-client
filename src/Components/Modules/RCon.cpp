@@ -29,7 +29,7 @@ namespace Components
 				if (!RCon::Password.empty()) 
 				{
 					Network::Address target(addr);
-					if (!target.isValid()) 
+					if (!target.isValid() || target.getIP().full == 0)
 					{
 						target = Party::Target();
 					}
