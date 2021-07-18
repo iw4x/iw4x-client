@@ -252,7 +252,7 @@ namespace Components
 
 			Game::TeleportPlayer(&Game::g_entities[clientNum], pos, orientation);
 
-			// Logging that will spam the console and screen if people use cinematics
+			//Logging that will spam the console and screen if people use cinematics
 			//Logger::Print("Successfully teleported player!\n");
 			//Toast::Show("cardicon_abduction", "Success", "You have been teleported!", toastDurationShort);
 		});

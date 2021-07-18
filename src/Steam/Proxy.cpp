@@ -384,11 +384,11 @@ namespace Steam
 			Proxy::LaunchWatchGuard();
 
 			Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
-			if (!Proxy::Overlay.valid()) return false;
+			if (!Proxy::Overlay.is_valid()) return false;
 		}
 
 		Proxy::Client = ::Utils::Library(STEAMCLIENT_LIB, false);
-		if (!Proxy::Client.valid()) return false;
+		if (!Proxy::Client.is_valid()) return false;
 
 		Proxy::SteamClient = Proxy::Client.get<ISteamClient008*(const char*, int*)>("CreateInterface")("SteamClient008", nullptr);
 		if(!Proxy::SteamClient) return false;
@@ -526,7 +526,7 @@ namespace Steam
 
 	void Proxy::SetOverlayNotificationPosition(uint32_t eNotificationPosition)
 	{
-		if (Proxy::Overlay.valid())
+		if (Proxy::Overlay.is_valid())
 		{
 			Proxy::Overlay.get<void(uint32_t)>("SetNotificationPosition")(eNotificationPosition);
 		}
@@ -534,7 +534,7 @@ namespace Steam
 
 	bool Proxy::IsOverlayEnabled()
 	{
-		if (Proxy::Overlay.valid())
+		if (Proxy::Overlay.is_valid())
 		{
 			return Proxy::Overlay.get<bool()>("IsOverlayEnabled")();
 		}
@@ -544,7 +544,7 @@ namespace Steam
 
 	bool Proxy::BOverlayNeedsPresent()
 	{
-		if (Proxy::Overlay.valid())
+		if (Proxy::Overlay.is_valid())
 		{
 			return Proxy::Overlay.get<bool()>("BOverlayNeedsPresent")();
 		}
