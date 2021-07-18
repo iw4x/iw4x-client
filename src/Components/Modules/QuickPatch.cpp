@@ -380,14 +380,6 @@ namespace Components
 		}
 	}
 
-	template <typename T> std::function < T > ImportFunction(const std::string& dll, const std::string& function)
-	{
-		auto dllHandle = GetModuleHandleA(&dll[0]);
-		auto procAddr = GetProcAddress(dllHandle, &function[0]);
-
-		return std::function < T >(reinterpret_cast<T*>(procAddr));
-	}
-
 	QuickPatch::QuickPatch()
 	{
 		QuickPatch::FrameTime = 0;
