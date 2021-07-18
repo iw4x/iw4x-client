@@ -844,7 +844,7 @@ namespace Components
 
 		Command::Add("quit", [](Command::Params*)
 		{
-			ZoneBuilder::Quit();
+			Game::Com_Quitf_t();
 		});
 
 		Command::Add("error", [](Command::Params*)
@@ -919,12 +919,6 @@ namespace Components
 
 		// ReSharper disable once CppUnreachableCode
 		return 0;
-	}
-
-	void ZoneBuilder::Quit()
-	{
-		//TerminateProcess(GetCurrentProcess(), 0);
-		ExitProcess(0);
 	}
 
 	void ZoneBuilder::HandleError(int level, const char* format, ...)
@@ -1087,9 +1081,6 @@ namespace Components
 
 			// set new entry point
 			Utils::Hook(0x4513DA, ZoneBuilder::EntryPoint, HOOK_JUMP).install()->quick();
-
-			// set quit handler
-			Utils::Hook(0x4D4000, ZoneBuilder::Quit, HOOK_JUMP).install()->quick();
 
 			// handle com_error calls
 			Utils::Hook(0x4B22D0, ZoneBuilder::HandleError, HOOK_JUMP).install()->quick();
