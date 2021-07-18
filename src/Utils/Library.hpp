@@ -5,8 +5,14 @@ namespace Utils
 	class Library
 	{
 	public:
+		static Library load(const std::string& name);
+		static Library load(const std::filesystem::path& path);
+		static Library get_by_address(void* address);
+
 		Library() : _module(nullptr), freeOnDestroy(false) {};
-		Library(const std::string& buffer, bool freeOnDestroy = true);
+		Library(const std::string& buffer, bool freeOnDestroy);
+		explicit Library(const std::string& name);
+		explicit Library(HMODULE handle);
 		~Library();
 
 		bool is_valid() const;

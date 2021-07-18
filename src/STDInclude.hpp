@@ -149,6 +149,7 @@ template <size_t S> class Sizer { };
 #pragma comment(lib, "Advapi32.lib")
 #pragma comment(lib, "rpcrt4.lib")
 #pragma comment(lib, "dbghelp.lib")
+#pragma comment(lib, "ntdll.lib")
 
 // Enable additional literals
 using namespace std::literals;
