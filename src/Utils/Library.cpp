@@ -15,9 +15,9 @@ namespace Utils
 		}
 	}
 
-	bool Library::valid()
+	bool Library::is_valid() const
 	{
-		return (this->getModule() != nullptr);
+		return this->_module != nullptr;
 	}
 
 	HMODULE Library::getModule()
@@ -27,7 +27,7 @@ namespace Utils
 
 	void Library::free()
 	{
-		if (this->valid())
+		if (this->is_valid())
 		{
 			FreeLibrary(this->getModule());
 		}

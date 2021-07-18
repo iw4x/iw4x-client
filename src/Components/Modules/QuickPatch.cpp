@@ -399,36 +399,10 @@ namespace Components
 		// quit_hard
 		Command::Add("quit_hard", [](Command::Params*)
 		{
-			typedef enum _HARDERROR_RESPONSE_OPTION {
-				OptionAbortRetryIgnore,
-				OptionOk,
-				OptionOkCancel,
-				OptionRetryCancel,
-				OptionYesNo,
-				OptionYesNoCancel,
-				OptionShutdownSystem
-			} HARDERROR_RESPONSE_OPTION, *PHARDERROR_RESPONSE_OPTION;
-
-			typedef enum _HARDERROR_RESPONSE {
-				ResponseReturnToCaller,
-				ResponseNotHandled,
-				ResponseAbort,
-				ResponseCancel,
-				ResponseIgnore,
-				ResponseNo,
-				ResponseOk,
-				ResponseRetry,
-				ResponseYes
-			} HARDERROR_RESPONSE, *PHARDERROR_RESPONSE;
-
-			BOOLEAN hasPerms;
-			HARDERROR_RESPONSE response;
-
-			auto result = ImportFunction<NTSTATUS __stdcall(ULONG, BOOLEAN, BOOLEAN, PBOOLEAN)>("ntdll.dll", "RtlAdjustPrivilege")
-				(19, true, false, &hasPerms);
-
-			result = ImportFunction<NTSTATUS __stdcall(NTSTATUS, ULONG, LPCSTR, PVOID, HARDERROR_RESPONSE_OPTION, PHARDERROR_RESPONSE)>("ntdll.dll", "NtRaiseHardError")
-				(0xC000007B /*0x0000000A*/, 0, nullptr, nullptr, OptionShutdownSystem, &response);
+				int data = false;
+				const Utils::Library ntdll("ntdll.dll");
+				ntdll.invoke_pascal<void>("RtlAdjustPrivilege", 19, true, false, &data);
+				ntdll.invoke_pascal<void>("NtRaiseHardError", 0xC000007B, 0, nullptr, nullptr, 6, &data);
 		});
 
 		// bounce dvar
