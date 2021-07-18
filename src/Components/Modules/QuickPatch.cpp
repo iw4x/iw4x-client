@@ -399,10 +399,10 @@ namespace Components
 		// quit_hard
 		Command::Add("quit_hard", [](Command::Params*)
 		{
-				int data = false;
-				const Utils::Library ntdll("ntdll.dll");
-				ntdll.invoke_pascal<void>("RtlAdjustPrivilege", 19, true, false, &data);
-				ntdll.invoke_pascal<void>("NtRaiseHardError", 0xC000007B, 0, nullptr, nullptr, 6, &data);
+			int data = false;
+			const Utils::Library ntdll("ntdll.dll");
+			ntdll.invoke_pascal<void>("RtlAdjustPrivilege", 19, true, false, &data);
+			ntdll.invoke_pascal<void>("NtRaiseHardError", 0xC000007B, 0, nullptr, nullptr, 6, &data);
 		});
 
 		// bounce dvar
