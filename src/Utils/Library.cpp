@@ -58,7 +58,7 @@ namespace Utils
 	{
 		if (this->is_valid())
 		{
-			FreeLibrary(this->getModule());
+			FreeLibrary(this->_module);
 		}
 
 		this->_module = nullptr;
