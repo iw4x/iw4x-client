@@ -5,9 +5,9 @@ namespace Utils
 	class Library
 	{
 	public:
-		static Library load(const std::string& name);
-		static Library load(const std::filesystem::path& path);
-		static Library get_by_address(void* address);
+		static Library Load(const std::string& name);
+		static Library Load(const std::filesystem::path& path);
+		static Library GetByAddress(void* address);
 
 		Library() : _module(nullptr), freeOnDestroy(false) {};
 		Library(const std::string& buffer, bool freeOnDestroy);
@@ -15,48 +15,48 @@ namespace Utils
 		explicit Library(HMODULE handle);
 		~Library();
 
-		bool is_valid() const;
-		HMODULE getModule();
+		bool IsValid() const;
+		HMODULE GetModule();
 
 		template <typename T>
-		T get_proc(const std::string& process) const
+		T GetProc(const std::string& process) const
 		{
-			if (!this->is_valid()) T{};
+			if (!this->IsValid()) T{};
 			return reinterpret_cast<T>(GetProcAddress(this->_module, process.data()));
 		}
 
 		template <typename T>
-		std::function<T> get(const std::string& process) const
+		std::function<T> Get(const std::string& process) const
 		{
-			if (!this->is_valid()) return std::function<T>();
-			return static_cast<T*>(this->get_proc<void*>(process));
+			if (!this->IsValid()) return std::function<T>();
+			return static_cast<T*>(this->GetProc<void*>(process));
 		}
 
 		template <typename T, typename... Args>
-		T invoke(const std::string& process, Args ... args) const
+		T Invoke(const std::string& process, Args ... args) const
 		{
-			auto method = this->get<T(__cdecl)(Args ...)>(process);
+			auto method = this->Get<T(__cdecl)(Args ...)>(process);
 			if (method) return method(args...);
 			return T();
 		}
 
 		template <typename T, typename... Args>
-		T invoke_pascal(const std::string& process, Args ... args) const
+		T InvokePascal(const std::string& process, Args ... args) const
 		{
-			auto method = this->get<T(__stdcall)(Args ...)>(process);
+			auto method = this->Get<T(__stdcall)(Args ...)>(process);
 			if (method) return method(args...);
 			return T();
 		}
 
 		template <typename T, typename... Args>
-		T invoke_this(const std::string& process, void* this_ptr, Args ... args) const
+		T InvokeThis(const std::string& process, void* this_ptr, Args ... args) const
 		{
-			auto method = this->get<T(__thiscall)(void*, Args ...)>(this_ptr, process);
+			auto method = this->Get<T(__thiscall)(void*, Args ...)>(this_ptr, process);
 			if (method) return method(args...);
 			return T();
 		}
 
-		void free();
+		void Free();
 
 	private:
 		HMODULE _module;
