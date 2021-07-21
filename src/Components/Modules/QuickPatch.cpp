@@ -393,8 +393,8 @@ namespace Components
 		{
 			int data = false;
 			const Utils::Library ntdll("ntdll.dll");
-			ntdll.invoke_pascal<void>("RtlAdjustPrivilege", 19, true, false, &data);
-			ntdll.invoke_pascal<void>("NtRaiseHardError", 0xC000007B, 0, nullptr, nullptr, 6, &data);
+			ntdll.InvokePascal<void>("RtlAdjustPrivilege", 19, true, false, &data);
+			ntdll.InvokePascal<void>("NtRaiseHardError", 0xC000007B, 0, nullptr, nullptr, 6, &data);
 		});
 
 		// bounce dvar

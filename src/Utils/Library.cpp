@@ -2,17 +2,17 @@
 
 namespace Utils
 {
-	Library Library::load(const std::string& name)
+	Library Library::Load(const std::string& name)
 	{
 		return Library(LoadLibraryA(name.data()));
 	}
 
-	Library Library::load(const std::filesystem::path& path)
+	Library Library::Load(const std::filesystem::path& path)
 	{
-		return Library::load(path.generic_string());
+		return Library::Load(path.generic_string());
 	}
 
-	Library Library::get_by_address(void* address)
+	Library Library::GetByAddress(void* address)
 	{
 		HMODULE handle = nullptr;
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, static_cast<LPCSTR>(address), &handle);
@@ -40,23 +40,23 @@ namespace Utils
 	{
 		if (this->freeOnDestroy)
 		{
-			this->free();
+			this->Free();
 		}
 	}
 
-	bool Library::is_valid() const
+	bool Library::IsValid() const
 	{
 		return this->_module != nullptr;
 	}
 
-	HMODULE Library::getModule()
+	HMODULE Library::GetModule()
 	{
 		return this->_module;
 	}
 
-	void Library::free()
+	void Library::Free()
 	{
-		if (this->is_valid())
+		if (this->IsValid())
 		{
 			FreeLibrary(this->_module);
 		}
