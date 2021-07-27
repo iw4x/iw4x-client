@@ -218,8 +218,41 @@ namespace Components
 		}
 	}
 
+
+	// Patches team overhead normally
+	signed int __cdecl Colors::Dvar_GetUnpackedColorByName(const char* name, float* color) {
+
+		if (Dvar::Var("r_colorBlindTeams").get<bool>()) {
+			auto str = std::string(name);
+			if (str.compare("g_TeamColor_EnemyTeam") == 0) {
+				// A dark red
+				color[0] = 0.659f;
+				color[1] = 0.088f;
+				color[2] = 0.145f;
+				return 0;
+			}
+			else if (str.compare("g_TeamColor_MyTeam") == 0) {
+				// A bright yellow
+				color[0] = 1.f;
+				color[1] = 0.859f;
+				color[2] = 0.125f;
+				return 0;
+			}
+		}
+
+		return Utils::Hook::Call<signed int(const char*, float*)>(0x406530)(name, color);
+	}
+
 	Colors::Colors()
 	{
+		// Add a colorblind mode for team colors
+		Dvar::Register<bool>("r_colorBlindTeams", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Use color-blindness-friendly colors for ingame team names");
+		Utils::Hook(0x4C09BE, Colors::Dvar_GetUnpackedColorByName, HOOK_CALL).install()->quick();
+		Utils::Hook(0x583661, Colors::Dvar_GetUnpackedColorByName, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5836A5, Colors::Dvar_GetUnpackedColorByName, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4264FC, Colors::Dvar_GetUnpackedColorByName, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4264E5, Colors::Dvar_GetUnpackedColorByName, HOOK_CALL).install()->quick();
+
 		// Disable SV_UpdateUserinfo_f, to block changing the name ingame
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
 
