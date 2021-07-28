@@ -221,7 +221,7 @@ namespace Components
 
 
 	// Patches team overhead normally
-	int Colors::Dvar_GetUnpackedColorByName(const char* name, float* color)
+	bool Colors::Dvar_GetUnpackedColorByName(const char* name, float* color)
 	{
 		if (Colors::ColorBlind.get<bool>())
 		{
@@ -232,7 +232,7 @@ namespace Components
 				color[0] = 0.659f;
 				color[1] = 0.088f;
 				color[2] = 0.145f;
-				return 0;
+				return false;
 			}
 			else if (str.compare("g_TeamColor_MyTeam") == 0)
 			{
@@ -240,11 +240,11 @@ namespace Components
 				color[0] = 1.f;
 				color[1] = 0.859f;
 				color[2] = 0.125f;
-				return 0;
+				return false;
 			}
 		}
 
-		return 1;
+		return true;
 	}
 
 	__declspec(naked) void Colors::GetUnpackedColorByNameStub()
@@ -255,7 +255,7 @@ namespace Components
 			pushad
 
 			push [esp + 2Ch]
-			push [esp + 2Ch];
+			push [esp + 2Ch]
 			call Colors::Dvar_GetUnpackedColorByName
 			add esp, 8h
 
@@ -264,17 +264,18 @@ namespace Components
 			popad
 			pop eax
 
-			test eax, eax
-			jnz continue
+			test al, al
+			jz dontContinue
 
-			xor eax, eax
-			retn
-
-		continue:
+			mov eax, [esp + 8]
 			push edi
 			mov edi, dword ptr[esp + 4h]
 
-			push 406535h
+			mov ecx, 406535h
+			jmp ecx
+
+		dontContinue:
+			xor eax, eax
 			retn
 		}
 	}
