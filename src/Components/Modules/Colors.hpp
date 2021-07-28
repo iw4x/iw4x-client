@@ -36,7 +36,8 @@ namespace Components
 		static void LookupColor(DWORD* color, char index);
 		static void LookupColorStub();
 		static char* CleanStrStub(char* string);
-		static signed int Dvar_GetUnpackedColorByName(const char* name, float* color);
+		static int Dvar_GetUnpackedColorByName(const char* name, float* color);
+		static void GetUnpackedColorByNameStub();
 		static std::vector<DWORD> ColorTable;
 	};
 }
