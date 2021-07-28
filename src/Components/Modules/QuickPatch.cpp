@@ -341,9 +341,6 @@ namespace Components
 
 			// original code
 			mov eax, dword ptr[esp + 0xa0];
-			jmp collide;
-
-		collide:
 			push 0x00478376;
 			retn;
 
@@ -374,11 +371,6 @@ namespace Components
 			// dont eject if g_playerEjection is set to 0
 			je donteject;
 
-			// original code
-			cmp dword ptr[ebx + 19ch], edi;
-			jle eject;
-
-		eject:
 			push 0x005d8152;
 			retn;
 
@@ -388,12 +380,12 @@ namespace Components
 		}
 	}
 
-	template <typename T> std::function < T > ImportFunction(const std::string& dll, const std::string& function)
+	template <typename T> std::function <T> ImportFunction(const std::string& dll, const std::string& function)
 	{
 		auto dllHandle = GetModuleHandleA(&dll[0]);
 		auto procAddr = GetProcAddress(dllHandle, &function[0]);
 
-		return std::function < T >(reinterpret_cast<T*>(procAddr));
+		return std::function <T>(reinterpret_cast<T*>(procAddr));
 	}
 
 	bool QuickPatch::IsDynClassnameStub(char* a1) 
@@ -418,7 +410,7 @@ namespace Components
 		// Passthrough to the game's own IsDynClassname
 		return Utils::Hook::Call<bool(char*)>(0x444810)(a1);
 	}
-
+  
 	QuickPatch::QuickPatch()
 	{
 		QuickPatch::FrameTime = 0;
@@ -430,36 +422,10 @@ namespace Components
 		// quit_hard
 		Command::Add("quit_hard", [](Command::Params*)
 		{
-			typedef enum _HARDERROR_RESPONSE_OPTION {
-				OptionAbortRetryIgnore,
-				OptionOk,
-				OptionOkCancel,
-				OptionRetryCancel,
-				OptionYesNo,
-				OptionYesNoCancel,
-				OptionShutdownSystem
-			} HARDERROR_RESPONSE_OPTION, *PHARDERROR_RESPONSE_OPTION;
-
-			typedef enum _HARDERROR_RESPONSE {
-				ResponseReturnToCaller,
-				ResponseNotHandled,
-				ResponseAbort,
-				ResponseCancel,
-				ResponseIgnore,
-				ResponseNo,
-				ResponseOk,
-				ResponseRetry,
-				ResponseYes
-			} HARDERROR_RESPONSE, *PHARDERROR_RESPONSE;
-
-			BOOLEAN hasPerms;
-			HARDERROR_RESPONSE response;
-
-			auto result = ImportFunction<NTSTATUS __stdcall(ULONG, BOOLEAN, BOOLEAN, PBOOLEAN)>("ntdll.dll", "RtlAdjustPrivilege")
-				(19, true, false, &hasPerms);
-
-			result = ImportFunction<NTSTATUS __stdcall(NTSTATUS, ULONG, LPCSTR, PVOID, HARDERROR_RESPONSE_OPTION, PHARDERROR_RESPONSE)>("ntdll.dll", "NtRaiseHardError")
-				(0xC000007B /*0x0000000A*/, 0, nullptr, nullptr, OptionShutdownSystem, &response);
+			int data = false;
+			const Utils::Library ntdll("ntdll.dll");
+			ntdll.InvokePascal<void>("RtlAdjustPrivilege", 19, true, false, &data);
+			ntdll.InvokePascal<void>("NtRaiseHardError", 0xC000007B, 0, nullptr, nullptr, 6, &data);
 		});
 
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning

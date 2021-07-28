@@ -130,6 +130,9 @@ namespace Game
 	typedef void(__cdecl * Com_SetSlowMotion_t)(float start, float end, int duration);
 	extern Com_SetSlowMotion_t Com_SetSlowMotion;
 
+	typedef void(__cdecl * Com_Quitf_t)();
+	extern Com_Quitf_t Com_Quit_f;
+
 	typedef char* (__cdecl * Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
 	extern Con_DrawMiniConsole_t Con_DrawMiniConsole;
 

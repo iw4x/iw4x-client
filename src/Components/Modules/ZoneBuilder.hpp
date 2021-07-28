@@ -138,7 +138,6 @@ namespace Components
 		static std::string FindMaterialByTechnique(const std::string& name);
 
 		static int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
-		static void Quit();
 		static void HandleError(int level, const char* format, ...);
 		static void SoftErrorAssetOverflow();
 
