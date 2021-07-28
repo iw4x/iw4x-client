@@ -268,8 +268,8 @@ namespace Components
 			mov eax, [esp + 8]
 			push edi
 			mov edi, dword ptr[esp + 4h]
-			mov ecx, 406535h
-			jmp ecx
+			push 406535h
+			retn
 
 		dontContinue:
 			xor eax, eax
