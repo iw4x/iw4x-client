@@ -380,19 +380,12 @@ namespace Components
 		}
 	}
 
-	template <typename T> std::function <T> ImportFunction(const std::string& dll, const std::string& function)
-	{
-		auto dllHandle = GetModuleHandleA(&dll[0]);
-		auto procAddr = GetProcAddress(dllHandle, &function[0]);
-
-		return std::function <T>(reinterpret_cast<T*>(procAddr));
-	}
-
 	bool QuickPatch::IsDynClassnameStub(char* a1) 
 	{
 		auto version = Zones::GetEntitiesZoneVersion();
 
-		if (version >= VERSION_LATEST_CODO) {
+		if (version >= VERSION_LATEST_CODO)
+		{
 			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
 			{
 				char** kvPair = Game::spawnVars->spawnVars[i];
