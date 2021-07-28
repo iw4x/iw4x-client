@@ -219,7 +219,6 @@ namespace Components
 		}
 	}
 
-
 	// Patches team overhead normally
 	bool Colors::Dvar_GetUnpackedColorByName(const char* name, float* color)
 	{
@@ -260,7 +259,6 @@ namespace Components
 			add esp, 8h
 
 			mov [esp + 20h], eax
-
 			popad
 			pop eax
 
@@ -270,7 +268,6 @@ namespace Components
 			mov eax, [esp + 8]
 			push edi
 			mov edi, dword ptr[esp + 4h]
-
 			mov ecx, 406535h
 			jmp ecx
 
