@@ -390,20 +390,24 @@ namespace Components
 
 	bool QuickPatch::IsDynClassnameStub(char* a1) 
 	{
-		for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
-		{
-			char** kvPair = Game::spawnVars->spawnVars[i];
-			auto key = kvPair[0];
-			auto val = kvPair[1];
+		auto version = Zones::GetEntitiesZoneVersion();
 
-			bool isSpecOps = strncmp(key, "script_specialops", 17) == 0;
-			bool isSpecOpsOnly = val[0] == '1' && val[1] == '\0';
-
-			if (isSpecOps && isSpecOpsOnly) 
+		if (version >= VERSION_LATEST_CODO) {
+			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
 			{
-				// This will prevent spawning of any entity that contains "script_specialops: '1'" 
-				// It removes extra hitboxes / meshes on 461+ CODO multiplayer maps
-				return true; 
+				char** kvPair = Game::spawnVars->spawnVars[i];
+				auto key = kvPair[0];
+				auto val = kvPair[1];
+
+				bool isSpecOps = strncmp(key, "script_specialops", 17) == 0;
+				bool isSpecOpsOnly = val[0] == '1' && val[1] == '\0';
+
+				if (isSpecOps && isSpecOpsOnly)
+				{
+					// This will prevent spawning of any entity that contains "script_specialops: '1'" 
+					// It removes extra hitboxes / meshes on 461+ CODO multiplayer maps
+					return true;
+				}
 			}
 		}
 

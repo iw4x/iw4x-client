@@ -24,10 +24,13 @@ namespace Components
 
 		static int Version() { return Zones::ZoneVersion; };
 
+		static int GetEntitiesZoneVersion() { return Zones::EntitiesVersion; };
+
 	private:
 	
 		static int ZoneVersion;
-
+		static int EntitiesVersion;
+		
 		static int FxEffectIndex;
 		static char* FxEffectStrings[64];
 
