@@ -3,6 +3,7 @@
 namespace Components
 {
 	Dvar::Var Colors::NewColors;
+	Dvar::Var Colors::ColorBlind;
 	std::vector<DWORD> Colors::ColorTable;
 
 	DWORD Colors::HsvToRgb(Colors::HsvColor hsv)
@@ -220,18 +221,21 @@ namespace Components
 
 
 	// Patches team overhead normally
-	signed int __cdecl Colors::Dvar_GetUnpackedColorByName(const char* name, float* color) {
-
-		if (Dvar::Var("r_colorBlindTeams").get<bool>()) {
+	signed int __cdecl Colors::Dvar_GetUnpackedColorByName(const char* name, float* color)
+	{
+		if (Colors::ColorBlind.get<bool>())
+		{
 			auto str = std::string(name);
-			if (str.compare("g_TeamColor_EnemyTeam") == 0) {
+			if (str.compare("g_TeamColor_EnemyTeam") == 0)
+			{
 				// A dark red
 				color[0] = 0.659f;
 				color[1] = 0.088f;
 				color[2] = 0.145f;
 				return 0;
 			}
-			else if (str.compare("g_TeamColor_MyTeam") == 0) {
+			else if (str.compare("g_TeamColor_MyTeam") == 0)
+			{
 				// A bright yellow
 				color[0] = 1.f;
 				color[1] = 0.859f;
@@ -246,7 +250,7 @@ namespace Components
 	Colors::Colors()
 	{
 		// Add a colorblind mode for team colors
-		Dvar::Register<bool>("r_colorBlindTeams", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Use color-blindness-friendly colors for ingame team names");
+		Colors::ColorBlind = Dvar::Register<bool>("r_colorBlindTeams", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Use color-blindness-friendly colors for ingame team names");
 		Utils::Hook(0x4C09BE, Colors::Dvar_GetUnpackedColorByName, HOOK_CALL).install()->quick();
 		Utils::Hook(0x583661, Colors::Dvar_GetUnpackedColorByName, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5836A5, Colors::Dvar_GetUnpackedColorByName, HOOK_CALL).install()->quick();
@@ -272,7 +276,7 @@ namespace Components
 		Utils::Hook(0x4AD470, Colors::CleanStrStub, HOOK_JUMP).install()->quick();
 
 		// Register dvar
-		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare² color code style.");
+		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfareï¿½ color code style.");
 		Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
 		Dvar::Register<bool>("sv_allowColoredNames", true, Game::dvar_flag::DVAR_FLAG_NONE, "Allow colored names on the server");
 
