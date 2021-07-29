@@ -193,6 +193,7 @@ namespace Components
 			"Killera",
 			"Lithium",
 			"Louvenarde",
+			"FutureRave",
 			"OneFourOne",
 			"quaK",
 			"RaidMax",
