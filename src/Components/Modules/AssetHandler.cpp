@@ -286,7 +286,7 @@ namespace Components
 			push [esp + 2Ch]
 			push [esp + 2Ch]
 			call AssetHandler::IsAssetEligible
-			add esp, 08h
+			add esp, 8h
 
 			mov [esp + 20h], eax
 			popad
@@ -295,13 +295,13 @@ namespace Components
 			test al, al
 			jz doNotLoad
 
-			mov eax, [esp + 8]
+			mov eax, [esp + 8h]
 			sub esp, 14h
 			mov ecx, 5BB657h
 			jmp ecx
 
 		doNotLoad:
-			mov eax, [esp + 8]
+			mov eax, [esp + 8h]
 			retn
 		}
 	}

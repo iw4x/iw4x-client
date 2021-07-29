@@ -265,7 +265,7 @@ namespace Components
 			test al, al
 			jz dontContinue
 
-			mov eax, [esp + 8]
+			mov eax, [esp + 8h]
 			push edi
 			mov edi, dword ptr[esp + 4h]
 			push 406535h
