@@ -225,7 +225,7 @@ namespace Components
 		if (Colors::ColorBlind.get<bool>())
 		{
 			auto str = std::string(name);
-			if (str.compare("g_TeamColor_EnemyTeam") == 0)
+			if (!str.compare("g_TeamColor_EnemyTeam"))
 			{
 				// A dark red
 				color[0] = 0.659f;
@@ -233,7 +233,7 @@ namespace Components
 				color[2] = 0.145f;
 				return false;
 			}
-			else if (str.compare("g_TeamColor_MyTeam") == 0)
+			else if (!str.compare("g_TeamColor_MyTeam"))
 			{
 				// A bright yellow
 				color[0] = 1.f;
@@ -250,28 +250,20 @@ namespace Components
 	{
 		__asm
 		{
-			push eax
-			pushad
-
-			push [esp + 2Ch]
-			push [esp + 2Ch]
+			push [esp + 8h]
+			push [esp + 8h]
 			call Colors::Dvar_GetUnpackedColorByName
 			add esp, 8h
 
-			mov [esp + 20h], eax
-			popad
-			pop eax
-
 			test al, al
-			jz dontContinue
+			jnz continue
 
-			push edi
-			mov edi, dword ptr[esp + 4h]
-			push 406535h
 			retn
 
-		dontContinue:
-			xor eax, eax
+		continue:
+			push edi
+			mov edi, [esp + 8h]
+			push 406535h
 			retn
 		}
 	}
