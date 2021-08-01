@@ -235,6 +235,7 @@ namespace Components
 				color[0] = colorlindEnemy[0];
 				color[1] = colorlindEnemy[1];
 				color[2] = colorlindEnemy[2];
+				color[3] = colorlindEnemy[3];
 				return false;
 			}
 			else if (!str.compare("g_TeamColor_MyTeam"))
@@ -244,6 +245,7 @@ namespace Components
 				color[0] = colorblindAlly[0];
 				color[1] = colorblindAlly[1];
 				color[2] = colorblindAlly[2];
+				color[3] = colorblindAlly[3];
 				return false;
 			}
 		}
