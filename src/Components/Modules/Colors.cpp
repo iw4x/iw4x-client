@@ -230,6 +230,7 @@ namespace Components
 			const auto str = std::string(name);
 			if (str == "g_TeamColor_EnemyTeam")
 			{
+				// Dvar_GetUnpackedColor
 				auto* colorblindEnemy = Colors::ColorEnemyColorBlind->current.color;
 				expandedColor[0] = static_cast<float>(colorblindEnemy[0]) / 255.0f;
 				expandedColor[1] = static_cast<float>(colorblindEnemy[1]) / 255.0f;
@@ -239,6 +240,7 @@ namespace Components
 			}
 			else if (str == "g_TeamColor_MyTeam")
 			{
+				// Dvar_GetUnpackedColor
 				auto* colorblindAlly = Colors::ColorAllyColorBlind->current.color;
 				expandedColor[0] = static_cast<float>(colorblindAlly[0]) / 255.0f;
 				expandedColor[1] = static_cast<float>(colorblindAlly[1]) / 255.0f;
