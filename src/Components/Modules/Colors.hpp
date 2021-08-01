@@ -23,6 +23,8 @@ namespace Components
 
 		static Dvar::Var NewColors;
 		static Dvar::Var ColorBlind;
+		static Dvar::Var ColorAlly;
+		static Dvar::Var ColorEnemy;
 
 		static DWORD HsvToRgb(HsvColor hsv);
 

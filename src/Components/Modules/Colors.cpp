@@ -4,6 +4,9 @@ namespace Components
 {
 	Dvar::Var Colors::NewColors;
 	Dvar::Var Colors::ColorBlind;
+	Dvar::Var Colors::ColorAlly;
+	Dvar::Var Colors::ColorEnemy;
+
 	std::vector<DWORD> Colors::ColorTable;
 
 	DWORD Colors::HsvToRgb(Colors::HsvColor hsv)
@@ -228,17 +231,19 @@ namespace Components
 			if (!str.compare("g_TeamColor_EnemyTeam"))
 			{
 				// A dark red
-				color[0] = 0.659f;
-				color[1] = 0.088f;
-				color[2] = 0.145f;
+				auto* colorlindEnemy = Colors::ColorEnemy.get<float*>();
+				color[0] = colorlindEnemy[0];
+				color[1] = colorlindEnemy[1];
+				color[2] = colorlindEnemy[2];
 				return false;
 			}
 			else if (!str.compare("g_TeamColor_MyTeam"))
 			{
 				// A bright yellow
-				color[0] = 1.f;
-				color[1] = 0.859f;
-				color[2] = 0.125f;
+				auto* colorblindAlly = Colors::ColorAlly.get<float*>();
+				color[0] = colorblindAlly[0];
+				color[1] = colorblindAlly[1];
+				color[2] = colorblindAlly[2];
 				return false;
 			}
 		}
@@ -272,6 +277,8 @@ namespace Components
 	{
 		// Add a colorblind mode for team colors
 		Colors::ColorBlind = Dvar::Register<bool>("r_colorBlindTeams", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Use color-blindness-friendly colors for ingame team names");
+		Colors::ColorEnemy = Game::Dvar_RegisterVec4("g_TeamColor_EnemyTeam_Color", 0.659f, 0.088f, 0.145f, 1, 0, 1, Game::dvar_flag::DVAR_FLAG_SAVED, "Enemy team color");
+		Colors::ColorAlly = Game::Dvar_RegisterVec4("g_TeamColor_MyTeam_Color", 1, 0.859f, 0.125f, 1, 0, 1, Game::dvar_flag::DVAR_FLAG_SAVED, "Allied team color");
 		Utils::Hook(0x406530, Colors::GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();
 
 		// Disable SV_UpdateUserinfo_f, to block changing the name ingame
