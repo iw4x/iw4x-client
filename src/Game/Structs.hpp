@@ -2347,7 +2347,7 @@ namespace Game
 		float value;
 		float vector[4];
 		const char *string;
-		char color[4];
+		unsigned char color[4];
 	};
 
 	struct $BFBB53559BEAC4289F32B924847E59CB
