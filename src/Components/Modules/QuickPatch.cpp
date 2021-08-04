@@ -380,10 +380,10 @@ namespace Components
 		}
 	}
 
-	bool QuickPatch::IsDynClassnameStub(char* a1) 
+	BOOL QuickPatch::IsDynClassnameStub(char* a1) 
 	{
 		auto version = Zones::GetEntitiesZoneVersion();
-
+		
 		if (version >= VERSION_LATEST_CODO)
 		{
 			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
@@ -399,13 +399,13 @@ namespace Components
 				{
 					// This will prevent spawning of any entity that contains "script_specialops: '1'" 
 					// It removes extra hitboxes / meshes on 461+ CODO multiplayer maps
-					return true;
+					return TRUE;
 				}
 			}
 		}
 
 		// Passthrough to the game's own IsDynClassname
-		return Utils::Hook::Call<bool(char*)>(0x444810)(a1);
+		return Utils::Hook::Call<BOOL(char*)>(0x444810)(a1);
 	}
   
 	QuickPatch::QuickPatch()
