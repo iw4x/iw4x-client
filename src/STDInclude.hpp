@@ -59,7 +59,7 @@ template <size_t S> class Sizer { };
 #define Offset_Of(x, y, z) BindNum(offsetof(x, y), z)
 
 // Submodules
-// Ignore the warnings, it's no our code!
+// Ignore the warnings, it's not our code!
 #pragma warning(push)
 #pragma warning(disable: 4005)
 #pragma warning(disable: 4091)
@@ -152,6 +152,7 @@ template <size_t S> class Sizer { };
 #pragma comment(lib, "Advapi32.lib")
 #pragma comment(lib, "rpcrt4.lib")
 #pragma comment(lib, "dbghelp.lib")
+#pragma comment(lib, "ntdll.lib")
 
 // Enable additional literals
 using namespace std::literals;

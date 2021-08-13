@@ -47,5 +47,6 @@ namespace Components
 		static void PlayerCollisionStub();
 		static Game::dvar_t* g_playerEjection;
 		static void PlayerEjectionStub();
+		static BOOL IsDynClassnameStub(char* a1);
 	};
 }

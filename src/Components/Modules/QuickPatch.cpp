@@ -341,9 +341,6 @@ namespace Components
 
 			// original code
 			mov eax, dword ptr[esp + 0xa0];
-			jmp collide;
-
-		collide:
 			push 0x00478376;
 			retn;
 
@@ -374,11 +371,6 @@ namespace Components
 			// dont eject if g_playerEjection is set to 0
 			je donteject;
 
-			// original code
-			cmp dword ptr[ebx + 19ch], edi;
-			jle eject;
-
-		eject:
 			push 0x005d8152;
 			retn;
 
@@ -388,14 +380,34 @@ namespace Components
 		}
 	}
 
-	template <typename T> std::function < T > ImportFunction(const std::string& dll, const std::string& function)
+	BOOL QuickPatch::IsDynClassnameStub(char* a1) 
 	{
-		auto dllHandle = GetModuleHandleA(&dll[0]);
-		auto procAddr = GetProcAddress(dllHandle, &function[0]);
+		auto version = Zones::GetEntitiesZoneVersion();
+		
+		if (version >= VERSION_LATEST_CODO)
+		{
+			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
+			{
+				char** kvPair = Game::spawnVars->spawnVars[i];
+				auto key = kvPair[0];
+				auto val = kvPair[1];
 
-		return std::function < T >(reinterpret_cast<T*>(procAddr));
+				bool isSpecOps = strncmp(key, "script_specialops", 17) == 0;
+				bool isSpecOpsOnly = val[0] == '1' && val[1] == '\0';
+
+				if (isSpecOps && isSpecOpsOnly)
+				{
+					// This will prevent spawning of any entity that contains "script_specialops: '1'" 
+					// It removes extra hitboxes / meshes on 461+ CODO multiplayer maps
+					return TRUE;
+				}
+			}
+		}
+
+		// Passthrough to the game's own IsDynClassname
+		return Utils::Hook::Call<BOOL(char*)>(0x444810)(a1);
 	}
-
+  
 	QuickPatch::QuickPatch()
 	{
 		QuickPatch::FrameTime = 0;
@@ -407,37 +419,14 @@ namespace Components
 		// quit_hard
 		Command::Add("quit_hard", [](Command::Params*)
 		{
-			typedef enum _HARDERROR_RESPONSE_OPTION {
-				OptionAbortRetryIgnore,
-				OptionOk,
-				OptionOkCancel,
-				OptionRetryCancel,
-				OptionYesNo,
-				OptionYesNoCancel,
-				OptionShutdownSystem
-			} HARDERROR_RESPONSE_OPTION, *PHARDERROR_RESPONSE_OPTION;
-
-			typedef enum _HARDERROR_RESPONSE {
-				ResponseReturnToCaller,
-				ResponseNotHandled,
-				ResponseAbort,
-				ResponseCancel,
-				ResponseIgnore,
-				ResponseNo,
-				ResponseOk,
-				ResponseRetry,
-				ResponseYes
-			} HARDERROR_RESPONSE, *PHARDERROR_RESPONSE;
-
-			BOOLEAN hasPerms;
-			HARDERROR_RESPONSE response;
-
-			auto result = ImportFunction<NTSTATUS __stdcall(ULONG, BOOLEAN, BOOLEAN, PBOOLEAN)>("ntdll.dll", "RtlAdjustPrivilege")
-				(19, true, false, &hasPerms);
-
-			result = ImportFunction<NTSTATUS __stdcall(NTSTATUS, ULONG, LPCSTR, PVOID, HARDERROR_RESPONSE_OPTION, PHARDERROR_RESPONSE)>("ntdll.dll", "NtRaiseHardError")
-				(0xC000007B /*0x0000000A*/, 0, nullptr, nullptr, OptionShutdownSystem, &response);
+			int data = false;
+			const Utils::Library ntdll("ntdll.dll");
+			ntdll.InvokePascal<void>("RtlAdjustPrivilege", 19, true, false, &data);
+			ntdll.InvokePascal<void>("NtRaiseHardError", 0xC000007B, 0, nullptr, nullptr, 6, &data);
 		});
+
+		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
+		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassnameStub, HOOK_CALL).install()->quick();
 
 		// bounce dvar
 		sv_enableBounces = Game::Dvar_RegisterBool("sv_enableBounces", false, Game::DVAR_FLAG_REPLICATED, "Enables bouncing on the server");

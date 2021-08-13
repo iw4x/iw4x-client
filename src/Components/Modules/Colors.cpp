@@ -3,6 +3,10 @@
 namespace Components
 {
 	Dvar::Var Colors::NewColors;
+	Dvar::Var Colors::ColorBlind;
+	Game::dvar_t* Colors::ColorAllyColorBlind;
+	Game::dvar_t* Colors::ColorEnemyColorBlind;
+
 	std::vector<DWORD> Colors::ColorTable;
 
 	DWORD Colors::HsvToRgb(Colors::HsvColor hsv)
@@ -218,8 +222,69 @@ namespace Components
 		}
 	}
 
+	// Patches team overhead normally
+	bool Colors::Dvar_GetUnpackedColorByName(const char* name, float* expandedColor)
+	{
+		if (Colors::ColorBlind.get<bool>())
+		{
+			const auto str = std::string(name);
+			if (str == "g_TeamColor_EnemyTeam")
+			{
+				// Dvar_GetUnpackedColor
+				auto* colorblindEnemy = Colors::ColorEnemyColorBlind->current.color;
+				expandedColor[0] = static_cast<float>(colorblindEnemy[0]) / 255.0f;
+				expandedColor[1] = static_cast<float>(colorblindEnemy[1]) / 255.0f;
+				expandedColor[2] = static_cast<float>(colorblindEnemy[2]) / 255.0f;
+				expandedColor[3] = static_cast<float>(colorblindEnemy[3]) / 255.0f;
+				return false;
+			}
+			else if (str == "g_TeamColor_MyTeam")
+			{
+				// Dvar_GetUnpackedColor
+				auto* colorblindAlly = Colors::ColorAllyColorBlind->current.color;
+				expandedColor[0] = static_cast<float>(colorblindAlly[0]) / 255.0f;
+				expandedColor[1] = static_cast<float>(colorblindAlly[1]) / 255.0f;
+				expandedColor[2] = static_cast<float>(colorblindAlly[2]) / 255.0f;
+				expandedColor[3] = static_cast<float>(colorblindAlly[3]) / 255.0f;
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	__declspec(naked) void Colors::GetUnpackedColorByNameStub()
+	{
+		__asm
+		{
+			push [esp + 8h]
+			push [esp + 8h]
+			call Colors::Dvar_GetUnpackedColorByName
+			add esp, 8h
+
+			test al, al
+			jnz continue
+
+			retn
+
+		continue:
+			push edi
+			mov edi, [esp + 8h]
+			push 406535h
+			retn
+		}
+	}
+
 	Colors::Colors()
 	{
+		// Add a colorblind mode for team colors
+		Colors::ColorBlind = Dvar::Register<bool>("r_colorBlindTeams", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Use color-blindness-friendly colors for ingame team names");
+		// A dark red
+		Colors::ColorEnemyColorBlind = Game::Dvar_RegisterColor("g_ColorBlind_EnemyTeam", 0.659f, 0.088f, 0.145f, 1, Game::dvar_flag::DVAR_FLAG_SAVED, "Enemy team color for colorblind mode");
+		// A bright yellow
+		Colors::ColorAllyColorBlind = Game::Dvar_RegisterColor("g_ColorBlind_MyTeam", 1, 0.859f, 0.125f, 1, Game::dvar_flag::DVAR_FLAG_SAVED, "Ally team color for colorblind mode");
+		Utils::Hook(0x406530, Colors::GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();
+
 		// Disable SV_UpdateUserinfo_f, to block changing the name ingame
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
 
@@ -239,7 +304,7 @@ namespace Components
 		Utils::Hook(0x4AD470, Colors::CleanStrStub, HOOK_JUMP).install()->quick();
 
 		// Register dvar
-		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare² color code style.");
+		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare 2 color code style.");
 		Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
 		Dvar::Register<bool>("sv_allowColoredNames", true, Game::dvar_flag::DVAR_FLAG_NONE, "Allow colored names on the server");
 

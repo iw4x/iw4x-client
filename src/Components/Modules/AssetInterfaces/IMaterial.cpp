@@ -36,12 +36,13 @@ namespace Assets
 			{"effect_zfeather", "effect_zfeather_blend"},
 
 			{"wc_unlit_add", "wc_unlit_add_lin"},
+			{"wc_unlit_distfalloff", "wc_unlit_distfalloff_replace"},
 			{"wc_unlit_multiply", "wc_unlit_multiply_lin"},
 			{"wc_unlit_falloff_add", "wc_unlit_falloff_add_lin_ua"},
-			{"wc_unlit", "wc_unlit_add_lin"},
-			{"wc_unlit_alphatest", "wc_unlit_blend_lin_ua"},
+			{"wc_unlit", "wc_unlit_replace_lin"},
+			{"wc_unlit_alphatest", "wc_unlit_blend_lin"},
 			{"wc_unlit_multiply_lin", "wc_unlit_multiply_lin"},
-			{"wc_unlit_blend", "wc_unlit_blend_lin"},
+			{"wc_unlit_blend", "wc_unlit_blend_lin_ua"},
 			{"wc_unlit_replace", "wc_unlit_replace_lin"},
 
 			{"mc_unlit_replace", "mc_unlit_replace_lin"},
@@ -83,38 +84,41 @@ namespace Assets
 
 		if (asset->techniqueSet)
 		{
-			std::string techset = reader.readString();
-			if (!techset.empty() && techset.front() == ',') techset.erase(techset.begin());
-			asset->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techset.data(), builder).techniqueSet;
+			std::string techsetName = reader.readString();
+			if (!techsetName.empty() && techsetName.front() == ',') techsetName.erase(techsetName.begin());
+			asset->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techsetName.data(), builder).techniqueSet;
 
 			if (!asset->techniqueSet)
 			{
 				// Workaround for effect techsets having _nofog suffix
 				std::string suffix;
-				if (Utils::String::StartsWith(techset, "effect_") && Utils::String::EndsWith(techset, "_nofog"))
+				if (Utils::String::StartsWith(techsetName, "effect_") && Utils::String::EndsWith(techsetName, "_nofog"))
 				{
 					suffix = "_nofog";
-					Utils::String::Replace(techset, suffix, "");
+					Utils::String::Replace(techsetName, suffix, "");
 				}
 
 				for (int i = 0; i < ARRAYSIZE(techsetSuffix); ++i)
 				{
-					Game::MaterialTechniqueSet* techsetPtr = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techset + techsetSuffix[i] + suffix).data(), builder).techniqueSet;
+					Game::MaterialTechniqueSet* techsetPtr = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techsetName + techsetSuffix[i] + suffix).data(), builder).techniqueSet;
 
 					if (techsetPtr)
 					{
 						asset->techniqueSet = techsetPtr;
 
 						if (asset->techniqueSet->name[0] == ',') continue; // Try to find a better one
-						Components::Logger::Print("Techset '%s' has been mapped to '%s'\n", techset.data(), asset->techniqueSet->name);
+						Components::Logger::Print("Techset '%s' has been mapped to '%s'\n", techsetName.data(), asset->techniqueSet->name);
 						break;
 					}
 				}
 			}
+			else {
+				Components::Logger::Print("Techset %s exists with the same name in iw4, and was mapped 1:1 with %s\n", techsetName.data(), asset->techniqueSet->name);
+			}
 
 			if (!asset->techniqueSet)
 			{
-				Components::Logger::Error("Missing techset: '%s' not found", techset.data());
+				Components::Logger::Error("Missing techset: '%s' not found", techsetName.data());
 			}
 		}
 
@@ -254,7 +258,7 @@ namespace Assets
 
 								if (header.material->techniqueSet == iw4TechSet->asset.header.techniqueSet)
 								{
-									Components::Logger::Print("Material %s with techset %s has been mapped to %s (last chance!)\n", asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name);
+									Components::Logger::Print("Material %s with techset %s has been mapped to %s (last chance!), taking the sort key of material %s\n", asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name, header.material->info.name);
 									asset->info.sortKey = header.material->info.sortKey;
 									asset->techniqueSet = iw4TechSet->asset.header.techniqueSet;
 

@@ -40,6 +40,29 @@
 | `--disable-bitmessage`      | Disable use of BitMessage completely.          |
 | `--disable-base128`         | Disable base128 encoding for minidumps.        |
 | `--no-new-structure`        | Do not use new virtual path structure (separating headers and source files). |
+| `--iw4x-zones`              | Zonebuilder generates iw4x zones that cannot be loaded without IW4x specific patches. |
+
+## Command line arguments
+
+| Argument                    | Description                                    |
+|:----------------------------|:-----------------------------------------------|
+| `-tests`                    | Perform unit tests.                            |
+| `-entries`                  | Prints fast file info to the console.          |
+| `-stdout`                   | Redirect stdout to the external console.       |
+| `-console`                  | Enables external console.                      |
+| `-dedicated`                | Dedicated server.                              |
+| `-scriptablehttp`           | Adds HTTP console commands.                    |
+| `-bigdumps`                 | Enables dumps.                                 |
+| `-reallybigdumps`           | Unused.                                        |
+| `-bigminidumps`             | Mini dumps.                                    |
+| `-reallybigminidumps`       | Big mini dumps.                                |
+| `-dump`                     | Prints asset info to a .ents file.             |
+| `-monitor`                  | Enables monitor.                               |
+| `-nointro`                  | Skips game's intro.                            |
+| `-version`                  | Prints IW4X version.                           |
+| `-zonebuilder`              | Enables zone builder.                          |
+| `-nosteam`                  | Disables Steam features.                       |
+
 
 ## Disclaimer
 
