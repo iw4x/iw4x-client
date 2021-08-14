@@ -14,8 +14,7 @@ namespace Components
 		static int Delay;
 
 		static void SetSlowMotion();
-		static void ApplySlowMotion(int timePassed);
-		static void ApplySlowMotionStub();
+		static void ApplySlowMotionStub(int timePassed);
 
 		static void DrawConnectionInterruptedStub(int a1);
 	};

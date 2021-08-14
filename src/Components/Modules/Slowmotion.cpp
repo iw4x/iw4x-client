@@ -3,35 +3,22 @@
 namespace Components
 {
 	int SlowMotion::Delay = 0;
+	DWORD applySlowMotionHookLoc = 0x60B2D0;
 
-	void SlowMotion::ApplySlowMotion(int timePassed)
+	void SlowMotion::ApplySlowMotionStub(int timePassed)
 	{
 		if (SlowMotion::Delay <= 0)
 		{
-			Utils::Hook::Call<void(int)>(0x60B2D0)(timePassed);
+			__asm
+			{
+				push timePassed
+				call applySlowMotionHookLoc
+				add esp, 4h
+			}
 		}
 		else
-		{
 			SlowMotion::Delay -= timePassed;
-		}
 	}
-
-	__declspec(naked) void SlowMotion::ApplySlowMotionStub()
-	{
-		__asm
-		{
-			pushad
-			push [esp + 20h]
-
-			call SlowMotion::ApplySlowMotion
-
-			pop ecx
-			popad
-
-			retn
-		}
-	}
-
 	void SlowMotion::SetSlowMotion()
 	{
 		int duration = 1000;
