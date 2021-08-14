@@ -11,6 +11,13 @@ namespace Components
 	std::chrono::milliseconds XInput::timeAtFirstHeldMaxLookX = 0ms; // "For how much time in milliseconds has the player been holding a horizontal direction on their stick, fully" (-1.0 or 1.0)
 	bool XInput::isHoldingMaxLookX = false;
 	bool XInput::isADS;
+	
+	Dvar::Var XInput::xpadSensitivity;
+	Dvar::Var XInput::xpadEarlyTime;
+	Dvar::Var XInput::xpadEarlyMultiplier;
+	Dvar::Var XInput::xpadHorizontalMultiplier;
+	Dvar::Var XInput::xpadVerticalMultiplier;
+	Dvar::Var XInput::xpadAdsMultiplier;
 
 	float XInput::lastMenuNavigationDirection = .0f;
 	std::chrono::milliseconds XInput::lastNavigationTime = 0ms;
@@ -380,12 +387,12 @@ namespace Components
 		{
 			XINPUT_STATE* xiState = &xiStates[xiPlayerNum];
 
-			float viewSensitivityMultiplier = Dvar::Var("xpad_sensitivity").get<float>() * XINPUT_SENSITIVITY_MULTIPLIER;
+			float viewSensitivityMultiplier = xpadSensitivity.get<float>() * XINPUT_SENSITIVITY_MULTIPLIER;
 
-			float lockedSensitivityMultiplier = Dvar::Var("xpad_early_multiplier").get<float>();
-			float generalXSensitivityMultiplier = Dvar::Var("xpad_horizontal_multiplier").get<float>();
-			float generalYSensitivityMultiplier = Dvar::Var("xpad_vertical_multiplier").get<float>();
-			std::chrono::milliseconds msBeforeUnlockingSensitivity = std::chrono::milliseconds(Dvar::Var("xpad_early_time").get<int>());
+			float lockedSensitivityMultiplier = xpadEarlyMultiplier.get<float>();
+			float generalXSensitivityMultiplier = xpadHorizontalMultiplier.get<float>();
+			float generalYSensitivityMultiplier = xpadVerticalMultiplier.get<float>();
+			std::chrono::milliseconds msBeforeUnlockingSensitivity = std::chrono::milliseconds(xpadEarlyTime.get<int>());
 
 			float viewStickX, viewStickY;
 			GetRightStick01Value(xiState, viewStickX, viewStickY);
@@ -416,8 +423,6 @@ namespace Components
 				XInput::isHoldingMaxLookX = false;
 				XInput::timeAtFirstHeldMaxLookX = 0ms;
 				viewStickX *= lockedSensitivityMultiplier;
-
-				Components::Logger::Print("multiplier will be %f\n", lockedSensitivityMultiplier);
 			}
 
 			float adsMultiplier = 1.0f;
@@ -426,7 +431,7 @@ namespace Components
 
 			// DO NOT use clientActive->usingAds ! It only works for toggle ADS
 			if (Game::PM_IsAdsAllowed(ps) && XInput::isADS) {
-				adsMultiplier = Dvar::Var("xpad_ads_multiplier").get<float>();
+				adsMultiplier = xpadAdsMultiplier.get<float>();
 			}
 
 			if (viewStickX != 0 || viewStickY != 0) {
@@ -512,13 +517,13 @@ namespace Components
 		Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A6829, unk_CheckKeyHook, HOOK_CALL).install()->quick();
 
-		Game::Dvar_RegisterFloat("xpad_sensitivity", 1.9f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
-		Game::Dvar_RegisterInt("xpad_early_time", 130, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");
-		Game::Dvar_RegisterFloat("xpad_early_multiplier", 0.25f, 0.01f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied during xpad_early_time when moving the view stick");
-		Game::Dvar_RegisterFloat("xpad_horizontal_multiplier", 1.5f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Horizontal view sensitivity multiplier");
-		Game::Dvar_RegisterFloat("xpad_vertical_multiplier", 0.8f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Vertical view sensitivity multiplier");
-		Game::Dvar_RegisterFloat("xpad_ads_multiplier", 0.7f, 0.1f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied when aiming down the sights.");
-
+		XInput::xpadSensitivity = Dvar::Register<float>("xpad_sensitivity", 1.9f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
+		XInput::xpadEarlyTime = Dvar::Register<int>("xpad_early_time", 130, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");
+		XInput::xpadEarlyMultiplier = Dvar::Register<float>("xpad_early_multiplier", 0.25f, 0.01f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied during xpad_early_time when moving the view stick");
+		XInput::xpadHorizontalMultiplier = Dvar::Register<float>("xpad_horizontal_multiplier", 1.5f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Horizontal view sensitivity multiplier");
+		XInput::xpadVerticalMultiplier = Dvar::Register<float>("xpad_vertical_multiplier", 0.8f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Vertical view sensitivity multiplier");
+		XInput::xpadAdsMultiplier = Dvar::Register<float>("xpad_ads_multiplier", 0.7f, 0.1f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied when aiming down the sights.");
+		
 		PollXInputDevices();
 
 		if (xiPlayerNum >= 0) {

@@ -48,6 +48,13 @@ namespace Components
 		static std::chrono::milliseconds msBetweenNavigations;
 		static float lastMenuNavigationDirection;
 
+		static Dvar::Var XInput::xpadSensitivity;
+		static Dvar::Var XInput::xpadEarlyTime;
+		static Dvar::Var XInput::xpadEarlyMultiplier;
+		static Dvar::Var XInput::xpadHorizontalMultiplier;
+		static Dvar::Var XInput::xpadVerticalMultiplier;
+		static Dvar::Var XInput::xpadAdsMultiplier;
+
 		static void CL_GetMouseMovementCl(Game::clientActive_t* result, float* mx, float* my);
 		static int unk_CheckKeyHook(int localClientNum, Game::keyNum_t keyCode);
 
