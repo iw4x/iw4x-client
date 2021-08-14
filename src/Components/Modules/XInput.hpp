@@ -52,7 +52,6 @@ namespace Components
 		static int unk_CheckKeyHook(int localClientNum, Game::keyNum_t keyCode);
 
 		static void MouseOverride(Game::clientActive_t* clientActive, float* my, float* mx);
-		static char MovementOverride(int a1, Game::usercmd_s* cmd);
 		static void Vibrate(int leftVal = 0, int rightVal = 0);
 
 		static void CL_FrameStub();
@@ -68,5 +67,9 @@ namespace Components
 
 		static void MSG_ReadDeltaUsercmdKeyStub();
 		static void MSG_ReadDeltaUsercmdKeyStub2();
+
+		static void GetLeftStick01Value(XINPUT_STATE* xiState, float& x, float& y);
+		static void GetRightStick01Value(XINPUT_STATE* xiState, float& x, float& y);
+		static void GamepadStickTo01(SHORT value, SHORT deadzone, float& output01);
 	};
 }
