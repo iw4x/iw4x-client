@@ -130,5 +130,6 @@ namespace Components
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/StartupMessages.hpp"
 #include "Modules/Stats.hpp"
+#include "Modules/SoundMutexFix.hpp"
 
 #include "Modules/Client.hpp"
