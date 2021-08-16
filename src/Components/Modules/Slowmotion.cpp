@@ -3,22 +3,35 @@
 namespace Components
 {
 	int SlowMotion::Delay = 0;
-	DWORD applySlowMotionHookLoc = 0x60B2D0;
 
-	void SlowMotion::ApplySlowMotionStub(int timePassed)
+	void SlowMotion::ApplySlowMotion(int timePassed)
 	{
 		if (SlowMotion::Delay <= 0)
 		{
-			__asm
-			{
-				push timePassed
-				call applySlowMotionHookLoc
-				add esp, 4h
-			}
+			Utils::Hook::Call<void(int)>(0x60B2D0)(timePassed);
 		}
 		else
+		{
 			SlowMotion::Delay -= timePassed;
+		}
 	}
+
+	__declspec(naked) void SlowMotion::ApplySlowMotionStub()
+	{
+		__asm
+		{
+			pushad
+			push[esp + 18h]
+
+			call SlowMotion::ApplySlowMotion
+
+			add esp, 4
+			popad
+
+			retn
+		}
+	}
+
 	void SlowMotion::SetSlowMotion()
 	{
 		int duration = 1000;
@@ -63,10 +76,10 @@ namespace Components
 
 	void SlowMotion::DrawConnectionInterruptedStub(int /*a1*/)
 	{
-// 		if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
-// 		{
-// 			Utils::Hook::Call<void(int)>(0x454A70)(a1);
-// 		}
+		// 		if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
+		// 		{
+		// 			Utils::Hook::Call<void(int)>(0x454A70)(a1);
+		// 		}
 	}
 
 	SlowMotion::SlowMotion()
