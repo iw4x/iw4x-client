@@ -21,11 +21,11 @@ namespace Components
 		__asm
 		{
 			pushad
-			push [esp + 20h]
+			push[esp + 18h]
 
 			call SlowMotion::ApplySlowMotion
 
-			pop ecx
+			add esp, 4
 			popad
 
 			retn
@@ -76,10 +76,10 @@ namespace Components
 
 	void SlowMotion::DrawConnectionInterruptedStub(int /*a1*/)
 	{
-// 		if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
-// 		{
-// 			Utils::Hook::Call<void(int)>(0x454A70)(a1);
-// 		}
+		// 		if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
+		// 		{
+		// 			Utils::Hook::Call<void(int)>(0x454A70)(a1);
+		// 		}
 	}
 
 	SlowMotion::SlowMotion()
