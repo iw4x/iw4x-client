@@ -9,7 +9,7 @@ namespace Components
 		SoundMutexFix();
 		
 	private:
-		static std::mutex snd_mutex;
+		static std::mutex SNDMutex;
 		static void _stdcall LockSoundMutex(int unk);
 	};
 }
