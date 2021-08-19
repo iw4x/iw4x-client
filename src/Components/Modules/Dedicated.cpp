@@ -103,7 +103,7 @@ namespace Components
 			push eax
 			pushad
 
-			push[esp + 100h + 28h]
+			push [esp + 100h + 28h]
 			push eax
 			call Dedicated::EvaluateSay
 			add esp, 8h

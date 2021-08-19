@@ -22,7 +22,7 @@ namespace Components
 		{
 			pushad
 
-			push[esp + 24h]
+			push [esp + 24h]
 			call SlowMotion::ApplySlowMotion
 			add esp, 4h
 

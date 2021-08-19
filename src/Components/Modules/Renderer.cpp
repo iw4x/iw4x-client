@@ -127,7 +127,7 @@ namespace Components
 
 			// show error
 			pushad;
-			push[esp + 24h + 20h];
+			push [esp + 24h + 20h];
 			push eax;
 			call R_TextureFromCodeError;
 			add esp, 8;
