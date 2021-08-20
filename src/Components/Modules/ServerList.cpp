@@ -454,6 +454,9 @@ namespace Components
 
 				ServerInfo server;
 				server.hostname = info.get("hostname");
+
+				Dedicated::StripMaterialTextIcons(server.hostname.data());
+
 				server.mapname = info.get("mapname");
 				server.gametype = info.get("gametype");
 				server.shortversion = info.get("shortversion");
