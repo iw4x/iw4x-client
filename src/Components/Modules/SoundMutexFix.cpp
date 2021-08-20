@@ -22,11 +22,11 @@ namespace Components
 	//		team switch and intermission.
 	// 
 
-	std::mutex SoundMutexFix::snd_mutex;
+	std::mutex SoundMutexFix::SNDMutex;
 
 	void __stdcall SoundMutexFix::LockSoundMutex(int unk)
 	{
-		std::lock_guard lock(SoundMutexFix::snd_mutex);
+		std::lock_guard lock(SoundMutexFix::SNDMutex);
 
 		DWORD funcPtr = *reinterpret_cast<DWORD*>(0x6D7554); // AIL_close_stream
 		Utils::Hook::Call<void __stdcall(int)>(funcPtr)(unk);

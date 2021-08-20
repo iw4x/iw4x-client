@@ -21,11 +21,11 @@ namespace Components
 		__asm
 		{
 			pushad
-			push[esp + 18h]
 
+			push [esp + 24h]
 			call SlowMotion::ApplySlowMotion
+			add esp, 4h
 
-			add esp, 4
 			popad
 
 			retn
