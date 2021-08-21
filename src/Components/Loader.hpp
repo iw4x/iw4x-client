@@ -131,5 +131,5 @@ namespace Components
 #include "Modules/StartupMessages.hpp"
 #include "Modules/Stats.hpp"
 
-#include "Modules/XInput.hpp"
+#include "Modules/Gamepad.hpp"
 #include "Modules/Client.hpp"
