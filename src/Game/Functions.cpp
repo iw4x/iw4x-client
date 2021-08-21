@@ -704,12 +704,23 @@ namespace Game
 		return atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
 	}
 
-	void Vec3Normalize(vec3_t& vec)
+	float Vec2Normalize(vec2_t& vec)
+	{
+		const float length = std::sqrt((vec[0] * vec[0]) + (vec[1] * vec[1]));
+
+		vec[0] /= length;
+		vec[1] /= length;
+
+		return length;
+	}
+
+	float Vec3Normalize(vec3_t& vec)
 	{
 		const float length = static_cast<float>(std::sqrt(std::pow(vec[0], 2) + std::pow(vec[1], 2) + std::pow(vec[2], 2)));
 		vec[0] /= length;
 		vec[1] /= length;
 		vec[2] /= length;
+		return length;
 	}
 
 	void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out)

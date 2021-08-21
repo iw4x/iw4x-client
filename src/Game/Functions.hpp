@@ -936,7 +936,8 @@ namespace Game
 
 	void Image_Setup(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
 
-	void Vec3Normalize(vec3_t& vec);
+	float Vec2Normalize(vec2_t& vec);
+	float Vec3Normalize(vec3_t& vec);
 	void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out);
 	void MatrixVecMultiply(const float(&mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution);
 	void QuatRot(vec3_t* vec, const vec4_t* quat);
