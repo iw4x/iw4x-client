@@ -707,12 +707,8 @@ namespace Components
 
     Gamepad::Gamepad()
     {
-        if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+        if (ZoneBuilder::IsEnabled())
             return;
-
-        Utils::Hook(0x467C03, IN_Init_Hk, HOOK_CALL).install()->quick();
-
-        Utils::Hook(0x475E9E, IN_Frame_Hk, HOOK_CALL).install()->quick();
 
         // use the xinput state when creating a usercmd
         Utils::Hook(0x5A6DB9, Gamepad::CL_CreateCmdStub, HOOK_JUMP).install()->quick();
@@ -728,6 +724,13 @@ namespace Components
         Utils::Hook(0x492127, Gamepad::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
         Utils::Hook(0x492009, Gamepad::MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
 
+        if (Dedicated::IsEnabled())
+            return;
+
+        Utils::Hook(0x467C03, IN_Init_Hk, HOOK_CALL).install()->quick();
+
+        Utils::Hook(0x475E9E, IN_Frame_Hk, HOOK_CALL).install()->quick();
+
         Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
         Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
         Utils::Hook(0x5A6829, unk_CheckKeyHook, HOOK_CALL).install()->quick();
@@ -741,7 +744,5 @@ namespace Components
         xpadHorizontalMultiplier = Dvar::Register<float>("xpad_horizontal_multiplier", 1.5f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Horizontal view sensitivity multiplier");
         xpadVerticalMultiplier = Dvar::Register<float>("xpad_vertical_multiplier", 0.8f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Vertical view sensitivity multiplier");
         xpadAdsMultiplier = Dvar::Register<float>("xpad_ads_multiplier", 0.7f, 0.1f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied when aiming down the sights.");
-
-        MessageBoxA(NULL, __FUNCTION__, "", 0);
     }
 }
