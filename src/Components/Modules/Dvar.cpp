@@ -109,6 +109,7 @@ namespace Components
 			Game::Dvar_SetCommand(this->dvar->name, Utils::String::VA("%f", value));
 		}
 	}
+	
 
 	void Dvar::Var::setRaw(int integer)
 	{
@@ -123,6 +124,14 @@ namespace Components
 		if (this->dvar)
 		{
 			this->dvar->current.value = value;
+		}
+	}
+
+	void Dvar::Var::setRaw(bool value)
+	{
+		if (this->dvar)
+		{
+			this->dvar->current.enabled = value;
 		}
 	}
 

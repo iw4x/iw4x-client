@@ -35,6 +35,7 @@ namespace Components
 			// TODO: Add others
 			void setRaw(int integer);
 			void setRaw(float value);
+			void setRaw(bool value);
 
 		private:
 			Game::dvar_t* dvar;

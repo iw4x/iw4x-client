@@ -206,11 +206,48 @@ namespace Game
 	};
 #pragma pack(pop)
 
+	enum KeyCatch_t
+	{
+		KEYCATCH_CONSOLE = 0x1,
+		KEYCATCH_UNKNOWN2 = 0x2,
+		KEYCATCH_UNKNOWN4 = 0x4,
+		KEYCATCH_LOCATION_SELECTION = 0x8,
+		KEYCATCH_UI = 0x10,
+		KEYCATCH_CHAT = 0x20,
+		KEYCATCH_UNKNOWN40 = 0x40,
+		KEYCATCH_UNKNOWN80 = 0x80,
+		KEYCATCH_UNKNOWN100 = 0x100,
+	};
+
 	enum keyNum_t
 	{
 		K_NONE = 0x0,
+		K_FIRSTGAMEPADBUTTON_RANGE_1 = 0x1, // First Gamepad 1
+		K_BUTTON_A = 0x1,
+		K_BUTTON_B = 0x2,
+		K_BUTTON_X = 0x3,
+		K_BUTTON_Y = 0x4,
+		K_BUTTON_LSHLDR = 0x5,
+		K_BUTTON_RSHLDR = 0x6,
+		K_LASTGAMEPADBUTTON_RANGE_1 = 0x6, // Last Gamepad 1
 		K_TAB = 0x9,
 		K_ENTER = 0xD,
+	    K_FIRSTGAMEPADBUTTON_RANGE_2 = 0xE, // First Gamepad 2
+		K_BUTTON_START = 0xE,
+		K_BUTTON_BACK = 0xF,
+		K_BUTTON_LSTICK = 0x10,
+		K_BUTTON_RSTICK = 0x11,
+		K_BUTTON_LTRIG = 0x12,
+		K_BUTTON_RTRIG = 0x13,
+		K_FIRSTDPAD = 0x14, // First Dpad
+		K_DPAD_UP = 0x14,
+		K_DPAD_DOWN = 0x15,
+		K_DPAD_LEFT = 0x16,
+		K_DPAD_RIGHT = 0x17,
+		K_LASTDPAD = 0x17, // Last Dpad
+		K_DPAD_LEFTRIGHT = 0x18,
+		K_DPAD_UPDOWN = 0x19,
+		K_LASTGAMEPADBUTTON_RANGE_2 = 0x19, // Last Gamepad 2
 		K_ESCAPE = 0x1B,
 		K_SPACE = 0x20,
 		K_BACKSPACE = 0x7F,
@@ -1102,6 +1139,40 @@ namespace Game
 		LOC_SEL_INPUT_NONE = 0x0,
 		LOC_SEL_INPUT_CONFIRM = 0x1,
 		LOC_SEL_INPUT_CANCEL = 0x2,
+	};
+
+	struct field_t
+	{
+		int cursor;
+		int scroll;
+		int drawWidth;
+		int widthInPixels;
+		float charHeight;
+		int fixedSize;
+		char buffer[256];
+	};
+
+	struct KeyState
+	{
+		int down;
+		int repeats;
+		const char* binding;
+	};
+
+	struct PlayerKeyState
+	{
+		field_t chatField;
+		int chat_team;
+		int overstrikeMode;
+		int anyKeyDown;
+		KeyState keys[256];
+		LocSelInputState locSelInputState;
+	};
+
+	struct keyname_t
+	{
+		const char* name;
+		int keynum;
 	};
 
 	struct clSnapshot_t

@@ -5,9 +5,76 @@
 #define XINPUT_SENSITIVITY_MULTIPLIER 4 // Arbitrary value I multiply the xinput senstivity dvar with to get nicer values (0-10 range or something)
 #define SIGN(d) ((d > 0) - (d < 0))
 
+namespace Game
+{
+    ButtonToCodeMap_t buttonList[]
+    {
+        {GPAD_X, K_BUTTON_X},
+        {GPAD_A, K_BUTTON_A},
+        {GPAD_B, K_BUTTON_B},
+        {GPAD_Y, K_BUTTON_Y},
+        {GPAD_L_TRIG, K_BUTTON_LTRIG},
+        {GPAD_R_TRIG, K_BUTTON_RTRIG},
+        {GPAD_L_SHLDR, K_BUTTON_LSHLDR},
+        {GPAD_R_SHLDR, K_BUTTON_RSHLDR},
+        {GPAD_START, K_BUTTON_START},
+        {GPAD_BACK, K_BUTTON_BACK},
+        {GPAD_L3, K_BUTTON_LSTICK},
+        {GPAD_R3, K_BUTTON_RSTICK},
+        {GPAD_UP, K_DPAD_UP},
+        {GPAD_DOWN, K_DPAD_DOWN},
+        {GPAD_LEFT, K_DPAD_LEFT},
+        {GPAD_RIGHT, K_DPAD_RIGHT}
+    };
+
+    StickToCodeMap_t analogStickList[]
+    {
+        {GPAD_LY, GPAD_STICK_POS, K_DPAD_UP},
+        {GPAD_LY, GPAD_STICK_NEG, K_DPAD_DOWN},
+        {GPAD_LX, GPAD_STICK_POS, K_DPAD_RIGHT},
+        {GPAD_LX, GPAD_STICK_NEG, K_DPAD_LEFT},
+    };
+
+    keyNum_t menuScrollButtonList[]
+    {
+        K_DPAD_UP,
+        K_DPAD_DOWN,
+        K_DPAD_LEFT,
+        K_DPAD_RIGHT
+    };
+
+    constexpr auto VANILLA_KEY_NAME_COUNT = 95;
+    keyname_t extendedKeyNames[]
+    {
+        {"BUTTON_A", K_BUTTON_A},
+        {"BUTTON_B", K_BUTTON_B},
+        {"BUTTON_X", K_BUTTON_X},
+        {"BUTTON_Y", K_BUTTON_Y},
+        {"BUTTON_LSHLDR", K_BUTTON_LSHLDR},
+        {"BUTTON_RSHLDR", K_BUTTON_RSHLDR},
+        {"BUTTON_START", K_BUTTON_START},
+        {"BUTTON_BACK", K_BUTTON_BACK},
+        {"BUTTON_LSTICK", K_BUTTON_LSTICK},
+        {"BUTTON_RSTICK", K_BUTTON_RSTICK},
+        {"BUTTON_LTRIG", K_BUTTON_LTRIG},
+        {"BUTTON_RTRIG", K_BUTTON_RTRIG},
+        {"DPAD_UP", K_DPAD_UP},
+        {"DPAD_DOWN", K_DPAD_DOWN},
+        {"DPAD_LEFT", K_DPAD_LEFT},
+        {"DPAD_RIGHT", K_DPAD_RIGHT},
+    };
+
+    keyname_t combinedKeyNames[VANILLA_KEY_NAME_COUNT + std::extent_v<decltype(extendedKeyNames)> + 1];
+
+    GpadAxesGlob gaGlobs[MAX_GAMEPADS];
+    PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
+    keyname_t* vanillaKeyNames = reinterpret_cast<keyname_t*>(0x798580);
+}
+
 namespace Components
 {
-    Gamepad::GamePad Gamepad::gamePads[1]{};
+    Gamepad::GamePad Gamepad::gamePads[Game::MAX_GAMEPADS]{};
+    Gamepad::GamePadGlobals Gamepad::gamePadGlobals[Game::MAX_GAMEPADS]{};
     std::chrono::milliseconds Gamepad::timeAtFirstHeldMaxLookX = 0ms; // "For how much time in milliseconds has the player been holding a horizontal direction on their stick, fully" (-1.0 or 1.0)
     bool Gamepad::isHoldingMaxLookX = false;
     bool Gamepad::isADS;
@@ -35,7 +102,7 @@ namespace Components
     Dvar::Var Gamepad::xpadVerticalMultiplier;
     Dvar::Var Gamepad::xpadAdsMultiplier;
 
-    Gamepad::GamePadStickDir Gamepad::lastMenuNavigationDirection = GPAD_STICK_DIR_COUNT;
+    Game::GamePadStickDir Gamepad::lastMenuNavigationDirection = Game::GPAD_STICK_DIR_COUNT;
     std::chrono::milliseconds Gamepad::lastNavigationTime = 0ms;
     std::chrono::milliseconds Gamepad::msBetweenNavigations = 220ms;
 
@@ -285,27 +352,27 @@ namespace Components
                 std::chrono::milliseconds timeSinceLastNavigation = now - lastNavigationTime;
                 bool canNavigate = timeSinceLastNavigation > msBetweenNavigations;
 
-                if (gamePad.stickDown[1][GPAD_STICK_POS])
+                if (gamePad.stickDown[1][Game::GPAD_STICK_POS])
                 {
                     if (canNavigate)
                     {
-                        Game::Menu_SetPrevCursorItem(Game::uiContext, menuDef, 1);
-                        lastMenuNavigationDirection = GPAD_STICK_POS;
+                        Menu_SetPrevCursorItem(Game::uiContext, menuDef, 1);
+                        lastMenuNavigationDirection = Game::GPAD_STICK_POS;
                         lastNavigationTime = now;
                     }
                 }
-                else if (gamePad.stickDown[1][GPAD_STICK_NEG])
+                else if (gamePad.stickDown[1][Game::GPAD_STICK_NEG])
                 {
                     if (canNavigate)
                     {
-                        Game::Menu_SetNextCursorItem(Game::uiContext, menuDef, 1);
-                        lastMenuNavigationDirection = GPAD_STICK_NEG;
+                        Menu_SetNextCursorItem(Game::uiContext, menuDef, 1);
+                        lastMenuNavigationDirection = Game::GPAD_STICK_NEG;
                         lastNavigationTime = now;
                     }
                 }
                 else
                 {
-                    lastMenuNavigationDirection = GPAD_STICK_DIR_COUNT;
+                    lastMenuNavigationDirection = Game::GPAD_STICK_DIR_COUNT;
                 }
 
                 for (auto& mapping : menuMappings)
@@ -360,7 +427,7 @@ namespace Components
 
     void Gamepad::MouseOverride(Game::clientActive_t* clientActive, float* mx, float* my)
     {
-        Gamepad::CL_GetMouseMovementCl(clientActive, mx, my);
+        CL_GetMouseMovementCl(clientActive, mx, my);
 
         const auto& gamePad = gamePads[0];
 
@@ -379,15 +446,15 @@ namespace Components
             // Gamepad horizontal acceleration on view
             if (abs(viewStickX) > 0.80f)
             {
-                if (!Gamepad::isHoldingMaxLookX)
+                if (!isHoldingMaxLookX)
                 {
-                    Gamepad::isHoldingMaxLookX = true;
-                    Gamepad::timeAtFirstHeldMaxLookX = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+                    isHoldingMaxLookX = true;
+                    timeAtFirstHeldMaxLookX = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
                 }
                 else
                 {
                     std::chrono::milliseconds hasBeenHoldingLeftXForMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) -
-                        Gamepad::timeAtFirstHeldMaxLookX;
+                        timeAtFirstHeldMaxLookX;
 #ifdef STEP_SENSITIVITY
 					if (hasBeenHoldingLeftXForMs < msBeforeUnlockingSensitivity) {
 						viewStickX *= lockedSensitivityMultiplier;
@@ -400,8 +467,8 @@ namespace Components
             }
             else
             {
-                Gamepad::isHoldingMaxLookX = false;
-                Gamepad::timeAtFirstHeldMaxLookX = 0ms;
+                isHoldingMaxLookX = false;
+                timeAtFirstHeldMaxLookX = 0ms;
                 viewStickX *= lockedSensitivityMultiplier;
             }
 
@@ -410,7 +477,7 @@ namespace Components
             auto ps = &clientActive->snap.ps;
 
             // DO NOT use clientActive->usingAds ! It only works for toggle ADS
-            if (Game::PM_IsAdsAllowed(ps) && Gamepad::isADS)
+            if (PM_IsAdsAllowed(ps) && isADS)
             {
                 adsMultiplier = xpadAdsMultiplier.get<float>();
             }
@@ -478,6 +545,7 @@ namespace Components
 
     bool Gamepad::GPad_Check(const int gamePadIndex, const int portIndex)
     {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
         auto& gamePad = gamePads[gamePadIndex];
 
         if (XInputGetCapabilities(portIndex, XINPUT_FLAG_GAMEPAD, &gamePad.caps) == ERROR_SUCCESS)
@@ -495,11 +563,66 @@ namespace Components
     {
         auto currentGamePadNum = 0;
 
-        for (auto currentPort = 0; currentPort < XUSER_MAX_COUNT && currentGamePadNum < MAX_GAMEPADS; currentPort++)
+        for (auto currentPort = 0; currentPort < XUSER_MAX_COUNT && currentGamePadNum < Game::MAX_GAMEPADS; currentPort++)
         {
             if (GPad_Check(currentGamePadNum, currentPort))
                 currentGamePadNum++;
         }
+    }
+
+    void Gamepad::CL_GamepadResetMenuScrollTime(const int gamePadIndex, const int key, const bool down, const unsigned time)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& gamePadGlobal = gamePadGlobals[gamePadIndex];
+
+        if (!down)
+            return;
+
+        const auto scrollDelayFirst = gpad_menu_scroll_delay_first.get<int>();
+        for(const auto scrollButton : Game::menuScrollButtonList)
+        {
+            if(key == scrollButton)
+            {
+                gamePadGlobal.nextScrollTime = scrollDelayFirst + time;
+                return;
+            }
+        }
+    }
+
+    void Gamepad::CL_GamepadEvent(int gamePadIndex, const Game::GamepadPhysicalAxis physicalAxis, const float value)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        assert(physicalAxis < Game::GPAD_PHYSAXIS_COUNT && physicalAxis >= 0);
+
+        Game::gaGlobs[gamePadIndex].axesValues[physicalAxis] = value;
+    }
+
+    void Gamepad::CL_GamepadButtonEvent(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, unsigned time, Game::GamePadButton button)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+
+        auto& keyState = Game::playerKeys[gamePadIndex];
+        keyState.keys[key].down = buttonEvent == Game::GPAD_BUTTON_PRESSED || buttonEvent == Game::GPAD_BUTTON_UPDATE;
+
+        if(buttonEvent == Game::GPAD_BUTTON_PRESSED)
+        {
+            if (++keyState.keys[key].repeats == 1)
+                keyState.anyKeyDown++;
+        }
+        else if(keyState.keys[key].repeats > 0)
+        {
+            keyState.keys[key].repeats = 0;
+            if (--keyState.anyKeyDown < 0)
+                keyState.anyKeyDown = 0;
+        }
+    }
+
+    void Gamepad::CL_GamepadButtonEventForPort(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time, const Game::GamePadButton button)
+    {
+        if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
+            CL_GamepadResetMenuScrollTime(gamePadIndex, key, buttonEvent == Game::GPAD_BUTTON_PRESSED, time);
+
+        CL_GamepadButtonEvent(gamePadIndex, key, buttonEvent, time, button);
     }
 
     void Gamepad::GPad_ConvertStickToFloat(const short x, const short y, float& outX, float& outY)
@@ -525,15 +648,121 @@ namespace Components
         outY = stickVec[1] * len;
     }
 
+    float Gamepad::GPad_GetStick(const int gamePadIndex, const Game::GamePadStick stick)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& gamePad = gamePads[gamePadIndex];
+
+        return gamePad.sticks[stick];
+    }
+
+    float Gamepad::GPad_GetButton(const int gamePadIndex, Game::GamePadButton button)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& gamePad = gamePads[gamePadIndex];
+
+        float value = 0.0f;
+
+        if(button & Game::GPAD_DIGITAL_MASK)
+        {
+            const auto buttonValue = button & Game::GPAD_VALUE_MASK;
+            value = buttonValue & gamePad.digitals ? 1.0f : 0.0f;
+        }
+        else if(button & Game::GPAD_ANALOG_MASK)
+        {
+            const auto analogIndex = button & Game::GPAD_VALUE_MASK;
+            if (analogIndex < std::extent_v<decltype(gamePad.analogs)>)
+            {
+                value = gamePad.analogs[analogIndex];
+            }
+        }
+
+        return value;
+    }
+
+    bool Gamepad::GPad_IsButtonPressed(const int gamePadIndex, Game::GamePadButton button)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& gamePad = gamePads[gamePadIndex];
+
+        bool down = false;
+        bool lastDown = false;
+
+        if(button & Game::GPAD_DIGITAL_MASK)
+        {
+            const auto buttonValue = button & Game::GPAD_VALUE_MASK;
+            if (button & 0xF && buttonValue & gamePad.digitals && (gamePad.digitals & 0xF) != (button & 0xF))
+            {
+                down = false;
+                lastDown = false;
+            }
+            else
+            {
+                down = (buttonValue & gamePad.digitals) != 0;
+                if (button & 0xF && buttonValue & gamePad.lastDigitals && (gamePad.lastDigitals & 0xF) != (button & 0xF))
+                    lastDown = false;
+                else
+                    lastDown = (buttonValue & gamePad.lastDigitals) != 0;
+            }
+        }
+        else if(button & Game::GPAD_ANALOG_MASK)
+        {
+            const auto analogIndex = button & Game::GPAD_VALUE_MASK;
+            assert(analogIndex < std::extent_v<decltype(gamePad.analogs)>);
+
+            if(analogIndex < std::extent_v<decltype(gamePad.analogs)>)
+            {
+                down = gamePad.analogs[analogIndex] > 0.0f;
+                lastDown = gamePad.lastAnalogs[analogIndex] > 0.0f;
+            }
+        }
+
+        return down && !lastDown;
+    }
+
+    bool Gamepad::GPad_ButtonRequiresUpdates(const int gamePadIndex, Game::GamePadButton button)
+    {
+        return button & Game::GPAD_ANALOG_MASK && GPad_GetButton(gamePadIndex, button) > 0.0f;
+    }
+
+    bool Gamepad::GPad_IsButtonReleased(int gamePadIndex, Game::GamePadButton button)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& gamePad = gamePads[gamePadIndex];
+
+        bool down = false;
+        bool lastDown = false;
+
+        if (button & Game::GPAD_DIGITAL_MASK)
+        {
+            const auto buttonValue = button & Game::GPAD_VALUE_MASK;
+            
+            down = (gamePad.digitals & buttonValue) != 0;
+            lastDown = (gamePad.lastDigitals & buttonValue) != 0;
+        }
+        else if (button & Game::GPAD_ANALOG_MASK)
+        {
+            const auto analogIndex = button & Game::GPAD_VALUE_MASK;
+            assert(analogIndex < std::extent_v<decltype(gamePad.analogs)>);
+
+            if (analogIndex < std::extent_v<decltype(gamePad.analogs)>)
+            {
+                down = gamePad.analogs[analogIndex] > 0.0f;
+                lastDown = gamePad.lastAnalogs[analogIndex] > 0.0f;
+            }
+        }
+
+        return !down && lastDown;
+    }
+
     void Gamepad::GPad_UpdateSticksDown(int gamePadIndex)
     {
-        assert(gamePadIndex < MAX_GAMEPADS);
-
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
         auto& gamePad = gamePads[gamePadIndex];
 
         for (auto stickIndex = 0u; stickIndex < std::extent_v<decltype(GamePad::sticks)>; stickIndex++)
         {
-            for (auto dir = 0; dir < GPAD_STICK_DIR_COUNT; dir++)
+            for (auto dir = 0; dir < Game::GPAD_STICK_DIR_COUNT; dir++)
             {
                 gamePad.stickDownLast[stickIndex][dir] = gamePad.stickDown[stickIndex][dir];
 
@@ -544,13 +773,13 @@ namespace Components
                 else
                     threshold += gpad_stick_pressed_hysteresis.get<float>();
 
-                if (dir == GPAD_STICK_POS)
+                if (dir == Game::GPAD_STICK_POS)
                 {
                     gamePad.stickDown[stickIndex][dir] = gamePad.sticks[stickIndex] > threshold;
                 }
                 else
                 {
-                    assert(dir == GPAD_STICK_NEG);
+                    assert(dir == Game::GPAD_STICK_NEG);
                     gamePad.stickDown[stickIndex][dir] = gamePad.sticks[stickIndex] < -threshold;
                 }
             }
@@ -559,7 +788,7 @@ namespace Components
 
     void Gamepad::GPad_UpdateSticks(const int gamePadIndex, const XINPUT_GAMEPAD& state)
     {
-        assert(gamePadIndex < MAX_GAMEPADS);
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
 
         auto& gamePad = gamePads[gamePadIndex];
 
@@ -583,17 +812,17 @@ namespace Components
         {
             Logger::Print("Left: X: %f Y: %f\n", lVec[0], lVec[1]);
             Logger::Print("Right: X: %f Y: %f\n", rVec[0], rVec[1]);
-            Logger::Print("Down: %i:%i %i:%i %i:%i %i:%i\n", gamePad.stickDown[0][GPAD_STICK_POS], gamePad.stickDown[0][GPAD_STICK_NEG],
-                          gamePad.stickDown[1][GPAD_STICK_POS], gamePad.stickDown[1][GPAD_STICK_NEG],
-                          gamePad.stickDown[2][GPAD_STICK_POS], gamePad.stickDown[2][GPAD_STICK_NEG],
-                          gamePad.stickDown[3][GPAD_STICK_POS], gamePad.stickDown[3][GPAD_STICK_NEG]);
+            Logger::Print("Down: %i:%i %i:%i %i:%i %i:%i\n", gamePad.stickDown[0][Game::GPAD_STICK_POS], gamePad.stickDown[0][Game::GPAD_STICK_NEG],
+                          gamePad.stickDown[1][Game::GPAD_STICK_POS], gamePad.stickDown[1][Game::GPAD_STICK_NEG],
+                          gamePad.stickDown[2][Game::GPAD_STICK_POS], gamePad.stickDown[2][Game::GPAD_STICK_NEG],
+                          gamePad.stickDown[3][Game::GPAD_STICK_POS], gamePad.stickDown[3][Game::GPAD_STICK_NEG]);
         }
 #endif
     }
 
     void Gamepad::GPad_UpdateDigitals(const int gamePadIndex, const XINPUT_GAMEPAD& state)
     {
-        assert(gamePadIndex < MAX_GAMEPADS);
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
 
         auto& gamePad = gamePads[gamePadIndex];
 
@@ -617,7 +846,7 @@ namespace Components
 
     void Gamepad::GPad_UpdateAnalogs(const int gamePadIndex, const XINPUT_GAMEPAD& state)
     {
-        assert(gamePadIndex < MAX_GAMEPADS);
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
 
         auto& gamePad = gamePads[gamePadIndex];
 
@@ -646,7 +875,7 @@ namespace Components
     {
         GPad_RefreshAll();
 
-        for (auto currentGamePadIndex = 0; currentGamePadIndex < MAX_GAMEPADS; currentGamePadIndex++)
+        for (auto currentGamePadIndex = 0; currentGamePadIndex < Game::MAX_GAMEPADS; currentGamePadIndex++)
         {
             const auto& gamePad = gamePads[currentGamePadIndex];
             if (!gamePad.enabled)
@@ -665,6 +894,64 @@ namespace Components
     void Gamepad::IN_GamePadsMove()
     {
         GPad_UpdateAll();
+        const auto time = Game::Sys_Milliseconds();
+
+        bool gpadPresent = false;
+        for(auto gamePadIndex = 0; gamePadIndex < Game::MAX_GAMEPADS; gamePadIndex++)
+        {
+            const auto& gamePad = gamePads[gamePadIndex];
+
+            if(gamePad.enabled)
+            {
+                gpadPresent = true;
+                const auto lx = GPad_GetStick(gamePadIndex, Game::GPAD_LX);
+                const auto ly = GPad_GetStick(gamePadIndex, Game::GPAD_LY);
+                const auto rx = GPad_GetStick(gamePadIndex, Game::GPAD_RX);
+                const auto ry = GPad_GetStick(gamePadIndex, Game::GPAD_RY);
+                const auto leftTrig = GPad_GetButton(gamePadIndex, Game::GPAD_L_TRIG);
+                const auto rightTrig = GPad_GetButton(gamePadIndex, Game::GPAD_R_TRIG);
+                
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LSTICK_X, lx);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LSTICK_Y, ly);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RSTICK_X, rx);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RSTICK_Y, ry);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LTRIGGER, leftTrig);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RTRIGGER, rightTrig);
+
+                for (const auto& buttonMapping : Game::buttonList)
+                {
+                    if(GPad_IsButtonPressed(gamePadIndex, buttonMapping.padButton))
+                    {
+                        CL_GamepadButtonEventForPort(
+                            gamePadIndex,
+                            buttonMapping.code,
+                            Game::GPAD_BUTTON_PRESSED,
+                            time,
+                            buttonMapping.padButton);
+                    }
+                    else if(GPad_ButtonRequiresUpdates(gamePadIndex, buttonMapping.padButton))
+                    {
+                        CL_GamepadButtonEventForPort(
+                            gamePadIndex,
+                            buttonMapping.code,
+                            Game::GPAD_BUTTON_UPDATE,
+                            time,
+                            buttonMapping.padButton);
+                    }
+                    else if(GPad_IsButtonReleased(gamePadIndex, buttonMapping.padButton))
+                    {
+                        CL_GamepadButtonEventForPort(
+                            gamePadIndex,
+                            buttonMapping.code,
+                            Game::GPAD_BUTTON_RELEASED,
+                            time,
+                            buttonMapping.padButton);
+                    }
+                }
+            }
+        }
+
+        gpad_present.setRaw(gpadPresent);
     }
 
 
@@ -705,24 +992,37 @@ namespace Components
         InitDvars();
     }
 
+    void Gamepad::CreateKeyNameMap()
+    {
+        memcpy(Game::combinedKeyNames, Game::vanillaKeyNames, sizeof(Game::keyname_t) * Game::VANILLA_KEY_NAME_COUNT);
+        memcpy(&Game::combinedKeyNames[Game::VANILLA_KEY_NAME_COUNT], Game::extendedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(Game::extendedKeyNames)>);
+        Game::combinedKeyNames[std::extent_v<decltype(Game::combinedKeyNames)> - 1] = { nullptr, 0 };
+
+        Utils::Hook::Set<Game::keyname_t*>(0x4A780A, Game::combinedKeyNames);
+        Utils::Hook::Set<Game::keyname_t*>(0x4A7810, Game::combinedKeyNames);
+        Utils::Hook::Set<Game::keyname_t*>(0x435C9F, Game::combinedKeyNames);
+    }
+
     Gamepad::Gamepad()
     {
         if (ZoneBuilder::IsEnabled())
             return;
 
         // use the xinput state when creating a usercmd
-        Utils::Hook(0x5A6DB9, Gamepad::CL_CreateCmdStub, HOOK_JUMP).install()->quick();
+        Utils::Hook(0x5A6DB9, CL_CreateCmdStub, HOOK_JUMP).install()->quick();
 
         // package the forward and right move components in the move buttons
-        Utils::Hook(0x60E38D, Gamepad::MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
+        Utils::Hook(0x60E38D, MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
 
         // send two bytes for sending movement data
         Utils::Hook::Set<BYTE>(0x60E501, 16);
         Utils::Hook::Set<BYTE>(0x60E5CD, 16);
 
         // make sure to parse the movement data properly and apply it
-        Utils::Hook(0x492127, Gamepad::MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
-        Utils::Hook(0x492009, Gamepad::MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
+        Utils::Hook(0x492127, MSG_ReadDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
+        Utils::Hook(0x492009, MSG_ReadDeltaUsercmdKeyStub2, HOOK_JUMP).install()->quick();
+
+        CreateKeyNameMap();
 
         if (Dedicated::IsEnabled())
             return;
