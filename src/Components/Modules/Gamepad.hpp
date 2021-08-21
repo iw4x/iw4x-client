@@ -224,6 +224,7 @@ namespace Components
         static void GamepadStickTo01(SHORT value, SHORT deadzone, float& output01);
 
         static void CL_GamepadResetMenuScrollTime(int gamePadIndex, int key, bool down, unsigned int time);
+        static void UI_GamepadKeyEvent(int gamePadIndex, int key, bool down);
         static void CL_GamepadEvent(int gamePadIndex, Game::GamepadPhysicalAxis physicalAxis, float value);
         static void CL_GamepadButtonEvent(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned time, Game::GamePadButton button);
         static void CL_GamepadButtonEventForPort(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned int time, Game::GamePadButton button);

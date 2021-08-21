@@ -597,14 +597,22 @@ namespace Components
         Game::gaGlobs[gamePadIndex].axesValues[physicalAxis] = value;
     }
 
+    void Gamepad::UI_GamepadKeyEvent(int gamePadIndex, int key, bool down)
+    {
+        
+    }
+
     void Gamepad::CL_GamepadButtonEvent(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, unsigned time, Game::GamePadButton button)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
 
-        auto& keyState = Game::playerKeys[gamePadIndex];
-        keyState.keys[key].down = buttonEvent == Game::GPAD_BUTTON_PRESSED || buttonEvent == Game::GPAD_BUTTON_UPDATE;
+        const auto pressed = buttonEvent == Game::GPAD_BUTTON_PRESSED;
+        const auto pressedOrUpdated = pressed || buttonEvent == Game::GPAD_BUTTON_UPDATE;
 
-        if(buttonEvent == Game::GPAD_BUTTON_PRESSED)
+        auto& keyState = Game::playerKeys[gamePadIndex];
+        keyState.keys[key].down = pressedOrUpdated;
+
+        if(pressed)
         {
             if (++keyState.keys[key].repeats == 1)
                 keyState.anyKeyDown++;
@@ -614,6 +622,72 @@ namespace Components
             keyState.keys[key].repeats = 0;
             if (--keyState.anyKeyDown < 0)
                 keyState.anyKeyDown = 0;
+        }
+
+        if(Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_LOCATION_SELECTION) && pressedOrUpdated)
+        {
+            if(key == Game::K_BUTTON_B || keyState.keys[key].binding && strcmp(keyState.keys[key].binding, "+actionslot 4") == 0)
+            {
+                keyState.locSelInputState = Game::LOC_SEL_INPUT_CANCEL;
+            }
+            else if(key == Game::K_BUTTON_A || keyState.keys[key].binding && strcmp(keyState.keys[key].binding, "+attack") == 0)
+            {
+                keyState.locSelInputState = Game::LOC_SEL_INPUT_CONFIRM;
+            }
+            return;
+        }
+
+        keyState.locSelInputState = Game::LOC_SEL_INPUT_NONE;
+
+        const auto* keyBinding = keyState.keys[key].binding;
+
+        if (!keyBinding)
+            return;
+
+        char cmd[1024];
+        if(pressedOrUpdated)
+        {
+            if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
+            {
+                UI_GamepadKeyEvent(gamePadIndex, key, pressedOrUpdated);
+                return;
+            }
+
+            if(keyBinding[0] == '+')
+            {
+                float floatValue;
+                if (button)
+                    floatValue = GPad_GetButton(gamePadIndex, button);
+                else
+                    floatValue = 0.0f;
+
+                sprintf_s(cmd, "%s %i %i %0.3f\n", keyBinding, key, time, floatValue);
+                Game::Cbuf_AddText(gamePadIndex, cmd);
+            }
+            else
+            {
+                Game::Cbuf_AddText(gamePadIndex, keyBinding);
+                Game::Cbuf_AddText(gamePadIndex, "\n");
+            }
+        }
+        else
+        {
+            if (keyBinding[0] == '+')
+            {
+                float floatValue;
+                if (button)
+                    floatValue = GPad_GetButton(gamePadIndex, button);
+                else
+                    floatValue = 0.0f;
+
+                sprintf_s(cmd, "-%s %i %i %0.3f\n", &keyBinding[1], key, time, floatValue);
+                Game::Cbuf_AddText(gamePadIndex, cmd);
+            }
+
+            if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
+            {
+                UI_GamepadKeyEvent(gamePadIndex, key, pressedOrUpdated);
+            }
         }
     }
 
@@ -1009,7 +1083,7 @@ namespace Components
             return;
 
         // use the xinput state when creating a usercmd
-        Utils::Hook(0x5A6DB9, CL_CreateCmdStub, HOOK_JUMP).install()->quick();
+        //Utils::Hook(0x5A6DB9, CL_CreateCmdStub, HOOK_JUMP).install()->quick();
 
         // package the forward and right move components in the move buttons
         Utils::Hook(0x60E38D, MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
@@ -1031,11 +1105,11 @@ namespace Components
 
         Utils::Hook(0x475E9E, IN_Frame_Hk, HOOK_CALL).install()->quick();
 
-        Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
-        Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
-        Utils::Hook(0x5A6829, unk_CheckKeyHook, HOOK_CALL).install()->quick();
+        //Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
+        //Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
+        //Utils::Hook(0x5A6829, unk_CheckKeyHook, HOOK_CALL).install()->quick();
 
-        Scheduler::OnFrame(MenuNavigate);
+        //Scheduler::OnFrame(MenuNavigate);
 
         xpadSensitivity = Dvar::Register<float>("xpad_sensitivity", 1.9f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
         xpadEarlyTime = Dvar::Register<int>("xpad_early_time", 130, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");
