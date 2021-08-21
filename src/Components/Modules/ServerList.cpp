@@ -469,6 +469,11 @@ namespace Components
 				server.ping = (Game::Sys_Milliseconds() - i->sendTime);
 				server.addr = address;
 
+				Dedicated::StripMaterialTextIcons(server.hostname.data());
+				Dedicated::StripMaterialTextIcons(server.mapname.data());
+				Dedicated::StripMaterialTextIcons(server.gametype.data());
+				Dedicated::StripMaterialTextIcons(server.mod.data());
+
 				// Remove server from queue
 				i = ServerList::RefreshContainer.servers.erase(i);
 
