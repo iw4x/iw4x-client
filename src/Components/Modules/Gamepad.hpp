@@ -8,8 +8,8 @@ namespace Components
         static constexpr float TRIGGER_THRESHOLD_F = static_cast<float>(XINPUT_GAMEPAD_TRIGGER_THRESHOLD) / static_cast<float>(0xFF);
 
     public:
-
         Gamepad();
+
         enum GamePadStickDir
         {
             GPAD_STICK_POS = 0x0,
@@ -17,7 +17,7 @@ namespace Components
 
             GPAD_STICK_DIR_COUNT
         };
-        
+
         struct GamePad
         {
             bool enabled;
