@@ -146,6 +146,7 @@ namespace Components
     Dvar::Var Gamepad::gpad_enabled;
     Dvar::Var Gamepad::gpad_debug;
     Dvar::Var Gamepad::gpad_present;
+    Dvar::Var Gamepad::gpad_in_use;
     Dvar::Var Gamepad::gpad_sticksConfig;
     Dvar::Var Gamepad::gpad_buttonConfig;
     Dvar::Var Gamepad::gpad_menu_scroll_delay_first;
@@ -675,7 +676,10 @@ namespace Components
         CL_GamepadGenerateAPad(gamePadIndex, physicalAxis, time);
 
         if (std::fabs(value) > 0.0f)
+        {
             gamePad.inUse = true;
+            gpad_in_use.setRaw(true);
+        }
     }
 
     void Gamepad::UI_GamepadKeyEvent(const int gamePadIndex, const int key, const bool down)
@@ -824,6 +828,7 @@ namespace Components
         auto& gamePad = gamePads[gamePadIndex];
 
         gamePad.inUse = true;
+        gpad_in_use.setRaw(true);
 
         if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
             CL_GamepadResetMenuScrollTime(gamePadIndex, key, buttonEvent == Game::GPAD_BUTTON_PRESSED, time);
@@ -1323,6 +1328,7 @@ namespace Components
         gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_FLAG_SAVED, "Game pad enabled");
         gpad_debug = Dvar::Register<bool>("gpad_debug", false, 0, "Game pad debugging");
         gpad_present = Dvar::Register<bool>("gpad_present", false, 0, "Game pad present");
+        gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, 0, "A game pad is in use");
         gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "thumbstick_default", Game::DVAR_FLAG_SAVED, "Game pad stick configuration");
         gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "buttons_default", Game::DVAR_FLAG_SAVED, "Game pad button configuration");
         gpad_menu_scroll_delay_first = Dvar::Register<int>("gpad_menu_scroll_delay_first", 420, 0, 1000, Game::DVAR_FLAG_SAVED, "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
@@ -1391,6 +1397,7 @@ namespace Components
     {
         // A keyboard key has been pressed. Mark controller as unused.
         gamePads[0].inUse = false;
+        gpad_in_use.setRaw(false);
 
         // Call original function
         Utils::Hook::Call<void(int, int, int, unsigned)>(0x4F6480)(localClientNum, key, down, time);

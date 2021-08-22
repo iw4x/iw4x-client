@@ -187,6 +187,7 @@ namespace Components
         static Dvar::Var gpad_enabled;
         static Dvar::Var gpad_debug;
         static Dvar::Var gpad_present;
+        static Dvar::Var gpad_in_use;
         static Dvar::Var gpad_sticksConfig;
         static Dvar::Var gpad_buttonConfig;
         static Dvar::Var gpad_menu_scroll_delay_first;
