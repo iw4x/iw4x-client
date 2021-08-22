@@ -426,7 +426,7 @@ namespace Game
 	typedef void(__cdecl* Menu_HandleKey_t)(UiContext* ctx, menuDef_t* menu, Game::keyNum_t key, int down);
 	extern Menu_HandleKey_t Menu_HandleKey;
 
-	typedef bool(__cdecl* UI_KeyEvent_t)(int clientNum, Game::keyNum_t key, int down);
+	typedef bool(__cdecl* UI_KeyEvent_t)(int clientNum, int key, int down);
 	extern UI_KeyEvent_t UI_KeyEvent;
 	
 	typedef void(__cdecl * MSG_Init_t)(msg_t *buf, char *data, int length);

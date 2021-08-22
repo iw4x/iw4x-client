@@ -27,16 +27,30 @@ namespace Game
         {GPAD_RIGHT, K_DPAD_RIGHT}
     };
 
-    StickToCodeMap_t analogStickList[]
+    StickToCodeMap_t analogStickList[4]
     {
-        {GPAD_LY, GPAD_STICK_POS, K_DPAD_UP},
-        {GPAD_LY, GPAD_STICK_NEG, K_DPAD_DOWN},
-        {GPAD_LX, GPAD_STICK_POS, K_DPAD_RIGHT},
-        {GPAD_LX, GPAD_STICK_NEG, K_DPAD_LEFT},
+        {GPAD_LX, K_APAD_RIGHT, K_APAD_LEFT},
+        {GPAD_LY, K_APAD_UP, K_APAD_DOWN},
+        {GPAD_RX, K_APAD_RIGHT, K_APAD_LEFT},
+        {GPAD_RY, K_APAD_UP, K_APAD_DOWN},
+    };
+
+    GamePadStick stickForAxis[GPAD_PHYSAXIS_COUNT]
+    {
+        GPAD_RX,
+        GPAD_RY,
+        GPAD_LX,
+        GPAD_LY,
+        GPAD_INVALID,
+        GPAD_INVALID
     };
 
     keyNum_t menuScrollButtonList[]
     {
+        K_APAD_UP,
+        K_APAD_DOWN,
+        K_APAD_LEFT,
+        K_APAD_RIGHT,
         K_DPAD_UP,
         K_DPAD_DOWN,
         K_DPAD_LEFT,
@@ -106,6 +120,29 @@ namespace Components
     std::chrono::milliseconds Gamepad::lastNavigationTime = 0ms;
     std::chrono::milliseconds Gamepad::msBetweenNavigations = 220ms;
 
+    struct ControllerMenuKeyMapping
+    {
+        Game::keyNum_t controllerKey;
+        Game::keyNum_t pcKey;
+    };
+
+    ControllerMenuKeyMapping controllerMenuKeyMappings[]
+    {
+        {Game::K_BUTTON_A, Game::K_KP_ENTER},
+        {Game::K_BUTTON_START, Game::K_KP_ENTER},
+        {Game::K_BUTTON_B, Game::K_ESCAPE},
+        {Game::K_BUTTON_BACK, Game::K_ESCAPE},
+        {Game::K_DPAD_UP, Game::K_KP_UPARROW},
+        {Game::K_APAD_UP, Game::K_KP_UPARROW},
+        {Game::K_DPAD_DOWN, Game::K_KP_DOWNARROW},
+        {Game::K_APAD_DOWN, Game::K_KP_DOWNARROW},
+        {Game::K_DPAD_LEFT, Game::K_KP_LEFTARROW},
+        {Game::K_APAD_LEFT, Game::K_KP_LEFTARROW},
+        {Game::K_DPAD_RIGHT, Game::K_KP_RIGHTARROW},
+        {Game::K_APAD_RIGHT, Game::K_KP_RIGHTARROW},
+    };
+
+
     // This should be read from a text file in the players/ folder, most probably / or from config_mp.cfg
     std::vector<Gamepad::ActionMapping> mappings = {
         Gamepad::ActionMapping(XINPUT_GAMEPAD_A, "gostand"),
@@ -125,14 +162,6 @@ namespace Components
     };
 
     // Same thing
-    std::vector<Gamepad::MenuMapping> menuMappings = {
-        Gamepad::MenuMapping(XINPUT_GAMEPAD_A, Game::keyNum_t::K_KP_ENTER),
-        Gamepad::MenuMapping(XINPUT_GAMEPAD_B, Game::keyNum_t::K_ESCAPE),
-        Gamepad::MenuMapping(XINPUT_GAMEPAD_DPAD_RIGHT, Game::keyNum_t::K_KP_RIGHTARROW),
-        Gamepad::MenuMapping(XINPUT_GAMEPAD_DPAD_LEFT, Game::keyNum_t::K_KP_LEFTARROW),
-        Gamepad::MenuMapping(XINPUT_GAMEPAD_DPAD_UP, Game::keyNum_t::K_KP_UPARROW),
-        Gamepad::MenuMapping(XINPUT_GAMEPAD_DPAD_DOWN, Game::keyNum_t::K_KP_DOWNARROW)
-    };
 
     //	void Gamepad::Vibrate(int leftVal, int rightVal)
     //	{
@@ -339,65 +368,6 @@ namespace Components
             }
     }
 
-    void Gamepad::MenuNavigate()
-    {
-        auto& gamePad = gamePads[0];
-        Game::menuDef_t* menuDef = Game::Menu_GetFocused(Game::uiContext);
-
-        if (menuDef)
-        {
-            if (gamePad.enabled)
-            {
-                std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-                std::chrono::milliseconds timeSinceLastNavigation = now - lastNavigationTime;
-                bool canNavigate = timeSinceLastNavigation > msBetweenNavigations;
-
-                if (gamePad.stickDown[1][Game::GPAD_STICK_POS])
-                {
-                    if (canNavigate)
-                    {
-                        Menu_SetPrevCursorItem(Game::uiContext, menuDef, 1);
-                        lastMenuNavigationDirection = Game::GPAD_STICK_POS;
-                        lastNavigationTime = now;
-                    }
-                }
-                else if (gamePad.stickDown[1][Game::GPAD_STICK_NEG])
-                {
-                    if (canNavigate)
-                    {
-                        Menu_SetNextCursorItem(Game::uiContext, menuDef, 1);
-                        lastMenuNavigationDirection = Game::GPAD_STICK_NEG;
-                        lastNavigationTime = now;
-                    }
-                }
-                else
-                {
-                    lastMenuNavigationDirection = Game::GPAD_STICK_DIR_COUNT;
-                }
-
-                for (auto& mapping : menuMappings)
-                {
-                    if (mapping.wasPressed)
-                    {
-                        if (gamePad.digitals & mapping.input)
-                        {
-                            // Button still pressed, do not send info
-                        }
-                        else
-                        {
-                            mapping.wasPressed = false;
-                        }
-                    }
-                    else if (gamePad.digitals & mapping.input)
-                    {
-                        Game::UI_KeyEvent(0, mapping.keystroke, 1);
-                        mapping.wasPressed = true;
-                    }
-                }
-            }
-        }
-    }
-
     int Gamepad::unk_CheckKeyHook(int localClientNum, Game::keyNum_t keyCode)
     {
         const auto& gamePad = gamePads[0];
@@ -589,20 +559,99 @@ namespace Components
         }
     }
 
-    void Gamepad::CL_GamepadEvent(int gamePadIndex, const Game::GamepadPhysicalAxis physicalAxis, const float value)
+    void Gamepad::CL_GamepadGenerateAPad(const int gamePadIndex, const Game::GamepadPhysicalAxis physicalAxis, unsigned time)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        assert(physicalAxis < Game::GPAD_PHYSAXIS_COUNT && physicalAxis >= 0);
+
+        auto& gamePad = gamePads[gamePadIndex];
+
+        const auto stick = Game::stickForAxis[physicalAxis];
+        const auto stickIndex = stick & Game::GPAD_VALUE_MASK;
+        if(stick != Game::GPAD_INVALID)
+        {
+            assert(stickIndex < 4);
+            const auto& mapping = Game::analogStickList[stickIndex];
+
+            if(gamePad.stickDown[stickIndex][Game::GPAD_STICK_POS])
+            {
+                const Game::GamePadButtonEvent event = gamePad.stickDownLast[stickIndex][Game::GPAD_STICK_POS] ? Game::GPAD_BUTTON_UPDATE : Game::GPAD_BUTTON_PRESSED;
+                CL_GamepadButtonEvent(gamePadIndex, mapping.posCode, event, time, Game::GPAD_NONE);
+            }
+            else if(gamePad.stickDown[stickIndex][Game::GPAD_STICK_NEG])
+            {
+                const Game::GamePadButtonEvent event = gamePad.stickDownLast[stickIndex][Game::GPAD_STICK_NEG] ? Game::GPAD_BUTTON_UPDATE : Game::GPAD_BUTTON_PRESSED;
+                CL_GamepadButtonEvent(gamePadIndex, mapping.negCode, event, time, Game::GPAD_NONE);
+            }
+            else if(gamePad.stickDownLast[stickIndex][Game::GPAD_STICK_POS])
+            {
+                CL_GamepadButtonEvent(gamePadIndex, mapping.posCode, Game::GPAD_BUTTON_RELEASED, time, Game::GPAD_NONE);
+            }
+            else if(gamePad.stickDownLast[stickIndex][Game::GPAD_STICK_NEG])
+            {
+                CL_GamepadButtonEvent(gamePadIndex, mapping.negCode, Game::GPAD_BUTTON_RELEASED, time, Game::GPAD_NONE);
+            }
+        }
+    }
+
+    void Gamepad::CL_GamepadEvent(int gamePadIndex, const Game::GamepadPhysicalAxis physicalAxis, const float value, const unsigned time)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
         assert(physicalAxis < Game::GPAD_PHYSAXIS_COUNT && physicalAxis >= 0);
 
         Game::gaGlobs[gamePadIndex].axesValues[physicalAxis] = value;
+        CL_GamepadGenerateAPad(gamePadIndex, physicalAxis, time);
     }
 
-    void Gamepad::UI_GamepadKeyEvent(int gamePadIndex, int key, bool down)
+    void Gamepad::UI_GamepadKeyEvent(const int gamePadIndex, const int key, const bool down)
     {
-        
+        for(const auto& mapping : controllerMenuKeyMappings)
+        {
+            if(mapping.controllerKey == key)
+            {
+                Game::UI_KeyEvent(gamePadIndex, mapping.pcKey, down);
+                return;
+            }
+        }
+
+        // No point in sending unmapped controller keystrokes to the key event handler since it doesn't know how to use it anyway
+        // Game::UI_KeyEvent(gamePadIndex, key, down);
     }
 
-    void Gamepad::CL_GamepadButtonEvent(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, unsigned time, Game::GamePadButton button)
+    bool Gamepad::CL_CheckForIgnoreDueToRepeat(const int gamePadIndex, const int key, const int repeatCount, const unsigned time)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& gamePadGlobal = gamePadGlobals[gamePadIndex];
+
+        if(Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
+        {
+            const int scrollDelayFirst = gpad_menu_scroll_delay_first.get<int>();
+            const int scrollDelayRest = gpad_menu_scroll_delay_rest.get<int>();
+
+            for(const auto menuScrollButton : Game::menuScrollButtonList)
+            {
+                if(key == menuScrollButton)
+                {
+                    if(repeatCount == 1)
+                    {
+                        gamePadGlobal.nextScrollTime = time + scrollDelayFirst;
+                        return false;
+                    }
+
+                    if(time > gamePadGlobal.nextScrollTime)
+                    {
+                        gamePadGlobal.nextScrollTime = time + scrollDelayRest;
+                        return false;
+                    }
+                    break;
+                }
+            }
+        }
+
+        return repeatCount > 1;
+    }
+
+    void Gamepad::CL_GamepadButtonEvent(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time, const Game::GamePadButton button)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
 
@@ -612,17 +661,20 @@ namespace Components
         auto& keyState = Game::playerKeys[gamePadIndex];
         keyState.keys[key].down = pressedOrUpdated;
 
-        if(pressed)
+        if(pressedOrUpdated)
         {
             if (++keyState.keys[key].repeats == 1)
                 keyState.anyKeyDown++;
         }
-        else if(keyState.keys[key].repeats > 0)
+        else if(buttonEvent == Game::GPAD_BUTTON_RELEASED && keyState.keys[key].repeats > 0)
         {
             keyState.keys[key].repeats = 0;
             if (--keyState.anyKeyDown < 0)
                 keyState.anyKeyDown = 0;
         }
+
+        if (pressedOrUpdated && CL_CheckForIgnoreDueToRepeat(gamePadIndex, key, keyState.keys[key].repeats, time))
+            return;
 
         if(Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_LOCATION_SELECTION) && pressedOrUpdated)
         {
@@ -640,10 +692,7 @@ namespace Components
         keyState.locSelInputState = Game::LOC_SEL_INPUT_NONE;
 
         const auto* keyBinding = keyState.keys[key].binding;
-
-        if (!keyBinding)
-            return;
-
+        
         char cmd[1024];
         if(pressedOrUpdated)
         {
@@ -653,26 +702,29 @@ namespace Components
                 return;
             }
 
-            if(keyBinding[0] == '+')
+            if (keyBinding)
             {
-                float floatValue;
-                if (button)
-                    floatValue = GPad_GetButton(gamePadIndex, button);
-                else
-                    floatValue = 0.0f;
+                if (keyBinding[0] == '+')
+                {
+                    float floatValue;
+                    if (button)
+                        floatValue = GPad_GetButton(gamePadIndex, button);
+                    else
+                        floatValue = 0.0f;
 
-                sprintf_s(cmd, "%s %i %i %0.3f\n", keyBinding, key, time, floatValue);
-                Game::Cbuf_AddText(gamePadIndex, cmd);
-            }
-            else
-            {
-                Game::Cbuf_AddText(gamePadIndex, keyBinding);
-                Game::Cbuf_AddText(gamePadIndex, "\n");
+                    sprintf_s(cmd, "%s %i %i %0.3f\n", keyBinding, key, time, floatValue);
+                    Game::Cbuf_AddText(gamePadIndex, cmd);
+                }
+                else
+                {
+                    Game::Cbuf_AddText(gamePadIndex, keyBinding);
+                    Game::Cbuf_AddText(gamePadIndex, "\n");
+                }
             }
         }
         else
         {
-            if (keyBinding[0] == '+')
+            if (keyBinding && keyBinding[0] == '+')
             {
                 float floatValue;
                 if (button)
@@ -765,19 +817,8 @@ namespace Components
         if(button & Game::GPAD_DIGITAL_MASK)
         {
             const auto buttonValue = button & Game::GPAD_VALUE_MASK;
-            if (button & 0xF && buttonValue & gamePad.digitals && (gamePad.digitals & 0xF) != (button & 0xF))
-            {
-                down = false;
-                lastDown = false;
-            }
-            else
-            {
-                down = (buttonValue & gamePad.digitals) != 0;
-                if (button & 0xF && buttonValue & gamePad.lastDigitals && (gamePad.lastDigitals & 0xF) != (button & 0xF))
-                    lastDown = false;
-                else
-                    lastDown = (buttonValue & gamePad.lastDigitals) != 0;
-            }
+            down = (buttonValue & gamePad.digitals) != 0;
+            lastDown = (buttonValue & gamePad.lastDigitals) != 0;
         }
         else if(button & Game::GPAD_ANALOG_MASK)
         {
@@ -796,7 +837,7 @@ namespace Components
 
     bool Gamepad::GPad_ButtonRequiresUpdates(const int gamePadIndex, Game::GamePadButton button)
     {
-        return button & Game::GPAD_ANALOG_MASK && GPad_GetButton(gamePadIndex, button) > 0.0f;
+        return (button & Game::GPAD_ANALOG_MASK || button & Game::GPAD_DPAD_MASK) && GPad_GetButton(gamePadIndex, button) > 0.0f;
     }
 
     bool Gamepad::GPad_IsButtonReleased(int gamePadIndex, Game::GamePadButton button)
@@ -985,12 +1026,12 @@ namespace Components
                 const auto leftTrig = GPad_GetButton(gamePadIndex, Game::GPAD_L_TRIG);
                 const auto rightTrig = GPad_GetButton(gamePadIndex, Game::GPAD_R_TRIG);
                 
-                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LSTICK_X, lx);
-                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LSTICK_Y, ly);
-                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RSTICK_X, rx);
-                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RSTICK_Y, ry);
-                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LTRIGGER, leftTrig);
-                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RTRIGGER, rightTrig);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LSTICK_X, lx, time);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LSTICK_Y, ly, time);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RSTICK_X, rx, time);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RSTICK_Y, ry, time);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LTRIGGER, leftTrig, time);
+                CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RTRIGGER, rightTrig, time);
 
                 for (const auto& buttonMapping : Game::buttonList)
                 {
@@ -1108,8 +1149,6 @@ namespace Components
         //Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
         //Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
         //Utils::Hook(0x5A6829, unk_CheckKeyHook, HOOK_CALL).install()->quick();
-
-        //Scheduler::OnFrame(MenuNavigate);
 
         xpadSensitivity = Dvar::Register<float>("xpad_sensitivity", 1.9f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
         xpadEarlyTime = Dvar::Register<int>("xpad_early_time", 130, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");

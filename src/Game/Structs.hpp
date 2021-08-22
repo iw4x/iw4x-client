@@ -249,6 +249,14 @@ namespace Game
 		K_DPAD_UPDOWN = 0x19,
 		K_LASTGAMEPADBUTTON_RANGE_2 = 0x19, // Last Gamepad 2
 		K_ESCAPE = 0x1B,
+		K_FIRSTGAMEPADBUTTON_RANGE_3 = 0x1C, // First Gamepad 3
+		K_FIRSTAPAD = 0x1C, // First APad
+		K_APAD_UP = 0x1C,
+		K_APAD_DOWN = 0x1D,
+		K_APAD_LEFT = 0x1E,
+		K_APAD_RIGHT = 0x1F,
+		K_LASTAPAD = 0x1F, // Last APad
+		K_LASTGAMEPADBUTTON_RANGE_3 = 0x1F, // Last Gamepad 3
 		K_SPACE = 0x20,
 		K_BACKSPACE = 0x7F,
 		K_ASCII_FIRST = 0x80,

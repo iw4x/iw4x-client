@@ -5,6 +5,7 @@ namespace Game
     static constexpr auto MAX_GAMEPADS = 1;
 
     static constexpr auto GPAD_VALUE_MASK = 0xFFFFFFFu;
+    static constexpr auto GPAD_DPAD_MASK = XINPUT_GAMEPAD_DPAD_UP | XINPUT_GAMEPAD_DPAD_DOWN | XINPUT_GAMEPAD_DPAD_LEFT | XINPUT_GAMEPAD_DPAD_RIGHT;
     static constexpr auto GPAD_DIGITAL_MASK = 1u << 28;
     static constexpr auto GPAD_ANALOG_MASK = 1u << 29;
     static constexpr auto GPAD_STICK_MASK = 1u << 30;
@@ -84,8 +85,8 @@ namespace Game
     struct StickToCodeMap_t
     {
         GamePadStick padStick;
-        GamePadStickDir padStickDir;
-        int code;
+        int posCode;
+        int negCode;
     };
 
     struct GamepadVirtualAxisMapping
@@ -151,19 +152,6 @@ namespace Components
             }
         };
 
-        struct MenuMapping
-        {
-            int input;
-            Game::keyNum_t keystroke;
-            bool wasPressed = false;
-
-            MenuMapping(int input, Game::keyNum_t keystroke)
-            {
-                this->keystroke = keystroke;
-                this->input = input;
-            }
-        };
-
     private:
         static GamePad gamePads[Game::MAX_GAMEPADS];
         static GamePadGlobals gamePadGlobals[Game::MAX_GAMEPADS];
@@ -210,7 +198,6 @@ namespace Components
 
         static void CL_CreateCmdStub();
         static void CL_GamepadMove(int, Game::usercmd_s*);
-        static void MenuNavigate();
 
         static void MSG_WriteDeltaUsercmdKeyStub();
 
@@ -224,8 +211,10 @@ namespace Components
         static void GamepadStickTo01(SHORT value, SHORT deadzone, float& output01);
 
         static void CL_GamepadResetMenuScrollTime(int gamePadIndex, int key, bool down, unsigned int time);
+        static bool CL_CheckForIgnoreDueToRepeat(int gamePadIndex, int key, int repeatCount, unsigned int time);
         static void UI_GamepadKeyEvent(int gamePadIndex, int key, bool down);
-        static void CL_GamepadEvent(int gamePadIndex, Game::GamepadPhysicalAxis physicalAxis, float value);
+        static void CL_GamepadGenerateAPad(int gamePadIndex, Game::GamepadPhysicalAxis physicalAxis, unsigned time);
+        static void CL_GamepadEvent(int gamePadIndex, Game::GamepadPhysicalAxis physicalAxis, float value, unsigned time);
         static void CL_GamepadButtonEvent(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned time, Game::GamePadButton button);
         static void CL_GamepadButtonEventForPort(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned int time, Game::GamePadButton button);
 
