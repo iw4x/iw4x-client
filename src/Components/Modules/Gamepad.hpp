@@ -60,6 +60,19 @@ namespace Game
         GPAD_PHYSAXIS_COUNT,
     };
 
+    enum GamepadVirtualAxis
+    {
+        GPAD_VIRTAXIS_NONE = -1,
+        GPAD_VIRTAXIS_SIDE = 0x0,
+        GPAD_VIRTAXIS_FORWARD = 0x1,
+        GPAD_VIRTAXIS_UP = 0x2,
+        GPAD_VIRTAXIS_YAW = 0x3,
+        GPAD_VIRTAXIS_PITCH = 0x4,
+        GPAD_VIRTAXIS_ATTACK = 0x5,
+
+        GPAD_VIRTAXIS_COUNT
+    };
+
     enum GamePadStickDir
     {
         GPAD_STICK_POS = 0x0,
@@ -73,7 +86,8 @@ namespace Game
         GPAD_MAP_NONE = -1,
         GPAD_MAP_LINEAR = 0x0,
         GPAD_MAP_SQUARED = 0x1,
-        GPAD_MAP_COUNT = 0x2
+
+        GPAD_MAP_COUNT
     };
 
     struct ButtonToCodeMap_t
@@ -98,7 +112,7 @@ namespace Game
     struct GpadAxesGlob
     {
         float axesValues[GPAD_PHYSAXIS_COUNT];
-        GamepadVirtualAxisMapping virtualAxes[GPAD_PHYSAXIS_COUNT];
+        GamepadVirtualAxisMapping virtualAxes[GPAD_VIRTAXIS_COUNT];
     };
 }
 
@@ -132,7 +146,10 @@ namespace Components
 
         struct GamePadGlobals
         {
+            Game::GpadAxesGlob axes;
             unsigned nextScrollTime;
+
+            GamePadGlobals();
         };
 
         struct ActionMapping
@@ -155,6 +172,8 @@ namespace Components
     private:
         static GamePad gamePads[Game::MAX_GAMEPADS];
         static GamePadGlobals gamePadGlobals[Game::MAX_GAMEPADS];
+
+        static int gamePadBindingsModifiedFlags;
 
         static bool isHoldingMaxLookX;
         static std::chrono::milliseconds timeAtFirstHeldMaxLookX;
@@ -235,6 +254,17 @@ namespace Components
         static void GPad_UpdateAll();
         static void IN_GamePadsMove();
         static void IN_Frame_Hk();
+
+        static void Gamepad_WriteBindings(int gamePadIndex, int handle);
+        static void Key_WriteBindings_Hk(int localClientNum, int handle);
+        static void Com_WriteConfiguration_Modified_Stub();
+
+        static void Gamepad_BindAxis(int gamePadIndex, Game::GamepadPhysicalAxis realIndex, Game::GamepadVirtualAxis axisIndex, Game::GamepadMapping mapType);
+        static Game::GamepadPhysicalAxis StringToPhysicalAxis(const char* str);
+        static Game::GamepadVirtualAxis StringToVirtualAxis(const char* str);
+        static Game::GamepadMapping StringToGamePadMapping(const char* str);
+        static void Axis_Bind_f(Command::Params* params);
+        static void Axis_Unbindall_f(Command::Params* params);
 
         static void InitDvars();
         static void IN_Init_Hk();

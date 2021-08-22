@@ -302,6 +302,9 @@ namespace Game
 	typedef int(__cdecl * FS_Write_t)(const void* buffer, size_t size, int file);
 	extern FS_Write_t FS_Write;
 
+	typedef int(__cdecl * FS_Printf_t)(int file, const char* fmt, ...);
+	extern FS_Printf_t FS_Printf;
+
 	typedef int(__cdecl * FS_Read_t)(void* buffer, size_t size, int file);
 	extern FS_Read_t FS_Read;
 

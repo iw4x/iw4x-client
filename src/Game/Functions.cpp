@@ -130,6 +130,7 @@ namespace Game
 	FS_FCloseFile_t FS_FCloseFile = FS_FCloseFile_t(0x462000);
 	FS_WriteFile_t FS_WriteFile = FS_WriteFile_t(0x426450);
 	FS_Write_t FS_Write = FS_Write_t(0x4C06E0);
+	FS_Printf_t FS_Printf = FS_Printf_t(0x459320);
 	FS_Read_t FS_Read = FS_Read_t(0x4A04C0);
 	FS_Seek_t FS_Seek = FS_Seek_t(0x4A63D0);
 	FS_FTell_t FS_FTell = FS_FTell_t(0x4E6760);
