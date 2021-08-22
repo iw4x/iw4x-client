@@ -128,18 +128,18 @@ namespace Components
 
     ControllerMenuKeyMapping controllerMenuKeyMappings[]
     {
-        {Game::K_BUTTON_A, Game::K_KP_ENTER},
-        {Game::K_BUTTON_START, Game::K_KP_ENTER},
+        {Game::K_BUTTON_A, Game::K_ENTER},
+        {Game::K_BUTTON_START, Game::K_ENTER},
         {Game::K_BUTTON_B, Game::K_ESCAPE},
         {Game::K_BUTTON_BACK, Game::K_ESCAPE},
-        {Game::K_DPAD_UP, Game::K_KP_UPARROW},
-        {Game::K_APAD_UP, Game::K_KP_UPARROW},
-        {Game::K_DPAD_DOWN, Game::K_KP_DOWNARROW},
-        {Game::K_APAD_DOWN, Game::K_KP_DOWNARROW},
-        {Game::K_DPAD_LEFT, Game::K_KP_LEFTARROW},
-        {Game::K_APAD_LEFT, Game::K_KP_LEFTARROW},
-        {Game::K_DPAD_RIGHT, Game::K_KP_RIGHTARROW},
-        {Game::K_APAD_RIGHT, Game::K_KP_RIGHTARROW},
+        {Game::K_DPAD_UP, Game::K_UPARROW},
+        {Game::K_APAD_UP, Game::K_UPARROW},
+        {Game::K_DPAD_DOWN, Game::K_DOWNARROW},
+        {Game::K_APAD_DOWN, Game::K_DOWNARROW},
+        {Game::K_DPAD_LEFT, Game::K_LEFTARROW},
+        {Game::K_APAD_LEFT, Game::K_LEFTARROW},
+        {Game::K_DPAD_RIGHT, Game::K_RIGHTARROW},
+        {Game::K_APAD_RIGHT, Game::K_RIGHTARROW},
     };
 
 
