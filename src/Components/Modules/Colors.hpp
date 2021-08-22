@@ -5,6 +5,8 @@ namespace Components
 	class Colors : public Component
 	{
 	public:
+		static char LastColorIndex;
+
 		Colors();
 		~Colors();
 

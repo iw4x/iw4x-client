@@ -669,6 +669,9 @@ namespace Game
 	typedef char* (__cdecl * SEH_StringEd_GetString_t)(const char* string);
 	extern SEH_StringEd_GetString_t SEH_StringEd_GetString;
 
+	typedef int (__cdecl* SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
+	extern SEH_ReadCharFromString_t SEH_ReadCharFromString;
+
 	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
 	extern SL_ConvertToString_t SL_ConvertToString;
 
@@ -951,4 +954,6 @@ namespace Game
 	void R_AddDebugString(float *color, float *pos, float scale, const char *str);
 	void R_AddDebugBounds(float* color, Bounds* b);
 	void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4]);
+
+	Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter);
 }

@@ -2,6 +2,7 @@
 
 namespace Components
 {
+	char Colors::LastColorIndex;
 	Dvar::Var Colors::NewColors;
 	Dvar::Var Colors::ColorBlind;
 	Game::dvar_t* Colors::ColorAllyColorBlind;
@@ -147,6 +148,8 @@ namespace Components
 		Utils::Hook::Set<char>(0x5A2E2E, limit); // No idea :P
 
 		Utils::Hook::Set<char>(0x5A2733, limit - '0'); // No idea :P
+
+		LastColorIndex = limit;
 	}
 
 	char Colors::Add(uint8_t r, uint8_t g, uint8_t b)

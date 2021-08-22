@@ -279,6 +279,7 @@ namespace Game
 	SE_Load_t SE_Load = SE_Load_t(0x502A30);
 
 	SEH_StringEd_GetString_t SEH_StringEd_GetString = SEH_StringEd_GetString_t(0x44BB30);
+	SEH_ReadCharFromString_t SEH_ReadCharFromString = SEH_ReadCharFromString_t(0x486560);
 
 	Dvar_SetFromStringByName_t Dvar_SetFromStringByName = Dvar_SetFromStringByName_t(0x4F52E0);
 	Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource = Dvar_SetFromStringByNameFromSource_t(0x4FC770);
@@ -1255,6 +1256,20 @@ namespace Game
 			add esp, 10h
 
 			popad
+			retn
+		}
+	}
+
+	__declspec(naked) Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter)
+	{
+	    __asm
+		{
+			mov edi, [esp + 8]
+			push [esp+4]
+			mov eax, 0x5055C0
+			call eax
+			add esp,0x4
+			
 			retn
 		}
 	}
