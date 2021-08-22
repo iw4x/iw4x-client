@@ -83,7 +83,6 @@ namespace Game
         K_DPAD_RIGHT
     };
 
-    constexpr auto VANILLA_KEY_NAME_COUNT = 95;
     keyname_t extendedKeyNames[]
     {
         {"BUTTON_A", K_BUTTON_A},
@@ -104,10 +103,34 @@ namespace Game
         {"DPAD_RIGHT", K_DPAD_RIGHT},
     };
 
+    keyname_t extendedLocalizedKeyNames[]
+    {
+        {"^\x01\x40\x40\x08""button_a", K_BUTTON_A},
+        {"^\x01\x40\x40\x08""button_b", K_BUTTON_B},
+        {"^\x01\x40\x40\x08""button_x", K_BUTTON_X},
+        {"^\x01\x40\x40\x08""button_y", K_BUTTON_Y},
+        {"^\x01\x40\x40\x0D""button_lshldr", K_BUTTON_LSHLDR},
+        {"^\x01\x40\x40\x0D""button_rshldr", K_BUTTON_RSHLDR},
+        {"^\x01\x40\x40\x0C""button_start", K_BUTTON_START},
+        {"^\x01\x40\x40\x0B""button_back", K_BUTTON_BACK},
+        {"^\x01\x40\x40\x0D""button_lstick", K_BUTTON_LSTICK},
+        {"^\x01\x40\x40\x0D""button_rstick", K_BUTTON_RSTICK},
+        {"^\x01\x40\x40\x0C""button_ltrig", K_BUTTON_LTRIG},
+        {"^\x01\x40\x40\x0C""button_rtrig", K_BUTTON_RTRIG},
+        {"^\x01\x40\x40\x07""dpad_up", K_DPAD_UP},
+        {"^\x01\x40\x40\x09""dpad_down", K_DPAD_DOWN},
+        {"^\x01\x40\x40\x09""dpad_left", K_DPAD_LEFT},
+        {"^\x01\x40\x40\x0A""dpad_right", K_DPAD_RIGHT},
+    };
+
+    constexpr auto VANILLA_KEY_NAME_COUNT = 95;
+    constexpr auto VANILLA_LOCALIZED_KEY_NAME_COUNT = 95;
     keyname_t combinedKeyNames[VANILLA_KEY_NAME_COUNT + std::extent_v<decltype(extendedKeyNames)> + 1];
+    keyname_t combinedLocalizedKeyNames[VANILLA_KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNames)> + 1];
 
     PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
     keyname_t* vanillaKeyNames = reinterpret_cast<keyname_t*>(0x798580);
+    keyname_t* vanillaLocalizedKeyNames = reinterpret_cast<keyname_t*>(0x798880);
 }
 
 namespace Components
@@ -1310,11 +1333,16 @@ namespace Components
     {
         memcpy(Game::combinedKeyNames, Game::vanillaKeyNames, sizeof(Game::keyname_t) * Game::VANILLA_KEY_NAME_COUNT);
         memcpy(&Game::combinedKeyNames[Game::VANILLA_KEY_NAME_COUNT], Game::extendedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(Game::extendedKeyNames)>);
-        Game::combinedKeyNames[std::extent_v<decltype(Game::combinedKeyNames)> - 1] = {nullptr, 0};
+        Game::combinedKeyNames[std::extent_v<decltype(Game::combinedKeyNames)> -1] = { nullptr, 0 };
+
+        memcpy(Game::combinedLocalizedKeyNames, Game::vanillaLocalizedKeyNames, sizeof(Game::keyname_t) * Game::VANILLA_LOCALIZED_KEY_NAME_COUNT);
+        memcpy(&Game::combinedLocalizedKeyNames[Game::VANILLA_LOCALIZED_KEY_NAME_COUNT], Game::extendedLocalizedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(Game::extendedLocalizedKeyNames)>);
+        Game::combinedLocalizedKeyNames[std::extent_v<decltype(Game::combinedLocalizedKeyNames)> -1] = { nullptr, 0 };
 
         Utils::Hook::Set<Game::keyname_t*>(0x4A780A, Game::combinedKeyNames);
         Utils::Hook::Set<Game::keyname_t*>(0x4A7810, Game::combinedKeyNames);
         Utils::Hook::Set<Game::keyname_t*>(0x435C9F, Game::combinedKeyNames);
+        Utils::Hook::Set<Game::keyname_t*>(0x435C98, Game::combinedLocalizedKeyNames);
     }
 
     Gamepad::Gamepad()
