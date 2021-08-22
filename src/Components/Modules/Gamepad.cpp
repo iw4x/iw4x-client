@@ -1265,6 +1265,18 @@ namespace Components
         }
     }
 
+    void Gamepad::Bind_GP_SticksConfigs_f(Command::Params* params)
+    {
+        const auto* stickConfigName = gpad_sticksConfig.get<const char*>();
+        Game::Cbuf_AddText(0, Utils::String::VA("exec %s\n", stickConfigName));
+    }
+
+    void Gamepad::Bind_GP_ButtonsConfigs_f(Command::Params* params)
+    {
+        const auto* buttonConfigName = gpad_buttonConfig.get<const char*>();
+        Game::Cbuf_AddText(0, Utils::String::VA("exec %s\n", buttonConfigName));
+    }
+
     void Gamepad::InitDvars()
     {
         gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_FLAG_SAVED, "Game pad enabled");
@@ -1333,6 +1345,8 @@ namespace Components
 
         Command::Add("bindaxis", Axis_Bind_f);
         Command::Add("unbindallaxis", Axis_Unbindall_f);
+        Command::Add("bindgpsticksconfigs", Bind_GP_SticksConfigs_f);
+        Command::Add("bindgpbuttonsconfigs", Bind_GP_ButtonsConfigs_f);
 
         if (Dedicated::IsEnabled())
             return;

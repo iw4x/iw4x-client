@@ -265,6 +265,8 @@ namespace Components
         static Game::GamepadMapping StringToGamePadMapping(const char* str);
         static void Axis_Bind_f(Command::Params* params);
         static void Axis_Unbindall_f(Command::Params* params);
+        static void Bind_GP_SticksConfigs_f(Command::Params* params);
+        static void Bind_GP_ButtonsConfigs_f(Command::Params* params);
 
         static void InitDvars();
         static void IN_Init_Hk();
