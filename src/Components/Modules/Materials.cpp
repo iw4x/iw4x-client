@@ -303,7 +303,7 @@ namespace Components
 				{
 					if (*text >= '0' && *text <= Colors::LastColorIndex)
 					{
-						text += 2;
+						text++;
 						continue;
 					}
 
@@ -312,12 +312,12 @@ namespace Components
 						const auto width = text[1];
 						const auto materialNameLength = text[3];
 
-						auto v9 = font->pixelHeight * (text[1] - 16) + 16;
-						auto w = ((((v9 >> 24) & 0x1F) + (signed int)v9) >> 5);
+						auto v9 = font->pixelHeight * (width - 16) + 16;
+						auto w = ((((v9 >> 24) & 0x1F) + v9) >> 5);
 
 						lineWidth += w;
 
-						text += 3;
+						text += 4;
 						for (auto currentLength = 0; currentLength < materialNameLength && *text; currentLength++)
 							text++;
 						continue;
