@@ -192,6 +192,12 @@ namespace Components
 			add esp, 4h
 
 			mov [esp + 20h], eax
+
+			// Make all material text icons have white tint
+			mov eax,[esp + 0x50]
+			or eax,0x00FFFFFF
+			mov [esp + 0x50],eax
+
 			popad
 			pop eax
 
@@ -343,6 +349,7 @@ namespace Components
 		Materials::ImageVersionCheckHook.initialize(0x53A456, Materials::ImageVersionCheck, HOOK_CALL)->install();
 
 		// Fix material pointer exploit
+		// Also make all material text icons have white tint
 		Utils::Hook(0x534E0C, Materials::DrawMaterialStub, HOOK_CALL).install()->quick();
 
 		// Increment string pointer accordingly
