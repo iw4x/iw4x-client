@@ -116,6 +116,7 @@ namespace Components
 		if (this->dvar)
 		{
 			this->dvar->current.integer = integer;
+			this->dvar->latched.integer = integer;
 		}
 	}
 
@@ -124,6 +125,7 @@ namespace Components
 		if (this->dvar)
 		{
 			this->dvar->current.value = value;
+			this->dvar->latched.value = value;
 		}
 	}
 
@@ -132,6 +134,7 @@ namespace Components
 		if (this->dvar)
 		{
 			this->dvar->current.enabled = value;
+			this->dvar->latched.enabled = value;
 		}
 	}
 
