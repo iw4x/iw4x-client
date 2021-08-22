@@ -1403,6 +1403,40 @@ namespace Components
         Utils::Hook::Call<void(int, int, int, unsigned)>(0x4F6480)(localClientNum, key, down, time);
     }
 
+    bool Gamepad::IsGamePadInUse()
+    {
+        return gamePads[0].inUse;
+    }
+
+    __declspec(naked) void Gamepad::CL_MouseEvent_Stub()
+    {
+        __asm
+        {
+            pushad
+            cmp eax, 6
+            jz hideCursor
+            
+            call IsGamePadInUse
+            test al, al
+            jnz hideCursor
+
+            // Continue checks
+            popad
+            push 0x4D7C68
+            retn;
+
+        hideCursor:
+            popad
+            push 0x4D7C8A
+            retn
+        }
+    }
+
+    bool Gamepad::UI_RefreshViewport_Hk()
+    {
+        return Dvar::Var("cl_bypassMouseInput").get<bool>() || IsGamePadInUse();
+    }
+
     void Gamepad::CreateKeyNameMap()
     {
         memcpy(Game::combinedKeyNames, Game::vanillaKeyNames, sizeof(Game::keyname_t) * Game::VANILLA_KEY_NAME_COUNT);
@@ -1459,6 +1493,10 @@ namespace Components
 
         // Mark controller as unused when keyboard key is pressed
         Utils::Hook(0x43D179, CL_KeyEvent_Hk, HOOK_CALL).install()->quick();
+
+        // Hide cursor when controller is active
+        Utils::Hook(0x4D7C63, CL_MouseEvent_Stub, HOOK_JUMP).install()->quick(); // Disable cursor
+        Utils::Hook(0x48E527, UI_RefreshViewport_Hk, HOOK_CALL).install()->quick(); // Do not draw cursor
 
         // Only return gamepad keys when gamepad enabled and only non gamepad keys when not
         Utils::Hook(0x5A7A23, Key_GetCommandAssignmentInternal_Hk, HOOK_CALL).install()->quick();
