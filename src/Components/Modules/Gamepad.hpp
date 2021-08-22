@@ -128,6 +128,7 @@ namespace Components
         struct GamePad
         {
             bool enabled;
+            bool inUse;
             int portIndex;
             unsigned short digitals;
             unsigned short lastDigitals;
@@ -229,6 +230,8 @@ namespace Components
         static void GetRightStick01Value(XINPUT_STATE* xiState, float& x, float& y);
         static void GamepadStickTo01(SHORT value, SHORT deadzone, float& output01);
 
+        static bool Key_IsValidGamePadChar(const int key);
+
         static void CL_GamepadResetMenuScrollTime(int gamePadIndex, int key, bool down, unsigned int time);
         static bool CL_CheckForIgnoreDueToRepeat(int gamePadIndex, int key, int repeatCount, unsigned int time);
         static void UI_GamepadKeyEvent(int gamePadIndex, int key, bool down);
@@ -271,6 +274,9 @@ namespace Components
         static void InitDvars();
         static void IN_Init_Hk();
 
+        static int Key_GetCommandAssignmentInternal_Hk(const char* cmd, int(*keys)[2]);
+        static void Key_GetCommandAssignmentInternal_Stub();
+        static void CL_KeyEvent_Hk(int localClientNum, int key, int down, unsigned int time);
         static void CreateKeyNameMap();
     };
 }

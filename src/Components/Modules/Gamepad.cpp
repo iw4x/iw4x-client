@@ -105,22 +105,23 @@ namespace Game
 
     keyname_t extendedLocalizedKeyNames[]
     {
-        {"^\x01\x40\x40\x08""button_a", K_BUTTON_A},
-        {"^\x01\x40\x40\x08""button_b", K_BUTTON_B},
-        {"^\x01\x40\x40\x08""button_x", K_BUTTON_X},
-        {"^\x01\x40\x40\x08""button_y", K_BUTTON_Y},
-        {"^\x01\x40\x40\x0D""button_lshldr", K_BUTTON_LSHLDR},
-        {"^\x01\x40\x40\x0D""button_rshldr", K_BUTTON_RSHLDR},
-        {"^\x01\x40\x40\x0C""button_start", K_BUTTON_START},
-        {"^\x01\x40\x40\x0B""button_back", K_BUTTON_BACK},
-        {"^\x01\x40\x40\x0D""button_lstick", K_BUTTON_LSTICK},
-        {"^\x01\x40\x40\x0D""button_rstick", K_BUTTON_RSTICK},
-        {"^\x01\x40\x40\x0C""button_ltrig", K_BUTTON_LTRIG},
-        {"^\x01\x40\x40\x0C""button_rtrig", K_BUTTON_RTRIG},
-        {"^\x01\x40\x40\x07""dpad_up", K_DPAD_UP},
-        {"^\x01\x40\x40\x09""dpad_down", K_DPAD_DOWN},
-        {"^\x01\x40\x40\x09""dpad_left", K_DPAD_LEFT},
-        {"^\x01\x40\x40\x0A""dpad_right", K_DPAD_RIGHT},
+        // Material text icons pattern: 0x01 width height material_name_len
+        {"^\x01\x32\x32\x08""button_a", K_BUTTON_A},
+        {"^\x01\x32\x32\x08""button_b", K_BUTTON_B},
+        {"^\x01\x32\x32\x08""button_x", K_BUTTON_X},
+        {"^\x01\x32\x32\x08""button_y", K_BUTTON_Y},
+        {"^\x01\x32\x32\x0D""button_lshldr", K_BUTTON_LSHLDR},
+        {"^\x01\x32\x32\x0D""button_rshldr", K_BUTTON_RSHLDR},
+        {"^\x01\x32\x32\x0C""button_start", K_BUTTON_START},
+        {"^\x01\x32\x32\x0B""button_back", K_BUTTON_BACK},
+        {"^\x01\x48\x32\x0D""button_lstick", K_BUTTON_LSTICK},
+        {"^\x01\x48\x32\x0D""button_rstick", K_BUTTON_RSTICK},
+        {"^\x01\x32\x32\x0C""button_ltrig", K_BUTTON_LTRIG},
+        {"^\x01\x32\x32\x0C""button_rtrig", K_BUTTON_RTRIG},
+        {"^\x01\x32\x32\x07""dpad_up", K_DPAD_UP},
+        {"^\x01\x32\x32\x09""dpad_down", K_DPAD_DOWN},
+        {"^\x01\x32\x32\x09""dpad_left", K_DPAD_LEFT},
+        {"^\x01\x32\x32\x0A""dpad_right", K_DPAD_RIGHT},
     };
 
     constexpr auto VANILLA_KEY_NAME_COUNT = 95;
@@ -601,6 +602,13 @@ namespace Components
         }
     }
 
+    bool Gamepad::Key_IsValidGamePadChar(const int key)
+    {
+        return key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_1 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_1
+            || key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_2 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_2
+            || key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_3 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_3;
+    }
+
     void Gamepad::CL_GamepadResetMenuScrollTime(const int gamePadIndex, const int key, const bool down, const unsigned time)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
@@ -660,10 +668,14 @@ namespace Components
         assert(gamePadIndex < Game::MAX_GAMEPADS);
         assert(physicalAxis < Game::GPAD_PHYSAXIS_COUNT && physicalAxis >= 0);
 
+        auto& gamePad = gamePads[gamePadIndex];
         auto& gamePadGlobal = gamePadGlobals[gamePadIndex];
 
         gamePadGlobal.axes.axesValues[physicalAxis] = value;
         CL_GamepadGenerateAPad(gamePadIndex, physicalAxis, time);
+
+        if (std::fabs(value) > 0.0f)
+            gamePad.inUse = true;
     }
 
     void Gamepad::UI_GamepadKeyEvent(const int gamePadIndex, const int key, const bool down)
@@ -808,8 +820,14 @@ namespace Components
 
     void Gamepad::CL_GamepadButtonEventForPort(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time, const Game::GamePadButton button)
     {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& gamePad = gamePads[gamePadIndex];
+
+        gamePad.inUse = true;
+
         if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
             CL_GamepadResetMenuScrollTime(gamePadIndex, key, buttonEvent == Game::GPAD_BUTTON_PRESSED, time);
+
 
         CL_GamepadButtonEvent(gamePadIndex, key, buttonEvent, time, button);
     }
@@ -1277,7 +1295,7 @@ namespace Components
         Gamepad_BindAxis(0, physicalAxis, virtualAxis, mapping);
     }
 
-    void Gamepad::Axis_Unbindall_f(Command::Params* params)
+    void Gamepad::Axis_Unbindall_f(Command::Params*)
     {
         auto& gamePadGlobal = gamePadGlobals[0];
 
@@ -1327,6 +1345,55 @@ namespace Components
         Utils::Hook::Call<void()>(0x45D620)();
 
         InitDvars();
+    }
+
+    int Gamepad::Key_GetCommandAssignmentInternal_Hk(const char* cmd, int (*keys)[2])
+    {
+        auto keyCount = 0;
+
+        if (gamePads[0].inUse)
+        {
+            for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
+            {
+                if(!Key_IsValidGamePadChar(keyNum))
+                    continue;
+
+                if(Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
+                {
+                    (*keys)[keyCount++] = keyNum;
+
+                    if (keyCount >= 2)
+                        return keyNum;
+                }
+            }
+        }
+        else
+        {
+            for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
+            {
+                if (Key_IsValidGamePadChar(keyNum))
+                    continue;
+
+                if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
+                {
+                    (*keys)[keyCount++] = keyNum;
+
+                    if (keyCount >= 2)
+                        return keyNum;
+                }
+            }
+        }
+
+        return keyCount;
+    }
+
+    void Gamepad::CL_KeyEvent_Hk(const int localClientNum, const int key, const int down, const unsigned time)
+    {
+        // A keyboard key has been pressed. Mark controller as unused.
+        gamePads[0].inUse = false;
+
+        // Call original function
+        Utils::Hook::Call<void(int, int, int, unsigned)>(0x4F6480)(localClientNum, key, down, time);
     }
 
     void Gamepad::CreateKeyNameMap()
@@ -1382,6 +1449,12 @@ namespace Components
         Utils::Hook(0x467C03, IN_Init_Hk, HOOK_CALL).install()->quick();
 
         Utils::Hook(0x475E9E, IN_Frame_Hk, HOOK_CALL).install()->quick();
+
+        // Mark controller as unused when keyboard key is pressed
+        Utils::Hook(0x43D179, CL_KeyEvent_Hk, HOOK_CALL).install()->quick();
+
+        // Only return gamepad keys when gamepad enabled and only non gamepad keys when not
+        Utils::Hook(0x5A7A23, Key_GetCommandAssignmentInternal_Hk, HOOK_CALL).install()->quick();
 
         //Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
         //Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
