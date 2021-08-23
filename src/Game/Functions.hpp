@@ -956,4 +956,6 @@ namespace Game
 	void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4]);
 
 	Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter);
+
+	extern clientActive_t* clients;
 }

@@ -2,9 +2,6 @@
 
 #include <limits>
 
-#define XINPUT_SENSITIVITY_MULTIPLIER 4 // Arbitrary value I multiply the xinput senstivity dvar with to get nicer values (0-10 range or something)
-#define SIGN(d) ((d > 0) - (d < 0))
-
 namespace Game
 {
     ButtonToCodeMap_t buttonList[]
@@ -43,6 +40,16 @@ namespace Game
         GPAD_LY,
         GPAD_INVALID,
         GPAD_INVALID
+    };
+
+    GamepadPhysicalAxis axisSameStick[GPAD_PHYSAXIS_COUNT]
+    {
+        GPAD_PHYSAXIS_RSTICK_Y,
+        GPAD_PHYSAXIS_RSTICK_X,
+        GPAD_PHYSAXIS_LSTICK_Y,
+        GPAD_PHYSAXIS_LSTICK_X,
+        GPAD_PHYSAXIS_NONE,
+        GPAD_PHYSAXIS_NONE
     };
 
     const char* physicalAxisNames[GPAD_PHYSAXIS_COUNT]
@@ -130,6 +137,7 @@ namespace Game
     keyname_t combinedLocalizedKeyNames[VANILLA_KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNames)> + 1];
 
     PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
+    AimAssistGlobals* aaGlobArray = reinterpret_cast<AimAssistGlobals*>(0x7A2110);
     keyname_t* vanillaKeyNames = reinterpret_cast<keyname_t*>(0x798580);
     keyname_t* vanillaLocalizedKeyNames = reinterpret_cast<keyname_t*>(0x798880);
 }
@@ -159,6 +167,7 @@ namespace Components
     Dvar::Var Gamepad::gpad_button_deadzone;
     Dvar::Var Gamepad::gpad_button_rstick_deflect_max;
     Dvar::Var Gamepad::gpad_button_lstick_deflect_max;
+    Dvar::Var Gamepad::input_viewSensitivity;
 
     Dvar::Var Gamepad::xpadSensitivity;
     Dvar::Var Gamepad::xpadEarlyTime;
@@ -193,25 +202,6 @@ namespace Components
         {Game::K_APAD_RIGHT, Game::K_RIGHTARROW},
     };
 
-
-    // This should be read from a text file in the players/ folder, most probably / or from config_mp.cfg
-    std::vector<Gamepad::ActionMapping> mappings = {
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_A, "gostand"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_B, "stance"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_X, "usereload"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_Y, "weapnext", false),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_LEFT_SHOULDER, "smoke"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_RIGHT_SHOULDER, "frag"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_LEFT_THUMB, "breath_sprint"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_RIGHT_THUMB, "melee"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_START, "togglemenu", false),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_BACK, "scores"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_DPAD_LEFT, "actionslot 3"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_DPAD_RIGHT, "actionslot 2"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_DPAD_DOWN, "actionslot 1"),
-        Gamepad::ActionMapping(XINPUT_GAMEPAD_DPAD_UP, "actionslot 4"),
-    };
-
     Gamepad::GamePadGlobals::GamePadGlobals()
         : axes{},
           nextScrollTime(0)
@@ -221,132 +211,6 @@ namespace Components
             virtualAxis.physicalAxis = Game::GPAD_PHYSAXIS_NONE;
             virtualAxis.mapType = Game::GPAD_MAP_NONE;
         }
-    }
-
-
-    // Same thing
-
-    //	void Gamepad::Vibrate(int leftVal, int rightVal)
-    //	{
-    //		// Create a Vibraton State
-    //		XINPUT_VIBRATION Vibration;
-    //
-    //		// Zeroise the Vibration
-    //		ZeroMemory(&Vibration, sizeof(XINPUT_VIBRATION));
-    //
-    //		// Set the Vibration Values
-    //		Vibration.wLeftMotorSpeed = leftVal;
-    //		Vibration.wRightMotorSpeed = rightVal;
-    //
-    //		// Vibrate the controller
-    //		XInputSetState(xiPlayerNum, &Vibration);
-    //	}
-
-    void Gamepad::CL_GamepadMove(int, Game::usercmd_s* cmd)
-    {
-        auto& gamePad = gamePads[0];
-
-        if (gamePad.enabled)
-        {
-            if (std::fabs(gamePad.sticks[0]) > 0.0f || std::fabs(gamePad.sticks[1]) > 0.0f)
-            {
-                // We check for 0:0 again so we don't overwrite keyboard input in case the user doesn't feel like using their gamepad, even though its plugged in
-                cmd->rightmove = static_cast<char>(gamePad.sticks[0] * static_cast<float>(std::numeric_limits<char>().max()));
-                cmd->forwardmove = static_cast<char>(gamePad.sticks[1] * static_cast<float>(std::numeric_limits<char>().max()));
-            }
-
-            const bool pressingLeftTrigger = gamePad.analogs[0] > TRIGGER_THRESHOLD_F;
-            const bool previouslyPressingLeftTrigger = gamePad.lastAnalogs[0] > TRIGGER_THRESHOLD_F;
-            if (pressingLeftTrigger != previouslyPressingLeftTrigger)
-            {
-                if (pressingLeftTrigger)
-                {
-                    Command::Execute("+speed_throw");
-                    isADS = true;
-                }
-                else
-                {
-                    Command::Execute("-speed_throw");
-                    isADS = false;
-                }
-            }
-
-            const bool pressingRightTrigger = gamePad.analogs[1] > TRIGGER_THRESHOLD_F;
-            const bool previouslyPressingRightTrigger = gamePad.lastAnalogs[1] > TRIGGER_THRESHOLD_F;
-            if (pressingRightTrigger != previouslyPressingRightTrigger)
-            {
-                if (pressingRightTrigger)
-                {
-                    Command::Execute("+attack");
-                }
-                else
-                {
-                    Command::Execute("-attack");
-                }
-            }
-
-            // Buttons (on/off) mappings
-            for (auto& i : mappings)
-            {
-                auto mapping = i;
-                auto action = mapping.action;
-                auto antiAction = mapping.action;
-
-                if (mapping.isReversible)
-                {
-                    action = "+" + mapping.action;
-                    antiAction = "-" + mapping.action;
-                }
-                else if (mapping.wasPressed)
-                {
-                    if (gamePad.digitals & mapping.input)
-                    {
-                        // Button still pressed, do not send info
-                    }
-                    else
-                    {
-                        i.wasPressed = false;
-                    }
-
-                    continue;
-                }
-
-                if (gamePad.digitals & mapping.input)
-                {
-                    if (mapping.spamWhenHeld || !i.wasPressed)
-                    {
-                        Command::Execute(action);
-                    }
-                    i.wasPressed = true;
-                }
-                else if (mapping.isReversible && mapping.wasPressed)
-                {
-                    i.wasPressed = false;
-                    Command::Execute(antiAction);
-                }
-            }
-        }
-    }
-
-    __declspec(naked) void Gamepad::CL_CreateCmdStub()
-    {
-        __asm
-            {
-            // do xinput!
-            push esi
-            push ebp
-            call CL_GamepadMove
-            add esp, 8h
-
-            // execute code we patched over
-            add esp, 4
-            fld st
-            pop ebx
-
-            // return back
-            push 0x5A6DBF
-            retn
-            }
     }
 
     __declspec(naked) void Gamepad::MSG_WriteDeltaUsercmdKeyStub()
@@ -431,151 +295,6 @@ namespace Components
             }
     }
 
-    int Gamepad::unk_CheckKeyHook(int localClientNum, Game::keyNum_t keyCode)
-    {
-        const auto& gamePad = gamePads[0];
-
-        if (gamePad.enabled)
-        {
-            if (keyCode == Game::keyNum_t::K_MOUSE2)
-            {
-                const bool pressingLeftTrigger = gamePad.analogs[0] > TRIGGER_THRESHOLD_F;
-                const bool previouslyPressingLeftTrigger = gamePad.lastAnalogs[0] > TRIGGER_THRESHOLD_F;
-                if (pressingLeftTrigger != previouslyPressingLeftTrigger)
-                {
-                    if (pressingLeftTrigger)
-                    {
-                        return 1;
-                    }
-                    else
-                    {
-                        return 0;
-                    }
-                }
-            }
-        }
-
-        return Utils::Hook::Call<int(int, Game::keyNum_t)>(0x48B2D0)(localClientNum, keyCode);
-    }
-
-    void Gamepad::MouseOverride(Game::clientActive_t* clientActive, float* mx, float* my)
-    {
-        CL_GetMouseMovementCl(clientActive, mx, my);
-
-        const auto& gamePad = gamePads[0];
-
-        if (gamePad.enabled)
-        {
-            float viewSensitivityMultiplier = xpadSensitivity.get<float>() * XINPUT_SENSITIVITY_MULTIPLIER;
-
-            float lockedSensitivityMultiplier = xpadEarlyMultiplier.get<float>();
-            float generalXSensitivityMultiplier = xpadHorizontalMultiplier.get<float>();
-            float generalYSensitivityMultiplier = xpadVerticalMultiplier.get<float>();
-            std::chrono::milliseconds msBeforeUnlockingSensitivity = std::chrono::milliseconds(xpadEarlyTime.get<int>());
-
-            float viewStickX = gamePad.sticks[2];
-            float viewStickY = gamePad.sticks[3];
-
-            // Gamepad horizontal acceleration on view
-            if (abs(viewStickX) > 0.80f)
-            {
-                if (!isHoldingMaxLookX)
-                {
-                    isHoldingMaxLookX = true;
-                    timeAtFirstHeldMaxLookX = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-                }
-                else
-                {
-                    std::chrono::milliseconds hasBeenHoldingLeftXForMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) -
-                        timeAtFirstHeldMaxLookX;
-#ifdef STEP_SENSITIVITY
-					if (hasBeenHoldingLeftXForMs < msBeforeUnlockingSensitivity) {
-						viewStickX *= lockedSensitivityMultiplier;
-					}
-#else
-                    float coeff = std::clamp(hasBeenHoldingLeftXForMs.count() / (float)msBeforeUnlockingSensitivity.count(), 0.0F, 1.0F);
-                    viewStickX *= lockedSensitivityMultiplier + coeff * (1.0f - lockedSensitivityMultiplier);
-#endif
-                }
-            }
-            else
-            {
-                isHoldingMaxLookX = false;
-                timeAtFirstHeldMaxLookX = 0ms;
-                viewStickX *= lockedSensitivityMultiplier;
-            }
-
-            float adsMultiplier = 1.0f;
-
-            auto ps = &clientActive->snap.ps;
-
-            // DO NOT use clientActive->usingAds ! It only works for toggle ADS
-            if (PM_IsAdsAllowed(ps) && isADS)
-            {
-                adsMultiplier = xpadAdsMultiplier.get<float>();
-            }
-
-            if (viewStickX != 0 || viewStickY != 0)
-            {
-                *(my) = viewStickX * viewSensitivityMultiplier * generalXSensitivityMultiplier * adsMultiplier;
-                *(mx) = -viewStickY * viewSensitivityMultiplier * generalYSensitivityMultiplier * adsMultiplier;
-            }
-
-            // Handling killstreaks
-            const bool pressingRightTrigger = gamePad.analogs[1] > TRIGGER_THRESHOLD_F;
-            const bool previouslyPressingRightTrigger = gamePad.lastAnalogs[1] > TRIGGER_THRESHOLD_F;
-            if (pressingRightTrigger != previouslyPressingRightTrigger)
-            {
-                bool* isInPredator = reinterpret_cast<bool*>(0x8EE3B8);
-
-                if (pressingRightTrigger)
-                {
-                    Utils::Hook::Set(0xA1C4F4, Game::LOC_SEL_INPUT_CONFIRM);
-                    if (*isInPredator)
-                    {
-                        // Yea, that's how we boost
-                        // Command::execute is sync by default so the predator event gets fired properly
-                        Command::Execute("+attack");
-                        Command::Execute("-attack");
-                    }
-                }
-            }
-        }
-    }
-
-    // Game -> Client DLL
-    __declspec(naked) void CL_GetMouseMovementStub()
-    {
-        __asm
-            {
-            push edx;
-            push ecx;
-            push eax;
-            call Gamepad::MouseOverride;
-            add esp, 0xC;
-            ret;
-            }
-    }
-
-    // Client DLL -> Game
-    void Gamepad::CL_GetMouseMovementCl(Game::clientActive_t* result, float* mx, float* my)
-    {
-        __asm
-            {
-            push ebx;
-            push ecx;
-            push edx;
-            mov eax, result;
-            mov ecx, mx;
-            mov edx, my;
-            mov ebx, 5A60E0h;
-            call ebx;
-            pop edx;
-            pop ecx;
-            pop ebx;
-            }
-    }
-
     bool Gamepad::GPad_Check(const int gamePadIndex, const int portIndex)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
@@ -609,6 +328,111 @@ namespace Components
             || key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_2 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_2
             || key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_3 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_3;
     }
+
+    float Gamepad::CL_GamepadAxisValue(const int gamePadIndex, const Game::GamepadVirtualAxis virtualAxis)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        assert(virtualAxis > Game::GPAD_VIRTAXIS_NONE && virtualAxis < Game::GPAD_VIRTAXIS_COUNT);
+        const auto& gamePadGlobal = gamePadGlobals[gamePadIndex];
+
+        const auto& [physicalAxis, mapType] = gamePadGlobal.axes.virtualAxes[virtualAxis];
+
+        if (physicalAxis <= Game::GPAD_PHYSAXIS_NONE || physicalAxis >= Game::GPAD_PHYSAXIS_COUNT)
+            return 0.0f;
+
+        auto axisDeflection = gamePadGlobal.axes.axesValues[physicalAxis];
+
+        if (mapType == Game::GPAD_MAP_SQUARED)
+        {
+            const auto otherAxisSameStick = Game::axisSameStick[physicalAxis];
+
+            float otherAxisDeflection;
+            if (otherAxisSameStick <= Game::GPAD_PHYSAXIS_NONE || otherAxisSameStick >= Game::GPAD_PHYSAXIS_COUNT)
+                otherAxisDeflection = 0.0f;
+            else
+                otherAxisDeflection = gamePadGlobal.axes.axesValues[otherAxisSameStick];
+
+            axisDeflection = std::sqrt(axisDeflection * axisDeflection + otherAxisDeflection * otherAxisDeflection) * axisDeflection;
+        }
+
+        return axisDeflection;
+    }
+
+    char Gamepad::ClampChar(const int value)
+    {
+        return static_cast<char>(std::clamp<int>(value, std::numeric_limits<char>::min(), std::numeric_limits<char>::max()));
+    }
+
+    void Gamepad::CL_GamepadMove(const int gamePadIndex, Game::usercmd_s* cmd, const float frame_time_base)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& gamePad = gamePads[gamePadIndex];
+        auto& gamePadGlobal = gamePadGlobals[gamePadIndex];
+
+        if (!gpad_enabled.get<bool>() || !gamePad.enabled)
+            return;
+
+        auto pitch = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_PITCH);
+        if (!Dvar::Var("input_invertPitch").get<bool>())
+            pitch *= -1;
+
+        auto yaw = -CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_YAW);
+        auto forward = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_FORWARD);
+        auto side = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_SIDE);
+        auto attack = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_ATTACK);
+        auto moveScale = static_cast<float>(std::numeric_limits<char>::max());
+
+        if (std::fabs(side) > 0.0f || std::fabs(forward) > 0.0f)
+        {
+            const auto length = std::fabs(side) <= std::fabs(forward)
+                                    ? side / forward
+                                    : forward / side;
+            moveScale = std::sqrt((length * length) + 1.0f) * moveScale;
+        }
+
+        const auto forwardMove = static_cast<int>(std::floor(forward * moveScale));
+        const auto rightMove = static_cast<int>(std::floor(side * moveScale));
+
+        const auto sensitivity = input_viewSensitivity.get<float>();
+        pitch *= sensitivity;
+        yaw *= sensitivity;
+
+        if (Game::clients[0].cgameMaxPitchSpeed > 0 && Game::clients[0].cgameMaxPitchSpeed < std::fabs(pitch))
+            pitch = std::signbit(pitch) ? -Game::clients[0].cgameMaxPitchSpeed : Game::clients[0].cgameMaxPitchSpeed;
+        if (Game::clients[0].cgameMaxYawSpeed > 0 && Game::clients[0].cgameMaxYawSpeed < std::fabs(yaw))
+            yaw = std::signbit(yaw) ? -Game::clients[0].cgameMaxYawSpeed : Game::clients[0].cgameMaxYawSpeed;
+
+
+        Game::clients[0].clViewangles[0] += pitch;
+        Game::clients[0].clViewangles[1] += yaw;
+
+        cmd->rightmove = ClampChar(cmd->rightmove + rightMove);
+        cmd->forwardmove = ClampChar(cmd->forwardmove + forwardMove);
+    }
+
+    constexpr auto CL_MouseMove = 0x5A6240;
+
+    __declspec(naked) void Gamepad::CL_MouseMove_Stub()
+    {
+        __asm
+            {
+            // Prepare args for our function call
+            push [esp+0x4] // frametime_base
+            push ebx // cmd
+            push eax // localClientNum
+
+            push [esp+0x8] // restore frametime_base on the stack
+            call CL_MouseMove
+            add esp,4
+
+            // Call our function, the args were already prepared earlier
+            call CL_GamepadMove
+            add esp,0xC
+
+            ret
+            }
+    }
+
 
     void Gamepad::CL_GamepadResetMenuScrollTime(const int gamePadIndex, const int key, const bool down, const unsigned time)
     {
@@ -1171,7 +995,7 @@ namespace Components
 
         Game::FS_Printf(handle, "unbindallaxis\n");
 
-        for(auto virtualAxisIndex = 0u; virtualAxisIndex < Game::GPAD_VIRTAXIS_COUNT; virtualAxisIndex++)
+        for (auto virtualAxisIndex = 0u; virtualAxisIndex < Game::GPAD_VIRTAXIS_COUNT; virtualAxisIndex++)
         {
             const auto& axisMapping = gamePadGlobal.axes.virtualAxes[virtualAxisIndex];
             if (axisMapping.physicalAxis <= Game::GPAD_PHYSAXIS_NONE || axisMapping.physicalAxis >= Game::GPAD_PHYSAXIS_COUNT
@@ -1199,7 +1023,7 @@ namespace Components
     void __declspec(naked) Gamepad::Com_WriteConfiguration_Modified_Stub()
     {
         __asm
-        {
+            {
             mov eax, [ecx + 0x18]
             or eax, gamePadBindingsModifiedFlags // Also check for gamePadBindingsModifiedFlags
             test al, 1
@@ -1210,10 +1034,10 @@ namespace Components
             push 0x60B26E
             retn
 
-        endMethod:
+            endMethod:
             push 0x60B298
             retn
-        }
+            }
     }
 
 
@@ -1343,6 +1167,8 @@ namespace Components
         gpad_button_deadzone = Dvar::Register<float>("gpad_button_deadzone", 0.13f, 0.0f, 1.0f, 0, "Game pad button deadzone threshhold");
         gpad_button_lstick_deflect_max = Dvar::Register<float>("gpad_button_lstick_deflect_max", 1.0f, 0.0f, 1.0f, 0, "Game pad maximum pad stick pressed value");
         gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, 0, "Game pad maximum pad stick pressed value");
+
+        input_viewSensitivity = Dvar::Register<float>("input_viewSensitivity", 1.0f, 0.0001f, 5.0f, Game::DVAR_FLAG_SAVED, "View Sensitivity");
     }
 
     void Gamepad::IN_Init_Hk()
@@ -1361,10 +1187,10 @@ namespace Components
         {
             for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
             {
-                if(!Key_IsValidGamePadChar(keyNum))
+                if (!Key_IsValidGamePadChar(keyNum))
                     continue;
 
-                if(Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
+                if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
                 {
                     (*keys)[keyCount++] = keyNum;
 
@@ -1411,11 +1237,11 @@ namespace Components
     __declspec(naked) void Gamepad::CL_MouseEvent_Stub()
     {
         __asm
-        {
+            {
             pushad
             cmp eax, 6
             jz hideCursor
-            
+
             call IsGamePadInUse
             test al, al
             jnz hideCursor
@@ -1425,11 +1251,11 @@ namespace Components
             push 0x4D7C68
             retn;
 
-        hideCursor:
+            hideCursor:
             popad
             push 0x4D7C8A
             retn
-        }
+            }
     }
 
     bool Gamepad::UI_RefreshViewport_Hk()
@@ -1441,11 +1267,12 @@ namespace Components
     {
         memcpy(Game::combinedKeyNames, Game::vanillaKeyNames, sizeof(Game::keyname_t) * Game::VANILLA_KEY_NAME_COUNT);
         memcpy(&Game::combinedKeyNames[Game::VANILLA_KEY_NAME_COUNT], Game::extendedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(Game::extendedKeyNames)>);
-        Game::combinedKeyNames[std::extent_v<decltype(Game::combinedKeyNames)> -1] = { nullptr, 0 };
+        Game::combinedKeyNames[std::extent_v<decltype(Game::combinedKeyNames)> - 1] = {nullptr, 0};
 
         memcpy(Game::combinedLocalizedKeyNames, Game::vanillaLocalizedKeyNames, sizeof(Game::keyname_t) * Game::VANILLA_LOCALIZED_KEY_NAME_COUNT);
-        memcpy(&Game::combinedLocalizedKeyNames[Game::VANILLA_LOCALIZED_KEY_NAME_COUNT], Game::extendedLocalizedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(Game::extendedLocalizedKeyNames)>);
-        Game::combinedLocalizedKeyNames[std::extent_v<decltype(Game::combinedLocalizedKeyNames)> -1] = { nullptr, 0 };
+        memcpy(&Game::combinedLocalizedKeyNames[Game::VANILLA_LOCALIZED_KEY_NAME_COUNT], Game::extendedLocalizedKeyNames,
+               sizeof(Game::keyname_t) * std::extent_v<decltype(Game::extendedLocalizedKeyNames)>);
+        Game::combinedLocalizedKeyNames[std::extent_v<decltype(Game::combinedLocalizedKeyNames)> - 1] = {nullptr, 0};
 
         Utils::Hook::Set<Game::keyname_t*>(0x4A780A, Game::combinedKeyNames);
         Utils::Hook::Set<Game::keyname_t*>(0x4A7810, Game::combinedKeyNames);
@@ -1474,7 +1301,6 @@ namespace Components
 
         // Also rewrite configuration when gamepad config is dirty
         Utils::Hook(0x60B264, Com_WriteConfiguration_Modified_Stub, HOOK_JUMP).install()->quick();
-
         Utils::Hook(0x60B223, Key_WriteBindings_Hk, HOOK_CALL).install()->quick();
 
         CreateKeyNameMap();
@@ -1504,6 +1330,9 @@ namespace Components
         //Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
         //Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
         //Utils::Hook(0x5A6829, unk_CheckKeyHook, HOOK_CALL).install()->quick();
+
+        // Add gamepad inputs to usercmds
+        Utils::Hook(0x5A6DAE, CL_MouseMove_Stub, HOOK_CALL).install()->quick();
 
         xpadSensitivity = Dvar::Register<float>("xpad_sensitivity", 1.9f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
         xpadEarlyTime = Dvar::Register<int>("xpad_early_time", 130, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");

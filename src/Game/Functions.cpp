@@ -1274,4 +1274,6 @@ namespace Game
 		}
 	}
 #pragma optimize("", on)
+
+	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
 }

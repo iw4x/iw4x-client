@@ -114,6 +114,89 @@ namespace Game
         float axesValues[GPAD_PHYSAXIS_COUNT];
         GamepadVirtualAxisMapping virtualAxes[GPAD_VIRTAXIS_COUNT];
     };
+
+    struct AimAssistPlayerState
+    {
+        float velocity[3];
+        int eFlags;
+        int linkFlags;
+        int pm_flags;
+        int weapFlags;
+        int weaponState;
+        float fWeaponPosFrac;
+        int weapIndex;
+        bool hasAmmo;
+        bool isDualWielding;
+        bool isThirdPerson;
+        bool isExtendedMelee;
+    };
+    
+    struct AimTweakables
+    {
+        float slowdownRegionWidth;
+        float slowdownRegionHeight;
+        float autoAimRegionWidth;
+        float autoAimRegionHeight;
+        float autoMeleeRegionWidth;
+        float autoMeleeRegionHeight;
+        float lockOnRegionWidth;
+        float lockOnRegionHeight;
+    };
+    
+    struct AimScreenTarget
+    {
+        int entIndex;
+        float clipMins[2];
+        float clipMaxs[2];
+        float aimPos[3];
+        float velocity[3];
+        float distSqr;
+        float crosshairDistSqr;
+    };
+    
+    enum AutoMeleeState
+    {
+        AIM_MELEE_STATE_OFF = 0x0,
+        AIM_MELEE_STATE_TARGETED = 0x1,
+        AIM_MELEE_STATE_UPDATING = 0x2,
+    };
+    
+    struct __declspec(align(16)) AimAssistGlobals
+    {
+        AimAssistPlayerState ps;
+        __declspec(align(8)) float screenMtx[4][4];
+        float invScreenMtx[4][4];
+        bool initialized;
+        int prevButtons;
+        AimTweakables tweakables;
+        float eyeOrigin[3];
+        float viewOrigin[3];
+        float viewAngles[3];
+        float viewAxis[3][3];
+        float fovTurnRateScale;
+        float fovScaleInv;
+        float adsLerp;
+        float pitchDelta;
+        float yawDelta;
+        float screenWidth;
+        float screenHeight;
+        AimScreenTarget screenTargets[64];
+        int screenTargetCount;
+        int autoAimTargetEnt;
+        bool autoAimPressed;
+        bool autoAimActive;
+        float autoAimPitch;
+        float autoAimPitchTarget;
+        float autoAimYaw;
+        float autoAimYawTarget;
+        AutoMeleeState autoMeleeState;
+        int autoMeleeTargetEnt;
+        float autoMeleePitch;
+        float autoMeleePitchTarget;
+        float autoMeleeYaw;
+        float autoMeleeYawTarget;
+        int lockOnTargetEnt;
+    };
 }
 
 namespace Components
@@ -153,23 +236,6 @@ namespace Components
             GamePadGlobals();
         };
 
-        struct ActionMapping
-        {
-            int input;
-            std::string action;
-            bool isReversible;
-            bool wasPressed = false;
-            bool spamWhenHeld = false;
-
-            ActionMapping(int input, std::string action, bool isReversible = true, bool spamWhenHeld = false)
-            {
-                this->action = action;
-                this->isReversible = isReversible;
-                this->input = input;
-                this->spamWhenHeld = spamWhenHeld;
-            }
-        };
-
     private:
         static GamePad gamePads[Game::MAX_GAMEPADS];
         static GamePadGlobals gamePadGlobals[Game::MAX_GAMEPADS];
@@ -200,6 +266,11 @@ namespace Components
         static Dvar::Var gpad_button_deadzone;
         static Dvar::Var gpad_button_rstick_deflect_max;
         static Dvar::Var gpad_button_lstick_deflect_max;
+        static Dvar::Var input_viewSensitivity;
+        static Dvar::Var aim_turnrate_pitch;
+        static Dvar::Var aim_turnrate_pitch_ads;
+        static Dvar::Var aim_turnrate_yaw;
+        static Dvar::Var aim_turnrate_yaw_ads;
 
         static Dvar::Var xpadSensitivity;
         static Dvar::Var xpadEarlyTime;
@@ -208,18 +279,6 @@ namespace Components
         static Dvar::Var xpadVerticalMultiplier;
         static Dvar::Var xpadAdsMultiplier;
 
-        static void CL_GetMouseMovementCl(Game::clientActive_t* result, float* mx, float* my);
-        static int unk_CheckKeyHook(int localClientNum, Game::keyNum_t keyCode);
-
-        static void MouseOverride(Game::clientActive_t* clientActive, float* my, float* mx);
-        static void Vibrate(int leftVal = 0, int rightVal = 0);
-
-        static void CL_FrameStub();
-        static void PollXInputDevices();
-
-        static void CL_CreateCmdStub();
-        static void CL_GamepadMove(int, Game::usercmd_s*);
-
         static void MSG_WriteDeltaUsercmdKeyStub();
 
         static void ApplyMovement(Game::msg_t* msg, int key, Game::usercmd_s* from, Game::usercmd_s* to);
@@ -227,11 +286,12 @@ namespace Components
         static void MSG_ReadDeltaUsercmdKeyStub();
         static void MSG_ReadDeltaUsercmdKeyStub2();
 
-        static void GetLeftStick01Value(XINPUT_STATE* xiState, float& x, float& y);
-        static void GetRightStick01Value(XINPUT_STATE* xiState, float& x, float& y);
-        static void GamepadStickTo01(SHORT value, SHORT deadzone, float& output01);
+        static bool Key_IsValidGamePadChar(int key);
 
-        static bool Key_IsValidGamePadChar(const int key);
+        static float CL_GamepadAxisValue(int gamePadIndex, Game::GamepadVirtualAxis virtualAxis);
+        static char ClampChar(int value);
+        static void CL_GamepadMove(int gamePadIndex, Game::usercmd_s* cmd, float frame_time_base);
+        static void CL_MouseMove_Stub();
 
         static void CL_GamepadResetMenuScrollTime(int gamePadIndex, int key, bool down, unsigned int time);
         static bool CL_CheckForIgnoreDueToRepeat(int gamePadIndex, int key, int repeatCount, unsigned int time);
