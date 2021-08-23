@@ -284,6 +284,8 @@ namespace Components
 		}
 	}
 
+#endif
+
 	int Materials::R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font)
 	{
 		auto lineWidth = 0;
@@ -296,7 +298,7 @@ namespace Components
 			return 0;
 
 		auto count = 0;
-		while (*text && count < maxChars)
+		while (text && *text && count < maxChars)
 		{
 			const auto letter = Game::SEH_ReadCharFromString(&text, nullptr);
 			if (letter == '\r' || letter == '\n')
@@ -329,17 +331,16 @@ namespace Components
 						continue;
 					}
 				}
-
+				
 				lineWidth += R_GetCharacterGlyph(font, letter)->dx;
 				if (lineWidth > maxWidth)
 					maxWidth = lineWidth;
 				count++;
 			}
 		}
+
 		return maxWidth;
 	}
-
-#endif
 
 	Materials::Materials()
 	{

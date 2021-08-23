@@ -1260,16 +1260,21 @@ namespace Game
 		}
 	}
 
-	__declspec(naked) Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter)
+	__declspec(naked) Glyph* R_GetCharacterGlyph(Font_s* /*font */, unsigned int /*letter*/)
 	{
 	    __asm
 		{
-			mov edi, [esp + 8]
-			push [esp+4]
+			push eax
+			pushad
+			mov edi, [esp + 0x28 + 4]
+			push [esp + 0x24 + 4]
 			mov eax, 0x5055C0
 			call eax
 			add esp,0x4
-			
+			mov [esp + 0x20],eax
+
+			popad
+			pop eax
 			retn
 		}
 	}
