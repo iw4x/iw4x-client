@@ -325,6 +325,7 @@ namespace Game
 	TeleportPlayer_t TeleportPlayer = TeleportPlayer_t(0x496850);
 
 	UI_AddMenuList_t UI_AddMenuList = UI_AddMenuList_t(0x4533C0);
+	UI_GetActiveMenu_t UI_GetActiveMenu = UI_GetActiveMenu_t(0x4BE790);
 	UI_CheckStringTranslation_t UI_CheckStringTranslation = UI_CheckStringTranslation_t(0x4FB010);
 	UI_LoadMenus_t UI_LoadMenus = UI_LoadMenus_t(0x641460);
 	UI_UpdateArenas_t UI_UpdateArenas = UI_UpdateArenas_t(0x4A95B0);
@@ -340,6 +341,8 @@ namespace Game
 	Vec3UnpackUnitVec_t Vec3UnpackUnitVec = Vec3UnpackUnitVec_t(0x45CA90);
 
 	unzClose_t unzClose = unzClose_t(0x41BF20);
+
+	AimAssist_ApplyAutoAim_t AimAssist_ApplyAutoAim = AimAssist_ApplyAutoAim_t(0x56A360);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
@@ -433,6 +436,10 @@ namespace Game
 	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
 
 	GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
+
+	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
+
+	clientStatic_t* cls = reinterpret_cast<clientStatic_t*>(0xA7FE90);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
@@ -920,7 +927,25 @@ namespace Game
 		Game::R_AddDebugLine(color, v[3], v[7]);
 	}
 
+	float GraphGetValueFromFraction(const int knotCount, const float(*knots)[2], const float fraction)
+	{
+		for (auto knotIndex = 1; knotIndex < knotCount; ++knotIndex)
+		{
+			if (knots[knotIndex][0] >= fraction)
+			{
+				const auto adjustedFraction = (fraction - knots[knotIndex - 1][0]) / (knots[knotIndex][0] - knots[knotIndex - 1][0]);
 
+				return (knots[knotIndex][1] - knots[knotIndex - 1][1]) * adjustedFraction + knots[knotIndex - 1][1];
+			}
+		}
+
+		return -1.0f;
+	}
+
+	float GraphFloat_GetValue(const GraphFloat* graph, const float fraction)
+	{
+		return GraphGetValueFromFraction(graph->knotCount, graph->knots, fraction) * graph->scale;
+	}
 
 #pragma optimize("", off)
 	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
@@ -1278,7 +1303,29 @@ namespace Game
 			retn
 		}
 	}
-#pragma optimize("", on)
 
-	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
+	__declspec(naked) void AimAssist_UpdateTweakables(int /*localClientNum*/)
+	{
+		__asm
+		{
+			mov eax,[esp+0x4]
+			mov ebx,0x569950
+			call ebx
+			retn
+		}
+	}
+
+	__declspec(naked) void AimAssist_UpdateAdsLerp(const AimInput* /*aimInput*/)
+	{
+	    __asm
+		{
+			mov eax, [esp + 0x4]
+			mov ebx, 0x569AA0
+			call ebx
+			retn
+		}
+	}
+
+
+#pragma optimize("", on)
 }

@@ -208,6 +208,7 @@ namespace Game
 
 	enum KeyCatch_t
 	{
+		KEYCATCH_MASK_ANY = -1,
 		KEYCATCH_CONSOLE = 0x1,
 		KEYCATCH_UNKNOWN2 = 0x2,
 		KEYCATCH_UNKNOWN4 = 0x4,
@@ -355,6 +356,22 @@ namespace Game
 		K_AUX15 = 0xDD,
 		K_AUX16 = 0xDE,
 		K_LAST_KEY = 0xDF,
+	};
+
+	enum uiMenuCommand_t
+	{
+		UIMENU_NONE = 0x0,
+		UIMENU_MAIN = 0x1,
+		UIMENU_INGAME = 0x2,
+		UIMENU_PREGAME = 0x3,
+		UIMENU_POSTGAME = 0x4,
+		UIMENU_SCRIPT_POPUP = 0x5,
+		UIMENU_SCOREBOARD = 0x6,
+		UIMENU_PARTY = 0x7,
+		UIMENU_GAMELOBBY = 0x8,
+		UIMENU_PRIVATELOBBY = 0x9,
+		UIMENU_ENDOFGAME = 0xA,
+		UIMENU_MIGRATION = 0xB,
 	};
 
 	struct __declspec(align(4)) PhysPreset
@@ -1018,6 +1035,20 @@ namespace Game
 	{
 		hudelem_s current[31];
 		hudelem_s archival[31];
+	};
+
+	enum pmtype_t
+	{
+		PM_NORMAL = 0x0,
+		PM_NORMAL_LINKED = 0x1,
+		PM_NOCLIP = 0x2,
+		PM_UFO = 0x3,
+		PM_MPVIEWER = 0x4,
+		PM_SPECTATOR = 0x5,
+		PM_INTERMISSION = 0x6,
+		PM_LASTSTAND = 0x7,
+		PM_DEAD = 0x8,
+		PM_DEAD_LINKED = 0x9,
 	};
 
 	struct playerState_s
@@ -5960,6 +5991,154 @@ namespace Game
 		GfxSceneDpvs dpvs;
 		int updateSound;
 		int allowAddDObj;
+	};
+
+	struct AimInput
+	{
+		float deltaTime;
+		float deltaTimeScaled;
+		float pitch;
+		float pitchAxis;
+		float pitchMax;
+		float yaw;
+		float yawAxis;
+		float yawMax;
+		float forwardAxis;
+		float rightAxis;
+		int buttons;
+		int localClientNum;
+	};
+
+	struct AimOutput
+	{
+		float pitch;
+		float yaw;
+		float meleeChargeYaw;
+		char meleeChargeDist;
+	};
+
+	struct clientLogo_t
+	{
+		int startTime;
+		int duration;
+		int fadein;
+		int fadeout;
+		Material* material[2];
+	};
+
+	struct vidConfig_t
+	{
+		unsigned int sceneWidth;
+		unsigned int sceneHeight;
+		unsigned int displayWidth;
+		unsigned int displayHeight;
+		unsigned int displayFrequency;
+		int isFullscreen;
+		float aspectRatioWindow;
+		float aspectRatioScenePixel;
+		float aspectRatioDisplayPixel;
+		unsigned int maxTextureSize;
+		unsigned int maxTextureMaps;
+		bool deviceSupportsGamma;
+	};
+
+	struct trDebugLine_t
+	{
+		float start[3];
+		float end[3];
+		float color[4];
+		int depthTest;
+	};
+
+	struct trDebugString_t
+	{
+		float xyz[3];
+		float color[4];
+		float scale;
+		char text[96];
+	};
+
+	struct clientDebugStringInfo_t
+	{
+		int max;
+		int num;
+		trDebugString_t* strings;
+		int* durations;
+	};
+
+	struct clientDebugLineInfo_t
+	{
+		int max;
+		int num;
+		trDebugLine_t* lines;
+		int* durations;
+	};
+
+	struct clientDebug_t
+	{
+		int prevFromServer;
+		int fromServer;
+		clientDebugStringInfo_t clStrings;
+		clientDebugStringInfo_t svStringsBuffer;
+		clientDebugStringInfo_t svStrings;
+		clientDebugLineInfo_t clLines;
+		clientDebugLineInfo_t svLinesBuffer;
+		clientDebugLineInfo_t svLines;
+	};
+
+	struct ClientMatchData
+	{
+		char def[64];
+		char data[1024];
+	};
+
+	struct clientStatic_t
+	{
+		int quit;
+		int hunkUsersStarted;
+		char servername[256];
+		int rendererStarted;
+		int soundStarted;
+		int uiStarted;
+		int frametime;
+		float frametime_base;
+		int realtime;
+		bool gpuSyncedPrevFrame;
+		bool inputUpdatedPrevFrame;
+		clientLogo_t logo;
+		float mapCenter[3];
+		int lastServerPinged;
+		int pingedServerCount;
+		int totalServersParsed;
+		int pingUpdateSource;
+		Material* whiteMaterial;
+		Material* consoleMaterial;
+		Font_s* consoleFont;
+		vidConfig_t vidConfig;
+		clientDebug_t debug;
+		int doVidRestart;
+		ClientMatchData matchData;
+		XNADDR xnaddrs[18];
+		float debugRenderPos[3];
+		int skelValid;
+		int skelTimeStamp;
+		volatile int skelMemPos;
+		char skelMemory[262144];
+		char* skelMemoryStart;
+		bool allowedAllocSkel;
+		int serverId;
+		gameState_t gameState;
+		clSnapshot_t noDeltaSnapshot;
+		int nextNoDeltaEntity;
+		entityState_s noDeltaEntities[1024];
+	};
+
+	struct GraphFloat
+	{
+		char name[64];
+		float knots[32][2];
+		unsigned __int16 knotCount;
+		float scale;
 	};
 
 #pragma endregion

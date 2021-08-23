@@ -767,6 +767,9 @@ namespace Game
 
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
+	
+	typedef uiMenuCommand_t(__cdecl* UI_GetActiveMenu_t)(int localClientNum);
+	extern UI_GetActiveMenu_t UI_GetActiveMenu;
 
 	typedef char* (__cdecl * UI_CheckStringTranslation_t)(char*, char*);
 	extern UI_CheckStringTranslation_t UI_CheckStringTranslation;
@@ -800,6 +803,9 @@ namespace Game
 
 	typedef void(__cdecl * unzClose_t)(void* handle);
 	extern unzClose_t unzClose;
+
+	typedef void(__cdecl* AimAssist_ApplyAutoAim_t)(const AimInput* input, AimOutput* output);
+	extern AimAssist_ApplyAutoAim_t AimAssist_ApplyAutoAim;
 
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
@@ -893,6 +899,10 @@ namespace Game
 
 	extern GfxScene* scene;
 
+	extern clientActive_t* clients;
+
+	extern clientStatic_t* cls;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);
 	void Menu_SetNextCursorItem(Game::UiContext* ctx, Game::menuDef_t* currentMenu, int unk = 1);
@@ -955,7 +965,11 @@ namespace Game
 	void R_AddDebugBounds(float* color, Bounds* b);
 	void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4]);
 
+	float GraphGetValueFromFraction(int knotCount, const float(*knots)[2], float fraction);
+	float GraphFloat_GetValue(const GraphFloat* graph, const float fraction);
+
 	Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter);
 
-	extern clientActive_t* clients;
+	void AimAssist_UpdateTweakables(int localClientNum);
+	void AimAssist_UpdateAdsLerp(const AimInput* input);
 }

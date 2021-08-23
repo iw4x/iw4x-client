@@ -160,11 +160,14 @@ namespace Game
         AIM_MELEE_STATE_TARGETED = 0x1,
         AIM_MELEE_STATE_UPDATING = 0x2,
     };
-    
+
+#pragma warning(push)
+#pragma warning(disable: 4324)
     struct __declspec(align(16)) AimAssistGlobals
     {
         AimAssistPlayerState ps;
-        __declspec(align(8)) float screenMtx[4][4];
+        char _pad1[4];
+        float screenMtx[4][4];
         float invScreenMtx[4][4];
         bool initialized;
         int prevButtons;
@@ -197,6 +200,7 @@ namespace Game
         float autoMeleeYawTarget;
         int lockOnTargetEnt;
     };
+#pragma warning(pop)
 }
 
 namespace Components
@@ -271,6 +275,11 @@ namespace Components
         static Dvar::Var aim_turnrate_pitch_ads;
         static Dvar::Var aim_turnrate_yaw;
         static Dvar::Var aim_turnrate_yaw_ads;
+        static Dvar::Var aim_accel_turnrate_enabled;
+        static Dvar::Var aim_accel_turnrate_lerp;
+        static Dvar::Var aim_input_graph_enabled;
+        static Dvar::Var aim_input_graph_index;
+        static Dvar::Var aim_scale_view_axis;
 
         static Dvar::Var xpadSensitivity;
         static Dvar::Var xpadEarlyTime;
@@ -286,13 +295,20 @@ namespace Components
         static void MSG_ReadDeltaUsercmdKeyStub();
         static void MSG_ReadDeltaUsercmdKeyStub2();
 
-        static bool Key_IsValidGamePadChar(int key);
+        static float LinearTrack(float target, float current, float rate, float deltaTime);
+        static void AimAssist_CalcAdjustedAxis(const Game::AimInput* input, float* pitchAxis, float* yawAxis);
+        static void AimAssist_CalcSlowdown(const Game::AimInput* input, float* pitchScale, float* yawScale);
+        static float AimAssist_Lerp(float from, float to, float fraction);
+        static void AimAssist_ApplyTurnRates(const Game::AimInput* input, Game::AimOutput* output);
+        static void AimAssist_UpdateGamePadInput(const Game::AimInput* input, Game::AimOutput* output);
 
+        static bool CG_ShouldUpdateViewAngles(int localClientNum);
         static float CL_GamepadAxisValue(int gamePadIndex, Game::GamepadVirtualAxis virtualAxis);
         static char ClampChar(int value);
         static void CL_GamepadMove(int gamePadIndex, Game::usercmd_s* cmd, float frame_time_base);
         static void CL_MouseMove_Stub();
 
+        static bool Key_IsValidGamePadChar(int key);
         static void CL_GamepadResetMenuScrollTime(int gamePadIndex, int key, bool down, unsigned int time);
         static bool CL_CheckForIgnoreDueToRepeat(int gamePadIndex, int key, int repeatCount, unsigned int time);
         static void UI_GamepadKeyEvent(int gamePadIndex, int key, bool down);

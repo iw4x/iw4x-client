@@ -140,6 +140,9 @@ namespace Game
     AimAssistGlobals* aaGlobArray = reinterpret_cast<AimAssistGlobals*>(0x7A2110);
     keyname_t* vanillaKeyNames = reinterpret_cast<keyname_t*>(0x798580);
     keyname_t* vanillaLocalizedKeyNames = reinterpret_cast<keyname_t*>(0x798880);
+
+    constexpr auto VANILLA_AIM_ASSIST_GRAPH_COUNT = 4u;
+    GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x7A2FC0);
 }
 
 namespace Components
@@ -168,6 +171,15 @@ namespace Components
     Dvar::Var Gamepad::gpad_button_rstick_deflect_max;
     Dvar::Var Gamepad::gpad_button_lstick_deflect_max;
     Dvar::Var Gamepad::input_viewSensitivity;
+    Dvar::Var Gamepad::aim_turnrate_pitch;
+    Dvar::Var Gamepad::aim_turnrate_pitch_ads;
+    Dvar::Var Gamepad::aim_turnrate_yaw;
+    Dvar::Var Gamepad::aim_turnrate_yaw_ads;
+    Dvar::Var Gamepad::aim_accel_turnrate_enabled;
+    Dvar::Var Gamepad::aim_accel_turnrate_lerp;
+    Dvar::Var Gamepad::aim_input_graph_enabled;
+    Dvar::Var Gamepad::aim_input_graph_index;
+    Dvar::Var Gamepad::aim_scale_view_axis;
 
     Dvar::Var Gamepad::xpadSensitivity;
     Dvar::Var Gamepad::xpadEarlyTime;
@@ -322,11 +334,167 @@ namespace Components
         }
     }
 
-    bool Gamepad::Key_IsValidGamePadChar(const int key)
+    float Gamepad::LinearTrack(const float target, const float current, const float rate, const float deltaTime)
     {
-        return key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_1 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_1
-            || key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_2 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_2
-            || key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_3 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_3;
+        const auto err = target - current;
+        float step;
+        if(err <= 0.0f)
+            step = -rate * deltaTime;
+        else
+            step = rate * deltaTime;
+
+        if(std::fabs(err) <= 0.001f)
+            return target;
+
+        if (std::fabs(step) <= std::fabs(err))
+            return current + step;
+
+        return target;
+    }
+
+    void Gamepad::AimAssist_CalcAdjustedAxis(const Game::AimInput* input, float* pitchAxis, float* yawAxis)
+    {
+        assert(input);
+        assert(pitchAxis);
+        assert(yawAxis);
+
+        const auto graphIndex = aim_input_graph_index.get<int>();
+        if(aim_input_graph_enabled.get<bool>() && graphIndex >= 0 && graphIndex < Game::VANILLA_AIM_ASSIST_GRAPH_COUNT)
+        {
+            const auto deflection = std::sqrt(input->pitchAxis * input->pitchAxis + input->yawAxis * input->yawAxis);
+
+            float fraction;
+            if (deflection - 1.0f < 0.0f)
+                fraction = deflection;
+            else
+                fraction = 1.0f;
+
+            if (0.0f - deflection >= 0.0f)
+                fraction = 0.0f;
+
+            const auto graphScale = Game::GraphFloat_GetValue(&Game::aaInputGraph[graphIndex], fraction);
+            *pitchAxis = input->pitchAxis * graphScale;
+            *yawAxis = input->yawAxis * graphScale;
+        }
+        else
+        {
+            *pitchAxis = input->pitchAxis;
+            *yawAxis = input->yawAxis;
+        }
+
+        if(aim_scale_view_axis.get<bool>())
+        {
+            const auto absPitchAxis = std::fabs(*pitchAxis);
+            const auto absYawAxis = std::fabs(*yawAxis);
+
+            if (absPitchAxis <= absYawAxis)
+                *pitchAxis = (1.0f - (absYawAxis - absPitchAxis)) * *pitchAxis;
+            else
+                *yawAxis = (1.0f - (absPitchAxis - absYawAxis)) * *yawAxis;
+        }
+    }
+
+    void Gamepad::AimAssist_CalcSlowdown(const Game::AimInput* /*input*/, float* pitchScale, float* yawScale)
+    {
+        /*assert(input); */
+        assert(pitchScale);
+        assert(yawScale);
+
+        *pitchScale = 1.0f;
+        *yawScale = 1.0f;
+    }
+
+    float Gamepad::AimAssist_Lerp(const float from, const float to, const float fraction)
+    {
+        return (to - from) * fraction + from;
+    }
+
+    void Gamepad::AimAssist_ApplyTurnRates(const Game::AimInput* input, Game::AimOutput* output)
+    {
+        assert(input->localClientNum < Game::MAX_GAMEPADS);
+        auto& aaGlob = Game::aaGlobArray[input->localClientNum];
+
+        auto slowdownPitchScale = 0.0f;
+        auto slowdownYawScale = 0.0f;
+        float adjustedPitchAxis;
+        float adjustedYawAxis;
+
+        if(aaGlob.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING)
+        {
+            adjustedPitchAxis = 0.0f;
+            adjustedYawAxis = 0.0f;
+            slowdownPitchScale = 1.0f;
+            slowdownYawScale = 1.0f;
+        }
+        else
+        {
+            AimAssist_CalcAdjustedAxis(input, &adjustedPitchAxis, &adjustedYawAxis);
+            AimAssist_CalcSlowdown(input, &slowdownPitchScale, &slowdownYawScale);
+        }
+
+        const auto sensitivity = input_viewSensitivity.get<float>();
+        auto pitchTurnRate = AimAssist_Lerp(aim_turnrate_pitch.get<float>(), aim_turnrate_pitch_ads.get<float>(), aaGlob.adsLerp);
+        pitchTurnRate = slowdownPitchScale * aaGlob.fovTurnRateScale * sensitivity * pitchTurnRate;
+        auto yawTurnRate = AimAssist_Lerp(aim_turnrate_yaw.get<float>(), aim_turnrate_yaw_ads.get<float>(), aaGlob.adsLerp);
+        yawTurnRate = slowdownYawScale * aaGlob.fovTurnRateScale * sensitivity * yawTurnRate;
+
+        if (input->pitchMax > 0 && input->pitchMax < pitchTurnRate)
+            pitchTurnRate = input->pitchMax;
+        if (input->yawMax > 0 && input->yawMax < yawTurnRate)
+            yawTurnRate = input->yawMax;
+
+        const auto pitchSign = adjustedPitchAxis >= 0.0f ? 1.0f : -1.0f;
+        const auto yawSign = adjustedYawAxis >= 0.0f ? 1.0f : -1.0f;
+
+        const auto pitchDelta = std::fabs(adjustedPitchAxis) * pitchTurnRate;
+        const auto yawDelta = std::fabs(adjustedYawAxis) * yawTurnRate;
+        
+        if(!aim_accel_turnrate_enabled.get<bool>())
+        {
+            aaGlob.pitchDelta = pitchDelta;
+            aaGlob.yawDelta = yawDelta;
+        }
+        else
+        {
+            const auto accel = aim_accel_turnrate_lerp.get<float>() * sensitivity;
+            if (pitchDelta <= aaGlob.pitchDelta)
+                aaGlob.pitchDelta = pitchDelta;
+            else
+                aaGlob.pitchDelta = LinearTrack(pitchDelta, aaGlob.pitchDelta, accel, input->deltaTime);
+
+            if (yawDelta <= aaGlob.yawDelta)
+                aaGlob.yawDelta = yawDelta;
+            else
+                aaGlob.yawDelta = LinearTrack(yawDelta, aaGlob.yawDelta, accel, input->deltaTime);
+        }
+
+        output->pitch = aaGlob.pitchDelta * input->deltaTime * pitchSign + output->pitch;
+        output->yaw = aaGlob.yawDelta * input->deltaTime * yawSign + output->yaw;
+    }
+
+    void Gamepad::AimAssist_UpdateGamePadInput(const Game::AimInput* input, Game::AimOutput* output)
+    {
+        assert(input->localClientNum < Game::MAX_GAMEPADS);
+        auto& aaGlob = Game::aaGlobArray[input->localClientNum];
+
+        output->pitch = input->pitch;
+        output->yaw = input->yaw;
+
+        if(aaGlob.initialized)
+        {
+            Game::AimAssist_UpdateTweakables(input->localClientNum);
+            Game::AimAssist_UpdateAdsLerp(input);
+            AimAssist_ApplyTurnRates(input, output);
+
+            Game::AimAssist_ApplyAutoAim(input, output);
+        }
+
+        aaGlob.prevButtons = input->buttons;
+    }
+
+    bool Gamepad::CG_ShouldUpdateViewAngles(const int localClientNum)
+    {
+        return !Game::Key_IsKeyCatcherActive(localClientNum, Game::KEYCATCH_MASK_ANY) || Game::UI_GetActiveMenu(localClientNum) == Game::UIMENU_SCOREBOARD;
     }
 
     float Gamepad::CL_GamepadAxisValue(const int gamePadIndex, const Game::GamepadVirtualAxis virtualAxis)
@@ -367,7 +535,7 @@ namespace Components
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
         auto& gamePad = gamePads[gamePadIndex];
-        auto& gamePadGlobal = gamePadGlobals[gamePadIndex];
+        auto& clientActive = Game::clients[gamePadIndex];
 
         if (!gpad_enabled.get<bool>() || !gamePad.enabled)
             return;
@@ -379,7 +547,7 @@ namespace Components
         auto yaw = -CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_YAW);
         auto forward = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_FORWARD);
         auto side = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_SIDE);
-        auto attack = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_ATTACK);
+        //auto attack = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_ATTACK);
         auto moveScale = static_cast<float>(std::numeric_limits<char>::max());
 
         if (std::fabs(side) > 0.0f || std::fabs(forward) > 0.0f)
@@ -393,21 +561,32 @@ namespace Components
         const auto forwardMove = static_cast<int>(std::floor(forward * moveScale));
         const auto rightMove = static_cast<int>(std::floor(side * moveScale));
 
-        const auto sensitivity = input_viewSensitivity.get<float>();
-        pitch *= sensitivity;
-        yaw *= sensitivity;
-
-        if (Game::clients[0].cgameMaxPitchSpeed > 0 && Game::clients[0].cgameMaxPitchSpeed < std::fabs(pitch))
-            pitch = std::signbit(pitch) ? -Game::clients[0].cgameMaxPitchSpeed : Game::clients[0].cgameMaxPitchSpeed;
-        if (Game::clients[0].cgameMaxYawSpeed > 0 && Game::clients[0].cgameMaxYawSpeed < std::fabs(yaw))
-            yaw = std::signbit(yaw) ? -Game::clients[0].cgameMaxYawSpeed : Game::clients[0].cgameMaxYawSpeed;
-
-
-        Game::clients[0].clViewangles[0] += pitch;
-        Game::clients[0].clViewangles[1] += yaw;
-
         cmd->rightmove = ClampChar(cmd->rightmove + rightMove);
         cmd->forwardmove = ClampChar(cmd->forwardmove + forwardMove);
+
+        // Check for frozen controls. Flag name should start with PMF_
+        if(CG_ShouldUpdateViewAngles(gamePadIndex) && (clientActive.snap.ps.pm_flags & 0x800) == 0)
+        {
+            Game::AimInput aimInput{};
+            Game::AimOutput aimOutput{};
+            aimInput.deltaTime = frame_time_base;
+            aimInput.buttons = cmd->buttons;
+            aimInput.localClientNum = gamePadIndex;
+            aimInput.deltaTimeScaled = static_cast<float>(Game::cls->frametime) * 0.001f;
+            aimInput.pitch = clientActive.clViewangles[0];
+            aimInput.pitchAxis = pitch;
+            aimInput.pitchMax = clientActive.cgameMaxPitchSpeed;
+            aimInput.yaw = clientActive.clViewangles[1];
+            aimInput.yawAxis = yaw;
+            aimInput.yawMax = clientActive.cgameMaxYawSpeed;
+            aimInput.forwardAxis = forward;
+            aimInput.rightAxis = side;
+            AimAssist_UpdateGamePadInput(&aimInput, &aimOutput);
+            clientActive.clViewangles[0] = aimOutput.pitch;
+            clientActive.clViewangles[1] = aimOutput.yaw;
+            cmd->meleeChargeDist = aimOutput.meleeChargeDist;
+            cmd->meleeChargeYaw = aimOutput.meleeChargeYaw;
+        }
     }
 
     constexpr auto CL_MouseMove = 0x5A6240;
@@ -433,6 +612,12 @@ namespace Components
             }
     }
 
+    bool Gamepad::Key_IsValidGamePadChar(const int key)
+    {
+        return key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_1 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_1
+            || key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_2 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_2
+            || key >= Game::K_FIRSTGAMEPADBUTTON_RANGE_3 && key <= Game::K_LASTGAMEPADBUTTON_RANGE_3;
+    }
 
     void Gamepad::CL_GamepadResetMenuScrollTime(const int gamePadIndex, const int key, const bool down, const unsigned time)
     {
@@ -1135,13 +1320,13 @@ namespace Components
         }
     }
 
-    void Gamepad::Bind_GP_SticksConfigs_f(Command::Params* params)
+    void Gamepad::Bind_GP_SticksConfigs_f(Command::Params*)
     {
         const auto* stickConfigName = gpad_sticksConfig.get<const char*>();
         Game::Cbuf_AddText(0, Utils::String::VA("exec %s\n", stickConfigName));
     }
 
-    void Gamepad::Bind_GP_ButtonsConfigs_f(Command::Params* params)
+    void Gamepad::Bind_GP_ButtonsConfigs_f(Command::Params*)
     {
         const auto* buttonConfigName = gpad_buttonConfig.get<const char*>();
         Game::Cbuf_AddText(0, Utils::String::VA("exec %s\n", buttonConfigName));
@@ -1169,6 +1354,15 @@ namespace Components
         gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, 0, "Game pad maximum pad stick pressed value");
 
         input_viewSensitivity = Dvar::Register<float>("input_viewSensitivity", 1.0f, 0.0001f, 5.0f, Game::DVAR_FLAG_SAVED, "View Sensitivity");
+        aim_turnrate_pitch = Dvar::Var("aim_turnrate_pitch");
+        aim_turnrate_pitch_ads = Dvar::Var("aim_turnrate_pitch_ads");
+        aim_turnrate_yaw = Dvar::Var("aim_turnrate_yaw");
+        aim_turnrate_yaw_ads = Dvar::Var("aim_turnrate_yaw_ads");
+        aim_accel_turnrate_enabled = Dvar::Var("aim_accel_turnrate_enabled");
+        aim_accel_turnrate_lerp = Dvar::Var("aim_accel_turnrate_lerp");
+        aim_input_graph_enabled = Dvar::Var("aim_input_graph_enabled");
+        aim_input_graph_index = Dvar::Var("aim_input_graph_index");
+        aim_scale_view_axis = Dvar::Var("aim_scale_view_axis");
     }
 
     void Gamepad::IN_Init_Hk()
