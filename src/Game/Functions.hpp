@@ -800,6 +800,12 @@ namespace Game
 
 	typedef void (__cdecl * Vec3UnpackUnitVec_t)(PackedUnitVec, vec3_t *);
 	extern Vec3UnpackUnitVec_t Vec3UnpackUnitVec;
+	
+	typedef float(__cdecl* vectoyaw_t)(vec2_t* vec);
+	extern vectoyaw_t vectoyaw;
+	
+	typedef float(__cdecl* AngleNormalize360_t)(float val);
+	extern AngleNormalize360_t AngleNormalize360;
 
 	typedef void(__cdecl * unzClose_t)(void* handle);
 	extern unzClose_t unzClose;
@@ -902,6 +908,8 @@ namespace Game
 	extern clientActive_t* clients;
 
 	extern clientStatic_t* cls;
+
+	extern cg_s* cgArray;
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);

@@ -339,6 +339,8 @@ namespace Game
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 
 	Vec3UnpackUnitVec_t Vec3UnpackUnitVec = Vec3UnpackUnitVec_t(0x45CA90);
+	vectoyaw_t vectoyaw = vectoyaw_t(0x45AD10);
+	AngleNormalize360_t AngleNormalize360 = AngleNormalize360_t(0x438DC0);
 
 	unzClose_t unzClose = unzClose_t(0x41BF20);
 
@@ -440,6 +442,8 @@ namespace Game
 	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
 
 	clientStatic_t* cls = reinterpret_cast<clientStatic_t*>(0xA7FE90);
+
+	cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{

@@ -179,6 +179,7 @@ namespace Components
     Dvar::Var Gamepad::aim_input_graph_index;
     Dvar::Var Gamepad::aim_scale_view_axis;
     Dvar::Var Gamepad::cl_bypassMouseInput;
+    Dvar::Var Gamepad::cg_mapLocationSelectionCursorSpeed;
 
     Dvar::Var Gamepad::xpadSensitivity;
     Dvar::Var Gamepad::xpadEarlyTime;
@@ -223,7 +224,7 @@ namespace Components
     __declspec(naked) void Gamepad::MSG_WriteDeltaUsercmdKeyStub()
     {
         __asm
-            {
+        {
             // fix stack pointer
             add esp, 0Ch
 
@@ -241,7 +242,7 @@ namespace Components
             // return back
             push 0x60E40E
             retn
-            }
+        }
     }
 
     void Gamepad::ApplyMovement(Game::msg_t* msg, int key, Game::usercmd_s* from, Game::usercmd_s* to)
@@ -269,7 +270,7 @@ namespace Components
     __declspec(naked) void Gamepad::MSG_ReadDeltaUsercmdKeyStub()
     {
         __asm
-            {
+        {
             push ebx // to
             push ebp // from
             push edi // key
@@ -280,13 +281,13 @@ namespace Components
             // return back
             push 0x4921BF
             ret
-            }
+        }
     }
 
     __declspec(naked) void Gamepad::MSG_ReadDeltaUsercmdKeyStub2()
     {
         __asm
-            {
+        {
             push ebx // to
             push ebp // from
             push edi // key
@@ -299,7 +300,7 @@ namespace Components
             push esi
             push 0x492085
             ret
-            }
+        }
     }
 
     bool Gamepad::GPad_Check(const int gamePadIndex, const int portIndex)
@@ -487,6 +488,77 @@ namespace Components
         aaGlob.prevButtons = input->buttons;
     }
 
+
+    bool Gamepad::CG_HandleLocationSelectionInput_GamePad(const int localClientNum, Game::usercmd_s* cmd)
+    {
+        const auto frameTime = static_cast<float>(Game::cgArray[0].frametime) * 0.001f;
+        const auto mapAspectRatio = Game::cgArray[0].compassMapWorldSize[0] / Game::cgArray[0].compassMapWorldSize[1];
+        const auto selectionRequiresAngle = (Game::cgArray[0].predictedPlayerState.locationSelectionInfo & 0x80) != 0;
+
+        auto up = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_FORWARD);
+        auto right = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_SIDE);
+        auto magnitude = up * up + right * right;
+
+        if(magnitude > 1.0f)
+        {
+            magnitude = std::sqrt(magnitude);
+            up /= magnitude;
+            right /= magnitude;
+        }
+
+        Game::cgArray[0].selectedLocation[0] += right * cg_mapLocationSelectionCursorSpeed.get<float>() * frameTime;
+        Game::cgArray[0].selectedLocation[1] -= up * mapAspectRatio * cg_mapLocationSelectionCursorSpeed.get<float>() * frameTime;
+
+        if(selectionRequiresAngle)
+        {
+            const auto yawUp = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_PITCH);
+            const auto yawRight = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_YAW);
+
+            if(std::fabs(yawUp) > 0.0f || std::fabs(yawRight) > 0.0f)
+            {
+                Game::vec2_t vec
+                {
+                    yawUp,
+                    -yawRight
+                };
+
+                Game::cgArray[0].selectedLocationAngle = Game::AngleNormalize360(Game::vectoyaw(&vec));
+                Game::cgArray[0].selectedAngleLocation[0] = Game::cgArray[0].selectedLocation[0];
+                Game::cgArray[0].selectedAngleLocation[1] = Game::cgArray[0].selectedLocation[1];
+            }
+        }
+        else
+        {
+            Game::cgArray[0].selectedAngleLocation[0] = Game::cgArray[0].selectedLocation[0];
+            Game::cgArray[0].selectedAngleLocation[1] = Game::cgArray[0].selectedLocation[1];
+        }
+
+        return true;
+    }
+
+    constexpr auto CG_HandleLocationSelectionInput = 0x5A67A0;
+    __declspec(naked) void Gamepad::CG_HandleLocationSelectionInput_Stub()
+    {
+        __asm
+        {
+            // Prepare args for our function call
+            push esi // usercmd
+            push eax // localClientNum
+            
+            call CG_HandleLocationSelectionInput
+
+            test al,al
+            jz exit_handling
+
+            // Call our function, the args were already prepared earlier
+            call CG_HandleLocationSelectionInput_GamePad
+
+        exit_handling:
+            add esp, 0x8
+            ret
+        }
+    }
+
     bool Gamepad::CG_ShouldUpdateViewAngles(const int localClientNum)
     {
         return !Game::Key_IsKeyCatcherActive(localClientNum, Game::KEYCATCH_MASK_ANY) || Game::UI_GetActiveMenu(localClientNum) == Game::UIMENU_SCOREBOARD;
@@ -589,7 +661,7 @@ namespace Components
     __declspec(naked) void Gamepad::CL_MouseMove_Stub()
     {
         __asm
-            {
+        {
             // Prepare args for our function call
             push [esp+0x4] // frametime_base
             push ebx // cmd
@@ -604,7 +676,7 @@ namespace Components
             add esp,0xC
 
             ret
-            }
+        }
     }
 
     bool Gamepad::Key_IsValidGamePadChar(const int key)
@@ -1188,7 +1260,7 @@ namespace Components
     void __declspec(naked) Gamepad::Com_WriteConfiguration_Modified_Stub()
     {
         __asm
-            {
+        {
             mov eax, [ecx + 0x18]
             or eax, gamePadBindingsModifiedFlags // Also check for gamePadBindingsModifiedFlags
             test al, 1
@@ -1202,7 +1274,7 @@ namespace Components
             endMethod:
             push 0x60B298
             retn
-            }
+        }
     }
 
 
@@ -1345,6 +1417,7 @@ namespace Components
         aim_input_graph_index = Dvar::Var("aim_input_graph_index");
         aim_scale_view_axis = Dvar::Var("aim_scale_view_axis");
         cl_bypassMouseInput = Dvar::Var("cl_bypassMouseInput");
+        cg_mapLocationSelectionCursorSpeed = Dvar::Var("cg_mapLocationSelectionCursorSpeed");
     }
 
     void Gamepad::IN_Init_Hk()
@@ -1502,6 +1575,9 @@ namespace Components
 
         // Only return gamepad keys when gamepad enabled and only non gamepad keys when not
         Utils::Hook(0x5A7A23, Key_GetCommandAssignmentInternal_Hk, HOOK_CALL).install()->quick();
+
+        // Add gamepad inputs to location selection (eg airstrike location) handling
+        Utils::Hook(0x5A6D72, CG_HandleLocationSelectionInput_Stub, HOOK_CALL).install()->quick();
 
         // Add gamepad inputs to usercmds
         Utils::Hook(0x5A6DAE, CL_MouseMove_Stub, HOOK_CALL).install()->quick();

@@ -272,6 +272,7 @@ namespace Components
         static Dvar::Var aim_input_graph_index;
         static Dvar::Var aim_scale_view_axis;
         static Dvar::Var cl_bypassMouseInput;
+        static Dvar::Var cg_mapLocationSelectionCursorSpeed;
 
         static Dvar::Var xpadSensitivity;
         static Dvar::Var xpadEarlyTime;
@@ -294,6 +295,8 @@ namespace Components
         static void AimAssist_ApplyTurnRates(const Game::AimInput* input, Game::AimOutput* output);
         static void AimAssist_UpdateGamePadInput(const Game::AimInput* input, Game::AimOutput* output);
 
+        static bool CG_HandleLocationSelectionInput_GamePad(int localClientNum, Game::usercmd_s* cmd);
+        static void CG_HandleLocationSelectionInput_Stub();
         static bool CG_ShouldUpdateViewAngles(int localClientNum);
         static float CL_GamepadAxisValue(int gamePadIndex, Game::GamepadVirtualAxis virtualAxis);
         static char ClampChar(int value);
