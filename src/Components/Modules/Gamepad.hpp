@@ -354,7 +354,7 @@ namespace Components
         static int Key_GetCommandAssignmentInternal_Hk(const char* cmd, int(*keys)[2]);
         static bool IsGamePadInUse();
         static void CL_KeyEvent_Hk(int localClientNum, int key, int down, unsigned int time);
-        static void CL_MouseEvent_Stub();
+        static int CL_MouseEvent_Hk(int x, int y, int dx, int dy);
         static bool UI_RefreshViewport_Hk();
         static void CreateKeyNameMap();
     };
