@@ -150,9 +150,6 @@ namespace Components
     Gamepad::GamePad Gamepad::gamePads[Game::MAX_GAMEPADS]{};
     Gamepad::GamePadGlobals Gamepad::gamePadGlobals[Game::MAX_GAMEPADS]{{}};
     int Gamepad::gamePadBindingsModifiedFlags = 0;
-    std::chrono::milliseconds Gamepad::timeAtFirstHeldMaxLookX = 0ms; // "For how much time in milliseconds has the player been holding a horizontal direction on their stick, fully" (-1.0 or 1.0)
-    bool Gamepad::isHoldingMaxLookX = false;
-    bool Gamepad::isADS;
 
     Dvar::Var Gamepad::gpad_enabled;
     Dvar::Var Gamepad::gpad_debug;
@@ -189,10 +186,6 @@ namespace Components
     Dvar::Var Gamepad::xpadHorizontalMultiplier;
     Dvar::Var Gamepad::xpadVerticalMultiplier;
     Dvar::Var Gamepad::xpadAdsMultiplier;
-
-    Game::GamePadStickDir Gamepad::lastMenuNavigationDirection = Game::GPAD_STICK_DIR_COUNT;
-    std::chrono::milliseconds Gamepad::lastNavigationTime = 0ms;
-    std::chrono::milliseconds Gamepad::msBetweenNavigations = 220ms;
 
     struct ControllerMenuKeyMapping
     {
@@ -1482,9 +1475,6 @@ namespace Components
         if (ZoneBuilder::IsEnabled())
             return;
 
-        // use the xinput state when creating a usercmd
-        //Utils::Hook(0x5A6DB9, CL_CreateCmdStub, HOOK_JUMP).install()->quick();
-
         // package the forward and right move components in the move buttons
         Utils::Hook(0x60E38D, MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
 
@@ -1510,8 +1500,10 @@ namespace Components
         if (Dedicated::IsEnabled())
             return;
 
+        // Initialize gamepad environment
         Utils::Hook(0x467C03, IN_Init_Hk, HOOK_CALL).install()->quick();
 
+        // Gamepad on frame hook
         Utils::Hook(0x475E9E, IN_Frame_Hk, HOOK_CALL).install()->quick();
 
         // Mark controller as unused when keyboard key is pressed
@@ -1526,19 +1518,7 @@ namespace Components
         // Only return gamepad keys when gamepad enabled and only non gamepad keys when not
         Utils::Hook(0x5A7A23, Key_GetCommandAssignmentInternal_Hk, HOOK_CALL).install()->quick();
 
-        //Utils::Hook(0x5A617D, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
-        //Utils::Hook(0x5A6816, CL_GetMouseMovementStub, HOOK_CALL).install()->quick();
-        //Utils::Hook(0x5A6829, unk_CheckKeyHook, HOOK_CALL).install()->quick();
-
         // Add gamepad inputs to usercmds
         Utils::Hook(0x5A6DAE, CL_MouseMove_Stub, HOOK_CALL).install()->quick();
-
-        xpadSensitivity = Dvar::Register<float>("xpad_sensitivity", 1.9f, 0.1f, 10.0f, Game::DVAR_FLAG_SAVED, "View sensitivity for XInput-compatible gamepads");
-        xpadEarlyTime = Dvar::Register<int>("xpad_early_time", 130, 0, 1000, Game::DVAR_FLAG_SAVED, "Time (in milliseconds) of reduced view sensitivity");
-        xpadEarlyMultiplier = Dvar::Register<float>("xpad_early_multiplier", 0.25f, 0.01f, 1.0f, Game::DVAR_FLAG_SAVED,
-                                                    "By how much the view sensitivity is multiplied during xpad_early_time when moving the view stick");
-        xpadHorizontalMultiplier = Dvar::Register<float>("xpad_horizontal_multiplier", 1.5f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Horizontal view sensitivity multiplier");
-        xpadVerticalMultiplier = Dvar::Register<float>("xpad_vertical_multiplier", 0.8f, 1.0f, 20.0f, Game::DVAR_FLAG_SAVED, "Vertical view sensitivity multiplier");
-        xpadAdsMultiplier = Dvar::Register<float>("xpad_ads_multiplier", 0.7f, 0.1f, 1.0f, Game::DVAR_FLAG_SAVED, "By how much the view sensitivity is multiplied when aiming down the sights.");
     }
 }

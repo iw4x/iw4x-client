@@ -207,8 +207,6 @@ namespace Components
 {
     class Gamepad : public Component
     {
-        static constexpr float TRIGGER_THRESHOLD_F = static_cast<float>(XINPUT_GAMEPAD_TRIGGER_THRESHOLD) / static_cast<float>(0xFF);
-
     public:
         Gamepad();
 
@@ -245,14 +243,6 @@ namespace Components
         static GamePadGlobals gamePadGlobals[Game::MAX_GAMEPADS];
 
         static int gamePadBindingsModifiedFlags;
-
-        static bool isHoldingMaxLookX;
-        static std::chrono::milliseconds timeAtFirstHeldMaxLookX;
-        static bool isADS;
-
-        static std::chrono::milliseconds lastNavigationTime;
-        static std::chrono::milliseconds msBetweenNavigations;
-        static Game::GamePadStickDir lastMenuNavigationDirection;
 
         static Dvar::Var gpad_enabled;
         static Dvar::Var gpad_debug;
