@@ -306,8 +306,8 @@ namespace Components
         static void UI_GamepadKeyEvent(int gamePadIndex, int key, bool down);
         static void CL_GamepadGenerateAPad(int gamePadIndex, Game::GamepadPhysicalAxis physicalAxis, unsigned time);
         static void CL_GamepadEvent(int gamePadIndex, Game::GamepadPhysicalAxis physicalAxis, float value, unsigned time);
-        static void CL_GamepadButtonEvent(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned time, Game::GamePadButton button);
-        static void CL_GamepadButtonEventForPort(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned int time, Game::GamePadButton button);
+        static void CL_GamepadButtonEvent(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned time);
+        static void CL_GamepadButtonEventForPort(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned int time);
 
         static void GPad_ConvertStickToFloat(short x, short y, float& outX, float& outY);
         static float GPad_GetStick(int gamePadIndex, Game::GamePadStick stick);

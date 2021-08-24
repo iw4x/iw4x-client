@@ -650,20 +650,20 @@ namespace Components
             if (gamePad.stickDown[stickIndex][Game::GPAD_STICK_POS])
             {
                 const Game::GamePadButtonEvent event = gamePad.stickDownLast[stickIndex][Game::GPAD_STICK_POS] ? Game::GPAD_BUTTON_UPDATE : Game::GPAD_BUTTON_PRESSED;
-                CL_GamepadButtonEvent(gamePadIndex, mapping.posCode, event, time, Game::GPAD_NONE);
+                CL_GamepadButtonEvent(gamePadIndex, mapping.posCode, event, time);
             }
             else if (gamePad.stickDown[stickIndex][Game::GPAD_STICK_NEG])
             {
                 const Game::GamePadButtonEvent event = gamePad.stickDownLast[stickIndex][Game::GPAD_STICK_NEG] ? Game::GPAD_BUTTON_UPDATE : Game::GPAD_BUTTON_PRESSED;
-                CL_GamepadButtonEvent(gamePadIndex, mapping.negCode, event, time, Game::GPAD_NONE);
+                CL_GamepadButtonEvent(gamePadIndex, mapping.negCode, event, time);
             }
             else if (gamePad.stickDownLast[stickIndex][Game::GPAD_STICK_POS])
             {
-                CL_GamepadButtonEvent(gamePadIndex, mapping.posCode, Game::GPAD_BUTTON_RELEASED, time, Game::GPAD_NONE);
+                CL_GamepadButtonEvent(gamePadIndex, mapping.posCode, Game::GPAD_BUTTON_RELEASED, time);
             }
             else if (gamePad.stickDownLast[stickIndex][Game::GPAD_STICK_NEG])
             {
-                CL_GamepadButtonEvent(gamePadIndex, mapping.negCode, Game::GPAD_BUTTON_RELEASED, time, Game::GPAD_NONE);
+                CL_GamepadButtonEvent(gamePadIndex, mapping.negCode, Game::GPAD_BUTTON_RELEASED, time);
             }
         }
     }
@@ -734,7 +734,7 @@ namespace Components
         return repeatCount > 1;
     }
 
-    void Gamepad::CL_GamepadButtonEvent(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time, const Game::GamePadButton button)
+    void Gamepad::CL_GamepadButtonEvent(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
 
@@ -789,13 +789,7 @@ namespace Components
             {
                 if (keyBinding[0] == '+')
                 {
-                    float floatValue;
-                    if (button)
-                        floatValue = GPad_GetButton(gamePadIndex, button);
-                    else
-                        floatValue = 0.0f;
-
-                    sprintf_s(cmd, "%s %i %i %0.3f\n", keyBinding, key, time, floatValue);
+                    sprintf_s(cmd, "%s %i %i\n", keyBinding, key, time);
                     Game::Cbuf_AddText(gamePadIndex, cmd);
                 }
                 else
@@ -809,13 +803,7 @@ namespace Components
         {
             if (keyBinding && keyBinding[0] == '+')
             {
-                float floatValue;
-                if (button)
-                    floatValue = GPad_GetButton(gamePadIndex, button);
-                else
-                    floatValue = 0.0f;
-
-                sprintf_s(cmd, "-%s %i %i %0.3f\n", &keyBinding[1], key, time, floatValue);
+                sprintf_s(cmd, "-%s %i %i\n", &keyBinding[1], key, time);
                 Game::Cbuf_AddText(gamePadIndex, cmd);
             }
 
@@ -826,7 +814,7 @@ namespace Components
         }
     }
 
-    void Gamepad::CL_GamepadButtonEventForPort(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time, const Game::GamePadButton button)
+    void Gamepad::CL_GamepadButtonEventForPort(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
         auto& gamePad = gamePads[gamePadIndex];
@@ -838,7 +826,7 @@ namespace Components
             CL_GamepadResetMenuScrollTime(gamePadIndex, key, buttonEvent == Game::GPAD_BUTTON_PRESSED, time);
 
 
-        CL_GamepadButtonEvent(gamePadIndex, key, buttonEvent, time, button);
+        CL_GamepadButtonEvent(gamePadIndex, key, buttonEvent, time);
     }
 
     void Gamepad::GPad_ConvertStickToFloat(const short x, const short y, float& outX, float& outY)
@@ -1131,8 +1119,7 @@ namespace Components
                             gamePadIndex,
                             buttonMapping.code,
                             Game::GPAD_BUTTON_PRESSED,
-                            time,
-                            buttonMapping.padButton);
+                            time);
                     }
                     else if (GPad_ButtonRequiresUpdates(gamePadIndex, buttonMapping.padButton))
                     {
@@ -1140,8 +1127,7 @@ namespace Components
                             gamePadIndex,
                             buttonMapping.code,
                             Game::GPAD_BUTTON_UPDATE,
-                            time,
-                            buttonMapping.padButton);
+                            time);
                     }
                     else if (GPad_IsButtonReleased(gamePadIndex, buttonMapping.padButton))
                     {
@@ -1149,8 +1135,7 @@ namespace Components
                             gamePadIndex,
                             buttonMapping.code,
                             Game::GPAD_BUTTON_RELEASED,
-                            time,
-                            buttonMapping.padButton);
+                            time);
                     }
                 }
             }
