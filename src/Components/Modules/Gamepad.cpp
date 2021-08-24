@@ -1377,12 +1377,23 @@ namespace Components
         InitDvars();
     }
 
+    const char* Gamepad::GetGamePadCommand(const char* command)
+    {
+        if (strcmp(command, "+activate") == 0 || strcmp(command, "+reload") == 0)
+            return "+usereload";
+        if (strcmp(command, "+melee_breath") == 0)
+            return "+holdbreath";
+
+        return command;
+    }
+
     int Gamepad::Key_GetCommandAssignmentInternal_Hk(const char* cmd, int (*keys)[2])
     {
         auto keyCount = 0;
 
         if (gamePads[0].inUse)
         {
+            cmd = GetGamePadCommand(cmd);
             for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
             {
                 if (!Key_IsValidGamePadChar(keyNum))

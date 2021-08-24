@@ -353,6 +353,7 @@ namespace Components
         static void InitDvars();
         static void IN_Init_Hk();
 
+        static const char* GetGamePadCommand(const char* command);
         static int Key_GetCommandAssignmentInternal_Hk(const char* cmd, int(*keys)[2]);
         static bool IsGamePadInUse();
         static void CL_KeyEvent_Hk(int localClientNum, int key, int down, unsigned int time);
