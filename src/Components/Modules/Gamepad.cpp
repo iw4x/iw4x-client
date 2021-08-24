@@ -490,6 +490,8 @@ namespace Components
 
     void Gamepad::CL_RemoteControlMove_GamePad(const int localClientNum, Game::usercmd_s* cmd)
     {
+        // Buttons are already handled by keyboard input handler
+
         const auto up = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_FORWARD);
         const auto right = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_SIDE);
         const auto sensitivity = input_viewSensitivity.get<float>();
@@ -518,8 +520,10 @@ namespace Components
         }
     }
 
-    bool Gamepad::CG_HandleLocationSelectionInput_GamePad(const int localClientNum, Game::usercmd_s* cmd)
+    bool Gamepad::CG_HandleLocationSelectionInput_GamePad(const int localClientNum, Game::usercmd_s* /*cmd*/)
     {
+        // Buttons are already handled by keyboard input handler
+
         const auto frameTime = static_cast<float>(Game::cgArray[0].frametime) * 0.001f;
         const auto mapAspectRatio = Game::cgArray[0].compassMapWorldSize[0] / Game::cgArray[0].compassMapWorldSize[1];
         const auto selectionRequiresAngle = (Game::cgArray[0].predictedPlayerState.locationSelectionInfo & 0x80) != 0;
