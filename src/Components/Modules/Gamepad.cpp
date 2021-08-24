@@ -171,6 +171,7 @@ namespace Components
     Dvar::Var Gamepad::gpad_button_rstick_deflect_max;
     Dvar::Var Gamepad::gpad_button_lstick_deflect_max;
     Dvar::Var Gamepad::input_viewSensitivity;
+    Dvar::Var Gamepad::input_invertPitch;
     Dvar::Var Gamepad::aim_turnrate_pitch;
     Dvar::Var Gamepad::aim_turnrate_pitch_ads;
     Dvar::Var Gamepad::aim_turnrate_yaw;
@@ -180,6 +181,7 @@ namespace Components
     Dvar::Var Gamepad::aim_input_graph_enabled;
     Dvar::Var Gamepad::aim_input_graph_index;
     Dvar::Var Gamepad::aim_scale_view_axis;
+    Dvar::Var Gamepad::cl_bypassMouseInput;
 
     Dvar::Var Gamepad::xpadSensitivity;
     Dvar::Var Gamepad::xpadEarlyTime;
@@ -541,7 +543,7 @@ namespace Components
             return;
 
         auto pitch = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_PITCH);
-        if (!Dvar::Var("input_invertPitch").get<bool>())
+        if (!input_invertPitch.get<bool>())
             pitch *= -1;
 
         auto yaw = -CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_YAW);
@@ -1354,6 +1356,7 @@ namespace Components
         gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, 0, "Game pad maximum pad stick pressed value");
 
         input_viewSensitivity = Dvar::Register<float>("input_viewSensitivity", 1.0f, 0.0001f, 5.0f, Game::DVAR_FLAG_SAVED, "View Sensitivity");
+        input_invertPitch = Dvar::Register<bool>("input_invertPitch", false, Game::DVAR_FLAG_SAVED, "Invert gamepad pitch");
         aim_turnrate_pitch = Dvar::Var("aim_turnrate_pitch");
         aim_turnrate_pitch_ads = Dvar::Var("aim_turnrate_pitch_ads");
         aim_turnrate_yaw = Dvar::Var("aim_turnrate_yaw");
@@ -1363,6 +1366,7 @@ namespace Components
         aim_input_graph_enabled = Dvar::Var("aim_input_graph_enabled");
         aim_input_graph_index = Dvar::Var("aim_input_graph_index");
         aim_scale_view_axis = Dvar::Var("aim_scale_view_axis");
+        cl_bypassMouseInput = Dvar::Var("cl_bypassMouseInput");
     }
 
     void Gamepad::IN_Init_Hk()
@@ -1442,7 +1446,7 @@ namespace Components
 
     bool Gamepad::UI_RefreshViewport_Hk()
     {
-        return Dvar::Var("cl_bypassMouseInput").get<bool>() || IsGamePadInUse();
+        return cl_bypassMouseInput.get<bool>() || IsGamePadInUse();
     }
 
     void Gamepad::CreateKeyNameMap()

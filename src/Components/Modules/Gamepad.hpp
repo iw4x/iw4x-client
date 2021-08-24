@@ -271,6 +271,7 @@ namespace Components
         static Dvar::Var gpad_button_rstick_deflect_max;
         static Dvar::Var gpad_button_lstick_deflect_max;
         static Dvar::Var input_viewSensitivity;
+        static Dvar::Var input_invertPitch;
         static Dvar::Var aim_turnrate_pitch;
         static Dvar::Var aim_turnrate_pitch_ads;
         static Dvar::Var aim_turnrate_yaw;
@@ -280,6 +281,7 @@ namespace Components
         static Dvar::Var aim_input_graph_enabled;
         static Dvar::Var aim_input_graph_index;
         static Dvar::Var aim_scale_view_axis;
+        static Dvar::Var cl_bypassMouseInput;
 
         static Dvar::Var xpadSensitivity;
         static Dvar::Var xpadEarlyTime;
