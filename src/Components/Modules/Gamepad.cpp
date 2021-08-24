@@ -488,6 +488,35 @@ namespace Components
         aaGlob.prevButtons = input->buttons;
     }
 
+    void Gamepad::CL_RemoteControlMove_GamePad(const int localClientNum, Game::usercmd_s* cmd)
+    {
+        const auto up = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_FORWARD);
+        const auto right = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_SIDE);
+        const auto sensitivity = input_viewSensitivity.get<float>();
+
+        constexpr auto scale = static_cast<float>(std::numeric_limits<char>::max());
+        cmd->remoteControlAngles[0] = ClampChar(cmd->remoteControlAngles[0] + static_cast<int>(std::floor(-up * scale * sensitivity)));
+        cmd->remoteControlAngles[1] = ClampChar(cmd->remoteControlAngles[1] + static_cast<int>(std::floor(-right * scale * sensitivity)));
+    }
+
+    constexpr auto CL_RemoteControlMove = 0x5A6BA0;
+    __declspec(naked) void Gamepad::CL_RemoteControlMove_Stub()
+    {
+        __asm
+        {
+            // Prepare args for our function call
+            push edi // usercmd
+            push eax // localClientNum
+
+            call CL_RemoteControlMove
+
+            // Call our function, the args were already prepared earlier
+            call CL_RemoteControlMove_GamePad
+            add esp, 0x8
+
+            ret
+        }
+    }
 
     bool Gamepad::CG_HandleLocationSelectionInput_GamePad(const int localClientNum, Game::usercmd_s* cmd)
     {
@@ -1575,6 +1604,9 @@ namespace Components
 
         // Only return gamepad keys when gamepad enabled and only non gamepad keys when not
         Utils::Hook(0x5A7A23, Key_GetCommandAssignmentInternal_Hk, HOOK_CALL).install()->quick();
+
+        // Add gamepad inputs to remote control (eg predator) handling
+        Utils::Hook(0x5A6D4E, CL_RemoteControlMove_Stub, HOOK_CALL).install()->quick();
 
         // Add gamepad inputs to location selection (eg airstrike location) handling
         Utils::Hook(0x5A6D72, CG_HandleLocationSelectionInput_Stub, HOOK_CALL).install()->quick();

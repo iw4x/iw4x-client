@@ -295,6 +295,8 @@ namespace Components
         static void AimAssist_ApplyTurnRates(const Game::AimInput* input, Game::AimOutput* output);
         static void AimAssist_UpdateGamePadInput(const Game::AimInput* input, Game::AimOutput* output);
 
+        static void CL_RemoteControlMove_GamePad(int localClientNum, Game::usercmd_s* cmd);
+        static void CL_RemoteControlMove_Stub();
         static bool CG_HandleLocationSelectionInput_GamePad(int localClientNum, Game::usercmd_s* cmd);
         static void CG_HandleLocationSelectionInput_Stub();
         static bool CG_ShouldUpdateViewAngles(int localClientNum);
