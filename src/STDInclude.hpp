@@ -10,6 +10,7 @@
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #define _CRT_SECURE_NO_WARNINGS
+#define _USE_MATH_DEFINES
 
 // Requires Visual Leak Detector plugin: http://vld.codeplex.com/
 #define VLD_FORCE_ENABLE

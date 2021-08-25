@@ -115,6 +115,43 @@ namespace Game
         GamepadVirtualAxisMapping virtualAxes[GPAD_VIRTAXIS_COUNT];
     };
 
+    enum weaponstate_t
+    {
+        WEAPON_READY = 0x0,
+        WEAPON_RAISING = 0x1,
+        WEAPON_RAISING_ALTSWITCH = 0x2,
+        WEAPON_DROPPING = 0x3,
+        WEAPON_DROPPING_QUICK = 0x4,
+        WEAPON_DROPPING_ALT = 0x5,
+        WEAPON_FIRING = 0x6,
+        WEAPON_RECHAMBERING = 0x7,
+        WEAPON_RELOADING = 0x8,
+        WEAPON_RELOADING_INTERUPT = 0x9,
+        WEAPON_RELOAD_START = 0xA,
+        WEAPON_RELOAD_START_INTERUPT = 0xB,
+        WEAPON_RELOAD_END = 0xC,
+        WEAPON_MELEE_INIT = 0xD,
+        WEAPON_MELEE_FIRE = 0xE,
+        WEAPON_MELEE_END = 0xF,
+        WEAPON_OFFHAND_INIT = 0x10,
+        WEAPON_OFFHAND_PREPARE = 0x11,
+        WEAPON_OFFHAND_HOLD = 0x12,
+        WEAPON_OFFHAND_FIRE = 0x13,
+        WEAPON_OFFHAND_DETONATE = 0x14,
+        WEAPON_OFFHAND_END = 0x15,
+        WEAPON_DETONATING = 0x16,
+        WEAPON_SPRINT_RAISE = 0x17,
+        WEAPON_SPRINT_LOOP = 0x18,
+        WEAPON_SPRINT_DROP = 0x19,
+        WEAPON_STUNNED_START = 0x1A,
+        WEAPON_STUNNED_LOOP = 0x1B,
+        WEAPON_STUNNED_END = 0x1C,
+        WEAPON_NIGHTVISION_WEAR = 0x1D,
+        WEAPON_NIGHTVISION_REMOVE = 0x1E,
+
+        WEAPONSTATES_NUM
+    };
+
     struct AimAssistPlayerState
     {
         float velocity[3];
@@ -142,7 +179,8 @@ namespace Game
         float lockOnRegionWidth;
         float lockOnRegionHeight;
     };
-    
+
+    constexpr auto AIM_TARGET_INVALID = 0x3FF;
     struct AimScreenTarget
     {
         int entIndex;
@@ -273,6 +311,17 @@ namespace Components
         static Dvar::Var aim_scale_view_axis;
         static Dvar::Var cl_bypassMouseInput;
         static Dvar::Var cg_mapLocationSelectionCursorSpeed;
+        static Dvar::Var aim_aimAssistRangeScale;
+        static Dvar::Var aim_slowdown_enabled;
+        static Dvar::Var aim_slowdown_debug;
+        static Dvar::Var aim_slowdown_pitch_scale;
+        static Dvar::Var aim_slowdown_pitch_scale_ads;
+        static Dvar::Var aim_slowdown_yaw_scale;
+        static Dvar::Var aim_slowdown_yaw_scale_ads;
+        static Dvar::Var aim_lockon_enabled;
+        static Dvar::Var aim_lockon_deflection;
+        static Dvar::Var aim_lockon_pitch_strength;
+        static Dvar::Var aim_lockon_strength;
 
         static Dvar::Var xpadSensitivity;
         static Dvar::Var xpadEarlyTime;
@@ -289,7 +338,14 @@ namespace Components
         static void MSG_ReadDeltaUsercmdKeyStub2();
 
         static float LinearTrack(float target, float current, float rate, float deltaTime);
+        static bool AimAssist_DoBoundsIntersectCenterBox(const float* clipMins, const float* clipMaxs, float clipHalfWidth, float clipHalfHeight);
+        static bool AimAssist_IsPlayerUsingOffhand(Game::AimAssistPlayerState* ps);
+        static const Game::AimScreenTarget* AimAssist_GetBestTarget(const Game::AimAssistGlobals* aaGlob, float range, float regionWidth, float regionHeight);
+        static const Game::AimScreenTarget* AimAssist_GetTargetFromEntity(const Game::AimAssistGlobals* aaGlob, int entIndex);
+        static const Game::AimScreenTarget* AimAssist_GetPrevOrBestTarget(const Game::AimAssistGlobals* aaGlob, float range, float regionWidth, float regionHeight, int prevTargetEnt);
+        static void AimAssist_ApplyLockOn(const Game::AimInput* input, Game::AimOutput* output);
         static void AimAssist_CalcAdjustedAxis(const Game::AimInput* input, float* pitchAxis, float* yawAxis);
+        static bool AimAssist_IsSlowdownActive(const Game::AimAssistPlayerState* ps);
         static void AimAssist_CalcSlowdown(const Game::AimInput* input, float* pitchScale, float* yawScale);
         static float AimAssist_Lerp(float from, float to, float fraction);
         static void AimAssist_ApplyTurnRates(const Game::AimInput* input, Game::AimOutput* output);

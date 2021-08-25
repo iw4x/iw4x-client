@@ -1288,6 +1288,16 @@ namespace Game
 		unsigned int playerCardNameplate;
 	};
 
+	enum usercmdButtonBits
+	{
+	    CMD_BUTTON_ATTACK = 0x1,
+	    CMD_BUTTON_SPRINT = 0x2,
+	    CMD_BUTTON_MELEE = 0x4,
+	    CMD_BUTTON_ACTIVATE = 0x8,
+	    CMD_BUTTON_RELOAD = 0x10,
+	    CMD_BUTTON_USE_RELOAD = 0x20,
+	};
+
 #pragma pack(push, 4)
 	struct usercmd_s
 	{

@@ -40,6 +40,9 @@ namespace Game
 	typedef void*(__cdecl * BG_LoadWeaponDef_LoadObj_t)(const char* filename);
 	extern BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj;
 
+	typedef WeaponDef* (__cdecl* BG_GetWeaponDef_t)(int weaponIndex);
+	extern BG_GetWeaponDef_t BG_GetWeaponDef;
+
 	typedef void(__cdecl * Cbuf_AddServerText_t)();
 	extern Cbuf_AddServerText_t Cbuf_AddServerText;
 

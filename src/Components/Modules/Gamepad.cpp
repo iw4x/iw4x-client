@@ -1,6 +1,7 @@
 #include "STDInclude.hpp"
 
 #include <limits>
+#include <cmath>
 
 namespace Game
 {
@@ -180,6 +181,17 @@ namespace Components
     Dvar::Var Gamepad::aim_scale_view_axis;
     Dvar::Var Gamepad::cl_bypassMouseInput;
     Dvar::Var Gamepad::cg_mapLocationSelectionCursorSpeed;
+    Dvar::Var Gamepad::aim_aimAssistRangeScale;
+    Dvar::Var Gamepad::aim_slowdown_enabled;
+    Dvar::Var Gamepad::aim_slowdown_debug;
+    Dvar::Var Gamepad::aim_slowdown_pitch_scale;
+    Dvar::Var Gamepad::aim_slowdown_pitch_scale_ads;
+    Dvar::Var Gamepad::aim_slowdown_yaw_scale;
+    Dvar::Var Gamepad::aim_slowdown_yaw_scale_ads;
+    Dvar::Var Gamepad::aim_lockon_enabled;
+    Dvar::Var Gamepad::aim_lockon_deflection;
+    Dvar::Var Gamepad::aim_lockon_pitch_strength;
+    Dvar::Var Gamepad::aim_lockon_strength;
 
     Dvar::Var Gamepad::xpadSensitivity;
     Dvar::Var Gamepad::xpadEarlyTime;
@@ -348,6 +360,116 @@ namespace Components
         return target;
     }
 
+    bool Gamepad::AimAssist_DoBoundsIntersectCenterBox(const float* clipMins, const float* clipMaxs, const float clipHalfWidth, const float clipHalfHeight)
+    {
+        return clipHalfWidth >= clipMins[0] && clipMaxs[0] >= -clipHalfWidth
+            && clipHalfHeight >= clipMins[1] && clipMaxs[1] >= -clipHalfHeight;
+    }
+
+    bool Gamepad::AimAssist_IsPlayerUsingOffhand(Game::AimAssistPlayerState* ps)
+    {
+        if ((ps->weapFlags & 2) == 0)
+            return false;
+
+        if (!ps->weapIndex)
+            return false;
+
+        const auto* weaponDef = Game::BG_GetWeaponDef(ps->weapIndex);
+
+        return weaponDef->offhandClass != Game::OFFHAND_CLASS_NONE;
+    }
+
+    const Game::AimScreenTarget* Gamepad::AimAssist_GetBestTarget(const Game::AimAssistGlobals* aaGlob, const float range, const float regionWidth, const float regionHeight)
+    {
+        const auto rangeSqr = range * range;
+        for (auto targetIndex = 0; targetIndex < aaGlob->screenTargetCount; targetIndex++)
+        {
+            const auto* currentTarget = &aaGlob->screenTargets[targetIndex];
+            if (currentTarget->distSqr <= rangeSqr && AimAssist_DoBoundsIntersectCenterBox(currentTarget->clipMins, currentTarget->clipMaxs, regionWidth, regionHeight))
+            {
+                return currentTarget;
+            }
+        }
+
+        return nullptr;
+    }
+
+    const Game::AimScreenTarget* Gamepad::AimAssist_GetTargetFromEntity(const Game::AimAssistGlobals* aaGlob, const int entIndex)
+    {
+        if (entIndex == Game::AIM_TARGET_INVALID)
+            return nullptr;
+
+        for (auto targetIndex = 0; targetIndex < aaGlob->screenTargetCount; targetIndex++)
+        {
+            const auto* currentTarget = &aaGlob->screenTargets[targetIndex];
+            if (currentTarget->entIndex == entIndex)
+                return currentTarget;
+        }
+
+        return nullptr;
+    }
+
+    const Game::AimScreenTarget* Gamepad::AimAssist_GetPrevOrBestTarget(const Game::AimAssistGlobals* aaGlob, const float range, const float regionWidth, const float regionHeight,
+                                                                        const int prevTargetEnt)
+    {
+        const auto screenTarget = AimAssist_GetTargetFromEntity(aaGlob, prevTargetEnt);
+
+        if (screenTarget && (range * range) > screenTarget->distSqr && AimAssist_DoBoundsIntersectCenterBox(screenTarget->clipMins, screenTarget->clipMaxs, regionWidth, regionHeight))
+            return screenTarget;
+
+        return AimAssist_GetBestTarget(aaGlob, range, regionWidth, regionHeight);
+    }
+
+    void Gamepad::AimAssist_ApplyLockOn(const Game::AimInput* input, Game::AimOutput* output)
+    {
+#ifdef AIM_ASSIST_ENABLED
+
+        assert(input);
+        assert(input->localClientNum < Game::MAX_GAMEPADS);
+        auto& aaGlob = Game::aaGlobArray[input->localClientNum];
+
+        const auto prevTargetEnt = aaGlob.lockOnTargetEnt;
+        aaGlob.lockOnTargetEnt = Game::AIM_TARGET_INVALID;
+
+        if (!aim_lockon_enabled.get<bool>() || AimAssist_IsPlayerUsingOffhand(&aaGlob.ps) || aaGlob.autoAimActive || aaGlob.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING)
+            return;
+
+        const auto* weaponDef = Game::BG_GetWeaponDef(aaGlob.ps.weapIndex);
+        if (weaponDef->requireLockonToFire)
+            return;
+
+        const auto deflection = aim_lockon_deflection.get<float>();
+        if (deflection > std::fabs(input->pitchAxis) && deflection > std::fabs(input->yawAxis) && deflection > std::fabs(input->rightAxis))
+            return;
+
+        if (!aaGlob.ps.weapIndex)
+            return;
+
+        const auto aimAssistRange = AimAssist_Lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
+        const auto screenTarget = AimAssist_GetPrevOrBestTarget(&aaGlob, aimAssistRange, aaGlob.tweakables.lockOnRegionWidth, aaGlob.tweakables.lockOnRegionHeight, prevTargetEnt);
+
+        if (screenTarget && screenTarget->distSqr > 0.0f)
+        {
+            aaGlob.lockOnTargetEnt = screenTarget->entIndex;
+            const auto arcLength = std::sqrt(screenTarget->distSqr) * static_cast<float>(M_PI);
+
+            const auto pitchTurnRate =
+                (screenTarget->velocity[0] * aaGlob.viewAxis[2][0] + screenTarget->velocity[1] * aaGlob.viewAxis[2][1] + screenTarget->velocity[2] * aaGlob.viewAxis[2][2]
+                    - (aaGlob.ps.velocity[0] * aaGlob.viewAxis[2][0] + aaGlob.ps.velocity[1] * aaGlob.viewAxis[2][1] + aaGlob.ps.velocity[2] * aaGlob.viewAxis[2][2]))
+                / arcLength * 180.0f * aim_lockon_pitch_strength.get<float>();
+
+            const auto yawTurnRate = 
+                (screenTarget->velocity[0] * aaGlob.viewAxis[1][0] + screenTarget->velocity[1] * aaGlob.viewAxis[1][1] + screenTarget->velocity[2] * aaGlob.viewAxis[1][2]
+                - (aaGlob.ps.velocity[0] * aaGlob.viewAxis[1][0] + aaGlob.ps.velocity[1] * aaGlob.viewAxis[1][1] + aaGlob.ps.velocity[2] * aaGlob.viewAxis[1][2]))
+            / arcLength * 180.0f * aim_lockon_strength.get<float>();
+
+            output->pitch -= pitchTurnRate * input->deltaTime;
+            output->yaw += yawTurnRate * input->deltaTime;
+        }
+
+#endif
+    }
+
     void Gamepad::AimAssist_CalcAdjustedAxis(const Game::AimInput* input, float* pitchAxis, float* yawAxis)
     {
         assert(input);
@@ -390,14 +512,63 @@ namespace Components
         }
     }
 
-    void Gamepad::AimAssist_CalcSlowdown(const Game::AimInput* /*input*/, float* pitchScale, float* yawScale)
+    bool Gamepad::AimAssist_IsSlowdownActive(const Game::AimAssistPlayerState* ps)
     {
-        /*assert(input); */
+        if (!aim_slowdown_enabled.get<bool>())
+            return false;
+
+        if (!ps->weapIndex)
+            return false;
+
+        const auto* weaponDef = Game::BG_GetWeaponDef(ps->weapIndex);
+        if (weaponDef->requireLockonToFire)
+            return false;
+
+        if (ps->linkFlags & 4)
+            return false;
+
+        if (ps->weaponState >= Game::WEAPON_STUNNED_START && ps->weaponState <= Game::WEAPON_STUNNED_END)
+            return false;
+
+        if (ps->eFlags & 0x300800)
+            return false;
+
+        if (!ps->hasAmmo)
+            return false;
+
+        return true;
+    }
+
+    void Gamepad::AimAssist_CalcSlowdown(const Game::AimInput* input, float* pitchScale, float* yawScale)
+    {
+        assert(input);
+        assert(input->localClientNum < Game::MAX_GAMEPADS);
+        auto& aaGlob = Game::aaGlobArray[input->localClientNum];
         assert(pitchScale);
         assert(yawScale);
 
         *pitchScale = 1.0f;
         *yawScale = 1.0f;
+
+#ifdef AIM_ASSIST_ENABLED
+
+        if (!AimAssist_IsSlowdownActive(&aaGlob.ps))
+            return;
+
+        const auto* weaponDef = Game::BG_GetWeaponDef(aaGlob.ps.weapIndex);
+        const auto aimAssistRange = AimAssist_Lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
+        const auto screenTarget = AimAssist_GetBestTarget(&aaGlob, aimAssistRange, aaGlob.tweakables.slowdownRegionWidth, aaGlob.tweakables.slowdownRegionHeight);
+
+        if (screenTarget)
+        {
+            *pitchScale = AimAssist_Lerp(aim_slowdown_pitch_scale.get<float>(), aim_slowdown_pitch_scale_ads.get<float>(), aaGlob.adsLerp);
+            *yawScale = AimAssist_Lerp(aim_slowdown_yaw_scale.get<float>(), aim_slowdown_yaw_scale_ads.get<float>(), aaGlob.adsLerp);
+        }
+
+        if (AimAssist_IsPlayerUsingOffhand(&aaGlob.ps))
+            *pitchScale = 1.0f;
+
+#endif
     }
 
     float Gamepad::AimAssist_Lerp(const float from, const float to, const float fraction)
@@ -483,6 +654,7 @@ namespace Components
             AimAssist_ApplyTurnRates(input, output);
 
             Game::AimAssist_ApplyAutoMelee(input, output);
+            AimAssist_ApplyLockOn(input, output);
         }
 
         aaGlob.prevButtons = input->buttons;
@@ -1451,6 +1623,17 @@ namespace Components
         aim_scale_view_axis = Dvar::Var("aim_scale_view_axis");
         cl_bypassMouseInput = Dvar::Var("cl_bypassMouseInput");
         cg_mapLocationSelectionCursorSpeed = Dvar::Var("cg_mapLocationSelectionCursorSpeed");
+        aim_aimAssistRangeScale = Dvar::Var("aim_aimAssistRangeScale");
+        aim_slowdown_enabled = Dvar::Var("aim_slowdown_enabled");
+        aim_slowdown_debug = Dvar::Var("aim_slowdown_debug");
+        aim_slowdown_pitch_scale = Dvar::Var("aim_slowdown_pitch_scale");
+        aim_slowdown_pitch_scale_ads = Dvar::Var("aim_slowdown_pitch_scale_ads");
+        aim_slowdown_yaw_scale = Dvar::Var("aim_slowdown_yaw_scale");
+        aim_slowdown_yaw_scale_ads = Dvar::Var("aim_slowdown_yaw_scale_ads");
+        aim_lockon_enabled = Dvar::Var("aim_lockon_enabled");
+        aim_lockon_deflection = Dvar::Var("aim_lockon_deflection");
+        aim_lockon_pitch_strength = Dvar::Var("aim_lockon_pitch_strength");
+        aim_lockon_strength = Dvar::Var("aim_lockon_strength");
     }
 
     void Gamepad::IN_Init_Hk()

@@ -30,6 +30,7 @@ namespace Game
 	BG_GetNumWeapons_t BG_GetNumWeapons = BG_GetNumWeapons_t(0x4F5CC0);
 	BG_GetWeaponName_t BG_GetWeaponName = BG_GetWeaponName_t(0x4E6EC0);
 	BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj = BG_LoadWeaponDef_LoadObj_t(0x57B5F0);
+	BG_GetWeaponDef_t BG_GetWeaponDef = BG_GetWeaponDef_t(0x440EB0);
 
 	Cbuf_AddServerText_t Cbuf_AddServerText = Cbuf_AddServerText_t(0x4BB9B0);
 	Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x404B20);

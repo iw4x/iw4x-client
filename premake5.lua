@@ -79,6 +79,11 @@ newoption {
 	description = "Zonebuilder generates iw4x zones that cannot be loaded without IW4x specific patches."
 }
 
+newoption {
+	trigger = "aimassist-enable",
+	description = "Enables code for controller aim assist."
+}
+
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -331,6 +336,9 @@ workspace "iw4x"
 		end
 		if _OPTIONS["iw4x-zones"] then
 			defines { "GENERATE_IW4X_SPECIFIC_ZONES" }
+		end
+		if _OPTIONS["aimassist-enable"] then
+			defines { "AIM_ASSIST_ENABLED" }
 		end
 
 		-- Pre-compiled header
