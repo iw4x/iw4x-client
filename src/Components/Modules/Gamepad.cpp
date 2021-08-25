@@ -346,12 +346,12 @@ namespace Components
     {
         const auto err = target - current;
         float step;
-        if(err <= 0.0f)
+        if (err <= 0.0f)
             step = -rate * deltaTime;
         else
             step = rate * deltaTime;
 
-        if(std::fabs(err) <= 0.001f)
+        if (std::fabs(err) <= 0.001f)
             return target;
 
         if (std::fabs(step) <= std::fabs(err))
@@ -477,7 +477,7 @@ namespace Components
         assert(yawAxis);
 
         const auto graphIndex = aim_input_graph_index.get<int>();
-        if(aim_input_graph_enabled.get<bool>() && graphIndex >= 0 && graphIndex < Game::VANILLA_AIM_ASSIST_GRAPH_COUNT)
+        if (aim_input_graph_enabled.get<bool>() && graphIndex >= 0 && graphIndex < Game::VANILLA_AIM_ASSIST_GRAPH_COUNT)
         {
             const auto deflection = std::sqrt(input->pitchAxis * input->pitchAxis + input->yawAxis * input->yawAxis);
 
@@ -500,7 +500,7 @@ namespace Components
             *yawAxis = input->yawAxis;
         }
 
-        if(aim_scale_view_axis.get<bool>())
+        if (aim_scale_view_axis.get<bool>())
         {
             const auto absPitchAxis = std::fabs(*pitchAxis);
             const auto absYawAxis = std::fabs(*yawAxis);
@@ -586,7 +586,7 @@ namespace Components
         float adjustedPitchAxis;
         float adjustedYawAxis;
 
-        if(aaGlob.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING)
+        if (aaGlob.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING)
         {
             adjustedPitchAxis = 0.0f;
             adjustedYawAxis = 0.0f;
@@ -615,8 +615,8 @@ namespace Components
 
         const auto pitchDelta = std::fabs(adjustedPitchAxis) * pitchTurnRate;
         const auto yawDelta = std::fabs(adjustedYawAxis) * yawTurnRate;
-        
-        if(!aim_accel_turnrate_enabled.get<bool>())
+
+        if (!aim_accel_turnrate_enabled.get<bool>())
         {
             aaGlob.pitchDelta = pitchDelta;
             aaGlob.yawDelta = yawDelta;
@@ -647,7 +647,7 @@ namespace Components
         output->pitch = input->pitch;
         output->yaw = input->yaw;
 
-        if(aaGlob.initialized)
+        if (aaGlob.initialized)
         {
             Game::AimAssist_UpdateTweakables(input->localClientNum);
             Game::AimAssist_UpdateAdsLerp(input);
@@ -704,7 +704,7 @@ namespace Components
         auto right = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_SIDE);
         auto magnitude = up * up + right * right;
 
-        if(magnitude > 1.0f)
+        if (magnitude > 1.0f)
         {
             magnitude = std::sqrt(magnitude);
             up /= magnitude;
@@ -714,12 +714,12 @@ namespace Components
         Game::cgArray[0].selectedLocation[0] += right * cg_mapLocationSelectionCursorSpeed.get<float>() * frameTime;
         Game::cgArray[0].selectedLocation[1] -= up * mapAspectRatio * cg_mapLocationSelectionCursorSpeed.get<float>() * frameTime;
 
-        if(selectionRequiresAngle)
+        if (selectionRequiresAngle)
         {
             const auto yawUp = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_PITCH);
             const auto yawRight = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_YAW);
 
-            if(std::fabs(yawUp) > 0.0f || std::fabs(yawRight) > 0.0f)
+            if (std::fabs(yawUp) > 0.0f || std::fabs(yawRight) > 0.0f)
             {
                 Game::vec2_t vec
                 {
@@ -749,7 +749,7 @@ namespace Components
             // Prepare args for our function call
             push esi // usercmd
             push eax // localClientNum
-            
+
             call CG_HandleLocationSelectionInput
 
             test al,al
@@ -837,7 +837,7 @@ namespace Components
         cmd->forwardmove = ClampChar(cmd->forwardmove + forwardMove);
 
         // Check for frozen controls. Flag name should start with PMF_
-        if(CG_ShouldUpdateViewAngles(gamePadIndex) && (clientActive.snap.ps.pm_flags & 0x800) == 0)
+        if (CG_ShouldUpdateViewAngles(gamePadIndex) && (clientActive.snap.ps.pm_flags & 0x800) == 0)
         {
             Game::AimInput aimInput{};
             Game::AimOutput aimOutput{};
@@ -1712,7 +1712,7 @@ namespace Components
 
     int Gamepad::CL_MouseEvent_Hk(const int x, const int y, const int dx, const int dy)
     {
-        if(dx != 0 || dy != 0)
+        if (dx != 0 || dy != 0)
         {
             gamePads[0].inUse = false;
             gpad_in_use.setRaw(false);
@@ -1784,7 +1784,7 @@ namespace Components
         Utils::Hook(0x43D179, CL_KeyEvent_Hk, HOOK_CALL).install()->quick();
 
         // Mark controller as unused when mouse is moved
-        Utils::Hook(0x64C507, CL_MouseEvent_Hk, HOOK_CALL).install()->quick(); 
+        Utils::Hook(0x64C507, CL_MouseEvent_Hk, HOOK_CALL).install()->quick();
 
         // Hide cursor when controller is active
         Utils::Hook(0x48E527, UI_RefreshViewport_Hk, HOOK_CALL).install()->quick();
