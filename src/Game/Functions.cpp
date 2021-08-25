@@ -344,7 +344,7 @@ namespace Game
 
 	unzClose_t unzClose = unzClose_t(0x41BF20);
 
-	AimAssist_ApplyAutoAim_t AimAssist_ApplyAutoAim = AimAssist_ApplyAutoAim_t(0x56A360);
+	AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee = AimAssist_ApplyAutoMelee_t(0x56A360);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);

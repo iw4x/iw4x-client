@@ -810,8 +810,8 @@ namespace Game
 	typedef void(__cdecl * unzClose_t)(void* handle);
 	extern unzClose_t unzClose;
 
-	typedef void(__cdecl* AimAssist_ApplyAutoAim_t)(const AimInput* input, AimOutput* output);
-	extern AimAssist_ApplyAutoAim_t AimAssist_ApplyAutoAim;
+	typedef void(__cdecl* AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
+	extern AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee;
 
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;

@@ -482,7 +482,7 @@ namespace Components
             Game::AimAssist_UpdateAdsLerp(input);
             AimAssist_ApplyTurnRates(input, output);
 
-            Game::AimAssist_ApplyAutoAim(input, output);
+            Game::AimAssist_ApplyAutoMelee(input, output);
         }
 
         aaGlob.prevButtons = input->buttons;
