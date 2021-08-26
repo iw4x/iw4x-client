@@ -635,8 +635,8 @@ namespace Components
                 aaGlob.yawDelta = LinearTrack(yawDelta, aaGlob.yawDelta, accel, input->deltaTime);
         }
 
-        output->pitch = aaGlob.pitchDelta * input->deltaTime * pitchSign + output->pitch;
-        output->yaw = aaGlob.yawDelta * input->deltaTime * yawSign + output->yaw;
+        output->pitch += aaGlob.pitchDelta * input->deltaTime * pitchSign;
+        output->yaw += aaGlob.yawDelta * input->deltaTime * yawSign;
     }
 
     void Gamepad::AimAssist_UpdateGamePadInput(const Game::AimInput* input, Game::AimOutput* output)
@@ -1108,6 +1108,13 @@ namespace Components
 
     void Gamepad::GPad_ConvertStickToFloat(const short x, const short y, float& outX, float& outY)
     {
+        if(x == 0 && y == 0)
+        {
+            outX = 0.0f;
+            outY = 0.0f;
+            return;
+        }
+
         Game::vec2_t stickVec;
         stickVec[0] = static_cast<float>(x) / static_cast<float>(std::numeric_limits<short>::max());
         stickVec[1] = static_cast<float>(y) / static_cast<float>(std::numeric_limits<short>::max());
