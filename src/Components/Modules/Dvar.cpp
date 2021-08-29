@@ -88,7 +88,7 @@ namespace Components
 	{
 		if (this->dvar && this->dvar->name)
 		{
-			Game::Dvar_SetCommand(this->dvar->name, string);
+			this->dvar->current.string = string;
 		}
 	}
 	void Dvar::Var::set(const std::string& string)
@@ -99,30 +99,21 @@ namespace Components
 	{
 		if (this->dvar && this->dvar->name)
 		{
-			Game::Dvar_SetCommand(this->dvar->name, Utils::String::VA("%i", integer));
+			this->dvar->current.integer = integer;
 		}
 	}
 	void Dvar::Var::set(float value)
 	{
 		if (this->dvar && this->dvar->name)
 		{
-			Game::Dvar_SetCommand(this->dvar->name, Utils::String::VA("%f", value));
-		}
-	}
-
-	void Dvar::Var::setRaw(int integer)
-	{
-		if (this->dvar)
-		{
-			this->dvar->current.integer = integer;
-		}
-	}
-
-	void Dvar::Var::setRaw(float value)
-	{
-		if (this->dvar)
-		{
 			this->dvar->current.value = value;
+		}
+	}
+	void Dvar::Var::set(bool enabled)
+	{
+		if (this->dvar && this->dvar->name)
+		{
+			this->dvar->current.enabled = enabled;
 		}
 	}
 

@@ -90,6 +90,7 @@ namespace Game
 		DVAR_FLAG_SERVERINFO = 0x400,		//in the getstatus oob
 		DVAR_FLAG_WRITEPROTECTED = 0x800,		//write protected
 		DVAR_FLAG_UNKNOWN1000 = 0x1000,		//unknown
+		DVAR_FLAG_UNKNOWN1800 = 0x1800,		//unknown
 		DVAR_FLAG_READONLY = 0x2000,		//read only (same as 0x800?)
 		DVAR_FLAG_UNKNOWN4000 = 0x4000,		//unknown
 		DVAR_FLAG_UNKNOWN8000 = 0x8000,		//unknown

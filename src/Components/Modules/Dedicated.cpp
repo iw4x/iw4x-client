@@ -218,7 +218,7 @@ namespace Components
 	{
 		if (!Dedicated::IsEnabled() && Dvar::Var("sv_dontrotate").get<bool>())
 		{
-			Dvar::Var("sv_dontrotate").setRaw(0);
+			Dvar::Var("sv_dontrotate").set(0);
 			return;
 		}
 
