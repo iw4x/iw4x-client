@@ -97,21 +97,21 @@ namespace Components
 	}
 	void Dvar::Var::set(int integer)
 	{
-		if (this->dvar && this->dvar->name && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
+		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
 		{
 			this->dvar->current.integer = integer;
 		}
 	}
 	void Dvar::Var::set(float value)
 	{
-		if (this->dvar && this->dvar->name && this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
+		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
 		{
 			this->dvar->current.value = value;
 		}
 	}
 	void Dvar::Var::set(bool enabled)
 	{
-		if (this->dvar && this->dvar->name && this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
+		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
 		{
 			this->dvar->current.enabled = enabled;
 		}
