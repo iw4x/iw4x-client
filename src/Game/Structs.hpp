@@ -120,7 +120,7 @@ namespace Game
 		DVAR_SOURCE_DEVGUI = 0x3,
 	};
 
-	typedef enum
+	typedef enum : char
 	{
 		DVAR_TYPE_BOOL = 0x0,
 		DVAR_TYPE_FLOAT = 0x1,
