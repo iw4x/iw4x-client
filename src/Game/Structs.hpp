@@ -74,7 +74,7 @@ namespace Game
 		ASSET_TYPE_INVALID = -1,
 	};
 
-	typedef enum
+	typedef enum : unsigned int
 	{
 		DVAR_FLAG_NONE = 0x0,			//no flags
 		DVAR_FLAG_SAVED = 0x1,			//saves in config_mp.cfg for clients
