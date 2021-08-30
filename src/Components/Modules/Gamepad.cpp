@@ -193,13 +193,6 @@ namespace Components
     Dvar::Var Gamepad::aim_lockon_pitch_strength;
     Dvar::Var Gamepad::aim_lockon_strength;
 
-    Dvar::Var Gamepad::xpadSensitivity;
-    Dvar::Var Gamepad::xpadEarlyTime;
-    Dvar::Var Gamepad::xpadEarlyMultiplier;
-    Dvar::Var Gamepad::xpadHorizontalMultiplier;
-    Dvar::Var Gamepad::xpadVerticalMultiplier;
-    Dvar::Var Gamepad::xpadAdsMultiplier;
-
     struct ControllerMenuKeyMapping
     {
         Game::keyNum_t controllerKey;
@@ -803,7 +796,7 @@ namespace Components
         return static_cast<char>(std::clamp<int>(value, std::numeric_limits<char>::min(), std::numeric_limits<char>::max()));
     }
 
-    void Gamepad::CL_GamepadMove(const int gamePadIndex, Game::usercmd_s* cmd, const float frame_time_base)
+    void Gamepad::CL_GamepadMove(const int gamePadIndex, Game::usercmd_s* cmd, const float frameTimeBase)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
         auto& gamePad = gamePads[gamePadIndex];
@@ -841,7 +834,7 @@ namespace Components
         {
             Game::AimInput aimInput{};
             Game::AimOutput aimOutput{};
-            aimInput.deltaTime = frame_time_base;
+            aimInput.deltaTime = frameTimeBase;
             aimInput.buttons = cmd->buttons;
             aimInput.localClientNum = gamePadIndex;
             aimInput.deltaTimeScaled = static_cast<float>(Game::cls->frametime) * 0.001f;
@@ -862,7 +855,6 @@ namespace Components
     }
 
     constexpr auto CL_MouseMove = 0x5A6240;
-
     __declspec(naked) void Gamepad::CL_MouseMove_Stub()
     {
         __asm

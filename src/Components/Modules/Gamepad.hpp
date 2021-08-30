@@ -323,13 +323,6 @@ namespace Components
         static Dvar::Var aim_lockon_pitch_strength;
         static Dvar::Var aim_lockon_strength;
 
-        static Dvar::Var xpadSensitivity;
-        static Dvar::Var xpadEarlyTime;
-        static Dvar::Var xpadEarlyMultiplier;
-        static Dvar::Var xpadHorizontalMultiplier;
-        static Dvar::Var xpadVerticalMultiplier;
-        static Dvar::Var xpadAdsMultiplier;
-
         static void MSG_WriteDeltaUsercmdKeyStub();
 
         static void ApplyMovement(Game::msg_t* msg, int key, Game::usercmd_s* from, Game::usercmd_s* to);
@@ -358,7 +351,7 @@ namespace Components
         static bool CG_ShouldUpdateViewAngles(int localClientNum);
         static float CL_GamepadAxisValue(int gamePadIndex, Game::GamepadVirtualAxis virtualAxis);
         static char ClampChar(int value);
-        static void CL_GamepadMove(int gamePadIndex, Game::usercmd_s* cmd, float frame_time_base);
+        static void CL_GamepadMove(int gamePadIndex, Game::usercmd_s* cmd, float frameTimeBase);
         static void CL_MouseMove_Stub();
 
         static bool Key_IsValidGamePadChar(int key);
