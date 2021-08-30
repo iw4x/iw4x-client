@@ -138,6 +138,7 @@ namespace Game
     keyname_t combinedLocalizedKeyNames[VANILLA_KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNames)> + 1];
 
     PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
+    kbutton_t* playersKb = reinterpret_cast<kbutton_t*>(0xA1A9A8);
     AimAssistGlobals* aaGlobArray = reinterpret_cast<AimAssistGlobals*>(0x7A2110);
     keyname_t* vanillaKeyNames = reinterpret_cast<keyname_t*>(0x798580);
     keyname_t* vanillaLocalizedKeyNames = reinterpret_cast<keyname_t*>(0x798880);
@@ -168,6 +169,7 @@ namespace Components
     Dvar::Var Gamepad::gpad_button_deadzone;
     Dvar::Var Gamepad::gpad_button_rstick_deflect_max;
     Dvar::Var Gamepad::gpad_button_lstick_deflect_max;
+    Dvar::Var Gamepad::gpad_use_hold_time;
     Dvar::Var Gamepad::input_viewSensitivity;
     Dvar::Var Gamepad::input_invertPitch;
     Dvar::Var Gamepad::aim_turnrate_pitch;
@@ -872,6 +874,44 @@ namespace Components
             call CL_GamepadMove
             add esp,0xC
 
+            ret
+        }
+    }
+
+    bool Gamepad::Gamepad_ShouldUse(const unsigned useTime)
+    {
+        // Only apply hold time to +usereload keybind
+        return !Game::playersKb[Game::KB_USE_RELOAD].active || useTime >= static_cast<unsigned>(gpad_use_hold_time.get<int>());
+    }
+
+    __declspec(naked) void Gamepad::Player_UseEntity_Stub()
+    {
+        __asm
+        {
+            // Execute overwritten instructions
+            cmp eax, [ecx + 0x10]
+            jl skipUse
+
+            // Call our custom check
+            push eax
+            pushad
+            push eax
+            call Gamepad_ShouldUse
+            add esp,4
+            mov [esp + 0x20],eax
+            popad
+            pop eax
+
+            // Skip use if custom check returns false
+            test al,al
+            jz skipUse
+
+            // perform use
+            push 0x5FE39B
+            ret
+
+        skipUse:
+            push 0x5FE3AF
             ret
         }
     }
@@ -1608,6 +1648,7 @@ namespace Components
         gpad_button_deadzone = Dvar::Register<float>("gpad_button_deadzone", 0.13f, 0.0f, 1.0f, 0, "Game pad button deadzone threshhold");
         gpad_button_lstick_deflect_max = Dvar::Register<float>("gpad_button_lstick_deflect_max", 1.0f, 0.0f, 1.0f, 0, "Game pad maximum pad stick pressed value");
         gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, 0, "Game pad maximum pad stick pressed value");
+        gpad_use_hold_time = Dvar::Register<int>("gpad_use_hold_time", 250, 0, INT32_MAX, 0, "Time to hold the 'use' button on gamepads to activate use");
 
         input_viewSensitivity = Dvar::Register<float>("input_viewSensitivity", 1.0f, 0.0001f, 5.0f, Game::DVAR_FLAG_SAVED, "View Sensitivity");
         input_invertPitch = Dvar::Register<bool>("input_invertPitch", false, Game::DVAR_FLAG_SAVED, "Invert gamepad pitch");
@@ -1790,6 +1831,9 @@ namespace Components
 
         // Only return gamepad keys when gamepad enabled and only non gamepad keys when not
         Utils::Hook(0x5A7A23, Key_GetCommandAssignmentInternal_Hk, HOOK_CALL).install()->quick();
+
+        // Add hold time to gamepad usereload on hold prompts
+        Utils::Hook(0x5FE396, Player_UseEntity_Stub, HOOK_JUMP).install()->quick();
 
         // Add gamepad inputs to remote control (eg predator) handling
         Utils::Hook(0x5A6D4E, CL_RemoteControlMove_Stub, HOOK_CALL).install()->quick();

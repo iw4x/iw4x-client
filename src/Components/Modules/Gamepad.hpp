@@ -298,6 +298,7 @@ namespace Components
         static Dvar::Var gpad_button_deadzone;
         static Dvar::Var gpad_button_rstick_deflect_max;
         static Dvar::Var gpad_button_lstick_deflect_max;
+        static Dvar::Var gpad_use_hold_time;
         static Dvar::Var input_viewSensitivity;
         static Dvar::Var input_invertPitch;
         static Dvar::Var aim_turnrate_pitch;
@@ -353,6 +354,9 @@ namespace Components
         static char ClampChar(int value);
         static void CL_GamepadMove(int gamePadIndex, Game::usercmd_s* cmd, float frameTimeBase);
         static void CL_MouseMove_Stub();
+        
+        static bool Gamepad_ShouldUse(unsigned useTime);
+        static void Player_UseEntity_Stub();
 
         static bool Key_IsValidGamePadChar(int key);
         static void CL_GamepadResetMenuScrollTime(int gamePadIndex, int key, bool down, unsigned int time);
