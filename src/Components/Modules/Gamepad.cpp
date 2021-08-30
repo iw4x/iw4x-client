@@ -831,6 +831,21 @@ namespace Components
         cmd->rightmove = ClampChar(cmd->rightmove + rightMove);
         cmd->forwardmove = ClampChar(cmd->forwardmove + forwardMove);
 
+        // Swap attack and throw buttons when using controller and akimbo to match "left trigger"="left weapon" and "right trigger"="right weapon"
+        if(gamePad.inUse && clientActive.snap.ps.weapCommon.lastWeaponHand == Game::WEAPON_HAND_LEFT)
+        {
+            auto oldButtons = cmd->buttons;
+            if (oldButtons & Game::CMD_BUTTON_ATTACK)
+                cmd->buttons |= Game::CMD_BUTTON_THROW;
+            else
+                cmd->buttons &= ~Game::CMD_BUTTON_THROW;
+
+            if (oldButtons & Game::CMD_BUTTON_THROW)
+                cmd->buttons |= Game::CMD_BUTTON_ATTACK;
+            else
+                cmd->buttons &= ~Game::CMD_BUTTON_ATTACK;
+        }
+
         // Check for frozen controls. Flag name should start with PMF_
         if (CG_ShouldUpdateViewAngles(gamePadIndex) && (clientActive.snap.ps.pm_flags & 0x800) == 0)
         {
