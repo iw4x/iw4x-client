@@ -5262,7 +5262,13 @@ namespace Game
 		unsigned int team;
 		char pad2[436];
 		int flags;
-		char pad3[724];
+		int spectatorClient;
+		int lastCmdTime;
+		int buttons;
+		int oldbuttons;
+		int latched_buttons;
+		int buttonsSinceLastFrame;
+		char pad3[700];
 	} gclient_t;
 
 	struct EntHandle

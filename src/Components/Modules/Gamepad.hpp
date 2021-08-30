@@ -355,7 +355,7 @@ namespace Components
         static void CL_GamepadMove(int gamePadIndex, Game::usercmd_s* cmd, float frameTimeBase);
         static void CL_MouseMove_Stub();
         
-        static bool Gamepad_ShouldUse(unsigned useTime);
+        static bool Gamepad_ShouldUse(const Game::gentity_s* playerEnt, unsigned useTime);
         static void Player_UseEntity_Stub();
 
         static bool Key_IsValidGamePadChar(int key);

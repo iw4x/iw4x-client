@@ -878,10 +878,10 @@ namespace Components
         }
     }
 
-    bool Gamepad::Gamepad_ShouldUse(const unsigned useTime)
+    bool Gamepad::Gamepad_ShouldUse(const Game::gentity_s* playerEnt, const unsigned useTime)
     {
         // Only apply hold time to +usereload keybind
-        return !Game::playersKb[Game::KB_USE_RELOAD].active || useTime >= static_cast<unsigned>(gpad_use_hold_time.get<int>());
+        return !(playerEnt->client->buttons & Game::CMD_BUTTON_USE_RELOAD) || useTime >= static_cast<unsigned>(gpad_use_hold_time.get<int>());
     }
 
     __declspec(naked) void Gamepad::Player_UseEntity_Stub()
@@ -896,8 +896,9 @@ namespace Components
             push eax
             pushad
             push eax
+            push edi
             call Gamepad_ShouldUse
-            add esp,4
+            add esp,8
             mov [esp + 0x20],eax
             popad
             pop eax
