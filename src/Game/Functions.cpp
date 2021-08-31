@@ -281,7 +281,6 @@ namespace Game
 	Dvar_SetStringByName_t Dvar_SetStringByName = Dvar_SetStringByName_t(0x44F060);
 	Dvar_SetString_t Dvar_SetString = Dvar_SetString_t(0x4A9580);
 
-
 	SL_ConvertToString_t SL_ConvertToString = SL_ConvertToString_t(0x4EC1D0);
 	SL_GetString_t SL_GetString = SL_GetString_t(0x4CDC10);
 
