@@ -1418,6 +1418,9 @@ namespace Components
 
     void Gamepad::IN_GamePadsMove()
     {
+        if (!gpad_enabled.get<bool>())
+            return;
+
         GPad_UpdateAll();
         const auto time = Game::Sys_Milliseconds();
 
