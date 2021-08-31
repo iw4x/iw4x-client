@@ -88,7 +88,7 @@ namespace Components
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING)
 		{
-			Game::Dvar_SetCommand(this->dvar->name, string);
+			Game::Dvar_SetString(this->dvar, string);
 		}
 	}
 	void Dvar::Var::set(const std::string& string)

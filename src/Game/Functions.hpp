@@ -235,14 +235,17 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_RegisterColor_t)(const char* name, float r, float g, float b, float a, int flags, const char* description);
 	extern Dvar_RegisterColor_t Dvar_RegisterColor;
 
-	typedef dvar_t*(__cdecl * Dvar_SetFromStringByName_t)(const char* cvar, const char* value);
+	typedef dvar_t* (__cdecl * Dvar_SetFromStringByName_t)(const char* cvar, const char* value);
 	extern Dvar_SetFromStringByName_t Dvar_SetFromStringByName;
 
-	typedef dvar_t*(__cdecl * Dvar_SetFromStringByNameFromSource_t)(const char* cvar, const char* value, DvarSetSource source);
+	typedef dvar_t* (__cdecl * Dvar_SetFromStringByNameFromSource_t)(const char* cvar, const char* value, DvarSetSource source);
 	extern Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource;
 
-	typedef void(__cdecl * Dvar_SetStringByName_t)(const char* cvar, const char* value);
+	typedef void (__cdecl * Dvar_SetStringByName_t)(const char* cvar, const char* value);
 	extern Dvar_SetStringByName_t Dvar_SetStringByName;
+
+	typedef void (__cdecl * Dvar_SetString_t)(dvar_t* cvar, const char* value);
+	extern Dvar_SetString_t Dvar_SetString;
 
 	typedef void(__cdecl * Dvar_GetUnpackedColorByName_t)(const char* name, float* color);
 	extern Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName;
