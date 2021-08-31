@@ -256,6 +256,12 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_SetCommand_t)(const char* name, const char* value);
 	extern Dvar_SetCommand_t Dvar_SetCommand;
 
+	typedef void (__cdecl* Free_String_t)(const char* string);
+	extern Free_String_t Free_String;
+
+	typedef const char* (__cdecl* Copy_String_t)(const char* string);
+	extern Copy_String_t Copy_String;
+
 	typedef bool(__cdecl * Encode_Init_t)(const char* );
 	extern Encode_Init_t Encode_Init;
 
