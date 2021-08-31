@@ -110,6 +110,9 @@ namespace Game
 	Dvar_InfoString_Big_t Dvar_InfoString_Big = Dvar_InfoString_Big_t(0x4D98A0);
 	Dvar_SetCommand_t Dvar_SetCommand = Dvar_SetCommand_t(0x4EE430);
 
+	Free_String_t Free_String = Free_String_t(0x470E80);
+	Copy_String_t Copy_String = Copy_String_t(0x4F3C80);
+
 	Encode_Init_t Encode_Init = Encode_Init_t(0x462AB0);
 
 	Field_Clear_t Field_Clear = Field_Clear_t(0x437EB0);

@@ -88,7 +88,7 @@ namespace Components
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING)
 		{
-			this->dvar->current.string = string;
+			Game::Dvar_SetCommand(this->dvar->name, string);
 		}
 	}
 	void Dvar::Var::set(const std::string& string)
@@ -100,6 +100,7 @@ namespace Components
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
 		{
 			this->dvar->current.integer = integer;
+			this->dvar->latched.integer = integer;
 		}
 	}
 	void Dvar::Var::set(float value)
@@ -107,6 +108,7 @@ namespace Components
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
 		{
 			this->dvar->current.value = value;
+			this->dvar->latched.value = value;
 		}
 	}
 	void Dvar::Var::set(bool enabled)
@@ -114,6 +116,7 @@ namespace Components
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
 		{
 			this->dvar->current.enabled = enabled;
+			this->dvar->latched.enabled = enabled;
 		}
 	}
 
