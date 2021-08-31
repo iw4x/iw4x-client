@@ -1653,8 +1653,8 @@ namespace Components
         gpad_debug = Dvar::Register<bool>("gpad_debug", false, 0, "Game pad debugging");
         gpad_present = Dvar::Register<bool>("gpad_present", false, 0, "Game pad present");
         gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, 0, "A game pad is in use");
-        gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "thumbstick_default", Game::DVAR_FLAG_SAVED, "Game pad stick configuration");
-        gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "buttons_default", Game::DVAR_FLAG_SAVED, "Game pad button configuration");
+        gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "", Game::DVAR_FLAG_SAVED, "Game pad stick configuration");
+        gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_FLAG_SAVED, "Game pad button configuration");
         gpad_menu_scroll_delay_first = Dvar::Register<int>("gpad_menu_scroll_delay_first", 420, 0, 1000, Game::DVAR_FLAG_SAVED, "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
         gpad_menu_scroll_delay_rest = Dvar::Register<int>("gpad_menu_scroll_delay_rest", 210, 0, 1000, Game::DVAR_FLAG_SAVED,
                                                           "Menu scroll key-repeat delay, for repeats after the first, in milliseconds");
