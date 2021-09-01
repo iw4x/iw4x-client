@@ -301,6 +301,7 @@ namespace Components
         static Dvar::Var gpad_use_hold_time;
         static Dvar::Var input_viewSensitivity;
         static Dvar::Var input_invertPitch;
+        static Dvar::Var sv_allowAimAssist;
         static Dvar::Var aim_turnrate_pitch;
         static Dvar::Var aim_turnrate_pitch_ads;
         static Dvar::Var aim_turnrate_yaw;

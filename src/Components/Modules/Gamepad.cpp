@@ -172,6 +172,7 @@ namespace Components
     Dvar::Var Gamepad::gpad_use_hold_time;
     Dvar::Var Gamepad::input_viewSensitivity;
     Dvar::Var Gamepad::input_invertPitch;
+    Dvar::Var Gamepad::sv_allowAimAssist;
     Dvar::Var Gamepad::aim_turnrate_pitch;
     Dvar::Var Gamepad::aim_turnrate_pitch_ads;
     Dvar::Var Gamepad::aim_turnrate_yaw;
@@ -1671,6 +1672,7 @@ namespace Components
 
         input_viewSensitivity = Dvar::Register<float>("input_viewSensitivity", 1.0f, 0.0001f, 5.0f, Game::DVAR_FLAG_SAVED, "View Sensitivity");
         input_invertPitch = Dvar::Register<bool>("input_invertPitch", false, Game::DVAR_FLAG_SAVED, "Invert gamepad pitch");
+        sv_allowAimAssist = Dvar::Register<bool>("sv_allowAimAssist", true, 0, "Controls whether aim assist features on clients are enabled");
         aim_turnrate_pitch = Dvar::Var("aim_turnrate_pitch");
         aim_turnrate_pitch_ads = Dvar::Var("aim_turnrate_pitch_ads");
         aim_turnrate_yaw = Dvar::Var("aim_turnrate_yaw");
@@ -1808,6 +1810,9 @@ namespace Components
         if (ZoneBuilder::IsEnabled())
             return;
 
+        // Initialize gamepad environment
+        Utils::Hook(0x467C03, IN_Init_Hk, HOOK_CALL).install()->quick();
+
         // package the forward and right move components in the move buttons
         Utils::Hook(0x60E38D, MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
 
@@ -1832,9 +1837,6 @@ namespace Components
 
         if (Dedicated::IsEnabled())
             return;
-
-        // Initialize gamepad environment
-        Utils::Hook(0x467C03, IN_Init_Hk, HOOK_CALL).install()->quick();
 
         // Gamepad on frame hook
         Utils::Hook(0x475E9E, IN_Frame_Hk, HOOK_CALL).install()->quick();
