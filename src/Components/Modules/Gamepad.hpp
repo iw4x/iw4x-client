@@ -299,6 +299,8 @@ namespace Components
         static Dvar::Var gpad_button_rstick_deflect_max;
         static Dvar::Var gpad_button_lstick_deflect_max;
         static Dvar::Var gpad_use_hold_time;
+        static Dvar::Var gpad_lockon_enabled;
+        static Dvar::Var gpad_slowdown_enabled;
         static Dvar::Var input_viewSensitivity;
         static Dvar::Var input_invertPitch;
         static Dvar::Var sv_allowAimAssist;
@@ -338,6 +340,7 @@ namespace Components
         static const Game::AimScreenTarget* AimAssist_GetBestTarget(const Game::AimAssistGlobals* aaGlob, float range, float regionWidth, float regionHeight);
         static const Game::AimScreenTarget* AimAssist_GetTargetFromEntity(const Game::AimAssistGlobals* aaGlob, int entIndex);
         static const Game::AimScreenTarget* AimAssist_GetPrevOrBestTarget(const Game::AimAssistGlobals* aaGlob, float range, float regionWidth, float regionHeight, int prevTargetEnt);
+        static bool AimAssist_IsLockonActive(int gamePadIndex);
         static void AimAssist_ApplyLockOn(const Game::AimInput* input, Game::AimOutput* output);
         static void AimAssist_CalcAdjustedAxis(const Game::AimInput* input, float* pitchAxis, float* yawAxis);
         static bool AimAssist_IsSlowdownActive(const Game::AimAssistPlayerState* ps);

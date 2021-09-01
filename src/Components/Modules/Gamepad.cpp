@@ -170,6 +170,8 @@ namespace Components
     Dvar::Var Gamepad::gpad_button_rstick_deflect_max;
     Dvar::Var Gamepad::gpad_button_lstick_deflect_max;
     Dvar::Var Gamepad::gpad_use_hold_time;
+    Dvar::Var Gamepad::gpad_lockon_enabled;
+    Dvar::Var Gamepad::gpad_slowdown_enabled;
     Dvar::Var Gamepad::input_viewSensitivity;
     Dvar::Var Gamepad::input_invertPitch;
     Dvar::Var Gamepad::sv_allowAimAssist;
@@ -416,6 +418,23 @@ namespace Components
         return AimAssist_GetBestTarget(aaGlob, range, regionWidth, regionHeight);
     }
 
+    bool Gamepad::AimAssist_IsLockonActive(const int gamePadIndex)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& aaGlob = Game::aaGlobArray[gamePadIndex];
+
+        if (!aim_lockon_enabled.get<bool>() || !gpad_lockon_enabled.get<bool>())
+            return false;
+
+        if (AimAssist_IsPlayerUsingOffhand(&aaGlob.ps))
+            return false;
+
+        if (aaGlob.autoAimActive || aaGlob.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING)
+            return false;
+
+        return true;
+    }
+
     void Gamepad::AimAssist_ApplyLockOn(const Game::AimInput* input, Game::AimOutput* output)
     {
 #ifdef AIM_ASSIST_ENABLED
@@ -427,7 +446,7 @@ namespace Components
         const auto prevTargetEnt = aaGlob.lockOnTargetEnt;
         aaGlob.lockOnTargetEnt = Game::AIM_TARGET_INVALID;
 
-        if (!aim_lockon_enabled.get<bool>() || AimAssist_IsPlayerUsingOffhand(&aaGlob.ps) || aaGlob.autoAimActive || aaGlob.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING)
+        if (!AimAssist_IsLockonActive(input->localClientNum))
             return;
 
         const auto* weaponDef = Game::BG_GetWeaponDef(aaGlob.ps.weapIndex);
@@ -510,7 +529,7 @@ namespace Components
 
     bool Gamepad::AimAssist_IsSlowdownActive(const Game::AimAssistPlayerState* ps)
     {
-        if (!aim_slowdown_enabled.get<bool>())
+        if (!aim_slowdown_enabled.get<bool>() || !gpad_slowdown_enabled.get<bool>())
             return false;
 
         if (!ps->weapIndex)
@@ -1669,6 +1688,8 @@ namespace Components
         gpad_button_lstick_deflect_max = Dvar::Register<float>("gpad_button_lstick_deflect_max", 1.0f, 0.0f, 1.0f, 0, "Game pad maximum pad stick pressed value");
         gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, 0, "Game pad maximum pad stick pressed value");
         gpad_use_hold_time = Dvar::Register<int>("gpad_use_hold_time", 250, 0, INT32_MAX, 0, "Time to hold the 'use' button on gamepads to activate use");
+        gpad_lockon_enabled = Dvar::Register<bool>("gpad_lockon_enabled", true, Game::DVAR_FLAG_SAVED, "Game pad lockon aim assist enabled");
+        gpad_slowdown_enabled = Dvar::Register<bool>("gpad_slowdown_enabled", true, Game::DVAR_FLAG_SAVED, "Game pad slowdown aim assist enabled");
 
         input_viewSensitivity = Dvar::Register<float>("input_viewSensitivity", 1.0f, 0.0001f, 5.0f, Game::DVAR_FLAG_SAVED, "View Sensitivity");
         input_invertPitch = Dvar::Register<bool>("input_invertPitch", false, Game::DVAR_FLAG_SAVED, "Invert gamepad pitch");
