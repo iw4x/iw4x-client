@@ -437,8 +437,6 @@ namespace Components
 
     void Gamepad::AimAssist_ApplyLockOn(const Game::AimInput* input, Game::AimOutput* output)
     {
-#ifdef AIM_ASSIST_ENABLED
-
         assert(input);
         assert(input->localClientNum < Game::MAX_GAMEPADS);
         auto& aaGlob = Game::aaGlobArray[input->localClientNum];
@@ -481,8 +479,6 @@ namespace Components
             output->pitch -= pitchTurnRate * input->deltaTime;
             output->yaw += yawTurnRate * input->deltaTime;
         }
-
-#endif
     }
 
     void Gamepad::AimAssist_CalcAdjustedAxis(const Game::AimInput* input, float* pitchAxis, float* yawAxis)
@@ -564,9 +560,7 @@ namespace Components
 
         *pitchScale = 1.0f;
         *yawScale = 1.0f;
-
-#ifdef AIM_ASSIST_ENABLED
-
+        
         if (!AimAssist_IsSlowdownActive(&aaGlob.ps))
             return;
 
@@ -582,8 +576,6 @@ namespace Components
 
         if (AimAssist_IsPlayerUsingOffhand(&aaGlob.ps))
             *pitchScale = 1.0f;
-
-#endif
     }
 
     float Gamepad::AimAssist_Lerp(const float from, const float to, const float fraction)
