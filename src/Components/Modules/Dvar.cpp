@@ -86,7 +86,8 @@ namespace Components
 	}
 	void Dvar::Var::set(const char* string)
 	{
-		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING)
+		assert(this->dvar->type == Game::DVAR_TYPE_STRING);
+		if (this->dvar)
 		{
 			Game::Dvar_SetString(this->dvar, string);
 		}
@@ -97,26 +98,26 @@ namespace Components
 	}
 	void Dvar::Var::set(int integer)
 	{
-		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
+		assert(this->dvar->type == Game::DVAR_TYPE_INT);
+		if (this->dvar)
 		{
-			this->dvar->current.integer = integer;
-			this->dvar->latched.integer = integer;
+			Game::Dvar_SetInt(this->dvar, integer);
 		}
 	}
 	void Dvar::Var::set(float value)
 	{
-		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
+		assert(this->dvar->type == Game::DVAR_TYPE_FLOAT);
+		if (this->dvar)
 		{
-			this->dvar->current.value = value;
-			this->dvar->latched.value = value;
+			Game::Dvar_SetFloat(this->dvar, value);
 		}
 	}
 	void Dvar::Var::set(bool enabled)
 	{
-		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
+		assert(this->dvar->type == Game::DVAR_TYPE_BOOL);
+		if (this->dvar)
 		{
-			this->dvar->current.enabled = enabled;
-			this->dvar->latched.enabled = enabled;
+			Game::Dvar_SetBool(this->dvar, enabled);
 		}
 	}
 

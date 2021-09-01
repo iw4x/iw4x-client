@@ -247,6 +247,15 @@ namespace Game
 	typedef void (__cdecl * Dvar_SetString_t)(dvar_t* cvar, const char* value);
 	extern Dvar_SetString_t Dvar_SetString;
 
+	typedef void (__cdecl * Dvar_SetBool_t)(dvar_t* cvar, bool enabled);
+	extern Dvar_SetBool_t Dvar_SetBool;
+
+	typedef void (__cdecl * Dvar_SetFloat_t)(dvar_t* cvar, float value);
+	extern Dvar_SetFloat_t Dvar_SetFloat;
+
+	typedef void (__cdecl * Dvar_SetInt_t)(dvar_t* cvar, int integer);
+	extern Dvar_SetInt_t Dvar_SetInt;
+
 	typedef void(__cdecl * Dvar_GetUnpackedColorByName_t)(const char* name, float* color);
 	extern Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName;
 
