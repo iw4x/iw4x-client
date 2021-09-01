@@ -1730,7 +1730,7 @@ namespace Components
                     (*keys)[keyCount++] = keyNum;
 
                     if (keyCount >= 2)
-                        return keyNum;
+                        return keyCount;
                 }
             }
         }
@@ -1746,7 +1746,7 @@ namespace Components
                     (*keys)[keyCount++] = keyNum;
 
                     if (keyCount >= 2)
-                        return keyNum;
+                        return keyCount;
                 }
             }
         }
