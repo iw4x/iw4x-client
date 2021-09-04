@@ -673,11 +673,15 @@ namespace Components
 
         const auto up = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_FORWARD);
         const auto right = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_SIDE);
+        const auto yaw = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_YAW);
+        const auto pitch = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_PITCH);
         const auto sensitivity = input_viewSensitivity.get<float>();
 
         constexpr auto scale = static_cast<float>(std::numeric_limits<char>::max());
-        cmd->remoteControlAngles[0] = ClampChar(cmd->remoteControlAngles[0] + static_cast<int>(std::floor(-up * scale * sensitivity)));
-        cmd->remoteControlAngles[1] = ClampChar(cmd->remoteControlAngles[1] + static_cast<int>(std::floor(-right * scale * sensitivity)));
+        cmd->remoteControlAngles[0] = ClampChar(cmd->remoteControlAngles[0] + static_cast<int>(std::floor(-up * scale * sensitivity))
+            + static_cast<int>(std::floor(-pitch * scale * sensitivity)));
+        cmd->remoteControlAngles[1] = ClampChar(cmd->remoteControlAngles[1] + static_cast<int>(std::floor(-right * scale * sensitivity))
+            + static_cast<int>(std::floor(-yaw * scale * sensitivity)));
     }
 
     constexpr auto CL_RemoteControlMove = 0x5A6BA0;
