@@ -60,6 +60,18 @@ namespace Game
 
 	typedef std::int32_t(__cdecl* CG_GetBoneIndex_t)(std::int32_t, std::uint32_t name, char* index);
 	extern CG_GetBoneIndex_t CG_GetBoneIndex;
+
+	typedef void(__cdecl * CG_ScoresDown_f_t)();
+	extern CG_ScoresDown_f_t CG_ScoresDown_f;
+
+	typedef void(__cdecl * CG_ScoresUp_f_t)();
+	extern CG_ScoresUp_f_t CG_ScoresUp_f;
+
+	typedef void(__cdecl * CG_ScrollScoreboardUp_t)(cg_s* cgameGlob);
+	extern CG_ScrollScoreboardUp_t CG_ScrollScoreboardUp;
+
+	typedef void(__cdecl * CG_ScrollScoreboardDown_t)(cg_s* cgameGlob);
+	extern CG_ScrollScoreboardDown_t CG_ScrollScoreboardDown;
 	
 	typedef char*(__cdecl * CL_GetClientName_t)(int localClientNum, int index, char *buf, size_t size);
 	extern CL_GetClientName_t CL_GetClientName;

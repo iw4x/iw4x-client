@@ -364,6 +364,7 @@ namespace Components
 
         static bool Key_IsValidGamePadChar(int key);
         static void CL_GamepadResetMenuScrollTime(int gamePadIndex, int key, bool down, unsigned int time);
+        static bool Scoreboard_HandleInput(int gamePadIndex, int key);
         static bool CL_CheckForIgnoreDueToRepeat(int gamePadIndex, int key, int repeatCount, unsigned int time);
         static void UI_GamepadKeyEvent(int gamePadIndex, int key, bool down);
         static void CL_GamepadGenerateAPad(int gamePadIndex, Game::GamepadPhysicalAxis physicalAxis, unsigned time);
@@ -401,6 +402,7 @@ namespace Components
         static void Axis_Unbindall_f(Command::Params* params);
         static void Bind_GP_SticksConfigs_f(Command::Params* params);
         static void Bind_GP_ButtonsConfigs_f(Command::Params* params);
+        static void Scores_Toggle_f(Command::Params* params);
 
         static void InitDvars();
         static void IN_Init_Hk();

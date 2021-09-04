@@ -1042,6 +1042,32 @@ namespace Components
         // Game::UI_KeyEvent(gamePadIndex, key, down);
     }
 
+    bool Gamepad::Scoreboard_HandleInput(int gamePadIndex, int key)
+    {
+        assert(gamePadIndex < Game::MAX_GAMEPADS);
+        auto& keyState = Game::playerKeys[gamePadIndex];
+
+        if (keyState.keys[key].binding && strcmp(keyState.keys[key].binding, "togglescores") == 0)
+        {
+            Game::Cbuf_AddText(gamePadIndex, "togglescores\n");
+            return true;
+        }
+
+        switch (key)
+        {
+        case Game::K_DPAD_UP:
+            Game::CG_ScrollScoreboardUp(Game::cgArray);
+            return true;
+
+        case Game::K_DPAD_DOWN:
+            Game::CG_ScrollScoreboardDown(Game::cgArray);
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
     bool Gamepad::CL_CheckForIgnoreDueToRepeat(const int gamePadIndex, const int key, const int repeatCount, const unsigned time)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
@@ -1111,6 +1137,13 @@ namespace Components
                 keyState.locSelInputState = Game::LOC_SEL_INPUT_CONFIRM;
             }
             return;
+        }
+
+        const auto activeMenu = Game::UI_GetActiveMenu(gamePadIndex);
+        if(activeMenu == Game::UIMENU_SCOREBOARD)
+        {
+            if (buttonEvent == Game::GPAD_BUTTON_PRESSED && Scoreboard_HandleInput(gamePadIndex, key))
+                return;
         }
 
         keyState.locSelInputState = Game::LOC_SEL_INPUT_NONE;
@@ -1663,6 +1696,17 @@ namespace Components
         Game::Cbuf_AddText(0, Utils::String::VA("exec %s\n", buttonConfigName));
     }
 
+    void Gamepad::Scores_Toggle_f(Command::Params*)
+    {
+        if(Game::cgArray[0].nextSnap)
+        {
+            if (Game::UI_GetActiveMenu(0) != Game::UIMENU_SCOREBOARD)
+                Game::CG_ScoresDown_f();
+            else
+                Game::CG_ScoresUp_f();
+        }
+    }
+
     void Gamepad::InitDvars()
     {
         gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_FLAG_SAVED, "Game pad enabled");
@@ -1851,6 +1895,7 @@ namespace Components
         Command::Add("unbindallaxis", Axis_Unbindall_f);
         Command::Add("bindgpsticksconfigs", Bind_GP_SticksConfigs_f);
         Command::Add("bindgpbuttonsconfigs", Bind_GP_ButtonsConfigs_f);
+        Command::Add("togglescores", Scores_Toggle_f);
 
         if (Dedicated::IsEnabled())
             return;

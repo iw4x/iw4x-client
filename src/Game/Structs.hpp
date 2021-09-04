@@ -6169,20 +6169,21 @@ namespace Game
 	struct __declspec(align(8)) cg_s
 	{
 		playerState_s predictedPlayerState;
-		char _pad0[0x67638];
+		char _pad0[0x254];
+		void* snap;
+		void* nextSnap;
+		char _pad1[0x673DC];
 		int frametime;	// + 0x6A754
-		char _pad1[0x960C]; // + 0x6A758
+		char _pad2[0x960C]; // + 0x6A758
 		float compassMapWorldSize[2]; // + 0x73D64
-		char _pad2[0x74]; // + 0x73D6C
+		char _pad3[0x74]; // + 0x73D6C
 		float selectedLocation[2]; // + 0x73DE0
 		float selectedLocationAngle;
 		float selectedAngleLocation[2];
 		float selectedLocationPrev[2];
 		float selectedLocationAnglePrev;
-		char _pad3[0x89740];
+		char _pad4[0x89740];
 	};
-
-	constexpr auto aaaaaaa1 = sizeof(cg_s);
 
 #pragma endregion
 
