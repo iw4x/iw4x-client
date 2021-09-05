@@ -76,13 +76,15 @@ namespace Components
 	private:
 
 		static unsigned HsvToRgb(HsvColor hsv);
-		static float GetMonospaceWidth(Game::Font_s* font, int rendererFlags);
-		static bool IsFontIcon(const char*& text, std::string& fontIconName);
+
 		static Game::GfxImage* GetFontIconColorMap(Game::Material* fontIconMaterial);
+		static bool IsFontIcon(const char*& text, Game::Material*& fontIconMaterial);
+		static float DrawFontIcon(Game::Material* fontIconMaterial, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
+
+		static float GetMonospaceWidth(Game::Font_s* font, int rendererFlags);
 		static void GlowColor(Game::GfxColor* result, Game::GfxColor baseColor, Game::GfxColor forcedGlowColor, int renderFlags);
         static unsigned R_FontGetRandomLetter(int seed);
 		static void DrawTextFxExtraCharacter(Game::Material* material, int charIndex, float x, float y, float w, float h, float sinAngle, float cosAngle, unsigned color);
-		static float DrawFontIcon(const std::string& fontIconName, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 		static float DrawHudIcon(const char*& text, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 		static void RotateXY(float cosAngle, float sinAngle, float pivotX, float pivotY, float x, float y, float* outX, float* outY);
 		static void UpdateColorTable();
