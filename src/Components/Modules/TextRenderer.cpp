@@ -146,10 +146,11 @@ namespace Components
 
         const std::string fontIconName(text, curPos - text);
 
-        auto* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, fontIconName.data()).material;
-        if (material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || strcmp(material->techniqueSet->name, "2d") != 0)
+        auto* materialEntry = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_MATERIAL, fontIconName.data());
+        if (materialEntry == nullptr)
             return false;
-        if (Game::DB_IsXAssetDefault(Game::ASSET_TYPE_MATERIAL, material->info.name))
+        auto* material = materialEntry->asset.header.material;
+        if (material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || strcmp(material->techniqueSet->name, "2d") != 0)
             return false;
 
         text = curPos + 1;
