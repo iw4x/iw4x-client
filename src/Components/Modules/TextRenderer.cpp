@@ -122,6 +122,33 @@ namespace Components
         return nullptr;
     }
 
+    void TextRenderer::GlowColor(Game::GfxColor* result, const Game::GfxColor baseColor, const Game::GfxColor forcedGlowColor, int renderFlags)
+    {
+        if (renderFlags & Game::TEXT_RENDERFLAG_GLOW_FORCE_COLOR)
+        {
+            result->array[0] = forcedGlowColor.array[0];
+            result->array[1] = forcedGlowColor.array[1];
+            result->array[2] = forcedGlowColor.array[2];
+        }
+        else
+        {
+            result->array[0] = static_cast<char>(std::floor(static_cast<float>(static_cast<uint8_t>(baseColor.array[0])) * 0.06f));
+            result->array[1] = static_cast<char>(std::floor(static_cast<float>(static_cast<uint8_t>(baseColor.array[1])) * 0.06f));
+            result->array[2] = static_cast<char>(std::floor(static_cast<float>(static_cast<uint8_t>(baseColor.array[2])) * 0.06f));
+        }
+    }
+
+    unsigned TextRenderer::R_FontGetRandomLetter(const int seed)
+    {
+        static constexpr char RANDOM_CHARACTERS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+        return RANDOM_CHARACTERS[seed % (std::extent_v<decltype(RANDOM_CHARACTERS)> -1)];
+    }
+
+    void TextRenderer::DrawTextFxExtraCharacter(Game::Material* material, const int charIndex, const float x, const float y, const float w, const float h, const float sinAngle, const float cosAngle, const unsigned color)
+    {
+        Game::RB_DrawStretchPicRotate(material, x, y, w, h, static_cast<float>(charIndex % 16) * 0.0625f, 0.0f, static_cast<float>(charIndex % 16) * 0.0625f + 0.0625f, 1.0f, sinAngle, cosAngle, color);
+    }
+
     float TextRenderer::DrawFontIcon(const std::string& fontIconName, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, const float yScale, unsigned color)
     {
         auto* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, fontIconName.data()).material;
@@ -215,6 +242,7 @@ namespace Components
 
         int randSeed = 1;
         bool drawRandomCharAtEnd = false;
+        const auto forceMonospace = renderFlags & Game::TEXT_RENDERFLAG_FORCEMONOSPACE;
         const auto monospaceWidth = GetMonospaceWidth(font, renderFlags);
         auto* material = font->material;
         Game::Material* glowMaterial = nullptr;
@@ -264,10 +292,14 @@ namespace Components
 
         for(auto passIndex = 0u; passIndex < passCount; passIndex++)
         {
+            float xRot, yRot;
             const char* curText = text;
             auto maxLengthRemaining = maxLength;
-            auto currentColor = color.packed;
+            auto currentColor = color;
             auto subtitleAllowGlow = false;
+            auto extraFxChar = 0;
+            auto drawExtraFxChar = false;
+            auto passRandSeed = randSeed;
             auto count = 0;
             auto xa = startX;
             auto xy = startY;
@@ -282,20 +314,20 @@ namespace Components
                     subtitleAllowGlow = false;
                     if (colorIndex == TEXT_COLOR_DEFAULT)
                     {
-                        currentColor = color.packed;
+                        currentColor = color;
                     }
                     else if (renderFlags & Game::TEXT_RENDERFLAG_SUBTITLETEXT && colorIndex == TEXT_COLOR_GREEN)
                     {
                         constexpr Game::GfxColor altColor{ MY_ALTCOLOR_TWO };
                         subtitleAllowGlow = true;
                         // Swap r and b for whatever reason
-                        currentColor = ColorRgba(altColor.array[2], altColor.array[1], altColor.array[0], Game::ModulateByteColors(altColor.array[3], color.array[3]));
+                        currentColor.packed = ColorRgba(altColor.array[2], altColor.array[1], altColor.array[0], Game::ModulateByteColors(altColor.array[3], color.array[3]));
                     }
                     else
                     {
                         const Game::GfxColor colorTableColor{ (*currentColorTable)[colorIndex] };
                         // Swap r and b for whatever reason
-                        currentColor = ColorRgba(colorTableColor.array[2], colorTableColor.array[1], colorTableColor.array[0], color.array[3]);
+                        currentColor.packed = ColorRgba(colorTableColor.array[2], colorTableColor.array[1], colorTableColor.array[0], color.array[3]);
                     }
 
                     curText++;
@@ -303,11 +335,12 @@ namespace Components
                     continue;
                 }
 
+                auto finalColor = currentColor;
+
                 if(letter == '^' && (*curText == '\x01' || *curText == '\x02'))
                 {
-                    float xRot, yRot;
                     RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
-                    xa += DrawHudIcon(curText, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, currentColor);
+                    xa += DrawHudIcon(curText, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, finalColor.packed);
 
                     if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
                         xa += xScale * padding;
@@ -321,9 +354,8 @@ namespace Components
                     std::string fontIconName;
                     if(IsFontIcon(curText, fontIconName))
                     {
-                        float xRot, yRot;
                         RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
-                        xa += DrawFontIcon(fontIconName, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, currentColor);
+                        xa += DrawFontIcon(fontIconName, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
 
                         if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
                             xa += xScale * padding;
@@ -335,35 +367,108 @@ namespace Components
 
                 if(drawRandomCharAtEnd && maxLengthRemaining == 1)
                 {
-                    
-                }
+                    letter = R_FontGetRandomLetter(Game::RandWithSeed(&passRandSeed));
 
-                if(passes[passIndex] == Game::FONTPASS_NORMAL)
-                {
-                    if (renderFlags & Game::TEXT_RENDERFLAG_CURSOR && count == cursorPos)
+                    if(Game::RandWithSeed(&passRandSeed) % 2)
                     {
-                        float xRot, yRot;
-                        RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
-                        Game::RB_DrawCursor(material, cursorLetter, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, color.packed);
+                        drawExtraFxChar = true;
+                        letter = 'O';
                     }
-
-                    float xRot, yRot;
-                    auto glyph = Game::R_GetCharacterGlyph(font, letter);
-                    auto xAdj = glyph->x0 * xScale;
-                    auto yAdj = glyph->y0 * yScale;
-                    RotateXY(cosAngle, sinAngle, startX, startY, xa + xAdj, xy + yAdj, &xRot, &yRot);
-                    Game::RB_DrawChar(material, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale /** 1.75f*/, static_cast<float>(glyph->pixelHeight) * yScale /** 1.125f*/, sinAngle, cosAngle, glyph, currentColor);
-
-                    xa += static_cast<float>(glyph->dx) * xScale;
                 }
-                
+
+                auto skipDrawing = false;
+                if(decaying)
+                {
+                    char decayAlpha;
+                    Game::GetDecayingLetterInfo(letter, &passRandSeed, decayTimeElapsed, fxBirthTime, fxDecayDuration, currentColor.array[3], &skipDrawing, &decayAlpha, &letter, &drawExtraFxChar);
+                    finalColor.array[3] = decayAlpha;
+                }
+
+                if(drawExtraFxChar)
+                {
+                    auto tempSeed = passRandSeed;
+                    extraFxChar = Game::RandWithSeed(&tempSeed);
+                }
+
+                auto glyph = Game::R_GetCharacterGlyph(font, letter);
+                auto xAdj = static_cast<float>(glyph->x0) * xScale;
+                auto yAdj = static_cast<float>(glyph->y0) * yScale;
+
+                if(!skipDrawing)
+                {
+                    if (passes[passIndex] == Game::FONTPASS_NORMAL)
+                    {
+                        if (renderFlags & Game::TEXT_RENDERFLAG_DROPSHADOW)
+                        {
+                            auto ofs = 1.0f;
+                            if (renderFlags & Game::TEXT_RENDERFLAG_DROPSHADOW_EXTRA)
+                                ofs += 1.0f;
+
+                            xRot = xa + xAdj + ofs;
+                            yRot = xy + yAdj + ofs;
+                            RotateXY(cosAngle, sinAngle, startX, startY, xRot, yRot, &xRot, &yRot);
+                            if (drawExtraFxChar)
+                                DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, dropShadowColor.packed);
+                            else
+                                Game::RB_DrawChar(material, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, glyph, dropShadowColor.packed);
+                        }
+
+                        RotateXY(cosAngle, sinAngle, startX, startY, xa + xAdj, xy + yAdj, &xRot, &yRot);
+                        if (drawExtraFxChar)
+                            DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, finalColor.packed);
+                        else
+                            Game::RB_DrawChar(material, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, glyph, finalColor.packed);
+
+                        if (renderFlags & Game::TEXT_RENDERFLAG_CURSOR && count == cursorPos)
+                        {
+                            RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
+                            Game::RB_DrawCursor(material, cursorLetter, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, color.packed);
+                        }
+                    }
+                    else if(passes[passIndex] == Game::FONTPASS_OUTLINE)
+                    {
+                        auto outlineSize = 1.0f;
+                        if (renderFlags & Game::TEXT_RENDERFLAG_OUTLINE_EXTRA)
+                            outlineSize = 1.3f;
+
+                        for (const auto offset : MY_OFFSETS)
+                        {
+                            RotateXY(cosAngle, sinAngle, startX, startY, xa + xAdj + outlineSize * offset[0], xy + yAdj + outlineSize * offset[1], &xRot, &yRot);
+                            if (drawExtraFxChar)
+                                DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, dropShadowColor.packed);
+                            else
+                                Game::RB_DrawChar(material, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, glyph, dropShadowColor.packed);
+                        }
+                    }
+                    else if(passes[passIndex] == Game::FONTPASS_GLOW && ((renderFlags & Game::TEXT_RENDERFLAG_SUBTITLETEXT) == 0 || subtitleAllowGlow))
+                    {
+                        GlowColor(&finalColor, finalColor, glowForcedColor, renderFlags);
+
+                        for (const auto offset : MY_OFFSETS)
+                        {
+                            RotateXY(cosAngle, sinAngle, startX, startY, xa + xAdj + 2.0f * offset[0] * xScale, xy + yAdj + 2.0f * offset[1] * yScale, &xRot, &yRot);
+                            if (drawExtraFxChar)
+                                DrawTextFxExtraCharacter(fxMaterialGlow, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, finalColor.packed);
+                            else
+                                Game::RB_DrawChar(glowMaterial, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, glyph, finalColor.packed);
+                        }
+                    }
+                }
+
+                if(forceMonospace)
+                    xa += monospaceWidth * xScale;
+                else
+                    xa += static_cast<float>(glyph->dx) * xScale;
+
+                if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
+                    xa += xScale * padding;
+
                 count++;
                 maxLengthRemaining--;
             }
 
             if(renderFlags & Game::TEXT_RENDERFLAG_CURSOR && count == cursorPos)
             {
-                float xRot, yRot;
                 RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
                 Game::RB_DrawCursor(material, cursorLetter, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, color.packed);
             }

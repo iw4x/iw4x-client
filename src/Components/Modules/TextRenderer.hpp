@@ -53,6 +53,13 @@ namespace Components
 		static constexpr char COLOR_LAST_CHAR = CharForColorIndex(TEXT_COLOR_COUNT - 1);
 		static constexpr unsigned MY_ALTCOLOR_TWO = 0x0DCE6FFE6;
 		static constexpr unsigned COLOR_MAP_HASH = 0xA0AB1041;
+		static constexpr float MY_OFFSETS[4][2]
+		{
+			{-1.0f, -1.0f},
+			{-1.0f, 1.0f},
+			{1.0f, -1.0f},
+			{1.0f, 1.0f},
+		};
 
 		static unsigned colorTableDefault[TEXT_COLOR_COUNT];
 		static unsigned colorTableNew[TEXT_COLOR_COUNT];
@@ -72,6 +79,9 @@ namespace Components
 		static float GetMonospaceWidth(Game::Font_s* font, int rendererFlags);
 		static bool IsFontIcon(const char*& text, std::string& fontIconName);
 		static Game::GfxImage* GetFontIconColorMap(Game::Material* fontIconMaterial);
+		static void GlowColor(Game::GfxColor* result, Game::GfxColor baseColor, Game::GfxColor forcedGlowColor, int renderFlags);
+        static unsigned R_FontGetRandomLetter(int seed);
+		static void DrawTextFxExtraCharacter(Game::Material* material, int charIndex, float x, float y, float w, float h, float sinAngle, float cosAngle, unsigned color);
 		static float DrawFontIcon(const std::string& fontIconName, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 		static float DrawHudIcon(const char*& text, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 		static void RotateXY(float cosAngle, float sinAngle, float pivotX, float pivotY, float x, float y, float* outX, float* outY);

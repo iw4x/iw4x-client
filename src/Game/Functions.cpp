@@ -336,6 +336,8 @@ namespace Game
 	RB_DrawCursor_t RB_DrawCursor = RB_DrawCursor_t(0x534EA0);
 
 	Byte4PackRgba_t Byte4PackRgba = Byte4PackRgba_t(0x4FE910);
+	RandWithSeed_t RandWithSeed = RandWithSeed_t(0x495580);
+	GetDecayingLetterInfo_t GetDecayingLetterInfo = GetDecayingLetterInfo_t(0x5351C0);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);

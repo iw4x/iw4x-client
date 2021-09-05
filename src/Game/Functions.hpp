@@ -783,6 +783,12 @@ namespace Game
 	typedef void(__cdecl* Byte4PackRgba_t)(const float* from, char* to);
 	extern Byte4PackRgba_t Byte4PackRgba;
 
+	typedef int(__cdecl* RandWithSeed_t)(int* seed);
+	extern RandWithSeed_t RandWithSeed;
+	
+	typedef void(__cdecl* GetDecayingLetterInfo_t)(unsigned int letter, int* randSeed, int decayTimeElapsed, int fxBirthTime, int fxDecayDuration, unsigned __int8 alpha, bool* resultSkipDrawing, char* resultAlpha, unsigned int* resultLetter, bool* resultDrawExtraFxChar);
+	extern GetDecayingLetterInfo_t GetDecayingLetterInfo;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
