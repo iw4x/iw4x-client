@@ -4215,6 +4215,25 @@ namespace Game
 		char ipx[10];
 	};
 
+	struct netchan_t
+	{
+		int outgoingSequence;
+		int sock;
+		int dropped;
+		int incomingSequence;
+		netadr_t remoteAddress;
+		int qport;
+		int fragmentSequence;
+		int fragmentLength;
+		uint8_t* fragmentBuffer;
+		int fragmentBufferSize;
+		int unsentFragments;
+		int unsentFragmentStart;
+		int unsentLength;
+		uint8_t* unsentBuffer;
+		int unsentBufferSize;
+	};
+
 	struct FxEditorElemAtlas
 	{
 		int behavior;
@@ -4624,46 +4643,55 @@ namespace Game
 		// 0
 		clientstate_t state;
 		// 4
-		char _pad[4];
+		char __pad0[4];
 		// 8
 		int deltaMessage;
 		// 12
-		char __pad[12];
+		char __pad1[12];
 		// 24
 		int outgoingSequence;
 		// 28
-		char pad[12];
+		char __pad2[12];
 		// 40
 		netadr_t addr;
 		// 60
-		char pad1[1568];
+		char __pad3[1568];
 		// 1628
 		char connectInfoString[1024];
 		// 2652
-		char pad2[133192];
+		char __pad4[132096];
+		// 134748
+		int reliableSequence;
+		// 134752
+		int reliableAcknowledge;
+		// 134756
+		int reliableSent;
+		// 134760
+		char __pad5[1084];
 		// 135844
 		char name[16];
 		// 135860
-		char pad3[12];
+		char __pad6[12];
 		// 135872
 		int snapNum;
 		// 135876
-		int pad4;
+		int __pad7;
 		// 135880
 		short ping;
 		// 135882
-		//char pad5[142390];
-		char pad5[133158];
+		char __pad8[133158];
 		// 269040
 		int isBot;
 		// 269044
-		char pad6[9228];
+		char __pad9[9228];
 		// 278272
 		unsigned __int64 steamid;
 		// 278280
-		char pad7[403592];
+		char __pad10[403592];
 	} client_t;
 #pragma pack(pop)
+
+	static_assert(sizeof(client_t) == 681872);
 
 	struct CModelAllocData
 	{
