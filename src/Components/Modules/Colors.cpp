@@ -2,61 +2,10 @@
 
 namespace Components
 {
-	Dvar::Var Colors::NewColors;
 	Dvar::Var Colors::ColorBlind;
 	Game::dvar_t* Colors::ColorAllyColorBlind;
 	Game::dvar_t* Colors::ColorEnemyColorBlind;
-
 	std::vector<DWORD> Colors::ColorTable;
-
-	DWORD Colors::HsvToRgb(Colors::HsvColor hsv)
-	{
-		DWORD rgb;
-		unsigned char region, p, q, t;
-		unsigned int h, s, v, remainder;
-
-		if (hsv.s == 0)
-		{
-			rgb = RGB(hsv.v, hsv.v, hsv.v);
-			return rgb;
-		}
-
-		// converting to 16 bit to prevent overflow
-		h = hsv.h;
-		s = hsv.s;
-		v = hsv.v;
-
-		region = static_cast<uint8_t>(h / 43);
-		remainder = (h - (region * 43)) * 6;
-
-		p = static_cast<uint8_t>((v * (255 - s)) >> 8);
-		q = static_cast<uint8_t>((v * (255 - ((s * remainder) >> 8))) >> 8);
-		t = static_cast<uint8_t>((v * (255 - ((s * (255 - remainder)) >> 8))) >> 8);
-
-		switch (region)
-		{
-		case 0:
-			rgb = RGB(v, t, p);
-			break;
-		case 1:
-			rgb = RGB(q, v, p);
-			break;
-		case 2:
-			rgb = RGB(p, v, t);
-			break;
-		case 3:
-			rgb = RGB(p, q, v);
-			break;
-		case 4:
-			rgb = RGB(t, p, v);
-			break;
-		default:
-			rgb = RGB(v, p, q);
-			break;
-		}
-
-		return rgb;
-	}
 
 	void Colors::Strip(const char* in, char* out, int max)
 	{
@@ -178,7 +127,8 @@ namespace Components
 		}
 		else if (index == ':')
 		{
-			*color = Colors::HsvToRgb({ static_cast<uint8_t>((Game::Sys_Milliseconds() / 200) % 256), 255,255 });
+			//*color = Colors::HsvToRgb({ static_cast<uint8_t>((Game::Sys_Milliseconds() / 200) % 256), 255,255 });
+			*color = 0;
 		}
 		else if (index == ';')
 		{
@@ -191,14 +141,7 @@ namespace Components
 			int clrIndex = Colors::ColorIndex(index);
 
 			// Use native colors
-			if (clrIndex <= 7 && !Colors::NewColors.get<bool>())
-			{
-				*color = reinterpret_cast<DWORD*>(0x78DC70)[index - 48];
-			}
-			else
-			{
-				*color = Colors::ColorTable[clrIndex];
-			}
+			*color = Colors::ColorTable[clrIndex];
 		}
 	}
 
@@ -277,6 +220,7 @@ namespace Components
 
 	Colors::Colors()
 	{
+		return;
 		// Add a colorblind mode for team colors
 		Colors::ColorBlind = Dvar::Register<bool>("r_colorBlindTeams", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Use color-blindness-friendly colors for ingame team names");
 		// A dark red
@@ -289,23 +233,21 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
 
 		// Allow colored names ingame
-		Utils::Hook(0x5D8B40, Colors::ClientUserinfoChanged, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x5D8B40, Colors::ClientUserinfoChanged, HOOK_JUMP).install()->quick();
 
 		// Though, don't apply that to overhead names.
-		Utils::Hook(0x581932, Colors::GetClientName, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x581932, Colors::GetClientName, HOOK_CALL).install()->quick();
 
 		// Patch RB_LookupColor
-		Utils::Hook(0x534CD0, Colors::LookupColorStub, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x534CD0, Colors::LookupColorStub, HOOK_JUMP).install()->quick();
 
 		// Patch ColorIndex
-		Utils::Hook(0x417770, Colors::ColorIndex, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x417770, Colors::ColorIndex, HOOK_JUMP).install()->quick();
 
 		// Patch I_CleanStr
 		Utils::Hook(0x4AD470, Colors::CleanStrStub, HOOK_JUMP).install()->quick();
 
 		// Register dvar
-		Colors::NewColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare 2 color code style.");
-		Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
 		Dvar::Register<bool>("sv_allowColoredNames", true, Game::dvar_flag::DVAR_FLAG_NONE, "Allow colored names on the server");
 
 		// Add our colors

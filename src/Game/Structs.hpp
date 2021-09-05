@@ -735,9 +735,9 @@ namespace Game
 	{
 		MaterialInfo info;
 		char stateBitsEntry[48];
-		char textureCount;
-		char constantCount;
-		char stateBitsCount;
+		unsigned char textureCount;
+		unsigned char constantCount;
+		unsigned char stateBitsCount;
 		char stateFlags;
 		char cameraRegion;
 		MaterialTechniqueSet *techniqueSet;
@@ -5261,6 +5261,30 @@ namespace Game
 		GfxSceneDpvs dpvs;
 		int updateSound;
 		int allowAddDObj;
+	};
+
+	enum TextRenderFlags
+	{
+		TEXT_RENDERFLAG_FORCEMONOSPACE = 0x1,
+		TEXT_RENDERFLAG_CURSOR = 0x2,
+		TEXT_RENDERFLAG_DROPSHADOW = 0x4,
+		TEXT_RENDERFLAG_DROPSHADOW_EXTRA = 0x8,
+		TEXT_RENDERFLAG_GLOW = 0x10,
+		TEXT_RENDERFLAG_GLOW_FORCE_COLOR = 0x20,
+		TEXT_RENDERFLAG_FX_DECODE = 0x40,
+		TEXT_RENDERFLAG_PADDING = 0x80,
+		TEXT_RENDERFLAG_SUBTITLETEXT = 0x100,
+		TEXT_RENDERFLAG_CINEMATIC = 0x200,
+		TEXT_RENDERFLAG_OUTLINE = 0x400,
+		TEXT_RENDERFLAG_OUTLINE_EXTRA = 0x800,
+	};
+
+	enum FontPassType
+	{
+		FONTPASS_NORMAL = 0x0,
+		FONTPASS_GLOW = 0x1,
+		FONTPASS_OUTLINE = 0x2,
+		FONTPASS_COUNT = 0x3,
 	};
 
 #pragma endregion

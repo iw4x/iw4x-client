@@ -645,6 +645,9 @@ namespace Game
 	typedef char* (__cdecl * SEH_StringEd_GetString_t)(const char* string);
 	extern SEH_StringEd_GetString_t SEH_StringEd_GetString;
 
+	typedef unsigned int(__cdecl* SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
+	extern SEH_ReadCharFromString_t SEH_ReadCharFromString;
+
 	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
 	extern SL_ConvertToString_t SL_ConvertToString;
 
@@ -773,6 +776,12 @@ namespace Game
 
 	typedef void(__cdecl * unzClose_t)(void* handle);
 	extern unzClose_t unzClose;
+	
+	typedef void(__cdecl* RB_DrawCursor_t)(Material* material, char cursor, float x, float y, float sinAngle, float cosAngle, Font_s* font, float xScale, float yScale, unsigned int color);
+	extern RB_DrawCursor_t RB_DrawCursor;
+
+	typedef void(__cdecl* Byte4PackRgba_t)(const float* from, char* to);
+	extern Byte4PackRgba_t Byte4PackRgba;
 
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
@@ -919,4 +928,10 @@ namespace Game
 	void R_AddDebugString(float *color, float *pos, float scale, const char *str);
 	void R_AddDebugBounds(float* color, Bounds* b);
 	void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4]);
+
+	Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter);
+	bool SetupPulseFXVars(const char* text, int maxLength, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, bool* resultDrawRandChar, int* resultRandSeed, int* resultMaxLength, bool* resultDecaying, int* resultDecayTimeElapsed);
+	void RB_DrawChar(Material* material, float x, float y, float w, float h, float sinAngle, float cosAngle, Glyph* glyph, unsigned int color);
+	void RB_DrawStretchPicRotate(Material* material, float x, float y, float w, float h, float s0, float t0, float s1, float t1, float sinAngle, float cosAngle, unsigned int color);
+	char ModulateByteColors(char colorA, char colorB);
 }

@@ -272,6 +272,7 @@ namespace Game
 	SE_Load_t SE_Load = SE_Load_t(0x502A30);
 
 	SEH_StringEd_GetString_t SEH_StringEd_GetString = SEH_StringEd_GetString_t(0x44BB30);
+	SEH_ReadCharFromString_t SEH_ReadCharFromString = SEH_ReadCharFromString_t(0x486560);
 
 	Dvar_SetFromStringByName_t Dvar_SetFromStringByName = Dvar_SetFromStringByName_t(0x4F52E0);
 	Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource = Dvar_SetFromStringByNameFromSource_t(0x4FC770);
@@ -331,6 +332,10 @@ namespace Game
 	Vec3UnpackUnitVec_t Vec3UnpackUnitVec = Vec3UnpackUnitVec_t(0x45CA90);
 
 	unzClose_t unzClose = unzClose_t(0x41BF20);
+
+	RB_DrawCursor_t RB_DrawCursor = RB_DrawCursor_t(0x534EA0);
+
+	Byte4PackRgba_t Byte4PackRgba = Byte4PackRgba_t(0x4FE910);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
@@ -1195,5 +1200,99 @@ namespace Game
 			retn
 		}
 	}
+
+
+	__declspec(naked) Glyph* R_GetCharacterGlyph(Font_s* /*font*/, unsigned int /*letter*/)
+	{
+	    __asm
+		{
+			mov edi, [esp + 0x8] // letter
+			push [esp + 0x4] // font
+			mov eax, 0x5055C0
+			call eax
+			add esp, 4
+			ret
+		}
+	}
+
+	__declspec(naked) bool SetupPulseFXVars(const char* /*text*/, int /*maxLength*/, int /*fxBirthTime*/, int /*fxLetterTime*/, int /*fxDecayStartTime*/, int /*fxDecayDuration*/, bool* /*resultDrawRandChar*/, int* /*resultRandSeed*/, int* /*resultMaxLength*/, bool* /*resultDecaying*/, int* /*resultDecayTimeElapsed*/)
+	{
+		__asm
+		{
+			mov eax, [esp + 0x08] // maxLength
+			push [esp + 0x2C] // resultDecayTimeElapsed
+			push [esp + 0x2C] // resultDecaying
+			push [esp + 0x2C] // resultMaxLength
+			push [esp + 0x2C] // resultRandSeed
+			push [esp + 0x2C] // resultDrawRandChar
+			push [esp + 0x2C] // fxDecayDuration
+			push [esp + 0x2C] // fxDecayStartTime
+			push [esp + 0x2C] // fxLetterTime
+			push [esp + 0x2C] // fxBirthTime
+			push [esp + 0x28] // text
+			mov ebx, 0x535050
+			call ebx
+			add esp, 0x28
+			ret
+		}
+	}
+
+	__declspec(naked) void RB_DrawChar(Material* /*material*/, float /*x*/, float /*y*/, float /*w*/, float /*h*/, float /*sinAngle*/, float /*cosAngle*/, Glyph* /*glyph*/, unsigned int /*color*/)
+	{
+	    __asm
+		{
+			mov eax, [esp + 0x4] // material
+			mov edx, [esp + 0x20] // glyph
+			push [esp + 0x24] // color
+			push [esp + 0x20] // cosAngle
+			push [esp + 0x20] // sinAngle
+			push [esp + 0x20] // h
+			push [esp + 0x20] // w
+			push [esp + 0x20] // y
+			push [esp + 0x20] // x
+
+			mov ebx, 0x534E20
+			call ebx
+			add esp, 0x1C
+
+			ret
+		}
+	}
+
+	__declspec(naked) void RB_DrawStretchPicRotate(Material* /*material*/, float /*x*/, float /*y*/, float /*w*/, float /*h*/, float /*s0*/, float /*t0*/, float /*s1*/, float /*t1*/, float /*sinAngle*/, float /*cosAngle*/, unsigned int /*color*/)
+	{
+	    __asm
+		{
+			mov eax, [esp + 0x4] // material
+			push [esp + 0x30] // color
+			push [esp + 0x30] // cosAngle
+			push [esp + 0x30] // sinAngle
+			push [esp + 0x30] // t1
+			push [esp + 0x30] // s1
+			push [esp + 0x30] // t0
+			push [esp + 0x30] // s0
+			push [esp + 0x30] // h
+			push [esp + 0x30] // w
+			push [esp + 0x30] // y
+			push [esp + 0x30] // x
+			mov ebx, 0x5310F0
+			call ebx
+			add esp, 0x2C
+			ret
+		}
+	}
+
+	__declspec(naked) char ModulateByteColors(char /*colorA*/, char /*colorB*/)
+	{
+		__asm
+		{
+			mov eax, [esp + 0x4] // colorA
+			mov ecx, [esp + 0x8] // colorB
+			mov ebx, 0x5353C0
+			call ebx
+			ret
+		}
+	}
+
 #pragma optimize("", on)
 }

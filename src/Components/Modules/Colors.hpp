@@ -14,20 +14,9 @@ namespace Components
 		static char Add(uint8_t r, uint8_t g, uint8_t b);
 
 	private:
-		struct HsvColor
-		{
-			unsigned char h;
-			unsigned char s;
-			unsigned char v;
-		};
-
-		static Dvar::Var NewColors;
 		static Dvar::Var ColorBlind;
 		static Game::dvar_t* ColorAllyColorBlind;
 		static Game::dvar_t* ColorEnemyColorBlind;
-
-		static DWORD HsvToRgb(HsvColor hsv);
-
 		static void UserInfoCopy(char* buffer, const char* name, size_t size);
 
 		static void ClientUserinfoChanged();
