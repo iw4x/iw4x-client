@@ -195,7 +195,7 @@ namespace Assets
 					std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
 					asset->constantCount = header.material->constantCount;
 					asset->constantTable = header.material->constantTable;
-
+					Components::Logger::Print("For %s, copied constants & statebits from %s\n", asset->info.name, header.material->info.name);
 					replacementFound = true;
 				}
 			}
