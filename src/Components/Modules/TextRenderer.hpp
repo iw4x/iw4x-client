@@ -42,6 +42,13 @@ namespace Components
 
 	class TextRenderer : public Component
 	{
+		struct FontIconInfo
+		{
+            Game::Material* material;
+			bool flipHorizontal;
+			bool flipVertical;
+		};
+
 		struct HsvColor
 		{
 			unsigned char h;
@@ -74,12 +81,11 @@ namespace Components
 		TextRenderer();
 
 	private:
-
 		static unsigned HsvToRgb(HsvColor hsv);
 
 		static Game::GfxImage* GetFontIconColorMap(Game::Material* fontIconMaterial);
-		static bool IsFontIcon(const char*& text, Game::Material*& fontIconMaterial);
-		static float DrawFontIcon(Game::Material* fontIconMaterial, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
+		static bool IsFontIcon(const char*& text, FontIconInfo& fontIcon);
+		static float DrawFontIcon(const FontIconInfo& fontIcon, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 
 		static float GetMonospaceWidth(Game::Font_s* font, int rendererFlags);
 		static void GlowColor(Game::GfxColor* result, Game::GfxColor baseColor, Game::GfxColor forcedGlowColor, int renderFlags);

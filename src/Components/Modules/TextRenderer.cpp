@@ -134,17 +134,45 @@ namespace Components
         return nullptr;
     }
 
-    bool TextRenderer::IsFontIcon(const char*& text, Game::Material*& fontIconMaterial)
+    bool TextRenderer::IsFontIcon(const char*& text, FontIconInfo& fontIcon)
     {
         const auto* curPos = text;
 
-        while (*curPos != ' ' && *curPos != ':' && *curPos != 0)
+        while (*curPos != ' ' && *curPos != ':' && *curPos != 0 && *curPos != '+')
             curPos++;
+
+        const auto* nameEnd = curPos;
+        
+        if(*curPos == '+')
+        {
+            auto breakArgs = false;
+            while(!breakArgs)
+            {
+                curPos++;
+                switch(*curPos)
+                {
+                case 'h':
+                    fontIcon.flipHorizontal = true;
+                    break;
+
+                case 'v':
+                    fontIcon.flipVertical = true;
+                    break;
+
+                case ':':
+                    breakArgs = true;
+                    break;
+
+                default:
+                    return false;
+                }
+            }
+        }
 
         if (*curPos != ':')
             return false;
 
-        const std::string fontIconName(text, curPos - text);
+        const std::string fontIconName(text, nameEnd - text);
 
         auto* materialEntry = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_MATERIAL, fontIconName.data());
         if (materialEntry == nullptr)
@@ -154,21 +182,43 @@ namespace Components
             return false;
 
         text = curPos + 1;
-        fontIconMaterial = material;
+        fontIcon.material = material;
         return true;
     }
 
-    float TextRenderer::DrawFontIcon(Game::Material* fontIconMaterial, const float x, const float y, const float sinAngle, const float cosAngle, const Game::Font_s* font, const float xScale, const float yScale, const unsigned color)
+    float TextRenderer::DrawFontIcon(const FontIconInfo& fontIcon, const float x, const float y, const float sinAngle, const float cosAngle, const Game::Font_s* font, const float xScale, const float yScale, const unsigned color)
     {
-        const auto* colorMap = GetFontIconColorMap(fontIconMaterial);
+        const auto* colorMap = GetFontIconColorMap(fontIcon.material);
         if (colorMap == nullptr)
             return 0;
+
+        float s0, t0, s1, t1;
+        if(fontIcon.flipHorizontal)
+        {
+            s0 = 1.0f;
+            s1 = 0.0f;
+        }
+        else
+        {
+            s0 = 0.0f;
+            s1 = 1.0f;
+        }
+        if(fontIcon.flipVertical)
+        {
+            t0 = 1.0f;
+            t1 = 0.0f;
+        }
+        else
+        {
+            t0 = 0.0f;
+            t1 = 1.0f;
+        }
 
         const auto h = static_cast<float>(font->pixelHeight) * yScale;
         const auto w = static_cast<float>(font->pixelHeight) * (static_cast<float>(colorMap->width) / static_cast<float>(colorMap->height)) * xScale;
 
         const auto yy = y - (h + yScale * static_cast<float>(font->pixelHeight)) * 0.5f;
-        Game::RB_DrawStretchPicRotate(fontIconMaterial, x, yy, w, h, 0.0, 0.0, 1.0, 1.0, sinAngle, cosAngle, color);
+        Game::RB_DrawStretchPicRotate(fontIcon.material, x, yy, w, h, s0, t0, s1, t1, sinAngle, cosAngle, color);
 
         return w;
     }
@@ -356,11 +406,11 @@ namespace Components
 
                 if(letter == ':')
                 {
-                    Game::Material* fontIconMaterial;
-                    if(IsFontIcon(curText, fontIconMaterial))
+                    FontIconInfo fontIconInfo{};
+                    if(IsFontIcon(curText, fontIconInfo))
                     {
                         RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
-                        xa += DrawFontIcon(fontIconMaterial, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
+                        xa += DrawFontIcon(fontIconInfo, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
 
                         if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
                             xa += xScale * padding;
