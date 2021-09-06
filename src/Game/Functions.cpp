@@ -1208,11 +1208,18 @@ namespace Game
 	{
 	    __asm
 		{
-			mov edi, [esp + 0x8] // letter
-			push [esp + 0x4] // font
+			push eax
+			pushad
+
+			mov edi, [esp + 0x8 + 0x24] // letter
+			push [esp + 0x4 + 0x24] // font
 			mov eax, 0x5055C0
 			call eax
 			add esp, 4
+			mov [esp + 0x20], eax
+
+			popad
+			pop eax
 			ret
 		}
 	}
@@ -1221,20 +1228,27 @@ namespace Game
 	{
 		__asm
 		{
-			mov eax, [esp + 0x08] // maxLength
-			push [esp + 0x2C] // resultDecayTimeElapsed
-			push [esp + 0x2C] // resultDecaying
-			push [esp + 0x2C] // resultMaxLength
-			push [esp + 0x2C] // resultRandSeed
-			push [esp + 0x2C] // resultDrawRandChar
-			push [esp + 0x2C] // fxDecayDuration
-			push [esp + 0x2C] // fxDecayStartTime
-			push [esp + 0x2C] // fxLetterTime
-			push [esp + 0x2C] // fxBirthTime
-			push [esp + 0x28] // text
+			push eax
+			pushad
+
+			mov eax, [esp + 0x08 + 0x24] // maxLength
+			push [esp + 0x2C + 0x24] // resultDecayTimeElapsed
+			push [esp + 0x2C + 0x24] // resultDecaying
+			push [esp + 0x2C + 0x24] // resultMaxLength
+			push [esp + 0x2C + 0x24] // resultRandSeed
+			push [esp + 0x2C + 0x24] // resultDrawRandChar
+			push [esp + 0x2C + 0x24] // fxDecayDuration
+			push [esp + 0x2C + 0x24] // fxDecayStartTime
+			push [esp + 0x2C + 0x24] // fxLetterTime
+			push [esp + 0x2C + 0x24] // fxBirthTime
+			push [esp + 0x28 + 0x24] // text
 			mov ebx, 0x535050
 			call ebx
 			add esp, 0x28
+			mov [esp + 0x20],eax
+
+			popad
+			pop eax
 			ret
 		}
 	}
@@ -1243,20 +1257,23 @@ namespace Game
 	{
 	    __asm
 		{
-			mov eax, [esp + 0x4] // material
-			mov edx, [esp + 0x20] // glyph
-			push [esp + 0x24] // color
-			push [esp + 0x20] // cosAngle
-			push [esp + 0x20] // sinAngle
-			push [esp + 0x20] // h
-			push [esp + 0x20] // w
-			push [esp + 0x20] // y
-			push [esp + 0x20] // x
+			pushad
 
-			mov ebx, 0x534E20
-			call ebx
+			mov eax, [esp + 0x4 + 0x20] // material
+			mov edx, [esp + 0x20 + 0x20] // glyph
+			push [esp + 0x24 + 0x20] // color
+			push [esp + 0x20 + 0x20] // cosAngle
+			push [esp + 0x20 + 0x20] // sinAngle
+			push [esp + 0x20 + 0x20] // h
+			push [esp + 0x20 + 0x20] // w
+			push [esp + 0x20 + 0x20] // y
+			push [esp + 0x20 + 0x20] // x
+
+			mov ecx, 0x534E20
+			call ecx
 			add esp, 0x1C
 
+			popad
 			ret
 		}
 	}
@@ -1265,21 +1282,25 @@ namespace Game
 	{
 	    __asm
 		{
-			mov eax, [esp + 0x4] // material
-			push [esp + 0x30] // color
-			push [esp + 0x30] // cosAngle
-			push [esp + 0x30] // sinAngle
-			push [esp + 0x30] // t1
-			push [esp + 0x30] // s1
-			push [esp + 0x30] // t0
-			push [esp + 0x30] // s0
-			push [esp + 0x30] // h
-			push [esp + 0x30] // w
-			push [esp + 0x30] // y
-			push [esp + 0x30] // x
+			pushad
+
+			mov eax, [esp + 0x4 + 0x20] // material
+			push [esp + 0x30 + 0x20] // color
+			push [esp + 0x30 + 0x20] // cosAngle
+			push [esp + 0x30 + 0x20] // sinAngle
+			push [esp + 0x30 + 0x20] // t1
+			push [esp + 0x30 + 0x20] // s1
+			push [esp + 0x30 + 0x20] // t0
+			push [esp + 0x30 + 0x20] // s0
+			push [esp + 0x30 + 0x20] // h
+			push [esp + 0x30 + 0x20] // w
+			push [esp + 0x30 + 0x20] // y
+			push [esp + 0x30 + 0x20] // x
 			mov ebx, 0x5310F0
 			call ebx
 			add esp, 0x2C
+
+			popad
 			ret
 		}
 	}
@@ -1288,10 +1309,17 @@ namespace Game
 	{
 		__asm
 		{
-			mov eax, [esp + 0x4] // colorA
-			mov ecx, [esp + 0x8] // colorB
+			push eax
+			pushad
+
+			mov eax, [esp + 0x4 + 0x24] // colorA
+			mov ecx, [esp + 0x8 + 0x24] // colorB
 			mov ebx, 0x5353C0
 			call ebx
+			mov [esp + 0x20], eax
+
+			popad
+			pop eax
 			ret
 		}
 	}
