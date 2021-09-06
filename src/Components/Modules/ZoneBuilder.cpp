@@ -10,6 +10,8 @@ namespace Components
 	bool ZoneBuilder::Terminate;
 	std::thread ZoneBuilder::CommandThread;
 
+	Dvar::Var ZoneBuilder::PreferDiskAssetsDvar;
+
 	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
 
 		// Reserve 100MB by default.
@@ -1522,6 +1524,8 @@ namespace Components
 				Logger::Print("%s\n", json11::Json(images).dump().data());
 				Logger::Print("------------------- END IWI DUMP -------------------\n");
 			});
+
+			ZoneBuilder::PreferDiskAssetsDvar = Dvar::Register<bool>("zb_prefer_disk_assets", false, Game::DVAR_FLAG_NONE, "Should zonebuilder prefer in-memory assets (requirements) or disk assets, when both are present?");
 		}
 	}
 

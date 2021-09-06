@@ -41,13 +41,12 @@ namespace Assets
 			{"wc_unlit_falloff_add", "wc_unlit_falloff_add_lin_ua"},
 			{"wc_unlit", "wc_unlit_replace_lin"},
 			{"wc_unlit_alphatest", "wc_unlit_blend_lin"},
-			{"wc_unlit_multiply_lin", "wc_unlit_multiply_lin"},
 			{"wc_unlit_blend", "wc_unlit_blend_lin_ua"},
 			{"wc_unlit_replace", "wc_unlit_replace_lin"},
 
 			{"mc_unlit_replace", "mc_unlit_replace_lin"},
 			{"mc_unlit_nofog", "mc_unlit_blend_nofog_ua"},
-			{"mc_unlit", "mc_unlit_blend_lin"},
+			{"mc_unlit", "mc_unlit_replace_lin_nocast"},
 			{"mc_unlit_alphatest", "mc_unlit_blend_lin"}
 			/*,
 			{"", ""},
@@ -196,7 +195,7 @@ namespace Assets
 					std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
 					asset->constantCount = header.material->constantCount;
 					asset->constantTable = header.material->constantTable;
-
+					Components::Logger::Print("For %s, copied constants & statebits from %s\n", asset->info.name, header.material->info.name);
 					replacementFound = true;
 				}
 			}
