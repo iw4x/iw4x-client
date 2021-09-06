@@ -132,4 +132,5 @@ namespace Components
 #include "Modules/Stats.hpp"
 #include "Modules/SoundMutexFix.hpp"
 
+#include "Modules/XInput.hpp"
 #include "Modules/Client.hpp"
