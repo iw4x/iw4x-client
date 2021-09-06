@@ -86,6 +86,7 @@ namespace Components
 
 		static Game::GfxImage* GetFontIconColorMap(const Game::Material* fontIconMaterial);
 		static bool IsFontIcon(const char*& text, FontIconInfo& fontIcon);
+		static float GetFontIconWidth(const FontIconInfo& fontIcon, const Game::Font_s* font, float xScale);
 		static float DrawFontIcon(const FontIconInfo& fontIcon, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 
 		static float GetMonospaceWidth(Game::Font_s* font, int rendererFlags);
