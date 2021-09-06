@@ -452,6 +452,19 @@ namespace Components
                     }
                 }
 
+                if(letter == '\n')
+                {
+                    xa = startX;
+                    xy += static_cast<float>(font->pixelHeight) * yScale;
+                    continue;
+                }
+
+                if(letter == '\r')
+                {
+                    xy += static_cast<float>(font->pixelHeight) * yScale;
+                    continue;
+                }
+
                 auto skipDrawing = false;
                 if(decaying)
                 {
