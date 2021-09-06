@@ -77,13 +77,14 @@ namespace Components
 
 	public:
 		static void DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow);
+		static int R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font);
 
 		TextRenderer();
 
 	private:
 		static unsigned HsvToRgb(HsvColor hsv);
 
-		static Game::GfxImage* GetFontIconColorMap(Game::Material* fontIconMaterial);
+		static Game::GfxImage* GetFontIconColorMap(const Game::Material* fontIconMaterial);
 		static bool IsFontIcon(const char*& text, FontIconInfo& fontIcon);
 		static float DrawFontIcon(const FontIconInfo& fontIcon, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 

@@ -123,7 +123,7 @@ namespace Components
         Game::RB_DrawStretchPicRotate(material, x, y, w, h, static_cast<float>(charIndex % 16) * 0.0625f, 0.0f, static_cast<float>(charIndex % 16) * 0.0625f + 0.0625f, 1.0f, sinAngle, cosAngle, color);
     }
 
-    Game::GfxImage* TextRenderer::GetFontIconColorMap(Game::Material* fontIconMaterial)
+    Game::GfxImage* TextRenderer::GetFontIconColorMap(const Game::Material* fontIconMaterial)
     {
         for (auto i = 0u; i < fontIconMaterial->textureCount; i++)
         {
@@ -184,6 +184,14 @@ namespace Components
         text = curPos + 1;
         fontIcon.material = material;
         return true;
+    }
+
+    float TextRenderer::GetFontIconWidth(const FontIconInfo& fontIcon, const Game::Font_s* font, const float xScale)
+    {
+        const auto* colorMap = GetFontIconColorMap(fontIcon.material);
+        if (colorMap == nullptr)
+            return 0;
+        return static_cast<float>(font->pixelHeight) * (static_cast<float>(colorMap->width) / static_cast<float>(colorMap->height)) * xScale;
     }
 
     float TextRenderer::DrawFontIcon(const FontIconInfo& fontIcon, const float x, const float y, const float sinAngle, const float cosAngle, const Game::Font_s* font, const float xScale, const float yScale, const unsigned color)
@@ -407,15 +415,28 @@ namespace Components
                 if(letter == ':')
                 {
                     FontIconInfo fontIconInfo{};
-                    if(IsFontIcon(curText, fontIconInfo))
+                    const char* fontIconEnd = curText;
+                    if(IsFontIcon(fontIconEnd, fontIconInfo) && !(renderFlags & Game::TEXT_RENDERFLAG_CURSOR && cursorPos > count && cursorPos <= count + (fontIconEnd - curText)))
                     {
                         RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
-                        xa += DrawFontIcon(fontIconInfo, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
+
+                        if(passes[passIndex] == Game::FONTPASS_NORMAL)
+                        {
+                            const auto fontIconWidth = DrawFontIcon(fontIconInfo, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
+                            if (renderFlags & Game::TEXT_RENDERFLAG_CURSOR && count == cursorPos)
+                                Game::RB_DrawCursor(material, cursorLetter, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, color.packed);
+                            xa += fontIconWidth;
+                        }
+                        else
+                        {
+                            xa += GetFontIconWidth(fontIconInfo, font, xScale);
+                        }
 
                         if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
                             xa += xScale * padding;
-                        ++count;
+                        count += (fontIconEnd - curText) + 1;
                         maxLengthRemaining--;
+                        curText = fontIconEnd;
                         continue;
                     }
                 }
