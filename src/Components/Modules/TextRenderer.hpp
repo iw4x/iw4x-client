@@ -15,7 +15,7 @@ namespace Components
 		TEXT_COLOR_AXIS = 8,
 		TEXT_COLOR_ALLIES = 9,
 		TEXT_COLOR_RAINBOW = 10,
-		TEXT_COLOR_SERVER = 11,
+		TEXT_COLOR_SERVER = 11, // using that color in infostrings (e.g. your name) fails, ';' is an illegal character!
 
 		TEXT_COLOR_COUNT
 	};
@@ -74,15 +74,30 @@ namespace Components
 
 		static Dvar::Var cg_newColors;
 		static Game::dvar_t* sv_customTextColor;
+		static Dvar::Var sv_allowColoredNames;
+		static Dvar::Var ColorBlind;
+		static Game::dvar_t* ColorAllyColorBlind;
+		static Game::dvar_t* ColorEnemyColorBlind;
 
 	public:
 		static void DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow);
 		static int R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font);
+		static unsigned int ColorIndex(char index);
+		static void StripColors(const char* in, char* out, int max);
+		static std::string StripColors(const std::string& in);
+		static void UserInfoCopy(char* buffer, const char* name, size_t size);
 
 		TextRenderer();
 
 	private:
 		static unsigned HsvToRgb(HsvColor hsv);
+
+		static void ClientUserinfoChanged();
+		static char* GetClientName(int localClientNum, int index, char* buf, size_t size);
+		static void PatchColorLimit(char limit);
+		static char* CleanStrStub(char* string);
+		static bool Dvar_GetUnpackedColorByName(const char* name, float* expandedColor);
+		static void GetUnpackedColorByNameStub();
 
 		static Game::GfxImage* GetFontIconColorMap(const Game::Material* fontIconMaterial);
 		static bool IsFontIcon(const char*& text, FontIconInfo& fontIcon);

@@ -139,7 +139,7 @@ namespace Components
 
 			mov [esp + 100h + 10h], eax
 
-			jmp Colors::CleanStrStub
+			jmp TextRenderer::CleanStrStub
 		}
 	}
 

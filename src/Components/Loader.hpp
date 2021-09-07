@@ -73,7 +73,6 @@ namespace Components
 #include "Modules/Menus.hpp"
 #include "Modules/Toast.hpp"
 #include "Modules/Zones.hpp"
-#include "Modules/Colors.hpp"
 #include "Modules/D3D9Ex.hpp"
 #include "Modules/Script.hpp"
 #include "Modules/Weapon.hpp"
