@@ -650,12 +650,12 @@ namespace Components
         return result;
     }
 
-    void TextRenderer::StripColors(const char* in, char* out, int max)
+    void TextRenderer::StripColors(const char* in, char* out, size_t max)
     {
         if (!in || !out) return;
 
         max--;
-        int current = 0;
+        size_t current = 0;
         while (*in != 0 && current < max)
         {
             const char index = *(in + 1);
@@ -682,17 +682,129 @@ namespace Components
         return std::string(buffer);
     }
 
-    void TextRenderer::UserInfoCopy(char* buffer, const char* name, size_t size)
+    void TextRenderer::StripMaterialTextIcons(const char* in, char* out, size_t max)
     {
-        Utils::Memory::Allocator allocator;
+        if (!in || !out) return;
 
+        max--;
+        size_t current = 0;
+        while (*in != 0 && current < max)
+        {
+            if (*in == '^' && (in[1] == '\x01' || in[1] == '\x02'))
+            {
+                in += 2;
+
+                if (*in) // width
+                    in++;
+                if (*in) // height
+                    in++;
+
+                if(*in) // material name length + material name characters
+                {
+                    const auto materialNameLength = *in;
+                    in++;
+                    for(auto i = 0; i < materialNameLength; i++)
+                    {
+                        if (*in)
+                            in++;
+                    }
+                }
+            }
+            else
+            {
+                *out = *in;
+                ++out;
+                ++current;
+                ++in;
+            }
+
+        }
+        *out = '\0';
+    }
+
+    std::string TextRenderer::StripMaterialTextIcons(const std::string& in)
+    {
+        char buffer[1000] = { 0 }; // Should be more than enough
+        StripAllTextIcons(in.data(), buffer, sizeof(buffer));
+        return std::string(buffer);
+    }
+
+    void TextRenderer::StripAllTextIcons(const char* in, char* out, size_t max)
+    {
+        if (!in || !out) return;
+
+        max--;
+        size_t current = 0;
+        while (*in != 0 && current < max)
+        {
+            if (*in == '^' && (in[1] == '\x01' || in[1] == '\x02'))
+            {
+                in += 2;
+
+                if (*in) // width
+                    in++;
+                if (*in) // height
+                    in++;
+
+                if(*in) // material name length + material name characters
+                {
+                    const auto materialNameLength = *in;
+                    in++;
+                    for(auto i = 0; i < materialNameLength; i++)
+                    {
+                        if (*in)
+                            in++;
+                    }
+                }
+
+                continue;
+            }
+
+            if(*in == ':')
+            {
+                const auto* fontIconEndPos = &in[1];
+                FontIconInfo fontIcon{};
+                if(IsFontIcon(fontIconEndPos, fontIcon))
+                {
+                    in = fontIconEndPos;
+                    continue;
+                }
+            }
+
+            *out = *in;
+            ++out;
+            ++current;
+            ++in;
+        }
+        *out = '\0';
+    }
+
+    std::string TextRenderer::StripAllTextIcons(const std::string& in)
+    {
+        char buffer[1000] = { 0 }; // Should be more than enough
+        StripAllTextIcons(in.data(), buffer, sizeof(buffer));
+        return std::string(buffer);
+    }
+
+    void TextRenderer::UserInfoCopy(char* buffer, const char* name, const size_t size)
+    {
         if (!sv_allowColoredNames.get<bool>())
         {
-            StripColors(name, buffer, size);
+            char nameBuffer[64] = {0};
+            StripColors(name, nameBuffer, sizeof(nameBuffer));
+            StripAllTextIcons(nameBuffer, buffer, size);
         }
         else
         {
-            strncpy_s(buffer, size, name, _TRUNCATE);
+            StripAllTextIcons(name, buffer, size);
+        }
+
+        std::string readablePlayerName(buffer);
+        readablePlayerName = Utils::String::Trim(readablePlayerName);
+
+        if(readablePlayerName.size() < 3)
+        {
+            strncpy(buffer, "Unknown Soldier", size);
         }
     }
 

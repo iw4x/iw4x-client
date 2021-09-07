@@ -83,8 +83,12 @@ namespace Components
 		static void DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow);
 		static int R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font);
 		static unsigned int ColorIndex(char index);
-		static void StripColors(const char* in, char* out, int max);
+		static void StripColors(const char* in, char* out, size_t max);
 		static std::string StripColors(const std::string& in);
+		static void StripMaterialTextIcons(const char* in, char* out, size_t max);
+		static std::string StripMaterialTextIcons(const std::string& in);
+		static void StripAllTextIcons(const char* in, char* out, size_t max);
+		static std::string StripAllTextIcons(const std::string& in);
 		static void UserInfoCopy(char* buffer, const char* name, size_t size);
 
 		TextRenderer();
