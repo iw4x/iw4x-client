@@ -318,6 +318,10 @@ namespace Components
                     fontIcon.flipVertical = true;
                     break;
 
+                case 'b':
+                    fontIcon.big = true;
+                    break;
+
                 case ':':
                     breakArgs = true;
                     break;
@@ -350,7 +354,8 @@ namespace Components
         const auto* colorMap = GetFontIconColorMap(fontIcon.material);
         if (colorMap == nullptr)
             return 0;
-        return static_cast<float>(font->pixelHeight) * (static_cast<float>(colorMap->width) / static_cast<float>(colorMap->height)) * xScale;
+        const auto sizeMultiplier = fontIcon.big ? 1.5f : 1.0f;
+        return static_cast<float>(font->pixelHeight) * (static_cast<float>(colorMap->width) / static_cast<float>(colorMap->height)) * xScale * sizeMultiplier;
     }
 
     float TextRenderer::DrawFontIcon(const FontIconInfo& fontIcon, const float x, const float y, const float sinAngle, const float cosAngle, const Game::Font_s* font, const float xScale, const float yScale, const unsigned color)
@@ -380,9 +385,10 @@ namespace Components
             t0 = 0.0f;
             t1 = 1.0f;
         }
+        const auto sizeMultiplier = fontIcon.big ? 1.5f : 1.0f;
 
-        const auto h = static_cast<float>(font->pixelHeight) * yScale;
-        const auto w = static_cast<float>(font->pixelHeight) * (static_cast<float>(colorMap->width) / static_cast<float>(colorMap->height)) * xScale;
+        const auto h = static_cast<float>(font->pixelHeight) * yScale * sizeMultiplier;
+        const auto w = static_cast<float>(font->pixelHeight) * (static_cast<float>(colorMap->width) / static_cast<float>(colorMap->height)) * xScale * sizeMultiplier;
 
         const auto yy = y - (h + yScale * static_cast<float>(font->pixelHeight)) * 0.5f;
         Game::RB_DrawStretchPicRotate(fontIcon.material, x, yy, w, h, s0, t0, s1, t1, sinAngle, cosAngle, color);

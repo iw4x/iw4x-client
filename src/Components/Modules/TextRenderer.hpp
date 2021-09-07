@@ -47,6 +47,7 @@ namespace Components
             Game::Material* material;
 			bool flipHorizontal;
 			bool flipVertical;
+			bool big;
 		};
 
 		struct HsvColor
