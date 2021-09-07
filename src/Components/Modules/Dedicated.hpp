@@ -14,8 +14,6 @@ namespace Components
 
 		static void Heartbeat();
 
-		static void StripMaterialTextIcons(char* text);
-
 	private:
 		static bool SendChat;
 

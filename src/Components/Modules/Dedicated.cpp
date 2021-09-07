@@ -76,29 +76,6 @@ namespace Components
 		}
 	}
 
-	void Dedicated::StripMaterialTextIcons(char* text)
-	{
-		char* currentChar = text;
-		bool isEscaped = false;
-		while (*currentChar)
-		{
-			if (*currentChar == '^')
-			{
-				isEscaped = true;
-			}
-			else if(isEscaped == true && (*currentChar == '\x01' || *currentChar == '\x02'))
-			{
-				*currentChar = ' ';
-			}
-			else
-			{
-				isEscaped = false;
-			}
-
-			currentChar++;
-		}
-	}
-
 	const char* Dedicated::EvaluateSay(char* text, Game::gentity_t* player)
 	{
 		Dedicated::SendChat = true;
@@ -110,7 +87,7 @@ namespace Components
 			++text;
 		}
 
-		StripMaterialTextIcons(text);
+		TextRenderer::StripMaterialTextIcons(text, text, strlen(text) + 1);
 
 		Game::Scr_AddEntity(player);
 		Game::Scr_AddString(text + 1);
