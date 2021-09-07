@@ -39,9 +39,9 @@ namespace Components
     Dvar::Var TextRenderer::cg_newColors;
     Game::dvar_t* TextRenderer::sv_customTextColor;
     Dvar::Var TextRenderer::sv_allowColoredNames;
-    Dvar::Var TextRenderer::ColorBlind;
-    Game::dvar_t* TextRenderer::ColorAllyColorBlind;
-    Game::dvar_t* TextRenderer::ColorEnemyColorBlind;
+    Dvar::Var TextRenderer::r_colorBlind;
+    Game::dvar_t* TextRenderer::g_ColorBlind_MyTeam;
+    Game::dvar_t* TextRenderer::g_ColorBlind_EnemyTeam;
 
     unsigned TextRenderer::HsvToRgb(HsvColor hsv)
     {
@@ -750,13 +750,13 @@ namespace Components
     // Patches team overhead normally
     bool TextRenderer::Dvar_GetUnpackedColorByName(const char* name, float* expandedColor)
     {
-        if (ColorBlind.get<bool>())
+        if (r_colorBlind.get<bool>())
         {
             const auto str = std::string(name);
             if (str == "g_TeamColor_EnemyTeam")
             {
                 // Dvar_GetUnpackedColor
-                auto* colorblindEnemy = ColorEnemyColorBlind->current.color;
+                const auto* colorblindEnemy = g_ColorBlind_EnemyTeam->current.color;
                 expandedColor[0] = static_cast<float>(colorblindEnemy[0]) / 255.0f;
                 expandedColor[1] = static_cast<float>(colorblindEnemy[1]) / 255.0f;
                 expandedColor[2] = static_cast<float>(colorblindEnemy[2]) / 255.0f;
@@ -766,7 +766,7 @@ namespace Components
             else if (str == "g_TeamColor_MyTeam")
             {
                 // Dvar_GetUnpackedColor
-                auto* colorblindAlly = ColorAllyColorBlind->current.color;
+                const auto* colorblindAlly = g_ColorBlind_MyTeam->current.color;
                 expandedColor[0] = static_cast<float>(colorblindAlly[0]) / 255.0f;
                 expandedColor[1] = static_cast<float>(colorblindAlly[1]) / 255.0f;
                 expandedColor[2] = static_cast<float>(colorblindAlly[2]) / 255.0f;
@@ -831,12 +831,13 @@ namespace Components
         Utils::Hook(0x417770, ColorIndex, HOOK_JUMP).install()->quick();
 
         // Add a colorblind mode for team colors
-        ColorBlind = Dvar::Register<bool>("r_colorBlindTeams", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Use color-blindness-friendly colors for ingame team names");
+        r_colorBlind = Dvar::Register<bool>("r_colorBlind", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Use color-blindness-friendly colors");
         // A dark red
-        ColorEnemyColorBlind = Game::Dvar_RegisterColor("g_ColorBlind_EnemyTeam", 0.659f, 0.088f, 0.145f, 1, Game::dvar_flag::DVAR_FLAG_SAVED, "Enemy team color for colorblind mode");
+        g_ColorBlind_EnemyTeam = Game::Dvar_RegisterColor("g_ColorBlind_EnemyTeam", 0.659f, 0.088f, 0.145f, 1, Game::dvar_flag::DVAR_FLAG_SAVED, "Enemy team color for colorblind mode");
         // A bright yellow
-        ColorAllyColorBlind = Game::Dvar_RegisterColor("g_ColorBlind_MyTeam", 1, 0.859f, 0.125f, 1, Game::dvar_flag::DVAR_FLAG_SAVED, "Ally team color for colorblind mode");
+        g_ColorBlind_MyTeam = Game::Dvar_RegisterColor("g_ColorBlind_MyTeam", 1, 0.859f, 0.125f, 1, Game::dvar_flag::DVAR_FLAG_SAVED, "Ally team color for colorblind mode");
 
+        // Replace team colors with colorblind team colors when colorblind is enabled
         Utils::Hook(0x406530, GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();
 
         // Disable SV_UpdateUserinfo_f, to block changing the name ingame

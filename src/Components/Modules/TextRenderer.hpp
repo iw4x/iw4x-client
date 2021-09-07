@@ -75,9 +75,9 @@ namespace Components
 		static Dvar::Var cg_newColors;
 		static Game::dvar_t* sv_customTextColor;
 		static Dvar::Var sv_allowColoredNames;
-		static Dvar::Var ColorBlind;
-		static Game::dvar_t* ColorAllyColorBlind;
-		static Game::dvar_t* ColorEnemyColorBlind;
+		static Dvar::Var r_colorBlind;
+		static Game::dvar_t* g_ColorBlind_MyTeam;
+		static Game::dvar_t* g_ColorBlind_EnemyTeam;
 
 	public:
 		static void DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow);
