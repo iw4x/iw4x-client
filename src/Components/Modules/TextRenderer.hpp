@@ -56,10 +56,43 @@ namespace Components
 			unsigned char v;
 		};
 
+		enum FontIconAutocompleteInstance
+		{
+		    FONT_ICON_ACI_CONSOLE,
+		    FONT_ICON_ACI_CHAT,
+
+			FONT_ICON_ACI_COUNT
+		};
+
+		class FontIconAutocompleteResult
+		{
+		public:
+			std::string fontIconName;
+			std::string materialName;
+		};
+
+		class FontIconAutocompleteContext
+		{
+		public:
+			static constexpr auto MAX_RESULTS = 10;
+
+			bool autocompleteActive;
+			unsigned int lastHash;
+			std::string lastQuery;
+			FontIconAutocompleteResult results[MAX_RESULTS];
+			size_t resultCount;
+			size_t resultOffset;
+			size_t lastResultOffset;
+			float maxFontIconWidth;
+			float maxMaterialNameWidth;
+		};
+
 		static constexpr char COLOR_FIRST_CHAR = '0';
 		static constexpr char COLOR_LAST_CHAR = CharForColorIndex(TEXT_COLOR_COUNT - 1);
 		static constexpr unsigned MY_ALTCOLOR_TWO = 0x0DCE6FFE6;
 		static constexpr unsigned COLOR_MAP_HASH = 0xA0AB1041;
+		static constexpr auto FONT_ICON_AUTOCOMPLETE_BOX_PADDING = 6.0f;
+		static constexpr auto FONT_ICON_AUTOCOMPLETE_COL_SPACING = 12.0f;
 		static constexpr float MY_OFFSETS[4][2]
 		{
 			{-1.0f, -1.0f},
@@ -71,12 +104,14 @@ namespace Components
 		static unsigned colorTableDefault[TEXT_COLOR_COUNT];
 		static unsigned colorTableNew[TEXT_COLOR_COUNT];
 		static unsigned(*currentColorTable)[TEXT_COLOR_COUNT];
+		static FontIconAutocompleteContext autocompleteContextArray[FONT_ICON_ACI_COUNT];
 
 		static Dvar::Var cg_newColors;
 		static Game::dvar_t* sv_customTextColor;
 		static Dvar::Var r_colorBlind;
 		static Game::dvar_t* g_ColorBlind_MyTeam;
 		static Game::dvar_t* g_ColorBlind_EnemyTeam;
+		static Game::dvar_t** con_inputBoxColor;
 
 	public:
 		static void DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow);
@@ -93,6 +128,13 @@ namespace Components
 
 	private:
 		static unsigned HsvToRgb(HsvColor hsv);
+
+		static void DrawAutocompleteBox(float x, float y, float w, float h, const float* color);
+		static void DrawAutocomplete(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font);
+		static void UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font);
+		static void UpdateAutocompleteContext(FontIconAutocompleteContext& context, Game::field_t* edit, Game::Font_s* font);
+		static void Field_Draw_Say(int localClientNum, Game::field_t* edit, int x, int y, int horzAlign, int vertAlign);
+		static void Con_DrawInput_Hk(int localClientNum);
 
 		static int SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field);
 		static void Field_AdjustScroll_PrintLen_Stub();

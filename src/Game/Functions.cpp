@@ -339,6 +339,8 @@ namespace Game
 	RandWithSeed_t RandWithSeed = RandWithSeed_t(0x495580);
 	GetDecayingLetterInfo_t GetDecayingLetterInfo = GetDecayingLetterInfo_t(0x5351C0);
 
+	Field_Draw_t Field_Draw = Field_Draw_t(0x4F5B40);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
@@ -428,6 +430,11 @@ namespace Game
 	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
 
 	GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
+
+	ConDrawInputGlob* conDrawInputGlob = reinterpret_cast<ConDrawInputGlob*>(0x9FD6F8);
+	field_t* g_consoleField = reinterpret_cast<field_t*>(0xA1B6B0);
+
+	clientStatic_t* cls = reinterpret_cast<clientStatic_t*>(0xA7FE90);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
@@ -550,37 +557,32 @@ namespace Game
 
 		while (lock && *reinterpret_cast<volatile long*>(0x16B8A58)) std::this_thread::sleep_for(1ms);
 
-		unsigned int index = 0;
-		do
+		const auto pool = Components::Maps::GetAssetEntryPool();
+		for(auto hash = 0; hash < 37000; hash++)
 		{
-			unsigned short hashIndex = db_hashTable[index];
-			if (hashIndex)
+			auto hashIndex = db_hashTable[hash];
+			while(hashIndex)
 			{
-				do
+				auto* assetEntry = &pool[hashIndex];
+
+				if(assetEntry->asset.type == type)
 				{
-					XAssetEntry* asset = &Components::Maps::GetAssetEntryPool()[hashIndex];
-					hashIndex = asset->nextHash;
-					if (asset->asset.type == type)
+					callback(assetEntry);
+					if (overrides)
 					{
-						callback(asset);
-						if (overrides)
+						auto overrideIndex = assetEntry->nextOverride;
+						while (overrideIndex)
 						{
-							unsigned short overrideIndex = asset->nextOverride;
-							if (asset->nextOverride)
-							{
-								do
-								{
-									asset = &Components::Maps::GetAssetEntryPool()[overrideIndex];
-									callback(asset);
-									overrideIndex = asset->nextOverride;
-								} while (overrideIndex);
-							}
+							auto* overrideEntry = &pool[overrideIndex];
+							callback(overrideEntry);
+							overrideIndex = overrideEntry->nextOverride;
 						}
 					}
-				} while (hashIndex);
+				}
+
+				hashIndex = assetEntry->nextHash;
 			}
-			++index;
-		} while (index < 74000);
+		}
 
 		if(lock) InterlockedDecrement(lockVar);
 	}
@@ -604,6 +606,20 @@ namespace Game
 		{
 			hash = (*string | 0x20) ^ (33 * hash);
 			++string;
+		}
+
+		return hash;
+	}
+
+	unsigned int R_HashString(const char* string, size_t maxLen)
+	{
+		unsigned int hash = 0;
+
+		while (*string && maxLen > 0)
+		{
+			hash = (*string | 0x20) ^ (33 * hash);
+			++string;
+			maxLen--;
 		}
 
 		return hash;

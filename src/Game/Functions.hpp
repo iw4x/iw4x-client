@@ -788,6 +788,9 @@ namespace Game
 	
 	typedef void(__cdecl* GetDecayingLetterInfo_t)(unsigned int letter, int* randSeed, int decayTimeElapsed, int fxBirthTime, int fxDecayDuration, unsigned __int8 alpha, bool* resultSkipDrawing, char* resultAlpha, unsigned int* resultLetter, bool* resultDrawExtraFxChar);
 	extern GetDecayingLetterInfo_t GetDecayingLetterInfo;
+	
+	typedef void(__cdecl * Field_Draw_t)(int localClientNum, field_t* edit, int x, int y, int horzAlign, int vertAlign);
+	extern Field_Draw_t Field_Draw;
 
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
@@ -878,6 +881,11 @@ namespace Game
 
 	extern GfxScene* scene;
 
+	extern ConDrawInputGlob* conDrawInputGlob;
+	extern field_t* g_consoleField;
+
+	extern clientStatic_t* cls;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
@@ -898,6 +906,7 @@ namespace Game
 	void ShowMessageBox(const std::string& message, const std::string& title);
 
 	unsigned int R_HashString(const char* string);
+	unsigned int R_HashString(const char* string, size_t maxLen);
 	void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
 	void R_SetSunFromDvars(sunflare_t* sun);
 

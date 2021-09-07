@@ -3720,10 +3720,10 @@ namespace Game
 	{
 		XAsset asset;
 		char zoneIndex;
-		volatile char inuse;
+		volatile char inuseMask;
+		bool printedMissingAsset;
 		unsigned __int16 nextHash;
 		unsigned __int16 nextOverride;
-		unsigned __int16 usageFrame;
 	};
 
 	enum XFileLanguage : unsigned char
@@ -5296,6 +5296,121 @@ namespace Game
 		float charHeight;
 		int fixedSize;
 		char buffer[256];
+	};
+
+	struct clientLogo_t
+	{
+		int startTime;
+		int duration;
+		int fadein;
+		int fadeout;
+		Material* material[2];
+	};
+
+	struct vidConfig_t
+	{
+		unsigned int sceneWidth;
+		unsigned int sceneHeight;
+		unsigned int displayWidth;
+		unsigned int displayHeight;
+		unsigned int displayFrequency;
+		int isFullscreen;
+		float aspectRatioWindow;
+		float aspectRatioScenePixel;
+		float aspectRatioDisplayPixel;
+		unsigned int maxTextureSize;
+		unsigned int maxTextureMaps;
+		bool deviceSupportsGamma;
+	};
+
+	struct trDebugLine_t
+	{
+		float start[3];
+		float end[3];
+		float color[4];
+		int depthTest;
+	};
+
+	struct trDebugString_t
+	{
+		float xyz[3];
+		float color[4];
+		float scale;
+		char text[96];
+	};
+
+	struct clientDebugStringInfo_t
+	{
+		int max;
+		int num;
+		trDebugString_t* strings;
+		int* durations;
+	};
+
+	struct clientDebugLineInfo_t
+	{
+		int max;
+		int num;
+		trDebugLine_t* lines;
+		int* durations;
+	};
+
+	struct clientDebug_t
+	{
+		int prevFromServer;
+		int fromServer;
+		clientDebugStringInfo_t clStrings;
+		clientDebugStringInfo_t svStringsBuffer;
+		clientDebugStringInfo_t svStrings;
+		clientDebugLineInfo_t clLines;
+		clientDebugLineInfo_t svLinesBuffer;
+		clientDebugLineInfo_t svLines;
+	};
+
+	struct ClientMatchData
+	{
+		char def[64];
+		char data[1024];
+	};
+
+	struct clientStatic_t
+	{
+		int quit;
+		int hunkUsersStarted;
+		char servername[256];
+		int rendererStarted;
+		int soundStarted;
+		int uiStarted;
+		int frametime;
+		float frametime_base;
+		int realtime;
+		bool gpuSyncedPrevFrame;
+		bool inputUpdatedPrevFrame;
+		clientLogo_t logo;
+		float mapCenter[3];
+		int lastServerPinged;
+		int pingedServerCount;
+		int totalServersParsed;
+		int pingUpdateSource;
+		Material* whiteMaterial;
+		Material* consoleMaterial;
+		Font_s* consoleFont;
+		// ... tbc
+	};
+
+	struct ConDrawInputGlob
+	{
+		char autoCompleteChoice[64];
+		int matchIndex;
+		int matchCount;
+		const char* inputText;
+		int inputTextLen;
+		bool hasExactMatch;
+		bool mayAutoComplete;
+		float x;
+		float y;
+		float leftX;
+		float fontHeight;
 	};
 
 #pragma endregion
