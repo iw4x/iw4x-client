@@ -116,7 +116,7 @@ namespace Components
 
 			mov [esp + 100h + 10h], eax
 
-			jmp TextRenderer::CleanStrStub
+			jmp PlayerName::CleanStrStub
 		}
 	}
 

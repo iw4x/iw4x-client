@@ -38,7 +38,6 @@ namespace Components
 
     Dvar::Var TextRenderer::cg_newColors;
     Game::dvar_t* TextRenderer::sv_customTextColor;
-    Dvar::Var TextRenderer::sv_allowColoredNames;
     Dvar::Var TextRenderer::r_colorBlind;
     Game::dvar_t* TextRenderer::g_ColorBlind_MyTeam;
     Game::dvar_t* TextRenderer::g_ColorBlind_EnemyTeam;
@@ -786,56 +785,6 @@ namespace Components
         return std::string(buffer);
     }
 
-    void TextRenderer::UserInfoCopy(char* buffer, const char* name, const size_t size)
-    {
-        if (!sv_allowColoredNames.get<bool>())
-        {
-            char nameBuffer[64] = {0};
-            StripColors(name, nameBuffer, sizeof(nameBuffer));
-            StripAllTextIcons(nameBuffer, buffer, size);
-        }
-        else
-        {
-            StripAllTextIcons(name, buffer, size);
-        }
-
-        std::string readablePlayerName(buffer);
-        readablePlayerName = Utils::String::Trim(readablePlayerName);
-
-        if(readablePlayerName.size() < 3)
-        {
-            strncpy(buffer, "Unknown Soldier", size);
-        }
-    }
-
-    __declspec(naked) void TextRenderer::ClientUserinfoChanged()
-    {
-        __asm
-        {
-            mov eax, [esp + 4h] // length
-            //sub eax, 1
-            push eax
-
-            push ecx // name
-            push edx // buffer
-
-            call UserInfoCopy
-
-            add esp, 0Ch
-            retn
-        }
-    }
-
-    char* TextRenderer::GetClientName(int localClientNum, int index, char* buf, size_t size)
-    {
-        Game::CL_GetClientName(localClientNum, index, buf, size);
-
-        // Append clantag to username & remove the colors
-        strncpy_s(buf, size, StripColors(ClanTags::GetUserClantag(index, buf)).data(), size);
-
-        return buf;
-    }
-
     void TextRenderer::PatchColorLimit(const char limit)
     {
         Utils::Hook::Set<char>(0x535629, limit); // DrawText2d
@@ -851,12 +800,6 @@ namespace Components
         Utils::Hook::Set<char>(0x5A2E2E, limit); // No idea :P
 
         Utils::Hook::Set<char>(0x5A2733, static_cast<char>(ColorIndexForChar(limit))); // No idea :P
-    }
-
-    char* TextRenderer::CleanStrStub(char* string)
-    {
-        StripColors(string, string, strlen(string) + 1);
-        return string;
     }
 
     // Patches team overhead normally
@@ -931,7 +874,6 @@ namespace Components
         
         cg_newColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare 2 color code style.");
         sv_customTextColor = Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
-        sv_allowColoredNames = Dvar::Register<bool>("sv_allowColoredNames", true, Game::dvar_flag::DVAR_FLAG_NONE, "Allow colored names on the server");
 
         // Replace vanilla text drawing function with a reimplementation with extensions
         Utils::Hook(0x535410, DrawText2D, HOOK_JUMP).install()->quick();
@@ -951,18 +893,6 @@ namespace Components
 
         // Replace team colors with colorblind team colors when colorblind is enabled
         Utils::Hook(0x406530, GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();
-
-        // Disable SV_UpdateUserinfo_f, to block changing the name ingame
-        Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
-
-        // Allow colored names ingame
-        Utils::Hook(0x5D8B40, ClientUserinfoChanged, HOOK_JUMP).install()->quick();
-
-        // Though, don't apply that to overhead names.
-        Utils::Hook(0x581932, GetClientName, HOOK_CALL).install()->quick();
-
-        // Patch I_CleanStr
-        Utils::Hook(0x4AD470, CleanStrStub, HOOK_JUMP).install()->quick();
 
         PatchColorLimit(COLOR_LAST_CHAR);
     }

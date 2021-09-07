@@ -74,7 +74,6 @@ namespace Components
 
 		static Dvar::Var cg_newColors;
 		static Game::dvar_t* sv_customTextColor;
-		static Dvar::Var sv_allowColoredNames;
 		static Dvar::Var r_colorBlind;
 		static Game::dvar_t* g_ColorBlind_MyTeam;
 		static Game::dvar_t* g_ColorBlind_EnemyTeam;
@@ -89,17 +88,13 @@ namespace Components
 		static std::string StripMaterialTextIcons(const std::string& in);
 		static void StripAllTextIcons(const char* in, char* out, size_t max);
 		static std::string StripAllTextIcons(const std::string& in);
-		static void UserInfoCopy(char* buffer, const char* name, size_t size);
 
 		TextRenderer();
 
 	private:
 		static unsigned HsvToRgb(HsvColor hsv);
 
-		static void ClientUserinfoChanged();
-		static char* GetClientName(int localClientNum, int index, char* buf, size_t size);
 		static void PatchColorLimit(char limit);
-		static char* CleanStrStub(char* string);
 		static bool Dvar_GetUnpackedColorByName(const char* name, float* expandedColor);
 		static void GetUnpackedColorByNameStub();
 
