@@ -94,6 +94,9 @@ namespace Components
 	private:
 		static unsigned HsvToRgb(HsvColor hsv);
 
+		static int SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field);
+		static void Field_AdjustScroll_PrintLen_Stub();
+
 		static void PatchColorLimit(char limit);
 		static bool Dvar_GetUnpackedColorByName(const char* name, float* expandedColor);
 		static void GetUnpackedColorByNameStub();

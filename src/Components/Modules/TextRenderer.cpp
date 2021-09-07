@@ -372,6 +372,12 @@ namespace Components
 
             while(*curText && maxLengthRemaining)
             {
+                if (passes[passIndex] == Game::FONTPASS_NORMAL && renderFlags & Game::TEXT_RENDERFLAG_CURSOR && count == cursorPos)
+                {
+                    RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
+                    Game::RB_DrawCursor(material, cursorLetter, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, color.packed);
+                }
+
                 auto letter = Game::SEH_ReadCharFromString(&curText, nullptr);
 
                 if(letter == '^' && *curText >= COLOR_FIRST_CHAR && *curText <= COLOR_LAST_CHAR)
@@ -427,16 +433,9 @@ namespace Components
                         RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
 
                         if(passes[passIndex] == Game::FONTPASS_NORMAL)
-                        {
-                            const auto fontIconWidth = DrawFontIcon(fontIconInfo, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
-                            if (renderFlags & Game::TEXT_RENDERFLAG_CURSOR && count == cursorPos)
-                                Game::RB_DrawCursor(material, cursorLetter, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, color.packed);
-                            xa += fontIconWidth;
-                        }
+                            xa += DrawFontIcon(fontIconInfo, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
                         else
-                        {
                             xa += GetFontIconWidth(fontIconInfo, font, xScale);
-                        }
 
                         if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
                             xa += xScale * padding;
@@ -513,12 +512,6 @@ namespace Components
                             DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, finalColor.packed);
                         else
                             Game::RB_DrawChar(material, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, glyph, finalColor.packed);
-
-                        if (renderFlags & Game::TEXT_RENDERFLAG_CURSOR && count == cursorPos)
-                        {
-                            RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
-                            Game::RB_DrawCursor(material, cursorLetter, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, color.packed);
-                        }
                     }
                     else if(passes[passIndex] == Game::FONTPASS_OUTLINE)
                     {
@@ -785,10 +778,61 @@ namespace Components
         return std::string(buffer);
     }
 
+    int TextRenderer::SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field)
+    {
+        if (!string)
+            return 0;
+
+        const auto cursorPos = field->cursor;
+        auto len = 0;
+        auto lenWithInvisibleTail = 0;
+        auto count = 0;
+        const auto* curText = string;
+        while(*curText)
+        {
+            const auto c = Game::SEH_ReadCharFromString(&curText, nullptr);
+            lenWithInvisibleTail = len;
+
+            if (c == '^' && *curText >= COLOR_FIRST_CHAR && *curText <= COLOR_LAST_CHAR && !(cursorPos > count && cursorPos < count + 2))
+            {
+                curText++;
+                count++;
+            }
+            else if(c != '\r' && c != '\n')
+            {
+                len++;
+            }
+
+            count++;
+            lenWithInvisibleTail++;
+        }
+
+        return lenWithInvisibleTail;
+    }
+
+    __declspec(naked) void TextRenderer::Field_AdjustScroll_PrintLen_Stub()
+    {
+        __asm
+        {
+            push eax
+            pushad
+
+            push esi
+            push [esp + 0x8 + 0x24]
+            call SEH_PrintStrlenWithCursor
+            add esp, 0x8
+            mov [esp + 0x20], eax
+
+            popad
+            pop eax
+            ret
+        }
+    }
+
     void TextRenderer::PatchColorLimit(const char limit)
     {
         Utils::Hook::Set<char>(0x535629, limit); // DrawText2d
-        Utils::Hook::Set<char>(0x4C1BE4, limit); // No idea :P
+        Utils::Hook::Set<char>(0x4C1BE4, limit); // SEH_PrintStrlen
         Utils::Hook::Set<char>(0x4863DD, limit); // No idea :P
         Utils::Hook::Set<char>(0x486429, limit); // No idea :P
         Utils::Hook::Set<char>(0x49A5A8, limit); // No idea :P
@@ -893,6 +937,9 @@ namespace Components
 
         // Replace team colors with colorblind team colors when colorblind is enabled
         Utils::Hook(0x406530, GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();
+
+        // Consider the cursor being inside the color escape sequence when getting the print length for a field
+        Utils::Hook(0x488CBD, Field_AdjustScroll_PrintLen_Stub, HOOK_CALL).install()->quick();
 
         PatchColorLimit(COLOR_LAST_CHAR);
     }

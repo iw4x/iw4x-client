@@ -5287,6 +5287,17 @@ namespace Game
 		FONTPASS_COUNT = 0x3,
 	};
 
+	struct field_t
+	{
+		int cursor;
+		int scroll;
+		int drawWidth;
+		int widthInPixels;
+		float charHeight;
+		int fixedSize;
+		char buffer[256];
+	};
+
 #pragma endregion
 
 #ifndef IDA
