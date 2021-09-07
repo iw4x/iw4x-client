@@ -245,6 +245,20 @@ namespace Components
     void TextRenderer::Field_Draw_Say(const int localClientNum, Game::field_t* edit, const int x, const int y, const int horzAlign, const int vertAlign)
     {
         Game::Field_Draw(localClientNum, edit, x, y, horzAlign, vertAlign);
+
+        auto& autocompleteContext = autocompleteContextArray[FONT_ICON_ACI_CHAT];
+        UpdateAutocompleteContext(autocompleteContext, edit, Game::cls->consoleFont);
+        if (autocompleteContext.autocompleteActive)
+        {
+            auto* screenPlacement = Game::ScrPlace_GetActivePlacement(localClientNum);
+            auto xx = static_cast<float>(x);
+            auto yy = static_cast<float>(y);
+            auto ww = 0.0f;
+            auto hh = 0.0f;
+            Game::ScrPlace_ApplyRect(screenPlacement, &xx, &yy, &ww, &hh, horzAlign, vertAlign);
+            yy += static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont));
+            DrawAutocomplete(autocompleteContext, std::floor(xx), std::floor(yy), Game::cls->consoleFont);
+        }
     }
 
     float TextRenderer::GetMonospaceWidth(Game::Font_s* font, int rendererFlags)

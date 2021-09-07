@@ -759,14 +759,17 @@ namespace Game
 	typedef void(__cdecl * UI_DrawHandlePic_t)(/*ScreenPlacement*/void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Material *material);
 	extern UI_DrawHandlePic_t UI_DrawHandlePic;
 
-	typedef void* (__cdecl * UI_GetContext_t)(void*);
-	extern UI_GetContext_t UI_GetContext;
+	typedef ScreenPlacement* (__cdecl * ScrPlace_GetActivePlacement_t)(int localClientNum);
+	extern ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement;
 
 	typedef int(__cdecl * UI_TextWidth_t)(const char *text, int maxChars, Font_s *font, float scale);
 	extern UI_TextWidth_t UI_TextWidth;
 
 	typedef void(__cdecl * UI_DrawText_t)(void* scrPlace, const char *text, int maxChars, Font_s *font, float x, float y, int horzAlign, int vertAlign, float scale, const float *color, int style);
 	extern UI_DrawText_t UI_DrawText;
+	
+	typedef void(__cdecl* ScrPlace_ApplyRect_t)(ScreenPlacement* a1, float* x, float* y, float* w, float* h, int horzAlign, int vertAlign);
+	extern ScrPlace_ApplyRect_t ScrPlace_ApplyRect;
 
 	typedef const char * (__cdecl * Win_GetLanguage_t)();
 	extern Win_GetLanguage_t Win_GetLanguage;

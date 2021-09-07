@@ -5413,6 +5413,24 @@ namespace Game
 		float fontHeight;
 	};
 
+	struct ScreenPlacement
+	{
+		float scaleVirtualToReal[2];
+		float scaleVirtualToFull[2];
+		float scaleRealToVirtual[2];
+		float realViewportPosition[2];
+		float realViewportSize[2];
+		float virtualViewableMin[2];
+		float virtualViewableMax[2];
+		float realViewableMin[2];
+		float realViewableMax[2];
+		float virtualAdjustableMin[2];
+		float virtualAdjustableMax[2];
+		float realAdjustableMin[2];
+		float realAdjustableMax[2];
+		float subScreenLeft;
+	};
+
 #pragma endregion
 
 #ifndef IDA

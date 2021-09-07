@@ -323,9 +323,10 @@ namespace Game
 	UI_UpdateArenas_t UI_UpdateArenas = UI_UpdateArenas_t(0x4A95B0);
 	UI_SortArenas_t UI_SortArenas = UI_SortArenas_t(0x630AE0);
 	UI_DrawHandlePic_t UI_DrawHandlePic = UI_DrawHandlePic_t(0x4D0EA0);
-	UI_GetContext_t UI_GetContext = UI_GetContext_t(0x4F8940);
+	ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement = ScrPlace_GetActivePlacement_t(0x4F8940);
 	UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x6315C0);
 	UI_DrawText_t UI_DrawText = UI_DrawText_t(0x49C0D0);
+	ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x454E20);
 
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 
