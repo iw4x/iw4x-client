@@ -610,7 +610,7 @@ namespace Game
 	{
 		if (client->state < 5)
 		{
-			Components::Network::SendCommand(client->addr, "error", reason);
+			Components::Network::SendCommand(client->netchan.remoteAddress, "error", reason);
 		}
 
 		SV_KickClient(client, reason.data());
