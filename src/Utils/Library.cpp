@@ -40,23 +40,23 @@ namespace Utils
 	{
 		if (this->freeOnDestroy)
 		{
-			this->Free();
+			this->free();
 		}
 	}
 
-	bool Library::IsValid() const
+	bool Library::isValid() const
 	{
 		return this->_module != nullptr;
 	}
 
-	HMODULE Library::GetModule()
+	HMODULE Library::getModule()
 	{
 		return this->_module;
 	}
 
-	void Library::Free()
+	void Library::free()
 	{
-		if (this->IsValid())
+		if (this->isValid())
 		{
 			FreeLibrary(this->_module);
 		}

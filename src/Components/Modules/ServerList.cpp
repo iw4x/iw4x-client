@@ -469,8 +469,18 @@ namespace Components
 				server.ping = (Game::Sys_Milliseconds() - i->sendTime);
 				server.addr = address;
 
+				Dedicated::StripMaterialTextIcons(server.hostname.data());
+				Dedicated::StripMaterialTextIcons(server.mapname.data());
+				Dedicated::StripMaterialTextIcons(server.gametype.data());
+				Dedicated::StripMaterialTextIcons(server.mod.data());
+
 				// Remove server from queue
 				i = ServerList::RefreshContainer.servers.erase(i);
+
+				// Servers with more than 18 players or less than 0 players are faking for sure
+				// So lets ignore those
+				if (server.clients > 18 || server.maxClients > 18 || server.clients < 0 || server.maxClients < 0)
+					return;
 
 				// Check if already inserted and remove
 				auto list = ServerList::GetList();

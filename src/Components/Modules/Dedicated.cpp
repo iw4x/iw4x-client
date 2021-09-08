@@ -76,6 +76,29 @@ namespace Components
 		}
 	}
 
+	void Dedicated::StripMaterialTextIcons(char* text)
+	{
+		char* currentChar = text;
+		bool isEscaped = false;
+		while (*currentChar)
+		{
+			if (*currentChar == '^')
+			{
+				isEscaped = true;
+			}
+			else if(isEscaped == true && (*currentChar == '\x01' || *currentChar == '\x02'))
+			{
+				*currentChar = ' ';
+			}
+			else
+			{
+				isEscaped = false;
+			}
+
+			currentChar++;
+		}
+	}
+
 	const char* Dedicated::EvaluateSay(char* text, Game::gentity_t* player)
 	{
 		Dedicated::SendChat = true;
@@ -86,6 +109,8 @@ namespace Components
 			text[1] = text[0];
 			++text;
 		}
+
+		StripMaterialTextIcons(text);
 
 		Game::Scr_AddEntity(player);
 		Game::Scr_AddString(text + 1);
@@ -103,7 +128,7 @@ namespace Components
 			push eax
 			pushad
 
-			push[esp + 100h + 28h]
+			push [esp + 100h + 28h]
 			push eax
 			call Dedicated::EvaluateSay
 			add esp, 8h

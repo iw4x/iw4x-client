@@ -161,7 +161,12 @@ namespace Components
 			Materials::ImageNameLength = 4 + length;
 			std::string image(imagePtr, length);
 
-			return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
+			auto* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
+
+			if(material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || strcmp(material->techniqueSet->name, "2d") != 0)
+				return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
+
+			return material;
 		}
 
 		Materials::ImageNameLength = 4;
