@@ -326,6 +326,7 @@ namespace Game
 	ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement = ScrPlace_GetActivePlacement_t(0x4F8940);
 	UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x6315C0);
 	UI_DrawText_t UI_DrawText = UI_DrawText_t(0x49C0D0);
+	UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x4AEA60);
 	ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x454E20);
 
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
@@ -335,6 +336,8 @@ namespace Game
 	unzClose_t unzClose = unzClose_t(0x41BF20);
 
 	RB_DrawCursor_t RB_DrawCursor = RB_DrawCursor_t(0x534EA0);
+
+	R_NormalizedTextScale_t R_NormalizedTextScale = R_NormalizedTextScale_t(0x5056A0);
 
 	Byte4PackRgba_t Byte4PackRgba = Byte4PackRgba_t(0x4FE910);
 	RandWithSeed_t RandWithSeed = RandWithSeed_t(0x495580);

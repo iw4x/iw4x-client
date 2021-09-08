@@ -768,6 +768,9 @@ namespace Game
 	typedef void(__cdecl * UI_DrawText_t)(void* scrPlace, const char *text, int maxChars, Font_s *font, float x, float y, int horzAlign, int vertAlign, float scale, const float *color, int style);
 	extern UI_DrawText_t UI_DrawText;
 	
+	typedef Font_s* (__cdecl* UI_GetFontHandle_t)(ScreenPlacement* scrPlace, int fontEnum, float scale);
+	extern UI_GetFontHandle_t UI_GetFontHandle;
+	
 	typedef void(__cdecl* ScrPlace_ApplyRect_t)(ScreenPlacement* a1, float* x, float* y, float* w, float* h, int horzAlign, int vertAlign);
 	extern ScrPlace_ApplyRect_t ScrPlace_ApplyRect;
 
@@ -782,6 +785,9 @@ namespace Game
 	
 	typedef void(__cdecl* RB_DrawCursor_t)(Material* material, char cursor, float x, float y, float sinAngle, float cosAngle, Font_s* font, float xScale, float yScale, unsigned int color);
 	extern RB_DrawCursor_t RB_DrawCursor;
+	
+	typedef float(__cdecl* R_NormalizedTextScale_t)(Font_s* font, float scale);
+	extern R_NormalizedTextScale_t R_NormalizedTextScale;
 
 	typedef void(__cdecl* Byte4PackRgba_t)(const float* from, char* to);
 	extern Byte4PackRgba_t Byte4PackRgba;

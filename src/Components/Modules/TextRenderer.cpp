@@ -141,7 +141,7 @@ namespace Components
         }
     }
 
-    void TextRenderer::UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font)
+    void TextRenderer::UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font, const float textXScale)
     {
         context.resultCount = 0;
         context.hasMoreResults = false;
@@ -179,8 +179,8 @@ namespace Components
         for(auto resultIndex = 0u; resultIndex < context.resultCount; resultIndex++)
         {
             const auto& result = context.results[resultIndex];
-            const auto fontIconWidth = static_cast<float>(Game::R_TextWidth(result.fontIconName.c_str(), INT_MAX, font));
-            const auto materialNameWidth = static_cast<float>(Game::R_TextWidth(result.materialName.c_str(), INT_MAX, font));
+            const auto fontIconWidth = static_cast<float>(Game::R_TextWidth(result.fontIconName.c_str(), INT_MAX, font)) * textXScale;
+            const auto materialNameWidth = static_cast<float>(Game::R_TextWidth(result.materialName.c_str(), INT_MAX, font)) * textXScale;
 
             if (fontIconWidth > context.maxFontIconWidth)
                 context.maxFontIconWidth = fontIconWidth;
@@ -189,7 +189,7 @@ namespace Components
         }
     }
 
-    void TextRenderer::UpdateAutocompleteContext(FontIconAutocompleteContext& context, Game::field_t* edit, Game::Font_s* font)
+    void TextRenderer::UpdateAutocompleteContext(FontIconAutocompleteContext& context, Game::field_t* edit, Game::Font_s* font, const float textXScale)
     {
         int fontIconStart = -1;
         auto inModifiers = false;
@@ -266,32 +266,34 @@ namespace Components
 
         // Update results for query and scroll
         context.lastQuery = std::string(&edit->buffer[fontIconStart], edit->cursor - fontIconStart);
-        UpdateAutocompleteContextResults(context, font);
+        UpdateAutocompleteContextResults(context, font, textXScale);
     }
 
-    void TextRenderer::DrawAutocompleteModifiers(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font)
+    void TextRenderer::DrawAutocompleteModifiers(const FontIconAutocompleteContext& context, const float x, const float y, Game::Font_s* font, float textXScale, float textYScale)
     {
         const auto* text = "The following modifiers are available:\n"
             "^2h  ^7Flip icon horizontally\n"
             "^2v  ^7Flip icon vertically\n"
             "^2b  ^7Bigger icon";
-        const auto boxWidth = static_cast<float>(Game::R_TextWidth(text, INT_MAX, font));
+        const auto boxWidth = static_cast<float>(Game::R_TextWidth(text, INT_MAX, font)) * textXScale;
         constexpr auto totalLines = 4u;
+        const auto lineHeight = static_cast<float>(font->pixelHeight) * textYScale;
         DrawAutocompleteBox(context,
             x - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
             y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
             boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
-            static_cast<float>(font->pixelHeight * totalLines) + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
+            static_cast<float>(totalLines) * lineHeight + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
             (*con_inputBoxColor)->current.vector);
-        const auto currentY = y + static_cast<float>(font->pixelHeight);
-        Game::R_AddCmdDrawText(text, INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
+        Game::R_AddCmdDrawText(text, INT_MAX, font, x, y + lineHeight, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
     }
 
-    void TextRenderer::DrawAutocompleteResults(const FontIconAutocompleteContext& context, const float x, const float y, Game::Font_s* font)
+    void TextRenderer::DrawAutocompleteResults(const FontIconAutocompleteContext& context, const float x, const float y, Game::Font_s* font, const float textXScale, const float textYScale)
     {
         const auto* text = Utils::String::VA("Font icons starting with ^2%s^7:", context.lastQuery.c_str());
-        const auto boxWidth = std::max(context.maxFontIconWidth + context.maxMaterialNameWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, 
-            static_cast<float>(Game::R_TextWidth(text, INT_MAX, font)));
+        const auto colSpacing = FONT_ICON_AUTOCOMPLETE_COL_SPACING * textXScale;
+        const auto boxWidth = std::max(context.maxFontIconWidth + context.maxMaterialNameWidth + colSpacing,
+            static_cast<float>(Game::R_TextWidth(text, INT_MAX, font)) * textXScale);
+        const auto lineHeight = static_cast<float>(font->pixelHeight) * textYScale;
 
         const auto hintEnabled = cg_fontIconAutocompleteHint.get<bool>();
         const auto totalLines = 1u + context.resultCount + (hintEnabled ? 2u : 0u);
@@ -300,40 +302,40 @@ namespace Components
             x - FONT_ICON_AUTOCOMPLETE_BOX_PADDING, 
             y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING, 
             boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2 + arrowPadding,
-            static_cast<float>(font->pixelHeight * totalLines) + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
+            static_cast<float>(totalLines) * lineHeight + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
             (*con_inputBoxColor)->current.vector);
         
-        auto currentY = y + static_cast<float>(font->pixelHeight);
-        Game::R_AddCmdDrawText(text, INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
-        currentY += static_cast<float>(font->pixelHeight);
+        auto currentY = y + lineHeight;
+        Game::R_AddCmdDrawText(text, INT_MAX, font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+        currentY += lineHeight;
 
         const auto selectedIndex = context.selectedOffset - context.resultOffset;
         for(auto resultIndex = 0u; resultIndex < context.resultCount; resultIndex++)
         {
             const auto& result = context.results[resultIndex];
-            Game::R_AddCmdDrawText(result.fontIconName.c_str(), INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
+            Game::R_AddCmdDrawText(result.fontIconName.c_str(), INT_MAX, font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
 
             if(selectedIndex == resultIndex)
-                Game::R_AddCmdDrawText(Utils::String::VA("^2%s", result.materialName.c_str()), INT_MAX, font, x + context.maxFontIconWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
+                Game::R_AddCmdDrawText(Utils::String::VA("^2%s", result.materialName.c_str()), INT_MAX, font, x + context.maxFontIconWidth + colSpacing, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
             else
-                Game::R_AddCmdDrawText(result.materialName.c_str(), INT_MAX, font, x + context.maxFontIconWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
-            currentY += static_cast<float>(font->pixelHeight);
+                Game::R_AddCmdDrawText(result.materialName.c_str(), INT_MAX, font, x + context.maxFontIconWidth + colSpacing, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+            currentY += lineHeight;
         }
 
         if(hintEnabled)
         {
-            Game::R_AddCmdDrawText("Press ^3TAB ^7for autocomplete", INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, HINT_COLOR, 0);
-            currentY += static_cast<float>(font->pixelHeight);
-            Game::R_AddCmdDrawText("Use ^3+ ^7for modifiers", INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, HINT_COLOR, 0);
+            Game::R_AddCmdDrawText("Press ^3TAB ^7for autocomplete", INT_MAX, font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
+            currentY += lineHeight;
+            Game::R_AddCmdDrawText("Use ^3+ ^7for modifiers", INT_MAX, font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
         }
     }
 
-    void TextRenderer::DrawAutocomplete(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font)
+    void TextRenderer::DrawAutocomplete(const FontIconAutocompleteContext& context, const float x, const float y, Game::Font_s* font, const float textXScale, const float textYScale)
     {
         if (context.inModifiers)
-            DrawAutocompleteModifiers(context, x, y, font);
+            DrawAutocompleteModifiers(context, x, y, font, textXScale, textYScale);
         else
-            DrawAutocompleteResults(context, x, y, font);
+            DrawAutocompleteResults(context, x, y, font, textXScale, textYScale);
     }
 
     void TextRenderer::Con_DrawInput_Hk(const int localClientNum)
@@ -348,12 +350,12 @@ namespace Components
             return;
         }
 
-        UpdateAutocompleteContext(autocompleteContext, Game::g_consoleField, Game::cls->consoleFont);
+        UpdateAutocompleteContext(autocompleteContext, Game::g_consoleField, Game::cls->consoleFont, 1.0f);
         if (autocompleteContext.autocompleteActive)
         {
             const auto x = Game::conDrawInputGlob->leftX;
             const auto y = Game::con_screenMin[1] + 6.0f + static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont));
-            DrawAutocomplete(autocompleteContext, x, y, Game::cls->consoleFont);
+            DrawAutocomplete(autocompleteContext, x, y, Game::cls->consoleFont, 1.0f, 1.0f);
         }
     }
 
@@ -368,17 +370,21 @@ namespace Components
             return;
         }
 
-        UpdateAutocompleteContext(autocompleteContext, edit, Game::cls->consoleFont);
+        auto* screenPlacement = Game::ScrPlace_GetActivePlacement(localClientNum);
+        const auto scale = edit->charHeight / 48.0f;
+        auto* font = Game::UI_GetFontHandle(screenPlacement, 0, scale);
+        const auto normalizedScale = Game::R_NormalizedTextScale(font, scale);
+        auto xx = static_cast<float>(x);
+        auto yy = static_cast<float>(y);
+        yy += static_cast<float>(Game::R_TextHeight(font)) * normalizedScale * 1.5f;
+        auto ww = normalizedScale;
+        auto hh = normalizedScale;
+        Game::ScrPlace_ApplyRect(screenPlacement, &xx, &yy, &ww, &hh, horzAlign, vertAlign);
+
+        UpdateAutocompleteContext(autocompleteContext, edit, font, ww);
         if (autocompleteContext.autocompleteActive)
         {
-            auto* screenPlacement = Game::ScrPlace_GetActivePlacement(localClientNum);
-            auto xx = static_cast<float>(x);
-            auto yy = static_cast<float>(y);
-            auto ww = 0.0f;
-            auto hh = 0.0f;
-            Game::ScrPlace_ApplyRect(screenPlacement, &xx, &yy, &ww, &hh, horzAlign, vertAlign);
-            yy += static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont));
-            DrawAutocomplete(autocompleteContext, std::floor(xx), std::floor(yy), Game::cls->consoleFont);
+            DrawAutocomplete(autocompleteContext, std::floor(xx), /*std::floor(*/ yy/*)*/, font, ww, hh);
         }
     }
 

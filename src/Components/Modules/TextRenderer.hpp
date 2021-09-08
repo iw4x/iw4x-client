@@ -152,11 +152,11 @@ namespace Components
 		static unsigned HsvToRgb(HsvColor hsv);
 
 		static void DrawAutocompleteBox(const FontIconAutocompleteContext& context, float x, float y, float w, float h, const float* color);
-		static void DrawAutocompleteModifiers(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font);
-		static void DrawAutocompleteResults(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font);
-		static void DrawAutocomplete(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font);
-		static void UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font);
-		static void UpdateAutocompleteContext(FontIconAutocompleteContext& context, Game::field_t* edit, Game::Font_s* font);
+		static void DrawAutocompleteModifiers(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font, float textXScale, float textYScale);
+		static void DrawAutocompleteResults(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font, float textXScale, float textYScale);
+		static void DrawAutocomplete(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font, float textXScale, float textYScale);
+		static void UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font, float textXScale);
+		static void UpdateAutocompleteContext(FontIconAutocompleteContext& context, Game::field_t* edit, Game::Font_s* font, float textXScale);
 		static void Field_Draw_Say(int localClientNum, Game::field_t* edit, int x, int y, int horzAlign, int vertAlign);
 		static void Con_DrawInput_Hk(int localClientNum);
 
