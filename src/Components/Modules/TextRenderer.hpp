@@ -78,6 +78,7 @@ namespace Components
 			static constexpr auto MAX_RESULTS = 10;
 
 			bool autocompleteActive;
+			bool inModifiers;
 			unsigned int lastHash;
 			std::string lastQuery;
 			FontIconAutocompleteResult results[MAX_RESULTS];
@@ -105,6 +106,20 @@ namespace Components
 			{1.0f, -1.0f},
 			{1.0f, 1.0f},
 		};
+		static constexpr float TEXT_COLOR[4]
+		{
+			1.0f,
+			1.0f,
+			0.8f,
+			1.0f
+		};
+		static constexpr float HINT_COLOR[4]
+		{
+			0.6f,
+			0.6f,
+			0.6f,
+			1.0f
+		};
 
 		static unsigned colorTableDefault[TEXT_COLOR_COUNT];
 		static unsigned colorTableNew[TEXT_COLOR_COUNT];
@@ -112,6 +127,8 @@ namespace Components
 		static FontIconAutocompleteContext autocompleteContextArray[FONT_ICON_ACI_COUNT];
 
 		static Dvar::Var cg_newColors;
+		static Dvar::Var cg_fontIconAutocomplete;
+		static Dvar::Var cg_fontIconAutocompleteHint;
 		static Game::dvar_t* sv_customTextColor;
 		static Dvar::Var r_colorBlind;
 		static Game::dvar_t* g_ColorBlind_MyTeam;
@@ -135,6 +152,8 @@ namespace Components
 		static unsigned HsvToRgb(HsvColor hsv);
 
 		static void DrawAutocompleteBox(const FontIconAutocompleteContext& context, float x, float y, float w, float h, const float* color);
+		static void DrawAutocompleteModifiers(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font);
+		static void DrawAutocompleteResults(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font);
 		static void DrawAutocomplete(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font);
 		static void UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font);
 		static void UpdateAutocompleteContext(FontIconAutocompleteContext& context, Game::field_t* edit, Game::Font_s* font);

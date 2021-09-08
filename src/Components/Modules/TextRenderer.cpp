@@ -43,6 +43,8 @@ namespace Components
     TextRenderer::FontIconAutocompleteContext TextRenderer::autocompleteContextArray[FONT_ICON_ACI_COUNT]{};
 
     Dvar::Var TextRenderer::cg_newColors;
+    Dvar::Var TextRenderer::cg_fontIconAutocomplete;
+    Dvar::Var TextRenderer::cg_fontIconAutocompleteHint;
     Game::dvar_t* TextRenderer::sv_customTextColor;
     Dvar::Var TextRenderer::r_colorBlind;
     Game::dvar_t* TextRenderer::g_ColorBlind_MyTeam;
@@ -190,20 +192,41 @@ namespace Components
     void TextRenderer::UpdateAutocompleteContext(FontIconAutocompleteContext& context, Game::field_t* edit, Game::Font_s* font)
     {
         int fontIconStart = -1;
-        for(auto i = edit->cursor - 1; i >= 0; i--)
+        auto inModifiers = false;
+
+        for(auto i = 0; i < edit->cursor; i++)
         {
             const auto c = static_cast<unsigned char>(edit->buffer[i]);
             if (c == ':')
             {
-                fontIconStart = i + 1;
-                break;
+                if(fontIconStart < 0)
+                {
+                    fontIconStart = i + 1;
+                    inModifiers = false;
+                }
+                else
+                {
+                    fontIconStart = -1;
+                    inModifiers = false;
+                }
             }
-
-            if (isspace(c))
-                break;
-
-            if (c == '+')
-                break;
+            else if(isspace(c))
+            {
+                fontIconStart = -1;
+                inModifiers = false;
+            }
+            else if(c == '+')
+            {
+                if (fontIconStart >= 0 && !inModifiers)
+                {
+                    inModifiers = true;
+                }
+                else
+                {
+                    fontIconStart = -1;
+                    inModifiers = false;
+                }
+            }
         }
 
         if(fontIconStart < 0 || fontIconStart == edit->cursor)
@@ -214,6 +237,8 @@ namespace Components
             return;
         }
 
+        context.inModifiers = inModifiers;
+
         // Update scroll
         if(context.selectedOffset < context.resultOffset)
             context.resultOffset = context.selectedOffset;
@@ -221,6 +246,10 @@ namespace Components
             context.resultOffset = context.selectedOffset - (FontIconAutocompleteContext::MAX_RESULTS - 1);
 
         context.autocompleteActive = true;
+
+        // No need to update results when in modifiers
+        if (context.inModifiers)
+            return;
 
         // Check if results need updates
         const auto currentFontIconHash = Game::R_HashString(&edit->buffer[fontIconStart], edit->cursor - fontIconStart);
@@ -240,13 +269,32 @@ namespace Components
         UpdateAutocompleteContextResults(context, font);
     }
 
-    void TextRenderer::DrawAutocomplete(const FontIconAutocompleteContext& context, const float x, const float y, Game::Font_s* font)
+    void TextRenderer::DrawAutocompleteModifiers(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font)
+    {
+        const auto* text = "The following modifiers are available:\n"
+            "^2h  ^7Flip icon horizontally\n"
+            "^2v  ^7Flip icon vertically\n"
+            "^2b  ^7Bigger icon";
+        const auto boxWidth = static_cast<float>(Game::R_TextWidth(text, INT_MAX, font));
+        constexpr auto totalLines = 4u;
+        DrawAutocompleteBox(context,
+            x - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
+            y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
+            boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
+            static_cast<float>(font->pixelHeight * totalLines) + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
+            (*con_inputBoxColor)->current.vector);
+        const auto currentY = y + static_cast<float>(font->pixelHeight);
+        Game::R_AddCmdDrawText(text, INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
+    }
+
+    void TextRenderer::DrawAutocompleteResults(const FontIconAutocompleteContext& context, const float x, const float y, Game::Font_s* font)
     {
         const auto* text = Utils::String::VA("Font icons starting with ^2%s^7:", context.lastQuery.c_str());
         const auto boxWidth = std::max(context.maxFontIconWidth + context.maxMaterialNameWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, 
             static_cast<float>(Game::R_TextWidth(text, INT_MAX, font)));
 
-        const auto totalLines = 1u + context.resultCount;
+        const auto hintEnabled = cg_fontIconAutocompleteHint.get<bool>();
+        const auto totalLines = 1u + context.resultCount + (hintEnabled ? 2u : 0u);
         const auto arrowPadding = context.resultOffset > 0 || context.hasMoreResults ? FONT_ICON_AUTOCOMPLETE_ARROW_SIZE : 0.0f;
         DrawAutocompleteBox(context,
             x - FONT_ICON_AUTOCOMPLETE_BOX_PADDING, 
@@ -254,31 +302,38 @@ namespace Components
             boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2 + arrowPadding,
             static_cast<float>(font->pixelHeight * totalLines) + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
             (*con_inputBoxColor)->current.vector);
-
-        const float textColor[4]
-        {
-            1.0f,
-            1.0f,
-            0.8f,
-            1.0f
-        };
-
+        
         auto currentY = y + static_cast<float>(font->pixelHeight);
-        Game::R_AddCmdDrawText(text, INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, textColor, 0);
+        Game::R_AddCmdDrawText(text, INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
         currentY += static_cast<float>(font->pixelHeight);
 
         const auto selectedIndex = context.selectedOffset - context.resultOffset;
         for(auto resultIndex = 0u; resultIndex < context.resultCount; resultIndex++)
         {
             const auto& result = context.results[resultIndex];
-            Game::R_AddCmdDrawText(result.fontIconName.c_str(), INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, textColor, 0);
+            Game::R_AddCmdDrawText(result.fontIconName.c_str(), INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
 
             if(selectedIndex == resultIndex)
-                Game::R_AddCmdDrawText(Utils::String::VA("^2%s", result.materialName.c_str()), INT_MAX, font, x + context.maxFontIconWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, currentY, 1.0f, 1.0f, 0.0, textColor, 0);
+                Game::R_AddCmdDrawText(Utils::String::VA("^2%s", result.materialName.c_str()), INT_MAX, font, x + context.maxFontIconWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
             else
-                Game::R_AddCmdDrawText(result.materialName.c_str(), INT_MAX, font, x + context.maxFontIconWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, currentY, 1.0f, 1.0f, 0.0, textColor, 0);
+                Game::R_AddCmdDrawText(result.materialName.c_str(), INT_MAX, font, x + context.maxFontIconWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, currentY, 1.0f, 1.0f, 0.0, TEXT_COLOR, 0);
             currentY += static_cast<float>(font->pixelHeight);
         }
+
+        if(hintEnabled)
+        {
+            Game::R_AddCmdDrawText("Press ^3TAB ^7for autocomplete", INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, HINT_COLOR, 0);
+            currentY += static_cast<float>(font->pixelHeight);
+            Game::R_AddCmdDrawText("Use ^3+ ^7for modifiers", INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, HINT_COLOR, 0);
+        }
+    }
+
+    void TextRenderer::DrawAutocomplete(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font)
+    {
+        if (context.inModifiers)
+            DrawAutocompleteModifiers(context, x, y, font);
+        else
+            DrawAutocompleteResults(context, x, y, font);
     }
 
     void TextRenderer::Con_DrawInput_Hk(const int localClientNum)
@@ -287,6 +342,12 @@ namespace Components
         Utils::Hook::Call<void(int)>(0x5A4480)(localClientNum);
 
         auto& autocompleteContext = autocompleteContextArray[FONT_ICON_ACI_CONSOLE];
+        if (cg_fontIconAutocomplete.get<bool>() == false)
+        {
+            autocompleteContext.autocompleteActive = false;
+            return;
+        }
+
         UpdateAutocompleteContext(autocompleteContext, Game::g_consoleField, Game::cls->consoleFont);
         if (autocompleteContext.autocompleteActive)
         {
@@ -301,6 +362,12 @@ namespace Components
         Game::Field_Draw(localClientNum, edit, x, y, horzAlign, vertAlign);
 
         auto& autocompleteContext = autocompleteContextArray[FONT_ICON_ACI_CHAT];
+        if (cg_fontIconAutocomplete.get<bool>() == false)
+        {
+            autocompleteContext.autocompleteActive = false;
+            return;
+        }
+
         UpdateAutocompleteContext(autocompleteContext, edit, Game::cls->consoleFont);
         if (autocompleteContext.autocompleteActive)
         {
@@ -1257,6 +1324,8 @@ namespace Components
         currentColorTable = &colorTableDefault;
         
         cg_newColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Use Warfare 2 color code style.");
+        cg_fontIconAutocomplete = Dvar::Register<bool>("cg_fontIconAutocomplete", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Show autocomplete for fonticons when typing.");
+        cg_fontIconAutocompleteHint = Dvar::Register<bool>("cg_fontIconAutocompleteHint", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Show hint text in autocomplete for fonticons.");
         sv_customTextColor = Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
 
         // Replace vanilla text drawing function with a reimplementation with extensions
