@@ -229,7 +229,11 @@ namespace Components
             }
         }
 
-        if(fontIconStart < 0 || fontIconStart == edit->cursor || !isalpha(static_cast<unsigned char>(edit->buffer[fontIconStart])))
+        if(fontIconStart < 0 // Not in fonticon sequence
+            || fontIconStart == edit->cursor // Did not type the first letter yet
+            || !isalpha(static_cast<unsigned char>(edit->buffer[fontIconStart])) // First letter of the icon is not alphabetic
+            || (fontIconStart > 1 && isalnum(static_cast<unsigned char>(edit->buffer[fontIconStart - 2]))) // Letter before sequence is alnum
+            )
         {
             context.autocompleteActive = false;
             context.userClosed = false;
