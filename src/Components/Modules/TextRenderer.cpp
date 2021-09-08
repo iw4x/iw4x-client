@@ -232,6 +232,7 @@ namespace Components
         if(fontIconStart < 0 || fontIconStart == edit->cursor || !isalpha(static_cast<unsigned char>(edit->buffer[fontIconStart])))
         {
             context.autocompleteActive = false;
+            context.userClosed = false;
             context.lastHash = 0;
             context.resultCount = 0;
             return;
@@ -244,6 +245,10 @@ namespace Components
             context.resultOffset = context.selectedOffset;
         else if(context.selectedOffset >= context.resultOffset + FontIconAutocompleteContext::MAX_RESULTS)
             context.resultOffset = context.selectedOffset - (FontIconAutocompleteContext::MAX_RESULTS - 1);
+
+        // If the user closed the context do not draw or update
+        if (context.userClosed)
+            return;
 
         context.autocompleteActive = true;
 
@@ -452,6 +457,15 @@ namespace Components
         case Game::K_TAB:
             AutocompleteFill(context, scrPlace, edit);
             return true;
+
+        case Game::K_ESCAPE:
+            if (!context.userClosed)
+            {
+                context.autocompleteActive = false;
+                context.userClosed = true;
+                return true;
+            }
+            return false;
 
         default:
             return false;

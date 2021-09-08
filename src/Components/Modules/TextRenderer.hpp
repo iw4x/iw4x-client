@@ -79,6 +79,7 @@ namespace Components
 
 			bool autocompleteActive;
 			bool inModifiers;
+			bool userClosed;
 			unsigned int lastHash;
 			std::string lastQuery;
 			FontIconAutocompleteResult results[MAX_RESULTS];
