@@ -4666,13 +4666,11 @@ namespace Game
 		// 269044
 		char __pad9[9228];
 		// 278272
-		unsigned __int64 steamId;
+		unsigned __int64 steamID;
 		// 278280
 		char __pad10[403592];
 	} client_t;
 #pragma pack(pop)
-
-	static_assert(sizeof(client_t) == 681872);
 
 	struct CModelAllocData
 	{
