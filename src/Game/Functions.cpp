@@ -341,6 +341,7 @@ namespace Game
 	GetDecayingLetterInfo_t GetDecayingLetterInfo = GetDecayingLetterInfo_t(0x5351C0);
 
 	Field_Draw_t Field_Draw = Field_Draw_t(0x4F5B40);
+	Field_AdjustScroll_t Field_AdjustScroll = Field_AdjustScroll_t(0x488C10);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
@@ -436,6 +437,12 @@ namespace Game
 	field_t* g_consoleField = reinterpret_cast<field_t*>(0xA1B6B0);
 
 	clientStatic_t* cls = reinterpret_cast<clientStatic_t*>(0xA7FE90);
+
+	sharedUiInfo_t* sharedUiInfo = reinterpret_cast<sharedUiInfo_t*>(0x62E4B78);
+	ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0x10843F0);
+	ScreenPlacement* scrPlaceView = reinterpret_cast<ScreenPlacement*>(0x1084378);
+
+	PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{

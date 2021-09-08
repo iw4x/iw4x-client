@@ -794,6 +794,9 @@ namespace Game
 	
 	typedef void(__cdecl * Field_Draw_t)(int localClientNum, field_t* edit, int x, int y, int horzAlign, int vertAlign);
 	extern Field_Draw_t Field_Draw;
+	
+	typedef void(__cdecl * Field_AdjustScroll_t)(ScreenPlacement* scrPlace, field_t* edit);
+	extern Field_AdjustScroll_t Field_AdjustScroll;
 
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
@@ -888,6 +891,12 @@ namespace Game
 	extern field_t* g_consoleField;
 
 	extern clientStatic_t* cls;
+
+	extern sharedUiInfo_t* sharedUiInfo;
+	extern ScreenPlacement* scrPlaceFull;
+	extern ScreenPlacement* scrPlaceView;
+
+	extern PlayerKeyState* playerKeys;
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);

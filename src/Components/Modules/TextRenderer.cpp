@@ -98,8 +98,15 @@ namespace Components
         return rgb;
     }
 
-    void TextRenderer::DrawAutocompleteBox(const float x, const float y, const float w, const float h, const float* color)
+    void TextRenderer::DrawAutocompleteBox(const FontIconAutocompleteContext& context, const float x, const float y, const float w, const float h, const float* color)
     {
+        static constexpr float colorWhite[4]
+        {
+            1.0f,
+            1.0f,
+            1.0f,
+            1.0f
+        };
         const float borderColor[4]
         {
             color[0] * 0.5f,
@@ -109,32 +116,61 @@ namespace Components
         };
 
         Game::R_AddCmdDrawStretchPic(x, y, w, h, 0.0, 0.0, 0.0, 0.0, color, Game::cls->whiteMaterial);
-        Game::R_AddCmdDrawStretchPic(x, y, 2.0, h, 0.0, 0.0, 0.0, 0.0, borderColor, Game::cls->whiteMaterial);
-        Game::R_AddCmdDrawStretchPic(x + w - 2.0f, y, 2.0, h, 0.0, 0.0, 0.0, 0.0, borderColor, Game::cls->whiteMaterial);
-        Game::R_AddCmdDrawStretchPic(x, y, w, 2.0, 0.0, 0.0, 0.0, 0.0, borderColor, Game::cls->whiteMaterial);
-        Game::R_AddCmdDrawStretchPic(x, y + h - 2.0f, w, 2.0, 0.0, 0.0, 0.0, 0.0, borderColor, Game::cls->whiteMaterial);
+        Game::R_AddCmdDrawStretchPic(x, y, FONT_ICON_AUTOCOMPLETE_BOX_BORDER, h, 0.0, 0.0, 0.0, 0.0, borderColor, Game::cls->whiteMaterial);
+        Game::R_AddCmdDrawStretchPic(x + w - FONT_ICON_AUTOCOMPLETE_BOX_BORDER, y, FONT_ICON_AUTOCOMPLETE_BOX_BORDER, h, 0.0, 0.0, 0.0, 0.0, borderColor, Game::cls->whiteMaterial);
+        Game::R_AddCmdDrawStretchPic(x, y, w, FONT_ICON_AUTOCOMPLETE_BOX_BORDER, 0.0, 0.0, 0.0, 0.0, borderColor, Game::cls->whiteMaterial);
+        Game::R_AddCmdDrawStretchPic(x, y + h - FONT_ICON_AUTOCOMPLETE_BOX_BORDER, w, FONT_ICON_AUTOCOMPLETE_BOX_BORDER, 0.0, 0.0, 0.0, 0.0, borderColor, Game::cls->whiteMaterial);
+
+        if (context.resultOffset > 0)
+        {
+            Game::R_AddCmdDrawStretchPic(x + w - FONT_ICON_AUTOCOMPLETE_BOX_BORDER - FONT_ICON_AUTOCOMPLETE_ARROW_SIZE,
+                y + FONT_ICON_AUTOCOMPLETE_BOX_BORDER,
+                FONT_ICON_AUTOCOMPLETE_ARROW_SIZE,
+                FONT_ICON_AUTOCOMPLETE_ARROW_SIZE,
+                1.0f, 1.0f, 0.0f, 0.0f, colorWhite, Game::sharedUiInfo->assets.scrollBarArrowDown);
+        }
+        if(context.hasMoreResults)
+        {
+            Game::R_AddCmdDrawStretchPic(x + w - FONT_ICON_AUTOCOMPLETE_BOX_BORDER - FONT_ICON_AUTOCOMPLETE_ARROW_SIZE,
+                y + h - FONT_ICON_AUTOCOMPLETE_BOX_BORDER - FONT_ICON_AUTOCOMPLETE_ARROW_SIZE,
+                FONT_ICON_AUTOCOMPLETE_ARROW_SIZE,
+                FONT_ICON_AUTOCOMPLETE_ARROW_SIZE,
+                1.0f, 1.0f, 0.0f, 0.0f, colorWhite, Game::sharedUiInfo->assets.scrollBarArrowUp);
+        }
     }
 
     void TextRenderer::UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font)
     {
         context.resultCount = 0;
+        context.hasMoreResults = false;
+        context.lastResultOffset = context.resultOffset;
 
         const auto* techset2d = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_TECHNIQUE_SET, "2d").techniqueSet;
+        auto skipCount = context.resultOffset;
 
-        Game::DB_EnumXAssetEntries(Game::ASSET_TYPE_MATERIAL, [&context, techset2d](const Game::XAssetEntry* entry)
+        Game::DB_EnumXAssetEntries(Game::ASSET_TYPE_MATERIAL, [&context, techset2d, &skipCount](const Game::XAssetEntry* entry)
         {
-            if (context.resultCount >= FontIconAutocompleteContext::MAX_RESULTS)
+            if (context.resultCount >= FontIconAutocompleteContext::MAX_RESULTS && context.hasMoreResults)
                 return;
 
             const auto* material = entry->asset.header.material;
             if(material->techniqueSet == techset2d && std::string(material->info.name).rfind(context.lastQuery, 0) == 0)
             {
-                context.results[context.resultCount++] = {
-                    std::string(Utils::String::VA(":%s:", material->info.name)),
-                    std::string(material->info.name)
-                };
+                if (skipCount > 0)
+                {
+                    skipCount--;
+                }
+                else if (context.resultCount < FontIconAutocompleteContext::MAX_RESULTS)
+                {
+                    context.results[context.resultCount++] = {
+                        std::string(Utils::String::VA(":%s:", material->info.name)),
+                        std::string(material->info.name)
+                    };
+                }
+                else
+                    context.hasMoreResults = true;
             }
-        }, true, true);
+        }, false, false);
 
         context.maxFontIconWidth = 0;
         context.maxMaterialNameWidth = 0;
@@ -178,17 +214,28 @@ namespace Components
             return;
         }
 
+        // Update scroll
+        if(context.selectedOffset < context.resultOffset)
+            context.resultOffset = context.selectedOffset;
+        else if(context.selectedOffset >= context.resultOffset + FontIconAutocompleteContext::MAX_RESULTS)
+            context.resultOffset = context.selectedOffset - (FontIconAutocompleteContext::MAX_RESULTS - 1);
+
         context.autocompleteActive = true;
+
+        // Check if results need updates
         const auto currentFontIconHash = Game::R_HashString(&edit->buffer[fontIconStart], edit->cursor - fontIconStart);
         if (currentFontIconHash == context.lastHash && context.lastResultOffset == context.resultOffset)
             return;
 
+        // If query was updated then reset scroll parameters
         if(currentFontIconHash != context.lastHash)
         {
             context.resultOffset = 0;
+            context.selectedOffset = 0;
             context.lastHash = currentFontIconHash;
         }
 
+        // Update results for query and scroll
         context.lastQuery = std::string(&edit->buffer[fontIconStart], edit->cursor - fontIconStart);
         UpdateAutocompleteContextResults(context, font);
     }
@@ -200,9 +247,11 @@ namespace Components
             static_cast<float>(Game::R_TextWidth(text, INT_MAX, font)));
 
         const auto totalLines = 1u + context.resultCount;
-        DrawAutocompleteBox(x - FONT_ICON_AUTOCOMPLETE_BOX_PADDING, 
+        const auto arrowPadding = context.resultOffset > 0 || context.hasMoreResults ? FONT_ICON_AUTOCOMPLETE_ARROW_SIZE : 0.0f;
+        DrawAutocompleteBox(context,
+            x - FONT_ICON_AUTOCOMPLETE_BOX_PADDING, 
             y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING, 
-            boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2, 
+            boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2 + arrowPadding,
             static_cast<float>(font->pixelHeight * totalLines) + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
             (*con_inputBoxColor)->current.vector);
 
@@ -218,11 +267,16 @@ namespace Components
         Game::R_AddCmdDrawText(text, INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, textColor, 0);
         currentY += static_cast<float>(font->pixelHeight);
 
+        const auto selectedIndex = context.selectedOffset - context.resultOffset;
         for(auto resultIndex = 0u; resultIndex < context.resultCount; resultIndex++)
         {
             const auto& result = context.results[resultIndex];
             Game::R_AddCmdDrawText(result.fontIconName.c_str(), INT_MAX, font, x, currentY, 1.0f, 1.0f, 0.0, textColor, 0);
-            Game::R_AddCmdDrawText(result.materialName.c_str(), INT_MAX, font, x + context.maxFontIconWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, currentY, 1.0f, 1.0f, 0.0, textColor, 0);
+
+            if(selectedIndex == resultIndex)
+                Game::R_AddCmdDrawText(Utils::String::VA("^2%s", result.materialName.c_str()), INT_MAX, font, x + context.maxFontIconWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, currentY, 1.0f, 1.0f, 0.0, textColor, 0);
+            else
+                Game::R_AddCmdDrawText(result.materialName.c_str(), INT_MAX, font, x + context.maxFontIconWidth + FONT_ICON_AUTOCOMPLETE_COL_SPACING, currentY, 1.0f, 1.0f, 0.0, textColor, 0);
             currentY += static_cast<float>(font->pixelHeight);
         }
     }
@@ -258,6 +312,116 @@ namespace Components
             Game::ScrPlace_ApplyRect(screenPlacement, &xx, &yy, &ww, &hh, horzAlign, vertAlign);
             yy += static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont));
             DrawAutocomplete(autocompleteContext, std::floor(xx), std::floor(yy), Game::cls->consoleFont);
+        }
+    }
+
+    void TextRenderer::AutocompleteUp(FontIconAutocompleteContext& context)
+    {
+        if (context.selectedOffset > 0)
+            context.selectedOffset--;
+    }
+
+    void TextRenderer::AutocompleteDown(FontIconAutocompleteContext& context)
+    {
+        if (context.resultCount < FontIconAutocompleteContext::MAX_RESULTS)
+        {
+            if (context.resultCount > 0 && context.selectedOffset < context.resultOffset + context.resultCount - 1)
+                context.selectedOffset++;
+        }
+        else if (context.selectedOffset == context.resultOffset + context.resultCount - 1)
+        {
+            if (context.hasMoreResults)
+                context.selectedOffset++;
+        }
+        else
+        {
+            context.selectedOffset++;
+        }
+    }
+
+    void TextRenderer::AutocompleteFill(const FontIconAutocompleteContext& context, Game::ScreenPlacement* scrPlace, Game::field_t* edit)
+    {
+        if (context.selectedOffset >= context.resultOffset + context.resultCount)
+            return;
+
+        const auto selectedResultIndex = context.selectedOffset - context.resultOffset;
+        std::string remainingFillData = context.results[selectedResultIndex].materialName.substr(context.lastQuery.size());
+        const std::string moveData(&edit->buffer[edit->cursor]);
+
+        const auto remainingBufferCharacters = std::extent_v<decltype(Game::field_t::buffer)> - edit->cursor - moveData.size() - 1;
+        if(remainingFillData.size() > remainingBufferCharacters)
+            remainingFillData = remainingFillData.erase(remainingBufferCharacters);
+
+        if(!remainingFillData.empty())
+        {
+            strncpy(&edit->buffer[edit->cursor], remainingFillData.c_str(), remainingFillData.size());
+            strncpy(&edit->buffer[edit->cursor + remainingFillData.size()], moveData.c_str(), moveData.size());
+            edit->buffer[std::extent_v<decltype(Game::field_t::buffer)> - 1] = '\0';
+            edit->cursor += static_cast<int>(remainingFillData.size());
+            Game::Field_AdjustScroll(scrPlace, edit);
+        }
+    }
+
+    bool TextRenderer::AutocompleteHandleKeyDown(FontIconAutocompleteContext& context, const int key, Game::ScreenPlacement* scrPlace, Game::field_t* edit)
+    {
+        switch (key)
+        {
+        case Game::K_UPARROW:
+        case Game::K_KP_UPARROW:
+            AutocompleteUp(context);
+            return true;
+
+        case Game::K_DOWNARROW:
+        case Game::K_KP_DOWNARROW:
+            AutocompleteDown(context);
+            return true;
+
+        case Game::K_TAB:
+            AutocompleteFill(context, scrPlace, edit);
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
+    void TextRenderer::Console_Key_Hk(const int localClientNum, const int key)
+    {
+        auto& autocompleteContext = autocompleteContextArray[FONT_ICON_ACI_CONSOLE];
+        if (autocompleteContext.autocompleteActive && AutocompleteHandleKeyDown(autocompleteContext, key, Game::scrPlaceFull, Game::g_consoleField))
+            return;
+
+        Utils::Hook::Call<void(int, int)>(0x4311E0)(localClientNum, key);
+    }
+
+    bool TextRenderer::ChatHandleKeyDown(const int localClientNum, const int key)
+    {
+        auto& autocompleteContext = autocompleteContextArray[FONT_ICON_ACI_CHAT];
+        return autocompleteContext.autocompleteActive && AutocompleteHandleKeyDown(autocompleteContext, key, &Game::scrPlaceView[localClientNum], &Game::playerKeys[localClientNum].chatField);
+    }
+
+    constexpr auto Message_Key = 0x5A7E50;
+    __declspec(naked) void TextRenderer::Message_Key_Stub()
+    {
+        __asm
+        {
+            pushad
+
+            push eax
+            push edi
+            call ChatHandleKeyDown
+            add esp, 0x8
+            test al,al
+            jnz skipHandling
+
+            popad
+            call Message_Key
+            ret
+
+        skipHandling:
+            popad
+            mov al, 1
+            ret
         }
     }
 
@@ -1123,6 +1287,11 @@ namespace Components
         // Draw fonticon autocompletion for console field
         Utils::Hook(0x5A50A5, Con_DrawInput_Hk, HOOK_CALL).install()->quick();
         Utils::Hook(0x5A50BB, Con_DrawInput_Hk, HOOK_CALL).install()->quick();
+
+        // Handle key inputs for console and chat
+        Utils::Hook(0x4F685C, Console_Key_Hk, HOOK_CALL).install()->quick();
+        Utils::Hook(0x4F6694, Message_Key_Stub, HOOK_CALL).install()->quick();
+        Utils::Hook(0x4F684C, Message_Key_Stub, HOOK_CALL).install()->quick();
 
         PatchColorLimit(COLOR_LAST_CHAR);
     }

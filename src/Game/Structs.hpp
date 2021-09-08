@@ -5431,6 +5431,272 @@ namespace Game
 		float subScreenLeft;
 	};
 
+	struct serverStatusInfo_t
+	{
+		char address[64];
+		const char* lines[128][4];
+		char text[1024];
+		char pings[54];
+		int numLines;
+	};
+
+	struct pendingServer_t
+	{
+		char adrstr[64];
+		char name[64];
+		int startTime;
+		int serverNum;
+		int valid;
+	};
+
+	struct pendingServerStatus_t
+	{
+		int num;
+		pendingServer_t server[16];
+	};
+
+	struct pinglist_t
+	{
+		char adrstr[64];
+		int start;
+	};
+
+	struct serverStatus_s
+	{
+		pinglist_t pingList[16];
+		int numqueriedservers;
+		int currentping;
+		int nextpingtime;
+		int maxservers;
+		int refreshtime;
+		int numServers;
+		int sortKey;
+		int sortDir;
+		int lastCount;
+		int refreshActive;
+		int currentServer;
+		int displayServers[20000];
+		int numDisplayServers;
+		int serverCount;
+		int numPlayersOnServers;
+		int nextDisplayRefresh;
+		int nextSortTime;
+		int motdLen;
+		int motdWidth;
+		int motdPaintX;
+		int motdPaintX2;
+		int motdOffset;
+		int motdTime;
+		char motd[1024];
+	};
+
+	struct mapInfo
+	{
+		char mapName[32];
+		char mapLoadName[16];
+		char mapDescription[32];
+		char mapLoadImage[32];
+		char mapCustomKey[32][16];
+		char mapCustomValue[32][64];
+		int mapCustomCount;
+		int teamMembers;
+		int typeBits;
+		int timeToBeat[32];
+		int active;
+	};
+
+	struct gameTypeInfo
+	{
+		char gameType[12];
+		char gameTypeName[32];
+	};
+
+	struct CachedAssets_t
+	{
+		Material* scrollBarArrowUp;
+		Material* scrollBarArrowDown;
+		Material* scrollBarArrowLeft;
+		Material* scrollBarArrowRight;
+		Material* scrollBar;
+		Material* scrollBarThumb;
+		Material* sliderBar;
+		Material* sliderThumb;
+		Material* whiteMaterial;
+		Material* cursor;
+		Material* textDecodeCharacters;
+		Material* textDecodeCharactersGlow;
+		Font_s* bigFont;
+		Font_s* smallFont;
+		Font_s* consoleFont;
+		Font_s* boldFont;
+		Font_s* textFont;
+		Font_s* extraBigFont;
+		Font_s* objectiveFont;
+		Font_s* hudBigFont;
+		Font_s* hudSmallFont;
+		snd_alias_list_t* itemFocusSound;
+	};
+
+	struct sharedUiInfo_t
+	{
+		CachedAssets_t assets;
+		int playerCount;
+		char playerNames[18][32];
+		char teamNames[18][32];
+		int playerClientNums[18];
+		volatile int updateGameTypeList;
+		int numGameTypes;
+		gameTypeInfo gameTypes[32];
+		int numCustomGameTypes;
+		gameTypeInfo customGameTypes[32];
+		char customGameTypeCancelState[2048];
+		int numJoinGameTypes;
+		gameTypeInfo joinGameTypes[32];
+		volatile int updateArenas;
+		int mapCount;
+		mapInfo mapList[128];
+		int mapIndexSorted[128];
+		bool mapsAreSorted;
+		Material* serverHardwareIconList[9];
+		unsigned __int64 partyMemberXuid;
+		Material* talkingIcons[2];
+		serverStatus_s serverStatus;
+		char serverStatusAddress[64];
+		serverStatusInfo_t serverStatusInfo;
+		int nextServerStatusRefresh;
+		pendingServerStatus_t pendingServerStatus;
+	};
+
+	enum keyNum_t
+	{
+		K_NONE = 0x0,
+		K_TAB = 0x9,
+		K_ENTER = 0xD,
+		K_ESCAPE = 0x1B,
+		K_SPACE = 0x20,
+		K_BACKSPACE = 0x7F,
+		K_ASCII_FIRST = 0x80,
+		K_ASCII_181 = 0x80,
+		K_ASCII_191 = 0x81,
+		K_ASCII_223 = 0x82,
+		K_ASCII_224 = 0x83,
+		K_ASCII_225 = 0x84,
+		K_ASCII_228 = 0x85,
+		K_ASCII_229 = 0x86,
+		K_ASCII_230 = 0x87,
+		K_ASCII_231 = 0x88,
+		K_ASCII_232 = 0x89,
+		K_ASCII_233 = 0x8A,
+		K_ASCII_236 = 0x8B,
+		K_ASCII_241 = 0x8C,
+		K_ASCII_242 = 0x8D,
+		K_ASCII_243 = 0x8E,
+		K_ASCII_246 = 0x8F,
+		K_ASCII_248 = 0x90,
+		K_ASCII_249 = 0x91,
+		K_ASCII_250 = 0x92,
+		K_ASCII_252 = 0x93,
+		K_END_ASCII_CHARS = 0x94,
+		K_COMMAND = 0x96,
+		K_CAPSLOCK = 0x97,
+		K_POWER = 0x98,
+		K_PAUSE = 0x99,
+		K_UPARROW = 0x9A,
+		K_DOWNARROW = 0x9B,
+		K_LEFTARROW = 0x9C,
+		K_RIGHTARROW = 0x9D,
+		K_ALT = 0x9E,
+		K_CTRL = 0x9F,
+		K_SHIFT = 0xA0,
+		K_INS = 0xA1,
+		K_DEL = 0xA2,
+		K_PGDN = 0xA3,
+		K_PGUP = 0xA4,
+		K_HOME = 0xA5,
+		K_END = 0xA6,
+		K_F1 = 0xA7,
+		K_F2 = 0xA8,
+		K_F3 = 0xA9,
+		K_F4 = 0xAA,
+		K_F5 = 0xAB,
+		K_F6 = 0xAC,
+		K_F7 = 0xAD,
+		K_F8 = 0xAE,
+		K_F9 = 0xAF,
+		K_F10 = 0xB0,
+		K_F11 = 0xB1,
+		K_F12 = 0xB2,
+		K_F13 = 0xB3,
+		K_F14 = 0xB4,
+		K_F15 = 0xB5,
+		K_KP_HOME = 0xB6,
+		K_KP_UPARROW = 0xB7,
+		K_KP_PGUP = 0xB8,
+		K_KP_LEFTARROW = 0xB9,
+		K_KP_5 = 0xBA,
+		K_KP_RIGHTARROW = 0xBB,
+		K_KP_END = 0xBC,
+		K_KP_DOWNARROW = 0xBD,
+		K_KP_PGDN = 0xBE,
+		K_KP_ENTER = 0xBF,
+		K_KP_INS = 0xC0,
+		K_KP_DEL = 0xC1,
+		K_KP_SLASH = 0xC2,
+		K_KP_MINUS = 0xC3,
+		K_KP_PLUS = 0xC4,
+		K_KP_NUMLOCK = 0xC5,
+		K_KP_STAR = 0xC6,
+		K_KP_EQUALS = 0xC7,
+		K_MOUSE1 = 0xC8,
+		K_MOUSE2 = 0xC9,
+		K_MOUSE3 = 0xCA,
+		K_MOUSE4 = 0xCB,
+		K_MOUSE5 = 0xCC,
+		K_MWHEELDOWN = 0xCD,
+		K_MWHEELUP = 0xCE,
+		K_AUX1 = 0xCF,
+		K_AUX2 = 0xD0,
+		K_AUX3 = 0xD1,
+		K_AUX4 = 0xD2,
+		K_AUX5 = 0xD3,
+		K_AUX6 = 0xD4,
+		K_AUX7 = 0xD5,
+		K_AUX8 = 0xD6,
+		K_AUX9 = 0xD7,
+		K_AUX10 = 0xD8,
+		K_AUX11 = 0xD9,
+		K_AUX12 = 0xDA,
+		K_AUX13 = 0xDB,
+		K_AUX14 = 0xDC,
+		K_AUX15 = 0xDD,
+		K_AUX16 = 0xDE,
+		K_LAST_KEY = 0xDF,
+	};
+
+	struct KeyState
+	{
+		int down;
+		int repeats;
+		const char* binding;
+	};
+
+	enum LocSelInputState
+	{
+		LOC_SEL_INPUT_NONE = 0x0,
+		LOC_SEL_INPUT_CONFIRM = 0x1,
+		LOC_SEL_INPUT_CANCEL = 0x2,
+	};
+
+	struct PlayerKeyState
+	{
+		field_t chatField;
+		int chat_team;
+		int overstrikeMode;
+		int anyKeyDown;
+		KeyState keys[256];
+		LocSelInputState locSelInputState;
+	};
+
 #pragma endregion
 
 #ifndef IDA

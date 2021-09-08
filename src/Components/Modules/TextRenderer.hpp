@@ -82,8 +82,10 @@ namespace Components
 			std::string lastQuery;
 			FontIconAutocompleteResult results[MAX_RESULTS];
 			size_t resultCount;
+			bool hasMoreResults;
 			size_t resultOffset;
 			size_t lastResultOffset;
+			size_t selectedOffset;
 			float maxFontIconWidth;
 			float maxMaterialNameWidth;
 		};
@@ -93,7 +95,9 @@ namespace Components
 		static constexpr unsigned MY_ALTCOLOR_TWO = 0x0DCE6FFE6;
 		static constexpr unsigned COLOR_MAP_HASH = 0xA0AB1041;
 		static constexpr auto FONT_ICON_AUTOCOMPLETE_BOX_PADDING = 6.0f;
+		static constexpr auto FONT_ICON_AUTOCOMPLETE_BOX_BORDER = 2.0f;
 		static constexpr auto FONT_ICON_AUTOCOMPLETE_COL_SPACING = 12.0f;
+		static constexpr auto FONT_ICON_AUTOCOMPLETE_ARROW_SIZE = 12.0f;
 		static constexpr float MY_OFFSETS[4][2]
 		{
 			{-1.0f, -1.0f},
@@ -130,12 +134,20 @@ namespace Components
 	private:
 		static unsigned HsvToRgb(HsvColor hsv);
 
-		static void DrawAutocompleteBox(float x, float y, float w, float h, const float* color);
+		static void DrawAutocompleteBox(const FontIconAutocompleteContext& context, float x, float y, float w, float h, const float* color);
 		static void DrawAutocomplete(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font);
 		static void UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font);
 		static void UpdateAutocompleteContext(FontIconAutocompleteContext& context, Game::field_t* edit, Game::Font_s* font);
 		static void Field_Draw_Say(int localClientNum, Game::field_t* edit, int x, int y, int horzAlign, int vertAlign);
 		static void Con_DrawInput_Hk(int localClientNum);
+
+		static void AutocompleteUp(FontIconAutocompleteContext& context);
+		static void AutocompleteDown(FontIconAutocompleteContext& context);
+		static void AutocompleteFill(const FontIconAutocompleteContext& context, Game::ScreenPlacement* scrPlace, Game::field_t* edit);
+		static bool AutocompleteHandleKeyDown(FontIconAutocompleteContext& context, int key, Game::ScreenPlacement* scrPlace, Game::field_t* edit);
+		static void Console_Key_Hk(int localClientNum, int key);
+		static bool ChatHandleKeyDown(int localClientNum, int key);
+		static void Message_Key_Stub();
 
 		static int SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field);
 		static void Field_AdjustScroll_PrintLen_Stub();
