@@ -189,7 +189,7 @@ namespace Components
         }
     }
 
-    void TextRenderer::UpdateAutocompleteContext(FontIconAutocompleteContext& context, Game::field_t* edit, Game::Font_s* font, const float textXScale)
+    void TextRenderer::UpdateAutocompleteContext(TextRenderer::FontIconAutocompleteContext& context, const Game::field_t* edit, Game::Font_s* font, const float textXScale)
     {
         int fontIconStart = -1;
         auto inModifiers = false;
@@ -606,7 +606,13 @@ namespace Components
         if (colorMap == nullptr)
             return 0;
         const auto sizeMultiplier = fontIcon.big ? 1.5f : 1.0f;
-        return static_cast<float>(font->pixelHeight) * (static_cast<float>(colorMap->width) / static_cast<float>(colorMap->height)) * xScale * sizeMultiplier;
+        auto colWidth = static_cast<float>(colorMap->width);
+        auto colHeight = static_cast<float>(colorMap->height);
+        if (fontIcon.material->info.textureAtlasColumnCount > 1)
+            colWidth /= static_cast<float>(fontIcon.material->info.textureAtlasColumnCount);
+        if (fontIcon.material->info.textureAtlasRowCount > 1)
+            colHeight /= static_cast<float>(fontIcon.material->info.textureAtlasRowCount);
+        return static_cast<float>(font->pixelHeight) * (colWidth / colHeight) * xScale * sizeMultiplier;
     }
 
     float TextRenderer::DrawFontIcon(const FontIconInfo& fontIcon, const float x, const float y, const float sinAngle, const float cosAngle, const Game::Font_s* font, const float xScale, const float yScale, const unsigned color)
@@ -636,10 +642,18 @@ namespace Components
             t0 = 0.0f;
             t1 = 1.0f;
         }
+        Game::Material_Process2DTextureCoordsForAtlasing(fontIcon.material, &s0, &s1, &t0, &t1);
         const auto sizeMultiplier = fontIcon.big ? 1.5f : 1.0f;
 
+        auto colWidth = static_cast<float>(colorMap->width);
+        auto colHeight = static_cast<float>(colorMap->height);
+        if (fontIcon.material->info.textureAtlasColumnCount > 1)
+            colWidth /= static_cast<float>(fontIcon.material->info.textureAtlasColumnCount);
+        if (fontIcon.material->info.textureAtlasRowCount > 1)
+            colHeight /= static_cast<float>(fontIcon.material->info.textureAtlasRowCount);
+
         const auto h = static_cast<float>(font->pixelHeight) * yScale * sizeMultiplier;
-        const auto w = static_cast<float>(font->pixelHeight) * (static_cast<float>(colorMap->width) / static_cast<float>(colorMap->height)) * xScale * sizeMultiplier;
+        const auto w = static_cast<float>(font->pixelHeight) * (colWidth / colHeight) * xScale * sizeMultiplier;
 
         const auto yy = y - (h + yScale * static_cast<float>(font->pixelHeight)) * 0.5f;
         Game::RB_DrawStretchPicRotate(fontIcon.material, x, yy, w, h, s0, t0, s1, t1, sinAngle, cosAngle, color);
@@ -1010,8 +1024,8 @@ namespace Components
                         const auto width = text[1];
                         const auto materialNameLength = text[3];
 
-                        auto v9 = font->pixelHeight * (width - 16) + 16;
-                        auto w = ((((v9 >> 24) & 0x1F) + v9) >> 5);
+                        const auto v9 = font->pixelHeight * (width - 16) + 16;
+                        const auto w = ((((v9 >> 24) & 0x1F) + v9) >> 5);
 
                         lineWidth += w;
                         if (lineWidth > maxWidth)

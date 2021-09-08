@@ -339,6 +339,8 @@ namespace Game
 
 	R_NormalizedTextScale_t R_NormalizedTextScale = R_NormalizedTextScale_t(0x5056A0);
 
+	Material_Process2DTextureCoordsForAtlasing_t Material_Process2DTextureCoordsForAtlasing = Material_Process2DTextureCoordsForAtlasing_t(0x506090);
+
 	Byte4PackRgba_t Byte4PackRgba = Byte4PackRgba_t(0x4FE910);
 	RandWithSeed_t RandWithSeed = RandWithSeed_t(0x495580);
 	GetDecayingLetterInfo_t GetDecayingLetterInfo = GetDecayingLetterInfo_t(0x5351C0);

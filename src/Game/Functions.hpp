@@ -788,6 +788,9 @@ namespace Game
 	
 	typedef float(__cdecl* R_NormalizedTextScale_t)(Font_s* font, float scale);
 	extern R_NormalizedTextScale_t R_NormalizedTextScale;
+	
+	typedef void(__cdecl * Material_Process2DTextureCoordsForAtlasing_t)(const Material* material, float* s0, float* s1, float* t0, float* t1);
+	extern Material_Process2DTextureCoordsForAtlasing_t Material_Process2DTextureCoordsForAtlasing;
 
 	typedef void(__cdecl* Byte4PackRgba_t)(const float* from, char* to);
 	extern Byte4PackRgba_t Byte4PackRgba;

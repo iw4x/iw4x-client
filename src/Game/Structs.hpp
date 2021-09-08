@@ -501,8 +501,8 @@ namespace Game
 		const char *name;
 		char gameFlags;
 		char sortKey;
-		char textureAtlasRowCount;
-		char textureAtlasColumnCount;
+		unsigned char textureAtlasRowCount;
+		unsigned char textureAtlasColumnCount;
 		GfxDrawSurf drawSurf;
 		unsigned int surfaceTypeBits;
 		unsigned __int16 hashIndex;
