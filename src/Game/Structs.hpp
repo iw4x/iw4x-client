@@ -4224,37 +4224,21 @@ namespace Game
 
 	struct netchan_t
 	{
-		// 0
 		int outgoingSequence;
-		// 4
 		netsrc_t sock;
-		// 8
 		int dropped;
-		// 12
 		int incomingSequence;
-		// 16
 		netadr_t remoteAddress;
-		// 36
 		int qport;
-		// 40
 		int fragmentSequence;
-		// 44
 		int fragmentLength;
-		// 48
 		char* fragmentBuffer;
-		// 52
 		int fragmentBufferSize;
-		// 56
 		int unsentFragments;
-		// 60
 		int unsentFragmentStart;
-		// 64
 		int unsentLength;
-		// 68
 		char* unsentBuffer;
-		// 72
 		int unsentBufferSize;
-		// 76
 		netProfileInfo_t prof;
 	};
 
@@ -4666,56 +4650,33 @@ namespace Game
 #pragma pack(push, 1)
 	typedef struct client_s
 	{
-		// 0
-		clientstate_t state;
-		// 4
-		char __pad0[4];
-		// 8
-		int deltaMessage;
-		// 12
-		char __pad1[12];
-		// 24
-		netchan_t netchan;
-		// 1604
-		char __pad3[20];
-		// 1624
-		const char* delayDropReason;
-		// 1628
-		char connectInfoString[1024];
-		// 2652
-		char __pad4[132096];
-		// 134748
-		int reliableSequence;
-		// 134752
-		int reliableAcknowledge;
-		// 134756
-		int reliableSent;
-		// 134760
-		char __pad5[1084];
-		// 135844
-		char name[16];
-		// 135860
-		char __pad6[12];
-		// 135872
-		int snapNum;
-		// 135876
-		int __pad7;
-		// 135880
-		short ping;
-		// 135882
-		char __pad8[133158];
-		// 269040
-		int isBot;
-		// 269044
-		char __pad9[9228];
-		// 278272
-		unsigned __int64 steamID;
-		// 278280
-		char __pad10[403592];
+		clientstate_t state; // 0
+		char __pad0[4]; // 4
+		int deltaMessage; // 8
+		char __pad1[12]; // 12
+		netchan_t netchan; // 24
+		char __pad2[20]; // 1604
+		const char* delayDropReason; // 1624
+		char connectInfoString[1024]; // 1628
+		char __pad3[132096]; // 2652
+		int reliableSequence; // 134748
+		int reliableAcknowledge; // 134752
+		int reliableSent; // 134756
+		char __pad4[1084]; // 134760
+		char name[16]; // 135844
+		char __pad5[12]; // 135860
+		int snapNum; // 135872
+		int __pad6; // 135876
+		short ping; // 135880
+		char __pad7[133158]; // 135882
+		int isBot; // 269040
+		char __pad8[9228]; // 269044
+		unsigned __int64 steamID; // 278272
+		char __pad9[403592]; // 278280
 	} client_t;
 #pragma pack(pop)
 
-	static_assert(sizeof(client_t) == 681872);
+	static_assert(sizeof(client_t) == 0xA6790);
 
 	struct CModelAllocData
 	{
