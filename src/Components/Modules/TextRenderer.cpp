@@ -229,7 +229,7 @@ namespace Components
             }
         }
 
-        if(fontIconStart < 0 || fontIconStart == edit->cursor)
+        if(fontIconStart < 0 || fontIconStart == edit->cursor || !isalpha(static_cast<unsigned char>(edit->buffer[fontIconStart])))
         {
             context.autocompleteActive = false;
             context.lastHash = 0;
