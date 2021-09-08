@@ -152,7 +152,7 @@ namespace Components
 		{
 			if (Game::svs_clients[i].state >= 3)
 			{
-				list.append(Utils::String::VA(" %llX", Game::svs_clients[i].steamid));
+				list.append(Utils::String::VA(" %llX", Game::svs_clients[i].steamID));
 
 				Utils::InfoString info(Game::svs_clients[i].connectInfoString);
 				list.append(Utils::String::VA(" %llX", strtoull(info.get("realsteamId").data(), nullptr, 16)));
