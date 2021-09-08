@@ -4215,6 +4215,51 @@ namespace Game
 		char ipx[10];
 	};
 
+	struct netProfileInfo_t
+	{
+		char __pad0[0x5E0];
+	};
+
+	static_assert(sizeof(netProfileInfo_t) == 0x5E0);
+
+	struct netchan_t
+	{
+		// 0
+		int outgoingSequence;
+		// 4
+		netsrc_t sock;
+		// 8
+		int dropped;
+		// 12
+		int incomingSequence;
+		// 16
+		netadr_t remoteAddress;
+		// 36
+		int qport;
+		// 40
+		int fragmentSequence;
+		// 44
+		int fragmentLength;
+		// 48
+		char* fragmentBuffer;
+		// 52
+		int fragmentBufferSize;
+		// 56
+		int unsentFragments;
+		// 60
+		int unsentFragmentStart;
+		// 64
+		int unsentLength;
+		// 68
+		char* unsentBuffer;
+		// 72
+		int unsentBufferSize;
+		// 76
+		netProfileInfo_t prof;
+	};
+
+	static_assert(sizeof(netchan_t) == 0x62C);
+
 	struct FxEditorElemAtlas
 	{
 		int behavior;
@@ -4630,13 +4675,11 @@ namespace Game
 		// 12
 		char __pad1[12];
 		// 24
-		int outgoingSequence;
-		// 28
-		char __pad2[12];
-		// 40
-		netadr_t addr;
-		// 60
-		char __pad3[1568];
+		netchan_t netchan;
+		// 1604
+		char __pad3[20];
+		// 1624
+		const char* delayDropReason;
 		// 1628
 		char connectInfoString[1024];
 		// 2652
@@ -4671,6 +4714,8 @@ namespace Game
 		char __pad10[403592];
 	} client_t;
 #pragma pack(pop)
+
+	static_assert(sizeof(client_t) == 681872);
 
 	struct CModelAllocData
 	{
