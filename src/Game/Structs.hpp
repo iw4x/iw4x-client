@@ -233,7 +233,7 @@ namespace Game
 		K_LASTGAMEPADBUTTON_RANGE_1 = 0x6, // Last Gamepad 1
 		K_TAB = 0x9,
 		K_ENTER = 0xD,
-	    K_FIRSTGAMEPADBUTTON_RANGE_2 = 0xE, // First Gamepad 2
+		K_FIRSTGAMEPADBUTTON_RANGE_2 = 0xE, // First Gamepad 2
 		K_BUTTON_START = 0xE,
 		K_BUTTON_BACK = 0xF,
 		K_BUTTON_LSTICK = 0x10,
