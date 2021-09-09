@@ -115,7 +115,7 @@ namespace Components
 			Game::Dvar_SetInt(this->dvar, integer);
 		}
 	}
-	
+
 	void Dvar::Var::set(float value)
 	{
 		assert(this->dvar->type == Game::DVAR_TYPE_FLOAT);
