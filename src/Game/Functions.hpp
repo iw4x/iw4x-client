@@ -40,7 +40,7 @@ namespace Game
 	typedef void*(__cdecl * BG_LoadWeaponDef_LoadObj_t)(const char* filename);
 	extern BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj;
 
-	typedef WeaponDef* (__cdecl* BG_GetWeaponDef_t)(int weaponIndex);
+	typedef WeaponDef* (__cdecl * BG_GetWeaponDef_t)(int weaponIndex);
 	extern BG_GetWeaponDef_t BG_GetWeaponDef;
 
 	typedef void(__cdecl * Cbuf_AddServerText_t)();
@@ -55,10 +55,10 @@ namespace Game
 	typedef void(__cdecl * CG_NextWeapon_f_t)();
 	extern CG_NextWeapon_f_t CG_NextWeapon_f;
 
-	typedef std::int32_t(__cdecl* CG_PlayBoltedEffect_t) (std::int32_t, FxEffectDef*, std::int32_t, std::uint32_t);
+	typedef std::int32_t(__cdecl * CG_PlayBoltedEffect_t) (std::int32_t, FxEffectDef*, std::int32_t, std::uint32_t);
 	extern CG_PlayBoltedEffect_t CG_PlayBoltedEffect;
 
-	typedef std::int32_t(__cdecl* CG_GetBoneIndex_t)(std::int32_t, std::uint32_t name, char* index);
+	typedef std::int32_t(__cdecl * CG_GetBoneIndex_t)(std::int32_t, std::uint32_t name, char* index);
 	extern CG_GetBoneIndex_t CG_GetBoneIndex;
 
 	typedef void(__cdecl * CG_ScoresDown_f_t)();
@@ -375,7 +375,7 @@ namespace Game
 	typedef void(__cdecl * Key_SetCatcher_t)(int localClientNum, int catcher);
 	extern Key_SetCatcher_t Key_SetCatcher;
 
-	typedef bool(__cdecl* Key_IsKeyCatcherActive_t)(int localClientNum, int catcher);
+	typedef bool(__cdecl * Key_IsKeyCatcherActive_t)(int localClientNum, int catcher);
 	extern Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive;
 
 	typedef void(__cdecl * LargeLocalInit_t)();
@@ -450,13 +450,13 @@ namespace Game
 	typedef bool(__cdecl * Menus_MenuIsInStack_t)(UiContext *dc, menuDef_t *menu);
 	extern Menus_MenuIsInStack_t Menus_MenuIsInStack;
 
-	typedef menuDef_t*(__cdecl* Menu_GetFocused_t)(UiContext* ctx);
+	typedef menuDef_t*(__cdecl * Menu_GetFocused_t)(UiContext* ctx);
 	extern Menu_GetFocused_t Menu_GetFocused;
 
-	typedef void(__cdecl* Menu_HandleKey_t)(UiContext* ctx, menuDef_t* menu, Game::keyNum_t key, int down);
+	typedef void(__cdecl * Menu_HandleKey_t)(UiContext* ctx, menuDef_t* menu, Game::keyNum_t key, int down);
 	extern Menu_HandleKey_t Menu_HandleKey;
 
-	typedef bool(__cdecl* UI_KeyEvent_t)(int clientNum, int key, int down);
+	typedef bool(__cdecl * UI_KeyEvent_t)(int clientNum, int key, int down);
 	extern UI_KeyEvent_t UI_KeyEvent;
 	
 	typedef void(__cdecl * MSG_Init_t)(msg_t *buf, char *data, int length);
@@ -501,10 +501,10 @@ namespace Game
 	typedef void(__cdecl * MSG_WriteLong_t)(msg_t *msg, int c);
 	extern MSG_WriteLong_t MSG_WriteLong;
 
-	typedef void(*MSG_WriteShort_t)(msg_t* msg, short s);
+	typedef void(__cdecl * MSG_WriteShort_t)(msg_t* msg, short s);
 	extern MSG_WriteShort_t MSG_WriteShort;
 
-	typedef void(*MSG_WriteString_t)(msg_t* msg, const char *str);
+	typedef void(__cdecl * MSG_WriteString_t)(msg_t* msg, const char *str);
 	extern MSG_WriteString_t MSG_WriteString;
 
 	typedef int(__cdecl * MSG_WriteBitsCompress_t)(bool trainHuffman, const char *from, char *to, int size);
@@ -696,7 +696,7 @@ namespace Game
 	typedef char* (__cdecl * SEH_StringEd_GetString_t)(const char* string);
 	extern SEH_StringEd_GetString_t SEH_StringEd_GetString;
 
-	typedef int (__cdecl* SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
+	typedef int (__cdecl * SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
 	extern SEH_ReadCharFromString_t SEH_ReadCharFromString;
 
 	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
@@ -795,7 +795,7 @@ namespace Game
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
 	
-	typedef uiMenuCommand_t(__cdecl* UI_GetActiveMenu_t)(int localClientNum);
+	typedef uiMenuCommand_t(__cdecl * UI_GetActiveMenu_t)(int localClientNum);
 	extern UI_GetActiveMenu_t UI_GetActiveMenu;
 
 	typedef char* (__cdecl * UI_CheckStringTranslation_t)(char*, char*);
@@ -828,16 +828,16 @@ namespace Game
 	typedef void (__cdecl * Vec3UnpackUnitVec_t)(PackedUnitVec, vec3_t *);
 	extern Vec3UnpackUnitVec_t Vec3UnpackUnitVec;
 	
-	typedef float(__cdecl* vectoyaw_t)(vec2_t* vec);
+	typedef float(__cdecl * vectoyaw_t)(vec2_t* vec);
 	extern vectoyaw_t vectoyaw;
 	
-	typedef float(__cdecl* AngleNormalize360_t)(float val);
+	typedef float(__cdecl * AngleNormalize360_t)(float val);
 	extern AngleNormalize360_t AngleNormalize360;
 
 	typedef void(__cdecl * unzClose_t)(void* handle);
 	extern unzClose_t unzClose;
 
-	typedef void(__cdecl* AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
+	typedef void(__cdecl * AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
 	extern AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee;
 
 	extern XAssetHeader* DB_XAssetPool;
