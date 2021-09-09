@@ -116,7 +116,6 @@ namespace Components
 		}
 	}
 	
-
 	void Dvar::Var::set(float value)
 	{
 		assert(this->dvar->type == Game::DVAR_TYPE_FLOAT);
@@ -131,7 +130,7 @@ namespace Components
 		assert(this->dvar->type == Game::DVAR_TYPE_BOOL);
 		if (this->dvar)
 		{
-      Game::Dvar_SetBool(this->dvar, enabled);
+			Game::Dvar_SetBool(this->dvar, enabled);
 		}
 	}
 
