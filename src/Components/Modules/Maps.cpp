@@ -560,7 +560,7 @@ namespace Components
 			}
 
 			hasDlc.push_back(hasAllMaps);
-			Dvar::Var(Utils::String::VA("isDlcInstalled_%d", pack.index)).setRaw(hasAllMaps ? 1 : 0);
+			Dvar::Var(Utils::String::VA("isDlcInstalled_%d", pack.index)).set(hasAllMaps ? 1 : 0);
 		}
 
 		// Must have all of dlc 3 to 5 or it causes issues
@@ -571,7 +571,7 @@ namespace Components
 			sentMessage = true;
 		}
 
-		Dvar::Var("isDlcInstalled_All").setRaw(hasAllDlcs ? 1 : 0);
+		Dvar::Var("isDlcInstalled_All").set(hasAllDlcs ? 1 : 0);
 	}
 
 	bool Maps::IsCustomMap()

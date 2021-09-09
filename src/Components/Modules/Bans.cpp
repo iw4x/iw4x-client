@@ -181,9 +181,9 @@ namespace Components
 		Game::client_t* client = &Game::svs_clients[num];
 
 		SteamID guid;
-		guid.bits = client->steamid;
+		guid.bits = client->steamID;
 
-		Bans::InsertBan({ guid, client->addr.ip });
+		Bans::InsertBan({ guid, client->netchan.remoteAddress.ip });
 
 		Game::SV_KickClientError(client, reason);
 	}

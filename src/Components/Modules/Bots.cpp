@@ -437,7 +437,7 @@ namespace Components
 				ucmd.rightmove = g_botai[i].right;
 				ucmd.weapon = g_botai[i].weapon;
 
-				client->deltaMessage = client->outgoingSequence - 1;
+				client->deltaMessage = client->netchan.outgoingSequence - 1;
 
 				Game::SV_ClientThink(client, &ucmd);
 			}

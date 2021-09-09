@@ -289,6 +289,10 @@ namespace Game
 	Dvar_SetFromStringByName_t Dvar_SetFromStringByName = Dvar_SetFromStringByName_t(0x4F52E0);
 	Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource = Dvar_SetFromStringByNameFromSource_t(0x4FC770);
 	Dvar_SetStringByName_t Dvar_SetStringByName = Dvar_SetStringByName_t(0x44F060);
+	Dvar_SetString_t Dvar_SetString = Dvar_SetString_t(0x4A9580);
+	Dvar_SetBool_t Dvar_SetBool = Dvar_SetBool_t(0x4A9510);
+	Dvar_SetFloat_t Dvar_SetFloat = Dvar_SetFloat_t(0x40BB20);
+	Dvar_SetInt_t Dvar_SetInt = Dvar_SetInt_t(0x421DA0);
 
 	SL_ConvertToString_t SL_ConvertToString = SL_ConvertToString_t(0x4EC1D0);
 	SL_GetString_t SL_GetString = SL_GetString_t(0x4CDC10);
@@ -634,7 +638,7 @@ namespace Game
 	{
 		if (client->state < 5)
 		{
-			Components::Network::SendCommand(client->addr, "error", reason);
+			Components::Network::SendCommand(client->netchan.remoteAddress, "error", reason);
 		}
 
 		SV_KickClient(client, reason.data());

@@ -74,7 +74,7 @@ namespace Game
 		ASSET_TYPE_INVALID = -1,
 	};
 
-	typedef enum
+	typedef enum : unsigned int
 	{
 		DVAR_FLAG_NONE = 0x0,			//no flags
 		DVAR_FLAG_SAVED = 0x1,			//saves in config_mp.cfg for clients
@@ -152,7 +152,7 @@ namespace Game
 		DVAR_SOURCE_DEVGUI = 0x3,
 	};
 
-	typedef enum
+	typedef enum : char
 	{
 		DVAR_TYPE_BOOL = 0x0,
 		DVAR_TYPE_FLOAT = 0x1,
@@ -3212,7 +3212,7 @@ namespace Game
 		const char *name;
 		const char *description;
 		unsigned int flags;
-		char type;
+		dvar_type type;
 		bool modified;
 		DvarValue current;
 		DvarValue latched;
@@ -5015,6 +5015,35 @@ namespace Game
 		char ipx[10];
 	};
 
+	struct netProfileInfo_t
+	{
+		char __pad0[0x5E0];
+	};
+
+	static_assert(sizeof(netProfileInfo_t) == 0x5E0);
+
+	struct netchan_t
+	{
+		int outgoingSequence;
+		netsrc_t sock;
+		int dropped;
+		int incomingSequence;
+		netadr_t remoteAddress;
+		int qport;
+		int fragmentSequence;
+		int fragmentLength;
+		char* fragmentBuffer;
+		int fragmentBufferSize;
+		int unsentFragments;
+		int unsentFragmentStart;
+		int unsentLength;
+		char* unsentBuffer;
+		int unsentBufferSize;
+		netProfileInfo_t prof;
+	};
+
+	static_assert(sizeof(netchan_t) == 0x62C);
+
 	struct FxEditorElemAtlas
 	{
 		int behavior;
@@ -5376,49 +5405,33 @@ namespace Game
 #pragma pack(push, 1)
 	typedef struct client_s
 	{
-		// 0
-		clientstate_t state;
-		// 4
-		char _pad[4];
-		// 8
-		int deltaMessage;
-		// 12
-		char __pad[12];
-		// 24
-		int outgoingSequence;
-		// 28
-		char pad[12];
-		// 40
-		netadr_t addr;
-		// 60
-		char pad1[1568];
-		// 1628
-		char connectInfoString[1024];
-		// 2652
-		char pad2[133192];
-		// 135844
-		char name[16];
-		// 135860
-		char pad3[12];
-		// 135872
-		int snapNum;
-		// 135876
-		int pad4;
-		// 135880
-		short ping;
-		// 135882
-		//char pad5[142390];
-		char pad5[133158];
-		// 269040
-		int isBot;
-		// 269044
-		char pad6[9228];
-		// 278272
-		unsigned __int64 steamid;
-		// 278280
-		char pad7[403592];
+		clientstate_t state; // 0
+		char __pad0[4]; // 4
+		int deltaMessage; // 8
+		char __pad1[12]; // 12
+		netchan_t netchan; // 24
+		char __pad2[20]; // 1604
+		const char* delayDropReason; // 1624
+		char connectInfoString[1024]; // 1628
+		char __pad3[132096]; // 2652
+		int reliableSequence; // 134748
+		int reliableAcknowledge; // 134752
+		int reliableSent; // 134756
+		char __pad4[1084]; // 134760
+		char name[16]; // 135844
+		char __pad5[12]; // 135860
+		int snapNum; // 135872
+		int __pad6; // 135876
+		short ping; // 135880
+		char __pad7[133158]; // 135882
+		int isBot; // 269040
+		char __pad8[9228]; // 269044
+		unsigned __int64 steamID; // 278272
+		char __pad9[403592]; // 278280
 	} client_t;
 #pragma pack(pop)
+
+	static_assert(sizeof(client_t) == 0xA6790);
 
 	struct CModelAllocData
 	{
