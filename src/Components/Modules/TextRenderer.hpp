@@ -42,6 +42,13 @@ namespace Components
 
 	class TextRenderer : public Component
 	{
+		struct FontIconTableEntry
+		{
+			std::string iconName;
+			std::string materialName;
+			Game::Material* material;
+		};
+
 		struct FontIconInfo
 		{
             Game::Material* material;
@@ -126,6 +133,8 @@ namespace Components
 		static unsigned colorTableNew[TEXT_COLOR_COUNT];
 		static unsigned(*currentColorTable)[TEXT_COLOR_COUNT];
 		static FontIconAutocompleteContext autocompleteContextArray[FONT_ICON_ACI_COUNT];
+		static std::map<std::string, FontIconTableEntry> fontIconLookup;
+		static std::vector<FontIconTableEntry> fontIconList;
 
 		static Dvar::Var cg_newColors;
 		static Dvar::Var cg_fontIconAutocomplete;
@@ -188,5 +197,8 @@ namespace Components
 		static float DrawHudIcon(const char*& text, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 		static void RotateXY(float cosAngle, float sinAngle, float pivotX, float pivotY, float x, float y, float* outX, float* outY);
 		static void UpdateColorTable();
+
+		static void InitFontIcons();
+		static void UI_Init_Hk(int localClientNum);
 	};
 }

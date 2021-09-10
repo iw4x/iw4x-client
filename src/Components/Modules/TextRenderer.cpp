@@ -41,6 +41,8 @@ namespace Components
 
     unsigned(*TextRenderer::currentColorTable)[TEXT_COLOR_COUNT];
     TextRenderer::FontIconAutocompleteContext TextRenderer::autocompleteContextArray[FONT_ICON_ACI_COUNT]{};
+    std::map<std::string, TextRenderer::FontIconTableEntry> TextRenderer::fontIconLookup;
+    std::vector<TextRenderer::FontIconTableEntry> TextRenderer::fontIconList;
 
     Dvar::Var TextRenderer::cg_newColors;
     Dvar::Var TextRenderer::cg_fontIconAutocomplete;
@@ -146,17 +148,15 @@ namespace Components
         context.resultCount = 0;
         context.hasMoreResults = false;
         context.lastResultOffset = context.resultOffset;
-
-        const auto* techset2d = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_TECHNIQUE_SET, "2d").techniqueSet;
+        
         auto skipCount = context.resultOffset;
 
-        Game::DB_EnumXAssetEntries(Game::ASSET_TYPE_MATERIAL, [&context, techset2d, &skipCount](const Game::XAssetEntry* entry)
+        const auto queryLen = context.lastQuery.size();
+        for(const auto& fontIconEntry : fontIconList)
         {
-            if (context.resultCount >= FontIconAutocompleteContext::MAX_RESULTS && context.hasMoreResults)
-                return;
+            const auto compareValue = fontIconEntry.iconName.compare(0, queryLen, context.lastQuery);
 
-            const auto* material = entry->asset.header.material;
-            if(material->techniqueSet == techset2d && std::string(material->info.name).rfind(context.lastQuery, 0) == 0)
+            if (compareValue == 0)
             {
                 if (skipCount > 0)
                 {
@@ -165,14 +165,16 @@ namespace Components
                 else if (context.resultCount < FontIconAutocompleteContext::MAX_RESULTS)
                 {
                     context.results[context.resultCount++] = {
-                        std::string(Utils::String::VA(":%s:", material->info.name)),
-                        std::string(material->info.name)
+                        Utils::String::VA(":%s:", fontIconEntry.iconName.data()),
+                        fontIconEntry.iconName
                     };
                 }
                 else
                     context.hasMoreResults = true;
             }
-        }, false, false);
+            else if (compareValue > 0)
+                break;
+        }
 
         context.maxFontIconWidth = 0;
         context.maxMaterialNameWidth = 0;
@@ -606,15 +608,31 @@ namespace Components
 
         const std::string fontIconName(text, nameEnd - text);
 
-        auto* materialEntry = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_MATERIAL, fontIconName.data());
-        if (materialEntry == nullptr)
-            return false;
-        auto* material = materialEntry->asset.header.material;
-        if (material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || strcmp(material->techniqueSet->name, "2d") != 0)
+        const auto foundFontIcon = fontIconLookup.find(fontIconName);
+        if (foundFontIcon == fontIconLookup.end())
             return false;
 
+        auto& entry = foundFontIcon->second;
+        if(entry.material == nullptr)
+        {
+            auto* materialEntry = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_MATERIAL, entry.materialName.data());
+            if (materialEntry == nullptr)
+                return false;
+            auto* material = materialEntry->asset.header.material;
+            if (material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr)
+                return false;
+
+            if(strcmp(material->techniqueSet->name, "2d") != 0)
+            {
+                Logger::Print("^1Fonticon material '%s' does not have 2d techset!\n", material->info.name);
+                material = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "default").material;
+            }
+
+            entry.material = material;
+        }
+
         text = curPos + 1;
-        fontIcon.material = material;
+        fontIcon.material = entry.material;
         return true;
     }
 
@@ -1287,7 +1305,7 @@ namespace Components
         Utils::Hook::Set<char>(0x5815DB, limit); // No idea :P
         Utils::Hook::Set<char>(0x592ED0, limit); // No idea :P
         Utils::Hook::Set<char>(0x5A2E2E, limit); // No idea :P
-
+            
         Utils::Hook::Set<char>(0x5A2733, static_cast<char>(ColorIndexForChar(limit))); // No idea :P
     }
 
@@ -1357,6 +1375,58 @@ namespace Components
         (*currentColorTable)[TEXT_COLOR_SERVER] = sv_customTextColor->current.unsignedInt;
     }
 
+    void TextRenderer::InitFontIcons()
+    {
+        fontIconList.clear();
+        fontIconLookup.clear();
+
+        const auto fontIconTable = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_STRINGTABLE, "mp/fonticons.csv").stringTable;
+
+        if(fontIconTable->columnCount < 2 || fontIconTable->rowCount <= 0)
+        {
+            Logger::Print("^1Failed to load font icon table\n");
+            return;
+        }
+
+        fontIconList.reserve(fontIconTable->rowCount);
+        for(auto rowIndex = 0; rowIndex < fontIconTable->rowCount; rowIndex++)
+        {
+            const auto* columns = &fontIconTable->values[rowIndex * fontIconTable->columnCount];
+
+            if(columns[0].string == nullptr || columns[1].string == nullptr)
+                continue;
+
+            if (columns[0].string[0] == '\0' || columns[1].string[1] == '\0')
+                continue;
+
+            if (columns[0].string[0] == '#')
+                continue;
+
+            FontIconTableEntry entry
+            {
+                columns[0].string,
+                columns[1].string,
+                nullptr
+            };
+
+            fontIconList.emplace_back(entry);
+            fontIconLookup.emplace(std::make_pair(entry.iconName, entry));
+        }
+
+        std::sort(fontIconList.begin(), fontIconList.end(), [](const FontIconTableEntry& a, const FontIconTableEntry& b)
+        {
+            return a.iconName < b.iconName;
+        });
+    }
+
+    void TextRenderer::UI_Init_Hk(const int localClientNum)
+    {
+        // Call original method
+        Utils::Hook::Call<void(int)>(0x4A57D0)(localClientNum);
+
+        InitFontIcons();
+    }
+
     TextRenderer::TextRenderer()
     {
         currentColorTable = &colorTableDefault;
@@ -1365,6 +1435,9 @@ namespace Components
         cg_fontIconAutocomplete = Dvar::Register<bool>("cg_fontIconAutocomplete", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Show autocomplete for fonticons when typing.");
         cg_fontIconAutocompleteHint = Dvar::Register<bool>("cg_fontIconAutocompleteHint", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Show hint text in autocomplete for fonticons.");
         sv_customTextColor = Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_FLAG_REPLICATED, "Color for the extended color code.");
+
+        // Initialize font icons when initializing UI
+        Utils::Hook(0x4B5422, UI_Init_Hk, HOOK_CALL).install()->quick();
 
         // Replace vanilla text drawing function with a reimplementation with extensions
         Utils::Hook(0x535410, DrawText2D, HOOK_JUMP).install()->quick();
