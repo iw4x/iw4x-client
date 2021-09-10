@@ -541,7 +541,7 @@ namespace Components
         if (ps->weaponState >= Game::WEAPON_STUNNED_START && ps->weaponState <= Game::WEAPON_STUNNED_END)
             return false;
 
-        if (ps->eFlags & 0x300800)
+        if (ps->eFlags & 0x100C00)
             return false;
 
         if (!ps->hasAmmo)
