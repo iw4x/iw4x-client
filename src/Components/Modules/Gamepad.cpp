@@ -1023,7 +1023,7 @@ namespace Components
         if (std::fabs(value) > 0.0f)
         {
             gamePad.inUse = true;
-            gpad_in_use.setRaw(true);
+            gpad_in_use.set(true);
         }
     }
 
@@ -1194,7 +1194,7 @@ namespace Components
         auto& gamePad = gamePads[gamePadIndex];
 
         gamePad.inUse = true;
-        gpad_in_use.setRaw(true);
+        gpad_in_use.set(true);
 
         if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
             CL_GamepadResetMenuScrollTime(gamePadIndex, key, buttonEvent == Game::GPAD_BUTTON_PRESSED, time);
@@ -1525,7 +1525,7 @@ namespace Components
             }
         }
 
-        gpad_present.setRaw(gpadPresent);
+        gpad_present.set(gpadPresent);
     }
 
 
@@ -1821,7 +1821,7 @@ namespace Components
     {
         // A keyboard key has been pressed. Mark controller as unused.
         gamePads[0].inUse = false;
-        gpad_in_use.setRaw(false);
+        gpad_in_use.set(false);
 
         // Call original function
         Utils::Hook::Call<void(int, int, int, unsigned)>(0x4F6480)(localClientNum, key, down, time);
@@ -1837,7 +1837,7 @@ namespace Components
         if (dx != 0 || dy != 0)
         {
             gamePads[0].inUse = false;
-            gpad_in_use.setRaw(false);
+            gpad_in_use.set(false);
         }
 
         // Call original function
