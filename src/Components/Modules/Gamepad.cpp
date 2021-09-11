@@ -345,9 +345,11 @@ namespace Components
 
     bool Gamepad::AimAssist_IsPlayerUsingOffhand(Game::AimAssistPlayerState* ps)
     {
+        // Check offhand flag
         if ((ps->weapFlags & 2) == 0)
             return false;
 
+        // If offhand weapon has no id we are not using one
         if (!ps->weapIndex)
             return false;
 
@@ -520,6 +522,7 @@ namespace Components
         if (ps->weaponState >= Game::WEAPON_STUNNED_START && ps->weaponState <= Game::WEAPON_STUNNED_END)
             return false;
 
+        // The game checks for these flags. Their meaning is to be researched if necessary.
         if (ps->eFlags & 0x100C00)
             return false;
 
@@ -809,7 +812,10 @@ namespace Components
         auto yaw = -CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_YAW);
         auto forward = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_FORWARD);
         auto side = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_SIDE);
+
+        // The game implements an attack axis at this location. This axis is unused however so for this patch it was not implemented.
         //auto attack = CL_GamepadAxisValue(gamePadIndex, Game::GPAD_VIRTAXIS_ATTACK);
+
         auto moveScale = static_cast<float>(std::numeric_limits<char>::max());
 
         if (std::fabs(side) > 0.0f || std::fabs(forward) > 0.0f)
