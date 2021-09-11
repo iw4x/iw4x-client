@@ -454,6 +454,15 @@ namespace Game
 
 	cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
 
+	PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
+	kbutton_t* playersKb = reinterpret_cast<kbutton_t*>(0xA1A9A8);
+	AimAssistGlobals* aaGlobArray = reinterpret_cast<AimAssistGlobals*>(0x7A2110);
+
+	keyname_t* keyNames = reinterpret_cast<keyname_t*>(0x798580);
+	keyname_t* localizedKeyNames = reinterpret_cast<keyname_t*>(0x798880);
+
+	GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x7A2FC0);
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();

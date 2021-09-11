@@ -938,6 +938,18 @@ namespace Game
 
 	extern cg_s* cgArray;
 
+	extern PlayerKeyState* playerKeys;
+	extern kbutton_t* playersKb;
+	extern AimAssistGlobals* aaGlobArray;
+
+	constexpr auto KEY_NAME_COUNT = 95;
+	constexpr auto LOCALIZED_KEY_NAME_COUNT = 95;
+	extern keyname_t* keyNames;
+	extern keyname_t* localizedKeyNames;
+
+	constexpr auto AIM_ASSIST_GRAPH_COUNT = 4u;
+	extern GraphFloat* aaInputGraph;
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);
 	void Menu_SetNextCursorItem(Game::UiContext* ctx, Game::menuDef_t* currentMenu, int unk = 1);

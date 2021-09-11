@@ -3,57 +3,57 @@
 #include <limits>
 #include <cmath>
 
-namespace Game
+namespace Components
 {
-    ButtonToCodeMap_t buttonList[]
+    Game::ButtonToCodeMap_t Gamepad::buttonList[]
     {
-        {GPAD_X, K_BUTTON_X},
-        {GPAD_A, K_BUTTON_A},
-        {GPAD_B, K_BUTTON_B},
-        {GPAD_Y, K_BUTTON_Y},
-        {GPAD_L_TRIG, K_BUTTON_LTRIG},
-        {GPAD_R_TRIG, K_BUTTON_RTRIG},
-        {GPAD_L_SHLDR, K_BUTTON_LSHLDR},
-        {GPAD_R_SHLDR, K_BUTTON_RSHLDR},
-        {GPAD_START, K_BUTTON_START},
-        {GPAD_BACK, K_BUTTON_BACK},
-        {GPAD_L3, K_BUTTON_LSTICK},
-        {GPAD_R3, K_BUTTON_RSTICK},
-        {GPAD_UP, K_DPAD_UP},
-        {GPAD_DOWN, K_DPAD_DOWN},
-        {GPAD_LEFT, K_DPAD_LEFT},
-        {GPAD_RIGHT, K_DPAD_RIGHT}
+        {Game::GPAD_X, Game::K_BUTTON_X},
+        {Game::GPAD_A, Game::K_BUTTON_A},
+        {Game::GPAD_B, Game::K_BUTTON_B},
+        {Game::GPAD_Y, Game::K_BUTTON_Y},
+        {Game::GPAD_L_TRIG, Game::K_BUTTON_LTRIG},
+        {Game::GPAD_R_TRIG, Game::K_BUTTON_RTRIG},
+        {Game::GPAD_L_SHLDR, Game::K_BUTTON_LSHLDR},
+        {Game::GPAD_R_SHLDR, Game::K_BUTTON_RSHLDR},
+        {Game::GPAD_START, Game::K_BUTTON_START},
+        {Game::GPAD_BACK, Game::K_BUTTON_BACK},
+        {Game::GPAD_L3, Game::K_BUTTON_LSTICK},
+        {Game::GPAD_R3, Game::K_BUTTON_RSTICK},
+        {Game::GPAD_UP, Game::K_DPAD_UP},
+        {Game::GPAD_DOWN, Game::K_DPAD_DOWN},
+        {Game::GPAD_LEFT, Game::K_DPAD_LEFT},
+        {Game::GPAD_RIGHT, Game::K_DPAD_RIGHT}
     };
 
-    StickToCodeMap_t analogStickList[4]
+    Game::StickToCodeMap_t Gamepad::analogStickList[4]
     {
-        {GPAD_LX, K_APAD_RIGHT, K_APAD_LEFT},
-        {GPAD_LY, K_APAD_UP, K_APAD_DOWN},
-        {GPAD_RX, K_APAD_RIGHT, K_APAD_LEFT},
-        {GPAD_RY, K_APAD_UP, K_APAD_DOWN},
+        {Game::GPAD_LX, Game::K_APAD_RIGHT, Game::K_APAD_LEFT},
+        {Game::GPAD_LY, Game::K_APAD_UP, Game::K_APAD_DOWN},
+        {Game::GPAD_RX, Game::K_APAD_RIGHT, Game::K_APAD_LEFT},
+        {Game::GPAD_RY, Game::K_APAD_UP, Game::K_APAD_DOWN},
     };
 
-    GamePadStick stickForAxis[GPAD_PHYSAXIS_COUNT]
+    Game::GamePadStick Gamepad::stickForAxis[Game::GPAD_PHYSAXIS_COUNT]
     {
-        GPAD_RX,
-        GPAD_RY,
-        GPAD_LX,
-        GPAD_LY,
-        GPAD_INVALID,
-        GPAD_INVALID
+        Game::GPAD_RX,
+        Game::GPAD_RY,
+        Game::GPAD_LX,
+        Game::GPAD_LY,
+        Game::GPAD_INVALID,
+        Game::GPAD_INVALID
     };
 
-    GamepadPhysicalAxis axisSameStick[GPAD_PHYSAXIS_COUNT]
+    Game::GamepadPhysicalAxis Gamepad::axisSameStick[Game::GPAD_PHYSAXIS_COUNT]
     {
-        GPAD_PHYSAXIS_RSTICK_Y,
-        GPAD_PHYSAXIS_RSTICK_X,
-        GPAD_PHYSAXIS_LSTICK_Y,
-        GPAD_PHYSAXIS_LSTICK_X,
-        GPAD_PHYSAXIS_NONE,
-        GPAD_PHYSAXIS_NONE
+        Game::GPAD_PHYSAXIS_RSTICK_Y,
+        Game::GPAD_PHYSAXIS_RSTICK_X,
+        Game::GPAD_PHYSAXIS_LSTICK_Y,
+        Game::GPAD_PHYSAXIS_LSTICK_X,
+        Game::GPAD_PHYSAXIS_NONE,
+        Game::GPAD_PHYSAXIS_NONE
     };
 
-    const char* physicalAxisNames[GPAD_PHYSAXIS_COUNT]
+    const char* Gamepad::physicalAxisNames[Game::GPAD_PHYSAXIS_COUNT]
     {
         "A_RSTICK_X",
         "A_RSTICK_Y",
@@ -63,7 +63,7 @@ namespace Game
         "A_LTRIGGER"
     };
 
-    const char* virtualAxisNames[GPAD_VIRTAXIS_COUNT]
+    const char* Gamepad::virtualAxisNames[Game::GPAD_VIRTAXIS_COUNT]
     {
         "VA_SIDE",
         "VA_FORWARD",
@@ -73,82 +73,83 @@ namespace Game
         "VA_ATTACK"
     };
 
-    const char* gamePadMappingTypeNames[GPAD_MAP_COUNT]
+    const char* Gamepad::gamePadMappingTypeNames[Game::GPAD_MAP_COUNT]
     {
         "MAP_LINEAR",
         "MAP_SQUARED"
     };
 
-    keyNum_t menuScrollButtonList[]
+    Game::keyNum_t Gamepad::menuScrollButtonList[]
     {
-        K_APAD_UP,
-        K_APAD_DOWN,
-        K_APAD_LEFT,
-        K_APAD_RIGHT,
-        K_DPAD_UP,
-        K_DPAD_DOWN,
-        K_DPAD_LEFT,
-        K_DPAD_RIGHT
+        Game::K_APAD_UP,
+        Game::K_APAD_DOWN,
+        Game::K_APAD_LEFT,
+        Game::K_APAD_RIGHT,
+        Game::K_DPAD_UP,
+        Game::K_DPAD_DOWN,
+        Game::K_DPAD_LEFT,
+        Game::K_DPAD_RIGHT
     };
 
-    keyname_t extendedKeyNames[]
+    Game::keyname_t Gamepad::extendedKeyNames[]
     {
-        {"BUTTON_A", K_BUTTON_A},
-        {"BUTTON_B", K_BUTTON_B},
-        {"BUTTON_X", K_BUTTON_X},
-        {"BUTTON_Y", K_BUTTON_Y},
-        {"BUTTON_LSHLDR", K_BUTTON_LSHLDR},
-        {"BUTTON_RSHLDR", K_BUTTON_RSHLDR},
-        {"BUTTON_START", K_BUTTON_START},
-        {"BUTTON_BACK", K_BUTTON_BACK},
-        {"BUTTON_LSTICK", K_BUTTON_LSTICK},
-        {"BUTTON_RSTICK", K_BUTTON_RSTICK},
-        {"BUTTON_LTRIG", K_BUTTON_LTRIG},
-        {"BUTTON_RTRIG", K_BUTTON_RTRIG},
-        {"DPAD_UP", K_DPAD_UP},
-        {"DPAD_DOWN", K_DPAD_DOWN},
-        {"DPAD_LEFT", K_DPAD_LEFT},
-        {"DPAD_RIGHT", K_DPAD_RIGHT},
+        {"BUTTON_A", Game::K_BUTTON_A},
+        {"BUTTON_B", Game::K_BUTTON_B},
+        {"BUTTON_X", Game::K_BUTTON_X},
+        {"BUTTON_Y", Game::K_BUTTON_Y},
+        {"BUTTON_LSHLDR", Game::K_BUTTON_LSHLDR},
+        {"BUTTON_RSHLDR", Game::K_BUTTON_RSHLDR},
+        {"BUTTON_START", Game::K_BUTTON_START},
+        {"BUTTON_BACK", Game::K_BUTTON_BACK},
+        {"BUTTON_LSTICK", Game::K_BUTTON_LSTICK},
+        {"BUTTON_RSTICK", Game::K_BUTTON_RSTICK},
+        {"BUTTON_LTRIG", Game::K_BUTTON_LTRIG},
+        {"BUTTON_RTRIG", Game::K_BUTTON_RTRIG},
+        {"DPAD_UP", Game::K_DPAD_UP},
+        {"DPAD_DOWN", Game::K_DPAD_DOWN},
+        {"DPAD_LEFT", Game::K_DPAD_LEFT},
+        {"DPAD_RIGHT", Game::K_DPAD_RIGHT},
     };
 
-    keyname_t extendedLocalizedKeyNames[]
+    Game::keyname_t Gamepad::extendedLocalizedKeyNames[]
     {
         // Material text icons pattern: 0x01 width height material_name_len
-        {"^\x01\x32\x32\x08""button_a", K_BUTTON_A},
-        {"^\x01\x32\x32\x08""button_b", K_BUTTON_B},
-        {"^\x01\x32\x32\x08""button_x", K_BUTTON_X},
-        {"^\x01\x32\x32\x08""button_y", K_BUTTON_Y},
-        {"^\x01\x32\x32\x0D""button_lshldr", K_BUTTON_LSHLDR},
-        {"^\x01\x32\x32\x0D""button_rshldr", K_BUTTON_RSHLDR},
-        {"^\x01\x32\x32\x0C""button_start", K_BUTTON_START},
-        {"^\x01\x32\x32\x0B""button_back", K_BUTTON_BACK},
-        {"^\x01\x48\x32\x0D""button_lstick", K_BUTTON_LSTICK},
-        {"^\x01\x48\x32\x0D""button_rstick", K_BUTTON_RSTICK},
-        {"^\x01\x32\x32\x0C""button_ltrig", K_BUTTON_LTRIG},
-        {"^\x01\x32\x32\x0C""button_rtrig", K_BUTTON_RTRIG},
-        {"^\x01\x32\x32\x07""dpad_up", K_DPAD_UP},
-        {"^\x01\x32\x32\x09""dpad_down", K_DPAD_DOWN},
-        {"^\x01\x32\x32\x09""dpad_left", K_DPAD_LEFT},
-        {"^\x01\x32\x32\x0A""dpad_right", K_DPAD_RIGHT},
+        {"^\x01\x32\x32\x08""button_a", Game::K_BUTTON_A},
+        {"^\x01\x32\x32\x08""button_b", Game::K_BUTTON_B},
+        {"^\x01\x32\x32\x08""button_x", Game::K_BUTTON_X},
+        {"^\x01\x32\x32\x08""button_y", Game::K_BUTTON_Y},
+        {"^\x01\x32\x32\x0D""button_lshldr", Game::K_BUTTON_LSHLDR},
+        {"^\x01\x32\x32\x0D""button_rshldr", Game::K_BUTTON_RSHLDR},
+        {"^\x01\x32\x32\x0C""button_start", Game::K_BUTTON_START},
+        {"^\x01\x32\x32\x0B""button_back", Game::K_BUTTON_BACK},
+        {"^\x01\x48\x32\x0D""button_lstick", Game::K_BUTTON_LSTICK},
+        {"^\x01\x48\x32\x0D""button_rstick", Game::K_BUTTON_RSTICK},
+        {"^\x01\x32\x32\x0C""button_ltrig", Game::K_BUTTON_LTRIG},
+        {"^\x01\x32\x32\x0C""button_rtrig", Game::K_BUTTON_RTRIG},
+        {"^\x01\x32\x32\x07""dpad_up", Game::K_DPAD_UP},
+        {"^\x01\x32\x32\x09""dpad_down", Game::K_DPAD_DOWN},
+        {"^\x01\x32\x32\x09""dpad_left", Game::K_DPAD_LEFT},
+        {"^\x01\x32\x32\x0A""dpad_right", Game::K_DPAD_RIGHT},
+    };
+    Game::keyname_t Gamepad::combinedKeyNames[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedKeyNames)> + 1];
+    Game::keyname_t Gamepad::combinedLocalizedKeyNames[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNames)> + 1];
+
+    Gamepad::ControllerMenuKeyMapping Gamepad::controllerMenuKeyMappings[]
+    {
+        {Game::K_BUTTON_A, Game::K_ENTER},
+        {Game::K_BUTTON_START, Game::K_ENTER},
+        {Game::K_BUTTON_B, Game::K_ESCAPE},
+        {Game::K_BUTTON_BACK, Game::K_ESCAPE},
+        {Game::K_DPAD_UP, Game::K_UPARROW},
+        {Game::K_APAD_UP, Game::K_UPARROW},
+        {Game::K_DPAD_DOWN, Game::K_DOWNARROW},
+        {Game::K_APAD_DOWN, Game::K_DOWNARROW},
+        {Game::K_DPAD_LEFT, Game::K_LEFTARROW},
+        {Game::K_APAD_LEFT, Game::K_LEFTARROW},
+        {Game::K_DPAD_RIGHT, Game::K_RIGHTARROW},
+        {Game::K_APAD_RIGHT, Game::K_RIGHTARROW},
     };
 
-    constexpr auto VANILLA_KEY_NAME_COUNT = 95;
-    constexpr auto VANILLA_LOCALIZED_KEY_NAME_COUNT = 95;
-    keyname_t combinedKeyNames[VANILLA_KEY_NAME_COUNT + std::extent_v<decltype(extendedKeyNames)> + 1];
-    keyname_t combinedLocalizedKeyNames[VANILLA_KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNames)> + 1];
-
-    PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
-    kbutton_t* playersKb = reinterpret_cast<kbutton_t*>(0xA1A9A8);
-    AimAssistGlobals* aaGlobArray = reinterpret_cast<AimAssistGlobals*>(0x7A2110);
-    keyname_t* vanillaKeyNames = reinterpret_cast<keyname_t*>(0x798580);
-    keyname_t* vanillaLocalizedKeyNames = reinterpret_cast<keyname_t*>(0x798880);
-
-    constexpr auto VANILLA_AIM_ASSIST_GRAPH_COUNT = 4u;
-    GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x7A2FC0);
-}
-
-namespace Components
-{
     Gamepad::GamePad Gamepad::gamePads[Game::MAX_GAMEPADS]{};
     Gamepad::GamePadGlobals Gamepad::gamePadGlobals[Game::MAX_GAMEPADS]{{}};
     int Gamepad::gamePadBindingsModifiedFlags = 0;
@@ -197,28 +198,6 @@ namespace Components
     Dvar::Var Gamepad::aim_lockon_deflection;
     Dvar::Var Gamepad::aim_lockon_pitch_strength;
     Dvar::Var Gamepad::aim_lockon_strength;
-
-    struct ControllerMenuKeyMapping
-    {
-        Game::keyNum_t controllerKey;
-        Game::keyNum_t pcKey;
-    };
-
-    ControllerMenuKeyMapping controllerMenuKeyMappings[]
-    {
-        {Game::K_BUTTON_A, Game::K_ENTER},
-        {Game::K_BUTTON_START, Game::K_ENTER},
-        {Game::K_BUTTON_B, Game::K_ESCAPE},
-        {Game::K_BUTTON_BACK, Game::K_ESCAPE},
-        {Game::K_DPAD_UP, Game::K_UPARROW},
-        {Game::K_APAD_UP, Game::K_UPARROW},
-        {Game::K_DPAD_DOWN, Game::K_DOWNARROW},
-        {Game::K_APAD_DOWN, Game::K_DOWNARROW},
-        {Game::K_DPAD_LEFT, Game::K_LEFTARROW},
-        {Game::K_APAD_LEFT, Game::K_LEFTARROW},
-        {Game::K_DPAD_RIGHT, Game::K_RIGHTARROW},
-        {Game::K_APAD_RIGHT, Game::K_RIGHTARROW},
-    };
 
     Gamepad::GamePadGlobals::GamePadGlobals()
         : axes{},
@@ -488,7 +467,7 @@ namespace Components
         assert(yawAxis);
 
         const auto graphIndex = aim_input_graph_index.get<int>();
-        if (aim_input_graph_enabled.get<bool>() && graphIndex >= 0 && graphIndex < Game::VANILLA_AIM_ASSIST_GRAPH_COUNT)
+        if (aim_input_graph_enabled.get<bool>() && graphIndex >= 0 && static_cast<unsigned>(graphIndex) < Game::AIM_ASSIST_GRAPH_COUNT)
         {
             const auto deflection = std::sqrt(input->pitchAxis * input->pitchAxis + input->yawAxis * input->yawAxis);
 
@@ -795,7 +774,7 @@ namespace Components
 
         if (mapType == Game::GPAD_MAP_SQUARED)
         {
-            const auto otherAxisSameStick = Game::axisSameStick[physicalAxis];
+            const auto otherAxisSameStick = axisSameStick[physicalAxis];
 
             float otherAxisDeflection;
             if (otherAxisSameStick <= Game::GPAD_PHYSAXIS_NONE || otherAxisSameStick >= Game::GPAD_PHYSAXIS_COUNT)
@@ -964,7 +943,7 @@ namespace Components
             return;
 
         const auto scrollDelayFirst = gpad_menu_scroll_delay_first.get<int>();
-        for (const auto scrollButton : Game::menuScrollButtonList)
+        for (const auto scrollButton : menuScrollButtonList)
         {
             if (key == scrollButton)
             {
@@ -981,12 +960,12 @@ namespace Components
 
         auto& gamePad = gamePads[gamePadIndex];
 
-        const auto stick = Game::stickForAxis[physicalAxis];
+        const auto stick = stickForAxis[physicalAxis];
         const auto stickIndex = stick & Game::GPAD_VALUE_MASK;
         if (stick != Game::GPAD_INVALID)
         {
             assert(stickIndex < 4);
-            const auto& mapping = Game::analogStickList[stickIndex];
+            const auto& mapping = analogStickList[stickIndex];
 
             if (gamePad.stickDown[stickIndex][Game::GPAD_STICK_POS])
             {
@@ -1078,7 +1057,7 @@ namespace Components
             const int scrollDelayFirst = gpad_menu_scroll_delay_first.get<int>();
             const int scrollDelayRest = gpad_menu_scroll_delay_rest.get<int>();
 
-            for (const auto menuScrollButton : Game::menuScrollButtonList)
+            for (const auto menuScrollButton : menuScrollButtonList)
             {
                 if (key == menuScrollButton)
                 {
@@ -1495,7 +1474,7 @@ namespace Components
                 CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_LTRIGGER, leftTrig, time);
                 CL_GamepadEvent(gamePadIndex, Game::GPAD_PHYSAXIS_RTRIGGER, rightTrig, time);
 
-                for (const auto& buttonMapping : Game::buttonList)
+                for (const auto& buttonMapping : buttonList)
                 {
                     if (GPad_IsButtonPressed(gamePadIndex, buttonMapping.padButton))
                     {
@@ -1553,9 +1532,9 @@ namespace Components
                 continue;
             }
 
-            const auto* physicalAxisName = Game::physicalAxisNames[axisMapping.physicalAxis];
-            const auto* virtualAxisName = Game::virtualAxisNames[virtualAxisIndex];
-            const auto* mappingName = Game::gamePadMappingTypeNames[axisMapping.mapType];
+            const auto* physicalAxisName = physicalAxisNames[axisMapping.physicalAxis];
+            const auto* virtualAxisName = virtualAxisNames[virtualAxisIndex];
+            const auto* mappingName = gamePadMappingTypeNames[axisMapping.mapType];
 
             Game::FS_Printf(handle, "bindaxis %s %s %s\n", physicalAxisName, virtualAxisName, mappingName);
         }
@@ -1589,7 +1568,6 @@ namespace Components
         }
     }
 
-
     void Gamepad::Gamepad_BindAxis(const int gamePadIndex, const Game::GamepadPhysicalAxis realIndex, const Game::GamepadVirtualAxis axisIndex, const Game::GamepadMapping mapType)
     {
         assert(gamePadIndex < Game::MAX_GAMEPADS);
@@ -1606,9 +1584,9 @@ namespace Components
 
     Game::GamepadPhysicalAxis Gamepad::StringToPhysicalAxis(const char* str)
     {
-        for (auto i = 0u; i < std::extent_v<decltype(Game::physicalAxisNames)>; i++)
+        for (auto i = 0u; i < std::extent_v<decltype(physicalAxisNames)>; i++)
         {
-            if (strcmp(str, Game::physicalAxisNames[i]) == 0)
+            if (strcmp(str, physicalAxisNames[i]) == 0)
                 return static_cast<Game::GamepadPhysicalAxis>(i);
         }
 
@@ -1617,9 +1595,9 @@ namespace Components
 
     Game::GamepadVirtualAxis Gamepad::StringToVirtualAxis(const char* str)
     {
-        for (auto i = 0u; i < std::extent_v<decltype(Game::virtualAxisNames)>; i++)
+        for (auto i = 0u; i < std::extent_v<decltype(virtualAxisNames)>; i++)
         {
-            if (strcmp(str, Game::virtualAxisNames[i]) == 0)
+            if (strcmp(str, virtualAxisNames[i]) == 0)
                 return static_cast<Game::GamepadVirtualAxis>(i);
         }
 
@@ -1628,9 +1606,9 @@ namespace Components
 
     Game::GamepadMapping Gamepad::StringToGamePadMapping(const char* str)
     {
-        for (auto i = 0u; i < std::extent_v<decltype(Game::gamePadMappingTypeNames)>; i++)
+        for (auto i = 0u; i < std::extent_v<decltype(gamePadMappingTypeNames)>; i++)
         {
-            if (strcmp(str, Game::gamePadMappingTypeNames[i]) == 0)
+            if (strcmp(str, gamePadMappingTypeNames[i]) == 0)
                 return static_cast<Game::GamepadMapping>(i);
         }
 
@@ -1851,19 +1829,19 @@ namespace Components
 
     void Gamepad::CreateKeyNameMap()
     {
-        memcpy(Game::combinedKeyNames, Game::vanillaKeyNames, sizeof(Game::keyname_t) * Game::VANILLA_KEY_NAME_COUNT);
-        memcpy(&Game::combinedKeyNames[Game::VANILLA_KEY_NAME_COUNT], Game::extendedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(Game::extendedKeyNames)>);
-        Game::combinedKeyNames[std::extent_v<decltype(Game::combinedKeyNames)> - 1] = {nullptr, 0};
+        memcpy(combinedKeyNames, Game::keyNames, sizeof(Game::keyname_t) * Game::KEY_NAME_COUNT);
+        memcpy(&combinedKeyNames[Game::KEY_NAME_COUNT], extendedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(extendedKeyNames)>);
+        combinedKeyNames[std::extent_v<decltype(combinedKeyNames)> - 1] = {nullptr, 0};
 
-        memcpy(Game::combinedLocalizedKeyNames, Game::vanillaLocalizedKeyNames, sizeof(Game::keyname_t) * Game::VANILLA_LOCALIZED_KEY_NAME_COUNT);
-        memcpy(&Game::combinedLocalizedKeyNames[Game::VANILLA_LOCALIZED_KEY_NAME_COUNT], Game::extendedLocalizedKeyNames,
-               sizeof(Game::keyname_t) * std::extent_v<decltype(Game::extendedLocalizedKeyNames)>);
-        Game::combinedLocalizedKeyNames[std::extent_v<decltype(Game::combinedLocalizedKeyNames)> - 1] = {nullptr, 0};
+        memcpy(combinedLocalizedKeyNames, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
+        memcpy(&combinedLocalizedKeyNames[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNames,
+               sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNames)>);
+        combinedLocalizedKeyNames[std::extent_v<decltype(combinedLocalizedKeyNames)> - 1] = {nullptr, 0};
 
-        Utils::Hook::Set<Game::keyname_t*>(0x4A780A, Game::combinedKeyNames);
-        Utils::Hook::Set<Game::keyname_t*>(0x4A7810, Game::combinedKeyNames);
-        Utils::Hook::Set<Game::keyname_t*>(0x435C9F, Game::combinedKeyNames);
-        Utils::Hook::Set<Game::keyname_t*>(0x435C98, Game::combinedLocalizedKeyNames);
+        Utils::Hook::Set<Game::keyname_t*>(0x4A780A, combinedKeyNames);
+        Utils::Hook::Set<Game::keyname_t*>(0x4A7810, combinedKeyNames);
+        Utils::Hook::Set<Game::keyname_t*>(0x435C9F, combinedKeyNames);
+        Utils::Hook::Set<Game::keyname_t*>(0x435C98, combinedLocalizedKeyNames);
     }
 
     Gamepad::Gamepad()
