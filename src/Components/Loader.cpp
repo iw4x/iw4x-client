@@ -102,6 +102,7 @@ namespace Components
 		Loader::Register(new ConnectProtocol());
 		Loader::Register(new StartupMessages());
 		Loader::Register(new SoundMutexFix());
+		Loader::Register(new Gamepad());
 
 		Loader::Register(new Client());
 

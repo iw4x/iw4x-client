@@ -134,6 +134,36 @@ namespace Components
 		}
 	}
 
+	void Dvar::Var::setRaw(int integer)
+	{
+		assert(this->dvar->type == Game::DVAR_TYPE_INT);
+		if (this->dvar)
+		{
+			this->dvar->current.integer = integer;
+			this->dvar->latched.integer = integer;
+		}
+	}
+
+	void Dvar::Var::setRaw(float value)
+	{
+		assert(this->dvar->type == Game::DVAR_TYPE_FLOAT);
+		if (this->dvar)
+		{
+			this->dvar->current.value = value;
+			this->dvar->latched.value = value;
+		}
+	}
+
+	void Dvar::Var::setRaw(bool enabled)
+	{
+		assert(this->dvar->type == Game::DVAR_TYPE_BOOL);
+		if (this->dvar)
+		{
+			this->dvar->current.enabled = enabled;
+			this->dvar->latched.enabled = enabled;
+		}
+	}
+
 	template<> static Dvar::Var Dvar::Register(const char* name, bool value, Dvar::Flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterBool(name, value, flag.val, description);
