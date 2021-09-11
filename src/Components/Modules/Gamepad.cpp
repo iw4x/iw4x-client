@@ -1,8 +1,5 @@
 #include "STDInclude.hpp"
 
-#include <limits>
-#include <cmath>
-
 namespace Components
 {
     Game::ButtonToCodeMap_t Gamepad::buttonList[]
