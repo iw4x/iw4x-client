@@ -291,63 +291,6 @@ namespace Components
 
 #endif
 
-	int Materials::R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font)
-	{
-		auto lineWidth = 0;
-		auto maxWidth = 0;
-
-		if (maxChars <= 0)
-			maxChars = 0x7FFFFFFF;
-
-		if (text == nullptr)
-			return 0;
-
-		auto count = 0;
-		while (text && *text && count < maxChars)
-		{
-			const auto letter = Game::SEH_ReadCharFromString(&text, nullptr);
-			if (letter == '\r' || letter == '\n')
-			{
-				lineWidth = 0;
-			}
-			else
-			{
-				if (letter == '^' && text)
-				{
-					if (*text >= '0' && *text <= Colors::LastColorIndex)
-					{
-						text++;
-						continue;
-					}
-
-					if (*text >= '\x01' && *text <= '\x02' && text[1] != '\0' && text[2] != '\0' && text[3] != '\0')
-					{
-						const auto width = text[1];
-						const auto materialNameLength = text[3];
-
-						// This is how the game calculates width and height. Probably some 1 byte floating point number.
-						auto v9 = font->pixelHeight * (width - 16) + 16;
-						auto w = ((((v9 >> 24) & 0x1F) + v9) >> 5);
-
-						lineWidth += w;
-
-						text += 4;
-						for (auto currentLength = 0; currentLength < materialNameLength && *text; currentLength++)
-							text++;
-						continue;
-					}
-				}
-				
-				lineWidth += R_GetCharacterGlyph(font, letter)->dx;
-				if (lineWidth > maxWidth)
-					maxWidth = lineWidth;
-				count++;
-			}
-		}
-
-		return maxWidth;
-	}
-
 	Materials::Materials()
 	{
 		Materials::ImageNameLength = 7;
@@ -370,9 +313,6 @@ namespace Components
 
 		// Debug material comparison
 		Utils::Hook::Set<void*>(0x523894, Materials::MaterialComparePrint);
-
-		// Consider material text icons when calculating text width
-		Utils::Hook(0x5056C0, Materials::R_TextWidth_Hk, HOOK_JUMP).install()->quick();
 
 #ifdef DEBUG
 		if (Flags::HasFlag("dump"))
