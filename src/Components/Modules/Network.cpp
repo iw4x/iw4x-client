@@ -344,9 +344,9 @@ namespace Components
 
 	void Network::SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg)
 	{
-		if (client->reliableAcknowledge < 0 || client->reliableAcknowledge > 255)
+		if (client->reliableAcknowledge < 0)
 		{
-			client->reliableAcknowledge = 0;
+			client->reliableAcknowledge = client->reliableSequence;
 			Network::SendCommand(Game::NS_SERVER, client->netchan.remoteAddress, "error", "EXE_LOSTRELIABLECOMMANDS");
 			return;
 		}
