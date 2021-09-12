@@ -21,14 +21,9 @@ namespace Components
 	private:
 		static std::vector<Game::GfxImage*> ImageTable;
 		static std::vector<Game::Material*> MaterialTable;
-		static int ImageNameLength;
 
 		static Utils::Hook ImageVersionCheckHook;
 		static void ImageVersionCheck();
-
-		static Game::Material* ResolveMaterial(const char* stringPtr);
-		static void DrawMaterialStub();
-		static void PostDrawMaterialStub();
 
 		static int WriteDeathMessageIcon(char* string, int offset, Game::Material* material);
 		static void DeathMessageStub();

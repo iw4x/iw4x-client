@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	int Materials::ImageNameLength;
 	Utils::Hook Materials::ImageVersionCheckHook;
 
 	std::vector<Game::GfxImage*> Materials::ImageTable;
@@ -151,66 +150,6 @@ namespace Components
 		}
 	}
 
-	Game::Material* Materials::ResolveMaterial(const char* stringPtr)
-	{
-		const char* imagePtr = stringPtr + 4;
-		unsigned int length = static_cast<unsigned int>(stringPtr[3] & 0xFF);
-
-		if (strlen(imagePtr) >= length)
-		{
-			Materials::ImageNameLength = 4 + length;
-			std::string image(imagePtr, length);
-
-			auto* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
-
-			if(material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || strcmp(material->techniqueSet->name, "2d") != 0)
-				return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
-
-			return material;
-		}
-
-		Materials::ImageNameLength = 4;
-		return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
-	}
-
-	__declspec(naked) void Materials::PostDrawMaterialStub()
-	{
-		__asm
-		{
-			mov eax, Materials::ImageNameLength
-			add [esp + 30h], eax
-
-			mov eax, 5358FFh
-			jmp eax
-		}
-	}
-
-	__declspec(naked) void Materials::DrawMaterialStub()
-	{
-		__asm
-		{
-			push eax
-			pushad
-
-			push ecx
-			call Materials::ResolveMaterial
-			add esp, 4h
-
-			mov [esp + 20h], eax
-
-			// Make all material text icons have white tint
-			mov eax,[esp + 0x50]
-			or eax,0x00FFFFFF
-			mov [esp + 0x50],eax
-
-			popad
-			pop eax
-
-			push 5310F0h
-			retn
-		}
-	}
-
 	int Materials::WriteDeathMessageIcon(char* string, int offset, Game::Material* material)
 	{
 		if (!material)
@@ -293,17 +232,8 @@ namespace Components
 
 	Materials::Materials()
 	{
-		Materials::ImageNameLength = 7;
-
 		// Allow codo images
 		Materials::ImageVersionCheckHook.initialize(0x53A456, Materials::ImageVersionCheck, HOOK_CALL)->install();
-
-		// Fix material pointer exploit
-		// Also make all material text icons have white tint
-		Utils::Hook(0x534E0C, Materials::DrawMaterialStub, HOOK_CALL).install()->quick();
-
-		// Increment string pointer accordingly
-		Utils::Hook(0x5358FA, Materials::PostDrawMaterialStub, HOOK_JUMP).install()->quick();
 
 		// Adapt death message to IW5 material format
 		Utils::Hook(0x5A30D9, Materials::DeathMessageStub, HOOK_JUMP).install()->quick();
