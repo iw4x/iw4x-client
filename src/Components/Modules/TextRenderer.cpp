@@ -878,7 +878,7 @@ namespace Components
                 if(letter == '^' && (*curText == '\x01' || *curText == '\x02'))
                 {
                     RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
-                    xa += DrawHudIcon(curText, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, finalColor.packed);
+                    xa += DrawHudIcon(curText, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
 
                     if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
                         xa += xScale * padding;

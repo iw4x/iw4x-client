@@ -114,6 +114,13 @@ namespace Components
 			{1.0f, -1.0f},
 			{1.0f, 1.0f},
 		};
+		static constexpr float WHITE_COLOR[4]
+		{
+			1.0f,
+			1.0f,
+			1.0f,
+			1.0f
+		};
 		static constexpr float TEXT_COLOR[4]
 		{
 			1.0f,
