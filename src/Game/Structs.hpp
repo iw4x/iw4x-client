@@ -4663,7 +4663,12 @@ namespace Game
 		int reliableAcknowledge; // 134752
 		int reliableSent; // 134756
 		int messageAcknowledge; // 134760
-		char __pad4[1080]; // 134764
+		int gamestateMessageNum; // 134764
+		int challenge; // 134768
+		usercmd_s lastUsercmd; // 134772
+		int lastClientCommand; // 134812
+		char lastClientCommandString[1024]; // 134816
+		gentity_t* gentity; // 135840
 		char name[16]; // 135844
 		char __pad5[4]; // 135860
 		int lastPacketTime; // 135864
