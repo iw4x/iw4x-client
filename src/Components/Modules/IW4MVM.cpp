@@ -22,7 +22,7 @@ namespace Components
 		{
 			if (!Game::CL_IsCgameInitialized())
 			{
-				Dvar::Var("com_timescale").setRaw(1.0f);
+				Dvar::Var("com_timescale").set(1.0f);
 			}
 		});
 

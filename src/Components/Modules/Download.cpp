@@ -387,7 +387,7 @@ namespace Components
 
 			if (client->state >= 3)
 			{
-				if (address.getIP().full == Network::Address(client->addr).getIP().full)
+				if (address.getIP().full == Network::Address(client->netchan.remoteAddress).getIP().full)
 				{
 					return client;
 				}

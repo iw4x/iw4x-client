@@ -897,6 +897,7 @@ namespace Components
 			Menus::Add("ui_mp/theater_menu.menu");
 			Menus::Add("ui_mp/pc_options_multi.menu");
 			Menus::Add("ui_mp/pc_options_game.menu");
+			Menus::Add("ui_mp/pc_options_gamepad.menu");
 			Menus::Add("ui_mp/stats_reset.menu");
 			Menus::Add("ui_mp/stats_unlock.menu");
 			Menus::Add("ui_mp/security_increase_popmenu.menu");

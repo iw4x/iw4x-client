@@ -134,7 +134,7 @@ namespace Components
 
 			if (client->state >= 3)
 			{
-				std::string ip = Game::NET_AdrToString(client->addr);
+				std::string ip = Game::NET_AdrToString(client->netchan.remoteAddress);
 				if (ip.find_first_of(":") != std::string::npos)
 					ip.erase(ip.begin() + ip.find_first_of(":"), ip.end()); // erase port
 				Game::Scr_AddString(ip.data());

@@ -20,6 +20,7 @@ namespace Components
 	{
 		return this->dvar;
 	}
+
 	template <> char* Dvar::Var::get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING && this->dvar->current.string)
@@ -29,10 +30,12 @@ namespace Components
 
 		return const_cast<char*>("");
 	}
+
 	template <> const char* Dvar::Var::get()
 	{
 		return this->get<char*>();
 	}
+
 	template <> int Dvar::Var::get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
@@ -42,10 +45,12 @@ namespace Components
 
 		return 0;
 	}
+
 	template <> unsigned int Dvar::Var::get()
 	{
 		return static_cast<unsigned int>(this->get<int>());
 	}
+
 	template <> float Dvar::Var::get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
@@ -55,6 +60,7 @@ namespace Components
 
 		return 0;
 	}
+
 	template <> float* Dvar::Var::get()
 	{
 		static float val[4] = { 0 };
@@ -66,6 +72,7 @@ namespace Components
 
 		return val;
 	}
+
 	template <> bool Dvar::Var::get()
 	{
 		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
@@ -75,6 +82,7 @@ namespace Components
 
 		return false;
 	}
+
 	template <> std::string Dvar::Var::get()
 	{
 		return this->get<const char*>();
@@ -84,45 +92,75 @@ namespace Components
 	{
 		this->set(const_cast<const char*>(string));
 	}
+
 	void Dvar::Var::set(const char* string)
 	{
-		if (this->dvar && this->dvar->name)
+		assert(this->dvar->type == Game::DVAR_TYPE_STRING);
+		if (this->dvar)
 		{
-			Game::Dvar_SetCommand(this->dvar->name, string);
+			Game::Dvar_SetString(this->dvar, string);
 		}
 	}
+
 	void Dvar::Var::set(const std::string& string)
 	{
 		this->set(string.data());
 	}
+
 	void Dvar::Var::set(int integer)
 	{
-		if (this->dvar && this->dvar->name)
+		assert(this->dvar->type == Game::DVAR_TYPE_INT);
+		if (this->dvar)
 		{
-			Game::Dvar_SetCommand(this->dvar->name, Utils::String::VA("%i", integer));
+			Game::Dvar_SetInt(this->dvar, integer);
 		}
 	}
+
 	void Dvar::Var::set(float value)
 	{
-		if (this->dvar && this->dvar->name)
+		assert(this->dvar->type == Game::DVAR_TYPE_FLOAT);
+		if (this->dvar)
 		{
-			Game::Dvar_SetCommand(this->dvar->name, Utils::String::VA("%f", value));
+			Game::Dvar_SetFloat(this->dvar, value);
+		}
+	}
+
+	void Dvar::Var::set(bool enabled)
+	{
+		assert(this->dvar->type == Game::DVAR_TYPE_BOOL);
+		if (this->dvar)
+		{
+			Game::Dvar_SetBool(this->dvar, enabled);
 		}
 	}
 
 	void Dvar::Var::setRaw(int integer)
 	{
+		assert(this->dvar->type == Game::DVAR_TYPE_INT);
 		if (this->dvar)
 		{
 			this->dvar->current.integer = integer;
+			this->dvar->latched.integer = integer;
 		}
 	}
 
 	void Dvar::Var::setRaw(float value)
 	{
+		assert(this->dvar->type == Game::DVAR_TYPE_FLOAT);
 		if (this->dvar)
 		{
 			this->dvar->current.value = value;
+			this->dvar->latched.value = value;
+		}
+	}
+
+	void Dvar::Var::setRaw(bool enabled)
+	{
+		assert(this->dvar->type == Game::DVAR_TYPE_BOOL);
+		if (this->dvar)
+		{
+			this->dvar->current.enabled = enabled;
+			this->dvar->latched.enabled = enabled;
 		}
 	}
 
@@ -130,14 +168,17 @@ namespace Components
 	{
 		return Game::Dvar_RegisterBool(name, value, flag.val, description);
 	}
+
 	template<> static Dvar::Var Dvar::Register(const char* name, const char* value, Dvar::Flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterString(name, value, flag.val, description);
 	}
+
 	template<> static Dvar::Var Dvar::Register(const char* name, int value, int min, int max, Dvar::Flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterInt(name, value, min, max, flag.val, description);
 	}
+
 	template<> static Dvar::Var Dvar::Register(const char* name, float value, float min, float max, Dvar::Flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterFloat(name, value, min, max, flag.val, description);
