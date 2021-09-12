@@ -31,10 +31,11 @@ namespace Components
 
 			void set(int integer);
 			void set(float value);
+			void set(bool enabled);
 
-			// TODO: Add others
 			void setRaw(int integer);
 			void setRaw(float value);
+			void setRaw(bool enabled);
 
 		private:
 			Game::dvar_t* dvar;

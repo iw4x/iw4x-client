@@ -889,12 +889,8 @@ namespace Components
 		time(nullptr);
 		AntiCheat::Flags = NO_FLAG;
 
-#ifdef DISABLE_ANTICHEAT
-		Command::Add("penis", [](Command::Params*)
-		{
-			AntiCheat::CrashClient();
-		});
-#else
+#ifndef DISABLE_ANTICHEAT
+
 		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5082FD, AntiCheat::LostD3DStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x51C76C, AntiCheat::CinematicStub, HOOK_CALL).install()->quick();
