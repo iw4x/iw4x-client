@@ -4220,8 +4220,6 @@ namespace Game
 		char __pad0[0x5E0];
 	};
 
-	static_assert(sizeof(netProfileInfo_t) == 0x5E0);
-
 	struct netchan_t
 	{
 		int outgoingSequence;
@@ -4670,20 +4668,21 @@ namespace Game
 		char lastClientCommandString[1024]; // 134816
 		gentity_t* gentity; // 135840
 		char name[16]; // 135844
-		char __pad5[4]; // 135860
+		char __pad4[4]; // 135860
 		int lastPacketTime; // 135864
 		int lastConnectTime; // 135868
 		int snapNum; // 135872
-		int __pad6; // 135876
+		int __pad5; // 135876
 		short ping; // 135880
-		char __pad7[14]; // 135882
+		char __pad6[14]; // 135882
 		int pureAuthentic; // 135896
-		char __pad8[133140]; // 135900
+		char __pad7[133138]; // 135900
+		short scriptID; // 269038
 		int isBot; // 269040
 		int serverID; // 269044
-		char __pad9[9224]; // 269048
+		char __pad8[9224]; // 269048
 		unsigned __int64 steamID; // 278272
-		char __pad10[403592]; // 278280
+		char __pad9[403592]; // 278280
 	} client_t;
 #pragma pack(pop)
 
