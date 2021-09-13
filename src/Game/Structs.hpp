@@ -5417,15 +5417,27 @@ namespace Game
 		int reliableSequence; // 134748
 		int reliableAcknowledge; // 134752
 		int reliableSent; // 134756
-		char __pad4[1084]; // 134760
+		int messageAcknowledge; // 134760
+		int gamestateMessageNum; // 134764
+		int challenge; // 134768
+		usercmd_s lastUsercmd; // 134772
+		int lastClientCommand; // 134812
+		char lastClientCommandString[1024]; // 134816
+		gentity_t* gentity; // 135840
 		char name[16]; // 135844
-		char __pad5[12]; // 135860
+		char __pad4[4]; // 135860
+		int lastPacketTime; // 135864
+		int lastConnectTime; // 135868
 		int snapNum; // 135872
-		int __pad6; // 135876
+		int __pad5; // 135876
 		short ping; // 135880
-		char __pad7[133158]; // 135882
+		char __pad6[14]; // 135882
+		int pureAuthentic; // 135896
+		char __pad7[133138]; // 135900
+		short scriptID; // 269038
 		int isBot; // 269040
-		char __pad8[9228]; // 269044
+		int serverID; // 269044
+		char __pad8[9224]; // 269048
 		unsigned __int64 steamID; // 278272
 		char __pad9[403592]; // 278280
 	} client_t;
