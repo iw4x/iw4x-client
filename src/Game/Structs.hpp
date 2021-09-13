@@ -4220,6 +4220,8 @@ namespace Game
 		char __pad0[0x5E0];
 	};
 
+	static_assert(sizeof(netProfileInfo_t) == 0x5E0);
+
 	struct netchan_t
 	{
 		int outgoingSequence;
