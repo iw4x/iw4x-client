@@ -130,6 +130,7 @@ namespace Components
 #include "Modules/StartupMessages.hpp"
 #include "Modules/Stats.hpp"
 #include "Modules/SoundMutexFix.hpp"
+#include "Modules/Chat.hpp"
 #include "Modules/TextRenderer.hpp"
 
 #include "Modules/Gamepad.hpp"
