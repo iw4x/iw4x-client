@@ -474,6 +474,7 @@ namespace Game
 	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
 
 	cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
+	cgs_t* cgsArray = reinterpret_cast<cgs_t*>(0x7ED3B8);
 
 	PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
 	kbutton_t* playersKb = reinterpret_cast<kbutton_t*>(0xA1A9A8);

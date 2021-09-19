@@ -49,14 +49,6 @@ namespace Components
 			Game::Material* material;
 		};
 
-		struct FontIconInfo
-		{
-            Game::Material* material;
-			bool flipHorizontal;
-			bool flipVertical;
-			bool big;
-		};
-
 		struct HsvColor
 		{
 			unsigned char h;
@@ -99,8 +91,6 @@ namespace Components
 			float maxMaterialNameWidth;
 		};
 
-		static constexpr char COLOR_FIRST_CHAR = '0';
-		static constexpr char COLOR_LAST_CHAR = CharForColorIndex(TEXT_COLOR_COUNT - 1);
 		static constexpr unsigned MY_ALTCOLOR_TWO = 0x0DCE6FFE6;
 		static constexpr unsigned COLOR_MAP_HASH = 0xA0AB1041;
 		static constexpr auto FONT_ICON_AUTOCOMPLETE_BOX_PADDING = 6.0f;
@@ -153,6 +143,17 @@ namespace Components
 		static Game::dvar_t** con_inputBoxColor;
 
 	public:
+		static constexpr char COLOR_FIRST_CHAR = '0';
+		static constexpr char COLOR_LAST_CHAR = CharForColorIndex(TEXT_COLOR_COUNT - 1);
+
+		struct FontIconInfo
+		{
+			Game::Material* material;
+			bool flipHorizontal;
+			bool flipVertical;
+			bool big;
+		};
+
 		static void DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow);
 		static int R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font);
 		static unsigned int ColorIndex(char index);
@@ -162,6 +163,10 @@ namespace Components
 		static std::string StripMaterialTextIcons(const std::string& in);
 		static void StripAllTextIcons(const char* in, char* out, size_t max);
 		static std::string StripAllTextIcons(const std::string& in);
+
+		static bool IsFontIcon(const char*& text, FontIconInfo& fontIcon);
+		static float GetNormalizedFontIconWidth(const FontIconInfo& fontIcon);
+		static float GetFontIconWidth(const FontIconInfo& fontIcon, const Game::Font_s* font, float xScale);
 
 		TextRenderer();
 
@@ -193,8 +198,6 @@ namespace Components
 		static void GetUnpackedColorByNameStub();
 
 		static Game::GfxImage* GetFontIconColorMap(const Game::Material* fontIconMaterial);
-		static bool IsFontIcon(const char*& text, FontIconInfo& fontIcon);
-		static float GetFontIconWidth(const FontIconInfo& fontIcon, const Game::Font_s* font, float xScale);
 		static float DrawFontIcon(const FontIconInfo& fontIcon, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 
 		static float GetMonospaceWidth(Game::Font_s* font, int rendererFlags);

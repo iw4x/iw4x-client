@@ -6380,7 +6380,10 @@ namespace Game
 		void* nextSnap;
 		char _pad1[0x673DC];
 		int frametime;	// + 0x6A754
-		char _pad2[0x960C]; // + 0x6A758
+		int time;
+		int oldTime;
+		int physicalsTime;
+		char _pad2[0x9600]; // + 0x6A758
 		float compassMapWorldSize[2]; // + 0x73D64
 		char _pad3[0x74]; // + 0x73D6C
 		float selectedLocation[2]; // + 0x73DE0
@@ -6390,6 +6393,8 @@ namespace Game
 		float selectedLocationAnglePrev;
 		char _pad4[0x89740];
 	};
+
+	static_assert(sizeof(cg_s) == 0xFD540);
 
 	static constexpr auto MAX_GAMEPADS = 1;
 
@@ -6628,6 +6633,230 @@ namespace Game
 		int lockOnTargetEnt;
 	};
 #pragma warning(pop)
+
+	enum ShockViewTypes
+	{
+		SHELLSHOCK_VIEWTYPE_BLURRED = 0x0,
+		SHELLSHOCK_VIEWTYPE_FLASHED = 0x1,
+		SHELLSHOCK_VIEWTYPE_NONE = 0x2,
+	};
+
+    struct shellshock_parms_t
+	{
+		struct
+		{
+			int blurredFadeTime;
+			int blurredEffectTime;
+			int flashWhiteFadeTime;
+			int flashShotFadeTime;
+			ShockViewTypes type;
+		} screenBlend;
+		
+		struct
+		{
+			int fadeTime;
+			float kickRate;
+			float kickRadius;
+		} view;
+
+		struct
+		{
+			bool affect;
+			char loop[64];
+			char loopSilent[64];
+			char end[64];
+			char endAbort[64];
+			int fadeInTime;
+			int fadeOutTime;
+			float drylevel;
+			float wetlevel;
+			char roomtype[16];
+			float channelvolume[64];
+			int modEndDelay;
+			int loopFadeTime;
+			int loopEndDelay;
+		} sound;
+
+		struct
+		{
+			bool affect;
+			int fadeTime;
+			float mouseSensitivity;
+			float maxPitchSpeed;
+			float maxYawSpeed;
+		} lookControl;
+
+		struct
+		{
+			bool affect;
+		} movement;
+	};
+
+	struct XAnimParent
+	{
+		unsigned short flags;
+		unsigned short children;
+	};
+
+	struct XAnimEntry
+	{
+		unsigned short numAnims;
+		unsigned short parent;
+
+		union
+		{
+			XAnimParts* parts;
+			XAnimParent animParent;
+		};
+	};
+
+	struct XAnim_s
+	{
+		unsigned int size;
+		const char* debugName;
+		const char** debugAnimNames;
+		XAnimEntry entries[1];
+	};
+
+	struct animation_s
+	{
+		char name[64];
+		int initialLerp;
+		float moveSpeed;
+		int duration;
+		int nameHash;
+		int flags;
+		int64_t movetype;
+		int noteType;
+	};
+
+	struct lerpFrame_t
+	{
+		float yawAngle;
+		int yawing;
+		float pitchAngle;
+		int pitching;
+		int animationNumber;
+		animation_s* animation;
+		int animationTime;
+		float oldFramePos[3];
+		float animSpeedScale;
+		int oldFrameSnapshotTime;
+	};
+
+	struct clientControllers_t
+	{
+		float angles[4][3];
+		float tag_origin_angles[3];
+		float tag_origin_offset[3];
+	};
+
+	struct __declspec(align(4)) XAnimTree_s
+	{
+		XAnim_s* anims;
+		int info_usage;
+		volatile int calcRefCount;
+		volatile int modifyRefCount;
+		unsigned __int16 children;
+	};
+
+	enum PlayerDiveState
+	{
+		DIVE_NONE = 0x0,
+		DIVE_FORWARD = 0x1,
+		DIVE_FORWARDLEFT = 0x2,
+		DIVE_LEFT = 0x3,
+		DIVE_BACKLEFT = 0x4,
+		DIVE_BACK = 0x5,
+		DIVE_BACKRIGHT = 0x6,
+		DIVE_RIGHT = 0x7,
+		DIVE_FORWARDRIGHT = 0x8,
+	};
+
+	struct clientInfo_t
+	{
+		int infoValid;
+		int nextValid;
+		int clientNum;
+		char name[16];
+		team_t team;
+		team_t oldteam;
+		int rank;
+		int prestige;
+		unsigned int perks[2];
+		int score;
+		int location;
+		int health;
+		char model[64];
+		char attachModelNames[6][64];
+		char attachTagNames[6][64];
+		unsigned int partBits[6];
+		lerpFrame_t legs;
+		lerpFrame_t torso;
+		float lerpMoveDir;
+		float lerpLean;
+		float playerAngles[3];
+		int legsAnim;
+		int torsoAnim;
+		float fTorsoPitch;
+		float fWaistPitch;
+		int leftHandGun;
+		int dobjDirty;
+		clientControllers_t control;
+		unsigned int clientConditions[18][2];
+		XAnimTree_s* pXAnimTree;
+		int iDObjWeapon;
+		char weaponModel;
+		int stanceTransitionTime;
+		int turnAnimEndTime;
+		char turnAnimType;
+		bool hideWeapon;
+		bool usingKnife;
+		int dualWielding;
+		PlayerDiveState diveState;
+		int riotShieldNext;
+		unsigned int playerCardIcon;
+		unsigned int playerCardTitle;
+		unsigned int playerCardNameplate;
+	};
+
+	struct cgs_t
+	{
+		int viewX;
+		int viewY;
+		int viewWidth;
+		int viewHeight;
+		float viewAspect;
+		int serverCommandSequence;
+		int processedSnapshotNum;
+		int localServer;
+		char gametype[32];
+		char szHostName[256];
+		bool hardcore;
+		int maxclients;
+		int privateClients;
+		char mapname[64];
+		int gameEndTime;
+		int voteTime;
+		int voteYes;
+		int voteNo;
+		char voteString[256];
+		XModel* gameModels[512];
+		FxEffectDef* smokeGrenadeFx;
+		shellshock_parms_t holdBreathParams;
+		char teamChatMsgs[8][160];
+		int teamChatMsgTimes[8];
+		int teamChatPos;
+		int teamLastChatPos;
+		float compassWidth;
+		float compassHeight;
+		float compassY;
+		clientInfo_t corpseinfo[8];
+		bool entUpdateToggleContextKey;
+		XAnim_s* helicopterAnims;
+	};
+
+	static_assert(sizeof(cgs_t) == 0x3BA4);
 
 #pragma endregion
 

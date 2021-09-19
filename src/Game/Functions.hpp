@@ -974,6 +974,7 @@ namespace Game
 	extern clientActive_t* clients;
 
 	extern cg_s* cgArray;
+	extern cgs_t* cgsArray;
 
 	extern PlayerKeyState* playerKeys;
 	extern kbutton_t* playersKb;

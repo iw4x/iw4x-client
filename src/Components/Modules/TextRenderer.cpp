@@ -636,6 +636,21 @@ namespace Components
         return true;
     }
 
+    float TextRenderer::GetNormalizedFontIconWidth(const FontIconInfo& fontIcon)
+    {
+        const auto* colorMap = GetFontIconColorMap(fontIcon.material);
+        if (colorMap == nullptr)
+            return 0;
+        const auto sizeMultiplier = fontIcon.big ? 1.5f : 1.0f;
+        auto colWidth = static_cast<float>(colorMap->width);
+        auto colHeight = static_cast<float>(colorMap->height);
+        if (fontIcon.material->info.textureAtlasColumnCount > 1)
+            colWidth /= static_cast<float>(fontIcon.material->info.textureAtlasColumnCount);
+        if (fontIcon.material->info.textureAtlasRowCount > 1)
+            colHeight /= static_cast<float>(fontIcon.material->info.textureAtlasRowCount);
+        return (colWidth / colHeight) * sizeMultiplier;
+    }
+
     float TextRenderer::GetFontIconWidth(const FontIconInfo& fontIcon, const Game::Font_s* font, const float xScale)
     {
         const auto* colorMap = GetFontIconColorMap(fontIcon.material);
