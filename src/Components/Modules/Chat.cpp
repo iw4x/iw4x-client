@@ -169,9 +169,13 @@ namespace Components
 				len += 1.0f;
 			}
 		}
+
 		*p = 0;
+
 		Game::cgsArray[0].teamChatMsgTimes[Game::cgsArray[0].teamChatPos % chatHeight] = Game::cgArray[0].time;
-		if (Game::cgsArray[0].teamChatPos++ + 1 - Game::cgsArray[0].teamLastChatPos > chatHeight)
+
+		Game::cgsArray[0].teamChatPos++;
+		if (Game::cgsArray[0].teamChatPos - Game::cgsArray[0].teamLastChatPos > chatHeight)
 			Game::cgsArray[0].teamLastChatPos = Game::cgsArray[0].teamChatPos + 1 - chatHeight;
 	}
 

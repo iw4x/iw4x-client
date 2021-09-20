@@ -395,7 +395,7 @@ namespace Components
         UpdateAutocompleteContext(autocompleteContext, edit, font, ww);
         if (autocompleteContext.autocompleteActive)
         {
-            DrawAutocomplete(autocompleteContext, std::floor(xx), /*std::floor(*/ yy/*)*/, font, ww, hh);
+            DrawAutocomplete(autocompleteContext, std::floor(xx), std::floor(yy), font, ww, hh);
         }
     }
 
@@ -1075,6 +1075,8 @@ namespace Components
                         const auto width = text[1];
                         const auto materialNameLength = text[3];
 
+                        // This is how the game calculates width and height. Probably some 1 byte floating point number.
+                        // Details to be investigated if necessary.
                         const auto v9 = font->pixelHeight * (width - 16) + 16;
                         const auto w = ((((v9 >> 24) & 0x1F) + v9) >> 5);
 
