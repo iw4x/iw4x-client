@@ -181,8 +181,8 @@ namespace Components
         for(auto resultIndex = 0u; resultIndex < context.resultCount; resultIndex++)
         {
             const auto& result = context.results[resultIndex];
-            const auto fontIconWidth = static_cast<float>(Game::R_TextWidth(result.fontIconName.c_str(), INT_MAX, font)) * textXScale;
-            const auto materialNameWidth = static_cast<float>(Game::R_TextWidth(result.materialName.c_str(), INT_MAX, font)) * textXScale;
+            const auto fontIconWidth = static_cast<float>(Game::R_TextWidth(result.fontIconName.c_str(), std::numeric_limits<int>::max(), font)) * textXScale;
+            const auto materialNameWidth = static_cast<float>(Game::R_TextWidth(result.materialName.c_str(), std::numeric_limits<int>::max(), font)) * textXScale;
 
             if (fontIconWidth > context.maxFontIconWidth)
                 context.maxFontIconWidth = fontIconWidth;
@@ -286,7 +286,7 @@ namespace Components
             "^2h  ^7Flip icon horizontally\n"
             "^2v  ^7Flip icon vertically\n"
             "^2b  ^7Bigger icon";
-        const auto boxWidth = static_cast<float>(Game::R_TextWidth(text, INT_MAX, font)) * textXScale;
+        const auto boxWidth = static_cast<float>(Game::R_TextWidth(text, std::numeric_limits<int>::max(), font)) * textXScale;
         constexpr auto totalLines = 4u;
         const auto lineHeight = static_cast<float>(font->pixelHeight) * textYScale;
         DrawAutocompleteBox(context,
@@ -295,7 +295,7 @@ namespace Components
             boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
             static_cast<float>(totalLines) * lineHeight + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
             (*con_inputBoxColor)->current.vector);
-        Game::R_AddCmdDrawText(text, INT_MAX, font, x, y + lineHeight, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+        Game::R_AddCmdDrawText(text, std::numeric_limits<int>::max(), font, x, y + lineHeight, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
     }
 
     void TextRenderer::DrawAutocompleteResults(const FontIconAutocompleteContext& context, const float x, const float y, Game::Font_s* font, const float textXScale, const float textYScale)
@@ -303,7 +303,7 @@ namespace Components
         const auto* text = Utils::String::VA("Font icons starting with ^2%s^7:", context.lastQuery.c_str());
         const auto colSpacing = FONT_ICON_AUTOCOMPLETE_COL_SPACING * textXScale;
         const auto boxWidth = std::max(context.maxFontIconWidth + context.maxMaterialNameWidth + colSpacing,
-            static_cast<float>(Game::R_TextWidth(text, INT_MAX, font)) * textXScale);
+            static_cast<float>(Game::R_TextWidth(text, std::numeric_limits<int>::max(), font)) * textXScale);
         const auto lineHeight = static_cast<float>(font->pixelHeight) * textYScale;
 
         const auto hintEnabled = cg_fontIconAutocompleteHint.get<bool>();
@@ -317,27 +317,27 @@ namespace Components
             (*con_inputBoxColor)->current.vector);
         
         auto currentY = y + lineHeight;
-        Game::R_AddCmdDrawText(text, INT_MAX, font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+        Game::R_AddCmdDrawText(text, std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
         currentY += lineHeight;
 
         const auto selectedIndex = context.selectedOffset - context.resultOffset;
         for(auto resultIndex = 0u; resultIndex < context.resultCount; resultIndex++)
         {
             const auto& result = context.results[resultIndex];
-            Game::R_AddCmdDrawText(result.fontIconName.c_str(), INT_MAX, font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+            Game::R_AddCmdDrawText(result.fontIconName.c_str(), std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
 
-            if(selectedIndex == resultIndex)
-                Game::R_AddCmdDrawText(Utils::String::VA("^2%s", result.materialName.c_str()), INT_MAX, font, x + context.maxFontIconWidth + colSpacing, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+            if (selectedIndex == resultIndex)
+                Game::R_AddCmdDrawText(Utils::String::VA("^2%s", result.materialName.c_str()), std::numeric_limits<int>::max(), font, x + context.maxFontIconWidth + colSpacing, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
             else
-                Game::R_AddCmdDrawText(result.materialName.c_str(), INT_MAX, font, x + context.maxFontIconWidth + colSpacing, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+                Game::R_AddCmdDrawText(result.materialName.c_str(), std::numeric_limits<int>::max(), font, x + context.maxFontIconWidth + colSpacing, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
             currentY += lineHeight;
         }
 
         if(hintEnabled)
         {
-            Game::R_AddCmdDrawText("Press ^3TAB ^7for autocomplete", INT_MAX, font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
+            Game::R_AddCmdDrawText("Press ^3TAB ^7for autocomplete", std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
             currentY += lineHeight;
-            Game::R_AddCmdDrawText("Use ^3+ ^7for modifiers", INT_MAX, font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
+            Game::R_AddCmdDrawText("Use ^3+ ^7for modifiers", std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
         }
     }
 
@@ -1047,7 +1047,7 @@ namespace Components
         auto maxWidth = 0;
 
         if (maxChars <= 0)
-            maxChars = 0x7FFFFFFF;
+            maxChars = std::numeric_limits<int>::max();
 
         if (text == nullptr)
             return 0;
