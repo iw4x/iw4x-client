@@ -4,7 +4,7 @@ namespace Components
 {
 	enum TextColor
 	{
-	    TEXT_COLOR_BLACK = 0,
+		TEXT_COLOR_BLACK = 0,
 		TEXT_COLOR_RED = 1,
 		TEXT_COLOR_GREEN = 2,
 		TEXT_COLOR_YELLOW = 3,
@@ -58,8 +58,8 @@ namespace Components
 
 		enum FontIconAutocompleteInstance
 		{
-		    FONT_ICON_ACI_CONSOLE,
-		    FONT_ICON_ACI_CHAT,
+			FONT_ICON_ACI_CONSOLE,
+			FONT_ICON_ACI_CHAT,
 
 			FONT_ICON_ACI_COUNT
 		};
@@ -202,7 +202,7 @@ namespace Components
 
 		static float GetMonospaceWidth(Game::Font_s* font, int rendererFlags);
 		static void GlowColor(Game::GfxColor* result, Game::GfxColor baseColor, Game::GfxColor forcedGlowColor, int renderFlags);
-        static unsigned R_FontGetRandomLetter(int seed);
+		static unsigned R_FontGetRandomLetter(int seed);
 		static void DrawTextFxExtraCharacter(Game::Material* material, int charIndex, float x, float y, float w, float h, float sinAngle, float cosAngle, unsigned color);
 		static float DrawHudIcon(const char*& text, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
 		static void RotateXY(float cosAngle, float sinAngle, float pivotX, float pivotY, float x, float y, float* outX, float* outY);

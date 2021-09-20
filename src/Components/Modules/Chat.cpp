@@ -69,7 +69,7 @@ namespace Components
 			pop eax
 			retn
 
-			return:
+		return:
 			pop eax
 
 			// Jump to the target
@@ -121,7 +121,7 @@ namespace Components
 			return;
 		}
 
-        TextRenderer::FontIconInfo fontIconInfo{};
+		TextRenderer::FontIconInfo fontIconInfo{};
 		auto len = 0.0f;
 		auto lastColor = static_cast<int>(TEXT_COLOR_DEFAULT);
 		char* lastSpace = nullptr;
@@ -172,7 +172,7 @@ namespace Components
 		*p = 0;
 		Game::cgsArray[0].teamChatMsgTimes[Game::cgsArray[0].teamChatPos % chatHeight] = Game::cgArray[0].time;
 		if (Game::cgsArray[0].teamChatPos++ + 1 - Game::cgsArray[0].teamLastChatPos > chatHeight)
-            Game::cgsArray[0].teamLastChatPos = Game::cgsArray[0].teamChatPos + 1 - chatHeight;
+			Game::cgsArray[0].teamLastChatPos = Game::cgsArray[0].teamChatPos + 1 - chatHeight;
 	}
 
 	__declspec(naked) void Chat::CG_AddToTeamChat_Stub()

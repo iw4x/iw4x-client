@@ -1348,7 +1348,7 @@ namespace Game
 
 	__declspec(naked) Glyph* R_GetCharacterGlyph(Font_s* /*font*/, unsigned int /*letter*/)
 	{
-	    __asm
+		__asm
 		{
 			push eax
 			pushad
@@ -1397,7 +1397,7 @@ namespace Game
 
 	__declspec(naked) void RB_DrawChar(Material* /*material*/, float /*x*/, float /*y*/, float /*w*/, float /*h*/, float /*sinAngle*/, float /*cosAngle*/, Glyph* /*glyph*/, unsigned int /*color*/)
 	{
-	    __asm
+		__asm
 		{
 			pushad
 
@@ -1422,7 +1422,7 @@ namespace Game
 
 	__declspec(naked) void RB_DrawStretchPicRotate(Material* /*material*/, float /*x*/, float /*y*/, float /*w*/, float /*h*/, float /*s0*/, float /*t0*/, float /*s1*/, float /*t1*/, float /*sinAngle*/, float /*cosAngle*/, unsigned int /*color*/)
 	{
-	    __asm
+		__asm
 		{
 			pushad
 
