@@ -143,6 +143,12 @@ namespace Components
 		static Game::dvar_t** con_inputBoxColor;
 
 	public:
+		static constexpr char FONT_ICON_SEPARATOR_CHARACTER = ':';
+		static constexpr char FONT_ICON_MODIFIER_SEPARATOR_CHARACTER = '+';
+		static constexpr char FONT_ICON_MODIFIER_FLIP_HORIZONTALLY = 'h';
+		static constexpr char FONT_ICON_MODIFIER_FLIP_VERTICALLY = 'v';
+		static constexpr char FONT_ICON_MODIFIER_BIG = 'b';
+
 		static constexpr char COLOR_FIRST_CHAR = '0';
 		static constexpr char COLOR_LAST_CHAR = CharForColorIndex(TEXT_COLOR_COUNT - 1);
 

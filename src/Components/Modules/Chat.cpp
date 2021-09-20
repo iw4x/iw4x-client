@@ -134,7 +134,7 @@ namespace Components
 			CheckChatLineEnd(text, p, len, chatHeight, chatWidth, lastSpace, lastFontIcon, lastColor);
 
 			const char* fontIconEndPos = &text[1];
-			if(text[0] == ':' && TextRenderer::IsFontIcon(fontIconEndPos, fontIconInfo))
+			if(text[0] == TextRenderer::FONT_ICON_SEPARATOR_CHARACTER && TextRenderer::IsFontIcon(fontIconEndPos, fontIconInfo))
 			{
 				// The game calculates width on a per character base. Since the width of a font icon is calculated based on the height of the font
 				// which is roughly double as much as the average width of a character without an additional multiplier the calculated len of the font icon

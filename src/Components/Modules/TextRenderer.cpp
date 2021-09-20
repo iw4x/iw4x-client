@@ -199,7 +199,7 @@ namespace Components
         for(auto i = 0; i < edit->cursor; i++)
         {
             const auto c = static_cast<unsigned char>(edit->buffer[i]);
-            if (c == ':')
+            if (c == FONT_ICON_SEPARATOR_CHARACTER)
             {
                 if(fontIconStart < 0)
                 {
@@ -217,7 +217,7 @@ namespace Components
                 fontIconStart = -1;
                 inModifiers = false;
             }
-            else if(c == '+')
+            else if(c == FONT_ICON_MODIFIER_SEPARATOR_CHARACTER)
             {
                 if (fontIconStart >= 0 && !inModifiers)
                 {
@@ -568,12 +568,12 @@ namespace Components
     {
         const auto* curPos = text;
 
-        while (*curPos != ' ' && *curPos != ':' && *curPos != 0 && *curPos != '+')
+        while (*curPos != ' ' && *curPos != FONT_ICON_SEPARATOR_CHARACTER && *curPos != 0 && *curPos != FONT_ICON_MODIFIER_SEPARATOR_CHARACTER)
             curPos++;
 
         const auto* nameEnd = curPos;
         
-        if(*curPos == '+')
+        if(*curPos == FONT_ICON_MODIFIER_SEPARATOR_CHARACTER)
         {
             auto breakArgs = false;
             while(!breakArgs)
@@ -581,19 +581,19 @@ namespace Components
                 curPos++;
                 switch(*curPos)
                 {
-                case 'h':
+                case FONT_ICON_MODIFIER_FLIP_HORIZONTALLY:
                     fontIcon.flipHorizontal = true;
                     break;
 
-                case 'v':
+                case FONT_ICON_MODIFIER_FLIP_VERTICALLY:
                     fontIcon.flipVertical = true;
                     break;
 
-                case 'b':
+                case FONT_ICON_MODIFIER_BIG:
                     fontIcon.big = true;
                     break;
 
-                case ':':
+                case FONT_ICON_SEPARATOR_CHARACTER:
                     breakArgs = true;
                     break;
 
@@ -603,7 +603,7 @@ namespace Components
             }
         }
 
-        if (*curPos != ':')
+        if (*curPos != FONT_ICON_SEPARATOR_CHARACTER)
             return false;
 
         const std::string fontIconName(text, nameEnd - text);
@@ -902,7 +902,7 @@ namespace Components
                     continue;
                 }
 
-                if(letter == ':')
+                if(letter == FONT_ICON_SEPARATOR_CHARACTER)
                 {
                     FontIconInfo fontIconInfo{};
                     const char* fontIconEnd = curText;
@@ -1089,7 +1089,7 @@ namespace Components
                     }
                 }
 
-                if (letter == ':')
+                if (letter == FONT_ICON_SEPARATOR_CHARACTER)
                 {
                     FontIconInfo fontIconInfo{};
                     const char* fontIconEnd = text;
@@ -1230,7 +1230,7 @@ namespace Components
                 continue;
             }
 
-            if(*in == ':')
+            if(*in == FONT_ICON_SEPARATOR_CHARACTER)
             {
                 const auto* fontIconEndPos = &in[1];
                 FontIconInfo fontIcon{};
