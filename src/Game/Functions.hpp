@@ -157,6 +157,9 @@ namespace Game
 	typedef void (__cdecl * Con_DrawSolidConsole_t)();
 	extern Con_DrawSolidConsole_t Con_DrawSolidConsole;
 
+	typedef bool(__cdecl * Con_CancelAutoComplete_t)();
+	extern Con_CancelAutoComplete_t Con_CancelAutoComplete;
+
 	typedef char *(__cdecl *DB_AllocStreamPos_t)(int alignment);
 	extern DB_AllocStreamPos_t DB_AllocStreamPos;
 
@@ -374,6 +377,9 @@ namespace Game
 
 	typedef void(__cdecl * Key_SetCatcher_t)(int localClientNum, int catcher);
 	extern Key_SetCatcher_t Key_SetCatcher;
+
+	typedef void(__cdecl * Key_RemoveCatcher_t)(int localClientNum, int andMask);
+	extern Key_RemoveCatcher_t Key_RemoveCatcher;
 
 	typedef bool(__cdecl * Key_IsKeyCatcherActive_t)(int localClientNum, int catcher);
 	extern Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive;

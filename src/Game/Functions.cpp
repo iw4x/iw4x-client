@@ -75,6 +75,7 @@ namespace Game
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = Con_DrawMiniConsole_t(0x464F30);
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = Con_DrawSolidConsole_t(0x5A5040);
+	Con_CancelAutoComplete_t Con_CancelAutoComplete = Con_CancelAutoComplete_t(0x435580);
 
 	DB_AllocStreamPos_t DB_AllocStreamPos = DB_AllocStreamPos_t(0x418380);
 	DB_PushStreamPos_t DB_PushStreamPos = DB_PushStreamPos_t(0x458A20);
@@ -155,6 +156,7 @@ namespace Game
 	Info_ValueForKey_t Info_ValueForKey = Info_ValueForKey_t(0x47C820);
 
 	Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x43BD00);
+	Key_RemoveCatcher_t Key_RemoveCatcher = Key_RemoveCatcher_t(0x408260);
 	Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive = Key_IsKeyCatcherActive_t(0x4DA010);
 
 	LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x4A62A0);
