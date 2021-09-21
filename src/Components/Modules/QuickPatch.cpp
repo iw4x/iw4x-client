@@ -413,6 +413,9 @@ namespace Components
 		if (Game::Con_CancelAutoComplete())
 			return;
 
+		if (TextRenderer::HandleFontIconAutocompleteKey(0, TextRenderer::FONT_ICON_ACI_CONSOLE, Game::K_ESCAPE))
+			return;
+
 		// Close console
 		Game::Key_RemoveCatcher(0, ~Game::KEYCATCH_CONSOLE);
     }
