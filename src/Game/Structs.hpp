@@ -6858,6 +6858,12 @@ namespace Game
 
 	static_assert(sizeof(cgs_t) == 0x3BA4);
 
+	struct ConversionArguments
+	{
+		int argCount;
+		const char* args[9];
+	};
+
 #pragma endregion
 
 #ifndef IDA

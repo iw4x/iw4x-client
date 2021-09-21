@@ -346,6 +346,8 @@ namespace Game
 	UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x4AEA60);
 	ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x454E20);
 	UI_KeyEvent_t UI_KeyEvent = UI_KeyEvent_t(0x4970F0);
+	UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x4F1700);
+	UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x4E9740);
 
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 

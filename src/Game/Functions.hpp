@@ -459,6 +459,12 @@ namespace Game
 	typedef bool(__cdecl * UI_KeyEvent_t)(int clientNum, int key, int down);
 	extern UI_KeyEvent_t UI_KeyEvent;
 	
+	typedef const char* (__cdecl * UI_SafeTranslateString_t)(const char* reference);
+	extern UI_SafeTranslateString_t UI_SafeTranslateString;
+	
+	typedef void(__cdecl * UI_ReplaceConversions_t)(const char* sourceString, ConversionArguments* arguments, char* outputString, size_t outputStringSize);
+	extern UI_ReplaceConversions_t UI_ReplaceConversions;
+	
 	typedef void(__cdecl * MSG_Init_t)(msg_t *buf, char *data, int length);
 	extern MSG_Init_t MSG_Init;
 

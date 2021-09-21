@@ -91,6 +91,58 @@ namespace Components
 			float maxMaterialNameWidth;
 		};
 
+		template<size_t S>
+		class FormattedStringBuffer
+		{
+		public:
+			FormattedStringBuffer()
+				: formattingString(nullptr),
+				stringBuffer{0},
+				stringWidth(-1)
+			{
+			}
+
+			void Load(const char* reference)
+			{
+				formattingString = Game::UI_SafeTranslateString(reference);
+			}
+
+			const char* Format(const char* value)
+			{
+				if (formattingString == nullptr)
+					return stringBuffer;
+
+				Game::ConversionArguments conversionArguments{};
+				conversionArguments.args[conversionArguments.argCount++] = value;
+				Game::UI_ReplaceConversions(formattingString, &conversionArguments, stringBuffer, sizeof(stringBuffer));
+
+				stringWidth = -1;
+				return stringBuffer;
+			}
+
+			const char* GetString() const
+            {
+				if(stringBuffer[0] != '\0')
+				    return stringBuffer;
+				if(formattingString)
+				    return formattingString;
+				return stringBuffer;
+			}
+
+			int GetWidth(Game::Font_s* font)
+			{
+				if (stringWidth < 0)
+					stringWidth = Game::R_TextWidth(GetString(), std::numeric_limits<int>::max(), font);
+
+				return stringWidth;
+			}
+
+		private:
+			const char* formattingString;
+			char stringBuffer[S];
+			int stringWidth;
+		};
+
 		static constexpr unsigned MY_ALTCOLOR_TWO = 0x0DCE6FFE6;
 		static constexpr unsigned COLOR_MAP_HASH = 0xA0AB1041;
 		static constexpr auto FONT_ICON_AUTOCOMPLETE_BOX_PADDING = 6.0f;
@@ -132,6 +184,17 @@ namespace Components
 		static FontIconAutocompleteContext autocompleteContextArray[FONT_ICON_ACI_COUNT];
 		static std::map<std::string, FontIconTableEntry> fontIconLookup;
 		static std::vector<FontIconTableEntry> fontIconList;
+
+		static constexpr auto STRING_BUFFER_SIZE_BIG = 1024;
+		static constexpr auto STRING_BUFFER_SIZE_SMALL = 128;
+		static constexpr auto STRING_BUFFER_SIZE_NONE = 1;
+		static FormattedStringBuffer<STRING_BUFFER_SIZE_BIG> stringSearchStartWith;
+		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringHintAutoComplete;
+		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringHintModifier;
+		static FormattedStringBuffer<STRING_BUFFER_SIZE_NONE> stringListHeader;
+		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringListFlipHorizontal;
+		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringListFlipVertical;
+		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringListBig;
 
 		static Dvar::Var cg_newColors;
 		static Dvar::Var cg_fontIconAutocomplete;
@@ -214,6 +277,7 @@ namespace Components
 		static void RotateXY(float cosAngle, float sinAngle, float pivotX, float pivotY, float x, float y, float* outX, float* outY);
 		static void UpdateColorTable();
 
+		static void InitFontIconStrings();
 		static void InitFontIcons();
 		static void UI_Init_Hk(int localClientNum);
 	};

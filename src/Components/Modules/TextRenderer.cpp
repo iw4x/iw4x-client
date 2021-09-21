@@ -44,6 +44,14 @@ namespace Components
     std::map<std::string, TextRenderer::FontIconTableEntry> TextRenderer::fontIconLookup;
     std::vector<TextRenderer::FontIconTableEntry> TextRenderer::fontIconList;
 
+    TextRenderer::FormattedStringBuffer<TextRenderer::STRING_BUFFER_SIZE_BIG> TextRenderer::stringSearchStartWith;
+    TextRenderer::FormattedStringBuffer<TextRenderer::STRING_BUFFER_SIZE_SMALL> TextRenderer::stringHintAutoComplete;
+    TextRenderer::FormattedStringBuffer<TextRenderer::STRING_BUFFER_SIZE_SMALL> TextRenderer::stringHintModifier;
+    TextRenderer::FormattedStringBuffer<TextRenderer::STRING_BUFFER_SIZE_NONE> TextRenderer::stringListHeader;
+    TextRenderer::FormattedStringBuffer<TextRenderer::STRING_BUFFER_SIZE_SMALL> TextRenderer::stringListFlipHorizontal;
+    TextRenderer::FormattedStringBuffer<TextRenderer::STRING_BUFFER_SIZE_SMALL> TextRenderer::stringListFlipVertical;
+    TextRenderer::FormattedStringBuffer<TextRenderer::STRING_BUFFER_SIZE_SMALL> TextRenderer::stringListBig;
+
     Dvar::Var TextRenderer::cg_newColors;
     Dvar::Var TextRenderer::cg_fontIconAutocomplete;
     Dvar::Var TextRenderer::cg_fontIconAutocompleteHint;
@@ -277,16 +285,16 @@ namespace Components
 
         // Update results for query and scroll
         context.lastQuery = std::string(&edit->buffer[fontIconStart], edit->cursor - fontIconStart);
+        stringSearchStartWith.Format(context.lastQuery.c_str());
         UpdateAutocompleteContextResults(context, font, textXScale);
     }
 
     void TextRenderer::DrawAutocompleteModifiers(const FontIconAutocompleteContext& context, const float x, const float y, Game::Font_s* font, float textXScale, float textYScale)
     {
-        const auto* text = "The following modifiers are available:\n"
-            "^2h  ^7Flip icon horizontally\n"
-            "^2v  ^7Flip icon vertically\n"
-            "^2b  ^7Bigger icon";
-        const auto boxWidth = static_cast<float>(Game::R_TextWidth(text, std::numeric_limits<int>::max(), font)) * textXScale;
+        const auto textWidth = std::max(std::max(std::max(stringListHeader.GetWidth(font), stringListFlipHorizontal.GetWidth(font)), 
+            stringListFlipVertical.GetWidth(font)), 
+            stringListBig.GetWidth(font));
+        const auto boxWidth = static_cast<float>(textWidth) * textXScale;
         constexpr auto totalLines = 4u;
         const auto lineHeight = static_cast<float>(font->pixelHeight) * textYScale;
         DrawAutocompleteBox(context,
@@ -295,18 +303,30 @@ namespace Components
             boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
             static_cast<float>(totalLines) * lineHeight + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
             (*con_inputBoxColor)->current.vector);
-        Game::R_AddCmdDrawText(text, std::numeric_limits<int>::max(), font, x, y + lineHeight, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+
+        auto currentY = y + lineHeight;
+
+        Game::R_AddCmdDrawText(stringListHeader.GetString(), std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+        currentY += lineHeight;
+        Game::R_AddCmdDrawText(stringListFlipHorizontal.GetString(), std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+        currentY += lineHeight;
+        Game::R_AddCmdDrawText(stringListFlipVertical.GetString(), std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+        currentY += lineHeight;
+        Game::R_AddCmdDrawText(stringListBig.GetString(), std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
     }
 
     void TextRenderer::DrawAutocompleteResults(const FontIconAutocompleteContext& context, const float x, const float y, Game::Font_s* font, const float textXScale, const float textYScale)
     {
-        const auto* text = Utils::String::VA("Font icons starting with ^2%s^7:", context.lastQuery.c_str());
+        const auto hintEnabled = cg_fontIconAutocompleteHint.get<bool>();
+
+        auto longestStringLength = stringSearchStartWith.GetWidth(font);
+        if(hintEnabled)
+            longestStringLength = std::max(std::max(longestStringLength, stringHintAutoComplete.GetWidth(font)), stringHintModifier.GetWidth(font));
+
         const auto colSpacing = FONT_ICON_AUTOCOMPLETE_COL_SPACING * textXScale;
-        const auto boxWidth = std::max(context.maxFontIconWidth + context.maxMaterialNameWidth + colSpacing,
-            static_cast<float>(Game::R_TextWidth(text, std::numeric_limits<int>::max(), font)) * textXScale);
+        const auto boxWidth = std::max(context.maxFontIconWidth + context.maxMaterialNameWidth + colSpacing, static_cast<float>(longestStringLength) * textXScale);
         const auto lineHeight = static_cast<float>(font->pixelHeight) * textYScale;
 
-        const auto hintEnabled = cg_fontIconAutocompleteHint.get<bool>();
         const auto totalLines = 1u + context.resultCount + (hintEnabled ? 2u : 0u);
         const auto arrowPadding = context.resultOffset > 0 || context.hasMoreResults ? FONT_ICON_AUTOCOMPLETE_ARROW_SIZE : 0.0f;
         DrawAutocompleteBox(context,
@@ -317,7 +337,7 @@ namespace Components
             (*con_inputBoxColor)->current.vector);
         
         auto currentY = y + lineHeight;
-        Game::R_AddCmdDrawText(text, std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
+        Game::R_AddCmdDrawText(stringSearchStartWith.GetString(), std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, TEXT_COLOR, 0);
         currentY += lineHeight;
 
         const auto selectedIndex = context.selectedOffset - context.resultOffset;
@@ -335,9 +355,9 @@ namespace Components
 
         if(hintEnabled)
         {
-            Game::R_AddCmdDrawText("Press ^3TAB ^7for autocomplete", std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
+            Game::R_AddCmdDrawText(stringHintAutoComplete.GetString(), std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
             currentY += lineHeight;
-            Game::R_AddCmdDrawText("Use ^3+ ^7for modifiers", std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
+            Game::R_AddCmdDrawText(stringHintModifier.GetString(), std::numeric_limits<int>::max(), font, x, currentY, textXScale, textYScale, 0.0, HINT_COLOR, 0);
         }
     }
 
@@ -1392,8 +1412,32 @@ namespace Components
         (*currentColorTable)[TEXT_COLOR_SERVER] = sv_customTextColor->current.unsignedInt;
     }
 
+    void TextRenderer::InitFontIconStrings()
+    {
+        stringSearchStartWith.Load("FONT_ICON_SEARCH_START_WITH");
+
+        stringHintAutoComplete.Load("FONT_ICON_HINT_AUTO_COMPLETE");
+        stringHintAutoComplete.Format("TAB");
+
+        stringHintModifier.Load("FONT_ICON_HINT_MODIFIER");
+        stringHintModifier.Format(Utils::String::VA("%c", FONT_ICON_MODIFIER_SEPARATOR_CHARACTER));
+
+        stringListHeader.Load("FONT_ICON_MODIFIER_LIST_HEADER");
+
+        stringListFlipHorizontal.Load("FONT_ICON_MODIFIER_LIST_FLIP_HORIZONTAL");
+        stringListFlipHorizontal.Format(Utils::String::VA("%c", FONT_ICON_MODIFIER_FLIP_HORIZONTALLY));
+
+        stringListFlipVertical.Load("FONT_ICON_MODIFIER_LIST_FLIP_VERTICAL");
+        stringListFlipVertical.Format(Utils::String::VA("%c", FONT_ICON_MODIFIER_FLIP_VERTICALLY));
+
+        stringListBig.Load("FONT_ICON_MODIFIER_LIST_BIG");
+        stringListBig.Format(Utils::String::VA("%c", FONT_ICON_MODIFIER_BIG));
+    }
+
     void TextRenderer::InitFontIcons()
     {
+        InitFontIconStrings();
+
         fontIconList.clear();
         fontIconLookup.clear();
 
