@@ -443,13 +443,15 @@ namespace Components
         }
     }
 
-    void TextRenderer::AutocompleteFill(const FontIconAutocompleteContext& context, Game::ScreenPlacement* scrPlace, Game::field_t* edit)
+    void TextRenderer::AutocompleteFill(const FontIconAutocompleteContext& context, Game::ScreenPlacement* scrPlace, Game::field_t* edit, const bool closeFontIcon)
     {
         if (context.selectedOffset >= context.resultOffset + context.resultCount)
             return;
 
         const auto selectedResultIndex = context.selectedOffset - context.resultOffset;
         std::string remainingFillData = context.results[selectedResultIndex].materialName.substr(context.lastQuery.size());
+        if (closeFontIcon)
+            remainingFillData += ":";
         const std::string moveData(&edit->buffer[edit->cursor]);
 
         const auto remainingBufferCharacters = std::extent_v<decltype(Game::field_t::buffer)> - edit->cursor - moveData.size() - 1;
@@ -480,8 +482,17 @@ namespace Components
             AutocompleteDown(context);
             return true;
 
+        case Game::K_ENTER:
+        case Game::K_KP_ENTER:
+            if(context.resultCount > 0)
+            {
+                AutocompleteFill(context, scrPlace, edit, true);
+                return true;
+            }
+            return false;
+
         case Game::K_TAB:
-            AutocompleteFill(context, scrPlace, edit);
+            AutocompleteFill(context, scrPlace, edit, false);
             return true;
 
         case Game::K_ESCAPE:
@@ -498,10 +509,28 @@ namespace Components
         }
     }
 
+    bool TextRenderer::HandleFontIconAutocompleteKey(const int localClientNum, const FontIconAutocompleteInstance autocompleteInstance, const int key)
+    {
+        assert(autocompleteInstance < FONT_ICON_ACI_COUNT);
+        if (autocompleteInstance >= FONT_ICON_ACI_COUNT)
+            return false;
+
+        auto& autocompleteContext = autocompleteContextArray[autocompleteInstance];
+        if (!autocompleteContext.autocompleteActive)
+            return false;
+
+        if(autocompleteInstance == FONT_ICON_ACI_CONSOLE)
+            return AutocompleteHandleKeyDown(autocompleteContext, key, Game::scrPlaceFull, Game::g_consoleField);
+
+        if(autocompleteInstance == FONT_ICON_ACI_CHAT)
+            return AutocompleteHandleKeyDown(autocompleteContext, key, &Game::scrPlaceView[localClientNum], &Game::playerKeys[localClientNum].chatField);
+
+        return false;
+    }
+
     void TextRenderer::Console_Key_Hk(const int localClientNum, const int key)
     {
-        auto& autocompleteContext = autocompleteContextArray[FONT_ICON_ACI_CONSOLE];
-        if (autocompleteContext.autocompleteActive && AutocompleteHandleKeyDown(autocompleteContext, key, Game::scrPlaceFull, Game::g_consoleField))
+        if (HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CONSOLE, key))
             return;
 
         Utils::Hook::Call<void(int, int)>(0x4311E0)(localClientNum, key);
@@ -509,8 +538,7 @@ namespace Components
 
     bool TextRenderer::ChatHandleKeyDown(const int localClientNum, const int key)
     {
-        auto& autocompleteContext = autocompleteContextArray[FONT_ICON_ACI_CHAT];
-        return autocompleteContext.autocompleteActive && AutocompleteHandleKeyDown(autocompleteContext, key, &Game::scrPlaceView[localClientNum], &Game::playerKeys[localClientNum].chatField);
+        return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CHAT, key);
     }
 
     constexpr auto Message_Key = 0x5A7E50;

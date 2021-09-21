@@ -42,6 +42,16 @@ namespace Components
 
 	class TextRenderer : public Component
 	{
+	public:
+		enum FontIconAutocompleteInstance : unsigned
+		{
+			FONT_ICON_ACI_CONSOLE,
+			FONT_ICON_ACI_CHAT,
+
+			FONT_ICON_ACI_COUNT
+		};
+
+	private:
 		struct FontIconTableEntry
 		{
 			std::string iconName;
@@ -54,14 +64,6 @@ namespace Components
 			unsigned char h;
 			unsigned char s;
 			unsigned char v;
-		};
-
-		enum FontIconAutocompleteInstance
-		{
-			FONT_ICON_ACI_CONSOLE,
-			FONT_ICON_ACI_CHAT,
-
-			FONT_ICON_ACI_COUNT
 		};
 
 		class FontIconAutocompleteResult
@@ -237,6 +239,8 @@ namespace Components
 		static float GetNormalizedFontIconWidth(const FontIconInfo& fontIcon);
 		static float GetFontIconWidth(const FontIconInfo& fontIcon, const Game::Font_s* font, float xScale);
 
+		static bool HandleFontIconAutocompleteKey(int localClientNum, FontIconAutocompleteInstance autocompleteInstance, int key);
+
 		TextRenderer();
 
 	private:
@@ -253,7 +257,7 @@ namespace Components
 
 		static void AutocompleteUp(FontIconAutocompleteContext& context);
 		static void AutocompleteDown(FontIconAutocompleteContext& context);
-		static void AutocompleteFill(const FontIconAutocompleteContext& context, Game::ScreenPlacement* scrPlace, Game::field_t* edit);
+		static void AutocompleteFill(const FontIconAutocompleteContext& context, Game::ScreenPlacement* scrPlace, Game::field_t* edit, bool closeFontIcon);
 		static bool AutocompleteHandleKeyDown(FontIconAutocompleteContext& context, int key, Game::ScreenPlacement* scrPlace, Game::field_t* edit);
 		static void Console_Key_Hk(int localClientNum, int key);
 		static bool ChatHandleKeyDown(int localClientNum, int key);
