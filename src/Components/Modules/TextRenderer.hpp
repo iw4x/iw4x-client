@@ -42,108 +42,16 @@ namespace Components
 
 	class TextRenderer : public Component
 	{
-	public:
-		enum FontIconAutocompleteInstance : unsigned
-		{
-			FONT_ICON_ACI_CONSOLE,
-			FONT_ICON_ACI_CHAT,
+		static constexpr auto STRING_BUFFER_SIZE_BIG = 1024;
+		static constexpr auto STRING_BUFFER_SIZE_SMALL = 128;
 
-			FONT_ICON_ACI_COUNT
-		};
-
-	private:
-		struct FontIconTableEntry
-		{
-			std::string iconName;
-			std::string materialName;
-			Game::Material* material;
-		};
-
-		struct HsvColor
-		{
-			unsigned char h;
-			unsigned char s;
-			unsigned char v;
-		};
-
-		class FontIconAutocompleteResult
-		{
-		public:
-			std::string fontIconName;
-			std::string materialName;
-		};
-
-		class FontIconAutocompleteContext
-		{
-		public:
-			static constexpr auto MAX_RESULTS = 10;
-
-			bool autocompleteActive;
-			bool inModifiers;
-			bool userClosed;
-			unsigned int lastHash;
-			std::string lastQuery;
-			FontIconAutocompleteResult results[MAX_RESULTS];
-			size_t resultCount;
-			bool hasMoreResults;
-			size_t resultOffset;
-			size_t lastResultOffset;
-			size_t selectedOffset;
-			float maxFontIconWidth;
-			float maxMaterialNameWidth;
-		};
-
-		template<size_t S>
-		class FormattedStringBuffer
-		{
-		public:
-			FormattedStringBuffer()
-				: formattingString(nullptr),
-				stringBuffer{0},
-				stringWidth(-1)
-			{
-			}
-
-			void Load(const char* reference)
-			{
-				formattingString = Game::UI_SafeTranslateString(reference);
-			}
-
-			const char* Format(const char* value)
-			{
-				if (formattingString == nullptr)
-					return stringBuffer;
-
-				Game::ConversionArguments conversionArguments{};
-				conversionArguments.args[conversionArguments.argCount++] = value;
-				Game::UI_ReplaceConversions(formattingString, &conversionArguments, stringBuffer, sizeof(stringBuffer));
-
-				stringWidth = -1;
-				return stringBuffer;
-			}
-
-			const char* GetString() const
-            {
-				if(stringBuffer[0] != '\0')
-				    return stringBuffer;
-				if(formattingString)
-				    return formattingString;
-				return stringBuffer;
-			}
-
-			int GetWidth(Game::Font_s* font)
-			{
-				if (stringWidth < 0)
-					stringWidth = Game::R_TextWidth(GetString(), std::numeric_limits<int>::max(), font);
-
-				return stringWidth;
-			}
-
-		private:
-			const char* formattingString;
-			char stringBuffer[S];
-			int stringWidth;
-		};
+		static constexpr auto REFERENCE_SEARCH_START_WITH = "FONT_ICON_SEARCH_START_WITH";
+		static constexpr auto REFERENCE_HINT_AUTO_COMPLETE = "FONT_ICON_HINT_AUTO_COMPLETE";
+		static constexpr auto REFERENCE_HINT_MODIFIER = "FONT_ICON_HINT_MODIFIER";
+		static constexpr auto REFERENCE_MODIFIER_LIST_HEADER = "FONT_ICON_MODIFIER_LIST_HEADER";
+		static constexpr auto REFERENCE_MODIFIER_LIST_FLIP_HORIZONTAL = "FONT_ICON_MODIFIER_LIST_FLIP_HORIZONTAL";
+		static constexpr auto REFERENCE_MODIFIER_LIST_FLIP_VERTICAL = "FONT_ICON_MODIFIER_LIST_FLIP_VERTICAL";
+		static constexpr auto REFERENCE_MODIFIER_LIST_BIG = "FONT_ICON_MODIFIER_LIST_BIG";
 
 		static constexpr unsigned MY_ALTCOLOR_TWO = 0x0DCE6FFE6;
 		static constexpr unsigned COLOR_MAP_HASH = 0xA0AB1041;
@@ -180,6 +88,93 @@ namespace Components
 			1.0f
 		};
 
+	public:
+		static constexpr char FONT_ICON_SEPARATOR_CHARACTER = ':';
+		static constexpr char FONT_ICON_MODIFIER_SEPARATOR_CHARACTER = '+';
+		static constexpr char FONT_ICON_MODIFIER_FLIP_HORIZONTALLY = 'h';
+		static constexpr char FONT_ICON_MODIFIER_FLIP_VERTICALLY = 'v';
+		static constexpr char FONT_ICON_MODIFIER_BIG = 'b';
+
+		static constexpr char COLOR_FIRST_CHAR = '0';
+		static constexpr char COLOR_LAST_CHAR = CharForColorIndex(TEXT_COLOR_COUNT - 1);
+
+		enum FontIconAutocompleteInstance : unsigned
+		{
+			FONT_ICON_ACI_CONSOLE,
+			FONT_ICON_ACI_CHAT,
+
+			FONT_ICON_ACI_COUNT
+		};
+
+		struct FontIconInfo
+		{
+			Game::Material* material;
+			bool flipHorizontal;
+			bool flipVertical;
+			bool big;
+		};
+
+	private:
+		struct FontIconTableEntry
+		{
+			std::string iconName;
+			std::string materialName;
+			Game::Material* material;
+		};
+
+		struct HsvColor
+		{
+			unsigned char h;
+			unsigned char s;
+			unsigned char v;
+		};
+
+		class FontIconAutocompleteResult
+		{
+		public:
+			std::string fontIconName;
+			std::string materialName;
+		};
+
+		class BufferedLocalizedString
+		{
+		public:
+			BufferedLocalizedString(const char* reference, size_t bufferSize);
+			void Cache();
+			const char* Format(const char* value);
+			const char* GetString() const;
+			int GetWidth(FontIconAutocompleteInstance autocompleteInstance, Game::Font_s* font);
+
+		private:
+			const char* stringReference;
+			std::unique_ptr<char[]> stringBuffer;
+			size_t stringBufferSize;
+			int stringWidth[FONT_ICON_ACI_COUNT];
+		};
+
+		class FontIconAutocompleteContext
+		{
+		public:
+			static constexpr auto MAX_RESULTS = 10;
+
+			bool autocompleteActive;
+			bool inModifiers;
+			bool userClosed;
+			unsigned int lastHash;
+			std::string lastQuery;
+			FontIconAutocompleteResult results[MAX_RESULTS];
+			size_t resultCount;
+			bool hasMoreResults;
+			size_t resultOffset;
+			size_t lastResultOffset;
+			size_t selectedOffset;
+			float maxFontIconWidth;
+			float maxMaterialNameWidth;
+			BufferedLocalizedString stringSearchStartWith;
+
+			FontIconAutocompleteContext();
+		};
+
 		static unsigned colorTableDefault[TEXT_COLOR_COUNT];
 		static unsigned colorTableNew[TEXT_COLOR_COUNT];
 		static unsigned(*currentColorTable)[TEXT_COLOR_COUNT];
@@ -187,16 +182,12 @@ namespace Components
 		static std::map<std::string, FontIconTableEntry> fontIconLookup;
 		static std::vector<FontIconTableEntry> fontIconList;
 
-		static constexpr auto STRING_BUFFER_SIZE_BIG = 1024;
-		static constexpr auto STRING_BUFFER_SIZE_SMALL = 128;
-		static constexpr auto STRING_BUFFER_SIZE_NONE = 1;
-		static FormattedStringBuffer<STRING_BUFFER_SIZE_BIG> stringSearchStartWith;
-		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringHintAutoComplete;
-		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringHintModifier;
-		static FormattedStringBuffer<STRING_BUFFER_SIZE_NONE> stringListHeader;
-		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringListFlipHorizontal;
-		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringListFlipVertical;
-		static FormattedStringBuffer<STRING_BUFFER_SIZE_SMALL> stringListBig;
+		static BufferedLocalizedString stringHintAutoComplete;
+		static BufferedLocalizedString stringHintModifier;
+		static BufferedLocalizedString stringListHeader;
+		static BufferedLocalizedString stringListFlipHorizontal;
+		static BufferedLocalizedString stringListFlipVertical;
+		static BufferedLocalizedString stringListBig;
 
 		static Dvar::Var cg_newColors;
 		static Dvar::Var cg_fontIconAutocomplete;
@@ -208,23 +199,6 @@ namespace Components
 		static Game::dvar_t** con_inputBoxColor;
 
 	public:
-		static constexpr char FONT_ICON_SEPARATOR_CHARACTER = ':';
-		static constexpr char FONT_ICON_MODIFIER_SEPARATOR_CHARACTER = '+';
-		static constexpr char FONT_ICON_MODIFIER_FLIP_HORIZONTALLY = 'h';
-		static constexpr char FONT_ICON_MODIFIER_FLIP_VERTICALLY = 'v';
-		static constexpr char FONT_ICON_MODIFIER_BIG = 'b';
-
-		static constexpr char COLOR_FIRST_CHAR = '0';
-		static constexpr char COLOR_LAST_CHAR = CharForColorIndex(TEXT_COLOR_COUNT - 1);
-
-		struct FontIconInfo
-		{
-			Game::Material* material;
-			bool flipHorizontal;
-			bool flipVertical;
-			bool big;
-		};
-
 		static void DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow);
 		static int R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font);
 		static unsigned int ColorIndex(char index);
@@ -247,9 +221,9 @@ namespace Components
 		static unsigned HsvToRgb(HsvColor hsv);
 
 		static void DrawAutocompleteBox(const FontIconAutocompleteContext& context, float x, float y, float w, float h, const float* color);
-		static void DrawAutocompleteModifiers(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font, float textXScale, float textYScale);
-		static void DrawAutocompleteResults(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font, float textXScale, float textYScale);
-		static void DrawAutocomplete(const FontIconAutocompleteContext& context, float x, float y, Game::Font_s* font, float textXScale, float textYScale);
+		static void DrawAutocompleteModifiers(FontIconAutocompleteInstance instance, float x, float y, Game::Font_s* font, float textXScale, float textYScale);
+		static void DrawAutocompleteResults(FontIconAutocompleteInstance instance, float x, float y, Game::Font_s* font, float textXScale, float textYScale);
+		static void DrawAutocomplete(FontIconAutocompleteInstance instance, float x, float y, Game::Font_s* font, float textXScale, float textYScale);
 		static void UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font, float textXScale);
 		static void UpdateAutocompleteContext(FontIconAutocompleteContext& context, const Game::field_t* edit, Game::Font_s* font, const float textXScale);
 		static void Field_Draw_Say(int localClientNum, Game::field_t* edit, int x, int y, int horzAlign, int vertAlign);
