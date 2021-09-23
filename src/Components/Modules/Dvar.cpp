@@ -203,7 +203,7 @@ namespace Components
 			// Don't perform any checks if name didn't change
 			if (name == lastValidName) return;
 
-			std::string saneName = Colors::Strip(Utils::String::Trim(name));
+			std::string saneName = TextRenderer::StripAllTextIcons(TextRenderer::StripColors(Utils::String::Trim(name)));
 			if (saneName.size() < 3 || (saneName[0] == '[' && saneName[1] == '{'))
 			{
 				Logger::Print("Username '%s' is invalid. It must at least be 3 characters long and not appear empty!\n", name.data());

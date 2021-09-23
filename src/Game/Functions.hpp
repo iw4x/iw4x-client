@@ -157,6 +157,9 @@ namespace Game
 	typedef void (__cdecl * Con_DrawSolidConsole_t)();
 	extern Con_DrawSolidConsole_t Con_DrawSolidConsole;
 
+	typedef bool(__cdecl * Con_CancelAutoComplete_t)();
+	extern Con_CancelAutoComplete_t Con_CancelAutoComplete;
+
 	typedef char *(__cdecl *DB_AllocStreamPos_t)(int alignment);
 	extern DB_AllocStreamPos_t DB_AllocStreamPos;
 
@@ -375,6 +378,9 @@ namespace Game
 	typedef void(__cdecl * Key_SetCatcher_t)(int localClientNum, int catcher);
 	extern Key_SetCatcher_t Key_SetCatcher;
 
+	typedef void(__cdecl * Key_RemoveCatcher_t)(int localClientNum, int andMask);
+	extern Key_RemoveCatcher_t Key_RemoveCatcher;
+
 	typedef bool(__cdecl * Key_IsKeyCatcherActive_t)(int localClientNum, int catcher);
 	extern Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive;
 
@@ -458,6 +464,12 @@ namespace Game
 
 	typedef bool(__cdecl * UI_KeyEvent_t)(int clientNum, int key, int down);
 	extern UI_KeyEvent_t UI_KeyEvent;
+	
+	typedef const char* (__cdecl * UI_SafeTranslateString_t)(const char* reference);
+	extern UI_SafeTranslateString_t UI_SafeTranslateString;
+	
+	typedef void(__cdecl * UI_ReplaceConversions_t)(const char* sourceString, ConversionArguments* arguments, char* outputString, size_t outputStringSize);
+	extern UI_ReplaceConversions_t UI_ReplaceConversions;
 	
 	typedef void(__cdecl * MSG_Init_t)(msg_t *buf, char *data, int length);
 	extern MSG_Init_t MSG_Init;
@@ -696,7 +708,7 @@ namespace Game
 	typedef char* (__cdecl * SEH_StringEd_GetString_t)(const char* string);
 	extern SEH_StringEd_GetString_t SEH_StringEd_GetString;
 
-	typedef int (__cdecl * SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
+	typedef unsigned int(__cdecl* SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
 	extern SEH_ReadCharFromString_t SEH_ReadCharFromString;
 
 	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
@@ -813,14 +825,20 @@ namespace Game
 	typedef void(__cdecl * UI_DrawHandlePic_t)(/*ScreenPlacement*/void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Material *material);
 	extern UI_DrawHandlePic_t UI_DrawHandlePic;
 
-	typedef void* (__cdecl * UI_GetContext_t)(void*);
-	extern UI_GetContext_t UI_GetContext;
+	typedef ScreenPlacement* (__cdecl * ScrPlace_GetActivePlacement_t)(int localClientNum);
+	extern ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement;
 
 	typedef int(__cdecl * UI_TextWidth_t)(const char *text, int maxChars, Font_s *font, float scale);
 	extern UI_TextWidth_t UI_TextWidth;
 
 	typedef void(__cdecl * UI_DrawText_t)(void* scrPlace, const char *text, int maxChars, Font_s *font, float x, float y, int horzAlign, int vertAlign, float scale, const float *color, int style);
 	extern UI_DrawText_t UI_DrawText;
+	
+	typedef Font_s* (__cdecl* UI_GetFontHandle_t)(ScreenPlacement* scrPlace, int fontEnum, float scale);
+	extern UI_GetFontHandle_t UI_GetFontHandle;
+	
+	typedef void(__cdecl* ScrPlace_ApplyRect_t)(ScreenPlacement* a1, float* x, float* y, float* w, float* h, int horzAlign, int vertAlign);
+	extern ScrPlace_ApplyRect_t ScrPlace_ApplyRect;
 
 	typedef const char * (__cdecl * Win_GetLanguage_t)();
 	extern Win_GetLanguage_t Win_GetLanguage;
@@ -836,6 +854,30 @@ namespace Game
 
 	typedef void(__cdecl * unzClose_t)(void* handle);
 	extern unzClose_t unzClose;
+	
+	typedef void(__cdecl* RB_DrawCursor_t)(Material* material, char cursor, float x, float y, float sinAngle, float cosAngle, Font_s* font, float xScale, float yScale, unsigned int color);
+	extern RB_DrawCursor_t RB_DrawCursor;
+	
+	typedef float(__cdecl* R_NormalizedTextScale_t)(Font_s* font, float scale);
+	extern R_NormalizedTextScale_t R_NormalizedTextScale;
+	
+	typedef void(__cdecl * Material_Process2DTextureCoordsForAtlasing_t)(const Material* material, float* s0, float* s1, float* t0, float* t1);
+	extern Material_Process2DTextureCoordsForAtlasing_t Material_Process2DTextureCoordsForAtlasing;
+
+	typedef void(__cdecl* Byte4PackRgba_t)(const float* from, char* to);
+	extern Byte4PackRgba_t Byte4PackRgba;
+
+	typedef int(__cdecl* RandWithSeed_t)(int* seed);
+	extern RandWithSeed_t RandWithSeed;
+	
+	typedef void(__cdecl* GetDecayingLetterInfo_t)(unsigned int letter, int* randSeed, int decayTimeElapsed, int fxBirthTime, int fxDecayDuration, unsigned __int8 alpha, bool* resultSkipDrawing, char* resultAlpha, unsigned int* resultLetter, bool* resultDrawExtraFxChar);
+	extern GetDecayingLetterInfo_t GetDecayingLetterInfo;
+	
+	typedef void(__cdecl * Field_Draw_t)(int localClientNum, field_t* edit, int x, int y, int horzAlign, int vertAlign);
+	extern Field_Draw_t Field_Draw;
+	
+	typedef void(__cdecl * Field_AdjustScroll_t)(ScreenPlacement* scrPlace, field_t* edit);
+	extern Field_AdjustScroll_t Field_AdjustScroll;
 
 	typedef void(__cdecl * AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
 	extern AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee;
@@ -932,11 +974,19 @@ namespace Game
 
 	extern GfxScene* scene;
 
-	extern clientActive_t* clients;
+	extern ConDrawInputGlob* conDrawInputGlob;
+	extern field_t* g_consoleField;
 
 	extern clientStatic_t* cls;
 
+	extern sharedUiInfo_t* sharedUiInfo;
+	extern ScreenPlacement* scrPlaceFull;
+	extern ScreenPlacement* scrPlaceView;
+	
+	extern clientActive_t* clients;
+
 	extern cg_s* cgArray;
+	extern cgs_t* cgsArray;
 
 	extern PlayerKeyState* playerKeys;
 	extern kbutton_t* playersKb;
@@ -974,6 +1024,7 @@ namespace Game
 	void ShowMessageBox(const std::string& message, const std::string& title);
 
 	unsigned int R_HashString(const char* string);
+	unsigned int R_HashString(const char* string, size_t maxLen);
 	void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
 	void R_SetSunFromDvars(sunflare_t* sun);
 
@@ -1012,10 +1063,14 @@ namespace Game
 	void R_AddDebugBounds(float* color, Bounds* b);
 	void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4]);
 
+	Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter);
+	bool SetupPulseFXVars(const char* text, int maxLength, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, bool* resultDrawRandChar, int* resultRandSeed, int* resultMaxLength, bool* resultDecaying, int* resultDecayTimeElapsed);
+	void RB_DrawChar(Material* material, float x, float y, float w, float h, float sinAngle, float cosAngle, Glyph* glyph, unsigned int color);
+	void RB_DrawStretchPicRotate(Material* material, float x, float y, float w, float h, float s0, float t0, float s1, float t1, float sinAngle, float cosAngle, unsigned int color);
+	char ModulateByteColors(char colorA, char colorB);
+
 	float GraphGetValueFromFraction(int knotCount, const float(*knots)[2], float fraction);
 	float GraphFloat_GetValue(const GraphFloat* graph, const float fraction);
-
-	Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter);
 
 	void AimAssist_UpdateTweakables(int localClientNum);
 	void AimAssist_UpdateAdsLerp(const AimInput* input);

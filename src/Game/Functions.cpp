@@ -75,6 +75,7 @@ namespace Game
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = Con_DrawMiniConsole_t(0x464F30);
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = Con_DrawSolidConsole_t(0x5A5040);
+	Con_CancelAutoComplete_t Con_CancelAutoComplete = Con_CancelAutoComplete_t(0x435580);
 
 	DB_AllocStreamPos_t DB_AllocStreamPos = DB_AllocStreamPos_t(0x418380);
 	DB_PushStreamPos_t DB_PushStreamPos = DB_PushStreamPos_t(0x458A20);
@@ -155,6 +156,7 @@ namespace Game
 	Info_ValueForKey_t Info_ValueForKey = Info_ValueForKey_t(0x47C820);
 
 	Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x43BD00);
+	Key_RemoveCatcher_t Key_RemoveCatcher = Key_RemoveCatcher_t(0x408260);
 	Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive = Key_IsKeyCatcherActive_t(0x4DA010);
 
 	LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x4A62A0);
@@ -340,10 +342,14 @@ namespace Game
 	UI_UpdateArenas_t UI_UpdateArenas = UI_UpdateArenas_t(0x4A95B0);
 	UI_SortArenas_t UI_SortArenas = UI_SortArenas_t(0x630AE0);
 	UI_DrawHandlePic_t UI_DrawHandlePic = UI_DrawHandlePic_t(0x4D0EA0);
-	UI_GetContext_t UI_GetContext = UI_GetContext_t(0x4F8940);
+	ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement = ScrPlace_GetActivePlacement_t(0x4F8940);
 	UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x6315C0);
 	UI_DrawText_t UI_DrawText = UI_DrawText_t(0x49C0D0);
+	UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x4AEA60);
+	ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x454E20);
 	UI_KeyEvent_t UI_KeyEvent = UI_KeyEvent_t(0x4970F0);
+	UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x4F1700);
+	UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x4E9740);
 
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 
@@ -353,6 +359,18 @@ namespace Game
 
 	unzClose_t unzClose = unzClose_t(0x41BF20);
 
+	RB_DrawCursor_t RB_DrawCursor = RB_DrawCursor_t(0x534EA0);
+
+	R_NormalizedTextScale_t R_NormalizedTextScale = R_NormalizedTextScale_t(0x5056A0);
+
+	Material_Process2DTextureCoordsForAtlasing_t Material_Process2DTextureCoordsForAtlasing = Material_Process2DTextureCoordsForAtlasing_t(0x506090);
+
+	Byte4PackRgba_t Byte4PackRgba = Byte4PackRgba_t(0x4FE910);
+	RandWithSeed_t RandWithSeed = RandWithSeed_t(0x495580);
+	GetDecayingLetterInfo_t GetDecayingLetterInfo = GetDecayingLetterInfo_t(0x5351C0);
+
+	Field_Draw_t Field_Draw = Field_Draw_t(0x4F5B40);
+	Field_AdjustScroll_t Field_AdjustScroll = Field_AdjustScroll_t(0x488C10);
 	AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee = AimAssist_ApplyAutoMelee_t(0x56A360);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
@@ -448,11 +466,19 @@ namespace Game
 
 	GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
 
-	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
+	ConDrawInputGlob* conDrawInputGlob = reinterpret_cast<ConDrawInputGlob*>(0x9FD6F8);
+	field_t* g_consoleField = reinterpret_cast<field_t*>(0xA1B6B0);
 
 	clientStatic_t* cls = reinterpret_cast<clientStatic_t*>(0xA7FE90);
 
+	sharedUiInfo_t* sharedUiInfo = reinterpret_cast<sharedUiInfo_t*>(0x62E4B78);
+	ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0x10843F0);
+	ScreenPlacement* scrPlaceView = reinterpret_cast<ScreenPlacement*>(0x1084378);
+	
+	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
+
 	cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
+	cgs_t* cgsArray = reinterpret_cast<cgs_t*>(0x7ED3B8);
 
 	PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
 	kbutton_t* playersKb = reinterpret_cast<kbutton_t*>(0xA1A9A8);
@@ -584,37 +610,32 @@ namespace Game
 
 		while (lock && *reinterpret_cast<volatile long*>(0x16B8A58)) std::this_thread::sleep_for(1ms);
 
-		unsigned int index = 0;
-		do
+		const auto pool = Components::Maps::GetAssetEntryPool();
+		for(auto hash = 0; hash < 37000; hash++)
 		{
-			unsigned short hashIndex = db_hashTable[index];
-			if (hashIndex)
+			auto hashIndex = db_hashTable[hash];
+			while(hashIndex)
 			{
-				do
+				auto* assetEntry = &pool[hashIndex];
+
+				if(assetEntry->asset.type == type)
 				{
-					XAssetEntry* asset = &Components::Maps::GetAssetEntryPool()[hashIndex];
-					hashIndex = asset->nextHash;
-					if (asset->asset.type == type)
+					callback(assetEntry);
+					if (overrides)
 					{
-						callback(asset);
-						if (overrides)
+						auto overrideIndex = assetEntry->nextOverride;
+						while (overrideIndex)
 						{
-							unsigned short overrideIndex = asset->nextOverride;
-							if (asset->nextOverride)
-							{
-								do
-								{
-									asset = &Components::Maps::GetAssetEntryPool()[overrideIndex];
-									callback(asset);
-									overrideIndex = asset->nextOverride;
-								} while (overrideIndex);
-							}
+							auto* overrideEntry = &pool[overrideIndex];
+							callback(overrideEntry);
+							overrideIndex = overrideEntry->nextOverride;
 						}
 					}
-				} while (hashIndex);
+				}
+
+				hashIndex = assetEntry->nextHash;
 			}
-			++index;
-		} while (index < 74000);
+		}
 
 		if(lock) InterlockedDecrement(lockVar);
 	}
@@ -638,6 +659,20 @@ namespace Game
 		{
 			hash = (*string | 0x20) ^ (33 * hash);
 			++string;
+		}
+
+		return hash;
+	}
+
+	unsigned int R_HashString(const char* string, size_t maxLen)
+	{
+		unsigned int hash = 0;
+
+		while (*string && maxLen > 0)
+		{
+			hash = (*string | 0x20) ^ (33 * hash);
+			++string;
+			maxLen--;
 		}
 
 		return hash;
@@ -1315,22 +1350,123 @@ namespace Game
 		}
 	}
 
-	__declspec(naked) Glyph* R_GetCharacterGlyph(Font_s* /*font */, unsigned int /*letter*/)
+	__declspec(naked) Glyph* R_GetCharacterGlyph(Font_s* /*font*/, unsigned int /*letter*/)
 	{
-	    __asm
+		__asm
 		{
 			push eax
 			pushad
-			mov edi, [esp + 0x28 + 4]
-			push [esp + 0x24 + 4]
+
+			mov edi, [esp + 0x8 + 0x24] // letter
+			push [esp + 0x4 + 0x24] // font
 			mov eax, 0x5055C0
 			call eax
-			add esp,0x4
+			add esp, 4
+			mov [esp + 0x20], eax
+
+			popad
+			pop eax
+			ret
+		}
+	}
+
+	__declspec(naked) bool SetupPulseFXVars(const char* /*text*/, int /*maxLength*/, int /*fxBirthTime*/, int /*fxLetterTime*/, int /*fxDecayStartTime*/, int /*fxDecayDuration*/, bool* /*resultDrawRandChar*/, int* /*resultRandSeed*/, int* /*resultMaxLength*/, bool* /*resultDecaying*/, int* /*resultDecayTimeElapsed*/)
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			mov eax, [esp + 0x08 + 0x24] // maxLength
+			push [esp + 0x2C + 0x24] // resultDecayTimeElapsed
+			push [esp + 0x2C + 0x24] // resultDecaying
+			push [esp + 0x2C + 0x24] // resultMaxLength
+			push [esp + 0x2C + 0x24] // resultRandSeed
+			push [esp + 0x2C + 0x24] // resultDrawRandChar
+			push [esp + 0x2C + 0x24] // fxDecayDuration
+			push [esp + 0x2C + 0x24] // fxDecayStartTime
+			push [esp + 0x2C + 0x24] // fxLetterTime
+			push [esp + 0x2C + 0x24] // fxBirthTime
+			push [esp + 0x28 + 0x24] // text
+			mov ebx, 0x535050
+			call ebx
+			add esp, 0x28
 			mov [esp + 0x20],eax
 
 			popad
 			pop eax
-			retn
+			ret
+		}
+	}
+
+	__declspec(naked) void RB_DrawChar(Material* /*material*/, float /*x*/, float /*y*/, float /*w*/, float /*h*/, float /*sinAngle*/, float /*cosAngle*/, Glyph* /*glyph*/, unsigned int /*color*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 0x4 + 0x20] // material
+			mov edx, [esp + 0x20 + 0x20] // glyph
+			push [esp + 0x24 + 0x20] // color
+			push [esp + 0x20 + 0x20] // cosAngle
+			push [esp + 0x20 + 0x20] // sinAngle
+			push [esp + 0x20 + 0x20] // h
+			push [esp + 0x20 + 0x20] // w
+			push [esp + 0x20 + 0x20] // y
+			push [esp + 0x20 + 0x20] // x
+
+			mov ecx, 0x534E20
+			call ecx
+			add esp, 0x1C
+
+			popad
+			ret
+		}
+	}
+
+	__declspec(naked) void RB_DrawStretchPicRotate(Material* /*material*/, float /*x*/, float /*y*/, float /*w*/, float /*h*/, float /*s0*/, float /*t0*/, float /*s1*/, float /*t1*/, float /*sinAngle*/, float /*cosAngle*/, unsigned int /*color*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 0x4 + 0x20] // material
+			push [esp + 0x30 + 0x20] // color
+			push [esp + 0x30 + 0x20] // cosAngle
+			push [esp + 0x30 + 0x20] // sinAngle
+			push [esp + 0x30 + 0x20] // t1
+			push [esp + 0x30 + 0x20] // s1
+			push [esp + 0x30 + 0x20] // t0
+			push [esp + 0x30 + 0x20] // s0
+			push [esp + 0x30 + 0x20] // h
+			push [esp + 0x30 + 0x20] // w
+			push [esp + 0x30 + 0x20] // y
+			push [esp + 0x30 + 0x20] // x
+			mov ebx, 0x5310F0
+			call ebx
+			add esp, 0x2C
+
+			popad
+			ret
+		}
+	}
+
+	__declspec(naked) char ModulateByteColors(char /*colorA*/, char /*colorB*/)
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			mov eax, [esp + 0x4 + 0x24] // colorA
+			mov ecx, [esp + 0x8 + 0x24] // colorB
+			mov ebx, 0x5353C0
+			call ebx
+			mov [esp + 0x20], eax
+
+			popad
+			pop eax
+			ret
 		}
 	}
 
@@ -1355,7 +1491,6 @@ namespace Game
 			retn
 		}
 	}
-
 
 #pragma optimize("", on)
 }

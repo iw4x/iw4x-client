@@ -407,6 +407,32 @@ namespace Components
 		// Passthrough to the game's own IsDynClassname
 		return Utils::Hook::Call<BOOL(char*)>(0x444810)(a1);
 	}
+
+	void QuickPatch::CL_KeyEvent_OnEscape()
+    {
+		if (Game::Con_CancelAutoComplete())
+			return;
+
+		if (TextRenderer::HandleFontIconAutocompleteKey(0, TextRenderer::FONT_ICON_ACI_CONSOLE, Game::K_ESCAPE))
+			return;
+
+		// Close console
+		Game::Key_RemoveCatcher(0, ~Game::KEYCATCH_CONSOLE);
+    }
+
+	__declspec(naked) void QuickPatch::CL_KeyEvent_ConsoleEscape_Stub()
+	{
+	    __asm
+		{
+			pushad
+			call CL_KeyEvent_OnEscape
+			popad
+
+			// Exit CL_KeyEvent function
+			mov ebx, 0x4F66F2
+			jmp ebx
+		}
+	}
   
 	QuickPatch::QuickPatch()
 	{
@@ -427,6 +453,9 @@ namespace Components
 
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassnameStub, HOOK_CALL).install()->quick();
+
+		// Hook escape handling on open console to change behaviour to close the console instead of only canceling autocomplete
+		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
 		// bounce dvar
 		sv_enableBounces = Game::Dvar_RegisterBool("sv_enableBounces", false, Game::DVAR_FLAG_REPLICATED, "Enables bouncing on the server");

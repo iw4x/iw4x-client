@@ -48,5 +48,8 @@ namespace Components
 		static Game::dvar_t* g_playerEjection;
 		static void PlayerEjectionStub();
 		static BOOL IsDynClassnameStub(char* a1);
+
+		static void CL_KeyEvent_OnEscape();
+		static void CL_KeyEvent_ConsoleEscape_Stub();
 	};
 }

@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	int Materials::ImageNameLength;
 	Utils::Hook Materials::ImageVersionCheckHook;
 
 	std::vector<Game::GfxImage*> Materials::ImageTable;
@@ -151,66 +150,6 @@ namespace Components
 		}
 	}
 
-	Game::Material* Materials::ResolveMaterial(const char* stringPtr)
-	{
-		const char* imagePtr = stringPtr + 4;
-		unsigned int length = static_cast<unsigned int>(stringPtr[3] & 0xFF);
-
-		if (strlen(imagePtr) >= length)
-		{
-			Materials::ImageNameLength = 4 + length;
-			std::string image(imagePtr, length);
-
-			auto* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
-
-			if(material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || strcmp(material->techniqueSet->name, "2d") != 0)
-				return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
-
-			return material;
-		}
-
-		Materials::ImageNameLength = 4;
-		return Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
-	}
-
-	__declspec(naked) void Materials::PostDrawMaterialStub()
-	{
-		__asm
-		{
-			mov eax, Materials::ImageNameLength
-			add [esp + 30h], eax
-
-			mov eax, 5358FFh
-			jmp eax
-		}
-	}
-
-	__declspec(naked) void Materials::DrawMaterialStub()
-	{
-		__asm
-		{
-			push eax
-			pushad
-
-			push ecx
-			call Materials::ResolveMaterial
-			add esp, 4h
-
-			mov [esp + 20h], eax
-
-			// Make all material text icons have white tint
-			mov eax,[esp + 0x50]
-			or eax,0x00FFFFFF
-			mov [esp + 0x50],eax
-
-			popad
-			pop eax
-
-			push 5310F0h
-			retn
-		}
-	}
-
 	int Materials::WriteDeathMessageIcon(char* string, int offset, Game::Material* material)
 	{
 		if (!material)
@@ -291,76 +230,10 @@ namespace Components
 
 #endif
 
-	int Materials::R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font)
-	{
-		auto lineWidth = 0;
-		auto maxWidth = 0;
-
-		if (maxChars <= 0)
-			maxChars = 0x7FFFFFFF;
-
-		if (text == nullptr)
-			return 0;
-
-		auto count = 0;
-		while (text && *text && count < maxChars)
-		{
-			const auto letter = Game::SEH_ReadCharFromString(&text, nullptr);
-			if (letter == '\r' || letter == '\n')
-			{
-				lineWidth = 0;
-			}
-			else
-			{
-				if (letter == '^' && text)
-				{
-					if (*text >= '0' && *text <= Colors::LastColorIndex)
-					{
-						text++;
-						continue;
-					}
-
-					if (*text >= '\x01' && *text <= '\x02' && text[1] != '\0' && text[2] != '\0' && text[3] != '\0')
-					{
-						const auto width = text[1];
-						const auto materialNameLength = text[3];
-
-						// This is how the game calculates width and height. Probably some 1 byte floating point number.
-						auto v9 = font->pixelHeight * (width - 16) + 16;
-						auto w = ((((v9 >> 24) & 0x1F) + v9) >> 5);
-
-						lineWidth += w;
-
-						text += 4;
-						for (auto currentLength = 0; currentLength < materialNameLength && *text; currentLength++)
-							text++;
-						continue;
-					}
-				}
-				
-				lineWidth += R_GetCharacterGlyph(font, letter)->dx;
-				if (lineWidth > maxWidth)
-					maxWidth = lineWidth;
-				count++;
-			}
-		}
-
-		return maxWidth;
-	}
-
 	Materials::Materials()
 	{
-		Materials::ImageNameLength = 7;
-
 		// Allow codo images
 		Materials::ImageVersionCheckHook.initialize(0x53A456, Materials::ImageVersionCheck, HOOK_CALL)->install();
-
-		// Fix material pointer exploit
-		// Also make all material text icons have white tint
-		Utils::Hook(0x534E0C, Materials::DrawMaterialStub, HOOK_CALL).install()->quick();
-
-		// Increment string pointer accordingly
-		Utils::Hook(0x5358FA, Materials::PostDrawMaterialStub, HOOK_JUMP).install()->quick();
 
 		// Adapt death message to IW5 material format
 		Utils::Hook(0x5A30D9, Materials::DeathMessageStub, HOOK_JUMP).install()->quick();
@@ -370,9 +243,6 @@ namespace Components
 
 		// Debug material comparison
 		Utils::Hook::Set<void*>(0x523894, Materials::MaterialComparePrint);
-
-		// Consider material text icons when calculating text width
-		Utils::Hook(0x5056C0, Materials::R_TextWidth_Hk, HOOK_JUMP).install()->quick();
 
 #ifdef DEBUG
 		if (Flags::HasFlag("dump"))

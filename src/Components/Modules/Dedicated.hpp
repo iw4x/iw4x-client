@@ -14,21 +14,12 @@ namespace Components
 
 		static void Heartbeat();
 
-		static void StripMaterialTextIcons(char* text);
-
 	private:
-		static bool SendChat;
-
 		static void MapRotate();
 		static void InitDedicatedServer();
 
 		static void PostInitialization();
 		static void PostInitializationStub();
-
-		static const char* EvaluateSay(char* text, Game::gentity_t* player);
-
-		static void PreSayStub();
-		static void PostSayStub();
 
 		static void FrameStub();
 

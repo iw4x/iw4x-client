@@ -6,11 +6,14 @@ namespace Components
 	{
 	public:
 		PlayerName();
-		~PlayerName();
+
+		static void UserInfoCopy(char* buffer, const char* name, size_t size);
 
 	private:
-		static std::string PlayerNames[18];
+		static Dvar::Var sv_allowColoredNames;
 
-		static int GetClientName(int localClientNum, int index, char *buf, int size);
+		static char* CleanStrStub(char* string);
+		static void ClientUserinfoChanged();
+		static char* GetClientName(int localClientNum, int index, char* buf, size_t size);
 	};
 }

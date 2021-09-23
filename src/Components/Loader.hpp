@@ -73,7 +73,6 @@ namespace Components
 #include "Modules/Menus.hpp"
 #include "Modules/Toast.hpp"
 #include "Modules/Zones.hpp"
-#include "Modules/Colors.hpp"
 #include "Modules/D3D9Ex.hpp"
 #include "Modules/Script.hpp"
 #include "Modules/Weapon.hpp"
@@ -131,6 +130,8 @@ namespace Components
 #include "Modules/StartupMessages.hpp"
 #include "Modules/Stats.hpp"
 #include "Modules/SoundMutexFix.hpp"
+#include "Modules/Chat.hpp"
+#include "Modules/TextRenderer.hpp"
 
 #include "Modules/Gamepad.hpp"
 #include "Modules/Client.hpp"

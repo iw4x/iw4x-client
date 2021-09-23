@@ -71,10 +71,10 @@ namespace Components
 		}
 	}
 
-	void ServerInfo::DrawScoreboardInfo(void* a1)
+	void ServerInfo::DrawScoreboardInfo(int localClientNum)
 	{
 		Game::Font_s* font = Game::R_RegisterFont("fonts/bigfont", 0);
-		void* cxt = Game::UI_GetContext(a1);
+		void* cxt = Game::ScrPlace_GetActivePlacement(localClientNum);
 
 		std::string addressText = Network::Address(*Game::connectedHost).getString();
 		if (addressText == "0.0.0.0:0" || addressText == "loopback") addressText = "Listen Server";

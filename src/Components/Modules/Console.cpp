@@ -45,7 +45,7 @@ namespace Components
 	void Console::RefreshStatus()
 	{
 		std::string mapname = Dvar::Var("mapname").get<const char*>();
-		std::string hostname = Colors::Strip(Dvar::Var("sv_hostname").get<const char*>());
+		std::string hostname = TextRenderer::StripColors(Dvar::Var("sv_hostname").get<const char*>());
 
 		if (Console::HasConsole)
 		{

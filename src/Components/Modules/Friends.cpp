@@ -71,7 +71,7 @@ namespace Components
 
 		entry->name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
 		entry->online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
-		entry->cleanName = Utils::String::ToLower(Colors::Strip(entry->name));
+		entry->cleanName = Utils::String::ToLower(TextRenderer::StripColors(entry->name));
 
 		std::string guid = Friends::GetPresence(user, "iw4x_guid");
 		std::string name = Friends::GetPresence(user, "iw4x_name");

@@ -702,8 +702,8 @@ namespace Game
 		const char *name;
 		char gameFlags;
 		char sortKey;
-		char textureAtlasRowCount;
-		char textureAtlasColumnCount;
+		unsigned char textureAtlasRowCount;
+		unsigned char textureAtlasColumnCount;
 		GfxDrawSurf drawSurf;
 		unsigned int surfaceTypeBits;
 		unsigned __int16 hashIndex;
@@ -1566,9 +1566,9 @@ namespace Game
 	{
 		MaterialInfo info;
 		char stateBitsEntry[48];
-		char textureCount;
-		char constantCount;
-		char stateBitsCount;
+		unsigned char textureCount;
+		unsigned char constantCount;
+		unsigned char stateBitsCount;
 		char stateFlags;
 		char cameraRegion;
 		MaterialTechniqueSet *techniqueSet;
@@ -4539,10 +4539,10 @@ namespace Game
 	{
 		XAsset asset;
 		char zoneIndex;
-		volatile char inuse;
+		volatile char inuseMask;
+		bool printedMissingAsset;
 		unsigned __int16 nextHash;
 		unsigned __int16 nextOverride;
-		unsigned __int16 usageFrame;
 	};
 
 	enum XFileLanguage : unsigned char
@@ -6042,6 +6042,30 @@ namespace Game
 		int updateSound;
 		int allowAddDObj;
 	};
+	
+	enum TextRenderFlags
+	{
+		TEXT_RENDERFLAG_FORCEMONOSPACE = 0x1,
+		TEXT_RENDERFLAG_CURSOR = 0x2,
+		TEXT_RENDERFLAG_DROPSHADOW = 0x4,
+		TEXT_RENDERFLAG_DROPSHADOW_EXTRA = 0x8,
+		TEXT_RENDERFLAG_GLOW = 0x10,
+		TEXT_RENDERFLAG_GLOW_FORCE_COLOR = 0x20,
+		TEXT_RENDERFLAG_FX_DECODE = 0x40,
+		TEXT_RENDERFLAG_PADDING = 0x80,
+		TEXT_RENDERFLAG_SUBTITLETEXT = 0x100,
+		TEXT_RENDERFLAG_CINEMATIC = 0x200,
+		TEXT_RENDERFLAG_OUTLINE = 0x400,
+		TEXT_RENDERFLAG_OUTLINE_EXTRA = 0x800,
+	};
+	
+	enum FontPassType
+	{
+		FONTPASS_NORMAL = 0x0,
+		FONTPASS_GLOW = 0x1,
+		FONTPASS_OUTLINE = 0x2,
+		FONTPASS_COUNT = 0x3,
+	};
 
 	struct AimInput
 	{
@@ -6183,6 +6207,175 @@ namespace Game
 		entityState_s noDeltaEntities[1024];
 	};
 
+	struct ConDrawInputGlob
+	{
+		char autoCompleteChoice[64];
+		int matchIndex;
+		int matchCount;
+		const char* inputText;
+		int inputTextLen;
+		bool hasExactMatch;
+		bool mayAutoComplete;
+		float x;
+		float y;
+		float leftX;
+		float fontHeight;
+	};
+
+	struct ScreenPlacement
+	{
+		float scaleVirtualToReal[2];
+		float scaleVirtualToFull[2];
+		float scaleRealToVirtual[2];
+		float realViewportPosition[2];
+		float realViewportSize[2];
+		float virtualViewableMin[2];
+		float virtualViewableMax[2];
+		float realViewableMin[2];
+		float realViewableMax[2];
+		float virtualAdjustableMin[2];
+		float virtualAdjustableMax[2];
+		float realAdjustableMin[2];
+		float realAdjustableMax[2];
+		float subScreenLeft;
+	};
+
+	struct serverStatusInfo_t
+	{
+		char address[64];
+		const char* lines[128][4];
+		char text[1024];
+		char pings[54];
+		int numLines;
+	};
+
+	struct pendingServer_t
+	{
+		char adrstr[64];
+		char name[64];
+		int startTime;
+		int serverNum;
+		int valid;
+	};
+
+	struct pendingServerStatus_t
+	{
+		int num;
+		pendingServer_t server[16];
+	};
+
+	struct pinglist_t
+	{
+		char adrstr[64];
+		int start;
+	};
+
+	struct serverStatus_s
+	{
+		pinglist_t pingList[16];
+		int numqueriedservers;
+		int currentping;
+		int nextpingtime;
+		int maxservers;
+		int refreshtime;
+		int numServers;
+		int sortKey;
+		int sortDir;
+		int lastCount;
+		int refreshActive;
+		int currentServer;
+		int displayServers[20000];
+		int numDisplayServers;
+		int serverCount;
+		int numPlayersOnServers;
+		int nextDisplayRefresh;
+		int nextSortTime;
+		int motdLen;
+		int motdWidth;
+		int motdPaintX;
+		int motdPaintX2;
+		int motdOffset;
+		int motdTime;
+		char motd[1024];
+	};
+
+	struct mapInfo
+	{
+		char mapName[32];
+		char mapLoadName[16];
+		char mapDescription[32];
+		char mapLoadImage[32];
+		char mapCustomKey[32][16];
+		char mapCustomValue[32][64];
+		int mapCustomCount;
+		int teamMembers;
+		int typeBits;
+		int timeToBeat[32];
+		int active;
+	};
+
+	struct gameTypeInfo
+	{
+		char gameType[12];
+		char gameTypeName[32];
+	};
+
+	struct CachedAssets_t
+	{
+		Material* scrollBarArrowUp;
+		Material* scrollBarArrowDown;
+		Material* scrollBarArrowLeft;
+		Material* scrollBarArrowRight;
+		Material* scrollBar;
+		Material* scrollBarThumb;
+		Material* sliderBar;
+		Material* sliderThumb;
+		Material* whiteMaterial;
+		Material* cursor;
+		Material* textDecodeCharacters;
+		Material* textDecodeCharactersGlow;
+		Font_s* bigFont;
+		Font_s* smallFont;
+		Font_s* consoleFont;
+		Font_s* boldFont;
+		Font_s* textFont;
+		Font_s* extraBigFont;
+		Font_s* objectiveFont;
+		Font_s* hudBigFont;
+		Font_s* hudSmallFont;
+		snd_alias_list_t* itemFocusSound;
+	};
+
+	struct sharedUiInfo_t
+	{
+		CachedAssets_t assets;
+		int playerCount;
+		char playerNames[18][32];
+		char teamNames[18][32];
+		int playerClientNums[18];
+		volatile int updateGameTypeList;
+		int numGameTypes;
+		gameTypeInfo gameTypes[32];
+		int numCustomGameTypes;
+		gameTypeInfo customGameTypes[32];
+		char customGameTypeCancelState[2048];
+		int numJoinGameTypes;
+		gameTypeInfo joinGameTypes[32];
+		volatile int updateArenas;
+		int mapCount;
+		mapInfo mapList[128];
+		int mapIndexSorted[128];
+		bool mapsAreSorted;
+		Material* serverHardwareIconList[9];
+		unsigned __int64 partyMemberXuid;
+		Material* talkingIcons[2];
+		serverStatus_s serverStatus;
+		char serverStatusAddress[64];
+		serverStatusInfo_t serverStatusInfo;
+		int nextServerStatusRefresh;
+		pendingServerStatus_t pendingServerStatus;
+	};
+
 	struct GraphFloat
 	{
 		char name[64];
@@ -6199,7 +6392,10 @@ namespace Game
 		void* nextSnap;
 		char _pad1[0x673DC];
 		int frametime;	// + 0x6A754
-		char _pad2[0x960C]; // + 0x6A758
+		int time;
+		int oldTime;
+		int physicalsTime;
+		char _pad2[0x9600]; // + 0x6A758
 		float compassMapWorldSize[2]; // + 0x73D64
 		char _pad3[0x74]; // + 0x73D6C
 		float selectedLocation[2]; // + 0x73DE0
@@ -6209,6 +6405,8 @@ namespace Game
 		float selectedLocationAnglePrev;
 		char _pad4[0x89740];
 	};
+
+	static_assert(sizeof(cg_s) == 0xFD540);
 
 	static constexpr auto MAX_GAMEPADS = 1;
 
@@ -6447,6 +6645,236 @@ namespace Game
 		int lockOnTargetEnt;
 	};
 #pragma warning(pop)
+
+	enum ShockViewTypes
+	{
+		SHELLSHOCK_VIEWTYPE_BLURRED = 0x0,
+		SHELLSHOCK_VIEWTYPE_FLASHED = 0x1,
+		SHELLSHOCK_VIEWTYPE_NONE = 0x2,
+	};
+
+    struct shellshock_parms_t
+	{
+		struct
+		{
+			int blurredFadeTime;
+			int blurredEffectTime;
+			int flashWhiteFadeTime;
+			int flashShotFadeTime;
+			ShockViewTypes type;
+		} screenBlend;
+		
+		struct
+		{
+			int fadeTime;
+			float kickRate;
+			float kickRadius;
+		} view;
+
+		struct
+		{
+			bool affect;
+			char loop[64];
+			char loopSilent[64];
+			char end[64];
+			char endAbort[64];
+			int fadeInTime;
+			int fadeOutTime;
+			float drylevel;
+			float wetlevel;
+			char roomtype[16];
+			float channelvolume[64];
+			int modEndDelay;
+			int loopFadeTime;
+			int loopEndDelay;
+		} sound;
+
+		struct
+		{
+			bool affect;
+			int fadeTime;
+			float mouseSensitivity;
+			float maxPitchSpeed;
+			float maxYawSpeed;
+		} lookControl;
+
+		struct
+		{
+			bool affect;
+		} movement;
+	};
+
+	struct XAnimParent
+	{
+		unsigned short flags;
+		unsigned short children;
+	};
+
+	struct XAnimEntry
+	{
+		unsigned short numAnims;
+		unsigned short parent;
+
+		union
+		{
+			XAnimParts* parts;
+			XAnimParent animParent;
+		};
+	};
+
+	struct XAnim_s
+	{
+		unsigned int size;
+		const char* debugName;
+		const char** debugAnimNames;
+		XAnimEntry entries[1];
+	};
+
+	struct animation_s
+	{
+		char name[64];
+		int initialLerp;
+		float moveSpeed;
+		int duration;
+		int nameHash;
+		int flags;
+		int64_t movetype;
+		int noteType;
+	};
+
+	struct lerpFrame_t
+	{
+		float yawAngle;
+		int yawing;
+		float pitchAngle;
+		int pitching;
+		int animationNumber;
+		animation_s* animation;
+		int animationTime;
+		float oldFramePos[3];
+		float animSpeedScale;
+		int oldFrameSnapshotTime;
+	};
+
+	struct clientControllers_t
+	{
+		float angles[4][3];
+		float tag_origin_angles[3];
+		float tag_origin_offset[3];
+	};
+
+	struct __declspec(align(4)) XAnimTree_s
+	{
+		XAnim_s* anims;
+		int info_usage;
+		volatile int calcRefCount;
+		volatile int modifyRefCount;
+		unsigned __int16 children;
+	};
+
+	enum PlayerDiveState
+	{
+		DIVE_NONE = 0x0,
+		DIVE_FORWARD = 0x1,
+		DIVE_FORWARDLEFT = 0x2,
+		DIVE_LEFT = 0x3,
+		DIVE_BACKLEFT = 0x4,
+		DIVE_BACK = 0x5,
+		DIVE_BACKRIGHT = 0x6,
+		DIVE_RIGHT = 0x7,
+		DIVE_FORWARDRIGHT = 0x8,
+	};
+
+	struct clientInfo_t
+	{
+		int infoValid;
+		int nextValid;
+		int clientNum;
+		char name[16];
+		team_t team;
+		team_t oldteam;
+		int rank;
+		int prestige;
+		unsigned int perks[2];
+		int score;
+		int location;
+		int health;
+		char model[64];
+		char attachModelNames[6][64];
+		char attachTagNames[6][64];
+		unsigned int partBits[6];
+		lerpFrame_t legs;
+		lerpFrame_t torso;
+		float lerpMoveDir;
+		float lerpLean;
+		float playerAngles[3];
+		int legsAnim;
+		int torsoAnim;
+		float fTorsoPitch;
+		float fWaistPitch;
+		int leftHandGun;
+		int dobjDirty;
+		clientControllers_t control;
+		unsigned int clientConditions[18][2];
+		XAnimTree_s* pXAnimTree;
+		int iDObjWeapon;
+		char weaponModel;
+		int stanceTransitionTime;
+		int turnAnimEndTime;
+		char turnAnimType;
+		bool hideWeapon;
+		bool usingKnife;
+		int dualWielding;
+		PlayerDiveState diveState;
+		int riotShieldNext;
+		unsigned int playerCardIcon;
+		unsigned int playerCardTitle;
+		unsigned int playerCardNameplate;
+	};
+
+	struct cgs_t
+	{
+		int viewX;
+		int viewY;
+		int viewWidth;
+		int viewHeight;
+		float viewAspect;
+		int serverCommandSequence;
+		int processedSnapshotNum;
+		int localServer;
+		char gametype[32];
+		char szHostName[256];
+		bool hardcore;
+		int maxclients;
+		int privateClients;
+		char mapname[64];
+		int gameEndTime;
+		int voteTime;
+		int voteYes;
+		int voteNo;
+		char voteString[256];
+		XModel* gameModels[512];
+		FxEffectDef* smokeGrenadeFx;
+		shellshock_parms_t holdBreathParams;
+		char teamChatMsgs[8][160];
+		int teamChatMsgTimes[8];
+		int teamChatPos;
+		int teamLastChatPos;
+		float compassWidth;
+		float compassHeight;
+		float compassY;
+		clientInfo_t corpseinfo[8];
+		bool entUpdateToggleContextKey;
+		XAnim_s* helicopterAnims;
+	};
+
+	static_assert(sizeof(cgs_t) == 0x3BA4);
+
+	struct ConversionArguments
+	{
+		int argCount;
+		const char* args[9];
+	};
 
 #pragma endregion
 

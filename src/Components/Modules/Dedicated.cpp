@@ -4,8 +4,6 @@ namespace Components
 {
 	SteamID Dedicated::PlayerGuids[18][2];
 
-	bool Dedicated::SendChat;
-
 	bool Dedicated::IsEnabled()
 	{
 		static std::optional<bool> flag;
@@ -73,99 +71,6 @@ namespace Components
 			// Start Com_EvenLoop
 			mov eax, 43D140h
 			jmp eax
-		}
-	}
-
-	void Dedicated::StripMaterialTextIcons(char* text)
-	{
-		char* currentChar = text;
-		bool isEscaped = false;
-		while (*currentChar)
-		{
-			if (*currentChar == '^')
-			{
-				isEscaped = true;
-			}
-			else if(isEscaped == true && (*currentChar == '\x01' || *currentChar == '\x02'))
-			{
-				*currentChar = ' ';
-			}
-			else
-			{
-				isEscaped = false;
-			}
-
-			currentChar++;
-		}
-	}
-
-	const char* Dedicated::EvaluateSay(char* text, Game::gentity_t* player)
-	{
-		Dedicated::SendChat = true;
-
-		if (text[1] == '/')
-		{
-			Dedicated::SendChat = false;
-			text[1] = text[0];
-			++text;
-		}
-
-		StripMaterialTextIcons(text);
-
-		Game::Scr_AddEntity(player);
-		Game::Scr_AddString(text + 1);
-		Game::Scr_NotifyLevel(Game::SL_GetString("say", 0), 2);
-
-		return text;
-	}
-
-	__declspec(naked) void Dedicated::PreSayStub()
-	{
-		__asm
-		{
-			mov eax, [esp + 100h + 10h]
-
-			push eax
-			pushad
-
-			push [esp + 100h + 28h]
-			push eax
-			call Dedicated::EvaluateSay
-			add esp, 8h
-
-			mov [esp + 20h], eax
-			popad
-			pop eax
-
-			mov [esp + 100h + 10h], eax
-
-			jmp Colors::CleanStrStub
-		}
-	}
-
-	__declspec(naked) void Dedicated::PostSayStub()
-	{
-		__asm
-		{
-			// eax is used by the callee
-			push eax
-
-			xor eax, eax
-			mov al, Dedicated::SendChat
-
-			test al, al
-			jnz return
-
-			// Don't send the chat
-			pop eax
-			retn
-
-		return:
-			pop eax
-
-			// Jump to the target
-			push 5DF620h
-			retn
 		}
 	}
 
@@ -328,11 +233,6 @@ namespace Components
 		Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
 		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_FLAG_CHEAT, "");
 		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_FLAG_LATCHED, "Removes ~95% of unneeded lines from the log");
-
-		// Intercept chat sending
-		Utils::Hook(0x4D000B, Dedicated::PreSayStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4D00D4, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4D0110, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{

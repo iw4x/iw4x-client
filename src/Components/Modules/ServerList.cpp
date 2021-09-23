@@ -469,10 +469,10 @@ namespace Components
 				server.ping = (Game::Sys_Milliseconds() - i->sendTime);
 				server.addr = address;
 
-				Dedicated::StripMaterialTextIcons(server.hostname.data());
-				Dedicated::StripMaterialTextIcons(server.mapname.data());
-				Dedicated::StripMaterialTextIcons(server.gametype.data());
-				Dedicated::StripMaterialTextIcons(server.mod.data());
+				server.hostname = TextRenderer::StripMaterialTextIcons(server.hostname);
+				server.mapname = TextRenderer::StripMaterialTextIcons(server.mapname);
+				server.gametype = TextRenderer::StripMaterialTextIcons(server.gametype);
+				server.mod = TextRenderer::StripMaterialTextIcons(server.mod);
 
 				// Remove server from queue
 				i = ServerList::RefreshContainer.servers.erase(i);
@@ -592,8 +592,8 @@ namespace Components
 				return info1->clients < info2->clients;
 			}
 
-			std::string text1 = Utils::String::ToLower(Colors::Strip(ServerList::GetServerInfoText(info1, ServerList::SortKey, true)));
-			std::string text2 = Utils::String::ToLower(Colors::Strip(ServerList::GetServerInfoText(info2, ServerList::SortKey, true)));
+			std::string text1 = Utils::String::ToLower(TextRenderer::StripColors(ServerList::GetServerInfoText(info1, ServerList::SortKey, true)));
+			std::string text2 = Utils::String::ToLower(TextRenderer::StripColors(ServerList::GetServerInfoText(info2, ServerList::SortKey, true)));
 
 			// ASCII-based comparison
 			return text1.compare(text2) < 0;
