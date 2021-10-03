@@ -122,6 +122,7 @@ namespace Game
 	Field_Clear_t Field_Clear = Field_Clear_t(0x437EB0);
 
 	FreeMemory_t FreeMemory = FreeMemory_t(0x4D6640);
+	Free_String_t Free_String = Free_String_t(0x470E80);
 
 	FS_FileExists_t FS_FileExists = FS_FileExists_t(0x4DEFA0);
 	FS_FreeFile_t FS_FreeFile = FS_FreeFile_t(0x4416B0);
@@ -1488,6 +1489,40 @@ namespace Game
 			mov eax, [esp + 0x4]
 			mov ebx, 0x569AA0
 			call ebx
+			retn
+		}
+	}
+
+	__declspec(naked) void Dvar_SetVariant(dvar_t*, DvarValue, DvarSetSource)
+	{
+		__asm
+		{
+			pushad
+
+			mov ecx, [esp + 20h + 20h]
+			mov edx, [esp + 24h + 20h] // source
+			push edx
+
+			mov edx, [esp + 8h + 20h] // dvar pointer
+
+			sub esp, 10h // What does this mean for the offsets ? Copy paste
+			mov eax, esp
+
+			mov [eax], ecx // DvarValue ?? Legit have no clue
+
+			mov ecx, [esp + 0Ch+ 20h]
+			mov [eax + 4], edx // First arg is dvar pointer
+			mov edx, [esp + 10h + 20h]
+			mov [eax + 8], ecx
+			mov [eax + 0Ch], edx
+			mov eax, [esp + 8h + 20h] // var pointer
+
+			mov ebx, 0x647400
+			call ebx
+			add esp, 14h
+
+			popad
+
 			retn
 		}
 	}

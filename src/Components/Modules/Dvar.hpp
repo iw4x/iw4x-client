@@ -50,6 +50,8 @@ namespace Components
 		template<typename T> static Var Register(const char* name, T value, Flag flag, const char* description);
 		template<typename T> static Var Register(const char* name, T value, T min, T max, Flag flag, const char* description);
 
+		static void ResetDvarsValue();
+
 	private:
 		static Utils::Signal<Scheduler::Callback> RegistrationSignal;
 
@@ -57,5 +59,7 @@ namespace Components
 
 		static Game::dvar_t* SetFromStringByNameExternal(const char* dvar, const char* value);
 		static Game::dvar_t* SetFromStringByNameSafeExternal(const char* dvar, const char* value);
+
+		static std::vector<std::string> ChangedDvars;
 	};
 }

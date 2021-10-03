@@ -3,6 +3,7 @@
 namespace Components
 {
 	Utils::Signal<Scheduler::Callback> Dvar::RegistrationSignal;
+	std::vector<std::string> Dvar::ChangedDvars;
 
 	Dvar::Var::Var(const std::string& dvarName) : Var()
 	{
@@ -258,7 +259,19 @@ namespace Components
 
 	Game::dvar_t* Dvar::SetFromStringByNameExternal(const char* dvar, const char* value)
 	{
+		Dvar::ChangedDvars.push_back(dvar);
 		return Game::Dvar_SetFromStringByNameFromSource(dvar, value, Game::DvarSetSource::DVAR_SOURCE_EXTERNAL);
+	}
+
+	void Dvar::ResetDvarsValue()
+	{
+		for (auto it = Dvar::ChangedDvars.begin(); it != Dvar::ChangedDvars.end(); ++it)
+		{
+			auto var = Dvar::Var(*it).get<Game::dvar_t*>();
+			Game::Dvar_SetVariant(var, var->reset, Game::DVAR_SOURCE_INTERNAL);
+			it = Dvar::ChangedDvars.erase(it);
+			--it; // Go back one step because of erase
+		}
 	}
 
 	Dvar::Dvar()
@@ -333,5 +346,6 @@ namespace Components
 	Dvar::~Dvar()
 	{
 		Dvar::RegistrationSignal.clear();
+		Dvar::ChangedDvars.clear();
 	}
 }

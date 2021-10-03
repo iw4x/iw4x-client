@@ -298,6 +298,9 @@ namespace Game
 	typedef void(__cdecl * FreeMemory_t)(void* buffer);
 	extern FreeMemory_t FreeMemory;
 
+	typedef void (__cdecl * Free_String_t)(const char* string);
+	extern Free_String_t Free_String;
+
 	typedef void(__cdecl * FS_FreeFile_t)(void* buffer);
 	extern FS_FreeFile_t FS_FreeFile;
 
@@ -1074,4 +1077,6 @@ namespace Game
 
 	void AimAssist_UpdateTweakables(int localClientNum);
 	void AimAssist_UpdateAdsLerp(const AimInput* input);
+	
+	void Dvar_SetVariant(dvar_t* var, DvarValue value, DvarSetSource source);
 }
