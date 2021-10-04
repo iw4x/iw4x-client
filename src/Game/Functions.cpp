@@ -1055,22 +1055,20 @@ namespace Game
 	{
 		__asm
 		{
-			push eax
 			pushad
 
-			mov edi, [esp + 2Ch] // name
-			push edi
+			mov eax, [esp + 0x4 + 0x20] // dvar
+			push[esp + 0x18 + 0x20] // source
+			push[esp + 0x18 + 0x20] // value
+			push[esp + 0x18 + 0x20] // value
+			push[esp + 0x18 + 0x20] // value
+			push[esp + 0x18 + 0x20] // value
 
-			mov edi, [esp + 2Ch] // type
+			mov ebx, 0x647400
+			call ebx
+			add esp, 0x14
 
-			mov eax, 5BB1B0h
-			call eax
-
-			add esp, 4h
-
-			mov [esp + 20h], eax
 			popad
-			pop eax
 
 			retn
 		}
@@ -1493,7 +1491,7 @@ namespace Game
 		}
 	}
 
-	__declspec(naked) void Dvar_SetVariant(dvar_t*, DvarValue, int)
+	__declspec(naked) void Dvar_SetVariant(dvar_t*, DvarValue, DvarSetSource)
 	{
 		__asm
 		{

@@ -190,6 +190,25 @@ namespace Components
 		Dvar::RegistrationSignal.connect(callback);
 	}
 
+	void Dvar::DvarReset(Game::dvar_t* var, Game::DvarSetSource source)
+	{
+		assert(var != nullptr);
+
+		Game::Dvar_SetVariant(var, var->reset, source);
+	}
+
+	void Dvar::ResetDvarsValue()
+	{
+		auto it = Dvar::ChangedDvars.begin();
+		while (it != Dvar::ChangedDvars.end())
+		{
+			auto var = Dvar::Var(*it).get<Game::dvar_t*>();
+			assert(var != nullptr);
+			Dvar::DvarReset(var, Game::DVAR_SOURCE_INTERNAL);
+			it = Dvar::ChangedDvars.erase(it);
+		}
+	}
+
 	Game::dvar_t* Dvar::RegisterName(const char* name, const char* /*default*/, Game::dvar_flag flag, const char* description)
 	{
 		// Run callbacks
@@ -259,26 +278,13 @@ namespace Components
 
 	Game::dvar_t* Dvar::SetFromStringByNameExternal(const char* dvar, const char* value)
 	{
-		Dvar::ChangedDvars.push_back(dvar);
 		return Game::Dvar_SetFromStringByNameFromSource(dvar, value, Game::DvarSetSource::DVAR_SOURCE_EXTERNAL);
 	}
 
-	void Dvar::Dvar_Reset(Game::dvar_t* var, Game::DvarSetSource source)
+	void Dvar::DvarSetFromStringByNameStub(const char* var, const char* value)
 	{
-		assert(var != nullptr);
-		OutputDebugStringA(Utils::String::VA("Dvar pointer: %p\n"));
-		Game::Dvar_SetVariant(var, var->reset, source);
-	}
-
-	void Dvar::ResetDvarsValue()
-	{
-		auto it = Dvar::ChangedDvars.begin();
-		while (it != Dvar::ChangedDvars.end())
-		{
-			auto var = Dvar::Var(*it).get<Game::dvar_t*>();
-			Dvar::Dvar_Reset(var, Game::DVAR_SOURCE_INTERNAL);
-			it = Dvar::ChangedDvars.erase(it);
-		}
+		Dvar::ChangedDvars.push_back(var);
+		Utils::Hook::Call<void(const char*, const char*)>(0x4F52E0)(var, value);
 	}
 
 	Dvar::Dvar()
@@ -348,6 +354,9 @@ namespace Components
 
 		// Entirely block setting cheat dvars internally without sv_cheats
 		//Utils::Hook(0x4F52EC, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+
+		// Hook Dvar_SetFromStringByName inside CG_SetClientDvarFromServer so we can reset dvars when the player leaves the server
+		Utils::Hook(0x59386A, Dvar::DvarSetFromStringByNameStub, HOOK_CALL).install()->quick();
 	}
 
 	Dvar::~Dvar()
