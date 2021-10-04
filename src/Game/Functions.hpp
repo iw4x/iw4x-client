@@ -1078,5 +1078,5 @@ namespace Game
 	void AimAssist_UpdateTweakables(int localClientNum);
 	void AimAssist_UpdateAdsLerp(const AimInput* input);
 	
-	void Dvar_SetVariant(dvar_t* var, DvarValue value, DvarSetSource source);
+	void Dvar_SetVariant(dvar_t* var, DvarValue value, int source);
 }

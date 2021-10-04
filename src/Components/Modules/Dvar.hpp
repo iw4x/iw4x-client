@@ -50,6 +50,7 @@ namespace Components
 		template<typename T> static Var Register(const char* name, T value, Flag flag, const char* description);
 		template<typename T> static Var Register(const char* name, T value, T min, T max, Flag flag, const char* description);
 
+		static void Dvar_Reset(Game::dvar_t* var, Game::DvarSetSource source);
 		static void ResetDvarsValue();
 
 	private:

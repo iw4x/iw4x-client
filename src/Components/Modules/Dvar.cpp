@@ -263,14 +263,21 @@ namespace Components
 		return Game::Dvar_SetFromStringByNameFromSource(dvar, value, Game::DvarSetSource::DVAR_SOURCE_EXTERNAL);
 	}
 
+	void Dvar::Dvar_Reset(Game::dvar_t* var, Game::DvarSetSource source)
+	{
+		assert(var != nullptr);
+		OutputDebugStringA(Utils::String::VA("Dvar pointer: %p\n"));
+		Game::Dvar_SetVariant(var, var->reset, source);
+	}
+
 	void Dvar::ResetDvarsValue()
 	{
-		for (auto it = Dvar::ChangedDvars.begin(); it != Dvar::ChangedDvars.end(); ++it)
+		auto it = Dvar::ChangedDvars.begin();
+		while (it != Dvar::ChangedDvars.end())
 		{
 			auto var = Dvar::Var(*it).get<Game::dvar_t*>();
-			Game::Dvar_SetVariant(var, var->reset, Game::DVAR_SOURCE_INTERNAL);
+			Dvar::Dvar_Reset(var, Game::DVAR_SOURCE_INTERNAL);
 			it = Dvar::ChangedDvars.erase(it);
-			--it; // Go back one step because of erase
 		}
 	}
 

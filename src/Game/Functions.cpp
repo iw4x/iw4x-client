@@ -1493,29 +1493,31 @@ namespace Game
 		}
 	}
 
-	__declspec(naked) void Dvar_SetVariant(dvar_t*, DvarValue, DvarSetSource)
+	__declspec(naked) void Dvar_SetVariant(dvar_t*, DvarValue, int)
 	{
 		__asm
 		{
 			pushad
 
-			mov ecx, [esp + 20h + 20h]
-			mov edx, [esp + 24h + 20h] // source
-			push edx
+			mov edx, [esp + 8h + 20h] // First 4 bytes of DvarValue
+			mov ecx, [esp + 18h + 20h] // Source
+			push ecx // Push from right to left
 
-			mov edx, [esp + 8h + 20h] // dvar pointer
+			mov ecx, [esp + 8h + 20h] // dvar_t pointer, because of last push it's not at esp + 4 anymore
 
-			sub esp, 10h // What does this mean for the offsets ? Copy paste
+			sub esp, 10h // Reserve space for DvarValue
 			mov eax, esp
 
-			mov [eax], ecx // DvarValue ?? Legit have no clue
+			mov [eax], edx // DvarValue
 
-			mov ecx, [esp + 0Ch+ 20h]
-			mov [eax + 4], edx // First arg is dvar pointer
-			mov edx, [esp + 10h + 20h]
-			mov [eax + 8], ecx
+			// 20h + 10h because of sub esp, 10h
+			mov edx, [esp + 10h + 30h] // Second 4 bytes of DvarValue
+			mov [eax + 4], edx
+			mov edx, [esp + 16h + 30h] // Third 4 bytes of DvarValue
+			mov [eax + 8], edx
+			mov edx, [esp + 1Ah + 30h] // Fourth 4 bytes of DvarValue
 			mov [eax + 0Ch], edx
-			mov eax, [esp + 8h + 20h] // var pointer
+			mov eax, [ecx] // dvar_t pointer
 
 			mov ebx, 0x647400
 			call ebx
