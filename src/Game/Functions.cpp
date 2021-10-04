@@ -1055,20 +1055,22 @@ namespace Game
 	{
 		__asm
 		{
+			push eax
 			pushad
 
-			mov eax, [esp + 0x4 + 0x20] // dvar
-			push[esp + 0x18 + 0x20] // source
-			push[esp + 0x18 + 0x20] // value
-			push[esp + 0x18 + 0x20] // value
-			push[esp + 0x18 + 0x20] // value
-			push[esp + 0x18 + 0x20] // value
+			mov edi, [esp + 2Ch] // name
+			push edi
 
-			mov ebx, 0x647400
-			call ebx
-			add esp, 0x14
+			mov edi, [esp + 2Ch] // type
 
+			mov eax, 5BB1B0h
+			call eax
+
+			add esp, 4h
+
+			mov [esp + 20h], eax
 			popad
+			pop eax
 
 			retn
 		}
@@ -1497,29 +1499,16 @@ namespace Game
 		{
 			pushad
 
-			mov edx, [esp + 8h + 20h] // First 4 bytes of DvarValue
-			mov ecx, [esp + 18h + 20h] // Source
-			push ecx // Push from right to left
-
-			mov ecx, [esp + 8h + 20h] // dvar_t pointer, because of last push it's not at esp + 4 anymore
-
-			sub esp, 10h // Reserve space for DvarValue
-			mov eax, esp
-
-			mov [eax], edx // DvarValue
-
-			// 20h + 10h because of sub esp, 10h
-			mov edx, [esp + 10h + 30h] // Second 4 bytes of DvarValue
-			mov [eax + 4], edx
-			mov edx, [esp + 16h + 30h] // Third 4 bytes of DvarValue
-			mov [eax + 8], edx
-			mov edx, [esp + 1Ah + 30h] // Fourth 4 bytes of DvarValue
-			mov [eax + 0Ch], edx
-			mov eax, [ecx] // dvar_t pointer
+			mov eax, [esp + 0x4 + 0x20] // dvar
+			push[esp + 0x18 + 0x20] // source
+			push[esp + 0x18 + 0x20] // value
+			push[esp + 0x18 + 0x20] // value
+			push[esp + 0x18 + 0x20] // value
+			push[esp + 0x18 + 0x20] // value
 
 			mov ebx, 0x647400
 			call ebx
-			add esp, 14h
+			add esp, 0x14
 
 			popad
 

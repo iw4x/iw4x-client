@@ -203,7 +203,6 @@ namespace Components
 		while (it != Dvar::ChangedDvars.end())
 		{
 			auto var = Dvar::Var(*it).get<Game::dvar_t*>();
-			assert(var != nullptr);
 			Dvar::DvarReset(var, Game::DVAR_SOURCE_INTERNAL);
 			it = Dvar::ChangedDvars.erase(it);
 		}
