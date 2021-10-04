@@ -55,7 +55,7 @@ namespace Components
 
 	private:
 		static Utils::Signal<Scheduler::Callback> RegistrationSignal;
-		static std::vector<std::string> ChangedDvars;
+		static std::unordered_set<std::string> ChangedDvars;
 
 		static Game::dvar_t* RegisterName(const char* name, const char* defaultVal, Game::dvar_flag flag, const char* description);
 

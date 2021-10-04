@@ -3,7 +3,7 @@
 namespace Components
 {
 	Utils::Signal<Scheduler::Callback> Dvar::RegistrationSignal;
-	std::vector<std::string> Dvar::ChangedDvars;
+	std::unordered_set<std::string> Dvar::ChangedDvars;
 
 	Dvar::Var::Var(const std::string& dvarName) : Var()
 	{
@@ -282,7 +282,7 @@ namespace Components
 
 	void Dvar::DvarSetFromStringByNameStub(const char* var, const char* value)
 	{
-		Dvar::ChangedDvars.push_back(var);
+		Dvar::ChangedDvars.emplace(var);
 		Utils::Hook::Call<void(const char*, const char*)>(0x4F52E0)(var, value);
 	}
 
