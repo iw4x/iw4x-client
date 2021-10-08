@@ -1870,6 +1870,9 @@ namespace Components
         Utils::Hook(0x60B264, Com_WriteConfiguration_Modified_Stub, HOOK_JUMP).install()->quick();
         Utils::Hook(0x60B223, Key_WriteBindings_Hk, HOOK_CALL).install()->quick();
 
+        // Add hold time to gamepad usereload on hold prompts
+        Utils::Hook(0x5FE396, Player_UseEntity_Stub, HOOK_JUMP).install()->quick();
+
         CreateKeyNameMap();
 
         Command::Add("bindaxis", Axis_Bind_f);
@@ -1895,9 +1898,6 @@ namespace Components
 
         // Only return gamepad keys when gamepad enabled and only non gamepad keys when not
         Utils::Hook(0x5A7A23, Key_GetCommandAssignmentInternal_Hk, HOOK_CALL).install()->quick();
-
-        // Add hold time to gamepad usereload on hold prompts
-        Utils::Hook(0x5FE396, Player_UseEntity_Stub, HOOK_JUMP).install()->quick();
 
         // Add gamepad inputs to remote control (eg predator) handling
         Utils::Hook(0x5A6D4E, CL_RemoteControlMove_Stub, HOOK_CALL).install()->quick();
