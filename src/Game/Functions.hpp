@@ -931,6 +931,7 @@ namespace Game
 	extern int* demoRecording;
 	extern int* serverMessageSequence;
 
+	constexpr auto MAX_GENTITIES = 2048;
 	extern gentity_t* g_entities;
 
 	extern netadr_t* connectedHost;

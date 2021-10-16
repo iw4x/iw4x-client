@@ -531,6 +531,28 @@ namespace Components
 		{
 			Script::ScriptStorage.clear();
 		});
+
+		Script::AddFunction("NoClip", [](Game::scr_entref_t entref)
+		{
+			if (entref >= Game::MAX_GENTITIES || Game::g_entities[entref].client == nullptr)
+			{
+				Game::Scr_Error(Utils::String::VA("^1NoClip: entity %u is not a client\n", entref));
+				return;
+			}
+
+			Game::g_entities[entref].client->flags ^= Game::PLAYER_FLAG_NOCLIP;
+		});
+
+		Script::AddFunction("Ufo", [](Game::scr_entref_t entref)
+		{
+			if (entref >= Game::MAX_GENTITIES || Game::g_entities[entref].client == nullptr)
+			{
+				Game::Scr_Error(Utils::String::VA("^1Ufo: entity %u is not a client\n", entref));
+				return;
+			}
+
+			Game::g_entities[entref].client->flags ^= Game::PLAYER_FLAG_UFO;
+		});
 	}
 
 	Script::Script()
