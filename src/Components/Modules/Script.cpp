@@ -532,7 +532,7 @@ namespace Components
 			Script::ScriptStorage.clear();
 		});
 
-		Script::AddFunction("NoClip", [](Game::scr_entref_t entref)
+		Script::AddFunction("Noclip", [](Game::scr_entref_t entref)
 		{
 			if (entref >= Game::MAX_GENTITIES || Game::g_entities[entref].client == nullptr)
 			{
@@ -540,7 +540,21 @@ namespace Components
 				return;
 			}
 
-			Game::g_entities[entref].client->flags ^= Game::PLAYER_FLAG_NOCLIP;
+			if (Game::Scr_GetNumParam() == 1 && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			{
+				if (Game::Scr_GetInt(0))
+				{
+					Game::g_entities[entref].client->flags |= Game::PLAYER_FLAG_NOCLIP;
+				}
+				else
+				{
+					Game::g_entities[entref].client->flags &= ~Game::PLAYER_FLAG_NOCLIP;
+				}
+			}
+			else
+			{
+				Game::g_entities[entref].client->flags ^= Game::PLAYER_FLAG_NOCLIP;
+			}
 		});
 
 		Script::AddFunction("Ufo", [](Game::scr_entref_t entref)
@@ -551,7 +565,21 @@ namespace Components
 				return;
 			}
 
-			Game::g_entities[entref].client->flags ^= Game::PLAYER_FLAG_UFO;
+			if (Game::Scr_GetNumParam() == 1 && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			{
+				if (Game::Scr_GetInt(0))
+				{
+					Game::g_entities[entref].client->flags |= Game::PLAYER_FLAG_UFO;
+				}
+				else
+				{
+					Game::g_entities[entref].client->flags &= ~Game::PLAYER_FLAG_UFO;
+				}
+			}
+			else
+			{
+				Game::g_entities[entref].client->flags ^= Game::PLAYER_FLAG_UFO;
+			}			
 		});
 	}
 
