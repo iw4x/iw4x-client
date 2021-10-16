@@ -155,6 +155,7 @@ namespace Components
     Dvar::Var Gamepad::gpad_debug;
     Dvar::Var Gamepad::gpad_present;
     Dvar::Var Gamepad::gpad_in_use;
+    Dvar::Var Gamepad::gpad_style;
     Dvar::Var Gamepad::gpad_sticksConfig;
     Dvar::Var Gamepad::gpad_buttonConfig;
     Dvar::Var Gamepad::gpad_menu_scroll_delay_first;
@@ -1694,6 +1695,7 @@ namespace Components
         gpad_debug = Dvar::Register<bool>("gpad_debug", false, Game::DVAR_FLAG_NONE, "Game pad debugging");
         gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_FLAG_NONE, "Game pad present");
         gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_FLAG_NONE, "A game pad is in use");
+        gpad_style = Dvar::Register<bool>("gpad_style", false, Game::DVAR_FLAG_SAVED, "Switch between Xbox and PS HUD");
         gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "", Game::DVAR_FLAG_SAVED, "Game pad stick configuration");
         gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_FLAG_SAVED, "Game pad button configuration");
         gpad_menu_scroll_delay_first = Dvar::Register<int>("gpad_menu_scroll_delay_first", 420, 0, 1000, Game::DVAR_FLAG_SAVED, "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
