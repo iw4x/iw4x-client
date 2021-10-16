@@ -108,7 +108,7 @@ namespace Components
         {"DPAD_RIGHT", Game::K_DPAD_RIGHT},
     };
 
-    Game::keyname_t Gamepad::extendedLocalizedKeyNames[]
+    Game::keyname_t Gamepad::extendedLocalizedKeyNamesXenon[]
     {
         // Material text icons pattern: 0x01 width height material_name_len
         {"^\x01\x32\x32\x08""button_a", Game::K_BUTTON_A},
@@ -128,8 +128,30 @@ namespace Components
         {"^\x01\x32\x32\x09""dpad_left", Game::K_DPAD_LEFT},
         {"^\x01\x32\x32\x0A""dpad_right", Game::K_DPAD_RIGHT},
     };
+
+    Game::keyname_t Gamepad::extendedLocalizedKeyNamesPs3[]
+    {
+        // Material text icons pattern: 0x01 width height material_name_len
+        {"^\x01\x32\x32\x10""button_ps3_cross", Game::K_BUTTON_A},
+        {"^\x01\x32\x32\x11""button_ps3_circle", Game::K_BUTTON_B},
+        {"^\x01\x32\x32\x11""button_ps3_square", Game::K_BUTTON_X},
+        {"^\x01\x32\x32\x13""button_ps3_triangle", Game::K_BUTTON_Y},
+        {"^\x01\x32\x32\x0D""button_ps3_l1", Game::K_BUTTON_LSHLDR},
+        {"^\x01\x32\x32\x0D""button_ps3_r1", Game::K_BUTTON_RSHLDR},
+        {"^\x01\x32\x32\x10""button_ps3_start", Game::K_BUTTON_START},
+        {"^\x01\x32\x32\x0F""button_ps3_back", Game::K_BUTTON_BACK},
+        {"^\x01\x48\x32\x0D""button_ps3_l3", Game::K_BUTTON_LSTICK},
+        {"^\x01\x48\x32\x0D""button_ps3_r3", Game::K_BUTTON_RSTICK},
+        {"^\x01\x32\x32\x0D""button_ps3_l2", Game::K_BUTTON_LTRIG},
+        {"^\x01\x32\x32\x0D""button_ps3_r2", Game::K_BUTTON_RTRIG},
+        {"^\x01\x32\x32\x0B""dpad_ps3_up", Game::K_DPAD_UP},
+        {"^\x01\x32\x32\x0D""dpad_ps3_down", Game::K_DPAD_DOWN},
+        {"^\x01\x32\x32\x0D""dpad_ps3_left", Game::K_DPAD_LEFT},
+        {"^\x01\x32\x32\x0E""dpad_ps3_right", Game::K_DPAD_RIGHT},
+    };
     Game::keyname_t Gamepad::combinedKeyNames[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedKeyNames)> + 1];
-    Game::keyname_t Gamepad::combinedLocalizedKeyNames[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNames)> + 1];
+    Game::keyname_t Gamepad::combinedLocalizedKeyNamesXenon[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNamesXenon)> + 1];
+    Game::keyname_t Gamepad::combinedLocalizedKeyNamesPs3[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNamesPs3)> + 1];
 
     Gamepad::ControllerMenuKeyMapping Gamepad::controllerMenuKeyMappings[]
     {
@@ -1832,21 +1854,53 @@ namespace Components
         return cl_bypassMouseInput.get<bool>() || IsGamePadInUse();
     }
 
+    Game::keyname_t* Gamepad::GetLocalizedKeyNameMap()
+    {
+        if(gpad_style.get<bool>())
+            return combinedLocalizedKeyNamesPs3;
+
+        return combinedLocalizedKeyNamesXenon;
+    }
+
+    void __declspec(naked) Gamepad::GetLocalizedKeyName_Stub()
+    {
+        __asm
+        {
+            push eax
+            pushad
+
+            call GetLocalizedKeyNameMap
+            mov [esp + 0x20], eax
+
+            popad
+            pop eax
+
+            // Re-execute last instruction from game to set flags again for upcoming jump
+            test edi, edi
+            ret
+        }
+    }
+
     void Gamepad::CreateKeyNameMap()
     {
         memcpy(combinedKeyNames, Game::keyNames, sizeof(Game::keyname_t) * Game::KEY_NAME_COUNT);
         memcpy(&combinedKeyNames[Game::KEY_NAME_COUNT], extendedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(extendedKeyNames)>);
         combinedKeyNames[std::extent_v<decltype(combinedKeyNames)> - 1] = {nullptr, 0};
 
-        memcpy(combinedLocalizedKeyNames, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
-        memcpy(&combinedLocalizedKeyNames[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNames,
-               sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNames)>);
-        combinedLocalizedKeyNames[std::extent_v<decltype(combinedLocalizedKeyNames)> - 1] = {nullptr, 0};
+        memcpy(combinedLocalizedKeyNamesXenon, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
+        memcpy(&combinedLocalizedKeyNamesXenon[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNamesXenon,
+               sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesXenon)>);
+        combinedLocalizedKeyNamesXenon[std::extent_v<decltype(combinedLocalizedKeyNamesXenon)> - 1] = {nullptr, 0};
+
+        memcpy(combinedLocalizedKeyNamesPs3, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
+        memcpy(&combinedLocalizedKeyNamesPs3[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNamesPs3,
+               sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesPs3)>);
+        combinedLocalizedKeyNamesPs3[std::extent_v<decltype(combinedLocalizedKeyNamesPs3)> - 1] = {nullptr, 0};
 
         Utils::Hook::Set<Game::keyname_t*>(0x4A780A, combinedKeyNames);
         Utils::Hook::Set<Game::keyname_t*>(0x4A7810, combinedKeyNames);
         Utils::Hook::Set<Game::keyname_t*>(0x435C9F, combinedKeyNames);
-        Utils::Hook::Set<Game::keyname_t*>(0x435C98, combinedLocalizedKeyNames);
+        Utils::Hook(0x435C97, GetLocalizedKeyName_Stub, HOOK_CALL).install()->quick();
     }
 
     Gamepad::Gamepad()
