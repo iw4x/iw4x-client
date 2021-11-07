@@ -109,7 +109,7 @@ namespace Game
 		IMG_CATEGORY_WATER = 0x5,
 		IMG_CATEGORY_RENDERTARGET = 0x6,
 		IMG_CATEGORY_TEMP = 0x7,
-	} ;
+	};
 
 	enum buttons_t
 	{
