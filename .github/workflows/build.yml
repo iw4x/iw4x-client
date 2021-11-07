@@ -83,11 +83,11 @@ jobs:
         with:
           name: Release binaries
 
-      - name: Download Release data artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: Release data artifacts
-          path: data
+#      - name: Download Release data artifacts
+#        uses: actions/download-artifact@v2
+#        with:
+#          name: Release data artifacts
+#          path: data
 
       # Set up committer info and GPG key
       - name: Install SSH key
