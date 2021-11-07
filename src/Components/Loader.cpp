@@ -104,6 +104,7 @@ namespace Components
 		Loader::Register(new Gamepad());
 		Loader::Register(new Chat());
 		Loader::Register(new TextRenderer());
+		Loader::Register(new Movement());
 
 		Loader::Register(new Client());
 

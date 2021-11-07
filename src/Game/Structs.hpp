@@ -6876,6 +6876,37 @@ namespace Game
 		const char* args[9];
 	};
 
+	struct pmove_s
+	{
+		playerState_s* ps;
+		usercmd_s cmd;
+		usercmd_s oldcmd;
+		int tracemask;
+		int numtouch;
+		int touchents[32];
+		char __pad0[24];
+		float xyspeed;
+		int proneChange;
+		float maxSprintTimeMultiplier;
+		bool mantleStarted;
+		float mantleEndPos[3];
+		int mantleDuration;
+		int viewChangeTime;
+		float viewChange;
+		float fTorsoPitch;
+		float fWaistPitch;
+		unsigned char handler;
+	};
+
+	enum EffectiveStance
+	{
+		PM_EFF_STANCE_DEFAULT = 0,
+		PM_EFF_STANCE_PRONE = 1,
+		PM_EFF_STANCE_DUCKED = 2,
+		PM_EFF_STANCE_LASTSTANDCRAWL = 3,
+		PM_EFF_STANCE_COUNT = 4
+	};
+
 #pragma endregion
 
 #ifndef IDA

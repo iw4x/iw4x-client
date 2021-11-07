@@ -299,6 +299,9 @@ namespace Components
 		// Uncheat ui_debugMode
 		Utils::Hook::Xor<BYTE>(0x6312DE, Game::dvar_flag::DVAR_FLAG_CHEAT);
 
+		// Remove unknown flag (to prevent unknown behaviour)
+		Utils::Hook::Xor<BYTE>(0x448B42, Game::dvar_flag::DVAR_FLAG_UNKNOWN80);
+
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).install()->quick();
 
