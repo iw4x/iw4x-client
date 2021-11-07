@@ -379,6 +379,17 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled()) return;
 
+		Scheduler::OnFrame([]() {
+			if (Game::CL_IsCgameInitialized())
+			{
+				DebugDrawAABBTrees();
+				DebugDrawModelNames();
+				DebugDrawSceneModelBoundingBoxes();
+				DebugDrawSceneModelCollisions();
+				DebugDrawTriggers();
+			}
+			});
+
 // 		Renderer::OnBackendFrame([] (IDirect3DDevice9* device)
 // 		{
 // 			if (Game::Sys_Milliseconds() % 2)
