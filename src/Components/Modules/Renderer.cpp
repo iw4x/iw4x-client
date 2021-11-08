@@ -10,9 +10,15 @@ namespace Components
 
 	Dvar::Var Renderer::DrawTriggers;
 	Dvar::Var Renderer::DrawSceneModelCollisions;
-	Dvar::Var Renderer::DrawSceneModelBoundingBoxes;
+	Dvar::Var Renderer::DrawModelBoundingBoxes;
 	Dvar::Var Renderer::DrawModelNames;
 	Dvar::Var Renderer::DrawAABBTrees;
+
+	float sceneModelsColor[4] = { 1.0f, 1.0f, 0.0f, 1.0f };
+	float dobjsColor[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
+	float staticModelsColor[4] = { 1.0f, 0.0f, 1.0f, 1.0f };
+	float gentitiesColor[4] = { 1.0f, 0.5f, 0.5f, 1.0f };
+	int drawDistance = 80000;
 
 	__declspec(naked) void Renderer::FrameStub()
 	{
@@ -133,7 +139,7 @@ namespace Components
 
 			// show error
 			pushad;
-			push [esp + 24h + 20h];
+			push[esp + 24h + 20h];
 			push eax;
 			call R_TextureFromCodeError;
 			add esp, 8;
@@ -258,45 +264,90 @@ namespace Components
 		}
 	}
 
-	void Renderer::DebugDrawSceneModelBoundingBoxes()
+	void Renderer::DebugDrawModelBoundingBoxes()
 	{
-		if (!DrawSceneModelBoundingBoxes.get<bool>()) return;
+		auto val = DrawModelBoundingBoxes.get<Game::dvar_t*>()->current.integer;
 
-		float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
-		float blue[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+		if (!val) return;
 
+		int clientNum = Game::CG_GetClientNum();
+		if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client) return;
+
+		Game::gentity_t* clientEntity = &Game::g_entities[clientNum];
+
+		float(*playerPosition)[3] = &clientEntity->r.currentOrigin;
+
+		auto mapName = Dvar::Var("mapname").get<const char*>();
 		auto* scene = Game::scene;
+		auto world = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName))->asset.header.gfxWorld;
 
-		for (auto i = 0; i < scene->sceneModelCount; i++)
-		{
-			if (!scene->sceneModel[i].model)
-				continue;
+		switch (val) {
+		case 1:
+			for (auto i = 0; i < scene->sceneModelCount; i++)
+			{
+				if (!scene->sceneModel[i].model)
+					continue;
 
-			auto b = scene->sceneModel[i].model->bounds;
-			b.midPoint[0] += scene->sceneModel[i].placement.base.origin[0];
-			b.midPoint[1] += scene->sceneModel[i].placement.base.origin[1];
-			b.midPoint[2] += scene->sceneModel[i].placement.base.origin[2];
-			b.halfSize[0] *= scene->sceneModel[i].placement.scale;
-			b.halfSize[1] *= scene->sceneModel[i].placement.scale;
-			b.halfSize[2] *= scene->sceneModel[i].placement.scale;
-			Game::R_AddDebugBounds(red, &b, &scene->sceneModel[i].placement.base.quat);
-		}
+				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < drawDistance)
+				{
+					auto b = scene->sceneModel[i].model->bounds;
+					b.midPoint[0] += scene->sceneModel[i].placement.base.origin[0];
+					b.midPoint[1] += scene->sceneModel[i].placement.base.origin[1];
+					b.midPoint[2] += scene->sceneModel[i].placement.base.origin[2];
+					b.halfSize[0] *= scene->sceneModel[i].placement.scale;
+					b.halfSize[1] *= scene->sceneModel[i].placement.scale;
+					b.halfSize[2] *= scene->sceneModel[i].placement.scale;
+					Game::R_AddDebugBounds(sceneModelsColor, &b, &scene->sceneModel[i].placement.base.quat);
+				}
+			}
+			break;
 
-		for (auto i = 0; i < scene->sceneDObjCount; i++)
-		{
-			scene->sceneDObj[i].cull.bounds.halfSize[0] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[0]);
-			scene->sceneDObj[i].cull.bounds.halfSize[1] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[1]);
-			scene->sceneDObj[i].cull.bounds.halfSize[2] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[2]);
-
-			if (scene->sceneDObj[i].cull.bounds.halfSize[0] < 0 ||
-				scene->sceneDObj[i].cull.bounds.halfSize[1] < 0 ||
-				scene->sceneDObj[i].cull.bounds.halfSize[2] < 0)
+		case 2:
+			for (auto i = 0; i < scene->sceneDObjCount; i++)
 			{
 
-				Components::Logger::Print("WARNING: Negative half size for DOBJ %s, this will cause culling issues!", scene->sceneDObj[i].obj->models[0]->name);
-			}
+				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].cull.bounds.midPoint) < drawDistance)
+				{
+					scene->sceneDObj[i].cull.bounds.halfSize[0] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[0]);
+					scene->sceneDObj[i].cull.bounds.halfSize[1] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[1]);
+					scene->sceneDObj[i].cull.bounds.halfSize[2] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[2]);
 
-			Game::R_AddDebugBounds(blue, &scene->sceneDObj[i].cull.bounds);
+					if (scene->sceneDObj[i].cull.bounds.halfSize[0] < 0 ||
+						scene->sceneDObj[i].cull.bounds.halfSize[1] < 0 ||
+						scene->sceneDObj[i].cull.bounds.halfSize[2] < 0)
+					{
+
+						Components::Logger::Print("WARNING: Negative half size for DOBJ %s, this will cause culling issues!", scene->sceneDObj[i].obj->models[0]->name);
+					}
+
+					Game::R_AddDebugBounds(dobjsColor, &scene->sceneDObj[i].cull.bounds);
+				}
+			}
+			break;
+
+		case 3:
+			// Static models
+			for (size_t i = 0; i < world->dpvs.smodelCount; i++)
+			{
+				auto staticModel = world->dpvs.smodelDrawInsts[i];
+
+				if (Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin) < drawDistance)
+				{
+					if (staticModel.model)
+					{
+						Game::Bounds b = staticModel.model->bounds;
+						b.midPoint[0] += staticModel.placement.origin[0];
+						b.midPoint[1] += staticModel.placement.origin[1];
+						b.midPoint[2] += staticModel.placement.origin[2];
+						b.halfSize[0] *= staticModel.placement.scale;
+						b.halfSize[1] *= staticModel.placement.scale;
+						b.halfSize[2] *= staticModel.placement.scale;
+
+						Game::R_AddDebugBounds(staticModelsColor, &b);
+					}
+				}
+			}
+			break;
 		}
 	}
 
@@ -306,50 +357,62 @@ namespace Components
 
 		if (!val) return;
 
-		float sceneModelsColor[4] = { 1.0f, 1.0f, 0.0f, 1.0f };
-		float dobjsColor[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
-		float staticModelsColor[4] = { 1.0f, 0.0f, 1.0f, 1.0f };
+		int clientNum = Game::CG_GetClientNum();
+		if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client) return;
+
+		Game::gentity_t* clientEntity = &Game::g_entities[clientNum];
+
+		float (*playerPosition)[3] = &clientEntity->r.currentOrigin;
 
 		auto mapName = Dvar::Var("mapname").get<const char*>();
 		auto* scene = Game::scene;
 		auto world = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName))->asset.header.gfxWorld;
 
-		if (val == 1)
-		{
+		switch (val) {
+		case 1:
 			for (auto i = 0; i < scene->sceneModelCount; i++)
 			{
 				if (!scene->sceneModel[i].model)
 					continue;
 
-				Game::R_AddDebugString(sceneModelsColor, scene->sceneModel[i].placement.base.origin, 1.0, scene->sceneModel[i].model->name);
+				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < drawDistance)
+				{
+					Game::R_AddDebugString(sceneModelsColor, scene->sceneModel[i].placement.base.origin, 1.0, scene->sceneModel[i].model->name);
+				}
 			}
-		}
+			break;
 
-		else if (val == 2)
-		{
+		case 2:
 			for (auto i = 0; i < scene->sceneDObjCount; i++)
 			{
 				if (scene->sceneDObj[i].obj)
 				{
 					for (int j = 0; j < scene->sceneDObj[i].obj->numModels; j++)
 					{
-						Game::R_AddDebugString(dobjsColor, scene->sceneDObj[i].placement.origin, 1.0, scene->sceneDObj[i].obj->models[j]->name);
+						if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].placement.origin) < drawDistance)
+						{
+							Game::R_AddDebugString(dobjsColor, scene->sceneDObj[i].placement.origin, 1.0, scene->sceneDObj[i].obj->models[j]->name);
+						}
 					}
 				}
 			}
-		}
+			break;
 
-		else if (val == 3)
-		{
+		case 3:
 			// Static models
 			for (size_t i = 0; i < world->dpvs.smodelCount; i++)
 			{
 				auto staticModel = world->dpvs.smodelDrawInsts[i];
 				if (staticModel.model)
 				{
-					Game::R_AddDebugString(staticModelsColor, staticModel.placement.origin, 1.0, staticModel.model->name);
+					auto dist = Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin);
+					if (dist < drawDistance)
+					{
+						Game::R_AddDebugString(staticModelsColor, staticModel.placement.origin, 1.0, staticModel.model->name);
+					}
 				}
 			}
+			break;
 		}
 	}
 
@@ -384,41 +447,41 @@ namespace Components
 			{
 				DebugDrawAABBTrees();
 				DebugDrawModelNames();
-				DebugDrawSceneModelBoundingBoxes();
+				DebugDrawModelBoundingBoxes();
 				DebugDrawSceneModelCollisions();
 				DebugDrawTriggers();
 			}
 			});
 
-// 		Renderer::OnBackendFrame([] (IDirect3DDevice9* device)
-// 		{
-// 			if (Game::Sys_Milliseconds() % 2)
-// 			{
-// 				device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, 0, 0, 0);
-// 			}
-//
-// 			return;
-//
-// 			IDirect3DSurface9* buffer = nullptr;
-//
-// 			device->CreateOffscreenPlainSurface(Renderer::Width(), Renderer::Height(), D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &buffer, nullptr);
-// 			device->GetFrontBufferData(0, buffer);
-//
-// 			if (buffer)
-// 			{
-// 				D3DSURFACE_DESC desc;
-// 				D3DLOCKED_RECT lockedRect;
-//
-// 				buffer->GetDesc(&desc);
-//
-// 				HRESULT res = buffer->LockRect(&lockedRect, NULL, D3DLOCK_READONLY);
-//
-//
-// 				buffer->UnlockRect();
-// 			}
-// 		});
+		// 		Renderer::OnBackendFrame([] (IDirect3DDevice9* device)
+		// 		{
+		// 			if (Game::Sys_Milliseconds() % 2)
+		// 			{
+		// 				device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, 0, 0, 0);
+		// 			}
+		//
+		// 			return;
+		//
+		// 			IDirect3DSurface9* buffer = nullptr;
+		//
+		// 			device->CreateOffscreenPlainSurface(Renderer::Width(), Renderer::Height(), D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &buffer, nullptr);
+		// 			device->GetFrontBufferData(0, buffer);
+		//
+		// 			if (buffer)
+		// 			{
+		// 				D3DSURFACE_DESC desc;
+		// 				D3DLOCKED_RECT lockedRect;
+		//
+		// 				buffer->GetDesc(&desc);
+		//
+		// 				HRESULT res = buffer->LockRect(&lockedRect, NULL, D3DLOCK_READONLY);
+		//
+		//
+		// 				buffer->UnlockRect();
+		// 			}
+		// 		});
 
-		// Log broken materials
+				// Log broken materials
 		Utils::Hook(0x0054CAAA, Renderer::StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x0054CF8D, Renderer::StoreGfxBufContextPtrStub2, HOOK_JUMP).install()->quick();
 
@@ -433,41 +496,41 @@ namespace Components
 
 		// Begin device recovery (not D3D9Ex)
 		Utils::Hook(0x508298, []()
-		{
-			Game::DB_BeginRecoverLostDevice();
-			Renderer::BeginRecoverDeviceSignal();
-		}, HOOK_CALL).install()->quick();
-
-		// End device recovery (not D3D9Ex)
-		Utils::Hook(0x508355, []()
-		{
-			Renderer::EndRecoverDeviceSignal();
-			Game::DB_EndRecoverLostDevice();
-		}, HOOK_CALL).install()->quick();
-
-		// Begin vid_restart
-		Utils::Hook(0x4CA2FD, Renderer::PreVidRestart, HOOK_CALL).install()->quick();
-
-		// End vid_restart
-		Utils::Hook(0x4CA3A7, Renderer::PostVidRestartStub, HOOK_CALL).install()->quick();
-
-		Dvar::OnInit([]
 			{
-				static std::vector < char* > values =
-				{
-					const_cast<char*>("Disabled"),
-					const_cast<char*>("Scene Models"),
-					const_cast<char*>("Scene Dynamic Objects"),
-					const_cast<char*>("GfxWorld Static Models"),
-					nullptr
-				};
+				Game::DB_BeginRecoverLostDevice();
+				Renderer::BeginRecoverDeviceSignal();
+			}, HOOK_CALL).install()->quick();
 
-				Renderer::DrawSceneModelBoundingBoxes = Game::Dvar_RegisterBool("r_drawSceneModelBoundingBoxes", false, Game::DVAR_FLAG_CHEAT, "Draw scene model bounding boxes");
-				Renderer::DrawSceneModelCollisions = Game::Dvar_RegisterBool("r_drawSceneModelCollisions", false, Game::DVAR_FLAG_CHEAT, "Draw scene model collisions");
-				Renderer::DrawTriggers = Game::Dvar_RegisterBool("r_drawTriggers", false, Game::DVAR_FLAG_CHEAT, "Draw triggers");
-				Renderer::DrawModelNames = Game::Dvar_RegisterEnum("r_drawModelNames", values.data(), 0, Game::DVAR_FLAG_CHEAT, "Draw all model names");
-				Renderer::DrawAABBTrees = Game::Dvar_RegisterBool("r_drawAabbTrees", false, Game::DVAR_FLAG_CHEAT, "Draw aabb trees");
-			});
+			// End device recovery (not D3D9Ex)
+			Utils::Hook(0x508355, []()
+				{
+					Renderer::EndRecoverDeviceSignal();
+					Game::DB_EndRecoverLostDevice();
+				}, HOOK_CALL).install()->quick();
+
+				// Begin vid_restart
+				Utils::Hook(0x4CA2FD, Renderer::PreVidRestart, HOOK_CALL).install()->quick();
+
+				// End vid_restart
+				Utils::Hook(0x4CA3A7, Renderer::PostVidRestartStub, HOOK_CALL).install()->quick();
+
+				Dvar::OnInit([]
+					{
+						static std::vector < char* > values =
+						{
+							const_cast<char*>("Disabled"),
+							const_cast<char*>("Scene Models"),
+							const_cast<char*>("Scene Dynamic Objects"),
+							const_cast<char*>("GfxWorld Static Models")
+							nullptr
+						};
+
+						Renderer::DrawModelBoundingBoxes = Game::Dvar_RegisterEnum("r_drawModelBoundingBoxes", values.data(), 0, Game::DVAR_FLAG_CHEAT, "Draw scene model bounding boxes");
+						Renderer::DrawSceneModelCollisions = Game::Dvar_RegisterEnum("r_drawSceneModelCollisions", values.data(), 0, Game::DVAR_FLAG_CHEAT, "Draw scene model collisions");
+						Renderer::DrawTriggers = Game::Dvar_RegisterBool("r_drawTriggers", false, Game::DVAR_FLAG_CHEAT, "Draw triggers");
+						Renderer::DrawModelNames = Game::Dvar_RegisterEnum("r_drawModelNames", values.data(), 0, Game::DVAR_FLAG_CHEAT, "Draw all model names");
+						Renderer::DrawAABBTrees = Game::Dvar_RegisterBool("r_drawAabbTrees", false, Game::DVAR_FLAG_CHEAT, "Draw aabb trees");
+					});
 	}
 
 	Renderer::~Renderer()
