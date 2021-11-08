@@ -149,4 +149,11 @@ namespace Utils
 	{
 		return !(base1 + len1 <= base2 || base2 + len2 <= base1);
 	}
+
+	float Vec3SqrDistance(float(*v1)[3], float(*v2)[3])
+	{
+		return (std::pow((*v2)[0] - (*v1)[0], 2) + std::pow((*v2)[1] - (*v1)[1], 2) + std::pow((*v2)[2] - (*v1)[2], 2));
+	}
+
+
 }
