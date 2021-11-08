@@ -521,7 +521,7 @@ namespace Components
 							const_cast<char*>("Disabled"),
 							const_cast<char*>("Scene Models"),
 							const_cast<char*>("Scene Dynamic Objects"),
-							const_cast<char*>("GfxWorld Static Models")
+							const_cast<char*>("GfxWorld Static Models"),
 							nullptr
 						};
 
