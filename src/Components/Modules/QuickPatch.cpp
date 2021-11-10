@@ -3,6 +3,7 @@
 namespace Components
 {
 	int QuickPatch::FrameTime = 0;
+	Dvar::Var QuickPatch::r_customAspectRatio;
 
 	void QuickPatch::UnlockStats()
 	{
@@ -139,16 +140,15 @@ namespace Components
 		}
 	}
 
-	bool QuickPatch::InvalidNameCheck(char *dest, char *source, int size)
+	bool QuickPatch::InvalidNameCheck(char* dest, const char* source, int size)
 	{
-		strncpy(dest, source, size - 1);
-		dest[size - 1] = 0;
+		Utils::Hook::Call<void(char*, const char*, int)>(0x4D6F80)(dest, source, size); // I_strncpyz
 
 		for (int i = 0; i < size - 1; i++)
 		{
 			if (!dest[i]) break;
 
-			if (dest[i] > 125 || dest[i] < 32 || dest[i] == '%') 
+			if (dest[i] > 125 || dest[i] < 32 || dest[i] == '%')
 			{
 				return false;
 			}
@@ -172,7 +172,7 @@ namespace Components
 			push 1;
 			push kick_reason;
 			push edi;
-			mov eax, 0x004D1600;
+			mov eax, 0x004D1600; // SV_DropClientInternal
 			call eax;
 			add esp, 12;
 			popad;
@@ -184,7 +184,6 @@ namespace Components
 	}
 
 	Game::dvar_t* QuickPatch::g_antilag;
-
 	__declspec(naked) void QuickPatch::ClientEventsFireWeaponStub()
 	{
 		__asm
@@ -268,30 +267,31 @@ namespace Components
 		}
 	}
 
-	Game::dvar_t* QuickPatch::r_customAspectRatio;
 	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* name, char**, int defaultVal, int flags, const char* description)
 	{
-		static std::vector < char * > values =
+		static char* r_aspectRatioEnum[] =
 		{
-			const_cast<char*>("auto"),
-			const_cast<char*>("standard"),
-			const_cast<char*>("wide 16:10"),
-			const_cast<char*>("wide 16:9"),
-			const_cast<char*>("custom"),
-			nullptr,
+			"auto",
+			"standard",
+			"wide 16:10",
+			"wide 16:9",
+			"custom",
+			nullptr
 		};
 
 		// register custom aspect ratio dvar
-		r_customAspectRatio = Game::Dvar_RegisterFloat("r_customAspectRatio", 16.0f / 9.0f, 4.0f / 3.0f, 63.0f / 9.0f, flags, "Screen aspect ratio. Divide the width by the height in order to get the aspect ratio value. For example: 16 / 9 = 1,77");
+		QuickPatch::r_customAspectRatio = Dvar::Register<float>("r_customAspectRatio",
+			16.0f / 9.0f, 4.0f / 3.0f, 63.0f / 9.0f, flags,
+			"Screen aspect ratio. Divide the width by the height in order to get the aspect ratio value. For example: 16 / 9 = 1,77");
 
 		// register enumeration dvar
-		return Game::Dvar_RegisterEnum(name, values.data(), defaultVal, flags, description);
+		return Game::Dvar_RegisterEnum(name, r_aspectRatioEnum, defaultVal, flags, description);
 	}
 
 	void QuickPatch::SetAspectRatio()
 	{
 		// set the aspect ratio
-		Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio->current.value);
+		Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio.get<float>());
 	}
 
 	__declspec(naked) void QuickPatch::SetAspectRatioStub()
@@ -483,8 +483,8 @@ namespace Components
 		Utils::Hook(0x578F52, QuickPatch::JavelinResetHookStub, HOOK_JUMP).install()->quick();
 
 		// Add ultrawide support
-		Utils::Hook(0x0051B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
-		Utils::Hook(0x005063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
 
 		// Make sure preDestroy is called when the game shuts down
 		Scheduler::OnShutdown(Loader::PreDestroy);
