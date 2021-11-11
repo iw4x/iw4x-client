@@ -124,10 +124,10 @@ namespace Components
         }
     }
 
-    Game::dvar_t* Movement::Dvar_RegisterLastStandSpeedScale(const char* name, float defaultVal, float min, float max, int, const char*)
+    Game::dvar_t* Movement::Dvar_RegisterLastStandSpeedScale(const char* name, float defaultVal, float min, float max, int, const char* desc)
     {
         Movement::PlayerLastStandCrawlSpeedScale = Dvar::Register<float>(name, defaultVal,
-            min, max, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED, "TEST DESC");
+            min, max, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED, desc);
 
         return Movement::PlayerLastStandCrawlSpeedScale.get<Game::dvar_t*>();
     }
