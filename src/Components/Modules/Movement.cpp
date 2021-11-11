@@ -124,6 +124,14 @@ namespace Components
         }
     }
 
+    Game::dvar_t* Movement::Dvar_RegisterLastStandSpeedScale(const char* name, float defaultVal, float min, float max, int, const char*)
+    {
+        Movement::PlayerLastStandCrawlSpeedScale = Dvar::Register<float>(name, defaultVal,
+            min, max, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED, "TEST DESC");
+
+        return Movement::PlayerLastStandCrawlSpeedScale.get<Game::dvar_t*>();
+    }
+
     Movement::Movement()
     {
         Dvar::OnInit([]
@@ -132,17 +140,19 @@ namespace Components
                 0.65f, 0.0f, 5.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
                 "The scale applied to the player speed when ducking");
 
-            Movement::PlayerLastStandCrawlSpeedScale = Dvar::Register<float>("player_lastStandCrawlSpeedScale",
-                0.2f, 0.0f, 5.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
-                "The scale applied to the player speed when crawling in last stand");
-
             Movement::PlayerProneSpeedScale = Dvar::Register<float>("player_proneSpeedScale",
                 0.15f, 0.0f, 5.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
                 "The scale applied to the player speed when crawling");
         });
 
+        // Hook PM_CmdScaleForStance in PM_CmdScale_Walk
         Utils::Hook(0x572F34, Movement::PMCmdScaleForStanceStub, HOOK_CALL).install()->quick();
+
+        //Hook PM_CmdScaleForStance in PM_GetMaxSpeed
         Utils::Hook(0x57395F, Movement::PMCmdScaleForStanceStub, HOOK_CALL).install()->quick();
+
+        // Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used.
+        Utils::Hook(0x448B66, Movement::Dvar_RegisterLastStandSpeedScale, HOOK_CALL).install()->quick();
     }
 
     Movement::~Movement()

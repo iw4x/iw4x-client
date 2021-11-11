@@ -16,5 +16,7 @@ namespace Components
         static int PMGetEffectiveStance(Game::playerState_s* ps);
         static float PMCmdScaleForStance(Game::pmove_s* move);
         static void PMCmdScaleForStanceStub();
+
+        static Game::dvar_t* Dvar_RegisterLastStandSpeedScale(const char* name, float defaultVal, float min, float max, int flags, const char* desc);
     };
 }
