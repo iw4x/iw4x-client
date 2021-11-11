@@ -269,7 +269,7 @@ namespace Components
 
 	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* name, char**, int defaultVal, int flags, const char* description)
 	{
-		static char* r_aspectRatioEnum[] =
+		static const char* r_aspectRatioEnum[] =
 		{
 			"auto",
 			"standard",
