@@ -292,6 +292,9 @@ namespace Components
 		auto* scene = Game::scene;
 		auto world = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName))->asset.header.gfxWorld;
 
+		auto drawDistance = r_playerDrawDebugDistance.get<int>();
+		auto sqrDist = drawDistance * drawDistance;
+
 		switch (val) {
 		case 1:
 			for (auto i = 0; i < scene->sceneModelCount; i++)
@@ -299,7 +302,7 @@ namespace Components
 				if (!scene->sceneModel[i].model)
 					continue;
 
-				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < r_playerDrawDebugDistance.get<int>())
+				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < sqrDist)
 				{
 					auto b = scene->sceneModel[i].model->bounds;
 					b.midPoint[0] += scene->sceneModel[i].placement.base.origin[0];
@@ -317,7 +320,7 @@ namespace Components
 			for (auto i = 0; i < scene->sceneDObjCount; i++)
 			{
 
-				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].cull.bounds.midPoint) < r_playerDrawDebugDistance.get<int>())
+				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].cull.bounds.midPoint) < sqrDist)
 				{
 					scene->sceneDObj[i].cull.bounds.halfSize[0] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[0]);
 					scene->sceneDObj[i].cull.bounds.halfSize[1] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[1]);
@@ -342,7 +345,7 @@ namespace Components
 			{
 				auto staticModel = world->dpvs.smodelDrawInsts[i];
 
-				if (Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin) < r_playerDrawDebugDistance.get<int>())
+				if (Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin) < sqrDist)
 				{
 					if (staticModel.model)
 					{
@@ -386,6 +389,9 @@ namespace Components
 		auto* scene = Game::scene;
 		auto world = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName))->asset.header.gfxWorld;
 
+		auto drawDistance = r_playerDrawDebugDistance.get<int>();
+		auto sqrDist = drawDistance * drawDistance;
+
 		switch (val) {
 		case 1:
 			for (auto i = 0; i < scene->sceneModelCount; i++)
@@ -393,7 +399,7 @@ namespace Components
 				if (!scene->sceneModel[i].model)
 					continue;
 
-				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < r_playerDrawDebugDistance.get<int>())
+				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < sqrDist)
 				{
 					Game::R_AddDebugString(sceneModelsColor, scene->sceneModel[i].placement.base.origin, 1.0, scene->sceneModel[i].model->name);
 				}
@@ -407,7 +413,7 @@ namespace Components
 				{
 					for (int j = 0; j < scene->sceneDObj[i].obj->numModels; j++)
 					{
-						if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].placement.origin) < r_playerDrawDebugDistance.get<int>())
+						if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].placement.origin) < sqrDist)
 						{
 							Game::R_AddDebugString(dobjsColor, scene->sceneDObj[i].placement.origin, 1.0, scene->sceneDObj[i].obj->models[j]->name);
 						}
@@ -424,7 +430,7 @@ namespace Components
 				if (staticModel.model)
 				{
 					auto dist = Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin);
-					if (dist < r_playerDrawDebugDistance.get<int>())
+					if (dist < sqrDist)
 					{
 						Game::R_AddDebugString(staticModelsColor, staticModel.placement.origin, 1.0, staticModel.model->name);
 					}
@@ -531,7 +537,7 @@ namespace Components
 
 		Dvar::OnInit([]
 		{
-			char* values[5] =
+			static char* values[5] =
 			{
 				"Disabled",
 				"Scene Models",
@@ -545,7 +551,7 @@ namespace Components
 			Renderer::r_drawTriggers = Game::Dvar_RegisterBool("r_drawTriggers", false, Game::DVAR_FLAG_CHEAT, "Draw triggers");
 			Renderer::r_drawModelNames = Game::Dvar_RegisterEnum("r_drawModelNames", values, 0, Game::DVAR_FLAG_CHEAT, "Draw all model names");
 			Renderer::r_drawAABBTrees = Game::Dvar_RegisterBool("r_drawAabbTrees", false, Game::DVAR_FLAG_CHEAT, "Draw aabb trees");
-			Renderer::r_playerDrawDebugDistance = Game::Dvar_RegisterInt("r_drawDebugProximity", 100000, 0, 500000, Game::DVAR_FLAG_SAVED, "r_draw debug functions draw distance, relative to the player");
+			Renderer::r_playerDrawDebugDistance = Game::Dvar_RegisterInt("r_drawDebugProximity", 1000, 0, 50000, Game::DVAR_FLAG_SAVED, "r_draw debug functions draw distance, relative to the player");
 		});
 	}
 

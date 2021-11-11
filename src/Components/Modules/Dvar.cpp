@@ -38,7 +38,7 @@ namespace Components
 
 	template <> int Dvar::Var::get()
 	{
-		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
+		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT || this->dvar->type == Game::dvar_type::DVAR_TYPE_ENUM)
 		{
 			return this->dvar->current.integer;
 		}
