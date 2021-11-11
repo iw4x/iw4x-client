@@ -8,17 +8,29 @@ namespace Components
 	Utils::Signal<Scheduler::Callback> Renderer::EndRecoverDeviceSignal;
 	Utils::Signal<Scheduler::Callback> Renderer::BeginRecoverDeviceSignal;
 
-	Dvar::Var Renderer::DrawTriggers;
-	Dvar::Var Renderer::DrawSceneModelCollisions;
-	Dvar::Var Renderer::DrawModelBoundingBoxes;
-	Dvar::Var Renderer::DrawModelNames;
-	Dvar::Var Renderer::DrawAABBTrees;
+	Dvar::Var Renderer::r_drawTriggers;
+	Dvar::Var Renderer::r_drawSceneModelCollisions;
+	Dvar::Var Renderer::r_drawModelBoundingBoxes;
+	Dvar::Var Renderer::r_drawModelNames;
+	Dvar::Var Renderer::r_drawAABBTrees;
+	Dvar::Var Renderer::r_playerDrawDebugDistance;
 
+	float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
+	float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	float green[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+
+	// R_draw model names & collisions colors
 	float sceneModelsColor[4] = { 1.0f, 1.0f, 0.0f, 1.0f };
 	float dobjsColor[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
 	float staticModelsColor[4] = { 1.0f, 0.0f, 1.0f, 1.0f };
 	float gentitiesColor[4] = { 1.0f, 0.5f, 0.5f, 1.0f };
-	int drawDistance = 80000;
+
+	// Trigger colors
+	float hurt[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	float hurtTouch[4] = { 0.75f, 0.0f, 0.0f, 1.0f };
+	float damage[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	float once[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
+	float multiple[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 
 	__declspec(naked) void Renderer::FrameStub()
 	{
@@ -180,17 +192,11 @@ namespace Components
 
 	void Renderer::DebugDrawTriggers()
 	{
-		if (!DrawTriggers.get<bool>()) return;
-
-		float hurt[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
-		float hurtTouch[4] = { 0.75f, 0.0f, 0.0f, 1.0f };
-		float damage[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
-		float once[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
-		float multiple[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+		if (!r_drawTriggers.get<bool>()) return;
 
 		auto* entities = Game::g_entities;
 
-		for (auto i = 0u; i < 0x800; i++)
+		for (auto i = 0u; i < 0x800u; i++)
 		{
 			auto* ent = &entities[i];
 
@@ -223,9 +229,9 @@ namespace Components
 					break;
 
 				default:
-					float rv = std::min((float)ent->handler, (float)5) / 5;
-					float gv = std::clamp((float)ent->handler - 5, (float)0, (float)5) / 5;
-					float bv = std::clamp((float)ent->handler - 10, (float)0, (float)5) / 5;
+					auto rv = std::min(static_cast<float>(ent->handler), 5.0f) / 5.0f;
+					auto gv = std::clamp(static_cast<float>(ent->handler - 5), 0.f, 5.f) / 5.f;
+					auto bv = std::clamp(static_cast<float>(ent->handler - 10), 0.f, 5.f) / 5.f;
 
 					float color[4] = { rv, gv, bv, 1.0f };
 
@@ -238,9 +244,7 @@ namespace Components
 
 	void Renderer::DebugDrawSceneModelCollisions()
 	{
-		if (!DrawSceneModelCollisions.get<bool>()) return;
-
-		float green[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+		if (!r_drawSceneModelCollisions.get<bool>()) return;
 
 		auto* scene = Game::scene;
 
@@ -266,12 +270,19 @@ namespace Components
 
 	void Renderer::DebugDrawModelBoundingBoxes()
 	{
-		auto val = DrawModelBoundingBoxes.get<Game::dvar_t*>()->current.integer;
+		auto val = r_drawModelBoundingBoxes.get<int>();
 
 		if (!val) return;
 
+		// Ingame only
 		int clientNum = Game::CG_GetClientNum();
-		if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client) return;
+		if (!Game::CL_IsCgameInitialized() ||
+			clientNum >= 18 ||
+			clientNum < 0 ||
+			!Game::g_entities[clientNum].client) {
+		
+			return;
+		}
 
 		Game::gentity_t* clientEntity = &Game::g_entities[clientNum];
 
@@ -288,7 +299,7 @@ namespace Components
 				if (!scene->sceneModel[i].model)
 					continue;
 
-				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < drawDistance)
+				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < r_playerDrawDebugDistance.get<int>())
 				{
 					auto b = scene->sceneModel[i].model->bounds;
 					b.midPoint[0] += scene->sceneModel[i].placement.base.origin[0];
@@ -306,7 +317,7 @@ namespace Components
 			for (auto i = 0; i < scene->sceneDObjCount; i++)
 			{
 
-				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].cull.bounds.midPoint) < drawDistance)
+				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].cull.bounds.midPoint) < r_playerDrawDebugDistance.get<int>())
 				{
 					scene->sceneDObj[i].cull.bounds.halfSize[0] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[0]);
 					scene->sceneDObj[i].cull.bounds.halfSize[1] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[1]);
@@ -331,7 +342,7 @@ namespace Components
 			{
 				auto staticModel = world->dpvs.smodelDrawInsts[i];
 
-				if (Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin) < drawDistance)
+				if (Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin) < r_playerDrawDebugDistance.get<int>())
 				{
 					if (staticModel.model)
 					{
@@ -353,12 +364,19 @@ namespace Components
 
 	void Renderer::DebugDrawModelNames()
 	{
-		auto val = DrawModelNames.get<Game::dvar_t*>()->current.integer;
+		auto val = r_drawModelNames.get<int>();
 
 		if (!val) return;
 
+		// Ingame only
 		int clientNum = Game::CG_GetClientNum();
-		if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client) return;
+		if (!Game::CL_IsCgameInitialized() ||
+			clientNum >= 18 ||
+			clientNum < 0 ||
+			!Game::g_entities[clientNum].client) {
+
+			return;
+		}
 
 		Game::gentity_t* clientEntity = &Game::g_entities[clientNum];
 
@@ -375,7 +393,7 @@ namespace Components
 				if (!scene->sceneModel[i].model)
 					continue;
 
-				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < drawDistance)
+				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < r_playerDrawDebugDistance.get<int>())
 				{
 					Game::R_AddDebugString(sceneModelsColor, scene->sceneModel[i].placement.base.origin, 1.0, scene->sceneModel[i].model->name);
 				}
@@ -389,7 +407,7 @@ namespace Components
 				{
 					for (int j = 0; j < scene->sceneDObj[i].obj->numModels; j++)
 					{
-						if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].placement.origin) < drawDistance)
+						if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].placement.origin) < r_playerDrawDebugDistance.get<int>())
 						{
 							Game::R_AddDebugString(dobjsColor, scene->sceneDObj[i].placement.origin, 1.0, scene->sceneDObj[i].obj->models[j]->name);
 						}
@@ -406,7 +424,7 @@ namespace Components
 				if (staticModel.model)
 				{
 					auto dist = Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin);
-					if (dist < drawDistance)
+					if (dist < r_playerDrawDebugDistance.get<int>())
 					{
 						Game::R_AddDebugString(staticModelsColor, staticModel.placement.origin, 1.0, staticModel.model->name);
 					}
@@ -418,10 +436,7 @@ namespace Components
 
 	void Renderer::DebugDrawAABBTrees()
 	{
-		if (!DrawAABBTrees.get<bool>()) return;
-
-		float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
-		float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+		if (!r_drawAABBTrees.get<bool>()) return;
 
 		Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
 		//Game::GfxWorld* gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
@@ -516,20 +531,21 @@ namespace Components
 
 		Dvar::OnInit([]
 		{
-			static std::vector < char* > values =
+			char* values[5] =
 			{
-				const_cast<char*>("Disabled"),
-				const_cast<char*>("Scene Models"),
-				const_cast<char*>("Scene Dynamic Objects"),
-				const_cast<char*>("GfxWorld Static Models"),
+				"Disabled",
+				"Scene Models",
+				"Scene Dynamic Objects",
+				"GfxWorld Static Models",
 				nullptr
 			};
 
-			Renderer::DrawModelBoundingBoxes = Game::Dvar_RegisterEnum("r_drawModelBoundingBoxes", values.data(), 0, Game::DVAR_FLAG_CHEAT, "Draw scene model bounding boxes");
-			Renderer::DrawSceneModelCollisions = Game::Dvar_RegisterEnum("r_drawSceneModelCollisions", values.data(), 0, Game::DVAR_FLAG_CHEAT, "Draw scene model collisions");
-			Renderer::DrawTriggers = Game::Dvar_RegisterBool("r_drawTriggers", false, Game::DVAR_FLAG_CHEAT, "Draw triggers");
-			Renderer::DrawModelNames = Game::Dvar_RegisterEnum("r_drawModelNames", values.data(), 0, Game::DVAR_FLAG_CHEAT, "Draw all model names");
-			Renderer::DrawAABBTrees = Game::Dvar_RegisterBool("r_drawAabbTrees", false, Game::DVAR_FLAG_CHEAT, "Draw aabb trees");
+			Renderer::r_drawModelBoundingBoxes = Game::Dvar_RegisterEnum("r_drawModelBoundingBoxes", values, 0, Game::DVAR_FLAG_CHEAT, "Draw scene model bounding boxes");
+			Renderer::r_drawSceneModelCollisions = Game::Dvar_RegisterEnum("r_drawSceneModelCollisions", values, 0, Game::DVAR_FLAG_CHEAT, "Draw scene model collisions");
+			Renderer::r_drawTriggers = Game::Dvar_RegisterBool("r_drawTriggers", false, Game::DVAR_FLAG_CHEAT, "Draw triggers");
+			Renderer::r_drawModelNames = Game::Dvar_RegisterEnum("r_drawModelNames", values, 0, Game::DVAR_FLAG_CHEAT, "Draw all model names");
+			Renderer::r_drawAABBTrees = Game::Dvar_RegisterBool("r_drawAabbTrees", false, Game::DVAR_FLAG_CHEAT, "Draw aabb trees");
+			Renderer::r_playerDrawDebugDistance = Game::Dvar_RegisterInt("r_drawDebugProximity", 100000, 0, 500000, Game::DVAR_FLAG_SAVED, "r_draw debug functions draw distance, relative to the player");
 		});
 	}
 
