@@ -247,7 +247,7 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_RegisterInt_t)(const char* name, int defaultVal, int min, int max, int flags, const char* description);
 	extern Dvar_RegisterInt_t Dvar_RegisterInt;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterEnum_t)(const char* name, char** enumValues, int defaultVal, int flags, const char* description);
+	typedef dvar_t* (__cdecl * Dvar_RegisterEnum_t)(const char* name, const char** enumValues, int defaultVal, int flags, const char* description);
 	extern Dvar_RegisterEnum_t Dvar_RegisterEnum;
 
 	typedef dvar_t* (__cdecl * Dvar_RegisterString_t)(const char* name, const char* defaultVal, int, const char*);
