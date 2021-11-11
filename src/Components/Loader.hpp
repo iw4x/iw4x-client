@@ -132,6 +132,7 @@ namespace Components
 #include "Modules/SoundMutexFix.hpp"
 #include "Modules/Chat.hpp"
 #include "Modules/TextRenderer.hpp"
+#include "Modules/Movement.hpp"
 
 #include "Modules/Gamepad.hpp"
 #include "Modules/Client.hpp"
