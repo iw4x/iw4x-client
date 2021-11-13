@@ -512,12 +512,6 @@ namespace Components
 				return;
 			}
 
-			if (Game::Scr_GetType(0) != Game::VAR_FUNCTION || Game::Scr_GetType(1) != Game::VAR_FUNCTION)
-			{
-				Game::Scr_Error("^1ReplaceFunc: Needs function pointers as parameters!\n");
-				return;
-			}
-
 			const auto what = Script::GetCodePosForParam(0);
 			const auto with = Script::GetCodePosForParam(1);
 
