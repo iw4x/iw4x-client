@@ -4886,7 +4886,7 @@ namespace Game
 	struct VariableValue
 	{
 		VariableUnion u;
-		int type;
+		VariableType type;
 	};
 
 	struct ScriptContainer

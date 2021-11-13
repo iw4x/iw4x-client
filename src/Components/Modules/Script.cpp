@@ -9,6 +9,8 @@ namespace Components
 	unsigned short Script::FunctionName;
 	std::unordered_map<std::string, std::string> Script::ScriptStorage;
 	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
+	std::unordered_map<const char*, const char*> Script::ReplacedFunctions;
+	const char* Script::ReplacedPos = 0;
 	int Script::LastFrameTime = -1;
 
 	Utils::Signal<Scheduler::Callback> Script::VMShutdownSignal;
@@ -397,6 +399,75 @@ namespace Components
 		return Game::Scr_GetNumParam();
 	}
 
+	const char* Script::GetCodePosForParam(int index)
+	{
+		return Game::scriptContainer->stack[index].u.codePosValue;
+	}
+
+	void Script::GetReplacedPos(const char* pos)
+	{
+		if (Script::ReplacedFunctions.find(pos) != Script::ReplacedFunctions.end())
+		{
+			Script::ReplacedPos = Script::ReplacedFunctions[pos];;
+		}
+	}
+
+	void Script::SetReplacedPos(const char* what, const char* with)
+	{
+		// Warn if the function was already detoured
+		if (Script::ReplacedFunctions.find(what) != Script::ReplacedFunctions.end())
+		{
+			Logger::Print("Warning: a function was already detoured by a script\n");
+		}
+
+		Script::ReplacedFunctions[what] = with;
+	}
+
+	__declspec(naked) void Script::VMExecuteInternalStub()
+	{
+		__asm
+		{
+			pushad
+
+			push edx
+			call Script::GetReplacedPos
+
+			pop edx
+			popad
+
+			cmp Script::ReplacedPos, 0
+			jne SetPos
+
+			movzx eax, byte ptr [edx]
+			inc edx
+
+		Loc1:
+			cmp eax, 0x8B
+
+			push ecx
+
+			mov ecx, 0x2045094
+			mov [ecx], eax
+
+			mov ecx, 0x2040CD4
+			mov [ecx], edx
+
+			pop ecx
+
+			push 0x061E944
+			retn
+
+		SetPos:
+			mov edx, Script::ReplacedPos
+			mov Script::ReplacedPos, 0
+
+			movzx eax, byte ptr [edx]
+			inc edx
+
+			jmp Loc1
+		}
+	}
+
 	Game::gentity_t* Script::getEntFromEntRef(Game::scr_entref_t entref)
 	{
 		Game::gentity_t* gentity = &Game::g_entities[entref];
@@ -414,6 +485,26 @@ namespace Components
 
 	void Script::AddFunctions()
 	{
+		Script::AddFunction("ReplaceFunc", [](Game::scr_entref_t) // gsc: ReplaceFunc(<function>,<function>)
+		{
+			if (Game::Scr_GetNumParam() != 2)
+			{
+				Game::Scr_Error("^1ReplaceFunc: Needs two parameters!\n");
+				return;
+			}
+
+			if (Game::Scr_GetType(0) != Game::VAR_FUNCTION || Game::Scr_GetType(1) != Game::VAR_FUNCTION)
+			{
+				Game::Scr_Error("^1ReplaceFunc: Needs function pointers as parameters!\n");
+				return;
+			}
+
+			const auto what = Script::GetCodePosForParam(0);
+			const auto with = Script::GetCodePosForParam(-1);
+
+			Script::SetReplacedPos(what, with);
+		});
+
 		// System time
 		Script::AddFunction("GetSystemTime", [](Game::scr_entref_t) // gsc: GetSystemTime()
 		{
@@ -562,6 +653,9 @@ namespace Components
 
 		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
 
+		Utils::Hook(0x61E92E, Script::VMExecuteInternalStub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x61E933, 1);
+
 		Utils::Hook(0x47548B, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4D06BA, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
 
@@ -623,6 +717,7 @@ namespace Components
 		Script::ScriptHandles.clear();
 		Script::ScriptNameStack.clear();
 		Script::ScriptFunctions.clear();
+		Script::ReplacedFunctions.clear();
 		Script::VMShutdownSignal.clear();
 
 		Script::ScriptStorage.clear();

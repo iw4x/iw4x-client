@@ -40,6 +40,8 @@ namespace Components
 		static unsigned short FunctionName;
 		static std::unordered_map<std::string, std::string> ScriptStorage;
 		static std::unordered_map<int, std::string> ScriptBaseProgramNum;
+		static std::unordered_map<const char*, const char*> ReplacedFunctions;
+		static const char* ReplacedPos;
 		static int LastFrameTime;
 
 		static Utils::Signal<Scheduler::Callback> VMShutdownSignal;
@@ -69,6 +71,11 @@ namespace Components
 		static void Scr_PrintPrevCodePos(int);
 
 		static int SetExpFogStub();
+
+		static const char* GetCodePosForParam(int index);
+		static void GetReplacedPos(const char* pos);
+		static void SetReplacedPos(const char* what, const char* with);
+		static void VMExecuteInternalStub();
 
 		static void AddFunctions();
 	};
