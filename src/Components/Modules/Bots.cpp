@@ -160,7 +160,7 @@ namespace Components
 	{
 		Script::AddFunction("SetPing", [](Game::scr_entref_t id) // gsc: self SetPing(<int>)
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_INTEGER)
 			{
 				Game::Scr_Error("^1SetPing: Needs one integer parameter!\n");
 				return;
@@ -250,7 +250,7 @@ namespace Components
 
 		Script::AddFunction("botWeapon", [](Game::scr_entref_t id) // Usage: <bot> botWeapon(<str>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1botWeapon: Needs one string parameter!\n");
 				return;
@@ -293,7 +293,7 @@ namespace Components
 
 		Script::AddFunction("botAction", [](Game::scr_entref_t id) // Usage: <bot> botAction(<str action>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1botAction: Needs one string parameter!\n");
 				return;
@@ -346,7 +346,7 @@ namespace Components
 
 		Script::AddFunction("botMovement", [](Game::scr_entref_t id) // Usage: <bot> botMovement(<int>, <int>);
 		{
-			if (Game::Scr_GetNumParam() != 2 || Game::Scr_GetType(0) != Game::VAR_INTEGER || Game::Scr_GetType(1) != Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() != 2u || Game::Scr_GetType(0) != Game::VAR_INTEGER || Game::Scr_GetType(1) != Game::VAR_INTEGER)
 			{
 				Game::Scr_Error("^1botMovement: Needs two integer parameters!\n");
 				return;

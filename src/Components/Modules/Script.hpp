@@ -70,7 +70,7 @@ namespace Components
 		static void Scr_PrintPrevCodePosStub();
 		static void Scr_PrintPrevCodePos(int);
 
-		static int SetExpFogStub();
+		static unsigned int SetExpFogStub();
 
 		static const char* GetCodePosForParam(int index);
 		static void GetReplacedPos(const char* pos);

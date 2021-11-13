@@ -967,7 +967,7 @@ namespace Components
 		Script::AddFunction("httpGet", [](Game::scr_entref_t)
 		{
 			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp")) return;
-			if (Game::Scr_GetNumParam() < 1) return;
+			if (Game::Scr_GetNumParam() < 1u) return;
 
 			std::string url = Game::Scr_GetString(0);
 			unsigned int object = Game::AllocObject();
@@ -981,7 +981,7 @@ namespace Components
 		Script::AddFunction("httpCancel", [](Game::scr_entref_t)
 		{
 			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp")) return;
-			if (Game::Scr_GetNumParam() < 1) return;
+			if (Game::Scr_GetNumParam() < 1u) return;
 
 			unsigned int object = Game::Scr_GetObject(0);
 			for (auto& download : Download::ScriptDownloads)

@@ -384,9 +384,9 @@ namespace Components
 		Utils::Hook::Call<void(int)>(0x421EE0)(num);
 	}
 
-	int Script::SetExpFogStub()
+	unsigned int Script::SetExpFogStub()
 	{
-		if (Game::Scr_GetNumParam() == 6)
+		if (Game::Scr_GetNumParam() == 6u)
 		{
 			std::memmove(&Game::scriptContainer->stack[-4], &Game::scriptContainer->stack[-5], sizeof(Game::VariableValue) * 6);
 			Game::scriptContainer->stack += 1;
@@ -408,7 +408,7 @@ namespace Components
 	{
 		if (Script::ReplacedFunctions.find(pos) != Script::ReplacedFunctions.end())
 		{
-			Script::ReplacedPos = Script::ReplacedFunctions[pos];;
+			Script::ReplacedPos = Script::ReplacedFunctions[pos];
 		}
 	}
 
@@ -487,7 +487,7 @@ namespace Components
 	{
 		Script::AddFunction("ReplaceFunc", [](Game::scr_entref_t) // gsc: ReplaceFunc(<function>,<function>)
 		{
-			if (Game::Scr_GetNumParam() != 2)
+			if (Game::Scr_GetNumParam() != 2u)
 			{
 				Game::Scr_Error("^1ReplaceFunc: Needs two parameters!\n");
 				return;
@@ -525,7 +525,7 @@ namespace Components
 		// Print to console, even without being in 'developer 1'.
 		Script::AddFunction("PrintConsole", [](Game::scr_entref_t) // gsc: PrintConsole(<string>)
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1PrintConsole: Needs one string parameter!\n");
 				return;
@@ -539,7 +539,7 @@ namespace Components
 		// Executes command to the console
 		Script::AddFunction("Exec", [](Game::scr_entref_t) // gsc: Exec(<string>)
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1Exec: Needs one string parameter!\n");
 				return;
@@ -554,7 +554,7 @@ namespace Components
 		// Script Storage Funcs
 		Script::AddFunction("StorageSet", [](Game::scr_entref_t) // gsc: StorageSet(<str key>, <str data>);
 		{
-			if (Game::Scr_GetNumParam() != 2 || Game::Scr_GetType(0) != Game::VAR_STRING || Game::Scr_GetType(1) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 2u || Game::Scr_GetType(0) != Game::VAR_STRING || Game::Scr_GetType(1) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1StorageSet: Needs two string parameters!\n");
 				return;
@@ -568,7 +568,7 @@ namespace Components
 
 		Script::AddFunction("StorageRemove", [](Game::scr_entref_t) // gsc: StorageRemove(<str key>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1StorageRemove: Needs one string parameter!\n");
 				return;
@@ -587,7 +587,7 @@ namespace Components
 
 		Script::AddFunction("StorageGet", [](Game::scr_entref_t) // gsc: StorageGet(<str key>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1StorageGet: Needs one string parameter!\n");
 				return;
@@ -607,7 +607,7 @@ namespace Components
 
 		Script::AddFunction("StorageHas", [](Game::scr_entref_t) // gsc: StorageHas(<str key>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1StorageHas: Needs one string parameter!\n");
 				return;
