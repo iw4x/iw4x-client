@@ -968,7 +968,7 @@ namespace Game
 	extern XZone* g_zones;
 	extern unsigned short* db_hashTable;
 
-	extern ScriptContainer* scriptContainer;
+	extern scrVmPub_t* scrVmPub;
 
 	extern clientstate_t* clcState;
 

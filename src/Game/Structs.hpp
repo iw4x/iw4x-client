@@ -4889,15 +4889,35 @@ namespace Game
 		VariableType type;
 	};
 
-	struct ScriptContainer
+	struct function_stack_t
 	{
-		VariableValue* stack;
-		char unk1;
-		char unk2;
-		char unk3;
-		char pad;
-		DWORD unk4;
-		int numParam;
+		const char* pos;
+		unsigned int localId;
+		unsigned int localVarCount;
+		VariableValue* top;
+		VariableValue* startTop;
+	};
+
+	struct function_frame_t
+	{
+		function_stack_t fs;
+		int topType;
+	};
+
+	struct scrVmPub_t
+	{
+		unsigned int* localVars;
+		VariableValue* maxStack;
+		int function_count;
+		function_frame_t* function_frame;
+		VariableValue* top;
+		bool debugCode;
+		bool abort_on_error;
+		bool terminal_error;
+		unsigned int inparamcount;
+		unsigned int outparamcount;
+		function_frame_t function_frame_start[32];
+		VariableValue stack[2048];
 	};
 
 	enum UILocalVarType

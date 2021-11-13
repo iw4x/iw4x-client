@@ -388,20 +388,34 @@ namespace Components
 	{
 		if (Game::Scr_GetNumParam() == 6u)
 		{
-			std::memmove(&Game::scriptContainer->stack[-4], &Game::scriptContainer->stack[-5], sizeof(Game::VariableValue) * 6);
-			Game::scriptContainer->stack += 1;
-			Game::scriptContainer->stack[-6].type = Game::VAR_FLOAT;
-			Game::scriptContainer->stack[-6].u.floatValue = 0;
+			std::memmove(&Game::scrVmPub->top[-4], &Game::scrVmPub->top[-5], sizeof(Game::VariableValue) * 6);
+			Game::scrVmPub->top += 1;
+			Game::scrVmPub->top[-6].type = Game::VAR_FLOAT;
+			Game::scrVmPub->top[-6].u.floatValue = 0;
 
-			++Game::scriptContainer->numParam;
+			++Game::scrVmPub->outparamcount;
 		}
 
 		return Game::Scr_GetNumParam();
 	}
 
-	const char* Script::GetCodePosForParam(int index)
+	const char* Script::GetCodePosForParam(unsigned int index)
 	{
-		return Game::scriptContainer->stack[index].u.codePosValue;
+		if (index >= Game::scrVmPub->outparamcount)
+		{
+			Game::Scr_Error("^1GetCodePosForParam: Index is out of range!\n");
+			return "";
+		}
+
+		const auto value = &Game::scrVmPub->top[0 - index];
+
+		if (value->type != Game::VAR_FUNCTION)
+		{
+			Game::Scr_Error("^1GetCodePosForParam: Expects a function as parameter!\n");
+			return "";
+		}
+
+		return value->u.codePosValue;
 	}
 
 	void Script::GetReplacedPos(const char* pos)
@@ -414,9 +428,15 @@ namespace Components
 
 	void Script::SetReplacedPos(const char* what, const char* with)
 	{
+		if (what[0] == '\0' || with[0] == '\0')
+		{
+			Logger::Print("Warning: Invalid paramters passed to ReplacedFunctions\n");
+			return;
+		}
+
 		if (Script::ReplacedFunctions.find(what) != Script::ReplacedFunctions.end())
 		{
-			Logger::Print("Warning: a function was already detoured by a script\n");
+			Logger::Print("Warning: ReplacedFunctions already contains codePosValue for a function\n");
 		}
 
 		Script::ReplacedFunctions[what] = with;
@@ -453,7 +473,7 @@ namespace Components
 
 			pop ecx
 
-			push 0x061E944
+			push 0x61E944
 			retn
 
 		SetPos:
@@ -499,7 +519,7 @@ namespace Components
 			}
 
 			const auto what = Script::GetCodePosForParam(0);
-			const auto with = Script::GetCodePosForParam(-1);
+			const auto with = Script::GetCodePosForParam(1);
 
 			Script::SetReplacedPos(what, with);
 		});
@@ -683,31 +703,10 @@ namespace Components
 
 		Script::AddFunctions();
 
-		// Script::AddFunction("playviewmodelfx", [](Game::scr_entref_t /*index*/)
-		// {
-		// 	/*auto Scr_Error = Utils::Hook::Call<void(const char*)>(0x42EF40);
-		// 	if (index >> 16)
-		// 	{
-		// 		Scr_Error("not an entity");
-		// 		return;
-		// 	}*/
-
-		// 	// obtain FX name
-		// 	auto fxName = Game::Scr_GetString(0);
-		// 	auto fx = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FX, fxName).fx;
-
-		// 	auto tagName = Game::Scr_GetString(1);
-		// 	auto tagIndex = Game::SL_GetString(tagName, 0);
-
-		// 	/*char boneIndex = -2;
-		// 	if (!Game::CG_GetBoneIndex(2048, tagIndex, &boneIndex))
-		// 	{
-		// 		Scr_Error(Utils::String::VA("Unknown bone %s.\n", tagName));
-		// 		return;
-		// 	}*/
-
-		// 	Game::CG_PlayBoltedEffect(0, fx, 2048, tagIndex);
-		// });
+		Script::OnVMShutdown([]
+		{
+			Script::ReplacedFunctions.clear();
+		});
 	}
 
 	Script::~Script()
