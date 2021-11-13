@@ -399,7 +399,7 @@ namespace Components
 		return Game::Scr_GetNumParam();
 	}
 
-	const char* Script::GetCodePosForParam(unsigned int index)
+	const char* Script::GetCodePosForParam(int index)
 	{
 		if (index >= Game::scrVmPub->outparamcount)
 		{
@@ -407,7 +407,7 @@ namespace Components
 			return "";
 		}
 
-		const auto value = &Game::scrVmPub->top[0 - index];
+		const auto value = &Game::scrVmPub->top[-index];
 
 		if (value->type != Game::VAR_FUNCTION)
 		{

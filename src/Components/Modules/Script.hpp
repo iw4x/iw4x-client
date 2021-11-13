@@ -72,7 +72,7 @@ namespace Components
 
 		static unsigned int SetExpFogStub();
 
-		static const char* GetCodePosForParam(unsigned int index);
+		static const char* GetCodePosForParam(int index);
 		static void GetReplacedPos(const char* pos);
 		static void SetReplacedPos(const char* what, const char* with);
 		static void VMExecuteInternalStub();
