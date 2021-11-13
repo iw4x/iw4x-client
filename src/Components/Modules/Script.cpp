@@ -414,7 +414,6 @@ namespace Components
 
 	void Script::SetReplacedPos(const char* what, const char* with)
 	{
-		// Warn if the function was already detoured
 		if (Script::ReplacedFunctions.find(what) != Script::ReplacedFunctions.end())
 		{
 			Logger::Print("Warning: a function was already detoured by a script\n");
@@ -485,7 +484,7 @@ namespace Components
 
 	void Script::AddFunctions()
 	{
-		Script::AddFunction("ReplaceFunc", [](Game::scr_entref_t) // gsc: ReplaceFunc(<function>,<function>)
+		Script::AddFunction("ReplaceFunc", [](Game::scr_entref_t) // gsc: ReplaceFunc(<function>, <function>)
 		{
 			if (Game::Scr_GetNumParam() != 2u)
 			{
