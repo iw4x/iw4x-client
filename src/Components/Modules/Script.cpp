@@ -401,7 +401,7 @@ namespace Components
 
 	const char* Script::GetCodePosForParam(int index)
 	{
-		if (index >= Game::scrVmPub->outparamcount)
+		if (static_cast<unsigned int>(index) >= Game::scrVmPub->outparamcount)
 		{
 			Game::Scr_Error("^1GetCodePosForParam: Index is out of range!\n");
 			return "";
