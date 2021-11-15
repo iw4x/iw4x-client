@@ -391,7 +391,7 @@ namespace Components
 			std::memmove(&Game::scrVmPub->top[-4], &Game::scrVmPub->top[-5], sizeof(Game::VariableValue) * 6);
 			Game::scrVmPub->top += 1;
 			Game::scrVmPub->top[-6].type = Game::VAR_FLOAT;
-			Game::scrVmPub->top[-6].u.floatValue = 0;
+			Game::scrVmPub->top[-6].u.floatValue = 0.0f;
 
 			++Game::scrVmPub->outparamcount;
 		}
