@@ -15,6 +15,9 @@ namespace Components
 		static void Heartbeat();
 
 	private:
+		static Dvar::Var SVRandomMapRotation;
+
+		static void RandomizeMapRotation();
 		static void MapRotate();
 		static void InitDedicatedServer();
 
