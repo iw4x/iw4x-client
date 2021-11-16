@@ -96,7 +96,7 @@ namespace Components
 		Game::SV_GameSendServerCommand(-1, 0, list.data());
 	}
 
-	void Dedicated::TimeWrapStub(int code, const char* message)
+	void Dedicated::TimeWrapStub(Game::errorParm_t code, const char* message)
 	{
 		static bool partyEnable;
 		static std::string mapname;
