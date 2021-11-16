@@ -131,8 +131,8 @@ namespace Components
 		{
 			if (i + 1 >= tokens.size()) break;
 
-			const std::string key = tokens[i];
-			const std::string value = tokens[i + 1];
+			const auto& key = tokens[i];
+			const auto& value = tokens[i + 1];
 			mapRotationPair.push_back(std::make_pair(key, value));
 		}
 
@@ -143,7 +143,7 @@ namespace Components
 		rotation.clear();
 		for (auto j = 0u; j < mapRotationPair.size(); j++)
 		{
-			std::pair<std::string, std::string> pair = mapRotationPair[j];
+			const auto& pair = mapRotationPair[j];
 			rotation.append(pair.first);
 			rotation.append(" ");
 			rotation.append(pair.second);
@@ -196,7 +196,7 @@ namespace Components
 
 			if (Dedicated::SVRandomMapRotation.get<bool>())
 			{
-				Logger::Print("Randomizing map rotaion\n");
+				Logger::Print("Randomizing map rotation\n");
 				Dedicated::RandomizeMapRotation();
 			}
 			else
