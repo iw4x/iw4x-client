@@ -38,12 +38,12 @@ namespace Components
 		float start = Game::Scr_GetFloat(0);
 		float end = 1.0f;
 
-		if (Game::Scr_GetNumParam() >= 2)
+		if (Game::Scr_GetNumParam() >= 2u)
 		{
 			end = Game::Scr_GetFloat(1);
 		}
 
-		if (Game::Scr_GetNumParam() >= 3)
+		if (Game::Scr_GetNumParam() >= 3u)
 		{
 			duration = static_cast<int>(Game::Scr_GetFloat(2) * 1000.0);
 		}
