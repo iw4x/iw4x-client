@@ -42,8 +42,7 @@ namespace Components
 		Dvar::OnInit([]
 		{
 			Elevators::SV_DisableElevators = Game::Dvar_RegisterBool("sv_disableElevators",
-				false, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
-				"Disable elevators");
+				false, Game::DVAR_FLAG_REPLICATED, "Disable elevators");
 		});
 
 		// Hook PM_GroundTrace so me way skip PM_CorrectAllSolid (disable elevators)
