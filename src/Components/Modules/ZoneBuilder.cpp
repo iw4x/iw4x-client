@@ -851,7 +851,7 @@ namespace Components
 
 		Command::Add("error", [](Command::Params*)
 		{
-			Game::Com_Error(0, "This is a test %s\n", "error");
+			Game::Com_Error(Game::ERR_FATAL, "This is a test %s\n", "error");
 		});
 
 		// now load default assets and shaders
@@ -1412,7 +1412,7 @@ namespace Components
 				// build final techsets fastfile
 				if (subCount > 24)
 				{
-					Logger::ErrorPrint(1, "How did you have 576 fastfiles?\n");
+					Logger::ErrorPrint(Game::ERR_DROP, "How did you have 576 fastfiles?\n");
 				}
 
 				curTechsets_list.clear();

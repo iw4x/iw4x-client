@@ -121,7 +121,7 @@ namespace Game
 	typedef void(__cdecl * Com_ClientPacketEvent_t)();
 	extern Com_ClientPacketEvent_t Com_ClientPacketEvent;
 
-	typedef void(__cdecl * Com_Error_t)(int type, const char* message, ...);
+	typedef void(__cdecl * Com_Error_t)(errorParm_t type, const char* message, ...);
 	extern Com_Error_t Com_Error;
 
 	typedef void(__cdecl * Com_Printf_t)(int channel, const char *fmt, ...);

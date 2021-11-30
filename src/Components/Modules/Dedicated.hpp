@@ -28,6 +28,6 @@ namespace Components
 
 		static void TransmitGuids();
 
-		static void TimeWrapStub(int code, const char* message);
+		static void TimeWrapStub(Game::errorParm_t code, const char* message);
 	};
 }
