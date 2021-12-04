@@ -289,6 +289,9 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_SetCommand_t)(const char* name, const char* value);
 	extern Dvar_SetCommand_t Dvar_SetCommand;
 
+	typedef const char* (__cdecl * Dvar_DisplayableValue_t)(const dvar_t* cvar);
+	extern Dvar_DisplayableValue_t Dvar_DisplayableValue;
+
 	typedef bool(__cdecl * Encode_Init_t)(const char* );
 	extern Encode_Init_t Encode_Init;
 
@@ -358,6 +361,9 @@ namespace Game
 
 	typedef iwd_t*(__cdecl * FS_IsShippedIWD_t)(const char* fullpath, const char* iwd);
 	extern FS_IsShippedIWD_t FS_IsShippedIWD;
+
+	typedef int(__cdecl* FS_Delete_t)(const char* fileName);
+	extern FS_Delete_t FS_Delete;
 
 	typedef int(__cdecl* G_GetWeaponIndexForName_t)(char*);
 	extern G_GetWeaponIndexForName_t G_GetWeaponIndexForName;

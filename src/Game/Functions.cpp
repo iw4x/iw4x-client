@@ -116,6 +116,7 @@ namespace Game
 	Dvar_FindVar_t Dvar_FindVar = Dvar_FindVar_t(0x4D5390);
 	Dvar_InfoString_Big_t Dvar_InfoString_Big = Dvar_InfoString_Big_t(0x4D98A0);
 	Dvar_SetCommand_t Dvar_SetCommand = Dvar_SetCommand_t(0x4EE430);
+	Dvar_DisplayableValue_t Dvar_DisplayableValue = Dvar_DisplayableValue_t(0x4B5530);
 
 	Encode_Init_t Encode_Init = Encode_Init_t(0x462AB0);
 
@@ -145,6 +146,7 @@ namespace Game
 	FS_Restart_t FS_Restart = FS_Restart_t(0x461A50);
 	FS_BuildPathToFile_t FS_BuildPathToFile = FS_BuildPathToFile_t(0x4702C0);
 	FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
+	FS_Delete_t FS_Delete = FS_Delete_t(0x48A5B0);
 
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
