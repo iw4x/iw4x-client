@@ -367,8 +367,12 @@ namespace Components
 		// Hook Dvar_SetFromStringByName inside CG_SetClientDvarFromServer so we can reset dvars when the player leaves the server
 		Utils::Hook(0x59386A, Dvar::DvarSetFromStringByNameStub, HOOK_CALL).install()->quick();
 
-		// If the game closed abruptly the dvars would have not been restored
-		Dvar::ResetDvarsValue();
+		// If the game closed abruptly, the dvars would not have been restored
+
+		Dvar::OnInit([]
+		{
+			Dvar::ResetDvarsValue();
+		});
 	}
 
 	Dvar::~Dvar()
