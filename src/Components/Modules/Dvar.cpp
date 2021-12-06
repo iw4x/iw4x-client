@@ -192,8 +192,11 @@ namespace Components
 
 	void Dvar::ResetDvarsValue()
 	{
-		Command::Execute("exec archivedvars.cfg");
-		// Cleanup
+		if (!Utils::IO::FileExists(Dvar::ArchiveDvarPath))
+			return
+
+		Command::Execute("exec archivedvars.cfg", true);
+		// Clean up
 		Utils::IO::RemoveFile(Dvar::ArchiveDvarPath);
 	}
 
@@ -364,8 +367,8 @@ namespace Components
 		// Hook Dvar_SetFromStringByName inside CG_SetClientDvarFromServer so we can reset dvars when the player leaves the server
 		Utils::Hook(0x59386A, Dvar::DvarSetFromStringByNameStub, HOOK_CALL).install()->quick();
 
-		// If the game closed abruptly the file would have not been deleted
-		Utils::IO::RemoveFile(Dvar::ArchiveDvarPath);
+		// If the game closed abruptly the dvars would have not been restored
+		Dvar::ResetDvarsValue();
 	}
 
 	Dvar::~Dvar()
