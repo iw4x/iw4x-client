@@ -268,7 +268,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("Notarget", [](Game::scr_entref_t entref) // gsc: Demigod(<optional int toggle>);
+		Script::AddFunction("Notarget", [](Game::scr_entref_t entref) // gsc: Notarget(<optional int toggle>);
 		{
 			if (entref >= Game::MAX_GENTITIES)
 			{
