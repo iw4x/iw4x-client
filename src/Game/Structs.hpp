@@ -109,7 +109,7 @@ namespace Game
 		IMG_CATEGORY_WATER = 0x5,
 		IMG_CATEGORY_RENDERTARGET = 0x6,
 		IMG_CATEGORY_TEMP = 0x7,
-	} ;
+	};
 
 	enum buttons_t
 	{
@@ -176,6 +176,18 @@ namespace Game
 		CS_CLIENTLOADING = 0x4,
 		CS_ACTIVE = 0x5,
 	} clientstate_t;
+
+	typedef enum
+	{
+		ERR_FATAL = 0x0,
+		ERR_DROP = 0x1,
+		ERR_SERVERDISCONNECT = 0x2,
+		ERR_DISCONNECT = 0x3,
+		ERR_SCRIPT = 0x4,
+		ERR_SCRIPT_DROP = 0x5,
+		ERR_LOCALIZATION = 0x6,
+		ERR_MAPLOADERRORSUMMARY = 0x7
+	} errorParm_t;
 
 	struct FxEffectDef;
 	struct pathnode_t;
@@ -4886,18 +4898,38 @@ namespace Game
 	struct VariableValue
 	{
 		VariableUnion u;
-		int type;
+		VariableType type;
 	};
 
-	struct ScriptContainer
+	struct function_stack_t
 	{
-		VariableValue* stack;
-		char unk1;
-		char unk2;
-		char unk3;
-		char pad;
-		DWORD unk4;
-		int numParam;
+		const char* pos;
+		unsigned int localId;
+		unsigned int localVarCount;
+		VariableValue* top;
+		VariableValue* startTop;
+	};
+
+	struct function_frame_t
+	{
+		function_stack_t fs;
+		int topType;
+	};
+
+	struct scrVmPub_t
+	{
+		unsigned int* localVars;
+		VariableValue* maxStack;
+		int function_count;
+		function_frame_t* function_frame;
+		VariableValue* top;
+		bool debugCode;
+		bool abort_on_error;
+		bool terminal_error;
+		unsigned int inparamcount;
+		unsigned int outparamcount;
+		function_frame_t function_frame_start[32];
+		VariableValue stack[2048];
 	};
 
 	enum UILocalVarType
@@ -6874,6 +6906,37 @@ namespace Game
 	{
 		int argCount;
 		const char* args[9];
+	};
+
+	struct pmove_s
+	{
+		playerState_s* ps;
+		usercmd_s cmd;
+		usercmd_s oldcmd;
+		int tracemask;
+		int numtouch;
+		int touchents[32];
+		char __pad0[24];
+		float xyspeed;
+		int proneChange;
+		float maxSprintTimeMultiplier;
+		bool mantleStarted;
+		float mantleEndPos[3];
+		int mantleDuration;
+		int viewChangeTime;
+		float viewChange;
+		float fTorsoPitch;
+		float fWaistPitch;
+		unsigned char handler;
+	};
+
+	enum EffectiveStance
+	{
+		PM_EFF_STANCE_DEFAULT = 0,
+		PM_EFF_STANCE_PRONE = 1,
+		PM_EFF_STANCE_DUCKED = 2,
+		PM_EFF_STANCE_LASTSTANDCRAWL = 3,
+		PM_EFF_STANCE_COUNT = 4
 	};
 
 #pragma endregion

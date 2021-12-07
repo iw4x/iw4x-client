@@ -28,13 +28,13 @@ namespace Components
 
 		static void JavelinResetHookStub();
 
-		static bool InvalidNameCheck(char *dest, char *source, int size);
+		static bool InvalidNameCheck(char* dest, const char* source, int size);
 		static void InvalidNameStub();
 
 		static Game::dvar_t* sv_enableBounces;
 		static void BounceStub();
 
-		static Game::dvar_t* r_customAspectRatio;
+		static Dvar::Var r_customAspectRatio;
 		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* name, char** enumValues, int defaultVal, int flags, const char* description);
 		static void SetAspectRatioStub();
 		static void SetAspectRatio();

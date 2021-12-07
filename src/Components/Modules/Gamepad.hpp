@@ -51,9 +51,11 @@ namespace Components
         static const char* gamePadMappingTypeNames[];
         static Game::keyNum_t menuScrollButtonList[];
         static Game::keyname_t extendedKeyNames[];
-        static Game::keyname_t extendedLocalizedKeyNames[];
+        static Game::keyname_t extendedLocalizedKeyNamesXenon[];
+        static Game::keyname_t extendedLocalizedKeyNamesPs3[];
         static Game::keyname_t combinedKeyNames[];
-        static Game::keyname_t combinedLocalizedKeyNames[];
+        static Game::keyname_t combinedLocalizedKeyNamesXenon[];
+        static Game::keyname_t combinedLocalizedKeyNamesPs3[];
         static ControllerMenuKeyMapping controllerMenuKeyMappings[];
 
         static GamePad gamePads[Game::MAX_GAMEPADS];
@@ -65,6 +67,7 @@ namespace Components
         static Dvar::Var gpad_debug;
         static Dvar::Var gpad_present;
         static Dvar::Var gpad_in_use;
+        static Dvar::Var gpad_style;
         static Dvar::Var gpad_sticksConfig;
         static Dvar::Var gpad_buttonConfig;
         static Dvar::Var gpad_menu_scroll_delay_first;
@@ -192,6 +195,9 @@ namespace Components
         static void CL_KeyEvent_Hk(int localClientNum, int key, int down, unsigned int time);
         static int CL_MouseEvent_Hk(int x, int y, int dx, int dy);
         static bool UI_RefreshViewport_Hk();
+
+        static Game::keyname_t* GetLocalizedKeyNameMap();
+        static void GetLocalizedKeyName_Stub();
         static void CreateKeyNameMap();
     };
 }

@@ -15,6 +15,9 @@ namespace Components
 		static void Heartbeat();
 
 	private:
+		static Dvar::Var SVRandomMapRotation;
+
+		static void RandomizeMapRotation();
 		static void MapRotate();
 		static void InitDedicatedServer();
 
@@ -25,6 +28,6 @@ namespace Components
 
 		static void TransmitGuids();
 
-		static void TimeWrapStub(int code, const char* message);
+		static void TimeWrapStub(Game::errorParm_t code, const char* message);
 	};
 }

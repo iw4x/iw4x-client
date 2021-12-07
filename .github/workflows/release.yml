@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  pull_request:
+    branches:
+      - "master"
+    types: [closed]
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    name: Merge Release
+    steps:
+      - name: Check out files
+        if: github.event.pull_request.merged
+        uses: actions/checkout@v2
+        with:
+          submodules: false
+          lfs: false
+
+      # Set up committer info and GPG key
+      - name: Import GPG key
+        if: github.event.pull_request.merged
+        id: import_gpg
+        uses: XLabsProject/ghaction-import-gpg@25d9d6ab99eb355c169c33c2306a72df85d9f516
+        with:
+          git-commit-gpgsign: true
+          git-committer-email: "${{ secrets.XLABS_CI_EMAIL }}"
+          git-committer-name: "${{ secrets.XLABS_CI_NAME }}"
+          git-push-gpgsign: false
+          git-tag-gpgsign: true
+          git-user-signingkey: true
+          gpg-private-key: ${{ secrets.XLABS_CI_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.XLABS_CI_GPG_PASSWORD }}
+
+      - name: Extract version from pull request
+        if: github.event.pull_request.merged
+        id: extract_version
+        run: |
+          title="${{ github.event.pull_request.title }}"
+          version="${title#Release }"
+          echo "::set-output name=version::$version"
+
+      - name: Create annotated tag
+        if: github.event.pull_request.merged
+        run: |
+          git tag -a -m "${{ github.event.pull_request.title }}" \
+            "${{ steps.extract_version.outputs.version }}" \
+            "${{ github.event.pull_request.merge_commit_sha }}"
+          git push origin --tags
+
+      - name: Create Pull Request
+        if: github.event.pull_request.merged
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.XLABS_CI_GITHUB_TOKEN }}
+          source_branch: "master"
+          destination_branch: "develop"
+          pr_allow_empty: true
+          pr_body: |
+            This Pull Request merges the release of IW4x ${{ steps.extract_version.outputs.version }} and was [automatically created by a workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) triggered by @${{ github.actor }}.
+          pr_title: Merge release ${{ steps.extract_version.outputs.version }}
+          pr_label: release
+
+
+  notify:
+    name: Notify Discord
+    runs-on: ubuntu-latest
+    if: |
+      github.repository_owner == 'XLabsProject' && (
+        (
+          github.event.pull_request.merged
+        ) || (
+          github.event.push.ref == 'refs/heads/master' ||
+          github.event.push.ref == 'refs/heads/develop'
+        )
+      )
+    steps:
+      - name: Post CI status notification to Discord
+        uses: sarisia/actions-status-discord@v1.7.1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_CI_BOT_WEBHOOK }}
+          title: "Build"
