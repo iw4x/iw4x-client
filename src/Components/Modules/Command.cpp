@@ -235,8 +235,8 @@ namespace Components
 
 			Game::g_entities[clientNum].flags ^= Game::FL_GODMODE;
 
-			Logger::Print("Godmode toggled\n");
-			Toast::Show("cardicon_abduction", "Success", "Godmode toggled", toastDurationShort);
+			Logger::Print("God toggled\n");
+			Toast::Show("cardicon_abduction", "Success", "God toggled", toastDurationShort);
 		});
 
 		Command::Add("demigod", [](Command::Params*)
