@@ -164,8 +164,11 @@ namespace Components
 		static int toastDurationMedium = 2500;
 		static int toastDurationLong = 5000;
 
-		// Disable native noclip command
-		Utils::Hook::Nop(0x474846, 5);
+		// Disable native cheat commands
+		Utils::Hook::Nop(0x474846, 5); // Cmd_Noclip_f
+		Utils::Hook::Nop(0x474859, 5); // Cmd_UFO_f
+		Utils::Hook::Nop(0x47480A, 5); // Cmd_God_f
+		Utils::Hook::Nop(0x47481D, 5); // Cmd_DemiGod_f
 
 		Command::Add("noclip", [](Command::Params*)
 		{
@@ -211,6 +214,52 @@ namespace Components
 
 			Logger::Print("UFO toggled\n");
 			Toast::Show("cardicon_abduction", "Success", "UFO toggled", toastDurationShort);
+		});
+
+		Command::Add("god", [](Command::Params*)
+		{
+			int clientNum = Game::CG_GetClientNum();
+			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0)
+			{
+				Logger::Print("You are not hosting a match!\n");
+				Toast::Show("cardicon_stop", "Error", "You are not hosting a match!", toastDurationMedium);
+				return;
+			}
+
+			if (!Dvar::Var("sv_cheats").get<bool>())
+			{
+				Logger::Print("Cheats disabled!\n");
+				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", toastDurationMedium);
+				return;
+			}
+
+			Game::g_entities[clientNum].flags ^= Game::FL_GODMODE;
+
+			Logger::Print("Godmode toggled\n");
+			Toast::Show("cardicon_abduction", "Success", "Godmode toggled", toastDurationShort);
+		});
+
+		Command::Add("demigod", [](Command::Params*)
+		{
+			int clientNum = Game::CG_GetClientNum();
+			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0)
+			{
+				Logger::Print("You are not hosting a match!\n");
+				Toast::Show("cardicon_stop", "Error", "You are not hosting a match!", toastDurationMedium);
+				return;
+			}
+
+			if (!Dvar::Var("sv_cheats").get<bool>())
+			{
+				Logger::Print("Cheats disabled!\n");
+				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", toastDurationMedium);
+				return;
+			}
+
+			Game::g_entities[clientNum].flags ^= Game::FL_DEMI_GODMODE;
+
+			Logger::Print("Demigod toggled\n");
+			Toast::Show("cardicon_abduction", "Success", "Demigod toggled", toastDurationShort);
 		});
 
 		Command::Add("setviewpos", [](Command::Params* params)

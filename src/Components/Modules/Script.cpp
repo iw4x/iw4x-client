@@ -636,7 +636,7 @@ namespace Components
 			Script::ScriptStorage.clear();
 		});
 
-		Script::AddFunction("Noclip", [](Game::scr_entref_t entref)
+		Script::AddFunction("Noclip", [](Game::scr_entref_t entref) // gsc: Noclip(<optional int toggle>);
 		{
 			if (entref >= Game::MAX_GENTITIES || Game::g_entities[entref].client == nullptr)
 			{
@@ -644,7 +644,7 @@ namespace Components
 				return;
 			}
 
-			if (Game::Scr_GetNumParam() == 1 && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -661,7 +661,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("Ufo", [](Game::scr_entref_t entref)
+		Script::AddFunction("Ufo", [](Game::scr_entref_t entref) // gsc: Ufo(<optional int toggle>);
 		{
 			if (entref >= Game::MAX_GENTITIES || Game::g_entities[entref].client == nullptr)
 			{
@@ -669,7 +669,7 @@ namespace Components
 				return;
 			}
 
-			if (Game::Scr_GetNumParam() == 1 && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -684,6 +684,56 @@ namespace Components
 			{
 				Game::g_entities[entref].client->flags ^= Game::PLAYER_FLAG_UFO;
 			}			
+		});
+
+		Script::AddFunction("God", [](Game::scr_entref_t entref) // gsc: God(<optional int toggle>);
+		{
+			if (entref >= Game::MAX_GENTITIES)
+			{
+				Game::Scr_Error(Utils::String::VA("^1God: entity %u is out of bounds\n", entref));
+				return;
+			}
+
+			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			{
+				if (Game::Scr_GetInt(0))
+				{
+					Game::g_entities[entref].flags |= Game::FL_GODMODE;
+				}
+				else
+				{
+					Game::g_entities[entref].flags &= ~Game::FL_GODMODE;
+				}
+			}
+			else
+			{
+				Game::g_entities[entref].flags ^= Game::FL_GODMODE;
+			}
+		});
+
+		Script::AddFunction("Demigod", [](Game::scr_entref_t entref) // gsc: Demigod(<optional int toggle>);
+		{
+			if (entref >= Game::MAX_GENTITIES)
+			{
+				Game::Scr_Error(Utils::String::VA("^1Demigod: entity %u is out of bounds\n", entref));
+				return;
+			}
+
+			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			{
+				if (Game::Scr_GetInt(0))
+				{
+					Game::g_entities[entref].flags |= Game::FL_DEMI_GODMODE;
+				}
+				else
+				{
+					Game::g_entities[entref].flags &= ~Game::FL_DEMI_GODMODE;
+				}
+			}
+			else
+			{
+				Game::g_entities[entref].flags ^= Game::FL_DEMI_GODMODE;
+			}
 		});
 	}
 
