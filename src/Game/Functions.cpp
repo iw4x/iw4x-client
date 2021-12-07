@@ -460,7 +460,7 @@ namespace Game
 	XZone* g_zones = reinterpret_cast<XZone*>(0x14C0F80);
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x12412B0);
 
-	ScriptContainer* scriptContainer = reinterpret_cast<ScriptContainer*>(0x2040D00);
+	scrVmPub_t* scrVmPub = reinterpret_cast<scrVmPub_t*>(0x2040CF0);
 
 	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
 

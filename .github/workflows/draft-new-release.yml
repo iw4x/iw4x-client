@@ -1,0 +1,48 @@
+name: "Draft new release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version you want to release."
+        required: true
+
+jobs:
+  draft-new-release:
+    name: "Draft a new release"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Normalize version
+        id: normalize_version
+        run: |
+          version="${{ github.event.inputs.version }}"
+          version="v${version#v}"
+          echo "::set-output name=version::$version"
+
+      # Set up committer info and GPG key
+      - name: Import GPG key
+        id: import_gpg
+        uses: XLabsProject/ghaction-import-gpg@25d9d6ab99eb355c169c33c2306a72df85d9f516
+        with:
+          git-commit-gpgsign: true
+          git-committer-email: "${{ secrets.XLABS_CI_EMAIL }}"
+          git-committer-name: "${{ secrets.XLABS_CI_NAME }}"
+          # git-push-gpgsign: true
+          git-tag-gpgsign: true
+          git-user-signingkey: true
+          gpg-private-key: ${{ secrets.XLABS_CI_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.XLABS_CI_GPG_PASSWORD }}
+
+      - name: Create Pull Request
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.XLABS_CI_GITHUB_TOKEN }}
+          source_branch: "develop"
+          destination_branch: "master"
+          pr_allow_empty: true
+          pr_body: |
+            This Pull Request is for the release of IW4x ${{ steps.normalize_version.outputs.version }} and was [automatically created by a workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) triggered by @${{ github.actor }}.
+          pr_title: Release ${{ steps.normalize_version.outputs.version }}
+          pr_label: release

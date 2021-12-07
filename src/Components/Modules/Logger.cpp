@@ -51,7 +51,7 @@ namespace Components
 		}
 	}
 
-	void Logger::ErrorPrint(int error, const std::string& message)
+	void Logger::ErrorPrint(Game::errorParm_t error, const std::string& message)
 	{
 #ifdef DEBUG
 		if (IsDebuggerPresent()) __debugbreak();
@@ -60,19 +60,19 @@ namespace Components
 		return Game::Com_Error(error, "%s", message.data());
 	}
 
-	void Logger::Error(int error, const char* message, ...)
+	void Logger::Error(Game::errorParm_t error, const char* message, ...)
 	{
 		return Logger::ErrorPrint(error, Logger::Format(&message));
 	}
 
 	void Logger::Error(const char* message, ...)
 	{
-		return Logger::ErrorPrint(0, Logger::Format(&message));
+		return Logger::ErrorPrint(Game::ERR_FATAL, Logger::Format(&message));
 	}
 
 	void Logger::SoftError(const char* message, ...)
 	{
-		return Logger::ErrorPrint(2, Logger::Format(&message));
+		return Logger::ErrorPrint(Game::ERR_SERVERDISCONNECT, Logger::Format(&message));
 	}
 
 	std::string Logger::Format(const char** message)
