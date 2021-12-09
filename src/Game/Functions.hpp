@@ -750,6 +750,9 @@ namespace Game
 	typedef void(__cdecl * SV_Cmd_EndTokenizedString_t)();
 	extern SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString;
 
+	typedef void(__cdecl* SV_Cmd_ArgvBuffer_t)(int arg, char* buf, int size);
+	extern SV_Cmd_ArgvBuffer_t SV_Cmd_ArgvBuffer;
+
 	typedef void(__cdecl * SV_SetConfigstring_t)(int index, const char* string);
 	extern SV_SetConfigstring_t SV_SetConfigstring;
 

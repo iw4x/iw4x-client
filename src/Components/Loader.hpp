@@ -134,6 +134,7 @@ namespace Components
 #include "Modules/TextRenderer.hpp"
 #include "Modules/Movement.hpp"
 #include "Modules/Elevators.hpp"
+#include "Modules/ClientCommand.hpp"
 
 #include "Modules/Gamepad.hpp"
 #include "Modules/Client.hpp"

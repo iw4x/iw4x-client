@@ -164,55 +164,6 @@ namespace Components
 		static int toastDurationMedium = 2500;
 		static int toastDurationLong = 5000;
 
-		// Disable native noclip command
-		Utils::Hook::Nop(0x474846, 5);
-
-		Command::Add("noclip", [](Command::Params*)
-		{
-			int clientNum = Game::CG_GetClientNum();
-			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
-			{
-				Logger::Print("You are not hosting a match!\n");
-				Toast::Show("cardicon_stop", "Error", "You are not hosting a match!", toastDurationMedium);
-				return;
-			}
-
-			if (!Dvar::Var("sv_cheats").get<bool>())
-			{
-				Logger::Print("Cheats disabled!\n");
-				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", toastDurationMedium);
-				return;
-			}
-
-			Game::g_entities[clientNum].client->flags ^= Game::PLAYER_FLAG_NOCLIP;
-
-			Logger::Print("Noclip toggled\n");
-			Toast::Show("cardicon_abduction", "Success", "Noclip toggled", toastDurationShort);
-		});
-
-		Command::Add("ufo", [](Command::Params*)
-		{
-			int clientNum = Game::CG_GetClientNum();
-			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
-			{
-				Logger::Print("You are not hosting a match!\n");
-				Toast::Show("cardicon_stop", "Error", "You are not hosting a match!", toastDurationMedium);
-				return;
-			}
-
-			if (!Dvar::Var("sv_cheats").get<bool>())
-			{
-				Logger::Print("Cheats disabled!\n");
-				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", toastDurationMedium);
-				return;
-			}
-
-			Game::g_entities[clientNum].client->flags ^= Game::PLAYER_FLAG_UFO;
-
-			Logger::Print("UFO toggled\n");
-			Toast::Show("cardicon_abduction", "Success", "UFO toggled", toastDurationShort);
-		});
-
 		Command::Add("setviewpos", [](Command::Params* params)
 		{
 			int clientNum = Game::CG_GetClientNum();
@@ -252,9 +203,7 @@ namespace Components
 
 			Game::TeleportPlayer(&Game::g_entities[clientNum], pos, orientation);
 
-			//Logging that will spam the console and screen if people use cinematics
-			//Logger::Print("Successfully teleported player!\n");
-			//Toast::Show("cardicon_abduction", "Success", "You have been teleported!", toastDurationShort);
+			// Logging will spam the console and screen if people use cinematics
 		});
 
 		Command::Add("openLink", [](Command::Params* params)
