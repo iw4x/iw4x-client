@@ -4,29 +4,20 @@ namespace Components
 {
 	std::unordered_map<std::string, Utils::Slot<ClientCommand::Callback>> ClientCommand::FunctionMap;
 
-	unsigned int ClientCommand::GetEntityNum(const Game::gentity_s* ent)
-	{
-		unsigned int num;
-
-		num = ent - Game::g_entities;
-
-		return num;
-	}
-
 	bool ClientCommand::CheatsOk(const Game::gentity_s* ent)
 	{
-		const auto entNum = ClientCommand::GetEntityNum(ent);
+		const auto entNum = ent->s.number;
 
 		if (!Dvar::Var("sv_cheats").get<bool>())
 		{
-			Logger::Print("Cheats disabled!\n");
+			Logger::Print("CheatsOk: cheats are disabled!\n");
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"GAME_CHEATSNOTENABLED\"", 0x65));
 			return false;
 		}
 
 		if (ent->health < 1)
 		{
-			Logger::Print("Entity %u must be alive to use this command!\n", entNum);
+			Logger::Print("CheatsOk: entity %u must be alive to use this command!\n", entNum);
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"GAME_MUSTBEALIVECOMMAND\"", 0x65));
 			return false;
 		}
@@ -61,7 +52,7 @@ namespace Components
 
 		if (entity->client == nullptr)
 		{
-			Logger::Print("Client %d is not fully in game yet\n", clientNum);
+			Logger::Print("ClientCommand: client %d is not fully in game yet\n", clientNum);
 			return;
 		}
 
@@ -83,7 +74,7 @@ namespace Components
 
 			ent->client->flags ^= Game::PLAYER_FLAG_NOCLIP;
 
-			const auto entNum = ClientCommand::GetEntityNum(ent);
+			const auto entNum = ent->s.number;
 			Logger::Print("Noclip toggled for entity %u\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
@@ -97,7 +88,7 @@ namespace Components
 
 			ent->client->flags ^= Game::PLAYER_FLAG_UFO;
 
-			const auto entNum = ClientCommand::GetEntityNum(ent);
+			const auto entNum = ent->s.number;
 			Logger::Print("UFO toggled for entity %u\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
@@ -111,7 +102,7 @@ namespace Components
 
 			ent->flags ^= Game::FL_GODMODE;
 
-			const auto entNum = ClientCommand::GetEntityNum(ent);
+			const auto entNum = ent->s.number;
 			Logger::Print("God toggled for entity %u\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
@@ -125,7 +116,7 @@ namespace Components
 
 			ent->flags ^= Game::FL_DEMI_GODMODE;
 
-			const auto entNum = ClientCommand::GetEntityNum(ent);
+			const auto entNum = ent->s.number;
 			Logger::Print("Demigod toggled for entity %u\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
@@ -139,7 +130,7 @@ namespace Components
 
 			ent->flags ^= Game::FL_NOTARGET;
 
-			const auto entNum = ClientCommand::GetEntityNum(ent);
+			const auto entNum = ent->s.number;
 			Logger::Print("Notarget toggled for entity %u\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
@@ -277,7 +268,7 @@ namespace Components
 
 	ClientCommand::ClientCommand()
 	{
-		//SV_ExecuteClientCommand
+		// Hook call to ClientCommand in SV_ExecuteClientCommand so we may add custom commands
 		Utils::Hook(0x6259FA, ClientCommand::ClientCommandStub, HOOK_CALL).install()->quick();
 
 		ClientCommand::AddCheatCommands();

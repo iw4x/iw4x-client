@@ -10,7 +10,6 @@ namespace Components
 		ClientCommand();
 		~ClientCommand();
 		static void Add(const char* name, Utils::Slot<Callback> callback);
-		static unsigned int GetEntityNum(const Game::gentity_s* ent);
 		static bool CheatsOk(const Game::gentity_s* ent);
 
 	private:
