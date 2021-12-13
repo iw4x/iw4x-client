@@ -279,7 +279,7 @@ namespace Components
 		if (!Game::CL_IsCgameInitialized() ||
 			clientNum >= 18 ||
 			clientNum < 0 ||
-			Game::g_entities[clientNum].client != nullptr) {
+			Game::g_entities[clientNum].client == nullptr) {
 		
 			return;
 		}
@@ -288,7 +288,7 @@ namespace Components
 
 		float playerPosition[3]{ clientEntity->r.currentOrigin[0], clientEntity->r.currentOrigin[1], clientEntity->r.currentOrigin[2] };
 
-		auto mapName = Dvar::Var("mapname").get<const char*>();
+		const auto mapName = Dvar::Var("mapname").get<const char*>();
 		auto scene = Game::scene;
 		auto world = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName))->asset.header.gfxWorld;
 
@@ -377,7 +377,7 @@ namespace Components
 		if (!Game::CL_IsCgameInitialized() ||
 			clientNum >= 18 ||
 			clientNum < 0 ||
-			Game::g_entities[clientNum].client != nullptr) {
+			Game::g_entities[clientNum].client == nullptr) {
 
 			return;
 		}
@@ -386,7 +386,7 @@ namespace Components
 
 		float playerPosition[3]{ clientEntity->r.currentOrigin[0], clientEntity->r.currentOrigin[1], clientEntity->r.currentOrigin[2] };
 
-		auto mapName = Dvar::Var("mapname").get<const char*>();
+		const auto mapName = Dvar::Var("mapname").get<const char*>();
 		auto scene = Game::scene;
 		auto world = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName))->asset.header.gfxWorld;
 
@@ -518,10 +518,10 @@ namespace Components
 
 		// Begin device recovery (not D3D9Ex)
 		Utils::Hook(0x508298, []()
-			{
-				Game::DB_BeginRecoverLostDevice();
-				Renderer::BeginRecoverDeviceSignal();
-			}, HOOK_CALL).install()->quick();
+		{
+			Game::DB_BeginRecoverLostDevice();
+			Renderer::BeginRecoverDeviceSignal();
+		}, HOOK_CALL).install()->quick();
 
 		// End device recovery (not D3D9Ex)
 		Utils::Hook(0x508355, []()
@@ -538,7 +538,7 @@ namespace Components
 
 		Dvar::OnInit([]
 		{
-			static const char* values[5] =
+			static const char* values[] =
 			{
 				"Disabled",
 				"Scene Models",
