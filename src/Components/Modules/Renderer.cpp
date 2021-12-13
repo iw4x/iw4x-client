@@ -194,7 +194,7 @@ namespace Components
 	{
 		if (!r_drawTriggers.get<bool>()) return;
 
-		auto* entities = Game::g_entities;
+		auto entities = Game::g_entities;
 
 		for (auto i = 0u; i < 0x800u; i++)
 		{
@@ -230,8 +230,8 @@ namespace Components
 
 				default:
 					auto rv = std::min(static_cast<float>(ent->handler), 5.0f) / 5.0f;
-					auto gv = std::clamp(static_cast<float>(ent->handler - 5), 0.f, 5.f) / 5.f;
-					auto bv = std::clamp(static_cast<float>(ent->handler - 10), 0.f, 5.f) / 5.f;
+					auto gv = std::clamp(static_cast<float>(ent->handler - 5), 0.f, 5.0f) / 5.0f;
+					auto bv = std::clamp(static_cast<float>(ent->handler - 10), 0.f, 5.0f) / 5.0f;
 
 					float color[4] = { rv, gv, bv, 1.0f };
 
@@ -246,7 +246,7 @@ namespace Components
 	{
 		if (!r_drawSceneModelCollisions.get<bool>()) return;
 
-		auto* scene = Game::scene;
+		auto scene = Game::scene;
 
 		for (auto i = 0; i < scene->sceneModelCount; i++)
 		{
@@ -279,30 +279,31 @@ namespace Components
 		if (!Game::CL_IsCgameInitialized() ||
 			clientNum >= 18 ||
 			clientNum < 0 ||
-			!Game::g_entities[clientNum].client) {
+			Game::g_entities[clientNum].client != nullptr) {
 		
 			return;
 		}
 
 		Game::gentity_t* clientEntity = &Game::g_entities[clientNum];
 
-		float(*playerPosition)[3] = &clientEntity->r.currentOrigin;
+		float playerPosition[3]{ clientEntity->r.currentOrigin[0], clientEntity->r.currentOrigin[1], clientEntity->r.currentOrigin[2] };
 
 		auto mapName = Dvar::Var("mapname").get<const char*>();
-		auto* scene = Game::scene;
+		auto scene = Game::scene;
 		auto world = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName))->asset.header.gfxWorld;
 
 		auto drawDistance = r_playerDrawDebugDistance.get<int>();
 		auto sqrDist = drawDistance * drawDistance;
 
-		switch (val) {
+		switch (val) 
+		{
 		case 1:
 			for (auto i = 0; i < scene->sceneModelCount; i++)
 			{
 				if (!scene->sceneModel[i].model)
 					continue;
 
-				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < sqrDist)
+				if (Utils::Vec3SqrDistance(playerPosition, scene->sceneModel[i].placement.base.origin) < sqrDist)
 				{
 					auto b = scene->sceneModel[i].model->bounds;
 					b.midPoint[0] += scene->sceneModel[i].placement.base.origin[0];
@@ -320,7 +321,7 @@ namespace Components
 			for (auto i = 0; i < scene->sceneDObjCount; i++)
 			{
 
-				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].cull.bounds.midPoint) < sqrDist)
+				if (Utils::Vec3SqrDistance(playerPosition, scene->sceneDObj[i].cull.bounds.midPoint) < sqrDist)
 				{
 					scene->sceneDObj[i].cull.bounds.halfSize[0] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[0]);
 					scene->sceneDObj[i].cull.bounds.halfSize[1] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[1]);
@@ -345,7 +346,7 @@ namespace Components
 			{
 				auto staticModel = world->dpvs.smodelDrawInsts[i];
 
-				if (Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin) < sqrDist)
+				if (Utils::Vec3SqrDistance(playerPosition, staticModel.placement.origin) < sqrDist)
 				{
 					if (staticModel.model)
 					{
@@ -376,17 +377,17 @@ namespace Components
 		if (!Game::CL_IsCgameInitialized() ||
 			clientNum >= 18 ||
 			clientNum < 0 ||
-			!Game::g_entities[clientNum].client) {
+			Game::g_entities[clientNum].client != nullptr) {
 
 			return;
 		}
 
 		Game::gentity_t* clientEntity = &Game::g_entities[clientNum];
 
-		float(*playerPosition)[3] = &clientEntity->r.currentOrigin;
+		float playerPosition[3]{ clientEntity->r.currentOrigin[0], clientEntity->r.currentOrigin[1], clientEntity->r.currentOrigin[2] };
 
 		auto mapName = Dvar::Var("mapname").get<const char*>();
-		auto* scene = Game::scene;
+		auto scene = Game::scene;
 		auto world = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName))->asset.header.gfxWorld;
 
 		auto drawDistance = r_playerDrawDebugDistance.get<int>();
@@ -399,7 +400,7 @@ namespace Components
 				if (!scene->sceneModel[i].model)
 					continue;
 
-				if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneModel[i].placement.base.origin) < sqrDist)
+				if (Utils::Vec3SqrDistance(playerPosition, scene->sceneModel[i].placement.base.origin) < sqrDist)
 				{
 					Game::R_AddDebugString(sceneModelsColor, scene->sceneModel[i].placement.base.origin, 1.0, scene->sceneModel[i].model->name);
 				}
@@ -413,7 +414,7 @@ namespace Components
 				{
 					for (int j = 0; j < scene->sceneDObj[i].obj->numModels; j++)
 					{
-						if (Utils::Vec3SqrDistance(playerPosition, &scene->sceneDObj[i].placement.origin) < sqrDist)
+						if (Utils::Vec3SqrDistance(playerPosition, scene->sceneDObj[i].placement.origin) < sqrDist)
 						{
 							Game::R_AddDebugString(dobjsColor, scene->sceneDObj[i].placement.origin, 1.0, scene->sceneDObj[i].obj->models[j]->name);
 						}
@@ -429,7 +430,7 @@ namespace Components
 				auto staticModel = world->dpvs.smodelDrawInsts[i];
 				if (staticModel.model)
 				{
-					auto dist = Utils::Vec3SqrDistance(playerPosition, &staticModel.placement.origin);
+					auto dist = Utils::Vec3SqrDistance(playerPosition, staticModel.placement.origin);
 					if (dist < sqrDist)
 					{
 						Game::R_AddDebugString(staticModelsColor, staticModel.placement.origin, 1.0, staticModel.model->name);
