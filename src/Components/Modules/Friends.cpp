@@ -458,7 +458,10 @@ namespace Components
 		__asm
 		{
 			pushad
+
 			call Friends::ClearServer
+			call Dvar::ResetDvarsValue
+
 			popad
 
 			push 467CC0h

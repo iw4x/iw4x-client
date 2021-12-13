@@ -63,6 +63,11 @@ namespace Utils
 			return false;
 		}
 
+		bool RemoveFile(const std::string& file)
+		{
+			return DeleteFileA(file.data()) == TRUE;
+		}
+
 		size_t FileSize(const std::string& file)
 		{
 			if (FileExists(file))

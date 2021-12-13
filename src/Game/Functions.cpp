@@ -116,12 +116,14 @@ namespace Game
 	Dvar_FindVar_t Dvar_FindVar = Dvar_FindVar_t(0x4D5390);
 	Dvar_InfoString_Big_t Dvar_InfoString_Big = Dvar_InfoString_Big_t(0x4D98A0);
 	Dvar_SetCommand_t Dvar_SetCommand = Dvar_SetCommand_t(0x4EE430);
+	Dvar_DisplayableValue_t Dvar_DisplayableValue = Dvar_DisplayableValue_t(0x4B5530);
 
 	Encode_Init_t Encode_Init = Encode_Init_t(0x462AB0);
 
 	Field_Clear_t Field_Clear = Field_Clear_t(0x437EB0);
 
 	FreeMemory_t FreeMemory = FreeMemory_t(0x4D6640);
+	Free_String_t Free_String = Free_String_t(0x470E80);
 
 	FS_FileExists_t FS_FileExists = FS_FileExists_t(0x4DEFA0);
 	FS_FreeFile_t FS_FreeFile = FS_FreeFile_t(0x4416B0);
@@ -144,6 +146,7 @@ namespace Game
 	FS_Restart_t FS_Restart = FS_Restart_t(0x461A50);
 	FS_BuildPathToFile_t FS_BuildPathToFile = FS_BuildPathToFile_t(0x4702C0);
 	FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
+	FS_Delete_t FS_Delete = FS_Delete_t(0x48A5B0);
 
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
@@ -1489,6 +1492,29 @@ namespace Game
 			mov eax, [esp + 0x4]
 			mov ebx, 0x569AA0
 			call ebx
+			retn
+		}
+	}
+
+	__declspec(naked) void Dvar_SetVariant(dvar_t*, DvarValue, DvarSetSource)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 0x4 + 0x20] // dvar
+			push[esp + 0x18 + 0x20] // source
+			push[esp + 0x18 + 0x20] // value
+			push[esp + 0x18 + 0x20] // value
+			push[esp + 0x18 + 0x20] // value
+			push[esp + 0x18 + 0x20] // value
+
+			mov ebx, 0x647400
+			call ebx
+			add esp, 0x14
+
+			popad
+
 			retn
 		}
 	}

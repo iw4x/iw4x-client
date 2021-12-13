@@ -50,12 +50,18 @@ namespace Components
 		template<typename T> static Var Register(const char* name, T value, Flag flag, const char* description);
 		template<typename T> static Var Register(const char* name, T value, T min, T max, Flag flag, const char* description);
 
+		static void ResetDvarsValue();
+
 	private:
 		static Utils::Signal<Scheduler::Callback> RegistrationSignal;
+		static const char* ArchiveDvarPath;
 
 		static Game::dvar_t* RegisterName(const char* name, const char* defaultVal, Game::dvar_flag flag, const char* description);
 
 		static Game::dvar_t* SetFromStringByNameExternal(const char* dvar, const char* value);
 		static Game::dvar_t* SetFromStringByNameSafeExternal(const char* dvar, const char* value);
+
+		static void SaveArchiveDvar(const Game::dvar_t* var);
+		static void DvarSetFromStringByNameStub(const char* dvarName, const char* value);
 	};
 }
