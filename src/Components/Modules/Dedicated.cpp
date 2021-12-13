@@ -3,6 +3,7 @@
 namespace Components
 {
 	SteamID Dedicated::PlayerGuids[18][2];
+	Dvar::Var Dedicated::SVRandomMapRotation;
 
 	bool Dedicated::IsEnabled()
 	{
@@ -96,7 +97,7 @@ namespace Components
 		Game::SV_GameSendServerCommand(-1, 0, list.data());
 	}
 
-	void Dedicated::TimeWrapStub(int code, const char* message)
+	void Dedicated::TimeWrapStub(Game::errorParm_t code, const char* message)
 	{
 		static bool partyEnable;
 		static std::string mapname;
@@ -119,6 +120,41 @@ namespace Components
 		Game::Com_Error(code, message);
 	}
 
+	void Dedicated::RandomizeMapRotation()
+	{
+		auto rotation = Dvar::Var("sv_mapRotation").get<std::string>();
+
+		const auto tokens = Utils::String::Explode(rotation, ' ');
+		std::vector<std::pair<std::string, std::string>> mapRotationPair;
+
+		for (auto i = 0u; i < (tokens.size() - 1); i += 2)
+		{
+			if (i + 1 >= tokens.size()) break;
+
+			const auto& key = tokens[i];
+			const auto& value = tokens[i + 1];
+			mapRotationPair.push_back(std::make_pair(key, value));
+		}
+
+		const auto seed = Utils::Cryptography::Rand::GenerateInt();
+		std::shuffle(std::begin(mapRotationPair), std::end(mapRotationPair), std::default_random_engine(seed));
+
+		// Rebuild map rotation using the randomized key/values
+		rotation.clear();
+		for (auto j = 0u; j < mapRotationPair.size(); j++)
+		{
+			const auto& pair = mapRotationPair[j];
+			rotation.append(pair.first);
+			rotation.append(" ");
+			rotation.append(pair.second);
+
+			if (j != mapRotationPair.size() - 1)
+				rotation.append(" ");
+		}
+
+		Dvar::Var("sv_mapRotationCurrent").set(rotation);
+	}
+
 	void Dedicated::MapRotate()
 	{
 		if (!Dedicated::IsEnabled() && Dvar::Var("sv_dontrotate").get<bool>())
@@ -134,9 +170,10 @@ namespace Components
 		}
 
 		Logger::Print("Rotating map...\n");
+		const auto mapRotation = Dvar::Var("sv_mapRotation").get<std::string>();
 
 		// if nothing, just restart
-		if (Dvar::Var("sv_mapRotation").get<std::string>().empty())
+		if (mapRotation.empty())
 		{
 			Logger::Print("No rotation defined, restarting map.\n");
 
@@ -152,14 +189,23 @@ namespace Components
 			return;
 		}
 
-		// first, check if the string contains nothing
+		// First, check if the string contains nothing
 		if (Dvar::Var("sv_mapRotationCurrent").get<std::string>().empty())
 		{
 			Logger::Print("Current map rotation has finished, reloading...\n");
-			Dvar::Var("sv_mapRotationCurrent").set(Dvar::Var("sv_mapRotation").get<const char*>());
+
+			if (Dedicated::SVRandomMapRotation.get<bool>())
+			{
+				Logger::Print("Randomizing map rotation\n");
+				Dedicated::RandomizeMapRotation();
+			}
+			else
+			{
+				Dvar::Var("sv_mapRotationCurrent").set(mapRotation);
+			}
 		}
 
-		std::string rotation = Dvar::Var("sv_mapRotationCurrent").get<std::string>();
+		auto rotation = Dvar::Var("sv_mapRotationCurrent").get<std::string>();
 
 		auto tokens = Utils::String::Explode(rotation, ' ');
 
@@ -346,6 +392,7 @@ namespace Components
 
 				Dvar::OnInit([]()
 				{
+					Dedicated::SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Randomize map rotation when true");
 					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_FLAG_NONE, "The name to pose as for 'say' commands");
 					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_FLAG_NONE, "A custom message of the day for servers");
 

@@ -11,9 +11,9 @@ namespace Components
 		static void MessagePrint(int channel, const std::string& message);
 		static void Print(int channel, const char* message, ...);
 		static void Print(const char* message, ...);
-		static void ErrorPrint(int error, const std::string& message);
+		static void ErrorPrint(Game::errorParm_t error, const std::string& message);
 		static void Error(const char* message, ...);
-		static void Error(int error, const char* message, ...);
+		static void Error(Game::errorParm_t error, const char* message, ...);
 		static void SoftError(const char* message, ...);
 		static bool IsConsoleReady();
 

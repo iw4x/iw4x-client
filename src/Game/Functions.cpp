@@ -314,6 +314,7 @@ namespace Game
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = SV_GameSendServerCommand_t(0x4BC3A0);
 	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = SV_Cmd_TokenizeString_t(0x4B5780);
 	SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString = SV_Cmd_EndTokenizedString_t(0x464750);
+	SV_Cmd_ArgvBuffer_t SV_Cmd_ArgvBuffer = SV_Cmd_ArgvBuffer_t(0x40BB60);
 	SV_DirectConnect_t SV_DirectConnect = SV_DirectConnect_t(0x460480);
 	SV_SetConfigstring_t SV_SetConfigstring = SV_SetConfigstring_t(0x4982E0);
 	SV_Loaded_t SV_Loaded = SV_Loaded_t(0x4EE3E0);
@@ -460,7 +461,7 @@ namespace Game
 	XZone* g_zones = reinterpret_cast<XZone*>(0x14C0F80);
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x12412B0);
 
-	ScriptContainer* scriptContainer = reinterpret_cast<ScriptContainer*>(0x2040D00);
+	scrVmPub_t* scrVmPub = reinterpret_cast<scrVmPub_t*>(0x2040CF0);
 
 	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
 

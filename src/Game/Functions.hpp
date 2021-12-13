@@ -121,7 +121,7 @@ namespace Game
 	typedef void(__cdecl * Com_ClientPacketEvent_t)();
 	extern Com_ClientPacketEvent_t Com_ClientPacketEvent;
 
-	typedef void(__cdecl * Com_Error_t)(int type, const char* message, ...);
+	typedef void(__cdecl * Com_Error_t)(errorParm_t type, const char* message, ...);
 	extern Com_Error_t Com_Error;
 
 	typedef void(__cdecl * Com_Printf_t)(int channel, const char *fmt, ...);
@@ -247,7 +247,7 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_RegisterInt_t)(const char* name, int defaultVal, int min, int max, int flags, const char* description);
 	extern Dvar_RegisterInt_t Dvar_RegisterInt;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterEnum_t)(const char* name, char** enumValues, int defaultVal, int flags, const char* description);
+	typedef dvar_t* (__cdecl * Dvar_RegisterEnum_t)(const char* name, const char** enumValues, int defaultVal, int flags, const char* description);
 	extern Dvar_RegisterEnum_t Dvar_RegisterEnum;
 
 	typedef dvar_t* (__cdecl * Dvar_RegisterString_t)(const char* name, const char* defaultVal, int, const char*);
@@ -660,7 +660,7 @@ namespace Game
 	typedef unsigned int(__cdecl * Scr_GetObject_t)(int);
 	extern Scr_GetObject_t Scr_GetObject;
 
-	typedef int(__cdecl * Scr_GetNumParam_t)();
+	typedef unsigned int(__cdecl * Scr_GetNumParam_t)();
 	extern Scr_GetNumParam_t Scr_GetNumParam;
 
 	typedef int(__cdecl * Scr_GetFunctionHandle_t)(const char*, const char*);
@@ -687,7 +687,7 @@ namespace Game
 	typedef bool(__cdecl * Scr_IsSystemActive_t)();
 	extern Scr_IsSystemActive_t Scr_IsSystemActive;
 
-	typedef int(__cdecl* Scr_GetType_t)(int);
+	typedef int(__cdecl* Scr_GetType_t)(unsigned int);
 	extern Scr_GetType_t Scr_GetType;
 
 	typedef void(__cdecl* Scr_Error_t)(const char*);
@@ -749,6 +749,9 @@ namespace Game
 
 	typedef void(__cdecl * SV_Cmd_EndTokenizedString_t)();
 	extern SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString;
+
+	typedef void(__cdecl* SV_Cmd_ArgvBuffer_t)(int arg, char* buf, int size);
+	extern SV_Cmd_ArgvBuffer_t SV_Cmd_ArgvBuffer;
 
 	typedef void(__cdecl * SV_SetConfigstring_t)(int index, const char* string);
 	extern SV_SetConfigstring_t SV_SetConfigstring;
@@ -969,7 +972,7 @@ namespace Game
 	extern XZone* g_zones;
 	extern unsigned short* db_hashTable;
 
-	extern ScriptContainer* scriptContainer;
+	extern scrVmPub_t* scrVmPub;
 
 	extern clientstate_t* clcState;
 

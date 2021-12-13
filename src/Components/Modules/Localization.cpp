@@ -181,6 +181,7 @@ namespace Components
 			"a231",
 			"AmateurHailbut",
 			"Aoki",
+			"Chase",
 			"civil",
 			"Dasfonia",
 			"Deity",
