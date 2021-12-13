@@ -538,7 +538,7 @@ namespace Components
 
 		Dvar::OnInit([]
 		{
-			static char* values[5] =
+			static const char* values[5] =
 			{
 				"Disabled",
 				"Scene Models",
