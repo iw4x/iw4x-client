@@ -446,7 +446,6 @@ namespace Components
 		if (!r_drawAABBTrees.get<bool>()) return;
 
 		Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
-		//Game::GfxWorld* gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
 		if (!clipMap) return;
 
 		for (unsigned short i = 0; i < clipMap->smodelNodeCount; ++i)
@@ -548,11 +547,11 @@ namespace Components
 			};
 
 			Renderer::r_drawModelBoundingBoxes = Game::Dvar_RegisterEnum("r_drawModelBoundingBoxes", values, 0, Game::DVAR_FLAG_CHEAT, "Draw scene model bounding boxes");
-			Renderer::r_drawSceneModelCollisions = Game::Dvar_RegisterEnum("r_drawSceneModelCollisions", values, 0, Game::DVAR_FLAG_CHEAT, "Draw scene model collisions");
+			Renderer::r_drawSceneModelCollisions = Game::Dvar_RegisterBool("r_drawSceneModelCollisions", false, Game::DVAR_FLAG_CHEAT, "Draw scene model collisions");
 			Renderer::r_drawTriggers = Game::Dvar_RegisterBool("r_drawTriggers", false, Game::DVAR_FLAG_CHEAT, "Draw triggers");
 			Renderer::r_drawModelNames = Game::Dvar_RegisterEnum("r_drawModelNames", values, 0, Game::DVAR_FLAG_CHEAT, "Draw all model names");
 			Renderer::r_drawAABBTrees = Game::Dvar_RegisterBool("r_drawAabbTrees", false, Game::DVAR_FLAG_CHEAT, "Draw aabb trees");
-			Renderer::r_playerDrawDebugDistance = Game::Dvar_RegisterInt("r_drawDebugProximity", 1000, 0, 50000, Game::DVAR_FLAG_SAVED, "r_draw debug functions draw distance, relative to the player");
+			Renderer::r_playerDrawDebugDistance = Game::Dvar_RegisterInt("r_drawDebugDistance", 1000, 0, 50000, Game::DVAR_FLAG_SAVED, "r_draw debug functions draw distance, relative to the player");
 		});
 	}
 
