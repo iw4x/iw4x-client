@@ -9,8 +9,11 @@ namespace Components
 		~Elevators();
 
 	private:
-		static Game::dvar_t* SV_DisableElevators;
+		enum ElevatorSettings { DISABLED, ENABLED, EASY };
+		static Dvar::Var SV_Elevators;
 
-		static void PM_GroundTraceStub();
+		static int PM_CorrectAllSolid(Game::pmove_s* move, Game::pml_t* pml, Game::trace_t* trace);
+		static void PM_CorrectAllSolidStub();
+		static void PM_TraceStub(Game::pmove_s*, Game::trace_t*, const float*, const float*, const Game::Bounds*, int, int);
 	};
 }
