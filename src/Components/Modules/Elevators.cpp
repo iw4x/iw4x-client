@@ -36,7 +36,6 @@ namespace Components
 				// like later versions of the game do
 				if (!trace->startsolid || EleSettings >= Elevators::ENABLED)
 				{
-
 					pml->groundTrace.fraction = trace->fraction;
 					pml->groundTrace.normal[0] = trace->normal[0];
 					pml->groundTrace.normal[1] = trace->normal[1];
@@ -79,6 +78,7 @@ namespace Components
 	{
 		Game::PM_Trace(pm, trace, f3, f4, bounds, a6, a7);
 
+		// Allow the player to stand even when there is no headroom
 		if (Elevators::SV_Elevators.get<int>() == Elevators::EASY)
 		{
 			trace->allsolid = false;
@@ -122,7 +122,10 @@ namespace Components
 				Elevators::ENABLED, Game::DVAR_FLAG_REPLICATED, "Elevators glitch settings");
 		});
 
+		//Replace PM_CorrectAllSolid
 		Utils::Hook(0x57369E, Elevators::PM_CorrectAllSolidStub, HOOK_CALL).install()->quick();
+
+		// Place hook in PM_CheckDuck
 		Utils::Hook(0x570EC5, Elevators::PM_TraceStub, HOOK_CALL).install()->quick();
 	}
 
