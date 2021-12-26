@@ -36,19 +36,7 @@ namespace Components
 				// like later versions of the game do
 				if (!trace->startsolid || EleSettings >= Elevators::ENABLED)
 				{
-					pml->groundTrace.fraction = trace->fraction;
-					pml->groundTrace.normal[0] = trace->normal[0];
-					pml->groundTrace.normal[1] = trace->normal[1];
-					pml->groundTrace.normal[2] = trace->normal[2];
-
-					pml->groundTrace.surfaceFlags = trace->surfaceFlags;
-					pml->groundTrace.contents = trace->contents;
-					pml->groundTrace.hitType = trace->hitType;
-					pml->groundTrace.hitId = trace->hitId;
-
-					pml->groundTrace.partName = trace->partName;
-					pml->groundTrace.partGroup = trace->partGroup;
-					pml->groundTrace.walkable = trace->walkable;
+					pml->groundTrace = *trace;
 
 					const auto fraction = trace->fraction;
 					ps->origin[0] += fraction * (point[0] - ps->origin[0]);
