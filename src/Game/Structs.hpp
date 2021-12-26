@@ -6985,16 +6985,15 @@ namespace Game
 		TRACE_HITTYPE_GLASS = 4
 	};
 
-#pragma pack(push, 1)
 	struct trace_t
 	{
 		float fraction;
 		float normal[3];
 		int surfaceFlags;
 		int contents;
+		const char* material;
 		TraceHitType hitType;
 		unsigned __int16 hitId;
-		float fractionForHitType;
 		unsigned __int16 modelIndex;
 		unsigned __int16 partName;
 		unsigned __int16 partGroup;
@@ -7002,7 +7001,8 @@ namespace Game
 		bool startsolid;
 		bool walkable;
 	};
-#pragma pack(pop)
+
+	static_assert(sizeof(trace_t) == 0x2C);
 
 	struct pmove_s
 	{
@@ -7044,6 +7044,8 @@ namespace Game
 		float previous_velocity[3];
 		int holdrand;
 	};
+
+	static_assert(sizeof(pml_t) == 0x84);
 
 	enum EffectiveStance
 	{
