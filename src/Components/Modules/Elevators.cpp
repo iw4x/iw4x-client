@@ -36,12 +36,6 @@ namespace Components
 				// like later versions of the game do
 				if (!trace->startsolid || elevatorSetting >= Elevators::ENABLED)
 				{
-					pml->groundTrace = *trace;
-
-					const auto fraction = trace->fraction;
-					ps->origin[0] += fraction * (point[0] - ps->origin[0]);
-					ps->origin[1] += fraction * (point[1] - ps->origin[1]);
-					ps->origin[2] += fraction * (point[2] - ps->origin[2]);
 					break;
 				}
 			}	
@@ -57,6 +51,13 @@ namespace Components
 				return 0;
 			}
 		}
+
+		pml->groundTrace = *trace;
+
+		const auto fraction = trace->fraction;
+		ps->origin[0] += fraction * (point[0] - ps->origin[0]);
+		ps->origin[1] += fraction * (point[1] - ps->origin[1]);
+		ps->origin[2] += fraction * (point[2] - ps->origin[2]);
 
 		return 1;
 	}
