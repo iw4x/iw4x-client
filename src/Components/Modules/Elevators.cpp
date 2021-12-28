@@ -114,8 +114,10 @@ namespace Components
 		//Replace PM_CorrectAllSolid
 		Utils::Hook(0x57369E, Elevators::PM_CorrectAllSolidStub, HOOK_CALL).install()->quick();
 
-		// Place hook in PM_CheckDuck
+		// Place hooks in PM_CheckDuck. If the elevators dvar is set to easy the
+		// flags for duck/prone will always be removed from the player state
 		Utils::Hook(0x570EC5, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x570E0B, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
 	}
 
 	Elevators::~Elevators()
