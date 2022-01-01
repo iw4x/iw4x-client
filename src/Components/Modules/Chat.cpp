@@ -264,22 +264,27 @@ namespace Components
 			const auto* cmd = params->get(0);
 			if (params->length() < 2)
 			{
-				Logger::Print("Usage: %s <client number>\n%s all = unmute everyone\n", cmd, cmd);
+				Logger::Print("Usage: %s <client number or guid>\n%s all = unmute everyone\n", cmd, cmd);
 				return;
 			}
 
 			const auto* client = Game::SV_GetPlayerByNum();
-			if (client == nullptr)
+
+			if (client != nullptr)
 			{
-				if (params->get(1) == "all"s)
-				{
-					Logger::Print("All players were unmuted\n");
-					Chat::MuteList.clear();
-				}
+				Chat::UnmuteClient(client);
+				return;
+			}
+
+			if (params->get(1) == "all"s)
+			{
+				Logger::Print("All players were unmuted\n");
+				Chat::MuteList.clear();
 			}
 			else
 			{
-				Chat::UnmuteClient(client);
+				const auto SteamID = std::strtoull(params->get(1), nullptr, 16);
+				Chat::MuteList.erase(SteamID);
 			}
 		});
 	}
