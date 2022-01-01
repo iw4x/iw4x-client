@@ -759,7 +759,7 @@ namespace Game
 	typedef void(__cdecl * SV_Cmd_EndTokenizedString_t)();
 	extern SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString;
 
-	typedef void(__cdecl* SV_Cmd_ArgvBuffer_t)(int arg, char* buf, int size);
+	typedef void(__cdecl * SV_Cmd_ArgvBuffer_t)(int arg, char* buf, int size);
 	extern SV_Cmd_ArgvBuffer_t SV_Cmd_ArgvBuffer;
 
 	typedef void(__cdecl * SV_SetConfigstring_t)(int index, const char* string);
@@ -771,8 +771,14 @@ namespace Game
 	typedef bool(__cdecl * SV_Loaded_t)();
 	extern SV_Loaded_t SV_Loaded;
 
-	typedef void(__cdecl* SV_ClientThink_t)(client_s*, usercmd_s*);
+	typedef void(__cdecl * SV_ClientThink_t)(client_s*, usercmd_s*);
 	extern SV_ClientThink_t SV_ClientThink;
+
+	typedef client_t*(__cdecl * SV_GetPlayerByName_t)();
+	extern SV_GetPlayerByName_t SV_GetPlayerByName;
+
+	typedef client_t*(__cdecl * SV_GetPlayerByNum_t)();
+	extern SV_GetPlayerByNum_t SV_GetPlayerByNum;
 
 	typedef int(__cdecl * Sys_Error_t)(int, char *, ...);
 	extern Sys_Error_t Sys_Error;
