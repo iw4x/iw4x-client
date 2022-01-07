@@ -903,6 +903,9 @@ namespace Game
 	typedef void(__cdecl * PM_Trace_t)(pmove_s*, trace_t*, const float*, const float*, const Bounds*, int, int);
 	extern PM_Trace_t PM_Trace;
 
+	typedef EffectiveStance(__cdecl* PM_GetEffectiveStance_t)(const playerState_s* ps);
+	extern PM_GetEffectiveStance_t PM_GetEffectiveStance;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 

@@ -381,6 +381,8 @@ namespace Game
 	PM_playerTrace_t PM_playerTrace = PM_playerTrace_t(0x458980);
 	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
 
+	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
