@@ -142,9 +142,11 @@ namespace Components
 	{
 		Script::AddFunction("Noclip", [](Game::scr_entref_t entref) // gsc: Noclip(<optional int toggle>);
 		{
-			if (entref >= Game::MAX_GENTITIES || Game::g_entities[entref].client == nullptr)
+			const auto* ent = Script::GetEntFromEntRef(entref);
+
+			if (ent->client == nullptr)
 			{
-				Game::Scr_Error(Utils::String::VA("^1NoClip: entity %u is not a client\n", entref));
+				Game::Scr_ObjectError(Utils::String::VA("^1NoClip: entity %u is not a client\n", entref));
 				return;
 			}
 
@@ -152,24 +154,26 @@ namespace Components
 			{
 				if (Game::Scr_GetInt(0))
 				{
-					Game::g_entities[entref].client->flags |= Game::PLAYER_FLAG_NOCLIP;
+					ent->client->flags |= Game::PLAYER_FLAG_NOCLIP;
 				}
 				else
 				{
-					Game::g_entities[entref].client->flags &= ~Game::PLAYER_FLAG_NOCLIP;
+					ent->client->flags &= ~Game::PLAYER_FLAG_NOCLIP;
 				}
 			}
 			else
 			{
-				Game::g_entities[entref].client->flags ^= Game::PLAYER_FLAG_NOCLIP;
+				ent->client->flags ^= Game::PLAYER_FLAG_NOCLIP;
 			}
 		});
 
 		Script::AddFunction("Ufo", [](Game::scr_entref_t entref) // gsc: Ufo(<optional int toggle>);
 		{
-			if (entref >= Game::MAX_GENTITIES || Game::g_entities[entref].client == nullptr)
+			const auto* ent = Script::GetEntFromEntRef(entref);
+
+			if (ent->client == nullptr)
 			{
-				Game::Scr_Error(Utils::String::VA("^1Ufo: entity %u is not a client\n", entref));
+				Game::Scr_ObjectError(Utils::String::VA("^1Ufo: entity %u is not a client\n", entref));
 				return;
 			}
 
@@ -177,91 +181,79 @@ namespace Components
 			{
 				if (Game::Scr_GetInt(0))
 				{
-					Game::g_entities[entref].client->flags |= Game::PLAYER_FLAG_UFO;
+					ent->client->flags |= Game::PLAYER_FLAG_UFO;
 				}
 				else
 				{
-					Game::g_entities[entref].client->flags &= ~Game::PLAYER_FLAG_UFO;
+					ent->client->flags &= ~Game::PLAYER_FLAG_UFO;
 				}
 			}
 			else
 			{
-				Game::g_entities[entref].client->flags ^= Game::PLAYER_FLAG_UFO;
+				ent->client->flags ^= Game::PLAYER_FLAG_UFO;
 			}
 		});
 
 		Script::AddFunction("God", [](Game::scr_entref_t entref) // gsc: God(<optional int toggle>);
 		{
-			if (entref >= Game::MAX_GENTITIES)
-			{
-				Game::Scr_Error(Utils::String::VA("^1God: entity %u is out of bounds\n", entref));
-				return;
-			}
+			auto* ent = Script::GetEntFromEntRef(entref);
 
 			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
 			{
 				if (Game::Scr_GetInt(0))
 				{
-					Game::g_entities[entref].flags |= Game::FL_GODMODE;
+					ent->flags |= Game::FL_GODMODE;
 				}
 				else
 				{
-					Game::g_entities[entref].flags &= ~Game::FL_GODMODE;
+					ent->flags &= ~Game::FL_GODMODE;
 				}
 			}
 			else
 			{
-				Game::g_entities[entref].flags ^= Game::FL_GODMODE;
+				ent->flags ^= Game::FL_GODMODE;
 			}
 		});
 
 		Script::AddFunction("Demigod", [](Game::scr_entref_t entref) // gsc: Demigod(<optional int toggle>);
 		{
-			if (entref >= Game::MAX_GENTITIES)
-			{
-				Game::Scr_Error(Utils::String::VA("^1Demigod: entity %u is out of bounds\n", entref));
-				return;
-			}
+			auto* ent = Script::GetEntFromEntRef(entref);
 
 			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
 			{
 				if (Game::Scr_GetInt(0))
 				{
-					Game::g_entities[entref].flags |= Game::FL_DEMI_GODMODE;
+					ent->flags |= Game::FL_DEMI_GODMODE;
 				}
 				else
 				{
-					Game::g_entities[entref].flags &= ~Game::FL_DEMI_GODMODE;
+					ent->flags &= ~Game::FL_DEMI_GODMODE;
 				}
 			}
 			else
 			{
-				Game::g_entities[entref].flags ^= Game::FL_DEMI_GODMODE;
+				ent->flags ^= Game::FL_DEMI_GODMODE;
 			}
 		});
 
 		Script::AddFunction("Notarget", [](Game::scr_entref_t entref) // gsc: Notarget(<optional int toggle>);
 		{
-			if (entref >= Game::MAX_GENTITIES)
-			{
-				Game::Scr_Error(Utils::String::VA("^1Notarget: entity %u is out of bounds\n", entref));
-				return;
-			}
+			auto* ent = Script::GetEntFromEntRef(entref);
 
 			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
 			{
 				if (Game::Scr_GetInt(0))
 				{
-					Game::g_entities[entref].flags |= Game::FL_NOTARGET;
+					ent->flags |= Game::FL_NOTARGET;
 				}
 				else
 				{
-					Game::g_entities[entref].flags &= ~Game::FL_NOTARGET;
+					ent->flags &= ~Game::FL_NOTARGET;
 				}
 			}
 			else
 			{
-				Game::g_entities[entref].flags ^= Game::FL_NOTARGET;
+				ent->flags ^= Game::FL_NOTARGET;
 			}
 		});
 	}

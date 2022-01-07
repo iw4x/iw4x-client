@@ -487,18 +487,25 @@ namespace Components
 		}
 	}
 
-	Game::gentity_t* Script::getEntFromEntRef(Game::scr_entref_t entref)
+	Game::gentity_t* Script::GetEntFromEntRef(const Game::scr_entref_t entref)
 	{
-		Game::gentity_t* gentity = &Game::g_entities[entref];
-		return gentity;
+		if (entref >= Game::MAX_GENTITIES)
+		{
+			Game::Scr_ObjectError("Not an entity");
+			return nullptr;
+		}
+
+		return &Game::g_entities[entref];
 	}
 
-	Game::client_t* Script::getClientFromEnt(Game::gentity_t* gentity)
+	Game::client_t* Script::GetClientFromEnt(const Game::gentity_t* gentity)
 	{
-		if (!gentity->client)
+		if (gentity->client == nullptr)
 		{
-			Logger::Error(Game::ERR_SCRIPT_DROP, "Entity: %i is not a client", gentity);
+			Game::Scr_ObjectError(Utils::String::VA("Entity %i is not a player", gentity->s.number));
+			return nullptr;
 		}
+
 		return &Game::svs_clients[gentity->s.number];
 	}
 
@@ -544,7 +551,7 @@ namespace Components
 				return;
 			}
 
-			auto str = Game::Scr_GetString(0);
+			const auto str = Game::Scr_GetString(0);
 
 			Game::Com_Printf(0, str);
 		});
@@ -558,7 +565,7 @@ namespace Components
 				return;
 			}
 
-			auto str = Game::Scr_GetString(0);
+			const auto str = Game::Scr_GetString(0);
 
 			Command::Execute(str, false);
 		});

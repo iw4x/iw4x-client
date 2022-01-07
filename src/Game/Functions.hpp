@@ -365,7 +365,7 @@ namespace Game
 	typedef int(__cdecl* FS_Delete_t)(const char* fileName);
 	extern FS_Delete_t FS_Delete;
 
-	typedef int(__cdecl* G_GetWeaponIndexForName_t)(char*);
+	typedef unsigned int(__cdecl * G_GetWeaponIndexForName_t)(const char*);
 	extern G_GetWeaponIndexForName_t G_GetWeaponIndexForName;
 
 	typedef void(__cdecl* G_SpawnEntitiesFromString_t)();
@@ -657,16 +657,16 @@ namespace Game
 	typedef int(__cdecl * Scr_LoadScript_t)(const char*);
 	extern Scr_LoadScript_t Scr_LoadScript;
 
-	typedef char* (__cdecl * Scr_GetString_t)(int);
+	typedef const char*(__cdecl * Scr_GetString_t)(unsigned int);
 	extern Scr_GetString_t Scr_GetString;
 
-	typedef float(__cdecl * Scr_GetFloat_t)(int);
+	typedef float(__cdecl * Scr_GetFloat_t)(unsigned int);
 	extern Scr_GetFloat_t Scr_GetFloat;
 
-	typedef int(__cdecl * Scr_GetInt_t)(int);
+	typedef int(__cdecl * Scr_GetInt_t)(unsigned int);
 	extern Scr_GetInt_t Scr_GetInt;
 
-	typedef unsigned int(__cdecl * Scr_GetObject_t)(int);
+	typedef unsigned int(__cdecl * Scr_GetObject_t)(unsigned int);
 	extern Scr_GetObject_t Scr_GetObject;
 
 	typedef unsigned int(__cdecl * Scr_GetNumParam_t)();
@@ -696,11 +696,14 @@ namespace Game
 	typedef bool(__cdecl * Scr_IsSystemActive_t)();
 	extern Scr_IsSystemActive_t Scr_IsSystemActive;
 
-	typedef int(__cdecl* Scr_GetType_t)(unsigned int);
+	typedef int(__cdecl * Scr_GetType_t)(unsigned int);
 	extern Scr_GetType_t Scr_GetType;
 
-	typedef void(__cdecl* Scr_Error_t)(const char*);
+	typedef void(__cdecl * Scr_Error_t)(const char*);
 	extern Scr_Error_t Scr_Error;
+
+	typedef void(__cdecl * Scr_ObjectError_t)(const char*);
+	extern Scr_ObjectError_t Scr_ObjectError;
 
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;

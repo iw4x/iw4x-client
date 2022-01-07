@@ -31,7 +31,7 @@ namespace Components
 			if (mode != "append"s && mode != "write"s)
 			{
 				Game::Com_Printf(0, "^3fileWrite: mode not defined or was wrong, defaulting to 'write'\n");
-				mode = const_cast<char*>("write");
+				mode = "write";
 			}
 
 			if (mode == "write"s)
@@ -126,39 +126,25 @@ namespace Components
 	void Client::AddMethods()
 	{
 		// Client methods
-
-		Script::AddFunction("getIp", [](Game::scr_entref_t id) // gsc: self getIp()
+		Script::AddFunction("GetIp", [](Game::scr_entref_t id) // gsc: self GetIp()
 		{
-			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
-			Game::client_t* client = Script::getClientFromEnt(gentity);
+			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* client = Script::GetClientFromEnt(gentity);
 
-			if (client->state >= 3)
-			{
-				std::string ip = Game::NET_AdrToString(client->netchan.remoteAddress);
-				if (ip.find_first_of(":") != std::string::npos)
-					ip.erase(ip.begin() + ip.find_first_of(":"), ip.end()); // erase port
-				Game::Scr_AddString(ip.data());
-			}
+			std::string ip = Game::NET_AdrToString(client->netchan.remoteAddress);
+
+			if (ip.find_first_of(":") != std::string::npos)
+				ip.erase(ip.begin() + ip.find_first_of(":"), ip.end()); // Erase port
+
+			Game::Scr_AddString(ip.data());
 		});
 
-		Script::AddFunction("getPing", [](Game::scr_entref_t id) // gsc: self getPing()
+		Script::AddFunction("GetPing", [](Game::scr_entref_t id) // gsc: self GetPing()
 		{
-			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
-			Game::client_t* client = Script::getClientFromEnt(gentity);
+			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* client = Script::GetClientFromEnt(gentity);
 
-			if (client->state >= 3)
-			{
-				int ping = (int)client->ping;
-				Game::Scr_AddInt(ping);
-			}
-		});
-	}
-
-	void Client::AddCommands()
-	{
-		Command::Add("NULL", [](Command::Params*)
-		{
-			return NULL;
+			Game::Scr_AddInt(client->ping);
 		});
 	}
 
@@ -166,11 +152,9 @@ namespace Components
 	{
 		Client::AddFunctions();
 		Client::AddMethods();
-		Client::AddCommands();
 	}
 
 	Client::~Client()
 	{
-
 	}
 }

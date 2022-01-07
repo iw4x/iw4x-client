@@ -12,6 +12,5 @@ namespace Components
 
 		static void AddFunctions();
 		static void AddMethods();
-		static void AddCommands();
 	};
 }

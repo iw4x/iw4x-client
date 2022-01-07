@@ -29,10 +29,10 @@ namespace Components
 		/* Actions */
 		int buttons;
 		/* Movement */
-		int8 forward;
-		int8 right;
+		int8_t forward;
+		int8_t right;
 		/* Weapon */
-		unsigned short weapon;
+		uint16_t weapon;
 	} BotMovementInfo_t;
 
 	static BotMovementInfo_t g_botai[MAX_G_BOTAI_ENTRIES];
@@ -71,15 +71,6 @@ namespace Components
 		{ "9",          33554432            },
 	};
 
-	unsigned int Bots::GetClientNum(Game::client_s* cl)
-	{
-		unsigned int num;
-
-		num = ((byte*)cl - (byte*)Game::svs_clients) / sizeof(Game::client_s);
-
-		return num;
-	}
-
 	bool Bots::IsValidClientNum(unsigned int cNum)
 	{
 		return (cNum >= 0) && (cNum < (unsigned int)*Game::svs_numclients);
@@ -96,9 +87,9 @@ namespace Components
 
 			if (bots.exists())
 			{
-				std::vector<std::string> names = Utils::String::Explode(bots.getBuffer(), '\n');
+				auto names = Utils::String::Explode(bots.getBuffer(), '\n');
 
-				for (auto name : names)
+				for (auto& name : names)
 				{
 					Utils::String::Replace(name, "\r", "");
 					name = Utils::String::Trim(name);
@@ -121,37 +112,32 @@ namespace Components
 			botName = Utils::String::VA("bot%d", ++botId);
 		}
 
-		strncpy_s(buffer, 0x400, Utils::String::VA(connectString, num, botName, protocol, checksum, statVer, statStuff, port), 0x400);
+		_snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, protocol, checksum, statVer, statStuff, port);
 	}
 
-	void Bots::Spawn(unsigned int count)
+	void Bots::Spawn(int count)
 	{
-		for (unsigned int i = 0; i < count; ++i)
+		for (auto i = 0; i < count; ++i)
 		{
 			Scheduler::OnDelay([]()
 			{
-				for (int i = 0; i < 3; ++i)
+				auto* ent = Game::SV_AddTestClient();
+				if (ent == nullptr)
+					return;
+
+				Scheduler::OnDelay([ent]()
 				{
-					Game::gentity_t* entRef = Game::SV_AddTestClient();
-					if (entRef)
+					Game::Scr_AddString("autoassign");
+					Game::Scr_AddString("team_marinesopfor");
+					Game::Scr_Notify(ent, Game::SL_GetString("menuresponse", 0), 2);
+
+					Scheduler::OnDelay([ent]()
 					{
-						Scheduler::OnDelay([entRef]()
-						{
-							Game::Scr_AddString("autoassign");
-							Game::Scr_AddString("team_marinesopfor");
-							Game::Scr_Notify(entRef, Game::SL_GetString("menuresponse", 0), 2);
-
-							Scheduler::OnDelay([entRef]()
-							{
-								Game::Scr_AddString(Utils::String::VA("class%d", Utils::Cryptography::Rand::GenerateInt() % 5));
-								Game::Scr_AddString("changeclass");
-								Game::Scr_Notify(entRef, Game::SL_GetString("menuresponse", 0), 2);
-							}, 1s);
-						}, 1s);
-
-						break;
-					}
-				}
+						Game::Scr_AddString(Utils::String::VA("class%u", Utils::Cryptography::Rand::GenerateInt() % 5u));
+						Game::Scr_AddString("changeclass");
+						Game::Scr_Notify(ent, Game::SL_GetString("menuresponse", 0), 2);
+					}, 1s);
+				}, 1s);
 			}, 500ms * (i + 1));
 		}
 	}
@@ -166,7 +152,7 @@ namespace Components
 				return;
 			}
 
-			auto ping = Game::Scr_GetInt(0);
+			const auto ping = Game::Scr_GetInt(0);
 
 			if (ping < 0 || ping > 999)
 			{
@@ -174,21 +160,8 @@ namespace Components
 				return;
 			}
 
-			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
-			Game::client_t* client = Script::getClientFromEnt(gentity);
-			unsigned int clientNum = GetClientNum(client);
-
-			if (!Bots::IsValidClientNum(clientNum))
-			{
-				Game::Scr_Error("^1SetPing: Need to call on a player entity!\n");
-				return;
-			}
-
-			if (client->state < 3)
-			{
-				Game::Scr_Error("^1SetPing: Need to call on a connected player!\n");
-				return;
-			}
+			const auto* gentity = Script::GetEntFromEntRef(id);
+			auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)
 			{
@@ -196,198 +169,136 @@ namespace Components
 				return;
 			}
 
-			client->ping = (short)ping;
+			client->ping = static_cast<int16_t>(ping);
 		});
 
-		Script::AddFunction("isBot", [](Game::scr_entref_t id) // Usage: <bot> isBot();
+		Script::AddFunction("IsBot", [](Game::scr_entref_t id) // Usage: <bot> IsBot();
 		{
-			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
-			Game::client_t* client = Script::getClientFromEnt(gentity);
-			unsigned int clientNum = GetClientNum(client);
-
-			if (!Bots::IsValidClientNum(clientNum))
-			{
-				Game::Scr_Error("^1isBot: Need to call on a player entity!\n");
-				return;
-			}
-
-			if (client->state < 3)
-			{
-				Game::Scr_Error("^1isBot: Needs to be connected.\n");
-				return;
-			}
+			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* client = Script::GetClientFromEnt(gentity);
 
 			Game::Scr_AddInt(client->isBot);
 		});
 
-		Script::AddFunction("botStop", [](Game::scr_entref_t id) // Usage: <bot> botStop();
+		Script::AddFunction("BotStop", [](Game::scr_entref_t id) // Usage: <bot> BotStop();
 		{
-			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
-			Game::client_t* client = Script::getClientFromEnt(gentity);
-			unsigned int clientNum = GetClientNum(client);
-
-			if (!Bots::IsValidClientNum(clientNum))
-			{
-				Game::Scr_Error("^1botStop: Need to call on a player entity!\n");
-				return;
-			}
-
-			if (client->state < 3)
-			{
-				Game::Scr_Error("^1botStop: Needs to be connected.\n");
-				return;
-			}
+			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)
 			{
-				Game::Scr_Error("^1botStop: Can only call on a bot!\n");
+				Game::Scr_Error("^1BotStop: Can only call on a bot!\n");
 				return;
 			}
 
-			g_botai[clientNum] = { 0 };
-			g_botai[clientNum].weapon = 1;
+			g_botai[gentity->s.number] = {0};
+			g_botai[gentity->s.number].weapon = 1;
 		});
 
-		Script::AddFunction("botWeapon", [](Game::scr_entref_t id) // Usage: <bot> botWeapon(<str>);
+		Script::AddFunction("BotWeapon", [](Game::scr_entref_t id) // Usage: <bot> BotWeapon(<str>);
 		{
 			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
-				Game::Scr_Error("^1botWeapon: Needs one string parameter!\n");
+				Game::Scr_Error("^1BotWeapon: Needs one string parameter!\n");
 				return;
 			}
 
-			auto weapon = Game::Scr_GetString(0);
+			const auto* weapon = Game::Scr_GetString(0);
 
-			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
-			Game::client_t* client = Script::getClientFromEnt(gentity);
-			unsigned int clientNum = GetClientNum(client);
-
-			if (!Bots::IsValidClientNum(clientNum))
-			{
-				Game::Scr_Error("^1botWeapon: Need to call on a player entity!\n");
-				return;
-			}
-
-			if (client->state < 3)
-			{
-				Game::Scr_Error("^1botWeapon: Needs to be connected.\n");
-				return;
-			}
+			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)
 			{
-				Game::Scr_Error("^1botWeapon: Can only call on a bot!\n");
+				Game::Scr_Error("^1BotWeapon: Can only call on a bot!\n");
 				return;
 			}
 
-			if (weapon == ""s)
+			if (weapon[0] == '\0')
 			{
-				g_botai[clientNum].weapon = 1;
+				g_botai[gentity->s.number].weapon = 1;
 				return;
 			}
 
-			int weapId = Game::G_GetWeaponIndexForName(weapon);
-
-			g_botai[clientNum].weapon = (unsigned short)weapId;
+			const auto weapId = Game::G_GetWeaponIndexForName(weapon);
+			g_botai[gentity->s.number].weapon = static_cast<uint16_t>(weapId);
 		});
 
-		Script::AddFunction("botAction", [](Game::scr_entref_t id) // Usage: <bot> botAction(<str action>);
+		Script::AddFunction("BotAction", [](Game::scr_entref_t id) // Usage: <bot> BotAction(<str action>);
 		{
 			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
-				Game::Scr_Error("^1botAction: Needs one string parameter!\n");
+				Game::Scr_Error("^1BotAction: Needs one string parameter!\n");
 				return;
 			}
 
-			auto action = Game::Scr_GetString(0);
+			const auto* action = Game::Scr_GetString(0);
 
-			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
-			Game::client_t* client = Script::getClientFromEnt(gentity);
-			unsigned int clientNum = GetClientNum(client);
-
-			if (!Bots::IsValidClientNum(clientNum))
-			{
-				Game::Scr_Error("^1botAction: Need to call on a player entity!\n");
-				return;
-			}
-
-			if (client->state < 3)
-			{
-				Game::Scr_Error("^1botAction: Needs to be connected.\n");
-				return;
-			}
+			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)
 			{
-				Game::Scr_Error("^1botAction: Can only call on a bot!\n");
+				Game::Scr_Error("^1BotAction: Can only call on a bot!\n");
 				return;
 			}
+
 			if (action[0] != '+' && action[0] != '-')
 			{
-				Game::Scr_Error("^1botAction: Sign for action must be '+' or '-'.\n");
+				Game::Scr_Error("^1BotAction: Sign for action must be '+' or '-'.\n");
 				return;
 			}
 
-			for (size_t i = 0; i < sizeof(BotActions) / sizeof(BotAction_t); ++i)
+			for (auto i = 0u; i < sizeof(BotActions) / sizeof(BotAction_t); ++i)
 			{
 				if (strcmp(&action[1], BotActions[i].action))
 					continue;
 
 				if (action[0] == '+')
-					g_botai[clientNum].buttons |= BotActions[i].key;
+					g_botai[gentity->s.number].buttons |= BotActions[i].key;
 				else
-					g_botai[clientNum].buttons &= ~(BotActions[i].key);
+					g_botai[gentity->s.number].buttons &= ~(BotActions[i].key);
 
 				return;
 			}
 
-			Game::Scr_Error("^1botAction: Unknown action.\n");
+			Game::Scr_Error("^1BotAction: Unknown action.\n");
 		});
 
-		Script::AddFunction("botMovement", [](Game::scr_entref_t id) // Usage: <bot> botMovement(<int>, <int>);
+		Script::AddFunction("BotMovement", [](Game::scr_entref_t id) // Usage: <bot> BotMovement(<int>, <int>);
 		{
 			if (Game::Scr_GetNumParam() != 2u || Game::Scr_GetType(0) != Game::VAR_INTEGER || Game::Scr_GetType(1) != Game::VAR_INTEGER)
 			{
-				Game::Scr_Error("^1botMovement: Needs two integer parameters!\n");
+				Game::Scr_Error("^1BotMovement: Needs two integer parameters!\n");
 				return;
 			}
 
 			auto forwardInt = Game::Scr_GetInt(0);
 			auto rightInt = Game::Scr_GetInt(1);
 
-			Game::gentity_t* gentity = Script::getEntFromEntRef(id);
-			Game::client_t* client = Script::getClientFromEnt(gentity);
-			unsigned int clientNum = GetClientNum(client);
-
-			if (!Bots::IsValidClientNum(clientNum))
-			{
-				Game::Scr_Error("^1botMovement: Need to call on a player entity!\n");
-				return;
-			}
-
-			if (client->state < 3)
-			{
-				Game::Scr_Error("^1botMovement: Needs to be connected.\n");
-				return;
-			}
+			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)
 			{
-				Game::Scr_Error("^1botMovement: Can only call on a bot!\n");
+				Game::Scr_Error("^1BotMovement: Can only call on a bot!\n");
 				return;
 			}
 
 			if (forwardInt > 127)
 				forwardInt = 127;
+
 			if (forwardInt < -127)
 				forwardInt = -127;
+
 			if (rightInt > 127)
 				rightInt = 127;
+
 			if (rightInt < -127)
 				rightInt = -127;
 
-			g_botai[clientNum].forward = (int8)forwardInt;
-			g_botai[clientNum].right = (int8)rightInt;
+			g_botai[gentity->s.number].forward = static_cast<int8_t>(forwardInt);
+			g_botai[gentity->s.number].right = static_cast<int8_t>(rightInt);
 		});
 	}
 
@@ -403,24 +314,22 @@ namespace Components
 		Utils::Hook(0x627021, 0x4BB9B0, HOOK_CALL).install()->quick();
 		Utils::Hook(0x627241, 0x4BB9B0, HOOK_CALL).install()->quick();
 
-		// zero the bot command array
-		for (int i = 0; i < MAX_G_BOTAI_ENTRIES; i++)
+		// Zero the bot command array
+		for (auto i = 0; i < MAX_G_BOTAI_ENTRIES; i++)
 		{
-			g_botai[i] = { 0 };
-			g_botai[i].weapon = 1; // prevent the bots from defaulting to the 'none' weapon
+			g_botai[i] = {0};
+			g_botai[i].weapon = 1; // Prevent the bots from defaulting to the 'none' weapon
 		}
 
-		// have the bots perform the command every server frame
+		// Have the bots perform the command every server frame
 		Scheduler::OnFrame([]()
 		{
 			if (!Game::SV_Loaded())
 				return;
 
-			int time = *Game::svs_time;
-			int numClients = *Game::svs_numclients;
-			for (int i = 0; i < numClients; ++i)
+			for (auto i = 0; i < *Game::svs_numclients; ++i)
 			{
-				Game::client_t* client = &Game::svs_clients[i];
+				auto* client = &Game::svs_clients[i];
 
 				if (client->state < 3)
 					continue;
@@ -428,9 +337,9 @@ namespace Components
 				if (!client->isBot)
 					continue;
 
-				Game::usercmd_s ucmd = { 0 };
+				Game::usercmd_s ucmd = {0};
 
-				ucmd.serverTime = time;
+				ucmd.serverTime = *Game::svs_time;
 
 				ucmd.buttons = g_botai[i].buttons;
 				ucmd.forwardmove = g_botai[i].forward;
@@ -445,15 +354,17 @@ namespace Components
 
 		Command::Add("spawnBot", [](Command::Params* params)
 		{
-			unsigned int count = 1;
+			auto count = 1;
 
 			if (params->length() > 1)
 			{
-				if (params->get(1) == "all"s) count = static_cast<unsigned int>(-1);
-				else count = atoi(params->get(1));
+				if (params->get(1) == "all"s)
+					count = *Game::svs_numclients;
+				else
+					count = std::atoi(params->get(1));
 			}
 
-			count = std::min(18u, count);
+			count = std::min(*Game::svs_numclients, count);
 
 			// Check if ingame and host
 			if (!Game::SV_Loaded())
