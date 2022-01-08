@@ -652,10 +652,7 @@ namespace Components
 			}
 
 			const auto toggle = Game::Scr_GetInt(0);
-
-			Game::scrVmPub->debugCode = (toggle)
-				? true
-				: false;
+			Game::scrVmPub->debugCode = (toggle) ? true : false;
 		});
 	}
 
@@ -667,7 +664,7 @@ namespace Components
 		Utils::Hook(0x426C2D, Script::StoreScriptBaseProgramNumStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x42281B, Script::Scr_PrintPrevCodePosStub, HOOK_JUMP).install()->quick();
 
-		// enable scr_error printing if in developer
+		// Enable scr_error printing if in developer
 		Dvar::OnInit([]()
 		{
 			int developer = Dvar::Var("developer").get<int>();
