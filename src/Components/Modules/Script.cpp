@@ -642,6 +642,21 @@ namespace Components
 		{
 			Script::ScriptStorage.clear();
 		});
+
+		Script::AddFunction("DebugCode", [](Game::scr_entref_t) // gsc: DebugCode(<int toggle>)
+		{
+			if (Game::Scr_GetNumParam() != 1u)
+			{
+				Game::Scr_Error("^1DebugCode: Needs one int parameter!\n");
+				return;
+			}
+
+			const auto toggle = Game::Scr_GetInt(0);
+
+			Game::scrVmPub->debugCode = (toggle)
+				? true
+				: false;
+		});
 	}
 
 	Script::Script()
@@ -658,7 +673,12 @@ namespace Components
 			int developer = Dvar::Var("developer").get<int>();
 
 			if (developer > 0 && Dedicated::IsEnabled())
+			{
 				Utils::Hook::Set<BYTE>(0x48D8C7, 0x75);
+				// Seems to always be false, if set to true
+				// it will call RuntimeErrorInternal
+				Game::scrVmPub->debugCode = true;
+			}
 		});
 
 		Utils::Hook(0x612E8D, Script::FunctionError, HOOK_CALL).install()->quick();

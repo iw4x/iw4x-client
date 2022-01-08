@@ -705,6 +705,9 @@ namespace Game
 	typedef void(__cdecl * Scr_ObjectError_t)(const char*);
 	extern Scr_ObjectError_t Scr_ObjectError;
 
+	typedef void(__cdecl * Scr_ParamError_t)(unsigned int paramIndex, const char*);
+	extern Scr_ParamError_t Scr_ParamError;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 

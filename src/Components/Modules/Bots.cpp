@@ -331,7 +331,7 @@ namespace Components
 			{
 				auto* client = &Game::svs_clients[i];
 
-				if (client->state < 3)
+				if (client->state < Game::CS_CONNECTED)
 					continue;
 
 				if (!client->isBot)
