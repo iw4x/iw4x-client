@@ -8,10 +8,13 @@ namespace Components
 
 	bool Chat::SendChat;
 
+	std::mutex Chat::AccessMutex;
 	std::unordered_set<std::uint64_t> Chat::MuteList;
 
 	const char* Chat::EvaluateSay(char* text, Game::gentity_t* player)
 	{
+		std::lock_guard<std::mutex> _(Chat::AccessMutex);
+
 		Chat::SendChat = true;
 
 		if (text[1] == '/')
@@ -205,12 +208,14 @@ namespace Components
 
 	void Chat::MuteClient(const Game::client_t* client)
 	{
+		std::lock_guard<std::mutex> _(Chat::AccessMutex);
+
 		if (Chat::MuteList.find(client->steamID) == Chat::MuteList.end())
 		{
 			Chat::MuteList.insert(client->steamID);
 
 			Logger::Print("%s was muted\n", client->name);
-			Game::SV_GameSendServerCommand(Bots::GetClientNum(client), 0,
+			Game::SV_GameSendServerCommand(client->gentity->s.number, 0,
 				Utils::String::VA("%c \"You were muted\"", 0x65));
 			return;
 		}
@@ -222,11 +227,21 @@ namespace Components
 
 	void Chat::UnmuteClient(const Game::client_t* client)
 	{
-		Chat::MuteList.erase(client->steamID);
+		Chat::UnmuteInternal(client->steamID);
 
 		Logger::Print("%s was unmuted\n", client->name);
-		Game::SV_GameSendServerCommand(Bots::GetClientNum(client), 0,
+		Game::SV_GameSendServerCommand(client->gentity->s.number, 0,
 			Utils::String::VA("%c \"You were unmuted\"", 0x65));
+	}
+
+	void Chat::UnmuteInternal(const std::uint64_t id, bool everyone)
+	{
+		std::lock_guard<std::mutex> _(Chat::AccessMutex);
+
+		if (everyone)
+			Chat::MuteList.clear();
+		else
+			Chat::MuteList.erase(id);
 	}
 
 	void Chat::AddChatCommands()
@@ -279,12 +294,12 @@ namespace Components
 			if (params->get(1) == "all"s)
 			{
 				Logger::Print("All players were unmuted\n");
-				Chat::MuteList.clear();
+				Chat::UnmuteInternal(0, true);
 			}
 			else
 			{
-				const auto SteamID = std::strtoull(params->get(1), nullptr, 16);
-				Chat::MuteList.erase(SteamID);
+				const auto steamId = std::strtoull(params->get(1), nullptr, 16);
+				Chat::UnmuteInternal(steamId);
 			}
 		});
 	}

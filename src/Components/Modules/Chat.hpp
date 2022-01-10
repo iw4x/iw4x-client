@@ -16,6 +16,7 @@ namespace Components
 
 		static bool SendChat;
 
+		static std::mutex AccessMutex;
 		static std::unordered_set<std::uint64_t> MuteList;
 
 		static const char* EvaluateSay(char* text, Game::gentity_t* player);
@@ -29,6 +30,7 @@ namespace Components
 
 		static void MuteClient(const Game::client_t* client);
 		static void UnmuteClient(const Game::client_t* client);
+		static void UnmuteInternal(const std::uint64_t id, bool everyone = false);
 		static void AddChatCommands();
 	};
 }

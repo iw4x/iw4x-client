@@ -71,7 +71,7 @@ namespace Components
 		{ "9",          33554432            },
 	};
 
-	unsigned int Bots::GetClientNum(const Game::client_s* cl)
+	unsigned int Bots::GetClientNum(Game::client_s* cl)
 	{
 		unsigned int num;
 

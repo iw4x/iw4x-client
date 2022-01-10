@@ -7,7 +7,7 @@ namespace Components
 	public:
 		Bots();
 		~Bots();
-		static unsigned int GetClientNum(const Game::client_s*);
+		static unsigned int GetClientNum(Game::client_s*);
 		static bool IsValidClientNum(unsigned int);
 
 	private:
