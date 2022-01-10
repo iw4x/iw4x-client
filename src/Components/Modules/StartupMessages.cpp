@@ -23,14 +23,20 @@ namespace Components
 				StartupMessages::TotalMessages = StartupMessages::MessageList.size();
 			}
 
-			std::string message = StartupMessages::MessageList.front();
-			StartupMessages::MessageList.pop_front();
+			const auto& message = StartupMessages::MessageList.front();
 
 			Game::Dvar_SetStringByName("ui_startupMessage", message.data());
 			Game::Dvar_SetStringByName("ui_startupMessageTitle", Utils::String::VA("Messages (%d/%d)", StartupMessages::TotalMessages - StartupMessages::MessageList.size(), StartupMessages::TotalMessages));
 			Game::Dvar_SetStringByName("ui_startupNextButtonText", StartupMessages::MessageList.size() ? "Next" : "Close");
 			Game::Cbuf_AddText(0, "openmenu startup_messages");
+
+			StartupMessages::MessageList.pop_front();
 		});
+	}
+
+	StartupMessages::~StartupMessages()
+	{
+		StartupMessages::MessageList.clear();
 	}
 
 	void StartupMessages::AddMessage(const std::string& message)
