@@ -159,12 +159,12 @@ namespace Components
 				origin[i] = std::strtof(params.get(i + 1), nullptr);
 			}
 
-			if (params.length() == 5)
+			if (params.length() >= 5u)
 			{
 				angles[1] = std::strtof(params.get(4), nullptr); // Yaw
 			}
 
-			if (params.length() == 6)
+			if (params.length() == 6u)
 			{
 				angles[0] = std::strtof(params.get(5), nullptr); // Pitch
 			}
