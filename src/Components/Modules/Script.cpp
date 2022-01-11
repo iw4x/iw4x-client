@@ -653,7 +653,7 @@ namespace Components
 
 			const auto toggle = Game::Scr_GetInt(0);
 			Game::scrVmPub->debugCode = (toggle) ? true : false;
-		});
+		}, true);
 	}
 
 	Script::Script()
@@ -667,15 +667,16 @@ namespace Components
 		// Enable scr_error printing if in developer
 		Dvar::OnInit([]()
 		{
-			int developer = Dvar::Var("developer").get<int>();
+			const auto developer = Dvar::Var("developer").get<int>();
+			const auto developer_script = Dvar::Var("developer_script").get<bool>();
 
 			if (developer > 0 && Dedicated::IsEnabled())
-			{
 				Utils::Hook::Set<BYTE>(0x48D8C7, 0x75);
-				// Seems to always be false, if set to true
-				// it will call RuntimeErrorInternal
+
+			// Seems to always be false, if set to true
+			// it will call RuntimeErrorInternal
+			if (developer_script)
 				Game::scrVmPub->debugCode = true;
-			}
 		});
 
 		Utils::Hook(0x612E8D, Script::FunctionError, HOOK_CALL).install()->quick();
