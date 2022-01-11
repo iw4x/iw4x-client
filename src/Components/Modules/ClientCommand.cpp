@@ -150,7 +150,7 @@ namespace Components
 			if (params.length() < 4u || params.length() > 6u)
 			{
 				Game::SV_GameSendServerCommand(ent->s.number, 0,
-					"print \"GAME_USAGE\x15: setviewpos x y z [yaw] [pitch]\n\"");
+					Utils::String::VA("%c \"GAME_USAGE\x15: setviewpos x y z [yaw] [pitch]\n\"", 0x65));
 				return;
 			}
 
