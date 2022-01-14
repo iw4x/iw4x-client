@@ -643,6 +643,22 @@ namespace Components
 			Script::ScriptStorage.clear();
 		});
 
+		Script::AddFunction("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
+		{
+			auto* ent = Script::GetEntFromEntRef(entref);
+
+			if (ent->client == nullptr)
+			{
+				Game::Scr_ObjectError(Utils::String::VA("Entity %u is not a player", entref));
+				return;
+			}
+
+			const auto isToggled = (ent->client->flags & Game::PLAYER_FLAG_FROZEN)
+				? 1 : 0;
+
+			Game::Scr_AddInt(isToggled);
+		});
+
 		Script::AddFunction("DebugCode", [](Game::scr_entref_t) // gsc: DebugCode(<int toggle>)
 		{
 			if (Game::Scr_GetNumParam() != 1u)
