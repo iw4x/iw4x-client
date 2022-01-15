@@ -643,9 +643,10 @@ namespace Components
 			Script::ScriptStorage.clear();
 		});
 
+		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
 		Script::AddFunction("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
 		{
-			auto* ent = Script::GetEntFromEntRef(entref);
+			const auto* ent = Script::GetEntFromEntRef(entref);
 
 			if (ent->client == nullptr)
 			{
@@ -653,10 +654,7 @@ namespace Components
 				return;
 			}
 
-			const auto isToggled = (ent->client->flags & Game::PLAYER_FLAG_FROZEN)
-				? 1 : 0;
-
-			Game::Scr_AddInt(isToggled);
+			Game::Scr_AddInt((ent->client->flags & Game::PLAYER_FLAG_FROZEN) != 0);
 		});
 
 		Script::AddFunction("DebugCode", [](Game::scr_entref_t) // gsc: DebugCode(<int toggle>)
