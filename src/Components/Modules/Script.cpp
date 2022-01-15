@@ -654,7 +654,7 @@ namespace Components
 				return;
 			}
 
-			Game::Scr_AddInt((ent->client->flags & Game::PLAYER_FLAG_FROZEN) != 0);
+			Game::Scr_AddBool((ent->client->flags & Game::PLAYER_FLAG_FROZEN) != 0);
 		});
 
 		Script::AddFunction("DebugCode", [](Game::scr_entref_t) // gsc: DebugCode(<int toggle>)

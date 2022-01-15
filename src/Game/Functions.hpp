@@ -151,6 +151,9 @@ namespace Game
 	typedef void(__cdecl * Com_Quitf_t)();
 	extern Com_Quitf_t Com_Quit_f;
 
+	typedef void(__cdecl * Com_PrintWarning_t)(int, const char*, ...);
+	extern Com_PrintWarning_t  Com_PrintWarning;
+
 	typedef char* (__cdecl * Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
 	extern Con_DrawMiniConsole_t Con_DrawMiniConsole;
 
@@ -780,9 +783,6 @@ namespace Game
 	typedef void(__cdecl* SV_ClientThink_t)(client_s*, usercmd_s*);
 	extern SV_ClientThink_t SV_ClientThink;
 
-	typedef int(__cdecl * Sys_Error_t)(int, char *, ...);
-	extern Sys_Error_t Sys_Error;
-
 	typedef void(__cdecl * Sys_FreeFileList_t)(char** list);
 	extern Sys_FreeFileList_t Sys_FreeFileList;
 
@@ -821,6 +821,9 @@ namespace Game
 
 	typedef void(__cdecl * Sys_SuspendOtherThreads_t)();
 	extern Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads;
+
+	typedef void(__cdecl * Sys_Error_t)(char const*, ...);
+	extern Sys_Error_t Sys_Error;
 
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
@@ -1050,9 +1053,12 @@ namespace Game
 	void SV_KickClient(client_t* client, const char* reason);
 	void SV_KickClientError(client_t* client, const std::string& reason);
 
+	void IncInParam();
+
 	void Scr_iPrintLn(int clientNum, const std::string& message);
 	void Scr_iPrintLnBold(int clientNum, const std::string& message);
 	void Scr_NotifyId(unsigned int id, unsigned __int16 stringValue, unsigned int paramcount);
+	void Scr_AddBool(int value);
 
 	void IN_KeyUp(kbutton_t* button);
 	void IN_KeyDown(kbutton_t* button);

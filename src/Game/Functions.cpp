@@ -72,6 +72,7 @@ namespace Game
 	Com_MatchToken_t Com_MatchToken = Com_MatchToken_t(0x447130);
 	Com_SetSlowMotion_t Com_SetSlowMotion = Com_SetSlowMotion_t(0x446E20);
 	Com_Quitf_t Com_Quit_f = Com_Quitf_t(0x4D4000);
+	Com_PrintWarning_t  Com_PrintWarning = Com_PrintWarning_t(0x4E0200);
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = Con_DrawMiniConsole_t(0x464F30);
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = Con_DrawSolidConsole_t(0x5A5040);
@@ -325,7 +326,6 @@ namespace Game
 	SV_Loaded_t SV_Loaded = SV_Loaded_t(0x4EE3E0);
 	SV_ClientThink_t SV_ClientThink = SV_ClientThink_t(0x44ADD0);
 
-	Sys_Error_t Sys_Error = Sys_Error_t(0x4E0200);
 	Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x4D8580);
 	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = Sys_IsDatabaseReady_t(0x4CA4A0);
 	Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2 = Sys_IsDatabaseReady2_t(0x441280);
@@ -338,6 +338,7 @@ namespace Game
 	Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads = Sys_SuspendOtherThreads_t(0x45A190);
 	Sys_ListFiles_t Sys_ListFiles = Sys_ListFiles_t(0x45A660);
 	Sys_Milliseconds_t Sys_Milliseconds = Sys_Milliseconds_t(0x42A660);
+	Sys_Error_t Sys_Error = Sys_Error_t(0x43D570);
 
 	TeleportPlayer_t TeleportPlayer = TeleportPlayer_t(0x496850);
 
@@ -1016,6 +1017,28 @@ namespace Game
 	float GraphFloat_GetValue(const GraphFloat* graph, const float fraction)
 	{
 		return GraphGetValueFromFraction(graph->knotCount, graph->knots, fraction) * graph->scale;
+	}
+
+	void IncInParam()
+	{
+		Scr_ClearOutParams();
+
+		if (scrVmPub->top == scrVmPub->maxStack)
+		{
+			Sys_Error("Internal script stack overflow");
+		}
+
+		scrVmPub->top++;
+		scrVmPub->inparamcount++;
+	}
+
+	void Scr_AddBool(int value)
+	{
+		assert(value == 0 || value == 1);
+
+		IncInParam();
+		scrVmPub->top->type = VAR_INTEGER;
+		scrVmPub->top->u.intValue = value;
 	}
 
 #pragma optimize("", off)

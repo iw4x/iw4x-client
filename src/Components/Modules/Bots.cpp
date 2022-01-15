@@ -177,7 +177,7 @@ namespace Components
 			const auto* gentity = Script::GetEntFromEntRef(id);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
-			Game::Scr_AddInt(client->isBot);
+			Game::Scr_AddBool(client->isBot == 1);
 		});
 
 		Script::AddFunction("BotStop", [](Game::scr_entref_t id) // Usage: <bot> BotStop();
