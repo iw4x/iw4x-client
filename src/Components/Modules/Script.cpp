@@ -635,11 +635,11 @@ namespace Components
 			const auto developer = Dvar::Var("developer").get<int>();
 			const auto developer_script = Dvar::Var("developer_script").get<bool>();
 
-			if (developer > 0 && Dedicated::IsEnabled())
+			if (developer > 0)
 				Utils::Hook::Set<BYTE>(0x48D8C7, 0x75);
 
 			// Seems to always be false, if set to true
-			// it will call RuntimeErrorInternal
+			// it will not call Com_Error (Useful for debugging)
 			if (developer_script)
 				Game::scrVmPub->debugCode = true;
 		});
