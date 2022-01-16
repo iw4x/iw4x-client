@@ -51,6 +51,7 @@ namespace Components
 
 		static void FunctionError();
 		static void StoreFunctionNameStub();
+		static void RuntimeError(const char*, unsigned int, const char*, const char*);
 
 		static void StoreScriptName(const char* name);
 		static void StoreScriptNameStub();

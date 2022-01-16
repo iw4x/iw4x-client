@@ -45,6 +45,39 @@ namespace Components
 		}
 	}
 
+	void Script::RuntimeError(const char* codePos, unsigned int index, const char* msg, const char* dialogMessage)
+	{
+		const auto developer = Dvar::Var("developer").get<int>();
+
+		// Allow error messages to be printed if developer mode is on
+		// Should check scrVarPub.developer but it's absent in this version of the game
+		if (!Game::scrVmPub->terminal_error && !developer)
+			return;
+
+		// If were are developing let's just print a brief message
+		// scrVmPub->debugCode seems to be always false
+		if (Game::scrVmPub->debugCode || Game::scrVarPub->developer_script)
+		{
+			Logger::Print(23, "%s\n", msg);
+
+			if (!Game::scrVmPub->terminal_error)
+				return;
+		}
+		else
+		{
+			Game::RuntimeErrorInternal(23, codePos, index, msg);
+			// Let's not throw error unless we have to
+			if (!Game::scrVmPub->abort_on_error && !Game::scrVmPub->terminal_error)
+				return;
+		}
+
+		if (dialogMessage == nullptr)
+			dialogMessage = "";
+
+		const auto errorLevel = (Game::scrVmPub->terminal_error) ? Game::ERR_SCRIPT_DROP : Game::ERR_SCRIPT;
+		Logger::Error(errorLevel, "\x15script runtime error\n(see console for details)\n%s\n%s", msg, dialogMessage);
+	}
+
 	void Script::StoreScriptName(const char* name)
 	{
 		Script::ScriptNameStack.push_back(Script::ScriptName);
@@ -629,20 +662,9 @@ namespace Components
 		Utils::Hook(0x426C2D, Script::StoreScriptBaseProgramNumStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x42281B, Script::Scr_PrintPrevCodePosStub, HOOK_JUMP).install()->quick();
 
-		// Enable scr_error printing if in developer
-		Dvar::OnInit([]()
-		{
-			const auto developer = Dvar::Var("developer").get<int>();
-			const auto developer_script = Dvar::Var("developer_script").get<bool>();
-
-			if (developer > 0)
-				Utils::Hook::Set<BYTE>(0x48D8C7, 0x75);
-
-			// Seems to always be false, if set to true
-			// it will not call Com_Error (Useful for debugging)
-			if (developer_script)
-				Game::scrVmPub->debugCode = true;
-		});
+		Utils::Hook(0x61E3AD, Script::RuntimeError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x621976, Script::RuntimeError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x62246E, Script::RuntimeError, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x612E8D, Script::FunctionError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x612EA2, Script::FunctionError, HOOK_CALL).install()->quick();

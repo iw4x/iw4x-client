@@ -4959,6 +4959,15 @@ namespace Game
 		VariableValue stack[2048];
 	};
 
+	struct scrVarPub_t
+	{
+		const char* fieldBuffer;
+		unsigned __int16 canonicalStrCount;
+		bool developer_script;
+		bool evaluate;
+		const char* error_message;
+	}; // Incomplete
+
 	enum UILocalVarType
 	{
 		UILOCALVAR_INT = 0x0,

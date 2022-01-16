@@ -991,6 +991,7 @@ namespace Game
 	extern unsigned short* db_hashTable;
 
 	extern scrVmPub_t* scrVmPub;
+	extern scrVarPub_t* scrVarPub;
 
 	extern clientstate_t* clcState;
 
@@ -1053,6 +1054,7 @@ namespace Game
 	void SV_KickClient(client_t* client, const char* reason);
 	void SV_KickClientError(client_t* client, const std::string& reason);
 
+	void RuntimeErrorInternal(int channel, const char* codePos, unsigned int index, const char* msg);
 	void IncInParam();
 
 	void Scr_iPrintLn(int clientNum, const std::string& message);

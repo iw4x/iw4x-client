@@ -468,6 +468,7 @@ namespace Game
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x12412B0);
 
 	scrVmPub_t* scrVmPub = reinterpret_cast<scrVmPub_t*>(0x2040CF0);
+	scrVarPub_t* scrVarPub = reinterpret_cast<scrVarPub_t*>(0x201A408);
 
 	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
 
@@ -703,6 +704,28 @@ namespace Game
 	void Scr_iPrintLnBold(int clientNum, const std::string& message)
 	{
 		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x67, message.data()));
+	}
+
+	void IncInParam()
+	{
+		Scr_ClearOutParams();
+
+		if (scrVmPub->top == scrVmPub->maxStack)
+		{
+			Sys_Error("Internal script stack overflow");
+		}
+
+		scrVmPub->top++;
+		scrVmPub->inparamcount++;
+	}
+
+	void Scr_AddBool(int value)
+	{
+		assert(value == 0 || value == 1);
+
+		IncInParam();
+		scrVmPub->top->type = VAR_INTEGER;
+		scrVmPub->top->u.intValue = value;
 	}
 
 	int FS_FOpenFileReadCurrentThread(const char* file, int* fh)
@@ -1019,28 +1042,6 @@ namespace Game
 		return GraphGetValueFromFraction(graph->knotCount, graph->knots, fraction) * graph->scale;
 	}
 
-	void IncInParam()
-	{
-		Scr_ClearOutParams();
-
-		if (scrVmPub->top == scrVmPub->maxStack)
-		{
-			Sys_Error("Internal script stack overflow");
-		}
-
-		scrVmPub->top++;
-		scrVmPub->inparamcount++;
-	}
-
-	void Scr_AddBool(int value)
-	{
-		assert(value == 0 || value == 1);
-
-		IncInParam();
-		scrVmPub->top->type = VAR_INTEGER;
-		scrVmPub->top->u.intValue = value;
-	}
-
 #pragma optimize("", off)
 	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
 	{
@@ -1208,6 +1209,27 @@ namespace Game
 
 			popad
 			retn
+		}
+	}
+
+	__declspec(naked) void RuntimeErrorInternal(int /*channel*/, const char* /*codePos*/, unsigned int /*index*/, const char* /*msg*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 0x10 + 0x20]
+			mov edi, [esp + 0x4 + 0x20]
+
+			push [esp + 0xC + 0x20]
+			push [esp + 0xC + 0x20]
+
+			mov edx, 0x61ABE0
+			call edx
+			add esp, 0x8
+
+			popad
+			ret
 		}
 	}
 
