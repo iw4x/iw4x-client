@@ -403,7 +403,7 @@ namespace Components
 	{
 		if (static_cast<unsigned int>(index) >= Game::scrVmPub->outparamcount)
 		{
-			Game::Scr_Error("^1GetCodePosForParam: Index is out of range!\n");
+			Game::Scr_ParamError(static_cast<unsigned int>(index), "^1GetCodePosForParam: Index is out of range!\n");
 			return "";
 		}
 
@@ -411,7 +411,7 @@ namespace Components
 
 		if (value->type != Game::VAR_FUNCTION)
 		{
-			Game::Scr_Error("^1GetCodePosForParam: Expects a function as parameter!\n");
+			Game::Scr_ParamError(static_cast<unsigned int>(index), "^1GetCodePosForParam: Expects a function as parameter!\n");
 			return "";
 		}
 
@@ -489,13 +489,15 @@ namespace Components
 
 	Game::gentity_t* Script::GetEntFromEntRef(const Game::scr_entref_t entref)
 	{
-		if (entref >= Game::MAX_GENTITIES)
+		if (entref.classnum != 0)
 		{
 			Game::Scr_ObjectError("Not an entity");
 			return nullptr;
 		}
 
-		return &Game::g_entities[entref];
+		assert(entref.entnum < Game::MAX_GENTITIES);
+
+		return &Game::g_entities[entref.entnum];
 	}
 
 	Game::client_t* Script::GetClientFromEnt(const Game::gentity_t* gentity)
@@ -545,28 +547,14 @@ namespace Components
 		// Print to console, even without being in 'developer 1'.
 		Script::AddFunction("PrintConsole", [](Game::scr_entref_t) // gsc: PrintConsole(<string>)
 		{
-			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
-			{
-				Game::Scr_Error("^1PrintConsole: Needs one string parameter!\n");
-				return;
-			}
-
 			const auto str = Game::Scr_GetString(0);
-
 			Game::Com_Printf(0, str);
 		});
 
 		// Executes command to the console
 		Script::AddFunction("Exec", [](Game::scr_entref_t) // gsc: Exec(<string>)
 		{
-			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
-			{
-				Game::Scr_Error("^1Exec: Needs one string parameter!\n");
-				return;
-			}
-
 			const auto str = Game::Scr_GetString(0);
-
 			Command::Execute(str, false);
 		});
 
@@ -574,12 +562,6 @@ namespace Components
 		// Script Storage Funcs
 		Script::AddFunction("StorageSet", [](Game::scr_entref_t) // gsc: StorageSet(<str key>, <str data>);
 		{
-			if (Game::Scr_GetNumParam() != 2u || Game::Scr_GetType(0) != Game::VAR_STRING || Game::Scr_GetType(1) != Game::VAR_STRING)
-			{
-				Game::Scr_Error("^1StorageSet: Needs two string parameters!\n");
-				return;
-			}
-
 			std::string key = Game::Scr_GetString(0);
 			std::string data = Game::Scr_GetString(1);
 
@@ -588,17 +570,11 @@ namespace Components
 
 		Script::AddFunction("StorageRemove", [](Game::scr_entref_t) // gsc: StorageRemove(<str key>);
 		{
-			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
-			{
-				Game::Scr_Error("^1StorageRemove: Needs one string parameter!\n");
-				return;
-			}
-
 			std::string key = Game::Scr_GetString(0);
 
 			if (!Script::ScriptStorage.count(key))
 			{
-				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key.c_str()));
+				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key.data()));
 				return;
 			}
 
@@ -607,35 +583,22 @@ namespace Components
 
 		Script::AddFunction("StorageGet", [](Game::scr_entref_t) // gsc: StorageGet(<str key>);
 		{
-			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
-			{
-				Game::Scr_Error("^1StorageGet: Needs one string parameter!\n");
-				return;
-			}
-
 			std::string key = Game::Scr_GetString(0);
 
 			if (!Script::ScriptStorage.count(key))
 			{
-				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key.c_str()));
+				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key.data()));
 				return;
 			}
 
-			auto data = Script::ScriptStorage.at(key);
-			Game::Scr_AddString(data.c_str());
+			const auto& data = Script::ScriptStorage.at(key);
+			Game::Scr_AddString(data.data());
 		});
 
 		Script::AddFunction("StorageHas", [](Game::scr_entref_t) // gsc: StorageHas(<str key>);
 		{
-			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
-			{
-				Game::Scr_Error("^1StorageHas: Needs one string parameter!\n");
-				return;
-			}
-
 			std::string key = Game::Scr_GetString(0);
-
-			Game::Scr_AddInt(Script::ScriptStorage.count(key));
+			Game::Scr_AddBool(Script::ScriptStorage.count(key));
 		});
 
 		Script::AddFunction("StorageClear", [](Game::scr_entref_t) // gsc: StorageClear();
@@ -650,24 +613,12 @@ namespace Components
 
 			if (ent->client == nullptr)
 			{
-				Game::Scr_ObjectError(Utils::String::VA("Entity %u is not a player", entref));
+				Game::Scr_ObjectError(Utils::String::VA("Entity %i is not a player", ent->s.number));
 				return;
 			}
 
 			Game::Scr_AddBool((ent->client->flags & Game::PLAYER_FLAG_FROZEN) != 0);
 		});
-
-		Script::AddFunction("DebugCode", [](Game::scr_entref_t) // gsc: DebugCode(<int toggle>)
-		{
-			if (Game::Scr_GetNumParam() != 1u)
-			{
-				Game::Scr_Error("^1DebugCode: Needs one int parameter!\n");
-				return;
-			}
-
-			const auto toggle = Game::Scr_GetInt(0);
-			Game::scrVmPub->debugCode = (toggle) ? true : false;
-		}, true);
 	}
 
 	Script::Script()

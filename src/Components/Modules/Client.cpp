@@ -126,9 +126,9 @@ namespace Components
 	void Client::AddMethods()
 	{
 		// Client methods
-		Script::AddFunction("GetIp", [](Game::scr_entref_t id) // gsc: self GetIp()
+		Script::AddFunction("GetIp", [](Game::scr_entref_t entref) // gsc: self GetIp()
 		{
-			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
 			std::string ip = Game::NET_AdrToString(client->netchan.remoteAddress);
@@ -139,9 +139,9 @@ namespace Components
 			Game::Scr_AddString(ip.data());
 		});
 
-		Script::AddFunction("GetPing", [](Game::scr_entref_t id) // gsc: self GetPing()
+		Script::AddFunction("GetPing", [](Game::scr_entref_t entref) // gsc: self GetPing()
 		{
-			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
 			Game::Scr_AddInt(client->ping);

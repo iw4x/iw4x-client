@@ -144,23 +144,17 @@ namespace Components
 
 	void Bots::AddMethods()
 	{
-		Script::AddFunction("SetPing", [](Game::scr_entref_t id) // gsc: self SetPing(<int>)
+		Script::AddFunction("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
 		{
-			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_INTEGER)
-			{
-				Game::Scr_Error("^1SetPing: Needs one integer parameter!\n");
-				return;
-			}
-
 			const auto ping = Game::Scr_GetInt(0);
 
 			if (ping < 0 || ping > 999)
 			{
-				Game::Scr_Error("^1SetPing: Ping needs to between 0 and 999!\n");
+				Game::Scr_ParamError(0, "^1SetPing: Ping needs to be between 0 and 999!\n");
 				return;
 			}
 
-			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* gentity = Script::GetEntFromEntRef(entref);
 			auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)
@@ -172,17 +166,17 @@ namespace Components
 			client->ping = static_cast<int16_t>(ping);
 		});
 
-		Script::AddFunction("IsBot", [](Game::scr_entref_t id) // Usage: <bot> IsBot();
+		Script::AddFunction("IsBot", [](Game::scr_entref_t entref) // Usage: <bot> IsBot();
 		{
-			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
 			Game::Scr_AddBool(client->isBot == 1);
 		});
 
-		Script::AddFunction("BotStop", [](Game::scr_entref_t id) // Usage: <bot> BotStop();
+		Script::AddFunction("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
-			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)
@@ -195,17 +189,11 @@ namespace Components
 			g_botai[gentity->s.number].weapon = 1;
 		});
 
-		Script::AddFunction("BotWeapon", [](Game::scr_entref_t id) // Usage: <bot> BotWeapon(<str>);
+		Script::AddFunction("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
 		{
-			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
-			{
-				Game::Scr_Error("^1BotWeapon: Needs one string parameter!\n");
-				return;
-			}
-
 			const auto* weapon = Game::Scr_GetString(0);
 
-			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)
@@ -224,17 +212,11 @@ namespace Components
 			g_botai[gentity->s.number].weapon = static_cast<uint16_t>(weapId);
 		});
 
-		Script::AddFunction("BotAction", [](Game::scr_entref_t id) // Usage: <bot> BotAction(<str action>);
+		Script::AddFunction("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
 		{
-			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
-			{
-				Game::Scr_Error("^1BotAction: Needs one string parameter!\n");
-				return;
-			}
-
 			const auto* action = Game::Scr_GetString(0);
 
-			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)
@@ -245,7 +227,7 @@ namespace Components
 
 			if (action[0] != '+' && action[0] != '-')
 			{
-				Game::Scr_Error("^1BotAction: Sign for action must be '+' or '-'.\n");
+				Game::Scr_ParamError(0, "^1BotAction: Sign for action must be '+' or '-'.\n");
 				return;
 			}
 
@@ -262,21 +244,15 @@ namespace Components
 				return;
 			}
 
-			Game::Scr_Error("^1BotAction: Unknown action.\n");
+			Game::Scr_ParamError(0, "^1BotAction: Unknown action.\n");
 		});
 
-		Script::AddFunction("BotMovement", [](Game::scr_entref_t id) // Usage: <bot> BotMovement(<int>, <int>);
+		Script::AddFunction("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
 		{
-			if (Game::Scr_GetNumParam() != 2u || Game::Scr_GetType(0) != Game::VAR_INTEGER || Game::Scr_GetType(1) != Game::VAR_INTEGER)
-			{
-				Game::Scr_Error("^1BotMovement: Needs two integer parameters!\n");
-				return;
-			}
-
 			auto forwardInt = Game::Scr_GetInt(0);
 			auto rightInt = Game::Scr_GetInt(1);
 
-			const auto* gentity = Script::GetEntFromEntRef(id);
+			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
 			if (!client->isBot)

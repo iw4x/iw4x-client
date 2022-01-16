@@ -146,11 +146,11 @@ namespace Components
 
 			if (ent->client == nullptr)
 			{
-				Game::Scr_ObjectError(Utils::String::VA("^1NoClip: entity %u is not a client\n", entref));
+				Game::Scr_ObjectError(Utils::String::VA("^1NoClip: entity %i is not a client\n", ent->s.number));
 				return;
 			}
 
-			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() == 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -173,11 +173,11 @@ namespace Components
 
 			if (ent->client == nullptr)
 			{
-				Game::Scr_ObjectError(Utils::String::VA("^1Ufo: entity %u is not a client\n", entref));
+				Game::Scr_ObjectError(Utils::String::VA("^1Ufo: entity %i is not a client\n", ent->s.number));
 				return;
 			}
 
-			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() == 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -198,7 +198,7 @@ namespace Components
 		{
 			auto* ent = Script::GetEntFromEntRef(entref);
 
-			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() == 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -219,7 +219,7 @@ namespace Components
 		{
 			auto* ent = Script::GetEntFromEntRef(entref);
 
-			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() == 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -240,7 +240,7 @@ namespace Components
 		{
 			auto* ent = Script::GetEntFromEntRef(entref);
 
-			if (Game::Scr_GetNumParam() == 1u && Game::Scr_GetType(0) == Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() == 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{
