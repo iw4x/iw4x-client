@@ -21,19 +21,19 @@ namespace Components
 		return this->dvar;
 	}
 
-	template <> char* Dvar::Var::get()
-	{
-		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING && this->dvar->current.string)
-		{
-			return const_cast<char*>(this->dvar->current.string);
-		}
-
-		return const_cast<char*>("");
-	}
-
 	template <> const char* Dvar::Var::get()
 	{
-		return this->get<char*>();
+		if (this->dvar == nullptr)
+			return "";
+
+		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING
+			|| this->dvar->type == Game::dvar_type::DVAR_TYPE_ENUM)
+		{
+			if (this->dvar->current.string != nullptr)
+				return this->dvar->current.string;
+		}
+
+		return "";
 	}
 
 	template <> int Dvar::Var::get()
@@ -198,7 +198,7 @@ namespace Components
 		Scheduler::OnFrame([]()
 		{
 			static std::string lastValidName = "Unknown Soldier";
-			std::string name = Dvar::Var("name").get<char*>();
+			std::string name = Dvar::Var("name").get<const char*>();
 
 			// Don't perform any checks if name didn't change
 			if (name == lastValidName) return;

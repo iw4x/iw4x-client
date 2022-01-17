@@ -15,19 +15,14 @@ namespace Components
 		return 0;
 	}
 
-	template<> char* UIScript::Token::get()
+	template<> const char* UIScript::Token::get()
 	{
 		if (this->isValid())
 		{
 			return this->token;
 		}
 
-		return const_cast<char*>("");
-	}
-
-	template<> const char* UIScript::Token::get()
-	{
-		return this->get<char*>();
+		return "";
 	}
 
 	template<> std::string UIScript::Token::get()
