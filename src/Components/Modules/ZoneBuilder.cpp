@@ -1300,7 +1300,7 @@ namespace Components
 				}, nullptr, false);
 
 				// HACK: set language to 'techsets' to load from that dir
-				char* language = Utils::Hook::Get<char*>(0x649E740);
+				const char* language = Utils::Hook::Get<const char*>(0x649E740);
 				Utils::Hook::Set<const char*>(0x649E740, "techsets");
 
 				// load generated techset fastfiles
@@ -1447,7 +1447,7 @@ namespace Components
 				Utils::IO::WriteFile("zone_source/techsets/techsets.csv", csvStr.data());
 
 				// set language back
-				Utils::Hook::Set<char*>(0x649E740, language);
+				Utils::Hook::Set<const char*>(0x649E740, language);
 
 				Logger::Print("Building zone 'techsets/techsets'...\n");
 				Zone("techsets/techsets").build();
