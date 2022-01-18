@@ -759,7 +759,7 @@ namespace Game
 	typedef void(__cdecl * SV_Cmd_EndTokenizedString_t)();
 	extern SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString;
 
-	typedef void(__cdecl* SV_Cmd_ArgvBuffer_t)(int arg, char* buf, int size);
+	typedef void(__cdecl * SV_Cmd_ArgvBuffer_t)(int arg, char* buf, int size);
 	extern SV_Cmd_ArgvBuffer_t SV_Cmd_ArgvBuffer;
 
 	typedef void(__cdecl * SV_SetConfigstring_t)(int index, const char* string);
@@ -903,6 +903,15 @@ namespace Game
 	typedef void(__cdecl * AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
 	extern AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee;
 
+	typedef void(__cdecl * Jump_ClearState_t)(playerState_s* ps);
+	extern Jump_ClearState_t Jump_ClearState;
+
+	typedef void(__cdecl * PM_playerTrace_t)(pmove_s*, trace_t*, const float*, const float*, const Bounds*, int, int);
+	extern PM_playerTrace_t PM_playerTrace;
+
+	typedef void(__cdecl * PM_Trace_t)(pmove_s*, trace_t*, const float*, const float*, const Bounds*, int, int);
+	extern PM_Trace_t PM_Trace;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
@@ -953,6 +962,7 @@ namespace Game
 	extern int* serverMessageSequence;
 
 	constexpr auto MAX_GENTITIES = 2048u;
+	constexpr auto ENTITYNUM_NONE = MAX_GENTITIES - 1;
 	extern gentity_t* g_entities;
 
 	extern netadr_t* connectedHost;
@@ -1023,6 +1033,8 @@ namespace Game
 	extern GraphFloat* aaInputGraph;
 
 	void Sys_UnlockWrite(FastCriticalSection*);
+
+	extern vec3_t* CorrectSolidDeltas;
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);

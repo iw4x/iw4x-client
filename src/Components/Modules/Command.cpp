@@ -18,14 +18,14 @@ namespace Components
 		return result;
 	}
 
-	char* Command::Params::operator[](size_t index)
+	const char* Command::Params::operator[](size_t index)
 	{
 		return this->get(index);
 	}
 
-	char* Command::ClientParams::get(size_t index)
+	const char* Command::ClientParams::get(size_t index)
 	{
-		if (index >= this->length()) return const_cast<char*>("");
+		if (index >= this->length()) return "";
 		return Game::cmd_argv[this->commandId][index];
 	}
 
@@ -34,9 +34,9 @@ namespace Components
 		return Game::cmd_argc[this->commandId];
 	}
 
-	char* Command::ServerParams::get(size_t index)
+	const char* Command::ServerParams::get(size_t index)
 	{
-		if (index >= this->length()) return const_cast<char*>("");
+		if (index >= this->length()) return "";
 		return Game::cmd_argv_sv[this->commandId][index];
 	}
 

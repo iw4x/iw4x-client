@@ -149,4 +149,15 @@ namespace Utils
 	{
 		return !(base1 + len1 <= base2 || base2 + len2 <= base1);
 	}
+
+	float Vec3SqrDistance(const float v1[3], const float v2[3])
+	{
+		auto x = v2[0] - v1[0];
+		auto y = v2[1] - v1[1];
+		auto z = v2[2] - v1[2];
+
+		return x * x + y * y + z * z;
+	}
+
+
 }

@@ -6,6 +6,8 @@ namespace Components
 
 	bool Bans::IsBanned(Bans::Entry entry)
 	{
+		std::lock_guard<std::recursive_mutex> _(Bans::AccessMutex);
+
 		Bans::BanList list;
 		Bans::LoadBans(&list);
 
