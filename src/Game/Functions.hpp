@@ -1032,9 +1032,9 @@ namespace Game
 	constexpr auto AIM_ASSIST_GRAPH_COUNT = 4u;
 	extern GraphFloat* aaInputGraph;
 
-	void Sys_UnlockWrite(FastCriticalSection*);
-
 	extern vec3_t* CorrectSolidDeltas;
+
+	void Sys_UnlockWrite(FastCriticalSection*);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);

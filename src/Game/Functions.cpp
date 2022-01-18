@@ -502,6 +502,8 @@ namespace Game
 
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
 
+	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
+
 	void Sys_UnlockWrite(FastCriticalSection* critSect)
 	{
 		assert(critSect->writeCount > 0);
@@ -509,8 +511,6 @@ namespace Game
 		InterlockedDecrement(&critSect->writeCount);
 		Sys_TempPriorityEnd(&critSect->tempPriority);
 	}
-
-	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
