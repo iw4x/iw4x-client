@@ -185,8 +185,8 @@ namespace Components
 				return;
 			}
 
-			g_botai[gentity->s.number] = {0};
-			g_botai[gentity->s.number].weapon = 1;
+			g_botai[entref.entnum] = {0};
+			g_botai[entref.entnum].weapon = 1;
 		});
 
 		Script::AddFunction("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
@@ -204,12 +204,12 @@ namespace Components
 
 			if (weapon[0] == '\0')
 			{
-				g_botai[gentity->s.number].weapon = 1;
+				g_botai[entref.entnum].weapon = 1;
 				return;
 			}
 
 			const auto weapId = Game::G_GetWeaponIndexForName(weapon);
-			g_botai[gentity->s.number].weapon = static_cast<uint16_t>(weapId);
+			g_botai[entref.entnum].weapon = static_cast<uint16_t>(weapId);
 		});
 
 		Script::AddFunction("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
@@ -237,9 +237,9 @@ namespace Components
 					continue;
 
 				if (action[0] == '+')
-					g_botai[gentity->s.number].buttons |= BotActions[i].key;
+					g_botai[entref.entnum].buttons |= BotActions[i].key;
 				else
-					g_botai[gentity->s.number].buttons &= ~(BotActions[i].key);
+					g_botai[entref.entnum].buttons &= ~(BotActions[i].key);
 
 				return;
 			}
@@ -273,8 +273,8 @@ namespace Components
 			if (rightInt < -127)
 				rightInt = -127;
 
-			g_botai[gentity->s.number].forward = static_cast<int8_t>(forwardInt);
-			g_botai[gentity->s.number].right = static_cast<int8_t>(rightInt);
+			g_botai[entref.entnum].forward = static_cast<int8_t>(forwardInt);
+			g_botai[entref.entnum].right = static_cast<int8_t>(rightInt);
 		});
 	}
 

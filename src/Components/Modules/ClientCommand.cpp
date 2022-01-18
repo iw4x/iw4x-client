@@ -17,7 +17,7 @@ namespace Components
 
 		if (ent->health < 1)
 		{
-			Logger::Print("CheatsOk: entity %u must be alive to use this command!\n", entNum);
+			Logger::Print("CheatsOk: entity %i must be alive to use this command!\n", entNum);
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"GAME_MUSTBEALIVECOMMAND\"", 0x65));
 			return false;
 		}
@@ -75,7 +75,7 @@ namespace Components
 			ent->client->flags ^= Game::PLAYER_FLAG_NOCLIP;
 
 			const auto entNum = ent->s.number;
-			Logger::Print("Noclip toggled for entity %u\n", entNum);
+			Logger::Print("Noclip toggled for entity %i\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->client->flags & Game::PLAYER_FLAG_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
@@ -89,7 +89,7 @@ namespace Components
 			ent->client->flags ^= Game::PLAYER_FLAG_UFO;
 
 			const auto entNum = ent->s.number;
-			Logger::Print("UFO toggled for entity %u\n", entNum);
+			Logger::Print("UFO toggled for entity %i\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->client->flags & Game::PLAYER_FLAG_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
@@ -103,7 +103,7 @@ namespace Components
 			ent->flags ^= Game::FL_GODMODE;
 
 			const auto entNum = ent->s.number;
-			Logger::Print("God toggled for entity %u\n", entNum);
+			Logger::Print("God toggled for entity %i\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_GODMODE) ? "GAME_GODMODE_ON" : "GAME_GODMODE_OFF"));
@@ -117,7 +117,7 @@ namespace Components
 			ent->flags ^= Game::FL_DEMI_GODMODE;
 
 			const auto entNum = ent->s.number;
-			Logger::Print("Demigod toggled for entity %u\n", entNum);
+			Logger::Print("Demigod toggled for entity %i\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_DEMI_GODMODE) ? "GAME_DEMI_GODMODE_ON" : "GAME_DEMI_GODMODE_OFF"));
@@ -131,7 +131,7 @@ namespace Components
 			ent->flags ^= Game::FL_NOTARGET;
 
 			const auto entNum = ent->s.number;
-			Logger::Print("Notarget toggled for entity %u\n", entNum);
+			Logger::Print("Notarget toggled for entity %i\n", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_NOTARGET) ? "GAME_NOTARGETON" : "GAME_NOTARGETOFF"));

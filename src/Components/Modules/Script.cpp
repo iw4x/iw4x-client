@@ -55,7 +55,7 @@ namespace Components
 			return;
 
 		// If were are developing let's just print a brief message
-		// scrVmPub->debugCode seems to be always false
+		// scrVmPub.debugCode seems to be always false
 		if (Game::scrVmPub->debugCode || Game::scrVarPub->developer_script)
 		{
 			Logger::Print(23, "%s\n", msg);
