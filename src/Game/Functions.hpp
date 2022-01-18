@@ -804,6 +804,15 @@ namespace Game
 	typedef int(__cdecl * Sys_Milliseconds_t)();
 	extern Sys_Milliseconds_t Sys_Milliseconds;
 
+	typedef void(__cdecl * Sys_LockWrite_t)(FastCriticalSection* critSect);
+	extern Sys_LockWrite_t Sys_LockWrite;
+
+	typedef void(__cdecl * Sys_TempPriorityAtLeastNormalBegin_t)(TempPriority*);
+	extern Sys_TempPriorityAtLeastNormalBegin_t Sys_TempPriorityAtLeastNormalBegin;
+
+	typedef void(__cdecl * Sys_TempPriorityEnd_t)(TempPriority*);
+	extern Sys_TempPriorityEnd_t Sys_TempPriorityEnd;
+
 	typedef void(__cdecl * TeleportPlayer_t)(gentity_t* entity, float* pos, float* orientation);
 	extern TeleportPlayer_t TeleportPlayer;
 
@@ -1012,6 +1021,8 @@ namespace Game
 
 	constexpr auto AIM_ASSIST_GRAPH_COUNT = 4u;
 	extern GraphFloat* aaInputGraph;
+
+	void Sys_UnlockWrite(FastCriticalSection*);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);

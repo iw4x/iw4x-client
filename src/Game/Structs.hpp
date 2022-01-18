@@ -6961,6 +6961,19 @@ namespace Game
 		PM_EFF_STANCE_COUNT = 4
 	};
 
+	struct TempPriority
+	{
+		void* threadHandle;
+		int oldPriority;
+	};
+
+	struct FastCriticalSection
+	{
+		volatile long readCount;
+		volatile long writeCount;
+		TempPriority tempPriority;
+	};
+
 #pragma endregion
 
 #ifndef IDA
