@@ -8,6 +8,8 @@ namespace Components
     Dvar::Var Movement::PlayerSpectateSpeedScale;
     Dvar::Var Movement::CGUfoScaler;
     Dvar::Var Movement::CGNoclipScaler;
+    Dvar::Var Movement::BGBouncesAllAngles;
+    Game::dvar_t* Movement::BGBounces;
 
     float Movement::PM_CmdScaleForStance(const Game::pmove_s* pm)
     {
@@ -153,6 +155,71 @@ namespace Components
         }
     }
 
+    __declspec(naked) void Movement::PM_StepSlideMoveStub()
+    {
+        __asm
+        {
+            // Check the value of BGEnableBounces
+            push ecx
+            push eax
+
+            mov eax, Movement::BGBounces
+            mov ecx, dword ptr [eax + 0x10]
+            test ecx, ecx
+
+            pop eax
+            pop ecx
+
+            // Do not bounce if BGEnableBounces is 0
+            jle noBounce
+
+            // Bounce
+            push 0x4B1B34
+            retn
+
+        noBounce:
+            // Original code
+            cmp dword ptr [esp + 0x24], 0
+            push 0x4B1B48
+            retn
+        }
+    }
+
+    void Movement::PM_ProjectVelocityStub(const float* velIn, const float* normal, float* velOut)
+    {
+        auto lengthSquared2D = velIn[0] * velIn[0] + velIn[1] * velIn[1];
+
+        if (std::fabsf(normal[2]) < 0.001f || lengthSquared2D == 0.0)
+        {
+            velOut[0] = velIn[0];
+            velOut[1] = velIn[1];
+            velOut[2] = velIn[2];
+            return;
+        }
+
+        auto newZ = velIn[0] * normal[0] + velIn[1] * normal[1];
+        newZ = -newZ / normal[2];
+        auto lengthScale = std::sqrtf((velIn[2] * velIn[2] + lengthSquared2D)
+                / (newZ * newZ + lengthSquared2D));
+
+        if (Movement::BGBouncesAllAngles.get<bool>()
+            || (lengthScale < 1.f || newZ < 0.f || velIn[2] > 0.f))
+        {
+            velOut[0] = velIn[0] * lengthScale;
+            velOut[1] = velIn[1] * lengthScale;
+            velOut[2] = newZ * lengthScale;
+        }
+    }
+
+    // Double bounces
+    void Movement::Jump_ClearStateHk(Game::playerState_s* ps)
+    {
+        if (Movement::BGBounces->current.integer == Movement::DOUBLE)
+            return;
+
+        Game::Jump_ClearState(ps);
+    }
+
     Game::dvar_t* Movement::Dvar_RegisterLastStandSpeedScale(const char* name, float value,
         float min, float max, int, const char* desc)
     {
@@ -175,6 +242,14 @@ namespace Components
     {
         Dvar::OnInit([]
         {
+            static const char* bg_enableBouncesValues[] =
+            {
+                "disabled",
+                "enabled",
+                "double",
+                nullptr
+            };
+
             Movement::PlayerDuckedSpeedScale = Dvar::Register<float>("player_duckedSpeedScale",
                 0.65f, 0.0f, 5.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
                 "The scale applied to the player speed when ducking");
@@ -191,6 +266,12 @@ namespace Components
             Movement::CGNoclipScaler = Dvar::Register<float>("cg_noclip_scaler",
                 3.0f, 0.001f, 1000.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
                 "The speed at which noclip camera moves");
+
+            Movement::BGBounces = Game::Dvar_RegisterEnum("bg_bounces",
+                bg_enableBouncesValues, Movement::DISABLED, Game::DVAR_FLAG_REPLICATED, "Bounce glitch settings");
+
+            Movement::BGBouncesAllAngles = Dvar::Register<bool>("bg_bouncesAllAngles",
+                false, Game::DVAR_FLAG_REPLICATED, "Force bounce from all angles");
         });
 
         // Hook PM_CmdScaleForStance in PM_CmdScale_Walk
@@ -208,6 +289,11 @@ namespace Components
         // Hook PM_MoveScale so we can add custom speed scale for Ufo and Noclip
         Utils::Hook(0x56F845, Movement::PM_MoveScaleStub, HOOK_CALL).install()->quick();
         Utils::Hook(0x56FABD, Movement::PM_MoveScaleStub, HOOK_CALL).install()->quick();
+
+        Utils::Hook(0x4B1B2D, Movement::PM_StepSlideMoveStub, HOOK_JUMP).install()->quick();
+        Utils::Hook(0x57383E, Movement::Jump_ClearStateHk, HOOK_CALL).install()->quick();
+
+        Utils::Hook(0x4B1B97, Movement::PM_ProjectVelocityStub, HOOK_CALL).install()->quick();
     }
 
     Movement::~Movement()

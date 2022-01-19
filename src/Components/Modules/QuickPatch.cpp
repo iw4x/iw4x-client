@@ -239,34 +239,6 @@ namespace Components
 		}
 	}
 
-	Game::dvar_t* QuickPatch::sv_enableBounces;
-	__declspec(naked) void QuickPatch::BounceStub()
-	{
-		__asm
-		{
-			// check the value of sv_enableBounces
-			push eax;
-			mov eax, sv_enableBounces;
-			cmp byte ptr[eax + 16], 1;
-			pop eax;
-
-			// always bounce if sv_enableBounces is set to 1
-			je bounce;
-
-			// original code
-			cmp dword ptr[esp + 24h], 0;
-			jnz dontBounce;
-
-		bounce:
-			push 0x004B1B34;
-			retn;
-
-		dontBounce:
-			push 0x004B1B48;
-			retn;
-		}
-	}
-
 	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* name, char**, int defaultVal, int flags, const char* description)
 	{
 		static const char* r_aspectRatioEnum[] =
@@ -456,10 +428,6 @@ namespace Components
 
 		// Hook escape handling on open console to change behaviour to close the console instead of only canceling autocomplete
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
-
-		// bounce dvar
-		sv_enableBounces = Game::Dvar_RegisterBool("sv_enableBounces", false, Game::DVAR_FLAG_REPLICATED, "Enables bouncing on the server");
-		Utils::Hook(0x4B1B2D, QuickPatch::BounceStub, HOOK_JUMP).install()->quick();
 
 		// Intermission time dvar
 		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_FLAG_REPLICATED | Game::DVAR_FLAG_DEDISAVED, "Time in seconds before match server loads the next map");
