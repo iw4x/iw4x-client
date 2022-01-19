@@ -30,7 +30,7 @@ namespace Components
         // Bounce logic
         static void PM_StepSlideMoveStub();
         static void PM_ProjectVelocityStub(const float* velIn, const float* normal, float* velOut);
-        static void Jump_ClearStateHk(Game::playerState_s* ps);
+        static void Jump_ClearStateHook(Game::playerState_s* ps);
 
         static Game::dvar_t* Dvar_RegisterLastStandSpeedScale(const char* name, float value, float min, float max, int flags, const char* desc);
         static Game::dvar_t* Dvar_RegisterSpectateSpeedScale(const char* name, float value, float min, float max, int flags, const char* desc);

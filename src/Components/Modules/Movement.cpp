@@ -187,7 +187,7 @@ namespace Components
 
     void Movement::PM_ProjectVelocityStub(const float* velIn, const float* normal, float* velOut)
     {
-        auto lengthSquared2D = velIn[0] * velIn[0] + velIn[1] * velIn[1];
+        const auto lengthSquared2D = velIn[0] * velIn[0] + velIn[1] * velIn[1];
 
         if (std::fabsf(normal[2]) < 0.001f || lengthSquared2D == 0.0)
         {
@@ -199,7 +199,7 @@ namespace Components
 
         auto newZ = velIn[0] * normal[0] + velIn[1] * normal[1];
         newZ = -newZ / normal[2];
-        auto lengthScale = std::sqrtf((velIn[2] * velIn[2] + lengthSquared2D)
+        const auto lengthScale = std::sqrtf((velIn[2] * velIn[2] + lengthSquared2D)
                 / (newZ * newZ + lengthSquared2D));
 
         if (Movement::BGBouncesAllAngles.get<bool>()
@@ -212,7 +212,7 @@ namespace Components
     }
 
     // Double bounces
-    void Movement::Jump_ClearStateHk(Game::playerState_s* ps)
+    void Movement::Jump_ClearStateHook(Game::playerState_s* ps)
     {
         if (Movement::BGBounces->current.integer == Movement::DOUBLE)
             return;
@@ -242,7 +242,7 @@ namespace Components
     {
         Dvar::OnInit([]
         {
-            static const char* bg_enableBouncesValues[] =
+            static const char* bg_bouncesValues[] =
             {
                 "disabled",
                 "enabled",
@@ -268,7 +268,7 @@ namespace Components
                 "The speed at which noclip camera moves");
 
             Movement::BGBounces = Game::Dvar_RegisterEnum("bg_bounces",
-                bg_enableBouncesValues, Movement::DISABLED, Game::DVAR_FLAG_REPLICATED, "Bounce glitch settings");
+                bg_bouncesValues, Movement::DISABLED, Game::DVAR_FLAG_REPLICATED, "Bounce glitch settings");
 
             Movement::BGBouncesAllAngles = Dvar::Register<bool>("bg_bouncesAllAngles",
                 false, Game::DVAR_FLAG_REPLICATED, "Force bounce from all angles");
@@ -290,9 +290,9 @@ namespace Components
         Utils::Hook(0x56F845, Movement::PM_MoveScaleStub, HOOK_CALL).install()->quick();
         Utils::Hook(0x56FABD, Movement::PM_MoveScaleStub, HOOK_CALL).install()->quick();
 
+        // Bounce logic
         Utils::Hook(0x4B1B2D, Movement::PM_StepSlideMoveStub, HOOK_JUMP).install()->quick();
-        Utils::Hook(0x57383E, Movement::Jump_ClearStateHk, HOOK_CALL).install()->quick();
-
+        Utils::Hook(0x57383E, Movement::Jump_ClearStateHook, HOOK_CALL).install()->quick();
         Utils::Hook(0x4B1B97, Movement::PM_ProjectVelocityStub, HOOK_CALL).install()->quick();
     }
 
