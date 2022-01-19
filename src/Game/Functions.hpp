@@ -1034,6 +1034,8 @@ namespace Game
 
 	extern vec3_t* CorrectSolidDeltas;
 
+	extern FastCriticalSection* db_hashCritSect;
+
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);
 
