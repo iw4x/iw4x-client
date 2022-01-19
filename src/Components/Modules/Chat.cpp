@@ -13,8 +13,6 @@ namespace Components
 
 	const char* Chat::EvaluateSay(char* text, Game::gentity_t* player)
 	{
-		std::lock_guard<std::mutex> _(Chat::AccessMutex);
-
 		Chat::SendChat = true;
 
 		if (text[1] == '/')
@@ -24,11 +22,19 @@ namespace Components
 			++text;
 		}
 
+		std::unique_lock<std::mutex> lock(Chat::AccessMutex);
 		if (Chat::MuteList.find(Game::svs_clients[player->s.number].steamID) != Chat::MuteList.end())
 		{
+			lock.unlock();
 			Chat::SendChat = false;
 			Game::SV_GameSendServerCommand(player->s.number, 0,
 				Utils::String::VA("%c \"You are muted\"", 0x65));
+		}
+
+		// Test whether the lock is still locked
+		if (lock.owns_lock())
+		{
+			lock.unlock();
 		}
 
 		TextRenderer::StripMaterialTextIcons(text, text, strlen(text) + 1);
@@ -208,11 +214,12 @@ namespace Components
 
 	void Chat::MuteClient(const Game::client_t* client)
 	{
-		std::lock_guard<std::mutex> _(Chat::AccessMutex);
+		std::unique_lock<std::mutex> lock(Chat::AccessMutex);
 
 		if (Chat::MuteList.find(client->steamID) == Chat::MuteList.end())
 		{
 			Chat::MuteList.insert(client->steamID);
+			lock.unlock();
 
 			Logger::Print("%s was muted\n", client->name);
 			Game::SV_GameSendServerCommand(client->gentity->s.number, 0,
@@ -220,6 +227,7 @@ namespace Components
 			return;
 		}
 
+		lock.unlock();
 		Logger::Print("%s is already muted\n", client->name);
 		Game::SV_GameSendServerCommand(-1, 0,
 			Utils::String::VA("%c \"%s is already muted\"", 0x65, client->name));
@@ -236,7 +244,7 @@ namespace Components
 
 	void Chat::UnmuteInternal(const std::uint64_t id, bool everyone)
 	{
-		std::lock_guard<std::mutex> _(Chat::AccessMutex);
+		std::unique_lock<std::mutex> lock(Chat::AccessMutex);
 
 		if (everyone)
 			Chat::MuteList.clear();
