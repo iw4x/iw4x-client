@@ -504,12 +504,16 @@ namespace Game
 
 	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
 
-	void Sys_UnlockWrite(FastCriticalSection* critSect)
+	void Sys_LockRead(FastCriticalSection* critSect)
 	{
-		assert(critSect->writeCount > 0);
+		InterlockedIncrement(&critSect->readCount);
+		while (critSect->writeCount) std::this_thread::sleep_for(1ms);
+	}
 
-		InterlockedDecrement(&critSect->writeCount);
-		Sys_TempPriorityEnd(&critSect->tempPriority);
+	void Sys_UnlockRead(FastCriticalSection* critSect)
+	{
+		assert(critSect->readCount > 0);
+		InterlockedDecrement(&critSect->readCount);
 	}
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
@@ -626,10 +630,9 @@ namespace Game
 		return false;
 	}
 
-	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides, bool lock)
+	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides)
 	{
-		if (lock)
-			Sys_LockWrite(db_hashCritSect);
+		Sys_LockRead(db_hashCritSect);
 
 		const auto pool = Components::Maps::GetAssetEntryPool();
 		for(auto hash = 0; hash < 37000; hash++)
@@ -658,8 +661,7 @@ namespace Game
 			}
 		}
 
-		if(lock)
-			Sys_UnlockWrite(db_hashCritSect);
+		Sys_UnlockRead(db_hashCritSect);
 	}
 
 	// this cant be MessageBox because windows.h has a define that converts it to MessageBoxW. which is just stupid

@@ -199,7 +199,7 @@ namespace Assets
 					replacementFound = true;
 				}
 			}
-		}, false, false);
+		}, false);
 
 		if (!replacementFound)
 		{
@@ -236,7 +236,7 @@ namespace Assets
 						replacementFound = true;
 					}
 				}
-			}, false, false);
+			}, false);
 		}
 
 		if (!replacementFound && asset->techniqueSet)
@@ -274,7 +274,7 @@ namespace Assets
 								replacementFound = true;
 							}
 						}
-					}, false, false);
+					}, false);
 
 					if (!replacementFound) 
 					{
