@@ -159,7 +159,7 @@ namespace Components
     {
         __asm
         {
-            // Check the value of BGEnableBounces
+            // Check the value of BGBounces
             push ecx
             push eax
 
@@ -170,7 +170,7 @@ namespace Components
             pop eax
             pop ecx
 
-            // Do not bounce if BGEnableBounces is 0
+            // Do not bounce if BGBounces is 0
             jle noBounce
 
             // Bounce
