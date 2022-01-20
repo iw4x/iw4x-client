@@ -7,7 +7,6 @@ namespace Components
 	public:
 		Bots();
 		~Bots();
-		static bool IsValidClientNum(unsigned int);
 
 	private:
 		static std::vector<std::string> BotNames;
