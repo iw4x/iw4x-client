@@ -5536,9 +5536,9 @@ namespace Game
 		char pad[100];
 	} gentity_t;
 
-#pragma pack(push, 1)
-
 	static_assert(sizeof(gentity_s) == 0x274);
+
+#pragma pack(push, 1)
 
 	typedef struct client_s
 	{
