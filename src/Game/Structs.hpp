@@ -5578,6 +5578,7 @@ namespace Game
 		unsigned __int64 steamID; // 278272
 		char __pad9[403592]; // 278280
 	} client_t;
+
 #pragma pack(pop)
 
 	static_assert(sizeof(client_t) == 0xA6790);
