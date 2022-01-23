@@ -50,24 +50,25 @@ namespace Components
 		const auto developer = Dvar::Var("developer").get<int>();
 
 		// Allow error messages to be printed if developer mode is on
-		// Should check scrVarPub.developer but it's absent in this version of the game
+		// Should check scrVarPub.developer but it's absent
+		// in this version of the game so let's check the dvar
 		if (!Game::scrVmPub->terminal_error && !developer)
 			return;
 
-		// If were are developing let's just print a brief message
+		// If were are developing let's call RuntimeErrorInternal
 		// scrVmPub.debugCode seems to be always false
 		if (Game::scrVmPub->debugCode || Game::scrVarPub->developer_script)
 		{
-			Logger::Print(23, "%s\n", msg);
+			Game::RuntimeErrorInternal(23, codePos, index, msg);
 
 			if (!Game::scrVmPub->terminal_error)
 				return;
 		}
 		else
 		{
-			Game::RuntimeErrorInternal(23, codePos, index, msg);
+			Logger::Print(23, "%s\n", msg);
 			// Let's not throw error unless we have to
-			if (!Game::scrVmPub->abort_on_error && !Game::scrVmPub->terminal_error)
+			if (Game::scrVmPub->abort_on_error && !Game::scrVmPub->terminal_error)
 				return;
 		}
 
@@ -522,13 +523,11 @@ namespace Components
 
 	Game::gentity_t* Script::GetEntFromEntRef(const Game::scr_entref_t entref)
 	{
-		if (entref.classnum != 0)
+		if (entref.classnum != 0 || entref.entnum >= Game::MAX_GENTITIES)
 		{
 			Game::Scr_ObjectError("Not an entity");
 			return nullptr;
 		}
-
-		assert(entref.entnum < Game::MAX_GENTITIES);
 
 		return &Game::g_entities[entref.entnum];
 	}
@@ -538,6 +537,12 @@ namespace Components
 		if (gentity->client == nullptr)
 		{
 			Game::Scr_ObjectError(Utils::String::VA("Entity %i is not a player", gentity->s.number));
+			return nullptr;
+		}
+
+		if (gentity->s.number >= *Game::svs_numclients)
+		{
+			Game::Scr_ObjectError(Utils::String::VA("Entity %i is out of bounds", gentity->s.number));
 			return nullptr;
 		}
 
@@ -580,14 +585,28 @@ namespace Components
 		// Print to console, even without being in 'developer 1'.
 		Script::AddFunction("PrintConsole", [](Game::scr_entref_t) // gsc: PrintConsole(<string>)
 		{
-			const auto str = Game::Scr_GetString(0);
-			Game::Com_Printf(0, str);
+			const auto* str = Game::Scr_GetString(0);
+
+			if (str == nullptr)
+			{
+				Game::Scr_ParamError(0, "^1PrintConsole: Illegal parameters!\n");
+				return;
+			}
+
+			Logger::Print(0, "%s", str);
 		});
 
 		// Executes command to the console
 		Script::AddFunction("Exec", [](Game::scr_entref_t) // gsc: Exec(<string>)
 		{
 			const auto str = Game::Scr_GetString(0);
+
+			if (str == nullptr)
+			{
+				Game::Scr_ParamError(0, "^1Exec: Illegal parameters!\n");
+				return;
+			}
+
 			Command::Execute(str, false);
 		});
 

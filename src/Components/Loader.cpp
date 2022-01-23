@@ -107,8 +107,7 @@ namespace Components
 		Loader::Register(new Movement());
 		Loader::Register(new Elevators());
 		Loader::Register(new ClientCommand());
-
-		Loader::Register(new Client());
+		Loader::Register(new ScriptExtension());
 
 		Loader::Pregame = false;
 	}

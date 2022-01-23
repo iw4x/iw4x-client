@@ -137,4 +137,4 @@ namespace Components
 #include "Modules/ClientCommand.hpp"
 
 #include "Modules/Gamepad.hpp"
-#include "Modules/Client.hpp"
+#include "Modules/ScriptExtension.hpp"

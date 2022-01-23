@@ -964,13 +964,20 @@ namespace Components
 			Download::ScriptDownloads.clear();
 		});
 
-		Script::AddFunction("httpGet", [](Game::scr_entref_t)
+		Script::AddFunction("HttpGet", [](Game::scr_entref_t)
 		{
 			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp")) return;
 			if (Game::Scr_GetNumParam() < 1u) return;
 
 			std::string url = Game::Scr_GetString(0);
-			unsigned int object = Game::AllocObject();
+
+			if (url.empty())
+			{
+				Game::Scr_ParamError(0, "^1HttpGet: Illegal parameters!\n");
+				return;
+			}
+
+			auto object = Game::AllocObject();
 
 			Game::Scr_AddObject(object);
 

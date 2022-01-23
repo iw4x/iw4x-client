@@ -1218,11 +1218,11 @@ namespace Game
 		{
 			pushad
 
-			mov eax, [esp + 0x10 + 0x20]
-			mov edi, [esp + 0x4 + 0x20]
+			mov eax, [esp + 0x10 + 0x20] // msg
+			mov edi, [esp + 0x4 + 0x20] // channel
 
-			push [esp + 0xC + 0x20]
-			push [esp + 0xC + 0x20]
+			push [esp + 0xC + 0x20] // index
+			push [esp + 0xC + 0x20] // codePos
 
 			mov edx, 0x61ABE0
 			call edx

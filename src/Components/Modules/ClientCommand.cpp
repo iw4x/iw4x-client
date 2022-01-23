@@ -150,7 +150,7 @@ namespace Components
 				return;
 			}
 
-			if (Game::Scr_GetNumParam() == 1u)
+			if (Game::Scr_GetNumParam() >= 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -177,7 +177,7 @@ namespace Components
 				return;
 			}
 
-			if (Game::Scr_GetNumParam() == 1u)
+			if (Game::Scr_GetNumParam() >= 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -198,7 +198,7 @@ namespace Components
 		{
 			auto* ent = Script::GetEntFromEntRef(entref);
 
-			if (Game::Scr_GetNumParam() == 1u)
+			if (Game::Scr_GetNumParam() >= 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -219,7 +219,7 @@ namespace Components
 		{
 			auto* ent = Script::GetEntFromEntRef(entref);
 
-			if (Game::Scr_GetNumParam() == 1u)
+			if (Game::Scr_GetNumParam() >= 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -240,7 +240,7 @@ namespace Components
 		{
 			auto* ent = Script::GetEntFromEntRef(entref);
 
-			if (Game::Scr_GetNumParam() == 1u)
+			if (Game::Scr_GetNumParam() >= 1u)
 			{
 				if (Game::Scr_GetInt(0))
 				{

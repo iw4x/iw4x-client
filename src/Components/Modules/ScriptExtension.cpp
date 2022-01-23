@@ -2,19 +2,25 @@
 
 namespace Components
 {
-	void Client::AddFunctions()
+	void ScriptExtension::AddFunctions()
 	{
 		//File functions
 
-		Script::AddFunction("fileWrite", [](Game::scr_entref_t) // gsc: fileWrite(<filepath>, <string>, <mode>)
+		Script::AddFunction("FileWrite", [](Game::scr_entref_t) // gsc: FileWrite(<filepath>, <string>, <mode>)
 		{
-			std::string path = Game::Scr_GetString(0);
-			auto text = Game::Scr_GetString(1);
-			auto mode = Game::Scr_GetString(2);
+			const std::string path = Game::Scr_GetString(0);
+			auto* text = Game::Scr_GetString(1);
+			auto* mode = Game::Scr_GetString(2);
 
 			if (path.empty())
 			{
-				Game::Com_Printf(0, "^1fileWrite: filepath not defined!\n");
+				Game::Scr_ParamError(0, "^1FileWrite: filepath not defined!\n");
+				return;
+			}
+
+			if (text == nullptr || mode == nullptr)
+			{
+				Game::Scr_Error("^1FileWrite: Illegal parameters!\n");
 				return;
 			}
 
@@ -23,14 +29,14 @@ namespace Components
 			{
 				if (path.find(queryStrings[i]) != std::string::npos)
 				{
-					Game::Com_Printf(0, "^1fileWrite: directory traversal is not allowed!\n");
+					Logger::Print("^1FileWrite: directory traversal is not allowed!\n");
 					return;
 				}
 			}
 
 			if (mode != "append"s && mode != "write"s)
 			{
-				Game::Com_Printf(0, "^3fileWrite: mode not defined or was wrong, defaulting to 'write'\n");
+				Logger::Print("^3FileWrite: mode not defined or was wrong, defaulting to 'write'\n");
 				mode = "write";
 			}
 
@@ -44,13 +50,13 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("fileRead", [](Game::scr_entref_t) // gsc: fileRead(<filepath>)
+		Script::AddFunction("FileRead", [](Game::scr_entref_t) // gsc: FileRead(<filepath>)
 		{
 			std::string path = Game::Scr_GetString(0);
 
 			if (path.empty())
 			{
-				Game::Com_Printf(0, "^1fileRead: filepath not defined!\n");
+				Game::Scr_ParamError(0, "^1FileRead: filepath not defined!\n");
 				return;
 			}
 
@@ -59,27 +65,27 @@ namespace Components
 			{
 				if (path.find(queryStrings[i]) != std::string::npos)
 				{
-					Game::Com_Printf(0, "^1fileRead: directory traversal is not allowed!\n");
+					Logger::Print("^1FileRead: directory traversal is not allowed!\n");
 					return;
 				}
 			}
 
 			if (!FileSystem::FileReader(path).exists())
 			{
-				Game::Com_Printf(0, "^1fileRead: file not found!\n");
+				Logger::Print("^1FileRead: file not found!\n");
 				return;
 			}
 
 			Game::Scr_AddString(FileSystem::FileReader(path).getBuffer().data());
 		});
 
-		Script::AddFunction("fileExists", [](Game::scr_entref_t) // gsc: fileExists(<filepath>)
+		Script::AddFunction("FileExists", [](Game::scr_entref_t) // gsc: FileExists(<filepath>)
 		{
 			std::string path = Game::Scr_GetString(0);
 
 			if (path.empty())
 			{
-				Game::Com_Printf(0, "^1fileExists: filepath not defined!\n");
+				Game::Scr_ParamError(0, "^1FileExists: filepath not defined!\n");
 				return;
 			}
 
@@ -88,7 +94,7 @@ namespace Components
 			{
 				if (path.find(queryStrings[i]) != std::string::npos)
 				{
-					Game::Com_Printf(0, "^1fileExists: directory traversal is not allowed!\n");
+					Logger::Print("^1FileExists: directory traversal is not allowed!\n");
 					return;
 				}
 			}
@@ -96,13 +102,13 @@ namespace Components
 			Game::Scr_AddInt(FileSystem::FileReader(path).exists());
 		});
 
-		Script::AddFunction("fileRemove", [](Game::scr_entref_t) // gsc: fileRemove(<filepath>)
+		Script::AddFunction("FileRemove", [](Game::scr_entref_t) // gsc: FileRemove(<filepath>)
 		{
 			std::string path = Game::Scr_GetString(0);
 
 			if (path.empty())
 			{
-				Game::Com_Printf(0, "^1fileRemove: filepath not defined!\n");
+				Game::Scr_ParamError(0, "^1FileRemove: filepath not defined!\n");
 				return;
 			}
 
@@ -111,7 +117,7 @@ namespace Components
 			{
 				if (path.find(queryStrings[i]) != std::string::npos)
 				{
-					Game::Com_Printf(0, "^1fileRemove: directory traversal is not allowed!\n");
+					Logger::Print("^1fileRemove: directory traversal is not allowed!\n");
 					return;
 				}
 			}
@@ -123,9 +129,9 @@ namespace Components
 		});
 	}
 
-	void Client::AddMethods()
+	void ScriptExtension::AddMethods()
 	{
-		// Client methods
+		// ScriptExtension methods
 		Script::AddFunction("GetIp", [](Game::scr_entref_t entref) // gsc: self GetIp()
 		{
 			const auto* gentity = Script::GetEntFromEntRef(entref);
@@ -133,8 +139,10 @@ namespace Components
 
 			std::string ip = Game::NET_AdrToString(client->netchan.remoteAddress);
 
-			if (ip.find_first_of(":") != std::string::npos)
-				ip.erase(ip.begin() + ip.find_first_of(":"), ip.end()); // Erase port
+			const auto pos = ip.find_first_of(":");
+
+			if (pos != std::string::npos)
+				ip.erase(ip.begin() + pos, ip.end()); // Erase port
 
 			Game::Scr_AddString(ip.data());
 		});
@@ -148,13 +156,9 @@ namespace Components
 		});
 	}
 
-	Client::Client()
+	ScriptExtension::ScriptExtension()
 	{
-		Client::AddFunctions();
-		Client::AddMethods();
-	}
-
-	Client::~Client()
-	{
+		ScriptExtension::AddFunctions();
+		ScriptExtension::AddMethods();
 	}
 }

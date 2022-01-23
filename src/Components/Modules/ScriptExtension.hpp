@@ -2,11 +2,10 @@
 
 namespace Components
 {
-	class Client : public Component
+	class ScriptExtension : public Component
 	{
 	public:
-		Client();
-		~Client();
+		ScriptExtension();
 
 	private:
 

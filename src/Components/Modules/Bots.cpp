@@ -1,74 +1,51 @@
 #include "STDInclude.hpp"
 
-#define KEY_MASK_FIRE           1
-#define KEY_MASK_SPRINT         2
-#define KEY_MASK_MELEE          4
-#define KEY_MASK_RELOAD         16
-#define KEY_MASK_LEANLEFT       64
-#define KEY_MASK_LEANRIGHT      128
-#define KEY_MASK_PRONE          256
-#define KEY_MASK_CROUCH         512
-#define KEY_MASK_JUMP           1024
-#define KEY_MASK_ADS_MODE       2048
-#define KEY_MASK_TEMP_ACTION    4096
-#define KEY_MASK_HOLDBREATH     8192
-#define KEY_MASK_FRAG           16384
-#define KEY_MASK_SMOKE          32768
-#define KEY_MASK_NIGHTVISION    262144
-#define KEY_MASK_ADS            524288
-#define KEY_MASK_USE            0x28
-
-#define MAX_G_BOTAI_ENTRIES     18
-
 namespace Components
 {
 	std::vector<std::string> Bots::BotNames;
 
-	typedef struct BotMovementInfo_t
+	struct BotMovementInfo_t
 	{
-		/* Actions */
-		int buttons;
-		/* Movement */
+		int buttons; // Actions
 		int8_t forward;
 		int8_t right;
-		/* Weapon */
 		uint16_t weapon;
-	} BotMovementInfo_t;
+	};
 
-	static BotMovementInfo_t g_botai[MAX_G_BOTAI_ENTRIES];
+	static BotMovementInfo_t g_botai[18];
 
-	struct BotAction_t
+	struct BotAction
 	{
 		const char* action;
 		int key;
 	};
 
-	static const BotAction_t BotActions[] =
+	static const BotAction BotActions[] =
 	{
-		{ "gostand",    KEY_MASK_JUMP       },
-		{ "gocrouch",   KEY_MASK_CROUCH     },
-		{ "goprone",    KEY_MASK_PRONE      },
-		{ "fire",       KEY_MASK_FIRE       },
-		{ "melee",      KEY_MASK_MELEE      },
-		{ "frag",       KEY_MASK_FRAG       },
-		{ "smoke",      KEY_MASK_SMOKE      },
-		{ "reload",     KEY_MASK_RELOAD     },
-		{ "sprint",     KEY_MASK_SPRINT     },
-		{ "leanleft",   KEY_MASK_LEANLEFT   },
-		{ "leanright",  KEY_MASK_LEANRIGHT  },
-		{ "ads",        KEY_MASK_ADS_MODE   },
-		{ "holdbreath", KEY_MASK_HOLDBREATH },
-		{ "use",        KEY_MASK_USE        },
-		{ "0",          8                   },
-		{ "1",          32                  },
-		{ "2",          65536               },
-		{ "3",          131072              },
-		{ "4",          1048576             },
-		{ "5",          2097152             },
-		{ "6",          4194304             },
-		{ "7",          8388608             },
-		{ "8",          16777216            },
-		{ "9",          33554432            },
+		{ "gostand", Bots::JUMP },
+		{ "gocrouch", Bots::CROUCH },
+		{ "goprone", Bots::PRONE },
+		{ "fire", Bots::FIRE },
+		{ "melee", Bots::FIRE},
+		{ "frag", Bots::THROW_EQUIPMENT },
+		{ "smoke", Bots::THROW_SPECIAL },
+		{ "reload", Bots::RELOAD },
+		{ "sprint", Bots::SPRINT },
+		{ "leanleft", Bots::LEAN_LEFT},
+		{ "leanright", Bots::LEAN_RIGHT },
+		{ "ads", Bots::ADS_MODE },
+		{ "holdbreath", Bots::HOLD_BREATH },
+		{ "use", Bots::USE },
+		{ "0", Bots::NUM_0 },
+		{ "1", Bots::NUM_1 },
+		{ "2", Bots::NUM_2 },
+		{ "3", Bots::NUM_3 },
+		{ "4", Bots::NUM_4},
+		{ "5", Bots::NUM_5 },
+		{ "6", Bots::NUM_6 },
+		{ "7", Bots::NUM_7 },
+		{ "8", Bots::NUM_8 },
+		{ "9", Bots::NUM_9 },
 	};
 
 	void Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
@@ -110,9 +87,9 @@ namespace Components
 		_snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, protocol, checksum, statVer, statStuff, port);
 	}
 
-	void Bots::Spawn(int count)
+	void Bots::Spawn(unsigned int count)
 	{
-		for (auto i = 0; i < count; ++i)
+		for (auto i = 0u; i < count; ++i)
 		{
 			Scheduler::OnDelay([]()
 			{
@@ -188,6 +165,12 @@ namespace Components
 		{
 			const auto* weapon = Game::Scr_GetString(0);
 
+			if (weapon == nullptr)
+			{
+				Game::Scr_ParamError(0, "^1BotWeapon: Illegal parameter!\n");
+				return;
+			}
+
 			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
@@ -204,12 +187,18 @@ namespace Components
 			}
 
 			const auto weapId = Game::G_GetWeaponIndexForName(weapon);
-			g_botai[entref.entnum].weapon = static_cast<uint16_t>(weapId);
+			g_botai[entref.entnum].weapon = static_cast<unsigned short>(weapId);
 		});
 
 		Script::AddFunction("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
 		{
 			const auto* action = Game::Scr_GetString(0);
+
+			if (action == nullptr)
+			{
+				Game::Scr_ParamError(0, "^1BotAction: Illegal parameter!\n");
+				return;
+			}
 
 			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
@@ -226,9 +215,9 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < sizeof(BotActions) / sizeof(BotAction_t); ++i)
+			for (auto i = 0u; i < std::extent_v<decltype(BotActions)>; ++i)
 			{
-				if (strcmp(&action[1], BotActions[i].action))
+				if (strcmp(&action[1], BotActions[i].action) != 0)
 					continue;
 
 				if (action[0] == '+')
@@ -256,17 +245,8 @@ namespace Components
 				return;
 			}
 
-			if (forwardInt > 127)
-				forwardInt = 127;
-
-			if (forwardInt < -127)
-				forwardInt = -127;
-
-			if (rightInt > 127)
-				rightInt = 127;
-
-			if (rightInt < -127)
-				rightInt = -127;
+			forwardInt = std::clamp(forwardInt, -128, 127);
+			rightInt = std::clamp(rightInt, -128, 127);
 
 			g_botai[entref.entnum].forward = static_cast<int8_t>(forwardInt);
 			g_botai[entref.entnum].right = static_cast<int8_t>(rightInt);
@@ -286,10 +266,10 @@ namespace Components
 		Utils::Hook(0x627241, 0x4BB9B0, HOOK_CALL).install()->quick();
 
 		// Zero the bot command array
-		for (auto i = 0; i < MAX_G_BOTAI_ENTRIES; i++)
+		for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)
 		{
 			g_botai[i] = {0};
-			g_botai[i].weapon = 1; // Prevent the bots from defaulting to the 'none' weapon
+			g_botai[i].weapon = 1;  // Prevent the bots from defaulting to the 'none' weapon
 		}
 
 		// Have the bots perform the command every server frame
@@ -325,17 +305,30 @@ namespace Components
 
 		Command::Add("spawnBot", [](Command::Params* params)
 		{
-			auto count = 1;
+			auto count = 1u;
 
 			if (params->length() > 1)
 			{
 				if (params->get(1) == "all"s)
+				{
 					count = *Game::svs_numclients;
+				}
 				else
-					count = std::atoi(params->get(1));
+				{
+					char* endptr;
+					const auto* input = params->get(1);
+					count = std::strtoul(input, &endptr, 10);
+
+					if (input == endptr)
+					{
+						Logger::Print("Warning: %s is not a valid input\n"
+							"Usage: %s optional <number of bots> or optional <all>\n",
+							input, params->get(0));
+					}
+				}
 			}
 
-			count = std::min(*Game::svs_numclients, count);
+			count = std::min(static_cast<unsigned int>(*Game::svs_numclients), count);
 
 			// Check if ingame and host
 			if (!Game::SV_Loaded())
@@ -352,10 +345,5 @@ namespace Components
 		});
 
 		Bots::AddMethods();
-	}
-
-	Bots::~Bots()
-	{
-		Bots::BotNames.clear();
 	}
 }
