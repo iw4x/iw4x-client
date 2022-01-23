@@ -5501,14 +5501,14 @@ namespace Game
 		void /*Vehicle*/* vehicle;
 		int physObjId;
 		unsigned __int16 model;
-		char physicsObject;
-		char takedamage;
-		char active;
-		char handler;
-		char team;
+		unsigned char physicsObject;
+		unsigned char takedamage;
+		unsigned char active;
+		unsigned char handler;
+		unsigned char team;
 		bool freeAfterEvent;
 		__int16 padding_short;
-		short classname;
+		unsigned __int16 classname;
 		unsigned __int16 script_classname;
 		unsigned __int16 script_linkName;
 		unsigned __int16 target;
@@ -5536,7 +5536,10 @@ namespace Game
 		char pad[100];
 	} gentity_t;
 
+	static_assert(sizeof(gentity_s) == 0x274);
+
 #pragma pack(push, 1)
+
 	typedef struct client_s
 	{
 		clientstate_t state; // 0
@@ -5575,6 +5578,7 @@ namespace Game
 		unsigned __int64 steamID; // 278272
 		char __pad9[403592]; // 278280
 	} client_t;
+
 #pragma pack(pop)
 
 	static_assert(sizeof(client_t) == 0xA6790);
