@@ -42,7 +42,6 @@ namespace Components
 
 	private:
 		static std::vector<std::string> BotNames;
-		static Game::dvar_t* SVBotWarfare;
 
 		static void BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port);
 

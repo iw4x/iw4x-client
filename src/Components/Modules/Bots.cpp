@@ -3,7 +3,6 @@
 namespace Components
 {
 	std::vector<std::string> Bots::BotNames;
-	Game::dvar_t* Bots::SVBotWarfare;
 
 	struct BotMovementInfo
 	{
@@ -280,21 +279,11 @@ namespace Components
 	{
 		__asm
 		{
-			// If bot warfare isn't being used let's keep
-			// test clients normal functionality
-			push eax
-			mov eax, Bots::SVBotWarfare
-			cmp byte ptr [eax + 0x10], 1
-			pop eax
-
-			jz skip
+			pushad
 
 			call SV_UpdateBots
-			ret
-
-		skip:
-			pushad
 			call Bots::BotAiAction
+
 			popad
 			ret
 		}
@@ -307,9 +296,6 @@ namespace Components
 
 		// Intercept sprintf for the connect string
 		Utils::Hook(0x48ADAB, Bots::BuildConnectString, HOOK_CALL).install()->quick();
-
-		Bots::SVBotWarfare = Game::Dvar_RegisterBool("sv_botWarfare", false,
-			Game::DVAR_FLAG_NONE, "Allow bot warfare mod to override default bot behaviour");
 
 		Utils::Hook(0x627021, SV_UpdateBots_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x627241, SV_UpdateBots_Hk, HOOK_CALL).install()->quick();
