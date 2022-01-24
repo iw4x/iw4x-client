@@ -193,7 +193,7 @@ namespace Components
 	void Dvar::ResetDvarsValue()
 	{
 		if (!Utils::IO::FileExists(Dvar::ArchiveDvarPath))
-			return
+			return;
 
 		Command::Execute("exec archivedvars.cfg", true);
 		// Clean up
