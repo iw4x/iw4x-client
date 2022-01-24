@@ -247,42 +247,38 @@ namespace Components
 		});
 	}
 
-	void Bots::BotAiAction()
+	void Bots::BotAiAction(Game::client_t* cl)
 	{
-		for (auto i = 0; i < *Game::svs_numclients; ++i)
-		{
-			auto* client = &Game::svs_clients[i];
+		if (cl->gentity == nullptr)
+			return;
 
-			if (client->state < Game::CS_CONNECTED)
-				continue;
+		Game::usercmd_s ucmd = {0};
+		const auto entnum = cl->gentity->s.number;
 
-			if (!client->bIsTestClient)
-				continue;
+		ucmd.serverTime = *Game::svs_time;
 
-			Game::usercmd_s ucmd = {0};
+		ucmd.buttons = g_botai[entnum].buttons;
+		ucmd.forwardmove = g_botai[entnum].forward;
+		ucmd.rightmove = g_botai[entnum].right;
+		ucmd.weapon = g_botai[entnum].weapon;
 
-			ucmd.serverTime = *Game::svs_time;
+		cl->deltaMessage = cl->netchan.outgoingSequence - 1;
 
-			ucmd.buttons = g_botai[i].buttons;
-			ucmd.forwardmove = g_botai[i].forward;
-			ucmd.rightmove = g_botai[i].right;
-			ucmd.weapon = g_botai[i].weapon;
-
-			client->deltaMessage = client->netchan.outgoingSequence - 1;
-
-			Game::SV_ClientThink(client, &ucmd);
-		}
+		Game::SV_ClientThink(cl, &ucmd);
 	}
 
-	constexpr auto SV_UpdateBots = 0x626E50;
+	constexpr auto SV_BotUserMove = 0x626E50;
 	__declspec(naked) void Bots::SV_UpdateBots_Hk()
 	{
 		__asm
 		{
+			call SV_BotUserMove
+
 			pushad
 
-			call SV_UpdateBots
+			push edi
 			call Bots::BotAiAction
+			add esp, 4
 
 			popad
 			ret

@@ -49,7 +49,7 @@ namespace Components
 
 		static void AddMethods();
 
-		static void BotAiAction();
+		static void BotAiAction(Game::client_t* cl);
 		static void SV_UpdateBots_Hk();
 	};
 }
