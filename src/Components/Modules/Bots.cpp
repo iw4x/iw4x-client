@@ -280,20 +280,21 @@ namespace Components
 	{
 		__asm
 		{
-			pushad
-
-			call SV_UpdateBots
-
 			// If bot warfare isn't being used let's keep
 			// test clients normal functionality
+			push eax
 			mov eax, Bots::SVBotWarfare
-			cmp byte ptr [eax + 0x10], 0;
+			cmp byte ptr [eax + 0x10], 1
+			pop eax
 
 			jz skip
 
-			call Bots::BotAiAction
+			call SV_UpdateBots
+			ret
 
 		skip:
+			pushad
+			call Bots::BotAiAction
 			popad
 			ret
 		}
