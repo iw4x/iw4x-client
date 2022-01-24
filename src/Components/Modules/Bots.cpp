@@ -166,12 +166,6 @@ namespace Components
 		{
 			const auto* weapon = Game::Scr_GetString(0);
 
-			if (weapon == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1BotWeapon: Illegal parameter!\n");
-				return;
-			}
-
 			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
@@ -181,7 +175,7 @@ namespace Components
 				return;
 			}
 
-			if (weapon[0] == '\0')
+			if (weapon == nullptr || weapon[0] == '\0')
 			{
 				g_botai[entref.entnum].weapon = 1;
 				return;
