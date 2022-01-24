@@ -433,6 +433,30 @@ namespace Components
 		return Game::Scr_GetNumParam();
 	}
 
+	// Allow printing to the console even when developer is 0
+	void Script::PrintStub()
+	{
+		const auto g_no_script_spam = Dvar::Var("g_no_script_spam").get<bool>();
+
+		if (!g_no_script_spam)
+			return;
+
+		const auto developer = Dvar::Var("developer").get<int>();
+
+		for (auto i = 0u; i < Game::Scr_GetNumParam(); i++)
+		{
+			const auto str = (developer) ? Game::Scr_GetDebugString(i) : Game::Scr_GetString(i);
+
+			if (str == nullptr)
+			{
+				Game::Scr_ParamError(i, "^1PrintConsole: Illegal parameters!\n");
+				return;
+			}
+
+			Logger::Print(*Game::level_scriptPrintChannel, "%s", str);
+		}
+	}
+
 	const char* Script::GetCodePosForParam(int index)
 	{
 		if (static_cast<unsigned int>(index) >= Game::scrVmPub->outparamcount)
@@ -582,20 +606,6 @@ namespace Components
 			Game::Scr_AddInt(time.wMilliseconds);
 		});
 
-		// Print to console, even without being in 'developer 1'.
-		Script::AddFunction("PrintConsole", [](Game::scr_entref_t) // gsc: PrintConsole(<string>)
-		{
-			const auto* str = Game::Scr_GetString(0);
-
-			if (str == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1PrintConsole: Illegal parameters!\n");
-				return;
-			}
-
-			Logger::Print(0, "%s", str);
-		});
-
 		// Executes command to the console
 		Script::AddFunction("Exec", [](Game::scr_entref_t) // gsc: Exec(<string>)
 		{
@@ -609,7 +619,6 @@ namespace Components
 
 			Command::Execute(str, false);
 		});
-
 
 		// Script Storage Funcs
 		Script::AddFunction("StorageSet", [](Game::scr_entref_t) // gsc: StorageSet(<str key>, <str data>);

@@ -259,6 +259,7 @@ namespace Game
 	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = Scr_GetFunctionHandle_t(0x4234F0);
 
 	Scr_GetString_t Scr_GetString = Scr_GetString_t(0x425900);
+	Scr_GetDebugString_t Scr_GetDebugString = Scr_GetDebugString_t(0x4EBF50);
 	Scr_GetFloat_t Scr_GetFloat = Scr_GetFloat_t(0x443140);
 	Scr_GetInt_t Scr_GetInt = Scr_GetInt_t(0x4F31D0);
 	Scr_GetObject_t Scr_GetObject = Scr_GetObject_t(0x462100);
@@ -430,6 +431,8 @@ namespace Game
 	int* serverMessageSequence = reinterpret_cast<int*>(0xA3E9B4);
 
 	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
+
+	int* level_scriptPrintChannel = reinterpret_cast<int*>(0x1A860FC);
 
 	netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0xA1E888);
 

@@ -37,16 +37,20 @@ namespace Components
 			NUM_8 = 0x1000000,
 			NUM_9 = 0x2000000,
 
-			USE = 0x28,
+			USE = NUM_0 | NUM_1
 		};
 
 	private:
 		static std::vector<std::string> BotNames;
+		static Game::dvar_t* SVBotWarfare;
 
 		static void BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port);
 
 		static void Spawn(unsigned int count);
 
 		static void AddMethods();
+
+		static void BotAiAction();
+		static void SV_UpdateBots_Hk();
 	};
 }

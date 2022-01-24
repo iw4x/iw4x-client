@@ -3,8 +3,9 @@
 namespace Components
 {
 	std::vector<std::string> Bots::BotNames;
+	Game::dvar_t* Bots::SVBotWarfare;
 
-	struct BotMovementInfo_t
+	struct BotMovementInfo
 	{
 		int buttons; // Actions
 		int8_t forward;
@@ -12,7 +13,7 @@ namespace Components
 		uint16_t weapon;
 	};
 
-	static BotMovementInfo_t g_botai[18];
+	static BotMovementInfo g_botai[18];
 
 	struct BotAction
 	{
@@ -187,7 +188,7 @@ namespace Components
 			}
 
 			const auto weapId = Game::G_GetWeaponIndexForName(weapon);
-			g_botai[entref.entnum].weapon = static_cast<unsigned short>(weapId);
+			g_botai[entref.entnum].weapon = static_cast<uint16_t>(weapId);
 		});
 
 		Script::AddFunction("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
@@ -253,6 +254,57 @@ namespace Components
 		});
 	}
 
+	void Bots::BotAiAction()
+	{
+		for (auto i = 0; i < *Game::svs_numclients; ++i)
+		{
+			auto* client = &Game::svs_clients[i];
+
+			if (client->state < Game::CS_CONNECTED)
+				continue;
+
+			if (!client->isBot)
+				continue;
+
+			Game::usercmd_s ucmd = {0};
+
+			ucmd.serverTime = *Game::svs_time;
+
+			ucmd.buttons = g_botai[i].buttons;
+			ucmd.forwardmove = g_botai[i].forward;
+			ucmd.rightmove = g_botai[i].right;
+			ucmd.weapon = g_botai[i].weapon;
+
+			client->deltaMessage = client->netchan.outgoingSequence - 1;
+
+			Game::SV_ClientThink(client, &ucmd);
+		}
+	}
+
+	constexpr auto SV_UpdateBots = 0x626E50;
+	__declspec(naked) void Bots::SV_UpdateBots_Hk()
+	{
+		__asm
+		{
+			pushad
+
+			call SV_UpdateBots
+
+			// If bot warfare isn't being used let's keep
+			// test clients normal functionality
+			mov eax, Bots::SVBotWarfare
+			cmp byte ptr [eax + 0x10], 0;
+
+			jz skip
+
+			call Bots::BotAiAction
+
+		skip:
+			popad
+			ret
+		}
+	}
+
 	Bots::Bots()
 	{
 		// Replace connect string
@@ -261,47 +313,18 @@ namespace Components
 		// Intercept sprintf for the connect string
 		Utils::Hook(0x48ADAB, Bots::BuildConnectString, HOOK_CALL).install()->quick();
 
-		// Stop default behavour of bots spinning and shooting
-		Utils::Hook(0x627021, 0x4BB9B0, HOOK_CALL).install()->quick();
-		Utils::Hook(0x627241, 0x4BB9B0, HOOK_CALL).install()->quick();
+		Bots::SVBotWarfare = Game::Dvar_RegisterBool("sv_botWarfare", false,
+			Game::DVAR_FLAG_NONE, "Allow bot warfare mod to override default bot behaviour");
+
+		Utils::Hook(0x627021, SV_UpdateBots_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627241, SV_UpdateBots_Hk, HOOK_CALL).install()->quick();
 
 		// Zero the bot command array
 		for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)
 		{
 			g_botai[i] = {0};
-			g_botai[i].weapon = 1;  // Prevent the bots from defaulting to the 'none' weapon
+			g_botai[i].weapon = 1; // Prevent the bots from defaulting to the 'none' weapon
 		}
-
-		// Have the bots perform the command every server frame
-		Scheduler::OnFrame([]()
-		{
-			if (!Game::SV_Loaded())
-				return;
-
-			for (auto i = 0; i < *Game::svs_numclients; ++i)
-			{
-				auto* client = &Game::svs_clients[i];
-
-				if (client->state < Game::CS_CONNECTED)
-					continue;
-
-				if (!client->isBot)
-					continue;
-
-				Game::usercmd_s ucmd = {0};
-
-				ucmd.serverTime = *Game::svs_time;
-
-				ucmd.buttons = g_botai[i].buttons;
-				ucmd.forwardmove = g_botai[i].forward;
-				ucmd.rightmove = g_botai[i].right;
-				ucmd.weapon = g_botai[i].weapon;
-
-				client->deltaMessage = client->netchan.outgoingSequence - 1;
-
-				Game::SV_ClientThink(client, &ucmd);
-			}
-		});
 
 		Command::Add("spawnBot", [](Command::Params* params)
 		{

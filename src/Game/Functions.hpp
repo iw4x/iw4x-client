@@ -663,6 +663,9 @@ namespace Game
 	typedef const char*(__cdecl * Scr_GetString_t)(unsigned int);
 	extern Scr_GetString_t Scr_GetString;
 
+	typedef const char*(__cdecl * Scr_GetDebugString_t)(unsigned int index);
+	extern Scr_GetDebugString_t Scr_GetDebugString;
+
 	typedef float(__cdecl * Scr_GetFloat_t)(unsigned int);
 	extern Scr_GetFloat_t Scr_GetFloat;
 
@@ -954,6 +957,8 @@ namespace Game
 
 	constexpr auto MAX_GENTITIES = 2048u;
 	extern gentity_t* g_entities;
+
+	extern int* level_scriptPrintChannel;
 
 	extern netadr_t* connectedHost;
 	extern SOCKET* ip_socket;
