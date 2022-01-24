@@ -130,7 +130,7 @@ namespace Components
 			const auto* gentity = Script::GetEntFromEntRef(entref);
 			auto* client = Script::GetClientFromEnt(gentity);
 
-			if (!client->isBot)
+			if (!client->bIsTestClient)
 			{
 				Game::Scr_Error("^1SetPing: Can only call on a bot!\n");
 				return;
@@ -144,7 +144,7 @@ namespace Components
 			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
-			Game::Scr_AddBool(client->isBot == 1);
+			Game::Scr_AddBool(client->bIsTestClient == 1);
 		});
 
 		Script::AddFunction("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
@@ -152,7 +152,7 @@ namespace Components
 			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
-			if (!client->isBot)
+			if (!client->bIsTestClient)
 			{
 				Game::Scr_Error("^1BotStop: Can only call on a bot!\n");
 				return;
@@ -169,7 +169,7 @@ namespace Components
 			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
-			if (!client->isBot)
+			if (!client->bIsTestClient)
 			{
 				Game::Scr_Error("^1BotWeapon: Can only call on a bot!\n");
 				return;
@@ -198,7 +198,7 @@ namespace Components
 			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
-			if (!client->isBot)
+			if (!client->bIsTestClient)
 			{
 				Game::Scr_Error("^1BotAction: Can only call on a bot!\n");
 				return;
@@ -234,7 +234,7 @@ namespace Components
 			const auto* gentity = Script::GetEntFromEntRef(entref);
 			const auto* client = Script::GetClientFromEnt(gentity);
 
-			if (!client->isBot)
+			if (!client->bIsTestClient)
 			{
 				Game::Scr_Error("^1BotMovement: Can only call on a bot!\n");
 				return;
@@ -257,7 +257,7 @@ namespace Components
 			if (client->state < Game::CS_CONNECTED)
 				continue;
 
-			if (!client->isBot)
+			if (!client->bIsTestClient)
 				continue;
 
 			Game::usercmd_s ucmd = {0};

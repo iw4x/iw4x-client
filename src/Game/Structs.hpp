@@ -5503,7 +5503,7 @@ namespace Game
 		int pureAuthentic; // 135896
 		char __pad7[133138]; // 135900
 		short scriptID; // 269038
-		int isBot; // 269040
+		int bIsTestClient; // 269040
 		int serverID; // 269044
 		char __pad8[9224]; // 269048
 		unsigned __int64 steamID; // 278272

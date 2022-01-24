@@ -21,7 +21,7 @@ namespace Game
 
 		return result;
 	}
-	
+
 	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
 

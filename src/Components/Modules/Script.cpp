@@ -10,7 +10,7 @@ namespace Components
 	std::unordered_map<std::string, std::string> Script::ScriptStorage;
 	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
 	std::unordered_map<const char*, const char*> Script::ReplacedFunctions;
-	const char* Script::ReplacedPos = 0;
+	const char* Script::ReplacedPos = nullptr;
 	int Script::LastFrameTime = -1;
 
 	Utils::Signal<Scheduler::Callback> Script::VMShutdownSignal;
@@ -433,30 +433,6 @@ namespace Components
 		return Game::Scr_GetNumParam();
 	}
 
-	// Allow printing to the console even when developer is 0
-	void Script::PrintStub()
-	{
-		const auto g_no_script_spam = Dvar::Var("g_no_script_spam").get<bool>();
-
-		if (!g_no_script_spam)
-			return;
-
-		const auto developer = Dvar::Var("developer").get<int>();
-
-		for (auto i = 0u; i < Game::Scr_GetNumParam(); i++)
-		{
-			const auto str = (developer) ? Game::Scr_GetDebugString(i) : Game::Scr_GetString(i);
-
-			if (str == nullptr)
-			{
-				Game::Scr_ParamError(i, "^1PrintConsole: Illegal parameters!\n");
-				return;
-			}
-
-			Logger::Print(*Game::level_scriptPrintChannel, "%s", str);
-		}
-	}
-
 	const char* Script::GetCodePosForParam(int index)
 	{
 		if (static_cast<unsigned int>(index) >= Game::scrVmPub->outparamcount)
@@ -620,6 +596,23 @@ namespace Components
 			Command::Execute(str, false);
 		});
 
+		// Allow printing to the console even when developer is 0
+		Script::AddFunction("PrintConsole", [](Game::scr_entref_t) // gsc: PrintConsole(<string>)
+		{
+			for (auto i = 0u; i < Game::Scr_GetNumParam(); i++)
+			{
+				const auto str = Game::Scr_GetString(i);
+
+				if (str == nullptr)
+				{
+					Game::Scr_ParamError(i, "^1PrintConsole: Illegal parameters!\n");
+					return;
+				}
+
+				Logger::Print(*Game::level_scriptPrintChannel, "%s", str);
+			}
+		});
+
 		// Script Storage Funcs
 		Script::AddFunction("StorageSet", [](Game::scr_entref_t) // gsc: StorageSet(<str key>, <str data>);
 		{
@@ -693,6 +686,8 @@ namespace Components
 		Utils::Hook(0x61E3AD, Script::RuntimeError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x621976, Script::RuntimeError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x62246E, Script::RuntimeError, HOOK_CALL).install()->quick();
+		// Nullsub GScr_CheckAllowedToSetPersistentData like it's done on IW5 to prevent spam
+		Utils::Hook::Set<BYTE>(0x5F8DA0, 0xC3);
 
 		Utils::Hook(0x612E8D, Script::FunctionError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x612EA2, Script::FunctionError, HOOK_CALL).install()->quick();

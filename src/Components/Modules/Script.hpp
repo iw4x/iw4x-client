@@ -73,8 +73,6 @@ namespace Components
 
 		static unsigned int SetExpFogStub();
 
-		static void PrintStub();
-
 		static const char* GetCodePosForParam(int index);
 		static void GetReplacedPos(const char* pos);
 		static void SetReplacedPos(const char* what, const char* with);
