@@ -193,7 +193,6 @@ require "premake/pdcurses"
 require "premake/protobuf"
 require "premake/zlib"
 require "premake/udis86"
-require "premake/iw4mvm"
 require "premake/dxsdk"
 
 json11.setup
@@ -240,15 +239,6 @@ udis86.setup
 {
 	source = path.join(depsBasePath, "udis86"),
 }
-iw4mvm.setup
-{
-	defines = {
-		"IW4X",
-		"DETOURS_X86",
-		"DETOURS_32BIT",
-	},
-	source = path.join(depsBasePath, "iw4mvm"),
-}
 dxsdk.setup
 {
 	source = path.join(depsBasePath, "dxsdk"),
@@ -267,10 +257,9 @@ workspace "iw4x"
 
 	staticruntime "On"
 
-	configuration "windows"
-		defines { "_WINDOWS", "WIN32" }
+	defines { "_WINDOWS", "WIN32" }
 
-	configuration "Release*"
+	filter "configurations:Release"
 		defines { "NDEBUG" }
 		flags { "MultiProcessorCompile", "LinkTimeOptimization", "No64BitChecks" }
 		optimize "On"
@@ -279,7 +268,7 @@ workspace "iw4x"
 			rtti ("Off")
 		end
 
-	configuration "Debug*"
+	filter "configurations:Debug"
 		defines { "DEBUG", "_DEBUG" }
 		flags { "MultiProcessorCompile", "No64BitChecks" }
 		optimize "Debug"
@@ -347,7 +336,6 @@ workspace "iw4x"
 		protobuf.import()
 		zlib.import()
 		udis86.import()
-		--iw4mvm.import()
 		dxsdk.import()
 
 		-- fix vpaths for protobuf sources
@@ -411,12 +399,12 @@ workspace "iw4x"
 			flags { "Symbols" }
 		end
 
-		configuration "Release*"
+		filter "configurations:Release"
 			flags {
 				"FatalCompileWarnings",
 				"FatalLinkWarnings",
 			}
-		configuration {}
+		filter {}
 
 		--[[
 		-- Generate source code from protobuf definitions
@@ -461,7 +449,6 @@ workspace "iw4x"
 		protobuf.project()
 		zlib.project()
 		udis86.project()
-		--iw4mvm.project()
 		
 workspace "*"
 	cppdialect "C++17"
