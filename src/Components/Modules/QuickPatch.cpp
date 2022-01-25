@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	int QuickPatch::FrameTime = 0;
 	Dvar::Var QuickPatch::r_customAspectRatio;
 
 	void QuickPatch::UnlockStats()
@@ -433,15 +432,9 @@ namespace Components
 			jmp ebx
 		}
 	}
-  
+
 	QuickPatch::QuickPatch()
 	{
-		QuickPatch::FrameTime = 0;
-		Scheduler::OnFrame([]()
-		{
-			QuickPatch::FrameTime = Game::Sys_Milliseconds();
-		});
-
 		// quit_hard
 		Command::Add("quit_hard", [](Command::Params*)
 		{
