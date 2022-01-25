@@ -253,11 +253,7 @@ workspace "iw4x"
 	configurations { "Debug", "Release" }
 	architecture "x86"
 	platforms "x86"
-	--exceptionhandling ("SEH")
-
 	staticruntime "On"
-
-	defines { "_WINDOWS", "WIN32" }
 
 	filter "configurations:Release"
 		defines { "NDEBUG" }
@@ -453,6 +449,7 @@ workspace "iw4x"
 workspace "*"
 	cppdialect "C++17"
 	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
+	defines { "_WINDOWS", "WIN32" }
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"
