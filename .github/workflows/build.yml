@@ -12,7 +12,7 @@ on:
 jobs:
   build:
     name: Build binaries
-    runs-on: windows-latest
+    runs-on: windows-2022
     strategy:
       matrix:
         configuration:
@@ -36,11 +36,11 @@ jobs:
           lfs: false
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v1.1
 
       - name: Generate project files
-        #run: tools/premake5 vs2019 --ci-build
-        run: tools/premake5 vs2019 --ac-disable
+        #run: tools/premake5 vs2022 --ci-build --ac-disable
+        run: tools/premake5 vs2022 --ac-disable
 
       - name: Set up problem matching
         uses: ammaraskar/msvc-problem-matcher@master
