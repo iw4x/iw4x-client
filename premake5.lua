@@ -250,29 +250,44 @@ workspace "iw4x"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
 	buildlog "%{wks.location}/obj/%{cfg.architecture}/%{cfg.buildcfg}/%{prj.name}/%{prj.name}.log"
+
 	configurations { "Debug", "Release" }
+
+	language "C++"
+	cppdialect "C++17"
+
 	architecture "x86"
-	platforms "x86"
+	platforms "Win32"
+
+	systemversion "latest"
+	symbols "On"
 	staticruntime "On"
+	editandcontinue "Off"
+	warnings "Extra"
+	characterset "ASCII"
+
+	flags { "NoIncrementalLink", "NoMinimalRebuild", "MultiProcessorCompile", "No64BitChecks" }
+
+	filter "platforms:Win*"
+		defines {"_WINDOWS", "WIN32"}
+	filter {}
 
 	filter "configurations:Release"
-		defines { "NDEBUG" }
-		flags { "MultiProcessorCompile", "LinkTimeOptimization", "No64BitChecks" }
 		optimize "On"
+		buildoptions { "/GL" }
+		linkoptions { "/IGNORE:4702", "/LTCG" }
+		defines { "NDEBUG" }
+		flags { "FatalCompileWarnings", "FatalLinkWarnings" }
 
 		if not _OPTIONS["force-unit-tests"] then
 			rtti ("Off")
 		end
+	filter {}
 
 	filter "configurations:Debug"
-		defines { "DEBUG", "_DEBUG" }
-		flags { "MultiProcessorCompile", "No64BitChecks" }
 		optimize "Debug"
-		if symbols ~= nil then
-			symbols "On"
-		else
-			flags { "Symbols" }
-		end
+		defines { "DEBUG", "_DEBUG" }
+	filter {}
 
 	project "iw4x"
 		kind "SharedLib"
@@ -385,23 +400,6 @@ workspace "iw4x"
 			}
 		end
 
-		-- Specific configurations
-		flags { "UndefinedIdentifiers" }
-		warnings "Extra"
-
-		if symbols ~= nil then
-			symbols "On"
-		else
-			flags { "Symbols" }
-		end
-
-		filter "configurations:Release"
-			flags {
-				"FatalCompileWarnings",
-				"FatalLinkWarnings",
-			}
-		filter {}
-
 		--[[
 		-- Generate source code from protobuf definitions
 		rules { "ProtobufCompiler" }
@@ -445,11 +443,6 @@ workspace "iw4x"
 		protobuf.project()
 		zlib.project()
 		udis86.project()
-		
-workspace "*"
-	cppdialect "C++17"
-	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
-	defines { "_WINDOWS", "WIN32" }
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"
