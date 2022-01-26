@@ -257,7 +257,7 @@ workspace "iw4x"
 	cppdialect "C++17"
 
 	architecture "x86"
-	platforms "Win32"
+	platforms "x86"
 
 	systemversion "latest"
 	symbols "On"
@@ -268,7 +268,7 @@ workspace "iw4x"
 
 	flags { "NoIncrementalLink", "NoMinimalRebuild", "MultiProcessorCompile", "No64BitChecks" }
 
-	filter "platforms:Win*"
+	filter "platforms:x86"
 		defines {"_WINDOWS", "WIN32"}
 	filter {}
 
