@@ -2,19 +2,21 @@
 
 namespace Components
 {
+	static const char* queryStrings[] = { R"(..)", R"(../)", R"(..\)" };
+
 	void ScriptExtension::AddFunctions()
 	{
 		//File functions
 
 		Script::AddFunction("FileWrite", [](Game::scr_entref_t) // gsc: FileWrite(<filepath>, <string>, <mode>)
 		{
-			const std::string path = Game::Scr_GetString(0);
+			const auto* path = Game::Scr_GetString(0);
 			auto* text = Game::Scr_GetString(1);
 			auto* mode = Game::Scr_GetString(2);
 
-			if (path.empty())
+			if (path == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1FileWrite: filepath not defined!\n");
+				Game::Scr_ParamError(0, "^1FileWrite: filepath is not defined!\n");
 				return;
 			}
 
@@ -24,10 +26,9 @@ namespace Components
 				return;
 			}
 
-			std::vector<const char*> queryStrings = { R"(..)", R"(../)", R"(..\)" };
-			for (auto i = 0u; i < queryStrings.size(); i++)
+			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
 			{
-				if (path.find(queryStrings[i]) != std::string::npos)
+				if (std::strstr(path, queryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1FileWrite: directory traversal is not allowed!\n");
 					return;
@@ -52,18 +53,17 @@ namespace Components
 
 		Script::AddFunction("FileRead", [](Game::scr_entref_t) // gsc: FileRead(<filepath>)
 		{
-			std::string path = Game::Scr_GetString(0);
+			const auto* path = Game::Scr_GetString(0);
 
-			if (path.empty())
+			if (path == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1FileRead: filepath not defined!\n");
+				Game::Scr_ParamError(0, "^1FileRead: filepath is not defined!\n");
 				return;
 			}
 
-			std::vector<const char*> queryStrings = { R"(..)", R"(../)", R"(..\)" };
-			for (auto i = 0u; i < queryStrings.size(); i++)
+			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
 			{
-				if (path.find(queryStrings[i]) != std::string::npos)
+				if (std::strstr(path, queryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1FileRead: directory traversal is not allowed!\n");
 					return;
@@ -81,18 +81,17 @@ namespace Components
 
 		Script::AddFunction("FileExists", [](Game::scr_entref_t) // gsc: FileExists(<filepath>)
 		{
-			std::string path = Game::Scr_GetString(0);
+			const auto* path = Game::Scr_GetString(0);
 
-			if (path.empty())
+			if (path == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1FileExists: filepath not defined!\n");
+				Game::Scr_ParamError(0, "^1FileExists: filepath is not defined!\n");
 				return;
 			}
 
-			std::vector<const char*> queryStrings = { R"(..)", R"(../)", R"(..\)" };
-			for (auto i = 0u; i < queryStrings.size(); i++)
+			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
 			{
-				if (path.find(queryStrings[i]) != std::string::npos)
+				if (std::strstr(path, queryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1FileExists: directory traversal is not allowed!\n");
 					return;
@@ -104,18 +103,17 @@ namespace Components
 
 		Script::AddFunction("FileRemove", [](Game::scr_entref_t) // gsc: FileRemove(<filepath>)
 		{
-			std::string path = Game::Scr_GetString(0);
+			const auto* path = Game::Scr_GetString(0);
 
-			if (path.empty())
+			if (path == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1FileRemove: filepath not defined!\n");
+				Game::Scr_ParamError(0, "^1FileRemove: filepath is not defined!\n");
 				return;
 			}
 
-			std::vector<const char*> queryStrings = { R"(..)", R"(../)", R"(..\)" };
-			for (auto i = 0u; i < queryStrings.size(); i++)
+			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
 			{
-				if (path.find(queryStrings[i]) != std::string::npos)
+				if (std::strstr(path, queryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1fileRemove: directory traversal is not allowed!\n");
 					return;
