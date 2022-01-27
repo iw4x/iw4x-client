@@ -78,7 +78,7 @@ namespace Components
 
 		//Exception::SuspendProcess();
 
-		bool doFullDump = Flags::HasFlag("bigdumps") || Flags::HasFlag("reallybigdumps");
+		bool doFullDump = Flags::HasFlag("bigdumps");
 		/*if (!doFullDump)
 		{
 			if (MessageBoxA(nullptr,

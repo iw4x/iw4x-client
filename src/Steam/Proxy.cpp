@@ -156,13 +156,13 @@ namespace Steam
 		gameID.type = 1; // k_EGameIDTypeGameMod
 		gameID.appID = Proxy::AppId & 0xFFFFFF;
 
-		char* modId = const_cast<char*>("IW4x");
-		gameID.modID = *reinterpret_cast<unsigned int*>(modId) | 0x80000000;
+		const char* modId = "IW4x";
+		gameID.modID = *reinterpret_cast<const unsigned int*>(modId) | 0x80000000;
 
 		Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
 		clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 
-		char ourPath[MAX_PATH] = { 0 };
+		char ourPath[MAX_PATH] = {0};
 		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
 
 		char ourDirectory[MAX_PATH] = { 0 };

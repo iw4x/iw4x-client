@@ -36,21 +36,20 @@
 | Argument                    | Description                                    |
 |:----------------------------|:-----------------------------------------------|
 | `-tests`                    | Perform unit tests.                            |
-| `-entries`                  | Prints fast file info to the console.          |
-| `-stdout`                   | Redirect stdout to the external console.       |
-| `-console`                  | Enables external console.                      |
-| `-dedicated`                | Dedicated server.                              |
-| `-scriptablehttp`           | Adds HTTP console commands.                    |
-| `-bigdumps`                 | Enables dumps.                                 |
-| `-reallybigdumps`           | Unused.                                        |
-| `-bigminidumps`             | Mini dumps.                                    |
-| `-reallybigminidumps`       | Big mini dumps.                                |
-| `-dump`                     | Prints asset info to a .ents file.             |
-| `-monitor`                  | Enables monitor.                               |
-| `-nointro`                  | Skips game's intro.                            |
-| `-version`                  | Prints IW4X version.                           |
-| `-zonebuilder`              | Enables zone builder.                          |
-| `-nosteam`                  | Disables Steam features.                       |
+| `-entries`                  | Print ff info after being loaded.              |
+| `-stdout`                   | Redirect stdout to the console.                |
+| `-console`                  | Create game's external console.                |
+| `-dedicated`                | Enabled dedicated server.                      |
+| `-scriptablehttp`           | Enable HTTP gsc functions.                     |
+| `-bigdumps`                 | Include all code sections from loaded modules. |
+| `-bigminidumps`             | Include all code sections from loaded modules. |
+| `-reallybigminidumps`       | Include data sections from all loaded modules. |
+| `-dump`                     | Write info of loaded assets to the raw folder. |
+| `-monitor`                  | Indicated whenever the game console is active. |
+| `-nointro`                  | Skip game's cinematic intro.                   |
+| `-version`                  | Print IW4x build info                          |
+| `-zonebuilder`              | Enable zone builder.                           |
+| `-nosteam`                  | Same effect as enabling cl_anonymous dvar.     |
 
 
 ## Disclaimer

@@ -583,9 +583,14 @@ namespace Components
 
 		Command::Add("addFriend", [](Command::Params* params)
 		{
-			if (params->length() <= 1) return;
+			if (params->length() < 2u)
+			{
+				Logger::Print("Usage: %s <Steam ID in hexadecimal format>\n", params->get(0));
+				return;
+			}
+
 			SteamID id;
-			id.bits = atoll(params->get(1));
+			id.bits = std::strtoull(params->get(1), nullptr, 16);
 
 			Friends::AddFriend(id);
 		});
