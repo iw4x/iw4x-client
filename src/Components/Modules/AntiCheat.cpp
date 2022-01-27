@@ -634,7 +634,7 @@ namespace Components
 		LUID luid;
 		TOKEN_PRIVILEGES tp = { 0 };
 		DWORD cb = sizeof(TOKEN_PRIVILEGES);
-		if (!LookupPrivilegeValueA(nullptr, SE_DEBUG_NAME, &luid)) return;
+		if (!LookupPrivilegeValueW(nullptr, SE_DEBUG_NAME, &luid)) return;
 
 		tp.PrivilegeCount = 1;
 		tp.Privileges[0].Luid = luid;
