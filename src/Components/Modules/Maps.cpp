@@ -241,7 +241,7 @@ namespace Components
 		{
 			if (Flags::HasFlag("dump"))
 			{
-				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString);
+				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString, true);
 			}
 
 			FileSystem::File ents(name + ".ents");
