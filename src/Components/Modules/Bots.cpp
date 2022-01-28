@@ -48,7 +48,7 @@ namespace Components
 		{ "9", Bots::NUM_9 },
 	};
 
-	void Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
+	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
 		static int botId = 0;
 		const char* botName;
@@ -84,7 +84,7 @@ namespace Components
 			botName = Utils::String::VA("bot%d", ++botId);
 		}
 
-		_snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, protocol, checksum, statVer, statStuff, port);
+		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, protocol, checksum, statVer, statStuff, port);
 	}
 
 	void Bots::Spawn(unsigned int count)
