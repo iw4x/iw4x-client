@@ -335,12 +335,12 @@ namespace Components
 
 	void Maps::AddDependency(const std::string& expression, const std::string& zone)
 	{
-		// Test expression before adding it, throws implementation defined exceptions
+		// Test expression before adding it
 		try
 		{
 			std::regex _(expression);
 		}
-		catch (const std::exception ex)
+		catch (const std::regex_error ex)
 		{
 			MessageBoxA(nullptr, Utils::String::VA("Invalid regular expression: %s", expression.data()), "Warning", MB_ICONEXCLAMATION);
 			return;
