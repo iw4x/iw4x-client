@@ -252,15 +252,16 @@ namespace Components
 				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString, true);
 			}
 
+			static std::string mapEntities;
 			FileSystem::File ents(name + ".ents");
 			if (ents.exists())
 			{
-				static auto mapEntities = ents.getBuffer();
-				asset.mapEnts->entityString = const_cast<char*>(mapEntities.data());
+				mapEntities = ents.getBuffer();
+				asset.mapEnts->entityString = mapEntities.data();
 				asset.mapEnts->numEntityChars = mapEntities.size() + 1;
 			}
 		}
-		
+
 		// This is broken
 		if ((type == Game::XAssetType::ASSET_TYPE_MENU || type == Game::XAssetType::ASSET_TYPE_MENULIST) && Zones::Version() >= 359)
 		{

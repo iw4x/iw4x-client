@@ -1983,7 +1983,7 @@ namespace Game
 	struct __declspec(align(4)) MapEnts
 	{
 		const char *name;
-		char *entityString;
+		const char *entityString;
 		int numEntityChars;
 		MapTriggers trigger;
 		Stage *stages;
