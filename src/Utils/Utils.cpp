@@ -107,12 +107,12 @@ namespace Utils
 	void SetEnvironment()
 	{
 		wchar_t exeName[512];
-		GetModuleFileName(GetModuleHandle(nullptr), exeName, sizeof(exeName) / 2);
+		GetModuleFileNameW(GetModuleHandleW(nullptr), exeName, sizeof(exeName) / sizeof(wchar_t));
 
 		wchar_t* exeBaseName = wcsrchr(exeName, L'\\');
 		exeBaseName[0] = L'\0';
 
-		SetCurrentDirectory(exeName);
+		SetCurrentDirectoryW(exeName);
 	}
 
 	HMODULE GetNTDLL()

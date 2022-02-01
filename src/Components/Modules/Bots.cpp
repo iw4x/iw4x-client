@@ -35,7 +35,7 @@ namespace Components
 		{ "leanright", Game::usercmdButtonBits::CMD_BUTTON_LEAN_RIGHT },
 		{ "ads", Game::usercmdButtonBits::CMD_BUTTON_ADS },
 		{ "holdbreath", Game::usercmdButtonBits::CMD_BUTTON_BREATH },
-		{ "use", Bots::USE },
+		{ "use", Game::usercmdButtonBits::CMD_BUTTON_USE_RELOAD | Game::usercmdButtonBits::CMD_BUTTON_ACTIVATE },
 		{ "0", Bots::NUM_0 },
 		{ "1", Bots::NUM_1 },
 		{ "2", Bots::NUM_2 },
@@ -261,8 +261,6 @@ namespace Components
 		ucmd.forwardmove = g_botai[entnum].forward;
 		ucmd.rightmove = g_botai[entnum].right;
 		ucmd.weapon = g_botai[entnum].weapon;
-
-		cl->deltaMessage = cl->netchan.outgoingSequence - 1;
 
 		Game::SV_ClientThink(cl, &ucmd);
 	}

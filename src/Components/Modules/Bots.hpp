@@ -18,9 +18,7 @@ namespace Components
 			NUM_6 = 0x400000,
 			NUM_7 = 0x800000,
 			NUM_8 = 0x1000000,
-			NUM_9 = 0x2000000,
-
-			USE = NUM_0 | NUM_1
+			NUM_9 = 0x2000000
 		};
 
 	private:
