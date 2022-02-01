@@ -142,7 +142,7 @@ namespace Components
 	{
 		Script::AddFunction("Noclip", [](Game::scr_entref_t entref) // gsc: Noclip(<optional int toggle>);
 		{
-			const auto* ent = Script::GetEntFromEntRef(entref);
+			const auto* ent = Script::GetEntity(entref);
 
 			if (ent->client == nullptr)
 			{
@@ -169,7 +169,7 @@ namespace Components
 
 		Script::AddFunction("Ufo", [](Game::scr_entref_t entref) // gsc: Ufo(<optional int toggle>);
 		{
-			const auto* ent = Script::GetEntFromEntRef(entref);
+			const auto* ent = Script::GetEntity(entref);
 
 			if (ent->client == nullptr)
 			{
@@ -196,7 +196,7 @@ namespace Components
 
 		Script::AddFunction("God", [](Game::scr_entref_t entref) // gsc: God(<optional int toggle>);
 		{
-			auto* ent = Script::GetEntFromEntRef(entref);
+			auto* ent = Script::GetEntity(entref);
 
 			if (Game::Scr_GetNumParam() >= 1u)
 			{
@@ -217,7 +217,7 @@ namespace Components
 
 		Script::AddFunction("Demigod", [](Game::scr_entref_t entref) // gsc: Demigod(<optional int toggle>);
 		{
-			auto* ent = Script::GetEntFromEntRef(entref);
+			auto* ent = Script::GetEntity(entref);
 
 			if (Game::Scr_GetNumParam() >= 1u)
 			{
@@ -238,7 +238,7 @@ namespace Components
 
 		Script::AddFunction("Notarget", [](Game::scr_entref_t entref) // gsc: Notarget(<optional int toggle>);
 		{
-			auto* ent = Script::GetEntFromEntRef(entref);
+			auto* ent = Script::GetEntity(entref);
 
 			if (Game::Scr_GetNumParam() >= 1u)
 			{

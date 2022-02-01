@@ -29,8 +29,8 @@ namespace Components
 
 		static void OnVMShutdown(Utils::Slot<Scheduler::Callback> callback);
 
-		static Game::gentity_t* GetEntFromEntRef(const Game::scr_entref_t entref);
-		static Game::client_t* GetClientFromEnt(const Game::gentity_t* gentity);
+		static Game::gentity_t* GetEntity(const Game::scr_entref_t entref);
+		static Game::client_t* GetClient(const Game::gentity_t* gentity);
 
 	private:
 		static std::string ScriptName;

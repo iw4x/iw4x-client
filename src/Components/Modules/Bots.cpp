@@ -126,8 +126,8 @@ namespace Components
 				return;
 			}
 
-			const auto* gentity = Script::GetEntFromEntRef(entref);
-			auto* client = Script::GetClientFromEnt(gentity);
+			const auto* gentity = Script::GetEntity(entref);
+			auto* client = Script::GetClient(gentity);
 
 			if (!client->bIsTestClient)
 			{
@@ -138,18 +138,18 @@ namespace Components
 			client->ping = static_cast<int16_t>(ping);
 		});
 
-		Script::AddFunction("IsBot", [](Game::scr_entref_t entref) // Usage: <bot> IsBot();
+		Script::AddFunction("IsTestClient", [](Game::scr_entref_t entref) // Usage: <bot> IsTestClient();
 		{
-			const auto* gentity = Script::GetEntFromEntRef(entref);
-			const auto* client = Script::GetClientFromEnt(gentity);
+			const auto* gentity = Script::GetEntity(entref);
+			const auto* client = Script::GetClient(gentity);
 
 			Game::Scr_AddBool(client->bIsTestClient == 1);
 		});
 
 		Script::AddFunction("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
-			const auto* gentity = Script::GetEntFromEntRef(entref);
-			const auto* client = Script::GetClientFromEnt(gentity);
+			const auto* gentity = Script::GetEntity(entref);
+			const auto* client = Script::GetClient(gentity);
 
 			if (!client->bIsTestClient)
 			{
@@ -165,8 +165,8 @@ namespace Components
 		{
 			const auto* weapon = Game::Scr_GetString(0);
 
-			const auto* gentity = Script::GetEntFromEntRef(entref);
-			const auto* client = Script::GetClientFromEnt(gentity);
+			const auto* gentity = Script::GetEntity(entref);
+			const auto* client = Script::GetClient(gentity);
 
 			if (!client->bIsTestClient)
 			{
@@ -194,8 +194,8 @@ namespace Components
 				return;
 			}
 
-			const auto* gentity = Script::GetEntFromEntRef(entref);
-			const auto* client = Script::GetClientFromEnt(gentity);
+			const auto* gentity = Script::GetEntity(entref);
+			const auto* client = Script::GetClient(gentity);
 
 			if (!client->bIsTestClient)
 			{
@@ -230,8 +230,8 @@ namespace Components
 			auto forwardInt = Game::Scr_GetInt(0);
 			auto rightInt = Game::Scr_GetInt(1);
 
-			const auto* gentity = Script::GetEntFromEntRef(entref);
-			const auto* client = Script::GetClientFromEnt(gentity);
+			const auto* gentity = Script::GetEntity(entref);
+			const auto* client = Script::GetClient(gentity);
 
 			if (!client->bIsTestClient)
 			{

@@ -521,7 +521,7 @@ namespace Components
 		}
 	}
 
-	Game::gentity_t* Script::GetEntFromEntRef(const Game::scr_entref_t entref)
+	Game::gentity_t* Script::GetEntity(const Game::scr_entref_t entref)
 	{
 		if (entref.classnum != 0 || entref.entnum >= Game::MAX_GENTITIES)
 		{
@@ -532,7 +532,7 @@ namespace Components
 		return &Game::g_entities[entref.entnum];
 	}
 
-	Game::client_t* Script::GetClientFromEnt(const Game::gentity_t* gentity)
+	Game::client_t* Script::GetClient(const Game::gentity_t* gentity)
 	{
 		if (gentity->client == nullptr)
 		{
@@ -663,7 +663,7 @@ namespace Components
 		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
 		Script::AddFunction("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
 		{
-			const auto* ent = Script::GetEntFromEntRef(entref);
+			const auto* ent = Script::GetEntity(entref);
 
 			if (ent->client == nullptr)
 			{
