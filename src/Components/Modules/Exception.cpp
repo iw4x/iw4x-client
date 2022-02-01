@@ -78,21 +78,9 @@ namespace Components
 
 		//Exception::SuspendProcess();
 
-		bool doFullDump = Flags::HasFlag("bigdumps") || Flags::HasFlag("reallybigdumps");
-		/*if (!doFullDump)
-		{
-			if (MessageBoxA(nullptr,
-				Utils::String::VA("%s\n\n" // errorStr
-								  "Would you like to create a full crash dump for the developers (this can be 100mb or more)?\nNo will create small dumps that are automatically uploaded.", errorStr),
-								  "IW4x Error!", MB_YESNO | MB_ICONERROR) == IDYES)
-			{
-				doFullDump = true;
-			}
-		}*/
-
 		MessageBoxA(nullptr, errorStr.data(), "ERROR", MB_ICONERROR);
 
-		if (doFullDump)
+		if ( Flags::HasFlag("bigminidumps"))
 		{
 			Exception::SetMiniDumpType(true, false);
 		}
