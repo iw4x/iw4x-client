@@ -699,16 +699,6 @@ namespace Game
 		SV_KickClient(client, reason.data());
 	}
 
-	void Scr_iPrintLn(int clientNum, const std::string& message)
-	{
-		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x66, message.data()));
-	}
-
-	void Scr_iPrintLnBold(int clientNum, const std::string& message)
-	{
-		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x67, message.data()));
-	}
-
 	void IncInParam()
 	{
 		Scr_ClearOutParams();

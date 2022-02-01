@@ -190,11 +190,11 @@ namespace Components
 
 	void Script::CompileError(unsigned int offset, const char* message, ...)
 	{
-		char msgbuf[1024] = { 0 };
-		va_list v;
-		va_start(v, message);
-		_vsnprintf_s(msgbuf, sizeof(msgbuf), message, v);
-		va_end(v);
+		char msgbuf[1024] = {0};
+		va_list va;
+		va_start(va, message);
+		vsnprintf_s(msgbuf, sizeof(msgbuf), _TRUNCATE, message, va);
+		va_end(va);
 
 		Game::Scr_ShutdownAllocNode();
 
@@ -214,7 +214,7 @@ namespace Components
 		if (!Game::Scr_LoadScript(script.data()))
 		{
 			Logger::Print("Script %s encountered an error while loading. (doesn't exist?)", script.data());
-			Logger::Error(Game::ERR_DROP, reinterpret_cast<char*>(0x70B810), script.data());
+			Logger::Error(Game::ERR_DROP, reinterpret_cast<const char*>(0x70B810), script.data());
 		}
 		else
 		{
@@ -339,9 +339,9 @@ namespace Components
 		int offset = -1;
 		std::string file;
 
-		for (auto kv : Script::ScriptBaseProgramNum)
+		for (const auto& [key, value] : Script::ScriptBaseProgramNum)
 		{
-			int codePos = kv.first;
+			int codePos = key;
 
 			if (codePos > scriptPos)
 			{
@@ -356,7 +356,7 @@ namespace Components
 
 			bestCodePos = codePos;
 
-			file = kv.second;
+			file = value;
 			offset = scriptPos - bestCodePos;
 		}
 
@@ -589,7 +589,7 @@ namespace Components
 
 			if (str == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1Exec: Illegal parameters!\n");
+				Game::Scr_ParamError(0, "^1Exec: Illegal parameter!\n");
 				return;
 			}
 
@@ -605,7 +605,7 @@ namespace Components
 
 				if (str == nullptr)
 				{
-					Game::Scr_ParamError(i, "^1PrintConsole: Illegal parameters!\n");
+					Game::Scr_ParamError(i, "^1PrintConsole: Illegal parameter!\n");
 					return;
 				}
 
@@ -616,19 +616,31 @@ namespace Components
 		// Script Storage Funcs
 		Script::AddFunction("StorageSet", [](Game::scr_entref_t) // gsc: StorageSet(<str key>, <str data>);
 		{
-			std::string key = Game::Scr_GetString(0);
-			std::string data = Game::Scr_GetString(1);
+			const auto* key = Game::Scr_GetString(0);
+			const auto* value = Game::Scr_GetString(1);
 
-			Script::ScriptStorage.insert_or_assign(key, data);
+			if (key == nullptr || value == nullptr)
+			{
+				Game::Scr_Error("^1StorageSet: Illegal parameters!\n");
+				return;
+			}
+
+			Script::ScriptStorage.insert_or_assign(key, value);
 		});
 
 		Script::AddFunction("StorageRemove", [](Game::scr_entref_t) // gsc: StorageRemove(<str key>);
 		{
-			std::string key = Game::Scr_GetString(0);
+			const auto* key = Game::Scr_GetString(0);
+
+			if (key == nullptr)
+			{
+				Game::Scr_Error("^1StorageRemove: Illegal parameter!\n");
+				return;
+			}
 
 			if (!Script::ScriptStorage.count(key))
 			{
-				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key.data()));
+				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key));
 				return;
 			}
 
@@ -637,11 +649,17 @@ namespace Components
 
 		Script::AddFunction("StorageGet", [](Game::scr_entref_t) // gsc: StorageGet(<str key>);
 		{
-			std::string key = Game::Scr_GetString(0);
+			const auto* key = Game::Scr_GetString(0);
+
+			if (key == nullptr)
+			{
+				Game::Scr_Error("^1StorageGet: Illegal parameter!\n");
+				return;
+			}
 
 			if (!Script::ScriptStorage.count(key))
 			{
-				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key.data()));
+				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key));
 				return;
 			}
 
@@ -651,7 +669,14 @@ namespace Components
 
 		Script::AddFunction("StorageHas", [](Game::scr_entref_t) // gsc: StorageHas(<str key>);
 		{
-			std::string key = Game::Scr_GetString(0);
+			const auto* key = Game::Scr_GetString(0);
+
+			if (key == nullptr)
+			{
+				Game::Scr_Error("^1StorageHas: Illegal parameter!\n");
+				return;
+			}
+
 			Game::Scr_AddBool(Script::ScriptStorage.count(key));
 		});
 

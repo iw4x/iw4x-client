@@ -1062,8 +1062,6 @@ namespace Game
 	void RuntimeErrorInternal(int channel, const char* codePos, unsigned int index, const char* msg);
 	void IncInParam();
 
-	void Scr_iPrintLn(int clientNum, const std::string& message);
-	void Scr_iPrintLnBold(int clientNum, const std::string& message);
 	void Scr_NotifyId(unsigned int id, unsigned __int16 stringValue, unsigned int paramcount);
 	void Scr_AddBool(int value);
 
