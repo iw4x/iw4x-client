@@ -18,14 +18,14 @@ namespace Components
 		return result;
 	}
 
-	char* Command::Params::operator[](size_t index)
+	const char* Command::Params::operator[](size_t index)
 	{
 		return this->get(index);
 	}
 
-	char* Command::ClientParams::get(size_t index)
+	const char* Command::ClientParams::get(size_t index)
 	{
-		if (index >= this->length()) return const_cast<char*>("");
+		if (index >= this->length()) return "";
 		return Game::cmd_argv[this->commandId][index];
 	}
 
@@ -34,9 +34,9 @@ namespace Components
 		return Game::cmd_argc[this->commandId];
 	}
 
-	char* Command::ServerParams::get(size_t index)
+	const char* Command::ServerParams::get(size_t index)
 	{
-		if (index >= this->length()) return const_cast<char*>("");
+		if (index >= this->length()) return "";
 		return Game::cmd_argv_sv[this->commandId][index];
 	}
 
@@ -159,52 +159,6 @@ namespace Components
 	Command::Command()
 	{
 		AssertSize(Game::cmd_function_t, 24);
-
-		static int toastDurationShort = 1000;
-		static int toastDurationMedium = 2500;
-		static int toastDurationLong = 5000;
-
-		Command::Add("setviewpos", [](Command::Params* params)
-		{
-			int clientNum = Game::CG_GetClientNum();
-			if (!Game::CL_IsCgameInitialized() || clientNum >= 18 || clientNum < 0 || !Game::g_entities[clientNum].client)
-			{
-				Logger::Print("You are not hosting a match!\n");
-				Toast::Show("cardicon_stop", "Error", "You are not hosting a match!", toastDurationMedium);
-				return;
-			}
-
-			if (!Dvar::Var("sv_cheats").get<bool>())
-			{
-				Logger::Print("Cheats disabled!\n");
-				Toast::Show("cardicon_stop", "Error", "Cheats disabled!", toastDurationMedium);
-				return;
-			}
-
-			if (params->length() != 4 && params->length() != 6)
-			{
-				Logger::Print("Invalid coordinate specified!\n");
-				Toast::Show("cardicon_stop", "Error", "Invalid coordinate specified!", toastDurationMedium);
-				return;
-			}
-
-			float pos[3] = { 0.0f, 0.0f, 0.0f };
-			float orientation[3] = { 0.0f, 0.0f, 0.0f };
-
-			pos[0] = strtof(params->get(1), nullptr);
-			pos[1] = strtof(params->get(2), nullptr);
-			pos[2] = strtof(params->get(3), nullptr);
-
-			if (params->length() == 6)
-			{
-				orientation[0] = strtof(params->get(4), nullptr);
-				orientation[1] = strtof(params->get(5), nullptr);
-			}
-
-			Game::TeleportPlayer(&Game::g_entities[clientNum], pos, orientation);
-
-			// Logging will spam the console and screen if people use cinematics
-		});
 
 		Command::Add("openLink", [](Command::Params* params)
 		{

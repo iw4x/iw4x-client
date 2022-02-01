@@ -216,6 +216,31 @@ namespace Game
 		FL_MOVER_SLIDE = 0x8000000
 	};
 
+	typedef enum
+	{
+		HITLOC_NONE,
+		HITLOC_HELMET,
+		HITLOC_HEAD,
+		HITLOC_NECK,
+		HITLOC_TORSO_UPR,
+		HITLOC_TORSO_LWR,
+		HITLOC_R_ARM_UPR,
+		HITLOC_L_ARM_UPR,
+		HITLOC_R_ARM_LWR,
+		HITLOC_L_ARM_LWR,
+		HITLOC_R_HAND,
+		HITLOC_L_HAND,
+		HITLOC_R_LEG_UPR,
+		HITLOC_L_LEG_UPR,
+		HITLOC_R_LEG_LWR,
+		HITLOC_L_LEG_LWR,
+		HITLOC_R_FOOT,
+		HITLOC_L_FOOT,
+		HITLOC_GUN,
+		HITLOC_SHIELD,
+		HITLOC_NUM
+	} hitLocation_t;
+
 	struct FxEffectDef;
 	struct pathnode_t;
 	struct pathnode_tree_t;
@@ -1090,6 +1115,40 @@ namespace Game
 		PM_DEAD_LINKED = 0x9,
 	};
 
+	enum playerEFlag
+	{
+		EF_NONSOLID_BMODEL = 0x1,
+		EF_TELEPORT_BIT = 0x2,
+		EF_CROUCHING = 0x4,
+		EF_PRONE = 0x8,
+		EF_NODRAW = 0x20,
+		EF_TIMED_OBJECT = 0x40,
+		EF_VOTED = 0x80,
+		EF_TALK = 0x100,
+		EF_FIRING = 0x200,
+		EF_TURRET_ACTIVE_PRONE = 0x400,
+		EF_TURRET_ACTIVE_DUCK = 0x800,
+		EF_LOCK_LIGHT_VIS = 0x1000,
+		EF_AIM_ASSIST = 0x2000,
+		EF_LOOP_RUMBLE = 0x4000,
+		EF_LASER_SIGHT = 0x8000,
+		EF_MANTLE = 0x10000,
+		EF_DEAD = 0x20000,
+		EF_ADS = 0x40000,
+		EF_NEW = 0x80000,
+		EF_VEHICLE_ACTIVE = 0x100000,
+		EF_JAMMING = 0x200000,
+		EF_COMPASS_PING = 0x400000,
+		EF_SOFT = 0x800000
+	};
+
+	enum playerLinkFlag
+	{
+		PLF_ANGLES_LOCKED = 0x1,
+		PLF_USES_OFFSET = 0x2,
+		PLF_WEAPONVIEW_ONLY = 0x4
+	};
+
 	struct playerState_s
 	{
 		int commandTime;
@@ -1137,7 +1196,7 @@ namespace Game
 		int unpredictableEventSequenceOld;
 		int unpredictableEvents[4];
 		unsigned int unpredictableEventParms[4];
-		int clientNum;
+		int clientNum; // 260
 		int viewmodelIndex;
 		float viewangles[3];
 		int viewHeightTarget;
@@ -5364,20 +5423,41 @@ namespace Game
 		PLAYER_FLAG_FROZEN = 1 << 2,
 	};
 
+	typedef enum
+	{
+		SESS_STATE_PLAYING = 0x0,
+		SESS_STATE_DEAD = 0x1,
+		SESS_STATE_SPECTATOR = 0x2,
+		SESS_STATE_INTERMISSION = 0x3
+	} sessionState_t;
+
+	typedef enum
+	{
+		CON_DISCONNECTED = 0x0,
+		CON_CONNECTING = 0x1,
+		CON_CONNECTED = 0x2
+	} clientConnected_t;
+
 	typedef struct gclient_s
 	{
-		unsigned char pad[12764];
-		unsigned int team;
+		playerState_s ps;
+		sessionState_t sessionState; // 12572
+		char pad0[40];
+		clientConnected_t connected; // 12616
+		char pad1[144];
+		unsigned int team; // 12764
 		char pad2[436];
-		int flags;
+		int flags; // 13204
 		int spectatorClient;
 		int lastCmdTime;
 		int buttons;
-		int oldbuttons;
-		int latched_buttons;
-		int buttonsSinceLastFrame;
-		char pad3[700];
+		int oldbuttons; // 13220
+		int latched_buttons; // 13224
+		int buttonsSinceLastFrame; // 13228
+		char pad3[700]; // 13232
 	} gclient_t;
+
+	static_assert(sizeof(gclient_t) == 13932);
 
 	struct EntHandle
 	{
@@ -5437,14 +5517,14 @@ namespace Game
 		void /*Vehicle*/* vehicle;
 		int physObjId;
 		unsigned __int16 model;
-		char physicsObject;
-		char takedamage;
-		char active;
-		char handler;
-		char team;
+		unsigned char physicsObject;
+		unsigned char takedamage;
+		unsigned char active;
+		unsigned char handler;
+		unsigned char team;
 		bool freeAfterEvent;
 		__int16 padding_short;
-		short classname;
+		unsigned __int16 classname;
 		unsigned __int16 script_classname;
 		unsigned __int16 script_linkName;
 		unsigned __int16 target;
@@ -5472,7 +5552,10 @@ namespace Game
 		char pad[100];
 	} gentity_t;
 
+	static_assert(sizeof(gentity_s) == 0x274);
+
 #pragma pack(push, 1)
+
 	typedef struct client_s
 	{
 		clientstate_t state; // 0
@@ -5511,6 +5594,7 @@ namespace Game
 		unsigned __int64 steamID; // 278272
 		char __pad9[403592]; // 278280
 	} client_t;
+
 #pragma pack(pop)
 
 	static_assert(sizeof(client_t) == 0xA6790);
@@ -6946,15 +7030,43 @@ namespace Game
 		const char* args[9];
 	};
 
+	enum TraceHitType
+	{
+		TRACE_HITTYPE_NONE = 0,
+		TRACE_HITTYPE_ENTITY = 1,
+		TRACE_HITTYPE_DYNENT_MODEL = 2,
+		TRACE_HITTYPE_DYNENT_BRUSH = 3,
+		TRACE_HITTYPE_GLASS = 4
+	};
+
+	struct trace_t
+	{
+		float fraction;
+		float normal[3];
+		int surfaceFlags;
+		int contents;
+		const char* material;
+		TraceHitType hitType;
+		unsigned __int16 hitId;
+		unsigned __int16 modelIndex;
+		unsigned __int16 partName;
+		unsigned __int16 partGroup;
+		bool allsolid;
+		bool startsolid;
+		bool walkable;
+	};
+
+	static_assert(sizeof(trace_t) == 0x2C);
+
 	struct pmove_s
 	{
 		playerState_s* ps;
 		usercmd_s cmd;
 		usercmd_s oldcmd;
-		int tracemask;
+		int tracemask; // 84
 		int numtouch;
 		int touchents[32];
-		char __pad0[24];
+		Bounds bounds; // 220
 		float xyspeed;
 		int proneChange;
 		float maxSprintTimeMultiplier;
@@ -6967,6 +7079,27 @@ namespace Game
 		float fWaistPitch;
 		unsigned char handler;
 	};
+
+	static_assert(sizeof(pmove_s) == 296);
+
+	struct pml_t
+	{
+		float forward[3];
+		float right[3];
+		float up[3];
+		float frametime;
+		int msec;
+		int walking;
+		int groundPlane;
+		int almostGroundPlane;
+		trace_t groundTrace;
+		float impactSpeed;
+		float previous_origin[3];
+		float previous_velocity[3];
+		int holdrand;
+	};
+
+	static_assert(sizeof(pml_t) == 0x84);
 
 	enum EffectiveStance
 	{
