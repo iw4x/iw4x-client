@@ -780,11 +780,11 @@ namespace Components
 			{
 				int dlc = token.get<int>();
 
-				for (auto pack : Maps::DlcPacks)
+				for (const auto& pack : Maps::DlcPacks)
 				{
 					if (pack.index == dlc)
 					{
-						ShellExecute(0, 0, L"https://xlabs.dev/support_iw4x_client.html", 0, 0, SW_SHOW);
+						ShellExecuteW(0, 0, L"https://xlabs.dev/support_iw4x_client.html", 0, 0, SW_SHOW);
 						return;
 					}
 				}
