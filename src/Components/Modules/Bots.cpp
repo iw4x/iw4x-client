@@ -22,19 +22,19 @@ namespace Components
 
 	static const BotAction BotActions[] =
 	{
-		{ "gostand", Bots::JUMP },
-		{ "gocrouch", Bots::CROUCH },
-		{ "goprone", Bots::PRONE },
-		{ "fire", Bots::FIRE },
-		{ "melee", Bots::FIRE},
-		{ "frag", Bots::THROW_EQUIPMENT },
-		{ "smoke", Bots::THROW_SPECIAL },
-		{ "reload", Bots::RELOAD },
-		{ "sprint", Bots::SPRINT },
-		{ "leanleft", Bots::LEAN_LEFT},
-		{ "leanright", Bots::LEAN_RIGHT },
-		{ "ads", Bots::ADS_MODE },
-		{ "holdbreath", Bots::HOLD_BREATH },
+		{ "gostand", Game::usercmdButtonBits::CMD_BUTTON_UP },
+		{ "gocrouch", Game::usercmdButtonBits::CMD_BUTTON_CROUCH },
+		{ "goprone", Game::usercmdButtonBits::CMD_BUTTON_PRONE },
+		{ "fire", Game::usercmdButtonBits::CMD_BUTTON_ATTACK },
+		{ "melee", Game::usercmdButtonBits::CMD_BUTTON_MELEE },
+		{ "frag", Game::usercmdButtonBits::CMD_BUTTON_FRAG },
+		{ "smoke",  Game::usercmdButtonBits::CMD_BUTTON_OFFHAND_SECONDARY },
+		{ "reload", Game::usercmdButtonBits::CMD_BUTTON_RELOAD },
+		{ "sprint", Game::usercmdButtonBits::CMD_BUTTON_SPRINT },
+		{ "leanleft", Game::usercmdButtonBits::CMD_BUTTON_LEAN_LEFT },
+		{ "leanright", Game::usercmdButtonBits::CMD_BUTTON_LEAN_RIGHT },
+		{ "ads", Game::usercmdButtonBits::CMD_BUTTON_ADS },
+		{ "holdbreath", Game::usercmdButtonBits::CMD_BUTTON_BREATH },
 		{ "use", Bots::USE },
 		{ "0", Bots::NUM_0 },
 		{ "1", Bots::NUM_1 },
@@ -45,7 +45,7 @@ namespace Components
 		{ "6", Bots::NUM_6 },
 		{ "7", Bots::NUM_7 },
 		{ "8", Bots::NUM_8 },
-		{ "9", Bots::NUM_9 },
+		{ "9", Bots::NUM_9 }
 	};
 
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
