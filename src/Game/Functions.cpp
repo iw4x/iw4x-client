@@ -380,7 +380,6 @@ namespace Game
 	Jump_ClearState_t Jump_ClearState = Jump_ClearState_t(0x04B3890);
 	PM_playerTrace_t PM_playerTrace = PM_playerTrace_t(0x458980);
 	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
-
 	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
