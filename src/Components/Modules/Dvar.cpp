@@ -15,17 +15,17 @@ namespace Components
 	{
 		assert(!this->dvarName.empty() && this->dvar == nullptr);
 
-		auto* dvar = Game::Dvar_FindVar(this->dvarName.data());
+		auto* var = Game::Dvar_FindVar(this->dvarName.data());
 
 		// If the dvar can't be found it will be registered as an empty string dvar
-		if (dvar == nullptr)
+		if (var == nullptr)
 		{
 			this->dvar = const_cast<Game::dvar_t*>(Game::Dvar_SetFromStringByNameFromSource(this->dvarName.data(), "",
 				Game::DvarSetSource::DVAR_SOURCE_INTERNAL));
 		}	
 		else
 		{
-			this->dvar = dvar;
+			this->dvar = var;
 		}
 	}
 
