@@ -8,24 +8,39 @@ namespace Components
 	Dvar::Var::Var(const std::string& dvarName) : Var()
 	{
 		this->dvar = Game::Dvar_FindVar(dvarName.data());
+		this->dvarName = dvarName;
+	}
 
-		if (!this->dvar)
+	void Dvar::Var::registerDvar()
+	{
+		assert(!this->dvarName.empty() && this->dvar == nullptr);
+
+		auto* dvar = Game::Dvar_FindVar(this->dvarName.data());
+
+		// If the dvar can't be found it will be registered as an empty string dvar
+		if (dvar == nullptr)
 		{
-			// Quick-register the dvar
-			Game::Dvar_SetStringByName(dvarName.data(), "");
-			this->dvar = Game::Dvar_FindVar(dvarName.data());
+			this->dvar = const_cast<Game::dvar_t*>(Game::Dvar_SetFromStringByNameFromSource(this->dvarName.data(), "",
+				Game::DvarSetSource::DVAR_SOURCE_INTERNAL));
+		}	
+		else
+		{
+			this->dvar = dvar;
 		}
 	}
 
 	template <> Game::dvar_t* Dvar::Var::get()
 	{
+		if (this->dvar == nullptr)
+			this->registerDvar();
+
 		return this->dvar;
 	}
 
 	template <> const char* Dvar::Var::get()
 	{
 		if (this->dvar == nullptr)
-			return "";
+			this->registerDvar();
 
 		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING
 			|| this->dvar->type == Game::dvar_type::DVAR_TYPE_ENUM)
@@ -39,7 +54,10 @@ namespace Components
 
 	template <> int Dvar::Var::get()
 	{
-		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_INT || this->dvar->type == Game::dvar_type::DVAR_TYPE_ENUM)
+		if (this->dvar == nullptr)
+			this->registerDvar();
+
+		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_INT || this->dvar->type == Game::dvar_type::DVAR_TYPE_ENUM)
 		{
 			return this->dvar->current.integer;
 		}
@@ -49,34 +67,51 @@ namespace Components
 
 	template <> unsigned int Dvar::Var::get()
 	{
-		return static_cast<unsigned int>(this->get<int>());
-	}
+		if (this->dvar == nullptr)
+			this->registerDvar();
 
-	template <> float Dvar::Var::get()
-	{
-		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
+		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
 		{
-			return this->dvar->current.value;
+			return this->dvar->current.unsignedInt;
 		}
 
 		return 0;
 	}
 
+	template <> float Dvar::Var::get()
+	{
+		if (this->dvar == nullptr)
+			this->registerDvar();
+
+		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
+		{
+			return this->dvar->current.value;
+		}
+
+		return 0.f;
+	}
+
 	template <> float* Dvar::Var::get()
 	{
-		static float val[4] = { 0 };
+		static Game::vec4_t vector{ 0.f, 0.f, 0.f, 0.f };
+
+		if (this->dvar == nullptr)
+			this->registerDvar();
 
 		if (this->dvar && (this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_2 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_3 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_4))
 		{
 			return this->dvar->current.vector;
 		}
 
-		return val;
+		return vector;
 	}
 
 	template <> bool Dvar::Var::get()
 	{
-		if (this->dvar && this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
+		if (this->dvar == nullptr)
+			this->registerDvar();
+
+		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
 		{
 			return this->dvar->current.enabled;
 		}
@@ -87,11 +122,6 @@ namespace Components
 	template <> std::string Dvar::Var::get()
 	{
 		return this->get<const char*>();
-	}
-
-	void Dvar::Var::set(char* string)
-	{
-		this->set(const_cast<const char*>(string));
 	}
 
 	void Dvar::Var::set(const char* string)
@@ -242,7 +272,7 @@ namespace Components
 		return Dvar::Register<const char*>(name, username.data(), Dvar::Flag(flag | Game::dvar_flag::DVAR_FLAG_SAVED).val, description).get<Game::dvar_t*>();
 	}
 
-	Game::dvar_t* Dvar::SetFromStringByNameSafeExternal(const char* dvar, const char* value)
+	void Dvar::SetFromStringByNameSafeExternal(const char* dvarName, const char* string)
 	{
 		static const char* exceptions[] =
 		{
@@ -258,18 +288,19 @@ namespace Components
 
 		for (int i = 0; i < ARRAYSIZE(exceptions); ++i)
 		{
-			if (Utils::String::ToLower(dvar) == Utils::String::ToLower(exceptions[i]))
+			if (Utils::String::ToLower(dvarName) == Utils::String::ToLower(exceptions[i]))
 			{
-				return Game::Dvar_SetFromStringByName(dvar, value);
+				Game::Dvar_SetFromStringByNameFromSource(dvarName, string, Game::DvarSetSource::DVAR_SOURCE_INTERNAL);
+				return;
 			}
 		}
 
-		return Dvar::SetFromStringByNameExternal(dvar, value);
+		return Dvar::SetFromStringByNameExternal(dvarName, string);
 	}
 
-	Game::dvar_t* Dvar::SetFromStringByNameExternal(const char* dvar, const char* value)
+	void Dvar::SetFromStringByNameExternal(const char* dvarName, const char* string)
 	{
-		return Game::Dvar_SetFromStringByNameFromSource(dvar, value, Game::DvarSetSource::DVAR_SOURCE_EXTERNAL);
+		Game::Dvar_SetFromStringByNameFromSource(dvarName, string, Game::DvarSetSource::DVAR_SOURCE_EXTERNAL);
 	}
 
 	void Dvar::SaveArchiveDvar(const Game::dvar_t* var)
@@ -349,7 +380,7 @@ namespace Components
 		Utils::Hook(0x63CDB5, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 		Utils::Hook(0x635E47, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 
-		// SetDvar
+		// Script_SetDvar
 		Utils::Hook(0x63444C, Dvar::SetFromStringByNameSafeExternal, HOOK_CALL).install()->quick();
 
 		// Slider
