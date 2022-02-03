@@ -4925,6 +4925,21 @@ namespace Game
 		int dataCount;
 	} gameState;
 
+	struct HunkUser
+	{
+		HunkUser* current;
+		HunkUser* next;
+		int maxSize;
+		int end;
+		int pos;
+		const char* name;
+		bool fixed;
+		int type;
+		char buf[1];
+	};
+
+	static_assert(sizeof(HunkUser) == 36);
+
 	struct VariableStackBuffer
 	{
 		const char *pos;
@@ -5027,7 +5042,32 @@ namespace Game
 		bool developer_script;
 		bool evaluate;
 		const char* error_message;
-	}; // Incomplete
+		int error_index;
+		int time;
+		int timeArrayId;
+		int pauseArrayId;
+		int notifyArrayId;
+		int objectStackId;
+		int levelId;
+		int gameId;
+		int animId;
+		int freeEntList;
+		int tempVariable;
+		int numScriptValues[2];
+		bool bInited;
+		unsigned __int16 savecount;
+		unsigned __int16 savecountMark;
+		int checksum;
+		int entId;
+		int entFieldName;
+		HunkUser* programHunkUser;
+		const char* programBuffer;
+		const char* endScriptBuffer;
+		unsigned __int16 saveIdMap[36864];
+		unsigned __int16 saveIdMapRev[36864];
+	};
+
+	static_assert(sizeof(scrVarPub_t) == 0x24060);
 
 	enum UILocalVarType
 	{
