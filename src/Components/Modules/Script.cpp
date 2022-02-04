@@ -334,9 +334,7 @@ namespace Components
 
 	void Script::Scr_PrintPrevCodePos(int scriptPos)
 	{
-		int bestCodePos = -1;
-		int nextCodePos = -1;
-		int offset = -1;
+		auto bestCodePos = -1, nextCodePos = -1, offset = -1;
 		std::string file;
 
 		for (const auto& [key, value] : Script::ScriptBaseProgramNum)
@@ -363,10 +361,10 @@ namespace Components
 		if (bestCodePos == -1)
 			return;
 
-		float onehundred = 100.0;
+		auto onehundred = 100.0f;
 
 		Logger::Print(23, "\n@ %d (%d - %d)\n", scriptPos, bestCodePos, nextCodePos);
-		Logger::Print(23, "in %s (%.1f%% through the source)\n\n", file.c_str(), ((offset * onehundred) / (nextCodePos - bestCodePos)));
+		Logger::Print(23, "in %s (%.1f%% through the source)\n\n", file.data(), ((offset * onehundred) / (nextCodePos - bestCodePos)));
 	}
 
 	__declspec(naked) void Script::Scr_PrintPrevCodePosStub()
