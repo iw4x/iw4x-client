@@ -5608,7 +5608,7 @@ namespace Game
 		char pad[100];
 	} gentity_t;
 
-  static_assert(sizeof(gentity_s) == 0x274);
+	static_assert(sizeof(gentity_s) == 0x274);
 
 	struct lockonFireParms
 	{
