@@ -1169,6 +1169,40 @@ namespace Game
 		PM_DEAD_LINKED = 0x9,
 	};
 
+	enum playerEFlag
+	{
+		EF_NONSOLID_BMODEL = 0x1,
+		EF_TELEPORT_BIT = 0x2,
+		EF_CROUCHING = 0x4,
+		EF_PRONE = 0x8,
+		EF_NODRAW = 0x20,
+		EF_TIMED_OBJECT = 0x40,
+		EF_VOTED = 0x80,
+		EF_TALK = 0x100,
+		EF_FIRING = 0x200,
+		EF_TURRET_ACTIVE_PRONE = 0x400,
+		EF_TURRET_ACTIVE_DUCK = 0x800,
+		EF_LOCK_LIGHT_VIS = 0x1000,
+		EF_AIM_ASSIST = 0x2000,
+		EF_LOOP_RUMBLE = 0x4000,
+		EF_LASER_SIGHT = 0x8000,
+		EF_MANTLE = 0x10000,
+		EF_DEAD = 0x20000,
+		EF_ADS = 0x40000,
+		EF_NEW = 0x80000,
+		EF_VEHICLE_ACTIVE = 0x100000,
+		EF_JAMMING = 0x200000,
+		EF_COMPASS_PING = 0x400000,
+		EF_SOFT = 0x800000
+	};
+
+	enum playerLinkFlag
+	{
+		PLF_ANGLES_LOCKED = 0x1,
+		PLF_USES_OFFSET = 0x2,
+		PLF_WEAPONVIEW_ONLY = 0x4
+	};
+
 	struct playerState_s
 	{
 		int commandTime;
@@ -5539,14 +5573,14 @@ namespace Game
 		void /*Vehicle*/* vehicle;
 		int physObjId;
 		unsigned __int16 model;
-		char physicsObject;
-		char takedamage;
-		char active;
-		char handler;
-		char team;
+		unsigned char physicsObject;
+		unsigned char takedamage;
+		unsigned char active;
+		unsigned char handler;
+		unsigned char team;
 		bool freeAfterEvent;
 		__int16 padding_short;
-		short classname;
+		unsigned __int16 classname;
 		unsigned __int16 script_classname;
 		unsigned __int16 script_linkName;
 		unsigned __int16 target;
@@ -5574,6 +5608,8 @@ namespace Game
 		char pad[100];
 	} gentity_t;
 
+  static_assert(sizeof(gentity_s) == 0x274);
+
 	struct lockonFireParms
 	{
 		bool lockon;
@@ -5583,6 +5619,7 @@ namespace Game
 	};
 
 #pragma pack(push, 1)
+
 	typedef struct client_s
 	{
 		clientstate_t state; // 0
@@ -5621,6 +5658,7 @@ namespace Game
 		unsigned __int64 steamID; // 278272
 		char __pad9[403592]; // 278280
 	} client_t;
+
 #pragma pack(pop)
 
 	static_assert(sizeof(client_t) == 0xA6790);

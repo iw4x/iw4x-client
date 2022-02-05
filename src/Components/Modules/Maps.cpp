@@ -241,14 +241,13 @@ namespace Components
 		{
 			if (Flags::HasFlag("dump"))
 			{
-				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString);
+				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString, true);
 			}
 
-			static std::string mapEntities;
 			FileSystem::File ents(name + ".ents");
 			if (ents.exists())
 			{
-				mapEntities = ents.getBuffer();
+				const auto& mapEntities = ents.getBuffer();
 				asset.mapEnts->entityString = const_cast<char*>(mapEntities.data());
 				asset.mapEnts->numEntityChars = mapEntities.size() + 1;
 			}
@@ -784,7 +783,7 @@ namespace Components
 				{
 					if (pack.index == dlc)
 					{
-						ShellExecute(0, 0, L"https://xlabs.dev/support_iw4x_client.html", 0, 0, SW_SHOW);
+						ShellExecuteW(0, 0, L"https://xlabs.dev/support_iw4x_client.html", 0, 0, SW_SHOW);
 						return;
 					}
 				}

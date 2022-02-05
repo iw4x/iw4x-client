@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	int QuickPatch::FrameTime = 0;
 	Dvar::Var QuickPatch::r_customAspectRatio;
 
 	void QuickPatch::UnlockStats()
@@ -405,15 +404,9 @@ namespace Components
 			jmp ebx
 		}
 	}
-  
+
 	QuickPatch::QuickPatch()
 	{
-		QuickPatch::FrameTime = 0;
-		Scheduler::OnFrame([]()
-		{
-			QuickPatch::FrameTime = Game::Sys_Milliseconds();
-		});
-
 		// quit_hard
 		Command::Add("quit_hard", [](Command::Params*)
 		{
@@ -722,7 +715,7 @@ namespace Components
 		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
 		Utils::Hook(0x407376, QuickPatch::SVCanReplaceServerCommand , HOOK_CALL).install()->quick(); // SV_CanReplaceServerCommand
 		Utils::Hook(0x5B67ED, QuickPatch::AtolAdjustPlayerLimit     , HOOK_CALL).install()->quick(); // PartyHost_HandleJoinPartyRequest
-
+		Utils::Hook::Nop(0x41698E, 5); // Disable Svcmd_EntityList_f
 
 		// Patch selectStringTableEntryInDvar
 		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);

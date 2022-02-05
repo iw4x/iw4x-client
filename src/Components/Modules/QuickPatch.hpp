@@ -11,11 +11,8 @@ namespace Components
 		bool unitTest() override;
 
 		static void UnlockStats();
-		static int GetFrameTime() { return FrameTime; }
 
 	private:
-		static int FrameTime;
-
 		static void SelectStringTableEntryInDvarStub();
 
 		static int SVCanReplaceServerCommand(Game::client_t *client, const char *cmd);

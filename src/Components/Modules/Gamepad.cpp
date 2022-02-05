@@ -536,14 +536,13 @@ namespace Components
         if (weaponDef->requireLockonToFire)
             return false;
 
-        if (ps->linkFlags & 4)
+        if (ps->linkFlags & Game::PLF_WEAPONVIEW_ONLY)
             return false;
 
         if (ps->weaponState >= Game::WEAPON_STUNNED_START && ps->weaponState <= Game::WEAPON_STUNNED_END)
             return false;
 
-        // The game checks for these flags. Their meaning is to be researched if necessary.
-        if (ps->eFlags & 0x100C00)
+        if (ps->eFlags & (Game::EF_VEHICLE_ACTIVE | Game::EF_TURRET_ACTIVE_DUCK | Game::EF_TURRET_ACTIVE_PRONE))
             return false;
 
         if (!ps->hasAmmo)

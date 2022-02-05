@@ -273,6 +273,11 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* Dedicated::Dvar_RegisterSVNetworkFps(const char* dvarName, int, int min, int, int, const char* description)
+	{
+		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::dvar_flag::DVAR_FLAG_NONE, description);
+	}
+
 	Dedicated::Dedicated()
 	{
 		// Map rotation
@@ -311,7 +316,7 @@ namespace Components
 
 			Utils::Hook::Nop(0x4DCEC9, 2);          // some check preventing proper game functioning
 			Utils::Hook::Nop(0x507C79, 6);          // another similar bsp check
-			Utils::Hook::Nop(0x414E4D, 6);          // unknown check in SV_ExecuteClientMessage (0x20F0890 == 0, related to client->f_40)
+			Utils::Hook::Nop(0x414E4D, 6);          // cl->messageAcknowledge > cl->gamestateMessageNum check in SV_ExecuteClientMessage
 			Utils::Hook::Nop(0x4DCEE9, 5);          // some deinit renderer function
 			Utils::Hook::Nop(0x59A896, 5);          // warning message on a removed subsystem
 			Utils::Hook::Nop(0x4B4EEF, 5);          // same as above
@@ -326,14 +331,8 @@ namespace Components
 			// isHost script call return 0
 			Utils::Hook::Set<DWORD>(0x5DEC04, 0);
 
-			// sv_network_fps max 1000, and uncheat
-			Utils::Hook::Set<BYTE>(0x4D3C67, 0); // ?
-			Utils::Hook::Set<DWORD>(0x4D3C69, 1000);
-
 			// Manually register sv_network_fps
-			Utils::Hook::Nop(0x4D3C7B, 5);
-			Utils::Hook::Nop(0x4D3C8E, 5);
-			*reinterpret_cast<Game::dvar_t**>(0x62C7C00) = Dvar::Register<int>("sv_network_fps", 1000, 20, 1000, Game::dvar_flag::DVAR_FLAG_NONE, "Number of times per second the server checks for net messages").get<Game::dvar_t*>();
+			Utils::Hook(0x4D3C7B, Dedicated::Dvar_RegisterSVNetworkFps, HOOK_CALL).install()->quick();
 
 			// r_loadForRenderer default to 0
 			Utils::Hook::Set<BYTE>(0x519DDF, 0);
