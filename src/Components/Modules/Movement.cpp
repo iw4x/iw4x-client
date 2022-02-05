@@ -9,6 +9,7 @@ namespace Components
     Dvar::Var Movement::CGUfoScaler;
     Dvar::Var Movement::CGNoclipScaler;
     Dvar::Var Movement::BGBouncesAllAngles;
+    Dvar::Var Movement::BGRocketJump;
     Game::dvar_t* Movement::BGBounces;
 
     float Movement::PM_CmdScaleForStance(const Game::pmove_s* pm)
@@ -220,6 +221,21 @@ namespace Components
         Game::Jump_ClearState(ps);
     }
 
+    Game::gentity_s* Movement::Weapon_RocketLauncher_Fire_Hk(Game::gentity_s* ent, unsigned int weaponIndex,
+        float spread, Game::weaponParms* wp, const float* gunVel, Game::lockonFireParms* lockParms, bool a7)
+    {
+        auto* result = Game::Weapon_RocketLauncher_Fire(ent, weaponIndex, spread, wp, gunVel, lockParms, a7);
+
+        if (ent->client != nullptr && BGRocketJump.get<bool>())
+        {
+            ent->client->ps.velocity[0] += (0 - wp->forward[0]) * 64.0f;
+            ent->client->ps.velocity[1] += (0 - wp->forward[1]) * 64.0f;
+            ent->client->ps.velocity[2] += (0 - wp->forward[2]) * 64.0f;
+        }
+
+        return result;
+    }
+
     Game::dvar_t* Movement::Dvar_RegisterLastStandSpeedScale(const char* name, float value,
         float min, float max, int, const char* desc)
     {
@@ -272,6 +288,9 @@ namespace Components
 
             Movement::BGBouncesAllAngles = Dvar::Register<bool>("bg_bouncesAllAngles",
                 false, Game::DVAR_FLAG_REPLICATED, "Force bounce from all angles");
+
+            Movement::BGRocketJump = Dvar::Register<bool>("bg_rocketJump",
+                false, Game::DVAR_FLAG_REPLICATED, "Enable CoD4 rocket jumps");
         });
 
         // Hook PM_CmdScaleForStance in PM_CmdScale_Walk
@@ -294,9 +313,8 @@ namespace Components
         Utils::Hook(0x4B1B2D, Movement::PM_StepSlideMoveStub, HOOK_JUMP).install()->quick();
         Utils::Hook(0x57383E, Movement::Jump_ClearStateHook, HOOK_CALL).install()->quick();
         Utils::Hook(0x4B1B97, Movement::PM_ProjectVelocityStub, HOOK_CALL).install()->quick();
-    }
 
-    Movement::~Movement()
-    {
+        // Rocket jump
+        Utils::Hook(0x4A4F9B, Movement::Weapon_RocketLauncher_Fire_Hk, HOOK_CALL).install()->quick(); //  FireWeapon
     }
 }

@@ -860,6 +860,39 @@ namespace Game
 		MaterialShaderArgument *args;
 	};
 
+	/* 9045 */
+	struct visionSetVars_t
+	{
+		bool glowEnable;
+		float glowBloomCutoff;
+		float glowBloomDesaturation;
+		float glowBloomIntensity0;
+		float glowBloomIntensity1;
+		float glowRadius0;
+		float glowRadius1;
+		float glowSkyBleedIntensity0;
+		float glowSkyBleedIntensity1;
+		bool filmEnable;
+		float filmBrightness;
+		float filmContrast;
+		float filmDesaturation;
+		float filmDesaturationDark;
+		bool filmInvert;
+		float filmLightTint[3];
+		float filmMediumTint[3];
+		float filmDarkTint[3];
+		bool charPrimaryUseTweaks;
+		float charPrimaryDiffuseScale;
+		float charPrimarySpecularScale;
+	};
+
+	struct visField_t
+	{
+		const char* name;
+		int offset;
+		int fieldType;
+	};
+
 	enum OffhandClass
 	{
 		OFFHAND_CLASS_NONE = 0x0,
@@ -4608,6 +4641,19 @@ namespace Game
 		AddonMapEnts *addonMapEnts;
 	};
 
+	/* 9210 */
+	struct weaponParms
+	{
+		float forward[3];
+		float right[3];
+		float up[3];
+		float muzzleTrace[3];
+		float gunForward[3];
+		unsigned int weaponIndex;
+		const WeaponDef* weapDef;
+		const WeaponCompleteDef* weapCompleteDef;
+	};
+
 	struct XAsset
 	{
 		XAssetType type;
@@ -5527,6 +5573,14 @@ namespace Game
 		int birthTime;
 		char pad[100];
 	} gentity_t;
+
+	struct lockonFireParms
+	{
+		bool lockon;
+		gentity_s* target;
+		float targetPosOrOffset[3];
+		bool topFire;
+	};
 
 #pragma pack(push, 1)
 	typedef struct client_s
