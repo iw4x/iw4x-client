@@ -5,10 +5,10 @@ namespace Components
 	Utils::Signal<Scheduler::Callback> Dvar::RegistrationSignal;
 	const char* Dvar::ArchiveDvarPath = "userraw/archivedvars.cfg";
 
-	Dvar::Var::Var(const std::string& dvarName) : Var()
+	Dvar::Var::Var(const std::string& _dvarName) : Var()
 	{
-		this->dvar = Game::Dvar_FindVar(dvarName.data());
-		this->dvarName = dvarName;
+		this->dvar = Game::Dvar_FindVar(_dvarName.data());
+		this->dvarName = _dvarName;
 	}
 
 	void Dvar::Var::registerDvar()
