@@ -783,9 +783,9 @@ namespace Game
 
 	float Vec2Normalize(vec2_t& vec)
 	{
-		const float length = std::sqrt((vec[0] * vec[0]) + (vec[1] * vec[1]));
+		const auto length = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1]);
 
-		if(length > 0.0f)
+		if (length > 0.0f)
 		{
 			vec[0] /= length;
 			vec[1] /= length;
@@ -796,9 +796,9 @@ namespace Game
 
 	float Vec3Normalize(vec3_t& vec)
 	{
-		const float length = std::sqrt(std::pow(vec[0], 2.0f) + std::pow(vec[1], 2.0f) + std::pow(vec[2], 2.0f));
+		const auto length = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
 
-		if(length > 0.0f)
+		if (length > 0.0f)
 		{
 			vec[0] /= length;
 			vec[1] /= length;

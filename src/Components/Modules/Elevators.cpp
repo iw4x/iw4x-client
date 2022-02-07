@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	Dvar::Var Elevators::SV_Elevators;
+	Dvar::Var Elevators::BG_Elevators;
 
 	int Elevators::PM_CorrectAllSolid(Game::pmove_s* pm, Game::pml_t* pml, Game::trace_t* trace)
 	{
@@ -13,8 +13,8 @@ namespace Components
 		auto* ps = pm->ps;
 
 		auto i = 0;
-		const auto EleSettings = Elevators::SV_Elevators.get<int>();
-		while (TRUE)
+		const auto elevatorSetting = Elevators::BG_Elevators.get<int>();
+		while (true)
 		{
 			point[0] = ps->origin[0] + Game::CorrectSolidDeltas[i][0];
 			point[1] = ps->origin[1] + Game::CorrectSolidDeltas[i][1];
@@ -23,7 +23,7 @@ namespace Components
 			Game::PM_playerTrace(pm, trace, point, point, &pm->bounds, ps->clientNum, pm->tracemask);
 
 			// If the player wishes to glitch without effort they can do so
-			if (!trace->startsolid || EleSettings == Elevators::EASY)
+			if (!trace->startsolid || elevatorSetting == Elevators::EASY)
 			{
 				ps->origin[0] = point[0];
 				ps->origin[1] = point[1];
@@ -34,27 +34,8 @@ namespace Components
 
 				// If elevators are disabled we need to check that startsolid is false before proceeding
 				// like later versions of the game do
-				if (!trace->startsolid || EleSettings >= Elevators::ENABLED)
+				if (!trace->startsolid || elevatorSetting >= Elevators::ENABLED)
 				{
-
-					pml->groundTrace.fraction = trace->fraction;
-					pml->groundTrace.normal[0] = trace->normal[0];
-					pml->groundTrace.normal[1] = trace->normal[1];
-					pml->groundTrace.normal[2] = trace->normal[2];
-
-					pml->groundTrace.surfaceFlags = trace->surfaceFlags;
-					pml->groundTrace.contents = trace->contents;
-					pml->groundTrace.hitType = trace->hitType;
-					pml->groundTrace.hitId = trace->hitId;
-
-					pml->groundTrace.partName = trace->partName;
-					pml->groundTrace.partGroup = trace->partGroup;
-					pml->groundTrace.walkable = trace->walkable;
-
-					const auto fraction = trace->fraction;
-					ps->origin[0] += fraction * (point[0] - ps->origin[0]);
-					ps->origin[1] += fraction * (point[1] - ps->origin[1]);
-					ps->origin[2] += fraction * (point[2] - ps->origin[2]);
 					break;
 				}
 			}	
@@ -71,15 +52,23 @@ namespace Components
 			}
 		}
 
+		pml->groundTrace = *trace;
+
+		const auto fraction = trace->fraction;
+		ps->origin[0] += fraction * (point[0] - ps->origin[0]);
+		ps->origin[1] += fraction * (point[1] - ps->origin[1]);
+		ps->origin[2] += fraction * (point[2] - ps->origin[2]);
+
 		return 1;
 	}
 
-	void Elevators::PM_TraceStub(Game::pmove_s* pm, Game::trace_t* trace, const float* f3,
+	void Elevators::PM_Trace_Hk(Game::pmove_s* pm, Game::trace_t* trace, const float* f3,
 		const float* f4, const Game::Bounds* bounds, int a6, int a7)
 	{
 		Game::PM_Trace(pm, trace, f3, f4, bounds, a6, a7);
 
-		if (Elevators::SV_Elevators.get<int>() == Elevators::EASY)
+		// Allow the player to stand even when there is no headroom
+		if (Elevators::BG_Elevators.get<int>() == Elevators::EASY)
 		{
 			trace->allsolid = false;
 		}
@@ -112,18 +101,24 @@ namespace Components
 		{
 			static const char* values[] =
 			{
-				"Disable elevators",
-				"Enable elevators",
-				"Enable easy elevators",
+				"off",
+				"normal",
+				"easy",
 				nullptr
 			};
 
-			Elevators::SV_Elevators = Game::Dvar_RegisterEnum("sv_Elevators", values,
+			Elevators::BG_Elevators = Game::Dvar_RegisterEnum("bg_elevators", values,
 				Elevators::ENABLED, Game::DVAR_FLAG_REPLICATED, "Elevators glitch settings");
 		});
 
+		//Replace PM_CorrectAllSolid
 		Utils::Hook(0x57369E, Elevators::PM_CorrectAllSolidStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x570EC5, Elevators::PM_TraceStub, HOOK_CALL).install()->quick();
+
+		// Place hooks in PM_CheckDuck. If the elevators dvar is set to easy the
+		// flags for duck/prone will always be removed from the player state
+		Utils::Hook(0x570EC5, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x570E0B, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x570D70, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
 	}
 
 	Elevators::~Elevators()
