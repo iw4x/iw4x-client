@@ -46,8 +46,11 @@ namespace Game
 	typedef void(__cdecl * Cbuf_AddServerText_t)();
 	extern Cbuf_AddServerText_t Cbuf_AddServerText;
 
-	typedef void(__cdecl * Cbuf_AddText_t)(int localClientNum, const char *text);
+	typedef void(__cdecl * Cbuf_AddText_t)(int localClientNum, const char* text);
 	extern Cbuf_AddText_t Cbuf_AddText;
+
+	typedef void(__cdecl * Cbuf_InsertText_t)(int localClientNum, const char* text);
+	extern Cbuf_InsertText_t Cbuf_InsertText;
 
 	typedef int(__cdecl * CG_GetClientNum_t)();
 	extern CG_GetClientNum_t CG_GetClientNum;

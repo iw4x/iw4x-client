@@ -1173,8 +1173,7 @@ namespace Components
                 }
                 else
                 {
-                    Game::Cbuf_AddText(gamePadIndex, keyBinding);
-                    Game::Cbuf_AddText(gamePadIndex, "\n");
+                    Game::Cbuf_InsertText(gamePadIndex, keyBinding);
                 }
             }
         }

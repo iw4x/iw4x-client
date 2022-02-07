@@ -29,7 +29,7 @@ namespace Components
 			Game::Dvar_SetStringByName("ui_startupMessage", message.data());
 			Game::Dvar_SetStringByName("ui_startupMessageTitle", Utils::String::VA("Messages (%d/%d)", StartupMessages::TotalMessages - StartupMessages::MessageList.size(), StartupMessages::TotalMessages));
 			Game::Dvar_SetStringByName("ui_startupNextButtonText", StartupMessages::MessageList.size() ? "Next" : "Close");
-			Game::Cbuf_AddText(0, "openmenu startup_messages");
+			Game::Cbuf_AddText(0, "openmenu startup_messages\n");
 		});
 	}
 
