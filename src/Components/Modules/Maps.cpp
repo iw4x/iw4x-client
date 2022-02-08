@@ -206,8 +206,16 @@ namespace Components
 		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()
 			&& (FastFiles::Current() != "mp_shipment_long" || Maps::CurrentMainZone != "mp_shipment")) // Shipment is a special case
 		{
-			if (type == Game::XAssetType::ASSET_TYPE_CLIPMAP_MP || type == Game::XAssetType::ASSET_TYPE_CLIPMAP_SP || type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP || type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP || type == Game::XAssetType::ASSET_TYPE_GFXWORLD || type == Game::XAssetType::ASSET_TYPE_MAP_ENTS || type == Game::XAssetType::ASSET_TYPE_COMWORLD || type == Game::XAssetType::ASSET_TYPE_FXWORLD)
+			switch (type)
 			{
+			case Game::XAssetType::ASSET_TYPE_CLIPMAP_MP:
+			case Game::XAssetType::ASSET_TYPE_CLIPMAP_SP:
+			case Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP:
+			case Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP:
+			case Game::XAssetType::ASSET_TYPE_GFXWORLD:
+			case Game::XAssetType::ASSET_TYPE_MAP_ENTS:
+			case Game::XAssetType::ASSET_TYPE_COMWORLD:
+			case Game::XAssetType::ASSET_TYPE_FXWORLD:
 				*restrict = true;
 				return;
 			}
@@ -244,15 +252,16 @@ namespace Components
 				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString, true);
 			}
 
+			static std::string mapEntities;
 			FileSystem::File ents(name + ".ents");
 			if (ents.exists())
 			{
-				const auto& mapEntities = ents.getBuffer();
-				asset.mapEnts->entityString = const_cast<char*>(mapEntities.data());
+				mapEntities = ents.getBuffer();
+				asset.mapEnts->entityString = mapEntities.data();
 				asset.mapEnts->numEntityChars = mapEntities.size() + 1;
 			}
 		}
-		
+
 		// This is broken
 		if ((type == Game::XAssetType::ASSET_TYPE_MENU || type == Game::XAssetType::ASSET_TYPE_MENULIST) && Zones::Version() >= 359)
 		{
@@ -317,7 +326,7 @@ namespace Components
 			mapname = "mp_shipment_long";
 		}
 
-		_snprintf_s(buffer, size, size, format, mapname);
+		_snprintf_s(buffer, size, _TRUNCATE, format, mapname);
 	}
 
 	void Maps::HandleAsSPMap()
@@ -332,7 +341,7 @@ namespace Components
 		{
 			std::regex _(expression);
 		}
-		catch (const std::exception e)
+		catch (const std::regex_error ex)
 		{
 			MessageBoxA(nullptr, Utils::String::VA("Invalid regular expression: %s", expression.data()), "Warning", MB_ICONEXCLAMATION);
 			return;
@@ -438,7 +447,7 @@ namespace Components
 	void Maps::LoadNewMapCommand(char* buffer, size_t size, const char* /*format*/, const char* mapname, const char* gametype)
 	{
 		unsigned int hash = Maps::GetUsermapHash(mapname);
-		_snprintf_s(buffer, size, size, "loadingnewmap\n%s\n%s\n%d", mapname, gametype, hash);
+		_snprintf_s(buffer, size, _TRUNCATE, "loadingnewmap\n%s\n%s\n%d", mapname, gametype, hash);
 	}
 
 	int Maps::TriggerReconnectForMap(Game::msg_t* msg, const char* mapname)
