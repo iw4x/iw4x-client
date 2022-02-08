@@ -252,10 +252,11 @@ namespace Components
 				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString, true);
 			}
 
+			static std::string mapEntities;
 			FileSystem::File ents(name + ".ents");
 			if (ents.exists())
 			{
-				static const auto mapEntities = ents.getBuffer();
+				mapEntities = ents.getBuffer();
 				asset.mapEnts->entityString = mapEntities.data();
 				asset.mapEnts->numEntityChars = mapEntities.size() + 1;
 			}
