@@ -84,7 +84,7 @@ namespace Components
             pushad
 
             push edx
-            call Movement::PM_CmdScaleForStance
+            call Movement::PM_CmdScaleForStance // pm
             add esp, 4
 
             popad
@@ -144,10 +144,10 @@ namespace Components
         {
             pushad
 
-            push [esp + 0xC + 0x20]
-            push [esp + 0xC + 0x20]
-            push [esp + 0xC + 0x20]
-            push esi
+            push [esp + 0xC + 0x20] // upmove
+            push [esp + 0xC + 0x20] // rightmove
+            push [esp + 0xC + 0x20] // forwardmove
+            push esi // ps
             call Movement::PM_MoveScale
             add esp, 0x10
 
@@ -179,7 +179,7 @@ namespace Components
             retn
 
         noBounce:
-            // Original code
+            // Original game code
             cmp dword ptr [esp + 0x24], 0
             push 0x4B1B48
             retn
