@@ -972,7 +972,7 @@ namespace Components
 
 			if (url == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1HttpGet: Illegal parameters!\n");
+				Game::Scr_ParamError(0, "^1HttpGet: Illegal parameter!\n");
 				return;
 			}
 

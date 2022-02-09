@@ -709,8 +709,9 @@ namespace Components
 		Utils::Hook(0x61E3AD, Script::RuntimeError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x621976, Script::RuntimeError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x62246E, Script::RuntimeError, HOOK_CALL).install()->quick();
-		// Nullsub GScr_CheckAllowedToSetPersistentData like it's done on IW5 to prevent spam
-		Utils::Hook::Set<BYTE>(0x5F8DA0, 0xC3);
+		// Skip check in GScr_CheckAllowedToSetPersistentData to prevent log spam in RuntimeError.
+		// On IW5 the function is entirely nullsubbed
+		Utils::Hook::Set<BYTE>(0x5F8DBF, 0xEB);
 
 		Utils::Hook(0x612E8D, Script::FunctionError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x612EA2, Script::FunctionError, HOOK_CALL).install()->quick();

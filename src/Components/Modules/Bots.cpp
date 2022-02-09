@@ -320,7 +320,7 @@ namespace Components
 					if (input == endptr)
 					{
 						Logger::Print("Warning: %s is not a valid input\n"
-							"Usage: %s optional <number of bots> or optional <all>\n",
+							"Usage: %s optional <number of bots> or optional <\"all\">\n",
 							input, params->get(0));
 					}
 				}
