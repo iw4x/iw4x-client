@@ -433,6 +433,12 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* QuickPatch::Dvar_RegisterUIBuildLocation(const char* dvarName,
+		float /*x*/, float /*y*/, float min, float max, int /*flags*/, const char* description)
+	{
+		return Game::Dvar_RegisterVec2(dvarName, -60.0f, 474.0f, min, max, Game::DVAR_FLAG_READONLY, description);
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// quit_hard
@@ -527,16 +533,11 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x60BD56, "IW4x (" VERSION ")");
 
 		// version string color
-		static float buildLocColor[] = { 1.0f, 1.0f, 1.0f, 0.8f };
-		Utils::Hook::Set(0x43F710, buildLocColor);
+		static Game::vec4_t buildLocColor = { 1.0f, 1.0f, 1.0f, 0.8f };
+		Utils::Hook::Set<float*>(0x43F710, buildLocColor);
 
 		// Shift ui version string to the left (ui_buildlocation)
-		Utils::Hook::Nop(0x6310A0, 5); // Don't register the initial dvar
-		Utils::Hook::Nop(0x6310B8, 5); // Don't write the result
-		Dvar::OnInit([]()
-		{
-			*reinterpret_cast<Game::dvar_t**>(0x62E4B64) = Game::Dvar_RegisterVec2("ui_buildLocation", -60.0f, 474.0f, -10000.0, 10000.0, Game::DVAR_FLAG_READONLY, "Where to draw the build number");
-		});
+		Utils::Hook(0x6310A0, QuickPatch::Dvar_RegisterUIBuildLocation, HOOK_CALL).install()->quick();
 
 		// console title
 		if (ZoneBuilder::IsEnabled())
@@ -761,11 +762,6 @@ namespace Components
 		Command::Add("unlockstats", [](Command::Params*)
 		{
 			QuickPatch::UnlockStats();
-		});
-
-		Command::Add("crash", [](Command::Params*)
-		{
-			throw new std::exception();
 		});
 
 		Command::Add("dumptechsets", [](Command::Params* param)
@@ -998,11 +994,6 @@ namespace Components
 		{
 			Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
 		}
-	}
-
-	QuickPatch::~QuickPatch()
-	{
-
 	}
 
 	bool QuickPatch::unitTest()
