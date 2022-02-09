@@ -10,6 +10,8 @@ namespace Components
     Dvar::Var Movement::CGNoclipScaler;
     Dvar::Var Movement::BGBouncesAllAngles;
     Dvar::Var Movement::BGRocketJump;
+    Dvar::Var Movement::BGPlayerEjection;
+    Dvar::Var Movement::BGPlayerCollision;
     Game::dvar_t* Movement::BGBounces;
 
     float Movement::PM_CmdScaleForStance(const Game::pmove_s* pm)
@@ -236,6 +238,28 @@ namespace Components
         return result;
     }
 
+    int Movement::StuckInClient_Hk(Game::gentity_s* self)
+    {
+        if (Movement::BGPlayerEjection.get<bool>())
+        {
+            return Utils::Hook::Call<int(Game::gentity_s*)>(0x402D30)(self); // StuckInClient
+        }
+
+        return 0;
+    }
+
+    void Movement::CM_TransformedCapsuleTrace_Hk(Game::trace_t* results, const float* start, const float* end,
+        const Game::Bounds* bounds, const Game::Bounds* capsule, int contents, const float* origin, const float* angles)
+    {
+        if (Movement::BGPlayerCollision.get<bool>())
+        {
+            Utils::Hook::Call<void(Game::trace_t*, const float*, const float*,
+                const Game::Bounds*, const Game::Bounds*, int, const float*, const float*)>
+                (0x478300)
+                (results, start, end, bounds, capsule, contents, origin, angles); // CM_TransformedCapsuleTrace
+        }
+    }
+
     Game::dvar_t* Movement::Dvar_RegisterLastStandSpeedScale(const char* name, float value,
         float min, float max, int, const char* desc)
     {
@@ -274,7 +298,7 @@ namespace Components
                 0.15f, 0.0f, 5.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
                 "The scale applied to the player speed when crawling");
 
-            // 3arch naming convention
+            // 3arc naming convention
             Movement::CGUfoScaler = Dvar::Register<float>("cg_ufo_scaler",
                 6.0f, 0.001f, 1000.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
                 "The speed at which ufo camera moves");
@@ -291,6 +315,12 @@ namespace Components
 
             Movement::BGRocketJump = Dvar::Register<bool>("bg_rocketJump",
                 false, Game::DVAR_FLAG_REPLICATED, "Enable CoD4 rocket jumps");
+
+            Movement::BGPlayerEjection = Dvar::Register<bool>("bg_playerEjection",
+                true, Game::DVAR_FLAG_REPLICATED, "Push intersecting players away from each other");
+
+            Movement::BGPlayerCollision = Dvar::Register<bool>("bg_playerCollision",
+                true, Game::DVAR_FLAG_REPLICATED, "Push intersecting players away from each other");
         });
 
         // Hook PM_CmdScaleForStance in PM_CmdScale_Walk
@@ -316,5 +346,13 @@ namespace Components
 
         // Rocket jump
         Utils::Hook(0x4A4F9B, Movement::Weapon_RocketLauncher_Fire_Hk, HOOK_CALL).install()->quick(); //  FireWeapon
+
+        // Hook StuckInClient so we can prevent intersecting players from being pushed away from each other
+        Utils::Hook(0x5D8153, Movement::StuckInClient_Hk, HOOK_CALL).install()->quick();
+
+        // Hook StuckInClient & CM_TransformedCapsuleTrace 
+        // so we can prevent intersecting players from being pushed away from each other
+        Utils::Hook(0x45A5BF, Movement::CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
+        Utils::Hook(0x5A0CAD, Movement::CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // CG_ClipMoveToEntity
     }
 }

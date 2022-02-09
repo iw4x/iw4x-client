@@ -18,6 +18,8 @@ namespace Components
         static Dvar::Var CGNoclipScaler;
         static Dvar::Var BGBouncesAllAngles;
         static Dvar::Var BGRocketJump;
+        static Dvar::Var BGPlayerEjection;
+        static Dvar::Var BGPlayerCollision;
         // Can't use Var class inside assembly stubs
         static Game::dvar_t* BGBounces;
 
@@ -33,6 +35,10 @@ namespace Components
         static void Jump_ClearStateHook(Game::playerState_s* ps);
 
         static Game::gentity_s* Weapon_RocketLauncher_Fire_Hk(Game::gentity_s* ent, unsigned int weaponIndex, float spread, Game::weaponParms* wp, const float* gunVel, Game::lockonFireParms* lockParms, bool a7);
+
+        // Player collison
+        static int StuckInClient_Hk(Game::gentity_s* self);
+        static void CM_TransformedCapsuleTrace_Hk(Game::trace_t* results, const float* start, const float* end, const Game::Bounds* bounds, const Game::Bounds* capsule, int contents, const float* origin, const float* angles);
 
         static Game::dvar_t* Dvar_RegisterLastStandSpeedScale(const char* name, float value, float min, float max, int flags, const char* desc);
         static Game::dvar_t* Dvar_RegisterSpectateSpeedScale(const char* name, float value, float min, float max, int flags, const char* desc);

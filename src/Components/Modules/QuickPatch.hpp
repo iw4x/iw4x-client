@@ -37,10 +37,6 @@ namespace Components
 		static void ClientEventsFireWeaponStub();
 		static void ClientEventsFireWeaponMeleeStub();
 
-		static Game::dvar_t* g_playerCollision;
-		static void PlayerCollisionStub();
-		static Game::dvar_t* g_playerEjection;
-		static void PlayerEjectionStub();
 		static BOOL IsDynClassnameStub(char* a1);
 
 		static void CL_KeyEvent_OnEscape();
