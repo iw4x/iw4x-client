@@ -345,13 +345,11 @@ namespace Components
         Utils::Hook(0x4B1B97, Movement::PM_ProjectVelocityStub, HOOK_CALL).install()->quick();
 
         // Rocket jump
-        Utils::Hook(0x4A4F9B, Movement::Weapon_RocketLauncher_Fire_Hk, HOOK_CALL).install()->quick(); //  FireWeapon
-
-        // Hook StuckInClient so we can prevent intersecting players from being pushed away from each other
-        Utils::Hook(0x5D8153, Movement::StuckInClient_Hk, HOOK_CALL).install()->quick();
+        Utils::Hook(0x4A4F9B, Movement::Weapon_RocketLauncher_Fire_Hk, HOOK_CALL).install()->quick(); //  FireWeapon        
 
         // Hook StuckInClient & CM_TransformedCapsuleTrace 
         // so we can prevent intersecting players from being pushed away from each other
+        Utils::Hook(0x5D8153, Movement::StuckInClient_Hk, HOOK_CALL).install()->quick();
         Utils::Hook(0x45A5BF, Movement::CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
         Utils::Hook(0x5A0CAD, Movement::CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // CG_ClipMoveToEntity
     }
