@@ -238,7 +238,7 @@ namespace Components
 			{
 				const auto* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
 
-				if (!(i % 2)) command.append(Utils::String::VA("wait 250;disconnect;wait 750;", mapname)); // Test a disconnect
+				if (!(i % 2)) command.append("wait 250;disconnect;wait 750;"); // Test a disconnect
 				else command.append("wait 500;"); // Test direct map switch
 				command.append(Utils::String::VA("map %s;", mapname));
 			}
