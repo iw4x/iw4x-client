@@ -204,20 +204,20 @@ namespace Components
 #ifdef DEBUG
 		// Display DEBUG branding, so we know we're on a debug build
 		Scheduler::OnFrame([]()
+		{
+			auto* font = Game::R_RegisterFont("fonts/normalFont", 0);
+			Game::vec4_t color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+			// Change the color when attaching a debugger
+			if (IsDebuggerPresent())
 			{
-				Game::Font_s* font = Game::R_RegisterFont("fonts/normalFont", 0);
-				float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+				color[0] = 0.6588f;
+				color[1] = 1.0000f;
+				color[2] = 0.0000f;
+			}
 
-				// Change the color when attaching a debugger
-				if (IsDebuggerPresent())
-				{
-					color[0] = 0.6588f;
-					color[1] = 1.0000f;
-					color[2] = 0.0000f;
-				}
-
-				Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
-			}, true);
+			Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
+		}, true);
 #endif
 #if !defined(DEBUG) || defined(FORCE_EXCEPTION_HANDLER)
 		Exception::SetFilterHook.initialize(SetUnhandledExceptionFilter, Exception::SetUnhandledExceptionFilterStub, HOOK_JUMP);
@@ -230,28 +230,28 @@ namespace Components
 		Utils::Hook(0x6B8898, Exception::LongJmp, HOOK_JUMP).install()->quick();
 
 		Command::Add("mapTest", [](Command::Params* params)
+		{
+			Game::UI_UpdateArenas();
+
+			std::string command;
+			for (auto i = 0; i < (params->length() >= 2 ? atoi(params->get(1)) : *Game::arenaCount); ++i)
 			{
-				Game::UI_UpdateArenas();
+				const auto* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
 
-				std::string command;
-				for (int i = 0; i < (params->length() >= 2 ? atoi(params->get(1)) : *Game::arenaCount); ++i)
-				{
-					char* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
+				if (!(i % 2)) command.append(Utils::String::VA("wait 250;disconnect;wait 750;", mapname)); // Test a disconnect
+				else command.append("wait 500;"); // Test direct map switch
+				command.append(Utils::String::VA("map %s;", mapname));
+			}
 
-					if (!(i % 2)) command.append(Utils::String::VA("wait 250;disconnect;wait 750;", mapname)); // Test a disconnect
-					else command.append(Utils::String::VA("wait 500;", mapname));                              // Test direct map switch
-					command.append(Utils::String::VA("map %s;", mapname));
-				}
-
-				Command::Execute(command, false);
-			});
+			Command::Execute(command, false);
+		});
 
 		Command::Add("debug_exceptionhandler", [](Command::Params*)
-			{
-				Logger::Print("Rerunning SetUnhandledExceptionHandler...\n");
-				auto oldHandler = Exception::Hook();
-				Logger::Print("Old exception handler was 0x%010X.\n", oldHandler);
-			});
+		{
+			Logger::Print("Rerunning SetUnhandledExceptionHandler...\n");
+			auto oldHandler = Exception::Hook();
+			Logger::Print("Old exception handler was 0x%010X.\n", oldHandler);
+		});
 	}
 
 	Exception::~Exception()
