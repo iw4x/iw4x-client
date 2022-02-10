@@ -102,7 +102,7 @@ namespace Components
 		}
 		else
 		{
-			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.\n Copy exception address to keyboard?", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
+			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.\n Copy exception address to clipboard?", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
 		}
 
 		//Exception::SuspendProcess();
