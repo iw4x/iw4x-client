@@ -68,19 +68,22 @@ namespace Components
 		EmptyClipboard();
 		auto* hMem = GlobalAlloc(GMEM_MOVEABLE, error.size() + 1);
 
-		if (hMem != nullptr)
+		if (hMem == nullptr)
 		{
-			auto lock = reinterpret_cast<char*>(GlobalLock(hMem));
-
-			if (lock != nullptr)
-			{
-				std::strcpy(lock, error.data()); // Should be okay since we allocated size + 1
-				GlobalUnlock(hMem);
-				SetClipboardData(1, hMem);
-			}
+			CloseClipboard();
+			return;
+		}
+		
+		auto lock = GlobalLock(hMem);
+		if (lock != nullptr)
+		{
+			std::memcpy(lock, error.data(), error.size() + 1);
+			GlobalUnlock(hMem);
+			SetClipboardData(1, hMem);
 		}
 
 		CloseClipboard();
+		GlobalFree(hMem);
 	}
 
 	LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
@@ -104,22 +107,10 @@ namespace Components
 
 		//Exception::SuspendProcess();
 
-		bool doFullDump = Flags::HasFlag("bigdumps") || Flags::HasFlag("reallybigdumps");
-		/*if (!doFullDump)
-		{
-			if (MessageBoxA(nullptr,
-				Utils::String::VA("%s\n\n" // errorStr
-								  "Would you like to create a full crash dump for the developers (this can be 100mb or more)?\nNo will create small dumps that are automatically uploaded.", errorStr),
-								  "IW4x Error!", MB_YESNO | MB_ICONERROR) == IDYES)
-			{
-				doFullDump = true;
-			}
-		}*/
-
-		Exception::CopyMessageToClipboard(errorStr);
+		Exception::CopyMessageToClipboard(Utils::String::VA("0x%08X", ExceptionInfo->ExceptionRecord->ExceptionAddress));
 		MessageBoxA(nullptr, errorStr.data(), "ERROR", MB_ICONERROR);
 
-		if (doFullDump)
+		if ( Flags::HasFlag("bigminidumps"))
 		{
 			Exception::SetMiniDumpType(true, false);
 		}
