@@ -34,6 +34,7 @@ namespace Game
 
 	Cbuf_AddServerText_t Cbuf_AddServerText = Cbuf_AddServerText_t(0x4BB9B0);
 	Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x404B20);
+	Cbuf_InsertText_t Cbuf_InsertText = Cbuf_InsertText_t(0x4940B0);
 
 	CG_NextWeapon_f_t CG_NextWeapon_f = CG_NextWeapon_f_t(0x449DE0);
 	CG_GetClientNum_t CG_GetClientNum = CG_GetClientNum_t(0x433700);
@@ -377,6 +378,10 @@ namespace Game
 	Field_AdjustScroll_t Field_AdjustScroll = Field_AdjustScroll_t(0x488C10);
 	AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee = AimAssist_ApplyAutoMelee_t(0x56A360);
 
+	Jump_ClearState_t Jump_ClearState = Jump_ClearState_t(0x04B3890);
+	PM_playerTrace_t PM_playerTrace = PM_playerTrace_t(0x458980);
+	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
@@ -492,6 +497,8 @@ namespace Game
 	keyname_t* localizedKeyNames = reinterpret_cast<keyname_t*>(0x798880);
 
 	GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x7A2FC0);
+
+	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
@@ -651,7 +658,7 @@ namespace Game
 		{
 			Dvar_SetStringByName("com_errorMessage", message.data());
 			Dvar_SetStringByName("com_errorTitle", title.data());
-			Cbuf_AddText(0, "openmenu error_popmenu_lobby");
+			Cbuf_AddText(0, "openmenu error_popmenu_lobby\n");
 		}
 	}
 
@@ -776,9 +783,9 @@ namespace Game
 
 	float Vec2Normalize(vec2_t& vec)
 	{
-		const float length = std::sqrt((vec[0] * vec[0]) + (vec[1] * vec[1]));
+		const auto length = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1]);
 
-		if(length > 0.0f)
+		if (length > 0.0f)
 		{
 			vec[0] /= length;
 			vec[1] /= length;
@@ -789,9 +796,9 @@ namespace Game
 
 	float Vec3Normalize(vec3_t& vec)
 	{
-		const float length = std::sqrt(std::pow(vec[0], 2.0f) + std::pow(vec[1], 2.0f) + std::pow(vec[2], 2.0f));
+		const auto length = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
 
-		if(length > 0.0f)
+		if (length > 0.0f)
 		{
 			vec[0] /= length;
 			vec[1] /= length;

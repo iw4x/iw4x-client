@@ -107,12 +107,12 @@ namespace Utils
 	void SetEnvironment()
 	{
 		wchar_t exeName[512];
-		GetModuleFileName(GetModuleHandle(nullptr), exeName, sizeof(exeName) / 2);
+		GetModuleFileNameW(GetModuleHandle(nullptr), exeName, sizeof(exeName) / 2);
 
 		wchar_t* exeBaseName = wcsrchr(exeName, L'\\');
 		exeBaseName[0] = L'\0';
 
-		SetCurrentDirectory(exeName);
+		SetCurrentDirectoryW(exeName);
 	}
 
 	HMODULE GetNTDLL()
@@ -149,4 +149,15 @@ namespace Utils
 	{
 		return !(base1 + len1 <= base2 || base2 + len2 <= base1);
 	}
+
+	float Vec3SqrDistance(const float v1[3], const float v2[3])
+	{
+		auto x = v2[0] - v1[0];
+		auto y = v2[1] - v1[1];
+		auto z = v2[2] - v1[2];
+
+		return x * x + y * y + z * z;
+	}
+
+
 }

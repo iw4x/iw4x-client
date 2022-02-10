@@ -136,6 +136,41 @@ namespace Components
 			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_NOTARGET) ? "GAME_NOTARGETON" : "GAME_NOTARGETOFF"));
 		});
+
+		ClientCommand::Add("setviewpos", [](Game::gentity_s* ent)
+		{
+			assert(ent != nullptr);
+
+			if (!ClientCommand::CheatsOk(ent))
+				return;
+
+			Command::ServerParams params = {};
+			Game::vec3_t origin, angles{0.f, 0.f, 0.f};
+
+			if (params.length() < 4u || params.length() > 6u)
+			{
+				Game::SV_GameSendServerCommand(ent->s.number, 0,
+					Utils::String::VA("%c \"GAME_USAGE\x15: setviewpos x y z [yaw] [pitch]\n\"", 0x65));
+				return;
+			}
+
+			for (auto i = 0; i < 3; i++)
+			{
+				origin[i] = std::strtof(params.get(i + 1), nullptr);
+			}
+
+			if (params.length() >= 5u)
+			{
+				angles[1] = std::strtof(params.get(4), nullptr); // Yaw
+			}
+
+			if (params.length() == 6u)
+			{
+				angles[0] = std::strtof(params.get(5), nullptr); // Pitch
+			}
+
+			Game::TeleportPlayer(ent, origin, angles);
+		});
 	}
 
 	void ClientCommand::AddScriptFunctions()

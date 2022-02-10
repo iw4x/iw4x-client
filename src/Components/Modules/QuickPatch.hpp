@@ -6,16 +6,12 @@ namespace Components
 	{
 	public:
 		QuickPatch();
-		~QuickPatch();
 
 		bool unitTest() override;
 
 		static void UnlockStats();
-		static int GetFrameTime() { return FrameTime; }
 
 	private:
-		static int FrameTime;
-
 		static void SelectStringTableEntryInDvarStub();
 
 		static int SVCanReplaceServerCommand(Game::client_t *client, const char *cmd);
@@ -51,5 +47,7 @@ namespace Components
 
 		static void CL_KeyEvent_OnEscape();
 		static void CL_KeyEvent_ConsoleEscape_Stub();
+
+		static Game::dvar_t* Dvar_RegisterUIBuildLocation(const char* dvarName, float x, float y, float min, float max, int flags, const char* description);
 	};
 }
