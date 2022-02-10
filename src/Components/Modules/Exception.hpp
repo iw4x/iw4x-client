@@ -18,7 +18,8 @@ namespace Components
 		static LPTOP_LEVEL_EXCEPTION_FILTER WINAPI SetUnhandledExceptionFilterStub(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter);
 		static __declspec(noreturn) void ErrorLongJmp(jmp_buf _Buf, int _Value);
 		static __declspec(noreturn) void LongJmp(jmp_buf _Buf, int _Value);
-        static void DebugMinidumpCommand(Command::Params*);
+
+		static void CopyMessageToClipboard(const std::string& error);
 
 		static int MiniDumpType;
 		static Utils::Hook SetFilterHook;

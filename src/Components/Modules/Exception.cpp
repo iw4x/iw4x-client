@@ -43,10 +43,10 @@ namespace Components
 			Utils::Time::Interval interval;
 			while (IsWindow(Window::GetWindow()) != FALSE && !interval.elapsed(2s))
 			{
-				if (PeekMessage(&msg, nullptr, NULL, NULL, PM_REMOVE))
+				if (PeekMessageA(&msg, nullptr, NULL, NULL, PM_REMOVE))
 				{
 					TranslateMessage(&msg);
-					DispatchMessage(&msg);
+					DispatchMessageA(&msg);
 				}
 
 				std::this_thread::sleep_for(10ms);
@@ -55,6 +55,32 @@ namespace Components
 
 		// This only suspends the main game threads, which is enough for us
 		Game::Sys_SuspendOtherThreads();
+	}
+
+	void Exception::CopyMessageToClipboard(const std::string& error)
+	{
+		const auto hWndNewOwner = GetDesktopWindow();
+		const auto result = OpenClipboard(hWndNewOwner);
+
+		if (result == FALSE)
+			return;
+
+		EmptyClipboard();
+		auto* hMem = GlobalAlloc(GMEM_MOVEABLE, error.size() + 1);
+
+		if (hMem != nullptr)
+		{
+			auto lock = reinterpret_cast<char*>(GlobalLock(hMem));
+
+			if (lock != nullptr)
+			{
+				std::strcpy(lock, error.data()); // Should be okay since we allocated size + 1
+				GlobalUnlock(hMem);
+				SetClipboardData(1, hMem);
+			}
+		}
+
+		CloseClipboard();
 	}
 
 	LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
@@ -90,6 +116,7 @@ namespace Components
 			}
 		}*/
 
+		Exception::CopyMessageToClipboard(errorStr);
 		MessageBoxA(nullptr, errorStr.data(), "ERROR", MB_ICONERROR);
 
 		if (doFullDump)
