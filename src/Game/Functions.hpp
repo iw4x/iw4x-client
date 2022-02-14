@@ -795,7 +795,7 @@ namespace Game
 	typedef client_t*(__cdecl * SV_GetPlayerByNum_t)();
 	extern SV_GetPlayerByNum_t SV_GetPlayerByNum;
 
-	typedef int(__cdecl * Sys_Error_t)(int, char *, ...);
+	typedef int(__cdecl * Sys_Error_t)(const char* error, ...);
 	extern Sys_Error_t Sys_Error;
 
 	typedef void(__cdecl * Sys_FreeFileList_t)(char** list);
@@ -836,9 +836,6 @@ namespace Game
 
 	typedef void(__cdecl * Sys_SuspendOtherThreads_t)();
 	extern Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads;
-
-	typedef void(__cdecl * Sys_Error_t)(char const*, ...);
-	extern Sys_Error_t Sys_Error;
 
 	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
