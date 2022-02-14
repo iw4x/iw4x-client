@@ -10,6 +10,7 @@ namespace Components
 		int8_t forward;
 		int8_t right;
 		uint16_t weapon;
+		bool active;
 	};
 
 	static BotMovementInfo g_botai[18];
@@ -50,7 +51,7 @@ namespace Components
 
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
-		static int botId = 0;
+		static auto botId = 0;
 		const char* botName;
 
 		if (Bots::BotNames.empty())
@@ -159,6 +160,7 @@ namespace Components
 
 			g_botai[entref.entnum] = {0};
 			g_botai[entref.entnum].weapon = 1;
+			g_botai[entref.entnum].active = false;
 		});
 
 		Script::AddFunction("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
@@ -182,6 +184,7 @@ namespace Components
 
 			const auto weapId = Game::G_GetWeaponIndexForName(weapon);
 			g_botai[entref.entnum].weapon = static_cast<uint16_t>(weapId);
+			g_botai[entref.entnum].active = true;
 		});
 
 		Script::AddFunction("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
@@ -219,6 +222,7 @@ namespace Components
 				else
 					g_botai[entref.entnum].buttons &= ~(BotActions[i].key);
 
+				g_botai[entref.entnum].active = true;
 				return;
 			}
 
@@ -244,6 +248,7 @@ namespace Components
 
 			g_botai[entref.entnum].forward = static_cast<int8_t>(forwardInt);
 			g_botai[entref.entnum].right = static_cast<int8_t>(rightInt);
+			g_botai[entref.entnum].active = true;
 		});
 	}
 
@@ -252,8 +257,13 @@ namespace Components
 		if (cl->gentity == nullptr)
 			return;
 
-		Game::usercmd_s ucmd = {0};
 		const auto entnum = cl->gentity->s.number;
+
+		// Keep test client functionality
+		if (!g_botai[entnum].active)
+			return;
+
+		Game::usercmd_s ucmd = {0};
 
 		ucmd.serverTime = *Game::svs_time;
 
