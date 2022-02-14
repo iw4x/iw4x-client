@@ -32,7 +32,7 @@ namespace Components
         // Bounce logic
         static void PM_StepSlideMoveStub();
         static void PM_ProjectVelocityStub(const float* velIn, const float* normal, float* velOut);
-        static void Jump_ClearStateHook(Game::playerState_s* ps);
+        static void Jump_ClearState_Hk(Game::playerState_s* ps);
 
         static Game::gentity_s* Weapon_RocketLauncher_Fire_Hk(Game::gentity_s* ent, unsigned int weaponIndex, float spread, Game::weaponParms* wp, const float* gunVel, Game::lockonFireParms* lockParms, bool a7);
 

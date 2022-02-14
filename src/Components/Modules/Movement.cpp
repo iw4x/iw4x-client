@@ -215,12 +215,12 @@ namespace Components
     }
 
     // Double bounces
-    void Movement::Jump_ClearStateHook(Game::playerState_s* ps)
+    void Movement::Jump_ClearState_Hk(Game::playerState_s* ps)
     {
-        if (Movement::BGBounces->current.integer == Movement::DOUBLE)
-            return;
-
-        Game::Jump_ClearState(ps);
+        if (Movement::BGBounces->current.integer != Movement::DOUBLE)
+        {
+            Game::Jump_ClearState(ps);
+        }
     }
 
     Game::gentity_s* Movement::Weapon_RocketLauncher_Fire_Hk(Game::gentity_s* ent, unsigned int weaponIndex,
@@ -341,7 +341,7 @@ namespace Components
 
         // Bounce logic
         Utils::Hook(0x4B1B2D, Movement::PM_StepSlideMoveStub, HOOK_JUMP).install()->quick();
-        Utils::Hook(0x57383E, Movement::Jump_ClearStateHook, HOOK_CALL).install()->quick();
+        Utils::Hook(0x57383E, Movement::Jump_ClearState_Hk, HOOK_CALL).install()->quick();
         Utils::Hook(0x4B1B97, Movement::PM_ProjectVelocityStub, HOOK_CALL).install()->quick();
 
         // Rocket jump
