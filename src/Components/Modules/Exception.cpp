@@ -98,11 +98,11 @@ namespace Components
 		std::string errorStr;
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{
-			errorStr = "Termination because of a stack overflow.";
+			errorStr = "Termination because of a stack overflow.\nCopy exception address to clipboard?";
 		}
 		else
 		{
-			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.\n Copy exception address to clipboard?", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
+			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.\nCopy exception address to clipboard?", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
 		}
 
 		//Exception::SuspendProcess();
