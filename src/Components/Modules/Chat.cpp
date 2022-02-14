@@ -8,15 +8,33 @@ namespace Components
 
 	bool Chat::SendChat;
 
+	std::mutex Chat::AccessMutex;
+	std::unordered_set<std::uint64_t> Chat::MuteList;
+
 	const char* Chat::EvaluateSay(char* text, Game::gentity_t* player)
 	{
-		SendChat = true;
+		Chat::SendChat = true;
 
 		if (text[1] == '/')
 		{
-			SendChat = false;
+			Chat::SendChat = false;
 			text[1] = text[0];
 			++text;
+		}
+
+		std::unique_lock<std::mutex> lock(Chat::AccessMutex);
+		if (Chat::MuteList.find(Game::svs_clients[player->s.number].steamID) != Chat::MuteList.end())
+		{
+			lock.unlock();
+			Chat::SendChat = false;
+			Game::SV_GameSendServerCommand(player->s.number, 0,
+				Utils::String::VA("%c \"You are muted\"", 0x65));
+		}
+
+		// Test whether the lock is still locked
+		if (lock.owns_lock())
+		{
+			lock.unlock();
 		}
 
 		TextRenderer::StripMaterialTextIcons(text, text, strlen(text) + 1);
@@ -194,9 +212,113 @@ namespace Components
 		}
 	}
 
+	void Chat::MuteClient(const Game::client_t* client)
+	{
+		std::unique_lock<std::mutex> lock(Chat::AccessMutex);
+
+		if (Chat::MuteList.find(client->steamID) == Chat::MuteList.end())
+		{
+			Chat::MuteList.insert(client->steamID);
+			lock.unlock();
+
+			Logger::Print("%s was muted\n", client->name);
+			Game::SV_GameSendServerCommand(client->gentity->s.number, 0,
+				Utils::String::VA("%c \"You were muted\"", 0x65));
+			return;
+		}
+
+		lock.unlock();
+		Logger::Print("%s is already muted\n", client->name);
+		Game::SV_GameSendServerCommand(-1, 0,
+			Utils::String::VA("%c \"%s is already muted\"", 0x65, client->name));
+	}
+
+	void Chat::UnmuteClient(const Game::client_t* client)
+	{
+		Chat::UnmuteInternal(client->steamID);
+
+		Logger::Print("%s was unmuted\n", client->name);
+		Game::SV_GameSendServerCommand(client->gentity->s.number, 0,
+			Utils::String::VA("%c \"You were unmuted\"", 0x65));
+	}
+
+	void Chat::UnmuteInternal(const std::uint64_t id, bool everyone)
+	{
+		std::unique_lock<std::mutex> lock(Chat::AccessMutex);
+
+		if (everyone)
+			Chat::MuteList.clear();
+		else
+			Chat::MuteList.erase(id);
+	}
+
+	void Chat::AddChatCommands()
+	{
+		Command::AddSV("muteClient", [](Command::Params* params)
+		{
+			if (!Dvar::Var("sv_running").get<bool>())
+			{
+				Logger::Print("Server is not running.\n");
+				return;
+			}
+
+			const auto* cmd = params->get(0);
+			if (params->length() < 2)
+			{
+				Logger::Print("Usage: %s <client number> : prevent the player from using the chat\n", cmd);
+				return;
+			}
+
+			const auto* client = Game::SV_GetPlayerByNum();
+			if (client != nullptr)
+			{
+				Chat::MuteClient(client);
+			}
+		});
+
+		Command::AddSV("unmute", [](Command::Params* params)
+		{
+			if (!Dvar::Var("sv_running").get<bool>())
+			{
+				Logger::Print("Server is not running.\n");
+				return;
+			}
+
+			const auto* cmd = params->get(0);
+			if (params->length() < 2)
+			{
+				Logger::Print("Usage: %s <client number or guid>\n%s all = unmute everyone\n", cmd, cmd);
+				return;
+			}
+
+			const auto* client = Game::SV_GetPlayerByNum();
+
+			if (client != nullptr)
+			{
+				Chat::UnmuteClient(client);
+				return;
+			}
+
+			if (params->get(1) == "all"s)
+			{
+				Logger::Print("All players were unmuted\n");
+				Chat::UnmuteInternal(0, true);
+			}
+			else
+			{
+				const auto steamId = std::strtoull(params->get(1), nullptr, 16);
+				Chat::UnmuteInternal(steamId);
+			}
+		});
+	}
+
 	Chat::Chat()
 	{
-		cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, INT_MAX, Game::DVAR_FLAG_SAVED, "The normalized maximum width of a chat message");
+		Dvar::OnInit([]
+		{
+			cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_FLAG_SAVED, "The normalized maximum width of a chat message");
+			Chat::AddChatCommands();
+		});
 
 		// Intercept chat sending
 		Utils::Hook(0x4D000B, PreSayStub, HOOK_CALL).install()->quick();
@@ -205,5 +327,10 @@ namespace Components
 
 		// Change logic that does word splitting with new lines for chat messages to support fonticons
 		Utils::Hook(0x592E10, CG_AddToTeamChat_Stub, HOOK_JUMP).install()->quick();
+	}
+
+	Chat::~Chat()
+	{
+		Chat::MuteList.clear();
 	}
 }
