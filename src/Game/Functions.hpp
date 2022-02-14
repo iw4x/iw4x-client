@@ -46,8 +46,11 @@ namespace Game
 	typedef void(__cdecl * Cbuf_AddServerText_t)();
 	extern Cbuf_AddServerText_t Cbuf_AddServerText;
 
-	typedef void(__cdecl * Cbuf_AddText_t)(int localClientNum, const char *text);
+	typedef void(__cdecl * Cbuf_AddText_t)(int localClientNum, const char* text);
 	extern Cbuf_AddText_t Cbuf_AddText;
+
+	typedef void(__cdecl * Cbuf_InsertText_t)(int localClientNum, const char* text);
+	extern Cbuf_InsertText_t Cbuf_InsertText;
 
 	typedef int(__cdecl * CG_GetClientNum_t)();
 	extern CG_GetClientNum_t CG_GetClientNum;
@@ -133,13 +136,13 @@ namespace Game
 	typedef void(__cdecl * Com_EndParseSession_t)();
 	extern Com_EndParseSession_t Com_EndParseSession;
 
-	typedef void(__cdecl * Com_BeginParseSession_t)(const char* why);
+	typedef void(__cdecl * Com_BeginParseSession_t)(const char* filename);
 	extern Com_BeginParseSession_t Com_BeginParseSession;
 
 	typedef void(__cdecl * Com_SetSpaceDelimited_t)(int);
 	extern Com_SetSpaceDelimited_t Com_SetSpaceDelimited;
 
-	typedef char* (__cdecl * Com_Parse_t)(const char **data_p);
+	typedef char*(__cdecl * Com_Parse_t)(const char** data_p);
 	extern Com_Parse_t Com_Parse;
 
 	typedef bool (__cdecl * Com_MatchToken_t)(const char **data_p, const char* token, int size);
@@ -783,8 +786,17 @@ namespace Game
 	typedef bool(__cdecl * SV_Loaded_t)();
 	extern SV_Loaded_t SV_Loaded;
 
-	typedef void(__cdecl* SV_ClientThink_t)(client_s*, usercmd_s*);
+	typedef void(__cdecl * SV_ClientThink_t)(client_s*, usercmd_s*);
 	extern SV_ClientThink_t SV_ClientThink;
+
+	typedef client_t*(__cdecl * SV_GetPlayerByName_t)();
+	extern SV_GetPlayerByName_t SV_GetPlayerByName;
+
+	typedef client_t*(__cdecl * SV_GetPlayerByNum_t)();
+	extern SV_GetPlayerByNum_t SV_GetPlayerByNum;
+
+	typedef int(__cdecl * Sys_Error_t)(int, char *, ...);
+	extern Sys_Error_t Sys_Error;
 
 	typedef void(__cdecl * Sys_FreeFileList_t)(char** list);
 	extern Sys_FreeFileList_t Sys_FreeFileList;
@@ -906,6 +918,9 @@ namespace Game
 	typedef void(__cdecl * AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
 	extern AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee;
 
+	typedef gentity_s*(__cdecl * Weapon_RocketLauncher_Fire_t)(gentity_s* ent, unsigned int weaponIndex, float spread, weaponParms* wp, const float* gunVel, lockonFireParms* lockParms, bool a7);
+	extern Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire;
+
 	typedef void(__cdecl * Jump_ClearState_t)(playerState_s* ps);
 	extern Jump_ClearState_t Jump_ClearState;
 
@@ -914,6 +929,9 @@ namespace Game
 
 	typedef void(__cdecl * PM_Trace_t)(pmove_s*, trace_t*, const float*, const float*, const Bounds*, int, int);
 	extern PM_Trace_t PM_Trace;
+
+	typedef EffectiveStance(__cdecl * PM_GetEffectiveStance_t)(const playerState_s* ps);
+	extern PM_GetEffectiveStance_t PM_GetEffectiveStance;
 
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;

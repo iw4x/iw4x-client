@@ -68,19 +68,22 @@ namespace Components
 		EmptyClipboard();
 		auto* hMem = GlobalAlloc(GMEM_MOVEABLE, error.size() + 1);
 
-		if (hMem != nullptr)
+		if (hMem == nullptr)
 		{
-			auto lock = reinterpret_cast<char*>(GlobalLock(hMem));
+			CloseClipboard();
+			return;
+		}
 
-			if (lock != nullptr)
-			{
-				std::strcpy(lock, error.data()); // Should be okay since we allocated size + 1
-				GlobalUnlock(hMem);
-				SetClipboardData(1, hMem);
-			}
+		auto lock = GlobalLock(hMem);
+		if (lock != nullptr)
+		{
+			std::memcpy(lock, error.data(), error.size() + 1);
+			GlobalUnlock(hMem);
+			SetClipboardData(1, hMem);
 		}
 
 		CloseClipboard();
+		GlobalFree(hMem);
 	}
 
 	LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
@@ -95,19 +98,22 @@ namespace Components
 		std::string errorStr;
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{
-			errorStr = "Termination because of a stack overflow.";
+			errorStr = "Termination because of a stack overflow.\nCopy exception address to clipboard?";
 		}
 		else
 		{
-			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
+			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.\nCopy exception address to clipboard?", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
 		}
 
 		//Exception::SuspendProcess();
 
-		Exception::CopyMessageToClipboard(errorStr);
-		MessageBoxA(nullptr, errorStr.data(), "ERROR", MB_ICONERROR);
+		// Message should be copied to the keyboard if no button is pressed
+		if (MessageBoxA(nullptr, errorStr.data(), nullptr, MB_YESNO | MB_ICONERROR) == IDYES)
+		{
+			Exception::CopyMessageToClipboard(Utils::String::VA("0x%08X", ExceptionInfo->ExceptionRecord->ExceptionAddress));
+		}
 
-		if ( Flags::HasFlag("bigminidumps"))
+		if (Flags::HasFlag("bigminidumps"))
 		{
 			Exception::SetMiniDumpType(true, false);
 		}
@@ -199,8 +205,8 @@ namespace Components
 		// Display DEBUG branding, so we know we're on a debug build
 		Scheduler::OnFrame([]()
 		{
-			Game::Font_s* font = Game::R_RegisterFont("fonts/normalFont", 0);
-			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+			auto* font = Game::R_RegisterFont("fonts/normalFont", 0);
+			Game::vec4_t color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 			// Change the color when attaching a debugger
 			if (IsDebuggerPresent())
@@ -228,12 +234,12 @@ namespace Components
 			Game::UI_UpdateArenas();
 
 			std::string command;
-			for (int i = 0; i < (params->length() >= 2 ? atoi(params->get(1)) : *Game::arenaCount); ++i)
+			for (auto i = 0; i < (params->length() >= 2 ? atoi(params->get(1)) : *Game::arenaCount); ++i)
 			{
-				char* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
+				const auto* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
 
-				if (!(i % 2)) command.append(Utils::String::VA("wait 250;disconnect;wait 750;", mapname)); // Test a disconnect
-				else command.append(Utils::String::VA("wait 500;", mapname));                              // Test direct map switch
+				if (!(i % 2)) command.append("wait 250;disconnect;wait 750;"); // Test a disconnect
+				else command.append("wait 500;"); // Test direct map switch
 				command.append(Utils::String::VA("map %s;", mapname));
 			}
 

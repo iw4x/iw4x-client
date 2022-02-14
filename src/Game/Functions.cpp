@@ -34,6 +34,7 @@ namespace Game
 
 	Cbuf_AddServerText_t Cbuf_AddServerText = Cbuf_AddServerText_t(0x4BB9B0);
 	Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x404B20);
+	Cbuf_InsertText_t Cbuf_InsertText = Cbuf_InsertText_t(0x4940B0);
 
 	CG_NextWeapon_f_t CG_NextWeapon_f = CG_NextWeapon_f_t(0x449DE0);
 	CG_GetClientNum_t CG_GetClientNum = CG_GetClientNum_t(0x433700);
@@ -326,6 +327,8 @@ namespace Game
 	SV_SetConfigstring_t SV_SetConfigstring = SV_SetConfigstring_t(0x4982E0);
 	SV_Loaded_t SV_Loaded = SV_Loaded_t(0x4EE3E0);
 	SV_ClientThink_t SV_ClientThink = SV_ClientThink_t(0x44ADD0);
+	SV_GetPlayerByName_t SV_GetPlayerByName = SV_GetPlayerByName_t(0x6242B0);
+	SV_GetPlayerByNum_t SV_GetPlayerByNum = SV_GetPlayerByNum_t(0x624390);
 
 	Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x4D8580);
 	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = Sys_IsDatabaseReady_t(0x4CA4A0);
@@ -381,9 +384,12 @@ namespace Game
 	Field_AdjustScroll_t Field_AdjustScroll = Field_AdjustScroll_t(0x488C10);
 	AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee = AimAssist_ApplyAutoMelee_t(0x56A360);
 
+	Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x424680);
+
 	Jump_ClearState_t Jump_ClearState = Jump_ClearState_t(0x04B3890);
 	PM_playerTrace_t PM_playerTrace = PM_playerTrace_t(0x458980);
 	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
+	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
@@ -664,7 +670,7 @@ namespace Game
 		{
 			Dvar_SetStringByName("com_errorMessage", message.data());
 			Dvar_SetStringByName("com_errorTitle", title.data());
-			Cbuf_AddText(0, "openmenu error_popmenu_lobby");
+			Cbuf_AddText(0, "openmenu error_popmenu_lobby\n");
 		}
 	}
 

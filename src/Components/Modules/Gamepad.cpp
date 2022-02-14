@@ -867,7 +867,7 @@ namespace Components
         }
 
         // Check for frozen controls. Flag name should start with PMF_
-        if (CG_ShouldUpdateViewAngles(gamePadIndex) && (clientActive.snap.ps.pm_flags & 0x800) == 0)
+        if (CG_ShouldUpdateViewAngles(gamePadIndex) && (clientActive.snap.ps.pm_flags & Game::PMF_FROZEN) == 0)
         {
             Game::AimInput aimInput{};
             Game::AimOutput aimOutput{};
@@ -1172,8 +1172,7 @@ namespace Components
                 }
                 else
                 {
-                    Game::Cbuf_AddText(gamePadIndex, keyBinding);
-                    Game::Cbuf_AddText(gamePadIndex, "\n");
+                    Game::Cbuf_InsertText(gamePadIndex, keyBinding);
                 }
             }
         }

@@ -865,6 +865,39 @@ namespace Game
 		MaterialShaderArgument *args;
 	};
 
+	/* 9045 */
+	struct visionSetVars_t
+	{
+		bool glowEnable;
+		float glowBloomCutoff;
+		float glowBloomDesaturation;
+		float glowBloomIntensity0;
+		float glowBloomIntensity1;
+		float glowRadius0;
+		float glowRadius1;
+		float glowSkyBleedIntensity0;
+		float glowSkyBleedIntensity1;
+		bool filmEnable;
+		float filmBrightness;
+		float filmContrast;
+		float filmDesaturation;
+		float filmDesaturationDark;
+		bool filmInvert;
+		float filmLightTint[3];
+		float filmMediumTint[3];
+		float filmDarkTint[3];
+		bool charPrimaryUseTweaks;
+		float charPrimaryDiffuseScale;
+		float charPrimarySpecularScale;
+	};
+
+	struct visField_t
+	{
+		const char* name;
+		int offset;
+		int fieldType;
+	};
+
 	enum OffhandClass
 	{
 		OFFHAND_CLASS_NONE = 0x0,
@@ -1099,6 +1132,32 @@ namespace Game
 	{
 		hudelem_s current[31];
 		hudelem_s archival[31];
+	};
+
+	enum playerStateFlag
+	{
+		PMF_PRONE = 0x1,
+		PMF_DUCKED = 0x2,
+		PMF_MANTLE = 0x4,
+		PMF_LADDER = 0x8,
+		PMF_SIGHT_AIMING = 0x10,
+		PMF_BACKWARDS_RUN = 0x20,
+		PMF_WALKING = 0x40,
+		PMF_TIME_HARDLANDING = 0x80,
+		PMF_TIME_KNOCKBACK = 0x100,
+		PMF_PRONEMOVE_OVERRIDDEN = 0x200,
+		PMF_RESPAWNED = 0x400,
+		PMF_FROZEN = 0x800,
+		PMF_LADDER_FALL = 0x1000,
+		PMF_JUMPING = 0x2000,
+		PMF_SPRINTING = 0x4000,
+		PMF_SHELLSHOCKED = 0x8000,
+		PMF_MELEE_CHARGE = 0x10000,
+		PMF_NO_SPRINT = 0x20000,
+		PMF_NO_JUMP = 0x40000,
+		PMF_REMOTE_CONTROLLING = 0x80000,
+		PMF_ANIM_SCRIPTED = 0x100000,
+		PMF_DIVING = 0x400000
 	};
 
 	enum pmtype_t
@@ -2024,7 +2083,7 @@ namespace Game
 	struct __declspec(align(4)) MapEnts
 	{
 		const char *name;
-		char *entityString;
+		const char *entityString;
 		int numEntityChars;
 		MapTriggers trigger;
 		Stage *stages;
@@ -4623,6 +4682,19 @@ namespace Game
 		AddonMapEnts *addonMapEnts;
 	};
 
+	/* 9210 */
+	struct weaponParms
+	{
+		float forward[3];
+		float right[3];
+		float up[3];
+		float muzzleTrace[3];
+		float gunForward[3];
+		unsigned int weaponIndex;
+		const WeaponDef* weapDef;
+		const WeaponCompleteDef* weapCompleteDef;
+	};
+
 	struct XAsset
 	{
 		XAssetType type;
@@ -5593,6 +5665,14 @@ namespace Game
 	} gentity_t;
 
 	static_assert(sizeof(gentity_s) == 0x274);
+
+	struct lockonFireParms
+	{
+		bool lockon;
+		gentity_s* target;
+		float targetPosOrOffset[3];
+		bool topFire;
+	};
 
 #pragma pack(push, 1)
 

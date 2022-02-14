@@ -238,34 +238,6 @@ namespace Components
 		}
 	}
 
-	Game::dvar_t* QuickPatch::sv_enableBounces;
-	__declspec(naked) void QuickPatch::BounceStub()
-	{
-		__asm
-		{
-			// check the value of sv_enableBounces
-			push eax;
-			mov eax, sv_enableBounces;
-			cmp byte ptr[eax + 16], 1;
-			pop eax;
-
-			// always bounce if sv_enableBounces is set to 1
-			je bounce;
-
-			// original code
-			cmp dword ptr[esp + 24h], 0;
-			jnz dontBounce;
-
-		bounce:
-			push 0x004B1B34;
-			retn;
-
-		dontBounce:
-			push 0x004B1B48;
-			retn;
-		}
-	}
-
 	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* name, char**, int defaultVal, int flags, const char* description)
 	{
 		static const char* r_aspectRatioEnum[] =
@@ -324,61 +296,6 @@ namespace Components
 		}
 	}
 
-	Game::dvar_t* QuickPatch::g_playerCollision;
-	__declspec(naked) void QuickPatch::PlayerCollisionStub()
-	{
-		__asm
-		{
-			// check the value of g_playerCollision
-			push eax;
-			mov eax, g_playerCollision;
-			cmp byte ptr[eax + 16], 0;
-			pop eax;
-
-			// dont collide if g_playerCollision is set to 0
-			je dontcollide;
-
-			// original code
-			mov eax, dword ptr[esp + 0xa0];
-			push 0x00478376;
-			retn;
-
-		dontcollide:
-			mov eax, dword ptr[esp + 0xa0];
-			mov ecx, dword ptr[esp + 9ch];
-			push eax;
-			push ecx;
-			lea edx, [esp + 48h];
-			push edx;
-			mov eax, esi;
-			push 0x0047838b;
-			retn;
-		}
-	}
-
-	Game::dvar_t* QuickPatch::g_playerEjection;
-	__declspec(naked) void QuickPatch::PlayerEjectionStub()
-	{
-		__asm
-		{
-			// check the value of g_playerEjection
-			push eax;
-			mov eax, g_playerEjection;
-			cmp byte ptr[eax + 16], 0;
-			pop eax;
-
-			// dont eject if g_playerEjection is set to 0
-			je donteject;
-
-			push 0x005d8152;
-			retn;
-
-		donteject:
-			push 0x005d815b;
-			retn;
-		}
-	}
-
 	BOOL QuickPatch::IsDynClassnameStub(char* a1) 
 	{
 		auto version = Zones::GetEntitiesZoneVersion();
@@ -433,6 +350,12 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* QuickPatch::Dvar_RegisterUIBuildLocation(const char* dvarName,
+		float /*x*/, float /*y*/, float min, float max, int /*flags*/, const char* description)
+	{
+		return Game::Dvar_RegisterVec2(dvarName, -60.0f, 474.0f, min, max, Game::DVAR_FLAG_READONLY, description);
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// quit_hard
@@ -450,20 +373,8 @@ namespace Components
 		// Hook escape handling on open console to change behaviour to close the console instead of only canceling autocomplete
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
-		// bounce dvar
-		sv_enableBounces = Game::Dvar_RegisterBool("sv_enableBounces", false, Game::DVAR_FLAG_REPLICATED, "Enables bouncing on the server");
-		Utils::Hook(0x4B1B2D, QuickPatch::BounceStub, HOOK_JUMP).install()->quick();
-
 		// Intermission time dvar
 		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_FLAG_REPLICATED | Game::DVAR_FLAG_DEDISAVED, "Time in seconds before match server loads the next map");
-
-		// Player Collision dvar
-		g_playerCollision = Game::Dvar_RegisterBool("g_playerCollision", true, Game::DVAR_FLAG_REPLICATED, "Flag whether player collision is on or off");
-		Utils::Hook(0x47836F, QuickPatch::PlayerCollisionStub, HOOK_JUMP).install()->quick();
-
-		// Player Ejection dvar
-		g_playerEjection = Game::Dvar_RegisterBool("g_playerEjection", true, Game::DVAR_FLAG_REPLICATED, "Flag whether player ejection is on or off");
-		Utils::Hook(0x5D814A, QuickPatch::PlayerEjectionStub, HOOK_JUMP).install()->quick();
 
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_FLAG_REPLICATED, "Perform antilag");
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
@@ -527,16 +438,11 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x60BD56, "IW4x (" VERSION ")");
 
 		// version string color
-		static float buildLocColor[] = { 1.0f, 1.0f, 1.0f, 0.8f };
-		Utils::Hook::Set(0x43F710, buildLocColor);
+		static Game::vec4_t buildLocColor = { 1.0f, 1.0f, 1.0f, 0.8f };
+		Utils::Hook::Set<float*>(0x43F710, buildLocColor);
 
 		// Shift ui version string to the left (ui_buildlocation)
-		Utils::Hook::Nop(0x6310A0, 5); // Don't register the initial dvar
-		Utils::Hook::Nop(0x6310B8, 5); // Don't write the result
-		Dvar::OnInit([]()
-		{
-			*reinterpret_cast<Game::dvar_t**>(0x62E4B64) = Game::Dvar_RegisterVec2("ui_buildLocation", -60.0f, 474.0f, -10000.0, 10000.0, Game::DVAR_FLAG_READONLY, "Where to draw the build number");
-		});
+		Utils::Hook(0x6310A0, QuickPatch::Dvar_RegisterUIBuildLocation, HOOK_CALL).install()->quick();
 
 		// console title
 		if (ZoneBuilder::IsEnabled())
@@ -761,11 +667,6 @@ namespace Components
 		Command::Add("unlockstats", [](Command::Params*)
 		{
 			QuickPatch::UnlockStats();
-		});
-
-		Command::Add("crash", [](Command::Params*)
-		{
-			throw new std::exception();
 		});
 
 		Command::Add("dumptechsets", [](Command::Params* param)
@@ -998,11 +899,6 @@ namespace Components
 		{
 			Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
 		}
-	}
-
-	QuickPatch::~QuickPatch()
-	{
-
 	}
 
 	bool QuickPatch::unitTest()
