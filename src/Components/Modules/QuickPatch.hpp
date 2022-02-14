@@ -27,9 +27,6 @@ namespace Components
 		static bool InvalidNameCheck(char* dest, const char* source, int size);
 		static void InvalidNameStub();
 
-		static Game::dvar_t* sv_enableBounces;
-		static void BounceStub();
-
 		static Dvar::Var r_customAspectRatio;
 		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* name, char** enumValues, int defaultVal, int flags, const char* description);
 		static void SetAspectRatioStub();
@@ -39,10 +36,6 @@ namespace Components
 		static void ClientEventsFireWeaponStub();
 		static void ClientEventsFireWeaponMeleeStub();
 
-		static Game::dvar_t* g_playerCollision;
-		static void PlayerCollisionStub();
-		static Game::dvar_t* g_playerEjection;
-		static void PlayerEjectionStub();
 		static BOOL IsDynClassnameStub(char* a1);
 
 		static void CL_KeyEvent_OnEscape();
