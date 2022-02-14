@@ -361,10 +361,8 @@ namespace Components
 		if (bestCodePos == -1)
 			return;
 
-		auto onehundred = 100.0f;
-
 		Logger::Print(23, "\n@ %d (%d - %d)\n", scriptPos, bestCodePos, nextCodePos);
-		Logger::Print(23, "in %s (%.1f%% through the source)\n\n", file.data(), ((offset * onehundred) / (nextCodePos - bestCodePos)));
+		Logger::Print(23, "in %s (%.1f%% through the source)\n\n", file.data(), ((offset * 100.0f) / (nextCodePos - bestCodePos)));
 	}
 
 	__declspec(naked) void Script::Scr_PrintPrevCodePosStub()
