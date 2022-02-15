@@ -11,6 +11,7 @@ namespace Components
 		std::uint8_t padding3[4];
 		std::int32_t tableColumn;
 	};
+
 	struct playercarddata_s
 	{
 		std::uint32_t padding;

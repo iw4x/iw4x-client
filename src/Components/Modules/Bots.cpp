@@ -243,8 +243,8 @@ namespace Components
 				return;
 			}
 
-			forwardInt = std::clamp(forwardInt, -128, 127);
-			rightInt = std::clamp(rightInt, -128, 127);
+			forwardInt = std::clamp<int>(forwardInt, std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
+			rightInt = std::clamp<int>(rightInt, std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
 
 			g_botai[entref.entnum].forward = static_cast<int8_t>(forwardInt);
 			g_botai[entref.entnum].right = static_cast<int8_t>(rightInt);

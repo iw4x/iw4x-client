@@ -558,7 +558,7 @@ namespace Game
 	typedef bool(__cdecl * NET_IsLocalAddress_t)(netadr_t adr);
 	extern NET_IsLocalAddress_t NET_IsLocalAddress;
 
-	typedef bool(__cdecl * NET_StringToAdr_t)(const char *s, netadr_t *a);
+	typedef int(__cdecl * NET_StringToAdr_t)(const char *s, netadr_t *a);
 	extern NET_StringToAdr_t NET_StringToAdr;
 
 	typedef void(__cdecl * NET_OutOfBandPrint_t)(netsrc_t sock, netadr_t adr, const char *data);
