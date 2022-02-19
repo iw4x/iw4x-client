@@ -5,42 +5,27 @@ namespace Components
 	Utils::Signal<Scheduler::Callback> Dvar::RegistrationSignal;
 	const char* Dvar::ArchiveDvarPath = "userraw/archivedvars.cfg";
 
-	Dvar::Var::Var(const std::string& _dvarName) : Var()
+	Dvar::Var::Var(const std::string& dvarName) : Var()
 	{
-		this->dvar = Game::Dvar_FindVar(_dvarName.data());
-		this->dvarName = _dvarName;
-	}
-
-	void Dvar::Var::registerDvar()
-	{
-		assert(!this->dvarName.empty() && this->dvar == nullptr);
-
-		auto* var = Game::Dvar_FindVar(this->dvarName.data());
+		this->dvar = Game::Dvar_FindVar(dvarName.data());
 
 		// If the dvar can't be found it will be registered as an empty string dvar
-		if (var == nullptr)
+		if (this->dvar == nullptr)
 		{
-			this->dvar = const_cast<Game::dvar_t*>(Game::Dvar_SetFromStringByNameFromSource(this->dvarName.data(), "",
+			this->dvar = const_cast<Game::dvar_t*>(Game::Dvar_SetFromStringByNameFromSource(dvarName.data(), "",
 				Game::DvarSetSource::DVAR_SOURCE_INTERNAL));
-		}	
-		else
-		{
-			this->dvar = var;
 		}
 	}
 
 	template <> Game::dvar_t* Dvar::Var::get()
 	{
-		if (this->dvar == nullptr)
-			this->registerDvar();
-
 		return this->dvar;
 	}
 
 	template <> const char* Dvar::Var::get()
 	{
 		if (this->dvar == nullptr)
-			this->registerDvar();
+			return "";
 
 		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING
 			|| this->dvar->type == Game::dvar_type::DVAR_TYPE_ENUM)
@@ -55,7 +40,7 @@ namespace Components
 	template <> int Dvar::Var::get()
 	{
 		if (this->dvar == nullptr)
-			this->registerDvar();
+			return 0;
 
 		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_INT || this->dvar->type == Game::dvar_type::DVAR_TYPE_ENUM)
 		{
@@ -68,20 +53,20 @@ namespace Components
 	template <> unsigned int Dvar::Var::get()
 	{
 		if (this->dvar == nullptr)
-			this->registerDvar();
+			return 0u;
 
 		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
 		{
 			return this->dvar->current.unsignedInt;
 		}
 
-		return 0;
+		return 0u;
 	}
 
 	template <> float Dvar::Var::get()
 	{
 		if (this->dvar == nullptr)
-			this->registerDvar();
+			return 0.f;
 
 		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
 		{
@@ -96,7 +81,7 @@ namespace Components
 		static Game::vec4_t vector{ 0.f, 0.f, 0.f, 0.f };
 
 		if (this->dvar == nullptr)
-			this->registerDvar();
+			return vector;
 
 		if (this->dvar && (this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_2 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_3 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_4))
 		{
@@ -109,7 +94,7 @@ namespace Components
 	template <> bool Dvar::Var::get()
 	{
 		if (this->dvar == nullptr)
-			this->registerDvar();
+			return false;
 
 		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
 		{
