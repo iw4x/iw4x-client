@@ -83,7 +83,8 @@ namespace Components
 		if (this->dvar == nullptr)
 			return vector;
 
-		if (this->dvar && (this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_2 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_3 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_4))
+		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_2 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_3
+			|| this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_4)
 		{
 			return this->dvar->current.vector;
 		}
@@ -280,7 +281,7 @@ namespace Components
 			}
 		}
 
-		return Dvar::SetFromStringByNameExternal(dvarName, string);
+		Dvar::SetFromStringByNameExternal(dvarName, string);
 	}
 
 	void Dvar::SetFromStringByNameExternal(const char* dvarName, const char* string)
