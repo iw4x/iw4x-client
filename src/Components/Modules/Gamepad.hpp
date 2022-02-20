@@ -187,7 +187,7 @@ namespace Components
         static void Scores_Toggle_f(Command::Params* params);
 
         static void InitDvars();
-        static void IN_Init_Hk();
+        static void CG_RegisterDvars_Hk();
 
         static const char* GetGamePadCommand(const char* command);
         static int Key_GetCommandAssignmentInternal_Hk(const char* cmd, int(*keys)[2]);

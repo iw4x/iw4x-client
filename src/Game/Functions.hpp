@@ -259,25 +259,25 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_RegisterColor_t)(const char* name, float r, float g, float b, float a, int flags, const char* description);
 	extern Dvar_RegisterColor_t Dvar_RegisterColor;
 
-	typedef dvar_t* (__cdecl * Dvar_SetFromStringByName_t)(const char* cvar, const char* value);
+	typedef void(__cdecl * Dvar_SetFromStringByName_t)(const char* dvarName, const char* string);
 	extern Dvar_SetFromStringByName_t Dvar_SetFromStringByName;
 
-	typedef dvar_t* (__cdecl * Dvar_SetFromStringByNameFromSource_t)(const char* cvar, const char* value, DvarSetSource source);
+	typedef const dvar_t* (__cdecl * Dvar_SetFromStringByNameFromSource_t)(const char* dvarName, const char* string, DvarSetSource source);
 	extern Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource;
 
 	typedef void (__cdecl * Dvar_SetStringByName_t)(const char* cvar, const char* value);
 	extern Dvar_SetStringByName_t Dvar_SetStringByName;
 
-	typedef void (__cdecl * Dvar_SetString_t)(dvar_t* cvar, const char* value);
+	typedef void (__cdecl * Dvar_SetString_t)(const dvar_t* cvar, const char* value);
 	extern Dvar_SetString_t Dvar_SetString;
 
-	typedef void (__cdecl * Dvar_SetBool_t)(dvar_t* cvar, bool enabled);
+	typedef void (__cdecl * Dvar_SetBool_t)(const dvar_t* cvar, bool enabled);
 	extern Dvar_SetBool_t Dvar_SetBool;
 
-	typedef void (__cdecl * Dvar_SetFloat_t)(dvar_t* cvar, float value);
+	typedef void (__cdecl * Dvar_SetFloat_t)(const dvar_t* cvar, float value);
 	extern Dvar_SetFloat_t Dvar_SetFloat;
 
-	typedef void (__cdecl * Dvar_SetInt_t)(dvar_t* cvar, int integer);
+	typedef void (__cdecl * Dvar_SetInt_t)(const dvar_t* cvar, int integer);
 	extern Dvar_SetInt_t Dvar_SetInt;
 
 	typedef void(__cdecl * Dvar_GetUnpackedColorByName_t)(const char* name, float* color);
@@ -289,7 +289,7 @@ namespace Game
 	typedef char* (__cdecl* Dvar_InfoString_Big_t)(int typeMask);
 	extern Dvar_InfoString_Big_t Dvar_InfoString_Big;
 
-	typedef dvar_t* (__cdecl * Dvar_SetCommand_t)(const char* name, const char* value);
+	typedef void(__cdecl * Dvar_SetCommand_t)(const char* dvarName, const char* string);
 	extern Dvar_SetCommand_t Dvar_SetCommand;
 
 	typedef const char* (__cdecl * Dvar_DisplayableValue_t)(const dvar_t* cvar);

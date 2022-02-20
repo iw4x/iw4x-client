@@ -1730,7 +1730,7 @@ namespace Components
         gpad_button_deadzone = Dvar::Register<float>("gpad_button_deadzone", 0.13f, 0.0f, 1.0f, Game::DVAR_FLAG_NONE, "Game pad button deadzone threshhold");
         gpad_button_lstick_deflect_max = Dvar::Register<float>("gpad_button_lstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_FLAG_NONE, "Game pad maximum pad stick pressed value");
         gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_FLAG_NONE, "Game pad maximum pad stick pressed value");
-        gpad_use_hold_time = Dvar::Register<int>("gpad_use_hold_time", 250, 0, INT32_MAX, Game::DVAR_FLAG_NONE, "Time to hold the 'use' button on gamepads to activate use");
+        gpad_use_hold_time = Dvar::Register<int>("gpad_use_hold_time", 250, 0, std::numeric_limits<int>::max(), Game::DVAR_FLAG_NONE, "Time to hold the 'use' button on gamepads to activate use");
         gpad_lockon_enabled = Dvar::Register<bool>("gpad_lockon_enabled", true, Game::DVAR_FLAG_SAVED, "Game pad lockon aim assist enabled");
         gpad_slowdown_enabled = Dvar::Register<bool>("gpad_slowdown_enabled", true, Game::DVAR_FLAG_SAVED, "Game pad slowdown aim assist enabled");
 
@@ -1761,10 +1761,10 @@ namespace Components
         aim_lockon_strength = Dvar::Var("aim_lockon_strength");
     }
 
-    void Gamepad::IN_Init_Hk()
+    void Gamepad::CG_RegisterDvars_Hk()
     {
         // Call original method
-        Utils::Hook::Call<void()>(0x45D620)();
+        Utils::Hook::Call<void()>(0x4F8DC0)();
 
         InitDvars();
     }
@@ -1907,7 +1907,7 @@ namespace Components
             return;
 
         // Initialize gamepad environment
-        Utils::Hook(0x467C03, IN_Init_Hk, HOOK_CALL).install()->quick();
+        Utils::Hook(0x4059FE, CG_RegisterDvars_Hk, HOOK_CALL).install()->quick();
 
         // package the forward and right move components in the move buttons
         Utils::Hook(0x60E38D, MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();

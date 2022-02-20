@@ -18,14 +18,13 @@ namespace Components
 		{
 		public:
 			Var() : dvar(nullptr) {};
-			Var(const Var &obj) { this->dvar = obj.dvar; };
+			Var(const Var& obj) { this->dvar = obj.dvar; };
 			Var(Game::dvar_t* _dvar) : dvar(_dvar) {};
 			Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {};
 			Var(const std::string& dvarName);
 
 			template<typename T> T get();
 
-			void set(char* string);
 			void set(const char* string);
 			void set(const std::string& string);
 
@@ -58,8 +57,8 @@ namespace Components
 
 		static Game::dvar_t* RegisterName(const char* name, const char* defaultVal, Game::dvar_flag flag, const char* description);
 
-		static Game::dvar_t* SetFromStringByNameExternal(const char* dvar, const char* value);
-		static Game::dvar_t* SetFromStringByNameSafeExternal(const char* dvar, const char* value);
+		static void SetFromStringByNameExternal(const char* dvar, const char* value);
+		static void SetFromStringByNameSafeExternal(const char* dvar, const char* value);
 
 		static void SaveArchiveDvar(const Game::dvar_t* var);
 		static void DvarSetFromStringByNameStub(const char* dvarName, const char* value);
