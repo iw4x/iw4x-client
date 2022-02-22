@@ -747,9 +747,16 @@ namespace Components
 			Script::LastFrameTime = nowMs;
 		});
 
-		Script::AddFunction("debugBox", [](Game::scr_entref_t)
+		Script::AddFunction("DebugBox", [](Game::scr_entref_t)
 		{
-			MessageBoxA(nullptr, Game::Scr_GetString(0), "DEBUG", 0);
+			const auto* message = Game::Scr_GetString(0);
+
+			if (message == nullptr)
+			{
+				Game::Scr_Error("^1DebugBox: Illegal parameter!\n");
+			}
+
+			MessageBoxA(nullptr, message, "DEBUG", MB_OK);
 		}, true);
 
 		Script::AddFunctions();
