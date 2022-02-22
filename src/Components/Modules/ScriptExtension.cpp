@@ -120,9 +120,9 @@ namespace Components
 				}
 			}
 
-			auto p = std::filesystem::path(path);
-			std::string folder = p.parent_path().string();
-			std::string file = p.filename().string();
+			const auto p = std::filesystem::path(path);
+			const auto& folder = p.parent_path().string();
+			const auto& file = p.filename().string();
 			Game::Scr_AddInt(FileSystem::DeleteFile(folder, file));
 		});
 	}
