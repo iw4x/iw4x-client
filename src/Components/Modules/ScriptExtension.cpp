@@ -8,7 +8,7 @@ namespace Components
 	{
 		//File functions
 
-		Script::AddFunction("FileWrite", [](Game::scr_entref_t) // gsc: FileWrite(<filepath>, <string>, <mode>)
+		Script::AddFunction("FileWrite", []() // gsc: FileWrite(<filepath>, <string>, <mode>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 			auto* text = Game::Scr_GetString(1);
@@ -51,7 +51,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("FileRead", [](Game::scr_entref_t) // gsc: FileRead(<filepath>)
+		Script::AddFunction("FileRead", []() // gsc: FileRead(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -79,7 +79,7 @@ namespace Components
 			Game::Scr_AddString(FileSystem::FileReader(path).getBuffer().data());
 		});
 
-		Script::AddFunction("FileExists", [](Game::scr_entref_t) // gsc: FileExists(<filepath>)
+		Script::AddFunction("FileExists", []() // gsc: FileExists(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -101,7 +101,7 @@ namespace Components
 			Game::Scr_AddInt(FileSystem::FileReader(path).exists());
 		});
 
-		Script::AddFunction("FileRemove", [](Game::scr_entref_t) // gsc: FileRemove(<filepath>)
+		Script::AddFunction("FileRemove", []() // gsc: FileRemove(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -130,7 +130,7 @@ namespace Components
 	void ScriptExtension::AddMethods()
 	{
 		// ScriptExtension methods
-		Script::AddFunction("GetIp", [](Game::scr_entref_t entref) // gsc: self GetIp()
+		Script::AddMethod("GetIp", [](Game::scr_entref_t entref) // gsc: self GetIp()
 		{
 			const auto* gentity = Script::GetEntity(entref);
 			const auto* client = Script::GetClient(gentity);
@@ -145,7 +145,7 @@ namespace Components
 			Game::Scr_AddString(ip.data());
 		});
 
-		Script::AddFunction("GetPing", [](Game::scr_entref_t entref) // gsc: self GetPing()
+		Script::AddMethod("GetPing", [](Game::scr_entref_t entref) // gsc: self GetPing()
 		{
 			const auto* gentity = Script::GetEntity(entref);
 			const auto* client = Script::GetClient(gentity);

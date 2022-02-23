@@ -117,7 +117,7 @@ namespace Components
 
 	void Bots::AddMethods()
 	{
-		Script::AddFunction("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
+		Script::AddMethod("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
 		{
 			const auto ping = Game::Scr_GetInt(0);
 
@@ -139,7 +139,7 @@ namespace Components
 			client->ping = static_cast<int16_t>(ping);
 		});
 
-		Script::AddFunction("IsTestClient", [](Game::scr_entref_t entref) // Usage: <bot> IsTestClient();
+		Script::AddMethod("IsTestClient", [](Game::scr_entref_t entref) // Usage: <bot> IsTestClient();
 		{
 			const auto* gentity = Script::GetEntity(entref);
 			const auto* client = Script::GetClient(gentity);
@@ -147,7 +147,7 @@ namespace Components
 			Game::Scr_AddBool(client->bIsTestClient == 1);
 		});
 
-		Script::AddFunction("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
+		Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
 			const auto* gentity = Script::GetEntity(entref);
 			const auto* client = Script::GetClient(gentity);
@@ -163,7 +163,7 @@ namespace Components
 			g_botai[entref.entnum].active = false;
 		});
 
-		Script::AddFunction("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
+		Script::AddMethod("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
 		{
 			const auto* weapon = Game::Scr_GetString(0);
 
@@ -187,7 +187,7 @@ namespace Components
 			g_botai[entref.entnum].active = true;
 		});
 
-		Script::AddFunction("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
+		Script::AddMethod("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
 		{
 			const auto* action = Game::Scr_GetString(0);
 
@@ -229,7 +229,7 @@ namespace Components
 			Game::Scr_ParamError(0, "^1BotAction: Unknown action.\n");
 		});
 
-		Script::AddFunction("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
+		Script::AddMethod("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
 		{
 			auto forwardInt = Game::Scr_GetInt(0);
 			auto rightInt = Game::Scr_GetInt(1);

@@ -26,7 +26,22 @@ namespace Game
 		unsigned __int16 classnum;
 	};
 
-	typedef void(__cdecl * scr_function_t)(scr_entref_t);
+	typedef void(__cdecl * xfunction_t)();
+	typedef void(__cdecl * xmethod_t)(scr_entref_t);
+
+	struct BuiltinFunctionDef
+	{
+		const char* actionString;
+		xfunction_t actionFunc;
+		int type;
+	};
+
+	struct BuiltinMethodDef
+	{
+		const char* actionString;
+		xmethod_t actionFunc;
+		int type;
+	};
 
 	enum XAssetType
 	{

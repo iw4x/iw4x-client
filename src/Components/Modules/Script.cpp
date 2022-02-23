@@ -4,7 +4,8 @@ namespace Components
 {
 	std::string Script::ScriptName;
 	std::vector<int> Script::ScriptHandles;
-	std::vector<Script::Function> Script::ScriptFunctions;
+	std::unordered_map<std::string, Game::BuiltinFunctionDef> Script::CustomScrFunctions;
+	std::unordered_map<std::string, Game::BuiltinMethodDef> Script::CustomScrMethods;
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
 	std::unordered_map<std::string, std::string> Script::ScriptStorage;
@@ -270,61 +271,77 @@ namespace Components
 		Game::GScr_LoadGameTypeScript();
 	}
 
-	void Script::AddFunction(const std::string& name, Game::scr_function_t function, bool isDev)
+	void Script::AddFunction(const char* name, Game::xfunction_t func, int type)
 	{
-		for (auto i = Script::ScriptFunctions.begin(); i != Script::ScriptFunctions.end();)
-		{
-			if (i->getName() == name)
-			{
-				i = Script::ScriptFunctions.erase(i);
-				continue;
-			}
+		Game::BuiltinFunctionDef toAdd;
+		toAdd.actionString = name;
+		toAdd.actionFunc = func;
+		toAdd.type = type;
 
-			++i;
-		}
-
-		Script::ScriptFunctions.push_back({ name, function, isDev });
+		CustomScrFunctions.insert_or_assign(Utils::String::ToLower(name), std::move(toAdd));
 	}
 
-	Game::scr_function_t Script::GetFunction(void* caller, const char** name, int* isDev)
+	void Script::AddMethod(const char* name, Game::xmethod_t func, int type)
 	{
-		for (auto& function : Script::ScriptFunctions)
-		{
-			if (name && *name)
-			{
-				if (Utils::String::ToLower(*name) == Utils::String::ToLower(function.getName()))
-				{
-					*name = function.getName();
-					*isDev = function.isDev();
-					return function.getFunction();
-				}
-			}
-			else if (caller == reinterpret_cast<void*>(0x465781))
-			{
-				Game::Scr_RegisterFunction(function.getFunction());
-			}
-		}
+		Game::BuiltinMethodDef toAdd;
+		toAdd.actionString = name;
+		toAdd.actionFunc = func;
+		toAdd.type = type;
 
-		return nullptr;
+		CustomScrMethods.insert_or_assign(Utils::String::ToLower(name), std::move(toAdd));
 	}
 
-	__declspec(naked) void Script::GetFunctionStub()
+	Game::xfunction_t Script::Scr_GetFunctionStub(const char** pName, int* type)
 	{
-		__asm
+		for (const auto& [key, value] : Script::CustomScrFunctions)
 		{
-			test eax, eax
-			jnz returnSafe
-
-			sub esp, 8h
-			push [esp + 10h]
-			call Script::GetFunction
-			add esp, 0Ch
-
-		returnSafe:
-			pop edi
-			pop esi
-			retn
+			Game::Scr_RegisterFunction(reinterpret_cast<int>(value.actionFunc), value.actionString);
 		}
+
+		return Utils::Hook::Call<Game::xfunction_t(const char**, int*)>(0x44E700)(pName, type); // Scr_GetFunction
+	}
+
+	Game::xmethod_t Script::Scr_GetMethodStub(const char** pName, int* type)
+	{
+		for (const auto& [key, value] : Script::CustomScrMethods)
+		{
+			Game::Scr_RegisterFunction(reinterpret_cast<int>(value.actionFunc), value.actionString);
+		}
+
+		return Utils::Hook::Call<Game::xmethod_t(const char**, int*)>(0x4EC870)(pName, type); // Scr_GetMethod
+	}
+
+	Game::xfunction_t Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
+	{
+		if (pName && *pName)
+		{
+			const auto got = Script::CustomScrFunctions.find(*pName);
+
+			// If no function was found let's call game's function
+			if (got != Script::CustomScrFunctions.end())
+			{
+				*type = got->second.type;
+				return got->second.actionFunc;
+			}			
+		}
+
+		return Utils::Hook::Call<Game::xfunction_t(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
+	}
+
+	Game::xmethod_t Script::Player_GetMethodStub(const char** pName)
+	{
+		if (pName && *pName)
+		{
+			const auto got = Script::CustomScrMethods.find(*pName);
+
+			// If no method was found let's call game's function
+			if (got != Script::CustomScrMethods.end())
+			{
+				return got->second.actionFunc;
+			}
+		}
+
+		return Utils::Hook::Call<Game::xmethod_t(const char**)>(0x4C07D0)(pName); // Player_GetMethod
 	}
 
 	void Script::StoreScriptBaseProgramNum()
@@ -519,11 +536,13 @@ namespace Components
 
 	Game::gentity_t* Script::GetEntity(const Game::scr_entref_t entref)
 	{
-		if (entref.classnum != 0 || entref.entnum >= Game::MAX_GENTITIES)
+		if (entref.classnum != 0)
 		{
 			Game::Scr_ObjectError("Not an entity");
 			return nullptr;
 		}
+
+		assert(entref.entnum < Game::MAX_GENTITIES);
 
 		return &Game::g_entities[entref.entnum];
 	}
@@ -547,7 +566,7 @@ namespace Components
 
 	void Script::AddFunctions()
 	{
-		Script::AddFunction("ReplaceFunc", [](Game::scr_entref_t) // gsc: ReplaceFunc(<function>, <function>)
+		Script::AddFunction("ReplaceFunc", []() // gsc: ReplaceFunc(<function>, <function>)
 		{
 			if (Game::Scr_GetNumParam() != 2u)
 			{
@@ -562,7 +581,7 @@ namespace Components
 		});
 
 		// System time
-		Script::AddFunction("GetSystemTime", [](Game::scr_entref_t) // gsc: GetSystemTime()
+		Script::AddFunction("GetSystemTime", []() // gsc: GetSystemTime()
 		{
 			SYSTEMTIME time;
 			GetSystemTime(&time);
@@ -570,7 +589,7 @@ namespace Components
 			Game::Scr_AddInt(time.wSecond);
 		});
 
-		Script::AddFunction("GetSystemMilliseconds", [](Game::scr_entref_t) // gsc: GetSystemMilliseconds()
+		Script::AddFunction("GetSystemMilliseconds", []() // gsc: GetSystemMilliseconds()
 		{
 			SYSTEMTIME time;
 			GetSystemTime(&time);
@@ -579,7 +598,7 @@ namespace Components
 		});
 
 		// Executes command to the console
-		Script::AddFunction("Exec", [](Game::scr_entref_t) // gsc: Exec(<string>)
+		Script::AddFunction("Exec", []() // gsc: Exec(<string>)
 		{
 			const auto str = Game::Scr_GetString(0);
 
@@ -593,7 +612,7 @@ namespace Components
 		});
 
 		// Allow printing to the console even when developer is 0
-		Script::AddFunction("PrintConsole", [](Game::scr_entref_t) // gsc: PrintConsole(<string>)
+		Script::AddFunction("PrintConsole", []() // gsc: PrintConsole(<string>)
 		{
 			for (auto i = 0u; i < Game::Scr_GetNumParam(); i++)
 			{
@@ -610,7 +629,7 @@ namespace Components
 		});
 
 		// Script Storage Funcs
-		Script::AddFunction("StorageSet", [](Game::scr_entref_t) // gsc: StorageSet(<str key>, <str data>);
+		Script::AddFunction("StorageSet", []() // gsc: StorageSet(<str key>, <str data>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 			const auto* value = Game::Scr_GetString(1);
@@ -624,7 +643,7 @@ namespace Components
 			Script::ScriptStorage.insert_or_assign(key, value);
 		});
 
-		Script::AddFunction("StorageRemove", [](Game::scr_entref_t) // gsc: StorageRemove(<str key>);
+		Script::AddFunction("StorageRemove", []() // gsc: StorageRemove(<str key>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 
@@ -643,7 +662,7 @@ namespace Components
 			Script::ScriptStorage.erase(key);
 		});
 
-		Script::AddFunction("StorageGet", [](Game::scr_entref_t) // gsc: StorageGet(<str key>);
+		Script::AddFunction("StorageGet", []() // gsc: StorageGet(<str key>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 
@@ -663,7 +682,7 @@ namespace Components
 			Game::Scr_AddString(data.data());
 		});
 
-		Script::AddFunction("StorageHas", [](Game::scr_entref_t) // gsc: StorageHas(<str key>);
+		Script::AddFunction("StorageHas", []() // gsc: StorageHas(<str key>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 
@@ -676,13 +695,13 @@ namespace Components
 			Game::Scr_AddBool(Script::ScriptStorage.count(key));
 		});
 
-		Script::AddFunction("StorageClear", [](Game::scr_entref_t) // gsc: StorageClear();
+		Script::AddFunction("StorageClear", []() // gsc: StorageClear();
 		{
 			Script::ScriptStorage.clear();
 		});
 
 		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
-		Script::AddFunction("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
+		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
 		{
 			const auto* ent = Script::GetEntity(entref);
 
@@ -718,8 +737,13 @@ namespace Components
 		Utils::Hook(0x48EFFE, Script::LoadGameType, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45D44A, Script::LoadGameTypeScript, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x44E736, Script::GetFunctionStub, HOOK_JUMP).install()->quick(); // Scr_GetFunction
-		Utils::Hook(0x4EC8E5, Script::GetFunctionStub, HOOK_JUMP).install()->quick(); // Scr_GetMethod
+		// Register custom functions
+		Utils::Hook(0x46577C, Script::Scr_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_BeginLoadScripts
+		Utils::Hook(0x465787, Script::Scr_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_BeginLoadScripts
+
+		// Fetch custom functions
+		Utils::Hook(0x44E72E, Script::BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
+		Utils::Hook(0x4EC88E, Script::Player_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
 
 		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
 
@@ -747,7 +771,7 @@ namespace Components
 			Script::LastFrameTime = nowMs;
 		});
 
-		Script::AddFunction("DebugBox", [](Game::scr_entref_t)
+		Script::AddFunction("DebugBox", []()
 		{
 			const auto* message = Game::Scr_GetString(0);
 
@@ -772,7 +796,10 @@ namespace Components
 		Script::ScriptName.clear();
 		Script::ScriptHandles.clear();
 		Script::ScriptNameStack.clear();
-		Script::ScriptFunctions.clear();
+
+		Script::CustomScrFunctions.clear();
+		Script::CustomScrMethods.clear();
+
 		Script::ReplacedFunctions.clear();
 		Script::VMShutdownSignal.clear();
 

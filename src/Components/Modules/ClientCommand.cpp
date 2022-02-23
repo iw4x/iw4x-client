@@ -175,7 +175,7 @@ namespace Components
 
 	void ClientCommand::AddScriptFunctions()
 	{
-		Script::AddFunction("Noclip", [](Game::scr_entref_t entref) // gsc: Noclip(<optional int toggle>);
+		Script::AddMethod("Noclip", [](Game::scr_entref_t entref) // gsc: Noclip(<optional int toggle>);
 		{
 			const auto* ent = Script::GetEntity(entref);
 
@@ -202,7 +202,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("Ufo", [](Game::scr_entref_t entref) // gsc: Ufo(<optional int toggle>);
+		Script::AddMethod("Ufo", [](Game::scr_entref_t entref) // gsc: Ufo(<optional int toggle>);
 		{
 			const auto* ent = Script::GetEntity(entref);
 
@@ -229,7 +229,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("God", [](Game::scr_entref_t entref) // gsc: God(<optional int toggle>);
+		Script::AddMethod("God", [](Game::scr_entref_t entref) // gsc: God(<optional int toggle>);
 		{
 			auto* ent = Script::GetEntity(entref);
 
@@ -250,7 +250,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("Demigod", [](Game::scr_entref_t entref) // gsc: Demigod(<optional int toggle>);
+		Script::AddMethod("Demigod", [](Game::scr_entref_t entref) // gsc: Demigod(<optional int toggle>);
 		{
 			auto* ent = Script::GetEntity(entref);
 
@@ -271,7 +271,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("Notarget", [](Game::scr_entref_t entref) // gsc: Notarget(<optional int toggle>);
+		Script::AddMethod("Notarget", [](Game::scr_entref_t entref) // gsc: Notarget(<optional int toggle>);
 		{
 			auto* ent = Script::GetEntity(entref);
 

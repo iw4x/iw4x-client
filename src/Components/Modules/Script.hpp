@@ -6,26 +6,13 @@ namespace Components
 	class Script : public Component
 	{
 	public:
-		class Function
-		{
-		public:
-			Function(const std::string& _name, Game::scr_function_t _callback, bool _dev) : name(_name), callback(_callback), dev(_dev) {}
-
-			const char* getName() const { return this->name.data(); }
-			bool isDev() const { return this->dev; }
-			Game::scr_function_t getFunction() const { return this->callback; }
-
-		private:
-			std::string name;
-			Game::scr_function_t callback;
-			bool dev;
-		};
-
 		Script();
 		~Script();
 
 		static int LoadScriptAndLabel(const std::string& script, const std::string& label);
-		static void AddFunction(const std::string& name, Game::scr_function_t function, bool isDev = false);
+
+		static void AddFunction(const char* name, Game::xfunction_t func, int type = 0);
+		static void AddMethod(const char* name, Game::xmethod_t func, int type = 0);
 
 		static void OnVMShutdown(Utils::Slot<Scheduler::Callback> callback);
 
@@ -35,7 +22,8 @@ namespace Components
 	private:
 		static std::string ScriptName;
 		static std::vector<int> ScriptHandles;
-		static std::vector<Function> ScriptFunctions;
+		static std::unordered_map<std::string, Game::BuiltinFunctionDef> CustomScrFunctions;
+		static std::unordered_map<std::string, Game::BuiltinMethodDef> CustomScrMethods;
 		static std::vector<std::string> ScriptNameStack;
 		static unsigned short FunctionName;
 		static std::unordered_map<std::string, std::string> ScriptStorage;
@@ -62,8 +50,11 @@ namespace Components
 		static void LoadGameType();
 		static void LoadGameTypeScript();
 
-		static Game::scr_function_t GetFunction(void* caller, const char** name, int* isDev);
-		static void GetFunctionStub();
+		static Game::xfunction_t Scr_GetFunctionStub(const char** pName, int* type);
+		static Game::xmethod_t Scr_GetMethodStub(const char** pName, int* type);
+
+		static Game::xfunction_t BuiltIn_GetFunctionStub(const char** pName, int* type);
+		static Game::xmethod_t Player_GetMethodStub(const char** pName);
 
 		static void ScrShutdownSystemStub(int);
 		static void StoreScriptBaseProgramNumStub();

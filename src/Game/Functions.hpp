@@ -699,7 +699,7 @@ namespace Game
 	typedef void(__cdecl * Scr_ClearOutParams_t)();
 	extern Scr_ClearOutParams_t Scr_ClearOutParams;
 
-	typedef void(__cdecl * Scr_RegisterFunction_t)(scr_function_t function);
+	typedef void(__cdecl * Scr_RegisterFunction_t)(int func, const char* name);
 	extern Scr_RegisterFunction_t Scr_RegisterFunction;
 
 	typedef bool(__cdecl * Scr_IsSystemActive_t)();

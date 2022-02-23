@@ -964,7 +964,7 @@ namespace Components
 			Download::ScriptDownloads.clear();
 		});
 
-		Script::AddFunction("HttpGet", [](Game::scr_entref_t)
+		Script::AddFunction("HttpGet", []()
 		{
 			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp")) return;
 
@@ -984,7 +984,7 @@ namespace Components
 			Game::RemoveRefToObject(object);
 		});
 
-		Script::AddFunction("HttpCancel", [](Game::scr_entref_t)
+		Script::AddFunction("HttpCancel", []()
 		{
 			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp")) return;
 
