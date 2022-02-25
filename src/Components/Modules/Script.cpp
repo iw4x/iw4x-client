@@ -781,7 +781,7 @@ namespace Components
 			}
 
 			MessageBoxA(nullptr, message, "DEBUG", MB_OK);
-		}, true);
+		}, 1);
 
 		Script::AddFunctions();
 
