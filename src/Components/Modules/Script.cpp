@@ -295,7 +295,7 @@ namespace Components
 	{
 		for (const auto& [key, value] : Script::CustomScrFunctions)
 		{
-			Game::Scr_RegisterFunction(reinterpret_cast<int>(value.actionFunc), value.actionString);
+			Game::Scr_RegisterFunction(reinterpret_cast<int>(value.actionFunc), key.data());
 		}
 
 		return Utils::Hook::Call<Game::xfunction_t(const char**, int*)>(0x44E700)(pName, type); // Scr_GetFunction
@@ -305,7 +305,7 @@ namespace Components
 	{
 		for (const auto& [key, value] : Script::CustomScrMethods)
 		{
-			Game::Scr_RegisterFunction(reinterpret_cast<int>(value.actionFunc), value.actionString);
+			Game::Scr_RegisterFunction(reinterpret_cast<int>(value.actionFunc), key.data());
 		}
 
 		return Utils::Hook::Call<Game::xmethod_t(const char**, int*)>(0x4EC870)(pName, type); // Scr_GetMethod
@@ -315,7 +315,7 @@ namespace Components
 	{
 		if (pName && *pName)
 		{
-			const auto got = Script::CustomScrFunctions.find(*pName);
+			const auto got = Script::CustomScrFunctions.find(Utils::String::ToLower(*pName));
 
 			// If no function was found let's call game's function
 			if (got != Script::CustomScrFunctions.end())
@@ -332,7 +332,7 @@ namespace Components
 	{
 		if (pName && *pName)
 		{
-			const auto got = Script::CustomScrMethods.find(*pName);
+			const auto got = Script::CustomScrMethods.find(Utils::String::ToLower(*pName));
 
 			// If no method was found let's call game's function
 			if (got != Script::CustomScrMethods.end())
