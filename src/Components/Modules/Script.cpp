@@ -534,34 +534,23 @@ namespace Components
 		}
 	}
 
-	Game::gentity_t* Script::GetEntity(const Game::scr_entref_t entref)
+	Game::client_t* Script::GetClient(const Game::gentity_t* ent)
 	{
-		if (entref.classnum != 0)
+		assert(ent != nullptr);
+
+		if (ent->client == nullptr)
 		{
-			Game::Scr_ObjectError("Not an entity");
+			Game::Scr_ObjectError(Utils::String::VA("Entity %i is not a player", ent->s.number));
 			return nullptr;
 		}
 
-		assert(entref.entnum < Game::MAX_GENTITIES);
-
-		return &Game::g_entities[entref.entnum];
-	}
-
-	Game::client_t* Script::GetClient(const Game::gentity_t* gentity)
-	{
-		if (gentity->client == nullptr)
+		if (ent->s.number >= *Game::svs_numclients)
 		{
-			Game::Scr_ObjectError(Utils::String::VA("Entity %i is not a player", gentity->s.number));
+			Game::Scr_ObjectError(Utils::String::VA("Entity %i is out of bounds", ent->s.number));
 			return nullptr;
 		}
 
-		if (gentity->s.number >= *Game::svs_numclients)
-		{
-			Game::Scr_ObjectError(Utils::String::VA("Entity %i is out of bounds", gentity->s.number));
-			return nullptr;
-		}
-
-		return &Game::svs_clients[gentity->s.number];
+		return &Game::svs_clients[ent->s.number];
 	}
 
 	void Script::AddFunctions()
@@ -703,13 +692,7 @@ namespace Components
 		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
 		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
 		{
-			const auto* ent = Script::GetEntity(entref);
-
-			if (ent->client == nullptr)
-			{
-				Game::Scr_ObjectError(Utils::String::VA("Entity %i is not a player", ent->s.number));
-				return;
-			}
+			const auto* ent = Game::GetPlayerEntity(entref);
 
 			Game::Scr_AddBool((ent->client->flags & Game::PLAYER_FLAG_FROZEN) != 0);
 		});

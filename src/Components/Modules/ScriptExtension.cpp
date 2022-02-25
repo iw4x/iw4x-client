@@ -132,8 +132,8 @@ namespace Components
 		// ScriptExtension methods
 		Script::AddMethod("GetIp", [](Game::scr_entref_t entref) // gsc: self GetIp()
 		{
-			const auto* gentity = Script::GetEntity(entref);
-			const auto* client = Script::GetClient(gentity);
+			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* client = Script::GetClient(ent);
 
 			std::string ip = Game::NET_AdrToString(client->netchan.remoteAddress);
 
@@ -147,8 +147,8 @@ namespace Components
 
 		Script::AddMethod("GetPing", [](Game::scr_entref_t entref) // gsc: self GetPing()
 		{
-			const auto* gentity = Script::GetEntity(entref);
-			const auto* client = Script::GetClient(gentity);
+			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* client = Script::GetClient(ent);
 
 			Game::Scr_AddInt(client->ping);
 		});

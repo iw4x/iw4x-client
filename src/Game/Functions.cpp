@@ -276,12 +276,17 @@ namespace Game
 	Scr_AddObject_t Scr_AddObject = Scr_AddObject_t(0x430F40);
 	Scr_Notify_t Scr_Notify = Scr_Notify_t(0x4A4750);
 	Scr_NotifyLevel_t Scr_NotifyLevel = Scr_NotifyLevel_t(0x4D9C30);
+
 	Scr_Error_t Scr_Error = Scr_Error_t(0x61E8B0);
 	Scr_ObjectError_t Scr_ObjectError = Scr_ObjectError_t(0x42EF40);
 	Scr_ParamError_t Scr_ParamError = Scr_ParamError_t(0x4FBC70);
+
 	Scr_GetType_t Scr_GetType = Scr_GetType_t(0x422900);
 
 	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
+
+	GetEntity_t GetEntity = GetEntity_t(0x4BC270);
+	GetPlayerEntity_t GetPlayerEntity = GetPlayerEntity_t(0x49C4A0);
 
 	Scr_RegisterFunction_t Scr_RegisterFunction = Scr_RegisterFunction_t(0x492D50);
 	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = Scr_ShutdownAllocNode_t(0x441650);

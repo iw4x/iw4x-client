@@ -127,8 +127,8 @@ namespace Components
 				return;
 			}
 
-			const auto* gentity = Script::GetEntity(entref);
-			auto* client = Script::GetClient(gentity);
+			const auto* ent = Game::GetPlayerEntity(entref);
+			auto* client = Script::GetClient(ent);
 
 			if (!client->bIsTestClient)
 			{
@@ -141,7 +141,7 @@ namespace Components
 
 		Script::AddMethod("IsTestClient", [](Game::scr_entref_t entref) // Usage: <bot> IsTestClient();
 		{
-			const auto* gentity = Script::GetEntity(entref);
+			const auto* gentity = Game::GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(gentity);
 
 			Game::Scr_AddBool(client->bIsTestClient == 1);
@@ -149,8 +149,8 @@ namespace Components
 
 		Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
-			const auto* gentity = Script::GetEntity(entref);
-			const auto* client = Script::GetClient(gentity);
+			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* client = Script::GetClient(ent);
 
 			if (!client->bIsTestClient)
 			{
@@ -167,8 +167,8 @@ namespace Components
 		{
 			const auto* weapon = Game::Scr_GetString(0);
 
-			const auto* gentity = Script::GetEntity(entref);
-			const auto* client = Script::GetClient(gentity);
+			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* client = Script::GetClient(ent);
 
 			if (!client->bIsTestClient)
 			{
@@ -197,8 +197,8 @@ namespace Components
 				return;
 			}
 
-			const auto* gentity = Script::GetEntity(entref);
-			const auto* client = Script::GetClient(gentity);
+			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* client = Script::GetClient(ent);
 
 			if (!client->bIsTestClient)
 			{
@@ -234,8 +234,8 @@ namespace Components
 			auto forwardInt = Game::Scr_GetInt(0);
 			auto rightInt = Game::Scr_GetInt(1);
 
-			const auto* gentity = Script::GetEntity(entref);
-			const auto* client = Script::GetClient(gentity);
+			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* client = Script::GetClient(ent);
 
 			if (!client->bIsTestClient)
 			{
