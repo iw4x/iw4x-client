@@ -717,6 +717,12 @@ namespace Game
 	typedef void(__cdecl * Scr_ParamError_t)(unsigned int paramIndex, const char*);
 	extern Scr_ParamError_t Scr_ParamError;
 
+	typedef gentity_s*(__cdecl * GetPlayerEntity_t)(scr_entref_t entref);
+	extern GetPlayerEntity_t GetPlayerEntity;
+
+	typedef gentity_s*(__cdecl * GetEntity_t)(scr_entref_t entref);
+	extern GetEntity_t GetEntity;
+
 	typedef script_t* (__cdecl * Script_Alloc_t)(int length);
 	extern Script_Alloc_t Script_Alloc;
 
