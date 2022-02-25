@@ -219,7 +219,7 @@ namespace Components
 
 		Script::AddFunction("God", [](Game::scr_entref_t entref) // gsc: God(<optional int toggle>);
 		{
-			auto* ent = Game::GetPlayerEntity(entref);
+			auto* ent = Game::GetEntity(entref);
 
 			if (Game::Scr_GetNumParam() >= 1u)
 			{
