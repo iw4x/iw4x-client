@@ -62,25 +62,18 @@ namespace Utils
 			return str;
 		}
 
-		std::vector<std::string> Explode(const std::string& str, char delim)
+		std::vector<std::string> Split(const std::string& str, const char delim)
 		{
-			std::vector<std::string> result;
-			std::istringstream iss(str);
+			std::stringstream ss(str);
+			std::string item;
+			std::vector<std::string> elems;
 
-			for (std::string token; std::getline(iss, token, delim);)
+			while (std::getline(ss, item, delim))
 			{
-				std::string _entry = std::move(token);
-
-				// Remove trailing 0x0 bytes
-				while (_entry.size() && !_entry.back())
-				{
-					_entry = _entry.substr(0, _entry.size() - 1);
-				}
-
-				result.push_back(_entry);
+				elems.push_back(item); // elems.push_back(std::move(item)); // if C++11 (based on comment from S1x)
 			}
 
-			return result;
+			return elems;
 		}
 
 		void Replace(std::string &string, const std::string& find, const std::string& replace)

@@ -8,7 +8,8 @@ namespace Components
 	Utils::Cryptography::Token Auth::ComputeToken;
 	Utils::Cryptography::ECC::Key Auth::GuidKey;
 
-	std::vector<std::uint64_t> Auth::BannedUids = {
+	std::vector<std::uint64_t> Auth::BannedUids =
+	{
 		0xf4d2c30b712ac6e3,
 		0xf7e33c4081337fa3,
 		0x6f5597f103cc50e9
@@ -179,8 +180,8 @@ namespace Components
 			Utils::InfoString infostr(params[2]);
 
 			// Read the required data
-			std::string steamId = infostr.get("xuid");
-			std::string challenge = infostr.get("challenge");
+			const auto& steamId = infostr.get("xuid");
+			const auto& challenge = infostr.get("challenge");
 
 			if (steamId.empty() || challenge.empty())
 			{
@@ -189,12 +190,12 @@ namespace Components
 			}
 
 			// Parse the id
-			unsigned __int64 xuid = strtoull(steamId.data(), nullptr, 16);
+			const auto xuid = std::strtoull(steamId.data(), nullptr, 16);
 
 			SteamID guid;
 			guid.bits = xuid;
 
-			if (Bans::IsBanned({ guid, address.getIP() }))
+			if (Bans::IsBanned({guid, address.getIP()}))
 			{
 				Network::Send(address, "error\nEXE_ERR_BANNED_PERM");
 				return;
@@ -223,8 +224,8 @@ namespace Components
 			}
 
 			// Verify the security level
-			uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").get<int>());
-			uint32_t userLevel = Auth::GetZeroBits(connectData.token(), connectData.publickey());
+			auto ourLevel = Dvar::Var("sv_securityLevel").get<unsigned int>();
+			auto userLevel = Auth::GetZeroBits(connectData.token(), connectData.publickey());
 
 			if (userLevel < ourLevel)
 			{
