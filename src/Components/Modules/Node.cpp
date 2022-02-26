@@ -60,7 +60,7 @@ namespace Components
 		std::string nodes = Utils::Cache::GetFile("/iw4/nodes.txt");
 		if (nodes.empty()) return;
 
-		auto nodeList = Utils::String::Explode(nodes, '\n');
+		auto nodeList = Utils::String::Split(nodes, '\n');
 		for (auto& node : nodeList)
 		{
 			Utils::String::Replace(node, "\r", "");

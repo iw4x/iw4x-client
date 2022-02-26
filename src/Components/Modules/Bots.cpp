@@ -60,7 +60,7 @@ namespace Components
 
 			if (bots.exists())
 			{
-				auto names = Utils::String::Explode(bots.getBuffer(), '\n');
+				auto names = Utils::String::Split(bots.getBuffer(), '\n');
 
 				for (auto& name : names)
 				{

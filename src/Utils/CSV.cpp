@@ -71,7 +71,7 @@ namespace Utils
 
 		if (!buffer.empty())
 		{
-			auto rows = Utils::String::Explode(buffer, '\n');
+			auto rows = Utils::String::Split(buffer, '\n');
 
 			for (auto& row : rows)
 			{

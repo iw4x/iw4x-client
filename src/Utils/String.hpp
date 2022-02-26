@@ -78,7 +78,7 @@ namespace Utils
 		std::string ToLower(std::string input);
 		std::string ToUpper(std::string input);
 		bool EndsWith(const std::string& haystack, const std::string& needle);
-		std::vector<std::string> Explode(const std::string& str, char delim);
+		std::vector<std::string> Split(const std::string& str, const char delim);
 		void Replace(std::string &string, const std::string& find, const std::string& replace);
 		bool StartsWith(const std::string& haystack, const std::string& needle);
 		std::string &LTrim(std::string &s);
