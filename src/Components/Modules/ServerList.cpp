@@ -539,8 +539,8 @@ namespace Components
 
 	bool ServerList::CompareVersion(const std::string& version1, const std::string& version2)
 	{
-		std::vector<std::string> subVersions1 = Utils::String::Split(version1, '.');
-		std::vector<std::string> subVersions2 = Utils::String::Split(version2, '.');
+		auto subVersions1 = Utils::String::Split(version1, '.');
+		auto subVersions2 = Utils::String::Split(version2, '.');
 
 		while (subVersions1.size() >= 3) subVersions1.pop_back();
 		while (subVersions2.size() >= 3) subVersions2.pop_back();

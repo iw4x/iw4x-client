@@ -190,7 +190,7 @@ namespace Components
 			}
 
 			// Parse the id
-			const auto xuid = strtoull(steamId.data(), nullptr, 16);
+			const auto xuid = std::strtoull(steamId.data(), nullptr, 16);
 
 			SteamID guid;
 			guid.bits = xuid;
