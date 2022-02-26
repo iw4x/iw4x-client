@@ -357,7 +357,7 @@ namespace Components
 				{
 					if (arena->keys[j] == "dependency"s)
 					{
-						return Utils::String::Explode(arena->values[j], ' ');
+						return Utils::String::Split(arena->values[j], ' ');
 					}
 				}
 			}

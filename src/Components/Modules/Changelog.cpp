@@ -19,7 +19,7 @@ namespace Components
 			data = "^1Unable to get changelog.";
 		}
 
-		Changelog::Lines = Utils::String::Explode(data, '\n');
+		Changelog::Lines = Utils::String::Split(data, '\n');
 
 		for (auto& line : Changelog::Lines)
 		{

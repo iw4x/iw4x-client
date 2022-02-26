@@ -9,9 +9,10 @@ namespace Utils
 
 	std::string InfoString::get(const std::string& key)
 	{
-		if (this->keyValuePairs.find(key) != this->keyValuePairs.end())
+		const auto value = this->keyValuePairs.find(key);
+		if (value != this->keyValuePairs.end())
 		{
-			return this->keyValuePairs[key];
+			return value->second;
 		}
 
 		return "";
@@ -24,11 +25,13 @@ namespace Utils
 			buffer = buffer.substr(1);
 		}
 
-		std::vector<std::string> KeyValues = Utils::String::Explode(buffer, '\\');
+		auto KeyValues = Utils::String::Split(buffer, '\\');
 
-		for (unsigned int i = 0; i < (KeyValues.size() - 1); i += 2)
+		for (size_t i = 0; !KeyValues.empty() && i < (KeyValues.size() - 1); i += 2)
 		{
-			this->keyValuePairs[KeyValues[i]] = KeyValues[i + 1];
+			const auto& key = KeyValues[i];
+			const auto& value = KeyValues[i + 1];
+			this->keyValuePairs[key] = value;
 		}
 	}
 
@@ -36,16 +39,16 @@ namespace Utils
 	{
 		std::string infoString;
 
-		bool first = true;
+		auto first = true;
 
-		for (auto i = this->keyValuePairs.begin(); i != this->keyValuePairs.end(); ++i)
+		for (const auto& [key, value] : this->keyValuePairs)
 		{
 			if (first) first = false;
 			else infoString.append("\\");
 
-			infoString.append(i->first); // Key
+			infoString.append(key);
 			infoString.append("\\");
-			infoString.append(i->second); // Value
+			infoString.append(value);
 		}
 
 		return infoString;
@@ -53,9 +56,9 @@ namespace Utils
 
 	void InfoString::dump()
 	{
-		for (auto i = this->keyValuePairs.begin(); i != this->keyValuePairs.end(); ++i)
+		for (const auto& [key, value] : this->keyValuePairs)
 		{
-			OutputDebugStringA(Utils::String::VA("%s: %s", i->first.data(), i->second.data()));
+			OutputDebugStringA(Utils::String::VA("%s: %s\n", key.data(), value.data()));
 		}
 	}
 

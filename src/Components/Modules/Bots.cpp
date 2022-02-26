@@ -96,7 +96,7 @@ namespace Components
 
 			if (bots.exists())
 			{
-				std::vector<std::string> names = Utils::String::Explode(bots.getBuffer(), '\n');
+				std::vector<std::string> names = Utils::String::Split(bots.getBuffer(), '\n');
 
 				for (auto name : names)
 				{

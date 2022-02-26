@@ -124,7 +124,7 @@ namespace Components
 	{
 		auto rotation = Dvar::Var("sv_mapRotation").get<std::string>();
 
-		const auto tokens = Utils::String::Explode(rotation, ' ');
+		const auto tokens = Utils::String::Split(rotation, ' ');
 		std::vector<std::pair<std::string, std::string>> mapRotationPair;
 
 		for (auto i = 0u; i < (tokens.size() - 1); i += 2)
@@ -207,7 +207,7 @@ namespace Components
 
 		auto rotation = Dvar::Var("sv_mapRotationCurrent").get<std::string>();
 
-		auto tokens = Utils::String::Explode(rotation, ' ');
+		auto tokens = Utils::String::Split(rotation, ' ');
 
 		for (unsigned int i = 0; i < (tokens.size() - 1); i += 2)
 		{

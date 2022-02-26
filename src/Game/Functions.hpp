@@ -283,7 +283,7 @@ namespace Game
 	typedef dvar_t* (__cdecl * Dvar_FindVar_t)(const char *dvarName);
 	extern Dvar_FindVar_t Dvar_FindVar;
 
-	typedef char* (__cdecl* Dvar_InfoString_Big_t)(int typeMask);
+	typedef char* (__cdecl * Dvar_InfoString_Big_t)(int bit);
 	extern Dvar_InfoString_Big_t Dvar_InfoString_Big;
 
 	typedef dvar_t* (__cdecl * Dvar_SetCommand_t)(const char* name, const char* value);
