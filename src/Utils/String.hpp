@@ -81,9 +81,9 @@ namespace Utils
 		std::vector<std::string> Split(const std::string& str, const char delim);
 		void Replace(std::string &string, const std::string& find, const std::string& replace);
 		bool StartsWith(const std::string& haystack, const std::string& needle);
-		std::string &LTrim(std::string &s);
-		std::string &RTrim(std::string &s);
-		std::string &Trim(std::string &s);
+		std::string& LTrim(std::string& s);
+		std::string& RTrim(std::string& s);
+		std::string& Trim(std::string& s);
 
 		std::string FormatTimeSpan(int milliseconds);
 		std::string FormatBandwidth(size_t bytes, int milliseconds);

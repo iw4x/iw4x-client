@@ -104,7 +104,7 @@ namespace Utils
 		}
 
 		// trim from start
-		std::string &LTrim(std::string &s)
+		std::string& LTrim(std::string& s)
 		{
 			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int val)
 			{
@@ -114,7 +114,7 @@ namespace Utils
 		}
 
 		// trim from end
-		std::string &RTrim(std::string &s)
+		std::string& RTrim(std::string& s)
 		{
 			s.erase(std::find_if(s.rbegin(), s.rend(), [](int val)
 			{
@@ -124,7 +124,7 @@ namespace Utils
 		}
 
 		// trim from both ends
-		std::string &Trim(std::string &s)
+		std::string& Trim(std::string& s)
 		{
 			return LTrim(RTrim(s));
 		}
