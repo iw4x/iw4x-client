@@ -22,6 +22,7 @@ namespace Components
 		};
 
 	private:
+		static Game::dvar_t* TestClientsActivate;
 		static std::vector<std::string> BotNames;
 
 		static int BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port);

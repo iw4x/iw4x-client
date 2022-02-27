@@ -323,6 +323,7 @@ namespace Game
 	StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
 
 	SV_AddTestClient_t SV_AddTestClient = SV_AddTestClient_t(0x48AD30);
+	SV_IsTestClient_t SV_IsTestClient = SV_IsTestClient_t(0x4D6E40);
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = SV_GameClientNum_Score_t(0x469AC0);
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = SV_GameSendServerCommand_t(0x4BC3A0);
 	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = SV_Cmd_TokenizeString_t(0x4B5780);
