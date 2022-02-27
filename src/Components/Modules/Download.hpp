@@ -1,5 +1,5 @@
 #pragma once
-#include "Game/Functions.hpp"
+#include <Game/Functions.hpp>
 
 namespace Components
 {

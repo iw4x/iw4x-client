@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 #define NEWS_MOTD_DEFAULT "Welcome to IW4x Multiplayer!"
 
