@@ -79,11 +79,14 @@ namespace Utils
 		std::string ToUpper(std::string input);
 		bool EndsWith(const std::string& haystack, const std::string& needle);
 		std::vector<std::string> Split(const std::string& str, const char delim);
-		void Replace(std::string &string, const std::string& find, const std::string& replace);
+		void Replace(std::string& string, const std::string& find, const std::string& replace);
 		bool StartsWith(const std::string& haystack, const std::string& needle);
-		std::string &LTrim(std::string &s);
-		std::string &RTrim(std::string &s);
-		std::string &Trim(std::string &s);
+		std::string& LTrim(std::string& str);
+		std::string& RTrim(std::string& str);
+		std::string& Trim(std::string& str);
+
+		std::string Convert(const std::wstring& wstr);
+		std::wstring Convert(const std::string& str);
 
 		std::string FormatTimeSpan(int milliseconds);
 		std::string FormatBandwidth(size_t bytes, int milliseconds);
