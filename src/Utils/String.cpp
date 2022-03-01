@@ -103,30 +103,58 @@ namespace Utils
 			return _isspace_l(c, nullptr);
 		}
 
-		// trim from start
-		std::string &LTrim(std::string &s)
+		// Trim from start
+		std::string& LTrim(std::string& str)
 		{
-			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int val)
+			str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](int val)
 			{
 				return !IsSpace(val);
 			}));
-			return s;
+
+			return str;
 		}
 
-		// trim from end
-		std::string &RTrim(std::string &s)
+		// Trim from end
+		std::string& RTrim(std::string& str)
 		{
-			s.erase(std::find_if(s.rbegin(), s.rend(), [](int val)
+			str.erase(std::find_if(str.rbegin(), str.rend(), [](int val)
 			{
 				return !IsSpace(val);
-			}).base(), s.end());
-			return s;
+			}).base(), str.end());
+
+			return str;
 		}
 
-		// trim from both ends
-		std::string &Trim(std::string &s)
+		// Trim from both ends
+		std::string& Trim(std::string& str)
 		{
-			return LTrim(RTrim(s));
+			return LTrim(RTrim(str));
+		}
+
+		std::string Convert(const std::wstring& wstr)
+		{
+			std::string result;
+			result.reserve(wstr.size());
+
+			for (const auto& chr : wstr)
+			{
+				result.push_back(static_cast<char>(chr));
+			}
+
+			return result;
+		}
+
+		std::wstring Convert(const std::string& str)
+		{
+			std::wstring result;
+			result.reserve(str.size());
+
+			for (const auto& chr : str)
+			{
+				result.push_back(static_cast<wchar_t>(chr));
+			}
+
+			return result;
 		}
 
 		std::string FormatTimeSpan(int milliseconds)

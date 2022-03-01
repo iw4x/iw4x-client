@@ -51,8 +51,8 @@ namespace Utils
 		bool deleteDirectory(const std::string& directory);
 		bool renameDirectory(const std::string& directory, const std::string& newDir);
 
-		bool listDirectories(const std::string& directory, std::vector<std::string> &list);
-		bool listFiles(const std::string& directory, std::vector<std::string> &list);
+		bool listDirectories(const std::string& directory, std::vector<std::string>& list);
+		bool listFiles(const std::string& directory, std::vector<std::string>& list);
 
 		bool deleteFile(const std::string& file);
 		bool renameFile(const std::string& file, const std::string& newFile);
@@ -60,7 +60,7 @@ namespace Utils
 		bool downloadFile(const std::string& file, const std::string& localfile);
 
 		bool uploadFileData(const std::string& file,const std::string& data);
-		bool downloadFileData(const std::string& file, std::string &data);
+		bool downloadFileData(const std::string& file, std::string& data);
 
 		void setProgressCallback(Utils::Slot<void(size_t, size_t)> callback);
 		void cancelDownload() { this->cancel = true; }
@@ -104,7 +104,7 @@ namespace Utils
 
 		std::string execute(const char* command, const std::string& body, WebIO::Params headers = WebIO::Params(), bool* success = nullptr);
 
-		bool listElements(const std::string& directory, std::vector<std::string> &list, bool files);
+		bool listElements(const std::string& directory, std::vector<std::string>& list, bool files);
 
 		void openSession(const std::string& useragent);
 		void closeSession();
@@ -112,6 +112,6 @@ namespace Utils
 		bool openConnection();
 		void closeConnection();
 
-		void formatPath(std::string &path, bool win); /* if (win == true):  / -> \\ */
+		void formatPath(std::string& path, bool win); /* if (win == true):  / -> \\ */
 	};
 }
