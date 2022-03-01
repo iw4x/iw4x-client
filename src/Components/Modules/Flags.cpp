@@ -6,9 +6,15 @@ namespace Components
 
 	bool Flags::HasFlag(const std::string& flag)
 	{
-		Flags::ParseFlags();
+		static auto parsed = false;
 
-		for (auto entry : Flags::EnabledFlags)
+		if (!parsed)
+		{
+			Flags::ParseFlags();
+			parsed = true;
+		}
+
+		for (const auto& entry : Flags::EnabledFlags)
 		{
 			if (Utils::String::ToLower(entry) == Utils::String::ToLower(flag))
 			{
@@ -21,21 +27,20 @@ namespace Components
 
 	void Flags::ParseFlags()
 	{
-		static bool flagsParsed = false;
-		if (flagsParsed) return;
-		flagsParsed = true;
-
 		int numArgs;
-		LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &numArgs);
+		auto* const argv = CommandLineToArgvW(GetCommandLineW(), &numArgs);
+
+		assert(Flags::EnabledFlags.empty());
 
 		if (argv)
 		{
-			for (int i = 0; i < numArgs; ++i)
+			for (auto i = 0; i < numArgs; ++i)
 			{
 				std::wstring wFlag(argv[i]);
 				if (wFlag[0] == L'-')
 				{
-					Flags::EnabledFlags.push_back(std::string(++wFlag.begin(), wFlag.end()));
+					wFlag.erase(wFlag.begin());
+					Flags::EnabledFlags.push_back(Utils::String::Convert(wFlag));
 				}
 			}
 
@@ -51,11 +56,5 @@ namespace Components
 
 	Flags::Flags()
 	{
-		Flags::ParseFlags();
-	}
-
-	Flags::~Flags()
-	{
-		Flags::EnabledFlags.clear();
 	}
 }

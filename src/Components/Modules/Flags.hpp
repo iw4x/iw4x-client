@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		Flags();
-		~Flags();
 
 		static bool HasFlag(const std::string& flag);
 

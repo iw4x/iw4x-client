@@ -10,7 +10,7 @@ namespace Utils
 		if (mimeType)
 		{
 			std::wstring wMimeType(mimeType);
-			return std::string(wMimeType.begin(), wMimeType.end());
+			return String::Convert(wMimeType);
 		}
 
 		return "application/octet-stream";
