@@ -119,13 +119,9 @@ namespace Components
 	{
 		Script::AddFunction("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
 		{
-			const auto ping = Game::Scr_GetInt(0);
+			auto ping = Game::Scr_GetInt(0);
 
-			if (ping < 0 || ping > 999)
-			{
-				Game::Scr_ParamError(0, "^1SetPing: Ping needs to be between 0 and 999!\n");
-				return;
-			}
+			ping = std::clamp(ping, 0, 999);
 
 			const auto* ent = Game::GetPlayerEntity(entref);
 			auto* client = Script::GetClient(ent);
