@@ -193,7 +193,7 @@ namespace Components
 		char msgbuf[1024] = {0};
 		va_list va;
 		va_start(va, message);
-		vsnprintf_s(msgbuf, sizeof(msgbuf), _TRUNCATE, message, va);
+		_vsnprintf_s(msgbuf, _TRUNCATE, message, va);
 		va_end(va);
 
 		Game::Scr_ShutdownAllocNode();
