@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add sv_allowAimAssist Dvar (#75)
 - Add sv_allowColoredNames (#130)
 - Add sv_randomMapRotation Dvar (#146)
-- Add rcon_logRequests Dvar (#195)
+- Add rcon_log_requests Dvar (#195)
 - Add player_duckedSpeedScale Dvar (#141)
 - Add player_proneSpeedScale Dvar (#141)
 - Add cg_ufo_scaler Dvar (#158)
