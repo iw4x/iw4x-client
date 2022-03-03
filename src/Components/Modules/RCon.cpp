@@ -79,7 +79,7 @@ namespace Components
 		Dvar::OnInit([]()
 		{
 			RCon::RconPassword =  Dvar::Register<const char*>("rcon_password", "", Game::dvar_flag::DVAR_FLAG_NONE, "The password for rcon");
-			RCon::RconLogRequests = Dvar::Register<bool>("rcon_logRequests", false, Game::dvar_flag::DVAR_FLAG_NONE, "Print remote commands in the output log");
+			RCon::RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::dvar_flag::DVAR_FLAG_NONE, "Print remote commands in the output log");
 		});
 
 		Network::Handle("rcon", [](Network::Address address, const std::string& _data)
