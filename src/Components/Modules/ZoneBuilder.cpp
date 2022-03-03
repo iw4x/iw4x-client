@@ -981,7 +981,7 @@ namespace Components
 					replacementFound = true;
 				}
 			}
-		}, false, false);
+		}, false);
 
 		if (replacementFound) return ret;
 		return "";

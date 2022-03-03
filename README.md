@@ -3,7 +3,6 @@
 ![stars](https://img.shields.io/github/stars/IW4x/iw4x-client.svg)
 ![issues](https://img.shields.io/github/issues/IW4x/iw4x-client.svg)
 [![build](https://github.com/XLabsProject/iw4x-client/workflows/Build/badge.svg)](https://github.com/XLabsProject/iw4x-client/actions)
-[![build status](https://ci.appveyor.com/api/projects/status/rvljq0ooxen0oexm/branch/develop?svg=true)](https://ci.appveyor.com/project/iw4x/iw4x-client/branch/develop)
 [![discord](https://img.shields.io/endpoint?url=https://momo5502.com/iw4x/members-badge.php)](https://discord.gg/sKeVmR3)
 [![patreon](https://img.shields.io/badge/patreon-support-blue.svg?logo=patreon)](https://www.patreon.com/xlabsproject)
 

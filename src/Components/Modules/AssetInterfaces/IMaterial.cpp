@@ -199,7 +199,7 @@ namespace Assets
 					replacementFound = true;
 				}
 			}
-		}, false, false);
+		}, false);
 
 		if (!replacementFound)
 		{
@@ -236,7 +236,7 @@ namespace Assets
 						replacementFound = true;
 					}
 				}
-			}, false, false);
+			}, false);
 		}
 
 		if (!replacementFound && asset->techniqueSet)
@@ -250,28 +250,31 @@ namespace Assets
 				if (iw4TechSet) 
 				{
 					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset, iw4TechSet](Game::XAssetEntry* entry)
+					{
+						if (!replacementFound)
 						{
-							if (!replacementFound)
+							Game::XAssetHeader header = entry->asset.header;
+
+							if (header.material->techniqueSet == iw4TechSet->asset.header.techniqueSet)
 							{
-								Game::XAssetHeader header = entry->asset.header;
+								Components::Logger::Print("Material %s with techset %s has been mapped to %s (last chance!), taking the sort key of material %s\n",
+									asset->info.name, asset->techniqueSet->name,
+									header.material->techniqueSet->name, header.material->info.name);
 
-								if (header.material->techniqueSet == iw4TechSet->asset.header.techniqueSet)
-								{
-									Components::Logger::Print("Material %s with techset %s has been mapped to %s (last chance!), taking the sort key of material %s\n", asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name, header.material->info.name);
-									asset->info.sortKey = header.material->info.sortKey;
-									asset->techniqueSet = iw4TechSet->asset.header.techniqueSet;
+								asset->info.sortKey = header.material->info.sortKey;
+								asset->techniqueSet = iw4TechSet->asset.header.techniqueSet;
 
-									// this is terrible!
-									asset->stateBitsCount = header.material->stateBitsCount;
-									asset->stateBitsTable = header.material->stateBitsTable;
-									std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
-									asset->constantCount = header.material->constantCount;
-									asset->constantTable = header.material->constantTable;
+								// this is terrible!
+								asset->stateBitsCount = header.material->stateBitsCount;
+								asset->stateBitsTable = header.material->stateBitsTable;
+								std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
+								asset->constantCount = header.material->constantCount;
+								asset->constantTable = header.material->constantTable;
 
-									replacementFound = true;
-								}
+								replacementFound = true;
 							}
-						}, false, false);
+						}
+					}, false);
 
 					if (!replacementFound) 
 					{

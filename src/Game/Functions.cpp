@@ -349,6 +349,9 @@ namespace Game
 	Sys_ListFiles_t Sys_ListFiles = Sys_ListFiles_t(0x45A660);
 	Sys_Milliseconds_t Sys_Milliseconds = Sys_Milliseconds_t(0x42A660);
 	Sys_Error_t Sys_Error = Sys_Error_t(0x43D570);
+	Sys_LockWrite_t Sys_LockWrite = Sys_LockWrite_t(0x435880);
+	Sys_TempPriorityAtLeastNormalBegin_t Sys_TempPriorityAtLeastNormalBegin = Sys_TempPriorityAtLeastNormalBegin_t(0x478680);
+	Sys_TempPriorityEnd_t Sys_TempPriorityEnd = Sys_TempPriorityEnd_t(0x4DCF00);
 
 	TeleportPlayer_t TeleportPlayer = TeleportPlayer_t(0x496850);
 
@@ -516,7 +519,21 @@ namespace Game
 
 	GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x7A2FC0);
 
+	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
+
 	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
+
+	void Sys_LockRead(FastCriticalSection* critSect)
+	{
+		InterlockedIncrement(&critSect->readCount);
+		while (critSect->writeCount) std::this_thread::sleep_for(1ms);
+	}
+
+	void Sys_UnlockRead(FastCriticalSection* critSect)
+	{
+		assert(critSect->readCount > 0);
+		InterlockedDecrement(&critSect->readCount);
+	}
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
@@ -632,12 +649,9 @@ namespace Game
 		return false;
 	}
 
-	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides, bool lock)
+	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides)
 	{
-		volatile long* lockVar = reinterpret_cast<volatile long*>(0x16B8A54);
-		if (lock) InterlockedIncrement(lockVar);
-
-		while (lock && *reinterpret_cast<volatile long*>(0x16B8A58)) std::this_thread::sleep_for(1ms);
+		Sys_LockRead(db_hashCritSect);
 
 		const auto pool = Components::Maps::GetAssetEntryPool();
 		for(auto hash = 0; hash < 37000; hash++)
@@ -666,7 +680,7 @@ namespace Game
 			}
 		}
 
-		if(lock) InterlockedDecrement(lockVar);
+		Sys_UnlockRead(db_hashCritSect);
 	}
 
 	// this cant be MessageBox because windows.h has a define that converts it to MessageBoxW. which is just stupid
