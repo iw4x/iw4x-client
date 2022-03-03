@@ -804,7 +804,7 @@ namespace Game
 	typedef client_t*(__cdecl * SV_GetPlayerByNum_t)();
 	extern SV_GetPlayerByNum_t SV_GetPlayerByNum;
 
-	typedef int(__cdecl * Sys_Error_t)(const char* error, ...);
+	typedef void(__cdecl * Sys_Error_t)(const char* error, ...);
 	extern Sys_Error_t Sys_Error;
 
 	typedef void(__cdecl * Sys_FreeFileList_t)(char** list);
