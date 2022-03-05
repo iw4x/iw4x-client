@@ -49,6 +49,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Ufo client command works outside of private matches (#152)
 - Noclip client command works outside of private matches (#152)
 - If a player name is less than 3 characters server will change it to `Unknown Soldier` (#130)
+- scr_player_forceautoassign Dvar is false by default
 
 ### Fixed
 
