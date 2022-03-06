@@ -66,6 +66,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - HTTPS is not supported for fast downloads at the moment.
 - Sound issue fix is experimental as the bug is not fully understood.
+- `reloadmenus` command does not free resources used by custom menus correctly.
 
 ## [0.6.1] - 2020-12-23
 
