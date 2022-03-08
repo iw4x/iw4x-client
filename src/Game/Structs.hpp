@@ -76,18 +76,18 @@ namespace Game
 
 	enum dvar_flag : unsigned __int16
 	{
-		DVAR_NONE = 0x0, // No flags
-		DVAR_ARCHIVE = 0x1, // Set to cause it to be saved to config_mp.cfg of the client
-		DVAR_LATCH = 0x2, // Will only change when C code next does a Dvar_Get(), so it can't be changed 
-						  // without proper initialization. Modified will be set, even though the value hasn't changed yet
-		DVAR_CHEAT = 0x4, // Can not be changed if cheats are disabled
-		DVAR_CODINFO = 0x8, // On change, this is sent to all clients (if you are host)
+		DVAR_NONE = 0x0,	// No flags
+		DVAR_ARCHIVE = 0x1,	// Set to cause it to be saved to config_mp.cfg of the client
+		DVAR_LATCH = 0x2,	// Will only change when C code next does a Dvar_Get(), so it can't be changed 
+					// without proper initialization. Modified will be set, even though the value hasn't changed yet
+		DVAR_CHEAT = 0x4,	// Can not be changed if cheats are disabled
+		DVAR_CODINFO = 0x8,	// On change, this is sent to all clients (if you are host)
 		DVAR_SCRIPTINFO = 0x10,
 		DVAR_UNKNOWN20 = 0x20,
 		DVAR_CHANGEABLE_RESET = 0x40,
 		DVAR_UNKNOWN80 = 0x80,
-		DVAR_EXTERNAL = 0x100, // Created by a set command
-		DVAR_USERINFO = 0x200, // Sent to server on connect or change
+		DVAR_EXTERNAL = 0x100,	// Created by a set command
+		DVAR_USERINFO = 0x200,	// Sent to server on connect or change
 		DVAR_SERVERINFO = 0x400, // Sent in response to front end requests
 		DVAR_WRITEPROTECTED = 0x800,
 		DVAR_SYSTEMINFO = 0x1000, // These dvars will be duplicated on all clients

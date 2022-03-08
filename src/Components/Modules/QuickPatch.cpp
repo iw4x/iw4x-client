@@ -374,7 +374,7 @@ namespace Components
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
 		// Intermission time dvar
-		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::dvar_flag::DVAR_SCRIPTINFO, "Time in seconds before match server loads the next map");
+		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::dvar_flag::DVAR_EXTERNAL, "Time in seconds before match server loads the next map");
 
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
