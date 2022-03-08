@@ -316,7 +316,7 @@ namespace Components
 	{
 		Dvar::OnInit([]
 		{
-			cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_FLAG_SAVED, "The normalized maximum width of a chat message");
+			cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
 			Chat::AddChatCommands();
 		});
 

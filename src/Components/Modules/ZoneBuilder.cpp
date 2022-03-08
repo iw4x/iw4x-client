@@ -1525,7 +1525,7 @@ namespace Components
 				Logger::Print("------------------- END IWI DUMP -------------------\n");
 			});
 
-			ZoneBuilder::PreferDiskAssetsDvar = Dvar::Register<bool>("zb_prefer_disk_assets", false, Game::DVAR_FLAG_NONE, "Should zonebuilder prefer in-memory assets (requirements) or disk assets, when both are present?");
+			ZoneBuilder::PreferDiskAssetsDvar = Dvar::Register<bool>("zb_prefer_disk_assets", false, Game::DVAR_NONE, "Should zonebuilder prefer in-memory assets (requirements) or disk assets, when both are present?");
 		}
 	}
 

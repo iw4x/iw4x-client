@@ -260,20 +260,20 @@ namespace Components
         }
     }
 
-    Game::dvar_t* Movement::Dvar_RegisterLastStandSpeedScale(const char* name, float value,
-        float min, float max, int, const char* desc)
+    Game::dvar_t* Movement::Dvar_RegisterLastStandSpeedScale(const char* dvarName, float value,
+        float min, float max, unsigned __int16 /*flags*/, const char* description)
     {
-        Movement::PlayerLastStandCrawlSpeedScale = Dvar::Register<float>(name, value,
-            min, max, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED, desc);
+        Movement::PlayerLastStandCrawlSpeedScale = Dvar::Register<float>(dvarName, value,
+            min, max, Game::DVAR_CHEAT | Game::DVAR_CODINFO, description);
 
         return Movement::PlayerLastStandCrawlSpeedScale.get<Game::dvar_t*>();
     }
 
-    Game::dvar_t* Movement::Dvar_RegisterSpectateSpeedScale(const char* name, float value,
-        float min, float max, int, const char* desc)
+    Game::dvar_t* Movement::Dvar_RegisterSpectateSpeedScale(const char* dvarName, float value,
+        float min, float max, unsigned __int16 /*flags*/, const char* description)
     {
-        Movement::PlayerSpectateSpeedScale = Dvar::Register<float>(name, value,
-            min, max, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED, desc);
+        Movement::PlayerSpectateSpeedScale = Dvar::Register<float>(dvarName, value,
+            min, max, Game::DVAR_CHEAT | Game::DVAR_CODINFO, description);
 
         return Movement::PlayerSpectateSpeedScale.get<Game::dvar_t*>();
     }
@@ -291,36 +291,36 @@ namespace Components
             };
 
             Movement::PlayerDuckedSpeedScale = Dvar::Register<float>("player_duckedSpeedScale",
-                0.65f, 0.0f, 5.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
+                0.65f, 0.0f, 5.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
                 "The scale applied to the player speed when ducking");
 
             Movement::PlayerProneSpeedScale = Dvar::Register<float>("player_proneSpeedScale",
-                0.15f, 0.0f, 5.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
+                0.15f, 0.0f, 5.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
                 "The scale applied to the player speed when crawling");
 
             // 3arc naming convention
             Movement::CGUfoScaler = Dvar::Register<float>("cg_ufo_scaler",
-                6.0f, 0.001f, 1000.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
+                6.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
                 "The speed at which ufo camera moves");
 
             Movement::CGNoclipScaler = Dvar::Register<float>("cg_noclip_scaler",
-                3.0f, 0.001f, 1000.0f, Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_REPLICATED,
+                3.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
                 "The speed at which noclip camera moves");
 
             Movement::BGBounces = Game::Dvar_RegisterEnum("bg_bounces",
-                bg_bouncesValues, Movement::DISABLED, Game::DVAR_FLAG_REPLICATED, "Bounce glitch settings");
+                bg_bouncesValues, Movement::DISABLED, Game::DVAR_CODINFO, "Bounce glitch settings");
 
             Movement::BGBouncesAllAngles = Dvar::Register<bool>("bg_bouncesAllAngles",
-                false, Game::DVAR_FLAG_REPLICATED, "Force bounce from all angles");
+                false, Game::DVAR_CODINFO, "Force bounce from all angles");
 
             Movement::BGRocketJump = Dvar::Register<bool>("bg_rocketJump",
-                false, Game::DVAR_FLAG_REPLICATED, "Enable CoD4 rocket jumps");
+                false, Game::DVAR_CODINFO, "Enable CoD4 rocket jumps");
 
             Movement::BGPlayerEjection = Dvar::Register<bool>("bg_playerEjection",
-                true, Game::DVAR_FLAG_REPLICATED, "Push intersecting players away from each other");
+                true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
 
             Movement::BGPlayerCollision = Dvar::Register<bool>("bg_playerCollision",
-                true, Game::DVAR_FLAG_REPLICATED, "Push intersecting players away from each other");
+                true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
         });
 
         // Hook PM_CmdScaleForStance in PM_CmdScale_Walk

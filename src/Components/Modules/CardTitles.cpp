@@ -192,7 +192,7 @@ namespace Components
 	{
 		Dvar::OnInit([]()
 		{
-			CardTitles::CustomTitleDvar = Dvar::Register<const char*>("customtitle", "", Game::dvar_flag::DVAR_FLAG_USERINFO | Game::dvar_flag::DVAR_FLAG_SAVED, "Custom card title");
+			CardTitles::CustomTitleDvar = Dvar::Register<const char*>("customtitle", "", Game::dvar_flag::DVAR_USERINFO | Game::dvar_flag::DVAR_ARCHIVE, "Custom card title");
 		});
 
 		ServerCommands::OnCommand(21, [](Command::Params* params)

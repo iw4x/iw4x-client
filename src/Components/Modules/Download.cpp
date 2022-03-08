@@ -902,9 +902,9 @@ namespace Components
 		{
 			Dvar::OnInit([]()
 			{
-				Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
-				Dvar::Register<const char*>("ui_dl_progress", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
-				Dvar::Register<const char*>("ui_dl_transRate", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
+				Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::dvar_flag::DVAR_NONE, "");
+				Dvar::Register<const char*>("ui_dl_progress", "", Game::dvar_flag::DVAR_NONE, "");
+				Dvar::Register<const char*>("ui_dl_transRate", "", Game::dvar_flag::DVAR_NONE, "");
 			});
 
 			UIScript::Add("mod_download_cancel", [](UIScript::Token)
@@ -915,13 +915,13 @@ namespace Components
 
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<bool>("sv_wwwDownload", false, Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to true to enable downloading maps/mods from an external server.");
-			Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_FLAG_DEDISAVED, "Set to the base url for the external map download.");
+			Dvar::Register<bool>("sv_wwwDownload", false, Game::dvar_flag::DVAR_ARCHIVE, "Set to true to enable downloading maps/mods from an external server.");
+			Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_ARCHIVE, "Set to the base url for the external map download.");
 
             // Force users to enable this because we don't want to accidentally turn everyone's pc into a http server into all their files again
             // not saying we are but ya know... accidents happen
             // by having it saved we force the user to enable it in config_mp because it only checks the dvar on startup to see if we should init download or not
-            Dvar::Register<bool>("mod_force_download_server", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Set to true to force the client to run the download server for mods (for mods in private matches).");
+            Dvar::Register<bool>("mod_force_download_server", false, Game::dvar_flag::DVAR_ARCHIVE, "Set to true to force the client to run the download server for mods (for mods in private matches).");
 		});
 
 		Scheduler::OnFrame([]()
