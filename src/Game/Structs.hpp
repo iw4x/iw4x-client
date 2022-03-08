@@ -85,7 +85,7 @@ namespace Game
 		DVAR_SCRIPTINFO = 0x10,
 		DVAR_UNKNOWN20 = 0x20,
 		DVAR_CHANGEABLE_RESET = 0x40,
-		DVAR_UNKNOWN80 = 0x80,
+		DVAR_ROM = 0x80,	// Display only, cannot be set by user at all
 		DVAR_EXTERNAL = 0x100,	// Created by a set command
 		DVAR_USERINFO = 0x200,	// Sent to server on connect or change
 		DVAR_SERVERINFO = 0x400, // Sent in response to front end requests
