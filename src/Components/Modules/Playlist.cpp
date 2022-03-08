@@ -21,7 +21,7 @@ namespace Components
 
 		Dvar::Var("xblive_privateserver").set(false);
 
-		std::string playlistFilename = Dvar::Var("playlistFilename").get<const char*>();
+		auto playlistFilename = Dvar::Var("playlistFilename").get<std::string>();
 		FileSystem::File playlist(playlistFilename);
 
 		if (playlist.exists())
