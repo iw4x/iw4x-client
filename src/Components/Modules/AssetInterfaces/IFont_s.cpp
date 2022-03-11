@@ -53,10 +53,10 @@ namespace Assets
 				auto& glyph = glyphs[i++];
 
 				glyph.letter = ch;
-				glyph.s0 = static_cast<float>(x / pw);
-				glyph.s1 = static_cast<float>((x + gw) / pw);
-				glyph.t0 = static_cast<float>(y / ph);
-				glyph.t1 = static_cast<float>((y + gh) / ph);
+				glyph.s0 = x / static_cast<float>(pw);
+				glyph.s1 = (x + gw) / static_cast<float>(pw);
+				glyph.t0 = y / static_cast<float>(ph);
+				glyph.t1 = (y + gh) / static_cast<float>(ph);
 				glyph.pixelWidth = static_cast<char>(gw);
 				glyph.pixelHeight = static_cast<char>(gh);
 				glyph.x0 = static_cast<char>(x0);
