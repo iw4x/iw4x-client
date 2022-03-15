@@ -35,7 +35,7 @@ namespace Components
 				}
 			}
 
-			if (mode != "append" && mode != "write")
+			if (mode != "append"s && mode != "write"s)
 			{
 				Logger::Print("^3FileWrite: mode not defined or was wrong, defaulting to 'write'\n");
 				mode = "write";
