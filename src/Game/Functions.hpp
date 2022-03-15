@@ -804,7 +804,7 @@ namespace Game
 	typedef client_t*(__cdecl * SV_GetPlayerByNum_t)();
 	extern SV_GetPlayerByNum_t SV_GetPlayerByNum;
 
-	typedef int(__cdecl * Sys_Error_t)(const char* error, ...);
+	typedef void(__cdecl * Sys_Error_t)(const char* error, ...);
 	extern Sys_Error_t Sys_Error;
 
 	typedef void(__cdecl * Sys_FreeFileList_t)(char** list);
@@ -833,6 +833,15 @@ namespace Game
 
 	typedef int(__cdecl * Sys_Milliseconds_t)();
 	extern Sys_Milliseconds_t Sys_Milliseconds;
+
+	typedef void(__cdecl * Sys_LockWrite_t)(FastCriticalSection* critSect);
+	extern Sys_LockWrite_t Sys_LockWrite;
+
+	typedef void(__cdecl * Sys_TempPriorityAtLeastNormalBegin_t)(TempPriority*);
+	extern Sys_TempPriorityAtLeastNormalBegin_t Sys_TempPriorityAtLeastNormalBegin;
+
+	typedef void(__cdecl * Sys_TempPriorityEnd_t)(TempPriority*);
+	extern Sys_TempPriorityEnd_t Sys_TempPriorityEnd;
 
 	typedef void(__cdecl * TeleportPlayer_t)(gentity_t* entity, float* pos, float* orientation);
 	extern TeleportPlayer_t TeleportPlayer;
@@ -1064,6 +1073,11 @@ namespace Game
 
 	extern vec3_t* CorrectSolidDeltas;
 
+	extern FastCriticalSection* db_hashCritSect;
+
+	void Sys_LockRead(FastCriticalSection* critSect);
+	void Sys_UnlockRead(FastCriticalSection* critSect);
+
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);
 	void Menu_SetNextCursorItem(Game::UiContext* ctx, Game::menuDef_t* currentMenu, int unk = 1);
@@ -1077,7 +1091,7 @@ namespace Game
 	XAssetType DB_GetXAssetNameType(const char* name);
 	int DB_GetZoneIndex(const std::string& name);
 	bool DB_IsZoneLoaded(const char* zone);
-	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides, bool lock);
+	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides);
 	XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType type);
 	XAssetEntry* DB_FindXAssetEntry(XAssetType type, const char* name);
 
