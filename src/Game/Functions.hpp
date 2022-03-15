@@ -681,7 +681,7 @@ namespace Game
 	typedef unsigned int(__cdecl * Scr_GetNumParam_t)();
 	extern Scr_GetNumParam_t Scr_GetNumParam;
 
-	typedef int(__cdecl * Scr_GetFunctionHandle_t)(const char*, const char*);
+	typedef int(__cdecl * Scr_GetFunctionHandle_t)(const char* filename, const char* name);
 	extern Scr_GetFunctionHandle_t Scr_GetFunctionHandle;
 
 	typedef int(__cdecl * Scr_ExecThread_t)(int, int);

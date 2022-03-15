@@ -966,7 +966,7 @@ namespace Components
 
 		Script::AddFunction("HttpGet", [](Game::scr_entref_t)
 		{
-			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp"))
+			if (!Flags::HasFlag("scriptablehttp"))
 				return;
 
 			const auto* url = Game::Scr_GetString(0);
@@ -987,7 +987,7 @@ namespace Components
 
 		Script::AddFunction("HttpCancel", [](Game::scr_entref_t)
 		{
-			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp"))
+			if (!Flags::HasFlag("scriptablehttp"))
 				return;
 
 			const auto object = Game::Scr_GetObject(0);

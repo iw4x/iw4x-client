@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	static const char* queryStrings[] = { R"(..)", R"(../)", R"(..\)" };
+	const char* ScriptExtension::QueryStrings[] = { R"(..)", R"(../)", R"(..\)" };
 
 	void ScriptExtension::AddFunctions()
 	{
@@ -26,16 +26,16 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
+			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
 			{
-				if (std::strstr(path, queryStrings[i]) != nullptr)
+				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1FileWrite: directory traversal is not allowed!\n");
 					return;
 				}
 			}
 
-			if (mode != "append"s && mode != "write"s)
+			if (mode != "append" && mode != "write")
 			{
 				Logger::Print("^3FileWrite: mode not defined or was wrong, defaulting to 'write'\n");
 				mode = "write";
@@ -61,9 +61,9 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
+			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
 			{
-				if (std::strstr(path, queryStrings[i]) != nullptr)
+				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1FileRead: directory traversal is not allowed!\n");
 					return;
@@ -89,9 +89,9 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
+			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
 			{
-				if (std::strstr(path, queryStrings[i]) != nullptr)
+				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1FileExists: directory traversal is not allowed!\n");
 					return;
@@ -111,9 +111,9 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
+			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
 			{
-				if (std::strstr(path, queryStrings[i]) != nullptr)
+				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1fileRemove: directory traversal is not allowed!\n");
 					return;
@@ -137,9 +137,7 @@ namespace Components
 
 			std::string ip = Game::NET_AdrToString(client->netchan.remoteAddress);
 
-			const auto pos = ip.find_first_of(":");
-
-			if (pos != std::string::npos)
+			if (const auto pos = ip.find_first_of(":"); pos != std::string::npos)
 				ip.erase(ip.begin() + pos, ip.end()); // Erase port
 
 			Game::Scr_AddString(ip.data());

@@ -264,7 +264,7 @@ namespace Components
 	}
 
 	constexpr auto SV_BotUserMove = 0x626E50;
-	__declspec(naked) void Bots::SV_UpdateBots_Hk()
+	__declspec(naked) void Bots::SV_BotUserMove_Hk()
 	{
 		__asm
 		{
@@ -302,8 +302,8 @@ namespace Components
 		// Intercept sprintf for the connect string
 		Utils::Hook(0x48ADAB, Bots::BuildConnectString, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x627021, Bots::SV_UpdateBots_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x627241, Bots::SV_UpdateBots_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627021, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627241, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
 
 		// Zero the bot command array
 		for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)
