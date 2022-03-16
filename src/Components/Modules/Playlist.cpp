@@ -190,11 +190,4 @@ namespace Components
 		Network::Handle("playlistResponse", PlaylistReponse);
 		Network::Handle("playlistInvalidPassword", PlaylistInvalidPassword);
 	}
-
-	Playlist::~Playlist()
-	{
-		Playlist::MapRelocation.clear();
-		Playlist::CurrentPlaylistBuffer.clear();
-		Playlist::ReceivedPlaylistBuffer.clear();
-	}
 }

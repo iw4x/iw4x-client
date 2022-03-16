@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		Elevators();
-		~Elevators();
 
 	private:
 		enum ElevatorSettings { DISABLED, ENABLED, EASY };

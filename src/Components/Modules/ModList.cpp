@@ -101,9 +101,4 @@ namespace Components
 
 		UIFeeder::Add(9.0f, ModList::GetItemCount, ModList::GetItemText, ModList::Select);
 	}
-
-	ModList::~ModList()
-	{
-		ModList::Mods.clear();
-	}
 }

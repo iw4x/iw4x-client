@@ -227,12 +227,4 @@ namespace Components
         AntiCheat::CheckStartupTime();
 #endif
 	}
-
-	CardTitles::~CardTitles()
-	{
-		for (int i = 0; i < ARRAYSIZE(CardTitles::CustomTitles); ++i)
-		{
-			CardTitles::CustomTitles[i].clear();
-		}
-	}
 }

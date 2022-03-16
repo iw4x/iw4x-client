@@ -173,9 +173,4 @@ namespace Components
 			}
 		});
 	}
-
-	RCon::~RCon()
-	{
-		RCon::Password.clear();
-	}
 }

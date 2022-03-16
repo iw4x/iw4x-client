@@ -10,6 +10,7 @@ namespace Components
 		public:
 			Params() {};
 			virtual ~Params() {};
+
 			virtual const char* get(size_t index) = 0;
 			virtual size_t length() = 0;
 
@@ -48,7 +49,6 @@ namespace Components
 		typedef void(Callback)(Command::Params* params);
 
 		Command();
-		~Command();
 
 		static Game::cmd_function_t* Allocate();
 

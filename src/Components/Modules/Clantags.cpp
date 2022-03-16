@@ -101,12 +101,4 @@ namespace Components
 		// Draw clantag before playername
 		Utils::Hook(0x591242, ClanTags::DrawPlayerNameOnScoreboard).install()->quick();
 	}
-
-	ClanTags::~ClanTags()
-	{
-		for (int i = 0; i < ARRAYSIZE(ClanTags::Tags); ++i)
-		{
-			ClanTags::Tags[i].clear();
-		}
-	}
 }

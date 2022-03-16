@@ -519,9 +519,4 @@ namespace Components
 			}
 		});
 	}
-
-	Dedicated::~Dedicated()
-	{
-
-	}
 }

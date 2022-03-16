@@ -3696,10 +3696,5 @@ namespace Components
 		Utils::Hook::Set<WORD>(0x6B9602,0xCCCC);
 #endif
 	}
-
-	Zones::~Zones()
-	{
-
-	}
 }
 #pragma optimize( "", on ) 

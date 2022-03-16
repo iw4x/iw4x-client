@@ -34,11 +34,6 @@ namespace Components
 		});
 	}
 
-	StartupMessages::~StartupMessages()
-	{
-		StartupMessages::MessageList.clear();
-	}
-
 	void StartupMessages::AddMessage(const std::string& message)
 	{
 		StartupMessages::MessageList.push_back(message);
