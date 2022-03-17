@@ -447,7 +447,7 @@ namespace Components
 		{
 			unsigned int count = 1;
 
-			if (params->length() > 1)
+			if (params->size() > 1)
 			{
 				if (params->get(1) == "all"s) count = static_cast<unsigned int>(-1);
 				else count = atoi(params->get(1));

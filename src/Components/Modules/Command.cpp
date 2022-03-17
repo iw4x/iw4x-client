@@ -5,56 +5,72 @@ namespace Components
 	std::unordered_map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMap;
 	std::unordered_map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMapSV;
 
-	std::string Command::Params::join(size_t startIndex)
+	std::string Command::Params::join(const int index)
 	{
 		std::string result;
 
-		for (size_t i = startIndex; i < this->length(); ++i)
+		for (auto i = index; i < this->size(); i++)
 		{
-			if (i > startIndex) result.append(" ");
-			result.append(this->operator[](i));
+			if (i > index) result.append(" ");
+			result.append(this->get(i));
 		}
 
 		return result;
 	}
 
-	const char* Command::Params::operator[](size_t index)
+	Command::ClientParams::ClientParams()
+		: nesting_(Game::cmd_args->nesting)
 	{
-		return this->get(index);
+		assert(Game::cmd_args->nesting < Game::CMD_MAX_NESTING);
 	}
 
-	const char* Command::ClientParams::get(size_t index)
+	int Command::ClientParams::size()
 	{
-		if (index >= this->length()) return "";
-		return Game::cmd_argv[this->commandId][index];
+		return Game::cmd_args->argc[this->nesting_];
 	}
 
-	size_t Command::ClientParams::length()
+	const char* Command::ClientParams::get(const int index)
 	{
-		return Game::cmd_argc[this->commandId];
+		if (index >= this->size())
+		{
+			return "";
+		}
+
+		return Game::cmd_args->argv[this->nesting_][index];
 	}
 
-	const char* Command::ServerParams::get(size_t index)
+	Command::ServerParams::ServerParams()
+		: nesting_(Game::sv_cmd_args->nesting)
 	{
-		if (index >= this->length()) return "";
-		return Game::cmd_argv_sv[this->commandId][index];
+		assert(Game::sv_cmd_args->nesting < Game::CMD_MAX_NESTING);
 	}
 
-	size_t Command::ServerParams::length()
+	int Command::ServerParams::size()
 	{
-		return Game::cmd_argc_sv[this->commandId];
+		return Game::sv_cmd_args->argc[this->nesting_];
+	}
+
+	const char* Command::ServerParams::get(const int index)
+	{
+		if (index >= this->size())
+		{
+			return "";
+		}
+
+		return Game::sv_cmd_args->argv[this->nesting_][index];
 	}
 
 	void Command::Add(const char* name, Utils::Slot<Command::Callback> callback)
 	{
-		std::string command = Utils::String::ToLower(name);
+		const auto command = Utils::String::ToLower(name);
+		const auto got = Command::FunctionMap.find(command);
 
-		if (Command::FunctionMap.find(command) == Command::FunctionMap.end())
+		if (got == Command::FunctionMap.end())
 		{
 			Command::AddRaw(name, Command::MainCallback);
 		}
 
-		Command::FunctionMap[command] = callback;
+		got->second = std::move(callback);
 	}
 
 	void Command::AddSV(const char* name, Utils::Slot<Command::Callback> callback)
@@ -70,9 +86,10 @@ namespace Components
 			return;
 		}
 
-		std::string command = Utils::String::ToLower(name);
+		const auto command = Utils::String::ToLower(name);
+		const auto got = Command::FunctionMapSV.find(command);
 
-		if (Command::FunctionMapSV.find(command) == Command::FunctionMapSV.end())
+		if (got == Command::FunctionMapSV.end())
 		{
 			Command::AddRawSV(name, Command::MainCallbackSV);
 
@@ -80,7 +97,7 @@ namespace Components
 			Command::AddRaw(name, Game::Cbuf_AddServerText);
 		}
 
-		Command::FunctionMapSV[command] = callback;
+		got->second = std::move(callback);
 	}
 
 	void Command::AddRaw(const char* name, void(*callback)(), bool key)
@@ -134,25 +151,27 @@ namespace Components
 
 	void Command::MainCallback()
 	{
-		Command::ClientParams params(*Game::cmd_id);
+		Command::ClientParams params;
 
-		std::string command = Utils::String::ToLower(params[0]);
+		const auto command = Utils::String::ToLower(params[0]);
+		const auto got = Command::FunctionMap.find(command);
 
-		if (Command::FunctionMap.find(command) != Command::FunctionMap.end())
+		if (got != Command::FunctionMap.end())
 		{
-			Command::FunctionMap[command](&params);
+			got->second(&params);
 		}
 	}
 
 	void Command::MainCallbackSV()
 	{
-		Command::ServerParams params(*Game::cmd_id_sv);
+		Command::ServerParams params;
 
-		std::string command = Utils::String::ToLower(params[0]);
+		const auto command = Utils::String::ToLower(params[0]);
+		const auto got = Command::FunctionMapSV.find(command);
 
-		if (Command::FunctionMapSV.find(command) != Command::FunctionMapSV.end())
+		if (got != Command::FunctionMapSV.end())
 		{
-			Command::FunctionMapSV[command](&params);
+			got->second(&params);
 		}
 	}
 
@@ -162,7 +181,7 @@ namespace Components
 
 		Command::Add("openLink", [](Command::Params* params)
 		{
-			if (params->length() > 1)
+			if (params->size() > 1)
 			{
 				Utils::OpenUrl(params->get(1));
 			}

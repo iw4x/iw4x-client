@@ -390,13 +390,8 @@ namespace Game
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
-	DWORD* cmd_id = reinterpret_cast<DWORD*>(0x1AAC5D0);
-	DWORD* cmd_argc = reinterpret_cast<DWORD*>(0x1AAC614);
-	char*** cmd_argv = reinterpret_cast<char***>(0x1AAC634);
-
-	DWORD* cmd_id_sv = reinterpret_cast<DWORD*>(0x1ACF8A0);
-	DWORD* cmd_argc_sv = reinterpret_cast<DWORD*>(0x1ACF8E4);
-	char*** cmd_argv_sv = reinterpret_cast<char***>(0x1ACF904);
+	CmdArgs* cmd_args = reinterpret_cast<CmdArgs*>(0x1AAC5D0);
+	CmdArgs* sv_cmd_args = reinterpret_cast<CmdArgs*>(0x1ACF8A0);
 
 	cmd_function_t** cmd_functions = reinterpret_cast<cmd_function_t**>(0x1AAC658);
 

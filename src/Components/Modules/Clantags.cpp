@@ -83,7 +83,7 @@ namespace Components
 		{
 			if (params->get(1) == "clantags"s && !Dedicated::IsEnabled())
 			{
-				if (params->length() == 3)
+				if (params->size() == 3)
 				{
 					ClanTags::ParseClantags(params->get(2));
 					return true;
