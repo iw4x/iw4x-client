@@ -377,7 +377,7 @@ namespace Components
 
 		Command::Add("addnode", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 			Node::Add({ params->get(1) });
 		});
 	}

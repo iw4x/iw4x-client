@@ -398,7 +398,7 @@ namespace Components
 					// Say command
 					Command::AddSV("say", [](Command::Params* params)
 					{
-						if (params->length() < 2) return;
+						if (params->size() < 2) return;
 
 						std::string message = params->join(1);
 						std::string name = Dvar::Var("sv_sayName").get<std::string>();
@@ -418,7 +418,7 @@ namespace Components
 					// Tell command
 					Command::AddSV("tell", [](Command::Params* params)
 					{
-						if (params->length() < 3) return;
+						if (params->size() < 3) return;
 
 						int client = atoi(params->get(1));
 						std::string message = params->join(2);
@@ -439,7 +439,7 @@ namespace Components
 					// Sayraw command
 					Command::AddSV("sayraw", [](Command::Params* params)
 					{
-						if (params->length() < 2) return;
+						if (params->size() < 2) return;
 
 						std::string message = params->join(1);
 						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
@@ -449,32 +449,12 @@ namespace Components
 					// Tellraw command
 					Command::AddSV("tellraw", [](Command::Params* params)
 					{
-						if (params->length() < 3) return;
+						if (params->size() < 3) return;
 
 						int client = atoi(params->get(1));
 						std::string message = params->join(2);
 						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
 						Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
-					});
-
-					// ! command
-					Command::AddSV("!", [](Command::Params* params)
-					{
-						if (params->length() != 2) return;
-
-						int client = -1;
-						if (params->get(1) != "all"s)
-						{
-							client = atoi(params->get(1));
-
-							if (client >= *reinterpret_cast<int*>(0x31D938C))
-							{
-								Game::Com_Printf(0, "Invalid player.\n");
-								return;
-							}
-						}
-
-						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"\"", 106));
 					});
 				});
 			}

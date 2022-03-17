@@ -199,7 +199,7 @@ namespace Components
 		{
 			if (params->get(1) == "customTitles"s && !Dedicated::IsEnabled())
 			{
-				if (params->length() == 3)
+				if (params->size() == 3)
 				{
 					CardTitles::ParseCustomTitles(params->get(2));
 					return true;

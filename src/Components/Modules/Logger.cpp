@@ -261,7 +261,7 @@ namespace Components
 		{
 			Command::AddSV("log_add", [](Command::Params* params)
 			{
-				if (params->length() < 2) return;
+				if (params->size() < 2) return;
 
 				Network::Address addr(params->get(1));
 
@@ -273,7 +273,7 @@ namespace Components
 
 			Command::AddSV("log_del", [](Command::Params* params)
 			{
-				if (params->length() < 2) return;
+				if (params->size() < 2) return;
 
 				int num = atoi(params->get(1));
 				if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[0].size())
@@ -312,7 +312,7 @@ namespace Components
 
 			Command::AddSV("g_log_add", [](Command::Params* params)
 			{
-				if (params->length() < 2) return;
+				if (params->size() < 2) return;
 
 				Network::Address addr(params->get(1));
 
@@ -324,7 +324,7 @@ namespace Components
 
 			Command::AddSV("g_log_del", [](Command::Params* params)
 			{
-				if (params->length() < 2) return;
+				if (params->size() < 2) return;
 
 				int num = atoi(params->get(1));
 				if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[1].size())
