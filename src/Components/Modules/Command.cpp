@@ -63,14 +63,13 @@ namespace Components
 	void Command::Add(const char* name, Utils::Slot<Command::Callback> callback)
 	{
 		const auto command = Utils::String::ToLower(name);
-		const auto got = Command::FunctionMap.find(command);
 
-		if (got == Command::FunctionMap.end())
+		if (Command::FunctionMap.find(command) == Command::FunctionMap.end())
 		{
 			Command::AddRaw(name, Command::MainCallback);
 		}
 
-		got->second = std::move(callback);
+		Command::FunctionMap[command] = std::move(callback);
 	}
 
 	void Command::AddSV(const char* name, Utils::Slot<Command::Callback> callback)
@@ -87,9 +86,8 @@ namespace Components
 		}
 
 		const auto command = Utils::String::ToLower(name);
-		const auto got = Command::FunctionMapSV.find(command);
 
-		if (got == Command::FunctionMapSV.end())
+		if (Command::FunctionMapSV.find(command) == Command::FunctionMapSV.end())
 		{
 			Command::AddRawSV(name, Command::MainCallbackSV);
 
@@ -97,7 +95,7 @@ namespace Components
 			Command::AddRaw(name, Game::Cbuf_AddServerText);
 		}
 
-		got->second = std::move(callback);
+		FunctionMapSV[command] = std::move(callback);
 	}
 
 	void Command::AddRaw(const char* name, void(*callback)(), bool key)
