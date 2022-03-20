@@ -210,11 +210,6 @@ namespace Components
 
 		});
 
-		for (int i = 0; i < ARRAYSIZE(CardTitles::CustomTitles); ++i)
-		{
-			CardTitles::CustomTitles[i].clear();
-		}
-
 		Utils::Hook(0x62EB26, CardTitles::GetPlayerCardClientInfoStub).install()->quick();
 
 		// Table lookup stuff
