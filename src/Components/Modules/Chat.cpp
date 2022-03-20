@@ -263,7 +263,7 @@ namespace Components
 			}
 
 			const auto* cmd = params->get(0);
-			if (params->length() < 2)
+			if (params->size() < 2)
 			{
 				Logger::Print("Usage: %s <client number> : prevent the player from using the chat\n", cmd);
 				return;
@@ -285,7 +285,7 @@ namespace Components
 			}
 
 			const auto* cmd = params->get(0);
-			if (params->length() < 2)
+			if (params->size() < 2)
 			{
 				Logger::Print("Usage: %s <client number or guid>\n%s all = unmute everyone\n", cmd, cmd);
 				return;
@@ -299,7 +299,7 @@ namespace Components
 				return;
 			}
 
-			if (params->get(1) == "all"s)
+			if (std::strcmp(params->get(1), "all") == 0)
 			{
 				Logger::Print("All players were unmuted\n");
 				Chat::UnmuteInternal(0, true);

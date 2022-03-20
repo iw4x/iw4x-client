@@ -11,11 +11,11 @@ namespace Components
 
 	bool ServerCommands::OnServerCommand()
 	{
-		Command::ClientParams params(*Game::cmd_id);
+		Command::ClientParams params;
 		
-		for (auto &serverCommandCB : ServerCommands::Commands)
+		for (const auto& serverCommandCB : ServerCommands::Commands)
 		{
-			if (params.length() >= 1)
+			if (params.size() >= 1)
 			{
 				if (params.get(0)[0] == serverCommandCB.first)
 				{

@@ -234,17 +234,17 @@ namespace Components
 	{
 		Command::Add("banclient", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 
 			std::string reason = "EXE_ERR_BANNED_PERM";
-			if (params->length() >= 3) reason = params->join(2);
+			if (params->size() >= 3) reason = params->join(2);
 
 			Bans::BanClientNum(atoi(params->get(1)), reason);
 		});
 
 		Command::Add("unbanclient", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 
 			std::string type = params->get(1);
 

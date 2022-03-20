@@ -7,19 +7,22 @@ namespace Components
 
 	std::string RCon::Password;
 
+	Dvar::Var RCon::RconPassword;
+	Dvar::Var RCon::RconLogRequests;
+
 	RCon::RCon()
 	{
 		Command::Add("rcon", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 
-			std::string operation = params->get(1);
-			if (operation == "login")
+			const auto* operation = params->get(1);
+			if (std::strcmp(operation, "login") == 0)
 			{
-				if (params->length() < 3) return;
+				if (params->size() < 3) return;
 				RCon::Password = params->get(2);
 			}
-			else if (operation == "logout")
+			else if (std::strcmp(operation, "logout") == 0)
 			{
 				RCon::Password.clear();
 			}
@@ -75,8 +78,8 @@ namespace Components
 
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<const char*>("rcon_password", "", Game::dvar_flag::DVAR_FLAG_NONE, "The password for rcon");
-			Dvar::Register<bool>("log_rcon_requests", false, Game::dvar_flag::DVAR_FLAG_NONE, "Print remote commands in the output log");
+			RCon::RconPassword =  Dvar::Register<const char*>("rcon_password", "", Game::dvar_flag::DVAR_FLAG_NONE, "The password for rcon");
+			RCon::RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::dvar_flag::DVAR_FLAG_NONE, "Print remote commands in the output log");
 		});
 
 		Network::Handle("rcon", [](Network::Address address, const std::string& _data)
@@ -100,7 +103,7 @@ namespace Components
 				password.erase(password.begin());
 			}
 
-			std::string svPassword = Dvar::Var("rcon_password").get<std::string>();
+			const std::string svPassword = RCon::RconPassword.get<std::string>();
 
 			if (svPassword.empty())
 			{
@@ -114,7 +117,7 @@ namespace Components
 				outputBuffer.clear();
 
 #ifndef DEBUG
-				if (Dvar::Var("log_rcon_requests").get<bool>())
+				if (RCon::RconLogRequests.get<bool>())
 #endif
 				{
 					Logger::Print("Executing RCon request from %s: %s\n", address.getCString(), command.data());

@@ -24,5 +24,8 @@ namespace Components
 		// For sr0's fucking rcon command
 		// Son of a bitch! Annoying me day and night with that shit...
 		static std::string Password;
+
+		static Dvar::Var RconPassword;
+		static Dvar::Var RconLogRequests;
 	};
 }

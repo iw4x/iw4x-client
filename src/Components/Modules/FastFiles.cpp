@@ -594,7 +594,7 @@ namespace Components
 
 		Command::Add("loadzone", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 
 			Game::XZoneInfo info;
 			info.name = params->get(1);

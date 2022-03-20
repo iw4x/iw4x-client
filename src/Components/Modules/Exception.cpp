@@ -234,7 +234,7 @@ namespace Components
 			Game::UI_UpdateArenas();
 
 			std::string command;
-			for (auto i = 0; i < (params->length() >= 2 ? atoi(params->get(1)) : *Game::arenaCount); ++i)
+			for (auto i = 0; i < (params->size() >= 2 ? atoi(params->get(1)) : *Game::arenaCount); ++i)
 			{
 				const auto* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
 
