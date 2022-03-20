@@ -356,8 +356,8 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
-		// quit_hard
-		Command::Add("quit_hard", [](Command::Params*)
+		// quitHard
+		Command::Add("quitHard", [](Command::Params*)
 		{
 			int data = false;
 			const Utils::Library ntdll("ntdll.dll");
@@ -841,6 +841,7 @@ namespace Components
 			}
 		});
 
+#ifdef DEBUG
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& /*name*/, bool* /*restrict*/)
 		{
 			if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)
@@ -855,6 +856,7 @@ namespace Components
 				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer);
 			}
 		});
+#endif
 
 		// Dvars
 		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_FLAG_SAVED, "Stream friendly UI");
