@@ -328,9 +328,4 @@ namespace Components
 		// Change logic that does word splitting with new lines for chat messages to support fonticons
 		Utils::Hook(0x592E10, CG_AddToTeamChat_Stub, HOOK_JUMP).install()->quick();
 	}
-
-	Chat::~Chat()
-	{
-		Chat::MuteList.clear();
-	}
 }

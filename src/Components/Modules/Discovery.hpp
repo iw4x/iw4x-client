@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		Discovery();
-		~Discovery();
 
 		void preDestroy() override;
 

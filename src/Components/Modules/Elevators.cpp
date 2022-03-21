@@ -120,8 +120,4 @@ namespace Components
 		Utils::Hook(0x570E0B, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x570D70, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
 	}
-
-	Elevators::~Elevators()
-	{
-	}
 }

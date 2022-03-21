@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		ModList();
-		~ModList();
 
 		static void RunMod(const std::string& mod);
 

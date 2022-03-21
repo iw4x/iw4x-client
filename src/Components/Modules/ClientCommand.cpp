@@ -309,9 +309,4 @@ namespace Components
 		ClientCommand::AddCheatCommands();
 		ClientCommand::AddScriptFunctions();
 	}
-
-	ClientCommand::~ClientCommand()
-	{
-		ClientCommand::FunctionMap.clear();
-	}
 }

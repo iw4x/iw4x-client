@@ -880,15 +880,8 @@ namespace Components
 
 	ServerList::~ServerList()
 	{
-		ServerList::OnlineList.clear();
-		ServerList::OfflineList.clear();
-		ServerList::FavouriteList.clear();
-		ServerList::VisibleList.clear();
-
-		{
-			std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
-			ServerList::RefreshContainer.awatingList = false;
-			ServerList::RefreshContainer.servers.clear();
-		}
+		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
+		ServerList::RefreshContainer.awatingList = false;
+		ServerList::RefreshContainer.servers.clear();
 	}
 }

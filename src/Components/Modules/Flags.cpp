@@ -53,8 +53,4 @@ namespace Components
 			Flags::EnabledFlags.push_back("stdout");
 		}
 	}
-
-	Flags::Flags()
-	{
-	}
 }

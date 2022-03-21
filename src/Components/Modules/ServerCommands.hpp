@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		ServerCommands();
-		~ServerCommands();
 
 		static void OnCommand(std::int32_t cmd, Utils::Slot<bool(Command::Params*)> cb);
 

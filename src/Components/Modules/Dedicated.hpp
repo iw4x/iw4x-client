@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		Dedicated();
-		~Dedicated();
 
 		static SteamID PlayerGuids[18][2];
 

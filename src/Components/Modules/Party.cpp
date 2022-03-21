@@ -513,9 +513,4 @@ namespace Components
 			Friends::UpdateServer(address, info.get("hostname"), info.get("mapname"));
 		});
 	}
-
-	Party::~Party()
-	{
-		Party::LobbyMap.clear();
-	}
 }

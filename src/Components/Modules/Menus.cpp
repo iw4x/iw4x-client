@@ -913,7 +913,6 @@ namespace Components
 
 	Menus::~Menus()
 	{
-		Menus::CustomMenus.clear();
 		Menus::FreeEverything();
 	}
 }

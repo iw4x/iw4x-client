@@ -18,7 +18,6 @@ namespace Components
 		};
 		
 		Zones();
-		~Zones();
 
 		static void SetVersion(int version);
 

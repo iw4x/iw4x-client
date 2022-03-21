@@ -274,9 +274,4 @@ namespace Components
 			Bans::LoadBans(&list);
 		});
 	}
-
-	Bans::~Bans()
-	{
-
-	}
 }

@@ -185,10 +185,4 @@ namespace Components
 			}
 		});
 	}
-
-	Command::~Command()
-	{
-		Command::FunctionMap.clear();
-		Command::FunctionMapSV.clear();
-	}
 }

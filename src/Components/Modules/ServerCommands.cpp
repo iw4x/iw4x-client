@@ -65,9 +65,4 @@ namespace Components
 		// Server command receive hook
 		Utils::Hook(0x59449F, ServerCommands::OnServerCommandStub).install()->quick();
 	}
-
-	ServerCommands::~ServerCommands()
-	{
-		ServerCommands::Commands.clear();
-	}
 }

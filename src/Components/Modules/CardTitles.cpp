@@ -210,11 +210,6 @@ namespace Components
 
 		});
 
-		for (int i = 0; i < ARRAYSIZE(CardTitles::CustomTitles); ++i)
-		{
-			CardTitles::CustomTitles[i].clear();
-		}
-
 		Utils::Hook(0x62EB26, CardTitles::GetPlayerCardClientInfoStub).install()->quick();
 
 		// Table lookup stuff
@@ -226,13 +221,5 @@ namespace Components
 #if !defined(DISABLE_ANTICHEAT)
         AntiCheat::CheckStartupTime();
 #endif
-	}
-
-	CardTitles::~CardTitles()
-	{
-		for (int i = 0; i < ARRAYSIZE(CardTitles::CustomTitles); ++i)
-		{
-			CardTitles::CustomTitles[i].clear();
-		}
 	}
 }

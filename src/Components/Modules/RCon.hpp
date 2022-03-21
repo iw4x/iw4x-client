@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		RCon();
-		~RCon();
 
 	private:
 		class Container

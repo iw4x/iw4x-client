@@ -622,9 +622,4 @@ namespace Components
 		}, HOOK_CALL).install()/*->quick()*/;
 #endif
 	}
-
-	FastFiles::~FastFiles()
-	{
-		FastFiles::ZonePaths.clear();
-	}
 }

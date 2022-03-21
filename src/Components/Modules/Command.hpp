@@ -47,7 +47,6 @@ namespace Components
 		typedef void(Callback)(Command::Params* params);
 
 		Command();
-		~Command();
 
 		static Game::cmd_function_t* Allocate();
 
