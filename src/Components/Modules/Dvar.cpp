@@ -181,22 +181,22 @@ namespace Components
 		}
 	}
 
-	template<> static Dvar::Var Dvar::Register(const char* dvarName, bool value, Dvar::Flag flag, const char* description)
+	template<> Dvar::Var Dvar::Register(const char* dvarName, bool value, Dvar::Flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterBool(dvarName, value, flag.val, description);
 	}
 
-	template<> static Dvar::Var Dvar::Register(const char* dvarName, const char* value, Dvar::Flag flag, const char* description)
+	template<> Dvar::Var Dvar::Register(const char* dvarName, const char* value, Dvar::Flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterString(dvarName, value, flag.val, description);
 	}
 
-	template<> static Dvar::Var Dvar::Register(const char* dvarName, int value, int min, int max, Dvar::Flag flag, const char* description)
+	template<> Dvar::Var Dvar::Register(const char* dvarName, int value, int min, int max, Dvar::Flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterInt(dvarName, value, min, max, flag.val, description);
 	}
 
-	template<> static Dvar::Var Dvar::Register(const char* dvarName, float value, float min, float max, Dvar::Flag flag, const char* description)
+	template<> Dvar::Var Dvar::Register(const char* dvarName, float value, float min, float max, Dvar::Flag flag, const char* description)
 	{
 		return Game::Dvar_RegisterFloat(dvarName, value, min, max, flag.val, description);
 	}
@@ -336,10 +336,10 @@ namespace Components
 		// remove write protection from fs_game
 		Utils::Hook::Xor<DWORD>(0x6431EA, Game::dvar_flag::DVAR_WRITEPROTECTED);
 
-		// set cg_fov max to 90.0
-		// ...120 because of V2
-		static float cgFov90 = 120.0f;
-		Utils::Hook::Set<float*>(0x4F8E28, &cgFov90);
+		// set cg_fov max to 160.0
+		// because that's the max on SP
+		static float cg_Fov = 160.0f;
+		Utils::Hook::Set<float*>(0x4F8E28, &cg_Fov);
 
 		// set max volume to 1
 		static float volume = 1.0f;
@@ -385,7 +385,6 @@ namespace Components
 		Utils::Hook(0x59386A, Dvar::DvarSetFromStringByNameStub, HOOK_CALL).install()->quick();
 
 		// If the game closed abruptly, the dvars would not have been restored
-
 		Dvar::OnInit([]
 		{
 			Dvar::ResetDvarsValue();

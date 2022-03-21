@@ -83,7 +83,7 @@ namespace Components
 
 		Command::ServerParams params;
 
-		if (params.length() < 3)
+		if (params.size() < 3)
 		{
 			Game::SV_Cmd_EndTokenizedString();
 			Logger::SoftError("Connecting failed: Command parsing error!");
@@ -170,7 +170,7 @@ namespace Components
 			Command::ServerParams params;
 
 			// Ensure there are enough params
-			if (params.length() < 3)
+			if (params.size() < 3)
 			{
 				Network::Send(address, "error\nInvalid connect string!");
 				return;
@@ -455,7 +455,7 @@ namespace Components
 		{
 			Command::Add("securityLevel", [](Command::Params* params)
 			{
-				if (params->length() < 2)
+				if (params->size() < 2)
 				{
 					uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
 					Logger::Print("Your current security level is %d\n", level);

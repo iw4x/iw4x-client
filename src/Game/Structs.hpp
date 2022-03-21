@@ -168,8 +168,8 @@ namespace Game
 	typedef enum
 	{
 		CS_FREE = 0x0,
-		CS_UNKNOWN1 = 0x1,
-		CS_UNKNOWN2 = 0x2,
+		CS_ZOMBIE = 0x1,
+		CS_RECONNECTING = 0x2,
 		CS_CONNECTED = 0x3,
 		CS_CLIENTLOADING = 0x4,
 		CS_ACTIVE = 0x5,
@@ -241,6 +241,17 @@ namespace Game
 	struct Statement_s;
 	struct MenuEventHandlerSet;
 	struct menuDef_t;
+
+	struct CmdArgs
+	{
+		int nesting;
+		int localClientNum[8];
+		int controllerIndex[8];
+		int argc[8];
+		const char** argv[8];
+	};
+
+	static_assert(sizeof(CmdArgs) == 132);
 
 	typedef struct cmd_function_s
 	{

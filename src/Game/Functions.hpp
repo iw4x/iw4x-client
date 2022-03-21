@@ -930,13 +930,9 @@ namespace Game
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
-	extern DWORD* cmd_id;
-	extern DWORD* cmd_argc;
-	extern char*** cmd_argv;
-
-	extern DWORD* cmd_id_sv;
-	extern DWORD* cmd_argc_sv;
-	extern char*** cmd_argv_sv;
+	constexpr auto CMD_MAX_NESTING = 8;
+	extern CmdArgs* cmd_args;
+	extern CmdArgs* sv_cmd_args;
 
 	extern cmd_function_t** cmd_functions;
 

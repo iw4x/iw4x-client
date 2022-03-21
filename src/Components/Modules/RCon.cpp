@@ -14,15 +14,15 @@ namespace Components
 	{
 		Command::Add("rcon", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 
-			std::string operation = params->get(1);
-			if (operation == "login")
+			const auto* operation = params->get(1);
+			if (std::strcmp(operation, "login") == 0)
 			{
-				if (params->length() < 3) return;
+				if (params->size() < 3) return;
 				RCon::Password = params->get(2);
 			}
-			else if (operation == "logout")
+			else if (std::strcmp(operation, "logout") == 0)
 			{
 				RCon::Password.clear();
 			}

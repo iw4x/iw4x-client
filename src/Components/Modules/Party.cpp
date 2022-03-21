@@ -261,7 +261,7 @@ namespace Components
 
 		Command::Add("connect", [](Command::Params* params)
 		{
-			if (params->length() < 2)
+			if (params->size() < 2)
 			{
 				return;
 			}

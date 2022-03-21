@@ -86,17 +86,15 @@ namespace Components
 
 	void QuickPatch::SelectStringTableEntryInDvarStub()
 	{
-		Command::ClientParams args;
+		Command::ClientParams params;
 
-		if (args.length() >= 4)
+		if (params.size() >= 4)
 		{
-			std::string cmd = args[0];
-			std::string table = args[1];
-			std::string col = args[2];
-			std::string dvarName = args[3];
-			Game::dvar_t* dvar = Game::Dvar_FindVar(dvarName.data());
+			const auto* dvarName = params[3];
+			const auto* dvar = Game::Dvar_FindVar(dvarName);
 
-			if (Command::Find(dvarName) || (dvar && (dvar->flags & (Game::DVAR_WRITEPROTECTED | Game::DVAR_CHEAT | Game::DVAR_READONLY))))
+			if (Command::Find(dvarName) ||
+				(dvar != nullptr && dvar->flags & (Game::DVAR_WRITEPROTECTED | Game::DVAR_CHEAT | Game::DVAR_READONLY)))
 			{
 				return;
 			}
@@ -358,8 +356,8 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
-		// quit_hard
-		Command::Add("quit_hard", [](Command::Params*)
+		// quitHard
+		Command::Add("quitHard", [](Command::Params*)
 		{
 			int data = false;
 			const Utils::Library ntdll("ntdll.dll");
@@ -671,7 +669,7 @@ namespace Components
 
 		Command::Add("dumptechsets", [](Command::Params* param)
 		{
-			if (param->length() != 2)
+			if (param->size() != 2)
 			{
 				Logger::Print("usage: dumptechsets <fastfile> | all\n");
 				return;
@@ -843,6 +841,7 @@ namespace Components
 			}
 		});
 
+#ifdef DEBUG
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& /*name*/, bool* /*restrict*/)
 		{
 			if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)
@@ -857,6 +856,7 @@ namespace Components
 				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer);
 			}
 		});
+#endif
 
 		// Dvars
 		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");

@@ -1641,7 +1641,7 @@ namespace Components
 
     void Gamepad::Axis_Bind_f(Command::Params* params)
     {
-        if (params->length() < 4)
+        if (params->size() < 4)
         {
             Logger::Print("bindaxis <real axis> <virtual axis> <input type>\n");
             return;
