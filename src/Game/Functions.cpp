@@ -271,6 +271,7 @@ namespace Game
 
 	Scr_AddEntity_t Scr_AddEntity = Scr_AddEntity_t(0x4BFB40);
 	Scr_AddString_t Scr_AddString = Scr_AddString_t(0x412310);
+	Scr_AddIString_t Scr_AddIString = Scr_AddIString_t(0x455F20);
 	Scr_AddInt_t Scr_AddInt = Scr_AddInt_t(0x41D7D0);
 	Scr_AddFloat_t Scr_AddFloat = Scr_AddFloat_t(0x61E860);
 	Scr_AddObject_t Scr_AddObject = Scr_AddObject_t(0x430F40);
@@ -320,6 +321,7 @@ namespace Game
 	Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x49CF70);
 
 	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
+	StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow = StringTable_GetColumnValueForRow_t(0x4F2C80);
 	StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
 
 	SV_AddTestClient_t SV_AddTestClient = SV_AddTestClient_t(0x48AD30);
@@ -1588,6 +1590,21 @@ namespace Game
 			popad
 
 			retn
+		}
+	}
+
+	constexpr auto SV_BotUserMove_Addr = 0x626E50;
+	__declspec(naked) void SV_BotUserMove(client_t* /*client*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov edi, [esp + 0x20 + 0x4]
+			call SV_BotUserMove_Addr
+
+			popad
+			ret
 		}
 	}
 

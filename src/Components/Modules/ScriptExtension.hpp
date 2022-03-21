@@ -12,5 +12,6 @@ namespace Components
 
 		static void AddFunctions();
 		static void AddMethods();
+		static void Scr_TableLookupIStringByRow();
 	};
 }

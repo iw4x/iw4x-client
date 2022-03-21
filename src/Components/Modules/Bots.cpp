@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	Game::dvar_t* Bots::TestClientsActivate;
 	std::vector<std::string> Bots::BotNames;
 
 	struct BotMovementInfo
@@ -11,6 +10,7 @@ namespace Components
 		int8_t forward;
 		int8_t right;
 		uint16_t weapon;
+		bool active;
 	};
 
 	static BotMovementInfo g_botai[18];
@@ -36,7 +36,8 @@ namespace Components
 		{ "leanright", Game::usercmdButtonBits::CMD_BUTTON_LEAN_RIGHT },
 		{ "ads", Game::usercmdButtonBits::CMD_BUTTON_ADS },
 		{ "holdbreath", Game::usercmdButtonBits::CMD_BUTTON_BREATH },
-		{ "use", Game::usercmdButtonBits::CMD_BUTTON_USE_RELOAD | Game::usercmdButtonBits::CMD_BUTTON_ACTIVATE },
+		{ "usereload", Game::usercmdButtonBits::CMD_BUTTON_USE_RELOAD },
+		{ "activate", Game::usercmdButtonBits::CMD_BUTTON_ACTIVATE },
 		{ "0", Bots::NUM_0 },
 		{ "1", Bots::NUM_1 },
 		{ "2", Bots::NUM_2 },
@@ -51,7 +52,7 @@ namespace Components
 
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
-		static auto botId = 0;
+		static size_t botId = 0;
 		const char* botName;
 
 		if (Bots::BotNames.empty())
@@ -156,6 +157,7 @@ namespace Components
 
 			g_botai[entref.entnum] = {0};
 			g_botai[entref.entnum].weapon = 1;
+			g_botai[entref.entnum].active = false;
 		});
 
 		Script::AddFunction("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
@@ -179,6 +181,7 @@ namespace Components
 
 			const auto weapId = Game::G_GetWeaponIndexForName(weapon);
 			g_botai[entref.entnum].weapon = static_cast<uint16_t>(weapId);
+			g_botai[entref.entnum].active = true;
 		});
 
 		Script::AddFunction("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
@@ -216,6 +219,7 @@ namespace Components
 				else
 					g_botai[entref.entnum].buttons &= ~(BotActions[i].key);
 
+				g_botai[entref.entnum].active = true;
 				return;
 			}
 
@@ -241,6 +245,7 @@ namespace Components
 
 			g_botai[entref.entnum].forward = static_cast<int8_t>(forwardInt);
 			g_botai[entref.entnum].right = static_cast<int8_t>(rightInt);
+			g_botai[entref.entnum].active = true;
 		});
 	}
 
@@ -251,16 +256,23 @@ namespace Components
 
 		const auto entnum = cl->gentity->s.number;
 
-		Game::usercmd_s ucmd = {0};
+		// Keep test client functionality
+		if (!g_botai[entnum].active)
+		{
+			Game::SV_BotUserMove(cl);
+			return;
+		}
 
-		ucmd.serverTime = *Game::svs_time;
+		Game::usercmd_s userCmd = {0};
 
-		ucmd.buttons = g_botai[entnum].buttons;
-		ucmd.forwardmove = g_botai[entnum].forward;
-		ucmd.rightmove = g_botai[entnum].right;
-		ucmd.weapon = g_botai[entnum].weapon;
+		userCmd.serverTime = *Game::svs_time;
 
-		Game::SV_ClientThink(cl, &ucmd);
+		userCmd.buttons = g_botai[entnum].buttons;
+		userCmd.forwardmove = g_botai[entnum].forward;
+		userCmd.rightmove = g_botai[entnum].right;
+		userCmd.weapon = g_botai[entnum].weapon;
+
+		Game::SV_ClientThink(cl, &userCmd);
 	}
 
 	constexpr auto SV_BotUserMove = 0x626E50;
@@ -268,13 +280,6 @@ namespace Components
 	{
 		__asm
 		{
-			push eax
-			mov eax, Bots::TestClientsActivate
-			cmp byte ptr [eax + 0x10], 0x1
-			pop eax
-
-			jz enableBots
-
 			pushad
 
 			push edi
@@ -282,20 +287,42 @@ namespace Components
 			add esp, 4
 
 			popad
-
 			ret
+		}
+	}
 
-		enableBots:
-			call SV_BotUserMove
-			ret
+	void Bots::G_SelectWeaponIndex(int clientNum, int iWeaponIndex)
+	{
+		if (g_botai[clientNum].active)
+		{
+			g_botai[clientNum].weapon = static_cast<uint16_t>(iWeaponIndex);
+		}
+	}
+
+	__declspec(naked) void Bots::G_SelectWeaponIndex_Hk()
+	{
+		__asm
+		{
+			pushad
+
+			push [esp + 0x20 + 0x8]
+			push [esp + 0x20 + 0x8]
+			call Bots::G_SelectWeaponIndex
+			add esp, 0x8
+
+			popad
+
+			// Code skipped by hook
+			mov eax, [esp + 0x8]
+			push eax
+
+			push 0x441B85
+			retn
 		}
 	}
 
 	Bots::Bots()
 	{
-		Bots::TestClientsActivate = Game::Dvar_RegisterBool("testClients_activate", true,
-			Game::dvar_flag::DVAR_FLAG_NONE, "Testclients will retain their native functionality.");
-
 		// Replace connect string
 		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
 
@@ -304,6 +331,8 @@ namespace Components
 
 		Utils::Hook(0x627021, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x627241, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x441B80, Bots::G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
 		// Zero the bot command array
 		for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)

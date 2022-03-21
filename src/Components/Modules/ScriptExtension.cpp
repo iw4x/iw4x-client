@@ -7,7 +7,6 @@ namespace Components
 	void ScriptExtension::AddFunctions()
 	{
 		//File functions
-
 		Script::AddFunction("FileWrite", [](Game::scr_entref_t) // gsc: FileWrite(<filepath>, <string>, <mode>)
 		{
 			const auto* path = Game::Scr_GetString(0);
@@ -115,7 +114,7 @@ namespace Components
 			{
 				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
 				{
-					Logger::Print("^1fileRemove: directory traversal is not allowed!\n");
+					Logger::Print("^1FileRemove: directory traversal is not allowed!\n");
 					return;
 				}
 			}
@@ -152,9 +151,35 @@ namespace Components
 		});
 	}
 
+	void ScriptExtension::Scr_TableLookupIStringByRow()
+	{
+		if (Game::Scr_GetNumParam() < 3)
+		{
+			Game::Scr_Error("USAGE: tableLookupIStringByRow( filename, rowNum, returnValueColumnNum )\n");
+			return;
+		}
+
+		const auto* fileName = Game::Scr_GetString(0);
+		const auto rowNum = Game::Scr_GetInt(1);
+		const auto returnValueColumnNum = Game::Scr_GetInt(2);
+
+		const auto* table = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_STRINGTABLE, fileName).stringTable;
+
+		if (table == nullptr)
+		{
+			Game::Scr_ParamError(0, Utils::String::VA("%s does not exist\n", fileName));
+			return;
+		}
+
+		const auto* value = Game::StringTable_GetColumnValueForRow(table, rowNum, returnValueColumnNum);
+		Game::Scr_AddIString(value);
+	}
+
 	ScriptExtension::ScriptExtension()
 	{
 		ScriptExtension::AddFunctions();
 		ScriptExtension::AddMethods();
+		// Correct builtin function pointer
+		Utils::Hook::Set<void(*)()>(0x79A90C, ScriptExtension::Scr_TableLookupIStringByRow);
 	}
 }

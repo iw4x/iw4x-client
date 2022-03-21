@@ -639,11 +639,14 @@ namespace Game
 	typedef void(__cdecl * RemoveRefToObject_t)(unsigned int id);
 	extern RemoveRefToObject_t RemoveRefToObject;
 
-	typedef void(__cdecl * Scr_AddEntity_t)(gentity_s const*);
+	typedef void(__cdecl * Scr_AddEntity_t)(const gentity_s* ent);
 	extern Scr_AddEntity_t Scr_AddEntity;
 
-	typedef void(__cdecl * Scr_AddString_t)(const char* str);
+	typedef void(__cdecl * Scr_AddString_t)(const char* value);
 	extern Scr_AddString_t Scr_AddString;
+
+	typedef void(__cdecl * Scr_AddIString_t)(const char* value);
+	extern Scr_AddIString_t Scr_AddIString;
 
 	typedef void(__cdecl * Scr_AddInt_t)(int num);
 	extern Scr_AddInt_t Scr_AddInt;
@@ -759,8 +762,11 @@ namespace Game
 	typedef void(__cdecl * Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;
 
-	typedef const char*(__cdecl * StringTable_Lookup_t)(StringTable *table, const int comparisonColumn, const char *value, const int valueColumn);
+	typedef const char*(__cdecl * StringTable_Lookup_t)(const StringTable *table, const int comparisonColumn, const char *value, const int valueColumn);
 	extern StringTable_Lookup_t StringTable_Lookup;
+
+	typedef const char* (__cdecl * StringTable_GetColumnValueForRow_t)(const StringTable* table, int, int column);
+	extern StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow;
 
 	typedef int(__cdecl * StringTable_HashString_t)(const char* string);
 	extern StringTable_HashString_t StringTable_HashString;
@@ -1108,6 +1114,7 @@ namespace Game
 
 	void SV_KickClient(client_t* client, const char* reason);
 	void SV_KickClientError(client_t* client, const std::string& reason);
+	void SV_BotUserMove(client_t* client);
 
 	void RuntimeErrorInternal(int channel, const char* codePos, unsigned int index, const char* msg);
 	void IncInParam();

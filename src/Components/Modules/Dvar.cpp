@@ -385,7 +385,6 @@ namespace Components
 		Utils::Hook(0x59386A, Dvar::DvarSetFromStringByNameStub, HOOK_CALL).install()->quick();
 
 		// If the game closed abruptly, the dvars would not have been restored
-
 		Dvar::OnInit([]
 		{
 			Dvar::ResetDvarsValue();
