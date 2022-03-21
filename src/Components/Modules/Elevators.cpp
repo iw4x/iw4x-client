@@ -108,7 +108,7 @@ namespace Components
 			};
 
 			Elevators::BG_Elevators = Game::Dvar_RegisterEnum("bg_elevators", values,
-				Elevators::ENABLED, Game::DVAR_FLAG_REPLICATED, "Elevators glitch settings");
+				Elevators::ENABLED, Game::DVAR_CODINFO, "Elevators glitch settings");
 		});
 
 		//Replace PM_CorrectAllSolid

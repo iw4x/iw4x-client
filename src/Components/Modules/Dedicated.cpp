@@ -275,22 +275,22 @@ namespace Components
 
 	Game::dvar_t* Dedicated::Dvar_RegisterSVNetworkFps(const char* dvarName, int, int min, int, int, const char* description)
 	{
-		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::dvar_flag::DVAR_FLAG_NONE, description);
+		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::dvar_flag::DVAR_NONE, description);
 	}
 
 	Dedicated::Dedicated()
 	{
 		// Map rotation
 		Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
-		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_FLAG_CHEAT, "");
-		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_FLAG_LATCHED, "Removes ~95% of unneeded lines from the log");
+		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_CHEAT, "");
+		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			// Make sure all callbacks are handled
 			Scheduler::OnFrame(Steam::SteamAPI_RunCallbacks);
 
-			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't act as node");
+			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_NONE, "Don't act as node");
 
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();
 
@@ -391,9 +391,9 @@ namespace Components
 
 				Dvar::OnInit([]()
 				{
-					Dedicated::SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Randomize map rotation when true");
-					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_FLAG_NONE, "The name to pose as for 'say' commands");
-					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_FLAG_NONE, "A custom message of the day for servers");
+					Dedicated::SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false, Game::dvar_flag::DVAR_ARCHIVE, "Randomize map rotation when true");
+					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
+					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
 
 					// Say command
 					Command::AddSV("say", [](Command::Params* params)

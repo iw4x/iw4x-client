@@ -9,7 +9,7 @@ namespace Components
 		{
 		public:
 			Flag(Game::dvar_flag flag) : val(flag) {};
-			Flag(int flag) : Flag(static_cast<Game::dvar_flag>(flag)) {};
+			Flag(unsigned __int16 flag) : Flag(static_cast<Game::dvar_flag>(flag)) {};
 
 			Game::dvar_flag val;
 		};
@@ -46,8 +46,8 @@ namespace Components
 		static void OnInit(Utils::Slot<Scheduler::Callback> callback);
 
 		// Only strings and bools use this type of declaration
-		template<typename T> static Var Register(const char* name, T value, Flag flag, const char* description);
-		template<typename T> static Var Register(const char* name, T value, T min, T max, Flag flag, const char* description);
+		template<typename T> static Var Register(const char* dvarName, T value, Flag flag, const char* description);
+		template<typename T> static Var Register(const char* dvarName, T value, T min, T max, Flag flag, const char* description);
 
 		static void ResetDvarsValue();
 

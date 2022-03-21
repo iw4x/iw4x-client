@@ -94,7 +94,7 @@ namespace Components
 			const auto* dvar = Game::Dvar_FindVar(dvarName);
 
 			if (Command::Find(dvarName) ||
-				(dvar != nullptr && dvar->flags & (Game::DVAR_FLAG_WRITEPROTECTED | Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_READONLY)))
+				(dvar != nullptr && dvar->flags & (Game::DVAR_WRITEPROTECTED | Game::DVAR_CHEAT | Game::DVAR_READONLY)))
 			{
 				return;
 			}
@@ -236,7 +236,7 @@ namespace Components
 		}
 	}
 
-	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* name, char**, int defaultVal, int flags, const char* description)
+	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** /*valueList*/, int defaultIndex, unsigned __int16 flags, const char* description)
 	{
 		static const char* r_aspectRatioEnum[] =
 		{
@@ -254,7 +254,7 @@ namespace Components
 			"Screen aspect ratio. Divide the width by the height in order to get the aspect ratio value. For example: 16 / 9 = 1,77");
 
 		// register enumeration dvar
-		return Game::Dvar_RegisterEnum(name, r_aspectRatioEnum, defaultVal, flags, description);
+		return Game::Dvar_RegisterEnum(dvarName, r_aspectRatioEnum, defaultIndex, flags, description);
 	}
 
 	void QuickPatch::SetAspectRatio()
@@ -351,7 +351,7 @@ namespace Components
 	Game::dvar_t* QuickPatch::Dvar_RegisterUIBuildLocation(const char* dvarName,
 		float /*x*/, float /*y*/, float min, float max, int /*flags*/, const char* description)
 	{
-		return Game::Dvar_RegisterVec2(dvarName, -60.0f, 474.0f, min, max, Game::DVAR_FLAG_READONLY, description);
+		return Game::Dvar_RegisterVec2(dvarName, -60.0f, 474.0f, min, max, Game::DVAR_READONLY, description);
 	}
 
 	QuickPatch::QuickPatch()
@@ -372,9 +372,9 @@ namespace Components
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
 		// Intermission time dvar
-		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_FLAG_REPLICATED | Game::DVAR_FLAG_DEDISAVED, "Time in seconds before match server loads the next map");
+		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::dvar_flag::DVAR_NONE, "Time in seconds before match server loads the next map");
 
-		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_FLAG_REPLICATED, "Perform antilag");
+		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMeleeStub, HOOK_JUMP).install()->quick();
 
@@ -475,7 +475,7 @@ namespace Components
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
-		Utils::Hook::Set<BYTE>(0x45888C, Game::dvar_flag::DVAR_FLAG_CHEAT);
+		Utils::Hook::Set<BYTE>(0x45888C, Game::dvar_flag::DVAR_CHEAT);
 
 		// increase font sizes for chat on higher resolutions
 		static float float13 = 13.0f;
@@ -631,7 +631,7 @@ namespace Components
 		});
 
 		// Fix mouse pitch adjustments
-		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_FLAG_SAVED, "");
+		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");
 		UIScript::Add("updateui_mousePitch", [](UIScript::Token)
 		{
 			if (Dvar::Var("ui_mousePitch").get<bool>())
@@ -859,7 +859,7 @@ namespace Components
 #endif
 
 		// Dvars
-		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_FLAG_SAVED, "Stream friendly UI");
+		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
 
 		// Debug patches
 #ifdef DEBUG

@@ -578,8 +578,8 @@ namespace Components
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || Monitor::IsEnabled()) return;
 
-		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_FLAG_SAVED, "Enable invisible mode for Steam");
-		Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_FLAG_SAVED, "Update friends about current game status");
+		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
+		Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_ARCHIVE, "Update friends about current game status");
 
 		Command::Add("addFriend", [](Command::Params* params)
 		{

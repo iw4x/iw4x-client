@@ -242,7 +242,7 @@ namespace Components
 
 	Logger::Logger()
 	{
-		Dvar::Register<bool>("iw4x_onelog", false, Game::dvar_flag::DVAR_FLAG_LATCHED | Game::dvar_flag::DVAR_FLAG_SAVED, "Only write the game log to the 'userraw' OS folder");
+		Dvar::Register<bool>("iw4x_onelog", false, Game::dvar_flag::DVAR_LATCH | Game::dvar_flag::DVAR_ARCHIVE, "Only write the game log to the 'userraw' OS folder");
 		Utils::Hook(0x642139, Logger::BuildOSPathStub, HOOK_JUMP).install()->quick();
 
 		Logger::PipeOutput(nullptr);
