@@ -107,9 +107,9 @@ namespace Utils
 	void SetEnvironment()
 	{
 		wchar_t exeName[512];
-		GetModuleFileNameW(GetModuleHandle(nullptr), exeName, sizeof(exeName) / 2);
+		GetModuleFileNameW(GetModuleHandle(nullptr), exeName, sizeof(exeName) / sizeof(wchar_t));
 
-		wchar_t* exeBaseName = wcsrchr(exeName, L'\\');
+		auto* exeBaseName = wcsrchr(exeName, L'\\');
 		exeBaseName[0] = L'\0';
 
 		SetCurrentDirectoryW(exeName);
