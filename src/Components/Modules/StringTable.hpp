@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		StringTable();
-		~StringTable();
 
 	private:
 		static std::unordered_map<std::string, Game::StringTable*> StringTableMap;

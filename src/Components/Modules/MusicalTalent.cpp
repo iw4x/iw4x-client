@@ -39,9 +39,4 @@ namespace Components
 
 		MusicalTalent::Replace("music_mainmenu_mp", "hz_t_menumusic.mp3");
 	}
-
-	MusicalTalent::~MusicalTalent()
-	{
-		MusicalTalent::SoundAliasList.clear();
-	}
 }

@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		FastFiles();
-		~FastFiles();
 
 		static void AddZonePath(const std::string& path);
 		static std::string Current();

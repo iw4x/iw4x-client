@@ -311,9 +311,4 @@ namespace Components
 			}
 		});
 	}
-
-	StructuredData::~StructuredData()
-	{
-		StructuredData::MemAllocator.clear();
-	}
 }

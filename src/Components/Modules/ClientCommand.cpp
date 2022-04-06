@@ -147,7 +147,7 @@ namespace Components
 			Command::ServerParams params = {};
 			Game::vec3_t origin, angles{0.f, 0.f, 0.f};
 
-			if (params.length() < 4u || params.length() > 6u)
+			if (params.size() < 4 || params.size() > 6)
 			{
 				Game::SV_GameSendServerCommand(ent->s.number, 0,
 					Utils::String::VA("%c \"GAME_USAGE\x15: setviewpos x y z [yaw] [pitch]\n\"", 0x65));
@@ -159,12 +159,12 @@ namespace Components
 				origin[i] = std::strtof(params.get(i + 1), nullptr);
 			}
 
-			if (params.length() >= 5u)
+			if (params.size() >= 5)
 			{
 				angles[1] = std::strtof(params.get(4), nullptr); // Yaw
 			}
 
-			if (params.length() == 6u)
+			if (params.size() == 6)
 			{
 				angles[0] = std::strtof(params.get(5), nullptr); // Pitch
 			}
@@ -308,10 +308,5 @@ namespace Components
 
 		ClientCommand::AddCheatCommands();
 		ClientCommand::AddScriptFunctions();
-	}
-
-	ClientCommand::~ClientCommand()
-	{
-		ClientCommand::FunctionMap.clear();
 	}
 }

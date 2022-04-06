@@ -232,67 +232,67 @@ namespace Game
 	typedef void(__cdecl * DB_XModelSurfsFixup_t)(XModel* model);
 	extern DB_XModelSurfsFixup_t DB_XModelSurfsFixup;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterBool_t)(const char* name, bool defaultVal, int flags, const char* description);
+	typedef dvar_t*(__cdecl * Dvar_RegisterBool_t)(const char* dvarName, bool value, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterBool_t Dvar_RegisterBool;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterFloat_t)(const char* name, float defaultVal, float min, float max, int flags, const char* description);
+	typedef dvar_t*(__cdecl * Dvar_RegisterFloat_t)(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterFloat_t Dvar_RegisterFloat;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterVec2_t)(const char* name, float defx, float defy, float min, float max, int flags, const char* description);
+	typedef dvar_t*(__cdecl * Dvar_RegisterVec2_t)(const char* dvarName, float x, float y, float min, float max, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterVec2_t Dvar_RegisterVec2;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterVec3_t)(const char* name, float defx, float defy, float defz, float min, float max, int flags, const char* description);
+	typedef dvar_t*(__cdecl * Dvar_RegisterVec3_t)(const char* dvarName, float x, float y, float z, float min, float max, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterVec3_t Dvar_RegisterVec3;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterVec4_t)(const char* name, float defx, float defy, float defz, float defw, float min, float max, int flags, const char* description);
+	typedef dvar_t*(__cdecl * Dvar_RegisterVec4_t)(const char* dvarName, float x, float y, float z, float w, float min, float max, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterVec4_t Dvar_RegisterVec4;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterInt_t)(const char* name, int defaultVal, int min, int max, int flags, const char* description);
+	typedef dvar_t*(__cdecl * Dvar_RegisterInt_t)(const char* dvarName, int value, int min, int max, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterInt_t Dvar_RegisterInt;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterEnum_t)(const char* name, const char** enumValues, int defaultVal, int flags, const char* description);
+	typedef dvar_t*(__cdecl * Dvar_RegisterEnum_t)(const char* dvarName, const char** valueList, int defaultIndex, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterEnum_t Dvar_RegisterEnum;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterString_t)(const char* name, const char* defaultVal, int, const char*);
+	typedef dvar_t*(__cdecl * Dvar_RegisterString_t)(const char* dvarName, const char* value, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterString_t Dvar_RegisterString;
 
-	typedef dvar_t* (__cdecl * Dvar_RegisterColor_t)(const char* name, float r, float g, float b, float a, int flags, const char* description);
+	typedef dvar_t*(__cdecl * Dvar_RegisterColor_t)(const char* dvarName, float r, float g, float b, float a, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterColor_t Dvar_RegisterColor;
 
 	typedef void(__cdecl * Dvar_SetFromStringByName_t)(const char* dvarName, const char* string);
 	extern Dvar_SetFromStringByName_t Dvar_SetFromStringByName;
 
-	typedef const dvar_t* (__cdecl * Dvar_SetFromStringByNameFromSource_t)(const char* dvarName, const char* string, DvarSetSource source);
+	typedef const dvar_t*(__cdecl * Dvar_SetFromStringByNameFromSource_t)(const char* dvarName, const char* string, DvarSetSource source);
 	extern Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource;
 
-	typedef void (__cdecl * Dvar_SetStringByName_t)(const char* cvar, const char* value);
+	typedef void(__cdecl * Dvar_SetStringByName_t)(const char* dvarName, const char* value);
 	extern Dvar_SetStringByName_t Dvar_SetStringByName;
 
-	typedef void (__cdecl * Dvar_SetString_t)(const dvar_t* cvar, const char* value);
+	typedef void(__cdecl * Dvar_SetString_t)(const dvar_t* dvar, const char* value);
 	extern Dvar_SetString_t Dvar_SetString;
 
-	typedef void (__cdecl * Dvar_SetBool_t)(const dvar_t* cvar, bool enabled);
+	typedef void(__cdecl * Dvar_SetBool_t)(const dvar_t* dvar, bool enabled);
 	extern Dvar_SetBool_t Dvar_SetBool;
 
-	typedef void (__cdecl * Dvar_SetFloat_t)(const dvar_t* cvar, float value);
+	typedef void(__cdecl * Dvar_SetFloat_t)(const dvar_t* dvar, float value);
 	extern Dvar_SetFloat_t Dvar_SetFloat;
 
-	typedef void (__cdecl * Dvar_SetInt_t)(const dvar_t* cvar, int integer);
+	typedef void(__cdecl * Dvar_SetInt_t)(const dvar_t* dvar, int integer);
 	extern Dvar_SetInt_t Dvar_SetInt;
 
-	typedef void(__cdecl * Dvar_GetUnpackedColorByName_t)(const char* name, float* color);
+	typedef void(__cdecl * Dvar_GetUnpackedColorByName_t)(const char* dvarName, float* expandedColor);
 	extern Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName;
 
-	typedef dvar_t* (__cdecl * Dvar_FindVar_t)(const char *dvarName);
+	typedef dvar_t*(__cdecl * Dvar_FindVar_t)(const char* dvarName);
 	extern Dvar_FindVar_t Dvar_FindVar;
 
-	typedef char* (__cdecl * Dvar_InfoString_Big_t)(int bit);
+	typedef char*(__cdecl * Dvar_InfoString_Big_t)(int bit);
 	extern Dvar_InfoString_Big_t Dvar_InfoString_Big;
 
 	typedef void(__cdecl * Dvar_SetCommand_t)(const char* dvarName, const char* string);
 	extern Dvar_SetCommand_t Dvar_SetCommand;
 
-	typedef const char* (__cdecl * Dvar_DisplayableValue_t)(const dvar_t* cvar);
+	typedef const char*(__cdecl * Dvar_DisplayableValue_t)(const dvar_t* dvar);
 	extern Dvar_DisplayableValue_t Dvar_DisplayableValue;
 
 	typedef bool(__cdecl * Encode_Init_t)(const char* );
@@ -930,13 +930,9 @@ namespace Game
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
-	extern DWORD* cmd_id;
-	extern DWORD* cmd_argc;
-	extern char*** cmd_argv;
-
-	extern DWORD* cmd_id_sv;
-	extern DWORD* cmd_argc_sv;
-	extern char*** cmd_argv_sv;
+	constexpr auto CMD_MAX_NESTING = 8;
+	extern CmdArgs* cmd_args;
+	extern CmdArgs* sv_cmd_args;
 
 	extern cmd_function_t** cmd_functions;
 

@@ -66,6 +66,6 @@ namespace Components
 		static void ToggleConsole();
 		static char** GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType);
 
-		static Game::dvar_t* RegisterConColor(const char* name, float r, float g, float b, float a, float min, float max, int flags, const char* description);
+		static Game::dvar_t* RegisterConColor(const char* dvarName, float r, float g, float b, float a, float min, float max, unsigned __int16 flags, const char* description);
 	};
 }

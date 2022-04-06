@@ -845,7 +845,7 @@ namespace Components
 
 			Command::Add("openmenu", [](Command::Params* params)
 				{
-					if (params->length() != 2)
+					if (params->size() != 2)
 					{
 						Logger::Print("USAGE: openmenu <menu name>\n");
 						return;
@@ -913,7 +913,6 @@ namespace Components
 
 	Menus::~Menus()
 	{
-		Menus::CustomMenus.clear();
 		Menus::FreeEverything();
 	}
 }

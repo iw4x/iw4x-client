@@ -76,9 +76,4 @@ namespace Components
 			return header;
 		});
 	}
-
-	StringTable::~StringTable()
-	{
-		StringTable::StringTableMap.clear();
-	}
 }

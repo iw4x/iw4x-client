@@ -28,7 +28,7 @@ namespace Components
 		static void InvalidNameStub();
 
 		static Dvar::Var r_customAspectRatio;
-		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* name, char** enumValues, int defaultVal, int flags, const char* description);
+		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** valueList, int defaultIndex, unsigned __int16 flags, const char* description);
 		static void SetAspectRatioStub();
 		static void SetAspectRatio();
 

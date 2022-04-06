@@ -74,29 +74,27 @@ namespace Game
 		ASSET_TYPE_INVALID = -1,
 	};
 
-	typedef enum : unsigned int
+	enum dvar_flag : unsigned __int16
 	{
-		DVAR_FLAG_NONE = 0x0,			//no flags
-		DVAR_FLAG_SAVED = 0x1,			//saves in config_mp.cfg for clients
-		DVAR_FLAG_LATCHED = 0x2,			//no changing apart from initial value (although it might apply on a map reload, I think)
-		DVAR_FLAG_CHEAT = 0x4,			//cheat
-		DVAR_FLAG_REPLICATED = 0x8,			//on change, this is sent to all clients (if you are host)
-		DVAR_FLAG_UNKNOWN10 = 0x10,			//unknown
-		DVAR_FLAG_UNKNOWN20 = 0x20,			//unknown
-		DVAR_FLAG_UNKNOWN40 = 0x40,			//unknown
-		DVAR_FLAG_UNKNOWN80 = 0x80,			//unknown
-		DVAR_FLAG_USERCREATED = 0x100,		//a 'set' type command created it
-		DVAR_FLAG_USERINFO = 0x200,		//userinfo?
-		DVAR_FLAG_SERVERINFO = 0x400,		//in the getstatus oob
-		DVAR_FLAG_WRITEPROTECTED = 0x800,		//write protected
-		DVAR_FLAG_UNKNOWN1000 = 0x1000,		//unknown
-		DVAR_FLAG_READONLY = 0x2000,		//read only (same as 0x800?)
-		DVAR_FLAG_UNKNOWN4000 = 0x4000,		//unknown
-		DVAR_FLAG_UNKNOWN8000 = 0x8000,		//unknown
-		DVAR_FLAG_UNKNOWN10000 = 0x10000,		//unknown
-		DVAR_FLAG_DEDISAVED = 0x1000000,		//unknown
-		DVAR_FLAG_NONEXISTENT = 0xFFFFFFFF	//no such dvar
-	} dvar_flag;
+		DVAR_NONE = 0x0,	// No flags
+		DVAR_ARCHIVE = 0x1,	// Set to cause it to be saved to config_mp.cfg of the client
+		DVAR_LATCH = 0x2,	// Will only change when C code next does a Dvar_Get(), so it can't be changed 
+					// without proper initialization. Modified will be set, even though the value hasn't changed yet
+		DVAR_CHEAT = 0x4,	// Can not be changed if cheats are disabled
+		DVAR_CODINFO = 0x8,	// On change, this is sent to all clients (if you are host)
+		DVAR_SCRIPTINFO = 0x10,
+		DVAR_UNKNOWN20 = 0x20,
+		DVAR_CHANGEABLE_RESET = 0x40,
+		DVAR_UNKNOWN80 = 0x80,
+		DVAR_EXTERNAL = 0x100,	// Created by a set command
+		DVAR_USERINFO = 0x200,	// Sent to server on connect or change
+		DVAR_SERVERINFO = 0x400, // Sent in response to front end requests
+		DVAR_WRITEPROTECTED = 0x800,
+		DVAR_SYSTEMINFO = 0x1000, // Will be duplicated on all clients
+		DVAR_READONLY = 0x2000, // Read only (same as DVAR_WRITEPROTECTED?)
+		DVAR_SAVED = 0x4000,
+		DVAR_AUTOEXEC = 0x8000,
+	};
 
 	enum ImageCategory : char
 	{
@@ -170,8 +168,8 @@ namespace Game
 	typedef enum
 	{
 		CS_FREE = 0x0,
-		CS_UNKNOWN1 = 0x1,
-		CS_UNKNOWN2 = 0x2,
+		CS_ZOMBIE = 0x1,
+		CS_RECONNECTING = 0x2,
 		CS_CONNECTED = 0x3,
 		CS_CLIENTLOADING = 0x4,
 		CS_ACTIVE = 0x5,
@@ -243,6 +241,17 @@ namespace Game
 	struct Statement_s;
 	struct MenuEventHandlerSet;
 	struct menuDef_t;
+
+	struct CmdArgs
+	{
+		int nesting;
+		int localClientNum[8];
+		int controllerIndex[8];
+		int argc[8];
+		const char** argv[8];
+	};
+
+	static_assert(sizeof(CmdArgs) == 132);
 
 	typedef struct cmd_function_s
 	{
@@ -3329,14 +3338,14 @@ namespace Game
 		unsigned int unsignedInt;
 		float value;
 		float vector[4];
-		const char *string;
+		const char* string;
 		unsigned char color[4];
 	};
 
 	struct $BFBB53559BEAC4289F32B924847E59CB
 	{
 		int stringCount;
-		const char **strings;
+		const char** strings;
 	};
 
 	struct $9CA192F9DB66A3CB7E01DE78A0DEA53D
@@ -3361,8 +3370,8 @@ namespace Game
 
 	struct dvar_t
 	{
-		const char *name;
-		const char *description;
+		const char* name;
+		const char* description;
 		unsigned int flags;
 		dvar_type type;
 		bool modified;
@@ -3370,26 +3379,26 @@ namespace Game
 		DvarValue latched;
 		DvarValue reset;
 		DvarLimits domain;
-		bool(__cdecl *domainFunc)(dvar_t *, DvarValue);
+		bool(__cdecl * domainFunc)(dvar_t*, DvarValue);
 		dvar_t *hashNext;
 	};
 
 	struct StaticDvar
 	{
-		dvar_t *dvar;
-		char *dvarName;
+		dvar_t* dvar;
+		char* dvarName;
 	};
 
 	struct StaticDvarList
 	{
 		int numStaticDvars;
-		StaticDvar **staticDvars;
+		StaticDvar** staticDvars;
 	};
 
 	struct StringList
 	{
 		int totalStrings;
-		const char **strings;
+		const char** strings;
 	};
 
 	struct ExpressionSupportingData
