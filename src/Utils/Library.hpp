@@ -9,7 +9,7 @@ namespace Utils
 		static Library Load(const std::filesystem::path& path);
 		static Library GetByAddress(void* address);
 
-		Library() : _module(GetModuleHandleA(nullptr)), freeOnDestroy(false) {};
+		Library() : _module(nullptr), freeOnDestroy(false) {};
 		explicit Library(const std::string& name, bool freeOnDestroy);
 		explicit Library(const std::string& name) : _module(GetModuleHandleA(name.data())), freeOnDestroy(true) {};
 		explicit Library(HMODULE handle);
