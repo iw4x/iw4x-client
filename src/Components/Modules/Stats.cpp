@@ -107,9 +107,4 @@ namespace Components
 		// Write stats to mod folder if a mod is loaded
 		Utils::Hook(0x682F7B, Stats::SaveStats, HOOK_CALL).install()->quick();
 	}
-
-	Stats::~Stats()
-	{
-
-	}
 }

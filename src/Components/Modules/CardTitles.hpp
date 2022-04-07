@@ -60,7 +60,6 @@ namespace Components
 		static void ParseCustomTitles(const char * msg);
 
 		CardTitles();
-		~CardTitles();
 
 	private:
 		static CClient * GetClientByIndex(std::uint32_t index);

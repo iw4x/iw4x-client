@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		Changelog();
-		~Changelog();
 
 		static void LoadChangelog();
 

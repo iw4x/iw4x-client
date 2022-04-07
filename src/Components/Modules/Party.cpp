@@ -79,7 +79,7 @@ namespace Components
 
 	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int /*value*/, int /*min*/, int max, Game::dvar_flag flag, const char* description)
 	{
-		return Dvar::Register<int>(name, 1, 1, max, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED | flag, description).get<Game::dvar_t*>();
+		return Dvar::Register<int>(name, 1, 1, max, Game::dvar_flag::DVAR_WRITEPROTECTED | flag, description).get<Game::dvar_t*>();
 	}
 
 	bool Party::PlaylistAwaiting()
@@ -150,8 +150,8 @@ namespace Components
 
 	Party::Party()
 	{
-		static Game::dvar_t* partyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::dvar_flag::DVAR_FLAG_NONE, "Enable party system").get<Game::dvar_t*>();
-		Dvar::Register<bool>("xblive_privatematch", true, Game::dvar_flag::DVAR_FLAG_WRITEPROTECTED, "");
+		static Game::dvar_t* partyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::dvar_flag::DVAR_NONE, "Enable party system").get<Game::dvar_t*>();
+		Dvar::Register<bool>("xblive_privatematch", true, Game::dvar_flag::DVAR_WRITEPROTECTED, "");
 
 		// various changes to SV_DirectConnect-y stuff to allow non-party joinees
 		Utils::Hook::Set<WORD>(0x460D96, 0x90E9);
@@ -249,19 +249,19 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x5E3772, "sv_maxclients");
 
 		// Unlatch maxclient dvars
-		Utils::Hook::Xor<BYTE>(0x426187, Game::dvar_flag::DVAR_FLAG_LATCHED);
-		Utils::Hook::Xor<BYTE>(0x4D374E, Game::dvar_flag::DVAR_FLAG_LATCHED);
-		Utils::Hook::Xor<BYTE>(0x5E376A, Game::dvar_flag::DVAR_FLAG_LATCHED);
-		Utils::Hook::Xor<DWORD>(0x4261A1, Game::dvar_flag::DVAR_FLAG_LATCHED);
-		Utils::Hook::Xor<DWORD>(0x4D376D, Game::dvar_flag::DVAR_FLAG_LATCHED);
-		Utils::Hook::Xor<DWORD>(0x5E3789, Game::dvar_flag::DVAR_FLAG_LATCHED);
+		Utils::Hook::Xor<BYTE>(0x426187, Game::dvar_flag::DVAR_LATCH);
+		Utils::Hook::Xor<BYTE>(0x4D374E, Game::dvar_flag::DVAR_LATCH);
+		Utils::Hook::Xor<BYTE>(0x5E376A, Game::dvar_flag::DVAR_LATCH);
+		Utils::Hook::Xor<DWORD>(0x4261A1, Game::dvar_flag::DVAR_LATCH);
+		Utils::Hook::Xor<DWORD>(0x4D376D, Game::dvar_flag::DVAR_LATCH);
+		Utils::Hook::Xor<DWORD>(0x5E3789, Game::dvar_flag::DVAR_LATCH);
 
 		// Patch Live_PlayerHasLoopbackAddr
 		//Utils::Hook::Set<DWORD>(0x418F30, 0x90C3C033);
 
 		Command::Add("connect", [](Command::Params* params)
 		{
-			if (params->length() < 2)
+			if (params->size() < 2)
 			{
 				return;
 			}
@@ -512,10 +512,5 @@ namespace Components
 			ServerList::Insert(address, info);
 			Friends::UpdateServer(address, info.get("hostname"), info.get("mapname"));
 		});
-	}
-
-	Party::~Party()
-	{
-		Party::LobbyMap.clear();
 	}
 }

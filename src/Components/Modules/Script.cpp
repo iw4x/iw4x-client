@@ -705,14 +705,6 @@ namespace Components
 
 	Script::~Script()
 	{
-		Script::ScriptName.clear();
-		Script::ScriptHandles.clear();
-		Script::ScriptNameStack.clear();
-		Script::ScriptFunctions.clear();
-		Script::ReplacedFunctions.clear();
 		Script::VMShutdownSignal.clear();
-
-		Script::ScriptStorage.clear();
-		Script::ScriptBaseProgramNum.clear();
 	}
 }

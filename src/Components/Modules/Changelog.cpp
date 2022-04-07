@@ -60,12 +60,4 @@ namespace Components
 		Scheduler::OnFrameAsync(AntiCheat::QuickCodeScanner1);
 #endif
 	}
-
-	Changelog::~Changelog()
-	{
-		{
-			std::lock_guard<std::mutex> _(Changelog::Mutex);
-			Changelog::Lines.clear();
-		}
-	}
 }

@@ -37,7 +37,10 @@ namespace Components
 	int Weapon::ParseWeaponConfigStrings()
 	{
 		Command::ClientParams params;
-		if (params.length() <= 1) return 0;
+
+		if (params.size() <= 1)
+			return 0;
+
 		int index = atoi(params[1]);
 
 		if (index >= 4139)

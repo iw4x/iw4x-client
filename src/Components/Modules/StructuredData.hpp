@@ -24,7 +24,6 @@ namespace Components
 		};
 
 		StructuredData();
-		~StructuredData();
 
 	private:
 		static bool UpdateVersionOffsets(Game::StructuredDataDefSet *set, Game::StructuredDataBuffer *buffer, Game::StructuredDataDef *oldDef);

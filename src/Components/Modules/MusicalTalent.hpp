@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		MusicalTalent();
-		~MusicalTalent();
 
 		static void Replace(const std::string& sound, const char* file);
 

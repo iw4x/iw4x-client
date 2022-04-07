@@ -10,7 +10,6 @@ namespace Components
 		static const char* GetUserClantag(std::uint32_t clientnum, const char * playername);
 
 		ClanTags();
-		~ClanTags();
 
 	private:
 		static std::string Tags[18];

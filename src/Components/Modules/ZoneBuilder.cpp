@@ -1110,7 +1110,7 @@ namespace Components
 
 			Command::Add("verifyzone", [](Command::Params* params)
 			{
-				if (params->length() < 2) return;
+				if (params->size() < 2) return;
                 /*
                 Utils::Hook(0x4AE9C2, [] {
                     Game::WeaponCompleteDef** varPtr = (Game::WeaponCompleteDef**)0x112A9F4;
@@ -1165,7 +1165,7 @@ namespace Components
 
 			Command::Add("buildzone", [](Command::Params* params)
 			{
-				if (params->length() < 2) return;
+				if (params->size() < 2) return;
 
 				std::string zoneName = params->get(1);
 				Logger::Print("Building zone '%s'...\n", zoneName.data());
@@ -1455,7 +1455,7 @@ namespace Components
 
 			Command::Add("listassets", [](Command::Params* params)
 			{
-				if (params->length() < 2) return;
+				if (params->size() < 2) return;
 				Game::XAssetType type = Game::DB_GetXAssetNameType(params->get(1));
 
 				if (type != Game::XAssetType::ASSET_TYPE_INVALID)
@@ -1470,7 +1470,7 @@ namespace Components
 
 			Command::Add("loadtempzone", [](Command::Params* params)
 			{
-				if (params->length() < 2) return;
+				if (params->size() < 2) return;
 
 				if (FastFiles::Exists(params->get(1)))
 				{
@@ -1502,7 +1502,7 @@ namespace Components
 
 			Command::Add("iwiDump", [](Command::Params* params)
 			{
-				if (params->length() < 2) return;
+				if (params->size() < 2) return;
 
 				std::string path = Utils::String::VA("%s\\mods\\%s\\images", Dvar::Var("fs_basepath").get<const char*>(), params->get(1));
 				std::vector<std::string> images = FileSystem::GetSysFileList(path, "iwi", false);
@@ -1525,7 +1525,7 @@ namespace Components
 				Logger::Print("------------------- END IWI DUMP -------------------\n");
 			});
 
-			ZoneBuilder::PreferDiskAssetsDvar = Dvar::Register<bool>("zb_prefer_disk_assets", false, Game::DVAR_FLAG_NONE, "Should zonebuilder prefer in-memory assets (requirements) or disk assets, when both are present?");
+			ZoneBuilder::PreferDiskAssetsDvar = Dvar::Register<bool>("zb_prefer_disk_assets", false, Game::DVAR_NONE, "Should zonebuilder prefer in-memory assets (requirements) or disk assets, when both are present?");
 		}
 	}
 

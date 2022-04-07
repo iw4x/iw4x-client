@@ -192,14 +192,14 @@ namespace Components
 	{
 		Dvar::OnInit([]()
 		{
-			CardTitles::CustomTitleDvar = Dvar::Register<const char*>("customtitle", "", Game::dvar_flag::DVAR_FLAG_USERINFO | Game::dvar_flag::DVAR_FLAG_SAVED, "Custom card title");
+			CardTitles::CustomTitleDvar = Dvar::Register<const char*>("customtitle", "", Game::dvar_flag::DVAR_USERINFO | Game::dvar_flag::DVAR_ARCHIVE, "Custom card title");
 		});
 
 		ServerCommands::OnCommand(21, [](Command::Params* params)
 		{
 			if (params->get(1) == "customTitles"s && !Dedicated::IsEnabled())
 			{
-				if (params->length() == 3)
+				if (params->size() == 3)
 				{
 					CardTitles::ParseCustomTitles(params->get(2));
 					return true;
@@ -209,11 +209,6 @@ namespace Components
 			return false;
 
 		});
-
-		for (int i = 0; i < ARRAYSIZE(CardTitles::CustomTitles); ++i)
-		{
-			CardTitles::CustomTitles[i].clear();
-		}
 
 		Utils::Hook(0x62EB26, CardTitles::GetPlayerCardClientInfoStub).install()->quick();
 
@@ -226,13 +221,5 @@ namespace Components
 #if !defined(DISABLE_ANTICHEAT)
         AntiCheat::CheckStartupTime();
 #endif
-	}
-
-	CardTitles::~CardTitles()
-	{
-		for (int i = 0; i < ARRAYSIZE(CardTitles::CustomTitles); ++i)
-		{
-			CardTitles::CustomTitles[i].clear();
-		}
 	}
 }
