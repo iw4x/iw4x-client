@@ -52,8 +52,8 @@ jobs:
         with:
           name: ${{matrix.configuration}} binaries
           path: |
-            build/bin/${{matrix.configuration}}/iw4x.dll
-            build/bin/${{matrix.configuration}}/iw4x.pdb
+            build/bin/Win32/${{matrix.configuration}}/iw4x.dll
+            build/bin/Win32/${{matrix.configuration}}/iw4x.pdb
 
 #      - name: Upload ${{matrix.configuration}} data artifacts
 #        uses: actions/upload-artifact@v2

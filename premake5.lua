@@ -216,8 +216,7 @@ workspace "iw4x"
 	startproject "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
-	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
-	buildlog "%{wks.location}/obj/%{cfg.architecture}/%{cfg.buildcfg}/%{prj.name}/%{prj.name}.log"
+	targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
 
 	configurations {"Debug", "Release"}
 
