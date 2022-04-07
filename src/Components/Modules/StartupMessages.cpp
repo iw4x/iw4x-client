@@ -9,9 +9,9 @@ namespace Components
 	{
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<const char*>("ui_startupMessage", "", Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
-			Dvar::Register<const char*>("ui_startupMessageTitle", "", Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
-			Dvar::Register<const char*>("ui_startupNextButtonText", "", Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
+			Dvar::Register<const char*>("ui_startupMessage", "", Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
+			Dvar::Register<const char*>("ui_startupMessageTitle", "", Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
+			Dvar::Register<const char*>("ui_startupNextButtonText", "", Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
 		});
 
 		UIScript::Add("nextStartupMessage", [](UIScript::Token)
@@ -32,11 +32,6 @@ namespace Components
 
 			StartupMessages::MessageList.pop_front();
 		});
-	}
-
-	StartupMessages::~StartupMessages()
-	{
-		StartupMessages::MessageList.clear();
 	}
 
 	void StartupMessages::AddMessage(const std::string& message)

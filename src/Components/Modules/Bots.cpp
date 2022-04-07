@@ -345,7 +345,7 @@ namespace Components
 		{
 			auto count = 1u;
 
-			if (params->length() > 1)
+			if (params->size() > 1)
 			{
 				if (params->get(1) == "all"s)
 				{

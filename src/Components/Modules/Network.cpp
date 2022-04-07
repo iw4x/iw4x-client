@@ -423,11 +423,4 @@ namespace Components
 			Network::SendRaw(address, address.getString());
 		});
 	}
-
-	Network::~Network()
-	{
-		Network::SelectedPacket.clear();
-		Network::PacketHandlers.clear();
-		Network::StartupSignal.clear();
-	}
 }

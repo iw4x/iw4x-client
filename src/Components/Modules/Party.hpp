@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		Party();
-		~Party();
 
 		static Network::Address Target();
 		static void Connect(Network::Address target);

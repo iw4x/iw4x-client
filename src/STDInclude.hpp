@@ -54,14 +54,7 @@
 #include <Xinput.h>
 #pragma comment (lib, "xinput.lib")
 
-// Usefull for debugging
-template <size_t S> class Sizer { };
-#define BindNum(x, y) Sizer<x> y;
-#define Size_Of(x, y) BindNum(sizeof(x), y)
-#define Offset_Of(x, y, z) BindNum(offsetof(x, y), z)
-
-// Submodules
-// Ignore the warnings, it's not our code!
+// Ignore the warnings
 #pragma warning(push)
 #pragma warning(disable: 4005)
 #pragma warning(disable: 4091)
@@ -79,6 +72,7 @@ template <size_t S> class Sizer { };
 #pragma warning(disable: 6258)
 #pragma warning(disable: 6386)
 #pragma warning(disable: 6387)
+#pragma warning(disable: 26812)
 
 #include <zlib.h>
 

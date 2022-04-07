@@ -52,7 +52,6 @@ namespace Components
 		typedef void(CallbackRaw)();
 
 		Network();
-		~Network();
 
 		static unsigned short GetPort();
 

@@ -3,6 +3,9 @@ gitCurrentBranchCommand = "git symbolic-ref -q --short HEAD"
 
 -- Quote the given string input as a C string
 function cstrquote(value)
+	if value == nil then
+		return "\"\""
+	end
 	result = value:gsub("\\", "\\\\")
 	result = result:gsub("\"", "\\\"")
 	result = result:gsub("\n", "\\n")
@@ -27,16 +30,40 @@ function vertonumarr(value, vernumber)
 	return vernum
 end
 
--- Option to allow copying the DLL file to a custom folder after build
+dependencies = {
+	basePath = "./deps"
+}
+
+function dependencies.load()
+	dir = path.join(dependencies.basePath, "premake/*.lua")
+	deps = os.matchfiles(dir)
+
+	for i, dep in pairs(deps) do
+		dep = dep:gsub(".lua", "")
+		require(dep)
+	end
+end
+
+function dependencies.imports()
+	for i, proj in pairs(dependencies) do
+		if type(i) == 'number' then
+			proj.import()
+		end
+	end
+end
+
+function dependencies.projects()
+	for i, proj in pairs(dependencies) do
+		if type(i) == 'number' then
+			proj.project()
+		end
+	end
+end
+
 newoption {
 	trigger = "copy-to",
 	description = "Optional, copy the DLL to a custom folder after build, define the path here if wanted.",
 	value = "PATH"
-}
-
-newoption {
-	trigger = "no-new-structure",
-	description = "Do not use new virtual path structure (separating headers and source files)."
 }
 
 newoption {
@@ -183,81 +210,21 @@ newaction {
 	end
 }
 
-depsBasePath = "./deps"
-
-require "premake/json11"
-require "premake/libtomcrypt"
-require "premake/libtommath"
-require "premake/mongoose"
-require "premake/pdcurses"
-require "premake/protobuf"
-require "premake/zlib"
-require "premake/udis86"
-require "premake/dxsdk"
-
-json11.setup
-{
-	source = path.join(depsBasePath, "json11"),
-}
-libtomcrypt.setup
-{
-	defines = {
-		"LTC_NO_FAST",
-		"LTC_NO_PROTOTYPES",
-		"LTC_NO_RSA_BLINDING",
-	},
-	source = path.join(depsBasePath, "libtomcrypt"),
-}
-libtommath.setup
-{
-	defines = {
-		"LTM_DESC",
-		"__STDC_IEC_559__",
-	},
-	source = path.join(depsBasePath, "libtommath"),
-}
-mongoose.setup
-{
-	source = path.join(depsBasePath, "mongoose"),
-}
-pdcurses.setup
-{
-	source = path.join(depsBasePath, "pdcurses"),
-}
-protobuf.setup
-{
-	source = path.join(depsBasePath, "protobuf"),
-}
-zlib.setup
-{
-	defines = {
-		"ZLIB_CONST"
-	},
-	source = path.join(depsBasePath, "zlib"),
-}
-udis86.setup
-{
-	source = path.join(depsBasePath, "udis86"),
-}
-dxsdk.setup
-{
-	source = path.join(depsBasePath, "dxsdk"),
-}
+dependencies.load()
 
 workspace "iw4x"
 	startproject "iw4x"
 	location "./build"
 	objdir "%{wks.location}/obj"
-	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
-	buildlog "%{wks.location}/obj/%{cfg.architecture}/%{cfg.buildcfg}/%{prj.name}/%{prj.name}.log"
+	targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
 
-	configurations { "Debug", "Release" }
+	configurations {"Debug", "Release"}
 
 	language "C++"
 	cppdialect "C++17"
 
 	architecture "x86"
-	platforms "x86"
+	platforms "Win32"
 
 	systemversion "latest"
 	symbols "On"
@@ -266,18 +233,18 @@ workspace "iw4x"
 	warnings "Extra"
 	characterset "ASCII"
 
-	flags { "NoIncrementalLink", "NoMinimalRebuild", "MultiProcessorCompile", "No64BitChecks" }
+	flags {"NoIncrementalLink", "NoMinimalRebuild", "MultiProcessorCompile", "No64BitChecks"}
 
-	filter "platforms:x86"
+	filter "platforms:Win*"
 		defines {"_WINDOWS", "WIN32"}
 	filter {}
 
 	filter "configurations:Release"
-		optimize "On"
-		buildoptions { "/GL" }
-		linkoptions { "/IGNORE:4702", "/LTCG" }
-		defines { "NDEBUG" }
-		flags { "FatalCompileWarnings", "FatalLinkWarnings" }
+		optimize "Size"
+		buildoptions {"/GL"}
+		linkoptions {"/IGNORE:4702", "/LTCG"}
+		defines {"NDEBUG"}
+		flags {"FatalCompileWarnings", "FatalLinkWarnings"}
 
 		if not _OPTIONS["force-unit-tests"] then
 			rtti ("Off")
@@ -286,7 +253,7 @@ workspace "iw4x"
 
 	filter "configurations:Debug"
 		optimize "Debug"
-		defines { "DEBUG", "_DEBUG" }
+		defines {"DEBUG", "_DEBUG"}
 	filter {}
 
 	project "iw4x"
@@ -296,7 +263,6 @@ workspace "iw4x"
 			"./src/**.rc",
 			"./src/**.hpp",
 			"./src/**.cpp",
-			--"./src/**.proto",
 		}
 		includedirs {
 			"%{prj.location}/src",
@@ -312,66 +278,32 @@ workspace "iw4x"
 
 		-- Debug flags
 		if _OPTIONS["ac-disable"] then
-			defines { "DISABLE_ANTICHEAT" }
+			defines {"DISABLE_ANTICHEAT"}
 		end
 		if _OPTIONS["ac-debug-detections"] then
-			defines { "DEBUG_DETECTIONS" }
+			defines {"DEBUG_DETECTIONS"}
 		end
 		if _OPTIONS["ac-debug-load-library"] then
-			defines { "DEBUG_LOAD_LIBRARY" }
+			defines {"DEBUG_LOAD_LIBRARY"}
 		end
 		if _OPTIONS["force-unit-tests"] then
-			defines { "FORCE_UNIT_TESTS" }
+			defines {"FORCE_UNIT_TESTS"}
 		end
 		if _OPTIONS["force-minidump-upload"] then
-			defines { "FORCE_MINIDUMP_UPLOAD" }
+			defines {"FORCE_MINIDUMP_UPLOAD"}
 		end
 		if _OPTIONS["force-exception-handler"] then
-			defines { "FORCE_EXCEPTION_HANDLER" }
+			defines {"FORCE_EXCEPTION_HANDLER"}
 		end
 		if _OPTIONS["iw4x-zones"] then
-			defines { "GENERATE_IW4X_SPECIFIC_ZONES" }
+			defines {"GENERATE_IW4X_SPECIFIC_ZONES"}
 		end
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
-		buildoptions { "/Zm200" }
 
-		-- Dependency libraries
-		json11.import()
-		libtomcrypt.import()
-		libtommath.import()
-		mongoose.import()
-		pdcurses.import()
-		protobuf.import()
-		zlib.import()
-		udis86.import()
-		dxsdk.import()
-
-		-- fix vpaths for protobuf sources
-		vpaths
-		{
-			["*"] = { "./src/**" },
-			--["Proto/Generated"] = { "**.pb.*" }, -- meh.
-		}
-
-		-- Virtual paths
-		if not _OPTIONS["no-new-structure"] then
-			vpaths
-			{
-				["Headers/*"] = { "./src/**.hpp" },
-				["Sources/*"] = { "./src/**.cpp" },
-				["Resource/*"] = { "./src/**.rc" },
-				--["Proto/Definitions/*"] = { "./src/Proto/**.proto" },
-				--["Proto/Generated/*"] = { "**.pb.*" }, -- meh.
-			}
-		end
-
-		vpaths
-		{
-			["Docs/*"] = { "**.txt","**.md" },
-		}
+		dependencies.imports()
 
 		-- Pre-build
 		prebuildcommands
@@ -400,49 +332,9 @@ workspace "iw4x"
 			}
 		end
 
-		--[[
-		-- Generate source code from protobuf definitions
-		rules { "ProtobufCompiler" }
 
-		-- Workaround: Consume protobuf generated source files
-		matches = os.matchfiles(path.join("src/Proto/**.proto"))
-		for i, srcPath in ipairs(matches) do
-			basename = path.getbasename(srcPath)
-			files
-			{
-				string.format("%%{prj.location}/src/proto/%s.pb.h", basename),
-				string.format("%%{prj.location}/src/proto/%s.pb.cc", basename),
-			}
-		end
-		includedirs
-		{
-			"%{prj.location}/src/proto",
-		}
-		filter "files:**.pb.*"
-			flags {
-				"NoPCH",
-			}
-			buildoptions {
-				"/wd4100", -- "Unused formal parameter"
-				"/wd4389", -- "Signed/Unsigned mismatch"
-				"/wd6011", -- "Dereferencing NULL pointer"
-				"/wd4125", -- "Decimal digit terminates octal escape sequence"
-			}
-			defines {
-				"_SCL_SECURE_NO_WARNINGS",
-			}
-		filter {}
-		]]
-
-	group "External dependencies"
-		json11.project()
-		libtomcrypt.project()
-		libtommath.project()
-		mongoose.project()
-		pdcurses.project()
-		protobuf.project()
-		zlib.project()
-		udis86.project()
+group "External Dependencies"
+dependencies.projects()
 
 rule "ProtobufCompiler"
 	display "Protobuf compiler"

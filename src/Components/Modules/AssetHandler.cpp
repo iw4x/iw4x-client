@@ -494,7 +494,7 @@ namespace Components
 	{
 		this->reallocateEntryPool();
 
-		Dvar::Register<bool>("r_noVoid", false, Game::DVAR_FLAG_SAVED, "Disable void model (red fx)");
+		Dvar::Register<bool>("r_noVoid", false, Game::DVAR_ARCHIVE, "Disable void model (red fx)");
 
 		AssetHandler::ClearTemporaryAssets();
 

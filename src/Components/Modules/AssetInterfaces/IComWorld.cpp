@@ -1,4 +1,4 @@
-#include <StdInclude.hpp>
+#include <STDInclude.hpp>
 
 #define IW4X_COMMAP_VERSION 0
 

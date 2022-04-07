@@ -8,7 +8,6 @@ namespace Components
 		typedef void(*Callback)();
 
 		Playlist();
-		~Playlist();
 
 		static void LoadPlaylist();
 

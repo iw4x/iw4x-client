@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		StartupMessages();
-		~StartupMessages();
 
 		static void AddMessage(const std::string& message);
 

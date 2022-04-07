@@ -1,4 +1,4 @@
-#include <StdInclude.hpp>
+#include <STDInclude.hpp>
 
 namespace Assets
 {

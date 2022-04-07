@@ -495,7 +495,7 @@ namespace Components
 
 	FastFiles::FastFiles()
 	{
-		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display current loaded zone.");
+		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_ARCHIVE, "Display current loaded zone.");
 
 		// Fix XSurface assets
 		Utils::Hook(0x0048E8A5, FastFiles::Load_XSurfaceArray, HOOK_CALL).install()->quick();
@@ -594,7 +594,7 @@ namespace Components
 
 		Command::Add("loadzone", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 
 			Game::XZoneInfo info;
 			info.name = params->get(1);
@@ -621,10 +621,5 @@ namespace Components
 			FastFiles::StreamRead = false;
 		}, HOOK_CALL).install()/*->quick()*/;
 #endif
-	}
-
-	FastFiles::~FastFiles()
-	{
-		FastFiles::ZonePaths.clear();
 	}
 }

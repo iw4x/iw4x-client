@@ -108,7 +108,7 @@ namespace Components
 			};
 
 			Elevators::BG_Elevators = Game::Dvar_RegisterEnum("bg_elevators", values,
-				Elevators::ENABLED, Game::DVAR_FLAG_REPLICATED, "Elevators glitch settings");
+				Elevators::ENABLED, Game::DVAR_CODINFO, "Elevators glitch settings");
 		});
 
 		//Replace PM_CorrectAllSolid
@@ -119,9 +119,5 @@ namespace Components
 		Utils::Hook(0x570EC5, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x570E0B, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x570D70, Elevators::PM_Trace_Hk, HOOK_CALL).install()->quick();
-	}
-
-	Elevators::~Elevators()
-	{
 	}
 }
