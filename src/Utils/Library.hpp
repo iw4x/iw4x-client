@@ -10,7 +10,7 @@ namespace Utils
 		static Library GetByAddress(void* address);
 
 		Library() : _module(nullptr), freeOnDestroy(false) {};
-		explicit Library(const std::string& name, bool freeOnDestroy);
+		Library(const std::string& name, bool freeOnDestroy);
 		explicit Library(const std::string& name) : _module(GetModuleHandleA(name.data())), freeOnDestroy(true) {};
 		explicit Library(HMODULE handle);
 		~Library();
