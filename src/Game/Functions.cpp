@@ -1100,19 +1100,23 @@ namespace Game
 		}
 	}
 
-	bool PM_IsAdsAllowed(Game::playerState_s* playerState)
+	__declspec(naked) bool PM_IsAdsAllowed(playerState_s* /*ps*/)
 	{
-		bool result;
-
 		__asm
 		{
-			mov esi, playerState
-			mov ebx, 0x5755A0
-			call ebx
-			mov result, al // AL
-		}
+			push eax
+			pushad
 
-		return result;
+			mov esi, [esp + 0x24 + 0x4] // ps
+			mov ecx, 0x5755A0
+			call ecx
+
+			mov [esp + 0x20], eax
+			popad
+			pop eax
+
+			ret
+		}
 	}
 
 	__declspec(naked) void FS_AddLocalizedGameDirectory(const char* /*path*/, const char* /*dir*/)
