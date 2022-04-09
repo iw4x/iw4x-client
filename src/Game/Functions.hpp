@@ -648,10 +648,10 @@ namespace Game
 	typedef void(__cdecl * Scr_AddIString_t)(const char* value);
 	extern Scr_AddIString_t Scr_AddIString;
 
-	typedef void(__cdecl * Scr_AddInt_t)(int num);
+	typedef void(__cdecl * Scr_AddInt_t)(int value);
 	extern Scr_AddInt_t Scr_AddInt;
 
-	typedef void(__cdecl * Scr_AddFloat_t)(float);
+	typedef void(__cdecl * Scr_AddFloat_t)(float value);
 	extern Scr_AddFloat_t Scr_AddFloat;
 
 	typedef void(__cdecl * Scr_AddObject_t)(unsigned int id);
@@ -666,19 +666,22 @@ namespace Game
 	typedef int(__cdecl * Scr_LoadScript_t)(const char*);
 	extern Scr_LoadScript_t Scr_LoadScript;
 
-	typedef const char*(__cdecl * Scr_GetString_t)(unsigned int);
+	typedef const char*(__cdecl * Scr_GetString_t)(unsigned int index);
 	extern Scr_GetString_t Scr_GetString;
+
+	typedef unsigned int(__cdecl * Scr_GetConstString_t)(unsigned int index);
+	extern Scr_GetConstString_t Scr_GetConstString;
 
 	typedef const char*(__cdecl * Scr_GetDebugString_t)(unsigned int index);
 	extern Scr_GetDebugString_t Scr_GetDebugString;
 
-	typedef float(__cdecl * Scr_GetFloat_t)(unsigned int);
+	typedef float(__cdecl * Scr_GetFloat_t)(unsigned int index);
 	extern Scr_GetFloat_t Scr_GetFloat;
 
-	typedef int(__cdecl * Scr_GetInt_t)(unsigned int);
+	typedef int(__cdecl * Scr_GetInt_t)(unsigned int index);
 	extern Scr_GetInt_t Scr_GetInt;
 
-	typedef unsigned int(__cdecl * Scr_GetObject_t)(unsigned int);
+	typedef unsigned int(__cdecl * Scr_GetObject_t)(unsigned int index);
 	extern Scr_GetObject_t Scr_GetObject;
 
 	typedef unsigned int(__cdecl * Scr_GetNumParam_t)();

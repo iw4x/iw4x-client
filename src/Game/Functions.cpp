@@ -260,6 +260,7 @@ namespace Game
 	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = Scr_GetFunctionHandle_t(0x4234F0);
 
 	Scr_GetString_t Scr_GetString = Scr_GetString_t(0x425900);
+	Scr_GetConstString_t Scr_GetConstString = Scr_GetConstString_t(0x494830);
 	Scr_GetDebugString_t Scr_GetDebugString = Scr_GetDebugString_t(0x4EBF50);
 	Scr_GetFloat_t Scr_GetFloat = Scr_GetFloat_t(0x443140);
 	Scr_GetInt_t Scr_GetInt = Scr_GetInt_t(0x4F31D0);

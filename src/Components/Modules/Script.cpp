@@ -68,14 +68,13 @@ namespace Components
 		}
 
 		// Let's not throw error unless we have to
-		if (!Game::scrVmPub->abort_on_error)
-			return;
+		if (Game::scrVmPub->terminal_error)
+		{
+			if (dialogMessage == nullptr)
+				dialogMessage = "";
 
-		if (dialogMessage == nullptr)
-			dialogMessage = "";
-
-		const auto errorLevel = (Game::scrVmPub->terminal_error) ? Game::ERR_SCRIPT_DROP : Game::ERR_SCRIPT;
-		Logger::Error(errorLevel, "\x15script runtime error\n(see console for details)\n%s\n%s", msg, dialogMessage);
+			Logger::Error(Game::ERR_SCRIPT_DROP, "\x15script runtime error\n(see console for details)\n%s\n%s", msg, dialogMessage);
+		}
 	}
 
 	void Script::StoreScriptName(const char* name)
@@ -425,12 +424,12 @@ namespace Components
 		Script::VMShutdownSignal.connect(std::move(callback));
 	}
 
-	void Script::ScrShutdownSystemStub(int num)
+	void Script::ScrShutdownSystemStub(unsigned char sys)
 	{
 		Script::VMShutdownSignal();
 
 		// Scr_ShutdownSystem
-		Utils::Hook::Call<void(int)>(0x421EE0)(num);
+		Utils::Hook::Call<void(unsigned char)>(0x421EE0)(sys);
 	}
 
 	unsigned int Script::SetExpFogStub()
@@ -735,8 +734,8 @@ namespace Components
 		Utils::Hook(0x61E92E, Script::VMExecuteInternalStub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x61E933, 1);
 
-		Utils::Hook(0x47548B, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4D06BA, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x47548B, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick(); // G_LoadGame
+		Utils::Hook(0x4D06BA, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick(); // G_ShutdownGame
 
 		Scheduler::OnFrame([]()
 		{
@@ -757,6 +756,7 @@ namespace Components
 			Script::LastFrameTime = nowMs;
 		});
 
+#ifdef _DEBUG 
 		Script::AddFunction("DebugBox", []()
 		{
 			const auto* message = Game::Scr_GetString(0);
@@ -768,6 +768,7 @@ namespace Components
 
 			MessageBoxA(nullptr, message, "DEBUG", MB_OK);
 		}, 1);
+#endif
 
 		Script::AddFunctions();
 

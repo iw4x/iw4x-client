@@ -55,7 +55,7 @@ namespace Components
 		static Game::xfunction_t BuiltIn_GetFunctionStub(const char** pName, int* type);
 		static Game::xmethod_t Player_GetMethodStub(const char** pName);
 
-		static void ScrShutdownSystemStub(int);
+		static void ScrShutdownSystemStub(unsigned char sys);
 		static void StoreScriptBaseProgramNumStub();
 		static void StoreScriptBaseProgramNum();
 		static void Scr_PrintPrevCodePosStub();
