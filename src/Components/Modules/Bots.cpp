@@ -377,7 +377,7 @@ namespace Components
 
 		Bots::AddMethods();
 
-		// Reset activate so test clients can be used after unloading bot warfare
+		// In case a loaded mod didn't call "BotStop" before the VM shutdown
 		Script::OnVMShutdown([]
 		{
 			for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)
