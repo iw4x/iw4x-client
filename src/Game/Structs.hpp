@@ -20,6 +20,8 @@ namespace Game
 	typedef vec_t vec3_t[3];
 	typedef vec_t vec4_t[4];
 
+	typedef unsigned __int16 scr_string_t;
+
 	struct scr_entref_t
 	{
 		unsigned __int16 entnum;

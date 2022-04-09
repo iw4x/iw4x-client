@@ -6,7 +6,7 @@ namespace Components
 
 	void ScriptExtension::AddFunctions()
 	{
-		//File functions
+		// File functions
 		Script::AddFunction("FileWrite", []() // gsc: FileWrite(<filepath>, <string>, <mode>)
 		{
 			const auto* path = Game::Scr_GetString(0);
@@ -123,6 +123,51 @@ namespace Components
 			const auto& folder = p.parent_path().string();
 			const auto& file = p.filename().string();
 			Game::Scr_AddInt(FileSystem::DeleteFile(folder, file));
+		});
+
+		// Misc functions
+		Script::AddFunction("ToUpper", []()
+		{
+			const auto scriptValue = Game::Scr_GetConstString(0);
+			const auto* string = Game::SL_ConvertToString(scriptValue);
+
+			char out[1024] = {0}; // 1024 is the max for a string in this SL system
+			bool changed = false;
+
+			auto i = 0u;
+			while (i < sizeof(out))
+			{
+				const auto value = *string;
+				const auto result = std::toupper(static_cast<unsigned char>(value));
+				out[i] = static_cast<char>(result);
+
+				if (value != result)
+					changed = true;
+
+				if (result == '\0') // Finished converting string
+					break;
+
+				++string;
+				++i;
+			}
+
+			// Null terminating character was overwritten 
+			if (i >= sizeof(out))
+			{
+				Game::Scr_Error("string too long");
+				return;
+			}
+
+			if (changed)
+			{
+				Game::Scr_AddString(out);
+			}
+			else
+			{
+				Game::SL_AddRefToString(scriptValue);
+				Game::Scr_AddConstString(scriptValue);
+				Game::SL_RemoveRefToString(scriptValue);
+			}
 		});
 	}
 

@@ -645,6 +645,9 @@ namespace Game
 	typedef void(__cdecl * Scr_AddString_t)(const char* value);
 	extern Scr_AddString_t Scr_AddString;
 
+	typedef void(__cdecl * Scr_AddConstString_t)(unsigned int value);
+	extern Scr_AddConstString_t Scr_AddConstString;
+
 	typedef void(__cdecl * Scr_AddIString_t)(const char* value);
 	extern Scr_AddIString_t Scr_AddIString;
 
@@ -669,7 +672,7 @@ namespace Game
 	typedef const char*(__cdecl * Scr_GetString_t)(unsigned int index);
 	extern Scr_GetString_t Scr_GetString;
 
-	typedef unsigned int(__cdecl * Scr_GetConstString_t)(unsigned int index);
+	typedef scr_string_t(__cdecl * Scr_GetConstString_t)(unsigned int index);
 	extern Scr_GetConstString_t Scr_GetConstString;
 
 	typedef const char*(__cdecl * Scr_GetDebugString_t)(unsigned int index);
@@ -738,20 +741,26 @@ namespace Game
 	typedef int(__cdecl * Script_CleanString_t)(char* buffer);
 	extern Script_CleanString_t Script_CleanString;
 
-	typedef char* (__cdecl * SE_Load_t)(const char* file, int Unk);
+	typedef char*(__cdecl * SE_Load_t)(const char* file, int Unk);
 	extern SE_Load_t SE_Load;
 
-	typedef char* (__cdecl * SEH_StringEd_GetString_t)(const char* string);
+	typedef char*(__cdecl * SEH_StringEd_GetString_t)(const char* string);
 	extern SEH_StringEd_GetString_t SEH_StringEd_GetString;
 
 	typedef unsigned int(__cdecl* SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
 	extern SEH_ReadCharFromString_t SEH_ReadCharFromString;
 
-	typedef char* (__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
+	typedef char*(__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
 	extern SL_ConvertToString_t SL_ConvertToString;
 
 	typedef short(__cdecl * SL_GetString_t)(const char *str, unsigned int user);
 	extern SL_GetString_t SL_GetString;
+
+	typedef void(__cdecl * SL_AddRefToString_t)(unsigned int stringValue);
+	extern SL_AddRefToString_t SL_AddRefToString;
+
+	typedef void(__cdecl * SL_RemoveRefToString_t)(unsigned int stringValue);
+	extern SL_RemoveRefToString_t SL_RemoveRefToString;
 
 	typedef void(__cdecl * SND_Init_t)(int a1, int a2, int a3);
 	extern SND_Init_t SND_Init;
