@@ -20,7 +20,12 @@ namespace Game
 	typedef vec_t vec3_t[3];
 	typedef vec_t vec4_t[4];
 
-	typedef unsigned int scr_entref_t;
+	struct scr_entref_t
+	{
+		unsigned __int16 entnum;
+		unsigned __int16 classnum;
+	};
+
 	typedef void(__cdecl * scr_function_t)(scr_entref_t);
 
 	enum XAssetType
@@ -1451,21 +1456,23 @@ namespace Game
 
 	enum usercmdButtonBits
 	{
-	    CMD_BUTTON_ATTACK = 0x1,
-	    CMD_BUTTON_SPRINT = 0x2,
-	    CMD_BUTTON_MELEE = 0x4,
-	    CMD_BUTTON_ACTIVATE = 0x8,
-	    CMD_BUTTON_RELOAD = 0x10,
-	    CMD_BUTTON_USE_RELOAD = 0x20,
-	    CMD_BUTTON_PRONE = 0x100,
-	    CMD_BUTTON_CROUCH = 0x200,
-	    CMD_BUTTON_UP = 0x400,
-	    CMD_BUTTON_ADS = 0x800,
-	    CMD_BUTTON_DOWN = 0x1000,
-	    CMD_BUTTON_BREATH = 0x2000,
-	    CMD_BUTTON_FRAG = 0x4000,
-	    CMD_BUTTON_OFFHAND_SECONDARY = 0x8000,
-	    CMD_BUTTON_THROW = 0x80000,
+		CMD_BUTTON_ATTACK = 0x1,
+		CMD_BUTTON_SPRINT = 0x2,
+		CMD_BUTTON_MELEE = 0x4,
+		CMD_BUTTON_ACTIVATE = 0x8,
+		CMD_BUTTON_RELOAD = 0x10,
+		CMD_BUTTON_USE_RELOAD = 0x20,
+		CMD_BUTTON_LEAN_LEFT = 0x40,
+		CMD_BUTTON_LEAN_RIGHT = 0x80,
+		CMD_BUTTON_PRONE = 0x100,
+		CMD_BUTTON_CROUCH = 0x200,
+		CMD_BUTTON_UP = 0x400,
+		CMD_BUTTON_ADS = 0x800,
+		CMD_BUTTON_DOWN = 0x1000,
+		CMD_BUTTON_BREATH = 0x2000,
+		CMD_BUTTON_FRAG = 0x4000,
+		CMD_BUTTON_OFFHAND_SECONDARY = 0x8000,
+		CMD_BUTTON_THROW = 0x80000
 	};
 
 #pragma pack(push, 4)
@@ -4999,6 +5006,21 @@ namespace Game
 		int dataCount;
 	} gameState;
 
+	struct HunkUser
+	{
+		HunkUser* current;
+		HunkUser* next;
+		int maxSize;
+		int end;
+		int pos;
+		const char* name;
+		bool fixed;
+		int type;
+		char buf[1];
+	};
+
+	static_assert(sizeof(HunkUser) == 36);
+
 	struct VariableStackBuffer
 	{
 		const char *pos;
@@ -5093,6 +5115,40 @@ namespace Game
 		function_frame_t function_frame_start[32];
 		VariableValue stack[2048];
 	};
+
+	struct scrVarPub_t
+	{
+		const char* fieldBuffer;
+		unsigned __int16 canonicalStrCount;
+		bool developer_script;
+		bool evaluate;
+		const char* error_message;
+		int error_index;
+		int time;
+		int timeArrayId;
+		int pauseArrayId;
+		int notifyArrayId;
+		int objectStackId;
+		int levelId;
+		int gameId;
+		int animId;
+		int freeEntList;
+		int tempVariable;
+		int numScriptValues[2];
+		bool bInited;
+		unsigned __int16 savecount;
+		unsigned __int16 savecountMark;
+		int checksum;
+		int entId;
+		int entFieldName;
+		HunkUser* programHunkUser;
+		const char* programBuffer;
+		const char* endScriptBuffer;
+		unsigned __int16 saveIdMap[36864];
+		unsigned __int16 saveIdMapRev[36864];
+	};
+
+	static_assert(sizeof(scrVarPub_t) == 0x24060);
 
 	enum UILocalVarType
 	{
@@ -5661,7 +5717,7 @@ namespace Game
 		int pureAuthentic; // 135896
 		char __pad7[133138]; // 135900
 		short scriptID; // 269038
-		int isBot; // 269040
+		int bIsTestClient; // 269040
 		int serverID; // 269044
 		char __pad8[9224]; // 269048
 		unsigned __int64 steamID; // 278272

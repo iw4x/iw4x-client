@@ -315,7 +315,7 @@ namespace Components
 				{
 					if (Game::svs_clients[i].state >= 3)
 					{
-						if (Game::svs_clients[i].isBot) ++botCount;
+						if (Game::svs_clients[i].bIsTestClient) ++botCount;
 						else ++clientCount;
 					}
 				}

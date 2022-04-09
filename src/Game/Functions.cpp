@@ -21,7 +21,7 @@ namespace Game
 
 		return result;
 	}
-	
+
 	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
 
@@ -73,6 +73,7 @@ namespace Game
 	Com_MatchToken_t Com_MatchToken = Com_MatchToken_t(0x447130);
 	Com_SetSlowMotion_t Com_SetSlowMotion = Com_SetSlowMotion_t(0x446E20);
 	Com_Quitf_t Com_Quit_f = Com_Quitf_t(0x4D4000);
+	Com_PrintWarning_t  Com_PrintWarning = Com_PrintWarning_t(0x4E0200);
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = Con_DrawMiniConsole_t(0x464F30);
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = Con_DrawSolidConsole_t(0x5A5040);
@@ -259,6 +260,8 @@ namespace Game
 	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = Scr_GetFunctionHandle_t(0x4234F0);
 
 	Scr_GetString_t Scr_GetString = Scr_GetString_t(0x425900);
+	Scr_GetConstString_t Scr_GetConstString = Scr_GetConstString_t(0x494830);
+	Scr_GetDebugString_t Scr_GetDebugString = Scr_GetDebugString_t(0x4EBF50);
 	Scr_GetFloat_t Scr_GetFloat = Scr_GetFloat_t(0x443140);
 	Scr_GetInt_t Scr_GetInt = Scr_GetInt_t(0x4F31D0);
 	Scr_GetObject_t Scr_GetObject = Scr_GetObject_t(0x462100);
@@ -269,15 +272,23 @@ namespace Game
 
 	Scr_AddEntity_t Scr_AddEntity = Scr_AddEntity_t(0x4BFB40);
 	Scr_AddString_t Scr_AddString = Scr_AddString_t(0x412310);
+	Scr_AddIString_t Scr_AddIString = Scr_AddIString_t(0x455F20);
 	Scr_AddInt_t Scr_AddInt = Scr_AddInt_t(0x41D7D0);
 	Scr_AddFloat_t Scr_AddFloat = Scr_AddFloat_t(0x61E860);
 	Scr_AddObject_t Scr_AddObject = Scr_AddObject_t(0x430F40);
 	Scr_Notify_t Scr_Notify = Scr_Notify_t(0x4A4750);
 	Scr_NotifyLevel_t Scr_NotifyLevel = Scr_NotifyLevel_t(0x4D9C30);
+
 	Scr_Error_t Scr_Error = Scr_Error_t(0x61E8B0);
+	Scr_ObjectError_t Scr_ObjectError = Scr_ObjectError_t(0x42EF40);
+	Scr_ParamError_t Scr_ParamError = Scr_ParamError_t(0x4FBC70);
+
 	Scr_GetType_t Scr_GetType = Scr_GetType_t(0x422900);
 
 	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
+
+	GetEntity_t GetEntity = GetEntity_t(0x4BC270);
+	GetPlayerEntity_t GetPlayerEntity = GetPlayerEntity_t(0x49C4A0);
 
 	Scr_RegisterFunction_t Scr_RegisterFunction = Scr_RegisterFunction_t(0x492D50);
 	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = Scr_ShutdownAllocNode_t(0x441650);
@@ -311,9 +322,11 @@ namespace Game
 	Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x49CF70);
 
 	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
+	StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow = StringTable_GetColumnValueForRow_t(0x4F2C80);
 	StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
 
 	SV_AddTestClient_t SV_AddTestClient = SV_AddTestClient_t(0x48AD30);
+	SV_IsTestClient_t SV_IsTestClient = SV_IsTestClient_t(0x4D6E40);
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = SV_GameClientNum_Score_t(0x469AC0);
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = SV_GameSendServerCommand_t(0x4BC3A0);
 	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = SV_Cmd_TokenizeString_t(0x4B5780);
@@ -326,7 +339,6 @@ namespace Game
 	SV_GetPlayerByName_t SV_GetPlayerByName = SV_GetPlayerByName_t(0x6242B0);
 	SV_GetPlayerByNum_t SV_GetPlayerByNum = SV_GetPlayerByNum_t(0x624390);
 
-	Sys_Error_t Sys_Error = Sys_Error_t(0x4E0200);
 	Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x4D8580);
 	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = Sys_IsDatabaseReady_t(0x4CA4A0);
 	Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2 = Sys_IsDatabaseReady2_t(0x441280);
@@ -339,6 +351,7 @@ namespace Game
 	Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads = Sys_SuspendOtherThreads_t(0x45A190);
 	Sys_ListFiles_t Sys_ListFiles = Sys_ListFiles_t(0x45A660);
 	Sys_Milliseconds_t Sys_Milliseconds = Sys_Milliseconds_t(0x42A660);
+	Sys_Error_t Sys_Error = Sys_Error_t(0x43D570);
 	Sys_LockWrite_t Sys_LockWrite = Sys_LockWrite_t(0x435880);
 	Sys_TempPriorityAtLeastNormalBegin_t Sys_TempPriorityAtLeastNormalBegin = Sys_TempPriorityAtLeastNormalBegin_t(0x478680);
 	Sys_TempPriorityEnd_t Sys_TempPriorityEnd = Sys_TempPriorityEnd_t(0x4DCF00);
@@ -436,6 +449,8 @@ namespace Game
 
 	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
 
+	int* level_scriptPrintChannel = reinterpret_cast<int*>(0x1A860FC);
+
 	netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0xA1E888);
 
 	SOCKET* ip_socket = reinterpret_cast<SOCKET*>(0x64A3008);
@@ -473,6 +488,7 @@ namespace Game
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x12412B0);
 
 	scrVmPub_t* scrVmPub = reinterpret_cast<scrVmPub_t*>(0x2040CF0);
+	scrVarPub_t* scrVarPub = reinterpret_cast<scrVarPub_t*>(0x201A408);
 
 	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
 
@@ -713,14 +729,26 @@ namespace Game
 		SV_KickClient(client, reason.data());
 	}
 
-	void Scr_iPrintLn(int clientNum, const std::string& message)
+	void IncInParam()
 	{
-		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x66, message.data()));
+		Scr_ClearOutParams();
+
+		if (scrVmPub->top == scrVmPub->maxStack)
+		{
+			Sys_Error("Internal script stack overflow");
+		}
+
+		scrVmPub->top++;
+		scrVmPub->inparamcount++;
 	}
 
-	void Scr_iPrintLnBold(int clientNum, const std::string& message)
+	void Scr_AddBool(int value)
 	{
-		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x67, message.data()));
+		assert(value == 0 || value == 1);
+
+		IncInParam();
+		scrVmPub->top->type = VAR_INTEGER;
+		scrVmPub->top->u.intValue = value;
 	}
 
 	int FS_FOpenFileReadCurrentThread(const char* file, int* fh)
@@ -1207,6 +1235,27 @@ namespace Game
 		}
 	}
 
+	__declspec(naked) void RuntimeErrorInternal(int /*channel*/, const char* /*codePos*/, unsigned int /*index*/, const char* /*msg*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 0x10 + 0x20] // msg
+			mov edi, [esp + 0x4 + 0x20] // channel
+
+			push [esp + 0xC + 0x20] // index
+			push [esp + 0xC + 0x20] // codePos
+
+			mov edx, 0x61ABE0
+			call edx
+			add esp, 0x8
+
+			popad
+			ret
+		}
+	}
+
 	__declspec(naked) void IN_KeyUp(kbutton_t* /*button*/)
 	{
 		__asm
@@ -1537,6 +1586,21 @@ namespace Game
 			popad
 
 			retn
+		}
+	}
+
+	constexpr auto SV_BotUserMove_Addr = 0x626E50;
+	__declspec(naked) void SV_BotUserMove(client_t* /*client*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov edi, [esp + 0x20 + 0x4]
+			call SV_BotUserMove_Addr
+
+			popad
+			ret
 		}
 	}
 

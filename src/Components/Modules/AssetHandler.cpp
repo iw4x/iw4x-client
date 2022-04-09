@@ -520,7 +520,7 @@ namespace Components
 			{
 				for (auto& asset : AssetHandler::EmptyAssets)
 				{
-					Game::Sys_Error(25, reinterpret_cast<char*>(0x724428), Game::DB_GetXAssetTypeName(asset.first), asset.second.data());
+					Game::Com_PrintWarning(25, reinterpret_cast<const char*>(0x724428), Game::DB_GetXAssetTypeName(asset.first), asset.second.data());
 				}
 
 				AssetHandler::EmptyAssets.clear();

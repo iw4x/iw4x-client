@@ -29,8 +29,7 @@ namespace Components
 
 		static void OnVMShutdown(Utils::Slot<Scheduler::Callback> callback);
 
-		static Game::gentity_t* getEntFromEntRef(Game::scr_entref_t entref);
-		static Game::client_t* getClientFromEnt(Game::gentity_t* gentity);
+		static Game::client_t* GetClient(const Game::gentity_t* gentity);
 
 	private:
 		static std::string ScriptName;
@@ -51,6 +50,7 @@ namespace Components
 
 		static void FunctionError();
 		static void StoreFunctionNameStub();
+		static void RuntimeError(const char* codePos, unsigned int index, const char* msg, const char* dialogMessage);
 
 		static void StoreScriptName(const char* name);
 		static void StoreScriptNameStub();
@@ -64,7 +64,7 @@ namespace Components
 		static Game::scr_function_t GetFunction(void* caller, const char** name, int* isDev);
 		static void GetFunctionStub();
 
-		static void ScrShutdownSystemStub(int);
+		static void ScrShutdownSystemStub(unsigned char sys);
 		static void StoreScriptBaseProgramNumStub();
 		static void StoreScriptBaseProgramNum();
 		static void Scr_PrintPrevCodePosStub();
