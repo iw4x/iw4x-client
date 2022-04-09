@@ -138,8 +138,8 @@ namespace Components
 			while (i < sizeof(out))
 			{
 				const auto value = *string;
-				const auto result = std::toupper(static_cast<unsigned char>(value));
-				out[i] = static_cast<char>(result);
+				const auto result = static_cast<char>(std::toupper(static_cast<unsigned char>(value)));
+				out[i] = result;
 
 				if (value != result)
 					changed = true;
