@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -14,8 +14,8 @@ namespace Components
 
 	Discovery::Discovery()
 	{
-		Dvar::Register<int>("net_discoveryPortRangeMin", 25000, 0, 65535, Game::dvar_flag::DVAR_FLAG_SAVED, "Minimum scan range port for local server discovery");
-		Dvar::Register<int>("net_discoveryPortRangeMax", 35000, 1, 65536, Game::dvar_flag::DVAR_FLAG_SAVED, "Maximum scan range port for local server discovery");
+		Dvar::Register<int>("net_discoveryPortRangeMin", 25000, 0, 65535, Game::dvar_flag::DVAR_ARCHIVE, "Minimum scan range port for local server discovery");
+		Dvar::Register<int>("net_discoveryPortRangeMax", 35000, 1, 65536, Game::dvar_flag::DVAR_ARCHIVE, "Maximum scan range port for local server discovery");
 
 		// An additional thread prevents lags
 		// Not sure if that's the best way though
@@ -93,11 +93,6 @@ namespace Components
 			return Utils::Hook::Call<void()>(0x4AA720)();
 		}, HOOK_CALL).install()->quick();
 #endif
-	}
-
-	Discovery::~Discovery()
-	{
-
 	}
 
 	void Discovery::preDestroy()

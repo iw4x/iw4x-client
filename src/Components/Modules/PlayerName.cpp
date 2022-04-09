@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -61,7 +61,7 @@ namespace Components
 
 	PlayerName::PlayerName()
 	{
-		sv_allowColoredNames = Dvar::Register<bool>("sv_allowColoredNames", true, Game::dvar_flag::DVAR_FLAG_NONE, "Allow colored names on the server");
+		sv_allowColoredNames = Dvar::Register<bool>("sv_allowColoredNames", true, Game::dvar_flag::DVAR_NONE, "Allow colored names on the server");
 
 		// Disable SV_UpdateUserinfo_f, to block changing the name ingame
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);

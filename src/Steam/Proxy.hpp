@@ -1,5 +1,7 @@
 #pragma once
 
+#include <STDInclude.hpp>
+
 #ifdef _WIN64
 #define GAMEOVERLAY_LIB "gameoverlayrenderer64.dll"
 #define STEAMCLIENT_LIB "steamclient64.dll"
@@ -10,7 +12,6 @@
 #define STEAM_REGISTRY_PATH "Software\\Valve\\Steam"
 #define STEAM_REGISTRY_PROCESS_PATH "Software\\Valve\\Steam\\ActiveProcess"
 #endif
-#include "STDInclude.hpp"
 
 namespace Steam
 {

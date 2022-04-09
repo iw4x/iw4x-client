@@ -31,6 +31,9 @@ namespace Components
 		static void AddMethods();
 
 		static void BotAiAction(Game::client_t* cl);
-		static void SV_UpdateBots_Hk();
+		static void SV_BotUserMove_Hk();
+
+		static void G_SelectWeaponIndex(int clientNum, int iWeaponIndex);
+		static void G_SelectWeaponIndex_Hk();
 	};
 }

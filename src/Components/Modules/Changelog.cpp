@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -19,7 +19,7 @@ namespace Components
 			data = "^1Unable to get changelog.";
 		}
 
-		Changelog::Lines = Utils::String::Explode(data, '\n');
+		Changelog::Lines = Utils::String::Split(data, '\n');
 
 		for (auto& line : Changelog::Lines)
 		{
@@ -59,13 +59,5 @@ namespace Components
 #ifndef DISABLE_ANTICHEAT
 		Scheduler::OnFrameAsync(AntiCheat::QuickCodeScanner1);
 #endif
-	}
-
-	Changelog::~Changelog()
-	{
-		{
-			std::lock_guard<std::mutex> _(Changelog::Mutex);
-			Changelog::Lines.clear();
-		}
 	}
 }

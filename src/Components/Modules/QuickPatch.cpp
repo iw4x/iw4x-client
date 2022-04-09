@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -86,17 +86,15 @@ namespace Components
 
 	void QuickPatch::SelectStringTableEntryInDvarStub()
 	{
-		Command::ClientParams args;
+		Command::ClientParams params;
 
-		if (args.length() >= 4)
+		if (params.size() >= 4)
 		{
-			std::string cmd = args[0];
-			std::string table = args[1];
-			std::string col = args[2];
-			std::string dvarName = args[3];
-			Game::dvar_t* dvar = Game::Dvar_FindVar(dvarName.data());
+			const auto* dvarName = params[3];
+			const auto* dvar = Game::Dvar_FindVar(dvarName);
 
-			if (Command::Find(dvarName) || (dvar && (dvar->flags & (Game::DVAR_FLAG_WRITEPROTECTED | Game::DVAR_FLAG_CHEAT | Game::DVAR_FLAG_READONLY))))
+			if (Command::Find(dvarName) ||
+				(dvar != nullptr && dvar->flags & (Game::DVAR_WRITEPROTECTED | Game::DVAR_CHEAT | Game::DVAR_READONLY)))
 			{
 				return;
 			}
@@ -238,7 +236,7 @@ namespace Components
 		}
 	}
 
-	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* name, char**, int defaultVal, int flags, const char* description)
+	Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** /*valueList*/, int defaultIndex, unsigned __int16 flags, const char* description)
 	{
 		static const char* r_aspectRatioEnum[] =
 		{
@@ -256,7 +254,7 @@ namespace Components
 			"Screen aspect ratio. Divide the width by the height in order to get the aspect ratio value. For example: 16 / 9 = 1,77");
 
 		// register enumeration dvar
-		return Game::Dvar_RegisterEnum(name, r_aspectRatioEnum, defaultVal, flags, description);
+		return Game::Dvar_RegisterEnum(dvarName, r_aspectRatioEnum, defaultIndex, flags, description);
 	}
 
 	void QuickPatch::SetAspectRatio()
@@ -353,13 +351,13 @@ namespace Components
 	Game::dvar_t* QuickPatch::Dvar_RegisterUIBuildLocation(const char* dvarName,
 		float /*x*/, float /*y*/, float min, float max, int /*flags*/, const char* description)
 	{
-		return Game::Dvar_RegisterVec2(dvarName, -60.0f, 474.0f, min, max, Game::DVAR_FLAG_READONLY, description);
+		return Game::Dvar_RegisterVec2(dvarName, -60.0f, 474.0f, min, max, Game::DVAR_READONLY, description);
 	}
 
 	QuickPatch::QuickPatch()
 	{
-		// quit_hard
-		Command::Add("quit_hard", [](Command::Params*)
+		// quitHard
+		Command::Add("quitHard", [](Command::Params*)
 		{
 			int data = false;
 			const Utils::Library ntdll("ntdll.dll");
@@ -374,9 +372,9 @@ namespace Components
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
 		// Intermission time dvar
-		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_FLAG_REPLICATED | Game::DVAR_FLAG_DEDISAVED, "Time in seconds before match server loads the next map");
+		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::dvar_flag::DVAR_NONE, "Time in seconds before match server loads the next map");
 
-		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_FLAG_REPLICATED, "Perform antilag");
+		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMeleeStub, HOOK_JUMP).install()->quick();
 
@@ -477,7 +475,7 @@ namespace Components
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
-		Utils::Hook::Set<BYTE>(0x45888C, Game::dvar_flag::DVAR_FLAG_CHEAT);
+		Utils::Hook::Set<BYTE>(0x45888C, Game::dvar_flag::DVAR_CHEAT);
 
 		// increase font sizes for chat on higher resolutions
 		static float float13 = 13.0f;
@@ -633,7 +631,7 @@ namespace Components
 		});
 
 		// Fix mouse pitch adjustments
-		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_FLAG_SAVED, "");
+		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");
 		UIScript::Add("updateui_mousePitch", [](UIScript::Token)
 		{
 			if (Dvar::Var("ui_mousePitch").get<bool>())
@@ -671,7 +669,7 @@ namespace Components
 
 		Command::Add("dumptechsets", [](Command::Params* param)
 		{
-			if (param->length() != 2)
+			if (param->size() != 2)
 			{
 				Logger::Print("usage: dumptechsets <fastfile> | all\n");
 				return;
@@ -843,6 +841,7 @@ namespace Components
 			}
 		});
 
+#ifdef DEBUG
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& /*name*/, bool* /*restrict*/)
 		{
 			if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)
@@ -857,9 +856,10 @@ namespace Components
 				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer);
 			}
 		});
+#endif
 
 		// Dvars
-		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_FLAG_SAVED, "Stream friendly UI");
+		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
 
 		// Debug patches
 #ifdef DEBUG

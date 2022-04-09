@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -36,7 +36,8 @@ namespace Components
 		{ "leanright", Game::usercmdButtonBits::CMD_BUTTON_LEAN_RIGHT },
 		{ "ads", Game::usercmdButtonBits::CMD_BUTTON_ADS },
 		{ "holdbreath", Game::usercmdButtonBits::CMD_BUTTON_BREATH },
-		{ "use", Game::usercmdButtonBits::CMD_BUTTON_USE_RELOAD | Game::usercmdButtonBits::CMD_BUTTON_ACTIVATE },
+		{ "usereload", Game::usercmdButtonBits::CMD_BUTTON_USE_RELOAD },
+		{ "activate", Game::usercmdButtonBits::CMD_BUTTON_ACTIVATE },
 		{ "0", Bots::NUM_0 },
 		{ "1", Bots::NUM_1 },
 		{ "2", Bots::NUM_2 },
@@ -51,7 +52,7 @@ namespace Components
 
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
-		static auto botId = 0;
+		static size_t botId = 0;
 		const char* botName;
 
 		if (Bots::BotNames.empty())
@@ -60,7 +61,7 @@ namespace Components
 
 			if (bots.exists())
 			{
-				auto names = Utils::String::Explode(bots.getBuffer(), '\n');
+				auto names = Utils::String::Split(bots.getBuffer(), '\n');
 
 				for (auto& name : names)
 				{
@@ -119,13 +120,9 @@ namespace Components
 	{
 		Script::AddMethod("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
 		{
-			const auto ping = Game::Scr_GetInt(0);
+			auto ping = Game::Scr_GetInt(0);
 
-			if (ping < 0 || ping > 999)
-			{
-				Game::Scr_ParamError(0, "^1SetPing: Ping needs to be between 0 and 999!\n");
-				return;
-			}
+			ping = std::clamp(ping, 0, 999);
 
 			const auto* ent = Game::GetPlayerEntity(entref);
 			auto* client = Script::GetClient(ent);
@@ -261,27 +258,28 @@ namespace Components
 
 		// Keep test client functionality
 		if (!g_botai[entnum].active)
+		{
+			Game::SV_BotUserMove(cl);
 			return;
+		}
 
-		Game::usercmd_s ucmd = {0};
+		Game::usercmd_s userCmd = {0};
 
-		ucmd.serverTime = *Game::svs_time;
+		userCmd.serverTime = *Game::svs_time;
 
-		ucmd.buttons = g_botai[entnum].buttons;
-		ucmd.forwardmove = g_botai[entnum].forward;
-		ucmd.rightmove = g_botai[entnum].right;
-		ucmd.weapon = g_botai[entnum].weapon;
+		userCmd.buttons = g_botai[entnum].buttons;
+		userCmd.forwardmove = g_botai[entnum].forward;
+		userCmd.rightmove = g_botai[entnum].right;
+		userCmd.weapon = g_botai[entnum].weapon;
 
-		Game::SV_ClientThink(cl, &ucmd);
+		Game::SV_ClientThink(cl, &userCmd);
 	}
 
 	constexpr auto SV_BotUserMove = 0x626E50;
-	__declspec(naked) void Bots::SV_UpdateBots_Hk()
+	__declspec(naked) void Bots::SV_BotUserMove_Hk()
 	{
 		__asm
 		{
-			call SV_BotUserMove
-
 			pushad
 
 			push edi
@@ -293,6 +291,36 @@ namespace Components
 		}
 	}
 
+	void Bots::G_SelectWeaponIndex(int clientNum, int iWeaponIndex)
+	{
+		if (g_botai[clientNum].active)
+		{
+			g_botai[clientNum].weapon = static_cast<uint16_t>(iWeaponIndex);
+		}
+	}
+
+	__declspec(naked) void Bots::G_SelectWeaponIndex_Hk()
+	{
+		__asm
+		{
+			pushad
+
+			push [esp + 0x20 + 0x8]
+			push [esp + 0x20 + 0x8]
+			call Bots::G_SelectWeaponIndex
+			add esp, 0x8
+
+			popad
+
+			// Code skipped by hook
+			mov eax, [esp + 0x8]
+			push eax
+
+			push 0x441B85
+			retn
+		}
+	}
+
 	Bots::Bots()
 	{
 		// Replace connect string
@@ -301,8 +329,10 @@ namespace Components
 		// Intercept sprintf for the connect string
 		Utils::Hook(0x48ADAB, Bots::BuildConnectString, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x627021, SV_UpdateBots_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x627241, SV_UpdateBots_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627021, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627241, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x441B80, Bots::G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
 		// Zero the bot command array
 		for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)
@@ -315,7 +345,7 @@ namespace Components
 		{
 			auto count = 1u;
 
-			if (params->length() > 1)
+			if (params->size() > 1)
 			{
 				if (params->get(1) == "all"s)
 				{

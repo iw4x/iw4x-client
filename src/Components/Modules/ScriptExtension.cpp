@@ -1,13 +1,12 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
-	static const char* queryStrings[] = { R"(..)", R"(../)", R"(..\)" };
+	const char* ScriptExtension::QueryStrings[] = { R"(..)", R"(../)", R"(..\)" };
 
 	void ScriptExtension::AddFunctions()
 	{
 		//File functions
-
 		Script::AddFunction("FileWrite", []() // gsc: FileWrite(<filepath>, <string>, <mode>)
 		{
 			const auto* path = Game::Scr_GetString(0);
@@ -26,9 +25,9 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
+			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
 			{
-				if (std::strstr(path, queryStrings[i]) != nullptr)
+				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1FileWrite: directory traversal is not allowed!\n");
 					return;
@@ -61,9 +60,9 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
+			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
 			{
-				if (std::strstr(path, queryStrings[i]) != nullptr)
+				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1FileRead: directory traversal is not allowed!\n");
 					return;
@@ -89,9 +88,9 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
+			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
 			{
-				if (std::strstr(path, queryStrings[i]) != nullptr)
+				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
 				{
 					Logger::Print("^1FileExists: directory traversal is not allowed!\n");
 					return;
@@ -111,11 +110,11 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < ARRAYSIZE(queryStrings); ++i)
+			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
 			{
-				if (std::strstr(path, queryStrings[i]) != nullptr)
+				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
 				{
-					Logger::Print("^1fileRemove: directory traversal is not allowed!\n");
+					Logger::Print("^1FileRemove: directory traversal is not allowed!\n");
 					return;
 				}
 			}
@@ -137,9 +136,7 @@ namespace Components
 
 			std::string ip = Game::NET_AdrToString(client->netchan.remoteAddress);
 
-			const auto pos = ip.find_first_of(":");
-
-			if (pos != std::string::npos)
+			if (const auto pos = ip.find_first_of(":"); pos != std::string::npos)
 				ip.erase(ip.begin() + pos, ip.end()); // Erase port
 
 			Game::Scr_AddString(ip.data());
@@ -154,9 +151,35 @@ namespace Components
 		});
 	}
 
+	void ScriptExtension::Scr_TableLookupIStringByRow()
+	{
+		if (Game::Scr_GetNumParam() < 3)
+		{
+			Game::Scr_Error("USAGE: tableLookupIStringByRow( filename, rowNum, returnValueColumnNum )\n");
+			return;
+		}
+
+		const auto* fileName = Game::Scr_GetString(0);
+		const auto rowNum = Game::Scr_GetInt(1);
+		const auto returnValueColumnNum = Game::Scr_GetInt(2);
+
+		const auto* table = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_STRINGTABLE, fileName).stringTable;
+
+		if (table == nullptr)
+		{
+			Game::Scr_ParamError(0, Utils::String::VA("%s does not exist\n", fileName));
+			return;
+		}
+
+		const auto* value = Game::StringTable_GetColumnValueForRow(table, rowNum, returnValueColumnNum);
+		Game::Scr_AddIString(value);
+	}
+
 	ScriptExtension::ScriptExtension()
 	{
 		ScriptExtension::AddFunctions();
 		ScriptExtension::AddMethods();
+		// Correct builtin function pointer
+		Utils::Hook::Set<void(*)()>(0x79A90C, ScriptExtension::Scr_TableLookupIStringByRow);
 	}
 }

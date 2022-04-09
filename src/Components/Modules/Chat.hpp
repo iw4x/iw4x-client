@@ -7,7 +7,6 @@ namespace Components
 		static constexpr auto FONT_ICON_CHAT_WIDTH_CALCULATION_MULTIPLIER = 2.0f;
 	public:
 		Chat();
-		~Chat();
 
 	private:
 		static Game::dvar_t** cg_chatHeight;

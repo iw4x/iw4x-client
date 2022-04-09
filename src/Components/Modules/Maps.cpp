@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -366,7 +366,7 @@ namespace Components
 				{
 					if (arena->keys[j] == "dependency"s)
 					{
-						return Utils::String::Explode(arena->values[j], ' ');
+						return Utils::String::Split(arena->values[j], ' ');
 					}
 				}
 			}
@@ -544,7 +544,7 @@ namespace Components
 			}
 		}
 
-		Dvar::Register<bool>(Utils::String::VA("isDlcInstalled_%d", dlc.index), false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
+		Dvar::Register<bool>(Utils::String::VA("isDlcInstalled_%d", dlc.index), false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
 
 		Maps::DlcPacks.push_back(dlc);
 		Maps::UpdateDlcStatus();
@@ -690,7 +690,7 @@ namespace Components
 	Game::dvar_t* Maps::GetSpecularDvar()
 	{
 		Game::dvar_t*& r_specular = *reinterpret_cast<Game::dvar_t**>(0x69F0D94);
-		static Game::dvar_t* r_specularCustomMaps = Game::Dvar_RegisterBool("r_specularCustomMaps", false, Game::DVAR_FLAG_SAVED, "Allows shaders to use phong specular lighting on custom maps");
+		static Game::dvar_t* r_specularCustomMaps = Game::Dvar_RegisterBool("r_specularCustomMaps", false, Game::DVAR_ARCHIVE, "Allows shaders to use phong specular lighting on custom maps");
 
 		if (Maps::IsCustomMap())
 		{
@@ -769,8 +769,8 @@ namespace Components
 	{
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
-			Dvar::Register<bool>("r_listSModels", false, Game::DVAR_FLAG_NONE, "Display a list of visible SModels");
+			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
+			Dvar::Register<bool>("r_listSModels", false, Game::DVAR_NONE, "Display a list of visible SModels");
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
 			Maps::AddDlc({ 2, "Resurgence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });

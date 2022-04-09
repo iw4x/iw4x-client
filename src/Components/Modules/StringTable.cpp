@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -75,10 +75,5 @@ namespace Components
 
 			return header;
 		});
-	}
-
-	StringTable::~StringTable()
-	{
-		StringTable::StringTableMap.clear();
 	}
 }

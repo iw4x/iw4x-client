@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Utils
 {
@@ -19,15 +19,9 @@ namespace Utils
 		return Library(handle);
 	}
 
-	Library::Library(const std::string& buffer, bool _freeOnDestroy) : _module(nullptr), freeOnDestroy(_freeOnDestroy)
+	Library::Library(const std::string& name, bool _freeOnDestroy) : _module(nullptr), freeOnDestroy(_freeOnDestroy)
 	{
-		this->_module = LoadLibraryExA(buffer.data(), nullptr, 0);
-	}
-
-	Library::Library(const std::string& buffer)
-	{
-		this->_module = GetModuleHandleA(buffer.data());
-		this->freeOnDestroy = true;
+		this->_module = LoadLibraryExA(name.data(), nullptr, 0);
 	}
 
 	Library::Library(const HMODULE handle)
@@ -49,7 +43,7 @@ namespace Utils
 		return this->_module != nullptr;
 	}
 
-	HMODULE Library::getModule()
+	HMODULE Library::getModule() const
 	{
 		return this->_module;
 	}

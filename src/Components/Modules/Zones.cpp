@@ -1,4 +1,4 @@
-﻿#include "STDInclude.hpp"
+﻿#include <STDInclude.hpp>
 
 #pragma optimize( "", off )
 namespace Components
@@ -3695,11 +3695,6 @@ namespace Components
 		// disable _invoke_watson to allow debugging
 		Utils::Hook::Set<WORD>(0x6B9602,0xCCCC);
 #endif
-	}
-
-	Zones::~Zones()
-	{
-
 	}
 }
 #pragma optimize( "", on ) 

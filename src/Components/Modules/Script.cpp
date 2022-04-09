@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -61,17 +61,15 @@ namespace Components
 		if (Game::scrVmPub->debugCode || Game::scrVarPub->developer_script)
 		{
 			Game::RuntimeErrorInternal(23, codePos, index, msg);
-
-			if (!Game::scrVmPub->terminal_error)
-				return;
 		}
 		else
 		{
 			Logger::Print(23, "%s\n", msg);
-			// Let's not throw error unless we have to
-			if (Game::scrVmPub->abort_on_error && !Game::scrVmPub->terminal_error)
-				return;
 		}
+
+		// Let's not throw error unless we have to
+		if (!Game::scrVmPub->abort_on_error)
+			return;
 
 		if (dialogMessage == nullptr)
 			dialogMessage = "";
@@ -194,7 +192,7 @@ namespace Components
 		char msgbuf[1024] = {0};
 		va_list va;
 		va_start(va, message);
-		vsnprintf_s(msgbuf, sizeof(msgbuf), _TRUNCATE, message, va);
+		_vsnprintf_s(msgbuf, _TRUNCATE, message, va);
 		va_end(va);
 
 		Game::Scr_ShutdownAllocNode();
@@ -223,7 +221,7 @@ namespace Components
 		}
 
 		Logger::Print("Finding script handle %s::%s...\n", script.data(), label.data());
-		int handle = Game::Scr_GetFunctionHandle(script.data(), label.data());
+		const auto handle = Game::Scr_GetFunctionHandle(script.data(), label.data());
 		if (handle)
 		{
 			Logger::Print("Script handle %s::%s loaded successfully.\n", script.data(), label.data());
@@ -236,7 +234,7 @@ namespace Components
 
 	void Script::LoadGameType()
 	{
-		for (auto handle : Script::ScriptHandles)
+		for (const auto& handle : Script::ScriptHandles)
 		{
 			Game::Scr_FreeThread(Game::Scr_ExecThread(handle, 0));
 		}
@@ -248,7 +246,7 @@ namespace Components
 	{
 		Script::ScriptHandles.clear();
 
-		auto list = FileSystem::GetFileList("scripts/", "gsc");
+		const auto list = FileSystem::GetFileList("scripts/", "gsc");
 
 		for (auto file : list)
 		{
@@ -259,8 +257,12 @@ namespace Components
 				file = file.substr(0, file.size() - 4);
 			}
 
-			int handle = Script::LoadScriptAndLabel(file, "init");
-			if (handle) Script::ScriptHandles.push_back(handle);
+			auto handle = Script::LoadScriptAndLabel(file, "init");
+
+			if (handle)
+			{
+				Script::ScriptHandles.push_back(handle);
+			}
 			else
 			{
 				handle = Script::LoadScriptAndLabel(file, "main");
@@ -356,7 +358,7 @@ namespace Components
 
 		for (const auto& [key, value] : Script::ScriptBaseProgramNum)
 		{
-			int codePos = key;
+			const auto codePos = key;
 
 			if (codePos > scriptPos)
 			{
@@ -420,7 +422,7 @@ namespace Components
 	void Script::OnVMShutdown(Utils::Slot<Scheduler::Callback> callback)
 	{
 		Script::ScriptBaseProgramNum.clear();
-		Script::VMShutdownSignal.connect(callback);
+		Script::VMShutdownSignal.connect(std::move(callback));
 	}
 
 	void Script::ScrShutdownSystemStub(int num)
@@ -477,7 +479,7 @@ namespace Components
 	{
 		if (what[0] == '\0' || with[0] == '\0')
 		{
-			Logger::Print("Warning: Invalid paramters passed to ReplacedFunctions\n");
+			Logger::Print("Warning: Invalid parameters passed to ReplacedFunctions\n");
 			return;
 		}
 
@@ -617,7 +619,7 @@ namespace Components
 			}
 		});
 
-		// Script Storage Funcs
+		// Script Storage Functions
 		Script::AddFunction("StorageSet", []() // gsc: StorageSet(<str key>, <str data>);
 		{
 			const auto* key = Game::Scr_GetString(0);
@@ -681,7 +683,7 @@ namespace Components
 				return;
 			}
 
-			Game::Scr_AddBool(Script::ScriptStorage.count(key));
+			Game::Scr_AddBool(static_cast<int>(Script::ScriptStorage.count(key))); // Until C++17
 		});
 
 		Script::AddFunction("StorageClear", []() // gsc: StorageClear();
@@ -741,11 +743,12 @@ namespace Components
 			if (!Game::SV_Loaded())
 				return;
 
-			int nowMs = Game::Sys_Milliseconds();
+			const auto nowMs = Game::Sys_Milliseconds();
 
 			if (Script::LastFrameTime != -1)
 			{
-				int timeTaken = static_cast<int>((nowMs - Script::LastFrameTime) * Dvar::Var("timescale").get<float>());
+				const auto timeScale = Dvar::Var("timescale").get<float>();
+				const auto timeTaken = static_cast<int>((nowMs - Script::LastFrameTime) * timeScale);
 
 				if (timeTaken >= 500)
 					Logger::Print(23, "Hitch warning: %i msec frame time\n", timeTaken);
@@ -776,17 +779,6 @@ namespace Components
 
 	Script::~Script()
 	{
-		Script::ScriptName.clear();
-		Script::ScriptHandles.clear();
-		Script::ScriptNameStack.clear();
-
-		Script::CustomScrFunctions.clear();
-		Script::CustomScrMethods.clear();
-
-		Script::ReplacedFunctions.clear();
 		Script::VMShutdownSignal.clear();
-
-		Script::ScriptStorage.clear();
-		Script::ScriptBaseProgramNum.clear();
 	}
 }

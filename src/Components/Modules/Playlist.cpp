@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -21,7 +21,7 @@ namespace Components
 
 		Dvar::Var("xblive_privateserver").set(false);
 
-		std::string playlistFilename = Dvar::Var("playlistFilename").get<const char*>();
+		auto playlistFilename = Dvar::Var("playlistFilename").get<std::string>();
 		FileSystem::File playlist(playlistFilename);
 
 		if (playlist.exists())
@@ -189,12 +189,5 @@ namespace Components
 		Network::Handle("getPlaylist", PlaylistRequest);
 		Network::Handle("playlistResponse", PlaylistReponse);
 		Network::Handle("playlistInvalidPassword", PlaylistInvalidPassword);
-	}
-
-	Playlist::~Playlist()
-	{
-		Playlist::MapRelocation.clear();
-		Playlist::CurrentPlaylistBuffer.clear();
-		Playlist::ReceivedPlaylistBuffer.clear();
 	}
 }

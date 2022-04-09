@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 #include <shlwapi.h>
 
 namespace Utils
@@ -396,7 +396,7 @@ namespace Utils
 		return false;
 	}
 
-	void WebIO::formatPath(std::string &path, bool win)
+	void WebIO::formatPath(std::string& path, bool win)
 	{
 		size_t nPos;
 		std::string find = "\\";
@@ -408,7 +408,7 @@ namespace Utils
 			replace = "\\";
 		}
 
-		while ((nPos = path.find(find)) != std::wstring::npos)
+		while ((nPos = path.find(find)) != std::string::npos)
 		{
 			path = path.replace(nPos, find.length(), replace);
 		}
@@ -445,7 +445,7 @@ namespace Utils
 		return (FtpRenameFileA(this->hConnect, directory.data(), newDir.data()) == TRUE); // According to the internetz, this should work
 	}
 
-	bool WebIO::listElements(const std::string& directory, std::vector<std::string> &list, bool files)
+	bool WebIO::listElements(const std::string& directory, std::vector<std::string>& list, bool files)
 	{
 		list.clear();
 
@@ -483,12 +483,12 @@ namespace Utils
 		return result;
 	}
 
-	bool WebIO::listDirectories(const std::string& directory, std::vector<std::string> &list)
+	bool WebIO::listDirectories(const std::string& directory, std::vector<std::string>& list)
 	{
 		return this->listElements(directory, list, false);
 	}
 
-	bool WebIO::listFiles(const std::string& directory, std::vector<std::string> &list)
+	bool WebIO::listFiles(const std::string& directory, std::vector<std::string>& list)
 	{
 		return this->listElements(directory, list, true);
 	}
@@ -532,7 +532,7 @@ namespace Utils
 		return result;
 	}
 
-	bool WebIO::downloadFileData(const std::string& file, std::string &data)
+	bool WebIO::downloadFileData(const std::string& file, std::string& data)
 	{
 		data.clear();
 

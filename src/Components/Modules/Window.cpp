@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -144,8 +144,8 @@ namespace Components
 	Window::Window()
 	{
 		// Borderless window
-		Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::dvar_flag::DVAR_FLAG_SAVED, "Do not use a border in windowed mode");
-		Window::NativeCursor = Dvar::Register<bool>("ui_nativeCursor", false, Game::dvar_flag::DVAR_FLAG_SAVED, "Display native cursor");
+		Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::dvar_flag::DVAR_ARCHIVE, "Do not use a border in windowed mode");
+		Window::NativeCursor = Dvar::Register<bool>("ui_nativeCursor", false, Game::dvar_flag::DVAR_ARCHIVE, "Display native cursor");
 
 		Utils::Hook(0x507643, Window::StyleHookStub, HOOK_CALL).install()->quick();
 

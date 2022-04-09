@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -60,7 +60,7 @@ namespace Components
 		std::string nodes = Utils::Cache::GetFile("/iw4/nodes.txt");
 		if (nodes.empty()) return;
 
-		auto nodeList = Utils::String::Explode(nodes, '\n');
+		auto nodeList = Utils::String::Split(nodes, '\n');
 		for (auto& node : nodeList)
 		{
 			Utils::String::Replace(node, "\r", "");
@@ -377,7 +377,7 @@ namespace Components
 
 		Command::Add("addnode", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 			Node::Add({ params->get(1) });
 		});
 	}

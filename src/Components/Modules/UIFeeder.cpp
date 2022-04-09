@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -383,9 +383,9 @@ namespace Components
 
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<const char*>("ui_map_long", "Afghan", Game::dvar_flag::DVAR_FLAG_NONE, "");
-			Dvar::Register<const char*>("ui_map_name", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "");
-			Dvar::Register<const char*>("ui_map_desc", "", Game::dvar_flag::DVAR_FLAG_NONE, "");
+			Dvar::Register<const char*>("ui_map_long", "Afghan", Game::dvar_flag::DVAR_NONE, "");
+			Dvar::Register<const char*>("ui_map_name", "mp_afghan", Game::dvar_flag::DVAR_NONE, "");
+			Dvar::Register<const char*>("ui_map_desc", "", Game::dvar_flag::DVAR_NONE, "");
 		});
 
 		// Get feeder item count

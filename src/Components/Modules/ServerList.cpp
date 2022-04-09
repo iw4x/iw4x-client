@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -539,8 +539,8 @@ namespace Components
 
 	bool ServerList::CompareVersion(const std::string& version1, const std::string& version2)
 	{
-		std::vector<std::string> subVersions1 = Utils::String::Explode(version1, '.');
-		std::vector<std::string> subVersions2 = Utils::String::Explode(version2, '.');
+		auto subVersions1 = Utils::String::Split(version1, '.');
+		auto subVersions2 = Utils::String::Split(version2, '.');
 
 		while (subVersions1.size() >= 3) subVersions1.pop_back();
 		while (subVersions2.size() >= 3) subVersions2.pop_back();
@@ -734,16 +734,16 @@ namespace Components
 
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_FLAG_NONE, "Whether a server has been selected in the serverlist");
-			Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_FLAG_NONE, "Map of the selected server");
+			Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_NONE, "Whether a server has been selected in the serverlist");
+			Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_NONE, "Map of the selected server");
 
-			Dvar::Register<int>("net_serverQueryLimit", 1, 1, 10, Dedicated::IsEnabled() ? 0 : Game::dvar_flag::DVAR_FLAG_SAVED, "Amount of server queries per frame");
-			Dvar::Register<int>("net_serverFrames", 30, 1, 60, Dedicated::IsEnabled() ? 0 : Game::dvar_flag::DVAR_FLAG_SAVED, "Amount of server query frames per second");
+			Dvar::Register<int>("net_serverQueryLimit", 1, 1, 10, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server queries per frame");
+			Dvar::Register<int>("net_serverFrames", 30, 1, 60, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server query frames per second");
 		});
 
 		// Fix ui_netsource dvar
 		Utils::Hook::Nop(0x4CDEEC, 5); // Don't reset the netsource when gametypes aren't loaded
-		Dvar::Register<int>("ui_netSource", 1, 0, 2, Game::DVAR_FLAG_SAVED, reinterpret_cast<const char*>(0x6D9F08));
+		Dvar::Register<int>("ui_netSource", 1, 0, 2, Game::DVAR_ARCHIVE, reinterpret_cast<const char*>(0x6D9F08));
 
 		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0 (0)");
@@ -782,8 +782,8 @@ namespace Components
 		// Set default masterServerName + port and save it 
 #ifdef USE_LEGACY_SERVER_LIST
 		Utils::Hook::Set<char*>(0x60AD92, "127.0.0.1");
-		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_FLAG_SAVED); // masterServerName
-		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_FLAG_SAVED); // masterPort
+		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_ARCHIVE); // masterServerName
+		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_ARCHIVE); // masterPort
 #endif
 
 		// Add server list feeder
@@ -880,15 +880,8 @@ namespace Components
 
 	ServerList::~ServerList()
 	{
-		ServerList::OnlineList.clear();
-		ServerList::OfflineList.clear();
-		ServerList::FavouriteList.clear();
-		ServerList::VisibleList.clear();
-
-		{
-			std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
-			ServerList::RefreshContainer.awatingList = false;
-			ServerList::RefreshContainer.servers.clear();
-		}
+		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
+		ServerList::RefreshContainer.awatingList = false;
+		ServerList::RefreshContainer.servers.clear();
 	}
 }

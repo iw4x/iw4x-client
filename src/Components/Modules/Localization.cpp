@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -277,7 +277,7 @@ namespace Components
 		// Overwrite SetString
 		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).install()->quick();
 
-		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
+		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_NONE, "Use localization strings");
 
 		// Generate localized entries for custom classes above 10
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)

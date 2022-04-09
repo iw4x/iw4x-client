@@ -8,7 +8,7 @@ namespace Components
 		typedef void(Callback)(Game::gentity_s* entity);
 
 		ClientCommand();
-		~ClientCommand();
+
 		static void Add(const char* name, Utils::Slot<Callback> callback);
 		static bool CheatsOk(const Game::gentity_s* ent);
 

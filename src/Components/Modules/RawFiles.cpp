@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -24,7 +24,7 @@ namespace Components
 
 		Command::Add("dumpraw", [](Command::Params* params)
 		{
-			if (params->length() < 2)
+			if (params->size() < 2)
 			{
 				Logger::Print("Specify a filename!\n");
 				return;

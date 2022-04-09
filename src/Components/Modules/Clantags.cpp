@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -75,7 +75,7 @@ namespace Components
 		// Create clantag dvar
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<const char*>("clantag", "", Game::dvar_flag::DVAR_FLAG_USERINFO | Game::dvar_flag::DVAR_FLAG_SAVED, "If set, your clantag will be shown on the scoreboard.");
+			Dvar::Register<const char*>("clantag", "", Game::dvar_flag::DVAR_USERINFO | Game::dvar_flag::DVAR_ARCHIVE, "If set, your clantag will be shown on the scoreboard.");
 		});
 
 		// Servercommand hook
@@ -83,7 +83,7 @@ namespace Components
 		{
 			if (params->get(1) == "clantags"s && !Dedicated::IsEnabled())
 			{
-				if (params->length() == 3)
+				if (params->size() == 3)
 				{
 					ClanTags::ParseClantags(params->get(2));
 					return true;
@@ -93,20 +93,7 @@ namespace Components
 			return false;
 		});
 
-		for (int i = 0; i < ARRAYSIZE(ClanTags::Tags); ++i)
-		{
-			ClanTags::Tags[i].clear();
-		}
-
 		// Draw clantag before playername
 		Utils::Hook(0x591242, ClanTags::DrawPlayerNameOnScoreboard).install()->quick();
-	}
-
-	ClanTags::~ClanTags()
-	{
-		for (int i = 0; i < ARRAYSIZE(ClanTags::Tags); ++i)
-		{
-			ClanTags::Tags[i].clear();
-		}
 	}
 }

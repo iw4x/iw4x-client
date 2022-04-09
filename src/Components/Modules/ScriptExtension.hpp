@@ -8,8 +8,10 @@ namespace Components
 		ScriptExtension();
 
 	private:
+		static const char* QueryStrings[];
 
 		static void AddFunctions();
 		static void AddMethods();
+		static void Scr_TableLookupIStringByRow();
 	};
 }

@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -1641,7 +1641,7 @@ namespace Components
 
     void Gamepad::Axis_Bind_f(Command::Params* params)
     {
-        if (params->length() < 4)
+        if (params->size() < 4)
         {
             Logger::Print("bindaxis <real axis> <virtual axis> <input type>\n");
             return;
@@ -1711,32 +1711,32 @@ namespace Components
 
     void Gamepad::InitDvars()
     {
-        gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_FLAG_SAVED, "Game pad enabled");
-        gpad_debug = Dvar::Register<bool>("gpad_debug", false, Game::DVAR_FLAG_NONE, "Game pad debugging");
-        gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_FLAG_NONE, "Game pad present");
-        gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_FLAG_NONE, "A game pad is in use");
-        gpad_style = Dvar::Register<bool>("gpad_style", false, Game::DVAR_FLAG_SAVED, "Switch between Xbox and PS HUD");
-        gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "", Game::DVAR_FLAG_SAVED, "Game pad stick configuration");
-        gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_FLAG_SAVED, "Game pad button configuration");
-        gpad_menu_scroll_delay_first = Dvar::Register<int>("gpad_menu_scroll_delay_first", 420, 0, 1000, Game::DVAR_FLAG_SAVED, "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
-        gpad_menu_scroll_delay_rest = Dvar::Register<int>("gpad_menu_scroll_delay_rest", 210, 0, 1000, Game::DVAR_FLAG_SAVED,
+        gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_ARCHIVE, "Game pad enabled");
+        gpad_debug = Dvar::Register<bool>("gpad_debug", false, Game::DVAR_NONE, "Game pad debugging");
+        gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_NONE, "Game pad present");
+        gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_NONE, "A game pad is in use");
+        gpad_style = Dvar::Register<bool>("gpad_style", false, Game::DVAR_ARCHIVE, "Switch between Xbox and PS HUD");
+        gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "", Game::DVAR_ARCHIVE, "Game pad stick configuration");
+        gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_ARCHIVE, "Game pad button configuration");
+        gpad_menu_scroll_delay_first = Dvar::Register<int>("gpad_menu_scroll_delay_first", 420, 0, 1000, Game::DVAR_ARCHIVE, "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
+        gpad_menu_scroll_delay_rest = Dvar::Register<int>("gpad_menu_scroll_delay_rest", 210, 0, 1000, Game::DVAR_ARCHIVE,
                                                           "Menu scroll key-repeat delay, for repeats after the first, in milliseconds");
-        gpad_rumble = Dvar::Register<bool>("gpad_rumble", true, Game::DVAR_FLAG_SAVED, "Enable game pad rumble");
-        gpad_stick_pressed_hysteresis = Dvar::Register<float>("gpad_stick_pressed_hysteresis", 0.1f, 0.0f, 1.0f, Game::DVAR_FLAG_NONE,
+        gpad_rumble = Dvar::Register<bool>("gpad_rumble", true, Game::DVAR_ARCHIVE, "Enable game pad rumble");
+        gpad_stick_pressed_hysteresis = Dvar::Register<float>("gpad_stick_pressed_hysteresis", 0.1f, 0.0f, 1.0f, Game::DVAR_NONE,
                                                               "Game pad stick pressed no-change-zone around gpad_stick_pressed to prevent bouncing");
-        gpad_stick_pressed = Dvar::Register<float>("gpad_stick_pressed", 0.4f, 0.0, 1.0, Game::DVAR_FLAG_NONE, "Game pad stick pressed threshhold");
-        gpad_stick_deadzone_max = Dvar::Register<float>("gpad_stick_deadzone_max", 0.01f, 0.0f, 1.0f, Game::DVAR_FLAG_NONE, "Game pad maximum stick deadzone");
-        gpad_stick_deadzone_min = Dvar::Register<float>("gpad_stick_deadzone_min", 0.2f, 0.0f, 1.0f, Game::DVAR_FLAG_NONE, "Game pad minimum stick deadzone");
-        gpad_button_deadzone = Dvar::Register<float>("gpad_button_deadzone", 0.13f, 0.0f, 1.0f, Game::DVAR_FLAG_NONE, "Game pad button deadzone threshhold");
-        gpad_button_lstick_deflect_max = Dvar::Register<float>("gpad_button_lstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_FLAG_NONE, "Game pad maximum pad stick pressed value");
-        gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_FLAG_NONE, "Game pad maximum pad stick pressed value");
-        gpad_use_hold_time = Dvar::Register<int>("gpad_use_hold_time", 250, 0, INT32_MAX, Game::DVAR_FLAG_NONE, "Time to hold the 'use' button on gamepads to activate use");
-        gpad_lockon_enabled = Dvar::Register<bool>("gpad_lockon_enabled", true, Game::DVAR_FLAG_SAVED, "Game pad lockon aim assist enabled");
-        gpad_slowdown_enabled = Dvar::Register<bool>("gpad_slowdown_enabled", true, Game::DVAR_FLAG_SAVED, "Game pad slowdown aim assist enabled");
+        gpad_stick_pressed = Dvar::Register<float>("gpad_stick_pressed", 0.4f, 0.0, 1.0, Game::DVAR_NONE, "Game pad stick pressed threshhold");
+        gpad_stick_deadzone_max = Dvar::Register<float>("gpad_stick_deadzone_max", 0.01f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad maximum stick deadzone");
+        gpad_stick_deadzone_min = Dvar::Register<float>("gpad_stick_deadzone_min", 0.2f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad minimum stick deadzone");
+        gpad_button_deadzone = Dvar::Register<float>("gpad_button_deadzone", 0.13f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad button deadzone threshhold");
+        gpad_button_lstick_deflect_max = Dvar::Register<float>("gpad_button_lstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad maximum pad stick pressed value");
+        gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad maximum pad stick pressed value");
+        gpad_use_hold_time = Dvar::Register<int>("gpad_use_hold_time", 250, 0, std::numeric_limits<int>::max(), Game::DVAR_NONE, "Time to hold the 'use' button on gamepads to activate use");
+        gpad_lockon_enabled = Dvar::Register<bool>("gpad_lockon_enabled", true, Game::DVAR_ARCHIVE, "Game pad lockon aim assist enabled");
+        gpad_slowdown_enabled = Dvar::Register<bool>("gpad_slowdown_enabled", true, Game::DVAR_ARCHIVE, "Game pad slowdown aim assist enabled");
 
-        input_viewSensitivity = Dvar::Register<float>("input_viewSensitivity", 1.0f, 0.0001f, 5.0f, Game::DVAR_FLAG_SAVED, "View Sensitivity");
-        input_invertPitch = Dvar::Register<bool>("input_invertPitch", false, Game::DVAR_FLAG_SAVED, "Invert gamepad pitch");
-        sv_allowAimAssist = Dvar::Register<bool>("sv_allowAimAssist", true, Game::DVAR_FLAG_NONE, "Controls whether aim assist features on clients are enabled");
+        input_viewSensitivity = Dvar::Register<float>("input_viewSensitivity", 1.0f, 0.0001f, 5.0f, Game::DVAR_ARCHIVE, "View Sensitivity");
+        input_invertPitch = Dvar::Register<bool>("input_invertPitch", false, Game::DVAR_ARCHIVE, "Invert gamepad pitch");
+        sv_allowAimAssist = Dvar::Register<bool>("sv_allowAimAssist", true, Game::DVAR_NONE, "Controls whether aim assist features on clients are enabled");
         aim_turnrate_pitch = Dvar::Var("aim_turnrate_pitch");
         aim_turnrate_pitch_ads = Dvar::Var("aim_turnrate_pitch_ads");
         aim_turnrate_yaw = Dvar::Var("aim_turnrate_yaw");
@@ -1761,10 +1761,10 @@ namespace Components
         aim_lockon_strength = Dvar::Var("aim_lockon_strength");
     }
 
-    void Gamepad::IN_Init_Hk()
+    void Gamepad::CG_RegisterDvars_Hk()
     {
         // Call original method
-        Utils::Hook::Call<void()>(0x45D620)();
+        Utils::Hook::Call<void()>(0x4F8DC0)();
 
         InitDvars();
     }
@@ -1907,7 +1907,7 @@ namespace Components
             return;
 
         // Initialize gamepad environment
-        Utils::Hook(0x467C03, IN_Init_Hk, HOOK_CALL).install()->quick();
+        Utils::Hook(0x4059FE, CG_RegisterDvars_Hk, HOOK_CALL).install()->quick();
 
         // package the forward and right move components in the move buttons
         Utils::Hook(0x60E38D, MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();

@@ -10,13 +10,13 @@ namespace Utils
 		static Library GetByAddress(void* address);
 
 		Library() : _module(nullptr), freeOnDestroy(false) {};
-		Library(const std::string& buffer, bool freeOnDestroy);
-		explicit Library(const std::string& name);
+		Library(const std::string& name, bool freeOnDestroy);
+		explicit Library(const std::string& name) : _module(GetModuleHandleA(name.data())), freeOnDestroy(true) {};
 		explicit Library(HMODULE handle);
 		~Library();
 
 		bool isValid() const;
-		HMODULE getModule();
+		HMODULE getModule() const;
 
 		template <typename T>
 		T getProc(const std::string& process) const

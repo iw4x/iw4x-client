@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
@@ -61,7 +61,7 @@ namespace Assets
 				glyph.pixelHeight = static_cast<char>(gh);
 				glyph.x0 = static_cast<char>(x0);
 				glyph.y0 = static_cast<char>(y0 + yOffset);
-				glyph.dx = static_cast<char>(roundf(scale * advance));
+				glyph.dx = static_cast<char>(std::roundf(scale * advance));
 
 				// Advance to next col
 				x = x + gw + 1;
@@ -92,7 +92,7 @@ namespace Assets
 		}
 	}
 
-	void IFont_s::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone*)
+	void IFont_s::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		Components::FileSystem::File fontDefFile(Utils::String::VA("%s.json", name.data()));
 		Components::FileSystem::File fontFile(Utils::String::VA("%s.ttf", name.data()));
@@ -105,11 +105,13 @@ namespace Assets
 			if (!errors.empty())
 			{
 				Components::Logger::Error("Font define %s is broken: %s.", name.data(), errors.data());
+				return;
 			}
 
 			if (!fontDef.is_object())
 			{
 				Components::Logger::Error("Font define %s is invaild.", name.data(), errors.data());
+				return;
 			}
 
 			int w = fontDef["textureWidth"].int_value();
@@ -118,22 +120,28 @@ namespace Assets
 			int size = fontDef["size"].int_value();
 			int yOffset = fontDef["yOffset"].int_value();
 
-			uint8_t* pixels = Utils::Memory::AllocateArray<uint8_t>(w * h);
+			auto* pixels = builder->getAllocator()->allocateArray<uint8_t>(w * h);
 
 			// Setup assets
-			auto* texName = Utils::Memory::DuplicateString(Utils::String::VA("if_%s", name.data() + 6 /* skip "fonts/" */));
-			auto* fontName = Utils::Memory::DuplicateString(name.data());
-			auto* glowMaterialName = Utils::Memory::DuplicateString(Utils::String::VA("%s_glow", name.data()));
+			const auto* texName = builder->getAllocator()->duplicateString(Utils::String::VA("if_%s", name.data() + 6 /* skip "fonts/" */));
+			const auto* fontName = builder->getAllocator()->duplicateString(name.data());
+			const auto* glowMaterialName = builder->getAllocator()->duplicateString(Utils::String::VA("%s_glow", name.data()));
 
-			auto* image = Utils::Memory::Duplicate(Game::DB_FindXAssetHeader(Game::ASSET_TYPE_IMAGE, "gamefonts_pc").image);
+			auto* image = builder->getAllocator()->allocate<Game::GfxImage>();
+			std::memcpy(image, Game::DB_FindXAssetHeader(Game::ASSET_TYPE_IMAGE, "gamefonts_pc").image, sizeof(Game::GfxImage));
+
 			image->name = texName;
-			
-			auto* material = Utils::Memory::Duplicate(Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "fonts/gamefonts_pc").material);
-			material->textureTable = Utils::Memory::Duplicate(material->textureTable);
+
+			auto* material = builder->getAllocator()->allocate<Game::Material>();
+			std::memcpy(material, Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "fonts/gamefonts_pc").material, sizeof(Game::Material));
+
+			material->textureTable = builder->getAllocator()->allocate<Game::MaterialTextureDef>();
 			material->textureTable->u.image = image;
 			material->info.name = fontName;
 
-			auto* glowMaterial = Utils::Memory::Duplicate(Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "fonts/gamefonts_pc_glow").material);
+			auto* glowMaterial = builder->getAllocator()->allocate<Game::Material>();
+			std::memcpy(glowMaterial, Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "fonts/gamefonts_pc_glow").material, sizeof(Game::Material));
+
 			glowMaterial->textureTable = material->textureTable;
 			glowMaterial->info.name = glowMaterialName;
 
@@ -161,14 +169,14 @@ namespace Assets
 					charset.push_back(i);
 			}
 
-			auto* font = Utils::Memory::Allocate<Game::Font_s>();
+			auto* font = builder->getAllocator()->allocate<Game::Font_s>();
 
 			font->fontName = fontName;
 			font->pixelHeight = size;
 			font->material = material;
 			font->glowMaterial = glowMaterial;
 			font->glyphCount = charset.size();
-			font->glyphs = Utils::Memory::AllocateArray<Game::Glyph>(charset.size());
+			font->glyphs = builder->getAllocator()->allocateArray<Game::Glyph>(charset.size());
 
 			// Generate glyph data
 			int result = PackFonts(reinterpret_cast<const uint8_t*>(fontFile.getBuffer().data()), charset, font->glyphs, static_cast<float>(size), pixels, w, h, yOffset);
@@ -239,7 +247,6 @@ namespace Assets
 			}
 
 			Utils::IO::WriteFile(Utils::String::VA("userraw\\images\\%s.iwi", texName), outIwi);
-			Utils::Memory::Free(pixels);
 		}
 	}
 

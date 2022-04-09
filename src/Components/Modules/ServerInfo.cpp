@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -264,7 +264,7 @@ namespace Components
 					Dvar::Var("uiSi_ModName").set(info.get("fs_game").data() + 5);
 				}
 
-				auto lines = Utils::String::Explode(data, '\n');
+				auto lines = Utils::String::Split(data, '\n');
 
 				if (lines.size() <= 1) return;
 

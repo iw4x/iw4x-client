@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 #define IW4X_LIGHT_VERSION "0"
 

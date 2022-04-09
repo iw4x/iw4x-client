@@ -1,4 +1,4 @@
-﻿#include "STDInclude.hpp"
+﻿#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -504,7 +504,8 @@ namespace Components
 		Console::ConsoleThread = std::thread(Console::ConsoleRunner);
 	}
 
-	Game::dvar_t* Console::RegisterConColor(const char* name, float r, float g, float b, float a, float min, float max, int flags, const char* description)
+	Game::dvar_t* Console::RegisterConColor(const char* dvarName, float r, float g, float b, float a, float min,
+		float max, unsigned __int16 flags, const char* description)
 	{
 		static struct
 		{
@@ -521,7 +522,7 @@ namespace Components
 
 		for (int i = 0; i < ARRAYSIZE(patchedColors); ++i)
 		{
-			if (std::string(name) == patchedColors[i].name)
+			if (std::strcmp(dvarName, patchedColors[i].name) == 0)
 			{
 				r = patchedColors[i].color[0];
 				g = patchedColors[i].color[1];
@@ -531,7 +532,7 @@ namespace Components
 			}
 		}
 
-		return reinterpret_cast<Game::Dvar_RegisterVec4_t>(0x471500)(name, r, g, b, a, min, max, flags, description);
+		return reinterpret_cast<Game::Dvar_RegisterVec4_t>(0x471500)(dvarName, r, g, b, a, min, max, flags, description);
 	}
 
 	Console::Console()

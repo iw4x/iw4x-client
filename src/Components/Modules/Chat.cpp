@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -263,7 +263,7 @@ namespace Components
 			}
 
 			const auto* cmd = params->get(0);
-			if (params->length() < 2)
+			if (params->size() < 2)
 			{
 				Logger::Print("Usage: %s <client number> : prevent the player from using the chat\n", cmd);
 				return;
@@ -285,7 +285,7 @@ namespace Components
 			}
 
 			const auto* cmd = params->get(0);
-			if (params->length() < 2)
+			if (params->size() < 2)
 			{
 				Logger::Print("Usage: %s <client number or guid>\n%s all = unmute everyone\n", cmd, cmd);
 				return;
@@ -299,7 +299,7 @@ namespace Components
 				return;
 			}
 
-			if (params->get(1) == "all"s)
+			if (std::strcmp(params->get(1), "all") == 0)
 			{
 				Logger::Print("All players were unmuted\n");
 				Chat::UnmuteInternal(0, true);
@@ -316,7 +316,7 @@ namespace Components
 	{
 		Dvar::OnInit([]
 		{
-			cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_FLAG_SAVED, "The normalized maximum width of a chat message");
+			cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
 			Chat::AddChatCommands();
 		});
 
@@ -327,10 +327,5 @@ namespace Components
 
 		// Change logic that does word splitting with new lines for chat messages to support fonticons
 		Utils::Hook(0x592E10, CG_AddToTeamChat_Stub, HOOK_JUMP).install()->quick();
-	}
-
-	Chat::~Chat()
-	{
-		Chat::MuteList.clear();
 	}
 }
