@@ -17,7 +17,7 @@ namespace Components
 
 	struct BotAction
 	{
-		const char* action;
+		std::string action;
 		int key;
 	};
 
@@ -38,26 +38,18 @@ namespace Components
 		{ "holdbreath", Game::usercmdButtonBits::CMD_BUTTON_BREATH },
 		{ "usereload", Game::usercmdButtonBits::CMD_BUTTON_USE_RELOAD },
 		{ "activate", Game::usercmdButtonBits::CMD_BUTTON_ACTIVATE },
-		{ "0", Bots::NUM_0 },
-		{ "1", Bots::NUM_1 },
-		{ "2", Bots::NUM_2 },
-		{ "3", Bots::NUM_3 },
-		{ "4", Bots::NUM_4},
-		{ "5", Bots::NUM_5 },
-		{ "6", Bots::NUM_6 },
-		{ "7", Bots::NUM_7 },
-		{ "8", Bots::NUM_8 },
-		{ "9", Bots::NUM_9 }
 	};
 
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
 		static size_t botId = 0;
+		static bool loadedNames = false; // Load file only once
 		const char* botName;
 
-		if (Bots::BotNames.empty())
+		if (Bots::BotNames.empty() && !loadedNames)
 		{
 			FileSystem::File bots("bots.txt");
+			loadedNames = true;
 
 			if (bots.exists())
 			{
@@ -211,13 +203,13 @@ namespace Components
 
 			for (auto i = 0u; i < std::extent_v<decltype(BotActions)>; ++i)
 			{
-				if (strcmp(&action[1], BotActions[i].action) != 0)
+				if (Utils::String::ToLower(&action[1]) != BotActions[i].action)
 					continue;
 
 				if (action[0] == '+')
 					g_botai[entref.entnum].buttons |= BotActions[i].key;
 				else
-					g_botai[entref.entnum].buttons &= ~(BotActions[i].key);
+					g_botai[entref.entnum].buttons &= ~BotActions[i].key;
 
 				g_botai[entref.entnum].active = true;
 				return;
@@ -362,6 +354,7 @@ namespace Components
 						Logger::Print("Warning: %s is not a valid input\n"
 							"Usage: %s optional <number of bots> or optional <\"all\">\n",
 							input, params->get(0));
+						return;
 					}
 				}
 			}
@@ -383,5 +376,14 @@ namespace Components
 		});
 
 		Bots::AddMethods();
+
+		// Reset activate so test clients can be used after unloading bot warfare
+		Script::OnVMShutdown([]
+		{
+			for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)
+			{
+				g_botai[i].active = false;
+			}
+		});
 	}
 }

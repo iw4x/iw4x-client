@@ -64,7 +64,7 @@ namespace Components
 		static Game::scr_function_t GetFunction(void* caller, const char** name, int* isDev);
 		static void GetFunctionStub();
 
-		static void ScrShutdownSystemStub(int);
+		static void ScrShutdownSystemStub(unsigned char sys);
 		static void StoreScriptBaseProgramNumStub();
 		static void StoreScriptBaseProgramNum();
 		static void Scr_PrintPrevCodePosStub();
