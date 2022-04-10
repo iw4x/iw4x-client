@@ -186,7 +186,7 @@ namespace Components
 		Script::AddFunction("IsEndStr", []() // gsc: IsEndStr(<string>, <string>)
 		{
 			const auto* s1 = Game::Scr_GetString(0);
-			const auto* s2 = Game::Scr_GetString(0);
+			const auto* s2 = Game::Scr_GetString(1);
 
 			if (s1 == nullptr || s2 == nullptr)
 			{
