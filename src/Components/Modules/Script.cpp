@@ -140,11 +140,9 @@ namespace Components
 			std::string buffer = script.getBuffer();
 			Utils::String::Replace(buffer, "\t", " ");
 
-			int line = 1;
-			int lineOffset = 0;
-			int inlineOffset = 0;
+			auto line = 1, lineOffset = 0, inlineOffset = 0;
 
-			for (unsigned int i = 0; i < buffer.size(); ++i)
+			for (size_t i = 0; i < buffer.size(); ++i)
 			{
 				// Terminate line
 				if (i == offset)
@@ -161,7 +159,7 @@ namespace Components
 				if (buffer[i] == '\n')
 				{
 					++line;
-					lineOffset = i; // Includes the line break!
+					lineOffset = static_cast<int>(i); // Includes the line break!
 					inlineOffset = 0;
 				}
 				else
@@ -173,7 +171,7 @@ namespace Components
 			Logger::Print(23, "in file %s, line %d:", filename, line);
 			Logger::Print(23, "%s\n", buffer.data() + lineOffset);
 
-			for (int i = 0; i < (inlineOffset - 1); ++i)
+			for (auto i = 0; i < (inlineOffset - 1); ++i)
 			{
 				Logger::Print(23, " ");
 			}
@@ -249,7 +247,7 @@ namespace Components
 
 		for (auto file : list)
 		{
-			file = "scripts/" + file;
+			file.insert(0, "scripts/");
 
 			if (Utils::String::EndsWith(file, ".gsc"))
 			{
@@ -294,7 +292,7 @@ namespace Components
 
 	Game::xfunction_t Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
 	{
-		if (pName)
+		if (pName != nullptr)
 		{
 			const auto got = Script::CustomScrFunctions.find(Utils::String::ToLower(*pName));
 
@@ -318,7 +316,7 @@ namespace Components
 
 	Game::xmethod_t Script::BuiltIn_GetMethod(const char** pName, int* type)
 	{
-		if (pName)
+		if (pName != nullptr)
 		{
 			const auto got = Script::CustomScrMethods.find(Utils::String::ToLower(*pName));
 
