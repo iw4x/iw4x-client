@@ -1111,7 +1111,7 @@ namespace Game
 
 	void FS_AddLocalizedGameDirectory(const char *path, const char *dir);
 
-	bool PM_IsAdsAllowed(Game::playerState_s* playerState);
+	bool PM_IsAdsAllowed(playerState_s* ps);
 
 	void ShowMessageBox(const std::string& message, const std::string& title);
 
