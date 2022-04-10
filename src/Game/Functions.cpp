@@ -272,6 +272,7 @@ namespace Game
 
 	Scr_AddEntity_t Scr_AddEntity = Scr_AddEntity_t(0x4BFB40);
 	Scr_AddString_t Scr_AddString = Scr_AddString_t(0x412310);
+	Scr_AddConstString_t Scr_AddConstString = Scr_AddConstString_t(0x488860);
 	Scr_AddIString_t Scr_AddIString = Scr_AddIString_t(0x455F20);
 	Scr_AddInt_t Scr_AddInt = Scr_AddInt_t(0x41D7D0);
 	Scr_AddFloat_t Scr_AddFloat = Scr_AddFloat_t(0x61E860);
@@ -313,6 +314,8 @@ namespace Game
 
 	SL_ConvertToString_t SL_ConvertToString = SL_ConvertToString_t(0x4EC1D0);
 	SL_GetString_t SL_GetString = SL_GetString_t(0x4CDC10);
+	SL_AddRefToString_t SL_AddRefToString = SL_AddRefToString_t(0x4D9B00);
+	SL_RemoveRefToString_t SL_RemoveRefToString = SL_RemoveRefToString_t(0x47CD70);
 
 	SND_Init_t SND_Init = SND_Init_t(0x46A630);
 	SND_InitDriver_t SND_InitDriver = SND_InitDriver_t(0x4F5090);

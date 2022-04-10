@@ -6,8 +6,8 @@ namespace Components
 
 	void ScriptExtension::AddFunctions()
 	{
-		//File functions
-		Script::AddFunction("FileWrite", [](Game::scr_entref_t) // gsc: FileWrite(<filepath>, <string>, <mode>)
+		// File functions
+		Script::AddFunction("FileWrite", []() // gsc: FileWrite(<filepath>, <string>, <mode>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 			auto* text = Game::Scr_GetString(1);
@@ -50,7 +50,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("FileRead", [](Game::scr_entref_t) // gsc: FileRead(<filepath>)
+		Script::AddFunction("FileRead", []() // gsc: FileRead(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -78,7 +78,7 @@ namespace Components
 			Game::Scr_AddString(FileSystem::FileReader(path).getBuffer().data());
 		});
 
-		Script::AddFunction("FileExists", [](Game::scr_entref_t) // gsc: FileExists(<filepath>)
+		Script::AddFunction("FileExists", []() // gsc: FileExists(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -100,7 +100,7 @@ namespace Components
 			Game::Scr_AddInt(FileSystem::FileReader(path).exists());
 		});
 
-		Script::AddFunction("FileRemove", [](Game::scr_entref_t) // gsc: FileRemove(<filepath>)
+		Script::AddFunction("FileRemove", []() // gsc: FileRemove(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -124,12 +124,84 @@ namespace Components
 			const auto& file = p.filename().string();
 			Game::Scr_AddInt(FileSystem::DeleteFile(folder, file));
 		});
+
+		// Misc functions
+		Script::AddFunction("ToUpper", []() // gsc: ToUpper(<string>)
+		{
+			const auto scriptValue = Game::Scr_GetConstString(0);
+			const auto* string = Game::SL_ConvertToString(scriptValue);
+
+			char out[1024] = {0}; // 1024 is the max for a string in this SL system
+			bool changed = false;
+
+			size_t i = 0;
+			while (i < sizeof(out))
+			{
+				const auto value = *string;
+				const auto result = static_cast<char>(std::toupper(static_cast<unsigned char>(value)));
+				out[i] = result;
+
+				if (value != result)
+					changed = true;
+
+				if (result == '\0') // Finished converting string
+					break;
+
+				++string;
+				++i;
+			}
+
+			// Null terminating character was overwritten 
+			if (i >= sizeof(out))
+			{
+				Game::Scr_Error("string too long");
+				return;
+			}
+
+			if (changed)
+			{
+				Game::Scr_AddString(out);
+			}
+			else
+			{
+				Game::SL_AddRefToString(scriptValue);
+				Game::Scr_AddConstString(scriptValue);
+				Game::SL_RemoveRefToString(scriptValue);
+			}
+		});
+
+		// Func present on IW5
+		Script::AddFunction("StrICmp", []() // gsc: StrICmp(<string>, <string>)
+		{
+			const auto value1 = Game::Scr_GetConstString(0);
+			const auto value2 = Game::Scr_GetConstString(1);
+
+			const auto result = _stricmp(Game::SL_ConvertToString(value1),
+				Game::SL_ConvertToString(value2));
+
+			Game::Scr_AddInt(result);
+		});
+
+		// Func present on IW5
+		Script::AddFunction("IsEndStr", []() // gsc: IsEndStr(<string>, <string>)
+		{
+			const auto* s1 = Game::Scr_GetString(0);
+			const auto* s2 = Game::Scr_GetString(1);
+
+			if (s1 == nullptr || s2 == nullptr)
+			{
+				Game::Scr_Error("^1IsEndStr: Illegal parameters!\n");
+				return;
+			}
+
+			Game::Scr_AddBool(Utils::String::EndsWith(s1, s2));
+		});
 	}
 
 	void ScriptExtension::AddMethods()
 	{
 		// ScriptExtension methods
-		Script::AddFunction("GetIp", [](Game::scr_entref_t entref) // gsc: self GetIp()
+		Script::AddMethod("GetIp", [](Game::scr_entref_t entref) // gsc: self GetIp()
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
@@ -142,7 +214,7 @@ namespace Components
 			Game::Scr_AddString(ip.data());
 		});
 
-		Script::AddFunction("GetPing", [](Game::scr_entref_t entref) // gsc: self GetPing()
+		Script::AddMethod("GetPing", [](Game::scr_entref_t entref) // gsc: self GetPing()
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);

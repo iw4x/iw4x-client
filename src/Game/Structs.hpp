@@ -20,13 +20,30 @@ namespace Game
 	typedef vec_t vec3_t[3];
 	typedef vec_t vec4_t[4];
 
+	typedef unsigned __int16 scr_string_t;
+
 	struct scr_entref_t
 	{
 		unsigned __int16 entnum;
 		unsigned __int16 classnum;
 	};
 
-	typedef void(__cdecl * scr_function_t)(scr_entref_t);
+	typedef void(__cdecl * xfunction_t)();
+	typedef void(__cdecl * xmethod_t)(scr_entref_t);
+
+	struct BuiltinFunctionDef
+	{
+		const char* actionString;
+		xfunction_t actionFunc;
+		int type;
+	};
+
+	struct BuiltinMethodDef
+	{
+		const char* actionString;
+		xmethod_t actionFunc;
+		int type;
+	};
 
 	enum XAssetType
 	{
