@@ -134,7 +134,7 @@ namespace Components
 			char out[1024] = {0}; // 1024 is the max for a string in this SL system
 			bool changed = false;
 
-			auto i = 0u;
+			size_t i = 0;
 			while (i < sizeof(out))
 			{
 				const auto value = *string;
@@ -176,7 +176,7 @@ namespace Components
 			const auto value1 = Game::Scr_GetConstString(0);
 			const auto value2 = Game::Scr_GetConstString(1);
 
-			const auto result = std::strcmp(Game::SL_ConvertToString(value1),
+			const auto result = _stricmp(Game::SL_ConvertToString(value1),
 				Game::SL_ConvertToString(value2));
 
 			Game::Scr_AddInt(result);
