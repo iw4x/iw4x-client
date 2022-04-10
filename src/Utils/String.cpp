@@ -23,16 +23,24 @@ namespace Utils
 			return result;
 		}
 
-		std::string ToLower(std::string input)
+		std::string ToLower(std::string text)
 		{
-			std::transform(input.begin(), input.end(), input.begin(), ::tolower);
-			return input;
+			std::transform(text.begin(), text.end(), text.begin(), [](const unsigned char input)
+			{
+				return static_cast<char>(std::tolower(input));
+			});
+
+			return text;
 		}
 
-		std::string ToUpper(std::string input)
+		std::string ToUpper(std::string text)
 		{
-			std::transform(input.begin(), input.end(), input.begin(), ::toupper);
-			return input;
+			std::transform(text.begin(), text.end(), text.begin(), [](const unsigned char input)
+			{
+				return static_cast<char>(std::toupper(input));
+			});
+
+			return text;
 		}
 
 		std::string DumpHex(const std::string& data, const std::string& separator)
