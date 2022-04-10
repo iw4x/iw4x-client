@@ -49,11 +49,8 @@ namespace Components
 		static void LoadGameType();
 		static void LoadGameTypeScript();
 
-		static Game::xfunction_t Scr_GetFunctionStub(const char** pName, int* type);
-		static Game::xmethod_t Scr_GetMethodStub(const char** pName, int* type);
-
 		static Game::xfunction_t BuiltIn_GetFunctionStub(const char** pName, int* type);
-		static Game::xmethod_t Player_GetMethodStub(const char** pName);
+		static Game::xmethod_t BuiltIn_GetMethod(const char** pName, int* type);
 
 		static void ScrShutdownSystemStub(unsigned char sys);
 		static void StoreScriptBaseProgramNumStub();

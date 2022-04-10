@@ -126,7 +126,7 @@ namespace Components
 		});
 
 		// Misc functions
-		Script::AddFunction("ToUpper", []()
+		Script::AddFunction("ToUpper", []() // gsc: ToUpper(<string>)
 		{
 			const auto scriptValue = Game::Scr_GetConstString(0);
 			const auto* string = Game::SL_ConvertToString(scriptValue);
@@ -168,6 +168,33 @@ namespace Components
 				Game::Scr_AddConstString(scriptValue);
 				Game::SL_RemoveRefToString(scriptValue);
 			}
+		});
+
+		// Func present on IW5
+		Script::AddFunction("StrICmp", []() // gsc: StrICmp(<string>, <string>)
+		{
+			const auto value1 = Game::Scr_GetConstString(0);
+			const auto value2 = Game::Scr_GetConstString(1);
+
+			const auto result = std::strcmp(Game::SL_ConvertToString(value1),
+				Game::SL_ConvertToString(value2));
+
+			Game::Scr_AddInt(result);
+		});
+
+		// Func present on IW5
+		Script::AddFunction("IsEndStr", []() // gsc: IsEndStr(<string>, <string>)
+		{
+			const auto* s1 = Game::Scr_GetString(0);
+			const auto* s2 = Game::Scr_GetString(0);
+
+			if (s1 == nullptr || s2 == nullptr)
+			{
+				Game::Scr_Error("^1IsEndStr: Illegal parameters!\n");
+				return;
+			}
+
+			Game::Scr_AddBool(Utils::String::EndsWith(s1, s2));
 		});
 	}
 

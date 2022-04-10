@@ -89,12 +89,13 @@ namespace Utils
 
 		bool StartsWith(const std::string& haystack, const std::string& needle)
 		{
-			return (haystack.size() >= needle.size() && haystack.substr(0, needle.size()) == needle);
+			return haystack.find(needle) == 0; // If the pos of the first found char is 0, string starts with 'needle'
 		}
 
 		bool EndsWith(const std::string& haystack, const std::string& needle)
 		{
-			return (haystack.size() >= needle.size() && haystack.substr(haystack.size() - needle.size()) == needle);
+			if (needle.size() > haystack.size()) return false;
+			return std::equal(needle.rbegin(), needle.rend(), haystack.rbegin());
 		}
 
 		int IsSpace(int c)

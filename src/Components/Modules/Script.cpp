@@ -292,29 +292,9 @@ namespace Components
 		CustomScrMethods.insert_or_assign(Utils::String::ToLower(name), std::move(toAdd));
 	}
 
-	Game::xfunction_t Script::Scr_GetFunctionStub(const char** pName, int* type)
-	{
-		for (const auto& [key, value] : Script::CustomScrFunctions)
-		{
-			Game::Scr_RegisterFunction(reinterpret_cast<int>(value.actionFunc), key.data());
-		}
-
-		return Utils::Hook::Call<Game::xfunction_t(const char**, int*)>(0x44E700)(pName, type); // Scr_GetFunction
-	}
-
-	Game::xmethod_t Script::Scr_GetMethodStub(const char** pName, int* type)
-	{
-		for (const auto& [key, value] : Script::CustomScrMethods)
-		{
-			Game::Scr_RegisterFunction(reinterpret_cast<int>(value.actionFunc), key.data());
-		}
-
-		return Utils::Hook::Call<Game::xmethod_t(const char**, int*)>(0x4EC870)(pName, type); // Scr_GetMethod
-	}
-
 	Game::xfunction_t Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
 	{
-		if (pName && *pName)
+		if (pName)
 		{
 			const auto got = Script::CustomScrFunctions.find(Utils::String::ToLower(*pName));
 
@@ -325,24 +305,39 @@ namespace Components
 				return got->second.actionFunc;
 			}			
 		}
+		else
+		{
+			for (const auto& [name, builtin] : Script::CustomScrFunctions)
+			{
+				Game::Scr_RegisterFunction(reinterpret_cast<int>(builtin.actionFunc), name.data());
+			}
+		}
 
 		return Utils::Hook::Call<Game::xfunction_t(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
 	}
 
-	Game::xmethod_t Script::Player_GetMethodStub(const char** pName)
+	Game::xmethod_t Script::BuiltIn_GetMethod(const char** pName, int* type)
 	{
-		if (pName && *pName)
+		if (pName)
 		{
 			const auto got = Script::CustomScrMethods.find(Utils::String::ToLower(*pName));
 
 			// If no method was found let's call game's function
 			if (got != Script::CustomScrMethods.end())
 			{
+				*type = got->second.type;
 				return got->second.actionFunc;
 			}
 		}
+		else
+		{
+			for (const auto& [name, builtin] : Script::CustomScrMethods)
+			{
+				Game::Scr_RegisterFunction(reinterpret_cast<int>(builtin.actionFunc), name.data());
+			}
+		}
 
-		return Utils::Hook::Call<Game::xmethod_t(const char**)>(0x4C07D0)(pName); // Player_GetMethod
+		return Utils::Hook::Call<Game::xmethod_t(const char**, int*)>(0x5FA360)(pName, type); // Player_GetMethod
 	}
 
 	void Script::StoreScriptBaseProgramNum()
@@ -721,13 +716,9 @@ namespace Components
 		Utils::Hook(0x48EFFE, Script::LoadGameType, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45D44A, Script::LoadGameTypeScript, HOOK_CALL).install()->quick();
 
-		// Register custom functions
-		Utils::Hook(0x46577C, Script::Scr_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_BeginLoadScripts
-		Utils::Hook(0x465787, Script::Scr_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_BeginLoadScripts
-
 		// Fetch custom functions
 		Utils::Hook(0x44E72E, Script::BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
-		Utils::Hook(0x4EC88E, Script::Player_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
+		Utils::Hook(0x4EC8DD, Script::BuiltIn_GetMethod, HOOK_CALL).install()->quick(); // Scr_GetMethod
 
 		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
 

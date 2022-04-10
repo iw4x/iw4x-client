@@ -77,10 +77,10 @@ namespace Utils
 		int IsSpace(int c);
 		std::string ToLower(std::string input);
 		std::string ToUpper(std::string input);
-		bool EndsWith(const std::string& haystack, const std::string& needle);
-		std::vector<std::string> Split(const std::string& str, const char delim);
 		void Replace(std::string& string, const std::string& find, const std::string& replace);
+		bool EndsWith(const std::string& haystack, const std::string& needle);
 		bool StartsWith(const std::string& haystack, const std::string& needle);
+		std::vector<std::string> Split(const std::string& str, const char delim);
 
 		std::string& LTrim(std::string& str);
 		std::string& RTrim(std::string& str);
