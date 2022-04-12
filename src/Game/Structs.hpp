@@ -28,20 +28,20 @@ namespace Game
 		unsigned __int16 classnum;
 	};
 
-	typedef void(__cdecl * xfunction_t)();
-	typedef void(__cdecl * xmethod_t)(scr_entref_t);
+	typedef void(__cdecl * BuiltinFunction)();
+	typedef void(__cdecl * BuiltinMethod)(scr_entref_t);
 
 	struct BuiltinFunctionDef
 	{
 		const char* actionString;
-		xfunction_t actionFunc;
+		BuiltinFunction actionFunc;
 		int type;
 	};
 
 	struct BuiltinMethodDef
 	{
 		const char* actionString;
-		xmethod_t actionFunc;
+		BuiltinMethod actionFunc;
 		int type;
 	};
 
@@ -5576,15 +5576,25 @@ namespace Game
 		CON_CONNECTED = 0x2
 	} clientConnected_t;
 
+	typedef enum
+	{
+		VISIONSET_NORMAL,
+		VISIONSET_NIGHT,
+		VISIONSET_MISSILECAM,
+		VISIONSET_THERMAL,
+		VISIONSET_PAIN,
+		VISIONSETCOUNT
+	} visionSetMode_t;
+
 	typedef struct gclient_s
 	{
 		playerState_s ps;
 		sessionState_t sessionState; // 12572
-		char pad0[40];
+		unsigned char __pad0[40];
 		clientConnected_t connected; // 12616
-		char pad1[144];
-		unsigned int team; // 12764
-		char pad2[436];
+		unsigned char __pad1[144];
+		team_t team; // 12764
+		unsigned char __pad2[436];
 		int flags; // 13204
 		int spectatorClient;
 		int lastCmdTime;
@@ -5592,7 +5602,10 @@ namespace Game
 		int oldbuttons; // 13220
 		int latched_buttons; // 13224
 		int buttonsSinceLastFrame; // 13228
-		char pad3[700]; // 13232
+		unsigned char __pad3[324]; // 13232
+		int visionDuration[5];
+		char visionName[5][64];
+		unsigned char __pad4[36];
 	} gclient_t;
 
 	static_assert(sizeof(gclient_t) == 13932);

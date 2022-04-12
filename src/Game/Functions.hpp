@@ -43,6 +43,9 @@ namespace Game
 	typedef WeaponDef* (__cdecl * BG_GetWeaponDef_t)(int weaponIndex);
 	extern BG_GetWeaponDef_t BG_GetWeaponDef;
 
+	typedef const char*(__cdecl * BG_GetEntityTypeName_t)(const int eType);
+	extern BG_GetEntityTypeName_t BG_GetEntityTypeName;
+
 	typedef void(__cdecl * Cbuf_AddServerText_t)();
 	extern Cbuf_AddServerText_t Cbuf_AddServerText;
 
@@ -75,7 +78,13 @@ namespace Game
 
 	typedef void(__cdecl * CG_ScrollScoreboardDown_t)(cg_s* cgameGlob);
 	extern CG_ScrollScoreboardDown_t CG_ScrollScoreboardDown;
-	
+
+	typedef const char*(__cdecl * CG_GetTeamName_t)(team_t team);
+	extern CG_GetTeamName_t CG_GetTeamName;
+
+	typedef void(__cdecl * CG_SetupWeaponDef_t)(int localClientNum, unsigned int weapIndex);
+	extern CG_SetupWeaponDef_t CG_SetupWeaponDef;
+
 	typedef char*(__cdecl * CL_GetClientName_t)(int localClientNum, int index, char *buf, size_t size);
 	extern CL_GetClientName_t CL_GetClientName;
 
@@ -374,8 +383,17 @@ namespace Game
 	typedef unsigned int(__cdecl * G_GetWeaponIndexForName_t)(const char*);
 	extern G_GetWeaponIndexForName_t G_GetWeaponIndexForName;
 
-	typedef void(__cdecl* G_SpawnEntitiesFromString_t)();
+	typedef void(__cdecl * G_SpawnEntitiesFromString_t)();
 	extern G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString;
+
+	typedef void(__cdecl * G_PrintEntities_t)();
+	extern G_PrintEntities_t G_PrintEntities;
+
+	typedef const char*(__cdecl * G_GetEntityTypeName_t)(const gentity_s* ent);
+	extern G_GetEntityTypeName_t G_GetEntityTypeName;
+
+	typedef void(__cdecl * Svcmd_EntityList_f_t)();
+	extern Svcmd_EntityList_f_t Svcmd_EntityList_f;
 
 	typedef void(__cdecl * GScr_LoadGameTypeScript_t)();
 	extern GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript;
@@ -750,7 +768,7 @@ namespace Game
 	typedef unsigned int(__cdecl* SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
 	extern SEH_ReadCharFromString_t SEH_ReadCharFromString;
 
-	typedef char*(__cdecl * SL_ConvertToString_t)(unsigned short stringValue);
+	typedef const char*(__cdecl * SL_ConvertToString_t)(scr_string_t stringValue);
 	extern SL_ConvertToString_t SL_ConvertToString;
 
 	typedef short(__cdecl * SL_GetString_t)(const char *str, unsigned int user);
@@ -815,6 +833,9 @@ namespace Game
 
 	typedef void(__cdecl * SV_ClientThink_t)(client_s*, usercmd_s*);
 	extern SV_ClientThink_t SV_ClientThink;
+
+	typedef void(__cdecl * SV_DropClient_t)(client_t* drop, const char* reason, bool tellThem);
+	extern SV_DropClient_t SV_DropClient;
 
 	typedef client_t*(__cdecl * SV_GetPlayerByName_t)();
 	extern SV_GetPlayerByName_t SV_GetPlayerByName;
@@ -979,7 +1000,7 @@ namespace Game
 	extern float* cgameFOVSensitivityScale;
 
 	extern int* svs_time;
-	extern int* svs_numclients;
+	extern int* svs_clientCount;
 	extern client_t* svs_clients;
 
 	extern source_t **sourceFiles;
@@ -1015,6 +1036,8 @@ namespace Game
 	constexpr auto ENTITYNUM_NONE = MAX_GENTITIES - 1;
 	extern gentity_t* g_entities;
 
+	extern int* level_num_entities;
+	extern int* level_time;
 	extern int* level_scriptPrintChannel;
 
 	extern netadr_t* connectedHost;
@@ -1085,12 +1108,19 @@ namespace Game
 	constexpr auto AIM_ASSIST_GRAPH_COUNT = 4u;
 	extern GraphFloat* aaInputGraph;
 
+	extern const char* MY_CMDS;
+
+	constexpr auto MAX_MODELS = 512;
+	extern XModel** cached_models;
+
 	extern vec3_t* CorrectSolidDeltas;
 
 	extern FastCriticalSection* db_hashCritSect;
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);
+
+	XModel* G_GetModel(int index);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);
@@ -1120,8 +1150,8 @@ namespace Game
 	void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
 	void R_SetSunFromDvars(sunflare_t* sun);
 
-	void SV_KickClient(client_t* client, const char* reason);
-	void SV_KickClientError(client_t* client, const std::string& reason);
+	void SV_GameDropClient(int clientNum, const char* reason);
+	void SV_DropAllBots();
 	void SV_BotUserMove(client_t* client);
 
 	void RuntimeErrorInternal(int channel, const char* codePos, unsigned int index, const char* msg);

@@ -11,8 +11,8 @@ namespace Components
 
 		static int LoadScriptAndLabel(const std::string& script, const std::string& label);
 
-		static void AddFunction(const char* name, Game::xfunction_t func, int type = 0);
-		static void AddMethod(const char* name, Game::xmethod_t func, int type = 0);
+		static void AddFunction(const char* name, Game::BuiltinFunction func, int type = 0);
+		static void AddMethod(const char* name, Game::BuiltinMethod func, int type = 0);
 
 		static void OnVMShutdown(Utils::Slot<Scheduler::Callback> callback);
 
@@ -49,8 +49,8 @@ namespace Components
 		static void LoadGameType();
 		static void LoadGameTypeScript();
 
-		static Game::xfunction_t BuiltIn_GetFunctionStub(const char** pName, int* type);
-		static Game::xmethod_t BuiltIn_GetMethod(const char** pName, int* type);
+		static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
+		static Game::BuiltinMethod BuiltIn_GetMethod(const char** pName, int* type);
 
 		static void ScrShutdownSystemStub(unsigned char sys);
 		static void StoreScriptBaseProgramNumStub();

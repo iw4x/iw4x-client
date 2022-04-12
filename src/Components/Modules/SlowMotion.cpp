@@ -68,7 +68,7 @@ namespace Components
 		SlowMotion::Delay = delay;
 
 		// set snapshot num to 1 behind (T6 does this, why shouldn't we?)
-		for (int i = 0; i < *Game::svs_numclients; ++i)
+		for (int i = 0; i < *Game::svs_clientCount; ++i)
 		{
 			Game::svs_clients[i].snapNum = *reinterpret_cast<DWORD*>(0x31D9384) - 1;
 		}

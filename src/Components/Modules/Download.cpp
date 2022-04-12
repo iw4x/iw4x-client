@@ -381,7 +381,7 @@ namespace Components
 	{
 		Network::Address address(nc->sa.sa);
 
-		for (int i = 0; i < *Game::svs_numclients; ++i)
+		for (int i = 0; i < *Game::svs_clientCount; ++i)
 		{
 			Game::client_t* client = &Game::svs_clients[i];
 
