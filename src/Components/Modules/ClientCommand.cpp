@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	std::unordered_map<std::string, Utils::Slot<ClientCommand::Callback>> ClientCommand::FunctionMap;
+	std::unordered_map<std::string, std::function<void(Game::gentity_s*, Command::ServerParams*)>> ClientCommand::HandlersSV;
 
 	bool ClientCommand::CheatsOk(const Game::gentity_s* ent)
 	{
@@ -25,50 +25,38 @@ namespace Components
 		return true;
 	}
 
-	bool ClientCommand::CallbackHandler(Game::gentity_s* ent, const char* cmd)
-	{
-		const auto command = Utils::String::ToLower(cmd);
-		const auto got = ClientCommand::FunctionMap.find(command);
-
-		if (got != ClientCommand::FunctionMap.end())
-		{
-			got->second(ent);
-			return true;
-		}
-
-		return false;
-	}
-
-	void ClientCommand::Add(const char* name, Utils::Slot<Callback> callback)
+	void ClientCommand::Add(const char* name, std::function<void(Game::gentity_s*, Command::ServerParams*)> callback)
 	{
 		const auto command = Utils::String::ToLower(name);
 
-		ClientCommand::FunctionMap[command] = std::move(callback);
+		ClientCommand::HandlersSV[command] = std::move(callback);
 	}
 
 	void ClientCommand::ClientCommandStub(const int clientNum)
 	{
-		char cmd[1024]{};
-		const auto entity = &Game::g_entities[clientNum];
+		const auto ent = &Game::g_entities[clientNum];
 
-		if (entity->client == nullptr)
+		if (ent->client == nullptr)
 		{
 			Logger::Print("ClientCommand: client %d is not fully in game yet\n", clientNum);
 			return;
 		}
 
-		Game::SV_Cmd_ArgvBuffer(0, cmd, sizeof(cmd));
+		Command::ServerParams params;
+		const auto command = Utils::String::ToLower(params.get(0));
 
-		if (!ClientCommand::CallbackHandler(entity, cmd))
+		if (const auto got = HandlersSV.find(command); got != HandlersSV.end())
 		{
-			// If no callback was found call original game function
-			Utils::Hook::Call<void(const int)>(0x416790)(clientNum);
+			got->second(ent, &params);
+			return;
 		}
+
+		Utils::Hook::Call<void(const int)>(0x416790)(clientNum);
 	}
 
 	void ClientCommand::AddCheatCommands()
 	{
-		ClientCommand::Add("noclip", [](Game::gentity_s* ent)
+		ClientCommand::Add("noclip", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -82,7 +70,7 @@ namespace Components
 				(ent->client->flags & Game::PLAYER_FLAG_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
 		});
 
-		ClientCommand::Add("ufo", [](Game::gentity_s* ent)
+		ClientCommand::Add("ufo", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -96,7 +84,7 @@ namespace Components
 				(ent->client->flags & Game::PLAYER_FLAG_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
 		});
 
-		ClientCommand::Add("god", [](Game::gentity_s* ent)
+		ClientCommand::Add("god", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -110,7 +98,7 @@ namespace Components
 				(ent->flags & Game::FL_GODMODE) ? "GAME_GODMODE_ON" : "GAME_GODMODE_OFF"));
 		});
 
-		ClientCommand::Add("demigod", [](Game::gentity_s* ent)
+		ClientCommand::Add("demigod", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -124,7 +112,7 @@ namespace Components
 				(ent->flags & Game::FL_DEMI_GODMODE) ? "GAME_DEMI_GODMODE_ON" : "GAME_DEMI_GODMODE_OFF"));
 		});
 
-		ClientCommand::Add("notarget", [](Game::gentity_s* ent)
+		ClientCommand::Add("notarget", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -138,17 +126,16 @@ namespace Components
 				(ent->flags & Game::FL_NOTARGET) ? "GAME_NOTARGETON" : "GAME_NOTARGETOFF"));
 		});
 
-		ClientCommand::Add("setviewpos", [](Game::gentity_s* ent)
+		ClientCommand::Add("setviewpos", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
 		{
 			assert(ent != nullptr);
 
 			if (!ClientCommand::CheatsOk(ent))
 				return;
 
-			Command::ServerParams params = {};
 			Game::vec3_t origin, angles{0.f, 0.f, 0.f};
 
-			if (params.size() < 4 || params.size() > 6)
+			if (params->size() < 4 || params->size() > 6)
 			{
 				Game::SV_GameSendServerCommand(ent->s.number, 0,
 					Utils::String::VA("%c \"GAME_USAGE\x15: setviewpos x y z [yaw] [pitch]\n\"", 0x65));
@@ -157,20 +144,106 @@ namespace Components
 
 			for (auto i = 0; i < 3; i++)
 			{
-				origin[i] = std::strtof(params.get(i + 1), nullptr);
+				origin[i] = std::strtof(params->get(i + 1), nullptr);
 			}
 
-			if (params.size() >= 5)
+			if (params->size() >= 5)
 			{
-				angles[1] = std::strtof(params.get(4), nullptr); // Yaw
+				angles[1] = std::strtof(params->get(4), nullptr); // Yaw
 			}
 
-			if (params.size() == 6)
+			if (params->size() == 6)
 			{
-				angles[0] = std::strtof(params.get(5), nullptr); // Pitch
+				angles[0] = std::strtof(params->get(5), nullptr); // Pitch
 			}
 
 			Game::TeleportPlayer(ent, origin, angles);
+		});
+	}
+
+	void ClientCommand::AddDevelopmentCommands()
+	{
+		ClientCommand::Add("dropallbots", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		{
+			Game::SV_DropAllBots();
+		});
+
+		ClientCommand::Add("entitylist", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		{
+			Game::Svcmd_EntityList_f();
+		});
+
+		ClientCommand::Add("printentities", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		{
+			Game::G_PrintEntities();
+		});
+
+		ClientCommand::Add("entitycount", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		{
+			Logger::Print("Entity count = %i\n", *Game::level_num_entities);
+		});
+
+		// Also known as: "vis"
+		ClientCommand::Add("visionsetnaked", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		{
+			if (params->size() < 2)
+			{
+				Logger::Print("USAGE: visionSetNaked <name> <duration>\n");
+				return;
+			}
+
+			auto duration = 1000;
+			if (params->size() > 2)
+			{
+				const auto input = std::strtof(params->get(2), nullptr);
+				duration = static_cast<int>(std::floorf(input * 1000.0f + 0.5f));
+			}
+
+			assert(ent->client != nullptr);
+
+			constexpr auto visMode = Game::visionSetMode_t::VISIONSET_NORMAL;
+			const auto* name = params->get(1);
+
+			ent->client->visionDuration[visMode] = duration;
+			strncpy_s(ent->client->visionName[visMode],
+				sizeof(Game::gclient_t::visionName[0]) / sizeof(char), name, _TRUNCATE);
+
+			Game::SV_GameSendServerCommand(ent->s.number, 1,
+				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
+		});
+
+		ClientCommand::Add("visionsetnight", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		{
+			if (params->size() < 2)
+			{
+				Logger::Print("USAGE: visionSetNight <name> <duration>\n");
+				return;
+			}
+
+			auto duration = 1000;
+			if (params->size() > 2)
+			{
+				const auto input = std::strtof(params->get(2), nullptr);
+				duration = static_cast<int>(std::floorf(input * 1000.0f + 0.5f));
+			}
+
+			assert(ent->client != nullptr);
+
+			constexpr auto visMode = Game::visionSetMode_t::VISIONSET_NIGHT;
+			const auto* name = params->get(1);
+
+			ent->client->visionDuration[visMode] = duration;
+			strncpy_s(ent->client->visionName[visMode],
+				sizeof(Game::gclient_t::visionName[0]) / sizeof(char), name, _TRUNCATE);
+
+			Game::SV_GameSendServerCommand(ent->s.number, 1,
+				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
+		});
+
+		ClientCommand::Add("g_testCmd", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		{
+			assert(ent != nullptr);
+			ent->client->ps.stunTime = 1000 + *Game::level_time; // 1000 is the default test stun time
 		});
 	}
 
@@ -280,6 +353,11 @@ namespace Components
 				ent->flags ^= Game::FL_NOTARGET;
 			}
 		});
+
+		Script::AddFunction("DropAllBots", []() // gsc: DropAllBots();
+		{
+			Game::SV_DropAllBots();
+		});
 	}
 
 	ClientCommand::ClientCommand()
@@ -289,5 +367,8 @@ namespace Components
 
 		ClientCommand::AddCheatCommands();
 		ClientCommand::AddScriptFunctions();
+#ifdef _DEBUG
+		ClientCommand::AddDevelopmentCommands();
+#endif
 	}
 }

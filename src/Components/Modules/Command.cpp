@@ -2,8 +2,8 @@
 
 namespace Components
 {
-	std::unordered_map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMap;
-	std::unordered_map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMapSV;
+	std::unordered_map<std::string, std::function<void(Command::Params*)>> Command::FunctionMap;
+	std::unordered_map<std::string, std::function<void(Command::Params*)>> Command::FunctionMapSV;
 
 	std::string Command::Params::join(const int index)
 	{
@@ -60,7 +60,7 @@ namespace Components
 		return Game::sv_cmd_args->argv[this->nesting_][index];
 	}
 
-	void Command::Add(const char* name, Utils::Slot<Command::Callback> callback)
+	void Command::Add(const char* name, std::function<void(Command::Params*)> callback)
 	{
 		const auto command = Utils::String::ToLower(name);
 
@@ -69,10 +69,10 @@ namespace Components
 			Command::AddRaw(name, Command::MainCallback);
 		}
 
-		Command::FunctionMap[command] = std::move(callback);
+		Command::FunctionMap.insert_or_assign(command, std::move(callback));
 	}
 
-	void Command::AddSV(const char* name, Utils::Slot<Command::Callback> callback)
+	void Command::AddSV(const char* name, std::function<void(Command::Params*)> callback)
 	{
 		if (Loader::IsPregame())
 		{
@@ -95,7 +95,7 @@ namespace Components
 			Command::AddRaw(name, Game::Cbuf_AddServerText);
 		}
 
-		FunctionMapSV[command] = std::move(callback);
+		FunctionMapSV.insert_or_assign(command, std::move(callback));
 	}
 
 	void Command::AddRaw(const char* name, void(*callback)(), bool key)
@@ -127,11 +127,11 @@ namespace Components
 
 	Game::cmd_function_t* Command::Find(const std::string& command)
 	{
-		Game::cmd_function_t* cmdFunction = *Game::cmd_functions;
+		auto* cmdFunction = *Game::cmd_functions;
 
-		while (cmdFunction)
+		while (cmdFunction != nullptr)
 		{
-			if (cmdFunction->name && cmdFunction->name == command)
+			if (cmdFunction->name != nullptr && cmdFunction->name == command)
 			{
 				return cmdFunction;
 			}
@@ -149,12 +149,10 @@ namespace Components
 
 	void Command::MainCallback()
 	{
-		Command::ClientParams params;
-
+		ClientParams params;
 		const auto command = Utils::String::ToLower(params[0]);
-		const auto got = Command::FunctionMap.find(command);
 
-		if (got != Command::FunctionMap.end())
+		if (const auto got = FunctionMap.find(command); got != FunctionMap.end())
 		{
 			got->second(&params);
 		}
@@ -162,12 +160,10 @@ namespace Components
 
 	void Command::MainCallbackSV()
 	{
-		Command::ServerParams params;
-
+		ServerParams params;
 		const auto command = Utils::String::ToLower(params[0]);
-		const auto got = Command::FunctionMapSV.find(command);
 
-		if (got != Command::FunctionMapSV.end())
+		if (const auto got = FunctionMapSV.find(command); got != FunctionMapSV.end())
 		{
 			got->second(&params);
 		}

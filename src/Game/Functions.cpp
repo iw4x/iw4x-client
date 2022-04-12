@@ -5,19 +5,19 @@ namespace Game
 	std::vector<std::string> Sys_ListFilesWrapper(const std::string& directory, const std::string& extension)
 	{
 		auto fileCount = 0;
-		auto files = Game::Sys_ListFiles(directory.data(), extension.data(), 0, &fileCount, 0);
+		auto** const files = Sys_ListFiles(directory.data(), extension.data(), nullptr, &fileCount, 0);
 
 		std::vector<std::string> result;
 
 		for (auto i = 0; i < fileCount; i++)
 		{
-			if (files[i])
+			if (files[i] != nullptr)
 			{
-				result.push_back(files[i]);
+				result.emplace_back(files[i]);
 			}
 		}
 
-		Game::FS_FreeFileList(files);
+		FS_FreeFileList(files);
 
 		return result;
 	}
@@ -31,6 +31,7 @@ namespace Game
 	BG_GetWeaponName_t BG_GetWeaponName = BG_GetWeaponName_t(0x4E6EC0);
 	BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj = BG_LoadWeaponDef_LoadObj_t(0x57B5F0);
 	BG_GetWeaponDef_t BG_GetWeaponDef = BG_GetWeaponDef_t(0x440EB0);
+	BG_GetEntityTypeName_t BG_GetEntityTypeName = BG_GetEntityTypeName_t(0x43A0E0);
 
 	Cbuf_AddServerText_t Cbuf_AddServerText = Cbuf_AddServerText_t(0x4BB9B0);
 	Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x404B20);
@@ -44,7 +45,9 @@ namespace Game
 	CG_ScoresUp_f_t CG_ScoresUp_f = CG_ScoresUp_f_t(0x5802C0);
 	CG_ScrollScoreboardUp_t CG_ScrollScoreboardUp = CG_ScrollScoreboardUp_t(0x47A5C0);
 	CG_ScrollScoreboardDown_t CG_ScrollScoreboardDown = CG_ScrollScoreboardDown_t(0x493B50);
-	
+	CG_GetTeamName_t CG_GetTeamName = CG_GetTeamName_t(0x4B6210);
+	CG_SetupWeaponDef_t CG_SetupWeaponDef = CG_SetupWeaponDef_t(0x4BD520);
+
 	CL_GetClientName_t CL_GetClientName = CL_GetClientName_t(0x4563D0);
 	CL_IsCgameInitialized_t CL_IsCgameInitialized = CL_IsCgameInitialized_t(0x43EB20);
 	CL_ConnectFromParty_t CL_ConnectFromParty = CL_ConnectFromParty_t(0x433D30);
@@ -152,6 +155,10 @@ namespace Game
 
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
+	G_PrintEntities_t G_PrintEntities = G_PrintEntities_t(0x4E6A50);
+	G_GetEntityTypeName_t G_GetEntityTypeName = G_GetEntityTypeName_t(0x4EB810);
+
+	Svcmd_EntityList_f_t Svcmd_EntityList_f = Svcmd_EntityList_f_t(0x4B6A70);
 
 	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = GScr_LoadGameTypeScript_t(0x4ED9A0);
 
@@ -339,6 +346,7 @@ namespace Game
 	SV_SetConfigstring_t SV_SetConfigstring = SV_SetConfigstring_t(0x4982E0);
 	SV_Loaded_t SV_Loaded = SV_Loaded_t(0x4EE3E0);
 	SV_ClientThink_t SV_ClientThink = SV_ClientThink_t(0x44ADD0);
+	SV_DropClient_t SV_DropClient = SV_DropClient_t(0x4D1600);
 	SV_GetPlayerByName_t SV_GetPlayerByName = SV_GetPlayerByName_t(0x6242B0);
 	SV_GetPlayerByNum_t SV_GetPlayerByNum = SV_GetPlayerByNum_t(0x624390);
 
@@ -421,7 +429,7 @@ namespace Game
 	float* cgameFOVSensitivityScale = reinterpret_cast<float*>(0xB2F884);
 
 	int* svs_time = reinterpret_cast<int*>(0x31D9384);
-	int* svs_numclients = reinterpret_cast<int*>(0x31D938C);
+	int* svs_clientCount = reinterpret_cast<int*>(0x31D938C);
 	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);
 
 	UiContext *uiContext = reinterpret_cast<UiContext *>(0x62E2858);
@@ -452,6 +460,8 @@ namespace Game
 
 	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
 
+	int* level_num_entities = reinterpret_cast<int*>(0x1A831B0);
+	int* level_time = reinterpret_cast<int*>(0x1A83554);
 	int* level_scriptPrintChannel = reinterpret_cast<int*>(0x1A860FC);
 
 	netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0xA1E888);
@@ -520,6 +530,10 @@ namespace Game
 
 	GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x7A2FC0);
 
+	const char* MY_CMDS = reinterpret_cast<const char*>(0x73C9C4); // Count 5
+
+	XModel** cached_models = reinterpret_cast<XModel**>(0x1AA20C8);
+
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
 
 	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
@@ -534,6 +548,13 @@ namespace Game
 	{
 		assert(critSect->readCount > 0);
 		InterlockedDecrement(&critSect->readCount);
+	}
+
+	XModel* G_GetModel(const int index)
+	{
+		assert(index > 0);
+		assert(index < MAX_MODELS);
+		return cached_models[index];
 	}
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
@@ -722,14 +743,27 @@ namespace Game
 		return hash;
 	}
 
-	void SV_KickClientError(client_t* client, const std::string& reason)
+	void SV_GameDropClient(int clientNum, const char* reason)
 	{
-		if (client->state < 5)
-		{
-			Components::Network::SendCommand(client->netchan.remoteAddress, "error", reason);
-		}
+		const auto maxClients = Dvar_FindVar("sv_maxclients")->current.integer;
+		assert(maxClients >= 1 && maxClients <= 18);
 
-		SV_KickClient(client, reason.data());
+		if (clientNum >= 0 && clientNum < maxClients)
+		{
+			SV_DropClient(&svs_clients[clientNum], reason, true);
+		}
+	}
+
+	void SV_DropAllBots()
+	{
+		for (auto i = 0; i < *svs_clientCount; ++i)
+		{
+			if (svs_clients[i].state != clientstate_t::CS_FREE
+				&& svs_clients[i].netchan.remoteAddress.type == netadrtype_t::NA_BOT)
+			{
+				SV_GameDropClient(i, "GAME_GET_TO_COVER");
+			}
+		}
 	}
 
 	void IncInParam()
@@ -1195,28 +1229,6 @@ namespace Game
 			call eax
 
 			popad
-			retn
-		}
-	}
-
-	__declspec(naked) void SV_KickClient(client_t* /*client*/, const char* /*reason*/)
-	{
-		__asm
-		{
-			pushad
-
-			mov edi, 0
-			mov esi, [esp + 24h]
-			push [esp + 28h]
-			push 0
-			push 0
-
-			mov eax, 6249A0h
-			call eax
-			add esp, 0Ch
-
-			popad
-
 			retn
 		}
 	}

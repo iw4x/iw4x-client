@@ -341,15 +341,15 @@ namespace Components
 			{
 				if (params->get(1) == "all"s)
 				{
-					count = *Game::svs_numclients;
+					count = *Game::svs_clientCount;
 				}
 				else
 				{
-					char* endptr;
+					char* end;
 					const auto* input = params->get(1);
-					count = std::strtoul(input, &endptr, 10);
+					count = std::strtoul(input, &end, 10);
 
-					if (input == endptr)
+					if (input == end)
 					{
 						Logger::Print("Warning: %s is not a valid input\n"
 							"Usage: %s optional <number of bots> or optional <\"all\">\n",
@@ -359,7 +359,7 @@ namespace Components
 				}
 			}
 
-			count = std::min(static_cast<unsigned int>(*Game::svs_numclients), count);
+			count = std::min(static_cast<unsigned int>(*Game::svs_clientCount), count);
 
 			// Check if ingame and host
 			if (!Game::SV_Loaded())

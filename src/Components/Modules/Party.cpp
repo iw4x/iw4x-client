@@ -307,7 +307,7 @@ namespace Components
 		{
 			int botCount = 0;
 			int clientCount = 0;
-			int maxclientCount = *Game::svs_numclients;
+			int maxclientCount = *Game::svs_clientCount;
 
 			if (maxclientCount)
 			{

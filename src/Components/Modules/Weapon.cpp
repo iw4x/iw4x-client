@@ -41,7 +41,17 @@ namespace Components
 		if (params.size() <= 1)
 			return 0;
 
-		int index = atoi(params[1]);
+		char* end;
+		const auto* input = params.get(1);
+		auto index = std::strtol(input, &end, 10);
+
+		if (input == end)
+		{
+			Logger::Print("Warning: %s is not a valid input\n"
+				"Usage: %s <weapon index>\n",
+				input, params.get(0));
+			return 0;
+		}
 
 		if (index >= 4139)
 		{
@@ -56,7 +66,7 @@ namespace Components
 			return 0;
 		}
 
-		Utils::Hook::Call<void(int, int)>(0x4BD520)(0, index);
+		Game::CG_SetupWeaponDef(0, index);
 		return 1;
 	}
 

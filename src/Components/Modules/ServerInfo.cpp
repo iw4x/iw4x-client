@@ -125,7 +125,7 @@ namespace Components
 
 	Utils::InfoString ServerInfo::GetInfo()
 	{
-		int maxclientCount = *Game::svs_numclients;
+		int maxclientCount = *Game::svs_clientCount;
 
 		if (!maxclientCount)
 		{

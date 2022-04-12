@@ -18,16 +18,16 @@ namespace Components
 
 	void Script::FunctionError()
 	{
-		std::string funcName = Game::SL_ConvertToString(Script::FunctionName);
+		const auto* funcName = Game::SL_ConvertToString(Script::FunctionName);
 
 		Game::Scr_ShutdownAllocNode();
 
 		Logger::Print(23, "\n");
 		Logger::Print(23, "******* script compile error *******\n");
-		Logger::Print(23, "Error: unknown function %s in %s\n", funcName.data(), Script::ScriptName.data());
+		Logger::Print(23, "Error: unknown function %s in %s\n", funcName, Script::ScriptName.data());
 		Logger::Print(23, "************************************\n");
 
-		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\nunknown function %s\n%s\n\n", funcName.data(), Script::ScriptName.data());
+		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\nunknown function %s\n%s\n\n", funcName, Script::ScriptName.data());
 	}
 
 	__declspec(naked) void Script::StoreFunctionNameStub()
@@ -270,27 +270,27 @@ namespace Components
 		Game::GScr_LoadGameTypeScript();
 	}
 
-	void Script::AddFunction(const char* name, Game::xfunction_t func, int type)
+	void Script::AddFunction(const char* name, Game::BuiltinFunction func, int type)
 	{
 		Game::BuiltinFunctionDef toAdd;
 		toAdd.actionString = name;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
 
-		CustomScrFunctions.insert_or_assign(Utils::String::ToLower(name), std::move(toAdd));
+		CustomScrFunctions.insert_or_assign(Utils::String::ToLower(name), toAdd);
 	}
 
-	void Script::AddMethod(const char* name, Game::xmethod_t func, int type)
+	void Script::AddMethod(const char* name, Game::BuiltinMethod func, int type)
 	{
 		Game::BuiltinMethodDef toAdd;
 		toAdd.actionString = name;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
 
-		CustomScrMethods.insert_or_assign(Utils::String::ToLower(name), std::move(toAdd));
+		CustomScrMethods.insert_or_assign(Utils::String::ToLower(name), toAdd);
 	}
 
-	Game::xfunction_t Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
+	Game::BuiltinFunction Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
 	{
 		if (pName != nullptr)
 		{
@@ -311,10 +311,10 @@ namespace Components
 			}
 		}
 
-		return Utils::Hook::Call<Game::xfunction_t(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
+		return Utils::Hook::Call<Game::BuiltinFunction(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
 	}
 
-	Game::xmethod_t Script::BuiltIn_GetMethod(const char** pName, int* type)
+	Game::BuiltinMethod Script::BuiltIn_GetMethod(const char** pName, int* type)
 	{
 		if (pName != nullptr)
 		{
@@ -335,7 +335,7 @@ namespace Components
 			}
 		}
 
-		return Utils::Hook::Call<Game::xmethod_t(const char**, int*)>(0x5FA360)(pName, type); // Player_GetMethod
+		return Utils::Hook::Call<Game::BuiltinMethod(const char**, int*)>(0x5FA360)(pName, type); // Player_GetMethod
 	}
 
 	void Script::StoreScriptBaseProgramNum()
@@ -538,7 +538,7 @@ namespace Components
 			return nullptr;
 		}
 
-		if (ent->s.number >= *Game::svs_numclients)
+		if (ent->s.number >= *Game::svs_clientCount)
 		{
 			Game::Scr_ObjectError(Utils::String::VA("Entity %i is out of bounds", ent->s.number));
 			return nullptr;
