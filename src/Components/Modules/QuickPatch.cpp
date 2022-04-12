@@ -858,9 +858,6 @@ namespace Components
 		});
 #endif
 
-		// Dvars
-		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
-
 		// Debug patches
 #ifdef DEBUG
 		// ui_debugMode 1

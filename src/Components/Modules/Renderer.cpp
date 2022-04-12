@@ -502,7 +502,7 @@ namespace Components
 		// 			}
 		// 		});
 
-				// Log broken materials
+		// Log broken materials
 		Utils::Hook(0x0054CAAA, Renderer::StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x0054CF8D, Renderer::StoreGfxBufContextPtrStub2, HOOK_JUMP).install()->quick();
 
