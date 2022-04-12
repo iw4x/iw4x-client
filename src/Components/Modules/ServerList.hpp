@@ -138,5 +138,10 @@ namespace Components
 		static std::vector<ServerInfo> FavouriteList;
 
 		static std::vector<unsigned int> VisibleList;
+
+		static Dvar::Var UIServerSelected;
+		static Dvar::Var UIServerSelectedMap;
+		static Dvar::Var NETServerQueryLimit;
+		static Dvar::Var NETServerFrames;
 	};
 }

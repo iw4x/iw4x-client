@@ -25,6 +25,10 @@ namespace Components
 
 		static bool IsInvisible();
 
+		static Dvar::Var UIStreamFriendly;
+		static Dvar::Var CLAnonymous;
+		static Dvar::Var CLNotifyFriendState;
+
 	private:
 #pragma pack(push, 4)
 		struct FriendRichPresenceUpdate

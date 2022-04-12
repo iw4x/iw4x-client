@@ -14,6 +14,11 @@ namespace Components
 
 	std::vector<unsigned int> ServerList::VisibleList;
 
+	Dvar::Var ServerList::UIServerSelected;
+	Dvar::Var ServerList::UIServerSelectedMap;
+	Dvar::Var ServerList::NETServerQueryLimit;
+	Dvar::Var ServerList::NETServerFrames;
+
 	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{
 		if (ServerList::IsOnlineList())
@@ -154,13 +159,13 @@ namespace Components
 
 		if (info)
 		{
-			Dvar::Var("ui_serverSelected").set(true);
-			Dvar::Var("ui_serverSelectedMap").set(info->mapname);
+			ServerList::UIServerSelected.set(true);
+			ServerList::UIServerSelectedMap.set(info->mapname);
 			Dvar::Var("ui_serverSelectedGametype").set(info->gametype);
 		}
 		else
 		{
-			Dvar::Var("ui_serverSelected").set(false);
+			ServerList::UIServerSelected.set(false);
 		}
 	}
 
@@ -621,8 +626,11 @@ namespace Components
 	void ServerList::Frame()
 	{
 		static Utils::Time::Interval frameLimit;
-		int interval = static_cast<int>(1000.0f / Dvar::Var("net_serverFrames").get<int>());
-		if (!frameLimit.elapsed(std::chrono::milliseconds(interval))) return;
+		const auto interval = static_cast<int>(1000.0f / ServerList::NETServerFrames.get<int>());
+
+		if (!frameLimit.elapsed(std::chrono::milliseconds(interval)))
+			return;
+
 		frameLimit.update();
 
 		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
@@ -638,7 +646,7 @@ namespace Components
 			}
 		}
 
-		int requestLimit = Dvar::Var("net_serverQueryLimit").get<int>();
+		auto requestLimit = ServerList::NETServerQueryLimit.get<int>();
 		for (unsigned int i = 0; i < ServerList::RefreshContainer.servers.size() && requestLimit > 0; ++i)
 		{
 			ServerList::Container::ServerContainer* server = &ServerList::RefreshContainer.servers[i];
@@ -734,11 +742,15 @@ namespace Components
 
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<bool>("ui_serverSelected", false, Game::dvar_flag::DVAR_NONE, "Whether a server has been selected in the serverlist");
-			Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan", Game::dvar_flag::DVAR_NONE, "Map of the selected server");
+			ServerList::UIServerSelected = Dvar::Register<bool>("ui_serverSelected", false,
+				Game::dvar_flag::DVAR_NONE, "Whether a server has been selected in the serverlist");
+			ServerList::UIServerSelectedMap = Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan",
+				Game::dvar_flag::DVAR_NONE, "Map of the selected server");
 
-			Dvar::Register<int>("net_serverQueryLimit", 1, 1, 10, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server queries per frame");
-			Dvar::Register<int>("net_serverFrames", 30, 1, 60, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server query frames per second");
+			ServerList::NETServerQueryLimit = Dvar::Register<int>("net_serverQueryLimit", 1,
+				1, 10, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server queries per frame");
+			ServerList::NETServerFrames = Dvar::Register<int>("net_serverFrames", 30,
+				1, 60, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server query frames per second");
 		});
 
 		// Fix ui_netsource dvar
@@ -794,6 +806,7 @@ namespace Components
 		UIScript::Add("RefreshFilter", ServerList::UpdateVisibleList);
 
 		UIScript::Add("RefreshServers", ServerList::Refresh);
+
 		UIScript::Add("JoinServer", [](UIScript::Token)
 		{
 			ServerList::ServerInfo* info = ServerList::GetServer(ServerList::CurrentServer);
@@ -803,6 +816,7 @@ namespace Components
 				Party::Connect(info->addr);
 			}
 		});
+
 		UIScript::Add("ServerSort", [](UIScript::Token token)
 		{
 			int key = token.get<int>();
@@ -820,6 +834,7 @@ namespace Components
 			Logger::Print("Sorting server list by token: %d\n", ServerList::SortKey);
 			ServerList::SortList();
 		});
+
 		UIScript::Add("CreateListFavorite", [](UIScript::Token)
 		{
 			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
@@ -829,10 +844,12 @@ namespace Components
 				ServerList::StoreFavourite(info->addr.getString());
 			}
 		});
+
 		UIScript::Add("CreateFavorite", [](UIScript::Token)
 		{
 			ServerList::StoreFavourite(Dvar::Var("ui_favoriteAddress").get<std::string>());
 		});
+
 		UIScript::Add("CreateCurrentServerFavorite", [](UIScript::Token)
 		{
 			if (Game::CL_IsCgameInitialized())
@@ -844,6 +861,7 @@ namespace Components
 				}
 			}
 		});
+
 		UIScript::Add("DeleteFavorite", [](UIScript::Token)
 		{
 			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
@@ -854,17 +872,18 @@ namespace Components
 			};
 		});
 
+#ifdef _DEBUG
 		Command::Add("playerCount", [](Command::Params*)
 		{
-			int count = 0;
-			for (auto server : ServerList::OnlineList)
+			auto count = 0;
+			for (const auto& server : ServerList::OnlineList)
 			{
 				count += server.clients;
 			}
 
 			Logger::Print("There are %d players playing.\n", count);
 		});
-
+#endif
 		// Add required ownerDraws
 		UIScript::AddOwnerDraw(220, ServerList::UpdateSource);
 		UIScript::AddOwnerDraw(253, ServerList::UpdateGameType);

@@ -624,7 +624,7 @@ namespace Game
 	typedef void(__cdecl * Playlist_ParsePlaylists_t)(const char* data);
 	extern Playlist_ParsePlaylists_t Playlist_ParsePlaylists;
 
-	typedef Font_s* (__cdecl * R_RegisterFont_t)(const char* asset, int safe);
+	typedef Font_s*(__cdecl * R_RegisterFont_t)(const char* asset, int safe);
 	extern R_RegisterFont_t R_RegisterFont;
 
 	typedef void(__cdecl * R_AddCmdDrawText_t)(const char *text, int maxChars, Font_s *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
@@ -915,13 +915,13 @@ namespace Game
 	typedef void(__cdecl * UI_DrawHandlePic_t)(/*ScreenPlacement*/void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Material *material);
 	extern UI_DrawHandlePic_t UI_DrawHandlePic;
 
-	typedef ScreenPlacement* (__cdecl * ScrPlace_GetActivePlacement_t)(int localClientNum);
+	typedef ScreenPlacement*(__cdecl * ScrPlace_GetActivePlacement_t)(int localClientNum);
 	extern ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement;
 
 	typedef int(__cdecl * UI_TextWidth_t)(const char *text, int maxChars, Font_s *font, float scale);
 	extern UI_TextWidth_t UI_TextWidth;
 
-	typedef void(__cdecl * UI_DrawText_t)(void* scrPlace, const char *text, int maxChars, Font_s *font, float x, float y, int horzAlign, int vertAlign, float scale, const float *color, int style);
+	typedef void(__cdecl * UI_DrawText_t)(const ScreenPlacement* scrPlace, const char* text, int maxChars, Font_s* font, float x, float y, int horzAlign, int vertAlign, float scale, const float* color, int style);
 	extern UI_DrawText_t UI_DrawText;
 	
 	typedef Font_s* (__cdecl* UI_GetFontHandle_t)(ScreenPlacement* scrPlace, int fontEnum, float scale);
