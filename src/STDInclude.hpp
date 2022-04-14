@@ -90,17 +90,6 @@
 #undef min
 #endif
 
-// VMProtect
-// #define USE_VMP
-#ifdef USE_VMP
-#include <VMProtect/VMProtectSDK.h>
-#define __VMProtectBeginUltra VMProtectBeginUltra
-#define __VMProtectEnd VMProtectEnd()
-#else
-#define __VMProtectBeginUltra
-#define __VMProtectEnd
-#endif
-
 // Protobuf
 #include "proto/session.pb.h"
 #include "proto/party.pb.h"

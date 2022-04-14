@@ -36,7 +36,6 @@ namespace Components
 
 	void AntiCheat::CrashClient()
 	{
-		__VMProtectBeginUltra("");
 #ifdef DEBUG_DETECTIONS
 		Logger::Flush();
 		MessageBoxA(nullptr, "Check the log for more information!", "AntiCheat triggered", MB_ICONERROR);
@@ -52,12 +51,10 @@ namespace Components
 			});
 		}
 #endif
-		__VMProtectEnd;
 	}
 
 	void AntiCheat::AssertCalleeModule(void* callee)
 	{
-		__VMProtectBeginUltra("");
 		HMODULE hModuleSelf = nullptr, hModuleTarget = nullptr, hModuleProcess = GetModuleHandleA(nullptr);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &hModuleTarget);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(AntiCheat::AssertCalleeModule), &hModuleSelf);
@@ -73,12 +70,10 @@ namespace Components
 
 			AntiCheat::CrashClient();
 		}
-		__VMProtectEnd;
 	}
 
 	void AntiCheat::InitLoadLibHook()
 	{
-		__VMProtectBeginUltra("");
 		static uint8_t kernel32Str[] = { 0xB4, 0x9A, 0x8D, 0xB1, 0x9A, 0x93, 0xCC, 0xCD, 0xD1, 0x9B, 0x93, 0x93 }; // KerNel32.dll
 		static uint8_t loadLibAStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xBE }; // LoadLibraryA
 		static uint8_t loadLibWStr[] = { 0xB3, 0x90, 0x9E, 0x9B, 0xB3, 0x96, 0x9D, 0x8D, 0x9E, 0x8D, 0x86, 0xA8 }; // LoadLibraryW
@@ -138,13 +133,10 @@ namespace Components
 		Utils::Hook::Signature signature(ntdll, Utils::GetModuleSize(ntdll));
 		signature.add(container);
 		//signature.process();
-
-		__VMProtectEnd;
 	}
 
 	void AntiCheat::ReadIntegrityCheck()
 	{
-		__VMProtectBeginUltra("");
 #ifdef PROCTECT_PROCESS
 		static Utils::Time::Interval check;
 
@@ -166,12 +158,10 @@ namespace Components
 		// Set the integrity flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::READ_INTEGRITY_CHECK;
 #endif
-		__VMProtectEnd;
 	}
 
 	void AntiCheat::FlagIntegrityCheck()
 	{
-		__VMProtectBeginUltra("");
 		static Utils::Time::Interval check;
 
 		if (check.elapsed(30s))
@@ -189,12 +179,10 @@ namespace Components
 				AntiCheat::CrashClient();
 			}
 		}
-		__VMProtectEnd;
 	}
 
 	void AntiCheat::ScanIntegrityCheck()
 	{
-		__VMProtectBeginUltra("");
 		// If there was no check within the last 40 seconds, crash!
 		if (AntiCheat::LastCheck.elapsed(40s))
 		{
@@ -207,12 +195,10 @@ namespace Components
 
 		// Set the integrity flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::SCAN_INTEGRITY_CHECK;
-		__VMProtectEnd;
 	}
 
 	void AntiCheat::PerformScan()
 	{
-		__VMProtectBeginUltra("");
 		static std::optional<unsigned int> hashVal;
 
 		// Perform check only every 20 seconds
@@ -243,12 +229,10 @@ namespace Components
 
 		// Set the memory scan flag
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::MEMORY_SCAN;
-		__VMProtectEnd;
 	}
 
 	void AntiCheat::QuickCodeScanner1()
 	{
-		__VMProtectBeginUltra("");
 		static Utils::Time::Interval interval;
 		static std::optional<unsigned int> hashVal;
 
@@ -267,12 +251,10 @@ namespace Components
 		}
 
 		hashVal.emplace(hash);
-		__VMProtectEnd;
 	}
 
 	void AntiCheat::QuickCodeScanner2()
 	{
-		__VMProtectBeginUltra("");
 		static Utils::Time::Interval interval;
 		static std::optional<unsigned int> hashVal;
 
@@ -287,7 +269,6 @@ namespace Components
 		}
 
 		hashVal.emplace(hash);
-		__VMProtectEnd;
 	}
 
 #ifdef DEBUG_LOAD_LIBRARY
@@ -433,7 +414,6 @@ namespace Components
 
 	bool AntiCheat::IsPageChangeAllowed(void* callee, void* addr, size_t len)
 	{
-		__VMProtectBeginUltra("");
 		HMODULE hModuleSelf = nullptr, hModuleTarget = nullptr, hModuleMain = GetModuleHandle(nullptr);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(callee), &hModuleTarget);
 		GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<char*>(AntiCheat::IsPageChangeAllowed), &hModuleSelf);
@@ -450,40 +430,34 @@ namespace Components
 			}
 		}
 
-		__VMProtectEnd;
 		return true;
 	}
 
 	BOOL WINAPI AntiCheat::VirtualProtectStub(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
 	{
-		__VMProtectBeginUltra("");
 		if (!AntiCheat::IsPageChangeAllowed(_ReturnAddress(), lpAddress, dwSize)) return FALSE;
 
 		AntiCheat::VirtualProtectHook[0].uninstall(false);
 		BOOL result = VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
 		AntiCheat::VirtualProtectHook[0].install(false);
 
-		__VMProtectEnd;
 		return result;
 	}
 
 	BOOL WINAPI AntiCheat::VirtualProtectExStub(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect)
 	{
-		__VMProtectBeginUltra("");
 		if (GetCurrentProcessId() == GetProcessId(hProcess) && !AntiCheat::IsPageChangeAllowed(_ReturnAddress(), lpAddress, dwSize)) return FALSE;
 
 		AntiCheat::VirtualProtectHook[1].uninstall(false);
 		BOOL result = VirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect, lpflOldProtect);
 		AntiCheat::VirtualProtectHook[1].install(false);
 
-		__VMProtectEnd;
 		return result;
 	}
 
 	unsigned long AntiCheat::ProtectProcess()
 	{
 #ifdef PROCTECT_PROCESS
-		__VMProtectBeginUltra("");
 
 		Utils::Memory::Allocator allocator;
 
@@ -611,8 +585,6 @@ namespace Components
 		if (!InitializeSecurityDescriptor(pSecDesc, SECURITY_DESCRIPTOR_REVISION)) return GetLastError();
 		if (!SetSecurityDescriptorDacl(pSecDesc, TRUE, pDacl, FALSE)) return GetLastError();
 
-		__VMProtectEnd;
-
 		return SetSecurityInfo(
 			GetCurrentProcess(),
 			SE_KERNEL_OBJECT, // process object
@@ -629,8 +601,6 @@ namespace Components
 
 	void AntiCheat::AcquireDebugPrivilege(HANDLE hToken)
 	{
-		__VMProtectBeginUltra("");
-
 		LUID luid;
 		TOKEN_PRIVILEGES tp = { 0 };
 		DWORD cb = sizeof(TOKEN_PRIVILEGES);
@@ -641,22 +611,16 @@ namespace Components
 		tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 		AdjustTokenPrivileges(hToken, FALSE, &tp, cb, nullptr, nullptr);
 		//if (GetLastError() != ERROR_SUCCESS) return;
-
-		__VMProtectEnd;
 	}
 
 	void AntiCheat::PatchVirtualProtect(void* vp, void* vpex)
 	{
-		__VMProtectBeginUltra("");
 		AntiCheat::VirtualProtectHook[1].initialize(vpex, AntiCheat::VirtualProtectExStub, HOOK_JUMP)->install(true, true);
 		AntiCheat::VirtualProtectHook[0].initialize(vp, AntiCheat::VirtualProtectStub, HOOK_JUMP)->install(true, true);
-		__VMProtectEnd;
 	}
 
 	NTSTATUS NTAPI AntiCheat::NtCreateThreadExStub(PHANDLE phThread, ACCESS_MASK desiredAccess, LPVOID objectAttributes, HANDLE processHandle, LPTHREAD_START_ROUTINE startAddress, LPVOID parameter, BOOL createSuspended, DWORD stackZeroBits, DWORD sizeOfStackCommit, DWORD sizeOfStackReserve, LPVOID bytesBuffer)
 	{
-		__VMProtectBeginUltra("");
-
 		HANDLE hThread = nullptr;
 		std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
 
@@ -671,15 +635,11 @@ namespace Components
 			AntiCheat::OwnThreadIds.push_back(GetThreadId(hThread));
 		}
 
-		__VMProtectEnd;
-
 		return result;
 	}
 
 	void AntiCheat::PatchThreadCreation()
 	{
-		__VMProtectBeginUltra("");
-
 		HMODULE ntdll = Utils::GetNTDLL();
 		if (ntdll)
 		{
@@ -690,19 +650,15 @@ namespace Components
 				AntiCheat::CreateThreadHook.initialize(createThread, AntiCheat::NtCreateThreadExStub, HOOK_JUMP)->install();
 			}
 		}
-
-		__VMProtectEnd;
 	}
 
 	int AntiCheat::ValidateThreadTermination(void* addr)
 	{
-		__VMProtectBeginUltra("");
 		{
 			std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
 
 			DWORD id = GetCurrentThreadId();
-			auto threadHook = AntiCheat::ThreadHookMap.find(id);
-			if (threadHook != AntiCheat::ThreadHookMap.end())
+			if (const auto threadHook = AntiCheat::ThreadHookMap.find(id); threadHook != AntiCheat::ThreadHookMap.end())
 			{
 				threadHook->second->uninstall(false);
 				AntiCheat::ThreadHookMap.erase(threadHook); // Uninstall and delete the hook
@@ -717,7 +673,7 @@ namespace Components
 			// It would be better to wait for the thread
 			// but we don't know if there are multiple hooks at the same address
 			bool found = false;
-			for (auto threadHook : AntiCheat::ThreadHookMap)
+			for (const auto& threadHook : AntiCheat::ThreadHookMap)
 			{
 				if (threadHook.second->getAddress() == addr)
 				{
@@ -729,8 +685,6 @@ namespace Components
 			if (!found) break;
 			std::this_thread::sleep_for(10ms);
 		}
-
-		__VMProtectEnd;
 
 		return 0; // Don't kill
 	}
@@ -773,7 +727,6 @@ namespace Components
 
 	void AntiCheat::VerifyThreadIntegrity()
 	{
-		__VMProtectBeginUltra("");
 		bool kill = true;
 		{
 			std::lock_guard<std::mutex> _(AntiCheat::ThreadMutex);
@@ -821,71 +774,67 @@ namespace Components
 				}
 			}
 		}
-		__VMProtectEnd;
 	}
 
-    void AntiCheat::SystemTimeDiff(LPSYSTEMTIME stA, LPSYSTEMTIME stB, LPSYSTEMTIME stC) {
-        FILETIME ftA, ftB, ftC;
-        ULARGE_INTEGER uiA, uiB, uiC;
+	void AntiCheat::SystemTimeDiff(LPSYSTEMTIME stA, LPSYSTEMTIME stB, LPSYSTEMTIME stC)
+	{
+		FILETIME ftA, ftB, ftC;
+		ULARGE_INTEGER uiA, uiB, uiC;
 
-        SystemTimeToFileTime(stA, &ftA);
-        SystemTimeToFileTime(stB, &ftB);
-        uiA.HighPart = ftA.dwHighDateTime;
-        uiA.LowPart = ftA.dwLowDateTime;
-        uiB.HighPart = ftB.dwHighDateTime;
-        uiB.LowPart = ftB.dwLowDateTime;
+		SystemTimeToFileTime(stA, &ftA);
+		SystemTimeToFileTime(stB, &ftB);
+		uiA.HighPart = ftA.dwHighDateTime;
+		uiA.LowPart = ftA.dwLowDateTime;
+		uiB.HighPart = ftB.dwHighDateTime;
+		uiB.LowPart = ftB.dwLowDateTime;
 
-        uiC.QuadPart = uiA.QuadPart - uiB.QuadPart;
+		uiC.QuadPart = uiA.QuadPart - uiB.QuadPart;
 
-        ftC.dwHighDateTime = uiC.HighPart;
-        ftC.dwLowDateTime = uiC.LowPart;
-        FileTimeToSystemTime(&ftC, stC);
-    }
+		ftC.dwHighDateTime = uiC.HighPart;
+		ftC.dwLowDateTime = uiC.LowPart;
+		FileTimeToSystemTime(&ftC, stC);
+	}
 
-    void AntiCheat::CheckStartupTime()
-    {
-        __VMProtectBeginUltra("");
-        FILETIME creation, exit, kernel, user;
-        SYSTEMTIME current, creationSt, diffSt;
+	void AntiCheat::CheckStartupTime()
+	{
+		FILETIME creation, exit, kernel, user;
+		SYSTEMTIME current, creationSt, diffSt;
 
-        GetSystemTime(&current);
-        GetProcessTimes(GetCurrentProcess(), &creation, &exit, &kernel, &user);
+		GetSystemTime(&current);
+		GetProcessTimes(GetCurrentProcess(), &creation, &exit, &kernel, &user);
 
-        FileTimeToSystemTime(&creation, &creationSt);
-        AntiCheat::SystemTimeDiff(&current, &creationSt, &diffSt);
+		FileTimeToSystemTime(&creation, &creationSt);
+		AntiCheat::SystemTimeDiff(&current, &creationSt, &diffSt);
 
 #ifdef DEBUG
-        char buf[512];
-        snprintf(buf, 512, "creation: %d:%d:%d:%d\n", creationSt.wHour, creationSt.wMinute, creationSt.wSecond, creationSt.wMilliseconds);
-        OutputDebugStringA(buf);
+		char buf[512];
+		snprintf(buf, 512, "creation: %d:%d:%d:%d\n", creationSt.wHour, creationSt.wMinute, creationSt.wSecond, creationSt.wMilliseconds);
+		OutputDebugStringA(buf);
 
-        snprintf(buf, 512, "current: %d:%d:%d:%d\n", current.wHour, current.wMinute, current.wSecond, current.wMilliseconds);
-        OutputDebugStringA(buf);
+		snprintf(buf, 512, "current: %d:%d:%d:%d\n", current.wHour, current.wMinute, current.wSecond, current.wMilliseconds);
+		OutputDebugStringA(buf);
 
-        snprintf(buf, 512, "diff: %d:%d:%d:%d\n", diffSt.wHour, diffSt.wMinute, diffSt.wSecond, diffSt.wMilliseconds);
-        OutputDebugStringA(buf);
+		snprintf(buf, 512, "diff: %d:%d:%d:%d\n", diffSt.wHour, diffSt.wMinute, diffSt.wSecond, diffSt.wMilliseconds);
+		OutputDebugStringA(buf);
 #endif
 
-        // crash client if they are using process suspension to inject dlls during startup (aka before we got to here)
-        // maybe tweak this value depending on what the above logging reveals during testing,
-        // but 5 seconds seems about right for now
-        int time = diffSt.wMilliseconds + (diffSt.wSecond * 1000) + (diffSt.wMinute * 1000 * 60);
-        if (time > 5000) {
-            Components::AntiCheat::CrashClient();
-        }
+		// crash client if they are using process suspension to inject dlls during startup (aka before we got to here)
+		// maybe tweak this value depending on what the above logging reveals during testing,
+		// but 5 seconds seems about right for now
+		int time = diffSt.wMilliseconds + (diffSt.wSecond * 1000) + (diffSt.wMinute * 1000 * 60);
+		if (time > 5000)
+		{
+			Components::AntiCheat::CrashClient();
+		}
 
-        // use below for logging when using StartSuspended.exe
-        // FILE* f = fopen("times.txt", "a");
-        // fwrite(buf, 1, strlen(buf), f);
-        // fclose(f);
-
-        __VMProtectEnd;
-    }
+		// use below for logging when using StartSuspended.exe
+		// FILE* f = fopen("times.txt", "a");
+		// fwrite(buf, 1, strlen(buf), f);
+		// fclose(f);
+	}
 
 	AntiCheat::AntiCheat()
 	{
-		__VMProtectBeginUltra("");
-
 		time(nullptr);
 		AntiCheat::Flags = NO_FLAG;
 
@@ -921,8 +870,6 @@ namespace Components
 		AntiCheat::Flags |= AntiCheat::IntergrityFlag::INITIALIZATION;
 
 #endif
-
-		__VMProtectEnd;
 	}
 
 	AntiCheat::~AntiCheat()
