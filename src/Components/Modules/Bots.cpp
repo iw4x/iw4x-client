@@ -149,7 +149,7 @@ namespace Components
 
 			g_botai[entref.entnum] = {0};
 			g_botai[entref.entnum].weapon = 1;
-			g_botai[entref.entnum].active = false;
+			g_botai[entref.entnum].active = true;
 		});
 
 		Script::AddMethod("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
@@ -313,6 +313,18 @@ namespace Components
 		}
 	}
 
+	/*
+	 * Should be called when a client drops from the server
+	 * but not "between levels" (Quake-III-Arena)
+	 */
+	void Bots::ClientDisconnect_Hk(int clientNum)
+	{
+		g_botai[clientNum].active = false;
+
+		// Call original function
+		Utils::Hook::Call<void(int)>(0x4AA430)(clientNum);
+	}
+
 	Bots::Bots()
 	{
 		// Replace connect string
@@ -325,6 +337,9 @@ namespace Components
 		Utils::Hook(0x627241, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x441B80, Bots::G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
+
+		// Reset BotMovementInfo.active when client is dropped
+		Utils::Hook(0x625235, Bots::ClientDisconnect_Hk, HOOK_CALL).install()->quick();
 
 		// Zero the bot command array
 		for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)

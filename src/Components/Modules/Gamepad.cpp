@@ -1763,7 +1763,7 @@ namespace Components
 
     void Gamepad::CG_RegisterDvars_Hk()
     {
-        // Call original method
+        // Call original function
         Utils::Hook::Call<void()>(0x4F8DC0)();
 
         InitDvars();
