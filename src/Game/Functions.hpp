@@ -1036,10 +1036,6 @@ namespace Game
 	constexpr auto ENTITYNUM_NONE = MAX_GENTITIES - 1;
 	extern gentity_t* g_entities;
 
-	extern int* level_num_entities;
-	extern int* level_time;
-	extern int* level_scriptPrintChannel;
-
 	extern netadr_t* connectedHost;
 	extern SOCKET* ip_socket;
 
@@ -1116,6 +1112,8 @@ namespace Game
 	extern vec3_t* CorrectSolidDeltas;
 
 	extern FastCriticalSection* db_hashCritSect;
+
+	extern level_locals_t* level;
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);
