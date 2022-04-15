@@ -88,7 +88,7 @@ namespace Components
 		}
 	}
 
-	void Window::DrawCursorStub(void *scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float *color, Game::Material *material)
+	void Window::DrawCursorStub(Game::ScreenPlacement* scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float* color, Game::Material* material)
 	{
 		if (Window::NativeCursor.get<bool>())
 		{

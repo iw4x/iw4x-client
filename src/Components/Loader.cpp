@@ -69,7 +69,6 @@ namespace Components
 		Loader::Register(new Renderer());
 		Loader::Register(new UIFeeder());
 		Loader::Register(new UIScript());
-		Loader::Register(new AntiCheat());
 		Loader::Register(new Changelog());
 		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());
@@ -105,6 +104,7 @@ namespace Components
 		Loader::Register(new Elevators());
 		Loader::Register(new ClientCommand());
 		Loader::Register(new ScriptExtension());
+		Loader::Register(new Branding());
 
 		Loader::Pregame = false;
 	}

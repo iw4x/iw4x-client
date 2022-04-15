@@ -192,7 +192,7 @@ namespace Game
 	Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray = Load_snd_alias_list_nameArray_t(0x4499F0);
 
 	Menus_CloseAll_t Menus_CloseAll = Menus_CloseAll_t(0x4BA5B0);
-    Menus_CloseRequest_t Menus_CloseRequest = Menus_CloseRequest_t(0x430D50);
+	Menus_CloseRequest_t Menus_CloseRequest = Menus_CloseRequest_t(0x430D50);
 	Menus_OpenByName_t Menus_OpenByName = Menus_OpenByName_t(0x4CCE60);
 	Menus_FindByName_t Menus_FindByName = Menus_FindByName_t(0x487240);
 	Menu_IsVisible_t Menu_IsVisible = Menu_IsVisible_t(0x4D77D0);
@@ -378,6 +378,7 @@ namespace Game
 	UI_DrawHandlePic_t UI_DrawHandlePic = UI_DrawHandlePic_t(0x4D0EA0);
 	ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement = ScrPlace_GetActivePlacement_t(0x4F8940);
 	UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x6315C0);
+	UI_TextHeight_t UI_TextHeight = UI_TextHeight_t(0x4C8630);
 	UI_DrawText_t UI_DrawText = UI_DrawText_t(0x49C0D0);
 	UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x4AEA60);
 	ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x454E20);
@@ -432,7 +433,7 @@ namespace Game
 	int* svs_clientCount = reinterpret_cast<int*>(0x31D938C);
 	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);
 
-	UiContext *uiContext = reinterpret_cast<UiContext *>(0x62E2858);
+	UiContext* uiContext = reinterpret_cast<UiContext*>(0x62E2858);
 
 	int* arenaCount = reinterpret_cast<int*>(0x62E6930);
 	mapArena_t* arenas = reinterpret_cast<mapArena_t*>(0x62E6934);
@@ -459,10 +460,6 @@ namespace Game
 	int* serverMessageSequence = reinterpret_cast<int*>(0xA3E9B4);
 
 	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
-
-	int* level_num_entities = reinterpret_cast<int*>(0x1A831B0);
-	int* level_time = reinterpret_cast<int*>(0x1A83554);
-	int* level_scriptPrintChannel = reinterpret_cast<int*>(0x1A860FC);
 
 	netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0xA1E888);
 
@@ -534,9 +531,11 @@ namespace Game
 
 	XModel** cached_models = reinterpret_cast<XModel**>(0x1AA20C8);
 
+	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
+
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
 
-	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
+	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
@@ -1102,6 +1101,11 @@ namespace Game
 		return GraphGetValueFromFraction(graph->knotCount, graph->knots, fraction) * graph->scale;
 	}
 
+	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement()
+	{
+		return scrPlaceFullUnsafe;
+	}
+
 #pragma optimize("", off)
 	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
 	{
@@ -1576,7 +1580,7 @@ namespace Game
 
 	__declspec(naked) void AimAssist_UpdateAdsLerp(const AimInput* /*aimInput*/)
 	{
-	    __asm
+		__asm
 		{
 			mov eax, [esp + 0x4]
 			mov ebx, 0x569AA0
