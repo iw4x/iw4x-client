@@ -607,7 +607,7 @@ namespace Components
 					return;
 				}
 
-				Logger::Print(*Game::level_scriptPrintChannel, "%s", str);
+				Logger::Print(Game::level->scriptPrintChannel, "%s", str);
 			}
 		});
 

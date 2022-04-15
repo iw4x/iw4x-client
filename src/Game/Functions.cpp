@@ -460,10 +460,6 @@ namespace Game
 
 	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
 
-	int* level_num_entities = reinterpret_cast<int*>(0x1A831B0);
-	int* level_time = reinterpret_cast<int*>(0x1A83554);
-	int* level_scriptPrintChannel = reinterpret_cast<int*>(0x1A860FC);
-
 	netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0xA1E888);
 
 	SOCKET* ip_socket = reinterpret_cast<SOCKET*>(0x64A3008);
@@ -537,6 +533,8 @@ namespace Game
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
 
 	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
+
+	level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
