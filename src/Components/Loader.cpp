@@ -69,7 +69,6 @@ namespace Components
 		Loader::Register(new Renderer());
 		Loader::Register(new UIFeeder());
 		Loader::Register(new UIScript());
-		Loader::Register(new AntiCheat());
 		Loader::Register(new Changelog());
 		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());

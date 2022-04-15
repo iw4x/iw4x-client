@@ -420,7 +420,7 @@ namespace Game
 	typedef void(__cdecl * LargeLocalInit_t)();
 	extern LargeLocalInit_t LargeLocalInit;
 
-	typedef bool(__cdecl * Load_Stream_t)(bool atStreamStart, const void *ptr, unsigned int size);
+	typedef bool(__cdecl * Load_Stream_t)(bool atStreamStart, const void* ptr, unsigned int size);
 	extern Load_Stream_t Load_Stream;
 
 	typedef void(__cdecl * Load_XString_t)(bool atStreamStart);
@@ -429,64 +429,64 @@ namespace Game
 	typedef void(__cdecl * Load_XModelPtr_t)(bool atStreamStart);
 	extern Load_XModelPtr_t Load_XModelPtr;
 
-	typedef void(__cdecl * Load_XModelSurfsFixup_t)(XModelSurfs **, XModelLodInfo *);
+	typedef void(__cdecl * Load_XModelSurfsFixup_t)(XModelSurfs**, XModelLodInfo*);
 	extern Load_XModelSurfsFixup_t Load_XModelSurfsFixup;
 
 	typedef void(__cdecl * Load_XStringArray_t)(bool atStreamStart, int count);
 	extern Load_XStringArray_t Load_XStringArray;
 
-	typedef void(__cdecl * Load_XStringCustom_t)(const char **str);
+	typedef void(__cdecl * Load_XStringCustom_t)(const char** str);
 	extern Load_XStringCustom_t Load_XStringCustom;
 
-	typedef void(__cdecl *Load_FxEffectDefHandle_t)(bool atStreamStart);
+	typedef void(__cdecl * Load_FxEffectDefHandle_t)(bool atStreamStart);
 	extern Load_FxEffectDefHandle_t Load_FxEffectDefHandle;
 
-	typedef void(__cdecl *Load_FxElemDef_t)(bool atStreamStart);
+	typedef void(__cdecl * Load_FxElemDef_t)(bool atStreamStart);
 	extern Load_FxElemDef_t Load_FxElemDef;
 
-	typedef void(__cdecl *Load_GfxImagePtr_t)(bool atStreamStart);
+	typedef void(__cdecl * Load_GfxImagePtr_t)(bool atStreamStart);
 	extern Load_GfxImagePtr_t Load_GfxImagePtr;
 
-	typedef void(__cdecl *Load_GfxTextureLoad_t)(bool atStreamStart);
+	typedef void(__cdecl * Load_GfxTextureLoad_t)(bool atStreamStart);
 	extern Load_GfxTextureLoad_t Load_GfxTextureLoad;
 
-	typedef int(__cdecl *Load_Texture_t)(GfxImageLoadDef **loadDef, GfxImage *image);
+	typedef int(__cdecl * Load_Texture_t)(GfxImageLoadDef** loadDef, GfxImage* image);
 	extern Load_Texture_t Load_Texture;
 
 	typedef void(__cdecl * Load_SndAliasCustom_t)(snd_alias_list_t** var);
 	extern Load_SndAliasCustom_t Load_SndAliasCustom;
 
-	typedef void(__cdecl *Load_MaterialHandle_t)(bool atStreamStart);
+	typedef void(__cdecl * Load_MaterialHandle_t)(bool atStreamStart);
 	extern Load_MaterialHandle_t Load_MaterialHandle;
 
-	typedef void(__cdecl *Load_PhysCollmapPtr_t)(bool atStreamStart);
+	typedef void(__cdecl * Load_PhysCollmapPtr_t)(bool atStreamStart);
 	extern Load_PhysCollmapPtr_t Load_PhysCollmapPtr;
 
-	typedef void(__cdecl *Load_PhysPresetPtr_t)(bool atStreamStart);
+	typedef void(__cdecl * Load_PhysPresetPtr_t)(bool atStreamStart);
 	extern Load_PhysPresetPtr_t Load_PhysPresetPtr;
 
-	typedef void(__cdecl *Load_TracerDefPtr_t)(bool atStreamStart);
+	typedef void(__cdecl * Load_TracerDefPtr_t)(bool atStreamStart);
 	extern Load_TracerDefPtr_t Load_TracerDefPtr;
 
-	typedef void(__cdecl *Load_snd_alias_list_nameArray_t)(bool atStreamStart, int count);
+	typedef void(__cdecl * Load_snd_alias_list_nameArray_t)(bool atStreamStart, int count);
 	extern Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray;
 
-	typedef void(__cdecl * Menus_CloseAll_t)(UiContext *dc);
+	typedef void(__cdecl * Menus_CloseAll_t)(UiContext* dc);
 	extern Menus_CloseAll_t Menus_CloseAll;
 
     typedef void(__cdecl * Menus_CloseRequest_t)(UiContext *dc, menuDef_t* menu);
     extern Menus_CloseRequest_t Menus_CloseRequest;
 
-	typedef int(__cdecl * Menus_OpenByName_t)(UiContext *dc, const char *p);
+	typedef int(__cdecl * Menus_OpenByName_t)(UiContext* dc, const char* p);
 	extern Menus_OpenByName_t Menus_OpenByName;
 
-	typedef menuDef_t *(__cdecl * Menus_FindByName_t)(UiContext *dc, const char *name);
+	typedef menuDef_t *(__cdecl * Menus_FindByName_t)(UiContext* dc, const char* name);
 	extern Menus_FindByName_t Menus_FindByName;
 
-	typedef bool(__cdecl * Menu_IsVisible_t)(UiContext *dc, menuDef_t *menu);
+	typedef bool(__cdecl * Menu_IsVisible_t)(UiContext* dc, menuDef_t* menu);
 	extern Menu_IsVisible_t Menu_IsVisible;
 
-	typedef bool(__cdecl * Menus_MenuIsInStack_t)(UiContext *dc, menuDef_t *menu);
+	typedef bool(__cdecl * Menus_MenuIsInStack_t)(UiContext* dc, menuDef_t* menu);
 	extern Menus_MenuIsInStack_t Menus_MenuIsInStack;
 
 	typedef menuDef_t*(__cdecl * Menu_GetFocused_t)(UiContext* ctx);
@@ -498,16 +498,16 @@ namespace Game
 	typedef bool(__cdecl * UI_KeyEvent_t)(int clientNum, int key, int down);
 	extern UI_KeyEvent_t UI_KeyEvent;
 	
-	typedef const char* (__cdecl * UI_SafeTranslateString_t)(const char* reference);
+	typedef const char*(__cdecl * UI_SafeTranslateString_t)(const char* reference);
 	extern UI_SafeTranslateString_t UI_SafeTranslateString;
 	
 	typedef void(__cdecl * UI_ReplaceConversions_t)(const char* sourceString, ConversionArguments* arguments, char* outputString, size_t outputStringSize);
 	extern UI_ReplaceConversions_t UI_ReplaceConversions;
 	
-	typedef void(__cdecl * MSG_Init_t)(msg_t *buf, char *data, int length);
+	typedef void(__cdecl * MSG_Init_t)(msg_t* buf, char* data, int length);
 	extern MSG_Init_t MSG_Init;
 
-	typedef void(__cdecl * MSG_ReadData_t)(msg_t *msg, void *data, int len);
+	typedef void(__cdecl * MSG_ReadData_t)(msg_t* msg, void* data, int len);
 	extern MSG_ReadData_t MSG_ReadData;
 
 	typedef int(__cdecl * MSG_ReadLong_t)(msg_t* msg);
@@ -894,16 +894,16 @@ namespace Game
 	typedef void(__cdecl * Sys_SuspendOtherThreads_t)();
 	extern Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads;
 
-	typedef void(__cdecl * UI_AddMenuList_t)(UiContext *dc, MenuList *menuList, int close);
+	typedef void(__cdecl * UI_AddMenuList_t)(UiContext* dc, MenuList* menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
 	
 	typedef uiMenuCommand_t(__cdecl * UI_GetActiveMenu_t)(int localClientNum);
 	extern UI_GetActiveMenu_t UI_GetActiveMenu;
 
-	typedef char* (__cdecl * UI_CheckStringTranslation_t)(char*, char*);
+	typedef char*(__cdecl * UI_CheckStringTranslation_t)(char*, char*);
 	extern UI_CheckStringTranslation_t UI_CheckStringTranslation;
 
-	typedef MenuList *(__cdecl * UI_LoadMenus_t)(const char *menuFile, int imageTrack);
+	typedef MenuList*(__cdecl * UI_LoadMenus_t)(const char* menuFile, int imageTrack);
 	extern UI_LoadMenus_t UI_LoadMenus;
 
 	typedef void(__cdecl * UI_UpdateArenas_t)();
@@ -1006,7 +1006,7 @@ namespace Game
 	extern source_t **sourceFiles;
 	extern keywordHash_t **menuParseKeywordHash;
 
-	extern UiContext *uiContext;
+	extern UiContext* uiContext;
 
 	extern int* arenaCount;
 	extern mapArena_t* arenas;

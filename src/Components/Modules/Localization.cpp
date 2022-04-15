@@ -297,13 +297,6 @@ namespace Components
 				}
 			}
 		});
-
-// #ifndef DISABLE_ANTICHEAT
-// 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && !Utils::IsWineEnvironment() && !Loader::IsPerformingUnitTests())
-// 		{
-// 			AntiCheat::PatchVirtualProtect(VirtualProtect, VirtualProtectEx);
-// 		}
-// #endif
 	}
 
 	Localization::~Localization()

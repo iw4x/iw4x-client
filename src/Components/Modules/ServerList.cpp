@@ -890,11 +890,6 @@ namespace Components
 
 		// Add frame callback
 		Scheduler::OnFrame(ServerList::Frame);
-
-		// This is placed here in case the anticheat has been disabled!
-#if !defined(DISABLE_ANTICHEAT) && defined(PROCTECT_PROCESS)
-		Scheduler::OnFrame(AntiCheat::ReadIntegrityCheck, true);
-#endif
 	}
 
 	ServerList::~ServerList()
