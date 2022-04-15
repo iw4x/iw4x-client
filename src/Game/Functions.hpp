@@ -867,7 +867,7 @@ namespace Game
 	typedef bool(__cdecl * Sys_IsDatabaseThread_t)();
 	extern Sys_IsDatabaseThread_t Sys_IsDatabaseThread;
 
-	typedef char** (__cdecl * Sys_ListFiles_t)(const char *directory, const char *extension, const char *filter, int *numfiles, int wantsubs);
+	typedef char**(__cdecl * Sys_ListFiles_t)(const char* directory, const char* extension, const char* filter, int* numfiles, int wantsubs);
 	extern Sys_ListFiles_t Sys_ListFiles;
 
 	typedef int(__cdecl * Sys_Milliseconds_t)();
@@ -918,7 +918,7 @@ namespace Game
 	typedef ScreenPlacement*(__cdecl * ScrPlace_GetActivePlacement_t)(int localClientNum);
 	extern ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement;
 
-	typedef int(__cdecl * UI_TextWidth_t)(const char* text, int maxChars, Font_s *font, float scale);
+	typedef int(__cdecl * UI_TextWidth_t)(const char* text, int maxChars, Font_s* font, float scale);
 	extern UI_TextWidth_t UI_TextWidth;
 
 	typedef int(__cdecl * UI_TextHeight_t)(Font_s* font, float scale);
@@ -930,13 +930,13 @@ namespace Game
 	typedef Font_s* (__cdecl* UI_GetFontHandle_t)(ScreenPlacement* scrPlace, int fontEnum, float scale);
 	extern UI_GetFontHandle_t UI_GetFontHandle;
 	
-	typedef void(__cdecl* ScrPlace_ApplyRect_t)(ScreenPlacement* a1, float* x, float* y, float* w, float* h, int horzAlign, int vertAlign);
+	typedef void(__cdecl* ScrPlace_ApplyRect_t)(const ScreenPlacement* scrPlace, float* x, float* y, float* w, float* h, int horzAlign, int vertAlign);
 	extern ScrPlace_ApplyRect_t ScrPlace_ApplyRect;
 
-	typedef const char * (__cdecl * Win_GetLanguage_t)();
+	typedef const char*(__cdecl * Win_GetLanguage_t)();
 	extern Win_GetLanguage_t Win_GetLanguage;
 
-	typedef void (__cdecl * Vec3UnpackUnitVec_t)(PackedUnitVec, vec3_t *);
+	typedef void(__cdecl * Vec3UnpackUnitVec_t)(PackedUnitVec, vec3_t*);
 	extern Vec3UnpackUnitVec_t Vec3UnpackUnitVec;
 	
 	typedef float(__cdecl * vectoyaw_t)(vec2_t* vec);
