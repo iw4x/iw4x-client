@@ -54,8 +54,8 @@ namespace Components
 		static void UninstallLibHook();
 		static void InstallLibHook();
 
-        static void CheckStartupTime();
-        static void SystemTimeDiff(LPSYSTEMTIME stA, LPSYSTEMTIME stB, LPSYSTEMTIME stC);
+		static void CheckStartupTime();
+		static void SystemTimeDiff(LPSYSTEMTIME stA, LPSYSTEMTIME stB, LPSYSTEMTIME stC);
 
 	private:
 		enum IntergrityFlag
