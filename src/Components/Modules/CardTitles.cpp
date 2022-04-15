@@ -218,8 +218,5 @@ namespace Components
 
         // This is placed here in case the anticheat has been disabled!
         // This checks specifically for launching the process suspended to inject a dll
-#if !defined(DISABLE_ANTICHEAT)
-        AntiCheat::CheckStartupTime();
-#endif
 	}
 }

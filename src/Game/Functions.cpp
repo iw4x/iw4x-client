@@ -537,6 +537,8 @@ namespace Game
 
 	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 
+	level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
+
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
 		InterlockedIncrement(&critSect->readCount);

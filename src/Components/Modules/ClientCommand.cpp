@@ -180,7 +180,7 @@ namespace Components
 
 		ClientCommand::Add("entitycount", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
 		{
-			Logger::Print("Entity count = %i\n", *Game::level_num_entities);
+			Logger::Print("Entity count = %i\n", Game::level->num_entities);
 		});
 
 		// Also known as: "vis"
@@ -243,7 +243,7 @@ namespace Components
 		ClientCommand::Add("g_testCmd", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
 		{
 			assert(ent != nullptr);
-			ent->client->ps.stunTime = 1000 + *Game::level_time; // 1000 is the default test stun time
+			ent->client->ps.stunTime = 1000 + Game::level->time; // 1000 is the default test stun time
 		});
 	}
 
