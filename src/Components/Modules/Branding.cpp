@@ -43,13 +43,12 @@ namespace Components
 		static char buf[128]; // Length the game uses
 
 		const auto* data = "latest " __DATE__ " " __TIME__;
-		sprintf_s(buf, sizeof(buf), "%s %s", SHORTVERSION, data);
+		sprintf_s(buf, "%s %s", SHORTVERSION, data);
 
 		return buf;
 	}
 
-	// Use IW4x Branding
-	void Branding::Dvar_SetVersionString(const Game::dvar_t* dvar, const char* /*value*/)
+	const char* Branding::GetVersionString()
 	{
 #ifdef _DEBUG
 		const auto* buildType = "IW4x_DEV MP";
@@ -61,7 +60,20 @@ namespace Components
 		const auto* result = Utils::String::VA("%s %s build %s %s",
 			buildType, "(Beta)", Branding::GetBuildNumber(), reinterpret_cast<const char*>(0x7170A0));
 
+		return result;
+	}
+
+	void Branding::Dvar_SetVersionString(const Game::dvar_t* dvar, const char* /*value*/)
+	{
+		const auto* result = Branding::GetVersionString();
 		Utils::Hook::Call<void(const Game::dvar_t*, const char*)>(0x4A9580)(dvar, result);
+	}
+
+	// Branding this might be a good idea in case this LSP logging ever gets turned on for some reason
+	void Branding::MSG_WriteVersionStringHeader(Game::msg_t* msg, const char* /*string*/)
+	{
+		const auto* result = Branding::GetVersionString();
+		Utils::Hook::Call<void(Game::msg_t*, const char*)>(0x463820)(msg, result);
 	}
 
 	Game::dvar_t* Branding::Dvar_RegisterUIBuildLocation(const char* dvarName,
@@ -100,17 +112,18 @@ namespace Components
 		// Short version dvar
 		Utils::Hook::Set<const char*>(0x60BD91, SHORTVERSION);
 
-		// Console version string
-		Utils::Hook::Set<const char*>(0x4B12BB, "IW4x " VERSION " (built " __DATE__ " " __TIME__ ")");
+		Utils::Hook(0x4B12B0, Branding::GetBuildNumber, HOOK_JUMP).install()->quick();
 
 		// Version string color
 		static Game::vec4_t buildLocColor = {1.0f, 1.0f, 1.0f, 0.8f};
 		Utils::Hook::Set<float*>(0x43F710, buildLocColor);
 
-		// Shift ui version string to the left (ui_buildlocation)
+		// Place ui version string to bottom right corner (ui_buildlocation)
 		Utils::Hook(0x6310A0, Branding::Dvar_RegisterUIBuildLocation, HOOK_CALL).install()->quick(); // Dvar_RegisterVec2
 
 		Utils::Hook(0x60BD81, Branding::Dvar_SetVersionString, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x4DA842, Branding::MSG_WriteVersionStringHeader, HOOK_CALL).install()->quick();
 
 		// Hook CG_DrawFullScreenDebugOverlays so we may render the version when it's appropriate
 		Utils::Hook(0x5AC975, Branding::CG_DrawVersion_Hk, HOOK_CALL).install()->quick();
