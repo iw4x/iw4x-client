@@ -341,7 +341,7 @@ namespace Game
 	typedef int(__cdecl * FS_FOpenFileReadForThread_t)(const char *filename, int *file, int thread);
 	extern FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread;
 
-	typedef int(__cdecl * FS_FCloseFile_t)(int fh);
+	typedef int(__cdecl * FS_FCloseFile_t)(int stream);
 	extern FS_FCloseFile_t FS_FCloseFile;
 
 	typedef bool(__cdecl * FS_FileExists_t)(const char* file);
