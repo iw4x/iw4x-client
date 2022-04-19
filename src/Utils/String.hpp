@@ -11,7 +11,7 @@ namespace Utils
 			static_assert(Buffers != 0 && MinBufferSize != 0, "Buffers and MinBufferSize mustn't be 0");
 
 			VAProvider() : currentBuffer(0) {}
-			~VAProvider() {}
+			~VAProvider() = default;
 
 			const char* get(const char* format, va_list ap)
 			{
@@ -25,7 +25,7 @@ namespace Utils
 
 				while (true)
 				{
-					int res = vsnprintf_s(entry->buffer, entry->size, _TRUNCATE, format, ap);
+					const auto res = _vsnprintf_s(entry->buffer, entry->size, _TRUNCATE, format, ap);
 					if (res > 0) break; // Success
 					if (res == 0) return ""; // Error
 

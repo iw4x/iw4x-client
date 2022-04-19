@@ -1356,11 +1356,11 @@ namespace Components
                 if (*in) // height
                     in++;
 
-                if(*in) // material name length + material name characters
+                if (*in) // material name length + material name characters
                 {
                     const auto materialNameLength = *in;
                     in++;
-                    for(auto i = 0; i < materialNameLength; i++)
+                    for (auto i = 0; i < materialNameLength; i++)
                     {
                         if (*in)
                             in++;
@@ -1370,7 +1370,7 @@ namespace Components
                 continue;
             }
 
-            if(*in == FONT_ICON_SEPARATOR_CHARACTER)
+            if (*in == FONT_ICON_SEPARATOR_CHARACTER)
             {
                 const auto* fontIconEndPos = &in[1];
                 FontIconInfo fontIcon{};
@@ -1386,6 +1386,7 @@ namespace Components
             ++current;
             ++in;
         }
+
         *out = '\0';
     }
 

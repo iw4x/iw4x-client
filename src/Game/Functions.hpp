@@ -380,6 +380,9 @@ namespace Game
 	typedef int(__cdecl* FS_Delete_t)(const char* fileName);
 	extern FS_Delete_t FS_Delete;
 
+	typedef void(__cdecl * G_LogPrintf_t)(const char* fmt, ...);
+	extern G_LogPrintf_t G_LogPrintf;
+
 	typedef unsigned int(__cdecl * G_GetWeaponIndexForName_t)(const char*);
 	extern G_GetWeaponIndexForName_t G_GetWeaponIndexForName;
 
