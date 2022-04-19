@@ -84,6 +84,7 @@ namespace Components
 		Loader::Register(new ModelSurfs());
 		Loader::Register(new PlayerName());
 		Loader::Register(new QuickPatch());
+		Loader::Register(new Security());
 		Loader::Register(new ServerInfo());
 		Loader::Register(new ServerList());
 		Loader::Register(new SlowMotion());

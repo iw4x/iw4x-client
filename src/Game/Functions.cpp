@@ -150,6 +150,7 @@ namespace Game
 	FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
 	FS_Delete_t FS_Delete = FS_Delete_t(0x48A5B0);
 
+	G_LogPrintf_t G_LogPrintf = G_LogPrintf_t(0x4B0150);
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
 

@@ -11,9 +11,14 @@ namespace Components
 
 	private:
 		static Dvar::Var sv_allowColoredNames;
+		// Message used when kicking players
+		static constexpr auto INVALID_NAME_MSG = "Invalid name detected";
 
 		static char* CleanStrStub(char* string);
-		static void ClientUserinfoChanged();
+		static void ClientCleanName();
 		static char* GetClientName(int localClientNum, int index, char* buf, size_t size);
+
+		static bool CopyClientNameCheck(char* dest, const char* source, int size);
+		static void SV_UserinfoChangedStub();
 	};
 }
