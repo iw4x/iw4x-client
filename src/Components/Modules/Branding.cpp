@@ -13,8 +13,8 @@ namespace Components
 		constexpr auto fontScale = 0.25f;
 		constexpr auto maxChars = std::numeric_limits<int>::max();
 		// Default colours
-		constexpr Game::vec4_t shadowColor = {0.0f, 0.0f, 0.0f, 0.7f};
-		constexpr Game::vec4_t color = {0.4f, 0.7f, 1.0f, 0.7f};
+		constexpr Game::vec4_t shadowColor = {0.0f, 0.0f, 0.0f, 0.69f};
+		constexpr Game::vec4_t color = {0.4f, 0.69f, 1.0f, 0.69f};
 
 		auto* const placement = Game::ScrPlace_GetUnsafeFullPlacement();
 		auto* const font = Game::UI_GetFontHandle(placement, 0, 0.5f);
