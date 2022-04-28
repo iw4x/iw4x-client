@@ -747,6 +747,21 @@ namespace Game
 	typedef void(__cdecl * Scr_ParamError_t)(unsigned int paramIndex, const char*);
 	extern Scr_ParamError_t Scr_ParamError;
 
+	typedef void(__cdecl * Scr_GetObjectField_t)(unsigned int classnum, int entnum, int offset);
+	extern Scr_GetObjectField_t Scr_GetObjectField;
+
+	typedef int(__cdecl * Scr_SetObjectField_t)(unsigned int classnum, int entnum, int offset);
+	extern Scr_SetObjectField_t Scr_SetObjectField;
+
+	typedef void(__cdecl * Scr_SetClientField_t)(gclient_s* client, int offset);
+	extern Scr_SetClientField_t Scr_SetClientField;
+
+	typedef void(__cdecl * Scr_GetEntityField_t)(int entnum, int offset);
+	extern Scr_GetEntityField_t Scr_GetEntityField;
+
+	typedef void(__cdecl * Scr_AddClassField_t)(unsigned int classnum, const char* name, unsigned int offset);
+	extern Scr_AddClassField_t Scr_AddClassField;
+
 	typedef gentity_s*(__cdecl * GetPlayerEntity_t)(scr_entref_t entref);
 	extern GetPlayerEntity_t GetPlayerEntity;
 
