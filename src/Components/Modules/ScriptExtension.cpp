@@ -64,7 +64,7 @@ namespace Components
 		return Game::Scr_SetObjectField(classnum, entnum, offset);
 	}
 
-	// Offset was already converted to array 'index' following binop offset & 0xFFFF1FFF
+	// Offset was already converted to array 'index' following binop offset & ~Game::ENTFIELD_MASK
 	void ScriptExtension::Scr_SetClientFieldStub(Game::gclient_s* client, int offset)
 	{
 		const auto client_offset = static_cast<std::uint16_t>(offset);
@@ -87,7 +87,7 @@ namespace Components
 			// If we have a ENTFIELD_CLIENT offset we need to check g_entity is actually a fully connected client
 			if (Game::g_entities[entnum].client != nullptr)
 			{
-				const auto client_offset = static_cast<std::uint16_t>(offset & 0xFFFF1FFF);
+				const auto client_offset = static_cast<std::uint16_t>(offset & ~Game::ENTFIELD_MASK);
 
 				const auto got = ScriptExtension::CustomClientFields.find(client_offset);
 				if (got != ScriptExtension::CustomClientFields.end())
