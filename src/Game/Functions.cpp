@@ -296,6 +296,12 @@ namespace Game
 
 	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
 
+	Scr_GetObjectField_t Scr_GetObjectField = Scr_GetObjectField_t(0x4FF3D0);
+	Scr_SetObjectField_t Scr_SetObjectField = Scr_SetObjectField_t(0x4F20F0);
+	Scr_GetEntityField_t Scr_GetEntityField = Scr_GetEntityField_t(0x4E8390);
+	Scr_SetClientField_t Scr_SetClientField = Scr_SetClientField_t(0x4A6DF0);
+	Scr_AddClassField_t Scr_AddClassField = Scr_AddClassField_t(0x4C0E70);
+
 	GetEntity_t GetEntity = GetEntity_t(0x4BC270);
 	GetPlayerEntity_t GetPlayerEntity = GetPlayerEntity_t(0x49C4A0);
 
