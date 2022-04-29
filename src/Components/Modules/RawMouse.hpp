@@ -7,7 +7,7 @@ namespace Components
 	public:
 		RawMouse();
 	private:
-		static Dvar::Var m_rawinput;
+		static Dvar::Var useRawInput;
 		static int mouseRawX, mouseRawY;
 
 		static void IN_ClampMouseMove();

@@ -1008,16 +1008,16 @@ namespace Game
 	typedef int(__cdecl * CL_MouseEvent_t)(int x, int y, int dx, int dy);
 	extern CL_MouseEvent_t CL_MouseEvent;
 
-	typedef void(*IN_RecenterMouse_t)();
+	typedef void(__cdecl * IN_RecenterMouse_t)();
 	extern IN_RecenterMouse_t IN_RecenterMouse;
 
-	typedef void(*IN_MouseMove_t)();
+	typedef void(__cdecl * IN_MouseMove_t)();
 	extern IN_MouseMove_t IN_MouseMove;
 
-	typedef void(*IN_Init_t)();
+	typedef void(__cdecl * IN_Init_t)();
 	extern IN_Init_t IN_Init;
 
-	typedef void(*IN_Shutdown_t)();
+	typedef void(__cdecl * IN_Shutdown_t)();
 	extern IN_Shutdown_t IN_Shutdown;
 
 	extern XAssetHeader* DB_XAssetPool;
@@ -1153,7 +1153,6 @@ namespace Game
 
 	extern int* window_center_x;
 	extern int* window_center_y;
-
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);
