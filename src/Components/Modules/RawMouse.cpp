@@ -2,9 +2,9 @@
 
 namespace Components
 {
-	Dvar::Var RawMouse::useRawInput;
-	int RawMouse::mouseRawX = 0;
-	int RawMouse::mouseRawY = 0;
+	Dvar::Var RawMouse::M_RawInput;
+	int RawMouse::MouseRawX = 0;
+	int RawMouse::MouseRawY = 0;
 
 	void RawMouse::IN_ClampMouseMove()
 	{
@@ -60,13 +60,13 @@ namespace Components
 			// Is there's really absolute mouse on earth?
 			if (raw->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
 			{
-				mouseRawX = raw->data.mouse.lLastX;
-				mouseRawY = raw->data.mouse.lLastY;
+				MouseRawX = raw->data.mouse.lLastX;
+				MouseRawY = raw->data.mouse.lLastY;
 			}
 			else
 			{
-				mouseRawX += raw->data.mouse.lLastX;
-				mouseRawY += raw->data.mouse.lLastY;
+				MouseRawX += raw->data.mouse.lLastX;
+				MouseRawY += raw->data.mouse.lLastY;
 			}
 		}
 
@@ -84,11 +84,11 @@ namespace Components
 
 			static auto oldX = 0, oldY = 0;
 
-			auto dx = mouseRawX - oldX;
-			auto dy = mouseRawY - oldY;
+			auto dx = MouseRawX - oldX;
+			auto dy = MouseRawY - oldY;
 
-			oldX = mouseRawX;
-			oldY = mouseRawY;
+			oldX = MouseRawX;
+			oldY = MouseRawY;
 
 			// Don't use raw input for menu?
 			// Because it needs to call the ScreenToClient
@@ -110,7 +110,7 @@ namespace Components
 	{
 		static auto init = false;
 
-		if (Game::g_wv->hWnd && !init && RawMouse::useRawInput.get<bool>())
+		if (Game::g_wv->hWnd && !init && RawMouse::M_RawInput.get<bool>())
 		{
 #ifdef DEBUG
 			Logger::Print("Raw Mouse Init.\n");
@@ -136,7 +136,7 @@ namespace Components
 
 	void RawMouse::IN_MouseMove()
 	{
-		if (RawMouse::useRawInput.get<bool>())
+		if (RawMouse::M_RawInput.get<bool>())
 		{
 			IN_RawMouseMove();
 		}
@@ -157,7 +157,7 @@ namespace Components
 
 		Dvar::OnInit([]()
 		{
-			RawMouse::useRawInput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input, use in_restart to take effect if not enabled.");
+			RawMouse::M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input, use in_restart to take effect if not enabled.");
 		});
 
 		Window::OnWndMessage(WM_INPUT, RawMouse::OnRawInput);
