@@ -7479,8 +7479,6 @@ namespace Game
 		int reflib_active;
 		HWND hWnd;
 		HINSTANCE hInstance;
-		int activeApp;
-		int isMinimized;
 		int hasFocus;
 		int activationStateChanged;
 		int recenterMouse;

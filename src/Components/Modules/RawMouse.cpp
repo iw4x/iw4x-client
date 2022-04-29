@@ -2,80 +2,164 @@
 
 namespace Components
 {
-	void IN_ClampMouseMove()
+	Dvar::Var RawMouse::m_rawinput;
+
+	void RawMouse::IN_ClampMouseMove()
 	{
-        tagRECT rc;
-        tagPOINT curPos;
+		tagRECT rc;
+		tagPOINT curPos;
 
-        GetCursorPos(&curPos);
-        GetWindowRect(Game::g_wv->hWnd, &rc);
-        bool isClamped = false;
-        if (curPos.x >= rc.left)
-        {
-            if (curPos.x >= rc.right)
-            {
-                curPos.x = rc.right - 1;
-                isClamped = true;
-            }
-        }
-        else
-        {
-            curPos.x = rc.left;
-            isClamped = true;
-        }
-        if (curPos.y >= rc.top)
-        {
-            if (curPos.y >= rc.bottom)
-            {
-                curPos.y = rc.bottom - 1;
-                isClamped = true;
-            }
-        }
-        else
-        {
-            curPos.y = rc.top;
-            isClamped = true;
-        }
+		GetCursorPos(&curPos);
+		GetWindowRect(Game::g_wv->hWnd, &rc);
+		bool isClamped = false;
+		if (curPos.x >= rc.left)
+		{
+			if (curPos.x >= rc.right)
+			{
+				curPos.x = rc.right - 1;
+				isClamped = true;
+			}
+		}
+		else
+		{
+			curPos.x = rc.left;
+			isClamped = true;
+		}
+		if (curPos.y >= rc.top)
+		{
+			if (curPos.y >= rc.bottom)
+			{
+				curPos.y = rc.bottom - 1;
+				isClamped = true;
+			}
+		}
+		else
+		{
+			curPos.y = rc.top;
+			isClamped = true;
+		}
 
-        if (isClamped)
-        {
-            SetCursorPos(curPos.x, curPos.y);
-        }
+		if (isClamped)
+		{
+			SetCursorPos(curPos.x, curPos.y);
+		}
 	}
 
-    void IN_RawMouseMove()
-    {
-        static Game::dvar_t* r_fullscreen = Game::Dvar_FindVar("r_fullscreen");
+	int RawMouse::mouseRawX = 0;
+	int RawMouse::mouseRawY = 0;
 
-        if (GetForegroundWindow() == Game::g_wv->hWnd)
-        {
-            if (r_fullscreen->current.enabled)
-                IN_ClampMouseMove();
+	BOOL RawMouse::OnRawInput(LPARAM lParam, WPARAM)
+	{
+		UINT dwSize = sizeof(RAWINPUT);
+		static BYTE lpb[sizeof(RAWINPUT)];
 
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
 
-        }
-    }
+		auto* raw = reinterpret_cast<RAWINPUT*>(lpb);
+		if (raw->header.dwType == RIM_TYPEMOUSE)
+		{
+			// Is there's really absolute mouse on earth?
+			if (raw->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
+			{
+				mouseRawX = raw->data.mouse.lLastX;
+				mouseRawY = raw->data.mouse.lLastY;
+			}
+			else
+			{
+				mouseRawX += raw->data.mouse.lLastX;
+				mouseRawY += raw->data.mouse.lLastY;
+			}
+		}
 
-    Dvar::Var Mouse_RawInput;
+		return TRUE;
+	}
 
-    void IN_MouseMove()
-    {
-        if (Mouse_RawInput.get<bool>())
-        {
-            IN_RawMouseMove();
-        }
-        else
-        {
-            Game::IN_MouseMove();
-        }
-    }
+	void RawMouse::IN_RawMouseMove()
+	{
+		static Game::dvar_t* r_fullscreen = Game::Dvar_FindVar("r_fullscreen");
+
+		if (GetForegroundWindow() == Game::g_wv->hWnd)
+		{
+			if (r_fullscreen->current.enabled)
+				IN_ClampMouseMove();
+
+			static int oldX = 0, oldY = 0;
+
+			int dx = mouseRawX - oldX;
+			int dy = mouseRawY - oldY;
+
+			oldX = mouseRawX;
+			oldY = mouseRawY;
+
+			// Don't use raw input for menu?
+			// Because it needs to call the ScreenToClient
+			static tagPOINT curPos;
+			GetCursorPos(&curPos);
+			Game::s_wmv->oldPos = curPos;
+			ScreenToClient(Game::g_wv->hWnd, &curPos);
+
+			Game::g_wv->recenterMouse = Game::CL_MouseEvent(curPos.x, curPos.y, dx, dy);
+
+			if (Game::g_wv->recenterMouse)
+			{
+				Game::IN_RecenterMouse();
+			}
+		}
+	}
+
+	void RawMouse::IN_RawMouse_Init()
+	{
+		static bool init = false;
+
+		if (Game::g_wv->hWnd && !init && m_rawinput.get<bool>())
+		{
+#ifdef DEBUG
+			Logger::Print("Raw Mouse Init.\n");
+#endif
+
+			RAWINPUTDEVICE Rid[1];
+			Rid[0].usUsagePage = 0x01; // HID_USAGE_PAGE_GENERIC
+			Rid[0].usUsage = 0x02; // HID_USAGE_GENERIC_MOUSE
+			Rid[0].dwFlags = RIDEV_INPUTSINK;
+			Rid[0].hwndTarget = Game::g_wv->hWnd;
+
+			RegisterRawInputDevices(Rid, ARRAYSIZE(Rid), sizeof(Rid[0]));
+
+			init = true;
+		}
+	}
+
+	void RawMouse::IN_Init()
+	{
+		Game::IN_Init();
+		IN_RawMouse_Init();
+	}
+
+	void RawMouse::IN_MouseMove()
+	{
+		if (m_rawinput.get<bool>())
+		{
+			IN_RawMouseMove();
+		}
+		else
+		{
+			Game::IN_MouseMove();
+		}
+	}
 
 	RawMouse::RawMouse()
 	{
-        Utils::Hook(0x475E65, IN_MouseMove, HOOK_JUMP).install()->quick();
-        Utils::Hook(0x475E8D, IN_MouseMove, HOOK_JUMP).install()->quick();
-        Utils::Hook(0x475E9E, IN_MouseMove, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x475E65, RawMouse::IN_MouseMove, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x475E8D, RawMouse::IN_MouseMove, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x475E9E, RawMouse::IN_MouseMove, HOOK_JUMP).install()->quick();
 
-        Mouse_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input.");
+		Utils::Hook(0x467C03, RawMouse::IN_Init, HOOK_CALL).install()->quick();
+		Utils::Hook(0x64D095, RawMouse::IN_Init, HOOK_JUMP).install()->quick();
+
+		m_rawinput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input, use in_restart to take effect if not enabled.");
+
+		Window::OnWndMessage(WM_INPUT, RawMouse::OnRawInput);
+
+		Window::OnCreate(RawMouse::IN_RawMouse_Init);
 	}
 }

@@ -1014,6 +1014,12 @@ namespace Game
 	typedef void(*IN_MouseMove_t)();
 	extern IN_MouseMove_t IN_MouseMove;
 
+	typedef void(*IN_Init_t)();
+	extern IN_Init_t IN_Init;
+
+	typedef void(*IN_Shutdown_t)();
+	extern IN_Shutdown_t IN_Shutdown;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
@@ -1144,6 +1150,10 @@ namespace Game
 
 	extern WinVars_t* g_wv;
 	extern WinMouseVars_t* s_wmv;
+
+	extern int* window_center_x;
+	extern int* window_center_y;
+
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);

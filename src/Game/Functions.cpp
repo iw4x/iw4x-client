@@ -425,6 +425,8 @@ namespace Game
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
 
 	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
+	IN_Init_t IN_Init = IN_Init_t(0x45D620);
+	IN_Shutdown_t IN_Shutdown = IN_Shutdown_t(0x426360);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
@@ -550,6 +552,9 @@ namespace Game
 
 	WinVars_t* g_wv = reinterpret_cast<WinVars_t*>(0x64A3AC8);
 	WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
+
+	int* window_center_x = reinterpret_cast<int*>(0x649D638);
+	int* window_center_y = reinterpret_cast<int*>(0x649D630);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{

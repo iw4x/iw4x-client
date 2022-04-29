@@ -7,6 +7,8 @@ namespace Components
 
 	HWND Window::MainWindow = nullptr;
 	BOOL Window::CursorVisible = TRUE;
+	std::unordered_map<UINT, Utils::Slot<Window::WndProcCallback>> Window::WndMessageCallbacks;
+	Utils::Signal<Window::CreateCallback> Window::CreateSignals;
 
 	int Window::Width()
 	{
@@ -66,6 +68,16 @@ namespace Components
 		return Window::MainWindow;
 	}
 
+	void Window::OnWndMessage(UINT Msg, Utils::Slot<Window::WndProcCallback> callback)
+	{
+		WndMessageCallbacks.emplace(Msg, callback);
+	}
+
+	void Window::OnCreate(Utils::Slot<CreateCallback> callback)
+	{
+		CreateSignals.connect(callback);
+	}
+
 	int Window::IsNoBorder()
 	{
 		return Window::NoBorder.get<bool>();
@@ -121,6 +133,9 @@ namespace Components
 	HWND WINAPI Window::CreateMainWindow(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 	{
 		Window::MainWindow = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+
+		CreateSignals();
+
 		return Window::MainWindow;
 	}
 
@@ -132,13 +147,19 @@ namespace Components
 
 	BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	{
-		if (Msg == WM_SETCURSOR)
+		if (WndMessageCallbacks.find(Msg) != WndMessageCallbacks.end())
 		{
-			Window::ApplyCursor();
-			return TRUE;
+			return WndMessageCallbacks[Msg](lParam, wParam);
 		}
 
 		return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x4731F0)(hWnd, Msg, wParam, lParam);
+	}
+
+	void Window::EnableDpiAwareness()
+	{
+		const Utils::Library user32{ "user32.dll" };
+
+		user32.invokePascal<void>("SetProcessDpiAwarenessContext", DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	}
 
 	Window::Window()
@@ -184,5 +205,13 @@ namespace Components
 
 		// Use custom message handler
 		Utils::Hook::Set(0x64D298, Window::MessageHandler);
+
+		Window::OnWndMessage(WM_SETCURSOR, [](WPARAM, LPARAM)
+		{
+			Window::ApplyCursor();
+			return TRUE;
+		});
+
+		Window::EnableDpiAwareness();
 	}
 }
