@@ -7473,6 +7473,30 @@ namespace Game
 
 	static_assert(sizeof(level_locals_t) == 0x2F78);
 
+	struct WinVars_t
+	{
+		HINSTANCE reflib_library;
+		int reflib_active;
+		HWND hWnd;
+		HINSTANCE hInstance;
+		int activeApp;
+		int isMinimized;
+		int hasFocus;
+		int activationStateChanged;
+		int recenterMouse;
+		HHOOK lowLevelKeyboardHook;
+		unsigned int sysMsgTime;
+	};
+
+	struct WinMouseVars_t
+	{
+		int oldButtonState;
+		tagPOINT oldPos;
+		bool mouseActive;
+		bool mouseInitialized;
+	};
+
+
 #pragma endregion
 
 #ifndef IDA

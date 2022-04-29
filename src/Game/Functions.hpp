@@ -1005,6 +1005,15 @@ namespace Game
 	typedef EffectiveStance(__cdecl * PM_GetEffectiveStance_t)(const playerState_s* ps);
 	extern PM_GetEffectiveStance_t PM_GetEffectiveStance;
 
+	typedef int(__cdecl * CL_MouseEvent_t)(int x, int y, int dx, int dy);
+	extern CL_MouseEvent_t CL_MouseEvent;
+
+	typedef void(*IN_RecenterMouse_t)();
+	extern IN_RecenterMouse_t IN_RecenterMouse;
+
+	typedef void(*IN_MouseMove_t)();
+	extern IN_MouseMove_t IN_MouseMove;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
@@ -1132,6 +1141,9 @@ namespace Game
 	extern FastCriticalSection* db_hashCritSect;
 
 	extern level_locals_t* level;
+
+	extern WinVars_t* g_wv;
+	extern WinMouseVars_t* s_wmv;
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);

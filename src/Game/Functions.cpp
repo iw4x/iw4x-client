@@ -421,6 +421,11 @@ namespace Game
 	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
 	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
 
+	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
+	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
+
+	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
@@ -542,6 +547,9 @@ namespace Game
 	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
 
 	level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
+
+	WinVars_t* g_wv = reinterpret_cast<WinVars_t*>(0x64A3AC8);
+	WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
