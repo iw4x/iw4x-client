@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -6,6 +6,8 @@ namespace Components
 
 	bool Bans::IsBanned(Bans::Entry entry)
 	{
+		std::lock_guard<std::recursive_mutex> _(Bans::AccessMutex);
+
 		Bans::BanList list;
 		Bans::LoadBans(&list);
 
@@ -181,9 +183,9 @@ namespace Components
 		Game::client_t* client = &Game::svs_clients[num];
 
 		SteamID guid;
-		guid.bits = client->steamid;
+		guid.bits = client->steamID;
 
-		Bans::InsertBan({ guid, client->addr.ip });
+		Bans::InsertBan({ guid, client->netchan.remoteAddress.ip });
 
 		Game::SV_KickClientError(client, reason);
 	}
@@ -232,17 +234,17 @@ namespace Components
 	{
 		Command::Add("banclient", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 
 			std::string reason = "EXE_ERR_BANNED_PERM";
-			if (params->length() >= 3) reason = params->join(2);
+			if (params->size() >= 3) reason = params->join(2);
 
 			Bans::BanClientNum(atoi(params->get(1)), reason);
 		});
 
 		Command::Add("unbanclient", [](Command::Params* params)
 		{
-			if (params->length() < 2) return;
+			if (params->size() < 2) return;
 
 			std::string type = params->get(1);
 
@@ -271,10 +273,5 @@ namespace Components
 			Bans::BanList list;
 			Bans::LoadBans(&list);
 		});
-	}
-
-	Bans::~Bans()
-	{
-
 	}
 }

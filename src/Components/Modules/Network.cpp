@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -14,7 +14,7 @@ namespace Components
 	{
 		Game::SockadrToNetadr(addr, &this->address);
 	}
-	bool Network::Address::operator==(const Network::Address &obj) const
+	bool Network::Address::operator==(const Network::Address& obj) const
 	{
 		return Game::NET_CompareAdr(this->address, obj.address);
 	}
@@ -342,6 +342,20 @@ namespace Components
 			Game::NET_DeferPacketToClient(from, msg);
 	}
 
+	void Network::SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg)
+	{
+		if (client->reliableAcknowledge < 0)
+		{
+			Logger::Print("Negative reliableAcknowledge from %s - cl->reliableSequence is %i, reliableAcknowledge is %i\n",
+							client->name, client->reliableSequence, client->reliableAcknowledge);
+			client->reliableAcknowledge = client->reliableSequence;
+			Network::SendCommand(Game::NS_SERVER, client->netchan.remoteAddress, "error", "EXE_LOSTRELIABLECOMMANDS");
+			return;
+		}
+
+		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*)>(0x414D40)(client, msg);
+	}
+
 	Network::Network()
 	{
 		AssertSize(Game::netadr_t, 20);
@@ -381,16 +395,12 @@ namespace Components
 		// Fix packets causing buffer overflow
 		Utils::Hook(0x6267E3, Network::NET_DeferPacketToClientStub, HOOK_CALL).install()->quick();
 
+		// Fix server freezer exploit
+		Utils::Hook(0x626996, Network::SV_ExecuteClientMessageStub, HOOK_CALL).install()->quick();
+
 		Network::Handle("resolveAddress", [](Address address, const std::string& /*data*/)
 		{
 			Network::SendRaw(address, address.getString());
 		});
-	}
-
-	Network::~Network()
-	{
-		Network::SelectedPacket.clear();
-		Network::PacketHandlers.clear();
-		Network::StartupSignal.clear();
 	}
 }

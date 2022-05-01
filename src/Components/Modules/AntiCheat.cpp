@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -634,7 +634,7 @@ namespace Components
 		LUID luid;
 		TOKEN_PRIVILEGES tp = { 0 };
 		DWORD cb = sizeof(TOKEN_PRIVILEGES);
-		if (!LookupPrivilegeValueW(nullptr, SE_DEBUG_NAME, &luid)) return;
+		if (!LookupPrivilegeValueA(nullptr, SE_DEBUG_NAME, &luid)) return;
 
 		tp.PrivilegeCount = 1;
 		tp.Privileges[0].Luid = luid;
@@ -889,12 +889,8 @@ namespace Components
 		time(nullptr);
 		AntiCheat::Flags = NO_FLAG;
 
-#ifdef DISABLE_ANTICHEAT
-		Command::Add("penis", [](Command::Params*)
-		{
-			AntiCheat::CrashClient();
-		});
-#else
+#ifndef DISABLE_ANTICHEAT
+
 		Utils::Hook(0x507BD5, AntiCheat::PatchWinAPI, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5082FD, AntiCheat::LostD3DStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x51C76C, AntiCheat::CinematicStub, HOOK_CALL).install()->quick();

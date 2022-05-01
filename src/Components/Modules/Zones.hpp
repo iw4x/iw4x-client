@@ -3,6 +3,7 @@
 #define VERSION_ALPHA2 316
 #define VERSION_ALPHA3 318//319
 #define VERSION_ALPHA3_DEC 319
+#define VERSION_LATEST_CODO 461
 
 namespace Components
 {
@@ -17,16 +18,18 @@ namespace Components
 		};
 		
 		Zones();
-		~Zones();
 
 		static void SetVersion(int version);
 
 		static int Version() { return Zones::ZoneVersion; };
 
+		static int GetEntitiesZoneVersion() { return Zones::EntitiesVersion; };
+
 	private:
 	
 		static int ZoneVersion;
-
+		static int EntitiesVersion;
+		
 		static int FxEffectIndex;
 		static char* FxEffectStrings[64];
 
@@ -100,5 +103,8 @@ namespace Components
 		static void LoadMaterialAsset(Game::Material** asset);
 		static void LoadTracerDef(bool atStreamStart, Game::TracerDef* tracer, int size);
 		static void LoadTracerDefFxEffect();
+		static void FixImageCategory(Game::GfxImage* image);
+		static char* ParseShellShock_Stub(const char** data_p);
+		static char* ParseVision_Stub(const char** data_p);
 	};
 }

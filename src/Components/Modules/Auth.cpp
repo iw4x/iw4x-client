@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -8,7 +8,8 @@ namespace Components
 	Utils::Cryptography::Token Auth::ComputeToken;
 	Utils::Cryptography::ECC::Key Auth::GuidKey;
 
-	std::vector<std::uint64_t> Auth::BannedUids = {
+	std::vector<std::uint64_t> Auth::BannedUids =
+	{
 		0xf4d2c30b712ac6e3,
 		0xf7e33c4081337fa3,
 		0x6f5597f103cc50e9
@@ -82,7 +83,7 @@ namespace Components
 
 		Command::ServerParams params;
 
-		if (params.length() < 3)
+		if (params.size() < 3)
 		{
 			Game::SV_Cmd_EndTokenizedString();
 			Logger::SoftError("Connecting failed: Command parsing error!");
@@ -169,7 +170,7 @@ namespace Components
 			Command::ServerParams params;
 
 			// Ensure there are enough params
-			if (params.length() < 3)
+			if (params.size() < 3)
 			{
 				Network::Send(address, "error\nInvalid connect string!");
 				return;
@@ -179,8 +180,8 @@ namespace Components
 			Utils::InfoString infostr(params[2]);
 
 			// Read the required data
-			std::string steamId = infostr.get("xuid");
-			std::string challenge = infostr.get("challenge");
+			const auto& steamId = infostr.get("xuid");
+			const auto& challenge = infostr.get("challenge");
 
 			if (steamId.empty() || challenge.empty())
 			{
@@ -189,12 +190,12 @@ namespace Components
 			}
 
 			// Parse the id
-			unsigned __int64 xuid = strtoull(steamId.data(), nullptr, 16);
+			const auto xuid = std::strtoull(steamId.data(), nullptr, 16);
 
 			SteamID guid;
 			guid.bits = xuid;
 
-			if (Bans::IsBanned({ guid, address.getIP() }))
+			if (Bans::IsBanned({guid, address.getIP()}))
 			{
 				Network::Send(address, "error\nEXE_ERR_BANNED_PERM");
 				return;
@@ -223,8 +224,8 @@ namespace Components
 			}
 
 			// Verify the security level
-			uint32_t ourLevel = static_cast<uint32_t>(Dvar::Var("sv_securityLevel").get<int>());
-			uint32_t userLevel = Auth::GetZeroBits(connectData.token(), connectData.publickey());
+			auto ourLevel = Dvar::Var("sv_securityLevel").get<unsigned int>();
+			auto userLevel = Auth::GetZeroBits(connectData.token(), connectData.publickey());
 
 			if (userLevel < ourLevel)
 			{
@@ -431,7 +432,7 @@ namespace Components
 		Scheduler::OnFrame(Auth::Frame);
 
 		// Register dvar
-		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::dvar_flag::DVAR_FLAG_SERVERINFO, "Security level for GUID certificates (POW)");
+		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::dvar_flag::DVAR_SERVERINFO, "Security level for GUID certificates (POW)");
 
 		// Install registration hook
 		Utils::Hook(0x6265F9, Auth::DirectConnectStub, HOOK_JUMP).install()->quick();
@@ -454,7 +455,7 @@ namespace Components
 		{
 			Command::Add("securityLevel", [](Command::Params* params)
 			{
-				if (params->length() < 2)
+				if (params->size() < 2)
 				{
 					uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
 					Logger::Print("Your current security level is %d\n", level);

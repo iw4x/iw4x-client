@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -170,10 +170,10 @@ namespace Components
 			"/dev/full",
 			"/dev/sdb",
 			"/dev/sr0",
-			"/dev//dev/tty0",
+			"/dev/tty0",
 			"/dev/urandom",
 			"Snake",
-			"lsb_release -a",
+			"lsb_release -a"
 		};
 
 		static const char* contributors[] =
@@ -181,17 +181,20 @@ namespace Components
 			"a231",
 			"AmateurHailbut",
 			"Aoki",
+			"Chase",
 			"civil",
 			"Dasfonia",
 			"Deity",
 			"Dizzy",
 			"Dss0",
+			"FutureRave",
 			"H3X1C",
 			"HardNougat",
 			"Homura",
 			"INeedGames",
 			"Killera",
 			"Lithium",
+			"Louvenarde",
 			"OneFourOne",
 			"quaK",
 			"RaidMax",
@@ -274,7 +277,7 @@ namespace Components
 		// Overwrite SetString
 		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).install()->quick();
 
-		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_FLAG_NONE, "Use localization strings");
+		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::dvar_flag::DVAR_NONE, "Use localization strings");
 
 		// Generate localized entries for custom classes above 10
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)

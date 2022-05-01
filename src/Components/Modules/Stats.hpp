@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		Stats();
-		~Stats();
 
 		static bool IsMaxLevel();
 

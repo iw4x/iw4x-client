@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 #define IW4X_MAT_VERSION "1"
 
@@ -29,6 +29,33 @@ namespace Assets
 			"_add_lin_nofog",
 		};
 
+		std::map<std::string, std::string> techSetCorrespondance = {
+			{"effect", "effect_blend"},
+			{"effect", "effect_blend"},
+			{"effect_nofog", "effect_blend_nofog"},
+			{"effect_zfeather", "effect_zfeather_blend"},
+
+			{"wc_unlit_add", "wc_unlit_add_lin"},
+			{"wc_unlit_distfalloff", "wc_unlit_distfalloff_replace"},
+			{"wc_unlit_multiply", "wc_unlit_multiply_lin"},
+			{"wc_unlit_falloff_add", "wc_unlit_falloff_add_lin_ua"},
+			{"wc_unlit", "wc_unlit_replace_lin"},
+			{"wc_unlit_alphatest", "wc_unlit_blend_lin"},
+			{"wc_unlit_blend", "wc_unlit_blend_lin_ua"},
+			{"wc_unlit_replace", "wc_unlit_replace_lin"},
+
+			{"mc_unlit_replace", "mc_unlit_replace_lin"},
+			{"mc_unlit_nofog", "mc_unlit_blend_nofog_ua"},
+			{"mc_unlit", "mc_unlit_replace_lin_nocast"},
+			{"mc_unlit_alphatest", "mc_unlit_blend_lin"}
+			/*,
+			{"", ""},
+			{"", ""},
+			{"", ""},
+			{"", ""},
+			{"", ""},*/
+		};
+
 		Components::FileSystem::File materialFile(Utils::String::VA("materials/%s.iw4xMaterial", name.data()));
 		if (!materialFile.exists()) return;
 
@@ -56,38 +83,41 @@ namespace Assets
 
 		if (asset->techniqueSet)
 		{
-			std::string techset = reader.readString();
-			if (!techset.empty() && techset.front() == ',') techset.erase(techset.begin());
-			asset->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techset.data(), builder).techniqueSet;
+			std::string techsetName = reader.readString();
+			if (!techsetName.empty() && techsetName.front() == ',') techsetName.erase(techsetName.begin());
+			asset->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techsetName.data(), builder).techniqueSet;
 
 			if (!asset->techniqueSet)
 			{
 				// Workaround for effect techsets having _nofog suffix
 				std::string suffix;
-				if (Utils::String::StartsWith(techset, "effect_") && Utils::String::EndsWith(techset, "_nofog"))
+				if (Utils::String::StartsWith(techsetName, "effect_") && Utils::String::EndsWith(techsetName, "_nofog"))
 				{
 					suffix = "_nofog";
-					Utils::String::Replace(techset, suffix, "");
+					Utils::String::Replace(techsetName, suffix, "");
 				}
 
 				for (int i = 0; i < ARRAYSIZE(techsetSuffix); ++i)
 				{
-					Game::MaterialTechniqueSet* techsetPtr = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techset + techsetSuffix[i] + suffix).data(), builder).techniqueSet;
+					Game::MaterialTechniqueSet* techsetPtr = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techsetName + techsetSuffix[i] + suffix).data(), builder).techniqueSet;
 
 					if (techsetPtr)
 					{
 						asset->techniqueSet = techsetPtr;
 
 						if (asset->techniqueSet->name[0] == ',') continue; // Try to find a better one
-						Components::Logger::Print("Techset '%s' has been mapped to '%s'\n", techset.data(), asset->techniqueSet->name);
+						Components::Logger::Print("Techset '%s' has been mapped to '%s'\n", techsetName.data(), asset->techniqueSet->name);
 						break;
 					}
 				}
 			}
+			else {
+				Components::Logger::Print("Techset %s exists with the same name in iw4, and was mapped 1:1 with %s\n", techsetName.data(), asset->techniqueSet->name);
+			}
 
 			if (!asset->techniqueSet)
 			{
-				Components::Logger::Error("Missing techset: '%s' not found", techset.data());
+				Components::Logger::Error("Missing techset: '%s' not found", techsetName.data());
 			}
 		}
 
@@ -165,11 +195,11 @@ namespace Assets
 					std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
 					asset->constantCount = header.material->constantCount;
 					asset->constantTable = header.material->constantTable;
-
+					Components::Logger::Print("For %s, copied constants & statebits from %s\n", asset->info.name, header.material->info.name);
 					replacementFound = true;
 				}
 			}
-		}, false, false);
+		}, false);
 
 		if (!replacementFound)
 		{
@@ -185,11 +215,13 @@ namespace Assets
 					if (!t1->techniques[i] && !t2->techniques[i]) continue;;
 					if (!t1->techniques[i] || !t2->techniques[i]) return false;
 
-					if (t1->techniques[i]->flags != t1->techniques[i]->flags) return false;
+					// Apparently, this is really not that important
+					//if (t1->techniques[i]->flags != t2->techniques[i]->flags) return false; 
 				}
 
 				return true;
 			};
+
 
 			Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset, techsetMatches](Game::XAssetEntry* entry)
 			{
@@ -204,13 +236,60 @@ namespace Assets
 						replacementFound = true;
 					}
 				}
-			}, false, false);
+			}, false);
 		}
 
 		if (!replacementFound && asset->techniqueSet)
 		{
-
 			Components::Logger::Print("No replacement found for material %s with techset %s\n", asset->info.name, asset->techniqueSet->name);
+			std::string techName = asset->techniqueSet->name;
+			if (techSetCorrespondance.find(techName) != techSetCorrespondance.end()) {
+				auto iw4TechSetName = techSetCorrespondance[techName];
+				Game::XAssetEntry* iw4TechSet = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, iw4TechSetName.data());
+
+				if (iw4TechSet) 
+				{
+					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_MATERIAL, [asset, iw4TechSet](Game::XAssetEntry* entry)
+					{
+						if (!replacementFound)
+						{
+							Game::XAssetHeader header = entry->asset.header;
+
+							if (header.material->techniqueSet == iw4TechSet->asset.header.techniqueSet)
+							{
+								Components::Logger::Print("Material %s with techset %s has been mapped to %s (last chance!), taking the sort key of material %s\n",
+									asset->info.name, asset->techniqueSet->name,
+									header.material->techniqueSet->name, header.material->info.name);
+
+								asset->info.sortKey = header.material->info.sortKey;
+								asset->techniqueSet = iw4TechSet->asset.header.techniqueSet;
+
+								// this is terrible!
+								asset->stateBitsCount = header.material->stateBitsCount;
+								asset->stateBitsTable = header.material->stateBitsTable;
+								std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
+								asset->constantCount = header.material->constantCount;
+								asset->constantTable = header.material->constantTable;
+
+								replacementFound = true;
+							}
+						}
+					}, false);
+
+					if (!replacementFound) 
+					{
+						Components::Logger::Print("Could not find any loaded material with techset %s (in replacement of %s), so I cannot set the sortkey for material %s\n", iw4TechSetName.data(), asset->techniqueSet->name,  asset->info.name);
+					}
+				}
+				else 
+				{
+					Components::Logger::Print("Could not find any loaded techset with iw4 name %s for iw3 techset %s\n", iw4TechSetName.data(), asset->techniqueSet->name);
+				}
+			}
+			else 
+			{
+				Components::Logger::Print("Could not match iw3 techset %s with any of the techsets I know! This is a critical error, there's a good chance the map will not be playable.\n", techName.data());
+			}
 		}
 
 		if (!reader.end())

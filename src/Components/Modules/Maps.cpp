@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -206,8 +206,16 @@ namespace Components
 		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()
 			&& (FastFiles::Current() != "mp_shipment_long" || Maps::CurrentMainZone != "mp_shipment")) // Shipment is a special case
 		{
-			if (type == Game::XAssetType::ASSET_TYPE_CLIPMAP_MP || type == Game::XAssetType::ASSET_TYPE_CLIPMAP_SP || type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP || type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP || type == Game::XAssetType::ASSET_TYPE_GFXWORLD || type == Game::XAssetType::ASSET_TYPE_MAP_ENTS || type == Game::XAssetType::ASSET_TYPE_COMWORLD || type == Game::XAssetType::ASSET_TYPE_FXWORLD)
+			switch (type)
 			{
+			case Game::XAssetType::ASSET_TYPE_CLIPMAP_MP:
+			case Game::XAssetType::ASSET_TYPE_CLIPMAP_SP:
+			case Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP:
+			case Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP:
+			case Game::XAssetType::ASSET_TYPE_GFXWORLD:
+			case Game::XAssetType::ASSET_TYPE_MAP_ENTS:
+			case Game::XAssetType::ASSET_TYPE_COMWORLD:
+			case Game::XAssetType::ASSET_TYPE_FXWORLD:
 				*restrict = true;
 				return;
 			}
@@ -241,7 +249,7 @@ namespace Components
 		{
 			if (Flags::HasFlag("dump"))
 			{
-				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString);
+				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString, true);
 			}
 
 			static std::string mapEntities;
@@ -249,11 +257,11 @@ namespace Components
 			if (ents.exists())
 			{
 				mapEntities = ents.getBuffer();
-				asset.mapEnts->entityString = const_cast<char*>(mapEntities.data());
+				asset.mapEnts->entityString = mapEntities.data();
 				asset.mapEnts->numEntityChars = mapEntities.size() + 1;
 			}
 		}
-		
+
 		// This is broken
 		if ((type == Game::XAssetType::ASSET_TYPE_MENU || type == Game::XAssetType::ASSET_TYPE_MENULIST) && Zones::Version() >= 359)
 		{
@@ -318,7 +326,7 @@ namespace Components
 			mapname = "mp_shipment_long";
 		}
 
-		_snprintf_s(buffer, size, size, format, mapname);
+		_snprintf_s(buffer, size, _TRUNCATE, format, mapname);
 	}
 
 	void Maps::HandleAsSPMap()
@@ -333,7 +341,7 @@ namespace Components
 		{
 			std::regex _(expression);
 		}
-		catch (const std::exception e)
+		catch (const std::regex_error ex)
 		{
 			MessageBoxA(nullptr, Utils::String::VA("Invalid regular expression: %s", expression.data()), "Warning", MB_ICONEXCLAMATION);
 			return;
@@ -358,7 +366,7 @@ namespace Components
 				{
 					if (arena->keys[j] == "dependency"s)
 					{
-						return Utils::String::Explode(arena->values[j], ' ');
+						return Utils::String::Split(arena->values[j], ' ');
 					}
 				}
 			}
@@ -439,7 +447,7 @@ namespace Components
 	void Maps::LoadNewMapCommand(char* buffer, size_t size, const char* /*format*/, const char* mapname, const char* gametype)
 	{
 		unsigned int hash = Maps::GetUsermapHash(mapname);
-		_snprintf_s(buffer, size, size, "loadingnewmap\n%s\n%s\n%d", mapname, gametype, hash);
+		_snprintf_s(buffer, size, _TRUNCATE, "loadingnewmap\n%s\n%s\n%d", mapname, gametype, hash);
 	}
 
 	int Maps::TriggerReconnectForMap(Game::msg_t* msg, const char* mapname)
@@ -536,7 +544,7 @@ namespace Components
 			}
 		}
 
-		Dvar::Register<bool>(Utils::String::VA("isDlcInstalled_%d", dlc.index), false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
+		Dvar::Register<bool>(Utils::String::VA("isDlcInstalled_%d", dlc.index), false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
 
 		Maps::DlcPacks.push_back(dlc);
 		Maps::UpdateDlcStatus();
@@ -560,7 +568,7 @@ namespace Components
 			}
 
 			hasDlc.push_back(hasAllMaps);
-			Dvar::Var(Utils::String::VA("isDlcInstalled_%d", pack.index)).setRaw(hasAllMaps ? 1 : 0);
+			Dvar::Var(Utils::String::VA("isDlcInstalled_%d", pack.index)).set(hasAllMaps ? true : false);
 		}
 
 		// Must have all of dlc 3 to 5 or it causes issues
@@ -571,7 +579,7 @@ namespace Components
 			sentMessage = true;
 		}
 
-		Dvar::Var("isDlcInstalled_All").setRaw(hasAllDlcs ? 1 : 0);
+		Dvar::Var("isDlcInstalled_All").set(hasAllDlcs ? true : false);
 	}
 
 	bool Maps::IsCustomMap()
@@ -682,7 +690,7 @@ namespace Components
 	Game::dvar_t* Maps::GetSpecularDvar()
 	{
 		Game::dvar_t*& r_specular = *reinterpret_cast<Game::dvar_t**>(0x69F0D94);
-		static Game::dvar_t* r_specularCustomMaps = Game::Dvar_RegisterBool("r_specularCustomMaps", false, Game::DVAR_FLAG_SAVED, "Allows shaders to use phong specular lighting on custom maps");
+		static Game::dvar_t* r_specularCustomMaps = Game::Dvar_RegisterBool("r_specularCustomMaps", false, Game::DVAR_ARCHIVE, "Allows shaders to use phong specular lighting on custom maps");
 
 		if (Maps::IsCustomMap())
 		{
@@ -739,13 +747,30 @@ namespace Components
 
 		Utils::Hook::Call<void(Game::gentity_s*, int, int)>(0x408910)(ent, unk, unk2);
 	}
+
+	bool Maps::SV_SetTriggerModelHook(Game::gentity_s* ent) {
+
+		// Use me for debugging
+		//std::string classname = Game::SL_ConvertToString(ent->script_classname);
+		//std::string targetname = Game::SL_ConvertToString(ent->targetname);
+
+		return Utils::Hook::Call<bool(Game::gentity_s*)>(0x5050C0)(ent);
+	}
+
+	int16 Maps::CM_TriggerModelBounds(int modelPointer, Game::Bounds* bounds) {
+#ifdef DEBUG
+		Game::MapEnts* ents = *reinterpret_cast<Game::MapEnts**>(0x1AA651C);  // Use me for debugging
+		(void)ents;
+#endif
+		return Utils::Hook::Call<int16(int, Game::Bounds*)>(0x4416C0)(modelPointer, bounds);
+	}
 	
 	Maps::Maps()
 	{
 		Dvar::OnInit([]()
 		{
-			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_FLAG_USERCREATED | Game::DVAR_FLAG_WRITEPROTECTED, "");
-			Dvar::Register<bool>("r_listSModels", false, Game::DVAR_FLAG_NONE, "Display a list of visible SModels");
+			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
+			Dvar::Register<bool>("r_listSModels", false, Game::DVAR_NONE, "Display a list of visible SModels");
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
 			Maps::AddDlc({ 2, "Resurgence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
@@ -755,6 +780,7 @@ namespace Components
 			Maps::AddDlc({ 6, "Freighter", {"mp_cargoship_sh"} });
 			Maps::AddDlc({ 7, "Resurrection Pack", {"mp_shipment_long", "mp_rust_long", "mp_firingrange"} });
 			Maps::AddDlc({ 8, "Recycled Pack", {"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
+			Maps::AddDlc({ 9, "Classics Pack #3", {"mp_farm", "mp_backlot", "mp_pipeline", "mp_countdown", "mp_crash_snow", "mp_carentan"}});
 
 			Maps::UpdateDlcStatus();
 
@@ -766,7 +792,7 @@ namespace Components
 				{
 					if (pack.index == dlc)
 					{
-						ShellExecute(0, 0, L"https://xlabs.dev/support_iw4x_client.html", 0, 0, SW_SHOW);
+						ShellExecuteW(0, 0, L"https://xlabs.dev/support_iw4x_client.html", 0, 0, SW_SHOW);
 						return;
 					}
 				}
@@ -778,6 +804,15 @@ namespace Components
 		// disable turrets on CoD:OL 448+ maps for now
 		Utils::Hook(0x5EE577, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
 		Utils::Hook(0x44A4D5, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
+
+#ifdef DEBUG
+		// Check trigger models
+		Utils::Hook(0x5FC0F1, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5FC2671, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5050D4, Maps::CM_TriggerModelBounds, HOOK_CALL).install()->quick();
+#endif
+
+		// 
 		
 //#define SORT_SMODELS
 #if !defined(DEBUG) || !defined(SORT_SMODELS)

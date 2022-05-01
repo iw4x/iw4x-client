@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 #ifdef ENABLE_BASE128
 #include "base128.h"
 #endif
@@ -62,25 +62,18 @@ namespace Utils
 			return str;
 		}
 
-		std::vector<std::string> Explode(const std::string& str, char delim)
+		std::vector<std::string> Split(const std::string& str, const char delim)
 		{
-			std::vector<std::string> result;
-			std::istringstream iss(str);
+			std::stringstream ss(str);
+			std::string item;
+			std::vector<std::string> elems;
 
-			for (std::string token; std::getline(iss, token, delim);)
+			while (std::getline(ss, item, delim))
 			{
-				std::string _entry = std::move(token);
-
-				// Remove trailing 0x0 bytes
-				while (_entry.size() && !_entry.back())
-				{
-					_entry = _entry.substr(0, _entry.size() - 1);
-				}
-
-				result.push_back(_entry);
+				elems.push_back(item); // elems.push_back(std::move(item)); // if C++11 (based on comment from S1x)
 			}
 
-			return result;
+			return elems;
 		}
 
 		void Replace(std::string &string, const std::string& find, const std::string& replace)
@@ -110,30 +103,58 @@ namespace Utils
 			return _isspace_l(c, nullptr);
 		}
 
-		// trim from start
-		std::string &LTrim(std::string &s)
+		// Trim from start
+		std::string& LTrim(std::string& str)
 		{
-			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int val)
+			str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](int val)
 			{
 				return !IsSpace(val);
 			}));
-			return s;
+
+			return str;
 		}
 
-		// trim from end
-		std::string &RTrim(std::string &s)
+		// Trim from end
+		std::string& RTrim(std::string& str)
 		{
-			s.erase(std::find_if(s.rbegin(), s.rend(), [](int val)
+			str.erase(std::find_if(str.rbegin(), str.rend(), [](int val)
 			{
 				return !IsSpace(val);
-			}).base(), s.end());
-			return s;
+			}).base(), str.end());
+
+			return str;
 		}
 
-		// trim from both ends
-		std::string &Trim(std::string &s)
+		// Trim from both ends
+		std::string& Trim(std::string& str)
 		{
-			return LTrim(RTrim(s));
+			return LTrim(RTrim(str));
+		}
+
+		std::string Convert(const std::wstring& wstr)
+		{
+			std::string result;
+			result.reserve(wstr.size());
+
+			for (const auto& chr : wstr)
+			{
+				result.push_back(static_cast<char>(chr));
+			}
+
+			return result;
+		}
+
+		std::wstring Convert(const std::string& str)
+		{
+			std::wstring result;
+			result.reserve(str.size());
+
+			for (const auto& chr : str)
+			{
+				result.push_back(static_cast<wchar_t>(chr));
+			}
+
+			return result;
 		}
 
 		std::string FormatTimeSpan(int milliseconds)

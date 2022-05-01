@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -845,7 +845,7 @@ namespace Components
 
 			Command::Add("openmenu", [](Command::Params* params)
 				{
-					if (params->length() != 2)
+					if (params->size() != 2)
 					{
 						Logger::Print("USAGE: openmenu <menu name>\n");
 						return;
@@ -897,6 +897,7 @@ namespace Components
 			Menus::Add("ui_mp/theater_menu.menu");
 			Menus::Add("ui_mp/pc_options_multi.menu");
 			Menus::Add("ui_mp/pc_options_game.menu");
+			Menus::Add("ui_mp/pc_options_gamepad.menu");
 			Menus::Add("ui_mp/stats_reset.menu");
 			Menus::Add("ui_mp/stats_unlock.menu");
 			Menus::Add("ui_mp/security_increase_popmenu.menu");
@@ -912,7 +913,6 @@ namespace Components
 
 	Menus::~Menus()
 	{
-		Menus::CustomMenus.clear();
 		Menus::FreeEverything();
 	}
 }

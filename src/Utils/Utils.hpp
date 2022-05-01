@@ -24,6 +24,7 @@ namespace Utils
 	void OpenUrl(const std::string& url);
 
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
+	float Vec3SqrDistance(const float v1[3], const float v2[3]);
 
 	template <typename T> inline void RotLeft(T& object, size_t bits)
 	{

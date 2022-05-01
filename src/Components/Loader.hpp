@@ -73,7 +73,6 @@ namespace Components
 #include "Modules/Menus.hpp"
 #include "Modules/Toast.hpp"
 #include "Modules/Zones.hpp"
-#include "Modules/Colors.hpp"
 #include "Modules/D3D9Ex.hpp"
 #include "Modules/Script.hpp"
 #include "Modules/Weapon.hpp"
@@ -89,7 +88,6 @@ namespace Components
 #include "Modules/Node.hpp"
 #include "Modules/RCon.hpp"
 #include "Modules/Party.hpp" // Destroys the order, but requires network classes :D
-#include "Modules/IW4MVM.hpp"
 #include "Modules/Logger.hpp"
 #include "Modules/Friends.hpp"
 #include "Modules/IPCPipe.hpp"
@@ -130,5 +128,12 @@ namespace Components
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/StartupMessages.hpp"
 #include "Modules/Stats.hpp"
+#include "Modules/SoundMutexFix.hpp"
+#include "Modules/Chat.hpp"
+#include "Modules/TextRenderer.hpp"
+#include "Modules/Movement.hpp"
+#include "Modules/Elevators.hpp"
+#include "Modules/ClientCommand.hpp"
 
+#include "Modules/Gamepad.hpp"
 #include "Modules/Client.hpp"

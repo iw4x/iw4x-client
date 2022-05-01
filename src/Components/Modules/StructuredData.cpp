@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -310,10 +310,5 @@ namespace Components
 				}
 			}
 		});
-	}
-
-	StructuredData::~StructuredData()
-	{
-		StructuredData::MemAllocator.clear();
 	}
 }

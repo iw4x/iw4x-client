@@ -130,6 +130,7 @@ namespace Components
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
+		static Dvar::Var PreferDiskAssetsDvar;
 
 	private:
 		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
@@ -138,7 +139,6 @@ namespace Components
 		static std::string FindMaterialByTechnique(const std::string& name);
 
 		static int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
-		static void Quit();
 		static void HandleError(int level, const char* format, ...);
 		static void SoftErrorAssetOverflow();
 

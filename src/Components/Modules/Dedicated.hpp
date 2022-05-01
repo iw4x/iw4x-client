@@ -6,7 +6,6 @@ namespace Components
 	{
 	public:
 		Dedicated();
-		~Dedicated();
 
 		static SteamID PlayerGuids[18][2];
 
@@ -15,23 +14,21 @@ namespace Components
 		static void Heartbeat();
 
 	private:
-		static bool SendChat;
+		static Dvar::Var SVRandomMapRotation;
 
+		static void RandomizeMapRotation();
 		static void MapRotate();
 		static void InitDedicatedServer();
 
 		static void PostInitialization();
 		static void PostInitializationStub();
 
-		static const char* EvaluateSay(char* text, Game::gentity_t* player);
-
-		static void PreSayStub();
-		static void PostSayStub();
-
 		static void FrameStub();
 
 		static void TransmitGuids();
 
-		static void TimeWrapStub(int code, const char* message);
+		static void TimeWrapStub(Game::errorParm_t code, const char* message);
+
+		static Game::dvar_t* Dvar_RegisterSVNetworkFps(const char* dvarName, int value, int min, int max, int flags, const char* description);
 	};
 }

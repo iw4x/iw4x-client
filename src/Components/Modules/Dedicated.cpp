@@ -1,10 +1,9 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
 	SteamID Dedicated::PlayerGuids[18][2];
-
-	bool Dedicated::SendChat;
+	Dvar::Var Dedicated::SVRandomMapRotation;
 
 	bool Dedicated::IsEnabled()
 	{
@@ -76,74 +75,6 @@ namespace Components
 		}
 	}
 
-	const char* Dedicated::EvaluateSay(char* text, Game::gentity_t* player)
-	{
-		Dedicated::SendChat = true;
-
-		if (text[1] == '/')
-		{
-			Dedicated::SendChat = false;
-			text[1] = text[0];
-			++text;
-		}
-
-		Game::Scr_AddEntity(player);
-		Game::Scr_AddString(text + 1);
-		Game::Scr_NotifyLevel(Game::SL_GetString("say", 0), 2);
-
-		return text;
-	}
-
-	__declspec(naked) void Dedicated::PreSayStub()
-	{
-		__asm
-		{
-			mov eax, [esp + 100h + 10h]
-
-			push eax
-			pushad
-
-			push[esp + 100h + 28h]
-			push eax
-			call Dedicated::EvaluateSay
-			add esp, 8h
-
-			mov [esp + 20h], eax
-			popad
-			pop eax
-
-			mov [esp + 100h + 10h], eax
-
-			jmp Colors::CleanStrStub
-		}
-	}
-
-	__declspec(naked) void Dedicated::PostSayStub()
-	{
-		__asm
-		{
-			// eax is used by the callee
-			push eax
-
-			xor eax, eax
-			mov al, Dedicated::SendChat
-
-			test al, al
-			jnz return
-
-			// Don't send the chat
-			pop eax
-			retn
-
-		return:
-			pop eax
-
-			// Jump to the target
-			push 5DF620h
-			retn
-		}
-	}
-
 	void Dedicated::TransmitGuids()
 	{
 		std::string list = Utils::String::VA("%c", 20);
@@ -152,7 +83,7 @@ namespace Components
 		{
 			if (Game::svs_clients[i].state >= 3)
 			{
-				list.append(Utils::String::VA(" %llX", Game::svs_clients[i].steamid));
+				list.append(Utils::String::VA(" %llX", Game::svs_clients[i].steamID));
 
 				Utils::InfoString info(Game::svs_clients[i].connectInfoString);
 				list.append(Utils::String::VA(" %llX", strtoull(info.get("realsteamId").data(), nullptr, 16)));
@@ -166,7 +97,7 @@ namespace Components
 		Game::SV_GameSendServerCommand(-1, 0, list.data());
 	}
 
-	void Dedicated::TimeWrapStub(int code, const char* message)
+	void Dedicated::TimeWrapStub(Game::errorParm_t code, const char* message)
 	{
 		static bool partyEnable;
 		static std::string mapname;
@@ -189,11 +120,46 @@ namespace Components
 		Game::Com_Error(code, message);
 	}
 
+	void Dedicated::RandomizeMapRotation()
+	{
+		auto rotation = Dvar::Var("sv_mapRotation").get<std::string>();
+
+		const auto tokens = Utils::String::Split(rotation, ' ');
+		std::vector<std::pair<std::string, std::string>> mapRotationPair;
+
+		for (auto i = 0u; i < (tokens.size() - 1); i += 2)
+		{
+			if (i + 1 >= tokens.size()) break;
+
+			const auto& key = tokens[i];
+			const auto& value = tokens[i + 1];
+			mapRotationPair.push_back(std::make_pair(key, value));
+		}
+
+		const auto seed = Utils::Cryptography::Rand::GenerateInt();
+		std::shuffle(std::begin(mapRotationPair), std::end(mapRotationPair), std::default_random_engine(seed));
+
+		// Rebuild map rotation using the randomized key/values
+		rotation.clear();
+		for (auto j = 0u; j < mapRotationPair.size(); j++)
+		{
+			const auto& pair = mapRotationPair[j];
+			rotation.append(pair.first);
+			rotation.append(" ");
+			rotation.append(pair.second);
+
+			if (j != mapRotationPair.size() - 1)
+				rotation.append(" ");
+		}
+
+		Dvar::Var("sv_mapRotationCurrent").set(rotation);
+	}
+
 	void Dedicated::MapRotate()
 	{
 		if (!Dedicated::IsEnabled() && Dvar::Var("sv_dontrotate").get<bool>())
 		{
-			Dvar::Var("sv_dontrotate").setRaw(0);
+			Dvar::Var("sv_dontrotate").set(false);
 			return;
 		}
 
@@ -204,9 +170,10 @@ namespace Components
 		}
 
 		Logger::Print("Rotating map...\n");
+		const auto mapRotation = Dvar::Var("sv_mapRotation").get<std::string>();
 
 		// if nothing, just restart
-		if (Dvar::Var("sv_mapRotation").get<std::string>().empty())
+		if (mapRotation.empty())
 		{
 			Logger::Print("No rotation defined, restarting map.\n");
 
@@ -222,16 +189,25 @@ namespace Components
 			return;
 		}
 
-		// first, check if the string contains nothing
+		// First, check if the string contains nothing
 		if (Dvar::Var("sv_mapRotationCurrent").get<std::string>().empty())
 		{
 			Logger::Print("Current map rotation has finished, reloading...\n");
-			Dvar::Var("sv_mapRotationCurrent").set(Dvar::Var("sv_mapRotation").get<const char*>());
+
+			if (Dedicated::SVRandomMapRotation.get<bool>())
+			{
+				Logger::Print("Randomizing map rotation\n");
+				Dedicated::RandomizeMapRotation();
+			}
+			else
+			{
+				Dvar::Var("sv_mapRotationCurrent").set(mapRotation);
+			}
 		}
 
-		std::string rotation = Dvar::Var("sv_mapRotationCurrent").get<std::string>();
+		auto rotation = Dvar::Var("sv_mapRotationCurrent").get<std::string>();
 
-		auto tokens = Utils::String::Explode(rotation, ' ');
+		auto tokens = Utils::String::Split(rotation, ' ');
 
 		for (unsigned int i = 0; i < (tokens.size() - 1); i += 2)
 		{
@@ -297,24 +273,24 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* Dedicated::Dvar_RegisterSVNetworkFps(const char* dvarName, int, int min, int, int, const char* description)
+	{
+		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::dvar_flag::DVAR_NONE, description);
+	}
+
 	Dedicated::Dedicated()
 	{
 		// Map rotation
 		Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
-		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_FLAG_CHEAT, "");
-		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_FLAG_LATCHED, "Removes ~95% of unneeded lines from the log");
-
-		// Intercept chat sending
-		Utils::Hook(0x4D000B, Dedicated::PreSayStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4D00D4, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4D0110, Dedicated::PostSayStub, HOOK_CALL).install()->quick();
+		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_CHEAT, "");
+		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			// Make sure all callbacks are handled
 			Scheduler::OnFrame(Steam::SteamAPI_RunCallbacks);
 
-			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_FLAG_NONE, "Don't act as node");
+			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_NONE, "Don't act as node");
 
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();
 
@@ -340,7 +316,7 @@ namespace Components
 
 			Utils::Hook::Nop(0x4DCEC9, 2);          // some check preventing proper game functioning
 			Utils::Hook::Nop(0x507C79, 6);          // another similar bsp check
-			Utils::Hook::Nop(0x414E4D, 6);          // unknown check in SV_ExecuteClientMessage (0x20F0890 == 0, related to client->f_40)
+			Utils::Hook::Nop(0x414E4D, 6);          // cl->messageAcknowledge > cl->gamestateMessageNum check in SV_ExecuteClientMessage
 			Utils::Hook::Nop(0x4DCEE9, 5);          // some deinit renderer function
 			Utils::Hook::Nop(0x59A896, 5);          // warning message on a removed subsystem
 			Utils::Hook::Nop(0x4B4EEF, 5);          // same as above
@@ -355,14 +331,8 @@ namespace Components
 			// isHost script call return 0
 			Utils::Hook::Set<DWORD>(0x5DEC04, 0);
 
-			// sv_network_fps max 1000, and uncheat
-			Utils::Hook::Set<BYTE>(0x4D3C67, 0); // ?
-			Utils::Hook::Set<DWORD>(0x4D3C69, 1000);
-
 			// Manually register sv_network_fps
-			Utils::Hook::Nop(0x4D3C7B, 5);
-			Utils::Hook::Nop(0x4D3C8E, 5);
-			*reinterpret_cast<Game::dvar_t**>(0x62C7C00) = Dvar::Register<int>("sv_network_fps", 1000, 20, 1000, Game::dvar_flag::DVAR_FLAG_NONE, "Number of times per second the server checks for net messages").get<Game::dvar_t*>();
+			Utils::Hook(0x4D3C7B, Dedicated::Dvar_RegisterSVNetworkFps, HOOK_CALL).install()->quick();
 
 			// r_loadForRenderer default to 0
 			Utils::Hook::Set<BYTE>(0x519DDF, 0);
@@ -421,13 +391,14 @@ namespace Components
 
 				Dvar::OnInit([]()
 				{
-					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_FLAG_NONE, "The name to pose as for 'say' commands");
-					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_FLAG_NONE, "A custom message of the day for servers");
+					Dedicated::SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false, Game::dvar_flag::DVAR_ARCHIVE, "Randomize map rotation when true");
+					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
+					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
 
 					// Say command
 					Command::AddSV("say", [](Command::Params* params)
 					{
-						if (params->length() < 2) return;
+						if (params->size() < 2) return;
 
 						std::string message = params->join(1);
 						std::string name = Dvar::Var("sv_sayName").get<std::string>();
@@ -447,7 +418,7 @@ namespace Components
 					// Tell command
 					Command::AddSV("tell", [](Command::Params* params)
 					{
-						if (params->length() < 3) return;
+						if (params->size() < 3) return;
 
 						int client = atoi(params->get(1));
 						std::string message = params->join(2);
@@ -468,7 +439,7 @@ namespace Components
 					// Sayraw command
 					Command::AddSV("sayraw", [](Command::Params* params)
 					{
-						if (params->length() < 2) return;
+						if (params->size() < 2) return;
 
 						std::string message = params->join(1);
 						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
@@ -478,32 +449,12 @@ namespace Components
 					// Tellraw command
 					Command::AddSV("tellraw", [](Command::Params* params)
 					{
-						if (params->length() < 3) return;
+						if (params->size() < 3) return;
 
 						int client = atoi(params->get(1));
 						std::string message = params->join(2);
 						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
 						Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
-					});
-
-					// ! command
-					Command::AddSV("!", [](Command::Params* params)
-					{
-						if (params->length() != 2) return;
-
-						int client = -1;
-						if (params->get(1) != "all"s)
-						{
-							client = atoi(params->get(1));
-
-							if (client >= *reinterpret_cast<int*>(0x31D938C))
-							{
-								Game::Com_Printf(0, "Invalid player.\n");
-								return;
-							}
-						}
-
-						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"\"", 106));
 					});
 				});
 			}
@@ -547,10 +498,5 @@ namespace Components
 				}
 			}
 		});
-	}
-
-	Dedicated::~Dedicated()
-	{
-
 	}
 }

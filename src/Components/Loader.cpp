@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -47,11 +47,7 @@ namespace Components
 		Loader::Register(new Toast());
 		Loader::Register(new Party());
 		Loader::Register(new Zones());
-		Loader::Register(new Colors());
 		Loader::Register(new D3D9Ex());
-#if (!defined(VLD_RPTHOOK_INSTALL) || defined(VLDEnable)) && defined(COMPILE_IW4MVM) // IW4MVM uses detours which produces memory leaks, but those are not really relevant
-		Loader::Register(new IW4MVM());
-#endif
 		Loader::Register(new Logger());
 		Loader::Register(new Script());
 		Loader::Register(new Weapon());
@@ -101,6 +97,13 @@ namespace Components
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
 		Loader::Register(new StartupMessages());
+		Loader::Register(new SoundMutexFix());
+		Loader::Register(new Gamepad());
+		Loader::Register(new Chat());
+		Loader::Register(new TextRenderer());
+		Loader::Register(new Movement());
+		Loader::Register(new Elevators());
+		Loader::Register(new ClientCommand());
 
 		Loader::Register(new Client());
 

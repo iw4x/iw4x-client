@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -21,11 +21,11 @@ namespace Components
 		__asm
 		{
 			pushad
-			push [esp + 20h]
 
+			push [esp + 24h]
 			call SlowMotion::ApplySlowMotion
+			add esp, 4h
 
-			pop ecx
 			popad
 
 			retn
@@ -38,12 +38,12 @@ namespace Components
 		float start = Game::Scr_GetFloat(0);
 		float end = 1.0f;
 
-		if (Game::Scr_GetNumParam() >= 2)
+		if (Game::Scr_GetNumParam() >= 2u)
 		{
 			end = Game::Scr_GetFloat(1);
 		}
 
-		if (Game::Scr_GetNumParam() >= 3)
+		if (Game::Scr_GetNumParam() >= 3u)
 		{
 			duration = static_cast<int>(Game::Scr_GetFloat(2) * 1000.0);
 		}
@@ -76,10 +76,10 @@ namespace Components
 
 	void SlowMotion::DrawConnectionInterruptedStub(int /*a1*/)
 	{
-// 		if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
-// 		{
-// 			Utils::Hook::Call<void(int)>(0x454A70)(a1);
-// 		}
+		// 		if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
+		// 		{
+		// 			Utils::Hook::Call<void(int)>(0x454A70)(a1);
+		// 		}
 	}
 
 	SlowMotion::SlowMotion()

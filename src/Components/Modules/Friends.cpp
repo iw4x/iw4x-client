@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -71,7 +71,7 @@ namespace Components
 
 		entry->name = Steam::Proxy::SteamFriends->GetFriendPersonaName(user);
 		entry->online = Steam::Proxy::SteamFriends->GetFriendPersonaState(user) != 0;
-		entry->cleanName = Utils::String::ToLower(Colors::Strip(entry->name));
+		entry->cleanName = Utils::String::ToLower(TextRenderer::StripColors(entry->name));
 
 		std::string guid = Friends::GetPresence(user, "iw4x_guid");
 		std::string name = Friends::GetPresence(user, "iw4x_name");
@@ -111,8 +111,8 @@ namespace Components
 
 		Friends::SortList();
 
-		int notify = Dvar::Var("cl_notifyFriendState").get<int>();
-		if (gotOnline && (notify == -1 || (notify == 1 && !Game::CL_IsCgameInitialized())) && !Dvar::Var("ui_streamFriendly").get<bool>())
+		const auto notify = Dvar::Var("cl_notifyFriendState").get<bool>();
+		if (gotOnline && (!notify || (notify && !Game::CL_IsCgameInitialized())) && !Dvar::Var("ui_streamFriendly").get<bool>())
 		{
 			Game::Material* material = Friends::CreateAvatar(user);
 			Toast::Show(material, entry->name, "is playing IW4x", 3000, [material]()
@@ -186,7 +186,7 @@ namespace Components
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
-			const unsigned int modId = *reinterpret_cast<unsigned int*>(const_cast<char*>("IW4x")) | 0x80000000;
+			const unsigned int modId = *reinterpret_cast<unsigned int*>("IW4x") | 0x80000000;
 
 			// Split up the list
 			for (auto entry : Friends::FriendsList)
@@ -458,7 +458,10 @@ namespace Components
 		__asm
 		{
 			pushad
+
 			call Friends::ClearServer
+			call Dvar::ResetDvarsValue
+
 			popad
 
 			push 467CC0h
@@ -575,14 +578,19 @@ namespace Components
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || Monitor::IsEnabled()) return;
 
-		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_FLAG_SAVED, "");
-		Dvar::Register<int>("cl_notifyFriendState", 1, -1, 1, Game::DVAR_FLAG_SAVED, "");
+		Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
+		Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_ARCHIVE, "Update friends about current game status");
 
 		Command::Add("addFriend", [](Command::Params* params)
 		{
-			if (params->length() <= 1) return;
+			if (params->size() < 2u)
+			{
+				Logger::Print("Usage: %s <Steam ID in hexadecimal format>\n", params->get(0));
+				return;
+			}
+
 			SteamID id;
-			id.bits = atoll(params->get(1));
+			id.bits = std::strtoull(params->get(1), nullptr, 16);
 
 			Friends::AddFriend(id);
 		});

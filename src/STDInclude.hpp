@@ -5,11 +5,12 @@
 
 #ifndef RC_INVOKED
 
-#define _HAS_CXX17 1
-#define _HAS_CXX20 1
+//#define _HAS_CXX17 1
+//#define _HAS_CXX20 1
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #define _CRT_SECURE_NO_WARNINGS
+#define _USE_MATH_DEFINES
 
 // Requires Visual Leak Detector plugin: http://vld.codeplex.com/
 #define VLD_FORCE_ENABLE
@@ -38,24 +39,22 @@
 #include <future>
 #include <unordered_map>
 #include <queue>
-
-// Experimental C++17 features
+#include <algorithm>
+#include <limits>
+#include <cmath>
 #include <filesystem>
 #include <optional>
+#include <random>
 
 #pragma warning(pop)
 
 #include <d3dx9tex.h>
 #pragma comment(lib, "D3dx9.lib")
 
-// Usefull for debugging
-template <size_t S> class Sizer { };
-#define BindNum(x, y) Sizer<x> y;
-#define Size_Of(x, y) BindNum(sizeof(x), y)
-#define Offset_Of(x, y, z) BindNum(offsetof(x, y), z)
+#include <Xinput.h>
+#pragma comment (lib, "xinput.lib")
 
-// Submodules
-// Ignore the warnings, it's no our code!
+// Ignore the warnings
 #pragma warning(push)
 #pragma warning(disable: 4005)
 #pragma warning(disable: 4091)
@@ -73,6 +72,7 @@ template <size_t S> class Sizer { };
 #pragma warning(disable: 6258)
 #pragma warning(disable: 6386)
 #pragma warning(disable: 6387)
+#pragma warning(disable: 26812)
 
 #include <zlib.h>
 
@@ -148,6 +148,7 @@ template <size_t S> class Sizer { };
 #pragma comment(lib, "Advapi32.lib")
 #pragma comment(lib, "rpcrt4.lib")
 #pragma comment(lib, "dbghelp.lib")
+#pragma comment(lib, "ntdll.lib")
 
 // Enable additional literals
 using namespace std::literals;

@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Steam
 {
@@ -156,13 +156,13 @@ namespace Steam
 		gameID.type = 1; // k_EGameIDTypeGameMod
 		gameID.appID = Proxy::AppId & 0xFFFFFF;
 
-		char* modId = const_cast<char*>("IW4x");
-		gameID.modID = *reinterpret_cast<unsigned int*>(modId) | 0x80000000;
+		const char* modId = "IW4x";
+		gameID.modID = *reinterpret_cast<const unsigned int*>(modId) | 0x80000000;
 
 		Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
 		clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 
-		char ourPath[MAX_PATH] = { 0 };
+		char ourPath[MAX_PATH] = {0};
 		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
 
 		char ourDirectory[MAX_PATH] = { 0 };
@@ -384,11 +384,11 @@ namespace Steam
 			Proxy::LaunchWatchGuard();
 
 			Proxy::Overlay = ::Utils::Library(GAMEOVERLAY_LIB, false);
-			if (!Proxy::Overlay.valid()) return false;
+			if (!Proxy::Overlay.isValid()) return false;
 		}
 
 		Proxy::Client = ::Utils::Library(STEAMCLIENT_LIB, false);
-		if (!Proxy::Client.valid()) return false;
+		if (!Proxy::Client.isValid()) return false;
 
 		Proxy::SteamClient = Proxy::Client.get<ISteamClient008*(const char*, int*)>("CreateInterface")("SteamClient008", nullptr);
 		if(!Proxy::SteamClient) return false;
@@ -526,7 +526,7 @@ namespace Steam
 
 	void Proxy::SetOverlayNotificationPosition(uint32_t eNotificationPosition)
 	{
-		if (Proxy::Overlay.valid())
+		if (Proxy::Overlay.isValid())
 		{
 			Proxy::Overlay.get<void(uint32_t)>("SetNotificationPosition")(eNotificationPosition);
 		}
@@ -534,7 +534,7 @@ namespace Steam
 
 	bool Proxy::IsOverlayEnabled()
 	{
-		if (Proxy::Overlay.valid())
+		if (Proxy::Overlay.isValid())
 		{
 			return Proxy::Overlay.get<bool()>("IsOverlayEnabled")();
 		}
@@ -544,7 +544,7 @@ namespace Steam
 
 	bool Proxy::BOverlayNeedsPresent()
 	{
-		if (Proxy::Overlay.valid())
+		if (Proxy::Overlay.isValid())
 		{
 			return Proxy::Overlay.get<bool()>("BOverlayNeedsPresent")();
 		}

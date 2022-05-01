@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 #define KEY_MASK_FIRE           1
 #define KEY_MASK_SPRINT         2
@@ -96,7 +96,7 @@ namespace Components
 
 			if (bots.exists())
 			{
-				std::vector<std::string> names = Utils::String::Explode(bots.getBuffer(), '\n');
+				std::vector<std::string> names = Utils::String::Split(bots.getBuffer(), '\n');
 
 				for (auto name : names)
 				{
@@ -160,7 +160,7 @@ namespace Components
 	{
 		Script::AddFunction("SetPing", [](Game::scr_entref_t id) // gsc: self SetPing(<int>)
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_INTEGER)
 			{
 				Game::Scr_Error("^1SetPing: Needs one integer parameter!\n");
 				return;
@@ -250,7 +250,7 @@ namespace Components
 
 		Script::AddFunction("botWeapon", [](Game::scr_entref_t id) // Usage: <bot> botWeapon(<str>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1botWeapon: Needs one string parameter!\n");
 				return;
@@ -293,7 +293,7 @@ namespace Components
 
 		Script::AddFunction("botAction", [](Game::scr_entref_t id) // Usage: <bot> botAction(<str action>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1botAction: Needs one string parameter!\n");
 				return;
@@ -346,7 +346,7 @@ namespace Components
 
 		Script::AddFunction("botMovement", [](Game::scr_entref_t id) // Usage: <bot> botMovement(<int>, <int>);
 		{
-			if (Game::Scr_GetNumParam() != 2 || Game::Scr_GetType(0) != Game::VAR_INTEGER || Game::Scr_GetType(1) != Game::VAR_INTEGER)
+			if (Game::Scr_GetNumParam() != 2u || Game::Scr_GetType(0) != Game::VAR_INTEGER || Game::Scr_GetType(1) != Game::VAR_INTEGER)
 			{
 				Game::Scr_Error("^1botMovement: Needs two integer parameters!\n");
 				return;
@@ -437,7 +437,7 @@ namespace Components
 				ucmd.rightmove = g_botai[i].right;
 				ucmd.weapon = g_botai[i].weapon;
 
-				client->deltaMessage = client->outgoingSequence - 1;
+				client->deltaMessage = client->netchan.outgoingSequence - 1;
 
 				Game::SV_ClientThink(client, &ucmd);
 			}
@@ -447,7 +447,7 @@ namespace Components
 		{
 			unsigned int count = 1;
 
-			if (params->length() > 1)
+			if (params->size() > 1)
 			{
 				if (params->get(1) == "all"s) count = static_cast<unsigned int>(-1);
 				else count = atoi(params->get(1));

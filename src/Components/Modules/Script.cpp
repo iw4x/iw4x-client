@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -9,6 +9,8 @@ namespace Components
 	unsigned short Script::FunctionName;
 	std::unordered_map<std::string, std::string> Script::ScriptStorage;
 	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
+	std::unordered_map<const char*, const char*> Script::ReplacedFunctions;
+	const char* Script::ReplacedPos = 0;
 	int Script::LastFrameTime = -1;
 
 	Utils::Signal<Scheduler::Callback> Script::VMShutdownSignal;
@@ -24,7 +26,7 @@ namespace Components
 		Logger::Print(23, "Error: unknown function %s in %s\n", funcName.data(), Script::ScriptName.data());
 		Logger::Print(23, "************************************\n");
 
-		Logger::Error(5, "script compile error\nunknown function %s\n%s\n\n", funcName.data(), Script::ScriptName.data());
+		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\nunknown function %s\n%s\n\n", funcName.data(), Script::ScriptName.data());
 	}
 
 	__declspec(naked) void Script::StoreFunctionNameStub()
@@ -168,7 +170,7 @@ namespace Components
 		Script::PrintSourcePos(Script::ScriptName.data(), offset);
 		Logger::Print(23, "************************************\n\n");
 
-		Logger::Error(5, "script compile error\n%s\n%s\n(see console for actual details)\n", msgbuf, Script::ScriptName.data());
+		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\n%s\n%s\n(see console for actual details)\n", msgbuf, Script::ScriptName.data());
 	}
 
 	int Script::LoadScriptAndLabel(const std::string& script, const std::string& label)
@@ -178,7 +180,7 @@ namespace Components
 		if (!Game::Scr_LoadScript(script.data()))
 		{
 			Logger::Print("Script %s encountered an error while loading. (doesn't exist?)", script.data());
-			Logger::Error(1, reinterpret_cast<char*>(0x70B810), script.data());
+			Logger::Error(Game::ERR_DROP, reinterpret_cast<char*>(0x70B810), script.data());
 		}
 		else
 		{
@@ -352,11 +354,9 @@ namespace Components
 		{
 			// execute our hook
 			pushad
-			pusha
 
 			call Script::StoreScriptBaseProgramNum
 
-			popa
 			popad
 
 			// execute overwritten code caused by the jump hook
@@ -384,19 +384,107 @@ namespace Components
 		Utils::Hook::Call<void(int)>(0x421EE0)(num);
 	}
 
-	int Script::SetExpFogStub()
+	unsigned int Script::SetExpFogStub()
 	{
-		if (Game::Scr_GetNumParam() == 6)
+		if (Game::Scr_GetNumParam() == 6u)
 		{
-			std::memmove(&Game::scriptContainer->stack[-4], &Game::scriptContainer->stack[-5], sizeof(Game::VariableValue) * 6);
-			Game::scriptContainer->stack += 1;
-			Game::scriptContainer->stack[-6].type = Game::VAR_FLOAT;
-			Game::scriptContainer->stack[-6].u.floatValue = 0;
+			std::memmove(&Game::scrVmPub->top[-4], &Game::scrVmPub->top[-5], sizeof(Game::VariableValue) * 6);
+			Game::scrVmPub->top += 1;
+			Game::scrVmPub->top[-6].type = Game::VAR_FLOAT;
+			Game::scrVmPub->top[-6].u.floatValue = 0.0f;
 
-			++Game::scriptContainer->numParam;
+			++Game::scrVmPub->outparamcount;
 		}
 
 		return Game::Scr_GetNumParam();
+	}
+
+	const char* Script::GetCodePosForParam(int index)
+	{
+		if (static_cast<unsigned int>(index) >= Game::scrVmPub->outparamcount)
+		{
+			Game::Scr_Error("^1GetCodePosForParam: Index is out of range!\n");
+			return "";
+		}
+
+		const auto value = &Game::scrVmPub->top[-index];
+
+		if (value->type != Game::VAR_FUNCTION)
+		{
+			Game::Scr_Error("^1GetCodePosForParam: Expects a function as parameter!\n");
+			return "";
+		}
+
+		return value->u.codePosValue;
+	}
+
+	void Script::GetReplacedPos(const char* pos)
+	{
+		if (Script::ReplacedFunctions.find(pos) != Script::ReplacedFunctions.end())
+		{
+			Script::ReplacedPos = Script::ReplacedFunctions[pos];
+		}
+	}
+
+	void Script::SetReplacedPos(const char* what, const char* with)
+	{
+		if (what[0] == '\0' || with[0] == '\0')
+		{
+			Logger::Print("Warning: Invalid paramters passed to ReplacedFunctions\n");
+			return;
+		}
+
+		if (Script::ReplacedFunctions.find(what) != Script::ReplacedFunctions.end())
+		{
+			Logger::Print("Warning: ReplacedFunctions already contains codePosValue for a function\n");
+		}
+
+		Script::ReplacedFunctions[what] = with;
+	}
+
+	__declspec(naked) void Script::VMExecuteInternalStub()
+	{
+		__asm
+		{
+			pushad
+
+			push edx
+			call Script::GetReplacedPos
+
+			pop edx
+			popad
+
+			cmp Script::ReplacedPos, 0
+			jne SetPos
+
+			movzx eax, byte ptr [edx]
+			inc edx
+
+		Loc1:
+			cmp eax, 0x8B
+
+			push ecx
+
+			mov ecx, 0x2045094
+			mov [ecx], eax
+
+			mov ecx, 0x2040CD4
+			mov [ecx], edx
+
+			pop ecx
+
+			push 0x61E944
+			retn
+
+		SetPos:
+			mov edx, Script::ReplacedPos
+			mov Script::ReplacedPos, 0
+
+			movzx eax, byte ptr [edx]
+			inc edx
+
+			jmp Loc1
+		}
 	}
 
 	Game::gentity_t* Script::getEntFromEntRef(Game::scr_entref_t entref)
@@ -409,13 +497,27 @@ namespace Components
 	{
 		if (!gentity->client)
 		{
-			Logger::Error(5, "Entity: %i is not a client", gentity);
+			Logger::Error(Game::ERR_SCRIPT_DROP, "Entity: %i is not a client", gentity);
 		}
-		return &Game::svs_clients[gentity->number];
+		return &Game::svs_clients[gentity->s.number];
 	}
 
 	void Script::AddFunctions()
 	{
+		Script::AddFunction("ReplaceFunc", [](Game::scr_entref_t) // gsc: ReplaceFunc(<function>, <function>)
+		{
+			if (Game::Scr_GetNumParam() != 2u)
+			{
+				Game::Scr_Error("^1ReplaceFunc: Needs two parameters!\n");
+				return;
+			}
+
+			const auto what = Script::GetCodePosForParam(0);
+			const auto with = Script::GetCodePosForParam(1);
+
+			Script::SetReplacedPos(what, with);
+		});
+
 		// System time
 		Script::AddFunction("GetSystemTime", [](Game::scr_entref_t) // gsc: GetSystemTime()
 		{
@@ -436,7 +538,7 @@ namespace Components
 		// Print to console, even without being in 'developer 1'.
 		Script::AddFunction("PrintConsole", [](Game::scr_entref_t) // gsc: PrintConsole(<string>)
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1PrintConsole: Needs one string parameter!\n");
 				return;
@@ -450,7 +552,7 @@ namespace Components
 		// Executes command to the console
 		Script::AddFunction("Exec", [](Game::scr_entref_t) // gsc: Exec(<string>)
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1Exec: Needs one string parameter!\n");
 				return;
@@ -465,7 +567,7 @@ namespace Components
 		// Script Storage Funcs
 		Script::AddFunction("StorageSet", [](Game::scr_entref_t) // gsc: StorageSet(<str key>, <str data>);
 		{
-			if (Game::Scr_GetNumParam() != 2 || Game::Scr_GetType(0) != Game::VAR_STRING || Game::Scr_GetType(1) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 2u || Game::Scr_GetType(0) != Game::VAR_STRING || Game::Scr_GetType(1) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1StorageSet: Needs two string parameters!\n");
 				return;
@@ -479,7 +581,7 @@ namespace Components
 
 		Script::AddFunction("StorageRemove", [](Game::scr_entref_t) // gsc: StorageRemove(<str key>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1StorageRemove: Needs one string parameter!\n");
 				return;
@@ -498,7 +600,7 @@ namespace Components
 
 		Script::AddFunction("StorageGet", [](Game::scr_entref_t) // gsc: StorageGet(<str key>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1StorageGet: Needs one string parameter!\n");
 				return;
@@ -518,7 +620,7 @@ namespace Components
 
 		Script::AddFunction("StorageHas", [](Game::scr_entref_t) // gsc: StorageHas(<str key>);
 		{
-			if (Game::Scr_GetNumParam() != 1 || Game::Scr_GetType(0) != Game::VAR_STRING)
+			if (Game::Scr_GetNumParam() != 1u || Game::Scr_GetType(0) != Game::VAR_STRING)
 			{
 				Game::Scr_Error("^1StorageHas: Needs one string parameter!\n");
 				return;
@@ -548,7 +650,7 @@ namespace Components
 		{
 			int developer = Dvar::Var("developer").get<int>();
 
-			if (developer > 0)
+			if (developer > 0 && Dedicated::IsEnabled())
 				Utils::Hook::Set<BYTE>(0x48D8C7, 0x75);
 		});
 
@@ -563,6 +665,9 @@ namespace Components
 		Utils::Hook(0x4EC8E5, Script::GetFunctionStub, HOOK_JUMP).install()->quick(); // Scr_GetMethod
 
 		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x61E92E, Script::VMExecuteInternalStub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x61E933, 1);
 
 		Utils::Hook(0x47548B, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4D06BA, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick();
@@ -592,42 +697,14 @@ namespace Components
 
 		Script::AddFunctions();
 
-		// Script::AddFunction("playviewmodelfx", [](Game::scr_entref_t /*index*/)
-		// {
-		// 	/*auto Scr_Error = Utils::Hook::Call<void(const char*)>(0x42EF40);
-		// 	if (index >> 16)
-		// 	{
-		// 		Scr_Error("not an entity");
-		// 		return;
-		// 	}*/
-
-		// 	// obtain FX name
-		// 	auto fxName = Game::Scr_GetString(0);
-		// 	auto fx = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FX, fxName).fx;
-
-		// 	auto tagName = Game::Scr_GetString(1);
-		// 	auto tagIndex = Game::SL_GetString(tagName, 0);
-
-		// 	/*char boneIndex = -2;
-		// 	if (!Game::CG_GetBoneIndex(2048, tagIndex, &boneIndex))
-		// 	{
-		// 		Scr_Error(Utils::String::VA("Unknown bone %s.\n", tagName));
-		// 		return;
-		// 	}*/
-
-		// 	Game::CG_PlayBoltedEffect(0, fx, 2048, tagIndex);
-		// });
+		Script::OnVMShutdown([]
+		{
+			Script::ReplacedFunctions.clear();
+		});
 	}
 
 	Script::~Script()
 	{
-		Script::ScriptName.clear();
-		Script::ScriptHandles.clear();
-		Script::ScriptNameStack.clear();
-		Script::ScriptFunctions.clear();
 		Script::VMShutdownSignal.clear();
-
-		Script::ScriptStorage.clear();
-		Script::ScriptBaseProgramNum.clear();
 	}
 }

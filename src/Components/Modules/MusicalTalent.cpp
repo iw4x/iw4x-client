@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
 
 namespace Components
 {
@@ -38,10 +38,5 @@ namespace Components
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_SOUND, MusicalTalent::ModifyAliases);
 
 		MusicalTalent::Replace("music_mainmenu_mp", "hz_t_menumusic.mp3");
-	}
-
-	MusicalTalent::~MusicalTalent()
-	{
-		MusicalTalent::SoundAliasList.clear();
 	}
 }

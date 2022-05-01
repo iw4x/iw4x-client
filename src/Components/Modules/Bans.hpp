@@ -8,7 +8,6 @@ namespace Components
 		typedef std::pair<SteamID, Game::netIP_t> Entry;
 
 		Bans();
-		~Bans();
 
 		static void BanClientNum(int num, const std::string& reason);
 		static void UnbanClient(SteamID id);
