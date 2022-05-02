@@ -10,9 +10,6 @@ namespace Components
     private:
         enum BouncesSettings { DISABLED, ENABLED, DOUBLE };
 
-        static Dvar::Var PlayerDuckedSpeedScale;
-        static Dvar::Var PlayerLastStandCrawlSpeedScale;
-        static Dvar::Var PlayerProneSpeedScale;
         static Dvar::Var PlayerSpectateSpeedScale;
         static Dvar::Var CGUfoScaler;
         static Dvar::Var CGNoclipScaler;
@@ -22,11 +19,13 @@ namespace Components
         static Dvar::Var BGPlayerCollision;
         // Can't use Var class inside assembly stubs
         static Game::dvar_t* BGBounces;
+        static Game::dvar_t* PlayerDuckedSpeedScale;
+        static Game::dvar_t* PlayerProneSpeedScale;
 
-        static float PM_CmdScaleForStance(const Game::pmove_s* move);
-        static void PM_CmdScaleForStanceStub();
+        static void PM_PlayerDuckedSpeedScaleStub();
+        static void PM_PlayerProneSpeedScaleStub();
 
-        static float PM_MoveScale(Game::playerState_s* ps, float forwardmove, float rightmove, float upmove);
+        static float PM_MoveScale(Game::playerState_s* ps, float fmove, float rmove, float umove);
         static void PM_MoveScaleStub();
 
         // Bounce logic
@@ -40,7 +39,6 @@ namespace Components
         static int StuckInClient_Hk(Game::gentity_s* self);
         static void CM_TransformedCapsuleTrace_Hk(Game::trace_t* results, const float* start, const float* end, const Game::Bounds* bounds, const Game::Bounds* capsule, int contents, const float* origin, const float* angles);
 
-        static Game::dvar_t* Dvar_RegisterLastStandSpeedScale(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
         static Game::dvar_t* Dvar_RegisterSpectateSpeedScale(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
     };
 }

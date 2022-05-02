@@ -2,9 +2,6 @@
 
 namespace Components
 {
-    Dvar::Var Movement::PlayerDuckedSpeedScale;
-    Dvar::Var Movement::PlayerLastStandCrawlSpeedScale;
-    Dvar::Var Movement::PlayerProneSpeedScale;
     Dvar::Var Movement::PlayerSpectateSpeedScale;
     Dvar::Var Movement::CGUfoScaler;
     Dvar::Var Movement::CGNoclipScaler;
@@ -13,99 +10,50 @@ namespace Components
     Dvar::Var Movement::BGPlayerEjection;
     Dvar::Var Movement::BGPlayerCollision;
     Game::dvar_t* Movement::BGBounces;
+    Game::dvar_t* Movement::PlayerDuckedSpeedScale;
+    Game::dvar_t* Movement::PlayerProneSpeedScale;
 
-    float Movement::PM_CmdScaleForStance(const Game::pmove_s* pm)
-    {
-        assert(pm->ps != nullptr);
-
-        const auto* playerState = pm->ps;
-        float scale;
-
-        if (playerState->viewHeightLerpTime != 0 && playerState->viewHeightLerpTarget == 0xB)
-        {
-            scale = pm->cmd.serverTime - playerState->viewHeightLerpTime / 400.0f;
-
-            if (0.0f <= scale)
-            {
-                if (scale > 1.0f)
-                {
-                    scale = 1.0f;
-                    return scale * 0.15f + (1.0f - scale) * 0.65f;
-                }
-
-                if (scale != 0.0f)
-                {
-                    return scale * 0.15f + (1.0f - scale) * 0.65f;
-                }
-            }
-        }
-
-        if ((playerState->viewHeightLerpTime != 0 && playerState->viewHeightLerpTarget == 0x28) &&
-            playerState->viewHeightLerpDown == 0)
-        {
-            scale = 400.0f / pm->cmd.serverTime - playerState->viewHeightLerpTime;
-
-            if (0.0f <= scale)
-            {
-                if (scale > 1.0f)
-                {
-                    scale = 1.0f;
-                }
-                else if (scale != 0.0f)
-                {
-                    return scale * 0.65f + (1.0f - scale) * 0.15f;
-                }
-            }
-        }
-
-        scale = 1.0f;
-        const auto stance = Game::PM_GetEffectiveStance(playerState);
-
-        if (stance == Game::PM_EFF_STANCE_PRONE)
-        {
-            scale = Movement::PlayerProneSpeedScale.get<float>();
-        }
-
-        else if (stance == Game::PM_EFF_STANCE_DUCKED)
-        {
-            scale = Movement::PlayerDuckedSpeedScale.get<float>();
-        }
-
-        else if (stance == Game::PM_EFF_STANCE_LASTSTANDCRAWL)
-        {
-            scale = Movement::PlayerLastStandCrawlSpeedScale.get<float>();
-        }
-
-        return scale;
-    }
-
-    __declspec(naked) void Movement::PM_CmdScaleForStanceStub()
+    __declspec(naked) void Movement::PM_PlayerDuckedSpeedScaleStub()
     {
         __asm
         {
-            pushad
+            push eax
+            mov eax, Movement::PlayerDuckedSpeedScale
+            fld dword ptr [eax + 0x10] // dvar_t.current.value
+            pop eax
 
-            push edx
-            call Movement::PM_CmdScaleForStance // pm
-            add esp, 4
-
-            popad
+            // Game's code
+            pop ecx
             ret
         }
     }
 
-    float Movement::PM_MoveScale(Game::playerState_s* ps, float forwardmove,
-        float rightmove, float upmove)
+    __declspec(naked) void Movement::PM_PlayerProneSpeedScaleStub()
+    {
+        __asm
+        {
+            push eax
+            mov eax, Movement::PlayerProneSpeedScale
+            fld dword ptr [eax + 0x10] // dvar_t.current.value
+            pop eax
+
+            // Game's code
+            pop ecx
+            ret
+        }
+    }
+
+    float Movement::PM_MoveScale(Game::playerState_s* ps, float fmove,
+        float rmove, float umove)
     {
         assert(ps != nullptr);
 
-        auto max = (std::fabsf(forwardmove) < std::fabsf(rightmove))
-            ? std::fabsf(rightmove)
-            : std::fabsf(forwardmove);
+        auto max = std::fabsf(fmove) < std::fabsf(rmove)
+            ? std::fabsf(rmove) : std::fabsf(fmove);
 
-        if (std::fabsf(upmove) > max)
+        if (std::fabsf(umove) > max)
         {
-            max = std::fabsf(upmove);
+            max = std::fabsf(umove);
         }
 
         if (max == 0.0f)
@@ -113,28 +61,28 @@ namespace Components
             return 0.0f;
         }   
 
-        auto total = std::sqrtf(forwardmove * forwardmove
-            + rightmove * rightmove + upmove * upmove);
-        auto scale = (ps->speed * max) / (127.0f * total);
+        auto total = std::sqrtf(fmove * fmove
+            + rmove * rmove + umove * umove);
+        auto scale = (static_cast<float>(ps->speed) * max) / (127.0f * total);
 
         if (ps->pm_flags & Game::PMF_WALKING || ps->leanf != 0.0f)
         {
             scale *= 0.4f;
         }
 
-        if (ps->pm_type == Game::PM_NOCLIP)
+        switch (ps->pm_type)
         {
-            return scale * Movement::CGNoclipScaler.get<float>();
-        }
-
-        if (ps->pm_type == Game::PM_UFO)
-        {
-            return scale * Movement::CGUfoScaler.get<float>();
-        }
-
-        if (ps->pm_type == Game::PM_SPECTATOR)
-        {
-            return scale * Movement::PlayerSpectateSpeedScale.get<float>();
+        case Game::pmtype_t::PM_NOCLIP:
+            scale *= Movement::CGNoclipScaler.get<float>();
+            break;
+        case Game::pmtype_t::PM_UFO:
+            scale *= Movement::CGUfoScaler.get<float>();
+            break;
+        case Game::pmtype_t::PM_SPECTATOR:
+            scale *= Movement::PlayerSpectateSpeedScale.get<float>();
+            break;
+        default:
+            break;
         }
 
         return scale;
@@ -146,9 +94,9 @@ namespace Components
         {
             pushad
 
-            push [esp + 0xC + 0x20] // upmove
-            push [esp + 0xC + 0x20] // rightmove
-            push [esp + 0xC + 0x20] // forwardmove
+            push [esp + 0xC + 0x20] // umove
+            push [esp + 0xC + 0x20] // rmove
+            push [esp + 0xC + 0x20] // fmove
             push esi // ps
             call Movement::PM_MoveScale
             add esp, 0x10
@@ -230,9 +178,9 @@ namespace Components
 
         if (ent->client != nullptr && BGRocketJump.get<bool>())
         {
-            ent->client->ps.velocity[0] += (0 - wp->forward[0]) * 64.0f;
-            ent->client->ps.velocity[1] += (0 - wp->forward[1]) * 64.0f;
-            ent->client->ps.velocity[2] += (0 - wp->forward[2]) * 64.0f;
+            ent->client->ps.velocity[0] += (0.0f - wp->forward[0]) * 64.0f;
+            ent->client->ps.velocity[1] += (0.0f - wp->forward[1]) * 64.0f;
+            ent->client->ps.velocity[2] += (0.0f - wp->forward[2]) * 64.0f;
         }
 
         return result;
@@ -260,15 +208,6 @@ namespace Components
         }
     }
 
-    Game::dvar_t* Movement::Dvar_RegisterLastStandSpeedScale(const char* dvarName, float value,
-        float min, float max, unsigned __int16 /*flags*/, const char* description)
-    {
-        Movement::PlayerLastStandCrawlSpeedScale = Dvar::Register<float>(dvarName, value,
-            min, max, Game::DVAR_CHEAT | Game::DVAR_CODINFO, description);
-
-        return Movement::PlayerLastStandCrawlSpeedScale.get<Game::dvar_t*>();
-    }
-
     Game::dvar_t* Movement::Dvar_RegisterSpectateSpeedScale(const char* dvarName, float value,
         float min, float max, unsigned __int16 /*flags*/, const char* description)
     {
@@ -290,11 +229,11 @@ namespace Components
                 nullptr
             };
 
-            Movement::PlayerDuckedSpeedScale = Dvar::Register<float>("player_duckedSpeedScale",
+            Movement::PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
                 0.65f, 0.0f, 5.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
                 "The scale applied to the player speed when ducking");
 
-            Movement::PlayerProneSpeedScale = Dvar::Register<float>("player_proneSpeedScale",
+            Movement::PlayerProneSpeedScale = Game::Dvar_RegisterFloat("player_proneSpeedScale",
                 0.15f, 0.0f, 5.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
                 "The scale applied to the player speed when crawling");
 
@@ -323,17 +262,12 @@ namespace Components
                 true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
         });
 
-        // Hook PM_CmdScaleForStance in PM_CmdScale_Walk
-        Utils::Hook(0x572F34, Movement::PM_CmdScaleForStanceStub, HOOK_CALL).install()->quick();
-
-        //Hook PM_CmdScaleForStance in PM_GetMaxSpeed
-        Utils::Hook(0x57395F, Movement::PM_CmdScaleForStanceStub, HOOK_CALL).install()->quick();
-
-        // Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used.
-        Utils::Hook(0x448B66, Movement::Dvar_RegisterLastStandSpeedScale, HOOK_CALL).install()->quick();
-
         // Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used.
         Utils::Hook(0x448990, Movement::Dvar_RegisterSpectateSpeedScale, HOOK_CALL).install()->quick();
+
+        // PM_CmdScaleForStance
+        Utils::Hook(0x572D9B, Movement::PM_PlayerDuckedSpeedScaleStub, HOOK_JUMP).install()->quick();
+        Utils::Hook(0x572DA5, Movement::PM_PlayerProneSpeedScaleStub, HOOK_JUMP).install()->quick();
 
         // Hook PM_MoveScale so we can add custom speed scale for Ufo and Noclip
         Utils::Hook(0x56F845, Movement::PM_MoveScaleStub, HOOK_CALL).install()->quick();
