@@ -4,6 +4,70 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.0] - 2022-05-01
+
+### Added
+
+- Added controller support (#75)
+- Added aim assist for controllers (#75)
+- Unlock camera_thirdPersonCrosshairOffset Dvar (#68)
+- Added support for building custom Fonts with Zonebuilder (#88)
+- Added colorblind friendly team colors (#101)
+- Added emojis based on titlecards and emblems to use in the chat and server names Example: `:nuke:` (#130)
+- Upon leaving a server 'archive' dvars (saved in the config file) will be reset to the value they had prior to joining the server (#134)
+- Implement muteClient command for the game chat (#159)
+- Implement unmute command for the game chat (#159)
+- Add sv_allowAimAssist Dvar (#75)
+- Add sv_allowColoredNames (#130)
+- Add sv_randomMapRotation Dvar (#146)
+- Add rcon_log_requests Dvar (#195)
+- Add player_duckedSpeedScale Dvar (#141)
+- Add player_proneSpeedScale Dvar (#141)
+- Add cg_ufo_scaler Dvar (#158)
+- Add cg_noclip_scaler Dvar (#158)
+- Add bg_bouncesAllAngles Dvar (#158)
+- Add bg_rocketJump Dvar (#158)
+- Add bg_elevators Dvar (#156)
+- Implement noclip client command (#152)
+- Implement ufo client command (#152)
+- Implement God client command (#152)
+- Implement demigod client command (#152)
+- Implement notarget client command (#152)
+- Add noclip GSC Function (#152)
+- Add ufo GSC Function (#152)
+- Add God GSC Function (#152)
+- Add demigod GSC Function (#152)
+- Add notarget GSC Function (#152)
+- Add replaceFunc GSC Function (#144)
+
+### Changed
+
+- Renamed sv_enableBounces to bg_bounces (#158)
+- Renamed g_playerCollision to bg_playerEjection (#158)
+- Renamed g_playerEjection to bg_playerCollision (#158)
+- Setviewpos client command works outside private matches (#163)
+- Ufo client command works outside of private matches (#152)
+- Noclip client command works outside of private matches (#152)
+- If a player name is less than 3 characters server will change it to `Unknown Soldier` (#130)
+- scr_player_forceautoassign Dvar is false by default
+
+### Fixed
+
+- Fixed issue where CoD:O DLC Maps caused DirectX crash following `vid_restart` (#37)
+- Fixes and improvements to Zonebuilder
+- Fixed issue where the game froze following base game script throwing an error (#74)
+- Fixed RCon on party servers (#91 - #95)
+- Fixed slow motion during final killcams (#111 - #107)
+- Fixed sound issue that causes the game to freeze (#106)
+- Fixed issue where materials strings found in hostnames, player names, chat etc. caused the game to crash (#113)
+- Fixed issue with servers displaying an invalid player count (#144)
+
+### Known issues
+
+- HTTPS is not supported for fast downloads at the moment.
+- Sound issue fix is experimental as the bug is not fully understood.
+- `reloadmenus` command does not free resources used by custom menus.
+
 ## [0.6.1] - 2020-12-23
 
 ### Added
