@@ -207,13 +207,6 @@ namespace Components
 		auto list = ServerList::GetList();
 		if (!list) return;
 
-		// Refresh entirely, if there is no entry in the list
-		if (list->empty())
-		{
-			ServerList::Refresh(UIScript::Token());
-			return;
-		}
-
 		bool ui_browserShowFull     = Dvar::Var("ui_browserShowFull").get<bool>();
 		bool ui_browserShowEmpty    = Dvar::Var("ui_browserShowEmpty").get<bool>();
 		int ui_browserShowHardcore  = Dvar::Var("ui_browserKillcam").get<int>();
