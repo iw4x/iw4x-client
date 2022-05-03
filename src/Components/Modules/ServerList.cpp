@@ -566,7 +566,7 @@ namespace Components
 	void ServerList::SortList()
 	{
 		// Only sort when the serverlist is open
-		if (!IsServerListOpen()) return;
+		if (!ServerList::IsServerListOpen()) return;
 
 		std::stable_sort(ServerList::VisibleList.begin(), ServerList::VisibleList.end(), [](const unsigned int &server1, const unsigned int &server2) -> bool
 		{
@@ -633,7 +633,7 @@ namespace Components
 		if (ServerList::RefreshContainer.awatingList)
 		{
 			// Stop counting if we are out of the server browser menu
-			if (!IsServerListOpen())
+			if (!ServerList::IsServerListOpen())
 			{
 				ServerList::RefreshContainer.awatingList = false;
 			}
@@ -745,7 +745,7 @@ namespace Components
 
 	bool ServerList::IsServerListOpen()
 	{
-		Game::menuDef_t* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
+		auto* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
 		if (!menu) 
 			return false;
 
@@ -811,7 +811,7 @@ namespace Components
 		});
 
 		// Set default masterServerName + port and save it 
-		Utils::Hook::Set<char*>(0x60AD92, "master.xlabs.dev");
+		Utils::Hook::Set<const char*>(0x60AD92, "master.xlabs.dev");
 		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_ARCHIVE); // masterServerName
 		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_ARCHIVE); // masterPort
 
