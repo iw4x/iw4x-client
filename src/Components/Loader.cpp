@@ -105,6 +105,7 @@ namespace Components
 		Loader::Register(new Elevators());
 		Loader::Register(new ClientCommand());
 		Loader::Register(new ScriptExtension());
+		Loader::Register(new RawMouse());
 
 		Loader::Pregame = false;
 	}

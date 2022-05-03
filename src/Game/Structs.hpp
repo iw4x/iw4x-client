@@ -7473,6 +7473,16 @@ namespace Game
 
 	static_assert(sizeof(level_locals_t) == 0x2F78);
 
+	struct WinMouseVars_t
+	{
+		int oldButtonState;
+		tagPOINT oldPos;
+		bool mouseActive;
+		bool mouseInitialized;
+	};
+
+	static_assert(sizeof(WinMouseVars_t) == 0x10);
+
 #pragma endregion
 
 #ifndef IDA
