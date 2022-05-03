@@ -19,6 +19,8 @@ namespace Components
 	Dvar::Var ServerList::NETServerQueryLimit;
 	Dvar::Var ServerList::NETServerFrames;
 
+	bool ServerList::useMasterServer = true;
+
 	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{
 		if (ServerList::IsOnlineList())
@@ -274,22 +276,31 @@ namespace Components
 		}
 		else if (ServerList::IsOnlineList())
 		{
-#ifdef USE_LEGACY_SERVER_LIST
-			ServerList::RefreshContainer.awatingList = true;
-			ServerList::RefreshContainer.awaitTime = Game::Sys_Milliseconds();
+			const auto masterPort = Dvar::Var("masterPort").get<int>();
+			const auto masterServerName = Dvar::Var("masterServerName").get<const char*>();
 
-			int masterPort = Dvar::Var("masterPort").get<int>();
-			const char* masterServerName = Dvar::Var("masterServerName").get<const char*>();
+			Game::netadr_t masterServerAddr;
+			if (ServerList::GetMasterServer(masterServerAddr))
+			{
+				Logger::Print("A valid master server was found at %s:%u\n", masterServerName, masterPort);
 
-			ServerList::RefreshContainer.host = Network::Address(Utils::String::VA("%s:%u", masterServerName, masterPort));
+				ServerList::RefreshContainer.awatingList = true;
+				ServerList::RefreshContainer.awaitTime = Game::Sys_Milliseconds();
 
-			Logger::Print("Sending serverlist request to master: %s:%u\n", masterServerName, masterPort);
+				ServerList::RefreshContainer.host = Network::Address(Utils::String::VA("%s:%u", masterServerName, masterPort));
 
-			Network::SendCommand(ServerList::RefreshContainer.host, "getservers", Utils::String::VA("IW4 %i full empty", PROTOCOL));
-			//Network::SendCommand(ServerList::RefreshContainer.Host, "getservers", "0 full empty");
-#else
-			Node::Synchronize();
-#endif
+				Logger::Print("Sending serverlist request to master\n");
+				Network::SendCommand(ServerList::RefreshContainer.host, "getservers", Utils::String::VA("IW4 %i full empty", PROTOCOL));
+			}
+			else
+			{
+				// this should only be getting called if no master server is found or reached
+				Logger::Print("No valid master server was found, using node as fallback\n");
+
+				useMasterServer = false;
+
+				Node::Synchronize();
+			}
 		}
 		else if (ServerList::IsFavouriteList())
 		{
@@ -733,6 +744,14 @@ namespace Components
 		}
 	}
 
+	bool ServerList::GetMasterServer(Game::netadr_t& address)
+	{
+		auto masterPort = Dvar::Var("masterPort").get<int>();
+		auto masterServerName = Dvar::Var("masterServerName").get<const char*>();
+
+		return Game::NET_StringToAdr(Utils::String::VA("%s:%u"), &address);
+	}
+
 	ServerList::ServerList()
 	{
 		ServerList::OnlineList.clear();
@@ -792,11 +811,9 @@ namespace Components
 		});
 
 		// Set default masterServerName + port and save it 
-#ifdef USE_LEGACY_SERVER_LIST
-		Utils::Hook::Set<char*>(0x60AD92, "127.0.0.1");
+		Utils::Hook::Set<char*>(0x60AD92, "master.xlabs.dev");
 		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_ARCHIVE); // masterServerName
 		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_ARCHIVE); // masterPort
-#endif
 
 		// Add server list feeder
 		UIFeeder::Add(2.0f, ServerList::GetServerCount, ServerList::GetServerText, ServerList::SelectServer);
