@@ -55,16 +55,16 @@ namespace Components
 			push eax
 			pushad
 
-			push[esp + 100h + 28h]
+			push [esp + 100h + 28h]
 			push eax
 			call Chat::EvaluateSay
 			add esp, 8h
 
-			mov[esp + 20h], eax
+			mov [esp + 20h], eax
 			popad
 			pop eax
 
-			mov[esp + 100h + 10h], eax
+			mov [esp + 100h + 10h], eax
 
 			jmp PlayerName::CleanStrStub
 		}
@@ -97,7 +97,7 @@ namespace Components
 	}
 
 	void Chat::CheckChatLineEnd(const char*& inputBuffer, char*& lineBuffer, float& len, const int chatHeight, const float chatWidth, char*& lastSpacePos, char*& lastFontIconPos, const int lastColor)
-    {
+	{
 		if (len > chatWidth)
 		{
 			if (lastSpacePos && lastSpacePos > lastFontIconPos)
@@ -110,6 +110,7 @@ namespace Components
 				inputBuffer += lastFontIconPos - lineBuffer;
 				lineBuffer = lastFontIconPos;
 			}
+
 			*lineBuffer = 0;
 			len = 0.0f;
 			Game::cgsArray[0].teamChatMsgTimes[Game::cgsArray[0].teamChatPos % chatHeight] = Game::cgArray[0].time;
@@ -122,7 +123,7 @@ namespace Components
 			lastSpacePos = nullptr;
 			lastFontIconPos = nullptr;
 		}
-    }
+	}
 
 	void Chat::CG_AddToTeamChat(const char* text)
 	{
@@ -152,7 +153,7 @@ namespace Components
 			CheckChatLineEnd(text, p, len, chatHeight, chatWidth, lastSpace, lastFontIcon, lastColor);
 
 			const char* fontIconEndPos = &text[1];
-			if(text[0] == TextRenderer::FONT_ICON_SEPARATOR_CHARACTER && TextRenderer::IsFontIcon(fontIconEndPos, fontIconInfo))
+			if (text[0] == TextRenderer::FONT_ICON_SEPARATOR_CHARACTER && TextRenderer::IsFontIcon(fontIconEndPos, fontIconInfo))
 			{
 				// The game calculates width on a per character base. Since the width of a font icon is calculated based on the height of the font
 				// which is roughly double as much as the average width of a character without an additional multiplier the calculated len of the font icon
