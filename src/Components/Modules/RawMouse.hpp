@@ -6,6 +6,9 @@ namespace Components
 	{
 	public:
 		RawMouse();
+
+		static void IN_MouseMove();
+
 	private:
 		static Dvar::Var M_RawInput;
 		static int MouseRawX, MouseRawY;
@@ -15,6 +18,5 @@ namespace Components
 		static void IN_RawMouseMove();
 		static void IN_RawMouse_Init();
 		static void IN_Init();
-		static void IN_MouseMove();
 	};
 }

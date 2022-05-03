@@ -1531,11 +1531,9 @@ namespace Components
         gpad_present.setRaw(gpadPresent);
     }
 
-
     void Gamepad::IN_Frame_Hk()
     {
-        // Call original method
-        Utils::Hook::Call<void()>(0x64C490)();
+        RawMouse::IN_MouseMove();
 
         IN_GamePadsMove();
     }
