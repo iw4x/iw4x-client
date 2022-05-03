@@ -114,7 +114,7 @@ namespace Components
 
 	void Node::StoreNodes(bool force)
 	{
-		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
+		if (Dedicated::IsEnabled() && Dedicated::SVLanOnly.get<bool>()) return;
 
 		static Utils::Time::Interval interval;
 		if (!force && !interval.elapsed(1min)) return;
@@ -168,7 +168,7 @@ namespace Components
 	void Node::RunFrame()
 	{
 		if (ServerList::useMasterServer) return;
-		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
+		if (Dedicated::IsEnabled() && Dedicated::SVLanOnly.get<bool>()) return;
 
 		if (!Dedicated::IsEnabled() && *Game::clcState > 0)
 		{

@@ -3,7 +3,9 @@
 namespace Components
 {
 	SteamID Dedicated::PlayerGuids[18][2];
+
 	Dvar::Var Dedicated::SVRandomMapRotation;
+	Dvar::Var Dedicated::SVLanOnly;
 
 	bool Dedicated::IsEnabled()
 	{
@@ -290,7 +292,11 @@ namespace Components
 			// Make sure all callbacks are handled
 			Scheduler::OnFrame(Steam::SteamAPI_RunCallbacks);
 
-			Dvar::Register<bool>("sv_lanOnly", false, Game::dvar_flag::DVAR_NONE, "Don't act as node");
+			Dvar::OnInit([]
+			{
+				Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
+					Game::dvar_flag::DVAR_NONE, "Don't act as node");
+			});
 
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();
 
@@ -379,6 +385,12 @@ namespace Components
 				Scheduler::OnFrame([]()
 				{
 					static Utils::Time::Interval interval;
+
+					// Do not send an heartbeat if sv_lanOnly is set to true
+					if (Dedicated::SVLanOnly.get<bool>())
+					{
+						return;
+					}
 
 					if (Dvar::Var("sv_maxclients").get<int>() > 0 && interval.elapsed(2min))
 					{
