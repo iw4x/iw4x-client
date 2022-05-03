@@ -132,7 +132,7 @@ namespace Components
 		const auto chatHeight = (*cg_chatHeight)->current.integer;
 		const auto chatWidth = static_cast<float>(cg_chatWidth.get<int>());
 		const auto chatTime = (*cg_chatTime)->current.integer;
-		if (chatHeight < 0 || static_cast<unsigned>(chatHeight) > std::extent_v<decltype(Game::cgs_t::teamChatMsgs)> || chatWidth <= 0 || chatTime <= 0)
+		if (chatHeight <= 0 || static_cast<unsigned>(chatHeight) > std::extent_v<decltype(Game::cgs_t::teamChatMsgs)> || chatWidth <= 0 || chatTime <= 0)
 		{
 			Game::cgsArray[0].teamLastChatPos = 0;
 			Game::cgsArray[0].teamChatPos = 0;
