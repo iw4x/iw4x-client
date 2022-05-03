@@ -77,16 +77,14 @@ namespace Components
 
 	std::string Logger::Format(const char** message)
 	{
-		const size_t bufferSize = 0x10000;
-		Utils::Memory::Allocator allocator;
-		char* buffer = allocator.allocateArray<char>(bufferSize);
+		char buffer[4096] = {0};
 
 		va_list ap = reinterpret_cast<char*>(const_cast<char**>(&message[1]));
-		//va_start(ap, *message);
-		_vsnprintf_s(buffer, bufferSize, bufferSize, *message, ap);
+
+		_vsnprintf_s(buffer, _TRUNCATE, *message, ap);
 		va_end(ap);
 
-		return buffer;
+		return {buffer};
 	}
 
 	void Logger::Flush()
@@ -138,8 +136,8 @@ namespace Components
 	{
 		if (!data) return;
 
-		std::string buffer(data);
-		for (auto& addr : Logger::LoggingAddresses[gLog & 1])
+		const std::string buffer(data);
+		for (const auto& addr : Logger::LoggingAddresses[gLog & 1])
 		{
 			Network::SendCommand(addr, "print", buffer);
 		}
@@ -373,9 +371,9 @@ namespace Components
 		Logger::MessageMutex.unlock();
 
 		// Flush the console log
-		if (int fh = *reinterpret_cast<int*>(0x1AD8F28))
+		if (const auto logfile = *reinterpret_cast<int*>(0x1AD8F28))
 		{
-			Game::FS_FCloseFile(fh);
+			Game::FS_FCloseFile(logfile);
 		}
 	}
 }

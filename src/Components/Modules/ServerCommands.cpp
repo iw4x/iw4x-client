@@ -2,24 +2,24 @@
 
 namespace Components
 {
-	std::unordered_map<std::int32_t, Utils::Slot<bool(Command::Params*)>> ServerCommands::Commands;
+	std::unordered_map<std::int32_t, std::function<bool(Command::Params*)>> ServerCommands::Commands;
 
-	void ServerCommands::OnCommand(std::int32_t cmd, Utils::Slot<bool(Command::Params*)> cb)
+	void ServerCommands::OnCommand(std::int32_t cmd, std::function<bool(Command::Params*)> callback)
 	{
-		ServerCommands::Commands[cmd] = cb;
+		ServerCommands::Commands.insert_or_assign(cmd, std::move(callback));
 	}
 
 	bool ServerCommands::OnServerCommand()
 	{
 		Command::ClientParams params;
 		
-		for (const auto& serverCommandCB : ServerCommands::Commands)
+		for (const auto& [id, callback] : ServerCommands::Commands)
 		{
 			if (params.size() >= 1)
 			{
-				if (params.get(0)[0] == serverCommandCB.first)
+				if (params.get(0)[0] == id) // Compare ID of server command
 				{
-					return serverCommandCB.second(&params);
+					return callback(&params);
 				}
 			}
 		}
@@ -27,7 +27,7 @@ namespace Components
 		return false;
 	}
 
-	__declspec(naked) void ServerCommands::OnServerCommandStub()
+	__declspec(naked) void ServerCommands::CG_DeployServerCommand_Stub()
 	{
 		__asm
 		{
@@ -44,7 +44,7 @@ namespace Components
 			test eax, eax
 			jle error
 
-			mov eax, DWORD PTR[edx * 4 + 1AAC634h]
+			mov eax, dword ptr [edx * 4 + 1AAC634h]
 			mov eax, [eax]
 
 			push 5944B3h
@@ -63,6 +63,6 @@ namespace Components
 	ServerCommands::ServerCommands()
 	{
 		// Server command receive hook
-		Utils::Hook(0x59449F, ServerCommands::OnServerCommandStub).install()->quick();
+		Utils::Hook(0x59449F, ServerCommands::CG_DeployServerCommand_Stub).install()->quick();
 	}
 }

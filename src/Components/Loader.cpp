@@ -69,7 +69,6 @@ namespace Components
 		Loader::Register(new Renderer());
 		Loader::Register(new UIFeeder());
 		Loader::Register(new UIScript());
-		Loader::Register(new AntiCheat());
 		Loader::Register(new Changelog());
 		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());
@@ -84,6 +83,7 @@ namespace Components
 		Loader::Register(new ModelSurfs());
 		Loader::Register(new PlayerName());
 		Loader::Register(new QuickPatch());
+		Loader::Register(new Security());
 		Loader::Register(new ServerInfo());
 		Loader::Register(new ServerList());
 		Loader::Register(new SlowMotion());
@@ -104,8 +104,9 @@ namespace Components
 		Loader::Register(new Movement());
 		Loader::Register(new Elevators());
 		Loader::Register(new ClientCommand());
-
-		Loader::Register(new Client());
+		Loader::Register(new ScriptExtension());
+		Loader::Register(new RawMouse());
+		Loader::Register(new Bullet());
 
 		Loader::Pregame = false;
 	}

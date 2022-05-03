@@ -6,36 +6,23 @@ namespace Components
 	class Script : public Component
 	{
 	public:
-		class Function
-		{
-		public:
-			Function(const std::string& _name, Game::scr_function_t _callback, bool _dev) : name(_name), callback(_callback), dev(_dev) {}
-
-			const char* getName() const { return this->name.data(); }
-			bool isDev() const { return this->dev; }
-			Game::scr_function_t getFunction() const { return this->callback; }
-
-		private:
-			std::string name;
-			Game::scr_function_t callback;
-			bool dev;
-		};
-
 		Script();
 		~Script();
 
 		static int LoadScriptAndLabel(const std::string& script, const std::string& label);
-		static void AddFunction(const std::string& name, Game::scr_function_t function, bool isDev = false);
+
+		static void AddFunction(const char* name, Game::BuiltinFunction func, int type = 0);
+		static void AddMethod(const char* name, Game::BuiltinMethod func, int type = 0);
 
 		static void OnVMShutdown(Utils::Slot<Scheduler::Callback> callback);
 
-		static Game::gentity_t* getEntFromEntRef(Game::scr_entref_t entref);
-		static Game::client_t* getClientFromEnt(Game::gentity_t* gentity);
+		static Game::client_t* GetClient(const Game::gentity_t* gentity);
 
 	private:
 		static std::string ScriptName;
 		static std::vector<int> ScriptHandles;
-		static std::vector<Function> ScriptFunctions;
+		static std::unordered_map<std::string, Game::BuiltinFunctionDef> CustomScrFunctions;
+		static std::unordered_map<std::string, Game::BuiltinMethodDef> CustomScrMethods;
 		static std::vector<std::string> ScriptNameStack;
 		static unsigned short FunctionName;
 		static std::unordered_map<std::string, std::string> ScriptStorage;
@@ -51,6 +38,7 @@ namespace Components
 
 		static void FunctionError();
 		static void StoreFunctionNameStub();
+		static void RuntimeError(const char* codePos, unsigned int index, const char* msg, const char* dialogMessage);
 
 		static void StoreScriptName(const char* name);
 		static void StoreScriptNameStub();
@@ -61,10 +49,10 @@ namespace Components
 		static void LoadGameType();
 		static void LoadGameTypeScript();
 
-		static Game::scr_function_t GetFunction(void* caller, const char** name, int* isDev);
-		static void GetFunctionStub();
+		static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
+		static Game::BuiltinMethod BuiltIn_GetMethod(const char** pName, int* type);
 
-		static void ScrShutdownSystemStub(int);
+		static void ScrShutdownSystemStub(unsigned char sys);
 		static void StoreScriptBaseProgramNumStub();
 		static void StoreScriptBaseProgramNum();
 		static void Scr_PrintPrevCodePosStub();

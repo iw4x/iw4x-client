@@ -8,7 +8,8 @@ namespace Components
 		class Params
 		{
 		public:
-			Params() {};
+			Params() = default;
+			virtual ~Params() = default;
 
 			virtual int size() = 0;
 			virtual const char* get(int index) = 0;
@@ -20,7 +21,7 @@ namespace Components
 			}
 		};
 
-		class ClientParams : public Params
+		class ClientParams final : public Params
 		{
 		public:
 			ClientParams();
@@ -32,7 +33,7 @@ namespace Components
 			int nesting_;
 		};
 
-		class ServerParams : public Params
+		class ServerParams final : public Params
 		{
 		public:
 			ServerParams();
@@ -44,14 +45,12 @@ namespace Components
 			int nesting_;
 		};
 
-		typedef void(Callback)(Command::Params* params);
-
 		Command();
 
 		static Game::cmd_function_t* Allocate();
 
-		static void Add(const char* name, Utils::Slot<Callback> callback);
-		static void AddSV(const char* name, Utils::Slot<Callback> callback);
+		static void Add(const char* name, std::function<void(Command::Params*)> callback);
+		static void AddSV(const char* name, std::function<void(Command::Params*)> callback);
 		static void AddRaw(const char* name, void(*callback)(), bool key = false);
 		static void AddRawSV(const char* name, void(*callback)());
 		static void Execute(std::string command, bool sync = true);
@@ -59,8 +58,8 @@ namespace Components
 		static Game::cmd_function_t* Find(const std::string& command);
 
 	private:
-		static std::unordered_map<std::string, Utils::Slot<Callback>> FunctionMap;
-		static std::unordered_map<std::string, Utils::Slot<Callback>> FunctionMapSV;
+		static std::unordered_map<std::string, std::function<void(Command::Params*)>> FunctionMap;
+		static std::unordered_map<std::string, std::function<void(Command::Params*)>> FunctionMapSV;
 
 		static void MainCallback();
 		static void MainCallbackSV();

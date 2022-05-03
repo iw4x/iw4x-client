@@ -374,7 +374,6 @@ namespace Components
 					}
 				});
 
-#ifdef USE_LEGACY_SERVER_LIST
 				// Heartbeats
 				Scheduler::Once(Dedicated::Heartbeat);
 				Scheduler::OnFrame([]()
@@ -387,7 +386,6 @@ namespace Components
 						Dedicated::Heartbeat();
 					}
 				});
-#endif
 
 				Dvar::OnInit([]()
 				{

@@ -55,9 +55,5 @@ namespace Components
 
 		// Changelog
 		UIFeeder::Add(62.0f, Changelog::GetChangelogCount, Changelog::GetChangelogText, Changelog::SelectChangelog);
-
-#ifndef DISABLE_ANTICHEAT
-		Scheduler::OnFrameAsync(AntiCheat::QuickCodeScanner1);
-#endif
 	}
 }

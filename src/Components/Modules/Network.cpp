@@ -10,48 +10,59 @@ namespace Components
 	{
 		Game::NET_StringToAdr(addrString.data(), &this->address);
 	}
+
 	Network::Address::Address(sockaddr* addr)
 	{
 		Game::SockadrToNetadr(addr, &this->address);
 	}
+
 	bool Network::Address::operator==(const Network::Address& obj) const
 	{
 		return Game::NET_CompareAdr(this->address, obj.address);
 	}
+
 	void Network::Address::setPort(unsigned short port)
 	{
 		this->address.port = htons(port);
 	}
+
 	unsigned short Network::Address::getPort()
 	{
 		return ntohs(this->address.port);
 	}
+
 	void Network::Address::setIP(DWORD ip)
 	{
 		this->address.ip.full = ip;
 	}
+
 	void Network::Address::setIP(Game::netIP_t ip)
 	{
 		this->address.ip = ip;
 	}
+
 	Game::netIP_t Network::Address::getIP()
 	{
 		return this->address.ip;
 	}
+
 	void Network::Address::setType(Game::netadrtype_t type)
 	{
 		this->address.type = type;
 	}
+
 	Game::netadrtype_t Network::Address::getType()
 	{
 		return this->address.type;
 	}
+
 	sockaddr Network::Address::getSockAddr()
 	{
 		sockaddr addr;
 		this->toSockAddr(&addr);
 		return addr;
 	}
+
 	void Network::Address::toSockAddr(sockaddr* addr)
 	{
 		if (addr)
@@ -59,22 +70,27 @@ namespace Components
 			Game::NetadrToSockadr(&this->address, addr);
 		}
 	}
+
 	void Network::Address::toSockAddr(sockaddr_in* addr)
 	{
 		this->toSockAddr(reinterpret_cast<sockaddr*>(addr));
 	}
+
 	Game::netadr_t* Network::Address::get()
 	{
 		return &this->address;
 	}
+
 	const char* Network::Address::getCString() const
 	{
 		return Game::NET_AdrToString(this->address);
 	}
+
 	std::string Network::Address::getString() const
 	{
 		return this->getCString();
 	}
+
 	bool Network::Address::isLocal()
 	{
 		// According to: https://en.wikipedia.org/wiki/Private_network
@@ -95,6 +111,7 @@ namespace Components
 
 		return false;
 	}
+
 	bool Network::Address::isSelf()
 	{
 		if (Game::NET_IsLocalAddress(this->address)) return true; // Loopback
@@ -110,6 +127,7 @@ namespace Components
 
 		return false;
 	}
+
 	bool Network::Address::isLoopback()
 	{
 		if (this->getIP().full == 0x100007f) // 127.0.0.1
@@ -119,10 +137,12 @@ namespace Components
 
 		return Game::NET_IsLocalAddress(this->address);
 	}
+
 	bool Network::Address::isValid()
 	{
 		return (this->getType() != Game::netadrtype_t::NA_BAD && this->getType() >= Game::netadrtype_t::NA_BOT && this->getType() <= Game::netadrtype_t::NA_IP);
 	}
+
 	void Network::Handle(const std::string& packet, Utils::Slot<Network::Callback> callback)
 	{
 		Network::PacketHandlers[Utils::String::ToLower(packet)] = callback;

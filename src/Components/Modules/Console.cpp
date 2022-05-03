@@ -51,8 +51,8 @@ namespace Components
 		{
 			SetConsoleTitleA(hostname.data());
 
-			int clientCount = 0;
-			int maxclientCount = *Game::svs_numclients;
+			auto clientCount = 0;
+			auto maxclientCount = *Game::svs_clientCount;
 
 			if (maxclientCount)
 			{

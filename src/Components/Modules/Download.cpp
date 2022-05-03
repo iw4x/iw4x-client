@@ -381,7 +381,7 @@ namespace Components
 	{
 		Network::Address address(nc->sa.sa);
 
-		for (int i = 0; i < *Game::svs_numclients; ++i)
+		for (int i = 0; i < *Game::svs_clientCount; ++i)
 		{
 			Game::client_t* client = &Game::svs_clients[i];
 
@@ -964,13 +964,20 @@ namespace Components
 			Download::ScriptDownloads.clear();
 		});
 
-		Script::AddFunction("httpGet", [](Game::scr_entref_t)
+		Script::AddFunction("HttpGet", []()
 		{
-			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp")) return;
-			if (Game::Scr_GetNumParam() < 1u) return;
+			if (!Flags::HasFlag("scriptablehttp"))
+				return;
 
-			std::string url = Game::Scr_GetString(0);
-			unsigned int object = Game::AllocObject();
+			const auto* url = Game::Scr_GetString(0);
+
+			if (url == nullptr)
+			{
+				Game::Scr_ParamError(0, "^1HttpGet: Illegal parameter!\n");
+				return;
+			}
+
+			auto object = Game::AllocObject();
 
 			Game::Scr_AddObject(object);
 
@@ -978,13 +985,13 @@ namespace Components
 			Game::RemoveRefToObject(object);
 		});
 
-		Script::AddFunction("httpCancel", [](Game::scr_entref_t)
+		Script::AddFunction("HttpCancel", []()
 		{
-			if (!Dedicated::IsEnabled() && !Flags::HasFlag("scriptablehttp")) return;
-			if (Game::Scr_GetNumParam() < 1u) return;
+			if (!Flags::HasFlag("scriptablehttp"))
+				return;
 
-			unsigned int object = Game::Scr_GetObject(0);
-			for (auto& download : Download::ScriptDownloads)
+			const auto object = Game::Scr_GetObject(0);
+			for (const auto& download : Download::ScriptDownloads)
 			{
 				if (object == download->getObject())
 				{

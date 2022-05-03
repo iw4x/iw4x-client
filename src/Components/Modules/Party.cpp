@@ -307,7 +307,7 @@ namespace Components
 		{
 			int botCount = 0;
 			int clientCount = 0;
-			int maxclientCount = *Game::svs_numclients;
+			int maxclientCount = *Game::svs_clientCount;
 
 			if (maxclientCount)
 			{
@@ -315,7 +315,7 @@ namespace Components
 				{
 					if (Game::svs_clients[i].state >= 3)
 					{
-						if (Game::svs_clients[i].isBot) ++botCount;
+						if (Game::svs_clients[i].bIsTestClient) ++botCount;
 						else ++clientCount;
 					}
 				}

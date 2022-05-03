@@ -8,7 +8,7 @@ namespace Components
     {
         if (!sv_allowColoredNames.get<bool>())
         {
-            char nameBuffer[64] = { 0 };
+            char nameBuffer[64] = {0};
             TextRenderer::StripColors(name, nameBuffer, sizeof(nameBuffer));
             TextRenderer::StripAllTextIcons(nameBuffer, buffer, size);
         }
@@ -26,12 +26,12 @@ namespace Components
         }
     }
 
-    __declspec(naked) void PlayerName::ClientUserinfoChanged()
+    __declspec(naked) void PlayerName::ClientCleanName()
     {
         __asm
         {
             mov eax, [esp + 4h] // length
-            //sub eax, 1
+
             push eax
 
             push ecx // name
@@ -53,10 +53,55 @@ namespace Components
 
         return buf;
     }
+
 	char* PlayerName::CleanStrStub(char* string)
 	{
 		TextRenderer::StripColors(string, string, strlen(string) + 1);
 		return string;
+	}
+
+	bool PlayerName::CopyClientNameCheck(char* dest, const char* source, int size)
+	{
+		Utils::Hook::Call<void(char*, const char*, int)>(0x4D6F80)(dest, source, size); // I_strncpyz
+
+		auto i = 0;
+		while (i < size - 1 && dest[i] != '\0')
+		{
+			if (dest[i] > 125 || dest[i] < 32 || dest[i] == '%')
+			{
+				return false; // Illegal string
+			}
+
+			++i;
+		}
+
+		return true;
+	}
+
+	__declspec(naked) void PlayerName::SV_UserinfoChangedStub()
+	{
+		__asm
+		{
+			call CopyClientNameCheck
+			test al, al
+
+			jnz returnSafe
+
+			pushad
+
+			push 1 // tellThem
+			push INVALID_NAME_MSG // reason
+			push edi // drop
+			mov eax, 0x4D1600 // SV_DropClient
+			call eax
+			add esp, 0xC
+
+			popad
+
+		returnSafe:
+			push 0x401988
+			retn
+		}
 	}
 
 	PlayerName::PlayerName()
@@ -66,13 +111,17 @@ namespace Components
 		// Disable SV_UpdateUserinfo_f, to block changing the name ingame
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
 
-		// Allow colored names ingame
-		Utils::Hook(0x5D8B40, ClientUserinfoChanged, HOOK_JUMP).install()->quick();
+		// Allow colored names ingame. Hook placed in ClientUserinfoChanged
+		Utils::Hook(0x5D8B40, ClientCleanName, HOOK_JUMP).install()->quick();
 
 		// Though, don't apply that to overhead names.
 		Utils::Hook(0x581932, GetClientName, HOOK_CALL).install()->quick();
 
 		// Patch I_CleanStr
 		Utils::Hook(0x4AD470, CleanStrStub, HOOK_JUMP).install()->quick();
+
+		// Detect invalid characters including '%' to prevent format string vulnerabilities.
+		// Kicks the player as soon as possible
+		Utils::Hook(0x401983, SV_UserinfoChangedStub, HOOK_JUMP).install()->quick();
 	}
 }
