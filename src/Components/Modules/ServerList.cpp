@@ -272,20 +272,25 @@ namespace Components
 			const auto masterPort = Dvar::Var("masterPort").get<int>();
 			const auto masterServerName = Dvar::Var("masterServerName").get<const char*>();
 
+			// Check if our dvars can properly convert to a address
 			Game::netadr_t masterServerAddr;
-			if (ServerList::GetMasterServer(masterServerName, masterPort, masterServerAddr))
+			if (!ServerList::GetMasterServer(masterServerName, masterPort, masterServerAddr))
 			{
-				Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
-				useMasterServer = true;
-
-				ServerList::RefreshContainer.awatingList = true;
-				ServerList::RefreshContainer.awaitTime = Game::Sys_Milliseconds();
-
-				ServerList::RefreshContainer.host = Network::Address(Utils::String::VA("%s:%u", masterServerName, masterPort));
-
-				Logger::Print("Sending serverlist request to master\n");
-				Network::SendCommand(ServerList::RefreshContainer.host, "getservers", Utils::String::VA("IW4 %i full empty", PROTOCOL));
+				Logger::Print("Could not resolve address for %s:%u", masterServerName, masterPort);
+				Toast::Show("cardicon_headshot", "^1Error", Utils::String::VA("Could not resolve address for %s:%u", masterServerName, masterPort), 5000);
+				return;
 			}
+
+			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
+
+			useMasterServer = true;
+
+			ServerList::RefreshContainer.awatingList = true;
+			ServerList::RefreshContainer.awaitTime = Game::Sys_Milliseconds();
+			ServerList::RefreshContainer.host = Network::Address(Utils::String::VA("%s:%u", masterServerName, masterPort));
+
+			Logger::Print("Sending serverlist request to master\n");
+			Network::SendCommand(ServerList::RefreshContainer.host, "getservers", Utils::String::VA("IW4 %i full empty", PROTOCOL));
 		}
 		else if (ServerList::IsFavouriteList())
 		{
