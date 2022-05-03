@@ -106,6 +106,7 @@ namespace Components
 		Loader::Register(new ClientCommand());
 		Loader::Register(new ScriptExtension());
 		Loader::Register(new RawMouse());
+		Loader::Register(new Bullet());
 
 		Loader::Pregame = false;
 	}

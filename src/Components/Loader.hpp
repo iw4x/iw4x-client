@@ -137,3 +137,4 @@ namespace Components
 #include "Modules/Gamepad.hpp"
 #include "Modules/ScriptExtension.hpp"
 #include "Modules/RawMouse.hpp"
+#include "Modules/Bullet.hpp"
