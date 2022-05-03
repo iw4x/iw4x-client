@@ -275,7 +275,7 @@ namespace Components
 			Game::netadr_t masterServerAddr;
 			if (ServerList::GetMasterServer(masterServerAddr))
 			{
-				Toast::Show("cardicon_headshot", "", "Fetching servers...", 3000);
+				Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
 				useMasterServer = true;
 
 				ServerList::RefreshContainer.awatingList = true;
