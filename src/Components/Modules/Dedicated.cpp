@@ -252,9 +252,15 @@ namespace Components
 	}
 
 	void Dedicated::Heartbeat()
-	{
-		int masterPort = Dvar::Var("masterPort").get<int>();
-		const char* masterServerName = Dvar::Var("masterServerName").get<const char*>();
+	{	
+		// Do not send a heartbeat if sv_lanOnly is set to true
+		if (Dedicated::SVLanOnly.get<bool>())
+		{
+			return;
+		}
+
+		auto masterPort = Dvar::Var("masterPort").get<int>();
+		const auto* masterServerName = Dvar::Var("masterServerName").get<const char*>();
 
 		Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
 
@@ -385,12 +391,6 @@ namespace Components
 				Scheduler::OnFrame([]()
 				{
 					static Utils::Time::Interval interval;
-
-					// Do not send an heartbeat if sv_lanOnly is set to true
-					if (Dedicated::SVLanOnly.get<bool>())
-					{
-						return;
-					}
 
 					if (Dvar::Var("sv_maxclients").get<int>() > 0 && interval.elapsed(2min))
 					{
