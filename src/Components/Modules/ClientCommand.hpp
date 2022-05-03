@@ -5,19 +5,17 @@ namespace Components
 	class ClientCommand : public Component
 	{
 	public:
-		typedef void(Callback)(Game::gentity_s* entity);
-
 		ClientCommand();
 
-		static void Add(const char* name, Utils::Slot<Callback> callback);
+		static void Add(const char* name, std::function<void(Game::gentity_s*, Command::ServerParams*)> callback);
 		static bool CheatsOk(const Game::gentity_s* ent);
 
 	private:
-		static std::unordered_map<std::string, Utils::Slot<Callback>> FunctionMap;
+		static std::unordered_map<std::string, std::function<void(Game::gentity_s*, Command::ServerParams*)>> HandlersSV;
 
-		static bool CallbackHandler(Game::gentity_s* ent, const char* cmd);
 		static void ClientCommandStub(const int clientNum);
 		static void AddCheatCommands();
+		static void AddDevelopmentCommands();
 		static void AddScriptFunctions();
 	};
 }

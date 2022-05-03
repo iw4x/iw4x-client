@@ -23,16 +23,24 @@ namespace Utils
 			return result;
 		}
 
-		std::string ToLower(std::string input)
+		std::string ToLower(std::string text)
 		{
-			std::transform(input.begin(), input.end(), input.begin(), ::tolower);
-			return input;
+			std::transform(text.begin(), text.end(), text.begin(), [](const unsigned char input)
+			{
+				return static_cast<char>(std::tolower(input));
+			});
+
+			return text;
 		}
 
-		std::string ToUpper(std::string input)
+		std::string ToUpper(std::string text)
 		{
-			std::transform(input.begin(), input.end(), input.begin(), ::toupper);
-			return input;
+			std::transform(text.begin(), text.end(), text.begin(), [](const unsigned char input)
+			{
+				return static_cast<char>(std::toupper(input));
+			});
+
+			return text;
 		}
 
 		std::string DumpHex(const std::string& data, const std::string& separator)
@@ -89,12 +97,13 @@ namespace Utils
 
 		bool StartsWith(const std::string& haystack, const std::string& needle)
 		{
-			return (haystack.size() >= needle.size() && haystack.substr(0, needle.size()) == needle);
+			return haystack.find(needle) == 0; // If the pos of the first found char is 0, string starts with 'needle'
 		}
 
 		bool EndsWith(const std::string& haystack, const std::string& needle)
 		{
-			return (haystack.size() >= needle.size() && haystack.substr(haystack.size() - needle.size()) == needle);
+			if (needle.size() > haystack.size()) return false;
+			return std::equal(needle.rbegin(), needle.rend(), haystack.rbegin());
 		}
 
 		int IsSpace(int c)

@@ -5,23 +5,23 @@ namespace Game
 	std::vector<std::string> Sys_ListFilesWrapper(const std::string& directory, const std::string& extension)
 	{
 		auto fileCount = 0;
-		auto files = Game::Sys_ListFiles(directory.data(), extension.data(), 0, &fileCount, 0);
+		auto** const files = Sys_ListFiles(directory.data(), extension.data(), nullptr, &fileCount, 0);
 
 		std::vector<std::string> result;
 
 		for (auto i = 0; i < fileCount; i++)
 		{
-			if (files[i])
+			if (files[i] != nullptr)
 			{
-				result.push_back(files[i]);
+				result.emplace_back(files[i]);
 			}
 		}
 
-		Game::FS_FreeFileList(files);
+		FS_FreeFileList(files);
 
 		return result;
 	}
-	
+
 	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
 
@@ -31,6 +31,7 @@ namespace Game
 	BG_GetWeaponName_t BG_GetWeaponName = BG_GetWeaponName_t(0x4E6EC0);
 	BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj = BG_LoadWeaponDef_LoadObj_t(0x57B5F0);
 	BG_GetWeaponDef_t BG_GetWeaponDef = BG_GetWeaponDef_t(0x440EB0);
+	BG_GetEntityTypeName_t BG_GetEntityTypeName = BG_GetEntityTypeName_t(0x43A0E0);
 
 	Cbuf_AddServerText_t Cbuf_AddServerText = Cbuf_AddServerText_t(0x4BB9B0);
 	Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x404B20);
@@ -44,7 +45,9 @@ namespace Game
 	CG_ScoresUp_f_t CG_ScoresUp_f = CG_ScoresUp_f_t(0x5802C0);
 	CG_ScrollScoreboardUp_t CG_ScrollScoreboardUp = CG_ScrollScoreboardUp_t(0x47A5C0);
 	CG_ScrollScoreboardDown_t CG_ScrollScoreboardDown = CG_ScrollScoreboardDown_t(0x493B50);
-	
+	CG_GetTeamName_t CG_GetTeamName = CG_GetTeamName_t(0x4B6210);
+	CG_SetupWeaponDef_t CG_SetupWeaponDef = CG_SetupWeaponDef_t(0x4BD520);
+
 	CL_GetClientName_t CL_GetClientName = CL_GetClientName_t(0x4563D0);
 	CL_IsCgameInitialized_t CL_IsCgameInitialized = CL_IsCgameInitialized_t(0x43EB20);
 	CL_ConnectFromParty_t CL_ConnectFromParty = CL_ConnectFromParty_t(0x433D30);
@@ -73,6 +76,7 @@ namespace Game
 	Com_MatchToken_t Com_MatchToken = Com_MatchToken_t(0x447130);
 	Com_SetSlowMotion_t Com_SetSlowMotion = Com_SetSlowMotion_t(0x446E20);
 	Com_Quitf_t Com_Quit_f = Com_Quitf_t(0x4D4000);
+	Com_PrintWarning_t  Com_PrintWarning = Com_PrintWarning_t(0x4E0200);
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = Con_DrawMiniConsole_t(0x464F30);
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = Con_DrawSolidConsole_t(0x5A5040);
@@ -149,8 +153,13 @@ namespace Game
 	FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
 	FS_Delete_t FS_Delete = FS_Delete_t(0x48A5B0);
 
+	G_LogPrintf_t G_LogPrintf = G_LogPrintf_t(0x4B0150);
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
+	G_PrintEntities_t G_PrintEntities = G_PrintEntities_t(0x4E6A50);
+	G_GetEntityTypeName_t G_GetEntityTypeName = G_GetEntityTypeName_t(0x4EB810);
+
+	Svcmd_EntityList_f_t Svcmd_EntityList_f = Svcmd_EntityList_f_t(0x4B6A70);
 
 	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = GScr_LoadGameTypeScript_t(0x4ED9A0);
 
@@ -184,7 +193,7 @@ namespace Game
 	Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray = Load_snd_alias_list_nameArray_t(0x4499F0);
 
 	Menus_CloseAll_t Menus_CloseAll = Menus_CloseAll_t(0x4BA5B0);
-    Menus_CloseRequest_t Menus_CloseRequest = Menus_CloseRequest_t(0x430D50);
+	Menus_CloseRequest_t Menus_CloseRequest = Menus_CloseRequest_t(0x430D50);
 	Menus_OpenByName_t Menus_OpenByName = Menus_OpenByName_t(0x4CCE60);
 	Menus_FindByName_t Menus_FindByName = Menus_FindByName_t(0x487240);
 	Menu_IsVisible_t Menu_IsVisible = Menu_IsVisible_t(0x4D77D0);
@@ -259,6 +268,8 @@ namespace Game
 	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = Scr_GetFunctionHandle_t(0x4234F0);
 
 	Scr_GetString_t Scr_GetString = Scr_GetString_t(0x425900);
+	Scr_GetConstString_t Scr_GetConstString = Scr_GetConstString_t(0x494830);
+	Scr_GetDebugString_t Scr_GetDebugString = Scr_GetDebugString_t(0x4EBF50);
 	Scr_GetFloat_t Scr_GetFloat = Scr_GetFloat_t(0x443140);
 	Scr_GetInt_t Scr_GetInt = Scr_GetInt_t(0x4F31D0);
 	Scr_GetObject_t Scr_GetObject = Scr_GetObject_t(0x462100);
@@ -269,15 +280,30 @@ namespace Game
 
 	Scr_AddEntity_t Scr_AddEntity = Scr_AddEntity_t(0x4BFB40);
 	Scr_AddString_t Scr_AddString = Scr_AddString_t(0x412310);
+	Scr_AddConstString_t Scr_AddConstString = Scr_AddConstString_t(0x488860);
+	Scr_AddIString_t Scr_AddIString = Scr_AddIString_t(0x455F20);
 	Scr_AddInt_t Scr_AddInt = Scr_AddInt_t(0x41D7D0);
 	Scr_AddFloat_t Scr_AddFloat = Scr_AddFloat_t(0x61E860);
 	Scr_AddObject_t Scr_AddObject = Scr_AddObject_t(0x430F40);
 	Scr_Notify_t Scr_Notify = Scr_Notify_t(0x4A4750);
 	Scr_NotifyLevel_t Scr_NotifyLevel = Scr_NotifyLevel_t(0x4D9C30);
+
 	Scr_Error_t Scr_Error = Scr_Error_t(0x61E8B0);
+	Scr_ObjectError_t Scr_ObjectError = Scr_ObjectError_t(0x42EF40);
+	Scr_ParamError_t Scr_ParamError = Scr_ParamError_t(0x4FBC70);
+
 	Scr_GetType_t Scr_GetType = Scr_GetType_t(0x422900);
 
 	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
+
+	Scr_GetObjectField_t Scr_GetObjectField = Scr_GetObjectField_t(0x4FF3D0);
+	Scr_SetObjectField_t Scr_SetObjectField = Scr_SetObjectField_t(0x4F20F0);
+	Scr_GetEntityField_t Scr_GetEntityField = Scr_GetEntityField_t(0x4E8390);
+	Scr_SetClientField_t Scr_SetClientField = Scr_SetClientField_t(0x4A6DF0);
+	Scr_AddClassField_t Scr_AddClassField = Scr_AddClassField_t(0x4C0E70);
+
+	GetEntity_t GetEntity = GetEntity_t(0x4BC270);
+	GetPlayerEntity_t GetPlayerEntity = GetPlayerEntity_t(0x49C4A0);
 
 	Scr_RegisterFunction_t Scr_RegisterFunction = Scr_RegisterFunction_t(0x492D50);
 	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = Scr_ShutdownAllocNode_t(0x441650);
@@ -302,6 +328,8 @@ namespace Game
 
 	SL_ConvertToString_t SL_ConvertToString = SL_ConvertToString_t(0x4EC1D0);
 	SL_GetString_t SL_GetString = SL_GetString_t(0x4CDC10);
+	SL_AddRefToString_t SL_AddRefToString = SL_AddRefToString_t(0x4D9B00);
+	SL_RemoveRefToString_t SL_RemoveRefToString = SL_RemoveRefToString_t(0x47CD70);
 
 	SND_Init_t SND_Init = SND_Init_t(0x46A630);
 	SND_InitDriver_t SND_InitDriver = SND_InitDriver_t(0x4F5090);
@@ -311,9 +339,11 @@ namespace Game
 	Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x49CF70);
 
 	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
+	StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow = StringTable_GetColumnValueForRow_t(0x4F2C80);
 	StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
 
 	SV_AddTestClient_t SV_AddTestClient = SV_AddTestClient_t(0x48AD30);
+	SV_IsTestClient_t SV_IsTestClient = SV_IsTestClient_t(0x4D6E40);
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = SV_GameClientNum_Score_t(0x469AC0);
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = SV_GameSendServerCommand_t(0x4BC3A0);
 	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = SV_Cmd_TokenizeString_t(0x4B5780);
@@ -323,10 +353,10 @@ namespace Game
 	SV_SetConfigstring_t SV_SetConfigstring = SV_SetConfigstring_t(0x4982E0);
 	SV_Loaded_t SV_Loaded = SV_Loaded_t(0x4EE3E0);
 	SV_ClientThink_t SV_ClientThink = SV_ClientThink_t(0x44ADD0);
+	SV_DropClient_t SV_DropClient = SV_DropClient_t(0x4D1600);
 	SV_GetPlayerByName_t SV_GetPlayerByName = SV_GetPlayerByName_t(0x6242B0);
 	SV_GetPlayerByNum_t SV_GetPlayerByNum = SV_GetPlayerByNum_t(0x624390);
 
-	Sys_Error_t Sys_Error = Sys_Error_t(0x4E0200);
 	Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x4D8580);
 	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = Sys_IsDatabaseReady_t(0x4CA4A0);
 	Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2 = Sys_IsDatabaseReady2_t(0x441280);
@@ -339,6 +369,7 @@ namespace Game
 	Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads = Sys_SuspendOtherThreads_t(0x45A190);
 	Sys_ListFiles_t Sys_ListFiles = Sys_ListFiles_t(0x45A660);
 	Sys_Milliseconds_t Sys_Milliseconds = Sys_Milliseconds_t(0x42A660);
+	Sys_Error_t Sys_Error = Sys_Error_t(0x43D570);
 	Sys_LockWrite_t Sys_LockWrite = Sys_LockWrite_t(0x435880);
 	Sys_TempPriorityAtLeastNormalBegin_t Sys_TempPriorityAtLeastNormalBegin = Sys_TempPriorityAtLeastNormalBegin_t(0x478680);
 	Sys_TempPriorityEnd_t Sys_TempPriorityEnd = Sys_TempPriorityEnd_t(0x4DCF00);
@@ -390,6 +421,13 @@ namespace Game
 	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
 	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
 
+	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
+	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
+
+	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
+	IN_Init_t IN_Init = IN_Init_t(0x45D620);
+	IN_Shutdown_t IN_Shutdown = IN_Shutdown_t(0x426360);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
@@ -405,10 +443,10 @@ namespace Game
 	float* cgameFOVSensitivityScale = reinterpret_cast<float*>(0xB2F884);
 
 	int* svs_time = reinterpret_cast<int*>(0x31D9384);
-	int* svs_numclients = reinterpret_cast<int*>(0x31D938C);
+	int* svs_clientCount = reinterpret_cast<int*>(0x31D938C);
 	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);
 
-	UiContext *uiContext = reinterpret_cast<UiContext *>(0x62E2858);
+	UiContext* uiContext = reinterpret_cast<UiContext*>(0x62E2858);
 
 	int* arenaCount = reinterpret_cast<int*>(0x62E6930);
 	mapArena_t* arenas = reinterpret_cast<mapArena_t*>(0x62E6934);
@@ -473,6 +511,7 @@ namespace Game
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x12412B0);
 
 	scrVmPub_t* scrVmPub = reinterpret_cast<scrVmPub_t*>(0x2040CF0);
+	scrVarPub_t* scrVarPub = reinterpret_cast<scrVarPub_t*>(0x201A408);
 
 	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
 
@@ -501,9 +540,22 @@ namespace Game
 
 	GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x7A2FC0);
 
+	const char* MY_CMDS = reinterpret_cast<const char*>(0x73C9C4); // Count 5
+
+	XModel** cached_models = reinterpret_cast<XModel**>(0x1AA20C8);
+
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
 
 	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
+
+	level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
+
+	float(*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT] = reinterpret_cast<float(*)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT]>(0x7C4878);
+
+	WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
+
+	int* window_center_x = reinterpret_cast<int*>(0x649D638);
+	int* window_center_y = reinterpret_cast<int*>(0x649D630);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
@@ -515,6 +567,13 @@ namespace Game
 	{
 		assert(critSect->readCount > 0);
 		InterlockedDecrement(&critSect->readCount);
+	}
+
+	XModel* G_GetModel(const int index)
+	{
+		assert(index > 0);
+		assert(index < MAX_MODELS);
+		return cached_models[index];
 	}
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
@@ -703,24 +762,49 @@ namespace Game
 		return hash;
 	}
 
-	void SV_KickClientError(client_t* client, const std::string& reason)
+	void SV_GameDropClient(int clientNum, const char* reason)
 	{
-		if (client->state < 5)
+		const auto maxClients = Dvar_FindVar("sv_maxclients")->current.integer;
+		assert(maxClients >= 1 && maxClients <= 18);
+
+		if (clientNum >= 0 && clientNum < maxClients)
 		{
-			Components::Network::SendCommand(client->netchan.remoteAddress, "error", reason);
+			SV_DropClient(&svs_clients[clientNum], reason, true);
+		}
+	}
+
+	void SV_DropAllBots()
+	{
+		for (auto i = 0; i < *svs_clientCount; ++i)
+		{
+			if (svs_clients[i].state != clientstate_t::CS_FREE
+				&& svs_clients[i].netchan.remoteAddress.type == netadrtype_t::NA_BOT)
+			{
+				SV_GameDropClient(i, "GAME_GET_TO_COVER");
+			}
+		}
+	}
+
+	void IncInParam()
+	{
+		Scr_ClearOutParams();
+
+		if (scrVmPub->top == scrVmPub->maxStack)
+		{
+			Sys_Error("Internal script stack overflow");
 		}
 
-		SV_KickClient(client, reason.data());
+		scrVmPub->top++;
+		scrVmPub->inparamcount++;
 	}
 
-	void Scr_iPrintLn(int clientNum, const std::string& message)
+	void Scr_AddBool(int value)
 	{
-		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x66, message.data()));
-	}
+		assert(value == 0 || value == 1);
 
-	void Scr_iPrintLnBold(int clientNum, const std::string& message)
-	{
-		Game::SV_GameSendServerCommand(clientNum, 0, Utils::String::VA("%c \"%s\"", 0x67, message.data()));
+		IncInParam();
+		scrVmPub->top->type = VAR_INTEGER;
+		scrVmPub->top->u.intValue = value;
 	}
 
 	int FS_FOpenFileReadCurrentThread(const char* file, int* fh)
@@ -1100,19 +1184,23 @@ namespace Game
 		}
 	}
 
-	bool PM_IsAdsAllowed(Game::playerState_s* playerState)
+	__declspec(naked) bool PM_IsAdsAllowed(playerState_s* /*ps*/)
 	{
-		bool result;
-
 		__asm
 		{
-			mov esi, playerState
-			mov ebx, 0x5755A0
-			call ebx
-			mov result, al // AL
-		}
+			push eax
+			pushad
 
-		return result;
+			mov esi, [esp + 0x24 + 0x4] // ps
+			mov ecx, 0x5755A0
+			call ecx
+
+			mov [esp + 0x20], eax
+			popad
+			pop eax
+
+			ret
+		}
 	}
 
 	__declspec(naked) void FS_AddLocalizedGameDirectory(const char* /*path*/, const char* /*dir*/)
@@ -1164,28 +1252,6 @@ namespace Game
 		}
 	}
 
-	__declspec(naked) void SV_KickClient(client_t* /*client*/, const char* /*reason*/)
-	{
-		__asm
-		{
-			pushad
-
-			mov edi, 0
-			mov esi, [esp + 24h]
-			push [esp + 28h]
-			push 0
-			push 0
-
-			mov eax, 6249A0h
-			call eax
-			add esp, 0Ch
-
-			popad
-
-			retn
-		}
-	}
-
 	__declspec(naked) void Scr_NotifyId(unsigned int /*id*/, unsigned __int16 /*stringValue*/, unsigned int /*paramcount*/)
 	{
 		__asm
@@ -1204,6 +1270,27 @@ namespace Game
 
 			popad
 			retn
+		}
+	}
+
+	__declspec(naked) void RuntimeErrorInternal(int /*channel*/, const char* /*codePos*/, unsigned int /*index*/, const char* /*msg*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov eax, [esp + 0x10 + 0x20] // msg
+			mov edi, [esp + 0x4 + 0x20] // channel
+
+			push [esp + 0xC + 0x20] // index
+			push [esp + 0xC + 0x20] // codePos
+
+			mov edx, 0x61ABE0
+			call edx
+			add esp, 0x8
+
+			popad
+			ret
 		}
 	}
 
@@ -1508,7 +1595,7 @@ namespace Game
 
 	__declspec(naked) void AimAssist_UpdateAdsLerp(const AimInput* /*aimInput*/)
 	{
-	    __asm
+		__asm
 		{
 			mov eax, [esp + 0x4]
 			mov ebx, 0x569AA0
@@ -1537,6 +1624,21 @@ namespace Game
 			popad
 
 			retn
+		}
+	}
+
+	constexpr auto SV_BotUserMove_Addr = 0x626E50;
+	__declspec(naked) void SV_BotUserMove(client_t* /*client*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov edi, [esp + 0x20 + 0x4]
+			call SV_BotUserMove_Addr
+
+			popad
+			ret
 		}
 	}
 

@@ -47,62 +47,6 @@ namespace Components
 		}
 	}
 
-	int QuickPatch::MsgReadBitsCompressCheckSV(const char *from, char *to, int size)
-	{
-		static char buffer[0x8000];
-
-		if (size > 0x800) return 0;
-		size = Game::MSG_ReadBitsCompress(from, buffer, size);
-
-		if (size > 0x800) return 0;
-		std::memcpy(to, buffer, size);
-
-		return size;
-	}
-
-	int QuickPatch::MsgReadBitsCompressCheckCL(const char *from, char *to, int size)
-	{
-		static char buffer[0x100000];
-
-		if (size > 0x20000) return 0;
-		size = Game::MSG_ReadBitsCompress(from, buffer, size);
-
-		if (size > 0x20000) return 0;
-		std::memcpy(to, buffer, size);
-
-		return size;
-	}
-
-	int QuickPatch::SVCanReplaceServerCommand(Game::client_t* /*client*/, const char* /*cmd*/)
-	{
-		// This is a fix copied from V2. As I don't have time to investigate, let's simply trust them
-		return -1;
-	}
-
-	long QuickPatch::AtolAdjustPlayerLimit(const char* string)
-	{
-		return std::min(atol(string), 18l);
-	}
-
-	void QuickPatch::SelectStringTableEntryInDvarStub()
-	{
-		Command::ClientParams params;
-
-		if (params.size() >= 4)
-		{
-			const auto* dvarName = params[3];
-			const auto* dvar = Game::Dvar_FindVar(dvarName);
-
-			if (Command::Find(dvarName) ||
-				(dvar != nullptr && dvar->flags & (Game::DVAR_WRITEPROTECTED | Game::DVAR_CHEAT | Game::DVAR_READONLY)))
-			{
-				return;
-			}
-		}
-
-		Game::CL_SelectStringTableEntryInDvar_f();
-	}
-
 	__declspec(naked) void QuickPatch::JavelinResetHookStub()
 	{
 		__asm
@@ -113,69 +57,6 @@ namespace Components
 			mov dword ptr [esi+34h], 0;
 			pop esi;
 			pop ebx;
-			retn;
-		}
-	}
-
-	__declspec(naked) int QuickPatch::G_GetClientScore()
-	{
-		__asm
-		{
-			mov eax, [esp + 4]		// index
-			mov ecx, ds : 1A831A8h	// level: &g_clients
-
-			test ecx, ecx;
-			jz invalid_ptr;
-			
-			imul eax, 366Ch
-			mov eax, [eax + ecx + 3134h]
-			ret
-			
-		invalid_ptr:
-			xor eax, eax
-			ret
-		}
-	}
-
-	bool QuickPatch::InvalidNameCheck(char* dest, const char* source, int size)
-	{
-		Utils::Hook::Call<void(char*, const char*, int)>(0x4D6F80)(dest, source, size); // I_strncpyz
-
-		for (int i = 0; i < size - 1; i++)
-		{
-			if (!dest[i]) break;
-
-			if (dest[i] > 125 || dest[i] < 32 || dest[i] == '%')
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	__declspec(naked) void QuickPatch::InvalidNameStub()
-	{
-		static const char* kick_reason = "Invalid name detected.";
-
-		__asm
-		{
-			call InvalidNameCheck;
-			test al, al
-
-			jnz returnSafe;
-
-			pushad;
-			push 1;
-			push kick_reason;
-			push edi;
-			mov eax, 0x004D1600; // SV_DropClientInternal
-			call eax;
-			add esp, 12;
-			popad;
-
-		returnSafe:
-			push 0x00401988;
 			retn;
 		}
 	}
@@ -377,9 +258,6 @@ namespace Components
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMeleeStub, HOOK_JUMP).install()->quick();
-
-		// Disallow invalid player names
-		Utils::Hook(0x401983, QuickPatch::InvalidNameStub, HOOK_JUMP).install()->quick();
 
 		// Javelin fix
 		Utils::Hook(0x578F52, QuickPatch::JavelinResetHookStub, HOOK_JUMP).install()->quick();
@@ -644,21 +522,6 @@ namespace Components
 			}
 		});
 
-		// Exploit fixes
-		Utils::Hook::Set<BYTE>(0x412370, 0xC3);                                                      // SV_SteamAuthClient
-		Utils::Hook::Set<BYTE>(0x5A8C70, 0xC3);                                                      // CL_HandleRelayPacket
-		Utils::Hook(0x414D92, QuickPatch::MsgReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
-		Utils::Hook(0x4A9F56, QuickPatch::MsgReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
-		Utils::Hook(0x407376, QuickPatch::SVCanReplaceServerCommand , HOOK_CALL).install()->quick(); // SV_CanReplaceServerCommand
-		Utils::Hook(0x5B67ED, QuickPatch::AtolAdjustPlayerLimit     , HOOK_CALL).install()->quick(); // PartyHost_HandleJoinPartyRequest
-		Utils::Hook::Nop(0x41698E, 5); // Disable Svcmd_EntityList_f
-
-		// Patch selectStringTableEntryInDvar
-		Utils::Hook::Set(0x405959, QuickPatch::SelectStringTableEntryInDvarStub);
-
-		// Patch G_GetClientScore for uninitialised game
-		Utils::Hook(0x469AC0, QuickPatch::G_GetClientScore, HOOK_JUMP).install()->quick();
-
 		// Ignore call to print 'Offhand class mismatch when giving weapon...'
 		Utils::Hook(0x5D9047, 0x4BB9B0, HOOK_CALL).install()->quick();
 
@@ -857,9 +720,6 @@ namespace Components
 			}
 		});
 #endif
-
-		// Dvars
-		Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
 
 		// Debug patches
 #ifdef DEBUG

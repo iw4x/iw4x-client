@@ -18,7 +18,6 @@ namespace Components
 		static void OnDeviceRecoveryEnd(Utils::Slot<Scheduler::Callback> callback);
 		static void OnDeviceRecoveryBegin(Utils::Slot<Scheduler::Callback> callback);
 
-
 	private:
 		static void FrameStub();
 

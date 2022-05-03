@@ -174,7 +174,7 @@ namespace Components
 			return;
 		}
 
-		if (*Game::svs_numclients <= num)
+		if (*Game::svs_clientCount <= num)
 		{
 			Logger::Print("Player %d is not on the server\n", num);
 			return;
@@ -185,9 +185,9 @@ namespace Components
 		SteamID guid;
 		guid.bits = client->steamID;
 
-		Bans::InsertBan({ guid, client->netchan.remoteAddress.ip });
+		Bans::InsertBan({guid, client->netchan.remoteAddress.ip});
 
-		Game::SV_KickClientError(client, reason);
+		Game::SV_GameDropClient(num, reason.data());
 	}
 
 	void Bans::UnbanClient(SteamID id)

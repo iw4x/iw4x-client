@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.1] - 2022-05-03
+
+### Added
+
+- Add ToUpper GSC Function (#216)
+- Add StrICmp GSC Function (#216)
+- Add IsEndStr GSC Function (#216)
+- Add DropAllBots GSC Function (#174)
+- Add GSC entity field `entityflags` (#228)
+- Add GSC client field `clientflags` (#228)
+- Add bg_surfacePenetration Dvar (#241)
+- Add bg_bulletRange Dvar (#241)
+
+### Changed
+
+- Test clients' native functionality has been restored by default (#162)
+- Custom GSC functions can be called correctly from a game script (#216)
+- Master server list will be used instead of the node system (load server list faster) (#234)
+
+### Fixed
+
+- Fixed issue with mouse acceleration when polling rate is greater than 125Hz (#230)
+- Fixed issue with player speed caused by sprinting from the prone position (#232)
+- Fixed client crash when cg_chatHeight was set to 0 (#237)
+- Fixed GSC function Scr_TableLookupIStringByRow (#162)
+
+### Known issue
+
+- HTTPS is not supported for fast downloads at the moment.
+- Sound issue fix is experimental as the bug is not fully understood.
+- `reloadmenus` command does not free resources used by custom menus.
+
 ## [0.7.0] - 2022-05-01
 
 ### Added

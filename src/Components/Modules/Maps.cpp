@@ -788,7 +788,7 @@ namespace Components
 			{
 				int dlc = token.get<int>();
 
-				for (auto pack : Maps::DlcPacks)
+				for (const auto& pack : Maps::DlcPacks)
 				{
 					if (pack.index == dlc)
 					{

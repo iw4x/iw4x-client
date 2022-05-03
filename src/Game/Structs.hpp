@@ -20,8 +20,30 @@ namespace Game
 	typedef vec_t vec3_t[3];
 	typedef vec_t vec4_t[4];
 
-	typedef unsigned int scr_entref_t;
-	typedef void(__cdecl * scr_function_t)(scr_entref_t);
+	typedef unsigned __int16 scr_string_t;
+
+	struct scr_entref_t
+	{
+		unsigned __int16 entnum;
+		unsigned __int16 classnum;
+	};
+
+	typedef void(__cdecl * BuiltinFunction)();
+	typedef void(__cdecl * BuiltinMethod)(scr_entref_t);
+
+	struct BuiltinFunctionDef
+	{
+		const char* actionString;
+		BuiltinFunction actionFunc;
+		int type;
+	};
+
+	struct BuiltinMethodDef
+	{
+		const char* actionString;
+		BuiltinMethod actionFunc;
+		int type;
+	};
 
 	enum XAssetType
 	{
@@ -72,6 +94,43 @@ namespace Game
 		ASSET_TYPE_STRING = 0x2B,
 		ASSET_TYPE_ASSETLIST = 0x2C,
 		ASSET_TYPE_INVALID = -1,
+	};
+
+	enum materialSurfType_t
+	{
+		SURF_TYPE_DEFAULT,
+		SURF_TYPE_BARK,
+		SURF_TYPE_BRICK,
+		SURF_TYPE_CARPET,
+		SURF_TYPE_CLOTH,
+		SURF_TYPE_CONCRETE,
+		SURF_TYPE_DIRT,
+		SURF_TYPE_FLESH,
+		SURF_TYPE_FOLIAGE,
+		SURF_TYPE_GLASS,
+		SURF_TYPE_GRASS,
+		SURF_TYPE_GRAVEL,
+		SURF_TYPE_ICE,
+		SURF_TYPE_METAL,
+		SURF_TYPE_MUD,
+		SURF_TYPE_PAPER,
+		SURF_TYPE_PLASTER,
+		SURF_TYPE_ROCK,
+		SURF_TYPE_SAND,
+		SURF_TYPE_SNOW,
+		SURF_TYPE_WATER,
+		SURF_TYPE_WOOD,
+		SURF_TYPE_ASPHALT,
+		SURF_TYPE_CERAMIC,
+		SURF_TYPE_PLASTIC,
+		SURF_TYPE_RUBBER,
+		SURF_TYPE_CUSHION,
+		SURF_TYPE_FRUIT,
+		SURF_TYPE_PAINTED_METAL,
+		SURF_TYPE_RIOT_SHIELD,
+		SURF_TYPE_SLUSH,
+
+		SURF_TYPE_COUNT
 	};
 
 	enum dvar_flag : unsigned __int16
@@ -207,6 +266,17 @@ namespace Game
 		FL_DELETE = 0x2000000,
 		FL_BOUNCE = 0x4000000,
 		FL_MOVER_SLIDE = 0x8000000
+	};
+
+	enum ClassNum : unsigned int
+	{
+		CLASS_NUM_ENTITY = 0x0,
+		CLASS_NUM_HUDELEM = 0x1,
+		CLASS_NUM_PATHNODE = 0x2,
+		CLASS_NUM_VEHICLENODE = 0x3,
+		CLASS_NUM_VEHTRACK_SEGMENT = 0x4,
+		CLASS_NUM_FXENTITY = 0x5,
+		CLASS_NUM_COUNT = 0x6,
 	};
 
 	typedef enum
@@ -1451,21 +1521,23 @@ namespace Game
 
 	enum usercmdButtonBits
 	{
-	    CMD_BUTTON_ATTACK = 0x1,
-	    CMD_BUTTON_SPRINT = 0x2,
-	    CMD_BUTTON_MELEE = 0x4,
-	    CMD_BUTTON_ACTIVATE = 0x8,
-	    CMD_BUTTON_RELOAD = 0x10,
-	    CMD_BUTTON_USE_RELOAD = 0x20,
-	    CMD_BUTTON_PRONE = 0x100,
-	    CMD_BUTTON_CROUCH = 0x200,
-	    CMD_BUTTON_UP = 0x400,
-	    CMD_BUTTON_ADS = 0x800,
-	    CMD_BUTTON_DOWN = 0x1000,
-	    CMD_BUTTON_BREATH = 0x2000,
-	    CMD_BUTTON_FRAG = 0x4000,
-	    CMD_BUTTON_OFFHAND_SECONDARY = 0x8000,
-	    CMD_BUTTON_THROW = 0x80000,
+		CMD_BUTTON_ATTACK = 0x1,
+		CMD_BUTTON_SPRINT = 0x2,
+		CMD_BUTTON_MELEE = 0x4,
+		CMD_BUTTON_ACTIVATE = 0x8,
+		CMD_BUTTON_RELOAD = 0x10,
+		CMD_BUTTON_USE_RELOAD = 0x20,
+		CMD_BUTTON_LEAN_LEFT = 0x40,
+		CMD_BUTTON_LEAN_RIGHT = 0x80,
+		CMD_BUTTON_PRONE = 0x100,
+		CMD_BUTTON_CROUCH = 0x200,
+		CMD_BUTTON_UP = 0x400,
+		CMD_BUTTON_ADS = 0x800,
+		CMD_BUTTON_DOWN = 0x1000,
+		CMD_BUTTON_BREATH = 0x2000,
+		CMD_BUTTON_FRAG = 0x4000,
+		CMD_BUTTON_OFFHAND_SECONDARY = 0x8000,
+		CMD_BUTTON_THROW = 0x80000
 	};
 
 #pragma pack(push, 4)
@@ -4999,6 +5071,21 @@ namespace Game
 		int dataCount;
 	} gameState;
 
+	struct HunkUser
+	{
+		HunkUser* current;
+		HunkUser* next;
+		int maxSize;
+		int end;
+		int pos;
+		const char* name;
+		bool fixed;
+		int type;
+		char buf[1];
+	};
+
+	static_assert(sizeof(HunkUser) == 36);
+
 	struct VariableStackBuffer
 	{
 		const char *pos;
@@ -5093,6 +5180,40 @@ namespace Game
 		function_frame_t function_frame_start[32];
 		VariableValue stack[2048];
 	};
+
+	struct scrVarPub_t
+	{
+		const char* fieldBuffer;
+		unsigned __int16 canonicalStrCount;
+		bool developer_script;
+		bool evaluate;
+		const char* error_message;
+		int error_index;
+		int time;
+		int timeArrayId;
+		int pauseArrayId;
+		int notifyArrayId;
+		int objectStackId;
+		int levelId;
+		int gameId;
+		int animId;
+		int freeEntList;
+		int tempVariable;
+		int numScriptValues[2];
+		bool bInited;
+		unsigned __int16 savecount;
+		unsigned __int16 savecountMark;
+		int checksum;
+		int entId;
+		int entFieldName;
+		HunkUser* programHunkUser;
+		const char* programBuffer;
+		const char* endScriptBuffer;
+		unsigned __int16 saveIdMap[36864];
+		unsigned __int16 saveIdMapRev[36864];
+	};
+
+	static_assert(sizeof(scrVarPub_t) == 0x24060);
 
 	enum UILocalVarType
 	{
@@ -5503,15 +5624,25 @@ namespace Game
 		CON_CONNECTED = 0x2
 	} clientConnected_t;
 
+	typedef enum
+	{
+		VISIONSET_NORMAL,
+		VISIONSET_NIGHT,
+		VISIONSET_MISSILECAM,
+		VISIONSET_THERMAL,
+		VISIONSET_PAIN,
+		VISIONSETCOUNT
+	} visionSetMode_t;
+
 	typedef struct gclient_s
 	{
 		playerState_s ps;
 		sessionState_t sessionState; // 12572
-		char pad0[40];
+		unsigned char __pad0[40];
 		clientConnected_t connected; // 12616
-		char pad1[144];
-		unsigned int team; // 12764
-		char pad2[436];
+		unsigned char __pad1[144];
+		team_t team; // 12764
+		unsigned char __pad2[436];
 		int flags; // 13204
 		int spectatorClient;
 		int lastCmdTime;
@@ -5519,7 +5650,10 @@ namespace Game
 		int oldbuttons; // 13220
 		int latched_buttons; // 13224
 		int buttonsSinceLastFrame; // 13228
-		char pad3[700]; // 13232
+		unsigned char __pad3[324]; // 13232
+		int visionDuration[5];
+		char visionName[5][64];
+		unsigned char __pad4[36];
 	} gclient_t;
 
 	static_assert(sizeof(gclient_t) == 13932);
@@ -5619,6 +5753,53 @@ namespace Game
 
 	static_assert(sizeof(gentity_s) == 0x274);
 
+	enum $1C4253065710F064DA9E4D59ED6EC544
+	{
+		ENTFIELD_ENTITY = 0x0,
+		ENTFIELD_SENTIENT = 0x2000,
+		ENTFIELD_ACTOR = 0x4000,
+		ENTFIELD_CLIENT = 0x6000,
+		ENTFIELD_VEHICLE = 0x8000,
+		ENTFIELD_MASK = 0xE000,
+	};
+
+	enum fieldtype_t
+	{
+		F_INT = 0x0,
+		F_SHORT = 0x1,
+		F_BYTE = 0x2,
+		F_FLOAT = 0x3,
+		F_CSTRING = 0x4,
+		F_STRING = 0x5,
+		F_VECTOR = 0x6,
+		F_ENTITY = 0x7,
+		F_ENTHANDLE = 0x8,
+		F_ANGLES_YAW = 0x9,
+		F_OBJECT = 0xA,
+		F_MODEL = 0xB,
+	};
+
+	struct ent_field_t
+	{
+		const char* name;
+		int ofs;
+		fieldtype_t type;
+		void(__cdecl * setter)(gentity_s*, int);
+		void(__cdecl * getter)(gentity_s*, int);
+	};
+
+	struct client_fields_s
+	{
+		const char* name;
+		int ofs;
+		fieldtype_t type;
+		void(__cdecl * setter)(gclient_s*, const client_fields_s*);
+		void(__cdecl * getter)(gclient_s*, const client_fields_s*);
+	};
+
+	typedef void(__cdecl * ScriptCallbackEnt)(gentity_s*, int);
+	typedef void(__cdecl * ScriptCallbackClient)(gclient_s*, const client_fields_s*);
+
 	struct lockonFireParms
 	{
 		bool lockon;
@@ -5661,7 +5842,7 @@ namespace Game
 		int pureAuthentic; // 135896
 		char __pad7[133138]; // 135900
 		short scriptID; // 269038
-		int isBot; // 269040
+		int bIsTestClient; // 269040
 		int serverID; // 269044
 		char __pad8[9224]; // 269048
 		unsigned __int64 steamID; // 278272
@@ -6880,7 +7061,7 @@ namespace Game
 		SHELLSHOCK_VIEWTYPE_NONE = 0x2,
 	};
 
-    struct shellshock_parms_t
+	struct shellshock_parms_t
 	{
 		struct
 		{
@@ -7195,6 +7376,149 @@ namespace Game
 		volatile long writeCount;
 		TempPriority tempPriority;
 	};
+
+	struct trigger_info_t
+	{
+		unsigned __int16 entnum;
+		unsigned __int16 otherEntnum;
+		int useCount;
+		int otherUseCount;
+	};
+
+	struct com_parse_mark_t
+	{
+		int lines;
+		const char* text;
+		int ungetToken;
+		int backup_lines;
+		const char* backup_text;
+	};
+
+	struct cached_tag_mat_t
+	{
+		int time;
+		int entnum;
+		unsigned __int16 name;
+		float tagMat[4][3];
+	};
+
+	struct Turret
+	{
+		bool inuse;
+		int flags;
+		int fireTime;
+		float arcmin[2];
+		float arcmax[2];
+		float dropPitch;
+		int stance;
+		int prevStance;
+		int fireSndDelay;
+		float userOrigin[3];
+		float playerSpread;
+		int state;
+		EntHandle target;
+		float targetOffset[3];
+		EntHandle manualTarget;
+		float manualTargetOffset[3];
+		int targetTime;
+		int stateChangeTime;
+		int modeChangeTime;
+		float maxRangeSquared;
+		int prevTargetIndex;
+		team_t eTeam;
+		int convergenceTime[2];
+		float targetPos[3];
+		float missOffsetNormalized[3];
+		float scanSpeed;
+		float scanDecelYaw;
+		int scanPauseTime;
+		bool triggerDown;
+		float heatLevel;
+		int heatPenaltyEndTime;
+		float barrelRollRate;
+		int autoRotationStopDelay;
+		int lastAutoRotationRequestTime;
+		unsigned __int8 fireSnd;
+		unsigned __int8 fireSndPlayer;
+		unsigned __int8 stopSnd;
+		unsigned __int8 stopSndPlayer;
+		unsigned __int8 scanSnd;
+	};
+
+	static_assert(sizeof(Turret) == 0xC4);
+
+	struct level_locals_t
+	{
+		gclient_s* clients;
+		gentity_s* gentities;
+		int num_entities;
+		gentity_s* firstFreeEnt;
+		gentity_s* lastFreeEnt;
+		Turret* turrets;
+		void* logFile;
+		int initializing;
+		int clientIsSpawning;
+		objective_t objectives[32];
+		int maxclients;
+		int framenum;
+		int time;
+		int previousTime;
+		int frametime;
+		int startTime;
+		int teamScores[4];
+		int lastTeammateHealthTime;
+		int bUpdateScoresForIntermission;
+		bool teamHasRadar[4];
+		bool teamRadarBlocked[4];
+		int manualNameChange;
+		int numConnectedClients;
+		int sortedClients[18];
+		char voteString[1024];
+		char voteDisplayString[1024];
+		int voteTime;
+		int voteExecuteTime;
+		int voteYes;
+		int voteNo;
+		int numVotingClients;
+		SpawnVar spawnVar;
+		int savepersist;
+		EntHandle droppedWeaponCue[32];
+		float fFogOpaqueDist;
+		float fFogOpaqueDistSqrd;
+		int currentPlayerClone;
+		trigger_info_t pendingTriggerList[256];
+		trigger_info_t currentTriggerList[256];
+		int pendingTriggerListSize;
+		int currentTriggerListSize;
+		int finished;
+		int bPlayerIgnoreRadiusDamage;
+		int bPlayerIgnoreRadiusDamageLatched;
+		int registerWeapons;
+		int bRegisterItems;
+		int currentEntityThink;
+		void* openScriptIOFileHandles[1];
+		char* openScriptIOFileBuffers[1];
+		com_parse_mark_t currentScriptIOLineMark[1];
+		cached_tag_mat_t cachedTagMat;
+		int scriptPrintChannel;
+		float compassMapUpperLeft[2];
+		float compassMapWorldSize[2];
+		float compassNorth[2];
+		void* vehicles;
+		int hudElemLastAssignedSoundID;
+	};
+
+	static_assert(sizeof(level_locals_t) == 0x2F78);
+
+	struct WinMouseVars_t
+	{
+		int oldButtonState;
+		tagPOINT oldPos;
+		bool mouseActive;
+		bool mouseInitialized;
+	};
+
+	static_assert(sizeof(WinMouseVars_t) == 0x10);
 
 #pragma endregion
 

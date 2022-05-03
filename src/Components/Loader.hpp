@@ -85,6 +85,7 @@ namespace Components
 #include "Modules/Network.hpp"
 #include "Modules/Theatre.hpp"
 #include "Modules/QuickPatch.hpp"
+#include "Modules/Security.hpp"
 #include "Modules/Node.hpp"
 #include "Modules/RCon.hpp"
 #include "Modules/Party.hpp" // Destroys the order, but requires network classes :D
@@ -99,7 +100,6 @@ namespace Components
 #include "Modules/RawFiles.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/UIFeeder.hpp"
-#include "Modules/AntiCheat.hpp"
 #include "Modules/Changelog.hpp"
 #include "Modules/Dedicated.hpp"
 #include "Modules/Discovery.hpp"
@@ -134,6 +134,7 @@ namespace Components
 #include "Modules/Movement.hpp"
 #include "Modules/Elevators.hpp"
 #include "Modules/ClientCommand.hpp"
-
 #include "Modules/Gamepad.hpp"
-#include "Modules/Client.hpp"
+#include "Modules/ScriptExtension.hpp"
+#include "Modules/RawMouse.hpp"
+#include "Modules/Bullet.hpp"

@@ -19,15 +19,9 @@
 |:----------------------------|:-----------------------------------------------|
 | `--copy-to=PATH`            | Optional, copy the DLL to a custom folder after build, define the path here if wanted. |
 | `--copy-pdb`                | Copy debug information for binaries as well to the path given via --copy-to. |
-| `--ac-disable`              | Disable anticheat.                             |
-| `--ac-debug-detections`     | Log anticheat detections.                      |
-| `--ac-debug-load-library`   | Log libraries that get loaded.                 |
 | `--force-unit-tests`        | Always compile unit tests.                     |
 | `--force-exception-handler` | Install custom unhandled exception handler even for Debug builds. |
 | `--force-minidump-upload`   | Upload minidumps even for Debug builds.        |
-| `--disable-bitmessage`      | Disable use of BitMessage completely.          |
-| `--disable-base128`         | Disable base128 encoding for minidumps.        |
-| `--no-new-structure`        | Do not use new virtual path structure (separating headers and source files). |
 | `--iw4x-zones`              | Zonebuilder generates iw4x zones that cannot be loaded without IW4x specific patches. |
 
 ## Command line arguments

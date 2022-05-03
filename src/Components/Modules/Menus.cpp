@@ -70,7 +70,7 @@ namespace Components
 
 		script->next = nullptr;
 
-		Game::source_t* source = allocator->allocate<Game::source_t>();
+		auto* source = allocator->allocate<Game::source_t>();
 		if (!source)
 		{
 			Game::FreeMemory(script);
@@ -116,7 +116,7 @@ namespace Components
 	{
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
-		Game::menuDef_t* menu = allocator->allocate<Game::menuDef_t>();
+		auto* menu = allocator->allocate<Game::menuDef_t>();
 		if (!menu) return nullptr;
 
 		menu->items = allocator->allocateArray<Game::itemDef_s*>(512);
@@ -284,17 +284,7 @@ namespace Components
 
 		if (menus.empty())
 		{
-			// 			// Try loading the original menu, if we can't load our custom one
-			// 			Game::menuDef_t* originalMenu = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, menudef->window.name).menu;
-			//
-			// 			if (originalMenu)
-			// 			{
-			// 				menus.push_back({ false, originalMenu });
-			// 			}
-			// 			else
-			// 			{
 			menus.push_back({ false, menudef }); // Native menu
-// 			}
 		}
 
 		return menus;
@@ -308,7 +298,7 @@ namespace Components
 		if (menus.empty()) return nullptr;
 
 		// Allocate new menu list
-		Game::MenuList* newList = allocator->allocate<Game::MenuList>();
+		auto* newList = allocator->allocate<Game::MenuList>();
 		if (!newList) return nullptr;
 
 		newList->menus = allocator->allocateArray<Game::menuDef_t*>(menus.size());
@@ -319,7 +309,7 @@ namespace Components
 		}
 
 		newList->name = allocator->duplicateString(menu);
-		newList->menuCount = menus.size();
+		newList->menuCount = static_cast<int>(menus.size());
 
 		// Copy new menus
 		for (unsigned int i = 0; i < menus.size(); ++i)
@@ -759,50 +749,14 @@ namespace Components
 
 	void Menus::RegisterCustomMenusHook()
 	{
-		Game::UiContext* uiInfoArray = (Game::UiContext*)0x62E2858;
-		// Game::MenuList list;
-
 		Utils::Hook::Call<void()>(0x401700)(); // call original load functions
-		//Game::XAssetHeader header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENULIST, "ui_mp/iw4x.txt");
-		//if (header.data && !(header.menuList->menuCount == 1 && !_stricmp("default_menu", header.menuList->menus[0]->window.name)))
-		//{
-		//	// Utils::Hook::Call<void(void*, Game::MenuList*, int)>(0x401700)(uiInfoArray, header.menuList, 1); // add loaded menus
-		//	std::memcpy(&list, header.data, sizeof(Game::MenuList));
 
-		//	for (int i = 0; i < uiInfoArray->menuCount; i++)
-		//	{
-		//		for (int j = 0; j < list.menuCount; j++)
-		//		{
-		//			if (!list.menus[j]) continue; // skip already used entries
-		//			if (!stricmp(list.menus[j]->window.name, uiInfoArray->Menus[i]->window.name))
-		//			{
-		//				uiInfoArray->Menus[i] = list.menus[j]; // overwrite UiContext pointer
-		//				list.menus[j] = nullptr; // clear entries that already exist so we don't add them later
-		//			}
-		//		}
-		//	}
-
-		//	for (int i = 0; i < list.menuCount; i++)
-		//	{
-		//		if (list.menus[i])
-		//		{
-		//			uiInfoArray->Menus[uiInfoArray->menuCount++] = list.menus[i];
-		//		}
-		//	}
-		//}
-
-		for (int i = 0; i < uiInfoArray->menuCount; i++)
+#ifdef _DEBUG
+		for (int i = 0; i < Game::uiContext->menuCount; i++)
 		{
-			OutputDebugStringA(Utils::String::VA("%s\n", uiInfoArray->Menus[i]->window.name));
+			OutputDebugStringA(Utils::String::VA("%s\n", Game::uiContext->Menus[i]->window.name));
 		}
-
-		/*
-		header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MENULIST, "ui_mp/mod.txt");
-		if (header.data && !(header.menuList->menuCount == 1 && !_stricmp("default_menu", header.menuList->menus[0]->window.name)))
-		{
-			Utils::Hook::Call<void(void*, Game::MenuList*, int)>(0x401700)(uiInfoArray, header.menuList, 1); // add loaded menus
-		}
-		*/
+#endif
 	}
 
 	Menus::Menus()
@@ -824,12 +778,12 @@ namespace Components
 
 		// Use the connect menu open call to update server motds
 		Utils::Hook(0x428E48, []()
+		{
+			if (!Party::GetMotd().empty() && Party::Target() == *Game::connectedHost)
 			{
-				if (!Party::GetMotd().empty() && Party::Target() == *Game::connectedHost)
-				{
-					Dvar::Var("didyouknow").set(Party::GetMotd());
-				}
-			}, HOOK_CALL).install()->quick();
+				Dvar::Var("didyouknow").set(Party::GetMotd());
+			}
+		}, HOOK_CALL).install()->quick();
 
 			// Intercept menu painting
 			Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).install()->quick();
@@ -844,53 +798,49 @@ namespace Components
 			Utils::Hook::SetString(0x6FC790, "main_text");
 
 			Command::Add("openmenu", [](Command::Params* params)
+			{
+				if (params->size() != 2)
 				{
-					if (params->size() != 2)
-					{
-						Logger::Print("USAGE: openmenu <menu name>\n");
-						return;
-					}
+					Logger::Print("USAGE: openmenu <menu name>\n");
+					return;
+				}
 
-					// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
-					if (Dvar::Var("cl_ingame").get<bool>())
-					{
-						Game::Key_SetCatcher(0, 16);
-					}
+				// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
+				if (Dvar::Var("cl_ingame").get<bool>())
+				{
+					Game::Key_SetCatcher(0, 16);
+				}
 
-					Game::Menus_OpenByName(Game::uiContext, params->get(1));
-				});
+				Game::Menus_OpenByName(Game::uiContext, params->get(1));
+			});
 
 			Command::Add("reloadmenus", [](Command::Params*)
+			{
+				// Close all menus
+				Game::Menus_CloseAll(Game::uiContext);
+
+				// Free custom menus
+				Menus::FreeEverything();
+
+				// Only disconnect if in-game, context is updated automatically!
+				if (Game::CL_IsCgameInitialized())
 				{
-					// Close all menus
-					Game::Menus_CloseAll(Game::uiContext);
+					Game::Cbuf_AddText(0, "disconnect\n");
+				}
+				else
+				{
+					// Reinitialize ui context
+					Utils::Hook::Call<void()>(0x401700)();
 
-					// Free custom menus
-					Menus::FreeEverything();
-
-					// Only disconnect if in-game, context is updated automatically!
-					if (Game::CL_IsCgameInitialized())
-					{
-						Game::Cbuf_AddText(0, "disconnect\n");
-					}
-					else
-					{
-						// Reinitialize ui context
-						Utils::Hook::Call<void()>(0x401700)();
-
-						// Reopen main menu
-						Game::Menus_OpenByName(Game::uiContext, "main_text");
-					}
-				});
-
-#ifndef DISABLE_ANTICHEAT
-			Scheduler::OnFrameAsync(AntiCheat::QuickCodeScanner2);
-#endif
+					// Reopen main menu
+					Game::Menus_OpenByName(Game::uiContext, "main_text");
+				}
+			});
 
 			Command::Add("mp_QuickMessage", [](Command::Params*)
-				{
-					Command::Execute("openmenu quickmessage");
-				});
+			{
+				Command::Execute("openmenu quickmessage");
+			});
 
 			// Define custom menus here
 			Menus::Add("ui_mp/changelog.menu");
