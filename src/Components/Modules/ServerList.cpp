@@ -273,7 +273,7 @@ namespace Components
 			const auto masterServerName = Dvar::Var("masterServerName").get<const char*>();
 
 			Game::netadr_t masterServerAddr;
-			if (ServerList::GetMasterServer(masterServerAddr))
+			if (ServerList::GetMasterServer(masterServerName, masterPort, masterServerAddr))
 			{
 				Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
 				useMasterServer = true;
@@ -738,12 +738,9 @@ namespace Components
 		}
 	}
 
-	bool ServerList::GetMasterServer(Game::netadr_t& address)
+	bool ServerList::GetMasterServer(const char* ip, int port, Game::netadr_t& address)
 	{
-		auto masterPort = Dvar::Var("masterPort").get<int>();
-		auto masterServerName = Dvar::Var("masterServerName").get<const char*>();
-
-		return Game::NET_StringToAdr(Utils::String::VA("%s:%u", masterServerName, masterPort), &address);
+		return Game::NET_StringToAdr(Utils::String::VA("%s:%u", ip, port), &address);
 	}
 
 	bool ServerList::IsServerListOpen()
