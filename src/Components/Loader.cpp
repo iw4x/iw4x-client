@@ -83,6 +83,7 @@ namespace Components
 		Loader::Register(new ModelSurfs());
 		Loader::Register(new PlayerName());
 		Loader::Register(new QuickPatch());
+		Loader::Register(new Security());
 		Loader::Register(new ServerInfo());
 		Loader::Register(new ServerList());
 		Loader::Register(new SlowMotion());
@@ -105,6 +106,7 @@ namespace Components
 		Loader::Register(new ClientCommand());
 		Loader::Register(new ScriptExtension());
 		Loader::Register(new Branding());
+		Loader::Register(new RawMouse());
 
 		Loader::Pregame = false;
 	}

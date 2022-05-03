@@ -12,20 +12,7 @@ namespace Components
 		static void UnlockStats();
 
 	private:
-		static void SelectStringTableEntryInDvarStub();
-
-		static int SVCanReplaceServerCommand(Game::client_t *client, const char *cmd);
-		static int G_GetClientScore();
-
-		static int MsgReadBitsCompressCheckSV(const char *from, char *to, int size);
-		static int MsgReadBitsCompressCheckCL(const char *from, char *to, int size);
-
-		static long AtolAdjustPlayerLimit(const char* string);
-
 		static void JavelinResetHookStub();
-
-		static bool InvalidNameCheck(char* dest, const char* source, int size);
-		static void InvalidNameStub();
 
 		static Dvar::Var r_customAspectRatio;
 		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** valueList, int defaultIndex, unsigned __int16 flags, const char* description);

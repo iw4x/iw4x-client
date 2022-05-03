@@ -341,7 +341,7 @@ namespace Game
 	typedef int(__cdecl * FS_FOpenFileReadForThread_t)(const char *filename, int *file, int thread);
 	extern FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread;
 
-	typedef int(__cdecl * FS_FCloseFile_t)(int fh);
+	typedef int(__cdecl * FS_FCloseFile_t)(int stream);
 	extern FS_FCloseFile_t FS_FCloseFile;
 
 	typedef bool(__cdecl * FS_FileExists_t)(const char* file);
@@ -379,6 +379,9 @@ namespace Game
 
 	typedef int(__cdecl* FS_Delete_t)(const char* fileName);
 	extern FS_Delete_t FS_Delete;
+
+	typedef void(__cdecl * G_LogPrintf_t)(const char* fmt, ...);
+	extern G_LogPrintf_t G_LogPrintf;
 
 	typedef unsigned int(__cdecl * G_GetWeaponIndexForName_t)(const char*);
 	extern G_GetWeaponIndexForName_t G_GetWeaponIndexForName;
@@ -744,6 +747,21 @@ namespace Game
 	typedef void(__cdecl * Scr_ParamError_t)(unsigned int paramIndex, const char*);
 	extern Scr_ParamError_t Scr_ParamError;
 
+	typedef void(__cdecl * Scr_GetObjectField_t)(unsigned int classnum, int entnum, int offset);
+	extern Scr_GetObjectField_t Scr_GetObjectField;
+
+	typedef int(__cdecl * Scr_SetObjectField_t)(unsigned int classnum, int entnum, int offset);
+	extern Scr_SetObjectField_t Scr_SetObjectField;
+
+	typedef void(__cdecl * Scr_SetClientField_t)(gclient_s* client, int offset);
+	extern Scr_SetClientField_t Scr_SetClientField;
+
+	typedef void(__cdecl * Scr_GetEntityField_t)(int entnum, int offset);
+	extern Scr_GetEntityField_t Scr_GetEntityField;
+
+	typedef void(__cdecl * Scr_AddClassField_t)(unsigned int classnum, const char* name, unsigned int offset);
+	extern Scr_AddClassField_t Scr_AddClassField;
+
 	typedef gentity_s*(__cdecl * GetPlayerEntity_t)(scr_entref_t entref);
 	extern GetPlayerEntity_t GetPlayerEntity;
 
@@ -990,6 +1008,21 @@ namespace Game
 	typedef EffectiveStance(__cdecl * PM_GetEffectiveStance_t)(const playerState_s* ps);
 	extern PM_GetEffectiveStance_t PM_GetEffectiveStance;
 
+	typedef int(__cdecl * CL_MouseEvent_t)(int x, int y, int dx, int dy);
+	extern CL_MouseEvent_t CL_MouseEvent;
+
+	typedef void(__cdecl * IN_RecenterMouse_t)();
+	extern IN_RecenterMouse_t IN_RecenterMouse;
+
+	typedef void(__cdecl * IN_MouseMove_t)();
+	extern IN_MouseMove_t IN_MouseMove;
+
+	typedef void(__cdecl * IN_Init_t)();
+	extern IN_Init_t IN_Init;
+
+	typedef void(__cdecl * IN_Shutdown_t)();
+	extern IN_Shutdown_t IN_Shutdown;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
@@ -1119,6 +1152,11 @@ namespace Game
 	extern ScreenPlacement* scrPlaceFullUnsafe;
 
 	extern level_locals_t* level;
+
+	extern WinMouseVars_t* s_wmv;
+
+	extern int* window_center_x;
+	extern int* window_center_y;
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);

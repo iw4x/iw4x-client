@@ -28,7 +28,7 @@ namespace Components
 		if (!rawfile || Game::DB_IsXAssetDefault(Game::XAssetType::ASSET_TYPE_RAWFILE, this->filePath.data())) return;
 
 		this->buffer.resize(Game::DB_GetRawFileLen(rawfile));
-		Game::DB_GetRawBuffer(rawfile, const_cast<char*>(this->buffer.data()), this->buffer.size());
+		Game::DB_GetRawBuffer(rawfile, this->buffer.data(), static_cast<int>(this->buffer.size()));
 	}
 
 	FileSystem::FileReader::FileReader(const std::string& file) : handle(0), name(file)

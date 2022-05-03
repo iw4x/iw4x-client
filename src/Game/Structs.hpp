@@ -231,6 +231,17 @@ namespace Game
 		FL_MOVER_SLIDE = 0x8000000
 	};
 
+	enum ClassNum : unsigned int
+	{
+		CLASS_NUM_ENTITY = 0x0,
+		CLASS_NUM_HUDELEM = 0x1,
+		CLASS_NUM_PATHNODE = 0x2,
+		CLASS_NUM_VEHICLENODE = 0x3,
+		CLASS_NUM_VEHTRACK_SEGMENT = 0x4,
+		CLASS_NUM_FXENTITY = 0x5,
+		CLASS_NUM_COUNT = 0x6,
+	};
+
 	typedef enum
 	{
 		HITLOC_NONE,
@@ -5705,6 +5716,53 @@ namespace Game
 
 	static_assert(sizeof(gentity_s) == 0x274);
 
+	enum $1C4253065710F064DA9E4D59ED6EC544
+	{
+		ENTFIELD_ENTITY = 0x0,
+		ENTFIELD_SENTIENT = 0x2000,
+		ENTFIELD_ACTOR = 0x4000,
+		ENTFIELD_CLIENT = 0x6000,
+		ENTFIELD_VEHICLE = 0x8000,
+		ENTFIELD_MASK = 0xE000,
+	};
+
+	enum fieldtype_t
+	{
+		F_INT = 0x0,
+		F_SHORT = 0x1,
+		F_BYTE = 0x2,
+		F_FLOAT = 0x3,
+		F_CSTRING = 0x4,
+		F_STRING = 0x5,
+		F_VECTOR = 0x6,
+		F_ENTITY = 0x7,
+		F_ENTHANDLE = 0x8,
+		F_ANGLES_YAW = 0x9,
+		F_OBJECT = 0xA,
+		F_MODEL = 0xB,
+	};
+
+	struct ent_field_t
+	{
+		const char* name;
+		int ofs;
+		fieldtype_t type;
+		void(__cdecl * setter)(gentity_s*, int);
+		void(__cdecl * getter)(gentity_s*, int);
+	};
+
+	struct client_fields_s
+	{
+		const char* name;
+		int ofs;
+		fieldtype_t type;
+		void(__cdecl * setter)(gclient_s*, const client_fields_s*);
+		void(__cdecl * getter)(gclient_s*, const client_fields_s*);
+	};
+
+	typedef void(__cdecl * ScriptCallbackEnt)(gentity_s*, int);
+	typedef void(__cdecl * ScriptCallbackClient)(gclient_s*, const client_fields_s*);
+
 	struct lockonFireParms
 	{
 		bool lockon;
@@ -6966,7 +7024,7 @@ namespace Game
 		SHELLSHOCK_VIEWTYPE_NONE = 0x2,
 	};
 
-    struct shellshock_parms_t
+	struct shellshock_parms_t
 	{
 		struct
 		{
@@ -7414,6 +7472,16 @@ namespace Game
 	};
 
 	static_assert(sizeof(level_locals_t) == 0x2F78);
+
+	struct WinMouseVars_t
+	{
+		int oldButtonState;
+		tagPOINT oldPos;
+		bool mouseActive;
+		bool mouseInitialized;
+	};
+
+	static_assert(sizeof(WinMouseVars_t) == 0x10);
 
 #pragma endregion
 

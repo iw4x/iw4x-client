@@ -153,6 +153,7 @@ namespace Game
 	FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
 	FS_Delete_t FS_Delete = FS_Delete_t(0x48A5B0);
 
+	G_LogPrintf_t G_LogPrintf = G_LogPrintf_t(0x4B0150);
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
 	G_PrintEntities_t G_PrintEntities = G_PrintEntities_t(0x4E6A50);
@@ -295,6 +296,12 @@ namespace Game
 
 	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
 
+	Scr_GetObjectField_t Scr_GetObjectField = Scr_GetObjectField_t(0x4FF3D0);
+	Scr_SetObjectField_t Scr_SetObjectField = Scr_SetObjectField_t(0x4F20F0);
+	Scr_GetEntityField_t Scr_GetEntityField = Scr_GetEntityField_t(0x4E8390);
+	Scr_SetClientField_t Scr_SetClientField = Scr_SetClientField_t(0x4A6DF0);
+	Scr_AddClassField_t Scr_AddClassField = Scr_AddClassField_t(0x4C0E70);
+
 	GetEntity_t GetEntity = GetEntity_t(0x4BC270);
 	GetPlayerEntity_t GetPlayerEntity = GetPlayerEntity_t(0x49C4A0);
 
@@ -414,6 +421,13 @@ namespace Game
 	PM_playerTrace_t PM_playerTrace = PM_playerTrace_t(0x458980);
 	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
 	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
+
+	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
+	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
+
+	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
+	IN_Init_t IN_Init = IN_Init_t(0x45D620);
+	IN_Shutdown_t IN_Shutdown = IN_Shutdown_t(0x426360);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
@@ -538,6 +552,11 @@ namespace Game
 	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 
 	level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
+
+	WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
+
+	int* window_center_x = reinterpret_cast<int*>(0x649D638);
+	int* window_center_y = reinterpret_cast<int*>(0x649D630);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{

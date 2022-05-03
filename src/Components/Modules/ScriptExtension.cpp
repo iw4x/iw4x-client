@@ -4,6 +4,115 @@ namespace Components
 {
 	const char* ScriptExtension::QueryStrings[] = { R"(..)", R"(../)", R"(..\)" };
 
+	std::unordered_map<std::uint16_t, Game::ent_field_t> ScriptExtension::CustomEntityFields;
+	std::unordered_map<std::uint16_t, Game::client_fields_s> ScriptExtension::CustomClientFields;
+
+	void ScriptExtension::AddEntityField(const char* name, Game::fieldtype_t type,
+		const Game::ScriptCallbackEnt& setter, const Game::ScriptCallbackEnt& getter)
+	{
+		static std::uint16_t fieldOffsetStart = 15; // fields count
+		assert((fieldOffsetStart & Game::ENTFIELD_MASK) == Game::ENTFIELD_ENTITY);
+
+		ScriptExtension::CustomEntityFields[fieldOffsetStart] = {name, fieldOffsetStart, type, setter, getter};
+		++fieldOffsetStart;
+	}
+
+	void ScriptExtension::AddClientField(const char* name, Game::fieldtype_t type,
+		const Game::ScriptCallbackClient& setter, const Game::ScriptCallbackClient& getter)
+	{
+		static std::uint16_t fieldOffsetStart = 21; // fields count
+		assert((fieldOffsetStart & Game::ENTFIELD_MASK) == Game::ENTFIELD_ENTITY);
+
+		const auto offset = fieldOffsetStart | Game::ENTFIELD_CLIENT; // This is how client field's offset is calculated
+
+		// Use 'index' in 'array' as map key. It will be used later in Scr_SetObjectFieldStub
+		ScriptExtension::CustomClientFields[fieldOffsetStart] = {name, offset, type, setter, getter};
+		++fieldOffsetStart;
+	}
+
+	void ScriptExtension::GScr_AddFieldsForEntityStub()
+	{
+		for (const auto& [offset, field] : ScriptExtension::CustomEntityFields)
+		{
+			Game::Scr_AddClassField(Game::ClassNum::CLASS_NUM_ENTITY, field.name, field.ofs);
+		}
+
+		Utils::Hook::Call<void()>(0x4A7CF0)(); // GScr_AddFieldsForClient
+
+		for (const auto& [offset, field] : ScriptExtension::CustomClientFields)
+		{
+			Game::Scr_AddClassField(Game::ClassNum::CLASS_NUM_ENTITY, field.name, field.ofs);
+		}
+	}
+
+	// Because some functions are inlined we have to hook this function instead of Scr_SetEntityField
+	int ScriptExtension::Scr_SetObjectFieldStub(unsigned int classnum, int entnum, int offset)
+	{
+		if (classnum == Game::ClassNum::CLASS_NUM_ENTITY)
+		{
+			const auto entity_offset = static_cast<std::uint16_t>(offset);
+
+			const auto got = ScriptExtension::CustomEntityFields.find(entity_offset);
+			if (got != ScriptExtension::CustomEntityFields.end())
+			{
+				got->second.setter(&Game::g_entities[entnum], offset);
+				return 1;
+			}
+		}
+
+		// No custom generic field was found, let the game handle it
+		return Game::Scr_SetObjectField(classnum, entnum, offset);
+	}
+
+	// Offset was already converted to array 'index' following binop offset & ~Game::ENTFIELD_MASK
+	void ScriptExtension::Scr_SetClientFieldStub(Game::gclient_s* client, int offset)
+	{
+		const auto client_offset = static_cast<std::uint16_t>(offset);
+
+		const auto got = ScriptExtension::CustomClientFields.find(client_offset);
+		if (got != ScriptExtension::CustomClientFields.end())
+		{
+			got->second.setter(client, &got->second);
+			return;
+		}
+
+		// No custom field client was found, let the game handle it
+		Game::Scr_SetClientField(client, offset);
+	}
+
+	void ScriptExtension::Scr_GetEntityFieldStub(int entnum, int offset)
+	{
+		if ((offset & Game::ENTFIELD_MASK) == Game::ENTFIELD_CLIENT)
+		{
+			// If we have a ENTFIELD_CLIENT offset we need to check g_entity is actually a fully connected client
+			if (Game::g_entities[entnum].client != nullptr)
+			{
+				const auto client_offset = static_cast<std::uint16_t>(offset & ~Game::ENTFIELD_MASK);
+
+				const auto got = ScriptExtension::CustomClientFields.find(client_offset);
+				if (got != ScriptExtension::CustomClientFields.end())
+				{
+					// Game functions probably don't ever need to use the reference to client_fields_s...
+					got->second.getter(Game::g_entities[entnum].client, &got->second);
+					return;
+				}
+			}
+		}
+
+		// Regular entity offsets can be searched directly in our custom handler
+		const auto entity_offset = static_cast<std::uint16_t>(offset);
+
+		const auto got = ScriptExtension::CustomEntityFields.find(entity_offset);
+		if (got != ScriptExtension::CustomEntityFields.end())
+		{
+			got->second.getter(&Game::g_entities[entnum], offset);
+			return;
+		}
+
+		// No custom generic field was found, let the game handle it
+		Game::Scr_GetEntityField(entnum, offset);
+	}
+
 	void ScriptExtension::AddFunctions()
 	{
 		// File functions
@@ -247,11 +356,46 @@ namespace Components
 		Game::Scr_AddIString(value);
 	}
 
+	void ScriptExtension::AddEntityFields()
+	{
+		ScriptExtension::AddEntityField("entityflags", Game::fieldtype_t::F_INT,
+			[](Game::gentity_s* ent, [[maybe_unused]] int offset)
+			{
+				ent->flags = Game::Scr_GetInt(0);
+			},
+			[](Game::gentity_s* ent, [[maybe_unused]] int offset)
+			{
+				Game::Scr_AddInt(ent->flags);
+			});
+	}
+
+	void ScriptExtension::AddClientFields()
+	{
+		ScriptExtension::AddClientField("clientflags", Game::fieldtype_t::F_INT,
+			[](Game::gclient_s* pSelf, [[maybe_unused]] const Game::client_fields_s* pField)
+			{
+				pSelf->flags = Game::Scr_GetInt(0);
+			},
+			[](Game::gclient_s* pSelf, [[maybe_unused]] const Game::client_fields_s* pField)
+			{
+				Game::Scr_AddInt(pSelf->flags);
+			});
+	}
+
 	ScriptExtension::ScriptExtension()
 	{
 		ScriptExtension::AddFunctions();
 		ScriptExtension::AddMethods();
+		ScriptExtension::AddEntityFields();
+		ScriptExtension::AddClientFields();
+
 		// Correct builtin function pointer
 		Utils::Hook::Set<void(*)()>(0x79A90C, ScriptExtension::Scr_TableLookupIStringByRow);
+
+		Utils::Hook(0x4EC721, ScriptExtension::GScr_AddFieldsForEntityStub, HOOK_CALL).install()->quick(); // GScr_AddFieldsForEntity
+
+		Utils::Hook(0x41BED2, ScriptExtension::Scr_SetObjectFieldStub, HOOK_CALL).install()->quick(); // SetEntityFieldValue
+		Utils::Hook(0x5FBF01, ScriptExtension::Scr_SetClientFieldStub, HOOK_CALL).install()->quick(); // Scr_SetObjectField
+		Utils::Hook(0x4FF413, ScriptExtension::Scr_GetEntityFieldStub, HOOK_CALL).install()->quick(); // Scr_GetObjectField
 	}
 }
