@@ -550,7 +550,6 @@ namespace Game
 
 	level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
 
-	WinVars_t* g_wv = reinterpret_cast<WinVars_t*>(0x64A3AC8);
 	WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
 
 	int* window_center_x = reinterpret_cast<int*>(0x649D638);

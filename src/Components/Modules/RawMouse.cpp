@@ -12,7 +12,7 @@ namespace Components
 		tagPOINT curPos;
 
 		GetCursorPos(&curPos);
-		GetWindowRect(Game::g_wv->hWnd, &rc);
+		GetWindowRect(Window::GetWindow(), &rc);
 		auto isClamped = false;
 		if (curPos.x >= rc.left)
 		{
@@ -77,7 +77,7 @@ namespace Components
 	{
 		static auto r_fullscreen = Dvar::Var("r_fullscreen");
 
-		if (GetForegroundWindow() == Game::g_wv->hWnd)
+		if (GetForegroundWindow() == Window::GetWindow())
 		{
 			if (r_fullscreen.get<bool>())
 				IN_ClampMouseMove();
@@ -95,11 +95,11 @@ namespace Components
 			tagPOINT curPos;
 			GetCursorPos(&curPos);
 			Game::s_wmv->oldPos = curPos;
-			ScreenToClient(Game::g_wv->hWnd, &curPos);
+			ScreenToClient(Window::GetWindow(), &curPos);
 
-			Game::g_wv->recenterMouse = Game::CL_MouseEvent(curPos.x, curPos.y, dx, dy);
+			auto recenterMouse = Game::CL_MouseEvent(curPos.x, curPos.y, dx, dy);
 
-			if (Game::g_wv->recenterMouse)
+			if (recenterMouse)
 			{
 				Game::IN_RecenterMouse();
 			}
@@ -108,7 +108,7 @@ namespace Components
 
 	void RawMouse::IN_RawMouse_Init()
 	{
-		if (Game::g_wv->hWnd && RawMouse::M_RawInput.get<bool>())
+		if (Window::GetWindow() && RawMouse::M_RawInput.get<bool>())
 		{
 #ifdef DEBUG
 			Logger::Print("Raw Mouse Init.\n");
@@ -118,7 +118,7 @@ namespace Components
 			Rid[0].usUsagePage = 0x01; // HID_USAGE_PAGE_GENERIC
 			Rid[0].usUsage = 0x02; // HID_USAGE_GENERIC_MOUSE
 			Rid[0].dwFlags = RIDEV_INPUTSINK;
-			Rid[0].hwndTarget = Game::g_wv->hWnd;
+			Rid[0].hwndTarget = Window::GetWindow();
 
 			RegisterRawInputDevices(Rid, ARRAYSIZE(Rid), sizeof(Rid[0]));
 		}

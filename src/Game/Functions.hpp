@@ -1148,7 +1148,6 @@ namespace Game
 
 	extern level_locals_t* level;
 
-	extern WinVars_t* g_wv;
 	extern WinMouseVars_t* s_wmv;
 
 	extern int* window_center_x;
