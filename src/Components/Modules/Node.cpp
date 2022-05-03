@@ -248,7 +248,7 @@ namespace Components
 
 		if (list.isnode() && (!list.port() || list.port() == address.getPort()))
 		{
-			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && list.protocol() == PROTOCOL)
+			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::useMasterServer && list.protocol() == PROTOCOL)
 			{
 				NODE_LOG("Inserting %s into the serverlist\n", address.getCString());
 				ServerList::InsertRequest(address);

@@ -282,7 +282,8 @@ namespace Components
 			Game::netadr_t masterServerAddr;
 			if (ServerList::GetMasterServer(masterServerAddr))
 			{
-				Logger::Print("A valid master server was found at %s:%u\n", masterServerName, masterPort);
+				Toast::Show("cardicon_headshot", "", "Fetching servers...", 3000);
+				useMasterServer = true;
 
 				ServerList::RefreshContainer.awatingList = true;
 				ServerList::RefreshContainer.awaitTime = Game::Sys_Milliseconds();
@@ -291,15 +292,6 @@ namespace Components
 
 				Logger::Print("Sending serverlist request to master\n");
 				Network::SendCommand(ServerList::RefreshContainer.host, "getservers", Utils::String::VA("IW4 %i full empty", PROTOCOL));
-			}
-			else
-			{
-				// this should only be getting called if no master server is found or reached
-				Logger::Print("No valid master server was found, using node as fallback\n");
-
-				useMasterServer = false;
-
-				Node::Synchronize();
 			}
 		}
 		else if (ServerList::IsFavouriteList())
@@ -581,8 +573,7 @@ namespace Components
 	void ServerList::SortList()
 	{
 		// Only sort when the serverlist is open
-		Game::menuDef_t* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
-		if (!menu || !Game::Menu_IsVisible(Game::uiContext, menu)) return;
+		if (!IsServerListOpen()) return;
 
 		std::stable_sort(ServerList::VisibleList.begin(), ServerList::VisibleList.end(), [](const unsigned int &server1, const unsigned int &server2) -> bool
 		{
@@ -648,12 +639,22 @@ namespace Components
 
 		if (ServerList::RefreshContainer.awatingList)
 		{
-			// Check if we haven't got a response within 10 seconds
+			// Stop counting if we are out of the server browser menu
+			if (!IsServerListOpen())
+			{
+				ServerList::RefreshContainer.awatingList = false;
+			}
+
+			// Check if we haven't got a response within 5 seconds
 			if (Game::Sys_Milliseconds() - ServerList::RefreshContainer.awaitTime > 5000)
 			{
 				ServerList::RefreshContainer.awatingList = false;
 
 				Logger::Print("We haven't received a response from the master within %d seconds!\n", (Game::Sys_Milliseconds() - ServerList::RefreshContainer.awaitTime) / 1000);
+				Toast::Show("cardicon_headshot", "^1Error", "Failed to reach master server, using node servers instead.", 5000);
+
+				useMasterServer = false;
+				Node::Synchronize();
 			}
 		}
 
@@ -749,7 +750,16 @@ namespace Components
 		auto masterPort = Dvar::Var("masterPort").get<int>();
 		auto masterServerName = Dvar::Var("masterServerName").get<const char*>();
 
-		return Game::NET_StringToAdr(Utils::String::VA("%s:%u"), &address);
+		return Game::NET_StringToAdr(Utils::String::VA("%s:%u", masterServerName, masterPort), &address);
+	}
+
+	bool ServerList::IsServerListOpen()
+	{
+		Game::menuDef_t* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
+		if (!menu) 
+			return false;
+
+		return Game::Menu_IsVisible(Game::uiContext, menu);
 	}
 
 	ServerList::ServerList()

@@ -146,5 +146,7 @@ namespace Components
 		static Dvar::Var UIServerSelectedMap;
 		static Dvar::Var NETServerQueryLimit;
 		static Dvar::Var NETServerFrames;
+
+		static bool IsServerListOpen();
 	};
 }
