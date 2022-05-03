@@ -7486,6 +7486,8 @@ namespace Game
 		unsigned int sysMsgTime;
 	};
 
+	static_assert(sizeof(WinVars_t) == 0x24);
+
 	struct WinMouseVars_t
 	{
 		int oldButtonState;
@@ -7494,6 +7496,7 @@ namespace Game
 		bool mouseInitialized;
 	};
 
+	static_assert(sizeof(WinMouseVars_t) == 0x10);
 
 #pragma endregion
 

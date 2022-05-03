@@ -157,7 +157,7 @@ namespace Components
 
 	void Window::EnableDpiAwareness()
 	{
-		const Utils::Library user32{ "user32.dll" };
+		const Utils::Library user32{"user32.dll"};
 
 		user32.invokePascal<void>("SetProcessDpiAwarenessContext", DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	}

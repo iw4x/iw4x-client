@@ -92,7 +92,7 @@ namespace Components
 
 			// Don't use raw input for menu?
 			// Because it needs to call the ScreenToClient
-			static tagPOINT curPos;
+			tagPOINT curPos;
 			GetCursorPos(&curPos);
 			Game::s_wmv->oldPos = curPos;
 			ScreenToClient(Game::g_wv->hWnd, &curPos);
@@ -108,9 +108,7 @@ namespace Components
 
 	void RawMouse::IN_RawMouse_Init()
 	{
-		static auto init = false;
-
-		if (Game::g_wv->hWnd && !init && RawMouse::M_RawInput.get<bool>())
+		if (Game::g_wv->hWnd && RawMouse::M_RawInput.get<bool>())
 		{
 #ifdef DEBUG
 			Logger::Print("Raw Mouse Init.\n");
@@ -123,8 +121,6 @@ namespace Components
 			Rid[0].hwndTarget = Game::g_wv->hWnd;
 
 			RegisterRawInputDevices(Rid, ARRAYSIZE(Rid), sizeof(Rid[0]));
-
-			init = true;
 		}
 	}
 
@@ -157,7 +153,7 @@ namespace Components
 
 		Dvar::OnInit([]()
 		{
-			RawMouse::M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input, use in_restart to take effect if not enabled.");
+			RawMouse::M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates. Use in_restart to take effect if not enabled.");
 		});
 
 		Window::OnWndMessage(WM_INPUT, RawMouse::OnRawInput);
