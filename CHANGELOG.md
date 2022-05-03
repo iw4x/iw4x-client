@@ -36,7 +36,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Sound issue fix is experimental as the bug is not fully understood.
 - `reloadmenus` command does not free resources used by custom menus.
 
-## [0.7.0] - 2022-01-05
+## [0.7.0] - 2022-05-01
 
 ### Added
 
