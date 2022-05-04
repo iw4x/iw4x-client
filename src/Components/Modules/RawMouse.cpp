@@ -97,6 +97,7 @@ namespace Components
 			Game::s_wmv->oldPos = curPos;
 			ScreenToClient(Window::GetWindow(), &curPos);
 
+			Gamepad::OnMouseMove(curPos.x, curPos.y, dx, dy);
 			auto recenterMouse = Game::CL_MouseEvent(curPos.x, curPos.y, dx, dy);
 
 			if (recenterMouse)
