@@ -8,6 +8,7 @@ namespace Components
 		Dedicated();
 
 		static SteamID PlayerGuids[18][2];
+		static Dvar::Var SVLanOnly;
 
 		static bool IsEnabled();
 

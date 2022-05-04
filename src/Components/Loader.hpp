@@ -138,3 +138,4 @@ namespace Components
 #include "Modules/ScriptExtension.hpp"
 #include "Modules/Branding.hpp"
 #include "Modules/RawMouse.hpp"
+#include "Modules/Bullet.hpp"

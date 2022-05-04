@@ -146,7 +146,6 @@ namespace Components
 	{
 		Utils::Hook(0x475E65, RawMouse::IN_MouseMove, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x475E8D, RawMouse::IN_MouseMove, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x475E9E, RawMouse::IN_MouseMove, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x467C03, RawMouse::IN_Init, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64D095, RawMouse::IN_Init, HOOK_JUMP).install()->quick();

@@ -477,7 +477,7 @@ namespace Game
 	typedef void(__cdecl * Menus_CloseAll_t)(UiContext* dc);
 	extern Menus_CloseAll_t Menus_CloseAll;
 
-	typedef void(__cdecl * Menus_CloseRequest_t)(UiContext *dc, menuDef_t* menu);
+	typedef void(__cdecl * Menus_CloseRequest_t)(UiContext* dc, menuDef_t* menu);
 	extern Menus_CloseRequest_t Menus_CloseRequest;
 
 	typedef int(__cdecl * Menus_OpenByName_t)(UiContext* dc, const char* p);
@@ -1152,6 +1152,8 @@ namespace Game
 	extern ScreenPlacement* scrPlaceFullUnsafe;
 
 	extern level_locals_t* level;
+
+	extern float(*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT];
 
 	extern WinMouseVars_t* s_wmv;
 

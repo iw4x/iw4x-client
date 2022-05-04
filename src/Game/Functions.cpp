@@ -553,6 +553,8 @@ namespace Game
 
 	level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
 
+	float(*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT] = reinterpret_cast<float(*)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT]>(0x7C4878);
+
 	WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
 
 	int* window_center_x = reinterpret_cast<int*>(0x649D638);
