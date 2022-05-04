@@ -431,7 +431,7 @@ namespace Components
 		{
 			std::memmove(&Game::scrVmPub->top[-4], &Game::scrVmPub->top[-5], sizeof(Game::VariableValue) * 6);
 			Game::scrVmPub->top += 1;
-			Game::scrVmPub->top[-6].type = Game::VAR_FLOAT;
+			Game::scrVmPub->top[-6].type = Game::scrParamType_t::VAR_FLOAT;
 			Game::scrVmPub->top[-6].u.floatValue = 0.0f;
 
 			++Game::scrVmPub->outparamcount;
@@ -450,7 +450,7 @@ namespace Components
 
 		const auto value = &Game::scrVmPub->top[-index];
 
-		if (value->type != Game::VAR_FUNCTION)
+		if (value->type != Game::scrParamType_t::VAR_FUNCTION)
 		{
 			Game::Scr_ParamError(static_cast<unsigned int>(index), "^1GetCodePosForParam: Expects a function as parameter!\n");
 			return "";
@@ -549,7 +549,7 @@ namespace Components
 
 	void Script::AddFunctions()
 	{
-		Script::AddFunction("ReplaceFunc", []() // gsc: ReplaceFunc(<function>, <function>)
+		Script::AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
 		{
 			if (Game::Scr_GetNumParam() != 2u)
 			{
@@ -564,7 +564,7 @@ namespace Components
 		});
 
 		// System time
-		Script::AddFunction("GetSystemTime", []() // gsc: GetSystemTime()
+		Script::AddFunction("GetSystemTime", [] // gsc: GetSystemTime()
 		{
 			SYSTEMTIME time;
 			GetSystemTime(&time);
@@ -572,7 +572,7 @@ namespace Components
 			Game::Scr_AddInt(time.wSecond);
 		});
 
-		Script::AddFunction("GetSystemMilliseconds", []() // gsc: GetSystemMilliseconds()
+		Script::AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
 		{
 			SYSTEMTIME time;
 			GetSystemTime(&time);
@@ -581,7 +581,7 @@ namespace Components
 		});
 
 		// Executes command to the console
-		Script::AddFunction("Exec", []() // gsc: Exec(<string>)
+		Script::AddFunction("Exec", [] // gsc: Exec(<string>)
 		{
 			const auto str = Game::Scr_GetString(0);
 
@@ -595,7 +595,7 @@ namespace Components
 		});
 
 		// Allow printing to the console even when developer is 0
-		Script::AddFunction("PrintConsole", []() // gsc: PrintConsole(<string>)
+		Script::AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
 		{
 			for (auto i = 0u; i < Game::Scr_GetNumParam(); i++)
 			{
@@ -612,7 +612,7 @@ namespace Components
 		});
 
 		// Script Storage Functions
-		Script::AddFunction("StorageSet", []() // gsc: StorageSet(<str key>, <str data>);
+		Script::AddFunction("StorageSet", [] // gsc: StorageSet(<str key>, <str data>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 			const auto* value = Game::Scr_GetString(1);
@@ -626,7 +626,7 @@ namespace Components
 			Script::ScriptStorage.insert_or_assign(key, value);
 		});
 
-		Script::AddFunction("StorageRemove", []() // gsc: StorageRemove(<str key>);
+		Script::AddFunction("StorageRemove", [] // gsc: StorageRemove(<str key>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 
@@ -645,7 +645,7 @@ namespace Components
 			Script::ScriptStorage.erase(key);
 		});
 
-		Script::AddFunction("StorageGet", []() // gsc: StorageGet(<str key>);
+		Script::AddFunction("StorageGet", [] // gsc: StorageGet(<str key>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 
@@ -665,7 +665,7 @@ namespace Components
 			Game::Scr_AddString(data.data());
 		});
 
-		Script::AddFunction("StorageHas", []() // gsc: StorageHas(<str key>);
+		Script::AddFunction("StorageHas", [] // gsc: StorageHas(<str key>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 
@@ -678,7 +678,7 @@ namespace Components
 			Game::Scr_AddBool(static_cast<int>(Script::ScriptStorage.count(key))); // Until C++17
 		});
 
-		Script::AddFunction("StorageClear", []() // gsc: StorageClear();
+		Script::AddFunction("StorageClear", [] // gsc: StorageClear();
 		{
 			Script::ScriptStorage.clear();
 		});
@@ -746,7 +746,7 @@ namespace Components
 		});
 
 #ifdef _DEBUG 
-		Script::AddFunction("DebugBox", []()
+		Script::AddFunction("DebugBox", []
 		{
 			const auto* message = Game::Scr_GetString(0);
 

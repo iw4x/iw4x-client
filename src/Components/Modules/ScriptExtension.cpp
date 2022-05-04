@@ -116,7 +116,7 @@ namespace Components
 	void ScriptExtension::AddFunctions()
 	{
 		// File functions
-		Script::AddFunction("FileWrite", []() // gsc: FileWrite(<filepath>, <string>, <mode>)
+		Script::AddFunction("FileWrite", [] // gsc: FileWrite(<filepath>, <string>, <mode>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 			auto* text = Game::Scr_GetString(1);
@@ -159,7 +159,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("FileRead", []() // gsc: FileRead(<filepath>)
+		Script::AddFunction("FileRead", [] // gsc: FileRead(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -187,7 +187,7 @@ namespace Components
 			Game::Scr_AddString(FileSystem::FileReader(path).getBuffer().data());
 		});
 
-		Script::AddFunction("FileExists", []() // gsc: FileExists(<filepath>)
+		Script::AddFunction("FileExists", [] // gsc: FileExists(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -209,7 +209,7 @@ namespace Components
 			Game::Scr_AddInt(FileSystem::FileReader(path).exists());
 		});
 
-		Script::AddFunction("FileRemove", []() // gsc: FileRemove(<filepath>)
+		Script::AddFunction("FileRemove", [] // gsc: FileRemove(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -235,7 +235,7 @@ namespace Components
 		});
 
 		// Misc functions
-		Script::AddFunction("ToUpper", []() // gsc: ToUpper(<string>)
+		Script::AddFunction("ToUpper", [] // gsc: ToUpper(<string>)
 		{
 			const auto scriptValue = Game::Scr_GetConstString(0);
 			const auto* string = Game::SL_ConvertToString(scriptValue);
@@ -280,7 +280,7 @@ namespace Components
 		});
 
 		// Func present on IW5
-		Script::AddFunction("StrICmp", []() // gsc: StrICmp(<string>, <string>)
+		Script::AddFunction("StrICmp", [] // gsc: StrICmp(<string>, <string>)
 		{
 			const auto value1 = Game::Scr_GetConstString(0);
 			const auto value2 = Game::Scr_GetConstString(1);
@@ -292,7 +292,7 @@ namespace Components
 		});
 
 		// Func present on IW5
-		Script::AddFunction("IsEndStr", []() // gsc: IsEndStr(<string>, <string>)
+		Script::AddFunction("IsEndStr", [] // gsc: IsEndStr(<string>, <string>)
 		{
 			const auto* s1 = Game::Scr_GetString(0);
 			const auto* s2 = Game::Scr_GetString(1);
@@ -304,6 +304,26 @@ namespace Components
 			}
 
 			Game::Scr_AddBool(Utils::String::EndsWith(s1, s2));
+		});
+
+		Script::AddFunction("IsArray", []
+		{
+			const auto type = Game::Scr_GetType(0);
+
+			bool result;
+			if (type == Game::scrParamType_t::VAR_POINTER)
+			{
+				const auto ptr_type = Game::Scr_GetPointerType(0);
+				assert(ptr_type >= Game::FIRST_OBJECT);
+				result = (ptr_type == Game::scrParamType_t::VAR_ARRAY);
+			}
+			else
+			{
+				assert(type < Game::FIRST_OBJECT);
+				result = false;
+			}
+
+			Game::Scr_AddBool(result);
 		});
 	}
 
