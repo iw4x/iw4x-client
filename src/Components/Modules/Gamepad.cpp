@@ -1833,7 +1833,7 @@ namespace Components
 		return gamePads[0].inUse;
 	}
 
-	void Gamepad::OnMouseMove(const int x, const int y, const int dx, const int dy)
+	void Gamepad::OnMouseMove([[maybe_unused]] const int x, [[maybe_unused]] const int y, const int dx, const int dy)
 	{
 		if (dx != 0 || dy != 0)
 		{
