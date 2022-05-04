@@ -1833,13 +1833,18 @@ namespace Components
 		return gamePads[0].inUse;
 	}
 
-	int Gamepad::CL_MouseEvent_Hk(const int x, const int y, const int dx, const int dy)
+	void Gamepad::OnMouseMove(const int x, const int y, const int dx, const int dy)
 	{
 		if (dx != 0 || dy != 0)
 		{
 			gamePads[0].inUse = false;
 			gpad_in_use.setRaw(false);
 		}
+	}
+
+	int Gamepad::CL_MouseEvent_Hk(const int x, const int y, const int dx, const int dy)
+	{
+		OnMouseMove(x, y, dx, dy);
 
 		// Call original function
 		return Utils::Hook::Call<int(int, int, int, int)>(0x4D7C50)(x, y, dx, dy);

@@ -41,6 +41,8 @@ namespace Components
 	public:
 		Gamepad();
 
+		static void OnMouseMove(int x, int y, int dx, int dy);
+
 	private:
 		static Game::ButtonToCodeMap_t buttonList[];
 		static Game::StickToCodeMap_t analogStickList[4];
