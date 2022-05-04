@@ -20,7 +20,9 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Changed
 
 - Test clients' native functionality has been restored by default (#162)
+- Renamed GSC method `isBot` to `IsTestClient` (#162)
 - Custom GSC functions can be called correctly from a game script (#216)
+- GSC functions `HttpCancel` and `HttpCancel` require the game to be launched with the command line argument `scriptablehttp` (#162)
 - Master server list will be used instead of the node system (load server list faster) (#234)
 
 ### Fixed

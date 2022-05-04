@@ -293,6 +293,7 @@ namespace Game
 	Scr_ParamError_t Scr_ParamError = Scr_ParamError_t(0x4FBC70);
 
 	Scr_GetType_t Scr_GetType = Scr_GetType_t(0x422900);
+	Scr_GetPointerType_t Scr_GetPointerType = Scr_GetPointerType_t(0x4828E0);
 
 	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
 

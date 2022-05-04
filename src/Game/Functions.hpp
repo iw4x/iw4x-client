@@ -735,8 +735,11 @@ namespace Game
 	typedef bool(__cdecl * Scr_IsSystemActive_t)();
 	extern Scr_IsSystemActive_t Scr_IsSystemActive;
 
-	typedef int(__cdecl * Scr_GetType_t)(unsigned int);
+	typedef int(__cdecl * Scr_GetType_t)(unsigned int index);
 	extern Scr_GetType_t Scr_GetType;
+
+	typedef int(__cdecl * Scr_GetPointerType_t)(unsigned int index);
+	extern Scr_GetPointerType_t Scr_GetPointerType;
 
 	typedef void(__cdecl * Scr_Error_t)(const char*);
 	extern Scr_Error_t Scr_Error;
