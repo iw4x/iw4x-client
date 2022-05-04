@@ -306,7 +306,7 @@ namespace Components
 			Game::Scr_AddBool(Utils::String::EndsWith(s1, s2));
 		});
 
-		Script::AddFunction("IsArray", []
+		Script::AddFunction("IsArray", [] // gsc: IsArray(<object>)
 		{
 			const auto type = Game::Scr_GetType(0);
 
