@@ -999,10 +999,10 @@ namespace Game
 	typedef void(__cdecl * Jump_ClearState_t)(playerState_s* ps);
 	extern Jump_ClearState_t Jump_ClearState;
 
-	typedef void(__cdecl * PM_playerTrace_t)(pmove_s*, trace_t*, const float*, const float*, const Bounds*, int, int);
+	typedef void(__cdecl * PM_playerTrace_t)(pmove_s* pm, trace_t* results, const float* start, const float* end, const Bounds* bounds, int passEntityNum, int contentMask);
 	extern PM_playerTrace_t PM_playerTrace;
 
-	typedef void(__cdecl * PM_Trace_t)(pmove_s*, trace_t*, const float*, const float*, const Bounds*, int, int);
+	typedef void(__cdecl * PM_Trace_t)(pmove_s* pm, trace_t* results, const float* start, const float* end, const Bounds* bounds, int passEntityNum, int contentMask);
 	extern PM_Trace_t PM_Trace;
 
 	typedef EffectiveStance(__cdecl * PM_GetEffectiveStance_t)(const playerState_s* ps);
@@ -1145,13 +1145,13 @@ namespace Game
 	constexpr auto MAX_MODELS = 512;
 	extern XModel** cached_models;
 
-	extern vec3_t* CorrectSolidDeltas;
+	extern float (*CorrectSolidDeltas)[26][3];
 
 	extern FastCriticalSection* db_hashCritSect;
 
 	extern level_locals_t* level;
 
-	extern float(*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT];
+	extern float (*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT];
 
 	extern WinMouseVars_t* s_wmv;
 

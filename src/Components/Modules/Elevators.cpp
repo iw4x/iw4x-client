@@ -16,9 +16,9 @@ namespace Components
 		const auto elevatorSetting = Elevators::BG_Elevators.get<int>();
 		while (true)
 		{
-			point[0] = ps->origin[0] + Game::CorrectSolidDeltas[i][0];
-			point[1] = ps->origin[1] + Game::CorrectSolidDeltas[i][1];
-			point[2] = ps->origin[2] + Game::CorrectSolidDeltas[i][2];
+			point[0] = ps->origin[0] + (*Game::CorrectSolidDeltas)[i][0];
+			point[1] = ps->origin[1] + (*Game::CorrectSolidDeltas)[i][1];
+			point[2] = ps->origin[2] + (*Game::CorrectSolidDeltas)[i][2];
 
 			Game::PM_playerTrace(pm, trace, point, point, &pm->bounds, ps->clientNum, pm->tracemask);
 
@@ -40,8 +40,8 @@ namespace Components
 				}
 			}	
 
-			i += 1;
-			if (i >= 26)
+			++i;
+			if (i >= 26) // CorrectSolidDeltas count
 			{
 				ps->groundEntityNum = Game::ENTITYNUM_NONE;
 				pml->groundPlane = 0;
@@ -62,15 +62,15 @@ namespace Components
 		return 1;
 	}
 
-	void Elevators::PM_Trace_Hk(Game::pmove_s* pm, Game::trace_t* trace, const float* f3,
-		const float* f4, const Game::Bounds* bounds, int a6, int a7)
+	void Elevators::PM_Trace_Hk(Game::pmove_s* pm, Game::trace_t* results, const float* start,
+		const float* end, const Game::Bounds* bounds, int passEntityNum, int contentMask)
 	{
-		Game::PM_Trace(pm, trace, f3, f4, bounds, a6, a7);
+		Game::PM_Trace(pm, results, start, end, bounds, passEntityNum, contentMask);
 
 		// Allow the player to stand even when there is no headroom
 		if (Elevators::BG_Elevators.get<int>() == Elevators::EASY)
 		{
-			trace->allsolid = false;
+			results->allsolid = false;
 		}
 	}
 
@@ -111,8 +111,7 @@ namespace Components
 				Elevators::ENABLED, Game::DVAR_CODINFO, "Elevators glitch settings");
 		});
 
-		//Replace PM_CorrectAllSolid
-		Utils::Hook(0x57369E, Elevators::PM_CorrectAllSolidStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x57369E, Elevators::PM_CorrectAllSolidStub, HOOK_CALL).install()->quick(); // PM_GroundTrace
 
 		// Place hooks in PM_CheckDuck. If the elevators dvar is set to easy the
 		// flags for duck/prone will always be removed from the player state
