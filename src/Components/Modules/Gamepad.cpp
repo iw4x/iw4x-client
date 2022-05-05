@@ -1849,9 +1849,9 @@ namespace Components
 	void Gamepad::Key_SetBinding_Hk(const int localClientNum, const int keyNum, const char* binding)
 	{
 		if(Key_IsValidGamePadChar(keyNum))
-            gpad_buttonConfig.set("custom");
+			gpad_buttonConfig.set("custom");
 
-        Game::Key_SetBinding(localClientNum, keyNum, binding);
+		Game::Key_SetBinding(localClientNum, keyNum, binding);
 	}
 
 	void Gamepad::CL_KeyEvent_Hk(const int localClientNum, const int key, const int down, const unsigned time)
