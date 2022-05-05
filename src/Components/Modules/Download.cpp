@@ -924,7 +924,7 @@ namespace Components
 			Dvar::Register<bool>("mod_force_download_server", false, Game::dvar_flag::DVAR_ARCHIVE, "Set to true to force the client to run the download server for mods (for mods in private matches).");
 		});
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			int workingCount = 0;
 
@@ -957,7 +957,8 @@ namespace Components
 					++workingCount;
 				}
 			}
-		});
+
+		}, Scheduler::Pipeline::MAIN);
 
 		Script::OnVMShutdown([]()
 		{

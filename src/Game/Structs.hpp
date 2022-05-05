@@ -353,7 +353,7 @@ namespace Game
 		const char** argv[8];
 	};
 
-	static_assert(sizeof(CmdArgs) == 132);
+	static_assert(sizeof(CmdArgs) == 0x84);
 
 	typedef struct cmd_function_s
 	{

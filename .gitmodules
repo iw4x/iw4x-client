@@ -32,3 +32,6 @@
 [submodule "deps/dxsdk"]
 	path = deps/dxsdk
 	url = https://github.com/devKlausS/dxsdk.git
+[submodule "deps/GSL"]
+	path = deps/GSL
+	url = https://github.com/microsoft/GSL.git

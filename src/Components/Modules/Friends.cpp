@@ -653,7 +653,7 @@ namespace Components
 			}
 		});
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			static Utils::Time::Interval timeInterval;
 			static Utils::Time::Interval sortInterval;
@@ -692,11 +692,11 @@ namespace Components
 					Friends::SortList(true);
 				}
 			}
-		});
+		}, Scheduler::Pipeline::CLIENT);
 
 		UIFeeder::Add(61.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
 
-		Scheduler::OnShutdown([]()
+		Scheduler::OnGameShutdown([]
 		{
 			Friends::ClearPresence("iw4x_server");
 			Friends::ClearPresence("iw4x_playing");

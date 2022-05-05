@@ -252,7 +252,7 @@ namespace Components
 		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
 
 		// Make sure preDestroy is called when the game shuts down
-		Scheduler::OnShutdown(Loader::PreDestroy);
+		Scheduler::OnGameShutdown(Loader::PreDestroy);
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
@@ -469,10 +469,10 @@ namespace Components
 
 		// Fix mouse lag
 		Utils::Hook::Nop(0x4731F5, 8);
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			SetThreadExecutionState(ES_DISPLAY_REQUIRED);
-		});
+		}, Scheduler::Pipeline::RENDERER);
 
 		// Fix mouse pitch adjustments
 		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");
@@ -709,13 +709,13 @@ namespace Components
 		// Constantly draw the mini console
 		Utils::Hook::Set<BYTE>(0x412A45, 0xEB);
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]()
 		{
 			if (*reinterpret_cast<Game::Font_s**>(0x62E4BAC))
 			{
 				Game::Con_DrawMiniConsole(0, 2, 4, (Game::CL_IsCgameInitialized() ? 1.0f : 0.4f));
 			}
-		}, true);
+		}, Scheduler::Pipeline::RENDERER);
 #else
 		// Remove missing tag message
 		Utils::Hook::Nop(0x4EBF1A, 5);

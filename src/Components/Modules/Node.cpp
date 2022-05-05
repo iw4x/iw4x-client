@@ -320,11 +320,11 @@ namespace Components
 		size_t i = 0;
 		for (auto& nodeListData : nodeListReponseMessages)
 		{
-			Scheduler::OnDelay([nodeListData, i, address]()
+			Scheduler::Once([nodeListData, i, address]()
 			{
 				NODE_LOG("Sending %d nodeListResponse length to %s\n", nodeListData.length(), address.getCString());
 				Session::Send(address, "nodeListResponse", nodeListData);
-			}, NODE_SEND_RATE * i++);
+			}, Scheduler::Pipeline::MAIN, NODE_SEND_RATE * i++);
 		}
 	}
 
@@ -339,12 +339,13 @@ namespace Components
 		if (ZoneBuilder::IsEnabled()) return;
 		Dvar::Register<bool>("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
 
-		Scheduler::OnFrameAsync([]()
+		Scheduler::Loop([]
 		{
 			Node::StoreNodes(false);
 		});
 
-		Scheduler::OnFrame(Node::RunFrame);
+		Scheduler::Loop(Node::RunFrame, Scheduler::Pipeline::MAIN);
+
 		Session::Handle("nodeListResponse", Node::HandleResponse);
 		Session::Handle("nodeListRequest", [](Network::Address address, const std::string&)
 		{

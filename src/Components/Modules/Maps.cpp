@@ -879,11 +879,11 @@ namespace Components
 
 		Command::Add("delayReconnect", [](Command::Params*)
 		{
-			Scheduler::OnDelay([]()
+			Scheduler::Once([]
 			{
 				Command::Execute("closemenu popup_reconnectingtoparty", false);
 				Command::Execute("reconnect", false);
-			}, 10s, true);
+			}, Scheduler::Pipeline::CLIENT, 10s);
 		});
 
 		if(Dedicated::IsEnabled())
@@ -908,9 +908,9 @@ namespace Components
 		// Allow hiding specific smodels
 		Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
-			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			auto*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
 			if (!Game::CL_IsCgameInitialized() || !gameWorld || !Dvar::Var("r_listSModels").get<bool>()) return;
 
 			std::map<std::string, int> models;
@@ -926,16 +926,16 @@ namespace Components
 			}
 
 			Game::Font_s* font = Game::R_RegisterFont("fonts/smallFont", 0);
-			int height = Game::R_TextHeight(font);
-			float scale = 0.75;
-			float color[4] = { 0, 1.0f, 0, 1.0f };
+			auto height = Game::R_TextHeight(font);
+			auto scale = 0.75f;
+			float color[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 
 			unsigned int i = 0;
 			for (auto& model : models)
 			{
 				Game::R_AddCmdDrawText(Utils::String::VA("%d %s", model.second, model.first.data()), 0x7FFFFFFF, font, 15.0f, (height * scale + 1) * (i++ + 1) + 15.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 			}
-		}, true);
+		}, Scheduler::Pipeline::RENDERER);
 	}
 
 	Maps::~Maps()

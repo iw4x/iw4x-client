@@ -8,8 +8,8 @@ namespace Components
 		class Flag
 		{
 		public:
-			Flag(Game::dvar_flag flag) : val(flag) {};
-			Flag(unsigned __int16 flag) : Flag(static_cast<Game::dvar_flag>(flag)) {};
+			Flag(Game::dvar_flag flag) : val(flag) {}
+			Flag(unsigned __int16 flag) : Flag(static_cast<Game::dvar_flag>(flag)) {}
 
 			Game::dvar_flag val;
 		};
@@ -17,10 +17,10 @@ namespace Components
 		class Var
 		{
 		public:
-			Var() : dvar(nullptr) {};
-			Var(const Var& obj) { this->dvar = obj.dvar; };
-			Var(Game::dvar_t* _dvar) : dvar(_dvar) {};
-			Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {};
+			Var() : dvar(nullptr) {}
+			Var(const Var& obj) { this->dvar = obj.dvar; }
+			Var(Game::dvar_t* _dvar) : dvar(_dvar) {}
+			Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {}
 			Var(const std::string& dvarName);
 
 			template<typename T> T get();
@@ -43,7 +43,9 @@ namespace Components
 		Dvar();
 		~Dvar();
 
-		static void OnInit(Utils::Slot<Scheduler::Callback> callback);
+		typedef void(Callback)();
+
+		static void OnInit(Utils::Slot<Dvar::Callback> callback);
 
 		// Only strings and bools use this type of declaration
 		template<typename T> static Var Register(const char* dvarName, T value, Flag flag, const char* description);
@@ -52,15 +54,18 @@ namespace Components
 		static void ResetDvarsValue();
 
 	private:
-		static Utils::Signal<Scheduler::Callback> RegistrationSignal;
+		static Utils::Signal<Dvar::Callback> RegistrationSignal;
 		static const char* ArchiveDvarPath;
 
-		static Game::dvar_t* RegisterName(const char* name, const char* defaultVal, Game::dvar_flag flag, const char* description);
+		static Game::dvar_t* Dvar_RegisterName(const char* name, const char* defaultVal, unsigned __int16 flags, const char* description);
 
 		static void SetFromStringByNameExternal(const char* dvar, const char* value);
 		static void SetFromStringByNameSafeExternal(const char* dvar, const char* value);
 
 		static void SaveArchiveDvar(const Game::dvar_t* var);
 		static void DvarSetFromStringByNameStub(const char* dvarName, const char* value);
+
+		// Unable to do any earlier because SL system will not be active for string dvars
+		static void Com_InitDvars_Hk();
 	};
 }

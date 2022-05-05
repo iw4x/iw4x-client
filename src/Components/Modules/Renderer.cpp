@@ -5,8 +5,8 @@ namespace Components
 	Utils::Signal<Renderer::BackendCallback> Renderer::BackendFrameSignal;
 	Utils::Signal<Renderer::BackendCallback> Renderer::SingleBackendFrameSignal;
 
-	Utils::Signal<Scheduler::Callback> Renderer::EndRecoverDeviceSignal;
-	Utils::Signal<Scheduler::Callback> Renderer::BeginRecoverDeviceSignal;
+	Utils::Signal<Renderer::Callback> Renderer::EndRecoverDeviceSignal;
+	Utils::Signal<Renderer::Callback> Renderer::BeginRecoverDeviceSignal;
 
 	Dvar::Var Renderer::r_drawTriggers;
 	Dvar::Var Renderer::r_drawSceneModelCollisions;
@@ -31,19 +31,6 @@ namespace Components
 	float damage[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
 	float once[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
 	float multiple[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
-
-	__declspec(naked) void Renderer::FrameStub()
-	{
-		__asm
-		{
-			pushad
-			call Scheduler::FrameHandler
-			popad
-
-			push 5AC950h
-			retn
-		}
-	}
 
 	__declspec(naked) void Renderer::BackendFrameStub()
 	{
@@ -87,12 +74,12 @@ namespace Components
 		Renderer::BackendFrameSignal.connect(callback);
 	}
 
-	void Renderer::OnDeviceRecoveryEnd(Utils::Slot<Scheduler::Callback> callback)
+	void Renderer::OnDeviceRecoveryEnd(Utils::Slot<Renderer::Callback> callback)
 	{
 		Renderer::EndRecoverDeviceSignal.connect(callback);
 	}
 
-	void Renderer::OnDeviceRecoveryBegin(Utils::Slot<Scheduler::Callback> callback)
+	void Renderer::OnDeviceRecoveryBegin(Utils::Slot<Renderer::Callback> callback)
 	{
 		Renderer::BeginRecoverDeviceSignal.connect(callback);
 	}
@@ -463,7 +450,8 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled()) return;
 
-		Scheduler::OnFrame([]() {
+		Scheduler::Loop([]
+		{
 			if (Game::CL_IsCgameInitialized())
 			{
 				DebugDrawAABBTrees();
@@ -472,35 +460,7 @@ namespace Components
 				DebugDrawSceneModelCollisions();
 				DebugDrawTriggers();
 			}
-		});
-
-		// 		Renderer::OnBackendFrame([] (IDirect3DDevice9* device)
-		// 		{
-		// 			if (Game::Sys_Milliseconds() % 2)
-		// 			{
-		// 				device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, 0, 0, 0);
-		// 			}
-		//
-		// 			return;
-		//
-		// 			IDirect3DSurface9* buffer = nullptr;
-		//
-		// 			device->CreateOffscreenPlainSurface(Renderer::Width(), Renderer::Height(), D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &buffer, nullptr);
-		// 			device->GetFrontBufferData(0, buffer);
-		//
-		// 			if (buffer)
-		// 			{
-		// 				D3DSURFACE_DESC desc;
-		// 				D3DLOCKED_RECT lockedRect;
-		//
-		// 				buffer->GetDesc(&desc);
-		//
-		// 				HRESULT res = buffer->LockRect(&lockedRect, NULL, D3DLOCK_READONLY);
-		//
-		//
-		// 				buffer->UnlockRect();
-		// 			}
-		// 		});
+		}, Scheduler::Pipeline::RENDERER);
 
 		// Log broken materials
 		Utils::Hook(0x0054CAAA, Renderer::StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
@@ -509,9 +469,6 @@ namespace Components
 		// Enhance cg_drawMaterial
 		Utils::Hook::Set(0x005086DA, "^3solid^7");
 		Utils::Hook(0x00580F53, Renderer::DrawTechsetForMaterial, HOOK_CALL).install()->quick();
-
-		// Frame hook
-		Utils::Hook(0x5ACB99, Renderer::FrameStub, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x536A80, Renderer::BackendFrameStub, HOOK_JUMP).install()->quick();
 

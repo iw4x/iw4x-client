@@ -268,10 +268,10 @@ namespace Components
 		});
 
 		// Verify the list on startup
-		Scheduler::Once([]()
+		Scheduler::OnGameInitialized([]()
 		{
 			Bans::BanList list;
 			Bans::LoadBans(&list);
-		});
+		}, Scheduler::Pipeline::SERVER);
 	}
 }

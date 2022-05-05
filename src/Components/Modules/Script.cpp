@@ -14,7 +14,7 @@ namespace Components
 	const char* Script::ReplacedPos = nullptr;
 	int Script::LastFrameTime = -1;
 
-	Utils::Signal<Scheduler::Callback> Script::VMShutdownSignal;
+	Utils::Signal<Script::Callback> Script::VMShutdownSignal;
 
 	void Script::FunctionError()
 	{
@@ -411,7 +411,7 @@ namespace Components
 		}
 	}
 
-	void Script::OnVMShutdown(Utils::Slot<Scheduler::Callback> callback)
+	void Script::OnVMShutdown(Utils::Slot<Script::Callback> callback)
 	{
 		Script::ScriptBaseProgramNum.clear();
 		Script::VMShutdownSignal.connect(std::move(callback));
@@ -718,7 +718,7 @@ namespace Components
 		Utils::Hook(0x47548B, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick(); // G_LoadGame
 		Utils::Hook(0x4D06BA, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick(); // G_ShutdownGame
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]()
 		{
 			if (!Game::SV_Loaded())
 				return;
@@ -735,7 +735,7 @@ namespace Components
 			}
 
 			Script::LastFrameTime = nowMs;
-		});
+		}, Scheduler::Pipeline::SERVER);
 
 #ifdef _DEBUG 
 		Script::AddFunction("DebugBox", []

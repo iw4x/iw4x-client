@@ -24,8 +24,6 @@ namespace Components
 		static void PostInitialization();
 		static void PostInitializationStub();
 
-		static void FrameStub();
-
 		static void TransmitGuids();
 
 		static void TimeWrapStub(Game::errorParm_t code, const char* message);

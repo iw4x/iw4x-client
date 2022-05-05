@@ -85,26 +85,28 @@ namespace Components
 	{
 		for (auto i = 0u; i < count; ++i)
 		{
-			Scheduler::OnDelay([]()
+			Scheduler::Once([]
 			{
 				auto* ent = Game::SV_AddTestClient();
 				if (ent == nullptr)
 					return;
 
-				Scheduler::OnDelay([ent]()
+				Scheduler::Once([ent]()
 				{
 					Game::Scr_AddString("autoassign");
 					Game::Scr_AddString("team_marinesopfor");
 					Game::Scr_Notify(ent, Game::SL_GetString("menuresponse", 0), 2);
 
-					Scheduler::OnDelay([ent]()
+					Scheduler::Once([ent]()
 					{
 						Game::Scr_AddString(Utils::String::VA("class%u", Utils::Cryptography::Rand::GenerateInt() % 5u));
 						Game::Scr_AddString("changeclass");
 						Game::Scr_Notify(ent, Game::SL_GetString("menuresponse", 0), 2);
-					}, 1s);
-				}, 1s);
-			}, 500ms * (i + 1));
+					}, Scheduler::Pipeline::SERVER, 1s);
+
+				}, Scheduler::Pipeline::SERVER, 1s);
+
+			}, Scheduler::Pipeline::SERVER, 500ms * (i + 1));
 		}
 	}
 

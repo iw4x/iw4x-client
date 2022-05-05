@@ -569,28 +569,28 @@ namespace Components
 		FastFiles::AddZonePath("zone\\patch\\");
 		FastFiles::AddZonePath("zone\\dlc\\");
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]()
 		{
 			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").get<bool>()) return;
 
-			Game::Font_s* font = Game::R_RegisterFont("fonts/consoleFont", 0);
+			auto* const font = Game::R_RegisterFont("fonts/consoleFont", 0);
 			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
 
-			std::uint32_t FFTotalSize = *reinterpret_cast<std::uint32_t*>(0x10AA5D8);
-			std::uint32_t FFCurrentOffset = *reinterpret_cast<std::uint32_t*>(0x10AA608);
+			auto FFTotalSize = *reinterpret_cast<std::uint32_t*>(0x10AA5D8);
+			auto FFCurrentOffset = *reinterpret_cast<std::uint32_t*>(0x10AA608);
 
 			float fastfileLoadProgress = (float(FFCurrentOffset) / float(FFTotalSize)) * 100.0f;
-			if (fastfileLoadProgress == INFINITY)
+			if (isinf(fastfileLoadProgress))
 			{
 				fastfileLoadProgress = 100.0f;
 			}
-			else if (fastfileLoadProgress == NAN)
+			else if (isnan(fastfileLoadProgress))
 			{
 				fastfileLoadProgress = 0.0f;
 			}
 
 			Game::R_AddCmdDrawText(Utils::String::VA("Loading FastFile: %s [%0.1f%%]", FastFiles::Current().data(), fastfileLoadProgress), 0x7FFFFFFF, font, 5.0f, static_cast<float>(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
-		}, true);
+		}, Scheduler::Pipeline::RENDERER);
 
 		Command::Add("loadzone", [](Command::Params* params)
 		{

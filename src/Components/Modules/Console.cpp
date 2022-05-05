@@ -580,7 +580,7 @@ namespace Components
 
 		if (Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
-			Scheduler::OnFrame(Console::RefreshStatus);
+			Scheduler::Loop(Console::RefreshStatus, Scheduler::Pipeline::MAIN);
 		}
 
 		// Code below is not necessary when performing unit tests!
@@ -622,10 +622,10 @@ namespace Components
 				}
 			}, HOOK_CALL).install()->quick();
 
-			Scheduler::OnFrame([]()
+			Scheduler::OnGameInitialized([]
 			{
 				Console::LastRefresh = Game::Sys_Milliseconds();
-			});
+			}, Scheduler::Pipeline::MAIN);
 		}
 		else if (Dedicated::IsEnabled()/* || ZoneBuilder::IsEnabled()*/)
 		{

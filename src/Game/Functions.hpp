@@ -873,10 +873,10 @@ namespace Game
 	typedef void(__cdecl * Sys_FreeFileList_t)(char** list);
 	extern Sys_FreeFileList_t Sys_FreeFileList;
 
-	typedef bool(__cdecl * Sys_IsDatabaseReady_t)();
+	typedef int(__cdecl * Sys_IsDatabaseReady_t)();
 	extern Sys_IsDatabaseReady_t Sys_IsDatabaseReady;
 
-	typedef bool(__cdecl * Sys_IsDatabaseReady2_t)();
+	typedef int(__cdecl * Sys_IsDatabaseReady2_t)();
 	extern Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2;
 
 	typedef bool(__cdecl * Sys_IsMainThread_t)();

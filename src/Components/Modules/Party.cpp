@@ -278,7 +278,7 @@ namespace Components
 			Party::Connect(Party::Container.target);
 		});
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			if (Party::Container.valid)
 			{
@@ -297,7 +297,8 @@ namespace Components
 					Party::ConnectError("Playlist request timed out.");
 				}
 			}
-		}, true);
+
+		}, Scheduler::Pipeline::CLIENT);
 
 		// Basic info handler
 		Network::Handle("getInfo", [](Network::Address address, const std::string& data)

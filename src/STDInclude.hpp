@@ -16,7 +16,7 @@
 #define VLD_FORCE_ENABLE
 //#include <vld.h>
 
-#include <windows.h>
+#include <Windows.h>
 #include <timeapi.h>
 #include <shellapi.h>
 #include <Wininet.h>
@@ -29,7 +29,7 @@
 #pragma warning(push)
 #pragma warning(disable: 4091)
 #pragma warning(disable: 4244)
-#include <dbghelp.h>
+#include <DbgHelp.h>
 
 #include <sstream>
 #include <fstream>
@@ -45,13 +45,14 @@
 #include <filesystem>
 #include <optional>
 #include <random>
+#include <chrono>
 
 #pragma warning(pop)
 
 #include <d3dx9tex.h>
 #pragma comment(lib, "D3dx9.lib")
 
-#include <Xinput.h>
+#include <XInput.h>
 #pragma comment (lib, "xinput.lib")
 
 // Ignore the warnings
@@ -63,7 +64,6 @@
 #pragma warning(disable: 4389)
 #pragma warning(disable: 4702)
 #pragma warning(disable: 4800)
-#pragma warning(disable: 4996) // _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable: 5054)
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6011)
@@ -74,21 +74,35 @@
 #pragma warning(disable: 6387)
 #pragma warning(disable: 26812)
 
-#include <zlib.h>
-
 #include <curses.h>
-#include <mongoose.h>
+#include <gsl/gsl>
 #include <json11.hpp>
 #include <tomcrypt.h>
+#include <mongoose.h>
 #include <udis86.h>
+#include <zlib.h>
+
+// Enable additional literals
+using namespace std::literals;
 
 #ifdef max
-#undef max
+	#undef max
 #endif
 
 #ifdef min
-#undef min
+	#undef min
 #endif
+
+#define AssertSize(x, size) \
+	static_assert(sizeof(x) == (size), \
+		"Structure has an invalid size. " #x " must be " #size " bytes")
+
+#define AssertOffset(x, y, offset) \
+	static_assert(offsetof(x, y) == (offset), \
+		#x "::" #y " is not at the right offset. Must be at " #offset)
+
+#define AssertCount(expr, count) \
+	assert((#expr " doesn't index " #count, (expr) < (count)))
 
 // Protobuf
 #include "proto/session.pb.h"
@@ -101,28 +115,31 @@
 
 #pragma warning(pop)
 
-#include "Utils/IO.hpp"
-#include "Utils/CSV.hpp"
-#include "Utils/Time.hpp"
+#include "Utils/Memory.hpp" // Breaks order on purpose
+
 #include "Utils/Cache.hpp"
 #include "Utils/Chain.hpp"
+#include "Utils/Compression.hpp"
+#include "Utils/Concurrency.hpp"
+#include "Utils/Cryptography.hpp"
+#include "Utils/CSV.hpp"
+#include "Utils/Entities.hpp"
+#include "Utils/Hooking.hpp"
+#include "Utils/InfoString.hpp"
+#include "Utils/IO.hpp"
+#include "Utils/Library.hpp"
+#include "Utils/String.hpp"
+#include "Utils/Thread.hpp"
+#include "Utils/Time.hpp"
 #include "Utils/Utils.hpp"
 #include "Utils/WebIO.hpp"
-#include "Utils/Memory.hpp"
-#include "Utils/String.hpp"
-#include "Utils/Hooking.hpp"
-#include "Utils/Library.hpp"
-#include "Utils/Entities.hpp"
-#include "Utils/InfoString.hpp"
-#include "Utils/Compression.hpp"
-#include "Utils/Cryptography.hpp"
 
-#include "Steam/Steam.hpp"
+#include "Steam/Steam.hpp" // Some definitions are used in functions and structs
 
 #include "Game/Structs.hpp"
 #include "Game/Functions.hpp"
 
-#include "Utils/Stream.hpp"
+#include "Utils/Stream.hpp" // Breaks order on purpose
 
 #include "Components/Loader.hpp"
 
@@ -139,19 +156,10 @@
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "ntdll.lib")
 
-// Enable additional literals
-using namespace std::literals;
-
 #endif
-
-#define STRINGIZE_(x) #x
-#define STRINGIZE(x) STRINGIZE_(x)
 
 #define BASEGAME "iw4x"
 #define CLIENT_CONFIG "iw4x_config.cfg"
-
-#define AssertSize(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
-#define AssertOffset(x, y, offset) static_assert(offsetof(x, y) == offset, STRINGIZE(x) "::" STRINGIZE(y) " is not at the right offset.")
 
 // Resource stuff
 #ifdef APSTUDIO_INVOKED
