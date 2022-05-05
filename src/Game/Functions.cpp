@@ -558,6 +558,8 @@ namespace Game
 	int* window_center_x = reinterpret_cast<int*>(0x649D638);
 	int* window_center_y = reinterpret_cast<int*>(0x649D630);
 
+	int* g_waitingForKey = reinterpret_cast<int*>(0x63A50FC);
+
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
 		InterlockedIncrement(&critSect->readCount);

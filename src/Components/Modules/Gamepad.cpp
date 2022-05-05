@@ -1033,6 +1033,13 @@ namespace Components
 
 	void Gamepad::UI_GamepadKeyEvent(const int gamePadIndex, const int key, const bool down)
 	{
+		// If we are currently capturing a key for menu bind inputs then do not map keys and pass to game
+		if (*Game::g_waitingForKey)
+		{
+			Game::UI_KeyEvent(gamePadIndex, key, down);
+			return;
+		}
+
 		for (const auto& mapping : controllerMenuKeyMappings)
 		{
 			if (mapping.controllerKey == key)
@@ -1777,19 +1784,19 @@ namespace Components
 		return command;
 	}
 
-	int Gamepad::Key_GetCommandAssignmentInternal_Hk(const char* cmd, int (*keys)[2])
+	int Gamepad::Key_GetCommandAssignmentInternal([[maybe_unused]] int localClientNum, const char* cmd, int (*keys)[2])
 	{
 		auto keyCount = 0;
 
 		if (gamePads[0].inUse)
 		{
-			cmd = GetGamePadCommand(cmd);
+			const auto gamePadCmd = GetGamePadCommand(cmd);
 			for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
 			{
 				if (!Key_IsValidGamePadChar(keyNum))
 					continue;
 
-				if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
+				if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, gamePadCmd) == 0)
 				{
 					(*keys)[keyCount++] = keyNum;
 
@@ -1816,6 +1823,27 @@ namespace Components
 		}
 
 		return keyCount;
+	}
+
+	void __declspec(naked) Gamepad::Key_GetCommandAssignmentInternal_Stub()
+	{
+		__asm
+		{
+			push eax
+			pushad
+			
+			push [esp + 0x20 + 0x4 + 0x8] // keyNums
+			push [esp + 0x20 + 0x4 + 0x8] // command
+			push eax // localClientNum
+			call Key_GetCommandAssignmentInternal
+			add esp, 0xC
+
+			mov[esp + 0x20], eax
+
+			popad
+			pop eax
+			ret
+		}
 	}
 
 	void Gamepad::CL_KeyEvent_Hk(const int localClientNum, const int key, const int down, const unsigned time)
@@ -1954,7 +1982,7 @@ namespace Components
 		Utils::Hook(0x48E527, UI_RefreshViewport_Hk, HOOK_CALL).install()->quick();
 
 		// Only return gamepad keys when gamepad enabled and only non gamepad keys when not
-		Utils::Hook(0x5A7A23, Key_GetCommandAssignmentInternal_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A7890, Key_GetCommandAssignmentInternal_Stub, HOOK_JUMP).install()->quick();
 
 		// Add gamepad inputs to remote control (eg predator) handling
 		Utils::Hook(0x5A6D4E, CL_RemoteControlMove_Stub, HOOK_CALL).install()->quick();

@@ -1158,6 +1158,8 @@ namespace Game
 	extern int* window_center_x;
 	extern int* window_center_y;
 
+	extern int* g_waitingForKey;
+
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);
 
