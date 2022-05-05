@@ -1846,6 +1846,14 @@ namespace Components
 		}
 	}
 
+	void Gamepad::Key_SetBinding_Hk(const int localClientNum, const int keyNum, const char* binding)
+	{
+		if(Key_IsValidGamePadChar(keyNum))
+            gpad_buttonConfig.set("custom");
+
+        Game::Key_SetBinding(localClientNum, keyNum, binding);
+	}
+
 	void Gamepad::CL_KeyEvent_Hk(const int localClientNum, const int key, const int down, const unsigned time)
 	{
 		// A keyboard key has been pressed. Mark controller as unused.
@@ -1983,6 +1991,11 @@ namespace Components
 
 		// Only return gamepad keys when gamepad enabled and only non gamepad keys when not
 		Utils::Hook(0x5A7890, Key_GetCommandAssignmentInternal_Stub, HOOK_JUMP).install()->quick();
+
+		// Whenever a key binding for a gamepad key is replaced update the button config
+		Utils::Hook(0x47D473, Key_SetBinding_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x47D485, Key_SetBinding_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x47D49D, Key_SetBinding_Hk, HOOK_CALL).install()->quick();
 
 		// Add gamepad inputs to remote control (eg predator) handling
 		Utils::Hook(0x5A6D4E, CL_RemoteControlMove_Stub, HOOK_CALL).install()->quick();

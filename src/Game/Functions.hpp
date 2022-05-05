@@ -420,6 +420,9 @@ namespace Game
 	typedef bool(__cdecl * Key_IsKeyCatcherActive_t)(int localClientNum, int catcher);
 	extern Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive;
 
+	typedef void(__cdecl * Key_SetBinding_t)(int localClientNum, int keyNum, const char* binding);
+	extern Key_SetBinding_t Key_SetBinding;
+
 	typedef void(__cdecl * LargeLocalInit_t)();
 	extern LargeLocalInit_t LargeLocalInit;
 
