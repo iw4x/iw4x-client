@@ -108,8 +108,19 @@ namespace Components
 		}
 	}
 
+	void Bots::GScr_isTestClient(Game::scr_entref_t entref)
+	{
+		const auto* ent = Game::GetPlayerEntity(entref);
+		const auto* client = Script::GetClient(ent);
+
+		Game::Scr_AddBool(client->bIsTestClient == 1);
+	}
+
 	void Bots::AddMethods()
 	{
+		Script::AddMethod("IsBot", Bots::GScr_isTestClient); // Usage: self IsBot();
+		Script::AddMethod("IsTestClient", Bots::GScr_isTestClient); // Usage: self IsTestClient();
+
 		Script::AddMethod("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
 		{
 			auto ping = Game::Scr_GetInt(0);
@@ -126,14 +137,6 @@ namespace Components
 			}
 
 			client->ping = static_cast<int16_t>(ping);
-		});
-
-		Script::AddMethod("IsTestClient", [](Game::scr_entref_t entref) // Usage: <bot> IsTestClient();
-		{
-			const auto* gentity = Game::GetPlayerEntity(entref);
-			const auto* client = Script::GetClient(gentity);
-
-			Game::Scr_AddBool(client->bIsTestClient == 1);
 		});
 
 		Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
@@ -327,6 +330,8 @@ namespace Components
 
 	Bots::Bots()
 	{
+		AssertOffset(Game::client_s, bIsTestClient, 0x41AF0);
+
 		// Replace connect string
 		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
 
