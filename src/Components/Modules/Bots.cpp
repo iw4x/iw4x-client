@@ -111,9 +111,7 @@ namespace Components
 	void Bots::GScr_isTestClient(Game::scr_entref_t entref)
 	{
 		const auto* ent = Game::GetPlayerEntity(entref);
-		const auto* client = Script::GetClient(ent);
-
-		Game::Scr_AddBool(client->bIsTestClient == 1);
+		Game::Scr_AddBool(Game::SV_IsTestClient(ent->s.number) != 0);
 	}
 
 	void Bots::AddMethods()
@@ -130,7 +128,7 @@ namespace Components
 			const auto* ent = Game::GetPlayerEntity(entref);
 			auto* client = Script::GetClient(ent);
 
-			if (!client->bIsTestClient)
+			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
 				Game::Scr_Error("^1SetPing: Can only call on a bot!\n");
 				return;
@@ -142,9 +140,8 @@ namespace Components
 		Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
-			const auto* client = Script::GetClient(ent);
 
-			if (!client->bIsTestClient)
+			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
 				Game::Scr_Error("^1BotStop: Can only call on a bot!\n");
 				return;
@@ -157,16 +154,15 @@ namespace Components
 
 		Script::AddMethod("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
 		{
-			const auto* weapon = Game::Scr_GetString(0);
-
 			const auto* ent = Game::GetPlayerEntity(entref);
-			const auto* client = Script::GetClient(ent);
 
-			if (!client->bIsTestClient)
+			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
 				Game::Scr_Error("^1BotWeapon: Can only call on a bot!\n");
 				return;
 			}
+
+			const auto* weapon = Game::Scr_GetString(0);
 
 			if (weapon == nullptr || weapon[0] == '\0')
 			{
@@ -181,20 +177,19 @@ namespace Components
 
 		Script::AddMethod("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
 		{
+			const auto* ent = Game::GetPlayerEntity(entref);
+
+			if (Game::SV_IsTestClient(ent->s.number) == 0)
+			{
+				Game::Scr_Error("^1BotAction: Can only call on a bot!\n");
+				return;
+			}
+
 			const auto* action = Game::Scr_GetString(0);
 
 			if (action == nullptr)
 			{
 				Game::Scr_ParamError(0, "^1BotAction: Illegal parameter!\n");
-				return;
-			}
-
-			const auto* ent = Game::GetPlayerEntity(entref);
-			const auto* client = Script::GetClient(ent);
-
-			if (!client->bIsTestClient)
-			{
-				Game::Scr_Error("^1BotAction: Can only call on a bot!\n");
 				return;
 			}
 
@@ -223,20 +218,16 @@ namespace Components
 
 		Script::AddMethod("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
 		{
-			auto forwardInt = Game::Scr_GetInt(0);
-			auto rightInt = Game::Scr_GetInt(1);
-
 			const auto* ent = Game::GetPlayerEntity(entref);
-			const auto* client = Script::GetClient(ent);
 
-			if (!client->bIsTestClient)
+			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
 				Game::Scr_Error("^1BotMovement: Can only call on a bot!\n");
 				return;
 			}
 
-			forwardInt = std::clamp<int>(forwardInt, std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
-			rightInt = std::clamp<int>(rightInt, std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
+			const auto forwardInt = std::clamp<int>(Game::Scr_GetInt(0), std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
+			const auto rightInt = std::clamp<int>(Game::Scr_GetInt(1), std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
 
 			g_botai[entref.entnum].forward = static_cast<int8_t>(forwardInt);
 			g_botai[entref.entnum].right = static_cast<int8_t>(rightInt);
