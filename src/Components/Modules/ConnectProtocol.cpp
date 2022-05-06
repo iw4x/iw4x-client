@@ -213,7 +213,7 @@ namespace Components
 		});
 
 		// Invocation handler
-		Scheduler::OnGameInitialized(ConnectProtocol::Invocation, Scheduler::Pipeline::CLIENT);
+		Scheduler::OnGameInitialized(ConnectProtocol::Invocation, Scheduler::Pipeline::MAIN);
 
 		ConnectProtocol::InstallProtocol();
 		ConnectProtocol::EvaluateProtocol();

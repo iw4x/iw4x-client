@@ -580,11 +580,11 @@ namespace Components
 			auto FFCurrentOffset = *reinterpret_cast<std::uint32_t*>(0x10AA608);
 
 			float fastfileLoadProgress = (float(FFCurrentOffset) / float(FFTotalSize)) * 100.0f;
-			if (isinf(fastfileLoadProgress))
+			if (std::isinf(fastfileLoadProgress))
 			{
 				fastfileLoadProgress = 100.0f;
 			}
-			else if (isnan(fastfileLoadProgress))
+			else if (std::isnan(fastfileLoadProgress))
 			{
 				fastfileLoadProgress = 0.0f;
 			}

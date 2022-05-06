@@ -371,7 +371,7 @@ namespace Components
 					{
 						Dedicated::Heartbeat();
 					}
-				}, Scheduler::Pipeline::SERVER);
+				}, Scheduler::Pipeline::SERVER, 2min);
 
 				Dvar::OnInit([]()
 				{

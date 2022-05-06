@@ -622,7 +622,7 @@ namespace Components
 				}
 			}, HOOK_CALL).install()->quick();
 
-			Scheduler::OnGameInitialized([]
+			Scheduler::Loop([]
 			{
 				Console::LastRefresh = Game::Sys_Milliseconds();
 			}, Scheduler::Pipeline::MAIN);

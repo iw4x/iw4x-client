@@ -922,7 +922,7 @@ namespace Components
 		UIScript::AddOwnerDraw(253, ServerList::UpdateGameType);
 
 		// Add frame callback
-		Scheduler::OnGameInitialized(ServerList::Frame, Scheduler::Pipeline::CLIENT);
+		Scheduler::Loop(ServerList::Frame, Scheduler::Pipeline::CLIENT);
 	}
 
 	ServerList::~ServerList()

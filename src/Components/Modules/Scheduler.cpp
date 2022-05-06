@@ -69,14 +69,14 @@ namespace Components
 
 	void Scheduler::REndFrame_Hk()
 	{
-		Execute(Pipeline::RENDERER);
 		Utils::Hook::Call<void()>(0x50AB20)();
+		Execute(Pipeline::RENDERER);
 	}
 
 	void Scheduler::ServerFrame_Hk()
 	{
-		Execute(Pipeline::SERVER);
 		Utils::Hook::Call<void()>(0x471C50)();
+		Execute(Pipeline::SERVER);
 	}
 
 	void Scheduler::ClientFrame_Hk(const int localClientNum)
@@ -87,8 +87,8 @@ namespace Components
 
 	void Scheduler::MainFrame_Hk()
 	{
-		Execute(Pipeline::MAIN);
 		Utils::Hook::Call<void()>(0x47DCA0)();
+		Execute(Pipeline::MAIN);
 	}
 
 	void Scheduler::SysSetBlockSystemHotkeys_Hk(int block)
