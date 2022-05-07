@@ -17,7 +17,7 @@ namespace Components
 		constexpr Game::vec4_t color = {0.4f, 0.69f, 1.0f, 0.69f};
 
 		auto* const placement = Game::ScrPlace_GetUnsafeFullPlacement();
-		auto* const font = Game::UI_GetFontHandle(placement, 0, 0.5f);
+		auto* const font = Game::UI_GetFontHandle(placement, 0, 0.583f);
 
 		const auto width = Game::UI_TextWidth((*Version)->current.string, 0, font, fontScale);
 		const auto height = Game::UI_TextHeight(font, fontScale);
