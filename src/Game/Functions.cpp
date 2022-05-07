@@ -171,6 +171,7 @@ namespace Game
 	Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x43BD00);
 	Key_RemoveCatcher_t Key_RemoveCatcher = Key_RemoveCatcher_t(0x408260);
 	Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive = Key_IsKeyCatcherActive_t(0x4DA010);
+	Key_SetBinding_t Key_SetBinding = Key_SetBinding_t(0x494C90);
 
 	LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x4A62A0);
 
@@ -293,6 +294,7 @@ namespace Game
 	Scr_ParamError_t Scr_ParamError = Scr_ParamError_t(0x4FBC70);
 
 	Scr_GetType_t Scr_GetType = Scr_GetType_t(0x422900);
+	Scr_GetPointerType_t Scr_GetPointerType = Scr_GetPointerType_t(0x4828E0);
 
 	Scr_ClearOutParams_t Scr_ClearOutParams = Scr_ClearOutParams_t(0x4386E0);
 
@@ -545,20 +547,22 @@ namespace Game
 
 	XModel** cached_models = reinterpret_cast<XModel**>(0x1AA20C8);
 
-	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
-
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
 
 	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 
+	float (*CorrectSolidDeltas)[26][3] = reinterpret_cast<float(*)[26][3]>(0x739BB8); // Count 26
+
 	level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
 
-	float(*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT] = reinterpret_cast<float(*)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT]>(0x7C4878);
+	float (*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT] = reinterpret_cast<float(*)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT]>(0x7C4878);
 
 	WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
 
 	int* window_center_x = reinterpret_cast<int*>(0x649D638);
 	int* window_center_y = reinterpret_cast<int*>(0x649D630);
+
+	int* g_waitingForKey = reinterpret_cast<int*>(0x63A50FC);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{

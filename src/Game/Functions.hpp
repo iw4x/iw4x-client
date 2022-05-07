@@ -420,6 +420,9 @@ namespace Game
 	typedef bool(__cdecl * Key_IsKeyCatcherActive_t)(int localClientNum, int catcher);
 	extern Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive;
 
+	typedef void(__cdecl * Key_SetBinding_t)(int localClientNum, int keyNum, const char* binding);
+	extern Key_SetBinding_t Key_SetBinding;
+
 	typedef void(__cdecl * LargeLocalInit_t)();
 	extern LargeLocalInit_t LargeLocalInit;
 
@@ -735,8 +738,11 @@ namespace Game
 	typedef bool(__cdecl * Scr_IsSystemActive_t)();
 	extern Scr_IsSystemActive_t Scr_IsSystemActive;
 
-	typedef int(__cdecl * Scr_GetType_t)(unsigned int);
+	typedef int(__cdecl * Scr_GetType_t)(unsigned int index);
 	extern Scr_GetType_t Scr_GetType;
+
+	typedef int(__cdecl * Scr_GetPointerType_t)(unsigned int index);
+	extern Scr_GetPointerType_t Scr_GetPointerType;
 
 	typedef void(__cdecl * Scr_Error_t)(const char*);
 	extern Scr_Error_t Scr_Error;
@@ -999,10 +1005,10 @@ namespace Game
 	typedef void(__cdecl * Jump_ClearState_t)(playerState_s* ps);
 	extern Jump_ClearState_t Jump_ClearState;
 
-	typedef void(__cdecl * PM_playerTrace_t)(pmove_s*, trace_t*, const float*, const float*, const Bounds*, int, int);
+	typedef void(__cdecl * PM_playerTrace_t)(pmove_s* pm, trace_t* results, const float* start, const float* end, const Bounds* bounds, int passEntityNum, int contentMask);
 	extern PM_playerTrace_t PM_playerTrace;
 
-	typedef void(__cdecl * PM_Trace_t)(pmove_s*, trace_t*, const float*, const float*, const Bounds*, int, int);
+	typedef void(__cdecl * PM_Trace_t)(pmove_s* pm, trace_t* results, const float* start, const float* end, const Bounds* bounds, int passEntityNum, int contentMask);
 	extern PM_Trace_t PM_Trace;
 
 	typedef EffectiveStance(__cdecl * PM_GetEffectiveStance_t)(const playerState_s* ps);
@@ -1145,7 +1151,7 @@ namespace Game
 	constexpr auto MAX_MODELS = 512;
 	extern XModel** cached_models;
 
-	extern vec3_t* CorrectSolidDeltas;
+	extern float (*CorrectSolidDeltas)[26][3];
 
 	extern FastCriticalSection* db_hashCritSect;
 
@@ -1153,12 +1159,14 @@ namespace Game
 
 	extern level_locals_t* level;
 
-	extern float(*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT];
+	extern float (*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT];
 
 	extern WinMouseVars_t* s_wmv;
 
 	extern int* window_center_x;
 	extern int* window_center_y;
+
+	extern int* g_waitingForKey;
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);

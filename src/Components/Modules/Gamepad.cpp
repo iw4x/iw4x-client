@@ -661,7 +661,8 @@ namespace Components
 			Game::AimAssist_UpdateAdsLerp(input);
 			AimAssist_ApplyTurnRates(input, output);
 
-			Game::AimAssist_ApplyAutoMelee(input, output);
+			// Automelee has already been done by keyboard so don't do it again
+
 			AimAssist_ApplyLockOn(input, output);
 		}
 
@@ -886,8 +887,6 @@ namespace Components
 			AimAssist_UpdateGamePadInput(&aimInput, &aimOutput);
 			clientActive.clViewangles[0] = aimOutput.pitch;
 			clientActive.clViewangles[1] = aimOutput.yaw;
-			cmd->meleeChargeDist = aimOutput.meleeChargeDist;
-			cmd->meleeChargeYaw = aimOutput.meleeChargeYaw;
 		}
 	}
 
@@ -1033,6 +1032,13 @@ namespace Components
 
 	void Gamepad::UI_GamepadKeyEvent(const int gamePadIndex, const int key, const bool down)
 	{
+		// If we are currently capturing a key for menu bind inputs then do not map keys and pass to game
+		if (*Game::g_waitingForKey)
+		{
+			Game::UI_KeyEvent(gamePadIndex, key, down);
+			return;
+		}
+
 		for (const auto& mapping : controllerMenuKeyMappings)
 		{
 			if (mapping.controllerKey == key)
@@ -1711,8 +1717,8 @@ namespace Components
 	{
 		gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_ARCHIVE, "Game pad enabled");
 		gpad_debug = Dvar::Register<bool>("gpad_debug", false, Game::DVAR_NONE, "Game pad debugging");
-		gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_NONE, "Game pad present");
-		gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_NONE, "A game pad is in use");
+		gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_READONLY, "Game pad present");
+		gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_READONLY, "A game pad is in use");
 		gpad_style = Dvar::Register<bool>("gpad_style", false, Game::DVAR_ARCHIVE, "Switch between Xbox and PS HUD");
 		gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "", Game::DVAR_ARCHIVE, "Game pad stick configuration");
 		gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_ARCHIVE, "Game pad button configuration");
@@ -1720,15 +1726,15 @@ namespace Components
 		gpad_menu_scroll_delay_rest = Dvar::Register<int>("gpad_menu_scroll_delay_rest", 210, 0, 1000, Game::DVAR_ARCHIVE,
 														  "Menu scroll key-repeat delay, for repeats after the first, in milliseconds");
 		gpad_rumble = Dvar::Register<bool>("gpad_rumble", true, Game::DVAR_ARCHIVE, "Enable game pad rumble");
-		gpad_stick_pressed_hysteresis = Dvar::Register<float>("gpad_stick_pressed_hysteresis", 0.1f, 0.0f, 1.0f, Game::DVAR_NONE,
+		gpad_stick_pressed_hysteresis = Dvar::Register<float>("gpad_stick_pressed_hysteresis", 0.1f, 0.0f, 1.0f, Game::DVAR_ARCHIVE,
 															  "Game pad stick pressed no-change-zone around gpad_stick_pressed to prevent bouncing");
-		gpad_stick_pressed = Dvar::Register<float>("gpad_stick_pressed", 0.4f, 0.0, 1.0, Game::DVAR_NONE, "Game pad stick pressed threshhold");
-		gpad_stick_deadzone_max = Dvar::Register<float>("gpad_stick_deadzone_max", 0.01f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad maximum stick deadzone");
-		gpad_stick_deadzone_min = Dvar::Register<float>("gpad_stick_deadzone_min", 0.2f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad minimum stick deadzone");
-		gpad_button_deadzone = Dvar::Register<float>("gpad_button_deadzone", 0.13f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad button deadzone threshhold");
-		gpad_button_lstick_deflect_max = Dvar::Register<float>("gpad_button_lstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad maximum pad stick pressed value");
-		gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_NONE, "Game pad maximum pad stick pressed value");
-		gpad_use_hold_time = Dvar::Register<int>("gpad_use_hold_time", 250, 0, std::numeric_limits<int>::max(), Game::DVAR_NONE, "Time to hold the 'use' button on gamepads to activate use");
+		gpad_stick_pressed = Dvar::Register<float>("gpad_stick_pressed", 0.4f, 0.0, 1.0, Game::DVAR_ARCHIVE, "Game pad stick pressed threshhold");
+		gpad_stick_deadzone_max = Dvar::Register<float>("gpad_stick_deadzone_max", 0.01f, 0.0f, 1.0f, Game::DVAR_ARCHIVE, "Game pad maximum stick deadzone");
+		gpad_stick_deadzone_min = Dvar::Register<float>("gpad_stick_deadzone_min", 0.2f, 0.0f, 1.0f, Game::DVAR_ARCHIVE, "Game pad minimum stick deadzone");
+		gpad_button_deadzone = Dvar::Register<float>("gpad_button_deadzone", 0.13f, 0.0f, 1.0f, Game::DVAR_ARCHIVE, "Game pad button deadzone threshhold");
+		gpad_button_lstick_deflect_max = Dvar::Register<float>("gpad_button_lstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_ARCHIVE, "Game pad maximum pad stick pressed value");
+		gpad_button_rstick_deflect_max = Dvar::Register<float>("gpad_button_rstick_deflect_max", 1.0f, 0.0f, 1.0f, Game::DVAR_ARCHIVE, "Game pad maximum pad stick pressed value");
+		gpad_use_hold_time = Dvar::Register<int>("gpad_use_hold_time", 250, 0, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "Time to hold the 'use' button on gamepads to activate use");
 		gpad_lockon_enabled = Dvar::Register<bool>("gpad_lockon_enabled", true, Game::DVAR_ARCHIVE, "Game pad lockon aim assist enabled");
 		gpad_slowdown_enabled = Dvar::Register<bool>("gpad_slowdown_enabled", true, Game::DVAR_ARCHIVE, "Game pad slowdown aim assist enabled");
 
@@ -1777,19 +1783,19 @@ namespace Components
 		return command;
 	}
 
-	int Gamepad::Key_GetCommandAssignmentInternal_Hk(const char* cmd, int (*keys)[2])
+	int Gamepad::Key_GetCommandAssignmentInternal([[maybe_unused]] int localClientNum, const char* cmd, int (*keys)[2])
 	{
 		auto keyCount = 0;
 
 		if (gamePads[0].inUse)
 		{
-			cmd = GetGamePadCommand(cmd);
+			const auto gamePadCmd = GetGamePadCommand(cmd);
 			for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
 			{
 				if (!Key_IsValidGamePadChar(keyNum))
 					continue;
 
-				if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
+				if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, gamePadCmd) == 0)
 				{
 					(*keys)[keyCount++] = keyNum;
 
@@ -1818,6 +1824,35 @@ namespace Components
 		return keyCount;
 	}
 
+	void __declspec(naked) Gamepad::Key_GetCommandAssignmentInternal_Stub()
+	{
+		__asm
+		{
+			push eax
+			pushad
+			
+			push [esp + 0x20 + 0x4 + 0x8] // keyNums
+			push [esp + 0x20 + 0x4 + 0x8] // command
+			push eax // localClientNum
+			call Key_GetCommandAssignmentInternal
+			add esp, 0xC
+
+			mov[esp + 0x20], eax
+
+			popad
+			pop eax
+			ret
+		}
+	}
+
+	void Gamepad::Key_SetBinding_Hk(const int localClientNum, const int keyNum, const char* binding)
+	{
+		if(Key_IsValidGamePadChar(keyNum))
+			gpad_buttonConfig.set("custom");
+
+		Game::Key_SetBinding(localClientNum, keyNum, binding);
+	}
+
 	void Gamepad::CL_KeyEvent_Hk(const int localClientNum, const int key, const int down, const unsigned time)
 	{
 		// A keyboard key has been pressed. Mark controller as unused.
@@ -1833,13 +1868,18 @@ namespace Components
 		return gamePads[0].inUse;
 	}
 
-	int Gamepad::CL_MouseEvent_Hk(const int x, const int y, const int dx, const int dy)
+	void Gamepad::OnMouseMove([[maybe_unused]] const int x, [[maybe_unused]] const int y, const int dx, const int dy)
 	{
 		if (dx != 0 || dy != 0)
 		{
 			gamePads[0].inUse = false;
 			gpad_in_use.setRaw(false);
 		}
+	}
+
+	int Gamepad::CL_MouseEvent_Hk(const int x, const int y, const int dx, const int dy)
+	{
+		OnMouseMove(x, y, dx, dy);
 
 		// Call original function
 		return Utils::Hook::Call<int(int, int, int, int)>(0x4D7C50)(x, y, dx, dy);
@@ -1949,7 +1989,12 @@ namespace Components
 		Utils::Hook(0x48E527, UI_RefreshViewport_Hk, HOOK_CALL).install()->quick();
 
 		// Only return gamepad keys when gamepad enabled and only non gamepad keys when not
-		Utils::Hook(0x5A7A23, Key_GetCommandAssignmentInternal_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A7890, Key_GetCommandAssignmentInternal_Stub, HOOK_JUMP).install()->quick();
+
+		// Whenever a key binding for a gamepad key is replaced update the button config
+		Utils::Hook(0x47D473, Key_SetBinding_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x47D485, Key_SetBinding_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x47D49D, Key_SetBinding_Hk, HOOK_CALL).install()->quick();
 
 		// Add gamepad inputs to remote control (eg predator) handling
 		Utils::Hook(0x5A6D4E, CL_RemoteControlMove_Stub, HOOK_CALL).install()->quick();
