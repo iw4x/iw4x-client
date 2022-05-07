@@ -200,12 +200,23 @@ namespace Components
 
 	void ServerList::RefreshVisibleList(UIScript::Token)
 	{
+		ServerList::RefreshVisibleListInternal(UIScript::Token());
+	}
+
+	void ServerList::RefreshVisibleListInternal(UIScript::Token, bool refresh)
+	{
 		Dvar::Var("ui_serverSelected").set(false);
 
 		ServerList::VisibleList.clear();
 
 		auto list = ServerList::GetList();
 		if (!list) return;
+
+		if (refresh)
+		{
+			ServerList::Refresh(UIScript::Token());
+			return;
+		}
 
 		bool ui_browserShowFull     = Dvar::Var("ui_browserShowFull").get<bool>();
 		bool ui_browserShowEmpty    = Dvar::Var("ui_browserShowEmpty").get<bool>();
@@ -368,7 +379,7 @@ namespace Components
 		auto list = ServerList::GetList();
 		if (list) list->clear();
 		
-		ServerList::RefreshVisibleList(UIScript::Token());
+		ServerList::RefreshVisibleListInternal(UIScript::Token());
 		
 		Game::ShowMessageBox("Server removed from favourites.", "Success");
 	}
@@ -530,7 +541,7 @@ namespace Components
 					if (lList)
 					{
 						lList->push_back(server);
-						ServerList::RefreshVisibleList(UIScript::Token());
+						ServerList::RefreshVisibleListInternal(UIScript::Token());
 					}
 				}
 
@@ -693,7 +704,7 @@ namespace Components
 
 		netSource.set(source);
 
-		ServerList::RefreshVisibleList(UIScript::Token());
+		ServerList::RefreshVisibleListInternal(UIScript::Token(), true);
 	}
 
 	void ServerList::UpdateGameType()
@@ -709,7 +720,7 @@ namespace Components
 
 		joinGametype.set(gametype);
 
-		ServerList::RefreshVisibleList(UIScript::Token());
+		ServerList::RefreshVisibleListInternal(UIScript::Token());
 	}
 
 	void ServerList::UpdateVisibleInfo()
