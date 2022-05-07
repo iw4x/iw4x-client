@@ -548,11 +548,11 @@ namespace Game
 
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
 
-	vec3_t* CorrectSolidDeltas = reinterpret_cast<vec3_t*>(0x739BB8); // Count 26
+	float (*CorrectSolidDeltas)[26][3] = reinterpret_cast<float(*)[26][3]>(0x739BB8); // Count 26
 
 	level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
 
-	float(*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT] = reinterpret_cast<float(*)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT]>(0x7C4878);
+	float (*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT] = reinterpret_cast<float(*)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT]>(0x7C4878);
 
 	WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
 
