@@ -193,24 +193,6 @@ namespace Components
 	{
 		Exception::SetMiniDumpType(Flags::HasFlag("bigminidumps"), Flags::HasFlag("reallybigminidumps"));
 
-#ifdef DEBUG
-		// Display DEBUG branding, so we know we're on a debug build
-		Scheduler::OnFrame([]()
-		{
-			auto* font = Game::R_RegisterFont("fonts/normalFont", 0);
-			Game::vec4_t color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-			// Change the color when attaching a debugger
-			if (IsDebuggerPresent())
-			{
-				color[0] = 0.6588f;
-				color[1] = 1.0000f;
-				color[2] = 0.0000f;
-			}
-
-			Game::R_AddCmdDrawText("DEBUG-BUILD", 0x7FFFFFFF, font, 15.0f, 10.0f + Game::R_TextHeight(font), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_SHADOWED);
-		}, true);
-#endif
 #if !defined(DEBUG) || defined(FORCE_EXCEPTION_HANDLER)
 		Exception::SetFilterHook.initialize(SetUnhandledExceptionFilter, Exception::SetUnhandledExceptionFilterStub, HOOK_JUMP);
 		Exception::SetFilterHook.install();

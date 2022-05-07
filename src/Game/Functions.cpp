@@ -387,6 +387,7 @@ namespace Game
 	UI_DrawHandlePic_t UI_DrawHandlePic = UI_DrawHandlePic_t(0x4D0EA0);
 	ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement = ScrPlace_GetActivePlacement_t(0x4F8940);
 	UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x6315C0);
+	UI_TextHeight_t UI_TextHeight = UI_TextHeight_t(0x4C8630);
 	UI_DrawText_t UI_DrawText = UI_DrawText_t(0x49C0D0);
 	UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x4AEA60);
 	ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x454E20);
@@ -547,6 +548,8 @@ namespace Game
 	XModel** cached_models = reinterpret_cast<XModel**>(0x1AA20C8);
 
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
+
+	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 
 	float (*CorrectSolidDeltas)[26][3] = reinterpret_cast<float(*)[26][3]>(0x739BB8); // Count 26
 
@@ -1123,6 +1126,11 @@ namespace Game
 	float GraphFloat_GetValue(const GraphFloat* graph, const float fraction)
 	{
 		return GraphGetValueFromFraction(graph->knotCount, graph->knots, fraction) * graph->scale;
+	}
+
+	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement()
+	{
+		return scrPlaceFullUnsafe;
 	}
 
 #pragma optimize("", off)

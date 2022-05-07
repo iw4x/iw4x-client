@@ -229,12 +229,6 @@ namespace Components
 		}
 	}
 
-	Game::dvar_t* QuickPatch::Dvar_RegisterUIBuildLocation(const char* dvarName,
-		float /*x*/, float /*y*/, float min, float max, int /*flags*/, const char* description)
-	{
-		return Game::Dvar_RegisterVec2(dvarName, -60.0f, 474.0f, min, max, Game::DVAR_READONLY, description);
-	}
-
 	QuickPatch::QuickPatch()
 	{
 		// quitHard
@@ -304,22 +298,6 @@ namespace Components
 		// fs_basegame
 		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
 
-		// UI version string
-		Utils::Hook::Set<const char*>(0x43F73B, "IW4x: " VERSION);
-
-		// console version string
-		Utils::Hook::Set<const char*>(0x4B12BB, "IW4x " VERSION " (built " __DATE__ " " __TIME__ ")");
-
-		// version string
-		Utils::Hook::Set<const char*>(0x60BD56, "IW4x (" VERSION ")");
-
-		// version string color
-		static Game::vec4_t buildLocColor = { 1.0f, 1.0f, 1.0f, 0.8f };
-		Utils::Hook::Set<float*>(0x43F710, buildLocColor);
-
-		// Shift ui version string to the left (ui_buildlocation)
-		Utils::Hook(0x6310A0, QuickPatch::Dvar_RegisterUIBuildLocation, HOOK_CALL).install()->quick();
-
 		// console title
 		if (ZoneBuilder::IsEnabled())
 		{
@@ -339,9 +317,6 @@ namespace Components
 
 		// sv_hostname
 		Utils::Hook::Set<const char*>(0x4D378B, "IW4Host");
-
-		// shortversion
-		Utils::Hook::Set<const char*>(0x60BD91, SHORTVERSION);
 
 		// console logo
 		Utils::Hook::Set<const char*>(0x428A66, BASEGAME "/images/logo.bmp");
