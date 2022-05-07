@@ -661,7 +661,8 @@ namespace Components
 			Game::AimAssist_UpdateAdsLerp(input);
 			AimAssist_ApplyTurnRates(input, output);
 
-			Game::AimAssist_ApplyAutoMelee(input, output);
+			// Automelee has already been done by keyboard so don't do it again
+
 			AimAssist_ApplyLockOn(input, output);
 		}
 
@@ -886,8 +887,6 @@ namespace Components
 			AimAssist_UpdateGamePadInput(&aimInput, &aimOutput);
 			clientActive.clViewangles[0] = aimOutput.pitch;
 			clientActive.clViewangles[1] = aimOutput.yaw;
-			cmd->meleeChargeDist = aimOutput.meleeChargeDist;
-			cmd->meleeChargeYaw = aimOutput.meleeChargeYaw;
 		}
 	}
 
