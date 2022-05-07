@@ -564,14 +564,6 @@ namespace Components
 		});
 
 		// System time
-		Script::AddFunction("GetSystemTime", [] // gsc: GetSystemTime()
-		{
-			SYSTEMTIME time;
-			GetSystemTime(&time);
-
-			Game::Scr_AddInt(time.wSecond);
-		});
-
 		Script::AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
 		{
 			SYSTEMTIME time;
