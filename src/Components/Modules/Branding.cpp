@@ -22,10 +22,10 @@ namespace Components
 		const auto width = Game::UI_TextWidth((*Version)->current.string, 0, font, fontScale);
 		const auto height = Game::UI_TextHeight(font, fontScale);
 
-		Game::UI_DrawText(placement, (*Version)->current.string, maxChars, font, 1.0f - (CGDrawVersionX.get<float>() + width),
-			1.0f - (CGDrawVersionY.get<float>() + height), 3, 3, fontScale, shadowColor, 0);
-		Game::UI_DrawText(placement, (*Version)->current.string, maxChars, font, (0.0f - width) - CGDrawVersionX.get<float>(),
-			(0.0f - height) - CGDrawVersionY.get<float>(), 3, 3, fontScale, color, 0);
+		Game::UI_DrawText(placement, (*Version)->current.string, maxChars, font, 1.0f - (CGDrawVersionX.get<float>() + static_cast<float>(width)),
+			1.0f - (CGDrawVersionY.get<float>() + static_cast<float>(height)), 3, 3, fontScale, shadowColor, 0);
+		Game::UI_DrawText(placement, (*Version)->current.string, maxChars, font, (0.0f - static_cast<float>(width)) - CGDrawVersionX.get<float>(),
+			(0.0f - static_cast<float>(height)) - CGDrawVersionY.get<float>(), 3, 3, fontScale, color, 0);
 	}
 
 	void Branding::CG_DrawVersion_Hk(int localClientNum)
@@ -40,12 +40,7 @@ namespace Components
 
 	const char* Branding::GetBuildNumber()
 	{
-		static char buf[128]; // Length the game uses
-
-		const auto* data = "latest " __DATE__ " " __TIME__;
-		sprintf_s(buf, "%s %s", SHORTVERSION, data);
-
-		return buf;
+		return SHORTVERSION " latest " __DATE__ " " __TIME__;
 	}
 
 	const char* Branding::GetVersionString()
@@ -63,28 +58,24 @@ namespace Components
 		return result;
 	}
 
-	void Branding::Dvar_SetVersionString(const Game::dvar_t* dvar, const char* /*value*/)
+	void Branding::Dvar_SetVersionString(const Game::dvar_t* dvar, [[maybe_unused]] const char* value)
 	{
 		const auto* result = Branding::GetVersionString();
 		Utils::Hook::Call<void(const Game::dvar_t*, const char*)>(0x4A9580)(dvar, result);
 	}
 
 	// Branding this might be a good idea in case this LSP logging ever gets turned on for some reason
-	void Branding::MSG_WriteVersionStringHeader(Game::msg_t* msg, const char* /*string*/)
+	void Branding::MSG_WriteVersionStringHeader(Game::msg_t* msg, [[maybe_unused]] const char* string)
 	{
 		const auto* result = Branding::GetVersionString();
 		Utils::Hook::Call<void(Game::msg_t*, const char*)>(0x463820)(msg, result);
 	}
 
-	Game::dvar_t* Branding::Dvar_RegisterUIBuildLocation(const char* dvarName,
-		float /*x*/, float /*y*/, float min, float max, int /*flags*/, const char* description)
+	Game::dvar_t* Branding::Dvar_RegisterUIBuildLocation(const char* dvarName, [[maybe_unused]] float x,
+		[[maybe_unused]] float y, float min, float max, [[maybe_unused]] int flags, const char* description)
 	{
-#ifdef _DEBUG
-		constexpr auto flag = Game::dvar_flag::DVAR_NONE;
-#else
-		constexpr auto flag = Game::dvar_flag::DVAR_READONLY;
-#endif
-		return Game::Dvar_RegisterVec2(dvarName, -60.0f, 474.0f, min, max, flag, description);
+		return Game::Dvar_RegisterVec2(dvarName, -60.0f,
+			474.0f, min, max, Game::dvar_flag::DVAR_READONLY, description);
 	}
 
 	void Branding::RegisterBrandingDvars()
@@ -96,9 +87,9 @@ namespace Components
 #endif
 		Branding::CGDrawVersion = Dvar::Register<bool>("cg_drawVersion", value,
 			Game::dvar_flag::DVAR_NONE, "Draw the game version");
-		Branding::CGDrawVersionX = Dvar::Register<float>("cg_drawVersionX", 50.0f,
+		Branding::CGDrawVersionX = Dvar::Register<float>("cg_drawVersionX", 10.0f,
 			0.0f, 512.0f, Game::dvar_flag::DVAR_NONE, "X offset for the version string");
-		Branding::CGDrawVersionY = Dvar::Register<float>("cg_drawVersionY", 18.0f,
+		Branding::CGDrawVersionY = Dvar::Register<float>("cg_drawVersionY", 455.0f,
 			0.0f, 512.0f, Game::dvar_flag::DVAR_NONE, "Y offset for the version string");
 	}
 
