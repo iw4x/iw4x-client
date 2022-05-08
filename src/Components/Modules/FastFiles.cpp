@@ -574,7 +574,7 @@ namespace Components
 			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").get<bool>()) return;
 
 			auto* const font = Game::R_RegisterFont("fonts/consoleFont", 0);
-			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
+			float color[4] = {1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f)};
 
 			auto FFTotalSize = *reinterpret_cast<std::uint32_t*>(0x10AA5D8);
 			auto FFCurrentOffset = *reinterpret_cast<std::uint32_t*>(0x10AA608);

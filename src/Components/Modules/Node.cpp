@@ -342,7 +342,7 @@ namespace Components
 		Scheduler::Loop([]
 		{
 			Node::StoreNodes(false);
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		Scheduler::Loop(Node::RunFrame, Scheduler::Pipeline::MAIN);
 
@@ -360,11 +360,11 @@ namespace Components
 		};
 
 		if (Monitor::IsEnabled()) Network::OnStart(loadNodes);
-		else Dvar::OnInit(loadNodes);
+		else Scheduler::OnGameInitialized(loadNodes, Scheduler::Pipeline::MAIN);
 
-		Network::OnStart([]()
+		Network::OnStart([]
 		{
-			std::thread([]()
+			std::thread([]
 			{
 				Node::LoadNodeRemotePreset();
 			}).detach();

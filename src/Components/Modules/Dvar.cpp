@@ -310,9 +310,9 @@ namespace Components
 		Utils::Hook::Call<void(const char*, const char*)>(0x4F52E0)(dvarName, value);
 	}
 
-	void Dvar::Com_InitDvars_Hk()
+	void Dvar::CL_InitOnceForAllClients_Hk()
 	{
-		Utils::Hook::Call<void()>(0x60AD10)();
+		Utils::Hook::Call<void()>(0x404CA0)();
 		Dvar::RegistrationSignal();
 	}
 
@@ -363,7 +363,7 @@ namespace Components
 		Utils::Hook::Xor<BYTE>(0x42E398, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_horizontal
 		Utils::Hook::Xor<BYTE>(0x42E3C4, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_vertical
 
-		Utils::Hook(0x60BB3A, Dvar::Com_InitDvars_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x60BE5B, Dvar::CL_InitOnceForAllClients_Hk, HOOK_CALL).install()->quick();
 
 		// Don't allow setting cheat protected dvars via menus
 		Utils::Hook(0x63C897, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();

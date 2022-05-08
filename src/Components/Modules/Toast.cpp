@@ -150,10 +150,12 @@ namespace Components
 
 		Scheduler::OnGameInitialized(Toast::Handler, Scheduler::Pipeline::RENDERER);
 
+#ifdef _DEBUG
 		Command::Add("testtoast", [](Command::Params*)
 		{
 			Toast::Show("cardicon_prestige10", "Test", "This is a test toast", 3000);
 		});
+#endif
 	}
 
 	Toast::~Toast()

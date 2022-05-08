@@ -65,7 +65,6 @@ namespace Components
 		static void SaveArchiveDvar(const Game::dvar_t* var);
 		static void DvarSetFromStringByNameStub(const char* dvarName, const char* value);
 
-		// Unable to do any earlier because SL system will not be active for string dvars
-		static void Com_InitDvars_Hk();
+		static void CL_InitOnceForAllClients_Hk();
 	};
 }

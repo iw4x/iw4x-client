@@ -714,7 +714,7 @@ namespace Components
 			}
 		});
 
-		Scheduler::Once([]()
+		Scheduler::OnGameInitialized([]
 		{
 			if (Steam::Proxy::SteamFriends)
 			{
