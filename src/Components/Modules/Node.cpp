@@ -167,7 +167,7 @@ namespace Components
 
 	void Node::RunFrame()
 	{
-		if (ServerList::useMasterServer) return;
+		if (!Dedicated::IsEnabled() && ServerList::useMasterServer) return;
 		if (Dedicated::IsEnabled() && Dedicated::SVLanOnly.get<bool>()) return;
 
 		if (!Dedicated::IsEnabled() && *Game::clcState > 0)
