@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.2] - 2022-05-10
+
+### Added
+
+- Add IsArray GSC function (#248)
+- Keybind fields in menus work with controller keys (#255)
+
+### Changed
+
+- GSC function `GetSystemTime` now returns the Unix time (#258)
+
+### Fixed
+
+- Knife charge is fixed for controller players (#259)
+- Fixed internet, local and favorites filters (#260)
+- `sv_lanOnly` Dvar now prevents the server from sending heatbeats to master if set to true (#246)
+
+### Known issue
+
+- HTTPS is not supported for fast downloads at the moment.
+- Sound issue fix is experimental as the bug is not fully understood.
+- `reloadmenus` command does not free resources used by custom menus.
+
 ## [0.7.1] - 2022-05-03
 
 ### Added
