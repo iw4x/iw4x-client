@@ -114,7 +114,7 @@ namespace Components
 
 	void Node::StoreNodes(bool force)
 	{
-		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
+		if (Dedicated::IsEnabled() && Dedicated::SVLanOnly.get<bool>()) return;
 
 		static Utils::Time::Interval interval;
 		if (!force && !interval.elapsed(1min)) return;
@@ -167,13 +167,17 @@ namespace Components
 
 	void Node::RunFrame()
 	{
-		if (ServerList::useMasterServer) return;
-		if (Dedicated::IsEnabled() && Dvar::Var("sv_lanOnly").get<bool>()) return;
+		if (Dedicated::IsEnabled() && Dedicated::SVLanOnly.get<bool>()) return;
 
-		if (!Dedicated::IsEnabled() && *Game::clcState > 0)
+		if (!Dedicated::IsEnabled())
 		{
-			wasIngame = true;
-			return; // don't run while ingame because it can still cause lag spikes on lower end PCs
+			if (ServerList::useMasterServer) return; // don't run node frame if master server is active
+
+			if (*Game::clcState > 0)
+			{
+				wasIngame = true;
+				return; // don't run while ingame because it can still cause lag spikes on lower end PCs
+			}
 		}
 
 		if (wasIngame) // our last frame we were ingame and now we aren't so touch all nodes

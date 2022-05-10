@@ -27,7 +27,5 @@ namespace Components
 
 		static void CL_KeyEvent_OnEscape();
 		static void CL_KeyEvent_ConsoleEscape_Stub();
-
-		static Game::dvar_t* Dvar_RegisterUIBuildLocation(const char* dvarName, float x, float y, float min, float max, int flags, const char* description);
 	};
 }

@@ -41,6 +41,8 @@ namespace Components
 	public:
 		Gamepad();
 
+		static void OnMouseMove(int x, int y, int dx, int dy);
+
 	private:
 		static Game::ButtonToCodeMap_t buttonList[];
 		static Game::StickToCodeMap_t analogStickList[4];
@@ -190,7 +192,9 @@ namespace Components
 		static void CG_RegisterDvars_Hk();
 
 		static const char* GetGamePadCommand(const char* command);
-		static int Key_GetCommandAssignmentInternal_Hk(const char* cmd, int(*keys)[2]);
+		static int Key_GetCommandAssignmentInternal(int localClientNum, const char* cmd, int (*keys)[2]);
+		static void Key_GetCommandAssignmentInternal_Stub();
+		static void Key_SetBinding_Hk(int localClientNum, int keyNum, const char* binding);
 		static bool IsGamePadInUse();
 		static void CL_KeyEvent_Hk(int localClientNum, int key, int down, unsigned int time);
 		static int CL_MouseEvent_Hk(int x, int y, int dx, int dy);
