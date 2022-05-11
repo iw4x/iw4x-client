@@ -94,11 +94,10 @@ namespace Components
 			return;
 		}
 
-		auto* msg = &Game::deferredQueue->msgs[Game::deferredQueue->send & 0xF];
+		auto* msg = &Game::deferredQueue->msgs[Game::deferredQueue->send % std::extent_v<decltype(Game::DeferredQueue::msgs)>];
 		std::memcpy(msg->data, net_message->data, net_message->cursize);
 
 		msg->datalen = net_message->cursize;
-		msg->addr.type = net_from->type;
 		msg->addr = *net_from;
 
 		InterlockedIncrement(&Game::deferredQueue->send);
