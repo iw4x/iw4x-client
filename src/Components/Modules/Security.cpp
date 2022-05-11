@@ -84,6 +84,25 @@ namespace Components
 		Game::G_LogPrintf("%s", fmt);
 	}
 
+	void Security::NET_DeferPacketToClientStub(Game::netadr_t* net_from, Game::msg_t* net_message)
+	{
+		assert(net_from != nullptr);
+		assert(net_message != nullptr);
+
+		if (static_cast<std::size_t>(net_message->cursize) >= sizeof(Game::DeferredMsg::data))
+		{
+			return;
+		}
+
+		auto* msg = &Game::deferredQueue->msgs[Game::deferredQueue->send % std::extent_v<decltype(Game::DeferredQueue::msgs)>];
+		std::memcpy(msg->data, net_message->data, net_message->cursize);
+
+		msg->datalen = net_message->cursize;
+		msg->addr = *net_from;
+
+		InterlockedIncrement(&Game::deferredQueue->send);
+	}
+
 	Security::Security()
 	{
 		// Exploit fixes
@@ -108,5 +127,8 @@ namespace Components
 		// Patch unsecure call to G_LogPrint inside GScr_LogPrint
 		// This function is unsafe because IW devs forgot to G_LogPrintf("%s", fmt)
 		Utils::Hook(0x5F70B5, G_LogPrintfStub, HOOK_CALL).install()->quick();
+
+		// Fix packets causing buffer overflow
+		Utils::Hook(0x6267E3, NET_DeferPacketToClientStub, HOOK_CALL).install()->quick();
 	}
 }

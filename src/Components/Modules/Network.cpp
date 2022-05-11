@@ -356,17 +356,11 @@ namespace Components
 		}
 	}
 
-	void Network::NET_DeferPacketToClientStub(Game::netadr_t* from, Game::msg_t* msg)
-	{
-		if (msg->cursize > 0 && msg->cursize <= 1404)
-			Game::NET_DeferPacketToClient(from, msg);
-	}
-
 	void Network::SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg)
 	{
 		if (client->reliableAcknowledge < 0)
 		{
-			Logger::Print("Negative reliableAcknowledge from %s - cl->reliableSequence is %i, reliableAcknowledge is %i\n",
+			Logger::Print(Game::conChannel_t::CON_CHANNEL_NETWORK, "Negative reliableAcknowledge from %s - cl->reliableSequence is %i, reliableAcknowledge is %i\n",
 							client->name, client->reliableSequence, client->reliableAcknowledge);
 			client->reliableAcknowledge = client->reliableSequence;
 			Network::SendCommand(Game::NS_SERVER, client->netchan.remoteAddress, "error", "EXE_LOSTRELIABLECOMMANDS");
@@ -411,9 +405,6 @@ namespace Components
 
 		// Install packet deploy hook
 		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);
-
-		// Fix packets causing buffer overflow
-		Utils::Hook(0x6267E3, Network::NET_DeferPacketToClientStub, HOOK_CALL).install()->quick();
 
 		// Fix server freezer exploit
 		Utils::Hook(0x626996, Network::SV_ExecuteClientMessageStub, HOOK_CALL).install()->quick();
