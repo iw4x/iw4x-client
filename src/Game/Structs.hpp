@@ -5365,11 +5365,12 @@ namespace Game
 	struct netadr_t
 	{
 		netadrtype_t type;
-		//char ip[4];
 		netIP_t ip;
 		unsigned __int16 port;
 		char ipx[10];
 	};
+
+	static_assert(sizeof(netadr_t) == 20);
 
 	struct netProfileInfo_t
 	{
@@ -7560,6 +7561,24 @@ namespace Game
 	};
 
 	static_assert(sizeof(WinMouseVars_t) == 0x10);
+
+	struct DeferredMsg
+	{
+		netadr_t addr;
+		unsigned char data[1400];
+		int datalen;
+	};
+
+	static_assert(sizeof(DeferredMsg) == 0x590);
+
+	struct DeferredQueue
+	{
+		DeferredMsg msgs[16];
+		volatile long get;
+		volatile long send;
+	};
+
+	static_assert(sizeof(DeferredQueue) == 0x5908);
 
 #pragma endregion
 
