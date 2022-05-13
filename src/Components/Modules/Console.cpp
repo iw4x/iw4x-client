@@ -544,7 +544,10 @@ namespace Components
 		static float consoleColor[] = { 0.70f, 1.00f, 0.00f, 1.00f };
 		Utils::Hook::Set<float*>(0x5A451A, consoleColor);
 		Utils::Hook::Set<float*>(0x5A4400, consoleColor);
-
+		
+		// Remove the need to type '\' or '/' to send a console command
+		Utils::Hook::Set<BYTE>(0x431565, 0xEB);
+		
 		// Internal console
 		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4F65A5, Console::ToggleConsole, HOOK_JUMP).install()->quick();
