@@ -1787,6 +1787,9 @@ namespace Components
 	{
 		auto keyCount = 0;
 
+		(*keys)[0] = -1;
+		(*keys)[1] = -1;
+
 		if (gamePads[0].inUse)
 		{
 			const auto gamePadCmd = GetGamePadCommand(cmd);
