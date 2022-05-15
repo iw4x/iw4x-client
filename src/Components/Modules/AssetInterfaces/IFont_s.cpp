@@ -135,7 +135,10 @@ namespace Assets
 			auto* material = builder->getAllocator()->allocate<Game::Material>();
 			std::memcpy(material, Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "fonts/gamefonts_pc").material, sizeof(Game::Material));
 
-			material->textureTable = builder->getAllocator()->allocate<Game::MaterialTextureDef>();
+			auto textureTable = builder->getAllocator()->allocate<Game::MaterialTextureDef>();
+			std::memcpy(textureTable, material->textureTable, sizeof(Game::MaterialTextureDef));
+
+			material->textureTable = textureTable;
 			material->textureTable->u.image = image;
 			material->info.name = fontName;
 
