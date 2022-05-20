@@ -5,6 +5,8 @@ namespace Components
 	Party::JoinContainer Party::Container;
 	std::map<uint64_t, Network::Address> Party::LobbyMap;
 
+	Dvar::Var Party::PartyEnable;
+
 	SteamID Party::GenerateLobbyId()
 	{
 		SteamID id;
@@ -140,7 +142,7 @@ namespace Components
 
 	bool Party::IsInLobby()
 	{
-		return (!Dvar::Var("sv_running").get<bool>() && Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>());
+		return (!Dvar::Var("sv_running").get<bool>() && PartyEnable.get<bool>() && Dvar::Var("party_host").get<bool>());
 	}
 
 	bool Party::IsInUserMapLobby()
@@ -148,9 +150,14 @@ namespace Components
 		return (Party::IsInLobby() && Maps::IsUserMap(Dvar::Var("ui_mapname").get<const char*>()));
 	}
 
+	bool Party::IsEnabled()
+	{
+		return PartyEnable.get<bool>();
+	}
+
 	Party::Party()
 	{
-		static Game::dvar_t* partyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::dvar_flag::DVAR_NONE, "Enable party system").get<Game::dvar_t*>();
+		Party::PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::dvar_flag::DVAR_NONE, "Enable party system");
 		Dvar::Register<bool>("xblive_privatematch", true, Game::dvar_flag::DVAR_WRITEPROTECTED, "");
 
 		// various changes to SV_DirectConnect-y stuff to allow non-party joinees
@@ -228,6 +235,7 @@ namespace Components
 		Utils::Hook::Nop(0x4077A1, 5); // PartyMigrate_Frame
 
 		// Patch playlist stuff for non-party behavior
+		static Game::dvar_t* partyEnable = Party::PartyEnable.get<Game::dvar_t*>();
 		Utils::Hook::Set<Game::dvar_t**>(0x4A4093, &partyEnable);
 		Utils::Hook::Set<Game::dvar_t**>(0x4573F1, &partyEnable);
 		Utils::Hook::Set<Game::dvar_t**>(0x5B1A0C, &partyEnable);
@@ -303,7 +311,7 @@ namespace Components
 		}, true);
 
 		// Basic info handler
-		Network::Handle("getInfo", [](Network::Address address, const std::string& data)
+		Network::OnPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			int botCount = 0;
 			int clientCount = 0;
@@ -323,7 +331,6 @@ namespace Components
 			else
 			{
 				maxclientCount = Dvar::Var("party_maxplayers").get<int>();
-				//maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
 				clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData_s*>(0x1081C00));
 			}
 
@@ -371,7 +378,7 @@ namespace Components
 			// 1 - Party, use Steam_JoinLobby to connect
 			// 2 - Match, use CL_ConnectFromParty to connect
 
-			if (Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>()) // Party hosting
+			if (PartyEnable.get<bool>() && Dvar::Var("party_host").get<bool>()) // Party hosting
 			{
 				info.set("matchtype", "1");
 			}
@@ -390,7 +397,7 @@ namespace Components
 			Network::SendCommand(address, "infoResponse", "\\" + info.build());
 		});
 
-		Network::Handle("infoResponse", [](Network::Address address, const std::string& data)
+		Network::OnPacket("infoResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			Utils::InfoString info(data);
 

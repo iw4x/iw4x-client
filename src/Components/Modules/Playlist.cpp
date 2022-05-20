@@ -43,9 +43,10 @@ namespace Components
 		return Utils::Hook::Call<DWORD(const char**)>(0x4C0350)(buffer);
 	}
 
-	void Playlist::PlaylistRequest(Network::Address address, const std::string& data)
+	void Playlist::PlaylistRequest(const Network::Address& address, [[maybe_unused]] const std::string& data)
 	{
-		std::string password = Dvar::Var("g_password").get<std::string>();
+		const auto password = Dvar::Var("g_password").get<std::string>();
+
 		if (password.length())
 		{
 			if (password != data)
@@ -66,7 +67,7 @@ namespace Components
 		Network::SendCommand(address, "playlistResponse", list.SerializeAsString());
 	}
 
-	void Playlist::PlaylistReponse(Network::Address address, const std::string& data)
+	void Playlist::PlaylistReponse(const Network::Address& address, [[maybe_unused]] const std::string& data)
 	{
 		if (Party::PlaylistAwaiting())
 		{
@@ -83,8 +84,8 @@ namespace Components
 				else
 				{
 					// Generate buffer and hash
-					std::string compressedData(list.buffer());
-					unsigned int hash = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedData);
+					const auto& compressedData = list.buffer();
+					const auto hash = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedData);
 
 					//Validate hashes
 					if (hash != list.hash())
@@ -114,7 +115,7 @@ namespace Components
 		}
 	}
 
-	void Playlist::PlaylistInvalidPassword(Network::Address /*address*/, const std::string& /*data*/)
+	void Playlist::PlaylistInvalidPassword([[maybe_unused]] const Network::Address& address, [[maybe_unused]] const std::string& data)
 	{
 		Party::PlaylistError("Error: Invalid Password for Party.");
 	}
@@ -186,8 +187,8 @@ namespace Components
 			Utils::Hook::Set<BYTE>(0x4D6E60, 0xC3);
 		}
 
-		Network::Handle("getPlaylist", PlaylistRequest);
-		Network::Handle("playlistResponse", PlaylistReponse);
-		Network::Handle("playlistInvalidPassword", PlaylistInvalidPassword);
+		Network::OnPacket("getPlaylist", PlaylistRequest);
+		Network::OnPacket("playlistResponse", PlaylistReponse);
+		Network::OnPacket("playlistInvalidPassword", PlaylistInvalidPassword);
 	}
 }
