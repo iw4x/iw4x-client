@@ -1170,6 +1170,8 @@ namespace Game
 
 	extern int* g_waitingForKey;
 
+	extern unsigned long* _tls_index;
+
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);
 

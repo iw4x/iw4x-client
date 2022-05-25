@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Knife charge is fixed for controller players (#259)
 - Fixed internet, local and favorites filters (#260)
-- `sv_lanOnly` Dvar now prevents the server from sending heatbeats to master if set to true (#246)
+- `sv_lanOnly` Dvar now prevents the server from sending heartbeats to master if set to true (#246)
 
 ### Known issue
 
