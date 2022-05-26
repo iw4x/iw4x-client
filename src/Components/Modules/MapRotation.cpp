@@ -85,6 +85,7 @@ namespace Components
 		// Shuffles values
 		if (SVRandomMapRotation.get<bool>())
 		{
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Randomizing the map rotation\n");
 			DedicatedRotation.randomize();
 		}
 
