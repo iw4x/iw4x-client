@@ -1029,6 +1029,9 @@ namespace Game
 	typedef void(__cdecl * IN_Shutdown_t)();
 	extern IN_Shutdown_t IN_Shutdown;
 
+	typedef void(__cdecl * player_die_t)(gentity_s* self, const gentity_s* inflictor, gentity_s* attacker, int damage, int meansOfDeath, int iWeapon, const float* vDir, const hitLocation_t hitLoc, int psTimeOffset);
+	extern player_die_t player_die;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
