@@ -97,7 +97,7 @@ namespace Components
 
 	Elevators::Elevators()
 	{
-		Dvar::OnInit([]
+		Scheduler::Once([]
 		{
 			static const char* values[] =
 			{
@@ -109,7 +109,7 @@ namespace Components
 
 			Elevators::BG_Elevators = Game::Dvar_RegisterEnum("bg_elevators", values,
 				Elevators::ENABLED, Game::DVAR_CODINFO, "Elevators glitch settings");
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		Utils::Hook(0x57369E, Elevators::PM_CorrectAllSolidStub, HOOK_CALL).install()->quick(); // PM_GroundTrace
 

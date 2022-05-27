@@ -381,12 +381,12 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled()) return;
 
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
 			Dvar::Register<const char*>("ui_map_long", "Afghan", Game::dvar_flag::DVAR_NONE, "");
 			Dvar::Register<const char*>("ui_map_name", "mp_afghan", Game::dvar_flag::DVAR_NONE, "");
 			Dvar::Register<const char*>("ui_map_desc", "", Game::dvar_flag::DVAR_NONE, "");
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		// Get feeder item count
 		Utils::Hook(0x41A0D0, UIFeeder::GetItemCountStub, HOOK_JUMP).install()->quick();

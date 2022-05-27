@@ -73,10 +73,11 @@ namespace Components
 	ClanTags::ClanTags()
 	{
 		// Create clantag dvar
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
-			Dvar::Register<const char*>("clantag", "", Game::dvar_flag::DVAR_USERINFO | Game::dvar_flag::DVAR_ARCHIVE, "If set, your clantag will be shown on the scoreboard.");
-		});
+			Dvar::Register<const char*>("clantag", "", Game::dvar_flag::DVAR_USERINFO | Game::dvar_flag::DVAR_ARCHIVE,
+				"If set, your clantag will be shown on the scoreboard.");
+		}, Scheduler::Pipeline::MAIN);
 
 		// Servercommand hook
 		ServerCommands::OnCommand(22, [](Command::Params* params)

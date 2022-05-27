@@ -315,11 +315,8 @@ namespace Components
 
 	Chat::Chat()
 	{
-		Dvar::OnInit([]
-		{
-			cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
-			Chat::AddChatCommands();
-		});
+		cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
+		Scheduler::Once(Chat::AddChatCommands, Scheduler::Pipeline::MAIN);
 
 		// Intercept chat sending
 		Utils::Hook(0x4D000B, PreSayStub, HOOK_CALL).install()->quick();

@@ -151,10 +151,7 @@ namespace Components
 		Utils::Hook(0x467C03, RawMouse::IN_Init, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64D095, RawMouse::IN_Init, HOOK_JUMP).install()->quick();
 
-		Dvar::OnInit([]()
-		{
-			RawMouse::M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates. Use in_restart to take effect if not enabled.");
-		});
+		RawMouse::M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates. Use in_restart to take effect if not enabled.");
 
 		Window::OnWndMessage(WM_INPUT, RawMouse::OnRawInput);
 		Window::OnCreate(RawMouse::IN_RawMouse_Init);

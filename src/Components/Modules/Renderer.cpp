@@ -492,7 +492,7 @@ namespace Components
 		// End vid_restart
 		Utils::Hook(0x4CA3A7, Renderer::PostVidRestartStub, HOOK_CALL).install()->quick();
 
-		Dvar::OnInit([]
+		Scheduler::Once([]
 		{
 			static const char* values[] =
 			{
@@ -509,7 +509,7 @@ namespace Components
 			Renderer::r_drawModelNames = Game::Dvar_RegisterEnum("r_drawModelNames", values, 0, Game::DVAR_CHEAT, "Draw all model names");
 			Renderer::r_drawAABBTrees = Game::Dvar_RegisterBool("r_drawAabbTrees", false, Game::DVAR_CHEAT, "Draw aabb trees");
 			Renderer::r_playerDrawDebugDistance = Game::Dvar_RegisterInt("r_drawDebugDistance", 1000, 0, 50000, Game::DVAR_ARCHIVE, "r_draw debug functions draw distance, relative to the player");
-		});
+		}, Scheduler::Pipeline::MAIN);
 	}
 
 	Renderer::~Renderer()

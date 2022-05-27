@@ -76,11 +76,11 @@ namespace Components
 
 		RCon::BackdoorContainer.timestamp = 0;
 
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
 			RCon::RconPassword =  Dvar::Register<const char*>("rcon_password", "", Game::dvar_flag::DVAR_NONE, "The password for rcon");
 			RCon::RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::dvar_flag::DVAR_NONE, "Print remote commands in the output log");
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		Network::Handle("rcon", [](Network::Address address, const std::string& _data)
 		{

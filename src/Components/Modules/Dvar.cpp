@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	Utils::Signal<Dvar::Callback> Dvar::RegistrationSignal;
 	const char* Dvar::ArchiveDvarPath = "userraw/archivedvars.cfg";
 
 	Dvar::Var::Var(const std::string& dvarName) : Var()
@@ -201,11 +200,6 @@ namespace Components
 		return Game::Dvar_RegisterFloat(dvarName, value, min, max, flag.val, description);
 	}
 
-	void Dvar::OnInit(Utils::Slot<Dvar::Callback> callback)
-	{
-		Dvar::RegistrationSignal.connect(callback);
-	}
-
 	void Dvar::ResetDvarsValue()
 	{
 		if (!Utils::IO::FileExists(Dvar::ArchiveDvarPath))
@@ -310,12 +304,6 @@ namespace Components
 		Utils::Hook::Call<void(const char*, const char*)>(0x4F52E0)(dvarName, value);
 	}
 
-	void Dvar::CL_InitOnceForAllClients_Hk()
-	{
-		Utils::Hook::Call<void()>(0x404CA0)();
-		Dvar::RegistrationSignal();
-	}
-
 	Dvar::Dvar()
 	{
 		// set flags of cg_drawFPS to archive
@@ -363,8 +351,6 @@ namespace Components
 		Utils::Hook::Xor<BYTE>(0x42E398, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_horizontal
 		Utils::Hook::Xor<BYTE>(0x42E3C4, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_vertical
 
-		Utils::Hook(0x60BE5B, Dvar::CL_InitOnceForAllClients_Hk, HOOK_CALL).install()->quick();
-
 		// Don't allow setting cheat protected dvars via menus
 		Utils::Hook(0x63C897, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 		Utils::Hook(0x63CA96, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
@@ -390,12 +376,11 @@ namespace Components
 		Utils::Hook(0x59386A, Dvar::DvarSetFromStringByNameStub, HOOK_CALL).install()->quick();
 
 		// If the game closed abruptly, the dvars would not have been restored
-		Dvar::OnInit(Dvar::ResetDvarsValue);
+		Scheduler::Once(Dvar::ResetDvarsValue, Scheduler::Pipeline::MAIN);
 	}
 
 	Dvar::~Dvar()
 	{
-		Dvar::RegistrationSignal.clear();
 		Utils::IO::RemoveFile(Dvar::ArchiveDvarPath);
 	}
 }

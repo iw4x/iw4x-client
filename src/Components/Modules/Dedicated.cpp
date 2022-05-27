@@ -273,6 +273,75 @@ namespace Components
 		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::dvar_flag::DVAR_NONE, description);
 	}
 
+	void Dedicated::AddDedicatedCommands()
+	{
+		Dedicated::SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false, Game::dvar_flag::DVAR_ARCHIVE, "Randomize map rotation when true");
+		Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
+		Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
+
+		// Say command
+		Command::AddSV("say", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			auto message = params->join(1);
+			auto name = Dvar::Var("sv_sayName").get<std::string>();
+
+			if (!name.empty())
+			{
+				Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+				Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
+			}
+			else
+			{
+				Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+				Game::Com_Printf(15, "Console: %s\n", message.data());
+			}
+		});
+
+		// Tell command
+		Command::AddSV("tell", [](Command::Params* params)
+		{
+			if (params->size() < 3) return;
+
+			const auto client = atoi(params->get(1));
+			auto message = params->join(2);
+			auto name = Dvar::Var("sv_sayName").get<std::string>();
+
+			if (!name.empty())
+			{
+				Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+				Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
+			}
+			else
+			{
+				Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+				Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
+			}
+		});
+
+		// Sayraw command
+		Command::AddSV("sayraw", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			auto message = params->join(1);
+			Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
+			Game::Com_Printf(15, "Raw: %s\n", message.data());
+		});
+
+		// Tellraw command
+		Command::AddSV("tellraw", [](Command::Params* params)
+		{
+			if (params->size() < 3) return;
+
+			const auto client = atoi(params->get(1));
+			std::string message = params->join(2);
+			Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
+			Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
+		});
+	}
+
 	Dedicated::Dedicated()
 	{
 		// Map rotation
@@ -285,11 +354,8 @@ namespace Components
 			// Make sure all callbacks are handled
 			Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::MAIN);
 
-			Dvar::OnInit([]
-			{
-				Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
-					Game::dvar_flag::DVAR_NONE, "Don't act as node");
-			});
+			Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
+				Game::dvar_flag::DVAR_NONE, "Don't act as node");
 
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();
 
@@ -354,6 +420,8 @@ namespace Components
 
 			if (!ZoneBuilder::IsEnabled())
 			{
+				Scheduler::Once(Dedicated::AddDedicatedCommands, Scheduler::Pipeline::MAIN);
+
 				// Post initialization point
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
 
@@ -372,75 +440,6 @@ namespace Components
 						Dedicated::Heartbeat();
 					}
 				}, Scheduler::Pipeline::SERVER, 2min);
-
-				Dvar::OnInit([]()
-				{
-					Dedicated::SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false, Game::dvar_flag::DVAR_ARCHIVE, "Randomize map rotation when true");
-					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
-					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
-
-					// Say command
-					Command::AddSV("say", [](Command::Params* params)
-					{
-						if (params->size() < 2) return;
-
-						std::string message = params->join(1);
-						std::string name = Dvar::Var("sv_sayName").get<std::string>();
-
-						if (!name.empty())
-						{
-							Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-							Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
-						}
-						else
-						{
-							Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-							Game::Com_Printf(15, "Console: %s\n", message.data());
-						}
-					});
-
-					// Tell command
-					Command::AddSV("tell", [](Command::Params* params)
-					{
-						if (params->size() < 3) return;
-
-						int client = atoi(params->get(1));
-						std::string message = params->join(2);
-						std::string name = Dvar::Var("sv_sayName").get<std::string>();
-
-						if (!name.empty())
-						{
-							Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-							Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
-						}
-						else
-						{
-							Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-							Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
-						}
-					});
-
-					// Sayraw command
-					Command::AddSV("sayraw", [](Command::Params* params)
-					{
-						if (params->size() < 2) return;
-
-						std::string message = params->join(1);
-						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
-						Game::Com_Printf(15, "Raw: %s\n", message.data());
-					});
-
-					// Tellraw command
-					Command::AddSV("tellraw", [](Command::Params* params)
-					{
-						if (params->size() < 3) return;
-
-						int client = atoi(params->get(1));
-						std::string message = params->join(2);
-						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
-						Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
-					});
-				});
 			}
 		}
 		else

@@ -43,10 +43,6 @@ namespace Components
 		Dvar();
 		~Dvar();
 
-		typedef void(Callback)();
-
-		static void OnInit(Utils::Slot<Dvar::Callback> callback);
-
 		// Only strings and bools use this type of declaration
 		template<typename T> static Var Register(const char* dvarName, T value, Flag flag, const char* description);
 		template<typename T> static Var Register(const char* dvarName, T value, T min, T max, Flag flag, const char* description);
@@ -54,7 +50,6 @@ namespace Components
 		static void ResetDvarsValue();
 
 	private:
-		static Utils::Signal<Dvar::Callback> RegistrationSignal;
 		static const char* ArchiveDvarPath;
 
 		static Game::dvar_t* Dvar_RegisterName(const char* name, const char* defaultVal, unsigned __int16 flags, const char* description);
@@ -64,7 +59,5 @@ namespace Components
 
 		static void SaveArchiveDvar(const Game::dvar_t* var);
 		static void DvarSetFromStringByNameStub(const char* dvarName, const char* value);
-
-		static void CL_InitOnceForAllClients_Hk();
 	};
 }

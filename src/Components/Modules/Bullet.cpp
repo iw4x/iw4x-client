@@ -44,15 +44,12 @@ namespace Components
 
 	Bullet::Bullet()
 	{
-		Dvar::OnInit([]
-		{
-			BGSurfacePenetration = Dvar::Register<float>("bg_surfacePenetration", 0.0f,
-				0.0f, std::numeric_limits<float>::max(), Game::dvar_flag::DVAR_CODINFO,
-				"Set to a value greater than 0 to override the surface penetration depth");
-			BGBulletRange = Game::Dvar_RegisterFloat("bg_bulletRange", 8192.0f,
-				0.0f, std::numeric_limits<float>::max(), Game::dvar_flag::DVAR_CODINFO,
-				"Max range used when calculating the bullet end position");
-		});
+		BGSurfacePenetration = Dvar::Register<float>("bg_surfacePenetration", 0.0f,
+			0.0f, std::numeric_limits<float>::max(), Game::dvar_flag::DVAR_CODINFO,
+			"Set to a value greater than 0 to override the surface penetration depth");
+		BGBulletRange = Game::Dvar_RegisterFloat("bg_bulletRange", 8192.0f,
+			0.0f, std::numeric_limits<float>::max(), Game::dvar_flag::DVAR_CODINFO,
+			"Max range used when calculating the bullet end position");
 
 		Utils::Hook(0x4F6980, BG_GetSurfacePenetrationDepthStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x440340, Bullet_FireStub, HOOK_JUMP).install()->quick();

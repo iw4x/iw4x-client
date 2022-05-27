@@ -255,7 +255,7 @@ namespace Components
 			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).install()->quick();
 		}
 
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
 			Command::AddSV("log_add", [](Command::Params* params)
 			{
@@ -358,7 +358,7 @@ namespace Components
 					Logger::Print("#%03d: %5s\n", i, Logger::LoggingAddresses[1][i].getCString());
 				}
 			});
-		});
+		}, Scheduler::Pipeline::MAIN);
 	}
 
 	Logger::~Logger()

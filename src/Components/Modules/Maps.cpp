@@ -767,7 +767,7 @@ namespace Components
 	
 	Maps::Maps()
 	{
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
 			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
 			Dvar::Register<bool>("r_listSModels", false, Game::DVAR_NONE, "Display a list of visible SModels");
@@ -799,7 +799,7 @@ namespace Components
 
 				Game::ShowMessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
 			});
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		// disable turrets on CoD:OL 448+ maps for now
 		Utils::Hook(0x5EE577, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();

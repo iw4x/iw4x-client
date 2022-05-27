@@ -583,12 +583,9 @@ namespace Components
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || Monitor::IsEnabled())
 			return;
 
-		Dvar::OnInit([]
-		{
-			Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
-			Friends::CLAnonymous = Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
-			Friends::CLNotifyFriendState = Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_ARCHIVE, "Update friends about current game status");
-		});
+		Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
+		Friends::CLAnonymous = Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
+		Friends::CLNotifyFriendState = Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_ARCHIVE, "Update friends about current game status");
 
 		Command::Add("addFriend", [](Command::Params* params)
 		{
