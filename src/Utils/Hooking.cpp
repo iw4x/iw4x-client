@@ -39,7 +39,7 @@ namespace Utils
 		}
 	}
 
-	void Hook::Signature::add(Hook::Signature::Container& container)
+	void Hook::Signature::add(const Hook::Signature::Container& container)
 	{
 		Hook::Signature::signatures.push_back(container);
 	}

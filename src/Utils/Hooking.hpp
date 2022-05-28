@@ -23,7 +23,7 @@ namespace Utils
 			Signature() : Signature(0x400000, 0x800000) {}
 
 			void process();
-			void add(Container& container);
+			void add(const Container& container);
 
 		private:
 			void* start;
