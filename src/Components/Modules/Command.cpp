@@ -168,17 +168,4 @@ namespace Components
 			got->second(&params);
 		}
 	}
-
-	Command::Command()
-	{
-		AssertSize(Game::cmd_function_t, 24);
-
-		Command::Add("openLink", [](Command::Params* params)
-		{
-			if (params->size() > 1)
-			{
-				Utils::OpenUrl(params->get(1));
-			}
-		});
-	}
 }
