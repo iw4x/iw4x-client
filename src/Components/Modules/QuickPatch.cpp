@@ -231,15 +231,6 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
-		// quitHard
-		Command::Add("quitHard", [](Command::Params*)
-		{
-			int data = false;
-			const Utils::Library ntdll("ntdll.dll");
-			ntdll.invokePascal<void>("RtlAdjustPrivilege", 19, true, false, &data);
-			ntdll.invokePascal<void>("NtRaiseHardError", 0xC000007B, 0, nullptr, nullptr, 6, &data);
-		});
-
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassnameStub, HOOK_CALL).install()->quick();
 
