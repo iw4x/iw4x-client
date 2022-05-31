@@ -190,10 +190,10 @@ namespace Components
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
-			const unsigned int modId = *reinterpret_cast<unsigned int*>("IW4x") | 0x80000000;
+			const auto modId = *reinterpret_cast<const unsigned int*>("IW4x") | 0x80000000;
 
 			// Split up the list
-			for (auto entry : Friends::FriendsList)
+			for (const auto& entry : Friends::FriendsList)
 			{
 				Steam::FriendGameInfo info;
 				if (Steam::Proxy::SteamFriends->GetFriendGamePlayed(entry.userId, &info) && info.m_gameID.modID == modId)

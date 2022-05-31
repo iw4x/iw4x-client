@@ -39,7 +39,7 @@ namespace Components
 
 	const char* Party::GetLobbyInfo(SteamID lobby, const std::string& key)
 	{
-		if (Party::LobbyMap.find(lobby.bits) != Party::LobbyMap.end())
+		if (Party::LobbyMap.contains(lobby.bits))
 		{
 			Network::Address address = Party::LobbyMap[lobby.bits];
 
@@ -58,9 +58,10 @@ namespace Components
 
 	void Party::RemoveLobby(SteamID lobby)
 	{
-		if (Party::LobbyMap.find(lobby.bits) != Party::LobbyMap.end())
+		const auto got = Party::LobbyMap.find(lobby.bits);
+		if (got != Party::LobbyMap.end())
 		{
-			Party::LobbyMap.erase(Party::LobbyMap.find(lobby.bits));
+			Party::LobbyMap.erase(got);
 		}
 	}
 

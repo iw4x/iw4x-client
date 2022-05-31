@@ -285,7 +285,7 @@ namespace Components
 				// No need to patch version 155
 				if (newData[i].version == 155) continue;
 
-				if (patchDefinitions.find(newData[i].version) != patchDefinitions.end())
+				if (patchDefinitions.contains(newData[i].version))
 				{
 					auto patchData = patchDefinitions[newData[i].version];
 					auto otherData = otherPatchDefinitions[newData[i].version];

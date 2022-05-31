@@ -109,7 +109,7 @@ namespace Components
 		Game::XSurface* tempSurfaces = allocator.allocateArray<Game::XSurface>(modelSurfs->numsurfs);
 		char* surfaceData = reinterpret_cast<char*>(modelSurfs->surfs);
 
-		if (ModelSurfs::AllocMap.find(modelSurfs->name) != ModelSurfs::AllocMap.end())
+		if (ModelSurfs::AllocMap.contains(modelSurfs->name))
 		{
 			Game::CModelAllocData* allocData = ModelSurfs::AllocMap[modelSurfs->name];
 
@@ -210,7 +210,7 @@ namespace Components
 
 		if (hasCustomSurface && !ModelSurfs::AllocMap.empty())
 		{
-			auto allocData = ModelSurfs::AllocMap.find(header.modelSurfs->name);
+			const auto allocData = ModelSurfs::AllocMap.find(header.modelSurfs->name);
 			if (allocData != ModelSurfs::AllocMap.end())
 			{
 				Utils::Memory::FreeAlign(allocData->second->indexBuffer);

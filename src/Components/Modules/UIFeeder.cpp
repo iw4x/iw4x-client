@@ -12,7 +12,7 @@ namespace Components
 
 	const char* UIFeeder::GetItemText()
 	{
-		if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
+		if (UIFeeder::Feeders.contains(UIFeeder::Current.feeder))
 		{
 			return UIFeeder::Feeders[UIFeeder::Current.feeder].getItemText(UIFeeder::Current.index, UIFeeder::Current.column);
 		}
@@ -22,7 +22,7 @@ namespace Components
 
 	unsigned int UIFeeder::GetItemCount()
 	{
-		if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
+		if (UIFeeder::Feeders.contains(UIFeeder::Current.feeder))
 		{
 			return UIFeeder::Feeders[UIFeeder::Current.feeder].getItemCount();
 		}
@@ -313,7 +313,7 @@ namespace Components
 
 	void UIFeeder::ApplyMap(UIScript::Token)
 	{
-		std::string mapname = Dvar::Var("ui_map_name").get<std::string>();
+		const auto mapname = Dvar::Var("ui_map_name").get<std::string>();
 
 		Dvar::Var("ui_mapname").set(mapname);
 		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname.data()); // Party_SetDisplayMapName
@@ -321,7 +321,7 @@ namespace Components
 
 	void UIFeeder::ApplyInitialMap(UIScript::Token)
 	{
-		std::string mapname = Dvar::Var("ui_mapname").get<std::string>();
+		const auto mapname = Dvar::Var("ui_mapname").get<std::string>();
 
 		Game::UI_UpdateArenas();
 		Game::UI_SortArenas();

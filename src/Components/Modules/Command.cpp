@@ -64,7 +64,7 @@ namespace Components
 	{
 		const auto command = Utils::String::ToLower(name);
 
-		if (Command::FunctionMap.find(command) == Command::FunctionMap.end())
+		if (!Command::FunctionMap.contains(command))
 		{
 			Command::AddRaw(name, Command::MainCallback);
 		}
@@ -87,7 +87,7 @@ namespace Components
 
 		const auto command = Utils::String::ToLower(name);
 
-		if (Command::FunctionMapSV.find(command) == Command::FunctionMapSV.end())
+		if (!Command::FunctionMapSV.contains(command))
 		{
 			Command::AddRawSV(name, Command::MainCallbackSV);
 

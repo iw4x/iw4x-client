@@ -70,7 +70,7 @@ namespace Utils
 	{
 		for (auto& entity : this->entities)
 		{
-			if (entity.find("classname") != entity.end())
+			if (entity.contains("classname"))
 			{
 				if (entity["classname"] == "misc_turret"s)
 				{

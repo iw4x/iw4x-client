@@ -243,7 +243,8 @@ namespace Assets
 		{
 			Components::Logger::Print("No replacement found for material %s with techset %s\n", asset->info.name, asset->techniqueSet->name);
 			std::string techName = asset->techniqueSet->name;
-			if (techSetCorrespondance.find(techName) != techSetCorrespondance.end()) {
+			if (techSetCorrespondance.contains(techName))
+			{
 				auto iw4TechSetName = techSetCorrespondance[techName];
 				Game::XAssetEntry* iw4TechSet = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, iw4TechSetName.data());
 

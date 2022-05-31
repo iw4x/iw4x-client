@@ -12,7 +12,7 @@ namespace Components
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
-		if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
+		if (Localization::LocalizeMap.contains(key))
 		{
 			Game::LocalizeEntry* entry = Localization::LocalizeMap[key];
 
@@ -52,11 +52,11 @@ namespace Components
 		{
 			std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 
-			if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
+			if (Localization::TempLocalizeMap.contains(key))
 			{
 				entry = Localization::TempLocalizeMap[key];
 			}
-			else if (Localization::LocalizeMap.find(key) != Localization::LocalizeMap.end())
+			else if (Localization::LocalizeMap.contains(key))
 			{
 				entry = Localization::LocalizeMap[key];
 			}
@@ -80,7 +80,7 @@ namespace Components
 		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
-		if (Localization::TempLocalizeMap.find(key) != Localization::TempLocalizeMap.end())
+		if (Localization::TempLocalizeMap.contains(key))
 		{
 			Game::LocalizeEntry* entry = Localization::TempLocalizeMap[key];
 			if (entry->value) allocator->free(entry->value);
@@ -256,11 +256,11 @@ namespace Components
 			Game::XAssetHeader header = { nullptr };
 			std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
 
-			if (Localization::TempLocalizeMap.find(filename) != Localization::TempLocalizeMap.end())
+			if (Localization::TempLocalizeMap.contains(filename))
 			{
 				header.localize = Localization::TempLocalizeMap[filename];
 			}
-			else if (Localization::LocalizeMap.find(filename) != Localization::LocalizeMap.end())
+			else if (Localization::LocalizeMap.contains(filename))
 			{
 				header.localize = Localization::LocalizeMap[filename];
 			}
