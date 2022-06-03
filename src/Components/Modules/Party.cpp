@@ -58,11 +58,7 @@ namespace Components
 
 	void Party::RemoveLobby(SteamID lobby)
 	{
-		const auto got = Party::LobbyMap.find(lobby.bits);
-		if (got != Party::LobbyMap.end())
-		{
-			Party::LobbyMap.erase(got);
-		}
+		Party::LobbyMap.erase(lobby.bits);
 	}
 
 	void Party::ConnectError(const std::string& message)
