@@ -161,7 +161,7 @@ namespace Components
 
 			if (bResult && cbBytes)
 			{
-				if (pipe->packetCallbacks.find(pipe->packet.command) != pipe->packetCallbacks.end())
+				if (pipe->packetCallbacks.contains(pipe->packet.command))
 				{
 					pipe->packetCallbacks[pipe->packet.command](pipe->packet.buffer);
 				}

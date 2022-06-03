@@ -920,7 +920,7 @@ namespace Components
 				{
 					std::string name = gameWorld->dpvs.smodelDrawInsts[i].model->name;
 
-					if (models.find(name) == models.end()) models[name] = 1;
+					if (!models.contains(name)) models[name] = 1;
 					else models[name]++;
 				}
 			}

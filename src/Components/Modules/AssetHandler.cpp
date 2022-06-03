@@ -23,7 +23,7 @@ namespace Components
 			return;
 		}
 
-		if (AssetHandler::AssetInterfaces.find(iAsset->getType()) != AssetHandler::AssetInterfaces.end())
+		if (AssetHandler::AssetInterfaces.contains(iAsset->getType()))
 		{
 			Logger::Print("Duplicate asset interface: %s\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
 			delete AssetHandler::AssetInterfaces[iAsset->getType()];
@@ -58,7 +58,7 @@ namespace Components
 			// Allow call DB_FindXAssetHeader within the hook
 			AssetHandler::SetBypassState(true);
 
-			if (AssetHandler::TypeCallbacks.find(type) != AssetHandler::TypeCallbacks.end())
+			if (AssetHandler::TypeCallbacks.contains(type))
 			{
 				header = AssetHandler::TypeCallbacks[type](type, filename);
 			}
@@ -329,17 +329,17 @@ namespace Components
 	{
 		void* pointer = (*Game::g_streamBlocks)[offset->getUnpackedBlock()].data + offset->getUnpackedOffset();
 
-		if (AssetHandler::Relocations.find(pointer) != AssetHandler::Relocations.end())
+		if (AssetHandler::Relocations.contains(pointer))
 		{
 			pointer = AssetHandler::Relocations[pointer];
 		}
 
-		offset->pointer = *reinterpret_cast<void**>(pointer);
+		offset->pointer = *static_cast<void**>(pointer);
 	}
 
 	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)
 	{
-		if (AssetHandler::AssetInterfaces.find(asset.type) != AssetHandler::AssetInterfaces.end())
+		if (AssetHandler::AssetInterfaces.contains(asset.type))
 		{
 			AssetHandler::AssetInterfaces[asset.type]->save(asset.header, builder);
 		}
@@ -351,7 +351,7 @@ namespace Components
 
 	void AssetHandler::ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder)
 	{
-		if (AssetHandler::AssetInterfaces.find(asset.type) != AssetHandler::AssetInterfaces.end())
+		if (AssetHandler::AssetInterfaces.contains(asset.type))
 		{
 			AssetHandler::AssetInterfaces[asset.type]->mark(asset.header, builder);
 		}
@@ -375,7 +375,7 @@ namespace Components
 			return { entry->second };
 		}
 
-		if (AssetHandler::AssetInterfaces.find(type) != AssetHandler::AssetInterfaces.end())
+		if (AssetHandler::AssetInterfaces.contains(type))
 		{
 			AssetHandler::AssetInterfaces[type]->load(&header, filename, builder);
 

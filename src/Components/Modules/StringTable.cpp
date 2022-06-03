@@ -64,7 +64,7 @@ namespace Components
 
 			std::string filename = Utils::String::ToLower(_filename);
 
-			if (StringTable::StringTableMap.find(filename) != StringTable::StringTableMap.end())
+			if (StringTable::StringTableMap.contains(filename))
 			{
 				header.stringTable = StringTable::StringTableMap[filename];
 			}

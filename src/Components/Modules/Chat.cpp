@@ -23,7 +23,7 @@ namespace Components
 		}
 
 		std::unique_lock<std::mutex> lock(Chat::AccessMutex);
-		if (Chat::MuteList.find(Game::svs_clients[player->s.number].steamID) != Chat::MuteList.end())
+		if (Chat::MuteList.contains(Game::svs_clients[player->s.number].steamID))
 		{
 			lock.unlock();
 			Chat::SendChat = false;
@@ -217,7 +217,7 @@ namespace Components
 	{
 		std::unique_lock<std::mutex> lock(Chat::AccessMutex);
 
-		if (Chat::MuteList.find(client->steamID) == Chat::MuteList.end())
+		if (!Chat::MuteList.contains(client->steamID))
 		{
 			Chat::MuteList.insert(client->steamID);
 			lock.unlock();
