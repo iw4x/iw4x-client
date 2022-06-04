@@ -514,7 +514,7 @@ namespace Game
 	FxEffectDef*** varFxEffectDefHandle = reinterpret_cast<FxEffectDef***>(0x112ACC0);
 	PhysCollmap*** varPhysCollmapPtr = reinterpret_cast<PhysCollmap***>(0x112B440);
 	PhysPreset*** varPhysPresetPtr = reinterpret_cast<PhysPreset***>(0x112B378);
-	Game::MaterialPass** varMaterialPass = reinterpret_cast<Game::MaterialPass**>(0x112A960);
+	MaterialPass** varMaterialPass = reinterpret_cast<MaterialPass**>(0x112A960);
 	snd_alias_list_t*** varsnd_alias_list_name = reinterpret_cast<snd_alias_list_t***>(0x112AF38);
 
 	FxElemField* s_elemFields = reinterpret_cast<FxElemField*>(0x73B848);
@@ -576,6 +576,8 @@ namespace Game
 	DeferredQueue* deferredQueue = reinterpret_cast<DeferredQueue*>(0x1CC2CE8);
 
 	int* g_waitingForKey = reinterpret_cast<int*>(0x63A50FC);
+
+	unsigned long* _tls_index = reinterpret_cast<unsigned long*>(0x66D94A8);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{

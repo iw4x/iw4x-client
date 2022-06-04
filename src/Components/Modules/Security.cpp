@@ -45,13 +45,29 @@ namespace Components
 
 		if (params.size() >= 4)
 		{
-			const auto* dvarName = params[3];
-			const auto* dvar = Game::Dvar_FindVar(dvarName);
-
-			if (Command::Find(dvarName) ||
-				(dvar != nullptr && dvar->flags & (Game::DVAR_WRITEPROTECTED | Game::DVAR_CHEAT | Game::DVAR_READONLY)))
+			const auto* name = params.get(3);
+			// If it's a command don't execute it
+			if (Command::Find(name) != nullptr)
 			{
-				Logger::Print(0, "CL_SelectStringTableEntryInDvar_f: illegal parameter\n");
+				Logger::Print(0, "CL_SelectStringTableEntryInDvar_f: parameter is a command\n");
+				return;
+			}
+
+			const auto* dvar = Game::Dvar_FindVar(name);
+			if (dvar == nullptr)
+			{
+				// If it's not a dvar let it continue
+				Game::CL_SelectStringTableEntryInDvar_f();
+				return;
+			}
+
+			constexpr auto disallowedFlags = (Game::DVAR_CHEAT | Game::DVAR_WRITEPROTECTED
+				| Game::DVAR_READONLY | Game::DVAR_EXTERNAL | Game::DVAR_LATCH);
+
+			// If it's a dvar check that it does not have disallowed flags
+			if ((dvar->flags & disallowedFlags) != 0)
+			{
+				Logger::Print(0, "CL_SelectStringTableEntryInDvar_f: parameter is a protected dvar\n");
 				return;
 			}
 		}

@@ -39,7 +39,7 @@ namespace Main
 			popad
 
 			push 6BAA2Fh // Continue init routine
-			push 6CA062h // ___security_init_cookie
+			push 6CA062h // __security_init_cookie
 			retn
 		}
 	}
