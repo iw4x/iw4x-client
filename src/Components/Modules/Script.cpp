@@ -624,11 +624,11 @@ namespace Components
 
 			if (key == nullptr)
 			{
-				Game::Scr_Error("^1StorageRemove: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "^1StorageRemove: Illegal parameter!\n");
 				return;
 			}
 
-			if (!Script::ScriptStorage.count(key))
+			if (!Script::ScriptStorage.contains(key))
 			{
 				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key));
 				return;
@@ -643,11 +643,11 @@ namespace Components
 
 			if (key == nullptr)
 			{
-				Game::Scr_Error("^1StorageGet: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "^1StorageGet: Illegal parameter!\n");
 				return;
 			}
 
-			if (!Script::ScriptStorage.count(key))
+			if (!Script::ScriptStorage.contains(key))
 			{
 				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key));
 				return;
@@ -663,11 +663,11 @@ namespace Components
 
 			if (key == nullptr)
 			{
-				Game::Scr_Error("^1StorageHas: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "^1StorageHas: Illegal parameter!\n");
 				return;
 			}
 
-			Game::Scr_AddInt(static_cast<int>(Script::ScriptStorage.count(key)));
+			Game::Scr_AddBool(Script::ScriptStorage.contains(key));
 		});
 
 		Script::AddFunction("StorageClear", [] // gsc: StorageClear();
