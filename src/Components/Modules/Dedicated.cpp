@@ -96,7 +96,7 @@ namespace Components
 			}
 		}
 
-		Game::SV_GameSendServerCommand(-1, 0, list.data());
+		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, list.data());
 	}
 
 	void Dedicated::TimeWrapStub(Game::errorParm_t code, const char* message)
@@ -160,11 +160,9 @@ namespace Components
 	Dedicated::Dedicated()
 	{
 		// Map rotation
-		Dvar::OnInit([]
-		{
-			Dedicated::COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
-				Game::dvar_flag::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
-		});
+
+		Dedicated::COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
+			Game::dvar_flag::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
@@ -287,12 +285,12 @@ namespace Components
 
 						if (!name.empty())
 						{
-							Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+							Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
 							Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
 						}
 						else
 						{
-							Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+							Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
 							Game::Com_Printf(15, "Console: %s\n", message.data());
 						}
 					});
@@ -308,12 +306,12 @@ namespace Components
 
 						if (!name.empty())
 						{
-							Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+							Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
 							Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
 						}
 						else
 						{
-							Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+							Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
 							Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
 						}
 					});
@@ -324,7 +322,7 @@ namespace Components
 						if (params->size() < 2) return;
 
 						std::string message = params->join(1);
-						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
+						Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
 						Game::Com_Printf(15, "Raw: %s\n", message.data());
 					});
 
@@ -335,7 +333,7 @@ namespace Components
 
 						int client = atoi(params->get(1));
 						std::string message = params->join(2);
-						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
+						Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
 						Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
 					});
 				});

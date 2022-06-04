@@ -68,6 +68,7 @@ namespace Game
 
 	Com_Error_t Com_Error = Com_Error_t(0x4B22D0);
 	Com_Printf_t Com_Printf = Com_Printf_t(0x402500);
+	Com_PrintError_t Com_PrintError = Com_PrintError_t(0x4F8C70);
 	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4AA830);
 	Com_EndParseSession_t Com_EndParseSession = Com_EndParseSession_t(0x4B80B0);
 	Com_BeginParseSession_t Com_BeginParseSession = Com_BeginParseSession_t(0x4AAB80);
@@ -156,6 +157,10 @@ namespace Game
 	G_LogPrintf_t G_LogPrintf = G_LogPrintf_t(0x4B0150);
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
+	G_Spawn_t G_Spawn = G_Spawn_t(0x4226F0);
+	G_FreeEntity_t G_FreeEntity = G_FreeEntity_t(0x44C9D0);
+	G_SpawnItem_t G_SpawnItem = G_SpawnItem_t(0x403770);
+	G_GetItemClassname_t G_GetItemClassname = G_GetItemClassname_t(0x492630);
 	G_PrintEntities_t G_PrintEntities = G_PrintEntities_t(0x4E6A50);
 	G_GetEntityTypeName_t G_GetEntityTypeName = G_GetEntityTypeName_t(0x4EB810);
 
@@ -430,6 +435,12 @@ namespace Game
 	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
 	IN_Init_t IN_Init = IN_Init_t(0x45D620);
 	IN_Shutdown_t IN_Shutdown = IN_Shutdown_t(0x426360);
+
+	Touch_Item_t Touch_Item = Touch_Item_t(0x44FA20);
+
+	Add_Ammo_t Add_Ammo = Add_Ammo_t(0x4E1480);
+  
+	ClientUserinfoChanged_t ClientUserinfoChanged = ClientUserinfoChanged_t(0x445240);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);

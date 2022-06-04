@@ -530,7 +530,7 @@ namespace Components
 	// Check if the given pointer has already been mapped
 	bool ZoneBuilder::Zone::hasPointer(const void* pointer)
 	{
-		return (this->pointerMap.find(pointer) != this->pointerMap.end());
+		return this->pointerMap.contains(pointer);
 	}
 
 	// Get stored offset for given file pointer
@@ -644,7 +644,7 @@ namespace Components
 	{
 		if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
 		{
-			if (this->renameMap[type].find(asset) != this->renameMap[type].end())
+			if (this->renameMap[type].contains(asset))
 			{
 				return this->renameMap[type][asset];
 			}

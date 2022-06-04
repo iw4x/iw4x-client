@@ -343,6 +343,12 @@ namespace Game
 		HITLOC_NUM
 	} hitLocation_t;
 
+	enum svscmd_type
+	{
+		SV_CMD_CAN_IGNORE = 0x0,
+		SV_CMD_RELIABLE = 0x1,
+	};
+
 	struct FxEffectDef;
 	struct pathnode_t;
 	struct pathnode_tree_t;
@@ -1621,7 +1627,6 @@ namespace Game
 		int groundEntityNum;
 		int loopSound;
 		int surfType;
-
 		union
 		{
 			int brushModel;
@@ -1630,7 +1635,6 @@ namespace Game
 			int xmodel;
 			int primaryLight;
 		} index;
-
 		int clientNum;
 		int iHeadIcon;
 		int iHeadIconTeam;
@@ -1649,7 +1653,16 @@ namespace Game
 			int fxId;
 			int helicopterStage;
 		} un1;
-		int un2;
+		union
+		{
+			int hintType;
+			struct
+			{
+				unsigned __int16 vehicleXModel;
+				char weaponModel;
+			} __s1;
+			int actorFlags;
+		} un2;
 		clientLinkInfo_t clientLinkInfo;
 		unsigned int partBits[6];
 		int clientMask[1];

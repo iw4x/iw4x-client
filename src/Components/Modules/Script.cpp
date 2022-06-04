@@ -461,7 +461,7 @@ namespace Components
 
 	void Script::GetReplacedPos(const char* pos)
 	{
-		if (Script::ReplacedFunctions.find(pos) != Script::ReplacedFunctions.end())
+		if (Script::ReplacedFunctions.contains(pos))
 		{
 			Script::ReplacedPos = Script::ReplacedFunctions[pos];
 		}
@@ -475,7 +475,7 @@ namespace Components
 			return;
 		}
 
-		if (Script::ReplacedFunctions.find(what) != Script::ReplacedFunctions.end())
+		if (Script::ReplacedFunctions.contains(what))
 		{
 			Logger::Print("Warning: ReplacedFunctions already contains codePosValue for a function\n");
 		}
@@ -667,7 +667,7 @@ namespace Components
 				return;
 			}
 
-			Game::Scr_AddBool(static_cast<int>(Script::ScriptStorage.count(key))); // Until C++17
+			Game::Scr_AddInt(static_cast<int>(Script::ScriptStorage.count(key)));
 		});
 
 		Script::AddFunction("StorageClear", [] // gsc: StorageClear();
