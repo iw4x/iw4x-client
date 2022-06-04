@@ -451,7 +451,7 @@ namespace Components
 		}
 	}
 
-	void ServerList::Insert(Network::Address address, Utils::InfoString info)
+	void ServerList::Insert(const Network::Address& address, const Utils::InfoString& info)
 	{
 		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
 

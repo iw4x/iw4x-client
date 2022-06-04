@@ -15,6 +15,7 @@ end
 function json11.project()
 	project "json11"
 		language "C++"
+		cppdialect "C++11"
 
 		files
 		{

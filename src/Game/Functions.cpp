@@ -431,6 +431,8 @@ namespace Game
 	IN_Init_t IN_Init = IN_Init_t(0x45D620);
 	IN_Shutdown_t IN_Shutdown = IN_Shutdown_t(0x426360);
 
+	ClientUserinfoChanged_t ClientUserinfoChanged = ClientUserinfoChanged_t(0x445240);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
