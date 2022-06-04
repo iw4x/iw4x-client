@@ -63,7 +63,7 @@ namespace Components
 
 	void Scheduler::Execute(Pipeline type)
 	{
-		AssertCount(type, Pipeline::COUNT);
+		assert(type < Pipeline::COUNT);
 		Pipelines[type].execute();
 	}
 
@@ -100,7 +100,7 @@ namespace Components
 	void Scheduler::Schedule(const std::function<bool()>& callback, const Pipeline type,
 		const std::chrono::milliseconds delay)
 	{
-		AssertCount(type, Pipeline::COUNT);
+		assert(type < Pipeline::COUNT);
 
 		Task task;
 		task.handler = callback;

@@ -289,14 +289,14 @@ namespace Components
 		// need to keep the message size below 1404 bytes else recipient will just drop it
 		std::vector<std::string> nodeListReponseMessages;
 
-		for (size_t curNode = 0; curNode < Node::Nodes.size();)
+		for (std::size_t curNode = 0; curNode < Node::Nodes.size();)
 		{
 			Proto::Node::List list;
 			list.set_isnode(Dedicated::IsEnabled());
 			list.set_protocol(PROTOCOL);
 			list.set_port(Node::GetPort());
 
-			for (size_t i = 0; i < NODE_MAX_NODES_TO_SEND;)
+			for (std::size_t i = 0; i < NODE_MAX_NODES_TO_SEND;)
 			{
 				if (curNode >= Node::Nodes.size())
 					break;
@@ -317,10 +317,10 @@ namespace Components
 			nodeListReponseMessages.push_back(list.SerializeAsString());
 		}
 
-		size_t i = 0;
-		for (auto& nodeListData : nodeListReponseMessages)
+		auto i = 0;
+		for (const auto& nodeListData : nodeListReponseMessages)
 		{
-			Scheduler::Once([nodeListData, i, address]()
+			Scheduler::Once([&]
 			{
 				NODE_LOG("Sending %d nodeListResponse length to %s\n", nodeListData.length(), address.getCString());
 				Session::Send(address, "nodeListResponse", nodeListData);
@@ -342,7 +342,7 @@ namespace Components
 		Scheduler::Loop([]
 		{
 			Node::StoreNodes(false);
-		}, Scheduler::Pipeline::MAIN);
+		}, Scheduler::Pipeline::ASYNC);
 
 		Scheduler::Loop(Node::RunFrame, Scheduler::Pipeline::MAIN);
 

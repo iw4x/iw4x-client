@@ -101,9 +101,6 @@ using namespace std::literals;
 	static_assert(offsetof(x, y) == (offset), \
 		#x "::" #y " is not at the right offset. Must be at " #offset)
 
-#define AssertCount(expr, count) \
-	assert((#expr " doesn't index " #count, (expr) < (count)))
-
 // Protobuf
 #include "proto/session.pb.h"
 #include "proto/party.pb.h"

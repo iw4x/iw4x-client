@@ -83,7 +83,7 @@ namespace Components
 
 	void Bots::Spawn(unsigned int count)
 	{
-		for (auto i = 0u; i < count; ++i)
+		for (std::size_t i = 0; i < count; ++i)
 		{
 			Scheduler::Once([]
 			{
@@ -91,13 +91,13 @@ namespace Components
 				if (ent == nullptr)
 					return;
 
-				Scheduler::Once([ent]()
+				Scheduler::Once([ent]
 				{
 					Game::Scr_AddString("autoassign");
 					Game::Scr_AddString("team_marinesopfor");
 					Game::Scr_Notify(ent, Game::SL_GetString("menuresponse", 0), 2);
 
-					Scheduler::Once([ent]()
+					Scheduler::Once([ent]
 					{
 						Game::Scr_AddString(Utils::String::VA("class%u", Utils::Cryptography::Rand::GenerateInt() % 5u));
 						Game::Scr_AddString("changeclass");

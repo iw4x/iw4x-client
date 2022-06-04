@@ -709,7 +709,7 @@ namespace Components
 		// Constantly draw the mini console
 		Utils::Hook::Set<BYTE>(0x412A45, 0xEB);
 
-		Scheduler::Loop([]()
+		Scheduler::Loop([]
 		{
 			if (*reinterpret_cast<Game::Font_s**>(0x62E4BAC))
 			{
