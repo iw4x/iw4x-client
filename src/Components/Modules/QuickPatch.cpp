@@ -229,6 +229,16 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* QuickPatch::Dvar_RegisterConMinicon(const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
+	{
+#ifdef _DEBUG
+		constexpr auto value_ = true;
+#else
+		constexpr auto value_ = false;
+#endif
+		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
@@ -250,6 +260,8 @@ namespace Components
 		// Add ultrawide support
 		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
+
+		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
 
 		// Make sure preDestroy is called when the game shuts down
 		Scheduler::OnShutdown(Loader::PreDestroy);
@@ -705,17 +717,6 @@ namespace Components
 
 		// Disable cheat protection for dvars
 		Utils::Hook::Set<BYTE>(0x647682, 0xEB);
-
-		// Constantly draw the mini console
-		Utils::Hook::Set<BYTE>(0x412A45, 0xEB);
-
-		Scheduler::OnFrame([]()
-		{
-			if (*reinterpret_cast<Game::Font_s**>(0x62E4BAC))
-			{
-				Game::Con_DrawMiniConsole(0, 2, 4, (Game::CL_IsCgameInitialized() ? 1.0f : 0.4f));
-			}
-		}, true);
 #else
 		// Remove missing tag message
 		Utils::Hook::Nop(0x4EBF1A, 5);
