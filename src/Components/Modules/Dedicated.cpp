@@ -159,8 +159,6 @@ namespace Components
 
 	Dedicated::Dedicated()
 	{
-		// Map rotation
-
 		Dedicated::COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
 			Game::dvar_flag::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
 
