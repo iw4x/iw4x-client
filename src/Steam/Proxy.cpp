@@ -36,7 +36,7 @@ namespace Steam
 
 	std::pair<void*, uint16_t> Interface::getMethod(const std::string& method)
 	{
-		if(this->methodCache.find(method) != this->methodCache.end())
+		if(this->methodCache.contains(method))
 		{
 			return this->methodCache[method];
 		}

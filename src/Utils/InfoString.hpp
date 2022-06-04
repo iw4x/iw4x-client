@@ -5,19 +5,23 @@ namespace Utils
 	class InfoString
 	{
 	public:
-		InfoString() {};
-		InfoString(const std::string& buffer) : InfoString() { this->parse(buffer); };
+		InfoString() = default;
+		explicit InfoString(const std::string& buffer);
 
 		void set(const std::string& key, const std::string& value);
-		std::string get(const std::string& key);
-		std::string build();
+		void remove(const std::string& key);
 
+		[[nodiscard]] std::string get(const std::string& key) const;
+		[[nodiscard]] std::string build() const;
+
+#ifdef _DEBUG
 		void dump();
+#endif
 
-		json11::Json to_json();
+		[[nodiscard]] json11::Json to_json() const;
 
 	private:
-		std::map<std::string, std::string> keyValuePairs;
+		std::unordered_map<std::string, std::string> keyValuePairs;
 		void parse(std::string buffer);
 	};
 }

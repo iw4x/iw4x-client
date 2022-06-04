@@ -5,6 +5,8 @@ namespace Components
 	class Command : public Component
 	{
 	public:
+		static_assert(sizeof(Game::cmd_function_t) == 0x18);
+
 		class Params
 		{
 		public:
@@ -45,7 +47,7 @@ namespace Components
 			int nesting_;
 		};
 
-		Command();
+		Command() = default;
 
 		static Game::cmd_function_t* Allocate();
 

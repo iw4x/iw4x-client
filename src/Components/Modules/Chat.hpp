@@ -9,8 +9,11 @@ namespace Components
 		Chat();
 
 	private:
-		static Game::dvar_t** cg_chatHeight;
 		static Dvar::Var cg_chatWidth;
+		static Dvar::Var sv_disableChat;
+
+		// Game dvars
+		static Game::dvar_t** cg_chatHeight;
 		static Game::dvar_t** cg_chatTime;
 
 		static bool SendChat;

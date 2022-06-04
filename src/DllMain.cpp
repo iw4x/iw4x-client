@@ -39,7 +39,7 @@ namespace Main
 			popad
 
 			push 6BAA2Fh // Continue init routine
-			push 6CA062h // ___security_init_cookie
+			push 6CA062h // __security_init_cookie
 			retn
 		}
 	}
@@ -54,6 +54,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 
 		Steam::Proxy::RunMod();
 
+#ifndef DISABLE_BINARY_CHECK
 		// Ensure we're working with our desired binary
 		auto* _module = reinterpret_cast<char*>(0x400000);
 		auto hash1 = Utils::Cryptography::JenkinsOneAtATime::Compute(_module + 0x1000, 0x2D531F);  // .text
@@ -69,6 +70,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 
 		DWORD oldProtect;
 		VirtualProtect(_module + 0x1000, 0x2D6000, PAGE_EXECUTE_READ, &oldProtect); // Protect the .text segment
+#endif
 
 		// Install entry point hook
 		Utils::Hook(0x6BAC0F, Main::EntryPoint, HOOK_JUMP).install()->quick();
