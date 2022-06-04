@@ -245,6 +245,82 @@ namespace Components
 			assert(ent != nullptr);
 			ent->client->ps.stunTime = 1000 + Game::level->time; // 1000 is the default test stun time
 		});
+
+		ClientCommand::Add("give", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		{
+			if (!ClientCommand::CheatsOk(ent))
+				return;
+
+			if (params->size() < 2)
+			{
+				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE,
+					Utils::String::VA("%c \"GAME_USAGE\x15: give weapon\n\"", 0x65));
+				return;
+			}
+
+			Game::level->initializing = 1;
+			const auto* weaponName = params->get(1);
+			const auto weaponIndex = Game::G_GetWeaponIndexForName(weaponName);
+
+			if (weaponIndex == 0)
+			{
+				Game::level->initializing = 0;
+				return;
+			}
+
+			if (Game::BG_GetWeaponDef(weaponIndex)->inventoryType == Game::weapInventoryType_t::WEAPINVENTORY_ALTMODE)
+			{
+				Game::Com_PrintError(Game::CON_CHANNEL_ERROR,
+					"You can't directly spawn the altfire weapon '%s'. Spawn a weapon that has this altmode instead.\n", weaponName);
+				Game::level->initializing = 0;
+				return;
+			}
+
+			auto* weapEnt = Game::G_Spawn();
+			Utils::VectorCopy(weapEnt->r.currentOrigin, ent->r.currentOrigin);
+			Game::G_GetItemClassname(static_cast<int>(weaponIndex), weapEnt);
+			Game::G_SpawnItem(weapEnt, static_cast<int>(weaponIndex));
+
+			weapEnt->active = 1;
+			const auto offHandClass = Game::BG_GetWeaponDef(weaponIndex)->offhandClass;
+			if (offHandClass != Game::OFFHAND_CLASS_NONE)
+			{
+				auto* client = ent->client;
+				if ((client->ps.weapCommon.offhandPrimary != offHandClass) && (client->ps.weapCommon.offhandSecondary != offHandClass))
+				{
+					switch (offHandClass)
+					{
+					case Game::OFFHAND_CLASS_FRAG_GRENADE:
+					case Game::OFFHAND_CLASS_THROWINGKNIFE:
+					case Game::OFFHAND_CLASS_OTHER:
+						client->ps.weapCommon.offhandPrimary = offHandClass;
+						break;
+					default:
+						client->ps.weapCommon.offhandSecondary = offHandClass;
+						break;
+					}
+				}
+			}
+
+			Game::Touch_Item(weapEnt, ent, 0);
+			weapEnt->active = 0;
+
+			if (weapEnt->r.isInUse)
+			{
+				Game::G_FreeEntity(weapEnt);
+			}
+
+			Game::level->initializing = 0;
+
+			for (std::size_t i = 0; i < std::extent_v<decltype(Game::playerState_s::weaponsEquipped)>; ++i)
+			{
+				const auto index = ent->client->ps.weaponsEquipped[i];
+				if (index != 0)
+				{
+					Game::Add_Ammo(ent, index, 0, 998, 1);
+				}
+			}
+		});
 	}
 
 	void ClientCommand::AddScriptFunctions()

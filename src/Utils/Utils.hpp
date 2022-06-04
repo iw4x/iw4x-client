@@ -127,4 +127,7 @@ namespace Utils
 		mutable std::recursive_mutex mutex;
 		std::vector<Slot<T>> slots;
 	};
+
+	template <typename T>
+	constexpr auto VectorCopy(T a, T b) { b[0] = a[0]; b[1] = a[1]; b[2] = a[2]; }
 }
