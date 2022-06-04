@@ -11,14 +11,14 @@ namespace Components
 		if (!Dvar::Var("sv_cheats").get<bool>())
 		{
 			Logger::Print("CheatsOk: cheats are disabled!\n");
-			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"GAME_CHEATSNOTENABLED\"", 0x65));
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"GAME_CHEATSNOTENABLED\"", 0x65));
 			return false;
 		}
 
 		if (ent->health < 1)
 		{
 			Logger::Print("CheatsOk: entity %i must be alive to use this command!\n", entNum);
-			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"GAME_MUSTBEALIVECOMMAND\"", 0x65));
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"GAME_MUSTBEALIVECOMMAND\"", 0x65));
 			return false;
 		}
 
@@ -66,7 +66,7 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Print("Noclip toggled for entity %i\n", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->client->flags & Game::PLAYER_FLAG_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
 		});
 
@@ -80,7 +80,7 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Print("UFO toggled for entity %i\n", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->client->flags & Game::PLAYER_FLAG_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
 		});
 
@@ -94,7 +94,7 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Print("God toggled for entity %i\n", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_GODMODE) ? "GAME_GODMODE_ON" : "GAME_GODMODE_OFF"));
 		});
 
@@ -108,7 +108,7 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Print("Demigod toggled for entity %i\n", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_DEMI_GODMODE) ? "GAME_DEMI_GODMODE_ON" : "GAME_DEMI_GODMODE_OFF"));
 		});
 
@@ -122,7 +122,7 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Print("Notarget toggled for entity %i\n", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, 0, Utils::String::VA("%c \"%s\"", 0x65,
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_NOTARGET) ? "GAME_NOTARGETON" : "GAME_NOTARGETOFF"));
 		});
 
@@ -137,7 +137,7 @@ namespace Components
 
 			if (params->size() < 4 || params->size() > 6)
 			{
-				Game::SV_GameSendServerCommand(ent->s.number, 0,
+				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE,
 					Utils::String::VA("%c \"GAME_USAGE\x15: setviewpos x y z [yaw] [pitch]\n\"", 0x65));
 				return;
 			}
@@ -208,7 +208,7 @@ namespace Components
 			strncpy_s(ent->client->visionName[visMode],
 				sizeof(Game::gclient_t::visionName[0]) / sizeof(char), name, _TRUNCATE);
 
-			Game::SV_GameSendServerCommand(ent->s.number, 1,
+			Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_RELIABLE,
 				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});
 
@@ -236,7 +236,7 @@ namespace Components
 			strncpy_s(ent->client->visionName[visMode],
 				sizeof(Game::gclient_t::visionName[0]) / sizeof(char), name, _TRUNCATE);
 
-			Game::SV_GameSendServerCommand(ent->s.number, 1,
+			Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_RELIABLE,
 				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});
 

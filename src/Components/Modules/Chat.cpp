@@ -2,8 +2,10 @@
 
 namespace Components
 {
-	Game::dvar_t** Chat::cg_chatHeight = reinterpret_cast<Game::dvar_t**>(0x7ED398);
 	Dvar::Var Chat::cg_chatWidth;
+	Dvar::Var Chat::sv_disableChat;
+
+	Game::dvar_t** Chat::cg_chatHeight = reinterpret_cast<Game::dvar_t**>(0x7ED398);
 	Game::dvar_t** Chat::cg_chatTime = reinterpret_cast<Game::dvar_t**>(0x9F5DE8);
 
 	bool Chat::SendChat;
@@ -27,7 +29,7 @@ namespace Components
 		{
 			lock.unlock();
 			Chat::SendChat = false;
-			Game::SV_GameSendServerCommand(player->s.number, 0,
+			Game::SV_GameSendServerCommand(player->s.number, Game::SV_CMD_CAN_IGNORE,
 				Utils::String::VA("%c \"You are muted\"", 0x65));
 		}
 
@@ -35,6 +37,13 @@ namespace Components
 		if (lock.owns_lock())
 		{
 			lock.unlock();
+		}
+
+		if (Chat::sv_disableChat.get<bool>())
+		{
+			Chat::SendChat = false;
+			Game::SV_GameSendServerCommand(player->s.number, Game::SV_CMD_CAN_IGNORE,
+				Utils::String::VA("%c \"Chat is disabled\"", 0x65));
 		}
 
 		TextRenderer::StripMaterialTextIcons(text, text, strlen(text) + 1);
@@ -223,14 +232,14 @@ namespace Components
 			lock.unlock();
 
 			Logger::Print("%s was muted\n", client->name);
-			Game::SV_GameSendServerCommand(client->gentity->s.number, 0,
+			Game::SV_GameSendServerCommand(client->gentity->s.number, Game::SV_CMD_CAN_IGNORE,
 				Utils::String::VA("%c \"You were muted\"", 0x65));
 			return;
 		}
 
 		lock.unlock();
 		Logger::Print("%s is already muted\n", client->name);
-		Game::SV_GameSendServerCommand(-1, 0,
+		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE,
 			Utils::String::VA("%c \"%s is already muted\"", 0x65, client->name));
 	}
 
@@ -239,7 +248,7 @@ namespace Components
 		Chat::UnmuteInternal(client->steamID);
 
 		Logger::Print("%s was unmuted\n", client->name);
-		Game::SV_GameSendServerCommand(client->gentity->s.number, 0,
+		Game::SV_GameSendServerCommand(client->gentity->s.number, Game::SV_CMD_CAN_IGNORE,
 			Utils::String::VA("%c \"You were unmuted\"", 0x65));
 	}
 
@@ -317,7 +326,11 @@ namespace Components
 	{
 		Dvar::OnInit([]
 		{
-			cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
+			Chat::cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1,
+				std::numeric_limits<int>::max(), Game::dvar_flag::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
+			Chat::sv_disableChat = Dvar::Register<bool>("sv_disableChat", false,
+				Game::dvar_flag::DVAR_NONE, "Disable chat messages from clients");
+
 			Chat::AddChatCommands();
 		});
 

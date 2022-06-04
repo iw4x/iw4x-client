@@ -834,7 +834,7 @@ namespace Game
 	typedef int(__cdecl* SV_GameClientNum_Score_t)(int clientID);
 	extern SV_GameClientNum_Score_t SV_GameClientNum_Score;
 
-	typedef void(__cdecl * SV_GameSendServerCommand_t)(int clientNum, /*svscmd_type*/int type, const char* text);
+	typedef void(__cdecl * SV_GameSendServerCommand_t)(int clientNum, svscmd_type type, const char* text);
 	extern SV_GameSendServerCommand_t SV_GameSendServerCommand;
 
 	typedef void(__cdecl * SV_Cmd_TokenizeString_t)(const char* string);
