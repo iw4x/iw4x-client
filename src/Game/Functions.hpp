@@ -1029,6 +1029,9 @@ namespace Game
 	typedef void(__cdecl * IN_Shutdown_t)();
 	extern IN_Shutdown_t IN_Shutdown;
 
+	typedef void(__cdecl * ClientUserinfoChanged_t)(int clientNum);
+	extern ClientUserinfoChanged_t ClientUserinfoChanged;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 

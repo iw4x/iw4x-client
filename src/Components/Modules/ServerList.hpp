@@ -38,7 +38,7 @@ namespace Components
 		static void RefreshVisibleListInternal(UIScript::Token, bool refresh = false);
 		static void UpdateVisibleList(UIScript::Token);
 		static void InsertRequest(Network::Address address);
-		static void Insert(Network::Address address, Utils::InfoString info);
+		static void Insert(const Network::Address& address, const Utils::InfoString& info);
 
 		static ServerInfo* GetCurrentServer();
 

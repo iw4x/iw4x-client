@@ -140,3 +140,4 @@ namespace Components
 #include "Modules/RawMouse.hpp"
 #include "Modules/Bullet.hpp"
 #include "Modules/Ceg.hpp"
+#include "Modules/UserInfo.hpp"
