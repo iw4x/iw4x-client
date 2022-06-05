@@ -32,6 +32,10 @@ namespace Components
 		Utils::Hook::Nop(0x43CA16, 9);
 		Utils::Hook::Nop(0x505426, 9);
 
+		// Disable some checks on certain game events
+		Utils::Hook::Nop(0x43EC96, 9);
+		Utils::Hook::Nop(0x4675C6, 9);
+
 		// Something useless that can be skipped
 		Utils::Hook::Nop(0x4BB671, 2);
 		Utils::Hook::Nop(0x40A54D, 2);
