@@ -313,9 +313,12 @@ namespace Components
 	 * Should be called when a client drops from the server
 	 * but not "between levels" (Quake-III-Arena)
 	 */
-	void Bots::ClientDisconnect_Hk(int clientNum)
+	void Bots::ClientDisconnect_Hk(const int clientNum)
 	{
 		g_botai[clientNum].active = false;
+
+		// Clear the overrides for UserInfo
+		UserInfo::ClearClientOverrides(clientNum);
 
 		// Call original function
 		Utils::Hook::Call<void(int)>(0x4AA430)(clientNum);

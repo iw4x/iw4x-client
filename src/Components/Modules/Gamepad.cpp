@@ -373,7 +373,7 @@ namespace Components
 		if (!ps->weapIndex)
 			return false;
 
-		const auto* weaponDef = Game::BG_GetWeaponDef(ps->weapIndex);
+		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(ps->weapIndex));
 
 		return weaponDef->offhandClass != Game::OFFHAND_CLASS_NONE;
 	}
@@ -448,7 +448,7 @@ namespace Components
 		if (!AimAssist_IsLockonActive(input->localClientNum))
 			return;
 
-		const auto* weaponDef = Game::BG_GetWeaponDef(aaGlob.ps.weapIndex);
+		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(aaGlob.ps.weapIndex));
 		if (weaponDef->requireLockonToFire)
 			return;
 
@@ -532,7 +532,7 @@ namespace Components
 		if (!ps->weapIndex)
 			return false;
 
-		const auto* weaponDef = Game::BG_GetWeaponDef(ps->weapIndex);
+		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(ps->weapIndex));
 		if (weaponDef->requireLockonToFire)
 			return false;
 
@@ -565,7 +565,7 @@ namespace Components
 		if (!AimAssist_IsSlowdownActive(&aaGlob.ps))
 			return;
 
-		const auto* weaponDef = Game::BG_GetWeaponDef(aaGlob.ps.weapIndex);
+		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(aaGlob.ps.weapIndex));
 		const auto aimAssistRange = AimAssist_Lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
 		const auto screenTarget = AimAssist_GetBestTarget(&aaGlob, aimAssistRange, aaGlob.tweakables.slowdownRegionWidth, aaGlob.tweakables.slowdownRegionHeight);
 

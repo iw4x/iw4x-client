@@ -21,6 +21,8 @@ namespace Components
 		static bool IsInUserMapLobby();
 		static bool IsInLobby();
 
+		static bool IsEnabled();
+
 		static std::string GetMotd();
 
 	private:
@@ -43,6 +45,8 @@ namespace Components
 
 		static JoinContainer Container;
 		static std::map<uint64_t, Network::Address> LobbyMap;
+
+		static Dvar::Var PartyEnable;
 
 		static SteamID GenerateLobbyId();
 

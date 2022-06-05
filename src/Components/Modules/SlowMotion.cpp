@@ -45,7 +45,7 @@ namespace Components
 
 		if (Game::Scr_GetNumParam() >= 3u)
 		{
-			duration = static_cast<int>(Game::Scr_GetFloat(2) * 1000.0);
+			duration = static_cast<int>(Game::Scr_GetFloat(2) * 1000.0f);
 		}
 
 		int delay = 0;
@@ -70,16 +70,16 @@ namespace Components
 		// set snapshot num to 1 behind (T6 does this, why shouldn't we?)
 		for (int i = 0; i < *Game::svs_clientCount; ++i)
 		{
-			Game::svs_clients[i].snapNum = *reinterpret_cast<DWORD*>(0x31D9384) - 1;
+			Game::svs_clients[i].snapNum = *Game::svs_time - 1;
 		}
 	}
 
 	void SlowMotion::DrawConnectionInterruptedStub(int /*a1*/)
 	{
-		// 		if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
-		// 		{
-		// 			Utils::Hook::Call<void(int)>(0x454A70)(a1);
-		// 		}
+		// 	if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
+		// 	{
+		// 		Utils::Hook::Call<void(int)>(0x454A70)(a1);
+		// 	}
 	}
 
 	SlowMotion::SlowMotion()

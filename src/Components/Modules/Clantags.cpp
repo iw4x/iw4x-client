@@ -32,7 +32,7 @@ namespace Components
 		}
 
 		std::string command = Utils::String::VA("%c clantags \"%s\"", 22, list.data());
-		Game::SV_GameSendServerCommand(-1, 0, command.data());
+		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, command.data());
 	}
 
 	const char* ClanTags::GetUserClantag(std::uint32_t /*clientnum*/, const char* playername)

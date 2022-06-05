@@ -40,7 +40,7 @@ namespace Game
 	typedef void*(__cdecl * BG_LoadWeaponDef_LoadObj_t)(const char* filename);
 	extern BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj;
 
-	typedef WeaponDef* (__cdecl * BG_GetWeaponDef_t)(int weaponIndex);
+	typedef WeaponDef*(__cdecl * BG_GetWeaponDef_t)(unsigned int weaponIndex);
 	extern BG_GetWeaponDef_t BG_GetWeaponDef;
 
 	typedef const char*(__cdecl * BG_GetEntityTypeName_t)(const int eType);
@@ -138,6 +138,9 @@ namespace Game
 
 	typedef void(__cdecl * Com_Printf_t)(int channel, const char *fmt, ...);
 	extern Com_Printf_t Com_Printf;
+
+	typedef void(__cdecl * Com_PrintError_t)(int channel, const char* fmt, ...);
+	extern Com_PrintError_t Com_PrintError;
 
 	typedef void(__cdecl * Com_PrintMessage_t)(int channel, const char *msg, int error);
 	extern Com_PrintMessage_t Com_PrintMessage;
@@ -388,6 +391,18 @@ namespace Game
 
 	typedef void(__cdecl * G_SpawnEntitiesFromString_t)();
 	extern G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString;
+
+	typedef gentity_s*(__cdecl * G_Spawn_t)();
+	extern G_Spawn_t G_Spawn;
+
+	typedef void(__cdecl * G_FreeEntity_t)(gentity_s* ed);
+	extern G_FreeEntity_t G_FreeEntity;
+
+	typedef void(__cdecl * G_SpawnItem_t)(gentity_s* ent, int item);
+	extern G_SpawnItem_t G_SpawnItem;
+
+	typedef void(__cdecl * G_GetItemClassname_t)(int item, gentity_s* ent);
+	extern G_GetItemClassname_t G_GetItemClassname;
 
 	typedef void(__cdecl * G_PrintEntities_t)();
 	extern G_PrintEntities_t G_PrintEntities;
@@ -834,7 +849,7 @@ namespace Game
 	typedef int(__cdecl* SV_GameClientNum_Score_t)(int clientID);
 	extern SV_GameClientNum_Score_t SV_GameClientNum_Score;
 
-	typedef void(__cdecl * SV_GameSendServerCommand_t)(int clientNum, /*svscmd_type*/int type, const char* text);
+	typedef void(__cdecl * SV_GameSendServerCommand_t)(int clientNum, svscmd_type type, const char* text);
 	extern SV_GameSendServerCommand_t SV_GameSendServerCommand;
 
 	typedef void(__cdecl * SV_Cmd_TokenizeString_t)(const char* string);
@@ -1029,6 +1044,15 @@ namespace Game
 	typedef void(__cdecl * IN_Shutdown_t)();
 	extern IN_Shutdown_t IN_Shutdown;
 
+	typedef void(__cdecl * Touch_Item_t)(gentity_s* ent, gentity_s* other, int touched);
+	extern Touch_Item_t Touch_Item;
+
+	typedef void(__cdecl * Add_Ammo_t)(gentity_s* ent, unsigned int weaponIndex, unsigned char weaponModel, int count, int fillClip);
+	extern Add_Ammo_t Add_Ammo;
+
+	typedef void(__cdecl * ClientUserinfoChanged_t)(int clientNum);
+	extern ClientUserinfoChanged_t ClientUserinfoChanged;
+
 	typedef void(__cdecl * player_die_t)(gentity_s* self, const gentity_s* inflictor, gentity_s* attacker, int damage, int meansOfDeath, int iWeapon, const float* vDir, const hitLocation_t hitLoc, int psTimeOffset);
 	extern player_die_t player_die;
 
@@ -1172,6 +1196,8 @@ namespace Game
 	extern DeferredQueue* deferredQueue;
 
 	extern int* g_waitingForKey;
+
+	extern unsigned long* _tls_index;
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);

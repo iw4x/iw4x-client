@@ -173,8 +173,8 @@ namespace Components
 			list.append(Utils::String::VA("\\%s\\%s", std::to_string(i).c_str(), playerTitle));
 		}
 
-		std::string command = Utils::String::VA("%c customTitles \"%s\"", 21, list.data());
-		Game::SV_GameSendServerCommand(-1, 0, command.data());
+		const auto* command = Utils::String::VA("%c customTitles \"%s\"", 21, list.data());
+		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, command);
 	}
 
 	void CardTitles::ParseCustomTitles(const char* msg)

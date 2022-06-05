@@ -135,24 +135,24 @@ namespace Game
 
 	enum dvar_flag : unsigned __int16
 	{
-		DVAR_NONE = 0x0,	// No flags
-		DVAR_ARCHIVE = 0x1,	// Set to cause it to be saved to config_mp.cfg of the client
-		DVAR_LATCH = 0x2,	// Will only change when C code next does a Dvar_Get(), so it can't be changed 
+		DVAR_NONE = 0,	// No flags
+		DVAR_ARCHIVE = 1 << 0,	// Set to cause it to be saved to config_mp.cfg of the client
+		DVAR_LATCH = 1 << 1,	// Will only change when C code next does a Dvar_Get(), so it can't be changed 
 					// without proper initialization. Modified will be set, even though the value hasn't changed yet
-		DVAR_CHEAT = 0x4,	// Can not be changed if cheats are disabled
-		DVAR_CODINFO = 0x8,	// On change, this is sent to all clients (if you are host)
-		DVAR_SCRIPTINFO = 0x10,
-		DVAR_UNKNOWN20 = 0x20,
-		DVAR_CHANGEABLE_RESET = 0x40,
-		DVAR_UNKNOWN80 = 0x80,
-		DVAR_EXTERNAL = 0x100,	// Created by a set command
-		DVAR_USERINFO = 0x200,	// Sent to server on connect or change
-		DVAR_SERVERINFO = 0x400, // Sent in response to front end requests
-		DVAR_WRITEPROTECTED = 0x800,
-		DVAR_SYSTEMINFO = 0x1000, // Will be duplicated on all clients
-		DVAR_READONLY = 0x2000, // Read only (same as DVAR_WRITEPROTECTED?)
-		DVAR_SAVED = 0x4000,
-		DVAR_AUTOEXEC = 0x8000,
+		DVAR_CHEAT = 1 << 2,	// Can not be changed if cheats are disabled
+		DVAR_CODINFO = 1 << 3,	// On change, this is sent to all clients (if you are host)
+		DVAR_SCRIPTINFO = 1 << 4,
+		DVAR_UNKNOWN20 = 1 << 5,
+		DVAR_CHANGEABLE_RESET = 1 << 6,
+		DVAR_UNKNOWN80 = 1 << 7,
+		DVAR_EXTERNAL = 1 << 8,	// Created by a set command
+		DVAR_USERINFO = 1 << 9,	// Sent to server on connect or change
+		DVAR_SERVERINFO = 1 << 10, // Sent in response to front end requests
+		DVAR_WRITEPROTECTED = 1 << 11,
+		DVAR_SYSTEMINFO = 1 << 12, // Will be duplicated on all clients
+		DVAR_READONLY = 1 << 13, // Read only (same as DVAR_WRITEPROTECTED?)
+		DVAR_SAVED = 1 << 14,
+		DVAR_AUTOEXEC = 1 << 15, // isLoadingAutoExecGlobalFlag is always false so it should be never set by the game
 	};
 
 	enum ImageCategory : char
@@ -233,6 +233,13 @@ namespace Game
 		CS_CLIENTLOADING = 0x4,
 		CS_ACTIVE = 0x5,
 	} clientstate_t;
+
+	enum serverState_t
+	{
+		SS_DEAD = 0x0,
+		SS_LOADING = 0x1,
+		SS_GAME = 0x2,
+	};
 
 	enum errorParm_t
 	{
@@ -335,6 +342,12 @@ namespace Game
 		HITLOC_SHIELD,
 		HITLOC_NUM
 	} hitLocation_t;
+
+	enum svscmd_type
+	{
+		SV_CMD_CAN_IGNORE = 0x0,
+		SV_CMD_RELIABLE = 0x1,
+	};
 
 	struct FxEffectDef;
 	struct pathnode_t;
@@ -1614,7 +1627,6 @@ namespace Game
 		int groundEntityNum;
 		int loopSound;
 		int surfType;
-
 		union
 		{
 			int brushModel;
@@ -1623,7 +1635,6 @@ namespace Game
 			int xmodel;
 			int primaryLight;
 		} index;
-
 		int clientNum;
 		int iHeadIcon;
 		int iHeadIconTeam;
@@ -1635,8 +1646,23 @@ namespace Game
 		unsigned __int16 weapon;
 		int legsAnim;
 		int torsoAnim;
-		int un1;
-		int un2;
+		union
+		{
+			int eventParm2;
+			int hintString;
+			int fxId;
+			int helicopterStage;
+		} un1;
+		union
+		{
+			int hintType;
+			struct
+			{
+				unsigned __int16 vehicleXModel;
+				char weaponModel;
+			} __s1;
+			int actorFlags;
+		} un2;
 		clientLinkInfo_t clientLinkInfo;
 		unsigned int partBits[6];
 		int clientMask[1];
@@ -2145,6 +2171,8 @@ namespace Game
 		float radius;
 		cLeaf_t leaf;
 	};
+
+	static_assert(sizeof(cmodel_t) == 0x44);
 
 	struct TriggerModel
 	{

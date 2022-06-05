@@ -451,7 +451,7 @@ namespace Components
 		}
 	}
 
-	void ServerList::Insert(Network::Address address, Utils::InfoString info)
+	void ServerList::Insert(const Network::Address& address, const Utils::InfoString& info)
 	{
 		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
 
@@ -795,7 +795,7 @@ namespace Components
 		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0 (0)");
 
-		Network::Handle("getServersResponse", [](Network::Address address, const std::string& data)
+		Network::OnPacket("getServersResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			if (ServerList::RefreshContainer.host != address) return; // Only parse from host we sent to
 
