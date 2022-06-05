@@ -11,7 +11,7 @@ namespace Components
 
 	Utils::Cryptography::ECC::Key Session::SignatureKey;
 
-	std::map<std::string, Utils::Slot<Network::Callback>> Session::PacketHandlers;
+	std::unordered_map<std::string, Network::NetworkCallback> Session::PacketHandlers;
 
 	std::queue<std::pair<Network::Address, std::string>> Session::SignatureQueue;
 
@@ -58,10 +58,10 @@ namespace Components
 #endif
 	}
 
-	void Session::Handle(const std::string& packet, Utils::Slot<Network::Callback> callback)
+	void Session::Handle(const std::string& packet, const Network::NetworkCallback& callback)
 	{
 #ifdef DISABLE_SESSION
-		Network::Handle(packet, callback);
+		Network::OnPacket(packet, callback);
 #else
 		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 		Session::PacketHandlers[packet] = callback;
@@ -150,7 +150,7 @@ namespace Components
 			});
 		}
 
-		Network::Handle("sessionSyn", [](Network::Address address, const std::string& data)
+		Network::OnPacket("sessionSyn", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			Session::Frame frame;
 			frame.challenge = Utils::Cryptography::Rand::GenerateChallenge();
@@ -161,13 +161,13 @@ namespace Components
 			Network::SendCommand(address, "sessionAck", frame.challenge);
 		});
 
-		Network::Handle("sessionAck", [](Network::Address address, const std::string& data)
+		Network::OnPacket("sessionAck", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 			Session::SignatureQueue.push({ address, data });
 		});
 
-		Network::Handle("sessionFin", [](Network::Address address, const std::string& data)
+		Network::OnPacket("sessionFin", [](Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 

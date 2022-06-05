@@ -193,17 +193,17 @@ namespace Components
 		// Add uifeeder
 		UIFeeder::Add(13.0f, ServerInfo::GetPlayerCount, ServerInfo::GetPlayerText, ServerInfo::SelectPlayer);
 
-		Network::Handle("getStatus", [](Network::Address address, const std::string& data)
+		Network::OnPacket("getStatus", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			std::string playerList;
 
 			Utils::InfoString info = ServerInfo::GetInfo();
 			info.set("challenge", Utils::ParseChallenge(data));
 
-			for (int i = 0; i < atoi(info.get("sv_maxclients").data()); ++i) // Maybe choose 18 here?
+			for (auto i = 0; i < atoi(info.get("sv_maxclients").data()); ++i) // Maybe choose 18 here?
 			{
-				int score = 0;
-				int ping = 0;
+				auto score = 0;
+				auto ping = 0;
 				std::string name;
 
 				if (Dvar::Var("sv_running").get<bool>())
@@ -217,7 +217,7 @@ namespace Components
 				else
 				{
 					// Score and ping are irrelevant
-					const char* namePtr = Game::PartyHost_GetMemberName(reinterpret_cast<Game::PartyData_t*>(0x1081C00), i);
+					const auto* namePtr = Game::PartyHost_GetMemberName(reinterpret_cast<Game::PartyData_t*>(0x1081C00), i);
 					if (!namePtr || !namePtr[0]) continue;
 
 					name = namePtr;
@@ -229,7 +229,7 @@ namespace Components
 			Network::SendCommand(address, "statusResponse", "\\" + info.build() + "\n" + playerList + "\n");
 		});
 
-		Network::Handle("statusResponse", [](Network::Address address, const std::string& data)
+		Network::OnPacket("statusResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			if (ServerInfo::PlayerContainer.target == address)
 			{

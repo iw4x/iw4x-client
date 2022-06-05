@@ -46,7 +46,7 @@ namespace Components
 			}
 		});
 
-		Network::Handle("discovery", [](Network::Address address, std::string data)
+		Network::OnPacket("discovery", [](Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			if (address.isSelf()) return;
 
@@ -60,7 +60,7 @@ namespace Components
 			Network::SendCommand(address, "discoveryResponse", data);
 		});
 
-		Network::Handle("discoveryResponse", [](Network::Address address, std::string data)
+		Network::OnPacket("discoveryResponse", [](Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			if (address.isSelf()) return;
 
