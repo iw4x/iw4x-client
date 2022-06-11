@@ -21,24 +21,24 @@ namespace Components
 		std::random_device rd;
 		std::mt19937 gen(rd());
 
-		std::shuffle(this->rotationEntries.begin(), this->rotationEntries.end(), gen);
+		std::ranges::shuffle(this->rotationEntries_, gen);
 	}
 
 	void MapRotation::RotationData::addEntry(const std::string& key, const std::string& value)
 	{
-		this->rotationEntries.emplace_back(std::make_pair(key, value));
+		this->rotationEntries_.emplace_back(std::make_pair(key, value));
 	}
 
 	std::size_t MapRotation::RotationData::getEntriesSize() const
 	{
-		return this->rotationEntries.size();
+		return this->rotationEntries_.size();
 	}
 
 	MapRotation::RotationData::rotationEntry& MapRotation::RotationData::getNextEntry()
 	{
 		const auto index = this->index_;
-		this->index_ = (this->index_ + 1) % this->rotationEntries.size(); // Point index_ to the next entry
-		return this->rotationEntries.at(index);
+		++this->index_ %= this->rotationEntries_.size(); // Point index_ to the next entry
+		return this->rotationEntries_.at(index);
 	}
 
 	void MapRotation::RotationData::parse(const std::string& data)
@@ -132,7 +132,7 @@ namespace Components
 
 	void MapRotation::ApplyMapRotation()
 	{
-		//Continue to apply gamemode until a map is found
+		// Continue to apply gamemode until a map is found
 		auto foundMap = false;
 
 		std::size_t i = 0;

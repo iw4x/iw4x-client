@@ -32,7 +32,7 @@ namespace Components
 			void parse(const std::string& data);
 
 		private:
-			std::vector<rotationEntry> rotationEntries;
+			std::vector<rotationEntry> rotationEntries_;
 
 			std::size_t index_;
 		};
