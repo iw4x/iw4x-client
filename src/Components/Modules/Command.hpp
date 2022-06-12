@@ -51,8 +51,9 @@ namespace Components
 
 		static Game::cmd_function_t* Allocate();
 
-		static void Add(const char* name, std::function<void(Command::Params*)> callback);
-		static void AddSV(const char* name, std::function<void(Command::Params*)> callback);
+		static void Add(const char* name, const std::function<void()>& callback);
+		static void Add(const char* name, const std::function<void(Command::Params*)>& callback);
+		static void AddSV(const char* name, const std::function<void(Command::Params*)>& callback);
 		static void AddRaw(const char* name, void(*callback)(), bool key = false);
 		static void AddRawSV(const char* name, void(*callback)());
 		static void Execute(std::string command, bool sync = true);

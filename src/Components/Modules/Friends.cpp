@@ -589,7 +589,7 @@ namespace Components
 
 		Command::Add("addFriend", [](Command::Params* params)
 		{
-			if (params->size() < 2u)
+			if (params->size() < 2)
 			{
 				Logger::Print("Usage: {} <Steam ID in hexadecimal format>\n", params->get(0));
 				return;

@@ -7,7 +7,7 @@ namespace Components
 
 	bool ZoneBuilder::MainThreadInterrupted;
 	DWORD ZoneBuilder::InterruptingThreadId;
-	bool ZoneBuilder::Terminate;
+	volatile bool ZoneBuilder::Terminate = false;
 	std::thread ZoneBuilder::CommandThread;
 
 	Dvar::Var ZoneBuilder::PreferDiskAssetsDvar;
@@ -801,7 +801,12 @@ namespace Components
 		{ "localized_ui_mp",  Game::DB_ZONE_GAME, 0 }
 	};
 
-	int __stdcall ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
+	void ZoneBuilder::Com_Quitf_t()
+	{
+		ExitProcess(0);
+	}
+
+	int APIENTRY ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
 	{
 		Utils::Hook::Call<void()>(0x42F0A0)();	// Com_InitCriticalSections
 		Utils::Hook::Call<void()>(0x4301B0)();  // Com_InitMainThread
@@ -835,8 +840,7 @@ namespace Components
 		//Utils::Hook::Call<void()>(0x464A90)();  // Com_ParseCommandLine
 		Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
 
-		ZoneBuilder::Terminate = false;
-		ZoneBuilder::CommandThread = std::thread([]()
+		ZoneBuilder::CommandThread = std::thread([]
 		{
 			while (!ZoneBuilder::Terminate)
 			{
@@ -847,10 +851,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("quit", []([[maybe_unused]] Command::Params* params)
-		{
-			Game::Com_Quitf_t();
-		});
+		Command::Add("quit", ZoneBuilder::Com_Quitf_t);
 
 		// now load default assets and shaders
 		if (FastFiles::Exists("defaults") && FastFiles::Exists("techsets"))
@@ -1084,6 +1085,9 @@ namespace Components
 
 			// set new entry point
 			Utils::Hook(0x4513DA, ZoneBuilder::EntryPoint, HOOK_JUMP).install()->quick();
+
+			// set quit handler
+			Utils::Hook(0x4D4000, ZoneBuilder::Com_Quitf_t, HOOK_JUMP).install()->quick();
 
 			// handle Com_error Calls
 			Utils::Hook(Game::Com_Error, ZoneBuilder::HandleError, HOOK_JUMP).install()->quick();
@@ -1535,7 +1539,7 @@ namespace Components
 	ZoneBuilder::~ZoneBuilder()
 	{
 		ZoneBuilder::Terminate = true;
-		if(ZoneBuilder::CommandThread.joinable())
+		if (ZoneBuilder::CommandThread.joinable())
 		{
 			ZoneBuilder::CommandThread.join();
 		}
