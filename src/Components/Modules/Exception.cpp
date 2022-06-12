@@ -203,6 +203,7 @@ namespace Components
 		//Utils::Hook(0x4B241F, Exception::ErrorLongJmp, HOOK_CALL).install()->quick();
 		Utils::Hook(0x6B8898, Exception::LongJmp, HOOK_JUMP).install()->quick();
 
+#ifdef _DEBUG
 		Command::Add("mapTest", [](Command::Params* params)
 		{
 			Game::UI_UpdateArenas();
@@ -210,22 +211,16 @@ namespace Components
 			std::string command;
 			for (auto i = 0; i < (params->size() >= 2 ? atoi(params->get(1)) : *Game::arenaCount); ++i)
 			{
-				const auto* mapname = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
+				const auto* mapName = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
 
 				if (!(i % 2)) command.append("wait 250;disconnect;wait 750;"); // Test a disconnect
 				else command.append("wait 500;"); // Test direct map switch
-				command.append(Utils::String::VA("map %s;", mapname));
+				command.append(Utils::String::VA("map %s;", mapName));
 			}
 
 			Command::Execute(command, false);
 		});
-
-		Command::Add("debug_exceptionhandler", [](Command::Params*)
-		{
-			Logger::Print("Rerunning SetUnhandledExceptionHandler...\n");
-			auto oldHandler = Exception::Hook();
-			Logger::Print("Old exception handler was 0x%010X.\n", oldHandler);
-		});
+#endif
 	}
 
 	Exception::~Exception()

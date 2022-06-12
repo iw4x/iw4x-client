@@ -13,8 +13,8 @@ namespace Components
 	int Console::Height = 25;
 	int Console::Width = 80;
 
-	char Console::LineBuffer[1024] = { 0 };
-	char Console::LineBuffer2[1024] = { 0 };
+	char Console::LineBuffer[1024] = {0};
+	char Console::LineBuffer2[1024] = {0};
 	int Console::LineBufferIndex = 0;
 
 	bool Console::HasConsole = false;
@@ -24,7 +24,7 @@ namespace Components
 
 	Game::SafeArea Console::OriginalSafeArea;
 
-	char** Console::GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType)
+	char** Console::GetAutoCompleteFileList(const char* path, const char* extension, Game::FsListBehavior_e behavior, int* numfiles, int allocTrackType)
 	{
 		if (path == reinterpret_cast<char*>(0xBAADF00D) || path == reinterpret_cast<char*>(0xCDCDCDCD) || ::Utils::Memory::IsBadReadPtr(path)) return nullptr;
 		return Game::FS_GetFileList(path, extension, behavior, numfiles, allocTrackType);
@@ -44,8 +44,8 @@ namespace Components
 
 	void Console::RefreshStatus()
 	{
-		std::string mapname = Dvar::Var("mapname").get<const char*>();
-		std::string hostname = TextRenderer::StripColors(Dvar::Var("sv_hostname").get<const char*>());
+		const auto mapname = Dvar::Var("mapname").get<std::string>();
+		const auto hostname = TextRenderer::StripColors(Dvar::Var("sv_hostname").get<std::string>());
 
 		if (Console::HasConsole)
 		{
@@ -72,7 +72,7 @@ namespace Components
 			}
 
 			wclear(Console::InfoWindow);
-			wprintw(Console::InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (mapname.size() ? mapname.data() : "none"));
+			wprintw(Console::InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (!mapname.empty()) ? mapname.data() : "none");
 			wnoutrefresh(Console::InfoWindow);
 		}
 		else if (IsWindow(Console::GetWindow()) != FALSE)
@@ -318,17 +318,16 @@ namespace Components
 		Console::RefreshOutput();
 	}
 
-	void Console::Error(const char* format, ...)
+	void Console::Error(const char* fmt, ...)
 	{
-		static char buffer[32768];
+		char buf[4096] = {0};
 
 		va_list va;
-		va_start(va, format);
-		_vsnprintf_s(buffer, sizeof(buffer), format, va);
+		va_start(va, fmt);
+		_vsnprintf_s(buf, _TRUNCATE, fmt, va);
 		va_end(va);
 
-		Game::Com_Printf(0, "ERROR:\n");
-		Game::Com_Printf(0, buffer);
+		Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}", buf);
 
 		Console::RefreshOutput();
 
@@ -426,13 +425,13 @@ namespace Components
 		fflush(stdout);
 	}
 
-	void Console::StdOutError(const char* format, ...)
+	void Console::StdOutError(const char* fmt, ...)
 	{
-		char buffer[0x1000] = { 0 };
+		char buffer[4096] = {0};
 
 		va_list ap;
-		va_start(ap, format);
-		_vsnprintf_s(buffer, sizeof(buffer), format, ap);
+		va_start(ap, fmt);
+		_vsnprintf_s(buffer, _TRUNCATE, fmt, ap);
 		va_end(ap);
 
 		perror(buffer);
@@ -520,7 +519,7 @@ namespace Components
 			{ "con_outputWindowColor", { 0.25f, 0.25f, 0.25f, 0.85f } },
 		};
 
-		for (int i = 0; i < ARRAYSIZE(patchedColors); ++i)
+		for (std::size_t i = 0; i < ARRAYSIZE(patchedColors); ++i)
 		{
 			if (std::strcmp(dvarName, patchedColors[i].name) == 0)
 			{

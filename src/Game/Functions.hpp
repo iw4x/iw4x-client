@@ -121,6 +121,9 @@ namespace Game
 	typedef void(__cdecl * CL_SelectStringTableEntryInDvar_f_t)();
 	extern CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f;
 
+	typedef void(__cdecl * CL_ConsoleFixPosition_t)();
+	extern CL_ConsoleFixPosition_t CL_ConsoleFixPosition;
+
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_t* allocedCmd, bool isKey);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 
@@ -136,13 +139,16 @@ namespace Game
 	typedef void(__cdecl * Com_Error_t)(errorParm_t type, const char* message, ...);
 	extern Com_Error_t Com_Error;
 
-	typedef void(__cdecl * Com_Printf_t)(int channel, const char *fmt, ...);
+	typedef void(__cdecl * Com_Printf_t)(int channel, const char* fmt, ...);
 	extern Com_Printf_t Com_Printf;
 
 	typedef void(__cdecl * Com_PrintError_t)(int channel, const char* fmt, ...);
 	extern Com_PrintError_t Com_PrintError;
 
-	typedef void(__cdecl * Com_PrintMessage_t)(int channel, const char *msg, int error);
+	typedef void(__cdecl * Com_PrintWarning_t)(int channel, const char* fmt, ...);
+	extern Com_PrintWarning_t  Com_PrintWarning;
+
+	typedef void(__cdecl * Com_PrintMessage_t)(int channel, const char* msg, int error);
 	extern Com_PrintMessage_t Com_PrintMessage;
 
 	typedef void(__cdecl * Com_EndParseSession_t)();
@@ -165,9 +171,6 @@ namespace Game
 
 	typedef void(__cdecl * Com_Quitf_t)();
 	extern Com_Quitf_t Com_Quit_f;
-
-	typedef void(__cdecl * Com_PrintWarning_t)(int, const char*, ...);
-	extern Com_PrintWarning_t  Com_PrintWarning;
 
 	typedef char* (__cdecl * Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
 	extern Con_DrawMiniConsole_t Con_DrawMiniConsole;
@@ -1198,6 +1201,12 @@ namespace Game
 	extern int* g_waitingForKey;
 
 	extern unsigned long* _tls_index;
+
+	extern int* cls_uiStarted;
+
+	extern int* com_fixedConsolePosition;
+
+	extern int* com_errorPrintsCount;
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);

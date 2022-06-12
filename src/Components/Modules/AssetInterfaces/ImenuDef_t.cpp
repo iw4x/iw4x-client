@@ -11,7 +11,7 @@ namespace Assets
         auto menus = Components::Menus::LoadMenu(Utils::String::VA("ui_mp/%s.menu", name.data()));
 
         if (menus.size() == 0) return;
-        if (menus.size() > 1) Components::Logger::Print("Menu '%s' on disk has more than one menudef in it. Only saving the first one\n", name.data());
+        if (menus.size() > 1) Components::Logger::Print("Menu '{}' on disk has more than one menudef in it. Only saving the first one\n", name);
 
         header->menu = menus[0].second;
     }

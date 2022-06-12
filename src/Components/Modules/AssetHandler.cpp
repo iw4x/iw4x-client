@@ -25,12 +25,12 @@ namespace Components
 
 		if (AssetHandler::AssetInterfaces.contains(iAsset->getType()))
 		{
-			Logger::Print("Duplicate asset interface: %s\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
+			Logger::Print("Duplicate asset interface: {}\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
 			delete AssetHandler::AssetInterfaces[iAsset->getType()];
 		}
 		else
 		{
-			Logger::Print("Asset interface registered: %s\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
+			Logger::Print("Asset interface registered: {}\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
 		}
 
 		AssetHandler::AssetInterfaces[iAsset->getType()] = iAsset;
@@ -96,7 +96,7 @@ namespace Components
 		if (AssetHandler::BypassState < 0)
 		{
 			AssetHandler::BypassState = 0;
-			Logger::Error("Bypass state is below 0!");
+			Logger::Error(Game::ERR_FATAL, "Bypass state is below 0!");
 		}
 	}
 
@@ -345,7 +345,7 @@ namespace Components
 		}
 		else
 		{
-			Logger::Error("No interface for type '%s'!", Game::DB_GetXAssetTypeName(asset.type));
+			Logger::Error(Game::ERR_FATAL, "No interface for type '{}'!", Game::DB_GetXAssetTypeName(asset.type));
 		}
 	}
 
@@ -357,7 +357,7 @@ namespace Components
 		}
 		else
 		{
-			Logger::Error("No interface for type '%s'!", Game::DB_GetXAssetTypeName(asset.type));
+			Logger::Error(Game::ERR_FATAL, "No interface for type '{}'!", Game::DB_GetXAssetTypeName(asset.type));
 		}
 	}
 
@@ -520,8 +520,7 @@ namespace Components
 			{
 				for (auto& asset : AssetHandler::EmptyAssets)
 				{
-					Game::Com_PrintWarning(Game::conChannel_t::CON_CHANNEL_FILES,
-						reinterpret_cast<const char*>(0x724428), Game::DB_GetXAssetTypeName(asset.first), asset.second.data());
+					Logger::Warning(Game::CON_CHANNEL_FILES, "Could not load {} \"{}\".\n", Game::DB_GetXAssetTypeName(asset.first), asset.second);
 				}
 
 				AssetHandler::EmptyAssets.clear();

@@ -26,13 +26,13 @@ namespace Components
 
 		if (playlist.exists())
 		{
-			Logger::Print("Parsing playlist '%s'...\n", playlist.getName().data());
+			Logger::Print("Parsing playlist '{}'...\n", playlist.getName());
 			Game::Playlist_ParsePlaylists(playlist.getBuffer().data());
 			Utils::Hook::Set<bool>(0x1AD3680, true); // Playlist loaded
 		}
 		else
 		{
-			Logger::Print("Unable to load playlist '%s'!\n", playlist.getName().data());
+			Logger::Print("Unable to load playlist '{}'!\n", playlist.getName());
 		}
 	}
 

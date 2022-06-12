@@ -591,7 +591,7 @@ namespace Components
 		{
 			if (params->size() < 2u)
 			{
-				Logger::Print("Usage: %s <Steam ID in hexadecimal format>\n", params->get(0));
+				Logger::Print("Usage: {} <Steam ID in hexadecimal format>\n", params->get(0));
 				return;
 			}
 

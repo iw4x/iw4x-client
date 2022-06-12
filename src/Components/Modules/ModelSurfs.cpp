@@ -56,18 +56,18 @@ namespace Components
 			}
 #endif
 
-			Logger::Error("Loading model %s failed!", name.data());
+			Logger::Error(Game::ERR_FATAL, "Loading model {} failed!", name);
 		}
 
 		Game::CModelHeader header;
 		if (!model.read(&header, sizeof header))
 		{
-			Logger::Error("Reading header for model %s failed!", name.data());
+			Logger::Error(Game::ERR_FATAL, "Reading header for model {} failed!", name);
 		}
 
 		if (header.version != 1)
 		{
-			Logger::Error("Model %s has an invalid version %d (should be 1)!", name.data(), header.version);
+			Logger::Error(Game::ERR_FATAL, "Model {} has an invalid version {} (should be 1)!", name, header.version);
 		}
 
 		// Allocate section buffers
@@ -82,7 +82,7 @@ namespace Components
 			model.seek(header.sectionHeader[i].offset, Game::FS_SEEK_SET);
 			if (!model.read(header.sectionHeader[i].buffer, header.sectionHeader[i].size))
 			{
-				Logger::Error("Reading section %d for model %s failed!", i, name.data());
+				Logger::Error(Game::ERR_FATAL, "Reading section {} for model {} failed!", i, name);
 			}
 		}
 

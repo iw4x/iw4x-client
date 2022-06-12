@@ -135,7 +135,7 @@ namespace Components
 
 		Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
 
-		Logger::Print(Game::conChannel_t::CON_CHANNEL_SERVER, "Sending heartbeat to master: %s:%u\n", masterServerName, masterPort);
+		Logger::Print(Game::CON_CHANNEL_SERVER, "Sending heartbeat to master: {}:{}\n", masterServerName, masterPort);
 		Network::SendCommand(master, "heartbeat", "IW4");
 	}
 
@@ -160,12 +160,12 @@ namespace Components
 			if (!name.empty())
 			{
 				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-				Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
+				Logger::Print(Game::CON_CHANNEL_SERVER, "{}: {}\n", name, message);
 			}
 			else
 			{
 				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-				Game::Com_Printf(15, "Console: %s\n", message.data());
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Console: {}\n", message);
 			}
 		});
 
@@ -181,12 +181,12 @@ namespace Components
 			if (!name.empty())
 			{
 				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-				Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
+				Logger::Print(Game::CON_CHANNEL_SERVER, "{} -> {}: {}\n", name, client, message);
 			}
 			else
 			{
 				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-				Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Console -> {}: {}\n", client, message);
 			}
 		});
 
@@ -197,7 +197,7 @@ namespace Components
 
 			auto message = params->join(1);
 			Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
-			Game::Com_Printf(15, "Raw: %s\n", message.data());
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw: {}\n", message);
 		});
 
 		// Tellraw command
@@ -208,7 +208,7 @@ namespace Components
 			const auto client = atoi(params->get(1));
 			std::string message = params->join(2);
 			Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
-			Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw -> {}: {}\n", client, message);
 		});
 	}
 

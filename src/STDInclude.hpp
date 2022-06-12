@@ -19,11 +19,11 @@
 #include <Windows.h>
 #include <timeapi.h>
 #include <shellapi.h>
-#include <Wininet.h>
+#include <WinInet.h>
 #include <d3d9.h>
-#include <Aclapi.h>
+#include <AclAPI.h>
 #include <Psapi.h>
-#include <tlhelp32.h>
+#include <TlHelp32.h>
 #include <Shlwapi.h>
 
 #pragma warning(push)
@@ -46,6 +46,8 @@
 #include <optional>
 #include <random>
 #include <chrono>
+#include <format>
+#include <source_location>
 
 #pragma warning(pop)
 
@@ -124,6 +126,7 @@ using namespace std::literals;
 #include "Utils/Hooking.hpp"
 #include "Utils/InfoString.hpp"
 #include "Utils/IO.hpp"
+#include "Utils/Json.hpp"
 #include "Utils/Library.hpp"
 #include "Utils/String.hpp"
 #include "Utils/Thread.hpp"

@@ -367,8 +367,7 @@ namespace Components
 
 					if (input == end)
 					{
-						Logger::Print("Warning: %s is not a valid input\n"
-							"Usage: %s optional <number of bots> or optional <\"all\">\n",
+						Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "{} is not a valid input\nUsage: {} optional <number of bots> or optional <\"all\">\n",
 							input, params->get(0));
 						return;
 					}
@@ -386,7 +385,7 @@ namespace Components
 			}
 
 			Toast::Show("cardicon_headshot", "^2Success", Utils::String::VA("Spawning %d %s...", count, (count == 1 ? "bot" : "bots")), 3000);
-			Logger::Print("Spawning %d %s...\n", count, (count == 1 ? "bot" : "bots"));
+			Logger::DebugInfo("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
 
 			Bots::Spawn(count);
 		});

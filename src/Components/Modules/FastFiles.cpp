@@ -327,7 +327,7 @@ namespace Components
 
 		if (*version != XFILE_VERSION)
 		{
-			Logger::Error("Zone version %d is not supported!", Zones::Version());
+			Logger::Error(Game::ERR_FATAL, "Zone version {} is not supported!", Zones::Version());
 		}
 	}
 
@@ -343,11 +343,11 @@ namespace Components
 
 			if (header[1] < XFILE_VERSION_IW4X)
 			{
-				Logger::Error("The fastfile you are trying to load is outdated (%d, expected %d)", header[1], XFILE_VERSION_IW4X);
+				Logger::Error(Game::ERR_FATAL, "The fastfile you are trying to load is outdated ({}, expected {})", header[1], XFILE_VERSION_IW4X);
 			}
 			else if (header[1] > XFILE_VERSION_IW4X)
 			{
-				Logger::Error("You are loading a fastfile that is too new (%d, expected %d), update your game or rebuild the fastfile", header[1], XFILE_VERSION_IW4X);
+				Logger::Error(Game::ERR_FATAL, "You are loading a fastfile that is too new ({}, expected {}), update your game or rebuild the fastfile", header[1], XFILE_VERSION_IW4X);
 			}
 
 			*reinterpret_cast<unsigned __int64*>(header) = XFILE_MAGIC_UNSIGNED;

@@ -100,18 +100,18 @@ namespace Assets
 			__int64 magic = reader.read<__int64>();
 			if (std::memcmp(&magic, "IW4xModl", 8))
 			{
-				Components::Logger::Error(0, "Reading model '%s' failed, header is invalid!", name.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Reading model '{}' failed, header is invalid!", name);
 			}
 
 			int version = reader.read<int>();
 			if (version != IW4X_MODEL_VERSION)
 			{
-				Components::Logger::Error(0, "Reading model '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_MODEL_VERSION, version);
+				Components::Logger::Error(Game::ERR_FATAL, "Reading model '{}' failed, expected version is {}, but it was {}!", name, IW4X_MODEL_VERSION, version);
 			}
 
 			if (version == 4)
 			{
-				Components::Logger::Print("WARNING: Model '%s' is in legacy format, please update it!\n", name.data());
+				Components::Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Model '{}' is in legacy format, please update it!\n", name);
 			}
 
 			Game::XModel* asset = reader.readObject<Game::XModel>();
@@ -310,7 +310,7 @@ namespace Assets
 
 			if (!reader.end())
 			{
-				Components::Logger::Error(0, "Reading model '%s' failed, remaining raw data found!", name.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Reading model '{}' failed, remaining raw data found!", name);
 			}
 
 			header->model = asset;

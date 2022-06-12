@@ -22,7 +22,7 @@ namespace Assets
         Components::FileSystem::File techFile(Utils::String::VA("techniques/%s.iw4xTech", name.data()));
         if (!techFile.exists()) {
             *tech = nullptr;
-            Components::Logger::Print("Warning: Missing technique '%s'\n", name.data());
+            Components::Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Missing technique '{}'\n", name);
             return;
         }
 
@@ -31,14 +31,15 @@ namespace Assets
         char* magic = reader.readArray<char>(8);
         if (std::memcmp(magic, "IW4xTECH", 8))
         {
-            Components::Logger::Error(0, "Reading technique '%s' failed, header is invalid!", name.data());
+            Components::Logger::Error(Game::ERR_FATAL, "Reading technique '{}' failed, header is invalid!", name);
         }
 
         std::string version;
         version.push_back(reader.read<char>());
         if (version != IW4X_TECHSET_VERSION)
         {
-            Components::Logger::Error("Reading technique '%s' failed, expected version is %d, but it was %d!", name.data(), atoi(IW4X_TECHSET_VERSION), atoi(version.data()));
+            Components::Logger::Error(Game::ERR_FATAL,
+				"Reading technique '{}' failed, expected version is {}, but it was {}!", name, IW4X_TECHSET_VERSION, version.data());
         }
 
         unsigned short flags = reader.read<unsigned short>();
@@ -107,14 +108,15 @@ namespace Assets
         char* magic = reader.readArray<char>(8);
         if (std::memcmp(magic, "IW4xTSET", 8))
         {
-            Components::Logger::Error(0, "Reading techset '%s' failed, header is invalid!", name.data());
+            Components::Logger::Error(Game::ERR_FATAL, "Reading techset '{}' failed, header is invalid!", name);
         }
 
         std::string version;
         version.push_back(reader.read<char>());
         if (version != IW4X_TECHSET_VERSION)
         {
-            Components::Logger::Error("Reading techset '%s' failed, expected version is %d, but it was %d!", name.data(), atoi(IW4X_TECHSET_VERSION), atoi(version.data()));
+            Components::Logger::Error(Game::ERR_FATAL, "Reading techset '{}' failed, expected version is {}, but it was {}!",
+				name, IW4X_TECHSET_VERSION, version);
         }
 
         Game::MaterialTechniqueSet* asset = reader.readObject<Game::MaterialTechniqueSet>();

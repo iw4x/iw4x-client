@@ -90,7 +90,7 @@ namespace Components
 			const auto pos = data.find_first_of(' ');
 			if (pos == std::string::npos)
 			{
-				Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon request from %s\n", address.getCString());
+				Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon request from {}\n", address.getCString());
 				return;
 			}
 
@@ -108,7 +108,7 @@ namespace Components
 
 			if (svPassword.empty())
 			{
-				Logger::Print(Game::CON_CHANNEL_NETWORK, "RCon request from %s dropped. No password set!\n", address.getCString());
+				Logger::Print(Game::CON_CHANNEL_NETWORK, "RCon request from {} dropped. No password set!\n", address.getCString());
 				return;
 			}
 
@@ -121,7 +121,7 @@ namespace Components
 				if (RCon::RconLogRequests.get<bool>())
 #endif
 				{
-					Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from %s: %s\n", address.getCString(), command.data());
+					Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from {}: {}\n", address.getCString(), command);
 				}
 
 				Logger::PipeOutput([](const std::string& output)
@@ -138,7 +138,7 @@ namespace Components
 			}
 			else
 			{
-				Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon password sent from %s\n", address.getCString());
+				Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon password sent from {}\n", address.getCString());
 			}
 		});
 

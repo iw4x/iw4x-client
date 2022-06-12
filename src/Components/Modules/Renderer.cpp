@@ -119,7 +119,7 @@ namespace Components
 
 	void Renderer::R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state)
 	{
-		Game::Com_Error(Game::ERR_FATAL, "Tried to use sampler '%s' when it isn't valid for material '%s' and technique '%s'",
+		Logger::Error(Game::ERR_FATAL, "Tried to use sampler '{}' when it isn't valid for material '{}' and technique '{}'",
 			sampler, state->material->info.name, state->technique->name);
 	}
 
@@ -128,25 +128,19 @@ namespace Components
 		__asm
 		{
 			// original code
-			mov eax, DWORD PTR[eax * 4 + 0066E600Ch];
-
-			// store GfxCmdBufContext
-			/*push edx;
-			mov edx, [esp + 24h];
-			mov gfxState, edx;
-			pop edx;*/
+			mov eax, dword ptr [eax * 4 + 0x66E600C]
 
 			// show error
-			pushad;
-			push[esp + 24h + 20h];
-			push eax;
-			call R_TextureFromCodeError;
-			add esp, 8;
-			popad;
+			pushad
+			push [esp + 0x24 + 0x20]
+			push eax
+			call R_TextureFromCodeError
+			add esp, 8
+			popad
 
 			// go back
-			push 0x0054CAC1;
-			retn;
+			push 0x54CAC1
+			retn
 		}
 	}
 
@@ -155,19 +149,19 @@ namespace Components
 		__asm
 		{
 			// original code
-			mov edx, DWORD PTR[eax * 4 + 0066E600Ch];
+			mov edx, dword ptr [eax * 4 + 0x66E600C]
 
 			// show error
-			pushad;
-			push ebx;
-			push edx;
-			call R_TextureFromCodeError;
-			add esp, 8;
-			popad;
+			pushad
+			push ebx
+			push edx
+			call R_TextureFromCodeError
+			add esp, 8
+			popad
 
 			// go back
-			push 0x0054CFA4;
-			retn;
+			push 0x54CFA4
+			retn
 		}
 	}
 
@@ -318,8 +312,8 @@ namespace Components
 						scene->sceneDObj[i].cull.bounds.halfSize[1] < 0 ||
 						scene->sceneDObj[i].cull.bounds.halfSize[2] < 0)
 					{
-
-						Components::Logger::Print("WARNING: Negative half size for DOBJ %s, this will cause culling issues!", scene->sceneDObj[i].obj->models[0]->name);
+						Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Negative half size for DOBJ {}, this will cause culling issues!",
+							scene->sceneDObj[i].obj->models[0]->name);
 					}
 
 					Game::R_AddDebugBounds(dobjsColor, &scene->sceneDObj[i].cull.bounds);

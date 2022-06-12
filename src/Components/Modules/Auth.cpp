@@ -41,7 +41,7 @@ namespace Components
 			Auth::TokenContainer.generating = false;
 
 			Auth::StoreKey();
-			Logger::Print("Security level is %d\n", Auth::GetSecurityLevel());
+			Logger::DebugInfo("Security level is %d", Auth::GetSecurityLevel());
 			Command::Execute("closemenu security_increase_popmenu", false);
 
 			if (!Auth::TokenContainer.cancel)
@@ -67,14 +67,14 @@ namespace Components
 		Steam::SteamUser()->GetSteamID();
 		if (!Auth::GuidKey.isValid())
 		{
-			Logger::SoftError("Connecting failed: Guid key is invalid!");
+			Logger::Error(Game::ERR_SERVERDISCONNECT, "Connecting failed: Guid key is invalid!");
 			return;
 		}
 
 		if (std::find(Auth::BannedUids.begin(), Auth::BannedUids.end(), Steam::SteamUser()->GetSteamID().bits) != Auth::BannedUids.end())
 		{
 			Auth::GenerateKey();
-			Logger::SoftError("Your online profile is invalid. A new key has been generated.");
+			Logger::Error(Game::ERR_SERVERDISCONNECT, "Your online profile is invalid. A new key has been generated.");
 			return;
 		}
 		
@@ -86,7 +86,7 @@ namespace Components
 		if (params.size() < 3)
 		{
 			Game::SV_Cmd_EndTokenizedString();
-			Logger::SoftError("Connecting failed: Command parsing error!");
+			Logger::Error(Game::ERR_SERVERDISCONNECT, "Connecting failed: Command parsing error!");
 			return;
 		}
 
@@ -96,7 +96,7 @@ namespace Components
 		if (challenge.empty())
 		{
 			Game::SV_Cmd_EndTokenizedString();
-			Logger::SoftError("Connecting failed: Challenge parsing error!");
+			Logger::Error(Game::ERR_SERVERDISCONNECT, "Connecting failed: Challenge parsing error!");
 			return;
 		}
 
@@ -233,7 +233,7 @@ namespace Components
 				return;
 			}
 
-			Logger::Print("Verified XUID %llX (%d) from %s\n", xuid, userLevel, address.getCString());
+			Logger::DebugInfo("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getCString());
 			Game::SV_DirectConnect(*address.get());
 		}
 #endif
@@ -448,7 +448,7 @@ namespace Components
 		// Guid command
 		Command::Add("guid", [](Command::Params*)
 		{
-			Logger::Print("Your guid: %llX\n", Steam::SteamUser()->GetSteamID().bits);
+			Logger::Print("Your guid: {:#X}\n", Steam::SteamUser()->GetSteamID().bits);
 		});
 
 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
@@ -458,9 +458,9 @@ namespace Components
 				if (params->size() < 2)
 				{
 					uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
-					Logger::Print("Your current security level is %d\n", level);
-					Logger::Print("Your security token is: %s\n", Utils::String::DumpHex(Auth::GuidToken.toString(), "").data());
-					Logger::Print("Your computation token is: %s\n", Utils::String::DumpHex(Auth::ComputeToken.toString(), "").data());
+					Logger::Print("Your current security level is {}\n", level);
+					Logger::Print("Your security token is: {}\n", Utils::String::DumpHex(Auth::GuidToken.toString(), ""));
+					Logger::Print("Your computation token is: {}\n", Utils::String::DumpHex(Auth::ComputeToken.toString(), ""));
 
 					Toast::Show("cardicon_locked", "^5Security Level", Utils::String::VA("Your security level is %d", level), 3000);
 				}

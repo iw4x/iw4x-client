@@ -66,7 +66,7 @@ namespace Components
 
 		if (!error.empty() || !listData.is_array())
 		{
-			Logger::Print("Error: %s\n", error.data());
+			Logger::Print("Error: {}\n", error);
 			return false;
 		}
 
@@ -201,7 +201,7 @@ namespace Components
 				+ (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 		}
 
-		Logger::Print("Downloading from url %s\n", url.data());
+		Logger::Print("Downloading from url {}\n", url);
 
 		Download::FileDownload fDownload;
 		fDownload.file = file;

@@ -246,7 +246,7 @@ namespace Components
 					// Check if that special flag is set
 					if (!(surface332.flag & 0x20))
 					{
-						Logger::Error("We're not able to handle XSurface buffer allocation yet!");
+						Logger::Error(Game::ERR_FATAL, "We're not able to handle XSurface buffer allocation yet!");
 					}
 
 					// Copy the correct data back to our surface
@@ -3521,7 +3521,7 @@ namespace Components
 		Command::Add("decryptImages", [](Command::Params*)
 		{
 			auto images = Game::Sys_ListFilesWrapper("iw4x/images", "iwi");
-			Logger::Print("decrypting %u images...\n", images.size());
+			Logger::Print("decrypting {} images...\n", images.size());
 			
 			for (auto& image : images)
 			{
@@ -3549,12 +3549,12 @@ namespace Components
 				}
 			}
 
-			Logger::Print("decrypted %u images!\n", images.size());
+			Logger::Print("decrypted {} images!\n", images.size());
 		});
 		Command::Add("decryptSounds", [](Command::Params*)
 		{
 			auto sounds = Game::Sys_ListFilesWrapper("iw4x/sound", "iwi");
-			Logger::Print("decrypting %u sounds...\n", sounds.size());
+			Logger::Print("decrypting {} sounds...\n", sounds.size());
 
 			for (auto& sound : sounds)
 			{
@@ -3580,7 +3580,7 @@ namespace Components
 				}
 			}
 
-			Logger::Print("decrypted %u sounds!\n", sounds.size());
+			Logger::Print("decrypted {} sounds!\n", sounds.size());
 		});
 
 		// patch max filecount Sys_ListFiles can return

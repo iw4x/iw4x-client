@@ -26,14 +26,15 @@ namespace Assets
         char* magic = reader.readArray<char>(8);
         if (std::memcmp(magic, "IW4xPIXL", 8))
         {
-            Components::Logger::Error(0, "Reading pixel shader '%s' failed, header is invalid!", name.data());
+            Components::Logger::Error(Game::ERR_FATAL, "Reading pixel shader '{}' failed, header is invalid!", name);
         }
 
         std::string version;
         version.push_back(reader.read<char>());
         if (version != IW4X_TECHSET_VERSION)
         {
-            Components::Logger::Error("Reading pixel shader '%s' failed, expected version is %d, but it was %d!", name.data(), atoi(IW4X_TECHSET_VERSION), atoi(version.data()));
+            Components::Logger::Error(Game::ERR_FATAL,
+                "Reading pixel shader '{}' failed, expected version is {}, but it was {}!", name, IW4X_TECHSET_VERSION, version);
         }
 
         Game::MaterialPixelShader* asset = reader.readObject<Game::MaterialPixelShader>();

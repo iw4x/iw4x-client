@@ -49,7 +49,7 @@ namespace Components
 			// If it's a command don't execute it
 			if (Command::Find(name) != nullptr)
 			{
-				Logger::Print(0, "CL_SelectStringTableEntryInDvar_f: parameter is a command\n");
+				Logger::DebugInfo("CL_SelectStringTableEntryInDvar_f: parameter is a command\n");
 				return;
 			}
 
@@ -67,7 +67,7 @@ namespace Components
 			// If it's a dvar check that it does not have disallowed flags
 			if ((dvar->flags & disallowedFlags) != 0)
 			{
-				Logger::Print(0, "CL_SelectStringTableEntryInDvar_f: parameter is a protected dvar\n");
+				Logger::DebugInfo("CL_SelectStringTableEntryInDvar_f: parameter is a protected dvar\n");
 				return;
 			}
 		}
@@ -107,6 +107,7 @@ namespace Components
 
 		if (static_cast<std::size_t>(net_message->cursize) >= sizeof(Game::DeferredMsg::data))
 		{
+			Logger::DebugInfo("Dropping net_message. Size is {}", net_message->cursize);
 			return;
 		}
 
@@ -132,7 +133,7 @@ namespace Components
 		Utils::Hook::Nop(0x41698E, 5); // Disable Svcmd_EntityList_f
 
 		// Patch selectStringTableEntryInDvar
-		Utils::Hook::Set<void(*)()>(0x405959, Security::SelectStringTableEntryInDvarStub);
+		Utils::Hook::Set<void(*)()>(0x405959, SelectStringTableEntryInDvarStub);
 
 		// Patch G_GetClientScore for uninitialized game
 		Utils::Hook(0x469AC0, G_GetClientScore, HOOK_JUMP).install()->quick();

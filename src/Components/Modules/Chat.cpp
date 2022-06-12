@@ -231,14 +231,14 @@ namespace Components
 			Chat::MuteList.insert(client->steamID);
 			lock.unlock();
 
-			Logger::Print("%s was muted\n", client->name);
+			Logger::Print("{} was muted\n", client->name);
 			Game::SV_GameSendServerCommand(client->gentity->s.number, Game::SV_CMD_CAN_IGNORE,
 				Utils::String::VA("%c \"You were muted\"", 0x65));
 			return;
 		}
 
 		lock.unlock();
-		Logger::Print("%s is already muted\n", client->name);
+		Logger::Print("{} is already muted\n", client->name);
 		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE,
 			Utils::String::VA("%c \"%s is already muted\"", 0x65, client->name));
 	}
@@ -247,7 +247,7 @@ namespace Components
 	{
 		Chat::UnmuteInternal(client->steamID);
 
-		Logger::Print("%s was unmuted\n", client->name);
+		Logger::Print("{} was unmuted\n", client->name);
 		Game::SV_GameSendServerCommand(client->gentity->s.number, Game::SV_CMD_CAN_IGNORE,
 			Utils::String::VA("%c \"You were unmuted\"", 0x65));
 	}
@@ -275,7 +275,7 @@ namespace Components
 			const auto* cmd = params->get(0);
 			if (params->size() < 2)
 			{
-				Logger::Print("Usage: %s <client number> : prevent the player from using the chat\n", cmd);
+				Logger::Print("Usage: {} <client number> : prevent the player from using the chat\n", cmd);
 				return;
 			}
 
@@ -297,7 +297,7 @@ namespace Components
 			const auto* cmd = params->get(0);
 			if (params->size() < 2)
 			{
-				Logger::Print("Usage: %s <client number or guid>\n%s all = unmute everyone\n", cmd, cmd);
+				Logger::Print("Usage: {} <client number or guid>\n{} all = unmute everyone\n", cmd, cmd);
 				return;
 			}
 

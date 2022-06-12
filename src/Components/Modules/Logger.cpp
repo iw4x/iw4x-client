@@ -12,79 +12,88 @@ namespace Components
 		return (IsWindow(Console::GetWindow()) != FALSE || (Dedicated::IsEnabled() && !Flags::HasFlag("console")));
 	}
 
-	void Logger::PrintStub(int channel, const char* message, ...)
+	void Logger::PrintStub(const int channel, const char* message, ...)
 	{
-		return Logger::MessagePrint(channel, Logger::Format(&message));
+		char buf[4096] = {0};
+
+		va_list va;
+		va_start(va, message);
+		_vsnprintf_s(buf, _TRUNCATE, message, va);
+		va_end(va);
+
+		Logger::MessagePrint(channel, {buf});
 	}
 
-	void Logger::Print(const char* message, ...)
-	{
-		return Logger::MessagePrint(0, Logger::Format(&message));
-	}
-
-	void Logger::Print(int channel, const char* message, ...)
-	{
-		return Logger::MessagePrint(channel, Logger::Format(&message));
-	}
-
-	void Logger::MessagePrint(int channel, const std::string& message)
+	void Logger::MessagePrint(const int channel, const std::string& msg)
 	{
 		if (Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests())
 		{
-			printf("%s", message.data());
+			printf("%s", msg.data());
 			fflush(stdout);
 			return;
 		}
 
 		if (!Logger::IsConsoleReady())
 		{
-			OutputDebugStringA(message.data());
+			OutputDebugStringA(msg.data());
 		}
 
 		if (!Game::Sys_IsMainThread())
 		{
-			Logger::EnqueueMessage(message);
+			Logger::EnqueueMessage(msg);
 		}
 		else
 		{
-			Game::Com_PrintMessage(channel, message.data(), 0);
+			Game::Com_PrintMessage(channel, msg.data(), 0);
 		}
 	}
 
-	void Logger::ErrorPrint(Game::errorParm_t error, const std::string& message)
+	void Logger::DebugInternal(const bool verbose, const std::source_location& srcLoc, const std::string_view fmt, std::format_args&& args)
 	{
-#ifdef DEBUG
+		const auto msg = std::vformat(fmt, args);
+
+		const auto out = verbose
+			? std::format("Debug:\n    {}\nFile:    {}\nLine:    {}\n", msg, srcLoc.file_name(), srcLoc.line())
+			: std::format("Debug:\n    {}\n", msg);
+
+		Logger::MessagePrint(Game::CON_CHANNEL_DONT_FILTER, out);
+	}
+
+	void Logger::PrintInternal(int channel, std::string_view fmt, std::format_args&& args)
+	{
+		const auto msg = std::vformat(fmt, args);
+
+		Logger::MessagePrint(channel, msg);
+	}
+
+	void Logger::ErrorInternal(const Game::errorParm_t error, const std::string_view fmt, std::format_args&& args)
+	{
+#ifdef _DEBUG
 		if (IsDebuggerPresent()) __debugbreak();
 #endif
 
-		return Game::Com_Error(error, "%s", message.data());
+		const auto msg = std::vformat(fmt, args);
+		Game::Com_Error(error, "%s", msg.data());
 	}
 
-	void Logger::Error(Game::errorParm_t error, const char* message, ...)
+	void Logger::PrintErrorInternal(int channel, std::string_view fmt, std::format_args&& args)
 	{
-		return Logger::ErrorPrint(error, Logger::Format(&message));
+		const auto msg = "^1Error: " + std::vformat(fmt, args);
+
+		++(*Game::com_errorPrintsCount);
+		Logger::MessagePrint(channel, msg);
+
+		if (*Game::cls_uiStarted != 0 && (*Game::com_fixedConsolePosition == 0))
+		{
+			Game::CL_ConsoleFixPosition();
+		}
 	}
 
-	void Logger::Error(const char* message, ...)
+	void Logger::WarningInternal(int channel, std::string_view fmt, std::format_args&& args)
 	{
-		return Logger::ErrorPrint(Game::ERR_FATAL, Logger::Format(&message));
-	}
+		const auto msg = "^3" + std::vformat(fmt, args);
 
-	void Logger::SoftError(const char* message, ...)
-	{
-		return Logger::ErrorPrint(Game::ERR_SERVERDISCONNECT, Logger::Format(&message));
-	}
-
-	std::string Logger::Format(const char** message)
-	{
-		char buffer[4096] = {0};
-
-		va_list ap = reinterpret_cast<char*>(const_cast<char**>(&message[1]));
-
-		_vsnprintf_s(buffer, _TRUNCATE, *message, ap);
-		va_end(ap);
-
-		return {buffer};
+		Logger::MessagePrint(channel, msg);
 	}
 
 	void Logger::Flush()
@@ -106,9 +115,9 @@ namespace Components
 	{
 		std::lock_guard<std::mutex> _(Logger::MessageMutex);
 
-		for (unsigned int i = 0; i < Logger::MessageQueue.size(); ++i)
+		for (std::size_t i = 0; i < Logger::MessageQueue.size(); ++i)
 		{
-			Game::Com_PrintMessage(0, Logger::MessageQueue[i].data(), 0);
+			Game::Com_PrintMessage(Game::CON_CHANNEL_DONT_FILTER, Logger::MessageQueue[i].data(), 0);
 
 			if (!Logger::IsConsoleReady())
 			{

@@ -15,13 +15,13 @@ namespace Assets
 			__int64 magic = reader.read<__int64>();
 			if (std::memcmp(&magic, "IW4xAnim", 8))
 			{
-				Components::Logger::Error(0, "Reading animation '%s' failed, header is invalid!", name.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, header is invalid!", name);
 			}
 
 			int version = reader.read<int>();
 			if (version != IW4X_ANIM_VERSION)
 			{
-				Components::Logger::Error(0, "Reading animation '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_ANIM_VERSION, version);
+				Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, expected version is {}, but it was {}!", name, IW4X_ANIM_VERSION, version);
 			}
 
 			Game::XAnimParts* xanim = reader.readArray<Game::XAnimParts>();
@@ -96,7 +96,7 @@ namespace Assets
 
 				if (!reader.end())
 				{
-					Components::Logger::Error(0, "Reading animation '%s' failed, remaining raw data found!", name.data());
+					Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, remaining raw data found!", name);
 				}
 
 				header->parts = xanim;

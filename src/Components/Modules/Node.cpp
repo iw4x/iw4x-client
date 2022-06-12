@@ -41,7 +41,7 @@ namespace Components
 
 		Session::Send(this->address, "nodeListRequest");
 		Node::SendList(this->address);
-		NODE_LOG("Sent request to %s\n", this->address.getCString());
+		Logger::DebugInfo("Sent request to {}\n", this->address.getCString());
 	}
 
 	void Node::Entry::reset()
@@ -235,7 +235,7 @@ namespace Components
 		Proto::Node::List list;
 		if (!list.ParseFromString(data)) return;
 
-		NODE_LOG("Received response from %s\n", address.getCString());
+		Logger::DebugInfo("Received response from {}\n", address.getCString());
 
 		std::lock_guard<std::recursive_mutex> _(Node::Mutex);
 
@@ -253,12 +253,12 @@ namespace Components
 		{
 			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::useMasterServer && list.protocol() == PROTOCOL)
 			{
-				NODE_LOG("Inserting %s into the serverlist\n", address.getCString());
+				Logger::DebugInfo("Inserting {} into the serverlist\n", address.getCString());
 				ServerList::InsertRequest(address);
 			}
 			else
 			{
-				NODE_LOG("Dropping serverlist insertion for %s\n", address.getCString());
+				Logger::DebugInfo("Dropping serverlist insertion for {}\n", address.getCString());
 			}
 
 			for (auto& node : Node::Nodes)
@@ -322,7 +322,7 @@ namespace Components
 		{
 			Scheduler::Once([&]
 			{
-				NODE_LOG("Sending %d nodeListResponse length to %s\n", nodeListData.length(), address.getCString());
+				Logger::DebugInfo("Sending {} nodeListResponse length to {}\n", nodeListData.length(), address.getCString());
 				Session::Send(address, "nodeListResponse", nodeListData);
 			}, Scheduler::Pipeline::MAIN, NODE_SEND_RATE * i++);
 		}
@@ -372,12 +372,12 @@ namespace Components
 
 		Command::Add("listnodes", [](Command::Params*)
 		{
-			Logger::Print("Nodes: %d\n", Node::Nodes.size());
+			Logger::Print("Nodes: {}\n", Node::Nodes.size());
 
 			std::lock_guard<std::recursive_mutex> _(Node::Mutex);
 			for (auto& node : Node::Nodes)
 			{
-				Logger::Print("%s\t(%s)\n", node.address.getCString(), node.isValid() ? "Valid" : "Invalid");
+				Logger::Print("{}\t({})\n", node.address.getCString(), node.isValid() ? "Valid" : "Invalid");
 			}
 		});
 

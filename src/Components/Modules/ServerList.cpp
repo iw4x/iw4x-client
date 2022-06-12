@@ -287,7 +287,7 @@ namespace Components
 			Game::netadr_t masterServerAddr;
 			if (!ServerList::GetMasterServer(masterServerName, masterPort, masterServerAddr))
 			{
-				Logger::Print("Could not resolve address for %s:%u", masterServerName, masterPort);
+				Logger::Print("Could not resolve address for {}:{}", masterServerName, masterPort);
 				Toast::Show("cardicon_headshot", "^1Error", Utils::String::VA("Could not resolve address for %s:%u", masterServerName, masterPort), 5000);
 				return;
 			}
@@ -659,7 +659,7 @@ namespace Components
 			{
 				ServerList::RefreshContainer.awatingList = false;
 
-				Logger::Print("We haven't received a response from the master within %d seconds!\n", (Game::Sys_Milliseconds() - ServerList::RefreshContainer.awaitTime) / 1000);
+				Logger::Print("We haven't received a response from the master within {} seconds!\n", (Game::Sys_Milliseconds() - ServerList::RefreshContainer.awaitTime) / 1000);
 				Toast::Show("cardicon_headshot", "^1Error", "Failed to reach master server, using node servers instead.", 5000);
 
 				useMasterServer = false;
@@ -823,7 +823,7 @@ namespace Components
 				ServerList::InsertRequest(serverAddr);
 			}
 
-			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.servers.size() - count);
+			Logger::Print("Parsed {} servers from master\n", ServerList::RefreshContainer.servers.size() - count);
 		});
 
 		// Set default masterServerName + port and save it 
@@ -864,7 +864,7 @@ namespace Components
 				ServerList::SortAsc = true;
 			}
 
-			Logger::Print("Sorting server list by token: %d\n", ServerList::SortKey);
+			Logger::Print("Sorting server list by token: {}\n", ServerList::SortKey);
 			ServerList::SortList();
 		});
 
@@ -914,7 +914,7 @@ namespace Components
 				count += server.clients;
 			}
 
-			Logger::Print("There are %d players playing.\n", count);
+			Logger::DebugInfo("There are %d players playing", count);
 		});
 #endif
 		// Add required ownerDraws

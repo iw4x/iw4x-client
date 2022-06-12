@@ -48,6 +48,12 @@ namespace Components
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* name = Game::Scr_GetString(0);
 
+			if (name == nullptr)
+			{
+				Game::Scr_ParamError(0, "^1SetName: Illegal parameter!\n");
+			}
+
+			Logger::DebugInfo("Setting name of {} to {}", ent->s.number, name);
 			UserInfoOverrides[ent->s.number]["name"] = name;
 			Game::ClientUserinfoChanged(ent->s.number);
 		});
@@ -56,6 +62,7 @@ namespace Components
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
+			Logger::DebugInfo("Resetting name of {} ", ent->s.number);
 			UserInfoOverrides[ent->s.number].erase("name");
 			Game::ClientUserinfoChanged(ent->s.number);
 		});

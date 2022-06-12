@@ -22,12 +22,12 @@ namespace Components
 
 		Game::Scr_ShutdownAllocNode();
 
-		Logger::Print(23, "\n");
-		Logger::Print(23, "******* script compile error *******\n");
-		Logger::Print(23, "Error: unknown function %s in %s\n", funcName, Script::ScriptName.data());
-		Logger::Print(23, "************************************\n");
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Error: unknown function {} in {}\n", funcName, Script::ScriptName);
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n");
 
-		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\nunknown function %s\n%s\n\n", funcName, Script::ScriptName.data());
+		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\nunknown function {}\n{}\n\n", funcName, Script::ScriptName);
 	}
 
 	__declspec(naked) void Script::StoreFunctionNameStub()
@@ -60,11 +60,11 @@ namespace Components
 		// scrVmPub.debugCode seems to be always false
 		if (Game::scrVmPub->debugCode || Game::scrVarPub->developer_script)
 		{
-			Game::RuntimeErrorInternal(23, codePos, index, msg);
+			Game::RuntimeErrorInternal(Game::CON_CHANNEL_PARSERSCRIPT, codePos, index, msg);
 		}
 		else
 		{
-			Logger::Print(23, "%s\n", msg);
+			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "{}\n", msg);
 		}
 
 		// Let's not throw error unless we have to
@@ -73,7 +73,7 @@ namespace Components
 			if (dialogMessage == nullptr)
 				dialogMessage = "";
 
-			Logger::Error(Game::ERR_SCRIPT_DROP, "\x15script runtime error\n(see console for details)\n%s\n%s", msg, dialogMessage);
+			Logger::Error(Game::ERR_SCRIPT_DROP, "\x15script runtime error\n(see console for details)\n{}\n{}", msg, dialogMessage);
 		}
 	}
 
@@ -168,19 +168,19 @@ namespace Components
 				}
 			}
 
-			Logger::Print(23, "in file %s, line %d:", filename, line);
-			Logger::Print(23, "%s\n", buffer.data() + lineOffset);
+			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "in file {}, line {}:", filename, line);
+			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "{}\n", buffer.substr(lineOffset));
 
 			for (auto i = 0; i < (inlineOffset - 1); ++i)
 			{
-				Logger::Print(23, " ");
+				Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, " ");
 			}
 
-			Logger::Print(23, "*\n");
+			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "*\n");
 		}
 		else
 		{
-			Logger::Print(23, "in file %s, offset %d\n", filename, offset);
+			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "in file {}, offset {}\n", filename, offset);
 		}
 	}
 
@@ -194,38 +194,38 @@ namespace Components
 
 		Game::Scr_ShutdownAllocNode();
 
-		Logger::Print(23, "\n");
-		Logger::Print(23, "******* script compile error *******\n");
-		Logger::Print(23, "Error: %s ", msgbuf);
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Error: {} ", msgbuf);
 		Script::PrintSourcePos(Script::ScriptName.data(), offset);
-		Logger::Print(23, "************************************\n\n");
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n\n");
 
-		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\n%s\n%s\n(see console for actual details)\n", msgbuf, Script::ScriptName.data());
+		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\n{}\n{}\n(see console for actual details)\n", msgbuf, Script::ScriptName);
 	}
 
 	int Script::LoadScriptAndLabel(const std::string& script, const std::string& label)
 	{
-		Logger::Print("Loading script %s.gsc...\n", script.data());
+		Logger::Print("Loading script {}.gsc...\n", script);
 
 		if (!Game::Scr_LoadScript(script.data()))
 		{
-			Logger::Print("Script %s encountered an error while loading. (doesn't exist?)", script.data());
-			Logger::Error(Game::ERR_DROP, reinterpret_cast<const char*>(0x70B810), script.data());
+			Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", script);
+			Logger::Error(Game::ERR_DROP, "Could not find script '{}'", script);
 		}
 		else
 		{
-			Logger::Print("Script %s.gsc loaded successfully.\n", script.data());
+			Logger::Print("Script {}.gsc loaded successfully.\n", script);
 		}
 
-		Logger::Print("Finding script handle %s::%s...\n", script.data(), label.data());
+		Logger::DebugInfo("Finding script handle {}::{}...", script.data(), label.data());
 		const auto handle = Game::Scr_GetFunctionHandle(script.data(), label.data());
 		if (handle)
 		{
-			Logger::Print("Script handle %s::%s loaded successfully.\n", script.data(), label.data());
+			Logger::Print("Script handle {}::{} loaded successfully.\n", script, label);
 			return handle;
 		}
 
-		Logger::Print("Script handle %s::%s couldn't be loaded. (file with no entry point?)\n", script.data(), label.data());
+		Logger::Print("Script handle {}::{} couldn't be loaded. (file with no entry point?)\n", script, label);
 		return handle;
 	}
 
@@ -372,8 +372,8 @@ namespace Components
 		if (bestCodePos == -1)
 			return;
 
-		Logger::Print(23, "\n@ %d (%d - %d)\n", scriptPos, bestCodePos, nextCodePos);
-		Logger::Print(23, "in %s (%.1f%% through the source)\n\n", file.data(), ((offset * 100.0f) / (nextCodePos - bestCodePos)));
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "\n@ {} ({} - {})\n", scriptPos, bestCodePos, nextCodePos);
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "in {} ({} through the source)\n\n", file, ((offset * 100.0f) / (nextCodePos - bestCodePos)));
 	}
 
 	__declspec(naked) void Script::Scr_PrintPrevCodePosStub()
@@ -471,13 +471,13 @@ namespace Components
 	{
 		if (what[0] == '\0' || with[0] == '\0')
 		{
-			Logger::Print("Warning: Invalid parameters passed to ReplacedFunctions\n");
+			Logger::Warning(Game::CON_CHANNEL_SCRIPT, "Invalid parameters passed to ReplacedFunctions\n");
 			return;
 		}
 
 		if (Script::ReplacedFunctions.contains(what))
 		{
-			Logger::Print("Warning: ReplacedFunctions already contains codePosValue for a function\n");
+			Logger::Warning(Game::CON_CHANNEL_SCRIPT, "ReplacedFunctions already contains codePosValue for a function\n");
 		}
 
 		Script::ReplacedFunctions[what] = with;
@@ -589,9 +589,9 @@ namespace Components
 		// Allow printing to the console even when developer is 0
 		Script::AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
 		{
-			for (auto i = 0u; i < Game::Scr_GetNumParam(); i++)
+			for (std::size_t i = 0; i < Game::Scr_GetNumParam(); ++i)
 			{
-				const auto str = Game::Scr_GetString(i);
+				const auto* str = Game::Scr_GetString(i);
 
 				if (str == nullptr)
 				{
@@ -599,7 +599,7 @@ namespace Components
 					return;
 				}
 
-				Logger::Print(Game::level->scriptPrintChannel, "%s", str);
+				Logger::Print(Game::level->scriptPrintChannel, "{}", str);
 			}
 		});
 
@@ -731,7 +731,7 @@ namespace Components
 				const auto timeTaken = static_cast<int>((nowMs - Script::LastFrameTime) * timeScale);
 
 				if (timeTaken >= 500)
-					Logger::Print(23, "Hitch warning: %i msec frame time\n", timeTaken);
+					Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Hitch warning: {} msec frame time\n", timeTaken);
 			}
 
 			Script::LastFrameTime = nowMs;

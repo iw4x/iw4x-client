@@ -106,7 +106,7 @@ namespace Components
 				Party::Container.target.setIP(*Game::localIP);
 				Party::Container.target.setType(Game::netadrtype_t::NA_IP);
 
-				Logger::Print("Trying to connect to party with loopback address, using a local ip instead: %s\n", Party::Container.target.getCString());
+				Logger::Print("Trying to connect to party with loopback address, using a local ip instead: {}\n", Party::Container.target.getCString());
 			}
 			else
 			{

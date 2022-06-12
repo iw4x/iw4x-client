@@ -111,9 +111,7 @@ namespace Components
 	{
 		if (Window::GetWindow() && RawMouse::M_RawInput.get<bool>())
 		{
-#ifdef DEBUG
-			Logger::Print("Raw Mouse Init.\n");
-#endif
+			Logger::Debug("Raw Mouse Init");
 
 			RAWINPUTDEVICE Rid[1];
 			Rid[0].usUsagePage = 0x01; // HID_USAGE_PAGE_GENERIC

@@ -224,7 +224,7 @@ namespace Components
 			std::string saneName = TextRenderer::StripAllTextIcons(TextRenderer::StripColors(Utils::String::Trim(name)));
 			if (saneName.size() < 3 || (saneName[0] == '[' && saneName[1] == '{'))
 			{
-				Logger::Print("Username '%s' is invalid. It must at least be 3 characters long and not appear empty!\n", name.data());
+				Logger::Print("Username '{}' is invalid. It must at least be 3 characters long and not appear empty!\n", name);
 				Dvar::Var("name").set(lastValidName);
 			}
 			else

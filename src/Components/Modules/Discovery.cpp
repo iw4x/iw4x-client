@@ -37,7 +37,7 @@ namespace Components
 					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").get<unsigned int>();
 					Network::BroadcastRange(minPort, maxPort, Utils::String::VA("discovery %s", Discovery::Challenge.data()));
 
-					Logger::Print("Discovery sent within %dms, awaiting responses...\n", Game::Sys_Milliseconds() - start);
+					Logger::Print("Discovery sent within {}ms, awaiting responses...\n", Game::Sys_Milliseconds() - start);
 
 					Discovery::IsPerforming = false;
 				}
@@ -52,11 +52,11 @@ namespace Components
 
 			if (!address.isLocal())
 			{
-				Logger::Print("Received discovery request from non-local address: %s\n", address.getCString());
+				Logger::Print("Received discovery request from non-local address: {}\n", address.getCString());
 				return;
 			}
 
-			Logger::Print("Received discovery request from %s\n", address.getCString());
+			Logger::Print("Received discovery request from {}\n", address.getCString());
 			Network::SendCommand(address, "discoveryResponse", data);
 		});
 
@@ -66,17 +66,17 @@ namespace Components
 
 			if (!address.isLocal())
 			{
-				Logger::Print("Received discovery response from non-local address: %s\n", address.getCString());
+				Logger::Print("Received discovery response from non-local address: {}\n", address.getCString());
 				return;
 			}
 
 			if (Utils::ParseChallenge(data) != Discovery::Challenge)
 			{
-				Logger::Print("Received discovery with invalid challenge from: %s\n", address.getCString());
+				Logger::Print("Received discovery with invalid challenge from: {}\n", address.getCString());
 				return;
 			}
 
-			Logger::Print("Received discovery response from: %s\n", address.getCString());
+			Logger::Print("Received discovery response from: {}\n", address.getCString());
 
 			if (ServerList::IsOfflineList())
 			{

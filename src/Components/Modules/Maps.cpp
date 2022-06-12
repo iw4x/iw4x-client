@@ -612,8 +612,8 @@ namespace Components
 				{
 					if (error)
 					{
-						Components::Logger::SoftError("Missing DLC pack %s (%d) containing map %s (%s).\nPlease download it to play this map.",
-							pack.name.data(), pack.index, Game::UI_LocalizeMapName(mapname), mapname);
+						Logger::Error(Game::ERR_DISCONNECT, "Missing DLC pack {} ({}) containing map {} ({}).\nPlease download it to play this map.",
+							pack.name, pack.index, Game::UI_LocalizeMapName(mapname), mapname);
 					}
 
 					return dlcIsTrue;
@@ -621,7 +621,12 @@ namespace Components
 			}
 		}
 
-		if (error) Components::Logger::SoftError("Missing map file %s.\nYou may have a damaged installation or are attempting to load a non-existant map.", mapname);
+		if (error)
+		{
+			Logger::Error(Game::ERR_DISCONNECT,
+				"Missing map file {}.\nYou may have a damaged installation or are attempting to load a non-existent map.", mapname);
+		}
+		
 		return false;
 	}
 

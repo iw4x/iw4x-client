@@ -741,7 +741,7 @@ namespace Components
 		}
 
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
-		Logger::Print("took %llims\n", duration);
+		Logger::Print("took {}ms\n", duration);
 
 		printf("Testing ZLib compression...");
 

@@ -13,7 +13,7 @@ namespace Components
 
 		if (News::Thread.joinable())
 		{
-			Logger::Print("Awaiting thread termination...\n");
+			Logger::DebugInfo("Awaiting thread termination...");
 			News::Thread.join();
 
 			if (!strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
@@ -23,7 +23,7 @@ namespace Components
 			}
 			else
 			{
-				Logger::Print("Successfully fetched motd.\n");
+				Logger::DebugInfo("Successfully fetched motd");
 			}
 		}
 

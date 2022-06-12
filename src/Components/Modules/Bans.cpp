@@ -126,7 +126,7 @@ namespace Components
 
 			if (!error.empty())
 			{
-				Logger::Error("Failed to parse bans (bans.json): %s", error.data());
+				Logger::Error(Game::ERR_FATAL, "Failed to parse bans (bans.json): {}", error);
 			}
 
 			if (!list) return;
@@ -176,7 +176,7 @@ namespace Components
 
 		if (*Game::svs_clientCount <= num)
 		{
-			Logger::Print("Player %d is not on the server\n", num);
+			Logger::Print("Player {} is not on the server\n", num);
 			return;
 		}
 
@@ -253,7 +253,7 @@ namespace Components
 				Network::Address address(params->get(2));
 				Bans::UnbanClient(address.getIP());
 
-				Logger::Print("Unbanned IP %s\n", params->get(2));
+				Logger::Print("Unbanned IP {}\n", params->get(2));
 
 			}
 			else if (type == "guid"s)
@@ -263,7 +263,7 @@ namespace Components
 
 				Bans::UnbanClient(id);
 
-				Logger::Print("Unbanned GUID %s\n", params->get(2));
+				Logger::Print("Unbanned GUID {}\n", params->get(2));
 			}
 		});
 
