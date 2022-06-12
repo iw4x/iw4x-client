@@ -6,6 +6,7 @@ namespace Components
 	{
 	public:
 		typedef void(BackendCallback)(IDirect3DDevice9*);
+		typedef void(Callback)();
 
 		Renderer();
 		~Renderer();
@@ -15,12 +16,11 @@ namespace Components
 
 		static void OnBackendFrame(Utils::Slot<BackendCallback> callback);
 		static void OnNextBackendFrame(Utils::Slot<BackendCallback> callback);
-		static void OnDeviceRecoveryEnd(Utils::Slot<Scheduler::Callback> callback);
-		static void OnDeviceRecoveryBegin(Utils::Slot<Scheduler::Callback> callback);
+
+		static void OnDeviceRecoveryEnd(Utils::Slot<Renderer::Callback> callback);
+		static void OnDeviceRecoveryBegin(Utils::Slot<Renderer::Callback> callback);
 
 	private:
-		static void FrameStub();
-
 		static void BackendFrameStub();
 		static void BackendFrameHandler();
 
@@ -40,8 +40,8 @@ namespace Components
 		static void DebugDrawModelNames();
 		static void DebugDrawAABBTrees();
 
-		static Utils::Signal<Scheduler::Callback> EndRecoverDeviceSignal;
-		static Utils::Signal<Scheduler::Callback> BeginRecoverDeviceSignal;
+		static Utils::Signal<Renderer::Callback> EndRecoverDeviceSignal;
+		static Utils::Signal<Renderer::Callback> BeginRecoverDeviceSignal;
 
 		static Utils::Signal<BackendCallback> BackendFrameSignal;
 		static Utils::Signal<BackendCallback> SingleBackendFrameSignal;

@@ -13,7 +13,7 @@ namespace Components
 
 		if (entry.first.bits)
 		{
-			for (auto& idEntry : list.idList)
+			for (const auto& idEntry : list.idList)
 			{
 				if (idEntry.bits == entry.first.bits)
 				{
@@ -268,10 +268,10 @@ namespace Components
 		});
 
 		// Verify the list on startup
-		Scheduler::Once([]()
+		Scheduler::OnGameInitialized([]
 		{
 			Bans::BanList list;
 			Bans::LoadBans(&list);
-		});
+		}, Scheduler::Pipeline::SERVER);
 	}
 }

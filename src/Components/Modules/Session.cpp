@@ -33,11 +33,11 @@ namespace Components
 
 		Network::SendCommand(target, command, data);
 
-		Scheduler::OnDelay([delayData]()
+		Scheduler::Once([delayData]()
 		{
 			Network::SendCommand(delayData->target, delayData->command, delayData->data);
 			delete delayData;
-		}, 500ms + std::chrono::milliseconds(rand() % 200));
+		}, Scheduler::Pipeline::MAIN, 500ms + std::chrono::milliseconds(rand() % 200));
 #else
 		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
 

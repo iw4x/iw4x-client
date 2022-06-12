@@ -139,22 +139,77 @@ namespace Components
 		Network::SendCommand(master, "heartbeat", "IW4");
 	}
 
-	__declspec(naked) void Dedicated::FrameStub()
-	{
-		__asm
-		{
-			pushad
-			call Scheduler::FrameHandler
-			popad
-
-			push 5A8E80h
-			retn
-		}
-	}
-
 	Game::dvar_t* Dedicated::Dvar_RegisterSVNetworkFps(const char* dvarName, int, int min, int, int, const char* description)
 	{
 		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::dvar_flag::DVAR_NONE, description);
+	}
+
+	void Dedicated::AddDedicatedCommands()
+	{
+		Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
+		Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
+
+		// Say command
+		Command::AddSV("say", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			auto message = params->join(1);
+			auto name = Dvar::Var("sv_sayName").get<std::string>();
+
+			if (!name.empty())
+			{
+				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+				Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
+			}
+			else
+			{
+				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+				Game::Com_Printf(15, "Console: %s\n", message.data());
+			}
+		});
+
+		// Tell command
+		Command::AddSV("tell", [](Command::Params* params)
+		{
+			if (params->size() < 3) return;
+
+			const auto client = atoi(params->get(1));
+			auto message = params->join(2);
+			auto name = Dvar::Var("sv_sayName").get<std::string>();
+
+			if (!name.empty())
+			{
+				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+				Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
+			}
+			else
+			{
+				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+				Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
+			}
+		});
+
+		// Sayraw command
+		Command::AddSV("sayraw", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			auto message = params->join(1);
+			Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
+			Game::Com_Printf(15, "Raw: %s\n", message.data());
+		});
+
+		// Tellraw command
+		Command::AddSV("tellraw", [](Command::Params* params)
+		{
+			if (params->size() < 3) return;
+
+			const auto client = atoi(params->get(1));
+			std::string message = params->join(2);
+			Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
+			Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
+		});
 	}
 
 	Dedicated::Dedicated()
@@ -165,13 +220,10 @@ namespace Components
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			// Make sure all callbacks are handled
-			Scheduler::OnFrame(Steam::SteamAPI_RunCallbacks);
+			Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::MAIN);
 
-			Dvar::OnInit([]
-			{
-				Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
-					Game::dvar_flag::DVAR_NONE, "Don't act as node");
-			});
+			Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
+				Game::dvar_flag::DVAR_NONE, "Don't act as node");
 
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();
 
@@ -230,111 +282,32 @@ namespace Components
 			// don't load the config
 			Utils::Hook::Set<BYTE>(0x4B4D19, 0xEB);
 
-			// Dedicated frame handler
-			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).install()->quick();
-
 			// Intercept time wrapping
 			Utils::Hook(0x62737D, Dedicated::TimeWrapStub, HOOK_CALL).install()->quick();
 			//Utils::Hook::Set<DWORD>(0x62735C, 50'000); // Time wrap after 50 seconds (for testing - i don't want to wait 3 weeks)
 
 			if (!ZoneBuilder::IsEnabled())
 			{
+				Scheduler::Once(Dedicated::AddDedicatedCommands, Scheduler::Pipeline::MAIN);
+
 				// Post initialization point
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
 
 				// Transmit custom data
-				Scheduler::OnFrame([]()
+				Scheduler::Loop([]
 				{
-					static Utils::Time::Interval interval;
-					if (interval.elapsed(10s))
-					{
-						interval.update();
-
-						CardTitles::SendCustomTitlesToClients();
-						//Clantags::SendClantagsToClients();
-					}
-				});
+					CardTitles::SendCustomTitlesToClients();
+					//Clantags::SendClantagsToClients();
+				}, Scheduler::Pipeline::SERVER, 10s);
 
 				// Heartbeats
-				Scheduler::Once(Dedicated::Heartbeat);
-				Scheduler::OnFrame([]()
+				Scheduler::Loop([]
 				{
-					static Utils::Time::Interval interval;
-
-					if (Dvar::Var("sv_maxclients").get<int>() > 0 && interval.elapsed(2min))
+					if (Dvar::Var("sv_maxclients").get<int>() > 0)
 					{
-						interval.update();
 						Dedicated::Heartbeat();
 					}
-				});
-
-				Dvar::OnInit([]()
-				{
-					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
-					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
-
-					// Say command
-					Command::AddSV("say", [](Command::Params* params)
-					{
-						if (params->size() < 2) return;
-
-						std::string message = params->join(1);
-						std::string name = Dvar::Var("sv_sayName").get<std::string>();
-
-						if (!name.empty())
-						{
-							Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-							Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
-						}
-						else
-						{
-							Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-							Game::Com_Printf(15, "Console: %s\n", message.data());
-						}
-					});
-
-					// Tell command
-					Command::AddSV("tell", [](Command::Params* params)
-					{
-						if (params->size() < 3) return;
-
-						int client = atoi(params->get(1));
-						std::string message = params->join(2);
-						std::string name = Dvar::Var("sv_sayName").get<std::string>();
-
-						if (!name.empty())
-						{
-							Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-							Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
-						}
-						else
-						{
-							Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-							Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
-						}
-					});
-
-					// Sayraw command
-					Command::AddSV("sayraw", [](Command::Params* params)
-					{
-						if (params->size() < 2) return;
-
-						std::string message = params->join(1);
-						Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
-						Game::Com_Printf(15, "Raw: %s\n", message.data());
-					});
-
-					// Tellraw command
-					Command::AddSV("tellraw", [](Command::Params* params)
-					{
-						if (params->size() < 3) return;
-
-						int client = atoi(params->get(1));
-						std::string message = params->join(2);
-						Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
-						Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
-					});
-				});
+				}, Scheduler::Pipeline::SERVER, 2min);
 			}
 		}
 		else
@@ -363,18 +336,12 @@ namespace Components
 			});
 		}
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			if (Dvar::Var("sv_running").get<bool>())
 			{
-				static Utils::Time::Interval interval;
-
-				if (interval.elapsed(15s))
-				{
-					interval.update();
-					Dedicated::TransmitGuids();
-				}
+				Dedicated::TransmitGuids();
 			}
-		});
+		}, Scheduler::Pipeline::SERVER, 15s);
 	}
 }

@@ -95,7 +95,7 @@ namespace Components
 
 	Branding::Branding()
 	{
-		Dvar::OnInit(Branding::RegisterBrandingDvars);
+		Branding::RegisterBrandingDvars();
 
 		// UI version string
 		Utils::Hook::Set<const char*>(0x43F73B, "IW4x: " VERSION);

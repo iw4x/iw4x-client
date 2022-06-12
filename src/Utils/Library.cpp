@@ -19,14 +19,14 @@ namespace Utils
 		return Library(handle);
 	}
 
-	Library::Library(const std::string& name, bool _freeOnDestroy) : _module(nullptr), freeOnDestroy(_freeOnDestroy)
+	Library::Library(const std::string& name, bool _freeOnDestroy) : module_(nullptr), freeOnDestroy(_freeOnDestroy)
 	{
-		this->_module = LoadLibraryExA(name.data(), nullptr, 0);
+		this->module_ = LoadLibraryExA(name.data(), nullptr, 0);
 	}
 
 	Library::Library(const HMODULE handle)
 	{
-		this->_module = handle;
+		this->module_ = handle;
 		this->freeOnDestroy = true;
 	}
 
@@ -38,23 +38,38 @@ namespace Utils
 		}
 	}
 
+	bool Library::operator==(const Library& obj) const
+	{
+		return this->module_ == obj.module_;
+	}
+
+	Library::operator bool() const
+	{
+		return this->isValid();
+	}
+
+	Library::operator HMODULE() const
+	{
+		return this->getModule();
+	}
+
 	bool Library::isValid() const
 	{
-		return this->_module != nullptr;
+		return this->module_ != nullptr;
 	}
 
 	HMODULE Library::getModule() const
 	{
-		return this->_module;
+		return this->module_;
 	}
 
 	void Library::free()
 	{
 		if (this->isValid())
 		{
-			FreeLibrary(this->_module);
+			FreeLibrary(this->module_);
 		}
 
-		this->_module = nullptr;
+		this->module_ = nullptr;
 	}
 }

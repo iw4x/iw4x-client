@@ -5,50 +5,64 @@ namespace Components
 	class Scheduler : public Component
 	{
 	public:
-		typedef void(Callback)();
+		enum Pipeline
+		{
+			ASYNC,
+			RENDERER,
+			SERVER,
+			CLIENT,
+			MAIN,
+			QUIT,
+			COUNT,
+		};
 
 		Scheduler();
-		~Scheduler();
 
 		void preDestroy() override;
 
-		static void OnShutdown(Utils::Slot<Callback> callback);
-		static void OnFrame(Utils::Slot<Callback> callback, bool clientOnly = false);
-		static void OnReady(Utils::Slot<Callback> callback, bool clientOnly = false);
-		static void Once(Utils::Slot<Callback> callback, bool clientOnly = false);
-		static void OnDelay(Utils::Slot<Callback> callback, std::chrono::nanoseconds delay, bool clientOnly = false);
-
-		static void OnFrameAsync(Utils::Slot<Callback> callback);
-		static void OnceAsync(Utils::Slot<Callback> callback);
-
-		static void FrameHandler();
+		static void Schedule(const std::function<bool()>& callback, Pipeline type = Pipeline::ASYNC,
+			std::chrono::milliseconds delay = 0ms);
+		static void Loop(const std::function<void()>& callback, Pipeline type = Pipeline::ASYNC,
+			std::chrono::milliseconds delay = 0ms);
+		static void Once(const std::function<void()>& callback, Pipeline type = Pipeline::ASYNC,
+			std::chrono::milliseconds delay = 0ms);
+		static void OnGameInitialized(const std::function<void()>& callback, Pipeline type = Pipeline::ASYNC,
+			std::chrono::milliseconds delay = 0ms);
+		static void OnGameShutdown(const std::function<void()>& callback);
 
 	private:
-		class DelayedSlot
+		struct Task
 		{
-		public:
-			std::chrono::nanoseconds delay;
-			Utils::Time::Interval interval;
-			Utils::Slot<Callback> callback;
+			std::function<bool()> handler{};
+			std::chrono::milliseconds interval{};
+			std::chrono::high_resolution_clock::time_point lastCall{};
 		};
 
-		static bool AsyncTerminate;
-		static std::thread AsyncThread;
+		using taskList = std::vector<Task>;
 
-		static Utils::Signal<Callback> FrameSignal;
-		static Utils::Signal<Callback> FrameOnceSignal;
-		static std::vector<DelayedSlot> DelayedSlots;
+		class TaskPipeline
+		{
+		public:
+			void add(Task&& task);
+			void execute();
 
-		static bool ReadyPassed;
-		static Utils::Signal<Callback> ReadySignal;
-		static Utils::Signal<Callback> ShutdownSignal;
+		private:
+			Utils::Concurrency::Container<taskList> newCallbacks_;
+			Utils::Concurrency::Container<taskList, std::recursive_mutex> callbacks_;
 
-		static Utils::Signal<Callback> AsyncFrameSignal;
-		static Utils::Signal<Callback> AsyncFrameOnceSignal;
+			void mergeCallbacks();
+		};
 
-		static void ReadyHandler();
-		static void DelaySignal();
+		static volatile bool Kill;
+		static std::thread Thread;
+		static TaskPipeline Pipelines[];
 
-		static void ShutdownStub(int num);
+		static void Execute(Pipeline type);
+
+		static void REndFrame_Hk();
+		static void ServerFrame_Hk();
+		static void ClientFrame_Hk(int localClientNum);
+		static void MainFrame_Hk();
+		static void SysSetBlockSystemHotkeys_Hk(int block);
 	};
 }

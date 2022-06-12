@@ -888,10 +888,10 @@ namespace Game
 	typedef void(__cdecl * Sys_FreeFileList_t)(char** list);
 	extern Sys_FreeFileList_t Sys_FreeFileList;
 
-	typedef bool(__cdecl * Sys_IsDatabaseReady_t)();
+	typedef int(__cdecl * Sys_IsDatabaseReady_t)();
 	extern Sys_IsDatabaseReady_t Sys_IsDatabaseReady;
 
-	typedef bool(__cdecl * Sys_IsDatabaseReady2_t)();
+	typedef int(__cdecl * Sys_IsDatabaseReady2_t)();
 	extern Sys_IsDatabaseReady2_t Sys_IsDatabaseReady2;
 
 	typedef bool(__cdecl * Sys_IsMainThread_t)();
@@ -1052,6 +1052,9 @@ namespace Game
 
 	typedef void(__cdecl * ClientUserinfoChanged_t)(int clientNum);
 	extern ClientUserinfoChanged_t ClientUserinfoChanged;
+
+	typedef void(__cdecl * player_die_t)(gentity_s* self, const gentity_s* inflictor, gentity_s* attacker, int damage, int meansOfDeath, int iWeapon, const float* vDir, const hitLocation_t hitLoc, int psTimeOffset);
+	extern player_die_t player_die;
 
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;

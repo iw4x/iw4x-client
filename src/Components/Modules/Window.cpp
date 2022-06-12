@@ -178,7 +178,7 @@ namespace Components
 		Utils::Hook(0x48E5D3, Window::DrawCursorStub, HOOK_CALL).install()->quick();
 
 		// Draw the cursor if necessary
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
 			{
@@ -198,7 +198,7 @@ namespace Components
 
 				Window::CursorVisible = FALSE;
 			}
-		});
+		}, Scheduler::Pipeline::RENDERER);
 
 		// Don't let the game interact with the native cursor
 		Utils::Hook::Set(0x6D7348, Window::ShowCursorHook);

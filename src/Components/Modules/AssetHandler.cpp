@@ -514,18 +514,19 @@ namespace Components
 		if (!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
 
 		// Log missing empty assets
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
 			{
 				for (auto& asset : AssetHandler::EmptyAssets)
 				{
-					Game::Com_PrintWarning(25, reinterpret_cast<const char*>(0x724428), Game::DB_GetXAssetTypeName(asset.first), asset.second.data());
+					Game::Com_PrintWarning(Game::conChannel_t::CON_CHANNEL_FILES,
+						reinterpret_cast<const char*>(0x724428), Game::DB_GetXAssetTypeName(asset.first), asset.second.data());
 				}
 
 				AssetHandler::EmptyAssets.clear();
 			}
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
 		{

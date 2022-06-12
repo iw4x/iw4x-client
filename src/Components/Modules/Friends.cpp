@@ -583,12 +583,9 @@ namespace Components
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || Monitor::IsEnabled())
 			return;
 
-		Dvar::OnInit([]
-		{
-			Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
-			Friends::CLAnonymous = Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
-			Friends::CLNotifyFriendState = Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_ARCHIVE, "Update friends about current game status");
-		});
+		Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
+		Friends::CLAnonymous = Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
+		Friends::CLNotifyFriendState = Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_ARCHIVE, "Update friends about current game status");
 
 		Command::Add("addFriend", [](Command::Params* params)
 		{
@@ -653,7 +650,7 @@ namespace Components
 			}
 		});
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			static Utils::Time::Interval timeInterval;
 			static Utils::Time::Interval sortInterval;
@@ -692,11 +689,11 @@ namespace Components
 					Friends::SortList(true);
 				}
 			}
-		});
+		}, Scheduler::Pipeline::CLIENT);
 
 		UIFeeder::Add(61.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
 
-		Scheduler::OnShutdown([]()
+		Scheduler::OnGameShutdown([]
 		{
 			Friends::ClearPresence("iw4x_server");
 			Friends::ClearPresence("iw4x_playing");
@@ -714,7 +711,7 @@ namespace Components
 			}
 		});
 
-		Scheduler::Once([]()
+		Scheduler::OnGameInitialized([]
 		{
 			if (Steam::Proxy::SteamFriends)
 			{

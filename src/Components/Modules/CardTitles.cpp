@@ -190,10 +190,10 @@ namespace Components
 
 	CardTitles::CardTitles()
 	{
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
 			CardTitles::CustomTitleDvar = Dvar::Register<const char*>("customtitle", "", Game::dvar_flag::DVAR_USERINFO | Game::dvar_flag::DVAR_ARCHIVE, "Custom card title");
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		ServerCommands::OnCommand(21, [](Command::Params* params)
 		{

@@ -9,12 +9,14 @@ namespace Components
 		Script();
 		~Script();
 
+		typedef void(Callback)();
+
 		static int LoadScriptAndLabel(const std::string& script, const std::string& label);
 
 		static void AddFunction(const char* name, Game::BuiltinFunction func, int type = 0);
 		static void AddMethod(const char* name, Game::BuiltinMethod func, int type = 0);
 
-		static void OnVMShutdown(Utils::Slot<Scheduler::Callback> callback);
+		static void OnVMShutdown(Utils::Slot<Script::Callback> callback);
 
 		static Game::client_t* GetClient(const Game::gentity_t* gentity);
 
@@ -31,7 +33,7 @@ namespace Components
 		static const char* ReplacedPos;
 		static int LastFrameTime;
 
-		static Utils::Signal<Scheduler::Callback> VMShutdownSignal;
+		static Utils::Signal<Script::Callback> VMShutdownSignal;
 
 		static void CompileError(unsigned int offset, const char* message, ...);
 		static void PrintSourcePos(const char* filename, unsigned int offset);

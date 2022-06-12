@@ -264,7 +264,7 @@ namespace Components
 		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
 
 		// Make sure preDestroy is called when the game shuts down
-		Scheduler::OnShutdown(Loader::PreDestroy);
+		Scheduler::OnGameShutdown(Loader::PreDestroy);
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
@@ -481,10 +481,10 @@ namespace Components
 
 		// Fix mouse lag
 		Utils::Hook::Nop(0x4731F5, 8);
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			SetThreadExecutionState(ES_DISPLAY_REQUIRED);
-		});
+		}, Scheduler::Pipeline::RENDERER);
 
 		// Fix mouse pitch adjustments
 		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");

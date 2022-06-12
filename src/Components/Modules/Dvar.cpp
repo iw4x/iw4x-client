@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	Utils::Signal<Scheduler::Callback> Dvar::RegistrationSignal;
 	const char* Dvar::ArchiveDvarPath = "userraw/archivedvars.cfg";
 
 	Dvar::Var::Var(const std::string& dvarName) : Var()
@@ -201,11 +200,6 @@ namespace Components
 		return Game::Dvar_RegisterFloat(dvarName, value, min, max, flag.val, description);
 	}
 
-	void Dvar::OnInit(Utils::Slot<Scheduler::Callback> callback)
-	{
-		Dvar::RegistrationSignal.connect(callback);
-	}
-
 	void Dvar::ResetDvarsValue()
 	{
 		if (!Utils::IO::FileExists(Dvar::ArchiveDvarPath))
@@ -216,16 +210,13 @@ namespace Components
 		Utils::IO::RemoveFile(Dvar::ArchiveDvarPath);
 	}
 
-	Game::dvar_t* Dvar::RegisterName(const char* name, const char* /*default*/, Game::dvar_flag flag, const char* description)
+	Game::dvar_t* Dvar::Dvar_RegisterName(const char* name, const char* /*default*/, unsigned __int16 flags, const char* description)
 	{
-		// Run callbacks
-		Dvar::RegistrationSignal();
-
 		// Name watcher
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			static std::string lastValidName = "Unknown Soldier";
-			std::string name = Dvar::Var("name").get<const char*>();
+			auto name = Dvar::Var("name").get<std::string>();
 
 			// Don't perform any checks if name didn't change
 			if (name == lastValidName) return;
@@ -241,7 +232,7 @@ namespace Components
 				lastValidName = name;
 				Friends::UpdateName();
 			}
-		}, true);
+		}, Scheduler::MAIN, 3s); // Don't need to do this every frame
 
 		std::string username = "Unknown Soldier";
 
@@ -255,7 +246,7 @@ namespace Components
 			}
 		}
 
-		return Dvar::Register<const char*>(name, username.data(), Dvar::Flag(flag | Game::dvar_flag::DVAR_ARCHIVE).val, description).get<Game::dvar_t*>();
+		return Dvar::Register<const char*>(name, username.data(), flags | Game::dvar_flag::DVAR_ARCHIVE, description).get<Game::dvar_t*>();
 	}
 
 	void Dvar::SetFromStringByNameSafeExternal(const char* dvarName, const char* string)
@@ -272,7 +263,7 @@ namespace Components
 			"ui_mptype",
 		};
 
-		for (int i = 0; i < ARRAYSIZE(exceptions); ++i)
+		for (std::size_t i = 0; i < ARRAYSIZE(exceptions); ++i)
 		{
 			if (Utils::String::ToLower(dvarName) == Utils::String::ToLower(exceptions[i]))
 			{
@@ -352,7 +343,7 @@ namespace Components
 		Utils::Hook::Xor<BYTE>(0x6312DE, Game::dvar_flag::DVAR_CHEAT);
 
 		// Hook dvar 'name' registration
-		Utils::Hook(0x40531C, Dvar::RegisterName, HOOK_CALL).install()->quick();
+		Utils::Hook(0x40531C, Dvar::Dvar_RegisterName, HOOK_CALL).install()->quick();
 
 		// un-cheat safeArea_* and add archive flags
 		Utils::Hook::Xor<INT>(0x42E3F5, Game::dvar_flag::DVAR_READONLY | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
@@ -385,15 +376,11 @@ namespace Components
 		Utils::Hook(0x59386A, Dvar::DvarSetFromStringByNameStub, HOOK_CALL).install()->quick();
 
 		// If the game closed abruptly, the dvars would not have been restored
-		Dvar::OnInit([]
-		{
-			Dvar::ResetDvarsValue();
-		});
+		Scheduler::Once(Dvar::ResetDvarsValue, Scheduler::Pipeline::MAIN);
 	}
 
 	Dvar::~Dvar()
 	{
-		Dvar::RegistrationSignal.clear();
 		Utils::IO::RemoveFile(Dvar::ArchiveDvarPath);
 	}
 }
