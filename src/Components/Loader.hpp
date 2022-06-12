@@ -139,5 +139,6 @@ namespace Components
 #include "Modules/Branding.hpp"
 #include "Modules/RawMouse.hpp"
 #include "Modules/Bullet.hpp"
+#include "Modules/MapRotation.hpp"
 #include "Modules/Ceg.hpp"
 #include "Modules/UserInfo.hpp"

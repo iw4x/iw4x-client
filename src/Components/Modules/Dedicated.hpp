@@ -9,7 +9,6 @@ namespace Components
 
 		static SteamID PlayerGuids[18][2];
 		static Dvar::Var SVLanOnly;
-		static Dvar::Var SVDontRotate;
 		static Dvar::Var COMLogFilter;
 
 		static bool IsEnabled();
@@ -17,11 +16,6 @@ namespace Components
 		static void Heartbeat();
 
 	private:
-		static Dvar::Var SVRandomMapRotation;
-
-		static void RandomizeMapRotation();
-		static void ApplyMapRotation();
-		static void MapRotate();
 		static void InitDedicatedServer();
 
 		static void PostInitialization();
