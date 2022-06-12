@@ -146,7 +146,6 @@ namespace Components
 
 	void Dedicated::AddDedicatedCommands()
 	{
-		Dedicated::SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false, Game::dvar_flag::DVAR_ARCHIVE, "Randomize map rotation when true");
 		Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
 		Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
 
