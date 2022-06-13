@@ -457,7 +457,7 @@ namespace Components
 			{
 				if (params->size() < 2)
 				{
-					uint32_t level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
+					const auto level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
 					Logger::Print("Your current security level is {}\n", level);
 					Logger::Print("Your security token is: {}\n", Utils::String::DumpHex(Auth::GuidToken.toString(), ""));
 					Logger::Print("Your computation token is: {}\n", Utils::String::DumpHex(Auth::ComputeToken.toString(), ""));
@@ -466,7 +466,7 @@ namespace Components
 				}
 				else
 				{
-					uint32_t level = static_cast<uint32_t>(atoi(params->get(1)));
+					const auto level = static_cast<uint32_t>(atoi(params->get(1)));
 					Auth::IncreaseSecurityLevel(level);
 				}
 			});

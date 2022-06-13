@@ -60,7 +60,15 @@ namespace Components
 		return Game::sv_cmd_args->argv[this->nesting_][index];
 	}
 
-	void Command::Add(const char* name, std::function<void(Command::Params*)> callback)
+	void Command::Add(const char* name, const std::function<void()>& callback)
+	{
+		Add(name, [callback]([[maybe_unused]] const Command::Params* params)
+		{
+			callback();
+		});
+	}
+
+	void Command::Add(const char* name, const std::function<void(Command::Params*)>& callback)
 	{
 		const auto command = Utils::String::ToLower(name);
 
@@ -72,7 +80,7 @@ namespace Components
 		Command::FunctionMap.insert_or_assign(command, std::move(callback));
 	}
 
-	void Command::AddSV(const char* name, std::function<void(Command::Params*)> callback)
+	void Command::AddSV(const char* name, const std::function<void(Command::Params*)>& callback)
 	{
 		if (Loader::IsPregame())
 		{

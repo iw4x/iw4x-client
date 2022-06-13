@@ -503,10 +503,7 @@ namespace Components
 		// Ignore call to print 'Offhand class mismatch when giving weapon...'
 		Utils::Hook(0x5D9047, 0x4BB9B0, HOOK_CALL).install()->quick();
 
-		Command::Add("unlockstats", [](Command::Params*)
-		{
-			QuickPatch::UnlockStats();
-		});
+		Command::Add("unlockstats", QuickPatch::UnlockStats);
 
 		Command::Add("dumptechsets", [](Command::Params* param)
 		{
@@ -515,23 +512,26 @@ namespace Components
 				Logger::Print("usage: dumptechsets <fastfile> | all\n");
 				return;
 			}
-			std::vector<std::string> fastfiles;
+
+			std::vector<std::string> fastFiles;
 
 			if (param->get(1) == "all"s)
 			{
-				for (std::string f : Utils::IO::ListFiles("zone/english"))
-					fastfiles.push_back(f.substr(7, f.length() - 10));
-				for (std::string f : Utils::IO::ListFiles("zone/dlc"))
-					fastfiles.push_back(f.substr(3, f.length() - 6));
-				for (std::string f : Utils::IO::ListFiles("zone/patch"))
-					fastfiles.push_back(f.substr(5, f.length() - 8));
+				for (const auto& f : Utils::IO::ListFiles("zone/english"))
+					fastFiles.emplace_back(f.substr(7, f.length() - 10));
+
+				for (const auto& f : Utils::IO::ListFiles("zone/dlc"))
+					fastFiles.emplace_back(f.substr(3, f.length() - 6));
+
+				for (const auto& f : Utils::IO::ListFiles("zone/patch"))
+					fastFiles.emplace_back(f.substr(5, f.length() - 8));
 			}
 			else
 			{
-				fastfiles.push_back(param->get(1));
+				fastFiles.emplace_back(param->get(1));
 			}
 
-			int count = 0;
+			auto count = 0;
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
 			{
@@ -553,7 +553,7 @@ namespace Components
 					if (Utils::IO::FileExists(Utils::String::VA(formatString, name.data()))) return;
 
 					Utils::Stream buffer(0x1000);
-					Game::MaterialPixelShader* dest = buffer.dest<Game::MaterialPixelShader>();
+					auto* dest = buffer.dest<Game::MaterialPixelShader>();
 					buffer.save(asset.pixelShader);
 
 					if (asset.pixelShader->prog.loadDef.program)
@@ -564,31 +564,6 @@ namespace Components
 
 					Utils::IO::WriteFile(Utils::String::VA(formatString, name.data()), buffer.toBuffer());
 				}
-
-				static std::map<const void*, unsigned int> pointerMap;
-
-				// Check if the given pointer has already been mapped
-				std::function<bool(const void*)> hasPointer = [](const void* pointer)
-				{
-					return (pointerMap.find(pointer) != pointerMap.end());
-				};
-
-				// Get stored offset for given file pointer
-				std::function<unsigned int(const void*)> getPointer = [hasPointer](const void* pointer)
-				{
-					if (hasPointer(pointer))
-					{
-						return pointerMap[pointer];
-					}
-
-					return 0U;
-				};
-
-				std::function<void(const void*, unsigned int)> storePointer = [hasPointer](const void* ptr, unsigned int offset)
-				{
-					if (hasPointer(ptr)) return;
-					pointerMap[ptr] = offset;
-				};
 
 				if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
 				{
@@ -609,59 +584,54 @@ namespace Components
 
 						if (technique)
 						{
-							dest->techniques[i] = reinterpret_cast<Game::MaterialTechnique*>(getPointer(technique));
-							if (!dest->techniques)
+							// Size-check is obsolete, as the structure is dynamic
+							buffer.align(Utils::Stream::ALIGN_4);
+
+							Game::MaterialTechnique* destTechnique = buffer.dest<Game::MaterialTechnique>();
+							buffer.save(technique, 8);
+
+							// Save_MaterialPassArray
+							Game::MaterialPass* destPasses = buffer.dest<Game::MaterialPass>();
+							buffer.saveArray(technique->passArray, technique->passCount);
+
+							for (std::uint16_t j = 0; j < technique->passCount; ++j)
 							{
-								// Size-check is obsolete, as the structure is dynamic
-								buffer.align(Utils::Stream::ALIGN_4);
-								//storePointer(technique, buffer->);
+								AssertSize(Game::MaterialPass, 20);
 
-								Game::MaterialTechnique* destTechnique = buffer.dest<Game::MaterialTechnique>();
-								buffer.save(technique, 8);
+								Game::MaterialPass* destPass = &destPasses[j];
+								Game::MaterialPass* pass = &technique->passArray[j];
 
-								// Save_MaterialPassArray
-								Game::MaterialPass* destPasses = buffer.dest<Game::MaterialPass>();
-								buffer.saveArray(technique->passArray, technique->passCount);
-
-								for (short j = 0; j < technique->passCount; ++j)
+								if (pass->vertexDecl)
 								{
-									AssertSize(Game::MaterialPass, 20);
 
-									Game::MaterialPass* destPass = &destPasses[j];
-									Game::MaterialPass* pass = &technique->passArray[j];
-
-									if (pass->vertexDecl)
-									{
-
-									}
-
-									if (pass->args)
-									{
-										buffer.align(Utils::Stream::ALIGN_4);
-										buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
-										Utils::Stream::ClearPointer(&destPass->args);
-									}
 								}
 
-								if (technique->name)
+								if (pass->args)
 								{
-									buffer.saveString(technique->name);
-									Utils::Stream::ClearPointer(&destTechnique->name);
+									buffer.align(Utils::Stream::ALIGN_4);
+									buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+									Utils::Stream::ClearPointer(&destPass->args);
 								}
-
-								Utils::Stream::ClearPointer(&dest->techniques[i]);
 							}
+
+							if (technique->name)
+							{
+								buffer.saveString(technique->name);
+								Utils::Stream::ClearPointer(&destTechnique->name);
+							}
+
+							Utils::Stream::ClearPointer(&dest->techniques[i]);
 						}
 					}
 				}
 			});
 
-			for (std::string fastfile : fastfiles)
+			for (const auto& fastFile : fastFiles)
 			{
-				if (!Game::DB_IsZoneLoaded(fastfile.data()))
+				if (!Game::DB_IsZoneLoaded(fastFile.data()))
 				{
 					Game::XZoneInfo info;
-					info.name = fastfile.data();
+					info.name = fastFile.data();
 					info.allocFlags = 0x20;
 					info.freeFlags = 0;
 

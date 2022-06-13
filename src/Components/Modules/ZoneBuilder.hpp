@@ -147,10 +147,12 @@ namespace Components
 
 		static bool IsThreadMainThreadHook();
 
+		static void Com_Quitf_t();
+
 		static bool MainThreadInterrupted;
 		static DWORD InterruptingThreadId;
 
-		static bool Terminate;
+		static volatile bool Terminate;
 		static std::thread CommandThread;
 	};
 }
