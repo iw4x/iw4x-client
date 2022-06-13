@@ -739,7 +739,7 @@ namespace Components
 			Friends::UpdateState();
 
 			Friends::UpdateFriends();
-		});
+		}, Scheduler::Pipeline::MAIN);
 	}
 
 	Friends::~Friends()

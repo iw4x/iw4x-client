@@ -101,23 +101,17 @@ namespace Components
 
 	void Dedicated::TimeWrapStub(Game::errorParm_t code, const char* message)
 	{
-		static bool partyEnable;
-		static std::string mapname;
-
-		partyEnable = Dvar::Var("party_enable").get<bool>();
-		mapname = Dvar::Var("mapname").get<std::string>();
-
-		Scheduler::Once([]()
+		Scheduler::Once([]
 		{
-			Dvar::Var("party_enable").set(partyEnable);
+			const auto partyEnable = Dvar::Var("party_enable").get<bool>();
+			auto mapname = Dvar::Var("mapname").get<std::string>();
 
 			if (!partyEnable) // Time wrapping should not occur in party servers, but yeah...
 			{
 				if (mapname.empty()) mapname = "mp_rust";
 				Command::Execute(Utils::String::VA("map %s", mapname.data()), false);
-				mapname.clear();
 			}
-		});
+		}, Scheduler::Pipeline::SERVER);
 
 		Game::Com_Error(code, message);
 	}

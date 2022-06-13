@@ -20,13 +20,13 @@ namespace Components
 
 		void preDestroy() override;
 
-		static void Schedule(const std::function<bool()>& callback, Pipeline type = Pipeline::ASYNC,
+		static void Schedule(const std::function<bool()>& callback, Pipeline type,
 			std::chrono::milliseconds delay = 0ms);
-		static void Loop(const std::function<void()>& callback, Pipeline type = Pipeline::ASYNC,
+		static void Loop(const std::function<void()>& callback, Pipeline type,
 			std::chrono::milliseconds delay = 0ms);
-		static void Once(const std::function<void()>& callback, Pipeline type = Pipeline::ASYNC,
+		static void Once(const std::function<void()>& callback, Pipeline type,
 			std::chrono::milliseconds delay = 0ms);
-		static void OnGameInitialized(const std::function<void()>& callback, Pipeline type = Pipeline::ASYNC,
+		static void OnGameInitialized(const std::function<void()>& callback, Pipeline type,
 			std::chrono::milliseconds delay = 0ms);
 		static void OnGameShutdown(const std::function<void()>& callback);
 
