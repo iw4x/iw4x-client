@@ -7,6 +7,8 @@ namespace Components
 	public:
 		MapRotation();
 
+		bool unitTest() override;
+
 	private:
 		struct ParseRotationError : public std::exception
 		{
@@ -31,6 +33,9 @@ namespace Components
 
 			void parse(const std::string& data);
 
+			// Json11 Implicit constructor
+			[[nodiscard]] json11::Json to_json() const;
+
 		private:
 			std::vector<rotationEntry> rotationEntries_;
 
@@ -48,6 +53,9 @@ namespace Components
 		static RotationData DedicatedRotation;
 
 		static void LoadRotation(const std::string& data);
+
+		// Use these commands before SV_MapRotate_f is called
+		static void AddMapRotationCommands();
 
 		static bool ShouldRotate();
 		static void RestartCurrentMap();

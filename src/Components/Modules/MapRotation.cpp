@@ -61,6 +61,33 @@ namespace Components
 		}
 	}
 
+	json11::Json MapRotation::RotationData::to_json() const
+	{
+		std::vector<std::string> mapVector;
+		std::vector<std::string> gametypeVector;
+
+		for (const auto& [key, val] : this->rotationEntries_)
+		{
+			if (key == "map")
+			{
+				mapVector.emplace_back(val);
+			}
+			else if (key == "gametype")
+			{
+				gametypeVector.emplace_back(val);
+			}
+		}
+
+
+		json11::Json mapRotationJson = json11::Json::object
+		{
+			{"maps", mapVector},
+			{"gametypes", gametypeVector},
+		};
+
+		return mapRotationJson;
+	}
+
 	void MapRotation::LoadRotation(const std::string& data)
 	{
 		static auto loaded = false;
@@ -77,10 +104,10 @@ namespace Components
 		}
 		catch (const std::exception& ex)
 		{
-			Logger::Print(Game::CON_CHANNEL_SERVER, "%s: sv_mapRotation contains invalid data!\n", ex.what());
+			Logger::Print(Game::CON_CHANNEL_SERVER, "{}: sv_mapRotation contains invalid data!\n", ex.what());
 		}
 
-		Logger::Print(Game::CON_CHANNEL_SERVER, "DedicatedRotation size after parsing is '%u'\n", DedicatedRotation.getEntriesSize());
+		Logger::DebugInfo("DedicatedRotation size after parsing is '{}'\n", DedicatedRotation.getEntriesSize());
 
 		// Shuffles values
 		if (SVRandomMapRotation.get<bool>())
@@ -90,6 +117,31 @@ namespace Components
 		}
 
 		loaded = true;
+	}
+
+	void MapRotation::AddMapRotationCommands()
+	{
+		Command::Add("AddMap", [](Command::Params* params)
+		{
+			if (params->size() < 2)
+			{
+				Logger::Print("{} <map name> : add a map to the map rotation\n", params->get(0));
+				return;
+			}
+
+			DedicatedRotation.addEntry("map", params->get(1));
+		});
+
+		Command::Add("AddGametype", [](Command::Params* params)
+		{
+			if (params->size() < 2)
+			{
+				Logger::Print("{} <gametype> : add a game mode to the map rotation\n", params->get(0));
+				return;
+			}
+
+			DedicatedRotation.addEntry("gametype", params->get(1));
+		});
 	}
 
 	bool MapRotation::ShouldRotate()
@@ -132,7 +184,7 @@ namespace Components
 
 	void MapRotation::ApplyMapRotation()
 	{
-		// Continue to apply gamemode until a map is found
+		// Continue to apply gametype until a map is found
 		auto foundMap = false;
 
 		std::size_t i = 0;
@@ -142,15 +194,15 @@ namespace Components
 
 			if (entry.first == "map")
 			{
-				Logger::Print("Loading new map: '%s'\n", entry.second.data());
+				Logger::DebugInfo("Loading new map: '{}'\n", entry.second);
 				Command::Execute(Utils::String::VA("map %s", entry.second.data()), true);
 
 				// Map was found so we exit the loop
 				foundMap = true;
 			}
-			else if (entry.first == "gamemode")
+			else if (entry.first == "gametype")
 			{
-				Logger::Print("Applying new gametype: '%s'\n", entry.second.data());
+				Logger::DebugInfo("Applying new gametype: '{}'\n", entry.second);
 				Dvar::Var("g_gametype").set(entry.second);
 			}
 
@@ -189,11 +241,46 @@ namespace Components
 
 	MapRotation::MapRotation()
 	{
+		AddMapRotationCommands();
 		Utils::Hook::Set<void(*)()>(0x4152E8, SV_MapRotate_f);
 
 		SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false,
 			Game::dvar_flag::DVAR_ARCHIVE, "Randomize map rotation when true");
 		SVDontRotate = Dvar::Register<bool>("sv_dontRotate", false,
 			Game::dvar_flag::DVAR_NONE, "Do not perform map rotation");
+	}
+
+	bool MapRotation::unitTest()
+	{
+		RotationData rotation;
+
+		Logger::DebugInfo("Testing map rotation parsing...");
+
+		const auto* normal = "map mp_highrise map mp_terminal map mp_firingrange map mp_trailerpark gametype dm map mp_shipment_long";
+
+		try
+		{
+			DedicatedRotation.parse(normal);
+		}
+		catch (const std::exception& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: parsing of 'normal' failed", ex.what());
+			return false;
+		}
+
+		const auto* mistake = "spdevmap mp_dome";
+		auto success = false;
+
+		try
+		{
+			DedicatedRotation.parse(mistake);
+		}
+		catch (const std::exception& ex)
+		{
+			Logger::Debug("{}: parsing of 'normal' failed as expected", ex.what());
+			success = true;
+		}
+
+		return success;
 	}
 }

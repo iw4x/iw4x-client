@@ -731,9 +731,9 @@ namespace Components
 	bool QuickPatch::unitTest()
 	{
 		uint32_t randIntCount = 4'000'000;
-		printf("Generating %d random integers...", randIntCount);
+		Logger::Debug("Generating %d random integers...", randIntCount);
 
-		auto startTime = std::chrono::high_resolution_clock::now();
+		const auto startTime = std::chrono::high_resolution_clock::now();
 
 		for (uint32_t i = 0; i < randIntCount; ++i)
 		{
@@ -741,9 +741,9 @@ namespace Components
 		}
 
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
-		Logger::Print("took {}ms\n", duration);
+		Logger::Debug("took {}ms\n", duration);
 
-		printf("Testing ZLib compression...");
+		Logger::Debug("Testing ZLib compression...");
 
 		std::string test = Utils::String::VA("%c", Utils::Cryptography::Rand::GenerateInt());
 
@@ -754,21 +754,20 @@ namespace Components
 
 			if (test != decompressed)
 			{
-				printf("Error\n");
-				printf("Compressing %d bytes and decompressing failed!\n", test.size());
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Compressing {} bytes and decompressing failed!\n", test.size());
 				return false;
 			}
 
-			auto size = test.size();
+			const auto size = test.size();
 			for (unsigned int j = 0; j < size; ++j)
 			{
 				test.append(Utils::String::VA("%c", Utils::Cryptography::Rand::GenerateInt()));
 			}
 		}
 
-		printf("Success\n");
+		Logger::Debug("Success");
 
-		printf("Testing trimming...");
+		Logger::Debug("Testing trimming...");
 		std::string trim1 = " 1 ";
 		std::string trim2 = "   1";
 		std::string trim3 = "1   ";
@@ -781,7 +780,7 @@ namespace Components
 		if (trim2 != "1") return false;
 		if (trim3 != "1") return false;
 
-		printf("Success\n");
+		Logger::Debug("Success");
 		return true;
 	}
 }

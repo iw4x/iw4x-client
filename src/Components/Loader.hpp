@@ -5,8 +5,8 @@ namespace Components
 	class Component
 	{
 	public:
-		Component() {}
-		virtual ~Component() {}
+		Component() = default;
+		virtual ~Component() = default;
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		virtual std::string getName()

@@ -113,19 +113,19 @@ namespace Components
 
 	void Logger::Frame()
 	{
-		std::lock_guard<std::mutex> _(Logger::MessageMutex);
+		std::unique_lock _(Logger::MessageMutex);
 
-		for (std::size_t i = 0; i < Logger::MessageQueue.size(); ++i)
+		for (auto i = Logger::MessageQueue.begin(); i != Logger::MessageQueue.end();)
 		{
-			Game::Com_PrintMessage(Game::CON_CHANNEL_DONT_FILTER, Logger::MessageQueue[i].data(), 0);
+			Game::Com_PrintMessage(Game::CON_CHANNEL_DONT_FILTER, i->data(), 0);
 
 			if (!Logger::IsConsoleReady())
 			{
-				OutputDebugStringA(Logger::MessageQueue[i].data());
+				OutputDebugStringA(i->data());
 			}
-		}
 
-		Logger::MessageQueue.clear();
+			i = Logger::MessageQueue.erase(i);
+		}
 	}
 
 	void Logger::PipeOutput(void(*callback)(const std::string&))
@@ -203,9 +203,8 @@ namespace Components
 
 	void Logger::EnqueueMessage(const std::string& message)
 	{
-		Logger::MessageMutex.lock();
+		std::unique_lock _(Logger::MessageMutex);
 		Logger::MessageQueue.push_back(message);
-		Logger::MessageMutex.unlock();
 	}
 
 	void Logger::RedirectOSPath(const char* file, char* folder)
@@ -375,9 +374,9 @@ namespace Components
 		Logger::LoggingAddresses[0].clear();
 		Logger::LoggingAddresses[1].clear();
 
-		Logger::MessageMutex.lock();
+		std::unique_lock lock(Logger::MessageMutex);
 		Logger::MessageQueue.clear();
-		Logger::MessageMutex.unlock();
+		lock.unlock();
 
 		// Flush the console log
 		if (const auto logfile = *reinterpret_cast<int*>(0x1AD8F28))
