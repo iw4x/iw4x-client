@@ -175,13 +175,13 @@ namespace Components
 
 		Logger::Print("Performing unit tests for components:\n");
 
-		for (auto component : Loader::Components)
+		for (const auto component : Loader::Components)
 		{
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-			Logger::Print("Testing '{}'...\n", component->getName());
+#if defined(FORCE_UNIT_TESTS)
+			Logger::Debug("Testing '{}'...\n", component->getName());
 #endif
 			auto startTime = std::chrono::high_resolution_clock::now();
-			bool testRes = component->unitTest();
+			auto testRes = component->unitTest();
 			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
 			Logger::Print("Test done ({}ms): {}\n\n", duration, (testRes ? "Success" : "Error"));
 			result &= testRes;

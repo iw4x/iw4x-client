@@ -89,21 +89,21 @@ namespace Components
 		std::vector<std::string> idVector;
 		std::vector<std::string> ipVector;
 
-		for (auto& idEntry : list->idList)
+		for (const auto& idEntry : list->idList)
 		{
-			idVector.push_back(Utils::String::VA("%llX", idEntry.bits));
+			idVector.emplace_back(Utils::String::VA("%llX", idEntry.bits));
 		}
 
-		for (auto& ipEntry : list->ipList)
+		for (const auto& ipEntry : list->ipList)
 		{
-			ipVector.push_back(Utils::String::VA("%u.%u.%u.%u",
+			ipVector.emplace_back(Utils::String::VA("%u.%u.%u.%u",
 				ipEntry.bytes[0] & 0xFF,
 				ipEntry.bytes[1] & 0xFF,
 				ipEntry.bytes[2] & 0xFF,
 				ipEntry.bytes[3] & 0xFF));
 		}
 
-		json11::Json bans = json11::Json::object
+		const json11::Json bans = json11::Json::object
 		{
 			{ "ip", ipVector },
 			{ "id", idVector },
