@@ -31,9 +31,9 @@ namespace Components
 		strncpy_s(buffer, bufferSize, userInfo.data(), _TRUNCATE);
 	}
 
-	void UserInfo::ClearClientOverrides(const int client)
+	void UserInfo::ClearClientOverrides(const int clientNum)
 	{
-		UserInfoOverrides[client].clear();
+		UserInfoOverrides[clientNum].clear();
 	}
 
 	void UserInfo::ClearAllOverrides()
@@ -75,9 +75,15 @@ namespace Components
 
 		AddScriptMethods();
 
-		Script::OnVMShutdown([]
+		Events::OnVMShutdown([]
 		{
 			ClearAllOverrides();
+		});
+
+		Events::OnClientDisconnect([](const int clientNum)
+		{
+			// Clear the overrides for UserInfo
+			ClearClientOverrides(clientNum);
 		});
 	}
 }

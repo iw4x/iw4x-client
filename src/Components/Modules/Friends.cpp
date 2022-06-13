@@ -457,22 +457,6 @@ namespace Components
 		Friends::CurrentFriend = index;
 	}
 
-	__declspec(naked) void Friends::DisconnectStub()
-	{
-		__asm
-		{
-			pushad
-
-			call Friends::ClearServer
-			call Dvar::ResetDvarsValue
-
-			popad
-
-			push 467CC0h
-			retn
-		}
-	}
-
 	void Friends::AddFriend(SteamID user)
 	{
 		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
@@ -622,7 +606,8 @@ namespace Components
 		});
 
 		// Update state when connecting/disconnecting
-		Utils::Hook(0x403582, Friends::DisconnectStub, HOOK_CALL).install()->quick();
+		Events::OnSteamDisconnect(Friends::ClearServer);
+
 		Utils::Hook(0x4CD023, Friends::SetServer, HOOK_JUMP).install()->quick();
 
 		// Show blue icons on the minimap

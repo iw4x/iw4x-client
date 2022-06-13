@@ -961,7 +961,7 @@ namespace Components
 
 		}, Scheduler::Pipeline::MAIN);
 
-		Script::OnVMShutdown([]()
+		Events::OnVMShutdown([]()
 		{
 			Download::ScriptDownloads.clear();
 		});

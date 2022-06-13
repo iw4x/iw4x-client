@@ -377,6 +377,9 @@ namespace Components
 
 		// If the game closed abruptly, the dvars would not have been restored
 		Scheduler::Once(Dvar::ResetDvarsValue, Scheduler::Pipeline::MAIN);
+
+		// Reset archive dvars when client leaves a server
+		Events::OnSteamDisconnect(Dvar::ResetDvarsValue);
 	}
 
 	Dvar::~Dvar()

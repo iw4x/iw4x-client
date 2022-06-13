@@ -309,21 +309,6 @@ namespace Components
 		}
 	}
 
-	/*
-	 * Should be called when a client drops from the server
-	 * but not "between levels" (Quake-III-Arena)
-	 */
-	void Bots::ClientDisconnect_Hk(const int clientNum)
-	{
-		g_botai[clientNum].active = false;
-
-		// Clear the overrides for UserInfo
-		UserInfo::ClearClientOverrides(clientNum);
-
-		// Call original function
-		Utils::Hook::Call<void(int)>(0x4AA430)(clientNum);
-	}
-
 	Bots::Bots()
 	{
 		AssertOffset(Game::client_s, bIsTestClient, 0x41AF0);
@@ -340,7 +325,10 @@ namespace Components
 		Utils::Hook(0x441B80, Bots::G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
 		// Reset BotMovementInfo.active when client is dropped
-		Utils::Hook(0x625235, Bots::ClientDisconnect_Hk, HOOK_CALL).install()->quick();
+		Events::OnClientDisconnect([](const int clientNum)
+		{
+			g_botai[clientNum].active = false;
+		});
 
 		// Zero the bot command array
 		for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)
@@ -393,9 +381,9 @@ namespace Components
 		Bots::AddMethods();
 
 		// In case a loaded mod didn't call "BotStop" before the VM shutdown
-		Script::OnVMShutdown([]
+		Events::OnVMShutdown([]
 		{
-			for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)
+			for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; i++)
 			{
 				g_botai[i].active = false;
 			}

@@ -7,7 +7,7 @@ namespace Components
 	public:
 		UserInfo();
 
-		static void ClearClientOverrides(int client);
+		static void ClearClientOverrides(int clientNum);
 		static void ClearAllOverrides();
 
 	private:

@@ -14,8 +14,6 @@ namespace Components
 	const char* Script::ReplacedPos = nullptr;
 	int Script::LastFrameTime = -1;
 
-	Utils::Signal<Script::Callback> Script::VMShutdownSignal;
-
 	void Script::FunctionError()
 	{
 		const auto* funcName = Game::SL_ConvertToString(Script::FunctionName);
@@ -411,20 +409,6 @@ namespace Components
 		}
 	}
 
-	void Script::OnVMShutdown(Utils::Slot<Script::Callback> callback)
-	{
-		Script::ScriptBaseProgramNum.clear();
-		Script::VMShutdownSignal.connect(std::move(callback));
-	}
-
-	void Script::ScrShutdownSystemStub(unsigned char sys)
-	{
-		Script::VMShutdownSignal();
-
-		// Scr_ShutdownSystem
-		Utils::Hook::Call<void(unsigned char)>(0x421EE0)(sys);
-	}
-
 	unsigned int Script::SetExpFogStub()
 	{
 		if (Game::Scr_GetNumParam() == 6u)
@@ -715,9 +699,6 @@ namespace Components
 		Utils::Hook(0x61E92E, Script::VMExecuteInternalStub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x61E933, 1);
 
-		Utils::Hook(0x47548B, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick(); // G_LoadGame
-		Utils::Hook(0x4D06BA, Script::ScrShutdownSystemStub, HOOK_CALL).install()->quick(); // G_ShutdownGame
-
 		Scheduler::Loop([]()
 		{
 			if (!Game::SV_Loaded())
@@ -753,14 +734,9 @@ namespace Components
 
 		Script::AddFunctions();
 
-		Script::OnVMShutdown([]
+		Events::OnVMShutdown([]
 		{
 			Script::ReplacedFunctions.clear();
 		});
-	}
-
-	Script::~Script()
-	{
-		Script::VMShutdownSignal.clear();
 	}
 }

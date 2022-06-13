@@ -143,3 +143,4 @@ namespace Components
 #include "Modules/MapRotation.hpp"
 #include "Modules/Ceg.hpp"
 #include "Modules/UserInfo.hpp"
+#include "Modules/Events.hpp"

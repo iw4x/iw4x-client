@@ -112,6 +112,7 @@ namespace Components
 		Loader::Register(new MapRotation());
 		Loader::Register(new Ceg());
 		Loader::Register(new UserInfo());
+		Loader::Register(new Events());
 
 		Loader::Pregame = false;
 	}
