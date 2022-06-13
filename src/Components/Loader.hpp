@@ -137,6 +137,7 @@ namespace Components
 #include "Modules/Gamepad.hpp"
 #include "Modules/ScriptExtension.hpp"
 #include "Modules/Branding.hpp"
+#include "Modules/Debug.hpp"
 #include "Modules/RawMouse.hpp"
 #include "Modules/Bullet.hpp"
 #include "Modules/MapRotation.hpp"

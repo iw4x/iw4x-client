@@ -121,6 +121,9 @@ namespace Game
 	typedef void(__cdecl * CL_SelectStringTableEntryInDvar_f_t)();
 	extern CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f;
 
+	typedef void(__cdecl * CL_DrawStretchPic_t)(const ScreenPlacement* scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, float s1, float t1, float s2, float t2, const float* color, Material* material);
+	extern CL_DrawStretchPic_t CL_DrawStretchPic;
+
 	typedef void(__cdecl * CL_ConsoleFixPosition_t)();
 	extern CL_ConsoleFixPosition_t CL_ConsoleFixPosition;
 
@@ -807,8 +810,11 @@ namespace Game
 	typedef char*(__cdecl * SEH_StringEd_GetString_t)(const char* string);
 	extern SEH_StringEd_GetString_t SEH_StringEd_GetString;
 
-	typedef unsigned int(__cdecl* SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
+	typedef unsigned int(__cdecl * SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
 	extern SEH_ReadCharFromString_t SEH_ReadCharFromString;
+
+	typedef int (__cdecl * SEH_GetCurrentLanguage_t)();
+	extern SEH_GetCurrentLanguage_t SEH_GetCurrentLanguage;
 
 	typedef const char*(__cdecl * SL_ConvertToString_t)(scr_string_t stringValue);
 	extern SL_ConvertToString_t SL_ConvertToString;
@@ -1200,6 +1206,8 @@ namespace Game
 
 	extern int* g_waitingForKey;
 
+	extern Material** whiteMaterial;
+
 	extern unsigned long* _tls_index;
 
 	extern int* cls_uiStarted;
@@ -1214,6 +1222,8 @@ namespace Game
 	XModel* G_GetModel(int index);
 
 	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement();
+
+	void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize);
 
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 	void Menu_FreeItemMemory(Game::itemDef_s* item);

@@ -106,6 +106,7 @@ namespace Components
 		Loader::Register(new ClientCommand());
 		Loader::Register(new ScriptExtension());
 		Loader::Register(new Branding());
+		Loader::Register(new Debug());
 		Loader::Register(new RawMouse());
 		Loader::Register(new Bullet());
 		Loader::Register(new MapRotation());

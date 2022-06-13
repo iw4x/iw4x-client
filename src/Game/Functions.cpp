@@ -60,6 +60,7 @@ namespace Game
 	CL_HandleRelayPacket_t CL_HandleRelayPacket = CL_HandleRelayPacket_t(0x5A8C70);
 	CL_ResetViewport_t CL_ResetViewport = CL_ResetViewport_t(0x4A8830);
 	CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f = CL_SelectStringTableEntryInDvar_f_t(0x4A4560);
+	CL_DrawStretchPic_t CL_DrawStretchPic = CL_DrawStretchPic_t(0x412490);
 	CL_ConsoleFixPosition_t CL_ConsoleFixPosition = CL_ConsoleFixPosition_t(0x44A430);
 
 	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
@@ -325,6 +326,7 @@ namespace Game
 
 	SEH_StringEd_GetString_t SEH_StringEd_GetString = SEH_StringEd_GetString_t(0x44BB30);
 	SEH_ReadCharFromString_t SEH_ReadCharFromString = SEH_ReadCharFromString_t(0x486560);
+	SEH_GetCurrentLanguage_t SEH_GetCurrentLanguage = SEH_GetCurrentLanguage_t(0x4F6110);
 
 	Dvar_SetFromStringByName_t Dvar_SetFromStringByName = Dvar_SetFromStringByName_t(0x4F52E0);
 	Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource = Dvar_SetFromStringByNameFromSource_t(0x4FC770);
@@ -579,6 +581,8 @@ namespace Game
 	DeferredQueue* deferredQueue = reinterpret_cast<DeferredQueue*>(0x1CC2CE8);
 
 	int* g_waitingForKey = reinterpret_cast<int*>(0x63A50FC);
+
+	Material** whiteMaterial = reinterpret_cast<Material**>(0x8EE4B8);
 
 	unsigned long* _tls_index = reinterpret_cast<unsigned long*>(0x66D94A8);
 
@@ -1153,6 +1157,33 @@ namespace Game
 	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement()
 	{
 		return scrPlaceFullUnsafe;
+	}
+
+	void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize)
+	{
+		if (SEH_GetCurrentLanguage() == 8 || Sys_Milliseconds() % 1000 <= 800)
+		{
+			return;
+		}
+
+		size_t i = 0;
+		while (str[i] != '\0')
+		{
+			if (i >= strMaxSize)
+				break;
+
+			const auto value = str[i];
+			if (value == 16)
+			{
+				str[i] = -68;
+			}
+			else if (value == 17)
+			{
+				str[i] = -67;
+			}
+
+			++i;
+		}
 	}
 
 #pragma optimize("", off)
