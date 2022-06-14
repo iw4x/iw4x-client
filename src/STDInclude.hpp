@@ -138,6 +138,7 @@ using namespace std::literals;
 
 #include "Game/Structs.hpp"
 #include "Game/Functions.hpp"
+#include <Game/Scripting/Function.hpp>
 
 #include "Utils/Stream.hpp" // Breaks order on purpose
 

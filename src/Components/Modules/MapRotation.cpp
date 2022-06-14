@@ -121,7 +121,7 @@ namespace Components
 
 	void MapRotation::AddMapRotationCommands()
 	{
-		Command::Add("AddMap", [](Command::Params* params)
+		Command::Add("addMap", [](Command::Params* params)
 		{
 			if (params->size() < 2)
 			{
@@ -132,7 +132,7 @@ namespace Components
 			DedicatedRotation.addEntry("map", params->get(1));
 		});
 
-		Command::Add("AddGametype", [](Command::Params* params)
+		Command::Add("addGametype", [](Command::Params* params)
 		{
 			if (params->size() < 2)
 			{

@@ -24,6 +24,9 @@ namespace Game
 
 	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
+	AddRefToValue_t AddRefToValue = AddRefToValue_t(0x482740);
+	AllocThread_t AllocThread = AllocThread_t(0x4F78C0);
+	VM_Execute_0_t VM_Execute_0 = VM_Execute_0_t(0x6222A0);
 
 	AngleVectors_t AngleVectors = AngleVectors_t(0x4691A0);
 
@@ -282,6 +285,7 @@ namespace Game
 	Scr_GetInt_t Scr_GetInt = Scr_GetInt_t(0x4F31D0);
 	Scr_GetObject_t Scr_GetObject = Scr_GetObject_t(0x462100);
 	Scr_GetNumParam_t Scr_GetNumParam = Scr_GetNumParam_t(0x4B0E90);
+	Scr_GetEntityId_t Scr_GetEntityId = Scr_GetEntityId_t(0x4165E0);
 
 	Scr_ExecThread_t Scr_ExecThread = Scr_ExecThread_t(0x4AD0B0);
 	Scr_FreeThread_t Scr_FreeThread = Scr_FreeThread_t(0x4BD320);

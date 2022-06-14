@@ -15,6 +15,8 @@ namespace Components
 
 		static Game::client_t* GetClient(const Game::gentity_t* gentity);
 
+		static const char* GetCodePosForParam(int index);
+
 	private:
 		static std::string ScriptName;
 		static std::vector<int> ScriptHandles;
@@ -54,7 +56,6 @@ namespace Components
 
 		static unsigned int SetExpFogStub();
 
-		static const char* GetCodePosForParam(int index);
 		static void GetReplacedPos(const char* pos);
 		static void SetReplacedPos(const char* what, const char* with);
 		static void VMExecuteInternalStub();

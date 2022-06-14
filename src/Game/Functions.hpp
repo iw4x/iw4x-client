@@ -28,6 +28,15 @@ namespace Game
 	typedef unsigned int(__cdecl * AllocObject_t)();
 	extern AllocObject_t AllocObject;
 
+	typedef void(__cdecl * AddRefToValue_t)(int type, VariableUnion u);
+	extern AddRefToValue_t AddRefToValue;
+
+	typedef unsigned int(__cdecl * AllocThread_t)(unsigned int self);
+	extern AllocThread_t AllocThread;
+
+	typedef unsigned int(__cdecl * VM_Execute_0_t)(unsigned int localId, const char* pos, unsigned int paramcount);
+	extern VM_Execute_0_t VM_Execute_0;
+
 	typedef void(__cdecl * AngleVectors_t)(float *angles, float *forward, float *right, float *up);
 	extern AngleVectors_t AngleVectors;
 
@@ -735,11 +744,17 @@ namespace Game
 	typedef unsigned int(__cdecl * Scr_GetNumParam_t)();
 	extern Scr_GetNumParam_t Scr_GetNumParam;
 
+	typedef unsigned int(__cdecl * Scr_GetEntityId_t)(int entnum, unsigned int classnum);
+	extern Scr_GetEntityId_t Scr_GetEntityId;
+
 	typedef int(__cdecl * Scr_GetFunctionHandle_t)(const char* filename, const char* name);
 	extern Scr_GetFunctionHandle_t Scr_GetFunctionHandle;
 
 	typedef int(__cdecl * Scr_ExecThread_t)(int, int);
 	extern Scr_ExecThread_t Scr_ExecThread;
+
+	typedef int(__cdecl * Scr_ExecEntThread_t)(gentity_s* ent, int handle, unsigned int paramcount);
+	extern Scr_ExecEntThread_t Scr_ExecEntThread;
 
 	typedef int(__cdecl * Scr_FreeThread_t)(int);
 	extern Scr_FreeThread_t Scr_FreeThread;
