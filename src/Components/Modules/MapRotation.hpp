@@ -60,6 +60,7 @@ namespace Components
 		static bool ShouldRotate();
 		static void RestartCurrentMap();
 		static void ApplyMapRotation();
+		static void RandomizeMapRotation();
 
 		static void SV_MapRotate_f();
 	};

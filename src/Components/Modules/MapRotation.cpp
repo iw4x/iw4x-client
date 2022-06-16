@@ -109,13 +109,6 @@ namespace Components
 
 		Logger::DebugInfo("DedicatedRotation size after parsing is '{}'\n", DedicatedRotation.getEntriesSize());
 
-		// Shuffles values
-		if (SVRandomMapRotation.get<bool>())
-		{
-			Logger::Print(Game::CON_CHANNEL_SERVER, "Randomizing the map rotation\n");
-			DedicatedRotation.randomize();
-		}
-
 		loaded = true;
 	}
 
@@ -210,6 +203,19 @@ namespace Components
 		}
 	}
 
+	void MapRotation::RandomizeMapRotation()
+	{
+		if (SVRandomMapRotation.get<bool>())
+		{
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Randomizing the map rotation\n");
+			DedicatedRotation.randomize();
+		}
+		else
+		{
+			Logger::DebugInfo("Map rotation was not randomized");
+		}
+	}
+
 	void MapRotation::SV_MapRotate_f()
 	{
 		if (!ShouldRotate())
@@ -233,6 +239,8 @@ namespace Components
 			RestartCurrentMap();
 			return;
 		}
+
+		RandomizeMapRotation();
 
 		ApplyMapRotation();
 	}
