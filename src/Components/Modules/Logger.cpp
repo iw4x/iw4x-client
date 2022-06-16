@@ -246,6 +246,111 @@ namespace Components
 		}
 	}
 
+	void Logger::AddServerCommands()
+	{
+		Command::AddSV("log_add", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			Network::Address addr(params->get(1));
+
+			if (std::find(Logger::LoggingAddresses[0].begin(), Logger::LoggingAddresses[0].end(), addr) == Logger::LoggingAddresses[0].end())
+			{
+				Logger::LoggingAddresses[0].push_back(addr);
+			}
+		});
+
+		Command::AddSV("log_del", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			int num = atoi(params->get(1));
+			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[0].size())
+			{
+				auto addr = Logger::LoggingAddresses[0].begin() + num;
+				Logger::Print("Address {} removed\n", addr->getCString());
+				Logger::LoggingAddresses[0].erase(addr);
+			}
+			else
+			{
+				Network::Address addr(params->get(1));
+
+				const auto i = std::find(Logger::LoggingAddresses[0].begin(), Logger::LoggingAddresses[0].end(), addr);
+				if (i != Logger::LoggingAddresses[0].end())
+				{
+					Logger::LoggingAddresses[0].erase(i);
+					Logger::Print("Address {} removed\n", addr.getCString());
+				}
+				else
+				{
+					Logger::Print("Address {} not found!\n", addr.getCString());
+				}
+			}
+		});
+
+		Command::AddSV("log_list", [](Command::Params*)
+		{
+			Logger::Print("# ID: Address\n");
+			Logger::Print("-------------\n");
+
+			for (unsigned int i = 0; i < Logger::LoggingAddresses[0].size(); ++i)
+			{
+				Logger::Print("{}: {}\n", i, Logger::LoggingAddresses[0][i].getCString());
+			}
+		});
+
+		Command::AddSV("g_log_add", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			const Network::Address addr(params->get(1));
+
+			if (std::find(Logger::LoggingAddresses[1].begin(), Logger::LoggingAddresses[1].end(), addr) == Logger::LoggingAddresses[1].end())
+			{
+				Logger::LoggingAddresses[1].push_back(addr);
+			}
+		});
+
+		Command::AddSV("g_log_del", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			int num = atoi(params->get(1));
+			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[1].size())
+			{
+				const auto addr = Logger::LoggingAddresses[1].begin() + num;
+				Logger::Print("Address {} removed\n", addr->getCString());
+				Logger::LoggingAddresses[1].erase(addr);
+			}
+			else
+			{
+				const Network::Address addr(params->get(1));
+
+				const auto i = std::find(Logger::LoggingAddresses[1].begin(), Logger::LoggingAddresses[1].end(), addr);
+				if (i != Logger::LoggingAddresses[1].end())
+				{
+					Logger::LoggingAddresses[1].erase(i);
+					Logger::Print("Address {} removed\n", addr.getCString());
+				}
+				else
+				{
+					Logger::Print("Address {} not found!\n", addr.getCString());
+				}
+			}
+		});
+
+		Command::AddSV("g_log_list", [](Command::Params*)
+		{
+			Logger::Print("# ID: Address\n");
+			Logger::Print("-------------\n");
+
+			for (std::size_t i = 0; i < Logger::LoggingAddresses[1].size(); ++i)
+			{
+				Logger::Print("{}: {}\n", i, Logger::LoggingAddresses[1][i].getCString());
+			}
+		});
+	}
+
 	Logger::Logger()
 	{
 		Dvar::Register<bool>("iw4x_onelog", false, Game::dvar_flag::DVAR_LATCH | Game::dvar_flag::DVAR_ARCHIVE, "Only write the game log to the 'userraw' OS folder");
@@ -253,7 +358,7 @@ namespace Components
 
 		Logger::PipeOutput(nullptr);
 
-		Scheduler::Loop(Logger::Frame, Scheduler::Pipeline::MAIN);
+		Scheduler::Loop(Logger::Frame, Scheduler::Pipeline::SERVER);
 
 		Utils::Hook(0x4B0218, Logger::GameLogStub, HOOK_CALL).install()->quick();
 		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).install()->quick();
@@ -263,110 +368,7 @@ namespace Components
 			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).install()->quick();
 		}
 
-		Scheduler::Once([]
-		{
-			Command::AddSV("log_add", [](Command::Params* params)
-			{
-				if (params->size() < 2) return;
-
-				Network::Address addr(params->get(1));
-
-				if (std::find(Logger::LoggingAddresses[0].begin(), Logger::LoggingAddresses[0].end(), addr) == Logger::LoggingAddresses[0].end())
-				{
-					Logger::LoggingAddresses[0].push_back(addr);
-				}
-			});
-
-			Command::AddSV("log_del", [](Command::Params* params)
-			{
-				if (params->size() < 2) return;
-
-				int num = atoi(params->get(1));
-				if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[0].size())
-				{
-					auto addr = Logger::LoggingAddresses[0].begin() + num;
-					Logger::Print("Address %s removed\n", addr->getCString());
-					Logger::LoggingAddresses[0].erase(addr);
-				}
-				else
-				{
-					Network::Address addr(params->get(1));
-
-					auto i = std::find(Logger::LoggingAddresses[0].begin(), Logger::LoggingAddresses[0].end(), addr);
-					if (i != Logger::LoggingAddresses[0].end())
-					{
-						Logger::LoggingAddresses[0].erase(i);
-						Logger::Print("Address %s removed\n", addr.getCString());
-					}
-					else
-					{
-						Logger::Print("Address %s not found!\n", addr.getCString());
-					}
-				}
-			});
-
-			Command::AddSV("log_list", [](Command::Params*)
-			{
-				Logger::Print("# ID: Address\n");
-				Logger::Print("-------------\n");
-
-				for (unsigned int i = 0; i < Logger::LoggingAddresses[0].size(); ++i)
-				{
-					Logger::Print("#%03d: %5s\n", i, Logger::LoggingAddresses[0][i].getCString());
-				}
-			});
-
-			Command::AddSV("g_log_add", [](Command::Params* params)
-			{
-				if (params->size() < 2) return;
-
-				Network::Address addr(params->get(1));
-
-				if (std::find(Logger::LoggingAddresses[1].begin(), Logger::LoggingAddresses[1].end(), addr) == Logger::LoggingAddresses[1].end())
-				{
-					Logger::LoggingAddresses[1].push_back(addr);
-				}
-			});
-
-			Command::AddSV("g_log_del", [](Command::Params* params)
-			{
-				if (params->size() < 2) return;
-
-				int num = atoi(params->get(1));
-				if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[1].size())
-				{
-					auto addr = Logger::LoggingAddresses[1].begin() + num;
-					Logger::Print("Address %s removed\n", addr->getCString());
-					Logger::LoggingAddresses[1].erase(addr);
-				}
-				else
-				{
-					Network::Address addr(params->get(1));
-
-					auto i = std::find(Logger::LoggingAddresses[1].begin(), Logger::LoggingAddresses[1].end(), addr);
-					if (i != Logger::LoggingAddresses[1].end())
-					{
-						Logger::LoggingAddresses[1].erase(i);
-						Logger::Print("Address %s removed\n", addr.getCString());
-					}
-					else
-					{
-						Logger::Print("Address %s not found!\n", addr.getCString());
-					}
-				}
-			});
-
-			Command::AddSV("g_log_list", [](Command::Params*)
-			{
-				Logger::Print("# ID: Address\n");
-				Logger::Print("-------------\n");
-
-				for (unsigned int i = 0; i < Logger::LoggingAddresses[1].size(); ++i)
-				{
-					Logger::Print("#%03d: %5s\n", i, Logger::LoggingAddresses[1][i].getCString());
-				}
-			});
-		}, Scheduler::Pipeline::MAIN);
+		Scheduler::OnGameInitialized(Logger::AddServerCommands, Scheduler::Pipeline::SERVER);
 	}
 
 	Logger::~Logger()

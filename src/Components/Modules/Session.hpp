@@ -34,7 +34,7 @@ namespace Components
 		bool unitTest() override;
 		void preDestroy() override;
 
-		static void Send(Network::Address target, const std::string& command, const std::string& data = "");
+		static void Send(const Network::Address& target, const std::string& command, const std::string& data = "");
 		static void Handle(const std::string& packet, const Network::NetworkCallback& callback);
 
 	private:

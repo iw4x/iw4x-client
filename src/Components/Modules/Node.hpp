@@ -51,7 +51,7 @@ namespace Components
 
 		static void HandleResponse(Network::Address address, const std::string& data);
 
-		static void SendList(Network::Address address);
+		static void SendList(const Network::Address& address);
 
 		static void LoadNodePreset();
 		static void LoadNodes();

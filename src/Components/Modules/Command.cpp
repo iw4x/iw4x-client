@@ -84,7 +84,7 @@ namespace Components
 	{
 		if (Loader::IsPregame())
 		{
-			MessageBoxA(nullptr, "Registering server commands in pregamestate is illegal!", nullptr, MB_ICONERROR);
+			MessageBoxA(nullptr, "Registering server commands in pregame state is illegal!", nullptr, MB_ICONERROR);
 
 #ifdef DEBUG
 			__debugbreak();
@@ -103,7 +103,7 @@ namespace Components
 			Command::AddRaw(name, Game::Cbuf_AddServerText);
 		}
 
-		FunctionMapSV.insert_or_assign(command, std::move(callback));
+		FunctionMapSV.insert_or_assign(command, callback);
 	}
 
 	void Command::AddRaw(const char* name, void(*callback)(), bool key)
