@@ -220,18 +220,16 @@ namespace Components
 		Logger::Print(Game::CON_CHANNEL_SERVER, "Rotating map...\n");
 		const std::string mapRotation = (*SVMapRotation)->current.string;
 
-		if (mapRotation.empty())
+		// People may have sv_mapRotation empty because they only use 'addMap' or 'addMap'
+		if (!mapRotation.empty())
 		{
-			Logger::Print(Game::CON_CHANNEL_SERVER, "No rotation defined (sv_mapRotation is empty), restarting map.\n");
-			RestartCurrentMap();
-			return;
+			Logger::DebugInfo("sv_mapRotation is not empty. Parsing...");
+			LoadRotation(mapRotation);
 		}
-
-		LoadRotation(mapRotation);
 
 		if (DedicatedRotation.getEntriesSize() == 0)
 		{
-			Logger::Print(Game::CON_CHANNEL_SERVER, "sv_mapRotation is empty or contains invalid data, restarting map.\n");
+			Logger::Print(Game::CON_CHANNEL_SERVER, "sv_mapRotation is empty or contains invalid data. Restarting map\n");
 			RestartCurrentMap();
 			return;
 		}
