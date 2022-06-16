@@ -232,7 +232,7 @@ namespace Components
 				// Only skip intro here, invocation will be done later.
 				Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
 
-				Scheduler::Once([]()
+				Scheduler::Once([]
 				{
 					Command::Execute("openmenu popup_reconnectingtoparty", false);
 				}, Scheduler::Pipeline::CLIENT, 8s);

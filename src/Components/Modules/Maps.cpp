@@ -7,6 +7,8 @@ namespace Components
 	std::vector<std::pair<std::string, std::string>> Maps::DependencyList;
 	std::vector<std::string> Maps::CurrentDependencies;
 
+	Dvar::Var Maps::RListSModels;
+
 	bool Maps::SPMap;
 	std::vector<Maps::DLC> Maps::DlcPacks;
 
@@ -775,7 +777,7 @@ namespace Components
 		Scheduler::Once([]
 		{
 			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
-			Dvar::Register<bool>("r_listSModels", false, Game::DVAR_NONE, "Display a list of visible SModels");
+			Maps::RListSModels = Dvar::Register<bool>("r_listSModels", false, Game::DVAR_NONE, "Display a list of visible SModels");
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
 			Maps::AddDlc({ 2, "Resurgence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
@@ -882,7 +884,7 @@ namespace Components
 		Utils::Hook(0x5A9D51, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5B34DD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 
-		Command::Add("delayReconnect", [](Command::Params*)
+		Command::Add("delayReconnect", []([[maybe_unused]] Command::Params* params)
 		{
 			Scheduler::Once([]
 			{
@@ -913,10 +915,16 @@ namespace Components
 		// Allow hiding specific smodels
 		Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();
 
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+		{
+			return;
+		}
+
+		// Client only
 		Scheduler::Loop([]
 		{
 			auto*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-			if (!Game::CL_IsCgameInitialized() || !gameWorld || !Dvar::Var("r_listSModels").get<bool>()) return;
+			if (!Game::CL_IsCgameInitialized() || !gameWorld || !Maps::RListSModels.get<bool>()) return;
 
 			std::map<std::string, int> models;
 			for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)

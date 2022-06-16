@@ -140,9 +140,6 @@ namespace Components
 
 	void Dedicated::AddDedicatedCommands()
 	{
-		Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
-		Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
-
 		// Say command
 		Command::AddSV("say", [](Command::Params* params)
 		{
@@ -214,7 +211,7 @@ namespace Components
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			// Make sure all callbacks are handled
-			Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::MAIN);
+			Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::SERVER);
 
 			Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
 				Game::dvar_flag::DVAR_NONE, "Don't act as node");
@@ -282,7 +279,13 @@ namespace Components
 
 			if (!ZoneBuilder::IsEnabled())
 			{
-				Scheduler::Once(Dedicated::AddDedicatedCommands, Scheduler::Pipeline::MAIN);
+				Scheduler::Once([]
+				{
+					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
+					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
+				}, Scheduler::Pipeline::MAIN);
+
+				Scheduler::OnGameInitialized(Dedicated::AddDedicatedCommands, Scheduler::Pipeline::SERVER);
 
 				// Post initialization point
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
@@ -295,13 +298,8 @@ namespace Components
 				}, Scheduler::Pipeline::SERVER, 10s);
 
 				// Heartbeats
-				Scheduler::Loop([]
-				{
-					if (Dvar::Var("sv_maxclients").get<int>() > 0)
-					{
-						Dedicated::Heartbeat();
-					}
-				}, Scheduler::Pipeline::SERVER, 2min);
+				Scheduler::Once(Dedicated::Heartbeat, Scheduler::Pipeline::SERVER);
+				Scheduler::Loop(Dedicated::Heartbeat, Scheduler::Pipeline::SERVER, 2min);
 			}
 		}
 		else

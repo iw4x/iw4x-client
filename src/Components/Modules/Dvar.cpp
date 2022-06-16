@@ -213,26 +213,29 @@ namespace Components
 	Game::dvar_t* Dvar::Dvar_RegisterName(const char* name, const char* /*default*/, unsigned __int16 flags, const char* description)
 	{
 		// Name watcher
-		Scheduler::Loop([]
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
-			static std::string lastValidName = "Unknown Soldier";
-			auto name = Dvar::Var("name").get<std::string>();
-
-			// Don't perform any checks if name didn't change
-			if (name == lastValidName) return;
-
-			std::string saneName = TextRenderer::StripAllTextIcons(TextRenderer::StripColors(Utils::String::Trim(name)));
-			if (saneName.size() < 3 || (saneName[0] == '[' && saneName[1] == '{'))
+			Scheduler::Loop([]
 			{
-				Logger::Print("Username '{}' is invalid. It must at least be 3 characters long and not appear empty!\n", name);
-				Dvar::Var("name").set(lastValidName);
-			}
-			else
-			{
-				lastValidName = name;
-				Friends::UpdateName();
-			}
-		}, Scheduler::MAIN, 3s); // Don't need to do this every frame
+				static std::string lastValidName = "Unknown Soldier";
+				auto name = Dvar::Var("name").get<std::string>();
+
+				// Don't perform any checks if name didn't change
+				if (name == lastValidName) return;
+
+				std::string saneName = TextRenderer::StripAllTextIcons(TextRenderer::StripColors(Utils::String::Trim(name)));
+				if (saneName.size() < 3 || (saneName[0] == '[' && saneName[1] == '{'))
+				{
+					Logger::Print("Username '{}' is invalid. It must at least be 3 characters long and not appear empty!\n", name);
+					Dvar::Var("name").set(lastValidName);
+				}
+				else
+				{
+					lastValidName = name;
+					Friends::UpdateName();
+				}
+			}, Scheduler::CLIENT, 3s); // Don't need to do this every frame
+		}
 
 		std::string username = "Unknown Soldier";
 

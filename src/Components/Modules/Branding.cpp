@@ -7,6 +7,12 @@ namespace Components
 	Dvar::Var Branding::CGDrawVersionY;
 	Game::dvar_t** Branding::Version = reinterpret_cast<Game::dvar_t**>(0x1AD7930);
 
+#ifdef _DEBUG
+	constexpr auto* BUILD_TYPE = "IW4x_DEV MP";
+#else
+	constexpr auto* BUILD_TYPE = "IW4x MP";
+#endif
+
 	void Branding::CG_DrawVersion()
 	{
 		// Default values
@@ -45,15 +51,9 @@ namespace Components
 
 	const char* Branding::GetVersionString()
 	{
-#ifdef _DEBUG
-		const auto* buildType = "IW4x_DEV MP";
-#else
-		const auto* buildType = "IW4x MP";
-#endif
-
 		// IW4x is technically a beta
 		const auto* result = Utils::String::VA("%s %s build %s %s",
-			buildType, "(Beta)", Branding::GetBuildNumber(), reinterpret_cast<const char*>(0x7170A0));
+			BUILD_TYPE, "(Beta)", Branding::GetBuildNumber(), reinterpret_cast<const char*>(0x7170A0));
 
 		return result;
 	}
@@ -102,6 +102,11 @@ namespace Components
 
 		// Short version dvar
 		Utils::Hook::Set<const char*>(0x60BD91, SHORTVERSION);
+
+		// Com_Init_Try_Block_Function
+		Utils::Hook::Set<const char*>(0x60BAF4, BUILD_TYPE);
+		Utils::Hook::Set<const char*>(0x60BAEf, SHORTVERSION);
+		Utils::Hook::Set<const char*>(0x60BAE5, __DATE__);
 
 		Utils::Hook(0x4B12B0, Branding::GetBuildNumber, HOOK_JUMP).install()->quick();
 

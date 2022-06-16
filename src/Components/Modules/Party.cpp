@@ -286,27 +286,30 @@ namespace Components
 			Party::Connect(Party::Container.target);
 		});
 
-		Scheduler::Loop([]
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
-			if (Party::Container.valid)
+			Scheduler::Loop([]
 			{
-				if ((Game::Sys_Milliseconds() - Party::Container.joinTime) > 10'000)
+				if (Party::Container.valid)
 				{
-					Party::Container.valid = false;
-					Party::ConnectError("Server connection timed out.");
+					if ((Game::Sys_Milliseconds() - Party::Container.joinTime) > 10'000)
+					{
+						Party::Container.valid = false;
+						Party::ConnectError("Server connection timed out.");
+					}
 				}
-			}
 
-			if (Party::Container.awaitingPlaylist)
-			{
-				if ((Game::Sys_Milliseconds() - Party::Container.requestTime) > 5'000)
+				if (Party::Container.awaitingPlaylist)
 				{
-					Party::Container.awaitingPlaylist = false;
-					Party::ConnectError("Playlist request timed out.");
+					if ((Game::Sys_Milliseconds() - Party::Container.requestTime) > 5'000)
+					{
+						Party::Container.awaitingPlaylist = false;
+						Party::ConnectError("Playlist request timed out.");
+					}
 				}
-			}
 
-		}, Scheduler::Pipeline::CLIENT);
+			}, Scheduler::Pipeline::CLIENT);
+		}
 
 		// Basic info handler
 		Network::OnPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
