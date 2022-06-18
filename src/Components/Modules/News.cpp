@@ -41,7 +41,7 @@ namespace Components
 
 		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_ARCHIVE, "");
 
-		Dvar::Register<int>("cl_updateoldversion", REVISION, REVISION, REVISION, Game::DVAR_WRITEPROTECTED, "Current version number.");
+		Dvar::Register<int>("cl_updateoldversion", REVISION, REVISION, REVISION, Game::DVAR_INIT, "Current version number.");
 
 		UIScript::Add("checkFirstLaunch", [](UIScript::Token)
 		{

@@ -546,7 +546,7 @@ namespace Components
 			}
 		}
 
-		Dvar::Register<bool>(Utils::String::VA("isDlcInstalled_%d", dlc.index), false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
+		Dvar::Register<bool>(Utils::String::VA("isDlcInstalled_%d", dlc.index), false, Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
 
 		Maps::DlcPacks.push_back(dlc);
 		Maps::UpdateDlcStatus();
@@ -776,7 +776,7 @@ namespace Components
 	{
 		Scheduler::Once([]
 		{
-			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
+			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
 			Maps::RListSModels = Dvar::Register<bool>("r_listSModels", false, Game::DVAR_NONE, "Display a list of visible SModels");
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });

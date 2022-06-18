@@ -9,9 +9,9 @@ namespace Components
 	{
 		Scheduler::Once([]
 		{
-			Dvar::Register<const char*>("ui_startupMessage", "", Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
-			Dvar::Register<const char*>("ui_startupMessageTitle", "", Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
-			Dvar::Register<const char*>("ui_startupNextButtonText", "", Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
+			Dvar::Register<const char*>("ui_startupMessage", "", Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
+			Dvar::Register<const char*>("ui_startupMessageTitle", "", Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
+			Dvar::Register<const char*>("ui_startupNextButtonText", "", Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
 		}, Scheduler::Pipeline::MAIN);
 
 		UIScript::Add("nextStartupMessage", [](UIScript::Token)

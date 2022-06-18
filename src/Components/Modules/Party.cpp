@@ -78,7 +78,7 @@ namespace Components
 
 	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int /*value*/, int /*min*/, int max, Game::dvar_flag flag, const char* description)
 	{
-		return Dvar::Register<int>(name, 1, 1, max, Game::dvar_flag::DVAR_WRITEPROTECTED | flag, description).get<Game::dvar_t*>();
+		return Dvar::Register<int>(name, 1, 1, max, Game::dvar_flag::DVAR_INIT | flag, description).get<Game::dvar_t*>();
 	}
 
 	bool Party::PlaylistAwaiting()
@@ -155,7 +155,7 @@ namespace Components
 	Party::Party()
 	{
 		Party::PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::dvar_flag::DVAR_NONE, "Enable party system");
-		Dvar::Register<bool>("xblive_privatematch", true, Game::dvar_flag::DVAR_WRITEPROTECTED, "");
+		Dvar::Register<bool>("xblive_privatematch", true, Game::dvar_flag::DVAR_INIT, "");
 
 		// various changes to SV_DirectConnect-y stuff to allow non-party joinees
 		Utils::Hook::Set<WORD>(0x460D96, 0x90E9);

@@ -75,7 +75,7 @@ namespace Components
 		[[maybe_unused]] float y, float min, float max, [[maybe_unused]] int flags, const char* description)
 	{
 		return Game::Dvar_RegisterVec2(dvarName, -60.0f,
-			474.0f, min, max, Game::dvar_flag::DVAR_READONLY, description);
+			474.0f, min, max, Game::dvar_flag::DVAR_ROM, description);
 	}
 
 	void Branding::RegisterBrandingDvars()
