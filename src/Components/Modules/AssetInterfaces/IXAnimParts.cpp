@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IXAnimParts.hpp"
 
 #define IW4X_ANIM_VERSION 1
 

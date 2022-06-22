@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IGameWorldMp.hpp"
 
 namespace Assets
 {

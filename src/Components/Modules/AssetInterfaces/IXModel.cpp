@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IXModel.hpp"
 
 #define IW4X_MODEL_VERSION 5
 
@@ -48,20 +49,20 @@ namespace Assets
 		}
 
 		// Access index block
-        if (surf->triIndices)
-        {
-            void* oldPtr = surf->triIndices;
-            surf->triIndices = reader->readArray<unsigned short>(surf->triCount * 3);
+		if (surf->triIndices)
+		{
+			void* oldPtr = surf->triIndices;
+			surf->triIndices = reader->readArray<unsigned short>(surf->triCount * 3);
 
-            if (builder->getAllocator()->isPointerMapped(oldPtr))
-            {
-                surf->triIndices = builder->getAllocator()->getPointer<unsigned short>(oldPtr);
-            }
-            else
-            {
-                builder->getAllocator()->mapPointer(oldPtr, surf->triIndices);
-            }
-        }
+			if (builder->getAllocator()->isPointerMapped(oldPtr))
+			{
+				surf->triIndices = builder->getAllocator()->getPointer<unsigned short>(oldPtr);
+			}
+			else
+			{
+				builder->getAllocator()->mapPointer(oldPtr, surf->triIndices);
+			}
+		}
 	}
 
 	void IXModel::loadXModelSurfs(Game::XModelSurfs* asset, Utils::Stream::Reader* reader, Components::ZoneBuilder::Zone* builder)

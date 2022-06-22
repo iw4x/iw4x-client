@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Isnd_alias_list_t.hpp"
 
 namespace Assets
 {

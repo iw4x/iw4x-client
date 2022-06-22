@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IGfxImage.hpp"
 
 #define IW4X_IMG_VERSION "0"
 

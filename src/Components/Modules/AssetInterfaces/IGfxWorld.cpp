@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IGfxWorld.hpp"
 
 #define IW4X_GFXMAP_VERSION 1
 
@@ -950,7 +951,7 @@ namespace Assets
 		}
 
 		buffer->popBlock();
-        SaveLogExit();
+		SaveLogExit();
 	}
 
 	void IGfxWorld::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
