@@ -107,7 +107,7 @@ namespace Components
 			Logger::Print(Game::CON_CHANNEL_SERVER, "{}: sv_mapRotation contains invalid data!\n", ex.what());
 		}
 
-		Logger::DebugInfo("DedicatedRotation size after parsing is '{}'\n", DedicatedRotation.getEntriesSize());
+		Logger::Debug("DedicatedRotation size after parsing is '{}'", DedicatedRotation.getEntriesSize());
 
 		loaded = true;
 	}
@@ -187,7 +187,7 @@ namespace Components
 
 			if (entry.first == "map")
 			{
-				Logger::DebugInfo("Loading new map: '{}'\n", entry.second);
+				Logger::Debug("Loading new map: '{}'", entry.second);
 				Command::Execute(Utils::String::VA("map %s", entry.second.data()), true);
 
 				// Map was found so we exit the loop
@@ -195,7 +195,7 @@ namespace Components
 			}
 			else if (entry.first == "gametype")
 			{
-				Logger::DebugInfo("Applying new gametype: '{}'\n", entry.second);
+				Logger::Debug("Applying new gametype: '{}'", entry.second);
 				Dvar::Var("g_gametype").set(entry.second);
 			}
 
@@ -212,7 +212,7 @@ namespace Components
 		}
 		else
 		{
-			Logger::DebugInfo("Map rotation was not randomized");
+			Logger::Debug("Map rotation was not randomized");
 		}
 	}
 
@@ -226,10 +226,10 @@ namespace Components
 		Logger::Print(Game::CON_CHANNEL_SERVER, "Rotating map...\n");
 		const std::string mapRotation = (*SVMapRotation)->current.string;
 
-		// People may have sv_mapRotation empty because they only use 'addMap' or 'addMap'
+		// People may have sv_mapRotation empty because they only use 'addMap' or 'addGametype'
 		if (!mapRotation.empty())
 		{
-			Logger::DebugInfo("sv_mapRotation is not empty. Parsing...");
+			Logger::Debug("sv_mapRotation is not empty. Parsing...");
 			LoadRotation(mapRotation);
 		}
 
@@ -260,7 +260,7 @@ namespace Components
 	{
 		RotationData rotation;
 
-		Logger::DebugInfo("Testing map rotation parsing...");
+		Logger::Debug("Testing map rotation parsing...");
 
 		const auto* normal = "map mp_highrise map mp_terminal map mp_firingrange map mp_trailerpark gametype dm map mp_shipment_long";
 

@@ -373,7 +373,7 @@ namespace Components
 			}
 
 			Toast::Show("cardicon_headshot", "^2Success", Utils::String::VA("Spawning %d %s...", count, (count == 1 ? "bot" : "bots")), 3000);
-			Logger::DebugInfo("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
+			Logger::Debug("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
 
 			Bots::Spawn(count);
 		});

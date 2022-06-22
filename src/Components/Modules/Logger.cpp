@@ -48,13 +48,14 @@ namespace Components
 		}
 	}
 
-	void Logger::DebugInternal(const bool verbose, const std::source_location& srcLoc, const std::string_view fmt, std::format_args&& args)
+	void Logger::DebugInternal(std::string_view fmt, std::format_args&& args, [[maybe_unused]] const std::source_location& loc)
 	{
 		const auto msg = std::vformat(fmt, args);
-
-		const auto out = verbose
-			? std::format("Debug:\n    {}\nFile:    {}\nLine:    {}\n", msg, srcLoc.file_name(), srcLoc.line())
-			: std::format("Debug:\n    {}\n", msg);
+#ifdef LOGGER_TRACE
+		const auto out = std::format("Debug:\n    {}\nFile:    {}\nLine:    {}\n", msg, loc.file_name(), loc.line());
+#else
+		const auto out = std::format("Debug:\n    {}\n", msg);
+#endif
 
 		Logger::MessagePrint(Game::CON_CHANNEL_DONT_FILTER, out);
 	}

@@ -21,104 +21,77 @@ namespace Components
 		static void ErrorInternal(Game::errorParm_t error, std::string_view fmt, std::format_args&& args);
 		static void PrintErrorInternal(int channel, std::string_view fmt, std::format_args&& args);
 		static void WarningInternal(int channel, std::string_view fmt, std::format_args&& args);
-		static void DebugInternal(bool verbose, const std::source_location& srcLoc, std::string_view fmt, std::format_args&& args);
+		static void DebugInternal(std::string_view fmt, std::format_args&& args, const std::source_location& loc);
 
-		__forceinline static void Print(std::string_view fmt)
+		static void Print(std::string_view fmt)
 		{
 			PrintInternal(Game::CON_CHANNEL_DONT_FILTER, fmt, std::make_format_args(0));
 		}
 
-		__forceinline static void Print(int channel, std::string_view fmt)
+		static void Print(int channel, std::string_view fmt)
 		{
 			PrintInternal(channel, fmt, std::make_format_args(0));
 		}
 
 		template <typename... Args>
-		__forceinline static void Print(std::string_view fmt, Args&&... args)
+		static void Print(std::string_view fmt, Args&&... args)
 		{
 			PrintInternal(Game::CON_CHANNEL_DONT_FILTER, fmt, std::make_format_args(args...));
 		}
 
 		template <typename... Args>
-		__forceinline static void Print(int channel, std::string_view fmt, Args&&... args)
+		static void Print(int channel, std::string_view fmt, Args&&... args)
 		{
 			PrintInternal(channel, fmt, std::make_format_args(args...));
 		}
 
-		__forceinline static void Error(Game::errorParm_t error, std::string_view fmt)
+		static void Error(Game::errorParm_t error, std::string_view fmt)
 		{
 			ErrorInternal(error, fmt, std::make_format_args(0));
 		}
 
 		template <typename... Args>
-		__forceinline static void Error(Game::errorParm_t error, std::string_view fmt, Args&&... args)
+		static void Error(Game::errorParm_t error, std::string_view fmt, Args&&... args)
 		{
 			ErrorInternal(error, fmt, std::make_format_args(args...));
 		}
 
-		__forceinline static void Warning(int channel, std::string_view fmt)
+		static void Warning(int channel, std::string_view fmt)
 		{
 			WarningInternal(channel, fmt, std::make_format_args(0));
 		}
 
 		template <typename... Args>
-		__forceinline static void Warning(int channel, std::string_view fmt, Args&&... args)
+		static void Warning(int channel, std::string_view fmt, Args&&... args)
 		{
 			WarningInternal(channel, fmt, std::make_format_args(args...));
 		}
 
-		__forceinline static void PrintError(int channel, std::string_view fmt)
+		static void PrintError(int channel, std::string_view fmt)
 		{
 			PrintErrorInternal(channel, fmt, std::make_format_args(0));
 		}
 
 		template <typename... Args>
-		__forceinline static void PrintError(int channel, std::string_view fmt, Args&&... args)
+		static void PrintError(int channel, std::string_view fmt, Args&&... args)
 		{
 			PrintErrorInternal(channel, fmt, std::make_format_args(args...));
 		}
 
+		template <typename... Args>
+		class Debug
+		{
+		public:
+			Debug([[maybe_unused]] std::string_view fmt, [[maybe_unused]] const Args&... args, [[maybe_unused]] const std::source_location& loc = std::source_location::current())
+			{
 #ifdef _DEBUG
-		__forceinline static void DebugInfo([[maybe_unused]] std::string_view fmt)
-		{
-			DebugInternal(true, std::source_location::current(), fmt, std::make_format_args(0));
-		}
-
-		template <typename... Args>
-		__forceinline static void DebugInfo([[maybe_unused]] std::string_view fmt, [[maybe_unused]] Args&&... args)
-		{
-			DebugInternal(true, std::source_location::current(), fmt, std::make_format_args(args...));
-		}
-
-		__forceinline static void Debug([[maybe_unused]] std::string_view fmt)
-		{
-			DebugInternal(false, std::source_location::current(), fmt, std::make_format_args(0));
-		}
-
-		template <typename... Args>
-		__forceinline static void Debug([[maybe_unused]] std::string_view fmt, [[maybe_unused]] Args&&... args)
-		{
-			DebugInternal(false, std::source_location::current(), fmt, std::make_format_args(args...));
-		}
-#else
-		__forceinline static void DebugInfo([[maybe_unused]] std::string_view fmt)
-		{
-		}
-
-		template <typename... Args>
-		__forceinline static void DebugInfo([[maybe_unused]] std::string_view fmt, [[maybe_unused]] Args&&... args)
-		{
-		}
-
-		__forceinline static void Debug([[maybe_unused]] std::string_view fmt)
-		{
-		}
-
-		template <typename... Args>
-		__forceinline static void Debug([[maybe_unused]] std::string_view fmt, [[maybe_unused]] Args&&... args)
-		{
-		}
+				DebugInternal(fmt, std::make_format_args(args...), loc);
 #endif
+			}
+		};
+
+		template <typename... Args>
+		Debug(std::string_view fmt, const Args&... args) -> Debug<Args...>;
 
 	private:
 		static std::mutex MessageMutex;

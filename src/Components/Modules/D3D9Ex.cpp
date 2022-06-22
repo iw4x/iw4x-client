@@ -573,7 +573,7 @@ namespace Components
 		// TODO: Fix the actual error!
 		if (IsBadReadPtr(pConstantData, Vector4fCount * 16))
 		{
-			Logger::DebugInfo("Invalid shader constant array!");
+			Logger::Debug("Invalid shader constant array!");
 			return D3DERR_INVALIDCALL;
 		}
 

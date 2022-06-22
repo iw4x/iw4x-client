@@ -698,7 +698,7 @@ namespace Components
 	bool QuickPatch::unitTest()
 	{
 		uint32_t randIntCount = 4'000'000;
-		Logger::Debug("Generating %d random integers...", randIntCount);
+		Logger::Debug("Generating {} random integers...", randIntCount);
 
 		const auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -708,7 +708,7 @@ namespace Components
 		}
 
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
-		Logger::Debug("took {}ms\n", duration);
+		Logger::Debug("took {}ms", duration);
 
 		Logger::Debug("Testing ZLib compression...");
 

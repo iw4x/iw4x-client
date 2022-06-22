@@ -41,7 +41,7 @@ namespace Components
 
 		Session::Send(this->address, "nodeListRequest");
 		Node::SendList(this->address);
-		Logger::DebugInfo("Sent request to {}\n", this->address.getCString());
+		Logger::Debug("Sent request to {}", this->address.getCString());
 	}
 
 	void Node::Entry::reset()
@@ -235,7 +235,7 @@ namespace Components
 		Proto::Node::List list;
 		if (!list.ParseFromString(data)) return;
 
-		Logger::DebugInfo("Received response from {}\n", address.getCString());
+		Logger::Debug("Received response from {}", address.getCString());
 
 		std::lock_guard _(Node::Mutex);
 
@@ -253,12 +253,12 @@ namespace Components
 		{
 			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::useMasterServer && list.protocol() == PROTOCOL)
 			{
-				Logger::DebugInfo("Inserting {} into the serverlist\n", address.getCString());
+				Logger::Debug("Inserting {} into the serverlist", address.getCString());
 				ServerList::InsertRequest(address);
 			}
 			else
 			{
-				Logger::DebugInfo("Dropping serverlist insertion for {}\n", address.getCString());
+				Logger::Debug("Dropping serverlist insertion for {}", address.getCString());
 			}
 
 			for (auto& node : Node::Nodes)
