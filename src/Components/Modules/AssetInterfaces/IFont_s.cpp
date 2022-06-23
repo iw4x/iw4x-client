@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IFont_s.hpp"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
@@ -104,13 +105,13 @@ namespace Assets
 
 			if (!errors.empty())
 			{
-				Components::Logger::Error("Font define %s is broken: %s.", name.data(), errors.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Font define {} is broken: {}", name, errors);
 				return;
 			}
 
 			if (!fontDef.is_object())
 			{
-				Components::Logger::Error("Font define %s is invaild.", name.data(), errors.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Font define {} is invalid {}", name, errors);
 				return;
 			}
 
@@ -135,7 +136,10 @@ namespace Assets
 			auto* material = builder->getAllocator()->allocate<Game::Material>();
 			std::memcpy(material, Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "fonts/gamefonts_pc").material, sizeof(Game::Material));
 
-			material->textureTable = builder->getAllocator()->allocate<Game::MaterialTextureDef>();
+			auto textureTable = builder->getAllocator()->allocate<Game::MaterialTextureDef>();
+			std::memcpy(textureTable, material->textureTable, sizeof(Game::MaterialTextureDef));
+
+			material->textureTable = textureTable;
 			material->textureTable->u.image = image;
 			material->info.name = fontName;
 
@@ -159,7 +163,7 @@ namespace Assets
 				{
 					if (std::find(charset.begin(), charset.end(), i) == charset.end())
 					{
-						Components::Logger::Error("Font %s missing codepoint %d.", name.data(), i);
+						Components::Logger::Error(Game::ERR_FATAL, "Font {} missing codepoint {}", name.data(), i);
 					}
 				}
 			}
@@ -183,15 +187,15 @@ namespace Assets
 
 			if (result == -1)
 			{
-				Components::Logger::Error("Truetype font %s is broken.", name.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Truetype font {} is broken", name);
 			}
 			else if (result < 0)
 			{
-				Components::Logger::Error("Texture size of font %s is not enough.", name.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Texture size of font {} is not enough", name);
 			}
 			else if(h - result > size)
 			{
-				Components::Logger::Print("Warn: Texture of font %s have too much left over space: %d\n", name.data(), h - result);
+				Components::Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Texture of font {} have too much left over space: {}\n", name, h - result);
 			}
 
 			header->font = font;

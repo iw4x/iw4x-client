@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IGfxLightDef.hpp"
 
 #define IW4X_LIGHT_VERSION "0"
 
@@ -15,14 +16,14 @@ namespace Assets
 			char* magic = reader.readArray<char>(7);
 			if (std::memcmp(magic, "IW4xLit", 7))
 			{
-				Components::Logger::Error(0, "Reading light '%s' failed, header is invalid!", name.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Reading light '{}' failed, header is invalid!", name);
 			}
 
 			std::string version;
 			version.push_back(reader.read<char>());
 			if (version != IW4X_LIGHT_VERSION)
 			{
-				Components::Logger::Error("Reading light '%s' failed, expected version is %d, but it was %d!", name.data(), atoi(IW4X_LIGHT_VERSION), atoi(version.data()));
+				Components::Logger::Error(Game::ERR_FATAL, "Reading light '{}' failed, expected version is {}, but it was {}!", name, IW4X_LIGHT_VERSION, version);
 			}
 
 			Game::GfxLightDef* asset = reader.readObject<Game::GfxLightDef>();

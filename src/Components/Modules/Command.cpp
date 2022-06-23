@@ -60,11 +60,19 @@ namespace Components
 		return Game::sv_cmd_args->argv[this->nesting_][index];
 	}
 
-	void Command::Add(const char* name, std::function<void(Command::Params*)> callback)
+	void Command::Add(const char* name, const std::function<void()>& callback)
+	{
+		Add(name, [callback]([[maybe_unused]] const Command::Params* params)
+		{
+			callback();
+		});
+	}
+
+	void Command::Add(const char* name, const std::function<void(Command::Params*)>& callback)
 	{
 		const auto command = Utils::String::ToLower(name);
 
-		if (Command::FunctionMap.find(command) == Command::FunctionMap.end())
+		if (!Command::FunctionMap.contains(command))
 		{
 			Command::AddRaw(name, Command::MainCallback);
 		}
@@ -72,11 +80,11 @@ namespace Components
 		Command::FunctionMap.insert_or_assign(command, std::move(callback));
 	}
 
-	void Command::AddSV(const char* name, std::function<void(Command::Params*)> callback)
+	void Command::AddSV(const char* name, const std::function<void(Command::Params*)>& callback)
 	{
 		if (Loader::IsPregame())
 		{
-			MessageBoxA(nullptr, "Registering server commands in pregamestate is illegal!", nullptr, MB_ICONERROR);
+			MessageBoxA(nullptr, "Registering server commands in pregame state is illegal!", nullptr, MB_ICONERROR);
 
 #ifdef DEBUG
 			__debugbreak();
@@ -87,7 +95,7 @@ namespace Components
 
 		const auto command = Utils::String::ToLower(name);
 
-		if (Command::FunctionMapSV.find(command) == Command::FunctionMapSV.end())
+		if (!Command::FunctionMapSV.contains(command))
 		{
 			Command::AddRawSV(name, Command::MainCallbackSV);
 
@@ -95,7 +103,7 @@ namespace Components
 			Command::AddRaw(name, Game::Cbuf_AddServerText);
 		}
 
-		FunctionMapSV.insert_or_assign(command, std::move(callback));
+		FunctionMapSV.insert_or_assign(command, callback);
 	}
 
 	void Command::AddRaw(const char* name, void(*callback)(), bool key)
@@ -167,18 +175,5 @@ namespace Components
 		{
 			got->second(&params);
 		}
-	}
-
-	Command::Command()
-	{
-		AssertSize(Game::cmd_function_t, 24);
-
-		Command::Add("openLink", [](Command::Params* params)
-		{
-			if (params->size() > 1)
-			{
-				Utils::OpenUrl(params->get(1));
-			}
-		});
 	}
 }

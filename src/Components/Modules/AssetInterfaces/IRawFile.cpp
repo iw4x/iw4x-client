@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IRawFile.hpp"
 
 namespace Assets
 {

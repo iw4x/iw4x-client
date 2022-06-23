@@ -219,7 +219,7 @@ namespace Components
 
 	Movement::Movement()
 	{
-		Dvar::OnInit([]
+		Scheduler::Once([]
 		{
 			static const char* bg_bouncesValues[] =
 			{
@@ -260,7 +260,7 @@ namespace Components
 
 			Movement::BGPlayerCollision = Dvar::Register<bool>("bg_playerCollision",
 				true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		// Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used.
 		Utils::Hook(0x448990, Movement::Dvar_RegisterSpectateSpeedScale, HOOK_CALL).install()->quick();

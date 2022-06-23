@@ -34,7 +34,7 @@ namespace Utils
 
 				this->refMemory.clear();
 
-				for (auto& data : this->pool)
+				for (const auto& data : this->pool)
 				{
 					Memory::Free(data);
 				}
@@ -108,7 +108,7 @@ namespace Utils
 
 			bool isPointerMapped(void* ptr)
 			{
-				return this->ptrMap.find(ptr) != this->ptrMap.end();
+				return this->ptrMap.contains(ptr);
 			}
 
 			template <typename T> T* getPointer(void* oldPtr)

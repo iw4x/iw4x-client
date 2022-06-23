@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.3] - 2022-06-23
+
+### Added
+
+- Add SetName GSC method (#288)
+- Add ResetName GSC method (#288)
+- Add OnPlayerSay GSC function (#265)
+- Add Give client command (works with weapons only) (#292)
+- Add `sv_disableChat` Dvar (#290)
+- Add `addMap` command (#302)
+- Add `addGametype` command (#302)
+
+### Changed
+
+- `openLink` command was removed for security reasons  (#286)
+
+### Fixed
+
+- Fix font generation (#277)
+- Fix crash on clearing key binds (#278)
+- Fix maps dropping out of the map rotation when using `sv_randomMapRotation` (#283)
+
+### Known issue
+
+- HTTPS is not supported for fast downloads at the moment.
+- Sound issue fix is experimental as the bug is not fully understood.
+- `reloadmenus` command does not free resources used by custom menus.
+- Toast notifications have been disabled because they cause a crash that needs to be investigated
+
 ## [0.7.2] - 2022-05-10
 
 ### Added
@@ -19,7 +48,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Knife charge is fixed for controller players (#259)
 - Fixed internet, local and favorites filters (#260)
-- `sv_lanOnly` Dvar now prevents the server from sending heatbeats to master if set to true (#246)
+- `sv_lanOnly` Dvar now prevents the server from sending heartbeats to master if set to true (#246)
 
 ### Known issue
 

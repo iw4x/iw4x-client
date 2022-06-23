@@ -213,7 +213,7 @@ namespace Components
 		});
 
 		// Invocation handler
-		Scheduler::OnReady(ConnectProtocol::Invocation);
+		Scheduler::OnGameInitialized(ConnectProtocol::Invocation, Scheduler::Pipeline::MAIN);
 
 		ConnectProtocol::InstallProtocol();
 		ConnectProtocol::EvaluateProtocol();
@@ -232,10 +232,10 @@ namespace Components
 				// Only skip intro here, invocation will be done later.
 				Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
 
-				Scheduler::OnDelay([]()
+				Scheduler::Once([]
 				{
 					Command::Execute("openmenu popup_reconnectingtoparty", false);
-				}, 8s);
+				}, Scheduler::Pipeline::CLIENT, 8s);
 			}
 		}
 	}

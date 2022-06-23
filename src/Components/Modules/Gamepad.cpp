@@ -373,7 +373,7 @@ namespace Components
 		if (!ps->weapIndex)
 			return false;
 
-		const auto* weaponDef = Game::BG_GetWeaponDef(ps->weapIndex);
+		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(ps->weapIndex));
 
 		return weaponDef->offhandClass != Game::OFFHAND_CLASS_NONE;
 	}
@@ -448,7 +448,7 @@ namespace Components
 		if (!AimAssist_IsLockonActive(input->localClientNum))
 			return;
 
-		const auto* weaponDef = Game::BG_GetWeaponDef(aaGlob.ps.weapIndex);
+		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(aaGlob.ps.weapIndex));
 		if (weaponDef->requireLockonToFire)
 			return;
 
@@ -532,7 +532,7 @@ namespace Components
 		if (!ps->weapIndex)
 			return false;
 
-		const auto* weaponDef = Game::BG_GetWeaponDef(ps->weapIndex);
+		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(ps->weapIndex));
 		if (weaponDef->requireLockonToFire)
 			return false;
 
@@ -565,7 +565,7 @@ namespace Components
 		if (!AimAssist_IsSlowdownActive(&aaGlob.ps))
 			return;
 
-		const auto* weaponDef = Game::BG_GetWeaponDef(aaGlob.ps.weapIndex);
+		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(aaGlob.ps.weapIndex));
 		const auto aimAssistRange = AimAssist_Lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
 		const auto screenTarget = AimAssist_GetBestTarget(&aaGlob, aimAssistRange, aaGlob.tweakables.slowdownRegionWidth, aaGlob.tweakables.slowdownRegionHeight);
 
@@ -1390,17 +1390,15 @@ namespace Components
 
 		GPad_UpdateSticksDown(gamePadIndex);
 
-#ifdef DEBUG
 		if (gpad_debug.get<bool>())
 		{
-			Logger::Print("Left: X: %f Y: %f\n", lVec[0], lVec[1]);
-			Logger::Print("Right: X: %f Y: %f\n", rVec[0], rVec[1]);
-			Logger::Print("Down: %i:%i %i:%i %i:%i %i:%i\n", gamePad.stickDown[0][Game::GPAD_STICK_POS], gamePad.stickDown[0][Game::GPAD_STICK_NEG],
-						  gamePad.stickDown[1][Game::GPAD_STICK_POS], gamePad.stickDown[1][Game::GPAD_STICK_NEG],
-						  gamePad.stickDown[2][Game::GPAD_STICK_POS], gamePad.stickDown[2][Game::GPAD_STICK_NEG],
-						  gamePad.stickDown[3][Game::GPAD_STICK_POS], gamePad.stickDown[3][Game::GPAD_STICK_NEG]);
+			Logger::Debug("Left: X: {:f} Y: {:f}", lVec[0], lVec[1]);
+			Logger::Debug("Right: X: {:f} Y: {:f}", rVec[0], rVec[1]);
+			Logger::Debug("Down: {}:{} {}:{} {}:{} {}:{}", gamePad.stickDown[0][Game::GPAD_STICK_POS], gamePad.stickDown[0][Game::GPAD_STICK_NEG],
+						gamePad.stickDown[1][Game::GPAD_STICK_POS], gamePad.stickDown[1][Game::GPAD_STICK_NEG],
+						gamePad.stickDown[2][Game::GPAD_STICK_POS], gamePad.stickDown[2][Game::GPAD_STICK_NEG],
+						gamePad.stickDown[3][Game::GPAD_STICK_POS], gamePad.stickDown[3][Game::GPAD_STICK_NEG]);
 		}
-#endif
 	}
 
 	void Gamepad::GPad_UpdateDigitals(const int gamePadIndex, const XINPUT_GAMEPAD& state)
@@ -1419,12 +1417,10 @@ namespace Components
 		if (std::fabs(gamePad.sticks[2]) > leftDeflect || std::fabs(gamePad.sticks[3]) > rightDeflect)
 			gamePad.digitals &= ~static_cast<short>(XINPUT_GAMEPAD_RIGHT_THUMB);
 
-#ifdef DEBUG
 		if (gpad_debug.get<bool>())
 		{
-			Logger::Print("Buttons: %x\n", gamePad.digitals);
+			Logger::Debug("Buttons: {:#x}", gamePad.digitals);
 		}
-#endif
 	}
 
 	void Gamepad::GPad_UpdateAnalogs(const int gamePadIndex, const XINPUT_GAMEPAD& state)
@@ -1446,12 +1442,10 @@ namespace Components
 		if (gamePad.analogs[1] < buttonDeadZone)
 			gamePad.analogs[1] = 0.0f;
 
-#ifdef DEBUG
 		if (gpad_debug.get<bool>())
 		{
-			Logger::Print("Triggers: %f %f\n", gamePad.analogs[0], gamePad.analogs[1]);
+			Logger::Debug("Triggers: {:f} {:f}", gamePad.analogs[0], gamePad.analogs[1]);
 		}
-#endif
 	}
 
 	void Gamepad::GPad_UpdateAll()
@@ -1658,21 +1652,21 @@ namespace Components
 		const Game::GamepadPhysicalAxis physicalAxis = StringToPhysicalAxis(physicalAxisText);
 		if (physicalAxis == Game::GPAD_PHYSAXIS_NONE)
 		{
-			Logger::Print("\"%s\" isn't a valid physical axis\n", physicalAxisText);
+			Logger::Print("\"{}\" isn't a valid physical axis\n", physicalAxisText);
 			return;
 		}
 
 		const Game::GamepadVirtualAxis virtualAxis = StringToVirtualAxis(virtualAxisText);
 		if (virtualAxis == Game::GPAD_VIRTAXIS_NONE)
 		{
-			Logger::Print("\"%s\" isn't a valid virtual axis\n", virtualAxisText);
+			Logger::Print("\"{}\" isn't a valid virtual axis\n", virtualAxisText);
 			return;
 		}
 
 		const Game::GamepadMapping mapping = StringToGamePadMapping(mappingText);
 		if (mapping == Game::GPAD_MAP_NONE)
 		{
-			Logger::Print("\"%s\" isn't a valid input type\n", mappingText);
+			Logger::Print("\"{}\" isn't a valid input type\n", mappingText);
 			return;
 		}
 
@@ -1717,8 +1711,8 @@ namespace Components
 	{
 		gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_ARCHIVE, "Game pad enabled");
 		gpad_debug = Dvar::Register<bool>("gpad_debug", false, Game::DVAR_NONE, "Game pad debugging");
-		gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_READONLY, "Game pad present");
-		gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_READONLY, "A game pad is in use");
+		gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_ROM, "Game pad present");
+		gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_ROM, "A game pad is in use");
 		gpad_style = Dvar::Register<bool>("gpad_style", false, Game::DVAR_ARCHIVE, "Switch between Xbox and PS HUD");
 		gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "", Game::DVAR_ARCHIVE, "Game pad stick configuration");
 		gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_ARCHIVE, "Game pad button configuration");
@@ -1786,6 +1780,9 @@ namespace Components
 	int Gamepad::Key_GetCommandAssignmentInternal([[maybe_unused]] int localClientNum, const char* cmd, int (*keys)[2])
 	{
 		auto keyCount = 0;
+
+		(*keys)[0] = -1;
+		(*keys)[1] = -1;
 
 		if (gamePads[0].inUse)
 		{

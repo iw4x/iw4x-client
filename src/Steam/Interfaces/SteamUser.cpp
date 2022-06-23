@@ -42,7 +42,6 @@ namespace Steam
 
 	int User::InitiateGameConnection(void *pAuthBlob, int cbMaxAuthBlob, SteamID steamIDGameServer, unsigned int unIPServer, unsigned short usPortServer, bool bSecure)
 	{
-		Components::Logger::Print("%s\n", __FUNCTION__);
 		return 0;
 	}
 

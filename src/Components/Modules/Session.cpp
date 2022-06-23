@@ -11,11 +11,11 @@ namespace Components
 
 	Utils::Cryptography::ECC::Key Session::SignatureKey;
 
-	std::map<std::string, Utils::Slot<Network::Callback>> Session::PacketHandlers;
+	std::unordered_map<std::string, Network::NetworkCallback> Session::PacketHandlers;
 
 	std::queue<std::pair<Network::Address, std::string>> Session::SignatureQueue;
 
-	void Session::Send(Network::Address target, const std::string& command, const std::string& data)
+	void Session::Send(const Network::Address& target, const std::string& command, const std::string& data)
 	{
 #ifdef DISABLE_SESSION
 		class DelayedResend
@@ -26,27 +26,27 @@ namespace Components
 			std::string data;
 		};
 
-		DelayedResend* delayData = new DelayedResend;
+		auto* delayData = new DelayedResend;
 		delayData->target = target;
 		delayData->command = command;
 		delayData->data = data;
 
 		Network::SendCommand(target, command, data);
 
-		Scheduler::OnDelay([delayData]()
+		Scheduler::Once([delayData]
 		{
 			Network::SendCommand(delayData->target, delayData->command, delayData->data);
 			delete delayData;
-		}, 500ms + std::chrono::milliseconds(rand() % 200));
+		}, Scheduler::Pipeline::SERVER, 500ms + std::chrono::milliseconds(std::rand() % 200));
 #else
-		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
+		std::lock_guard _(Session::Mutex);
 
 		auto queue = Session::PacketQueue.find(target);
 		if (queue == Session::PacketQueue.end())
 		{
 			Session::PacketQueue[target] = std::queue<std::shared_ptr<Session::Packet>>();
 			queue = Session::PacketQueue.find(target);
-			if (queue == Session::PacketQueue.end()) Logger::Error("Failed to enqueue session packet!\n");
+			if (queue == Session::PacketQueue.end()) Logger::Error(Game::ERR_FATAL, "Failed to enqueue session packet!\n");
 		}
 
 		std::shared_ptr<Session::Packet> packet = std::make_shared<Session::Packet>();
@@ -58,19 +58,19 @@ namespace Components
 #endif
 	}
 
-	void Session::Handle(const std::string& packet, Utils::Slot<Network::Callback> callback)
+	void Session::Handle(const std::string& packet, const Network::NetworkCallback& callback)
 	{
 #ifdef DISABLE_SESSION
-		Network::Handle(packet, callback);
+		Network::OnPacket(packet, callback);
 #else
-		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
+		std::lock_guard _(Session::Mutex);
 		Session::PacketHandlers[packet] = callback;
 #endif
 	}
 
 	void Session::RunFrame()
 	{
-		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
+		std::lock_guard _(Session::Mutex);
 
 		for (auto queue = Session::PacketQueue.begin(); queue != Session::PacketQueue.end();)
 		{
@@ -150,26 +150,26 @@ namespace Components
 			});
 		}
 
-		Network::Handle("sessionSyn", [](Network::Address address, const std::string& data)
+		Network::OnPacket("sessionSyn", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			Session::Frame frame;
 			frame.challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
-			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
+			std::lock_guard _(Session::Mutex);
 			Session::Sessions[address] = frame;
 
 			Network::SendCommand(address, "sessionAck", frame.challenge);
 		});
 
-		Network::Handle("sessionAck", [](Network::Address address, const std::string& data)
+		Network::OnPacket("sessionAck", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
-			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
+			std::lock_guard _(Session::Mutex);
 			Session::SignatureQueue.push({ address, data });
 		});
 
-		Network::Handle("sessionFin", [](Network::Address address, const std::string& data)
+		Network::OnPacket("sessionFin", [](Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
-			std::lock_guard<std::recursive_mutex> _(Session::Mutex);
+			std::lock_guard _(Session::Mutex);
 
 			auto frame = Session::Sessions.find(address);
 			if (frame == Session::Sessions.end()) return;
@@ -195,7 +195,7 @@ namespace Components
 
 	Session::~Session()
 	{
-		std::lock_guard<std::recursive_mutex> _(Session::Mutex);
+		std::lock_guard _(Session::Mutex);
 		Session::PacketHandlers.clear();
 		Session::PacketQueue.clear();
 		Session::SignatureQueue = std::queue<std::pair<Network::Address, std::string>>();

@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IPhysPreset.hpp"
 
 namespace Assets
 {

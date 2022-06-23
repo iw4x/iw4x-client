@@ -13,7 +13,7 @@ namespace Components
 
 		if (entry.first.bits)
 		{
-			for (auto& idEntry : list.idList)
+			for (const auto& idEntry : list.idList)
 			{
 				if (idEntry.bits == entry.first.bits)
 				{
@@ -89,21 +89,21 @@ namespace Components
 		std::vector<std::string> idVector;
 		std::vector<std::string> ipVector;
 
-		for (auto& idEntry : list->idList)
+		for (const auto& idEntry : list->idList)
 		{
-			idVector.push_back(Utils::String::VA("%llX", idEntry.bits));
+			idVector.emplace_back(Utils::String::VA("%llX", idEntry.bits));
 		}
 
-		for (auto& ipEntry : list->ipList)
+		for (const auto& ipEntry : list->ipList)
 		{
-			ipVector.push_back(Utils::String::VA("%u.%u.%u.%u",
+			ipVector.emplace_back(Utils::String::VA("%u.%u.%u.%u",
 				ipEntry.bytes[0] & 0xFF,
 				ipEntry.bytes[1] & 0xFF,
 				ipEntry.bytes[2] & 0xFF,
 				ipEntry.bytes[3] & 0xFF));
 		}
 
-		json11::Json bans = json11::Json::object
+		const json11::Json bans = json11::Json::object
 		{
 			{ "ip", ipVector },
 			{ "id", idVector },
@@ -126,7 +126,7 @@ namespace Components
 
 			if (!error.empty())
 			{
-				Logger::Error("Failed to parse bans (bans.json): %s", error.data());
+				Logger::Error(Game::ERR_FATAL, "Failed to parse bans (bans.json): {}", error);
 			}
 
 			if (!list) return;
@@ -176,7 +176,7 @@ namespace Components
 
 		if (*Game::svs_clientCount <= num)
 		{
-			Logger::Print("Player %d is not on the server\n", num);
+			Logger::Print("Player {} is not on the server\n", num);
 			return;
 		}
 
@@ -253,7 +253,7 @@ namespace Components
 				Network::Address address(params->get(2));
 				Bans::UnbanClient(address.getIP());
 
-				Logger::Print("Unbanned IP %s\n", params->get(2));
+				Logger::Print("Unbanned IP {}\n", params->get(2));
 
 			}
 			else if (type == "guid"s)
@@ -263,15 +263,15 @@ namespace Components
 
 				Bans::UnbanClient(id);
 
-				Logger::Print("Unbanned GUID %s\n", params->get(2));
+				Logger::Print("Unbanned GUID {}\n", params->get(2));
 			}
 		});
 
 		// Verify the list on startup
-		Scheduler::Once([]()
+		Scheduler::OnGameInitialized([]
 		{
 			Bans::BanList list;
 			Bans::LoadBans(&list);
-		});
+		}, Scheduler::Pipeline::SERVER);
 	}
 }

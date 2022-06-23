@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IclipMap_t.hpp"
 
 #define IW4X_CLIPMAP_VERSION 2
 
@@ -601,13 +602,13 @@ namespace Assets
 		__int64 magic = reader.read<__int64>();
 		if (std::memcmp(&magic, "IW4xClip", 8))
 		{
-			Components::Logger::Error(0, "Reading clipMap_t '%s' failed, header is invalid!", name.data());
+			Components::Logger::Error(Game::ERR_FATAL, "Reading clipMap_t '{}' failed, header is invalid!", name);
 		}
 
 		int version = reader.read<int>();
 		if (version > IW4X_CLIPMAP_VERSION)
 		{
-			Components::Logger::Error(0, "Reading clipmap '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_CLIPMAP_VERSION, version);
+			Components::Logger::Error(Game::ERR_FATAL, "Reading clipmap '{}' failed, expected version is {}, but it was {}!", name, IW4X_CLIPMAP_VERSION, version);
 		}
 
 		clipMap->name = reader.readCString();
@@ -682,7 +683,7 @@ namespace Assets
 				int planeIndex = reader.read<int>();
 				if (planeIndex < 0 || planeIndex >= clipMap->planeCount)
 				{
-					Components::Logger::Error("invalid plane index");
+					Components::Logger::Error(Game::ERR_FATAL, "invalid plane index");
 					return;
 				}
 				clipMap->brushsides[i].plane = &clipMap->planes[planeIndex];
@@ -705,7 +706,7 @@ namespace Assets
 				int planeIndex = reader.read<int>();
 				if (planeIndex < 0 || planeIndex >= clipMap->planeCount)
 				{
-					Components::Logger::Error("invalid plane index\n");
+					Components::Logger::Error(Game::ERR_FATAL, "invalid plane index\n");
 					return;
 				}
 				clipMap->nodes[i].plane = &clipMap->planes[planeIndex];
@@ -773,7 +774,7 @@ namespace Assets
 					int index = reader.read<int>();
 					if (index < 0 || index > clipMap->borderCount)
 					{
-						Components::Logger::Error("invalid border index\n");
+						Components::Logger::Error(Game::ERR_FATAL, "invalid border index\n");
 						return;
 					}
 					clipMap->partitions[i].borders = &clipMap->borders[index];
@@ -800,10 +801,10 @@ namespace Assets
 				clipMap->brushes[i].numsides = reader.read<unsigned int>() & 0xFFFF; // todo: check for overflow here
 				if (clipMap->brushes[i].numsides > 0)
 				{
-					unsigned int index = reader.read<unsigned int>();
+					auto index = reader.read<unsigned int>();
 					if (index < 0 || index > clipMap->numBrushSides)
 					{
-						Components::Logger::Error("invalid side index\n");
+						Components::Logger::Error(Game::ERR_FATAL, "invalid side index\n");
 						return;
 					}
 					clipMap->brushes[i].sides = &clipMap->brushsides[index];
@@ -813,10 +814,10 @@ namespace Assets
 					clipMap->brushes[i].sides = nullptr;
 				}
 
-				unsigned int index = reader.read<unsigned int>();
+				auto index = reader.read<unsigned int>();
 				if (index > clipMap->numBrushEdges)
 				{
-					Components::Logger::Error("invalid edge index\n");
+					Components::Logger::Error(Game::ERR_FATAL, "invalid edge index\n");
 					return;
 				}
 				clipMap->brushes[i].baseAdjacentSide = &clipMap->brushEdges[index];
@@ -935,7 +936,7 @@ namespace Assets
 
 		if (!reader.end())
 		{
-			Components::Logger::Error("Clipmap data left!");
+			Components::Logger::Error(Game::ERR_FATAL, "Clipmap data left!");
 		}
 
 		header->clipMap = clipMap;

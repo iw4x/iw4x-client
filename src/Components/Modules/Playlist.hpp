@@ -19,9 +19,9 @@ namespace Components
 
 		static DWORD StorePlaylistStub(const char** buffer);
 
-		static void PlaylistRequest(Network::Address address, const std::string& data);
-		static void PlaylistReponse(Network::Address address, const std::string& data);
-		static void PlaylistInvalidPassword(Network::Address address, const std::string& data);
+		static void PlaylistRequest(const Network::Address& address, const std::string& data);
+		static void PlaylistReponse(const Network::Address& address, const std::string& data);
+		static void PlaylistInvalidPassword(const Network::Address& address, const std::string& data);
 
 		static void MapNameCopy(char *dest, const char *src, int destsize);
 		static void SetMapName(const char* cvar, const char* value);

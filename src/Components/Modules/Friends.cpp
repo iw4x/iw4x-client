@@ -190,10 +190,10 @@ namespace Components
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
-			const unsigned int modId = *reinterpret_cast<unsigned int*>("IW4x") | 0x80000000;
+			const auto modId = *reinterpret_cast<const unsigned int*>("IW4x") | 0x80000000;
 
 			// Split up the list
-			for (auto entry : Friends::FriendsList)
+			for (const auto& entry : Friends::FriendsList)
 			{
 				Steam::FriendGameInfo info;
 				if (Steam::Proxy::SteamFriends->GetFriendGamePlayed(entry.userId, &info) && info.m_gameID.modID == modId)
@@ -457,22 +457,6 @@ namespace Components
 		Friends::CurrentFriend = index;
 	}
 
-	__declspec(naked) void Friends::DisconnectStub()
-	{
-		__asm
-		{
-			pushad
-
-			call Friends::ClearServer
-			call Dvar::ResetDvarsValue
-
-			popad
-
-			push 467CC0h
-			retn
-		}
-	}
-
 	void Friends::AddFriend(SteamID user)
 	{
 		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
@@ -583,18 +567,15 @@ namespace Components
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || Monitor::IsEnabled())
 			return;
 
-		Dvar::OnInit([]
-		{
-			Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
-			Friends::CLAnonymous = Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
-			Friends::CLNotifyFriendState = Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_ARCHIVE, "Update friends about current game status");
-		});
+		Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
+		Friends::CLAnonymous = Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
+		Friends::CLNotifyFriendState = Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_ARCHIVE, "Update friends about current game status");
 
 		Command::Add("addFriend", [](Command::Params* params)
 		{
-			if (params->size() < 2u)
+			if (params->size() < 2)
 			{
-				Logger::Print("Usage: %s <Steam ID in hexadecimal format>\n", params->get(0));
+				Logger::Print("Usage: {} <Steam ID in hexadecimal format>\n", params->get(0));
 				return;
 			}
 
@@ -625,7 +606,8 @@ namespace Components
 		});
 
 		// Update state when connecting/disconnecting
-		Utils::Hook(0x403582, Friends::DisconnectStub, HOOK_CALL).install()->quick();
+		Events::OnSteamDisconnect(Friends::ClearServer);
+
 		Utils::Hook(0x4CD023, Friends::SetServer, HOOK_JUMP).install()->quick();
 
 		// Show blue icons on the minimap
@@ -653,7 +635,7 @@ namespace Components
 			}
 		});
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			static Utils::Time::Interval timeInterval;
 			static Utils::Time::Interval sortInterval;
@@ -692,11 +674,11 @@ namespace Components
 					Friends::SortList(true);
 				}
 			}
-		});
+		}, Scheduler::Pipeline::CLIENT);
 
 		UIFeeder::Add(61.0f, Friends::GetFriendCount, Friends::GetFriendText, Friends::SelectFriend);
 
-		Scheduler::OnShutdown([]()
+		Scheduler::OnGameShutdown([]
 		{
 			Friends::ClearPresence("iw4x_server");
 			Friends::ClearPresence("iw4x_playing");
@@ -714,7 +696,7 @@ namespace Components
 			}
 		});
 
-		Scheduler::Once([]()
+		Scheduler::OnGameInitialized([]
 		{
 			if (Steam::Proxy::SteamFriends)
 			{
@@ -742,7 +724,7 @@ namespace Components
 			Friends::UpdateState();
 
 			Friends::UpdateFriends();
-		});
+		}, Scheduler::Pipeline::CLIENT);
 	}
 
 	Friends::~Friends()

@@ -111,9 +111,7 @@ namespace Components
 	{
 		if (Window::GetWindow() && RawMouse::M_RawInput.get<bool>())
 		{
-#ifdef DEBUG
-			Logger::Print("Raw Mouse Init.\n");
-#endif
+			Logger::Debug("Raw Mouse Init");
 
 			RAWINPUTDEVICE Rid[1];
 			Rid[0].usUsagePage = 0x01; // HID_USAGE_PAGE_GENERIC
@@ -151,10 +149,7 @@ namespace Components
 		Utils::Hook(0x467C03, RawMouse::IN_Init, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64D095, RawMouse::IN_Init, HOOK_JUMP).install()->quick();
 
-		Dvar::OnInit([]()
-		{
-			RawMouse::M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates. Use in_restart to take effect if not enabled.");
-		});
+		RawMouse::M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::dvar_flag::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates. Use in_restart to take effect if not enabled.");
 
 		Window::OnWndMessage(WM_INPUT, RawMouse::OnRawInput);
 		Window::OnCreate(RawMouse::IN_RawMouse_Init);

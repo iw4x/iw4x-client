@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IGfxWorld.hpp"
 
 #define IW4X_GFXMAP_VERSION 1
 
@@ -137,13 +138,13 @@ namespace Assets
 			__int64 magic = reader.read<__int64>();
 			if (std::memcmp(&magic, "IW4xGfxW", 8))
 			{
-				Components::Logger::Error("Reading gfxworld '%s' failed, header is invalid!", name.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Reading gfxworld '{}' failed, header is invalid!", name);
 			}
 
 			int version = reader.read<int>();
 			if (version != IW4X_GFXMAP_VERSION)
 			{
-				Components::Logger::Error("Reading gfxworld '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_GFXMAP_VERSION, version);
+				Components::Logger::Error(Game::ERR_FATAL, "Reading gfxworld '{}' failed, expected version is {}, but it was {}!", name, IW4X_GFXMAP_VERSION, version);
 			}
 
 			Game::GfxWorld* asset = reader.readObject<Game::GfxWorld>();
@@ -950,7 +951,7 @@ namespace Assets
 		}
 
 		buffer->popBlock();
-        SaveLogExit();
+		SaveLogExit();
 	}
 
 	void IGfxWorld::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

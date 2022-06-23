@@ -55,7 +55,7 @@ namespace Components
 
 	bool UIScript::RunMenuScript(const char* name, const char** args)
 	{
-		if (UIScript::UIScripts.find(name) != UIScript::UIScripts.end())
+		if (UIScript::UIScripts.contains(name))
 		{
 			UIScript::UIScripts[name](UIScript::Token(args));
 			return true;

@@ -417,5 +417,8 @@ namespace Components
 		Utils::Hook(0x41BED2, ScriptExtension::Scr_SetObjectFieldStub, HOOK_CALL).install()->quick(); // SetEntityFieldValue
 		Utils::Hook(0x5FBF01, ScriptExtension::Scr_SetClientFieldStub, HOOK_CALL).install()->quick(); // Scr_SetObjectField
 		Utils::Hook(0x4FF413, ScriptExtension::Scr_GetEntityFieldStub, HOOK_CALL).install()->quick(); // Scr_GetObjectField
+
+		// Fix format string in Scr_RandomFloatRange
+		Utils::Hook::Set<const char*>(0x5F10C6, "Scr_RandomFloatRange parms: %f %f ");
 	}
 }

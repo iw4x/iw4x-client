@@ -2,12 +2,22 @@
 
 namespace Utils
 {
+	InfoString::InfoString(const std::string& buffer)
+	{
+		this->parse(buffer);
+	}
+
 	void InfoString::set(const std::string& key, const std::string& value)
 	{
 		this->keyValuePairs[key] = value;
 	}
 
-	std::string InfoString::get(const std::string& key)
+	void InfoString::remove(const std::string& key)
+	{
+		this->keyValuePairs.erase(key);
+	}
+
+	std::string InfoString::get(const std::string& key) const
 	{
 		const auto value = this->keyValuePairs.find(key);
 		if (value != this->keyValuePairs.end())
@@ -15,7 +25,7 @@ namespace Utils
 			return value->second;
 		}
 
-		return "";
+		return {};
 	}
 
 	void InfoString::parse(std::string buffer)
@@ -25,17 +35,17 @@ namespace Utils
 			buffer = buffer.substr(1);
 		}
 
-		auto KeyValues = Utils::String::Split(buffer, '\\');
+		const auto keyValues = Utils::String::Split(buffer, '\\');
 
-		for (size_t i = 0; !KeyValues.empty() && i < (KeyValues.size() - 1); i += 2)
+		for (std::size_t i = 0; !keyValues.empty() && i < (keyValues.size() - 1); i += 2)
 		{
-			const auto& key = KeyValues[i];
-			const auto& value = KeyValues[i + 1];
+			const auto& key = keyValues[i];
+			const auto& value = keyValues[i + 1];
 			this->keyValuePairs[key] = value;
 		}
 	}
 
-	std::string InfoString::build()
+	std::string InfoString::build() const
 	{
 		std::string infoString;
 
@@ -54,16 +64,18 @@ namespace Utils
 		return infoString;
 	}
 
+#ifdef _DEBUG
 	void InfoString::dump()
 	{
 		for (const auto& [key, value] : this->keyValuePairs)
 		{
-			OutputDebugStringA(Utils::String::VA("%s: %s\n", key.data(), value.data()));
+			OutputDebugStringA(String::VA("%s: %s\n", key.data(), value.data()));
 		}
 	}
+#endif
 
-	json11::Json InfoString::to_json()
+	json11::Json InfoString::to_json() const
 	{
-		return this->keyValuePairs;
+		return {this->keyValuePairs};
 	}
 }

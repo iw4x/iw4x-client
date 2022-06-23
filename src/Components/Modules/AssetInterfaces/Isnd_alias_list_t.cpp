@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Isnd_alias_list_t.hpp"
 
 namespace Assets
 {
@@ -42,7 +43,7 @@ namespace Assets
 
 			if (!infoData.is_object())
 			{
-				Components::Logger::Error("Failed to load sound %s!", name.c_str());
+				Components::Logger::Error(Game::ERR_FATAL, "Failed to load sound {}!", name);
 				return;
 			}
 
@@ -86,14 +87,14 @@ namespace Assets
 			{
 				soundFile = head["soundfile"];
 
-				Components::Logger::Print("Fixed casing on %s\n", name.c_str());
+				Components::Logger::Print("Fixed casing on {}\n", name);
 			}
 
 			if (type.is_null() || soundFile.is_null())
 			{
-				Components::Logger::Print("Type is %s\n", type.dump().c_str());
-				Components::Logger::Print("SoundFile is %s\n", soundFile.dump().c_str());
-				Components::Logger::Error("Failed to parse sound %s! Each alias must have at least a type and a soundFile\n", name.c_str());
+				Components::Logger::Print("Type is {}\n", type.dump());
+				Components::Logger::Print("SoundFile is {}\n", soundFile.dump());
+				Components::Logger::Error(Game::ERR_FATAL, "Failed to parse sound {}! Each alias must have at least a type and a soundFile\n", name);
 				return;
 			}
 
@@ -102,102 +103,102 @@ namespace Assets
 			// TODO: actually support all of those properties
 			if (!CHECK(type, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "type", type.type(), type.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "type", Utils::Json::TypeToString(type.type()), type.dump());
 			}
 
 			if (!CHECK(subtitle, string))
 			{
-				Components::Logger::Print("%s is not string but %d (%s)\n", "subtitle", subtitle.type(), subtitle.dump().c_str());
+				Components::Logger::Print("{} is not string but {} ({})\n", "subtitle", Utils::Json::TypeToString(subtitle.type()), subtitle.dump());
 			}
 
 			if (!CHECK(aliasName, string))
 			{
-				Components::Logger::Print("%s is not string but %d (%s)\n", "aliasName", aliasName.type(), aliasName.dump().c_str());
+				Components::Logger::Print("{} is not string but {} ({})\n", "aliasName", Utils::Json::TypeToString(aliasName.type()), aliasName.dump());
 			}
 
 			if (!CHECK(secondaryAliasName, string))
 			{
-				Components::Logger::Print("%s is not string but %d (%s)\n", "secondaryAliasName", secondaryAliasName.type(), secondaryAliasName.dump().c_str());
+				Components::Logger::Print("{} is not string but {} ({})\n", "secondaryAliasName", Utils::Json::TypeToString(secondaryAliasName.type()), secondaryAliasName.dump());
 			}
 
 			if (!CHECK(chainAliasName, string))
 			{
-				Components::Logger::Print("%s is not string but %d (%s)\n", "chainAliasName", chainAliasName.type(), chainAliasName.dump().c_str());
+				Components::Logger::Print("{} is not string but {} ({})\n", "chainAliasName", Utils::Json::TypeToString(chainAliasName.type()), chainAliasName.dump());
 			}
 
 			if (!CHECK(soundFile, string))
 			{
-				Components::Logger::Print("%s is not string but %d (%s)\n", "soundFile", soundFile.type(), soundFile.dump().c_str());
+				Components::Logger::Print("{} is not string but {} ({})\n", "soundFile", Utils::Json::TypeToString(soundFile.type()), soundFile.dump());
 			}
 
 			if (!CHECK(sequence, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "sequence", sequence.type(), sequence.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "sequence", Utils::Json::TypeToString(sequence.type()), sequence.dump());
 			}
 
 			if (!CHECK(volMin, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "volMin", volMin.type(), volMin.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "volMin", Utils::Json::TypeToString(volMin.type()), volMin.dump());
 			}
 
 			if (!CHECK(volMax, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "volMax", volMax.type(), volMax.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "volMax", Utils::Json::TypeToString(volMax.type()), volMax.dump());
 			}
 
 			if (!CHECK(pitchMin, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "pitchMin", pitchMin.type(), pitchMin.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "pitchMin", Utils::Json::TypeToString(pitchMin.type()), pitchMin.dump());
 			}
 
 			if (!CHECK(pitchMax, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "pitchMax", pitchMax.type(), pitchMax.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ()\n", "pitchMax", Utils::Json::TypeToString(pitchMax.type()), pitchMax.dump());
 			}
 
 			if (!CHECK(probability, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "probability", probability.type(), probability.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({}))\n", "probability", Utils::Json::TypeToString(probability.type()), probability.dump());
 			}
 
 			if (!CHECK(lfePercentage, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "lfePercentage", lfePercentage.type(), lfePercentage.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "lfePercentage", Utils::Json::TypeToString(lfePercentage.type()), lfePercentage.dump());
 			}
 
 			if (!CHECK(centerPercentage, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "centerPercentage", centerPercentage.type(), centerPercentage.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "centerPercentage", Utils::Json::TypeToString(centerPercentage.type()), centerPercentage.dump());
 			}
 
 			if (!CHECK(startDelay, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "startDelay", startDelay.type(), startDelay.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "startDelay", Utils::Json::TypeToString(startDelay.type()), startDelay.dump());
 			}
 
 			if (!CHECK(volumeFalloffCurve, string))
 			{
-				Components::Logger::Print("%s is not string but %d (%s)\n", "volumeFalloffCurve", volumeFalloffCurve.type(), volumeFalloffCurve.dump().c_str());
+				Components::Logger::Print("{}s is not string but {} ({})\n", "volumeFalloffCurve", Utils::Json::TypeToString(volumeFalloffCurve.type()), volumeFalloffCurve.dump());
 			}
 
 			if (!CHECK(envelopMin, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "envelopMin", envelopMin.type(), envelopMin.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "envelopMin", Utils::Json::TypeToString(envelopMin.type()), envelopMin.dump());
 			}
 
 			if (!CHECK(envelopMax, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "envelopMax", envelopMax.type(), envelopMax.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "envelopMax", Utils::Json::TypeToString(envelopMax.type()), envelopMax.dump());
 			}
 
 			if (!CHECK(envelopPercentage, number))
 			{
-				Components::Logger::Print("%s is not number but %d (%s)\n", "envelopPercentage", envelopPercentage.type(), envelopPercentage.dump().c_str());
+				Components::Logger::Print("{} is not number but {} ({})\n", "envelopPercentage", Utils::Json::TypeToString(envelopPercentage.type()), envelopPercentage.dump());
 			}
 
 			if (!CHECK(speakerMap, object))
 			{
-				Components::Logger::Print("%s is not object but %d (%s)\n", "speakerMap", speakerMap.type(), speakerMap.dump().c_str());
+				Components::Logger::Print("{} is not object but {} ({})\n", "speakerMap", Utils::Json::TypeToString(speakerMap.type()), speakerMap.dump());
 			}
 
 
@@ -248,7 +249,7 @@ namespace Assets
 					alias->speakerMap = builder->getAllocator()->allocate<Game::SpeakerMap>();
 					if (!alias->speakerMap)
 					{
-						Components::Logger::Print("Error allocating memory for speakermap in sound alias%s!\n", alias->aliasName);
+						Components::Logger::Print("Error allocating memory for speakermap in sound alias{}!\n", alias->aliasName);
 						return;
 					}
 
@@ -328,7 +329,7 @@ namespace Assets
 				}
 				else
 				{
-					Components::Logger::Error("Failed to parse sound %s! Invalid sound type %s\n", name.c_str(), type.string_value().c_str());
+					Components::Logger::Error(Game::ERR_FATAL, "Failed to parse sound {}! Invalid sound type {}\n", name, type.string_value());
 					return;
 				}
 
@@ -336,7 +337,7 @@ namespace Assets
 			}
 			else
 			{
-				Components::Logger::Error("Failed to parse sound %s!\n", name.c_str());
+				Components::Logger::Error(Game::ERR_FATAL, "Failed to parse sound {}!\n", name);
 				return;
 			}
 		}

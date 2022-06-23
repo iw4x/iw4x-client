@@ -34,7 +34,7 @@ namespace Components
 			if (file.exists())
 			{
 				Utils::IO::WriteFile("raw/" + file.getName(), file.getBuffer());
-				Logger::Print("File '%s' written to raw!\n", file.getName().data());
+				Logger::Print("File '{}' written to raw!\n", file.getName());
 				return;
 			}
 
@@ -43,11 +43,11 @@ namespace Components
 			if (data)
 			{
 				Utils::IO::WriteFile("raw/" + file.getName(), data);
-				Logger::Print("File '%s' written to raw!\n", file.getName().data());
+				Logger::Print("File '{}' written to raw!\n", file.getName());
 			}
 			else
 			{
-				Logger::Print("File '%s' does not exist!\n", file.getName().data());
+				Logger::Print("File '{}' does not exist!\n", file.getName());
 			}
 		});
 	}

@@ -22,7 +22,5 @@ namespace Components
 
 		static void G_SelectWeaponIndex(int clientNum, int iWeaponIndex);
 		static void G_SelectWeaponIndex_Hk();
-
-		static void ClientDisconnect_Hk(int clientNum);
 	};
 }

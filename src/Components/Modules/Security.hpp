@@ -20,5 +20,7 @@ namespace Components
 		static int G_GetClientScore();
 
 		static void G_LogPrintfStub(const char* fmt);
+
+		static void NET_DeferPacketToClientStub(Game::netadr_t* net_from, Game::msg_t* net_message);
 	};
 }

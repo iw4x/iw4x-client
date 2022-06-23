@@ -21,12 +21,12 @@ namespace Components
 	{
 		if (Download::CLDownload.running) return;
 
-		Scheduler::Once([]()
+		Scheduler::Once([]
 		{
 			Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(0));
 			Dvar::Var("ui_dl_progress").set("(0/0) %");
 			Dvar::Var("ui_dl_transRate").set("0.0 MB/s");
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		Command::Execute("openmenu mod_download_popmenu", false);
 
@@ -66,7 +66,7 @@ namespace Components
 
 		if (!error.empty() || !listData.is_array())
 		{
-			Logger::Print("Error: %s\n", error.data());
+			Logger::Print("Error: {}\n", error);
 			return false;
 		}
 
@@ -155,22 +155,23 @@ namespace Components
 			}
 		}
 
-		std::string host = "http://" + download->target.getString();
-		std::string fastHost = Dvar::Var("sv_wwwBaseUrl").get<std::string>();
+		auto host = "http://" + download->target.getString();
+		auto fastHost = Dvar::Var("sv_wwwBaseUrl").get<std::string>();
 		if (Utils::String::StartsWith(fastHost, "https://"))
 		{
 			download->thread.detach();
 			download->clear();
 
-			Scheduler::Once([]()
+			Scheduler::Once([]
 			{
 				Command::Execute("closemenu mod_download_popmenu");
 				Party::ConnectError("HTTPS not supported for downloading!");
-			});
+			}, Scheduler::Pipeline::CLIENT);
 
-			return 0;
+			return false;
 		}
-		else if (!Utils::String::StartsWith(fastHost, "http://"))
+
+		if (!Utils::String::StartsWith(fastHost, "http://"))
 		{
 			fastHost = "http://" + fastHost;
 		}
@@ -201,7 +202,7 @@ namespace Components
 				+ (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 		}
 
-		Logger::Print("Downloading from url %s\n", url.data());
+		Logger::Print("Downloading from url {}\n", url);
 
 		Download::FileDownload fDownload;
 		fDownload.file = file;
@@ -277,11 +278,11 @@ namespace Components
 			download->thread.detach();
 			download->clear();
 
-			Scheduler::Once([]()
+			Scheduler::Once([]
 			{
 				Command::Execute("closemenu mod_download_popmenu");
 				Party::ConnectError("Failed to download the modlist!");
-			});
+			}, Scheduler::Pipeline::CLIENT);
 
 			return;
 		}
@@ -295,11 +296,11 @@ namespace Components
 			download->thread.detach();
 			download->clear();
 
-			Scheduler::Once([]()
+			Scheduler::Once([]
 			{
 				Command::Execute("closemenu mod_download_popmenu");
 				Party::ConnectError("Failed to parse the modlist!");
-			});
+			}, Scheduler::Pipeline::CLIENT);
 
 			return;
 		}
@@ -321,14 +322,14 @@ namespace Components
 				download->thread.detach();
 				download->clear();
 
-				Scheduler::Once([]()
+				Scheduler::Once([]
 				{
 					Dvar::Var("partyend_reason").set(mod);
 					mod.clear();
 
 					Command::Execute("closemenu mod_download_popmenu");
 					Command::Execute("openmenu menu_xboxlive_partyended");
-				});
+				}, Scheduler::Pipeline::CLIENT);
 
 				return;
 			}
@@ -341,15 +342,15 @@ namespace Components
 
 		if (download->isMap)
 		{
-			Scheduler::Once([]()
+			Scheduler::Once([]
 			{
 				Command::Execute("reconnect", false);
-			});
+			}, Scheduler::Pipeline::CLIENT);
 		}
 		else
 		{
 			// Run this on the main thread
-			Scheduler::Once([]()
+			Scheduler::Once([]
 			{
 				auto fsGame = Dvar::Var("fs_game");
 				fsGame.set(mod);
@@ -364,7 +365,7 @@ namespace Components
 				}
 
 				Command::Execute("reconnect", false);
-			});
+			}, Scheduler::Pipeline::MAIN);
 		}
 	}
 
@@ -419,11 +420,11 @@ namespace Components
 			dlProgress = static_cast<unsigned int>(progress);
 
 			framePushed = true;
-			Scheduler::Once([]()
+			Scheduler::Once([]
 			{
 				framePushed = false;
 				Dvar::Var("ui_dl_progress").set(Utils::String::VA("(%d/%d) %d%%", dlIndex, dlSize, dlProgress));
-			});
+			}, Scheduler::Pipeline::CLIENT);
 		}
 
 		int delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp;
@@ -449,11 +450,11 @@ namespace Components
 				dlDelta = delta;
 				dlTsBytes = fDownload->download->timeStampBytes;
 
-				Scheduler::Once([]()
+				Scheduler::Once([]
 				{
 					Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(dlTimeLeft));
 					Dvar::Var("ui_dl_transRate").set(Utils::String::FormatBandwidth(dlTsBytes, dlDelta));
-				});
+				}, Scheduler::Pipeline::MAIN);
 			}
 
 			fDownload->download->timeStampBytes = 0;
@@ -900,12 +901,12 @@ namespace Components
 		}
 		else
 		{
-			Dvar::OnInit([]()
+			Scheduler::Once([]
 			{
 				Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::dvar_flag::DVAR_NONE, "");
 				Dvar::Register<const char*>("ui_dl_progress", "", Game::dvar_flag::DVAR_NONE, "");
 				Dvar::Register<const char*>("ui_dl_transRate", "", Game::dvar_flag::DVAR_NONE, "");
-			});
+			}, Scheduler::Pipeline::MAIN);
 
 			UIScript::Add("mod_download_cancel", [](UIScript::Token)
 			{
@@ -913,7 +914,7 @@ namespace Components
 			});
 		}
 
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
 			Dvar::Register<bool>("sv_wwwDownload", false, Game::dvar_flag::DVAR_ARCHIVE, "Set to true to enable downloading maps/mods from an external server.");
 			Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_ARCHIVE, "Set to the base url for the external map download.");
@@ -922,9 +923,9 @@ namespace Components
 			// not saying we are but ya know... accidents happen
 			// by having it saved we force the user to enable it in config_mp because it only checks the dvar on startup to see if we should init download or not
 			Dvar::Register<bool>("mod_force_download_server", false, Game::dvar_flag::DVAR_ARCHIVE, "Set to true to force the client to run the download server for mods (for mods in private matches).");
-		});
+		}, Scheduler::Pipeline::MAIN);
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			int workingCount = 0;
 
@@ -957,9 +958,10 @@ namespace Components
 					++workingCount;
 				}
 			}
-		});
 
-		Script::OnVMShutdown([]()
+		}, Scheduler::Pipeline::MAIN);
+
+		Events::OnVMShutdown([]
 		{
 			Download::ScriptDownloads.clear();
 		});

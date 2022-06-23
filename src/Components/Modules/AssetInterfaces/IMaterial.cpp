@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IMaterial.hpp"
 
 #define IW4X_MAT_VERSION "1"
 
@@ -64,14 +65,14 @@ namespace Assets
 		char* magic = reader.readArray<char>(7);
 		if (std::memcmp(magic, "IW4xMat", 7))
 		{
-			Components::Logger::Error(0, "Reading material '%s' failed, header is invalid!", name.data());
+			Components::Logger::Error(Game::ERR_FATAL, "Reading material '{}' failed, header is invalid!", name);
 		}
 
 		std::string version;
 		version.push_back(reader.read<char>());
 		if (version != IW4X_MAT_VERSION)
 		{
-			Components::Logger::Error("Reading material '%s' failed, expected version is %d, but it was %d!", name.data(), atoi(IW4X_MAT_VERSION), atoi(version.data()));
+			Components::Logger::Error(Game::ERR_FATAL, "Reading material '{}' failed, expected version is {}, but it was {}!", name, IW4X_MAT_VERSION, version);
 		}
 
 		Game::Material* asset = reader.readObject<Game::Material>();
@@ -106,18 +107,18 @@ namespace Assets
 						asset->techniqueSet = techsetPtr;
 
 						if (asset->techniqueSet->name[0] == ',') continue; // Try to find a better one
-						Components::Logger::Print("Techset '%s' has been mapped to '%s'\n", techsetName.data(), asset->techniqueSet->name);
+						Components::Logger::Print("Techset '{}' has been mapped to '{}'\n", techsetName, asset->techniqueSet->name);
 						break;
 					}
 				}
 			}
 			else {
-				Components::Logger::Print("Techset %s exists with the same name in iw4, and was mapped 1:1 with %s\n", techsetName.data(), asset->techniqueSet->name);
+				Components::Logger::Print("Techset {} exists with the same name in iw4, and was mapped 1:1 with %s\n", techsetName, asset->techniqueSet->name);
 			}
 
 			if (!asset->techniqueSet)
 			{
-				Components::Logger::Error("Missing techset: '%s' not found", techsetName.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Missing techset: '{}' not found", techsetName);
 			}
 		}
 
@@ -195,7 +196,7 @@ namespace Assets
 					std::memcpy(asset->stateBitsEntry, header.material->stateBitsEntry, 48);
 					asset->constantCount = header.material->constantCount;
 					asset->constantTable = header.material->constantTable;
-					Components::Logger::Print("For %s, copied constants & statebits from %s\n", asset->info.name, header.material->info.name);
+					Components::Logger::Print("For {}, copied constants & statebits from {}\n", asset->info.name, header.material->info.name);
 					replacementFound = true;
 				}
 			}
@@ -231,7 +232,7 @@ namespace Assets
 
 					if (techsetMatches(header.material, asset))
 					{
-						Components::Logger::Print("Material %s with techset %s has been mapped to %s\n", asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name);
+						Components::Logger::Print("Material {} with techset {} has been mapped to {}\n", asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name);
 						asset->info.sortKey = header.material->info.sortKey;
 						replacementFound = true;
 					}
@@ -241,9 +242,10 @@ namespace Assets
 
 		if (!replacementFound && asset->techniqueSet)
 		{
-			Components::Logger::Print("No replacement found for material %s with techset %s\n", asset->info.name, asset->techniqueSet->name);
+			Components::Logger::Print("No replacement found for material {} with techset {}\n", asset->info.name, asset->techniqueSet->name);
 			std::string techName = asset->techniqueSet->name;
-			if (techSetCorrespondance.find(techName) != techSetCorrespondance.end()) {
+			if (techSetCorrespondance.contains(techName))
+			{
 				auto iw4TechSetName = techSetCorrespondance[techName];
 				Game::XAssetEntry* iw4TechSet = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, iw4TechSetName.data());
 
@@ -257,9 +259,8 @@ namespace Assets
 
 							if (header.material->techniqueSet == iw4TechSet->asset.header.techniqueSet)
 							{
-								Components::Logger::Print("Material %s with techset %s has been mapped to %s (last chance!), taking the sort key of material %s\n",
-									asset->info.name, asset->techniqueSet->name,
-									header.material->techniqueSet->name, header.material->info.name);
+								Components::Logger::Print("Material {} with techset {} has been mapped to {} (last chance!), taking the sort key of material {}\n",
+									asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name, header.material->info.name);
 
 								asset->info.sortKey = header.material->info.sortKey;
 								asset->techniqueSet = iw4TechSet->asset.header.techniqueSet;
@@ -278,23 +279,23 @@ namespace Assets
 
 					if (!replacementFound) 
 					{
-						Components::Logger::Print("Could not find any loaded material with techset %s (in replacement of %s), so I cannot set the sortkey for material %s\n", iw4TechSetName.data(), asset->techniqueSet->name,  asset->info.name);
+						Components::Logger::Print("Could not find any loaded material with techset {} (in replacement of {}), so I cannot set the sortkey for material {}\n", iw4TechSetName, asset->techniqueSet->name, asset->info.name);
 					}
 				}
 				else 
 				{
-					Components::Logger::Print("Could not find any loaded techset with iw4 name %s for iw3 techset %s\n", iw4TechSetName.data(), asset->techniqueSet->name);
+					Components::Logger::Print("Could not find any loaded techset with iw4 name {} for iw3 techset {}\n", iw4TechSetName, asset->techniqueSet->name);
 				}
 			}
 			else 
 			{
-				Components::Logger::Print("Could not match iw3 techset %s with any of the techsets I know! This is a critical error, there's a good chance the map will not be playable.\n", techName.data());
+				Components::Logger::Print("Could not match iw3 techset {} with any of the techsets I know! This is a critical error, there's a good chance the map will not be playable.\n", techName);
 			}
 		}
 
 		if (!reader.end())
 		{
-			Components::Logger::Error("Material data left!");
+			Components::Logger::Error(Game::ERR_FATAL, "Material data left!");
 		}
 
 		/*char baseIndex = 0;
@@ -339,7 +340,7 @@ namespace Assets
 
 		if (!infoData.is_object())
 		{
-			Components::Logger::Error("Failed to load material information for %s!", name.data());
+			Components::Logger::Error(Game::ERR_FATAL, "Failed to load material information for {}!", name);
 			return;
 		}
 
@@ -347,7 +348,7 @@ namespace Assets
 
 		if (!base.is_string())
 		{
-			Components::Logger::Error("No valid material base provided for %s!", name.data());
+			Components::Logger::Error(Game::ERR_FATAL, "No valid material base provided for {}!", name);
 			return;
 		}
 
@@ -355,7 +356,7 @@ namespace Assets
 
 		if (!baseMaterial) // TODO: Maybe check if default asset? Maybe not? You could still want to use the default one as base!?
 		{
-			Components::Logger::Error("Basematerial '%s' not found for %s!", base.string_value().data(), name.data());
+			Components::Logger::Error(Game::ERR_FATAL, "Basematerial '{}' not found for {}!", base.string_value(), name);
 			return;
 		}
 
@@ -363,7 +364,7 @@ namespace Assets
 
 		if (!material)
 		{
-			Components::Logger::Error("Failed to allocate material structure!");
+			Components::Logger::Error(Game::ERR_FATAL, "Failed to allocate material structure!");
 			return;
 		}
 
@@ -451,7 +452,8 @@ namespace Assets
 
 					if (!applied)
 					{
-						Components::Logger::Error(0, "Unable to find texture for map '%s' in %s!", map.string_value().data(), baseMaterial->info.name);
+						Components::Logger::Error(Game::ERR_FATAL, "Unable to find texture for map '{}' in {}!",
+							map.string_value(), baseMaterial->info.name);
 					}
 				}
 				else
@@ -468,7 +470,7 @@ namespace Assets
 
 					if (!textureTable)
 					{
-						Components::Logger::Error("Failed to allocate texture table!");
+						Components::Logger::Error(Game::ERR_FATAL, "Failed to allocate texture table!");
 						return;
 					}
 

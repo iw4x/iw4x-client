@@ -47,8 +47,7 @@ namespace Components
 
 		if (input == end)
 		{
-			Logger::Print("Warning: %s is not a valid input\n"
-				"Usage: %s <weapon index>\n",
+			Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "{} is not a valid input\nUsage: {} <weapon index>\n",
 				input, params.get(0));
 			return 0;
 		}

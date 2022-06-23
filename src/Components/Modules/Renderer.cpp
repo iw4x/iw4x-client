@@ -5,8 +5,8 @@ namespace Components
 	Utils::Signal<Renderer::BackendCallback> Renderer::BackendFrameSignal;
 	Utils::Signal<Renderer::BackendCallback> Renderer::SingleBackendFrameSignal;
 
-	Utils::Signal<Scheduler::Callback> Renderer::EndRecoverDeviceSignal;
-	Utils::Signal<Scheduler::Callback> Renderer::BeginRecoverDeviceSignal;
+	Utils::Signal<Renderer::Callback> Renderer::EndRecoverDeviceSignal;
+	Utils::Signal<Renderer::Callback> Renderer::BeginRecoverDeviceSignal;
 
 	Dvar::Var Renderer::r_drawTriggers;
 	Dvar::Var Renderer::r_drawSceneModelCollisions;
@@ -31,19 +31,6 @@ namespace Components
 	float damage[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
 	float once[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
 	float multiple[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
-
-	__declspec(naked) void Renderer::FrameStub()
-	{
-		__asm
-		{
-			pushad
-			call Scheduler::FrameHandler
-			popad
-
-			push 5AC950h
-			retn
-		}
-	}
 
 	__declspec(naked) void Renderer::BackendFrameStub()
 	{
@@ -87,12 +74,12 @@ namespace Components
 		Renderer::BackendFrameSignal.connect(callback);
 	}
 
-	void Renderer::OnDeviceRecoveryEnd(Utils::Slot<Scheduler::Callback> callback)
+	void Renderer::OnDeviceRecoveryEnd(Utils::Slot<Renderer::Callback> callback)
 	{
 		Renderer::EndRecoverDeviceSignal.connect(callback);
 	}
 
-	void Renderer::OnDeviceRecoveryBegin(Utils::Slot<Scheduler::Callback> callback)
+	void Renderer::OnDeviceRecoveryBegin(Utils::Slot<Renderer::Callback> callback)
 	{
 		Renderer::BeginRecoverDeviceSignal.connect(callback);
 	}
@@ -132,7 +119,7 @@ namespace Components
 
 	void Renderer::R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state)
 	{
-		Game::Com_Error(Game::ERR_FATAL, "Tried to use sampler '%s' when it isn't valid for material '%s' and technique '%s'",
+		Logger::Error(Game::ERR_FATAL, "Tried to use sampler '{}' when it isn't valid for material '{}' and technique '{}'",
 			sampler, state->material->info.name, state->technique->name);
 	}
 
@@ -141,25 +128,19 @@ namespace Components
 		__asm
 		{
 			// original code
-			mov eax, DWORD PTR[eax * 4 + 0066E600Ch];
-
-			// store GfxCmdBufContext
-			/*push edx;
-			mov edx, [esp + 24h];
-			mov gfxState, edx;
-			pop edx;*/
+			mov eax, dword ptr [eax * 4 + 0x66E600C]
 
 			// show error
-			pushad;
-			push[esp + 24h + 20h];
-			push eax;
-			call R_TextureFromCodeError;
-			add esp, 8;
-			popad;
+			pushad
+			push [esp + 0x24 + 0x20]
+			push eax
+			call R_TextureFromCodeError
+			add esp, 8
+			popad
 
 			// go back
-			push 0x0054CAC1;
-			retn;
+			push 0x54CAC1
+			retn
 		}
 	}
 
@@ -168,19 +149,19 @@ namespace Components
 		__asm
 		{
 			// original code
-			mov edx, DWORD PTR[eax * 4 + 0066E600Ch];
+			mov edx, dword ptr [eax * 4 + 0x66E600C]
 
 			// show error
-			pushad;
-			push ebx;
-			push edx;
-			call R_TextureFromCodeError;
-			add esp, 8;
-			popad;
+			pushad
+			push ebx
+			push edx
+			call R_TextureFromCodeError
+			add esp, 8
+			popad
 
 			// go back
-			push 0x0054CFA4;
-			retn;
+			push 0x54CFA4
+			retn
 		}
 	}
 
@@ -331,8 +312,8 @@ namespace Components
 						scene->sceneDObj[i].cull.bounds.halfSize[1] < 0 ||
 						scene->sceneDObj[i].cull.bounds.halfSize[2] < 0)
 					{
-
-						Components::Logger::Print("WARNING: Negative half size for DOBJ %s, this will cause culling issues!", scene->sceneDObj[i].obj->models[0]->name);
+						Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Negative half size for DOBJ {}, this will cause culling issues!",
+							scene->sceneDObj[i].obj->models[0]->name);
 					}
 
 					Game::R_AddDebugBounds(dobjsColor, &scene->sceneDObj[i].cull.bounds);
@@ -463,7 +444,8 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled()) return;
 
-		Scheduler::OnFrame([]() {
+		Scheduler::Loop([]
+		{
 			if (Game::CL_IsCgameInitialized())
 			{
 				DebugDrawAABBTrees();
@@ -472,35 +454,7 @@ namespace Components
 				DebugDrawSceneModelCollisions();
 				DebugDrawTriggers();
 			}
-		});
-
-		// 		Renderer::OnBackendFrame([] (IDirect3DDevice9* device)
-		// 		{
-		// 			if (Game::Sys_Milliseconds() % 2)
-		// 			{
-		// 				device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, 0, 0, 0);
-		// 			}
-		//
-		// 			return;
-		//
-		// 			IDirect3DSurface9* buffer = nullptr;
-		//
-		// 			device->CreateOffscreenPlainSurface(Renderer::Width(), Renderer::Height(), D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &buffer, nullptr);
-		// 			device->GetFrontBufferData(0, buffer);
-		//
-		// 			if (buffer)
-		// 			{
-		// 				D3DSURFACE_DESC desc;
-		// 				D3DLOCKED_RECT lockedRect;
-		//
-		// 				buffer->GetDesc(&desc);
-		//
-		// 				HRESULT res = buffer->LockRect(&lockedRect, NULL, D3DLOCK_READONLY);
-		//
-		//
-		// 				buffer->UnlockRect();
-		// 			}
-		// 		});
+		}, Scheduler::Pipeline::RENDERER);
 
 		// Log broken materials
 		Utils::Hook(0x0054CAAA, Renderer::StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
@@ -509,9 +463,6 @@ namespace Components
 		// Enhance cg_drawMaterial
 		Utils::Hook::Set(0x005086DA, "^3solid^7");
 		Utils::Hook(0x00580F53, Renderer::DrawTechsetForMaterial, HOOK_CALL).install()->quick();
-
-		// Frame hook
-		Utils::Hook(0x5ACB99, Renderer::FrameStub, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x536A80, Renderer::BackendFrameStub, HOOK_JUMP).install()->quick();
 
@@ -535,7 +486,7 @@ namespace Components
 		// End vid_restart
 		Utils::Hook(0x4CA3A7, Renderer::PostVidRestartStub, HOOK_CALL).install()->quick();
 
-		Dvar::OnInit([]
+		Scheduler::Once([]
 		{
 			static const char* values[] =
 			{
@@ -552,7 +503,7 @@ namespace Components
 			Renderer::r_drawModelNames = Game::Dvar_RegisterEnum("r_drawModelNames", values, 0, Game::DVAR_CHEAT, "Draw all model names");
 			Renderer::r_drawAABBTrees = Game::Dvar_RegisterBool("r_drawAabbTrees", false, Game::DVAR_CHEAT, "Draw aabb trees");
 			Renderer::r_playerDrawDebugDistance = Game::Dvar_RegisterInt("r_drawDebugDistance", 1000, 0, 50000, Game::DVAR_ARCHIVE, "r_draw debug functions draw distance, relative to the player");
-		});
+		}, Scheduler::Pipeline::MAIN);
 	}
 
 	Renderer::~Renderer()

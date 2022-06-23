@@ -762,7 +762,7 @@ namespace Components
 
             if(strcmp(material->techniqueSet->name, "2d") != 0)
             {
-                Logger::Print("^1Fonticon material '%s' does not have 2d techset!\n", material->info.name);
+                Logger::Print("^1Fonticon material '{}' does not have 2d techset!\n", material->info.name);
                 material = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, "default").material;
             }
 

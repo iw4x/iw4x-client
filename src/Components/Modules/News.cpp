@@ -13,7 +13,7 @@ namespace Components
 
 		if (News::Thread.joinable())
 		{
-			Logger::Print("Awaiting thread termination...\n");
+			Logger::Debug("Awaiting thread termination...");
 			News::Thread.join();
 
 			if (!strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
@@ -23,7 +23,7 @@ namespace Components
 			}
 			else
 			{
-				Logger::Print("Successfully fetched motd.\n");
+				Logger::Debug("Successfully fetched motd");
 			}
 		}
 
@@ -41,7 +41,7 @@ namespace Components
 
 		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_ARCHIVE, "");
 
-		Dvar::Register<int>("cl_updateoldversion", REVISION, REVISION, REVISION, Game::DVAR_WRITEPROTECTED, "Current version number.");
+		Dvar::Register<int>("cl_updateoldversion", REVISION, REVISION, REVISION, Game::DVAR_INIT, "Current version number.");
 
 		UIScript::Add("checkFirstLaunch", [](UIScript::Token)
 		{

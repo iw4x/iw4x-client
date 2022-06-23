@@ -223,7 +223,7 @@ namespace Components
 		{
 			Theatre::DemoInfo info = Theatre::Demos[Theatre::CurrentSelection];
 
-			Logger::Print("Deleting demo %s...\n", info.name.data());
+			Logger::Print("Deleting demo {}...\n", info.name);
 
 			FileSystem::DeleteFile("demos", info.name + ".dm_13");
 			FileSystem::DeleteFile("demos", info.name + ".dm_13.json");
@@ -308,7 +308,7 @@ namespace Components
 
 			for (int i = 0; i < numDel; ++i)
 			{
-				Logger::Print("Deleting old demo %s\n", files[i].data());
+				Logger::Print("Deleting old demo {}\n", files[i]);
 				FileSystem::DeleteFile("demos", files[i].data());
 				FileSystem::DeleteFile("demos", Utils::String::VA("%s.json", files[i].data()));
 			}

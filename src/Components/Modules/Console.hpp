@@ -50,12 +50,12 @@ namespace Components
 
 		static const char* Input();
 		static void Print(const char* message);
-		static void Error(const char* format, ...);
+		static void Error(const char* fmt, ...);
 		static void Create();
 		static void Destroy();
 
 		static void StdOutPrint(const char* message);
-		static void StdOutError(const char* format, ...);
+		static void StdOutError(const char* fmt, ...);
 
 		static void ConsoleRunner();
 

@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "ILoadedSound.hpp"
 
 namespace Assets
 {
@@ -29,7 +30,7 @@ namespace Assets
 		unsigned int chunkIDBuffer = reader.read<unsigned int>();
 		if (chunkIDBuffer != 0x46464952) // RIFF
 		{
-			Components::Logger::Error(0, "Reading sound '%s' failed, header is invalid!", name.data());
+			Components::Logger::Error(Game::ERR_FATAL, "Reading sound '{}' failed, header is invalid!", name);
 			return;
 		}
 
@@ -38,7 +39,7 @@ namespace Assets
 		unsigned int format = reader.read<unsigned int>();
 		if (format != 0x45564157) // WAVE
 		{
-			Components::Logger::Error(0, "Reading sound '%s' failed, header is invalid!", name.data());
+			Components::Logger::Error(Game::ERR_FATAL, "Reading sound '{}' failed, header is invalid!", name);
 			return;
 		}
 
@@ -55,7 +56,7 @@ namespace Assets
 					sound->sound.info.format = reader.read<short>();
 					if (sound->sound.info.format != 1 && sound->sound.info.format != 17)
 					{
-						Components::Logger::Error(0, "Reading sound '%s' failed, invalid format!", name.data());
+						Components::Logger::Error(Game::ERR_FATAL, "Reading sound '{}' failed, invalid format!", name);
 						return;
 					}
 
@@ -89,11 +90,11 @@ namespace Assets
 
 		if (!sound->sound.info.data_ptr)
 		{
-			Components::Logger::Error(0, "Reading sound '%s' failed, invalid format!", name.data());
+			Components::Logger::Error(Game::ERR_FATAL, "Reading sound '{}' failed, invalid format!", name);
 			return;
 		}
 
-		sound->name = builder->getAllocator()->duplicateString(name.c_str());
+		sound->name = builder->getAllocator()->duplicateString(name.data());
 		header->loadSnd = sound;
 	}
 

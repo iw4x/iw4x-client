@@ -327,7 +327,7 @@ namespace Components
 
 		if (*version != XFILE_VERSION)
 		{
-			Logger::Error("Zone version %d is not supported!", Zones::Version());
+			Logger::Error(Game::ERR_FATAL, "Zone version {} is not supported!", Zones::Version());
 		}
 	}
 
@@ -343,11 +343,11 @@ namespace Components
 
 			if (header[1] < XFILE_VERSION_IW4X)
 			{
-				Logger::Error("The fastfile you are trying to load is outdated (%d, expected %d)", header[1], XFILE_VERSION_IW4X);
+				Logger::Error(Game::ERR_FATAL, "The fastfile you are trying to load is outdated ({}, expected {})", header[1], XFILE_VERSION_IW4X);
 			}
 			else if (header[1] > XFILE_VERSION_IW4X)
 			{
-				Logger::Error("You are loading a fastfile that is too new (%d, expected %d), update your game or rebuild the fastfile", header[1], XFILE_VERSION_IW4X);
+				Logger::Error(Game::ERR_FATAL, "You are loading a fastfile that is too new ({}, expected {}), update your game or rebuild the fastfile", header[1], XFILE_VERSION_IW4X);
 			}
 
 			*reinterpret_cast<unsigned __int64*>(header) = XFILE_MAGIC_UNSIGNED;
@@ -569,28 +569,31 @@ namespace Components
 		FastFiles::AddZonePath("zone\\patch\\");
 		FastFiles::AddZonePath("zone\\dlc\\");
 
-		Scheduler::OnFrame([]()
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
-			if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").get<bool>()) return;
-
-			Game::Font_s* font = Game::R_RegisterFont("fonts/consoleFont", 0);
-			float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
-
-			std::uint32_t FFTotalSize = *reinterpret_cast<std::uint32_t*>(0x10AA5D8);
-			std::uint32_t FFCurrentOffset = *reinterpret_cast<std::uint32_t*>(0x10AA608);
-
-			float fastfileLoadProgress = (float(FFCurrentOffset) / float(FFTotalSize)) * 100.0f;
-			if (fastfileLoadProgress == INFINITY)
+			Scheduler::Loop([]
 			{
-				fastfileLoadProgress = 100.0f;
-			}
-			else if (fastfileLoadProgress == NAN)
-			{
-				fastfileLoadProgress = 0.0f;
-			}
+				if (FastFiles::Current().empty() || !Dvar::Var("ui_zoneDebug").get<bool>()) return;
 
-			Game::R_AddCmdDrawText(Utils::String::VA("Loading FastFile: %s [%0.1f%%]", FastFiles::Current().data(), fastfileLoadProgress), 0x7FFFFFFF, font, 5.0f, static_cast<float>(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
-		}, true);
+				auto* const font = Game::R_RegisterFont("fonts/consoleFont", 0);
+				float color[4] = {1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f)};
+
+				auto FFTotalSize = *reinterpret_cast<std::uint32_t*>(0x10AA5D8);
+				auto FFCurrentOffset = *reinterpret_cast<std::uint32_t*>(0x10AA608);
+
+				float fastfileLoadProgress = (float(FFCurrentOffset) / float(FFTotalSize)) * 100.0f;
+				if (std::isinf(fastfileLoadProgress))
+				{
+					fastfileLoadProgress = 100.0f;
+				}
+				else if (std::isnan(fastfileLoadProgress))
+				{
+					fastfileLoadProgress = 0.0f;
+				}
+
+				Game::R_AddCmdDrawText(Utils::String::VA("Loading FastFile: %s [%0.1f%%]", FastFiles::Current().data(), fastfileLoadProgress), std::numeric_limits<int>::max(), font, 5.0f, static_cast<float>(Renderer::Height() - 5), 1.0f, 1.0f, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
+			}, Scheduler::Pipeline::RENDERER);
+		}
 
 		Command::Add("loadzone", [](Command::Params* params)
 		{

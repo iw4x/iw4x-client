@@ -7,16 +7,15 @@ namespace Components
 	{
 	public:
 		Script();
-		~Script();
 
 		static int LoadScriptAndLabel(const std::string& script, const std::string& label);
 
 		static void AddFunction(const char* name, Game::BuiltinFunction func, int type = 0);
 		static void AddMethod(const char* name, Game::BuiltinMethod func, int type = 0);
 
-		static void OnVMShutdown(Utils::Slot<Scheduler::Callback> callback);
-
 		static Game::client_t* GetClient(const Game::gentity_t* gentity);
+
+		static const char* GetCodePosForParam(int index);
 
 	private:
 		static std::string ScriptName;
@@ -30,8 +29,6 @@ namespace Components
 		static std::unordered_map<const char*, const char*> ReplacedFunctions;
 		static const char* ReplacedPos;
 		static int LastFrameTime;
-
-		static Utils::Signal<Scheduler::Callback> VMShutdownSignal;
 
 		static void CompileError(unsigned int offset, const char* message, ...);
 		static void PrintSourcePos(const char* filename, unsigned int offset);
@@ -52,7 +49,6 @@ namespace Components
 		static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
 		static Game::BuiltinMethod BuiltIn_GetMethod(const char** pName, int* type);
 
-		static void ScrShutdownSystemStub(unsigned char sys);
 		static void StoreScriptBaseProgramNumStub();
 		static void StoreScriptBaseProgramNum();
 		static void Scr_PrintPrevCodePosStub();
@@ -60,7 +56,6 @@ namespace Components
 
 		static unsigned int SetExpFogStub();
 
-		static const char* GetCodePosForParam(int index);
 		static void GetReplacedPos(const char* pos);
 		static void SetReplacedPos(const char* what, const char* with);
 		static void VMExecuteInternalStub();

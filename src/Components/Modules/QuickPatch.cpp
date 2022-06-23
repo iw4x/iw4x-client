@@ -229,17 +229,18 @@ namespace Components
 		}
 	}
 
+	Game::dvar_t* QuickPatch::Dvar_RegisterConMinicon(const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
+	{
+#ifdef _DEBUG
+		constexpr auto value_ = true;
+#else
+		constexpr auto value_ = false;
+#endif
+		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
+	}
+
 	QuickPatch::QuickPatch()
 	{
-		// quitHard
-		Command::Add("quitHard", [](Command::Params*)
-		{
-			int data = false;
-			const Utils::Library ntdll("ntdll.dll");
-			ntdll.invokePascal<void>("RtlAdjustPrivilege", 19, true, false, &data);
-			ntdll.invokePascal<void>("NtRaiseHardError", 0xC000007B, 0, nullptr, nullptr, 6, &data);
-		});
-
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassnameStub, HOOK_CALL).install()->quick();
 
@@ -260,8 +261,7 @@ namespace Components
 		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
 
-		// Make sure preDestroy is called when the game shuts down
-		Scheduler::OnShutdown(Loader::PreDestroy);
+		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
@@ -478,10 +478,10 @@ namespace Components
 
 		// Fix mouse lag
 		Utils::Hook::Nop(0x4731F5, 8);
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			SetThreadExecutionState(ES_DISPLAY_REQUIRED);
-		});
+		}, Scheduler::Pipeline::RENDERER);
 
 		// Fix mouse pitch adjustments
 		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");
@@ -500,10 +500,7 @@ namespace Components
 		// Ignore call to print 'Offhand class mismatch when giving weapon...'
 		Utils::Hook(0x5D9047, 0x4BB9B0, HOOK_CALL).install()->quick();
 
-		Command::Add("unlockstats", [](Command::Params*)
-		{
-			QuickPatch::UnlockStats();
-		});
+		Command::Add("unlockstats", QuickPatch::UnlockStats);
 
 		Command::Add("dumptechsets", [](Command::Params* param)
 		{
@@ -512,23 +509,26 @@ namespace Components
 				Logger::Print("usage: dumptechsets <fastfile> | all\n");
 				return;
 			}
-			std::vector<std::string> fastfiles;
+
+			std::vector<std::string> fastFiles;
 
 			if (param->get(1) == "all"s)
 			{
-				for (std::string f : Utils::IO::ListFiles("zone/english"))
-					fastfiles.push_back(f.substr(7, f.length() - 10));
-				for (std::string f : Utils::IO::ListFiles("zone/dlc"))
-					fastfiles.push_back(f.substr(3, f.length() - 6));
-				for (std::string f : Utils::IO::ListFiles("zone/patch"))
-					fastfiles.push_back(f.substr(5, f.length() - 8));
+				for (const auto& f : Utils::IO::ListFiles("zone/english"))
+					fastFiles.emplace_back(f.substr(7, f.length() - 10));
+
+				for (const auto& f : Utils::IO::ListFiles("zone/dlc"))
+					fastFiles.emplace_back(f.substr(3, f.length() - 6));
+
+				for (const auto& f : Utils::IO::ListFiles("zone/patch"))
+					fastFiles.emplace_back(f.substr(5, f.length() - 8));
 			}
 			else
 			{
-				fastfiles.push_back(param->get(1));
+				fastFiles.emplace_back(param->get(1));
 			}
 
-			int count = 0;
+			auto count = 0;
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
 			{
@@ -550,7 +550,7 @@ namespace Components
 					if (Utils::IO::FileExists(Utils::String::VA(formatString, name.data()))) return;
 
 					Utils::Stream buffer(0x1000);
-					Game::MaterialPixelShader* dest = buffer.dest<Game::MaterialPixelShader>();
+					auto* dest = buffer.dest<Game::MaterialPixelShader>();
 					buffer.save(asset.pixelShader);
 
 					if (asset.pixelShader->prog.loadDef.program)
@@ -561,31 +561,6 @@ namespace Components
 
 					Utils::IO::WriteFile(Utils::String::VA(formatString, name.data()), buffer.toBuffer());
 				}
-
-				static std::map<const void*, unsigned int> pointerMap;
-
-				// Check if the given pointer has already been mapped
-				std::function<bool(const void*)> hasPointer = [](const void* pointer)
-				{
-					return (pointerMap.find(pointer) != pointerMap.end());
-				};
-
-				// Get stored offset for given file pointer
-				std::function<unsigned int(const void*)> getPointer = [hasPointer](const void* pointer)
-				{
-					if (hasPointer(pointer))
-					{
-						return pointerMap[pointer];
-					}
-
-					return 0U;
-				};
-
-				std::function<void(const void*, unsigned int)> storePointer = [hasPointer](const void* ptr, unsigned int offset)
-				{
-					if (hasPointer(ptr)) return;
-					pointerMap[ptr] = offset;
-				};
 
 				if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
 				{
@@ -606,59 +581,54 @@ namespace Components
 
 						if (technique)
 						{
-							dest->techniques[i] = reinterpret_cast<Game::MaterialTechnique*>(getPointer(technique));
-							if (!dest->techniques)
+							// Size-check is obsolete, as the structure is dynamic
+							buffer.align(Utils::Stream::ALIGN_4);
+
+							Game::MaterialTechnique* destTechnique = buffer.dest<Game::MaterialTechnique>();
+							buffer.save(technique, 8);
+
+							// Save_MaterialPassArray
+							Game::MaterialPass* destPasses = buffer.dest<Game::MaterialPass>();
+							buffer.saveArray(technique->passArray, technique->passCount);
+
+							for (std::uint16_t j = 0; j < technique->passCount; ++j)
 							{
-								// Size-check is obsolete, as the structure is dynamic
-								buffer.align(Utils::Stream::ALIGN_4);
-								//storePointer(technique, buffer->);
+								AssertSize(Game::MaterialPass, 20);
 
-								Game::MaterialTechnique* destTechnique = buffer.dest<Game::MaterialTechnique>();
-								buffer.save(technique, 8);
+								Game::MaterialPass* destPass = &destPasses[j];
+								Game::MaterialPass* pass = &technique->passArray[j];
 
-								// Save_MaterialPassArray
-								Game::MaterialPass* destPasses = buffer.dest<Game::MaterialPass>();
-								buffer.saveArray(technique->passArray, technique->passCount);
-
-								for (short j = 0; j < technique->passCount; ++j)
+								if (pass->vertexDecl)
 								{
-									AssertSize(Game::MaterialPass, 20);
 
-									Game::MaterialPass* destPass = &destPasses[j];
-									Game::MaterialPass* pass = &technique->passArray[j];
-
-									if (pass->vertexDecl)
-									{
-
-									}
-
-									if (pass->args)
-									{
-										buffer.align(Utils::Stream::ALIGN_4);
-										buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
-										Utils::Stream::ClearPointer(&destPass->args);
-									}
 								}
 
-								if (technique->name)
+								if (pass->args)
 								{
-									buffer.saveString(technique->name);
-									Utils::Stream::ClearPointer(&destTechnique->name);
+									buffer.align(Utils::Stream::ALIGN_4);
+									buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+									Utils::Stream::ClearPointer(&destPass->args);
 								}
-
-								Utils::Stream::ClearPointer(&dest->techniques[i]);
 							}
+
+							if (technique->name)
+							{
+								buffer.saveString(technique->name);
+								Utils::Stream::ClearPointer(&destTechnique->name);
+							}
+
+							Utils::Stream::ClearPointer(&dest->techniques[i]);
 						}
 					}
 				}
 			});
 
-			for (std::string fastfile : fastfiles)
+			for (const auto& fastFile : fastFiles)
 			{
-				if (!Game::DB_IsZoneLoaded(fastfile.data()))
+				if (!Game::DB_IsZoneLoaded(fastFile.data()))
 				{
 					Game::XZoneInfo info;
-					info.name = fastfile.data();
+					info.name = fastFile.data();
 					info.allocFlags = 0x20;
 					info.freeFlags = 0;
 
@@ -714,17 +684,6 @@ namespace Components
 
 		// Disable cheat protection for dvars
 		Utils::Hook::Set<BYTE>(0x647682, 0xEB);
-
-		// Constantly draw the mini console
-		Utils::Hook::Set<BYTE>(0x412A45, 0xEB);
-
-		Scheduler::OnFrame([]()
-		{
-			if (*reinterpret_cast<Game::Font_s**>(0x62E4BAC))
-			{
-				Game::Con_DrawMiniConsole(0, 2, 4, (Game::CL_IsCgameInitialized() ? 1.0f : 0.4f));
-			}
-		}, true);
 #else
 		// Remove missing tag message
 		Utils::Hook::Nop(0x4EBF1A, 5);
@@ -739,9 +698,9 @@ namespace Components
 	bool QuickPatch::unitTest()
 	{
 		uint32_t randIntCount = 4'000'000;
-		printf("Generating %d random integers...", randIntCount);
+		Logger::Debug("Generating {} random integers...", randIntCount);
 
-		auto startTime = std::chrono::high_resolution_clock::now();
+		const auto startTime = std::chrono::high_resolution_clock::now();
 
 		for (uint32_t i = 0; i < randIntCount; ++i)
 		{
@@ -749,9 +708,9 @@ namespace Components
 		}
 
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
-		Logger::Print("took %llims\n", duration);
+		Logger::Debug("took {}ms", duration);
 
-		printf("Testing ZLib compression...");
+		Logger::Debug("Testing ZLib compression...");
 
 		std::string test = Utils::String::VA("%c", Utils::Cryptography::Rand::GenerateInt());
 
@@ -762,21 +721,20 @@ namespace Components
 
 			if (test != decompressed)
 			{
-				printf("Error\n");
-				printf("Compressing %d bytes and decompressing failed!\n", test.size());
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Compressing {} bytes and decompressing failed!\n", test.size());
 				return false;
 			}
 
-			auto size = test.size();
+			const auto size = test.size();
 			for (unsigned int j = 0; j < size; ++j)
 			{
 				test.append(Utils::String::VA("%c", Utils::Cryptography::Rand::GenerateInt()));
 			}
 		}
 
-		printf("Success\n");
+		Logger::Debug("Success");
 
-		printf("Testing trimming...");
+		Logger::Debug("Testing trimming...");
 		std::string trim1 = " 1 ";
 		std::string trim2 = "   1";
 		std::string trim3 = "1   ";
@@ -789,7 +747,7 @@ namespace Components
 		if (trim2 != "1") return false;
 		if (trim3 != "1") return false;
 
-		printf("Success\n");
+		Logger::Debug("Success");
 		return true;
 	}
 }

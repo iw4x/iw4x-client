@@ -4,8 +4,8 @@ namespace Components
 {
 	SteamID Dedicated::PlayerGuids[18][2];
 
-	Dvar::Var Dedicated::SVRandomMapRotation;
 	Dvar::Var Dedicated::SVLanOnly;
+	Dvar::Var Dedicated::COMLogFilter;
 
 	bool Dedicated::IsEnabled()
 	{
@@ -35,7 +35,7 @@ namespace Components
 		std::memcpy(reinterpret_cast<void*>(0x66E1CB0), &fastfiles, sizeof(fastfiles));
 		Game::R_LoadGraphicsAssets();
 
-		if (Dvar::Var("com_logFilter").get<bool>())
+		if (COMLogFilter.get<bool>())
 		{
 			Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
 			Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
@@ -96,159 +96,24 @@ namespace Components
 			}
 		}
 
-		Game::SV_GameSendServerCommand(-1, 0, list.data());
+		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, list.data());
 	}
 
 	void Dedicated::TimeWrapStub(Game::errorParm_t code, const char* message)
 	{
-		static bool partyEnable;
-		static std::string mapname;
-
-		partyEnable = Dvar::Var("party_enable").get<bool>();
-		mapname = Dvar::Var("mapname").get<std::string>();
-
-		Scheduler::Once([]()
+		Scheduler::Once([]
 		{
-			Dvar::Var("party_enable").set(partyEnable);
+			const auto partyEnable = Dvar::Var("party_enable").get<bool>();
+			auto mapname = Dvar::Var("mapname").get<std::string>();
 
 			if (!partyEnable) // Time wrapping should not occur in party servers, but yeah...
 			{
 				if (mapname.empty()) mapname = "mp_rust";
 				Command::Execute(Utils::String::VA("map %s", mapname.data()), false);
-				mapname.clear();
 			}
-		});
+		}, Scheduler::Pipeline::SERVER);
 
 		Game::Com_Error(code, message);
-	}
-
-	void Dedicated::RandomizeMapRotation()
-	{
-		auto rotation = Dvar::Var("sv_mapRotation").get<std::string>();
-
-		const auto tokens = Utils::String::Split(rotation, ' ');
-		std::vector<std::pair<std::string, std::string>> mapRotationPair;
-
-		for (auto i = 0u; i < (tokens.size() - 1); i += 2)
-		{
-			if (i + 1 >= tokens.size()) break;
-
-			const auto& key = tokens[i];
-			const auto& value = tokens[i + 1];
-			mapRotationPair.push_back(std::make_pair(key, value));
-		}
-
-		const auto seed = Utils::Cryptography::Rand::GenerateInt();
-		std::shuffle(std::begin(mapRotationPair), std::end(mapRotationPair), std::default_random_engine(seed));
-
-		// Rebuild map rotation using the randomized key/values
-		rotation.clear();
-		for (auto j = 0u; j < mapRotationPair.size(); j++)
-		{
-			const auto& pair = mapRotationPair[j];
-			rotation.append(pair.first);
-			rotation.append(" ");
-			rotation.append(pair.second);
-
-			if (j != mapRotationPair.size() - 1)
-				rotation.append(" ");
-		}
-
-		Dvar::Var("sv_mapRotationCurrent").set(rotation);
-	}
-
-	void Dedicated::MapRotate()
-	{
-		if (!Dedicated::IsEnabled() && Dvar::Var("sv_dontrotate").get<bool>())
-		{
-			Dvar::Var("sv_dontrotate").set(false);
-			return;
-		}
-
-		if (Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>())
-		{
-			Logger::Print("Not performing map rotation as we are hosting a party!\n");
-			return;
-		}
-
-		Logger::Print("Rotating map...\n");
-		const auto mapRotation = Dvar::Var("sv_mapRotation").get<std::string>();
-
-		// if nothing, just restart
-		if (mapRotation.empty())
-		{
-			Logger::Print("No rotation defined, restarting map.\n");
-
-			if (!Dvar::Var("sv_cheats").get<bool>())
-			{
-				Command::Execute(Utils::String::VA("map %s", Dvar::Var("mapname").get<const char*>()), true);
-			}
-			else
-			{
-				Command::Execute(Utils::String::VA("devmap %s", Dvar::Var("mapname").get<const char*>()), true);
-			}
-
-			return;
-		}
-
-		// First, check if the string contains nothing
-		if (Dvar::Var("sv_mapRotationCurrent").get<std::string>().empty())
-		{
-			Logger::Print("Current map rotation has finished, reloading...\n");
-
-			if (Dedicated::SVRandomMapRotation.get<bool>())
-			{
-				Logger::Print("Randomizing map rotation\n");
-				Dedicated::RandomizeMapRotation();
-			}
-			else
-			{
-				Dvar::Var("sv_mapRotationCurrent").set(mapRotation);
-			}
-		}
-
-		auto rotation = Dvar::Var("sv_mapRotationCurrent").get<std::string>();
-
-		auto tokens = Utils::String::Split(rotation, ' ');
-
-		for (unsigned int i = 0; i < (tokens.size() - 1); i += 2)
-		{
-			if (i + 1 >= tokens.size())
-			{
-				Dvar::Var("sv_mapRotationCurrent").set("");
-				Command::Execute("map_rotate", true);
-				return;
-			}
-
-			std::string key = tokens[i];
-			std::string value = tokens[i + 1];
-
-			if (key == "map")
-			{
-				// Rebuild map rotation string
-				rotation.clear();
-				for (unsigned int j = (i + 2); j < tokens.size(); ++j)
-				{
-					if (j != (i + 2)) rotation += " ";
-					rotation += tokens[j];
-				}
-
-				Dvar::Var("sv_mapRotationCurrent").set(rotation);
-
-				Logger::Print("Loading new map: %s\n", value.data());
-				Command::Execute(Utils::String::VA("map %s", value.data()), true);
-				break;
-			}
-			else if (key == "gametype")
-			{
-				Logger::Print("Applying new gametype: %s\n", value.data());
-				Dvar::Var("g_gametype").set(value);
-			}
-			else
-			{
-				Logger::Print("Unsupported maprotation key '%s', motherfucker!\n", key.data());
-			}
-		}
 	}
 
 	void Dedicated::Heartbeat()
@@ -264,21 +129,8 @@ namespace Components
 
 		Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
 
-		Logger::Print("Sending heartbeat to master: %s:%u\n", masterServerName, masterPort);
+		Logger::Print(Game::CON_CHANNEL_SERVER, "Sending heartbeat to master: {}:{}\n", masterServerName, masterPort);
 		Network::SendCommand(master, "heartbeat", "IW4");
-	}
-
-	__declspec(naked) void Dedicated::FrameStub()
-	{
-		__asm
-		{
-			pushad
-			call Scheduler::FrameHandler
-			popad
-
-			push 5A8E80h
-			retn
-		}
 	}
 
 	Game::dvar_t* Dedicated::Dvar_RegisterSVNetworkFps(const char* dvarName, int, int min, int, int, const char* description)
@@ -286,23 +138,83 @@ namespace Components
 		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::dvar_flag::DVAR_NONE, description);
 	}
 
+	void Dedicated::AddDedicatedCommands()
+	{
+		// Say command
+		Command::AddSV("say", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			auto message = params->join(1);
+			auto name = Dvar::Var("sv_sayName").get<std::string>();
+
+			if (!name.empty())
+			{
+				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "{}: {}\n", name, message);
+			}
+			else
+			{
+				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Console: {}\n", message);
+			}
+		});
+
+		// Tell command
+		Command::AddSV("tell", [](Command::Params* params)
+		{
+			if (params->size() < 3) return;
+
+			const auto client = atoi(params->get(1));
+			auto message = params->join(2);
+			auto name = Dvar::Var("sv_sayName").get<std::string>();
+
+			if (!name.empty())
+			{
+				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "{} -> {}: {}\n", name, client, message);
+			}
+			else
+			{
+				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Console -> {}: {}\n", client, message);
+			}
+		});
+
+		// Sayraw command
+		Command::AddSV("sayraw", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			auto message = params->join(1);
+			Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw: {}\n", message);
+		});
+
+		// Tellraw command
+		Command::AddSV("tellraw", [](Command::Params* params)
+		{
+			if (params->size() < 3) return;
+
+			const auto client = atoi(params->get(1));
+			std::string message = params->join(2);
+			Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw -> {}: {}\n", client, message);
+		});
+	}
+
 	Dedicated::Dedicated()
 	{
-		// Map rotation
-		Utils::Hook::Set(0x4152E8, Dedicated::MapRotate);
-		Dvar::Register<bool>("sv_dontrotate", false, Game::dvar_flag::DVAR_CHEAT, "");
-		Dvar::Register<bool>("com_logFilter", true, Game::dvar_flag::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
+		Dedicated::COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
+			Game::dvar_flag::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			// Make sure all callbacks are handled
-			Scheduler::OnFrame(Steam::SteamAPI_RunCallbacks);
+			Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::SERVER);
 
-			Dvar::OnInit([]
-			{
-				Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
-					Game::dvar_flag::DVAR_NONE, "Don't act as node");
-			});
+			Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
+				Game::dvar_flag::DVAR_NONE, "Don't act as node");
 
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();
 
@@ -361,112 +273,33 @@ namespace Components
 			// don't load the config
 			Utils::Hook::Set<BYTE>(0x4B4D19, 0xEB);
 
-			// Dedicated frame handler
-			Utils::Hook(0x4B0F81, Dedicated::FrameStub, HOOK_CALL).install()->quick();
-
 			// Intercept time wrapping
 			Utils::Hook(0x62737D, Dedicated::TimeWrapStub, HOOK_CALL).install()->quick();
 			//Utils::Hook::Set<DWORD>(0x62735C, 50'000); // Time wrap after 50 seconds (for testing - i don't want to wait 3 weeks)
 
 			if (!ZoneBuilder::IsEnabled())
 			{
+				Scheduler::Once([]
+				{
+					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
+					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
+				}, Scheduler::Pipeline::MAIN);
+
+				Scheduler::OnGameInitialized(Dedicated::AddDedicatedCommands, Scheduler::Pipeline::SERVER);
+
 				// Post initialization point
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
 
 				// Transmit custom data
-				Scheduler::OnFrame([]()
+				Scheduler::Loop([]
 				{
-					static Utils::Time::Interval interval;
-					if (interval.elapsed(10s))
-					{
-						interval.update();
-
-						CardTitles::SendCustomTitlesToClients();
-						//Clantags::SendClantagsToClients();
-					}
-				});
+					CardTitles::SendCustomTitlesToClients();
+					//Clantags::SendClantagsToClients();
+				}, Scheduler::Pipeline::SERVER, 10s);
 
 				// Heartbeats
-				Scheduler::Once(Dedicated::Heartbeat);
-				Scheduler::OnFrame([]()
-				{
-					static Utils::Time::Interval interval;
-
-					if (Dvar::Var("sv_maxclients").get<int>() > 0 && interval.elapsed(2min))
-					{
-						interval.update();
-						Dedicated::Heartbeat();
-					}
-				});
-
-				Dvar::OnInit([]()
-				{
-					Dedicated::SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false, Game::dvar_flag::DVAR_ARCHIVE, "Randomize map rotation when true");
-					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
-					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
-
-					// Say command
-					Command::AddSV("say", [](Command::Params* params)
-					{
-						if (params->size() < 2) return;
-
-						std::string message = params->join(1);
-						std::string name = Dvar::Var("sv_sayName").get<std::string>();
-
-						if (!name.empty())
-						{
-							Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-							Game::Com_Printf(15, "%s: %s\n", name.data(), message.data());
-						}
-						else
-						{
-							Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-							Game::Com_Printf(15, "Console: %s\n", message.data());
-						}
-					});
-
-					// Tell command
-					Command::AddSV("tell", [](Command::Params* params)
-					{
-						if (params->size() < 3) return;
-
-						int client = atoi(params->get(1));
-						std::string message = params->join(2);
-						std::string name = Dvar::Var("sv_sayName").get<std::string>();
-
-						if (!name.empty())
-						{
-							Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-							Game::Com_Printf(15, "%s -> %i: %s\n", name.data(), client, message.data());
-						}
-						else
-						{
-							Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-							Game::Com_Printf(15, "Console -> %i: %s\n", client, message.data());
-						}
-					});
-
-					// Sayraw command
-					Command::AddSV("sayraw", [](Command::Params* params)
-					{
-						if (params->size() < 2) return;
-
-						std::string message = params->join(1);
-						Game::SV_GameSendServerCommand(-1, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
-						Game::Com_Printf(15, "Raw: %s\n", message.data());
-					});
-
-					// Tellraw command
-					Command::AddSV("tellraw", [](Command::Params* params)
-					{
-						if (params->size() < 3) return;
-
-						int client = atoi(params->get(1));
-						std::string message = params->join(2);
-						Game::SV_GameSendServerCommand(client, 0, Utils::String::VA("%c \"%s\"", 104, message.data()));
-						Game::Com_Printf(15, "Raw -> %i: %s\n", client, message.data());
-					});
-				});
+				Scheduler::Once(Dedicated::Heartbeat, Scheduler::Pipeline::SERVER);
+				Scheduler::Loop(Dedicated::Heartbeat, Scheduler::Pipeline::SERVER, 2min);
 			}
 		}
 		else
@@ -495,18 +328,12 @@ namespace Components
 			});
 		}
 
-		Scheduler::OnFrame([]()
+		Scheduler::Loop([]
 		{
 			if (Dvar::Var("sv_running").get<bool>())
 			{
-				static Utils::Time::Interval interval;
-
-				if (interval.elapsed(15s))
-				{
-					interval.update();
-					Dedicated::TransmitGuids();
-				}
+				Dedicated::TransmitGuids();
 			}
-		});
+		}, Scheduler::Pipeline::SERVER, 15s);
 	}
 }

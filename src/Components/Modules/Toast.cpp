@@ -148,15 +148,14 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled() || Monitor::IsEnabled()) return;
 
-		Scheduler::OnReady([]()
-		{
-			Scheduler::OnFrame(Toast::Handler);
-		});
+		Scheduler::OnGameInitialized(Toast::Handler, Scheduler::Pipeline::RENDERER);
 
-		Command::Add("testtoast", [](Command::Params*)
+#ifdef _DEBUG
+		Command::Add("testtoast", []([[maybe_unused]] Command::Params* params)
 		{
 			Toast::Show("cardicon_prestige10", "Test", "This is a test toast", 3000);
 		});
+#endif
 	}
 
 	Toast::~Toast()

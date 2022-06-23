@@ -1,54 +1,56 @@
-#include <StdInclude.hpp>
+#include <STDInclude.hpp>
+#include "IMaterialVertexShader.hpp"
 
 #define IW4X_TECHSET_VERSION "0"
 
 namespace Assets
 {
-    void IMaterialVertexShader::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
-    {
-        if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
-        if (!header->data) this->loadBinary(header, name, builder); // Check if we need to import a new one into the game
-    }
+	void IMaterialVertexShader::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+	{
+		if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
+		if (!header->data) this->loadBinary(header, name, builder); // Check if we need to import a new one into the game
+	}
 
-    void IMaterialVertexShader::loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
-    {
-        header->vertexShader = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).vertexShader;
-    }
+	void IMaterialVertexShader::loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
+	{
+		header->vertexShader = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).vertexShader;
+	}
 
-    void IMaterialVertexShader::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
-    {
-        Components::FileSystem::File vsFile(Utils::String::VA("vs/%s.iw4xVS", name.data()));
-        if (!vsFile.exists()) return;
+	void IMaterialVertexShader::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+	{
+		Components::FileSystem::File vsFile(Utils::String::VA("vs/%s.iw4xVS", name.data()));
+		if (!vsFile.exists()) return;
 
-        Utils::Stream::Reader reader(builder->getAllocator(), vsFile.getBuffer());
+		Utils::Stream::Reader reader(builder->getAllocator(), vsFile.getBuffer());
 
-        char* magic = reader.readArray<char>(8);
-        if (std::memcmp(magic, "IW4xVERT", 8))
-        {
-            Components::Logger::Error(0, "Reading vertex shader '%s' failed, header is invalid!", name.data());
-        }
+		char* magic = reader.readArray<char>(8);
+		if (std::memcmp(magic, "IW4xVERT", 8))
+		{
+			Components::Logger::Error(Game::ERR_FATAL, "Reading vertex shader '{}' failed, header is invalid!", name);
+		}
 
-        std::string version;
-        version.push_back(reader.read<char>());
-        if (version != IW4X_TECHSET_VERSION)
-        {
-            Components::Logger::Error("Reading vertex shader '%s' failed, expected version is %d, but it was %d!", name.data(), atoi(IW4X_TECHSET_VERSION), atoi(version.data()));
-        }
+		std::string version;
+		version.push_back(reader.read<char>());
+		if (version != IW4X_TECHSET_VERSION)
+		{
+			Components::Logger::Error(Game::ERR_FATAL, "Reading vertex shader '{}' failed, expected version is {}, but it was {}!",
+				name, IW4X_TECHSET_VERSION, version);
+		}
 
-        Game::MaterialVertexShader* asset = reader.readObject<Game::MaterialVertexShader>();
+		Game::MaterialVertexShader* asset = reader.readObject<Game::MaterialVertexShader>();
 
-        if (asset->name)
-        {
-            asset->name = reader.readCString();
-        }
+		if (asset->name)
+		{
+			asset->name = reader.readCString();
+		}
 
-        if (asset->prog.loadDef.program)
-        {
-            asset->prog.loadDef.program = reader.readArray<unsigned int>(asset->prog.loadDef.programSize);
-        }
+		if (asset->prog.loadDef.program)
+		{
+			asset->prog.loadDef.program = reader.readArray<unsigned int>(asset->prog.loadDef.programSize);
+		}
 
-        header->vertexShader = asset;
-    }
+		header->vertexShader = asset;
+	}
 
 	void IMaterialVertexShader::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{

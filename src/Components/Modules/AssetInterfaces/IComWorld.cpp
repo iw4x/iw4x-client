@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IComWorld.hpp"
 
 #define IW4X_COMMAP_VERSION 0
 
@@ -19,13 +20,13 @@ namespace Assets
 			__int64 magic = reader.read<__int64>();
 			if (std::memcmp(&magic, "IW4xComW", 8))
 			{
-				Components::Logger::Error("Reading comworld '%s' failed, header is invalid!", name.data());
+				Components::Logger::Error(Game::ERR_FATAL, "Reading comworld '{}' failed, header is invalid!", name);
 			}
 
 			int version = reader.read<int>();
 			if (version != IW4X_COMMAP_VERSION)
 			{
-				Components::Logger::Error("Reading comworld '%s' failed, expected version is %d, but it was %d!", name.data(), IW4X_COMMAP_VERSION, version);
+				Components::Logger::Error(Game::ERR_FATAL, "Reading comworld '{}' failed, expected version is {}, but it was {}!", name, IW4X_COMMAP_VERSION, version);
 			}
 
 			Game::ComWorld* asset = reader.readObject<Game::ComWorld>();

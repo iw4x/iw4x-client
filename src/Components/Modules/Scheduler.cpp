@@ -1,162 +1,193 @@
 #include <STDInclude.hpp>
 
+constexpr bool COND_CONTINUE = false;
+constexpr bool COND_END = true;
+
 namespace Components
 {
-	bool Scheduler::AsyncTerminate;
-	std::thread Scheduler::AsyncThread;
+	std::thread Scheduler::Thread;
+	volatile bool Scheduler::Kill = false;
+	Scheduler::TaskPipeline Scheduler::Pipelines[Pipeline::COUNT];
 
-	bool Scheduler::ReadyPassed = false;
-	Utils::Signal<Scheduler::Callback> Scheduler::ReadySignal;
-	Utils::Signal<Scheduler::Callback> Scheduler::ShutdownSignal;
-
-	Utils::Signal<Scheduler::Callback> Scheduler::FrameSignal;
-	Utils::Signal<Scheduler::Callback> Scheduler::FrameOnceSignal;
-	std::vector<Scheduler::DelayedSlot> Scheduler::DelayedSlots;
-
-	Utils::Signal<Scheduler::Callback> Scheduler::AsyncFrameSignal;
-	Utils::Signal<Scheduler::Callback> Scheduler::AsyncFrameOnceSignal;
-
-	void Scheduler::Once(Utils::Slot<Scheduler::Callback> callback, bool clientOnly)
+	void Scheduler::TaskPipeline::add(Task&& task)
 	{
-		if (clientOnly && (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())) return;
-		Scheduler::FrameOnceSignal.connect(callback);
-	}
-
-	void Scheduler::OnShutdown(Utils::Slot<Scheduler::Callback> callback)
-	{
-		Scheduler::ShutdownSignal.connect(callback);
-	}
-
-	void Scheduler::OnFrame(Utils::Slot<Scheduler::Callback> callback, bool clientOnly)
-	{
-		if (clientOnly && (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())) return;
-		Scheduler::FrameSignal.connect(callback);
-	}
-
-	void Scheduler::OnReady(Utils::Slot<Scheduler::Callback> callback, bool clientOnly)
-	{
-		if (clientOnly && (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())) return;
-		if (Scheduler::ReadyPassed) Scheduler::Once(callback);
-		else Scheduler::ReadySignal.connect(callback);
-	}
-
-	void Scheduler::ReadyHandler()
-	{
-		if (!FastFiles::Ready())
+		newCallbacks_.access([&task](taskList& tasks)
 		{
-			Scheduler::Once(Scheduler::ReadyHandler);
-		}
-		else
+			tasks.emplace_back(std::move(task));
+		});
+	}
+
+	void Scheduler::TaskPipeline::execute()
+	{
+		callbacks_.access([&](taskList& tasks)
 		{
-			Scheduler::ReadyPassed = true;
-			Scheduler::ReadySignal();
-			Scheduler::ReadySignal.clear();
-		}
-	}
+			this->mergeCallbacks();
 
-	void Scheduler::FrameHandler()
-	{
-		Scheduler::DelaySignal();
-		Scheduler::FrameSignal();
-
-		Utils::Signal<Scheduler::Callback> copy(Scheduler::FrameOnceSignal);
-		Scheduler::FrameOnceSignal.clear();
-		copy();
-	}
-
-	void Scheduler::OnDelay(Utils::Slot<Scheduler::Callback> callback, std::chrono::nanoseconds delay, bool clientOnly)
-	{
-		if (clientOnly && (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())) return;
-
-		Scheduler::DelayedSlot slot;
-		slot.callback = callback;
-		slot.delay = delay;
-
-		Scheduler::DelayedSlots.push_back(slot);
-	}
-
-	void Scheduler::DelaySignal()
-	{
-		Utils::Signal<Scheduler::Callback> signal;
-
-		for (auto i = Scheduler::DelayedSlots.begin(); i != Scheduler::DelayedSlots.end();)
-		{
-			if (i->interval.elapsed(i->delay))
+			for (auto i = tasks.begin(); i != tasks.end();)
 			{
-				signal.connect(i->callback);
-				i = Scheduler::DelayedSlots.erase(i);
-				continue;
+				const auto now = std::chrono::high_resolution_clock::now();
+				const auto diff = now - i->lastCall;
+
+				if (diff < i->interval)
+				{
+					++i;
+					continue;
+				}
+
+				i->lastCall = now;
+
+				const auto res = i->handler();
+				if (res == COND_END)
+				{
+					i = tasks.erase(i);
+				}
+				else
+				{
+					++i;
+				}
+			}
+		});
+	}
+
+	void Scheduler::TaskPipeline::mergeCallbacks()
+	{
+		callbacks_.access([&](taskList& tasks)
+		{
+			newCallbacks_.access([&](taskList& new_tasks)
+			{
+				tasks.insert(tasks.end(), std::move_iterator<taskList::iterator>(new_tasks.begin()), std::move_iterator<taskList::iterator>(new_tasks.end()));
+				new_tasks = {};
+			});
+		});
+	}
+
+	void Scheduler::Execute(Pipeline type)
+	{
+		assert(type < Pipeline::COUNT);
+		Pipelines[type].execute();
+	}
+
+	void Scheduler::REndFrame_Hk()
+	{
+		Utils::Hook::Call<void()>(0x50AB20)();
+		Execute(Pipeline::RENDERER);
+	}
+
+	void Scheduler::ServerFrame_Hk()
+	{
+		Utils::Hook::Call<void()>(0x471C50)();
+		Execute(Pipeline::SERVER);
+	}
+
+	void Scheduler::ClientFrame_Hk(const int localClientNum)
+	{
+		Utils::Hook::Call<void(int)>(0x5A8E80)(localClientNum);
+		Execute(Pipeline::CLIENT);
+	}
+
+	void Scheduler::MainFrame_Hk()
+	{
+		Utils::Hook::Call<void()>(0x47DCA0)();
+		Execute(Pipeline::MAIN);
+	}
+
+	void Scheduler::SysSetBlockSystemHotkeys_Hk(int block)
+	{
+		Execute(Pipeline::QUIT);
+		Utils::Hook::Call<void(int)>(0x46B370)(block);
+	}
+
+	void Scheduler::Schedule(const std::function<bool()>& callback, const Pipeline type,
+		const std::chrono::milliseconds delay)
+	{
+		assert(type < Pipeline::COUNT);
+
+		Task task;
+		task.handler = callback;
+		task.interval = delay;
+		task.lastCall = std::chrono::high_resolution_clock::now();
+
+		Pipelines[type].add(std::move(task));
+	}
+
+	void Scheduler::Loop(const std::function<void()>& callback, const Pipeline type,
+		const std::chrono::milliseconds delay)
+	{
+		Schedule([callback]
+		{
+			callback();
+			return COND_CONTINUE;
+		}, type, delay);
+	}
+
+	void Scheduler::Once(const std::function<void()>& callback, const Pipeline type,
+		const std::chrono::milliseconds delay)
+	{
+		Schedule([callback]
+		{
+			callback();
+			return COND_END;
+		}, type, delay);
+	}
+
+	void Scheduler::OnGameInitialized(const std::function<void()>& callback, const Pipeline type,
+		const std::chrono::milliseconds delay)
+	{
+		Schedule([=]
+		{
+			if (Game::Sys_IsDatabaseReady2())
+			{
+				Once(callback, type, delay);
+				return COND_END;
 			}
 
-			++i;
-		}
-
-		signal();
+			return COND_CONTINUE;
+		}, Pipeline::MAIN); // Once Com_Frame_Try_Block_Function is called we know the game is 'ready'
 	}
 
-	void Scheduler::ShutdownStub(int num)
+	void Scheduler::OnGameShutdown(const std::function<void()>& callback)
 	{
-		Scheduler::ShutdownSignal();
-		Utils::Hook::Call<void(int)>(0x46B370)(num);
-	}
-
-	void Scheduler::OnFrameAsync(Utils::Slot<Scheduler::Callback> callback)
-	{
-		Scheduler::AsyncFrameSignal.connect(callback);
-	}
-
-	void Scheduler::OnceAsync(Utils::Slot<Scheduler::Callback> callback)
-	{
-		Scheduler::AsyncFrameOnceSignal.connect(callback);
+		Schedule([callback]
+		{
+			callback();
+			return COND_END;
+		}, Pipeline::QUIT, 0ms);
 	}
 
 	Scheduler::Scheduler()
 	{
-		Scheduler::ReadyPassed = false;
-		Scheduler::Once(Scheduler::ReadyHandler);
-
-		Utils::Hook(0x4D697A, Scheduler::ShutdownStub, HOOK_CALL).install()->quick();
-
-		if (!Loader::IsPerformingUnitTests())
+		Thread = Utils::Thread::createNamedThread("Async Scheduler", []
 		{
-			Scheduler::AsyncTerminate = false;
-			Scheduler::AsyncThread = std::thread([]()
+			while (!Kill)
 			{
-				while (!Scheduler::AsyncTerminate)
-				{
-					Scheduler::AsyncFrameSignal();
+				Execute(Pipeline::ASYNC);
+				std::this_thread::sleep_for(10ms);
+			}
+		});
 
-					Utils::Signal<Scheduler::Callback> copy(Scheduler::AsyncFrameOnceSignal);
-					Scheduler::AsyncFrameOnceSignal.clear();
-					copy();
+		Utils::Hook(0x4DBE9A, REndFrame_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x518D5C, REndFrame_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5ACBA3, REndFrame_Hk, HOOK_CALL).install()->quick();
 
-					std::this_thread::sleep_for(16ms);
-				}
-			});
-		}
-	}
+		// Hook G_Glass_Update so we may fix TLS issues
+		Utils::Hook(0x416049, ServerFrame_Hk, HOOK_CALL).install()->quick();
 
-	Scheduler::~Scheduler()
-	{
-		Scheduler::ReadySignal.clear();
-		Scheduler::ShutdownSignal.clear();
+		// CL_CheckTimeout
+		Utils::Hook(0x4B0F81, ClientFrame_Hk, HOOK_CALL).install()->quick();
 
-		Scheduler::FrameSignal.clear();
-		Scheduler::FrameOnceSignal.clear();
-		Scheduler::DelayedSlots.clear();
+		// Com_Frame_Try_Block_Function
+		Utils::Hook(0x4B724F, MainFrame_Hk, HOOK_CALL).install()->quick();
 
-		Scheduler::AsyncFrameSignal.clear();
-		Scheduler::AsyncFrameOnceSignal.clear();
-
-		Scheduler::ReadyPassed = false;
+		// Sys_Quit
+		Utils::Hook(0x4D697A, SysSetBlockSystemHotkeys_Hk, HOOK_CALL).install()->quick();
 	}
 
 	void Scheduler::preDestroy()
 	{
-		Scheduler::AsyncTerminate = true;
-		if (Scheduler::AsyncThread.joinable())
+		Kill = true;
+		if (Thread.joinable())
 		{
-			Scheduler::AsyncThread.join();
+			Thread.join();
 		}
 	}
 }

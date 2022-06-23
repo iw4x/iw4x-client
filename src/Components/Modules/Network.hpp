@@ -1,7 +1,5 @@
 #pragma once
 
-#define NETWORK_MAX_PACKETS_PER_SECOND 100'000
-
 namespace Components
 {
 	class Network : public Component
@@ -10,7 +8,7 @@ namespace Components
 		class Address
 		{
 		public:
-			Address() { setType(Game::netadrtype_t::NA_BAD); };
+			Address() { setType(Game::netadrtype_t::NA_BAD); }
 			Address(const std::string& addrString);
 			Address(sockaddr* addr);
 			Address(sockaddr addr) : Address(&addr) {}
@@ -18,8 +16,8 @@ namespace Components
 			Address(sockaddr_in* addr) : Address(reinterpret_cast<sockaddr*>(addr)) {}
 			Address(Game::netadr_t addr) : address(addr) {}
 			Address(Game::netadr_t* addr) : Address(*addr) {}
-			Address(const Address& obj) : address(obj.address) {};
-			bool operator!=(const Address &obj) const { return !(*this == obj); };
+			Address(const Address& obj) = default;
+			bool operator!=(const Address &obj) const { return !(*this == obj); }
 			bool operator==(const Address &obj) const;
 
 			void setPort(unsigned short port);
@@ -48,14 +46,14 @@ namespace Components
 			Game::netadr_t address;
 		};
 
-		typedef void(Callback)(Address address, const std::string& data);
 		typedef void(CallbackRaw)();
+
+		using NetworkCallback = std::function<void(Address&, const std::string&)>;
 
 		Network();
 
 		static unsigned short GetPort();
 
-		static void Handle(const std::string& packet, Utils::Slot<Callback> callback);
 		static void OnStart(Utils::Slot<CallbackRaw> callback);
 		
 		// Send quake-styled binary data
@@ -74,22 +72,23 @@ namespace Components
 		static void BroadcastRange(unsigned int min, unsigned int max, const std::string& data);
 		static void BroadcastAll(const std::string& data);
 
+		static void OnPacket(const std::string& command, const NetworkCallback& callback);
+
 	private:
 		static std::string SelectedPacket;
 		static Utils::Signal<CallbackRaw> StartupSignal;
-		static std::map<std::string, Utils::Slot<Callback>> PacketHandlers;
-
-		static int PacketInterceptionHandler(const char* packet);
-		static void DeployPacket(Game::netadr_t* from, Game::msg_t* msg);
-		static void DeployPacketStub();
+		static std::unordered_map<std::string, NetworkCallback> Callbacks;
 
 		static void NetworkStart();
 		static void NetworkStartStub();
 
 		static void PacketErrorCheck();
-		static void NET_DeferPacketToClientStub(Game::netadr_t* from, Game::msg_t* msg);
 
 		static void SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg);
+
+		static bool HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message);
+
+		static void CL_HandleCommandStub();
 	};
 }
 

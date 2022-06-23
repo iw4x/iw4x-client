@@ -135,24 +135,24 @@ namespace Game
 
 	enum dvar_flag : unsigned __int16
 	{
-		DVAR_NONE = 0x0,	// No flags
-		DVAR_ARCHIVE = 0x1,	// Set to cause it to be saved to config_mp.cfg of the client
-		DVAR_LATCH = 0x2,	// Will only change when C code next does a Dvar_Get(), so it can't be changed 
+		DVAR_NONE = 0,	// No flags
+		DVAR_ARCHIVE = 1 << 0,	// Set to cause it to be saved to config_mp.cfg of the client
+		DVAR_LATCH = 1 << 1,	// Will only change when C code next does a Dvar_Get(), so it can't be changed 
 					// without proper initialization. Modified will be set, even though the value hasn't changed yet
-		DVAR_CHEAT = 0x4,	// Can not be changed if cheats are disabled
-		DVAR_CODINFO = 0x8,	// On change, this is sent to all clients (if you are host)
-		DVAR_SCRIPTINFO = 0x10,
-		DVAR_UNKNOWN20 = 0x20,
-		DVAR_CHANGEABLE_RESET = 0x40,
-		DVAR_UNKNOWN80 = 0x80,
-		DVAR_EXTERNAL = 0x100,	// Created by a set command
-		DVAR_USERINFO = 0x200,	// Sent to server on connect or change
-		DVAR_SERVERINFO = 0x400, // Sent in response to front end requests
-		DVAR_WRITEPROTECTED = 0x800,
-		DVAR_SYSTEMINFO = 0x1000, // Will be duplicated on all clients
-		DVAR_READONLY = 0x2000, // Read only (same as DVAR_WRITEPROTECTED?)
-		DVAR_SAVED = 0x4000,
-		DVAR_AUTOEXEC = 0x8000,
+		DVAR_CHEAT = 1 << 2,	// Can not be changed if cheats are disabled
+		DVAR_CODINFO = 1 << 3,	// On change, this is sent to all clients (if you are host)
+		DVAR_SCRIPTINFO = 1 << 4,
+		DVAR_TEMP = 1 << 5, // Best educated guess
+		DVAR_SAVED = 1 << 6,
+		DVAR_INTERNAL = 1 << 7, // Best educated guess
+		DVAR_EXTERNAL = 1 << 8,	// Created by a set command
+		DVAR_USERINFO = 1 << 9,	// Sent to server on connect or change
+		DVAR_SERVERINFO = 1 << 10, // Sent in response to front end requests
+		DVAR_INIT = 1 << 11, // Don't allow change from console at all
+		DVAR_SYSTEMINFO = 1 << 12, // Will be duplicated on all clients
+		DVAR_ROM = 1 << 13, // Display only, cannot be set by user at all
+		DVAR_CHANGEABLE_RESET = 1 << 14,
+		DVAR_AUTOEXEC = 1 << 15, // isLoadingAutoExecGlobalFlag is always false so it should be never set by the game
 	};
 
 	enum ImageCategory : char
@@ -233,6 +233,13 @@ namespace Game
 		CS_CLIENTLOADING = 0x4,
 		CS_ACTIVE = 0x5,
 	} clientstate_t;
+
+	enum serverState_t
+	{
+		SS_DEAD = 0x0,
+		SS_LOADING = 0x1,
+		SS_GAME = 0x2,
+	};
 
 	enum errorParm_t
 	{
@@ -336,6 +343,12 @@ namespace Game
 		HITLOC_NUM
 	} hitLocation_t;
 
+	enum svscmd_type
+	{
+		SV_CMD_CAN_IGNORE = 0x0,
+		SV_CMD_RELIABLE = 0x1,
+	};
+
 	struct FxEffectDef;
 	struct pathnode_t;
 	struct pathnode_tree_t;
@@ -353,7 +366,7 @@ namespace Game
 		const char** argv[8];
 	};
 
-	static_assert(sizeof(CmdArgs) == 132);
+	static_assert(sizeof(CmdArgs) == 0x84);
 
 	typedef struct cmd_function_s
 	{
@@ -1242,28 +1255,51 @@ namespace Game
 
 	enum playerStateFlag
 	{
-		PMF_PRONE = 0x1,
-		PMF_DUCKED = 0x2,
-		PMF_MANTLE = 0x4,
-		PMF_LADDER = 0x8,
-		PMF_SIGHT_AIMING = 0x10,
-		PMF_BACKWARDS_RUN = 0x20,
-		PMF_WALKING = 0x40,
-		PMF_TIME_HARDLANDING = 0x80,
-		PMF_TIME_KNOCKBACK = 0x100,
-		PMF_PRONEMOVE_OVERRIDDEN = 0x200,
-		PMF_RESPAWNED = 0x400,
-		PMF_FROZEN = 0x800,
-		PMF_LADDER_FALL = 0x1000,
-		PMF_JUMPING = 0x2000,
-		PMF_SPRINTING = 0x4000,
-		PMF_SHELLSHOCKED = 0x8000,
-		PMF_MELEE_CHARGE = 0x10000,
-		PMF_NO_SPRINT = 0x20000,
-		PMF_NO_JUMP = 0x40000,
-		PMF_REMOTE_CONTROLLING = 0x80000,
-		PMF_ANIM_SCRIPTED = 0x100000,
-		PMF_DIVING = 0x400000
+		PMF_PRONE = 1 << 0,
+		PMF_DUCKED = 1 << 1,
+		PMF_MANTLE = 1 << 2,
+		PMF_LADDER = 1 << 3,
+		PMF_SIGHT_AIMING = 1 << 4,
+		PMF_BACKWARDS_RUN = 1 << 5,
+		PMF_WALKING = 1 << 6,
+		PMF_TIME_HARDLANDING = 1 << 7,
+		PMF_TIME_KNOCKBACK = 1 << 8,
+		PMF_PRONEMOVE_OVERRIDDEN = 1 << 9,
+		PMF_RESPAWNED = 1 << 10,
+		PMF_FROZEN = 1 << 11,
+		PMF_LADDER_FALL = 1 << 12,
+		PMF_JUMPING = 1 << 13,
+		PMF_SPRINTING = 1 << 14,
+		PMF_SHELLSHOCKED = 1 << 15,
+		PMF_MELEE_CHARGE = 1 << 16,
+		PMF_NO_SPRINT = 1 << 17,
+		PMF_NO_JUMP = 1 << 18,
+		PMF_REMOTE_CONTROLLING = 1 << 19,
+		PMF_ANIM_SCRIPTED = 1 << 20,
+		PMF_UNK1 = 1 << 21,
+		PMF_DIVING = 1 << 22,
+	};
+
+	enum playerStateOtherFlag
+	{
+		POF_INVULNERABLE = 1 << 0,
+		POF_REMOTE_EYES = 1 << 1,
+		POF_LASER_ALTVIEW = 1 << 2,
+		POF_THERMAL_VISION = 1 << 3,
+		POF_THERMAL_VISION_OVERLAY_FOF = 1 << 4,
+		POF_REMOTE_CAMERA_SOUNDS = 1 << 5,
+		POF_ALT_SCENE_REAR_VIEW = 1 << 6,
+		POF_ALT_SCENE_TAG_VIEW = 1 << 7,
+		POF_SHIELD_ATTACHED_TO_WORLD_MODEL = 1 << 8,
+		POF_DONT_LERP_VIEWANGLES = 1 << 9,
+		POF_EMP_JAMMED = 1 << 10,
+		POF_FOLLOW = 1 << 11,
+		POF_PLAYER = 1 << 12,
+		POF_SPEC_ALLOW_CYCLE = 1 << 13,
+		POF_SPEC_ALLOW_FREELOOK = 1 << 14,
+		POF_AC130 = 1 << 15,
+		POF_COMPASS_PING = 1 << 16,
+		POF_ADS_THIRD_PERSON_TOGGLE = 1 << 17,
 	};
 
 	enum pmtype_t
@@ -1282,36 +1318,55 @@ namespace Game
 
 	enum playerEFlag
 	{
-		EF_NONSOLID_BMODEL = 0x1,
-		EF_TELEPORT_BIT = 0x2,
-		EF_CROUCHING = 0x4,
-		EF_PRONE = 0x8,
-		EF_NODRAW = 0x20,
-		EF_TIMED_OBJECT = 0x40,
-		EF_VOTED = 0x80,
-		EF_TALK = 0x100,
-		EF_FIRING = 0x200,
-		EF_TURRET_ACTIVE_PRONE = 0x400,
-		EF_TURRET_ACTIVE_DUCK = 0x800,
-		EF_LOCK_LIGHT_VIS = 0x1000,
-		EF_AIM_ASSIST = 0x2000,
-		EF_LOOP_RUMBLE = 0x4000,
-		EF_LASER_SIGHT = 0x8000,
-		EF_MANTLE = 0x10000,
-		EF_DEAD = 0x20000,
-		EF_ADS = 0x40000,
-		EF_NEW = 0x80000,
-		EF_VEHICLE_ACTIVE = 0x100000,
-		EF_JAMMING = 0x200000,
-		EF_COMPASS_PING = 0x400000,
-		EF_SOFT = 0x800000
+		EF_NONSOLID_BMODEL = 1 << 0,
+		EF_TELEPORT_BIT = 1 << 1,
+		EF_CROUCHING = 1 << 2,
+		EF_PRONE = 1 << 3,
+		EF_UNK1 = 1 << 4,
+		EF_NODRAW = 1 << 5,
+		EF_TIMED_OBJECT = 1 << 6,
+		EF_VOTED = 1 << 7,
+		EF_TALK = 1 << 8,
+		EF_FIRING = 1 << 9,
+		EF_TURRET_ACTIVE_PRONE = 1 << 10,
+		EF_TURRET_ACTIVE_DUCK = 1 << 11,
+		EF_LOCK_LIGHT_VIS = 1 << 12,
+		EF_AIM_ASSIST = 1 << 13,
+		EF_LOOP_RUMBLE = 1 << 14,
+		EF_LASER_SIGHT = 1 << 15,
+		EF_MANTLE = 1 << 16,
+		EF_DEAD = 1 << 17,
+		EF_ADS = 1 << 18,
+		EF_NEW = 1 << 19,
+		EF_VEHICLE_ACTIVE = 1 << 20,
+		EF_JAMMING = 1 << 21,
+		EF_COMPASS_PING = 1 << 22,
+		EF_SOFT = 1 << 23,
 	};
 
 	enum playerLinkFlag
 	{
-		PLF_ANGLES_LOCKED = 0x1,
-		PLF_USES_OFFSET = 0x2,
-		PLF_WEAPONVIEW_ONLY = 0x4
+		PLF_ANGLES_LOCKED = 1 << 0,
+		PLF_USES_OFFSET = 1 << 1,
+		PLF_WEAPONVIEW_ONLY = 1 << 2,
+	};
+
+	enum playerWeaponFlag
+	{
+		PWF_USE_RELOAD = 1 << 0,
+		PWF_USING_OFFHAND = 1 << 1,
+		PWF_HOLDING_BREATH = 1 << 2,
+		PWF_FRIENDLY_FIRE = 1 << 3,
+		PWF_ENEMY_FIRE = 1 << 4,
+		PWF_NO_ADS = 1 << 5,
+		PWF_USING_NIGHTVISION = 1 << 6,
+		PWF_DISABLE_WEAPONS = 1 << 7,
+		PWF_TRIGGER_LEFT_FIRE = 1 << 8,
+		PWF_TRIGGER_DOUBLE_FIRE = 1 << 9,
+		PWF_USING_RECOILSCALE = 1 << 10,
+		PWF_DISABLE_WEAPON_SWAPPING = 1 << 11,
+		PWF_DISABLE_OFFHAND_WEAPONS = 1 << 12,
+		PWF_SWITCHING_TO_RIOTSHIELD = 1 << 13,
 	};
 
 	struct playerState_s
@@ -1591,10 +1646,44 @@ namespace Game
 	};
 #pragma pack(pop)
 
+	enum trType_t
+	{
+		TR_STATIONARY = 0x0,
+		TR_INTERPOLATE = 0x1,
+		TR_LINEAR = 0x2,
+		TR_LINEAR_STOP = 0x3,
+		TR_SINE = 0x4,
+		TR_GRAVITY = 0x5,
+		TR_LOW_GRAVITY = 0x6,
+		TR_ACCELERATE = 0x7,
+		TR_DECELERATE = 0x8,
+		TR_PHYSICS = 0x9,
+		TR_FIRST_RAGDOLL = 0xA,
+		TR_RAGDOLL = 0xA,
+		TR_RAGDOLL_GRAVITY = 0xB,
+		TR_RAGDOLL_INTERPOLATE = 0xC,
+		TR_LAST_RAGDOLL = 0xC,
+		NUM_TRTYPES = 0xD,
+	};
+
+	struct trajectory_t
+	{
+		trType_t trType;
+		int trTime;
+		int trDuration;
+		float trBase[3];
+		float trDelta[3];
+	};
+
 	struct LerpEntityState
 	{
-		char pad[0x70];
+		int eFlags;
+		trajectory_t pos;
+		trajectory_t apos;
+		char pad0[0x24];
 	};
+
+	static_assert(sizeof(LerpEntityState) == 0x70);
 
 	struct clientLinkInfo_t
 	{
@@ -1614,7 +1703,6 @@ namespace Game
 		int groundEntityNum;
 		int loopSound;
 		int surfType;
-
 		union
 		{
 			int brushModel;
@@ -1623,7 +1711,6 @@ namespace Game
 			int xmodel;
 			int primaryLight;
 		} index;
-
 		int clientNum;
 		int iHeadIcon;
 		int iHeadIconTeam;
@@ -1635,8 +1722,23 @@ namespace Game
 		unsigned __int16 weapon;
 		int legsAnim;
 		int torsoAnim;
-		int un1;
-		int un2;
+		union
+		{
+			int eventParm2;
+			int hintString;
+			int fxId;
+			int helicopterStage;
+		} un1;
+		union
+		{
+			int hintType;
+			struct
+			{
+				unsigned __int16 vehicleXModel;
+				char weaponModel;
+			} __s1;
+			int actorFlags;
+		} un2;
 		clientLinkInfo_t clientLinkInfo;
 		unsigned int partBits[6];
 		int clientMask[1];
@@ -2145,6 +2247,8 @@ namespace Game
 		float radius;
 		cLeaf_t leaf;
 	};
+
+	static_assert(sizeof(cmodel_t) == 0x44);
 
 	struct TriggerModel
 	{
@@ -5365,11 +5469,12 @@ namespace Game
 	struct netadr_t
 	{
 		netadrtype_t type;
-		//char ip[4];
 		netIP_t ip;
 		unsigned __int16 port;
 		char ipx[10];
 	};
+
+	static_assert(sizeof(netadr_t) == 20);
 
 	struct netProfileInfo_t
 	{
@@ -6833,10 +6938,230 @@ namespace Game
 		float scale;
 	};
 
+	struct XAnimParent
+	{
+		unsigned short flags;
+		unsigned short children;
+	};
+
+	struct XAnimEntry
+	{
+		unsigned short numAnims;
+		unsigned short parent;
+
+		union
+		{
+			XAnimParts* parts;
+			XAnimParent animParent;
+		};
+	};
+
+	struct XAnim_s
+	{
+		unsigned int size;
+		const char* debugName;
+		const char** debugAnimNames;
+		XAnimEntry entries[1];
+	};
+
+	struct __declspec(align(4)) XAnimTree_s
+	{
+		XAnim_s* anims;
+		int info_usage;
+		volatile int calcRefCount;
+		volatile int modifyRefCount;
+		unsigned __int16 children;
+	};
+
+	struct FxEffect
+	{
+		const FxEffectDef* def;
+		volatile int status;
+		unsigned __int16 firstElemHandle[3];
+		unsigned __int16 firstSortedElemHandle;
+		unsigned __int16 firstTrailHandle;
+		unsigned __int16 firstSparkFountainHandle;
+		unsigned __int16 pad16[1];
+		unsigned __int16 randomSeed;
+		unsigned __int16 owner;
+		unsigned __int8 lighting[3];
+		unsigned __int8 pad8[2];
+		unsigned __int8 markViewmodelClientIndex;
+		unsigned __int16 markEntnum;
+		unsigned __int16 flags;
+		unsigned __int8 bolt;
+		unsigned __int8 runnerSortOrder;
+		volatile int frameCount;
+		int msecBegin;
+		int msecLastUpdate;
+		FxSpatialFrame frameAtSpawn;
+		FxSpatialFrame frameNow;
+		FxSpatialFrame framePrev;
+		float distanceTravelled;
+		char pad2[4];
+	};
+
+	static_assert(sizeof(FxEffect) == 0x90);
+
+	struct CEntVehicleInfo
+	{
+		__int16 pitch;
+		__int16 yaw;
+		__int16 roll;
+		__int16 barrelPitch;
+		float barrelRoll;
+		__int16 steerYaw;
+		float time;
+		unsigned __int16 wheelFraction[6];
+		unsigned __int8 wheelBoneIndex[6];
+		unsigned __int8 wheelSurfaceType[6];
+		unsigned __int8 tag_body;
+		unsigned __int8 tag_turret;
+		unsigned __int8 tag_barrel;
+	};
+
+	static_assert(sizeof(CEntVehicleInfo) == 0x30);
+
+	struct CEntFx
+	{
+		int triggerTime;
+		FxEffect* effect;
+	};
+
+	struct CEntTurretAngles
+	{
+		float pitch;
+		float yaw;
+	};
+
+	union $062DBEF1E2477FBB6A8D36FDF573DC79
+	{
+		CEntTurretAngles angles;
+		const float* viewAngles;
+	};
+
+	struct CEntTurretInfo
+	{
+		$062DBEF1E2477FBB6A8D36FDF573DC79 ___u0;
+		float barrelPitch;
+		bool playerUsing;
+		unsigned __int8 tagIdx_aim;
+		unsigned __int8 tagIdx_aim_animated;
+		unsigned __int8 tagIdx_aim_pivot;
+		unsigned __int8 tagIdx_flash;
+		unsigned __int8 tagIdx_barrel;
+		float barrelRoll;
+		bool barrelRollSndLastRotating;
+		bool barrelRollSndNotified;
+		int barrelRollSndTime;
+		unsigned __int8 barrelRollSndIndex;
+		bool wasOverheat;
+	};
+
+	static_assert(sizeof(CEntTurretInfo) == 0x24);
+
+	struct clientControllers_t
+	{
+		float angles[4][3];
+		float tag_origin_angles[3];
+		float tag_origin_offset[3];
+	};
+
+	struct CEntPlayerInfo
+	{
+		clientControllers_t* control;
+		unsigned __int8 tag[4];
+	};
+
+	static_assert(sizeof(CEntPlayerInfo) == 0x8);
+
+	union $79C409BC84BCEABA56F6D25E37F2711D
+	{
+		CEntPlayerInfo player;
+		CEntTurretInfo turret;
+		CEntVehicleInfo vehicle;
+		CEntFx fx;
+	};
+
+	struct cpose_t
+	{
+		unsigned __int16 lightingHandle;
+		unsigned __int8 eType;
+		unsigned __int8 cullIn;
+		unsigned int usedInScene;
+		unsigned __int8 isRagdoll;
+		int ragdollHandle;
+		int killcamRagdollHandle;
+		int physObjId;
+		float origin[3];
+		float angles[3];
+		$79C409BC84BCEABA56F6D25E37F2711D ___u10;
+	};
+
+	static_assert(sizeof(cpose_t) == 0x60);
+
+	struct centity_s
+	{
+		cpose_t pose;
+		LerpEntityState prevState;
+		entityState_s nextState;
+		int flags;
+		unsigned __int8 tracerDrawRateCounter;
+		unsigned __int8 weaponVisTestCounter;
+		int previousEventSequence;
+		int pickupPredictionTime;
+		float lightingOrigin[3];
+		XAnimTree_s* tree;
+		centity_s* updateDelayedNext;
+	};
+
+	static_assert(sizeof(centity_s) == 0x1F4);
+
+	struct playerEntity_t
+	{
+		int bPositionToADS;
+		float fLastIdleFactor;
+		float baseMoveOrigin[3];
+		float baseMoveAngles[3];
+	};
+
+	static_assert(sizeof(playerEntity_t) == 0x20);
+
+	enum DemoType
+	{
+		DEMO_TYPE_NONE = 0x0,
+		DEMO_TYPE_CLIENT = 0x1,
+		DEMO_TYPE_SERVER = 0x2,
+	};
+
+	enum CubemapShot
+	{
+		CUBEMAPSHOT_NONE = 0x0,
+		CUBEMAPSHOT_RIGHT = 0x1,
+		CUBEMAPSHOT_LEFT = 0x2,
+		CUBEMAPSHOT_BACK = 0x3,
+		CUBEMAPSHOT_FRONT = 0x4,
+		CUBEMAPSHOT_UP = 0x5,
+		CUBEMAPSHOT_DOWN = 0x6,
+		CUBEMAPSHOT_COUNT = 0x7,
+	};
+
 	struct __declspec(align(8)) cg_s
 	{
 		playerState_s predictedPlayerState;
-		char _pad0[0x254];
+		centity_s predictedPlayerEntity;
+		playerEntity_t playerEntity;
+		int predictedErrorTime;
+		float predictedError[3];
+		int clientNum;
+		int localClientNum;
+		DemoType demoType;
+		CubemapShot cubemapShot;
+		int cubemapSize;
+		int renderScreen;
+		int latestSnapshotNum;
+		int latestSnapshotTime;
+		char pad0[16];
 		void* snap;
 		void* nextSnap;
 		char _pad1[0x673DC];
@@ -7153,32 +7478,6 @@ namespace Game
 		} movement;
 	};
 
-	struct XAnimParent
-	{
-		unsigned short flags;
-		unsigned short children;
-	};
-
-	struct XAnimEntry
-	{
-		unsigned short numAnims;
-		unsigned short parent;
-
-		union
-		{
-			XAnimParts* parts;
-			XAnimParent animParent;
-		};
-	};
-
-	struct XAnim_s
-	{
-		unsigned int size;
-		const char* debugName;
-		const char** debugAnimNames;
-		XAnimEntry entries[1];
-	};
-
 	struct animation_s
 	{
 		char name[64];
@@ -7203,22 +7502,6 @@ namespace Game
 		float oldFramePos[3];
 		float animSpeedScale;
 		int oldFrameSnapshotTime;
-	};
-
-	struct clientControllers_t
-	{
-		float angles[4][3];
-		float tag_origin_angles[3];
-		float tag_origin_offset[3];
-	};
-
-	struct __declspec(align(4)) XAnimTree_s
-	{
-		XAnim_s* anims;
-		int info_usage;
-		volatile int calcRefCount;
-		volatile int modifyRefCount;
-		unsigned __int16 children;
 	};
 
 	enum PlayerDiveState
@@ -7551,6 +7834,14 @@ namespace Game
 
 	static_assert(sizeof(level_locals_t) == 0x2F78);
 
+	enum ScreenPlacementMode
+	{
+		SCRMODE_FULL,
+		SCRMODE_DISPLAY,
+		SCRMODE_INVALID,
+		SCRMODE_COUNT,
+	};
+
 	struct WinMouseVars_t
 	{
 		int oldButtonState;
@@ -7560,6 +7851,24 @@ namespace Game
 	};
 
 	static_assert(sizeof(WinMouseVars_t) == 0x10);
+
+	struct DeferredMsg
+	{
+		netadr_t addr;
+		unsigned char data[1400];
+		int datalen;
+	};
+
+	static_assert(sizeof(DeferredMsg) == 0x590);
+
+	struct DeferredQueue
+	{
+		DeferredMsg msgs[16];
+		volatile long get;
+		volatile long send;
+	};
+
+	static_assert(sizeof(DeferredQueue) == 0x5908);
 
 #pragma endregion
 

@@ -24,6 +24,9 @@ namespace Game
 
 	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
+	AddRefToValue_t AddRefToValue = AddRefToValue_t(0x482740);
+	AllocThread_t AllocThread = AllocThread_t(0x4F78C0);
+	VM_Execute_0_t VM_Execute_0 = VM_Execute_0_t(0x6222A0);
 
 	AngleVectors_t AngleVectors = AngleVectors_t(0x4691A0);
 
@@ -60,6 +63,8 @@ namespace Game
 	CL_HandleRelayPacket_t CL_HandleRelayPacket = CL_HandleRelayPacket_t(0x5A8C70);
 	CL_ResetViewport_t CL_ResetViewport = CL_ResetViewport_t(0x4A8830);
 	CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f = CL_SelectStringTableEntryInDvar_f_t(0x4A4560);
+	CL_DrawStretchPic_t CL_DrawStretchPic = CL_DrawStretchPic_t(0x412490);
+	CL_ConsoleFixPosition_t CL_ConsoleFixPosition = CL_ConsoleFixPosition_t(0x44A430);
 
 	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x4DCE00);
@@ -68,6 +73,8 @@ namespace Game
 
 	Com_Error_t Com_Error = Com_Error_t(0x4B22D0);
 	Com_Printf_t Com_Printf = Com_Printf_t(0x402500);
+	Com_PrintError_t Com_PrintError = Com_PrintError_t(0x4F8C70);
+	Com_PrintWarning_t Com_PrintWarning = Com_PrintWarning_t(0x4E0200);
 	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4AA830);
 	Com_EndParseSession_t Com_EndParseSession = Com_EndParseSession_t(0x4B80B0);
 	Com_BeginParseSession_t Com_BeginParseSession = Com_BeginParseSession_t(0x4AAB80);
@@ -76,7 +83,6 @@ namespace Game
 	Com_MatchToken_t Com_MatchToken = Com_MatchToken_t(0x447130);
 	Com_SetSlowMotion_t Com_SetSlowMotion = Com_SetSlowMotion_t(0x446E20);
 	Com_Quitf_t Com_Quit_f = Com_Quitf_t(0x4D4000);
-	Com_PrintWarning_t  Com_PrintWarning = Com_PrintWarning_t(0x4E0200);
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = Con_DrawMiniConsole_t(0x464F30);
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = Con_DrawSolidConsole_t(0x5A5040);
@@ -156,6 +162,10 @@ namespace Game
 	G_LogPrintf_t G_LogPrintf = G_LogPrintf_t(0x4B0150);
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
+	G_Spawn_t G_Spawn = G_Spawn_t(0x4226F0);
+	G_FreeEntity_t G_FreeEntity = G_FreeEntity_t(0x44C9D0);
+	G_SpawnItem_t G_SpawnItem = G_SpawnItem_t(0x403770);
+	G_GetItemClassname_t G_GetItemClassname = G_GetItemClassname_t(0x492630);
 	G_PrintEntities_t G_PrintEntities = G_PrintEntities_t(0x4E6A50);
 	G_GetEntityTypeName_t G_GetEntityTypeName = G_GetEntityTypeName_t(0x4EB810);
 
@@ -275,6 +285,7 @@ namespace Game
 	Scr_GetInt_t Scr_GetInt = Scr_GetInt_t(0x4F31D0);
 	Scr_GetObject_t Scr_GetObject = Scr_GetObject_t(0x462100);
 	Scr_GetNumParam_t Scr_GetNumParam = Scr_GetNumParam_t(0x4B0E90);
+	Scr_GetEntityId_t Scr_GetEntityId = Scr_GetEntityId_t(0x4165E0);
 
 	Scr_ExecThread_t Scr_ExecThread = Scr_ExecThread_t(0x4AD0B0);
 	Scr_FreeThread_t Scr_FreeThread = Scr_FreeThread_t(0x4BD320);
@@ -319,6 +330,7 @@ namespace Game
 
 	SEH_StringEd_GetString_t SEH_StringEd_GetString = SEH_StringEd_GetString_t(0x44BB30);
 	SEH_ReadCharFromString_t SEH_ReadCharFromString = SEH_ReadCharFromString_t(0x486560);
+	SEH_GetCurrentLanguage_t SEH_GetCurrentLanguage = SEH_GetCurrentLanguage_t(0x4F6110);
 
 	Dvar_SetFromStringByName_t Dvar_SetFromStringByName = Dvar_SetFromStringByName_t(0x4F52E0);
 	Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource = Dvar_SetFromStringByNameFromSource_t(0x4FC770);
@@ -431,6 +443,14 @@ namespace Game
 	IN_Init_t IN_Init = IN_Init_t(0x45D620);
 	IN_Shutdown_t IN_Shutdown = IN_Shutdown_t(0x426360);
 
+	Touch_Item_t Touch_Item = Touch_Item_t(0x44FA20);
+
+	Add_Ammo_t Add_Ammo = Add_Ammo_t(0x4E1480);
+  
+	ClientUserinfoChanged_t ClientUserinfoChanged = ClientUserinfoChanged_t(0x445240);
+
+	player_die_t player_die = player_die_t(0x42BC70);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
@@ -503,7 +523,7 @@ namespace Game
 	FxEffectDef*** varFxEffectDefHandle = reinterpret_cast<FxEffectDef***>(0x112ACC0);
 	PhysCollmap*** varPhysCollmapPtr = reinterpret_cast<PhysCollmap***>(0x112B440);
 	PhysPreset*** varPhysPresetPtr = reinterpret_cast<PhysPreset***>(0x112B378);
-	Game::MaterialPass** varMaterialPass = reinterpret_cast<Game::MaterialPass**>(0x112A960);
+	MaterialPass** varMaterialPass = reinterpret_cast<MaterialPass**>(0x112A960);
 	snd_alias_list_t*** varsnd_alias_list_name = reinterpret_cast<snd_alias_list_t***>(0x112AF38);
 
 	FxElemField* s_elemFields = reinterpret_cast<FxElemField*>(0x73B848);
@@ -562,7 +582,19 @@ namespace Game
 	int* window_center_x = reinterpret_cast<int*>(0x649D638);
 	int* window_center_y = reinterpret_cast<int*>(0x649D630);
 
+	DeferredQueue* deferredQueue = reinterpret_cast<DeferredQueue*>(0x1CC2CE8);
+
 	int* g_waitingForKey = reinterpret_cast<int*>(0x63A50FC);
+
+	Material** whiteMaterial = reinterpret_cast<Material**>(0x8EE4B8);
+
+	unsigned long* _tls_index = reinterpret_cast<unsigned long*>(0x66D94A8);
+
+	int* cls_uiStarted = reinterpret_cast<int*>(0xA7FFA0);
+
+	int* com_fixedConsolePosition = reinterpret_cast<int*>(0x1AD8EC8);
+
+	int* com_errorPrintsCount = reinterpret_cast<int*>(0x1AD7910);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
@@ -851,22 +883,20 @@ namespace Game
 		{
 			return reinterpret_cast<char*>(0x6466628);
 		}
-		else if (Game::Sys_IsRenderThread())
+		if (Game::Sys_IsRenderThread())
 		{
 			return reinterpret_cast<char*>(0x646AC34);
 		}
-		else if (Game::Sys_IsServerThread())
+		if (Game::Sys_IsServerThread())
 		{
 			return reinterpret_cast<char*>(0x646F240);
 		}
-		else if(Game::Sys_IsDatabaseThread())
+		if (Game::Sys_IsDatabaseThread())
 		{
 			return reinterpret_cast<char*>(0x647384C);
 		}
-		else
-		{
-			return nullptr;
-		}
+
+		return nullptr;
 	}
 
 	void Com_SetParseNegativeNumbers(int parse)
@@ -1131,6 +1161,33 @@ namespace Game
 	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement()
 	{
 		return scrPlaceFullUnsafe;
+	}
+
+	void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize)
+	{
+		if (SEH_GetCurrentLanguage() == 8 || Sys_Milliseconds() % 1000 <= 800)
+		{
+			return;
+		}
+
+		size_t i = 0;
+		while (str[i] != '\0')
+		{
+			if (i >= strMaxSize)
+				break;
+
+			const auto value = str[i];
+			if (value == 16)
+			{
+				str[i] = -68;
+			}
+			else if (value == 17)
+			{
+				str[i] = -67;
+			}
+
+			++i;
+		}
 	}
 
 #pragma optimize("", off)

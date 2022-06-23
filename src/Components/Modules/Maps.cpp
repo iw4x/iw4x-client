@@ -7,6 +7,8 @@ namespace Components
 	std::vector<std::pair<std::string, std::string>> Maps::DependencyList;
 	std::vector<std::string> Maps::CurrentDependencies;
 
+	Dvar::Var Maps::RListSModels;
+
 	bool Maps::SPMap;
 	std::vector<Maps::DLC> Maps::DlcPacks;
 
@@ -544,7 +546,7 @@ namespace Components
 			}
 		}
 
-		Dvar::Register<bool>(Utils::String::VA("isDlcInstalled_%d", dlc.index), false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
+		Dvar::Register<bool>(Utils::String::VA("isDlcInstalled_%d", dlc.index), false, Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
 
 		Maps::DlcPacks.push_back(dlc);
 		Maps::UpdateDlcStatus();
@@ -612,8 +614,8 @@ namespace Components
 				{
 					if (error)
 					{
-						Components::Logger::SoftError("Missing DLC pack %s (%d) containing map %s (%s).\nPlease download it to play this map.",
-							pack.name.data(), pack.index, Game::UI_LocalizeMapName(mapname), mapname);
+						Logger::Error(Game::ERR_DISCONNECT, "Missing DLC pack {} ({}) containing map {} ({}).\nPlease download it to play this map.",
+							pack.name, pack.index, Game::UI_LocalizeMapName(mapname), mapname);
 					}
 
 					return dlcIsTrue;
@@ -621,7 +623,12 @@ namespace Components
 			}
 		}
 
-		if (error) Components::Logger::SoftError("Missing map file %s.\nYou may have a damaged installation or are attempting to load a non-existant map.", mapname);
+		if (error)
+		{
+			Logger::Error(Game::ERR_DISCONNECT,
+				"Missing map file {}.\nYou may have a damaged installation or are attempting to load a non-existent map.", mapname);
+		}
+		
 		return false;
 	}
 
@@ -767,10 +774,10 @@ namespace Components
 	
 	Maps::Maps()
 	{
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
-			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_EXTERNAL | Game::DVAR_WRITEPROTECTED, "");
-			Dvar::Register<bool>("r_listSModels", false, Game::DVAR_NONE, "Display a list of visible SModels");
+			Dvar::Register<bool>("isDlcInstalled_All", false, Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
+			Maps::RListSModels = Dvar::Register<bool>("r_listSModels", false, Game::DVAR_NONE, "Display a list of visible SModels");
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
 			Maps::AddDlc({ 2, "Resurgence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
@@ -799,7 +806,7 @@ namespace Components
 
 				Game::ShowMessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
 			});
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		// disable turrets on CoD:OL 448+ maps for now
 		Utils::Hook(0x5EE577, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
@@ -877,13 +884,13 @@ namespace Components
 		Utils::Hook(0x5A9D51, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5B34DD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 
-		Command::Add("delayReconnect", [](Command::Params*)
+		Command::Add("delayReconnect", []([[maybe_unused]] Command::Params* params)
 		{
-			Scheduler::OnDelay([]()
+			Scheduler::Once([]
 			{
 				Command::Execute("closemenu popup_reconnectingtoparty", false);
 				Command::Execute("reconnect", false);
-			}, 10s, true);
+			}, Scheduler::Pipeline::CLIENT, 10s);
 		});
 
 		if(Dedicated::IsEnabled())
@@ -908,10 +915,16 @@ namespace Components
 		// Allow hiding specific smodels
 		Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();
 
-		Scheduler::OnFrame([]()
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
-			Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-			if (!Game::CL_IsCgameInitialized() || !gameWorld || !Dvar::Var("r_listSModels").get<bool>()) return;
+			return;
+		}
+
+		// Client only
+		Scheduler::Loop([]
+		{
+			auto*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+			if (!Game::CL_IsCgameInitialized() || !gameWorld || !Maps::RListSModels.get<bool>()) return;
 
 			std::map<std::string, int> models;
 			for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
@@ -920,22 +933,22 @@ namespace Components
 				{
 					std::string name = gameWorld->dpvs.smodelDrawInsts[i].model->name;
 
-					if (models.find(name) == models.end()) models[name] = 1;
+					if (!models.contains(name)) models[name] = 1;
 					else models[name]++;
 				}
 			}
 
 			Game::Font_s* font = Game::R_RegisterFont("fonts/smallFont", 0);
-			int height = Game::R_TextHeight(font);
-			float scale = 0.75;
-			float color[4] = { 0, 1.0f, 0, 1.0f };
+			auto height = Game::R_TextHeight(font);
+			auto scale = 0.75f;
+			float color[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 
 			unsigned int i = 0;
 			for (auto& model : models)
 			{
 				Game::R_AddCmdDrawText(Utils::String::VA("%d %s", model.second, model.first.data()), 0x7FFFFFFF, font, 15.0f, (height * scale + 1) * (i++ + 1) + 15.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 			}
-		}, true);
+		}, Scheduler::Pipeline::RENDERER);
 	}
 
 	Maps::~Maps()

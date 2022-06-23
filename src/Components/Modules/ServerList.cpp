@@ -287,7 +287,7 @@ namespace Components
 			Game::netadr_t masterServerAddr;
 			if (!ServerList::GetMasterServer(masterServerName, masterPort, masterServerAddr))
 			{
-				Logger::Print("Could not resolve address for %s:%u", masterServerName, masterPort);
+				Logger::Print("Could not resolve address for {}:{}", masterServerName, masterPort);
 				Toast::Show("cardicon_headshot", "^1Error", Utils::String::VA("Could not resolve address for %s:%u", masterServerName, masterPort), 5000);
 				return;
 			}
@@ -451,7 +451,7 @@ namespace Components
 		}
 	}
 
-	void ServerList::Insert(Network::Address address, Utils::InfoString info)
+	void ServerList::Insert(const Network::Address& address, const Utils::InfoString& info)
 	{
 		std::lock_guard<std::recursive_mutex> _(ServerList::RefreshContainer.mutex);
 
@@ -659,7 +659,7 @@ namespace Components
 			{
 				ServerList::RefreshContainer.awatingList = false;
 
-				Logger::Print("We haven't received a response from the master within %d seconds!\n", (Game::Sys_Milliseconds() - ServerList::RefreshContainer.awaitTime) / 1000);
+				Logger::Print("We haven't received a response from the master within {} seconds!\n", (Game::Sys_Milliseconds() - ServerList::RefreshContainer.awaitTime) / 1000);
 				Toast::Show("cardicon_headshot", "^1Error", "Failed to reach master server, using node servers instead.", 5000);
 
 				useMasterServer = false;
@@ -775,7 +775,7 @@ namespace Components
 		ServerList::FavouriteList.clear();
 		ServerList::VisibleList.clear();
 
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
 			ServerList::UIServerSelected = Dvar::Register<bool>("ui_serverSelected", false,
 				Game::dvar_flag::DVAR_NONE, "Whether a server has been selected in the serverlist");
@@ -786,7 +786,7 @@ namespace Components
 				1, 10, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server queries per frame");
 			ServerList::NETServerFrames = Dvar::Register<int>("net_serverFrames", 30,
 				1, 60, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server query frames per second");
-		});
+		}, Scheduler::Pipeline::MAIN);
 
 		// Fix ui_netsource dvar
 		Utils::Hook::Nop(0x4CDEEC, 5); // Don't reset the netsource when gametypes aren't loaded
@@ -795,7 +795,7 @@ namespace Components
 		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0 (0)");
 
-		Network::Handle("getServersResponse", [](Network::Address address, const std::string& data)
+		Network::OnPacket("getServersResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			if (ServerList::RefreshContainer.host != address) return; // Only parse from host we sent to
 
@@ -823,7 +823,7 @@ namespace Components
 				ServerList::InsertRequest(serverAddr);
 			}
 
-			Logger::Print("Parsed %d servers from master\n", ServerList::RefreshContainer.servers.size() - count);
+			Logger::Print("Parsed {} servers from master\n", ServerList::RefreshContainer.servers.size() - count);
 		});
 
 		// Set default masterServerName + port and save it 
@@ -864,7 +864,7 @@ namespace Components
 				ServerList::SortAsc = true;
 			}
 
-			Logger::Print("Sorting server list by token: %d\n", ServerList::SortKey);
+			Logger::Print("Sorting server list by token: {}\n", ServerList::SortKey);
 			ServerList::SortList();
 		});
 
@@ -914,7 +914,7 @@ namespace Components
 				count += server.clients;
 			}
 
-			Logger::Print("There are %d players playing.\n", count);
+			Logger::Debug("There are {} players playing", count);
 		});
 #endif
 		// Add required ownerDraws
@@ -922,7 +922,7 @@ namespace Components
 		UIScript::AddOwnerDraw(253, ServerList::UpdateGameType);
 
 		// Add frame callback
-		Scheduler::OnFrame(ServerList::Frame);
+		Scheduler::Loop(ServerList::Frame, Scheduler::Pipeline::CLIENT);
 	}
 
 	ServerList::~ServerList()

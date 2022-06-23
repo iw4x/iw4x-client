@@ -82,8 +82,8 @@ newoption {
 }
 
 newoption {
-	trigger = "force-minidump-upload",
-	description = "Upload minidumps even for Debug builds."
+	trigger = "disable-binary-check",
+	description = "Do not perform integrity checks on the exe."
 }
 
 newoption {
@@ -206,7 +206,7 @@ workspace "iw4x"
 	configurations {"Debug", "Release"}
 
 	language "C++"
-	cppdialect "C++17"
+	cppdialect "C++20"
 
 	architecture "x86"
 	platforms "Win32"
@@ -262,11 +262,11 @@ workspace "iw4x"
 		if _OPTIONS["force-unit-tests"] then
 			defines {"FORCE_UNIT_TESTS"}
 		end
-		if _OPTIONS["force-minidump-upload"] then
-			defines {"FORCE_MINIDUMP_UPLOAD"}
-		end
 		if _OPTIONS["force-exception-handler"] then
 			defines {"FORCE_EXCEPTION_HANDLER"}
+		end
+		if _OPTIONS["disable-binary-check"] then
+			defines {"DISABLE_BINARY_CHECK"}
 		end
 		if _OPTIONS["iw4x-zones"] then
 			defines {"GENERATE_IW4X_SPECIFIC_ZONES"}

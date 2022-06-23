@@ -77,7 +77,6 @@ namespace Components
 		static std::recursive_mutex Mutex;
 		static std::vector<Friend> FriendsList;
 
-		static void DisconnectStub();
 		static void ClearServer();
 		static void SetServer();
 

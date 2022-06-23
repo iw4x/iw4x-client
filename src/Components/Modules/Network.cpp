@@ -4,7 +4,8 @@ namespace Components
 {
 	std::string Network::SelectedPacket;
 	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
-	std::map<std::string, Utils::Slot<Network::Callback>> Network::PacketHandlers;
+	// Packet interception
+	std::unordered_map<std::string, Network::NetworkCallback> Network::Callbacks;
 
 	Network::Address::Address(const std::string& addrString)
 	{
@@ -143,11 +144,6 @@ namespace Components
 		return (this->getType() != Game::netadrtype_t::NA_BAD && this->getType() >= Game::netadrtype_t::NA_BOT && this->getType() <= Game::netadrtype_t::NA_IP);
 	}
 
-	void Network::Handle(const std::string& packet, Utils::Slot<Network::Callback> callback)
-	{
-		Network::PacketHandlers[Utils::String::ToLower(packet)] = callback;
-	}
-
 	void Network::OnStart(Utils::Slot<Network::CallbackRaw> callback)
 	{
 		Network::StartupSignal.connect(callback);
@@ -227,71 +223,6 @@ namespace Components
 		Network::BroadcastRange(100, 65536, data);
 	}
 
-	int Network::PacketInterceptionHandler(const char* packet)
-	{
-		// Packet rate limit.
-		static uint32_t packets = 0;
-		static int lastClean = 0;
-
-		if ((Game::Sys_Milliseconds() - lastClean) > 1'000)
-		{
-			packets = 0;
-			lastClean = Game::Sys_Milliseconds();
-		}
-
-		if ((++packets) > NETWORK_MAX_PACKETS_PER_SECOND)
-		{
-			return 1;
-		}
-
-		std::string packetCommand = packet;
-		auto pos = packetCommand.find_first_of("\\\n ");
-		if (pos != std::string::npos)
-		{
-			packetCommand = packetCommand.substr(0, pos);
-		}
-
-		packetCommand = Utils::String::ToLower(packetCommand);
-
-		// Check if custom handler exists
-		for (auto i = Network::PacketHandlers.begin(); i != Network::PacketHandlers.end(); ++i)
-		{
-			if (Utils::String::ToLower(i->first) == packetCommand)
-			{
-				Network::SelectedPacket = i->first;
-				return 0;
-			}
-		}
-
-		// No interception
-		return 1;
-	}
-
-	void Network::DeployPacket(Game::netadr_t* from, Game::msg_t* msg)
-	{
-		if (Network::PacketHandlers.find(Network::SelectedPacket) != Network::PacketHandlers.end())
-		{
-			std::string data;
-
-			size_t offset = Network::SelectedPacket.size() + 4 + 1;
-
-			if (static_cast<size_t>(msg->cursize) > offset)
-			{
-				data.append(msg->data + offset, msg->cursize - offset);
-			}
-
-			// Remove trailing 0x00 byte
-			// Actually, don't remove it, it might be part of the packet. Send correctly formatted packets instead!
-			//if (data.size() && !data[data.size() - 1]) data.pop_back();
-
-			Network::PacketHandlers[Network::SelectedPacket](from, data);
-		}
-		else
-		{
-			Logger::Print("Error: Network packet intercepted, but handler is missing!\n");
-		}
-	}
-
 	void Network::NetworkStart()
 	{
 		Network::StartupSignal();
@@ -309,31 +240,6 @@ namespace Components
 			mov eax, 64D900h
 			call eax
 			jmp Network::NetworkStart
-		}
-	}
-
-	__declspec(naked) void Network::DeployPacketStub()
-	{
-		__asm
-		{
-			lea eax, [esp + 0C54h]
-
-			pushad
-
-			push ebp // Command
-			push eax // Address pointer
-			call Network::DeployPacket
-			add esp, 8h
-
-			popad
-
-			mov al, 1
-			pop edi
-			pop esi
-			pop ebp
-			pop ebx
-			add esp, 0C40h
-			retn
 		}
 	}
 
@@ -356,17 +262,11 @@ namespace Components
 		}
 	}
 
-	void Network::NET_DeferPacketToClientStub(Game::netadr_t* from, Game::msg_t* msg)
-	{
-		if (msg->cursize > 0 && msg->cursize <= 1404)
-			Game::NET_DeferPacketToClient(from, msg);
-	}
-
 	void Network::SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg)
 	{
 		if (client->reliableAcknowledge < 0)
 		{
-			Logger::Print("Negative reliableAcknowledge from %s - cl->reliableSequence is %i, reliableAcknowledge is %i\n",
+			Logger::Print(Game::conChannel_t::CON_CHANNEL_NETWORK, "Negative reliableAcknowledge from {} - cl->reliableSequence is {}, reliableAcknowledge is {}\n",
 							client->name, client->reliableSequence, client->reliableAcknowledge);
 			client->reliableAcknowledge = client->reliableSequence;
 			Network::SendCommand(Game::NS_SERVER, client->netchan.remoteAddress, "error", "EXE_LOSTRELIABLECOMMANDS");
@@ -374,6 +274,60 @@ namespace Components
 		}
 
 		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*)>(0x414D40)(client, msg);
+	}
+
+	void Network::OnPacket(const std::string& command, const NetworkCallback& callback)
+	{
+		Network::Callbacks[Utils::String::ToLower(command)] = callback;
+	}
+
+	bool Network::HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
+	{
+		const auto cmd_string = Utils::String::ToLower(command);
+		const auto handler = Network::Callbacks.find(cmd_string);
+
+		const auto offset = cmd_string.size() + 5;
+		if (static_cast<std::size_t>(message->cursize) < offset || handler == Network::Callbacks.end())
+		{
+			return false;
+		}
+
+		const std::string data(message->data + offset, message->cursize - offset);
+
+		Address address_ = address;
+		handler->second(address_, data);
+		return true;
+	}
+
+	__declspec(naked) void Network::CL_HandleCommandStub()
+	{
+		__asm
+		{
+			lea eax, [esp + 0xC54] // address
+
+			pushad
+
+			push ebp // msg_t
+			push edi // Command name
+			push eax // netadr_t pointer
+			call Network::HandleCommand
+			add esp, 0xC
+
+			test al, al
+
+			popad
+
+			jz unhandled
+
+			// Exit CL_DispatchConnectionlessPacket
+			push 0x5A9E0E
+			retn
+
+		unhandled:
+			// Proceed
+			push 0x5AA719
+			retn
+		}
 	}
 
 	Network::Network()
@@ -403,22 +357,16 @@ namespace Components
 		// Install startup handler
 		Utils::Hook(0x4FD4D4, Network::NetworkStartStub, HOOK_JUMP).install()->quick();
 
-		// Install interception handler
-		Utils::Hook(0x5AA709, Network::PacketInterceptionHandler, HOOK_CALL).install()->quick();
-
 		// Prevent recvfrom error spam
 		Utils::Hook(0x46531A, Network::PacketErrorCheck, HOOK_JUMP).install()->quick();
 
-		// Install packet deploy hook
-		Utils::Hook::RedirectJump(0x5AA713, Network::DeployPacketStub);
-
-		// Fix packets causing buffer overflow
-		Utils::Hook(0x6267E3, Network::NET_DeferPacketToClientStub, HOOK_CALL).install()->quick();
-
 		// Fix server freezer exploit
 		Utils::Hook(0x626996, Network::SV_ExecuteClientMessageStub, HOOK_CALL).install()->quick();
+		
+		// Handle client packets
+		Utils::Hook(0x5AA703, Network::CL_HandleCommandStub, HOOK_JUMP).install()->quick();
 
-		Network::Handle("resolveAddress", [](Address address, const std::string& /*data*/)
+		Network::OnPacket("resolveAddress", [](const Address& address, [[maybe_unused]] const std::string& data)
 		{
 			Network::SendRaw(address, address.getString());
 		});

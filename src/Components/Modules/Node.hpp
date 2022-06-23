@@ -4,12 +4,6 @@
 #define NODE_MAX_NODES_TO_SEND 64
 #define NODE_SEND_RATE 500ms
 
-#ifdef NODE_LOG_MESSAGES
-#define NODE_LOG(x, ...) Logger::Print(x, __VA_ARGS__)
-#else
-#define NODE_LOG(x, ...)
-#endif
-
 namespace Components
 {
 	class Node : public Component
@@ -57,7 +51,7 @@ namespace Components
 
 		static void HandleResponse(Network::Address address, const std::string& data);
 
-		static void SendList(Network::Address address);
+		static void SendList(const Network::Address& address);
 
 		static void LoadNodePreset();
 		static void LoadNodes();

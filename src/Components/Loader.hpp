@@ -5,8 +5,8 @@ namespace Components
 	class Component
 	{
 	public:
-		Component() {};
-		virtual ~Component() {};
+		Component() = default;
+		virtual ~Component() = default;
 
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		virtual std::string getName()
@@ -20,8 +20,8 @@ namespace Components
 		// It's illegal to spawn threads in DLLMain, and apparently it causes problems if they are destroyed there as well.
 		// This method is called before DLLMain (if possible) and should to destroy threads.
 		// It's not 100% guaranteed that it's called outside DLLMain, as it depends on the game, but it's 100% guaranteed, that it is called at all.
-		virtual void preDestroy() {};
-		virtual bool unitTest() { return true; }; // Unit testing entry
+		virtual void preDestroy() {}
+		virtual bool unitTest() { return true; } // Unit testing entry
 	};
 
 	class Loader
@@ -137,5 +137,10 @@ namespace Components
 #include "Modules/Gamepad.hpp"
 #include "Modules/ScriptExtension.hpp"
 #include "Modules/Branding.hpp"
+#include "Modules/Debug.hpp"
 #include "Modules/RawMouse.hpp"
 #include "Modules/Bullet.hpp"
+#include "Modules/MapRotation.hpp"
+#include "Modules/Ceg.hpp"
+#include "Modules/UserInfo.hpp"
+#include "Modules/Events.hpp"

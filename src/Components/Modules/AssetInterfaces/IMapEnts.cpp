@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IMapEnts.hpp"
 
 namespace Assets
 {

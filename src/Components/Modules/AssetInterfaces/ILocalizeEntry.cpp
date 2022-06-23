@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "ILocalizeEntry.hpp"
 
 namespace Assets
 {

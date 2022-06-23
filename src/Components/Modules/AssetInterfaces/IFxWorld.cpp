@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IFxWorld.hpp"
 
 namespace Assets
 {
@@ -184,11 +185,12 @@ namespace Assets
 			}
 		}
 	}
+	
 	void IFxWorld::load(Game::XAssetHeader* /*header*/, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
 		Game::FxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FXWORLD, name.data()).fxWorld;
 		if (map) return;
 
-		Components::Logger::Error("Missing fx_map %s... you can't make them yet you idiot.", name.data());
+		Components::Logger::Error(Game::ERR_FATAL, "Missing fx_map {}... you can't make them yet you idiot.", name);
 	}
 }

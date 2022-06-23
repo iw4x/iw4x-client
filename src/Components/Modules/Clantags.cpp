@@ -32,7 +32,7 @@ namespace Components
 		}
 
 		std::string command = Utils::String::VA("%c clantags \"%s\"", 22, list.data());
-		Game::SV_GameSendServerCommand(-1, 0, command.data());
+		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, command.data());
 	}
 
 	const char* ClanTags::GetUserClantag(std::uint32_t /*clientnum*/, const char* playername)
@@ -73,10 +73,11 @@ namespace Components
 	ClanTags::ClanTags()
 	{
 		// Create clantag dvar
-		Dvar::OnInit([]()
+		Scheduler::Once([]
 		{
-			Dvar::Register<const char*>("clantag", "", Game::dvar_flag::DVAR_USERINFO | Game::dvar_flag::DVAR_ARCHIVE, "If set, your clantag will be shown on the scoreboard.");
-		});
+			Dvar::Register<const char*>("clantag", "", Game::dvar_flag::DVAR_USERINFO | Game::dvar_flag::DVAR_ARCHIVE,
+				"If set, your clantag will be shown on the scoreboard.");
+		}, Scheduler::Pipeline::MAIN);
 
 		// Servercommand hook
 		ServerCommands::OnCommand(22, [](Command::Params* params)
