@@ -10,14 +10,14 @@ namespace Components
 
 		if (!Dvar::Var("sv_cheats").get<bool>())
 		{
-			Logger::DebugInfo("Cheats are disabled!");
+			Logger::Debug("Cheats are disabled!");
 			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"GAME_CHEATSNOTENABLED\"", 0x65));
 			return false;
 		}
 
 		if (ent->health < 1)
 		{
-			Logger::DebugInfo("Entity {} must be alive to use this command!", entNum);
+			Logger::Debug("Entity {} must be alive to use this command!", entNum);
 			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"GAME_MUSTBEALIVECOMMAND\"", 0x65));
 			return false;
 		}
@@ -38,7 +38,7 @@ namespace Components
 
 		if (ent->client == nullptr)
 		{
-			Logger::DebugInfo("ClientCommand: client {} is not fully in game yet", clientNum);
+			Logger::Debug("ClientCommand: client {} is not fully in game yet", clientNum);
 			return;
 		}
 
@@ -64,7 +64,7 @@ namespace Components
 			ent->client->flags ^= Game::PLAYER_FLAG_NOCLIP;
 
 			const auto entNum = ent->s.number;
-			Logger::DebugInfo("Noclip toggled for entity {}", entNum);
+			Logger::Debug("Noclip toggled for entity {}", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->client->flags & Game::PLAYER_FLAG_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
@@ -78,7 +78,7 @@ namespace Components
 			ent->client->flags ^= Game::PLAYER_FLAG_UFO;
 
 			const auto entNum = ent->s.number;
-			Logger::DebugInfo("UFO toggled for entity {}", entNum);
+			Logger::Debug("UFO toggled for entity {}", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->client->flags & Game::PLAYER_FLAG_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
@@ -92,7 +92,7 @@ namespace Components
 			ent->flags ^= Game::FL_GODMODE;
 
 			const auto entNum = ent->s.number;
-			Logger::DebugInfo("God toggled for entity {}", entNum);
+			Logger::Debug("God toggled for entity {}", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_GODMODE) ? "GAME_GODMODE_ON" : "GAME_GODMODE_OFF"));
@@ -106,7 +106,7 @@ namespace Components
 			ent->flags ^= Game::FL_DEMI_GODMODE;
 
 			const auto entNum = ent->s.number;
-			Logger::DebugInfo("Demigod toggled for entity {}", entNum);
+			Logger::Debug("Demigod toggled for entity {}", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_DEMI_GODMODE) ? "GAME_DEMI_GODMODE_ON" : "GAME_DEMI_GODMODE_OFF"));
@@ -120,7 +120,7 @@ namespace Components
 			ent->flags ^= Game::FL_NOTARGET;
 
 			const auto entNum = ent->s.number;
-			Logger::DebugInfo("Notarget toggled for entity {}", entNum);
+			Logger::Debug("Notarget toggled for entity {}", entNum);
 
 			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
 				(ent->flags & Game::FL_NOTARGET) ? "GAME_NOTARGETON" : "GAME_NOTARGETOFF"));
@@ -157,7 +157,7 @@ namespace Components
 				angles[0] = std::strtof(params->get(5), nullptr); // Pitch
 			}
 
-			Logger::DebugInfo("Teleported entity {} to {:f} {:f} {:f}\nviewpos {:f} {:f}", ent->s.number,
+			Logger::Debug("Teleported entity {} to {:f} {:f} {:f}\nviewpos {:f} {:f}", ent->s.number,
 				origin[0], origin[1], origin[2], angles[0], angles[2]);
 			Game::TeleportPlayer(ent, origin, angles);
 		});
@@ -176,7 +176,7 @@ namespace Components
 
 			Game::level->initializing = 1;
 			const auto* weaponName = params->get(1);
-			Logger::DebugInfo("Giving weapon {} to entity {}", weaponName, ent->s.number);
+			Logger::Debug("Giving weapon {} to entity {}", weaponName, ent->s.number);
 			const auto weaponIndex = Game::G_GetWeaponIndexForName(weaponName);
 
 			if (weaponIndex == 0)
@@ -194,7 +194,7 @@ namespace Components
 			}
 
 			auto* weapEnt = Game::G_Spawn();
-			Utils::VectorCopy(weapEnt->r.currentOrigin, ent->r.currentOrigin);
+			std::memcpy(weapEnt->r.currentOrigin, ent->r.currentOrigin, sizeof(std::float_t[3]));
 			Game::G_GetItemClassname(static_cast<int>(weaponIndex), weapEnt);
 			Game::G_SpawnItem(weapEnt, static_cast<int>(weaponIndex));
 
@@ -210,11 +210,11 @@ namespace Components
 					case Game::OFFHAND_CLASS_FRAG_GRENADE:
 					case Game::OFFHAND_CLASS_THROWINGKNIFE:
 					case Game::OFFHAND_CLASS_OTHER:
-						Logger::DebugInfo("Setting offhandPrimary");
+						Logger::Debug("Setting offhandPrimary");
 						client->ps.weapCommon.offhandPrimary = offHandClass;
 						break;
 					default:
-						Logger::DebugInfo("Setting offhandSecondary");
+						Logger::Debug("Setting offhandSecondary");
 						client->ps.weapCommon.offhandSecondary = offHandClass;
 						break;
 					}
@@ -226,7 +226,7 @@ namespace Components
 
 			if (weapEnt->r.isInUse)
 			{
-				Logger::DebugInfo("Freeing up entity {}", weapEnt->s.number);
+				Logger::Debug("Freeing up entity {}", weapEnt->s.number);
 				Game::G_FreeEntity(weapEnt);
 			}
 
@@ -327,7 +327,7 @@ namespace Components
 			assert(ent != nullptr);
 
 			ent->client->ps.stunTime = 1000 + Game::level->time; // 1000 is the default test stun time
-			Logger::DebugInfo("playerState_s.stunTime is {}", ent->client->ps.stunTime);
+			Logger::Debug("playerState_s.stunTime is {}", ent->client->ps.stunTime);
 		});
 
 		ClientCommand::Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)

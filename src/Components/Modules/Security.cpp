@@ -49,7 +49,7 @@ namespace Components
 			// If it's a command don't execute it
 			if (Command::Find(name) != nullptr)
 			{
-				Logger::DebugInfo("CL_SelectStringTableEntryInDvar_f: parameter is a command\n");
+				Logger::Debug("CL_SelectStringTableEntryInDvar_f: parameter is a command");
 				return;
 			}
 
@@ -67,7 +67,7 @@ namespace Components
 			// If it's a dvar check that it does not have disallowed flags
 			if ((dvar->flags & disallowedFlags) != 0)
 			{
-				Logger::DebugInfo("CL_SelectStringTableEntryInDvar_f: parameter is a protected dvar\n");
+				Logger::Debug("CL_SelectStringTableEntryInDvar_f: parameter is a protected dvar");
 				return;
 			}
 		}
@@ -107,7 +107,7 @@ namespace Components
 
 		if (static_cast<std::size_t>(net_message->cursize) >= sizeof(Game::DeferredMsg::data))
 		{
-			Logger::DebugInfo("Dropping net_message. Size is {}", net_message->cursize);
+			Logger::Debug("Dropping net_message. Size is {}", net_message->cursize);
 			return;
 		}
 

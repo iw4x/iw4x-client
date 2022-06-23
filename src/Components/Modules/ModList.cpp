@@ -43,9 +43,9 @@ namespace Components
 	void ModList::UIScript_LoadMods(UIScript::Token)
 	{
 		auto folder = Dvar::Var("fs_basepath").get<std::string>() + "\\mods";
-		Logger::DebugInfo("Searching for mods in {}...\n", folder);
+		Logger::Debug("Searching for mods in {}...", folder);
 		ModList::Mods = FileSystem::GetSysFileList(folder, "", true);
-		Logger::DebugInfo("Found {} mods!\n", ModList::Mods.size());
+		Logger::Debug("Found {} mods!", ModList::Mods.size());
 	}
 
 	void ModList::UIScript_RunMod(UIScript::Token)

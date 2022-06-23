@@ -215,7 +215,7 @@ namespace Components
 			Logger::Print("Script {}.gsc loaded successfully.\n", script);
 		}
 
-		Logger::DebugInfo("Finding script handle {}::{}...", script.data(), label.data());
+		Logger::Debug("Finding script handle {}::{}...", script.data(), label.data());
 		const auto handle = Game::Scr_GetFunctionHandle(script.data(), label.data());
 		if (handle)
 		{

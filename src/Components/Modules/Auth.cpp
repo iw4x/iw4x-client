@@ -41,7 +41,7 @@ namespace Components
 			Auth::TokenContainer.generating = false;
 
 			Auth::StoreKey();
-			Logger::DebugInfo("Security level is %d", Auth::GetSecurityLevel());
+			Logger::Debug("Security level is {}", Auth::GetSecurityLevel());
 			Command::Execute("closemenu security_increase_popmenu", false);
 
 			if (!Auth::TokenContainer.cancel)
@@ -233,7 +233,7 @@ namespace Components
 				return;
 			}
 
-			Logger::DebugInfo("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getCString());
+			Logger::Debug("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getCString());
 			Game::SV_DirectConnect(*address.get());
 		}
 #endif

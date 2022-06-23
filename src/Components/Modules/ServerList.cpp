@@ -914,7 +914,7 @@ namespace Components
 				count += server.clients;
 			}
 
-			Logger::DebugInfo("There are %d players playing", count);
+			Logger::Debug("There are {} players playing", count);
 		});
 #endif
 		// Add required ownerDraws
