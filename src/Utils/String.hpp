@@ -77,7 +77,7 @@ namespace Utils
 		int IsSpace(int c);
 		std::string ToLower(std::string text);
 		std::string ToUpper(std::string text);
-		std::vector<std::string> Split(const std::string& str, const char delim);
+		std::vector<std::string> Split(const std::string& str, char delim);
 		void Replace(std::string& string, const std::string& find, const std::string& replace);
 		bool StartsWith(const std::string& haystack, const std::string& needle);
 		bool EndsWith(const std::string& haystack, const std::string& needle);

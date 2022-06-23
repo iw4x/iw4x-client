@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IMaterial.hpp"
 
 #define IW4X_MAT_VERSION "1"
 

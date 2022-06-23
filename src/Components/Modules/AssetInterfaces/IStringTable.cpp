@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IStringTable.hpp"
 
 namespace Assets
 {

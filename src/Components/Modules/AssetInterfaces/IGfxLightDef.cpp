@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IGfxLightDef.hpp"
 
 #define IW4X_LIGHT_VERSION "0"
 

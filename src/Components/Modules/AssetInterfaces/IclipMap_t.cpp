@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IclipMap_t.hpp"
 
 #define IW4X_CLIPMAP_VERSION 2
 

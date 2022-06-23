@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "IFxEffectDef.hpp"
 
 #define IW4X_FX_VERSION 1
 
