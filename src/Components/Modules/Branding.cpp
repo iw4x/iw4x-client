@@ -108,6 +108,9 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x60BAEf, SHORTVERSION);
 		Utils::Hook::Set<const char*>(0x60BAE5, __DATE__);
 
+		// G_InitGame
+		Utils::Hook::Set<const char*>(0x48EBA1, __DATE__);
+
 		Utils::Hook(0x4B12B0, Branding::GetBuildNumber, HOOK_JUMP).install()->quick();
 
 		// Version string color
