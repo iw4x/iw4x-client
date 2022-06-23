@@ -61,8 +61,8 @@ namespace Components
 				return;
 			}
 
-			constexpr auto disallowedFlags = (Game::DVAR_CHEAT | Game::DVAR_WRITEPROTECTED
-				| Game::DVAR_READONLY | Game::DVAR_EXTERNAL | Game::DVAR_LATCH);
+			constexpr auto disallowedFlags = (Game::DVAR_CHEAT | Game::DVAR_INIT
+				| Game::DVAR_ROM | Game::DVAR_EXTERNAL | Game::DVAR_LATCH);
 
 			// If it's a dvar check that it does not have disallowed flags
 			if ((dvar->flags & disallowedFlags) != 0)

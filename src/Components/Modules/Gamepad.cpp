@@ -1711,8 +1711,8 @@ namespace Components
 	{
 		gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_ARCHIVE, "Game pad enabled");
 		gpad_debug = Dvar::Register<bool>("gpad_debug", false, Game::DVAR_NONE, "Game pad debugging");
-		gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_READONLY, "Game pad present");
-		gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_READONLY, "A game pad is in use");
+		gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_ROM, "Game pad present");
+		gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_ROM, "A game pad is in use");
 		gpad_style = Dvar::Register<bool>("gpad_style", false, Game::DVAR_ARCHIVE, "Switch between Xbox and PS HUD");
 		gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "", Game::DVAR_ARCHIVE, "Game pad stick configuration");
 		gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_ARCHIVE, "Game pad button configuration");

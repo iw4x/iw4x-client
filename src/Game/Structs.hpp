@@ -142,16 +142,16 @@ namespace Game
 		DVAR_CHEAT = 1 << 2,	// Can not be changed if cheats are disabled
 		DVAR_CODINFO = 1 << 3,	// On change, this is sent to all clients (if you are host)
 		DVAR_SCRIPTINFO = 1 << 4,
-		DVAR_UNKNOWN20 = 1 << 5,
-		DVAR_CHANGEABLE_RESET = 1 << 6,
-		DVAR_UNKNOWN80 = 1 << 7,
+		DVAR_TEMP = 1 << 5, // Best educated guess
+		DVAR_SAVED = 1 << 6,
+		DVAR_INTERNAL = 1 << 7, // Best educated guess
 		DVAR_EXTERNAL = 1 << 8,	// Created by a set command
 		DVAR_USERINFO = 1 << 9,	// Sent to server on connect or change
 		DVAR_SERVERINFO = 1 << 10, // Sent in response to front end requests
-		DVAR_WRITEPROTECTED = 1 << 11,
+		DVAR_INIT = 1 << 11, // Don't allow change from console at all
 		DVAR_SYSTEMINFO = 1 << 12, // Will be duplicated on all clients
-		DVAR_READONLY = 1 << 13, // Read only (same as DVAR_WRITEPROTECTED?)
-		DVAR_SAVED = 1 << 14,
+		DVAR_ROM = 1 << 13, // Display only, cannot be set by user at all
+		DVAR_CHANGEABLE_RESET = 1 << 14,
 		DVAR_AUTOEXEC = 1 << 15, // isLoadingAutoExecGlobalFlag is always false so it should be never set by the game
 	};
 

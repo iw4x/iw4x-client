@@ -328,7 +328,7 @@ namespace Components
 		Utils::Hook::Xor<BYTE>(0x4F9992, Game::dvar_flag::DVAR_ARCHIVE);
 
 		// remove write protection from fs_game
-		Utils::Hook::Xor<DWORD>(0x6431EA, Game::dvar_flag::DVAR_WRITEPROTECTED);
+		Utils::Hook::Xor<DWORD>(0x6431EA, Game::dvar_flag::DVAR_INIT);
 
 		// set cg_fov max to 160.0
 		// because that's the max on SP
@@ -349,8 +349,8 @@ namespace Components
 		Utils::Hook(0x40531C, Dvar::Dvar_RegisterName, HOOK_CALL).install()->quick();
 
 		// un-cheat safeArea_* and add archive flags
-		Utils::Hook::Xor<INT>(0x42E3F5, Game::dvar_flag::DVAR_READONLY | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
-		Utils::Hook::Xor<INT>(0x42E423, Game::dvar_flag::DVAR_READONLY | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_adjusted_vertical
+		Utils::Hook::Xor<INT>(0x42E3F5, Game::dvar_flag::DVAR_ROM | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
+		Utils::Hook::Xor<INT>(0x42E423, Game::dvar_flag::DVAR_ROM | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_adjusted_vertical
 		Utils::Hook::Xor<BYTE>(0x42E398, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_horizontal
 		Utils::Hook::Xor<BYTE>(0x42E3C4, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_vertical
 
