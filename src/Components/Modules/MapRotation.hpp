@@ -47,6 +47,7 @@ namespace Components
 		static Dvar::Var SVDontRotate;
 		// Game Dvars
 		static Game::dvar_t** SVMapRotation;
+		static Game::dvar_t** SVMapRotationCurrent;
 		static Game::dvar_t** SVMapname;
 
 		// Holds the parsed data from sv_mapRotation
@@ -58,8 +59,11 @@ namespace Components
 		static void AddMapRotationCommands();
 
 		static bool ShouldRotate();
+		static void ApplyMap(const std::string& map);
+		static void ApplyGametype(const std::string& gametype);
 		static void RestartCurrentMap();
-		static void ApplyMapRotation();
+		static void ApplyRotation(RotationData& rotation);
+		static void ApplyMapRotationCurrent(const std::string& data);
 		static void RandomizeMapRotation();
 
 		static void SV_MapRotate_f();

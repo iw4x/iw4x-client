@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Changed
 
 - `openLink` command was removed for security reasons  (#286)
+- `sv_mapRotationCurrent` is not being used anymore (#302)
 
 ### Fixed
 
