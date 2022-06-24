@@ -173,7 +173,6 @@ namespace Components
 	void MapRotation::ApplyGametype(const std::string& gametype)
 	{
 		assert(!gametype.empty());
-
 		Dvar::Var("g_gametype").set(gametype.data());
 	}
 
