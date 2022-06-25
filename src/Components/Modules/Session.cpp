@@ -37,7 +37,7 @@ namespace Components
 		{
 			Network::SendCommand(delayData->target, delayData->command, delayData->data);
 			delete delayData;
-		}, Scheduler::Pipeline::SERVER, 500ms + std::chrono::milliseconds(std::rand() % 200));
+		}, Scheduler::Pipeline::MAIN, 500ms + std::chrono::milliseconds(std::rand() % 200));
 #else
 		std::lock_guard _(Session::Mutex);
 

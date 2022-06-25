@@ -27,11 +27,11 @@ namespace Components
 		{
 			return &ServerList::OnlineList;
 		}
-		else if (ServerList::IsOfflineList())
+		if (ServerList::IsOfflineList())
 		{
 			return &ServerList::OfflineList;
 		}
-		else if (ServerList::IsFavouriteList())
+		if (ServerList::IsFavouriteList())
 		{
 			return &ServerList::FavouriteList;
 		}
@@ -289,6 +289,7 @@ namespace Components
 			{
 				Logger::Print("Could not resolve address for {}:{}", masterServerName, masterPort);
 				Toast::Show("cardicon_headshot", "^1Error", Utils::String::VA("Could not resolve address for %s:%u", masterServerName, masterPort), 5000);
+				useMasterServer = false;
 				return;
 			}
 
@@ -828,8 +829,8 @@ namespace Components
 
 		// Set default masterServerName + port and save it 
 		Utils::Hook::Set<const char*>(0x60AD92, "master.xlabs.dev");
-		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_ARCHIVE); // masterServerName
-		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_ARCHIVE); // masterPort
+		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_NONE); // masterServerName
+		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_NONE); // masterPort
 
 		// Add server list feeder
 		UIFeeder::Add(2.0f, ServerList::GetServerCount, ServerList::GetServerText, ServerList::SelectServer);

@@ -283,10 +283,10 @@ namespace Components
 
 	bool Network::HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
 	{
-		const auto cmd_string = Utils::String::ToLower(command);
-		const auto handler = Network::Callbacks.find(cmd_string);
+		const auto command_ = Utils::String::ToLower(command);
+		const auto handler = Network::Callbacks.find(command_);
 
-		const auto offset = cmd_string.size() + 5;
+		const auto offset = command_.size() + 5;
 		if (static_cast<std::size_t>(message->cursize) < offset || handler == Network::Callbacks.end())
 		{
 			return false;
