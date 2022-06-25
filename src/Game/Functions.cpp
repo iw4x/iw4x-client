@@ -274,6 +274,7 @@ namespace Game
 	RemoveRefToObject_t RemoveRefToObject = RemoveRefToObject_t(0x437190);
 
 	Scr_LoadGameType_t Scr_LoadGameType = Scr_LoadGameType_t(0x4D9520);
+	Scr_StartupGameType_t Scr_StartupGameType = Scr_StartupGameType_t(0x438720);
 
 	Scr_LoadScript_t Scr_LoadScript = Scr_LoadScript_t(0x45D940);
 	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = Scr_GetFunctionHandle_t(0x4234F0);

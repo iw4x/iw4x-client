@@ -3,16 +3,19 @@
 namespace Components
 {
 	std::string Script::ScriptName;
-	std::vector<int> Script::ScriptHandles;
 	std::unordered_map<std::string, Game::BuiltinFunctionDef> Script::CustomScrFunctions;
 	std::unordered_map<std::string, Game::BuiltinMethodDef> Script::CustomScrMethods;
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
 	std::unordered_map<std::string, std::string> Script::ScriptStorage;
 	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
+	int Script::LastFrameTime = -1;
+
 	std::unordered_map<const char*, const char*> Script::ReplacedFunctions;
 	const char* Script::ReplacedPos = nullptr;
-	int Script::LastFrameTime = -1;
+
+	std::vector<int> Script::ScriptMainHandles;
+	std::vector<int> Script::ScriptInitHandles;
 
 	void Script::FunctionError()
 	{
@@ -201,68 +204,70 @@ namespace Components
 		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\n{}\n{}\n(see console for actual details)\n", msgbuf, Script::ScriptName);
 	}
 
-	int Script::LoadScriptAndLabel(const std::string& script, const std::string& label)
+	void Script::Scr_LoadGameType_Stub()
 	{
-		Logger::Print("Loading script {}.gsc...\n", script);
-
-		if (!Game::Scr_LoadScript(script.data()))
+		for (const auto& handle : Script::ScriptMainHandles)
 		{
-			Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", script);
-			Logger::Error(Game::ERR_DROP, "Could not find script '{}'", script);
-		}
-		else
-		{
-			Logger::Print("Script {}.gsc loaded successfully.\n", script);
-		}
-
-		Logger::Debug("Finding script handle {}::{}...", script.data(), label.data());
-		const auto handle = Game::Scr_GetFunctionHandle(script.data(), label.data());
-		if (handle)
-		{
-			Logger::Print("Script handle {}::{} loaded successfully.\n", script, label);
-			return handle;
-		}
-
-		Logger::Print("Script handle {}::{} couldn't be loaded. (file with no entry point?)\n", script, label);
-		return handle;
-	}
-
-	void Script::LoadGameType()
-	{
-		for (const auto& handle : Script::ScriptHandles)
-		{
-			Game::Scr_FreeThread(Game::Scr_ExecThread(handle, 0));
+			const auto id = Game::Scr_ExecThread(handle, 0);
+			Game::Scr_FreeThread(static_cast<std::uint16_t>(id));
 		}
 
 		Game::Scr_LoadGameType();
 	}
 
-	void Script::LoadGameTypeScript()
+	void Script::Scr_StartupGameType_Stub()
 	{
-		Script::ScriptHandles.clear();
+		for (const auto& handle : Script::ScriptInitHandles)
+		{
+			const auto id = Game::Scr_ExecThread(handle, 0);
+			Game::Scr_FreeThread(static_cast<std::uint16_t>(id));
+		}
+
+		Game::Scr_StartupGameType();
+	}
+
+	void Script::GScr_LoadGameTypeScript_Stub()
+	{
+		// Clear handles (from previous GSC loading session)
+		Script::ScriptMainHandles.clear();
+		Script::ScriptInitHandles.clear();
 
 		const auto list = FileSystem::GetFileList("scripts/", "gsc");
 
-		for (auto file : list)
+		for (const auto& file : list)
 		{
-			file.insert(0, "scripts/");
+			std::string script = "scripts/" + file;
 
-			if (Utils::String::EndsWith(file, ".gsc"))
+			if (Utils::String::EndsWith(script, ".gsc"))
 			{
-				file = file.substr(0, file.size() - 4);
+				script = script.substr(0, script.size() - 4);
 			}
 
-			auto handle = Script::LoadScriptAndLabel(file, "init");
+			Logger::Print("Loading script {}.gsc...\n", script);
 
-			if (handle)
+			if (!Game::Scr_LoadScript(script.data()))
 			{
-				Script::ScriptHandles.push_back(handle);
+				Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", script);
+				Logger::Error(Game::ERR_DROP, "Could not find script '{}'", script);
+				return;
 			}
-			else
+
+			Logger::Print("Script {}.gsc loaded successfully.\n", script);
+			Logger::Debug("Finding script handle main or init...");
+
+			const auto initHandle = Game::Scr_GetFunctionHandle(script.data(), "init");
+			if (initHandle != 0)
 			{
-				handle = Script::LoadScriptAndLabel(file, "main");
-				if (handle) Script::ScriptHandles.push_back(handle);
+				Script::ScriptInitHandles.push_back(initHandle);
 			}
+
+			const auto mainHandle = Game::Scr_GetFunctionHandle(script.data(), "main");
+			if (mainHandle != 0)
+			{
+				Script::ScriptMainHandles.push_back(mainHandle);
+			}
+
+			// Allow scripts with no handles
 		}
 
 		Game::GScr_LoadGameTypeScript();
@@ -687,8 +692,9 @@ namespace Components
 		Utils::Hook(0x612EA2, Script::FunctionError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x434260, Script::CompileError, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x48EFFE, Script::LoadGameType, HOOK_CALL).install()->quick();
-		Utils::Hook(0x45D44A, Script::LoadGameTypeScript, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48EFFE, Script::Scr_LoadGameType_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48F008, Script::Scr_StartupGameType_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x45D44A, Script::GScr_LoadGameTypeScript_Stub, HOOK_CALL).install()->quick();
 
 		// Fetch custom functions
 		Utils::Hook(0x44E72E, Script::BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction

@@ -8,8 +8,6 @@ namespace Components
 	public:
 		Script();
 
-		static int LoadScriptAndLabel(const std::string& script, const std::string& label);
-
 		static void AddFunction(const char* name, Game::BuiltinFunction func, int type = 0);
 		static void AddMethod(const char* name, Game::BuiltinMethod func, int type = 0);
 
@@ -19,16 +17,19 @@ namespace Components
 
 	private:
 		static std::string ScriptName;
-		static std::vector<int> ScriptHandles;
 		static std::unordered_map<std::string, Game::BuiltinFunctionDef> CustomScrFunctions;
 		static std::unordered_map<std::string, Game::BuiltinMethodDef> CustomScrMethods;
 		static std::vector<std::string> ScriptNameStack;
 		static unsigned short FunctionName;
 		static std::unordered_map<std::string, std::string> ScriptStorage;
 		static std::unordered_map<int, std::string> ScriptBaseProgramNum;
+		static int LastFrameTime;
+
+		static std::vector<int> ScriptMainHandles;
+		static std::vector<int> ScriptInitHandles;
+
 		static std::unordered_map<const char*, const char*> ReplacedFunctions;
 		static const char* ReplacedPos;
-		static int LastFrameTime;
 
 		static void CompileError(unsigned int offset, const char* message, ...);
 		static void PrintSourcePos(const char* filename, unsigned int offset);
@@ -43,8 +44,9 @@ namespace Components
 		static void RestoreScriptName();
 		static void RestoreScriptNameStub();
 
-		static void LoadGameType();
-		static void LoadGameTypeScript();
+		static void Scr_LoadGameType_Stub();
+		static void Scr_StartupGameType_Stub();
+		static void GScr_LoadGameTypeScript_Stub();
 
 		static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
 		static Game::BuiltinMethod BuiltIn_GetMethod(const char** pName, int* type);
