@@ -518,10 +518,10 @@ namespace Components
 		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, entryPool + 1);
 	}
 
-    void AssetHandler::ExposeTemporaryAssets(bool expose)
-    {
-        AssetHandler::ShouldSearchTempAssets = expose;
-    }
+	void AssetHandler::ExposeTemporaryAssets(bool expose)
+	{
+		AssetHandler::ShouldSearchTempAssets = expose;
+	}
 
 	AssetHandler::AssetHandler()
 	{
