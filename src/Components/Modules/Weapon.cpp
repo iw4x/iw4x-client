@@ -448,10 +448,57 @@ namespace Components
 		}
 	}
 
+	void __declspec(naked) Weapon::WeaponEntCanBeGrabbed_Stub()
+	{
+		using namespace Game;
+
+		__asm
+		{
+			cmp dword ptr [esp + 0x8], 0x0
+			jz touched
+
+			push 0x56E82C
+			retn
+
+		touched:
+			test dword ptr [edi + 0x2BC], PWF_DISABLE_WEAPON_PICKUP
+			jnz exit_func
+
+			// Game code
+			test eax, eax
+			jz continue_func
+
+		exit_func:
+			xor eax, eax
+			ret
+
+		continue_func:
+			push 0x56E84C
+			retn
+		}
+	}
+
+	void Weapon::AddScriptMethods()
+	{
+		Script::AddMethod("DisableWeaponPickup", [](Game::scr_entref_t entref)
+		{
+			const auto* ent = Game::GetPlayerEntity(entref);
+
+			ent->client->ps.weapCommon.weapFlags |= Game::PWF_DISABLE_WEAPON_PICKUP;
+		});
+
+		Script::AddMethod("EnableWeaponPickup", [](Game::scr_entref_t entref)
+		{
+			const auto* ent = Game::GetPlayerEntity(entref);
+
+			ent->client->ps.weapCommon.weapFlags &= ~Game::PWF_DISABLE_WEAPON_PICKUP;
+		});
+	}
+
 	Weapon::Weapon()
 	{
-		Weapon::PatchLimit();
-		Weapon::PatchConfigStrings();
+		PatchLimit();
+		PatchConfigStrings();
 
 		// Intercept weapon loading
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_WEAPON, Weapon::WeaponFileLoad);
@@ -466,7 +513,7 @@ namespace Components
 
 		// Weapon swap fix
 		Utils::Hook::Nop(0x4B3670, 5);
-		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub).install()->quick();
+		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub, HOOK_JUMP).install()->quick();
 
 		// Don't load bounce sounds for now, it causes crashes
 		// TODO: Actually check the weaponfiles and/or reset the soundtable correctly!
@@ -477,5 +524,10 @@ namespace Components
 		// Clear weapons independently from fs_game
 		//Utils::Hook::Nop(0x452C1D, 2);
 		//Utils::Hook::Nop(0x452C24, 5);
+
+		AddScriptMethods();
+
+		AssertOffset(Game::playerState_s, Game::playerState_s::weapCommon.weapFlags, 0x2BC);
+		Utils::Hook(0x56E825, WeaponEntCanBeGrabbed_Stub, HOOK_JUMP).install()->quick();
 	}
 }
