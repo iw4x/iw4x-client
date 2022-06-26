@@ -226,11 +226,11 @@ namespace Components
 		// Ook, ook, eek
 		Logger::Warning(Game::CON_CHANNEL_SERVER, "You are using deprecated {}", (*SVMapRotationCurrent)->name);
 
-		RotationData currentRotation;
+		RotationData rotationCurrent;
 		try
 		{
 			Logger::Debug("Parsing {}", (*SVMapRotationCurrent)->name);
-			currentRotation.parse(data);
+			rotationCurrent.parse(data);
 		}
 		catch (const std::exception& ex)
 		{
@@ -239,14 +239,14 @@ namespace Components
 
 		Game::Dvar_SetString(*SVMapRotationCurrent, "");
 
-		if (currentRotation.getEntriesSize() == 0)
+		if (rotationCurrent.getEntriesSize() == 0)
 		{
 			Logger::Print(Game::CON_CHANNEL_SERVER, "{} is empty or contains invalid data. Restarting map\n", (*SVMapRotationCurrent)->name);
 			RestartCurrentMap();
 			return;
 		}
 
-		ApplyRotation(currentRotation);
+		ApplyRotation(rotationCurrent);
 	}
 
 	void MapRotation::RandomizeMapRotation()

@@ -1367,6 +1367,8 @@ namespace Game
 		PWF_DISABLE_WEAPON_SWAPPING = 1 << 11,
 		PWF_DISABLE_OFFHAND_WEAPONS = 1 << 12,
 		PWF_SWITCHING_TO_RIOTSHIELD = 1 << 13,
+		// IW5 flags backported
+		PWF_DISABLE_WEAPON_PICKUP = 1 << 16
 	};
 
 	struct playerState_s
@@ -1490,6 +1492,8 @@ namespace Game
 		int diveDirection;
 		int stunTime;
 	};
+
+	static_assert(sizeof(Game::playerState_s) == 0x311C);
 
 	enum LocSelInputState
 	{

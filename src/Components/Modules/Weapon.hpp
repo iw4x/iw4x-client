@@ -25,5 +25,8 @@ namespace Components
 		static void ParseConfigStrings();
 		static int ParseWeaponConfigStrings();
 		static int ClearConfigStrings(void* dest, int value, int size);
+
+		static void WeaponEntCanBeGrabbed_Stub();
+		static void AddScriptMethods();
 	};
 }
