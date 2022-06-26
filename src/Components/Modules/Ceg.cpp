@@ -47,5 +47,6 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x49E8C0, 0xC3);
 		Utils::Hook::Set<BYTE>(0x42DB00, 0xC3);
 		Utils::Hook::Set<BYTE>(0x4F4CF0, 0xC3);
+		Utils::Hook::Set<BYTE>(0x432180, 0xC3);
 	}
 }
