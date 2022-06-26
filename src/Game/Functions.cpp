@@ -596,6 +596,8 @@ namespace Game
 
 	int* com_errorPrintsCount = reinterpret_cast<int*>(0x1AD7910);
 
+	scr_const_t* scr_const = reinterpret_cast<scr_const_t*>(0x1AA2E00);
+
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
 		InterlockedIncrement(&critSect->readCount);

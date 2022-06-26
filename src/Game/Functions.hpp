@@ -1231,6 +1231,8 @@ namespace Game
 
 	extern int* com_errorPrintsCount;
 
+	extern scr_const_t* scr_const;
+
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);
 
