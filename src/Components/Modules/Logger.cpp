@@ -144,12 +144,14 @@ namespace Components
 
 	void Logger::NetworkLog(const char* data, bool gLog)
 	{
-		if (!data) return;
+		if (data == nullptr)
+		{
+			return;
+		}
 
-		const std::string buffer(data);
 		for (const auto& addr : Logger::LoggingAddresses[gLog & 1])
 		{
-			Network::SendCommand(addr, "print", buffer);
+			Network::SendCommand(addr, "print", data);
 		}
 	}
 
@@ -167,12 +169,12 @@ namespace Components
 		const auto tens = Game::level->time / 1000 % 60 / 10;
 		const auto sec = Game::level->time / 1000 % 60 % 10;
 
-		_snprintf_s(string, _TRUNCATE, "%3i:%i%i %s",
+		const auto len = _snprintf_s(string, _TRUNCATE, "%3i:%i%i %s",
 			min, tens, sec, string2);
 
 		if (Game::level->logFile != nullptr)
 		{
-			Game::FS_Write(string, &string[std::strlen(string) + 1] - &string[1], reinterpret_cast<int>(Game::level->logFile));
+			Game::FS_Write(string, len, reinterpret_cast<int>(Game::level->logFile));
 		}
 
 		// Allow the network log to run even if logFile was not opened
