@@ -283,6 +283,18 @@ namespace Components
 		Game::Dvar_SetFromStringByNameFromSource(dvarName, string, Game::DvarSetSource::DVAR_SOURCE_EXTERNAL);
 	}
 
+	bool Dvar::AreArchiveDvarsProtected()
+	{
+		static std::optional<bool> flag;
+
+		if (!flag.has_value())
+		{
+			flag.emplace(Flags::HasFlag("protect-saved-dvars"));
+		}
+
+		return flag.value();
+	}
+
 	void Dvar::SaveArchiveDvar(const Game::dvar_t* var)
 	{
 		if (!Utils::IO::FileExists(Dvar::ArchiveDvarPath))
@@ -301,6 +313,15 @@ namespace Components
 		const auto* dvar = Game::Dvar_FindVar(dvarName);
 		if (dvar != nullptr && dvar->flags & Game::dvar_flag::DVAR_ARCHIVE)
 		{
+			if (Dvar::AreArchiveDvarsProtected())
+			{
+				Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Not allowing server to override saved dvar '{}'\n", dvarName);
+				return;
+			}
+
+#ifdef DEBUG_DVARS
+			Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Server is overriding saved dvar '{}'\n", dvarName);
+#endif
 			Dvar::SaveArchiveDvar(dvar);
 		}
 
