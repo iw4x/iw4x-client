@@ -1080,6 +1080,18 @@ namespace Game
 	typedef void(__cdecl * player_die_t)(gentity_s* self, const gentity_s* inflictor, gentity_s* attacker, int damage, int meansOfDeath, int iWeapon, const float* vDir, const hitLocation_t hitLoc, int psTimeOffset);
 	extern player_die_t player_die;
 
+	typedef float(__cdecl * Vec3Normalize_t)(float* v);
+	extern Vec3Normalize_t Vec3Normalize;
+
+	typedef void(__cdecl * Vec3NormalizeFast_t)(float* v);
+	extern Vec3NormalizeFast_t Vec3NormalizeFast;
+
+	typedef float(__cdecl * Vec2Normalize_t)(float* v);
+	extern Vec2Normalize_t Vec2Normalize;
+
+	typedef void(__cdecl * Vec2NormalizeFast_t)(float* v);
+	extern Vec2NormalizeFast_t Vec2NormalizeFast;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
@@ -1295,8 +1307,6 @@ namespace Game
 
 	void Image_Setup(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
 
-	float Vec2Normalize(vec2_t& vec);
-	float Vec3Normalize(vec3_t& vec);
 	void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out);
 	void MatrixVecMultiply(const float(&mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution);
 	void QuatRot(vec3_t* vec, const vec4_t* quat);

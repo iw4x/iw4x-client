@@ -284,7 +284,7 @@ namespace Components
 				if (!scene->sceneModel[i].model)
 					continue;
 
-				if (Utils::Vec3SqrDistance(playerPosition, scene->sceneModel[i].placement.base.origin) < sqrDist)
+				if (Utils::Maths::Vec3SqrDistance(playerPosition, scene->sceneModel[i].placement.base.origin) < sqrDist)
 				{
 					auto b = scene->sceneModel[i].model->bounds;
 					b.midPoint[0] += scene->sceneModel[i].placement.base.origin[0];
@@ -302,7 +302,7 @@ namespace Components
 			for (auto i = 0; i < scene->sceneDObjCount; i++)
 			{
 
-				if (Utils::Vec3SqrDistance(playerPosition, scene->sceneDObj[i].cull.bounds.midPoint) < sqrDist)
+				if (Utils::Maths::Vec3SqrDistance(playerPosition, scene->sceneDObj[i].cull.bounds.midPoint) < sqrDist)
 				{
 					scene->sceneDObj[i].cull.bounds.halfSize[0] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[0]);
 					scene->sceneDObj[i].cull.bounds.halfSize[1] = std::abs(scene->sceneDObj[i].cull.bounds.halfSize[1]);
@@ -327,7 +327,7 @@ namespace Components
 			{
 				auto staticModel = world->dpvs.smodelDrawInsts[i];
 
-				if (Utils::Vec3SqrDistance(playerPosition, staticModel.placement.origin) < sqrDist)
+				if (Utils::Maths::Vec3SqrDistance(playerPosition, staticModel.placement.origin) < sqrDist)
 				{
 					if (staticModel.model)
 					{
@@ -381,7 +381,7 @@ namespace Components
 				if (!scene->sceneModel[i].model)
 					continue;
 
-				if (Utils::Vec3SqrDistance(playerPosition, scene->sceneModel[i].placement.base.origin) < sqrDist)
+				if (Utils::Maths::Vec3SqrDistance(playerPosition, scene->sceneModel[i].placement.base.origin) < sqrDist)
 				{
 					Game::R_AddDebugString(sceneModelsColor, scene->sceneModel[i].placement.base.origin, 1.0, scene->sceneModel[i].model->name);
 				}
@@ -395,7 +395,7 @@ namespace Components
 				{
 					for (int j = 0; j < scene->sceneDObj[i].obj->numModels; j++)
 					{
-						if (Utils::Vec3SqrDistance(playerPosition, scene->sceneDObj[i].placement.origin) < sqrDist)
+						if (Utils::Maths::Vec3SqrDistance(playerPosition, scene->sceneDObj[i].placement.origin) < sqrDist)
 						{
 							Game::R_AddDebugString(dobjsColor, scene->sceneDObj[i].placement.origin, 1.0, scene->sceneDObj[i].obj->models[j]->name);
 						}
@@ -411,7 +411,7 @@ namespace Components
 				auto staticModel = world->dpvs.smodelDrawInsts[i];
 				if (staticModel.model)
 				{
-					auto dist = Utils::Vec3SqrDistance(playerPosition, staticModel.placement.origin);
+					const auto dist = Utils::Maths::Vec3SqrDistance(playerPosition, staticModel.placement.origin);
 					if (dist < sqrDist)
 					{
 						Game::R_AddDebugString(staticModelsColor, staticModel.placement.origin, 1.0, staticModel.model->name);
