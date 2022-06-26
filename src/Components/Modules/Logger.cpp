@@ -265,7 +265,7 @@ namespace Components
 		{
 			if (params->size() < 2) return;
 
-			int num = atoi(params->get(1));
+			const auto num = atoi(params->get(1));
 			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[0].size())
 			{
 				auto addr = Logger::LoggingAddresses[0].begin() + num;
@@ -296,7 +296,7 @@ namespace Components
 
 			for (unsigned int i = 0; i < Logger::LoggingAddresses[0].size(); ++i)
 			{
-				Logger::Print("{}: {}\n", i, Logger::LoggingAddresses[0][i].getCString());
+				Logger::Print("#{:03d}: {}\n", i, Logger::LoggingAddresses[0][i].getCString());
 			}
 		});
 
@@ -316,7 +316,7 @@ namespace Components
 		{
 			if (params->size() < 2) return;
 
-			int num = atoi(params->get(1));
+			const auto num = std::atoi(params->get(1));
 			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[1].size())
 			{
 				const auto addr = Logger::LoggingAddresses[1].begin() + num;
@@ -347,7 +347,7 @@ namespace Components
 
 			for (std::size_t i = 0; i < Logger::LoggingAddresses[1].size(); ++i)
 			{
-				Logger::Print("{}: {}\n", i, Logger::LoggingAddresses[1][i].getCString());
+				Logger::Print("#{:03d}: {}\n", i, Logger::LoggingAddresses[1][i].getCString());
 			}
 		});
 	}
