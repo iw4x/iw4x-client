@@ -365,10 +365,13 @@ namespace Game
 	typedef bool(__cdecl * FS_FileExists_t)(const char* file);
 	extern FS_FileExists_t FS_FileExists;
 
-	typedef bool(__cdecl * FS_WriteFile_t)(char* filename, char* folder, void* buffer, int size);
+	typedef bool(__cdecl * FS_WriteFile_t)(const char* filename, const char* folder, const void* buffer, int size);
 	extern FS_WriteFile_t FS_WriteFile;
 
-	typedef int(__cdecl * FS_Write_t)(const void* buffer, size_t size, int file);
+	typedef int(__cdecl * FS_WriteToDemo_t)(const void* buffer, int size, int file);
+	extern FS_WriteToDemo_t FS_WriteToDemo;
+
+	typedef int(__cdecl * FS_Write_t)(const void* buffer, int len, int h);
 	extern FS_Write_t FS_Write;
 
 	typedef int(__cdecl * FS_Printf_t)(int file, const char* fmt, ...);

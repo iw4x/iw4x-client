@@ -153,22 +153,30 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) void Logger::GameLogStub()
+	void Logger::G_LogPrintfStub(const char* fmt, ...)
 	{
-		__asm
+		char string[1024];
+		char string2[1024];
+
+		va_list ap;
+		va_start(ap, fmt);
+		vsnprintf_s(string2, _TRUNCATE, fmt, ap);
+		va_end(ap);
+
+		const auto min = Game::level->time / 1000 / 60;
+		const auto tens = Game::level->time / 1000 % 60 / 10;
+		const auto sec = Game::level->time / 1000 % 60 % 10;
+
+		_snprintf_s(string, _TRUNCATE, "%3i:%i%i %s",
+			min, tens, sec, string2);
+
+		if (Game::level->logFile != nullptr)
 		{
-			pushad
-
-			push 1
-			push [esp + 28h]
-			call Logger::NetworkLog
-			add esp, 8h
-
-			popad
-
-			push 4576C0h
-			retn
+			Game::FS_Write(string, &string[std::strlen(string) + 1] - &string[1], reinterpret_cast<int>(Game::level->logFile));
 		}
+
+		// Allow the network log to run even if logFile was not opened
+		Logger::NetworkLog(string, true);
 	}
 
 	__declspec(naked) void Logger::PrintMessageStub()
@@ -361,7 +369,7 @@ namespace Components
 
 		Scheduler::Loop(Logger::Frame, Scheduler::Pipeline::SERVER);
 
-		Utils::Hook(0x4B0218, Logger::GameLogStub, HOOK_CALL).install()->quick();
+		Utils::Hook(Game::G_LogPrintf, Logger::G_LogPrintfStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).install()->quick();
 
 		if (Loader::IsPerformingUnitTests())

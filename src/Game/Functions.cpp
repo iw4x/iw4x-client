@@ -148,7 +148,8 @@ namespace Game
 	FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = FS_FOpenFileReadForThread_t(0x643270);
 	FS_FCloseFile_t FS_FCloseFile = FS_FCloseFile_t(0x462000);
 	FS_WriteFile_t FS_WriteFile = FS_WriteFile_t(0x426450);
-	FS_Write_t FS_Write = FS_Write_t(0x4C06E0);
+	FS_WriteToDemo_t  FS_WriteToDemo = FS_WriteToDemo_t(0x4C06E0);
+	FS_Write_t FS_Write = FS_Write_t(0x4576C0);
 	FS_Printf_t FS_Printf = FS_Printf_t(0x459320);
 	FS_Read_t FS_Read = FS_Read_t(0x4A04C0);
 	FS_Seek_t FS_Seek = FS_Seek_t(0x4A63D0);
