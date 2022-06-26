@@ -42,6 +42,7 @@
 | `-version`              | Print IW4x build info on startup.              |
 | `-zonebuilder`          | Start the interactive zonebuilder tool console instead of starting the game. |
 | `-nosteam`              | Disable friends feature and do not update Steam about the game's current status just like an invisible mode. |
+| `-protect-saved-dvars`  | Block the server from modifying saved/archive dvars. |
 
 
 ## Disclaimer
