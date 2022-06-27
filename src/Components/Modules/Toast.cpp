@@ -5,30 +5,16 @@ namespace Components
 	std::queue<Toast::UIToast> Toast::Queue;
 	std::mutex Toast::Mutex;
 
-	void Toast::Show(const std::string& image, const std::string& title, const std::string& description, int length, Utils::Slot<void()> callback)
+	void Toast::Show(const std::string& image, const std::string& title, const std::string& description, int length, const Utils::Slot<void()>& callback)
 	{
 		Game::Material* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
 		return Show(material, title, description, length, callback);
 	}
 
-	void Toast::Show(Game::Material* material, const std::string& title, const std::string& description, int length, Utils::Slot<void()> callback)
+	void Toast::Show(Game::Material* material, const std::string& title, const std::string& description, int length, const Utils::Slot<void()>& callback)
 	{
-		Toast::Mutex.lock();
-		Toast::Queue.push({ material, Utils::String::ToUpper(title), description, length, 0, callback });
-		Toast::Mutex.unlock();
-	}
-
-	std::string Toast::GetIcon()
-	{
-		char ourPath[MAX_PATH] = { 0 };
-		std::string file(ourPath, GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath)));
-
-		auto pos = file.find_last_of("/\\");
-		if (pos != std::string::npos) file = file.substr(0, pos);
-
-		file.append("\\iw4x\\images\\icon.png");
-		Utils::String::Replace(file, "/", "\\");
-		return file;
+		std::lock_guard _(Mutex);
+		Queue.push({material, Utils::String::ToUpper(title), description, length, 0, callback});
 	}
 
 	void Toast::Draw(UIToast* toast)
@@ -51,9 +37,14 @@ namespace Components
 		float fontSize = 0.9f;
 		float descSize = 0.9f;
 
-		Game::Material* white = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "white").material; if (!white) return;
-		Game::Font_s* font = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/objectiveFont").font; if (!font) return;
-		Game::Font_s* descfont = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/normalFont").font; if (!descfont) return;
+		Game::Font_s* font = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/objectiveFont").font;
+		Game::Font_s* descfont = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FONT, "fonts/normalFont").font;
+
+		if (font == nullptr || descfont == nullptr)
+		{
+			return;
+		}
+
 		Game::vec4_t wColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 		Game::vec4_t bgColor = { 0.0f, 0.0f, 0.0f, 0.8f };
 		Game::vec4_t borderColor = { 1.0f, 1.0f, 1.0f, 0.2f };
@@ -64,7 +55,7 @@ namespace Components
 		if (Game::Sys_Milliseconds() < startTime || (startTime + duration) < Game::Sys_Milliseconds()) return;
 
 		// Fadein stuff
-		else if (Game::Sys_Milliseconds() - startTime < slideTime)
+		if (Game::Sys_Milliseconds() - startTime < slideTime)
 		{
 			int diffH = Renderer::Height() / 5;
 			int diff = Game::Sys_Milliseconds() - startTime;
@@ -88,8 +79,8 @@ namespace Components
 		// Calculate width data
 		int iOffset = (bHeight - imgDim) / 2;
 		int iOffsetLeft = iOffset * 2;
-		float titleSize = Game::R_TextWidth(toast->title.data(), 0x7FFFFFFF, font) * fontSize;
-		float descrSize = Game::R_TextWidth(toast->desc.data(), 0x7FFFFFFF, descfont) * descSize;
+		float titleSize = Game::R_TextWidth(toast->title.data(), std::numeric_limits<int>::max(), font) * fontSize;
+		float descrSize = Game::R_TextWidth(toast->desc.data(), std::numeric_limits<int>::max(), descfont) * descSize;
 		float bWidth = iOffsetLeft * 3 + imgDim + std::max(titleSize, descrSize);
 
 		// Make stuff divisible by 2
@@ -99,33 +90,40 @@ namespace Components
 		bHeight += (bHeight % 2);
 
 		// Background
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height - bHeight / 2), bWidth * 1.0f, bHeight * 1.0f, 0, 0, 1.0f, 1.0f, bgColor, white);
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height - bHeight / 2), bWidth * 1.0f, bHeight * 1.0f, 0, 0, 1.0f, 1.0f, bgColor, *Game::whiteMaterial);
 
 		// Border
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 - border), static_cast<float>(height - bHeight / 2 - border), border * 1.0f, bHeight + (border * 2.0f), 0, 0, 1.0f, 1.0f, borderColor, white); // Left
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + bWidth), static_cast<float>(height - bHeight / 2 - border), border * 1.0f, bHeight + (border * 2.0f), 0, 0, 1.0f, 1.0f, borderColor, white); // Right
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height - bHeight / 2 - border), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, white);                      // Top
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height + bHeight / 2), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, white);                               // Bottom
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 - border), static_cast<float>(height - bHeight / 2 - border), border * 1.0f, bHeight + (border * 2.0f), 0, 0, 1.0f, 1.0f, borderColor, *Game::whiteMaterial); // Left
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + bWidth), static_cast<float>(height - bHeight / 2 - border), border * 1.0f, bHeight + (border * 2.0f), 0, 0, 1.0f, 1.0f, borderColor, *Game::whiteMaterial); // Right
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height - bHeight / 2 - border), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, *Game::whiteMaterial); // Top
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height + bHeight / 2), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, *Game::whiteMaterial); // Bottom
 
 		// Image
 		Game::Material* image = toast->image;
-		if (!Materials::IsValid(image)) image = Game::DB_FindXAssetDefaultHeaderInternal(Game::XAssetType::ASSET_TYPE_MATERIAL).material;
+		if (!Materials::IsValid(image))
+		{
+			image = Game::DB_FindXAssetDefaultHeaderInternal(Game::XAssetType::ASSET_TYPE_MATERIAL).material;
+		}
+
 		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + iOffsetLeft), static_cast<float>(height - bHeight / 2 + iOffset), imgDim * 1.0f, imgDim * 1.0f, 0, 0, 1.0f, 1.0f, wColor, image);
 
 		// Text
 		float leftText = width / 2 - bWidth / 2 - cornerSize + iOffsetLeft * 2 + imgDim;
 		float rightText = width / 2 + bWidth / 2 - cornerSize - iOffsetLeft;
-		Game::R_AddCmdDrawText(toast->title.data(), 0x7FFFFFFF, font, static_cast<float>(leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 7), fontSize, fontSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Title
-		Game::R_AddCmdDrawText(toast->desc.data(), 0x7FFFFFFF, descfont, leftText + (rightText - leftText) / 2 - descrSize / 2 + cornerSize, static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 33), descSize, descSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Description
+		Game::R_AddCmdDrawText(toast->title.data(), std::numeric_limits<int>::max(), font, static_cast<float>(leftText + (rightText - leftText) / 2 - titleSize / 2 + cornerSize), static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 7), fontSize, fontSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Title
+		Game::R_AddCmdDrawText(toast->desc.data(), std::numeric_limits<int>::max(), descfont, leftText + (rightText - leftText) / 2 - descrSize / 2 + cornerSize, static_cast<float>(height - bHeight / 2 + cornerSize * 2 + 33), descSize, descSize, 0, wColor, Game::ITEM_TEXTSTYLE_SHADOWED); // Description
 	}
 
 	void Toast::Handler()
 	{
-		if (Toast::Queue.empty()) return;
+		if (Queue.empty())
+		{
+			return;
+		}
 
-		std::lock_guard<std::mutex> _(Toast::Mutex);
+		std::lock_guard _(Mutex);
 
-		Toast::UIToast* toast = &Toast::Queue.front();
+		UIToast* toast = &Queue.front();
 
 		// Set start time
 		if (!toast->start)
@@ -136,30 +134,36 @@ namespace Components
 		if ((toast->start + toast->length) < Game::Sys_Milliseconds())
 		{
 			if (toast->callback) toast->callback();
-			Toast::Queue.pop();
+			Queue.pop();
 		}
 		else
 		{
-			Toast::Draw(toast);
+			Draw(toast);
 		}
+	}
+
+
+	void Toast::CL_DrawScreen_Stub(int localClientNum)
+	{
+		Utils::Hook::Call<void(int)>(0x5AC950)(localClientNum);
+
+		Handler();
 	}
 
 	Toast::Toast()
 	{
-		if (Dedicated::IsEnabled() || Monitor::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || Monitor::IsEnabled() || ZoneBuilder::IsEnabled())
+		{
+			return;
+		}
 
-		Scheduler::OnGameInitialized(Toast::Handler, Scheduler::Pipeline::RENDERER);
+		Utils::Hook(0x5ACB99, CL_DrawScreen_Stub, HOOK_CALL).install()->quick();
 
-#ifdef _DEBUG
+#ifdef TEST_TOAST
 		Command::Add("testtoast", []([[maybe_unused]] Command::Params* params)
 		{
-			Toast::Show("cardicon_prestige10", "Test", "This is a test toast", 3000);
+			Show("cardicon_prestige10", "Test", "This is a test toast", 3000);
 		});
 #endif
-	}
-
-	Toast::~Toast()
-	{
-		Toast::Queue = std::queue<Toast::UIToast>();
 	}
 }
