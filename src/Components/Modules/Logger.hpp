@@ -100,7 +100,7 @@ namespace Components
 		static void(*PipeCallback)(const std::string&);
 
 		static void Frame();
-		static void GameLogStub();
+		static void G_LogPrintfStub(const char* fmt, ...);
 		static void PrintMessageStub();
 		static void PrintMessagePipe(const char* data);
 		static void EnqueueMessage(const std::string& message);

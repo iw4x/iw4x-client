@@ -19,7 +19,7 @@ namespace Components
 	void Theatre::RecordGamestateStub()
 	{
 		int sequence = (*Game::serverMessageSequence - 1);
-		Game::FS_Write(&sequence, 4, *Game::demoFile);
+		Game::FS_WriteToDemo(&sequence, 4, *Game::demoFile);
 	}
 
 	void Theatre::StoreBaseline(PBYTE snapshotMsg)
@@ -62,10 +62,10 @@ namespace Components
 		int byte8 = 8;
 		char byte0 = 0;
 
-		Game::FS_Write(&byte0, 1, *Game::demoFile);
-		Game::FS_Write(Game::serverMessageSequence, 4, *Game::demoFile);
-		Game::FS_Write(&fileCompressedSize, 4, *Game::demoFile);
-		Game::FS_Write(&byte8, 4, *Game::demoFile);
+		Game::FS_WriteToDemo(&byte0, 1, *Game::demoFile);
+		Game::FS_WriteToDemo(Game::serverMessageSequence, 4, *Game::demoFile);
+		Game::FS_WriteToDemo(&fileCompressedSize, 4, *Game::demoFile);
+		Game::FS_WriteToDemo(&byte8, 4, *Game::demoFile);
 
 		for (int i = 0; i < compressedSize; i += 1024)
 		{
@@ -77,7 +77,7 @@ namespace Components
 				break;
 			}
 
-			Game::FS_Write(&cmpData[i], size, *Game::demoFile);
+			Game::FS_WriteToDemo(&cmpData[i], size, *Game::demoFile);
 		}
 	}
 
