@@ -717,8 +717,11 @@ namespace Game
 	typedef void(__cdecl * Scr_ShutdownAllocNode_t)();
 	extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
 
-	typedef int(__cdecl * Scr_LoadGameType_t)();
+	typedef void(__cdecl * Scr_LoadGameType_t)();
 	extern Scr_LoadGameType_t Scr_LoadGameType;
+
+	typedef void(__cdecl * Scr_StartupGameType_t)();
+	extern Scr_StartupGameType_t Scr_StartupGameType;
 
 	typedef int(__cdecl * Scr_LoadScript_t)(const char*);
 	extern Scr_LoadScript_t Scr_LoadScript;
@@ -750,13 +753,13 @@ namespace Game
 	typedef int(__cdecl * Scr_GetFunctionHandle_t)(const char* filename, const char* name);
 	extern Scr_GetFunctionHandle_t Scr_GetFunctionHandle;
 
-	typedef int(__cdecl * Scr_ExecThread_t)(int, int);
+	typedef int(__cdecl * Scr_ExecThread_t)(int handle, unsigned int paramcount);
 	extern Scr_ExecThread_t Scr_ExecThread;
 
 	typedef int(__cdecl * Scr_ExecEntThread_t)(gentity_s* ent, int handle, unsigned int paramcount);
 	extern Scr_ExecEntThread_t Scr_ExecEntThread;
 
-	typedef int(__cdecl * Scr_FreeThread_t)(int);
+	typedef void(__cdecl * Scr_FreeThread_t)(unsigned __int16 handle);
 	extern Scr_FreeThread_t Scr_FreeThread;
 
 	typedef void(__cdecl * Scr_Notify_t)(gentity_t *ent, unsigned __int16 stringValue, unsigned int paramcount);
