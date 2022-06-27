@@ -6,12 +6,8 @@ namespace Components
 	{
 	public:
 		Toast();
-		~Toast();
-
-		static void Show(const std::string& image, const std::string& title, const std::string& description, int length, Utils::Slot<void()> callback = Utils::Slot<void()>());
-		static void Show(Game::Material* material, const std::string& title, const std::string& description, int length, Utils::Slot<void()> callback = Utils::Slot<void()>());
-
-		static std::string GetIcon();
+		static void Show(const std::string& image, const std::string& title, const std::string& description, int length, const Utils::Slot<void()>& callback = Utils::Slot<void()>());
+		static void Show(Game::Material* material, const std::string& title, const std::string& description, int length, const Utils::Slot<void()>& callback = Utils::Slot<void()>());
 
 	private:
 		class UIToast
@@ -27,6 +23,7 @@ namespace Components
 
 		static void Handler();
 		static void Draw(UIToast* toast);
+		static void CL_DrawScreen_Stub(int localClientNum);
 
 		static std::queue<UIToast> Queue;
 		static std::mutex Mutex;
