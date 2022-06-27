@@ -128,6 +128,7 @@ using namespace std::literals;
 #include "Utils/IO.hpp"
 #include "Utils/Json.hpp"
 #include "Utils/Library.hpp"
+#include "Utils/Maths.hpp"
 #include "Utils/String.hpp"
 #include "Utils/Thread.hpp"
 #include "Utils/Time.hpp"

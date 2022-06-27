@@ -453,6 +453,11 @@ namespace Game
 
 	player_die_t player_die = player_die_t(0x42BC70);
 
+	Vec3Normalize_t Vec3Normalize = Vec3Normalize_t(0x453500);
+	Vec3NormalizeFast_t Vec3NormalizeFast = Vec3NormalizeFast_t(0x478F80);
+	Vec2Normalize_t Vec2Normalize = Vec2Normalize_t(0x416F70);
+	Vec2NormalizeFast_t Vec2NormalizeFast = Vec2NormalizeFast_t(0x5FC830);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
@@ -918,33 +923,6 @@ namespace Game
 		StringTable* rankTable = DB_FindXAssetHeader(ASSET_TYPE_STRINGTABLE, "mp/rankTable.csv").stringTable;
 		const char* maxrank = StringTable_Lookup(rankTable, 0, "maxrank", 1);
 		return atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
-	}
-
-	float Vec2Normalize(vec2_t& vec)
-	{
-		const auto length = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1]);
-
-		if (length > 0.0f)
-		{
-			vec[0] /= length;
-			vec[1] /= length;
-		}
-
-		return length;
-	}
-
-	float Vec3Normalize(vec3_t& vec)
-	{
-		const auto length = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
-
-		if (length > 0.0f)
-		{
-			vec[0] /= length;
-			vec[1] /= length;
-			vec[2] /= length;
-		}
-
-		return length;
 	}
 
 	void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out)
@@ -1684,11 +1662,11 @@ namespace Game
 			pushad
 
 			mov eax, [esp + 0x4 + 0x20] // dvar
-			push[esp + 0x18 + 0x20] // source
-			push[esp + 0x18 + 0x20] // value
-			push[esp + 0x18 + 0x20] // value
-			push[esp + 0x18 + 0x20] // value
-			push[esp + 0x18 + 0x20] // value
+			push [esp + 0x18 + 0x20] // source
+			push [esp + 0x18 + 0x20] // value
+			push [esp + 0x18 + 0x20] // value
+			push [esp + 0x18 + 0x20] // value
+			push [esp + 0x18 + 0x20] // value
 
 			mov ebx, 0x647400
 			call ebx
