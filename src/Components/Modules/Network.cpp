@@ -366,6 +366,11 @@ namespace Components
 		// Handle client packets
 		Utils::Hook(0x5AA703, Network::CL_HandleCommandStub, HOOK_JUMP).install()->quick();
 
+		// Disable unused OOB packets handlers just to be sure
+		Utils::Hook::Set<BYTE>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
+		Utils::Hook::Set<BYTE>(0x5AA69F, 0xEB); // echo
+		Utils::Hook::Set<BYTE>(0x5AAA82, 0xEB); // SP
+
 		Network::OnPacket("resolveAddress", [](const Address& address, [[maybe_unused]] const std::string& data)
 		{
 			Network::SendRaw(address, address.getString());
