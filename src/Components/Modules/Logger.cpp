@@ -379,7 +379,7 @@ namespace Components
 			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).install()->quick();
 		}
 
-		Scheduler::OnGameInitialized(Logger::AddServerCommands, Scheduler::Pipeline::SERVER);
+		Events::OnSVInit(Logger::AddServerCommands);
 	}
 
 	Logger::~Logger()
