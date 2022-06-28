@@ -98,9 +98,6 @@ namespace Components
 		if (!Command::FunctionMapSV.contains(command))
 		{
 			Command::AddRawSV(name, Command::MainCallbackSV);
-
-			// If the main command is registered as Cbuf_AddServerText, the command will be redirected to the SV handler
-			Command::AddRaw(name, Game::Cbuf_AddServerText);
 		}
 
 		FunctionMapSV.insert_or_assign(command, callback);
@@ -116,7 +113,7 @@ namespace Components
 		Game::Cmd_AddServerCommand(name, callback, Command::Allocate());
 
 		// If the main command is registered as Cbuf_AddServerText, the command will be redirected to the SV handler
-		Command::AddRaw(name, Game::Cbuf_AddServerText);
+		Command::AddRaw(name, Game::Cbuf_AddServerText, false);
 	}
 
 	void Command::Execute(std::string command, bool sync)

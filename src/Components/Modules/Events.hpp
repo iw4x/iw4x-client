@@ -18,13 +18,18 @@ namespace Components
 
 		static void OnVMShutdown(const Utils::Slot<Callback>& callback);
 
+		// Client & Server (triggered once)
+		static void OnSVInit(const Utils::Slot<Callback>& callback);
+
 	private:
 		static Utils::Signal<ClientCallback> ClientDisconnectSignal;
 		static Utils::Signal<Callback> SteamDisconnectSignal;
 		static Utils::Signal<Callback> ShutdownSystemSignal;
+		static Utils::Signal<Callback> ServerInitSignal;
 
 		static void ClientDisconnect_Hk(int clientNum);
 		static void SteamDisconnect_Hk();
 		static void Scr_ShutdownSystem_Hk(unsigned char sys);
+		static void SV_Init_Hk();
 	};
 }

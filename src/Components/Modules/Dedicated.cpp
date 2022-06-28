@@ -285,7 +285,7 @@ namespace Components
 					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
 				}, Scheduler::Pipeline::MAIN);
 
-				Scheduler::OnGameInitialized(Dedicated::AddDedicatedCommands, Scheduler::Pipeline::SERVER);
+				Events::OnSVInit(Dedicated::AddDedicatedCommands);
 
 				// Post initialization point
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
