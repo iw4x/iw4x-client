@@ -1,5 +1,4 @@
 #pragma once
-#include <Game/Functions.hpp>
 
 namespace Components
 {
@@ -210,7 +209,7 @@ namespace Components
 		static std::vector<std::shared_ptr<ScriptDownload>> ScriptDownloads;
 		static std::thread ServerThread;
 		static bool Terminate;
-        static bool ServerRunning;
+		static bool ServerRunning;
 
 		static void DownloadProgress(FileDownload* fDownload, size_t bytes);
 

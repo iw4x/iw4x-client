@@ -8,7 +8,7 @@ namespace Components
 
 	std::thread Download::ServerThread;
 	bool Download::Terminate;
-    bool Download::ServerRunning;
+	bool Download::ServerRunning;
 
 #pragma region Client
 
@@ -889,7 +889,7 @@ namespace Components
 				}
 			});
 
-            Download::ServerRunning = true;
+			Download::ServerRunning = true;
 			Download::Terminate = false;
 			Download::ServerThread = std::thread([]
 			{

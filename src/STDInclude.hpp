@@ -129,6 +129,7 @@ using namespace std::literals;
 #include "Utils/Json.hpp"
 #include "Utils/Library.hpp"
 #include "Utils/Maths.hpp"
+#include "Utils/NamedMutex.hpp"
 #include "Utils/String.hpp"
 #include "Utils/Thread.hpp"
 #include "Utils/Time.hpp"
