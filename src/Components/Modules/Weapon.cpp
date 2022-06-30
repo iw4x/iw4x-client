@@ -448,6 +448,48 @@ namespace Components
 		}
 	}
 
+	void __declspec(naked) Weapon::CG_UpdatePrimaryForAltModeWeapon_Stub()
+	{
+		__asm
+		{
+			mov eax, 0x440EB0 // BG_GetWeaponDef
+			call eax
+			add esp, 0x4
+
+			test eax, eax
+			jz null
+
+			// Game code
+			push 0x59E349
+			retn
+
+		null:
+			mov al, 1
+			ret
+		}
+	}
+
+	void __declspec(naked) Weapon::CG_SelectWeaponIndex_Stub()
+	{
+		__asm
+		{
+			mov eax, 0x440EB0 // BG_GetWeaponDef
+			call eax
+			add esp, 0x4
+
+			test eax, eax
+			jz null
+
+			// Game code
+			push 0x48BB2D
+			retn
+
+		null:
+			push 0x48BB1F // Exit function
+			ret
+		}
+	}
+
 	void __declspec(naked) Weapon::WeaponEntCanBeGrabbed_Stub()
 	{
 		using namespace Game;
@@ -524,6 +566,9 @@ namespace Components
 		// Clear weapons independently from fs_game
 		//Utils::Hook::Nop(0x452C1D, 2);
 		//Utils::Hook::Nop(0x452C24, 5);
+
+		Utils::Hook(0x59E341, CG_UpdatePrimaryForAltModeWeapon_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x48BB25, CG_SelectWeaponIndex_Stub, HOOK_JUMP).install()->quick();
 
 		AddScriptMethods();
 

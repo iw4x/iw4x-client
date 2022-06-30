@@ -26,6 +26,9 @@ namespace Components
 		static int ParseWeaponConfigStrings();
 		static int ClearConfigStrings(void* dest, int value, int size);
 
+		static void CG_UpdatePrimaryForAltModeWeapon_Stub();
+		static void CG_SelectWeaponIndex_Stub();
+
 		static void WeaponEntCanBeGrabbed_Stub();
 		static void AddScriptMethods();
 	};
