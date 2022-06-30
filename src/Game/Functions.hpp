@@ -1143,8 +1143,8 @@ namespace Game
 	extern int* demoRecording;
 	extern int* serverMessageSequence;
 
-	constexpr auto MAX_GENTITIES = 2048u;
-	constexpr auto ENTITYNUM_NONE = MAX_GENTITIES - 1;
+	constexpr std::size_t MAX_GENTITIES = 2048;
+	constexpr std::size_t ENTITYNUM_NONE = MAX_GENTITIES - 1;
 	extern gentity_t* g_entities;
 
 	extern netadr_t* connectedHost;
