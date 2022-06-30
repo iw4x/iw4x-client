@@ -605,6 +605,8 @@ namespace Game
 
 	scr_const_t* scr_const = reinterpret_cast<scr_const_t*>(0x1AA2E00);
 
+	clientConnection_t* clientConnections = reinterpret_cast<clientConnection_t*>(0xA1E878);
+
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
 		InterlockedIncrement(&critSect->readCount);
