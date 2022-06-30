@@ -369,6 +369,7 @@ namespace Components
 	{
 		const auto entityId = Game::Scr_GetEntityId(self->s.number, 0);
 
+		Scripting::StackIsolation _;
 		Game::Scr_AddInt(mode);
 		Game::Scr_AddString(message);
 
