@@ -9,22 +9,14 @@ namespace Components
 
 	void VisionFile::ApplyExemptDvar(const std::string& dvarName, const char* buffer, const std::string& fileName)
 	{
-		for (std::size_t i = 0; i < std::extent_v<decltype(DvarExceptions)>; ++i)
+		for (std::size_t i = 0; i < ARRAYSIZE(DvarExceptions); ++i)
 		{
 			if (dvarName == DvarExceptions[i])
 			{
 				const auto* dvar = Game::Dvar_FindVar(dvarName.data());
-
-				assert(dvar != nullptr);
-
-				const auto* currentVal = Game::Dvar_DisplayableValue(dvar);
 				const auto* parsedValue = Game::Com_ParseOnLine(&buffer);
 
-				if (std::strcmp(parsedValue, currentVal) == 0)
-				{
-					// The dvar is already set to the value we want
-					return;
-				}
+				assert(dvar != nullptr);
 
 				Game::Dvar_SetFromStringFromSource(dvar, parsedValue, Game::DvarSetSource::DVAR_SOURCE_INTERNAL);
 				Logger::Print("Overriding '{}' from '{}'\n", dvarName, fileName);
