@@ -78,6 +78,8 @@ namespace Game
 	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4AA830);
 	Com_EndParseSession_t Com_EndParseSession = Com_EndParseSession_t(0x4B80B0);
 	Com_BeginParseSession_t Com_BeginParseSession = Com_BeginParseSession_t(0x4AAB80);
+	Com_ParseOnLine_t Com_ParseOnLine = Com_ParseOnLine_t(0x4C0350);
+	Com_SkipRestOfLine_t Com_SkipRestOfLine = Com_SkipRestOfLine_t(0x4B8300);
 	Com_SetSpaceDelimited_t Com_SetSpaceDelimited = Com_SetSpaceDelimited_t(0x4FC710);
 	Com_Parse_t Com_Parse = Com_Parse_t(0x474D60);
 	Com_MatchToken_t Com_MatchToken = Com_MatchToken_t(0x447130);
@@ -128,6 +130,7 @@ namespace Game
 	Dvar_InfoString_Big_t Dvar_InfoString_Big = Dvar_InfoString_Big_t(0x4D98A0);
 	Dvar_SetCommand_t Dvar_SetCommand = Dvar_SetCommand_t(0x4EE430);
 	Dvar_DisplayableValue_t Dvar_DisplayableValue = Dvar_DisplayableValue_t(0x4B5530);
+	Dvar_Reset_t Dvar_Reset = Dvar_Reset_t(0x4FEFD0);
 
 	Encode_Init_t Encode_Init = Encode_Init_t(0x462AB0);
 
@@ -534,6 +537,8 @@ namespace Game
 	snd_alias_list_t*** varsnd_alias_list_name = reinterpret_cast<snd_alias_list_t***>(0x112AF38);
 
 	FxElemField* s_elemFields = reinterpret_cast<FxElemField*>(0x73B848);
+
+	visField_t* visionDefFields = reinterpret_cast<visField_t*>(0x7982F0); // Count 21
 
 	infoParm_t* infoParams = reinterpret_cast<infoParm_t*>(0x79D260); // Count 0x1E
 
@@ -1639,8 +1644,8 @@ namespace Game
 	{
 		__asm
 		{
-			mov eax,[esp+0x4]
-			mov ebx,0x569950
+			mov eax, [esp+0x4]
+			mov ebx, 0x569950
 			call ebx
 			retn
 		}
@@ -1677,6 +1682,48 @@ namespace Game
 			popad
 
 			retn
+		}
+	}
+
+	constexpr auto Dvar_SetFromStringFromSource_Func = 0x648580;
+	__declspec(naked) void Dvar_SetFromStringFromSource(const dvar_t* /*dvar*/, const char* /*string*/, DvarSetSource /*source*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov esi, [esp + 0x20 + 0x4] // dvar
+			mov eax, [esp + 0x20 + 0x8] // string
+			push [esp + 0x20 + 0xC] // source
+			call Dvar_SetFromStringFromSource_Func
+			add esp, 0x4
+
+			popad
+
+			ret
+		}
+	}
+
+	constexpr auto ApplyTokenToField_Func = 0x59A760;
+	__declspec(naked) bool ApplyTokenToField(unsigned int /*fieldNum*/, const char* /*token*/, visionSetVars_t* /*settings*/)
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			mov eax, [esp + 0x24 + 0x4] // fieldNum
+			mov ecx, [esp + 0x24 + 0x8] // token
+			push [esp + 0x24 + 0xC] // settings
+			call ApplyTokenToField_Func
+			add esp, 0x4
+
+			movzx eax, al // Zero extend eax
+			mov [esp + 0x20], eax
+			popad
+			pop eax
+
+			ret
 		}
 	}
 

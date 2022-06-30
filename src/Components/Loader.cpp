@@ -31,8 +31,8 @@ namespace Components
 
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
-		Loader::Register(new Exception()); // install our exception handler as early as posssible to get better debug dumps from startup crashes
-
+		// Install our exception handler as early as posssible to get better debug dumps from startup crashes
+		Loader::Register(new Exception());
 		Loader::Register(new Auth());
 		Loader::Register(new Bans());
 		Loader::Register(new Bots());
@@ -104,6 +104,7 @@ namespace Components
 		Loader::Register(new Movement());
 		Loader::Register(new Elevators());
 		Loader::Register(new ClientCommand());
+		Loader::Register(new VisionFile());
 		Loader::Register(new ScriptExtension());
 		Loader::Register(new Branding());
 		Loader::Register(new Debug());

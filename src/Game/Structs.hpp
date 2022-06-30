@@ -1014,6 +1014,7 @@ namespace Game
 	{
 		const char* name;
 		int offset;
+		// 0 is for int, 1 is for float, otherwise it's a vector
 		int fieldType;
 	};
 

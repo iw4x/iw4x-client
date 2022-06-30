@@ -134,6 +134,7 @@ namespace Components
 #include "Modules/Movement.hpp"
 #include "Modules/Elevators.hpp"
 #include "Modules/ClientCommand.hpp"
+#include "Modules/VisionFile.hpp"
 #include "Modules/Gamepad.hpp"
 #include "Modules/ScriptExtension.hpp"
 #include "Modules/Branding.hpp"

@@ -169,6 +169,12 @@ namespace Game
 	typedef void(__cdecl * Com_BeginParseSession_t)(const char* filename);
 	extern Com_BeginParseSession_t Com_BeginParseSession;
 
+	typedef char*(__cdecl * Com_ParseOnLine_t)(const char** data_p);
+	extern Com_ParseOnLine_t Com_ParseOnLine;
+
+	typedef void(__cdecl * Com_SkipRestOfLine_t)(const char** data);
+	extern Com_SkipRestOfLine_t Com_SkipRestOfLine;
+
 	typedef void(__cdecl * Com_SetSpaceDelimited_t)(int);
 	extern Com_SetSpaceDelimited_t Com_SetSpaceDelimited;
 
@@ -324,6 +330,9 @@ namespace Game
 
 	typedef const char*(__cdecl * Dvar_DisplayableValue_t)(const dvar_t* dvar);
 	extern Dvar_DisplayableValue_t Dvar_DisplayableValue;
+
+	typedef void(__cdecl * Dvar_Reset_t)(const dvar_t* dvar, DvarSetSource setSource);
+	extern Dvar_Reset_t Dvar_Reset;
 
 	typedef bool(__cdecl * Encode_Init_t)(const char* );
 	extern Encode_Init_t Encode_Init;
@@ -1177,6 +1186,8 @@ namespace Game
 
 	extern FxElemField* s_elemFields;
 
+	extern visField_t* visionDefFields;
+
 	extern infoParm_t* infoParams;
 
 	extern XZone* g_zones;
@@ -1339,4 +1350,7 @@ namespace Game
 	void AimAssist_UpdateAdsLerp(const AimInput* input);
 
 	void Dvar_SetVariant(dvar_t* var, DvarValue value, DvarSetSource source);
+	void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source);
+
+	bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
 }

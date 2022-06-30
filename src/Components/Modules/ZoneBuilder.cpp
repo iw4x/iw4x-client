@@ -95,7 +95,7 @@ namespace Components
 
 	void ZoneBuilder::Zone::Zone::build()
 	{
-		if(!this->dataMap.isValid())
+		if (!this->dataMap.isValid())
 		{
 			Logger::Print("Unable to load CSV for '{}'!\n", this->zoneName);
 			return;
@@ -111,7 +111,7 @@ namespace Components
 		Logger::Print("Saving...\n");
 		this->saveData();
 
-		if(this->buffer.hasBlock())
+		if (this->buffer.hasBlock())
 		{
 			Logger::Error(Game::ERR_FATAL, "Non-popped blocks left!\n");
 		}
@@ -267,7 +267,7 @@ namespace Components
 			const char* assetName = Game::DB_GetXAssetName(asset);
 			if (assetName[0] == ',') ++assetName;
 
-			if(this->getAssetName(type, assetName) == name)
+			if (this->getAssetName(type, assetName) == name)
 			{
 				return i;
 			}
@@ -336,7 +336,7 @@ namespace Components
 		if (assetIndex == -1) // nested asset
 		{
 			// already written. find alias and store in ptr
-			if(this->hasAlias(asset))
+			if (this->hasAlias(asset))
 			{
 				header.data = reinterpret_cast<void*>(this->getAlias(asset));
 			}
@@ -1054,7 +1054,7 @@ namespace Components
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, const std::string&, bool* restrict)
 			{
 				//if (*static_cast<int*>(Game::DB_XAssetPool[type].data) == 0)
-				if(Game::g_poolSize[type] == 0)
+				if (Game::g_poolSize[type] == 0)
 				{
 					*restrict = true;
 				}
@@ -1070,9 +1070,9 @@ namespace Components
 			{
 				int result = Utils::Hook::Call<int(Game::dvar_t*, Game::DvarValue)>(0x642FC0)(dvar, value);
 
-				if(result)
+				if (result)
 				{
-					if(std::string(value.string) != dvar->current.string)
+					if (std::string(value.string) != dvar->current.string)
 					{
 						dvar->current.string = value.string;
 						Game::FS_Restart(0, 0);
@@ -1517,7 +1517,7 @@ namespace Components
 				{
 					*i = Utils::String::VA("images/%s", i->data());
 
-					if(FileSystem::File(*i).exists())
+					if (FileSystem::File(*i).exists())
 					{
 						i = images.erase(i);
 						continue;
@@ -1552,7 +1552,7 @@ namespace Components
 		unsigned int integer = 0x80000000;
 		Utils::RotLeft(integer, 1);
 
-		if(integer != 1)
+		if (integer != 1)
 		{
 			printf("Error\n");
 			printf("Bit shifting failed: %X\n", integer);
