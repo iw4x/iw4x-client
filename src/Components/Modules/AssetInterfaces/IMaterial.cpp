@@ -112,8 +112,9 @@ namespace Assets
 					}
 				}
 			}
-			else {
-				Components::Logger::Print("Techset {} exists with the same name in iw4, and was mapped 1:1 with %s\n", techsetName, asset->techniqueSet->name);
+			else
+			{
+				Components::Logger::Print("Techset {} exists with the same name in iw4, and was mapped 1:1 with {}\n", techsetName, asset->techniqueSet->name);
 			}
 
 			if (!asset->techniqueSet)
