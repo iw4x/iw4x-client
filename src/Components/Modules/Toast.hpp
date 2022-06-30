@@ -23,7 +23,6 @@ namespace Components
 
 		static void Handler();
 		static void Draw(UIToast* toast);
-		static void CL_DrawScreen_Stub(int localClientNum);
 
 		static std::queue<UIToast> Queue;
 		static std::mutex Mutex;
