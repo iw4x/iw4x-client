@@ -6264,6 +6264,49 @@ namespace Game
 
 	static_assert(sizeof(client_t) == 0xA6790);
 
+	struct clientConnection_t
+	{
+		int qport;
+		int clientNum;
+		int lastPacketSentTime;
+		int lastPacketTime;
+		netadr_t serverAddress;
+		int connectTime;
+		int connectPacketCount;
+		char serverMessage[256];
+		int challenge;
+		int checksumFeed;
+		int reliableSequence;
+		int reliableAcknowledge;
+		char reliableCommands[128][1024];
+		int serverMessageSequence;
+		int serverCommandSequence;
+		int lastExecutedServerCommand;
+		char serverCommands[128][1024];
+		bool isServerRestarting;
+		int lastClientArchiveIndex;
+		char demoName[64];
+		int demorecording;
+		int demoplaying;
+		int isTimeDemo;
+		int demowaiting;
+		int(__cdecl* demoread)(void*, int, int);
+		int demofile;
+		int timeDemoLog;
+		int timeDemoFrames;
+		int timeDemoStart;
+		int timeDemoPrev;
+		int timeDemoBaseTime;
+		netchan_t netchan;
+		char netchanOutgoingBuffer[2048];
+		char netchanIncomingBuffer[131072];
+		netProfileInfo_t OOBProf;
+		char statPacketsToSend;
+		int statPacketSendTime[7];
+	};
+
+	static_assert(sizeof(clientConnection_t) == 0x615E8); // Size confirmed in CL_Migrate
+
 	struct CModelAllocData
 	{
 		void* mainArray;

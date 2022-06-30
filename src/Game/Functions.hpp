@@ -1251,6 +1251,8 @@ namespace Game
 
 	extern scr_const_t* scr_const;
 
+	extern clientConnection_t* clientConnections;
+
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);
 
