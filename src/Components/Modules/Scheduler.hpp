@@ -59,7 +59,7 @@ namespace Components
 
 		static void Execute(Pipeline type);
 
-		static void REndFrame_Hk();
+		static void CL_DrawScreen_Hk();
 		static void ServerFrame_Hk();
 		static void ClientFrame_Hk(int localClientNum);
 		static void MainFrame_Hk();

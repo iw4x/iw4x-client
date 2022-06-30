@@ -142,14 +142,6 @@ namespace Components
 		}
 	}
 
-
-	void Toast::CL_DrawScreen_Stub(int localClientNum)
-	{
-		Utils::Hook::Call<void(int)>(0x5AC950)(localClientNum);
-
-		Handler();
-	}
-
 	Toast::Toast()
 	{
 		if (Dedicated::IsEnabled() || Monitor::IsEnabled() || ZoneBuilder::IsEnabled())
@@ -157,7 +149,7 @@ namespace Components
 			return;
 		}
 
-		Utils::Hook(0x5ACB99, CL_DrawScreen_Stub, HOOK_CALL).install()->quick();
+		Scheduler::Loop(Handler, Scheduler::Pipeline::RENDERER);
 
 #ifdef TEST_TOAST
 		Command::Add("testtoast", []([[maybe_unused]] Command::Params* params)

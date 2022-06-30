@@ -67,9 +67,9 @@ namespace Components
 		Pipelines[type].execute();
 	}
 
-	void Scheduler::REndFrame_Hk()
+	void Scheduler::CL_DrawScreen_Hk()
 	{
-		Utils::Hook::Call<void()>(0x50AB20)();
+		Utils::Hook::Call<void()>(0x5AC950)();
 		Execute(Pipeline::RENDERER);
 	}
 
@@ -165,9 +165,7 @@ namespace Components
 			}
 		});
 
-		Utils::Hook(0x4DBE9A, REndFrame_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x518D5C, REndFrame_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5ACBA3, REndFrame_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5ACB99, CL_DrawScreen_Hk, HOOK_CALL).install()->quick();
 
 		// Hook G_Glass_Update so we may fix TLS issues
 		Utils::Hook(0x416049, ServerFrame_Hk, HOOK_CALL).install()->quick();
