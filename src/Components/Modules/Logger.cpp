@@ -50,11 +50,11 @@ namespace Components
 
 	void Logger::DebugInternal(std::string_view fmt, std::format_args&& args, [[maybe_unused]] const std::source_location& loc)
 	{
-		const auto msg = std::vformat(fmt, args);
 #ifdef LOGGER_TRACE
+		const auto msg = std::vformat(fmt, args);
 		const auto out = std::format("Debug:\n    {}\nFile:    {}\nLine:    {}\n", msg, loc.file_name(), loc.line());
 #else
-		const auto out = std::format("Debug:\n    {}\n", msg);
+		const auto out = "^2" + std::vformat(fmt, args);
 #endif
 
 		Logger::MessagePrint(Game::CON_CHANNEL_DONT_FILTER, out);
