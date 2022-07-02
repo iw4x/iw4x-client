@@ -2,17 +2,15 @@
 
 namespace Components
 {
-	Game::XAssetHeader Weapon::WeaponFileLoad(Game::XAssetType /*type*/, const std::string& filename)
+	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
-		Game::XAssetHeader header = { nullptr };
-
-		// Try loading raw weapon
-		if (FileSystem::File(Utils::String::VA("weapons/mp/%s", filename.data())).exists())
+		if (auto* rawWeaponFile = Game::BG_LoadWeaponCompleteDefInternal("mp", name))
 		{
-			header.data = Game::BG_LoadWeaponDef_LoadObj(filename.data());
+			return rawWeaponFile;
 		}
 
-		return header;
+		auto* zoneWeaponFile = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_WEAPON, name).weapon;
+		return Game::DB_IsXAssetDefault(Game::ASSET_TYPE_WEAPON, name) ? nullptr : zoneWeaponFile;
 	}
 
 	const char* Weapon::GetWeaponConfigString(int index)
@@ -542,8 +540,10 @@ namespace Components
 		PatchLimit();
 		PatchConfigStrings();
 
-		// Intercept weapon loading
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_WEAPON, Weapon::WeaponFileLoad);
+		// BG_LoadWEaponCompleteDef_FastFile
+		Utils::Hook(0x57B650, LoadWeaponCompleteDef, HOOK_JUMP).install()->quick();
+		// Disable warning if raw weapon file cannot be found
+		Utils::Hook::Nop(0x57AF60, 5);
 
 		// weapon asset existence check
 		Utils::Hook::Nop(0x408228, 5); // find asset header
