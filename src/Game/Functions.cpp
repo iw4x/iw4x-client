@@ -1520,24 +1520,25 @@ namespace Game
 		}
 	}
 
-	__declspec(naked) Glyph* R_GetCharacterGlyph(Font_s* /*font*/, unsigned int /*letter*/)
+	Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter)
 	{
+		static auto R_GetCharacterGlyph_Func = 0x5055C0;
+		Glyph* returnValue;
+
 		__asm
 		{
-			push eax
 			pushad
 
-			mov edi, [esp + 0x8 + 0x24] // letter
-			push [esp + 0x4 + 0x24] // font
-			mov eax, 0x5055C0
-			call eax
+			mov edi, letter
+			push font
+			call R_GetCharacterGlyph_Func
 			add esp, 4
-			mov [esp + 0x20], eax
+			mov returnValue, eax
 
 			popad
-			pop eax
-			ret
 		}
+
+		return returnValue;
 	}
 
 	__declspec(naked) bool SetupPulseFXVars(const char* /*text*/, int /*maxLength*/, int /*fxBirthTime*/, int /*fxLetterTime*/, int /*fxDecayStartTime*/, int /*fxDecayDuration*/, bool* /*resultDrawRandChar*/, int* /*resultRandSeed*/, int* /*resultMaxLength*/, bool* /*resultDecaying*/, int* /*resultDecayTimeElapsed*/)
