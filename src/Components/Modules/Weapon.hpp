@@ -13,7 +13,7 @@ namespace Components
 		Weapon();
 
 	private:
-		static Game::XAssetHeader WeaponFileLoad(Game::XAssetType type, const std::string& filename);
+		static Game::WeaponCompleteDef* LoadWeaponCompleteDef(const char* name);
 		static void PatchLimit();
 		static void* LoadNoneWeaponHook();
 		static void LoadNoneWeaponHookStub();

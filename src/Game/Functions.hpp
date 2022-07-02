@@ -46,8 +46,11 @@ namespace Game
 	typedef const char*(__cdecl * BG_GetWeaponName_t)(unsigned int index);
 	extern BG_GetWeaponName_t BG_GetWeaponName;
 
-	typedef void*(__cdecl * BG_LoadWeaponDef_LoadObj_t)(const char* filename);
+	typedef void*(__cdecl * BG_LoadWeaponDef_LoadObj_t)(const char* name);
 	extern BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj;
+
+	typedef WeaponCompleteDef*(__cdecl * BG_LoadWeaponCompleteDefInternal_t)(const char* folder, const char* name);
+	extern BG_LoadWeaponCompleteDefInternal_t BG_LoadWeaponCompleteDefInternal;
 
 	typedef WeaponDef*(__cdecl * BG_GetWeaponDef_t)(unsigned int weaponIndex);
 	extern BG_GetWeaponDef_t BG_GetWeaponDef;
@@ -235,7 +238,7 @@ namespace Game
 	typedef const char *(__cdecl * DB_GetXAssetTypeName_t)(XAssetType type);
 	extern DB_GetXAssetTypeName_t DB_GetXAssetTypeName;
 
-	typedef const char *(__cdecl * DB_IsXAssetDefault_t)(XAssetType type, const char* name);
+	typedef int(__cdecl * DB_IsXAssetDefault_t)(XAssetType type, const char* name);
 	extern DB_IsXAssetDefault_t DB_IsXAssetDefault;
 
 	typedef void(__cdecl * DB_GetRawBuffer_t)(RawFile* rawfile, char* buffer, int size);

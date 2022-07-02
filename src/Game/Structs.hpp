@@ -4455,7 +4455,7 @@ namespace Game
 		IMPACT_TYPE_COUNT = 0xB,
 	};
 
-	struct /*__declspec(align(2))*/ WeaponCompleteDef
+	struct WeaponCompleteDef
 	{
 		const char *szInternalName;
 		WeaponDef *weapDef;
