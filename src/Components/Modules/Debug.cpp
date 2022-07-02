@@ -227,7 +227,7 @@ namespace Components
 		};
 
 		DebugOverlay = Game::Dvar_RegisterEnum("debugOverlay", debugOverlayNames_0, 0,
-			Game::dvar_flag::DVAR_NONE, "Toggles the display of various debug info.");
+			Game::DVAR_NONE, "Toggles the display of various debug info.");
 	}
 
 	Debug::Debug()

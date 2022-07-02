@@ -342,8 +342,8 @@ namespace Components
 
 	Theatre::Theatre()
 	{
-		Dvar::Register<bool>("cl_autoRecord", true, Game::dvar_flag::DVAR_ARCHIVE, "Automatically record games.");
-		Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::dvar_flag::DVAR_ARCHIVE, "How many demos to keep with autorecord.");
+		Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games.");
+		Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord.");
 
 		Utils::Hook(0x5A8370, Theatre::GamestateWriteStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A85D2, Theatre::RecordGamestateStub, HOOK_CALL).install()->quick();

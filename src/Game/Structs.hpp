@@ -133,7 +133,7 @@ namespace Game
 		SURF_TYPE_COUNT
 	};
 
-	enum dvar_flag : unsigned __int16
+	enum DvarFlags : unsigned __int16
 	{
 		DVAR_NONE = 0,	// No flags
 		DVAR_ARCHIVE = 1 << 0,	// Set to cause it to be saved to config_mp.cfg of the client
