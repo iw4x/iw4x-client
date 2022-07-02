@@ -295,6 +295,9 @@ namespace Game
 	typedef dvar_t*(__cdecl * Dvar_RegisterColor_t)(const char* dvarName, float r, float g, float b, float a, unsigned __int16 flags, const char* description);
 	extern Dvar_RegisterColor_t Dvar_RegisterColor;
 
+	typedef dvar_t*(__cdecl * Dvar_RegisterVec3Color_t)(const char* dvarName, float x, float y, float z, float max, unsigned __int16 flags, const char* description);
+	extern Dvar_RegisterVec3Color_t Dvar_RegisterVec3Color;
+
 	typedef void(__cdecl * Dvar_SetFromStringByName_t)(const char* dvarName, const char* string);
 	extern Dvar_SetFromStringByName_t Dvar_SetFromStringByName;
 

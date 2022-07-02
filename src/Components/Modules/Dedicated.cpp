@@ -135,7 +135,7 @@ namespace Components
 
 	Game::dvar_t* Dedicated::Dvar_RegisterSVNetworkFps(const char* dvarName, int, int min, int, int, const char* description)
 	{
-		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::dvar_flag::DVAR_NONE, description);
+		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::DVAR_NONE, description);
 	}
 
 	void Dedicated::AddDedicatedCommands()
@@ -206,7 +206,7 @@ namespace Components
 	Dedicated::Dedicated()
 	{
 		Dedicated::COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
-			Game::dvar_flag::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
+			Game::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
@@ -214,7 +214,7 @@ namespace Components
 			Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::SERVER);
 
 			Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
-				Game::dvar_flag::DVAR_NONE, "Don't act as node");
+				Game::DVAR_NONE, "Don't act as node");
 
 			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();
 
@@ -281,8 +281,8 @@ namespace Components
 			{
 				Scheduler::Once([]
 				{
-					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::dvar_flag::DVAR_NONE, "The name to pose as for 'say' commands");
-					Dvar::Register<const char*>("sv_motd", "", Game::dvar_flag::DVAR_NONE, "A custom message of the day for servers");
+					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::DVAR_NONE, "The name to pose as for 'say' commands");
+					Dvar::Register<const char*>("sv_motd", "", Game::DVAR_NONE, "A custom message of the day for servers");
 				}, Scheduler::Pipeline::MAIN);
 
 				Events::OnSVInit(Dedicated::AddDedicatedCommands);

@@ -124,6 +124,7 @@ namespace Game
 	Dvar_RegisterEnum_t Dvar_RegisterEnum = Dvar_RegisterEnum_t(0x412E40);
 	Dvar_RegisterString_t Dvar_RegisterString = Dvar_RegisterString_t(0x4FC7E0);
 	Dvar_RegisterColor_t Dvar_RegisterColor = Dvar_RegisterColor_t(0x4F28E0);
+	Dvar_RegisterVec3Color_t Dvar_RegisterVec3Color = Dvar_RegisterVec3Color_t(0x4918B0);
 
 	Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName = Dvar_GetUnpackedColorByName_t(0x406530);
 	Dvar_FindVar_t Dvar_FindVar = Dvar_FindVar_t(0x4D5390);

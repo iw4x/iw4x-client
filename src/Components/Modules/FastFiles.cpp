@@ -495,7 +495,7 @@ namespace Components
 
 	FastFiles::FastFiles()
 	{
-		Dvar::Register<bool>("ui_zoneDebug", false, Game::dvar_flag::DVAR_ARCHIVE, "Display current loaded zone.");
+		Dvar::Register<bool>("ui_zoneDebug", false, Game::DVAR_ARCHIVE, "Display current loaded zone.");
 
 		// Fix XSurface assets
 		Utils::Hook(0x0048E8A5, FastFiles::Load_XSurfaceArray, HOOK_CALL).install()->quick();

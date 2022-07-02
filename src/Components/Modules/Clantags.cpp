@@ -75,7 +75,7 @@ namespace Components
 		// Create clantag dvar
 		Scheduler::Once([]
 		{
-			Dvar::Register<const char*>("clantag", "", Game::dvar_flag::DVAR_USERINFO | Game::dvar_flag::DVAR_ARCHIVE,
+			Dvar::Register<const char*>("clantag", "", Game::DVAR_USERINFO | Game::DVAR_ARCHIVE,
 				"If set, your clantag will be shown on the scoreboard.");
 		}, Scheduler::Pipeline::MAIN);
 

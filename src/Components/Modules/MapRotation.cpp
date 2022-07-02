@@ -306,9 +306,9 @@ namespace Components
 		Utils::Hook::Set<void(*)()>(0x4152E8, SV_MapRotate_f);
 
 		SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false,
-			Game::dvar_flag::DVAR_ARCHIVE, "Randomize map rotation when true");
+			Game::DVAR_ARCHIVE, "Randomize map rotation when true");
 		SVDontRotate = Dvar::Register<bool>("sv_dontRotate", false,
-			Game::dvar_flag::DVAR_NONE, "Do not perform map rotation");
+			Game::DVAR_NONE, "Do not perform map rotation");
 	}
 
 	bool MapRotation::unitTest()

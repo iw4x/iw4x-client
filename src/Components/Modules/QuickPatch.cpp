@@ -248,7 +248,7 @@ namespace Components
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
 		// Intermission time dvar
-		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::dvar_flag::DVAR_NONE, "Time in seconds before match server loads the next map");
+		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_NONE, "Time in seconds before match server loads the next map");
 
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
@@ -328,7 +328,7 @@ namespace Components
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
-		Utils::Hook::Set<BYTE>(0x45888C, Game::dvar_flag::DVAR_CHEAT);
+		Utils::Hook::Set<BYTE>(0x45888C, Game::DVAR_CHEAT);
 
 		// increase font sizes for chat on higher resolutions
 		static float float13 = 13.0f;

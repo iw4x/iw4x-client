@@ -383,9 +383,9 @@ namespace Components
 
 		Scheduler::Once([]
 		{
-			Dvar::Register<const char*>("ui_map_long", "Afghan", Game::dvar_flag::DVAR_NONE, "");
-			Dvar::Register<const char*>("ui_map_name", "mp_afghan", Game::dvar_flag::DVAR_NONE, "");
-			Dvar::Register<const char*>("ui_map_desc", "", Game::dvar_flag::DVAR_NONE, "");
+			Dvar::Register<const char*>("ui_map_long", "Afghan", Game::DVAR_NONE, "");
+			Dvar::Register<const char*>("ui_map_name", "mp_afghan", Game::DVAR_NONE, "");
+			Dvar::Register<const char*>("ui_map_desc", "", Game::DVAR_NONE, "");
 		}, Scheduler::Pipeline::MAIN);
 
 		// Get feeder item count
