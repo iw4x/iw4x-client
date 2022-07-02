@@ -683,7 +683,7 @@ namespace Components
 		Utils::Hook::Set<bool>(0x60AE2B, true);
 
 		// Disable cheat protection for dvars
-		Utils::Hook::Set<BYTE>(0x647682, 0xEB);
+		Utils::Hook::Set<BYTE>(0x646515, 0xEB); // Dvar_IsCheatProtected
 #else
 		// Remove missing tag message
 		Utils::Hook::Nop(0x4EBF1A, 5);
