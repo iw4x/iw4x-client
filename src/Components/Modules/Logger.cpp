@@ -54,7 +54,7 @@ namespace Components
 		const auto msg = std::vformat(fmt, args);
 		const auto out = std::format("Debug:\n    {}\nFile:    {}\nLine:    {}\n", msg, loc.file_name(), loc.line());
 #else
-		const auto out = "^2" + std::vformat(fmt, args);
+		const auto out = std::vformat(fmt, args) + "\n";
 #endif
 
 		Logger::MessagePrint(Game::CON_CHANNEL_DONT_FILTER, out);
