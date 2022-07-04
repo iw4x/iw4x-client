@@ -4,7 +4,7 @@ namespace Components
 {
 	Ceg::Ceg()
 	{
-		Utils::Hook::Signature signature(0x401000, 0x740000);
+		Utils::Hook::Signature signature(0x401000, 0x340000);
 
 		// Generic killer caller.
 		signature.add({
