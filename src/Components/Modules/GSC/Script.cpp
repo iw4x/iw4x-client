@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Script.hpp"
 
 namespace Components
 {
@@ -7,7 +8,6 @@ namespace Components
 	std::unordered_map<std::string, Game::BuiltinMethodDef> Script::CustomScrMethods;
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
-	std::unordered_map<std::string, std::string> Script::ScriptStorage;
 	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
 	int Script::LastFrameTime = -1;
 
@@ -416,11 +416,11 @@ namespace Components
 
 	unsigned int Script::SetExpFogStub()
 	{
-		if (Game::Scr_GetNumParam() == 6u)
+		if (Game::Scr_GetNumParam() == 6)
 		{
 			std::memmove(&Game::scrVmPub->top[-4], &Game::scrVmPub->top[-5], sizeof(Game::VariableValue) * 6);
 			Game::scrVmPub->top += 1;
-			Game::scrVmPub->top[-6].type = Game::scrParamType_t::VAR_FLOAT;
+			Game::scrVmPub->top[-6].type = Game::VAR_FLOAT;
 			Game::scrVmPub->top[-6].u.floatValue = 0.0f;
 
 			++Game::scrVmPub->outparamcount;
@@ -540,7 +540,7 @@ namespace Components
 	{
 		Script::AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
 		{
-			if (Game::Scr_GetNumParam() != 2u)
+			if (Game::Scr_GetNumParam() != 2)
 			{
 				Game::Scr_Error("^1ReplaceFunc: Needs two parameters!\n");
 				return;
@@ -590,78 +590,6 @@ namespace Components
 
 				Logger::Print(Game::level->scriptPrintChannel, "{}", str);
 			}
-		});
-
-		// Script Storage Functions
-		Script::AddFunction("StorageSet", [] // gsc: StorageSet(<str key>, <str data>);
-		{
-			const auto* key = Game::Scr_GetString(0);
-			const auto* value = Game::Scr_GetString(1);
-
-			if (key == nullptr || value == nullptr)
-			{
-				Game::Scr_Error("^1StorageSet: Illegal parameters!\n");
-				return;
-			}
-
-			Script::ScriptStorage.insert_or_assign(key, value);
-		});
-
-		Script::AddFunction("StorageRemove", [] // gsc: StorageRemove(<str key>);
-		{
-			const auto* key = Game::Scr_GetString(0);
-
-			if (key == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1StorageRemove: Illegal parameter!\n");
-				return;
-			}
-
-			if (!Script::ScriptStorage.contains(key))
-			{
-				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key));
-				return;
-			}
-
-			Script::ScriptStorage.erase(key);
-		});
-
-		Script::AddFunction("StorageGet", [] // gsc: StorageGet(<str key>);
-		{
-			const auto* key = Game::Scr_GetString(0);
-
-			if (key == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1StorageGet: Illegal parameter!\n");
-				return;
-			}
-
-			if (!Script::ScriptStorage.contains(key))
-			{
-				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key));
-				return;
-			}
-
-			const auto& data = Script::ScriptStorage.at(key);
-			Game::Scr_AddString(data.data());
-		});
-
-		Script::AddFunction("StorageHas", [] // gsc: StorageHas(<str key>);
-		{
-			const auto* key = Game::Scr_GetString(0);
-
-			if (key == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1StorageHas: Illegal parameter!\n");
-				return;
-			}
-
-			Game::Scr_AddBool(Script::ScriptStorage.contains(key));
-		});
-
-		Script::AddFunction("StorageClear", [] // gsc: StorageClear();
-		{
-			Script::ScriptStorage.clear();
 		});
 
 		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2

@@ -32,7 +32,6 @@ namespace Components
 			};
 
 			Zone(const std::string& zoneName);
-			Zone();
 			~Zone();
 
 			void build();

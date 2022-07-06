@@ -1,5 +1,4 @@
 #pragma once
-#include <Game/Structs.hpp>
 
 namespace Components
 {
@@ -21,7 +20,6 @@ namespace Components
 		static std::unordered_map<std::string, Game::BuiltinMethodDef> CustomScrMethods;
 		static std::vector<std::string> ScriptNameStack;
 		static unsigned short FunctionName;
-		static std::unordered_map<std::string, std::string> ScriptStorage;
 		static std::unordered_map<int, std::string> ScriptBaseProgramNum;
 		static int LastFrameTime;
 

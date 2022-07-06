@@ -33,7 +33,6 @@
 | `-stdout`               | Redirect all logging output to the terminal iw4x is started from, or if there is none, creates a new terminal window to write log information in. |
 | `-console`              | Allow the game to display its own separate interactive console window. |
 | `-dedicated`            | Starts the game as a headless dedicated server. |
-| `-scriptablehttp`       | Enable HTTP related gsc functions.             |
 | `-bigminidumps`         | Include all code sections from loaded modules in the dump. |
 | `-reallybigminidumps`   | Include data sections from all loaded modules in the dump. |
 | `-dump`                 | Write info of loaded assets to the raw folder as they are being loaded. |

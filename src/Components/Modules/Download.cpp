@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "GSC/Script.hpp"
 
 namespace Components
 {
@@ -968,9 +969,6 @@ namespace Components
 
 		Script::AddFunction("HttpGet", []
 		{
-			if (!Flags::HasFlag("scriptablehttp"))
-				return;
-
 			const auto* url = Game::Scr_GetString(0);
 
 			if (url == nullptr)
@@ -989,9 +987,6 @@ namespace Components
 
 		Script::AddFunction("HttpCancel", []
 		{
-			if (!Flags::HasFlag("scriptablehttp"))
-				return;
-
 			const auto object = Game::Scr_GetObject(0);
 			for (const auto& download : Download::ScriptDownloads)
 			{

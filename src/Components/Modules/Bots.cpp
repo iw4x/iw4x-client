@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "GSC/Script.hpp"
 
 namespace Components
 {
@@ -121,24 +122,6 @@ namespace Components
 		Script::AddMethod("IsBot", Bots::GScr_isTestClient); // Usage: self IsBot();
 		Script::AddMethod("IsTestClient", Bots::GScr_isTestClient); // Usage: self IsTestClient();
 
-		Script::AddMethod("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
-		{
-			auto ping = Game::Scr_GetInt(0);
-
-			ping = std::clamp(ping, 0, 999);
-
-			const auto* ent = Game::GetPlayerEntity(entref);
-			auto* client = Script::GetClient(ent);
-
-			if (Game::SV_IsTestClient(ent->s.number) == 0)
-			{
-				Game::Scr_Error("^1SetPing: Can only call on a bot!\n");
-				return;
-			}
-
-			client->ping = static_cast<int16_t>(ping);
-		});
-
 		Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
@@ -201,7 +184,7 @@ namespace Components
 				return;
 			}
 
-			for (auto i = 0u; i < std::extent_v<decltype(BotActions)>; ++i)
+			for (std::size_t i = 0; i < std::extent_v<decltype(BotActions)>; ++i)
 			{
 				if (Utils::String::ToLower(&action[1]) != BotActions[i].action)
 					continue;
@@ -331,9 +314,9 @@ namespace Components
 		});
 
 		// Zero the bot command array
-		for (auto i = 0u; i < std::extent_v<decltype(g_botai)>; i++)
+		for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; ++i)
 		{
-			g_botai[i] = {0};
+			std::memset(&g_botai[i], 0, sizeof(BotMovementInfo));
 			g_botai[i].weapon = 1; // Prevent the bots from defaulting to the 'none' weapon
 		}
 

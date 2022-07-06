@@ -49,7 +49,6 @@ namespace Components
 		Loader::Register(new Zones());
 		Loader::Register(new D3D9Ex());
 		Loader::Register(new Logger());
-		Loader::Register(new Script());
 		Loader::Register(new Weapon());
 		Loader::Register(new Window());
 		Loader::Register(new Command());
@@ -105,7 +104,6 @@ namespace Components
 		Loader::Register(new Elevators());
 		Loader::Register(new ClientCommand());
 		Loader::Register(new VisionFile());
-		Loader::Register(new ScriptExtension());
 		Loader::Register(new Branding());
 		Loader::Register(new Debug());
 		Loader::Register(new RawMouse());
@@ -114,6 +112,8 @@ namespace Components
 		Loader::Register(new Ceg());
 		Loader::Register(new UserInfo());
 		Loader::Register(new Events());
+
+		Loader::Register(new GSC());
 
 		Loader::Pregame = false;
 
