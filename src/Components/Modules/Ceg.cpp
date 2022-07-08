@@ -48,5 +48,8 @@ namespace Components
 
 		// Looking for stuff in the registry
 		Utils::Hook::Nop(0x4826F8, 5);
+
+		// Live_Init
+		Utils::Hook::Nop(0x420937, 5);
 	}
 }
