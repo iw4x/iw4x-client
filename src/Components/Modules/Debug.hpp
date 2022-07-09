@@ -31,6 +31,8 @@ namespace Components
 
 		static void CG_DrawDebugOverlays_Hk(int localClientNum);
 
+		static void Com_Assert_f();
+
 		static void CL_InitDebugDvars();
 	};
 }
