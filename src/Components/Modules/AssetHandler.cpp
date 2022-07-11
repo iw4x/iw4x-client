@@ -269,6 +269,13 @@ namespace Components
 				}
 			}
 		}
+
+		if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD && Zones::Version() >= 316)
+		{
+			asset.gfxWorld->sortKeyEffectDecal = 39;
+			asset.gfxWorld->sortKeyEffectAuto = 48;
+			asset.gfxWorld->sortKeyDistortion = 43;
+		}
 	}
 
 	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)
