@@ -651,8 +651,8 @@ namespace Game
 	typedef int(__cdecl * Live_GetXp_t)(int controllerIndex);
 	extern Live_GetXp_t Live_GetXp;
 
-	typedef char* (__cdecl * LoadModdableRawfile_t)(int a1, const char* filename);
-	extern LoadModdableRawfile_t LoadModdableRawfile;
+	typedef char*(__cdecl * Scr_AddSourceBuffer_t)(const char* filename, const char* extFilename, const char* codePos, bool archive);
+	extern Scr_AddSourceBuffer_t Scr_AddSourceBuffer;
 
 	typedef int(__cdecl * PC_ReadToken_t)(source_t*, token_t*);
 	extern PC_ReadToken_t PC_ReadToken;
@@ -1112,6 +1112,9 @@ namespace Game
 
 	typedef void(__cdecl * Vec2NormalizeFast_t)(float* v);
 	extern Vec2NormalizeFast_t Vec2NormalizeFast;
+
+	typedef void*(__cdecl * Z_VirtualAlloc_t)(int size);
+	extern Z_VirtualAlloc_t Z_VirtualAlloc;
 
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;

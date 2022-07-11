@@ -253,7 +253,7 @@ namespace Game
 	Live_GetPrestige_t Live_GetPrestige = Live_GetPrestige_t(0x430F90);
 	Live_GetXp_t Live_GetXp = Live_GetXp_t(0x404C60);
 
-	LoadModdableRawfile_t LoadModdableRawfile = LoadModdableRawfile_t(0x61ABC0);
+	Scr_AddSourceBuffer_t Scr_AddSourceBuffer = Scr_AddSourceBuffer_t(0x61ABC0);
 
 	PC_ReadToken_t PC_ReadToken = PC_ReadToken_t(0x4ACCD0);
 	PC_ReadTokenHandle_t PC_ReadTokenHandle = PC_ReadTokenHandle_t(0x4D2060);
@@ -462,6 +462,8 @@ namespace Game
 	Vec3NormalizeFast_t Vec3NormalizeFast = Vec3NormalizeFast_t(0x478F80);
 	Vec2Normalize_t Vec2Normalize = Vec2Normalize_t(0x416F70);
 	Vec2NormalizeFast_t Vec2NormalizeFast = Vec2NormalizeFast_t(0x5FC830);
+
+	Z_VirtualAlloc_t Z_VirtualAlloc = Z_VirtualAlloc_t(0x4CFBA0);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);

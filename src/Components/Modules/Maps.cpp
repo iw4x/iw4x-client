@@ -96,7 +96,7 @@ namespace Components
 
 	const char* Maps::LoadArenaFileStub(const char* name, char* buffer, int size)
 	{
-		std::string data  = Game::LoadModdableRawfile(0, name);
+		std::string data  = Game::Scr_AddSourceBuffer(nullptr, name, nullptr, false);
 
 		if(Maps::UserMap.isValid())
 		{

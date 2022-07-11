@@ -9,7 +9,7 @@ namespace Components
 
 	void Localization::Set(const std::string& key, const std::string& value)
 	{
-		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
+		std::lock_guard _(Localization::LocalizeMutex);
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		if (Localization::LocalizeMap.contains(key))
@@ -50,7 +50,7 @@ namespace Components
 
 		Game::LocalizeEntry* entry = nullptr;
 		{
-			std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
+			std::lock_guard _(Localization::LocalizeMutex);
 
 			if (Localization::TempLocalizeMap.contains(key))
 			{
@@ -77,7 +77,7 @@ namespace Components
 
 	void Localization::SetTemp(const std::string& key, const std::string& value)
 	{
-		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
+		std::lock_guard _(Localization::LocalizeMutex);
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		if (Localization::TempLocalizeMap.contains(key))
@@ -112,7 +112,7 @@ namespace Components
 
 	void Localization::ClearTemp()
 	{
-		std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
+		std::lock_guard _(Localization::LocalizeMutex);
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
 		for (auto i = Localization::TempLocalizeMap.begin(); i != Localization::TempLocalizeMap.end(); ++i)
@@ -165,6 +165,7 @@ namespace Components
 	{
 		static const char* staff[] =
 		{
+			"Snake",
 			"/dev/../",
 			"/dev/console",
 			"/dev/full",
@@ -172,8 +173,14 @@ namespace Components
 			"/dev/sr0",
 			"/dev/tty0",
 			"/dev/urandom",
-			"Snake",
-			"lsb_release -a"
+			"Dss0",
+			"FutureRave",
+			"H3X1C",
+			"Homura",
+			"Laupetin",
+			"Louvenarde",
+			"lsb_release -a",
+			"quaK",			
 		};
 
 		static const char* contributors[] =
@@ -186,17 +193,12 @@ namespace Components
 			"Dasfonia",
 			"Deity",
 			"Dizzy",
-			"Dss0",
-			"FutureRave",
-			"H3X1C",
 			"HardNougat",
-			"Homura",
 			"INeedGames",
+			"JTAG",
 			"Killera",
 			"Lithium",
-			"Louvenarde",
 			"OneFourOne",
-			"quaK",
 			"RaidMax",
 			"Revo",
 			"RezTech",
@@ -204,7 +206,7 @@ namespace Components
 			"Slykuiper",
 			"st0rm",
 			"VVLNT",
-			"X3RX35"
+			"X3RX35",
 		};
 
 		static const char* specials[] =
@@ -219,7 +221,7 @@ namespace Components
 
 		std::string credits = "^2The IW4x Team:^7\n";
 
-		for (int i = 0; i < ARRAYSIZE(staff); ++i)
+		for (std::size_t i = 0; i < ARRAYSIZE(staff); ++i)
 		{
 			credits.append(staff[i]);
 			credits.append("\n");
@@ -227,7 +229,7 @@ namespace Components
 
 		credits.append("\n^3Contributors:^7\n");
 
-		for (int i = 0; i < ARRAYSIZE(contributors); ++i)
+		for (std::size_t i = 0; i < ARRAYSIZE(contributors); ++i)
 		{
 			credits.append(contributors[i]);
 			credits.append("\n");
@@ -235,7 +237,7 @@ namespace Components
 
 		credits.append("\n^5Special thanks to:^7\n");
 
-		for (int i = 0; i < ARRAYSIZE(specials); ++i)
+		for (std::size_t i = 0; i < ARRAYSIZE(specials); ++i)
 		{
 			credits.append(specials[i]);
 			credits.append("\n");
@@ -254,7 +256,7 @@ namespace Components
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [](Game::XAssetType, const std::string& filename)
 		{
 			Game::XAssetHeader header = { nullptr };
-			std::lock_guard<std::recursive_mutex> _(Localization::LocalizeMutex);
+			std::lock_guard _(Localization::LocalizeMutex);
 
 			if (Localization::TempLocalizeMap.contains(filename))
 			{
