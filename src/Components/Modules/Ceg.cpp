@@ -4,7 +4,7 @@ namespace Components
 {
 	Ceg::Ceg()
 	{
-		Utils::Hook::Signature signature(0x401000, 0x740000);
+		Utils::Hook::Signature signature(0x401000, 0x340000);
 
 		// Generic killer caller.
 		signature.add({
@@ -45,5 +45,11 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4F4CF0, 0xC3);
 		Utils::Hook::Set<BYTE>(0x432180, 0xC3);
 		Utils::Hook::Set<BYTE>(0x461930, 0xC3);
+
+		// Looking for stuff in the registry
+		Utils::Hook::Nop(0x4826F8, 5);
+
+		// Live_Init
+		Utils::Hook::Nop(0x420937, 5);
 	}
 }

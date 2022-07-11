@@ -7070,6 +7070,8 @@ namespace Game
 		entityState_s noDeltaEntities[1024];
 	};
 
+	static_assert(sizeof(clientStatic_t) == 0xA7AEC);
+
 	struct ConDrawInputGlob
 	{
 		char autoCompleteChoice[64];

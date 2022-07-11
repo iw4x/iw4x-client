@@ -213,6 +213,11 @@ namespace Components
 		}
 	}
 
+	void Debug::Com_Assert_f()
+	{
+		assert(("a", false));
+	}
+
 	void Debug::CL_InitDebugDvars()
 	{
 		static const char* debugOverlayNames_0[] =
@@ -236,5 +241,7 @@ namespace Components
 
 		// Hook end of CG_DrawDebugOverlays (This is to ensure some checks are done before our hook is executed).
 		Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
+
+		Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
 	}
 }

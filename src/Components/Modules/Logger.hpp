@@ -16,7 +16,6 @@ namespace Components
 
 		static void Flush();
 
-		static void MessagePrint(int channel, const std::string& msg);
 		static void PrintInternal(int channel, std::string_view fmt, std::format_args&& args);
 		static void ErrorInternal(Game::errorParm_t error, std::string_view fmt, std::format_args&& args);
 		static void PrintErrorInternal(int channel, std::string_view fmt, std::format_args&& args);
@@ -99,6 +98,7 @@ namespace Components
 		static std::vector<Network::Address> LoggingAddresses[2];
 		static void(*PipeCallback)(const std::string&);
 
+		static void MessagePrint(int channel, const std::string& msg);
 		static void Frame();
 		static void G_LogPrintfStub(const char* fmt, ...);
 		static void PrintMessageStub();

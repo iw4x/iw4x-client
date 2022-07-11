@@ -26,25 +26,33 @@ namespace Components
 
 	void Logger::MessagePrint(const int channel, const std::string& msg)
 	{
+		std::string out = msg;
+
+		// Filter out coloured strings
+		if (out[0] == '^' && out[1] != '\0')
+		{
+			out = out.substr(2);
+		}
+
 		if (Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests())
 		{
-			printf("%s", msg.data());
+			printf("%s", out.data());
 			fflush(stdout);
 			return;
 		}
 
 		if (!Logger::IsConsoleReady())
 		{
-			OutputDebugStringA(msg.data());
+			OutputDebugStringA(out.data());
 		}
 
 		if (!Game::Sys_IsMainThread())
 		{
-			Logger::EnqueueMessage(msg);
+			Logger::EnqueueMessage(out);
 		}
 		else
 		{
-			Game::Com_PrintMessage(channel, msg.data(), 0);
+			Game::Com_PrintMessage(channel, out.data(), 0);
 		}
 	}
 
@@ -54,7 +62,8 @@ namespace Components
 		const auto msg = std::vformat(fmt, args);
 		const auto out = std::format("Debug:\n    {}\nFile:    {}\nLine:    {}\n", msg, loc.file_name(), loc.line());
 #else
-		const auto out = "^2" + std::vformat(fmt, args);
+		const auto msg = std::vformat(fmt, args);
+		const auto out = std::format("^2{}\n", msg);
 #endif
 
 		Logger::MessagePrint(Game::CON_CHANNEL_DONT_FILTER, out);
