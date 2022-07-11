@@ -13,7 +13,6 @@ namespace Components
 	Dvar::Var ZoneBuilder::PreferDiskAssetsDvar;
 
 	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
-
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
 		// That way we can be sure it won't need to reallocate memory.
@@ -21,11 +20,8 @@ namespace Components
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
 		buffer(0xC800000),
 		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{ nullptr }, assetDepth(0)
-	{}
-
-	ZoneBuilder::Zone::Zone() : indexStart(0), externalSize(0), buffer(0xC800000), zoneName("null_zone"),
-		dataMap(), branding{ nullptr }, assetDepth(0)
-	{}
+	{
+	}
 
 	ZoneBuilder::Zone::~Zone()
 	{
@@ -124,7 +120,7 @@ namespace Components
 	{
 		Logger::Print("Loading required FastFiles...\n");
 
-		for (int i = 0; i < this->dataMap.getRows(); ++i)
+		for (std::size_t i = 0; i < this->dataMap.getRows(); ++i)
 		{
 			if (this->dataMap.getElementAt(i, 0) == "require")
 			{
@@ -149,7 +145,7 @@ namespace Components
 
 	bool ZoneBuilder::Zone::loadAssets()
 	{
-		for (int i = 0; i < this->dataMap.getRows(); ++i)
+		for (std::size_t i = 0; i < this->dataMap.getRows(); ++i)
 		{
 			if (this->dataMap.getElementAt(i, 0) != "require")
 			{
