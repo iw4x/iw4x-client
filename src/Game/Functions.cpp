@@ -471,6 +471,8 @@ namespace Game
 
 	Z_VirtualAlloc_t Z_VirtualAlloc = Z_VirtualAlloc_t(0x4CFBA0);
 
+	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 

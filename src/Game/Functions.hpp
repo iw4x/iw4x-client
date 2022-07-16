@@ -1131,6 +1131,9 @@ namespace Game
 	typedef void*(__cdecl * Z_VirtualAlloc_t)(int size);
 	extern Z_VirtualAlloc_t Z_VirtualAlloc;
 
+	typedef void(__cdecl * I_strncpyz_t)(char* dest, const char* src, int destsize);
+	extern I_strncpyz_t I_strncpyz;
+
 	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_CLIENTS = 18;

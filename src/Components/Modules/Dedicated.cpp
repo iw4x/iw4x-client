@@ -294,6 +294,7 @@ namespace Components
 				Scheduler::Loop([]
 				{
 					CardTitles::SendCustomTitlesToClients();
+					ClanTags::SendClanTagsToClients();
 				}, Scheduler::Pipeline::SERVER, 10s);
 
 				// Heartbeats
