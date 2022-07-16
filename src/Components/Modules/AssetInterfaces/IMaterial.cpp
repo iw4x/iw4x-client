@@ -258,7 +258,8 @@ namespace Assets
 						{
 							Game::XAssetHeader header = entry->asset.header;
 
-							if (header.material->techniqueSet == iw4TechSet->asset.header.techniqueSet)
+							if (header.material->techniqueSet == iw4TechSet->asset.header.techniqueSet 
+								&& !std::string(header.material->info.name).contains("icon")) // Yeah this has a tendency to fuck up a LOT of transparent materials
 							{
 								Components::Logger::Print("Material {} with techset {} has been mapped to {} (last chance!), taking the sort key of material {}\n",
 									asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name, header.material->info.name);
