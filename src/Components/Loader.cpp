@@ -61,7 +61,7 @@ namespace Components
 		Loader::Register(new Network());
 		Loader::Register(new Session());
 		Loader::Register(new Theatre());
-		//Loader::Register(new ClanTags());
+		Loader::Register(new ClanTags());
 		Loader::Register(new Download());
 		Loader::Register(new Playlist());
 		Loader::Register(new RawFiles());

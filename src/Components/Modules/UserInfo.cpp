@@ -63,8 +63,32 @@ namespace Components
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
-			Logger::Debug("Resetting name of {} ", ent->s.number);
+			Logger::Debug("Resetting name of {}", ent->s.number);
 			UserInfoOverrides[ent->s.number].erase("name");
+			Game::ClientUserinfoChanged(ent->s.number);
+		});
+
+		Script::AddMethod("SetClanTag", [](Game::scr_entref_t entref)  // gsc: self setClanTag(<string>)
+		{
+			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* clanName = Game::Scr_GetString(0);
+
+			if (clanName == nullptr)
+			{
+				Game::Scr_ParamError(0, "^1SetClanTag: Illegal parameter!\n");
+			}
+
+			Logger::Debug("Setting clanName of {} to {}", ent->s.number, clanName);
+			UserInfoOverrides[ent->s.number]["clanAbbrev"] = clanName;
+			Game::ClientUserinfoChanged(ent->s.number);
+		});
+
+		Script::AddMethod("ResetClanTag", [](Game::scr_entref_t entref)  // gsc: self ResetClanTag()
+		{
+			const auto* ent = Game::GetPlayerEntity(entref);
+			
+			Logger::Debug("Resetting clanName of {}", ent->s.number);
+			UserInfoOverrides[ent->s.number].erase("clanAbbrev");
 			Game::ClientUserinfoChanged(ent->s.number);
 		});
 	}

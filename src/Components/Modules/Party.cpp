@@ -332,7 +332,7 @@ namespace Components
 			else
 			{
 				maxclientCount = Dvar::Var("party_maxplayers").get<int>();
-				clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData_s*>(0x1081C00));
+				clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData*>(0x1081C00));
 			}
 
 			Utils::InfoString info;

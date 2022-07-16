@@ -232,7 +232,7 @@ namespace Game
 		CS_CONNECTED = 0x3,
 		CS_CLIENTLOADING = 0x4,
 		CS_ACTIVE = 0x5,
-	} clientstate_t;
+	} clientState_t;
 
 	enum serverState_t
 	{
@@ -1610,6 +1610,32 @@ namespace Game
 		unsigned int playerCardTitle;
 		unsigned int playerCardNameplate;
 	};
+
+	enum PlayerCardClientLookupType
+	{
+		PLAYERCARD_LOOKUP_SCRIPTSLOT = 0x0,
+		PLAYERCARD_LOOKUP_LIVEPROFILE_CLIENT = 0x1,
+		PLAYERCARD_LOOKUP_LIVEPROFILE_CONTROLLER = 0x2,
+		PLAYERCARD_LOOKUP_LOBBY = 0x3,
+		PLAYERCARD_LOOKUP_MYTEAM = 0x4,
+		PLAYERCARD_LOOKUP_ENEMYTEAM = 0x5,
+		PLAYERCARD_LOOKUP_COUNT = 0x6,
+	};
+
+	struct PlayerCardData
+	{
+		unsigned int lastUpdateTime;
+		unsigned int titleIndex;
+		unsigned int iconIndex;
+		unsigned int nameplateIndex;
+		int rank;
+		int prestige;
+		team_t team;
+		char name[32];
+		char clanAbbrev[5];
+	};
+
+	static_assert(sizeof(PlayerCardData) == 0x44);
 
 	enum usercmdButtonBits
 	{
@@ -5082,18 +5108,6 @@ namespace Game
 		char uiName[32];
 	};
 
-	typedef struct party_s
-	{
-		unsigned char pad1[544];
-		int privateSlots;
-		int publicSlots;
-	} party_t;
-
-	typedef struct PartyData_s
-	{
-		DWORD unk;
-	} PartyData_t;
-
 	struct fileInIwd_s
 	{
 		unsigned int pos;
@@ -6046,15 +6060,66 @@ namespace Game
 		VISIONSETCOUNT
 	} visionSetMode_t;
 
+	enum hintType_t
+	{
+		HINT_NONE = 0x0,
+		HINT_NOICON = 0x1,
+		HINT_ACTIVATE = 0x2,
+		HINT_HEALTH = 0x3,
+		HINT_FRIENDLY = 0x4,
+		FIRST_WEAPON_HINT = 0x5,
+		LAST_WEAPON_HINT = 0x57C,
+		HINT_NUM_HINTS = 0x57D,
+	};
+
+	struct playerTeamState_t
+	{
+		int location;
+	};
+
+	struct clientSession_t
+	{
+		sessionState_t sessionState;
+		int forceSpectatorClient;
+		int killCamEntity;
+		int killCamLookAtEntity;
+		int status_icon;
+		int archiveTime;
+		int score;
+		int deaths;
+		int kills;
+		int assists;
+		unsigned __int16 scriptPersId;
+		clientConnected_t connected;
+		usercmd_s cmd;
+		usercmd_s oldcmd;
+		int localClient;
+		int predictItemPickup;
+		char newnetname[16];
+		int maxHealth;
+		int enterTime;
+		playerTeamState_t teamState;
+		int voteCount;
+		int teamVoteCount;
+		float moveSpeedScaleMultiplier;
+		int viewmodelIndex;
+		int noSpectate;
+		int teamInfo;
+		clientState_s cs;
+		int psOffsetTime;
+		int hasRadar;
+		int isRadarBlocked;
+		int radarMode;
+		int weaponHudIconOverrides[6];
+		unsigned int unusableEntFlags[64];
+		float spectateDefaultPos[3];
+		float spectateDefaultAngles[3];
+	};
+
 	typedef struct gclient_s
 	{
 		playerState_s ps;
-		sessionState_t sessionState; // 12572
-		unsigned char __pad0[40];
-		clientConnected_t connected; // 12616
-		unsigned char __pad1[144];
-		team_t team; // 12764
-		unsigned char __pad2[436];
+		clientSession_t sess;
 		int flags; // 13204
 		int spectatorClient;
 		int lastCmdTime;
@@ -6065,7 +6130,13 @@ namespace Game
 		unsigned char __pad3[324]; // 13232
 		int visionDuration[5];
 		char visionName[5][64];
-		unsigned char __pad4[36];
+		int lastStand;
+		int lastStandTime;
+		int hudElemLastAssignedSoundID;
+		float lockedTargetOffset[3];
+		unsigned __int16 attachShieldTagName;
+		hintType_t hintForcedType;
+		int hintForcedString;
 	} gclient_t;
 
 	static_assert(sizeof(gclient_t) == 13932);
@@ -6224,14 +6295,14 @@ namespace Game
 
 	typedef struct client_s
 	{
-		clientstate_t state; // 0
-		char __pad0[4]; // 4
+		clientState_t state; // 0
+		int sendAsActive; // 4
 		int deltaMessage; // 8
 		char __pad1[12]; // 12
 		netchan_t netchan; // 24
 		char __pad2[20]; // 1604
 		const char* delayDropReason; // 1624
-		char connectInfoString[1024]; // 1628
+		char userinfo[1024]; // 1628
 		char __pad3[132096]; // 2652
 		int reliableSequence; // 134748
 		int reliableAcknowledge; // 134752
@@ -6244,7 +6315,7 @@ namespace Game
 		char lastClientCommandString[1024]; // 134816
 		gentity_t* gentity; // 135840
 		char name[16]; // 135844
-		char __pad4[4]; // 135860
+		int nextReliableTime; // 135860
 		int lastPacketTime; // 135864
 		int lastConnectTime; // 135868
 		int snapNum; // 135872
@@ -7875,6 +7946,8 @@ namespace Game
 		unsigned int playerCardNameplate;
 	};
 
+	static_assert(sizeof(clientInfo_t) == 0x52C);
+
 	struct cgs_t
 	{
 		int viewX;
@@ -8180,6 +8253,375 @@ namespace Game
 	};
 
 	static_assert(sizeof(DeferredQueue) == 0x5908);
+
+	struct GamerSettingCommonConfig
+	{
+		float viewSensitivity;
+		float snd_volume;
+		float blacklevel;
+		float gpadButtonLStickDeflect;
+		float gpadButtonRStickDeflect;
+		float safearea_adjusted_horizontal;
+		float safearea_adjusted_vertical;
+		int playTimeSP;
+		int playTimeMP;
+		int playTimeSO;
+		int percentCompleteSP;
+		int percentCompleteMP;
+		int percentCompleteSO;
+		float gamma;
+		bool hasEverPlayed_MainMenu;
+		bool hasEverPlayed_SP;
+		bool hasEverPlayed_SO;
+		bool hasEverPlayed_MP;
+		bool invertPitch;
+		bool autoAim;
+		bool delicateFlower;
+		char gpadButtonsConfig[32];
+		char gpadSticksConfig[32];
+	};
+
+	struct KeyPairStringData
+	{
+		short index;
+		short maxSize;
+	};
+
+	union KeyPairDataUnion
+	{
+		char byteVal;
+		bool boolVal;
+		short shortVal;
+		int intVal;
+		float floatVal;
+		KeyPairStringData stringData;
+	};
+
+	struct GamerSettingKeyPair
+	{
+		char type;
+		char unused[3];
+		KeyPairDataUnion u;
+	};
+
+	struct GamerSettingExeConfig
+	{
+		int playlist;
+		bool mapPrefs[16];
+		char clanPrefix[5];
+	};
+
+	struct GamerSettingState
+	{
+		bool isProfileLoggedIn;
+		bool errorOnRead;
+		GamerSettingCommonConfig commonConfig;
+		GamerSettingKeyPair commonKeyPairs[50];
+		char commonKeyPairsStringPool[512];
+		GamerSettingExeConfig exeConfig;
+		GamerSettingKeyPair exeKeyPairs[50];
+		char exeKeyPairsStringPool[512];
+	};
+
+	static_assert(sizeof(GamerSettingState) == 0x7C0);
+
+	struct SessionStaticData
+	{
+		char* sessionName;
+		bool registerUsersWithVoice;
+	};
+
+	enum IWNetServerSessionStatus
+	{
+		SESSION_ONCLIENTONLY = 0x0,
+		SESSION_BEINGCREATED = 0x1,
+		SESSION_CREATED = 0x2,
+		SESSION_BEINGDELETED = 0x3,
+	};
+
+	struct IWNetServerInfoAboutPlayer
+	{
+		bool active;
+		__int64 uid;
+		char skill;
+		char teamIndex;
+		int mapPackFlags;
+	};
+
+	struct IWNetSessionStatus
+	{
+		IWNetServerSessionStatus status;
+		int sessionId;
+		int lastHeartbeatSent;
+		bool needsUpdate;
+		bool updatingPlayers;
+		int newPlayerCount;
+		IWNetServerInfoAboutPlayer pendingServerInfoForPlayers[18];
+	};
+
+	struct XSESSION_INFO
+	{
+		XNKID sessionID;
+		XNADDR hostAddress;
+		XNKEY keyExchangeKey;
+	};
+
+	struct ClientInfo
+	{
+		bool registered;
+		bool voiceRegistered;
+		unsigned __int64 xuid;
+		int natType;
+		netadr_t addr;
+		int voiceConnectivityBits;
+		int lastConnectivityTestTime;
+		bool muted;
+		bool privateSlot;
+	};
+
+	struct NomineeInfo
+	{
+		int upload;
+		int NAT;
+		bool onLSP;
+		int connectivity;
+		int cpuSpeed;
+		int avgPing;
+	};
+
+	struct RegisteredUser
+	{
+		bool active;
+		unsigned __int64 xuid;
+	};
+
+	struct SessionDynamicData
+	{
+		bool sessionHandle;
+		IWNetSessionStatus iwnetServerSessionStatus;
+		XSESSION_INFO sessionInfo;
+		bool keysGenerated;
+		bool sessionStartCalled;
+		unsigned __int64 sessionNonce;
+		int privateSlots;
+		int publicSlots;
+		int flags;
+		bool qosListenEnabled;
+		ClientInfo users[18];
+		int voiceConnectivityBits;
+		int sessionCreateController;
+		int sessionDeleteTime;
+		RegisteredUser internalRegisteredUsers[18];
+	};
+
+	struct SessionData
+	{
+		SessionStaticData staticData;
+		SessionDynamicData dyn;
+	};
+
+	struct BestHostData
+	{
+		int nominee;
+		NomineeInfo info;
+		int lastHeardFrom;
+		int lastSentTo;
+	};
+
+	struct BandwidthTestPerClientData
+	{
+		int bytesReceived;
+	};
+
+	struct BandwidthTestData
+	{
+		int testIndex;
+		int testClientNum;
+		int startTimeArbitrator;
+		int announceTime;
+		int winnerClientNum;
+		BandwidthTestPerClientData clientData[18];
+		char testClientName[32];
+		bool inProgress;
+		int startTime;
+		int roundsComplete;
+		bool receiving;
+		int receiveIndex;
+		int receiveStartTime;
+		int receiveBytes;
+		int resultsSendTime;
+	};
+
+	struct MigrateData
+	{
+		bool migrateActive;
+		bool weAreArbitrating;
+		int arbitratorClientNum;
+		int indexBits;
+		int startTime;
+		int timeoutDuration;
+		int lastBroadcastTime;
+		bool decidedOurNominee;
+		BestHostData bestHost;
+		int expectedNewHost;
+		BandwidthTestData bandwidthTestData;
+	};
+
+	struct QoSData
+	{
+		float percent;
+	};
+
+	struct PartyInfo
+	{
+		bool active;
+		XSESSION_INFO info;
+		int occupiedPublicSlots;
+		int occupiedPrivateSlots;
+		int numPublicSlots;
+		int numPrivateSlots;
+		int pingBias;
+		int ping;
+		int upload;
+		int desirability;
+	};
+
+	struct PartyMember
+	{
+		char status;
+		bool headsetPresent;
+		char gamertag[32];
+		char clanAbbrev[5];
+		int qport;
+		char challenge[6];
+		int lastPacketTime;
+		int lastHeartbeatTime;
+		int lastPartyStateAck;
+		XNADDR xnaddr;
+		int availableMapPackFlags;
+		int ackedMembers;
+		XNKID privatePartyId;
+		int subpartyIndex;
+		int trueSkill;
+		int rank;
+		int prestige;
+		int team;
+		unsigned __int16 score;
+		int deaths;
+		bool vetoedMap;
+		unsigned int playerCardIcon;
+		unsigned int playerCardTitle;
+		unsigned int playerCardNameplate;
+		int voiceConnectivityBits;
+		bool invited;
+		int natType;
+		unsigned __int64 player;
+		bool migrateHeardFrom;
+		int migratePingTime;
+		int migratePing;
+		bool migrateNominated;
+		NomineeInfo migrateNomineeInfo;
+	};
+
+	struct SubpartyInfo
+	{
+		int members[18];
+		int count;
+		int skill;
+		int score;
+		int team;
+	};
+
+	struct PartyHostDetails
+	{
+		int partyListSlot;
+		netadr_t addr;
+		XSESSION_INFO sessionInfo;
+		int lastPacketTime;
+		int lastPacketSentTime;
+		int numPrivateSlots;
+		int numPublicSlots;
+		int hostNum;
+		bool accepted;
+		char challenge[6];
+	};
+
+	struct PartyHostData
+	{
+		int partyStateChangeTime;
+		int partyStateLastSendTime;
+		int expectedPlayers;
+		int vetoPassTime;
+		bool vetoPossible;
+		bool preloadingMap;
+		bool firstLobby;
+		bool migrateAfterRound;
+		bool stopAfterRound;
+		int partyCreationTime;
+	};
+
+	struct PartyData
+	{
+		SessionData* session;
+		SessionData* presenceSession;
+		SessionData* searchSession;
+		MigrateData migrateData;
+		QoSData qosData;
+		PartyInfo* partyList;
+		int partyListSize;
+		PartyMember partyMembers[18];
+		SubpartyInfo subparties[18];
+		int subpartyCount;
+		PartyHostDetails currentHost;
+		PartyHostDetails potentialHost;
+		PartyHostData hostData;
+		unsigned __int64 lobbySteamID;
+		int areWeHost;
+		int joiningAnotherParty;
+		int searchingForGames;
+		int inParty;
+		int party_systemActive;
+		bool veto;
+		int vetoTime;
+		int headsetPresent;
+		int headsetTime;
+		int clanAbbrevTime;
+		int rankTime;
+		int playerCardTime;
+		int uploadSentTime;
+		int voiceBitsTime;
+		int idTime;
+		int availableMapPackFlagsTime;
+		int searchStartTime;
+		int searchEndTime;
+		int joinAttemptForUI;
+		int lastMergeTime;
+		int mergeAttemptStartTime;
+		int originalPartiesInList;
+		int partyId;
+		int nextSessionSearchTime;
+		int mapPackFlags;
+		int lastPartyStateTime;
+		int gameStartTime;
+		int interEndTime;
+		int inactiveKeepaliveTime;
+		int hostTimeouts;
+		char lobbyFlags;
+		PartyData* partyToNotify;
+		bool registeredWithArbitration;
+		bool rejoining;
+		int partyStatePacketCount;
+		int partyStateLastMemberIndex;
+		int unfinishedPartServerTimes[2];
+		msg_t partyStatePartMsgs[2];
+		char partyStatePartMsgBufs[2][1400];
+		char lastEntries[8];
+		int currentEntry;
+		char axisWins;
+		char alliesWins;
+	};
+
+	static_assert(sizeof(PartyData) == 0x23D8);
 
 #pragma endregion
 

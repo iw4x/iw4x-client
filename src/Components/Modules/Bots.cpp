@@ -366,7 +366,7 @@ namespace Components
 		// In case a loaded mod didn't call "BotStop" before the VM shutdown
 		Events::OnVMShutdown([]
 		{
-			for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; i++)
+			for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; ++i)
 			{
 				g_botai[i].active = false;
 			}

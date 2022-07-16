@@ -97,7 +97,7 @@ namespace Game
 	typedef void(__cdecl * CG_SetupWeaponDef_t)(int localClientNum, unsigned int weapIndex);
 	extern CG_SetupWeaponDef_t CG_SetupWeaponDef;
 
-	typedef char*(__cdecl * CL_GetClientName_t)(int localClientNum, int index, char *buf, size_t size);
+	typedef int(__cdecl * CL_GetClientName_t)(int localClientNum, int index, char *buf, int size);
 	extern CL_GetClientName_t CL_GetClientName;
 
 	typedef int(__cdecl * CL_IsCgameInitialized_t)();
@@ -138,6 +138,12 @@ namespace Game
 
 	typedef void(__cdecl * CL_ConsoleFixPosition_t)();
 	extern CL_ConsoleFixPosition_t CL_ConsoleFixPosition;
+
+	typedef int(__cdecl * CL_GetLocalClientActiveCount_t)();
+	extern CL_GetLocalClientActiveCount_t CL_GetLocalClientActiveCount;
+
+	typedef int(__cdecl * CL_ControllerIndexFromClientNum_t)(int localActiveClientNum);
+	extern CL_ControllerIndexFromClientNum_t CL_ControllerIndexFromClientNum;
 
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_t* allocedCmd, bool isKey);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
@@ -325,6 +331,12 @@ namespace Game
 	typedef void(__cdecl * Dvar_GetUnpackedColorByName_t)(const char* dvarName, float* expandedColor);
 	extern Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName;
 
+	typedef char*(__cdecl*  Dvar_GetString_t)(const char* dvarName);
+	extern Dvar_GetString_t Dvar_GetString;
+
+	typedef char*(__cdecl * Dvar_GetVariantString_t)(const char* dvarName);
+	extern Dvar_GetVariantString_t Dvar_GetVariantString;
+
 	typedef dvar_t*(__cdecl * Dvar_FindVar_t)(const char* dvarName);
 	extern Dvar_FindVar_t Dvar_FindVar;
 
@@ -456,7 +468,7 @@ namespace Game
 	typedef void(__cdecl * Image_Release_t)(GfxImage* image);
 	extern Image_Release_t Image_Release;
 
-	typedef char*(__cdecl * Info_ValueForKey_t)(const char* infoString, const char* key);
+	typedef char*(__cdecl * Info_ValueForKey_t)(const char* s, const char* key);
 	extern Info_ValueForKey_t Info_ValueForKey;
 
 	typedef void(__cdecl * Key_SetCatcher_t)(int localClientNum, int catcher);
@@ -651,6 +663,9 @@ namespace Game
 	typedef int(__cdecl * Live_GetXp_t)(int controllerIndex);
 	extern Live_GetXp_t Live_GetXp;
 
+	typedef int(__cdecl * LiveStorage_GetStat_t)(int controllerIndex, int index);
+	extern LiveStorage_GetStat_t LiveStorage_GetStat;
+
 	typedef char*(__cdecl * Scr_AddSourceBuffer_t)(const char* filename, const char* extFilename, const char* codePos, bool archive);
 	extern Scr_AddSourceBuffer_t Scr_AddSourceBuffer;
 
@@ -663,16 +678,16 @@ namespace Game
 	typedef void(__cdecl * PC_SourceError_t)(int, const char*, ...);
 	extern PC_SourceError_t PC_SourceError;
 
-	typedef int(__cdecl * Party_GetMaxPlayers_t)(party_s* party);
+	typedef int(__cdecl * Party_GetMaxPlayers_t)(PartyData* party);
 	extern Party_GetMaxPlayers_t Party_GetMaxPlayers;
 
-	typedef int(__cdecl * PartyHost_CountMembers_t)(PartyData_s* party);
+	typedef int(__cdecl * PartyHost_CountMembers_t)(PartyData* party);
 	extern PartyHost_CountMembers_t PartyHost_CountMembers;
 
 	typedef netadr_t *(__cdecl * PartyHost_GetMemberAddressBySlot_t)(int unk, void *party, const int slot);
 	extern PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot;
 
-	typedef const char *(__cdecl * PartyHost_GetMemberName_t)(PartyData_s* party, const int clientNum);
+	typedef const char *(__cdecl * PartyHost_GetMemberName_t)(PartyData* party, const int clientNum);
 	extern PartyHost_GetMemberName_t PartyHost_GetMemberName;
 
 	typedef void(__cdecl * Playlist_ParsePlaylists_t)(const char* data);
@@ -1116,6 +1131,10 @@ namespace Game
 	typedef void*(__cdecl * Z_VirtualAlloc_t)(int size);
 	extern Z_VirtualAlloc_t Z_VirtualAlloc;
 
+	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
+	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
+	constexpr std::size_t MAX_CLIENTS = 18;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
@@ -1150,8 +1169,8 @@ namespace Game
 	extern int* g_streamPosIndex;
 
 	extern bool* g_lobbyCreateInProgress;
-	extern party_t** partyIngame;
-	extern PartyData_s** partyData;
+	extern PartyData* g_lobbyData;
+	extern PartyData* g_partyData;
 
 	extern int* numIP;
 	extern netIP_t* localIP;
@@ -1205,7 +1224,7 @@ namespace Game
 	extern scrVmPub_t* scrVmPub;
 	extern scrVarPub_t* scrVarPub;
 
-	extern clientstate_t* clcState;
+	extern clientState_t* clcState;
 
 	extern GfxScene* scene;
 
@@ -1272,6 +1291,12 @@ namespace Game
 	extern scr_const_t* scr_const;
 
 	extern clientConnection_t* clientConnections;
+
+	constexpr std::size_t PLAYER_CARD_UI_STRING_COUNT = 18;
+	extern unsigned int* playerCardUIStringIndex;
+	extern char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38];
+
+	extern GamerSettingState* gamerSettings;
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);

@@ -859,6 +859,7 @@ namespace Components
 			Menus::Add("ui_mp/iw4x_credits.menu");
 			Menus::Add("ui_mp/resetclass.menu");
 			Menus::Add("ui_mp/popup_customtitle.menu");
+			Menus::Add("ui_mp/popup_customclan.menu");
 	}
 
 	Menus::~Menus()

@@ -44,14 +44,14 @@ namespace Components
 		}
 	}
 
-	char* PlayerName::GetClientName(int localClientNum, int index, char* buf, size_t size)
+	int PlayerName::GetClientName(int localClientNum, int index, char* buf, int size)
 	{
-		Game::CL_GetClientName(localClientNum, index, buf, size);
+		const auto result = Game::CL_GetClientName(localClientNum, index, buf, size);
 
-		// Append clantag to username & remove the colors
-		strncpy_s(buf, size, TextRenderer::StripColors(ClanTags::GetUserClantag(index, buf)).data(), size);
+		// Prepend clanName to username & remove the colors
+		strncpy_s(buf, size, TextRenderer::StripColors(ClanTags::GetClanTagWithName(index, buf)).data(), size);
 
-		return buf;
+		return result;
 	}
 
 	char* PlayerName::CleanStrStub(char* string)

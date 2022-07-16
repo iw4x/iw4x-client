@@ -87,7 +87,7 @@ namespace Components
 			{
 				list.append(Utils::String::VA(" %llX", Game::svs_clients[i].steamID));
 
-				Utils::InfoString info(Game::svs_clients[i].connectInfoString);
+				Utils::InfoString info(Game::svs_clients[i].userinfo);
 				list.append(Utils::String::VA(" %llX", strtoull(info.get("realsteamId").data(), nullptr, 16)));
 			}
 			else
@@ -294,7 +294,6 @@ namespace Components
 				Scheduler::Loop([]
 				{
 					CardTitles::SendCustomTitlesToClients();
-					//Clantags::SendClantagsToClients();
 				}, Scheduler::Pipeline::SERVER, 10s);
 
 				// Heartbeats

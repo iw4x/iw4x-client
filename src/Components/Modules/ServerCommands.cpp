@@ -64,5 +64,6 @@ namespace Components
 	{
 		// Server command receive hook
 		Utils::Hook(0x59449F, ServerCommands::CG_DeployServerCommand_Stub).install()->quick();
+		Utils::Hook::Nop(0x5944A4, 6);
 	}
 }

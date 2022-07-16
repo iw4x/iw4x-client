@@ -334,17 +334,17 @@ namespace Components
 		ClientCommand::Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
 		{
 			assert(ent->client != nullptr);
-			assert(ent->client->connected != Game::clientConnected_t::CON_DISCONNECTED);
+			assert(ent->client->sess.connected != Game::CON_DISCONNECTED);
 
-			if (ent->client->sessionState != Game::sessionState_t::SESS_STATE_PLAYING || !ClientCommand::CheatsOk(ent))
+			if (ent->client->sess.sessionState != Game::SESS_STATE_PLAYING || !ClientCommand::CheatsOk(ent))
 				return;
 
 			Scheduler::Once([ent]
 			{
-				ent->flags &= ~(Game::entityFlag::FL_GODMODE | Game::entityFlag::FL_DEMI_GODMODE);
+				ent->flags &= ~(Game::FL_GODMODE | Game::FL_DEMI_GODMODE);
 				ent->health = 0;
 				ent->client->ps.stats[0] = 0;
-				Game::player_die(ent, ent, ent, 100000, 12, 0, nullptr, Game::hitLocation_t::HITLOC_NONE, 0);
+				Game::player_die(ent, ent, ent, 100000, 12, 0, nullptr, Game::HITLOC_NONE, 0);
 			}, Scheduler::Pipeline::SERVER);
 		});
 	}

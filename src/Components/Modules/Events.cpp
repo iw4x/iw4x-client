@@ -5,6 +5,7 @@ namespace Components
 	Utils::Signal<Events::ClientCallback> Events::ClientDisconnectSignal;
 	Utils::Signal<Events::Callback> Events::SteamDisconnectSignal;
 	Utils::Signal<Events::Callback> Events::ShutdownSystemSignal;
+	Utils::Signal<Events::Callback> Events::ClientInitSignal;
 	Utils::Signal<Events::Callback> Events::ServerInitSignal;
 
 	void Events::OnClientDisconnect(const Utils::Slot<ClientCallback>& callback)
@@ -20,6 +21,11 @@ namespace Components
 	void Events::OnVMShutdown(const Utils::Slot<Callback>& callback)
 	{
 		ShutdownSystemSignal.connect(callback);
+	}
+
+	void Events::OnClientInit(const Utils::Slot<Callback>& callback)
+	{
+		ClientInitSignal.connect(callback);
 	}
 
 	void Events::OnSVInit(const Utils::Slot<Callback>& callback)
@@ -52,6 +58,14 @@ namespace Components
 		Utils::Hook::Call<void(unsigned char)>(0x421EE0)(sys); // Scr_ShutdownSystem
 	}
 
+	void Events::CL_InitOnceForAllClients_HK()
+	{
+		ClientInitSignal();
+		ClientInitSignal.clear();
+
+		Utils::Hook::Call<void()>(0x404CA0)(); // CL_InitOnceForAllClients
+	}
+
 	void Events::SV_Init_Hk()
 	{
 		ServerInitSignal();
@@ -68,6 +82,8 @@ namespace Components
 
 		Utils::Hook(0x47548B, Scr_ShutdownSystem_Hk, HOOK_CALL).install()->quick(); // G_LoadGame
 		Utils::Hook(0x4D06BA, Scr_ShutdownSystem_Hk, HOOK_CALL).install()->quick(); // G_ShutdownGame
+
+		Utils::Hook(0x60BE5B, CL_InitOnceForAllClients_HK, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
 		Utils::Hook(0x4D3665, SV_Init_Hk, HOOK_CALL).install()->quick(); // SV_Init
 	}

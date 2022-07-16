@@ -66,6 +66,8 @@ namespace Game
 	CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f = CL_SelectStringTableEntryInDvar_f_t(0x4A4560);
 	CL_DrawStretchPic_t CL_DrawStretchPic = CL_DrawStretchPic_t(0x412490);
 	CL_ConsoleFixPosition_t CL_ConsoleFixPosition = CL_ConsoleFixPosition_t(0x44A430);
+	CL_GetLocalClientActiveCount_t CL_GetLocalClientActiveCount = CL_GetLocalClientActiveCount_t(0x5BAD90);
+	CL_ControllerIndexFromClientNum_t CL_ControllerIndexFromClientNum = CL_ControllerIndexFromClientNum_t(0x449E30);
 
 	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x4DCE00);
@@ -128,6 +130,8 @@ namespace Game
 	Dvar_RegisterVec3Color_t Dvar_RegisterVec3Color = Dvar_RegisterVec3Color_t(0x4918B0);
 
 	Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName = Dvar_GetUnpackedColorByName_t(0x406530);
+	Dvar_GetString_t Dvar_GetString = Dvar_GetString_t(0x4EC6B0);
+	Dvar_GetVariantString_t Dvar_GetVariantString = Dvar_GetVariantString_t(0x4C47E0);
 	Dvar_FindVar_t Dvar_FindVar = Dvar_FindVar_t(0x4D5390);
 	Dvar_InfoString_Big_t Dvar_InfoString_Big = Dvar_InfoString_Big_t(0x4D98A0);
 	Dvar_SetCommand_t Dvar_SetCommand = Dvar_SetCommand_t(0x4EE430);
@@ -252,6 +256,8 @@ namespace Game
 	Live_GetMapIndex_t Live_GetMapIndex = Live_GetMapIndex_t(0x4F6440);
 	Live_GetPrestige_t Live_GetPrestige = Live_GetPrestige_t(0x430F90);
 	Live_GetXp_t Live_GetXp = Live_GetXp_t(0x404C60);
+
+	LiveStorage_GetStat_t LiveStorage_GetStat = LiveStorage_GetStat_t(0x471F60);
 
 	Scr_AddSourceBuffer_t Scr_AddSourceBuffer = Scr_AddSourceBuffer_t(0x61ABC0);
 
@@ -498,8 +504,8 @@ namespace Game
 	int* g_streamPosIndex = reinterpret_cast<int*>(0x16E5578);
 
 	bool* g_lobbyCreateInProgress = reinterpret_cast<bool*>(0x66C9BC2);
-	party_t** partyIngame = reinterpret_cast<party_t**>(0x1081C00);
-	PartyData_s** partyData = reinterpret_cast<PartyData_s**>(0x107E500);
+	PartyData* g_lobbyData = reinterpret_cast<PartyData*>(0x1081C00);
+	PartyData* g_partyData = reinterpret_cast<PartyData*>(0x107E500);
 
 	int* numIP = reinterpret_cast<int*>(0x64A1E68);
 	netIP_t* localIP = reinterpret_cast<netIP_t*>(0x64A1E28);
@@ -552,7 +558,7 @@ namespace Game
 	scrVmPub_t* scrVmPub = reinterpret_cast<scrVmPub_t*>(0x2040CF0);
 	scrVarPub_t* scrVarPub = reinterpret_cast<scrVarPub_t*>(0x201A408);
 
-	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
+	clientState_t* clcState = reinterpret_cast<clientState_t*>(0xB2C540);
 
 	GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
 
@@ -615,6 +621,11 @@ namespace Game
 	scr_const_t* scr_const = reinterpret_cast<scr_const_t*>(0x1AA2E00);
 
 	clientConnection_t* clientConnections = reinterpret_cast<clientConnection_t*>(0xA1E878);
+
+	unsigned int* playerCardUIStringIndex = reinterpret_cast<unsigned int*>(0x62CD7A8);
+	char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38] = reinterpret_cast<char(*)[PLAYER_CARD_UI_STRING_COUNT][38]>(0x62CB4F8);
+
+	GamerSettingState* gamerSettings = reinterpret_cast<GamerSettingState*>(0x107D3E8);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
@@ -836,8 +847,8 @@ namespace Game
 	{
 		for (auto i = 0; i < *svs_clientCount; ++i)
 		{
-			if (svs_clients[i].state != clientstate_t::CS_FREE
-				&& svs_clients[i].netchan.remoteAddress.type == netadrtype_t::NA_BOT)
+			if (svs_clients[i].state != CS_FREE
+				&& svs_clients[i].netchan.remoteAddress.type == NA_BOT)
 			{
 				SV_GameDropClient(i, "GAME_GET_TO_COVER");
 			}
@@ -1746,6 +1757,5 @@ namespace Game
 			ret
 		}
 	}
-
 #pragma optimize("", on)
 }
