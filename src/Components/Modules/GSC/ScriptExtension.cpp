@@ -116,7 +116,7 @@ namespace Components
 	void ScriptExtension::AddFunctions()
 	{
 		// Misc functions
-		Script::AddFunction("ToUpper", [] // gsc: ToUpper(<string>)
+		Script::AddFunction("ToUpper", [] // gsc: iw4x_ToUpper(<string>)
 		{
 			const auto scriptValue = Game::Scr_GetConstString(0);
 			const auto* string = Game::SL_ConvertToString(scriptValue);
@@ -161,7 +161,7 @@ namespace Components
 		});
 
 		// Func present on IW5
-		Script::AddFunction("StrICmp", [] // gsc: StrICmp(<string>, <string>)
+		Script::AddFunction("StrICmp", [] // gsc: iw4x_StrICmp(<string>, <string>)
 		{
 			const auto value1 = Game::Scr_GetConstString(0);
 			const auto value2 = Game::Scr_GetConstString(1);
@@ -173,7 +173,7 @@ namespace Components
 		});
 
 		// Func present on IW5
-		Script::AddFunction("IsEndStr", [] // gsc: IsEndStr(<string>, <string>)
+		Script::AddFunction("IsEndStr", [] // gsc: iw4x_IsEndStr(<string>, <string>)
 		{
 			const auto* s1 = Game::Scr_GetString(0);
 			const auto* s2 = Game::Scr_GetString(1);
@@ -187,7 +187,7 @@ namespace Components
 			Game::Scr_AddBool(Utils::String::EndsWith(s1, s2));
 		});
 
-		Script::AddFunction("IsArray", [] // gsc: IsArray(<object>)
+		Script::AddFunction("IsArray", [] // gsc: iw4x_IsArray(<object>)
 		{
 			const auto type = Game::Scr_GetType(0);
 
@@ -211,7 +211,7 @@ namespace Components
 	void ScriptExtension::AddMethods()
 	{
 		// ScriptExtension methods
-		Script::AddMethod("GetIp", [](Game::scr_entref_t entref) // gsc: self GetIp()
+		Script::AddMethod("GetIp", [](Game::scr_entref_t entref) // gsc: self iw4x_GetIp()
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
@@ -224,7 +224,7 @@ namespace Components
 			Game::Scr_AddString(ip.data());
 		});
 
-		Script::AddMethod("GetPing", [](Game::scr_entref_t entref) // gsc: self GetPing()
+		Script::AddMethod("GetPing", [](Game::scr_entref_t entref) // gsc: self iw4x_GetPing()
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
@@ -232,7 +232,7 @@ namespace Components
 			Game::Scr_AddInt(client->ping);
 		});
 
-		Script::AddMethod("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
+		Script::AddMethod("SetPing", [](Game::scr_entref_t entref) // gsc: self iw4x_SetPing(<int>)
 		{
 			auto ping = Game::Scr_GetInt(0);
 

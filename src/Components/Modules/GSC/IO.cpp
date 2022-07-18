@@ -8,7 +8,7 @@ namespace Components
 
 	void IO::AddScriptFunctions()
 	{
-		Script::AddFunction("FileWrite", [] // gsc: FileWrite(<filepath>, <string>, <mode>)
+		Script::AddFunction("FileWrite", [] // gsc: iw4x_FileWrite(<filepath>, <string>, <mode>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 			auto* text = Game::Scr_GetString(1);
@@ -53,7 +53,7 @@ namespace Components
 			}
 		});
 
-		Script::AddFunction("FileRead", [] // gsc: FileRead(<filepath>)
+		Script::AddFunction("FileRead", [] // gsc: iw4x_FileRead(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
@@ -83,7 +83,7 @@ namespace Components
 			Game::Scr_AddString(FileSystem::FileReader(scriptData).getBuffer().data());
 		});
 
-		Script::AddFunction("FileExists", [] // gsc: FileExists(<filepath>)
+		Script::AddFunction("FileExists", [] // gsc: iw4x_FileExists(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 

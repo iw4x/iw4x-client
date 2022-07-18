@@ -3,9 +3,37 @@
 
 namespace Components
 {
+	std::unordered_map<std::string, Script::ScriptFunction> Script::CustomScrFunctions;
+	std::unordered_map<std::string, Script::ScriptMethod> Script::CustomScrMethods;
+
+	// This was added on the 17th of July 2022 to help transition current mods to
+	// the new prefixed functions. Look at the clock! If it's more than three months
+	// later than this date... remove this!
+	std::unordered_set<std::string_view> Script::DeprecatedFunctionsAndMethods = 
+	{
+		"isbot",
+		"istestclient",
+		"botstop",
+		"botweapon",
+		"botmovement",
+		"botaction",
+		"onplayersay",
+		"fileread",
+		"filewrite",
+		"fileexists",
+		"getsystemmilliseconds",
+		"exec",
+		"printconsole",
+		"arecontrolsfrozen",
+		"setping",
+		"setname",
+		"getname",
+		"dropallbots",
+		"httpget",
+		"httpcancel"
+	};
+
 	std::string Script::ScriptName;
-	std::unordered_map<std::string, Game::BuiltinFunctionDef> Script::CustomScrFunctions;
-	std::unordered_map<std::string, Game::BuiltinMethodDef> Script::CustomScrMethods;
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
 	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
@@ -273,32 +301,50 @@ namespace Components
 		Game::GScr_LoadGameTypeScript();
 	}
 
-	void Script::AddFunction(const char* name, Game::BuiltinFunction func, int type)
+	void Script::AddFunction(const std::string& name, Game::BuiltinFunction func, bool type)
 	{
-		Game::BuiltinFunctionDef toAdd;
-		toAdd.actionString = name;
+		const auto functionName = Script::ClientPrefix + name;
+
+		Script::ScriptFunction toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
 
-		CustomScrFunctions.insert_or_assign(Utils::String::ToLower(name), toAdd);
+		CustomScrFunctions.insert_or_assign(Utils::String::ToLower(functionName), toAdd);
 	}
 
-	void Script::AddMethod(const char* name, Game::BuiltinMethod func, int type)
+	void Script::AddMethod(const std::string& name, Game::BuiltinMethod func, bool type)
 	{
-		Game::BuiltinMethodDef toAdd;
-		toAdd.actionString = name;
+		const auto functionName = Script::ClientPrefix + name;
+
+		Script::ScriptMethod toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
 
-		CustomScrMethods.insert_or_assign(Utils::String::ToLower(name), toAdd);
+		CustomScrMethods.insert_or_assign(Utils::String::ToLower(functionName), toAdd);
+	}
+
+	bool Script::IsDeprecated(const std::string& name) 
+	{
+		return Script::DeprecatedFunctionsAndMethods.contains(name);
 	}
 
 	Game::BuiltinFunction Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
 	{
 		if (pName != nullptr)
 		{
-			const auto got = Script::CustomScrFunctions.find(Utils::String::ToLower(*pName));
+			auto name = Utils::String::ToLower(*pName);
 
+			if (IsDeprecated(name)) 
+			{
+				Toast::Show("cardicon_gumby", "WARNING!", std::format("{} uses the deprecated function {}", Script::ScriptName, name), 2048);
+				Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "*** DEPRECATION WARNING ***\n");
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Attempted to execute deprecated builtin {} from {}! This method or function should be prefixed with '{}'. Please update your mod!\n", name, Script::ScriptName, Script::ClientPrefix);
+				Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "***************************\n");
+
+				name = Script::ClientPrefix + name; // Fixes it automatically
+			}
+
+			const auto got = Script::CustomScrFunctions.find(name);
 			// If no function was found let's call game's function
 			if (got != Script::CustomScrFunctions.end())
 			{
@@ -317,12 +363,24 @@ namespace Components
 		return Utils::Hook::Call<Game::BuiltinFunction(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
 	}
 
-	Game::BuiltinMethod Script::BuiltIn_GetMethod(const char** pName, int* type)
+	Game::BuiltinMethod Script::BuiltIn_GetMethodStub(const char** pName, int* type)
 	{
 		if (pName != nullptr)
 		{
-			const auto got = Script::CustomScrMethods.find(Utils::String::ToLower(*pName));
+			auto name = Utils::String::ToLower(*pName);
 
+			if (IsDeprecated(name)) 
+			{
+				Toast::Show("cardicon_gumby", "WARNING!", std::format("{} uses the deprecated method {}", Script::ScriptName, name), 2048);
+				Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "*** DEPRECATION WARNING ***\n");
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Attempted to execute deprecated builtin {} from {}! This function or method should be prefixed with '{}'. Please update your mod!\n", name, Script::ScriptName, Script::ClientPrefix);
+				Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "***************************\n"); 
+				
+				name = Script::ClientPrefix + name; // Fixes it automatically
+
+			}
+
+			const auto got = Script::CustomScrMethods.find(name);
 			// If no method was found let's call game's function
 			if (got != Script::CustomScrMethods.end())
 			{
@@ -538,7 +596,7 @@ namespace Components
 
 	void Script::AddFunctions()
 	{
-		Script::AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
+		Script::AddFunction("ReplaceFunc", [] // gsc: iw4x_ReplaceFunc(<function>, <function>)
 		{
 			if (Game::Scr_GetNumParam() != 2)
 			{
@@ -553,7 +611,7 @@ namespace Components
 		});
 
 		// System time
-		Script::AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
+		Script::AddFunction("GetSystemMilliseconds", [] // gsc: iw4x_GetSystemMilliseconds()
 		{
 			SYSTEMTIME time;
 			GetSystemTime(&time);
@@ -562,7 +620,7 @@ namespace Components
 		});
 
 		// Executes command to the console
-		Script::AddFunction("Exec", [] // gsc: Exec(<string>)
+		Script::AddFunction("Exec", [] // gsc: iw4x_Exec(<string>)
 		{
 			const auto str = Game::Scr_GetString(0);
 
@@ -576,7 +634,7 @@ namespace Components
 		});
 
 		// Allow printing to the console even when developer is 0
-		Script::AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
+		Script::AddFunction("PrintConsole", [] // gsc: iw4x_PrintConsole(<string>)
 		{
 			for (std::size_t i = 0; i < Game::Scr_GetNumParam(); ++i)
 			{
@@ -593,7 +651,7 @@ namespace Components
 		});
 
 		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
-		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
+		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self iw4x_AreControlsFrozen();
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
@@ -626,7 +684,7 @@ namespace Components
 
 		// Fetch custom functions
 		Utils::Hook(0x44E72E, Script::BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
-		Utils::Hook(0x4EC8DD, Script::BuiltIn_GetMethod, HOOK_CALL).install()->quick(); // Scr_GetMethod
+		Utils::Hook(0x4EC8DD, Script::BuiltIn_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
 
 		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
 

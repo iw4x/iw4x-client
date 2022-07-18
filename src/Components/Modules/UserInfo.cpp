@@ -44,7 +44,7 @@ namespace Components
 
 	void UserInfo::AddScriptMethods()
 	{
-		Script::AddMethod("SetName", [](Game::scr_entref_t entref)  // gsc: self SetName(<string>)
+		Script::AddMethod("SetName", [](Game::scr_entref_t entref)  // gsc: self iw4x_SetName(<string>)
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* name = Game::Scr_GetString(0);
@@ -59,7 +59,7 @@ namespace Components
 			Game::ClientUserinfoChanged(ent->s.number);
 		});
 
-		Script::AddMethod("ResetName", [](Game::scr_entref_t entref)  // gsc: self ResetName()
+		Script::AddMethod("ResetName", [](Game::scr_entref_t entref)  // gsc: self iw4x_ResetName()
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
@@ -68,7 +68,7 @@ namespace Components
 			Game::ClientUserinfoChanged(ent->s.number);
 		});
 
-		Script::AddMethod("SetClanTag", [](Game::scr_entref_t entref)  // gsc: self setClanTag(<string>)
+		Script::AddMethod("SetClanTag", [](Game::scr_entref_t entref)  // gsc: self iw4x_setClanTag(<string>)
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* clanName = Game::Scr_GetString(0);
@@ -83,7 +83,7 @@ namespace Components
 			Game::ClientUserinfoChanged(ent->s.number);
 		});
 
-		Script::AddMethod("ResetClanTag", [](Game::scr_entref_t entref)  // gsc: self ResetClanTag()
+		Script::AddMethod("ResetClanTag", [](Game::scr_entref_t entref)  // gsc: self iw4x_ResetClanTag()
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			

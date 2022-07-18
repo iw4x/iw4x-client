@@ -7,17 +7,32 @@ namespace Components
 	public:
 		Script();
 
-		static void AddFunction(const char* name, Game::BuiltinFunction func, int type = 0);
-		static void AddMethod(const char* name, Game::BuiltinMethod func, int type = 0);
+		static void AddFunction(const std::string& name, Game::BuiltinFunction func, bool type = false);
+		static void AddMethod(const std::string& name, Game::BuiltinMethod func, bool type = false);
 
 		static Game::client_t* GetClient(const Game::gentity_t* gentity);
 
 		static const char* GetCodePosForParam(int index);
 
 	private:
+		struct ScriptFunction
+		{
+			Game::BuiltinFunction actionFunc;
+			bool type;
+		};
+
+		struct ScriptMethod
+		{
+			Game::BuiltinMethod actionFunc;
+			bool type;
+		};
+
+		static constexpr auto* ClientPrefix = "iw4x_";
+		static std::unordered_map<std::string, ScriptFunction> CustomScrFunctions;
+		static std::unordered_map<std::string, ScriptMethod> CustomScrMethods;
+		static std::unordered_set<std::string_view> DeprecatedFunctionsAndMethods;
+
 		static std::string ScriptName;
-		static std::unordered_map<std::string, Game::BuiltinFunctionDef> CustomScrFunctions;
-		static std::unordered_map<std::string, Game::BuiltinMethodDef> CustomScrMethods;
 		static std::vector<std::string> ScriptNameStack;
 		static unsigned short FunctionName;
 		static std::unordered_map<int, std::string> ScriptBaseProgramNum;
@@ -46,8 +61,9 @@ namespace Components
 		static void Scr_StartupGameType_Stub();
 		static void GScr_LoadGameTypeScript_Stub();
 
+		static bool IsDeprecated(const std::string& name);
 		static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
-		static Game::BuiltinMethod BuiltIn_GetMethod(const char** pName, int* type);
+		static Game::BuiltinMethod BuiltIn_GetMethodStub(const char** pName, int* type);
 
 		static void StoreScriptBaseProgramNumStub();
 		static void StoreScriptBaseProgramNum();

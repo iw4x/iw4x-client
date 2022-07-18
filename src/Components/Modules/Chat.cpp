@@ -389,7 +389,7 @@ namespace Components
 
 	void Chat::AddScriptFunctions()
 	{
-		Script::AddFunction("OnPlayerSay", [] // gsc: OnPlayerSay(<function>)
+		Script::AddFunction("OnPlayerSay", [] // gsc: iw4x_OnPlayerSay(<function>)
 		{
 			if (Game::Scr_GetNumParam() != 1)
 			{
