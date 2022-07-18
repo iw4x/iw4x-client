@@ -74,6 +74,8 @@ namespace Components
 		std::memset(saneNameBuf, 0, sizeof(saneNameBuf));
 
 		auto* saneName = saneNameBuf;
+		
+		assert(ClanName);
 		const auto* currentName = ClanName->current.string;
 		if (currentName)
 		{
@@ -95,9 +97,10 @@ namespace Components
 	char* ClanTags::GamerProfile_GetClanName(int controllerIndex)
 	{
 		assert(static_cast<std::size_t>(controllerIndex) < Game::MAX_LOCAL_CLIENTS);
+		assert(ClanName);
 
 		CL_SanitizeClanName();
-		Game::I_strncpyz(Game::gamerSettings[0].exeConfig.clanPrefix, ClanName->current.string, sizeof(Game::GamerSettingExeConfig::clanPrefix));
+		Game::I_strncpyz(Game::gamerSettings[controllerIndex].exeConfig.clanPrefix, ClanName->current.string, sizeof(Game::GamerSettingExeConfig::clanPrefix));
 
 		return Game::gamerSettings[controllerIndex].exeConfig.clanPrefix;
 	}
@@ -237,11 +240,11 @@ namespace Components
 
 	ClanTags::ClanTags()
 	{
-		Scheduler::Once([]
+		Events::OnClientInit([]
 		{
 			ClanName = Game::Dvar_RegisterString("clanName", "", Game::DVAR_ARCHIVE,
 				"Your clan abbreviation");
-		}, Scheduler::Pipeline::MAIN);
+		});
 
 		std::memset(&ClientState, 0, sizeof(char[Game::MAX_CLIENTS][5]));
 
