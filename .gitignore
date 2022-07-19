@@ -149,5 +149,5 @@ ida/*
 # User scripts
 user*.bat
 
-# Premake binary
-#premake5.exe
+### Visual Studio Code
+.vscode/

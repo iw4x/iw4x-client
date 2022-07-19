@@ -558,15 +558,9 @@ namespace Components
 		Utils::Hook::Nop(0x4B3670, 5);
 		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub, HOOK_JUMP).install()->quick();
 
-		// Don't load bounce sounds for now, it causes crashes
-		// TODO: Actually check the weaponfiles and/or reset the soundtable correctly!
-		//Utils::Hook::Nop(0x57A360, 5);
-		//Utils::Hook::Nop(0x57A366, 6);
-		Utils::Hook::Nop(0x5795E9, 2);
-
 		// Clear weapons independently from fs_game
-		//Utils::Hook::Nop(0x452C1D, 2);
-		//Utils::Hook::Nop(0x452C24, 5);
+		Utils::Hook::Nop(0x452C1D, 2);
+		Utils::Hook::Nop(0x452C24, 5);
 
 		Utils::Hook(0x59E341, CG_UpdatePrimaryForAltModeWeapon_Stub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x48BB25, CG_SelectWeaponIndex_Stub, HOOK_JUMP).install()->quick();
