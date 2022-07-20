@@ -6,17 +6,28 @@ namespace Components
 	std::recursive_mutex FileSystem::FSMutex;
 	Utils::Memory::Allocator FileSystem::MemAllocator;
 
-	void FileSystem::File::read()
+	void FileSystem::File::read(Game::FsThread thread)
 	{
-		char* _buffer = nullptr;
-		int size = Game::FS_ReadFile(this->filePath.data(), &_buffer);
+		std::lock_guard _(FileSystem::FSMutex);
 
-		this->buffer.clear();
+		assert(!filePath.empty());
 
-		if (size >= 0)
+		int handle;
+		const auto len = Game::FS_FOpenFileReadForThread(filePath.data(), &handle, thread);
+
+		if (handle)
 		{
-			this->buffer.append(_buffer, size);
-			Game::FS_FreeFile(_buffer);
+			auto* buf = AllocateFile(len + 1);
+
+			Game::FS_Read(buf, len, handle);
+
+			buf[len] = '\0';
+
+			Game::FS_FCloseFile(handle);
+
+			this->buffer = buf;
+
+			FreeFile(buf);
 		}
 	}
 
@@ -185,7 +196,7 @@ namespace Components
 		else *buffer = nullptr;
 		if (!path) return -1;
 
-		std::lock_guard<std::mutex> _(FileSystem::Mutex);
+		std::lock_guard _(FileSystem::Mutex);
 		FileSystem::FileReader reader(path);
 
 		int size = reader.getSize();
@@ -256,13 +267,13 @@ namespace Components
 
 	void FileSystem::FsStartupSync(const char* a1)
 	{
-		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		std::lock_guard _(FileSystem::FSMutex);
 		return Utils::Hook::Call<void(const char*)>(0x4823A0)(a1); // FS_Startup
 	}
 
 	void FileSystem::FsRestartSync(int a1, int a2)
 	{
-		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		std::lock_guard _(FileSystem::FSMutex);
 		Maps::GetUserMap()->freeIwd();
 		Utils::Hook::Call<void(int, int)>(0x461A50)(a1, a2); // FS_Restart
 		Maps::GetUserMap()->reloadIwd();
@@ -270,7 +281,7 @@ namespace Components
 
 	void FileSystem::FsShutdownSync(int a1)
 	{
-		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		std::lock_guard _(FileSystem::FSMutex);
 		Maps::GetUserMap()->freeIwd();
 		Utils::Hook::Call<void(int)>(0x4A46C0)(a1); // FS_Shutdown
 	}
@@ -283,7 +294,7 @@ namespace Components
 
 	int FileSystem::LoadTextureSync(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)
 	{
-		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		std::lock_guard _(FileSystem::FSMutex);
 		return Game::Load_Texture(loadDef, image);
 	}
 

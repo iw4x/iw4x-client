@@ -255,7 +255,7 @@ namespace Components
 			}
 
 			static std::string mapEntities;
-			FileSystem::File ents(name + ".ents");
+			FileSystem::File ents(name + ".ents", Game::FS_THREAD_DATABASE);
 			if (ents.exists())
 			{
 				mapEntities = ents.getBuffer();

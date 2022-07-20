@@ -184,18 +184,15 @@ namespace Components
 		__asm
 		{
 			pushad
+
 			push edi
 			call Zones::LoadXModelLodInfo
 			add esp, 4h
+
 			popad
 
-			mov eax, [esp + 8h]
-			push eax
-			add eax, 8
-			push eax
-			call Game::Load_XModelSurfsFixup
-			add esp, 8h
-
+			push 0x4EA703 // Return address
+			push 0x40D7A0 // Load_XModelSurfsFixup
 			retn
 		}
 	}
@@ -3628,7 +3625,7 @@ namespace Components
 		Utils::Hook(0x45AE3D, Zones::LoadRandomFxGarbage, HOOK_CALL).install()->quick();
 		Utils::Hook(0x495938, Zones::LoadFxElemDefArrayStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45ADA0, Zones::LoadFxElemDefStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4EA6FE, Zones::LoadXModelLodInfoStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4EA6FE, Zones::LoadXModelLodInfoStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x410D90, Zones::LoadXModel, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4925C8, Zones::LoadXSurfaceArray, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4F4D0D, Zones::LoadGameWorldSp, HOOK_CALL).install()->quick();

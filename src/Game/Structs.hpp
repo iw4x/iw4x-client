@@ -96,6 +96,17 @@ namespace Game
 		ASSET_TYPE_INVALID = -1,
 	};
 
+	enum FsThread
+	{
+		FS_THREAD_MAIN = 0x0,
+		FS_THREAD_STREAM = 0x1,
+		FS_THREAD_DATABASE = 0x2,
+		FS_THREAD_BACKEND = 0x3,
+		FS_THREAD_SERVER = 0x4,
+		FS_THREAD_COUNT = 0x5,
+		FS_THREAD_INVALID = 0x6,
+	};
+
 	enum materialSurfType_t
 	{
 		SURF_TYPE_DEFAULT,
