@@ -57,16 +57,6 @@ namespace Components
 			Utils::OpenUrl(Utils::Cache::GetStaticUrl(""));
 		});
 
-		UIScript::Add("visitWiki", [](UIScript::Token)
-		{
-			Utils::OpenUrl(Utils::Cache::GetStaticUrl("/iw4x_faq"));
-		});
-
-		UIScript::Add("visitDiscord", [](UIScript::Token)
-		{
-			Utils::OpenUrl("https://discord.gg/sKeVmR3");
-		});
-
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
 		Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFAULT);
 
