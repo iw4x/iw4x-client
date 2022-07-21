@@ -43,6 +43,5 @@ namespace Components
 
 		static Game::PlayerCardData* PlayerCards_GetLiveProfileDataForClient_Stub(unsigned int clientIndex);
 		static Game::PlayerCardData* PlayerCards_GetLiveProfileDataForController_Stub(unsigned int controllerIndex);
-		static Game::PlayerCardData* PlayerCards_GetPartyMemberData(int localClientNum, Game::PlayerCardClientLookupType lookupType, unsigned int memberIndex);
 	};
 }

@@ -230,14 +230,6 @@ namespace Components
 		return result;
 	}
 
-	Game::PlayerCardData* ClanTags::PlayerCards_GetPartyMemberData(const int localClientNum, const Game::PlayerCardClientLookupType lookupType, const unsigned int memberIndex)
-	{
-		auto* result = Utils::Hook::Call<Game::PlayerCardData*(int, Game::PlayerCardClientLookupType, unsigned int)>(0x4A4A90)(localClientNum, lookupType, memberIndex);
-		Game::I_strncpyz(result->clanAbbrev, ClientState[memberIndex], sizeof(Game::PlayerCardData::clanAbbrev));
-
-		return result;
-	}
-
 	ClanTags::ClanTags()
 	{
 		Events::OnClientInit([]
@@ -261,7 +253,7 @@ namespace Components
 
 			return false;
 		});
-		
+
 		Utils::Hook(0x430B00, Dvar_InfoString_Stub, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x44532F, ClientUserinfoChanged_Stub, HOOK_JUMP).install()->quick();
@@ -276,7 +268,6 @@ namespace Components
 		Utils::Hook(0x458DF4, PlayerCards_SetCachedPlayerData_Stub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x62EAB6, PlayerCards_GetLiveProfileDataForClient_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x62EAC3, PlayerCards_GetLiveProfileDataForController_Stub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x62EAE8, PlayerCards_GetPartyMemberData, HOOK_CALL).install()->quick();
 
 		// clanName in CG_Obituary
 		Utils::Hook(0x586DD6, PlayerName::GetClientName, HOOK_CALL).install()->quick();
