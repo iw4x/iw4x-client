@@ -59,8 +59,7 @@ namespace Components
 
 		UIScript::Add("visitWiki", [](UIScript::Token)
 		{
-			//Utils::OpenUrl(Utils::Cache::GetStaticUrl("/wiki/"));
-			Utils::OpenUrl("https://github.com/Emosewaj/IW4x/wiki");
+			Utils::OpenUrl(Utils::Cache::GetStaticUrl("/iw4x_faq"));
 		});
 
 		UIScript::Add("visitDiscord", [](UIScript::Token)
