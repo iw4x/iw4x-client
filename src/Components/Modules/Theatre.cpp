@@ -73,7 +73,7 @@ namespace Components
 
 			if (i + size >= sizeof(cmpData))
 			{
-				Logger::Print("Error: Writing compressed demo baseline exceeded buffer\n");
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Writing compressed demo baseline exceeded buffer\n");
 				break;
 			}
 

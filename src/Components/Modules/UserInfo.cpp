@@ -52,6 +52,7 @@ namespace Components
 			if (name == nullptr)
 			{
 				Game::Scr_ParamError(0, "^1SetName: Illegal parameter!\n");
+				return;
 			}
 
 			Logger::Debug("Setting name of {} to {}", ent->s.number, name);
@@ -76,6 +77,7 @@ namespace Components
 			if (clanName == nullptr)
 			{
 				Game::Scr_ParamError(0, "^1SetClanTag: Illegal parameter!\n");
+				return;
 			}
 
 			Logger::Debug("Setting clanName of {} to {}", ent->s.number, clanName);
