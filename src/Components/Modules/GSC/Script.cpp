@@ -27,7 +27,7 @@ namespace Components
 		"arecontrolsfrozen",
 		"setping",
 		"setname",
-		"getname",
+		"resetname",
 		"dropallbots",
 		"httpget",
 		"httpcancel"
