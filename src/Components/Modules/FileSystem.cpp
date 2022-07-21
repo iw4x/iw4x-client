@@ -19,14 +19,15 @@ namespace Components
 		{
 			auto* buf = AllocateFile(len + 1);
 
-			Game::FS_Read(buf, len, handle);
+			[[maybe_unused]] auto bytesRead = Game::FS_Read(buf, len, handle);
+
+			assert(bytesRead == len);
 
 			buf[len] = '\0';
 
 			Game::FS_FCloseFile(handle);
 
-			this->buffer = buf;
-
+			this->buffer.append(buf, len);
 			FreeFile(buf);
 		}
 	}
