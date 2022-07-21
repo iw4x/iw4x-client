@@ -4,7 +4,7 @@ Thanks for the contribution! Please provide a concise description of the problem
 
 **How does this PR change IW4x's behavior?**
 
-Are there any breaking changes? Will any existing behavior change?
+Are there any breaking changes? Will any existing behaviour change?
 Specify the new expected behaviour if this PR adds a new gameplay feature or alters an existing game mechanic. You may provide an image or video showing the changes.
 
 **Anything else we should know?**
