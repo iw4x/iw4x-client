@@ -495,7 +495,7 @@ namespace Components
 			return "";
 		}
 
-		const auto value = &Game::scrVmPub->top[-index];
+		const auto* value = &Game::scrVmPub->top[-index];
 
 		if (value->type != Game::scrParamType_t::VAR_FUNCTION)
 		{

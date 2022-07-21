@@ -189,14 +189,14 @@ namespace Components
 
 		Script::AddFunction("IsArray", [] // gsc: iw4x_IsArray(<object>)
 		{
-			const auto type = Game::Scr_GetType(0);
+			auto type = Game::Scr_GetType(0);
 
 			bool result;
 			if (type == Game::VAR_POINTER)
 			{
-				const auto ptr_type = Game::Scr_GetPointerType(0);
-				assert(ptr_type >= Game::FIRST_OBJECT);
-				result = (ptr_type == Game::VAR_ARRAY);
+				type = Game::Scr_GetPointerType(0);
+				assert(type >= Game::FIRST_OBJECT);
+				result = (type == Game::VAR_ARRAY);
 			}
 			else
 			{

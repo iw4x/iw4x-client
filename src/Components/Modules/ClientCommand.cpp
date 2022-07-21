@@ -355,7 +355,7 @@ namespace Components
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
-			if (Game::Scr_GetNumParam() >= 1u)
+			if (Game::Scr_GetNumParam() >= 1)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -376,7 +376,7 @@ namespace Components
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
-			if (Game::Scr_GetNumParam() >= 1u)
+			if (Game::Scr_GetNumParam() >= 1)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -397,7 +397,7 @@ namespace Components
 		{
 			auto* ent = Game::GetEntity(entref);
 
-			if (Game::Scr_GetNumParam() >= 1u)
+			if (Game::Scr_GetNumParam() >= 1)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -418,7 +418,7 @@ namespace Components
 		{
 			auto* ent = Game::GetEntity(entref);
 
-			if (Game::Scr_GetNumParam() >= 1u)
+			if (Game::Scr_GetNumParam() >= 1)
 			{
 				if (Game::Scr_GetInt(0))
 				{
@@ -439,7 +439,7 @@ namespace Components
 		{
 			auto* ent = Game::GetEntity(entref);
 
-			if (Game::Scr_GetNumParam() >= 1u)
+			if (Game::Scr_GetNumParam() >= 1)
 			{
 				if (Game::Scr_GetInt(0))
 				{
