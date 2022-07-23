@@ -123,7 +123,7 @@ namespace Utils
 
 	void SafeShellExecute(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd)
 	{
-		[=]()
+		[=]
 		{
 			__try
 			{
