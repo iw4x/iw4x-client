@@ -296,7 +296,7 @@ namespace Game
 		CON_BUILTIN_CHANNEL_COUNT,
 	};
 
-	enum entityFlag
+	enum
 	{
 		FL_GODMODE = 0x1,
 		FL_DEMI_GODMODE = 0x2,
