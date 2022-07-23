@@ -23,7 +23,7 @@ namespace Components
 		static void ClientEventsFireWeaponStub();
 		static void ClientEventsFireWeaponMeleeStub();
 
-		static BOOL IsDynClassnameStub(char* a1);
+		static BOOL IsDynClassnameStub(const char* classname);
 
 		static void CL_KeyEvent_OnEscape();
 		static void CL_KeyEvent_ConsoleEscape_Stub();

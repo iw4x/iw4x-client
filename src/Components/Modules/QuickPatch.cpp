@@ -175,20 +175,20 @@ namespace Components
 		}
 	}
 
-	BOOL QuickPatch::IsDynClassnameStub(char* a1) 
+	BOOL QuickPatch::IsDynClassnameStub(const char* classname)
 	{
-		auto version = Zones::GetEntitiesZoneVersion();
+		const auto version = Zones::Version();
 		
 		if (version >= VERSION_LATEST_CODO)
 		{
 			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
 			{
 				char** kvPair = Game::spawnVars->spawnVars[i];
-				auto key = kvPair[0];
-				auto val = kvPair[1];
+				const auto* key = kvPair[0];
+				const auto* val = kvPair[1];
 
-				bool isSpecOps = strncmp(key, "script_specialops", 17) == 0;
-				bool isSpecOpsOnly = val[0] == '1' && val[1] == '\0';
+				auto isSpecOps = std::strncmp(key, "script_specialops", 17) == 0;
+				auto isSpecOpsOnly = (val[0] == '1') && (val[1] == '\0');
 
 				if (isSpecOps && isSpecOpsOnly)
 				{
@@ -199,8 +199,7 @@ namespace Components
 			}
 		}
 
-		// Passthrough to the game's own IsDynClassname
-		return Utils::Hook::Call<BOOL(char*)>(0x444810)(a1);
+		return Utils::Hook::Call<BOOL(const char*)>(0x444810)(classname); // IsDynClassname
 	}
 
 	void QuickPatch::CL_KeyEvent_OnEscape()

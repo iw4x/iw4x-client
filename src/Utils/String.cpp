@@ -43,6 +43,14 @@ namespace Utils
 			return text;
 		}
 
+		bool Compare(const std::string& lhs, const std::string& rhs)
+		{
+			return std::ranges::equal(lhs, rhs, [](const unsigned char a, const unsigned char b)
+			{
+				return std::tolower(a) == std::tolower(b);
+			});
+		}
+
 		std::string DumpHex(const std::string& data, const std::string& separator)
 		{
 			std::string result;
@@ -106,18 +114,18 @@ namespace Utils
 			return std::equal(needle.rbegin(), needle.rend(), haystack.rbegin());
 		}
 
-		int IsSpace(int c)
+		bool IsNumber(const std::string& str)
 		{
-			if (c < -1) return 0;
-			return _isspace_l(c, nullptr);
+			return !str.empty() && std::find_if(str.begin(),
+				str.end(), [](unsigned char input) { return !std::isdigit(input); }) == str.end();
 		}
 
 		// Trim from start
 		std::string& LTrim(std::string& str)
 		{
-			str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](int val)
+			str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](const unsigned char input)
 			{
-				return !IsSpace(val);
+				return !std::isspace(input);
 			}));
 
 			return str;
@@ -126,9 +134,9 @@ namespace Utils
 		// Trim from end
 		std::string& RTrim(std::string& str)
 		{
-			str.erase(std::find_if(str.rbegin(), str.rend(), [](int val)
+			str.erase(std::find_if(str.rbegin(), str.rend(), [](const  unsigned char input)
 			{
-				return !IsSpace(val);
+				return !std::isspace(input);
 			}).base(), str.end());
 
 			return str;

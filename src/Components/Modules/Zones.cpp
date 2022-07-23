@@ -4,12 +4,12 @@
 namespace Components
 {
 	int Zones::ZoneVersion;
-	int Zones::EntitiesVersion;
 
 	int Zones::FxEffectIndex;
 	char* Zones::FxEffectStrings[64];
 
-	static std::unordered_map<std::string, std::string> shellshock_replace_list = {
+	static std::unordered_map<std::string, std::string> shellshock_replace_list =
+	{
 		{ "66","bg_shock_screenType" },
 		{ "67","bg_shock_screenBlurBlendTime"},
 		{ "68","bg_shock_screenBlurBlendFadeTime"},
@@ -39,26 +39,6 @@ namespace Components
 		{ "90","bg_shock_lookControl_mousesensitivityscale"},
 		{ "91","bg_shock_lookControl_fadeTime"},
 		{ "92","bg_shock_movement"}
-	};
-
-	static std::unordered_map<std::string, std::string> vision_replace_list = {
-		{ "511","r_glow" },
-		{ "516","r_glowRadius0" },
-		{ "512","r_glowBloomCutoff" },
-		{ "513","r_glowBloomDesaturation" },
-		{ "514","r_glowBloomIntensity0" },
-		{ "520","r_filmEnable" },
-		{ "522","r_filmContrast" },
-		{ "521","r_filmBrightness" },
-		{ "523","r_filmDesaturation" },
-		{ "524","r_filmDesaturationDark" },
-		{ "525","r_filmInvert" },
-		{ "526","r_filmLightTint" },
-		{ "527","r_filmMediumTint" },
-		{ "528","r_filmDarkTint" },
-		{ "529","r_primaryLightUseTweaks" },
-		{ "530","r_primaryLightTweakDiffuseStrength" },
-		{ "531","r_primaryLightTweakSpecularStrength" },
 	};
 
 	Game::XAssetType currentAssetType = Game::XAssetType::ASSET_TYPE_INVALID;
@@ -2559,8 +2539,6 @@ namespace Components
 	
 	int Zones::LoadMapEnts(bool atStreamStart, Game::MapEnts* buffer, int size)
 	{
-		EntitiesVersion = Zones::Version();
-
 		if (Zones::Version() >= 446)
 		{
 			size /= 44;
@@ -3487,18 +3465,6 @@ namespace Components
 		
 		Game::DB_PopStreamPos();
 	}
-
-	char* Zones::ParseVision_Stub(const char** data_p)
-	{
-		auto token = Game::Com_Parse(data_p);
-
-		if (vision_replace_list.find(token) != vision_replace_list.end())
-		{
-			return vision_replace_list[token].data();
-		}
-
-		return token;
-	}
 	
 	char* Zones::ParseShellShock_Stub(const char** data_p)
 	{
@@ -3507,9 +3473,9 @@ namespace Components
 		{
 			return shellshock_replace_list[token].data();
 		}
+
 		return token;
 	}
-
 
 	Zones::Zones()
 	{
@@ -3681,10 +3647,6 @@ namespace Components
 
 		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).install()->quick();
 		Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).install()->quick();
-
-		// Fix newer vision file
-		Utils::Hook(0x59A849, ParseVision_Stub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x59A8AD, ParseVision_Stub, HOOK_CALL).install()->quick();
 
 #ifdef DEBUG
 		// Easy dirty disk debugging
