@@ -995,7 +995,6 @@ namespace Game
 		MaterialShaderArgument *args;
 	};
 
-	/* 9045 */
 	struct visionSetVars_t
 	{
 		bool glowEnable;
