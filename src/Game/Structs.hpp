@@ -6246,7 +6246,7 @@ namespace Game
 
 	static_assert(sizeof(gentity_s) == 0x274);
 
-	enum $1C4253065710F064DA9E4D59ED6EC544
+	enum
 	{
 		ENTFIELD_ENTITY = 0x0,
 		ENTFIELD_SENTIENT = 0x2000,

@@ -8,7 +8,7 @@ namespace Components
 
 	void ScriptStorage::AddScriptFunctions()
 	{
-		Script::AddFunction("StorageSet", [] // gsc: iw4x_StorageSet(<str key>, <str data>);
+		Script::AddFunction("StorageSet", [] // gsc: StorageSet(<str key>, <str data>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 			const auto* value = Game::Scr_GetString(1);
@@ -22,7 +22,7 @@ namespace Components
 			Data.insert_or_assign(key, value);
 		});
 
-		Script::AddFunction("StorageRemove", [] // gsc: iw4x_StorageRemove(<str key>);
+		Script::AddFunction("StorageRemove", [] // gsc: StorageRemove(<str key>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 
@@ -41,7 +41,7 @@ namespace Components
 			Data.erase(key);
 		});
 
-		Script::AddFunction("StorageGet", [] // gsc: iw4x_StorageGet(<str key>);
+		Script::AddFunction("StorageGet", [] // gsc: StorageGet(<str key>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 
@@ -61,7 +61,7 @@ namespace Components
 			Game::Scr_AddString(data.data());
 		});
 
-		Script::AddFunction("StorageHas", [] // gsc: iw4x_StorageHas(<str key>);
+		Script::AddFunction("StorageHas", [] // gsc: StorageHas(<str key>);
 		{
 			const auto* key = Game::Scr_GetString(0);
 
@@ -74,7 +74,7 @@ namespace Components
 			Game::Scr_AddBool(Data.contains(key));
 		});
 
-		Script::AddFunction("StorageDump", [] // gsc: iw4x_StorageDump();
+		Script::AddFunction("StorageDump", [] // gsc: StorageDump();
 		{
 			if (Data.empty())
 			{
@@ -87,7 +87,7 @@ namespace Components
 			FileSystem::FileWriter("scriptdata/scriptstorage.json").write(json.dump());
 		});
 
-		Script::AddFunction("StorageClear", [] // gsc: iw4x_StorageClear();
+		Script::AddFunction("StorageClear", [] // gsc: StorageClear();
 		{
 			Data.clear();
 		});

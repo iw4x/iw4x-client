@@ -27,10 +27,8 @@ namespace Components
 			bool type;
 		};
 
-		static constexpr auto* ClientPrefix = "iw4x_";
 		static std::unordered_map<std::string, ScriptFunction> CustomScrFunctions;
 		static std::unordered_map<std::string, ScriptMethod> CustomScrMethods;
-		static std::unordered_set<std::string_view> DeprecatedFunctionsAndMethods;
 
 		static std::string ScriptName;
 		static std::vector<std::string> ScriptNameStack;
