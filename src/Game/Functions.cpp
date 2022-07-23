@@ -564,13 +564,19 @@ namespace Game
 
 	GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
 
+	Console* con = reinterpret_cast<Console*>(0x9FCCF8);
 	ConDrawInputGlob* conDrawInputGlob = reinterpret_cast<ConDrawInputGlob*>(0x9FD6F8);
+
+	int* g_console_field_width = reinterpret_cast<int*>(0x79854C);
+	float* g_console_char_height = reinterpret_cast<float*>(0x798550);
 	field_t* g_consoleField = reinterpret_cast<field_t*>(0xA1B6B0);
 
 	clientStatic_t* cls = reinterpret_cast<clientStatic_t*>(0xA7FE90);
+	clientUIActive_t* clientUIActives = reinterpret_cast<clientUIActive_t*>(0xB2BB8A);
 
 	sharedUiInfo_t* sharedUiInfo = reinterpret_cast<sharedUiInfo_t*>(0x62E4B78);
 	ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0x10843F0);
+	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 	ScreenPlacement* scrPlaceView = reinterpret_cast<ScreenPlacement*>(0x1084378);
 	
 	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
@@ -592,8 +598,6 @@ namespace Game
 	XModel** cached_models = reinterpret_cast<XModel**>(0x1AA20C8);
 
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
-
-	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 
 	float (*CorrectSolidDeltas)[26][3] = reinterpret_cast<float(*)[26][3]>(0x739BB8); // Count 26
 
@@ -1162,6 +1166,11 @@ namespace Game
 	float GraphFloat_GetValue(const GraphFloat* graph, const float fraction)
 	{
 		return GraphGetValueFromFraction(graph->knotCount, graph->knots, fraction) * graph->scale;
+	}
+
+	ScreenPlacement* ScrPlace_GetFullPlacement()
+	{
+		return scrPlaceFull;
 	}
 
 	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement()

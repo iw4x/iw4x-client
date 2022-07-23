@@ -324,10 +324,10 @@ namespace Components
 
 		va_list va;
 		va_start(va, fmt);
-		_vsnprintf_s(buf, _TRUNCATE, fmt, va);
+		vsnprintf_s(buf, _TRUNCATE, fmt, va);
 		va_end(va);
 
-		Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}", buf);
+		Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}\n", buf);
 
 		Console::RefreshOutput();
 
@@ -534,10 +534,42 @@ namespace Components
 		return reinterpret_cast<Game::Dvar_RegisterVec4_t>(0x471500)(dvarName, r, g, b, a, min, max, flags, description);
 	}
 
+	void Console::Con_ToggleConsole()
+	{
+		Game::Field_Clear(Game::g_consoleField);
+		if (Game::conDrawInputGlob->matchIndex >= 0 && Game::conDrawInputGlob->autoCompleteChoice[0] != '\0')
+		{
+			Game::conDrawInputGlob->matchIndex = -1;
+			Game::conDrawInputGlob->autoCompleteChoice[0] = '\0';
+		}
+
+		Game::g_consoleField->fixedSize = 1;
+		Game::con->outputVisible = false;
+		Game::g_consoleField->widthInPixels = *Game::g_console_field_width;
+		Game::g_consoleField->charHeight = *Game::g_console_char_height;
+
+		for (std::size_t localClientNum = 0; localClientNum < Game::MAX_LOCAL_CLIENTS; ++localClientNum)
+		{
+			assert((Game::clientUIActives[0].keyCatchers & Game::KEYCATCH_CONSOLE) == (Game::clientUIActives[localClientNum].keyCatchers & Game::KEYCATCH_CONSOLE));
+			Game::clientUIActives[localClientNum].keyCatchers ^= 1;
+		}
+	}
+
+	void Console::AddConsoleCommand()
+	{
+		Command::Add("con_echo", []
+		{
+			Console::Con_ToggleConsole();
+			Game::I_strncpyz(Game::g_consoleField->buffer, "\\echo ", sizeof(Game::field_t::buffer));
+			Game::g_consoleField->cursor = static_cast<int>(std::strlen(Game::g_consoleField->buffer));
+			Game::Field_AdjustScroll(Game::ScrPlace_GetFullPlacement(), Game::g_consoleField);
+		});
+	}
+
 	Console::Console()
 	{
 		// Console '%s: %s> ' string
-		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x: " VERSION "> ");
+		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " VERSION "> ");
 
 		// Patch console color
 		static float consoleColor[] = { 0.70f, 1.00f, 0.00f, 1.00f };
@@ -576,6 +608,10 @@ namespace Components
 
 		// Don't resize the console
 		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).install()->quick();
+
+#ifdef _DEBUG
+		Console::AddConsoleCommand();
+#endif
 
 		if (Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{

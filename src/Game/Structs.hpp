@@ -8634,6 +8634,160 @@ namespace Game
 
 	static_assert(sizeof(PartyData) == 0x23D8);
 
+	struct MessageLine
+	{
+		int messageIndex;
+		int textBufPos;
+		int textBufSize;
+		int typingStartTime;
+		int lastTypingSoundTime;
+		int flags;
+	};
+
+	struct Message
+	{
+		int startTime;
+		int endTime;
+	};
+
+	struct MessageWindow
+	{
+		MessageLine* lines;
+		Message* messages;
+		char* circularTextBuffer;
+		int textBufSize;
+		int lineCount;
+		int padding;
+		int scrollTime;
+		int fadeIn;
+		int fadeOut;
+		int textBufPos;
+		int firstLineIndex;
+		int activeLineCount;
+		int messageIndex;
+	};
+
+	struct MessageBuffer
+	{
+		char gamemsgText[4][2048];
+		MessageWindow gamemsgWindows[4];
+		MessageLine gamemsgLines[4][12];
+		Message gamemsgMessages[4][12];
+		char miniconText[4096];
+		MessageWindow miniconWindow;
+		MessageLine miniconLines[100];
+		Message miniconMessages[100];
+		char errorText[1024];
+		MessageWindow errorWindow;
+		MessageLine errorLines[5];
+		Message errorMessages[5];
+	};
+
+	struct Console
+	{
+		MessageWindow consoleWindow;
+		MessageLine consoleLines[1024];
+		Message consoleMessages[1024];
+		char consoleText[65536];
+		char textTempLine[512];
+		unsigned int lineOffset;
+		int displayLineOffset;
+		int prevChannel;
+		bool outputVisible;
+		int fontHeight;
+		int visibleLineCount;
+		int visiblePixelWidth;
+		float screenMin[2];
+		float screenMax[2];
+		MessageBuffer messageBuffer[1];
+		float color[4];
+	};
+
+	enum clientMigState_t
+	{
+		CMSTATE_INACTIVE = 0x0,
+		CMSTATE_OLDHOSTLEAVING = 0x1,
+		CMSTATE_LIMBO = 0x2,
+		CMSTATE_NEWHOSTCONNECT = 0x3,
+		CMSTATE_COUNT = 0x4,
+	};
+
+	enum MigrationVerboseState
+	{
+		MVSTATE_INACTIVE = 0x0,
+		MVSTATE_WAITING = 0x1,
+		MVSTATE_RATING = 0x2,
+		MVSTATE_SENDING = 0x3,
+		MVSTATE_MIGRATING = 0x4,
+		MVSTATE_COUNT = 0x5,
+	};
+
+	enum connstate_t
+	{
+		CA_DISCONNECTED = 0x0,
+		CA_CINEMATIC = 0x1,
+		CA_LOGO = 0x2,
+		CA_CONNECTING = 0x3,
+		CA_CHALLENGING = 0x4,
+		CA_CONNECTED = 0x5,
+		CA_SENDINGSTATS = 0x6,
+		CA_LOADING = 0x7,
+		CA_PRIMED = 0x8,
+		CA_ACTIVE = 0x9,
+	};
+
+	struct MigrationPers
+	{
+		int time;
+		bool stanceHeld;
+		StanceState stance;
+		StanceState stancePosition;
+		int stanceTime;
+		int cgameUserCmdWeapon;
+		int cgameUserCmdOffHandIndex;
+		unsigned int weaponSelect;
+		int weaponSelectTime;
+		int weaponForcedSelectTime;
+		unsigned int weaponLatestPrimaryIdx;
+		unsigned __int16 primaryWeaponForAlt[1400];
+		int holdBreathTime;
+		int holdBreathInTime;
+		int holdBreathDelay;
+		float holdBreathFrac;
+	};
+
+	struct clientUIActive_t
+	{
+		bool active;
+		bool isRunning;
+		bool cgameInitialized;
+		bool cgameInitCalled;
+		bool mapPreloaded;
+		clientMigState_t migrationState;
+		MigrationPers migrationPers;
+		MigrationVerboseState verboseMigrationState;
+		int verboseMigrationData;
+		int keyCatchers;
+		bool displayHUDWithKeycatchUI;
+		connstate_t connectionState;
+		bool invited;
+		char itemsUnlocked[256];
+		bool itemsUnlockedInited;
+		bool itemsUnlockedLastGameDirty;
+		unsigned __int16 itemsUnlockedLastGame[16];
+		int itemsUnlockedLastGameCount;
+		char* itemsUnlockedBuffer;
+		int itemsUnlockedLocalClientNum;
+		int itemsUnlockedControllerIndex;
+		int itemsUnlockedStatsSource;
+	};
+
+	enum msgLocErrType_t
+	{
+		LOCMSG_SAFE = 0x0,
+		LOCMSG_NOERR = 0x1,
+	};
+
 #pragma endregion
 
 #ifndef IDA
