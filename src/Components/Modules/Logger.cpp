@@ -12,7 +12,7 @@ namespace Components
 		return (IsWindow(Console::GetWindow()) != FALSE || (Dedicated::IsEnabled() && !Flags::HasFlag("console")));
 	}
 
-	void Logger::PrintStub(const int channel, const char* message, ...)
+	void Logger::Print_Stub(const int channel, const char* message, ...)
 	{
 		char buf[4096] = {0};
 
@@ -164,22 +164,18 @@ namespace Components
 		}
 	}
 
-	void Logger::G_LogPrintfStub(const char* fmt, ...)
+	void Logger::G_LogPrintf_Hk(const char* fmt, ...)
 	{
-		char string[1024];
-		char string2[1024];
+		char string[1024]{};
+		char string2[1024]{};
 
 		va_list ap;
 		va_start(ap, fmt);
 		vsnprintf_s(string2, _TRUNCATE, fmt, ap);
 		va_end(ap);
 
-		const auto min = Game::level->time / 1000 / 60;
-		const auto tens = Game::level->time / 1000 % 60 / 10;
-		const auto sec = Game::level->time / 1000 % 60 % 10;
-
-		const auto len = _snprintf_s(string, _TRUNCATE, "%3i:%i%i %s",
-			min, tens, sec, string2);
+		const auto time = Game::level->time / 1000;
+		const auto len = _snprintf_s(string, _TRUNCATE, "%3i:%i%i %s", time / 60, time % 60 / 10, time % 60 % 10, string2);
 
 		if (Game::level->logFile != nullptr)
 		{
@@ -190,7 +186,7 @@ namespace Components
 		Logger::NetworkLog(string, true);
 	}
 
-	__declspec(naked) void Logger::PrintMessageStub()
+	__declspec(naked) void Logger::PrintMessage_Stub()
 	{
 		__asm
 		{
@@ -241,7 +237,7 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) void Logger::BuildOSPathStub()
+	__declspec(naked) void Logger::BuildOSPath_Stub()
 	{
 		__asm
 		{
@@ -374,18 +370,18 @@ namespace Components
 	Logger::Logger()
 	{
 		Dvar::Register<bool>("iw4x_onelog", false, Game::DVAR_LATCH | Game::DVAR_ARCHIVE, "Only write the game log to the 'userraw' OS folder");
-		Utils::Hook(0x642139, Logger::BuildOSPathStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x642139, Logger::BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
 		Logger::PipeOutput(nullptr);
 
 		Scheduler::Loop(Logger::Frame, Scheduler::Pipeline::SERVER);
 
-		Utils::Hook(Game::G_LogPrintf, Logger::G_LogPrintfStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(Game::G_LogPrintf, Logger::G_LogPrintf_Hk, HOOK_JUMP).install()->quick();
+		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessage_Stub, HOOK_JUMP).install()->quick();
 
 		if (Loader::IsPerformingUnitTests())
 		{
-			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).install()->quick();
+			Utils::Hook(Game::Com_Printf, Logger::Print_Stub, HOOK_JUMP).install()->quick();
 		}
 
 		Events::OnSVInit(Logger::AddServerCommands);

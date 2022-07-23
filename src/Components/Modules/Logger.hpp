@@ -10,7 +10,7 @@ namespace Components
 		
 		static bool IsConsoleReady();
 
-		static void PrintStub(int channel, const char* message, ...);
+		static void Print_Stub(int channel, const char* message, ...);
 
 		static void PipeOutput(void(*callback)(const std::string&));
 
@@ -100,12 +100,12 @@ namespace Components
 
 		static void MessagePrint(int channel, const std::string& msg);
 		static void Frame();
-		static void G_LogPrintfStub(const char* fmt, ...);
-		static void PrintMessageStub();
+		static void G_LogPrintf_Hk(const char* fmt, ...);
+		static void PrintMessage_Stub();
 		static void PrintMessagePipe(const char* data);
 		static void EnqueueMessage(const std::string& message);
 
-		static void BuildOSPathStub();
+		static void BuildOSPath_Stub();
 		static void RedirectOSPath(const char* file, char* folder);
 
 		static void NetworkLog(const char* data, bool gLog);
