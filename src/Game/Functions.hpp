@@ -1231,13 +1231,19 @@ namespace Game
 
 	extern GfxScene* scene;
 
+	extern Console* con;
 	extern ConDrawInputGlob* conDrawInputGlob;
+
+	extern int* g_console_field_width;
+	extern float* g_console_char_height;
 	extern field_t* g_consoleField;
 
 	extern clientStatic_t* cls;
+	extern clientUIActive_t* clientUIActives;
 
 	extern sharedUiInfo_t* sharedUiInfo;
 	extern ScreenPlacement* scrPlaceFull;
+	extern ScreenPlacement* scrPlaceFullUnsafe;
 	extern ScreenPlacement* scrPlaceView;
 	
 	extern clientActive_t* clients;
@@ -1265,8 +1271,6 @@ namespace Game
 	extern float (*CorrectSolidDeltas)[26][3];
 
 	extern FastCriticalSection* db_hashCritSect;
-
-	extern ScreenPlacement* scrPlaceFullUnsafe;
 
 	extern level_locals_t* level;
 
@@ -1306,6 +1310,7 @@ namespace Game
 
 	XModel* G_GetModel(int index);
 
+	ScreenPlacement* ScrPlace_GetFullPlacement();
 	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement();
 
 	void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize);
