@@ -2,7 +2,7 @@
 
 Thanks for the contribution! Please provide a concise description of the problem this request solves.
 
-**How does this PR change IW4x's behavior?**
+**How does this PR change IW4x's behaviour?**
 
 Are there any breaking changes? Will any existing behaviour change?
 Specify the new expected behaviour if this PR adds a new gameplay feature or alters an existing game mechanic. You may provide an image or video showing the changes.
