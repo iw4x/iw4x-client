@@ -26,11 +26,11 @@ namespace Components
 		return true;
 	}
 
-	void ClientCommand::Add(const char* name, std::function<void(Game::gentity_s*, Command::ServerParams*)> callback)
+	void ClientCommand::Add(const char* name, const std::function<void(Game::gentity_s*, Command::ServerParams*)>& callback)
 	{
 		const auto command = Utils::String::ToLower(name);
 
-		ClientCommand::HandlersSV[command] = std::move(callback);
+		ClientCommand::HandlersSV[command] = callback;
 	}
 
 	void ClientCommand::ClientCommandStub(const int clientNum)
@@ -52,7 +52,7 @@ namespace Components
 			return;
 		}
 
-		Utils::Hook::Call<void(const int)>(0x416790)(clientNum);
+		Utils::Hook::Call<void(int)>(0x416790)(clientNum);
 	}
 
 	void ClientCommand::AddCheatCommands()
@@ -351,69 +351,6 @@ namespace Components
 
 	void ClientCommand::AddScriptFunctions()
 	{
-		Script::AddMethod("God", [](Game::scr_entref_t entref) // gsc: God(<optional int toggle>);
-		{
-			auto* ent = Game::GetEntity(entref);
-
-			if (Game::Scr_GetNumParam() >= 1)
-			{
-				if (Game::Scr_GetInt(0))
-				{
-					ent->flags |= Game::FL_GODMODE;
-				}
-				else
-				{
-					ent->flags &= ~Game::FL_GODMODE;
-				}
-			}
-			else
-			{
-				ent->flags ^= Game::FL_GODMODE;
-			}
-		});
-
-		Script::AddMethod("Demigod", [](Game::scr_entref_t entref) // gsc: Demigod(<optional int toggle>);
-		{
-			auto* ent = Game::GetEntity(entref);
-
-			if (Game::Scr_GetNumParam() >= 1)
-			{
-				if (Game::Scr_GetInt(0))
-				{
-					ent->flags |= Game::FL_DEMI_GODMODE;
-				}
-				else
-				{
-					ent->flags &= ~Game::FL_DEMI_GODMODE;
-				}
-			}
-			else
-			{
-				ent->flags ^= Game::FL_DEMI_GODMODE;
-			}
-		});
-
-		Script::AddMethod("Notarget", [](Game::scr_entref_t entref) // gsc: Notarget(<optional int toggle>);
-		{
-			auto* ent = Game::GetEntity(entref);
-
-			if (Game::Scr_GetNumParam() >= 1)
-			{
-				if (Game::Scr_GetInt(0))
-				{
-					ent->flags |= Game::FL_NOTARGET;
-				}
-				else
-				{
-					ent->flags &= ~Game::FL_NOTARGET;
-				}
-			}
-			else
-			{
-				ent->flags ^= Game::FL_NOTARGET;
-			}
-		});
-
 		Script::AddFunction("DropAllBots", [] // gsc: DropAllBots();
 		{
 			Game::SV_DropAllBots();
