@@ -44,6 +44,7 @@ namespace Assets
 			{"wc_unlit_alphatest", "wc_unlit_blend_lin"},
 			{"wc_unlit_blend", "wc_unlit_blend_lin_ua"},
 			{"wc_unlit_replace", "wc_unlit_replace_lin"},
+			{"wc_unlit_nofog", "wc_unlit_replace_lin_nofog_nocast" },
 
 			{"mc_unlit_replace", "mc_unlit_replace_lin"},
 			{"mc_unlit_nofog", "mc_unlit_blend_nofog_ua"},
