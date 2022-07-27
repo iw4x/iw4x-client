@@ -340,11 +340,17 @@ namespace Components
 
 		Maps::MapDependencies dependencies{};
 
+		// True by default - cause some maps won't have an arenafile entry
+		dependencies.requiresTeamZones = true;
+
 		for (int i = 0; i < *Game::arenaCount; ++i)
 		{
 			Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
 			if (arena->mapName == map)
 			{
+				// If it's in the arena file, surely it's a vanilla map that doesn't need teams...
+				dependencies.requiresTeamZones = false;
+
 				for (std::size_t j = 0; j < std::extent_v<decltype(Game::newMapArena_t::keys)>; ++j)
 				{
 					const auto* key = arena->keys[j];
@@ -363,6 +369,7 @@ namespace Components
 					}
 					else if (key == "useteamzones"s)
 					{
+						// ... unless it specifies so!  This allows loading of CODO/COD4 zones that might not have the correct teams
 						dependencies.requiresTeamZones = Utils::String::ToLower(value) == "true"s;
 					}
 				}
