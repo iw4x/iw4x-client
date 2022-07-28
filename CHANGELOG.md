@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.7.4] - 2022-07-25
+## [0.7.4] - 2022-07-28
 
 ### Added
 
@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add `EnableWeaponPickup` GSC method (#329)
 - Add `protect-saved-dvars` command line argument (#335)
 - Add `clanName` dvar. Can be edited in the `barracks` menu (#361)
-- Add DLC9 containing classic maps from CoD4: backlot, Chinatown, Winter Crash, Pipeline and Downpour
+- Add DLC9 containing classic maps from CoD4: Backlot, Chinatown, Winter Crash, Pipeline and Downpour
 
 ### Changed
 
