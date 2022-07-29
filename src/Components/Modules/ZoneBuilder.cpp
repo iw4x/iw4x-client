@@ -1523,7 +1523,7 @@ namespace Components
 				}
 
 				Logger::Print("------------------- BEGIN IWI DUMP -------------------\n");
-				Logger::Print("{}\n", json11::Json(images).dump());
+				Logger::Print("{}\n", nlohmann::json(images).dump());
 				Logger::Print("------------------- END IWI DUMP -------------------\n");
 			});
 

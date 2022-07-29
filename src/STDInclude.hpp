@@ -78,7 +78,6 @@
 
 #include <curses.h>
 #include <gsl/gsl>
-#include <json11.hpp>
 #include <tomcrypt.h>
 #include <mongoose.h>
 #include <udis86.h>
@@ -94,6 +93,12 @@ using namespace std::literals;
 #ifdef min
 	#undef min
 #endif
+
+// Needs to be included after the nominmax above ^
+#ifdef snprintf
+	#undef snprintf
+#endif
+#include <json.hpp>
 
 #define AssertSize(x, size) \
 	static_assert(sizeof(x) == (size), \

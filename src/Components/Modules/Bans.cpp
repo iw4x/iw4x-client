@@ -107,7 +107,7 @@ namespace Components
 				ipEntry.bytes[3] & 0xFF));
 		}
 
-		const json11::Json bans = json11::Json::object
+		const nlohmann::json bans = nlohmann::json
 		{
 			{ "ip", ipVector },
 			{ "id", idVector },
@@ -131,13 +131,7 @@ namespace Components
 		}
 
 		std::string error;
-		const auto banData = json11::Json::parse(bans.getBuffer(), error);
-
-		if (!error.empty())
-		{
-			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Failed to parse bans.json: {}\n", error);
-			return;
-		}
+		const auto banData = nlohmann::json::parse(bans.getBuffer());
 
 		if (!banData.is_object())
 		{
@@ -150,12 +144,14 @@ namespace Components
 
 		if (idList.is_array())
 		{
-			for (auto &idEntry : idList.array_items())
+			nlohmann::json::array_t arr = idList;
+
+			for (auto &idEntry : arr)
 			{
 				if (idEntry.is_string())
 				{
 					SteamID id;
-					id.bits = strtoull(idEntry.string_value().data(), nullptr, 16);
+					id.bits = strtoull(idEntry.get<std::string>().data(), nullptr, 16);
 
 					list->idList.push_back(id);
 				}
@@ -164,11 +160,13 @@ namespace Components
 
 		if (ipList.is_array())
 		{
-			for (auto &ipEntry : ipList.array_items())
+			nlohmann::json::array_t arr = ipList;
+
+			for (auto &ipEntry : arr)
 			{
 				if (ipEntry.is_string())
 				{
-					Network::Address addr(ipEntry.string_value());
+					Network::Address addr(ipEntry.get<std::string>());
 
 					list->ipList.push_back(addr.getIP());
 				}

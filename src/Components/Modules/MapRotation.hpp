@@ -34,7 +34,7 @@ namespace Components
 			void parse(const std::string& data);
 
 			// Json11 Implicit constructor
-			[[nodiscard]] json11::Json to_json() const;
+			[[nodiscard]] nlohmann::json to_json() const;
 
 		private:
 			std::vector<rotationEntry> rotationEntries_;

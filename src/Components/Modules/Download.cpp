@@ -63,7 +63,7 @@ namespace Components
 		download->files.clear();
 
 		std::string error;
-		json11::Json listData = json11::Json::parse(list, error);
+		nlohmann::json listData = nlohmann::json::parse(list);
 
 		if (!error.empty() || !listData.is_array())
 		{
@@ -72,8 +72,9 @@ namespace Components
 		}
 
 		download->totalBytes = 0;
+		nlohmann::json::array_t listDataArray = listData;
 
-		for (auto& file : listData.array_items())
+		for (auto& file : listDataArray)
 		{
 			if (!file.is_object()) return false;
 
@@ -84,9 +85,9 @@ namespace Components
 			if (!hash.is_string() || !name.is_string() || !size.is_number()) return false;
 
 			Download::ClientDownload::File fileEntry;
-			fileEntry.name = name.string_value();
-			fileEntry.hash = hash.string_value();
-			fileEntry.size = static_cast<size_t>(size.number_value());
+			fileEntry.name = name.get<std::string>();
+			fileEntry.hash = hash.get<std::string>();
+			fileEntry.size = size.get<size_t>();
 
 			if (!fileEntry.name.empty())
 			{
@@ -502,14 +503,14 @@ namespace Components
 		// Only handle http requests
 		if (ev != MG_EV_HTTP_REQUEST) return;
 
-		std::vector<json11::Json> servers;
+		std::vector<nlohmann::json> servers;
 
 		// Build server list
 		for (auto& node : Node::GetNodes())
 		{
 			if (node.isValid())
 			{
-				servers.push_back(json11::Json{ node });
+				servers.push_back(nlohmann::json{ node.to_json()});
 			}
 		}
 
@@ -519,7 +520,7 @@ namespace Components
 			"Connection: close\r\n"
 			"Access-Control-Allow-Origin: *\r\n"
 			"\r\n"
-			"%s", json11::Json(servers).dump().data());
+			"%s", nlohmann::json(servers).dump().data());
 
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 	}
@@ -532,17 +533,17 @@ namespace Components
 		if (!Download::VerifyPassword(nc, reinterpret_cast<http_message*>(ev_data))) return;
 
 		static std::string mapnamePre;
-		static json11::Json jsonList;
+		static nlohmann::json jsonList;
 
 		std::string mapname = (Party::IsInUserMapLobby() ? Dvar::Var("ui_mapname").get<std::string>() : Maps::GetUserMap()->getName());
 		if (!Maps::GetUserMap()->isValid() && !Party::IsInUserMapLobby())
 		{
 			mapnamePre.clear();
-			jsonList = std::vector<json11::Json>();
+			jsonList = std::vector<nlohmann::json>();
 		}
 		else if (!mapname.empty() && mapname != mapnamePre)
 		{
-			std::vector<json11::Json> fileList;
+			std::vector<nlohmann::json> fileList;
 
 			mapnamePre = mapname;
 
@@ -553,7 +554,7 @@ namespace Components
 				std::string filename = path + "\\" + mapname + Maps::UserMapFiles[i];
 				if (Utils::IO::FileExists(filename))
 				{
-					std::map<std::string, json11::Json> file;
+					std::map<std::string, nlohmann::json> file;
 					std::string fileBuffer = Utils::IO::ReadFile(filename);
 
 					file["name"] = mapname + Maps::UserMapFiles[i];
@@ -591,13 +592,13 @@ namespace Components
 // 		else
 		{
 			static std::string fsGamePre;
-			static json11::Json jsonList;
+			static nlohmann::json jsonList;
 
 			std::string fsGame = Dvar::Var("fs_game").get<std::string>();
 
 			if (!fsGame.empty() && fsGame != fsGamePre)
 			{
-				std::vector<json11::Json> fileList;
+				std::vector<nlohmann::json> fileList;
 
 				fsGamePre = fsGame;
 
@@ -611,7 +612,7 @@ namespace Components
 					std::string filename = path + "\\" + *i;
 					if (strstr(i->data(), "_svr_") == nullptr && Utils::IO::FileExists(filename))
 					{
-						std::map<std::string, json11::Json> file;
+						std::map<std::string, nlohmann::json> file;
 						std::string fileBuffer = Utils::IO::ReadFile(filename);
 
 						file["name"] = *i;
@@ -735,16 +736,16 @@ namespace Components
 		Utils::InfoString status = ServerInfo::GetInfo();
 		Utils::InfoString host = ServerInfo::GetHostInfo();
 
-		std::map<std::string, json11::Json> info;
+		std::map<std::string, nlohmann::json> info;
 		info["status"] = status.to_json();
 		info["host"] = host.to_json();
 
-		std::vector<json11::Json> players;
+		std::vector<nlohmann::json> players;
 
 		// Build player list
 		for (int i = 0; i < atoi(status.get("sv_maxclients").data()); ++i) // Maybe choose 18 here?
 		{
-			std::map<std::string, json11::Json> playerInfo;
+			std::map<std::string, nlohmann::json> playerInfo;
 			playerInfo["score"] = 0;
 			playerInfo["ping"] = 0;
 			playerInfo["name"] = "";
@@ -777,7 +778,7 @@ namespace Components
 			"Connection: close\r\n"
 			"Access-Control-Allow-Origin: *\r\n"
 			"\r\n"
-			"%s", json11::Json(info).dump().data());
+			"%s", nlohmann::json(info).dump().data());
 
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 	}

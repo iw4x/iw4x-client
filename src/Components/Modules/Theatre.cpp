@@ -178,7 +178,7 @@ namespace Components
 
 		// Write metadata
 		FileSystem::FileWriter meta(Utils::String::VA("%s.json", Theatre::CurrentInfo.name.data()));
-		meta.write(json11::Json(Theatre::CurrentInfo).dump());
+		meta.write(nlohmann::json(Theatre::CurrentInfo.to_json()).dump());
 	}
 
 	void Theatre::LoadDemos(UIScript::Token)
@@ -195,18 +195,18 @@ namespace Components
 			if (meta.exists())
 			{
 				std::string error;
-				json11::Json metaObject = json11::Json::parse(meta.getBuffer(), error);
+				nlohmann::json metaObject = nlohmann::json::parse(meta.getBuffer());
 
 				if (metaObject.is_object())
 				{
 					Theatre::DemoInfo info;
 
 					info.name      = demo.substr(0, demo.find_last_of("."));
-					info.author    = metaObject["author"].string_value();
-					info.gametype  = metaObject["gametype"].string_value();
-					info.mapname   = metaObject["mapname"].string_value();
-					info.length    = static_cast<int>(metaObject["length"].number_value());
-					info.timeStamp = _atoi64(metaObject["timestamp"].string_value().data());
+					info.author    = metaObject["author"].get<std::string>();
+					info.gametype  = metaObject["gametype"].get<std::string>();
+					info.mapname   = metaObject["mapname"].get<std::string>();
+					info.length    = metaObject["length"].get<int>();
+					info.timeStamp = _atoi64(metaObject["timestamp"].get<std::string>().data());
 
 					Theatre::Demos.push_back(info);
 				}

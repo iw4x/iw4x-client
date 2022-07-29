@@ -50,7 +50,7 @@ namespace Components
 		this->lastRequest.reset();
 	}
 
-	json11::Json Node::Entry::to_json() const
+	nlohmann::json Node::Entry::to_json() const
 	{
 		return this->address.getString();
 	}

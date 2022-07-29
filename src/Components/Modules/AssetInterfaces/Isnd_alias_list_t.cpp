@@ -20,10 +20,10 @@ namespace Assets
 		}
 
 		std::string errors;
-		json11::Json infoData = json11::Json::parse(aliasFile.getBuffer(), errors);
-		json11::Json aliasesContainer = infoData["head"];
+		nlohmann::json infoData = nlohmann::json::parse(aliasFile.getBuffer());
+		nlohmann::json aliasesContainer = infoData["head"];
 
-		auto aliases = aliasesContainer.array_items();
+		nlohmann::json::array_t aliases = aliasesContainer;
 
 		aliasList->count = aliases.size();
 
@@ -39,7 +39,7 @@ namespace Assets
 
 		for (size_t i = 0; i < aliasList->count; i++)
 		{
-			json11::Json head = aliasesContainer[i];
+			nlohmann::json head = aliasesContainer[i];
 
 			if (!infoData.is_object())
 			{
@@ -211,37 +211,37 @@ namespace Assets
 			{
 
 				alias->soundFile->exists = true;
-				alias->aliasName = builder->getAllocator()->duplicateString(aliasName.string_value().c_str());
+				alias->aliasName = builder->getAllocator()->duplicateString(aliasName.get<std::string>());
 
 				if (subtitle.is_string())
 				{
-					alias->subtitle = builder->getAllocator()->duplicateString(subtitle.string_value().c_str());
+					alias->subtitle = builder->getAllocator()->duplicateString(subtitle.get<std::string>());
 				}
 				if (secondaryAliasName.is_string())
 				{
-					alias->secondaryAliasName = builder->getAllocator()->duplicateString(secondaryAliasName.string_value().c_str());
+					alias->secondaryAliasName = builder->getAllocator()->duplicateString(secondaryAliasName.get<std::string>());
 				}
 				if (chainAliasName.is_string())
 				{
-					alias->chainAliasName = builder->getAllocator()->duplicateString(chainAliasName.string_value().c_str());
+					alias->chainAliasName = builder->getAllocator()->duplicateString(chainAliasName.get<std::string>());
 				}
 
-				alias->sequence = sequence.int_value();
-				alias->volMin = float(volMin.number_value());
-				alias->volMax = float(volMax.number_value());
-				alias->pitchMin = float(pitchMin.number_value());
-				alias->pitchMax = float(pitchMax.number_value());
-				alias->distMin = float(distMin.number_value());
-				alias->distMax = float(distMax.number_value());
-				alias->flags = flags.int_value();
-				alias->___u15.slavePercentage = float(slavePercentage.number_value());
-				alias->probability = float(probability.number_value());
-				alias->lfePercentage = float(lfePercentage.number_value());
-				alias->centerPercentage = float(centerPercentage.number_value());
-				alias->startDelay = startDelay.int_value();
-				alias->envelopMin = float(envelopMin.number_value());
-				alias->envelopMax = float(envelopMax.number_value());
-				alias->envelopPercentage = float(envelopPercentage.number_value());
+				alias->sequence = sequence.get<int>();
+				alias->volMin = volMin.get<float>();
+				alias->volMax = volMax.get<float>();
+				alias->pitchMin = pitchMin.get<float>();
+				alias->pitchMax = pitchMax.get<float>();
+				alias->distMin = distMin.get<float>();
+				alias->distMax = distMax.get<float>();
+				alias->flags = flags.get<int>();
+				alias->___u15.slavePercentage = slavePercentage.get<float>();
+				alias->probability = probability.get<float>();
+				alias->lfePercentage = lfePercentage.get<float>();
+				alias->centerPercentage = centerPercentage.get<float>();
+				alias->startDelay = startDelay.get<int>();
+				alias->envelopMin = envelopMin.get<float>();
+				alias->envelopMax = envelopMax.get<float>();
+				alias->envelopPercentage = envelopPercentage.get<float>();
 
 				// Speaker map object
 				if (!speakerMap.is_null())
@@ -253,12 +253,12 @@ namespace Assets
 						return;
 					}
 
-					alias->speakerMap->name = builder->getAllocator()->duplicateString(speakerMap["name"].string_value().c_str());
-					alias->speakerMap->isDefault = speakerMap["isDefault"].bool_value();
+					alias->speakerMap->name = builder->getAllocator()->duplicateString(speakerMap["name"].get<std::string>());
+					alias->speakerMap->isDefault = speakerMap["isDefault"].get<bool>();
 
 					if (speakerMap["channelMaps"].is_array())
 					{
-						json11::Json::array channelMaps = speakerMap["channelMaps"].array_items();
+						nlohmann::json::array_t channelMaps = speakerMap["channelMaps"];
 
 						assert(channelMaps.size() <= 4);
 
@@ -268,19 +268,19 @@ namespace Assets
 							// subChannelIndex should never exceed 1
 							for (size_t subChannelIndex = 0; subChannelIndex < 2; subChannelIndex++)
 							{
-								json11::Json channelMap = channelMaps[channelMapIndex * 2 + subChannelIndex]; // 0-3
+								nlohmann::json channelMap = channelMaps[channelMapIndex * 2 + subChannelIndex]; // 0-3
 
-								auto speakers = channelMap["speakers"].array_items();
+								nlohmann::json::array_t  speakers = channelMap["speakers"];
 
 								alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakerCount = speakers.size();
 
 								for (size_t speakerIndex = 0; speakerIndex < alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakerCount; speakerIndex++)
 								{
 									auto speaker = speakers[speakerIndex];
-									alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakers[speakerIndex].levels[0] = static_cast<float>(speaker["levels0"].number_value());
-									alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakers[speakerIndex].levels[1] = static_cast<float>(speaker["levels1"].number_value());
-									alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakers[speakerIndex].numLevels = static_cast<int>(speaker["numLevels"].number_value());
-									alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakers[speakerIndex].speaker = static_cast<int>(speaker["speaker"].number_value());
+									alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakers[speakerIndex].levels[0] = speaker["levels0"].get<float>();
+									alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakers[speakerIndex].levels[1] = speaker["levels1"].get<float>();
+									alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakers[speakerIndex].numLevels = speaker["numLevels"].get<int>();
+									alias->speakerMap->channelMaps[channelMapIndex][subChannelIndex].speakers[speakerIndex].speaker = speaker["speaker"].get<int>();
 								}
 							}
 						}
@@ -289,7 +289,7 @@ namespace Assets
 
 				if (volumeFalloffCurve.is_string())
 				{
-					std::string fallOffCurve = volumeFalloffCurve.string_value();
+					std::string fallOffCurve = volumeFalloffCurve.get<std::string>();
 
 					if (fallOffCurve.size() == 0)
 					{
@@ -305,16 +305,16 @@ namespace Assets
 					alias->volumeFalloffCurve = curve;
 				}
 
-				if (static_cast<Game::snd_alias_type_t>(type.number_value()) == Game::snd_alias_type_t::SAT_LOADED) // Loaded
+				if (static_cast<Game::snd_alias_type_t>(type.get<int>()) == Game::snd_alias_type_t::SAT_LOADED) // Loaded
 				{
 					alias->soundFile->type = Game::SAT_LOADED;
-					alias->soundFile->u.loadSnd = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, soundFile.string_value().c_str(), builder).loadSnd;
+					alias->soundFile->u.loadSnd = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, soundFile.get<std::string>(), builder).loadSnd;
 				}
-				else if (static_cast<Game::snd_alias_type_t>(type.number_value()) == Game::snd_alias_type_t::SAT_STREAMED) // Streamed 
+				else if (static_cast<Game::snd_alias_type_t>(type.get<int>()) == Game::snd_alias_type_t::SAT_STREAMED) // Streamed 
 				{
 					alias->soundFile->type = Game::SAT_STREAMED;
 
-					std::string streamedFile = soundFile.string_value();
+					std::string streamedFile = soundFile.get<std::string>();
 					std::string directory = ""s;
 					int split = streamedFile.find_last_of('/');
 
@@ -329,7 +329,7 @@ namespace Assets
 				}
 				else
 				{
-					Components::Logger::Error(Game::ERR_FATAL, "Failed to parse sound {}! Invalid sound type {}\n", name, type.string_value());
+					Components::Logger::Error(Game::ERR_FATAL, "Failed to parse sound {}! Invalid sound type {}\n", name, type.get<std::string>());
 					return;
 				}
 

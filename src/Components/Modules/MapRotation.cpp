@@ -62,7 +62,7 @@ namespace Components
 		}
 	}
 
-	json11::Json MapRotation::RotationData::to_json() const
+	nlohmann::json MapRotation::RotationData::to_json() const
 	{
 		std::vector<std::string> mapVector;
 		std::vector<std::string> gametypeVector;
@@ -80,7 +80,7 @@ namespace Components
 		}
 
 
-		json11::Json mapRotationJson = json11::Json::object
+		nlohmann::json mapRotationJson = nlohmann::json
 		{
 			{"maps", mapVector},
 			{"gametypes", gametypeVector},

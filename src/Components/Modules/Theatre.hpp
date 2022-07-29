@@ -20,9 +20,9 @@ namespace Components
 			int length;
 			std::time_t timeStamp;
 
-			json11::Json to_json() const
+			nlohmann::json to_json() const
 			{
-				return json11::Json::object
+				return nlohmann::json
 				{
 					{ "mapname", mapname },
 					{ "gametype", gametype },

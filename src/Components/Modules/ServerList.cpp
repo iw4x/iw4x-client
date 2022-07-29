@@ -318,7 +318,7 @@ namespace Components
 		if (Utils::IO::FileExists("players/favourites.json"))
 		{
 			std::string data = Utils::IO::ReadFile("players/favourites.json");
-			json11::Json object = json11::Json::parse(data, data);
+			nlohmann::json object = nlohmann::json::parse(data);
 
 			if (!object.is_array())
 			{
@@ -327,24 +327,24 @@ namespace Components
 				return;
 			}
 
-			auto storedServers = object.array_items();
+			nlohmann::json::array_t  storedServers = object;
 
 			for (unsigned int i = 0; i < storedServers.size(); ++i)
 			{
 				if (!storedServers[i].is_string()) continue;
-				if (storedServers[i].string_value() == server)
+				if (storedServers[i].get<std::string>() == server)
 				{
 					Game::ShowMessageBox("Server already marked as favourite.", "Error");
 					return;
 				}
 
-				servers.push_back(storedServers[i].string_value());
+				servers.push_back(storedServers[i].get<std::string>());
 			}
 		}
 
 		servers.push_back(server);
 
-		json11::Json data = json11::Json(servers);
+		nlohmann::json data = nlohmann::json(servers);
 		Utils::IO::WriteFile("players/favourites.json", data.dump());
 		Game::ShowMessageBox("Server added to favourites.", "Success");
 	}
@@ -356,7 +356,7 @@ namespace Components
 		if (Utils::IO::FileExists("players/favourites.json"))
 		{
 			std::string data = Utils::IO::ReadFile("players/favourites.json");
-			json11::Json object = json11::Json::parse(data, data);
+			nlohmann::json object = nlohmann::json::parse(data);
 
 			if (!object.is_array())
 			{
@@ -365,16 +365,18 @@ namespace Components
 				return;
 			}
 
-			for (auto& storedServer : object.array_items())
+			nlohmann::json::array_t arr = object;
+
+			for (auto& storedServer : arr)
 			{
-				if (storedServer.is_string() && storedServer.string_value() != server)
+				if (storedServer.is_string() && storedServer.get<std::string>() != server)
 				{
-					servers.push_back(storedServer.string_value());
+					servers.push_back(storedServer.get<std::string>());
 				}
 			}
 		}
 
-		json11::Json data = json11::Json(servers);
+		nlohmann::json data = nlohmann::json(servers);
 		Utils::IO::WriteFile("players/favourites.json", data.dump());
 
 		auto list = ServerList::GetList();
@@ -393,7 +395,7 @@ namespace Components
 			if (list) list->clear();
 
 			std::string data = Utils::IO::ReadFile("players/favourites.json");
-			json11::Json object = json11::Json::parse(data, data);
+			nlohmann::json object = nlohmann::json::parse(data);
 
 			if (!object.is_array())
 			{
@@ -402,12 +404,12 @@ namespace Components
 				return;
 			}
 
-			auto servers = object.array_items();
+			nlohmann::json::array_t servers = object;
 
 			for (unsigned int i = 0; i < servers.size(); ++i)
 			{
 				if (!servers[i].is_string()) continue;
-				ServerList::InsertRequest(servers[i].string_value());
+				ServerList::InsertRequest(servers[i].get<std::string>());
 			}
 		}
 	}
