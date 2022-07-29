@@ -52,14 +52,14 @@ namespace Components
 	template <> unsigned int Dvar::Var::get()
 	{
 		if (this->dvar == nullptr)
-			return 0u;
+			return 0;
 
 		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
 		{
 			return this->dvar->current.unsignedInt;
 		}
 
-		return 0u;
+		return 0;
 	}
 
 	template <> float Dvar::Var::get()
@@ -77,7 +77,7 @@ namespace Components
 
 	template <> float* Dvar::Var::get()
 	{
-		static Game::vec4_t vector{ 0.f, 0.f, 0.f, 0.f };
+		static Game::vec4_t vector{0.f, 0.f, 0.f, 0.f};
 
 		if (this->dvar == nullptr)
 			return vector;
@@ -249,7 +249,7 @@ namespace Components
 			}
 		}
 
-		return Dvar::Register<const char*>(name, username.data(), flags | Game::dvar_flag::DVAR_ARCHIVE, description).get<Game::dvar_t*>();
+		return Dvar::Register<const char*>(name, username.data(), flags | Game::DVAR_ARCHIVE, description).get<Game::dvar_t*>();
 	}
 
 	void Dvar::SetFromStringByNameSafeExternal(const char* dvarName, const char* string)
@@ -283,6 +283,18 @@ namespace Components
 		Game::Dvar_SetFromStringByNameFromSource(dvarName, string, Game::DvarSetSource::DVAR_SOURCE_EXTERNAL);
 	}
 
+	bool Dvar::AreArchiveDvarsProtected()
+	{
+		static std::optional<bool> flag;
+
+		if (!flag.has_value())
+		{
+			flag.emplace(Flags::HasFlag("protect-saved-dvars"));
+		}
+
+		return flag.value();
+	}
+
 	void Dvar::SaveArchiveDvar(const Game::dvar_t* var)
 	{
 		if (!Utils::IO::FileExists(Dvar::ArchiveDvarPath))
@@ -299,36 +311,73 @@ namespace Components
 	{
 		// Save the dvar original value if it has the archive flag
 		const auto* dvar = Game::Dvar_FindVar(dvarName);
-		if (dvar != nullptr && dvar->flags & Game::dvar_flag::DVAR_ARCHIVE)
+		if (dvar != nullptr && dvar->flags & Game::DVAR_ARCHIVE)
 		{
+			if (Dvar::AreArchiveDvarsProtected())
+			{
+				Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Not allowing server to override saved dvar '{}'\n", dvarName);
+				return;
+			}
+
+#ifdef DEBUG_DVARS
+			Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Server is overriding saved dvar '{}'\n", dvarName);
+#endif
 			Dvar::SaveArchiveDvar(dvar);
 		}
 
 		Utils::Hook::Call<void(const char*, const char*)>(0x4F52E0)(dvarName, value);
 	}
 
+	void Dvar::OnRegisterVariant([[maybe_unused]] Game::dvar_t* dvar)
+	{
+#ifdef _DEBUG
+		dvar->flags &= ~Game::DVAR_CHEAT;
+#endif
+	}
+
+	__declspec(naked) void Dvar::Dvar_RegisterVariant_Stub()
+	{
+		__asm
+		{
+			pushad
+
+			push eax
+			call Dvar::OnRegisterVariant
+			add esp, 0x4
+
+			popad
+
+			// Game's code
+			pop edi
+			pop esi
+			pop ebp
+			pop ebx
+			ret
+		}
+	}
+
 	Dvar::Dvar()
 	{
 		// set flags of cg_drawFPS to archive
-		Utils::Hook::Or<BYTE>(0x4F8F69, Game::dvar_flag::DVAR_ARCHIVE);
+		Utils::Hook::Or<BYTE>(0x4F8F69, Game::DVAR_ARCHIVE);
 
 		// un-cheat camera_thirdPersonCrosshairOffset and add archive flags
-		Utils::Hook::Xor<BYTE>(0x447B41, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE);
+		Utils::Hook::Xor<BYTE>(0x447B41, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 		
 		// un-cheat cg_fov and add archive flags
-		Utils::Hook::Xor<BYTE>(0x4F8E35, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE);
+		Utils::Hook::Xor<BYTE>(0x4F8E35, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 		
 		// un-cheat cg_fovscale and add archive flags
-		Utils::Hook::Xor<BYTE>(0x4F8E68, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE);
+		Utils::Hook::Xor<BYTE>(0x4F8E68, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 
 		// un-cheat cg_debugInfoCornerOffset and add archive flags
-		Utils::Hook::Xor<BYTE>(0x4F8FC2, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE);
+		Utils::Hook::Xor<BYTE>(0x4F8FC2, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 
 		// remove archive flags for cg_hudchatposition
-		Utils::Hook::Xor<BYTE>(0x4F9992, Game::dvar_flag::DVAR_ARCHIVE);
+		Utils::Hook::Xor<BYTE>(0x4F9992, Game::DVAR_ARCHIVE);
 
 		// remove write protection from fs_game
-		Utils::Hook::Xor<DWORD>(0x6431EA, Game::dvar_flag::DVAR_INIT);
+		Utils::Hook::Xor<DWORD>(0x6431EA, Game::DVAR_INIT);
 
 		// set cg_fov max to 160.0
 		// because that's the max on SP
@@ -340,19 +389,19 @@ namespace Components
 		Utils::Hook::Set<float*>(0x408078, &volume);
 
 		// Uncheat ui_showList
-		Utils::Hook::Xor<BYTE>(0x6310DC, Game::dvar_flag::DVAR_CHEAT);
+		Utils::Hook::Xor<BYTE>(0x6310DC, Game::DVAR_CHEAT);
 
 		// Uncheat ui_debugMode
-		Utils::Hook::Xor<BYTE>(0x6312DE, Game::dvar_flag::DVAR_CHEAT);
+		Utils::Hook::Xor<BYTE>(0x6312DE, Game::DVAR_CHEAT);
 
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar::Dvar_RegisterName, HOOK_CALL).install()->quick();
 
 		// un-cheat safeArea_* and add archive flags
-		Utils::Hook::Xor<INT>(0x42E3F5, Game::dvar_flag::DVAR_ROM | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
-		Utils::Hook::Xor<INT>(0x42E423, Game::dvar_flag::DVAR_ROM | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_adjusted_vertical
-		Utils::Hook::Xor<BYTE>(0x42E398, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_horizontal
-		Utils::Hook::Xor<BYTE>(0x42E3C4, Game::dvar_flag::DVAR_CHEAT | Game::dvar_flag::DVAR_ARCHIVE); //safeArea_vertical
+		Utils::Hook::Xor<INT>(0x42E3F5, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
+		Utils::Hook::Xor<INT>(0x42E423, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_vertical
+		Utils::Hook::Xor<BYTE>(0x42E398, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE); //safeArea_horizontal
+		Utils::Hook::Xor<BYTE>(0x42E3C4, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE); //safeArea_vertical
 
 		// Don't allow setting cheat protected dvars via menus
 		Utils::Hook(0x63C897, Dvar::SetFromStringByNameExternal, HOOK_CALL).install()->quick();
@@ -383,6 +432,10 @@ namespace Components
 
 		// Reset archive dvars when client leaves a server
 		Events::OnSteamDisconnect(Dvar::ResetDvarsValue);
+
+		// For debugging
+		Utils::Hook(0x6483FA, Dvar::Dvar_RegisterVariant_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x648438, Dvar::Dvar_RegisterVariant_Stub, HOOK_JUMP).install()->quick();
 	}
 
 	Dvar::~Dvar()

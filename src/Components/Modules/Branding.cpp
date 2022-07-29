@@ -75,7 +75,7 @@ namespace Components
 		[[maybe_unused]] float y, float min, float max, [[maybe_unused]] int flags, const char* description)
 	{
 		return Game::Dvar_RegisterVec2(dvarName, -60.0f,
-			474.0f, min, max, Game::dvar_flag::DVAR_ROM, description);
+			474.0f, min, max, Game::DVAR_ROM, description);
 	}
 
 	void Branding::RegisterBrandingDvars()
@@ -86,11 +86,11 @@ namespace Components
 		constexpr auto value = false;
 #endif
 		Branding::CGDrawVersion = Dvar::Register<bool>("cg_drawVersion", value,
-			Game::dvar_flag::DVAR_NONE, "Draw the game version");
+			Game::DVAR_NONE, "Draw the game version");
 		Branding::CGDrawVersionX = Dvar::Register<float>("cg_drawVersionX", 10.0f,
-			0.0f, 512.0f, Game::dvar_flag::DVAR_NONE, "X offset for the version string");
+			0.0f, 512.0f, Game::DVAR_NONE, "X offset for the version string");
 		Branding::CGDrawVersionY = Dvar::Register<float>("cg_drawVersionY", 455.0f,
-			0.0f, 512.0f, Game::dvar_flag::DVAR_NONE, "Y offset for the version string");
+			0.0f, 512.0f, Game::DVAR_NONE, "Y offset for the version string");
 	}
 
 	Branding::Branding()

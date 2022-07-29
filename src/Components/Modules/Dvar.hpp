@@ -8,10 +8,10 @@ namespace Components
 		class Flag
 		{
 		public:
-			Flag(Game::dvar_flag flag) : val(flag) {}
-			Flag(unsigned __int16 flag) : Flag(static_cast<Game::dvar_flag>(flag)) {}
+			Flag(Game::DvarFlags flag) : val(flag) {}
+			Flag(unsigned __int16 flag) : Flag(static_cast<Game::DvarFlags>(flag)) {}
 
-			Game::dvar_flag val;
+			Game::DvarFlags val;
 		};
 
 		class Var
@@ -57,7 +57,11 @@ namespace Components
 		static void SetFromStringByNameExternal(const char* dvar, const char* value);
 		static void SetFromStringByNameSafeExternal(const char* dvar, const char* value);
 
+		static bool AreArchiveDvarsProtected();
 		static void SaveArchiveDvar(const Game::dvar_t* var);
 		static void DvarSetFromStringByNameStub(const char* dvarName, const char* value);
+
+		static void OnRegisterVariant(Game::dvar_t* dvar);
+		static void Dvar_RegisterVariant_Stub();
 	};
 }

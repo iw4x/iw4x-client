@@ -21,7 +21,7 @@ namespace Components
 				return true;
 			}
 		}
-		else if(this->lastResponse->elapsed(NODE_HALFLIFE * 2) && this->lastRequest.has_value() && this->lastRequest->after(*this->lastResponse))
+		else if (this->lastResponse->elapsed(NODE_HALFLIFE * 2) && this->lastRequest.has_value() && this->lastRequest->after(*this->lastResponse))
 		{
 			return true;
 		}
@@ -208,7 +208,7 @@ namespace Components
 				i = Node::Nodes.erase(i);
 				continue;
 			}
-			else if (sentRequests < queryLimit.get<int>() && i->requiresRequest())
+			if (sentRequests < queryLimit.get<int>() && i->requiresRequest())
 			{
 				++sentRequests;
 				i->sendRequest();
@@ -326,7 +326,7 @@ namespace Components
 				Logger::Debug("Sending {} nodeListResponse length to {}\n", nodeListData.length(), address.getCString());
 #endif
 				Session::Send(address, "nodeListResponse", nodeListData);
-			}, Scheduler::Pipeline::SERVER, NODE_SEND_RATE * i++);
+			}, Scheduler::Pipeline::MAIN, NODE_SEND_RATE * i++);
 		}
 	}
 
@@ -346,10 +346,10 @@ namespace Components
 			Node::StoreNodes(false);
 		}, Scheduler::Pipeline::ASYNC);
 
-		Scheduler::Loop(Node::RunFrame, Scheduler::Pipeline::SERVER);
+		Scheduler::Loop(Node::RunFrame, Scheduler::Pipeline::MAIN);
 
 		Session::Handle("nodeListResponse", Node::HandleResponse);
-		Session::Handle("nodeListRequest", [](const Network::Address& address, const std::string&)
+		Session::Handle("nodeListRequest", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			Node::SendList(address);
 		});

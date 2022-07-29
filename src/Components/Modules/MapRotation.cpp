@@ -6,6 +6,7 @@ namespace Components
 	Dvar::Var MapRotation::SVDontRotate;
 
 	Game::dvar_t** MapRotation::SVMapRotation = reinterpret_cast<Game::dvar_t**>(0x62C7C44);
+	Game::dvar_t** MapRotation::SVMapRotationCurrent = reinterpret_cast<Game::dvar_t**>(0x2098DF0);
 	Game::dvar_t** MapRotation::SVMapname = reinterpret_cast<Game::dvar_t**>(0x2098DDC);
 
 	MapRotation::RotationData MapRotation::DedicatedRotation;
@@ -98,18 +99,18 @@ namespace Components
 			return;
 		}
 
+		loaded = true;
+
 		try
 		{
 			DedicatedRotation.parse(data);
 		}
 		catch (const std::exception& ex)
 		{
-			Logger::Print(Game::CON_CHANNEL_SERVER, "{}: sv_mapRotation contains invalid data!\n", ex.what());
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: {} contains invalid data!\n", ex.what(), (*SVMapRotation)->name);
 		}
 
 		Logger::Debug("DedicatedRotation size after parsing is '{}'", DedicatedRotation.getEntriesSize());
-
-		loaded = true;
 	}
 
 	void MapRotation::AddMapRotationCommands()
@@ -155,6 +156,26 @@ namespace Components
 		return true;
 	}
 
+	void MapRotation::ApplyMap(const std::string& map)
+	{
+		assert(!map.empty());
+
+		if (Dvar::Var("sv_cheats").get<bool>())
+		{
+			Command::Execute(Utils::String::VA("devmap %s", map.data()), true);
+		}
+		else
+		{
+			Command::Execute(Utils::String::VA("map %s", map.data()), true);
+		}
+	}
+
+	void MapRotation::ApplyGametype(const std::string& gametype)
+	{
+		assert(!gametype.empty());
+		Dvar::Var("g_gametype").set(gametype.data());
+	}
+
 	void MapRotation::RestartCurrentMap()
 	{
 		std::string svMapname = (*SVMapname)->current.string;
@@ -165,30 +186,25 @@ namespace Components
 			svMapname = "mp_afghan";
 		}
 
-		if (!Dvar::Var("sv_cheats").get<bool>())
-		{
-			Command::Execute(Utils::String::VA("map %s", svMapname.data()), true);
-		}
-		else
-		{
-			Command::Execute(Utils::String::VA("devmap %s", svMapname.data()), true);
-		}
+		ApplyMap(svMapname);
 	}
 
-	void MapRotation::ApplyMapRotation()
+	void MapRotation::ApplyRotation(RotationData& rotation)
 	{
+		assert(rotation.getEntriesSize() != 0);
+
 		// Continue to apply gametype until a map is found
 		auto foundMap = false;
 
 		std::size_t i = 0;
-		while (!foundMap && i < DedicatedRotation.getEntriesSize())
+		while (!foundMap && i < rotation.getEntriesSize())
 		{
-			const auto& entry = DedicatedRotation.getNextEntry();
+			const auto& entry = rotation.getNextEntry();
 
 			if (entry.first == "map")
 			{
 				Logger::Debug("Loading new map: '{}'", entry.second);
-				Command::Execute(Utils::String::VA("map %s", entry.second.data()), true);
+				ApplyMap(entry.second);
 
 				// Map was found so we exit the loop
 				foundMap = true;
@@ -196,11 +212,41 @@ namespace Components
 			else if (entry.first == "gametype")
 			{
 				Logger::Debug("Applying new gametype: '{}'", entry.second);
-				Dvar::Var("g_gametype").set(entry.second);
+				ApplyGametype(entry.second);
 			}
 
 			++i;
 		}
+	}
+
+	void MapRotation::ApplyMapRotationCurrent(const std::string& data)
+	{
+		assert(!data.empty());
+
+		// Ook, ook, eek
+		Logger::Warning(Game::CON_CHANNEL_SERVER, "You are using deprecated {}", (*SVMapRotationCurrent)->name);
+
+		RotationData rotationCurrent;
+		try
+		{
+			Logger::Debug("Parsing {}", (*SVMapRotationCurrent)->name);
+			rotationCurrent.parse(data);
+		}
+		catch (const std::exception& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: {} contains invalid data!\n", ex.what(), (*SVMapRotationCurrent)->name);
+		}
+
+		Game::Dvar_SetString(*SVMapRotationCurrent, "");
+
+		if (rotationCurrent.getEntriesSize() == 0)
+		{
+			Logger::Print(Game::CON_CHANNEL_SERVER, "{} is empty or contains invalid data. Restarting map\n", (*SVMapRotationCurrent)->name);
+			RestartCurrentMap();
+			return;
+		}
+
+		ApplyRotation(rotationCurrent);
 	}
 
 	void MapRotation::RandomizeMapRotation()
@@ -224,8 +270,17 @@ namespace Components
 		}
 
 		Logger::Print(Game::CON_CHANNEL_SERVER, "Rotating map...\n");
-		const std::string mapRotation = (*SVMapRotation)->current.string;
 
+		// This takes priority because of backwards compatibility
+		const std::string mapRotationCurrent = (*SVMapRotationCurrent)->current.string;
+		if (!mapRotationCurrent.empty())
+		{
+			Logger::Debug("Applying {}", (*SVMapRotationCurrent)->name);
+			ApplyMapRotationCurrent(mapRotationCurrent);
+			return;
+		}
+
+		const std::string mapRotation = (*SVMapRotation)->current.string;
 		// People may have sv_mapRotation empty because they only use 'addMap' or 'addGametype'
 		if (!mapRotation.empty())
 		{
@@ -235,14 +290,14 @@ namespace Components
 
 		if (DedicatedRotation.getEntriesSize() == 0)
 		{
-			Logger::Print(Game::CON_CHANNEL_SERVER, "sv_mapRotation is empty or contains invalid data. Restarting map\n");
+			Logger::Print(Game::CON_CHANNEL_SERVER, "{} is empty or contains invalid data. Restarting map\n", (*SVMapRotation)->name);
 			RestartCurrentMap();
 			return;
 		}
 
 		RandomizeMapRotation();
 
-		ApplyMapRotation();
+		ApplyRotation(DedicatedRotation);
 	}
 
 	MapRotation::MapRotation()
@@ -251,9 +306,9 @@ namespace Components
 		Utils::Hook::Set<void(*)()>(0x4152E8, SV_MapRotate_f);
 
 		SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false,
-			Game::dvar_flag::DVAR_ARCHIVE, "Randomize map rotation when true");
+			Game::DVAR_ARCHIVE, "Randomize map rotation when true");
 		SVDontRotate = Dvar::Register<bool>("sv_dontRotate", false,
-			Game::dvar_flag::DVAR_NONE, "Do not perform map rotation");
+			Game::DVAR_NONE, "Do not perform map rotation");
 	}
 
 	bool MapRotation::unitTest()

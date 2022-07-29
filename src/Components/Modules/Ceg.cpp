@@ -4,7 +4,7 @@ namespace Components
 {
 	Ceg::Ceg()
 	{
-		Utils::Hook::Signature signature(0x401000, 0x740000);
+		Utils::Hook::Signature signature(0x401000, 0x340000);
 
 		// Generic killer caller.
 		signature.add({
@@ -36,10 +36,6 @@ namespace Components
 		Utils::Hook::Nop(0x43EC96, 9);
 		Utils::Hook::Nop(0x4675C6, 9);
 
-		// Something useless that can be skipped
-		Utils::Hook::Nop(0x4BB671, 2);
-		Utils::Hook::Nop(0x40A54D, 2);
-
 		// Random checks scattered throughout the binary
 		Utils::Hook::Set<BYTE>(0x499F90, 0xC3);
 		Utils::Hook::Set<BYTE>(0x4FC700, 0xC3);
@@ -47,5 +43,13 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x49E8C0, 0xC3);
 		Utils::Hook::Set<BYTE>(0x42DB00, 0xC3);
 		Utils::Hook::Set<BYTE>(0x4F4CF0, 0xC3);
+		Utils::Hook::Set<BYTE>(0x432180, 0xC3);
+		Utils::Hook::Set<BYTE>(0x461930, 0xC3);
+
+		// Looking for stuff in the registry
+		Utils::Hook::Nop(0x4826F8, 5);
+
+		// Live_Init
+		Utils::Hook::Nop(0x420937, 5);
 	}
 }

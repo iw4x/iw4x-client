@@ -13,7 +13,7 @@ namespace Components
 		Weapon();
 
 	private:
-		static Game::XAssetHeader WeaponFileLoad(Game::XAssetType type, const std::string& filename);
+		static Game::WeaponCompleteDef* LoadWeaponCompleteDef(const char* name);
 		static void PatchLimit();
 		static void* LoadNoneWeaponHook();
 		static void LoadNoneWeaponHookStub();
@@ -25,5 +25,11 @@ namespace Components
 		static void ParseConfigStrings();
 		static int ParseWeaponConfigStrings();
 		static int ClearConfigStrings(void* dest, int value, int size);
+
+		static void CG_UpdatePrimaryForAltModeWeapon_Stub();
+		static void CG_SelectWeaponIndex_Stub();
+
+		static void WeaponEntCanBeGrabbed_Stub();
+		static void AddScriptMethods();
 	};
 }

@@ -2,36 +2,21 @@
 
 namespace Utils
 {
-	CSV::CSV(const std::string& file, bool isFile, bool allowComments)
+	CSV::CSV(const std::string& file, const bool isFile, const bool allowComments)
 	{
 		this->parse(file, isFile, allowComments);
 	}
 
-	CSV::~CSV()
+	std::size_t CSV::getRows() const
 	{
-		this->dataMap.clear();
+		return this->dataMap_.size();
 	}
 
-	int CSV::getRows()
+	std::size_t CSV::getColumns() const
 	{
-		return this->dataMap.size();
-	}
+		std::size_t count = 0;
 
-	int CSV::getColumns(size_t row)
-	{
-		if (this->dataMap.size() > row)
-		{
-			return this->dataMap[row].size();
-		}
-
-		return 0;
-	}
-
-	int CSV::getColumns()
-	{
-		int count = 0;
-
-		for (int i = 0; i < this->getRows(); ++i)
+		for (std::size_t i = 0; i < this->getRows(); ++i)
 		{
 			count = std::max(this->getColumns(i), count);
 		}
@@ -39,11 +24,21 @@ namespace Utils
 		return count;
 	}
 
-	std::string CSV::getElementAt(size_t row, size_t column)
+	std::size_t CSV::getColumns(const std::size_t row) const
 	{
-		if (this->dataMap.size() > row)
+		if (this->dataMap_.size() > row)
 		{
-			auto _row = this->dataMap[row];
+			return this->dataMap_[row].size();
+		}
+
+		return 0;
+	}
+
+	std::string CSV::getElementAt(const std::size_t row, const std::size_t column) const
+	{
+		if (this->dataMap_.size() > row)
+		{
+			auto& _row = this->dataMap_[row];
 
 			if (_row.size() > column)
 			{
@@ -51,18 +46,27 @@ namespace Utils
 			}
 		}
 
-		return "";
+		return {};
 	}
 
-	void CSV::parse(const std::string& file, bool isFile, bool allowComments)
+	bool CSV::isValid() const
+	{
+		return this->valid_;
+	}
+
+	void CSV::parse(const std::string& file, const bool isFile, const bool allowComments)
 	{
 		std::string buffer;
 
 		if (isFile)
 		{
-			if (!Utils::IO::FileExists(file)) return;
-			buffer = Utils::IO::ReadFile(file);
-			this->valid = true;
+			if (!IO::FileExists(file))
+			{
+				return;
+			}
+
+			buffer = IO::ReadFile(file);
+			this->valid_ = true;
 		}
 		else
 		{
@@ -71,7 +75,7 @@ namespace Utils
 
 		if (!buffer.empty())
 		{
-			auto rows = Utils::String::Split(buffer, '\n');
+			const auto rows = String::Split(buffer, '\n');
 
 			for (auto& row : rows)
 			{
@@ -80,14 +84,14 @@ namespace Utils
 		}
 	}
 
-	void CSV::parseRow(const std::string& row, bool allowComments)
+	void CSV::parseRow(const std::string& row, const bool allowComments)
 	{
 		bool isString = false;
 		std::string element;
 		std::vector<std::string> _row;
 		char tempStr = 0;
 
-		for (unsigned int i = 0; i < row.size(); ++i)
+		for (std::size_t i = 0; i < row.size(); ++i)
 		{
 			if (row[i] == ',' && !isString) // Flush entry
 			{
@@ -95,25 +99,29 @@ namespace Utils
 				element.clear();
 				continue;
 			}
-			else if (row[i] == '"') // Start/Terminate string
+
+			if (row[i] == '"') // Start/Terminate string
 			{
 				isString = !isString;
 				continue;
 			}
-			else if (i < (row.size() - 1) && row[i] == '\\' &&row[i + 1] == '"' && isString) // Handle quotes in strings as \"
+
+			if (i < (row.size() - 1) && row[i] == '\\' &&row[i + 1] == '"' && isString) // Handle quotes in strings as \"
 			{
 				tempStr = '"';
 				++i;
 			}
+
 			else if (!isString && (row[i] == '\n' || row[i] == '\x0D' || row[i] == '\x0A' || row[i] == '\t'))
 			{
-				//++i;
 				continue;
 			}
+
 			else if (!isString && (row[i] == '#' || (row[i] == '/' && (i + 1) < row.size() && row[i + 1] == '/') ) && allowComments) // Skip comments. I know CSVs usually don't have comments, but in this case it's useful
 			{
 				return;
 			}
+
 			else
 			{
 				tempStr = row[i];
@@ -125,11 +133,11 @@ namespace Utils
 		// Push last element
 		_row.push_back(element);
 
-		if (_row.size() == 0 || (_row.size() == 1 && !_row[0].size())) // Skip empty rows
+		if (_row.empty() || (_row.size() == 1 && _row[0].empty())) // Skip empty rows
 		{
 			return;
 		}
 
-		this->dataMap.push_back(_row);
+		this->dataMap_.push_back(_row);
 	}
 }

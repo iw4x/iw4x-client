@@ -1599,10 +1599,10 @@ namespace Components
     {
         currentColorTable = &colorTableDefault;
         
-        cg_newColors = Dvar::Register<bool>("cg_newColors", true, Game::dvar_flag::DVAR_ARCHIVE, "Use Warfare 2 color code style.");
-        cg_fontIconAutocomplete = Dvar::Register<bool>("cg_fontIconAutocomplete", true, Game::dvar_flag::DVAR_ARCHIVE, "Show autocomplete for fonticons when typing.");
-        cg_fontIconAutocompleteHint = Dvar::Register<bool>("cg_fontIconAutocompleteHint", true, Game::dvar_flag::DVAR_ARCHIVE, "Show hint text in autocomplete for fonticons.");
-        sv_customTextColor = Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::dvar_flag::DVAR_CODINFO, "Color for the extended color code.");
+        cg_newColors = Dvar::Register<bool>("cg_newColors", true, Game::DVAR_ARCHIVE, "Use Warfare 2 color code style.");
+        cg_fontIconAutocomplete = Dvar::Register<bool>("cg_fontIconAutocomplete", true, Game::DVAR_ARCHIVE, "Show autocomplete for fonticons when typing.");
+        cg_fontIconAutocompleteHint = Dvar::Register<bool>("cg_fontIconAutocompleteHint", true, Game::DVAR_ARCHIVE, "Show hint text in autocomplete for fonticons.");
+        sv_customTextColor = Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::DVAR_CODINFO, "Color for the extended color code.");
 
         // Initialize font icons when initializing UI
         Utils::Hook(0x4B5422, UI_Init_Hk, HOOK_CALL).install()->quick();
@@ -1617,11 +1617,11 @@ namespace Components
         Utils::Hook(0x417770, ColorIndex, HOOK_JUMP).install()->quick();
 
         // Add a colorblind mode for team colors
-        r_colorBlind = Dvar::Register<bool>("r_colorBlind", false, Game::dvar_flag::DVAR_ARCHIVE, "Use color-blindness-friendly colors");
+        r_colorBlind = Dvar::Register<bool>("r_colorBlind", false, Game::DVAR_ARCHIVE, "Use color-blindness-friendly colors");
         // A dark red
-        g_ColorBlind_EnemyTeam = Game::Dvar_RegisterColor("g_ColorBlind_EnemyTeam", 0.659f, 0.088f, 0.145f, 1, Game::dvar_flag::DVAR_ARCHIVE, "Enemy team color for colorblind mode");
+        g_ColorBlind_EnemyTeam = Game::Dvar_RegisterColor("g_ColorBlind_EnemyTeam", 0.659f, 0.088f, 0.145f, 1, Game::DVAR_ARCHIVE, "Enemy team color for colorblind mode");
         // A bright yellow
-        g_ColorBlind_MyTeam = Game::Dvar_RegisterColor("g_ColorBlind_MyTeam", 1, 0.859f, 0.125f, 1, Game::dvar_flag::DVAR_ARCHIVE, "Ally team color for colorblind mode");
+        g_ColorBlind_MyTeam = Game::Dvar_RegisterColor("g_ColorBlind_MyTeam", 1, 0.859f, 0.125f, 1, Game::DVAR_ARCHIVE, "Ally team color for colorblind mode");
 
         // Replace team colors with colorblind team colors when colorblind is enabled
         Utils::Hook(0x406530, GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();

@@ -4,6 +4,46 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.4] - 2022-07-28
+
+### Added
+
+- Add `DisableWeaponPickup` GSC method (#329)
+- Add `EnableWeaponPickup` GSC method (#329)
+- Add `protect-saved-dvars` command line argument (#335)
+- Add `clanName` dvar. Can be edited in the `barracks` menu (#361)
+- Add DLC9 containing classic maps from CoD4: Backlot, Chinatown, Winter Crash, Pipeline and Downpour
+
+### Changed
+
+- `sv_mapRotationCurrent` functionality has been restored for backwards compatibility (#328)
+- GSC IO Functions are restricted to the `scriptdata` folder (#322)
+- `scriptablehttp` command line argument is no longer needed (#322)
+- Removed `noclip` built-in GSC method. Replaced with script-based solution (#387)
+- Removed `ufo` built-in GSC method. Replaced with script-based solution (#387)
+- Removed `god` built-in GSC method. Replaced with script-based  solution (#388)
+- Removed `demiGod` built-in GSC method. Replaced with script-based  solution (#388)
+- Removed `noTarget` built-in GSC method. Replaced with script-based  solution (#388)
+- Added to the iw4x-rawfiles `common_scripts\iw4x_utility` GSC script, it contains the scripts-based solution for the removed GSC built-in methods
+
+### Fixed
+
+- Node system works again for clients (#331)
+- Fixed output of `g_log_list` & `log_list` (#336)
+- Fixed toast notifications (#337)
+- Fixed `banClient` command (#311)
+- Fixed singleplayer maps crashing in renderer module (#340)
+- Fixed muzzle flash on COD:OL maps (#352)
+- Server commands are no longer being registered twice (#339)
+- Fixed issue where grenades and projectiles had no bounce sounds (#368)
+- Fixed issue that could cause the game to crash when loading CoD4 maps (#372)
+
+### Known issues
+
+- HTTPS is not supported for fast downloads at the moment.
+- Sound issue fix is experimental as the bug is not fully understood.
+- `reloadmenus` command does not free resources used by custom menus.
+
 ## [0.7.3] - 2022-06-23
 
 ### Added
@@ -19,6 +59,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Changed
 
 - `openLink` command was removed for security reasons  (#286)
+- `sv_mapRotationCurrent` is not being used anymore (#302)
 
 ### Fixed
 
@@ -26,7 +67,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix crash on clearing key binds (#278)
 - Fix maps dropping out of the map rotation when using `sv_randomMapRotation` (#283)
 
-### Known issue
+### Known issues
 
 - HTTPS is not supported for fast downloads at the moment.
 - Sound issue fix is experimental as the bug is not fully understood.
@@ -50,7 +91,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fixed internet, local and favorites filters (#260)
 - `sv_lanOnly` Dvar now prevents the server from sending heartbeats to master if set to true (#246)
 
-### Known issue
+### Known issues
 
 - HTTPS is not supported for fast downloads at the moment.
 - Sound issue fix is experimental as the bug is not fully understood.
@@ -84,7 +125,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fixed client crash when cg_chatHeight was set to 0 (#237)
 - Fixed GSC function Scr_TableLookupIStringByRow (#162)
 
-### Known issue
+### Known issues
 
 - HTTPS is not supported for fast downloads at the moment.
 - Sound issue fix is experimental as the bug is not fully understood.

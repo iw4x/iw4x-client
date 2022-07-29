@@ -96,6 +96,17 @@ namespace Game
 		ASSET_TYPE_INVALID = -1,
 	};
 
+	enum FsThread
+	{
+		FS_THREAD_MAIN = 0x0,
+		FS_THREAD_STREAM = 0x1,
+		FS_THREAD_DATABASE = 0x2,
+		FS_THREAD_BACKEND = 0x3,
+		FS_THREAD_SERVER = 0x4,
+		FS_THREAD_COUNT = 0x5,
+		FS_THREAD_INVALID = 0x6,
+	};
+
 	enum materialSurfType_t
 	{
 		SURF_TYPE_DEFAULT,
@@ -133,7 +144,7 @@ namespace Game
 		SURF_TYPE_COUNT
 	};
 
-	enum dvar_flag : unsigned __int16
+	enum DvarFlags : unsigned __int16
 	{
 		DVAR_NONE = 0,	// No flags
 		DVAR_ARCHIVE = 1 << 0,	// Set to cause it to be saved to config_mp.cfg of the client
@@ -232,7 +243,7 @@ namespace Game
 		CS_CONNECTED = 0x3,
 		CS_CLIENTLOADING = 0x4,
 		CS_ACTIVE = 0x5,
-	} clientstate_t;
+	} clientState_t;
 
 	enum serverState_t
 	{
@@ -285,26 +296,26 @@ namespace Game
 		CON_BUILTIN_CHANNEL_COUNT,
 	};
 
-	enum entityFlag
+	enum
 	{
-		FL_GODMODE = 0x1,
-		FL_DEMI_GODMODE = 0x2,
-		FL_NOTARGET = 0x4,
-		FL_NO_KNOCKBACK = 0x8,
-		FL_NO_RADIUS_DAMAGE = 0x10,
-		FL_SUPPORTS_LINKTO = 0x1000,
-		FL_NO_AUTO_ANIM_UPDATE = 0x2000,
-		FL_GRENADE_TOUCH_DAMAGE = 0x4000,
-		FL_STABLE_MISSILES = 0x20000,
-		FL_REPEAT_ANIM_UPDATE = 0x40000,
-		FL_VEHICLE_TARGET = 0x80000,
-		FL_GROUND_ENT = 0x100000,
-		FL_CURSOR_HINT = 0x200000,
-		FL_MISSILE_ATTRACTOR = 0x800000,
-		FL_WEAPON_BEING_GRABBED = 0x1000000,
-		FL_DELETE = 0x2000000,
-		FL_BOUNCE = 0x4000000,
-		FL_MOVER_SLIDE = 0x8000000
+		FL_GODMODE = 1 << 0,
+		FL_DEMI_GODMODE = 1 << 1,
+		FL_NOTARGET = 1 << 2,
+		FL_NO_KNOCKBACK = 1 << 3,
+		FL_NO_RADIUS_DAMAGE = 1 << 4,
+		FL_SUPPORTS_LINKTO = 1 << 12,
+		FL_NO_AUTO_ANIM_UPDATE = 1 << 13,
+		FL_GRENADE_TOUCH_DAMAGE = 1 << 14,
+		FL_STABLE_MISSILES = 1 << 17,
+		FL_REPEAT_ANIM_UPDATE = 1 << 18,
+		FL_VEHICLE_TARGET = 1 << 19,
+		FL_GROUND_ENT = 1 << 20,
+		FL_CURSOR_HINT = 1 << 21,
+		FL_MISSILE_ATTRACTOR = 1 << 23,
+		FL_WEAPON_BEING_GRABBED = 1 << 24,
+		FL_DELETE = 1 << 25,
+		FL_BOUNCE = 1 << 26,
+		FL_MOVER_SLIDE = 1 << 27
 	};
 
 	enum ClassNum : unsigned int
@@ -984,7 +995,6 @@ namespace Game
 		MaterialShaderArgument *args;
 	};
 
-	/* 9045 */
 	struct visionSetVars_t
 	{
 		bool glowEnable;
@@ -1014,6 +1024,7 @@ namespace Game
 	{
 		const char* name;
 		int offset;
+		// 0 is for int, 1 is for float, otherwise it's a vector
 		int fieldType;
 	};
 
@@ -1367,6 +1378,8 @@ namespace Game
 		PWF_DISABLE_WEAPON_SWAPPING = 1 << 11,
 		PWF_DISABLE_OFFHAND_WEAPONS = 1 << 12,
 		PWF_SWITCHING_TO_RIOTSHIELD = 1 << 13,
+		// IW5 flags backported
+		PWF_DISABLE_WEAPON_PICKUP = 1 << 16
 	};
 
 	struct playerState_s
@@ -1491,6 +1504,8 @@ namespace Game
 		int stunTime;
 	};
 
+	static_assert(sizeof(Game::playerState_s) == 0x311C);
+
 	enum LocSelInputState
 	{
 		LOC_SEL_INPUT_NONE = 0x0,
@@ -1605,6 +1620,32 @@ namespace Game
 		unsigned int playerCardTitle;
 		unsigned int playerCardNameplate;
 	};
+
+	enum PlayerCardClientLookupType
+	{
+		PLAYERCARD_LOOKUP_SCRIPTSLOT = 0x0,
+		PLAYERCARD_LOOKUP_LIVEPROFILE_CLIENT = 0x1,
+		PLAYERCARD_LOOKUP_LIVEPROFILE_CONTROLLER = 0x2,
+		PLAYERCARD_LOOKUP_LOBBY = 0x3,
+		PLAYERCARD_LOOKUP_MYTEAM = 0x4,
+		PLAYERCARD_LOOKUP_ENEMYTEAM = 0x5,
+		PLAYERCARD_LOOKUP_COUNT = 0x6,
+	};
+
+	struct PlayerCardData
+	{
+		unsigned int lastUpdateTime;
+		unsigned int titleIndex;
+		unsigned int iconIndex;
+		unsigned int nameplateIndex;
+		int rank;
+		int prestige;
+		team_t team;
+		char name[32];
+		char clanAbbrev[5];
+	};
+
+	static_assert(sizeof(PlayerCardData) == 0x44);
 
 	enum usercmdButtonBits
 	{
@@ -4450,7 +4491,7 @@ namespace Game
 		IMPACT_TYPE_COUNT = 0xB,
 	};
 
-	struct /*__declspec(align(2))*/ WeaponCompleteDef
+	struct WeaponCompleteDef
 	{
 		const char *szInternalName;
 		WeaponDef *weapDef;
@@ -5077,18 +5118,6 @@ namespace Game
 		char uiName[32];
 	};
 
-	typedef struct party_s
-	{
-		unsigned char pad1[544];
-		int privateSlots;
-		int publicSlots;
-	} party_t;
-
-	typedef struct PartyData_s
-	{
-		DWORD unk;
-	} PartyData_t;
-
 	struct fileInIwd_s
 	{
 		unsigned int pos;
@@ -5359,6 +5388,267 @@ namespace Game
 	};
 
 	static_assert(sizeof(scrVarPub_t) == 0x24060);
+
+	struct scr_const_t
+	{
+		scr_string_t _;
+		scr_string_t active;
+		scr_string_t aim_bone;
+		scr_string_t aim_highest_bone;
+		scr_string_t aim_vis_bone;
+		scr_string_t all;
+		scr_string_t allies;
+		scr_string_t angles;
+		scr_string_t auto_ai;
+		scr_string_t auto_nonai;
+		scr_string_t axis;
+		scr_string_t back;
+		scr_string_t bad_guys;
+		scr_string_t bad_path;
+		scr_string_t begin_firing;
+		scr_string_t begin_firing_left;
+		scr_string_t cancel_location;
+		scr_string_t chest;
+		scr_string_t confirm_location;
+		scr_string_t crouch;
+		scr_string_t current;
+		scr_string_t damage;
+		scr_string_t dead;
+		scr_string_t death;
+		scr_string_t deathshield;
+		scr_string_t detonate;
+		scr_string_t direct;
+		scr_string_t dlight;
+		scr_string_t done;
+		scr_string_t empty;
+		scr_string_t empty_offhand;
+		scr_string_t offhand_end;
+		scr_string_t end_firing;
+		scr_string_t end_firing_left;
+		scr_string_t entity;
+		scr_string_t explode;
+		scr_string_t failed;
+		scr_string_t first_person;
+		scr_string_t forward;
+		scr_string_t fraction;
+		scr_string_t free;
+		scr_string_t goal;
+		scr_string_t goal_changed;
+		scr_string_t goal_yaw;
+		scr_string_t grenade;
+		scr_string_t grenadedanger;
+		scr_string_t grenade_fire;
+		scr_string_t glass_destroyed;
+		scr_string_t missile_fire;
+		scr_string_t grenade_pullback;
+		scr_string_t missile_stuck;
+		scr_string_t info_notnull;
+		scr_string_t invisible;
+		scr_string_t key1;
+		scr_string_t key2;
+		scr_string_t killanimscript;
+		scr_string_t left;
+		scr_string_t light;
+		scr_string_t manual;
+		scr_string_t manual_ai;
+		scr_string_t movedone;
+		scr_string_t none;
+		scr_string_t normal;
+		scr_string_t origin;
+		scr_string_t other;
+		scr_string_t player;
+		scr_string_t physics_finished;
+		scr_string_t position;
+		scr_string_t projectile_impact;
+		scr_string_t prone;
+		scr_string_t right;
+		scr_string_t reload;
+		scr_string_t reload_start;
+		scr_string_t result;
+		scr_string_t reverse;
+		scr_string_t rocket;
+		scr_string_t rotatedone;
+		scr_string_t script_brushmodel;
+		scr_string_t script_model;
+		scr_string_t script_origin;
+		scr_string_t sentry;
+		scr_string_t sentry_offline;
+		scr_string_t snd_enveffectsprio_level;
+		scr_string_t snd_enveffectsprio_shellshock;
+		scr_string_t snd_channelvolprio_holdbreath;
+		scr_string_t snd_channelvolprio_pain;
+		scr_string_t snd_channelvolprio_shellshock;
+		scr_string_t spawned;
+		scr_string_t stand;
+		scr_string_t suppression;
+		scr_string_t suppression_end;
+		scr_string_t surfacetype;
+		scr_string_t tag_aim;
+		scr_string_t tag_aim_animated;
+		scr_string_t tag_aim_pivot;
+		scr_string_t tag_brass;
+		scr_string_t tag_butt;
+		scr_string_t tag_clip;
+		scr_string_t tag_eye;
+		scr_string_t tag_flash;
+		scr_string_t tag_flash_silenced;
+		scr_string_t tag_flash_11;
+		scr_string_t tag_flash_2;
+		scr_string_t tag_flash_22;
+		scr_string_t tag_flash_3;
+		scr_string_t tag_fx;
+		scr_string_t tag_inhand;
+		scr_string_t tag_knife_fx;
+		scr_string_t tag_laser;
+		scr_string_t tag_origin;
+		scr_string_t tag_weapon;
+		scr_string_t tag_player;
+		scr_string_t tag_camera;
+		scr_string_t tag_weapon_left;
+		scr_string_t tag_weapon_right;
+		scr_string_t tag_weapon_chest;
+		scr_string_t tag_stowed_back;
+		scr_string_t tag_gasmask;
+		scr_string_t tag_gasmask2;
+		scr_string_t tag_sync;
+		scr_string_t tag_motion_tracker_tl;
+		scr_string_t tag_motion_tracker_bl;
+		scr_string_t tag_motion_tracker_br;
+		scr_string_t tag_motion_tracker_fx;
+		scr_string_t tag_reticle_acog;
+		scr_string_t tag_reticle_red_dot;
+		scr_string_t tag_reticle_tavor_scope;
+		scr_string_t tag_reticle_thermal_scope;
+		scr_string_t tag_eotech_reticle;
+		scr_string_t target_script_trigger;
+		scr_string_t third_person;
+		scr_string_t top;
+		scr_string_t touch;
+		scr_string_t trigger;
+		scr_string_t trigger_use;
+		scr_string_t trigger_use_touch;
+		scr_string_t trigger_damage;
+		scr_string_t truck_cam;
+		scr_string_t weapon_change;
+		scr_string_t weapon_fired;
+		scr_string_t weapon_switch_started;
+		scr_string_t weapon_taken;
+		scr_string_t weapon_dropped;
+		scr_string_t worldspawn;
+		scr_string_t flashbang;
+		scr_string_t flash;
+		scr_string_t smoke;
+		scr_string_t frag;
+		scr_string_t throwingknife;
+		scr_string_t night_vision_on;
+		scr_string_t night_vision_off;
+		scr_string_t mod_unknown;
+		scr_string_t mod_pistol_bullet;
+		scr_string_t mod_rifle_bullet;
+		scr_string_t mod_explosive_bullet;
+		scr_string_t mod_grenade;
+		scr_string_t mod_grenade_splash;
+		scr_string_t mod_projectile;
+		scr_string_t mod_projectile_splash;
+		scr_string_t mod_melee;
+		scr_string_t mod_head_shot;
+		scr_string_t mod_crush;
+		scr_string_t mod_falling;
+		scr_string_t mod_suicide;
+		scr_string_t mod_trigger_hurt;
+		scr_string_t mod_explosive;
+		scr_string_t mod_impact;
+		scr_string_t script_vehicle;
+		scr_string_t script_vehicle_collision;
+		scr_string_t script_vehicle_collmap;
+		scr_string_t script_vehicle_corpse;
+		scr_string_t turret_deactivate;
+		scr_string_t turret_fire;
+		scr_string_t turret_no_vis;
+		scr_string_t turret_not_on_target;
+		scr_string_t turret_on_target;
+		scr_string_t turret_on_vistarget;
+		scr_string_t turret_pitch_clamped;
+		scr_string_t turret_rotate_stopped;
+		scr_string_t turret_yaw_clamped;
+		scr_string_t turretstatechange;
+		scr_string_t turretownerchange;
+		scr_string_t reached_end_node;
+		scr_string_t reached_wait_node;
+		scr_string_t reached_wait_speed;
+		scr_string_t near_goal;
+		scr_string_t tag_wheel_front_left;
+		scr_string_t tag_wheel_front_right;
+		scr_string_t tag_wheel_back_left;
+		scr_string_t tag_wheel_back_right;
+		scr_string_t tag_wheel_middle_left;
+		scr_string_t tag_wheel_middle_right;
+		scr_string_t tag_detach;
+		scr_string_t tag_popout;
+		scr_string_t tag_body;
+		scr_string_t tag_turret;
+		scr_string_t tag_turret_base;
+		scr_string_t tag_barrel;
+		scr_string_t front_left;
+		scr_string_t front_right;
+		scr_string_t back_left;
+		scr_string_t back_right;
+		scr_string_t middle_left;
+		scr_string_t middle_right;
+		scr_string_t veh_boatbounce;
+		scr_string_t veh_collision;
+		scr_string_t veh_predictedcollision;
+		scr_string_t veh_leftground;
+		scr_string_t veh_landed;
+		scr_string_t veh_jolt;
+		scr_string_t vehicle_mount;
+		scr_string_t vehicle_dismount;
+		scr_string_t constrained;
+		scr_string_t follow;
+		scr_string_t j_head;
+		scr_string_t j_neck;
+		scr_string_t thermal;
+		scr_string_t primary;
+		scr_string_t offhand;
+		scr_string_t item;
+		scr_string_t altmode;
+		scr_string_t exclusive;
+		scr_string_t scavenger;
+		scr_string_t primaryoffhand;
+		scr_string_t secondaryoffhand;
+		scr_string_t actionslot1;
+		scr_string_t actionslot2;
+		scr_string_t actionslot3;
+		scr_string_t actionslot4;
+		scr_string_t back_low;
+		scr_string_t back_mid;
+		scr_string_t back_up;
+		scr_string_t pelvis;
+		scr_string_t auto_change;
+		scr_string_t begin;
+		scr_string_t call_vote;
+		scr_string_t freelook;
+		scr_string_t intermission;
+		scr_string_t j_mainroot;
+		scr_string_t manual_change;
+		scr_string_t menuresponse;
+		scr_string_t pistol;
+		scr_string_t plane_waypoint;
+		scr_string_t playing;
+		scr_string_t spectator;
+		scr_string_t spectating_cycle;
+		scr_string_t vote;
+		scr_string_t sprint_begin;
+		scr_string_t sprint_end;
+		scr_string_t normal_radar;
+		scr_string_t fast_radar;
+		scr_string_t tag_engine_left;
+		scr_string_t tag_engine_right;
+		scr_string_t slowmo_active;
+		scr_string_t slowmo_passive;
+	};
+
+	static_assert(sizeof(scr_const_t) == 0x1FE);
 
 	enum UILocalVarType
 	{
@@ -5780,15 +6070,66 @@ namespace Game
 		VISIONSETCOUNT
 	} visionSetMode_t;
 
+	enum hintType_t
+	{
+		HINT_NONE = 0x0,
+		HINT_NOICON = 0x1,
+		HINT_ACTIVATE = 0x2,
+		HINT_HEALTH = 0x3,
+		HINT_FRIENDLY = 0x4,
+		FIRST_WEAPON_HINT = 0x5,
+		LAST_WEAPON_HINT = 0x57C,
+		HINT_NUM_HINTS = 0x57D,
+	};
+
+	struct playerTeamState_t
+	{
+		int location;
+	};
+
+	struct clientSession_t
+	{
+		sessionState_t sessionState;
+		int forceSpectatorClient;
+		int killCamEntity;
+		int killCamLookAtEntity;
+		int status_icon;
+		int archiveTime;
+		int score;
+		int deaths;
+		int kills;
+		int assists;
+		unsigned __int16 scriptPersId;
+		clientConnected_t connected;
+		usercmd_s cmd;
+		usercmd_s oldcmd;
+		int localClient;
+		int predictItemPickup;
+		char newnetname[16];
+		int maxHealth;
+		int enterTime;
+		playerTeamState_t teamState;
+		int voteCount;
+		int teamVoteCount;
+		float moveSpeedScaleMultiplier;
+		int viewmodelIndex;
+		int noSpectate;
+		int teamInfo;
+		clientState_s cs;
+		int psOffsetTime;
+		int hasRadar;
+		int isRadarBlocked;
+		int radarMode;
+		int weaponHudIconOverrides[6];
+		unsigned int unusableEntFlags[64];
+		float spectateDefaultPos[3];
+		float spectateDefaultAngles[3];
+	};
+
 	typedef struct gclient_s
 	{
 		playerState_s ps;
-		sessionState_t sessionState; // 12572
-		unsigned char __pad0[40];
-		clientConnected_t connected; // 12616
-		unsigned char __pad1[144];
-		team_t team; // 12764
-		unsigned char __pad2[436];
+		clientSession_t sess;
 		int flags; // 13204
 		int spectatorClient;
 		int lastCmdTime;
@@ -5799,7 +6140,13 @@ namespace Game
 		unsigned char __pad3[324]; // 13232
 		int visionDuration[5];
 		char visionName[5][64];
-		unsigned char __pad4[36];
+		int lastStand;
+		int lastStandTime;
+		int hudElemLastAssignedSoundID;
+		float lockedTargetOffset[3];
+		unsigned __int16 attachShieldTagName;
+		hintType_t hintForcedType;
+		int hintForcedString;
 	} gclient_t;
 
 	static_assert(sizeof(gclient_t) == 13932);
@@ -5899,7 +6246,7 @@ namespace Game
 
 	static_assert(sizeof(gentity_s) == 0x274);
 
-	enum $1C4253065710F064DA9E4D59ED6EC544
+	enum
 	{
 		ENTFIELD_ENTITY = 0x0,
 		ENTFIELD_SENTIENT = 0x2000,
@@ -5958,14 +6305,14 @@ namespace Game
 
 	typedef struct client_s
 	{
-		clientstate_t state; // 0
-		char __pad0[4]; // 4
+		clientState_t state; // 0
+		int sendAsActive; // 4
 		int deltaMessage; // 8
 		char __pad1[12]; // 12
 		netchan_t netchan; // 24
 		char __pad2[20]; // 1604
 		const char* delayDropReason; // 1624
-		char connectInfoString[1024]; // 1628
+		char userinfo[1024]; // 1628
 		char __pad3[132096]; // 2652
 		int reliableSequence; // 134748
 		int reliableAcknowledge; // 134752
@@ -5978,7 +6325,7 @@ namespace Game
 		char lastClientCommandString[1024]; // 134816
 		gentity_t* gentity; // 135840
 		char name[16]; // 135844
-		char __pad4[4]; // 135860
+		int nextReliableTime; // 135860
 		int lastPacketTime; // 135864
 		int lastConnectTime; // 135868
 		int snapNum; // 135872
@@ -5998,6 +6345,49 @@ namespace Game
 #pragma pack(pop)
 
 	static_assert(sizeof(client_t) == 0xA6790);
+
+	struct clientConnection_t
+	{
+		int qport;
+		int clientNum;
+		int lastPacketSentTime;
+		int lastPacketTime;
+		netadr_t serverAddress;
+		int connectTime;
+		int connectPacketCount;
+		char serverMessage[256];
+		int challenge;
+		int checksumFeed;
+		int reliableSequence;
+		int reliableAcknowledge;
+		char reliableCommands[128][1024];
+		int serverMessageSequence;
+		int serverCommandSequence;
+		int lastExecutedServerCommand;
+		char serverCommands[128][1024];
+		bool isServerRestarting;
+		int lastClientArchiveIndex;
+		char demoName[64];
+		int demorecording;
+		int demoplaying;
+		int isTimeDemo;
+		int demowaiting;
+		int(__cdecl* demoread)(void*, int, int);
+		int demofile;
+		int timeDemoLog;
+		int timeDemoFrames;
+		int timeDemoStart;
+		int timeDemoPrev;
+		int timeDemoBaseTime;
+		netchan_t netchan;
+		char netchanOutgoingBuffer[2048];
+		char netchanIncomingBuffer[131072];
+		netProfileInfo_t OOBProf;
+		char statPacketsToSend;
+		int statPacketSendTime[7];
+	};
+
+	static_assert(sizeof(clientConnection_t) == 0x615E8); // Size confirmed in CL_Migrate
 
 	struct CModelAllocData
 	{
@@ -6760,6 +7150,8 @@ namespace Game
 		int nextNoDeltaEntity;
 		entityState_s noDeltaEntities[1024];
 	};
+
+	static_assert(sizeof(clientStatic_t) == 0xA7AEC);
 
 	struct ConDrawInputGlob
 	{
@@ -7564,6 +7956,8 @@ namespace Game
 		unsigned int playerCardNameplate;
 	};
 
+	static_assert(sizeof(clientInfo_t) == 0x52C);
+
 	struct cgs_t
 	{
 		int viewX;
@@ -7869,6 +8263,529 @@ namespace Game
 	};
 
 	static_assert(sizeof(DeferredQueue) == 0x5908);
+
+	struct GamerSettingCommonConfig
+	{
+		float viewSensitivity;
+		float snd_volume;
+		float blacklevel;
+		float gpadButtonLStickDeflect;
+		float gpadButtonRStickDeflect;
+		float safearea_adjusted_horizontal;
+		float safearea_adjusted_vertical;
+		int playTimeSP;
+		int playTimeMP;
+		int playTimeSO;
+		int percentCompleteSP;
+		int percentCompleteMP;
+		int percentCompleteSO;
+		float gamma;
+		bool hasEverPlayed_MainMenu;
+		bool hasEverPlayed_SP;
+		bool hasEverPlayed_SO;
+		bool hasEverPlayed_MP;
+		bool invertPitch;
+		bool autoAim;
+		bool delicateFlower;
+		char gpadButtonsConfig[32];
+		char gpadSticksConfig[32];
+	};
+
+	struct KeyPairStringData
+	{
+		short index;
+		short maxSize;
+	};
+
+	union KeyPairDataUnion
+	{
+		char byteVal;
+		bool boolVal;
+		short shortVal;
+		int intVal;
+		float floatVal;
+		KeyPairStringData stringData;
+	};
+
+	struct GamerSettingKeyPair
+	{
+		char type;
+		char unused[3];
+		KeyPairDataUnion u;
+	};
+
+	struct GamerSettingExeConfig
+	{
+		int playlist;
+		bool mapPrefs[16];
+		char clanPrefix[5];
+	};
+
+	struct GamerSettingState
+	{
+		bool isProfileLoggedIn;
+		bool errorOnRead;
+		GamerSettingCommonConfig commonConfig;
+		GamerSettingKeyPair commonKeyPairs[50];
+		char commonKeyPairsStringPool[512];
+		GamerSettingExeConfig exeConfig;
+		GamerSettingKeyPair exeKeyPairs[50];
+		char exeKeyPairsStringPool[512];
+	};
+
+	static_assert(sizeof(GamerSettingState) == 0x7C0);
+
+	struct SessionStaticData
+	{
+		char* sessionName;
+		bool registerUsersWithVoice;
+	};
+
+	enum IWNetServerSessionStatus
+	{
+		SESSION_ONCLIENTONLY = 0x0,
+		SESSION_BEINGCREATED = 0x1,
+		SESSION_CREATED = 0x2,
+		SESSION_BEINGDELETED = 0x3,
+	};
+
+	struct IWNetServerInfoAboutPlayer
+	{
+		bool active;
+		__int64 uid;
+		char skill;
+		char teamIndex;
+		int mapPackFlags;
+	};
+
+	struct IWNetSessionStatus
+	{
+		IWNetServerSessionStatus status;
+		int sessionId;
+		int lastHeartbeatSent;
+		bool needsUpdate;
+		bool updatingPlayers;
+		int newPlayerCount;
+		IWNetServerInfoAboutPlayer pendingServerInfoForPlayers[18];
+	};
+
+	struct XSESSION_INFO
+	{
+		XNKID sessionID;
+		XNADDR hostAddress;
+		XNKEY keyExchangeKey;
+	};
+
+	struct ClientInfo
+	{
+		bool registered;
+		bool voiceRegistered;
+		unsigned __int64 xuid;
+		int natType;
+		netadr_t addr;
+		int voiceConnectivityBits;
+		int lastConnectivityTestTime;
+		bool muted;
+		bool privateSlot;
+	};
+
+	struct NomineeInfo
+	{
+		int upload;
+		int NAT;
+		bool onLSP;
+		int connectivity;
+		int cpuSpeed;
+		int avgPing;
+	};
+
+	struct RegisteredUser
+	{
+		bool active;
+		unsigned __int64 xuid;
+	};
+
+	struct SessionDynamicData
+	{
+		bool sessionHandle;
+		IWNetSessionStatus iwnetServerSessionStatus;
+		XSESSION_INFO sessionInfo;
+		bool keysGenerated;
+		bool sessionStartCalled;
+		unsigned __int64 sessionNonce;
+		int privateSlots;
+		int publicSlots;
+		int flags;
+		bool qosListenEnabled;
+		ClientInfo users[18];
+		int voiceConnectivityBits;
+		int sessionCreateController;
+		int sessionDeleteTime;
+		RegisteredUser internalRegisteredUsers[18];
+	};
+
+	struct SessionData
+	{
+		SessionStaticData staticData;
+		SessionDynamicData dyn;
+	};
+
+	struct BestHostData
+	{
+		int nominee;
+		NomineeInfo info;
+		int lastHeardFrom;
+		int lastSentTo;
+	};
+
+	struct BandwidthTestPerClientData
+	{
+		int bytesReceived;
+	};
+
+	struct BandwidthTestData
+	{
+		int testIndex;
+		int testClientNum;
+		int startTimeArbitrator;
+		int announceTime;
+		int winnerClientNum;
+		BandwidthTestPerClientData clientData[18];
+		char testClientName[32];
+		bool inProgress;
+		int startTime;
+		int roundsComplete;
+		bool receiving;
+		int receiveIndex;
+		int receiveStartTime;
+		int receiveBytes;
+		int resultsSendTime;
+	};
+
+	struct MigrateData
+	{
+		bool migrateActive;
+		bool weAreArbitrating;
+		int arbitratorClientNum;
+		int indexBits;
+		int startTime;
+		int timeoutDuration;
+		int lastBroadcastTime;
+		bool decidedOurNominee;
+		BestHostData bestHost;
+		int expectedNewHost;
+		BandwidthTestData bandwidthTestData;
+	};
+
+	struct QoSData
+	{
+		float percent;
+	};
+
+	struct PartyInfo
+	{
+		bool active;
+		XSESSION_INFO info;
+		int occupiedPublicSlots;
+		int occupiedPrivateSlots;
+		int numPublicSlots;
+		int numPrivateSlots;
+		int pingBias;
+		int ping;
+		int upload;
+		int desirability;
+	};
+
+	struct PartyMember
+	{
+		char status;
+		bool headsetPresent;
+		char gamertag[32];
+		char clanAbbrev[5];
+		int qport;
+		char challenge[6];
+		int lastPacketTime;
+		int lastHeartbeatTime;
+		int lastPartyStateAck;
+		XNADDR xnaddr;
+		int availableMapPackFlags;
+		int ackedMembers;
+		XNKID privatePartyId;
+		int subpartyIndex;
+		int trueSkill;
+		int rank;
+		int prestige;
+		int team;
+		unsigned __int16 score;
+		int deaths;
+		bool vetoedMap;
+		unsigned int playerCardIcon;
+		unsigned int playerCardTitle;
+		unsigned int playerCardNameplate;
+		int voiceConnectivityBits;
+		bool invited;
+		int natType;
+		unsigned __int64 player;
+		bool migrateHeardFrom;
+		int migratePingTime;
+		int migratePing;
+		bool migrateNominated;
+		NomineeInfo migrateNomineeInfo;
+	};
+
+	struct SubpartyInfo
+	{
+		int members[18];
+		int count;
+		int skill;
+		int score;
+		int team;
+	};
+
+	struct PartyHostDetails
+	{
+		int partyListSlot;
+		netadr_t addr;
+		XSESSION_INFO sessionInfo;
+		int lastPacketTime;
+		int lastPacketSentTime;
+		int numPrivateSlots;
+		int numPublicSlots;
+		int hostNum;
+		bool accepted;
+		char challenge[6];
+	};
+
+	struct PartyHostData
+	{
+		int partyStateChangeTime;
+		int partyStateLastSendTime;
+		int expectedPlayers;
+		int vetoPassTime;
+		bool vetoPossible;
+		bool preloadingMap;
+		bool firstLobby;
+		bool migrateAfterRound;
+		bool stopAfterRound;
+		int partyCreationTime;
+	};
+
+	struct PartyData
+	{
+		SessionData* session;
+		SessionData* presenceSession;
+		SessionData* searchSession;
+		MigrateData migrateData;
+		QoSData qosData;
+		PartyInfo* partyList;
+		int partyListSize;
+		PartyMember partyMembers[18];
+		SubpartyInfo subparties[18];
+		int subpartyCount;
+		PartyHostDetails currentHost;
+		PartyHostDetails potentialHost;
+		PartyHostData hostData;
+		unsigned __int64 lobbySteamID;
+		int areWeHost;
+		int joiningAnotherParty;
+		int searchingForGames;
+		int inParty;
+		int party_systemActive;
+		bool veto;
+		int vetoTime;
+		int headsetPresent;
+		int headsetTime;
+		int clanAbbrevTime;
+		int rankTime;
+		int playerCardTime;
+		int uploadSentTime;
+		int voiceBitsTime;
+		int idTime;
+		int availableMapPackFlagsTime;
+		int searchStartTime;
+		int searchEndTime;
+		int joinAttemptForUI;
+		int lastMergeTime;
+		int mergeAttemptStartTime;
+		int originalPartiesInList;
+		int partyId;
+		int nextSessionSearchTime;
+		int mapPackFlags;
+		int lastPartyStateTime;
+		int gameStartTime;
+		int interEndTime;
+		int inactiveKeepaliveTime;
+		int hostTimeouts;
+		char lobbyFlags;
+		PartyData* partyToNotify;
+		bool registeredWithArbitration;
+		bool rejoining;
+		int partyStatePacketCount;
+		int partyStateLastMemberIndex;
+		int unfinishedPartServerTimes[2];
+		msg_t partyStatePartMsgs[2];
+		char partyStatePartMsgBufs[2][1400];
+		char lastEntries[8];
+		int currentEntry;
+		char axisWins;
+		char alliesWins;
+	};
+
+	static_assert(sizeof(PartyData) == 0x23D8);
+
+	struct MessageLine
+	{
+		int messageIndex;
+		int textBufPos;
+		int textBufSize;
+		int typingStartTime;
+		int lastTypingSoundTime;
+		int flags;
+	};
+
+	struct Message
+	{
+		int startTime;
+		int endTime;
+	};
+
+	struct MessageWindow
+	{
+		MessageLine* lines;
+		Message* messages;
+		char* circularTextBuffer;
+		int textBufSize;
+		int lineCount;
+		int padding;
+		int scrollTime;
+		int fadeIn;
+		int fadeOut;
+		int textBufPos;
+		int firstLineIndex;
+		int activeLineCount;
+		int messageIndex;
+	};
+
+	struct MessageBuffer
+	{
+		char gamemsgText[4][2048];
+		MessageWindow gamemsgWindows[4];
+		MessageLine gamemsgLines[4][12];
+		Message gamemsgMessages[4][12];
+		char miniconText[4096];
+		MessageWindow miniconWindow;
+		MessageLine miniconLines[100];
+		Message miniconMessages[100];
+		char errorText[1024];
+		MessageWindow errorWindow;
+		MessageLine errorLines[5];
+		Message errorMessages[5];
+	};
+
+	struct Console
+	{
+		MessageWindow consoleWindow;
+		MessageLine consoleLines[1024];
+		Message consoleMessages[1024];
+		char consoleText[65536];
+		char textTempLine[512];
+		unsigned int lineOffset;
+		int displayLineOffset;
+		int prevChannel;
+		bool outputVisible;
+		int fontHeight;
+		int visibleLineCount;
+		int visiblePixelWidth;
+		float screenMin[2];
+		float screenMax[2];
+		MessageBuffer messageBuffer[1];
+		float color[4];
+	};
+
+	enum clientMigState_t
+	{
+		CMSTATE_INACTIVE = 0x0,
+		CMSTATE_OLDHOSTLEAVING = 0x1,
+		CMSTATE_LIMBO = 0x2,
+		CMSTATE_NEWHOSTCONNECT = 0x3,
+		CMSTATE_COUNT = 0x4,
+	};
+
+	enum MigrationVerboseState
+	{
+		MVSTATE_INACTIVE = 0x0,
+		MVSTATE_WAITING = 0x1,
+		MVSTATE_RATING = 0x2,
+		MVSTATE_SENDING = 0x3,
+		MVSTATE_MIGRATING = 0x4,
+		MVSTATE_COUNT = 0x5,
+	};
+
+	enum connstate_t
+	{
+		CA_DISCONNECTED = 0x0,
+		CA_CINEMATIC = 0x1,
+		CA_LOGO = 0x2,
+		CA_CONNECTING = 0x3,
+		CA_CHALLENGING = 0x4,
+		CA_CONNECTED = 0x5,
+		CA_SENDINGSTATS = 0x6,
+		CA_LOADING = 0x7,
+		CA_PRIMED = 0x8,
+		CA_ACTIVE = 0x9,
+	};
+
+	struct MigrationPers
+	{
+		int time;
+		bool stanceHeld;
+		StanceState stance;
+		StanceState stancePosition;
+		int stanceTime;
+		int cgameUserCmdWeapon;
+		int cgameUserCmdOffHandIndex;
+		unsigned int weaponSelect;
+		int weaponSelectTime;
+		int weaponForcedSelectTime;
+		unsigned int weaponLatestPrimaryIdx;
+		unsigned __int16 primaryWeaponForAlt[1400];
+		int holdBreathTime;
+		int holdBreathInTime;
+		int holdBreathDelay;
+		float holdBreathFrac;
+	};
+
+	struct clientUIActive_t
+	{
+		bool active;
+		bool isRunning;
+		bool cgameInitialized;
+		bool cgameInitCalled;
+		bool mapPreloaded;
+		clientMigState_t migrationState;
+		MigrationPers migrationPers;
+		MigrationVerboseState verboseMigrationState;
+		int verboseMigrationData;
+		int keyCatchers;
+		bool displayHUDWithKeycatchUI;
+		connstate_t connectionState;
+		bool invited;
+		char itemsUnlocked[256];
+		bool itemsUnlockedInited;
+		bool itemsUnlockedLastGameDirty;
+		unsigned __int16 itemsUnlockedLastGame[16];
+		int itemsUnlockedLastGameCount;
+		char* itemsUnlockedBuffer;
+		int itemsUnlockedLocalClientNum;
+		int itemsUnlockedControllerIndex;
+		int itemsUnlockedStatsSource;
+	};
+
+	enum msgLocErrType_t
+	{
+		LOCMSG_SAFE = 0x0,
+		LOCMSG_NOERR = 0x1,
+	};
 
 #pragma endregion
 

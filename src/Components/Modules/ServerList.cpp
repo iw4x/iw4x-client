@@ -27,11 +27,11 @@ namespace Components
 		{
 			return &ServerList::OnlineList;
 		}
-		else if (ServerList::IsOfflineList())
+		if (ServerList::IsOfflineList())
 		{
 			return &ServerList::OfflineList;
 		}
-		else if (ServerList::IsFavouriteList())
+		if (ServerList::IsFavouriteList())
 		{
 			return &ServerList::FavouriteList;
 		}
@@ -289,6 +289,7 @@ namespace Components
 			{
 				Logger::Print("Could not resolve address for {}:{}", masterServerName, masterPort);
 				Toast::Show("cardicon_headshot", "^1Error", Utils::String::VA("Could not resolve address for %s:%u", masterServerName, masterPort), 5000);
+				useMasterServer = false;
 				return;
 			}
 
@@ -778,14 +779,14 @@ namespace Components
 		Scheduler::Once([]
 		{
 			ServerList::UIServerSelected = Dvar::Register<bool>("ui_serverSelected", false,
-				Game::dvar_flag::DVAR_NONE, "Whether a server has been selected in the serverlist");
+				Game::DVAR_NONE, "Whether a server has been selected in the serverlist");
 			ServerList::UIServerSelectedMap = Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan",
-				Game::dvar_flag::DVAR_NONE, "Map of the selected server");
+				Game::DVAR_NONE, "Map of the selected server");
 
 			ServerList::NETServerQueryLimit = Dvar::Register<int>("net_serverQueryLimit", 1,
-				1, 10, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server queries per frame");
+				1, 10, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server queries per frame");
 			ServerList::NETServerFrames = Dvar::Register<int>("net_serverFrames", 30,
-				1, 60, Dedicated::IsEnabled() ? Game::dvar_flag::DVAR_NONE : Game::dvar_flag::DVAR_ARCHIVE, "Amount of server query frames per second");
+				1, 60, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server query frames per second");
 		}, Scheduler::Pipeline::MAIN);
 
 		// Fix ui_netsource dvar
@@ -828,8 +829,8 @@ namespace Components
 
 		// Set default masterServerName + port and save it 
 		Utils::Hook::Set<const char*>(0x60AD92, "master.xlabs.dev");
-		Utils::Hook::Set<BYTE>(0x60AD90, Game::dvar_flag::DVAR_ARCHIVE); // masterServerName
-		Utils::Hook::Set<BYTE>(0x60ADC6, Game::dvar_flag::DVAR_ARCHIVE); // masterPort
+		Utils::Hook::Set<BYTE>(0x60AD90, Game::DVAR_NONE); // masterServerName
+		Utils::Hook::Set<BYTE>(0x60ADC6, Game::DVAR_NONE); // masterPort
 
 		// Add server list feeder
 		UIFeeder::Add(2.0f, ServerList::GetServerCount, ServerList::GetServerText, ServerList::SelectServer);

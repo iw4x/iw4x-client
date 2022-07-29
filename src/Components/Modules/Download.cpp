@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "GSC/Script.hpp"
 
 namespace Components
 {
@@ -8,7 +9,7 @@ namespace Components
 
 	std::thread Download::ServerThread;
 	bool Download::Terminate;
-    bool Download::ServerRunning;
+	bool Download::ServerRunning;
 
 #pragma region Client
 
@@ -759,7 +760,7 @@ namespace Components
 			else
 			{
 				// Score and ping are irrelevant
-				const char* namePtr = Game::PartyHost_GetMemberName(reinterpret_cast<Game::PartyData_t*>(0x1081C00), i);
+				const char* namePtr = Game::PartyHost_GetMemberName(reinterpret_cast<Game::PartyData*>(0x1081C00), i);
 				if (!namePtr || !namePtr[0]) continue;
 
 				playerInfo["name"] = namePtr;
@@ -889,7 +890,7 @@ namespace Components
 				}
 			});
 
-            Download::ServerRunning = true;
+			Download::ServerRunning = true;
 			Download::Terminate = false;
 			Download::ServerThread = std::thread([]
 			{
@@ -903,9 +904,9 @@ namespace Components
 		{
 			Scheduler::Once([]
 			{
-				Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::dvar_flag::DVAR_NONE, "");
-				Dvar::Register<const char*>("ui_dl_progress", "", Game::dvar_flag::DVAR_NONE, "");
-				Dvar::Register<const char*>("ui_dl_transRate", "", Game::dvar_flag::DVAR_NONE, "");
+				Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::DVAR_NONE, "");
+				Dvar::Register<const char*>("ui_dl_progress", "", Game::DVAR_NONE, "");
+				Dvar::Register<const char*>("ui_dl_transRate", "", Game::DVAR_NONE, "");
 			}, Scheduler::Pipeline::MAIN);
 
 			UIScript::Add("mod_download_cancel", [](UIScript::Token)
@@ -916,13 +917,13 @@ namespace Components
 
 		Scheduler::Once([]
 		{
-			Dvar::Register<bool>("sv_wwwDownload", false, Game::dvar_flag::DVAR_ARCHIVE, "Set to true to enable downloading maps/mods from an external server.");
-			Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::dvar_flag::DVAR_ARCHIVE, "Set to the base url for the external map download.");
+			Dvar::Register<bool>("sv_wwwDownload", false, Game::DVAR_ARCHIVE, "Set to true to enable downloading maps/mods from an external server.");
+			Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::DVAR_ARCHIVE, "Set to the base url for the external map download.");
 
 			// Force users to enable this because we don't want to accidentally turn everyone's pc into a http server into all their files again
 			// not saying we are but ya know... accidents happen
 			// by having it saved we force the user to enable it in config_mp because it only checks the dvar on startup to see if we should init download or not
-			Dvar::Register<bool>("mod_force_download_server", false, Game::dvar_flag::DVAR_ARCHIVE, "Set to true to force the client to run the download server for mods (for mods in private matches).");
+			Dvar::Register<bool>("mod_force_download_server", false, Game::DVAR_ARCHIVE, "Set to true to force the client to run the download server for mods (for mods in private matches).");
 		}, Scheduler::Pipeline::MAIN);
 
 		Scheduler::Loop([]
@@ -968,9 +969,6 @@ namespace Components
 
 		Script::AddFunction("HttpGet", []
 		{
-			if (!Flags::HasFlag("scriptablehttp"))
-				return;
-
 			const auto* url = Game::Scr_GetString(0);
 
 			if (url == nullptr)
@@ -989,9 +987,6 @@ namespace Components
 
 		Script::AddFunction("HttpCancel", []
 		{
-			if (!Flags::HasFlag("scriptablehttp"))
-				return;
-
 			const auto object = Game::Scr_GetObject(0);
 			for (const auto& download : Download::ScriptDownloads)
 			{

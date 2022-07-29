@@ -128,6 +128,8 @@ using namespace std::literals;
 #include "Utils/IO.hpp"
 #include "Utils/Json.hpp"
 #include "Utils/Library.hpp"
+#include "Utils/Maths.hpp"
+#include "Utils/NamedMutex.hpp"
 #include "Utils/String.hpp"
 #include "Utils/Thread.hpp"
 #include "Utils/Time.hpp"
@@ -139,6 +141,7 @@ using namespace std::literals;
 #include "Game/Structs.hpp"
 #include "Game/Functions.hpp"
 #include <Game/Scripting/Function.hpp>
+#include <Game/Scripting/StackIsolation.hpp>
 
 #include "Utils/Stream.hpp" // Breaks order on purpose
 

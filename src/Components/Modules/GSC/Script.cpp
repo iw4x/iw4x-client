@@ -1,18 +1,22 @@
 #include <STDInclude.hpp>
+#include "Script.hpp"
 
 namespace Components
 {
+	std::unordered_map<std::string, Script::ScriptFunction> Script::CustomScrFunctions;
+	std::unordered_map<std::string, Script::ScriptMethod> Script::CustomScrMethods;
+
 	std::string Script::ScriptName;
-	std::vector<int> Script::ScriptHandles;
-	std::unordered_map<std::string, Game::BuiltinFunctionDef> Script::CustomScrFunctions;
-	std::unordered_map<std::string, Game::BuiltinMethodDef> Script::CustomScrMethods;
 	std::vector<std::string> Script::ScriptNameStack;
 	unsigned short Script::FunctionName;
-	std::unordered_map<std::string, std::string> Script::ScriptStorage;
 	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
+	int Script::LastFrameTime = -1;
+
 	std::unordered_map<const char*, const char*> Script::ReplacedFunctions;
 	const char* Script::ReplacedPos = nullptr;
-	int Script::LastFrameTime = -1;
+
+	std::vector<int> Script::ScriptMainHandles;
+	std::vector<int> Script::ScriptInitHandles;
 
 	void Script::FunctionError()
 	{
@@ -201,87 +205,87 @@ namespace Components
 		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\n{}\n{}\n(see console for actual details)\n", msgbuf, Script::ScriptName);
 	}
 
-	int Script::LoadScriptAndLabel(const std::string& script, const std::string& label)
+	void Script::Scr_LoadGameType_Stub()
 	{
-		Logger::Print("Loading script {}.gsc...\n", script);
-
-		if (!Game::Scr_LoadScript(script.data()))
+		for (const auto& handle : Script::ScriptMainHandles)
 		{
-			Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", script);
-			Logger::Error(Game::ERR_DROP, "Could not find script '{}'", script);
-		}
-		else
-		{
-			Logger::Print("Script {}.gsc loaded successfully.\n", script);
-		}
-
-		Logger::Debug("Finding script handle {}::{}...", script.data(), label.data());
-		const auto handle = Game::Scr_GetFunctionHandle(script.data(), label.data());
-		if (handle)
-		{
-			Logger::Print("Script handle {}::{} loaded successfully.\n", script, label);
-			return handle;
-		}
-
-		Logger::Print("Script handle {}::{} couldn't be loaded. (file with no entry point?)\n", script, label);
-		return handle;
-	}
-
-	void Script::LoadGameType()
-	{
-		for (const auto& handle : Script::ScriptHandles)
-		{
-			Game::Scr_FreeThread(Game::Scr_ExecThread(handle, 0));
+			const auto id = Game::Scr_ExecThread(handle, 0);
+			Game::Scr_FreeThread(static_cast<std::uint16_t>(id));
 		}
 
 		Game::Scr_LoadGameType();
 	}
 
-	void Script::LoadGameTypeScript()
+	void Script::Scr_StartupGameType_Stub()
 	{
-		Script::ScriptHandles.clear();
+		for (const auto& handle : Script::ScriptInitHandles)
+		{
+			const auto id = Game::Scr_ExecThread(handle, 0);
+			Game::Scr_FreeThread(static_cast<std::uint16_t>(id));
+		}
+
+		Game::Scr_StartupGameType();
+	}
+
+	void Script::GScr_LoadGameTypeScript_Stub()
+	{
+		// Clear handles (from previous GSC loading session)
+		Script::ScriptMainHandles.clear();
+		Script::ScriptInitHandles.clear();
 
 		const auto list = FileSystem::GetFileList("scripts/", "gsc");
 
-		for (auto file : list)
+		for (const auto& file : list)
 		{
-			file.insert(0, "scripts/");
+			std::string script = "scripts/" + file;
 
-			if (Utils::String::EndsWith(file, ".gsc"))
+			if (Utils::String::EndsWith(script, ".gsc"))
 			{
-				file = file.substr(0, file.size() - 4);
+				script = script.substr(0, script.size() - 4);
 			}
 
-			auto handle = Script::LoadScriptAndLabel(file, "init");
+			Logger::Print("Loading script {}.gsc...\n", script);
 
-			if (handle)
+			if (!Game::Scr_LoadScript(script.data()))
 			{
-				Script::ScriptHandles.push_back(handle);
+				Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", script);
+				Logger::Error(Game::ERR_DROP, "Could not find script '{}'", script);
+				return;
 			}
-			else
+
+			Logger::Print("Script {}.gsc loaded successfully.\n", script);
+			Logger::Debug("Finding script handle main or init...");
+
+			const auto initHandle = Game::Scr_GetFunctionHandle(script.data(), "init");
+			if (initHandle != 0)
 			{
-				handle = Script::LoadScriptAndLabel(file, "main");
-				if (handle) Script::ScriptHandles.push_back(handle);
+				Script::ScriptInitHandles.push_back(initHandle);
 			}
+
+			const auto mainHandle = Game::Scr_GetFunctionHandle(script.data(), "main");
+			if (mainHandle != 0)
+			{
+				Script::ScriptMainHandles.push_back(mainHandle);
+			}
+
+			// Allow scripts with no handles
 		}
 
 		Game::GScr_LoadGameTypeScript();
 	}
 
-	void Script::AddFunction(const char* name, Game::BuiltinFunction func, int type)
+	void Script::AddFunction(const std::string& name, Game::BuiltinFunction func, bool type)
 	{
-		Game::BuiltinFunctionDef toAdd;
-		toAdd.actionString = name;
+		Script::ScriptFunction toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
 
 		CustomScrFunctions.insert_or_assign(Utils::String::ToLower(name), toAdd);
 	}
 
-	void Script::AddMethod(const char* name, Game::BuiltinMethod func, int type)
+	void Script::AddMethod(const std::string& name, Game::BuiltinMethod func, bool type)
 	{
-		Game::BuiltinMethodDef toAdd;
-		toAdd.actionString = name;
+		Script::ScriptMethod toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
 
@@ -312,7 +316,7 @@ namespace Components
 		return Utils::Hook::Call<Game::BuiltinFunction(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
 	}
 
-	Game::BuiltinMethod Script::BuiltIn_GetMethod(const char** pName, int* type)
+	Game::BuiltinMethod Script::BuiltIn_GetMethodStub(const char** pName, int* type)
 	{
 		if (pName != nullptr)
 		{
@@ -411,11 +415,11 @@ namespace Components
 
 	unsigned int Script::SetExpFogStub()
 	{
-		if (Game::Scr_GetNumParam() == 6u)
+		if (Game::Scr_GetNumParam() == 6)
 		{
 			std::memmove(&Game::scrVmPub->top[-4], &Game::scrVmPub->top[-5], sizeof(Game::VariableValue) * 6);
 			Game::scrVmPub->top += 1;
-			Game::scrVmPub->top[-6].type = Game::scrParamType_t::VAR_FLOAT;
+			Game::scrVmPub->top[-6].type = Game::VAR_FLOAT;
 			Game::scrVmPub->top[-6].u.floatValue = 0.0f;
 
 			++Game::scrVmPub->outparamcount;
@@ -432,7 +436,7 @@ namespace Components
 			return "";
 		}
 
-		const auto value = &Game::scrVmPub->top[-index];
+		const auto* value = &Game::scrVmPub->top[-index];
 
 		if (value->type != Game::scrParamType_t::VAR_FUNCTION)
 		{
@@ -535,7 +539,7 @@ namespace Components
 	{
 		Script::AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
 		{
-			if (Game::Scr_GetNumParam() != 2u)
+			if (Game::Scr_GetNumParam() != 2)
 			{
 				Game::Scr_Error("^1ReplaceFunc: Needs two parameters!\n");
 				return;
@@ -587,78 +591,6 @@ namespace Components
 			}
 		});
 
-		// Script Storage Functions
-		Script::AddFunction("StorageSet", [] // gsc: StorageSet(<str key>, <str data>);
-		{
-			const auto* key = Game::Scr_GetString(0);
-			const auto* value = Game::Scr_GetString(1);
-
-			if (key == nullptr || value == nullptr)
-			{
-				Game::Scr_Error("^1StorageSet: Illegal parameters!\n");
-				return;
-			}
-
-			Script::ScriptStorage.insert_or_assign(key, value);
-		});
-
-		Script::AddFunction("StorageRemove", [] // gsc: StorageRemove(<str key>);
-		{
-			const auto* key = Game::Scr_GetString(0);
-
-			if (key == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1StorageRemove: Illegal parameter!\n");
-				return;
-			}
-
-			if (!Script::ScriptStorage.contains(key))
-			{
-				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key));
-				return;
-			}
-
-			Script::ScriptStorage.erase(key);
-		});
-
-		Script::AddFunction("StorageGet", [] // gsc: StorageGet(<str key>);
-		{
-			const auto* key = Game::Scr_GetString(0);
-
-			if (key == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1StorageGet: Illegal parameter!\n");
-				return;
-			}
-
-			if (!Script::ScriptStorage.contains(key))
-			{
-				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key));
-				return;
-			}
-
-			const auto& data = Script::ScriptStorage.at(key);
-			Game::Scr_AddString(data.data());
-		});
-
-		Script::AddFunction("StorageHas", [] // gsc: StorageHas(<str key>);
-		{
-			const auto* key = Game::Scr_GetString(0);
-
-			if (key == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1StorageHas: Illegal parameter!\n");
-				return;
-			}
-
-			Game::Scr_AddBool(Script::ScriptStorage.contains(key));
-		});
-
-		Script::AddFunction("StorageClear", [] // gsc: StorageClear();
-		{
-			Script::ScriptStorage.clear();
-		});
-
 		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
 		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
 		{
@@ -687,12 +619,13 @@ namespace Components
 		Utils::Hook(0x612EA2, Script::FunctionError, HOOK_CALL).install()->quick();
 		Utils::Hook(0x434260, Script::CompileError, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x48EFFE, Script::LoadGameType, HOOK_CALL).install()->quick();
-		Utils::Hook(0x45D44A, Script::LoadGameTypeScript, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48EFFE, Script::Scr_LoadGameType_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48F008, Script::Scr_StartupGameType_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x45D44A, Script::GScr_LoadGameTypeScript_Stub, HOOK_CALL).install()->quick();
 
 		// Fetch custom functions
 		Utils::Hook(0x44E72E, Script::BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
-		Utils::Hook(0x4EC8DD, Script::BuiltIn_GetMethod, HOOK_CALL).install()->quick(); // Scr_GetMethod
+		Utils::Hook(0x4EC8DD, Script::BuiltIn_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
 
 		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
 

@@ -96,7 +96,7 @@ namespace Components
 
 	const char* Maps::LoadArenaFileStub(const char* name, char* buffer, int size)
 	{
-		std::string data  = Game::LoadModdableRawfile(0, name);
+		std::string data  = Game::Scr_AddSourceBuffer(nullptr, name, nullptr, false);
 
 		if(Maps::UserMap.isValid())
 		{
@@ -130,38 +130,30 @@ namespace Components
 
 		Maps::SPMap = false;
 		Maps::CurrentMainZone = zoneInfo->name;
-		
 		Maps::CurrentDependencies.clear();
-		for (auto i = Maps::DependencyList.begin(); i != Maps::DependencyList.end(); ++i)
-		{
-			if (std::regex_match(zoneInfo->name, std::regex(i->first)))
-			{
-				if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), i->second) == Maps::CurrentDependencies.end())
-				{
-					Maps::CurrentDependencies.push_back(i->second);
-				}
-			}
-		}
 
-		Utils::Memory::Allocator allocator;
-		auto teams = Maps::GetTeamsForMap(Maps::CurrentMainZone);
-
-		auto dependencies = Maps::GetDependenciesForMap(Maps::CurrentMainZone);
-		Utils::Merge(&Maps::CurrentDependencies, dependencies.data(), dependencies.size());
-
+		auto dependencies = GetDependenciesForMap(zoneInfo->name);
+		
 		std::vector<Game::XZoneInfo> data;
 		Utils::Merge(&data, zoneInfo, zoneCount);
+		Utils::Memory::Allocator allocator;
 		
-		Game::XZoneInfo team;
-		team.allocFlags = zoneInfo->allocFlags;
-		team.freeFlags = zoneInfo->freeFlags;
+		if (dependencies.requiresTeamZones)
+		{
+			auto teams = dependencies.requiredTeams;
 
-		team.name = allocator.duplicateString(Utils::String::VA("iw4x_team_%s", teams.first.data()));
-		data.push_back(team);
+			Game::XZoneInfo team;
+			team.allocFlags = zoneInfo->allocFlags;
+			team.freeFlags = zoneInfo->freeFlags;
 
-		team.name = allocator.duplicateString(Utils::String::VA("iw4x_team_%s", teams.second.data()));
-		data.push_back(team);
+			team.name = allocator.duplicateString(Utils::String::VA("iw4x_team_%s", teams.first.data()));
+			data.push_back(team);
 
+			team.name = allocator.duplicateString(Utils::String::VA("iw4x_team_%s", teams.second.data()));
+			data.push_back(team);
+		}
+
+		Utils::Merge(&Maps::CurrentDependencies, dependencies.requiredMaps.data(), dependencies.requiredMaps.size());
 		for (unsigned int i = 0; i < Maps::CurrentDependencies.size(); ++i)
 		{
 			Game::XZoneInfo info;
@@ -255,7 +247,7 @@ namespace Components
 			}
 
 			static std::string mapEntities;
-			FileSystem::File ents(name + ".ents");
+			FileSystem::File ents(name + ".ents", Game::FS_THREAD_DATABASE);
 			if (ents.exists())
 			{
 				mapEntities = ents.getBuffer();
@@ -336,66 +328,49 @@ namespace Components
 		Maps::SPMap = true;
 	}
 
-	void Maps::AddDependency(const std::string& expression, const std::string& zone)
-	{
-		// Test expression before adding it
-		try
-		{
-			std::regex _(expression);
-		}
-		catch (const std::regex_error ex)
-		{
-			MessageBoxA(nullptr, Utils::String::VA("Invalid regular expression: %s", expression.data()), "Warning", MB_ICONEXCLAMATION);
-			return;
-		}
-
-		Maps::DependencyList.push_back({expression, zone});
-	}
-
 	int Maps::IgnoreEntityStub(const char* entity)
 	{
 		return (Utils::String::StartsWith(entity, "dyn_") || Utils::String::StartsWith(entity, "node_") || Utils::String::StartsWith(entity, "actor_"));
 	}
 
-	std::vector<std::string> Maps::GetDependenciesForMap(const std::string& map)
+	Maps::MapDependencies Maps::GetDependenciesForMap(const std::string& map)
 	{
-		for (int i = 0; i < *Game::arenaCount; ++i)
-		{
-			Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
-			if (arena->mapName == map)
-			{
-				for (int j = 0; j < ARRAYSIZE(arena->keys); ++j)
-				{
-					if (arena->keys[j] == "dependency"s)
-					{
-						return Utils::String::Split(arena->values[j], ' ');
-					}
-				}
-			}
-		}
+		std::string teamAxis = "opforce_composite";
+		std::string teamAllies = "us_army";
 
-		return {};
-	}
+		Maps::MapDependencies dependencies{};
 
-	std::pair<std::string, std::string> Maps::GetTeamsForMap(const std::string& map)
-	{
-		std::string team_axis = "opforce_composite";
-		std::string team_allies = "us_army";
+		// True by default - cause some maps won't have an arenafile entry
+		dependencies.requiresTeamZones = true;
 
 		for (int i = 0; i < *Game::arenaCount; ++i)
 		{
 			Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
 			if (arena->mapName == map)
 			{
-				for (int j = 0; j < ARRAYSIZE(arena->keys); ++j)
+				// If it's in the arena file, surely it's a vanilla map that doesn't need teams...
+				dependencies.requiresTeamZones = false;
+
+				for (std::size_t j = 0; j < std::extent_v<decltype(Game::newMapArena_t::keys)>; ++j)
 				{
-					if (arena->keys[j] == "allieschar"s)
+					const auto* key = arena->keys[j];
+					const auto* value = arena->values[j];
+					if (key == "dependency"s)
 					{
-						team_allies = arena->values[j];
+						dependencies.requiredMaps = Utils::String::Split(arena->values[j], ' ');
 					}
-					else if (arena->keys[j] == "axischar"s)
+					else if (key == "allieschar"s)
 					{
-						team_axis = arena->values[j];
+						teamAllies = value;
+					}
+					else if (key == "axischar"s)
+					{
+						teamAxis = value;
+					}
+					else if (key == "useteamzones"s)
+					{
+						// ... unless it specifies so!  This allows loading of CODO/COD4 zones that might not have the correct teams
+						dependencies.requiresTeamZones = Utils::String::ToLower(value) == "true"s;
 					}
 				}
 
@@ -403,7 +378,9 @@ namespace Components
 			}
 		}
 
-		return {team_axis, team_allies};
+		dependencies.requiredTeams = std::make_pair(teamAllies, teamAxis);
+
+		return dependencies;
 	}
 
 	void Maps::PrepareUsermap(const char* mapname)
@@ -904,13 +881,6 @@ namespace Components
 
 		// Load usermap arena file
 		Utils::Hook(0x630A88, Maps::LoadArenaFileStub, HOOK_CALL).install()->quick();
-
-		// Dependencies
-		//Maps::AddDependency("oilrig", "mp_subbase");
-		//Maps::AddDependency("gulag", "mp_subbase");
-		//Maps::AddDependency("invasion", "mp_rust");
-		//Maps::AddDependency("co_hunted", "mp_storm");
-		//Maps::AddDependency("mp_shipment", "mp_shipment_long");
 
 		// Allow hiding specific smodels
 		Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();

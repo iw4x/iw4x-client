@@ -10,13 +10,12 @@ namespace Components
 		
 		static bool IsConsoleReady();
 
-		static void PrintStub(int channel, const char* message, ...);
+		static void Print_Stub(int channel, const char* message, ...);
 
 		static void PipeOutput(void(*callback)(const std::string&));
 
 		static void Flush();
 
-		static void MessagePrint(int channel, const std::string& msg);
 		static void PrintInternal(int channel, std::string_view fmt, std::format_args&& args);
 		static void ErrorInternal(Game::errorParm_t error, std::string_view fmt, std::format_args&& args);
 		static void PrintErrorInternal(int channel, std::string_view fmt, std::format_args&& args);
@@ -99,13 +98,14 @@ namespace Components
 		static std::vector<Network::Address> LoggingAddresses[2];
 		static void(*PipeCallback)(const std::string&);
 
+		static void MessagePrint(int channel, const std::string& msg);
 		static void Frame();
-		static void GameLogStub();
-		static void PrintMessageStub();
+		static void G_LogPrintf_Hk(const char* fmt, ...);
+		static void PrintMessage_Stub();
 		static void PrintMessagePipe(const char* data);
 		static void EnqueueMessage(const std::string& message);
 
-		static void BuildOSPathStub();
+		static void BuildOSPath_Stub();
 		static void RedirectOSPath(const char* file, char* folder);
 
 		static void NetworkLog(const char* data, bool gLog);

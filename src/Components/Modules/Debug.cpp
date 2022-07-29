@@ -213,6 +213,11 @@ namespace Components
 		}
 	}
 
+	void Debug::Com_Assert_f()
+	{
+		assert(("a", false));
+	}
+
 	void Debug::CL_InitDebugDvars()
 	{
 		static const char* debugOverlayNames_0[] =
@@ -227,7 +232,7 @@ namespace Components
 		};
 
 		DebugOverlay = Game::Dvar_RegisterEnum("debugOverlay", debugOverlayNames_0, 0,
-			Game::dvar_flag::DVAR_NONE, "Toggles the display of various debug info.");
+			Game::DVAR_NONE, "Toggles the display of various debug info.");
 	}
 
 	Debug::Debug()
@@ -236,5 +241,7 @@ namespace Components
 
 		// Hook end of CG_DrawDebugOverlays (This is to ensure some checks are done before our hook is executed).
 		Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
+
+		Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
 	}
 }

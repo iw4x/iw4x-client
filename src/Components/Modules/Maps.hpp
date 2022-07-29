@@ -50,10 +50,6 @@ namespace Components
 		~Maps();
 
 		static void HandleAsSPMap();
-		static void AddDependency(const std::string& expression, const std::string& zone);
-
-		static std::pair<std::string, std::string> GetTeamsForMap(const std::string& map);
-		static std::vector<std::string> GetDependenciesForMap(const std::string& map);
 
 		static std::string CurrentMainZone;
 		static const char* UserMapFiles[4];
@@ -76,6 +72,13 @@ namespace Components
 			std::vector<std::string> maps;
 		};
 
+		struct MapDependencies
+		{
+			std::vector<std::string> requiredMaps;
+			std::pair<std::string, std::string> requiredTeams;
+			bool requiresTeamZones;
+		};
+
 		static bool SPMap;
 		static UserMapContainer UserMap;
 		static std::vector<DLC> DlcPacks;
@@ -91,6 +94,7 @@ namespace Components
 		static void UnloadMapZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 
 		static void OverrideMapEnts(Game::MapEnts* ents);
+		static MapDependencies GetDependenciesForMap(const std::string& map);
 
 		static int IgnoreEntityStub(const char* entity);
 

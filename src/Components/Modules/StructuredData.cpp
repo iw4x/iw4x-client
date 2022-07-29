@@ -198,7 +198,8 @@ namespace Components
 			// First check if all versions are present
 			for (int i = 156;; ++i)
 			{
-				FileSystem::File definition(Utils::String::VA("%s/%d.json", filename.data(), i));
+				// We're on DB thread (OnLoad) so use DB thread for FS
+				FileSystem::File definition(Utils::String::VA("%s/%d.json", filename.data(), i), Game::FsThread::FS_THREAD_DATABASE);
 				if (!definition.exists()) break;
 
 				std::vector<std::vector<std::string>> enumContainer;

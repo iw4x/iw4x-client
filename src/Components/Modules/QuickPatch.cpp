@@ -175,20 +175,20 @@ namespace Components
 		}
 	}
 
-	BOOL QuickPatch::IsDynClassnameStub(char* a1) 
+	BOOL QuickPatch::IsDynClassnameStub(const char* classname)
 	{
-		auto version = Zones::GetEntitiesZoneVersion();
+		const auto version = Zones::Version();
 		
 		if (version >= VERSION_LATEST_CODO)
 		{
 			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
 			{
 				char** kvPair = Game::spawnVars->spawnVars[i];
-				auto key = kvPair[0];
-				auto val = kvPair[1];
+				const auto* key = kvPair[0];
+				const auto* val = kvPair[1];
 
-				bool isSpecOps = strncmp(key, "script_specialops", 17) == 0;
-				bool isSpecOpsOnly = val[0] == '1' && val[1] == '\0';
+				auto isSpecOps = std::strncmp(key, "script_specialops", 17) == 0;
+				auto isSpecOpsOnly = (val[0] == '1') && (val[1] == '\0');
 
 				if (isSpecOps && isSpecOpsOnly)
 				{
@@ -199,8 +199,7 @@ namespace Components
 			}
 		}
 
-		// Passthrough to the game's own IsDynClassname
-		return Utils::Hook::Call<BOOL(char*)>(0x444810)(a1);
+		return Utils::Hook::Call<BOOL(const char*)>(0x444810)(classname); // IsDynClassname
 	}
 
 	void QuickPatch::CL_KeyEvent_OnEscape()
@@ -248,7 +247,7 @@ namespace Components
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
 		// Intermission time dvar
-		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::dvar_flag::DVAR_NONE, "Time in seconds before match server loads the next map");
+		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_NONE, "Time in seconds before match server loads the next map");
 
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
@@ -328,7 +327,7 @@ namespace Components
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
-		Utils::Hook::Set<BYTE>(0x45888C, Game::dvar_flag::DVAR_CHEAT);
+		Utils::Hook::Set<BYTE>(0x45888C, Game::DVAR_CHEAT);
 
 		// increase font sizes for chat on higher resolutions
 		static float float13 = 13.0f;
@@ -404,7 +403,6 @@ namespace Components
 		// fs_game fixes
 		Utils::Hook::Nop(0x4A5D74, 2); // remove fs_game profiles
 		Utils::Hook::Set<BYTE>(0x4081FD, 0xEB); // defaultweapon
-		Utils::Hook::Set<BYTE>(0x452C1D, 0xEB); // LoadObj weaponDefs
 
 		// filesystem init default_mp.cfg check
 		Utils::Hook::Nop(0x461A9E, 5);
@@ -683,7 +681,7 @@ namespace Components
 		Utils::Hook::Set<bool>(0x60AE2B, true);
 
 		// Disable cheat protection for dvars
-		Utils::Hook::Set<BYTE>(0x647682, 0xEB);
+		Utils::Hook::Set<BYTE>(0x646515, 0xEB); // Dvar_IsCheatProtected
 #else
 		// Remove missing tag message
 		Utils::Hook::Nop(0x4EBF1A, 5);

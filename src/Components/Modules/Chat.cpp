@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "GSC/Script.hpp"
 
 namespace Components
 {
@@ -369,6 +370,7 @@ namespace Components
 	{
 		const auto entityId = Game::Scr_GetEntityId(self->s.number, 0);
 
+		Scripting::StackIsolation _;
 		Game::Scr_AddInt(mode);
 		Game::Scr_AddString(message);
 
@@ -409,8 +411,8 @@ namespace Components
 	Chat::Chat()
 	{
 		cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
-		sv_disableChat = Dvar::Register<bool>("sv_disableChat", false, Game::dvar_flag::DVAR_NONE, "Disable chat messages from clients");
-		Scheduler::OnGameInitialized(AddChatCommands, Scheduler::Pipeline::SERVER);
+		sv_disableChat = Dvar::Register<bool>("sv_disableChat", false, Game::DVAR_NONE, "Disable chat messages from clients");
+		Events::OnSVInit(AddChatCommands);
 
 		// Intercept chat sending
 		Utils::Hook(0x4D000B, PreSayStub, HOOK_CALL).install()->quick();

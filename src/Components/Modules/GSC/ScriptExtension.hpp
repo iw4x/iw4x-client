@@ -11,8 +11,6 @@ namespace Components
 		static void AddClientField(const char* name, Game::fieldtype_t type, const Game::ScriptCallbackClient& setter, const Game::ScriptCallbackClient& getter);
 
 	private:
-		static const char* QueryStrings[];
-
 		static std::unordered_map<std::uint16_t, Game::ent_field_t> CustomEntityFields;
 		static std::unordered_map<std::uint16_t, Game::client_fields_s> CustomClientFields;
 

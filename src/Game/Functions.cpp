@@ -33,6 +33,7 @@ namespace Game
 	BG_GetNumWeapons_t BG_GetNumWeapons = BG_GetNumWeapons_t(0x4F5CC0);
 	BG_GetWeaponName_t BG_GetWeaponName = BG_GetWeaponName_t(0x4E6EC0);
 	BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj = BG_LoadWeaponDef_LoadObj_t(0x57B5F0);
+	BG_LoadWeaponCompleteDefInternal_t BG_LoadWeaponCompleteDefInternal = BG_LoadWeaponCompleteDefInternal_t(0x4B5F10);
 	BG_GetWeaponDef_t BG_GetWeaponDef = BG_GetWeaponDef_t(0x440EB0);
 	BG_GetEntityTypeName_t BG_GetEntityTypeName = BG_GetEntityTypeName_t(0x43A0E0);
 
@@ -65,6 +66,8 @@ namespace Game
 	CL_SelectStringTableEntryInDvar_f_t CL_SelectStringTableEntryInDvar_f = CL_SelectStringTableEntryInDvar_f_t(0x4A4560);
 	CL_DrawStretchPic_t CL_DrawStretchPic = CL_DrawStretchPic_t(0x412490);
 	CL_ConsoleFixPosition_t CL_ConsoleFixPosition = CL_ConsoleFixPosition_t(0x44A430);
+	CL_GetLocalClientActiveCount_t CL_GetLocalClientActiveCount = CL_GetLocalClientActiveCount_t(0x5BAD90);
+	CL_ControllerIndexFromClientNum_t CL_ControllerIndexFromClientNum = CL_ControllerIndexFromClientNum_t(0x449E30);
 
 	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x4DCE00);
@@ -78,6 +81,8 @@ namespace Game
 	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4AA830);
 	Com_EndParseSession_t Com_EndParseSession = Com_EndParseSession_t(0x4B80B0);
 	Com_BeginParseSession_t Com_BeginParseSession = Com_BeginParseSession_t(0x4AAB80);
+	Com_ParseOnLine_t Com_ParseOnLine = Com_ParseOnLine_t(0x4C0350);
+	Com_SkipRestOfLine_t Com_SkipRestOfLine = Com_SkipRestOfLine_t(0x4B8300);
 	Com_SetSpaceDelimited_t Com_SetSpaceDelimited = Com_SetSpaceDelimited_t(0x4FC710);
 	Com_Parse_t Com_Parse = Com_Parse_t(0x474D60);
 	Com_MatchToken_t Com_MatchToken = Com_MatchToken_t(0x447130);
@@ -122,12 +127,16 @@ namespace Game
 	Dvar_RegisterEnum_t Dvar_RegisterEnum = Dvar_RegisterEnum_t(0x412E40);
 	Dvar_RegisterString_t Dvar_RegisterString = Dvar_RegisterString_t(0x4FC7E0);
 	Dvar_RegisterColor_t Dvar_RegisterColor = Dvar_RegisterColor_t(0x4F28E0);
+	Dvar_RegisterVec3Color_t Dvar_RegisterVec3Color = Dvar_RegisterVec3Color_t(0x4918B0);
 
 	Dvar_GetUnpackedColorByName_t Dvar_GetUnpackedColorByName = Dvar_GetUnpackedColorByName_t(0x406530);
+	Dvar_GetString_t Dvar_GetString = Dvar_GetString_t(0x4EC6B0);
+	Dvar_GetVariantString_t Dvar_GetVariantString = Dvar_GetVariantString_t(0x4C47E0);
 	Dvar_FindVar_t Dvar_FindVar = Dvar_FindVar_t(0x4D5390);
 	Dvar_InfoString_Big_t Dvar_InfoString_Big = Dvar_InfoString_Big_t(0x4D98A0);
 	Dvar_SetCommand_t Dvar_SetCommand = Dvar_SetCommand_t(0x4EE430);
 	Dvar_DisplayableValue_t Dvar_DisplayableValue = Dvar_DisplayableValue_t(0x4B5530);
+	Dvar_Reset_t Dvar_Reset = Dvar_Reset_t(0x4FEFD0);
 
 	Encode_Init_t Encode_Init = Encode_Init_t(0x462AB0);
 
@@ -148,7 +157,8 @@ namespace Game
 	FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = FS_FOpenFileReadForThread_t(0x643270);
 	FS_FCloseFile_t FS_FCloseFile = FS_FCloseFile_t(0x462000);
 	FS_WriteFile_t FS_WriteFile = FS_WriteFile_t(0x426450);
-	FS_Write_t FS_Write = FS_Write_t(0x4C06E0);
+	FS_WriteToDemo_t  FS_WriteToDemo = FS_WriteToDemo_t(0x4C06E0);
+	FS_Write_t FS_Write = FS_Write_t(0x4576C0);
 	FS_Printf_t FS_Printf = FS_Printf_t(0x459320);
 	FS_Read_t FS_Read = FS_Read_t(0x4A04C0);
 	FS_Seek_t FS_Seek = FS_Seek_t(0x4A63D0);
@@ -247,7 +257,9 @@ namespace Game
 	Live_GetPrestige_t Live_GetPrestige = Live_GetPrestige_t(0x430F90);
 	Live_GetXp_t Live_GetXp = Live_GetXp_t(0x404C60);
 
-	LoadModdableRawfile_t LoadModdableRawfile = LoadModdableRawfile_t(0x61ABC0);
+	LiveStorage_GetStat_t LiveStorage_GetStat = LiveStorage_GetStat_t(0x471F60);
+
+	Scr_AddSourceBuffer_t Scr_AddSourceBuffer = Scr_AddSourceBuffer_t(0x61ABC0);
 
 	PC_ReadToken_t PC_ReadToken = PC_ReadToken_t(0x4ACCD0);
 	PC_ReadTokenHandle_t PC_ReadTokenHandle = PC_ReadTokenHandle_t(0x4D2060);
@@ -274,6 +286,7 @@ namespace Game
 	RemoveRefToObject_t RemoveRefToObject = RemoveRefToObject_t(0x437190);
 
 	Scr_LoadGameType_t Scr_LoadGameType = Scr_LoadGameType_t(0x4D9520);
+	Scr_StartupGameType_t Scr_StartupGameType = Scr_StartupGameType_t(0x438720);
 
 	Scr_LoadScript_t Scr_LoadScript = Scr_LoadScript_t(0x45D940);
 	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = Scr_GetFunctionHandle_t(0x4234F0);
@@ -451,6 +464,15 @@ namespace Game
 
 	player_die_t player_die = player_die_t(0x42BC70);
 
+	Vec3Normalize_t Vec3Normalize = Vec3Normalize_t(0x453500);
+	Vec3NormalizeFast_t Vec3NormalizeFast = Vec3NormalizeFast_t(0x478F80);
+	Vec2Normalize_t Vec2Normalize = Vec2Normalize_t(0x416F70);
+	Vec2NormalizeFast_t Vec2NormalizeFast = Vec2NormalizeFast_t(0x5FC830);
+
+	Z_VirtualAlloc_t Z_VirtualAlloc = Z_VirtualAlloc_t(0x4CFBA0);
+
+	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
@@ -484,8 +506,8 @@ namespace Game
 	int* g_streamPosIndex = reinterpret_cast<int*>(0x16E5578);
 
 	bool* g_lobbyCreateInProgress = reinterpret_cast<bool*>(0x66C9BC2);
-	party_t** partyIngame = reinterpret_cast<party_t**>(0x1081C00);
-	PartyData_s** partyData = reinterpret_cast<PartyData_s**>(0x107E500);
+	PartyData* g_lobbyData = reinterpret_cast<PartyData*>(0x1081C00);
+	PartyData* g_partyData = reinterpret_cast<PartyData*>(0x107E500);
 
 	int* numIP = reinterpret_cast<int*>(0x64A1E68);
 	netIP_t* localIP = reinterpret_cast<netIP_t*>(0x64A1E28);
@@ -528,6 +550,8 @@ namespace Game
 
 	FxElemField* s_elemFields = reinterpret_cast<FxElemField*>(0x73B848);
 
+	visField_t* visionDefFields = reinterpret_cast<visField_t*>(0x7982F0); // Count 21
+
 	infoParm_t* infoParams = reinterpret_cast<infoParm_t*>(0x79D260); // Count 0x1E
 
 	XZone* g_zones = reinterpret_cast<XZone*>(0x14C0F80);
@@ -536,17 +560,23 @@ namespace Game
 	scrVmPub_t* scrVmPub = reinterpret_cast<scrVmPub_t*>(0x2040CF0);
 	scrVarPub_t* scrVarPub = reinterpret_cast<scrVarPub_t*>(0x201A408);
 
-	clientstate_t* clcState = reinterpret_cast<clientstate_t*>(0xB2C540);
+	clientState_t* clcState = reinterpret_cast<clientState_t*>(0xB2C540);
 
 	GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
 
+	Console* con = reinterpret_cast<Console*>(0x9FCCF8);
 	ConDrawInputGlob* conDrawInputGlob = reinterpret_cast<ConDrawInputGlob*>(0x9FD6F8);
+
+	int* g_console_field_width = reinterpret_cast<int*>(0x79854C);
+	float* g_console_char_height = reinterpret_cast<float*>(0x798550);
 	field_t* g_consoleField = reinterpret_cast<field_t*>(0xA1B6B0);
 
 	clientStatic_t* cls = reinterpret_cast<clientStatic_t*>(0xA7FE90);
+	clientUIActive_t* clientUIActives = reinterpret_cast<clientUIActive_t*>(0xB2BB8A);
 
 	sharedUiInfo_t* sharedUiInfo = reinterpret_cast<sharedUiInfo_t*>(0x62E4B78);
 	ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0x10843F0);
+	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 	ScreenPlacement* scrPlaceView = reinterpret_cast<ScreenPlacement*>(0x1084378);
 	
 	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
@@ -568,8 +598,6 @@ namespace Game
 	XModel** cached_models = reinterpret_cast<XModel**>(0x1AA20C8);
 
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
-
-	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 
 	float (*CorrectSolidDeltas)[26][3] = reinterpret_cast<float(*)[26][3]>(0x739BB8); // Count 26
 
@@ -595,6 +623,15 @@ namespace Game
 	int* com_fixedConsolePosition = reinterpret_cast<int*>(0x1AD8EC8);
 
 	int* com_errorPrintsCount = reinterpret_cast<int*>(0x1AD7910);
+
+	scr_const_t* scr_const = reinterpret_cast<scr_const_t*>(0x1AA2E00);
+
+	clientConnection_t* clientConnections = reinterpret_cast<clientConnection_t*>(0xA1E878);
+
+	unsigned int* playerCardUIStringIndex = reinterpret_cast<unsigned int*>(0x62CD7A8);
+	char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38] = reinterpret_cast<char(*)[PLAYER_CARD_UI_STRING_COUNT][38]>(0x62CB4F8);
+
+	GamerSettingState* gamerSettings = reinterpret_cast<GamerSettingState*>(0x107D3E8);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
@@ -816,8 +853,8 @@ namespace Game
 	{
 		for (auto i = 0; i < *svs_clientCount; ++i)
 		{
-			if (svs_clients[i].state != clientstate_t::CS_FREE
-				&& svs_clients[i].netchan.remoteAddress.type == netadrtype_t::NA_BOT)
+			if (svs_clients[i].state != CS_FREE
+				&& svs_clients[i].netchan.remoteAddress.type == NA_BOT)
 			{
 				SV_GameDropClient(i, "GAME_GET_TO_COVER");
 			}
@@ -914,33 +951,6 @@ namespace Game
 		StringTable* rankTable = DB_FindXAssetHeader(ASSET_TYPE_STRINGTABLE, "mp/rankTable.csv").stringTable;
 		const char* maxrank = StringTable_Lookup(rankTable, 0, "maxrank", 1);
 		return atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
-	}
-
-	float Vec2Normalize(vec2_t& vec)
-	{
-		const auto length = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1]);
-
-		if (length > 0.0f)
-		{
-			vec[0] /= length;
-			vec[1] /= length;
-		}
-
-		return length;
-	}
-
-	float Vec3Normalize(vec3_t& vec)
-	{
-		const auto length = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
-
-		if (length > 0.0f)
-		{
-			vec[0] /= length;
-			vec[1] /= length;
-			vec[2] /= length;
-		}
-
-		return length;
 	}
 
 	void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out)
@@ -1156,6 +1166,11 @@ namespace Game
 	float GraphFloat_GetValue(const GraphFloat* graph, const float fraction)
 	{
 		return GraphGetValueFromFraction(graph->knotCount, graph->knots, fraction) * graph->scale;
+	}
+
+	ScreenPlacement* ScrPlace_GetFullPlacement()
+	{
+		return scrPlaceFull;
 	}
 
 	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement()
@@ -1531,24 +1546,25 @@ namespace Game
 		}
 	}
 
-	__declspec(naked) Glyph* R_GetCharacterGlyph(Font_s* /*font*/, unsigned int /*letter*/)
+	Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter)
 	{
+		static auto R_GetCharacterGlyph_Func = 0x5055C0;
+		Glyph* returnValue;
+
 		__asm
 		{
-			push eax
 			pushad
 
-			mov edi, [esp + 0x8 + 0x24] // letter
-			push [esp + 0x4 + 0x24] // font
-			mov eax, 0x5055C0
-			call eax
+			mov edi, letter
+			push font
+			call R_GetCharacterGlyph_Func
 			add esp, 4
-			mov [esp + 0x20], eax
+			mov returnValue, eax
 
 			popad
-			pop eax
-			ret
 		}
+
+		return returnValue;
 	}
 
 	__declspec(naked) bool SetupPulseFXVars(const char* /*text*/, int /*maxLength*/, int /*fxBirthTime*/, int /*fxLetterTime*/, int /*fxDecayStartTime*/, int /*fxDecayDuration*/, bool* /*resultDrawRandChar*/, int* /*resultRandSeed*/, int* /*resultMaxLength*/, bool* /*resultDecaying*/, int* /*resultDecayTimeElapsed*/)
@@ -1655,8 +1671,8 @@ namespace Game
 	{
 		__asm
 		{
-			mov eax,[esp+0x4]
-			mov ebx,0x569950
+			mov eax, [esp+0x4]
+			mov ebx, 0x569950
 			call ebx
 			retn
 		}
@@ -1680,11 +1696,11 @@ namespace Game
 			pushad
 
 			mov eax, [esp + 0x4 + 0x20] // dvar
-			push[esp + 0x18 + 0x20] // source
-			push[esp + 0x18 + 0x20] // value
-			push[esp + 0x18 + 0x20] // value
-			push[esp + 0x18 + 0x20] // value
-			push[esp + 0x18 + 0x20] // value
+			push [esp + 0x18 + 0x20] // source
+			push [esp + 0x18 + 0x20] // value
+			push [esp + 0x18 + 0x20] // value
+			push [esp + 0x18 + 0x20] // value
+			push [esp + 0x18 + 0x20] // value
 
 			mov ebx, 0x647400
 			call ebx
@@ -1693,6 +1709,48 @@ namespace Game
 			popad
 
 			retn
+		}
+	}
+
+	constexpr auto Dvar_SetFromStringFromSource_Func = 0x648580;
+	__declspec(naked) void Dvar_SetFromStringFromSource(const dvar_t* /*dvar*/, const char* /*string*/, DvarSetSource /*source*/)
+	{
+		__asm
+		{
+			pushad
+
+			mov esi, [esp + 0x20 + 0x4] // dvar
+			mov eax, [esp + 0x20 + 0x8] // string
+			push [esp + 0x20 + 0xC] // source
+			call Dvar_SetFromStringFromSource_Func
+			add esp, 0x4
+
+			popad
+
+			ret
+		}
+	}
+
+	constexpr auto ApplyTokenToField_Func = 0x59A760;
+	__declspec(naked) bool ApplyTokenToField(unsigned int /*fieldNum*/, const char* /*token*/, visionSetVars_t* /*settings*/)
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			mov eax, [esp + 0x24 + 0x4] // fieldNum
+			mov ecx, [esp + 0x24 + 0x8] // token
+			push [esp + 0x24 + 0xC] // settings
+			call ApplyTokenToField_Func
+			add esp, 0x4
+
+			movzx eax, al // Zero extend eax
+			mov [esp + 0x20], eax
+			popad
+			pop eax
+
+			ret
 		}
 	}
 
@@ -1710,6 +1768,5 @@ namespace Game
 			ret
 		}
 	}
-
 #pragma optimize("", on)
 }

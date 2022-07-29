@@ -2,57 +2,57 @@
 
 namespace Components
 {
-    Dvar::Var PlayerName::sv_allowColoredNames;
+	Dvar::Var PlayerName::sv_allowColoredNames;
 
-    void PlayerName::UserInfoCopy(char* buffer, const char* name, const size_t size)
-    {
-        if (!sv_allowColoredNames.get<bool>())
-        {
-            char nameBuffer[64] = {0};
-            TextRenderer::StripColors(name, nameBuffer, sizeof(nameBuffer));
-            TextRenderer::StripAllTextIcons(nameBuffer, buffer, size);
-        }
-        else
-        {
-            TextRenderer::StripAllTextIcons(name, buffer, size);
-        }
+	void PlayerName::UserInfoCopy(char* buffer, const char* name, const size_t size)
+	{
+		if (!sv_allowColoredNames.get<bool>())
+		{
+			char nameBuffer[64] = {0};
+			TextRenderer::StripColors(name, nameBuffer, sizeof(nameBuffer));
+			TextRenderer::StripAllTextIcons(nameBuffer, buffer, size);
+		}
+		else
+		{
+			TextRenderer::StripAllTextIcons(name, buffer, size);
+		}
 
-        std::string readablePlayerName(buffer);
-        readablePlayerName = Utils::String::Trim(readablePlayerName);
+		std::string readablePlayerName(buffer);
+		readablePlayerName = Utils::String::Trim(readablePlayerName);
 
-        if (readablePlayerName.size() < 3)
-        {
-            strncpy(buffer, "Unknown Soldier", size);
-        }
-    }
+		if (readablePlayerName.size() < 3)
+		{
+			strncpy(buffer, "Unknown Soldier", size);
+		}
+	}
 
-    __declspec(naked) void PlayerName::ClientCleanName()
-    {
-        __asm
-        {
-            mov eax, [esp + 4h] // length
+	__declspec(naked) void PlayerName::ClientCleanName()
+	{
+		__asm
+		{
+			mov eax, [esp + 4h] // length
 
-            push eax
+			push eax
 
-            push ecx // name
-            push edx // buffer
+			push ecx // name
+			push edx // buffer
 
-            call UserInfoCopy
+			call UserInfoCopy
 
-            add esp, 0Ch
-            retn
-        }
-    }
+			add esp, 0Ch
+			retn
+		}
+	}
 
-    char* PlayerName::GetClientName(int localClientNum, int index, char* buf, size_t size)
-    {
-        Game::CL_GetClientName(localClientNum, index, buf, size);
+	int PlayerName::GetClientName(int localClientNum, int index, char* buf, int size)
+	{
+		const auto result = Game::CL_GetClientName(localClientNum, index, buf, size);
 
-        // Append clantag to username & remove the colors
-        strncpy_s(buf, size, TextRenderer::StripColors(ClanTags::GetUserClantag(index, buf)).data(), size);
+		// Prepend clanName to username & remove the colors
+		strncpy_s(buf, size, TextRenderer::StripColors(ClanTags::GetClanTagWithName(index, buf)).data(), size);
 
-        return buf;
-    }
+		return result;
+	}
 
 	char* PlayerName::CleanStrStub(char* string)
 	{
@@ -106,7 +106,7 @@ namespace Components
 
 	PlayerName::PlayerName()
 	{
-		sv_allowColoredNames = Dvar::Register<bool>("sv_allowColoredNames", true, Game::dvar_flag::DVAR_NONE, "Allow colored names on the server");
+		sv_allowColoredNames = Dvar::Register<bool>("sv_allowColoredNames", true, Game::DVAR_NONE, "Allow colored names on the server");
 
 		// Disable SV_UpdateUserinfo_f, to block changing the name ingame
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);

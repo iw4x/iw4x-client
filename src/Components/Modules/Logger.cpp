@@ -12,7 +12,7 @@ namespace Components
 		return (IsWindow(Console::GetWindow()) != FALSE || (Dedicated::IsEnabled() && !Flags::HasFlag("console")));
 	}
 
-	void Logger::PrintStub(const int channel, const char* message, ...)
+	void Logger::Print_Stub(const int channel, const char* message, ...)
 	{
 		char buf[4096] = {0};
 
@@ -26,35 +26,44 @@ namespace Components
 
 	void Logger::MessagePrint(const int channel, const std::string& msg)
 	{
+		std::string out = msg;
+
+		// Filter out coloured strings
+		if (out[0] == '^' && out[1] != '\0')
+		{
+			out = out.substr(2);
+		}
+
 		if (Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests())
 		{
-			printf("%s", msg.data());
+			printf("%s", out.data());
 			fflush(stdout);
 			return;
 		}
 
 		if (!Logger::IsConsoleReady())
 		{
-			OutputDebugStringA(msg.data());
+			OutputDebugStringA(out.data());
 		}
 
 		if (!Game::Sys_IsMainThread())
 		{
-			Logger::EnqueueMessage(msg);
+			Logger::EnqueueMessage(out);
 		}
 		else
 		{
-			Game::Com_PrintMessage(channel, msg.data(), 0);
+			Game::Com_PrintMessage(channel, out.data(), 0);
 		}
 	}
 
 	void Logger::DebugInternal(std::string_view fmt, std::format_args&& args, [[maybe_unused]] const std::source_location& loc)
 	{
-		const auto msg = std::vformat(fmt, args);
 #ifdef LOGGER_TRACE
+		const auto msg = std::vformat(fmt, args);
 		const auto out = std::format("Debug:\n    {}\nFile:    {}\nLine:    {}\n", msg, loc.file_name(), loc.line());
 #else
-		const auto out = std::format("Debug:\n    {}\n", msg);
+		const auto msg = std::vformat(fmt, args);
+		const auto out = std::format("^2{}\n", msg);
 #endif
 
 		Logger::MessagePrint(Game::CON_CHANNEL_DONT_FILTER, out);
@@ -144,34 +153,40 @@ namespace Components
 
 	void Logger::NetworkLog(const char* data, bool gLog)
 	{
-		if (!data) return;
+		if (data == nullptr)
+		{
+			return;
+		}
 
-		const std::string buffer(data);
 		for (const auto& addr : Logger::LoggingAddresses[gLog & 1])
 		{
-			Network::SendCommand(addr, "print", buffer);
+			Network::SendCommand(addr, "print", data);
 		}
 	}
 
-	__declspec(naked) void Logger::GameLogStub()
+	void Logger::G_LogPrintf_Hk(const char* fmt, ...)
 	{
-		__asm
+		char string[1024]{};
+		char string2[1024]{};
+
+		va_list ap;
+		va_start(ap, fmt);
+		vsnprintf_s(string2, _TRUNCATE, fmt, ap);
+		va_end(ap);
+
+		const auto time = Game::level->time / 1000;
+		const auto len = _snprintf_s(string, _TRUNCATE, "%3i:%i%i %s", time / 60, time % 60 / 10, time % 60 % 10, string2);
+
+		if (Game::level->logFile != nullptr)
 		{
-			pushad
-
-			push 1
-			push [esp + 28h]
-			call Logger::NetworkLog
-			add esp, 8h
-
-			popad
-
-			push 4576C0h
-			retn
+			Game::FS_Write(string, len, reinterpret_cast<int>(Game::level->logFile));
 		}
+
+		// Allow the network log to run even if logFile was not opened
+		Logger::NetworkLog(string, true);
 	}
 
-	__declspec(naked) void Logger::PrintMessageStub()
+	__declspec(naked) void Logger::PrintMessage_Stub()
 	{
 		__asm
 		{
@@ -222,7 +237,7 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) void Logger::BuildOSPathStub()
+	__declspec(naked) void Logger::BuildOSPath_Stub()
 	{
 		__asm
 		{
@@ -265,7 +280,7 @@ namespace Components
 		{
 			if (params->size() < 2) return;
 
-			int num = atoi(params->get(1));
+			const auto num = atoi(params->get(1));
 			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[0].size())
 			{
 				auto addr = Logger::LoggingAddresses[0].begin() + num;
@@ -296,7 +311,7 @@ namespace Components
 
 			for (unsigned int i = 0; i < Logger::LoggingAddresses[0].size(); ++i)
 			{
-				Logger::Print("{}: {}\n", i, Logger::LoggingAddresses[0][i].getCString());
+				Logger::Print("#{:03d}: {}\n", i, Logger::LoggingAddresses[0][i].getCString());
 			}
 		});
 
@@ -316,7 +331,7 @@ namespace Components
 		{
 			if (params->size() < 2) return;
 
-			int num = atoi(params->get(1));
+			const auto num = std::atoi(params->get(1));
 			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[1].size())
 			{
 				const auto addr = Logger::LoggingAddresses[1].begin() + num;
@@ -347,29 +362,29 @@ namespace Components
 
 			for (std::size_t i = 0; i < Logger::LoggingAddresses[1].size(); ++i)
 			{
-				Logger::Print("{}: {}\n", i, Logger::LoggingAddresses[1][i].getCString());
+				Logger::Print("#{:03d}: {}\n", i, Logger::LoggingAddresses[1][i].getCString());
 			}
 		});
 	}
 
 	Logger::Logger()
 	{
-		Dvar::Register<bool>("iw4x_onelog", false, Game::dvar_flag::DVAR_LATCH | Game::dvar_flag::DVAR_ARCHIVE, "Only write the game log to the 'userraw' OS folder");
-		Utils::Hook(0x642139, Logger::BuildOSPathStub, HOOK_JUMP).install()->quick();
+		Dvar::Register<bool>("iw4x_onelog", false, Game::DVAR_LATCH | Game::DVAR_ARCHIVE, "Only write the game log to the 'userraw' OS folder");
+		Utils::Hook(0x642139, Logger::BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
 		Logger::PipeOutput(nullptr);
 
 		Scheduler::Loop(Logger::Frame, Scheduler::Pipeline::SERVER);
 
-		Utils::Hook(0x4B0218, Logger::GameLogStub, HOOK_CALL).install()->quick();
-		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessageStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(Game::G_LogPrintf, Logger::G_LogPrintf_Hk, HOOK_JUMP).install()->quick();
+		Utils::Hook(Game::Com_PrintMessage, Logger::PrintMessage_Stub, HOOK_JUMP).install()->quick();
 
 		if (Loader::IsPerformingUnitTests())
 		{
-			Utils::Hook(Game::Com_Printf, Logger::PrintStub, HOOK_JUMP).install()->quick();
+			Utils::Hook(Game::Com_Printf, Logger::Print_Stub, HOOK_JUMP).install()->quick();
 		}
 
-		Scheduler::OnGameInitialized(Logger::AddServerCommands, Scheduler::Pipeline::SERVER);
+		Events::OnSVInit(Logger::AddServerCommands);
 	}
 
 	Logger::~Logger()

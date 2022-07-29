@@ -44,6 +44,7 @@ namespace Assets
 			{"wc_unlit_alphatest", "wc_unlit_blend_lin"},
 			{"wc_unlit_blend", "wc_unlit_blend_lin_ua"},
 			{"wc_unlit_replace", "wc_unlit_replace_lin"},
+			{"wc_unlit_nofog", "wc_unlit_replace_lin_nofog_nocast" },
 
 			{"mc_unlit_replace", "mc_unlit_replace_lin"},
 			{"mc_unlit_nofog", "mc_unlit_blend_nofog_ua"},
@@ -112,8 +113,9 @@ namespace Assets
 					}
 				}
 			}
-			else {
-				Components::Logger::Print("Techset {} exists with the same name in iw4, and was mapped 1:1 with %s\n", techsetName, asset->techniqueSet->name);
+			else
+			{
+				Components::Logger::Print("Techset {} exists with the same name in iw4, and was mapped 1:1 with {}\n", techsetName, asset->techniqueSet->name);
 			}
 
 			if (!asset->techniqueSet)
@@ -257,7 +259,8 @@ namespace Assets
 						{
 							Game::XAssetHeader header = entry->asset.header;
 
-							if (header.material->techniqueSet == iw4TechSet->asset.header.techniqueSet)
+							if (header.material->techniqueSet == iw4TechSet->asset.header.techniqueSet 
+								&& !std::string(header.material->info.name).contains("icon")) // Yeah this has a tendency to fuck up a LOT of transparent materials
 							{
 								Components::Logger::Print("Material {} with techset {} has been mapped to {} (last chance!), taking the sort key of material {}\n",
 									asset->info.name, asset->techniqueSet->name, header.material->techniqueSet->name, header.material->info.name);

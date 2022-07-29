@@ -24,9 +24,8 @@ namespace Utils
 	void OpenUrl(const std::string& url);
 
 	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
-	float Vec3SqrDistance(const float v1[3], const float v2[3]);
 
-	template <typename T> inline void RotLeft(T& object, size_t bits)
+	template <typename T> void RotLeft(T& object, size_t bits)
 	{
 		bits %= sizeof(T) * 8;
 
@@ -39,13 +38,13 @@ namespace Utils
 		object |= T(negative) << ((sizeof(T) * 8 - 1 + bits) % (sizeof(T) * 8));
 	}
 
-	template <typename T> inline void RotRight(T& object, size_t bits)
+	template <typename T> void RotRight(T& object, size_t bits)
 	{
 		bits %= (sizeof(T) * 8);
 		RotLeft<T>(object, ((sizeof(T) * 8) - bits));
 	}
 
-	template <typename T> inline void Merge(std::vector<T>* target, T* source, size_t length)
+	template <typename T> void Merge(std::vector<T>* target, T* source, size_t length)
 	{
 		if (source)
 		{
@@ -56,7 +55,7 @@ namespace Utils
 		}
 	}
 
-	template <typename T> inline void Merge(std::vector<T>* target, std::vector<T> source)
+	template <typename T> void Merge(std::vector<T>* target, std::vector<T> source)
 	{
 		for (auto &entry : source)
 		{
@@ -122,7 +121,4 @@ namespace Utils
 		mutable std::recursive_mutex mutex;
 		std::vector<Slot<T>> slots;
 	};
-
-	template <typename T>
-	constexpr auto VectorCopy(T a, T b) { b[0] = a[0]; b[1] = a[1]; b[2] = a[2]; }
 }

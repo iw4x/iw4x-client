@@ -74,7 +74,6 @@ namespace Components
 #include "Modules/Toast.hpp"
 #include "Modules/Zones.hpp"
 #include "Modules/D3D9Ex.hpp"
-#include "Modules/Script.hpp"
 #include "Modules/Weapon.hpp"
 #include "Modules/Window.hpp"
 #include "Modules/Command.hpp"
@@ -134,8 +133,8 @@ namespace Components
 #include "Modules/Movement.hpp"
 #include "Modules/Elevators.hpp"
 #include "Modules/ClientCommand.hpp"
+#include "Modules/VisionFile.hpp"
 #include "Modules/Gamepad.hpp"
-#include "Modules/ScriptExtension.hpp"
 #include "Modules/Branding.hpp"
 #include "Modules/Debug.hpp"
 #include "Modules/RawMouse.hpp"
@@ -144,3 +143,5 @@ namespace Components
 #include "Modules/Ceg.hpp"
 #include "Modules/UserInfo.hpp"
 #include "Modules/Events.hpp"
+
+#include "Modules/GSC/GSC.hpp"

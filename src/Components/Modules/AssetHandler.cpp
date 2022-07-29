@@ -1,4 +1,4 @@
-#include <StdInclude.hpp>
+#include <STDInclude.hpp>
 
 #include "AssetInterfaces/IFont_s.hpp"
 #include "AssetInterfaces/IWeapon.hpp"
@@ -269,6 +269,13 @@ namespace Components
 				}
 			}
 		}
+
+		if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD && Zones::Version() >= 316)
+		{
+			asset.gfxWorld->sortKeyEffectDecal = 39;
+			asset.gfxWorld->sortKeyEffectAuto = 48;
+			asset.gfxWorld->sortKeyDistortion = 43;
+		}
 	}
 
 	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)
@@ -518,10 +525,10 @@ namespace Components
 		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, entryPool + 1);
 	}
 
-    void AssetHandler::ExposeTemporaryAssets(bool expose)
-    {
-        AssetHandler::ShouldSearchTempAssets = expose;
-    }
+	void AssetHandler::ExposeTemporaryAssets(bool expose)
+	{
+		AssetHandler::ShouldSearchTempAssets = expose;
+	}
 
 	AssetHandler::AssetHandler()
 	{

@@ -283,10 +283,10 @@ namespace Components
 
 	bool Network::HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
 	{
-		const auto cmd_string = Utils::String::ToLower(command);
-		const auto handler = Network::Callbacks.find(cmd_string);
+		const auto command_ = Utils::String::ToLower(command);
+		const auto handler = Network::Callbacks.find(command_);
 
-		const auto offset = cmd_string.size() + 5;
+		const auto offset = command_.size() + 5;
 		if (static_cast<std::size_t>(message->cursize) < offset || handler == Network::Callbacks.end())
 		{
 			return false;
@@ -365,6 +365,11 @@ namespace Components
 		
 		// Handle client packets
 		Utils::Hook(0x5AA703, Network::CL_HandleCommandStub, HOOK_JUMP).install()->quick();
+
+		// Disable unused OOB packets handlers just to be sure
+		Utils::Hook::Set<BYTE>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
+		Utils::Hook::Set<BYTE>(0x5AA69F, 0xEB); // echo
+		Utils::Hook::Set<BYTE>(0x5AAA82, 0xEB); // SP
 
 		Network::OnPacket("resolveAddress", [](const Address& address, [[maybe_unused]] const std::string& data)
 		{

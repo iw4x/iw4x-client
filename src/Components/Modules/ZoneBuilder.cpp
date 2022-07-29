@@ -13,7 +13,6 @@ namespace Components
 	Dvar::Var ZoneBuilder::PreferDiskAssetsDvar;
 
 	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
-
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
 		// That way we can be sure it won't need to reallocate memory.
@@ -21,11 +20,8 @@ namespace Components
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
 		buffer(0xC800000),
 		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{ nullptr }, assetDepth(0)
-	{}
-
-	ZoneBuilder::Zone::Zone() : indexStart(0), externalSize(0), buffer(0xC800000), zoneName("null_zone"),
-		dataMap(), branding{ nullptr }, assetDepth(0)
-	{}
+	{
+	}
 
 	ZoneBuilder::Zone::~Zone()
 	{
@@ -95,7 +91,7 @@ namespace Components
 
 	void ZoneBuilder::Zone::Zone::build()
 	{
-		if(!this->dataMap.isValid())
+		if (!this->dataMap.isValid())
 		{
 			Logger::Print("Unable to load CSV for '{}'!\n", this->zoneName);
 			return;
@@ -111,7 +107,7 @@ namespace Components
 		Logger::Print("Saving...\n");
 		this->saveData();
 
-		if(this->buffer.hasBlock())
+		if (this->buffer.hasBlock())
 		{
 			Logger::Error(Game::ERR_FATAL, "Non-popped blocks left!\n");
 		}
@@ -124,7 +120,7 @@ namespace Components
 	{
 		Logger::Print("Loading required FastFiles...\n");
 
-		for (int i = 0; i < this->dataMap.getRows(); ++i)
+		for (std::size_t i = 0; i < this->dataMap.getRows(); ++i)
 		{
 			if (this->dataMap.getElementAt(i, 0) == "require")
 			{
@@ -149,7 +145,7 @@ namespace Components
 
 	bool ZoneBuilder::Zone::loadAssets()
 	{
-		for (int i = 0; i < this->dataMap.getRows(); ++i)
+		for (std::size_t i = 0; i < this->dataMap.getRows(); ++i)
 		{
 			if (this->dataMap.getElementAt(i, 0) != "require")
 			{
@@ -267,7 +263,7 @@ namespace Components
 			const char* assetName = Game::DB_GetXAssetName(asset);
 			if (assetName[0] == ',') ++assetName;
 
-			if(this->getAssetName(type, assetName) == name)
+			if (this->getAssetName(type, assetName) == name)
 			{
 				return i;
 			}
@@ -336,7 +332,7 @@ namespace Components
 		if (assetIndex == -1) // nested asset
 		{
 			// already written. find alias and store in ptr
-			if(this->hasAlias(asset))
+			if (this->hasAlias(asset))
 			{
 				header.data = reinterpret_cast<void*>(this->getAlias(asset));
 			}
@@ -1054,7 +1050,7 @@ namespace Components
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, const std::string&, bool* restrict)
 			{
 				//if (*static_cast<int*>(Game::DB_XAssetPool[type].data) == 0)
-				if(Game::g_poolSize[type] == 0)
+				if (Game::g_poolSize[type] == 0)
 				{
 					*restrict = true;
 				}
@@ -1070,9 +1066,9 @@ namespace Components
 			{
 				int result = Utils::Hook::Call<int(Game::dvar_t*, Game::DvarValue)>(0x642FC0)(dvar, value);
 
-				if(result)
+				if (result)
 				{
-					if(std::string(value.string) != dvar->current.string)
+					if (std::string(value.string) != dvar->current.string)
 					{
 						dvar->current.string = value.string;
 						Game::FS_Restart(0, 0);
@@ -1517,7 +1513,7 @@ namespace Components
 				{
 					*i = Utils::String::VA("images/%s", i->data());
 
-					if(FileSystem::File(*i).exists())
+					if (FileSystem::File(*i).exists())
 					{
 						i = images.erase(i);
 						continue;
@@ -1531,7 +1527,8 @@ namespace Components
 				Logger::Print("------------------- END IWI DUMP -------------------\n");
 			});
 
-			ZoneBuilder::PreferDiskAssetsDvar = Dvar::Register<bool>("zb_prefer_disk_assets", false, Game::DVAR_NONE, "Should zonebuilder prefer in-memory assets (requirements) or disk assets, when both are present?");
+			// True by default, but can be put to zero for backward compatibility if needed
+			ZoneBuilder::PreferDiskAssetsDvar = Dvar::Register<bool>("zb_prefer_disk_assets", true, Game::DVAR_NONE, "Should zonebuilder prefer in-memory assets (requirements) or disk assets, when both are present?");
 		}
 	}
 
@@ -1552,7 +1549,7 @@ namespace Components
 		unsigned int integer = 0x80000000;
 		Utils::RotLeft(integer, 1);
 
-		if(integer != 1)
+		if (integer != 1)
 		{
 			printf("Error\n");
 			printf("Bit shifting failed: %X\n", integer);

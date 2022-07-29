@@ -1,18 +1,17 @@
 #include <STDInclude.hpp>
+#include "GSC/Script.hpp"
 
 namespace Components
 {
-	Game::XAssetHeader Weapon::WeaponFileLoad(Game::XAssetType /*type*/, const std::string& filename)
+	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
-		Game::XAssetHeader header = { nullptr };
-
-		// Try loading raw weapon
-		if (FileSystem::File(Utils::String::VA("weapons/mp/%s", filename.data())).exists())
+		if (auto* rawWeaponFile = Game::BG_LoadWeaponCompleteDefInternal("mp", name))
 		{
-			header.data = Game::BG_LoadWeaponDef_LoadObj(filename.data());
+			return rawWeaponFile;
 		}
 
-		return header;
+		auto* zoneWeaponFile = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_WEAPON, name).weapon;
+		return Game::DB_IsXAssetDefault(Game::ASSET_TYPE_WEAPON, name) ? nullptr : zoneWeaponFile;
 	}
 
 	const char* Weapon::GetWeaponConfigString(int index)
@@ -448,13 +447,104 @@ namespace Components
 		}
 	}
 
+	void __declspec(naked) Weapon::CG_UpdatePrimaryForAltModeWeapon_Stub()
+	{
+		__asm
+		{
+			mov eax, 0x440EB0 // BG_GetWeaponDef
+			call eax
+			add esp, 0x4
+
+			test eax, eax
+			jz null
+
+			// Game code
+			push 0x59E349
+			retn
+
+		null:
+			mov al, 1
+			ret
+		}
+	}
+
+	void __declspec(naked) Weapon::CG_SelectWeaponIndex_Stub()
+	{
+		__asm
+		{
+			mov eax, 0x440EB0 // BG_GetWeaponDef
+			call eax
+			add esp, 0x4
+
+			test eax, eax
+			jz null
+
+			// Game code
+			push 0x48BB2D
+			retn
+
+		null:
+			push 0x48BB1F // Exit function
+			ret
+		}
+	}
+
+	void __declspec(naked) Weapon::WeaponEntCanBeGrabbed_Stub()
+	{
+		using namespace Game;
+
+		__asm
+		{
+			cmp dword ptr [esp + 0x8], 0x0
+			jz touched
+
+			push 0x56E82C
+			retn
+
+		touched:
+			test dword ptr [edi + 0x2BC], PWF_DISABLE_WEAPON_PICKUP
+			jnz exit_func
+
+			// Game code
+			test eax, eax
+			jz continue_func
+
+		exit_func:
+			xor eax, eax
+			ret
+
+		continue_func:
+			push 0x56E84C
+			retn
+		}
+	}
+
+	void Weapon::AddScriptMethods()
+	{
+		Script::AddMethod("DisableWeaponPickup", [](Game::scr_entref_t entref)
+		{
+			const auto* ent = Game::GetPlayerEntity(entref);
+
+			ent->client->ps.weapCommon.weapFlags |= Game::PWF_DISABLE_WEAPON_PICKUP;
+		});
+
+		Script::AddMethod("EnableWeaponPickup", [](Game::scr_entref_t entref)
+		{
+			const auto* ent = Game::GetPlayerEntity(entref);
+
+			ent->client->ps.weapCommon.weapFlags &= ~Game::PWF_DISABLE_WEAPON_PICKUP;
+		});
+	}
+
 	Weapon::Weapon()
 	{
-		Weapon::PatchLimit();
-		Weapon::PatchConfigStrings();
+		PatchLimit();
+		PatchConfigStrings();
 
-		// Intercept weapon loading
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_WEAPON, Weapon::WeaponFileLoad);
+		// BG_LoadWEaponCompleteDef_FastFile
+		Utils::Hook(0x57B650, LoadWeaponCompleteDef, HOOK_JUMP).install()->quick();
+		// Disable warning if raw weapon file cannot be found
+		Utils::Hook::Nop(0x57AF60, 5);
 
 		// weapon asset existence check
 		Utils::Hook::Nop(0x408228, 5); // find asset header
@@ -466,16 +556,18 @@ namespace Components
 
 		// Weapon swap fix
 		Utils::Hook::Nop(0x4B3670, 5);
-		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub).install()->quick();
-
-		// Don't load bounce sounds for now, it causes crashes
-		// TODO: Actually check the weaponfiles and/or reset the soundtable correctly!
-		//Utils::Hook::Nop(0x57A360, 5);
-		//Utils::Hook::Nop(0x57A366, 6);
-		Utils::Hook::Nop(0x5795E9, 2);
+		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub, HOOK_JUMP).install()->quick();
 
 		// Clear weapons independently from fs_game
-		//Utils::Hook::Nop(0x452C1D, 2);
-		//Utils::Hook::Nop(0x452C24, 5);
+		Utils::Hook::Nop(0x452C1D, 2);
+		Utils::Hook::Nop(0x452C24, 5);
+
+		Utils::Hook(0x59E341, CG_UpdatePrimaryForAltModeWeapon_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x48BB25, CG_SelectWeaponIndex_Stub, HOOK_JUMP).install()->quick();
+
+		AddScriptMethods();
+
+		AssertOffset(Game::playerState_s, Game::playerState_s::weapCommon.weapFlags, 0x2BC);
+		Utils::Hook(0x56E825, WeaponEntCanBeGrabbed_Stub, HOOK_JUMP).install()->quick();
 	}
 }

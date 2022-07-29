@@ -1,9 +1,9 @@
 #include <STDInclude.hpp>
+#include "ScriptExtension.hpp"
+#include "Script.hpp"
 
 namespace Components
 {
-	const char* ScriptExtension::QueryStrings[] = { R"(..)", R"(../)", R"(..\)" };
-
 	std::unordered_map<std::uint16_t, Game::ent_field_t> ScriptExtension::CustomEntityFields;
 	std::unordered_map<std::uint16_t, Game::client_fields_s> ScriptExtension::CustomClientFields;
 
@@ -13,7 +13,7 @@ namespace Components
 		static std::uint16_t fieldOffsetStart = 15; // fields count
 		assert((fieldOffsetStart & Game::ENTFIELD_MASK) == Game::ENTFIELD_ENTITY);
 
-		ScriptExtension::CustomEntityFields[fieldOffsetStart] = {name, fieldOffsetStart, type, setter, getter};
+		CustomEntityFields[fieldOffsetStart] = {name, fieldOffsetStart, type, setter, getter};
 		++fieldOffsetStart;
 	}
 
@@ -26,20 +26,20 @@ namespace Components
 		const auto offset = fieldOffsetStart | Game::ENTFIELD_CLIENT; // This is how client field's offset is calculated
 
 		// Use 'index' in 'array' as map key. It will be used later in Scr_SetObjectFieldStub
-		ScriptExtension::CustomClientFields[fieldOffsetStart] = {name, offset, type, setter, getter};
+		CustomClientFields[fieldOffsetStart] = {name, offset, type, setter, getter};
 		++fieldOffsetStart;
 	}
 
 	void ScriptExtension::GScr_AddFieldsForEntityStub()
 	{
-		for (const auto& [offset, field] : ScriptExtension::CustomEntityFields)
+		for (const auto& [offset, field] : CustomEntityFields)
 		{
 			Game::Scr_AddClassField(Game::ClassNum::CLASS_NUM_ENTITY, field.name, field.ofs);
 		}
 
 		Utils::Hook::Call<void()>(0x4A7CF0)(); // GScr_AddFieldsForClient
 
-		for (const auto& [offset, field] : ScriptExtension::CustomClientFields)
+		for (const auto& [offset, field] : CustomClientFields)
 		{
 			Game::Scr_AddClassField(Game::ClassNum::CLASS_NUM_ENTITY, field.name, field.ofs);
 		}
@@ -52,8 +52,8 @@ namespace Components
 		{
 			const auto entity_offset = static_cast<std::uint16_t>(offset);
 
-			const auto got = ScriptExtension::CustomEntityFields.find(entity_offset);
-			if (got != ScriptExtension::CustomEntityFields.end())
+			const auto got =CustomEntityFields.find(entity_offset);
+			if (got != CustomEntityFields.end())
 			{
 				got->second.setter(&Game::g_entities[entnum], offset);
 				return 1;
@@ -69,8 +69,8 @@ namespace Components
 	{
 		const auto client_offset = static_cast<std::uint16_t>(offset);
 
-		const auto got = ScriptExtension::CustomClientFields.find(client_offset);
-		if (got != ScriptExtension::CustomClientFields.end())
+		const auto got = CustomClientFields.find(client_offset);
+		if (got != CustomClientFields.end())
 		{
 			got->second.setter(client, &got->second);
 			return;
@@ -89,8 +89,8 @@ namespace Components
 			{
 				const auto client_offset = static_cast<std::uint16_t>(offset & ~Game::ENTFIELD_MASK);
 
-				const auto got = ScriptExtension::CustomClientFields.find(client_offset);
-				if (got != ScriptExtension::CustomClientFields.end())
+				const auto got =CustomClientFields.find(client_offset);
+				if (got != CustomClientFields.end())
 				{
 					// Game functions probably don't ever need to use the reference to client_fields_s...
 					got->second.getter(Game::g_entities[entnum].client, &got->second);
@@ -102,8 +102,8 @@ namespace Components
 		// Regular entity offsets can be searched directly in our custom handler
 		const auto entity_offset = static_cast<std::uint16_t>(offset);
 
-		const auto got = ScriptExtension::CustomEntityFields.find(entity_offset);
-		if (got != ScriptExtension::CustomEntityFields.end())
+		const auto got = CustomEntityFields.find(entity_offset);
+		if (got != CustomEntityFields.end())
 		{
 			got->second.getter(&Game::g_entities[entnum], offset);
 			return;
@@ -115,125 +115,6 @@ namespace Components
 
 	void ScriptExtension::AddFunctions()
 	{
-		// File functions
-		Script::AddFunction("FileWrite", [] // gsc: FileWrite(<filepath>, <string>, <mode>)
-		{
-			const auto* path = Game::Scr_GetString(0);
-			auto* text = Game::Scr_GetString(1);
-			auto* mode = Game::Scr_GetString(2);
-
-			if (path == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1FileWrite: filepath is not defined!\n");
-				return;
-			}
-
-			if (text == nullptr || mode == nullptr)
-			{
-				Game::Scr_Error("^1FileWrite: Illegal parameters!\n");
-				return;
-			}
-
-			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
-			{
-				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
-				{
-					Logger::Print("^1FileWrite: directory traversal is not allowed!\n");
-					return;
-				}
-			}
-
-			if (mode != "append"s && mode != "write"s)
-			{
-				Logger::Print("^3FileWrite: mode not defined or was wrong, defaulting to 'write'\n");
-				mode = "write";
-			}
-
-			if (mode == "write"s)
-			{
-				FileSystem::FileWriter(path).write(text);
-			}
-			else if (mode == "append"s)
-			{
-				FileSystem::FileWriter(path, true).write(text);
-			}
-		});
-
-		Script::AddFunction("FileRead", [] // gsc: FileRead(<filepath>)
-		{
-			const auto* path = Game::Scr_GetString(0);
-
-			if (path == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1FileRead: filepath is not defined!\n");
-				return;
-			}
-
-			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
-			{
-				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
-				{
-					Logger::Print("^1FileRead: directory traversal is not allowed!\n");
-					return;
-				}
-			}
-
-			if (!FileSystem::FileReader(path).exists())
-			{
-				Logger::Print("^1FileRead: file not found!\n");
-				return;
-			}
-
-			Game::Scr_AddString(FileSystem::FileReader(path).getBuffer().data());
-		});
-
-		Script::AddFunction("FileExists", [] // gsc: FileExists(<filepath>)
-		{
-			const auto* path = Game::Scr_GetString(0);
-
-			if (path == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1FileExists: filepath is not defined!\n");
-				return;
-			}
-
-			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
-			{
-				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
-				{
-					Logger::Print("^1FileExists: directory traversal is not allowed!\n");
-					return;
-				}
-			}
-
-			Game::Scr_AddInt(FileSystem::FileReader(path).exists());
-		});
-
-		Script::AddFunction("FileRemove", [] // gsc: FileRemove(<filepath>)
-		{
-			const auto* path = Game::Scr_GetString(0);
-
-			if (path == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1FileRemove: filepath is not defined!\n");
-				return;
-			}
-
-			for (auto i = 0u; i < ARRAYSIZE(ScriptExtension::QueryStrings); ++i)
-			{
-				if (std::strstr(path, ScriptExtension::QueryStrings[i]) != nullptr)
-				{
-					Logger::Print("^1FileRemove: directory traversal is not allowed!\n");
-					return;
-				}
-			}
-
-			const auto p = std::filesystem::path(path);
-			const auto& folder = p.parent_path().string();
-			const auto& file = p.filename().string();
-			Game::Scr_AddInt(FileSystem::DeleteFile(folder, file));
-		});
-
 		// Misc functions
 		Script::AddFunction("ToUpper", [] // gsc: ToUpper(<string>)
 		{
@@ -308,14 +189,14 @@ namespace Components
 
 		Script::AddFunction("IsArray", [] // gsc: IsArray(<object>)
 		{
-			const auto type = Game::Scr_GetType(0);
+			auto type = Game::Scr_GetType(0);
 
 			bool result;
-			if (type == Game::scrParamType_t::VAR_POINTER)
+			if (type == Game::VAR_POINTER)
 			{
-				const auto ptr_type = Game::Scr_GetPointerType(0);
-				assert(ptr_type >= Game::FIRST_OBJECT);
-				result = (ptr_type == Game::scrParamType_t::VAR_ARRAY);
+				type = Game::Scr_GetPointerType(0);
+				assert(type >= Game::FIRST_OBJECT);
+				result = (type == Game::VAR_ARRAY);
 			}
 			else
 			{
@@ -350,6 +231,18 @@ namespace Components
 
 			Game::Scr_AddInt(client->ping);
 		});
+
+		Script::AddMethod("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
+		{
+			auto ping = Game::Scr_GetInt(0);
+
+			ping = std::clamp(ping, 0, 999);
+
+			const auto* ent = Game::GetPlayerEntity(entref);
+			auto* client = Script::GetClient(ent);
+
+			client->ping = static_cast<int16_t>(ping);
+		});
 	}
 
 	void ScriptExtension::Scr_TableLookupIStringByRow()
@@ -378,7 +271,7 @@ namespace Components
 
 	void ScriptExtension::AddEntityFields()
 	{
-		ScriptExtension::AddEntityField("entityflags", Game::fieldtype_t::F_INT,
+		AddEntityField("entityflags", Game::fieldtype_t::F_INT,
 			[](Game::gentity_s* ent, [[maybe_unused]] int offset)
 			{
 				ent->flags = Game::Scr_GetInt(0);
@@ -391,7 +284,7 @@ namespace Components
 
 	void ScriptExtension::AddClientFields()
 	{
-		ScriptExtension::AddClientField("clientflags", Game::fieldtype_t::F_INT,
+		AddClientField("clientflags", Game::fieldtype_t::F_INT,
 			[](Game::gclient_s* pSelf, [[maybe_unused]] const Game::client_fields_s* pField)
 			{
 				pSelf->flags = Game::Scr_GetInt(0);
@@ -404,19 +297,19 @@ namespace Components
 
 	ScriptExtension::ScriptExtension()
 	{
-		ScriptExtension::AddFunctions();
-		ScriptExtension::AddMethods();
-		ScriptExtension::AddEntityFields();
-		ScriptExtension::AddClientFields();
+		AddFunctions();
+		AddMethods();
+		AddEntityFields();
+		AddClientFields();
 
 		// Correct builtin function pointer
-		Utils::Hook::Set<void(*)()>(0x79A90C, ScriptExtension::Scr_TableLookupIStringByRow);
+		Utils::Hook::Set<Game::BuiltinFunction>(0x79A90C, Scr_TableLookupIStringByRow);
 
-		Utils::Hook(0x4EC721, ScriptExtension::GScr_AddFieldsForEntityStub, HOOK_CALL).install()->quick(); // GScr_AddFieldsForEntity
+		Utils::Hook(0x4EC721, GScr_AddFieldsForEntityStub, HOOK_CALL).install()->quick(); // GScr_AddFieldsForEntity
 
-		Utils::Hook(0x41BED2, ScriptExtension::Scr_SetObjectFieldStub, HOOK_CALL).install()->quick(); // SetEntityFieldValue
-		Utils::Hook(0x5FBF01, ScriptExtension::Scr_SetClientFieldStub, HOOK_CALL).install()->quick(); // Scr_SetObjectField
-		Utils::Hook(0x4FF413, ScriptExtension::Scr_GetEntityFieldStub, HOOK_CALL).install()->quick(); // Scr_GetObjectField
+		Utils::Hook(0x41BED2, Scr_SetObjectFieldStub, HOOK_CALL).install()->quick(); // SetEntityFieldValue
+		Utils::Hook(0x5FBF01, Scr_SetClientFieldStub, HOOK_CALL).install()->quick(); // Scr_SetObjectField
+		Utils::Hook(0x4FF413, Scr_GetEntityFieldStub, HOOK_CALL).install()->quick(); // Scr_GetObjectField
 
 		// Fix format string in Scr_RandomFloatRange
 		Utils::Hook::Set<const char*>(0x5F10C6, "Scr_RandomFloatRange parms: %f %f ");

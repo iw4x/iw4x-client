@@ -9,7 +9,7 @@ namespace Utils
 	{
 		if (this->signatures.empty()) return;
 
-		char* _start = reinterpret_cast<char*>(this->start);
+		char* _start = static_cast<char*>(this->start);
 
 		unsigned int sigCount = this->signatures.size();
 		Hook::Signature::Container* containers = this->signatures.data();

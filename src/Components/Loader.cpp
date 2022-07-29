@@ -31,8 +31,8 @@ namespace Components
 
 		Loader::Register(new Flags());
 		Loader::Register(new Singleton());
-		Loader::Register(new Exception()); // install our exception handler as early as posssible to get better debug dumps from startup crashes
-
+		// Install our exception handler as early as posssible to get better debug dumps from startup crashes
+		Loader::Register(new Exception());
 		Loader::Register(new Auth());
 		Loader::Register(new Bans());
 		Loader::Register(new Bots());
@@ -49,7 +49,6 @@ namespace Components
 		Loader::Register(new Zones());
 		Loader::Register(new D3D9Ex());
 		Loader::Register(new Logger());
-		Loader::Register(new Script());
 		Loader::Register(new Weapon());
 		Loader::Register(new Window());
 		Loader::Register(new Command());
@@ -62,7 +61,7 @@ namespace Components
 		Loader::Register(new Network());
 		Loader::Register(new Session());
 		Loader::Register(new Theatre());
-		//Loader::Register(new ClanTags());
+		Loader::Register(new ClanTags());
 		Loader::Register(new Download());
 		Loader::Register(new Playlist());
 		Loader::Register(new RawFiles());
@@ -104,7 +103,7 @@ namespace Components
 		Loader::Register(new Movement());
 		Loader::Register(new Elevators());
 		Loader::Register(new ClientCommand());
-		Loader::Register(new ScriptExtension());
+		Loader::Register(new VisionFile());
 		Loader::Register(new Branding());
 		Loader::Register(new Debug());
 		Loader::Register(new RawMouse());
@@ -113,6 +112,8 @@ namespace Components
 		Loader::Register(new Ceg());
 		Loader::Register(new UserInfo());
 		Loader::Register(new Events());
+
+		Loader::Register(new GSC());
 
 		Loader::Pregame = false;
 
