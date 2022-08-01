@@ -232,7 +232,7 @@ namespace Components
 	{
 		auto* imageList = static_cast<Game::ImageList*>(data);
 
-		assert(imageList->count < ARRAY_SIZE(imageList->image));
+		assert(imageList->count < ARRAYSIZE(imageList->image));
 
 		if (header.image->texture.basemap)
 		{
