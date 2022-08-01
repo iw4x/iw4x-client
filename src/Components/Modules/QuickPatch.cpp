@@ -203,7 +203,7 @@ namespace Components
 	}
 
 	void QuickPatch::CL_KeyEvent_OnEscape()
-    {
+	{
 		if (Game::Con_CancelAutoComplete())
 			return;
 
@@ -212,11 +212,11 @@ namespace Components
 
 		// Close console
 		Game::Key_RemoveCatcher(0, ~Game::KEYCATCH_CONSOLE);
-    }
+	}
 
 	__declspec(naked) void QuickPatch::CL_KeyEvent_ConsoleEscape_Stub()
 	{
-	    __asm
+		__asm
 		{
 			pushad
 			call CL_KeyEvent_OnEscape
@@ -225,6 +225,18 @@ namespace Components
 			// Exit CL_KeyEvent function
 			mov ebx, 0x4F66F2
 			jmp ebx
+		}
+	}
+
+	void QuickPatch::R_AddImageToList_Hk(Game::XAssetHeader header, void* data)
+	{
+		auto* imageList = static_cast<Game::ImageList*>(data);
+
+		assert(imageList->count < ARRAY_SIZE(imageList->image));
+
+		if (header.image->texture.basemap)
+		{
+			imageList->image[imageList->count++] = header.image;
 		}
 	}
 
@@ -261,6 +273,8 @@ namespace Components
 		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
+
+		Utils::Hook::Set<void(*)(Game::XAssetHeader, void*)>(0x51FCDD, R_AddImageToList_Hk);
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
@@ -349,7 +363,7 @@ namespace Components
 		// spawn upnp thread when UPNP_init returns
 		Utils::Hook::Hook(0x47982B, []()
 		{
-			std::thread([]()
+			std::thread([]
 			{
 				// check natpmpstate
 				// state 4 is no more devices to query
@@ -440,11 +454,11 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x60BBD4, CLIENT_CONFIG);
 
 		// Disable profile system
-//		Utils::Hook::Nop(0x60BEB1, 5);          // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.
-//		Utils::Hook::Nop(0x60BEB8, 5);          // GamerProfile_LogInProfile
-//		Utils::Hook::Nop(0x4059EA, 5);          // GamerProfile_RegisterCommands
-		Utils::Hook::Nop(0x4059EF, 5);          // GamerProfile_RegisterDvars
-		Utils::Hook::Nop(0x47DF9A, 5);          // GamerProfile_UpdateSystemDvars
+//		Utils::Hook::Nop(0x60BEB1, 5); // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.
+//		Utils::Hook::Nop(0x60BEB8, 5); // GamerProfile_LogInProfile
+//		Utils::Hook::Nop(0x4059EA, 5); // GamerProfile_RegisterCommands
+		Utils::Hook::Nop(0x4059EF, 5); // GamerProfile_RegisterDvars
+		Utils::Hook::Nop(0x47DF9A, 5); // GamerProfile_UpdateSystemDvars
 		Utils::Hook::Set<BYTE>(0x5AF0D0, 0xC3); // GamerProfile_SaveProfile
 		Utils::Hook::Set<BYTE>(0x4E6870, 0xC3); // GamerProfile_UpdateSystemVarsFromProfile
 		Utils::Hook::Set<BYTE>(0x4C37F0, 0xC3); // GamerProfile_UpdateProfileAndSaveIfNeeded

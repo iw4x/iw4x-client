@@ -8787,6 +8787,12 @@ namespace Game
 		LOCMSG_NOERR = 0x1,
 	};
 
+	struct ImageList
+	{
+		unsigned int count;
+		GfxImage* image[8192];
+	};
+
 #pragma endregion
 
 #ifndef IDA
