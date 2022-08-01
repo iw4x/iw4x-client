@@ -5,8 +5,6 @@
 
 #ifndef RC_INVOKED
 
-//#define _HAS_CXX17 1
-//#define _HAS_CXX20 1
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #define _CRT_SECURE_NO_WARNINGS
@@ -17,6 +15,7 @@
 //#include <vld.h>
 
 #include <Windows.h>
+#include <WinSock2.h>
 #include <timeapi.h>
 #include <shellapi.h>
 #include <WinInet.h>
@@ -79,7 +78,6 @@
 #include <curses.h>
 #include <gsl/gsl>
 #include <tomcrypt.h>
-#include <mongoose.h>
 #include <udis86.h>
 #include <zlib.h>
 
