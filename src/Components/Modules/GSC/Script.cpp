@@ -397,18 +397,16 @@ namespace Components
 		{
 			// execute our hook
 			pushad
-
 			call Script::StoreScriptBaseProgramNum
-
 			popad
 
 			// execute overwritten code caused by the jump hook
-			sub     eax, ds:201A460h // gScrVarPub_programBuffer
-			add     esp, 0Ch
-			mov     ds : 1CFEEF8h, eax // gScrCompilePub_programLen
+			sub eax, ds:201A460h // gScrVarPub_programBuffer
+			add esp, 0Ch
+			mov ds:1CFEEF8h, eax // gScrCompilePub_programLen
 
 			// jump back to the original code
-			push    426C3Bh
+			push 426C3Bh
 			retn
 		}
 	}
