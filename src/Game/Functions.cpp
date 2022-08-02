@@ -88,6 +88,7 @@ namespace Game
 	Com_MatchToken_t Com_MatchToken = Com_MatchToken_t(0x447130);
 	Com_SetSlowMotion_t Com_SetSlowMotion = Com_SetSlowMotion_t(0x446E20);
 	Com_Quitf_t Com_Quit_f = Com_Quitf_t(0x4D4000);
+	Com_OpenLogFile_t Com_OpenLogFile = Com_OpenLogFile_t(0x60A8D0);
 
 	Con_DrawMiniConsole_t Con_DrawMiniConsole = Con_DrawMiniConsole_t(0x464F30);
 	Con_DrawSolidConsole_t Con_DrawSolidConsole = Con_DrawSolidConsole_t(0x5A5040);
@@ -168,6 +169,7 @@ namespace Game
 	FS_BuildPathToFile_t FS_BuildPathToFile = FS_BuildPathToFile_t(0x4702C0);
 	FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
 	FS_Delete_t FS_Delete = FS_Delete_t(0x48A5B0);
+	FS_BuildOSPath_t FS_BuildOSPath = FS_BuildOSPath_t(0x4702C0);
 
 	G_LogPrintf_t G_LogPrintf = G_LogPrintf_t(0x4B0150);
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
@@ -256,6 +258,7 @@ namespace Game
 	Live_GetMapIndex_t Live_GetMapIndex = Live_GetMapIndex_t(0x4F6440);
 	Live_GetPrestige_t Live_GetPrestige = Live_GetPrestige_t(0x430F90);
 	Live_GetXp_t Live_GetXp = Live_GetXp_t(0x404C60);
+	Live_GetLocalClientName_t Live_GetLocalClientName = Live_GetLocalClientName_t(0x441FC0);
 
 	LiveStorage_GetStat_t LiveStorage_GetStat = LiveStorage_GetStat_t(0x471F60);
 
@@ -400,6 +403,9 @@ namespace Game
 	Sys_LockWrite_t Sys_LockWrite = Sys_LockWrite_t(0x435880);
 	Sys_TempPriorityAtLeastNormalBegin_t Sys_TempPriorityAtLeastNormalBegin = Sys_TempPriorityAtLeastNormalBegin_t(0x478680);
 	Sys_TempPriorityEnd_t Sys_TempPriorityEnd = Sys_TempPriorityEnd_t(0x4DCF00);
+	Sys_EnterCriticalSection_t Sys_EnterCriticalSection = Sys_EnterCriticalSection_t(0x4FC200);
+	Sys_LeaveCriticalSection_t Sys_LeaveCriticalSection = Sys_LeaveCriticalSection_t(0x41B8C0);
+	Sys_DefaultInstallPath_t Sys_DefaultInstallPath = Sys_DefaultInstallPath_t(0x4326E0);
 
 	TeleportPlayer_t TeleportPlayer = TeleportPlayer_t(0x496850);
 
@@ -632,6 +638,8 @@ namespace Game
 	char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38] = reinterpret_cast<char(*)[PLAYER_CARD_UI_STRING_COUNT][38]>(0x62CB4F8);
 
 	char (*sys_exitCmdLine)[1024] = reinterpret_cast<char(*)[1024]>(0x649FB68);
+
+	void** logfile = reinterpret_cast<void**>(0x1AD8F28);
 
 	GamerSettingState* gamerSettings = reinterpret_cast<GamerSettingState*>(0x107D3E8);
 

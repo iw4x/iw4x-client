@@ -2,7 +2,8 @@
 
 namespace Components
 {
-	Dvar::Var Debug::DebugOverlay;
+	const Game::dvar_t* Debug::DebugOverlay;
+	const Game::dvar_t* Debug::BugName;
 
 	Game::dvar_t** Debug::PlayerDebugHealth = reinterpret_cast<Game::dvar_t**>(0x7A9F7C);
 
@@ -198,7 +199,7 @@ namespace Components
 
 	void Debug::CG_DrawDebugOverlays_Hk(const int localClientNum)
 	{
-		switch (DebugOverlay.get<int>())
+		switch (DebugOverlay->current.integer)
 		{
 		case 2:
 			CG_Debug_DrawPSFlags(localClientNum);
@@ -218,6 +219,51 @@ namespace Components
 		assert(("a", false));
 	}
 
+	void Debug::Com_Bug_f(Command::Params* params)
+	{
+		char newFileName[0x105]{};
+		char to_ospath[MAX_PATH]{};
+		char from_ospath[MAX_PATH]{};
+		const char* bug;
+
+		if (!*Game::logfile)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "CopyFile failed: logfile wasn't opened\n");
+		}
+
+		if (params->size() == 2)
+		{
+			bug = params->get(1);
+		}
+		else
+		{
+			assert(BugName);
+			bug = BugName->current.string;
+		}
+
+		sprintf_s(newFileName, "%s_%s.log", bug, Game::Live_GetLocalClientName(0));
+
+		Game::Sys_EnterCriticalSection(Game::CRITSECT_CONSOLE);
+
+		if (*Game::logfile)
+		{
+			Game::FS_FCloseFile(reinterpret_cast<int>(*Game::logfile));
+			*Game::logfile = nullptr;
+		}
+
+		Game::FS_BuildOSPath(Game::Sys_DefaultInstallPath(), "", "logs/console_mp.log", from_ospath);
+		Game::FS_BuildOSPath(Game::Sys_DefaultInstallPath(), "", newFileName, to_ospath);
+		const auto result = CopyFileA(from_ospath, to_ospath, 0);
+		Game::Com_OpenLogFile();
+
+		Game::Sys_LeaveCriticalSection(Game::CRITSECT_CONSOLE);
+
+		if (!result)
+		{
+			Logger::PrintError(1, "CopyFile failed({}) {} {}\n", GetLastError(), "console_mp.log", newFileName);
+		}
+	}
+
 	void Debug::CL_InitDebugDvars()
 	{
 		static const char* debugOverlayNames_0[] =
@@ -233,6 +279,8 @@ namespace Components
 
 		DebugOverlay = Game::Dvar_RegisterEnum("debugOverlay", debugOverlayNames_0, 0,
 			Game::DVAR_NONE, "Toggles the display of various debug info.");
+		BugName = Game::Dvar_RegisterString("bug_name", "bug0",
+			Game::DVAR_CHEAT | Game::DVAR_CODINFO, "Name appended to the copied console log");
 	}
 
 	Debug::Debug()
@@ -243,5 +291,9 @@ namespace Components
 		Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
+
+#ifdef _DEBUG
+		Command::Add("bug", Com_Bug_f);
+#endif
 	}
 }
