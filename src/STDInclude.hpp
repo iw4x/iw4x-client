@@ -107,6 +107,15 @@ using namespace std::literals;
 	static_assert(offsetof(x, y) == (offset), \
 		#x "::" #y " is not at the right offset. Must be at " #offset)
 
+// Helps the optimizer know code such as default label in a switch statement is unreachable.
+// It may generate less assembly (speed increase) if used properly
+#define ASSUME(e) ( (assert(0)), __assume(e) )
+#ifdef NDEBUG
+	#define AssertUnreachable __assume(0)
+#else
+	#define AssertUnreachable ASSUME(0)
+#endif
+
 // Protobuf
 #include "proto/session.pb.h"
 #include "proto/party.pb.h"

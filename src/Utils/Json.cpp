@@ -22,8 +22,12 @@ namespace Utils::Json
 			return "array";
 		case nlohmann::json::value_t::object:
 			return "object";
+		case nlohmann::json::value_t::binary:
+			return "binary";
+		case nlohmann::json::value_t::discarded:
+			return "discarded";
 		default:
-			return "null";
+			AssertUnreachable;
 		}
 	}
 }

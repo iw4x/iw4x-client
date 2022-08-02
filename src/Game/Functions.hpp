@@ -199,6 +199,9 @@ namespace Game
 	typedef void(__cdecl * Com_Quitf_t)();
 	extern Com_Quitf_t Com_Quit_f;
 
+	typedef void(__cdecl * Com_OpenLogFile_t)();
+	extern Com_OpenLogFile_t Com_OpenLogFile;
+
 	typedef char* (__cdecl * Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
 	extern Con_DrawMiniConsole_t Con_DrawMiniConsole;
 
@@ -427,6 +430,9 @@ namespace Game
 
 	typedef int(__cdecl* FS_Delete_t)(const char* fileName);
 	extern FS_Delete_t FS_Delete;
+
+	typedef void(__cdecl * FS_BuildOSPath_t)(const char* base, const char* game, const char* qpath, char* ospath);
+	extern FS_BuildOSPath_t FS_BuildOSPath;
 
 	typedef void(__cdecl * G_LogPrintf_t)(const char* fmt, ...);
 	extern G_LogPrintf_t G_LogPrintf;
@@ -662,6 +668,9 @@ namespace Game
 
 	typedef int(__cdecl * Live_GetXp_t)(int controllerIndex);
 	extern Live_GetXp_t Live_GetXp;
+
+	typedef const char*(__cdecl * Live_GetLocalClientName_t)(int controllerIndex);
+	extern Live_GetLocalClientName_t Live_GetLocalClientName;
 
 	typedef int(__cdecl * LiveStorage_GetStat_t)(int controllerIndex, int index);
 	extern LiveStorage_GetStat_t LiveStorage_GetStat;
@@ -980,6 +989,15 @@ namespace Game
 
 	typedef void(__cdecl * Sys_TempPriorityEnd_t)(TempPriority*);
 	extern Sys_TempPriorityEnd_t Sys_TempPriorityEnd;
+
+	typedef void(__cdecl * Sys_EnterCriticalSection_t)(CriticalSection critSect);
+	extern Sys_EnterCriticalSection_t Sys_EnterCriticalSection;
+
+	typedef void(__cdecl * Sys_LeaveCriticalSection_t)(CriticalSection critSect);
+	extern Sys_LeaveCriticalSection_t Sys_LeaveCriticalSection;
+
+	typedef char*(__cdecl * Sys_DefaultInstallPath_t)();
+	extern Sys_DefaultInstallPath_t Sys_DefaultInstallPath;
 
 	typedef void(__cdecl * TeleportPlayer_t)(gentity_t* entity, float* pos, float* orientation);
 	extern TeleportPlayer_t TeleportPlayer;
@@ -1304,6 +1322,8 @@ namespace Game
 	extern char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38];
 
 	extern char (*sys_exitCmdLine)[1024];
+
+	extern void** logfile;
 
 	extern GamerSettingState* gamerSettings;
 

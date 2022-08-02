@@ -8,7 +8,8 @@ namespace Components
 		Debug();
 
 	private:
-		static Dvar::Var DebugOverlay;
+		static const Game::dvar_t* DebugOverlay;
+		static const Game::dvar_t* BugName;
 
 		// Game dvars
 		static Game::dvar_t** PlayerDebugHealth;
@@ -32,6 +33,7 @@ namespace Components
 		static void CG_DrawDebugOverlays_Hk(int localClientNum);
 
 		static void Com_Assert_f();
+		static void Com_Bug_f(Command::Params* params);
 
 		static void CL_InitDebugDvars();
 	};
