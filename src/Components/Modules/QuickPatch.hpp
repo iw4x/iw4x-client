@@ -30,6 +30,8 @@ namespace Components
 
 		static void R_AddImageToList_Hk(Game::XAssetHeader header, void* data);
 
+		static void Sys_SpawnQuitProcess_Hk();
+
 		static Game::dvar_t* Dvar_RegisterConMinicon(const char* dvarName, bool value, unsigned __int16 flags, const char* description);
 	};
 }

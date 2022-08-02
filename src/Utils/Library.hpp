@@ -9,9 +9,9 @@ namespace Utils
 		static Library Load(const std::filesystem::path& path);
 		static Library GetByAddress(void* address);
 
-		Library() : module_(nullptr), freeOnDestroy(false) {};
+		Library() : module_(nullptr), freeOnDestroy_(false) {}
 		Library(const std::string& name, bool freeOnDestroy);
-		explicit Library(const std::string& name) : module_(GetModuleHandleA(name.data())), freeOnDestroy(true) {};
+		explicit Library(const std::string& name) : module_(GetModuleHandleA(name.data())), freeOnDestroy_(true) {}
 		explicit Library(HMODULE handle);
 		~Library();
 
@@ -23,6 +23,11 @@ namespace Utils
 
 		bool isValid() const;
 		HMODULE getModule() const;
+		std::string getName() const;
+		std::string getPath() const;
+		std::string getFolder() const;
+		std::uint8_t* getPtr() const;
+		void free();
 
 		template <typename T>
 		T getProc(const std::string& process) const
@@ -62,10 +67,10 @@ namespace Utils
 			return T();
 		}
 
-		void free();
+		static void LaunchProcess(const std::string& process, const std::string& commandLine, const std::string& currentDir);
 
 	private:
 		HMODULE module_;
-		bool freeOnDestroy;
+		bool freeOnDestroy_;
 	};
 }
