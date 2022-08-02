@@ -138,6 +138,22 @@ namespace Components
 		}
 	}
 
+	std::filesystem::path FileSystem::GetAppdataPath()
+	{
+		PWSTR path;
+		if (!SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &path)))
+		{
+			throw std::runtime_error("Failed to read APPDATA path!");
+		}
+
+		auto _0 = gsl::finally([&path]
+		{
+			CoTaskMemFree(path);
+		});
+
+		return std::filesystem::path(path) / "xlabs";
+	}
+
 	std::vector<std::string> FileSystem::GetFileList(const std::string& path, const std::string& extension)
 	{
 		std::vector<std::string> fileList;

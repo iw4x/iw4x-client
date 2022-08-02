@@ -78,14 +78,14 @@ namespace Components
 			mov ecx, [eax]
 
 		fireWeapon:
-			push    edx
-			push    ecx
-			push    edi
-			mov     eax, 0x4A4D50 // FireWeapon
-			call    eax
-			add     esp, 0Ch
-			pop     edi
-			pop     ecx
+			push edx
+			push ecx
+			push edi
+			mov eax, 0x4A4D50 // FireWeapon
+			call eax
+			add esp, 0Ch
+			pop edi
+			pop ecx
 			retn
 		}
 	}
@@ -106,13 +106,13 @@ namespace Components
 			mov edx, [eax]
 
 		fireWeaponMelee:
-			push    edx
-			push    edi
-			mov     eax, 0x4F2470 // FireWeaponMelee
-			call    eax
-			add     esp, 8
-			pop     edi
-			pop     ecx
+			push edx
+			push edi
+			mov eax, 0x4F2470 // FireWeaponMelee
+			call eax
+			add esp, 8
+			pop edi
+			pop ecx
 			retn
 		}
 	}
@@ -153,11 +153,11 @@ namespace Components
 			je useCustomRatio;
 
 			// execute switch statement code
-			push 0x005063FC;
+			push 0x5063FC;
 			retn;
 
 		goToDefaultCase:
-			push 0x005064FC;
+			push 0x5064FC;
 			retn;
 
 		useCustomRatio:
@@ -170,7 +170,7 @@ namespace Components
 			mov eax, 1;
 
 			// continue execution
-			push 0x00506495;
+			push 0x506495;
 			retn;
 		}
 	}
@@ -240,6 +240,20 @@ namespace Components
 		}
 	}
 
+	void QuickPatch::Sys_SpawnQuitProcess_Hk()
+	{
+		if (*Game::sys_exitCmdLine[0] == '\0')
+		{
+			return;
+		}
+
+		auto workingDir = std::filesystem::current_path().string();
+		auto dir = FileSystem::GetAppdataPath() / "data" / "iw4x" / *Game::sys_exitCmdLine;
+
+		SetEnvironmentVariableA("XLABS_MW2_INSTALL", workingDir.data());
+		Utils::Library::LaunchProcess(dir.string(), "-singleplayer", workingDir);
+	}
+
 	Game::dvar_t* QuickPatch::Dvar_RegisterConMinicon(const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
 	{
 #ifdef _DEBUG
@@ -274,7 +288,10 @@ namespace Components
 
 		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
 
-		Utils::Hook::Set<void(*)(Game::XAssetHeader, void*)>(0x51FCDD, R_AddImageToList_Hk);
+		Utils::Hook::Set<void(*)(Game::XAssetHeader, void*)>(0x51FCDD, QuickPatch::R_AddImageToList_Hk);
+
+		Utils::Hook::Set<const char*>(0x41DB8C, "iw4x-sp.exe");
+		Utils::Hook(0x4D6989, QuickPatch::Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);

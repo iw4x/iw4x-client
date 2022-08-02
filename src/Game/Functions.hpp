@@ -1303,6 +1303,8 @@ namespace Game
 	extern unsigned int* playerCardUIStringIndex;
 	extern char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38];
 
+	extern char (*sys_exitCmdLine)[1024];
+
 	extern GamerSettingState* gamerSettings;
 
 	void Sys_LockRead(FastCriticalSection* critSect);

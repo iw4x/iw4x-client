@@ -92,14 +92,14 @@ namespace Utils
 			return elems;
 		}
 
-		void Replace(std::string &string, const std::string& find, const std::string& replace)
+		void Replace(std::string& str, const std::string& from, const std::string& to)
 		{
-			size_t nPos = 0;
+			std::size_t nPos = 0;
 
-			while ((nPos = string.find(find, nPos)) != std::string::npos)
+			while ((nPos = str.find(from, nPos)) != std::string::npos)
 			{
-				string = string.replace(nPos, find.length(), replace);
-				nPos += replace.length();
+				str = str.replace(nPos, from.length(), to);
+				nPos += to.length();
 			}
 		}
 

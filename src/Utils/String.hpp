@@ -78,7 +78,7 @@ namespace Utils
 		std::string ToUpper(std::string text);
 		bool Compare(const std::string& lhs, const std::string& rhs);
 		std::vector<std::string> Split(const std::string& str, char delim);
-		void Replace(std::string& string, const std::string& find, const std::string& replace);
+		void Replace(std::string& str, const std::string& from, const std::string& to);
 		bool StartsWith(const std::string& haystack, const std::string& needle);
 		bool EndsWith(const std::string& haystack, const std::string& needle);
 		bool IsNumber(const std::string& str);

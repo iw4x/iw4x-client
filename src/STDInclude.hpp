@@ -16,6 +16,7 @@
 
 #include <Windows.h>
 #include <WinSock2.h>
+#include <ShlObj.h>
 #include <timeapi.h>
 #include <shellapi.h>
 #include <WinInet.h>
