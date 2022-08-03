@@ -12,18 +12,18 @@ namespace Components
 		static void UnlockStats();
 
 	private:
-		static void JavelinResetHookStub();
+		static void JavelinResetHook_Stub();
 
 		static Dvar::Var r_customAspectRatio;
 		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** valueList, int defaultIndex, unsigned __int16 flags, const char* description);
-		static void SetAspectRatioStub();
+		static void SetAspectRatio_Stub();
 		static void SetAspectRatio();
 
 		static Game::dvar_t* g_antilag;
-		static void ClientEventsFireWeaponStub();
-		static void ClientEventsFireWeaponMeleeStub();
+		static void ClientEventsFireWeapon_Stub();
+		static void ClientEventsFireWeaponMelee_Stub();
 
-		static BOOL IsDynClassnameStub(const char* classname);
+		static BOOL IsDynClassname_Stub(const char* classname);
 
 		static void CL_KeyEvent_OnEscape();
 		static void CL_KeyEvent_ConsoleEscape_Stub();
@@ -31,6 +31,8 @@ namespace Components
 		static void R_AddImageToList_Hk(Game::XAssetHeader header, void* data);
 
 		static void Sys_SpawnQuitProcess_Hk();
+
+		static void SND_GetAliasOffset_Stub();
 
 		static Game::dvar_t* Dvar_RegisterConMinicon(const char* dvarName, bool value, unsigned __int16 flags, const char* description);
 	};

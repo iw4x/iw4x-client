@@ -27,7 +27,7 @@ namespace Utils::Json
 		case nlohmann::json::value_t::discarded:
 			return "discarded";
 		default:
-			AssertUnreachable;
+			return "null";
 		}
 	}
 }

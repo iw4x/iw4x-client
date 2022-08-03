@@ -47,7 +47,7 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) void QuickPatch::JavelinResetHookStub()
+	__declspec(naked) void QuickPatch::JavelinResetHook_Stub()
 	{
 		__asm
 		{
@@ -62,7 +62,7 @@ namespace Components
 	}
 
 	Game::dvar_t* QuickPatch::g_antilag;
-	__declspec(naked) void QuickPatch::ClientEventsFireWeaponStub()
+	__declspec(naked) void QuickPatch::ClientEventsFireWeapon_Stub()
 	{
 		__asm
 		{
@@ -90,7 +90,7 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) void QuickPatch::ClientEventsFireWeaponMeleeStub()
+	__declspec(naked) void QuickPatch::ClientEventsFireWeaponMelee_Stub()
 	{
 		__asm
 		{
@@ -144,7 +144,7 @@ namespace Components
 		Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio.get<float>());
 	}
 
-	__declspec(naked) void QuickPatch::SetAspectRatioStub()
+	__declspec(naked) void QuickPatch::SetAspectRatio_Stub()
 	{
 		__asm
 		{
@@ -175,7 +175,7 @@ namespace Components
 		}
 	}
 
-	BOOL QuickPatch::IsDynClassnameStub(const char* classname)
+	BOOL QuickPatch::IsDynClassname_Stub(const char* classname)
 	{
 		const auto version = Zones::Version();
 		
@@ -248,10 +248,46 @@ namespace Components
 		}
 
 		auto workingDir = std::filesystem::current_path().string();
-		auto dir = FileSystem::GetAppdataPath() / "data" / "iw4x" / *Game::sys_exitCmdLine;
+		auto binary = FileSystem::GetAppdataPath() / "data" / "iw4x" / *Game::sys_exitCmdLine;
 
 		SetEnvironmentVariableA("XLABS_MW2_INSTALL", workingDir.data());
-		Utils::Library::LaunchProcess(dir.string(), "-singleplayer", workingDir);
+		Utils::Library::LaunchProcess(binary.string(), "-singleplayer", workingDir);
+	}
+
+	__declspec(naked) void QuickPatch::SND_GetAliasOffset_Stub()
+	{
+		using namespace Game;
+
+		static const char* msg = "SND_GetAliasOffset: Could not find sound alias '%s'";
+		static const DWORD func = 0x4B22D0; // Com_Error
+
+		__asm
+		{
+			// Check if snd_alias_t* is null immediately after call to Com_FindSoundAlias_FastFile
+			test eax, eax
+			jz error
+
+			// Game code hook skipped
+			mov ecx, eax
+			mov edx, dword ptr [ecx + 0x4]
+
+			// Resume function
+			push 0x437CB2
+			ret
+
+		error:
+			add esp, 0x4 // Com_FindSoundAlias_FastFile takes one argument
+
+			push [esi] // alias->aliasName
+			push msg
+			push ERR_DROP
+			call func // Going to longjmp back to safety
+			add esp, 0xC
+
+			xor eax, eax
+			pop esi
+			ret
+		}
 	}
 
 	Game::dvar_t* QuickPatch::Dvar_RegisterConMinicon(const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
@@ -267,7 +303,7 @@ namespace Components
 	QuickPatch::QuickPatch()
 	{
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
-		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassnameStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 
 		// Hook escape handling on open console to change behaviour to close the console instead of only canceling autocomplete
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
@@ -276,15 +312,15 @@ namespace Components
 		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_NONE, "Time in seconds before match server loads the next map");
 
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
-		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMeleeStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
 
 		// Javelin fix
-		Utils::Hook(0x578F52, QuickPatch::JavelinResetHookStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x578F52, QuickPatch::JavelinResetHook_Stub, HOOK_JUMP).install()->quick();
 
 		// Add ultrawide support
 		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
 
@@ -292,6 +328,9 @@ namespace Components
 
 		Utils::Hook::Set<const char*>(0x41DB8C, "iw4x-sp.exe");
 		Utils::Hook(0x4D6989, QuickPatch::Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
+
+		// Fix crash as nullptr goes unchecked
+		Utils::Hook(0x437CAD, QuickPatch::SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
