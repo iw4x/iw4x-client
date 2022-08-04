@@ -1190,28 +1190,27 @@ namespace Game
 
 	void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize)
 	{
-		if (SEH_GetCurrentLanguage() == 8 || Sys_Milliseconds() % 1000 <= 800)
+		if (SEH_GetCurrentLanguage() == 8)
 		{
 			return;
 		}
 
-		size_t i = 0;
-		while (str[i] != '\0')
+		const auto remainder = Sys_Milliseconds() % 1000;
+		if (remainder <= 800)
 		{
-			if (i >= strMaxSize)
-				break;
+			return;
+		}
 
-			const auto value = str[i];
-			if (value == 16)
+		for (std::size_t idx = 0; str[idx] && idx < strMaxSize; ++idx)
+		{
+			if (str[idx] == 16)
 			{
-				str[i] = -68;
+				str[idx] = -68;
 			}
-			else if (value == 17)
+			else if (str[idx] == 17)
 			{
-				str[i] = -67;
+				str[idx] = -67;
 			}
-
-			++i;
 		}
 	}
 
