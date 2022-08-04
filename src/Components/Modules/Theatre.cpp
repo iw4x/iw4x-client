@@ -206,7 +206,8 @@ namespace Components
 					info.gametype  = metaObject["gametype"].get<std::string>();
 					info.mapname   = metaObject["mapname"].get<std::string>();
 					info.length    = metaObject["length"].get<int>();
-					info.timeStamp = _atoi64(metaObject["timestamp"].get<std::string>().data());
+					auto timestamp = metaObject["timestamp"].get<std::string>();
+					info.timeStamp = _atoi64(timestamp.data());
 
 					Theatre::Demos.push_back(info);
 				}

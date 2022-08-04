@@ -76,6 +76,6 @@ namespace Utils
 
 	nlohmann::json InfoString::to_json() const
 	{
-		return {this->keyValuePairs};
+		return this->keyValuePairs;
 	}
 }
