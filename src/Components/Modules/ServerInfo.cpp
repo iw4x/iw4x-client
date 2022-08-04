@@ -20,13 +20,10 @@ namespace Components
 			{
 			case 0:
 				return Utils::String::VA("%d", index);
-
 			case 1:
 				return ServerInfo::PlayerContainer.playerList[index].name.data();
-
 			case 2:
 				return Utils::String::VA("%d", ServerInfo::PlayerContainer.playerList[index].score);
-
 			case 3:
 				return Utils::String::VA("%d", ServerInfo::PlayerContainer.playerList[index].ping);
 			default:
@@ -130,17 +127,16 @@ namespace Components
 
 	Utils::InfoString ServerInfo::GetInfo()
 	{
-		int maxclientCount = *Game::svs_clientCount;
+		auto maxClientCount = *Game::svs_clientCount;
 
-		if (!maxclientCount)
+		if (!maxClientCount)
 		{
-			maxclientCount = Dvar::Var("party_maxplayers").get<int>();
-			//maxclientCount = Game::Party_GetMaxPlayers(*Game::partyIngame);
+			maxClientCount = Dvar::Var("party_maxplayers").get<int>();
 		}
 
-		Utils::InfoString info(Game::Dvar_InfoString_Big(1024));
+		Utils::InfoString info(Game::Dvar_InfoString_Big(Game::DVAR_SERVERINFO));
 		info.set("gamename", "IW4");
-		info.set("sv_maxclients", Utils::String::VA("%i", maxclientCount));
+		info.set("sv_maxclients", Utils::String::VA("%i", maxClientCount));
 		info.set("protocol", Utils::String::VA("%i", PROTOCOL));
 		info.set("shortversion", SHORTVERSION);
 		info.set("mapname", Dvar::Var("mapname").get<const char*>());
@@ -231,84 +227,83 @@ namespace Components
 
 		Network::OnPacket("statusResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
-			if (ServerInfo::PlayerContainer.target == address)
+			if (ServerInfo::PlayerContainer.target != address)
 			{
-				Utils::InfoString info(data.substr(0, data.find_first_of("\n")));
+				return;
+			}
 
-				Dvar::Var("uiSi_ServerName").set(info.get("sv_hostname"));
-				Dvar::Var("uiSi_MaxClients").set(info.get("sv_maxclients"));
-				Dvar::Var("uiSi_Version").set(info.get("shortversion"));
-				Dvar::Var("uiSi_SecurityLevel").set(info.get("sv_securityLevel"));
-				Dvar::Var("uiSi_isPrivate").set(info.get("isPrivate") == "0" ? "@MENU_NO" : "@MENU_YES");
-				Dvar::Var("uiSi_Hardcore").set(info.get("g_hardcore") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");
-				Dvar::Var("uiSi_KillCam").set(info.get("scr_game_allowkillcam") == "0" ? "@MENU_NO" : "@MENU_YES");
-				Dvar::Var("uiSi_MapName").set(info.get("mapname"));
-				Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(info.get("mapname").data()));
-				Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(info.get("g_gametype").data()));
-				Dvar::Var("uiSi_ModName").set("");
+			const Utils::InfoString info(data.substr(0, data.find_first_of("\n")));
 
-				switch (atoi(info.get("scr_team_fftype").data()))
+			Dvar::Var("uiSi_ServerName").set(info.get("sv_hostname"));
+			Dvar::Var("uiSi_MaxClients").set(info.get("sv_maxclients"));
+			Dvar::Var("uiSi_Version").set(info.get("shortversion"));
+			Dvar::Var("uiSi_SecurityLevel").set(info.get("sv_securityLevel"));
+			Dvar::Var("uiSi_isPrivate").set(info.get("isPrivate") == "0" ? "@MENU_NO" : "@MENU_YES");
+			Dvar::Var("uiSi_Hardcore").set(info.get("g_hardcore") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");
+			Dvar::Var("uiSi_KillCam").set(info.get("scr_game_allowkillcam") == "0" ? "@MENU_NO" : "@MENU_YES");
+			Dvar::Var("uiSi_MapName").set(info.get("mapname"));
+			Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(info.get("mapname").data()));
+			Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(info.get("g_gametype").data()));
+			Dvar::Var("uiSi_ModName").set("");
+
+			switch (atoi(info.get("scr_team_fftype").data()))
+			{
+			default:
+				Dvar::Var("uiSi_ffType").set("@MENU_DISABLED");
+				break;
+			case 1:
+				Dvar::Var("uiSi_ffType").set("@MENU_ENABLED");
+				break;
+			case 2:
+				Dvar::Var("uiSi_ffType").set("@MPUI_RULES_REFLECT");
+				break;
+			case 3:
+				Dvar::Var("uiSi_ffType").set("@MPUI_RULES_SHARED");
+				break;
+			}
+
+			if (info.get("fs_game").size() > 5)
+			{
+				Dvar::Var("uiSi_ModName").set(info.get("fs_game").data() + 5);
+			}
+
+			auto lines = Utils::String::Split(data, '\n');
+
+			if (lines.size() <= 1) return;
+
+			for (std::size_t i = 1; i < lines.size(); ++i)
+			{
+				ServerInfo::Container::Player player;
+
+				std::string currentData = lines[i];
+
+				if (currentData.size() < 3) continue;
+
+				// Insert score
+				player.score = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
+
+				// Remove score
+				currentData = currentData.substr(currentData.find_first_of(" ") + 1);
+
+				// Insert ping
+				player.ping = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
+
+				// Remove ping
+				currentData = currentData.substr(currentData.find_first_of(" ") + 1);
+
+				if (currentData[0] == '\"')
 				{
-				default:
-					Dvar::Var("uiSi_ffType").set("@MENU_DISABLED");
-					break;
-
-				case 1:
-					Dvar::Var("uiSi_ffType").set("@MENU_ENABLED");
-					break;
-
-				case 2:
-					Dvar::Var("uiSi_ffType").set("@MPUI_RULES_REFLECT");
-					break;
-
-				case 3:
-					Dvar::Var("uiSi_ffType").set("@MPUI_RULES_SHARED");
-					break;
+					currentData = currentData.substr(1);
 				}
 
-				if (info.get("fs_game").size() > 5)
+				if (currentData.back() == '\"')
 				{
-					Dvar::Var("uiSi_ModName").set(info.get("fs_game").data() + 5);
+					currentData.pop_back();
 				}
 
-				auto lines = Utils::String::Split(data, '\n');
+				player.name = currentData;
 
-				if (lines.size() <= 1) return;
-
-				for (unsigned int i = 1; i < lines.size(); ++i)
-				{
-					ServerInfo::Container::Player player;
-
-					std::string currentData = lines[i];
-
-					if (currentData.size() < 3) continue;
-
-					// Insert score
-					player.score = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
-
-					// Remove score
-					currentData = currentData.substr(currentData.find_first_of(" ") + 1);
-
-					// Insert ping
-					player.ping = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
-
-					// Remove ping
-					currentData = currentData.substr(currentData.find_first_of(" ") + 1);
-
-					if (currentData[0] == '\"')
-					{
-						currentData = currentData.substr(1);
-					}
-
-					if (currentData.back() == '\"')
-					{
-						currentData.pop_back();
-					}
-
-					player.name = currentData;
-
-					ServerInfo::PlayerContainer.playerList.push_back(player);
-				}
+				ServerInfo::PlayerContainer.playerList.push_back(player);
 			}
 		});
 	}

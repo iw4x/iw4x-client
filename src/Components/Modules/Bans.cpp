@@ -151,7 +151,8 @@ namespace Components
 				if (idEntry.is_string())
 				{
 					SteamID id;
-					id.bits = strtoull(idEntry.get<std::string>().data(), nullptr, 16);
+					auto guid = idEntry.get<std::string>();
+					id.bits = std::strtoull(guid.data(), nullptr, 16);
 
 					list->idList.push_back(id);
 				}

@@ -187,7 +187,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fixed slow motion during final killcams (#111 - #107)
 - Fixed sound issue that causes the game to freeze (#106)
 - Fixed issue where materials strings found in hostnames, player names, chat etc. caused the game to crash (#113)
-- Fixed issue with servers displaying an invalid player count (#144)
+- Fixed issue with servers displaying an invalid player count (#113)
 
 ### Known issues
 

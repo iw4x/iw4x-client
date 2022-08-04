@@ -312,7 +312,6 @@ namespace Components
 
 	void ServerList::StoreFavourite(const std::string& server)
 	{
-		//json11::Json::parse()
 		std::vector<std::string> servers;
 
 		if (Utils::IO::FileExists("players/favourites.json"))
@@ -327,7 +326,7 @@ namespace Components
 				return;
 			}
 
-			nlohmann::json::array_t  storedServers = object;
+			nlohmann::json::array_t storedServers = object;
 
 			for (unsigned int i = 0; i < storedServers.size(); ++i)
 			{
@@ -540,15 +539,12 @@ namespace Components
 					)
 				{
 					auto lList = ServerList::GetList();
-
 					if (lList)
 					{
 						lList->push_back(server);
 						ServerList::RefreshVisibleListInternal(UIScript::Token());
 					}
 				}
-
-				break;
 			}
 			else
 			{
