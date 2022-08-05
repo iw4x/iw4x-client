@@ -7,6 +7,7 @@ namespace Components
 	Dvar::Var Movement::CGNoclipScaler;
 	Dvar::Var Movement::BGBouncesAllAngles;
 	Dvar::Var Movement::BGRocketJump;
+	Dvar::Var Movement::BGRocketJumpScale;
 	Dvar::Var Movement::BGPlayerEjection;
 	Dvar::Var Movement::BGPlayerCollision;
 	Game::dvar_t* Movement::BGBounces;
@@ -172,15 +173,16 @@ namespace Components
 	}
 
 	Game::gentity_s* Movement::Weapon_RocketLauncher_Fire_Hk(Game::gentity_s* ent, unsigned int weaponIndex,
-		float spread, Game::weaponParms* wp, const float* gunVel, Game::lockonFireParms* lockParms, bool a7)
+		float spread, Game::weaponParms* wp, const float* gunVel, Game::lockonFireParms* lockParms, bool magicBullet)
 	{
-		auto* result = Game::Weapon_RocketLauncher_Fire(ent, weaponIndex, spread, wp, gunVel, lockParms, a7);
+		auto* result = Game::Weapon_RocketLauncher_Fire(ent, weaponIndex, spread, wp, gunVel, lockParms, magicBullet);
 
 		if (ent->client != nullptr && BGRocketJump.get<bool>())
 		{
-			ent->client->ps.velocity[0] += (0.0f - wp->forward[0]) * 64.0f;
-			ent->client->ps.velocity[1] += (0.0f - wp->forward[1]) * 64.0f;
-			ent->client->ps.velocity[2] += (0.0f - wp->forward[2]) * 64.0f;
+			const auto scale = Movement::BGRocketJumpScale.get<float>();
+			ent->client->ps.velocity[0] += (0.0f - wp->forward[0]) * scale;
+			ent->client->ps.velocity[1] += (0.0f - wp->forward[1]) * scale;
+			ent->client->ps.velocity[2] += (0.0f - wp->forward[2]) * scale;
 		}
 
 		return result;
@@ -217,6 +219,42 @@ namespace Components
 		return Movement::PlayerSpectateSpeedScale.get<Game::dvar_t*>();
 	}
 
+	void Movement::RegisterMovementDvars()
+	{
+		Movement::PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
+			0.65f, 0.0f, 5.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
+			"The scale applied to the player speed when ducking");
+
+		Movement::PlayerProneSpeedScale = Game::Dvar_RegisterFloat("player_proneSpeedScale",
+			0.15f, 0.0f, 5.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
+			"The scale applied to the player speed when crawling");
+
+		// 3arc naming convention
+		Movement::CGUfoScaler = Dvar::Register<float>("cg_ufo_scaler",
+			6.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
+			"The speed at which ufo camera moves");
+
+		Movement::CGNoclipScaler = Dvar::Register<float>("cg_noclip_scaler",
+			3.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
+			"The speed at which noclip camera moves");
+
+		Movement::BGBouncesAllAngles = Dvar::Register<bool>("bg_bouncesAllAngles",
+			false, Game::DVAR_CODINFO, "Force bounce from all angles");
+
+		Movement::BGRocketJump = Dvar::Register<bool>("bg_rocketJump",
+			false, Game::DVAR_CODINFO, "Enable CoD4 rocket jumps");
+
+		Movement::BGRocketJumpScale = Dvar::Register<float>("bg_rocketJumpScale",
+			64.0f, 1.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO,
+			"The scale applied to the pushback force of a rocket");
+
+		Movement::BGPlayerEjection = Dvar::Register<bool>("bg_playerEjection",
+			true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
+
+		Movement::BGPlayerCollision = Dvar::Register<bool>("bg_playerCollision",
+			true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
+	}
+
 	Movement::Movement()
 	{
 		Scheduler::Once([]
@@ -229,37 +267,8 @@ namespace Components
 				nullptr
 			};
 
-			Movement::PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
-				0.65f, 0.0f, 5.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
-				"The scale applied to the player speed when ducking");
-
-			Movement::PlayerProneSpeedScale = Game::Dvar_RegisterFloat("player_proneSpeedScale",
-				0.15f, 0.0f, 5.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
-				"The scale applied to the player speed when crawling");
-
-			// 3arc naming convention
-			Movement::CGUfoScaler = Dvar::Register<float>("cg_ufo_scaler",
-				6.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
-				"The speed at which ufo camera moves");
-
-			Movement::CGNoclipScaler = Dvar::Register<float>("cg_noclip_scaler",
-				3.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
-				"The speed at which noclip camera moves");
-
 			Movement::BGBounces = Game::Dvar_RegisterEnum("bg_bounces",
 				bg_bouncesValues, Movement::DISABLED, Game::DVAR_CODINFO, "Bounce glitch settings");
-
-			Movement::BGBouncesAllAngles = Dvar::Register<bool>("bg_bouncesAllAngles",
-				false, Game::DVAR_CODINFO, "Force bounce from all angles");
-
-			Movement::BGRocketJump = Dvar::Register<bool>("bg_rocketJump",
-				false, Game::DVAR_CODINFO, "Enable CoD4 rocket jumps");
-
-			Movement::BGPlayerEjection = Dvar::Register<bool>("bg_playerEjection",
-				true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
-
-			Movement::BGPlayerCollision = Dvar::Register<bool>("bg_playerCollision",
-				true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
 		}, Scheduler::Pipeline::MAIN);
 
 		// Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used.
@@ -286,5 +295,7 @@ namespace Components
 		Utils::Hook(0x5D8153, Movement::StuckInClient_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45A5BF, Movement::CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
 		Utils::Hook(0x5A0CAD, Movement::CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // CG_ClipMoveToEntity
+
+		Movement::RegisterMovementDvars();
 	}
 }

@@ -15,6 +15,7 @@ namespace Components
 		static Dvar::Var CGNoclipScaler;
 		static Dvar::Var BGBouncesAllAngles;
 		static Dvar::Var BGRocketJump;
+		static Dvar::Var BGRocketJumpScale;
 		static Dvar::Var BGPlayerEjection;
 		static Dvar::Var BGPlayerCollision;
 		// Can't use Var class inside assembly stubs
@@ -40,5 +41,7 @@ namespace Components
 		static void CM_TransformedCapsuleTrace_Hk(Game::trace_t* results, const float* start, const float* end, const Game::Bounds* bounds, const Game::Bounds* capsule, int contents, const float* origin, const float* angles);
 
 		static Game::dvar_t* Dvar_RegisterSpectateSpeedScale(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
+
+		static void RegisterMovementDvars();
 	};
 }
