@@ -177,7 +177,8 @@ namespace Components
 	{
 		auto* result = Game::Weapon_RocketLauncher_Fire(ent, weaponIndex, spread, wp, gunVel, lockParms, magicBullet);
 
-		if (ent->client != nullptr && BGRocketJump.get<bool>())
+		if (ent->client != nullptr && BGRocketJump.get<bool>() &&
+			wp->weapDef->inventoryType != Game::WEAPINVENTORY_EXCLUSIVE)
 		{
 			const auto scale = Movement::BGRocketJumpScale.get<float>();
 			ent->client->ps.velocity[0] += (0.0f - wp->forward[0]) * scale;
