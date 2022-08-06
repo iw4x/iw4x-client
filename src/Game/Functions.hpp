@@ -1092,7 +1092,7 @@ namespace Game
 	typedef void(__cdecl * AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
 	extern AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee;
 
-	typedef gentity_s*(__cdecl * Weapon_RocketLauncher_Fire_t)(gentity_s* ent, unsigned int weaponIndex, float spread, weaponParms* wp, const float* gunVel, lockonFireParms* lockParms, bool a7);
+	typedef gentity_s*(__cdecl * Weapon_RocketLauncher_Fire_t)(gentity_s* ent, unsigned int weaponIndex, float spread, weaponParms* wp, const float* gunVel, lockonFireParms* lockParms, bool magicBullet);
 	extern Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire;
 
 	typedef void(__cdecl * Jump_ClearState_t)(playerState_s* ps);
