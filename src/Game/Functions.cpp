@@ -300,6 +300,7 @@ namespace Game
 	Scr_GetFloat_t Scr_GetFloat = Scr_GetFloat_t(0x443140);
 	Scr_GetInt_t Scr_GetInt = Scr_GetInt_t(0x4F31D0);
 	Scr_GetObject_t Scr_GetObject = Scr_GetObject_t(0x462100);
+	Scr_GetTypeName_t Scr_GetTypeName = Scr_GetTypeName_t(0x4EFF10);
 	Scr_GetNumParam_t Scr_GetNumParam = Scr_GetNumParam_t(0x4B0E90);
 	Scr_GetEntityId_t Scr_GetEntityId = Scr_GetEntityId_t(0x4165E0);
 
@@ -478,6 +479,8 @@ namespace Game
 	Z_VirtualAlloc_t Z_VirtualAlloc = Z_VirtualAlloc_t(0x4CFBA0);
 
 	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
+
+	XNAddrToString_t XNAddrToString = XNAddrToString_t(0x452690);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);

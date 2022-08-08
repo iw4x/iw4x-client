@@ -786,6 +786,9 @@ namespace Game
 	typedef unsigned int(__cdecl * Scr_GetObject_t)(unsigned int index);
 	extern Scr_GetObject_t Scr_GetObject;
 
+	typedef const char*(__cdecl * Scr_GetTypeName_t)(unsigned int index);
+	extern Scr_GetTypeName_t Scr_GetTypeName;
+
 	typedef unsigned int(__cdecl * Scr_GetNumParam_t)();
 	extern Scr_GetNumParam_t Scr_GetNumParam;
 
@@ -1151,6 +1154,9 @@ namespace Game
 
 	typedef void(__cdecl * I_strncpyz_t)(char* dest, const char* src, int destsize);
 	extern I_strncpyz_t I_strncpyz;
+
+	typedef void(__cdecl * XNAddrToString_t)(const XNADDR* xnaddr, char* str);
+	extern XNAddrToString_t XNAddrToString;
 
 	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;

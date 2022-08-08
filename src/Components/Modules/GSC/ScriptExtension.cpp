@@ -175,16 +175,16 @@ namespace Components
 		// Func present on IW5
 		Script::AddFunction("IsEndStr", [] // gsc: IsEndStr(<string>, <string>)
 		{
-			const auto* s1 = Game::Scr_GetString(0);
-			const auto* s2 = Game::Scr_GetString(1);
+			const auto* str = Game::Scr_GetString(0);
+			const auto* suffix = Game::Scr_GetString(1);
 
-			if (s1 == nullptr || s2 == nullptr)
+			if (str == nullptr || suffix == nullptr)
 			{
 				Game::Scr_Error("^1IsEndStr: Illegal parameters!\n");
 				return;
 			}
 
-			Game::Scr_AddBool(Utils::String::EndsWith(s1, s2));
+			Game::Scr_AddBool(Utils::String::EndsWith(str, suffix));
 		});
 
 		Script::AddFunction("IsArray", [] // gsc: IsArray(<object>)
@@ -205,6 +205,41 @@ namespace Components
 			}
 
 			Game::Scr_AddBool(result);
+		});
+
+		// Func present on IW5
+		Script::AddFunction("Float", [] // gsc: Float()
+		{
+			switch (Game::Scr_GetType(0))
+			{
+			case Game::VAR_STRING:
+				Game::Scr_AddFloat(static_cast<float>(std::atof(Game::Scr_GetString(0))));
+				break;
+			case Game::VAR_FLOAT:
+				Game::Scr_AddFloat(Game::Scr_GetFloat(0));
+				break;
+			case Game::VAR_INTEGER:
+				Game::Scr_AddFloat(static_cast<float>(Game::Scr_GetInt(0)));
+				break;
+			default:
+				Game::Scr_ParamError(0, Utils::String::VA("cannot cast %s to float", Game::Scr_GetTypeName(0)));
+				break;
+			}
+		});
+
+		Script::AddFunction("Strtol", [] // gsc: Strtol(<string>, <int>)
+		{
+			const auto* input = Game::Scr_GetString(0);
+			const auto base = Game::Scr_GetInt(1);
+
+			char* end;
+			const auto result = std::strtol(input, &end, base);
+			if (input == end)
+			{
+				Game::Scr_ParamError(0, "cannot cast string to int");
+			}
+
+			Game::Scr_AddInt(result);
 		});
 	}
 
