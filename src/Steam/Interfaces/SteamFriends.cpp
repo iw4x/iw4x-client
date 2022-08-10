@@ -6,7 +6,7 @@ STEAM_IGNORE_WARNINGS_START
 
 namespace Steam
 {
-	const char *Friends::GetPersonaName()
+	const char* Friends::GetPersonaName()
 	{
 		return Dvar::Var("name").get<const char*>();
 	}
@@ -28,7 +28,7 @@ namespace Steam
 
 	SteamID Friends::GetFriendByIndex(int iFriend, int iFriendFlags)
 	{
-		return SteamID();
+		return {};
 	}
 
 	int Friends::GetFriendRelationship(SteamID steamIDFriend)
@@ -41,7 +41,7 @@ namespace Steam
 		return 0;
 	}
 
-	const char *Friends::GetFriendPersonaName(SteamID steamIDFriend)
+	const char* Friends::GetFriendPersonaName(SteamID steamIDFriend)
 	{
 		return "";
 	}
@@ -56,7 +56,7 @@ namespace Steam
 		return false;
 	}
 
-	const char *Friends::GetFriendPersonaNameHistory(SteamID steamIDFriend, int iPersonaName)
+	const char* Friends::GetFriendPersonaNameHistory(SteamID steamIDFriend, int iPersonaName)
 	{
 		return "";
 	}
@@ -88,7 +88,7 @@ namespace Steam
 
 	SteamID Friends::GetFriendFromSourceByIndex(SteamID steamIDSource, int iFriend)
 	{
-		return SteamID();
+		return {};
 	}
 
 	bool Friends::IsUserInSource(SteamID steamIDUser, SteamID steamIDSource)
