@@ -65,11 +65,11 @@ namespace Components
 
 	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, size_t length)
 	{
-		const auto fs_game = Game::Dvar_FindVar("fs_game");
+		assert(*Game::fs_gameDirVar);
 
-		if (fs_game && fs_game->current.string && strlen(fs_game->current.string) && !strncmp(fs_game->current.string, "mods/", 5))
+		if (!std::strcmp((*Game::fs_gameDirVar)->current.string, "mods/"))
 		{
-			folder = fs_game->current.string;
+			folder = (*Game::fs_gameDirVar)->current.string;
 		}
 
 		return Utils::Hook::Call<int(char*, const char*, const char*, size_t)>(0x426450)(dest, folder, buffer, length);

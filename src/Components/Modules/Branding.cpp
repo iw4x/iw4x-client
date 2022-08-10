@@ -5,7 +5,6 @@ namespace Components
 	Dvar::Var Branding::CGDrawVersion;
 	Dvar::Var Branding::CGDrawVersionX;
 	Dvar::Var Branding::CGDrawVersionY;
-	Game::dvar_t** Branding::Version = reinterpret_cast<Game::dvar_t**>(0x1AD7930);
 
 #ifdef _DEBUG
 	constexpr auto* BUILD_TYPE = "IW4x_DEV MP";
@@ -25,12 +24,12 @@ namespace Components
 		auto* const placement = Game::ScrPlace_GetUnsafeFullPlacement();
 		auto* const font = Game::UI_GetFontHandle(placement, 0, 0.583f);
 
-		const auto width = Game::UI_TextWidth((*Version)->current.string, 0, font, fontScale);
+		const auto width = Game::UI_TextWidth((*Game::version)->current.string, 0, font, fontScale);
 		const auto height = Game::UI_TextHeight(font, fontScale);
 
-		Game::UI_DrawText(placement, (*Version)->current.string, maxChars, font, 1.0f - (CGDrawVersionX.get<float>() + static_cast<float>(width)),
+		Game::UI_DrawText(placement, (*Game::version)->current.string, maxChars, font, 1.0f - (CGDrawVersionX.get<float>() + static_cast<float>(width)),
 			1.0f - (CGDrawVersionY.get<float>() + static_cast<float>(height)), 3, 3, fontScale, shadowColor, 0);
-		Game::UI_DrawText(placement, (*Version)->current.string, maxChars, font, (0.0f - static_cast<float>(width)) - CGDrawVersionX.get<float>(),
+		Game::UI_DrawText(placement, (*Game::version)->current.string, maxChars, font, (0.0f - static_cast<float>(width)) - CGDrawVersionX.get<float>(),
 			(0.0f - static_cast<float>(height)) - CGDrawVersionY.get<float>(), 3, 3, fontScale, color, 0);
 	}
 

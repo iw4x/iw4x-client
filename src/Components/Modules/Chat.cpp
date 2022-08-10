@@ -287,7 +287,7 @@ namespace Components
 	{
 		Command::AddSV("muteClient", [](Command::Params* params)
 		{
-			if (!Dvar::Var("sv_running").get<bool>())
+			if (!(*Game::com_sv_running)->current.enabled)
 			{
 				Logger::Print("Server is not running.\n");
 				return;
@@ -309,7 +309,7 @@ namespace Components
 
 		Command::AddSV("unmute", [](Command::Params* params)
 		{
-			if (!Dvar::Var("sv_running").get<bool>())
+			if (!(*Game::com_sv_running)->current.enabled)
 			{
 				Logger::Print("Server is not running.\n");
 				return;

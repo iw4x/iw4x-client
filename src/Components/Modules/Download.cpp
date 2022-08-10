@@ -354,9 +354,9 @@ namespace Components
 			// Run this on the main thread
 			Scheduler::Once([]
 			{
-				auto fsGame = Dvar::Var("fs_game");
-				fsGame.set(mod);
-				fsGame.get<Game::dvar_t*>()->modified = true;
+				Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
+				const_cast<Game::dvar_t*>(*Game::fs_gameDirVar)->modified = true;
+
 				mod.clear();
 
 				Command::Execute("closemenu mod_download_popmenu", false);
@@ -594,7 +594,7 @@ namespace Components
 			static std::string fsGamePre;
 			static nlohmann::json jsonList;
 
-			std::string fsGame = Dvar::Var("fs_game").get<std::string>();
+			const std::string fsGame = (*Game::fs_gameDirVar)->current.string;
 
 			if (!fsGame.empty() && fsGame != fsGamePre)
 			{
@@ -698,7 +698,7 @@ namespace Components
 			}
 
 			std::string file;
-			std::string fsGame = Dvar::Var("fs_game").get<std::string>();
+			const std::string fsGame = (*Game::fs_gameDirVar)->current.string;
 			std::string path = Dvar::Var("fs_basepath").get<std::string>() + "\\" + (isMap ? "" : fsGame + "\\") + url;
 
 			if ((!isMap && fsGame.empty()) || !Utils::IO::ReadFile(path, &file))
@@ -750,7 +750,7 @@ namespace Components
 			playerInfo["ping"] = 0;
 			playerInfo["name"] = "";
 
-			if (Dvar::Var("sv_running").get<bool>())
+			if ((*Game::com_sv_running)->current.enabled)
 			{
 				if (Game::svs_clients[i].state < 3) continue;
 

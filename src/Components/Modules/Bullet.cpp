@@ -7,10 +7,10 @@ namespace Components
 
 	float Bullet::BG_GetSurfacePenetrationDepthStub(const Game::WeaponDef* weapDef, int surfaceType)
 	{
-		assert(weapDef != nullptr);
-		assert(weapDef->penetrateType != Game::PenetrateType::PENETRATE_TYPE_NONE);
-		assert(weapDef->penetrateType < Game::PenetrateType::PENETRATE_TYPE_COUNT);
-		assert(static_cast<size_t>(surfaceType) < Game::materialSurfType_t::SURF_TYPE_COUNT);
+		assert(weapDef);
+		assert(weapDef->penetrateType != Game::PENETRATE_TYPE_NONE);
+		AssertIn(weapDef->penetrateType, Game::PENETRATE_TYPE_COUNT);
+		AssertIn(surfaceType, Game::SURF_TYPE_COUNT);
 
 		const auto penetrationDepth = BGSurfacePenetration.get<float>();
 		if (penetrationDepth > 0.0f)

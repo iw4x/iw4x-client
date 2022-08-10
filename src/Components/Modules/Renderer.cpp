@@ -266,9 +266,8 @@ namespace Components
 
 		float playerPosition[3]{ clientEntity->r.currentOrigin[0], clientEntity->r.currentOrigin[1], clientEntity->r.currentOrigin[2] };
 
-		const auto mapName = Dvar::Var("mapname").get<const char*>();
 		auto scene = Game::scene;
-		auto gfxAsset = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName));
+		auto gfxAsset = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", (*Game::sv_mapname)->current.string));
 
 		if (gfxAsset == nullptr)
 		{
@@ -368,9 +367,8 @@ namespace Components
 
 		float playerPosition[3]{ clientEntity->r.currentOrigin[0], clientEntity->r.currentOrigin[1], clientEntity->r.currentOrigin[2] };
 
-		const auto mapName = Dvar::Var("mapname").get<const char*>();
 		auto scene = Game::scene;
-		auto gfxAsset = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", mapName));
+		auto gfxAsset = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_GFXWORLD, Utils::String::VA("maps/mp/%s.d3dbsp", (*Game::sv_mapname)->current.string));
 
 		if (gfxAsset == nullptr)
 		{

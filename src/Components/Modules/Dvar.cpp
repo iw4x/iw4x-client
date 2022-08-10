@@ -4,33 +4,33 @@ namespace Components
 {
 	const char* Dvar::ArchiveDvarPath = "userraw/archivedvars.cfg";
 
-	Dvar::Var::Var(const std::string& dvarName) : Var()
+	Dvar::Var::Var(const std::string& dvarName)
 	{
-		this->dvar = Game::Dvar_FindVar(dvarName.data());
+		this->dvar_ = Game::Dvar_FindVar(dvarName.data());
 
 		// If the dvar can't be found it will be registered as an empty string dvar
-		if (this->dvar == nullptr)
+		if (this->dvar_ == nullptr)
 		{
-			this->dvar = const_cast<Game::dvar_t*>(Game::Dvar_SetFromStringByNameFromSource(dvarName.data(), "",
+			this->dvar_ = const_cast<Game::dvar_t*>(Game::Dvar_SetFromStringByNameFromSource(dvarName.data(), "",
 				Game::DvarSetSource::DVAR_SOURCE_INTERNAL));
 		}
 	}
 
 	template <> Game::dvar_t* Dvar::Var::get()
 	{
-		return this->dvar;
+		return this->dvar_;
 	}
 
 	template <> const char* Dvar::Var::get()
 	{
-		if (this->dvar == nullptr)
+		if (this->dvar_ == nullptr)
 			return "";
 
-		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_STRING
-			|| this->dvar->type == Game::dvar_type::DVAR_TYPE_ENUM)
+		if (this->dvar_->type == Game::DVAR_TYPE_STRING
+			|| this->dvar_->type == Game::DVAR_TYPE_ENUM)
 		{
-			if (this->dvar->current.string != nullptr)
-				return this->dvar->current.string;
+			if (this->dvar_->current.string != nullptr)
+				return this->dvar_->current.string;
 		}
 
 		return "";
@@ -38,12 +38,12 @@ namespace Components
 
 	template <> int Dvar::Var::get()
 	{
-		if (this->dvar == nullptr)
+		if (this->dvar_ == nullptr)
 			return 0;
 
-		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_INT || this->dvar->type == Game::dvar_type::DVAR_TYPE_ENUM)
+		if (this->dvar_->type == Game::DVAR_TYPE_INT || this->dvar_->type == Game::DVAR_TYPE_ENUM)
 		{
-			return this->dvar->current.integer;
+			return this->dvar_->current.integer;
 		}
 
 		return 0;
@@ -51,12 +51,12 @@ namespace Components
 
 	template <> unsigned int Dvar::Var::get()
 	{
-		if (this->dvar == nullptr)
+		if (this->dvar_ == nullptr)
 			return 0;
 
-		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_INT)
+		if (this->dvar_->type == Game::DVAR_TYPE_INT)
 		{
-			return this->dvar->current.unsignedInt;
+			return this->dvar_->current.unsignedInt;
 		}
 
 		return 0;
@@ -64,12 +64,12 @@ namespace Components
 
 	template <> float Dvar::Var::get()
 	{
-		if (this->dvar == nullptr)
+		if (this->dvar_ == nullptr)
 			return 0.f;
 
-		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT)
+		if (this->dvar_->type == Game::DVAR_TYPE_FLOAT)
 		{
-			return this->dvar->current.value;
+			return this->dvar_->current.value;
 		}
 
 		return 0.f;
@@ -79,13 +79,13 @@ namespace Components
 	{
 		static Game::vec4_t vector{0.f, 0.f, 0.f, 0.f};
 
-		if (this->dvar == nullptr)
+		if (this->dvar_ == nullptr)
 			return vector;
 
-		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_2 || this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_3
-			|| this->dvar->type == Game::dvar_type::DVAR_TYPE_FLOAT_4)
+		if (this->dvar_->type == Game::DVAR_TYPE_FLOAT_2 || this->dvar_->type == Game::DVAR_TYPE_FLOAT_3
+			|| this->dvar_->type == Game::DVAR_TYPE_FLOAT_4)
 		{
-			return this->dvar->current.vector;
+			return this->dvar_->current.vector;
 		}
 
 		return vector;
@@ -93,12 +93,12 @@ namespace Components
 
 	template <> bool Dvar::Var::get()
 	{
-		if (this->dvar == nullptr)
+		if (this->dvar_ == nullptr)
 			return false;
 
-		if (this->dvar->type == Game::dvar_type::DVAR_TYPE_BOOL)
+		if (this->dvar_->type == Game::DVAR_TYPE_BOOL)
 		{
-			return this->dvar->current.enabled;
+			return this->dvar_->current.enabled;
 		}
 
 		return false;
@@ -111,10 +111,10 @@ namespace Components
 
 	void Dvar::Var::set(const char* string)
 	{
-		assert(this->dvar->type == Game::DVAR_TYPE_STRING);
-		if (this->dvar)
+		assert(this->dvar_->type == Game::DVAR_TYPE_STRING);
+		if (this->dvar_)
 		{
-			Game::Dvar_SetString(this->dvar, string);
+			Game::Dvar_SetString(this->dvar_, string);
 		}
 	}
 
@@ -125,58 +125,64 @@ namespace Components
 
 	void Dvar::Var::set(int integer)
 	{
-		assert(this->dvar->type == Game::DVAR_TYPE_INT);
-		if (this->dvar)
+		assert(this->dvar_->type == Game::DVAR_TYPE_INT);
+
+		if (this->dvar_)
 		{
-			Game::Dvar_SetInt(this->dvar, integer);
+			Game::Dvar_SetInt(this->dvar_, integer);
 		}
 	}
 
 	void Dvar::Var::set(float value)
 	{
-		assert(this->dvar->type == Game::DVAR_TYPE_FLOAT);
-		if (this->dvar)
+		assert(this->dvar_->type == Game::DVAR_TYPE_FLOAT);
+
+		if (this->dvar_)
 		{
-			Game::Dvar_SetFloat(this->dvar, value);
+			Game::Dvar_SetFloat(this->dvar_, value);
 		}
 	}
 
 	void Dvar::Var::set(bool enabled)
 	{
-		assert(this->dvar->type == Game::DVAR_TYPE_BOOL);
-		if (this->dvar)
+		assert(this->dvar_->type == Game::DVAR_TYPE_BOOL);
+
+		if (this->dvar_)
 		{
-			Game::Dvar_SetBool(this->dvar, enabled);
+			Game::Dvar_SetBool(this->dvar_, enabled);
 		}
 	}
 
 	void Dvar::Var::setRaw(int integer)
 	{
-		assert(this->dvar->type == Game::DVAR_TYPE_INT);
-		if (this->dvar)
+		assert(this->dvar_->type == Game::DVAR_TYPE_INT);
+
+		if (this->dvar_)
 		{
-			this->dvar->current.integer = integer;
-			this->dvar->latched.integer = integer;
+			this->dvar_->current.integer = integer;
+			this->dvar_->latched.integer = integer;
 		}
 	}
 
 	void Dvar::Var::setRaw(float value)
 	{
-		assert(this->dvar->type == Game::DVAR_TYPE_FLOAT);
-		if (this->dvar)
+		assert(this->dvar_->type == Game::DVAR_TYPE_FLOAT);
+
+		if (this->dvar_)
 		{
-			this->dvar->current.value = value;
-			this->dvar->latched.value = value;
+			this->dvar_->current.value = value;
+			this->dvar_->latched.value = value;
 		}
 	}
 
 	void Dvar::Var::setRaw(bool enabled)
 	{
-		assert(this->dvar->type == Game::DVAR_TYPE_BOOL);
-		if (this->dvar)
+		assert(this->dvar_->type == Game::DVAR_TYPE_BOOL);
+
+		if (this->dvar_)
 		{
-			this->dvar->current.enabled = enabled;
-			this->dvar->latched.enabled = enabled;
+			this->dvar_->current.enabled = enabled;
+			this->dvar_->latched.enabled = enabled;
 		}
 	}
 

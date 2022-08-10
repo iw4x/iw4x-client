@@ -45,10 +45,6 @@ namespace Components
 		// Rotation Dvars
 		static Dvar::Var SVRandomMapRotation;
 		static Dvar::Var SVDontRotate;
-		// Game Dvars
-		static Game::dvar_t** SVMapRotation;
-		static Game::dvar_t** SVMapRotationCurrent;
-		static Game::dvar_t** SVMapname;
 
 		// Holds the parsed data from sv_mapRotation
 		static RotationData DedicatedRotation;

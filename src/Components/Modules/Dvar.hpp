@@ -17,9 +17,9 @@ namespace Components
 		class Var
 		{
 		public:
-			Var() : dvar(nullptr) {}
-			Var(const Var& obj) { this->dvar = obj.dvar; }
-			Var(Game::dvar_t* _dvar) : dvar(_dvar) {}
+			Var() : dvar_(nullptr) {}
+			Var(const Var& obj) { this->dvar_ = obj.dvar_; }
+			Var(Game::dvar_t* dvar) : dvar_(dvar) {}
 			Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {}
 			Var(const std::string& dvarName);
 
@@ -37,7 +37,7 @@ namespace Components
 			void setRaw(bool enabled);
 
 		private:
-			Game::dvar_t* dvar;
+			Game::dvar_t* dvar_;
 		};
 
 		Dvar();
