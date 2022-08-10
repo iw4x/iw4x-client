@@ -241,12 +241,12 @@ namespace Components
 			mov dl, byte ptr[edi + 1Ah] // to_forwardMove
 			mov dh, byte ptr[edi + 1Bh] // to_rightMove
 
-			mov[esp + 30h], dx // to_buttons
+			mov [esp + 30h], dx // to_buttons
 
-			mov dl, byte ptr[ebp + 1Ah] // from_forwardMove
-			mov dh, byte ptr[ebp + 1Bh] // from_rightMove
+			mov dl, byte ptr [ebp + 1Ah] // from_forwardMove
+			mov dh, byte ptr [ebp + 1Bh] // from_rightMove
 
-			mov[esp + 2Ch], dx // from_buttons
+			mov [esp + 2Ch], dx // from_buttons
 
 			// return back
 			push 0x60E40E
@@ -261,7 +261,7 @@ namespace Components
 
 		if (Game::MSG_ReadBit(msg))
 		{
-			short movementBits = static_cast<short>(key ^ Game::MSG_ReadBits(msg, 16));
+			const auto movementBits = static_cast<short>(key ^ Game::MSG_ReadBits(msg, 16));
 
 			forward = static_cast<char>(movementBits);
 			right = static_cast<char>(movementBits >> 8);
@@ -274,6 +274,11 @@ namespace Components
 
 		to->forwardmove = forward;
 		to->rightmove = right;
+
+		if (!Lean::BGLean.get<bool>())
+		{
+			to->buttons &= ~(Game::CMD_BUTTON_LEAN_RIGHT | Game::CMD_BUTTON_LEAN_LEFT);
+		}
 	}
 
 	__declspec(naked) void Gamepad::MSG_ReadDeltaUsercmdKeyStub()
