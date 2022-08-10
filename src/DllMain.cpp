@@ -11,7 +11,7 @@ namespace Main
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
 		if (Components::Loader::IsPerformingUnitTests())
 		{
-			DWORD result = (Components::Loader::PerformUnitTests() ? 0 : -1);
+			auto result = (Components::Loader::PerformUnitTests() ? 0 : -1);
 			Components::Loader::Uninitialize();
 			ExitProcess(result);
 		}
@@ -26,7 +26,6 @@ namespace Main
 	void Uninitialize()
 	{
 		Components::Loader::Uninitialize();
-		Utils::Cache::Uninitialize();
 		google::protobuf::ShutdownProtobufLibrary();
 	}
 
@@ -45,13 +44,10 @@ namespace Main
 	}
 }
 
-BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*lpReserved*/)
+BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReserved*/)
 {
-	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
+	if (fdwReason == DLL_PROCESS_ATTACH)
 	{
-		// Not sure if it conflicts with our TLS variables
-		//DisableThreadLibraryCalls(hModule);
-
 		Steam::Proxy::RunMod();
 
 #ifndef DISABLE_BINARY_CHECK
@@ -75,7 +71,7 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		// Install entry point hook
 		Utils::Hook(0x6BAC0F, Main::EntryPoint, HOOK_JUMP).install()->quick();
 	}
-	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
+	else if (fdwReason == DLL_PROCESS_DETACH)
 	{
 		Main::Uninitialize();
 	}
