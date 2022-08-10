@@ -7,7 +7,6 @@ namespace Utils
 	public:
 		static std::string GetStaticUrl(const std::string& path);
 		static std::string GetFile(const std::string& path, int timeout = 5000, const std::string& useragent = "IW4x");
-		static void Uninitialize();
 
 	private:
 		static std::mutex CacheMutex;
