@@ -1,8 +1,5 @@
 #pragma once
 
-#define BUTTON_FLAG_LEANLEFT 0x40
-#define BUTTON_FLAG_LEANRIGHT 0x80
-
 namespace Components
 {
 	class SlowMotion : public Component

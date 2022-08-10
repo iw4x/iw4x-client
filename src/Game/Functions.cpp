@@ -238,6 +238,7 @@ namespace Game
 	MSG_WriteLong_t MSG_WriteLong = MSG_WriteLong_t(0x41CA20);
 	MSG_WriteShort_t MSG_WriteShort = MSG_WriteShort_t(0x503B90);
 	MSG_WriteString_t MSG_WriteString = MSG_WriteString_t(0x463820);
+	MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey = MSG_ReadDeltaUsercmdKey_t(0x491F00);
 	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = MSG_WriteBitsCompress_t(0x4319D0);
 	MSG_ReadByte_t MSG_ReadByte = MSG_ReadByte_t(0x4C1C20);
 	MSG_ReadBitsCompress_t MSG_ReadBitsCompress = MSG_ReadBitsCompress_t(0x4DCC30);
@@ -455,6 +456,7 @@ namespace Game
 	PM_playerTrace_t PM_playerTrace = PM_playerTrace_t(0x458980);
 	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
 	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
+	PM_UpdateLean_t PM_UpdateLean = PM_UpdateLean_t(0x43DED0);
 
 	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);

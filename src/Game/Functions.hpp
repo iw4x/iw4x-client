@@ -624,6 +624,9 @@ namespace Game
 	typedef void(__cdecl * MSG_WriteString_t)(msg_t* msg, const char *str);
 	extern MSG_WriteString_t MSG_WriteString;
 
+	typedef bool(__cdecl * MSG_ReadDeltaUsercmdKey_t)(msg_t* msg, int key, const usercmd_s* from, usercmd_s* to);
+	extern MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey;
+
 	typedef int(__cdecl * MSG_WriteBitsCompress_t)(bool trainHuffman, const char *from, char *to, int size);
 	extern MSG_WriteBitsCompress_t MSG_WriteBitsCompress;
 
@@ -1109,6 +1112,9 @@ namespace Game
 
 	typedef EffectiveStance(__cdecl * PM_GetEffectiveStance_t)(const playerState_s* ps);
 	extern PM_GetEffectiveStance_t PM_GetEffectiveStance;
+
+	typedef void(__cdecl * PM_UpdateLean_t)(playerState_s* ps, float msec, usercmd_s* cmd, void(*capsuleTrace)(trace_t*, const float*, const float*, const Bounds*, int, int));
+	extern PM_UpdateLean_t PM_UpdateLean;
 
 	typedef int(__cdecl * CL_MouseEvent_t)(int x, int y, int dx, int dy);
 	extern CL_MouseEvent_t CL_MouseEvent;
