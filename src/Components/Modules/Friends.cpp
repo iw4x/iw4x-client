@@ -126,22 +126,14 @@ namespace Components
 		}
 	}
 
-	void Friends::UpdateState(bool force)
+	void Friends::UpdateState()
 	{
-		if (Friends::CLAnonymous.get<bool>() || Friends::IsInvisible() || !Steam::Enabled()) return;
+		if (Friends::CLAnonymous.get<bool>() || Friends::IsInvisible() || !Steam::Enabled())
+		{
+			return;
+		}
 
-		if (force)
-		{
-			if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
-			{
-				int state = Steam::Proxy::SteamFriends->GetPersonaState();
-				Steam::Proxy::ClientFriends.invoke<void>("SetPersonaState", (state == 1 ? 2 : 1));
-			}
-		}
-		else
-		{
-			Friends::TriggerUpdate = true;
-		}
+		Friends::TriggerUpdate = true;
 	}
 
 	void Friends::UpdateServer(Network::Address server, const std::string& hostname, const std::string& mapname)
@@ -660,7 +652,7 @@ namespace Components
 				if (Friends::TriggerUpdate)
 				{
 					Friends::TriggerUpdate = false;
-					Friends::UpdateState(true);
+					Friends::UpdateState();
 				}
 			}
 
