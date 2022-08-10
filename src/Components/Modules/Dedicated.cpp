@@ -104,12 +104,12 @@ namespace Components
 		Scheduler::Once([]
 		{
 			const auto partyEnable = Dvar::Var("party_enable").get<bool>();
-			auto mapname = Dvar::Var("mapname").get<std::string>();
+			std::string mapname = (*Game::sv_mapname)->current.string;
 
 			if (!partyEnable) // Time wrapping should not occur in party servers, but yeah...
 			{
 				if (mapname.empty()) mapname = "mp_rust";
-				Command::Execute(Utils::String::VA("map %s", mapname.data()), false);
+				Command::Execute(Utils::String::VA("map %s", mapname.data()), true);
 			}
 		}, Scheduler::Pipeline::SERVER);
 
@@ -330,7 +330,7 @@ namespace Components
 
 		Scheduler::Loop([]
 		{
-			if (Dvar::Var("sv_running").get<bool>())
+			if ((*Game::com_sv_running)->current.enabled)
 			{
 				Dedicated::TransmitGuids();
 			}

@@ -50,12 +50,10 @@ namespace Components
 
 	void Script::RuntimeError(const char* codePos, unsigned int index, const char* msg, const char* dialogMessage)
 	{
-		const auto developer = Dvar::Var("developer").get<int>();
-
 		// Allow error messages to be printed if developer mode is on
 		// Should check scrVarPub.developer but it's absent
 		// in this version of the game so let's check the dvar
-		if (!Game::scrVmPub->terminal_error && !developer)
+		if (!Game::scrVmPub->terminal_error && !(*Game::com_developer)->current.integer)
 			return;
 
 		// If were are developing let's call RuntimeErrorInternal
@@ -630,7 +628,7 @@ namespace Components
 		Utils::Hook(0x61E92E, Script::VMExecuteInternalStub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x61E933, 1);
 
-		Scheduler::Loop([]()
+		Scheduler::Loop([]
 		{
 			if (!Game::SV_Loaded())
 				return;
@@ -639,11 +637,12 @@ namespace Components
 
 			if (Script::LastFrameTime != -1)
 			{
-				const auto timeScale = Dvar::Var("timescale").get<float>();
-				const auto timeTaken = static_cast<int>((nowMs - Script::LastFrameTime) * timeScale);
+				const auto timeTaken = (nowMs - Script::LastFrameTime) * static_cast<int>((*Game::com_timescale)->current.value);
 
 				if (timeTaken >= 500)
+				{
 					Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Hitch warning: {} msec frame time\n", timeTaken);
+				}
 			}
 
 			Script::LastFrameTime = nowMs;

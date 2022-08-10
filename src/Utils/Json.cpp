@@ -2,7 +2,7 @@
 
 namespace Utils::Json
 {
-	std::string TypeToString(nlohmann::json::value_t type)
+	std::string TypeToString(const nlohmann::json::value_t type)
 	{
 		switch (type)
 		{
@@ -27,6 +27,7 @@ namespace Utils::Json
 		case nlohmann::json::value_t::discarded:
 			return "discarded";
 		default:
+			AssertUnreachable;
 			return "null";
 		}
 	}

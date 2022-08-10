@@ -139,7 +139,7 @@ namespace Components
 
 	bool Party::IsInLobby()
 	{
-		return (!Dvar::Var("sv_running").get<bool>() && PartyEnable.get<bool>() && Dvar::Var("party_host").get<bool>());
+		return (!(*Game::com_sv_running)->current.enabled && PartyEnable.get<bool>() && Dvar::Var("party_host").get<bool>());
 	}
 
 	bool Party::IsInUserMapLobby()
@@ -338,9 +338,9 @@ namespace Components
 			Utils::InfoString info;
 			info.set("challenge", Utils::ParseChallenge(data));
 			info.set("gamename", "IW4");
-			info.set("hostname", Dvar::Var("sv_hostname").get<const char*>());
-			info.set("gametype", Dvar::Var("g_gametype").get<const char*>());
-			info.set("fs_game", Dvar::Var("fs_game").get<const char*>());
+			info.set("hostname", (*Game::sv_hostname)->current.string);
+			info.set("gametype", (*Game::sv_gametype)->current.string);
+			info.set("fs_game", (*Game::fs_gameDirVar)->current.string);
 			info.set("xuid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().bits));
 			info.set("clients", Utils::String::VA("%i", clientCount));
 			info.set("bots", Utils::String::VA("%i", botCount));
@@ -416,7 +416,7 @@ namespace Components
 					bool isUsermap = !info.get("usermaphash").empty();
 					unsigned int usermapHash = atoi(info.get("usermaphash").data());
 
-					std::string mod = Dvar::Var("fs_game").get<std::string>();
+					std::string mod = (*Game::fs_gameDirVar)->current.string;
 
 					// set fast server stuff here so its updated when we go to download stuff
 					if (info.get("wwwDownload") == "1"s)
@@ -468,7 +468,7 @@ namespace Components
 					}
 					else if (!Dvar::Var("fs_game").get<std::string>().empty() && info.get("fs_game").empty())
 					{
-						Dvar::Var("fs_game").set("");
+						Game::Dvar_SetString(*Game::fs_gameDirVar, "");
 
 						if (Dvar::Var("cl_modVidRestart").get<bool>())
 						{

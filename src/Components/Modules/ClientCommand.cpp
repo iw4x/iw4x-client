@@ -9,7 +9,7 @@ namespace Components
 	{
 		const auto entNum = ent->s.number;
 
-		if (!Dvar::Var("sv_cheats").get<bool>())
+		if (!(*Game::g_cheats)->current.enabled)
 		{
 			Logger::Debug("Cheats are disabled!");
 			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"GAME_CHEATSNOTENABLED\"", 0x65));
@@ -359,6 +359,8 @@ namespace Components
 
 	ClientCommand::ClientCommand()
 	{
+		AssertOffset(Game::playerState_s, stats, 0x150);
+
 		// Hook call to ClientCommand in SV_ExecuteClientCommand so we may add custom commands
 		Utils::Hook(0x6259FA, ClientCommand::ClientCommandStub, HOOK_CALL).install()->quick();
 

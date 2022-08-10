@@ -44,8 +44,8 @@ namespace Components
 
 	void Console::RefreshStatus()
 	{
-		const auto mapname = Dvar::Var("mapname").get<std::string>();
-		const auto hostname = TextRenderer::StripColors(Dvar::Var("sv_hostname").get<std::string>());
+		const std::string mapname = (*Game::sv_mapname)->current.string;
+		const auto hostname = TextRenderer::StripColors((*Game::sv_hostname)->current.string);
 
 		if (Console::HasConsole)
 		{

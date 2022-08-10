@@ -853,10 +853,9 @@ namespace Game
 
 	void SV_GameDropClient(int clientNum, const char* reason)
 	{
-		const auto maxClients = Dvar_FindVar("sv_maxclients")->current.integer;
-		assert(maxClients >= 1 && maxClients <= 18);
+		assert((*sv_maxclients)->current.integer >= 1 && (*sv_maxclients)->current.integer <= 18);
 
-		if (clientNum >= 0 && clientNum < maxClients)
+		if (clientNum >= 0 && clientNum < (*sv_maxclients)->current.integer)
 		{
 			SV_DropClient(&svs_clients[clientNum], reason, true);
 		}

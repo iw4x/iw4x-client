@@ -162,8 +162,8 @@ namespace Components
 		Game::Com_Printf(channel, message, file);
 
 		Theatre::CurrentInfo.name = file;
-		Theatre::CurrentInfo.mapname = Dvar::Var("mapname").get<const char*>();
-		Theatre::CurrentInfo.gametype = Dvar::Var("g_gametype").get<const char*>();
+		Theatre::CurrentInfo.mapname = (*Game::sv_mapname)->current.string;
+		Theatre::CurrentInfo.gametype = (*Game::sv_gametype)->current.string;
 		Theatre::CurrentInfo.author = Steam::SteamFriends()->GetPersonaName();
 		Theatre::CurrentInfo.length = Game::Sys_Milliseconds();
 		std::time(&Theatre::CurrentInfo.timeStamp);

@@ -9,7 +9,7 @@ namespace Components
 
 	const char* ClanTags::GetClanTagWithName(int clientNum, const char* playerName)
 	{
-		assert(static_cast<std::size_t>(clientNum) < Game::MAX_CLIENTS);
+		AssertIn(clientNum, Game::MAX_CLIENTS);
 
 		if (ClientState[clientNum][0] == '\0')
 		{
@@ -96,7 +96,7 @@ namespace Components
 
 	char* ClanTags::GamerProfile_GetClanName(int controllerIndex)
 	{
-		assert(static_cast<std::size_t>(controllerIndex) < Game::MAX_LOCAL_CLIENTS);
+		AssertIn(controllerIndex, Game::MAX_LOCAL_CLIENTS);
 		assert(ClanName);
 
 		CL_SanitizeClanName();
@@ -115,7 +115,7 @@ namespace Components
 
 	void ClanTags::ClientUserinfoChanged(const char* s, int clientNum)
 	{
-		assert(static_cast<std::size_t>(clientNum) < Game::MAX_CLIENTS);
+		AssertIn(clientNum, Game::MAX_CLIENTS);
 
 		auto* clanAbbrev = Game::Info_ValueForKey(s, "clanAbbrev");
 
@@ -224,7 +224,7 @@ namespace Components
 	Game::PlayerCardData* ClanTags::PlayerCards_GetLiveProfileDataForController_Stub(const unsigned int controllerIndex)
 	{
 		auto* result = Utils::Hook::Call<Game::PlayerCardData*(unsigned int)>(0x463B90)(controllerIndex);
-		// controllerIndex should always be 0
+		AssertIn(controllerIndex, Game::MAX_LOCAL_CLIENTS);
 		Game::I_strncpyz(result->clanAbbrev, GamerProfile_GetClanName(static_cast<int>(controllerIndex)), sizeof(Game::PlayerCardData::clanAbbrev));
 
 		return result;

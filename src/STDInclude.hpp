@@ -107,6 +107,10 @@ using namespace std::literals;
 	static_assert(offsetof(x, y) == (offset), \
 		#x "::" #y " is not at the right offset. Must be at " #offset)
 
+#define AssertIn(x, y) assert(static_cast<unsigned int>(x) < static_cast<unsigned int>(y))
+
+#define AssertUnreachable assert(0 && "unreachable")
+
 // Protobuf
 #include "proto/session.pb.h"
 #include "proto/party.pb.h"
@@ -143,6 +147,7 @@ using namespace std::literals;
 #include "Steam/Steam.hpp" // Some definitions are used in functions and structs
 
 #include "Game/Structs.hpp"
+#include "Game/Dvars.hpp"
 #include "Game/Functions.hpp"
 #include <Game/Scripting/Function.hpp>
 #include <Game/Scripting/StackIsolation.hpp>

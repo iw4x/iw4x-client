@@ -139,7 +139,7 @@ namespace Components
 		info.set("sv_maxclients", Utils::String::VA("%i", maxClientCount));
 		info.set("protocol", Utils::String::VA("%i", PROTOCOL));
 		info.set("shortversion", SHORTVERSION);
-		info.set("mapname", Dvar::Var("mapname").get<const char*>());
+		info.set("mapname", (*Game::sv_mapname)->current.string);
 		info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().empty() ? "0" : "1"));
 		info.set("checksum", Utils::String::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::String::VA("%u", Game::Sys_Milliseconds()))));
 
@@ -158,7 +158,7 @@ namespace Components
 		{
 			info.set("matchtype", "1");
 		}
-		else if (Dvar::Var("sv_running").get<bool>()) // Match hosting
+		else if ((*Game::com_sv_running)->current.enabled) // Match hosting
 		{
 			info.set("matchtype", "2");
 		}
@@ -202,7 +202,7 @@ namespace Components
 				auto ping = 0;
 				std::string name;
 
-				if (Dvar::Var("sv_running").get<bool>())
+				if ((*Game::com_sv_running)->current.enabled)
 				{
 					if (Game::svs_clients[i].state < 3) continue;
 
