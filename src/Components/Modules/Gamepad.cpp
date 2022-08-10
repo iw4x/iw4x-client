@@ -274,11 +274,6 @@ namespace Components
 
 		to->forwardmove = forward;
 		to->rightmove = right;
-
-		if (!Lean::BGLean.get<bool>())
-		{
-			to->buttons &= ~(Game::CMD_BUTTON_LEAN_RIGHT | Game::CMD_BUTTON_LEAN_LEFT);
-		}
 	}
 
 	__declspec(naked) void Gamepad::MSG_ReadDeltaUsercmdKeyStub()
