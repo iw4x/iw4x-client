@@ -15,21 +15,23 @@ namespace Components
 		int handle;
 		const auto len = Game::FS_FOpenFileReadForThread(filePath.data(), &handle, thread);
 
-		if (handle)
+		if (!handle)
 		{
-			auto* buf = AllocateFile(len + 1);
-
-			[[maybe_unused]] auto bytesRead = Game::FS_Read(buf, len, handle);
-
-			assert(bytesRead == len);
-
-			buf[len] = '\0';
-
-			Game::FS_FCloseFile(handle);
-
-			this->buffer.append(buf, len);
-			FreeFile(buf);
+			return;
 		}
+
+		auto* buf = AllocateFile(len + 1);
+
+		[[maybe_unused]] auto bytesRead = Game::FS_Read(buf, len, handle);
+
+		assert(bytesRead == len);
+
+		buf[len] = '\0';
+
+		Game::FS_FCloseFile(handle);
+
+		this->buffer.append(buf, len);
+		FreeFile(buf);
 	}
 
 	void FileSystem::RawFile::read()
