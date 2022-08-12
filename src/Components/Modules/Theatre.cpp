@@ -226,8 +226,8 @@ namespace Components
 
 			Logger::Print("Deleting demo {}...\n", info.name);
 
-			FileSystem::DeleteFile("demos", info.name + ".dm_13");
-			FileSystem::DeleteFile("demos", info.name + ".dm_13.json");
+			FileSystem::_DeleteFile("demos", info.name + ".dm_13");
+			FileSystem::_DeleteFile("demos", info.name + ".dm_13.json");
 
 			// Reset our ui_demo_* dvars here, because the theater menu needs it.
 			Dvar::Var("ui_demo_mapname").set("");
@@ -310,8 +310,8 @@ namespace Components
 			for (int i = 0; i < numDel; ++i)
 			{
 				Logger::Print("Deleting old demo {}\n", files[i]);
-				FileSystem::DeleteFile("demos", files[i].data());
-				FileSystem::DeleteFile("demos", Utils::String::VA("%s.json", files[i].data()));
+				FileSystem::_DeleteFile("demos", files[i].data());
+				FileSystem::_DeleteFile("demos", Utils::String::VA("%s.json", files[i].data()));
 			}
 
 			Command::Execute(Utils::String::VA("record auto_%lld", time(nullptr)), true);

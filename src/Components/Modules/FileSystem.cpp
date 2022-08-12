@@ -15,21 +15,23 @@ namespace Components
 		int handle;
 		const auto len = Game::FS_FOpenFileReadForThread(filePath.data(), &handle, thread);
 
-		if (handle)
+		if (!handle)
 		{
-			auto* buf = AllocateFile(len + 1);
-
-			[[maybe_unused]] auto bytesRead = Game::FS_Read(buf, len, handle);
-
-			assert(bytesRead == len);
-
-			buf[len] = '\0';
-
-			Game::FS_FCloseFile(handle);
-
-			this->buffer.append(buf, len);
-			FreeFile(buf);
+			return;
 		}
+
+		auto* buf = AllocateFile(len + 1);
+
+		[[maybe_unused]] auto bytesRead = Game::FS_Read(buf, len, handle);
+
+		assert(bytesRead == len);
+
+		buf[len] = '\0';
+
+		Game::FS_FCloseFile(handle);
+
+		this->buffer.append(buf, len);
+		FreeFile(buf);
 	}
 
 	void FileSystem::RawFile::read()
@@ -200,7 +202,7 @@ namespace Components
 		return fileList;
 	}
 
-	bool FileSystem::DeleteFile(const std::string& folder, const std::string& file)
+	bool FileSystem::_DeleteFile(const std::string& folder, const std::string& file)
 	{
 		char path[MAX_PATH] = { 0 };
 		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").get<const char*>(), reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
