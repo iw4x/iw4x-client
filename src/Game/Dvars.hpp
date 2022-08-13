@@ -21,8 +21,13 @@ namespace Game
 	extern const dvar_t** sv_mapRotationCurrent;
 	extern const dvar_t** sv_maxclients;
 	extern const dvar_t** sv_cheats;
+	extern const dvar_t** sv_voiceQuality;
+
+	extern const dvar_t** cl_showSend;
+	extern const dvar_t** cl_voice;
 
 	extern const dvar_t** g_cheats;
+	extern const dvar_t** g_deadChat;
 
 	extern const dvar_t** version;
 }

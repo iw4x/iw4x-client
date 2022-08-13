@@ -24,10 +24,8 @@ namespace Components
 				Game::Com_Printf(0, "Sending stat packet %i to server.\n", i);
 
 				// alloc
-				Game::msg_t msg;
-				char buffer[2048];
-				ZeroMemory(&msg, sizeof(msg));
-				ZeroMemory(&buffer, sizeof(buffer));
+				Game::msg_t msg{};
+				unsigned char buffer[2048]{};
 
 				// init
 				Game::MSG_Init(&msg, buffer, sizeof(buffer));
@@ -53,7 +51,7 @@ namespace Components
 				}
 
 				// send statpacket
-				Network::SendRaw(Game::NS_CLIENT1, *reinterpret_cast<Game::netadr_t*>(0xA1E888), std::string(msg.data, msg.cursize));
+				Network::SendRaw(Game::NS_CLIENT1, *reinterpret_cast<Game::netadr_t*>(0xA1E888), std::string(reinterpret_cast<char*>(msg.data), msg.cursize));
 			}
 		}
 	}

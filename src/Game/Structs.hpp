@@ -5234,7 +5234,7 @@ namespace Game
 		int stringOffsets[4139];
 		char stringData[131072];
 		int dataCount;
-	} gameState;
+	};
 
 	struct HunkUser
 	{
@@ -5708,8 +5708,8 @@ namespace Game
 	{
 		int overflowed;
 		int readOnly;
-		char *data;
-		char *splitData;
+		unsigned char *data;
+		unsigned char *splitData;
 		int maxsize;
 		int cursize;
 		int splitSize;
@@ -8761,25 +8761,14 @@ namespace Game
 		bool isRunning;
 		bool cgameInitialized;
 		bool cgameInitCalled;
-		bool mapPreloaded;
-		clientMigState_t migrationState;
-		MigrationPers migrationPers;
-		MigrationVerboseState verboseMigrationState;
-		int verboseMigrationData;
+		unsigned char __pad0[0x9AC];
 		int keyCatchers;
 		bool displayHUDWithKeycatchUI;
 		connstate_t connectionState;
-		bool invited;
-		char itemsUnlocked[256];
-		bool itemsUnlockedInited;
-		bool itemsUnlockedLastGameDirty;
-		unsigned __int16 itemsUnlockedLastGame[16];
-		int itemsUnlockedLastGameCount;
-		char* itemsUnlockedBuffer;
-		int itemsUnlockedLocalClientNum;
-		int itemsUnlockedControllerIndex;
-		int itemsUnlockedStatsSource;
+		unsigned char __pad1[0x138];
 	};
+
+	static_assert(sizeof(clientUIActive_t) == 0xAF4);
 
 	enum msgLocErrType_t
 	{
@@ -8838,6 +8827,28 @@ namespace Game
 
 		CRITSECT_COUNT,
 	}; // May be incorrect
+
+	struct ClientVoicePacket_t
+	{
+		char data[256];
+		int dataSize;
+	};
+
+	struct voiceCommunication_t
+	{
+		ClientVoicePacket_t voicePackets[10];
+		int voicePacketCount;
+		int voicePacketLastTransmit;
+		int packetsPerSec;
+		int packetsPerSecStart;
+	};
+
+	struct VoicePacket_t
+	{
+		char talker;
+		char data[256];
+		int dataSize;
+	};
 
 #pragma endregion
 

@@ -568,6 +568,8 @@ namespace Components
 
 	Console::Console()
 	{
+		AssertOffset(Game::clientUIActive_t, connectionState, 0x9B8);
+
 		// Console '%s: %s> ' string
 		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " VERSION "> ");
 
