@@ -130,7 +130,7 @@ namespace Components
 
 		// Parse proto data
 		Proto::Auth::Connect connectData;
-		if (msg->cursize <= 12 || !connectData.ParseFromString(std::string(&msg->data[12], msg->cursize - 12)))
+		if (msg->cursize <= 12 || !connectData.ParseFromString(std::string(reinterpret_cast<char*>(&msg->data[12]), msg->cursize - 12)))
 		{
 			Network::Send(address, "error\nInvalid connect packet!");
 			return;

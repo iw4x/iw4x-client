@@ -28,8 +28,6 @@ namespace Components
 
 		static void Dvar_InfoString_Stub(char* s, const char* key, const char* value);
 
-		static void SetCachedPlayerData(int clientNum);
-
 		static void ClientUserinfoChanged(const char* s, int clientNum);
 		static void ClientUserinfoChanged_Stub();
 

@@ -102,8 +102,8 @@ namespace Components
 
 	void Security::NET_DeferPacketToClientStub(Game::netadr_t* net_from, Game::msg_t* net_message)
 	{
-		assert(net_from != nullptr);
-		assert(net_message != nullptr);
+		assert(net_from);
+		assert(net_message);
 
 		if (static_cast<std::size_t>(net_message->cursize) >= sizeof(Game::DeferredMsg::data))
 		{

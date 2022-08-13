@@ -145,6 +145,12 @@ namespace Game
 	typedef int(__cdecl * CL_ControllerIndexFromClientNum_t)(int localActiveClientNum);
 	extern CL_ControllerIndexFromClientNum_t CL_ControllerIndexFromClientNum;
 
+	typedef int(__cdecl * CL_MouseEvent_t)(int x, int y, int dx, int dy);
+	extern CL_MouseEvent_t CL_MouseEvent;
+
+	typedef bool(__cdecl * CL_IsPlayerMuted_t)(SessionData* session, int localClientNum, int muteClientIndex);
+	extern CL_IsPlayerMuted_t CL_IsPlayerMuted;
+
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_t* allocedCmd, bool isKey);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 
@@ -576,7 +582,7 @@ namespace Game
 	typedef void(__cdecl * UI_ReplaceConversions_t)(const char* sourceString, ConversionArguments* arguments, char* outputString, size_t outputStringSize);
 	extern UI_ReplaceConversions_t UI_ReplaceConversions;
 	
-	typedef void(__cdecl * MSG_Init_t)(msg_t* buf, char* data, int length);
+	typedef void(__cdecl * MSG_Init_t)(msg_t* buf, unsigned char* data, int length);
 	extern MSG_Init_t MSG_Init;
 
 	typedef void(__cdecl * MSG_ReadData_t)(msg_t* msg, void* data, int len);
@@ -591,7 +597,7 @@ namespace Game
 	typedef int(__cdecl * MSG_ReadBits_t)(msg_t* msg, int bits);
 	extern MSG_ReadBits_t MSG_ReadBits;
 
-	typedef short(__cdecl * MSG_ReadShort_t)(msg_t* msg);
+	typedef int(__cdecl * MSG_ReadShort_t)(msg_t* msg);
 	extern MSG_ReadShort_t MSG_ReadShort;
 
 	typedef __int64(__cdecl * MSG_ReadInt64_t)(msg_t* msg);
@@ -609,7 +615,7 @@ namespace Game
 	typedef int(__cdecl * MSG_ReadBitsCompress_t)(const char *from, char *to, int size);
 	extern MSG_ReadBitsCompress_t MSG_ReadBitsCompress;
 
-	typedef void(__cdecl * MSG_WriteByte_t)(msg_t* msg, unsigned char c);
+	typedef void(__cdecl * MSG_WriteByte_t)(msg_t* msg, int c);
 	extern MSG_WriteByte_t MSG_WriteByte;
 
 	typedef void(__cdecl * MSG_WriteData_t)(msg_t *buf, const void *data, int length);
@@ -618,7 +624,7 @@ namespace Game
 	typedef void(__cdecl * MSG_WriteLong_t)(msg_t *msg, int c);
 	extern MSG_WriteLong_t MSG_WriteLong;
 
-	typedef void(__cdecl * MSG_WriteShort_t)(msg_t* msg, short s);
+	typedef void(__cdecl * MSG_WriteShort_t)(msg_t* msg, int s);
 	extern MSG_WriteShort_t MSG_WriteShort;
 
 	typedef void(__cdecl * MSG_WriteString_t)(msg_t* msg, const char *str);
@@ -659,6 +665,9 @@ namespace Game
 
 	typedef void(__cdecl * NET_OutOfBandData_t)(netsrc_t sock, netadr_t adr, const char *format, int len);
 	extern NET_OutOfBandData_t NET_OutOfBandData;
+
+	typedef int(__cdecl * NET_OutOfBandVoiceData_t)(netsrc_t sock, netadr_t adr, unsigned char* format, int len, bool voiceData);
+	extern NET_OutOfBandVoiceData_t NET_OutOfBandVoiceData;
 
 	typedef void(__cdecl * Live_MPAcceptInvite_t)(_XSESSION_INFO *hostInfo, const int controllerIndex, bool fromGameInvite);
 	extern Live_MPAcceptInvite_t Live_MPAcceptInvite;
@@ -701,6 +710,9 @@ namespace Game
 
 	typedef const char *(__cdecl * PartyHost_GetMemberName_t)(PartyData* party, const int clientNum);
 	extern PartyHost_GetMemberName_t PartyHost_GetMemberName;
+
+	typedef int(__cdecl * Party_InParty_t)(PartyData* party);
+	extern Party_InParty_t Party_InParty;
 
 	typedef void(__cdecl * Playlist_ParsePlaylists_t)(const char* data);
 	extern Playlist_ParsePlaylists_t Playlist_ParsePlaylists;
@@ -957,6 +969,9 @@ namespace Game
 	typedef client_t*(__cdecl * SV_GetPlayerByNum_t)();
 	extern SV_GetPlayerByNum_t SV_GetPlayerByNum;
 
+	typedef client_t*(__cdecl * SV_FindClientByAddress_t)(netadr_t from, int qport, int remoteClientIndex);
+	extern SV_FindClientByAddress_t SV_FindClientByAddress;
+
 	typedef void(__cdecl * Sys_Error_t)(const char* error, ...);
 	extern Sys_Error_t Sys_Error;
 
@@ -1116,9 +1131,6 @@ namespace Game
 	typedef void(__cdecl * PM_UpdateLean_t)(playerState_s* ps, float msec, usercmd_s* cmd, void(*capsuleTrace)(trace_t*, const float*, const float*, const Bounds*, int, int));
 	extern PM_UpdateLean_t PM_UpdateLean;
 
-	typedef int(__cdecl * CL_MouseEvent_t)(int x, int y, int dx, int dy);
-	extern CL_MouseEvent_t CL_MouseEvent;
-
 	typedef void(__cdecl * IN_RecenterMouse_t)();
 	extern IN_RecenterMouse_t IN_RecenterMouse;
 
@@ -1164,6 +1176,9 @@ namespace Game
 	typedef void(__cdecl * XNAddrToString_t)(const XNADDR* xnaddr, char* str);
 	extern XNAddrToString_t XNAddrToString;
 
+	typedef int(__cdecl * Voice_IncomingVoiceData_t)(const SessionData* session, int clientNum, unsigned char* data, int size);
+	extern Voice_IncomingVoiceData_t Voice_IncomingVoiceData;
+
 	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_CLIENTS = 18;
@@ -1204,6 +1219,8 @@ namespace Game
 	extern bool* g_lobbyCreateInProgress;
 	extern PartyData* g_lobbyData;
 	extern PartyData* g_partyData;
+
+	extern SessionData* g_serverSession;
 
 	extern int* numIP;
 	extern netIP_t* localIP;
@@ -1339,6 +1356,10 @@ namespace Game
 
 	extern GamerSettingState* gamerSettings;
 
+	extern voiceCommunication_t* cl_voiceCommunication;
+
+	extern volatile long* sv_thread_owns_game;
+
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);
 
@@ -1377,6 +1398,7 @@ namespace Game
 	void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
 	void R_SetSunFromDvars(sunflare_t* sun);
 
+	int SV_GetServerThreadOwnsGame();
 	void SV_GameDropClient(int clientNum, const char* reason);
 	void SV_DropAllBots();
 	void SV_BotUserMove(client_t* client);
@@ -1399,6 +1421,9 @@ namespace Game
 	void Com_SetParseNegativeNumbers(int parse);
 
 	int CL_GetMaxXP();
+	clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
+	connstate_t CL_GetLocalClientConnectionState(int localClientNum);
+	voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
 
 	void Image_Setup(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
 

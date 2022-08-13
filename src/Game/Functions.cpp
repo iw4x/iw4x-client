@@ -68,6 +68,8 @@ namespace Game
 	CL_ConsoleFixPosition_t CL_ConsoleFixPosition = CL_ConsoleFixPosition_t(0x44A430);
 	CL_GetLocalClientActiveCount_t CL_GetLocalClientActiveCount = CL_GetLocalClientActiveCount_t(0x5BAD90);
 	CL_ControllerIndexFromClientNum_t CL_ControllerIndexFromClientNum = CL_ControllerIndexFromClientNum_t(0x449E30);
+	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
+	CL_IsPlayerMuted_t CL_IsPlayerMuted = CL_IsPlayerMuted_t(0x4B6250);
 
 	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x4DCE00);
@@ -254,6 +256,7 @@ namespace Game
 	NET_StringToAdr_t NET_StringToAdr = NET_StringToAdr_t(0x409010);
 	NET_OutOfBandPrint_t NET_OutOfBandPrint = NET_OutOfBandPrint_t(0x4AEF00);
 	NET_OutOfBandData_t NET_OutOfBandData = NET_OutOfBandData_t(0x49C7E0);
+	NET_OutOfBandVoiceData_t NET_OutOfBandVoiceData = NET_OutOfBandVoiceData_t(0x4FCC90);
 
 	Live_MPAcceptInvite_t Live_MPAcceptInvite = Live_MPAcceptInvite_t(0x420A6D);
 	Live_GetMapIndex_t Live_GetMapIndex = Live_GetMapIndex_t(0x4F6440);
@@ -273,6 +276,7 @@ namespace Game
 	PartyHost_CountMembers_t PartyHost_CountMembers = PartyHost_CountMembers_t(0x497330);
 	PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = PartyHost_GetMemberAddressBySlot_t(0x44E100);
 	PartyHost_GetMemberName_t PartyHost_GetMemberName = PartyHost_GetMemberName_t(0x44BE90);
+	Party_InParty_t Party_InParty = Party_InParty_t(0x4F10C0);
 
 	Playlist_ParsePlaylists_t Playlist_ParsePlaylists = Playlist_ParsePlaylists_t(0x4295A0);
 
@@ -388,6 +392,7 @@ namespace Game
 	SV_DropClient_t SV_DropClient = SV_DropClient_t(0x4D1600);
 	SV_GetPlayerByName_t SV_GetPlayerByName = SV_GetPlayerByName_t(0x6242B0);
 	SV_GetPlayerByNum_t SV_GetPlayerByNum = SV_GetPlayerByNum_t(0x624390);
+	SV_FindClientByAddress_t SV_FindClientByAddress = SV_FindClientByAddress_t(0x44F450);
 
 	Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x4D8580);
 	Sys_IsDatabaseReady_t Sys_IsDatabaseReady = Sys_IsDatabaseReady_t(0x4CA4A0);
@@ -458,7 +463,6 @@ namespace Game
 	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
 	PM_UpdateLean_t PM_UpdateLean = PM_UpdateLean_t(0x43DED0);
 
-	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
 
 	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
@@ -483,6 +487,7 @@ namespace Game
 	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
 
 	XNAddrToString_t XNAddrToString = XNAddrToString_t(0x452690);
+	Voice_IncomingVoiceData_t Voice_IncomingVoiceData = Voice_IncomingVoiceData_t(0x5001A0);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
@@ -519,6 +524,8 @@ namespace Game
 	bool* g_lobbyCreateInProgress = reinterpret_cast<bool*>(0x66C9BC2);
 	PartyData* g_lobbyData = reinterpret_cast<PartyData*>(0x1081C00);
 	PartyData* g_partyData = reinterpret_cast<PartyData*>(0x107E500);
+
+	SessionData* g_serverSession = reinterpret_cast<SessionData*>(0x66B7008);
 
 	int* numIP = reinterpret_cast<int*>(0x64A1E68);
 	netIP_t* localIP = reinterpret_cast<netIP_t*>(0x64A1E28);
@@ -583,7 +590,7 @@ namespace Game
 	field_t* g_consoleField = reinterpret_cast<field_t*>(0xA1B6B0);
 
 	clientStatic_t* cls = reinterpret_cast<clientStatic_t*>(0xA7FE90);
-	clientUIActive_t* clientUIActives = reinterpret_cast<clientUIActive_t*>(0xB2BB8A);
+	clientUIActive_t* clientUIActives = reinterpret_cast<clientUIActive_t*>(0xB2BB88);
 
 	sharedUiInfo_t* sharedUiInfo = reinterpret_cast<sharedUiInfo_t*>(0x62E4B78);
 	ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0x10843F0);
@@ -647,6 +654,10 @@ namespace Game
 	void** logfile = reinterpret_cast<void**>(0x1AD8F28);
 
 	GamerSettingState* gamerSettings = reinterpret_cast<GamerSettingState*>(0x107D3E8);
+
+	voiceCommunication_t* cl_voiceCommunication = reinterpret_cast<voiceCommunication_t*>(0x1079DA0);
+
+	volatile long* sv_thread_owns_game = reinterpret_cast<volatile long*>(0x2089DB8);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
@@ -853,6 +864,11 @@ namespace Game
 		return hash;
 	}
 
+	int SV_GetServerThreadOwnsGame()
+	{
+		return *sv_thread_owns_game;
+	}
+
 	void SV_GameDropClient(int clientNum, const char* reason)
 	{
 		assert((*sv_maxclients)->current.integer >= 1 && (*sv_maxclients)->current.integer <= 18);
@@ -965,6 +981,28 @@ namespace Game
 		StringTable* rankTable = DB_FindXAssetHeader(ASSET_TYPE_STRINGTABLE, "mp/rankTable.csv").stringTable;
 		const char* maxrank = StringTable_Lookup(rankTable, 0, "maxrank", 1);
 		return atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
+	}
+
+	clientConnection_t* CL_GetLocalClientConnection(const int localClientNum)
+	{
+		assert(clientConnections);
+		AssertIn(localClientNum, MAX_LOCAL_CLIENTS);
+
+		return &clientConnections[localClientNum];
+	}
+
+	connstate_t CL_GetLocalClientConnectionState(const int localClientNum)
+	{
+		AssertIn(localClientNum, STATIC_MAX_LOCAL_CLIENTS);
+
+		return clientUIActives[localClientNum].connectionState;
+	}
+
+	voiceCommunication_t* CL_GetLocalClientVoiceCommunication([[maybe_unused]] const int localClientNum)
+	{
+		AssertIn(localClientNum, STATIC_MAX_LOCAL_CLIENTS);
+
+		return cl_voiceCommunication;
 	}
 
 	void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out)

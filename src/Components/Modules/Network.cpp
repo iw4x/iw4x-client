@@ -292,7 +292,7 @@ namespace Components
 			return false;
 		}
 
-		const std::string data(message->data + offset, message->cursize - offset);
+		const std::string data(reinterpret_cast<char*>(message->data) + offset, message->cursize - offset);
 
 		Address address_ = address;
 		handler->second(address_, data);
@@ -370,6 +370,8 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
 		Utils::Hook::Set<BYTE>(0x5AA69F, 0xEB); // echo
 		Utils::Hook::Set<BYTE>(0x5AAA82, 0xEB); // SP
+		Utils::Hook::Set<BYTE>(0x5A9F18, 0xEB); // CL_VoiceConnectionTestPacket
+		Utils::Hook::Set<BYTE>(0x5A9FF3, 0xEB); // CL_HandleRelayPacket
 
 		Network::OnPacket("resolveAddress", [](const Address& address, [[maybe_unused]] const std::string& data)
 		{

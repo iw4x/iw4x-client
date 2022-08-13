@@ -47,7 +47,7 @@ namespace Components
 
 	void Theatre::WriteBaseline()
 	{
-		static char bufData[131072];
+		static unsigned char bufData[131072];
 		static char cmpData[131072];
 
 		Game::msg_t buf;
@@ -56,7 +56,7 @@ namespace Components
 		Game::MSG_WriteData(&buf, &Theatre::BaselineSnapshot[Theatre::BaselineSnapshotMsgOff], Theatre::BaselineSnapshotMsgLen - Theatre::BaselineSnapshotMsgOff);
 		Game::MSG_WriteByte(&buf, 6);
 
-		int compressedSize = Game::MSG_WriteBitsCompress(false, buf.data, cmpData, buf.cursize);
+		int compressedSize = Game::MSG_WriteBitsCompress(false, reinterpret_cast<char*>(buf.data), cmpData, buf.cursize);
 		int fileCompressedSize = compressedSize + 4;
 
 		int byte8 = 8;
