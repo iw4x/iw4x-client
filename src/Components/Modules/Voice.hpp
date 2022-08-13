@@ -28,10 +28,11 @@ namespace Components
 		static void SV_QueueVoicePacket(int talkerNum, int clientNum, Game::VoicePacket_t* voicePacket);
 		static void G_BroadcastVoice(Game::gentity_s* talker, Game::VoicePacket_t* voicePacket);
 		static void SV_UserVoice(Game::client_t* cl, Game::msg_t* msg);
+		static void SV_PreGameUserVoice(Game::client_t* cl, Game::msg_t* msg);
 		static void SV_VoicePacket(Game::netadr_t from, Game::msg_t* msg);
 
 		static bool CL_IsPlayerMuted_Hk(Game::SessionData* session, int localClientNum, int muteClientIndex);
-		static void CL_MutePlayer_Hk(Game::SessionData* session, const int muteClientIndex);
+		static void CL_MutePlayer_Hk(Game::SessionData* session, int muteClientIndex);
 		static void Voice_UnmuteMember_Hk(Game::SessionData* session, int clientNum);
 		static void CL_TogglePlayerMute(int localClientNum, int muteClientIndex);
 

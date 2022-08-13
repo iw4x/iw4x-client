@@ -131,7 +131,7 @@ namespace Components
 
 		assert(cl->gentity);
 
-		for (int packet = 0; packet < packetCount; ++packet)
+		for (auto packet = 0; packet < packetCount; ++packet)
 		{
 			voicePacket.dataSize = Game::MSG_ReadByte(msg);
 			if (voicePacket.dataSize <= 0 || voicePacket.dataSize > MAX_VOICE_PACKET_DATA)
@@ -149,6 +149,44 @@ namespace Components
 		}
 	}
 
+	void Voice::SV_PreGameUserVoice(Game::client_t* cl, Game::msg_t* msg)
+	{
+		Game::VoicePacket_t voicePacket{};
+
+		if (!SV_VoiceEnabled())
+		{
+			return;
+		}
+
+		const auto talker = cl - Game::svs_clients;
+
+		AssertIn(talker, (*Game::sv_maxclients)->current.integer);
+
+		const auto packetCount = Game::MSG_ReadByte(msg);
+		for (auto packet = 0; packet < packetCount; ++packet)
+		{
+			voicePacket.dataSize = Game::MSG_ReadShort(msg);
+			if (voicePacket.dataSize <= 0 || voicePacket.dataSize > MAX_VOICE_PACKET_DATA)
+			{
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Received invalid voice packet of size {} from {}\n", voicePacket.dataSize, cl->name);
+				return;
+			}
+
+			assert(voicePacket.dataSize <= MAX_VOICE_PACKET_DATA);
+			assert(msg->data);
+			assert(voicePacket.data);
+
+			Game::MSG_ReadData(msg, voicePacket.data, voicePacket.dataSize);
+			for (auto otherPlayer = 0; otherPlayer < (*Game::sv_maxclients)->current.integer; ++otherPlayer)
+			{
+				if (otherPlayer != talker && Game::svs_clients[otherPlayer].state >= Game::CS_CONNECTED)
+				{
+					SV_QueueVoicePacket(talker, otherPlayer, &voicePacket);
+				}
+			}
+		}
+	}
+
 	void Voice::SV_VoicePacket(Game::netadr_t from, Game::msg_t* msg)
 	{
 		auto qport = Game::MSG_ReadShort(msg);
@@ -158,7 +196,12 @@ namespace Components
 			return;
 		}
 
-		if (cl->state == Game::CS_ACTIVE)
+		cl->lastPacketTime = *Game::svs_time;
+		if (cl->state < Game::CS_ACTIVE)
+		{
+			SV_PreGameUserVoice(cl, msg);
+		}
+		else
 		{
 			assert(cl->gentity);
 			SV_UserVoice(cl, msg);
