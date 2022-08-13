@@ -148,9 +148,6 @@ namespace Game
 	typedef int(__cdecl * CL_MouseEvent_t)(int x, int y, int dx, int dy);
 	extern CL_MouseEvent_t CL_MouseEvent;
 
-	typedef bool(__cdecl * CL_IsPlayerMuted_t)(SessionData* session, int localClientNum, int muteClientIndex);
-	extern CL_IsPlayerMuted_t CL_IsPlayerMuted;
-
 	typedef void(__cdecl * Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_t* allocedCmd, bool isKey);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 

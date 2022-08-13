@@ -5,6 +5,8 @@ namespace Components
 	Game::VoicePacket_t Voice::voicePackets[Game::MAX_CLIENTS][MAX_SERVER_QUEUED_VOICE_PACKETS];
 	int Voice::voicePacketCount[Game::MAX_CLIENTS];
 
+	bool Voice::s_playerMute[Game::MAX_CLIENTS];
+
 	const Game::dvar_t* Voice::sv_voice;
 
 	bool Voice::SV_VoiceEnabled()
@@ -82,7 +84,7 @@ namespace Components
 		return false;
 	}
 
-	void Voice::SV_QueueVoicePacket(int talkerNum, int clientNum, Game::VoicePacket_t* voicePacket)
+	void Voice::SV_QueueVoicePacket(const int talkerNum, const int clientNum, Game::VoicePacket_t* voicePacket)
 	{
 		assert(talkerNum >= 0);
 		assert(clientNum >= 0);
@@ -163,7 +165,7 @@ namespace Components
 		}
 	}
 
-	void Voice::CL_WriteVoicePacket_Hk(int localClientNum)
+	void Voice::CL_WriteVoicePacket_Hk(const int localClientNum)
 	{
 		const auto connstate = Game::CL_GetLocalClientConnectionState(localClientNum);
 		const auto clc = Game::CL_GetLocalClientConnection(localClientNum);
@@ -197,6 +199,38 @@ namespace Components
 		}
 	}
 
+	bool Voice::CL_IsPlayerMuted_Hk([[maybe_unused]] Game::SessionData* session, [[maybe_unused]] const int localClientNum, const int muteClientIndex)
+	{
+		AssertIn(muteClientIndex, Game::MAX_CLIENTS);
+		return s_playerMute[muteClientIndex];
+	}
+
+	void Voice::CL_MutePlayer_Hk([[maybe_unused]] Game::SessionData* session, const int muteClientIndex)
+	{
+		AssertIn(muteClientIndex, Game::MAX_CLIENTS);
+		s_playerMute[muteClientIndex] = true;
+	}
+
+	void Voice::Voice_UnmuteMember_Hk([[maybe_unused]] Game::SessionData* session, const int clientNum)
+	{
+		AssertIn(clientNum, Game::MAX_CLIENTS);
+		s_playerMute[clientNum] = false;
+	}
+
+	void Voice::CL_TogglePlayerMute(const int localClientNum, const int muteClientIndex)
+	{
+		AssertIn(muteClientIndex, Game::MAX_CLIENTS);
+
+		if (CL_IsPlayerMuted_Hk(nullptr, localClientNum, muteClientIndex))
+		{
+			Voice_UnmuteMember_Hk(nullptr, muteClientIndex);
+		}
+		else
+		{
+			CL_MutePlayer_Hk(nullptr, muteClientIndex);
+		}
+	}
+
 	void Voice::CL_VoicePacket_Hk(const int localClientNum, Game::msg_t* msg)
 	{
 		const auto numPackets = Game::MSG_ReadByte(msg);
@@ -224,27 +258,36 @@ namespace Components
 				return;
 			}
 
-			Game::SessionData* session{};
-			if (Game::Party_InParty(Game::g_lobbyData))
-			{
-				session = Game::g_lobbyData->session;
-			}
-			else if (Game::Party_InParty(Game::g_partyData))
-			{
-				session = Game::g_partyData->session;
-			}
-			else
-			{
-				session = Game::g_serverSession;
-			}
-
-			if (!Game::CL_IsPlayerMuted(session, localClientNum, voicePacket.talker))
+			if (!CL_IsPlayerMuted_Hk(nullptr, localClientNum, voicePacket.talker))
 			{
 				if ((*Game::cl_voice)->current.enabled)
 				{
-					Game::Voice_IncomingVoiceData(session, voicePacket.talker, reinterpret_cast<unsigned char*>(voicePacket.data), voicePacket.dataSize);
+					Game::Voice_IncomingVoiceData(nullptr, voicePacket.talker, reinterpret_cast<unsigned char*>(voicePacket.data), voicePacket.dataSize);
 				}
 			}
+		}
+	}
+
+	void Voice::UI_Mute_player(int clientNum, const int localClientNum)
+	{
+		if (Game::cgArray->clientNum != Game::sharedUiInfo->playerClientNums[clientNum])
+		{
+			CL_TogglePlayerMute(localClientNum, Game::sharedUiInfo->playerClientNums[clientNum]);
+		}
+	}
+
+	__declspec(naked) void Voice::UI_Mute_Player_Stub()
+	{
+		__asm
+		{
+			push eax
+			call UI_Mute_player
+			add esp, 8 // Game already pushed localClientNum
+
+			pop edi
+			pop esi
+			add esp, 0xC00
+			ret
 		}
 	}
 
@@ -252,16 +295,27 @@ namespace Components
 	{
 		AssertOffset(Game::clientUIActive_t, connectionState, 0x9B8);
 
+		std::memset(voicePackets, 0, sizeof(voicePackets));
+		std::memset(voicePacketCount, 0, sizeof(voicePacketCount));
+		std::memset(s_playerMute, 0, sizeof(s_playerMute));
+
 		// Write voice packets to the server instead of other clients
 		Utils::Hook(0x487935, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5AD945, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A9E06, CL_VoicePacket_Hk, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x4B6250, CL_IsPlayerMuted_Hk, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x4519F5, SV_SendClientMessages_Stub, HOOK_CALL).install()->quick();
 
 		// Recycle packet handler for 'icanthear'
 		Utils::Hook::Set<const char*>(0x62673F, "v");
 		Utils::Hook(0x626787, SV_VoicePacket, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x45F041, UI_Mute_Player_Stub, HOOK_JUMP).install()->quick();
+
+		Utils::Hook(0x4C6B50, Voice_UnmuteMember_Hk, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x43F460, CL_MutePlayer_Hk, HOOK_JUMP).install()->quick();
 
 		sv_voice = Game::Dvar_RegisterBool("sv_voice", false, Game::DVAR_NONE, "Use server side voice communications");
 	}

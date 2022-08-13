@@ -69,7 +69,6 @@ namespace Game
 	CL_GetLocalClientActiveCount_t CL_GetLocalClientActiveCount = CL_GetLocalClientActiveCount_t(0x5BAD90);
 	CL_ControllerIndexFromClientNum_t CL_ControllerIndexFromClientNum = CL_ControllerIndexFromClientNum_t(0x449E30);
 	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
-	CL_IsPlayerMuted_t CL_IsPlayerMuted = CL_IsPlayerMuted_t(0x4B6250);
 
 	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x4DCE00);

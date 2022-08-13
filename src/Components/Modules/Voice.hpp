@@ -16,6 +16,8 @@ namespace Components
 		static Game::VoicePacket_t voicePackets[Game::MAX_CLIENTS][MAX_SERVER_QUEUED_VOICE_PACKETS];
 		static int voicePacketCount[Game::MAX_CLIENTS];
 
+		static bool s_playerMute[Game::MAX_CLIENTS];
+
 		static const Game::dvar_t* sv_voice;
 
 		static void SV_WriteVoiceDataToClient(int clientNum, Game::msg_t* msg);
@@ -28,7 +30,15 @@ namespace Components
 		static void SV_UserVoice(Game::client_t* cl, Game::msg_t* msg);
 		static void SV_VoicePacket(Game::netadr_t from, Game::msg_t* msg);
 
+		static bool CL_IsPlayerMuted_Hk(Game::SessionData* session, int localClientNum, int muteClientIndex);
+		static void CL_MutePlayer_Hk(Game::SessionData* session, const int muteClientIndex);
+		static void Voice_UnmuteMember_Hk(Game::SessionData* session, int clientNum);
+		static void CL_TogglePlayerMute(int localClientNum, int muteClientIndex);
+
 		static void CL_WriteVoicePacket_Hk(int localClientNum);
 		static void CL_VoicePacket_Hk(int localClientNum, Game::msg_t* msg);
+
+		static void UI_Mute_player(int clientNum, int localClientNum);
+		static void UI_Mute_Player_Stub();
 	};
 }
