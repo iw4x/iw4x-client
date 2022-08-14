@@ -1176,6 +1176,9 @@ namespace Game
 	typedef int(__cdecl * Voice_IncomingVoiceData_t)(const SessionData* session, int clientNum, unsigned char* data, int size);
 	extern Voice_IncomingVoiceData_t Voice_IncomingVoiceData;
 
+	typedef bool(__cdecl * Voice_IsClientTalking_t)(int clientNum);
+	extern Voice_IsClientTalking_t Voice_IsClientTalking;
+
 	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_CLIENTS = 18;

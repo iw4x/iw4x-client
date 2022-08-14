@@ -24,7 +24,7 @@ namespace Components
 		static void SV_SendClientVoiceData(Game::client_t* client);
 		static void SV_SendClientMessages_Stub(Game::client_t* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf);
 
-		static bool OnSameTeam(Game::gentity_s* ent1, Game::gentity_s* ent2);
+		static bool OnSameTeam(const Game::gentity_s* ent1, const Game::gentity_s* ent2);
 		static void SV_QueueVoicePacket(int talkerNum, int clientNum, Game::VoicePacket_t* voicePacket);
 		static void G_BroadcastVoice(Game::gentity_s* talker, Game::VoicePacket_t* voicePacket);
 		static void SV_UserVoice(Game::client_t* cl, Game::msg_t* msg);
@@ -32,6 +32,7 @@ namespace Components
 		static void SV_VoicePacket(Game::netadr_t from, Game::msg_t* msg);
 
 		static void CL_ClearMutedList();
+		static bool CL_IsPlayerTalking_Hk(Game::SessionData* session, int localClientNum, int talkingClientIndex);
 		static bool CL_IsPlayerMuted_Hk(Game::SessionData* session, int localClientNum, int muteClientIndex);
 		static void CL_MutePlayer_Hk(Game::SessionData* session, int muteClientIndex);
 		static void Voice_UnmuteMember_Hk(Game::SessionData* session, int clientNum);

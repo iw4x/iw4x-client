@@ -486,7 +486,9 @@ namespace Game
 	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
 
 	XNAddrToString_t XNAddrToString = XNAddrToString_t(0x452690);
+
 	Voice_IncomingVoiceData_t Voice_IncomingVoiceData = Voice_IncomingVoiceData_t(0x5001A0);
+	Voice_IsClientTalking_t Voice_IsClientTalking = Voice_IsClientTalking_t(0x4D9D20);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
