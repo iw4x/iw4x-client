@@ -28,6 +28,8 @@ namespace Components
 			int securityLevel;
 			bool hardcore;
 			bool svRunning;
+			bool aimassist;
+			bool voice;
 		};
 
 		ServerList();
@@ -59,6 +61,8 @@ namespace Components
 		{
 			Password,
 			Matchtype,
+			AimAssist,
+			VoiceChat,
 			Hostname,
 			Mapname,
 			Players,

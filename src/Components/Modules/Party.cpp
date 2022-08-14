@@ -352,7 +352,9 @@ namespace Components
 			info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().size() ? "1" : "0"));
 			info.set("hc", (Dvar::Var("g_hardcore").get<bool>() ? "1" : "0"));
 			info.set("securityLevel", Utils::String::VA("%i", Dvar::Var("sv_securityLevel").get<int>()));
-			info.set("sv_running", (Dvar::Var("sv_running").get<bool>() ? "1" : "0"));
+			info.set("sv_running", ((*Game::com_sv_running)->current.enabled ? "1" : "0"));
+			info.set("aimAssist", (Gamepad::sv_allowAimAssist.get<bool>() ? "1" : "0"));
+			info.set("voiceChat", (Voice::SV_VoiceEnabled() ? "1" : "0"));
 
 			// Ensure mapname is set
 			if (info.get("mapname").empty() || Party::IsInLobby())

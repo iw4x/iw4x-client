@@ -87,6 +87,16 @@ namespace Components
 			return ((server->matchType == 1) ? "P" : "M");
 		}
 
+		case Column::AimAssist:
+		{
+			return ((server->aimassist == 1) ? "X" : "");
+		}
+
+		case Column::VoiceChat:
+		{
+			return ((server->voice == 1) ? "X" : "");
+		}
+
 		case Column::Hostname:
 		{
 			return server->hostname.data();
@@ -483,6 +493,8 @@ namespace Components
 				server.securityLevel = atoi(info.get("securityLevel").data());
 				server.maxClients = atoi(info.get("sv_maxclients").data());
 				server.password = (atoi(info.get("isPrivate").data()) != 0);
+				server.aimassist = (atoi(info.get("aimAssist").data()) != 0);
+				server.voice = (atoi(info.get("voiceChat").data()) != 0);
 				server.hardcore = (atoi(info.get("hc").data()) != 0);
 				server.svRunning = (atoi(info.get("sv_running").data()) != 0);
 				server.ping = (Game::Sys_Milliseconds() - i->sendTime);

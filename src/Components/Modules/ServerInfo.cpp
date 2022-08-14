@@ -60,6 +60,8 @@ namespace Components
 			Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(info->mapname.data()));
 			Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(info->gametype.data()));
 			Dvar::Var("uiSi_ModName").set("");
+			Dvar::Var("uiSi_aimAssist").set(info->aimassist ? "@MENU_YES" : "@MENU_NO");
+			Dvar::Var("uiSi_voiceChat").set(info->voice ? "@MENU_YES" : "@MENU_NO");
 
 			if (info->mod.size() > 5)
 			{
@@ -142,6 +144,8 @@ namespace Components
 		info.set("mapname", (*Game::sv_mapname)->current.string);
 		info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().empty() ? "0" : "1"));
 		info.set("checksum", Utils::String::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::String::VA("%u", Game::Sys_Milliseconds()))));
+		info.set("aimAssist", (Gamepad::sv_allowAimAssist.get<bool>() ? "1" : "0"));
+		info.set("voiceChat", (Voice::SV_VoiceEnabled() ? "1" : "0"));
 
 		// Ensure mapname is set
 		if (info.get("mapname").empty())
@@ -245,6 +249,8 @@ namespace Components
 			Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(info.get("mapname").data()));
 			Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(info.get("g_gametype").data()));
 			Dvar::Var("uiSi_ModName").set("");
+			Dvar::Var("uiSi_aimAssist").set(info.get("aimAssist") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");
+			Dvar::Var("uiSi_voiceChat").set(info.get("voiceChat") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");
 
 			switch (atoi(info.get("scr_team_fftype").data()))
 			{
