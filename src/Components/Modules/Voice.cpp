@@ -242,6 +242,11 @@ namespace Components
 		}
 	}
 
+	void Voice::CL_ClearMutedList()
+	{
+		std::memset(s_playerMute, 0, sizeof(s_playerMute));
+	}
+
 	bool Voice::CL_IsPlayerMuted_Hk([[maybe_unused]] Game::SessionData* session, [[maybe_unused]] const int localClientNum, const int muteClientIndex)
 	{
 		AssertIn(muteClientIndex, Game::MAX_CLIENTS);
@@ -313,10 +318,7 @@ namespace Components
 
 	void Voice::UI_Mute_player(int clientNum, const int localClientNum)
 	{
-		if (Game::cgArray->clientNum != Game::sharedUiInfo->playerClientNums[clientNum])
-		{
-			CL_TogglePlayerMute(localClientNum, Game::sharedUiInfo->playerClientNums[clientNum]);
-		}
+		CL_TogglePlayerMute(localClientNum, Game::sharedUiInfo->playerClientNums[clientNum]);
 	}
 
 	__declspec(naked) void Voice::UI_Mute_Player_Stub()
@@ -341,6 +343,8 @@ namespace Components
 		std::memset(voicePackets, 0, sizeof(voicePackets));
 		std::memset(voicePacketCount, 0, sizeof(voicePacketCount));
 		std::memset(s_playerMute, 0, sizeof(s_playerMute));
+
+		Events::OnSteamDisconnect(CL_ClearMutedList);
 
 		// Write voice packets to the server instead of other clients
 		Utils::Hook(0x487935, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();

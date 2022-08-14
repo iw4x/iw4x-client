@@ -31,6 +31,7 @@ namespace Components
 		static void SV_PreGameUserVoice(Game::client_t* cl, Game::msg_t* msg);
 		static void SV_VoicePacket(Game::netadr_t from, Game::msg_t* msg);
 
+		static void CL_ClearMutedList();
 		static bool CL_IsPlayerMuted_Hk(Game::SessionData* session, int localClientNum, int muteClientIndex);
 		static void CL_MutePlayer_Hk(Game::SessionData* session, int muteClientIndex);
 		static void Voice_UnmuteMember_Hk(Game::SessionData* session, int clientNum);
