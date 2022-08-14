@@ -71,7 +71,7 @@ namespace Components
 		SV_SendClientVoiceData(client);
 	}
 
-	bool Voice::OnSameTeam(Game::gentity_s* ent1, Game::gentity_s* ent2)
+	bool Voice::OnSameTeam(const Game::gentity_s* ent1, const Game::gentity_s* ent2)
 	{
 		if (!ent1->client || !ent2->client)
 		{
@@ -247,6 +247,12 @@ namespace Components
 		std::memset(s_playerMute, 0, sizeof(s_playerMute));
 	}
 
+	bool Voice::CL_IsPlayerTalking_Hk([[maybe_unused]] Game::SessionData* session, [[maybe_unused]] const int localClientNum, const int talkingClientIndex)
+	{
+		// Skip all the Party related code
+		return Game::Voice_IsClientTalking(talkingClientIndex);
+	}
+
 	bool Voice::CL_IsPlayerMuted_Hk([[maybe_unused]] Game::SessionData* session, [[maybe_unused]] const int localClientNum, const int muteClientIndex)
 	{
 		AssertIn(muteClientIndex, Game::MAX_CLIENTS);
@@ -316,7 +322,7 @@ namespace Components
 		}
 	}
 
-	void Voice::UI_Mute_player(int clientNum, const int localClientNum)
+	void Voice::UI_Mute_player(const int clientNum, const int localClientNum)
 	{
 		CL_TogglePlayerMute(localClientNum, Game::sharedUiInfo->playerClientNums[clientNum]);
 	}
@@ -351,6 +357,7 @@ namespace Components
 		Utils::Hook(0x5AD945, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A9E06, CL_VoicePacket_Hk, HOOK_CALL).install()->quick();
 
+		Utils::Hook(0x4AE740, CL_IsPlayerTalking_Hk, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x4B6250, CL_IsPlayerMuted_Hk, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x4519F5, SV_SendClientMessages_Stub, HOOK_CALL).install()->quick();
