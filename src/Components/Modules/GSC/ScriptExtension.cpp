@@ -208,7 +208,7 @@ namespace Components
 		});
 
 		// Func present on IW5
-		Script::AddFunction("Float", [] // gsc: Float()
+		Script::AddFunction("CastFloat", [] // gsc: CastFloat()
 		{
 			switch (Game::Scr_GetType(0))
 			{
