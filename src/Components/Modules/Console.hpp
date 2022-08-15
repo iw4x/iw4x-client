@@ -63,7 +63,6 @@ namespace Components
 		static void StoreSafeArea();
 		static void RestoreSafeArea();
 
-		static void ToggleConsole();
 		static char** GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType);
 
 		static void Con_ToggleConsole();
