@@ -9,14 +9,19 @@ namespace Components
 
 		static bool SV_VoiceEnabled();
 
+		static void SV_ClearMutedList();
+		static void SV_MuteClient(int muteClientIndex);
+		static void SV_UnmuteClient(int muteClientIndex);
+
 	private:
 		static constexpr auto MAX_VOICE_PACKET_DATA = 256;
 		static constexpr auto MAX_SERVER_QUEUED_VOICE_PACKETS = 40;
 
-		static Game::VoicePacket_t voicePackets[Game::MAX_CLIENTS][MAX_SERVER_QUEUED_VOICE_PACKETS];
-		static int voicePacketCount[Game::MAX_CLIENTS];
+		static Game::VoicePacket_t VoicePackets[Game::MAX_CLIENTS][MAX_SERVER_QUEUED_VOICE_PACKETS];
+		static int VoicePacketCount[Game::MAX_CLIENTS];
 
-		static bool s_playerMute[Game::MAX_CLIENTS];
+		static bool MuteList[Game::MAX_CLIENTS];
+		static bool S_PlayerMute[Game::MAX_CLIENTS];
 
 		static const Game::dvar_t* sv_voice;
 
@@ -24,9 +29,11 @@ namespace Components
 		static void SV_SendClientVoiceData(Game::client_t* client);
 		static void SV_SendClientMessages_Stub(Game::client_t* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf);
 
+		static bool SV_ServerHasClientMuted(int talker);
+
 		static bool OnSameTeam(const Game::gentity_s* ent1, const Game::gentity_s* ent2);
-		static void SV_QueueVoicePacket(int talkerNum, int clientNum, Game::VoicePacket_t* voicePacket);
-		static void G_BroadcastVoice(Game::gentity_s* talker, Game::VoicePacket_t* voicePacket);
+		static void SV_QueueVoicePacket(int talkerNum, int clientNum, const Game::VoicePacket_t* voicePacket);
+		static void G_BroadcastVoice(Game::gentity_s* talker, const Game::VoicePacket_t* voicePacket);
 		static void SV_UserVoice(Game::client_t* cl, Game::msg_t* msg);
 		static void SV_PreGameUserVoice(Game::client_t* cl, Game::msg_t* msg);
 		static void SV_VoicePacket(Game::netadr_t from, Game::msg_t* msg);
