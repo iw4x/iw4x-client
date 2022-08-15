@@ -2,10 +2,11 @@
 
 namespace Components
 {
-	Game::VoicePacket_t Voice::voicePackets[Game::MAX_CLIENTS][MAX_SERVER_QUEUED_VOICE_PACKETS];
-	int Voice::voicePacketCount[Game::MAX_CLIENTS];
+	Game::VoicePacket_t Voice::VoicePackets[Game::MAX_CLIENTS][MAX_SERVER_QUEUED_VOICE_PACKETS];
+	int Voice::VoicePacketCount[Game::MAX_CLIENTS];
 
-	bool Voice::s_playerMute[Game::MAX_CLIENTS];
+	bool Voice::MuteList[Game::MAX_CLIENTS];
+	bool Voice::S_PlayerMute[Game::MAX_CLIENTS];
 
 	const Game::dvar_t* Voice::sv_voice;
 
@@ -16,18 +17,18 @@ namespace Components
 
 	void Voice::SV_WriteVoiceDataToClient(const int clientNum, Game::msg_t* msg)
 	{
-		assert(voicePacketCount[clientNum] >= 0);
-		assert(voicePacketCount[clientNum] <= MAX_SERVER_QUEUED_VOICE_PACKETS);
+		assert(VoicePacketCount[clientNum] >= 0);
+		assert(VoicePacketCount[clientNum] <= MAX_SERVER_QUEUED_VOICE_PACKETS);
 
-		Game::MSG_WriteByte(msg, voicePacketCount[clientNum]);
-		for (auto packet = 0; packet < voicePacketCount[clientNum]; ++packet)
+		Game::MSG_WriteByte(msg, VoicePacketCount[clientNum]);
+		for (auto packet = 0; packet < VoicePacketCount[clientNum]; ++packet)
 		{
-			Game::MSG_WriteByte(msg, voicePackets[clientNum][packet].talker);
+			Game::MSG_WriteByte(msg, VoicePackets[clientNum][packet].talker);
 
-			assert(voicePackets[clientNum][packet].dataSize < (2 << 15));
+			assert(VoicePackets[clientNum][packet].dataSize < (2 << 15));
 
-			Game::MSG_WriteByte(msg, voicePackets[clientNum][packet].dataSize);
-			Game::MSG_WriteData(msg, voicePackets[clientNum][packet].data, voicePackets[clientNum][packet].dataSize);
+			Game::MSG_WriteByte(msg, VoicePackets[clientNum][packet].dataSize);
+			Game::MSG_WriteData(msg, VoicePackets[clientNum][packet].data, VoicePackets[clientNum][packet].dataSize);
 		}
 
 		assert(!msg->overflowed);
@@ -39,9 +40,9 @@ namespace Components
 		Game::msg_t msg{};
 		const auto clientNum = client - Game::svs_clients;
 
-		assert(voicePacketCount[clientNum] >= 0);
+		assert(VoicePacketCount[clientNum] >= 0);
 
-		if (client->state == Game::CS_ACTIVE && voicePacketCount[clientNum])
+		if (client->state == Game::CS_ACTIVE && VoicePacketCount[clientNum])
 		{
 			Game::MSG_Init(&msg, msg_buf.get(), 0x10000);
 
@@ -58,7 +59,7 @@ namespace Components
 			else
 			{
 				Game::NET_OutOfBandVoiceData(Game::NS_SERVER, client->netchan.remoteAddress, msg.data, msg.cursize, true);
-				voicePacketCount[clientNum] = 0;
+				VoicePacketCount[clientNum] = 0;
 			}
 		}
 	}
@@ -69,6 +70,29 @@ namespace Components
 		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*, unsigned char*)>(0x4F5300)(client, msg, snapshotMsgBuf);
 
 		SV_SendClientVoiceData(client);
+	}
+
+	void Voice::SV_ClearMutedList()
+	{
+		std::memset(MuteList, 0, sizeof(MuteList));
+	}
+
+	void Voice::SV_MuteClient(const int muteClientIndex)
+	{
+		AssertIn(muteClientIndex, Game::MAX_CLIENTS);
+		MuteList[muteClientIndex] = true;
+	}
+
+	void Voice::SV_UnmuteClient(const int muteClientIndex)
+	{
+		AssertIn(muteClientIndex, Game::MAX_CLIENTS);
+		MuteList[muteClientIndex] = false;
+	}
+
+	bool Voice::SV_ServerHasClientMuted(const int talker)
+	{
+		AssertIn(talker, (*Game::sv_maxclients)->current.integer);
+		return MuteList[talker];
 	}
 
 	bool Voice::OnSameTeam(const Game::gentity_s* ent1, const Game::gentity_s* ent2)
@@ -84,25 +108,25 @@ namespace Components
 		return false;
 	}
 
-	void Voice::SV_QueueVoicePacket(const int talkerNum, const int clientNum, Game::VoicePacket_t* voicePacket)
+	void Voice::SV_QueueVoicePacket(const int talkerNum, const int clientNum, const Game::VoicePacket_t* voicePacket)
 	{
 		assert(talkerNum >= 0);
 		assert(clientNum >= 0);
 		assert(talkerNum < (*Game::sv_maxclients)->current.integer);
 		assert(clientNum < (*Game::sv_maxclients)->current.integer);
 
-		if (voicePacketCount[clientNum] < MAX_SERVER_QUEUED_VOICE_PACKETS)
+		if (VoicePacketCount[clientNum] < MAX_SERVER_QUEUED_VOICE_PACKETS)
 		{
-			voicePackets[clientNum][voicePacketCount[clientNum]].dataSize = voicePacket->dataSize;
-			std::memcpy(voicePackets[clientNum][voicePacketCount[clientNum]].data, voicePacket->data, voicePacket->dataSize);
+			VoicePackets[clientNum][VoicePacketCount[clientNum]].dataSize = voicePacket->dataSize;
+			std::memcpy(VoicePackets[clientNum][VoicePacketCount[clientNum]].data, voicePacket->data, voicePacket->dataSize);
 
-			assert(talkerNum == static_cast<byte>(talkerNum));
-			voicePackets[clientNum][voicePacketCount[clientNum]].talker = static_cast<char>(talkerNum);
-			++voicePacketCount[clientNum];
+			assert(talkerNum == static_cast<std::uint8_t>(talkerNum));
+			VoicePackets[clientNum][VoicePacketCount[clientNum]].talker = static_cast<char>(talkerNum);
+			++VoicePacketCount[clientNum];
 		}
 	}
 
-	void Voice::G_BroadcastVoice(Game::gentity_s* talker, Game::VoicePacket_t* voicePacket)
+	void Voice::G_BroadcastVoice(Game::gentity_s* talker, const Game::VoicePacket_t* voicePacket)
 	{
 		for (auto otherPlayer = 0; otherPlayer < (*Game::sv_maxclients)->current.integer; ++otherPlayer)
 		{
@@ -111,7 +135,7 @@ namespace Components
 
 			if (ent->r.isInUse && client && (client->sess.sessionState == Game::SESS_STATE_INTERMISSION || OnSameTeam(talker, ent) || talker->client->sess.cs.team == Game::TEAM_FREE) &&
 				(ent->client->sess.sessionState == talker->client->sess.sessionState || (ent->client->sess.sessionState == Game::SESS_STATE_DEAD || talker->client->sess.sessionState == Game::SESS_STATE_DEAD) &&
-					(*Game::g_deadChat)->current.enabled) && (talker != ent))
+					(*Game::g_deadChat)->current.enabled) && (talker != ent) && !SV_ServerHasClientMuted(talker->s.number))
 			{
 				SV_QueueVoicePacket(talker->s.number, otherPlayer, voicePacket);
 			}
@@ -179,7 +203,7 @@ namespace Components
 			Game::MSG_ReadData(msg, voicePacket.data, voicePacket.dataSize);
 			for (auto otherPlayer = 0; otherPlayer < (*Game::sv_maxclients)->current.integer; ++otherPlayer)
 			{
-				if (otherPlayer != talker && Game::svs_clients[otherPlayer].state >= Game::CS_CONNECTED)
+				if (otherPlayer != talker && Game::svs_clients[otherPlayer].state >= Game::CS_CONNECTED && !SV_ServerHasClientMuted(talker))
 				{
 					SV_QueueVoicePacket(talker, otherPlayer, &voicePacket);
 				}
@@ -244,7 +268,7 @@ namespace Components
 
 	void Voice::CL_ClearMutedList()
 	{
-		std::memset(s_playerMute, 0, sizeof(s_playerMute));
+		std::memset(S_PlayerMute, 0, sizeof(S_PlayerMute));
 	}
 
 	bool Voice::CL_IsPlayerTalking_Hk([[maybe_unused]] Game::SessionData* session, [[maybe_unused]] const int localClientNum, const int talkingClientIndex)
@@ -256,19 +280,19 @@ namespace Components
 	bool Voice::CL_IsPlayerMuted_Hk([[maybe_unused]] Game::SessionData* session, [[maybe_unused]] const int localClientNum, const int muteClientIndex)
 	{
 		AssertIn(muteClientIndex, Game::MAX_CLIENTS);
-		return s_playerMute[muteClientIndex];
+		return S_PlayerMute[muteClientIndex];
 	}
 
 	void Voice::CL_MutePlayer_Hk([[maybe_unused]] Game::SessionData* session, const int muteClientIndex)
 	{
 		AssertIn(muteClientIndex, Game::MAX_CLIENTS);
-		s_playerMute[muteClientIndex] = true;
+		S_PlayerMute[muteClientIndex] = true;
 	}
 
 	void Voice::Voice_UnmuteMember_Hk([[maybe_unused]] Game::SessionData* session, const int clientNum)
 	{
 		AssertIn(clientNum, Game::MAX_CLIENTS);
-		s_playerMute[clientNum] = false;
+		S_PlayerMute[clientNum] = false;
 	}
 
 	void Voice::CL_TogglePlayerMute(const int localClientNum, const int muteClientIndex)
@@ -346,9 +370,11 @@ namespace Components
 	{
 		AssertOffset(Game::clientUIActive_t, connectionState, 0x9B8);
 
-		std::memset(voicePackets, 0, sizeof(voicePackets));
-		std::memset(voicePacketCount, 0, sizeof(voicePacketCount));
-		std::memset(s_playerMute, 0, sizeof(s_playerMute));
+		std::memset(VoicePackets, 0, sizeof(VoicePackets));
+		std::memset(VoicePacketCount, 0, sizeof(VoicePacketCount));
+
+		SV_ClearMutedList();
+		CL_ClearMutedList();
 
 		Events::OnSteamDisconnect(CL_ClearMutedList);
 

@@ -303,6 +303,7 @@ namespace Components
 			const auto* client = Game::SV_GetPlayerByNum();
 			if (client != nullptr)
 			{
+				Voice::SV_MuteClient(client - Game::svs_clients);
 				MuteClient(client);
 			}
 		});
@@ -327,6 +328,7 @@ namespace Components
 			if (client != nullptr)
 			{
 				UnmuteClient(client);
+				Voice::SV_UnmuteClient(client - Game::svs_clients);
 				return;
 			}
 
@@ -334,6 +336,7 @@ namespace Components
 			{
 				Logger::Print("All players were unmuted\n");
 				UnmuteInternal(0, true);
+				Voice::SV_ClearMutedList();
 			}
 			else
 			{
