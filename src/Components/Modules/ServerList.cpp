@@ -79,7 +79,7 @@ namespace Components
 		{
 		case Column::Password:
 		{
-			return (server->password ? "X" : "");
+			return (server->password ? ":icon_locked:" : "");
 		}
 
 		case Column::Matchtype:
@@ -89,12 +89,12 @@ namespace Components
 
 		case Column::AimAssist:
 		{
-			return ((server->aimassist == 1) ? "X" : "");
+			return ((server->aimassist == 1) ? ":headshot:" : "");
 		}
 
 		case Column::VoiceChat:
 		{
-			return ((server->voice == 1) ? "X" : "");
+			return ((server->voice == 1) ? ":voice_on:" : "");
 		}
 
 		case Column::Hostname:
