@@ -377,6 +377,7 @@ namespace Components
 		CL_ClearMutedList();
 
 		Events::OnSteamDisconnect(CL_ClearMutedList);
+		Events::OnClientDisconnect(SV_UnmuteClient);
 
 		// Write voice packets to the server instead of other clients
 		Utils::Hook(0x487935, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
