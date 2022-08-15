@@ -8,9 +8,10 @@
 
 # IW4x: Client
 
-## How to compile
+## Compile from source
 
-- Run `premake5 vs2022` or use the delivered `generate.bat`.
+- Clone the Git repo. Do NOT download it as ZIP, that won't work.
+- Update the submodules and run `premake5 vs2022` or simply use the delivered `generate.bat`.
 - Build via solution file in `build\iw4x.sln`.
 
 ## Premake arguments
