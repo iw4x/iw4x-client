@@ -30,18 +30,6 @@ namespace Components
 		return Game::FS_GetFileList(path, extension, behavior, numfiles, allocTrackType);
 	}
 
-	void Console::ToggleConsole()
-	{
-		// possibly cls.keyCatchers?
-		Utils::Hook::Xor<DWORD>(0xB2C538, 1);
-
-		// g_consoleField
-		Game::Field_Clear(reinterpret_cast<void*>(0xA1B6B0));
-
-		// show console output?
-		Utils::Hook::Set<BYTE>(0xA15F38, 0);
-	}
-
 	void Console::RefreshStatus()
 	{
 		const std::string mapname = (*Game::sv_mapname)->current.string;
@@ -569,6 +557,7 @@ namespace Components
 	Console::Console()
 	{
 		AssertOffset(Game::clientUIActive_t, connectionState, 0x9B8);
+		AssertOffset(Game::clientUIActive_t, keyCatchers, 0x9B0);
 
 		// Console '%s: %s> ' string
 		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " VERSION "> ");
@@ -582,8 +571,8 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x431565, 0xEB);
 		
 		// Internal console
-		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4F65A5, Console::ToggleConsole, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4F690C, Console::Con_ToggleConsole, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4F65A5, Console::Con_ToggleConsole, HOOK_JUMP).install()->quick();
 
 		// Patch safearea for ingame-console
 		Utils::Hook(0x5A50EF, Console::DrawSolidConsoleStub, HOOK_CALL).install()->quick();
