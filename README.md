@@ -23,7 +23,6 @@
 | `--force-unit-tests`        | Always compile unit tests.                     |
 | `--force-exception-handler` | Install custom unhandled exception handler even for Debug builds. |
 | `--disable-binary-check`    | Do not perform integrity checks on the exe. |
-| `--iw4x-zones`              | Zonebuilder generates iw4x zones that cannot be loaded without IW4x specific patches. |
 
 ## Command line arguments
 
