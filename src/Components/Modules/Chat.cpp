@@ -11,8 +11,7 @@ namespace Components
 
 	bool Chat::SendChat;
 
-	std::mutex Chat::AccessMutex;
-	std::unordered_set<std::uint64_t> Chat::MuteList;
+	Utils::Concurrency::Container<Chat::muteList> Chat::MutedList;
 
 	bool Chat::CanAddCallback = true;
 	std::vector<Scripting::Function> Chat::SayCallbacks;
@@ -36,19 +35,11 @@ namespace Components
 			++text;
 		}
 
-		std::unique_lock lock(AccessMutex);
-		if (MuteList.contains(Game::svs_clients[player->s.number].steamID))
+		if (IsMuted(player))
 		{
-			lock.unlock();
 			SendChat = false;
 			Game::SV_GameSendServerCommand(player->s.number, Game::SV_CMD_CAN_IGNORE,
 				Utils::String::VA("%c \"You are muted\"", 0x65));
-		}
-
-		// Test whether the lock is still locked
-		if (lock.owns_lock())
-		{
-			lock.unlock();
 		}
 
 		for (const auto& callback : SayCallbacks)
@@ -243,25 +234,34 @@ namespace Components
 		}
 	}
 
+	bool Chat::IsMuted(const Game::gentity_s* ent)
+	{
+		auto result = false;
+		const auto clientNum = ent->s.number;
+		const auto xuid = Game::svs_clients[clientNum].steamID;
+
+		MutedList.access([&](muteList& clients)
+		{
+			if (clients.contains(xuid))
+			{
+				result = true;
+			}
+		});
+
+		return result;
+	}
+
 	void Chat::MuteClient(const Game::client_t* client)
 	{
-		std::unique_lock lock(AccessMutex);
-
-		if (!MuteList.contains(client->steamID))
+		const auto xuid = client->steamID;
+		MutedList.access([&](muteList& clients)
 		{
-			MuteList.insert(client->steamID);
-			lock.unlock();
+			clients.insert(xuid);
+		});
 
-			Logger::Print("{} was muted\n", client->name);
-			Game::SV_GameSendServerCommand(client->gentity->s.number, Game::SV_CMD_CAN_IGNORE,
-				Utils::String::VA("%c \"You were muted\"", 0x65));
-			return;
-		}
-
-		lock.unlock();
-		Logger::Print("{} is already muted\n", client->name);
-		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE,
-			Utils::String::VA("%c \"%s is already muted\"", 0x65, client->name));
+		Logger::Print("{} was muted\n", client->name);
+		Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_CAN_IGNORE,
+			Utils::String::VA("%c \"You were muted\"", 0x65));
 	}
 
 	void Chat::UnmuteClient(const Game::client_t* client)
@@ -269,18 +269,19 @@ namespace Components
 		UnmuteInternal(client->steamID);
 
 		Logger::Print("{} was unmuted\n", client->name);
-		Game::SV_GameSendServerCommand(client->gentity->s.number, Game::SV_CMD_CAN_IGNORE,
+		Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_CAN_IGNORE,
 			Utils::String::VA("%c \"You were unmuted\"", 0x65));
 	}
 
 	void Chat::UnmuteInternal(const std::uint64_t id, bool everyone)
 	{
-		std::unique_lock lock(AccessMutex);
-
-		if (everyone)
-			MuteList.clear();
-		else
-			MuteList.erase(id);
+		MutedList.access([&](muteList& clients)
+		{
+			if (everyone)
+				clients.clear();
+			else
+				clients.erase(id);
+		});
 	}
 
 	void Chat::AddChatCommands()
@@ -360,7 +361,7 @@ namespace Components
 
 		const auto* result = &Game::scrVmPub->top[1 - Game::scrVmPub->outparamcount];
 
-		if (result->type != Game::scrParamType_t::VAR_INTEGER)
+		if (result->type != Game::VAR_INTEGER)
 		{
 			// Garbage was returned
 			return 1;
@@ -378,7 +379,7 @@ namespace Components
 		Game::Scr_AddString(message);
 
 		Game::VariableValue value;
-		value.type = Game::scrParamType_t::VAR_OBJECT;
+		value.type = Game::VAR_OBJECT;
 		value.u.uintValue = entityId;
 
 		Game::AddRefToValue(value.type, value.u);
