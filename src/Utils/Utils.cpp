@@ -106,13 +106,18 @@ namespace Utils
 
 	void SetEnvironment()
 	{
-		wchar_t exeName[512];
-		GetModuleFileNameW(GetModuleHandle(nullptr), exeName, sizeof(exeName) / sizeof(wchar_t));
+		char* buffer{};
+		std::size_t size{};
+		if (_dupenv_s(&buffer, &size, "XLABS_MW2_INSTALL") != 0 || buffer == nullptr)
+		{
+			return;
+		}
 
-		auto* exeBaseName = wcsrchr(exeName, L'\\');
-		exeBaseName[0] = L'\0';
+		const auto _0 = gsl::finally([&] { std::free(buffer); });
 
-		SetCurrentDirectoryW(exeName);
+		std::string dir{buffer, size};
+		SetCurrentDirectoryA(dir.data());
+		SetDllDirectoryA(dir.data());
 	}
 
 	HMODULE GetNTDLL()

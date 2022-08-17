@@ -243,9 +243,9 @@ namespace Components
 
 	void FileSystem::RegisterFolder(const char* folder)
 	{
-		std::string fs_cdpath = Dvar::Var("fs_cdpath").get<std::string>();
-		std::string fs_basepath = Dvar::Var("fs_basepath").get<std::string>();
-		std::string fs_homepath = Dvar::Var("fs_homepath").get<std::string>();
+		const auto fs_cdpath = Dvar::Var("fs_cdpath").get<std::string>();
+		const auto fs_basepath = Dvar::Var("fs_basepath").get<std::string>();
+		const auto fs_homepath = Dvar::Var("fs_homepath").get<std::string>();
 
 		if (!fs_cdpath.empty())   Game::FS_AddLocalizedGameDirectory(fs_cdpath.data(),   folder);
 		if (!fs_basepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_basepath.data(), folder);
@@ -323,6 +323,12 @@ namespace Components
 		Utils::Hook::Call<void(void*)>(0x4291A0)(iwd);
 	}
 
+	const char* FileSystem::Sys_DefaultInstallPath_Hk()
+	{
+		static auto current_path = std::filesystem::current_path().string();
+		return current_path.data();
+	}
+
 	FileSystem::FileSystem()
 	{
 		FileSystem::MemAllocator.clear();
@@ -370,6 +376,9 @@ namespace Components
 
 		// Handle IWD freeing
 		Utils::Hook(0x642F60, FileSystem::IwdFreeStub, HOOK_CALL).install()->quick();
+
+		// Set the working dir based on info from the Xlabs launcher
+		Utils::Hook(0x4326E0, FileSystem::Sys_DefaultInstallPath_Hk, HOOK_JUMP).install()->quick();
 	}
 
 	FileSystem::~FileSystem()
