@@ -226,6 +226,7 @@ namespace Components
 	void Network::NetworkStart()
 	{
 		Network::StartupSignal();
+		Network::StartupSignal.clear();
 	}
 
 	unsigned short Network::GetPort()
