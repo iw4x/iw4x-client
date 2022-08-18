@@ -236,16 +236,12 @@ namespace Components
 
 	bool Chat::IsMuted(const Game::gentity_s* ent)
 	{
-		auto result = false;
 		const auto clientNum = ent->s.number;
 		const auto xuid = Game::svs_clients[clientNum].steamID;
 
-		MutedList.access([&](muteList& clients)
+		const auto result = MutedList.access<bool>([&](muteList& clients)
 		{
-			if (clients.contains(xuid))
-			{
-				result = true;
-			}
+			return clients.contains(xuid);
 		});
 
 		return result;
