@@ -18,8 +18,8 @@ namespace Components
 
 		static bool SendChat;
 
-		static std::mutex AccessMutex;
-		static std::unordered_set<std::uint64_t> MuteList;
+		using muteList = std::unordered_set<std::uint64_t>;
+		static Utils::Concurrency::Container<muteList> MutedList;
 
 		static bool CanAddCallback; // ClientCommand & GSC thread are the same
 		static std::vector<Scripting::Function> SayCallbacks;
@@ -33,9 +33,10 @@ namespace Components
 		static void CG_AddToTeamChat(const char* text);
 		static void CG_AddToTeamChat_Stub();
 
+		static bool IsMuted(const Game::gentity_s* ent);
 		static void MuteClient(const Game::client_t* client);
 		static void UnmuteClient(const Game::client_t* client);
-		static void UnmuteInternal(const std::uint64_t id, bool everyone = false);
+		static void UnmuteInternal(std::uint64_t id, bool everyone = false);
 		static void AddChatCommands();
 
 		static int GetCallbackReturn();
