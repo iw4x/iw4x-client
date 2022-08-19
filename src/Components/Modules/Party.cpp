@@ -106,7 +106,7 @@ namespace Components
 				Party::Container.target.setIP(*Game::localIP);
 				Party::Container.target.setType(Game::netadrtype_t::NA_IP);
 
-				Logger::Print("Trying to connect to party with loopback address, using a local ip instead: {}\n", Party::Container.target.getCString());
+				Logger::Print("Trying to connect to party with loopback address, using a local ip instead: {}\n", Party::Container.target.getString());
 			}
 			else
 			{
@@ -312,7 +312,7 @@ namespace Components
 		}
 
 		// Basic info handler
-		Network::OnPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnServerPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			int botCount = 0;
 			int clientCount = 0;
@@ -400,7 +400,7 @@ namespace Components
 			Network::SendCommand(address, "infoResponse", "\\" + info.build());
 		});
 
-		Network::OnPacket("infoResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("infoResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			Utils::InfoString info(data);
 

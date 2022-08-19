@@ -233,7 +233,7 @@ namespace Components
 				return;
 			}
 
-			Logger::Debug("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getCString());
+			Logger::Debug("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getString());
 			Game::SV_DirectConnect(*address.get());
 		}
 #endif

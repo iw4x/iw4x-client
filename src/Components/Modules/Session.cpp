@@ -61,7 +61,7 @@ namespace Components
 	void Session::Handle(const std::string& packet, const Network::NetworkCallback& callback)
 	{
 #ifdef DISABLE_SESSION
-		Network::OnPacket(packet, callback);
+		Network::OnClientPacket(packet, callback);
 #else
 		std::lock_guard _(Session::Mutex);
 		Session::PacketHandlers[packet] = callback;
