@@ -71,6 +71,8 @@ namespace Components
 			Ping,
 		};
 
+		static constexpr auto* FavouriteFile = "players/favourites.json";
+
 #pragma pack(push, 1)
 		union MasterEntry
 		{

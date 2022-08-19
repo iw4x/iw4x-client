@@ -323,12 +323,11 @@ namespace Components
 	void ServerList::StoreFavourite(const std::string& server)
 	{
 		std::vector<std::string> servers;
-
-		if (Utils::IO::FileExists("players/favourites.json"))
+		
+		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
+		if (!parseData.empty())
 		{
-			std::string data = Utils::IO::ReadFile("players/favourites.json");
-			nlohmann::json object = nlohmann::json::parse(data);
-
+			const nlohmann::json object = nlohmann::json::parse(parseData);
 			if (!object.is_array())
 			{
 				Logger::Print("Favourites storage file is invalid!\n");
@@ -336,25 +335,24 @@ namespace Components
 				return;
 			}
 
-			nlohmann::json::array_t storedServers = object;
-
-			for (unsigned int i = 0; i < storedServers.size(); ++i)
+			const nlohmann::json::array_t storedServers = object;
+			for (const auto& storedServer : storedServers)
 			{
-				if (!storedServers[i].is_string()) continue;
-				if (storedServers[i].get<std::string>() == server)
+				if (!storedServer.is_string()) continue;
+				if (storedServer.get<std::string>() == server)
 				{
 					Game::ShowMessageBox("Server already marked as favourite.", "Error");
 					return;
 				}
 
-				servers.push_back(storedServers[i].get<std::string>());
+				servers.push_back(storedServer.get<std::string>());
 			}
 		}
 
 		servers.push_back(server);
 
-		nlohmann::json data = nlohmann::json(servers);
-		Utils::IO::WriteFile("players/favourites.json", data.dump());
+		const auto data = nlohmann::json(servers);
+		Utils::IO::WriteFile(FavouriteFile, data.dump());
 		Game::ShowMessageBox("Server added to favourites.", "Success");
 	}
 
@@ -362,10 +360,10 @@ namespace Components
 	{
 		std::vector<std::string> servers;
 
-		if (Utils::IO::FileExists("players/favourites.json"))
+		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
+		if (!parseData.empty())
 		{
-			std::string data = Utils::IO::ReadFile("players/favourites.json");
-			nlohmann::json object = nlohmann::json::parse(data);
+			const nlohmann::json object = nlohmann::json::parse(parseData);
 
 			if (!object.is_array())
 			{
@@ -374,8 +372,7 @@ namespace Components
 				return;
 			}
 
-			nlohmann::json::array_t arr = object;
-
+			const nlohmann::json::array_t arr = object;
 			for (auto& storedServer : arr)
 			{
 				if (storedServer.is_string() && storedServer.get<std::string>() != server)
@@ -385,8 +382,8 @@ namespace Components
 			}
 		}
 
-		nlohmann::json data = nlohmann::json(servers);
-		Utils::IO::WriteFile("players/favourites.json", data.dump());
+		const auto data = nlohmann::json(servers);
+		Utils::IO::WriteFile(FavouriteFile, data.dump());
 
 		auto list = ServerList::GetList();
 		if (list) list->clear();
@@ -398,28 +395,33 @@ namespace Components
 
 	void ServerList::LoadFavourties()
 	{
-		if (ServerList::IsFavouriteList() && Utils::IO::FileExists("players/favourites.json"))
+		if (!ServerList::IsFavouriteList())
 		{
-			auto list = ServerList::GetList();
-			if (list) list->clear();
+			return;
+		}
 
-			std::string data = Utils::IO::ReadFile("players/favourites.json");
-			nlohmann::json object = nlohmann::json::parse(data);
+		auto list = ServerList::GetList();
+		if (list) list->clear();
 
-			if (!object.is_array())
-			{
-				Logger::Print("Favourites storage file is invalid!\n");
-				Game::ShowMessageBox("Favourites storage file is invalid!", "Error");
-				return;
-			}
+		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
+		if (parseData.empty())
+		{
+			return;
+		}
 
-			nlohmann::json::array_t servers = object;
+		const nlohmann::json object = nlohmann::json::parse(parseData);
+		if (!object.is_array())
+		{
+			Logger::Print("Favourites storage file is invalid!\n");
+			Game::ShowMessageBox("Favourites storage file is invalid!", "Error");
+			return;
+		}
 
-			for (unsigned int i = 0; i < servers.size(); ++i)
-			{
-				if (!servers[i].is_string()) continue;
-				ServerList::InsertRequest(servers[i].get<std::string>());
-			}
+		const nlohmann::json::array_t servers = object;
+		for (const auto& server : servers)
+		{
+			if (!server.is_string()) continue;
+			ServerList::InsertRequest(server.get<std::string>());
 		}
 	}
 
