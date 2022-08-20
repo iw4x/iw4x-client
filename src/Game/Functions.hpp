@@ -954,7 +954,7 @@ namespace Game
 	typedef bool(__cdecl * SV_Loaded_t)();
 	extern SV_Loaded_t SV_Loaded;
 
-	typedef void(__cdecl * SV_ClientThink_t)(client_s*, usercmd_s*);
+	typedef void(__cdecl * SV_ClientThink_t)(client_t* cl, usercmd_s* cmd);
 	extern SV_ClientThink_t SV_ClientThink;
 
 	typedef void(__cdecl * SV_DropClient_t)(client_t* drop, const char* reason, bool tellThem);

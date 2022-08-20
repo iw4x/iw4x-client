@@ -46,7 +46,7 @@ namespace Components
 			{
 				for (int i = 0; i < maxclientCount; ++i)
 				{
-					if (Game::svs_clients[i].state >= 3)
+					if (Game::svs_clients[i].header.state >= Game::CS_CONNECTED)
 					{
 						++clientCount;
 					}

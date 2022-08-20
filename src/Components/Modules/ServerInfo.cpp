@@ -208,7 +208,7 @@ namespace Components
 
 				if ((*Game::com_sv_running)->current.enabled)
 				{
-					if (Game::svs_clients[i].state < 3) continue;
+					if (Game::svs_clients[i].header.state < Game::CS_CONNECTED) continue;
 
 					score = Game::SV_GameClientNum_Score(i);
 					ping = Game::svs_clients[i].ping;

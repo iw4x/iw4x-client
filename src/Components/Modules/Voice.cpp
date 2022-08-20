@@ -42,7 +42,7 @@ namespace Components
 
 		assert(VoicePacketCount[clientNum] >= 0);
 
-		if (client->state == Game::CS_ACTIVE && VoicePacketCount[clientNum])
+		if (client->header.state == Game::CS_ACTIVE && VoicePacketCount[clientNum])
 		{
 			Game::MSG_Init(&msg, msg_buf.get(), 0x10000);
 
@@ -58,7 +58,7 @@ namespace Components
 			}
 			else
 			{
-				Game::NET_OutOfBandVoiceData(Game::NS_SERVER, client->netchan.remoteAddress, msg.data, msg.cursize, true);
+				Game::NET_OutOfBandVoiceData(Game::NS_SERVER, client->header.netchan.remoteAddress, msg.data, msg.cursize, true);
 				VoicePacketCount[clientNum] = 0;
 			}
 		}
@@ -203,7 +203,7 @@ namespace Components
 			Game::MSG_ReadData(msg, voicePacket.data, voicePacket.dataSize);
 			for (auto otherPlayer = 0; otherPlayer < (*Game::sv_maxclients)->current.integer; ++otherPlayer)
 			{
-				if (otherPlayer != talker && Game::svs_clients[otherPlayer].state >= Game::CS_CONNECTED && !SV_ServerHasClientMuted(talker))
+				if (otherPlayer != talker && Game::svs_clients[otherPlayer].header.state >= Game::CS_CONNECTED && !SV_ServerHasClientMuted(talker))
 				{
 					SV_QueueVoicePacket(talker, otherPlayer, &voicePacket);
 				}
@@ -213,15 +213,15 @@ namespace Components
 
 	void Voice::SV_VoicePacket(Game::netadr_t from, Game::msg_t* msg)
 	{
-		auto qport = Game::MSG_ReadShort(msg);
+		const auto qport = Game::MSG_ReadShort(msg);
 		auto* cl = Game::SV_FindClientByAddress(from, qport, 0);
-		if (!cl || cl->state == Game::CS_ZOMBIE)
+		if (!cl || cl->header.state == Game::CS_ZOMBIE)
 		{
 			return;
 		}
 
 		cl->lastPacketTime = *Game::svs_time;
-		if (cl->state < Game::CS_ACTIVE)
+		if (cl->header.state < Game::CS_ACTIVE)
 		{
 			SV_PreGameUserVoice(cl, msg);
 		}

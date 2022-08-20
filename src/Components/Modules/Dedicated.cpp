@@ -81,9 +81,9 @@ namespace Components
 	{
 		std::string list = Utils::String::VA("%c", 20);
 
-		for (int i = 0; i < 18; ++i)
+		for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
 		{
-			if (Game::svs_clients[i].state >= 3)
+			if (Game::svs_clients[i].header.state >= 3)
 			{
 				list.append(Utils::String::VA(" %llX", Game::svs_clients[i].steamID));
 

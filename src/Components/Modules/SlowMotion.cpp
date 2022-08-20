@@ -70,7 +70,7 @@ namespace Components
 		// set snapshot num to 1 behind (T6 does this, why shouldn't we?)
 		for (int i = 0; i < *Game::svs_clientCount; ++i)
 		{
-			Game::svs_clients[i].snapNum = *Game::svs_time - 1;
+			Game::svs_clients[i].nextSnapshotTime = *Game::svs_time - 1;
 		}
 	}
 
