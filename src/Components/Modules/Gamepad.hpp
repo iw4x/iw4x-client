@@ -62,8 +62,8 @@ namespace Components
 		static Game::keyname_t combinedLocalizedKeyNamesPs3[];
 		static ControllerMenuKeyMapping controllerMenuKeyMappings[];
 
-		static GamePad gamePads[Game::MAX_GAMEPADS];
-		static GamePadGlobals gamePadGlobals[Game::MAX_GAMEPADS];
+		static GamePad gamePads[Game::MAX_GPAD_COUNT];
+		static GamePadGlobals gamePadGlobals[Game::MAX_GPAD_COUNT];
 
 		static int gamePadBindingsModifiedFlags;
 

@@ -7615,7 +7615,7 @@ namespace Game
 
 	static_assert(sizeof(cg_s) == 0xFD540);
 
-	static constexpr auto MAX_GAMEPADS = 1;
+	static constexpr auto MAX_GPAD_COUNT = 1;
 
 	static constexpr auto GPAD_VALUE_MASK = 0xFFFFFFFu;
 	static constexpr auto GPAD_DPAD_MASK = XINPUT_GAMEPAD_DPAD_UP | XINPUT_GAMEPAD_DPAD_DOWN | XINPUT_GAMEPAD_DPAD_LEFT | XINPUT_GAMEPAD_DPAD_RIGHT;
