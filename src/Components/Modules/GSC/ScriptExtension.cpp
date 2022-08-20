@@ -251,7 +251,7 @@ namespace Components
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
 
-			std::string ip = Game::NET_AdrToString(client->netchan.remoteAddress);
+			std::string ip = Game::NET_AdrToString(client->header.netchan.remoteAddress);
 
 			if (const auto pos = ip.find_first_of(":"); pos != std::string::npos)
 				ip.erase(ip.begin() + pos, ip.end()); // Erase port

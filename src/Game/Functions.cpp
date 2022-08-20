@@ -884,8 +884,8 @@ namespace Game
 	{
 		for (auto i = 0; i < *svs_clientCount; ++i)
 		{
-			if (svs_clients[i].state != CS_FREE
-				&& svs_clients[i].netchan.remoteAddress.type == NA_BOT)
+			if (svs_clients[i].header.state != CS_FREE
+				&& svs_clients[i].header.netchan.remoteAddress.type == NA_BOT)
 			{
 				SV_GameDropClient(i, "GAME_GET_TO_COVER");
 			}

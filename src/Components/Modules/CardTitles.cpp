@@ -160,7 +160,7 @@ namespace Components
 		{
 			char playerTitle[18];
 
-			if (Game::svs_clients[i].state >= Game::CS_CONNECTED)
+			if (Game::svs_clients[i].header.state >= Game::CS_CONNECTED)
 			{
 				strncpy_s(playerTitle, Game::Info_ValueForKey(Game::svs_clients[i].userinfo, "customTitle"), _TRUNCATE);
 			}

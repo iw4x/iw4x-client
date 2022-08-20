@@ -180,7 +180,7 @@ namespace Components
 		SteamID guid;
 		guid.bits = cl->steamID;
 
-		InsertBan({guid, cl->netchan.remoteAddress.ip});
+		InsertBan({guid, cl->header.netchan.remoteAddress.ip});
 
 		Game::SV_DropClient(cl, reason.data(), true);
 	}
@@ -257,7 +257,7 @@ namespace Components
 			}
 
 			const auto* cl = &Game::svs_clients[num];
-			if (cl->state == Game::CS_FREE)
+			if (cl->header.state == Game::CS_FREE)
 			{
 				Logger::Print("Client {} is not active\n", num);
 				return;

@@ -388,9 +388,9 @@ namespace Components
 		{
 			Game::client_t* client = &Game::svs_clients[i];
 
-			if (client->state >= 3)
+			if (client->header.state >= Game::CS_CONNECTED)
 			{
-				if (address.getIP().full == Network::Address(client->netchan.remoteAddress).getIP().full)
+				if (address.getIP().full == Network::Address(client->header.netchan.remoteAddress).getIP().full)
 				{
 					return client;
 				}
@@ -752,7 +752,7 @@ namespace Components
 
 			if ((*Game::com_sv_running)->current.enabled)
 			{
-				if (Game::svs_clients[i].state < 3) continue;
+				if (Game::svs_clients[i].header.state < Game::CS_CONNECTED) continue;
 
 				playerInfo["score"] = Game::SV_GameClientNum_Score(i);
 				playerInfo["ping"] = Game::svs_clients[i].ping;

@@ -235,7 +235,7 @@ namespace Game
 		DVAR_TYPE_COUNT = 0xA,
 	} dvar_type;
 
-	typedef enum
+	enum clientState_t
 	{
 		CS_FREE = 0x0,
 		CS_ZOMBIE = 0x1,
@@ -243,7 +243,7 @@ namespace Game
 		CS_CONNECTED = 0x3,
 		CS_CLIENTLOADING = 0x4,
 		CS_ACTIVE = 0x5,
-	} clientState_t;
+	};
 
 	enum serverState_t
 	{
@@ -6301,17 +6301,28 @@ namespace Game
 		bool topFire;
 	};
 
+	struct clientHeader_t
+	{
+		int state;
+		int sendAsActive;
+		int deltaMessage;
+		int rateDelayed;
+		int hasAckedBaselineData;
+		int hugeSnapshotSent;
+		netchan_t netchan;
+		float predictedOrigin[3];
+		int predictedOriginServerTime;
+		int migrationState;
+	};
+
+	static_assert(sizeof(clientHeader_t) == 1624);
+
 #pragma pack(push, 1)
 
 	typedef struct client_s
 	{
-		clientState_t state; // 0
-		int sendAsActive; // 4
-		int deltaMessage; // 8
-		char __pad1[12]; // 12
-		netchan_t netchan; // 24
-		char __pad2[20]; // 1604
-		const char* delayDropReason; // 1624
+		clientHeader_t header;
+		const char* dropReason; // 1624
 		char userinfo[1024]; // 1628
 		char __pad3[132096]; // 2652
 		int reliableSequence; // 134748
