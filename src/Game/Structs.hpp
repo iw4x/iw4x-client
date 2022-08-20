@@ -6317,14 +6317,34 @@ namespace Game
 
 	static_assert(sizeof(clientHeader_t) == 1624);
 
-#pragma pack(push, 1)
+	struct svscmd_info_t
+	{
+		char cmd[1024];
+		int time;
+		int type;
+	};
 
-	typedef struct client_s
+	struct clientSnapshot_t
+	{
+		playerState_s ps;
+		int num_entities;
+		int num_clients;
+		int first_entity;
+		int first_client;
+		int messageSent;
+		int messageAcked;
+		int messageSize;
+		int serverTime;
+		int timeDelta;
+		int baselineSnap;
+	};
+
+	struct client_t
 	{
 		clientHeader_t header;
 		const char* dropReason; // 1624
 		char userinfo[1024]; // 1628
-		char __pad3[132096]; // 2652
+		svscmd_info_t reliableCommandInfo[128]; // 2652
 		int reliableSequence; // 134748
 		int reliableAcknowledge; // 134752
 		int reliableSent; // 134756
@@ -6339,21 +6359,31 @@ namespace Game
 		int nextReliableTime; // 135860
 		int lastPacketTime; // 135864
 		int lastConnectTime; // 135868
-		int snapNum; // 135872
-		int __pad5; // 135876
-		short ping; // 135880
-		char __pad6[14]; // 135882
+		int nextSnapshotTime; // 135872
+		int timeoutCount; // 135876
+		int ping; // 135880
+		int rate;
+		int snapshotMsec;
+		int snapshotBackoffCount;
 		int pureAuthentic; // 135896
-		char __pad7[133138]; // 135900
-		short scriptID; // 269038
+		char netchanOutgoingBuffer[131072];
+		char netchanIncomingBuffer[2048];
+		char playerGuid[17];
+		unsigned short scriptId; // 269038
 		int bIsTestClient; // 269040
 		int serverID; // 269044
-		char __pad8[9224]; // 269048
+		bool usingOnlineStatsOffline;
+		char stats[8192];
+		char statsModifiedFlags[1024];
+		bool statsModified;
+		char statPacketsReceived;
+		bool steamAuthorized;
+		char steamAuthFailCount;
 		unsigned __int64 steamID; // 278272
-		char __pad9[403592]; // 278280
-	} client_t;
-
-#pragma pack(pop)
+		bool sendMatchData;
+		int matchDataSendTime;
+		clientSnapshot_t frames[32];
+	};
 
 	static_assert(sizeof(client_t) == 0xA6790);
 

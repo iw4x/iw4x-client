@@ -294,7 +294,8 @@ namespace Components
 
 	Bots::Bots()
 	{
-		AssertOffset(Game::client_s, bIsTestClient, 0x41AF0);
+		AssertOffset(Game::client_t, bIsTestClient, 0x41AF0);
+		AssertOffset(Game::client_t, ping, 0x212C8);
 
 		// Replace connect string
 		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");

@@ -276,7 +276,7 @@ namespace Components
 			const auto* ent = Game::GetPlayerEntity(entref);
 			auto* client = Script::GetClient(ent);
 
-			client->ping = static_cast<int16_t>(ping);
+			client->ping = ping;
 		});
 	}
 
