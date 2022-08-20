@@ -46,37 +46,37 @@ namespace Components
 			}
 		});
 
-		Network::OnPacket("discovery", [](Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("discovery", [](Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			if (address.isSelf()) return;
 
 			if (!address.isLocal())
 			{
-				Logger::Print("Received discovery request from non-local address: {}\n", address.getCString());
+				Logger::Print("Received discovery request from non-local address: {}\n", address.getString());
 				return;
 			}
 
-			Logger::Print("Received discovery request from {}\n", address.getCString());
+			Logger::Print("Received discovery request from {}\n", address.getString());
 			Network::SendCommand(address, "discoveryResponse", data);
 		});
 
-		Network::OnPacket("discoveryResponse", [](Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("discoveryResponse", [](Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			if (address.isSelf()) return;
 
 			if (!address.isLocal())
 			{
-				Logger::Print("Received discovery response from non-local address: {}\n", address.getCString());
+				Logger::Print("Received discovery response from non-local address: {}\n", address.getString());
 				return;
 			}
 
 			if (Utils::ParseChallenge(data) != Discovery::Challenge)
 			{
-				Logger::Print("Received discovery with invalid challenge from: {}\n", address.getCString());
+				Logger::Print("Received discovery with invalid challenge from: {}\n", address.getString());
 				return;
 			}
 
-			Logger::Print("Received discovery response from: {}\n", address.getCString());
+			Logger::Print("Received discovery response from: {}\n", address.getString());
 
 			if (ServerList::IsOfflineList())
 			{

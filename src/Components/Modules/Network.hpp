@@ -21,26 +21,26 @@ namespace Components
 			bool operator==(const Address &obj) const;
 
 			void setPort(unsigned short port);
-			unsigned short getPort();
+			[[nodiscard]] unsigned short getPort() const;
 
 			void setIP(DWORD ip);
 			void setIP(Game::netIP_t ip);
-			Game::netIP_t getIP();
+			[[nodiscard]] Game::netIP_t getIP() const;
 
 			void setType(Game::netadrtype_t type);
-			Game::netadrtype_t getType();
+			[[nodiscard]] Game::netadrtype_t getType() const;
 
-			sockaddr getSockAddr();
+			[[nodiscard]] sockaddr getSockAddr();
 			void toSockAddr(sockaddr* addr);
 			void toSockAddr(sockaddr_in* addr);
 			Game::netadr_t* get();
-			const char* getCString() const;
-			std::string getString() const;
+			[[nodiscard]] const char* getCString() const;
+			[[nodiscard]] std::string getString() const;
 
-			bool isLocal();
-			bool isSelf();
-			bool isValid();
-			bool isLoopback();
+			[[nodiscard]] bool isLocal();
+			[[nodiscard]] bool isSelf();
+			[[nodiscard]] bool isValid() const;
+			[[nodiscard]] bool isLoopback() const;
 
 		private:
 			Game::netadr_t address;
@@ -54,7 +54,7 @@ namespace Components
 
 		static unsigned short GetPort();
 
-		static void OnStart(Utils::Slot<CallbackRaw> callback);
+		static void OnStart(const Utils::Slot<CallbackRaw>& callback);
 		
 		// Send quake-styled binary data
 		static void Send(Address target, const std::string& data);
@@ -72,12 +72,13 @@ namespace Components
 		static void BroadcastRange(unsigned int min, unsigned int max, const std::string& data);
 		static void BroadcastAll(const std::string& data);
 
-		static void OnPacket(const std::string& command, const NetworkCallback& callback);
+		static void OnClientPacket(const std::string& command, const NetworkCallback& callback);
+		static void OnServerPacket(const std::string& command, const NetworkCallback& callback);
 
 	private:
-		static std::string SelectedPacket;
 		static Utils::Signal<CallbackRaw> StartupSignal;
-		static std::unordered_map<std::string, NetworkCallback> Callbacks;
+		static std::unordered_map<std::string, NetworkCallback> CL_Callbacks;
+		static std::unordered_map<std::string, NetworkCallback> SV_Callbacks;
 
 		static void NetworkStart();
 		static void NetworkStartStub();
@@ -86,17 +87,19 @@ namespace Components
 
 		static void SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg);
 
-		static bool HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message);
+		static bool CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message);
+		static bool SV_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message);
 
 		static void CL_HandleCommandStub();
+		static void SV_HandleCommandStub();
 	};
 }
 
 template <>
 struct std::hash<Components::Network::Address>
 {
-	std::size_t operator()(const Components::Network::Address& k) const
+	std::size_t operator()(const Components::Network::Address& k) const noexcept
 	{
-		return (std::hash<std::string>()(k.getString()));
+		return std::hash<std::string>()(k.getString());
 	}
 };
