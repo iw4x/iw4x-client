@@ -220,7 +220,7 @@ namespace Game
 		DVAR_SOURCE_DEVGUI = 0x3,
 	};
 
-	typedef enum : char
+	enum dvar_type : char
 	{
 		DVAR_TYPE_BOOL = 0x0,
 		DVAR_TYPE_FLOAT = 0x1,
@@ -233,7 +233,7 @@ namespace Game
 		DVAR_TYPE_COLOR = 0x8,
 		DVAR_TYPE_FLOAT_3_COLOR = 0x9,
 		DVAR_TYPE_COUNT = 0xA,
-	} dvar_type;
+	};
 
 	enum clientState_t
 	{
@@ -263,6 +263,17 @@ namespace Game
 		ERR_LOCALIZATION = 0x6,
 		ERR_MAPLOADERRORSUMMARY = 0x7
 	};
+
+	enum ConfigString
+	{
+		CS_VOTE_TIME = 0x11,
+		CS_VOTE_STRING = 0x12,
+		CS_VOTE_YES = 0x13,
+		CS_VOTE_NO = 0x14,
+		CS_VOTE_MAPNAME = 0x15,
+		CS_VOTE_GAMETYPE = 0x16,
+		CS_ITEMS = 0x102A,
+	}; // Incomplete
 
 	enum conChannel_t
 	{
@@ -1258,13 +1269,7 @@ namespace Game
 		int flags;
 	};
 
-	struct $3EB5F037EADAEE8E2FA2A1F9FFF31312
-	{
-		hudelem_s current[31];
-		hudelem_s archival[31];
-	};
-
-	enum playerStateFlag
+	enum
 	{
 		PMF_PRONE = 1 << 0,
 		PMF_DUCKED = 1 << 1,
@@ -1291,7 +1296,7 @@ namespace Game
 		PMF_DIVING = 1 << 22,
 	};
 
-	enum playerStateOtherFlag
+	enum
 	{
 		POF_INVULNERABLE = 1 << 0,
 		POF_REMOTE_EYES = 1 << 1,
@@ -1327,7 +1332,7 @@ namespace Game
 		PM_DEAD_LINKED = 0x9,
 	};
 
-	enum playerEFlag
+	enum
 	{
 		EF_NONSOLID_BMODEL = 1 << 0,
 		EF_TELEPORT_BIT = 1 << 1,
@@ -1355,14 +1360,14 @@ namespace Game
 		EF_SOFT = 1 << 23,
 	};
 
-	enum playerLinkFlag
+	enum
 	{
 		PLF_ANGLES_LOCKED = 1 << 0,
 		PLF_USES_OFFSET = 1 << 1,
 		PLF_WEAPONVIEW_ONLY = 1 << 2,
 	};
 
-	enum playerWeaponFlag
+	enum
 	{
 		PWF_USE_RELOAD = 1 << 0,
 		PWF_USING_OFFHAND = 1 << 1,
@@ -1497,14 +1502,18 @@ namespace Game
 		int killCamEntity;
 		int killCamLookAtEntity;
 		int killCamClientNum;
-		$3EB5F037EADAEE8E2FA2A1F9FFF31312 hud;
+		struct
+		{
+			hudelem_s current[31];
+			hudelem_s archival[31];
+		} hud;
 		unsigned int partBits[6];
 		int recoilScale;
 		int diveDirection;
 		int stunTime;
 	};
 
-	static_assert(sizeof(Game::playerState_s) == 0x311C);
+	static_assert(sizeof(playerState_s) == 0x311C);
 
 	enum LocSelInputState
 	{

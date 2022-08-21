@@ -13,9 +13,9 @@ namespace Components
 			Params() = default;
 			virtual ~Params() = default;
 
-			virtual int size() = 0;
-			virtual const char* get(int index) = 0;
-			virtual std::string join(int index);
+			[[nodiscard]] virtual int size() const = 0;
+			[[nodiscard]] virtual const char* get(int index) const = 0;
+			[[nodiscard]] virtual std::string join(int index) const;
 
 			virtual const char* operator[](const int index)
 			{
@@ -28,8 +28,8 @@ namespace Components
 		public:
 			ClientParams();
 
-			int size() override;
-			const char* get(int index) override;
+			[[nodiscard]] int size() const override;
+			[[nodiscard]] const char* get(int index) const override;
 
 		private:
 			int nesting_;
@@ -40,8 +40,8 @@ namespace Components
 		public:
 			ServerParams();
 
-			int size() override;
-			const char* get(int index) override;
+			[[nodiscard]] int size() const override;
+			[[nodiscard]] const char* get(int index) const override;
 
 		private:
 			int nesting_;

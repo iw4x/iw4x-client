@@ -7,11 +7,11 @@ namespace Components
 	public:
 		ClientCommand();
 
-		static void Add(const char* name, const std::function<void(Game::gentity_s*, Command::ServerParams*)>& callback);
+		static void Add(const char* name, const std::function<void(Game::gentity_s*, const Command::ServerParams*)>& callback);
 		static bool CheatsOk(const Game::gentity_s* ent);
 
 	private:
-		static std::unordered_map<std::string, std::function<void(Game::gentity_s*, Command::ServerParams*)>> HandlersSV;
+		static std::unordered_map<std::string, std::function<void(Game::gentity_s*, const Command::ServerParams*)>> HandlersSV;
 
 		static void ClientCommandStub(int clientNum);
 		static void AddCheatCommands();

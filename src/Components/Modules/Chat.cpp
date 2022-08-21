@@ -38,7 +38,7 @@ namespace Components
 		if (IsMuted(player))
 		{
 			SendChat = false;
-			Game::SV_GameSendServerCommand(player->s.number, Game::SV_CMD_CAN_IGNORE,
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE,
 				Utils::String::VA("%c \"You are muted\"", 0x65));
 		}
 
@@ -53,7 +53,7 @@ namespace Components
 		if (sv_disableChat.get<bool>())
 		{
 			SendChat = false;
-			Game::SV_GameSendServerCommand(player->s.number, Game::SV_CMD_CAN_IGNORE,
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE,
 				Utils::String::VA("%c \"Chat is disabled\"", 0x65));
 		}
 
@@ -236,7 +236,7 @@ namespace Components
 
 	bool Chat::IsMuted(const Game::gentity_s* ent)
 	{
-		const auto clientNum = ent->s.number;
+		const auto clientNum = ent - Game::g_entities;
 		const auto xuid = Game::svs_clients[clientNum].steamID;
 
 		const auto result = MutedList.access<bool>([&](muteList& clients)
@@ -368,7 +368,7 @@ namespace Components
 
 	int Chat::ChatCallback(Game::gentity_s* self, const char* codePos, const char* message, int mode)
 	{
-		const auto entityId = Game::Scr_GetEntityId(self->s.number, 0);
+		const auto entityId = Game::Scr_GetEntityId(self - Game::g_entities, 0);
 
 		Scripting::StackIsolation _;
 		Game::Scr_AddInt(mode);

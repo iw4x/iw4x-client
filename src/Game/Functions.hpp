@@ -771,6 +771,12 @@ namespace Game
 	typedef void(__cdecl * Scr_ShutdownAllocNode_t)();
 	extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
 
+	typedef char*(__cdecl * Scr_GetGameTypeNameForScript_t)(const char* pszGameTypeScript);
+	extern Scr_GetGameTypeNameForScript_t Scr_GetGameTypeNameForScript;
+
+	typedef int(__cdecl * Scr_IsValidGameType_t)(const char* pszGameType);
+	extern Scr_IsValidGameType_t Scr_IsValidGameType;
+
 	typedef void(__cdecl * Scr_LoadGameType_t)();
 	extern Scr_LoadGameType_t Scr_LoadGameType;
 
@@ -1170,6 +1176,9 @@ namespace Game
 	typedef void(__cdecl * I_strncpyz_t)(char* dest, const char* src, int destsize);
 	extern I_strncpyz_t I_strncpyz;
 
+	typedef char*(__cdecl * I_CleanStr_t)(char* string);
+	extern I_CleanStr_t I_CleanStr;
+
 	typedef void(__cdecl * XNAddrToString_t)(const XNADDR* xnaddr, char* str);
 	extern XNAddrToString_t XNAddrToString;
 
@@ -1196,6 +1205,7 @@ namespace Game
 	extern float* cgameFOVSensitivityScale;
 
 	extern int* svs_time;
+	extern int* sv_serverId_value;
 	extern int* svs_clientCount;
 	extern client_t* svs_clients;
 

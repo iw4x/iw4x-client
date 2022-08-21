@@ -3,7 +3,7 @@
 
 namespace Components
 {
-	std::unordered_map<std::string, std::function<void(Game::gentity_s*, Command::ServerParams*)>> ClientCommand::HandlersSV;
+	std::unordered_map<std::string, std::function<void(Game::gentity_s*, const Command::ServerParams*)>> ClientCommand::HandlersSV;
 
 	bool ClientCommand::CheatsOk(const Game::gentity_s* ent)
 	{
@@ -26,7 +26,7 @@ namespace Components
 		return true;
 	}
 
-	void ClientCommand::Add(const char* name, const std::function<void(Game::gentity_s*, Command::ServerParams*)>& callback)
+	void ClientCommand::Add(const char* name, const std::function<void(Game::gentity_s*, const Command::ServerParams*)>& callback)
 	{
 		const auto command = Utils::String::ToLower(name);
 
@@ -57,7 +57,7 @@ namespace Components
 
 	void ClientCommand::AddCheatCommands()
 	{
-		ClientCommand::Add("noclip", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("noclip", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -71,7 +71,7 @@ namespace Components
 				(ent->client->flags & Game::PLAYER_FLAG_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
 		});
 
-		ClientCommand::Add("ufo", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("ufo", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -85,7 +85,7 @@ namespace Components
 				(ent->client->flags & Game::PLAYER_FLAG_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
 		});
 
-		ClientCommand::Add("god", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("god", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -99,7 +99,7 @@ namespace Components
 				(ent->flags & Game::FL_GODMODE) ? "GAME_GODMODE_ON" : "GAME_GODMODE_OFF"));
 		});
 
-		ClientCommand::Add("demigod", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("demigod", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -113,7 +113,7 @@ namespace Components
 				(ent->flags & Game::FL_DEMI_GODMODE) ? "GAME_DEMI_GODMODE_ON" : "GAME_DEMI_GODMODE_OFF"));
 		});
 
-		ClientCommand::Add("notarget", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("notarget", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -127,7 +127,7 @@ namespace Components
 				(ent->flags & Game::FL_NOTARGET) ? "GAME_NOTARGETON" : "GAME_NOTARGETOFF"));
 		});
 
-		ClientCommand::Add("setviewpos", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("setviewpos", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			assert(ent != nullptr);
 
@@ -163,7 +163,7 @@ namespace Components
 			Game::TeleportPlayer(ent, origin, angles);
 		});
 
-		ClientCommand::Add("give", [](Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("give", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (!ClientCommand::CheatsOk(ent))
 				return;
@@ -246,28 +246,28 @@ namespace Components
 
 	void ClientCommand::AddDevelopmentCommands()
 	{
-		ClientCommand::Add("dropallbots", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("dropallbots", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			Game::SV_DropAllBots();
 		});
 
-		ClientCommand::Add("entitylist", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("entitylist", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			Game::Svcmd_EntityList_f();
 		});
 
-		ClientCommand::Add("printentities", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("printentities", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			Game::G_PrintEntities();
 		});
 
-		ClientCommand::Add("entitycount", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("entitycount", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			Logger::Print("Entity count = {}\n", Game::level->num_entities);
 		});
 
 		// Also known as: "vis"
-		ClientCommand::Add("visionsetnaked", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("visionsetnaked", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (params->size() < 2)
 			{
@@ -295,7 +295,7 @@ namespace Components
 				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});
 
-		ClientCommand::Add("visionsetnight", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("visionsetnight", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (params->size() < 2)
 			{
@@ -323,7 +323,7 @@ namespace Components
 				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});
 
-		ClientCommand::Add("g_testCmd", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("g_testCmd", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			assert(ent != nullptr);
 
@@ -331,7 +331,7 @@ namespace Components
 			Logger::Debug("playerState_s.stunTime is {}", ent->client->ps.stunTime);
 		});
 
-		ClientCommand::Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] Command::ServerParams* params)
+		ClientCommand::Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			assert(ent->client != nullptr);
 			assert(ent->client->sess.connected != Game::CON_DISCONNECTED);

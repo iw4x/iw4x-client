@@ -292,6 +292,8 @@ namespace Game
 
 	RemoveRefToObject_t RemoveRefToObject = RemoveRefToObject_t(0x437190);
 
+	Scr_GetGameTypeNameForScript_t Scr_GetGameTypeNameForScript = Scr_GetGameTypeNameForScript_t(0x462460);
+	Scr_IsValidGameType_t Scr_IsValidGameType = Scr_IsValidGameType_t(0x4F1B60);
 	Scr_LoadGameType_t Scr_LoadGameType = Scr_LoadGameType_t(0x4D9520);
 	Scr_StartupGameType_t Scr_StartupGameType = Scr_StartupGameType_t(0x438720);
 
@@ -484,6 +486,7 @@ namespace Game
 	Z_VirtualAlloc_t Z_VirtualAlloc = Z_VirtualAlloc_t(0x4CFBA0);
 
 	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
+	I_CleanStr_t I_CleanStr = I_CleanStr_t(0x4AD470);
 
 	XNAddrToString_t XNAddrToString = XNAddrToString_t(0x452690);
 
@@ -505,6 +508,7 @@ namespace Game
 	float* cgameFOVSensitivityScale = reinterpret_cast<float*>(0xB2F884);
 
 	int* svs_time = reinterpret_cast<int*>(0x31D9384);
+	int* sv_serverId_value = reinterpret_cast<int*>(0x2089DC0);
 	int* svs_clientCount = reinterpret_cast<int*>(0x31D938C);
 	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);
 

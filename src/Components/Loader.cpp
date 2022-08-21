@@ -113,6 +113,7 @@ namespace Components
 		Loader::Register(new UserInfo());
 		Loader::Register(new Events());
 		Loader::Register(new Voice());
+		Loader::Register(new Vote());
 
 		Loader::Register(new GSC());
 

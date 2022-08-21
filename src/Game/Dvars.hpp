@@ -28,6 +28,9 @@ namespace Game
 
 	extern const dvar_t** g_cheats;
 	extern const dvar_t** g_deadChat;
+	extern const dvar_t** g_allowVote;
+	extern const dvar_t** g_oldVoting;
+	extern const dvar_t** g_gametype;
 
 	extern const dvar_t** version;
 }
