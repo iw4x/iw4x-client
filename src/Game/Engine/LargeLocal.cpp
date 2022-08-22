@@ -3,7 +3,6 @@
 
 namespace Game::Engine
 {
-	#define PAGE_SIZE 128
 	#define CanUseServerLargeLocal() (SV_GetServerThreadOwnsGame() ? Sys_IsServerThread() : Sys_IsRenderThread())
 
 	LargeLocal::LargeLocal(int sizeParam)
@@ -11,7 +10,7 @@ namespace Game::Engine
 		assert(sizeParam);
 		assert(Sys_IsMainThread() || CanUseServerLargeLocal());
 
-		sizeParam = ((sizeParam + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1));
+		sizeParam = ((sizeParam + (128 - 1)) & ~(128 - 1));
 
 		if (Sys_IsMainThread())
 		{
@@ -78,7 +77,7 @@ namespace Game::Engine
 	{
 		assert(Sys_IsMainThread() || CanUseServerLargeLocal());
 		assert(g_largeLocalBuf);
-		assert(!(size & (PAGE_SIZE - 1)));
+		assert(!(size & 127));
 
 		if (Sys_IsMainThread())
 		{
