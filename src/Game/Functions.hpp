@@ -1188,6 +1188,12 @@ namespace Game
 	typedef bool(__cdecl * Voice_IsClientTalking_t)(int clientNum);
 	extern Voice_IsClientTalking_t Voice_IsClientTalking;
 
+	typedef int(__cdecl * LargeLocalBegin_t)(int size);
+	extern LargeLocalBegin_t LargeLocalBegin;
+
+	typedef int(__cdecl* LargeLocalBeginRight_t)(int size);
+	extern LargeLocalBeginRight_t LargeLocalBeginRight;
+
 	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_CLIENTS = 18;
@@ -1269,7 +1275,7 @@ namespace Game
 	extern FxEffectDef*** varFxEffectDefHandle;
 	extern PhysCollmap*** varPhysCollmapPtr;
 	extern PhysPreset*** varPhysPresetPtr;
-	extern Game::MaterialPass** varMaterialPass;
+	extern MaterialPass** varMaterialPass;
 	extern snd_alias_list_t*** varsnd_alias_list_name;
 
 	extern FxElemField* s_elemFields;
@@ -1369,6 +1375,10 @@ namespace Game
 	extern voiceCommunication_t* cl_voiceCommunication;
 
 	extern volatile long* sv_thread_owns_game;
+
+	extern unsigned char* g_largeLocalBuf;
+	extern int* g_largeLocalPos;
+	extern int* g_largeLocalRightPos;
 
 	void Sys_LockRead(FastCriticalSection* critSect);
 	void Sys_UnlockRead(FastCriticalSection* critSect);

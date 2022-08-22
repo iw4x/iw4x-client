@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Game/Engine/LargeLocal.hpp"
 
 namespace Components
 {
@@ -36,15 +37,17 @@ namespace Components
 
 	void Voice::SV_SendClientVoiceData(Game::client_t* client)
 	{
-		const auto msg_buf = std::make_unique<unsigned char[]>(0x10000);
 		Game::msg_t msg{};
 		const auto clientNum = client - Game::svs_clients;
+
+		const Game::Engine::LargeLocal msg_buf_large_local(0x10000);
+		auto* msg_buf = static_cast<unsigned char*>(msg_buf_large_local.GetBuf());
 
 		assert(VoicePacketCount[clientNum] >= 0);
 
 		if (client->header.state == Game::CS_ACTIVE && VoicePacketCount[clientNum])
 		{
-			Game::MSG_Init(&msg, msg_buf.get(), 0x10000);
+			Game::MSG_Init(&msg, msg_buf, 0x10000);
 
 			assert(msg.cursize == 0);
 			assert(msg.bit == 0);

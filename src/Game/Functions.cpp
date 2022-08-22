@@ -493,6 +493,9 @@ namespace Game
 	Voice_IncomingVoiceData_t Voice_IncomingVoiceData = Voice_IncomingVoiceData_t(0x5001A0);
 	Voice_IsClientTalking_t Voice_IsClientTalking = Voice_IsClientTalking_t(0x4D9D20);
 
+	LargeLocalBegin_t LargeLocalBegin = LargeLocalBegin_t(0x4127A0);
+	LargeLocalBeginRight_t LargeLocalBeginRight = LargeLocalBeginRight_t(0x644140);
+
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
@@ -663,6 +666,10 @@ namespace Game
 	voiceCommunication_t* cl_voiceCommunication = reinterpret_cast<voiceCommunication_t*>(0x1079DA0);
 
 	volatile long* sv_thread_owns_game = reinterpret_cast<volatile long*>(0x2089DB8);
+
+	unsigned char* g_largeLocalBuf = reinterpret_cast<unsigned char*>(0x63D9790);
+	int* g_largeLocalPos = reinterpret_cast<int*>(0x63D97B4);
+	int* g_largeLocalRightPos = reinterpret_cast<int*>(0x63D9780);
 
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
