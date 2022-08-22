@@ -292,8 +292,8 @@ namespace Components
 
 		if (*Game::logfile)
 		{
-			Game::FS_FCloseFile(reinterpret_cast<int>(*Game::logfile));
-			*Game::logfile = nullptr;
+			Game::FS_FCloseFile(*Game::logfile);
+			*Game::logfile = 0;
 		}
 
 		Game::FS_BuildOSPath(Game::Sys_DefaultInstallPath(), "", "logs/console_mp.log", from_ospath);

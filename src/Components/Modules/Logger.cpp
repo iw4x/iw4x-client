@@ -397,9 +397,9 @@ namespace Components
 		lock.unlock();
 
 		// Flush the console log
-		if (const auto logfile = *reinterpret_cast<int*>(0x1AD8F28))
+		if (*Game::logfile)
 		{
-			Game::FS_FCloseFile(logfile);
+			Game::FS_FCloseFile(*Game::logfile);
 		}
 	}
 }

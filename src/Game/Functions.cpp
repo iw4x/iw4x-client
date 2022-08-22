@@ -659,7 +659,7 @@ namespace Game
 
 	char (*sys_exitCmdLine)[1024] = reinterpret_cast<char(*)[1024]>(0x649FB68);
 
-	void** logfile = reinterpret_cast<void**>(0x1AD8F28);
+	int* logfile = reinterpret_cast<int*>(0x1AD8F28);
 
 	GamerSettingState* gamerSettings = reinterpret_cast<GamerSettingState*>(0x107D3E8);
 

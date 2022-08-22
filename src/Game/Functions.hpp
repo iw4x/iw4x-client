@@ -723,7 +723,7 @@ namespace Game
 	typedef void(_cdecl * R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
 	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;
 
-	typedef void* (__cdecl * R_AllocStaticIndexBuffer_t)(IDirect3DIndexBuffer9** store, int length);
+	typedef void*(__cdecl * R_AllocStaticIndexBuffer_t)(IDirect3DIndexBuffer9** store, int length);
 	extern R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer;
 
 	typedef bool(__cdecl * R_Cinematic_StartPlayback_Now_t)();
@@ -1368,7 +1368,7 @@ namespace Game
 
 	extern char (*sys_exitCmdLine)[1024];
 
-	extern void** logfile;
+	extern int* logfile;
 
 	extern GamerSettingState* gamerSettings;
 

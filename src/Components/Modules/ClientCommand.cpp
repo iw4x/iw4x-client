@@ -242,6 +242,23 @@ namespace Components
 				}
 			}
 		});
+
+		ClientCommand::Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		{
+			assert(ent->client != nullptr);
+			assert(ent->client->sess.connected != Game::CON_DISCONNECTED);
+
+			if (ent->client->sess.sessionState != Game::SESS_STATE_PLAYING || !ClientCommand::CheatsOk(ent))
+				return;
+
+			Scheduler::Once([ent]
+			{
+				ent->flags &= ~(Game::FL_GODMODE | Game::FL_DEMI_GODMODE);
+				ent->health = 0;
+				ent->client->ps.stats[0] = 0;
+				Game::player_die(ent, ent, ent, 100000, 12, 0, nullptr, Game::HITLOC_NONE, 0);
+			}, Scheduler::Pipeline::SERVER);
+		});
 	}
 
 	void ClientCommand::AddDevelopmentCommands()
@@ -329,23 +346,6 @@ namespace Components
 
 			ent->client->ps.stunTime = 1000 + Game::level->time; // 1000 is the default test stun time
 			Logger::Debug("playerState_s.stunTime is {}", ent->client->ps.stunTime);
-		});
-
-		ClientCommand::Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
-		{
-			assert(ent->client != nullptr);
-			assert(ent->client->sess.connected != Game::CON_DISCONNECTED);
-
-			if (ent->client->sess.sessionState != Game::SESS_STATE_PLAYING || !ClientCommand::CheatsOk(ent))
-				return;
-
-			Scheduler::Once([ent]
-			{
-				ent->flags &= ~(Game::FL_GODMODE | Game::FL_DEMI_GODMODE);
-				ent->health = 0;
-				ent->client->ps.stats[0] = 0;
-				Game::player_die(ent, ent, ent, 100000, 12, 0, nullptr, Game::HITLOC_NONE, 0);
-			}, Scheduler::Pipeline::SERVER);
 		});
 	}
 
