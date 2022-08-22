@@ -5,7 +5,6 @@ namespace Components
 {
 	mg_mgr Download::Mgr;
 	Download::ClientDownload Download::CLDownload;
-	std::vector<std::shared_ptr<Download::ScriptDownload>> Download::ScriptDownloads;
 
 	std::thread Download::ServerThread;
 	bool Download::Terminate;
@@ -927,77 +926,8 @@ namespace Components
 			Dvar::Register<bool>("mod_force_download_server", false, Game::DVAR_ARCHIVE, "Set to true to force the client to run the download server for mods (for mods in private matches).");
 		}, Scheduler::Pipeline::MAIN);
 
-		Scheduler::Loop([]
-		{
-			int workingCount = 0;
-
-			for (auto i = Download::ScriptDownloads.begin(); i != Download::ScriptDownloads.end();)
-			{
-				auto download = *i;
-
-				if (download->isDone())
-				{
-					download->notifyDone();
-					i = Download::ScriptDownloads.erase(i);
-					continue;
-				}
-
-				if (download->isWorking())
-				{
-					download->notifyProgress();
-					++workingCount;
-				}
-
-				++i;
-			}
-
-			for (auto& download : Download::ScriptDownloads)
-			{
-				if (workingCount > 5) break;
-				if (!download->isWorking())
-				{
-					download->startWorking();
-					++workingCount;
-				}
-			}
-
-		}, Scheduler::Pipeline::MAIN);
-
-		Events::OnVMShutdown([]
-		{
-			Download::ScriptDownloads.clear();
-		});
-
-		Script::AddFunction("HttpGet", []
-		{
-			const auto* url = Game::Scr_GetString(0);
-
-			if (url == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1HttpGet: Illegal parameter!\n");
-				return;
-			}
-
-			auto object = Game::AllocObject();
-
-			Game::Scr_AddObject(object);
-
-			Download::ScriptDownloads.push_back(std::make_shared<ScriptDownload>(url, object));
-			Game::RemoveRefToObject(object);
-		});
-
-		Script::AddFunction("HttpCancel", []
-		{
-			const auto object = Game::Scr_GetObject(0);
-			for (const auto& download : Download::ScriptDownloads)
-			{
-				if (object == download->getObject())
-				{
-					download->cancel();
-					break;
-				}
-			}
-		});
+		Script::AddFunction("HttpGet", Script::ShowDeprecationWarning);
+		Script::AddFunction("HttpCancel", Script::ShowDeprecationWarning);
 	}
 
 	Download::~Download()
@@ -1020,7 +950,5 @@ namespace Components
 		{
 			Download::CLDownload.clear();
 		}
-
-		Download::ScriptDownloads.clear();
 	}
 }

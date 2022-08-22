@@ -14,6 +14,8 @@ namespace Components
 
 		static const char* GetCodePosForParam(int index);
 
+		static void ShowDeprecationWarning();
+
 	private:
 		struct ScriptFunction
 		{
@@ -59,7 +61,6 @@ namespace Components
 		static void Scr_StartupGameType_Stub();
 		static void GScr_LoadGameTypeScript_Stub();
 
-		static bool IsDeprecated(const std::string& name);
 		static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
 		static Game::BuiltinMethod BuiltIn_GetMethodStub(const char** pName, int* type);
 
