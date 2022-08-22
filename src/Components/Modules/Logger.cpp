@@ -28,7 +28,7 @@ namespace Components
 	{
 		std::string out = msg;
 
-		// Filter out coloured strings
+		// Filter out coloured strings for stdout
 		if (out[0] == '^' && out[1] != '\0')
 		{
 			out = out.substr(2);
@@ -48,11 +48,11 @@ namespace Components
 
 		if (!Game::Sys_IsMainThread())
 		{
-			Logger::EnqueueMessage(out);
+			Logger::EnqueueMessage(msg);
 		}
 		else
 		{
-			Game::Com_PrintMessage(channel, out.data(), 0);
+			Game::Com_PrintMessage(channel, msg.data(), 0);
 		}
 	}
 
