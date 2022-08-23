@@ -147,8 +147,8 @@ using namespace std::literals;
 #include "Steam/Steam.hpp" // Some definitions are used in functions and structs
 
 #include "Game/Structs.hpp"
-#include "Game/Dvars.hpp"
-#include "Game/Functions.hpp"
+#include "Game/Game.hpp"
+
 #include <Game/Scripting/Function.hpp>
 #include <Game/Scripting/StackIsolation.hpp>
 
