@@ -160,8 +160,8 @@ namespace Components
 	{
 		std::vector<std::string> fileList;
 
-		int numFiles = 0;
-		char** files = Game::FS_GetFileList(path.data(), extension.data(), Game::FS_LIST_PURE_ONLY, &numFiles, 0);
+		auto numFiles = 0;
+		const auto** files = Game::FS_ListFiles(path.data(), extension.data(), Game::FS_LIST_PURE_ONLY, &numFiles, 10);
 
 		if (files)
 		{
@@ -169,11 +169,11 @@ namespace Components
 			{
 				if (files[i])
 				{
-					fileList.push_back(files[i]);
+					fileList.emplace_back(files[i]);
 				}
 			}
 
-			Game::FS_FreeFileList(files);
+			Game::FS_FreeFileList(files, 10);
 		}
 
 		return fileList;
@@ -183,8 +183,8 @@ namespace Components
 	{
 		std::vector<std::string> fileList;
 
-		int numFiles = 0;
-		char** files = Game::Sys_ListFiles(path.data(), extension.data(), nullptr, &numFiles, folders);
+		auto numFiles = 0;
+		const auto** files = Game::Sys_ListFiles(path.data(), extension.data(), nullptr, &numFiles, folders);
 
 		if (files)
 		{
@@ -192,7 +192,7 @@ namespace Components
 			{
 				if (files[i])
 				{
-					fileList.push_back(files[i]);
+					fileList.emplace_back(files[i]);
 				}
 			}
 
@@ -204,7 +204,7 @@ namespace Components
 
 	bool FileSystem::_DeleteFile(const std::string& folder, const std::string& file)
 	{
-		char path[MAX_PATH] = { 0 };
+		char path[MAX_PATH] = {0};
 		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").get<const char*>(), reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
 		return Game::FS_Remove(path);
 	}

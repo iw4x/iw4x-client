@@ -225,42 +225,44 @@ namespace Components
 		Game::Scr_StartupGameType();
 	}
 
+	// Do not use C++ objects because Scr_LoadScript may longjmp
 	void Script::GScr_LoadGameTypeScript_Stub()
 	{
 		// Clear handles (from previous GSC loading session)
 		Script::ScriptMainHandles.clear();
 		Script::ScriptInitHandles.clear();
 
-		const auto list = FileSystem::GetFileList("scripts/", "gsc");
+		char path[MAX_PATH]{};
 
-		for (const auto& file : list)
+		auto numFiles = 0;
+		const auto** files = Game::FS_ListFiles("scripts/", "gsc", Game::FS_LIST_ALL, &numFiles, 10);
+
+		for (auto i = 0; i < numFiles; ++i)
 		{
-			std::string script = "scripts/" + file;
+			const auto* scriptFile = files[i];
+			Logger::Print("Loading script {}...\n", scriptFile);
 
-			if (Utils::String::EndsWith(script, ".gsc"))
+			sprintf_s(path, "%s/%s", "scripts", scriptFile);
+
+			// Scr_LoadScriptInternal will add the '.gsc' suffix so we remove it
+			path[std::strlen(path) - 4] = '\0';
+
+			if (!Game::Scr_LoadScript(path))
 			{
-				script = script.substr(0, script.size() - 4);
+				Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", path);
+				continue;
 			}
 
-			Logger::Print("Loading script {}.gsc...\n", script);
-
-			if (!Game::Scr_LoadScript(script.data()))
-			{
-				Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", script);
-				Logger::Error(Game::ERR_DROP, "Could not find script '{}'", script);
-				return;
-			}
-
-			Logger::Print("Script {}.gsc loaded successfully.\n", script);
+			Logger::Print("Script {}.gsc loaded successfully.\n", path);
 			Logger::Debug("Finding script handle main or init...");
 
-			const auto initHandle = Game::Scr_GetFunctionHandle(script.data(), "init");
+			const auto initHandle = Game::Scr_GetFunctionHandle(path, "init");
 			if (initHandle != 0)
 			{
 				Script::ScriptInitHandles.push_back(initHandle);
 			}
 
-			const auto mainHandle = Game::Scr_GetFunctionHandle(script.data(), "main");
+			const auto mainHandle = Game::Scr_GetFunctionHandle(path, "main");
 			if (mainHandle != 0)
 			{
 				Script::ScriptMainHandles.push_back(mainHandle);
@@ -269,6 +271,7 @@ namespace Components
 			// Allow scripts with no handles
 		}
 
+		Game::FS_FreeFileList(files, 10);
 		Game::GScr_LoadGameTypeScript();
 	}
 

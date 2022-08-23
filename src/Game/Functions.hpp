@@ -20,8 +20,6 @@ namespace Game
 		return retval;
 	}
 
-	std::vector<std::string> Sys_ListFilesWrapper(const std::string& directory, const std::string& extension);
-	
 	typedef void(__cdecl * AddRefToObject_t)(unsigned int id);
 	extern AddRefToObject_t AddRefToObject;
 
@@ -376,10 +374,10 @@ namespace Game
 	typedef int(__cdecl * FS_ReadFile_t)(const char* path, char** buffer);
 	extern FS_ReadFile_t FS_ReadFile;
 
-	typedef char** (__cdecl * FS_GetFileList_t)(const char *path, const char *extension, FsListBehavior_e behavior, int *numfiles, int allocTrackType);
-	extern FS_GetFileList_t FS_GetFileList;
+	typedef const char**(__cdecl * FS_ListFiles_t)(const char* path, const char* extension, FsListBehavior_e behavior, int* numfiles, int allocTrackType);
+	extern FS_ListFiles_t FS_ListFiles;
 
-	typedef void(__cdecl * FS_FreeFileList_t)(char** list);
+	typedef void(__cdecl * FS_FreeFileList_t)(const char** list, int allocTrackType);
 	extern FS_FreeFileList_t FS_FreeFileList;
 
 	typedef int(__cdecl * FS_FOpenFileAppend_t)(const char* file);
@@ -978,7 +976,7 @@ namespace Game
 	typedef void(__cdecl * Sys_Error_t)(const char* error, ...);
 	extern Sys_Error_t Sys_Error;
 
-	typedef void(__cdecl * Sys_FreeFileList_t)(char** list);
+	typedef void(__cdecl * Sys_FreeFileList_t)(const char** list);
 	extern Sys_FreeFileList_t Sys_FreeFileList;
 
 	typedef int(__cdecl * Sys_IsDatabaseReady_t)();
@@ -999,7 +997,7 @@ namespace Game
 	typedef bool(__cdecl * Sys_IsDatabaseThread_t)();
 	extern Sys_IsDatabaseThread_t Sys_IsDatabaseThread;
 
-	typedef char**(__cdecl * Sys_ListFiles_t)(const char* directory, const char* extension, const char* filter, int* numfiles, int wantsubs);
+	typedef const char**(__cdecl * Sys_ListFiles_t)(const char* directory, const char* extension, const char* filter, int* numfiles, int wantsubs);
 	extern Sys_ListFiles_t Sys_ListFiles;
 
 	typedef int(__cdecl * Sys_Milliseconds_t)();

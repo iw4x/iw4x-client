@@ -2,26 +2,6 @@
 
 namespace Game
 {
-	std::vector<std::string> Sys_ListFilesWrapper(const std::string& directory, const std::string& extension)
-	{
-		auto fileCount = 0;
-		auto** const files = Sys_ListFiles(directory.data(), extension.data(), nullptr, &fileCount, 0);
-
-		std::vector<std::string> result;
-
-		for (auto i = 0; i < fileCount; i++)
-		{
-			if (files[i] != nullptr)
-			{
-				result.emplace_back(files[i]);
-			}
-		}
-
-		FS_FreeFileList(files);
-
-		return result;
-	}
-
 	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
 	AddRefToValue_t AddRefToValue = AddRefToValue_t(0x482740);
@@ -150,7 +130,7 @@ namespace Game
 	FS_FileExists_t FS_FileExists = FS_FileExists_t(0x4DEFA0);
 	FS_FreeFile_t FS_FreeFile = FS_FreeFile_t(0x4416B0);
 	FS_ReadFile_t FS_ReadFile = FS_ReadFile_t(0x4F4B90);
-	FS_GetFileList_t FS_GetFileList = FS_GetFileList_t(0x441BB0);
+	FS_ListFiles_t FS_ListFiles = FS_ListFiles_t(0x441BB0);
 	FS_FreeFileList_t FS_FreeFileList = FS_FreeFileList_t(0x4A5DE0);
 	FS_FOpenFileAppend_t FS_FOpenFileAppend = FS_FOpenFileAppend_t(0x410BB0);
 	FS_FOpenFileAppend_t FS_FOpenFileWrite = FS_FOpenFileAppend_t(0x4BA530);
