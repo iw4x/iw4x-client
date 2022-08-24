@@ -63,8 +63,7 @@ namespace Components
 		return std::ranges::any_of(this->rotationEntries_,
 			[&](const auto& entry)
 			{
-				return entry.first == Utils::String::ToLower(key) &&
-					entry.second == Utils::String::ToLower(value);
+				return entry.first == key && entry.second == value;
 			});
 	}
 
