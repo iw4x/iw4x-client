@@ -317,6 +317,9 @@ namespace Components
 
 	Vote::Vote()
 	{
+		// Replicate g_allowVote
+		Utils::Hook::Set<DWORD>(0x5E3A4F, Game::DVAR_INTERNAL | Game::DVAR_CODINFO);
+
 		ClientCommand::Add("callvote", Cmd_CallVote_f);
 		ClientCommand::Add("vote", Cmd_Vote_f);
 
