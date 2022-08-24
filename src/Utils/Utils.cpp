@@ -18,9 +18,9 @@ namespace Utils
 
 	std::string ParseChallenge(const std::string& data)
 	{
-		auto pos = data.find_first_of("\n ");
+		const auto pos = data.find_first_of("\n ");
 		if (pos == std::string::npos) return data;
-		return data.substr(0, pos).data();
+		return data.substr(0, pos);
 	}
 
 	void OutputDebugLastError()
