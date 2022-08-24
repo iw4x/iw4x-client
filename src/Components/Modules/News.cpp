@@ -43,7 +43,7 @@ namespace Components
 
 		Dvar::Register<int>("cl_updateoldversion", REVISION, REVISION, REVISION, Game::DVAR_INIT, "Current version number.");
 
-		UIScript::Add("checkFirstLaunch", [](UIScript::Token)
+		UIScript::Add("checkFirstLaunch", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			if (Dvar::Var("g_firstLaunch").get<bool>())
 			{
@@ -52,7 +52,7 @@ namespace Components
 			}
 		});
 
-		UIScript::Add("visitWebsite", [](UIScript::Token)
+		UIScript::Add("visitWebsite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			Utils::OpenUrl(Utils::Cache::GetStaticUrl(""));
 		});

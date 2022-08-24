@@ -7,6 +7,8 @@ namespace Components
 	public:
 		MapRotation();
 
+		static bool Contains(const std::string& key, const std::string& value);
+
 		bool unitTest() override;
 
 	private:
@@ -33,7 +35,8 @@ namespace Components
 
 			void parse(const std::string& data);
 
-			// Json11 Implicit constructor
+			[[nodiscard]] bool contains(const std::string& key, const std::string& value) const;
+
 			[[nodiscard]] nlohmann::json to_json() const;
 
 		private:
@@ -50,6 +53,7 @@ namespace Components
 		static RotationData DedicatedRotation;
 
 		static void LoadRotation(const std::string& data);
+		static void LoadMapRotation();
 
 		// Use these commands before SV_MapRotate_f is called
 		static void AddMapRotationCommands();

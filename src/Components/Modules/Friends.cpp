@@ -604,12 +604,12 @@ namespace Components
 		// Show blue icons on the minimap
 		Utils::Hook(0x493130, Friends::IsClientInParty, HOOK_JUMP).install()->quick();
 
-		UIScript::Add("LoadFriends", [](UIScript::Token)
+		UIScript::Add("LoadFriends", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			Friends::UpdateFriends();
 		});
 
-		UIScript::Add("JoinFriend", [](UIScript::Token)
+		UIScript::Add("JoinFriend", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 			if (Friends::CurrentFriend >= Friends::FriendsList.size()) return;

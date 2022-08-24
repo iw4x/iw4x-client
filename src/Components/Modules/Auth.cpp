@@ -472,7 +472,7 @@ namespace Components
 			});
 		}
 
-		UIScript::Add("security_increase_cancel", [](UIScript::Token)
+		UIScript::Add("security_increase_cancel", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			Auth::TokenContainer.cancel = true;
 			Logger::Print("Token incrementation process canceled!\n");

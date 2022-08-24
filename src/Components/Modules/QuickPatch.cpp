@@ -553,7 +553,7 @@ namespace Components
 
 		// Fix mouse pitch adjustments
 		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");
-		UIScript::Add("updateui_mousePitch", [](UIScript::Token)
+		UIScript::Add("updateui_mousePitch", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			if (Dvar::Var("ui_mousePitch").get<bool>())
 			{

@@ -181,7 +181,7 @@ namespace Components
 		meta.write(nlohmann::json(Theatre::CurrentInfo.to_json()).dump());
 	}
 
-	void Theatre::LoadDemos(UIScript::Token)
+	void Theatre::LoadDemos([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		Theatre::CurrentSelection = 0;
 		Theatre::Demos.clear();
@@ -199,17 +199,16 @@ namespace Components
 
 				if (metaObject.is_object())
 				{
-					Theatre::DemoInfo info;
-
-					info.name      = demo.substr(0, demo.find_last_of("."));
-					info.author    = metaObject["author"].get<std::string>();
-					info.gametype  = metaObject["gametype"].get<std::string>();
-					info.mapname   = metaObject["mapname"].get<std::string>();
-					info.length    = metaObject["length"].get<int>();
+					Theatre::DemoInfo demoInfo;
+					demoInfo.name = demo.substr(0, demo.find_last_of("."));
+					demoInfo.author = metaObject["author"].get<std::string>();
+					demoInfo.gametype = metaObject["gametype"].get<std::string>();
+					demoInfo.mapname = metaObject["mapname"].get<std::string>();
+					demoInfo.length = metaObject["length"].get<int>();
 					auto timestamp = metaObject["timestamp"].get<std::string>();
-					info.timeStamp = _atoi64(timestamp.data());
+					demoInfo.timeStamp = _atoi64(timestamp.data());
 
-					Theatre::Demos.push_back(info);
+					Theatre::Demos.push_back(demoInfo);
 				}
 			}
 		}
@@ -218,16 +217,16 @@ namespace Components
 		std::reverse(Theatre::Demos.begin(), Theatre::Demos.end());
 	}
 
-	void Theatre::DeleteDemo(UIScript::Token)
+	void Theatre::DeleteDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		if (Theatre::CurrentSelection < Theatre::Demos.size())
 		{
-			Theatre::DemoInfo info = Theatre::Demos[Theatre::CurrentSelection];
+			Theatre::DemoInfo demoInfo = Theatre::Demos[Theatre::CurrentSelection];
 
-			Logger::Print("Deleting demo {}...\n", info.name);
+			Logger::Print("Deleting demo {}...\n", demoInfo.name);
 
-			FileSystem::_DeleteFile("demos", info.name + ".dm_13");
-			FileSystem::_DeleteFile("demos", info.name + ".dm_13.json");
+			FileSystem::_DeleteFile("demos", demoInfo.name + ".dm_13");
+			FileSystem::_DeleteFile("demos", demoInfo.name + ".dm_13.json");
 
 			// Reset our ui_demo_* dvars here, because the theater menu needs it.
 			Dvar::Var("ui_demo_mapname").set("");
@@ -238,11 +237,11 @@ namespace Components
 			Dvar::Var("ui_demo_date").set("");
 
 			// Reload demos
-			Theatre::LoadDemos(UIScript::Token());
+			Theatre::LoadDemos(UIScript::Token(), info);
 		}
 	}
 
-	void Theatre::PlayDemo(UIScript::Token)
+	void Theatre::PlayDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		if (Theatre::CurrentSelection < Theatre::Demos.size())
 		{

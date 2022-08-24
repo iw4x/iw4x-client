@@ -5,17 +5,17 @@ namespace Components
 	std::unordered_map<std::string, Utils::Slot<UIScript::Callback>> UIScript::UIScripts;
 	std::unordered_map<int, Utils::Slot<UIScript::CallbackRaw>> UIScript::UIOwnerDraws;
 
-	template<> int UIScript::Token::get()
+	template<> int UIScript::Token::get() const
 	{
 		if (this->isValid())
 		{
-			return atoi(this->token);
+			return std::atoi(this->token);
 		}
 
 		return 0;
 	}
 
-	template<> const char* UIScript::Token::get()
+	template<> const char* UIScript::Token::get() const
 	{
 		if (this->isValid())
 		{
@@ -25,12 +25,12 @@ namespace Components
 		return "";
 	}
 
-	template<> std::string UIScript::Token::get()
+	template<> std::string UIScript::Token::get() const
 	{
-		return this->get<const char*>();
+		return {this->get<const char*>()};
 	}
 
-	bool UIScript::Token::isValid()
+	bool UIScript::Token::isValid() const
 	{
 		return (this->token && this->token[0]);
 	}
@@ -43,12 +43,18 @@ namespace Components
 		}
 	}
 
-	void UIScript::Add(const std::string& name, Utils::Slot<UIScript::Callback> callback)
+	Game::uiInfo_s* UIScript::UI_GetClientInfo(int localClientNum)
+	{
+		AssertIn(localClientNum, Game::STATIC_MAX_LOCAL_CLIENTS);
+		return &Game::uiInfoArray[localClientNum];
+	}
+
+	void UIScript::Add(const std::string& name, const Utils::Slot<UIScript::Callback>& callback)
 	{
 		UIScript::UIScripts[name] = callback;
 	}
 
-	void UIScript::AddOwnerDraw(int ownerdraw, Utils::Slot<UIScript::CallbackRaw> callback)
+	void UIScript::AddOwnerDraw(int ownerdraw, const Utils::Slot<UIScript::CallbackRaw>& callback)
 	{
 		UIScript::UIOwnerDraws[ownerdraw] = callback;
 	}
@@ -57,7 +63,8 @@ namespace Components
 	{
 		if (UIScript::UIScripts.contains(name))
 		{
-			UIScript::UIScripts[name](UIScript::Token(args));
+			const auto* info = UIScript::UI_GetClientInfo(0);
+			UIScript::UIScripts[name](UIScript::Token(args), info);
 			return true;
 		}
 
@@ -111,6 +118,8 @@ namespace Components
 
 	UIScript::UIScript()
 	{
+		AssertSize(Game::uiInfo_s, 0x22FC);
+
 		if (Dedicated::IsEnabled()) return;
 
 		// Install handler

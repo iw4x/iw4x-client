@@ -18,8 +18,8 @@ namespace Components
 		static unsigned int GetItemCount();
 		static const char* GetItemText(unsigned int index, int column);
 		static void Select(unsigned int index);
-		static void UIScript_LoadMods(UIScript::Token);
-		static void UIScript_RunMod(UIScript::Token);
-		static void UIScript_ClearMods(UIScript::Token);
+		static void UIScript_LoadMods([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void UIScript_RunMod([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void UIScript_ClearMods([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 	};
 }

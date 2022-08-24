@@ -408,6 +408,8 @@ namespace Game
 	unsigned int* playerCardUIStringIndex = reinterpret_cast<unsigned int*>(0x62CD7A8);
 	char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38] = reinterpret_cast<char(*)[PLAYER_CARD_UI_STRING_COUNT][38]>(0x62CB4F8);
 
+	uiInfo_s* uiInfoArray = reinterpret_cast<uiInfo_s*>(0x62E2858);
+
 	int* logfile = reinterpret_cast<int*>(0x1AD8F28);
 
 	GamerSettingState* gamerSettings = reinterpret_cast<GamerSettingState*>(0x107D3E8);

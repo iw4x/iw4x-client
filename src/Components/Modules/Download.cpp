@@ -909,7 +909,7 @@ namespace Components
 				Dvar::Register<const char*>("ui_dl_transRate", "", Game::DVAR_NONE, "");
 			}, Scheduler::Pipeline::MAIN);
 
-			UIScript::Add("mod_download_cancel", [](UIScript::Token)
+			UIScript::Add("mod_download_cancel", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 			{
 				Download::CLDownload.clear();
 			});

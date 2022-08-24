@@ -56,7 +56,7 @@ namespace Components
 		}
 	}
 
-	void Stats::UpdateClasses(UIScript::Token)
+	void Stats::UpdateClasses([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		Stats::SendStats();
 	}

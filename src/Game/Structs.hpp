@@ -8900,6 +8900,27 @@ namespace Game
 		int dataSize;
 	};
 
+	struct uiInfo_s
+	{
+		UiContext uiDC;
+		int myTeamCount;
+		int playerRefresh;
+		int playerIndex;
+		int timeIndex;
+		int previousTimes[4];
+		uiMenuCommand_t currentMenuType;
+		bool allowScriptMenuResponse;
+		char findPlayerName[1024];
+		char foundPlayerServerAddresses[16][64];
+		char foundPlayerServerNames[16][64];
+		int numFoundPlayerServers;
+		int nextFindPlayerRefresh;
+		unsigned int mailUpdateTime;
+		char mailIndices[64];
+		int mailCount;
+		int selectedMail;
+	};
+
 #pragma endregion
 
 #ifndef IDA

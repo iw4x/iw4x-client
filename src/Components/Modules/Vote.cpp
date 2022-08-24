@@ -62,6 +62,12 @@ namespace Components
 		strncpy_s(arg2, params->get(2), _TRUNCATE);
 		strncpy_s(arg3, params->get(3), _TRUNCATE);
 
+		if (!MapRotation::Contains("gametype", arg2) ||
+			!MapRotation::Contains("map", arg3))
+		{
+			return false;
+		}
+
 		if (!Game::Scr_IsValidGameType(arg2))
 		{
 			Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_INVALIDGAMETYPE\"", 0x65));
@@ -116,6 +122,11 @@ namespace Components
 
 	bool Vote::HandleMap([[maybe_unused]] const Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 	{
+		if (!MapRotation::Contains("map", params->get(2)))
+		{
+			return false;
+		}
+
 		sprintf_s(Game::level->voteString, "%s %s", params->get(1), params->get(2));
 		sprintf_s(Game::level->voteDisplayString, "GAME_VOTE_MAP\x15%s", params->get(2));
 		return true;
@@ -123,6 +134,11 @@ namespace Components
 
 	bool Vote::HandleGametype([[maybe_unused]] const Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 	{
+		if (!MapRotation::Contains("gametype", params->get(2)))
+		{
+			return false;
+		}
+
 		if (!Game::Scr_IsValidGameType(params->get(2)))
 		{
 			Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_INVALIDGAMETYPE\"", 0x65));
@@ -272,5 +288,41 @@ namespace Components
 	{
 		ClientCommand::Add("callvote", Cmd_CallVote_f);
 		ClientCommand::Add("vote", Cmd_Vote_f);
+
+		UIScript::Add("voteKick", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
+		{
+			if (info->playerIndex >= 0 && info->playerIndex < Game::sharedUiInfo->playerCount)
+			{
+				Game::Cbuf_AddText(0, VA("callvote kick \"%s\"\n", Game::sharedUiInfo->playerNames[info->playerIndex]));
+			}
+		});
+
+		UIScript::Add("voteTempBan", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
+		{
+			if (info->playerIndex >= 0 && info->playerIndex < Game::sharedUiInfo->playerCount)
+			{
+				Game::Cbuf_AddText(0, VA("callvote tempBanUser \"%s\"\n", Game::sharedUiInfo->playerNames[info->playerIndex]));
+			}
+		});
+
+		UIScript::Add("voteTypeMap", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
+		{
+			Game::Cbuf_AddText(0, VA("callvote typemap %s %s\n", Game::sharedUiInfo->gameTypes[(*Game::ui_netGameType)->current.integer].gameType,
+				Game::sharedUiInfo->mapList[(*Game::ui_netGameType)->current.integer].mapName));
+		});
+
+		UIScript::Add("voteMap", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
+		{
+			if ((*Game::ui_currentMap)->current.integer >= 0 &&
+				(*Game::ui_currentMap)->current.integer <Game::sharedUiInfo->mapCount)
+			{
+				Game::Cbuf_AddText(0, VA("callvote map %s\n", Game::sharedUiInfo->mapList[(*Game::ui_currentMap)->current.integer].mapName));
+			}
+		});
+
+		UIScript::Add("voteGame", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
+		{
+			Game::Cbuf_AddText(0, VA("callvote g_gametype %s\n", Game::sharedUiInfo->gameTypes[(*Game::ui_netGameType)->current.integer].gameType));
+		});
 	}
 }

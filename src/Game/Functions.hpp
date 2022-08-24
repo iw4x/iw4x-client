@@ -758,6 +758,8 @@ namespace Game
 	extern unsigned int* playerCardUIStringIndex;
 	extern char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38];
 
+	extern uiInfo_s* uiInfoArray;
+
 	extern int* logfile;
 
 	extern GamerSettingState* gamerSettings;
