@@ -11,6 +11,8 @@ namespace Components
 		{"typemap", HandleTypemap},
 		{"map", HandleMap},
 		{"g_gametype", HandleGametype},
+		{"kick", HandleKick},
+		{"tempBanUser", HandleKick}
 	};
 
 	void Vote::DisplayVote(const Game::gentity_s* ent)
@@ -147,6 +149,35 @@ namespace Components
 
 		sprintf_s(Game::level->voteString, "%s %s; map_restart", params->get(2), params->get(3));
 		sprintf_s(Game::level->voteDisplayString, "GAME_VOTE_GAMETYPE\x14%s", Game::Scr_GetGameTypeNameForScript(params->get(2)));
+		return true;
+	}
+
+	bool Vote::HandleKick(const Game::gentity_s* ent, const Command::ServerParams* params)
+	{
+		char cleanName[0x40]{};
+
+		auto kicknum = Game::level->maxclients;
+		for (auto i = 0; i < Game::level->maxclients; ++i)
+		{
+			if (Game::level->clients[i].sess.connected == Game::CON_CONNECTED)
+			{
+				strncpy_s(cleanName, Game::level->clients[i].sess.cs.name, _TRUNCATE);
+				Game::I_CleanStr(cleanName);
+				if (Utils::String::Compare(cleanName, params->get(2)))
+				{
+					kicknum = i;
+				}
+			}
+		}
+
+		if (kicknum == Game::level->maxclients)
+		{
+			Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_CLIENTNOTONSERVER\"", 0x65));
+			return false;
+		}
+
+		sprintf_s(Game::level->voteString, "%s \"%d\"", "tempBanClient", kicknum); // kick and tempBanClient do the same thing
+		sprintf_s(Game::level->voteDisplayString, "GAME_VOTE_KICK\x15(%i)%s", kicknum, Game::level->clients[kicknum].sess.cs.name);
 		return true;
 	}
 
