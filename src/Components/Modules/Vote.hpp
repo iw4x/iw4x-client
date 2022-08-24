@@ -12,7 +12,7 @@ namespace Components
 		static std::unordered_map<std::string, CommandHandler> VoteCommands;
 
 		static constexpr auto* CallVoteDesc = "%c \"GAME_VOTECOMMANDSARE\x15 map_restart, map_rotate, map <mapname>, g_gametype <typename>, typemap <typename> <mapname>, "
-		" kick <player>, tempBanUser <player>\"";
+		"kick <player>, tempBanUser <player>\"";
 
 		static void DisplayVote(const Game::gentity_s* ent);
 		static bool IsInvalidVoteString(const std::string& input);
@@ -22,6 +22,7 @@ namespace Components
 		static bool HandleTypemap(const Game::gentity_s* ent, const Command::ServerParams* params);
 		static bool HandleMap(const Game::gentity_s* ent, const Command::ServerParams* params);
 		static bool HandleGametype(const Game::gentity_s* ent, const Command::ServerParams* params);
+		static bool HandleKick(const Game::gentity_s* ent, const Command::ServerParams* params);
 
 		static void Scr_VoteCalled(Game::gentity_s* self, const char* command, const char* param1, const char* param2);
 		static void Scr_PlayerVote(Game::gentity_s* self, const char* option);
