@@ -1126,7 +1126,7 @@ namespace Components
 
 	void Gamepad::CL_GamepadButtonEvent(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time)
 	{
-		AssertIn(gamePadInde, Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		const auto pressed = buttonEvent == Game::GPAD_BUTTON_PRESSED;
 		const auto pressedOrUpdated = pressed || buttonEvent == Game::GPAD_BUTTON_UPDATE;
