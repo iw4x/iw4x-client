@@ -58,6 +58,16 @@ namespace Components
 		}
 	}
 
+	bool MapRotation::RotationData::contains(const std::string& key, const std::string& value) const
+	{
+		return std::ranges::any_of(this->rotationEntries_,
+			[&](const auto& entry)
+			{
+				return entry.first == Utils::String::ToLower(key) &&
+					entry.second == Utils::String::ToLower(value);
+			});
+	}
+
 	nlohmann::json MapRotation::RotationData::to_json() const
 	{
 		std::vector<std::string> mapVector;
@@ -109,6 +119,17 @@ namespace Components
 		Logger::Debug("DedicatedRotation size after parsing is '{}'", DedicatedRotation.getEntriesSize());
 	}
 
+	void MapRotation::LoadMapRotation()
+	{
+		const std::string mapRotation = (*Game::sv_mapRotation)->current.string;
+		// People may have sv_mapRotation empty because they only use 'addMap' or 'addGametype'
+		if (!mapRotation.empty())
+		{
+			Logger::Debug("sv_mapRotation is not empty. Parsing...");
+			LoadRotation(mapRotation);
+		}
+	}
+
 	void MapRotation::AddMapRotationCommands()
 	{
 		Command::Add("addMap", [](Command::Params* params)
@@ -132,6 +153,11 @@ namespace Components
 
 			DedicatedRotation.addEntry("gametype", params->get(1));
 		});
+	}
+
+	bool MapRotation::Contains(const std::string& key, const std::string& value)
+	{
+		return DedicatedRotation.contains(key, value);
 	}
 
 	bool MapRotation::ShouldRotate()
@@ -276,14 +302,7 @@ namespace Components
 			return;
 		}
 
-		const std::string mapRotation = (*Game::sv_mapRotation)->current.string;
-		// People may have sv_mapRotation empty because they only use 'addMap' or 'addGametype'
-		if (!mapRotation.empty())
-		{
-			Logger::Debug("sv_mapRotation is not empty. Parsing...");
-			LoadRotation(mapRotation);
-		}
-
+		LoadMapRotation();
 		if (DedicatedRotation.getEntriesSize() == 0)
 		{
 			Logger::Print(Game::CON_CHANNEL_SERVER, "{} is empty or contains invalid data. Restarting map\n", (*Game::sv_mapRotation)->name);

@@ -39,36 +39,36 @@ namespace Components
 		ServerInfo::PlayerContainer.currentPlayer = index;
 	}
 
-	void ServerInfo::ServerStatus(UIScript::Token)
+	void ServerInfo::ServerStatus([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		ServerInfo::PlayerContainer.currentPlayer = 0;
 		ServerInfo::PlayerContainer.playerList.clear();
 
-		ServerList::ServerInfo* info = ServerList::GetCurrentServer();
+		auto* serverInfo = ServerList::GetCurrentServer();
 
 		if (info)
 		{
-			Dvar::Var("uiSi_ServerName").set(info->hostname);
-			Dvar::Var("uiSi_MaxClients").set(info->clients);
-			Dvar::Var("uiSi_Version").set(info->shortversion);
-			Dvar::Var("uiSi_SecurityLevel").set(info->securityLevel);
-			Dvar::Var("uiSi_isPrivate").set(info->password ? "@MENU_YES" : "@MENU_NO");
-			Dvar::Var("uiSi_Hardcore").set(info->hardcore ? "@MENU_ENABLED" : "@MENU_DISABLED");
+			Dvar::Var("uiSi_ServerName").set(serverInfo->hostname);
+			Dvar::Var("uiSi_MaxClients").set(serverInfo->clients);
+			Dvar::Var("uiSi_Version").set(serverInfo->shortversion);
+			Dvar::Var("uiSi_SecurityLevel").set(serverInfo->securityLevel);
+			Dvar::Var("uiSi_isPrivate").set(serverInfo->password ? "@MENU_YES" : "@MENU_NO");
+			Dvar::Var("uiSi_Hardcore").set(serverInfo->hardcore ? "@MENU_ENABLED" : "@MENU_DISABLED");
 			Dvar::Var("uiSi_KillCam").set("@MENU_NO");
 			Dvar::Var("uiSi_ffType").set("@MENU_DISABLED");
-			Dvar::Var("uiSi_MapName").set(info->mapname);
-			Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(info->mapname.data()));
-			Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(info->gametype.data()));
+			Dvar::Var("uiSi_MapName").set(serverInfo->mapname);
+			Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(serverInfo->mapname.data()));
+			Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(serverInfo->gametype.data()));
 			Dvar::Var("uiSi_ModName").set("");
-			Dvar::Var("uiSi_aimAssist").set(info->aimassist ? "@MENU_YES" : "@MENU_NO");
-			Dvar::Var("uiSi_voiceChat").set(info->voice ? "@MENU_YES" : "@MENU_NO");
+			Dvar::Var("uiSi_aimAssist").set(serverInfo->aimassist ? "@MENU_YES" : "@MENU_NO");
+			Dvar::Var("uiSi_voiceChat").set(serverInfo->voice ? "@MENU_YES" : "@MENU_NO");
 
-			if (info->mod.size() > 5)
+			if (serverInfo->mod.size() > 5)
 			{
-				Dvar::Var("uiSi_ModName").set(info->mod.data() + 5);
+				Dvar::Var("uiSi_ModName").set(serverInfo->mod.data() + 5);
 			}
 
-			ServerInfo::PlayerContainer.target = info->addr;
+			ServerInfo::PlayerContainer.target = serverInfo->addr;
 			Network::SendCommand(ServerInfo::PlayerContainer.target, "getstatus");
 		}
 	}

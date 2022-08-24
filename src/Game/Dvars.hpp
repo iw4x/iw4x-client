@@ -109,6 +109,11 @@ namespace Game
 
 	extern const dvar_t** version;
 
+	extern const dvar_t** ui_currentMap;
+	extern const dvar_t** ui_gametype;
+	extern const dvar_t** ui_mapname;
+	extern const dvar_t** ui_netGameType;
+
 	extern void Dvar_SetVariant(dvar_t* var, DvarValue value, DvarSetSource source);
 	extern void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source);
 }

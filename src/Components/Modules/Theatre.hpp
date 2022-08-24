@@ -44,9 +44,9 @@ namespace Components
 		static void WriteBaseline();
 		static void StoreBaseline(PBYTE snapshotMsg);
 
-		static void LoadDemos(UIScript::Token);
-		static void DeleteDemo(UIScript::Token);
-		static void PlayDemo(UIScript::Token);
+		static void LoadDemos([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void DeleteDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void PlayDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 
 		static unsigned int GetDemoCount();
 		static const char* GetDemoText(unsigned int item, int column);

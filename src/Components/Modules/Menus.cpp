@@ -785,80 +785,80 @@ namespace Components
 			}
 		}, HOOK_CALL).install()->quick();
 
-			// Intercept menu painting
-			Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).install()->quick();
+		// Intercept menu painting
+		Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).install()->quick();
 
-			// disable the 2 new tokens in ItemParse_rect
-			Utils::Hook::Set<BYTE>(0x640693, 0xEB);
+		// disable the 2 new tokens in ItemParse_rect
+		Utils::Hook::Set<BYTE>(0x640693, 0xEB);
 
-			// don't load ASSET_TYPE_MENU assets for every menu (might cause patch menus to fail)
-			Utils::Hook::Nop(0x453406, 5);
+		// don't load ASSET_TYPE_MENU assets for every menu (might cause patch menus to fail)
+		Utils::Hook::Nop(0x453406, 5);
 
-			//make Com_Error and similar go back to main_text instead of menu_xboxlive.
-			Utils::Hook::SetString(0x6FC790, "main_text");
+		// make Com_Error and similar go back to main_text instead of menu_xboxlive.
+		Utils::Hook::SetString(0x6FC790, "main_text");
 
-			Command::Add("openmenu", [](Command::Params* params)
+		Command::Add("openmenu", [](Command::Params* params)
+		{
+			if (params->size() != 2)
 			{
-				if (params->size() != 2)
-				{
-					Logger::Print("USAGE: openmenu <menu name>\n");
-					return;
-				}
+				Logger::Print("USAGE: openmenu <menu name>\n");
+				return;
+			}
 
-				// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
-				if (Dvar::Var("cl_ingame").get<bool>())
-				{
-					Game::Key_SetCatcher(0, 16);
-				}
-
-				Game::Menus_OpenByName(Game::uiContext, params->get(1));
-			});
-
-			Command::Add("reloadmenus", [](Command::Params*)
+			// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
+			if (Dvar::Var("cl_ingame").get<bool>())
 			{
-				// Close all menus
-				Game::Menus_CloseAll(Game::uiContext);
+				Game::Key_SetCatcher(0, 16);
+			}
 
-				// Free custom menus
-				Menus::FreeEverything();
+			Game::Menus_OpenByName(Game::uiContext, params->get(1));
+		});
 
-				// Only disconnect if in-game, context is updated automatically!
-				if (Game::CL_IsCgameInitialized())
-				{
-					Game::Cbuf_AddText(0, "disconnect\n");
-				}
-				else
-				{
-					// Reinitialize ui context
-					Utils::Hook::Call<void()>(0x401700)();
+		Command::Add("reloadmenus", [](Command::Params*)
+		{
+			// Close all menus
+			Game::Menus_CloseAll(Game::uiContext);
 
-					// Reopen main menu
-					Game::Menus_OpenByName(Game::uiContext, "main_text");
-				}
-			});
+			// Free custom menus
+			Menus::FreeEverything();
 
-			Command::Add("mp_QuickMessage", [](Command::Params*)
+			// Only disconnect if in-game, context is updated automatically!
+			if (Game::CL_IsCgameInitialized())
 			{
-				Command::Execute("openmenu quickmessage");
-			});
+				Game::Cbuf_AddText(0, "disconnect\n");
+			}
+			else
+			{
+				// Reinitialize ui context
+				Utils::Hook::Call<void()>(0x401700)();
 
-			// Define custom menus here
-			Menus::Add("ui_mp/changelog.menu");
-			Menus::Add("ui_mp/theater_menu.menu");
-			Menus::Add("ui_mp/pc_options_multi.menu");
-			Menus::Add("ui_mp/pc_options_game.menu");
-			Menus::Add("ui_mp/pc_options_gamepad.menu");
-			Menus::Add("ui_mp/stats_reset.menu");
-			Menus::Add("ui_mp/stats_unlock.menu");
-			Menus::Add("ui_mp/security_increase_popmenu.menu");
-			Menus::Add("ui_mp/mod_download_popmenu.menu");
-			Menus::Add("ui_mp/popup_friends.menu");
-			Menus::Add("ui_mp/menu_first_launch.menu");
-			Menus::Add("ui_mp/startup_messages.menu");
-			Menus::Add("ui_mp/iw4x_credits.menu");
-			Menus::Add("ui_mp/resetclass.menu");
-			Menus::Add("ui_mp/popup_customtitle.menu");
-			Menus::Add("ui_mp/popup_customclan.menu");
+				// Reopen main menu
+				Game::Menus_OpenByName(Game::uiContext, "main_text");
+			}
+		});
+
+		Command::Add("mp_QuickMessage", [](Command::Params*)
+		{
+			Command::Execute("openmenu quickmessage");
+		});
+
+		// Define custom menus here
+		Menus::Add("ui_mp/changelog.menu");
+		Menus::Add("ui_mp/theater_menu.menu");
+		Menus::Add("ui_mp/pc_options_multi.menu");
+		Menus::Add("ui_mp/pc_options_game.menu");
+		Menus::Add("ui_mp/pc_options_gamepad.menu");
+		Menus::Add("ui_mp/stats_reset.menu");
+		Menus::Add("ui_mp/stats_unlock.menu");
+		Menus::Add("ui_mp/security_increase_popmenu.menu");
+		Menus::Add("ui_mp/mod_download_popmenu.menu");
+		Menus::Add("ui_mp/popup_friends.menu");
+		Menus::Add("ui_mp/menu_first_launch.menu");
+		Menus::Add("ui_mp/startup_messages.menu");
+		Menus::Add("ui_mp/iw4x_credits.menu");
+		Menus::Add("ui_mp/resetclass.menu");
+		Menus::Add("ui_mp/popup_customtitle.menu");
+		Menus::Add("ui_mp/popup_customclan.menu");
 	}
 
 	Menus::~Menus()

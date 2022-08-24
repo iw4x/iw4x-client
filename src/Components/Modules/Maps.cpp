@@ -768,7 +768,7 @@ namespace Components
 
 			Maps::UpdateDlcStatus();
 
-			UIScript::Add("downloadDLC", [](UIScript::Token token)
+			UIScript::Add("downloadDLC", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 			{
 				int dlc = token.get<int>();
 

@@ -56,7 +56,7 @@ namespace Components
 		static unsigned int GetMapCount();
 		static const char* GetMapText(unsigned int index, int column);
 		static void SelectMap(unsigned int index);
-		static void ApplyMap(UIScript::Token token);
-		static void ApplyInitialMap(UIScript::Token token);
+		static void ApplyMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void ApplyInitialMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 	};
 }

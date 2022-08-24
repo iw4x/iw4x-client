@@ -11,12 +11,12 @@ namespace Components
 		class Token
 		{
 		public:
-			Token() : token(nullptr) {};
-			Token(const char** args) : token(nullptr) { this->parse(args); };
-			Token(const Token &obj) { this->token = obj.token; };
+			Token() : token(nullptr) {}
+			Token(const char** args) : token(nullptr) { this->parse(args); }
+			Token(const Token &obj) { this->token = obj.token; }
 
-			template<typename T> T get();
-			bool isValid();
+			template<typename T> T get() const;
+			bool isValid() const;
 
 		private:
 			char* token;
@@ -24,11 +24,13 @@ namespace Components
 			void parse(const char** args);
 		};
 
-		typedef void(Callback)(Token token);
+		typedef void(Callback)(const Token& token, const Game::uiInfo_s* info);
 		typedef void(CallbackRaw)();
 
-		static void Add(const std::string& name, Utils::Slot<Callback> callback);
-		static void AddOwnerDraw(int ownerdraw, Utils::Slot<CallbackRaw> callback);
+		static Game::uiInfo_s* UI_GetClientInfo(int localClientNum);
+
+		static void Add(const std::string& name, const Utils::Slot<Callback>& callback);
+		static void AddOwnerDraw(int ownerdraw, const Utils::Slot<CallbackRaw>& callback);
 
 	private:
 		static void OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key);
