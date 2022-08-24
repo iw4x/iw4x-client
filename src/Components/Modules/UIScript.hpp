@@ -24,20 +24,19 @@ namespace Components
 			void parse(const char** args);
 		};
 
-		typedef void(Callback)(const Token& token, const Game::uiInfo_s* info);
-		typedef void(CallbackRaw)();
+		using UIScriptHandler = std::function<void(const Token& token, const Game::uiInfo_s* info)>;
 
 		static Game::uiInfo_s* UI_GetClientInfo(int localClientNum);
 
-		static void Add(const std::string& name, const Utils::Slot<Callback>& callback);
-		static void AddOwnerDraw(int ownerdraw, const Utils::Slot<CallbackRaw>& callback);
+		static void Add(const std::string& name, const UIScriptHandler& callback);
+		static void AddOwnerDraw(int ownerdraw, const std::function<void()>& callback);
 
 	private:
 		static void OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key);
 		static bool RunMenuScript(const char* name, const char** args);
 		static void RunMenuScriptStub();
 
-		static std::unordered_map<std::string, Utils::Slot<Callback>> UIScripts;
-		static std::unordered_map<int, Utils::Slot<CallbackRaw>> UIOwnerDraws;
+		static std::unordered_map<std::string, UIScriptHandler> UIScripts;
+		static std::unordered_map<int, std::function<void()>> UIOwnerDraws;
 	};
 }

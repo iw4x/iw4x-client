@@ -238,6 +238,9 @@ namespace Game
 	
 	typedef void(*UI_ReplaceConversions_t)(const char* sourceString, ConversionArguments* arguments, char* outputString, size_t outputStringSize);
 	extern UI_ReplaceConversions_t UI_ReplaceConversions;
+
+	typedef int(*UI_ParseInfos_t)(const char* buf, int max, char** infos);
+	extern UI_ParseInfos_t UI_ParseInfos;
 	
 	typedef void(*MSG_Init_t)(msg_t* buf, unsigned char* data, int length);
 	extern MSG_Init_t MSG_Init;
@@ -767,6 +770,10 @@ namespace Game
 	extern unsigned char* g_largeLocalBuf;
 	extern int* g_largeLocalPos;
 	extern int* g_largeLocalRightPos;
+
+	extern char** ui_arenaInfos;
+	extern int* ui_numArenas;
+	extern int* ui_arenaBufPos;
 
 	ScreenPlacement* ScrPlace_GetFullPlacement();
 	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement();

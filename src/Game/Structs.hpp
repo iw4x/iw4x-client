@@ -5666,30 +5666,21 @@ namespace Game
 		UILOCALVAR_STRING = 0x2,
 	};
 
-	union $B42A88463653BDCDFC5664844B4491DA
-	{
-		int integer;
-		float value;
-		const char *string;
-	};
-
 	struct UILocalVar
 	{
 		UILocalVarType type;
-		const char *name;
-		$B42A88463653BDCDFC5664844B4491DA u;
+		const char* name;
+		union
+		{
+			int integer;
+			float value;
+			const char* string;
+		} u;
 	};
 
 	struct UILocalVarContext
 	{
 		UILocalVar table[256];
-	};
-
-	struct $1942E78D15753E2013144570239460A8
-	{
-		float x;
-		float y;
-		int lastMoveTime;
 	};
 
 	struct UiContext
@@ -5698,7 +5689,12 @@ namespace Game
 		float bias;
 		int realTime;
 		int frameTime;
-		$1942E78D15753E2013144570239460A8 cursor;
+		struct
+		{
+			float x;
+			float y;
+			int lastMoveTime;
+		} cursor;
 		int isCursorVisible;
 		int paintFull;
 		int screenWidth;
@@ -5706,9 +5702,9 @@ namespace Game
 		float screenAspect;
 		float FPS;
 		float blurRadiusOut;
-		menuDef_t *Menus[640];
+		menuDef_t* Menus[640];
 		int menuCount;
-		menuDef_t *menuStack[16];
+		menuDef_t* menuStack[16];
 		int openMenuCount;
 		UILocalVarContext localVars;
 	};

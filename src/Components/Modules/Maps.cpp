@@ -96,12 +96,12 @@ namespace Components
 
 	const char* Maps::LoadArenaFileStub(const char* name, char* buffer, int size)
 	{
-		std::string data  = Game::Scr_AddSourceBuffer(nullptr, name, nullptr, false);
+		std::string data = RawFiles::ReadRawFile(name, buffer, size);
 
-		if(Maps::UserMap.isValid())
+		if (Maps::UserMap.isValid())
 		{
-			std::string mapname = Maps::UserMap.getName();
-			std::string arena = Utils::String::VA("usermaps/%s/%s.arena", mapname.data(), mapname.data());
+			const std::string mapname = Maps::UserMap.getName();
+			const auto* arena = Utils::String::VA("usermaps/%s/%s.arena", mapname.data(), mapname.data());
 
 			if (Utils::IO::FileExists(arena))
 			{
@@ -109,7 +109,7 @@ namespace Components
 			}
 		}
 
-		strncpy_s(buffer, size, data.data(), data.size());
+		strncpy_s(buffer, size, data.data(), _TRUNCATE);
 		return buffer;
 	}
 

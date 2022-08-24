@@ -216,6 +216,7 @@ namespace Game
 	UI_KeyEvent_t UI_KeyEvent = UI_KeyEvent_t(0x4970F0);
 	UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x4F1700);
 	UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x4E9740);
+	UI_ParseInfos_t UI_ParseInfos = UI_ParseInfos_t(0x4027A0);
 
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 
@@ -417,6 +418,10 @@ namespace Game
 	unsigned char* g_largeLocalBuf = reinterpret_cast<unsigned char*>(0x63D9790);
 	int* g_largeLocalPos = reinterpret_cast<int*>(0x63D97B4);
 	int* g_largeLocalRightPos = reinterpret_cast<int*>(0x63D9780);
+
+	char** ui_arenaInfos = reinterpret_cast<char**>(0x62D2688);
+	int* ui_numArenas = reinterpret_cast<int*>(0x62D2788);
+	int* ui_arenaBufPos = reinterpret_cast<int*>(0x62D278C);
 
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{

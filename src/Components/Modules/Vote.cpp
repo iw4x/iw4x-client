@@ -64,9 +64,10 @@ namespace Components
 		strncpy_s(arg2, params->get(2), _TRUNCATE);
 		strncpy_s(arg3, params->get(3), _TRUNCATE);
 
-		if (!MapRotation::Contains("gametype", arg2) ||
-			!MapRotation::Contains("map", arg3))
+		// This prevents abuse
+		if (!MapRotation::Contains("map", arg3))
 		{
+			Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_NOTONROTATION\"", 0x65));
 			return false;
 		}
 
@@ -124,8 +125,10 @@ namespace Components
 
 	bool Vote::HandleMap([[maybe_unused]] const Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 	{
+		// This prevents abuse
 		if (!MapRotation::Contains("map", params->get(2)))
 		{
+			Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_NOTONROTATION\"", 0x65));
 			return false;
 		}
 
@@ -136,11 +139,6 @@ namespace Components
 
 	bool Vote::HandleGametype([[maybe_unused]] const Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 	{
-		if (!MapRotation::Contains("gametype", params->get(2)))
-		{
-			return false;
-		}
-
 		if (!Game::Scr_IsValidGameType(params->get(2)))
 		{
 			Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_INVALIDGAMETYPE\"", 0x65));
@@ -342,13 +340,13 @@ namespace Components
 		UIScript::Add("voteTypeMap", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			Game::Cbuf_AddText(0, VA("callvote typemap %s %s\n", Game::sharedUiInfo->gameTypes[(*Game::ui_netGameType)->current.integer].gameType,
-				Game::sharedUiInfo->mapList[(*Game::ui_netGameType)->current.integer].mapName));
+				Game::sharedUiInfo->mapList[(*Game::ui_currentMap)->current.integer].mapName));
 		});
 
 		UIScript::Add("voteMap", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			if ((*Game::ui_currentMap)->current.integer >= 0 &&
-				(*Game::ui_currentMap)->current.integer <Game::sharedUiInfo->mapCount)
+				(*Game::ui_currentMap)->current.integer < Game::sharedUiInfo->mapCount)
 			{
 				Game::Cbuf_AddText(0, VA("callvote map %s\n", Game::sharedUiInfo->mapList[(*Game::ui_currentMap)->current.integer].mapName));
 			}

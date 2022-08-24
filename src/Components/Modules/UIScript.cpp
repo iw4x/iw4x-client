@@ -2,8 +2,8 @@
 
 namespace Components
 {
-	std::unordered_map<std::string, Utils::Slot<UIScript::Callback>> UIScript::UIScripts;
-	std::unordered_map<int, Utils::Slot<UIScript::CallbackRaw>> UIScript::UIOwnerDraws;
+	std::unordered_map<std::string, UIScript::UIScriptHandler> UIScript::UIScripts;
+	std::unordered_map<int, std::function<void()>> UIScript::UIOwnerDraws;
 
 	template<> int UIScript::Token::get() const
 	{
@@ -49,22 +49,22 @@ namespace Components
 		return &Game::uiInfoArray[localClientNum];
 	}
 
-	void UIScript::Add(const std::string& name, const Utils::Slot<UIScript::Callback>& callback)
+	void UIScript::Add(const std::string& name, const UIScript::UIScriptHandler& callback)
 	{
 		UIScript::UIScripts[name] = callback;
 	}
 
-	void UIScript::AddOwnerDraw(int ownerdraw, const Utils::Slot<UIScript::CallbackRaw>& callback)
+	void UIScript::AddOwnerDraw(int ownerdraw, const std::function<void()>& callback)
 	{
 		UIScript::UIOwnerDraws[ownerdraw] = callback;
 	}
 
 	bool UIScript::RunMenuScript(const char* name, const char** args)
 	{
-		if (UIScript::UIScripts.contains(name))
+		if (const auto got = UIScript::UIScripts.find(name); got != UIScript::UIScripts.end())
 		{
 			const auto* info = UIScript::UI_GetClientInfo(0);
-			UIScript::UIScripts[name](UIScript::Token(args), info);
+			got->second(UIScript::Token(args), info);
 			return true;
 		}
 
@@ -73,7 +73,7 @@ namespace Components
 
 	void UIScript::OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key)
 	{
-		if (key == 200 || key == 201) //mouse buttons
+		if (key == 200 || key == 201) // mouse buttons
 		{
 			for (auto i = UIScript::UIOwnerDraws.begin(); i != UIScript::UIOwnerDraws.end(); ++i)
 			{

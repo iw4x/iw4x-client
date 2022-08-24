@@ -7,8 +7,9 @@ namespace Components
 	public:
 		RawFiles();
 
-	private:
 		static char* ReadRawFile(const char* filename, char* buf, int size);
+
+	private:
 		static char* GetMenuBuffer(const char* filename);
 	};
 }

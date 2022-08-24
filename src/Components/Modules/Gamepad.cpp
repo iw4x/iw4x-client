@@ -314,7 +314,7 @@ namespace Components
 
 	bool Gamepad::GPad_Check(const int gamePadIndex, const int portIndex)
 	{
-		assert((portIndex >= 0) && (portIndex < Game::MAX_GPAD_COUNT));
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
 
@@ -422,7 +422,7 @@ namespace Components
 
 	bool Gamepad::AimAssist_IsLockonActive(const int gamePadIndex)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& aaGlob = Game::aaGlobArray[gamePadIndex];
 
@@ -827,7 +827,7 @@ namespace Components
 
 	void Gamepad::CL_GamepadMove(const int gamePadIndex, Game::usercmd_s* cmd, const float frameTimeBase)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
 		auto& clientActive = Game::clients[gamePadIndex];
@@ -970,7 +970,7 @@ namespace Components
 
 	void Gamepad::CL_GamepadResetMenuScrollTime(const int gamePadIndex, const int key, const bool down, const unsigned time)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePadGlobal = gamePadGlobals[gamePadIndex];
 
@@ -990,7 +990,7 @@ namespace Components
 
 	void Gamepad::CL_GamepadGenerateAPad(const int gamePadIndex, const Game::GamepadPhysicalAxis physicalAxis, unsigned time)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 		assert(physicalAxis >= 0 && physicalAxis < Game::GPAD_PHYSAXIS_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
@@ -1025,7 +1025,7 @@ namespace Components
 
 	void Gamepad::CL_GamepadEvent(const int gamePadIndex, const Game::GamepadPhysicalAxis physicalAxis, const float value, const unsigned time)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 		assert(physicalAxis >= 0 && physicalAxis < Game::GPAD_PHYSAXIS_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
@@ -1126,7 +1126,7 @@ namespace Components
 
 	void Gamepad::CL_GamepadButtonEvent(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		const auto pressed = buttonEvent == Game::GPAD_BUTTON_PRESSED;
 		const auto pressedOrUpdated = pressed || buttonEvent == Game::GPAD_BUTTON_UPDATE;
@@ -1212,9 +1212,9 @@ namespace Components
 
 	void Gamepad::CL_GamepadButtonEventForPort(const int gamePadIndex, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
-		auto& gamePad = gamePads[gamePadIndex];
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
+		auto& gamePad = gamePads[gamePadIndex];
 		gamePad.inUse = true;
 		gpad_in_use.setRaw(true);
 
@@ -1257,7 +1257,7 @@ namespace Components
 
 	float Gamepad::GPad_GetStick(const int gamePadIndex, const Game::GamePadStick stick)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 		assert(stick & Game::GPAD_STICK_MASK);
 
 		auto& gamePad = gamePads[gamePadIndex];
@@ -1267,7 +1267,7 @@ namespace Components
 
 	float Gamepad::GPad_GetButton(const int gamePadIndex, Game::GamePadButton button)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 		auto& gamePad = gamePads[gamePadIndex];
 
 		float value = 0.0f;
@@ -1291,7 +1291,7 @@ namespace Components
 
 	bool Gamepad::GPad_IsButtonPressed(const int gamePadIndex, Game::GamePadButton button)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 		assert(button & (Game::GPAD_DIGITAL_MASK | Game::GPAD_ANALOG_MASK));
 
 		auto& gamePad = gamePads[gamePadIndex];
@@ -1327,7 +1327,7 @@ namespace Components
 
 	bool Gamepad::GPad_IsButtonReleased(int gamePadIndex, Game::GamePadButton button)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
 
@@ -1358,7 +1358,7 @@ namespace Components
 
 	void Gamepad::GPad_UpdateSticksDown(const int gamePadIndex)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
 
@@ -1390,7 +1390,7 @@ namespace Components
 
 	void Gamepad::GPad_UpdateSticks(const int gamePadIndex, const XINPUT_GAMEPAD& state)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
 
@@ -1422,7 +1422,7 @@ namespace Components
 
 	void Gamepad::GPad_UpdateDigitals(const int gamePadIndex, const XINPUT_GAMEPAD& state)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
 
@@ -1444,7 +1444,7 @@ namespace Components
 
 	void Gamepad::GPad_UpdateAnalogs(const int gamePadIndex, const XINPUT_GAMEPAD& state)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
 
@@ -1559,7 +1559,7 @@ namespace Components
 
 	void Gamepad::Gamepad_WriteBindings(const int gamePadIndex, const int handle)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePadGlobal = gamePadGlobals[gamePadIndex];
 
@@ -1612,7 +1612,7 @@ namespace Components
 
 	void Gamepad::Gamepad_BindAxis(const int gamePadIndex, const Game::GamepadPhysicalAxis realIndex, const Game::GamepadVirtualAxis axisIndex, const Game::GamepadMapping mapType)
 	{
-		assert(gamePadIndex < Game::MAX_GPAD_COUNT);
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 		assert(realIndex > Game::GPAD_PHYSAXIS_NONE && realIndex < Game::GPAD_PHYSAXIS_COUNT);
 		assert(axisIndex > Game::GPAD_VIRTAXIS_NONE && axisIndex < Game::GPAD_VIRTAXIS_COUNT);
 		assert(mapType > Game::GPAD_MAP_NONE && mapType < Game::GPAD_MAP_COUNT);
