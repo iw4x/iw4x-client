@@ -53,7 +53,7 @@ namespace Utils
 		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 		if (hSnapshot == INVALID_HANDLE_VALUE) return 0;
 
-		Utils::Memory::Allocator allocator;
+		Memory::Allocator allocator;
 		allocator.reference(hSnapshot, [](void* handle) { CloseHandle(handle); });
 
 		PROCESSENTRY32 pe32;
@@ -81,12 +81,12 @@ namespace Utils
 
 	void* GetThreadStartAddress(HANDLE hThread)
 	{
-		HMODULE ntdll = Utils::GetNTDLL();
+		HMODULE ntdll = GetNTDLL();
 		if (!ntdll) return nullptr;
 
 
 		static uint8_t ntQueryInformationThread[] = { 0xB1, 0x8B, 0xAE, 0x8A, 0x9A, 0x8D, 0x86, 0xB6, 0x91, 0x99, 0x90, 0x8D, 0x92, 0x9E, 0x8B, 0x96, 0x90, 0x91, 0xAB, 0x97, 0x8D, 0x9A, 0x9E, 0x9B }; // NtQueryInformationThread
-		NtQueryInformationThread_t NtQueryInformationThread = NtQueryInformationThread_t(GetProcAddress(ntdll, Utils::String::XOR(std::string(reinterpret_cast<char*>(ntQueryInformationThread), sizeof ntQueryInformationThread), -1).data()));
+		NtQueryInformationThread_t NtQueryInformationThread = NtQueryInformationThread_t(GetProcAddress(ntdll, String::XOR(std::string(reinterpret_cast<char*>(ntQueryInformationThread), sizeof ntQueryInformationThread), -1).data()));
 		if (!NtQueryInformationThread) return nullptr;
 
 		HANDLE dupHandle, currentProcess = GetCurrentProcess();
@@ -106,18 +106,18 @@ namespace Utils
 
 	void SetEnvironment()
 	{
-		char* buffer{};
+		wchar_t* buffer{};
 		std::size_t size{};
-		if (_dupenv_s(&buffer, &size, "XLABS_MW2_INSTALL") != 0 || buffer == nullptr)
+		if (_wdupenv_s(&buffer, &size, L"XLABS_MW2_INSTALL") != 0 || buffer == nullptr)
 		{
 			return;
 		}
 
 		const auto _0 = gsl::finally([&] { std::free(buffer); });
 
-		std::string dir{buffer, size};
-		SetCurrentDirectoryA(dir.data());
-		SetDllDirectoryA(dir.data());
+		const std::wstring dir{buffer, size};
+		SetCurrentDirectoryW(dir.data());
+		SetDllDirectoryW(dir.data());
 	}
 
 	HMODULE GetNTDLL()

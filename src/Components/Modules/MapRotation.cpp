@@ -181,13 +181,13 @@ namespace Components
 	{
 		assert(!map.empty());
 
-		if (Dvar::Var("sv_cheats").get<bool>())
+		if ((*Game::sv_cheats)->current.enabled)
 		{
-			Command::Execute(Utils::String::VA("devmap %s", map.data()), true);
+			Command::Execute(std::format("devmap {}", map), true);
 		}
 		else
 		{
-			Command::Execute(Utils::String::VA("map %s", map.data()), true);
+			Command::Execute(std::format("map {}", map), true);
 		}
 	}
 
