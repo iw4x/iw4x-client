@@ -113,7 +113,7 @@ namespace Components
 		Game::Cmd_AddServerCommand(name, callback, Command::Allocate());
 
 		// If the main command is registered as Cbuf_AddServerText, the command will be redirected to the SV handler
-		Command::AddRaw(name, Game::Cbuf_AddServerText, false);
+		Command::AddRaw(name, Game::Cbuf_AddServerText_f, false);
 	}
 
 	void Command::Execute(std::string command, bool sync)

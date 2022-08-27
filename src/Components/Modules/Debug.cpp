@@ -261,7 +261,12 @@ namespace Components
 
 	void Debug::Com_Assert_f()
 	{
-		assert(("a", false));
+		assert(0 && "a");
+	}
+
+	void Debug::Cbuf_AddServerText_f_Hk()
+	{
+		assert(0 && "Cbuf_AddServerText_f was called.");
 	}
 
 	void Debug::Com_Bug_f(Command::Params* params)
@@ -336,6 +341,7 @@ namespace Components
 		Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
+		Utils::Hook(Game::Cbuf_AddServerText_f, Cbuf_AddServerText_f_Hk, HOOK_JUMP).install()->quick();
 
 #ifdef _DEBUG
 		Command::Add("bug", Com_Bug_f);

@@ -11,6 +11,7 @@ namespace Components
 	private:
 		static Dvar::Var cg_chatWidth;
 		static Dvar::Var sv_disableChat;
+		static Dvar::Var sv_sayName;
 
 		// Game dvars
 		static Game::dvar_t** cg_chatHeight;

@@ -138,71 +138,6 @@ namespace Components
 		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::DVAR_NONE, description);
 	}
 
-	void Dedicated::AddDedicatedCommands()
-	{
-		// Say command
-		Command::AddSV("say", [](Command::Params* params)
-		{
-			if (params->size() < 2) return;
-
-			auto message = params->join(1);
-			auto name = Dvar::Var("sv_sayName").get<std::string>();
-
-			if (!name.empty())
-			{
-				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "{}: {}\n", name, message);
-			}
-			else
-			{
-				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Console: {}\n", message);
-			}
-		});
-
-		// Tell command
-		Command::AddSV("tell", [](Command::Params* params)
-		{
-			if (params->size() < 3) return;
-
-			const auto client = atoi(params->get(1));
-			auto message = params->join(2);
-			auto name = Dvar::Var("sv_sayName").get<std::string>();
-
-			if (!name.empty())
-			{
-				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 104, name.data(), message.data()));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "{} -> {}: {}\n", name, client, message);
-			}
-			else
-			{
-				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Console -> {}: {}\n", client, message);
-			}
-		});
-
-		// Sayraw command
-		Command::AddSV("sayraw", [](Command::Params* params)
-		{
-			if (params->size() < 2) return;
-
-			auto message = params->join(1);
-			Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
-			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw: {}\n", message);
-		});
-
-		// Tellraw command
-		Command::AddSV("tellraw", [](Command::Params* params)
-		{
-			if (params->size() < 3) return;
-
-			const auto client = atoi(params->get(1));
-			std::string message = params->join(2);
-			Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 104, message.data()));
-			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw -> {}: {}\n", client, message);
-		});
-	}
-
 	Dedicated::Dedicated()
 	{
 		Dedicated::COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
@@ -281,11 +216,8 @@ namespace Components
 			{
 				Scheduler::Once([]
 				{
-					Dvar::Register<const char*>("sv_sayName", "^7Console", Game::DVAR_NONE, "The name to pose as for 'say' commands");
 					Dvar::Register<const char*>("sv_motd", "", Game::DVAR_NONE, "A custom message of the day for servers");
 				}, Scheduler::Pipeline::MAIN);
-
-				Events::OnSVInit(Dedicated::AddDedicatedCommands);
 
 				// Post initialization point
 				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();

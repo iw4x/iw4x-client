@@ -565,9 +565,6 @@ namespace Components
 			}
 		});
 
-		// Ignore call to print 'Offhand class mismatch when giving weapon...'
-		Utils::Hook(0x5D9047, 0x4BB9B0, HOOK_CALL).install()->quick();
-
 		Command::Add("unlockstats", QuickPatch::UnlockStats);
 
 		Command::Add("dumptechsets", [](Command::Params* param)

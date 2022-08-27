@@ -6,8 +6,8 @@ namespace Game
 	typedef void(*AngleVectors_t)(float* angles, float* forward, float* right, float* up);
 	extern AngleVectors_t AngleVectors;
 
-	typedef void(*Cbuf_AddServerText_t)();
-	extern Cbuf_AddServerText_t Cbuf_AddServerText;
+	typedef void(*Cbuf_AddServerText_f_t)();
+	extern Cbuf_AddServerText_f_t Cbuf_AddServerText_f;
 
 	typedef void(*Cbuf_AddText_t)(int localClientNum, const char* text);
 	extern Cbuf_AddText_t Cbuf_AddText;
