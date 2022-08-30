@@ -3600,19 +3600,21 @@ namespace Game
 		unsigned char color[4];
 	};
 
-	struct $BFBB53559BEAC4289F32B924847E59CB
+	static_assert(sizeof(DvarValue) == 0x10);
+
+	struct enum_limit
 	{
 		int stringCount;
 		const char** strings;
 	};
 
-	struct $9CA192F9DB66A3CB7E01DE78A0DEA53D
+	struct int_limit
 	{
 		int min;
 		int max;
 	};
 
-	struct $251C2428A496074035CACA7AAF3D55BD
+	struct float_limit
 	{
 		float min;
 		float max;
@@ -3620,11 +3622,13 @@ namespace Game
 
 	union DvarLimits
 	{
-		$BFBB53559BEAC4289F32B924847E59CB enumeration;
-		$9CA192F9DB66A3CB7E01DE78A0DEA53D integer;
-		$251C2428A496074035CACA7AAF3D55BD value;
-		$251C2428A496074035CACA7AAF3D55BD vector;
+		enum_limit enumeration;
+		int_limit integer;
+		float_limit value;
+		float_limit vector;
 	};
+
+	static_assert(sizeof(DvarLimits) == 0x8);
 
 	struct dvar_t
 	{
@@ -3638,8 +3642,10 @@ namespace Game
 		DvarValue reset;
 		DvarLimits domain;
 		bool(__cdecl * domainFunc)(dvar_t*, DvarValue);
-		dvar_t *hashNext;
+		dvar_t* hashNext;
 	};
+
+	static_assert(sizeof(dvar_t) == 0x50);
 
 	struct StaticDvar
 	{
