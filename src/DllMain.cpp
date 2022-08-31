@@ -48,6 +48,7 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 {
 	if (fdwReason == DLL_PROCESS_ATTACH)
 	{
+		SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
 		Steam::Proxy::RunMod();
 
 #ifndef DISABLE_BINARY_CHECK

@@ -120,6 +120,11 @@ namespace Components
 		InterlockedIncrement(&Game::deferredQueue->send);
 	}
 
+	void Security::SEH_LocalizeTextMessageStub(char* dest, const char* src, [[maybe_unused]] int destsize)
+	{
+		Game::I_strncpyz(dest, src, 1024);
+	}
+
 	Security::Security()
 	{
 		// Exploit fixes
@@ -147,5 +152,8 @@ namespace Components
 
 		// Fix packets causing buffer overflow
 		Utils::Hook(0x6267E3, NET_DeferPacketToClientStub, HOOK_CALL).install()->quick();
+
+		// Use the correct size for the destination buffer
+		Utils::Hook(0x49D548, SEH_LocalizeTextMessageStub, HOOK_CALL).install()->quick();
 	}
 }
