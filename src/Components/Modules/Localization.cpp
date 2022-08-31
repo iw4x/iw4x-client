@@ -297,6 +297,7 @@ namespace Components
 
 				if (iTokenLen + iLen >= szStringSize)
 				{
+					Game::Com_Printf(Game::CON_CHANNEL_SYSTEM, "%s too long when translated\n", pszMessageType);
 					return nullptr;
 				}
 
