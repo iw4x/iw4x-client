@@ -284,7 +284,7 @@ namespace Components
 			if (pszIn > pszTokenStart)
 			{
 				auto iTokenLen = pszIn - pszTokenStart;
-				strncpy_s(szTokenBuf, pszTokenStart, pszIn - pszTokenStart);
+				strncpy_s(szTokenBuf, pszTokenStart, _TRUNCATE);
 				if (bLocOn)
 				{
 					if (!Game::SEH_GetLocalizedTokenReference(szTokenBuf, szTokenBuf, pszMessageType, errType))
@@ -319,7 +319,7 @@ namespace Components
 
 				if (iInsertLevel <= 0 || iLen <= 0)
 				{
-					strncpy_s(&pszString[iLen], szStringSize - iLen, szTokenBuf, sizeof(szTokenBuf));
+					strncpy_s(&pszString[iLen], szStringSize - iLen, szTokenBuf, _TRUNCATE);
 				}
 				else
 				{
@@ -342,11 +342,11 @@ namespace Components
 						}
 					}
 
-					strncpy_s(&pszString[i], szStringSize - i, szTokenBuf, sizeof(szTokenBuf));
+					strncpy_s(&pszString[i], szStringSize - i, szTokenBuf, _TRUNCATE);
 
 					if ((iTokenLen + i) < szStringSize)
 					{
-						strncpy_s(&pszString[iTokenLen + i], szStringSize - (iTokenLen + i), szInsertBuf, sizeof(szInsertBuf));
+						strncpy_s(&pszString[iTokenLen + i], szStringSize - (iTokenLen + i), szInsertBuf, _TRUNCATE);
 					}
 
 					iLen -= 3;
