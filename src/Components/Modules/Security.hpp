@@ -22,7 +22,5 @@ namespace Components
 		static void G_LogPrintfStub(const char* fmt);
 
 		static void NET_DeferPacketToClientStub(Game::netadr_t* net_from, Game::msg_t* net_message);
-
-		static void SEH_LocalizeTextMessageStub(char* dest, const char* src, int destsize);
 	};
 }

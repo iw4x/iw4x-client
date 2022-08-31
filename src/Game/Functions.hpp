@@ -425,7 +425,7 @@ namespace Game
 	typedef unsigned int(*SEH_ReadCharFromString_t)(const char** text, int* isTrailingPunctuation);
 	extern SEH_ReadCharFromString_t SEH_ReadCharFromString;
 
-	typedef int (*SEH_GetCurrentLanguage_t)();
+	typedef int(*SEH_GetCurrentLanguage_t)();
 	extern SEH_GetCurrentLanguage_t SEH_GetCurrentLanguage;
 
 	typedef const char*(*SL_ConvertToString_t)(scr_string_t stringValue);
@@ -832,4 +832,6 @@ namespace Game
 	void AimAssist_UpdateAdsLerp(const AimInput* input);
 
 	bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
+
+	int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType);
 }

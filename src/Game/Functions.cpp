@@ -1208,5 +1208,27 @@ namespace Game
 			ret
 		}
 	}
+
+	int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType)
+	{
+		static DWORD SEH_GetLocalizedTokenReference_t = 0x629BB0;
+		auto answer = 0;
+
+		__asm
+		{
+			pushad
+			mov esi, reference
+			mov edi, messageType
+			mov ebx, errType
+			push token
+			call SEH_GetLocalizedTokenReference_t
+			add esp, 0x4
+			mov answer, eax
+			popad
+		}
+
+		return answer;
+	}
+
 #pragma optimize("", on)
 }

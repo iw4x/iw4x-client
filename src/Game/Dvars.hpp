@@ -115,6 +115,9 @@ namespace Game
 	extern const dvar_t** ui_mapname;
 	extern const dvar_t** ui_netGameType;
 
+	extern const dvar_t** loc_warnings;
+	extern const dvar_t** loc_warningsAsErrors;
+
 	extern void Dvar_SetVariant(dvar_t* var, DvarValue value, DvarSetSource source);
 	extern void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source);
 }
