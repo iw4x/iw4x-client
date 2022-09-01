@@ -110,6 +110,8 @@ namespace Game
 
 	extern const dvar_t** version;
 
+	extern const dvar_t** viewposNow;
+
 	extern const dvar_t** ui_currentMap;
 	extern const dvar_t** ui_gametype;
 	extern const dvar_t** ui_mapname;

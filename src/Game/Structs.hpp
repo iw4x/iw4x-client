@@ -307,6 +307,27 @@ namespace Game
 		CON_BUILTIN_CHANNEL_COUNT,
 	};
 
+	enum meansOfDeath_t
+	{
+		MOD_UNKNOWN = 0x0,
+		MOD_PISTOL_BULLET = 0x1,
+		MOD_RIFLE_BULLET = 0x2,
+		MOD_EXPLOSIVE_BULLET = 0x3,
+		MOD_GRENADE = 0x4,
+		MOD_GRENADE_SPLASH = 0x5,
+		MOD_PROJECTILE = 0x6,
+		MOD_PROJECTILE_SPLASH = 0x7,
+		MOD_MELEE = 0x8,
+		MOD_HEAD_SHOT = 0x9,
+		MOD_CRUSH = 0xA,
+		MOD_FALLING = 0xB,
+		MOD_SUICIDE = 0xC,
+		MOD_TRIGGER_HURT = 0xD,
+		MOD_EXPLOSIVE = 0xE,
+		MOD_IMPACT = 0xF,
+		MOD_NUM = 0x10,
+	};
+
 	enum
 	{
 		FL_GODMODE = 1 << 0,
@@ -8921,6 +8942,29 @@ namespace Game
 		char mailIndices[64];
 		int mailCount;
 		int selectedMail;
+	};
+
+	enum entityType_t
+	{
+		ET_GENERAL = 0x0,
+		ET_PLAYER = 0x1,
+		ET_PLAYER_CORPSE = 0x2,
+		ET_ITEM = 0x3,
+		ET_MISSILE = 0x4,
+		ET_INVISIBLE = 0x5,
+		ET_SCRIPTMOVER = 0x6,
+		ET_SOUND_BLEND = 0x7,
+		ET_FX = 0x8,
+		ET_LOOP_FX = 0x9,
+		ET_PRIMARY_LIGHT = 0xA,
+		ET_TURRET = 0xB,
+		ET_HELICOPTER = 0xC,
+		ET_PLANE = 0xD,
+		ET_VEHICLE = 0xE,
+		ET_VEHICLE_COLLMAP = 0xF,
+		ET_VEHICLE_CORPSE = 0x10,
+		ET_VEHICLE_SPAWNER = 0x11,
+		ET_EVENTS = 0x12,
 	};
 
 #pragma endregion

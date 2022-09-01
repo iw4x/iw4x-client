@@ -17,5 +17,9 @@ namespace Components
 		static void AddCheatCommands();
 		static void AddDevelopmentCommands();
 		static void AddScriptFunctions();
+
+		static const char* EntInfoLine(int entNum);
+		static void G_DumpEntityDebugInfoToConsole(bool logfileOnly);
+		static void G_DumpEntityDebugInfoToCSV(const char* filenameSuffix);
 	};
 }

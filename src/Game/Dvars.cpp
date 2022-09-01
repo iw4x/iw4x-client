@@ -54,6 +54,8 @@ namespace Game
 
 	const dvar_t** version = reinterpret_cast<const dvar_t**>(0x1AD7930);
 
+	const dvar_t** viewposNow = reinterpret_cast<const dvar_t**>(0x9FD30C);
+
 	const dvar_t** ui_currentMap = reinterpret_cast<const dvar_t**>(0x62E2834);
 	const dvar_t** ui_gametype = reinterpret_cast<const dvar_t**>(0x62E2828);
 	const dvar_t** ui_mapname = reinterpret_cast<const dvar_t**>(0x62E279C);
