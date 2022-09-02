@@ -834,4 +834,7 @@ namespace Game
 	bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
 
 	int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType);
+
+	void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count);
+	void I_strcpy(char* dest, std::size_t destsize, const char* src);
 }

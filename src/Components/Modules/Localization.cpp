@@ -284,7 +284,7 @@ namespace Components
 			if (pszIn > pszTokenStart)
 			{
 				auto iTokenLen = pszIn - pszTokenStart;
-				strncpy_s(szTokenBuf, pszTokenStart, _TRUNCATE);
+				Game::I_strncpyz_s(szTokenBuf, sizeof(szTokenBuf), pszTokenStart, pszIn - pszTokenStart);
 				if (bLocOn)
 				{
 					if (!Game::SEH_GetLocalizedTokenReference(szTokenBuf, szTokenBuf, pszMessageType, errType))
@@ -292,7 +292,7 @@ namespace Components
 						return nullptr;
 					}
 
-					iTokenLen = &szTokenBuf[std::strlen(szTokenBuf) + 1] - &szTokenBuf[1];
+					iTokenLen = std::strlen(szTokenBuf);
 				}
 
 				if (iTokenLen + iLen >= szStringSize)
@@ -319,7 +319,7 @@ namespace Components
 
 				if (iInsertLevel <= 0 || iLen <= 0)
 				{
-					strncpy_s(&pszString[iLen], szStringSize - iLen, szTokenBuf, _TRUNCATE);
+					Game::I_strcpy(&pszString[iLen], szStringSize - iLen, szTokenBuf);
 				}
 				else
 				{
@@ -334,7 +334,7 @@ namespace Components
 							}
 							if (digit == insertIndex)
 							{
-								strncpy_s(szInsertBuf, &pszString[i + 3], szStringSize - (i + 3));
+								Game::I_strcpy(szInsertBuf, sizeof(szInsertBuf), &pszString[i + 3]);
 								pszString[i] = 0;
 								++insertIndex;
 								break;
@@ -342,12 +342,8 @@ namespace Components
 						}
 					}
 
-					strncpy_s(&pszString[i], szStringSize - i, szTokenBuf, _TRUNCATE);
-
-					if ((iTokenLen + i) < szStringSize)
-					{
-						strncpy_s(&pszString[iTokenLen + i], szStringSize - (iTokenLen + i), szInsertBuf, _TRUNCATE);
-					}
+					Game::I_strcpy(&pszString[i], szStringSize - i, szTokenBuf);
+					Game::I_strcpy(&pszString[iTokenLen + i], szStringSize - (iTokenLen + i), szInsertBuf);
 
 					iLen -= 3;
 					--iInsertLevel;

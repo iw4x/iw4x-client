@@ -805,6 +805,44 @@ namespace Game
 		}
 	}
 
+	void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count)
+	{
+		if (!destsize && !dest)
+		{
+			return;
+		}
+		if (!src || !count)
+		{
+			*dest = '\0';
+		}
+		else
+		{
+			const auto* p = reinterpret_cast<const unsigned char*>(src - 1);
+			auto* q = reinterpret_cast<unsigned char*>(dest - 1);
+			auto n = count + 1;
+			auto s = count;
+			if (destsize <= count)
+			{
+				n = destsize + 1;
+				s = destsize - 1;
+			}
+			do
+			{
+				if (!--n)
+				{
+					dest[s] = '\0';
+					return;
+				}
+				*++q = *++p;
+			} while (*q);
+		}
+	}
+
+	void I_strcpy(char* dest, std::size_t destsize, const char* src)
+	{
+		I_strncpyz_s(dest, destsize, src, destsize);
+	}
+
 #pragma optimize("", off)
 	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
 	{
