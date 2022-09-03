@@ -24,28 +24,16 @@ namespace Components
 
 	Game::SafeArea Console::OriginalSafeArea;
 
-	char** Console::GetAutoCompleteFileList(const char* path, const char* extension, Game::FsListBehavior_e behavior, int* numfiles, int allocTrackType)
+	const char** Console::GetAutoCompleteFileList(const char* path, const char* extension, Game::FsListBehavior_e behavior, int* numfiles, int allocTrackType)
 	{
 		if (path == reinterpret_cast<char*>(0xBAADF00D) || path == reinterpret_cast<char*>(0xCDCDCDCD) || ::Utils::Memory::IsBadReadPtr(path)) return nullptr;
-		return Game::FS_GetFileList(path, extension, behavior, numfiles, allocTrackType);
-	}
-
-	void Console::ToggleConsole()
-	{
-		// possibly cls.keyCatchers?
-		Utils::Hook::Xor<DWORD>(0xB2C538, 1);
-
-		// g_consoleField
-		Game::Field_Clear(reinterpret_cast<void*>(0xA1B6B0));
-
-		// show console output?
-		Utils::Hook::Set<BYTE>(0xA15F38, 0);
+		return Game::FS_ListFiles(path, extension, behavior, numfiles, allocTrackType);
 	}
 
 	void Console::RefreshStatus()
 	{
-		const auto mapname = Dvar::Var("mapname").get<std::string>();
-		const auto hostname = TextRenderer::StripColors(Dvar::Var("sv_hostname").get<std::string>());
+		const std::string mapname = (*Game::sv_mapname)->current.string;
+		const auto hostname = TextRenderer::StripColors((*Game::sv_hostname)->current.string);
 
 		if (Console::HasConsole)
 		{
@@ -58,7 +46,7 @@ namespace Components
 			{
 				for (int i = 0; i < maxclientCount; ++i)
 				{
-					if (Game::svs_clients[i].state >= 3)
+					if (Game::svs_clients[i].header.state >= Game::CS_CONNECTED)
 					{
 						++clientCount;
 					}
@@ -568,6 +556,9 @@ namespace Components
 
 	Console::Console()
 	{
+		AssertOffset(Game::clientUIActive_t, connectionState, 0x9B8);
+		AssertOffset(Game::clientUIActive_t, keyCatchers, 0x9B0);
+
 		// Console '%s: %s> ' string
 		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " VERSION "> ");
 
@@ -580,8 +571,8 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x431565, 0xEB);
 		
 		// Internal console
-		Utils::Hook(0x4F690C, Console::ToggleConsole, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4F65A5, Console::ToggleConsole, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4F690C, Console::Con_ToggleConsole, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4F65A5, Console::Con_ToggleConsole, HOOK_JUMP).install()->quick();
 
 		// Patch safearea for ingame-console
 		Utils::Hook(0x5A50EF, Console::DrawSolidConsoleStub, HOOK_CALL).install()->quick();

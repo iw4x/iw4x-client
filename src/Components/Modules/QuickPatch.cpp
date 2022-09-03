@@ -47,7 +47,7 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) void QuickPatch::JavelinResetHookStub()
+	__declspec(naked) void QuickPatch::JavelinResetHook_Stub()
 	{
 		__asm
 		{
@@ -62,7 +62,7 @@ namespace Components
 	}
 
 	Game::dvar_t* QuickPatch::g_antilag;
-	__declspec(naked) void QuickPatch::ClientEventsFireWeaponStub()
+	__declspec(naked) void QuickPatch::ClientEventsFireWeapon_Stub()
 	{
 		__asm
 		{
@@ -78,19 +78,19 @@ namespace Components
 			mov ecx, [eax]
 
 		fireWeapon:
-			push    edx
-			push    ecx
-			push    edi
-			mov     eax, 0x4A4D50 // FireWeapon
-			call    eax
-			add     esp, 0Ch
-			pop     edi
-			pop     ecx
+			push edx
+			push ecx
+			push edi
+			mov eax, 0x4A4D50 // FireWeapon
+			call eax
+			add esp, 0Ch
+			pop edi
+			pop ecx
 			retn
 		}
 	}
 
-	__declspec(naked) void QuickPatch::ClientEventsFireWeaponMeleeStub()
+	__declspec(naked) void QuickPatch::ClientEventsFireWeaponMelee_Stub()
 	{
 		__asm
 		{
@@ -106,13 +106,13 @@ namespace Components
 			mov edx, [eax]
 
 		fireWeaponMelee:
-			push    edx
-			push    edi
-			mov     eax, 0x4F2470 // FireWeaponMelee
-			call    eax
-			add     esp, 8
-			pop     edi
-			pop     ecx
+			push edx
+			push edi
+			mov eax, 0x4F2470 // FireWeaponMelee
+			call eax
+			add esp, 8
+			pop edi
+			pop ecx
 			retn
 		}
 	}
@@ -144,7 +144,7 @@ namespace Components
 		Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio.get<float>());
 	}
 
-	__declspec(naked) void QuickPatch::SetAspectRatioStub()
+	__declspec(naked) void QuickPatch::SetAspectRatio_Stub()
 	{
 		__asm
 		{
@@ -153,11 +153,11 @@ namespace Components
 			je useCustomRatio;
 
 			// execute switch statement code
-			push 0x005063FC;
+			push 0x5063FC;
 			retn;
 
 		goToDefaultCase:
-			push 0x005064FC;
+			push 0x5064FC;
 			retn;
 
 		useCustomRatio:
@@ -170,12 +170,12 @@ namespace Components
 			mov eax, 1;
 
 			// continue execution
-			push 0x00506495;
+			push 0x506495;
 			retn;
 		}
 	}
 
-	BOOL QuickPatch::IsDynClassnameStub(const char* classname)
+	BOOL QuickPatch::IsDynClassname_Stub(const char* classname)
 	{
 		const auto version = Zones::Version();
 		
@@ -203,7 +203,7 @@ namespace Components
 	}
 
 	void QuickPatch::CL_KeyEvent_OnEscape()
-    {
+	{
 		if (Game::Con_CancelAutoComplete())
 			return;
 
@@ -212,11 +212,11 @@ namespace Components
 
 		// Close console
 		Game::Key_RemoveCatcher(0, ~Game::KEYCATCH_CONSOLE);
-    }
+	}
 
 	__declspec(naked) void QuickPatch::CL_KeyEvent_ConsoleEscape_Stub()
 	{
-	    __asm
+		__asm
 		{
 			pushad
 			call CL_KeyEvent_OnEscape
@@ -225,6 +225,68 @@ namespace Components
 			// Exit CL_KeyEvent function
 			mov ebx, 0x4F66F2
 			jmp ebx
+		}
+	}
+
+	void QuickPatch::R_AddImageToList_Hk(Game::XAssetHeader header, void* data)
+	{
+		auto* imageList = static_cast<Game::ImageList*>(data);
+
+		assert(imageList->count < ARRAYSIZE(imageList->image));
+
+		if (header.image->texture.basemap)
+		{
+			imageList->image[imageList->count++] = header.image;
+		}
+	}
+
+	void QuickPatch::Sys_SpawnQuitProcess_Hk()
+	{
+		if (*Game::sys_exitCmdLine[0] == '\0')
+		{
+			return;
+		}
+
+		auto workingDir = std::filesystem::current_path().string();
+		auto binary = FileSystem::GetAppdataPath() / "data" / "iw4x" / *Game::sys_exitCmdLine;
+
+		SetEnvironmentVariableA("XLABS_MW2_INSTALL", workingDir.data());
+		Utils::Library::LaunchProcess(binary.string(), "-singleplayer", workingDir);
+	}
+
+	__declspec(naked) void QuickPatch::SND_GetAliasOffset_Stub()
+	{
+		using namespace Game;
+
+		static const char* msg = "SND_GetAliasOffset: Could not find sound alias '%s'";
+		static const DWORD func = 0x4B22D0; // Com_Error
+
+		__asm
+		{
+			// Check if snd_alias_t* is null immediately after call to Com_FindSoundAlias_FastFile
+			test eax, eax
+			jz error
+
+			// Game code hook skipped
+			mov ecx, eax
+			mov edx, dword ptr [ecx + 0x4]
+
+			// Resume function
+			push 0x437CB2
+			ret
+
+		error:
+			add esp, 0x4 // Com_FindSoundAlias_FastFile takes one argument
+
+			push [esi] // alias->aliasName
+			push msg
+			push ERR_DROP
+			call func // Going to longjmp back to safety
+			add esp, 0xC
+
+			xor eax, eax
+			pop esi
+			ret
 		}
 	}
 
@@ -241,7 +303,7 @@ namespace Components
 	QuickPatch::QuickPatch()
 	{
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
-		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassnameStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 
 		// Hook escape handling on open console to change behaviour to close the console instead of only canceling autocomplete
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
@@ -250,17 +312,25 @@ namespace Components
 		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_NONE, "Time in seconds before match server loads the next map");
 
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
-		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeaponStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMeleeStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
 
 		// Javelin fix
-		Utils::Hook(0x578F52, QuickPatch::JavelinResetHookStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x578F52, QuickPatch::JavelinResetHook_Stub, HOOK_JUMP).install()->quick();
 
 		// Add ultrawide support
 		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatioStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
+
+		Utils::Hook::Set<void(*)(Game::XAssetHeader, void*)>(0x51FCDD, QuickPatch::R_AddImageToList_Hk);
+
+		Utils::Hook::Set<const char*>(0x41DB8C, "iw4x-sp.exe");
+		Utils::Hook(0x4D6989, QuickPatch::Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
+
+		// Fix crash as nullptr goes unchecked
+		Utils::Hook(0x437CAD, QuickPatch::SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
@@ -349,7 +419,7 @@ namespace Components
 		// spawn upnp thread when UPNP_init returns
 		Utils::Hook::Hook(0x47982B, []()
 		{
-			std::thread([]()
+			std::thread([]
 			{
 				// check natpmpstate
 				// state 4 is no more devices to query
@@ -440,11 +510,11 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x60BBD4, CLIENT_CONFIG);
 
 		// Disable profile system
-//		Utils::Hook::Nop(0x60BEB1, 5);          // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.
-//		Utils::Hook::Nop(0x60BEB8, 5);          // GamerProfile_LogInProfile
-//		Utils::Hook::Nop(0x4059EA, 5);          // GamerProfile_RegisterCommands
-		Utils::Hook::Nop(0x4059EF, 5);          // GamerProfile_RegisterDvars
-		Utils::Hook::Nop(0x47DF9A, 5);          // GamerProfile_UpdateSystemDvars
+//		Utils::Hook::Nop(0x60BEB1, 5); // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.
+//		Utils::Hook::Nop(0x60BEB8, 5); // GamerProfile_LogInProfile
+//		Utils::Hook::Nop(0x4059EA, 5); // GamerProfile_RegisterCommands
+		Utils::Hook::Nop(0x4059EF, 5); // GamerProfile_RegisterDvars
+		Utils::Hook::Nop(0x47DF9A, 5); // GamerProfile_UpdateSystemDvars
 		Utils::Hook::Set<BYTE>(0x5AF0D0, 0xC3); // GamerProfile_SaveProfile
 		Utils::Hook::Set<BYTE>(0x4E6870, 0xC3); // GamerProfile_UpdateSystemVarsFromProfile
 		Utils::Hook::Set<BYTE>(0x4C37F0, 0xC3); // GamerProfile_UpdateProfileAndSaveIfNeeded
@@ -483,7 +553,7 @@ namespace Components
 
 		// Fix mouse pitch adjustments
 		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");
-		UIScript::Add("updateui_mousePitch", [](UIScript::Token)
+		UIScript::Add("updateui_mousePitch", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			if (Dvar::Var("ui_mousePitch").get<bool>())
 			{
@@ -494,9 +564,6 @@ namespace Components
 				Dvar::Var("m_pitch").set(0.022f);
 			}
 		});
-
-		// Ignore call to print 'Offhand class mismatch when giving weapon...'
-		Utils::Hook(0x5D9047, 0x4BB9B0, HOOK_CALL).install()->quick();
 
 		Command::Add("unlockstats", QuickPatch::UnlockStats);
 

@@ -82,7 +82,7 @@ namespace Components
 				return;
 			}
 
-			const json11::Json json = Data;
+			const nlohmann::json json = Data;
 
 			FileSystem::FileWriter("scriptdata/scriptstorage.json").write(json.dump());
 		});

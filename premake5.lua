@@ -86,11 +86,6 @@ newoption {
 	description = "Do not perform integrity checks on the exe."
 }
 
-newoption {
-	trigger = "iw4x-zones",
-	description = "Zonebuilder generates iw4x zones that cannot be loaded without IW4x specific patches."
-}
-
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -267,9 +262,6 @@ workspace "iw4x"
 		end
 		if _OPTIONS["disable-binary-check"] then
 			defines {"DISABLE_BINARY_CHECK"}
-		end
-		if _OPTIONS["iw4x-zones"] then
-			defines {"GENERATE_IW4X_SPECIFIC_ZONES"}
 		end
 
 		-- Pre-compiled header

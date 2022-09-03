@@ -187,8 +187,8 @@ namespace Components
 			Utils::Hook::Set<BYTE>(0x4D6E60, 0xC3);
 		}
 
-		Network::OnPacket("getPlaylist", PlaylistRequest);
-		Network::OnPacket("playlistResponse", PlaylistReponse);
-		Network::OnPacket("playlistInvalidPassword", PlaylistInvalidPassword);
+		Network::OnClientPacket("getPlaylist", PlaylistRequest);
+		Network::OnClientPacket("playlistResponse", PlaylistReponse);
+		Network::OnClientPacket("playlistInvalidPassword", PlaylistInvalidPassword);
 	}
 }

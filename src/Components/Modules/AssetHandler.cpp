@@ -601,7 +601,7 @@ namespace Components
 					}
 				}
 
-				json11::Json vertexData = json11::Json::object
+				nlohmann::json vertexData = json11::Json::object
 				{
 					{ "name", vertexdecl->name },
 					{ "streamCount", vertexdecl->streamCount },
@@ -651,7 +651,7 @@ namespace Components
 										literalConsts.push_back(curArg->u.literalConst[3]);
 									}
 
-									json11::Json argData = json11::Json::object
+									nlohmann::json argData = json11::Json::object
 									{
 										{ "type", curArg->type },
 										{ "value", literalConsts },
@@ -660,7 +660,7 @@ namespace Components
 								}
 								else if (curArg->type == 3 || curArg->type == 5)
 								{
-									json11::Json argData = json11::Json::object
+									nlohmann::json argData = json11::Json::object
 									{
 										{ "type", curArg->type },
 										{ "firstRow", curArg->u.codeConst.firstRow },
@@ -671,7 +671,7 @@ namespace Components
 								}
 								else
 								{
-									json11::Json argData = json11::Json::object
+									nlohmann::json argData = json11::Json::object
 									{
 										{ "type", curArg->type },
 										{ "value", static_cast<int>(curArg->u.codeSampler) },
@@ -680,7 +680,7 @@ namespace Components
 								}
 							}
 
-							json11::Json passData = json11::Json::object
+							nlohmann::json passData = json11::Json::object
 							{
 								{ "perObjArgCount", curPass->perObjArgCount },
 								{ "perPrimArgCount", curPass->perPrimArgCount },
@@ -693,7 +693,7 @@ namespace Components
 							passDataArray.push_back(passData);
 						}
 
-						json11::Json techData = json11::Json::object
+						nlohmann::json techData = json11::Json::object
 						{
 							{ "name", curTech->name },
 							{ "index", technique },
@@ -708,7 +708,7 @@ namespace Components
 						fwrite(&stringData[0], stringData.size(), 1, fp);
 						fclose(fp);
 						
-						json11::Json techsetTechnique = json11::Json::object
+						nlohmann::json techsetTechnique = json11::Json::object
 						{
 							{ "name", curTech->name },
 							{ "index", technique },
@@ -721,7 +721,7 @@ namespace Components
 					}
 				}
 
-				json11::Json techsetData = json11::Json::object
+				nlohmann::json techsetData = json11::Json::object
 				{
 					{ "name", techset->name },
 					{ "techniques", techniques },

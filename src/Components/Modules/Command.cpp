@@ -5,7 +5,7 @@ namespace Components
 	std::unordered_map<std::string, std::function<void(Command::Params*)>> Command::FunctionMap;
 	std::unordered_map<std::string, std::function<void(Command::Params*)>> Command::FunctionMapSV;
 
-	std::string Command::Params::join(const int index)
+	std::string Command::Params::join(const int index) const
 	{
 		std::string result;
 
@@ -24,12 +24,12 @@ namespace Components
 		assert(Game::cmd_args->nesting < Game::CMD_MAX_NESTING);
 	}
 
-	int Command::ClientParams::size()
+	int Command::ClientParams::size() const
 	{
 		return Game::cmd_args->argc[this->nesting_];
 	}
 
-	const char* Command::ClientParams::get(const int index)
+	const char* Command::ClientParams::get(const int index) const
 	{
 		if (index >= this->size())
 		{
@@ -45,12 +45,12 @@ namespace Components
 		assert(Game::sv_cmd_args->nesting < Game::CMD_MAX_NESTING);
 	}
 
-	int Command::ServerParams::size()
+	int Command::ServerParams::size() const
 	{
 		return Game::sv_cmd_args->argc[this->nesting_];
 	}
 
-	const char* Command::ServerParams::get(const int index)
+	const char* Command::ServerParams::get(const int index) const
 	{
 		if (index >= this->size())
 		{
@@ -113,7 +113,7 @@ namespace Components
 		Game::Cmd_AddServerCommand(name, callback, Command::Allocate());
 
 		// If the main command is registered as Cbuf_AddServerText, the command will be redirected to the SV handler
-		Command::AddRaw(name, Game::Cbuf_AddServerText, false);
+		Command::AddRaw(name, Game::Cbuf_AddServerText_f, false);
 	}
 
 	void Command::Execute(std::string command, bool sync)

@@ -14,7 +14,7 @@ namespace Components
 			Dvar::Register<const char*>("ui_startupNextButtonText", "", Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
 		}, Scheduler::Pipeline::MAIN);
 
-		UIScript::Add("nextStartupMessage", [](UIScript::Token)
+		UIScript::Add("nextStartupMessage", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			if (!StartupMessages::MessageList.size()) return;
 

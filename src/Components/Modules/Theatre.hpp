@@ -20,9 +20,9 @@ namespace Components
 			int length;
 			std::time_t timeStamp;
 
-			json11::Json to_json() const
+			nlohmann::json to_json() const
 			{
-				return json11::Json::object
+				return nlohmann::json
 				{
 					{ "mapname", mapname },
 					{ "gametype", gametype },
@@ -44,9 +44,9 @@ namespace Components
 		static void WriteBaseline();
 		static void StoreBaseline(PBYTE snapshotMsg);
 
-		static void LoadDemos(UIScript::Token);
-		static void DeleteDemo(UIScript::Token);
-		static void PlayDemo(UIScript::Token);
+		static void LoadDemos([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void DeleteDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void PlayDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 
 		static unsigned int GetDemoCount();
 		static const char* GetDemoText(unsigned int item, int column);

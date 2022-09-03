@@ -14,7 +14,6 @@ namespace Components
 		static Dvar::Var CGDrawVersion;
 		static Dvar::Var CGDrawVersionX;
 		static Dvar::Var CGDrawVersionY;
-		static Game::dvar_t** Version;
 
 		static void CG_DrawVersion();
 		static void CG_DrawVersion_Hk(int localClientNum);

@@ -74,8 +74,8 @@ namespace Utils
 	}
 #endif
 
-	json11::Json InfoString::to_json() const
+	nlohmann::json InfoString::to_json() const
 	{
-		return {this->keyValuePairs};
+		return this->keyValuePairs;
 	}
 }

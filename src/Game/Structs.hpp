@@ -220,7 +220,7 @@ namespace Game
 		DVAR_SOURCE_DEVGUI = 0x3,
 	};
 
-	typedef enum : char
+	enum dvar_type : char
 	{
 		DVAR_TYPE_BOOL = 0x0,
 		DVAR_TYPE_FLOAT = 0x1,
@@ -233,9 +233,9 @@ namespace Game
 		DVAR_TYPE_COLOR = 0x8,
 		DVAR_TYPE_FLOAT_3_COLOR = 0x9,
 		DVAR_TYPE_COUNT = 0xA,
-	} dvar_type;
+	};
 
-	typedef enum
+	enum clientState_t
 	{
 		CS_FREE = 0x0,
 		CS_ZOMBIE = 0x1,
@@ -243,7 +243,7 @@ namespace Game
 		CS_CONNECTED = 0x3,
 		CS_CLIENTLOADING = 0x4,
 		CS_ACTIVE = 0x5,
-	} clientState_t;
+	};
 
 	enum serverState_t
 	{
@@ -263,6 +263,17 @@ namespace Game
 		ERR_LOCALIZATION = 0x6,
 		ERR_MAPLOADERRORSUMMARY = 0x7
 	};
+
+	enum ConfigString
+	{
+		CS_VOTE_TIME = 0x11,
+		CS_VOTE_STRING = 0x12,
+		CS_VOTE_YES = 0x13,
+		CS_VOTE_NO = 0x14,
+		CS_VOTE_MAPNAME = 0x15,
+		CS_VOTE_GAMETYPE = 0x16,
+		CS_ITEMS = 0x102A,
+	}; // Incomplete
 
 	enum conChannel_t
 	{
@@ -294,6 +305,27 @@ namespace Game
 		CON_CHANNEL_NETWORK,
 
 		CON_BUILTIN_CHANNEL_COUNT,
+	};
+
+	enum meansOfDeath_t
+	{
+		MOD_UNKNOWN = 0x0,
+		MOD_PISTOL_BULLET = 0x1,
+		MOD_RIFLE_BULLET = 0x2,
+		MOD_EXPLOSIVE_BULLET = 0x3,
+		MOD_GRENADE = 0x4,
+		MOD_GRENADE_SPLASH = 0x5,
+		MOD_PROJECTILE = 0x6,
+		MOD_PROJECTILE_SPLASH = 0x7,
+		MOD_MELEE = 0x8,
+		MOD_HEAD_SHOT = 0x9,
+		MOD_CRUSH = 0xA,
+		MOD_FALLING = 0xB,
+		MOD_SUICIDE = 0xC,
+		MOD_TRIGGER_HURT = 0xD,
+		MOD_EXPLOSIVE = 0xE,
+		MOD_IMPACT = 0xF,
+		MOD_NUM = 0x10,
 	};
 
 	enum
@@ -1258,13 +1290,7 @@ namespace Game
 		int flags;
 	};
 
-	struct $3EB5F037EADAEE8E2FA2A1F9FFF31312
-	{
-		hudelem_s current[31];
-		hudelem_s archival[31];
-	};
-
-	enum playerStateFlag
+	enum
 	{
 		PMF_PRONE = 1 << 0,
 		PMF_DUCKED = 1 << 1,
@@ -1291,7 +1317,7 @@ namespace Game
 		PMF_DIVING = 1 << 22,
 	};
 
-	enum playerStateOtherFlag
+	enum
 	{
 		POF_INVULNERABLE = 1 << 0,
 		POF_REMOTE_EYES = 1 << 1,
@@ -1327,7 +1353,7 @@ namespace Game
 		PM_DEAD_LINKED = 0x9,
 	};
 
-	enum playerEFlag
+	enum
 	{
 		EF_NONSOLID_BMODEL = 1 << 0,
 		EF_TELEPORT_BIT = 1 << 1,
@@ -1355,14 +1381,14 @@ namespace Game
 		EF_SOFT = 1 << 23,
 	};
 
-	enum playerLinkFlag
+	enum
 	{
 		PLF_ANGLES_LOCKED = 1 << 0,
 		PLF_USES_OFFSET = 1 << 1,
 		PLF_WEAPONVIEW_ONLY = 1 << 2,
 	};
 
-	enum playerWeaponFlag
+	enum
 	{
 		PWF_USE_RELOAD = 1 << 0,
 		PWF_USING_OFFHAND = 1 << 1,
@@ -1497,14 +1523,18 @@ namespace Game
 		int killCamEntity;
 		int killCamLookAtEntity;
 		int killCamClientNum;
-		$3EB5F037EADAEE8E2FA2A1F9FFF31312 hud;
+		struct
+		{
+			hudelem_s current[31];
+			hudelem_s archival[31];
+		} hud;
 		unsigned int partBits[6];
 		int recoilScale;
 		int diveDirection;
 		int stunTime;
 	};
 
-	static_assert(sizeof(Game::playerState_s) == 0x311C);
+	static_assert(sizeof(playerState_s) == 0x311C);
 
 	enum LocSelInputState
 	{
@@ -3591,19 +3621,21 @@ namespace Game
 		unsigned char color[4];
 	};
 
-	struct $BFBB53559BEAC4289F32B924847E59CB
+	static_assert(sizeof(DvarValue) == 0x10);
+
+	struct enum_limit
 	{
 		int stringCount;
 		const char** strings;
 	};
 
-	struct $9CA192F9DB66A3CB7E01DE78A0DEA53D
+	struct int_limit
 	{
 		int min;
 		int max;
 	};
 
-	struct $251C2428A496074035CACA7AAF3D55BD
+	struct float_limit
 	{
 		float min;
 		float max;
@@ -3611,11 +3643,13 @@ namespace Game
 
 	union DvarLimits
 	{
-		$BFBB53559BEAC4289F32B924847E59CB enumeration;
-		$9CA192F9DB66A3CB7E01DE78A0DEA53D integer;
-		$251C2428A496074035CACA7AAF3D55BD value;
-		$251C2428A496074035CACA7AAF3D55BD vector;
+		enum_limit enumeration;
+		int_limit integer;
+		float_limit value;
+		float_limit vector;
 	};
+
+	static_assert(sizeof(DvarLimits) == 0x8);
 
 	struct dvar_t
 	{
@@ -3629,8 +3663,10 @@ namespace Game
 		DvarValue reset;
 		DvarLimits domain;
 		bool(__cdecl * domainFunc)(dvar_t*, DvarValue);
-		dvar_t *hashNext;
+		dvar_t* hashNext;
 	};
+
+	static_assert(sizeof(dvar_t) == 0x50);
 
 	struct StaticDvar
 	{
@@ -5234,7 +5270,7 @@ namespace Game
 		int stringOffsets[4139];
 		char stringData[131072];
 		int dataCount;
-	} gameState;
+	};
 
 	struct HunkUser
 	{
@@ -5657,30 +5693,21 @@ namespace Game
 		UILOCALVAR_STRING = 0x2,
 	};
 
-	union $B42A88463653BDCDFC5664844B4491DA
-	{
-		int integer;
-		float value;
-		const char *string;
-	};
-
 	struct UILocalVar
 	{
 		UILocalVarType type;
-		const char *name;
-		$B42A88463653BDCDFC5664844B4491DA u;
+		const char* name;
+		union
+		{
+			int integer;
+			float value;
+			const char* string;
+		} u;
 	};
 
 	struct UILocalVarContext
 	{
 		UILocalVar table[256];
-	};
-
-	struct $1942E78D15753E2013144570239460A8
-	{
-		float x;
-		float y;
-		int lastMoveTime;
 	};
 
 	struct UiContext
@@ -5689,7 +5716,12 @@ namespace Game
 		float bias;
 		int realTime;
 		int frameTime;
-		$1942E78D15753E2013144570239460A8 cursor;
+		struct
+		{
+			float x;
+			float y;
+			int lastMoveTime;
+		} cursor;
 		int isCursorVisible;
 		int paintFull;
 		int screenWidth;
@@ -5697,9 +5729,9 @@ namespace Game
 		float screenAspect;
 		float FPS;
 		float blurRadiusOut;
-		menuDef_t *Menus[640];
+		menuDef_t* Menus[640];
 		int menuCount;
-		menuDef_t *menuStack[16];
+		menuDef_t* menuStack[16];
 		int openMenuCount;
 		UILocalVarContext localVars;
 	};
@@ -5708,8 +5740,8 @@ namespace Game
 	{
 		int overflowed;
 		int readOnly;
-		char *data;
-		char *splitData;
+		unsigned char *data;
+		unsigned char *splitData;
 		int maxsize;
 		int cursize;
 		int splitSize;
@@ -6301,19 +6333,50 @@ namespace Game
 		bool topFire;
 	};
 
-#pragma pack(push, 1)
-
-	typedef struct client_s
+	struct clientHeader_t
 	{
-		clientState_t state; // 0
-		int sendAsActive; // 4
-		int deltaMessage; // 8
-		char __pad1[12]; // 12
-		netchan_t netchan; // 24
-		char __pad2[20]; // 1604
-		const char* delayDropReason; // 1624
+		int state;
+		int sendAsActive;
+		int deltaMessage;
+		int rateDelayed;
+		int hasAckedBaselineData;
+		int hugeSnapshotSent;
+		netchan_t netchan;
+		float predictedOrigin[3];
+		int predictedOriginServerTime;
+		int migrationState;
+	};
+
+	static_assert(sizeof(clientHeader_t) == 1624);
+
+	struct svscmd_info_t
+	{
+		char cmd[1024];
+		int time;
+		int type;
+	};
+
+	struct clientSnapshot_t
+	{
+		playerState_s ps;
+		int num_entities;
+		int num_clients;
+		int first_entity;
+		int first_client;
+		int messageSent;
+		int messageAcked;
+		int messageSize;
+		int serverTime;
+		int timeDelta;
+		int baselineSnap;
+	};
+
+	struct client_t
+	{
+		clientHeader_t header;
+		const char* dropReason; // 1624
 		char userinfo[1024]; // 1628
-		char __pad3[132096]; // 2652
+		svscmd_info_t reliableCommandInfo[128]; // 2652
 		int reliableSequence; // 134748
 		int reliableAcknowledge; // 134752
 		int reliableSent; // 134756
@@ -6328,21 +6391,31 @@ namespace Game
 		int nextReliableTime; // 135860
 		int lastPacketTime; // 135864
 		int lastConnectTime; // 135868
-		int snapNum; // 135872
-		int __pad5; // 135876
-		short ping; // 135880
-		char __pad6[14]; // 135882
+		int nextSnapshotTime; // 135872
+		int timeoutCount; // 135876
+		int ping; // 135880
+		int rate;
+		int snapshotMsec;
+		int snapshotBackoffCount;
 		int pureAuthentic; // 135896
-		char __pad7[133138]; // 135900
-		short scriptID; // 269038
+		char netchanOutgoingBuffer[131072];
+		char netchanIncomingBuffer[2048];
+		char playerGuid[17];
+		unsigned short scriptId; // 269038
 		int bIsTestClient; // 269040
 		int serverID; // 269044
-		char __pad8[9224]; // 269048
+		bool usingOnlineStatsOffline;
+		char stats[8192];
+		char statsModifiedFlags[1024];
+		bool statsModified;
+		char statPacketsReceived;
+		bool steamAuthorized;
+		char steamAuthFailCount;
 		unsigned __int64 steamID; // 278272
-		char __pad9[403592]; // 278280
-	} client_t;
-
-#pragma pack(pop)
+		bool sendMatchData;
+		int matchDataSendTime;
+		clientSnapshot_t frames[32];
+	};
 
 	static_assert(sizeof(client_t) == 0xA6790);
 
@@ -7574,7 +7647,7 @@ namespace Game
 
 	static_assert(sizeof(cg_s) == 0xFD540);
 
-	static constexpr auto MAX_GAMEPADS = 1;
+	static constexpr auto MAX_GPAD_COUNT = 1;
 
 	static constexpr auto GPAD_VALUE_MASK = 0xFFFFFFFu;
 	static constexpr auto GPAD_DPAD_MASK = XINPUT_GAMEPAD_DPAD_UP | XINPUT_GAMEPAD_DPAD_DOWN | XINPUT_GAMEPAD_DPAD_LEFT | XINPUT_GAMEPAD_DPAD_RIGHT;
@@ -8761,30 +8834,137 @@ namespace Game
 		bool isRunning;
 		bool cgameInitialized;
 		bool cgameInitCalled;
-		bool mapPreloaded;
-		clientMigState_t migrationState;
-		MigrationPers migrationPers;
-		MigrationVerboseState verboseMigrationState;
-		int verboseMigrationData;
+		unsigned char __pad0[0x9AC];
 		int keyCatchers;
 		bool displayHUDWithKeycatchUI;
 		connstate_t connectionState;
-		bool invited;
-		char itemsUnlocked[256];
-		bool itemsUnlockedInited;
-		bool itemsUnlockedLastGameDirty;
-		unsigned __int16 itemsUnlockedLastGame[16];
-		int itemsUnlockedLastGameCount;
-		char* itemsUnlockedBuffer;
-		int itemsUnlockedLocalClientNum;
-		int itemsUnlockedControllerIndex;
-		int itemsUnlockedStatsSource;
+		unsigned char __pad1[0x138];
 	};
+
+	static_assert(sizeof(clientUIActive_t) == 0xAF4);
 
 	enum msgLocErrType_t
 	{
 		LOCMSG_SAFE = 0x0,
 		LOCMSG_NOERR = 0x1,
+	};
+
+	struct ImageList
+	{
+		unsigned int count;
+		GfxImage* image[8192];
+	};
+
+	enum CriticalSection
+	{
+		CRITSECT_CONSOLE,
+		CRITSECT_DEBUG_SOCKET,
+		CRITSECT_COM_ERROR,
+		CRITSECT_STATMON,
+		CRITSECT_ALLOC_MARK,
+		CRITSECT_GENERATE_MARK,
+		CRITSECT_STREAMED_SOUND,
+		CRITSECT_FAKELAG,
+		CRITSECT_CLIENT_MESSAGE,
+		CRITSECT_CLIENT_CMD,
+		CRITSECT_DOBJ_ALLOC,
+		CRITSECT_START_SERVER,
+		CRITSECT_XANIM_ALLOC,
+		CRITSECT_KEY_BINDINGS,
+		CRITSECT_FX_VIS,
+		CRITSECT_SERVER_MESSAGE,
+		CRITSECT_SCRIPT_STRING,
+		CRITSECT_RD_BUFFER,
+		CRITSECT_SYS_EVENT_QUEUE,
+		CRITSECT_GPU_FENCE,
+		CRITSECT_FATAL_ERROR,
+		CRITSECT_MISSING_ASSET,
+		CRITSECT_PHYSICS,
+		CRITSECT_LIVE,
+		CRITSECT_AUDIO_PHYSICS,
+		CRITSECT_LSP,
+		CRITSECT_CINEMATIC_UPDATE,
+		CRITSECT_CINEMATIC_TARGET_CHANGE_COMMAND,
+		CRITSECT_CINEMATIC_TARGET_CHANGE_BACKEND,
+		CRITSECT_CINEMATIC_STATUS,
+		CRITSECT_CINEMATIC_SERVER,
+		CRITSECT_FX_ALLOC,
+		CRITSECT_NETTHREAD_OVERRIDE,
+		CRITSECT_CBUF,
+		CRITSECT_STATS_WRITE,
+		CRITSECT_CG_GLASS,
+		CRITSECT_SERVER_DEMO_COMPRESS,
+		CRITSECT_COM_SET_ERROR_MSG,
+		CRITSECT_SOUND_UPDATE,
+		CRITSECT_RESET_MODEL_LIGHTING,
+
+		CRITSECT_COUNT,
+	}; // May be incorrect
+
+	struct ClientVoicePacket_t
+	{
+		char data[256];
+		int dataSize;
+	};
+
+	struct voiceCommunication_t
+	{
+		ClientVoicePacket_t voicePackets[10];
+		int voicePacketCount;
+		int voicePacketLastTransmit;
+		int packetsPerSec;
+		int packetsPerSecStart;
+	};
+
+	struct VoicePacket_t
+	{
+		char talker;
+		char data[256];
+		int dataSize;
+	};
+
+	struct uiInfo_s
+	{
+		UiContext uiDC;
+		int myTeamCount;
+		int playerRefresh;
+		int playerIndex;
+		int timeIndex;
+		int previousTimes[4];
+		uiMenuCommand_t currentMenuType;
+		bool allowScriptMenuResponse;
+		char findPlayerName[1024];
+		char foundPlayerServerAddresses[16][64];
+		char foundPlayerServerNames[16][64];
+		int numFoundPlayerServers;
+		int nextFindPlayerRefresh;
+		unsigned int mailUpdateTime;
+		char mailIndices[64];
+		int mailCount;
+		int selectedMail;
+	};
+
+	enum entityType_t
+	{
+		ET_GENERAL = 0x0,
+		ET_PLAYER = 0x1,
+		ET_PLAYER_CORPSE = 0x2,
+		ET_ITEM = 0x3,
+		ET_MISSILE = 0x4,
+		ET_INVISIBLE = 0x5,
+		ET_SCRIPTMOVER = 0x6,
+		ET_SOUND_BLEND = 0x7,
+		ET_FX = 0x8,
+		ET_LOOP_FX = 0x9,
+		ET_PRIMARY_LIGHT = 0xA,
+		ET_TURRET = 0xB,
+		ET_HELICOPTER = 0xC,
+		ET_PLANE = 0xD,
+		ET_VEHICLE = 0xE,
+		ET_VEHICLE_COLLMAP = 0xF,
+		ET_VEHICLE_CORPSE = 0x10,
+		ET_VEHICLE_SPAWNER = 0x11,
+		ET_EVENTS = 0x12,
 	};
 
 #pragma endregion

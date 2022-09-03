@@ -106,7 +106,7 @@ namespace Components
 				Party::Container.target.setIP(*Game::localIP);
 				Party::Container.target.setType(Game::netadrtype_t::NA_IP);
 
-				Logger::Print("Trying to connect to party with loopback address, using a local ip instead: {}\n", Party::Container.target.getCString());
+				Logger::Print("Trying to connect to party with loopback address, using a local ip instead: {}\n", Party::Container.target.getString());
 			}
 			else
 			{
@@ -139,7 +139,7 @@ namespace Components
 
 	bool Party::IsInLobby()
 	{
-		return (!Dvar::Var("sv_running").get<bool>() && PartyEnable.get<bool>() && Dvar::Var("party_host").get<bool>());
+		return (!(*Game::com_sv_running)->current.enabled && PartyEnable.get<bool>() && Dvar::Var("party_host").get<bool>());
 	}
 
 	bool Party::IsInUserMapLobby()
@@ -312,7 +312,7 @@ namespace Components
 		}
 
 		// Basic info handler
-		Network::OnPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnServerPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			int botCount = 0;
 			int clientCount = 0;
@@ -322,7 +322,7 @@ namespace Components
 			{
 				for (int i = 0; i < maxclientCount; ++i)
 				{
-					if (Game::svs_clients[i].state >= 3)
+					if (Game::svs_clients[i].header.state >= Game::CS_CONNECTED)
 					{
 						if (Game::svs_clients[i].bIsTestClient) ++botCount;
 						else ++clientCount;
@@ -338,9 +338,9 @@ namespace Components
 			Utils::InfoString info;
 			info.set("challenge", Utils::ParseChallenge(data));
 			info.set("gamename", "IW4");
-			info.set("hostname", Dvar::Var("sv_hostname").get<const char*>());
-			info.set("gametype", Dvar::Var("g_gametype").get<const char*>());
-			info.set("fs_game", Dvar::Var("fs_game").get<const char*>());
+			info.set("hostname", (*Game::sv_hostname)->current.string);
+			info.set("gametype", (*Game::sv_gametype)->current.string);
+			info.set("fs_game", (*Game::fs_gameDirVar)->current.string);
 			info.set("xuid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().bits));
 			info.set("clients", Utils::String::VA("%i", clientCount));
 			info.set("bots", Utils::String::VA("%i", botCount));
@@ -352,7 +352,9 @@ namespace Components
 			info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().size() ? "1" : "0"));
 			info.set("hc", (Dvar::Var("g_hardcore").get<bool>() ? "1" : "0"));
 			info.set("securityLevel", Utils::String::VA("%i", Dvar::Var("sv_securityLevel").get<int>()));
-			info.set("sv_running", (Dvar::Var("sv_running").get<bool>() ? "1" : "0"));
+			info.set("sv_running", ((*Game::com_sv_running)->current.enabled ? "1" : "0"));
+			info.set("aimAssist", (Gamepad::sv_allowAimAssist.get<bool>() ? "1" : "0"));
+			info.set("voiceChat", (Voice::SV_VoiceEnabled() ? "1" : "0"));
 
 			// Ensure mapname is set
 			if (info.get("mapname").empty() || Party::IsInLobby())
@@ -398,7 +400,7 @@ namespace Components
 			Network::SendCommand(address, "infoResponse", "\\" + info.build());
 		});
 
-		Network::OnPacket("infoResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("infoResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			Utils::InfoString info(data);
 
@@ -416,7 +418,7 @@ namespace Components
 					bool isUsermap = !info.get("usermaphash").empty();
 					unsigned int usermapHash = atoi(info.get("usermaphash").data());
 
-					std::string mod = Dvar::Var("fs_game").get<std::string>();
+					std::string mod = (*Game::fs_gameDirVar)->current.string;
 
 					// set fast server stuff here so its updated when we go to download stuff
 					if (info.get("wwwDownload") == "1"s)
@@ -468,7 +470,7 @@ namespace Components
 					}
 					else if (!Dvar::Var("fs_game").get<std::string>().empty() && info.get("fs_game").empty())
 					{
-						Dvar::Var("fs_game").set("");
+						Game::Dvar_SetString(*Game::fs_gameDirVar, "");
 
 						if (Dvar::Var("cl_modVidRestart").get<bool>())
 						{

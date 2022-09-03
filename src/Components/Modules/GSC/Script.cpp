@@ -50,12 +50,10 @@ namespace Components
 
 	void Script::RuntimeError(const char* codePos, unsigned int index, const char* msg, const char* dialogMessage)
 	{
-		const auto developer = Dvar::Var("developer").get<int>();
-
 		// Allow error messages to be printed if developer mode is on
 		// Should check scrVarPub.developer but it's absent
 		// in this version of the game so let's check the dvar
-		if (!Game::scrVmPub->terminal_error && !developer)
+		if (!Game::scrVmPub->terminal_error && !(*Game::com_developer)->current.integer)
 			return;
 
 		// If were are developing let's call RuntimeErrorInternal
@@ -227,42 +225,44 @@ namespace Components
 		Game::Scr_StartupGameType();
 	}
 
+	// Do not use C++ objects because Scr_LoadScript may longjmp
 	void Script::GScr_LoadGameTypeScript_Stub()
 	{
 		// Clear handles (from previous GSC loading session)
 		Script::ScriptMainHandles.clear();
 		Script::ScriptInitHandles.clear();
 
-		const auto list = FileSystem::GetFileList("scripts/", "gsc");
+		char path[MAX_PATH]{};
 
-		for (const auto& file : list)
+		auto numFiles = 0;
+		const auto** files = Game::FS_ListFiles("scripts/", "gsc", Game::FS_LIST_ALL, &numFiles, 10);
+
+		for (auto i = 0; i < numFiles; ++i)
 		{
-			std::string script = "scripts/" + file;
+			const auto* scriptFile = files[i];
+			Logger::Print("Loading script {}...\n", scriptFile);
 
-			if (Utils::String::EndsWith(script, ".gsc"))
+			sprintf_s(path, "%s/%s", "scripts", scriptFile);
+
+			// Scr_LoadScriptInternal will add the '.gsc' suffix so we remove it
+			path[std::strlen(path) - 4] = '\0';
+
+			if (!Game::Scr_LoadScript(path))
 			{
-				script = script.substr(0, script.size() - 4);
+				Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", path);
+				continue;
 			}
 
-			Logger::Print("Loading script {}.gsc...\n", script);
-
-			if (!Game::Scr_LoadScript(script.data()))
-			{
-				Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", script);
-				Logger::Error(Game::ERR_DROP, "Could not find script '{}'", script);
-				return;
-			}
-
-			Logger::Print("Script {}.gsc loaded successfully.\n", script);
+			Logger::Print("Script {}.gsc loaded successfully.\n", path);
 			Logger::Debug("Finding script handle main or init...");
 
-			const auto initHandle = Game::Scr_GetFunctionHandle(script.data(), "init");
+			const auto initHandle = Game::Scr_GetFunctionHandle(path, "init");
 			if (initHandle != 0)
 			{
 				Script::ScriptInitHandles.push_back(initHandle);
 			}
 
-			const auto mainHandle = Game::Scr_GetFunctionHandle(script.data(), "main");
+			const auto mainHandle = Game::Scr_GetFunctionHandle(path, "main");
 			if (mainHandle != 0)
 			{
 				Script::ScriptMainHandles.push_back(mainHandle);
@@ -271,6 +271,7 @@ namespace Components
 			// Allow scripts with no handles
 		}
 
+		Game::FS_FreeFileList(files, 10);
 		Game::GScr_LoadGameTypeScript();
 	}
 
@@ -397,18 +398,16 @@ namespace Components
 		{
 			// execute our hook
 			pushad
-
 			call Script::StoreScriptBaseProgramNum
-
 			popad
 
 			// execute overwritten code caused by the jump hook
-			sub     eax, ds:201A460h // gScrVarPub_programBuffer
-			add     esp, 0Ch
-			mov     ds : 1CFEEF8h, eax // gScrCompilePub_programLen
+			sub eax, ds:201A460h // gScrVarPub_programBuffer
+			add esp, 0Ch
+			mov ds:1CFEEF8h, eax // gScrCompilePub_programLen
 
 			// jump back to the original code
-			push    426C3Bh
+			push 426C3Bh
 			retn
 		}
 	}
@@ -535,6 +534,14 @@ namespace Components
 		return &Game::svs_clients[ent->s.number];
 	}
 
+	void Script::ShowDeprecationWarning()
+	{
+		Toast::Show("cardicon_gumby", "WARNING!", "You are using deprecated HttpGet/HttpCancel GSC function.", 2048);
+		Logger::Print(Game::CON_CHANNEL_SCRIPT, "*** DEPRECATION WARNING ***\n");
+		Logger::PrintError(Game::CON_CHANNEL_ERROR, "Attempted to execute deprecated built-in HttpGet/HttpCancel! These functions have been deemed unsafe and are scheduled for removal. Please update your mod!\n");
+		Logger::Print(Game::CON_CHANNEL_SCRIPT, "***************************\n");
+	}
+
 	void Script::AddFunctions()
 	{
 		Script::AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
@@ -632,7 +639,7 @@ namespace Components
 		Utils::Hook(0x61E92E, Script::VMExecuteInternalStub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x61E933, 1);
 
-		Scheduler::Loop([]()
+		Scheduler::Loop([]
 		{
 			if (!Game::SV_Loaded())
 				return;
@@ -641,11 +648,12 @@ namespace Components
 
 			if (Script::LastFrameTime != -1)
 			{
-				const auto timeScale = Dvar::Var("timescale").get<float>();
-				const auto timeTaken = static_cast<int>((nowMs - Script::LastFrameTime) * timeScale);
+				const auto timeTaken = (nowMs - Script::LastFrameTime) * static_cast<int>((*Game::com_timescale)->current.value);
 
 				if (timeTaken >= 500)
+				{
 					Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Hitch warning: {} msec frame time\n", timeTaken);
+				}
 			}
 
 			Script::LastFrameTime = nowMs;

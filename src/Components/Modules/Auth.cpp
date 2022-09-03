@@ -130,7 +130,7 @@ namespace Components
 
 		// Parse proto data
 		Proto::Auth::Connect connectData;
-		if (msg->cursize <= 12 || !connectData.ParseFromString(std::string(&msg->data[12], msg->cursize - 12)))
+		if (msg->cursize <= 12 || !connectData.ParseFromString(std::string(reinterpret_cast<char*>(&msg->data[12]), msg->cursize - 12)))
 		{
 			Network::Send(address, "error\nInvalid connect packet!");
 			return;
@@ -233,7 +233,7 @@ namespace Components
 				return;
 			}
 
-			Logger::Debug("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getCString());
+			Logger::Debug("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getString());
 			Game::SV_DirectConnect(*address.get());
 		}
 #endif
@@ -472,7 +472,7 @@ namespace Components
 			});
 		}
 
-		UIScript::Add("security_increase_cancel", [](UIScript::Token)
+		UIScript::Add("security_increase_cancel", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			Auth::TokenContainer.cancel = true;
 			Logger::Print("Token incrementation process canceled!\n");

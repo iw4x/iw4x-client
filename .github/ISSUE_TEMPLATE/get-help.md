@@ -24,7 +24,7 @@ If IW4x is crashing, include the minidump file and the crash address in text for
 Describe any steps you've already taken to try to get past this issue. Have you found a workaround?
 
 **What version of IW4x are you using?**
-`iw4x.exe -version` will show you the version. Please make sure you are up to date with the latest master branch.
+`iw4x.exe -version` will show you the version. Please make sure you are up to date with the latest build from the master branch.
 
 **Anything else we should know?**
 Add any other context about the problem here.

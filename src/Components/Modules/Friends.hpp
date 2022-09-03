@@ -83,7 +83,7 @@ namespace Components
 		static bool IsClientInParty(int controller, int clientNum);
 
 		static void UpdateUserInfo(SteamID user);
-		static void UpdateState(bool force = false);
+		static void UpdateState();
 
 		static void SortList(bool force = false);
 		static void SortIndividualList(std::vector<Friend>* list);

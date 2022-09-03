@@ -126,22 +126,14 @@ namespace Components
 		}
 	}
 
-	void Friends::UpdateState(bool force)
+	void Friends::UpdateState()
 	{
-		if (Friends::CLAnonymous.get<bool>() || Friends::IsInvisible() || !Steam::Enabled()) return;
+		if (Friends::CLAnonymous.get<bool>() || Friends::IsInvisible() || !Steam::Enabled())
+		{
+			return;
+		}
 
-		if (force)
-		{
-			if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
-			{
-				int state = Steam::Proxy::SteamFriends->GetPersonaState();
-				Steam::Proxy::ClientFriends.invoke<void>("SetPersonaState", (state == 1 ? 2 : 1));
-			}
-		}
-		else
-		{
-			Friends::TriggerUpdate = true;
-		}
+		Friends::TriggerUpdate = true;
 	}
 
 	void Friends::UpdateServer(Network::Address server, const std::string& hostname, const std::string& mapname)
@@ -424,14 +416,13 @@ namespace Components
 			{
 				return Utils::String::VA("%s", user.name.data());
 			}
-			else if (user.name == user.playerName)
+
+			if (user.name == user.playerName)
 			{
 				return Utils::String::VA("%s", user.name.data());
 			}
-			else
-			{
-				return Utils::String::VA("%s ^7(%s^7)", user.name.data(), user.playerName.data());
-			}
+
+			return Utils::String::VA("%s ^7(%s^7)", user.name.data(), user.playerName.data());
 		}
 		case 2:
 		{
@@ -613,12 +604,12 @@ namespace Components
 		// Show blue icons on the minimap
 		Utils::Hook(0x493130, Friends::IsClientInParty, HOOK_JUMP).install()->quick();
 
-		UIScript::Add("LoadFriends", [](UIScript::Token)
+		UIScript::Add("LoadFriends", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			Friends::UpdateFriends();
 		});
 
-		UIScript::Add("JoinFriend", [](UIScript::Token)
+		UIScript::Add("JoinFriend", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 			if (Friends::CurrentFriend >= Friends::FriendsList.size()) return;
@@ -660,7 +651,7 @@ namespace Components
 				if (Friends::TriggerUpdate)
 				{
 					Friends::TriggerUpdate = false;
-					Friends::UpdateState(true);
+					Friends::UpdateState();
 				}
 			}
 

@@ -43,6 +43,8 @@ namespace Components
 
 		static void OnMouseMove(int x, int y, int dx, int dy);
 
+		static Dvar::Var sv_allowAimAssist;
+
 	private:
 		static Game::ButtonToCodeMap_t buttonList[];
 		static Game::StickToCodeMap_t analogStickList[4];
@@ -60,8 +62,8 @@ namespace Components
 		static Game::keyname_t combinedLocalizedKeyNamesPs3[];
 		static ControllerMenuKeyMapping controllerMenuKeyMappings[];
 
-		static GamePad gamePads[Game::MAX_GAMEPADS];
-		static GamePadGlobals gamePadGlobals[Game::MAX_GAMEPADS];
+		static GamePad gamePads[Game::MAX_GPAD_COUNT];
+		static GamePadGlobals gamePadGlobals[Game::MAX_GPAD_COUNT];
 
 		static int gamePadBindingsModifiedFlags;
 
@@ -87,7 +89,6 @@ namespace Components
 		static Dvar::Var gpad_slowdown_enabled;
 		static Dvar::Var input_viewSensitivity;
 		static Dvar::Var input_invertPitch;
-		static Dvar::Var sv_allowAimAssist;
 		static Dvar::Var aim_turnrate_pitch;
 		static Dvar::Var aim_turnrate_pitch_ads;
 		static Dvar::Var aim_turnrate_yaw;

@@ -40,7 +40,7 @@ namespace Components
 		ModList::CurrentMod = index;
 	}
 
-	void ModList::UIScript_LoadMods(UIScript::Token)
+	void ModList::UIScript_LoadMods([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		auto folder = Dvar::Var("fs_basepath").get<std::string>() + "\\mods";
 		Logger::Debug("Searching for mods in {}...", folder);
@@ -48,7 +48,7 @@ namespace Components
 		Logger::Debug("Found {} mods!", ModList::Mods.size());
 	}
 
-	void ModList::UIScript_RunMod(UIScript::Token)
+	void ModList::UIScript_RunMod([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		if (ModList::CurrentMod < ModList::Mods.size())
 		{
@@ -56,7 +56,7 @@ namespace Components
 		}
 	}
 
-	void ModList::UIScript_ClearMods(UIScript::Token)
+	void ModList::UIScript_ClearMods([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		auto fsGame = Dvar::Var("fs_game");
 		fsGame.set("");

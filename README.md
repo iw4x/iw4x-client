@@ -8,9 +8,10 @@
 
 # IW4x: Client
 
-## How to compile
+## Compile from source
 
-- Run `premake5 vs2022` or use the delivered `generate.bat`.
+- Clone the Git repo. Do NOT download it as ZIP, that won't work.
+- Update the submodules and run `premake5 vs2022` or simply use the delivered `generate.bat`.
 - Build via solution file in `build\iw4x.sln`.
 
 ## Premake arguments
@@ -22,7 +23,6 @@
 | `--force-unit-tests`        | Always compile unit tests.                     |
 | `--force-exception-handler` | Install custom unhandled exception handler even for Debug builds. |
 | `--disable-binary-check`    | Do not perform integrity checks on the exe. |
-| `--iw4x-zones`              | Zonebuilder generates iw4x zones that cannot be loaded without IW4x specific patches. |
 
 ## Command line arguments
 

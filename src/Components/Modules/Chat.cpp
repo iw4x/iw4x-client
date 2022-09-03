@@ -5,14 +5,14 @@ namespace Components
 {
 	Dvar::Var Chat::cg_chatWidth;
 	Dvar::Var Chat::sv_disableChat;
+	Dvar::Var Chat::sv_sayName;
 
 	Game::dvar_t** Chat::cg_chatHeight = reinterpret_cast<Game::dvar_t**>(0x7ED398);
 	Game::dvar_t** Chat::cg_chatTime = reinterpret_cast<Game::dvar_t**>(0x9F5DE8);
 
 	bool Chat::SendChat;
 
-	std::mutex Chat::AccessMutex;
-	std::unordered_set<std::uint64_t> Chat::MuteList;
+	Utils::Concurrency::Container<Chat::muteList> Chat::MutedList;
 
 	bool Chat::CanAddCallback = true;
 	std::vector<Scripting::Function> Chat::SayCallbacks;
@@ -36,19 +36,11 @@ namespace Components
 			++text;
 		}
 
-		std::unique_lock lock(AccessMutex);
-		if (MuteList.contains(Game::svs_clients[player->s.number].steamID))
+		if (IsMuted(player))
 		{
-			lock.unlock();
 			SendChat = false;
-			Game::SV_GameSendServerCommand(player->s.number, Game::SV_CMD_CAN_IGNORE,
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE,
 				Utils::String::VA("%c \"You are muted\"", 0x65));
-		}
-
-		// Test whether the lock is still locked
-		if (lock.owns_lock())
-		{
-			lock.unlock();
 		}
 
 		for (const auto& callback : SayCallbacks)
@@ -62,7 +54,7 @@ namespace Components
 		if (sv_disableChat.get<bool>())
 		{
 			SendChat = false;
-			Game::SV_GameSendServerCommand(player->s.number, Game::SV_CMD_CAN_IGNORE,
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE,
 				Utils::String::VA("%c \"Chat is disabled\"", 0x65));
 		}
 
@@ -243,25 +235,30 @@ namespace Components
 		}
 	}
 
+	bool Chat::IsMuted(const Game::gentity_s* ent)
+	{
+		const auto clientNum = ent - Game::g_entities;
+		const auto xuid = Game::svs_clients[clientNum].steamID;
+
+		const auto result = MutedList.access<bool>([&](muteList& clients)
+		{
+			return clients.contains(xuid);
+		});
+
+		return result;
+	}
+
 	void Chat::MuteClient(const Game::client_t* client)
 	{
-		std::unique_lock lock(AccessMutex);
-
-		if (!MuteList.contains(client->steamID))
+		const auto xuid = client->steamID;
+		MutedList.access([&](muteList& clients)
 		{
-			MuteList.insert(client->steamID);
-			lock.unlock();
+			clients.insert(xuid);
+		});
 
-			Logger::Print("{} was muted\n", client->name);
-			Game::SV_GameSendServerCommand(client->gentity->s.number, Game::SV_CMD_CAN_IGNORE,
-				Utils::String::VA("%c \"You were muted\"", 0x65));
-			return;
-		}
-
-		lock.unlock();
-		Logger::Print("{} is already muted\n", client->name);
-		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE,
-			Utils::String::VA("%c \"%s is already muted\"", 0x65, client->name));
+		Logger::Print("{} was muted\n", client->name);
+		Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_CAN_IGNORE,
+			Utils::String::VA("%c \"You were muted\"", 0x65));
 	}
 
 	void Chat::UnmuteClient(const Game::client_t* client)
@@ -269,25 +266,26 @@ namespace Components
 		UnmuteInternal(client->steamID);
 
 		Logger::Print("{} was unmuted\n", client->name);
-		Game::SV_GameSendServerCommand(client->gentity->s.number, Game::SV_CMD_CAN_IGNORE,
+		Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_CAN_IGNORE,
 			Utils::String::VA("%c \"You were unmuted\"", 0x65));
 	}
 
 	void Chat::UnmuteInternal(const std::uint64_t id, bool everyone)
 	{
-		std::unique_lock lock(AccessMutex);
-
-		if (everyone)
-			MuteList.clear();
-		else
-			MuteList.erase(id);
+		MutedList.access([&](muteList& clients)
+		{
+			if (everyone)
+				clients.clear();
+			else
+				clients.erase(id);
+		});
 	}
 
 	void Chat::AddChatCommands()
 	{
 		Command::AddSV("muteClient", [](Command::Params* params)
 		{
-			if (!Dvar::Var("sv_running").get<bool>())
+			if (!(*Game::com_sv_running)->current.enabled)
 			{
 				Logger::Print("Server is not running.\n");
 				return;
@@ -303,13 +301,14 @@ namespace Components
 			const auto* client = Game::SV_GetPlayerByNum();
 			if (client != nullptr)
 			{
+				Voice::SV_MuteClient(client - Game::svs_clients);
 				MuteClient(client);
 			}
 		});
 
 		Command::AddSV("unmute", [](Command::Params* params)
 		{
-			if (!Dvar::Var("sv_running").get<bool>())
+			if (!(*Game::com_sv_running)->current.enabled)
 			{
 				Logger::Print("Server is not running.\n");
 				return;
@@ -327,6 +326,7 @@ namespace Components
 			if (client != nullptr)
 			{
 				UnmuteClient(client);
+				Voice::SV_UnmuteClient(client - Game::svs_clients);
 				return;
 			}
 
@@ -334,6 +334,7 @@ namespace Components
 			{
 				Logger::Print("All players were unmuted\n");
 				UnmuteInternal(0, true);
+				Voice::SV_ClearMutedList();
 			}
 			else
 			{
@@ -341,6 +342,66 @@ namespace Components
 				UnmuteInternal(steamId);
 			}
 		});
+
+		Command::AddSV("say", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			auto message = params->join(1);
+			auto name = sv_sayName.get<std::string>();
+
+			if (!name.empty())
+			{
+				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 0x68, name.data(), message.data()));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "{}: {}\n", name, message);
+			}
+			else
+			{
+				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 0x68, message.data()));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Console: {}\n", message);
+			}
+		});
+
+		Command::AddSV("tell", [](Command::Params* params)
+		{
+			if (params->size() < 3) return;
+
+			const auto client = std::atoi(params->get(1));
+			auto message = params->join(2);
+			auto name = sv_sayName.get<std::string>();
+
+			if (!name.empty())
+			{
+				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s: %s\"", 0x68, name.data(), message.data()));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "{} -> {}: {}\n", name, client, message);
+			}
+			else
+			{
+				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Console: %s\"", 104, message.data()));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Console -> {}: {}\n", client, message);
+			}
+		});
+
+		Command::AddSV("sayraw", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			auto message = params->join(1);
+			Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x68, message.data()));
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw: {}\n", message);
+		});
+
+		Command::AddSV("tellraw", [](Command::Params* params)
+		{
+			if (params->size() < 3) return;
+
+			const auto client = atoi(params->get(1));
+			std::string message = params->join(2);
+			Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x68, message.data()));
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw -> {}: {}\n", client, message);
+		});
+
+		sv_sayName = Dvar::Register<const char*>("sv_sayName", "^7Console", Game::DVAR_NONE, "The alias of the server when broadcasting a chat message");
 	}
 
 	int Chat::GetCallbackReturn()
@@ -357,7 +418,7 @@ namespace Components
 
 		const auto* result = &Game::scrVmPub->top[1 - Game::scrVmPub->outparamcount];
 
-		if (result->type != Game::scrParamType_t::VAR_INTEGER)
+		if (result->type != Game::VAR_INTEGER)
 		{
 			// Garbage was returned
 			return 1;
@@ -368,14 +429,14 @@ namespace Components
 
 	int Chat::ChatCallback(Game::gentity_s* self, const char* codePos, const char* message, int mode)
 	{
-		const auto entityId = Game::Scr_GetEntityId(self->s.number, 0);
+		const auto entityId = Game::Scr_GetEntityId(self - Game::g_entities, 0);
 
 		Scripting::StackIsolation _;
 		Game::Scr_AddInt(mode);
 		Game::Scr_AddString(message);
 
 		Game::VariableValue value;
-		value.type = Game::scrParamType_t::VAR_OBJECT;
+		value.type = Game::VAR_OBJECT;
 		value.u.uintValue = entityId;
 
 		Game::AddRefToValue(value.type, value.u);
@@ -410,6 +471,8 @@ namespace Components
 
 	Chat::Chat()
 	{
+		AssertOffset(Game::client_t, steamID, 0x43F00);
+
 		cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
 		sv_disableChat = Dvar::Register<bool>("sv_disableChat", false, Game::DVAR_NONE, "Disable chat messages from clients");
 		Events::OnSVInit(AddChatCommands);

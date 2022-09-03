@@ -28,7 +28,7 @@ namespace Components
 	{
 		std::string out = msg;
 
-		// Filter out coloured strings
+		// Filter out coloured strings for stdout
 		if (out[0] == '^' && out[1] != '\0')
 		{
 			out = out.substr(2);
@@ -48,11 +48,11 @@ namespace Components
 
 		if (!Game::Sys_IsMainThread())
 		{
-			Logger::EnqueueMessage(out);
+			Logger::EnqueueMessage(msg);
 		}
 		else
 		{
-			Game::Com_PrintMessage(channel, out.data(), 0);
+			Game::Com_PrintMessage(channel, msg.data(), 0);
 		}
 	}
 
@@ -284,7 +284,7 @@ namespace Components
 			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[0].size())
 			{
 				auto addr = Logger::LoggingAddresses[0].begin() + num;
-				Logger::Print("Address {} removed\n", addr->getCString());
+				Logger::Print("Address {} removed\n", addr->getString());
 				Logger::LoggingAddresses[0].erase(addr);
 			}
 			else
@@ -295,11 +295,11 @@ namespace Components
 				if (i != Logger::LoggingAddresses[0].end())
 				{
 					Logger::LoggingAddresses[0].erase(i);
-					Logger::Print("Address {} removed\n", addr.getCString());
+					Logger::Print("Address {} removed\n", addr.getString());
 				}
 				else
 				{
-					Logger::Print("Address {} not found!\n", addr.getCString());
+					Logger::Print("Address {} not found!\n", addr.getString());
 				}
 			}
 		});
@@ -311,7 +311,7 @@ namespace Components
 
 			for (unsigned int i = 0; i < Logger::LoggingAddresses[0].size(); ++i)
 			{
-				Logger::Print("#{:03d}: {}\n", i, Logger::LoggingAddresses[0][i].getCString());
+				Logger::Print("#{:03d}: {}\n", i, Logger::LoggingAddresses[0][i].getString());
 			}
 		});
 
@@ -335,7 +335,7 @@ namespace Components
 			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < Logger::LoggingAddresses[1].size())
 			{
 				const auto addr = Logger::LoggingAddresses[1].begin() + num;
-				Logger::Print("Address {} removed\n", addr->getCString());
+				Logger::Print("Address {} removed\n", addr->getString());
 				Logger::LoggingAddresses[1].erase(addr);
 			}
 			else
@@ -346,11 +346,11 @@ namespace Components
 				if (i != Logger::LoggingAddresses[1].end())
 				{
 					Logger::LoggingAddresses[1].erase(i);
-					Logger::Print("Address {} removed\n", addr.getCString());
+					Logger::Print("Address {} removed\n", addr.getString());
 				}
 				else
 				{
-					Logger::Print("Address {} not found!\n", addr.getCString());
+					Logger::Print("Address {} not found!\n", addr.getString());
 				}
 			}
 		});
@@ -362,7 +362,7 @@ namespace Components
 
 			for (std::size_t i = 0; i < Logger::LoggingAddresses[1].size(); ++i)
 			{
-				Logger::Print("#{:03d}: {}\n", i, Logger::LoggingAddresses[1][i].getCString());
+				Logger::Print("#{:03d}: {}\n", i, Logger::LoggingAddresses[1][i].getString());
 			}
 		});
 	}
@@ -397,9 +397,9 @@ namespace Components
 		lock.unlock();
 
 		// Flush the console log
-		if (const auto logfile = *reinterpret_cast<int*>(0x1AD8F28))
+		if (*Game::logfile)
 		{
-			Game::FS_FCloseFile(logfile);
+			Game::FS_FCloseFile(*Game::logfile);
 		}
 	}
 }

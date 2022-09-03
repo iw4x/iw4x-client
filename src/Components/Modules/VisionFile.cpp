@@ -40,7 +40,7 @@ namespace Components
 				assert(dvar);
 				assert(parsedValue);
 
-				Game::Dvar_SetFromStringFromSource(dvar, parsedValue, Game::DvarSetSource::DVAR_SOURCE_INTERNAL);
+				Game::Dvar_SetFromStringFromSource(dvar, parsedValue, Game::DVAR_SOURCE_INTERNAL);
 				Logger::Print("Overriding '{}' from '{}'\n", dvar->name, filename);
 
 				// Successfully found and tried to apply the string value to the dvar

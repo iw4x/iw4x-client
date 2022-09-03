@@ -311,7 +311,7 @@ namespace Components
 		}
 	}
 
-	void UIFeeder::ApplyMap(UIScript::Token)
+	void UIFeeder::ApplyMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		const auto mapname = Dvar::Var("ui_map_name").get<std::string>();
 
@@ -319,7 +319,7 @@ namespace Components
 		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname.data()); // Party_SetDisplayMapName
 	}
 
-	void UIFeeder::ApplyInitialMap(UIScript::Token)
+	void UIFeeder::ApplyInitialMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		const auto mapname = Dvar::Var("ui_mapname").get<std::string>();
 

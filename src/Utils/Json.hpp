@@ -2,5 +2,5 @@
 
 namespace Utils::Json
 {
-	std::string TypeToString(json11::Json::Type type);
+	std::string TypeToString(nlohmann::json::value_t type);
 }

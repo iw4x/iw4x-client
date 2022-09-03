@@ -206,7 +206,7 @@ namespace Components
 				std::unordered_map<std::string, std::string> otherPatches;
 
 				std::string errors;
-				json11::Json defData = json11::Json::parse(definition.getBuffer(), errors);
+				nlohmann::json defData = nlohmann::json::parse(definition.getBuffer());
 
 				if (!errors.empty())
 				{
@@ -228,11 +228,11 @@ namespace Components
 
 					if (enumData.is_array())
 					{
-						for (auto rawEntry : enumData.array_items())
+						for (auto rawEntry : enumData)
 						{
 							if (rawEntry.is_string())
 							{
-								entryData.push_back(rawEntry.string_value());
+								entryData.push_back(rawEntry.get<std::string>());
 							}
 						}
 					}
@@ -244,11 +244,11 @@ namespace Components
 
 				if (other.is_object())
 				{
-					for (auto& item : other.object_items())
+					for (auto& item : other.items())
 					{
-						if (item.second.is_string())
+						if (item.value().is_string())
 						{
-							otherPatches[item.first] = item.second.string_value();
+							otherPatches[item.key()] = item.value().get<std::string>();
 						}
 					}
 				}

@@ -7,6 +7,8 @@ namespace Components
 	public:
 		MapRotation();
 
+		static bool Contains(const std::string& key, const std::string& value);
+
 		bool unitTest() override;
 
 	private:
@@ -33,8 +35,9 @@ namespace Components
 
 			void parse(const std::string& data);
 
-			// Json11 Implicit constructor
-			[[nodiscard]] json11::Json to_json() const;
+			[[nodiscard]] bool contains(const std::string& key, const std::string& value) const;
+
+			[[nodiscard]] nlohmann::json to_json() const;
 
 		private:
 			std::vector<rotationEntry> rotationEntries_;
@@ -45,15 +48,12 @@ namespace Components
 		// Rotation Dvars
 		static Dvar::Var SVRandomMapRotation;
 		static Dvar::Var SVDontRotate;
-		// Game Dvars
-		static Game::dvar_t** SVMapRotation;
-		static Game::dvar_t** SVMapRotationCurrent;
-		static Game::dvar_t** SVMapname;
 
 		// Holds the parsed data from sv_mapRotation
 		static RotationData DedicatedRotation;
 
 		static void LoadRotation(const std::string& data);
+		static void LoadMapRotation();
 
 		// Use these commands before SV_MapRotate_f is called
 		static void AddMapRotationCommands();

@@ -1287,7 +1287,7 @@ namespace Components
 
     std::string TextRenderer::StripColors(const std::string& in)
     {
-        char buffer[1000] = { 0 }; // Should be more than enough
+        char buffer[1024] = {0}; // 1024 is a lucky number in the engine
         StripColors(in.data(), buffer, sizeof(buffer));
         return std::string(buffer);
     }

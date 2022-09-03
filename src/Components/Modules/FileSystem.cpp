@@ -15,21 +15,23 @@ namespace Components
 		int handle;
 		const auto len = Game::FS_FOpenFileReadForThread(filePath.data(), &handle, thread);
 
-		if (handle)
+		if (!handle)
 		{
-			auto* buf = AllocateFile(len + 1);
-
-			[[maybe_unused]] auto bytesRead = Game::FS_Read(buf, len, handle);
-
-			assert(bytesRead == len);
-
-			buf[len] = '\0';
-
-			Game::FS_FCloseFile(handle);
-
-			this->buffer.append(buf, len);
-			FreeFile(buf);
+			return;
 		}
+
+		auto* buf = AllocateFile(len + 1);
+
+		[[maybe_unused]] auto bytesRead = Game::FS_Read(buf, len, handle);
+
+		assert(bytesRead == len);
+
+		buf[len] = '\0';
+
+		Game::FS_FCloseFile(handle);
+
+		this->buffer.append(buf, len);
+		FreeFile(buf);
 	}
 
 	void FileSystem::RawFile::read()
@@ -138,12 +140,28 @@ namespace Components
 		}
 	}
 
+	std::filesystem::path FileSystem::GetAppdataPath()
+	{
+		PWSTR path;
+		if (!SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &path)))
+		{
+			throw std::runtime_error("Failed to read APPDATA path!");
+		}
+
+		auto _0 = gsl::finally([&path]
+		{
+			CoTaskMemFree(path);
+		});
+
+		return std::filesystem::path(path) / "xlabs";
+	}
+
 	std::vector<std::string> FileSystem::GetFileList(const std::string& path, const std::string& extension)
 	{
 		std::vector<std::string> fileList;
 
-		int numFiles = 0;
-		char** files = Game::FS_GetFileList(path.data(), extension.data(), Game::FS_LIST_PURE_ONLY, &numFiles, 0);
+		auto numFiles = 0;
+		const auto** files = Game::FS_ListFiles(path.data(), extension.data(), Game::FS_LIST_PURE_ONLY, &numFiles, 10);
 
 		if (files)
 		{
@@ -151,11 +169,11 @@ namespace Components
 			{
 				if (files[i])
 				{
-					fileList.push_back(files[i]);
+					fileList.emplace_back(files[i]);
 				}
 			}
 
-			Game::FS_FreeFileList(files);
+			Game::FS_FreeFileList(files, 10);
 		}
 
 		return fileList;
@@ -165,8 +183,8 @@ namespace Components
 	{
 		std::vector<std::string> fileList;
 
-		int numFiles = 0;
-		char** files = Game::Sys_ListFiles(path.data(), extension.data(), nullptr, &numFiles, folders);
+		auto numFiles = 0;
+		const auto** files = Game::Sys_ListFiles(path.data(), extension.data(), nullptr, &numFiles, folders);
 
 		if (files)
 		{
@@ -174,7 +192,7 @@ namespace Components
 			{
 				if (files[i])
 				{
-					fileList.push_back(files[i]);
+					fileList.emplace_back(files[i]);
 				}
 			}
 
@@ -184,9 +202,9 @@ namespace Components
 		return fileList;
 	}
 
-	bool FileSystem::DeleteFile(const std::string& folder, const std::string& file)
+	bool FileSystem::_DeleteFile(const std::string& folder, const std::string& file)
 	{
-		char path[MAX_PATH] = { 0 };
+		char path[MAX_PATH] = {0};
 		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").get<const char*>(), reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
 		return Game::FS_Remove(path);
 	}
@@ -225,9 +243,9 @@ namespace Components
 
 	void FileSystem::RegisterFolder(const char* folder)
 	{
-		std::string fs_cdpath = Dvar::Var("fs_cdpath").get<std::string>();
-		std::string fs_basepath = Dvar::Var("fs_basepath").get<std::string>();
-		std::string fs_homepath = Dvar::Var("fs_homepath").get<std::string>();
+		const auto fs_cdpath = Dvar::Var("fs_cdpath").get<std::string>();
+		const auto fs_basepath = Dvar::Var("fs_basepath").get<std::string>();
+		const auto fs_homepath = Dvar::Var("fs_homepath").get<std::string>();
 
 		if (!fs_cdpath.empty())   Game::FS_AddLocalizedGameDirectory(fs_cdpath.data(),   folder);
 		if (!fs_basepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_basepath.data(), folder);
@@ -305,6 +323,12 @@ namespace Components
 		Utils::Hook::Call<void(void*)>(0x4291A0)(iwd);
 	}
 
+	const char* FileSystem::Sys_DefaultInstallPath_Hk()
+	{
+		static auto current_path = std::filesystem::current_path().string();
+		return current_path.data();
+	}
+
 	FileSystem::FileSystem()
 	{
 		FileSystem::MemAllocator.clear();
@@ -352,6 +376,9 @@ namespace Components
 
 		// Handle IWD freeing
 		Utils::Hook(0x642F60, FileSystem::IwdFreeStub, HOOK_CALL).install()->quick();
+
+		// Set the working dir based on info from the Xlabs launcher
+		Utils::Hook(0x4326E0, FileSystem::Sys_DefaultInstallPath_Hk, HOOK_JUMP).install()->quick();
 	}
 
 	FileSystem::~FileSystem()

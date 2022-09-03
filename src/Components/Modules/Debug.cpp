@@ -2,7 +2,8 @@
 
 namespace Components
 {
-	Dvar::Var Debug::DebugOverlay;
+	const Game::dvar_t* Debug::DebugOverlay;
+	const Game::dvar_t* Debug::BugName;
 
 	Game::dvar_t** Debug::PlayerDebugHealth = reinterpret_cast<Game::dvar_t**>(0x7A9F7C);
 
@@ -90,6 +91,16 @@ namespace Components
 		"EF_SOFT",
 	};
 
+	const char Debug::strButtons[] =
+	{
+		'\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x0E', '\x0F', '\x10',
+		'\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17', '\0'
+	};
+
+	const char Debug::strTemplate[] = "%s: %s All those moments will be lost in time, like tears in rain.";
+
+	const float Debug::colorWhite[] = {1.0f, 1.0f, 1.0f, 1.0f};
+
 	std::string Debug::BuildPMFlagsString(const Game::playerState_s* ps)
 	{
 		std::string result;
@@ -144,7 +155,6 @@ namespace Components
 		auto* const scrPlace = Game::ScrPlace_GetActivePlacement(localClientNum);
 
 		constexpr auto maxChars = 4096;
-		constexpr float colorWhite[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 		auto* const font1 = Game::UI_GetFontHandle(scrPlace, 6, MY_SCALE_2);
 		auto* const font2 = Game::UI_GetFontHandle(scrPlace, 6, MY_SCALE2);
@@ -153,16 +163,16 @@ namespace Components
 			MY_SCALE2, colorWhite, 1);
 
 		const auto pmf = BuildPMFlagsString(&cgameGlob->predictedPlayerState);
-		Game::UI_DrawText(scrPlace, pmf.data(), maxChars, font1, 30.0f, 20.0f, 1, 1, MY_SCALE_2, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, pmf.data(), maxChars, font1, 30.0f, MY_Y, 1, 1, MY_SCALE_2, colorWhite, 3);
 
 		const auto pof = BuildPOFlagsString(&cgameGlob->predictedPlayerState);
-		Game::UI_DrawText(scrPlace, pof.data(), maxChars, font1, 350.0f, 20.0f, 1, 1, MY_SCALE_2, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, pof.data(), maxChars, font1, 350.0f, MY_Y, 1, 1, MY_SCALE_2, colorWhite, 3);
 
 		const auto plf = BuildPLFlagsString(&cgameGlob->predictedPlayerState);
 		Game::UI_DrawText(scrPlace, plf.data(), maxChars, font1, 350.0f, 250.0f, 1, 1, MY_SCALE_2, colorWhite, 3);
 
 		const auto pef = BuildPEFlagsString(&cgameGlob->predictedPlayerState);
-		Game::UI_DrawText(scrPlace, pef.data(), maxChars, font1, 525.0f, 20.0f, 1, 1, MY_SCALE_2, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, pef.data(), maxChars, font1, 525.0f, MY_Y, 1, 1, MY_SCALE_2, colorWhite, 3);
 	}
 
 	void Debug::CG_DrawDebugPlayerHealth(const int localClientNum)
@@ -196,12 +206,48 @@ namespace Components
 		Game::CL_DrawStretchPic(scrPlace, 10.0f, 10.0f, 100.0f * healtha, 10.0f, 1, 1, 0.0f, 0.0f, healtha, 1.0f, color2, *Game::whiteMaterial);
 	}
 
+	void Debug::CG_Debug_DrawFontTest(const int localClientNum)
+	{
+		char strFinal[0x200]{};
+
+		auto* const scrPlace = Game::ScrPlace_GetActivePlacement(localClientNum);
+
+		auto* const font1 = Game::UI_GetFontHandle(scrPlace, 1, 0.4f);
+		auto* const font2 = Game::UI_GetFontHandle(scrPlace, 2, 0.4f);
+		auto* const font3 = Game::UI_GetFontHandle(scrPlace, 3, 0.4f);
+		auto* const font5 = Game::UI_GetFontHandle(scrPlace, 5, 0.4f);
+		auto* const font6 = Game::UI_GetFontHandle(scrPlace, 6, 0.4f);
+
+		sprintf_s(strFinal, strTemplate, font1->fontName, strButtons);
+		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font1, MY_X, 10.0f, 1, 1, 0.4f, colorWhite, 3);
+
+		sprintf_s(strFinal, strTemplate, font2->fontName, strButtons);
+		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font2, MY_X, 35.0f, 1, 1, 0.4f, colorWhite, 3);
+
+		sprintf_s(strFinal, strTemplate, font3->fontName, strButtons);
+		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font3, MY_X, 60.0f, 1, 1, 0.4f, colorWhite, 3);
+
+		sprintf_s(strFinal, strTemplate, font5->fontName, strButtons);
+		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font5, MY_X, 85.0f, 1, 1, 0.4f, colorWhite, 3);
+
+		sprintf_s(strFinal, strTemplate, font6->fontName, strButtons);
+		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font6, MY_X, 110.0f, 1, 1, 0.4f, colorWhite, 3);
+	}
+
 	void Debug::CG_DrawDebugOverlays_Hk(const int localClientNum)
 	{
-		switch (DebugOverlay.get<int>())
+		switch (DebugOverlay->current.integer)
 		{
 		case 2:
 			CG_Debug_DrawPSFlags(localClientNum);
+			break;
+		case 5:
+			CG_Debug_DrawFontTest(localClientNum);
 			break;
 		default:
 			break;
@@ -215,7 +261,57 @@ namespace Components
 
 	void Debug::Com_Assert_f()
 	{
-		assert(("a", false));
+		assert(0 && "a");
+	}
+
+	void Debug::Cbuf_AddServerText_f_Hk()
+	{
+		assert(0 && "Cbuf_AddServerText_f was called.");
+	}
+
+	void Debug::Com_Bug_f(Command::Params* params)
+	{
+		char newFileName[0x105]{};
+		char to_ospath[MAX_PATH]{};
+		char from_ospath[MAX_PATH]{};
+		const char* bug;
+
+		if (!*Game::logfile)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "CopyFile failed: logfile wasn't opened\n");
+		}
+
+		if (params->size() == 2)
+		{
+			bug = params->get(1);
+		}
+		else
+		{
+			assert(BugName);
+			bug = BugName->current.string;
+		}
+
+		sprintf_s(newFileName, "%s_%s.log", bug, Game::Live_GetLocalClientName(0));
+
+		Game::Sys_EnterCriticalSection(Game::CRITSECT_CONSOLE);
+
+		if (*Game::logfile)
+		{
+			Game::FS_FCloseFile(*Game::logfile);
+			*Game::logfile = 0;
+		}
+
+		Game::FS_BuildOSPath(Game::Sys_DefaultInstallPath(), "", "logs/console_mp.log", from_ospath);
+		Game::FS_BuildOSPath(Game::Sys_DefaultInstallPath(), "", newFileName, to_ospath);
+		const auto result = CopyFileA(from_ospath, to_ospath, 0);
+		Game::Com_OpenLogFile();
+
+		Game::Sys_LeaveCriticalSection(Game::CRITSECT_CONSOLE);
+
+		if (!result)
+		{
+			Logger::PrintError(1, "CopyFile failed({}) {} {}\n", GetLastError(), "console_mp.log", newFileName);
+		}
 	}
 
 	void Debug::CL_InitDebugDvars()
@@ -233,6 +329,8 @@ namespace Components
 
 		DebugOverlay = Game::Dvar_RegisterEnum("debugOverlay", debugOverlayNames_0, 0,
 			Game::DVAR_NONE, "Toggles the display of various debug info.");
+		BugName = Game::Dvar_RegisterString("bug_name", "bug0",
+			Game::DVAR_CHEAT | Game::DVAR_CODINFO, "Name appended to the copied console log");
 	}
 
 	Debug::Debug()
@@ -243,5 +341,10 @@ namespace Components
 		Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
+		Utils::Hook(Game::Cbuf_AddServerText_f, Cbuf_AddServerText_f_Hk, HOOK_JUMP).install()->quick();
+
+#ifdef _DEBUG
+		Command::Add("bug", Com_Bug_f);
+#endif
 	}
 }

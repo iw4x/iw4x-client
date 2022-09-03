@@ -3483,14 +3483,14 @@ namespace Components
 
 		Command::Add("decryptImages", [](Command::Params*)
 		{
-			auto images = Game::Sys_ListFilesWrapper("iw4x/images", "iwi");
+			auto images = FileSystem::GetSysFileList("iw4x/images", "iwi");
 			Logger::Print("decrypting {} images...\n", images.size());
 			
 			for (auto& image : images)
 			{
 				char* buffer = nullptr;
 				auto fileLength = Game::FS_ReadFile(Utils::String::VA("images/%s", image.data()), &buffer);
-				
+
 				if (fileLength && buffer)
 				{
 					if (!std::filesystem::exists("raw/images"))
@@ -3514,9 +3514,10 @@ namespace Components
 
 			Logger::Print("decrypted {} images!\n", images.size());
 		});
+
 		Command::Add("decryptSounds", [](Command::Params*)
 		{
-			auto sounds = Game::Sys_ListFilesWrapper("iw4x/sound", "iwi");
+			auto sounds = FileSystem::GetSysFileList("iw4x/sound", "iwi");
 			Logger::Print("decrypting {} sounds...\n", sounds.size());
 
 			for (auto& sound : sounds)

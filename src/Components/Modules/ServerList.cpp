@@ -79,12 +79,22 @@ namespace Components
 		{
 		case Column::Password:
 		{
-			return (server->password ? "X" : "");
+			return (server->password ? ":icon_locked:" : "");
 		}
 
 		case Column::Matchtype:
 		{
 			return ((server->matchType == 1) ? "P" : "M");
+		}
+
+		case Column::AimAssist:
+		{
+			return ((server->aimassist == 1) ? ":headshot:" : "");
+		}
+
+		case Column::VoiceChat:
+		{
+			return ((server->voice == 1) ? ":voice_on:" : "");
 		}
 
 		case Column::Hostname:
@@ -171,7 +181,7 @@ namespace Components
 		}
 	}
 
-	void ServerList::UpdateVisibleList(UIScript::Token)
+	void ServerList::UpdateVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		auto list = ServerList::GetList();
 		if (!list) return;
@@ -180,7 +190,7 @@ namespace Components
 
 		if (tempList.empty())
 		{
-			ServerList::Refresh(UIScript::Token());
+			ServerList::Refresh(UIScript::Token(), info);
 		}
 		else
 		{
@@ -198,12 +208,12 @@ namespace Components
 		}
 	}
 
-	void ServerList::RefreshVisibleList(UIScript::Token)
+	void ServerList::RefreshVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		ServerList::RefreshVisibleListInternal(UIScript::Token());
+		ServerList::RefreshVisibleListInternal(UIScript::Token(), info);
 	}
 
-	void ServerList::RefreshVisibleListInternal(UIScript::Token, bool refresh)
+	void ServerList::RefreshVisibleListInternal([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info, bool refresh)
 	{
 		Dvar::Var("ui_serverSelected").set(false);
 
@@ -214,38 +224,38 @@ namespace Components
 
 		if (refresh)
 		{
-			ServerList::Refresh(UIScript::Token());
+			ServerList::Refresh(UIScript::Token(), info);
 			return;
 		}
 
-		bool ui_browserShowFull     = Dvar::Var("ui_browserShowFull").get<bool>();
-		bool ui_browserShowEmpty    = Dvar::Var("ui_browserShowEmpty").get<bool>();
-		int ui_browserShowHardcore  = Dvar::Var("ui_browserKillcam").get<int>();
-		int ui_browserShowPassword  = Dvar::Var("ui_browserShowPassword").get<int>();
-		int ui_browserMod           = Dvar::Var("ui_browserMod").get<int>();
-		int ui_joinGametype         = Dvar::Var("ui_joinGametype").get<int>();
+		auto ui_browserShowFull     = Dvar::Var("ui_browserShowFull").get<bool>();
+		auto ui_browserShowEmpty    = Dvar::Var("ui_browserShowEmpty").get<bool>();
+		auto ui_browserShowHardcore  = Dvar::Var("ui_browserKillcam").get<int>();
+		auto ui_browserShowPassword  = Dvar::Var("ui_browserShowPassword").get<int>();
+		auto ui_browserMod           = Dvar::Var("ui_browserMod").get<int>();
+		auto ui_joinGametype         = Dvar::Var("ui_joinGametype").get<int>();
 
 		for (unsigned int i = 0; i < list->size(); ++i)
 		{
-			ServerList::ServerInfo* info = &(*list)[i];
+			auto* serverInfo = &(*list)[i];
 
 			// Filter full servers
-			if (!ui_browserShowFull && info->clients >= info->maxClients) continue;
+			if (!ui_browserShowFull && serverInfo->clients >= serverInfo->maxClients) continue;
 
 			// Filter empty servers
-			if (!ui_browserShowEmpty && info->clients <= 0) continue;
+			if (!ui_browserShowEmpty && serverInfo->clients <= 0) continue;
 
 			// Filter hardcore servers
-			if ((ui_browserShowHardcore == 0 && info->hardcore) || (ui_browserShowHardcore == 1 && !info->hardcore)) continue;
+			if ((ui_browserShowHardcore == 0 && serverInfo->hardcore) || (ui_browserShowHardcore == 1 && !serverInfo->hardcore)) continue;
 
 			// Filter servers with password
-			if ((ui_browserShowPassword == 0 && info->password) || (ui_browserShowPassword == 1 && !info->password)) continue;
+			if ((ui_browserShowPassword == 0 && serverInfo->password) || (ui_browserShowPassword == 1 && !serverInfo->password)) continue;
 
 			// Don't show modded servers
-			if ((ui_browserMod == 0 && info->mod.size()) || (ui_browserMod == 1 && !info->mod.size())) continue;
+			if ((ui_browserMod == 0 && serverInfo->mod.size()) || (ui_browserMod == 1 && !serverInfo->mod.size())) continue;
 
 			// Filter by gametype
-			if (ui_joinGametype > 0 && (ui_joinGametype - 1) < *Game::gameTypeCount  && Game::gameTypes[(ui_joinGametype - 1)].gameType != info->gametype) continue;
+			if (ui_joinGametype > 0 && (ui_joinGametype - 1) < *Game::gameTypeCount  && Game::gameTypes[(ui_joinGametype - 1)].gameType != serverInfo->gametype) continue;
 
 			ServerList::VisibleList.push_back(i);
 		}
@@ -253,7 +263,7 @@ namespace Components
 		ServerList::SortList();
 	}
 
-	void ServerList::Refresh(UIScript::Token)
+	void ServerList::Refresh([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		Dvar::Var("ui_serverSelected").set(false);
 		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
@@ -312,14 +322,12 @@ namespace Components
 
 	void ServerList::StoreFavourite(const std::string& server)
 	{
-		//json11::Json::parse()
 		std::vector<std::string> servers;
-
-		if (Utils::IO::FileExists("players/favourites.json"))
+		
+		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
+		if (!parseData.empty())
 		{
-			std::string data = Utils::IO::ReadFile("players/favourites.json");
-			json11::Json object = json11::Json::parse(data, data);
-
+			const nlohmann::json object = nlohmann::json::parse(parseData);
 			if (!object.is_array())
 			{
 				Logger::Print("Favourites storage file is invalid!\n");
@@ -327,25 +335,24 @@ namespace Components
 				return;
 			}
 
-			auto storedServers = object.array_items();
-
-			for (unsigned int i = 0; i < storedServers.size(); ++i)
+			const nlohmann::json::array_t storedServers = object;
+			for (const auto& storedServer : storedServers)
 			{
-				if (!storedServers[i].is_string()) continue;
-				if (storedServers[i].string_value() == server)
+				if (!storedServer.is_string()) continue;
+				if (storedServer.get<std::string>() == server)
 				{
 					Game::ShowMessageBox("Server already marked as favourite.", "Error");
 					return;
 				}
 
-				servers.push_back(storedServers[i].string_value());
+				servers.push_back(storedServer.get<std::string>());
 			}
 		}
 
 		servers.push_back(server);
 
-		json11::Json data = json11::Json(servers);
-		Utils::IO::WriteFile("players/favourites.json", data.dump());
+		const auto data = nlohmann::json(servers);
+		Utils::IO::WriteFile(FavouriteFile, data.dump());
 		Game::ShowMessageBox("Server added to favourites.", "Success");
 	}
 
@@ -353,10 +360,10 @@ namespace Components
 	{
 		std::vector<std::string> servers;
 
-		if (Utils::IO::FileExists("players/favourites.json"))
+		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
+		if (!parseData.empty())
 		{
-			std::string data = Utils::IO::ReadFile("players/favourites.json");
-			json11::Json object = json11::Json::parse(data, data);
+			const nlohmann::json object = nlohmann::json::parse(parseData);
 
 			if (!object.is_array())
 			{
@@ -365,50 +372,56 @@ namespace Components
 				return;
 			}
 
-			for (auto& storedServer : object.array_items())
+			const nlohmann::json::array_t arr = object;
+			for (auto& storedServer : arr)
 			{
-				if (storedServer.is_string() && storedServer.string_value() != server)
+				if (storedServer.is_string() && storedServer.get<std::string>() != server)
 				{
-					servers.push_back(storedServer.string_value());
+					servers.push_back(storedServer.get<std::string>());
 				}
 			}
 		}
 
-		json11::Json data = json11::Json(servers);
-		Utils::IO::WriteFile("players/favourites.json", data.dump());
+		const auto data = nlohmann::json(servers);
+		Utils::IO::WriteFile(FavouriteFile, data.dump());
 
 		auto list = ServerList::GetList();
 		if (list) list->clear();
 		
-		ServerList::RefreshVisibleListInternal(UIScript::Token());
+		ServerList::RefreshVisibleListInternal(UIScript::Token(), nullptr);
 		
 		Game::ShowMessageBox("Server removed from favourites.", "Success");
 	}
 
 	void ServerList::LoadFavourties()
 	{
-		if (ServerList::IsFavouriteList() && Utils::IO::FileExists("players/favourites.json"))
+		if (!ServerList::IsFavouriteList())
 		{
-			auto list = ServerList::GetList();
-			if (list) list->clear();
+			return;
+		}
 
-			std::string data = Utils::IO::ReadFile("players/favourites.json");
-			json11::Json object = json11::Json::parse(data, data);
+		auto list = ServerList::GetList();
+		if (list) list->clear();
 
-			if (!object.is_array())
-			{
-				Logger::Print("Favourites storage file is invalid!\n");
-				Game::ShowMessageBox("Favourites storage file is invalid!", "Error");
-				return;
-			}
+		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
+		if (parseData.empty())
+		{
+			return;
+		}
 
-			auto servers = object.array_items();
+		const nlohmann::json object = nlohmann::json::parse(parseData);
+		if (!object.is_array())
+		{
+			Logger::Print("Favourites storage file is invalid!\n");
+			Game::ShowMessageBox("Favourites storage file is invalid!", "Error");
+			return;
+		}
 
-			for (unsigned int i = 0; i < servers.size(); ++i)
-			{
-				if (!servers[i].is_string()) continue;
-				ServerList::InsertRequest(servers[i].string_value());
-			}
+		const nlohmann::json::array_t servers = object;
+		for (const auto& server : servers)
+		{
+			if (!server.is_string()) continue;
+			ServerList::InsertRequest(server.get<std::string>());
 		}
 	}
 
@@ -482,6 +495,8 @@ namespace Components
 				server.securityLevel = atoi(info.get("securityLevel").data());
 				server.maxClients = atoi(info.get("sv_maxclients").data());
 				server.password = (atoi(info.get("isPrivate").data()) != 0);
+				server.aimassist = (atoi(info.get("aimAssist").data()) != 0);
+				server.voice = (atoi(info.get("voiceChat").data()) != 0);
 				server.hardcore = (atoi(info.get("hc").data()) != 0);
 				server.svRunning = (atoi(info.get("sv_running").data()) != 0);
 				server.ping = (Game::Sys_Milliseconds() - i->sendTime);
@@ -538,15 +553,12 @@ namespace Components
 					)
 				{
 					auto lList = ServerList::GetList();
-
 					if (lList)
 					{
 						lList->push_back(server);
-						ServerList::RefreshVisibleListInternal(UIScript::Token());
+						ServerList::RefreshVisibleListInternal(UIScript::Token(), nullptr);
 					}
 				}
-
-				break;
 			}
 			else
 			{
@@ -705,7 +717,7 @@ namespace Components
 
 		netSource.set(source);
 
-		ServerList::RefreshVisibleListInternal(UIScript::Token(), true);
+		ServerList::RefreshVisibleListInternal(UIScript::Token(), nullptr, true);
 	}
 
 	void ServerList::UpdateGameType()
@@ -721,7 +733,7 @@ namespace Components
 
 		joinGametype.set(gametype);
 
-		ServerList::RefreshVisibleListInternal(UIScript::Token());
+		ServerList::RefreshVisibleListInternal(UIScript::Token(), nullptr);
 	}
 
 	void ServerList::UpdateVisibleInfo()
@@ -796,7 +808,7 @@ namespace Components
 		//Localization::Set("MPUI_SERVERQUERIED", "Sent requests: 0/0");
 		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0 (0)");
 
-		Network::OnPacket("getServersResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("getServersResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			if (ServerList::RefreshContainer.host != address) return; // Only parse from host we sent to
 
@@ -841,20 +853,18 @@ namespace Components
 
 		UIScript::Add("RefreshServers", ServerList::Refresh);
 
-		UIScript::Add("JoinServer", [](UIScript::Token)
+		UIScript::Add("JoinServer", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			ServerList::ServerInfo* info = ServerList::GetServer(ServerList::CurrentServer);
-
-			if (info)
+			auto* serverInfo = ServerList::GetServer(ServerList::CurrentServer);
+			if (serverInfo)
 			{
-				Party::Connect(info->addr);
+				Party::Connect(serverInfo->addr);
 			}
 		});
 
-		UIScript::Add("ServerSort", [](UIScript::Token token)
+		UIScript::Add("ServerSort", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			int key = token.get<int>();
-
+			auto key = token.get<int>();
 			if (ServerList::SortKey == key)
 			{
 				ServerList::SortAsc = !ServerList::SortAsc;
@@ -869,22 +879,21 @@ namespace Components
 			ServerList::SortList();
 		});
 
-		UIScript::Add("CreateListFavorite", [](UIScript::Token)
+		UIScript::Add("CreateListFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
-
+			auto* serverInfo = ServerList::GetCurrentServer();
 			if (info)
 			{
-				ServerList::StoreFavourite(info->addr.getString());
+				ServerList::StoreFavourite(serverInfo->addr.getString());
 			}
 		});
 
-		UIScript::Add("CreateFavorite", [](UIScript::Token)
+		UIScript::Add("CreateFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			ServerList::StoreFavourite(Dvar::Var("ui_favoriteAddress").get<std::string>());
 		});
 
-		UIScript::Add("CreateCurrentServerFavorite", [](UIScript::Token)
+		UIScript::Add("CreateCurrentServerFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			if (Game::CL_IsCgameInitialized())
 			{
@@ -896,14 +905,13 @@ namespace Components
 			}
 		});
 
-		UIScript::Add("DeleteFavorite", [](UIScript::Token)
+		UIScript::Add("DeleteFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			ServerList::ServerInfo* info = ServerList::GetCurrentServer();
-
-			if (info)
+			auto* serverInfo = ServerList::GetCurrentServer();
+			if (serverInfo)
 			{
-				ServerList::RemoveFavourite(info->addr.getString());
-			};
+				ServerList::RemoveFavourite(serverInfo->addr.getString());
+			}
 		});
 
 #ifdef _DEBUG

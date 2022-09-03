@@ -5,8 +5,6 @@
 
 #ifndef RC_INVOKED
 
-//#define _HAS_CXX17 1
-//#define _HAS_CXX20 1
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #define _CRT_SECURE_NO_WARNINGS
@@ -17,6 +15,8 @@
 //#include <vld.h>
 
 #include <Windows.h>
+#include <WinSock2.h>
+#include <ShlObj.h>
 #include <timeapi.h>
 #include <shellapi.h>
 #include <WinInet.h>
@@ -78,9 +78,7 @@
 
 #include <curses.h>
 #include <gsl/gsl>
-#include <json11.hpp>
 #include <tomcrypt.h>
-#include <mongoose.h>
 #include <udis86.h>
 #include <zlib.h>
 
@@ -95,6 +93,12 @@ using namespace std::literals;
 	#undef min
 #endif
 
+// Needs to be included after the nominmax above ^
+#ifdef snprintf
+	#undef snprintf
+#endif
+#include <json.hpp>
+
 #define AssertSize(x, size) \
 	static_assert(sizeof(x) == (size), \
 		"Structure has an invalid size. " #x " must be " #size " bytes")
@@ -102,6 +106,10 @@ using namespace std::literals;
 #define AssertOffset(x, y, offset) \
 	static_assert(offsetof(x, y) == (offset), \
 		#x "::" #y " is not at the right offset. Must be at " #offset)
+
+#define AssertIn(x, y) assert(static_cast<unsigned int>(x) < static_cast<unsigned int>(y))
+
+#define AssertUnreachable assert(0 && "unreachable")
 
 // Protobuf
 #include "proto/session.pb.h"
@@ -139,7 +147,8 @@ using namespace std::literals;
 #include "Steam/Steam.hpp" // Some definitions are used in functions and structs
 
 #include "Game/Structs.hpp"
-#include "Game/Functions.hpp"
+#include "Game/Game.hpp"
+
 #include <Game/Scripting/Function.hpp>
 #include <Game/Scripting/StackIsolation.hpp>
 

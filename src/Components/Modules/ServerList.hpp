@@ -28,15 +28,17 @@ namespace Components
 			int securityLevel;
 			bool hardcore;
 			bool svRunning;
+			bool aimassist;
+			bool voice;
 		};
 
 		ServerList();
 		~ServerList();
 
-		static void Refresh(UIScript::Token);
-		static void RefreshVisibleList(UIScript::Token);
-		static void RefreshVisibleListInternal(UIScript::Token, bool refresh = false);
-		static void UpdateVisibleList(UIScript::Token);
+		static void Refresh([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void RefreshVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void RefreshVisibleListInternal([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info, bool refresh = false);
+		static void UpdateVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 		static void InsertRequest(Network::Address address);
 		static void Insert(const Network::Address& address, const Utils::InfoString& info);
 
@@ -59,6 +61,8 @@ namespace Components
 		{
 			Password,
 			Matchtype,
+			AimAssist,
+			VoiceChat,
 			Hostname,
 			Mapname,
 			Players,
@@ -66,6 +70,8 @@ namespace Components
 			Mod,
 			Ping,
 		};
+
+		static constexpr auto* FavouriteFile = "players/favourites.json";
 
 #pragma pack(push, 1)
 		union MasterEntry

@@ -18,7 +18,7 @@ namespace Utils
 		void dump();
 #endif
 
-		[[nodiscard]] json11::Json to_json() const;
+		[[nodiscard]] nlohmann::json to_json() const;
 
 	private:
 		std::unordered_map<std::string, std::string> keyValuePairs;

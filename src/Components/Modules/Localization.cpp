@@ -249,6 +249,144 @@ namespace Components
 		Localization::Set("IW4X_CREDITS", credits);
 	}
 
+	const char* Localization::SEH_LocalizeTextMessageStub(const char* pszInputBuffer, const char* pszMessageType, Game::msgLocErrType_t errType)
+	{
+		constexpr auto szStringCount = 10;
+		constexpr auto szStringSize = 1024;
+
+		char szInsertBuf[szStringSize];
+		char szTokenBuf[szStringSize];
+
+		static thread_local int iCurrString;
+		static thread_local char szStrings[szStringCount][szStringSize];
+
+		iCurrString = (iCurrString + 1) % szStringCount;
+		std::memset(szStrings[iCurrString], 0, sizeof(szStrings[0]));
+		auto* pszString = szStrings[iCurrString];
+		auto iLen = 0;
+		auto bLocOn = 1;
+		auto bInsertEnabled = 1;
+		auto iInsertLevel = 0;
+		auto insertIndex = 1;
+		auto bLocSkipped = 0;
+		const auto* pszTokenStart = pszInputBuffer;
+		const auto* pszIn = pszInputBuffer;
+
+		auto i = 0;
+		while (*pszTokenStart)
+		{
+			if (*pszIn && *pszIn != '\x14' && *pszIn != '\x15' && *pszIn != '\x16')
+			{
+				++pszIn;
+				continue;
+			}
+
+			if (pszIn > pszTokenStart)
+			{
+				auto iTokenLen = pszIn - pszTokenStart;
+				Game::I_strncpyz_s(szTokenBuf, sizeof(szTokenBuf), pszTokenStart, pszIn - pszTokenStart);
+				if (bLocOn)
+				{
+					if (!Game::SEH_GetLocalizedTokenReference(szTokenBuf, szTokenBuf, pszMessageType, errType))
+					{
+						return nullptr;
+					}
+
+					iTokenLen = std::strlen(szTokenBuf);
+				}
+
+				if (iTokenLen + iLen >= szStringSize)
+				{
+					Game::Com_Printf(Game::CON_CHANNEL_SYSTEM, "%s too long when translated\n", pszMessageType);
+					return nullptr;
+				}
+
+				for (i = 0; i < iTokenLen - 2; ++i)
+				{
+					if (!std::strncmp(&szTokenBuf[i], "&&", 2) && std::isdigit(szTokenBuf[i + 2]))
+					{
+						if (bInsertEnabled)
+						{
+							++iInsertLevel;
+						}
+						else
+						{
+							szTokenBuf[i] = '\x16';
+							bLocSkipped = 1;
+						}
+					}
+				}
+
+				if (iInsertLevel <= 0 || iLen <= 0)
+				{
+					Game::I_strcpy(&pszString[iLen], szStringSize - iLen, szTokenBuf);
+				}
+				else
+				{
+					for (i = 0; i < iLen - 2; ++i)
+					{
+						if (!std::strncmp(&pszString[i], "&&", 2) && std::isdigit(pszString[i + 2]))
+						{
+							const auto digit = pszString[i + 2] - 48;
+							if (!digit)
+							{
+								Game::Com_Printf(Game::CON_CHANNEL_SYSTEM, "%s cannot have &&0 as conversion format: \"%s\"\n", pszMessageType, pszInputBuffer);
+							}
+							if (digit == insertIndex)
+							{
+								Game::I_strcpy(szInsertBuf, sizeof(szInsertBuf), &pszString[i + 3]);
+								pszString[i] = 0;
+								++insertIndex;
+								break;
+							}
+						}
+					}
+
+					Game::I_strcpy(&pszString[i], szStringSize - i, szTokenBuf);
+					Game::I_strcpy(&pszString[iTokenLen + i], szStringSize - (iTokenLen + i), szInsertBuf);
+
+					iLen -= 3;
+					--iInsertLevel;
+				}
+
+				iLen += iTokenLen;
+			}
+
+			bInsertEnabled = 1;
+			if (*pszIn == '\x14')
+			{
+				bLocOn = 1;
+				++pszIn;
+			}
+			else if (*pszIn == '\x15')
+			{
+				bLocOn = 0;
+				++pszIn;
+			}
+
+			if (*pszIn == '\x16')
+			{
+				bInsertEnabled = 0;
+				++pszIn;
+			}
+
+			pszTokenStart = pszIn;
+		}
+
+		if (bLocSkipped)
+		{
+			for (i = 0; i < iLen; ++i)
+			{
+				if (pszString[i] == '\x16')
+				{
+					pszString[i] = '%';
+				}
+			}
+		}
+
+		return pszString;
+	}
+
 	Localization::Localization()
 	{
 		Localization::SetCredits();
@@ -278,6 +416,9 @@ namespace Components
 
 		// Overwrite SetString
 		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x49D4A0, Localization::SEH_LocalizeTextMessageStub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x49D4A5, 1);
 
 		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::DVAR_NONE, "Use localization strings");
 

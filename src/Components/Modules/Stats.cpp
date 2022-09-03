@@ -24,10 +24,8 @@ namespace Components
 				Game::Com_Printf(0, "Sending stat packet %i to server.\n", i);
 
 				// alloc
-				Game::msg_t msg;
-				char buffer[2048];
-				ZeroMemory(&msg, sizeof(msg));
-				ZeroMemory(&buffer, sizeof(buffer));
+				Game::msg_t msg{};
+				unsigned char buffer[2048]{};
 
 				// init
 				Game::MSG_Init(&msg, buffer, sizeof(buffer));
@@ -53,23 +51,23 @@ namespace Components
 				}
 
 				// send statpacket
-				Network::SendRaw(Game::NS_CLIENT1, *reinterpret_cast<Game::netadr_t*>(0xA1E888), std::string(msg.data, msg.cursize));
+				Network::SendRaw(Game::NS_CLIENT1, *reinterpret_cast<Game::netadr_t*>(0xA1E888), std::string(reinterpret_cast<char*>(msg.data), msg.cursize));
 			}
 		}
 	}
 
-	void Stats::UpdateClasses(UIScript::Token)
+	void Stats::UpdateClasses([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		Stats::SendStats();
 	}
 
 	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, size_t length)
 	{
-		const auto fs_game = Game::Dvar_FindVar("fs_game");
+		assert(*Game::fs_gameDirVar);
 
-		if (fs_game && fs_game->current.string && strlen(fs_game->current.string) && !strncmp(fs_game->current.string, "mods/", 5))
+		if (!std::strcmp((*Game::fs_gameDirVar)->current.string, "mods/"))
 		{
-			folder = fs_game->current.string;
+			folder = (*Game::fs_gameDirVar)->current.string;
 		}
 
 		return Utils::Hook::Call<int(char*, const char*, const char*, size_t)>(0x426450)(dest, folder, buffer, length);

@@ -100,26 +100,19 @@ namespace Assets
 
 		if (fontDefFile.exists() && fontFile.exists())
 		{
-			std::string errors;
-			auto fontDef = json11::Json::parse(fontDefFile.getBuffer(), errors);
-
-			if (!errors.empty())
-			{
-				Components::Logger::Error(Game::ERR_FATAL, "Font define {} is broken: {}", name, errors);
-				return;
-			}
+			auto fontDef = nlohmann::json::parse(fontDefFile.getBuffer());
 
 			if (!fontDef.is_object())
 			{
-				Components::Logger::Error(Game::ERR_FATAL, "Font define {} is invalid {}", name, errors);
+				Components::Logger::Error(Game::ERR_FATAL, "Font define {} is invalid", name);
 				return;
 			}
 
-			int w = fontDef["textureWidth"].int_value();
-			int h = fontDef["textureHeight"].int_value();
+			int w = fontDef["textureWidth"].get<int>();
+			int h = fontDef["textureHeight"].get<int>();
 			
-			int size = fontDef["size"].int_value();
-			int yOffset = fontDef["yOffset"].int_value();
+			int size = fontDef["size"].get<int>();
+			int yOffset = fontDef["yOffset"].get<int>();
 
 			auto* pixels = builder->getAllocator()->allocateArray<uint8_t>(w * h);
 
@@ -153,8 +146,9 @@ namespace Assets
 
 			if (fontDef["charset"].is_array())
 			{
-				for (auto& ch : fontDef["charset"].array_items())
-					charset.push_back(static_cast<uint16_t>(ch.int_value()));
+				nlohmann::json::array_t charsetArray = fontDef["charset"];
+				for (auto& ch : charsetArray)
+					charset.push_back(static_cast<uint16_t>(ch.get<int>()));
 
 				// order matters
 				std::sort(charset.begin(), charset.end());

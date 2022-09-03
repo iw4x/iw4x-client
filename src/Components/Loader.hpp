@@ -143,5 +143,7 @@ namespace Components
 #include "Modules/Ceg.hpp"
 #include "Modules/UserInfo.hpp"
 #include "Modules/Events.hpp"
+#include "Modules/Voice.hpp"
+#include "Modules/Vote.hpp"
 
 #include "Modules/GSC/GSC.hpp"

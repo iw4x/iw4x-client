@@ -48,10 +48,4 @@ namespace Utils
 			return Utils::WebIO(useragent, Cache::GetUrl(Cache::ValidUrl, path)).setTimeout(timeout)->get();
 		}
 	}
-
-	void Cache::Uninitialize()
-	{
-		std::lock_guard<std::mutex> _(Cache::CacheMutex);
-		Cache::ValidUrl.clear();
-	}
 }

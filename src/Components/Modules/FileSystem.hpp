@@ -8,7 +8,7 @@ namespace Components
 		class AbstractFile
 		{
 		public:
-			virtual ~AbstractFile() {};
+			virtual ~AbstractFile() = default;
 
 			virtual bool exists() = 0;
 			virtual std::string getName() = 0;
@@ -19,12 +19,12 @@ namespace Components
 		{
 		public:
 			File() = default;
-			File(std::string file) : filePath{std::move(file)} { this->read(); };
-			File(std::string file, Game::FsThread thread) : filePath{std::move(file)} { this->read(thread); };
+			File(std::string file) : filePath{std::move(file)} { this->read(); }
+			File(std::string file, Game::FsThread thread) : filePath{std::move(file)} { this->read(thread); }
 
-			bool exists() override { return !this->buffer.empty(); };
-			std::string getName() override { return this->filePath; };
-			std::string& getBuffer() override { return this->buffer; };
+			bool exists() override { return !this->buffer.empty(); }
+			std::string getName() override { return this->filePath; }
+			std::string& getBuffer() override { return this->buffer; }
 
 		private:
 			std::string filePath;
@@ -36,12 +36,12 @@ namespace Components
 		class RawFile : public AbstractFile
 		{
 		public:
-			RawFile() {};
-			RawFile(const std::string& file) : filePath(file) { this->read(); };
+			RawFile() = default;
+			RawFile(std::string file) : filePath(std::move(file)) { this->read(); }
 
-			bool exists() override { return !this->buffer.empty(); };
-			std::string getName() override { return this->filePath; };
-			std::string& getBuffer() override { return this->buffer; };
+			bool exists() override { return !this->buffer.empty(); }
+			std::string getName() override { return this->filePath; }
+			std::string& getBuffer() override { return this->buffer; }
 
 		private:
 			std::string filePath;
@@ -53,7 +53,7 @@ namespace Components
 		class FileReader
 		{
 		public:
-			FileReader() : handle(0), size(-1), name() {};
+			FileReader() : handle(0), size(-1), name() {}
 			FileReader(const std::string& file);
 			~FileReader();
 
@@ -73,8 +73,8 @@ namespace Components
 		class FileWriter
 		{
 		public:
-			FileWriter(const std::string& file, bool append = false) : handle(0), filePath(file) { this->open(append); };
-			~FileWriter() { this->close(); };
+			FileWriter(std::string file, bool append = false) : handle(0), filePath(std::move(file)) { this->open(append); }
+			~FileWriter() { this->close(); }
 
 			void write(const std::string& data);
 
@@ -89,9 +89,10 @@ namespace Components
 		FileSystem();
 		~FileSystem();
 
+		static std::filesystem::path GetAppdataPath();
 		static std::vector<std::string> GetFileList(const std::string& path, const std::string& extension);
 		static std::vector<std::string> GetSysFileList(const std::string& path, const std::string& extension, bool folders = false);
-		static bool DeleteFile(const std::string& folder, const std::string& file);
+		static bool _DeleteFile(const std::string& folder, const std::string& file);
 
 	private:
 		static std::mutex Mutex;
@@ -115,5 +116,7 @@ namespace Components
 		static int LoadTextureSync(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
 
 		static void IwdFreeStub(Game::iwd_t* iwd);
+
+		static const char* Sys_DefaultInstallPath_Hk();
 	};
 }

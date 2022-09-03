@@ -20,21 +20,21 @@ namespace Steam
 	class Friends
 	{
 	public:
-		virtual const char *GetPersonaName();
+		virtual const char* GetPersonaName();
 		virtual void SetPersonaName(const char *pchPersonaName);
 		virtual int GetPersonaState();
 		virtual int GetFriendCount(int eFriendFlags);
 		virtual SteamID GetFriendByIndex(int iFriend, int iFriendFlags);
 		virtual int GetFriendRelationship(SteamID steamIDFriend);
 		virtual int GetFriendPersonaState(SteamID steamIDFriend);
-		virtual const char *GetFriendPersonaName(SteamID steamIDFriend);
+		virtual const char* GetFriendPersonaName(SteamID steamIDFriend);
 		virtual int GetFriendAvatar(SteamID steamIDFriend, int eAvatarSize);
 		virtual bool GetFriendGamePlayed(SteamID steamIDFriend, FriendGameInfo *pFriendGameInfo);
-		virtual const char *GetFriendPersonaNameHistory(SteamID steamIDFriend, int iPersonaName);
+		virtual const char* GetFriendPersonaNameHistory(SteamID steamIDFriend, int iPersonaName);
 		virtual bool HasFriend(SteamID steamIDFriend, int eFriendFlags);
 		virtual int GetClanCount();
 		virtual SteamID GetClanByIndex(int iClan);
-		virtual const char *GetClanName(SteamID steamIDClan);
+		virtual const char* GetClanName(SteamID steamIDClan);
 		virtual int GetFriendCountFromSource(SteamID steamIDSource);
 		virtual SteamID GetFriendFromSourceByIndex(SteamID steamIDSource, int iFriend);
 		virtual bool IsUserInSource(SteamID steamIDUser, SteamID steamIDSource);
@@ -49,28 +49,28 @@ namespace Steam
 	class Friends15
 	{
 	public:
-		virtual const char *GetPersonaName() = 0;
+		virtual const char* GetPersonaName() = 0;
 		virtual uint64_t SetPersonaName(const char *pchPersonaName) = 0;
 		virtual int GetPersonaState() = 0;
 		virtual int GetFriendCount(int iFriendFlags) = 0;
 		virtual SteamID GetFriendByIndex(int iFriend, int iFriendFlags) = 0;
 		virtual int GetFriendRelationship(SteamID steamIDFriend) = 0;
 		virtual int GetFriendPersonaState(SteamID steamIDFriend) = 0;
-		virtual const char *GetFriendPersonaName(SteamID steamIDFriend) = 0;
+		virtual const char* GetFriendPersonaName(SteamID steamIDFriend) = 0;
 		virtual bool GetFriendGamePlayed(SteamID steamID, void *pGamePlayInfo) = 0;
-		virtual const char *GetFriendPersonaNameHistory(SteamID steamIDFriend, FriendGameInfo iPersonaName) = 0;
+		virtual const char* GetFriendPersonaNameHistory(SteamID steamIDFriend, FriendGameInfo iPersonaName) = 0;
 		virtual int GetFriendSteamLevel(SteamID steamIDFriend) = 0;
-		virtual const char *GetPlayerNickname(SteamID steamIDPlayer) = 0;
+		virtual const char* GetPlayerNickname(SteamID steamIDPlayer) = 0;
 		virtual int16_t GetFriendsGroupCount() = 0;
 		virtual int16_t GetFriendsGroupIDByIndex(int32_t) = 0;
-		virtual const char * GetFriendsGroupName(int16_t) = 0;
+		virtual const char* GetFriendsGroupName(int16_t) = 0;
 		virtual int GetFriendsGroupMembersCount(int16_t) = 0;
 		virtual int GetFriendsGroupMembersList(int16_t, SteamID *, int32_t) = 0;
 		virtual bool HasFriend(SteamID steamIDFriend, int iFriendFlags) = 0;
 		virtual int GetClanCount() = 0;
 		virtual SteamID GetClanByIndex(int iClan) = 0;
-		virtual const char *GetClanName(SteamID steamIDClan) = 0;
-		virtual const char *GetClanTag(SteamID steamIDClan) = 0;
+		virtual const char* GetClanName(SteamID steamIDClan) = 0;
+		virtual const char* GetClanTag(SteamID steamIDClan) = 0;
 		virtual bool GetClanActivityCounts(SteamID steamID, int *pnOnline, int *pnInGame, int *pnChatting) = 0;
 		virtual uint64_t DownloadClanActivityCounts(SteamID groupIDs[], int nIds) = 0;
 		virtual int GetFriendCountFromSource(SteamID steamIDSource) = 0;
@@ -94,9 +94,9 @@ namespace Steam
 		virtual int GetUserRestrictions() = 0;
 		virtual bool SetRichPresence(const char *pchKey, const char *pchValue) = 0;
 		virtual void ClearRichPresence() = 0;
-		virtual const char *GetFriendRichPresence(SteamID steamIDFriend, const char *pchKey) = 0;
+		virtual const char* GetFriendRichPresence(SteamID steamIDFriend, const char *pchKey) = 0;
 		virtual int GetFriendRichPresenceKeyCount(SteamID steamIDFriend) = 0;
-		virtual const char *GetFriendRichPresenceKeyByIndex(SteamID steamIDFriend, int iKey) = 0;
+		virtual const char* GetFriendRichPresenceKeyByIndex(SteamID steamIDFriend, int iKey) = 0;
 		virtual void RequestFriendRichPresence(SteamID steamIDFriend) = 0;
 		virtual bool InviteUserToGame(SteamID steamIDFriend, const char *pchConnectString) = 0;
 		virtual int GetCoplayFriendCount() = 0;

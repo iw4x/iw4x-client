@@ -41,7 +41,7 @@ namespace Components
 
 		Session::Send(this->address, "nodeListRequest");
 		Node::SendList(this->address);
-		Logger::Debug("Sent request to {}", this->address.getCString());
+		Logger::Debug("Sent request to {}", this->address.getString());
 	}
 
 	void Node::Entry::reset()
@@ -50,7 +50,7 @@ namespace Components
 		this->lastRequest.reset();
 	}
 
-	json11::Json Node::Entry::to_json() const
+	nlohmann::json Node::Entry::to_json() const
 	{
 		return this->address.getString();
 	}
@@ -235,7 +235,7 @@ namespace Components
 		Proto::Node::List list;
 		if (!list.ParseFromString(data)) return;
 
-		Logger::Debug("Received response from {}", address.getCString());
+		Logger::Debug("Received response from {}", address.getString());
 
 		std::lock_guard _(Node::Mutex);
 
@@ -253,12 +253,12 @@ namespace Components
 		{
 			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::useMasterServer && list.protocol() == PROTOCOL)
 			{
-				Logger::Debug("Inserting {} into the serverlist", address.getCString());
+				Logger::Debug("Inserting {} into the serverlist", address.getString());
 				ServerList::InsertRequest(address);
 			}
 			else
 			{
-				Logger::Debug("Dropping serverlist insertion for {}", address.getCString());
+				Logger::Debug("Dropping serverlist insertion for {}", address.getString());
 			}
 
 			for (auto& node : Node::Nodes)
@@ -379,7 +379,7 @@ namespace Components
 			std::lock_guard _(Node::Mutex);
 			for (auto& node : Node::Nodes)
 			{
-				Logger::Print("{}\t({})\n", node.address.getCString(), node.isValid() ? "Valid" : "Invalid");
+				Logger::Print("{}\t({})\n", node.address.getString(), node.isValid() ? "Valid" : "Invalid");
 			}
 		});
 
