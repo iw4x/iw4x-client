@@ -14,11 +14,14 @@ namespace Game
 	typedef void(*FS_FreeFileList_t)(const char** list, int allocTrackType);
 	extern FS_FreeFileList_t FS_FreeFileList;
 
-	typedef int(*FS_FOpenFileAppend_t)(const char* file);
+	typedef int(*FS_FOpenFileAppend_t)(const char* filename);
 	extern FS_FOpenFileAppend_t FS_FOpenFileAppend;
 
-	typedef int(*FS_FOpenFileWrite_t)(const char* file);
+	typedef int(*FS_FOpenFileWrite_t)(const char* filename);
 	extern FS_FOpenFileWrite_t FS_FOpenFileWrite;
+
+	typedef int(*FS_FOpenTextFileWrite_t)(const char* filename);
+	extern FS_FOpenTextFileWrite_t FS_FOpenTextFileWrite;
 
 	typedef int(*FS_FOpenFileRead_t)(const char* filename, int* file);
 	extern FS_FOpenFileRead_t FS_FOpenFileRead;

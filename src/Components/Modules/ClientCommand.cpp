@@ -30,7 +30,7 @@ namespace Components
 	{
 		const auto command = Utils::String::ToLower(name);
 
-		ClientCommand::HandlersSV[command] = callback;
+		HandlersSV[command] = callback;
 	}
 
 	void ClientCommand::ClientCommandStub(const int clientNum)
@@ -57,9 +57,9 @@ namespace Components
 
 	void ClientCommand::AddCheatCommands()
 	{
-		ClientCommand::Add("noclip", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("noclip", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			if (!ClientCommand::CheatsOk(ent))
+			if (!CheatsOk(ent))
 				return;
 
 			ent->client->flags ^= Game::PLAYER_FLAG_NOCLIP;
@@ -71,9 +71,9 @@ namespace Components
 				(ent->client->flags & Game::PLAYER_FLAG_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
 		});
 
-		ClientCommand::Add("ufo", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("ufo", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			if (!ClientCommand::CheatsOk(ent))
+			if (!CheatsOk(ent))
 				return;
 
 			ent->client->flags ^= Game::PLAYER_FLAG_UFO;
@@ -85,9 +85,9 @@ namespace Components
 				(ent->client->flags & Game::PLAYER_FLAG_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
 		});
 
-		ClientCommand::Add("god", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("god", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			if (!ClientCommand::CheatsOk(ent))
+			if (!CheatsOk(ent))
 				return;
 
 			ent->flags ^= Game::FL_GODMODE;
@@ -99,9 +99,9 @@ namespace Components
 				(ent->flags & Game::FL_GODMODE) ? "GAME_GODMODE_ON" : "GAME_GODMODE_OFF"));
 		});
 
-		ClientCommand::Add("demigod", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("demigod", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			if (!ClientCommand::CheatsOk(ent))
+			if (!CheatsOk(ent))
 				return;
 
 			ent->flags ^= Game::FL_DEMI_GODMODE;
@@ -113,9 +113,9 @@ namespace Components
 				(ent->flags & Game::FL_DEMI_GODMODE) ? "GAME_DEMI_GODMODE_ON" : "GAME_DEMI_GODMODE_OFF"));
 		});
 
-		ClientCommand::Add("notarget", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("notarget", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			if (!ClientCommand::CheatsOk(ent))
+			if (!CheatsOk(ent))
 				return;
 
 			ent->flags ^= Game::FL_NOTARGET;
@@ -127,11 +127,11 @@ namespace Components
 				(ent->flags & Game::FL_NOTARGET) ? "GAME_NOTARGETON" : "GAME_NOTARGETOFF"));
 		});
 
-		ClientCommand::Add("setviewpos", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("setviewpos", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			assert(ent != nullptr);
 
-			if (!ClientCommand::CheatsOk(ent))
+			if (!CheatsOk(ent))
 				return;
 
 			Game::vec3_t origin, angles{0.f, 0.f, 0.f};
@@ -163,9 +163,9 @@ namespace Components
 			Game::TeleportPlayer(ent, origin, angles);
 		});
 
-		ClientCommand::Add("give", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("give", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			if (!ClientCommand::CheatsOk(ent))
+			if (!CheatsOk(ent))
 				return;
 
 			if (params->size() < 2)
@@ -236,19 +236,19 @@ namespace Components
 			for (std::size_t i = 0; i < std::extent_v<decltype(Game::playerState_s::weaponsEquipped)>; ++i)
 			{
 				const auto index = ent->client->ps.weaponsEquipped[i];
-				if (index != 0)
+				if (index)
 				{
 					Game::Add_Ammo(ent, index, 0, 998, 1);
 				}
 			}
 		});
 
-		ClientCommand::Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			assert(ent->client != nullptr);
 			assert(ent->client->sess.connected != Game::CON_DISCONNECTED);
 
-			if (ent->client->sess.sessionState != Game::SESS_STATE_PLAYING || !ClientCommand::CheatsOk(ent))
+			if (ent->client->sess.sessionState != Game::SESS_STATE_PLAYING || !CheatsOk(ent))
 				return;
 
 			Scheduler::Once([ent]
@@ -256,35 +256,35 @@ namespace Components
 				ent->flags &= ~(Game::FL_GODMODE | Game::FL_DEMI_GODMODE);
 				ent->health = 0;
 				ent->client->ps.stats[0] = 0;
-				Game::player_die(ent, ent, ent, 100000, 12, 0, nullptr, Game::HITLOC_NONE, 0);
+				Game::player_die(ent, ent, ent, 100000, Game::MOD_SUICIDE, 0, nullptr, Game::HITLOC_NONE, 0);
 			}, Scheduler::Pipeline::SERVER);
 		});
 	}
 
 	void ClientCommand::AddDevelopmentCommands()
 	{
-		ClientCommand::Add("dropallbots", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("dropallbots", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			Game::SV_DropAllBots();
 		});
 
-		ClientCommand::Add("entitylist", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("entitylist", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			Game::Svcmd_EntityList_f();
 		});
 
-		ClientCommand::Add("printentities", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("printentities", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			Game::G_PrintEntities();
 		});
 
-		ClientCommand::Add("entitycount", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("entitycount", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			Logger::Print("Entity count = {}\n", Game::level->num_entities);
 		});
 
 		// Also known as: "vis"
-		ClientCommand::Add("visionsetnaked", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("visionsetnaked", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (params->size() < 2)
 			{
@@ -312,7 +312,7 @@ namespace Components
 				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});
 
-		ClientCommand::Add("visionsetnight", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("visionsetnight", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			if (params->size() < 2)
 			{
@@ -340,12 +340,22 @@ namespace Components
 				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});
 
-		ClientCommand::Add("g_testCmd", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		Add("g_testCmd", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			assert(ent != nullptr);
 
 			ent->client->ps.stunTime = 1000 + Game::level->time; // 1000 is the default test stun time
 			Logger::Debug("playerState_s.stunTime is {}", ent->client->ps.stunTime);
+		});
+
+		Add("dumpEntInfo", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		{
+			G_DumpEntityDebugInfoToConsole(false);
+		});
+
+		Add("dumpEntInfoCSV", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		{
+			G_DumpEntityDebugInfoToCSV("");
 		});
 	}
 
@@ -357,17 +367,123 @@ namespace Components
 		});
 	}
 
+	const char* ClientCommand::EntInfoLine(const int entNum)
+	{
+		const auto* ent = &Game::g_entities[entNum];
+
+		Game::XModel* model = nullptr;
+		if (ent->model)
+		{
+			model = Game::G_GetModel(ent->model);
+		}
+
+		Game::vec3_t point, angles;
+
+		point[0] = ent->r.currentOrigin[0] - (*Game::viewposNow)->current.vector[0];
+		point[1] = ent->r.currentOrigin[1] - (*Game::viewposNow)->current.vector[1];
+		point[2] = ent->r.currentOrigin[2] - (*Game::viewposNow)->current.vector[2];
+
+		angles[0] = ent->r.currentAngles[0];
+		angles[1] = ent->r.currentAngles[1];
+		angles[2] = ent->r.currentAngles[2];
+
+		const auto distance = std::sqrtf(point[0] * point[0] + point[1] * point[1]
+			+ point[2] * point[2]);
+
+		const auto* team = (ent->client) ? Game::CG_GetTeamName(ent->client->sess.cs.team) : "";
+
+		const auto* scriptLinkName = (ent->script_linkName) ? Game::SL_ConvertToString(ent->script_linkName) : "";
+
+		const auto* target = (ent->target) ? Game::SL_ConvertToString(ent->target) : "";
+
+		const auto* targetName = (ent->targetname) ? Game::SL_ConvertToString(ent->targetname) : "";
+
+		const auto* codeClassname = (ent->script_classname) ? Game::SL_ConvertToString(ent->script_classname) : "";
+
+		const auto* classname = (ent->classname) ? Game::SL_ConvertToString(ent->classname) : "";
+
+		const auto* eventType = (ent->s.eType < Game::ET_EVENTS) ? Game::G_GetEntityTypeName(ent) : "";
+
+		// See description of the format string in the function G_DumpEntityDebugInfoToCSV
+		// If empty it means the item does not exist in the current version of the game or it was not possible to reverse it
+		return Utils::String::VA("%i,%s,%.0f,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.0f %.0f %.0f,%.0f %.0f %.0f,%i\n",
+			entNum, eventType, distance, classname, codeClassname, (model) ? model->name : "",
+			targetName, target, "", scriptLinkName, team, "",
+			point[0], point[1], point[2], angles[0], angles[1], angles[2], 0);
+	}
+
+	void ClientCommand::G_DumpEntityDebugInfoToConsole(bool logfileOnly)
+	{
+		const auto channel = logfileOnly ? Game::CON_CHANNEL_LOGFILEONLY : Game::CON_CHANNEL_SERVER;
+
+		Logger::Print(channel, "=====================================================================================\n");
+		Logger::Print(channel, "============(entity dump begin)\n");
+		Logger::Print(channel,
+			"Number,Type,Distance,Classname,Code Classname,Model,"
+			"Targetname,Target,Script Noteworthy,Script Linkname,Team,ParentNum,Origin,Angles,SentToClients\n");
+
+		for (auto i = 0; i < Game::MAX_GENTITIES; ++i)
+		{
+			if (&Game::g_entities[i] == nullptr)
+			{
+				continue;
+			}
+
+			const auto* line = EntInfoLine(i);
+			assert(line);
+			Logger::Print(channel, "%s", line);
+		}
+
+		Logger::Print(channel, "(end entity dump)============\n");
+		Logger::Print(channel, "=====================================================================================\n");
+	}
+
+	void ClientCommand::G_DumpEntityDebugInfoToCSV(const char* filenameSuffix)
+	{
+		assert(filenameSuffix);
+
+		const auto* fileName = Utils::String::VA("%s%s%s%s", "EntInfo", (*filenameSuffix) ? "_" : "", filenameSuffix, ".csv");
+		Logger::Print(Game::CON_CHANNEL_SERVER, "Opening file \"{}\" for writing.\n", fileName);
+
+		auto h = Game::FS_FOpenTextFileWrite(fileName);
+		if (!h)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_SERVER, "Couldn't open file \"{}\" for writing.\n", fileName);
+			return;
+		}
+
+		Game::FS_Write("Number,Type,Distance,Classname,Code Classname,Model,Targetname,Target,Script Noteworthy,Script Linkname,Team,Paren"
+			"tNum,Origin,Angles,SentToClients\n", 147, h);
+
+		for (auto i = 0; i < Game::MAX_GENTITIES; ++i)
+		{
+			if (&Game::g_entities[i] == nullptr)
+			{
+				continue;
+			}
+
+			const auto* line = EntInfoLine(i);
+			const auto lineLen = std::strlen(line);
+			assert(line);
+			assert(lineLen);
+			Game::FS_Write(line, lineLen, h);
+		}
+
+		Game::FS_FCloseFile(h);
+		Logger::Print(Game::CON_CHANNEL_SERVER, "Done writing file.\n");
+	}
+
 	ClientCommand::ClientCommand()
 	{
 		AssertOffset(Game::playerState_s, stats, 0x150);
 
 		// Hook call to ClientCommand in SV_ExecuteClientCommand so we may add custom commands
-		Utils::Hook(0x6259FA, ClientCommand::ClientCommandStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6259FA, ClientCommandStub, HOOK_CALL).install()->quick();
 
-		ClientCommand::AddCheatCommands();
-		ClientCommand::AddScriptFunctions();
+		AddCheatCommands();
+		AddScriptFunctions();
 #ifdef _DEBUG
-		ClientCommand::AddDevelopmentCommands();
+		AddDevelopmentCommands();
 #endif
 	}
 }
