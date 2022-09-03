@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.5] - 2022-09-03
+
+### Added
+
+- Add `bg_rocketJumpScale` Dvar (#413)
+- Add `CastFloat` GSC function (#414)
+- Add `Strtol` GSC function (#414)
+- Add `bg_lean` Dvar (#421
+- Add voice chat (#425)
+- Add `vote` & `callvote` client commands (#447)
+- Add `kill` client command (#451)
+- Add `voteKick`, `voteTempBan`, `voteTypeMap`, `voteMap` and `voteGame` UI script tokens (#456)
+- Add `Int64IsInt`, `Int64ToInt` and `Int64OP` GSC functions (#419)
+
+### Changed
+
+- Steam status is no longer set to busy (#417)
+- `HttpGet`& `HttpCancel` are disabled for security reasons (#449)
+- 'g_allowVote' is a replicated Dvar (#457)
+
+### Fixed
+
+- Fixed `startSingleplayer` command (#404)
+- General stability update
+
+### Known issues
+
+- HTTPS is not supported for fast downloads at the moment.
+- Sound issue fix is experimental as the bug is not fully understood.
+- `reloadmenus` command does not free resources used by custom menus.
+
 ## [0.7.4] - 2022-07-28
 
 ### Added
