@@ -24,5 +24,7 @@ namespace Components
 		static void LoadLanguageStrings();
 		static void SELoadLanguageStub();
 		static void SetCredits();
+
+		static const char* SEH_LocalizeTextMessageStub(const char* pszInputBuffer, const char* pszMessageType, Game::msgLocErrType_t errType);
 	};
 }

@@ -59,6 +59,9 @@ namespace Game
 	const dvar_t** ui_mapname = reinterpret_cast<const dvar_t**>(0x62E279C);
 	const dvar_t** ui_netGameType = reinterpret_cast<const dvar_t**>(0x62E2838);
 
+	const dvar_t** loc_warnings = reinterpret_cast<const dvar_t**>(0x62C8700);
+	const dvar_t** loc_warningsAsErrors = reinterpret_cast<const dvar_t**>(0x62C86FC);
+
 	__declspec(naked) void Dvar_SetVariant(dvar_t*, DvarValue, DvarSetSource)
 	{
 		static DWORD Dvar_SetVariant_t = 0x647400;
