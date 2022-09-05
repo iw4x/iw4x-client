@@ -42,7 +42,6 @@ namespace Components
 		static void CG_DrawDebugOverlays_Hk(int localClientNum);
 
 		static void Com_Assert_f();
-		static void Cbuf_AddServerText_f_Hk();
 		static void Com_Bug_f(Command::Params* params);
 
 		static void CL_InitDebugDvars();
