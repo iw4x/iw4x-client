@@ -104,12 +104,25 @@ namespace Utils
 		return address;
 	}
 
+	void SetLegacyEnvironment()
+	{
+		wchar_t binaryPath[512];
+		GetModuleFileNameW(GetModuleHandleW(nullptr), binaryPath, sizeof(binaryPath) / sizeof(wchar_t));
+
+		auto* exeBaseName = std::wcsrchr(binaryPath, L'\\');
+		exeBaseName[0] = L'\0';
+
+		// Make the game work without the xlabs launcher
+		SetCurrentDirectoryW(binaryPath);
+	}
+
 	void SetEnvironment()
 	{
 		wchar_t* buffer{};
 		std::size_t size{};
 		if (_wdupenv_s(&buffer, &size, L"XLABS_MW2_INSTALL") != 0 || buffer == nullptr)
 		{
+			SetLegacyEnvironment();
 			return;
 		}
 
