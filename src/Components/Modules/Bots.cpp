@@ -132,7 +132,7 @@ namespace Components
 				return;
 			}
 
-			g_botai[entref.entnum] = {0};
+			ZeroMemory(&g_botai[entref.entnum], sizeof(BotMovementInfo));
 			g_botai[entref.entnum].weapon = 1;
 			g_botai[entref.entnum].active = true;
 		});
@@ -317,7 +317,7 @@ namespace Components
 		// Zero the bot command array
 		for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; ++i)
 		{
-			std::memset(&g_botai[i], 0, sizeof(BotMovementInfo));
+			ZeroMemory(&g_botai[i], sizeof(BotMovementInfo));
 			g_botai[i].weapon = 1; // Prevent the bots from defaulting to the 'none' weapon
 		}
 
