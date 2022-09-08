@@ -859,11 +859,6 @@ namespace Components
 		Menus::Add("ui_mp/resetclass.menu");
 		Menus::Add("ui_mp/popup_customtitle.menu");
 		Menus::Add("ui_mp/popup_customclan.menu");
-
-		Menus::Add("ui_mp/scriptmenus/callvote.menu");
-		Menus::Add("ui_mp/scriptmenus/changegametype.menu");
-		Menus::Add("ui_mp/scriptmenus/changemap.menu");
-		Menus::Add("ui_mp/scriptmenus/kickplayer.menu");
 	}
 
 	Menus::~Menus()
