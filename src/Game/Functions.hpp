@@ -347,6 +347,9 @@ namespace Game
 	typedef int(*LiveStorage_GetStat_t)(int controllerIndex, int index);
 	extern LiveStorage_GetStat_t LiveStorage_GetStat;
 
+	typedef void(*LiveStorage_SetStat_t)(int controllerIndex, int index, int value);
+	extern LiveStorage_SetStat_t LiveStorage_SetStat;
+
 	typedef char*(*Scr_AddSourceBuffer_t)(const char* filename, const char* extFilename, const char* codePos, bool archive);
 	extern Scr_AddSourceBuffer_t Scr_AddSourceBuffer;
 

@@ -20,7 +20,7 @@ namespace Components
 		}
 
 		// Game's code
-		if (surfaceType != Game::materialSurfType_t::SURF_TYPE_DEFAULT)
+		if (surfaceType != Game::SURF_TYPE_DEFAULT)
 		{
 			return (*Game::penetrationDepthTable)[weapDef->penetrateType][surfaceType];
 		}

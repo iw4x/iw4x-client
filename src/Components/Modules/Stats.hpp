@@ -11,9 +11,12 @@ namespace Components
 
 	private:
 		static void UpdateClasses([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+
 		static void SendStats();
 		static int SaveStats(char* dest, const char* folder, const char* buffer, size_t length);
 
-		static int64_t* GetStatsID();
+		static std::int64_t* GetStatsID();
+
+		static void AddScriptFunctions();
 	};
 }

@@ -6023,12 +6023,6 @@ namespace Game
 		float keys[1];
 	};
 
-	union $81775853B5F1E1C6748A82ED93FC367C
-	{
-		FxElemVisuals visuals[32];
-		FxElemMarkVisuals markVisuals[16];
-	};
-
 	struct FxEditorTrailDef
 	{
 		FxTrailVertex verts[64];
@@ -6081,7 +6075,11 @@ namespace Game
 		FxFloatRange emitDistVariance;
 		char elemType;
 		int visualCount;
-		$81775853B5F1E1C6748A82ED93FC367C ___u42;
+		union
+		{
+			FxElemVisuals visuals[32];
+			FxElemMarkVisuals markVisuals[16];
+		} ___u42;
 		int trailSplitDist;
 		int trailSplitArcDist;
 		int trailSplitTime;
@@ -6583,7 +6581,15 @@ namespace Game
 		int bIsTestClient; // 269040
 		int serverID; // 269044
 		bool usingOnlineStatsOffline;
-		char stats[8192];
+		struct
+		{
+			unsigned int checksum;
+			struct
+			{
+				unsigned char binary[2000];
+				int data[1547];
+			} __s0;
+		} stats;
 		char statsModifiedFlags[1024];
 		bool statsModified;
 		char statPacketsReceived;

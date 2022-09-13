@@ -6,6 +6,7 @@ namespace Game
 	SV_IsTestClient_t SV_IsTestClient = SV_IsTestClient_t(0x4D6E40);
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = SV_GameClientNum_Score_t(0x469AC0);
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = SV_GameSendServerCommand_t(0x4BC3A0);
+	SV_SendServerCommand_t SV_SendServerCommand = SV_SendServerCommand_t(0x4255A0);
 	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = SV_Cmd_TokenizeString_t(0x4B5780);
 	SV_Cmd_EndTokenizedString_t SV_Cmd_EndTokenizedString = SV_Cmd_EndTokenizedString_t(0x464750);
 	SV_Cmd_ArgvBuffer_t SV_Cmd_ArgvBuffer = SV_Cmd_ArgvBuffer_t(0x40BB60);
@@ -50,6 +51,60 @@ namespace Game
 				SV_GameDropClient(i, "GAME_GET_TO_COVER");
 			}
 		}
+	}
+
+	int SV_GetClientStat(int clientNum, int index)
+	{
+		assert(svs_clients[clientNum].statPacketsReceived == (1 << MAX_STATPACKETS) - 1);
+		assert(svs_clients[clientNum].header.state >= CS_CONNECTED);
+
+		if (index < 2000)
+		{
+			// Skip first 4 bytes of the binary blob
+			return svs_clients[clientNum].stats.__s0.binary[index];
+		}
+
+		if (index < 3498)
+		{
+			return svs_clients[clientNum].stats.__s0.data[index - 2000];
+		}
+
+		assert(0 && "Unhandled stat index");
+		return 0;
+	}
+
+	void SV_SetClientStat(int clientNum, int index, int value)
+	{
+		assert(svs_clients[clientNum].statPacketsReceived == (1 << MAX_STATPACKETS) - 1);
+		assert(svs_clients[clientNum].header.state >= CS_CONNECTED);
+
+		if (index < 2000)
+		{
+			assert(value >= 0 && value <= 255);
+
+			if (svs_clients[clientNum].stats.__s0.binary[index] == value)
+			{
+				return;
+			}
+
+			svs_clients[clientNum].stats.__s0.binary[index] = static_cast<unsigned char>(value);
+		}
+		else if (index < 3498)
+		{
+			if (svs_clients[clientNum].stats.__s0.data[index - 2000] == value)
+			{
+				return;
+			}
+
+			svs_clients[clientNum].stats.__s0.data[index - 2000] = value;
+		}
+		else
+		{
+			assert(0 && "Unhandled stat index");
+			return;
+		}
+
+		SV_SendServerCommand(&svs_clients[clientNum], SV_CMD_RELIABLE, "%c %i %i", 'M', index, value);
 	}
 
 	void SV_BotUserMove(client_t* client)

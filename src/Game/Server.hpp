@@ -14,6 +14,9 @@ namespace Game
 	typedef void(*SV_GameSendServerCommand_t)(int clientNum, svscmd_type type, const char* text);
 	extern SV_GameSendServerCommand_t SV_GameSendServerCommand;
 
+	typedef void(*SV_SendServerCommand_t)(client_t* cl, svscmd_type type, const char* fmt, ...);
+	extern SV_SendServerCommand_t SV_SendServerCommand;
+
 	typedef void(*SV_Cmd_TokenizeString_t)(const char* string);
 	extern SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString;
 
@@ -47,6 +50,8 @@ namespace Game
 	typedef client_t* (*SV_FindClientByAddress_t)(netadr_t from, int qport, int remoteClientIndex);
 	extern SV_FindClientByAddress_t SV_FindClientByAddress;
 
+	constexpr auto MAX_STATPACKETS = 7;
+
 	extern int* svs_time;
 	extern int* sv_serverId_value;
 	extern int* svs_clientCount;
@@ -57,5 +62,7 @@ namespace Game
 	extern int SV_GetServerThreadOwnsGame();
 	extern void SV_GameDropClient(int clientNum, const char* reason);
 	extern void SV_DropAllBots();
+	extern int SV_GetClientStat(int clientNum, int index);
+	extern void SV_SetClientStat(int clientNum, int index, int value);
 	extern void SV_BotUserMove(client_t* client);
 }

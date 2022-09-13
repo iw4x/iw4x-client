@@ -272,18 +272,5 @@ namespace Components
 		// clanName in CG_Obituary
 		Utils::Hook(0x586DD6, PlayerName::GetClientName, HOOK_CALL).install()->quick();
 		Utils::Hook(0x586E2A, PlayerName::GetClientName, HOOK_CALL).install()->quick();
-
-		Command::Add("statGet", [](Command::Params* params)
-		{
-			if (params->size() < 2)
-			{
-				Logger::PrintError(Game::CON_CHANNEL_SERVER, "statget usage: statget <index>\n");
-				return;
-			}
-
-			const auto index = std::atoi(params->get(1));
-			const auto stat = Game::LiveStorage_GetStat(0, index);
-			Logger::Print(Game::CON_CHANNEL_SYSTEM, "Stat {}: {}\n", index, stat);
-		});
 	}
 }

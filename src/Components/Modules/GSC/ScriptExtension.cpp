@@ -246,7 +246,7 @@ namespace Components
 	void ScriptExtension::AddMethods()
 	{
 		// ScriptExtension methods
-		Script::AddMethod("GetIp", [](Game::scr_entref_t entref) // gsc: self GetIp()
+		Script::AddMethod("GetIp", [](const Game::scr_entref_t entref) // gsc: self GetIp()
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
@@ -259,7 +259,7 @@ namespace Components
 			Game::Scr_AddString(ip.data());
 		});
 
-		Script::AddMethod("GetPing", [](Game::scr_entref_t entref) // gsc: self GetPing()
+		Script::AddMethod("GetPing", [](const Game::scr_entref_t entref) // gsc: self GetPing()
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
@@ -267,7 +267,7 @@ namespace Components
 			Game::Scr_AddInt(client->ping);
 		});
 
-		Script::AddMethod("SetPing", [](Game::scr_entref_t entref) // gsc: self SetPing(<int>)
+		Script::AddMethod("SetPing", [](const Game::scr_entref_t entref) // gsc: self SetPing(<int>)
 		{
 			auto ping = Game::Scr_GetInt(0);
 
@@ -306,7 +306,7 @@ namespace Components
 
 	void ScriptExtension::AddEntityFields()
 	{
-		AddEntityField("entityflags", Game::fieldtype_t::F_INT,
+		AddEntityField("entityflags", Game::F_INT,
 			[](Game::gentity_s* ent, [[maybe_unused]] int offset)
 			{
 				ent->flags = Game::Scr_GetInt(0);
@@ -319,7 +319,7 @@ namespace Components
 
 	void ScriptExtension::AddClientFields()
 	{
-		AddClientField("clientflags", Game::fieldtype_t::F_INT,
+		AddClientField("clientflags", Game::F_INT,
 			[](Game::gclient_s* pSelf, [[maybe_unused]] const Game::client_fields_s* pField)
 			{
 				pSelf->flags = Game::Scr_GetInt(0);
