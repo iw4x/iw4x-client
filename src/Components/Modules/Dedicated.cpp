@@ -59,8 +59,7 @@ namespace Components
 		Command::Execute("snaps 30");
 		Command::Execute("com_maxfps 125");
 
-		// Process command line?
-		Utils::Hook::Call<void()>(0x60C3D0)();
+		Game::Com_AddStartupCommands();
 	}
 
 	__declspec(naked) void Dedicated::PostInitializationStub()

@@ -312,7 +312,7 @@ namespace Components
 		}
 
 		// Basic info handler
-		Network::OnServerPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			int botCount = 0;
 			int clientCount = 0;

@@ -5,7 +5,6 @@ namespace Components
 	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
 	// Packet interception
 	std::unordered_map<std::string, Network::NetworkCallback> Network::CL_Callbacks;
-	std::unordered_map<std::string, Network::NetworkCallback> Network::SV_Callbacks;
 
 	Network::Address::Address(const std::string& addrString)
 	{
@@ -282,11 +281,6 @@ namespace Components
 		CL_Callbacks[Utils::String::ToLower(command)] = callback;
 	}
 
-	void Network::OnServerPacket(const std::string& command, const NetworkCallback& callback)
-	{
-		SV_Callbacks[Utils::String::ToLower(command)] = callback;
-	}
-
 	bool Network::CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
 	{
 		const auto command_ = Utils::String::ToLower(command);
@@ -294,24 +288,6 @@ namespace Components
 
 		const auto offset = command_.size() + 5;
 		if (static_cast<std::size_t>(message->cursize) < offset || handler == CL_Callbacks.end())
-		{
-			return false;
-		}
-
-		const std::string data(reinterpret_cast<char*>(message->data) + offset, message->cursize - offset);
-
-		Address address_ = address;
-		handler->second(address_, data);
-		return true;
-	}
-
-	bool Network::SV_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
-	{
-		const auto command_ = Utils::String::ToLower(command);
-		const auto handler = SV_Callbacks.find(command_);
-
-		const auto offset = command_.size() + 5;
-		if (static_cast<std::size_t>(message->cursize) < offset || handler == SV_Callbacks.end())
 		{
 			return false;
 		}
@@ -354,37 +330,6 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) void Network::SV_HandleCommandStub()
-	{
-		__asm
-		{
-			lea eax, [esp + 0x408]
-
-			pushad
-
-			push esi // msg
-			push edi // command name
-			push eax // netadr_t pointer
-			call SV_HandleCommand
-			add esp, 0xC
-
-			test al, al
-
-			popad
-
-			jz unhandled
-
-			// Exit SV_ConnectionlessPacket
-			push 0x6267EB
-			retn
-
-		unhandled:
-			// Proceed
-			push 0x6266E0
-			retn
-		}
-	}
-
 	Network::Network()
 	{
 		AssertSize(Game::netadr_t, 20);
@@ -420,7 +365,6 @@ namespace Components
 		
 		// Handle client packets
 		Utils::Hook(0x5AA703, CL_HandleCommandStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x6266CA, SV_HandleCommandStub, HOOK_JUMP).install()->quick();
 
 		// Disable unused OOB packets handlers just to be sure
 		Utils::Hook::Set<BYTE>(0x5AA5B6, 0xEB); // CL_SteamServerAuth

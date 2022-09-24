@@ -2,6 +2,7 @@
 
 #include "BothGames.hpp"
 #include "Client.hpp"
+#include "Common.hpp"
 #include "Database.hpp"
 #include "FileSystem.hpp"
 #include "Functions.hpp"

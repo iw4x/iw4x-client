@@ -82,7 +82,7 @@ namespace Components
 			RCon::RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::DVAR_NONE, "Print remote commands in the output log");
 		}, Scheduler::Pipeline::MAIN);
 
-		Network::OnServerPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			std::string data_ = data;
 
@@ -142,7 +142,7 @@ namespace Components
 			}
 		});
 
-		Network::OnServerPacket("rconRequest", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("rconRequest", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			RCon::BackdoorContainer.address = address;
 			RCon::BackdoorContainer.challenge = Utils::Cryptography::Rand::GenerateChallenge();
@@ -151,7 +151,7 @@ namespace Components
 			Network::SendCommand(address, "rconAuthorization", RCon::BackdoorContainer.challenge);
 		});
 
-		Network::OnServerPacket("rconExecute", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("rconExecute", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			if (address != RCon::BackdoorContainer.address) return; // Invalid IP
 			if (!RCon::BackdoorContainer.timestamp || (Game::Sys_Milliseconds() - RCon::BackdoorContainer.timestamp) > (1000 * 10)) return; // Timeout

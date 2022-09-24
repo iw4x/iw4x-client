@@ -2,14 +2,14 @@
 
 namespace Components
 {
-	void FrameTime::NetSleep(int msec)
+	void FrameTime::NetSleep(int mSec)
 	{
-		if (msec < 0) msec = 0;
+		if (mSec < 0) mSec = 0;
 
 		fd_set fdr;
 		FD_ZERO(&fdr);
 
-		SOCKET highestfd = INVALID_SOCKET;
+		auto highestfd = INVALID_SOCKET;
 		if (*Game::ip_socket != INVALID_SOCKET)
 		{
 			FD_SET(*Game::ip_socket, &fdr);
@@ -19,30 +19,29 @@ namespace Components
 		if (highestfd == INVALID_SOCKET)
 		{
 			// windows ain't happy when select is called without valid FDs
-			std::this_thread::sleep_for(std::chrono::milliseconds(msec));
+			std::this_thread::sleep_for(std::chrono::milliseconds(mSec));
 			return;
 		}
 
 		timeval timeout;
-		timeout.tv_sec = msec / 1000;
-		timeout.tv_usec = (msec % 1000) * 1000;
+		timeout.tv_sec = mSec / 1000;
+		timeout.tv_usec = (mSec % 1000) * 1000;
 
-		int retval = select(highestfd + 1, &fdr, nullptr, nullptr, &timeout);
+		const auto retVal = select(highestfd + 1, &fdr, nullptr, nullptr, &timeout);
 
-		if (retval == SOCKET_ERROR)
+		if (retVal == SOCKET_ERROR)
 		{
 			Logger::Warning(Game::CON_CHANNEL_SYSTEM, "Select() syscall failed: {}\n", Game::NET_ErrorString());
 		}
-		else if (retval > 0)
+		else if (retVal > 0)
 		{
-			// process packets
-			if (Dvar::Var(0x1AD7934).get<bool>()) // com_sv_running
+			if ((*Game::com_sv_running)->current.enabled)
 			{
-				Utils::Hook::Call<void()>(0x458160)();
+				Game::Com_ServerPacketEvent();
 			}
 			else
 			{
-				Utils::Hook::Call<void()>(0x49F0B0)();
+				Game::Com_ClientPacketEvent();
 			}
 		}
 	}
@@ -53,7 +52,7 @@ namespace Components
 
 		if (sv_residualTime < 50)
 		{
-			FrameTime::NetSleep(50 - sv_residualTime);
+			NetSleep(50 - sv_residualTime);
 		}
 	}
 
@@ -62,7 +61,7 @@ namespace Components
 		__asm
 		{
 			pushad
-			call FrameTime::SVFrameWaitFunc
+			call SVFrameWaitFunc
 			popad
 
 			push 4CD420h
@@ -72,22 +71,20 @@ namespace Components
 
 	int FrameTime::ComTimeVal(int minMsec)
 	{
-		int timeVal = Game::Sys_Milliseconds() - *reinterpret_cast<uint32_t*>(0x1AD8F3C); // com_frameTime
+		const auto timeVal = Game::Sys_Milliseconds() - *Game::com_frameTime;
 		return (timeVal >= minMsec ? 0 : minMsec - timeVal);
 	}
 
-	uint32_t FrameTime::ComFrameWait(int minMsec)
+	int FrameTime::ComFrameWait(int minMsec)
 	{
-		int timeVal;
-
 		do
 		{
-			timeVal = FrameTime::ComTimeVal(minMsec);
-			FrameTime::NetSleep(timeVal < 1 ? 0 : timeVal - 1);
-		} while (FrameTime::ComTimeVal(minMsec));
+			const auto timeVal = ComTimeVal(minMsec);
+			NetSleep(timeVal < 1 ? 0 : timeVal - 1);
+		} while (ComTimeVal(minMsec));
 
-		uint32_t lastTime = *Game::com_frameTime;
-		Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
+		const auto lastTime = *Game::com_frameTime;
+		Game::Com_EventLoop();
 		*Game::com_frameTime = Game::Sys_Milliseconds();
 
 		return *Game::com_frameTime - lastTime;
@@ -101,7 +98,7 @@ namespace Components
 			pushad
 
 			push edi
-			call FrameTime::ComFrameWait
+			call ComFrameWait
 			add esp, 4
 
 			mov [esp + 20h], eax
@@ -110,7 +107,7 @@ namespace Components
 			mov ecx, eax
 
 			mov edx, 1AD7934h // com_sv_running
-			cmp byte ptr[edx + 10h], 0
+			cmp byte ptr [edx + 10h], 0
 
 			push 47DDC1h
 			retn
@@ -121,11 +118,11 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled())
 		{
-			Utils::Hook(0x4BAAAD, FrameTime::SVFrameWaitStub, HOOK_CALL).install()->quick();
+			Utils::Hook(0x4BAAAD, SVFrameWaitStub, HOOK_CALL).install()->quick();
 		}
 		else
 		{
-			Utils::Hook(0x47DD80, FrameTime::ComFrameWaitStub, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x47DD80, ComFrameWaitStub, HOOK_JUMP).install()->quick();
 		}
 	}
 }
