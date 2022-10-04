@@ -106,6 +106,31 @@ namespace Components
 
 			Game::Scr_AddBool(FileSystem::FileReader(scriptData).exists());
 		});
+
+		Script::AddFunction("FileRemove", [] // gsc: FileRemove(<filepath>)
+		{
+			const auto* path = Game::Scr_GetString(0);
+
+			if (path == nullptr)
+			{
+				Game::Scr_ParamError(0, "^1FileRemove: filepath is not defined!\n");
+				return;
+			}
+
+			for (std::size_t i = 0; i < ARRAYSIZE(QueryStrings); ++i)
+			{
+				if (std::strstr(path, QueryStrings[i]) != nullptr)
+				{
+					Logger::Print("^1FileRemove: directory traversal is not allowed!\n");
+					return;
+				}
+			}
+
+			const auto p = "scriptdata" / std::filesystem::path(path);
+			const auto folder = p.parent_path().string();
+			const auto file = p.filename().string();
+			Game::Scr_AddInt(FileSystem::_DeleteFile(folder, file));
+		});
 	}
 
 	IO::IO()
