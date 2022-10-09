@@ -177,9 +177,9 @@ namespace Components
 		const auto time = Game::level->time / 1000;
 		const auto len = _snprintf_s(string, _TRUNCATE, "%3i:%i%i %s", time / 60, time % 60 / 10, time % 60 % 10, string2);
 
-		if (Game::level->logFile != nullptr)
+		if (Game::level->logFile)
 		{
-			Game::FS_Write(string, len, reinterpret_cast<int>(Game::level->logFile));
+			Game::FS_Write(string, len, Game::level->logFile);
 		}
 
 		// Allow the network log to run even if logFile was not opened

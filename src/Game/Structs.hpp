@@ -8430,7 +8430,7 @@ namespace Game
 		gentity_s* firstFreeEnt;
 		gentity_s* lastFreeEnt;
 		Turret* turrets;
-		void* logFile;
+		int logFile;
 		int initializing;
 		int clientIsSpawning;
 		objective_t objectives[32];
