@@ -13,7 +13,5 @@ namespace Components
 		static void SetSlowMotion();
 		static void ApplySlowMotion(int timePassed);
 		static void ApplySlowMotionStub();
-
-		static void DrawConnectionInterruptedStub(int a1);
 	};
 }

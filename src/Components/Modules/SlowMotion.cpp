@@ -6,13 +6,13 @@ namespace Components
 
 	void SlowMotion::ApplySlowMotion(int timePassed)
 	{
-		if (SlowMotion::Delay <= 0)
+		if (Delay <= 0)
 		{
 			Utils::Hook::Call<void(int)>(0x60B2D0)(timePassed);
 		}
 		else
 		{
-			SlowMotion::Delay -= timePassed;
+			Delay -= timePassed;
 		}
 	}
 
@@ -23,7 +23,7 @@ namespace Components
 			pushad
 
 			push [esp + 24h]
-			call SlowMotion::ApplySlowMotion
+			call ApplySlowMotion
 			add esp, 4h
 
 			popad
@@ -34,9 +34,9 @@ namespace Components
 
 	void SlowMotion::SetSlowMotion()
 	{
-		int duration = 1000;
-		float start = Game::Scr_GetFloat(0);
-		float end = 1.0f;
+		auto duration = 1000;
+		auto start = Game::Scr_GetFloat(0);
+		auto end = 1.0f;
 
 		if (Game::Scr_GetNumParam() >= 2u)
 		{
@@ -48,7 +48,7 @@ namespace Components
 			duration = static_cast<int>(Game::Scr_GetFloat(2) * 1000.0f);
 		}
 
-		int delay = 0;
+		auto delay = 0;
 
 		if (start > end)
 		{
@@ -65,30 +65,23 @@ namespace Components
 		duration = duration - delay;
 
 		Game::Com_SetSlowMotion(start, end, duration);
-		SlowMotion::Delay = delay;
+		Delay = delay;
 
 		// set snapshot num to 1 behind (T6 does this, why shouldn't we?)
-		for (int i = 0; i < *Game::svs_clientCount; ++i)
+		for (auto i = 0; i < *Game::svs_clientCount; ++i)
 		{
 			Game::svs_clients[i].nextSnapshotTime = *Game::svs_time - 1;
 		}
 	}
 
-	void SlowMotion::DrawConnectionInterruptedStub(int /*a1*/)
-	{
-		// 	if (!*reinterpret_cast<bool*>(0x1AD8ED0) && !*reinterpret_cast<bool*>(0x1AD8EEC) && !*reinterpret_cast<int*>(0x1AD78F8))
-		// 	{
-		// 		Utils::Hook::Call<void(int)>(0x454A70)(a1);
-		// 	}
-	}
-
 	SlowMotion::SlowMotion()
 	{
-		SlowMotion::Delay = 0;
-		Utils::Hook(0x5F5FF2, SlowMotion::SetSlowMotion, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x60B38A, SlowMotion::ApplySlowMotionStub, HOOK_CALL).install()->quick();
+		Delay = 0;
+		Utils::Hook(0x5F5FF2, SetSlowMotion, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x60B38A, ApplySlowMotionStub, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x4A54ED, SlowMotion::DrawConnectionInterruptedStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4A54FB, SlowMotion::DrawConnectionInterruptedStub, HOOK_CALL).install()->quick();
+
+		Utils::Hook::Nop(0x4A54ED, 5);
+		Utils::Hook::Nop(0x4A54FB, 5);
 	}
 }
