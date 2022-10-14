@@ -242,8 +242,8 @@ namespace Components
 			return;
 		}
 
-		const auto got = VoteCommands.find(params->get(1));
-		if (got == VoteCommands.end())
+		const auto itr = VoteCommands.find(params->get(1));
+		if (itr == VoteCommands.end())
 		{
 			Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_INVALIDVOTESTRING\"", 0x65));
 			Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA(CallVoteDesc, 0x65));
@@ -256,7 +256,7 @@ namespace Components
 			Game::Cbuf_AddText(0, VA("%s\n", Game::level->voteString));
 		}
 
-		const auto shouldDisplay = got->second(ent, params);
+		const auto shouldDisplay = itr->second(ent, params);
 		if (shouldDisplay)
 		{
 			DisplayVote(ent);

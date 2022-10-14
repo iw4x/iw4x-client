@@ -51,11 +51,9 @@ namespace Components
 		if (classnum == Game::ClassNum::CLASS_NUM_ENTITY)
 		{
 			const auto entity_offset = static_cast<std::uint16_t>(offset);
-
-			const auto got =CustomEntityFields.find(entity_offset);
-			if (got != CustomEntityFields.end())
+			if (const auto itr = CustomEntityFields.find(entity_offset); itr != CustomEntityFields.end())
 			{
-				got->second.setter(&Game::g_entities[entnum], offset);
+				itr->second.setter(&Game::g_entities[entnum], offset);
 				return 1;
 			}
 		}
@@ -68,11 +66,9 @@ namespace Components
 	void ScriptExtension::Scr_SetClientFieldStub(Game::gclient_s* client, int offset)
 	{
 		const auto client_offset = static_cast<std::uint16_t>(offset);
-
-		const auto got = CustomClientFields.find(client_offset);
-		if (got != CustomClientFields.end())
+		if (const auto itr = CustomClientFields.find(client_offset); itr != CustomClientFields.end())
 		{
-			got->second.setter(client, &got->second);
+			itr->second.setter(client, &itr->second);
 			return;
 		}
 
@@ -87,13 +83,11 @@ namespace Components
 			// If we have a ENTFIELD_CLIENT offset we need to check g_entity is actually a fully connected client
 			if (Game::g_entities[entnum].client != nullptr)
 			{
-				const auto client_offset = static_cast<std::uint16_t>(offset & ~Game::ENTFIELD_MASK);
-
-				const auto got =CustomClientFields.find(client_offset);
-				if (got != CustomClientFields.end())
+				const auto client_offset = static_cast<std::uint16_t>(offset & ~Game::ENTFIELD_MASK);	
+				if (const auto itr = CustomClientFields.find(client_offset); itr != CustomClientFields.end())
 				{
 					// Game functions probably don't ever need to use the reference to client_fields_s...
-					got->second.getter(Game::g_entities[entnum].client, &got->second);
+					itr->second.getter(Game::g_entities[entnum].client, &itr->second);
 					return;
 				}
 			}
@@ -102,10 +96,9 @@ namespace Components
 		// Regular entity offsets can be searched directly in our custom handler
 		const auto entity_offset = static_cast<std::uint16_t>(offset);
 
-		const auto got = CustomEntityFields.find(entity_offset);
-		if (got != CustomEntityFields.end())
+		if (const auto itr = CustomEntityFields.find(entity_offset); itr != CustomEntityFields.end())
 		{
-			got->second.getter(&Game::g_entities[entnum], offset);
+			itr->second.getter(&Game::g_entities[entnum], offset);
 			return;
 		}
 

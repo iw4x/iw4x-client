@@ -61,10 +61,10 @@ namespace Components
 
 	bool UIScript::RunMenuScript(const char* name, const char** args)
 	{
-		if (const auto got = UIScript::UIScripts.find(name); got != UIScript::UIScripts.end())
+		if (const auto itr = UIScript::UIScripts.find(name); itr != UIScript::UIScripts.end())
 		{
 			const auto* info = UIScript::UI_GetClientInfo(0);
-			got->second(UIScript::Token(args), info);
+			itr->second(UIScript::Token(args), info);
 			return true;
 		}
 
