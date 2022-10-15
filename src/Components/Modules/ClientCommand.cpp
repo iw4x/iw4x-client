@@ -46,9 +46,9 @@ namespace Components
 		Command::ServerParams params;
 		const auto command = Utils::String::ToLower(params.get(0));
 
-		if (const auto got = HandlersSV.find(command); got != HandlersSV.end())
+		if (const auto itr = HandlersSV.find(command); itr != HandlersSV.end())
 		{
-			got->second(ent, &params);
+			itr->second(ent, &params);
 			return;
 		}
 

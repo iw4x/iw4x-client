@@ -297,13 +297,11 @@ namespace Components
 	{
 		if (pName != nullptr)
 		{
-			const auto got = Script::CustomScrFunctions.find(Utils::String::ToLower(*pName));
-
 			// If no function was found let's call game's function
-			if (got != Script::CustomScrFunctions.end())
+			if (const auto itr = Script::CustomScrFunctions.find(Utils::String::ToLower(*pName)); itr != Script::CustomScrFunctions.end())
 			{
-				*type = got->second.type;
-				return got->second.actionFunc;
+				*type = itr->second.type;
+				return itr->second.actionFunc;
 			}			
 		}
 		else
@@ -321,13 +319,11 @@ namespace Components
 	{
 		if (pName != nullptr)
 		{
-			const auto got = Script::CustomScrMethods.find(Utils::String::ToLower(*pName));
-
 			// If no method was found let's call game's function
-			if (got != Script::CustomScrMethods.end())
+			if (const auto itr = Script::CustomScrMethods.find(Utils::String::ToLower(*pName)); itr != Script::CustomScrMethods.end())
 			{
-				*type = got->second.type;
-				return got->second.actionFunc;
+				*type = itr->second.type;
+				return itr->second.actionFunc;
 			}
 		}
 		else

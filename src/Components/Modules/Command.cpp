@@ -157,9 +157,9 @@ namespace Components
 		ClientParams params;
 		const auto command = Utils::String::ToLower(params[0]);
 
-		if (const auto got = FunctionMap.find(command); got != FunctionMap.end())
+		if (const auto itr = FunctionMap.find(command); itr != FunctionMap.end())
 		{
-			got->second(&params);
+			itr->second(&params);
 		}
 	}
 
@@ -168,9 +168,9 @@ namespace Components
 		ServerParams params;
 		const auto command = Utils::String::ToLower(params[0]);
 
-		if (const auto got = FunctionMapSV.find(command); got != FunctionMapSV.end())
+		if (const auto itr = FunctionMapSV.find(command); itr != FunctionMapSV.end())
 		{
-			got->second(&params);
+			itr->second(&params);
 		}
 	}
 }
