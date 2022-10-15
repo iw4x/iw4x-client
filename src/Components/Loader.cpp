@@ -57,7 +57,6 @@ namespace Components
 		Loader::Register(new IPCPipe());
 		Loader::Register(new MapDump());
 		Loader::Register(new ModList());
-		Loader::Register(new Monitor());
 		Loader::Register(new Network());
 		Loader::Register(new Session());
 		Loader::Register(new Theatre());

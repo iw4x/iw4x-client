@@ -73,18 +73,10 @@ namespace Components
 	{
 		Proto::Node::List list;
 
-		if (Monitor::IsEnabled())
-		{
-			std::string nodes = Utils::IO::ReadFile("players/nodes_default.dat");
-			if (nodes.empty() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(nodes))) return;
-		}
-		else
-		{
-			FileSystem::File defaultNodes("nodes_default.dat");
-			if (!defaultNodes.exists() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(defaultNodes.getBuffer()))) return;
-		}
+		FileSystem::File defaultNodes("nodes_default.dat");
+		if (!defaultNodes.exists() || !list.ParseFromString(Utils::Compression::ZLib::Decompress(defaultNodes.getBuffer()))) return;
 
-		for (int i = 0; i < list.nodes_size(); ++i)
+		for (auto i = 0; i < list.nodes_size(); ++i)
 		{
 			const std::string& addr = list.nodes(i);
 
@@ -171,7 +163,7 @@ namespace Components
 
 		if (!Dedicated::IsEnabled())
 		{
-			if (ServerList::useMasterServer) return; // don't run node frame if master server is active
+			if (ServerList::UseMasterServer) return; // don't run node frame if master server is active
 
 			if (*Game::clcState > 0)
 			{
@@ -251,7 +243,7 @@ namespace Components
 
 		if (list.isnode() && (!list.port() || list.port() == address.getPort()))
 		{
-			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::useMasterServer && list.protocol() == PROTOCOL)
+			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::UseMasterServer && list.protocol() == PROTOCOL)
 			{
 				Logger::Debug("Inserting {} into the serverlist", address.getString());
 				ServerList::InsertRequest(address);
@@ -361,8 +353,7 @@ namespace Components
 			Node::LoadNodes();
 		};
 
-		if (Monitor::IsEnabled()) Network::OnStart(loadNodes);
-		else Scheduler::OnGameInitialized(loadNodes, Scheduler::Pipeline::MAIN);
+		Scheduler::OnGameInitialized(loadNodes, Scheduler::Pipeline::MAIN);
 
 		Network::OnStart([]
 		{

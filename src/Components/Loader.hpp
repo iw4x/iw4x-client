@@ -80,7 +80,6 @@ namespace Components
 #include "Modules/Console.hpp"
 #include "Modules/UIScript.hpp"
 #include "Modules/ModList.hpp"
-#include "Modules/Monitor.hpp"
 #include "Modules/Network.hpp"
 #include "Modules/Theatre.hpp"
 #include "Modules/QuickPatch.hpp"
