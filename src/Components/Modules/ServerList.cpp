@@ -327,7 +327,17 @@ namespace Components
 		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
 		if (!parseData.empty())
 		{
-			const nlohmann::json object = nlohmann::json::parse(parseData);
+			nlohmann::json object;
+			try
+			{
+				object = nlohmann::json::parse(parseData);
+			}
+			catch (const nlohmann::json::parse_error& ex)
+			{
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+				return;
+			}
+
 			if (!object.is_array())
 			{
 				Logger::Print("Favourites storage file is invalid!\n");
@@ -363,7 +373,16 @@ namespace Components
 		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
 		if (!parseData.empty())
 		{
-			const nlohmann::json object = nlohmann::json::parse(parseData);
+			nlohmann::json object;
+			try
+			{
+				object = nlohmann::json::parse(parseData);
+			}
+			catch (const nlohmann::json::parse_error& ex)
+			{
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+				return;
+			}
 
 			if (!object.is_array())
 			{
@@ -409,7 +428,17 @@ namespace Components
 			return;
 		}
 
-		const nlohmann::json object = nlohmann::json::parse(parseData);
+		nlohmann::json object;
+		try
+		{
+			object = nlohmann::json::parse(parseData);
+		}
+		catch (const nlohmann::json::parse_error& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+			return;
+		}
+
 		if (!object.is_array())
 		{
 			Logger::Print("Favourites storage file is invalid!\n");

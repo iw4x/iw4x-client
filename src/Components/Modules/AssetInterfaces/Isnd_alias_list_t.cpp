@@ -12,16 +12,26 @@ namespace Assets
 			return;
 		}
 
-		Game::snd_alias_list_t* aliasList = builder->getAllocator()->allocate<Game::snd_alias_list_t>();
+		auto* aliasList = builder->getAllocator()->allocate<Game::snd_alias_list_t>();
 		if (!aliasList)
 		{
-			Components::Logger::Print("Error allocating memory for sound alias structure!\n");
+			Components::Logger::PrintError(Game::CON_CHANNEL_ERROR, "Failed to allocate memory for sound alias structure!\n");
 			return;
 		}
 
-		nlohmann::json infoData = nlohmann::json::parse(aliasFile.getBuffer());
-		nlohmann::json aliasesContainer = infoData["head"];
+		nlohmann::json infoData;
+		try
+		{
+			infoData = nlohmann::json::parse(aliasFile.getBuffer());
+		}
+		catch (const nlohmann::json::parse_error& ex)
+		{
+			Components::Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+			return;
+		}
 
+
+		nlohmann::json aliasesContainer = infoData["head"];
 		nlohmann::json::array_t aliases = aliasesContainer;
 
 		aliasList->count = aliases.size();
@@ -34,7 +44,7 @@ namespace Assets
 			return;
 		}
 
-		aliasList->aliasName = builder->getAllocator()->duplicateString(name.c_str());
+		aliasList->aliasName = builder->getAllocator()->duplicateString(name);
 
 		for (size_t i = 0; i < aliasList->count; i++)
 		{
@@ -288,19 +298,14 @@ namespace Assets
 
 				if (volumeFalloffCurve.is_string())
 				{
-					std::string fallOffCurve = volumeFalloffCurve.get<std::string>();
+					auto fallOffCurve = volumeFalloffCurve.get<std::string>();
 
-					if (fallOffCurve.size() == 0)
+					if (fallOffCurve.empty())
 					{
 						fallOffCurve = "$default";
 					}
 
-					auto curve = Components::AssetHandler::FindAssetForZone(
-						Game::XAssetType::ASSET_TYPE_SOUND_CURVE, 
-						fallOffCurve.c_str(),
-						builder
-					).sndCurve;
-
+					auto curve = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, fallOffCurve, builder).sndCurve;
 					alias->volumeFalloffCurve = curve;
 				}
 
@@ -376,9 +381,9 @@ namespace Assets
 	{
 		AssertSize(Game::snd_alias_list_t, 12);
 
-		Utils::Stream* buffer = builder->getBuffer();
-		Game::snd_alias_list_t* asset = header.sound;
-		Game::snd_alias_list_t* dest = buffer->dest<Game::snd_alias_list_t>();
+		auto* buffer = builder->getBuffer();
+		auto* asset = header.sound;
+		auto* dest = buffer->dest<Game::snd_alias_list_t>();
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
@@ -402,7 +407,7 @@ namespace Assets
 				buffer->align(Utils::Stream::ALIGN_4);
 				builder->storePointer(asset->head);
 
-				Game::snd_alias_t* destHead = buffer->dest<Game::snd_alias_t>();
+				auto* destHead = buffer->dest<Game::snd_alias_t>();
 				buffer->saveArray(asset->head, asset->count);
 
 				for (unsigned int i = 0; i < asset->count; ++i)
@@ -453,7 +458,7 @@ namespace Assets
 							buffer->align(Utils::Stream::ALIGN_4);
 							builder->storePointer(alias->soundFile);
 
-							Game::SoundFile* destSoundFile = buffer->dest<Game::SoundFile>();
+							auto* destSoundFile = buffer->dest<Game::SoundFile>();
 							buffer->save(alias->soundFile);
 
 							// Save_SoundFileRef
@@ -503,7 +508,7 @@ namespace Assets
 							buffer->align(Utils::Stream::ALIGN_4);
 							builder->storePointer(alias->speakerMap);
 
-							Game::SpeakerMap* destSoundFile = buffer->dest<Game::SpeakerMap>();
+							auto* destSoundFile = buffer->dest<Game::SpeakerMap>();
 							buffer->save(alias->speakerMap);
 
 							if (alias->speakerMap->name)

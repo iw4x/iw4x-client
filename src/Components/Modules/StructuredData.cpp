@@ -4,7 +4,7 @@ namespace Components
 {
 	Utils::Memory::Allocator StructuredData::MemAllocator;
 
-	const char* StructuredData::EnumTranslation[ENUM_MAX] =
+	const char* StructuredData::EnumTranslation[COUNT] =
 	{
 		"features",
 		"weapons",
@@ -23,7 +23,7 @@ namespace Components
 
 	void StructuredData::PatchPlayerDataEnum(Game::StructuredDataDef* data, StructuredData::PlayerDataType type, std::vector<std::string>& entries)
 	{
-		if (!data || type >= StructuredData::PlayerDataType::ENUM_MAX) return;
+		if (!data || type >= StructuredData::PlayerDataType::COUNT) return;
 
 		Game::StructuredDataEnum* dataEnum = &data->enums[type];
 
@@ -192,8 +192,8 @@ namespace Components
 				return;
 			}
 
-			std::map<int, std::vector<std::vector<std::string>>> patchDefinitions;
-			std::map<int, std::unordered_map<std::string, std::string>> otherPatchDefinitions;
+			std::unordered_map<int, std::vector<std::vector<std::string>>> patchDefinitions;
+			std::unordered_map<int, std::unordered_map<std::string, std::string>> otherPatchDefinitions;
 
 			// First check if all versions are present
 			for (int i = 156;; ++i)
@@ -205,12 +205,14 @@ namespace Components
 				std::vector<std::vector<std::string>> enumContainer;
 				std::unordered_map<std::string, std::string> otherPatches;
 
-				std::string errors;
-				nlohmann::json defData = nlohmann::json::parse(definition.getBuffer());
-
-				if (!errors.empty())
+				nlohmann::json defData;
+				try
 				{
-					Logger::Error(Game::ERR_FATAL, "Parsing patch file '{}' for PlayerDataDef version {} failed: {}", definition.getName(), i, errors);
+					defData = nlohmann::json::parse(definition.getBuffer());
+				}
+				catch (const nlohmann::json::parse_error& ex)
+				{
+					Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
 					return;
 				}
 
@@ -220,7 +222,7 @@ namespace Components
 					return;
 				}
 
-				for (std::size_t pType = 0; pType < StructuredData::PlayerDataType::ENUM_MAX; ++pType)
+				for (auto pType = 0; pType < StructuredData::PlayerDataType::COUNT; ++pType)
 				{
 					auto enumData = defData[StructuredData::EnumTranslation[pType]];
 
@@ -228,7 +230,7 @@ namespace Components
 
 					if (enumData.is_array())
 					{
-						for (auto rawEntry : enumData)
+						for (const auto& rawEntry : enumData)
 						{
 							if (rawEntry.is_string())
 							{
@@ -261,7 +263,7 @@ namespace Components
 			if (patchDefinitions.empty()) return;
 
 			// Reallocate the definition
-			Game::StructuredDataDef* newData = StructuredData::MemAllocator.allocateArray<Game::StructuredDataDef>(data->defCount + patchDefinitions.size());
+			auto* newData = StructuredData::MemAllocator.allocateArray<Game::StructuredDataDef>(data->defCount + patchDefinitions.size());
 			std::memcpy(&newData[patchDefinitions.size()], data->defs, sizeof Game::StructuredDataDef * data->defCount);
 
 			// Prepare the buffers
@@ -271,7 +273,7 @@ namespace Components
 				newData[i].version = (patchDefinitions.size() - i) + 155;
 
 				// Reallocate the enum array
-				Game::StructuredDataEnum* newEnums = StructuredData::MemAllocator.allocateArray<Game::StructuredDataEnum>(data->defs->enumCount);
+				auto* newEnums = StructuredData::MemAllocator.allocateArray<Game::StructuredDataEnum>(data->defs->enumCount);
 				std::memcpy(newEnums, data->defs->enums, sizeof Game::StructuredDataEnum * data->defs->enumCount);
 				newData[i].enums = newEnums;
 			}
@@ -292,14 +294,14 @@ namespace Components
 					auto otherData = otherPatchDefinitions[newData[i].version];
 
 					// Invalid patch data
-					if (patchData.size() != StructuredData::PlayerDataType::ENUM_MAX)
+					if (patchData.size() != StructuredData::PlayerDataType::COUNT)
 					{
 						Logger::Error(Game::ERR_FATAL, "PlayerDataDef patch for version {} wasn't parsed correctly!", newData[i].version);
 						continue;
 					}
 
 					// Apply the patch data
-					for (unsigned int pType = 0; pType < StructuredData::PlayerDataType::ENUM_MAX; ++pType)
+					for (auto pType = 0; pType < StructuredData::PlayerDataType::COUNT; ++pType)
 					{
 						if (!patchData[pType].empty())
 						{

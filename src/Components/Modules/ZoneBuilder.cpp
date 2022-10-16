@@ -226,7 +226,7 @@ namespace Components
 		Game::XAssetHeader assetHeader = AssetHandler::FindAssetForZone(type, name, this, isSubAsset);
 
 		if (!assetHeader.data)
-		{		
+		{
 			Logger::Error(Game::ERR_FATAL, "Missing asset '{}' of type '{}'\n", name, Game::DB_GetXAssetTypeName(type));
 			return false;
 		}

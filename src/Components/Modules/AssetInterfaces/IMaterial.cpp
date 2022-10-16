@@ -30,7 +30,8 @@ namespace Assets
 			"_add_lin_nofog",
 		};
 
-		std::map<std::string, std::string> techSetCorrespondance = {
+		static std::unordered_map<std::string, std::string> techSetCorrespondance =
+		{
 			{"effect", "effect_blend"},
 			{"effect", "effect_blend"},
 			{"effect_nofog", "effect_blend_nofog"},
@@ -50,12 +51,6 @@ namespace Assets
 			{"mc_unlit_nofog", "mc_unlit_blend_nofog_ua"},
 			{"mc_unlit", "mc_unlit_replace_lin_nocast"},
 			{"mc_unlit_alphatest", "mc_unlit_blend_lin"}
-			/*,
-			{"", ""},
-			{"", ""},
-			{"", ""},
-			{"", ""},
-			{"", ""},*/
 		};
 
 		Components::FileSystem::File materialFile(Utils::String::VA("materials/%s.iw4xMaterial", name.data()));
@@ -64,7 +59,7 @@ namespace Assets
 		Utils::Stream::Reader reader(builder->getAllocator(), materialFile.getBuffer());
 
 		char* magic = reader.readArray<char>(7);
-		if (std::memcmp(magic, "IW4xMat", 7))
+		if (std::memcmp(magic, "IW4xMat", 7) != 0)
 		{
 			Components::Logger::Error(Game::ERR_FATAL, "Reading material '{}' failed, header is invalid!", name);
 		}
@@ -76,7 +71,7 @@ namespace Assets
 			Components::Logger::Error(Game::ERR_FATAL, "Reading material '{}' failed, expected version is {}, but it was {}!", name, IW4X_MAT_VERSION, version);
 		}
 
-		Game::Material* asset = reader.readObject<Game::Material>();
+		auto* asset = reader.readObject<Game::Material>();
 
 		if (asset->info.name)
 		{
@@ -408,13 +403,13 @@ namespace Assets
 				buffer->align(Utils::Stream::ALIGN_4);
 				builder->storePointer(asset->textureTable);
 
-				Game::MaterialTextureDef* destTextureTable = buffer->dest<Game::MaterialTextureDef>();
+				auto* destTextureTable = buffer->dest<Game::MaterialTextureDef>();
 				buffer->saveArray(asset->textureTable, asset->textureCount);
 
-				for (char i = 0; i < asset->textureCount; ++i)
+				for (std::uint8_t i = 0; i < asset->textureCount; ++i)
 				{
-					Game::MaterialTextureDef* destTextureDef = &destTextureTable[i];
-					Game::MaterialTextureDef* textureDef = &asset->textureTable[i];
+					auto* destTextureDef = &destTextureTable[i];
+					auto* textureDef = &asset->textureTable[i];
 
 					if (textureDef->semantic == SEMANTIC_WATER_MAP)
 					{

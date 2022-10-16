@@ -32,15 +32,15 @@ namespace Components
 
 		if (needPassword)
 		{
-			std::string pass = Dvar::Var("password").get<std::string>();
-			if (pass.empty())
+			const auto password = Dvar::Var("password").get<std::string>();
+			if (password.empty())
 			{
 				// shouldn't ever happen but this is safe
 				Party::ConnectError("A password is required to connect to this server!");
 				return;
 			}
 
-			Download::CLDownload.hashedPassword = Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(pass), "");
+			Download::CLDownload.hashedPassword = Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(password), "");
 		}
 
 		Download::CLDownload.running = true;
@@ -61,37 +61,50 @@ namespace Components
 		if (!download) return false;
 		download->files.clear();
 
-		std::string error;
-		nlohmann::json listData = nlohmann::json::parse(list);
-
-		if (!error.empty() || !listData.is_array())
+		nlohmann::json listData;
+		try
 		{
-			Logger::Print("Error: {}\n", error);
+			listData = nlohmann::json::parse(list);
+		}
+		catch (const nlohmann::json::parse_error& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+			return false;
+		}
+
+		if (!listData.is_array())
+		{
 			return false;
 		}
 
 		download->totalBytes = 0;
-		nlohmann::json::array_t listDataArray = listData;
+		const nlohmann::json::array_t listDataArray = listData;
 
 		for (auto& file : listDataArray)
 		{
 			if (!file.is_object()) return false;
 
-			auto hash = file["hash"];
-			auto name = file["name"];
-			auto size = file["size"];
-
-			if (!hash.is_string() || !name.is_string() || !size.is_number()) return false;
-
-			Download::ClientDownload::File fileEntry;
-			fileEntry.name = name.get<std::string>();
-			fileEntry.hash = hash.get<std::string>();
-			fileEntry.size = size.get<size_t>();
-
-			if (!fileEntry.name.empty())
+			try
 			{
-				download->files.push_back(fileEntry);
-				download->totalBytes += fileEntry.size;
+				const auto hash = file.at("hash").get<std::string>();
+				const auto name = file.at("name").get<std::string>();
+				const auto size = file.at("size").get<std::size_t>();
+
+				Download::ClientDownload::File fileEntry;
+				fileEntry.name = name;
+				fileEntry.hash = hash;
+				fileEntry.size = size;
+
+				if (!fileEntry.name.empty())
+				{
+					download->files.push_back(fileEntry);
+					download->totalBytes += fileEntry.size;
+				}
+			}
+			catch (const nlohmann::json::exception& ex)
+			{
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Error: {}\n", ex.what());
+				return false;
 			}
 		}
 
