@@ -4,6 +4,6 @@ package Proto.RCon;
 
 message Command 
 {
-	bytes commands  = 1;
+	bytes command  = 1;
 	bytes signature = 2;
 }

@@ -88,7 +88,7 @@ namespace Components
 				const auto signedMsg = Utils::Cryptography::ECC::SignMessage(key, data);
 
 				Proto::RCon::Command rconExec;
-				rconExec.set_commands(RconContainer.command);
+				rconExec.set_command(RconContainer.command);
 				rconExec.set_signature(signedMsg);
 
 				Network::SendCommand(address, "rconExecute", rconExec.SerializeAsString());
@@ -199,10 +199,10 @@ namespace Components
 
 			RconContainer.timestamp = 0;
 
-			Proto::RCon::Command command;
-			command.ParseFromString(data);
+			Proto::RCon::Command rconExec;
+			rconExec.ParseFromString(data);
 
-			if (!Utils::Cryptography::ECC::VerifyMessage(RconKey, RconContainer.challenge, command.signature()))
+			if (!Utils::Cryptography::ECC::VerifyMessage(RconKey, RconContainer.challenge, rconExec.signature()))
 			{
 				return;
 			}
@@ -213,7 +213,7 @@ namespace Components
 				RconContainer.output.append(output);
 			});
 
-			Command::Execute(command.commands(), true);
+			Command::Execute(rconExec.command(), true);
 
 			Logger::PipeOutput(nullptr);
 
