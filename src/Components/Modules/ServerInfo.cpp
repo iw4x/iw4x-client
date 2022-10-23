@@ -141,6 +141,7 @@ namespace Components
 		info.set("sv_maxclients", Utils::String::VA("%i", maxClientCount));
 		info.set("protocol", Utils::String::VA("%i", PROTOCOL));
 		info.set("shortversion", SHORTVERSION);
+		info.set("version", (*Game::version)->current.string);
 		info.set("mapname", (*Game::sv_mapname)->current.string);
 		info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().empty() ? "0" : "1"));
 		info.set("checksum", Utils::String::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::String::VA("%u", Game::Sys_Milliseconds()))));
@@ -226,7 +227,7 @@ namespace Components
 				playerList.append(Utils::String::VA("%i %i \"%s\"\n", score, ping, name.data()));
 			}
 
-			Network::SendCommand(address, "statusResponse", "\\" + info.build() + "\n" + playerList + "\n");
+			Network::SendCommand(address, "statusResponse", info.build() + "\n" + playerList + "\n");
 		});
 
 		Network::OnClientPacket("statusResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)

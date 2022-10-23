@@ -743,10 +743,8 @@ namespace Components
 		// Only handle http requests
 		if (ev != MG_EV_HTTP_REQUEST) return;
 
-		//if (!Download::VerifyPassword(nc, reinterpret_cast<http_message*>(ev_data))) return;
-
-		Utils::InfoString status = ServerInfo::GetInfo();
-		Utils::InfoString host = ServerInfo::GetHostInfo();
+		const auto status = ServerInfo::GetInfo();
+		const auto host = ServerInfo::GetHostInfo();
 
 		std::map<std::string, nlohmann::json> info;
 		info["status"] = status.to_json();
