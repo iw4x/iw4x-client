@@ -79,7 +79,6 @@
 #pragma warning(disable: 6387)
 #pragma warning(disable: 26812)
 
-#include <curses.h>
 #include <gsl/gsl>
 #include <tomcrypt.h>
 #include <udis86.h>

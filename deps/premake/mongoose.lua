@@ -20,8 +20,8 @@ function mongoose.project()
 
 		files
 		{
-			path.join(mongoose.source, "*.c"),
-			path.join(mongoose.source, "*.h"),
+			path.join(mongoose.source, "mongoose.c"),
+			path.join(mongoose.source, "mongoose.h"),
 		}
 
 		warnings "Off"

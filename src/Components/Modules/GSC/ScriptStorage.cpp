@@ -54,7 +54,6 @@ namespace Components
 			if (!Data.contains(key))
 			{
 				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key));
-				return;
 			}
 
 			const auto& data = Data.at(key);
@@ -91,7 +90,6 @@ namespace Components
 		{
 			Data.clear();
 		});
-
 	}
 
 	ScriptStorage::ScriptStorage()

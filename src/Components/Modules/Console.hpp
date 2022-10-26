@@ -26,11 +26,6 @@ namespace Components
 		static constexpr int OUTPUT_BOX = 0x64;
 		static constexpr int INPUT_BOX = 0x65;
 
-		// Text-based console stuff
-		static WINDOW* OutputWindow;
-		static WINDOW* InputWindow;
-		static WINDOW* InfoWindow;
-
 		static int Width;
 		static int Height;
 

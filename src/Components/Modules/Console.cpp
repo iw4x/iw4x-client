@@ -1,12 +1,14 @@
 ﻿#include <STDInclude.hpp>
+#undef MOUSE_MOVED
+#include <curses.h>
 
 #define REMOVE_HEADERBAR 1
 
 namespace Components
 {
-	WINDOW* Console::OutputWindow;
-	WINDOW* Console::InputWindow;
-	WINDOW* Console::InfoWindow;
+	static WINDOW* OutputWindow;
+	static WINDOW* InputWindow;
+	static WINDOW* InfoWindow;
 
 	int Console::OutputTop = 0;
 	int Console::OutBuffer = 0;
@@ -79,9 +81,9 @@ namespace Components
 				clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData*>(0x1081C00));
 			}
 
-			wclear(Console::InfoWindow);
-			wprintw(Console::InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (!mapname.empty()) ? mapname.data() : "none");
-			wnoutrefresh(Console::InfoWindow);
+			wclear(InfoWindow);
+			wprintw(InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (!mapname.empty()) ? mapname.data() : "none");
+			wnoutrefresh(InfoWindow);
 		}
 		else if (IsWindow(Console::GetWindow()) != FALSE)
 		{
@@ -91,13 +93,13 @@ namespace Components
 
 	void Console::ShowPrompt()
 	{
-		wattron(Console::InputWindow, COLOR_PAIR(10) | A_BOLD);
-		wprintw(Console::InputWindow, "%s> ", VERSION);
+		wattron(InputWindow, COLOR_PAIR(10) | A_BOLD);
+		wprintw(InputWindow, "%s> ", VERSION);
 	}
 
 	void Console::RefreshOutput()
 	{
-		prefresh(Console::OutputWindow, ((Console::OutputTop > 0) ? (Console::OutputTop - 1) : 0), 0, 1, 0, Console::Height - 2, Console::Width - 1);
+		prefresh(OutputWindow, ((Console::OutputTop > 0) ? (Console::OutputTop - 1) : 0), 0, 1, 0, Console::Height - 2, Console::Width - 1);
 	}
 
 	void Console::ScrollOutput(int amount)
@@ -173,7 +175,7 @@ namespace Components
 		if (!Console::HasConsole)
 		{
 			Console::ShowPrompt();
-			wrefresh(Console::InputWindow);
+			wrefresh(InputWindow);
 			Console::HasConsole = true;
 		}
 
@@ -184,7 +186,7 @@ namespace Components
 			Console::LastRefresh = currentTime;
 		}
 
-		int c = wgetch(Console::InputWindow);
+		int c = wgetch(InputWindow);
 
 		if (c == ERR)
 		{
@@ -196,21 +198,21 @@ namespace Components
 		case '\r':
 		case 459: // keypad enter
 		{
-			wattron(Console::OutputWindow, COLOR_PAIR(10) | A_BOLD);
-			wprintw(Console::OutputWindow, "%s", "]");
+			wattron(OutputWindow, COLOR_PAIR(10) | A_BOLD);
+			wprintw(OutputWindow, "%s", "]");
 
 			if (Console::LineBufferIndex)
 			{
-				wprintw(Console::OutputWindow, "%s", Console::LineBuffer);
+				wprintw(OutputWindow, "%s", Console::LineBuffer);
 			}
 
-			wprintw(Console::OutputWindow, "%s", "\n");
-			wattroff(Console::OutputWindow, A_BOLD);
-			wclear(Console::InputWindow);
+			wprintw(OutputWindow, "%s", "\n");
+			wattroff(OutputWindow, A_BOLD);
+			wclear(InputWindow);
 
 			Console::ShowPrompt();
 
-			wrefresh(Console::InputWindow);
+			wrefresh(InputWindow);
 
 			Console::ScrollOutput(1);
 			Console::RefreshOutput();
@@ -231,11 +233,11 @@ namespace Components
 			Console::LineBuffer[0] = '\0';
 			Console::LineBufferIndex = 0;
 
-			wclear(Console::InputWindow);
+			wclear(InputWindow);
 
 			Console::ShowPrompt();
 
-			wrefresh(Console::InputWindow);
+			wrefresh(InputWindow);
 			break;
 		}
 		case 8: // backspace
@@ -245,8 +247,8 @@ namespace Components
 				Console::LineBufferIndex--;
 				Console::LineBuffer[Console::LineBufferIndex] = '\0';
 
-				wprintw(Console::InputWindow, "%c %c", static_cast<char>(c), static_cast<char>(c));
-				wrefresh(Console::InputWindow);
+				wprintw(InputWindow, "%c %c", static_cast<char>(c), static_cast<char>(c));
+				wrefresh(InputWindow);
 			}
 			break;
 		}
@@ -264,10 +266,10 @@ namespace Components
 		}
 		case KEY_UP:
 		{
-			wclear(Console::InputWindow);
+			wclear(InputWindow);
 			Console::ShowPrompt();
-			wprintw(Console::InputWindow, "%s", Console::LineBuffer2);
-			wrefresh(Console::InputWindow);
+			wprintw(InputWindow, "%s", Console::LineBuffer2);
+			wrefresh(InputWindow);
 
 			strcpy_s(Console::LineBuffer, Console::LineBuffer2);
 			Console::LineBufferIndex = strlen(Console::LineBuffer);
@@ -281,8 +283,8 @@ namespace Components
 
 				Console::LineBuffer[Console::LineBufferIndex++] = static_cast<char>(c);
 				Console::LineBuffer[Console::LineBufferIndex] = '\0';
-				wprintw(Console::InputWindow, "%c", static_cast<char>(c));
-				wrefresh(Console::InputWindow);
+				wprintw(InputWindow, "%c", static_cast<char>(c));
+				wrefresh(InputWindow);
 			}
 			break;
 		}
@@ -294,17 +296,17 @@ namespace Components
 	{
 		__try
 		{
-			delwin(Console::OutputWindow);
-			delwin(Console::InputWindow);
-			delwin(Console::InfoWindow);
+			delwin(OutputWindow);
+			delwin(InputWindow);
+			delwin(InfoWindow);
 			endwin();
 			delscreen(SP);
 		}
 		__finally {}
 
-		Console::OutputWindow = nullptr;
-		Console::InputWindow = nullptr;
-		Console::InfoWindow = nullptr;
+		OutputWindow = nullptr;
+		InputWindow = nullptr;
+		InfoWindow = nullptr;
 	}
 
 	void Console::Create()
@@ -331,15 +333,15 @@ namespace Components
 		raw();
 		noecho();
 
-		Console::OutputWindow = newpad(Console::Height - 1, Console::Width);
-		Console::InputWindow = newwin(1, Console::Width, Console::Height - 1, 0);
-		Console::InfoWindow = newwin(1, Console::Width, 0, 0);
+		OutputWindow = newpad(Console::Height - 1, Console::Width);
+		InputWindow = newwin(1, Console::Width, Console::Height - 1, 0);
+		InfoWindow = newwin(1, Console::Width, 0, 0);
 
-		scrollok(Console::OutputWindow, true);
-		idlok(Console::OutputWindow, true);
-		scrollok(Console::InputWindow, true);
-		nodelay(Console::InputWindow, true);
-		keypad(Console::InputWindow, true);
+		scrollok(OutputWindow, true);
+		idlok(OutputWindow, true);
+		scrollok(InputWindow, true);
+		nodelay(InputWindow, true);
+		keypad(InputWindow, true);
 
 		if (has_colors())
 		{
@@ -356,10 +358,10 @@ namespace Components
 			init_pair(10, COLOR_WHITE, COLOR_BLACK);
 		}
 
-		wbkgd(Console::InfoWindow, COLOR_PAIR(1));
+		wbkgd(InfoWindow, COLOR_PAIR(1));
 
-		wrefresh(Console::InfoWindow);
-		wrefresh(Console::InputWindow);
+		wrefresh(InfoWindow);
+		wrefresh(InputWindow);
 
 		Console::RefreshOutput();
 	}
@@ -390,7 +392,7 @@ namespace Components
 
 	void Console::Print(const char* message)
 	{
-		if (!Console::OutputWindow) return;
+		if (!OutputWindow) return;
 
 		const char* p = message;
 		while (*p != '\0')
@@ -404,30 +406,18 @@ namespace Components
 
 				if (color < 9 && color > 0)
 				{
-					wattron(Console::OutputWindow, COLOR_PAIR(color + 2));
+					wattron(OutputWindow, COLOR_PAIR(color + 2));
 					++p;
 					continue;
 				}
 			}
 
-			waddch(Console::OutputWindow, *p);
+			waddch(OutputWindow, *p);
 
 			++p;
 		}
 
-		wattron(Console::OutputWindow, COLOR_PAIR(9));
-
-// 		int currentTime = static_cast<int>(GetTickCount64()); // Make our compiler happy
-//
-// 		if (!Console::HasConsole)
-// 		{
-// 			Console::RefreshOutput();
-// 		}
-// 		else if ((currentTime - Console::LastRefresh) > 100)
-// 		{
-// 			Console::RefreshOutput();
-// 			Console::LastRefresh = currentTime;
-// 		}
+		wattron(OutputWindow, COLOR_PAIR(9));
 
 		Console::RefreshOutput();
 	}
