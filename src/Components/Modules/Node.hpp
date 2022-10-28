@@ -31,7 +31,6 @@ namespace Components
 			void sendRequest();
 
 			void reset();
-			nlohmann::json to_json() const;
 		};
 
 		Node();

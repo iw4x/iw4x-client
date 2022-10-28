@@ -18,6 +18,14 @@ namespace Components
 	std::vector<int> Script::ScriptMainHandles;
 	std::vector<int> Script::ScriptInitHandles;
 
+	void Script::ShowDeprecationWarning()
+	{
+		Toast::Show("cardicon_gumby", "WARNING!", "You are using deprecated HttpGet/HttpCancel GSC function.", 2048);
+		Logger::Print(Game::CON_CHANNEL_SCRIPT, "*** DEPRECATION WARNING ***\n");
+		Logger::PrintError(Game::CON_CHANNEL_ERROR, "Attempted to execute deprecated built-in HttpGet/HttpCancel! These functions have been deemed unsafe and are scheduled for removal. Please update your mod!\n");
+		Logger::Print(Game::CON_CHANNEL_SCRIPT, "***************************\n");
+	}
+
 	void Script::FunctionError()
 	{
 		const auto* funcName = Game::SL_ConvertToString(Script::FunctionName);
@@ -528,14 +536,6 @@ namespace Components
 		}
 
 		return &Game::svs_clients[ent->s.number];
-	}
-
-	void Script::ShowDeprecationWarning()
-	{
-		Toast::Show("cardicon_gumby", "WARNING!", "You are using deprecated HttpGet/HttpCancel GSC function.", 2048);
-		Logger::Print(Game::CON_CHANNEL_SCRIPT, "*** DEPRECATION WARNING ***\n");
-		Logger::PrintError(Game::CON_CHANNEL_ERROR, "Attempted to execute deprecated built-in HttpGet/HttpCancel! These functions have been deemed unsafe and are scheduled for removal. Please update your mod!\n");
-		Logger::Print(Game::CON_CHANNEL_SCRIPT, "***************************\n");
 	}
 
 	void Script::AddFunctions()

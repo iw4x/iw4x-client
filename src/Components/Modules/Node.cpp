@@ -50,11 +50,6 @@ namespace Components
 		this->lastRequest.reset();
 	}
 
-	nlohmann::json Node::Entry::to_json() const
-	{
-		return this->address.getString();
-	}
-
 	void Node::LoadNodeRemotePreset()
 	{
 		std::string nodes = Utils::Cache::GetFile("/iw4/nodes.txt");
