@@ -357,10 +357,10 @@ namespace Components
 				progress = (100.0 / fDownload->download->totalBytes) * fDownload->download->downBytes;
 			}
 
-			static unsigned int dlIndex, dlSize, dlProgress;
+			static std::uint32_t dlIndex, dlSize, dlProgress;
 			dlIndex = fDownload->index + 1;
 			dlSize = fDownload->download->files.size();
-			dlProgress = static_cast<unsigned int>(progress);
+			dlProgress = static_cast<std::uint32_t>(progress);
 
 			framePushed = true;
 			Scheduler::Once([]
@@ -592,7 +592,7 @@ namespace Components
 			mg_printf(c, "Content-Length: %d\r\n", static_cast<int>(file.size()));
 			mg_printf(c, "%s", "Connection: close\r\n");
 			mg_printf(c, "%s", "\r\n");
-			mg_send(c, file.data(), static_cast<int>(file.size()));
+			mg_send(c, file.data(), file.size());
 		}
 	}
 
@@ -625,7 +625,7 @@ namespace Components
 			mg_printf(c, "Content-Length: %d\r\n", static_cast<int>(file.getBuffer().size()));
 			mg_printf(c, "%s", "Connection: close\r\n");
 			mg_printf(c, "%s", "\r\n");
-			mg_send(c, file.getBuffer().data(), static_cast<int>(file.getBuffer().size()));
+			mg_send(c, file.getBuffer().data(), file.getBuffer().size());
 		}
 		else
 		{
