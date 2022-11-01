@@ -441,7 +441,7 @@ namespace Components
 
 		const auto* value = &Game::scrVmPub->top[-index];
 
-		if (value->type != Game::scrParamType_t::VAR_FUNCTION)
+		if (value->type != Game::VAR_FUNCTION)
 		{
 			Game::Scr_ParamError(static_cast<unsigned int>(index), "^1GetCodePosForParam: Expects a function as parameter!\n");
 			return "";

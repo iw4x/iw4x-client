@@ -5475,7 +5475,7 @@ namespace Game
 		char buf[1];
 	};
 
-	enum scrParamType_t
+	enum
 	{
 		VAR_UNDEFINED = 0x0,
 		VAR_BEGIN_REF = 0x1,
@@ -5509,7 +5509,7 @@ namespace Game
 		VAR_ENDON_LIST = 0x1B,
 	};
 
-	enum $2441F0C7E439C64E6C27842ECB570A7C
+	enum
 	{
 		FIRST_OBJECT = 0x10,
 		FIRST_CLEARABLE_OBJECT = 0x14,
@@ -5535,7 +5535,7 @@ namespace Game
 	struct VariableValue
 	{
 		VariableUnion u;
-		scrParamType_t type;
+		int type;
 	};
 
 	struct function_stack_t

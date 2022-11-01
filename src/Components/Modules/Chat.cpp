@@ -29,23 +29,35 @@ namespace Components
 		// Prevent callbacks from adding a new callback (would make the vector iterator invalid)
 		CanAddCallback = false;
 
-		if (text[1] == '/')
+		// Chat messages sent through the console do not begin with \x15
+		auto msgIndex = 0;
+		if (text[msgIndex] == '\x15')
+		{
+			msgIndex = 1;
+		}
+
+		if (text[msgIndex] == '/')
 		{
 			SendChat = false;
-			text[1] = text[0];
+
+			if (msgIndex == 1)
+			{
+				// Overwrite / with \x15
+				text[msgIndex] = text[msgIndex - 1];
+			}
+			// Skip over the first character
 			++text;
 		}
 
 		if (IsMuted(player))
 		{
 			SendChat = false;
-			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE,
-				Utils::String::VA("%c \"You are muted\"", 0x65));
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You are muted\"", 0x65));
 		}
 
 		for (const auto& callback : SayCallbacks)
 		{
-			if (!ChatCallback(player, callback.getPos(), (text + 1), mode))
+			if (!ChatCallback(player, callback.getPos(), (text + msgIndex), mode))
 			{
 				SendChat = false;
 			}
@@ -54,14 +66,13 @@ namespace Components
 		if (sv_disableChat.get<bool>())
 		{
 			SendChat = false;
-			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE,
-				Utils::String::VA("%c \"Chat is disabled\"", 0x65));
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
 		}
 
-		TextRenderer::StripMaterialTextIcons(text, text, strlen(text) + 1);
+		TextRenderer::StripMaterialTextIcons(text, text, std::strlen(text) + 1);
 
 		Game::Scr_AddEntity(player);
-		Game::Scr_AddString(text + 1);
+		Game::Scr_AddString(text + msgIndex);
 		Game::Scr_NotifyLevel(Game::SL_GetString("say", 0), 2);
 
 		return text;
