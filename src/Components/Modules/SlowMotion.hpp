@@ -10,8 +10,13 @@ namespace Components
 	private:
 		static int Delay;
 
-		static void SetSlowMotion();
-		static void ApplySlowMotion(int timePassed);
-		static void ApplySlowMotionStub();
+		static const Game::dvar_t* cg_drawDisconnect;
+
+		static void Com_UpdateSlowMotion(int timePassed);
+		static void Com_UpdateSlowMotion_Stub();
+
+		static void ScrCmd_SetSlowMotion_Stub();
+
+		static void CG_DrawDisconnect_Stub(int localClientNum);
 	};
 }

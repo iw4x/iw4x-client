@@ -22,6 +22,7 @@ namespace Game
 	Com_SetSlowMotion_t Com_SetSlowMotion = Com_SetSlowMotion_t(0x446E20);
 	Com_Quitf_t Com_Quit_f = Com_Quitf_t(0x4D4000);
 	Com_OpenLogFile_t Com_OpenLogFile = Com_OpenLogFile_t(0x60A8D0);
+	Com_UpdateSlowMotion_t Com_UpdateSlowMotion = Com_UpdateSlowMotion_t(0x60B2D0);
 
 	int* com_frameTime = reinterpret_cast<int*>(0x1AD8F3C);
 

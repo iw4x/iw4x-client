@@ -15,11 +15,14 @@ namespace Game
 	typedef void(*Cbuf_InsertText_t)(int localClientNum, const char* text);
 	extern Cbuf_InsertText_t Cbuf_InsertText;
 
-	typedef int(*CG_GetClientNum_t)();
-	extern CG_GetClientNum_t CG_GetClientNum;
+	typedef void(*CG_DrawDisconnect_t)(int localClientNum);
+	extern CG_DrawDisconnect_t CG_DrawDisconnect;
 
 	typedef void(*CG_NextWeapon_f_t)();
 	extern CG_NextWeapon_f_t CG_NextWeapon_f;
+
+	typedef int(*CG_GetClientNum_t)();
+	extern CG_GetClientNum_t CG_GetClientNum;
 
 	typedef void(*CG_PlayBoltedEffect_t)(int localClientNum, FxEffectDef* fxDef, int dobjHandle, unsigned int boneName);
 	extern CG_PlayBoltedEffect_t CG_PlayBoltedEffect;

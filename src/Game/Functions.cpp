@@ -9,6 +9,7 @@ namespace Game
 	Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x404B20);
 	Cbuf_InsertText_t Cbuf_InsertText = Cbuf_InsertText_t(0x4940B0);
 
+	CG_DrawDisconnect_t CG_DrawDisconnect = CG_DrawDisconnect_t(0x454A70);
 	CG_NextWeapon_f_t CG_NextWeapon_f = CG_NextWeapon_f_t(0x449DE0);
 	CG_GetClientNum_t CG_GetClientNum = CG_GetClientNum_t(0x433700);
 	CG_PlayBoltedEffect_t CG_PlayBoltedEffect = CG_PlayBoltedEffect_t(0x430E10);

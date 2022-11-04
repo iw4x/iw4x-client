@@ -59,6 +59,9 @@ namespace Game
 	typedef void(*Com_OpenLogFile_t)();
 	extern Com_OpenLogFile_t Com_OpenLogFile;
 
+	typedef void(*Com_UpdateSlowMotion_t)(int msec);
+	extern Com_UpdateSlowMotion_t Com_UpdateSlowMotion;
+
 	extern int* com_frameTime;
 
 	extern int* com_fixedConsolePosition;
