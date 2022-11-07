@@ -106,7 +106,7 @@ namespace Utils
 
 	void SetLegacyEnvironment()
 	{
-		wchar_t binaryPath[512];
+		wchar_t binaryPath[512]{};
 		GetModuleFileNameW(GetModuleHandleW(nullptr), binaryPath, sizeof(binaryPath) / sizeof(wchar_t));
 
 		auto* exeBaseName = std::wcsrchr(binaryPath, L'\\');
@@ -128,9 +128,8 @@ namespace Utils
 
 		const auto _0 = gsl::finally([&] { std::free(buffer); });
 
-		const std::wstring dir{buffer, size};
-		SetCurrentDirectoryW(dir.data());
-		SetDllDirectoryW(dir.data());
+		SetCurrentDirectoryW(buffer);
+		SetDllDirectoryW(buffer);
 	}
 
 	HMODULE GetNTDLL()
