@@ -1,6 +1,7 @@
 #include <STDInclude.hpp>
 #include "GSC/Script.hpp"
 
+#undef alloca
 #include <mongoose.h>
 
 namespace Components
