@@ -135,16 +135,13 @@ namespace Components
 
 	void Localization::LoadLanguageStrings()
 	{
-		//if (ZoneBuilder::IsEnabled())
+		if (FileSystem::File(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage())).exists())
 		{
-			if (FileSystem::File(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage())).exists())
-			{
-				Game::SE_Load(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage()), 0);
-			}
-			else if (FileSystem::File("localizedstrings/iw4x_english.str").exists())
-			{
-				Game::SE_Load("localizedstrings/iw4x_english.str", 0);
-			}
+			Game::SE_Load(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage()), 0);
+		}
+		else if (FileSystem::File("localizedstrings/iw4x_english.str").exists())
+		{
+			Game::SE_Load("localizedstrings/iw4x_english.str", 0);
 		}
 	}
 
@@ -434,7 +431,7 @@ namespace Components
 					std::string key = Utils::String::VA("CLASS_SLOT%i", i);
 
 					std::string value = asset.localize->value;
-					Utils::String::Replace(value, "1", Utils::String::VA("%i", i)); // Pretty ugly, but it should work
+					Utils::String::Replace(value, "1", std::to_string(i)); // Pretty ugly, but it should work
 
 					Localization::Set(key, value);
 				}
