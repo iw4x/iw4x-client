@@ -76,31 +76,6 @@ namespace Components
 		Localization::Set(key, value);
 	}
 
-	void Localization::LoadLanguageStrings()
-	{
-		if (FileSystem::File(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage())).exists())
-		{
-			Game::SE_Load(Utils::String::VA("localizedstrings/iw4x_%s.str", Game::Win_GetLanguage()), 0);
-		}
-		else if (FileSystem::File("localizedstrings/iw4x_english.str").exists())
-		{
-			Game::SE_Load("localizedstrings/iw4x_english.str", 0);
-		}
-	}
-
-	__declspec(naked) void Localization::SELoadLanguageStub()
-	{
-		__asm
-		{
-			pushad
-			call Localization::LoadLanguageStrings
-			popad
-
-			push 629E20h
-			retn
-		}
-	}
-
 	void Localization::SetCredits()
 	{
 		static const char* staff[] =
@@ -346,9 +321,6 @@ namespace Components
 
 		// Resolving hook
 		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).install()->quick();
-
-		// Set loading entry point
-		Utils::Hook(0x41D859, Localization::SELoadLanguageStub, HOOK_CALL).install()->quick();
 
 		// Overwrite SetString
 		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).install()->quick();

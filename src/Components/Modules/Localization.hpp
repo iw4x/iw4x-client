@@ -17,8 +17,6 @@ namespace Components
 		static Dvar::Var UseLocalization;
 
 		static void __stdcall SetStringStub(const char* key, const char* value, bool isEnglish);
-		static void LoadLanguageStrings();
-		static void SELoadLanguageStub();
 		static void SetCredits();
 
 		static const char* SEH_LocalizeTextMessageStub(const char* pszInputBuffer, const char* pszMessageType, Game::msgLocErrType_t errType);
