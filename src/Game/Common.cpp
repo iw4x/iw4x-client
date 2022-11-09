@@ -61,4 +61,28 @@ namespace Game
 			g_parse[1056 * *(reinterpret_cast<DWORD*>(g_parse) + 4224) + 1032] = parse != 0;
 		}
 	}
+
+	const char* Com_LoadInfoString_FastFile(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer)
+	{
+		static DWORD Com_LoadInfoString_FastFile_t = 0x609B60;
+
+		const char* result{};
+
+		__asm
+		{
+			pushad
+
+			mov edi, fileName
+			mov ebx, loadBuffer
+			push ident
+			push fileDesc
+			call Com_LoadInfoString_FastFile_t
+			add esp, 0x8
+			mov result, eax
+
+			popad
+		}
+
+		return result;
+	}
 }

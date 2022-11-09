@@ -76,7 +76,6 @@ namespace Components
 		Game::DB_LoadXAssets(&info, 1, true);
 
 		AssetHandler::ClearTemporaryAssets();
-		Localization::ClearTemp();
 	}
 
 	Utils::Stream* ZoneBuilder::Zone::getBuffer()
@@ -151,29 +150,18 @@ namespace Components
 			{
 				if (this->dataMap.getColumns(i) > 2)
 				{
-					if (this->dataMap.getElementAt(i, 0) == "localize")
-					{
-						std::string stringOverride = this->dataMap.getElementAt(i, 2);
-						Utils::String::Replace(stringOverride, "\\n", "\n");
+					std::string oldName = this->dataMap.getElementAt(i, 1);
+					std::string newName = this->dataMap.getElementAt(i, 2);
+					std::string typeName = this->dataMap.getElementAt(i, 0);
+					Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 
-						Localization::SetTemp(this->dataMap.getElementAt(i, 1), stringOverride);
+					if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
+					{
+							this->renameAsset(type, oldName, newName);
 					}
 					else
 					{
-						std::string oldName = this->dataMap.getElementAt(i, 1);
-						std::string newName = this->dataMap.getElementAt(i, 2);
-						std::string typeName = this->dataMap.getElementAt(i, 0).data();
-						Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
-
-						if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
-						{
-							this->renameAsset(type, oldName, newName);
-						}
-						else
-						{
-							Logger::Error(Game::ERR_FATAL, "Unable to rename '{}' to '{}' as the asset type '{}' is invalid!",
-								oldName, newName, typeName);
-						}
+						Logger::Error(Game::ERR_FATAL, "Unable to rename '{}' to '{}' as the asset type '{}' is invalid!", oldName, newName, typeName);
 					}
 				}
 
@@ -914,7 +902,6 @@ namespace Components
 			frames++;
 		}
 
-		// ReSharper disable once CppUnreachableCode
 		return 0;
 	}
 
@@ -923,7 +910,7 @@ namespace Components
 		char buffer[4096] = {0};
 		va_list args;
 		va_start(args, fmt);
-		_vsnprintf_s(buffer, _TRUNCATE, fmt, args);
+		vsnprintf_s(buffer, _TRUNCATE, fmt, args);
 		va_end(args);
 
 		if (!Flags::HasFlag("stdout"))

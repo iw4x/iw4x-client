@@ -3627,7 +3627,7 @@ namespace Components
 		Utils::Hook(0x4B4EA1, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4B4F0C, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
 		
-		Utils::Hook(0x4F4D3B, [] ()
+		Utils::Hook(0x4F4D3B, []
 		{
 			if (Zones::ZoneVersion >= VERSION_ALPHA3)
 			{

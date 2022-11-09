@@ -6,7 +6,7 @@ namespace Utils
 	{
 		std::string ZLib::Compress(const std::string& data)
 		{
-			Utils::Memory::Allocator allocator;
+			Memory::Allocator allocator;
 			unsigned long length = (data.size() * 2);
 			if (!length) length = 2;
 
@@ -34,7 +34,7 @@ namespace Utils
 			}
 
 			int ret;
-			Utils::Memory::Allocator allocator;
+			Memory::Allocator allocator;
 
 			uint8_t* dest = allocator.allocateArray<uint8_t>(CHUNK);
 			const char* dataPtr = data.data();

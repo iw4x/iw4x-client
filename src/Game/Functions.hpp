@@ -95,6 +95,9 @@ namespace Game
 	typedef char*(*Info_ValueForKey_t)(const char* s, const char* key);
 	extern Info_ValueForKey_t Info_ValueForKey;
 
+	typedef int(*Info_Validate_t)(const char* s);
+	extern Info_Validate_t Info_Validate;
+
 	typedef void(*Key_SetCatcher_t)(int localClientNum, int catcher);
 	extern Key_SetCatcher_t Key_SetCatcher;
 

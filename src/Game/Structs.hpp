@@ -5332,6 +5332,14 @@ namespace Game
 		char uiName[32];
 	};
 
+	enum fsMode_t
+	{
+		FS_READ = 0x0,
+		FS_WRITE = 0x1,
+		FS_APPEND = 0x2,
+		FS_APPEND_SYNC = 0x3,
+	};
+
 	struct fileInIwd_s
 	{
 		unsigned int pos;

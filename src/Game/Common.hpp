@@ -70,4 +70,6 @@ namespace Game
 
 	extern char* Com_GetParseThreadInfo();
 	extern void Com_SetParseNegativeNumbers(int parse);
+
+	extern const char* Com_LoadInfoString_FastFile(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer);
 }

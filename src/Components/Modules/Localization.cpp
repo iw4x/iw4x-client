@@ -5,7 +5,6 @@ namespace Components
 	std::recursive_mutex Localization::LocalizeMutex;
 	Dvar::Var Localization::UseLocalization;
 	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
-	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::TempLocalizeMap;
 
 	void Localization::Set(const std::string& key, const std::string& value)
 	{
@@ -49,14 +48,11 @@ namespace Components
 		if (!Localization::UseLocalization.get<bool>()) return key;
 
 		Game::LocalizeEntry* entry = nullptr;
+
 		{
 			std::lock_guard _(Localization::LocalizeMutex);
 
-			if (Localization::TempLocalizeMap.contains(key))
-			{
-				entry = Localization::TempLocalizeMap[key];
-			}
-			else if (Localization::LocalizeMap.contains(key))
+			if (Localization::LocalizeMap.contains(key))
 			{
 				entry = Localization::LocalizeMap[key];
 			}
@@ -73,59 +69,6 @@ namespace Components
 		}
 
 		return key;
-	}
-
-	void Localization::SetTemp(const std::string& key, const std::string& value)
-	{
-		std::lock_guard _(Localization::LocalizeMutex);
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
-		if (Localization::TempLocalizeMap.contains(key))
-		{
-			Game::LocalizeEntry* entry = Localization::TempLocalizeMap[key];
-			if (entry->value) allocator->free(entry->value);
-			entry->value = allocator->duplicateString(value);
-		}
-		else
-		{
-			Game::LocalizeEntry* entry = allocator->allocate<Game::LocalizeEntry>();
-			if (!entry) return;
-
-			entry->name = allocator->duplicateString(key);
-			if (!entry->name)
-			{
-				allocator->free(entry);
-				return;
-			}
-
-			entry->value = allocator->duplicateString(value);
-			if (!entry->value)
-			{
-				allocator->free(entry->name);
-				allocator->free(entry);
-				return;
-			}
-
-			Localization::TempLocalizeMap[key] = entry;
-		}
-	}
-
-	void Localization::ClearTemp()
-	{
-		std::lock_guard _(Localization::LocalizeMutex);
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
-		for (auto i = Localization::TempLocalizeMap.begin(); i != Localization::TempLocalizeMap.end(); ++i)
-		{
-			if (i->second)
-			{
-				if (i->second->name)  allocator->free(i->second->name);
-				if (i->second->value) allocator->free(i->second->value);
-				allocator->free(i->second);
-			}
-		}
-
-		Localization::TempLocalizeMap.clear();
 	}
 
 	void __stdcall Localization::SetStringStub(const char* key, const char* value, bool /*isEnglish*/)
@@ -393,11 +336,7 @@ namespace Components
 			Game::XAssetHeader header = { nullptr };
 			std::lock_guard _(Localization::LocalizeMutex);
 
-			if (Localization::TempLocalizeMap.contains(filename))
-			{
-				header.localize = Localization::TempLocalizeMap[filename];
-			}
-			else if (Localization::LocalizeMap.contains(filename))
+			if (Localization::LocalizeMap.contains(filename))
 			{
 				header.localize = Localization::LocalizeMap[filename];
 			}
@@ -441,7 +380,6 @@ namespace Components
 
 	Localization::~Localization()
 	{
-		Localization::ClearTemp();
 		Localization::LocalizeMap.clear();
 	}
 }

@@ -7,31 +7,44 @@ namespace Assets
 	{
 		Components::FileSystem::File rawFile(name);
 
-		if (rawFile.exists())
+		if (!rawFile.exists())
 		{
-			Game::RawFile* asset = builder->getAllocator()->allocate<Game::RawFile>();
-
-			if (asset)
-			{
-				//std::string data = Utils::Compression::ZLib::Compress(rawFile.getBuffer());
-
-				asset->name = builder->getAllocator()->duplicateString(name);
-				asset->buffer = builder->getAllocator()->duplicateString(rawFile.getBuffer());
-				asset->compressedLen = 0;//data.size();
-				asset->len = rawFile.getBuffer().size();
-
-				header->rawfile = asset;
-			}
+			return;
 		}
+
+		auto* asset = builder->getAllocator()->allocate<Game::RawFile>();
+		if (!asset)
+		{
+			return;
+		}
+
+		const auto data = Utils::Compression::ZLib::Compress(rawFile.getBuffer());
+
+		asset->name = builder->getAllocator()->duplicateString(name);
+
+		if (data.size() < rawFile.getBuffer().size())
+		{
+			asset->buffer = builder->getAllocator()->duplicateString(data);
+			asset->compressedLen = static_cast<int>(data.size());
+		}
+		else
+		{
+			asset->buffer = builder->getAllocator()->duplicateString(rawFile.getBuffer());
+			asset->compressedLen = 0;
+		}
+
+		asset->len = static_cast<int>(rawFile.getBuffer().size());
+
+		header->rawfile = asset;
 	}
 
 	void IRawFile::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::RawFile, 16);
 
-		Utils::Stream* buffer = builder->getBuffer();
-		Game::RawFile* asset = header.rawfile;
-		Game::RawFile* dest = buffer->dest<Game::RawFile>();
+		auto* buffer = builder->getBuffer();
+		auto* asset = header.rawfile;
+		auto* dest = buffer->dest<Game::RawFile>();
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);

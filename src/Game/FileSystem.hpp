@@ -32,6 +32,9 @@ namespace Game
 	typedef int(*FS_FOpenFileReadForThread_t)(const char* filename, int* file, int thread);
 	extern FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread;
 
+	typedef int(*FS_FOpenFileByMode_t)(const char* qpath, int* f, fsMode_t mode);
+	extern FS_FOpenFileByMode_t FS_FOpenFileByMode;
+
 	typedef int(*FS_FCloseFile_t)(int stream);
 	extern FS_FCloseFile_t FS_FCloseFile;
 
@@ -50,7 +53,7 @@ namespace Game
 	typedef int(*FS_Printf_t)(int file, const char* fmt, ...);
 	extern FS_Printf_t FS_Printf;
 
-	typedef int(*FS_Read_t)(void* buffer, size_t size, int file);
+	typedef int(*FS_Read_t)(void* buffer, int len, int h);
 	extern FS_Read_t FS_Read;
 
 	typedef int(*FS_Seek_t)(int fileHandle, int seekPosition, int seekOrigin);

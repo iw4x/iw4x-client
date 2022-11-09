@@ -48,6 +48,7 @@ namespace Game
 	Image_Release_t Image_Release = Image_Release_t(0x51F010);
 
 	Info_ValueForKey_t Info_ValueForKey = Info_ValueForKey_t(0x47C820);
+	Info_Validate_t Info_Validate = Info_Validate_t(0x436AE0);
 
 	Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x43BD00);
 	Key_RemoveCatcher_t Key_RemoveCatcher = Key_RemoveCatcher_t(0x408260);

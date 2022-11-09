@@ -65,7 +65,6 @@ namespace Components
 
 	void Party::ConnectError(const std::string& message)
 	{
-		Localization::ClearTemp();
 		Command::Execute("closemenu popup_reconnectingtoparty");
 		Dvar::Var("partyend_reason").set(message);
 		Command::Execute("openmenu menu_xboxlive_partyended");
