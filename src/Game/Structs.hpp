@@ -4066,7 +4066,7 @@ namespace Game
 	struct menuDef_t
 	{
 		windowDef_t window;
-		const char *font;
+		const char* font;
 		int fullScreen;
 		int itemCount;
 		int fontIndex;
@@ -4076,41 +4076,41 @@ namespace Game
 		float fadeAmount;
 		float fadeInAmount;
 		float blurRadius;
-		MenuEventHandlerSet *onOpen;
-		MenuEventHandlerSet *onCloseRequest;
-		MenuEventHandlerSet *onClose;
-		MenuEventHandlerSet *onESC;
-		ItemKeyHandler *onKey;
-		Statement_s *visibleExp;
-		const char *allowedBinding;
-		const char *soundName;
+		MenuEventHandlerSet* onOpen;
+		MenuEventHandlerSet* onCloseRequest;
+		MenuEventHandlerSet* onClose;
+		MenuEventHandlerSet* onESC;
+		ItemKeyHandler* onKey;
+		Statement_s* visibleExp;
+		const char* allowedBinding;
+		const char* soundName;
 		int imageTrack;
 		float focusColor[4];
-		Statement_s *rectXExp;
-		Statement_s *rectYExp;
-		Statement_s *rectWExp;
-		Statement_s *rectHExp;
-		Statement_s *openSoundExp;
-		Statement_s *closeSoundExp;
-		itemDef_s **items;
+		Statement_s* rectXExp;
+		Statement_s* rectYExp;
+		Statement_s* rectWExp;
+		Statement_s* rectHExp;
+		Statement_s* openSoundExp;
+		Statement_s* closeSoundExp;
+		itemDef_s** items;
 		menuTransition scaleTransition[1];
 		menuTransition alphaTransition[1];
 		menuTransition xTransition[1];
 		menuTransition yTransition[1];
-		ExpressionSupportingData *expressionData;
+		ExpressionSupportingData* expressionData;
 	};
 
 	struct MenuList
 	{
-		const char *name;
+		const char* name;
 		int menuCount;
-		menuDef_t **menus;
+		menuDef_t** menus;
 	};
 
 	struct LocalizeEntry
 	{
-		const char *value;
-		const char *name;
+		const char* value;
+		const char* name;
 	};
 
 	enum weapType_t
@@ -6236,14 +6236,8 @@ namespace Game
 		ITEM_TEXTSTYLE_MONOSPACESHADOWED = 132,
 	};
 
-	enum $53C66D4FC2874B6934A17E4ED449BCEB
+	enum
 	{
-		// 		DB_ZONE_COMMON = 0x1,
-		// 		DB_ZONE_UI = 0x2,
-		// 		DB_ZONE_GAME = 0x4,
-		// 		DB_ZONE_LOAD = 0x8,
-		// 		DB_ZONE_DEV = 0x10,
-		// 		DB_ZONE_TRANSIENT = 0x20,
 		DB_ZONE_CODE_LOC = 0x0,
 		DB_ZONE_COMMON_LOC = 0x1,
 		DB_ZONE_CODE = 0x2,
