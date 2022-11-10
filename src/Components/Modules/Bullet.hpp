@@ -15,5 +15,7 @@ namespace Components
 		static float BG_GetSurfacePenetrationDepthStub(const Game::WeaponDef* weapDef, int surfaceType);
 
 		static void Bullet_FireStub();
+
+		static void BG_srand_Hk(unsigned int* pHoldrand);
 	};
 }

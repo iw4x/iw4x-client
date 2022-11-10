@@ -51,6 +51,8 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 		SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
 		Steam::Proxy::RunMod();
 
+		std::srand(std::uint32_t(std::time(nullptr)) ^ ~(GetTickCount() * GetCurrentProcessId()));
+
 #ifndef DISABLE_BINARY_CHECK
 		// Ensure we're working with our desired binary
 		auto* _module = reinterpret_cast<char*>(0x400000);

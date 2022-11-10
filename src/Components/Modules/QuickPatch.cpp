@@ -68,7 +68,7 @@ namespace Components
 		{
 			// check g_antilag dvar value
 			mov eax, g_antilag;
-			cmp byte ptr[eax + 16], 1;
+			cmp byte ptr [eax + 16], 1;
 
 			// do antilag if 1
 			je fireWeapon
@@ -96,7 +96,7 @@ namespace Components
 		{
 			// check g_antilag dvar value
 			mov eax, g_antilag;
-			cmp byte ptr[eax + 16], 1;
+			cmp byte ptr [eax + 16], 1;
 
 			// do antilag if 1
 			je fireWeaponMelee
@@ -331,6 +331,9 @@ namespace Components
 
 		// Fix crash as nullptr goes unchecked
 		Utils::Hook(0x437CAD, QuickPatch::SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
+
+		// Make VA thread safe
+		Utils::Hook(0x4785B0, Utils::String::VA, HOOK_JUMP).install()->quick();
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);

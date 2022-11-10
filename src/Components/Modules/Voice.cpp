@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Game/Engine/LargeLocal.hpp"
 
 namespace Components
 {
@@ -39,8 +40,8 @@ namespace Components
 		Game::msg_t msg{};
 		const auto clientNum = client - Game::svs_clients;
 
-		const auto msg_buf_large = std::make_unique<unsigned char[]>(0x10000);
-		auto* msg_buf = msg_buf_large.get();
+		const Game::Engine::LargeLocal msg_buf_large_local(0x10000);
+		auto* msg_buf = static_cast<unsigned char*>(msg_buf_large_local.GetBuf());
 
 		assert(VoicePacketCount[clientNum] >= 0);
 

@@ -200,7 +200,7 @@ namespace Components
 			Utils::InfoString info = ServerInfo::GetInfo();
 			info.set("challenge", Utils::ParseChallenge(data));
 
-			for (auto i = 0; i < atoi(info.get("sv_maxclients").data()); ++i) // Maybe choose 18 here?
+			for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
 			{
 				auto score = 0;
 				auto ping = 0;
@@ -210,7 +210,7 @@ namespace Components
 				{
 					if (Game::svs_clients[i].header.state < Game::CS_CONNECTED) continue;
 
-					score = Game::SV_GameClientNum_Score(i);
+					score = Game::SV_GameClientNum_Score(static_cast<int>(i));
 					ping = Game::svs_clients[i].ping;
 					name = Game::svs_clients[i].name;
 				}
@@ -226,7 +226,7 @@ namespace Components
 				playerList.append(Utils::String::VA("%i %i \"%s\"\n", score, ping, name.data()));
 			}
 
-			Network::SendCommand(address, "statusResponse", info.build() + "\n" + playerList + "\n");
+			Network::SendCommand(address, "statusResponse", "\\" + info.build() + "\n" + playerList + "\n");
 		});
 
 		Network::OnClientPacket("statusResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)

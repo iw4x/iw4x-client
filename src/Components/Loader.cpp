@@ -71,11 +71,9 @@ namespace Components
 		Loader::Register(new Dedicated());
 		Loader::Register(new Discovery());
 		Loader::Register(new FastFiles());
-		Loader::Register(new FrameTime());
 		Loader::Register(new Gametypes());
 		Loader::Register(new Materials());
 		Loader::Register(new Scheduler());
-		Loader::Register(new Threading());
 		Loader::Register(new CardTitles());
 		Loader::Register(new FileSystem());
 		Loader::Register(new ModelSurfs());
@@ -90,7 +88,6 @@ namespace Components
 		Loader::Register(new ZoneBuilder());
 		Loader::Register(new AssetHandler());
 		Loader::Register(new Localization());
-		//Loader::Register(new MusicalTalent());
 		Loader::Register(new ServerCommands());
 		Loader::Register(new StructuredData());
 		Loader::Register(new ConnectProtocol());
