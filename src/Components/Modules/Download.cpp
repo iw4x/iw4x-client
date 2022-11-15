@@ -423,7 +423,7 @@ namespace Components
 			playerInfo["ping"] = 0;
 			playerInfo["name"] = "";
 
-			if ((*Game::com_sv_running)->current.enabled)
+			if (Dedicated::IsRunning())
 			{
 				if (Game::svs_clients[i].header.state < Game::CS_CONNECTED) continue;
 

@@ -296,9 +296,9 @@ namespace Components
 	{
 		Command::AddSV("muteClient", [](Command::Params* params)
 		{
-			if (!(*Game::com_sv_running)->current.enabled)
+			if (!Dedicated::IsRunning())
 			{
-				Logger::Print("Server is not running.\n");
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
 				return;
 			}
 
@@ -319,9 +319,9 @@ namespace Components
 
 		Command::AddSV("unmute", [](Command::Params* params)
 		{
-			if (!(*Game::com_sv_running)->current.enabled)
+			if (!Dedicated::IsRunning())
 			{
-				Logger::Print("Server is not running.\n");
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
 				return;
 			}
 
@@ -356,6 +356,12 @@ namespace Components
 
 		Command::AddSV("say", [](Command::Params* params)
 		{
+			if (!Dedicated::IsRunning())
+			{
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				return;
+			}
+
 			if (params->size() < 2) return;
 
 			auto message = params->join(1);
@@ -375,6 +381,12 @@ namespace Components
 
 		Command::AddSV("tell", [](Command::Params* params)
 		{
+			if (!Dedicated::IsRunning())
+			{
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				return;
+			}
+
 			if (params->size() < 3) return;
 
 			const auto client = std::atoi(params->get(1));
@@ -395,6 +407,12 @@ namespace Components
 
 		Command::AddSV("sayraw", [](Command::Params* params)
 		{
+			if (!Dedicated::IsRunning())
+			{
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				return;
+			}
+
 			if (params->size() < 2) return;
 
 			auto message = params->join(1);
@@ -404,6 +422,12 @@ namespace Components
 
 		Command::AddSV("tellraw", [](Command::Params* params)
 		{
+			if (!Dedicated::IsRunning())
+			{
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				return;
+			}
+
 			if (params->size() < 3) return;
 
 			const auto client = atoi(params->get(1));

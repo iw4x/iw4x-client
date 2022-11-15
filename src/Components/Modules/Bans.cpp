@@ -227,7 +227,7 @@ namespace Components
 	{
 		Command::Add("banClient", [](Command::Params* params)
 		{
-			if (!(*Game::com_sv_running)->current.enabled)
+			if (!Dedicated::IsRunning())
 			{
 				Logger::Print("Server is not running.\n");
 				return;
@@ -271,7 +271,7 @@ namespace Components
 
 		Command::Add("unbanClient", [](Command::Params* params)
 		{
-			if (!(*Game::com_sv_running)->current.enabled)
+			if (!Dedicated::IsRunning())
 			{
 				Logger::Print("Server is not running.\n");
 				return;

@@ -162,7 +162,7 @@ namespace Components
 		{
 			info.set("matchtype", "1");
 		}
-		else if ((*Game::com_sv_running)->current.enabled) // Match hosting
+		else if (Dedicated::IsRunning()) // Match hosting
 		{
 			info.set("matchtype", "2");
 		}
@@ -206,7 +206,7 @@ namespace Components
 				auto ping = 0;
 				std::string name;
 
-				if ((*Game::com_sv_running)->current.enabled)
+				if (Dedicated::IsRunning())
 				{
 					if (Game::svs_clients[i].header.state < Game::CS_CONNECTED) continue;
 

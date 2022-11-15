@@ -19,6 +19,12 @@ namespace Components
 		return flag.value();
 	}
 
+	bool Dedicated::IsRunning()
+	{
+		assert(*Game::com_sv_running);
+		return *Game::com_sv_running && (*Game::com_sv_running)->current.enabled;
+	}
+
 	void Dedicated::InitDedicatedServer()
 	{
 		static const char* fastfiles[7] =
@@ -261,7 +267,7 @@ namespace Components
 
 		Scheduler::Loop([]
 		{
-			if ((*Game::com_sv_running)->current.enabled)
+			if (Dedicated::IsRunning())
 			{
 				Dedicated::TransmitGuids();
 			}
