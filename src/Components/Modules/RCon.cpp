@@ -30,7 +30,7 @@ namespace Components
 				return;
 			}
 				
-			const auto addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
+			auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
 			if (Password.empty())
 			{
 				Logger::Print("You need to be logged in and connected to a server!\n");
@@ -57,7 +57,7 @@ namespace Components
 
 			RconContainer.command = params->get(1);
 
-			const auto addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
+			auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
 			Network::Address target(addr);
 			if (!target.isValid() || target.getIP().full == 0)
 			{

@@ -43,7 +43,7 @@ namespace Components
 			void storePointer(const void* pointer);
 
 			template<typename T>
-			inline T* getPointer(const T* pointer) { return reinterpret_cast<T*>(this->safeGetPointer(pointer)); }
+			T* getPointer(const T* pointer) { return reinterpret_cast<T*>(this->safeGetPointer(pointer)); }
 
 			int findAsset(Game::XAssetType type, std::string name);
 			Game::XAssetHeader findSubAsset(Game::XAssetType type, std::string name);
@@ -58,6 +58,7 @@ namespace Components
 			int addScriptString(unsigned short gameIndex);
 			int addScriptString(const std::string& str);
 			int findScriptString(const std::string& str);
+			void addRawAsset(Game::XAssetType type, void* ptr);
 
 			void mapScriptString(unsigned short* gameIndex);
 
@@ -101,6 +102,7 @@ namespace Components
 			std::vector<Game::XAsset> markedAssets;
 			std::vector<Game::XAsset> loadedSubAssets;
 			std::vector<std::string> scriptStrings;
+
 			std::map<unsigned short, unsigned int> scriptStringMap;
 
 			std::map<std::string, std::string> renameMap[Game::XAssetType::ASSET_TYPE_COUNT];

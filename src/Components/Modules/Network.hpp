@@ -8,7 +8,7 @@ namespace Components
 		class Address
 		{
 		public:
-			Address() { setType(Game::netadrtype_t::NA_BAD); }
+			Address() { setType(Game::NA_BAD); }
 			Address(const std::string& addrString);
 			Address(sockaddr* addr);
 			Address(sockaddr addr) : Address(&addr) {}

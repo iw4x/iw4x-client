@@ -16,7 +16,7 @@ namespace Components
 		Game::SockadrToNetadr(addr, &this->address);
 	}
 
-	bool Network::Address::operator==(const Network::Address& obj) const
+	bool Network::Address::operator==(const Address& obj) const
 	{
 		return Game::NET_CompareAdr(this->address, obj.address);
 	}
@@ -150,13 +150,11 @@ namespace Components
 
 	void Network::Send(Game::netsrc_t type, Address target, const std::string& data)
 	{
-		// NET_OutOfBandPrint only supports non-binary data!
-		//Game::NET_OutOfBandPrint(type, *target.Get(), data.data());
+		// Do not use NET_OutOfBandPrint. It only supports non-binary data!
 
 		std::string rawData;
 		rawData.append("\xFF\xFF\xFF\xFF", 4);
 		rawData.append(data);
-		//rawData.append("\0", 1);
 
 		SendRaw(type, target, rawData);
 	}
@@ -170,8 +168,7 @@ namespace Components
 	{
 		if (!target.isValid()) return;
 
-		// NET_OutOfBandData doesn't seem to work properly
-		//Game::NET_OutOfBandData(type, *target.Get(), data.data(), data.size());
+		// NET_OutOfBandData doesn't seem to work properly. Do not use it
 		Game::Sys_SendPacket(type, data.size(), data.data(), *target.get());
 	}
 
@@ -294,7 +291,7 @@ namespace Components
 
 		const std::string data(reinterpret_cast<char*>(message->data) + offset, message->cursize - offset);
 
-		Address address_ = address;
+		auto address_ = Address(address);
 		handler->second(address_, data);
 		return true;
 	}
