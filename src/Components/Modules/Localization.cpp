@@ -98,9 +98,9 @@ namespace Components
 
 	void Localization::SaveParseOutput(Game::LocalizeEntry* asset)
 	{
-		if (Localization::ParseCallback)
+		if (ParseCallback)
 		{
-			Localization::ParseCallback(asset);
+			ParseCallback(asset);
 		}
 	}
 
