@@ -7,7 +7,7 @@ namespace Components
 	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
 
 	std::optional<std::string> Localization::PrefixOverride;
-	std::function<void(Game::LocalizeEntry*)> Localization::ParseCallback = nullptr;
+	std::function<void(Game::LocalizeEntry*)> Localization::ParseCallback;
 
 	void Localization::Set(const std::string& psLocalReference, const std::string& psNewString)
 	{

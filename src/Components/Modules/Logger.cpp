@@ -5,7 +5,8 @@ namespace Components
 	std::mutex Logger::MessageMutex;
 	std::vector<std::string> Logger::MessageQueue;
 	std::vector<Network::Address> Logger::LoggingAddresses[2];
-	void(*Logger::PipeCallback)(const std::string&) = nullptr;
+
+	std::function<void(const std::string&)> Logger::PipeCallback;
 
 	bool Logger::IsConsoleReady()
 	{
@@ -106,21 +107,6 @@ namespace Components
 		Logger::MessagePrint(channel, msg);
 	}
 
-	void Logger::Flush()
-	{
-// 		if (!Game::Sys_IsMainThread())
-// 		{
-// 			while (!Logger::MessageQueue.empty())
-// 			{
-// 				std::this_thread::sleep_for(10ms);
-// 			}
-// 		}
-// 		else
-		{
-			Logger::Frame();
-		}
-	}
-
 	void Logger::Frame()
 	{
 		std::unique_lock _(Logger::MessageMutex);
@@ -138,7 +124,7 @@ namespace Components
 		}
 	}
 
-	void Logger::PipeOutput(void(*callback)(const std::string&))
+	void Logger::PipeOutput(const std::function<void(const std::string&)>& callback)
 	{
 		Logger::PipeCallback = callback;
 	}

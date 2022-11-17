@@ -12,9 +12,7 @@ namespace Components
 
 		static void Print_Stub(int channel, const char* message, ...);
 
-		static void PipeOutput(void(*callback)(const std::string&));
-
-		static void Flush();
+		static void PipeOutput(const std::function<void(const std::string&)>& callback);
 
 		static void PrintInternal(int channel, std::string_view fmt, std::format_args&& args);
 		static void ErrorInternal(Game::errorParm_t error, std::string_view fmt, std::format_args&& args);
@@ -96,10 +94,13 @@ namespace Components
 		static std::mutex MessageMutex;
 		static std::vector<std::string> MessageQueue;
 		static std::vector<Network::Address> LoggingAddresses[2];
-		static void(*PipeCallback)(const std::string&);
+
+		static std::function<void(const std::string&)> PipeCallback;
 
 		static void MessagePrint(int channel, const std::string& msg);
+
 		static void Frame();
+
 		static void G_LogPrintf_Hk(const char* fmt, ...);
 		static void PrintMessage_Stub();
 		static void PrintMessagePipe(const char* data);
