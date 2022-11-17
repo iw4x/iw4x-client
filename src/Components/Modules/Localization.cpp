@@ -6,23 +6,36 @@ namespace Components
 	Dvar::Var Localization::UseLocalization;
 	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
 
-	void Localization::Set(const std::string& key, const std::string& value)
+	std::optional<std::string> Localization::PrefixOverride;
+	std::function<void(Game::LocalizeEntry*)> Localization::ParseCallback = nullptr;
+
+	void Localization::Set(const std::string& psLocalReference, const std::string& psNewString)
 	{
-		std::lock_guard _(Localization::LocalizeMutex);
+		std::lock_guard _(LocalizeMutex);
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
-		if (Localization::LocalizeMap.contains(key))
+		auto key = psLocalReference;
+		if (PrefixOverride.has_value())
 		{
-			Game::LocalizeEntry* entry = Localization::LocalizeMap[key];
+			key.insert(0, PrefixOverride.value());
+		}
 
-			char* newStaticValue = allocator->duplicateString(value);
+		if (LocalizeMap.contains(key))
+		{
+			auto* entry = LocalizeMap[key];
+
+			const auto* newStaticValue = allocator->duplicateString(psNewString);
 			if (!newStaticValue) return;
+
 			if (entry->value) allocator->free(entry->value);
 			entry->value = newStaticValue;
+
+			SaveParseOutput(entry);
+
 			return;
 		}
 
-		Game::LocalizeEntry* entry = allocator->allocate<Game::LocalizeEntry>();
+		auto* entry = allocator->allocate<Game::LocalizeEntry>();
 		if (!entry) return;
 
 		entry->name = allocator->duplicateString(key);
@@ -32,7 +45,7 @@ namespace Components
 			return;
 		}
 
-		entry->value = allocator->duplicateString(value);
+		entry->value = allocator->duplicateString(psNewString);
 		if (!entry->value)
 		{
 			allocator->free(entry->name);
@@ -40,21 +53,23 @@ namespace Components
 			return;
 		}
 
-		Localization::LocalizeMap[key] = entry;
+		SaveParseOutput(entry);
+
+		LocalizeMap[key] = entry;
 	}
 
 	const char* Localization::Get(const char* key)
 	{
-		if (!Localization::UseLocalization.get<bool>()) return key;
+		if (!UseLocalization.get<bool>()) return key;
 
 		Game::LocalizeEntry* entry = nullptr;
 
 		{
-			std::lock_guard _(Localization::LocalizeMutex);
+			std::lock_guard _(LocalizeMutex);
 
-			if (Localization::LocalizeMap.contains(key))
+			if (LocalizeMap.contains(key))
 			{
-				entry = Localization::LocalizeMap[key];
+				entry = LocalizeMap[key];
 			}
 		}
 
@@ -71,9 +86,22 @@ namespace Components
 		return key;
 	}
 
-	void __stdcall Localization::SetStringStub(const char* key, const char* value, bool /*isEnglish*/)
+	void __stdcall Localization::SetStringStub(const char* psLocalReference, const char* psNewString, [[maybe_unused]] int bSentenceIsEnglish)
 	{
-		Localization::Set(key, value);
+		Set(psLocalReference, psNewString);
+	}
+
+	void Localization::ParseOutput(const std::function<void(Game::LocalizeEntry*)>& callback)
+	{
+		ParseCallback = callback;
+	}
+
+	void Localization::SaveParseOutput(Game::LocalizeEntry* asset)
+	{
+		if (ParseCallback)
+		{
+			ParseCallback(asset);
+		}
 	}
 
 	void Localization::SetCredits()
@@ -161,7 +189,7 @@ namespace Components
 		// I have no idea why, but the last 2 lines are invisible!
 		credits.append("-\n-");
 
-		Localization::Set("IW4X_CREDITS", credits);
+		Set("IW4X_CREDITS", credits);
 	}
 
 	const char* Localization::SEH_LocalizeTextMessageStub(const char* pszInputBuffer, const char* pszMessageType, Game::msgLocErrType_t errType)
@@ -304,31 +332,31 @@ namespace Components
 
 	Localization::Localization()
 	{
-		Localization::SetCredits();
+		SetCredits();
 
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [](Game::XAssetType, const std::string& filename)
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, [](Game::XAssetType, const std::string& name)
 		{
 			Game::XAssetHeader header = { nullptr };
-			std::lock_guard _(Localization::LocalizeMutex);
+			std::lock_guard _(LocalizeMutex);
 
-			if (Localization::LocalizeMap.contains(filename))
+			if (const auto itr = LocalizeMap.find(name); itr != LocalizeMap.end())
 			{
-				header.localize = Localization::LocalizeMap[filename];
+				header.localize = itr->second;
 			}
 
 			return header;
 		});
 
 		// Resolving hook
-		Utils::Hook(0x629B90, Localization::Get, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x629B90, Get, HOOK_JUMP).install()->quick();
 
 		// Overwrite SetString
-		Utils::Hook(0x4CE5EE, Localization::SetStringStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4CE5EE, SetStringStub, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x49D4A0, Localization::SEH_LocalizeTextMessageStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x49D4A0, SEH_LocalizeTextMessageStub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x49D4A5, 1);
 
-		Localization::UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::DVAR_NONE, "Use localization strings");
+		UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::DVAR_NONE, "Use localization strings");
 
 		// Generate localized entries for custom classes above 10
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
@@ -344,7 +372,7 @@ namespace Components
 					std::string value = asset.localize->value;
 					Utils::String::Replace(value, "1", std::to_string(i)); // Pretty ugly, but it should work
 
-					Localization::Set(key, value);
+					Set(key, value);
 				}
 			}
 		});
@@ -352,6 +380,6 @@ namespace Components
 
 	Localization::~Localization()
 	{
-		Localization::LocalizeMap.clear();
+		LocalizeMap.clear();
 	}
 }

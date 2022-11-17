@@ -377,7 +377,7 @@ namespace Game
 	typedef int(*Script_CleanString_t)(char* buffer);
 	extern Script_CleanString_t Script_CleanString;
 
-	typedef char*(*SE_Load_t)(const char* file, int Unk);
+	typedef char*(*SE_Load_t)(const char* psFileName, bool forceEnglish);
 	extern SE_Load_t SE_Load;
 
 	typedef char*(*SEH_StringEd_GetString_t)(const char* string);
