@@ -62,6 +62,10 @@ namespace Game
 
 	extern char(*sys_exitCmdLine)[1024];
 
+	extern RTL_CRITICAL_SECTION* s_criticalSection;
+
 	extern void Sys_LockRead(FastCriticalSection* critSect);
 	extern void Sys_UnlockRead(FastCriticalSection* critSect);
+
+	extern bool Sys_TryEnterCriticalSection(CriticalSection critSect);
 }
