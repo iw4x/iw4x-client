@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Game/Engine/ScopedCriticalSection.hpp"
 
 namespace Components
 {
@@ -288,7 +289,7 @@ namespace Components
 
 		sprintf_s(newFileName, "%s_%s.log", bug, Game::Live_GetLocalClientName(0));
 
-		Game::Sys_EnterCriticalSection(Game::CRITSECT_CONSOLE);
+		Game::Engine::ScopedCriticalSection _(Game::CRITSECT_CONSOLE, Game::Engine::SCOPED_CRITSECT_NORMAL);
 
 		if (*Game::logfile)
 		{
@@ -300,8 +301,6 @@ namespace Components
 		Game::FS_BuildOSPath(Game::Sys_DefaultInstallPath(), "", newFileName, to_ospath);
 		const auto result = CopyFileA(from_ospath, to_ospath, 0);
 		Game::Com_OpenLogFile();
-
-		Game::Sys_LeaveCriticalSection(Game::CRITSECT_CONSOLE);
 
 		if (!result)
 		{
