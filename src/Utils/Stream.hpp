@@ -16,7 +16,7 @@ namespace Utils
 	{
 	private:
 		bool ptrAssertion;
-		std::vector<std::pair<const void*, size_t>> ptrList;
+		std::vector<std::pair<const void*, std::size_t>> ptrList;
 
 		int criticalSectionState;
 		unsigned int blockSize[Game::MAX_XFILE_COUNT];
@@ -27,21 +27,21 @@ namespace Utils
 		class Reader
 		{
 		public:
-			Reader(Utils::Memory::Allocator* _allocator, const std::string& _buffer) : position(0), buffer(_buffer), allocator(_allocator) {}
+			Reader(Memory::Allocator* _allocator, const std::string& _buffer) : position(0), buffer(_buffer), allocator(_allocator) {}
 
 			std::string readString();
 			const char* readCString();
 
 			char readByte();
 
-			void* read(size_t size, size_t count = 1);
-			template <typename T> inline T* readObject()
+			void* read(std::size_t size, std::size_t count = 1);
+			template <typename T> T* readObject()
 			{
 				return readArray<T>(1);
 			}
-			template <typename T> inline T* readArray(size_t count = 1)
+			template <typename T> T* readArray(std::size_t count = 1)
 			{
-				return reinterpret_cast<T*>(this->read(sizeof(T), count));
+				return static_cast<T*>(this->read(sizeof(T), count));
 			}
 			template <typename T> T read()
 			{
@@ -89,25 +89,25 @@ namespace Utils
 		Stream(size_t size);
 		~Stream();
 
-		size_t length();
-		size_t capacity();
+		std::size_t length() const;
+		std::size_t capacity() const;
 
-		char* save(const void * _str, size_t size, size_t count = 1);
-		char* save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count);
-		char* save(Game::XFILE_BLOCK_TYPES stream, int value, size_t count);
+		char* save(const void * _str, std::size_t size, std::size_t count = 1);
+		char* save(Game::XFILE_BLOCK_TYPES stream, const void * _str, std::size_t size, std::size_t count);
+		char* save(Game::XFILE_BLOCK_TYPES stream, int value, std::size_t count);
 		template <typename T> inline char* save(T* object)
 		{
 			return saveArray<T>(object, 1);
 		}
-		template <typename T> inline char* saveArray(T* array, size_t count)
+		template <typename T> inline char* saveArray(T* array, std::size_t count)
 		{
 			return save(array, sizeof(T), count);
 		}
 
 		char* saveString(const std::string& string);
 		char* saveString(const char* string);
-		char* saveString(const char* string, size_t len);
-		char* saveByte(unsigned char byte, size_t count = 1);
+		char* saveString(const char* string, std::size_t len);
+		char* saveByte(unsigned char byte, std::size_t count = 1);
 		char* saveNull(size_t count = 1);
 		char* saveMax(size_t count = 1);
 
@@ -140,7 +140,7 @@ namespace Utils
 		{
 			this->ptrAssertion = value;
 		}
-		void assertPointer(const void* pointer, size_t length);
+		void assertPointer(const void* pointer, std::size_t length);
 
 		void toBuffer(std::string& outBuffer);
 		std::string toBuffer();

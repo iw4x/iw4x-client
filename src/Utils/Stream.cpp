@@ -29,7 +29,7 @@ namespace Utils
 		throw std::runtime_error("Reading past the buffer");
 	}
 
-	void* Stream::Reader::read(size_t size, size_t count)
+	void* Stream::Reader::read(size_t size, std::size_t count)
 	{
 		size_t bytes = size * count;
 
@@ -112,17 +112,17 @@ namespace Utils
 		}
 	};
 
-	size_t Stream::length()
+	std::size_t Stream::length() const
 	{
 		return this->buffer.length();
 	}
 
-	size_t Stream::capacity()
+	std::size_t Stream::capacity() const
 	{
 		return this->buffer.capacity();
 	}
 
-	void Stream::assertPointer(const void* pointer, size_t length)
+	void Stream::assertPointer(const void* pointer, std::size_t length)
 	{
 		if (!this->ptrAssertion) return;
 
@@ -131,22 +131,24 @@ namespace Utils
 			unsigned int ePtr = reinterpret_cast<unsigned int>(entry.first);
 			unsigned int tPtr = reinterpret_cast<unsigned int>(pointer);
 
-			if (Utils::HasIntercection(ePtr, entry.second, tPtr, length))
+			if (HasIntersection(ePtr, entry.second, tPtr, length))
 			{
 				MessageBoxA(nullptr, "Duplicate data written!", "ERROR", MB_ICONERROR);
+#ifdef _DEBUG
 				__debugbreak();
+#endif
 			}
 		}
 
 		this->ptrList.push_back({ pointer, length });
 	}
 
-	char* Stream::save(const void* _str, size_t size, size_t count)
+	char* Stream::save(const void* _str, std::size_t size, std::size_t count)
 	{
 		return this->save(this->getCurrentBlock(), _str, size, count);
 	}
 
-	char* Stream::save(Game::XFILE_BLOCK_TYPES stream, const void * _str, size_t size, size_t count)
+	char* Stream::save(Game::XFILE_BLOCK_TYPES stream, const void * _str, std::size_t size, std::size_t count)
 	{
 		// Only those seem to actually write data.
 		// everything else is allocated at runtime but XFILE_BLOCK_RUNTIME is the only one that actually allocates anything
@@ -179,7 +181,7 @@ namespace Utils
 		return this->at() - (size * count);
 	}
 
-	char* Stream::save(Game::XFILE_BLOCK_TYPES stream, int value, size_t count)
+	char* Stream::save(Game::XFILE_BLOCK_TYPES stream, int value, std::size_t count)
 	{
 		auto ret = this->length();
 
@@ -201,7 +203,7 @@ namespace Utils
 		return this->saveString(string, strlen(string));
 	}
 
-	char* Stream::saveString(const char* string, size_t len)
+	char* Stream::saveString(const char* string, std::size_t len)
 	{
 		auto ret = this->length();
 
@@ -220,7 +222,7 @@ namespace Utils
 		return this->save(string.data(), string.length());
 	}
 
-	char* Stream::saveByte(unsigned char byte, size_t count)
+	char* Stream::saveByte(unsigned char byte, std::size_t count)
 	{
 		auto ret = this->length();
 

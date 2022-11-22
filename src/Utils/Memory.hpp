@@ -22,7 +22,7 @@ namespace Utils
 
 			void clear()
 			{
-				std::lock_guard<std::mutex> _(this->mutex);
+				std::lock_guard _(this->mutex);
 
 				for (auto i = this->refMemory.begin(); i != this->refMemory.end(); ++i)
 				{
@@ -36,7 +36,7 @@ namespace Utils
 
 				for (const auto& data : this->pool)
 				{
-					Memory::Free(data);
+					Free(data);
 				}
 
 				this->pool.clear();
@@ -44,7 +44,7 @@ namespace Utils
 
 			void free(void* data)
 			{
-				std::lock_guard<std::mutex> _(this->mutex);
+				std::lock_guard _(this->mutex);
 
 				auto i = this->refMemory.find(data);
 				if (i != this->refMemory.end())
@@ -56,7 +56,7 @@ namespace Utils
 				auto j = std::find(this->pool.begin(), this->pool.end(), data);
 				if (j != this->pool.end())
 				{
-					Memory::Free(data);
+					Free(data);
 					this->pool.erase(j);
 				}
 			}
@@ -68,45 +68,45 @@ namespace Utils
 
 			void reference(void* memory, FreeCallback callback)
 			{
-				std::lock_guard<std::mutex> _(this->mutex);
+				std::lock_guard _(this->mutex);
 
 				this->refMemory[memory] = callback;
 			}
 
 			void* allocate(size_t length)
 			{
-				std::lock_guard<std::mutex> _(this->mutex);
+				std::lock_guard _(this->mutex);
 
-				void* data = Memory::Allocate(length);
+				void* data = Allocate(length);
 				this->pool.push_back(data);
 				return data;
 			}
 
-			template <typename T> inline T* allocate()
+			template <typename T> T* allocate()
 			{
 				return this->allocateArray<T>(1);
 			}
 
-			template <typename T> inline T* allocateArray(size_t count = 1)
+			template <typename T> T* allocateArray(size_t count = 1)
 			{
 				return static_cast<T*>(this->allocate(count * sizeof(T)));
 			}
 
-			bool empty()
+			bool empty() const
 			{
 				return (this->pool.empty() && this->refMemory.empty());
 			}
 
 			char* duplicateString(const std::string& string)
 			{
-				std::lock_guard<std::mutex> _(this->mutex);
+				std::lock_guard _(this->mutex);
 
-				char* data = Memory::DuplicateString(string);
+				char* data = DuplicateString(string);
 				this->pool.push_back(data);
 				return data;
 			}
 
-			bool isPointerMapped(void* ptr)
+			bool isPointerMapped(void* ptr) const
 			{
 				return this->ptrMap.contains(ptr);
 			}
@@ -115,7 +115,7 @@ namespace Utils
 			{
 				if (this->isPointerMapped(oldPtr))
 				{
-					return reinterpret_cast<T*>(this->ptrMap[oldPtr]);
+					return static_cast<T*>(this->ptrMap[oldPtr]);
 				}
 
 				return nullptr;
@@ -135,16 +135,16 @@ namespace Utils
 
 		static void* AllocateAlign(size_t length, size_t alignment);
 		static void* Allocate(size_t length);
-		template <typename T> static inline T* Allocate()
+		template <typename T> static T* Allocate()
 		{
 			return AllocateArray<T>(1);
 		}
-		template <typename T> static inline T* AllocateArray(size_t count = 1)
+		template <typename T> static T* AllocateArray(size_t count = 1)
 		{
 			return static_cast<T*>(Allocate(count * sizeof(T)));
 		}
 
-		template <typename T> static inline T* Duplicate(T* original)
+		template <typename T> static T* Duplicate(T* original)
 		{
 			T* data = Memory::Allocate<T>();
 			std::memcpy(data, original, sizeof(T));
@@ -164,9 +164,9 @@ namespace Utils
 		static bool IsBadReadPtr(const void* ptr);
 		static bool IsBadCodePtr(const void* ptr);
 
-		static Utils::Memory::Allocator* GetAllocator();
+		static Allocator* GetAllocator();
 
 	private:
-		static Utils::Memory::Allocator MemAllocator;
+		static Allocator MemAllocator;
 	};
 }

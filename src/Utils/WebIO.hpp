@@ -30,9 +30,9 @@ namespace Utils
 		std::string postFile(const std::string& url, const std::string& data, const std::string& fieldName, const std::string& fileName);
 		std::string postFile(const std::string& data, std::string fieldName, std::string fileName);
 
-		std::string post(const std::string& url, WebIO::Params params, bool* success = nullptr);
+		std::string post(const std::string& url, Params params, bool* success = nullptr);
 		std::string post(const std::string& url, const std::string& body, bool* success = nullptr);
-		std::string post(WebIO::Params params, bool* success = nullptr);
+		std::string post(Params params, bool* success = nullptr);
 		std::string post(const std::string& body, bool* success = nullptr);
 
 		std::string get(const std::string& url, bool* success = nullptr);
@@ -62,7 +62,7 @@ namespace Utils
 		bool uploadFileData(const std::string& file,const std::string& data);
 		bool downloadFileData(const std::string& file, std::string& data);
 
-		void setProgressCallback(Utils::Slot<void(size_t, size_t)> callback);
+		void setProgressCallback(const Slot<void(std::size_t, std::size_t)>& callback);
 		void cancelDownload() { this->cancel = true; }
 
 	private:
@@ -96,13 +96,13 @@ namespace Utils
 
 		DWORD timeout;
 
-		Utils::Slot<void(size_t, size_t)> progressCallback;
+		Slot<void(size_t, size_t)> progressCallback;
 
-		std::string buildPostBody(WebIO::Params params);
+		static std::string buildPostBody(Params params);
 
-		bool isSecuredConnection();
+		bool isSecuredConnection() const;
 
-		std::string execute(const char* command, const std::string& body, WebIO::Params headers = WebIO::Params(), bool* success = nullptr);
+		std::string execute(const char* command, const std::string& body, Params headers = {}, bool* success = nullptr);
 
 		bool listElements(const std::string& directory, std::vector<std::string>& list, bool files);
 
@@ -112,6 +112,6 @@ namespace Utils
 		bool openConnection();
 		void closeConnection();
 
-		void formatPath(std::string& path, bool win); /* if (win == true):  / -> \\ */
+		static void formatPath(std::string& path, bool win); /* if (win == true):  / -> \\ */
 	};
 }

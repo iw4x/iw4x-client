@@ -15,7 +15,7 @@ namespace Utils
 	bool IsWineEnvironment();
 
 	unsigned long GetParentProcessId();
-	size_t GetModuleSize(HMODULE);
+	std::size_t GetModuleSize(HMODULE);
 	void* GetThreadStartAddress(HANDLE hThread);
 	HMODULE GetNTDLL();
 
@@ -23,7 +23,7 @@ namespace Utils
 
 	void OpenUrl(const std::string& url);
 
-	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
+	bool HasIntersection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
 
 	template <typename T> void RotLeft(T& object, size_t bits)
 	{

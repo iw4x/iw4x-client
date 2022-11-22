@@ -72,7 +72,7 @@ namespace Utils
 		return 0;
 	}
 
-	size_t GetModuleSize(HMODULE module)
+	std::size_t GetModuleSize(HMODULE module)
 	{
 		PIMAGE_DOS_HEADER header = PIMAGE_DOS_HEADER(module);
 		PIMAGE_NT_HEADERS ntHeader = PIMAGE_NT_HEADERS(DWORD(module) + header->e_lfanew);
@@ -158,7 +158,7 @@ namespace Utils
 		SafeShellExecute(nullptr, "open", url.data(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
 
-	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2)
+	bool HasIntersection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2)
 	{
 		return !(base1 + len1 <= base2 || base2 + len2 <= base1);
 	}

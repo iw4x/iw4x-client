@@ -10,7 +10,7 @@ namespace Utils
 		this->setURL(url);
 	}
 
-	WebIO::WebIO(const std::string& useragent) : cancel(false), timeout(5000), hSession(nullptr) // 5 seconds timeout by default
+	WebIO::WebIO(const std::string& useragent) : cancel(false), hSession(nullptr), timeout(5000)  // 5 seconds timeout by default
 	{
 		this->openSession(useragent);
 	}
@@ -91,7 +91,7 @@ namespace Utils
 			server = server.substr(2);
 		}
 
-		size_t pos = server.find("/");
+		size_t pos = server.find('/');
 		if (pos == std::string::npos)
 		{
 			this->url.server = server;
@@ -105,7 +105,7 @@ namespace Utils
 
 		this->url.port.clear();
 
-		pos = this->url.server.find(":");
+		pos = this->url.server.find(':');
 		if (pos != std::string::npos)
 		{
 			this->url.port = this->url.server.substr(pos + 1);
@@ -128,7 +128,7 @@ namespace Utils
 		this->isFTP = (this->url.protocol == "ftp");
 	}
 
-	std::string WebIO::buildPostBody(WebIO::Params params)
+	std::string WebIO::buildPostBody(Params params)
 	{
 		std::string body;
 
@@ -157,15 +157,15 @@ namespace Utils
 
 	std::string WebIO::postFile(const std::string& data, std::string fieldName, std::string fileName)
 	{
-		WebIO::Params headers;
+		Params headers;
 
 		std::string boundary = "----WebKitFormBoundaryHoLVocRsBxs71fU6";
 		headers["Content-Type"] = "multipart/form-data, boundary=" + boundary;
 
-		Utils::String::Replace(fieldName, "\"", "\\\"");
-		Utils::String::Replace(fieldName, "\\", "\\\\");
-		Utils::String::Replace(fileName, "\"", "\\\"");
-		Utils::String::Replace(fileName, "\\", "\\\\");
+		String::Replace(fieldName, "\"", "\\\"");
+		String::Replace(fieldName, "\\", "\\\\");
+		String::Replace(fileName, "\"", "\\\"");
+		String::Replace(fileName, "\\", "\\\\");
 
 		std::string body = "--" + boundary + "\r\n";
 		body += "Content-Disposition: form-data; name=\"";
@@ -177,7 +177,7 @@ namespace Utils
 		body += data + "\r\n";
 		body += "--" + boundary + "--\r\n";
 
-		headers["Content-Length"] = Utils::String::VA("%u", body.size());
+		headers["Content-Length"] = String::VA("%u", body.size());
 
 		return this->execute("POST", body, headers);
 	}
@@ -188,13 +188,13 @@ namespace Utils
 		return this->post(body, success);
 	}
 
-	std::string WebIO::post(const std::string& _url, WebIO::Params params, bool* success)
+	std::string WebIO::post(const std::string& _url, Params params, bool* success)
 	{
 		this->setURL(_url);
 		return this->post(params, success);
 	}
 
-	std::string WebIO::post(WebIO::Params params, bool* success)
+	std::string WebIO::post(Params params, bool* success)
 	{
 		return this->post(this->buildPostBody(params), success);
 	}
@@ -259,7 +259,7 @@ namespace Utils
 	std::string WebIO::execute(const char* command, const std::string& body, WebIO::Params headers, bool* success)
 	{
 		if (success) *success = false;
-		if (!this->openConnection()) return "";
+		if (!this->openConnection()) return {};
 
 		const char *acceptTypes[] = { "application/x-www-form-urlencoded", nullptr };
 
@@ -276,12 +276,12 @@ namespace Utils
 		if (!this->hFile || this->hFile == INVALID_HANDLE_VALUE)
 		{
 			this->closeConnection();
-			return "";
+			return {};
 		}
 
-		if (headers.find("Content-Type") == headers.end())
+		if (const auto itr = headers.find("Content-Type"); itr == headers.end())
 		{
-			headers["Content-Type"] = "application/x-www-form-urlencoded";
+			itr->second = "application/x-www-form-urlencoded";
 		}
 
 		std::string finalHeaders;
@@ -296,20 +296,20 @@ namespace Utils
 
 		if (HttpSendRequestA(this->hFile, finalHeaders.data(), finalHeaders.size(), const_cast<char*>(body.data()), body.size() + 1) == FALSE)
 		{
-			return "";
+			return {};
 		}
 
 		DWORD statusCode = 404;
 		DWORD length = sizeof(statusCode);
-		if (HttpQueryInfo(this->hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &statusCode, &length, nullptr) == FALSE || (statusCode != 200 && statusCode != 201))
+		if (HttpQueryInfoA(this->hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &statusCode, &length, nullptr) == FALSE || (statusCode != 200 && statusCode != 201))
 		{
 			this->closeConnection();
-			return "";
+			return {};
 		}
 
 		DWORD contentLength = 0;
 		length = sizeof(statusCode);
-		if (HttpQueryInfo(this->hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_CONTENT_LENGTH, &contentLength, &length, nullptr) == FALSE)
+		if (HttpQueryInfoA(this->hFile, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_CONTENT_LENGTH, &contentLength, &length, nullptr) == FALSE)
 		{
 			contentLength = 0;
 		}
@@ -317,15 +317,15 @@ namespace Utils
 		std::string returnBuffer;
 		returnBuffer.reserve(contentLength);
 
-		DWORD size = 0;
-		char buffer[0x2001] = { 0 };
+		DWORD size{};
+		char buffer[0x2001]{};
 
-		while (InternetReadFile(this->hFile, buffer, 0x2000, &size))
+		while (InternetReadFile(this->hFile, buffer, sizeof(buffer) - 1, &size))
 		{
 			if (this->cancel)
 			{
 				this->closeConnection();
-				return "";
+				return {};
 			}
 
 			returnBuffer.append(buffer, size);
@@ -339,9 +339,9 @@ namespace Utils
 		return returnBuffer;
 	}
 
-	bool WebIO::isSecuredConnection()
+	bool WebIO::isSecuredConnection() const
 	{
-		return (this->url.protocol == "https");
+		return this->url.protocol == "https"s;
 	}
 
 	bool WebIO::connect()
@@ -368,7 +368,7 @@ namespace Utils
 			this->formatPath(directory, true);
 			this->formatPath(currentDir, true);
 
-			char path[MAX_PATH] = { 0 };
+			char path[MAX_PATH]{};
 			PathCombineA(path, currentDir.data(), directory.data());
 
 			std::string newPath(path);
@@ -384,8 +384,8 @@ namespace Utils
 	{
 		directory.clear();
 
-		DWORD size = MAX_PATH;
-		char currentDir[MAX_PATH] = { 0 };
+		char currentDir[MAX_PATH]{};
+		DWORD size = sizeof(currentDir);
 
 		if (FtpGetCurrentDirectoryA(this->hConnect, currentDir, &size) == TRUE)
 		{
@@ -398,7 +398,7 @@ namespace Utils
 
 	void WebIO::formatPath(std::string& path, bool win)
 	{
-		size_t nPos;
+		std::size_t nPos;
 		std::string find = "\\";
 		std::string replace = "/";
 
@@ -451,7 +451,7 @@ namespace Utils
 
 		WIN32_FIND_DATAA findFileData;
 		bool result = false;
-		DWORD dwAttribute = (files ? FILE_ATTRIBUTE_NORMAL : FILE_ATTRIBUTE_DIRECTORY);
+		const DWORD dwAttribute = (files ? FILE_ATTRIBUTE_NORMAL : FILE_ATTRIBUTE_DIRECTORY);
 
 		// Any filename.
 		std::string tempDir;
@@ -469,8 +469,7 @@ namespace Utils
 
 				if (findFileData.dwFileAttributes == dwAttribute) // No bitwise flag check, as it might return archives/offline/hidden or other files/dirs
 				{
-					//printf("%s: %X\n", findFileData.cFileName, findFileData.dwFileAttributes);
-					list.push_back(findFileData.cFileName);
+					list.emplace_back(findFileData.cFileName);
 					result = true;
 				}
 			} while (InternetFindNextFileA(this->hFile, &findFileData));
@@ -556,7 +555,7 @@ namespace Utils
 		return false;
 	}
 
-	void WebIO::setProgressCallback(Utils::Slot<void(size_t, size_t)> callback)
+	void WebIO::setProgressCallback(const Slot<void(std::size_t, std::size_t)>& callback)
 	{
 		this->progressCallback = callback;
 	}

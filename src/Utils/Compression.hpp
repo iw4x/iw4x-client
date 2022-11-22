@@ -4,15 +4,12 @@
 #define DEFLATE_ZLIB false
 #define DEFLATE_ZSTD true
 
-namespace Utils
+namespace Utils::Compression
 {
-	namespace Compression
+	class ZLib
 	{
-		class ZLib
-		{
-		public:
-			static std::string Compress(const std::string& data);
-			static std::string Decompress(const std::string& data);
-		};
+	public:
+		static std::string Compress(const std::string& data);
+		static std::string Decompress(const std::string& data);
 	};
 }
