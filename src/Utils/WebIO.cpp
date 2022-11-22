@@ -279,9 +279,9 @@ namespace Utils
 			return {};
 		}
 
-		if (const auto itr = headers.find("Content-Type"); itr == headers.end())
+		if (!headers.contains("Content-Type"))
 		{
-			itr->second = "application/x-www-form-urlencoded";
+			headers["Content-Type"] = "application/x-www-form-urlencoded";
 		}
 
 		std::string finalHeaders;
