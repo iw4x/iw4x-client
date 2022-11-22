@@ -5,12 +5,12 @@ namespace Utils
 	class Entities
 	{
 	public:
-		Entities() {};
-		Entities(const char* string, size_t lenPlusOne) : Entities(std::string(string, lenPlusOne - 1)) {}
-		Entities(const std::string& buffer) : Entities() { this->parse(buffer); };
-		Entities(const Entities &obj) : entities(obj.entities) {};
+		Entities() = default;
+		Entities(const std::string& buffer) : Entities() { this->parse(buffer); }
+		Entities(const char* string, std::size_t lenPlusOne) : Entities(std::string(string, lenPlusOne - 1)) {}
+		Entities(const Entities& obj) = default;
 
-		std::string build();
+		[[nodiscard]] std::string build() const;
 
 		std::vector<std::string> getModels();
 		void deleteTriggers();

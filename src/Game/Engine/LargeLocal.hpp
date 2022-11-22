@@ -13,7 +13,7 @@ namespace Game::Engine
         LargeLocal& operator=(LargeLocal&&) = delete;
         LargeLocal& operator=(const LargeLocal&) = delete;
 
-        void* GetBuf() const;
+        [[nodiscard]] void* GetBuf() const;
 
     private:
         void PopBuf();

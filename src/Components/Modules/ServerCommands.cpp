@@ -2,18 +2,18 @@
 
 namespace Components
 {
-	std::unordered_map<std::int32_t, std::function<bool(Command::Params*)>> ServerCommands::Commands;
+	std::unordered_map<std::int32_t, ServerCommands::serverCommandHandler> ServerCommands::Commands;
 
-	void ServerCommands::OnCommand(std::int32_t cmd, std::function<bool(Command::Params*)> callback)
+	void ServerCommands::OnCommand(std::int32_t cmd, const serverCommandHandler& callback)
 	{
-		ServerCommands::Commands.insert_or_assign(cmd, std::move(callback));
+		Commands.insert_or_assign(cmd, callback);
 	}
 
 	bool ServerCommands::OnServerCommand()
 	{
 		Command::ClientParams params;
 		
-		for (const auto& [id, callback] : ServerCommands::Commands)
+		for (const auto& [id, callback] : Commands)
 		{
 			if (params.size() >= 1)
 			{
@@ -33,7 +33,10 @@ namespace Components
 		{
 			push eax
 			pushad
+
+			// Missing localClientNum!
 			call ServerCommands::OnServerCommand
+
 			mov [esp + 20h], eax
 			popad
 			pop eax
@@ -63,7 +66,7 @@ namespace Components
 	ServerCommands::ServerCommands()
 	{
 		// Server command receive hook
-		Utils::Hook(0x59449F, ServerCommands::CG_DeployServerCommand_Stub).install()->quick();
+		Utils::Hook(0x59449F, CG_DeployServerCommand_Stub).install()->quick();
 		Utils::Hook::Nop(0x5944A4, 6);
 	}
 }

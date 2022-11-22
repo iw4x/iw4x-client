@@ -8,21 +8,23 @@ namespace Components
 		Localization();
 		~Localization();
 
-		static void Set(const std::string& key, const std::string& value);
+		static void Set(const std::string& psLocalReference, const std::string& psNewString);
 		static const char* Get(const char* key);
 
-		static void SetTemp(const std::string& key, const std::string& value);
-		static void ClearTemp();
+		static std::optional<std::string> PrefixOverride;
+		static void ParseOutput(const std::function<void(Game::LocalizeEntry*)>& callback);
 
 	private:
 		static std::recursive_mutex LocalizeMutex;
 		static std::unordered_map<std::string, Game::LocalizeEntry*> LocalizeMap;
-		static std::unordered_map<std::string, Game::LocalizeEntry*> TempLocalizeMap;
 		static Dvar::Var UseLocalization;
 
-		static void __stdcall SetStringStub(const char* key, const char* value, bool isEnglish);
-		static void LoadLanguageStrings();
-		static void SELoadLanguageStub();
+		static std::function<void(Game::LocalizeEntry*)> ParseCallback;
+
+		static void __stdcall SetStringStub(const char* psLocalReference, const char* psNewString, int bSentenceIsEnglish);
+
+		static void SaveParseOutput(Game::LocalizeEntry* asset);
+
 		static void SetCredits();
 
 		static const char* SEH_LocalizeTextMessageStub(const char* pszInputBuffer, const char* pszMessageType, Game::msgLocErrType_t errType);

@@ -19,7 +19,7 @@
 #include <ShlObj.h>
 #include <timeapi.h>
 #include <shellapi.h>
-#include <WinInet.h>
+#include <wininet.h>
 #include <d3d9.h>
 #include <AclAPI.h>
 #include <Psapi.h>
@@ -57,6 +57,9 @@
 #include <XInput.h>
 #pragma comment (lib, "xinput.lib")
 
+#include <dwmapi.h>
+#pragma comment (lib, "dwmapi.lib")
+
 // Ignore the warnings
 #pragma warning(push)
 #pragma warning(disable: 4005)
@@ -76,7 +79,6 @@
 #pragma warning(disable: 6387)
 #pragma warning(disable: 26812)
 
-#include <curses.h>
 #include <gsl/gsl>
 #include <tomcrypt.h>
 #include <udis86.h>

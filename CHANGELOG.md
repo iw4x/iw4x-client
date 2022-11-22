@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.6] - 2022-11-22
+
+### Added
+
+- Add `GetStat` GSC method (#485)
+- Add `SetStat` GSC method (#485)
+- Add `statGet` command (#485)
+- Add `FileRemove` GSC function (#509)
+- Add `cg_drawDisconnect` Dvar (#551)
+- Add loading info strings from raw file (#557)
+- Add localized file string parsing to Zone Builder (.str) (#569)
+- Add single localized file string parsing to Zone Builder (#569)
+
+### Changed
+
+- Remove non-existent menus from code (#483)
+- Change font and colour of the external console (#477)
+
+### Fixed
+
+- Fix crash for debug build (#476)
+- Fix auth bug with the connect protocol `iw4x://` (#478)
+- Fix party server not receiving packets (#500)
+- Fix crash caused by server thread issues (#561)
+- Fix hours spent playing IW4x not counting towards the hours spent playing MW2 on Steam (#573)
+
+### Known issues
+
+- HTTPS is not supported for fast downloads at the moment.
+- Sound issue fix is experimental as the bug is not fully understood.
+- `reloadmenus` command does not free resources used by custom menus.
+
 ## [0.7.5] - 2022-09-03
 
 ### Added
@@ -22,7 +54,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Steam status is no longer set to busy (#417)
 - `HttpGet`& `HttpCancel` are disabled for security reasons (#449)
-- 'g_allowVote' is a replicated Dvar (#457)
+- `g_allowVote` is a replicated Dvar (#457)
 
 ### Fixed
 

@@ -24,6 +24,8 @@ namespace Game
 
 	char(*sys_exitCmdLine)[1024] = reinterpret_cast<char(*)[1024]>(0x649FB68);
 
+	RTL_CRITICAL_SECTION* s_criticalSection = reinterpret_cast<RTL_CRITICAL_SECTION*>(0x6499BC8);
+
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
 		InterlockedIncrement(&critSect->readCount);
@@ -34,5 +36,13 @@ namespace Game
 	{
 		assert(critSect->readCount > 0);
 		InterlockedDecrement(&critSect->readCount);
+	}
+
+	bool Sys_TryEnterCriticalSection(CriticalSection critSect)
+	{
+		assert(static_cast<unsigned int>(critSect) <
+			static_cast<unsigned int>(CRITSECT_COUNT));
+
+		return TryEnterCriticalSection(&s_criticalSection[critSect]) != FALSE;
 	}
 }

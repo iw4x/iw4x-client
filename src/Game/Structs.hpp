@@ -3586,10 +3586,188 @@ namespace Game
 		operandInternalDataUnion internals;
 	};
 
-	// This enum is unknown
 	enum operationEnum
 	{
-		BLUB
+		OP_NOOP = 0x0,
+		OP_RIGHTPAREN = 0x1,
+		OP_MULTIPLY = 0x2,
+		OP_DIVIDE = 0x3,
+		OP_MODULUS = 0x4,
+		OP_ADD = 0x5,
+		OP_SUBTRACT = 0x6,
+		OP_NOT = 0x7,
+		OP_LESSTHAN = 0x8,
+		OP_LESSTHANEQUALTO = 0x9,
+		OP_GREATERTHAN = 0xA,
+		OP_GREATERTHANEQUALTO = 0xB,
+		OP_EQUALS = 0xC,
+		OP_NOTEQUAL = 0xD,
+		OP_AND = 0xE,
+		OP_OR = 0xF,
+		OP_LEFTPAREN = 0x10,
+		OP_COMMA = 0x11,
+		OP_BITWISEAND = 0x12,
+		OP_BITWISEOR = 0x13,
+		OP_BITWISENOT = 0x14,
+		OP_BITSHIFTLEFT = 0x15,
+		OP_BITSHIFTRIGHT = 0x16,
+		OP_STATICDVARINT = 0x17,
+		OP_FIRSTFUNCTIONCALL = 0x17,
+		OP_STATICDVARBOOL = 0x18,
+		OP_STATICDVARFLOAT = 0x19,
+		OP_STATICDVARSTRING = 0x1A,
+		OP_TOINT = 0x1B,
+		OP_TOSTRING = 0x1C,
+		OP_TOFLOAT = 0x1D,
+		LAST_COMMONLY_CALLED_FUNCTION = 0x1D,
+		OP_SIN = 0x1E,
+		OP_COS = 0x1F,
+		OP_MIN = 0x20,
+		OP_MAX = 0x21,
+		OP_MILLISECONDS = 0x22,
+		OP_DVARINT = 0x23,
+		OP_DVARBOOL = 0x24,
+		OP_DVARFLOAT = 0x25,
+		OP_DVARSTRING = 0x26,
+		OP_STAT = 0x27,
+		OP_UIACTIVE = 0x28,
+		OP_FLASHBANGED = 0x29,
+		OP_USINGVEHICLE = 0x2A,
+		OP_MISSILECAM = 0x2B,
+		OP_SCOPED = 0x2C,
+		OP_SCOPEDTHERMAL = 0x2D,
+		OP_SCOREBOARDVISIBLE = 0x2E,
+		OP_INKILLCAM = 0x2F,
+		OP_INKILLCAM_NPC = 0x30,
+		OP_PLAYERFIELD = 0x31,
+		OP_GET_PLAYER_PERK = 0x32,
+		OP_SELECTINGLOCATION = 0x33,
+		OP_SELECTINGDIRECTION = 0x34,
+		OP_TEAMFIELD = 0x35,
+		OP_OTHERTEAMFIELD = 0x36,
+		OP_MARINESFIELD = 0x37,
+		OP_OPFORFIELD = 0x38,
+		OP_MENUISOPEN = 0x39,
+		OP_WRITINGDATA = 0x3A,
+		OP_INLOBBY = 0x3B,
+		OP_INPRIVATEPARTY = 0x3C,
+		OP_PRIVATEPARTYHOST = 0x3D,
+		OP_PRIVATEPARTYHOSTINLOBBY = 0x3E,
+		OP_ALONEINPARTY = 0x3F,
+		OP_ADSJAVELIN = 0x40,
+		OP_WEAPLOCKBLINK = 0x41,
+		OP_WEAPATTACKTOP = 0x42,
+		OP_WEAPATTACKDIRECT = 0x43,
+		OP_WEAPLOCKING = 0x44,
+		OP_WEAPLOCKED = 0x45,
+		OP_WEAPLOCKTOOCLOSE = 0x46,
+		OP_WEAPLOCKSCREENPOSX = 0x47,
+		OP_WEAPLOCKSCREENPOSY = 0x48,
+		OP_SECONDSASTIME = 0x49,
+		OP_TABLELOOKUP = 0x4A,
+		OP_TABLELOOKUPBYROW = 0x4B,
+		OP_TABLEGETROWNUM = 0x4C,
+		OP_LOCALIZESTRING = 0x4D,
+		OP_LOCALVARINT = 0x4E,
+		OP_LOCALVARBOOL = 0x4F,
+		OP_LOCALVARFLOAT = 0x50,
+		OP_LOCALVARSTRING = 0x51,
+		OP_TIMELEFT = 0x52,
+		OP_SECONDSASCOUNTDOWN = 0x53,
+		OP_GAMEMSGWNDACTIVE = 0x54,
+		OP_GAMETYPENAME = 0x55,
+		OP_GAMETYPE = 0x56,
+		OP_GAMETYPEDESCRIPTION = 0x57,
+		OP_SCORE = 0x58,
+		OP_FRIENDSONLINE = 0x59,
+		OP_FOLLOWING = 0x5A,
+		OP_SPECTATINGFREE = 0x5B,
+		OP_STATRANGEBITSSET = 0x5C,
+		OP_KEYBINDING = 0x5D,
+		OP_ACTIONSLOTUSABLE = 0x5E,
+		OP_HUDFADE = 0x5F,
+		OP_MAXPLAYERS = 0x60,
+		OP_ACCEPTINGINVITE = 0x61,
+		OP_ISINTERMISSION = 0x62,
+		OP_GAMEHOST = 0x63,
+		OP_PARTYHASMISSINGMAPPACK = 0x64,
+		OP_PARTYMISSINGMAPPACKERROR = 0x65,
+		OP_ANYNEWMAPPACKS = 0x66,
+		OP_AMISELECTED = 0x67,
+		OP_PARTYSTATUSSTRING = 0x68,
+		OP_ATTACHED_CONTROLLER_COUNT = 0x69,
+		OP_IS_SPLIT_SCREEN_ONLINE_POSSIBLE = 0x6A,
+		OP_SPLITSCREENPLAYERCOUNT = 0x6B,
+		OP_GETPLAYERDATA = 0x6C,
+		OP_GETPLAYERDATASPLITSCREEN = 0x6D,
+		OP_EXPERIENCE_FOR_LEVEL = 0x6E,
+		OP_LEVEL_FOR_EXPERIENCE = 0x6F,
+		OP_IS_ITEM_UNLOCKED = 0x70,
+		OP_IS_ITEM_UNLOCKEDSPLITSCREEN = 0x71,
+		OP_DEBUG_PRINT = 0x72,
+		OP_GETPLAYERDATA_ANYBOOLTRUE = 0x73,
+		OP_WEAPON_CLASS_NEW = 0x74,
+		OP_WEAPONNAME = 0x75,
+		OP_ISRELOADING = 0x76,
+		OP_SAVE_GAME_AVAILABLE = 0x77,
+		OP_UNLOCKED_ITEM_COUNT = 0x78,
+		OP_UNLOCKED_ITEM_COUNT_SPLITSCREEN = 0x79,
+		OP_UNLOCKED_ITEM = 0x7A,
+		OP_UNLOCKED_ITEM_SPLITSCREEN = 0x7B,
+		OP_MAIL_SUBJECT = 0x7C,
+		OP_MAIL_FROM = 0x7D,
+		OP_MAIL_RECEIVED = 0x7E,
+		OP_MAIL_BODY = 0x7F,
+		OP_MAIL_LOOT_LOCALIZED = 0x80,
+		OP_MAIL_GIVES_LOOT = 0x81,
+		OP_ANY_NEW_MAIL = 0x82,
+		OP_MAIL_TIME_TO_FOLLOWUP = 0x83,
+		OP_MAIL_LOOT_TYPE = 0x84,
+		OP_MAIL_RAN_LOTTERY = 0x85,
+		OP_LOTTERY_LOOT_LOCALIZED = 0x86,
+		OP_RADAR_IS_JAMMED = 0x87,
+		OP_RADAR_JAM_INTENSITY = 0x88,
+		OP_RADAR_IS_ENABLED = 0x89,
+		OP_EMP_JAMMED = 0x8A,
+		OP_PLAYERADS = 0x8B,
+		OP_WEAPON_HEAT_ACTIVE = 0x8C,
+		OP_WEAPON_HEAT_VALUE = 0x8D,
+		OP_WEAPON_HEAT_OVERHEATED = 0x8E,
+		OP_SPLASH_TEXT = 0x8F,
+		OP_SPLASH_DESCRIPTION = 0x90,
+		OP_SPLASH_MATERIAL = 0x91,
+		OP_SPLASH_HAS_ICON = 0x92,
+		OP_SPLASH_ROWNUM = 0x93,
+		OP_GETFOCUSED_NAME = 0x94,
+		OP_GETFOCUSED_X = 0x95,
+		OP_GETFOCUSED_Y = 0x96,
+		OP_GETFOCUSED_W = 0x97,
+		OP_GETFOCUSED_H = 0x98,
+		OP_GETITEMDEF_X = 0x99,
+		OP_GETITEMDEF_Y = 0x9A,
+		OP_GETITEMDEF_W = 0x9B,
+		OP_GETITEMDEF_H = 0x9C,
+		OP_PLAYLISTFIELD = 0x9D,
+		OP_SCOREBOARD_EXTERNALMUTE_NOTICE = 0x9E,
+		OP_CLIENT_MATCH_DATA = 0x9F,
+		OP_CLIENT_MATCH_DATA_DEF = 0xA0,
+		OP_GET_MAP_NAME = 0xA1,
+		OP_GET_MAP_IMAGE = 0xA2,
+		OP_GET_MAP_CUSTOM = 0xA3,
+		OP_GET_MIGRATION_STATUS = 0xA4,
+		OP_GET_PLAYERCARD_INFO = 0xA5,
+		OP_IS_OFFLINE_PROFILE_SELECTED = 0xA6,
+		OP_COOP_PLAYERFIELD = 0xA7,
+		OP_IS_COOP = 0xA8,
+		OP_GETPARTYSTATUS = 0xA9,
+		OP_GETSEARCHPARAMS = 0xAA,
+		OP_GETTIMEPLAYED = 0xAB,
+		OP_IS_SELECTED_PLAYER_FRIEND = 0xAC,
+		OP_GETCHARBYINDEX = 0xAD,
+		OP_GETPLAYERPROFILEDATA = 0xAE,
+		OP_IS_PROFILE_SIGNED_IN = 0xAF,
+		OP_GET_WAIT_POPUP_STATUS = 0xB0,
+		NUM_OPERATORS = 0xB1,
 	};
 
 	union entryInternalData
@@ -3888,7 +4066,7 @@ namespace Game
 	struct menuDef_t
 	{
 		windowDef_t window;
-		const char *font;
+		const char* font;
 		int fullScreen;
 		int itemCount;
 		int fontIndex;
@@ -3898,41 +4076,41 @@ namespace Game
 		float fadeAmount;
 		float fadeInAmount;
 		float blurRadius;
-		MenuEventHandlerSet *onOpen;
-		MenuEventHandlerSet *onCloseRequest;
-		MenuEventHandlerSet *onClose;
-		MenuEventHandlerSet *onESC;
-		ItemKeyHandler *onKey;
-		Statement_s *visibleExp;
-		const char *allowedBinding;
-		const char *soundName;
+		MenuEventHandlerSet* onOpen;
+		MenuEventHandlerSet* onCloseRequest;
+		MenuEventHandlerSet* onClose;
+		MenuEventHandlerSet* onESC;
+		ItemKeyHandler* onKey;
+		Statement_s* visibleExp;
+		const char* allowedBinding;
+		const char* soundName;
 		int imageTrack;
 		float focusColor[4];
-		Statement_s *rectXExp;
-		Statement_s *rectYExp;
-		Statement_s *rectWExp;
-		Statement_s *rectHExp;
-		Statement_s *openSoundExp;
-		Statement_s *closeSoundExp;
-		itemDef_s **items;
+		Statement_s* rectXExp;
+		Statement_s* rectYExp;
+		Statement_s* rectWExp;
+		Statement_s* rectHExp;
+		Statement_s* openSoundExp;
+		Statement_s* closeSoundExp;
+		itemDef_s** items;
 		menuTransition scaleTransition[1];
 		menuTransition alphaTransition[1];
 		menuTransition xTransition[1];
 		menuTransition yTransition[1];
-		ExpressionSupportingData *expressionData;
+		ExpressionSupportingData* expressionData;
 	};
 
 	struct MenuList
 	{
-		const char *name;
+		const char* name;
 		int menuCount;
-		menuDef_t **menus;
+		menuDef_t** menus;
 	};
 
 	struct LocalizeEntry
 	{
-		const char *value;
-		const char *name;
+		const char* value;
+		const char* name;
 	};
 
 	enum weapType_t
@@ -5154,6 +5332,14 @@ namespace Game
 		char uiName[32];
 	};
 
+	enum fsMode_t
+	{
+		FS_READ = 0x0,
+		FS_WRITE = 0x1,
+		FS_APPEND = 0x2,
+		FS_APPEND_SYNC = 0x3,
+	};
+
 	struct fileInIwd_s
 	{
 		unsigned int pos;
@@ -5297,7 +5483,7 @@ namespace Game
 		char buf[1];
 	};
 
-	enum scrParamType_t
+	enum
 	{
 		VAR_UNDEFINED = 0x0,
 		VAR_BEGIN_REF = 0x1,
@@ -5331,7 +5517,7 @@ namespace Game
 		VAR_ENDON_LIST = 0x1B,
 	};
 
-	enum $2441F0C7E439C64E6C27842ECB570A7C
+	enum
 	{
 		FIRST_OBJECT = 0x10,
 		FIRST_CLEARABLE_OBJECT = 0x14,
@@ -5357,7 +5543,7 @@ namespace Game
 	struct VariableValue
 	{
 		VariableUnion u;
-		scrParamType_t type;
+		int type;
 	};
 
 	struct function_stack_t
@@ -5845,12 +6031,6 @@ namespace Game
 		float keys[1];
 	};
 
-	union $81775853B5F1E1C6748A82ED93FC367C
-	{
-		FxElemVisuals visuals[32];
-		FxElemMarkVisuals markVisuals[16];
-	};
-
 	struct FxEditorTrailDef
 	{
 		FxTrailVertex verts[64];
@@ -5903,7 +6083,11 @@ namespace Game
 		FxFloatRange emitDistVariance;
 		char elemType;
 		int visualCount;
-		$81775853B5F1E1C6748A82ED93FC367C ___u42;
+		union
+		{
+			FxElemVisuals visuals[32];
+			FxElemMarkVisuals markVisuals[16];
+		} ___u42;
 		int trailSplitDist;
 		int trailSplitArcDist;
 		int trailSplitTime;
@@ -6052,14 +6236,8 @@ namespace Game
 		ITEM_TEXTSTYLE_MONOSPACESHADOWED = 132,
 	};
 
-	enum $53C66D4FC2874B6934A17E4ED449BCEB
+	enum
 	{
-		// 		DB_ZONE_COMMON = 0x1,
-		// 		DB_ZONE_UI = 0x2,
-		// 		DB_ZONE_GAME = 0x4,
-		// 		DB_ZONE_LOAD = 0x8,
-		// 		DB_ZONE_DEV = 0x10,
-		// 		DB_ZONE_TRANSIENT = 0x20,
 		DB_ZONE_CODE_LOC = 0x0,
 		DB_ZONE_COMMON_LOC = 0x1,
 		DB_ZONE_CODE = 0x2,
@@ -6405,7 +6583,15 @@ namespace Game
 		int bIsTestClient; // 269040
 		int serverID; // 269044
 		bool usingOnlineStatsOffline;
-		char stats[8192];
+		struct
+		{
+			unsigned int checksum;
+			struct
+			{
+				unsigned char binary[2000];
+				int data[1547];
+			} __s0;
+		} stats;
 		char statsModifiedFlags[1024];
 		bool statsModified;
 		char statPacketsReceived;
@@ -8246,7 +8432,7 @@ namespace Game
 		gentity_s* firstFreeEnt;
 		gentity_s* lastFreeEnt;
 		Turret* turrets;
-		void* logFile;
+		int logFile;
 		int initializing;
 		int clientIsSpawning;
 		objective_t objectives[32];

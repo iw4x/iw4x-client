@@ -36,7 +36,6 @@
 | `-bigminidumps`         | Include all code sections from loaded modules in the dump. |
 | `-reallybigminidumps`   | Include data sections from all loaded modules in the dump. |
 | `-dump`                 | Write info of loaded assets to the raw folder as they are being loaded. |
-| `-monitor`              | This flag is for internal use and it is used to indicate if an external console is present. |
 | `-nointro`              | Skip game's cinematic intro.                   |
 | `-version`              | Print IW4x build info on startup.              |
 | `-zonebuilder`          | Start the interactive zonebuilder tool console instead of starting the game. |

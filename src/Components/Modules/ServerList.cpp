@@ -19,7 +19,7 @@ namespace Components
 	Dvar::Var ServerList::NETServerQueryLimit;
 	Dvar::Var ServerList::NETServerFrames;
 
-	bool ServerList::useMasterServer = true;
+	bool ServerList::UseMasterServer = true;
 
 	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{
@@ -51,7 +51,7 @@ namespace Components
 
 	bool ServerList::IsOnlineList()
 	{
-		return (Monitor::IsEnabled() || Dvar::Var("ui_netSource").get<int>() == 1);
+		return (Dvar::Var("ui_netSource").get<int>() == 1);
 	}
 
 	unsigned int ServerList::GetServerCount()
@@ -299,13 +299,13 @@ namespace Components
 			{
 				Logger::Print("Could not resolve address for {}:{}", masterServerName, masterPort);
 				Toast::Show("cardicon_headshot", "^1Error", Utils::String::VA("Could not resolve address for %s:%u", masterServerName, masterPort), 5000);
-				useMasterServer = false;
+				UseMasterServer = false;
 				return;
 			}
 
 			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
 
-			useMasterServer = true;
+			UseMasterServer = true;
 
 			ServerList::RefreshContainer.awatingList = true;
 			ServerList::RefreshContainer.awaitTime = Game::Sys_Milliseconds();
@@ -327,7 +327,17 @@ namespace Components
 		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
 		if (!parseData.empty())
 		{
-			const nlohmann::json object = nlohmann::json::parse(parseData);
+			nlohmann::json object;
+			try
+			{
+				object = nlohmann::json::parse(parseData);
+			}
+			catch (const nlohmann::json::parse_error& ex)
+			{
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+				return;
+			}
+
 			if (!object.is_array())
 			{
 				Logger::Print("Favourites storage file is invalid!\n");
@@ -363,7 +373,16 @@ namespace Components
 		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
 		if (!parseData.empty())
 		{
-			const nlohmann::json object = nlohmann::json::parse(parseData);
+			nlohmann::json object;
+			try
+			{
+				object = nlohmann::json::parse(parseData);
+			}
+			catch (const nlohmann::json::parse_error& ex)
+			{
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+				return;
+			}
 
 			if (!object.is_array())
 			{
@@ -409,7 +428,17 @@ namespace Components
 			return;
 		}
 
-		const nlohmann::json object = nlohmann::json::parse(parseData);
+		nlohmann::json object;
+		try
+		{
+			object = nlohmann::json::parse(parseData);
+		}
+		catch (const nlohmann::json::parse_error& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+			return;
+		}
+
 		if (!object.is_array())
 		{
 			Logger::Print("Favourites storage file is invalid!\n");
@@ -675,7 +704,7 @@ namespace Components
 				Logger::Print("We haven't received a response from the master within {} seconds!\n", (Game::Sys_Milliseconds() - ServerList::RefreshContainer.awaitTime) / 1000);
 				Toast::Show("cardicon_headshot", "^1Error", "Failed to reach master server, using node servers instead.", 5000);
 
-				useMasterServer = false;
+				UseMasterServer = false;
 				Node::Synchronize();
 			}
 		}

@@ -7,10 +7,11 @@ namespace Components
 	public:
 		ServerCommands();
 
-		static void OnCommand(std::int32_t cmd, std::function<bool(Command::Params*)> callback);
+		using serverCommandHandler = std::function<bool(Command::Params*)>;
+		static void OnCommand(std::int32_t cmd, const serverCommandHandler& callback);
 
 	private:
-		static std::unordered_map<std::int32_t, std::function<bool(Command::Params*)>> Commands;
+		static std::unordered_map<std::int32_t, serverCommandHandler> Commands;
 
 		static bool OnServerCommand();
 		static void CG_DeployServerCommand_Stub();

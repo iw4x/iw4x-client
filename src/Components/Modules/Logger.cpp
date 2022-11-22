@@ -5,7 +5,8 @@ namespace Components
 	std::mutex Logger::MessageMutex;
 	std::vector<std::string> Logger::MessageQueue;
 	std::vector<Network::Address> Logger::LoggingAddresses[2];
-	void(*Logger::PipeCallback)(const std::string&) = nullptr;
+
+	std::function<void(const std::string&)> Logger::PipeCallback;
 
 	bool Logger::IsConsoleReady()
 	{
@@ -106,21 +107,6 @@ namespace Components
 		Logger::MessagePrint(channel, msg);
 	}
 
-	void Logger::Flush()
-	{
-// 		if (!Game::Sys_IsMainThread())
-// 		{
-// 			while (!Logger::MessageQueue.empty())
-// 			{
-// 				std::this_thread::sleep_for(10ms);
-// 			}
-// 		}
-// 		else
-		{
-			Logger::Frame();
-		}
-	}
-
 	void Logger::Frame()
 	{
 		std::unique_lock _(Logger::MessageMutex);
@@ -138,7 +124,7 @@ namespace Components
 		}
 	}
 
-	void Logger::PipeOutput(void(*callback)(const std::string&))
+	void Logger::PipeOutput(const std::function<void(const std::string&)>& callback)
 	{
 		Logger::PipeCallback = callback;
 	}
@@ -177,9 +163,9 @@ namespace Components
 		const auto time = Game::level->time / 1000;
 		const auto len = _snprintf_s(string, _TRUNCATE, "%3i:%i%i %s", time / 60, time % 60 / 10, time % 60 % 10, string2);
 
-		if (Game::level->logFile != nullptr)
+		if (Game::level->logFile)
 		{
-			Game::FS_Write(string, len, reinterpret_cast<int>(Game::level->logFile));
+			Game::FS_Write(string, len, Game::level->logFile);
 		}
 
 		// Allow the network log to run even if logFile was not opened

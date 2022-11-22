@@ -118,7 +118,6 @@ namespace Components
 	{
 		Utils::InfoString info;
 
-		// TODO: Possibly add all Dvar starting with _
 		info.set("admin", Dvar::Var("_Admin").get<const char*>());
 		info.set("website", Dvar::Var("_Website").get<const char*>());
 		info.set("email", Dvar::Var("_Email").get<const char*>());
@@ -141,6 +140,7 @@ namespace Components
 		info.set("sv_maxclients", Utils::String::VA("%i", maxClientCount));
 		info.set("protocol", Utils::String::VA("%i", PROTOCOL));
 		info.set("shortversion", SHORTVERSION);
+		info.set("version", (*Game::version)->current.string);
 		info.set("mapname", (*Game::sv_mapname)->current.string);
 		info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().empty() ? "0" : "1"));
 		info.set("checksum", Utils::String::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::String::VA("%u", Game::Sys_Milliseconds()))));
@@ -162,7 +162,7 @@ namespace Components
 		{
 			info.set("matchtype", "1");
 		}
-		else if ((*Game::com_sv_running)->current.enabled) // Match hosting
+		else if (Dedicated::IsRunning()) // Match hosting
 		{
 			info.set("matchtype", "2");
 		}
@@ -193,24 +193,24 @@ namespace Components
 		// Add uifeeder
 		UIFeeder::Add(13.0f, ServerInfo::GetPlayerCount, ServerInfo::GetPlayerText, ServerInfo::SelectPlayer);
 
-		Network::OnServerPacket("getStatus", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("getStatus", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			std::string playerList;
 
 			Utils::InfoString info = ServerInfo::GetInfo();
 			info.set("challenge", Utils::ParseChallenge(data));
 
-			for (auto i = 0; i < atoi(info.get("sv_maxclients").data()); ++i) // Maybe choose 18 here?
+			for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
 			{
 				auto score = 0;
 				auto ping = 0;
 				std::string name;
 
-				if ((*Game::com_sv_running)->current.enabled)
+				if (Dedicated::IsRunning())
 				{
 					if (Game::svs_clients[i].header.state < Game::CS_CONNECTED) continue;
 
-					score = Game::SV_GameClientNum_Score(i);
+					score = Game::SV_GameClientNum_Score(static_cast<int>(i));
 					ping = Game::svs_clients[i].ping;
 					name = Game::svs_clients[i].name;
 				}

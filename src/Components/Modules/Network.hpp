@@ -8,7 +8,7 @@ namespace Components
 		class Address
 		{
 		public:
-			Address() { setType(Game::netadrtype_t::NA_BAD); }
+			Address() { setType(Game::NA_BAD); }
 			Address(const std::string& addrString);
 			Address(sockaddr* addr);
 			Address(sockaddr addr) : Address(&addr) {}
@@ -73,12 +73,10 @@ namespace Components
 		static void BroadcastAll(const std::string& data);
 
 		static void OnClientPacket(const std::string& command, const NetworkCallback& callback);
-		static void OnServerPacket(const std::string& command, const NetworkCallback& callback);
 
 	private:
 		static Utils::Signal<CallbackRaw> StartupSignal;
 		static std::unordered_map<std::string, NetworkCallback> CL_Callbacks;
-		static std::unordered_map<std::string, NetworkCallback> SV_Callbacks;
 
 		static void NetworkStart();
 		static void NetworkStartStub();
@@ -88,10 +86,8 @@ namespace Components
 		static void SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg);
 
 		static bool CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message);
-		static bool SV_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message);
 
 		static void CL_HandleCommandStub();
-		static void SV_HandleCommandStub();
 	};
 }
 

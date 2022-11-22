@@ -6,7 +6,7 @@ namespace Components
 	unsigned int Theatre::CurrentSelection;
 	std::vector<Theatre::DemoInfo> Theatre::Demos;
 
-	char Theatre::BaselineSnapshot[131072] = { 0 };
+	char Theatre::BaselineSnapshot[131072] = {0};
 	int Theatre::BaselineSnapshotMsgLen;
 	int Theatre::BaselineSnapshotMsgOff;
 
@@ -18,7 +18,7 @@ namespace Components
 
 	void Theatre::RecordGamestateStub()
 	{
-		int sequence = (*Game::serverMessageSequence - 1);
+		const auto sequence = (*Game::serverMessageSequence - 1);
 		Game::FS_WriteToDemo(&sequence, 4, *Game::demoFile);
 	}
 
@@ -56,8 +56,8 @@ namespace Components
 		Game::MSG_WriteData(&buf, &Theatre::BaselineSnapshot[Theatre::BaselineSnapshotMsgOff], Theatre::BaselineSnapshotMsgLen - Theatre::BaselineSnapshotMsgOff);
 		Game::MSG_WriteByte(&buf, 6);
 
-		int compressedSize = Game::MSG_WriteBitsCompress(false, reinterpret_cast<char*>(buf.data), cmpData, buf.cursize);
-		int fileCompressedSize = compressedSize + 4;
+		const auto compressedSize = Game::MSG_WriteBitsCompress(false, reinterpret_cast<char*>(buf.data), cmpData, buf.cursize);
+		const auto fileCompressedSize = compressedSize + 4;
 
 		int byte8 = 8;
 		char byte0 = 0;
@@ -67,9 +67,9 @@ namespace Components
 		Game::FS_WriteToDemo(&fileCompressedSize, 4, *Game::demoFile);
 		Game::FS_WriteToDemo(&byte8, 4, *Game::demoFile);
 
-		for (int i = 0; i < compressedSize; i += 1024)
+		for (auto i = 0; i < compressedSize; i += 1024)
 		{
-			int size = std::min(compressedSize - i, 1024);
+			const auto size = std::min(compressedSize - i, 1024);
 
 			if (i + size >= sizeof(cmpData))
 			{
@@ -186,7 +186,7 @@ namespace Components
 		Theatre::CurrentSelection = 0;
 		Theatre::Demos.clear();
 
-		auto demos = FileSystem::GetFileList("demos/", "dm_13");
+		const auto demos = FileSystem::GetFileList("demos/", "dm_13");
 
 		for (auto demo : demos)
 		{
@@ -194,27 +194,32 @@ namespace Components
 
 			if (meta.exists())
 			{
-				std::string error;
-				nlohmann::json metaObject = nlohmann::json::parse(meta.getBuffer());
-
-				if (metaObject.is_object())
+				nlohmann::json metaObject;
+				try
 				{
-					Theatre::DemoInfo demoInfo;
-					demoInfo.name = demo.substr(0, demo.find_last_of("."));
-					demoInfo.author = metaObject["author"].get<std::string>();
-					demoInfo.gametype = metaObject["gametype"].get<std::string>();
-					demoInfo.mapname = metaObject["mapname"].get<std::string>();
-					demoInfo.length = metaObject["length"].get<int>();
-					auto timestamp = metaObject["timestamp"].get<std::string>();
-					demoInfo.timeStamp = _atoi64(timestamp.data());
-
-					Theatre::Demos.push_back(demoInfo);
+					metaObject = nlohmann::json::parse(meta.getBuffer());
 				}
+				catch (const nlohmann::json::parse_error& ex)
+				{
+					Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+					continue;
+				}
+
+				Theatre::DemoInfo demoInfo;
+				demoInfo.name = demo.substr(0, demo.find_last_of("."));
+				demoInfo.author = metaObject["author"].get<std::string>();
+				demoInfo.gametype = metaObject["gametype"].get<std::string>();
+				demoInfo.mapname = metaObject["mapname"].get<std::string>();
+				demoInfo.length = metaObject["length"].get<int>();
+				auto timestamp = metaObject["timestamp"].get<std::string>();
+				demoInfo.timeStamp = _atoi64(timestamp.data());
+
+				Theatre::Demos.push_back(demoInfo);
 			}
 		}
 
 		// Reverse, latest demo first!
-		std::reverse(Theatre::Demos.begin(), Theatre::Demos.end());
+		std::ranges::reverse(Theatre::Demos);
 	}
 
 	void Theatre::DeleteDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)

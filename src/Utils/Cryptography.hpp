@@ -31,7 +31,7 @@ namespace Utils
 							if (!i)
 							{
 								// Prepend here, as /dev/urandom says so ;) https://github.com/IW4x/iw4x-client-node/wikis/technical-information#incrementing-the-token
-								this->tokenString = std::basic_string<uint8_t>(reinterpret_cast<uint8_t*>(const_cast<char*>("\0")), 1) + this->tokenString;
+								this->tokenString = std::basic_string<std::uint8_t>(reinterpret_cast<std::uint8_t*>(const_cast<char*>("\0")), 1) + this->tokenString;
 								break;
 							}
 						}
@@ -253,16 +253,18 @@ namespace Utils
 				Key() : keyStorage(new rsa_key)
 				{
 					ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
-				};
-				Key(rsa_key* key) : Key() { if (key) std::memmove(this->getKeyPtr(), key, sizeof(*key)); };
-				Key(rsa_key key) : Key(&key) {};
+				}
+
+				Key(rsa_key* key) : Key() { if (key) std::memmove(this->getKeyPtr(), key, sizeof(*key)); }
+				Key(rsa_key key) : Key(&key) {}
+
 				~Key()
 				{
 					if (this->keyStorage.use_count() <= 1)
 					{
 						this->free();
 					}
-				};
+				}
 
 				rsa_key* getKeyPtr()
 				{
@@ -271,7 +273,7 @@ namespace Utils
 
 				bool isValid()
 				{
-					return (!Utils::Memory::IsSet(this->getKeyPtr(), 0, sizeof(*this->getKeyPtr())));
+					return (!Memory::IsSet(this->getKeyPtr(), 0, sizeof(*this->getKeyPtr())));
 				}
 
 				void free()
@@ -305,35 +307,35 @@ namespace Utils
 		{
 		public:
 			static std::string Compute(const std::string& data, bool hex = false);
-			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
+			static std::string Compute(const std::uint8_t* data, std::size_t length, bool hex = false);
 		};
 
 		class SHA1
 		{
 		public:
 			static std::string Compute(const std::string& data, bool hex = false);
-			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
+			static std::string Compute(const std::uint8_t* data, std::size_t length, bool hex = false);
 		};
 
 		class SHA256
 		{
 		public:
 			static std::string Compute(const std::string& data, bool hex = false);
-			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
+			static std::string Compute(const std::uint8_t* data, std::size_t length, bool hex = false);
 		};
 
 		class SHA512
 		{
 		public:
 			static std::string Compute(const std::string& data, bool hex = false);
-			static std::string Compute(const uint8_t* data, size_t length, bool hex = false);
+			static std::string Compute(const std::uint8_t* data, std::size_t length, bool hex = false);
 		};
 
 		class JenkinsOneAtATime
 		{
 		public:
 			static unsigned int Compute(const std::string& data);
-			static unsigned int Compute(const char *key, size_t len);
+			static unsigned int Compute(const char *key, std::size_t len);
 		};
 	}
 }

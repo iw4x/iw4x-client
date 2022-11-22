@@ -68,7 +68,7 @@ namespace Components
 		{
 			// check g_antilag dvar value
 			mov eax, g_antilag;
-			cmp byte ptr[eax + 16], 1;
+			cmp byte ptr [eax + 16], 1;
 
 			// do antilag if 1
 			je fireWeapon
@@ -96,7 +96,7 @@ namespace Components
 		{
 			// check g_antilag dvar value
 			mov eax, g_antilag;
-			cmp byte ptr[eax + 16], 1;
+			cmp byte ptr [eax + 16], 1;
 
 			// do antilag if 1
 			je fireWeaponMelee
@@ -332,6 +332,9 @@ namespace Components
 		// Fix crash as nullptr goes unchecked
 		Utils::Hook(0x437CAD, QuickPatch::SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
 
+		// Make VA thread safe
+		Utils::Hook(0x4785B0, Utils::String::VA, HOOK_JUMP).install()->quick();
+
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
 
@@ -355,7 +358,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x49C220, 0xC3); // We wanted to send a logging packet, but we haven't connected to LSP!
 		Utils::Hook::Set<BYTE>(0x4BD900, 0xC3); // main LSP response func
 		Utils::Hook::Set<BYTE>(0x682170, 0xC3); // Telling LSP that we're playing a private match
-		Utils::Hook::Nop(0x4FD448, 5);          // Don't create lsp_socket
+		Utils::Hook::Nop(0x4FD448, 5); // Don't create lsp_socket
 
 		// Don't delete config files if corrupted
 		Utils::Hook::Set<BYTE>(0x47DCB3, 0xEB);
@@ -445,11 +448,6 @@ namespace Components
 
 		// default sv_pure to 0
 		Utils::Hook::Set<BYTE>(0x4D3A74, 0);
-
-		// Force debug logging
-		Utils::Hook::Set<BYTE>(0x60AE4A, 1);
-		//Utils::Hook::Nop(0x60AE49, 8);
-		//Utils::Hook::Set<BYTE>(0x6FF53C, 0);
 
 		// remove activeAction execution (exploit in mods)
 		Utils::Hook::Set<BYTE>(0x5A1D43, 0xEB);

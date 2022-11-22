@@ -65,7 +65,6 @@ namespace Components
 
 	void Party::ConnectError(const std::string& message)
 	{
-		Localization::ClearTemp();
 		Command::Execute("closemenu popup_reconnectingtoparty");
 		Dvar::Var("partyend_reason").set(message);
 		Command::Execute("openmenu menu_xboxlive_partyended");
@@ -139,7 +138,7 @@ namespace Components
 
 	bool Party::IsInLobby()
 	{
-		return (!(*Game::com_sv_running)->current.enabled && PartyEnable.get<bool>() && Dvar::Var("party_host").get<bool>());
+		return (!Dedicated::IsRunning() && PartyEnable.get<bool>() && Dvar::Var("party_host").get<bool>());
 	}
 
 	bool Party::IsInUserMapLobby()
@@ -312,7 +311,7 @@ namespace Components
 		}
 
 		// Basic info handler
-		Network::OnServerPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+		Network::OnClientPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			int botCount = 0;
 			int clientCount = 0;
@@ -352,7 +351,7 @@ namespace Components
 			info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().size() ? "1" : "0"));
 			info.set("hc", (Dvar::Var("g_hardcore").get<bool>() ? "1" : "0"));
 			info.set("securityLevel", Utils::String::VA("%i", Dvar::Var("sv_securityLevel").get<int>()));
-			info.set("sv_running", ((*Game::com_sv_running)->current.enabled ? "1" : "0"));
+			info.set("sv_running", (Dedicated::IsRunning() ? "1" : "0"));
 			info.set("aimAssist", (Gamepad::sv_allowAimAssist.get<bool>() ? "1" : "0"));
 			info.set("voiceChat", (Voice::SV_VoiceEnabled() ? "1" : "0"));
 

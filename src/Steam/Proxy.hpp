@@ -169,8 +169,8 @@ namespace Steam
 				return T();
 			}
 
-			size_t argc = method.second;
-			constexpr size_t passedArgc = Interface::AddSizes<sizeof(Args)...>::value;
+			std::size_t argc = method.second;
+			constexpr std::size_t passedArgc = Interface::AddSizes<sizeof(Args)...>::value;
 			if(passedArgc != argc)
 			{
 				OutputDebugStringA(::Utils::String::VA("Steam interface arguments for method %s do not match (expected %d bytes, but got %d bytes)!\n", methodName.data(), argc, passedArgc));
@@ -185,7 +185,7 @@ namespace Steam
 			return this->interfacePtr != nullptr;
 		}
 
-		size_t paramSize(const std::string& methodName)
+		std::size_t paramSize(const std::string& methodName)
 		{
 			auto method = this->getMethod(methodName);
 			return method.second;
@@ -222,9 +222,9 @@ namespace Steam
 	private:
 		std::string buffer;
 
-		inline void packBytes(const void* bytes, size_t size)
+		inline void packBytes(const void* bytes, std::size_t size)
 		{
-			this->buffer.append(reinterpret_cast<const char*>(bytes), size);
+			this->buffer.append(static_cast<const char*>(bytes), size);
 		}
 
 		inline void packDataType(uint8_t type)
@@ -358,7 +358,7 @@ namespace Steam
 		static std::function<SteamFreeLastCallbackFn> SteamFreeLastCallback;
 		static std::function<SteamGetAPICallResultFn> SteamGetAPICallResult;
 
-		static void RunCallback(int32_t callId, void* data, size_t size);
+		static void RunCallback(int32_t callId, void* data, std::size_t size);
 
 		static void UnregisterCalls();
 		static void LaunchWatchGuard();

@@ -20,7 +20,7 @@ namespace Components
 		}
 
 		// Game's code
-		if (surfaceType != Game::materialSurfType_t::SURF_TYPE_DEFAULT)
+		if (surfaceType != Game::SURF_TYPE_DEFAULT)
 		{
 			return (*Game::penetrationDepthTable)[weapDef->penetrateType][surfaceType];
 		}
@@ -42,16 +42,21 @@ namespace Components
 		}
 	}
 
+	void Bullet::BG_srand_Hk(unsigned int* pHoldrand)
+	{
+		*pHoldrand = static_cast<unsigned int>(std::rand());
+	}
+
 	Bullet::Bullet()
 	{
 		BGSurfacePenetration = Dvar::Register<float>("bg_surfacePenetration", 0.0f,
-			0.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO,
-			"Set to a value greater than 0 to override the surface penetration depth");
+			0.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO, "Set to a value greater than 0 to override the surface penetration depth");
 		BGBulletRange = Game::Dvar_RegisterFloat("bg_bulletRange", 8192.0f,
-			0.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO,
-			"Max range used when calculating the bullet end position");
+			0.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO, "Max range used when calculating the bullet end position");
 
 		Utils::Hook(0x4F6980, BG_GetSurfacePenetrationDepthStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x440340, Bullet_FireStub, HOOK_JUMP).install()->quick();
+
+		Utils::Hook(0x440368, BG_srand_Hk, HOOK_CALL).install()->quick();
 	}
 }

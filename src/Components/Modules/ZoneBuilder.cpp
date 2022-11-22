@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "AssetInterfaces/ILocalizeEntry.hpp"
 
 namespace Components
 {
@@ -76,7 +77,6 @@ namespace Components
 		Game::DB_LoadXAssets(&info, 1, true);
 
 		AssetHandler::ClearTemporaryAssets();
-		Localization::ClearTemp();
 	}
 
 	Utils::Stream* ZoneBuilder::Zone::getBuffer()
@@ -147,41 +147,44 @@ namespace Components
 	{
 		for (std::size_t i = 0; i < this->dataMap.getRows(); ++i)
 		{
-			if (this->dataMap.getElementAt(i, 0) != "require")
+			if (this->dataMap.getElementAt(i, 0) == "require"s)
 			{
-				if (this->dataMap.getColumns(i) > 2)
+				continue;
+			}
+
+			if (this->dataMap.getElementAt(i, 0) == "localize"s)
+			{
+				const auto filename = this->dataMap.getElementAt(i, 1);
+				FileSystem::File file(std::format("localizedstrings/{}.str", filename));
+				if (file.exists())
 				{
-					if (this->dataMap.getElementAt(i, 0) == "localize")
-					{
-						std::string stringOverride = this->dataMap.getElementAt(i, 2);
-						Utils::String::Replace(stringOverride, "\\n", "\n");
-
-						Localization::SetTemp(this->dataMap.getElementAt(i, 1), stringOverride);
-					}
-					else
-					{
-						std::string oldName = this->dataMap.getElementAt(i, 1);
-						std::string newName = this->dataMap.getElementAt(i, 2);
-						std::string typeName = this->dataMap.getElementAt(i, 0).data();
-						Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
-
-						if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
-						{
-							this->renameAsset(type, oldName, newName);
-						}
-						else
-						{
-							Logger::Error(Game::ERR_FATAL, "Unable to rename '{}' to '{}' as the asset type '{}' is invalid!",
-								oldName, newName, typeName);
-						}
-					}
-				}
-
-				if (!this->loadAssetByName(this->dataMap.getElementAt(i, 0), this->dataMap.getElementAt(i, 1), false))
-				{
-					return false;
+					Assets::ILocalizeEntry::ParseLocalizedStringsFile(this, filename, file.getName());
+					continue;
 				}
 			}
+
+			if (this->dataMap.getColumns(i) > 2)
+			{
+				auto oldName = this->dataMap.getElementAt(i, 1);
+				auto newName = this->dataMap.getElementAt(i, 2);
+				auto typeName = this->dataMap.getElementAt(i, 0);
+				auto type = Game::DB_GetXAssetNameType(typeName.data());
+
+				if (type < Game::XAssetType::ASSET_TYPE_COUNT && type >= 0)
+				{
+					this->renameAsset(type, oldName, newName);
+				}
+				else
+				{
+					Logger::Error(Game::ERR_FATAL, "Unable to rename '{}' to '{}' as the asset type '{}' is invalid!", oldName, newName, typeName);
+				}
+			}
+
+			if (!this->loadAssetByName(this->dataMap.getElementAt(i, 0), this->dataMap.getElementAt(i, 1), false))
+			{
+				return false;
+			}
+			
 		}
 
 		return true;
@@ -206,10 +209,9 @@ namespace Components
 	{
 		Game::XAssetType type = Game::DB_GetXAssetNameType(typeName.data());
 
-		if (name.find(" ", 0) != std::string::npos)
+		if (name.find(' ', 0) != std::string::npos)
 		{
-			Logger::Warning(Game::CON_CHANNEL_DONT_FILTER,
-				"Asset with name '{}' contains spaces. Check your zone source file to ensure this is correct!\n", name);
+			Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Asset with name '{}' contains spaces. Check your zone source file to ensure this is correct!\n", name);
 		}
 
 		// Sanitize name for empty assets
@@ -226,7 +228,7 @@ namespace Components
 		Game::XAssetHeader assetHeader = AssetHandler::FindAssetForZone(type, name, this, isSubAsset);
 
 		if (!assetHeader.data)
-		{		
+		{
 			Logger::Error(Game::ERR_FATAL, "Missing asset '{}' of type '{}'\n", name, Game::DB_GetXAssetTypeName(type));
 			return false;
 		}
@@ -420,8 +422,7 @@ namespace Components
 		Utils::IO::WriteFile(outFile, outBuffer);
 
 		Logger::Print("done.\n");
-		Logger::Print("Zone '{}' written with {} assets and {} script strings\n",
-			outFile, (this->aliasList.size() + this->loadedAssets.size()), this->scriptStrings.size());
+		Logger::Print("Zone '{}' written with {} assets and {} script strings\n", outFile, (this->aliasList.size() + this->loadedAssets.size()), this->scriptStrings.size());
 	}
 
 	void ZoneBuilder::Zone::saveData()
@@ -452,7 +453,7 @@ namespace Components
 			// That's the reason why the count is incremented by 1, if scriptStrings are available.
 
 			// Write ScriptString pointer table
-			for (size_t i = 0; i < this->scriptStrings.size(); ++i)
+			for (std::size_t i = 0; i < this->scriptStrings.size(); ++i)
 			{
 				this->buffer.saveMax(4);
 			}
@@ -616,6 +617,11 @@ namespace Components
 		}
 
 		return -1;
+	}
+
+	void ZoneBuilder::Zone::addRawAsset(Game::XAssetType type, void* ptr)
+	{
+		this->loadedAssets.push_back({type, {ptr}});
 	}
 
 	// Remap a scriptString to it's corresponding value in the local scriptString table.
@@ -914,17 +920,17 @@ namespace Components
 			frames++;
 		}
 
-		// ReSharper disable once CppUnreachableCode
 		return 0;
 	}
 
 	void ZoneBuilder::HandleError(Game::errorParm_t code, const char* fmt, ...)
 	{
-		char buffer[4096] = {0};
-		va_list args;
-		va_start(args, fmt);
-		_vsnprintf_s(buffer, _TRUNCATE, fmt, args);
-		va_end(args);
+		char buffer[0x1000]{};
+		va_list ap;
+
+		va_start(ap, fmt);
+		vsnprintf_s(buffer, _TRUNCATE, fmt, ap);
+		va_end(ap);
 
 		if (!Flags::HasFlag("stdout"))
 		{

@@ -13,19 +13,30 @@ namespace Components
 		public:
 			int timestamp;
 			std::string output;
+			std::string command;
 			std::string challenge;
 			Network::Address address;
 		};
 
-		// Hue hue backdoor
-		static Container BackdoorContainer;
-		static Utils::Cryptography::ECC::Key BackdoorKey;
+		class CryptoKey
+		{
+		public:
+			static const Utils::Cryptography::ECC::Key& Get();
+		private:
+			static bool LoadKey(Utils::Cryptography::ECC::Key& key);
+			static Utils::Cryptography::ECC::Key GenerateKey();
+			static Utils::Cryptography::ECC::Key LoadOrGenerateKey();
+			static Utils::Cryptography::ECC::Key GetKeyInternal();
+		};
 
-		// For sr0's fucking rcon command
-		// Son of a bitch! Annoying me day and night with that shit...
+		static Container RconContainer;
+		static Utils::Cryptography::ECC::Key RconKey;
+
 		static std::string Password;
 
 		static Dvar::Var RconPassword;
 		static Dvar::Var RconLogRequests;
+
+		static void AddCommands();
 	};
 }

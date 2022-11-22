@@ -6,22 +6,22 @@ namespace Utils
 
 	void* Memory::AllocateAlign(size_t length, size_t alignment)
 	{
-		void* data = _aligned_malloc(length, alignment);
-		assert(data != nullptr);
+		auto* data = _aligned_malloc(length, alignment);
+		assert(data);
 		if (data) ZeroMemory(data, length);
 		return data;
 	}
 
 	void* Memory::Allocate(size_t length)
 	{
-		void* data = calloc(length, 1);
-		assert(data != nullptr);
+		auto* data = calloc(length, 1);
+		assert(data);
 		return data;
 	}
 
 	char* Memory::DuplicateString(const std::string& string)
 	{
-		char* newString = Memory::AllocateArray<char>(string.size() + 1);
+		auto* newString = Memory::AllocateArray<char>(string.size() + 1);
 		std::memcpy(newString, string.data(), string.size());
 		return newString;
 	}
@@ -30,13 +30,13 @@ namespace Utils
 	{
 		if (data)
 		{
-			free(data);
+			::free(data);
 		}
 	}
 
 	void Memory::Free(const void* data)
 	{
-		Memory::Free(const_cast<void*>(data));
+		Free(const_cast<void*>(data));
 	}
 
 	void Memory::FreeAlign(void* data)
@@ -49,13 +49,13 @@ namespace Utils
 
 	void Memory::FreeAlign(const void* data)
 	{
-		Memory::FreeAlign(const_cast<void*>(data));
+		FreeAlign(const_cast<void*>(data));
 	}
 
 	// Complementary function for memset, which checks if memory is filled with a char
 	bool Memory::IsSet(void* mem, char chr, size_t length)
 	{
-		char* memArr = reinterpret_cast<char*>(mem);
+		auto* memArr = static_cast<char*>(mem);
 
 		for (size_t i = 0; i < length; ++i)
 		{
@@ -98,7 +98,7 @@ namespace Utils
 		return true;
 	}
 
-	Utils::Memory::Allocator* Memory::GetAllocator()
+	Memory::Allocator* Memory::GetAllocator()
 	{
 		return &Memory::MemAllocator;
 	}

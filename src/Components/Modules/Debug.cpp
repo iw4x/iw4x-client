@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Game/Engine/ScopedCriticalSection.hpp"
 
 namespace Components
 {
@@ -264,11 +265,6 @@ namespace Components
 		assert(0 && "a");
 	}
 
-	void Debug::Cbuf_AddServerText_f_Hk()
-	{
-		assert(0 && "Cbuf_AddServerText_f was called.");
-	}
-
 	void Debug::Com_Bug_f(Command::Params* params)
 	{
 		char newFileName[0x105]{};
@@ -293,7 +289,7 @@ namespace Components
 
 		sprintf_s(newFileName, "%s_%s.log", bug, Game::Live_GetLocalClientName(0));
 
-		Game::Sys_EnterCriticalSection(Game::CRITSECT_CONSOLE);
+		Game::Engine::ScopedCriticalSection _(Game::CRITSECT_CONSOLE, Game::Engine::SCOPED_CRITSECT_NORMAL);
 
 		if (*Game::logfile)
 		{
@@ -305,8 +301,6 @@ namespace Components
 		Game::FS_BuildOSPath(Game::Sys_DefaultInstallPath(), "", newFileName, to_ospath);
 		const auto result = CopyFileA(from_ospath, to_ospath, 0);
 		Game::Com_OpenLogFile();
-
-		Game::Sys_LeaveCriticalSection(Game::CRITSECT_CONSOLE);
 
 		if (!result)
 		{
@@ -341,7 +335,6 @@ namespace Components
 		Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
-		Utils::Hook(Game::Cbuf_AddServerText_f, Cbuf_AddServerText_f_Hk, HOOK_JUMP).install()->quick();
 
 #ifdef _DEBUG
 		Command::Add("bug", Com_Bug_f);

@@ -162,49 +162,51 @@ namespace Steam
 		Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
 		clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 
-		char ourPath[MAX_PATH] = {0};
+		char ourPath[MAX_PATH]{};
 		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
 
-		char ourDirectory[MAX_PATH] = { 0 };
+		char ourDirectory[MAX_PATH]{};
 		GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
 
-		std::string cmdline = ::Utils::String::VA("\"%s\" -proc %d", ourPath, GetCurrentProcessId());
+		const auto* cmdline = ::Utils::String::VA("\"%s\" -proc %d", ourPath, GetCurrentProcessId());
 
 		// As of 02/19/2017, the SpawnProcess method doesn't require the app id anymore,
 		// but only for those who participate in the beta.
 		// Therefore we have to check how many bytes the method expects as arguments
 		// and adapt our call accordingly!
-		size_t expectedParams = Proxy::ClientUser.paramSize("SpawnProcess");
+		const auto expectedParams = Proxy::ClientUser.paramSize("SpawnProcess");
 		if (expectedParams == 40) // Release
 		{
-			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline, ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0, 0);
 		}
 		else if (expectedParams == 36) // Beta
 		{
-			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline.data(), ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline, ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
 		}
 		else if (expectedParams == 48) // Legacy, expects VAC blob
 		{
 			char blob[8] = { 0 };
-			Proxy::ClientUser.invoke<bool>("SpawnProcess", blob, 0, ourPath, cmdline.data(), 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
+			Proxy::ClientUser.invoke<bool>("SpawnProcess", blob, 0, ourPath, cmdline, 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
 		}
 		else
 		{
+#ifdef _DEBUG
 			OutputDebugStringA("Steam proxy was unable to match the arguments for SpawnProcess!\n");
+#endif
 		}
 	}
 
 	void Proxy::RunMod()
 	{
 		const char* command = "-proc ";
-		char* parentProc = strstr(GetCommandLineA(), command);
+		auto* parentProc = std::strstr(GetCommandLineA(), command);
 
 		if (parentProc)
 		{
 			FreeConsole();
 
 			parentProc += strlen(command);
-			int pid = atoi(parentProc);
+			const auto pid = std::strtol(parentProc, nullptr, 10);
 
 			HANDLE processHandle = OpenProcess(SYNCHRONIZE, FALSE, pid);
 
@@ -260,7 +262,7 @@ namespace Steam
 		Proxy::Callbacks.erase(callId);
 	}
 
-	void Proxy::RunCallback(int32_t callId, void* data, size_t /*size*/)
+	void Proxy::RunCallback(int32_t callId, void* data, std::size_t /*size*/)
 	{
 		std::lock_guard<std::recursive_mutex> _(Proxy::CallMutex);
 
@@ -374,10 +376,10 @@ namespace Steam
 
 	bool Proxy::Inititalize()
 	{
-		std::string directoy = Proxy::GetSteamDirectory();
+		const auto directoy = Proxy::GetSteamDirectory();
 		if (directoy.empty()) return false;
 
-		SetDllDirectoryA(Proxy::GetSteamDirectory().data());
+		SetDllDirectoryA(directoy.data());
 
 		if (!Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
 		{
@@ -484,7 +486,7 @@ namespace Steam
 	std::string Proxy::GetSteamDirectory()
 	{
 		HKEY hRegKey;
-		char SteamPath[MAX_PATH];
+		char SteamPath[MAX_PATH]{};
 		if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, STEAM_REGISTRY_PATH, 0, KEY_QUERY_VALUE, &hRegKey) == ERROR_SUCCESS)
 		{
 			DWORD dwLength = sizeof(SteamPath);
@@ -494,7 +496,7 @@ namespace Steam
 			return SteamPath;
 		}
 
-		return "";
+		return {};
 	}
 
 	uint32_t Proxy::GetActiveUser()

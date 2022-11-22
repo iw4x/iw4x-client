@@ -130,12 +130,14 @@ namespace Components
 			return;
 		}
 
-		std::string error;
-		const auto banData = nlohmann::json::parse(bans.getBuffer());
-
-		if (!banData.is_object())
+		nlohmann::json banData;
+		try
 		{
-			Logger::Debug("bans.json contains invalid data");
+			banData = nlohmann::json::parse(bans.getBuffer());
+		}
+		catch (const nlohmann::json::parse_error& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
 			return;
 		}
 
@@ -144,7 +146,7 @@ namespace Components
 
 		if (idList.is_array())
 		{
-			nlohmann::json::array_t arr = idList;
+			const nlohmann::json::array_t arr = idList;
 
 			for (auto &idEntry : arr)
 			{
@@ -161,7 +163,7 @@ namespace Components
 
 		if (ipList.is_array())
 		{
-			nlohmann::json::array_t arr = ipList;
+			const nlohmann::json::array_t arr = ipList;
 
 			for (auto &ipEntry : arr)
 			{
@@ -225,7 +227,7 @@ namespace Components
 	{
 		Command::Add("banClient", [](Command::Params* params)
 		{
-			if (!(*Game::com_sv_running)->current.enabled)
+			if (!Dedicated::IsRunning())
 			{
 				Logger::Print("Server is not running.\n");
 				return;
@@ -269,7 +271,7 @@ namespace Components
 
 		Command::Add("unbanClient", [](Command::Params* params)
 		{
-			if (!(*Game::com_sv_running)->current.enabled)
+			if (!Dedicated::IsRunning())
 			{
 				Logger::Print("Server is not running.\n");
 				return;

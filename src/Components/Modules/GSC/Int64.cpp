@@ -72,15 +72,15 @@ namespace Components
 			const auto* op = Game::Scr_GetString(1);
 			const auto b = GetInt64Arg(2, true);
 
-			if (const auto got = Operations.find(op); got != Operations.end())
+			if (const auto itr = Operations.find(op); itr != Operations.end())
 			{
-				Game::Scr_AddString(Utils::String::VA("%lld", got->second(a, b)));
+				Game::Scr_AddString(Utils::String::VA("%lld", itr->second(a, b)));
 				return;
 			}
 
-			if (const auto got = Comparisons.find(op); got != Comparisons.end())
+			if (const auto itr = Comparisons.find(op); itr != Comparisons.end())
 			{
-				Game::Scr_AddBool(got->second(a, b));
+				Game::Scr_AddBool(itr->second(a, b));
 				return;
 			}
 

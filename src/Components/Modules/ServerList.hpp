@@ -54,7 +54,7 @@ namespace Components
 		static void UpdateVisibleInfo();
 
 		static bool GetMasterServer(const char* ip, int port, Game::netadr_t& address);
-		static bool useMasterServer;
+		static bool UseMasterServer;
 
 	private:
 		enum Column

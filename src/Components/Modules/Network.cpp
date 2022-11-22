@@ -5,7 +5,6 @@ namespace Components
 	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
 	// Packet interception
 	std::unordered_map<std::string, Network::NetworkCallback> Network::CL_Callbacks;
-	std::unordered_map<std::string, Network::NetworkCallback> Network::SV_Callbacks;
 
 	Network::Address::Address(const std::string& addrString)
 	{
@@ -17,7 +16,7 @@ namespace Components
 		Game::SockadrToNetadr(addr, &this->address);
 	}
 
-	bool Network::Address::operator==(const Network::Address& obj) const
+	bool Network::Address::operator==(const Address& obj) const
 	{
 		return Game::NET_CompareAdr(this->address, obj.address);
 	}
@@ -151,13 +150,11 @@ namespace Components
 
 	void Network::Send(Game::netsrc_t type, Address target, const std::string& data)
 	{
-		// NET_OutOfBandPrint only supports non-binary data!
-		//Game::NET_OutOfBandPrint(type, *target.Get(), data.data());
+		// Do not use NET_OutOfBandPrint. It only supports non-binary data!
 
 		std::string rawData;
 		rawData.append("\xFF\xFF\xFF\xFF", 4);
 		rawData.append(data);
-		//rawData.append("\0", 1);
 
 		SendRaw(type, target, rawData);
 	}
@@ -171,8 +168,7 @@ namespace Components
 	{
 		if (!target.isValid()) return;
 
-		// NET_OutOfBandData doesn't seem to work properly
-		//Game::NET_OutOfBandData(type, *target.Get(), data.data(), data.size());
+		// NET_OutOfBandData doesn't seem to work properly. Do not use it
 		Game::Sys_SendPacket(type, data.size(), data.data(), *target.get());
 	}
 
@@ -282,11 +278,6 @@ namespace Components
 		CL_Callbacks[Utils::String::ToLower(command)] = callback;
 	}
 
-	void Network::OnServerPacket(const std::string& command, const NetworkCallback& callback)
-	{
-		SV_Callbacks[Utils::String::ToLower(command)] = callback;
-	}
-
 	bool Network::CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
 	{
 		const auto command_ = Utils::String::ToLower(command);
@@ -300,25 +291,7 @@ namespace Components
 
 		const std::string data(reinterpret_cast<char*>(message->data) + offset, message->cursize - offset);
 
-		Address address_ = address;
-		handler->second(address_, data);
-		return true;
-	}
-
-	bool Network::SV_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
-	{
-		const auto command_ = Utils::String::ToLower(command);
-		const auto handler = SV_Callbacks.find(command_);
-
-		const auto offset = command_.size() + 5;
-		if (static_cast<std::size_t>(message->cursize) < offset || handler == SV_Callbacks.end())
-		{
-			return false;
-		}
-
-		const std::string data(reinterpret_cast<char*>(message->data) + offset, message->cursize - offset);
-
-		Address address_ = address;
+		auto address_ = Address(address);
 		handler->second(address_, data);
 		return true;
 	}
@@ -350,37 +323,6 @@ namespace Components
 		unhandled:
 			// Proceed
 			push 0x5AA719
-			retn
-		}
-	}
-
-	__declspec(naked) void Network::SV_HandleCommandStub()
-	{
-		__asm
-		{
-			lea eax, [esp + 0x408]
-
-			pushad
-
-			push esi // msg
-			push edi // command name
-			push eax // netadr_t pointer
-			call SV_HandleCommand
-			add esp, 0xC
-
-			test al, al
-
-			popad
-
-			jz unhandled
-
-			// Exit SV_ConnectionlessPacket
-			push 0x6267EB
-			retn
-
-		unhandled:
-			// Proceed
-			push 0x6266E0
 			retn
 		}
 	}
@@ -420,7 +362,6 @@ namespace Components
 		
 		// Handle client packets
 		Utils::Hook(0x5AA703, CL_HandleCommandStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x6266CA, SV_HandleCommandStub, HOOK_JUMP).install()->quick();
 
 		// Disable unused OOB packets handlers just to be sure
 		Utils::Hook::Set<BYTE>(0x5AA5B6, 0xEB); // CL_SteamServerAuth

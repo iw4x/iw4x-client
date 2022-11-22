@@ -1260,7 +1260,7 @@ namespace Components
         return result;
     }
 
-    void TextRenderer::StripColors(const char* in, char* out, size_t max)
+    void TextRenderer::StripColors(const char* in, char* out, std::size_t max)
     {
         if (!in || !out) return;
 
@@ -1287,12 +1287,12 @@ namespace Components
 
     std::string TextRenderer::StripColors(const std::string& in)
     {
-        char buffer[1024] = {0}; // 1024 is a lucky number in the engine
+        char buffer[1024]{}; // 1024 is a lucky number in the engine
         StripColors(in.data(), buffer, sizeof(buffer));
         return std::string(buffer);
     }
 
-    void TextRenderer::StripMaterialTextIcons(const char* in, char* out, size_t max)
+    void TextRenderer::StripMaterialTextIcons(const char* in, char* out, std::size_t max)
     {
         if (!in || !out) return;
 
@@ -1339,7 +1339,7 @@ namespace Components
         return std::string(buffer);
     }
 
-    void TextRenderer::StripAllTextIcons(const char* in, char* out, size_t max)
+    void TextRenderer::StripAllTextIcons(const char* in, char* out, std::size_t max)
     {
         if (!in || !out) return;
 

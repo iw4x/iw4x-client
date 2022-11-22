@@ -9,7 +9,7 @@ namespace Assets
 
 		void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 
-		void saveStructuredDataEnumArray(Game::StructuredDataEnum* enums, int numEnums, Components::ZoneBuilder::Zone* builder);
-		void saveStructuredDataStructArray(Game::StructuredDataStruct* structs, int numStructs, Components::ZoneBuilder::Zone* builder);
+		static void saveStructuredDataEnumArray(Game::StructuredDataEnum* enums, int numEnums, Components::ZoneBuilder::Zone* builder);
+		static void saveStructuredDataStructArray(Game::StructuredDataStruct* structs, int numStructs, Components::ZoneBuilder::Zone* builder);
 	};
 }

@@ -555,7 +555,7 @@ namespace Components
 	{
 		Friends::LoggedOn = false;
 
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || Monitor::IsEnabled())
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 			return;
 
 		Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
@@ -720,7 +720,7 @@ namespace Components
 
 	Friends::~Friends()
 	{
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || Monitor::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 
 		Friends::StoreFriendsList();
 

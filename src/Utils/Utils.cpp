@@ -72,7 +72,7 @@ namespace Utils
 		return 0;
 	}
 
-	size_t GetModuleSize(HMODULE module)
+	std::size_t GetModuleSize(HMODULE module)
 	{
 		PIMAGE_DOS_HEADER header = PIMAGE_DOS_HEADER(module);
 		PIMAGE_NT_HEADERS ntHeader = PIMAGE_NT_HEADERS(DWORD(module) + header->e_lfanew);
@@ -104,20 +104,32 @@ namespace Utils
 		return address;
 	}
 
+	void SetLegacyEnvironment()
+	{
+		wchar_t binaryPath[512]{};
+		GetModuleFileNameW(GetModuleHandleW(nullptr), binaryPath, sizeof(binaryPath) / sizeof(wchar_t));
+
+		auto* exeBaseName = std::wcsrchr(binaryPath, L'\\');
+		exeBaseName[0] = L'\0';
+
+		// Make the game work without the xlabs launcher
+		SetCurrentDirectoryW(binaryPath);
+	}
+
 	void SetEnvironment()
 	{
 		wchar_t* buffer{};
 		std::size_t size{};
 		if (_wdupenv_s(&buffer, &size, L"XLABS_MW2_INSTALL") != 0 || buffer == nullptr)
 		{
+			SetLegacyEnvironment();
 			return;
 		}
 
 		const auto _0 = gsl::finally([&] { std::free(buffer); });
 
-		const std::wstring dir{buffer, size};
-		SetCurrentDirectoryW(dir.data());
-		SetDllDirectoryW(dir.data());
+		SetCurrentDirectoryW(buffer);
+		SetDllDirectoryW(buffer);
 	}
 
 	HMODULE GetNTDLL()
@@ -146,7 +158,7 @@ namespace Utils
 		SafeShellExecute(nullptr, "open", url.data(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
 
-	bool HasIntercection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2)
+	bool HasIntersection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2)
 	{
 		return !(base1 + len1 <= base2 || base2 + len2 <= base1);
 	}

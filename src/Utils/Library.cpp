@@ -2,14 +2,9 @@
 
 namespace Utils
 {
-	Library Library::Load(const std::string& name)
-	{
-		return Library(LoadLibraryA(name.data()));
-	}
-
 	Library Library::Load(const std::filesystem::path& path)
 	{
-		return Library::Load(path.generic_string());
+		return Library(LoadLibraryA(path.generic_string().data()));
 	}
 
 	Library Library::GetByAddress(void* address)
@@ -66,31 +61,34 @@ namespace Utils
 		if (!this->isValid())
 			return {};
 
-		auto path = this->getPath();
-		const auto pos = path.find_last_of("/\\");
+		const auto path = this->getPath();
+		const auto generic_path = path.generic_string();
+		const auto pos = generic_path.find_last_of("/\\");
 		if (pos == std::string::npos)
-			return path;
+		{
+			return generic_path;
+		}
 
-		return path.substr(pos + 1);
+		return generic_path.substr(pos + 1);
 	}
 
-	std::string Library::getPath() const
+	std::filesystem::path Library::getPath() const
 	{
 		if (!this->isValid())
 			return {};
 
-		char name[MAX_PATH] = {0};
-		GetModuleFileNameA(this->module_, name, sizeof(name));
+		wchar_t name[MAX_PATH] = {0};
+		GetModuleFileNameW(this->module_, name, MAX_PATH);
 
-		return name;
+		return {name};
 	}
 
-	std::string Library::getFolder() const
+	std::filesystem::path Library::getFolder() const
 	{
 		if (!this->isValid())
 			return {};
 
-		const auto path = std::filesystem::path(this->getPath());
+		const auto path = this->getPath();
 		return path.parent_path().generic_string();
 	}
 

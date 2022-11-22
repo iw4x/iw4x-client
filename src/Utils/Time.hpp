@@ -1,33 +1,30 @@
 #pragma once
 
-namespace Utils
+namespace Utils::Time
 {
-	namespace Time
+	class Interval
 	{
-		class Interval
-		{
-		protected:
-			std::chrono::high_resolution_clock::time_point lastPoint;
+	protected:
+		std::chrono::high_resolution_clock::time_point lastPoint;
 
-		public:
-			Interval() : lastPoint(std::chrono::high_resolution_clock::now()) {}
+	public:
+		Interval() : lastPoint(std::chrono::high_resolution_clock::now()) {}
 
-			void update();
-			bool elapsed(std::chrono::nanoseconds nsecs);
-		};
+		void update();
+		bool elapsed(std::chrono::nanoseconds nsecs) const;
+	};
 
-		class Point
-		{
-		public:
-			Point();
+	class Point
+	{
+	public:
+		Point();
 
-			void update();
-			int diff(Point point);
-			bool after(Point point);
-			bool elapsed(int milliseconds);
+		void update();
+		int diff(Point point) const;
+		bool after(Point point) const;
+		bool elapsed(int milliseconds) const;
 
-		private:
-			int lastPoint;
-		};
-	}
+	private:
+		int lastPoint;
+	};
 }

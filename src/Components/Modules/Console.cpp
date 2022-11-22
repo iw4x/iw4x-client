@@ -1,10 +1,14 @@
 ﻿#include <STDInclude.hpp>
+#undef MOUSE_MOVED
+#include <curses.h>
+
+#define REMOVE_HEADERBAR 1
 
 namespace Components
 {
-	WINDOW* Console::OutputWindow;
-	WINDOW* Console::InputWindow;
-	WINDOW* Console::InfoWindow;
+	static WINDOW* OutputWindow;
+	static WINDOW* InputWindow;
+	static WINDOW* InfoWindow;
 
 	int Console::OutputTop = 0;
 	int Console::OutBuffer = 0;
@@ -19,6 +23,24 @@ namespace Components
 
 	bool Console::HasConsole = false;
 	bool Console::SkipShutdown = false;
+
+	COLORREF Console::TextColor = 
+#if DEBUG
+		RGB(255, 200, 117);
+#else
+		RGB(120, 237, 122);
+#endif
+
+	COLORREF Console::BackgroundColor =
+#if DEBUG
+		RGB(35, 21, 0);
+#else
+		RGB(25, 32, 25);
+#endif
+	HBRUSH Console::ForegroundBrush = CreateSolidBrush(TextColor);
+	HBRUSH Console::BackgroundBrush = CreateSolidBrush(BackgroundColor);
+
+	HANDLE Console::CustomConsoleFont;
 
 	std::thread Console::ConsoleThread;
 
@@ -59,9 +81,9 @@ namespace Components
 				clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData*>(0x1081C00));
 			}
 
-			wclear(Console::InfoWindow);
-			wprintw(Console::InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (!mapname.empty()) ? mapname.data() : "none");
-			wnoutrefresh(Console::InfoWindow);
+			wclear(InfoWindow);
+			wprintw(InfoWindow, "%s : %d/%d players : map %s", hostname.data(), clientCount, maxclientCount, (!mapname.empty()) ? mapname.data() : "none");
+			wnoutrefresh(InfoWindow);
 		}
 		else if (IsWindow(Console::GetWindow()) != FALSE)
 		{
@@ -71,13 +93,13 @@ namespace Components
 
 	void Console::ShowPrompt()
 	{
-		wattron(Console::InputWindow, COLOR_PAIR(10) | A_BOLD);
-		wprintw(Console::InputWindow, "%s> ", VERSION);
+		wattron(InputWindow, COLOR_PAIR(10) | A_BOLD);
+		wprintw(InputWindow, "%s> ", VERSION);
 	}
 
 	void Console::RefreshOutput()
 	{
-		prefresh(Console::OutputWindow, ((Console::OutputTop > 0) ? (Console::OutputTop - 1) : 0), 0, 1, 0, Console::Height - 2, Console::Width - 1);
+		prefresh(OutputWindow, ((Console::OutputTop > 0) ? (Console::OutputTop - 1) : 0), 0, 1, 0, Console::Height - 2, Console::Width - 1);
 	}
 
 	void Console::ScrollOutput(int amount)
@@ -110,12 +132,50 @@ namespace Components
 		}
 	}
 
+	float Console::GetDpiScale(const HWND hWnd)
+	{
+		const auto user32 = Utils::Library("user32.dll");
+		const auto getDpiForWindow = user32.getProc<UINT(WINAPI*)(HWND)>("GetDpiForWindow");
+		const auto getDpiForMonitor = user32.getProc<HRESULT(WINAPI*)(HMONITOR, int, UINT*, UINT*)>("GetDpiForMonitor");
+		
+		int dpi;
+
+		if (getDpiForWindow)
+		{
+			dpi = getDpiForWindow(hWnd);
+		}
+		else if (getDpiForMonitor)
+		{
+			HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+			UINT xdpi, ydpi;
+			LRESULT success = getDpiForMonitor(hMonitor, 0, &xdpi, &ydpi);
+			if (success == S_OK)
+			{
+				dpi = static_cast<int>(ydpi);
+			}
+			
+			dpi = 96;
+		}
+		else
+		{
+			HDC hDC = GetDC(hWnd);
+			INT ydpi = GetDeviceCaps(hDC, LOGPIXELSY);
+			ReleaseDC(NULL, hDC);
+			
+			dpi = ydpi;
+		}
+
+		constexpr auto unawareDpi = 96.0f;
+		return dpi / unawareDpi;
+	}
+
+
 	const char* Console::Input()
 	{
 		if (!Console::HasConsole)
 		{
 			Console::ShowPrompt();
-			wrefresh(Console::InputWindow);
+			wrefresh(InputWindow);
 			Console::HasConsole = true;
 		}
 
@@ -126,7 +186,7 @@ namespace Components
 			Console::LastRefresh = currentTime;
 		}
 
-		int c = wgetch(Console::InputWindow);
+		int c = wgetch(InputWindow);
 
 		if (c == ERR)
 		{
@@ -138,21 +198,21 @@ namespace Components
 		case '\r':
 		case 459: // keypad enter
 		{
-			wattron(Console::OutputWindow, COLOR_PAIR(10) | A_BOLD);
-			wprintw(Console::OutputWindow, "%s", "]");
+			wattron(OutputWindow, COLOR_PAIR(10) | A_BOLD);
+			wprintw(OutputWindow, "%s", "]");
 
 			if (Console::LineBufferIndex)
 			{
-				wprintw(Console::OutputWindow, "%s", Console::LineBuffer);
+				wprintw(OutputWindow, "%s", Console::LineBuffer);
 			}
 
-			wprintw(Console::OutputWindow, "%s", "\n");
-			wattroff(Console::OutputWindow, A_BOLD);
-			wclear(Console::InputWindow);
+			wprintw(OutputWindow, "%s", "\n");
+			wattroff(OutputWindow, A_BOLD);
+			wclear(InputWindow);
 
 			Console::ShowPrompt();
 
-			wrefresh(Console::InputWindow);
+			wrefresh(InputWindow);
 
 			Console::ScrollOutput(1);
 			Console::RefreshOutput();
@@ -173,11 +233,11 @@ namespace Components
 			Console::LineBuffer[0] = '\0';
 			Console::LineBufferIndex = 0;
 
-			wclear(Console::InputWindow);
+			wclear(InputWindow);
 
 			Console::ShowPrompt();
 
-			wrefresh(Console::InputWindow);
+			wrefresh(InputWindow);
 			break;
 		}
 		case 8: // backspace
@@ -187,8 +247,8 @@ namespace Components
 				Console::LineBufferIndex--;
 				Console::LineBuffer[Console::LineBufferIndex] = '\0';
 
-				wprintw(Console::InputWindow, "%c %c", static_cast<char>(c), static_cast<char>(c));
-				wrefresh(Console::InputWindow);
+				wprintw(InputWindow, "%c %c", static_cast<char>(c), static_cast<char>(c));
+				wrefresh(InputWindow);
 			}
 			break;
 		}
@@ -206,10 +266,10 @@ namespace Components
 		}
 		case KEY_UP:
 		{
-			wclear(Console::InputWindow);
+			wclear(InputWindow);
 			Console::ShowPrompt();
-			wprintw(Console::InputWindow, "%s", Console::LineBuffer2);
-			wrefresh(Console::InputWindow);
+			wprintw(InputWindow, "%s", Console::LineBuffer2);
+			wrefresh(InputWindow);
 
 			strcpy_s(Console::LineBuffer, Console::LineBuffer2);
 			Console::LineBufferIndex = strlen(Console::LineBuffer);
@@ -223,8 +283,8 @@ namespace Components
 
 				Console::LineBuffer[Console::LineBufferIndex++] = static_cast<char>(c);
 				Console::LineBuffer[Console::LineBufferIndex] = '\0';
-				wprintw(Console::InputWindow, "%c", static_cast<char>(c));
-				wrefresh(Console::InputWindow);
+				wprintw(InputWindow, "%c", static_cast<char>(c));
+				wrefresh(InputWindow);
 			}
 			break;
 		}
@@ -236,17 +296,17 @@ namespace Components
 	{
 		__try
 		{
-			delwin(Console::OutputWindow);
-			delwin(Console::InputWindow);
-			delwin(Console::InfoWindow);
+			delwin(OutputWindow);
+			delwin(InputWindow);
+			delwin(InfoWindow);
 			endwin();
 			delscreen(SP);
 		}
 		__finally {}
 
-		Console::OutputWindow = nullptr;
-		Console::InputWindow = nullptr;
-		Console::InfoWindow = nullptr;
+		OutputWindow = nullptr;
+		InputWindow = nullptr;
+		InfoWindow = nullptr;
 	}
 
 	void Console::Create()
@@ -273,15 +333,15 @@ namespace Components
 		raw();
 		noecho();
 
-		Console::OutputWindow = newpad(Console::Height - 1, Console::Width);
-		Console::InputWindow = newwin(1, Console::Width, Console::Height - 1, 0);
-		Console::InfoWindow = newwin(1, Console::Width, 0, 0);
+		OutputWindow = newpad(Console::Height - 1, Console::Width);
+		InputWindow = newwin(1, Console::Width, Console::Height - 1, 0);
+		InfoWindow = newwin(1, Console::Width, 0, 0);
 
-		scrollok(Console::OutputWindow, true);
-		idlok(Console::OutputWindow, true);
-		scrollok(Console::InputWindow, true);
-		nodelay(Console::InputWindow, true);
-		keypad(Console::InputWindow, true);
+		scrollok(OutputWindow, true);
+		idlok(OutputWindow, true);
+		scrollok(InputWindow, true);
+		nodelay(InputWindow, true);
+		keypad(InputWindow, true);
 
 		if (has_colors())
 		{
@@ -298,10 +358,10 @@ namespace Components
 			init_pair(10, COLOR_WHITE, COLOR_BLACK);
 		}
 
-		wbkgd(Console::InfoWindow, COLOR_PAIR(1));
+		wbkgd(InfoWindow, COLOR_PAIR(1));
 
-		wrefresh(Console::InfoWindow);
-		wrefresh(Console::InputWindow);
+		wrefresh(InfoWindow);
+		wrefresh(InputWindow);
 
 		Console::RefreshOutput();
 	}
@@ -332,7 +392,7 @@ namespace Components
 
 	void Console::Print(const char* message)
 	{
-		if (!Console::OutputWindow) return;
+		if (!OutputWindow) return;
 
 		const char* p = message;
 		while (*p != '\0')
@@ -346,32 +406,275 @@ namespace Components
 
 				if (color < 9 && color > 0)
 				{
-					wattron(Console::OutputWindow, COLOR_PAIR(color + 2));
+					wattron(OutputWindow, COLOR_PAIR(color + 2));
 					++p;
 					continue;
 				}
 			}
 
-			waddch(Console::OutputWindow, *p);
+			waddch(OutputWindow, *p);
 
 			++p;
 		}
 
-		wattron(Console::OutputWindow, COLOR_PAIR(9));
-
-// 		int currentTime = static_cast<int>(GetTickCount64()); // Make our compiler happy
-//
-// 		if (!Console::HasConsole)
-// 		{
-// 			Console::RefreshOutput();
-// 		}
-// 		else if ((currentTime - Console::LastRefresh) > 100)
-// 		{
-// 			Console::RefreshOutput();
-// 			Console::LastRefresh = currentTime;
-// 		}
+		wattron(OutputWindow, COLOR_PAIR(9));
 
 		Console::RefreshOutput();
+	}
+
+	HFONT __stdcall Console::ReplaceFont(
+		[[maybe_unused]] int    cHeight,
+		int    cWidth,
+		int    cEscapement,
+		int    cOrientation,
+		[[maybe_unused]] int    cWeight,
+		DWORD  bItalic,
+		DWORD  bUnderline,
+		DWORD  bStrikeOut,
+		DWORD  iCharSet,
+		[[maybe_unused]] DWORD  iOutPrecision,
+		DWORD  iClipPrecision,
+		[[maybe_unused]] DWORD  iQuality,
+		[[maybe_unused]] DWORD  iPitchAndFamily,
+		[[maybe_unused]] LPCSTR pszFaceName)
+	{
+		auto font = CreateFontA(
+			12, 
+			cWidth, 
+			cEscapement, 
+			cOrientation, 
+			700, 
+			bItalic, 
+			bUnderline,
+			bStrikeOut, 
+			iCharSet, 
+			OUT_RASTER_PRECIS,
+			iClipPrecision, 
+			NONANTIALIASED_QUALITY,
+			0x31, 
+			"Terminus (TTF)"); // Terminus (TTF)
+
+		return font;
+	}
+
+	void Console::GetWindowPos(HWND hWnd, int* x, int* y)
+	{
+		HWND hWndParent = GetParent(hWnd);
+		POINT p = { 0 };
+
+		MapWindowPoints(hWnd, hWndParent, &p, 1);
+
+		(*x) = p.x;
+		(*y) = p.y;
+	}
+
+	BOOL CALLBACK Console::ResizeChildWindow(HWND hwndChild, LPARAM lParam)
+	{
+		auto id = GetWindowLong(hwndChild, GWL_ID);
+		bool isInputBox = id == INPUT_BOX;
+		bool isOutputBox = id == OUTPUT_BOX;
+
+		if (isInputBox || isOutputBox) 
+		{
+			RECT newParentRect = *reinterpret_cast<LPRECT>(lParam);
+
+			RECT childRect;
+
+			if (GetWindowRect(hwndChild, &childRect)) 
+			{
+
+				int childX, childY;
+
+				GetWindowPos(hwndChild, &childX, &childY);
+
+				HWND parent = Utils::Hook::Get<HWND>(0x64A3288);
+
+				float scale = GetDpiScale(parent);
+
+				if (isInputBox) 
+				{
+
+					int newX = childX; // No change!
+					int newY = static_cast<int>((newParentRect.bottom - newParentRect.top) - 65 * scale);
+					int newWidth = static_cast<int>((newParentRect.right - newParentRect.left) - 29 * scale);
+					int newHeight = static_cast<int>((childRect.bottom - childRect.top) * scale); // No change!
+
+					MoveWindow(hwndChild, newX, newY, newWidth, newHeight, TRUE);
+				}
+				
+				if (isOutputBox)
+				{
+					int newX = childX; // No change!
+					int newY = childY; // No change!
+					int newWidth = static_cast<int>((newParentRect.right - newParentRect.left) - 29);
+
+					int margin = 70;
+
+#ifdef REMOVE_HEADERBAR
+					margin = 10;
+#endif
+					int newHeight = static_cast<int>((newParentRect.bottom - newParentRect.top) - 74 * scale - margin);
+
+					MoveWindow(hwndChild, newX, newY, newWidth, newHeight, TRUE);
+				}
+			}
+		}
+
+		return TRUE;
+	}
+
+	// Instead of clearing fully the console text whenever the 0x400's character is written, we
+	//	clear it progressively when we run out of room by truncating the top line by line.
+	// A bit of trickery with SETREDRAW is required to avoid having the outputbox jump
+	//	around whenever clearing occurs.
+	void Console::MakeRoomForText([[maybe_unused]] int addedCharacters)
+	{
+		constexpr unsigned int maxChars = 0x4000;
+		constexpr unsigned int maxAffectedChars = 0x100;
+		HWND outputBox = Utils::Hook::Get<HWND>(0x64A328C);
+
+		unsigned int totalChars;
+		unsigned int totalClearLength = 0;
+
+		char str[maxAffectedChars];
+		unsigned int fetchedCharacters = static_cast<unsigned int>(GetWindowText(outputBox, str, maxAffectedChars));
+
+		totalChars = GetWindowTextLengthA(outputBox);
+
+		while (totalChars - totalClearLength > maxChars)
+		{
+			unsigned int clearLength = maxAffectedChars; // Default to full clear
+
+			for (size_t i = 0; i < fetchedCharacters; i++)
+			{
+				if (str[i] == '\n')
+				{
+					// Shorter clear if I meet a linebreak
+					clearLength = i + 1;
+					break;
+				}
+			}
+
+			totalClearLength += clearLength;
+		}
+
+		if (totalClearLength > 0)
+		{
+			SendMessage(outputBox, WM_SETREDRAW, FALSE, 0);
+			SendMessage(outputBox, EM_SETSEL, 0, totalClearLength);
+			SendMessage(outputBox, EM_REPLACESEL, FALSE, 0);
+			SendMessage(outputBox, WM_SETREDRAW, TRUE, 0);
+		}
+
+		Utils::Hook::Set(0x64A38B8, totalChars - totalClearLength);
+	}
+
+	void __declspec(naked) Console::Sys_PrintStub()
+	{
+		__asm
+		{
+			pushad
+			push edi
+			call MakeRoomForText
+			pop edi
+			popad
+
+			// Go back to AppendText
+			push 0x4F57F8
+			ret
+		}
+	}
+
+	LRESULT CALLBACK Console::ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam)
+	{
+		switch (Msg)
+		{
+
+		
+		case WM_CREATE:
+		{
+			BOOL darkMode = true;
+
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+			if (SUCCEEDED(DwmSetWindowAttribute(hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, reinterpret_cast<LPCVOID>(&darkMode), sizeof(darkMode))))
+			{
+				// cool !
+			}
+
+			break;
+		}
+
+		case WM_CTLCOLORSTATIC:
+		case WM_CTLCOLOREDIT:
+		{
+			SetBkColor(reinterpret_cast<HDC>(wParam), BackgroundColor);
+			SetTextColor(reinterpret_cast<HDC>(wParam), TextColor);
+			return reinterpret_cast<LRESULT>(BackgroundBrush);
+		}
+
+		case WM_SIZE:
+			RECT rect;
+
+			if (GetWindowRect(hWnd, &rect))
+			{
+				EnumChildWindows(hWnd, ResizeChildWindow, reinterpret_cast<LPARAM>(&rect));
+			}
+
+			return 0;
+		}
+
+		// Fall through to basegame
+		return Utils::Hook::Call<LRESULT CALLBACK(HWND, UINT, WPARAM, unsigned int)>(0x64DC50)(hWnd, Msg, wParam, lParam);
+	}
+
+	ATOM CALLBACK Console::RegisterClassHook(WNDCLASSA* lpWndClass)
+	{
+		DeleteObject(lpWndClass->hbrBackground);
+		HBRUSH brush = CreateSolidBrush(BackgroundColor);
+		lpWndClass->hbrBackground = brush;
+
+		return RegisterClassA(lpWndClass);
+	}
+
+	void Console::ApplyConsoleStyle() 
+	{
+		Utils::Hook::Set<BYTE>(0x428A8E, 0);    // Adjust logo Y pos
+		Utils::Hook::Set<BYTE>(0x428A90, 0);    // Adjust logo X pos
+		Utils::Hook::Set<BYTE>(0x428AF2, 67);   // Adjust output Y pos
+		Utils::Hook::Set<DWORD>(0x428AC5, 397); // Adjust input Y pos
+		Utils::Hook::Set<DWORD>(0x428951, 609); // Reduce window width
+		Utils::Hook::Set<DWORD>(0x42895D, 423); // Reduce window height
+		Utils::Hook::Set<DWORD>(0x428AC0, 597); // Reduce input width
+		Utils::Hook::Set<DWORD>(0x428AED, 596); // Reduce output width
+
+		DWORD fontsInstalled;
+		CustomConsoleFont = AddFontMemResourceEx(const_cast<void*>(reinterpret_cast<const void*>(Font::Terminus::DATA)), Font::Terminus::LENGTH, 0, &fontsInstalled);
+
+		if (fontsInstalled > 0)
+		{
+			Utils::Hook::Nop(0x428A44, 6);
+			Utils::Hook(0x428A44, ReplaceFont, HOOK_CALL).install()->quick();
+		}
+
+		Utils::Hook::Nop(0x42892D, 6);
+		Utils::Hook(0x42892D, RegisterClassHook, HOOK_CALL).install()->quick();
+
+		Utils::Hook::Set(0x4288E6 + 4, &ConWndProc);
+
+		auto style = WS_CAPTION | WS_SIZEBOX | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+		Utils::Hook::Set(0x42893F + 1, style);
+		Utils::Hook::Set(0x4289E2 + 1, style);
+
+#ifdef REMOVE_HEADERBAR
+		// Remove that hideous header window -rox
+		Utils::Hook::Set(0x428A7C, static_cast<char>(0xEB));
+		Utils::Hook::Set(0X428AF1 + 1, static_cast<char>(10));
+#endif
+
+		// Never reset text
+		Utils::Hook::Nop(0x4F57DF, 0x4F57F6 - 0x4F57DF);
+		Utils::Hook(0x4F57DF, Console::Sys_PrintStub, HOOK_JUMP).install()->quick();
+
 	}
 
 	void Console::ConsoleRunner()
@@ -475,7 +778,7 @@ namespace Components
 
 	void Console::FreeNativeConsole()
 	{
-		if (!Monitor::IsEnabled() && !Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")) && !Loader::IsPerformingUnitTests())
+		if (!Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")) && !Loader::IsPerformingUnitTests())
 		{
 			FreeConsole();
 		}
@@ -588,14 +891,7 @@ namespace Components
 		Utils::Hook(0x482AC3, Console::RegisterConColor, HOOK_CALL).install()->quick();
 
 		// Modify console style
-		Utils::Hook::Set<BYTE>(0x428A8E, 0);    // Adjust logo Y pos
-		Utils::Hook::Set<BYTE>(0x428A90, 0);    // Adjust logo X pos
-		Utils::Hook::Set<BYTE>(0x428AF2, 67);   // Adjust output Y pos
-		Utils::Hook::Set<DWORD>(0x428AC5, 397); // Adjust input Y pos
-		Utils::Hook::Set<DWORD>(0x428951, 609); // Reduce window width
-		Utils::Hook::Set<DWORD>(0x42895D, 423); // Reduce window height
-		Utils::Hook::Set<DWORD>(0x428AC0, 597); // Reduce input width
-		Utils::Hook::Set<DWORD>(0x428AED, 596); // Reduce output width
+		ApplyConsoleStyle();
 
 		// Don't resize the console
 		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).install()->quick();
@@ -613,15 +909,10 @@ namespace Components
 		if (Loader::IsPerformingUnitTests()) return;
 
 		// External console
-		if (Flags::HasFlag("stdout") || Monitor::IsEnabled())
+		if (Flags::HasFlag("stdout"))
 		{
-#ifndef DEBUG
-			if (!Monitor::IsEnabled())
-#endif
-			{
-				Utils::Hook(0x4B2080, Console::StdOutPrint, HOOK_JUMP).install()->quick();
-				Utils::Hook(0x43D570, Console::StdOutError, HOOK_JUMP).install()->quick();
-			}
+			Utils::Hook(0x4B2080, Console::StdOutPrint, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x43D570, Console::StdOutError, HOOK_JUMP).install()->quick();
 		}
 		else if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
 		{
@@ -630,7 +921,7 @@ namespace Components
 			// Redirect input (]command)
 			Utils::Hook(0x47025A, 0x4F5770, HOOK_CALL).install()->quick();
 
-			Utils::Hook(0x60BB68, []()
+			Utils::Hook(0x60BB68, []
 			{
 				Console::ShowAsyncConsole();
 			}, HOOK_CALL).install()->quick();

@@ -12,6 +12,7 @@ namespace Components
 		static Dvar::Var COMLogFilter;
 
 		static bool IsEnabled();
+		static bool IsRunning();
 
 		static void Heartbeat();
 

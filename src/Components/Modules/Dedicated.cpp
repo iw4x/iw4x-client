@@ -19,6 +19,12 @@ namespace Components
 		return flag.value();
 	}
 
+	bool Dedicated::IsRunning()
+	{
+		assert(*Game::com_sv_running);
+		return *Game::com_sv_running && (*Game::com_sv_running)->current.enabled;
+	}
+
 	void Dedicated::InitDedicatedServer()
 	{
 		static const char* fastfiles[7] =
@@ -59,8 +65,7 @@ namespace Components
 		Command::Execute("snaps 30");
 		Command::Execute("com_maxfps 125");
 
-		// Process command line?
-		Utils::Hook::Call<void()>(0x60C3D0)();
+		Game::Com_AddStartupCommands();
 	}
 
 	__declspec(naked) void Dedicated::PostInitializationStub()
@@ -262,7 +267,7 @@ namespace Components
 
 		Scheduler::Loop([]
 		{
-			if ((*Game::com_sv_running)->current.enabled)
+			if (Dedicated::IsRunning())
 			{
 				Dedicated::TransmitGuids();
 			}

@@ -1,5 +1,4 @@
 #pragma once
-#include <mongoose.h>
 
 namespace Components
 {
@@ -26,24 +25,23 @@ namespace Components
 			bool terminateThread;
 			bool isMap;
 			bool isPrivate;
-			//mg_mgr mgr;
 			Network::Address target;
 			std::string hashedPassword;
 			std::string mod;
 			std::thread thread;
 
-			size_t totalBytes;
-			size_t downBytes;
+			std::size_t totalBytes;
+			std::size_t downBytes;
 
 			int lastTimeStamp;
-			size_t timeStampBytes;
+			std::size_t timeStampBytes;
 
 			class File
 			{
 			public:
 				std::string name;
 				std::string hash;
-				size_t size;
+				std::size_t size;
 			};
 
 			std::vector<File> files;
@@ -64,7 +62,6 @@ namespace Components
 				if (this->valid)
 				{
 					this->valid = false;
-					//mg_mgr_free(&(this->mgr));
 				}
 			}
 		};
@@ -79,30 +76,15 @@ namespace Components
 			bool downloading;
 			unsigned int index;
 			std::string buffer;
-			size_t receivedBytes;
+			std::size_t receivedBytes;
 		};
 
-		static mg_mgr Mgr;
 		static ClientDownload CLDownload;
 		static std::thread ServerThread;
 		static bool Terminate;
 		static bool ServerRunning;
 
-		static void DownloadProgress(FileDownload* fDownload, size_t bytes);
-
-		static bool VerifyPassword(mg_connection *nc, http_message* message);
-
-		static void EventHandler(mg_connection *nc, int ev, void *ev_data);
-		static void ListHandler(mg_connection *nc, int ev, void *ev_data);
-		static void MapHandler(mg_connection *nc, int ev, void *ev_data);
-		static void ServerlistHandler(mg_connection *nc, int ev, void *ev_data);
-		static void FileHandler(mg_connection *nc, int ev, void *ev_data);
-		static void InfoHandler(mg_connection *nc, int ev, void *ev_data);
-		static void DownloadHandler(mg_connection *nc, int ev, void *ev_data);
-
-		static bool IsClient(mg_connection *nc);
-		static Game::client_t* GetClient(mg_connection *nc);
-		static void Forbid(mg_connection *nc);
+		static void DownloadProgress(FileDownload* fDownload, std::size_t bytes);
 
 		static void ModDownloader(ClientDownload* download);
 		static bool ParseModList(ClientDownload* download, const std::string& list);

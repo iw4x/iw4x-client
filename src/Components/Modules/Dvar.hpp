@@ -9,7 +9,7 @@ namespace Components
 		{
 		public:
 			Flag(Game::DvarFlags flag) : val(flag) {}
-			Flag(unsigned __int16 flag) : Flag(static_cast<Game::DvarFlags>(flag)) {}
+			Flag(std::uint16_t flag) : Flag(static_cast<Game::DvarFlags>(flag)) {}
 
 			Game::DvarFlags val;
 		};
@@ -51,17 +51,20 @@ namespace Components
 
 	private:
 		static const char* ArchiveDvarPath;
+		static Var Name;
 
-		static Game::dvar_t* Dvar_RegisterName(const char* name, const char* defaultVal, unsigned __int16 flags, const char* description);
+		static Game::dvar_t* Dvar_RegisterName(const char* name, const char* defaultVal, std::uint16_t flags, const char* description);
 
-		static void SetFromStringByNameExternal(const char* dvar, const char* value);
-		static void SetFromStringByNameSafeExternal(const char* dvar, const char* value);
+		static void SetFromStringByNameExternal(const char* dvarName, const char* string);
+		static void SetFromStringByNameSafeExternal(const char* dvarName, const char* string);
 
 		static bool AreArchiveDvarsProtected();
 		static void SaveArchiveDvar(const Game::dvar_t* var);
-		static void DvarSetFromStringByNameStub(const char* dvarName, const char* value);
+		static void DvarSetFromStringByName_Stub(const char* dvarName, const char* value);
 
 		static void OnRegisterVariant(Game::dvar_t* dvar);
 		static void Dvar_RegisterVariant_Stub();
+
+		static const char* Dvar_EnumToString_Stub(const Game::dvar_t* dvar);
 	};
 }
