@@ -104,7 +104,14 @@ namespace Steam
 
 	bool Enabled()
 	{
-		return !Components::Flags::HasFlag("nosteam");
+		static std::optional<bool> flag;
+
+		if (!flag.has_value())
+		{
+			flag = Components::Flags::HasFlag("nosteam");
+		}
+
+		return !flag.value();
 	}
 
 	extern "C"
