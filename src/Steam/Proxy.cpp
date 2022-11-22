@@ -190,21 +190,23 @@ namespace Steam
 		}
 		else
 		{
+#ifdef _DEBUG
 			OutputDebugStringA("Steam proxy was unable to match the arguments for SpawnProcess!\n");
+#endif
 		}
 	}
 
 	void Proxy::RunMod()
 	{
 		const char* command = "-proc ";
-		char* parentProc = strstr(GetCommandLineA(), command);
+		auto* parentProc = std::strstr(GetCommandLineA(), command);
 
 		if (parentProc)
 		{
 			FreeConsole();
 
 			parentProc += strlen(command);
-			int pid = atoi(parentProc);
+			const auto pid = std::strtol(parentProc, nullptr, 10);
 
 			HANDLE processHandle = OpenProcess(SYNCHRONIZE, FALSE, pid);
 
@@ -374,10 +376,10 @@ namespace Steam
 
 	bool Proxy::Inititalize()
 	{
-		std::string directoy = Proxy::GetSteamDirectory();
+		const auto directoy = Proxy::GetSteamDirectory();
 		if (directoy.empty()) return false;
 
-		SetDllDirectoryA(Proxy::GetSteamDirectory().data());
+		SetDllDirectoryA(directoy.data());
 
 		if (!Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
 		{
@@ -484,7 +486,7 @@ namespace Steam
 	std::string Proxy::GetSteamDirectory()
 	{
 		HKEY hRegKey;
-		char SteamPath[MAX_PATH];
+		char SteamPath[MAX_PATH]{};
 		if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, STEAM_REGISTRY_PATH, 0, KEY_QUERY_VALUE, &hRegKey) == ERROR_SUCCESS)
 		{
 			DWORD dwLength = sizeof(SteamPath);
@@ -494,7 +496,7 @@ namespace Steam
 			return SteamPath;
 		}
 
-		return "";
+		return {};
 	}
 
 	uint32_t Proxy::GetActiveUser()
