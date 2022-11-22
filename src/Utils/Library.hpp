@@ -5,7 +5,6 @@ namespace Utils
 	class Library
 	{
 	public:
-		static Library Load(const std::string& name);
 		static Library Load(const std::filesystem::path& path);
 		static Library GetByAddress(void* address);
 
@@ -21,23 +20,22 @@ namespace Utils
 		operator bool() const;
 		operator HMODULE() const;
 
-		bool isValid() const;
-		HMODULE getModule() const;
-		std::string getName() const;
-		std::string getPath() const;
-		std::string getFolder() const;
-		std::uint8_t* getPtr() const;
+		[[nodiscard]] bool isValid() const;
+		[[nodiscard]] HMODULE getModule() const;
+		[[nodiscard]] std::string getName() const;
+		[[nodiscard]] std::filesystem::path getPath() const;
+		[[nodiscard]] std::filesystem::path getFolder() const;
 		void free();
 
 		template <typename T>
-		T getProc(const std::string& process) const
+		[[nodiscard]] T getProc(const std::string& process) const
 		{
 			if (!this->isValid()) T{};
 			return reinterpret_cast<T>(GetProcAddress(this->module_, process.data()));
 		}
 
 		template <typename T>
-		std::function<T> get(const std::string& process) const
+		[[nodiscard]] std::function<T> get(const std::string& process) const
 		{
 			if (!this->isValid()) return std::function<T>();
 			return static_cast<T*>(this->getProc<void*>(process));

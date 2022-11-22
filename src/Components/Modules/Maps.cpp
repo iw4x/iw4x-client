@@ -408,7 +408,7 @@ namespace Components
 		{
 			std::string hash;
 
-			for(int i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
+			for (std::size_t i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
 			{
 				std::string filePath = Utils::String::VA("usermaps/%s/%s%s", map.data(), map.data(), Maps::UserMapFiles[i]);
 				if (Utils::IO::FileExists(filePath))

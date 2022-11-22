@@ -68,7 +68,7 @@ namespace Utils
 			return DeleteFileA(file.data()) == TRUE;
 		}
 
-		size_t FileSize(const std::string& file)
+		std::size_t FileSize(const std::string& file)
 		{
 			if (FileExists(file))
 			{
@@ -77,7 +77,7 @@ namespace Utils
 				if (stream.good())
 				{
 					stream.seekg(0, std::ios::end);
-					return static_cast<size_t>(stream.tellg());
+					return static_cast<std::size_t>(stream.tellg());
 				}
 			}
 
@@ -89,21 +89,21 @@ namespace Utils
 			return std::filesystem::create_directories(dir);
 		}
 
-		bool DirectoryExists(const std::string& directory)
+		bool DirectoryExists(const std::filesystem::path& directory)
 		{
 			return std::filesystem::is_directory(directory);
 		}
 
-		bool DirectoryIsEmpty(const std::string& directory)
+		bool DirectoryIsEmpty(const std::filesystem::path& directory)
 		{
 			return std::filesystem::is_empty(directory);
 		}
 
-		std::vector<std::string> ListFiles(const std::string& dir)
+		std::vector<std::string> ListFiles(const std::filesystem::path& directory)
 		{
 			std::vector<std::string> files;
 
-			for (auto& file : std::filesystem::directory_iterator(dir))
+			for (auto& file : std::filesystem::directory_iterator(directory))
 			{
 				files.push_back(file.path().generic_string());
 			}
