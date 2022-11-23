@@ -4,8 +4,8 @@ namespace Utils
 {
 	const char* Cache::Urls[] =
 	{
+		"https://raw.githubusercontent.com/XLabsProject/iw4x-client",
 		"https://xlabs.dev",
-		"https://raw.githubusercontent.com/XLabsProject/iw4x-client"
 	};
 
 	std::string Cache::ValidUrl;
@@ -13,7 +13,7 @@ namespace Utils
 
 	std::string Cache::GetStaticUrl(const std::string& path)
 	{
-		return Cache::Urls[0] + path;
+		return Urls[0] + path;
 	}
 
 	std::string Cache::GetUrl(const std::string& url, const std::string& path)
@@ -23,29 +23,27 @@ namespace Utils
 
 	std::string Cache::GetFile(const std::string& path, int timeout, const std::string& useragent)
 	{
-		std::lock_guard<std::mutex> _(Cache::CacheMutex);
+		std::lock_guard _(CacheMutex);
 
-		if (Cache::ValidUrl.empty())
+		if (ValidUrl.empty())
 		{
 			InternetSetCookieA("https://onion.casa", "disclaimer_accepted", "1");
 			InternetSetCookieA("https://hiddenservice.net", "disclaimer_accepted", "1");
 
-			for (int i = 0; i < ARRAYSIZE(Cache::Urls); ++i)
+			for (std::size_t i = 0; i < ARRAYSIZE(Urls); ++i)
 			{
-				std::string result = Utils::WebIO(useragent, Cache::GetUrl(Cache::Urls[i], path)).setTimeout(timeout)->get();
+				std::string result = WebIO(useragent, GetUrl(Urls[i], path)).setTimeout(timeout)->get();
 
 				if (!result.empty())
 				{
-					Cache::ValidUrl = Cache::Urls[i];
+					ValidUrl = Urls[i];
 					return result;
 				}
 			}
 
-			return "";
+			return {};
 		}
-		else
-		{
-			return Utils::WebIO(useragent, Cache::GetUrl(Cache::ValidUrl, path)).setTimeout(timeout)->get();
-		}
+
+		return WebIO(useragent, GetUrl(ValidUrl, path)).setTimeout(timeout)->get();
 	}
 }
