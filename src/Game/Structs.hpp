@@ -6681,9 +6681,9 @@ namespace Game
 
 	typedef struct punctuation_s
 	{
-		char *p;						//punctuation character(s)
-		int n;							//punctuation indication
-		struct punctuation_s *next;		//next punctuation
+		char* p; //punctuation character(s)
+		int n; //punctuation indication
+		punctuation_s* next; //next punctuation
 	} punctuation_t;
 
 #define MAX_TOKEN 1024
@@ -6691,16 +6691,16 @@ namespace Game
 
 	typedef struct token_s
 	{
-		char string[MAX_TOKEN];			//available token
-		int type;						//last read token type
-		int subtype;					//last read token sub type
-		unsigned long int intvalue;	//integer value
-		long double floatvalue;			//floating point value
-		char *whitespace_p;				//start of white space before token
-		char *endwhitespace_p;			//start of white space before token
-		int line;						//line the token was on
-		int linescrossed;				//lines crossed in white space
-		struct token_s *next;			//next token in chain
+		char string[MAX_TOKEN]; //available token
+		int type; //last read token type
+		int subtype; //last read token sub type
+		unsigned long int intvalue; //integer value
+		long double floatvalue; //floating point value
+		char* whitespace_p; //start of white space before token
+		char* endwhitespace_p; //start of white space before token
+		int line; //line the token was on
+		int linescrossed; //lines crossed in white space
+		token_s* next; //next token in chain
 	} token_t;
 
 	typedef struct script_s
