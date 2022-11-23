@@ -27,9 +27,6 @@ namespace Utils
 
 		if (ValidUrl.empty())
 		{
-			InternetSetCookieA("https://onion.casa", "disclaimer_accepted", "1");
-			InternetSetCookieA("https://hiddenservice.net", "disclaimer_accepted", "1");
-
 			for (std::size_t i = 0; i < ARRAYSIZE(Urls); ++i)
 			{
 				std::string result = WebIO(useragent, GetUrl(Urls[i], path)).setTimeout(timeout)->get();
