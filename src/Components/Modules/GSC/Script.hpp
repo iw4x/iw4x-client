@@ -16,6 +16,27 @@ namespace Components
 
 		static void ShowDeprecationWarning();
 
+		// Probably a macro 'originally' but this is fine
+		static Game::gentity_s* Scr_GetPlayerEntity(Game::scr_entref_t entref)
+		{
+			if (entref.classnum != 0)
+			{
+				Game::Scr_ObjectError("not an entity");
+				return nullptr;
+			}
+
+			assert(entref.entnum < Game::MAX_GENTITIES);
+
+			auto* ent = &Game::g_entities[entref.entnum];
+			if (ent->client == nullptr)
+			{
+				Game::Scr_ObjectError(Utils::String::VA("entity %i is not a player", entref.entnum));
+				return nullptr;
+			}
+
+			return ent;
+		}
+
 	private:
 		struct ScriptFunction
 		{
@@ -38,8 +59,8 @@ namespace Components
 		static std::unordered_map<int, std::string> ScriptBaseProgramNum;
 		static int LastFrameTime;
 
-		static std::vector<int> ScriptMainHandles;
-		static std::vector<int> ScriptInitHandles;
+		static std::unordered_map<std::string, int> ScriptMainHandles;
+		static std::unordered_map<std::string, int> ScriptInitHandles;
 
 		static std::unordered_map<const char*, const char*> ReplacedFunctions;
 		static const char* ReplacedPos;

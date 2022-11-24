@@ -15,8 +15,8 @@ namespace Components
 	std::unordered_map<const char*, const char*> Script::ReplacedFunctions;
 	const char* Script::ReplacedPos = nullptr;
 
-	std::vector<int> Script::ScriptMainHandles;
-	std::vector<int> Script::ScriptInitHandles;
+	std::unordered_map<std::string, int> Script::ScriptMainHandles;
+	std::unordered_map<std::string, int> Script::ScriptInitHandles;
 
 	void Script::ShowDeprecationWarning()
 	{
@@ -28,16 +28,16 @@ namespace Components
 
 	void Script::FunctionError()
 	{
-		const auto* funcName = Game::SL_ConvertToString(Script::FunctionName);
+		const auto* funcName = Game::SL_ConvertToString(FunctionName);
 
 		Game::Scr_ShutdownAllocNode();
 
 		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
 		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Error: unknown function {} in {}\n", funcName, Script::ScriptName);
+		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Error: unknown function {} in {}\n", funcName, ScriptName);
 		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n");
 
-		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\nunknown function {}\n{}\n\n", funcName, Script::ScriptName);
+		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\nunknown function {}\n{}\n\n", funcName, ScriptName);
 	}
 
 	__declspec(naked) void Script::StoreFunctionNameStub()
@@ -45,7 +45,7 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp - 8h]
-			mov Script::FunctionName, ax
+			mov FunctionName, ax
 
 			sub esp, 0Ch
 			push 0
@@ -87,12 +87,12 @@ namespace Components
 
 	void Script::StoreScriptName(const char* name)
 	{
-		Script::ScriptNameStack.push_back(Script::ScriptName);
-		Script::ScriptName = name;
+		ScriptNameStack.push_back(ScriptName);
+		ScriptName = name;
 
-		if (!Utils::String::EndsWith(Script::ScriptName, ".gsc"))
+		if (!Utils::String::EndsWith(ScriptName, ".gsc"))
 		{
-			Script::ScriptName.append(".gsc");
+			ScriptName.append(".gsc");
 		}
 	}
 
@@ -105,7 +105,7 @@ namespace Components
 			lea ecx, [esp + 30h]
 			push ecx
 
-			call Script::StoreScriptName
+			call StoreScriptName
 			add esp, 4h
 
 			popad
@@ -120,8 +120,8 @@ namespace Components
 
 	void Script::RestoreScriptName()
 	{
-		Script::ScriptName = Script::ScriptNameStack.back();
-		Script::ScriptNameStack.pop_back();
+		ScriptName = ScriptNameStack.back();
+		ScriptNameStack.pop_back();
 	}
 
 	__declspec(naked) void Script::RestoreScriptNameStub()
@@ -129,7 +129,7 @@ namespace Components
 		__asm
 		{
 			pushad
-			call Script::RestoreScriptName
+			call RestoreScriptName
 			popad
 
 			mov ds:1CDEAA8h, ebp
@@ -205,17 +205,19 @@ namespace Components
 		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
 		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
 		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Error: {} ", msgbuf);
-		Script::PrintSourcePos(Script::ScriptName.data(), offset);
+		PrintSourcePos(ScriptName.data(), offset);
 		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n\n");
 
-		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\n{}\n{}\n(see console for actual details)\n", msgbuf, Script::ScriptName);
+		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\n{}\n{}\n(see console for actual details)\n", msgbuf, ScriptName);
 	}
 
 	void Script::Scr_LoadGameType_Stub()
 	{
-		for (const auto& handle : Script::ScriptMainHandles)
+		for (const auto& handle : ScriptMainHandles)
 		{
-			const auto id = Game::Scr_ExecThread(handle, 0);
+			Logger::Print("Executing '{}::main'\n", handle.first.data());
+
+			const auto id = Game::Scr_ExecThread(handle.second, 0);
 			Game::Scr_FreeThread(static_cast<std::uint16_t>(id));
 		}
 
@@ -224,9 +226,11 @@ namespace Components
 
 	void Script::Scr_StartupGameType_Stub()
 	{
-		for (const auto& handle : Script::ScriptInitHandles)
+		for (const auto& handle : ScriptInitHandles)
 		{
-			const auto id = Game::Scr_ExecThread(handle, 0);
+			Logger::Print("Executing '{}::init'\n", handle.first.data());
+
+			const auto id = Game::Scr_ExecThread(handle.second, 0);
 			Game::Scr_FreeThread(static_cast<std::uint16_t>(id));
 		}
 
@@ -237,8 +241,8 @@ namespace Components
 	void Script::GScr_LoadGameTypeScript_Stub()
 	{
 		// Clear handles (from previous GSC loading session)
-		Script::ScriptMainHandles.clear();
-		Script::ScriptInitHandles.clear();
+		ScriptMainHandles.clear();
+		ScriptInitHandles.clear();
 
 		char path[MAX_PATH]{};
 
@@ -262,18 +266,17 @@ namespace Components
 			}
 
 			Logger::Print("Script {}.gsc loaded successfully.\n", path);
-			Logger::Debug("Finding script handle main or init...");
 
 			const auto initHandle = Game::Scr_GetFunctionHandle(path, "init");
 			if (initHandle != 0)
 			{
-				Script::ScriptInitHandles.push_back(initHandle);
+				ScriptInitHandles.insert_or_assign(path, initHandle);
 			}
 
 			const auto mainHandle = Game::Scr_GetFunctionHandle(path, "main");
 			if (mainHandle != 0)
 			{
-				Script::ScriptMainHandles.push_back(mainHandle);
+				ScriptMainHandles.insert_or_assign(path, mainHandle);
 			}
 
 			// Allow scripts with no handles
@@ -285,7 +288,7 @@ namespace Components
 
 	void Script::AddFunction(const std::string& name, Game::BuiltinFunction func, bool type)
 	{
-		Script::ScriptFunction toAdd;
+		ScriptFunction toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
 
@@ -294,7 +297,7 @@ namespace Components
 
 	void Script::AddMethod(const std::string& name, Game::BuiltinMethod func, bool type)
 	{
-		Script::ScriptMethod toAdd;
+		ScriptMethod toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
 
@@ -306,7 +309,7 @@ namespace Components
 		if (pName != nullptr)
 		{
 			// If no function was found let's call game's function
-			if (const auto itr = Script::CustomScrFunctions.find(Utils::String::ToLower(*pName)); itr != Script::CustomScrFunctions.end())
+			if (const auto itr = CustomScrFunctions.find(Utils::String::ToLower(*pName)); itr != CustomScrFunctions.end())
 			{
 				*type = itr->second.type;
 				return itr->second.actionFunc;
@@ -314,7 +317,7 @@ namespace Components
 		}
 		else
 		{
-			for (const auto& [name, builtin] : Script::CustomScrFunctions)
+			for (const auto& [name, builtin] : CustomScrFunctions)
 			{
 				Game::Scr_RegisterFunction(reinterpret_cast<int>(builtin.actionFunc), name.data());
 			}
@@ -328,7 +331,7 @@ namespace Components
 		if (pName != nullptr)
 		{
 			// If no method was found let's call game's function
-			if (const auto itr = Script::CustomScrMethods.find(Utils::String::ToLower(*pName)); itr != Script::CustomScrMethods.end())
+			if (const auto itr = CustomScrMethods.find(Utils::String::ToLower(*pName)); itr != CustomScrMethods.end())
 			{
 				*type = itr->second.type;
 				return itr->second.actionFunc;
@@ -336,7 +339,7 @@ namespace Components
 		}
 		else
 		{
-			for (const auto& [name, builtin] : Script::CustomScrMethods)
+			for (const auto& [name, builtin] : CustomScrMethods)
 			{
 				Game::Scr_RegisterFunction(reinterpret_cast<int>(builtin.actionFunc), name.data());
 			}
@@ -347,7 +350,7 @@ namespace Components
 
 	void Script::StoreScriptBaseProgramNum()
 	{
-		Script::ScriptBaseProgramNum.insert_or_assign(Utils::Hook::Get<int>(0x1CFEEF8), Script::ScriptName);
+		ScriptBaseProgramNum.insert_or_assign(Utils::Hook::Get<int>(0x1CFEEF8), ScriptName);
 	}
 
 	void Script::Scr_PrintPrevCodePos(int scriptPos)
@@ -355,7 +358,7 @@ namespace Components
 		auto bestCodePos = -1, nextCodePos = -1, offset = -1;
 		std::string file;
 
-		for (const auto& [key, value] : Script::ScriptBaseProgramNum)
+		for (const auto& [key, value] : ScriptBaseProgramNum)
 		{
 			const auto codePos = key;
 
@@ -388,7 +391,7 @@ namespace Components
 		__asm
 		{
 			push esi
-			call Script::Scr_PrintPrevCodePos
+			call Scr_PrintPrevCodePos
 			add esp, 4h
 
 			pop esi
@@ -402,7 +405,7 @@ namespace Components
 		{
 			// execute our hook
 			pushad
-			call Script::StoreScriptBaseProgramNum
+			call StoreScriptBaseProgramNum
 			popad
 
 			// execute overwritten code caused by the jump hook
@@ -452,9 +455,9 @@ namespace Components
 
 	void Script::GetReplacedPos(const char* pos)
 	{
-		if (Script::ReplacedFunctions.contains(pos))
+		if (ReplacedFunctions.contains(pos))
 		{
-			Script::ReplacedPos = Script::ReplacedFunctions[pos];
+			ReplacedPos = ReplacedFunctions[pos];
 		}
 	}
 
@@ -466,12 +469,12 @@ namespace Components
 			return;
 		}
 
-		if (Script::ReplacedFunctions.contains(what))
+		if (ReplacedFunctions.contains(what))
 		{
 			Logger::Warning(Game::CON_CHANNEL_SCRIPT, "ReplacedFunctions already contains codePosValue for a function\n");
 		}
 
-		Script::ReplacedFunctions[what] = with;
+		ReplacedFunctions[what] = with;
 	}
 
 	__declspec(naked) void Script::VMExecuteInternalStub()
@@ -481,12 +484,12 @@ namespace Components
 			pushad
 
 			push edx
-			call Script::GetReplacedPos
+			call GetReplacedPos
 
 			pop edx
 			popad
 
-			cmp Script::ReplacedPos, 0
+			cmp ReplacedPos, 0
 			jne SetPos
 
 			movzx eax, byte ptr [edx]
@@ -509,8 +512,8 @@ namespace Components
 			retn
 
 		SetPos:
-			mov edx, Script::ReplacedPos
-			mov Script::ReplacedPos, 0
+			mov edx, ReplacedPos
+			mov ReplacedPos, 0
 
 			movzx eax, byte ptr [edx]
 			inc edx
@@ -521,7 +524,7 @@ namespace Components
 
 	Game::client_t* Script::GetClient(const Game::gentity_t* ent)
 	{
-		assert(ent != nullptr);
+		assert(ent);
 
 		if (ent->client == nullptr)
 		{
@@ -529,7 +532,7 @@ namespace Components
 			return nullptr;
 		}
 
-		if (ent->s.number >= *Game::svs_clientCount)
+		if (static_cast<std::size_t>(ent->s.number) >= Game::MAX_CLIENTS)
 		{
 			Game::Scr_ObjectError(Utils::String::VA("Entity %i is out of bounds", ent->s.number));
 			return nullptr;
@@ -540,7 +543,7 @@ namespace Components
 
 	void Script::AddFunctions()
 	{
-		Script::AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
+		AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
 		{
 			if (Game::Scr_GetNumParam() != 2)
 			{
@@ -548,14 +551,14 @@ namespace Components
 				return;
 			}
 
-			const auto what = Script::GetCodePosForParam(0);
-			const auto with = Script::GetCodePosForParam(1);
+			const auto what = GetCodePosForParam(0);
+			const auto with = GetCodePosForParam(1);
 
-			Script::SetReplacedPos(what, with);
+			SetReplacedPos(what, with);
 		});
 
 		// System time
-		Script::AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
+		AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
 		{
 			SYSTEMTIME time;
 			GetSystemTime(&time);
@@ -564,7 +567,7 @@ namespace Components
 		});
 
 		// Executes command to the console
-		Script::AddFunction("Exec", [] // gsc: Exec(<string>)
+		AddFunction("Exec", [] // gsc: Exec(<string>)
 		{
 			const auto str = Game::Scr_GetString(0);
 
@@ -578,7 +581,7 @@ namespace Components
 		});
 
 		// Allow printing to the console even when developer is 0
-		Script::AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
+		AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
 		{
 			for (std::size_t i = 0; i < Game::Scr_GetNumParam(); ++i)
 			{
@@ -595,9 +598,9 @@ namespace Components
 		});
 
 		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
-		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
+		AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = Scr_GetPlayerEntity(entref);
 
 			Game::Scr_AddBool((ent->client->flags & Game::PLAYER_FLAG_FROZEN) != 0);
 		});
@@ -605,34 +608,34 @@ namespace Components
 
 	Script::Script()
 	{
-		Utils::Hook(0x612DB0, Script::StoreFunctionNameStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x427E71, Script::RestoreScriptNameStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x427DBC, Script::StoreScriptNameStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x426C2D, Script::StoreScriptBaseProgramNumStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x42281B, Script::Scr_PrintPrevCodePosStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x612DB0, StoreFunctionNameStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x427E71, RestoreScriptNameStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x427DBC, StoreScriptNameStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x426C2D, StoreScriptBaseProgramNumStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x42281B, Scr_PrintPrevCodePosStub, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x61E3AD, Script::RuntimeError, HOOK_CALL).install()->quick();
-		Utils::Hook(0x621976, Script::RuntimeError, HOOK_CALL).install()->quick();
-		Utils::Hook(0x62246E, Script::RuntimeError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x61E3AD, RuntimeError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x621976, RuntimeError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x62246E, RuntimeError, HOOK_CALL).install()->quick();
 		// Skip check in GScr_CheckAllowedToSetPersistentData to prevent log spam in RuntimeError.
 		// On IW5 the function is entirely nullsubbed
-		Utils::Hook::Set<BYTE>(0x5F8DBF, 0xEB);
+		Utils::Hook::Set<std::uint8_t>(0x5F8DBF, 0xEB);
 
-		Utils::Hook(0x612E8D, Script::FunctionError, HOOK_CALL).install()->quick();
-		Utils::Hook(0x612EA2, Script::FunctionError, HOOK_CALL).install()->quick();
-		Utils::Hook(0x434260, Script::CompileError, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x612E8D, FunctionError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x612EA2, FunctionError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x434260, CompileError, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x48EFFE, Script::Scr_LoadGameType_Stub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x48F008, Script::Scr_StartupGameType_Stub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x45D44A, Script::GScr_LoadGameTypeScript_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48EFFE, Scr_LoadGameType_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48F008, Scr_StartupGameType_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x45D44A, GScr_LoadGameTypeScript_Stub, HOOK_CALL).install()->quick();
 
 		// Fetch custom functions
-		Utils::Hook(0x44E72E, Script::BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
-		Utils::Hook(0x4EC8DD, Script::BuiltIn_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
+		Utils::Hook(0x44E72E, BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
+		Utils::Hook(0x4EC8DD, BuiltIn_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
 
-		Utils::Hook(0x5F41A3, Script::SetExpFogStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5F41A3, SetExpFogStub, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x61E92E, Script::VMExecuteInternalStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x61E92E, VMExecuteInternalStub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x61E933, 1);
 
 		Scheduler::Loop([]
@@ -642,9 +645,9 @@ namespace Components
 
 			const auto nowMs = Game::Sys_Milliseconds();
 
-			if (Script::LastFrameTime != -1)
+			if (LastFrameTime != -1)
 			{
-				const auto timeTaken = (nowMs - Script::LastFrameTime) * static_cast<int>((*Game::com_timescale)->current.value);
+				const auto timeTaken = (nowMs - LastFrameTime) * static_cast<int>((*Game::com_timescale)->current.value);
 
 				if (timeTaken >= 500)
 				{
@@ -652,11 +655,11 @@ namespace Components
 				}
 			}
 
-			Script::LastFrameTime = nowMs;
+			LastFrameTime = nowMs;
 		}, Scheduler::Pipeline::SERVER);
 
 #ifdef _DEBUG 
-		Script::AddFunction("DebugBox", []
+		AddFunction("DebugBox", []
 		{
 			const auto* message = Game::Scr_GetString(0);
 
@@ -666,14 +669,14 @@ namespace Components
 			}
 
 			MessageBoxA(nullptr, message, "DEBUG", MB_OK);
-		}, 1);
+		}, true);
 #endif
 
-		Script::AddFunctions();
+		AddFunctions();
 
 		Events::OnVMShutdown([]
 		{
-			Script::ReplacedFunctions.clear();
+			ReplacedFunctions.clear();
 		});
 	}
 }

@@ -41,6 +41,8 @@ namespace Components
 		static int StuckInClient_Hk(Game::gentity_s* self);
 		static void CM_TransformedCapsuleTrace_Hk(Game::trace_t* results, const float* start, const float* end, const Game::Bounds* bounds, const Game::Bounds* capsule, int contents, const float* origin, const float* angles);
 
+		static void GScr_IsSprinting(Game::scr_entref_t entref);
+
 		static const Game::dvar_t* Dvar_RegisterSpectateSpeedScale(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
 
 		static void RegisterMovementDvars();
