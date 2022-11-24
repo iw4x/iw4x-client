@@ -111,9 +111,15 @@ namespace Components
 		}
 	}
 
-	void Bots::GScr_isTestClient(Game::scr_entref_t entref)
+	void Bots::GScr_isTestClient(const Game::scr_entref_t entref)
 	{
-		const auto* ent = Game::GetPlayerEntity(entref);
+		const auto* ent = Game::GetEntity(entref);
+		if (!ent->client)
+		{
+			Game::Scr_Error("isTestClient: entity must be a player entity");
+			return;
+		}
+
 		Game::Scr_AddBool(Game::SV_IsTestClient(ent->s.number) != 0);
 	}
 

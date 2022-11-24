@@ -524,6 +524,9 @@ namespace Game
 	typedef void(*PM_UpdateLean_t)(playerState_s* ps, float msec, usercmd_s* cmd, void(*capsuleTrace)(trace_t*, const float*, const float*, const Bounds*, int, int));
 	extern PM_UpdateLean_t PM_UpdateLean;
 
+	typedef bool(*PM_IsSprinting_t)(const playerState_s* ps);
+	extern PM_IsSprinting_t PM_IsSprinting;
+
 	typedef void(*IN_RecenterMouse_t)();
 	extern IN_RecenterMouse_t IN_RecenterMouse;
 

@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "GSC/Script.hpp"
 
 namespace Components
 {
@@ -106,13 +107,13 @@ namespace Components
 
 			// Bounce
 			push 0x4B1B34
-			retn
+			ret
 
 		noBounce:
 			// Original game code
 			cmp dword ptr [esp + 0x24], 0
 			push 0x4B1B48
-			retn
+			ret
 		}
 	}
 
@@ -186,6 +187,18 @@ namespace Components
 		}
 	}
 
+	void PlayerMovement::GScr_IsSprinting(const Game::scr_entref_t entref)
+	{
+		const auto* client = Game::GetEntity(entref)->client;
+		if (!client)
+		{
+			Game::Scr_Error("IsSprinting can only be called on a player");
+			return;
+		}
+
+		Game::Scr_AddBool(Game::PM_IsSprinting(&client->ps));
+	}
+
 	const Game::dvar_t* PlayerMovement::Dvar_RegisterSpectateSpeedScale(const char* dvarName, float value,
 		float min, float max, unsigned __int16 /*flags*/, const char* description)
 	{
@@ -233,6 +246,9 @@ namespace Components
 
 	PlayerMovement::PlayerMovement()
 	{
+		AssertOffset(Game::playerState_s, eFlags, 0xB0);
+		AssertOffset(Game::playerState_s, pm_flags, 0xC);
+
 		Scheduler::Once([]
 		{
 			static const char* bg_bouncesValues[] =
@@ -272,6 +288,8 @@ namespace Components
 		Utils::Hook(0x5D8153, StuckInClient_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45A5BF, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
 		Utils::Hook(0x5A0CAD, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // CG_ClipMoveToEntity
+
+		Script::AddMethod("IsSprinting", GScr_IsSprinting);
 
 		RegisterMovementDvars();
 	}

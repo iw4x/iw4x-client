@@ -233,6 +233,7 @@ namespace Game
 	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
 	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
 	PM_UpdateLean_t PM_UpdateLean = PM_UpdateLean_t(0x43DED0);
+	PM_IsSprinting_t PM_IsSprinting = PM_IsSprinting_t(0x4B3830);
 
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
 
