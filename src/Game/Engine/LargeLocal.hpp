@@ -26,4 +26,6 @@ namespace Game::Engine
     extern void LargeLocalEndRight(int startPos);
 
     extern void* LargeLocalGetBuf(int startPos, int size);
+
+    extern int CanUseServerLargeLocal();
 }
