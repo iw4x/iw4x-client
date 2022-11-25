@@ -3,8 +3,6 @@
 
 namespace Game::Engine
 {
-	#define CanUseServerLargeLocal() (SV_GetServerThreadOwnsGame() ? Sys_IsServerThread() : Sys_IsRenderThread())
-
 	LargeLocal::LargeLocal(int sizeParam)
 	{
 		assert(sizeParam);
@@ -88,5 +86,10 @@ namespace Game::Engine
 		assert(startIndex >= 0);
 
 		return &g_largeLocalBuf[startIndex];
+	}
+
+	int CanUseServerLargeLocal()
+	{
+		return SV_GetServerThreadOwnsGame() ? Sys_IsServerThread() : Sys_IsRenderThread();
 	}
 }
