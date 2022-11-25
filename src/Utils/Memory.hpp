@@ -73,7 +73,7 @@ namespace Utils
 				this->refMemory[memory] = callback;
 			}
 
-			void* allocate(size_t length)
+			void* allocate(std::size_t length)
 			{
 				std::lock_guard _(this->mutex);
 
@@ -87,7 +87,7 @@ namespace Utils
 				return this->allocateArray<T>(1);
 			}
 
-			template <typename T> T* allocateArray(size_t count = 1)
+			template <typename T> T* allocateArray(std::size_t count = 1)
 			{
 				return static_cast<T*>(this->allocate(count * sizeof(T)));
 			}
@@ -133,13 +133,13 @@ namespace Utils
 			std::unordered_map<void*, FreeCallback> refMemory;
 		};
 
-		static void* AllocateAlign(size_t length, size_t alignment);
-		static void* Allocate(size_t length);
+		static void* AllocateAlign(std::size_t length, std::size_t alignment);
+		static void* Allocate(std::size_t length);
 		template <typename T> static T* Allocate()
 		{
 			return AllocateArray<T>(1);
 		}
-		template <typename T> static T* AllocateArray(size_t count = 1)
+		template <typename T> static T* AllocateArray(std::size_t count = 1)
 		{
 			return static_cast<T*>(Allocate(count * sizeof(T)));
 		}
@@ -159,7 +159,7 @@ namespace Utils
 		static void FreeAlign(void* data);
 		static void FreeAlign(const void* data);
 
-		static bool IsSet(void* mem, char chr, size_t length);
+		static bool IsSet(void* mem, char chr, std::size_t length);
 
 		static bool IsBadReadPtr(const void* ptr);
 		static bool IsBadCodePtr(const void* ptr);
