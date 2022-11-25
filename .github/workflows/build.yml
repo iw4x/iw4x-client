@@ -9,6 +9,10 @@ on:
       - "*"
     types: [opened, synchronize, reopened]
 
+concurrency: 
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build binaries
@@ -18,15 +22,7 @@ jobs:
         configuration:
           - Debug
           - Release
-    steps:
-      - name: Wait for previous workflows
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: softprops/turnstyle@v1
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+    steps:          
       - name: Check out files
         uses: actions/checkout@v3
         with:
@@ -83,13 +79,6 @@ jobs:
 
       - name: Add known hosts
         run: ssh-keyscan -H ${{ secrets.XLABS_MASTER_SSH_ADDRESS }} >> ~/.ssh/known_hosts
-
-      - name: Wait for previous workflows
-        uses: softprops/turnstyle@v1
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
 #      - name: Remove old data files
 #        run: ssh ${{ secrets.XLABS_MASTER_SSH_USER }}@${{ secrets.XLABS_MASTER_SSH_ADDRESS }} rm -rf ${{ env.XLABS_MASTER_PATH }}/iw4x/data/*
