@@ -9,7 +9,7 @@ on:
       - "*"
     types: [opened, synchronize, reopened]
 
-concurrency: 
+concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
