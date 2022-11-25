@@ -33,12 +33,14 @@ namespace Components
 		template <typename... Args>
 		static void Print(std::string_view fmt, Args&&... args)
 		{
+			(Utils::String::SanitizeFormatArgs(args), ...);
 			PrintInternal(Game::CON_CHANNEL_DONT_FILTER, fmt, std::make_format_args(args...));
 		}
 
 		template <typename... Args>
 		static void Print(int channel, std::string_view fmt, Args&&... args)
 		{
+			(Utils::String::SanitizeFormatArgs(args), ...);
 			PrintInternal(channel, fmt, std::make_format_args(args...));
 		}
 
@@ -50,6 +52,7 @@ namespace Components
 		template <typename... Args>
 		static void Error(Game::errorParm_t error, std::string_view fmt, Args&&... args)
 		{
+			(Utils::String::SanitizeFormatArgs(args), ...);
 			ErrorInternal(error, fmt, std::make_format_args(args...));
 		}
 
@@ -61,6 +64,7 @@ namespace Components
 		template <typename... Args>
 		static void Warning(int channel, std::string_view fmt, Args&&... args)
 		{
+			(Utils::String::SanitizeFormatArgs(args), ...);
 			WarningInternal(channel, fmt, std::make_format_args(args...));
 		}
 
@@ -72,6 +76,7 @@ namespace Components
 		template <typename... Args>
 		static void PrintError(int channel, std::string_view fmt, Args&&... args)
 		{
+			(Utils::String::SanitizeFormatArgs(args), ...);
 			PrintErrorInternal(channel, fmt, std::make_format_args(args...));
 		}
 
@@ -82,6 +87,7 @@ namespace Components
 			Debug([[maybe_unused]] std::string_view fmt, [[maybe_unused]] const Args&... args, [[maybe_unused]] const std::source_location& loc = std::source_location::current())
 			{
 #ifdef _DEBUG
+				(Utils::String::SanitizeFormatArgs(args), ...);
 				DebugInternal(fmt, std::make_format_args(args...), loc);
 #endif
 			}

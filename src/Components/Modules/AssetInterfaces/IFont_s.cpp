@@ -103,14 +103,14 @@ namespace Assets
 			return;
 		}
 
-		nlohmann::json fontDef = nlohmann::json::parse(fontDefFile.getBuffer());
+		nlohmann::json fontDef;
 		try
 		{
 			fontDef = nlohmann::json::parse(fontDefFile.getBuffer());
 		}
 		catch (const nlohmann::json::parse_error& ex)
 		{
-			Components::Logger::Error(Game::ERR_FATAL, "Json Parse Error: {}. Font {} is invalid", ex.what(), name);
+			Components::Logger::Error(Game::ERR_FATAL, "Json Parse Error: {}. Font {} is invalid\n", ex.what(), name);
 			return;
 		}
 

@@ -70,15 +70,31 @@ namespace Utils::String
 		Entry stringPool[Buffers];
 	};
 
-	const char *VA(const char *fmt, ...);
+	template <typename Arg> // This should display a nice "null" instead of a number
+	static void SanitizeFormatArgs(Arg& arg)
+	{
+		if constexpr (std::is_same_v<Arg, char*> || std::is_same_v<Arg, const char*>)
+		{
+			if (arg == nullptr)
+			{
+				arg = const_cast<char*>("nullptr");
+			}
+		}
+	}
 
-	std::string ToLower(std::string text);
-	std::string ToUpper(std::string text);
+	const char* VA(const char* fmt, ...);
+
+	std::string ToLower(const std::string& text);
+	std::string ToUpper(const std::string& text);
+
 	bool Compare(const std::string& lhs, const std::string& rhs);
+
 	std::vector<std::string> Split(const std::string& str, char delim);
 	void Replace(std::string& str, const std::string& from, const std::string& to);
+
 	bool StartsWith(const std::string& haystack, const std::string& needle);
 	bool EndsWith(const std::string& haystack, const std::string& needle);
+
 	bool IsNumber(const std::string& str);
 
 	std::string& LTrim(std::string& str);
@@ -95,7 +111,7 @@ namespace Utils::String
 
 	std::string XOR(std::string str, char value);
 
-	std::string EncodeBase64(const char* input, const unsigned long inputSize);
+	std::string EncodeBase64(const char* input, unsigned long inputSize);
 	std::string EncodeBase64(const std::string& input);
 
 	std::string EncodeBase128(const std::string& input);

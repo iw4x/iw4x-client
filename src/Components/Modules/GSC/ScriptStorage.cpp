@@ -86,6 +86,27 @@ namespace Components
 			FileSystem::FileWriter("scriptdata/scriptstorage.json").write(json.dump());
 		});
 
+		Script::AddFunction("StorageLoad", [] // gsc: StorageLoad();
+		{
+			FileSystem::File storageFile("scriptdata/scriptstorage.json");
+			if (!storageFile.exists())
+			{
+				return;
+			}
+
+			const auto& buffer = storageFile.getBuffer();
+			try
+			{
+				const nlohmann::json storageDef = nlohmann::json::parse(buffer);
+				const auto& newData = storageDef.get<std::unordered_map<std::string, std::string>>();
+				Data.insert(newData.begin(), newData.end());
+			}
+			catch (const std::exception& ex)
+			{
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}. File {} is invalid\n", ex.what(), storageFile.getName());
+			}
+		});
+
 		Script::AddFunction("StorageClear", [] // gsc: StorageClear();
 		{
 			Data.clear();
