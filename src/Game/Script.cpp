@@ -107,18 +107,20 @@ namespace Game
 		}
 	}
 
-	void Scr_NotifyId(unsigned int id, unsigned __int16 stringValue, unsigned int paramcount)
+	__declspec(naked) void Scr_NotifyId(unsigned int /*id*/, unsigned __int16 /*stringValue*/, unsigned int /*paramcount*/)
 	{
 		static DWORD Scr_NotifyId_t = 0x61E670;
 
 		__asm
 		{
 			pushad
-			mov eax, paramcount
-			push stringValue
-			push id
+
+			mov eax, [esp + 0x20 + 0xC] // paramcount
+			push [esp + 0x20 + 0x8] // stringValue
+			push [esp + 0x20 + 0x8] // id
 			call Scr_NotifyId_t
-			add esp, 8h
+			add esp, 0x8
+
 			popad
 		}
 	}
