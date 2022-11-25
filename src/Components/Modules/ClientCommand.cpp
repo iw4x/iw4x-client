@@ -37,9 +37,9 @@ namespace Components
 	{
 		const auto ent = &Game::g_entities[clientNum];
 
-		if (ent->client == nullptr)
+		if (!ent->client)
 		{
-			Logger::Debug("ClientCommand: client {} is not fully in game yet", clientNum);
+			Logger::Debug("ClientCommand: client {} is not fully connected", clientNum);
 			return;
 		}
 
@@ -129,7 +129,7 @@ namespace Components
 
 		Add("setviewpos", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			assert(ent != nullptr);
+			assert(ent);
 
 			if (!CheatsOk(ent))
 				return;
@@ -245,7 +245,7 @@ namespace Components
 
 		Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			assert(ent->client != nullptr);
+			assert(ent->client);
 			assert(ent->client->sess.connected != Game::CON_DISCONNECTED);
 
 			if (ent->client->sess.sessionState != Game::SESS_STATE_PLAYING || !CheatsOk(ent))
@@ -299,7 +299,7 @@ namespace Components
 				duration = static_cast<int>(std::floorf(input * 1000.0f + 0.5f));
 			}
 
-			assert(ent->client != nullptr);
+			assert(ent->client);
 
 			constexpr auto visMode = Game::visionSetMode_t::VISIONSET_NORMAL;
 			const auto* name = params->get(1);
@@ -327,7 +327,7 @@ namespace Components
 				duration = static_cast<int>(std::floorf(input * 1000.0f + 0.5f));
 			}
 
-			assert(ent->client != nullptr);
+			assert(ent->client);
 
 			constexpr auto visMode = Game::visionSetMode_t::VISIONSET_NIGHT;
 			const auto* name = params->get(1);
@@ -342,7 +342,7 @@ namespace Components
 
 		Add("g_testCmd", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			assert(ent != nullptr);
+			assert(ent);
 
 			ent->client->ps.stunTime = 1000 + Game::level->time; // 1000 is the default test stun time
 			Logger::Debug("playerState_s.stunTime is {}", ent->client->ps.stunTime);
@@ -464,9 +464,11 @@ namespace Components
 
 			const auto* line = EntInfoLine(i);
 			const auto lineLen = std::strlen(line);
+
 			assert(line);
 			assert(lineLen);
-			Game::FS_Write(line, lineLen, h);
+
+			Game::FS_Write(line, static_cast<int>(lineLen), h);
 		}
 
 		Game::FS_FCloseFile(h);
