@@ -352,7 +352,7 @@ namespace Components
 			info.set("shortversion", SHORTVERSION);
 			info.set("checksum", std::to_string(Game::Sys_Milliseconds()));
 			info.set("mapname", Dvar::Var("mapname").get<std::string>());
-			info.set("isPrivate", password.empty() ? "1" : "0");
+			info.set("isPrivate", password.empty() ? "0" : "1");
 			info.set("hc", (Dvar::Var("g_hardcore").get<bool>() ? "1" : "0"));
 			info.set("securityLevel", std::to_string(securityLevel));
 			info.set("sv_running", (Dedicated::IsRunning() ? "1" : "0"));
