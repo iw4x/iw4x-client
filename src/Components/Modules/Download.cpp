@@ -1,5 +1,4 @@
 #include <STDInclude.hpp>
-#include "GSC/Script.hpp"
 
 #include <mongoose.h>
 
@@ -715,9 +714,6 @@ namespace Components
 			Dvar::Register<bool>("sv_wwwDownload", false, Game::DVAR_NONE, "Set to true to enable downloading maps/mods from an external server.");
 			Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::DVAR_NONE, "Set to the base url for the external map download.");
 		}, Scheduler::Pipeline::MAIN);
-
-		Script::AddFunction("HttpGet", Script::ShowDeprecationWarning);
-		Script::AddFunction("HttpCancel", Script::ShowDeprecationWarning);
 	}
 
 	Download::~Download()

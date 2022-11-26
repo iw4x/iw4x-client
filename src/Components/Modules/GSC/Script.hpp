@@ -14,8 +14,6 @@ namespace Components
 
 		static const char* GetCodePosForParam(int index);
 
-		static void ShowDeprecationWarning();
-
 		// Probably a macro 'originally' but this is fine
 		static Game::gentity_s* Scr_GetPlayerEntity(Game::scr_entref_t entref)
 		{

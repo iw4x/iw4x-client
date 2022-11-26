@@ -1,5 +1,4 @@
 #include <STDInclude.hpp>
-#include "Game/Engine/LargeLocal.hpp"
 
 namespace Components
 {
