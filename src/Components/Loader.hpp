@@ -106,6 +106,7 @@ namespace Components
 #include "Modules/Gametypes.hpp"
 #include "Modules/Materials.hpp"
 #include "Modules/Singleton.hpp"
+#include "Modules/Threading.hpp"
 #include "Modules/CardTitles.hpp"
 #include "Modules/FileSystem.hpp"
 #include "Modules/ModelSurfs.hpp"
