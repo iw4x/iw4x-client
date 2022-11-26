@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
 
+#include <version.hpp>
+
 namespace Components
 {
 	ServerInfo::Container ServerInfo::PlayerContainer;
@@ -129,6 +131,7 @@ namespace Components
 	Utils::InfoString ServerInfo::GetInfo()
 	{
 		auto maxClientCount = *Game::svs_clientCount;
+		const auto password = Dvar::Var("g_password").get<std::string>();
 
 		if (!maxClientCount)
 		{
@@ -137,12 +140,12 @@ namespace Components
 
 		Utils::InfoString info(Game::Dvar_InfoString_Big(Game::DVAR_SERVERINFO));
 		info.set("gamename", "IW4");
-		info.set("sv_maxclients", Utils::String::VA("%i", maxClientCount));
-		info.set("protocol", Utils::String::VA("%i", PROTOCOL));
+		info.set("sv_maxclients", std::to_string(maxClientCount));
+		info.set("protocol", std::to_string(PROTOCOL));
 		info.set("shortversion", SHORTVERSION);
 		info.set("version", (*Game::version)->current.string);
 		info.set("mapname", (*Game::sv_mapname)->current.string);
-		info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().empty() ? "0" : "1"));
+		info.set("isPrivate", password.empty() ? "0" : "1");
 		info.set("checksum", Utils::String::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::String::VA("%u", Game::Sys_Milliseconds()))));
 		info.set("aimAssist", (Gamepad::sv_allowAimAssist.get<bool>() ? "1" : "0"));
 		info.set("voiceChat", (Voice::SV_VoiceEnabled() ? "1" : "0"));

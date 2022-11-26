@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
 
+#include <version.hpp>
+
 #define NEWS_MOTD_DEFAULT "Welcome to IW4x Multiplayer!"
 
 namespace Components

@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
 
+#include <version.hpp>
+
 namespace Components
 {
 	bool ServerList::SortAsc = true;
@@ -574,8 +576,7 @@ namespace Components
 					}
 				}
 
-				if (info.get("gamename") == "IW4"
-					&& server.matchType
+				if (info.get("gamename") == "IW4"s && server.matchType
 #if !defined(DEBUG) && defined(VERSION_FILTER)
 					&& ServerList::CompareVersion(server.shortversion, SHORTVERSION)
 #endif

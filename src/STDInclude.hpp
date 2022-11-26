@@ -1,8 +1,5 @@
 #pragma once
 
-// Version number
-#include "version.h"
-
 #ifndef RC_INVOKED
 
 #define VC_EXTRALEAN

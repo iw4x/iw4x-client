@@ -367,20 +367,6 @@ namespace Components
 		// fs_basegame
 		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
 
-		// console title
-		if (ZoneBuilder::IsEnabled())
-		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): ZoneBuilder");
-		}
-		else if (Dedicated::IsEnabled())
-		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Dedicated");
-		}
-		else
-		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Console");
-		}
-
 		// window title
 		Utils::Hook::Set<const char*>(0x5076A0, "IW4x: Multiplayer");
 

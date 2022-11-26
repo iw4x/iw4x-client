@@ -1,5 +1,11 @@
 ﻿#include <STDInclude.hpp>
-#undef MOUSE_MOVED
+
+#include <version.hpp>
+
+#ifdef MOUSE_MOVED
+	#undef MOUSE_MOVED
+#endif
+
 #include <curses.h>
 
 #define REMOVE_HEADERBAR 1

@@ -1,4 +1,7 @@
 #include <STDInclude.hpp>
+
+#include <version.hpp>
+
 #include "AssetInterfaces/ILocalizeEntry.hpp"
 
 namespace Components

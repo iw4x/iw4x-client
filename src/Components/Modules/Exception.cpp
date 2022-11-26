@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
 
+#include <version.hpp>
+
 namespace Components
 {
 	Utils::Hook Exception::SetFilterHook;
