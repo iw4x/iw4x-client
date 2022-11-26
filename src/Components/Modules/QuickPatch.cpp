@@ -332,9 +332,6 @@ namespace Components
 		// Fix crash as nullptr goes unchecked
 		Utils::Hook(0x437CAD, QuickPatch::SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
 
-		// Make VA thread safe
-		Utils::Hook(0x4785B0, Utils::String::VA, HOOK_JUMP).install()->quick();
-
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
 

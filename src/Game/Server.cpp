@@ -20,6 +20,7 @@ namespace Game
 	SV_FindClientByAddress_t SV_FindClientByAddress = SV_FindClientByAddress_t(0x44F450);
 
 	int* svs_time = reinterpret_cast<int*>(0x31D9384);
+	int* sv_timeResidual = reinterpret_cast<int*>(0x2089E14);
 	int* sv_serverId_value = reinterpret_cast<int*>(0x2089DC0);
 	int* svs_clientCount = reinterpret_cast<int*>(0x31D938C);
 	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);

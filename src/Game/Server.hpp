@@ -53,6 +53,7 @@ namespace Game
 	constexpr auto MAX_STATPACKETS = 7;
 
 	extern int* svs_time;
+	extern int* sv_timeResidual;
 	extern int* sv_serverId_value;
 	extern int* svs_clientCount;
 	extern client_t* svs_clients;
