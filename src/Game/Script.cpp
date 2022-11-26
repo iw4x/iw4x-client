@@ -122,6 +122,7 @@ namespace Game
 			add esp, 0x8
 
 			popad
+			ret
 		}
 	}
 }
