@@ -272,6 +272,7 @@ namespace Game
 		CS_VOTE_NO = 0x14,
 		CS_VOTE_MAPNAME = 0x15,
 		CS_VOTE_GAMETYPE = 0x16,
+		CS_SHELLSHOCKS = 0x985,
 		CS_ITEMS = 0x102A,
 	}; // Incomplete
 
@@ -1288,6 +1289,14 @@ namespace Game
 		int fxDecayDuration;
 		int soundID;
 		int flags;
+	};
+
+	struct game_hudelem_s
+	{
+		hudelem_s elem;
+		int clientNum;
+		int team;
+		int archived;
 	};
 
 	enum

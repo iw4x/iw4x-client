@@ -12,7 +12,11 @@ namespace Game
 	G_PrintEntities_t G_PrintEntities = G_PrintEntities_t(0x4E6A50);
 	G_GetEntityTypeName_t G_GetEntityTypeName = G_GetEntityTypeName_t(0x4EB810);
 
+	G_LocalizedStringIndex_t G_LocalizedStringIndex = G_LocalizedStringIndex_t(0x4582F0);
+
 	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
+
+	const char* origErrorMsg = reinterpret_cast<const char*>(0x79B124);
 
 	XModel* G_GetModel(const int index)
 	{

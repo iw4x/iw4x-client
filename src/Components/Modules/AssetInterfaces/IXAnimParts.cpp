@@ -39,7 +39,7 @@ namespace Assets
 					xanim->names = builder->getAllocator()->allocateArray<unsigned short>(xanim->boneCount[Game::PART_TYPE_ALL]);
 					for (int i = 0; i < xanim->boneCount[Game::PART_TYPE_ALL]; ++i)
 					{
-						xanim->names[i] = Game::SL_GetString(reader.readCString(), 0);
+						xanim->names[i] = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
 					}
 				}
 
@@ -49,7 +49,7 @@ namespace Assets
 
 					for (int i = 0; i < xanim->notifyCount; ++i)
 					{
-						xanim->notify[i].name = Game::SL_GetString(reader.readCString(), 0);
+						xanim->notify[i].name = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
 					}
 				}
 

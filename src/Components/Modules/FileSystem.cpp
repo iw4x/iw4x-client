@@ -78,19 +78,19 @@ namespace Components
 		Utils::Memory::Allocator allocator;
 		if (!this->exists()) return std::string();
 
-		int position = Game::FS_FTell(this->handle);
+		const auto position = Game::FS_FTell(this->handle);
 		this->seek(0, Game::FS_SEEK_SET);
 
 		char* buffer = allocator.allocateArray<char>(this->size);
 		if (!this->read(buffer, this->size))
 		{
 			this->seek(position, Game::FS_SEEK_SET);
-			return std::string();
+			return {};
 		}
 
 		this->seek(position, Game::FS_SEEK_SET);
 
-		return std::string(buffer, this->size);
+		return {buffer, static_cast<std::size_t>(this->size)};
 	}
 
 	bool FileSystem::FileReader::read(void* buffer, size_t _size)

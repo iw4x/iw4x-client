@@ -119,10 +119,10 @@ namespace Game
 	typedef int(*Scr_GetPointerType_t)(unsigned int index);
 	extern Scr_GetPointerType_t Scr_GetPointerType;
 
-	typedef void(*Scr_Error_t)(const char*);
+	typedef void(*Scr_Error_t)(const char* error);
 	extern Scr_Error_t Scr_Error;
 
-	typedef void(*Scr_ObjectError_t)(const char*);
+	typedef void(*Scr_ObjectError_t)(const char* error);
 	extern Scr_ObjectError_t Scr_ObjectError;
 
 	typedef void(*Scr_ParamError_t)(unsigned int paramIndex, const char*);
@@ -143,11 +143,38 @@ namespace Game
 	typedef void(*Scr_AddClassField_t)(unsigned int classnum, const char* name, unsigned int offset);
 	extern Scr_AddClassField_t Scr_AddClassField;
 
+	typedef void(*Scr_ConstructMessageString_t)(int firstParmIndex, int lastParmIndex, const char* errorContext, char* string, unsigned int stringLimit);
+	extern Scr_ConstructMessageString_t Scr_ConstructMessageString;
+
+	typedef void(*Scr_FreeHudElemConstStrings_t)(game_hudelem_s* hud);
+	extern Scr_FreeHudElemConstStrings_t Scr_FreeHudElemConstStrings;
+
 	typedef gentity_s*(*GetPlayerEntity_t)(scr_entref_t entref);
 	extern GetPlayerEntity_t GetPlayerEntity;
 
 	typedef gentity_s*(*GetEntity_t)(scr_entref_t entref);
 	extern GetEntity_t GetEntity;
+
+	typedef const char*(*SL_ConvertToString_t)(scr_string_t stringValue);
+	extern SL_ConvertToString_t SL_ConvertToString;
+
+	typedef unsigned int(*SL_GetString_t)(const char* str, unsigned int user);
+	extern SL_GetString_t SL_GetString;
+
+	typedef unsigned int(*SL_GetString__t)(const char* str, unsigned int user, int type);
+	extern SL_GetString__t SL_GetString_;
+
+	typedef unsigned int(*SL_FindString_t)(const char* name);
+	extern SL_FindString_t SL_FindString;
+
+	typedef unsigned int(*SL_FindLowercaseString_t)(const char* str);
+	extern SL_FindLowercaseString_t SL_FindLowercaseString;
+
+	typedef void(*SL_AddRefToString_t)(unsigned int stringValue);
+	extern SL_AddRefToString_t SL_AddRefToString;
+
+	typedef void(*SL_RemoveRefToString_t)(unsigned int stringValue);
+	extern SL_RemoveRefToString_t SL_RemoveRefToString;
 
 	extern void IncInParam();
 
@@ -161,4 +188,6 @@ namespace Game
 
 	extern scrVmPub_t* scrVmPub;
 	extern scrVarPub_t* scrVarPub;
+
+	extern game_hudelem_s* g_hudelems;
 }

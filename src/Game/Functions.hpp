@@ -389,18 +389,6 @@ namespace Game
 	typedef int(*SEH_GetCurrentLanguage_t)();
 	extern SEH_GetCurrentLanguage_t SEH_GetCurrentLanguage;
 
-	typedef const char*(*SL_ConvertToString_t)(scr_string_t stringValue);
-	extern SL_ConvertToString_t SL_ConvertToString;
-
-	typedef short(*SL_GetString_t)(const char *str, unsigned int user);
-	extern SL_GetString_t SL_GetString;
-
-	typedef void(*SL_AddRefToString_t)(unsigned int stringValue);
-	extern SL_AddRefToString_t SL_AddRefToString;
-
-	typedef void(*SL_RemoveRefToString_t)(unsigned int stringValue);
-	extern SL_RemoveRefToString_t SL_RemoveRefToString;
-
 	typedef void(*SND_Init_t)(int a1, int a2, int a3);
 	extern SND_Init_t SND_Init;
 

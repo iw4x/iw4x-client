@@ -576,7 +576,7 @@ namespace Components
 
 	int ZoneBuilder::Zone::addScriptString(const std::string& str)
 	{
-		return this->addScriptString(Game::SL_GetString(str.data(), 0));
+		return this->addScriptString(static_cast<std::uint16_t>(Game::SL_GetString(str.data(), 0)));
 	}
 
 	// Mark a scriptString for writing and map it.

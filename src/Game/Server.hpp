@@ -29,6 +29,9 @@ namespace Game
 	typedef void(*SV_SetConfigstring_t)(int index, const char* string);
 	extern SV_SetConfigstring_t SV_SetConfigstring;
 
+	typedef unsigned int(*SV_GetConfigstringConst_t)(int index);
+	extern SV_GetConfigstringConst_t SV_GetConfigstringConst;
+
 	typedef void(*SV_DirectConnect_t)(netadr_t adr);
 	extern SV_DirectConnect_t SV_DirectConnect;
 
@@ -57,6 +60,9 @@ namespace Game
 	extern int* sv_serverId_value;
 	extern int* svs_clientCount;
 	extern client_t* svs_clients;
+
+	extern unsigned short* sv_sconfigstrings;
+	extern unsigned short* sv_emptyConfigString;
 
 	extern volatile long* sv_thread_owns_game;
 

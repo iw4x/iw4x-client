@@ -168,11 +168,6 @@ namespace Game
 	Dvar_SetFloat_t Dvar_SetFloat = Dvar_SetFloat_t(0x40BB20);
 	Dvar_SetInt_t Dvar_SetInt = Dvar_SetInt_t(0x421DA0);
 
-	SL_ConvertToString_t SL_ConvertToString = SL_ConvertToString_t(0x4EC1D0);
-	SL_GetString_t SL_GetString = SL_GetString_t(0x4CDC10);
-	SL_AddRefToString_t SL_AddRefToString = SL_AddRefToString_t(0x4D9B00);
-	SL_RemoveRefToString_t SL_RemoveRefToString = SL_RemoveRefToString_t(0x47CD70);
-
 	SND_Init_t SND_Init = SND_Init_t(0x46A630);
 	SND_InitDriver_t SND_InitDriver = SND_InitDriver_t(0x4F5090);
 

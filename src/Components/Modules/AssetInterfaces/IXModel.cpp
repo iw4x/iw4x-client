@@ -128,7 +128,7 @@ namespace Assets
 
 				for (char i = 0; i < asset->numBones; ++i)
 				{
-					asset->boneNames[i] = Game::SL_GetString(reader.readCString(), 0);
+					asset->boneNames[i] = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
 				}
 			}
 

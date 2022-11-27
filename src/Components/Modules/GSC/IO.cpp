@@ -126,7 +126,7 @@ namespace Components
 				}
 			}
 
-			const auto p = "scriptdata" / std::filesystem::path(path);
+			const auto p = "scriptdata"s / std::filesystem::path(path);
 			const auto folder = p.parent_path().string();
 			const auto file = p.filename().string();
 			Game::Scr_AddInt(FileSystem::_DeleteFile(folder, file));

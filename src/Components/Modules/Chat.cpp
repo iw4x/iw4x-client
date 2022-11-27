@@ -73,7 +73,7 @@ namespace Components
 
 		Game::Scr_AddEntity(player);
 		Game::Scr_AddString(text + msgIndex);
-		Game::Scr_NotifyLevel(Game::SL_GetString("say", 0), 2);
+		Game::Scr_NotifyLevel(static_cast<std::uint16_t>(Game::SL_GetString("say", 0)), 2);
 
 		return text;
 	}

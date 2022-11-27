@@ -96,13 +96,13 @@ namespace Components
 				{
 					Game::Scr_AddString("autoassign");
 					Game::Scr_AddString("team_marinesopfor");
-					Game::Scr_Notify(ent, Game::SL_GetString("menuresponse", 0), 2);
+					Game::Scr_Notify(ent, static_cast<std::uint16_t>(Game::SL_GetString("menuresponse", 0)), 2);
 
 					Scheduler::Once([ent]
 					{
 						Game::Scr_AddString(Utils::String::VA("class%u", Utils::Cryptography::Rand::GenerateInt() % 5u));
 						Game::Scr_AddString("changeclass");
-						Game::Scr_Notify(ent, Game::SL_GetString("menuresponse", 0), 2);
+						Game::Scr_Notify(ent, static_cast<std::uint16_t>(Game::SL_GetString("menuresponse", 0)), 2);
 					}, Scheduler::Pipeline::SERVER, 1s);
 
 				}, Scheduler::Pipeline::SERVER, 1s);

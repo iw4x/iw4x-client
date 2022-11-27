@@ -56,6 +56,10 @@ namespace Game
 	Scr_SetClientField_t Scr_SetClientField = Scr_SetClientField_t(0x4A6DF0);
 	Scr_AddClassField_t Scr_AddClassField = Scr_AddClassField_t(0x4C0E70);
 
+	Scr_ConstructMessageString_t Scr_ConstructMessageString = Scr_ConstructMessageString_t(0x45F940);
+
+	Scr_FreeHudElemConstStrings_t Scr_FreeHudElemConstStrings = Scr_FreeHudElemConstStrings_t(0x5E1120);
+
 	GetEntity_t GetEntity = GetEntity_t(0x4BC270);
 	GetPlayerEntity_t GetPlayerEntity = GetPlayerEntity_t(0x49C4A0);
 
@@ -63,10 +67,20 @@ namespace Game
 	Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode = Scr_ShutdownAllocNode_t(0x441650);
 	Scr_IsSystemActive_t Scr_IsSystemActive = Scr_IsSystemActive_t(0x4B24E0);
 
+	SL_ConvertToString_t SL_ConvertToString = SL_ConvertToString_t(0x4EC1D0);
+	SL_GetString_t SL_GetString = SL_GetString_t(0x4CDC10);
+	SL_GetString__t  SL_GetString_ = SL_GetString__t(0x47E310);
+	SL_FindString_t SL_FindString = SL_FindString_t(0x434EE0);
+	SL_FindLowercaseString_t SL_FindLowercaseString = SL_FindLowercaseString_t(0x4C63E0);
+	SL_AddRefToString_t SL_AddRefToString = SL_AddRefToString_t(0x4D9B00);
+	SL_RemoveRefToString_t SL_RemoveRefToString = SL_RemoveRefToString_t(0x47CD70);
+
 	scr_const_t* scr_const = reinterpret_cast<scr_const_t*>(0x1AA2E00);
 
 	scrVmPub_t* scrVmPub = reinterpret_cast<scrVmPub_t*>(0x2040CF0);
 	scrVarPub_t* scrVarPub = reinterpret_cast<scrVarPub_t*>(0x201A408);
+
+	game_hudelem_s* g_hudelems = reinterpret_cast<game_hudelem_s*>(0x18565A8);
 
 	void IncInParam()
 	{
