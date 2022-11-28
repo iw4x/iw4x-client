@@ -166,6 +166,13 @@ namespace Components
 			}
 		}
 
+		if (!menu->window.name)
+		{
+			allocator->free(menu->items);
+			allocator->free(menu);
+			return nullptr;
+		}
+
 		Menus::OverrideMenu(menu);
 		Menus::RemoveMenu(menu->window.name);
 		Menus::MenuList[menu->window.name] = menu;

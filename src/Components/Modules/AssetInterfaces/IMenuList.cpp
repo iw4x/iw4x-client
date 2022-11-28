@@ -12,7 +12,7 @@ namespace Assets
 		if (menus.empty()) return;
 
 		// Allocate new menu list
-		Game::MenuList* newList = allocator->allocate<Game::MenuList>();
+		auto* newList = allocator->allocate<Game::MenuList>();
 		if (!newList) return;
 
 		newList->menus = allocator->allocateArray<Game::menuDef_t*>(menus.size());
@@ -35,7 +35,7 @@ namespace Assets
 	}
 	void IMenuList::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Game::MenuList *asset = header.menuList;
+		auto* asset = header.menuList;
 
 		for (int i = 0; i < asset->menuCount; ++i)
 		{
@@ -51,7 +51,7 @@ namespace Assets
 
 		Utils::Stream* buffer = builder->getBuffer();
 		Game::MenuList* asset = header.menuList;
-		Game::MenuList* dest = buffer->dest<Game::MenuList>();
+		auto* dest = buffer->dest<Game::MenuList>();
 
 		buffer->save(asset);
 
@@ -67,7 +67,7 @@ namespace Assets
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
 
-			Game::menuDef_t **destMenus = buffer->dest<Game::menuDef_t*>();
+			auto** destMenus = buffer->dest<Game::menuDef_t*>();
 			buffer->saveArray(asset->menus, asset->menuCount);
 
 			for (int i = 0; i < asset->menuCount; ++i)
