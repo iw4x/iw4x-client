@@ -104,10 +104,10 @@ namespace Game
 	typedef void(*Key_RemoveCatcher_t)(int localClientNum, int andMask);
 	extern Key_RemoveCatcher_t Key_RemoveCatcher;
 
-	typedef bool(*Key_IsKeyCatcherActive_t)(int localClientNum, int catcher);
-	extern Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive;
+	typedef bool(*Key_IsCatcherActive_t)(int localClientNum, int mask);
+	extern Key_IsCatcherActive_t Key_IsCatcherActive;
 
-	typedef void(*Key_SetBinding_t)(int localClientNum, int keyNum, const char* binding);
+	typedef void(*Key_SetBinding_t)(int localClientNum, int keynum, const char* binding);
 	extern Key_SetBinding_t Key_SetBinding;
 
 	typedef void(*LargeLocalInit_t)();

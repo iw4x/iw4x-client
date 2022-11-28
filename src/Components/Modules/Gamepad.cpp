@@ -788,7 +788,7 @@ namespace Components
 
 	bool Gamepad::CG_ShouldUpdateViewAngles(const int localClientNum)
 	{
-		return !Game::Key_IsKeyCatcherActive(localClientNum, Game::KEYCATCH_MASK_ANY) || Game::UI_GetActiveMenu(localClientNum) == Game::UIMENU_SCOREBOARD;
+		return !Game::Key_IsCatcherActive(localClientNum, Game::KEYCATCH_MASK_ANY) || Game::UI_GetActiveMenu(localClientNum) == Game::UIMENU_SCOREBOARD;
 	}
 
 	float Gamepad::CL_GamepadAxisValue(const int gamePadIndex, const Game::GamepadVirtualAxis virtualAxis)
@@ -1096,7 +1096,7 @@ namespace Components
 
 		auto& gamePadGlobal = gamePadGlobals[gamePadIndex];
 
-		if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
+		if (Game::Key_IsCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
 		{
 			const int scrollDelayFirst = gpad_menu_scroll_delay_first.get<int>();
 			const int scrollDelayRest = gpad_menu_scroll_delay_rest.get<int>();
@@ -1149,7 +1149,7 @@ namespace Components
 		if (pressedOrUpdated && CL_CheckForIgnoreDueToRepeat(gamePadIndex, key, keyState.keys[key].repeats, time))
 			return;
 
-		if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_LOCATION_SELECTION) && pressedOrUpdated)
+		if (Game::Key_IsCatcherActive(gamePadIndex, Game::KEYCATCH_LOCATION_SELECTION) && pressedOrUpdated)
 		{
 			if (key == Game::K_BUTTON_B || keyState.keys[key].binding && strcmp(keyState.keys[key].binding, "+actionslot 4") == 0)
 			{
@@ -1176,7 +1176,7 @@ namespace Components
 		char cmd[1024];
 		if (pressedOrUpdated)
 		{
-			if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
+			if (Game::Key_IsCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
 			{
 				UI_GamepadKeyEvent(gamePadIndex, key, pressedOrUpdated);
 				return;
@@ -1203,7 +1203,7 @@ namespace Components
 				Game::Cbuf_AddText(gamePadIndex, cmd);
 			}
 
-			if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
+			if (Game::Key_IsCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
 			{
 				UI_GamepadKeyEvent(gamePadIndex, key, pressedOrUpdated);
 			}
@@ -1218,7 +1218,7 @@ namespace Components
 		gamePad.inUse = true;
 		gpad_in_use.setRaw(true);
 
-		if (Game::Key_IsKeyCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
+		if (Game::Key_IsCatcherActive(gamePadIndex, Game::KEYCATCH_UI))
 			CL_GamepadResetMenuScrollTime(gamePadIndex, key, buttonEvent == Game::GPAD_BUTTON_PRESSED, time);
 
 

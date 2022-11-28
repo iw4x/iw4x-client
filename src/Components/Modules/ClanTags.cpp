@@ -70,9 +70,7 @@ namespace Components
 
 	void ClanTags::CL_SanitizeClanName()
 	{
-		char saneNameBuf[5];
-		std::memset(saneNameBuf, 0, sizeof(saneNameBuf));
-
+		char saneNameBuf[5]{};
 		auto* saneName = saneNameBuf;
 		
 		assert(ClanName);

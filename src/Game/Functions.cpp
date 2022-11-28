@@ -52,7 +52,7 @@ namespace Game
 
 	Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x43BD00);
 	Key_RemoveCatcher_t Key_RemoveCatcher = Key_RemoveCatcher_t(0x408260);
-	Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive = Key_IsKeyCatcherActive_t(0x4DA010);
+	Key_IsCatcherActive_t Key_IsCatcherActive = Key_IsCatcherActive_t(0x4DA010);
 	Key_SetBinding_t Key_SetBinding = Key_SetBinding_t(0x494C90);
 
 	LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x4A62A0);

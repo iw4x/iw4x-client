@@ -9,7 +9,7 @@ namespace Components
 	{
 		if (this->isValid())
 		{
-			return std::atoi(this->token);
+			return std::strtol(this->token, nullptr, 0);
 		}
 
 		return 0;
@@ -49,22 +49,22 @@ namespace Components
 		return &Game::uiInfoArray[localClientNum];
 	}
 
-	void UIScript::Add(const std::string& name, const UIScript::UIScriptHandler& callback)
+	void UIScript::Add(const std::string& name, const UIScriptHandler& callback)
 	{
-		UIScript::UIScripts[name] = callback;
+		UIScripts[name] = callback;
 	}
 
 	void UIScript::AddOwnerDraw(int ownerdraw, const std::function<void()>& callback)
 	{
-		UIScript::UIOwnerDraws[ownerdraw] = callback;
+		UIOwnerDraws[ownerdraw] = callback;
 	}
 
 	bool UIScript::RunMenuScript(const char* name, const char** args)
 	{
-		if (const auto itr = UIScript::UIScripts.find(name); itr != UIScript::UIScripts.end())
+		if (const auto itr = UIScripts.find(name); itr != UIScripts.end())
 		{
-			const auto* info = UIScript::UI_GetClientInfo(0);
-			itr->second(UIScript::Token(args), info);
+			const auto* info = UI_GetClientInfo(0);
+			itr->second(Token(args), info);
 			return true;
 		}
 
@@ -75,7 +75,7 @@ namespace Components
 	{
 		if (key == 200 || key == 201) // mouse buttons
 		{
-			for (auto i = UIScript::UIOwnerDraws.begin(); i != UIScript::UIOwnerDraws.end(); ++i)
+			for (auto i = UIOwnerDraws.begin(); i != UIOwnerDraws.end(); ++i)
 			{
 				if (i->first == ownerDraw)
 				{
@@ -93,12 +93,12 @@ namespace Components
 		{
 			mov eax, esp
 			add eax, 8h
-			mov edx, eax           // UIScript name
+			mov edx, eax // UIScript name
 			mov eax, [esp + 0C10h] // UIScript args
 
 			push eax
 			push edx
-			call UIScript::RunMenuScript
+			call RunMenuScript
 			add esp, 8h
 
 			test al, al
@@ -116,6 +116,11 @@ namespace Components
 		}
 	}
 
+	bool UIScript::CL_IsUIActive_Hk(const int localClientNum)
+	{
+		return Game::Key_IsCatcherActive(localClientNum, Game::KEYCATCH_UI) || Game::cgsArray->hardcore;
+	}
+
 	UIScript::UIScript()
 	{
 		AssertSize(Game::uiInfo_s, 0x22FC);
@@ -123,15 +128,17 @@ namespace Components
 		if (Dedicated::IsEnabled()) return;
 
 		// Install handler
-		Utils::Hook::RedirectJump(0x45EC59, UIScript::RunMenuScriptStub);
+		Utils::Hook::RedirectJump(0x45EC59, RunMenuScriptStub);
 
 		// Install ownerdraw handler
-		Utils::Hook(0x63D233, UIScript::OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x63D233, OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x62B397, CL_IsUIActive_Hk, HOOK_CALL).install()->quick();
 	}
 
 	UIScript::~UIScript()
 	{
-		UIScript::UIScripts.clear();
-		UIScript::UIOwnerDraws.clear();
+		UIScripts.clear();
+		UIOwnerDraws.clear();
 	}
 }
