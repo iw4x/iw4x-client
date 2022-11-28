@@ -308,6 +308,27 @@ namespace Components
 		}
 	}
 
+	void Debug::Com_BugNameInc_f()
+	{
+		char buf[260]{};
+
+		if (std::strlen(BugName->current.string) < 4)
+		{
+			Game::Dvar_SetString(BugName, "bug0");
+			return;
+		}
+
+		if (strncmp(BugName->current.string, "bug", 3) != 0)
+		{
+			Game::Dvar_SetString(BugName, "bug0");
+			return;
+		}
+
+		const auto n = std::strtol(BugName->current.string + 3, nullptr, 10);
+		sprintf_s(buf, "bug%d", n + 1);
+		Game::Dvar_SetString(BugName, buf);
+	}
+
 	void Debug::CL_InitDebugDvars()
 	{
 		static const char* debugOverlayNames_0[] =
@@ -338,6 +359,7 @@ namespace Components
 
 #ifdef _DEBUG
 		Command::Add("bug", Com_Bug_f);
+		Command::Add("bug_name_inc", Com_BugNameInc_f);
 #endif
 	}
 }

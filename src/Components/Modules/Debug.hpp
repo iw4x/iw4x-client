@@ -43,6 +43,7 @@ namespace Components
 
 		static void Com_Assert_f();
 		static void Com_Bug_f(Command::Params* params);
+		static void Com_BugNameInc_f();
 
 		static void CL_InitDebugDvars();
 	};
