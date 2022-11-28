@@ -58,4 +58,10 @@ namespace Game
 
 		return cl_voiceCommunication;
 	}
+
+	clientUIActive_t* CL_GetLocalClientUIGlobals(const int localClientNum)
+	{
+		AssertIn(localClientNum, MAX_LOCAL_CLIENTS);
+		return &clientUIActives[localClientNum];
+	}
 }
