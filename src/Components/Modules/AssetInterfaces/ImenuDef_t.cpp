@@ -20,7 +20,7 @@ namespace Assets
 
 	void ImenuDef_t::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		Game::menuDef_t *asset = header.menu;
+		auto* asset = header.menu;
 
 		if (asset->window.background)
 		{
@@ -59,14 +59,14 @@ namespace Assets
 
 		buffer->align(Utils::Stream::ALIGN_4);
 
-		Game::ExpressionSupportingData *dest = buffer->dest<Game::ExpressionSupportingData>();
+		auto* dest = buffer->dest<Game::ExpressionSupportingData>();
 		buffer->save(asset);
 
 		if (asset->uifunctions.functions)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
 
-			Game::Statement_s **destStatement = buffer->dest<Game::Statement_s*>();
+			auto** destStatement = buffer->dest<Game::Statement_s*>();
 			buffer->saveArray(asset->uifunctions.functions, asset->uifunctions.totalFunctions);
 
 			for (int i = 0; i < asset->uifunctions.totalFunctions; ++i)
@@ -87,17 +87,17 @@ namespace Assets
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
 
-			Game::StaticDvar **destStaticDvars = buffer->dest<Game::StaticDvar*>();
+			auto** destStaticDvars = buffer->dest<Game::StaticDvar*>();
 			buffer->saveArray(asset->staticDvarList.staticDvars, asset->staticDvarList.numStaticDvars);
 
-			for (int i = 0; i < asset->staticDvarList.numStaticDvars; ++i)
+			for (auto i = 0; i < asset->staticDvarList.numStaticDvars; ++i)
 			{
 				if (asset->staticDvarList.staticDvars[i])
 				{
 					Utils::Stream::ClearPointer(&destStaticDvars[i]);
 
 					buffer->align(Utils::Stream::ALIGN_4);
-					Game::StaticDvar *destStaticDvar = buffer->dest<Game::StaticDvar>();
+					auto* destStaticDvar = buffer->dest<Game::StaticDvar>();
 					buffer->save(asset->staticDvarList.staticDvars[i]);
 
 					if (asset->staticDvarList.staticDvars[i]->dvarName)
@@ -115,7 +115,7 @@ namespace Assets
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
 
-			const char **destuiStrings = buffer->dest<const char*>();
+			const auto** destUIStrings = buffer->dest<const char*>();
 			buffer->saveArray(asset->uiStrings.strings, asset->uiStrings.totalStrings);
 
 			for (int i = 0; i < asset->uiStrings.totalStrings; ++i)
@@ -123,7 +123,7 @@ namespace Assets
 				if (asset->uiStrings.strings[i])
 				{
 					buffer->saveString(asset->uiStrings.strings[i]);
-					Utils::Stream::ClearPointer(&destuiStrings[i]);
+					Utils::Stream::ClearPointer(&destUIStrings[i]);
 				}
 			}
 		}
@@ -143,7 +143,7 @@ namespace Assets
 #endif
 
 		// Write header data
-		Game::Statement_s *dest = buffer->dest<Game::Statement_s>();
+		auto* dest = buffer->dest<Game::Statement_s>();
 		buffer->save(asset);
 
 		// Write statement entries
@@ -155,7 +155,7 @@ namespace Assets
 			buffer->align(Utils::Stream::ALIGN_4);
 
 			// Write entries
-			Game::expressionEntry *destEntries = buffer->dest<Game::expressionEntry>();
+			auto* destEntries = buffer->dest<Game::expressionEntry>();
 			buffer->save(asset->entries, sizeof(Game::expressionEntry), asset->numEntries);
 
 			// Loop through entries
@@ -222,7 +222,7 @@ namespace Assets
 #endif
 
 		// Write header data
-		Game::MenuEventHandlerSet *destset = buffer->dest<Game::MenuEventHandlerSet>();
+		auto* destset = buffer->dest<Game::MenuEventHandlerSet>();
 		buffer->save(asset);
 
 		// Event handlers
@@ -234,7 +234,7 @@ namespace Assets
 			buffer->save(asset->eventHandlers, sizeof(Game::MenuEventHandler*), asset->eventHandlerCount);
 
 			// Loop through eventHandlers
-			for (int i = 0; i < asset->eventHandlerCount; ++i)
+			for (auto i = 0; i < asset->eventHandlerCount; ++i)
 			{
 				if (asset->eventHandlers[i])
 				{
@@ -244,7 +244,7 @@ namespace Assets
 #endif
 
 					// Write menu event handler
-					Game::MenuEventHandler *dest = buffer->dest<Game::MenuEventHandler>();
+					auto* dest = buffer->dest<Game::MenuEventHandler>();
 					buffer->save(asset->eventHandlers[i]);
 
 					// Write additional data based on type
@@ -264,7 +264,7 @@ namespace Assets
 						if (asset->eventHandlers[i]->eventData.conditionalScript)
 						{
 							buffer->align(Utils::Stream::ALIGN_4);
-							Game::ConditionalScript *destConditionalScript = buffer->dest<Game::ConditionalScript>();
+							auto* destConditionalScript = buffer->dest<Game::ConditionalScript>();
 							buffer->save(asset->eventHandlers[i]->eventData.conditionalScript);
 
 							// eventExpression
@@ -307,7 +307,7 @@ namespace Assets
 							buffer->align(Utils::Stream::ALIGN_4);
 
 							// header data
-							Game::SetLocalVarData *destLocalVarData = buffer->dest<Game::SetLocalVarData>();
+							auto* destLocalVarData = buffer->dest<Game::SetLocalVarData>();
 							buffer->save(asset->eventHandlers[i]->eventData.setLocalVarData);
 
 							// localVarName
@@ -354,7 +354,7 @@ namespace Assets
 		while (asset)
 		{
 			// Write header
-			Game::ItemKeyHandler* dest = buffer->dest<Game::ItemKeyHandler>();
+			auto* dest = buffer->dest<Game::ItemKeyHandler>();
 			buffer->save(asset);
 
 			// MenuEventHandlerSet
@@ -367,7 +367,7 @@ namespace Assets
 
 			if (asset->next)
 			{
-				// align every indice, besides the first one?
+				// align every index, besides the first one?
 				buffer->align(Utils::Stream::ALIGN_4);
 			}
 
@@ -379,20 +379,20 @@ namespace Assets
 #endif
 	}
 
-#define EVENTHANDLERSET(__indice) \
-		if (asset->__indice) \
+#define EVENTHANDLERSET(__index) \
+		if (asset->__index) \
 		{ \
 			buffer->align(Utils::Stream::ALIGN_4); \
-			this->save_MenuEventHandlerSet(asset->__indice, builder); \
-			Utils::Stream::ClearPointer(&dest->__indice); \
+			this->save_MenuEventHandlerSet(asset->__index, builder); \
+			Utils::Stream::ClearPointer(&dest->__index); \
 		}
 
-#define STATEMENT(__indice) \
-		if (asset->__indice) \
+#define STATEMENT(__index) \
+		if (asset->__index) \
 		{ \
 			buffer->align(Utils::Stream::ALIGN_4); \
-			this->save_Statement_s(asset->__indice, builder); \
-			Utils::Stream::ClearPointer(&dest->__indice); \
+			this->save_Statement_s(asset->__index, builder); \
+			Utils::Stream::ClearPointer(&dest->__index); \
 		}
 
 	void ImenuDef_t::save_itemDefData_t(Game::itemDefData_t* asset, int type, Game::itemDef_s* dest, Components::ZoneBuilder::Zone* builder)
@@ -412,7 +412,7 @@ namespace Assets
 		if (type == 6)
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
-			Game::listBoxDef_s* destlb = buffer->dest<Game::listBoxDef_s>();
+			auto* destlb = buffer->dest<Game::listBoxDef_s>();
 			buffer->save(asset->listBox);
 
 			if (asset->listBox->onDoubleClick)
@@ -427,17 +427,7 @@ namespace Assets
 			}
 		}
 		// HexRays spaghetti
-		else if (type != 4
-			&& type != 9
-			&& type != 16
-			&& type != 18
-			&& type != 11
-			&& type != 14
-			&& type != 10
-			&& type != 17
-			&& type != 22
-			&& type != 23
-			&& type != 0)
+		else if (type != 4 && type != 9 && type != 16 && type != 18 && type != 11 && type != 14 && type != 10 && type != 17	&& type != 22 && type != 23 && type != 0)
 		{
 			switch (type)
 			{
@@ -457,7 +447,7 @@ namespace Assets
 				break;
 			case 12:
 				buffer->align(Utils::Stream::ALIGN_4);
-				Game::multiDef_s* destdef = buffer->dest<Game::multiDef_s>();
+				auto* destdef = buffer->dest<Game::multiDef_s>();
 				buffer->save(asset->multi);
 
 				for (int i = 0; i < 32; ++i)
@@ -500,7 +490,7 @@ namespace Assets
 		AssertSize(Game::itemDef_s, 380);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::itemDef_s* dest = buffer->dest<Game::itemDef_s>();
+		auto* dest = buffer->dest<Game::itemDef_s>();
 
 #ifdef WRITE_LOGS
 		if (asset->window.name)
@@ -587,7 +577,7 @@ namespace Assets
 			buffer->enterStruct("floatExpressions");
 #endif
 
-			Game::ItemFloatExpression* destExp = buffer->dest<Game::ItemFloatExpression>();
+			auto* destExp = buffer->dest<Game::ItemFloatExpression>();
 			buffer->saveArray(asset->floatExpressions, asset->floatExpressionCount);
 
 			for (int i = 0; i < asset->floatExpressionCount; ++i)
@@ -624,8 +614,8 @@ namespace Assets
 #endif
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::menuDef_t* asset = header.menu;
-		Game::menuDef_t* dest = buffer->dest<Game::menuDef_t>();
+		auto* asset = header.menu;
+		auto* dest = buffer->dest<Game::menuDef_t>();
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
