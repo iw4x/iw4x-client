@@ -318,7 +318,7 @@ namespace Components
 			return;
 		}
 
-		if (strncmp(BugName->current.string, "bug", 3) != 0)
+		if (std::strncmp(BugName->current.string, "bug", 3) != 0)
 		{
 			Game::Dvar_SetString(BugName, "bug0");
 			return;

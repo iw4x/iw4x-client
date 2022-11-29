@@ -145,9 +145,9 @@ namespace Utils::String
 	}
 
 	// Trim from both ends
-	std::string& Trim(std::string& str)
+	void Trim(std::string& str)
 	{
-		return LTrim(RTrim(str));
+		LTrim(RTrim(str));
 	}
 
 	std::string Convert(const std::wstring& wstr)

@@ -18,7 +18,7 @@ namespace Components
 		}
 
 		std::string readablePlayerName(buffer);
-		readablePlayerName = Utils::String::Trim(readablePlayerName);
+		Utils::String::Trim(readablePlayerName);
 
 		if (readablePlayerName.size() < 3)
 		{

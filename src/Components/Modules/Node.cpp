@@ -59,7 +59,7 @@ namespace Components
 		for (auto& node : nodeList)
 		{
 			Utils::String::Replace(node, "\r", "");
-			node = Utils::String::Trim(node);
+			Utils::String::Trim(node);
 			Node::Add(node);
 		}
 	}

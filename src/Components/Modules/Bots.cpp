@@ -7,10 +7,10 @@ namespace Components
 
 	struct BotMovementInfo
 	{
-		int buttons; // Actions
-		int8_t forward;
-		int8_t right;
-		uint16_t weapon;
+		std::int32_t buttons; // Actions
+		std::int8_t forward;
+		std::int8_t right;
+		std::uint16_t weapon;
 		bool active;
 	};
 
@@ -19,7 +19,7 @@ namespace Components
 	struct BotAction
 	{
 		std::string action;
-		int key;
+		std::int32_t key;
 	};
 
 	static const BotAction BotActions[] =
@@ -47,7 +47,7 @@ namespace Components
 		static bool loadedNames = false; // Load file only once
 		const char* botName;
 
-		if (Bots::BotNames.empty() && !loadedNames)
+		if (BotNames.empty() && !loadedNames)
 		{
 			FileSystem::File bots("bots.txt");
 			loadedNames = true;
@@ -59,20 +59,20 @@ namespace Components
 				for (auto& name : names)
 				{
 					Utils::String::Replace(name, "\r", "");
-					name = Utils::String::Trim(name);
+					Utils::String::Trim(name);
 
 					if (!name.empty())
 					{
-						Bots::BotNames.push_back(name);
+						BotNames.push_back(name);
 					}
 				}
 			}
 		}
 
-		if (!Bots::BotNames.empty())
+		if (!BotNames.empty())
 		{
-			botId %= Bots::BotNames.size();
-			botName = Bots::BotNames[botId++].data();
+			botId %= BotNames.size();
+			botName = BotNames[botId++].data();
 		}
 		else
 		{
@@ -125,8 +125,7 @@ namespace Components
 
 	void Bots::AddMethods()
 	{
-		Script::AddMethod("IsBot", Bots::GScr_isTestClient); // Usage: self IsBot();
-		Script::AddMethod("IsTestClient", Bots::GScr_isTestClient); // Usage: self IsTestClient();
+		Script::AddMethMultiple(GScr_isTestClient, false, {"IsTestClient", "IsBot"}); // Usage: self IsTestClient();
 
 		Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
@@ -240,7 +239,8 @@ namespace Components
 			return;
 		}
 
-		Game::usercmd_s userCmd = {0};
+		Game::usercmd_s userCmd;
+		ZeroMemory(&userCmd, sizeof(Game::usercmd_s));
 
 		userCmd.serverTime = *Game::svs_time;
 
@@ -260,7 +260,7 @@ namespace Components
 			pushad
 
 			push edi
-			call Bots::BotAiAction
+			call BotAiAction
 			add esp, 4
 
 			popad
@@ -284,7 +284,7 @@ namespace Components
 
 			push [esp + 0x20 + 0x8]
 			push [esp + 0x20 + 0x8]
-			call Bots::G_SelectWeaponIndex
+			call G_SelectWeaponIndex
 			add esp, 0x8
 
 			popad
@@ -307,12 +307,12 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
 
 		// Intercept sprintf for the connect string
-		Utils::Hook(0x48ADAB, Bots::BuildConnectString, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48ADAB, BuildConnectString, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x627021, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x627241, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627021, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627241, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x441B80, Bots::G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
 		// Reset BotMovementInfo.active when client is dropped
 		Events::OnClientDisconnect([](const int clientNum)
@@ -365,10 +365,10 @@ namespace Components
 			Toast::Show("cardicon_headshot", "^2Success", Utils::String::VA("Spawning %d %s...", count, (count == 1 ? "bot" : "bots")), 3000);
 			Logger::Debug("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
 
-			Bots::Spawn(count);
+			Spawn(count);
 		});
 
-		Bots::AddMethods();
+		AddMethods();
 
 		// In case a loaded mod didn't call "BotStop" before the VM shutdown
 		Events::OnVMShutdown([]

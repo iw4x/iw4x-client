@@ -7,8 +7,12 @@ namespace Components
 	public:
 		Script();
 
+		using scriptNames = std::vector<std::string>;
 		static void AddFunction(const std::string& name, Game::BuiltinFunction func, bool type = false);
 		static void AddMethod(const std::string& name, Game::BuiltinMethod func, bool type = false);
+
+		static void AddFuncMultiple(Game::BuiltinFunction func, bool type, scriptNames);
+		static void AddMethMultiple(Game::BuiltinMethod func, bool type, scriptNames);
 
 		static Game::client_t* GetClient(const Game::gentity_t* gentity);
 
@@ -40,16 +44,18 @@ namespace Components
 		{
 			Game::BuiltinFunction actionFunc;
 			bool type;
+			scriptNames aliases;
 		};
 
 		struct ScriptMethod
 		{
 			Game::BuiltinMethod actionFunc;
 			bool type;
+			scriptNames aliases;
 		};
 
-		static std::unordered_map<std::string, ScriptFunction> CustomScrFunctions;
-		static std::unordered_map<std::string, ScriptMethod> CustomScrMethods;
+		static std::vector<ScriptFunction> CustomScrFunctions;
+		static std::vector<ScriptMethod> CustomScrMethods;
 
 		static std::string ScriptName;
 		static std::vector<std::string> ScriptNameStack;

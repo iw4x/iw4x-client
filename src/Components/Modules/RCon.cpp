@@ -127,8 +127,8 @@ namespace Components
 		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			std::string data_ = data;
-
 			Utils::String::Trim(data_);
+
 			const auto pos = data.find_first_of(' ');
 			if (pos == std::string::npos)
 			{

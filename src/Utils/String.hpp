@@ -11,7 +11,7 @@ namespace Utils::String
 		VAProvider() : currentBuffer(0) {}
 		~VAProvider() = default;
 
-		const char* get(const char* format, va_list ap)
+		[[nodiscard]] const char* get(const char* format, va_list ap)
 		{
 			++this->currentBuffer %= ARRAYSIZE(this->stringPool);
 			auto entry = &this->stringPool[this->currentBuffer];
@@ -82,37 +82,61 @@ namespace Utils::String
 		}
 	}
 
-	const char* VA(const char* fmt, ...);
+	[[nodiscard]] const char* VA(const char* fmt, ...);
 
-	std::string ToLower(const std::string& text);
-	std::string ToUpper(const std::string& text);
+	[[nodiscard]] std::string ToLower(const std::string& text);
+	[[nodiscard]] std::string ToUpper(const std::string& text);
 
-	bool Compare(const std::string& lhs, const std::string& rhs);
+	template <class OutputIter>
+	[[nodiscard]] OutputIter ApplyToLower(OutputIter container)
+	{
+		OutputIter result;
+		std::ranges::transform(container, std::back_inserter(result), [](const std::string& s) -> std::string
+		{
+			return ToLower(s);
+		});
 
-	std::vector<std::string> Split(const std::string& str, char delim);
+		return result;
+	}
+
+	template <class OutputIter>
+	[[nodiscard]] OutputIter ApplyToUpper(OutputIter container)
+	{
+		OutputIter result;
+		std::ranges::transform(container, std::back_inserter(result), [](const std::string& s) -> std::string
+		{
+			return ToUpper(s);
+		});
+
+		return result;
+	}
+
+	[[nodiscard]] bool Compare(const std::string& lhs, const std::string& rhs);
+
+	[[nodiscard]] std::vector<std::string> Split(const std::string& str, char delim);
 	void Replace(std::string& str, const std::string& from, const std::string& to);
 
-	bool StartsWith(const std::string& haystack, const std::string& needle);
-	bool EndsWith(const std::string& haystack, const std::string& needle);
+	[[nodiscard]] bool StartsWith(const std::string& haystack, const std::string& needle);
+	[[nodiscard]] bool EndsWith(const std::string& haystack, const std::string& needle);
 
-	bool IsNumber(const std::string& str);
+	[[nodiscard]] bool IsNumber(const std::string& str);
 
 	std::string& LTrim(std::string& str);
 	std::string& RTrim(std::string& str);
-	std::string& Trim(std::string& str);
+	void Trim(std::string& str);
 
-	std::string Convert(const std::wstring& wstr);
-	std::wstring Convert(const std::string& str);
+	[[nodiscard]] std::string Convert(const std::wstring& wstr);
+	[[nodiscard]] std::wstring Convert(const std::string& str);
 
-	std::string FormatTimeSpan(int milliseconds);
-	std::string FormatBandwidth(std::size_t bytes, int milliseconds);
+	[[nodiscard]] std::string FormatTimeSpan(int milliseconds);
+	[[nodiscard]] std::string FormatBandwidth(std::size_t bytes, int milliseconds);
 
-	std::string DumpHex(const std::string& data, const std::string& separator = " ");
+	[[nodiscard]] std::string DumpHex(const std::string& data, const std::string& separator = " ");
 
-	std::string XOR(std::string str, char value);
+	[[nodiscard]] std::string XOR(std::string str, char value);
 
-	std::string EncodeBase64(const char* input, unsigned long inputSize);
-	std::string EncodeBase64(const std::string& input);
+	[[nodiscard]] std::string EncodeBase64(const char* input, unsigned long inputSize);
+	[[nodiscard]] std::string EncodeBase64(const std::string& input);
 
-	std::string EncodeBase128(const std::string& input);
+	[[nodiscard]] std::string EncodeBase128(const std::string& input);
 }

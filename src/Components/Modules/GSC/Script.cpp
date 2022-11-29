@@ -3,8 +3,8 @@
 
 namespace Components
 {
-	std::unordered_map<std::string, Script::ScriptFunction> Script::CustomScrFunctions;
-	std::unordered_map<std::string, Script::ScriptMethod> Script::CustomScrMethods;
+	std::vector<Script::ScriptFunction> Script::CustomScrFunctions;
+	std::vector<Script::ScriptMethod> Script::CustomScrMethods;
 
 	std::string Script::ScriptName;
 	std::vector<std::string> Script::ScriptNameStack;
@@ -278,43 +278,74 @@ namespace Components
 		Game::GScr_LoadGameTypeScript();
 	}
 
-	void Script::AddFunction(const std::string& name, Game::BuiltinFunction func, bool type)
+	void Script::AddFunction(const std::string& name, const Game::BuiltinFunction func, const bool type)
 	{
 		ScriptFunction toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
+		toAdd.aliases.push_back({Utils::String::ToLower(name)});
 
-		CustomScrFunctions.insert_or_assign(Utils::String::ToLower(name), toAdd);
+		CustomScrFunctions.emplace_back(toAdd);
 	}
 
-	void Script::AddMethod(const std::string& name, Game::BuiltinMethod func, bool type)
+	void Script::AddMethod(const std::string& name, const Game::BuiltinMethod func, const bool type)
 	{
 		ScriptMethod toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
+		toAdd.aliases.push_back({Utils::String::ToLower(name)});
 
-		CustomScrMethods.insert_or_assign(Utils::String::ToLower(name), toAdd);
+		CustomScrMethods.emplace_back(toAdd);
+	}
+
+	void Script::AddFuncMultiple(Game::BuiltinFunction func, bool type, scriptNames aliases)
+	{
+		ScriptFunction toAdd;
+		auto aliasesToAdd = Utils::String::ApplyToLower(aliases);
+
+		toAdd.actionFunc = func;
+		toAdd.type = type;
+		toAdd.aliases = std::move(aliasesToAdd);
+
+		CustomScrFunctions.emplace_back(toAdd);
+	}
+
+	void Script::AddMethMultiple(Game::BuiltinMethod func, bool type, scriptNames aliases)
+	{
+		ScriptMethod toAdd;
+		auto aliasesToAdd = Utils::String::ApplyToLower(aliases);
+
+		toAdd.actionFunc = func;
+		toAdd.type = type;
+		toAdd.aliases = std::move(aliasesToAdd);
+
+		CustomScrMethods.emplace_back(toAdd);
 	}
 
 	Game::BuiltinFunction Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
 	{
 		if (pName != nullptr)
 		{
-			// If no function was found let's call game's function
-			if (const auto itr = CustomScrFunctions.find(Utils::String::ToLower(*pName)); itr != CustomScrFunctions.end())
+			const auto name = Utils::String::ToLower(*pName);
+			for (const auto& func : CustomScrFunctions)
 			{
-				*type = itr->second.type;
-				return itr->second.actionFunc;
-			}			
+				if (std::ranges::find(func.aliases, name) != func.aliases.end())
+				{
+					*type = func.type;
+					return func.actionFunc;
+				}
+			}
 		}
 		else
 		{
-			for (const auto& [name, builtin] : CustomScrFunctions)
+			for (const auto& func : CustomScrFunctions)
 			{
-				Game::Scr_RegisterFunction(reinterpret_cast<int>(builtin.actionFunc), name.data());
+				const auto& name = func.aliases[0];
+				Game::Scr_RegisterFunction(reinterpret_cast<int>(func.actionFunc), name.data());
 			}
 		}
 
+		// If no function was found let's call game's function
 		return Utils::Hook::Call<Game::BuiltinFunction(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
 	}
 
@@ -322,21 +353,26 @@ namespace Components
 	{
 		if (pName != nullptr)
 		{
-			// If no method was found let's call game's function
-			if (const auto itr = CustomScrMethods.find(Utils::String::ToLower(*pName)); itr != CustomScrMethods.end())
+			const auto name = Utils::String::ToLower(*pName);
+			for (const auto& meth : CustomScrMethods)
 			{
-				*type = itr->second.type;
-				return itr->second.actionFunc;
+				if (std::ranges::find(meth.aliases, name) != meth.aliases.end())
+				{
+					*type = meth.type;
+					return meth.actionFunc;
+				}
 			}
 		}
 		else
 		{
-			for (const auto& [name, builtin] : CustomScrMethods)
+			for (const auto& meth : CustomScrMethods)
 			{
-				Game::Scr_RegisterFunction(reinterpret_cast<int>(builtin.actionFunc), name.data());
+				const auto& name = meth.aliases[0];
+				Game::Scr_RegisterFunction(reinterpret_cast<int>(meth.actionFunc), name.data());
 			}
 		}
 
+		// If no method was found let's call game's function
 		return Utils::Hook::Call<Game::BuiltinMethod(const char**, int*)>(0x5FA360)(pName, type); // Player_GetMethod
 	}
 
