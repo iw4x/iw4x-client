@@ -340,7 +340,7 @@ namespace Components
 		{
 			for (const auto& func : CustomScrFunctions)
 			{
-				const auto& name = func.aliases[0];
+				const auto& name = func.aliases.at(0);
 				Game::Scr_RegisterFunction(reinterpret_cast<int>(func.actionFunc), name.data());
 			}
 		}
@@ -367,7 +367,7 @@ namespace Components
 		{
 			for (const auto& meth : CustomScrMethods)
 			{
-				const auto& name = meth.aliases[0];
+				const auto& name = meth.aliases.at(0);
 				Game::Scr_RegisterFunction(reinterpret_cast<int>(meth.actionFunc), name.data());
 			}
 		}
