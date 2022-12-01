@@ -518,8 +518,10 @@ namespace Components
 	// Add branding asset
 	void ZoneBuilder::Zone::addBranding()
 	{
-		const char* data = "FastFile built using the IW4x ZoneBuilder!";
-		this->branding = { this->zoneName.data(), static_cast<int>(strlen(data)), 0, data };
+		constexpr auto* data = "Built using the IW4x Zone:B:uilder Version 4";
+		auto dataLen = std::strlen(data) + 1;
+
+		this->branding = { this->zoneName.data(), 0, static_cast<int>(dataLen), data };
 
 		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
 		{
