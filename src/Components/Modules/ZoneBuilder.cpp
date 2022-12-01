@@ -519,7 +519,7 @@ namespace Components
 	void ZoneBuilder::Zone::addBranding()
 	{
 		constexpr auto* data = "Built using the IW4x Zone:B:uilder Version 4";
-		auto dataLen = std::strlen(data) + 1;
+		auto dataLen = std::strlen(data); // + 1 is added by the save code
 
 		this->branding = { this->zoneName.data(), 0, static_cast<int>(dataLen), data };
 

@@ -25,7 +25,7 @@ namespace Assets
 		// Only save the compressed buffer if we gained space
 		if (compressedData.size() < rawFile.getBuffer().size())
 		{
-			asset->buffer = builder->getAllocator()->duplicateString(compressedData);
+			asset->buffer = builder->getAllocator()->allocateArray<char>(compressedData.size());
 			std::memcpy(const_cast<char*>(asset->buffer), compressedData.data(), compressedData.size());
 			asset->compressedLen = static_cast<int>(compressedData.size());
 		}
