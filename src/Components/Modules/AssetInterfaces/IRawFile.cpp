@@ -18,16 +18,16 @@ namespace Assets
 			return;
 		}
 
-		auto compressed_size = compressBound(rawFile.getBuffer().size());
-
 		asset->name = builder->getAllocator()->duplicateString(name);
 		asset->len = static_cast<int>(rawFile.getBuffer().size());
 
-		if (asset->len < static_cast<int>(compressed_size))
+		const auto compressedData = Utils::Compression::ZLib::Compress(rawFile.getBuffer());
+		// Only save the compressed buffer if we gained space
+		if (compressedData.size() < rawFile.getBuffer().size())
 		{
-			asset->buffer = builder->getAllocator()->allocateArray<char>(compressed_size);
-			compress2((Bytef*)(asset->buffer), &compressed_size, (const Bytef*)(rawFile.getBuffer().data()), rawFile.getBuffer().size(), Z_BEST_COMPRESSION);
-			asset->compressedLen = static_cast<int>(compressed_size);
+			asset->buffer = builder->getAllocator()->duplicateString(compressedData);
+			std::memcpy(const_cast<char*>(asset->buffer), compressedData.data(), compressedData.size());
+			asset->compressedLen = static_cast<int>(compressedData.size());
 		}
 		else
 		{
@@ -35,8 +35,6 @@ namespace Assets
 			std::memcpy(const_cast<char*>(asset->buffer), rawFile.getBuffer().data(), rawFile.getBuffer().size());
 			asset->compressedLen = 0;
 		}
-
-		asset->len = static_cast<int>(rawFile.getBuffer().size());
 
 		header->rawfile = asset;
 	}
