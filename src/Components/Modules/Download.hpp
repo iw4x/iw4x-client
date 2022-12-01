@@ -81,7 +81,7 @@ namespace Components
 
 		static ClientDownload CLDownload;
 		static std::thread ServerThread;
-		static bool Terminate;
+		static volatile bool Terminate;
 		static bool ServerRunning;
 
 		static void DownloadProgress(FileDownload* fDownload, std::size_t bytes);
