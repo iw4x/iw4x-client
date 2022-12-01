@@ -119,7 +119,7 @@ namespace Components
 
 		auto file = download->files[index];
 
-		std::string path = download->mod + "/" + file.name;
+		auto path = download->mod + "/" + file.name;
 		if (download->isMap)
 		{
 			path = "usermaps/" + path;
@@ -127,8 +127,7 @@ namespace Components
 
 		if (Utils::IO::FileExists(path))
 		{
-			std::string data = Utils::IO::ReadFile(path);
-
+			auto data = Utils::IO::ReadFile(path);
 			if (data.size() == file.size && Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(data), "") == file.hash)
 			{
 				download->totalBytes += file.size;
@@ -233,11 +232,11 @@ namespace Components
 	{
 		if (!download) download = &CLDownload;
 
-		std::string host = "http://" + download->target.getString();
+		auto host = "http://" + download->target.getString();
 
-		std::string listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
+		auto listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 
-		std::string list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->get();
+		auto list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->get();
 		if (list.empty())
 		{
 			if (download->terminateThread) return;
@@ -472,7 +471,7 @@ namespace Components
 				}
 
 				std::unordered_map<std::string, nlohmann::json> jsonFileList;
-				std::string fileBuffer = Utils::IO::ReadFile(filename.generic_string());
+				auto fileBuffer = Utils::IO::ReadFile(filename.generic_string());
 				if (fileBuffer.empty())
 				{
 					continue;
@@ -516,7 +515,7 @@ namespace Components
 				const auto filename = std::format("{}\\{}{}", path.generic_string(), mapName, Maps::UserMapFiles[i]);
 
 				std::unordered_map<std::string, nlohmann::json> file;
-				std::string fileBuffer = Utils::IO::ReadFile(filename);
+				auto fileBuffer = Utils::IO::ReadFile(filename);
 				if (fileBuffer.empty())
 				{
 					continue;
