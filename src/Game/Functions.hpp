@@ -173,7 +173,7 @@ namespace Game
 	typedef int(*Menus_OpenByName_t)(UiContext* dc, const char* p);
 	extern Menus_OpenByName_t Menus_OpenByName;
 
-	typedef menuDef_t *(*Menus_FindByName_t)(UiContext* dc, const char* name);
+	typedef menuDef_t*(*Menus_FindByName_t)(UiContext* dc, const char* name);
 	extern Menus_FindByName_t Menus_FindByName;
 
 	typedef bool(*Menu_IsVisible_t)(UiContext* dc, menuDef_t* menu);
@@ -182,11 +182,14 @@ namespace Game
 	typedef bool(*Menus_MenuIsInStack_t)(UiContext* dc, menuDef_t* menu);
 	extern Menus_MenuIsInStack_t Menus_MenuIsInStack;
 
+	typedef void(*Menu_HandleKey_t)(UiContext* ctx, menuDef_t* menu, Game::keyNum_t key, int down);
+	extern Menu_HandleKey_t Menu_HandleKey;
+
 	typedef menuDef_t*(*Menu_GetFocused_t)(UiContext* ctx);
 	extern Menu_GetFocused_t Menu_GetFocused;
 
-	typedef void(*Menu_HandleKey_t)(UiContext* ctx, menuDef_t* menu, Game::keyNum_t key, int down);
-	extern Menu_HandleKey_t Menu_HandleKey;
+	typedef void(*Menu_Setup_t)(UiContext* dc);
+	extern Menu_Setup_t Menu_Setup;
 
 	typedef bool(*UI_KeyEvent_t)(int clientNum, int key, int down);
 	extern UI_KeyEvent_t UI_KeyEvent;

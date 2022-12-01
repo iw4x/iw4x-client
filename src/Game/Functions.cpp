@@ -83,6 +83,7 @@ namespace Game
 	Menus_MenuIsInStack_t Menus_MenuIsInStack = Menus_MenuIsInStack_t(0x47ACB0);
 	Menu_HandleKey_t Menu_HandleKey = Menu_HandleKey_t(0x4C4A00);
 	Menu_GetFocused_t Menu_GetFocused = Menu_GetFocused_t(0x4AFF10);
+	Menu_Setup_t Menu_Setup = Menu_Setup_t(0x415AD0);
 
 	MSG_Init_t MSG_Init = MSG_Init_t(0x45FCA0);
 	MSG_ReadBit_t MSG_ReadBit = MSG_ReadBit_t(0x476D20);

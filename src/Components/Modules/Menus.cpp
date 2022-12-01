@@ -768,6 +768,11 @@ namespace Components
 
 	Menus::Menus()
 	{
+		if (ZoneBuilder::IsEnabled())
+		{
+			Game::Menu_Setup(Game::uiContext);
+		}
+
 		if (Dedicated::IsEnabled()) return;
 
 		// Ensure everything is zero'ed
@@ -870,6 +875,7 @@ namespace Components
 
 	Menus::~Menus()
 	{
+		// In your dreams!
 		Menus::FreeEverything();
 	}
 }

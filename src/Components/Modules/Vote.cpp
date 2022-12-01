@@ -316,10 +316,15 @@ namespace Components
 	Vote::Vote()
 	{
 		// Replicate g_allowVote
-		Utils::Hook::Set<DWORD>(0x5E3A4F, Game::DVAR_INTERNAL | Game::DVAR_CODINFO);
+		Utils::Hook::Set<std::uint32_t>(0x5E3A4F, Game::DVAR_INTERNAL | Game::DVAR_CODINFO);
 
 		ClientCommand::Add("callvote", Cmd_CallVote_f);
 		ClientCommand::Add("vote", Cmd_Vote_f);
+
+		Menus::Add("ui_mp/scriptmenus/callvote.menu");
+		Menus::Add("ui_mp/scriptmenus/kickplayer.menu");
+		Menus::Add("ui_mp/scriptmenus/changegametype.menu");
+		Menus::Add("ui_mp/scriptmenus/changemap.menu");
 
 		UIScript::Add("voteKick", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
