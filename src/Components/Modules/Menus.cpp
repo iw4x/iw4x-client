@@ -205,7 +205,8 @@ namespace Components
 				{
 					Game::PC_ReadTokenHandle(handle, &token);
 
-					Utils::Merge(&menus, Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", token.string)));
+					auto* filename = Utils::String::VA("ui_mp\\%s.menu", token.string);
+					Utils::Merge(&menus, Menus::LoadMenu(filename));
 				}
 
 				if (!_stricmp(token.string, "menudef"))

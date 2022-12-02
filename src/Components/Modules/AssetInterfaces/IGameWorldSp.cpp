@@ -151,11 +151,11 @@ namespace Assets
 
 	void IGameWorldSp::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		AssertSize(Game::GameWorldMp, 8);
+		AssertSize(Game::GameWorldSp, 0x38);
 
 		Utils::Stream* buffer = builder->getBuffer();
-		Game::GameWorldSp* asset = header.gameWorldSp;
-		Game::GameWorldSp* dest = buffer->dest<Game::GameWorldSp>();
+		auto* asset = header.gameWorldSp;
+		auto* dest = buffer->dest<Game::GameWorldSp>();
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);

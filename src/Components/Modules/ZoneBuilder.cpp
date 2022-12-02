@@ -419,6 +419,10 @@ namespace Components
 #endif
 
 		Utils::IO::WriteFile("uncompressed", zoneBuffer);
+		const auto _0 = gsl::finally([]
+		{
+			Utils::IO::RemoveFile("uncompressed");
+		});
 
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 		outBuffer.append(zoneBuffer);

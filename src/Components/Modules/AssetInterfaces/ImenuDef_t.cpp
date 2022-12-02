@@ -487,7 +487,7 @@ namespace Assets
 
 	void ImenuDef_t::save_itemDef_s(Game::itemDef_s *asset, Components::ZoneBuilder::Zone* builder)
 	{
-		AssertSize(Game::itemDef_s, 380);
+		AssertSize(Game::itemDef_s, 0x17C);
 
 		Utils::Stream* buffer = builder->getBuffer();
 		auto* dest = buffer->dest<Game::itemDef_s>();
@@ -608,6 +608,7 @@ namespace Assets
 	void ImenuDef_t::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::menuDef_t, 400);
+		AssertSize(Game::windowDef_t, 0xA4);
 
 #ifdef WRITE_LOGS
 		buffer->enterStruct("ImenuDef_t");

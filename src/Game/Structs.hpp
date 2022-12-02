@@ -3534,7 +3534,7 @@ namespace Game
 		Glyph* glyphs;
 	};
 
-	struct __declspec(align(4)) rectDef_s
+	struct rectDef_s
 	{
 		float x;
 		float y;
@@ -3543,6 +3543,8 @@ namespace Game
 		char horzAlign;
 		char vertAlign;
 	};
+
+	static_assert(sizeof(rectDef_s) == 0x14);
 
 	struct windowDef_t
 	{
@@ -3565,6 +3567,8 @@ namespace Game
 		float disableColor[4];
 		Material* background;
 	};
+
+	static_assert(sizeof(windowDef_t) == 0xA4);
 
 	enum expDataType
 	{
