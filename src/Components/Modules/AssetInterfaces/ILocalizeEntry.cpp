@@ -81,4 +81,51 @@ namespace Assets
 			builder->addRawAsset(type, entry);
 		}
 	}
+
+	void ILocalizeEntry::ParseLocalizedStringsJson(Components::ZoneBuilder::Zone* builder, Components::FileSystem::File& file)
+	{
+		nlohmann::json localize;
+		try
+		{
+			Components::Logger::Debug("Parsing localized string \"{}\"...", file.getName());
+			localize = nlohmann::json::parse(file.getBuffer());
+		}
+		catch (const std::exception& ex)
+		{
+			Components::Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}\n", ex.what());
+			return;
+		}
+
+		if (!localize.is_object())
+		{
+			Components::Logger::PrintError(Game::CON_CHANNEL_ERROR, "Localized strings json file '{}' should be an object!", file.getName());
+			return;
+		}
+
+		std::vector<Game::LocalizeEntry*> assets;
+
+		try
+		{
+			for (const auto& [key, value] : localize.items())
+			{
+				const auto valueStr = value.get<std::string>();
+
+				auto* entry = builder->getAllocator()->allocate<Game::LocalizeEntry>();
+				entry->name = builder->getAllocator()->duplicateString(key);
+				entry->value = builder->getAllocator()->duplicateString(valueStr);
+
+				assets.emplace_back(entry);
+			}
+		}
+		catch (const std::exception& ex)
+		{
+			Components::Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: Localized strings json file '{}' contains invalid data!", ex.what(), file.getName());
+		}
+
+		auto type = Game::DB_GetXAssetNameType("localize");
+		for (const auto& entry : assets)
+		{
+			builder->addRawAsset(type, entry);
+		}
+	}
 }

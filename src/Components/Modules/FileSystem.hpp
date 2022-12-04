@@ -13,6 +13,11 @@ namespace Components
 			virtual bool exists() = 0;
 			virtual std::string getName() = 0;
 			virtual std::string& getBuffer() = 0;
+
+			virtual explicit operator bool()
+			{
+				return this->exists();
+			}
 		};
 
 		class File : public AbstractFile

@@ -158,10 +158,15 @@ namespace Components
 			if (this->dataMap.getElementAt(i, 0) == "localize"s)
 			{
 				const auto filename = this->dataMap.getElementAt(i, 1);
-				FileSystem::File file(std::format("localizedstrings/{}.str", filename));
-				if (file.exists())
+				if (FileSystem::File file = std::format("localizedstrings/{}.str", filename))
 				{
 					Assets::ILocalizeEntry::ParseLocalizedStringsFile(this, filename, file.getName());
+					continue;
+				}
+
+				if (FileSystem::File file = std::format("localizedstrings/{}.json", filename))
+				{
+					Assets::ILocalizeEntry::ParseLocalizedStringsJson(this, file);
 					continue;
 				}
 			}

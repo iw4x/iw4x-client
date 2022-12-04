@@ -11,5 +11,6 @@ namespace Assets
 		void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 
 		static void ParseLocalizedStringsFile(Components::ZoneBuilder::Zone* builder, const std::string& name, const std::string& filename);
+		static void ParseLocalizedStringsJson(Components::ZoneBuilder::Zone* builder, Components::FileSystem::File& file);
 	};
 }

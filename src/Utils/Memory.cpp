@@ -21,7 +21,7 @@ namespace Utils
 
 	char* Memory::DuplicateString(const std::string& string)
 	{
-		auto* newString = Memory::AllocateArray<char>(string.size() + 1);
+		auto* newString = AllocateArray<char>(string.size() + 1);
 		std::memcpy(newString, string.data(), string.size());
 		return newString;
 	}
