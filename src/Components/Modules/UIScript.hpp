@@ -36,8 +36,6 @@ namespace Components
 		static bool RunMenuScript(const char* name, const char** args);
 		static void RunMenuScriptStub();
 
-		static bool CL_IsUIActive_Hk(int localClientNum);
-
 		static std::unordered_map<std::string, UIScriptHandler> UIScripts;
 		static std::unordered_map<int, std::function<void()>> UIOwnerDraws;
 	};

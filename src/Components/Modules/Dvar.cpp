@@ -402,6 +402,11 @@ namespace Components
 		// remove write protection from fs_game
 		Utils::Hook::Xor<std::uint32_t>(0x6431EA, Game::DVAR_INIT);
 
+		// cheat protect g_hardcore
+		Utils::Hook::Xor<std::uint32_t>(0x5E374F, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint32_t>(0x4D3689, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint32_t>(0x4197C3, Game::DVAR_CHEAT);
+
 		// set cg_fov max to 160.0
 		// because that's the max on SP
 		static float cg_Fov = 160.0f;

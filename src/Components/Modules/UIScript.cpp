@@ -116,11 +116,6 @@ namespace Components
 		}
 	}
 
-	bool UIScript::CL_IsUIActive_Hk(const int localClientNum)
-	{
-		return Game::Key_IsCatcherActive(localClientNum, Game::KEYCATCH_UI) || Game::cgsArray->hardcore;
-	}
-
 	UIScript::UIScript()
 	{
 		AssertSize(Game::uiInfo_s, 0x22FC);
@@ -132,8 +127,6 @@ namespace Components
 
 		// Install ownerdraw handler
 		Utils::Hook(0x63D233, OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();
-
-		Utils::Hook(0x62B397, CL_IsUIActive_Hk, HOOK_CALL).install()->quick();
 	}
 
 	UIScript::~UIScript()
