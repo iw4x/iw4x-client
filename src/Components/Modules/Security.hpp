@@ -7,10 +7,10 @@ namespace Components
 	public:
 		Security();
 
-	private:
-		static int MsgReadBitsCompressCheckSV(const char* from, char* to, int size);
-		static int MsgReadBitsCompressCheckCL(const char* from, char* to, int size);
+		static int MsgReadBitsCompressCheckSV(const unsigned char* from, unsigned char* to, int size);
+		static int MsgReadBitsCompressCheckCL(const unsigned char* from, unsigned char* to, int size);
 
+	private:
 		static int SVCanReplaceServerCommand(Game::client_t* client, const char* cmd);
 
 		static long AtolAdjustPlayerLimit(const char* string);

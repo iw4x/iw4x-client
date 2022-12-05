@@ -45,6 +45,7 @@ namespace Game
 	const dvar_t** cl_showSend = reinterpret_cast<const dvar_t**>(0xA1E870);
 	const dvar_t** cl_voice = reinterpret_cast<const dvar_t**>(0xB2BB44);
 	const dvar_t** cl_ingame = reinterpret_cast<const dvar_t**>(0xB2BB80);
+	const dvar_t** cl_shownet = reinterpret_cast<const dvar_t**>(0x1059008);
 
 	const dvar_t** g_cheats = reinterpret_cast<const dvar_t**>(0x1A45D54);
 	const dvar_t** g_deadChat = reinterpret_cast<const dvar_t**>(0x19BD5DC);

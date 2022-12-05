@@ -81,6 +81,7 @@ namespace Components
 #include "Modules/UIScript.hpp"
 #include "Modules/ModList.hpp"
 #include "Modules/Network.hpp"
+#include "Modules/NetworkDebug.hpp"
 #include "Modules/Theatre.hpp"
 #include "Modules/QuickPatch.hpp"
 #include "Modules/Security.hpp"

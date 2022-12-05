@@ -94,7 +94,7 @@ namespace Components
 		++(*Game::com_errorPrintsCount);
 		MessagePrint(channel, msg);
 
-		if (*Game::cls_uiStarted != 0 && (*Game::com_fixedConsolePosition == 0))
+		if (Game::cls->uiStarted != 0 && (*Game::com_fixedConsolePosition == 0))
 		{
 			Game::CL_ConsoleFixPosition();
 		}

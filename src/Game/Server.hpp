@@ -44,14 +44,17 @@ namespace Game
 	typedef void(*SV_DropClient_t)(client_t* drop, const char* reason, bool tellThem);
 	extern SV_DropClient_t SV_DropClient;
 
-	typedef client_t* (*SV_GetPlayerByName_t)();
+	typedef client_t*(*SV_GetPlayerByName_t)();
 	extern SV_GetPlayerByName_t SV_GetPlayerByName;
 
-	typedef client_t* (*SV_GetPlayerByNum_t)();
+	typedef client_t*(*SV_GetPlayerByNum_t)();
 	extern SV_GetPlayerByNum_t SV_GetPlayerByNum;
 
-	typedef client_t* (*SV_FindClientByAddress_t)(netadr_t from, int qport, int remoteClientIndex);
+	typedef client_t*(*SV_FindClientByAddress_t)(netadr_t from, int qport, int remoteClientIndex);
 	extern SV_FindClientByAddress_t SV_FindClientByAddress;
+
+	typedef void(*SV_WaitServer_t)();
+	extern SV_WaitServer_t SV_WaitServer;
 
 	constexpr auto MAX_STATPACKETS = 7;
 

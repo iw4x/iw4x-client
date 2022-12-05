@@ -45,6 +45,7 @@
 #include <source_location>
 #include <sstream>
 #include <thread>
+#include <type_traits>
 #include <unordered_map>
 
 #pragma warning(pop)

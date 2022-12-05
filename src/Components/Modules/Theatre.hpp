@@ -62,7 +62,6 @@ namespace Components
 
 		static uint32_t InitCGameStub();
 		static void MapChangeStub();
-		static void MapChangeSVStub(char* a1, char* a2);
 
 		static void RecordStub(int channel, char* message, char* file);
 		static void StopRecordStub(int channel, char* message);

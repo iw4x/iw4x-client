@@ -101,6 +101,7 @@ namespace Game
 	extern const dvar_t** cl_showSend;
 	extern const dvar_t** cl_voice;
 	extern const dvar_t** cl_ingame;
+	extern const dvar_t** cl_shownet;
 
 	extern const dvar_t** g_cheats;
 	extern const dvar_t** g_deadChat;

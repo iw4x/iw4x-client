@@ -263,7 +263,7 @@ namespace Components
 	{
 		if (client->reliableAcknowledge < 0)
 		{
-			Logger::Print(Game::conChannel_t::CON_CHANNEL_NETWORK, "Negative reliableAcknowledge from {} - cl->reliableSequence is {}, reliableAcknowledge is {}\n",
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "Negative reliableAcknowledge from {} - cl->reliableSequence is {}, reliableAcknowledge is {}\n",
 				client->name, client->reliableSequence, client->reliableAcknowledge);
 			client->reliableAcknowledge = client->reliableSequence;
 			SendCommand(Game::NS_SERVER, client->header.netchan.remoteAddress, "error", "EXE_LOSTRELIABLECOMMANDS");

@@ -224,17 +224,11 @@ namespace Game
 	typedef __int64(*MSG_ReadInt64_t)(msg_t* msg);
 	extern MSG_ReadInt64_t MSG_ReadInt64;
 
-	typedef char* (*MSG_ReadString_t)(msg_t* msg);
+	typedef char*(*MSG_ReadString_t)(msg_t* msg, char* string, unsigned int maxChars);
 	extern MSG_ReadString_t MSG_ReadString;
 
-	typedef char* (*MSG_ReadStringLine_t)(msg_t *msg, char *string, unsigned int maxChars);
+	typedef char*(*MSG_ReadStringLine_t)(msg_t *msg, char *string, unsigned int maxChars);
 	extern MSG_ReadStringLine_t MSG_ReadStringLine;
-
-	typedef int(*MSG_ReadByte_t)(msg_t* msg);
-	extern MSG_ReadByte_t MSG_ReadByte;
-
-	typedef int(*MSG_ReadBitsCompress_t)(const char *from, char *to, int size);
-	extern MSG_ReadBitsCompress_t MSG_ReadBitsCompress;
 
 	typedef void(*MSG_WriteByte_t)(msg_t* msg, int c);
 	extern MSG_WriteByte_t MSG_WriteByte;
@@ -251,10 +245,19 @@ namespace Game
 	typedef void(*MSG_WriteString_t)(msg_t* msg, const char *str);
 	extern MSG_WriteString_t MSG_WriteString;
 
+	typedef void(*MSG_Discard_t)(msg_t* msg);
+	extern MSG_Discard_t MSG_Discard;
+
+	typedef int(*MSG_ReadByte_t)(msg_t* msg);
+	extern MSG_ReadByte_t MSG_ReadByte;
+
 	typedef bool(*MSG_ReadDeltaUsercmdKey_t)(msg_t* msg, int key, const usercmd_s* from, usercmd_s* to);
 	extern MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey;
 
-	typedef int(*MSG_WriteBitsCompress_t)(bool trainHuffman, const char *from, char *to, int size);
+	typedef int(*MSG_ReadBitsCompress_t)(const unsigned char* from, unsigned char* to, int size);
+	extern MSG_ReadBitsCompress_t MSG_ReadBitsCompress;
+
+	typedef int(*MSG_WriteBitsCompress_t)(bool trainHuffman, const unsigned char* from, unsigned char* to, int size);
 	extern MSG_WriteBitsCompress_t MSG_WriteBitsCompress;
 
 	typedef void(*NetadrToSockadr_t)(netadr_t *a, sockaddr *s);
@@ -578,6 +581,9 @@ namespace Game
 	typedef int(*LargeLocalBeginRight_t)(int size);
 	extern LargeLocalBeginRight_t LargeLocalBeginRight;
 
+	typedef void(*LargeLocalReset_t)();
+	extern LargeLocalReset_t LargeLocalReset;
+
 	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_CLIENTS = 18;
@@ -662,8 +668,6 @@ namespace Game
 	extern ScreenPlacement* scrPlaceFull;
 	extern ScreenPlacement* scrPlaceFullUnsafe;
 	extern ScreenPlacement* scrPlaceView;
-	
-	extern clientActive_t* clients;
 
 	extern cg_s* cgArray;
 	extern cgs_t* cgsArray;
@@ -704,8 +708,6 @@ namespace Game
 
 	extern unsigned long* _tls_index;
 
-	extern int* cls_uiStarted;
-
 	constexpr std::size_t PLAYER_CARD_UI_STRING_COUNT = 18;
 	extern unsigned int* playerCardUIStringIndex;
 	extern char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38];
@@ -723,6 +725,8 @@ namespace Game
 	extern char** ui_arenaInfos;
 	extern int* ui_numArenas;
 	extern int* ui_arenaBufPos;
+
+	constexpr auto MAX_MSGLEN = 0x20000;
 
 	ScreenPlacement* ScrPlace_GetFullPlacement();
 	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement();

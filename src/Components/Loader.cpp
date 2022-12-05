@@ -58,6 +58,7 @@ namespace Components
 		Loader::Register(new MapDump());
 		Loader::Register(new ModList());
 		Loader::Register(new Network());
+		Loader::Register(new NetworkDebug());
 		Loader::Register(new Session());
 		Loader::Register(new Theatre());
 		Loader::Register(new ClanTags());

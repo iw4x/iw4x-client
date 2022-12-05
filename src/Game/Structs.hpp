@@ -1603,6 +1603,8 @@ namespace Game
 		int serverCommandNum;
 	};
 
+	static_assert(sizeof(clSnapshot_t) == 0x314C);
+
 	enum StanceState
 	{
 		CL_STANCE_STAND = 0x0,
@@ -5960,6 +5962,17 @@ namespace Game
 	{
 		FS_LIST_PURE_ONLY = 0x0,
 		FS_LIST_ALL = 0x1,
+	};
+
+	enum svc_ops_e
+	{
+		svc_nop = 0x0,
+		svc_gamestate = 0x1,
+		svc_configstring = 0x2,
+		svc_serverCommand = 0x3,
+		svc_matchdata = 0x4,
+		svc_snapshot = 0x5,
+		svc_EOF = 0x6,
 	};
 
 	enum netsrc_t

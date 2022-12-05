@@ -99,10 +99,11 @@ namespace Game
 	MSG_WriteLong_t MSG_WriteLong = MSG_WriteLong_t(0x41CA20);
 	MSG_WriteShort_t MSG_WriteShort = MSG_WriteShort_t(0x503B90);
 	MSG_WriteString_t MSG_WriteString = MSG_WriteString_t(0x463820);
-	MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey = MSG_ReadDeltaUsercmdKey_t(0x491F00);
-	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = MSG_WriteBitsCompress_t(0x4319D0);
+	MSG_Discard_t MSG_Discard = MSG_Discard_t(0x4F56D0);
 	MSG_ReadByte_t MSG_ReadByte = MSG_ReadByte_t(0x4C1C20);
+	MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey = MSG_ReadDeltaUsercmdKey_t(0x491F00);
 	MSG_ReadBitsCompress_t MSG_ReadBitsCompress = MSG_ReadBitsCompress_t(0x4DCC30);
+	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = MSG_WriteBitsCompress_t(0x4319D0);
 
 	NetadrToSockadr_t NetadrToSockadr = NetadrToSockadr_t(0x4B4B40);
 
@@ -262,6 +263,7 @@ namespace Game
 
 	LargeLocalBegin_t LargeLocalBegin = LargeLocalBegin_t(0x4127A0);
 	LargeLocalBeginRight_t LargeLocalBeginRight = LargeLocalBeginRight_t(0x644140);
+	LargeLocalReset_t LargeLocalReset = LargeLocalReset_t(0x430630);
 
 	CmdArgs* cmd_args = reinterpret_cast<CmdArgs*>(0x1AAC5D0);
 	CmdArgs* sv_cmd_args = reinterpret_cast<CmdArgs*>(0x1ACF8A0);
@@ -343,8 +345,6 @@ namespace Game
 	ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0x10843F0);
 	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 	ScreenPlacement* scrPlaceView = reinterpret_cast<ScreenPlacement*>(0x1084378);
-	
-	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
 
 	cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
 	cgs_t* cgsArray = reinterpret_cast<cgs_t*>(0x7ED3B8);
@@ -380,8 +380,6 @@ namespace Game
 	Material** whiteMaterial = reinterpret_cast<Material**>(0x8EE4B8);
 
 	unsigned long* _tls_index = reinterpret_cast<unsigned long*>(0x66D94A8);
-
-	int* cls_uiStarted = reinterpret_cast<int*>(0xA7FFA0);
 
 	unsigned int* playerCardUIStringIndex = reinterpret_cast<unsigned int*>(0x62CD7A8);
 	char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38] = reinterpret_cast<char(*)[PLAYER_CARD_UI_STRING_COUNT][38]>(0x62CB4F8);
