@@ -41,8 +41,6 @@ namespace Components
 		static void RunFrame();
 		static void Synchronize();
 
-		static void LoadNodeRemotePreset();
-
 	private:
 		static std::recursive_mutex Mutex;
 		static std::vector<Entry> Nodes;
