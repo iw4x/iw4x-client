@@ -56,7 +56,7 @@ namespace Components
 
 		UIScript::Add("visitWebsite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			Utils::OpenUrl(Utils::Cache::GetStaticUrl(""));
+			Utils::OpenUrl(Utils::Cache::GetUrl(Utils::Cache::Urls[1], {}));
 		});
 
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");

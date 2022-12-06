@@ -11,11 +11,6 @@ namespace Utils
 	std::string Cache::ValidUrl;
 	std::mutex Cache::CacheMutex;
 
-	std::string Cache::GetStaticUrl(const std::string& path)
-	{
-		return Urls[0] + path;
-	}
-
 	std::string Cache::GetUrl(const std::string& url, const std::string& path)
 	{
 		return url + path;

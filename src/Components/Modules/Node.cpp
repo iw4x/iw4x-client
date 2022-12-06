@@ -50,20 +50,6 @@ namespace Components
 		this->lastRequest.reset();
 	}
 
-	void Node::LoadNodeRemotePreset()
-	{
-		std::string nodes = Utils::Cache::GetFile("/iw4/nodes.txt");
-		if (nodes.empty()) return;
-
-		auto nodeList = Utils::String::Split(nodes, '\n');
-		for (auto& node : nodeList)
-		{
-			Utils::String::Replace(node, "\r", "");
-			Utils::String::Trim(node);
-			Node::Add(node);
-		}
-	}
-
 	void Node::LoadNodePreset()
 	{
 		Proto::Node::List list;
@@ -349,14 +335,6 @@ namespace Components
 		};
 
 		Scheduler::OnGameInitialized(loadNodes, Scheduler::Pipeline::MAIN);
-
-		Network::OnStart([]
-		{
-			std::thread([]
-			{
-				Node::LoadNodeRemotePreset();
-			}).detach();
-		});
 
 		Command::Add("listnodes", [](Command::Params*)
 		{

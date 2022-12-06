@@ -270,7 +270,7 @@ namespace Utils
 			return Compute(data.data(), data.size());
 		}
 
-		unsigned int JenkinsOneAtATime::Compute(const char *key, size_t len)
+		unsigned int JenkinsOneAtATime::Compute(const char *key, std::size_t len)
 		{
 			unsigned int hash, i;
 			for (hash = i = 0; i < len; ++i)
