@@ -47,20 +47,6 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) void QuickPatch::JavelinResetHook_Stub()
-	{
-		__asm
-		{
-			mov eax, 577A10h;
-			call eax;
-			pop edi;
-			mov dword ptr [esi+34h], 0;
-			pop esi;
-			pop ebx;
-			retn;
-		}
-	}
-
 	Game::dvar_t* QuickPatch::g_antilag;
 	__declspec(naked) void QuickPatch::ClientEventsFireWeapon_Stub()
 	{
@@ -314,9 +300,6 @@ namespace Components
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
-
-		// Javelin fix
-		Utils::Hook(0x578F52, QuickPatch::JavelinResetHook_Stub, HOOK_JUMP).install()->quick();
 
 		// Add ultrawide support
 		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
