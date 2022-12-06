@@ -30,11 +30,12 @@ namespace Components
 			// this method should be called to add a new entry (gamemode/map & value)
 			void addEntry(const std::string& key, const std::string& value);
 
-			[[nodiscard]] std::size_t getEntriesSize() const;
+			[[nodiscard]] std::size_t getEntriesSize() const noexcept;
 			rotationEntry& getNextEntry();
 
 			void parse(const std::string& data);
 
+			[[nodiscard]] bool empty() const noexcept;
 			[[nodiscard]] bool contains(const std::string& key, const std::string& value) const;
 
 			[[nodiscard]] nlohmann::json to_json() const;
