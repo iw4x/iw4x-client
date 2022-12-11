@@ -266,8 +266,8 @@ namespace Components
 		{
 			if (params->size() < 2) return;
 
-			const auto num = atoi(params->get(1));
-			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < LoggingAddresses[0].size())
+			const auto num = std::atoi(params->get(1));
+			if (!std::strcmp(Utils::String::VA("%i", num), params->get(1)) && static_cast<unsigned int>(num) < LoggingAddresses[0].size())
 			{
 				auto addr = Logger::LoggingAddresses[0].begin() + num;
 				Print("Address {} removed\n", addr->getString());
@@ -318,7 +318,7 @@ namespace Components
 			if (params->size() < 2) return;
 
 			const auto num = std::atoi(params->get(1));
-			if (Utils::String::VA("%i", num) == std::string(params->get(1)) && static_cast<unsigned int>(num) < LoggingAddresses[1].size())
+			if (!std::strcmp(Utils::String::VA("%i", num), params->get(1)) && static_cast<unsigned int>(num) < LoggingAddresses[1].size())
 			{
 				const auto addr = LoggingAddresses[1].begin() + num;
 				Print("Address {} removed\n", addr->getString());

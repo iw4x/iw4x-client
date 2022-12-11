@@ -10,7 +10,7 @@ namespace Assets
 		Utils::String::Replace(name, "mp/", "");
 		Utils::String::Replace(name, ".d3dbsp", "");
 
-		Components::FileSystem::File ents(Utils::String::VA("mapents/%s.ents", name.data()));
+		Components::FileSystem::File ents(std::format("mapents/{}.ents", name));
 		if (ents.exists())
 		{
 			Game::MapEnts* entites = builder->getAllocator()->allocate<Game::MapEnts>();
@@ -48,7 +48,7 @@ namespace Assets
 
 			std::string entityString = ents.getBuffer();
 
-			entites->name = builder->getAllocator()->duplicateString(Utils::String::VA("maps/mp/%s.d3dbsp", name.data()));
+			entites->name = builder->getAllocator()->duplicateString(std::format("maps/mp/{}.d3dbsp", name));
 			entites->entityString = builder->getAllocator()->duplicateString(entityString);
 			entites->numEntityChars = entityString.size() + 1;
 

@@ -84,6 +84,17 @@ namespace Utils::String
 
 	[[nodiscard]] const char* VA(const char* fmt, ...);
 
+	template <typename... Args>
+	[[nodiscard]] const char* Format(std::string_view fmt, Args&&... args)
+	{
+		static thread_local std::string vaBuffer;
+		vaBuffer.clear();
+
+		(SanitizeFormatArgs(args), ...);
+		std::vformat_to(std::back_inserter(vaBuffer), fmt, std::make_format_args(args...));
+		return vaBuffer.data();
+	}
+
 	[[nodiscard]] std::string ToLower(const std::string& text);
 	[[nodiscard]] std::string ToUpper(const std::string& text);
 

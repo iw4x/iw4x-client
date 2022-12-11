@@ -23,7 +23,7 @@ namespace Components
 		// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
 		buffer(0xC800000),
-		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{ nullptr }, assetDepth(0)
+		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{nullptr}, assetDepth(0)
 	{
 	}
 
@@ -1196,9 +1196,10 @@ namespace Components
 				Zone(zoneName).build();
 			});
 
-			Command::Add("buildall", [](Command::Params*)
+			Command::Add("buildall", []([[maybe_unused]] Command::Params* params)
 			{
-				auto zoneSources = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").get<std::string>() + "\\zone_source", "csv", false);
+				auto path = std::format("{}\\zone_source", Dvar::Var("fs_basepath").get<std::string>());
+				auto zoneSources = FileSystem::GetSysFileList(path, "csv", false);
 
 				for (auto source : zoneSources)
 				{
@@ -1207,7 +1208,7 @@ namespace Components
 						source = source.substr(0, source.find(".csv"));
 					}
 
-					Command::Execute(Utils::String::VA("buildzone %s", source.data()), true);
+					Command::Execute(std::format("buildzone {}", source), true);
 				}
 			});
 
@@ -1528,12 +1529,12 @@ namespace Components
 			{
 				if (params->size() < 2) return;
 
-				std::string path = Utils::String::VA("%s\\mods\\%s\\images", Dvar::Var("fs_basepath").get<const char*>(), params->get(1));
-				std::vector<std::string> images = FileSystem::GetSysFileList(path, "iwi", false);
+				auto path = std::format("{}\\mods\\{}\\images", Dvar::Var("fs_basepath").get<std::string>(), params->get(1));
+				auto images = FileSystem::GetSysFileList(path, "iwi", false);
 
-				for(auto i = images.begin(); i != images.end();)
+				for (auto i = images.begin(); i != images.end();)
 				{
-					*i = Utils::String::VA("images/%s", i->data());
+					*i = std::format("images/{}", *i);
 
 					if (FileSystem::File(*i).exists())
 					{

@@ -199,7 +199,7 @@ namespace Components
 			for (int i = 156;; ++i)
 			{
 				// We're on DB thread (OnLoad) so use DB thread for FS
-				FileSystem::File definition(Utils::String::VA("%s/%d.json", filename.data(), i), Game::FsThread::FS_THREAD_DATABASE);
+				FileSystem::File definition(std::format("{}/{}.json", filename, i), Game::FsThread::FS_THREAD_DATABASE);
 				if (!definition.exists()) break;
 
 				std::vector<std::vector<std::string>> enumContainer;

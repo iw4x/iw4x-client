@@ -18,7 +18,7 @@ namespace Assets
 
 	void IMaterialVertexDeclaration::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File declFile(Utils::String::VA("decl/%s.iw4xDECL", name.data()));
+		Components::FileSystem::File declFile(std::format("decl/{}.iw4xDECL", name));
 		if (!declFile.exists()) return;
 
 		Utils::Stream::Reader reader(builder->getAllocator(), declFile.getBuffer());

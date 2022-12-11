@@ -29,8 +29,8 @@ namespace Components
 	{
 		if (this->isValid() && !this->searchPath.iwd)
 		{
-			std::string iwdName = Utils::String::VA("%s.iwd", this->mapname.data());
-			std::string path = Utils::String::VA("%s\\usermaps\\%s\\%s", Dvar::Var("fs_basepath").get<const char*>(), this->mapname.data(), iwdName.data());
+			auto iwdName = std::format("{}.iwd", this->mapname);
+			auto path = std::format("{}\\usermaps\\{}\\{}", Dvar::Var("fs_basepath").get<std::string>(), this->mapname, iwdName);
 
 			if (Utils::IO::FileExists(path))
 			{
@@ -146,10 +146,10 @@ namespace Components
 			team.allocFlags = zoneInfo->allocFlags;
 			team.freeFlags = zoneInfo->freeFlags;
 
-			team.name = allocator.duplicateString(Utils::String::VA("iw4x_team_%s", teams.first.data()));
+			team.name = allocator.duplicateString(std::format("iw4x_team_{}", teams.first));
 			data.push_back(team);
 
-			team.name = allocator.duplicateString(Utils::String::VA("iw4x_team_%s", teams.second.data()));
+			team.name = allocator.duplicateString(std::format("iw4x_team_{}", teams.second));
 			data.push_back(team);
 		}
 
@@ -166,7 +166,7 @@ namespace Components
 		}
 
 		// Load patch files
-		std::string patchZone = Utils::String::VA("patch_%s", zoneInfo->name);
+		auto patchZone = std::format("patch_{}", zoneInfo->name);
 		if (FastFiles::Exists(patchZone))
 		{
 			data.push_back({patchZone.data(), zoneInfo->allocFlags, zoneInfo->freeFlags});
@@ -301,7 +301,7 @@ namespace Components
 
 		Game::GfxWorld* world = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
 
-		if (FileSystem::File(Utils::String::VA("sun/%s.sun", Maps::CurrentMainZone.data())).exists())
+		if (FileSystem::File(std::format("sun/{}.sun", Maps::CurrentMainZone)))
 		{
 			Game::R_LoadSunThroughDvars(Maps::CurrentMainZone.data(), &world->sun);
 		}
@@ -404,13 +404,13 @@ namespace Components
 
 	unsigned int Maps::GetUsermapHash(const std::string& map)
 	{
-		if (Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", map.data())))
+		if (Utils::IO::DirectoryExists(std::format("usermaps/{}", map)))
 		{
 			std::string hash;
 
 			for (std::size_t i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
 			{
-				std::string filePath = Utils::String::VA("usermaps/%s/%s%s", map.data(), map.data(), Maps::UserMapFiles[i]);
+				auto filePath = std::format("usermaps/{}/{}{}", map, map, Maps::UserMapFiles[i]);
 				if (Utils::IO::FileExists(filePath))
 				{
 					hash.append(Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(filePath)));
@@ -570,7 +570,7 @@ namespace Components
 
 	bool Maps::IsUserMap(const std::string& mapname)
 	{
-		return Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", mapname.data())) && Utils::IO::FileExists(Utils::String::VA("usermaps/%s/%s.ff", mapname.data(), mapname.data()));
+		return Utils::IO::DirectoryExists(std::format("usermaps/{}", mapname)) && Utils::IO::FileExists(std::format("usermaps/{}/{}.ff", mapname, mapname));
 	}
 
 	Game::XAssetEntry* Maps::GetAssetEntryPool()
@@ -916,7 +916,7 @@ namespace Components
 			unsigned int i = 0;
 			for (auto& model : models)
 			{
-				Game::R_AddCmdDrawText(Utils::String::VA("%d %s", model.second, model.first.data()), 0x7FFFFFFF, font, 15.0f, (height * scale + 1) * (i++ + 1) + 15.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
+				Game::R_AddCmdDrawText(Utils::String::VA("%d %s", model.second, model.first.data()), std::numeric_limits<int>::max(), font, 15.0f, (height * scale + 1) * (i++ + 1) + 15.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 			}
 		}, Scheduler::Pipeline::RENDERER);
 	}

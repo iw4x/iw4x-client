@@ -20,7 +20,7 @@ namespace Assets
 	{
 		AssertSize(Game::MaterialPass, 20);
 
-		Components::FileSystem::File techFile(Utils::String::VA("techniques/%s.iw4xTech", name.data()));
+		Components::FileSystem::File techFile(std::format("techniques/{}.iw4xTech", name));
 		if (!techFile.exists()) {
 			*tech = nullptr;
 			Components::Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Missing technique '{}'\n", name);
@@ -101,7 +101,7 @@ namespace Assets
 
 	void IMaterialTechniqueSet::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File tsFile(Utils::String::VA("techsets/%s.iw4xTS", name.data()));
+		Components::FileSystem::File tsFile(std::format("techsets/{}.iw4xTS", name));
 		if (!tsFile.exists()) return;
 
 		Utils::Stream::Reader reader(builder->getAllocator(), tsFile.getBuffer());

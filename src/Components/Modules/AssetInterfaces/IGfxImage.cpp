@@ -23,7 +23,7 @@ namespace Assets
 		const char* tempName = image->name;
 		if (tempName[0] == '*') tempName++;
 
-		Components::FileSystem::File imageFile(Utils::String::VA("images/%s.iw4xImage", tempName));
+		Components::FileSystem::File imageFile(std::format("images/{}.iw4xImage", tempName));
 		if (imageFile.exists())
 		{
 			Utils::Stream::Reader reader(builder->getAllocator(), imageFile.getBuffer());

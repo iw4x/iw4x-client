@@ -1,7 +1,7 @@
 #pragma once
 
 // write logs for ZoneBuilder
-//#define WRITE_LOGS
+
 #ifndef WRITE_LOGS // they take forever to run so only enable if needed
 #define SaveLogEnter(x)
 #define SaveLogExit()
@@ -67,7 +67,7 @@ namespace Utils
 			unsigned int position;
 			std::string buffer;
 			std::map<void*, void*> pointerMap;
-			Utils::Memory::Allocator* allocator;
+			Memory::Allocator* allocator;
 		};
 
 		enum Alignment
@@ -89,17 +89,19 @@ namespace Utils
 		Stream(size_t size);
 		~Stream();
 
-		std::size_t length() const;
-		std::size_t capacity() const;
+		[[nodiscard]] std::size_t length() const;
+		[[nodiscard]] std::size_t capacity() const;
 
 		char* save(const void * _str, std::size_t size, std::size_t count = 1);
 		char* save(Game::XFILE_BLOCK_TYPES stream, const void * _str, std::size_t size, std::size_t count);
 		char* save(Game::XFILE_BLOCK_TYPES stream, int value, std::size_t count);
-		template <typename T> inline char* save(T* object)
+
+		template <typename T> char* save(T* object)
 		{
 			return saveArray<T>(object, 1);
 		}
-		template <typename T> inline char* saveArray(T* array, std::size_t count)
+
+		template <typename T> char* saveArray(T* array, std::size_t count)
 		{
 			return save(array, sizeof(T), count);
 		}
@@ -131,7 +133,8 @@ namespace Utils
 		{
 			return reinterpret_cast<T*>(this->at());
 		}
-		template <typename T> static inline void ClearPointer(T** object)
+
+		template <typename T> static void ClearPointer(T** object)
 		{
 			*object = reinterpret_cast<T*>(-1);
 		}
@@ -151,7 +154,7 @@ namespace Utils
 		// by editing the code though.
 		void enterCriticalSection();
 		void leaveCriticalSection();
-		bool isCriticalSection();
+		bool isCriticalSection() const;
 
 		// for recording zb writes
 #ifdef WRITE_LOGS

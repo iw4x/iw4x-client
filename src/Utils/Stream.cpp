@@ -108,7 +108,7 @@ namespace Utils
 
 		if (this->criticalSectionState != 0)
 		{
-			MessageBoxA(nullptr, Utils::String::VA("Invalid critical section state '%i' for stream destruction!", this->criticalSectionState), "WARNING", MB_ICONEXCLAMATION);
+			MessageBoxA(nullptr, String::VA("Invalid critical section state '%i' for stream destruction!", this->criticalSectionState), "WARNING", MB_ICONEXCLAMATION);
 		}
 	};
 
@@ -163,7 +163,7 @@ namespace Utils
 
 		if (this->isCriticalSection() && this->length() + (size * count) > this->capacity())
 		{
-			MessageBoxA(nullptr, Utils::String::VA("Potential stream reallocation during critical operation detected! Writing data of the length 0x%X exceeds the allocated stream size of 0x%X\n", (size * count), this->capacity()), "ERROR", MB_ICONERROR);
+			MessageBoxA(nullptr, String::VA("Potential stream reallocation during critical operation detected! Writing data of the length 0x%X exceeds the allocated stream size of 0x%X\n", (size * count), this->capacity()), "ERROR", MB_ICONERROR);
 			__debugbreak();
 		}
 
@@ -291,9 +291,9 @@ namespace Utils
 		}
 
 #ifdef WRITE_LOGS
-		std::string data = Utils::String::VA("%*s%d\n", this->structLevel, "", size);
-		if (stream == Game::XFILE_BLOCK_RUNTIME) data = Utils::String::VA("%*s(%d)\n", this->structLevel, "", size);
-		Utils::IO::WriteFile("userraw/logs/zb_writes.log", data, true);
+		const auto* data = String::VA("%*s%u\n", this->structLevel, "", size);
+		if (stream == Game::XFILE_BLOCK_RUNTIME) data = String::VA("%*s(%u)\n", this->structLevel, "", size);
+		IO::WriteFile("userraw/logs/zb_writes.log", data, true);
 #endif
 	}
 
@@ -365,7 +365,7 @@ namespace Utils
 		--this->criticalSectionState;
 	}
 
-	bool Stream::isCriticalSection()
+	bool Stream::isCriticalSection() const
 	{
 		if (this->criticalSectionState < 0)
 		{
@@ -381,7 +381,7 @@ namespace Utils
 	{
 		if (this->structLevel >= 0)
 		{
-			Utils::IO::WriteFile("userraw/logs/zb_writes.log", Utils::String::VA("%*s%s\n", this->structLevel++, "", structName), true);
+			IO::WriteFile("userraw/logs/zb_writes.log", String::VA("%*s%s\n", this->structLevel++, "", structName), true);
 		}
 	}
 
@@ -393,7 +393,7 @@ namespace Utils
 			return;
 		}
 
-		Utils::IO::WriteFile("userraw/logs/zb_writes.log", Utils::String::VA("%*s-----\n", this->structLevel, ""), true);
+		IO::WriteFile("userraw/logs/zb_writes.log", String::VA("%*s-----\n", this->structLevel, ""), true);
 	}
 #endif
 }

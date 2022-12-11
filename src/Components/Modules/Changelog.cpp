@@ -38,7 +38,7 @@ namespace Components
 		std::lock_guard _(Mutex);
 		if (item < Lines.size())
 		{
-			return Utils::String::VA("%s", Lines[item].data());
+			return Utils::String::Format("{}", Lines[item]);
 		}
 
 		return "";

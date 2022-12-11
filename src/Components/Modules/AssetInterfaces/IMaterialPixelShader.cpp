@@ -19,7 +19,7 @@ namespace Assets
 
 	void IMaterialPixelShader::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File psFile(Utils::String::VA("ps/%s.iw4xPS", name.data()));
+		Components::FileSystem::File psFile(std::format("ps/{}.iw4xPS", name));
 		if (!psFile.exists()) return;
 
 		Utils::Stream::Reader reader(builder->getAllocator(), psFile.getBuffer());

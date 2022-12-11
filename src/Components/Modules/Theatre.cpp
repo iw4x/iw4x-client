@@ -190,9 +190,7 @@ namespace Components
 
 		for (auto demo : demos)
 		{
-			FileSystem::File meta(Utils::String::VA("demos/%s.json", demo.data()));
-
-			if (meta.exists())
+			if (FileSystem::File meta = std::format("demos/{}.json", demo))
 			{
 				nlohmann::json metaObject;
 				try
@@ -206,7 +204,7 @@ namespace Components
 					demoInfo.mapname = metaObject["mapname"].get<std::string>();
 					demoInfo.length = metaObject["length"].get<int>();
 					auto timestamp = metaObject["timestamp"].get<std::string>();
-					demoInfo.timeStamp = _atoi64(timestamp.data());
+					demoInfo.timeStamp = std::strtoll(timestamp.data(), nullptr, 10);
 
 					Demos.push_back(demoInfo);
 				}
@@ -312,11 +310,11 @@ namespace Components
 			for (auto i = 0; i < numDel; ++i)
 			{
 				Logger::Print("Deleting old demo {}\n", files[i]);
-				FileSystem::_DeleteFile("demos", files[i].data());
-				FileSystem::_DeleteFile("demos", Utils::String::VA("%s.json", files[i].data()));
+				FileSystem::_DeleteFile("demos", files[i]);
+				FileSystem::_DeleteFile("demos", std::format("%s.json", files[i]));
 			}
 
-			Command::Execute(Utils::String::VA("record auto_%lld", time(nullptr)), true);
+			Command::Execute(Utils::String::VA("record auto_%lld", std::time(nullptr)), true);
 		}
 
 		return Utils::Hook::Call<DWORD()>(0x42BBB0)();

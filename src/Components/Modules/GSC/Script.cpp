@@ -329,7 +329,7 @@ namespace Components
 			const auto name = Utils::String::ToLower(*pName);
 			for (const auto& func : CustomScrFunctions)
 			{
-				if (std::ranges::find(func.aliases, name) != func.aliases.end())
+				if (Utils::Contains(&func.aliases, name))
 				{
 					*type = func.type;
 					return func.actionFunc;
@@ -356,7 +356,7 @@ namespace Components
 			const auto name = Utils::String::ToLower(*pName);
 			for (const auto& meth : CustomScrMethods)
 			{
-				if (std::ranges::find(meth.aliases, name) != meth.aliases.end())
+				if (Utils::Contains(&meth.aliases, name))
 				{
 					*type = meth.type;
 					return meth.actionFunc;

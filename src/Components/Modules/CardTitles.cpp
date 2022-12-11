@@ -169,10 +169,10 @@ namespace Components
 				playerTitle[0] = '\0';
 			}
 
-			list.append(Utils::String::VA("\\%s\\%s", std::to_string(i).data(), playerTitle));
+			list.append(std::format("\\{}\\{}", std::to_string(i), playerTitle));
 		}
 
-		const auto* command = Utils::String::VA("%c customTitles \"%s\"", 21, list.data());
+		const auto* command = Utils::String::Format("{:c} customTitles \"{}\"", 21, list);
 		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, command);
 	}
 

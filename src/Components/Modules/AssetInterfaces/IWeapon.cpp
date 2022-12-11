@@ -6,7 +6,7 @@ namespace Assets
 	void IWeapon::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
 	{
 		// Try loading raw weapon
-		if (Components::FileSystem::File(Utils::String::VA("weapons/mp/%s", name.data())).exists())
+		if (Components::FileSystem::File(std::format("weapons/mp/{}", name)))
 		{
 			// let the function see temporary assets when calling DB_FindXAssetHeader during the loading function
 			// otherwise it fails to link things properly

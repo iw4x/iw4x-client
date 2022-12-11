@@ -576,7 +576,8 @@ namespace Components
 						formatString = "userraw/shader_bin/%.vs";
 					}
 
-					if (Utils::IO::FileExists(Utils::String::VA(formatString, name.data()))) return;
+					const auto path = std::format("{}{}", formatString, name);
+					if (Utils::IO::FileExists(path)) return;
 
 					Utils::Stream buffer(0x1000);
 					auto* dest = buffer.dest<Game::MaterialPixelShader>();
@@ -588,7 +589,7 @@ namespace Components
 						Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
 					}
 
-					Utils::IO::WriteFile(Utils::String::VA(formatString, name.data()), buffer.toBuffer());
+					Utils::IO::WriteFile(path, buffer.toBuffer());
 				}
 
 				if (type == Game::ASSET_TYPE_TECHNIQUE_SET)

@@ -11,7 +11,7 @@ namespace Assets
 		Utils::String::Replace(name, "maps/mp/", "");
 		Utils::String::Replace(name, ".d3dbsp", "");
 
-		Components::FileSystem::File mapFile(Utils::String::VA("comworld/%s.iw4xComWorld", name.data()));
+		Components::FileSystem::File mapFile(std::format("comworld/{}.iw4xComWorld", name));
 
 		if (mapFile.exists())
 		{

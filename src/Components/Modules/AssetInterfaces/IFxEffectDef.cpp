@@ -64,7 +64,7 @@ namespace Assets
 
 	void IFxEffectDef::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File fxFile(Utils::String::VA("fx/%s.iw4xFx", name.data()));
+		Components::FileSystem::File fxFile(std::format("fx/{}.iw4xFx", name));
 
 		if (fxFile.exists())
 		{

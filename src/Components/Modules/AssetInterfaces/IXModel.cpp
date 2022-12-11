@@ -85,7 +85,7 @@ namespace Assets
 
 	void IXModel::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File modelFile(Utils::String::VA("xmodel/%s.iw4xModel", name.data()));
+		Components::FileSystem::File modelFile(std::format("xmodel/{}.iw4xModel", name));
 
 		if (!builder->isPrimaryAsset() && (!Components::ZoneBuilder::PreferDiskAssetsDvar.get<bool>() || !modelFile.exists()))
 		{

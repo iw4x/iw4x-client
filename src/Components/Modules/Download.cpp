@@ -284,7 +284,7 @@ namespace Components
 			{
 				if (download->terminateThread) return;
 
-				mod = Utils::String::VA("Failed to download file: %s!", download->files[i].name.data());
+				mod = std::format("Failed to download file: {}!", download->files[i].name);
 				download->thread.detach();
 				download->clear();
 

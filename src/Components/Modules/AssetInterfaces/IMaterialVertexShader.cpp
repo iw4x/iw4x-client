@@ -18,7 +18,7 @@ namespace Assets
 
 	void IMaterialVertexShader::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File vsFile(Utils::String::VA("vs/%s.iw4xVS", name.data()));
+		Components::FileSystem::File vsFile(std::format("vs/{}.iw4xVS", name));
 		if (!vsFile.exists()) return;
 
 		Utils::Stream::Reader reader(builder->getAllocator(), vsFile.getBuffer());

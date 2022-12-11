@@ -78,7 +78,7 @@ namespace Components
 		std::string data;
 		for (auto& gametype : gametypes)
 		{
-			if (Game::Scr_AddSourceBuffer(nullptr, Utils::String::VA("maps/mp/gametypes/%s.txt", gametype.data()), nullptr, false))
+			if (Game::Scr_AddSourceBuffer(nullptr, Utils::String::Format("maps/mp/gametypes/{}.txt", gametype), nullptr, false))
 			{
 				data.append(gametype);
 				data.append("\r\n");

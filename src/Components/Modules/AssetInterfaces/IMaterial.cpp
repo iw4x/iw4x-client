@@ -53,7 +53,7 @@ namespace Assets
 			{"mc_unlit_alphatest", "mc_unlit_blend_lin"}
 		};
 
-		Components::FileSystem::File materialFile(Utils::String::VA("materials/%s.iw4xMaterial", name.data()));
+		Components::FileSystem::File materialFile(std::format("materials/{}.iw4xMaterial", name));
 		if (!materialFile.exists()) return;
 
 		Utils::Stream::Reader reader(builder->getAllocator(), materialFile.getBuffer());
@@ -329,7 +329,7 @@ namespace Assets
 
 	void IMaterial::loadJson(Game::XAssetHeader* header, const std::string& name, [[maybe_unused]] Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File materialInfo(Utils::String::VA("materials/%s.json", name.data()));
+		Components::FileSystem::File materialInfo(std::format("materials/{}.json", name));
 
 		if (!materialInfo.exists()) return;
 
