@@ -374,14 +374,17 @@ namespace Game
 	typedef GfxWorld*(*R_SortWorldSurfaces_t)();
 	extern R_SortWorldSurfaces_t R_SortWorldSurfaces;
 
-	typedef script_t*(*Script_Alloc_t)(int length);
-	extern Script_Alloc_t Script_Alloc;
+	typedef void* (*GetMemory_t)(unsigned int size);
+	extern GetMemory_t GetMemory;
 
-	typedef void(*Script_SetupTokens_t)(script_t* script, void* tokens);
-	extern Script_SetupTokens_t Script_SetupTokens;
+	typedef void*(*GetClearedMemory_t)(unsigned int size);
+	extern GetClearedMemory_t GetClearedMemory;
 
-	typedef int(*Script_CleanString_t)(char* buffer);
-	extern Script_CleanString_t Script_CleanString;
+	typedef void(*PS_CreatePunctuationTable_t)(script_s* script, punctuation_s* punctuations);
+	extern PS_CreatePunctuationTable_t PS_CreatePunctuationTable;
+
+	typedef void(*free_expression_t)(Statement_s* statement);
+	extern free_expression_t free_expression;
 
 	typedef char*(*SE_Load_t)(const char* psFileName, bool forceEnglish);
 	extern SE_Load_t SE_Load;
@@ -596,8 +599,7 @@ namespace Game
 
 	extern float* cgameFOVSensitivityScale;
 
-	extern source_t **sourceFiles;
-	extern keywordHash_t **menuParseKeywordHash;
+	extern source_t** sourceFiles;
 
 	extern UiContext* uiContext;
 
@@ -727,6 +729,8 @@ namespace Game
 	extern int* ui_numArenas;
 	extern int* ui_arenaBufPos;
 
+	extern punctuation_s* default_punctuations;
+
 	constexpr auto MAX_MSGLEN = 0x20000;
 
 	ScreenPlacement* ScrPlace_GetFullPlacement();
@@ -734,7 +738,6 @@ namespace Game
 
 	void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize);
 
-	void Menu_FreeItemMemory(itemDef_s* item);
 	void Menu_SetNextCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	void Menu_SetPrevCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	const char* TableLookup(StringTable* stringtable, int row, int column);

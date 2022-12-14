@@ -16,7 +16,7 @@
 #include <ShlObj.h>
 #include <timeapi.h>
 #include <shellapi.h>
-#include <wininet.h>
+#include <WinInet.h>
 #include <d3d9.h>
 #include <AclAPI.h>
 #include <Psapi.h>

@@ -152,9 +152,10 @@ namespace Game
 	R_FlushSun_t R_FlushSun = R_FlushSun_t(0x53FB50);
 	R_SortWorldSurfaces_t R_SortWorldSurfaces = R_SortWorldSurfaces_t(0x53DC10);
 
-	Script_Alloc_t Script_Alloc = Script_Alloc_t(0x422E70);
-	Script_SetupTokens_t Script_SetupTokens = Script_SetupTokens_t(0x4E6950);
-	Script_CleanString_t Script_CleanString = Script_CleanString_t(0x498220);
+	GetMemory_t GetMemory = GetMemory_t(0x4E67B0);
+	GetClearedMemory_t GetClearedMemory = GetClearedMemory_t(0x422E70);
+	PS_CreatePunctuationTable_t PS_CreatePunctuationTable = PS_CreatePunctuationTable_t(0x4E6950);
+	free_expression_t free_expression = free_expression_t(0x4ACC70);
 
 	SE_Load_t SE_Load = SE_Load_t(0x502A30);
 
@@ -270,8 +271,7 @@ namespace Game
 
 	cmd_function_t** cmd_functions = reinterpret_cast<cmd_function_t**>(0x1AAC658);
 
-	source_t **sourceFiles = reinterpret_cast<source_t **>(0x7C4A98);
-	keywordHash_t **menuParseKeywordHash = reinterpret_cast<keywordHash_t **>(0x63AE928);
+	source_t** sourceFiles = reinterpret_cast<source_t**>(0x7C4A98);
 
 	float* cgameFOVSensitivityScale = reinterpret_cast<float*>(0xB2F884);
 
@@ -398,6 +398,8 @@ namespace Game
 	char** ui_arenaInfos = reinterpret_cast<char**>(0x62D2688);
 	int* ui_numArenas = reinterpret_cast<int*>(0x62D2788);
 	int* ui_arenaBufPos = reinterpret_cast<int*>(0x62D278C);
+
+	punctuation_s* default_punctuations = reinterpret_cast<punctuation_s*>(0x797F80);
 
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{
@@ -921,19 +923,6 @@ namespace Game
 
 			add esp, 10h
 
-			popad
-			retn
-		}
-	}
-
-	__declspec(naked) void Menu_FreeItemMemory(itemDef_s* /*item*/)
-	{
-		__asm
-		{
-			pushad
-			mov edi, [esp + 24h]
-			mov eax, 63D880h
-			call eax
 			popad
 			retn
 		}

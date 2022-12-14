@@ -6,6 +6,31 @@ namespace Components
 	std::unordered_map<std::string, Game::menuDef_t*> Menus::MenuList;
 	std::unordered_map<std::string, Game::MenuList*> Menus::MenuListList;
 
+	Game::KeywordHashEntry<Game::menuDef_t, 128, 3523>** menuParseKeywordHash;
+
+	template <int HASH_COUNT, int HASH_SEED>
+	static int KeywordHashKey(const char* keyword)
+	{
+		auto hash = 0;
+		for (auto i = 0; keyword[i]; ++i)
+		{
+			hash += (i + HASH_SEED) * std::tolower(static_cast<unsigned char>(keyword[i]));
+		}
+		return (hash + (hash >> 8)) & (128 - 1);
+	}
+
+	template <typename T, int N, int M>
+	static Game::KeywordHashEntry<T, N, M>* KeywordHashFind(Game::KeywordHashEntry<T, N, M>** table, const char* keyword)
+	{
+		auto hash = KeywordHashKey<N, M>(keyword);
+		Game::KeywordHashEntry<T, N, M>* key = table[hash];
+		if (key && !_stricmp(key->keyword, keyword))
+		{
+			return key;
+		}
+		return nullptr;
+	}
+
 	int Menus::ReserveSourceHandle()
 	{
 		// Check if a free slot is available
@@ -27,7 +52,7 @@ namespace Components
 
 	Game::script_t* Menus::LoadMenuScript(const std::string& name, const std::string& buffer)
 	{
-		Game::script_t* script = Game::Script_Alloc(sizeof(Game::script_t) + 1 + buffer.length());
+		auto* script = static_cast<Game::script_t*>(Game::GetClearedMemory(sizeof(Game::script_t) + 1 + buffer.length()));
 		if (!script) return nullptr;
 
 		strcpy_s(script->filename, sizeof(script->filename), name.data());
@@ -37,18 +62,18 @@ namespace Components
 
 		script->script_p = script->buffer;
 		script->lastscript_p = script->buffer;
-		script->length = buffer.length();
+		script->length = static_cast<int>(buffer.length());
 		script->end_p = &script->buffer[buffer.length()];
 		script->line = 1;
 		script->lastline = 1;
 		script->tokenavailable = 0;
 
-		Game::Script_SetupTokens(script, reinterpret_cast<char*>(0x797F80));
-		script->punctuations = reinterpret_cast<Game::punctuation_t*>(0x797F80);
+		Game::PS_CreatePunctuationTable(script, Game::default_punctuations);
+		script->punctuations = Game::default_punctuations;
 
 		std::memcpy(script->buffer, buffer.data(), script->length + 1);
 
-		script->length = Game::Script_CleanString(script->buffer);
+		script->length = Game::Com_Compress(script->buffer);
 
 		return script;
 	}
@@ -57,18 +82,16 @@ namespace Components
 	{
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
-		int handle = Menus::ReserveSourceHandle();
-		if (!Menus::IsValidSourceHandle(handle)) return 0; // No free source slot!
+		const auto handle = ReserveSourceHandle();
+		if (!IsValidSourceHandle(handle)) return 0; // No free source slot!
 
-		Game::script_t* script = Menus::LoadMenuScript(name, buffer);
+		auto* script = LoadMenuScript(name, buffer);
 
 		if (!script)
 		{
 			Game::sourceFiles[handle] = nullptr; // Free reserved slot
 			return 0;
 		}
-
-		script->next = nullptr;
 
 		auto* source = allocator->allocate<Game::source_t>();
 		if (!source)
@@ -77,13 +100,17 @@ namespace Components
 			return 0;
 		}
 
-		strncpy_s(source->filename, 64, "string", 64);
+		std::memset(source, 0, sizeof(Game::source_s));
+
+		script->next = nullptr;
+
+		strncpy_s(source->filename, "string", _TRUNCATE);
 		source->scriptstack = script;
 		source->tokens = nullptr;
 		source->defines = nullptr;
 		source->indentstack = nullptr;
 		source->skip = 0;
-		source->definehash = static_cast<Game::define_t * *>(allocator->allocate(4096));
+		source->definehash = static_cast<Game::define_s**>(Game::GetClearedMemory(1024 * sizeof(Game::define_s*)));
 
 		Game::sourceFiles[handle] = source;
 
@@ -95,27 +122,9 @@ namespace Components
 		return (handle > 0 && handle < MAX_SOURCEFILES && Game::sourceFiles[handle]);
 	}
 
-	int Menus::KeywordHash(char* key)
-	{
-		int hash = 0;
-
-		if (*key)
-		{
-			int sub = 3523 - reinterpret_cast<DWORD>(key);
-			do
-			{
-				char _chr = *key;
-				hash += reinterpret_cast<DWORD>(&(key++)[sub]) * tolower(_chr);
-			} while (*key);
-		}
-
-		return (static_cast<uint16_t>(hash) + static_cast<uint16_t>(hash >> 8)) & 0x7F;
-	}
-
 	Game::menuDef_t* Menus::ParseMenu(int handle)
 	{
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
 		auto* menu = allocator->allocate<Game::menuDef_t>();
 		if (!menu) return nullptr;
 
@@ -149,10 +158,7 @@ namespace Components
 				break; // Success
 			}
 
-			int idx = Menus::KeywordHash(token.string);
-
-			Game::keywordHash_t* key = Game::menuParseKeywordHash[idx];
-
+			auto* key = KeywordHashFind(menuParseKeywordHash, token.string);
 			if (!key)
 			{
 				Game::PC_SourceError(handle, "unknown menu keyword %s", token.string);
@@ -168,14 +174,15 @@ namespace Components
 
 		if (!menu->window.name)
 		{
+			Game::PC_SourceError(handle, "menu has no name");
 			allocator->free(menu->items);
 			allocator->free(menu);
 			return nullptr;
 		}
 
-		Menus::OverrideMenu(menu);
-		Menus::RemoveMenu(menu->window.name);
-		Menus::MenuList[menu->window.name] = menu;
+		OverrideMenu(menu);
+		RemoveMenu(menu->window.name);
+		MenuList[menu->window.name] = menu;
 
 		return menu;
 	}
@@ -188,9 +195,9 @@ namespace Components
 		if (!menuFile.exists()) return nullptr;
 
 		Game::pc_token_t token;
-		int handle = Menus::LoadMenuSource(menu, menuFile.getBuffer());
+		int handle = LoadMenuSource(menu, menuFile.getBuffer());
 
-		if (Menus::IsValidSourceHandle(handle))
+		if (IsValidSourceHandle(handle))
 		{
 			while (true)
 			{
@@ -206,23 +213,23 @@ namespace Components
 					Game::PC_ReadTokenHandle(handle, &token);
 
 					auto* filename = Utils::String::VA("ui_mp\\%s.menu", token.string);
-					Utils::Merge(&menus, Menus::LoadMenu(filename));
+					Utils::Merge(&menus, LoadMenu(filename));
 				}
 
 				if (!_stricmp(token.string, "menudef"))
 				{
-					Game::menuDef_t* menudef = Menus::ParseMenu(handle);
-					if (menudef) menus.push_back({ true, menudef }); // Custom menu
+					auto* menudef = ParseMenu(handle);
+					if (menudef) menus.emplace_back(std::make_pair(true, menudef)); // Custom menu
 				}
 			}
 
-			Menus::FreeMenuSource(handle);
+			FreeMenuSource(handle);
 		}
 
 		if (menus.empty()) return nullptr;
 
 		// Allocate new menu list
-		Game::MenuList* list = allocator->allocate<Game::MenuList>();
+		auto* list = allocator->allocate<Game::MenuList>();
 		if (!list) return nullptr;
 
 		list->menus = allocator->allocateArray<Game::menuDef_t*>(menus.size());
@@ -233,10 +240,10 @@ namespace Components
 		}
 
 		list->name = allocator->duplicateString(menu);
-		list->menuCount = menus.size();
+		list->menuCount = static_cast<int>(menus.size());
 
 		// Copy new menus
-		for (unsigned int i = 0; i < menus.size(); ++i)
+		for (std::size_t i = 0; i < menus.size(); ++i)
 		{
 			list->menus[i] = menus[i].second;
 		}
@@ -252,9 +259,9 @@ namespace Components
 		if (menuFile.exists())
 		{
 			Game::pc_token_t token;
-			int handle = Menus::LoadMenuSource(menu, menuFile.getBuffer());
+			const auto handle = LoadMenuSource(menu, menuFile.getBuffer());
 
-			if (Menus::IsValidSourceHandle(handle))
+			if (IsValidSourceHandle(handle))
 			{
 				while (true)
 				{
@@ -269,17 +276,17 @@ namespace Components
 					{
 						Game::PC_ReadTokenHandle(handle, &token);
 
-						Utils::Merge(&menus, Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", token.string)));
+						Utils::Merge(&menus, LoadMenu(Utils::String::VA("ui_mp\\%s.menu", token.string)));
 					}
 
 					if (!_stricmp(token.string, "menudef"))
 					{
-						Game::menuDef_t* menudef = Menus::ParseMenu(handle);
-						if (menudef) menus.push_back({ true, menudef }); // Custom menu
+						auto* menudef = ParseMenu(handle);
+						if (menudef) menus.emplace_back(std::make_pair(true, menudef)); // Custom menu
 					}
 				}
 
-				Menus::FreeMenuSource(handle);
+				FreeMenuSource(handle);
 			}
 		}
 
@@ -288,11 +295,13 @@ namespace Components
 
 	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(Game::menuDef_t* menudef)
 	{
-		std::vector<std::pair<bool, Game::menuDef_t*>> menus = Menus::LoadMenu(Utils::String::VA("ui_mp\\%s.menu", menudef->window.name));
+		assert(menudef->window.name);
+
+		std::vector<std::pair<bool, Game::menuDef_t*>> menus = LoadMenu(Utils::String::VA("ui_mp\\%s.menu", menudef->window.name));
 
 		if (menus.empty())
 		{
-			menus.push_back({ false, menudef }); // Native menu
+			menus.emplace_back(std::make_pair(false, menudef)); // Native menu
 		}
 
 		return menus;
@@ -302,7 +311,7 @@ namespace Components
 	{
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
-		std::vector<std::pair<bool, Game::menuDef_t*>> menus = Menus::LoadMenu(menu);
+		auto menus = LoadMenu(menu);
 		if (menus.empty()) return nullptr;
 
 		// Allocate new menu list
@@ -325,8 +334,8 @@ namespace Components
 			newList->menus[i] = menus[i].second;
 		}
 
-		Menus::RemoveMenuList(newList->name);
-		Menus::MenuListList[newList->name] = newList;
+		RemoveMenuList(newList->name);
+		MenuListList[newList->name] = newList;
 
 		return newList;
 	}
@@ -366,7 +375,7 @@ namespace Components
 			{
 				if (i->second->window.name == std::string(newMenu.second->window.name))
 				{
-					Menus::RemoveMenu(i->second);
+					RemoveMenu(i->second);
 
 					i = menus->erase(i);
 					increment = false;
@@ -389,13 +398,13 @@ namespace Components
 		for (int i = 0; i < menuList->menuCount; ++i)
 		{
 			if (!menuList->menus[i]) continue;
-			Menus::SafeMergeMenus(&menus, Menus::LoadMenu(menuList->menus[i]));
+			SafeMergeMenus(&menus, LoadMenu(menuList->menus[i]));
 		}
 
 		// Load custom menus
 		if (menuList->name == "ui_mp/code.txt"s) // Should be menus, but code is loaded ingame
 		{
-			for (auto menu : Menus::CustomMenus)
+			for (auto menu : CustomMenus)
 			{
 				bool hasMenu = false;
 				for (auto& loadedMenu : menus)
@@ -407,15 +416,15 @@ namespace Components
 					}
 				}
 
-				if (!hasMenu) Menus::SafeMergeMenus(&menus, Menus::LoadMenu(menu));
+				if (!hasMenu) SafeMergeMenus(&menus, LoadMenu(menu));
 			}
 		}
 
 		// Allocate new menu list
-		Game::MenuList* newList = allocator->allocate<Game::MenuList>();
+		auto* newList = allocator->allocate<Game::MenuList>();
 		if (!newList) return menuList;
 
-		size_t size = menus.size();
+		auto size = menus.size();
 		newList->menus = allocator->allocateArray<Game::menuDef_t*>(size);
 		if (!newList->menus)
 		{
@@ -432,8 +441,8 @@ namespace Components
 			newList->menus[i] = menus[i].second;
 		}
 
-		Menus::RemoveMenuList(newList->name);
-		Menus::MenuListList[newList->name] = newList;
+		RemoveMenuList(newList->name);
+		MenuListList[newList->name] = newList;
 
 		return newList;
 	}
@@ -442,7 +451,7 @@ namespace Components
 	{
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
-		if (!Menus::IsValidSourceHandle(handle)) return;
+		if (!IsValidSourceHandle(handle)) return;
 
 		Game::source_t* source = Game::sourceFiles[handle];
 
@@ -481,28 +490,43 @@ namespace Components
 		Game::sourceFiles[handle] = nullptr;
 	}
 
-	void Menus::FreeMenu(Game::menuDef_t* menudef)
+	void Menus::Menu_FreeItemMemory(Game::itemDef_s* item)
+	{
+		AssertOffset(Game::itemDef_s, floatExpressionCount, 0x13C);
+
+		for (auto i = 0; i < item->floatExpressionCount; ++i)
+		{
+			Game::free_expression(item->floatExpressions[i].expression);
+		}
+
+		item->floatExpressionCount = 0;
+	}
+
+	void Menus::FreeMenu(Game::menuDef_t* menu)
 	{
 		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
 
-		// Do i need to free expressions and strings?
-		// Or does the game take care of it?
-		// Seems like it does...
-
-		if (menudef->items)
+		if (menu->items)
 		{
-			// Seems like this is obsolete as well,
-			// as the game handles the memory
+			for (int i = 0; i < menu->itemCount; ++i)
+			{
+#if 0
+				Menu_FreeItemMemory(menu->items[i]);
+#endif
+			}
 
-			//for (int i = 0; i < menudef->itemCount; ++i)
-			//{
-			//	Game::Menu_FreeItemMemory(menudef->items[i]);
-			//}
-
-			allocator->free(menudef->items);
+			allocator->free(menu->items);
 		}
 
-		allocator->free(menudef);
+		Game::free_expression(menu->visibleExp);
+		Game::free_expression(menu->rectXExp);
+		Game::free_expression(menu->rectYExp);
+		Game::free_expression(menu->rectWExp);
+		Game::free_expression(menu->rectHExp);
+		Game::free_expression(menu->openSoundExp);
+		Game::free_expression(menu->closeSoundExp);
+
+		allocator->free(menu);
 	}
 
 	void Menus::FreeMenuList(Game::MenuList* menuList)
@@ -513,37 +537,29 @@ namespace Components
 		// Keep our compiler happy
 		Game::MenuList list = { menuList->name, menuList->menuCount, menuList->menus };
 
-		if (list.name)
-		{
-			allocator->free(list.name);
-		}
-
-		if (list.menus)
-		{
-			allocator->free(list.menus);
-		}
-
+		allocator->free(list.name);
+		allocator->free(list.menus);
 		allocator->free(menuList);
 	}
 
 	void Menus::RemoveMenu(const std::string& menu)
 	{
-		auto i = Menus::MenuList.find(menu);
-		if (i != Menus::MenuList.end())
+		auto i = MenuList.find(menu);
+		if (i != MenuList.end())
 		{
-			if (i->second) Menus::FreeMenu(i->second);
-			i = Menus::MenuList.erase(i);
+			if (i->second) FreeMenu(i->second);
+			i = MenuList.erase(i);
 		}
 	}
 
 	void Menus::RemoveMenu(Game::menuDef_t* menudef)
 	{
-		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end();)
+		for (auto i = MenuList.begin(); i != MenuList.end();)
 		{
 			if (i->second == menudef)
 			{
-				Menus::FreeMenu(menudef);
-				i = Menus::MenuList.erase(i);
+				FreeMenu(menudef);
+				i = MenuList.erase(i);
 			}
 			else
 			{
@@ -554,20 +570,20 @@ namespace Components
 
 	void Menus::RemoveMenuList(const std::string& menuList)
 	{
-		auto i = Menus::MenuListList.find(menuList);
-		if (i != Menus::MenuListList.end())
+		auto i = MenuListList.find(menuList);
+		if (i != MenuListList.end())
 		{
 			if (i->second)
 			{
 				for (auto j = 0; j < i->second->menuCount; ++j)
 				{
-					Menus::RemoveMenu(i->second->menus[j]);
+					RemoveMenu(i->second->menus[j]);
 				}
 
-				Menus::FreeMenuList(i->second);
+				FreeMenuList(i->second);
 			}
 
-			i = Menus::MenuListList.erase(i);
+			i = MenuListList.erase(i);
 		}
 	}
 
@@ -584,8 +600,7 @@ namespace Components
 		std::string name = menu->window.name;
 
 		// Find the old menu
-		auto i = Menus::MenuList.find(name);
-		if (i != Menus::MenuList.end())
+		if (auto i = MenuList.find(name); i != MenuList.end())
 		{
 			// We have found it, *yay*
 			Game::menuDef_t* oldMenu = i->second;
@@ -600,7 +615,7 @@ namespace Components
 			}
 
 			// Replace every old instance with our new one in our menu lists
-			for (auto j = Menus::MenuListList.begin(); j != Menus::MenuListList.end(); ++j)
+			for (auto j = MenuListList.begin(); j != MenuListList.end(); ++j)
 			{
 				Game::MenuList* list = j->second;
 
@@ -615,30 +630,33 @@ namespace Components
 					}
 				}
 			}
+
+			FreeMenu(oldMenu);
 		}
 	}
 
 	void Menus::RemoveMenuList(Game::MenuList* menuList)
 	{
 		if (!menuList || !menuList->name) return;
-		Menus::RemoveMenuList(menuList->name);
+		RemoveMenuList(menuList->name);
 	}
 
+	// In your dreams
 	void Menus::FreeEverything()
 	{
-		for (auto i = Menus::MenuListList.begin(); i != Menus::MenuListList.end(); ++i)
+		for (auto i = MenuListList.begin(); i != MenuListList.end(); ++i)
 		{
-			Menus::FreeMenuList(i->second);
+			FreeMenuList(i->second);
 		}
 
-		Menus::MenuListList.clear();
+		MenuListList.clear();
 
-		for (auto i = Menus::MenuList.begin(); i != Menus::MenuList.end(); ++i)
+		for (auto i = MenuList.begin(); i != MenuList.end(); ++i)
 		{
-			Menus::FreeMenu(i->second);
+			FreeMenu(i->second);
 		}
 
-		Menus::MenuList.clear();
+		MenuList.clear();
 	}
 
 	Game::XAssetHeader Menus::MenuFindHook(Game::XAssetType /*type*/, const std::string& filename)
@@ -651,23 +669,23 @@ namespace Components
 		Game::XAssetHeader header = { nullptr };
 
 		// Free the last menulist and ui context, as we have to rebuild it with the new menus
-		if (Menus::MenuListList.find(filename) != Menus::MenuListList.end())
+		if (MenuListList.find(filename) != MenuListList.end())
 		{
-			Game::MenuList* list = Menus::MenuListList[filename];
+			Game::MenuList* list = MenuListList[filename];
 
 			for (int i = 0; list && list->menus && i < list->menuCount; ++i)
 			{
-				Menus::RemoveMenuFromContext(Game::uiContext, list->menus[i]);
+				RemoveMenuFromContext(Game::uiContext, list->menus[i]);
 			}
 
-			Menus::RemoveMenuList(filename);
+			RemoveMenuList(filename);
 		}
 
 		if (Utils::String::EndsWith(filename, ".menu"))
 		{
 			if (FileSystem::File(filename).exists())
 			{
-				header.menuList = Menus::LoadScriptMenu(filename.data());
+				header.menuList = LoadScriptMenu(filename.data());
 				if (header.menuList) return header;
 			}
 		}
@@ -682,7 +700,7 @@ namespace Components
 			{
 				if (FileSystem::File(filename).exists())
 				{
-					header.menuList = Menus::LoadScriptMenu(filename.data());
+					header.menuList = LoadScriptMenu(filename.data());
 
 					// Reset, if we didn't find scriptmenus
 					if (!header.menuList)
@@ -693,7 +711,7 @@ namespace Components
 			}
 			else
 			{
-				header.menuList = Menus::LoadMenuList(menuList);
+				header.menuList = LoadMenuList(menuList);
 			}
 		}
 		else
@@ -714,7 +732,7 @@ namespace Components
 
 				if (originalConnect == menu) // Check if we draw the original loadscreen
 				{
-					if (Menus::MenuList.find("connect") != Menus::MenuList.end()) // Check if we have a custom loadscreen, to prevent drawing the original one on top
+					if (MenuList.find("connect") != Menus::MenuList.end()) // Check if we have a custom loadscreen, to prevent drawing the original one on top
 					{
 						return false;
 					}
@@ -748,15 +766,19 @@ namespace Components
 			// Clear last menu
 			dc->Menus[--dc->menuCount] = nullptr;
 		}
+
+		FreeMenu(menu);
 	}
 
 	void Menus::Add(const std::string& menu)
 	{
-		Menus::CustomMenus.push_back(menu);
+		CustomMenus.push_back(menu);
 	}
 
 	Menus::Menus()
 	{
+		menuParseKeywordHash = reinterpret_cast<Game::KeywordHashEntry<Game::menuDef_t, 128, 3523>**>(0x63AE928);
+
 		if (ZoneBuilder::IsEnabled())
 		{
 			Game::Menu_Setup(Game::uiContext);
@@ -764,18 +786,15 @@ namespace Components
 
 		if (Dedicated::IsEnabled()) return;
 
-		// Ensure everything is zero'ed
-		Menus::FreeEverything();
-
 		// Intercept asset finding
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, Menus::MenuFindHook);
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENULIST, Menus::MenuListFindHook);
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, MenuFindHook);
+		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENULIST, MenuListFindHook);
 
 		// Don't open connect menu
-		//Utils::Hook::Nop(0x428E48, 5);
+		// Utils::Hook::Nop(0x428E48, 5);
 
 		// Use the connect menu open call to update server motds
-		Utils::Hook(0x428E48, []()
+		Utils::Hook(0x428E48, []
 		{
 			if (!Party::GetMotd().empty() && Party::Target() == *Game::connectedHost)
 			{
@@ -784,10 +803,10 @@ namespace Components
 		}, HOOK_CALL).install()->quick();
 
 		// Intercept menu painting
-		Utils::Hook(0x4FFBDF, Menus::IsMenuVisible, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4FFBDF, IsMenuVisible, HOOK_CALL).install()->quick();
 
-		// disable the 2 new tokens in ItemParse_rect
-		Utils::Hook::Set<BYTE>(0x640693, 0xEB);
+		// disable the 2 new tokens in ItemParse_rect (Fix by NTA. Probably because he didn't want to update the menus)
+		Utils::Hook::Set<std::uint8_t>(0x640693, 0xEB);
 
 		// don't load ASSET_TYPE_MENU assets for every menu (might cause patch menus to fail)
 		Utils::Hook::Nop(0x453406, 5);
@@ -806,19 +825,19 @@ namespace Components
 			// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
 			if ((*Game::cl_ingame)->current.enabled)
 			{
-				Game::Key_SetCatcher(0, 16);
+				Game::Key_SetCatcher(0, Game::KEYCATCH_UI);
 			}
 
 			Game::Menus_OpenByName(Game::uiContext, params->get(1));
 		});
 
-		Command::Add("reloadmenus", [](Command::Params*)
+		Command::Add("reloadmenus", []([[maybe_unused]] Command::Params* params)
 		{
 			// Close all menus
 			Game::Menus_CloseAll(Game::uiContext);
 
-			// Free custom menus
-			Menus::FreeEverything();
+			// Free custom menus (Get pranked)
+			FreeEverything();
 
 			// Only disconnect if in-game, context is updated automatically!
 			if (Game::CL_IsCgameInitialized())
@@ -841,27 +860,27 @@ namespace Components
 		});
 
 		// Define custom menus here
-		Menus::Add("ui_mp/changelog.menu");
-		Menus::Add("ui_mp/theater_menu.menu");
-		Menus::Add("ui_mp/pc_options_multi.menu");
-		Menus::Add("ui_mp/pc_options_game.menu");
-		Menus::Add("ui_mp/pc_options_gamepad.menu");
-		Menus::Add("ui_mp/stats_reset.menu");
-		Menus::Add("ui_mp/stats_unlock.menu");
-		Menus::Add("ui_mp/security_increase_popmenu.menu");
-		Menus::Add("ui_mp/mod_download_popmenu.menu");
-		Menus::Add("ui_mp/popup_friends.menu");
-		Menus::Add("ui_mp/menu_first_launch.menu");
-		Menus::Add("ui_mp/startup_messages.menu");
-		Menus::Add("ui_mp/iw4x_credits.menu");
-		Menus::Add("ui_mp/resetclass.menu");
-		Menus::Add("ui_mp/popup_customtitle.menu");
-		Menus::Add("ui_mp/popup_customclan.menu");
+		Add("ui_mp/changelog.menu");
+		Add("ui_mp/theater_menu.menu");
+		Add("ui_mp/pc_options_multi.menu");
+		Add("ui_mp/pc_options_game.menu");
+		Add("ui_mp/pc_options_gamepad.menu");
+		Add("ui_mp/stats_reset.menu");
+		Add("ui_mp/stats_unlock.menu");
+		Add("ui_mp/security_increase_popmenu.menu");
+		Add("ui_mp/mod_download_popmenu.menu");
+		Add("ui_mp/popup_friends.menu");
+		Add("ui_mp/menu_first_launch.menu");
+		Add("ui_mp/startup_messages.menu");
+		Add("ui_mp/iw4x_credits.menu");
+		Add("ui_mp/resetclass.menu");
+		Add("ui_mp/popup_customtitle.menu");
+		Add("ui_mp/popup_customclan.menu");
 	}
 
 	Menus::~Menus()
 	{
-		// In your dreams!
+		// Let Windows handle the memory leaks for you!
 		Menus::FreeEverything();
 	}
 }
