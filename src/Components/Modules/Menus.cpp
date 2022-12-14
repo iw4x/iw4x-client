@@ -631,8 +631,6 @@ namespace Components
 					}
 				}
 			}
-
-			FreeMenu(oldMenu);
 		}
 	}
 
@@ -767,8 +765,6 @@ namespace Components
 			// Clear last menu
 			dc->Menus[--dc->menuCount] = nullptr;
 		}
-
-		FreeMenu(menu);
 	}
 
 	void Menus::Add(const std::string& menu)
