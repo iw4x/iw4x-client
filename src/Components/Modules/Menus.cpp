@@ -517,7 +517,7 @@ namespace Components
 
 			allocator->free(menu->items);
 		}
-
+#if 0
 		Game::free_expression(menu->visibleExp);
 		Game::free_expression(menu->rectXExp);
 		Game::free_expression(menu->rectYExp);
@@ -525,6 +525,7 @@ namespace Components
 		Game::free_expression(menu->rectHExp);
 		Game::free_expression(menu->openSoundExp);
 		Game::free_expression(menu->closeSoundExp);
+#endif
 
 		allocator->free(menu);
 	}
