@@ -43,6 +43,7 @@ namespace Components
 		static void FreeMenuSource(int handle);
 
 		static void FreeMenuList(Game::MenuList* menuList);
+		static void Menu_FreeItemMemory(Game::itemDef_s* item);
 		static void FreeMenu(Game::menuDef_t* menudef);
 
 		static void RemoveMenu(const std::string& menu);
@@ -55,8 +56,5 @@ namespace Components
 		static bool IsMenuVisible(Game::UiContext* dc, Game::menuDef_t* menu);
 
 		static void RemoveMenuFromContext(Game::UiContext* dc, Game::menuDef_t* menu);
-
-		// Ugly!
-		static int KeywordHash(char* key);
 	};
 }

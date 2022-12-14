@@ -62,6 +62,9 @@ namespace Game
 	typedef void(*Com_UpdateSlowMotion_t)(int msec);
 	extern Com_UpdateSlowMotion_t Com_UpdateSlowMotion;
 
+	typedef int(*Com_Compress_t)(char* data_p);
+	extern Com_Compress_t Com_Compress;
+
 	extern int* com_frameTime;
 
 	extern int* com_fixedConsolePosition;

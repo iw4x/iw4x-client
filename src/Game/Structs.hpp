@@ -7173,12 +7173,12 @@ namespace Game
 		char string[MAX_TOKENLENGTH];
 	} pc_token_t;
 
-	typedef struct keywordHash_s
+	template <typename T, int N, int M>
+	struct KeywordHashEntry
 	{
-		char* keyword;
-		bool(*func)(menuDef_t* item, int handle);
-		//struct keywordHash_s *next;
-	} keywordHash_t;
+		const char* keyword;
+		int (*func)(T*, int);
+	};
 
 	enum MaterialTechniqueType
 	{
