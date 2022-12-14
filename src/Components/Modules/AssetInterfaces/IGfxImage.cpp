@@ -18,7 +18,7 @@ namespace Assets
 		}
 
 		image->name = builder->getAllocator()->duplicateString(name);
-		image->semantic = 2;
+		image->semantic = Game::TextureSemantic::TS_COLOR_MAP;
 
 		const char* tempName = image->name;
 		if (tempName[0] == '*') tempName++;
@@ -35,7 +35,7 @@ namespace Assets
 			}
 
 			image->mapType = reader.read<char>();
-			image->semantic = reader.read<char>();
+			image->semantic = reader.read<Game::TextureSemantic>();
 			image->category = reader.read<char>();
 
 			int dataLength = reader.read<int>();

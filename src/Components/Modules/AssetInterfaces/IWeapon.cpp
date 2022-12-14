@@ -280,7 +280,7 @@ namespace Assets
 			unsigned short* scriptStringTable = buffer->dest<unsigned short>();
 			buffer->saveArray(def->notetrackSoundMapKeys, 16);
 			for (int i = 0; i < 16; i++) {
-				builder->mapScriptString(&scriptStringTable[i]);
+				builder->mapScriptString(scriptStringTable[i]);
 			}
 
 			Utils::Stream::ClearPointer(&dest->notetrackSoundMapKeys);
@@ -292,7 +292,7 @@ namespace Assets
 			unsigned short* scriptStringTable = buffer->dest<unsigned short>();
 			buffer->saveArray(def->notetrackSoundMapValues, 16);
 			for (int i = 0; i < 16; i++) {
-				builder->mapScriptString(&scriptStringTable[i]);
+				builder->mapScriptString(scriptStringTable[i]);
 			}
 
 			Utils::Stream::ClearPointer(&dest->notetrackSoundMapValues);
@@ -304,7 +304,7 @@ namespace Assets
 			unsigned short* scriptStringTable = buffer->dest<unsigned short>();
 			buffer->saveArray(def->notetrackRumbleMapKeys, 16);
 			for (int i = 0; i < 16; i++) {
-				builder->mapScriptString(&scriptStringTable[i]);
+				builder->mapScriptString(scriptStringTable[i]);
 			}
 
 			Utils::Stream::ClearPointer(&dest->notetrackRumbleMapKeys);
@@ -316,7 +316,7 @@ namespace Assets
 			unsigned short* scriptStringTable = buffer->dest<unsigned short>();
 			buffer->saveArray(def->notetrackRumbleMapValues, 16);
 			for (int i = 0; i < 16; i++) {
-				builder->mapScriptString(&scriptStringTable[i]);
+				builder->mapScriptString(scriptStringTable[i]);
 			}
 
 			Utils::Stream::ClearPointer(&dest->notetrackRumbleMapValues);
@@ -725,7 +725,7 @@ namespace Assets
 			unsigned short* scriptStringTable = buffer->dest<unsigned short>();
 			buffer->saveArray(asset->hideTags, 32);
 			for (int i = 0; i < 32; i++) {
-				builder->mapScriptString(&scriptStringTable[i]);
+				builder->mapScriptString(scriptStringTable[i]);
 			}
 
 			Utils::Stream::ClearPointer(&dest->hideTags);

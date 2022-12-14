@@ -39,10 +39,44 @@ namespace Utils
 			{
 				return readArray<T>(1);
 			}
+
+			template <typename T> T* readArrayOnce(std::size_t count = 1)
+			{
+				constexpr auto POINTER = 255;
+				constexpr auto FOLLOWING = 254;
+				
+				auto b = static_cast<unsigned char>(readByte());	
+				switch (b)
+				{
+				case POINTER:
+				{
+					auto ptr = read<int>();
+					auto* voidPtr = reinterpret_cast<void*>(ptr);
+
+					if (allocator->isPointerMapped(voidPtr))
+					{
+						return allocator->getPointer<T>(voidPtr);
+					}
+
+					throw std::runtime_error("Bad data: missing ptr");
+				}
+				case FOLLOWING:
+				{
+					auto filePosition = position;
+					auto data = readArray<T>(count);
+					allocator->mapPointer(reinterpret_cast<void*>(filePosition), data);
+					return data;
+				}
+				default:
+					throw std::runtime_error("Bad data");
+				}
+			}
+
 			template <typename T> T* readArray(std::size_t count = 1)
 			{
 				return static_cast<T*>(this->read(sizeof(T), count));
 			}
+
 			template <typename T> T read()
 			{
 				T obj;

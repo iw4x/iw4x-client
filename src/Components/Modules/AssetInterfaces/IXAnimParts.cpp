@@ -264,7 +264,7 @@ namespace Assets
 
 			for (char i = 0; i < asset->boneCount[Game::PART_TYPE_ALL]; ++i)
 			{
-				builder->mapScriptString(&destTagnames[i]);
+				builder->mapScriptString(destTagnames[i]);
 			}
 
 			Utils::Stream::ClearPointer(&dest->names);
@@ -280,7 +280,7 @@ namespace Assets
 
 			for (char i = 0; i < asset->notifyCount; ++i)
 			{
-				builder->mapScriptString(&destNotetracks[i].name);
+				builder->mapScriptString(destNotetracks[i].name);
 			}
 
 			Utils::Stream::ClearPointer(&dest->notify);

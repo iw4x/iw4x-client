@@ -1,7 +1,7 @@
 #include <STDInclude.hpp>
 #include "IXModel.hpp"
 
-#define IW4X_MODEL_VERSION 5
+#define IW4X_MODEL_VERSION 8
 
 namespace Assets
 {
@@ -9,32 +9,32 @@ namespace Assets
 	{
 		if (entry->nodes)
 		{
-			entry->nodes = reader->readArray<Game::XSurfaceCollisionNode>(entry->nodeCount);
+			entry->nodes = reader->readArrayOnce<Game::XSurfaceCollisionNode>(entry->nodeCount);
 		}
 
 		if (entry->leafs)
 		{
-			entry->leafs = reader->readArray<Game::XSurfaceCollisionLeaf>(entry->leafCount);
+			entry->leafs = reader->readArrayOnce<Game::XSurfaceCollisionLeaf>(entry->leafCount);
 		}
 	}
 
-	void IXModel::loadXSurface(Game::XSurface* surf, Utils::Stream::Reader* reader, Components::ZoneBuilder::Zone* builder)
+	void IXModel::loadXSurface(Game::XSurface* surf, Utils::Stream::Reader* reader, [[maybe_unused]] Components::ZoneBuilder::Zone* builder)
 	{
 		if (surf->vertInfo.vertsBlend)
 		{
-			surf->vertInfo.vertsBlend = reader->readArray<unsigned short>(surf->vertInfo.vertCount[0] + (surf->vertInfo.vertCount[1] * 3) + (surf->vertInfo.vertCount[2] * 5) + (surf->vertInfo.vertCount[3] * 7));
+			surf->vertInfo.vertsBlend = reader->readArrayOnce<unsigned short>(surf->vertInfo.vertCount[0] + (surf->vertInfo.vertCount[1] * 3) + (surf->vertInfo.vertCount[2] * 5) + (surf->vertInfo.vertCount[3] * 7));
 		}
 
 		// Access vertex block
 		if (surf->verts0)
 		{
-			surf->verts0 = reader->readArray<Game::GfxPackedVertex>(surf->vertCount);
+			surf->verts0 = reader->readArrayOnce<Game::GfxPackedVertex>(surf->vertCount);
 		}
 
 		// Save_XRigidVertListArray
 		if (surf->vertList)
 		{
-			surf->vertList = reader->readArray<Game::XRigidVertList>(surf->vertListCount);
+			surf->vertList = reader->readArrayOnce<Game::XRigidVertList>(surf->vertListCount);
 
 			for (unsigned int i = 0; i < surf->vertListCount; ++i)
 			{
@@ -51,17 +51,7 @@ namespace Assets
 		// Access index block
 		if (surf->triIndices)
 		{
-			void* oldPtr = surf->triIndices;
-			surf->triIndices = reader->readArray<unsigned short>(surf->triCount * 3);
-
-			if (builder->getAllocator()->isPointerMapped(oldPtr))
-			{
-				surf->triIndices = builder->getAllocator()->getPointer<unsigned short>(oldPtr);
-			}
-			else
-			{
-				builder->getAllocator()->mapPointer(oldPtr, surf->triIndices);
-			}
+			surf->triIndices = reader->readArrayOnce<unsigned short>(surf->triCount * 3);
 		}
 	}
 
@@ -74,7 +64,7 @@ namespace Assets
 
 		if (asset->surfs)
 		{
-			asset->surfs = reader->readArray<Game::XSurface>(asset->numsurfs);
+			asset->surfs = reader->readArrayOnce<Game::XSurface>(asset->numsurfs);
 
 			for (int i = 0; i < asset->numsurfs; ++i)
 			{
@@ -110,11 +100,6 @@ namespace Assets
 				Components::Logger::Error(Game::ERR_FATAL, "Reading model '{}' failed, expected version is {}, but it was {}!", name, IW4X_MODEL_VERSION, version);
 			}
 
-			if (version == 4)
-			{
-				Components::Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Model '{}' is in legacy format, please update it!\n", name);
-			}
-
 			Game::XModel* asset = reader.readObject<Game::XModel>();
 
 			if (asset->name)
@@ -134,27 +119,27 @@ namespace Assets
 
 			if (asset->parentList)
 			{
-				asset->parentList = reader.readArray<char>(asset->numBones - asset->numRootBones);
+				asset->parentList = reader.readArrayOnce<unsigned char>(asset->numBones - asset->numRootBones);
 			}
 
 			if (asset->quats)
 			{
-				asset->quats = reader.readArray<short>((asset->numBones - asset->numRootBones) * 4);
+				asset->quats = reader.readArrayOnce<short>((asset->numBones - asset->numRootBones) * 4);
 			}
 
 			if (asset->trans)
 			{
-				asset->trans = reader.readArray<float>((asset->numBones - asset->numRootBones) * 3);
+				asset->trans = reader.readArrayOnce<float>((asset->numBones - asset->numRootBones) * 3);
 			}
 
 			if (asset->partClassification)
 			{
-				asset->partClassification = reader.readArray<char>(asset->numBones);
+				asset->partClassification = reader.readArrayOnce<unsigned char>(asset->numBones);
 			}
 
 			if (asset->baseMat)
 			{
-				asset->baseMat = reader.readArray<Game::DObjAnimMat>(asset->numBones);
+				asset->baseMat = reader.readArrayOnce<Game::DObjAnimMat>(asset->numBones);
 			}
 
 			if (asset->materialHandles)
@@ -172,7 +157,7 @@ namespace Assets
 
 			// Save_XModelLodInfoArray
 			{
-				for (int i = 0; i < 4; ++i)
+				for (unsigned int i = 0; i < 4; ++i)
 				{
 					if (asset->lodInfo[i].modelSurfs)
 					{
@@ -247,59 +232,52 @@ namespace Assets
 
 			if (asset->physCollmap)
 			{
-				if (version == 4)
+				Game::PhysCollmap* collmap = reader.readObject<Game::PhysCollmap>();
+				asset->physCollmap = collmap;
+
+				if (collmap->name)
 				{
-					asset->physCollmap = nullptr;
+					collmap->name = reader.readCString();
 				}
-				else
+
+				if (collmap->geoms)
 				{
-					Game::PhysCollmap* collmap = reader.readObject<Game::PhysCollmap>();
-					asset->physCollmap = collmap;
+					collmap->geoms = reader.readArray<Game::PhysGeomInfo>(collmap->count);
 
-					if (collmap->name)
+					for (unsigned int i = 0; i < collmap->count; ++i)
 					{
-						collmap->name = reader.readCString();
-					}
+						Game::PhysGeomInfo* geom = &collmap->geoms[i];
 
-					if (collmap->geoms)
-					{
-						collmap->geoms = reader.readArray<Game::PhysGeomInfo>(collmap->count);
-
-						for (unsigned int i = 0; i < collmap->count; ++i)
+						if (geom->brushWrapper)
 						{
-							Game::PhysGeomInfo* geom = &collmap->geoms[i];
-
-							if (geom->brushWrapper)
+							Game::BrushWrapper* brush = reader.readObject<Game::BrushWrapper>();
+							geom->brushWrapper = brush;
 							{
-								Game::BrushWrapper* brush = reader.readObject<Game::BrushWrapper>();
-								geom->brushWrapper = brush;
+								if (brush->brush.sides)
 								{
-									if (brush->brush.sides)
+									brush->brush.sides = reader.readArray<Game::cbrushside_t>(brush->brush.numsides);
+									for (unsigned short j = 0; j < brush->brush.numsides; ++j)
 									{
-										brush->brush.sides = reader.readArray<Game::cbrushside_t>(brush->brush.numsides);
-										for (unsigned short j = 0; j < brush->brush.numsides; ++j)
-										{
-											Game::cbrushside_t* side = &brush->brush.sides[j];
+										Game::cbrushside_t* side = &brush->brush.sides[j];
 
-											// TODO: Add pointer support
-											if (side->plane)
-											{
-												side->plane = reader.readObject<Game::cplane_s>();
-											}
+										// TODO: Add pointer support
+										if (side->plane)
+										{
+											side->plane = reader.readObject<Game::cplane_s>();
 										}
 									}
-
-									if (brush->brush.baseAdjacentSide)
-									{
-										brush->brush.baseAdjacentSide = reader.readArray<char>(brush->totalEdgeCount);
-									}
 								}
 
-								// TODO: Add pointer support
-								if (brush->planes)
+								if (brush->brush.baseAdjacentSide)
 								{
-									brush->planes = reader.readArray<Game::cplane_s>(brush->brush.numsides);
+									brush->brush.baseAdjacentSide = reader.readArray<char>(brush->totalEdgeCount);
 								}
+							}
+
+							// TODO: Add pointer support
+							if (brush->planes)
+							{
+								brush->planes = reader.readArray<Game::cplane_s>(brush->brush.numsides);
 							}
 						}
 					}
@@ -386,7 +364,7 @@ namespace Assets
 
 			for (char i = 0; i < asset->numBones; ++i)
 			{
-				builder->mapScriptString(&destBoneNames[i]);
+				builder->mapScriptString(destBoneNames[i]);
 			}
 
 			Utils::Stream::ClearPointer(&dest->boneNames);
@@ -394,37 +372,77 @@ namespace Assets
 
 		if (asset->parentList)
 		{
-			buffer->save(asset->parentList, asset->numBones - asset->numRootBones);
-			Utils::Stream::ClearPointer(&dest->parentList);
+			if (builder->hasPointer(asset->parentList))
+			{
+				dest->parentList = builder->getPointer(asset->parentList);
+			}
+			else
+			{
+				builder->storePointer(asset->parentList);
+				buffer->save(asset->parentList, asset->numBones - asset->numRootBones);
+				Utils::Stream::ClearPointer(&dest->parentList);
+			}
 		}
 
 		if (asset->quats)
 		{
-			buffer->align(Utils::Stream::ALIGN_2);
-			buffer->saveArray(asset->quats, (asset->numBones - asset->numRootBones) * 4);
-			Utils::Stream::ClearPointer(&dest->quats);
+			if (builder->hasPointer(asset->quats))
+			{
+				dest->quats = builder->getPointer(asset->quats);
+			}
+			else
+			{
+				buffer->align(Utils::Stream::ALIGN_2);
+				builder->storePointer(asset->quats);
+				buffer->saveArray(asset->quats, (asset->numBones - asset->numRootBones) * 4);
+				Utils::Stream::ClearPointer(&dest->quats);
+			}
 		}
 
 		if (asset->trans)
 		{
-			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->trans, (asset->numBones - asset->numRootBones) * 3);
-			Utils::Stream::ClearPointer(&dest->trans);
+			if (builder->hasPointer(asset->trans))
+			{
+				dest->trans = builder->getPointer(asset->trans);
+			}
+			else
+			{
+				buffer->align(Utils::Stream::ALIGN_4);
+				builder->storePointer(asset->trans);
+				buffer->saveArray(asset->trans, (asset->numBones - asset->numRootBones) * 3);
+				Utils::Stream::ClearPointer(&dest->trans);
+			}
 		}
 
 		if (asset->partClassification)
 		{
-			buffer->save(asset->partClassification, asset->numBones);
-			Utils::Stream::ClearPointer(&dest->partClassification);
+			if (builder->hasPointer(asset->partClassification))
+			{
+				dest->partClassification = builder->getPointer(asset->partClassification);
+			}
+			else
+			{
+				builder->storePointer(asset->partClassification);
+				buffer->save(asset->partClassification, asset->numBones);
+				Utils::Stream::ClearPointer(&dest->partClassification);
+			}
 		}
 
 		if (asset->baseMat)
 		{
 			AssertSize(Game::DObjAnimMat, 32);
+			if (builder->hasPointer(asset->baseMat))
+			{
+				dest->baseMat = builder->getPointer(asset->baseMat);
+			}
+			else
+			{
+				buffer->align(Utils::Stream::ALIGN_4);
+				builder->storePointer(asset->baseMat);
+				buffer->saveArray(asset->baseMat, asset->numBones);
+				Utils::Stream::ClearPointer(&dest->baseMat);
+			}
 
-			buffer->align(Utils::Stream::ALIGN_4);
-			buffer->saveArray(asset->baseMat, asset->numBones);
-			Utils::Stream::ClearPointer(&dest->baseMat);
 		}
 
 		if (asset->materialHandles)

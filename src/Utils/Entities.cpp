@@ -35,7 +35,9 @@ namespace Utils
 			{
 				const auto& model = itr->second;
 
-				if (!model.empty() && model[0] != '*' && model[0] != '?') // Skip brushmodels
+				if (!model.empty() && model[0] != '*' && model[0] != '?' &&  // Skip brushmodels
+					model != "com_plasticcase_green_big_us_dirt"s // Team zones
+				)
 				{
 					if (std::find(models.begin(), models.end(), model) == models.end())
 					{

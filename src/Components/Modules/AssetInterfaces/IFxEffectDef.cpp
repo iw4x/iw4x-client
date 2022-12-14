@@ -391,7 +391,7 @@ namespace Assets
 
 		switch (elemType)
 		{
-		case 7:
+		case Game::FX_ELEM_TYPE_MODEL:
 		{
 			if (visuals->model)
 			{
@@ -401,11 +401,11 @@ namespace Assets
 			break;
 		}
 
-		case 8:
-		case 9:
+		case Game::FX_ELEM_TYPE_OMNI_LIGHT:
+		case Game::FX_ELEM_TYPE_SPOT_LIGHT:
 			break;
 
-		case 0xA:
+		case Game::FX_ELEM_TYPE_SOUND:
 		{
 			if (visuals->soundName)
 			{
@@ -416,7 +416,7 @@ namespace Assets
 			break;
 		}
 
-		case 0xC:
+		case Game::FX_ELEM_TYPE_RUNNER:
 		{
 			if (visuals->effectDef.handle)
 			{
@@ -491,7 +491,7 @@ namespace Assets
 
 				// Save_FxElemDefVisuals
 				{
-					if (elemDef->elemType == 11)
+					if (elemDef->elemType == Game::FX_ELEM_TYPE_DECAL)
 					{
 						if (elemDef->visuals.markArray)
 						{
@@ -501,7 +501,7 @@ namespace Assets
 							Game::FxElemMarkVisuals* destMarkArray = buffer->dest<Game::FxElemMarkVisuals>();
 							buffer->saveArray(elemDef->visuals.markArray, elemDef->visualCount);
 
-							for (char j = 0; j < elemDef->visualCount; ++j)
+							for (auto j = 0; j < elemDef->visualCount; ++j)
 							{
 								if (elemDef->visuals.markArray[j].materials[0])
 								{
@@ -563,7 +563,7 @@ namespace Assets
 				{
 					AssertSize(Game::FxElemExtendedDefPtr, 4);
 
-					if (elemDef->elemType == 3)
+					if (elemDef->elemType == Game::FX_ELEM_TYPE_TRAIL)
 					{
 						// Save_FxTrailDef
 						{
@@ -597,7 +597,7 @@ namespace Assets
 							}
 						}
 					}
-					else if (elemDef->elemType == 6)
+					else if (elemDef->elemType == Game::FX_ELEM_TYPE_SPARK_FOUNTAIN)
 					{
 						if (elemDef->extended.sparkFountainDef)
 						{

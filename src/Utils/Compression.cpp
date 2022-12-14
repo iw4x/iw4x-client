@@ -11,8 +11,15 @@ namespace Utils::Compression
 		// Make sure the buffer is large enough
 		if (length < 100) length *= 10;
 
-		char* buffer = allocator.allocateArray<char>(length);
-		if (compress2(reinterpret_cast<Bytef*>(buffer), &length, reinterpret_cast<Bytef*>(const_cast<char*>(data.data())), data.size(), Z_BEST_COMPRESSION) != Z_OK)
+		auto* buffer = allocator.allocateArray<char>(length);
+
+#ifdef _DEBUG
+		constexpr auto compression = Z_NO_COMPRESSION;
+#else
+		constexpr auto compression = Z_BEST_COMPRESSION;
+#endif
+
+		if (compress2((Bytef*)(buffer), &length, (const Bytef*)(data.data()), data.size(), compression) != Z_OK)
 		{
 			return {};
 		}
@@ -34,13 +41,13 @@ namespace Utils::Compression
 		int ret;
 		Memory::Allocator allocator;
 
-		std::uint8_t* dest = allocator.allocateArray<uint8_t>(CHUNK);
-		const char* dataPtr = data.data();
+		auto* dest = allocator.allocateArray<std::uint8_t>(CHUNK);
+		const auto* dataPtr = data.data();
 
 		do
 		{
-			stream.avail_in = std::min(static_cast<size_t>(CHUNK), data.size() - (dataPtr - data.data()));
-			stream.next_in = reinterpret_cast<const uint8_t*>(dataPtr);
+			stream.avail_in = std::min(static_cast<std::size_t>(CHUNK), data.size() - (dataPtr - data.data()));
+			stream.next_in = reinterpret_cast<const std::uint8_t*>(dataPtr);
 			dataPtr += stream.avail_in;
 
 			do

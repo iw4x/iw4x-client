@@ -39,6 +39,9 @@ namespace Components
 		static void DebugDrawModelBoundingBoxes();
 		static void DebugDrawModelNames();
 		static void DebugDrawAABBTrees();
+		static void ForceTechnique();
+
+		static int FixSunShadowPartitionSize(Game::GfxCamera* camera, Game::GfxSunShadowMapMetrics* mapMetrics, Game::GfxSunShadow* sunShadow, Game::GfxSunShadowClip* clip, float* partitionFraction);
 
 		static Utils::Signal<Renderer::Callback> EndRecoverDeviceSignal;
 		static Utils::Signal<Renderer::Callback> BeginRecoverDeviceSignal;
@@ -52,5 +55,6 @@ namespace Components
 		static Dvar::Var r_drawModelNames;
 		static Dvar::Var r_drawAABBTrees;
 		static Dvar::Var r_playerDrawDebugDistance;
+		static Dvar::Var r_forceTechnique;
 	};
 }

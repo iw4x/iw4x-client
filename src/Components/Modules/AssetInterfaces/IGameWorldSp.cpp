@@ -187,7 +187,7 @@ namespace Assets
 
 					for (char j = 0; j < 5; ++j)
 					{
-						builder->mapScriptString(&(&node->constant.targetname)[j]);
+						builder->mapScriptString((&node->constant.targetname)[j]);
 					}
 
 					if (node->constant.Links)

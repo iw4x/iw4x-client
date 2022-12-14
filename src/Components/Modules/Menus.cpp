@@ -755,18 +755,6 @@ namespace Components
 		Menus::CustomMenus.push_back(menu);
 	}
 
-	void Menus::RegisterCustomMenusHook()
-	{
-		Utils::Hook::Call<void()>(0x401700)(); // call original load functions
-
-#ifdef _DEBUG
-		for (int i = 0; i < Game::uiContext->menuCount; i++)
-		{
-			OutputDebugStringA(Utils::String::VA("%s\n", Game::uiContext->Menus[i]->window.name));
-		}
-#endif
-	}
-
 	Menus::Menus()
 	{
 		if (ZoneBuilder::IsEnabled())
@@ -785,9 +773,6 @@ namespace Components
 
 		// Don't open connect menu
 		//Utils::Hook::Nop(0x428E48, 5);
-
-		// register custom menufiles if they exist
-		Utils::Hook(0x4A58C3, Menus::RegisterCustomMenusHook, HOOK_CALL).install()->quick();
 
 		// Use the connect menu open call to update server motds
 		Utils::Hook(0x428E48, []()

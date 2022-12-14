@@ -225,6 +225,9 @@ namespace Components
 		// Sanitize name for empty assets
 		if (name[0] == ',') name.erase(name.begin());
 
+		// Fix forward slashes for FXEffectDef (and probably other assets)
+		std::replace(name.begin(), name.end(), '\\', '/');
+
 		if (this->findAsset(type, name) != -1 || this->findSubAsset(type, name).data) return true;
 
 		if (type == Game::XAssetType::ASSET_TYPE_INVALID || type >= Game::XAssetType::ASSET_TYPE_COUNT)
@@ -245,6 +248,9 @@ namespace Components
 		asset.type = type;
 		asset.header = assetHeader;
 
+		// Handle script strings
+		AssetHandler::ZoneMark(asset, this);
+
 		if (isSubAsset)
 		{
 			this->loadedSubAssets.push_back(asset);
@@ -254,8 +260,6 @@ namespace Components
 			this->loadedAssets.push_back(asset);
 		}
 
-		// Handle script strings
-		AssetHandler::ZoneMark(asset, this);
 
 		return true;
 	}
@@ -447,38 +451,30 @@ namespace Components
 		Utils::Stream::ClearPointer(&zoneHeader.assetList.assets);
 
 		// Increment ScriptStrings count (for empty script string) if available
-		if (!this->scriptStrings.empty())
-		{
-			zoneHeader.assetList.stringList.count = this->scriptStrings.size() + 1;
-			Utils::Stream::ClearPointer(&zoneHeader.assetList.stringList.strings);
-		}
+		zoneHeader.assetList.stringList.count = this->scriptStrings.size() + 1;
+		Utils::Stream::ClearPointer(&zoneHeader.assetList.stringList.strings);
 
 		// Write header
 		this->buffer.save(&zoneHeader, sizeof(Game::ZoneHeader));
 		this->buffer.pushBlock(Game::XFILE_BLOCK_VIRTUAL); // Push main stream onto the stream stack
 
 		// Write ScriptStrings, if available
-		if (!this->scriptStrings.empty())
+		this->buffer.saveNull(4);
+		// Empty script string?
+		// This actually represents a NULL string, but as scriptString.
+		// So scriptString loading for NULL scriptStrings from fastfile results in a NULL scriptString.
+		// That's the reason why the count is incremented by 1, if scriptStrings are available.
+
+		// Write ScriptString pointer table
+		for (std::size_t i = 0; i < this->scriptStrings.size(); ++i)
 		{
-			this->buffer.saveNull(4);
-			// Empty script string?
-			// This actually represents a NULL string, but as scriptString.
-			// So scriptString loading for NULL scriptStrings from fastfile results in a NULL scriptString.
-			// That's the reason why the count is incremented by 1, if scriptStrings are available.
+			this->buffer.saveMax(4);
+		}
 
-			// Write ScriptString pointer table
-			for (std::size_t i = 0; i < this->scriptStrings.size(); ++i)
-			{
-				this->buffer.saveMax(4);
-			}
-
-			this->buffer.align(Utils::Stream::ALIGN_4);
-
-			// Write ScriptStrings
-			for (auto ScriptString : this->scriptStrings)
-			{
-				this->buffer.saveString(ScriptString.data());
-			}
+		// Write ScriptStrings
+		for (auto ScriptString : this->scriptStrings)
+		{
+			this->buffer.saveString(ScriptString.data());
 		}
 
 		// Align buffer (4 bytes) to get correct offsets for pointers
@@ -530,7 +526,7 @@ namespace Components
 		constexpr auto* data = "Built using the IW4x Zone:B:uilder Version 4";
 		auto dataLen = std::strlen(data); // + 1 is added by the save code
 
-		this->branding = { this->zoneName.data(), 0, static_cast<int>(dataLen), data };
+		this->branding = {this->zoneName.data(), 0, static_cast<int>(dataLen), data};
 
 		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
 		{
@@ -641,9 +637,9 @@ namespace Components
 	}
 
 	// Remap a scriptString to it's corresponding value in the local scriptString table.
-	void ZoneBuilder::Zone::mapScriptString(unsigned short* gameIndex)
+	void ZoneBuilder::Zone::mapScriptString(unsigned short& gameIndex)
 	{
-		*gameIndex = 0xFFFF & this->scriptStringMap[*gameIndex];
+		gameIndex = 0xFFFF & this->scriptStringMap[gameIndex];
 	}
 
 	// Store a new name for a given asset
@@ -1006,6 +1002,19 @@ namespace Components
 		return "";
 	}
 
+	void ZoneBuilder::ReallocateLoadedSounds(void*& data, [[maybe_unused]] void* a2)
+	{
+		assert(data);
+		auto* sound = Utils::Hook::Get<Game::MssSound*>(0x112AE04);
+		auto length = sound->info.data_len;
+		auto allocatedSpace = Utils::Memory::AllocateArray<char>(length);
+		memcpy_s(allocatedSpace, length, data, length);
+
+		data = allocatedSpace;
+		sound->data = allocatedSpace;
+		sound->info.data_ptr = allocatedSpace;
+	}
+
 	ZoneBuilder::ZoneBuilder()
 	{
 		// ReSharper disable CppStaticAssertFailure
@@ -1048,7 +1057,7 @@ namespace Components
 			//Utils::Hook::Nop(0x5BB632, 5);
 
 			// Don't load sounds
-			//Utils::Hook::Set<BYTE>(0x413430, 0xC3);
+			Utils::Hook(0x492EFC, ReallocateLoadedSounds, HOOK_CALL).install()->quick();
 
 			// Don't display errors when assets are missing (we might manually build those)
 			Utils::Hook::Nop(0x5BB3F2, 5);
@@ -1224,6 +1233,41 @@ namespace Components
 					{
 						curTechsets_list.emplace(name);
 						techsets_list.emplace(name);
+					}
+				}
+			});
+
+
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, [[maybe_unused]] const std::string& name, [[maybe_unused]] bool* restrict)
+			{
+				if (type != Game::ASSET_TYPE_SOUND)
+				{
+					return;
+				}
+
+				auto sound = asset.sound;
+
+				for (size_t i = 0; i < sound->count; i++)
+				{
+					auto thisSound = sound->head[i];
+
+					if (thisSound.soundFile->type == Game::SAT_LOADED)
+					{
+						if (thisSound.soundFile->u.loadSnd->sound.data == nullptr)
+						{
+							// ouch
+							// This should never happen and will cause a memory leak
+							// Let's change it to a streamed sound instead
+							thisSound.soundFile->type = Game::SAT_STREAMED;
+
+							auto virtualPath = std::filesystem::path(thisSound.soundFile->u.loadSnd->name);
+
+							thisSound.soundFile->u.streamSnd.filename.info.raw.name = Utils::Memory::DuplicateString(virtualPath.filename().string());
+
+							auto dir = virtualPath.remove_filename().string();
+							dir = dir.substr(0, dir.size() - 1); // remove /
+							thisSound.soundFile->u.streamSnd.filename.info.raw.dir = Utils::Memory::DuplicateString(dir);
+						}
 					}
 				}
 			});

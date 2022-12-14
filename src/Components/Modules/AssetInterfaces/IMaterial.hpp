@@ -13,5 +13,8 @@ namespace Assets
 		void loadJson(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
 		void loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
 		void loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
+
+	private:
+		Game::MaterialTechniqueSet* findWorkingTechset(const std::string techsetName, Game::Material* material, Components::ZoneBuilder::Zone* builder) const;
 	};
 }

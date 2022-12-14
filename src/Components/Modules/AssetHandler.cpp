@@ -257,7 +257,7 @@ namespace Components
 
 						for (int k = 0; k < (pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount); ++k)
 						{
-							if (pass->args[k].type == D3DSHADER_PARAM_REGISTER_TYPE::D3DSPR_CONSTINT)
+							if (pass->args[k].type == Game::MaterialShaderArgumentType::MTL_ARG_LITERAL_PIXEL_CONST)
 							{
 								if (pass->args[k].u.codeConst.index == -28132)
 								{

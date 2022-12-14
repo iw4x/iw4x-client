@@ -323,6 +323,7 @@ namespace Game
 	PhysPreset*** varPhysPresetPtr = reinterpret_cast<PhysPreset***>(0x112B378);
 	MaterialPass** varMaterialPass = reinterpret_cast<MaterialPass**>(0x112A960);
 	snd_alias_list_t*** varsnd_alias_list_name = reinterpret_cast<snd_alias_list_t***>(0x112AF38);
+	MaterialVertexShader** varMaterialVertexShader = reinterpret_cast<MaterialVertexShader**>(0x112B338);
 
 	FxElemField* s_elemFields = reinterpret_cast<FxElemField*>(0x73B848);
 

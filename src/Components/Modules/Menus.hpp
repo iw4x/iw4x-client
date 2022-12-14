@@ -56,8 +56,6 @@ namespace Components
 
 		static void RemoveMenuFromContext(Game::UiContext* dc, Game::menuDef_t* menu);
 
-		static void RegisterCustomMenusHook();
-
 		// Ugly!
 		static int KeywordHash(char* key);
 	};

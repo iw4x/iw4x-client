@@ -14,6 +14,7 @@ namespace Components
 	Dvar::Var Renderer::r_drawModelNames;
 	Dvar::Var Renderer::r_drawAABBTrees;
 	Dvar::Var Renderer::r_playerDrawDebugDistance;
+	Dvar::Var Renderer::r_forceTechnique;
 
 	float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
 	float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -171,6 +172,32 @@ namespace Components
 		return Utils::Hook::Call<int(int, float, float, const char*, Game::vec4_t*, int)>(0x005033E0)(a1, a2, a3, Utils::String::VA("%s (^3%s^7)", mat->info.name, mat->techniqueSet->name), color, a6);
 	}
 
+	void ListSamplers()
+	{
+		static auto* source = reinterpret_cast<Game::GfxCmdBufSourceState*>(0x6CAF080);
+
+		Game::Font_s* font = Game::R_RegisterFont("fonts/smallFont", 0);
+		auto height = Game::R_TextHeight(font);
+		auto scale = 1.0f;
+		float color[4] = {0.0f, 1.0f, 0.0f, 1.0f};
+
+		for (std::size_t i = 0; i < 27; ++i)
+		{
+			if (source->input.codeImages[i] == nullptr)
+			{
+				color[0] = 1.f;
+			}
+			else
+			{
+				color[0] = 0.f;
+			}
+
+			std::stringstream str;
+			str << std::format("{}/{:#X} => ", i, i) << (source->input.codeImages[i] == nullptr ? "---" : source->input.codeImages[i]->name) << " " << std::to_string(source->input.codeImageSamplerStates[i]);
+			Game::R_AddCmdDrawText(str.str().data(), std::numeric_limits<int>::max(), font, 15.0f, (height * scale + 1) * (i + 1) + 14.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
+		}
+	}
+
 	void Renderer::DebugDrawTriggers()
 	{
 		if (!r_drawTriggers.get<bool>()) return;
@@ -326,21 +353,15 @@ namespace Components
 			// Static models
 			for (size_t i = 0; i < world->dpvs.smodelCount; i++)
 			{
-				auto staticModel = world->dpvs.smodelDrawInsts[i];
+				auto staticModel = &world->dpvs.smodelDrawInsts[i];
+				Game::Bounds* b = &world->dpvs.smodelInsts[i].bounds;
 
-				if (Utils::Maths::Vec3SqrDistance(playerPosition, staticModel.placement.origin) < sqrDist)
+				if (Utils::Maths::Vec3SqrDistance(playerPosition, staticModel->placement.origin) < sqrDist)
 				{
-					if (staticModel.model)
+					if (staticModel->model)
 					{
-						Game::Bounds b = staticModel.model->bounds;
-						b.midPoint[0] += staticModel.placement.origin[0];
-						b.midPoint[1] += staticModel.placement.origin[1];
-						b.midPoint[2] += staticModel.placement.origin[2];
-						b.halfSize[0] *= staticModel.placement.scale;
-						b.halfSize[1] *= staticModel.placement.scale;
-						b.halfSize[2] *= staticModel.placement.scale;
 
-						Game::R_AddDebugBounds(staticModelsColor, &b);
+ 						Game::R_AddDebugBounds(staticModelsColor, b);
 					}
 				}
 			}
@@ -447,6 +468,29 @@ namespace Components
 		}
 	}
 
+	void Renderer::ForceTechnique()
+	{
+		auto forceTechnique = r_forceTechnique.get<int>();
+
+		if (forceTechnique > 0)
+		{
+			Utils::Hook::Set(0x6FABDF4, forceTechnique);
+		}
+	}
+
+	int Renderer::FixSunShadowPartitionSize(Game::GfxCamera* camera, Game::GfxSunShadowMapMetrics* mapMetrics, Game::GfxSunShadow* sunShadow, Game::GfxSunShadowClip* clip, float* partitionFraction)
+	{
+		auto result = Utils::Hook::Call<int(Game::GfxCamera*, Game::GfxSunShadowMapMetrics*, Game::GfxSunShadow*, Game::GfxSunShadowClip*, float*)>(0x5463B0)(camera, mapMetrics, sunShadow, clip, partitionFraction);
+
+		if (Maps::IsCustomMap()) 
+		{
+			// Fixes shadowmap viewport which fixes pixel adjustment shadowmap bug - partly, because the real problem lies within the way CoD4 shaders are programmed
+			sunShadow->partition[Game::SunShadowPartition::R_SUNSHADOW_FAR].viewportParms.viewport = sunShadow->partition[Game::SunShadowPartition::R_SUNSHADOW_NEAR].viewportParms.viewport;
+		}
+
+		return result;
+	}
+
 	Renderer::Renderer()
 	{
 		if (Dedicated::IsEnabled()) return;
@@ -460,8 +504,13 @@ namespace Components
 				DebugDrawModelBoundingBoxes();
 				DebugDrawSceneModelCollisions();
 				DebugDrawTriggers();
+				ForceTechnique();
 			}
 		}, Scheduler::Pipeline::RENDERER);
+
+		// COD4 Map Fixes
+		// The day map porting is perfect we should be able to remove these
+		Utils::Hook(0x546A09, FixSunShadowPartitionSize, HOOK_CALL).install()->quick();
 
 		// Log broken materials
 		Utils::Hook(0x0054CAAA, Renderer::StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
@@ -510,6 +559,7 @@ namespace Components
 			Renderer::r_drawModelNames = Game::Dvar_RegisterEnum("r_drawModelNames", values, 0, Game::DVAR_CHEAT, "Draw all model names");
 			Renderer::r_drawAABBTrees = Game::Dvar_RegisterBool("r_drawAabbTrees", false, Game::DVAR_CHEAT, "Draw aabb trees");
 			Renderer::r_playerDrawDebugDistance = Game::Dvar_RegisterInt("r_drawDebugDistance", 1000, 0, 50000, Game::DVAR_ARCHIVE, "r_draw debug functions draw distance, relative to the player");
+			Renderer::r_forceTechnique = Game::Dvar_RegisterInt("r_forceTechnique", 0, 0, 14, Game::DVAR_NONE, "Force a base technique on the renderer");
 		}, Scheduler::Pipeline::MAIN);
 	}
 

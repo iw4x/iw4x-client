@@ -12,8 +12,8 @@ namespace Assets
 		void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
 
 		void loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
-		void loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
+		void loadFromDisk(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
 
-		void loadBinaryTechnique(Game::MaterialTechnique** tech, const std::string& name, Components::ZoneBuilder::Zone* builder);
+		void loadTechniqueFromDisk(Game::MaterialTechnique** tech, const std::string& name, Components::ZoneBuilder::Zone* builder);
 	};
 }
