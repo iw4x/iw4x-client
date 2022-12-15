@@ -304,7 +304,7 @@ namespace Components
 
 		if (!result)
 		{
-			Logger::PrintError(1, "CopyFile failed({}) {} {}\n", GetLastError(), "console_mp.log", newFileName);
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "CopyFile failed({}) {} {}\n", GetLastError(), "console_mp.log", newFileName);
 		}
 	}
 

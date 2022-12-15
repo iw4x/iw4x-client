@@ -9239,7 +9239,7 @@ namespace Game
 		char* openScriptIOFileBuffers[1];
 		com_parse_mark_t currentScriptIOLineMark[1];
 		cached_tag_mat_t cachedTagMat;
-		int scriptPrintChannel;
+		conChannel_t scriptPrintChannel;
 		float compassMapUpperLeft[2];
 		float compassMapWorldSize[2];
 		float compassNorth[2];

@@ -14,10 +14,10 @@ namespace Components
 
 		static void PipeOutput(const std::function<void(const std::string&)>& callback);
 
-		static void PrintInternal(int channel, std::string_view fmt, std::format_args&& args);
+		static void PrintInternal(Game::conChannel_t channel, std::string_view fmt, std::format_args&& args);
 		static void ErrorInternal(Game::errorParm_t error, std::string_view fmt, std::format_args&& args);
-		static void PrintErrorInternal(int channel, std::string_view fmt, std::format_args&& args);
-		static void WarningInternal(int channel, std::string_view fmt, std::format_args&& args);
+		static void PrintErrorInternal(Game::conChannel_t channel, std::string_view fmt, std::format_args&& args);
+		static void WarningInternal(Game::conChannel_t channel, std::string_view fmt, std::format_args&& args);
 		static void DebugInternal(std::string_view fmt, std::format_args&& args, const std::source_location& loc);
 
 		static void Print(std::string_view fmt)
@@ -25,7 +25,7 @@ namespace Components
 			PrintInternal(Game::CON_CHANNEL_DONT_FILTER, fmt, std::make_format_args(0));
 		}
 
-		static void Print(int channel, std::string_view fmt)
+		static void Print(Game::conChannel_t channel, std::string_view fmt)
 		{
 			PrintInternal(channel, fmt, std::make_format_args(0));
 		}
@@ -38,7 +38,7 @@ namespace Components
 		}
 
 		template <typename... Args>
-		static void Print(int channel, std::string_view fmt, Args&&... args)
+		static void Print(Game::conChannel_t channel, std::string_view fmt, Args&&... args)
 		{
 			(Utils::String::SanitizeFormatArgs(args), ...);
 			PrintInternal(channel, fmt, std::make_format_args(args...));
@@ -56,25 +56,25 @@ namespace Components
 			ErrorInternal(error, fmt, std::make_format_args(args...));
 		}
 
-		static void Warning(int channel, std::string_view fmt)
+		static void Warning(Game::conChannel_t channel, std::string_view fmt)
 		{
 			WarningInternal(channel, fmt, std::make_format_args(0));
 		}
 
 		template <typename... Args>
-		static void Warning(int channel, std::string_view fmt, Args&&... args)
+		static void Warning(Game::conChannel_t channel, std::string_view fmt, Args&&... args)
 		{
 			(Utils::String::SanitizeFormatArgs(args), ...);
 			WarningInternal(channel, fmt, std::make_format_args(args...));
 		}
 
-		static void PrintError(int channel, std::string_view fmt)
+		static void PrintError(Game::conChannel_t channel, std::string_view fmt)
 		{
 			PrintErrorInternal(channel, fmt, std::make_format_args(0));
 		}
 
 		template <typename... Args>
-		static void PrintError(int channel, std::string_view fmt, Args&&... args)
+		static void PrintError(Game::conChannel_t channel, std::string_view fmt, Args&&... args)
 		{
 			(Utils::String::SanitizeFormatArgs(args), ...);
 			PrintErrorInternal(channel, fmt, std::make_format_args(args...));

@@ -70,7 +70,7 @@ namespace Components
 		MessagePrint(Game::CON_CHANNEL_DONT_FILTER, out);
 	}
 
-	void Logger::PrintInternal(int channel, std::string_view fmt, std::format_args&& args)
+	void Logger::PrintInternal(Game::conChannel_t channel, std::string_view fmt, std::format_args&& args)
 	{
 		const auto msg = std::vformat(fmt, args);
 
@@ -87,7 +87,7 @@ namespace Components
 		Game::Com_Error(error, "%s", msg.data());
 	}
 
-	void Logger::PrintErrorInternal(int channel, std::string_view fmt, std::format_args&& args)
+	void Logger::PrintErrorInternal(Game::conChannel_t channel, std::string_view fmt, std::format_args&& args)
 	{
 		const auto msg = "^1Error: " + std::vformat(fmt, args);
 
@@ -100,7 +100,7 @@ namespace Components
 		}
 	}
 
-	void Logger::WarningInternal(int channel, std::string_view fmt, std::format_args&& args)
+	void Logger::WarningInternal(Game::conChannel_t channel, std::string_view fmt, std::format_args&& args)
 	{
 		const auto msg = "^3" + std::vformat(fmt, args);
 
