@@ -396,6 +396,9 @@ namespace Components
 		// un-cheat cg_debugInfoCornerOffset and add archive flags
 		Utils::Hook::Xor<std::uint8_t>(0x4F8FC2, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 
+		// un-cheat cg_drawGun
+		Utils::Hook::Set<std::uint8_t>(0x4F8DC6, Game::DVAR_NONE);
+
 		// remove archive flags for cg_hudchatposition
 		Utils::Hook::Xor<std::uint8_t>(0x4F9992, Game::DVAR_ARCHIVE);
 
