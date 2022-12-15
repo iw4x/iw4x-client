@@ -3,7 +3,7 @@
 
 namespace Components
 {
-	std::vector<std::string> Bots::BotNames;
+	std::vector<Bots::botData> Bots::BotNames;
 
 	struct BotMovementInfo
 	{
@@ -24,28 +24,29 @@ namespace Components
 
 	static const BotAction BotActions[] =
 	{
-		{ "gostand", Game::usercmdButtonBits::CMD_BUTTON_UP },
-		{ "gocrouch", Game::usercmdButtonBits::CMD_BUTTON_CROUCH },
-		{ "goprone", Game::usercmdButtonBits::CMD_BUTTON_PRONE },
-		{ "fire", Game::usercmdButtonBits::CMD_BUTTON_ATTACK },
-		{ "melee", Game::usercmdButtonBits::CMD_BUTTON_MELEE },
-		{ "frag", Game::usercmdButtonBits::CMD_BUTTON_FRAG },
-		{ "smoke",  Game::usercmdButtonBits::CMD_BUTTON_OFFHAND_SECONDARY },
-		{ "reload", Game::usercmdButtonBits::CMD_BUTTON_RELOAD },
-		{ "sprint", Game::usercmdButtonBits::CMD_BUTTON_SPRINT },
-		{ "leanleft", Game::usercmdButtonBits::CMD_BUTTON_LEAN_LEFT },
-		{ "leanright", Game::usercmdButtonBits::CMD_BUTTON_LEAN_RIGHT },
-		{ "ads", Game::usercmdButtonBits::CMD_BUTTON_ADS },
-		{ "holdbreath", Game::usercmdButtonBits::CMD_BUTTON_BREATH },
-		{ "usereload", Game::usercmdButtonBits::CMD_BUTTON_USE_RELOAD },
-		{ "activate", Game::usercmdButtonBits::CMD_BUTTON_ACTIVATE },
+		{ "gostand", Game::CMD_BUTTON_UP },
+		{ "gocrouch", Game::CMD_BUTTON_CROUCH },
+		{ "goprone", Game::CMD_BUTTON_PRONE },
+		{ "fire", Game::CMD_BUTTON_ATTACK },
+		{ "melee", Game::CMD_BUTTON_MELEE },
+		{ "frag", Game::CMD_BUTTON_FRAG },
+		{ "smoke",  Game::CMD_BUTTON_OFFHAND_SECONDARY },
+		{ "reload", Game::CMD_BUTTON_RELOAD },
+		{ "sprint", Game::CMD_BUTTON_SPRINT },
+		{ "leanleft", Game::CMD_BUTTON_LEAN_LEFT },
+		{ "leanright", Game::CMD_BUTTON_LEAN_RIGHT },
+		{ "ads", Game::CMD_BUTTON_ADS },
+		{ "holdbreath", Game::CMD_BUTTON_BREATH },
+		{ "usereload", Game::CMD_BUTTON_USE_RELOAD },
+		{ "activate", Game::CMD_BUTTON_ACTIVATE },
 	};
 
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
-		static size_t botId = 0;
+		static size_t botId = 0; // Loop over the BotNames vector
 		static bool loadedNames = false; // Load file only once
 		const char* botName;
+		const char* clanName;
 
 		if (BotNames.empty() && !loadedNames)
 		{
@@ -54,16 +55,32 @@ namespace Components
 
 			if (bots.exists())
 			{
-				auto names = Utils::String::Split(bots.getBuffer(), '\n');
+				auto data = Utils::String::Split(bots.getBuffer(), '\n');
 
-				for (auto& name : names)
+				for (auto& entry : data)
 				{
-					Utils::String::Replace(name, "\r", "");
-					Utils::String::Trim(name);
+					// Take into account for CR line endings
+					Utils::String::Replace(entry, "\r", "");
+					// Remove whitespace
+					Utils::String::Trim(entry);
 
-					if (!name.empty())
+					if (!entry.empty())
 					{
-						BotNames.push_back(name);
+						std::string clanAbbrev;
+
+						// Check if there is a clan tag
+						if (const auto pos = entry.find(','); pos != std::string::npos)
+						{
+							// Only start copying over from non-null characters (otherwise it can be "<=")
+							if ((pos + 1) < entry.size())
+							{
+								clanAbbrev = entry.substr(pos + 1);
+							}
+
+							entry = entry.substr(0, pos);
+						}
+
+						BotNames.emplace_back(std::make_pair(entry, clanAbbrev));
 					}
 				}
 			}
@@ -72,14 +89,17 @@ namespace Components
 		if (!BotNames.empty())
 		{
 			botId %= BotNames.size();
-			botName = BotNames[botId++].data();
+			const auto index = botId++;
+			botName = BotNames[index].first.data();
+			clanName = BotNames[index].second.data();
 		}
 		else
 		{
 			botName = Utils::String::VA("bot%d", ++botId);
+			clanName = "BOT";
 		}
 
-		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, protocol, checksum, statVer, statStuff, port);
+		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, clanName, protocol, checksum, statVer, statStuff, port);
 	}
 
 	void Bots::Spawn(unsigned int count)
@@ -304,7 +324,7 @@ namespace Components
 		AssertOffset(Game::client_t, ping, 0x212C8);
 
 		// Replace connect string
-		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
+		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\clanAbbrev\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
 
 		// Intercept sprintf for the connect string
 		Utils::Hook(0x48ADAB, BuildConnectString, HOOK_CALL).install()->quick();
