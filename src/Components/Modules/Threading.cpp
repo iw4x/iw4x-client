@@ -158,9 +158,6 @@ namespace Components
 		Utils::Hook(0x43D1C7, PacketEventStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x6272E3, FrameEpilogueStub, HOOK_JUMP).install()->quick();
 
-		// make VA thread safe
-		Utils::Hook(0x4785B0, Utils::String::VA, HOOK_JUMP).install()->quick();
-
 		if (Dedicated::IsEnabled())
 		{
 			Utils::Hook(0x4BAAAD, FrameTime::SVFrameWaitStub, HOOK_CALL).install()->quick();
