@@ -440,7 +440,15 @@ namespace Components
 					const auto dist = Utils::Maths::Vec3SqrDistance(playerPosition, staticModel.placement.origin);
 					if (dist < static_cast<float>(sqrDist))
 					{
-						Game::R_AddDebugString(staticModelsColor, staticModel.placement.origin, 1.0, staticModel.model->name);
+						float rgb01Color[] =
+						{
+							staticModel.groundLighting.array[0] / 255.f,
+							staticModel.groundLighting.array[1] / 255.f,
+							staticModel.groundLighting.array[2] / 255.f,
+							1.f,
+						};
+
+						Game::R_AddDebugString(staticModel.flags & 0x20 ? rgb01Color : staticModelsColor, staticModel.placement.origin, 1.0f, staticModel.model->name);
 					}
 				}
 			}
