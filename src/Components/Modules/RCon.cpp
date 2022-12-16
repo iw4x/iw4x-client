@@ -2,6 +2,8 @@
 
 namespace Components
 {
+	std::unordered_map<std::uint32_t, int> RCon::RateLimit;
+
 	RCon::Container RCon::RconContainer;
 	Utils::Cryptography::ECC::Key RCon::RconKey;
 
@@ -71,6 +73,43 @@ namespace Components
 		});
 	}
 
+	bool RCon::RateLimitCheck(const Network::Address& address, const int time)
+	{
+		auto ip = address.getIP();
+
+		if (!RateLimit.contains(ip.full))
+		{
+			RateLimit[ip.full] = 0;
+		}
+
+		const auto lastTime = RateLimit[ip.full];
+
+		// Only one request every 500ms
+		if (lastTime && (time - lastTime) < 500)
+		{
+			return false; // Flooding
+		}
+
+		RateLimit[ip.full] = time;
+		return true;
+	}
+
+	void RCon::RateLimitCleanup(const int time)
+	{
+		for (auto i = RateLimit.begin(); i != RateLimit.end();)
+		{
+			// No longer at risk of flooding, remove
+			if ((time - i->second) > 500)
+			{
+				i = RateLimit.erase(i);
+			}
+			else
+			{
+				++i;
+			}
+		}
+	}
+
 	RCon::RCon()
 	{
 		AddCommands();
@@ -126,6 +165,14 @@ namespace Components
 
 		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
+			const auto time = Game::Sys_Milliseconds();
+			if (!RateLimitCheck(address, time))
+			{
+				return;
+			}
+
+			RateLimitCleanup(time);
+
 			std::string data_ = data;
 			Utils::String::Trim(data_);
 
