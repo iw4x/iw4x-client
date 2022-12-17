@@ -2,7 +2,7 @@
 
 namespace Utils::Thread
 {
-	bool setName(const HANDLE t, const std::string& name)
+	bool SetName(const HANDLE t, const std::string& name)
 	{
 		const Library kernel32("kernel32.dll");
 		if (!kernel32)
@@ -19,7 +19,7 @@ namespace Utils::Thread
 		return SUCCEEDED(setDescription(t, String::Convert(name).data()));
 	}
 
-	bool setName(const DWORD id, const std::string& name)
+	bool SetName(const DWORD id, const std::string& name)
 	{
 		auto* const t = OpenThread(THREAD_SET_LIMITED_INFORMATION, FALSE, id);
 		if (!t) return false;
@@ -29,20 +29,20 @@ namespace Utils::Thread
 			CloseHandle(t);
 		});
 
-		return setName(t, name);
+		return SetName(t, name);
 	}
 
-	bool setName(std::thread& t, const std::string& name)
+	bool SetName(std::thread& t, const std::string& name)
 	{
-		return setName(t.native_handle(), name);
+		return SetName(t.native_handle(), name);
 	}
 
-	bool setName(const std::string& name)
+	bool SetName(const std::string& name)
 	{
-		return setName(GetCurrentThread(), name);
+		return SetName(GetCurrentThread(), name);
 	}
 
-	std::vector<DWORD> getThreadIds()
+	std::vector<DWORD> GetThreadIds()
 	{
 		auto* const h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, GetCurrentProcessId());
 		if (h == INVALID_HANDLE_VALUE)
@@ -79,9 +79,9 @@ namespace Utils::Thread
 		return ids;
 	}
 
-	void forEachThread(const std::function<void(HANDLE)>& callback)
+	void ForEachThread(const std::function<void(HANDLE)>& callback)
 	{
-		const auto ids = getThreadIds();
+		const auto ids = GetThreadIds();
 
 		for (const auto& id : ids)
 		{
@@ -98,9 +98,9 @@ namespace Utils::Thread
 		}
 	}
 
-	void suspendOtherThreads()
+	void SuspendOtherThreads()
 	{
-		forEachThread([](const HANDLE thread)
+		ForEachThread([](const HANDLE thread)
 		{
 			if (GetThreadId(thread) != GetCurrentThreadId())
 			{
@@ -109,9 +109,9 @@ namespace Utils::Thread
 		});
 	}
 
-	void resumeOtherThreads()
+	void ResumeOtherThreads()
 	{
-		forEachThread([](const HANDLE thread)
+		ForEachThread([](const HANDLE thread)
 		{
 			if (GetThreadId(thread) != GetCurrentThreadId())
 			{

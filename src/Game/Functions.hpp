@@ -563,6 +563,9 @@ namespace Game
 	typedef void*(*Z_VirtualAlloc_t)(int size);
 	extern Z_VirtualAlloc_t Z_VirtualAlloc;
 
+	typedef void*(*Z_Malloc_t)(int size);
+	extern Z_Malloc_t Z_Malloc;
+
 	typedef void(*I_strncpyz_t)(char* dest, const char* src, int destsize);
 	extern I_strncpyz_t I_strncpyz;
 

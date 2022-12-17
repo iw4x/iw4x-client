@@ -1,5 +1,8 @@
 #pragma once
 
+template <class Type, std::size_t n>
+constexpr auto ARRAY_COUNT(Type(&)[n]) { return n; }
+
 namespace Utils::String
 {
 	template <std::size_t Buffers, std::size_t MinBufferSize>
@@ -13,7 +16,7 @@ namespace Utils::String
 
 		[[nodiscard]] const char* get(const char* format, va_list ap)
 		{
-			++this->currentBuffer %= ARRAYSIZE(this->stringPool);
+			++this->currentBuffer %= ARRAY_COUNT(this->stringPool);
 			auto entry = &this->stringPool[this->currentBuffer];
 
 			if (!entry->size || !entry->buffer)

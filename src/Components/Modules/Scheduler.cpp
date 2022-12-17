@@ -156,7 +156,7 @@ namespace Components
 
 	Scheduler::Scheduler()
 	{
-		Thread = Utils::Thread::createNamedThread("Async Scheduler", []
+		Thread = Utils::Thread::CreateNamedThread("Async Scheduler", []
 		{
 			while (!Kill)
 			{

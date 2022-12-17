@@ -688,7 +688,7 @@ namespace Components
 
 			ServerRunning = true;
 			Terminate = false;
-			ServerThread = std::thread([]
+			ServerThread = Utils::Thread::CreateNamedThread("Mongoose", []
 			{
 				while (!Terminate)
 				{
