@@ -46,7 +46,7 @@ namespace Components
 
 			if (!found)
 			{
-				Logger::Print("Asset {} of type {} was loaded, but not written!", name, Game::DB_GetXAssetTypeName(subAsset.type));
+				Logger::Print("Asset {} of type {} was loaded, but not written!\n", name, Game::DB_GetXAssetTypeName(subAsset.type));
 			}
 		}
 
@@ -66,16 +66,17 @@ namespace Components
 
 			if (!found)
 			{
-				Logger::Error(Game::ERR_FATAL, "Asset {} of type {} was written, but not loaded!", name, Game::DB_GetXAssetTypeName(alias.first.type));
+				Logger::Error(Game::ERR_FATAL, "Asset {} of type {} was written, but not loaded!\n", name, Game::DB_GetXAssetTypeName(alias.first.type));
 			}
 		}
 #endif
 
 		// Unload our fastfiles
-		Game::XZoneInfo info;
+		Game::XZoneInfo info{};
 		info.name = nullptr;
 		info.allocFlags = 0;
 		info.freeFlags = 0x20;
+
 
 		Game::DB_LoadXAssets(&info, 1, true);
 
@@ -277,7 +278,6 @@ namespace Components
 			const auto* assetName = Game::DB_GetXAssetName(asset);
 			if (!assetName) return -1;
 			if (assetName[0] == ',' && assetName[1] != '\0') ++assetName;
-			else return -1;
 
 			if (this->getAssetName(type, assetName) == name)
 			{
@@ -1007,11 +1007,11 @@ namespace Components
 		assert(data);
 		auto* sound = Utils::Hook::Get<Game::MssSound*>(0x112AE04);
 		auto length = sound->info.data_len;
-		auto allocatedSpace = Utils::Memory::AllocateArray<char>(length);
+		auto allocatedSpace = Game::Z_Malloc(length);
 		memcpy_s(allocatedSpace, length, data, length);
 
 		data = allocatedSpace;
-		sound->data = allocatedSpace;
+		sound->data = static_cast<char*>(allocatedSpace);
 		sound->info.data_ptr = allocatedSpace;
 	}
 
