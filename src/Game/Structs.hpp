@@ -10307,6 +10307,32 @@ namespace Game
 		GfxLight sceneLights[253];
 	};
 
+	enum
+	{
+		THREAD_VALUE_PROF_STACK = 0x0,
+		THREAD_VALUE_VA = 0x1,
+		THREAD_VALUE_COM_ERROR = 0x2,
+		THREAD_VALUE_TRACE = 0x3,
+		THREAD_VALUE_COUNT = 0x4,
+	};
+
+	struct va_info_t
+	{
+		char va_string[2][1024];
+		int index;
+	};
+
+	struct TraceCheckCount
+	{
+		int global;
+		int* partitions;
+	};
+
+	struct TraceThreadInfo
+	{
+		TraceCheckCount checkcount;
+	};
+
 #pragma endregion
 
 #ifndef IDA
