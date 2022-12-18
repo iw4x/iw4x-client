@@ -232,11 +232,11 @@ namespace Components
 	{
 		if (!download) download = &CLDownload;
 
-		auto host = "http://" + download->target.getString();
+		const auto host = "http://" + download->target.getString();
 
-		auto listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
+		const auto listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
 
-		auto list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->get();
+		const auto list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->get();
 		if (list.empty())
 		{
 			if (download->terminateThread) return;
@@ -276,7 +276,7 @@ namespace Components
 		static std::string mod;
 		mod = download->mod;
 
-		for (unsigned int i = 0; i < download->files.size(); ++i)
+		for (std::size_t i = 0; i < download->files.size(); ++i)
 		{
 			if (download->terminateThread) return;
 
@@ -319,7 +319,6 @@ namespace Components
 			Scheduler::Once([]
 			{
 				Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
-				const_cast<Game::dvar_t*>(*Game::fs_gameDirVar)->modified = true;
 
 				mod.clear();
 
@@ -673,6 +672,10 @@ namespace Components
 
 	Download::Download()
 	{
+		AssertSize(Game::va_info_t, 0x804);
+		AssertSize(jmp_buf, 0x40);
+		AssertSize(Game::TraceThreadInfo, 0x8);
+
 		if (Dedicated::IsEnabled())
 		{
 			mg_mgr_init(&Mgr);
@@ -690,6 +693,8 @@ namespace Components
 			Terminate = false;
 			ServerThread = Utils::Thread::CreateNamedThread("Mongoose", []
 			{
+				Com_InitThreadData();
+
 				while (!Terminate)
 				{
 					mg_mgr_poll(&Mgr, 100);

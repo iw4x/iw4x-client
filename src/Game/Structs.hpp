@@ -10333,6 +10333,59 @@ namespace Game
 		TraceCheckCount checkcount;
 	};
 
+	struct ProfileAtom
+	{
+		unsigned int value[1];
+	};
+
+	volatile struct ProfileReadable
+	{
+		unsigned int hits;
+		ProfileAtom total;
+		ProfileAtom self;
+	};
+
+	struct ProfileWritable
+	{
+		int nesting;
+		unsigned int hits;
+		ProfileAtom start[3];
+		ProfileAtom total;
+		ProfileAtom child;
+	};
+
+	struct profile_t
+	{
+		ProfileWritable write;
+		ProfileReadable read;
+	};
+
+	struct profile_guard_t
+	{
+		int id;
+		profile_t** ppStack;
+	};
+
+	struct ProfileStack
+	{
+		profile_t prof_root;
+		profile_t* prof_pStack[16384];
+		profile_t** prof_ppStack;
+		profile_t prof_array[443];
+		ProfileAtom prof_overhead_internal;
+		ProfileAtom prof_overhead_external;
+		profile_guard_t prof_guardstack[32];
+		int prof_guardpos;
+		float prof_timescale;
+	};
+
+	struct bgs_t
+	{
+		unsigned char __pad0[0x82950];
+	};
+
+	static_assert(sizeof(bgs_t) == 0x82950);
+
 #pragma endregion
 
 #ifndef IDA

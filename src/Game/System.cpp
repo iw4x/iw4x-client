@@ -21,6 +21,7 @@ namespace Game
 	Sys_SendPacket_t Sys_SendPacket = Sys_SendPacket_t(0x60FDC0);
 	Sys_ShowConsole_t Sys_ShowConsole = Sys_ShowConsole_t(0x4305E0);
 	Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads = Sys_SuspendOtherThreads_t(0x45A190);
+	Sys_SetValue_t Sys_SetValue = Sys_SetValue_t(0x4B2F50);
 
 	char(*sys_exitCmdLine)[1024] = reinterpret_cast<char(*)[1024]>(0x649FB68);
 

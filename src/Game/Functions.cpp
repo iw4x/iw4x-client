@@ -8,6 +8,7 @@ namespace Game
 	Cbuf_AddServerText_f_t Cbuf_AddServerText_f = Cbuf_AddServerText_f_t(0x4BB9B0);
 	Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x404B20);
 	Cbuf_InsertText_t Cbuf_InsertText = Cbuf_InsertText_t(0x4940B0);
+	Cbuf_Execute_t Cbuf_Execute = Cbuf_Execute_t(0x4E2C80);
 
 	CG_DrawDisconnect_t CG_DrawDisconnect = CG_DrawDisconnect_t(0x454A70);
 	CG_NextWeapon_f_t CG_NextWeapon_f = CG_NextWeapon_f_t(0x449DE0);
@@ -381,7 +382,9 @@ namespace Game
 
 	Material** whiteMaterial = reinterpret_cast<Material**>(0x8EE4B8);
 
-	unsigned long* _tls_index = reinterpret_cast<unsigned long*>(0x66D94A8);
+	unsigned long* g_dwTlsIndex = reinterpret_cast<unsigned long*>(0x66D94A8);
+
+	bgs_t* level_bgs = reinterpret_cast<bgs_t*>(0x19BD680);
 
 	unsigned int* playerCardUIStringIndex = reinterpret_cast<unsigned int*>(0x62CD7A8);
 	char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38] = reinterpret_cast<char(*)[PLAYER_CARD_UI_STRING_COUNT][38]>(0x62CB4F8);

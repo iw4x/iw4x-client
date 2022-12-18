@@ -246,13 +246,20 @@ namespace Components
 			if (ent->client->sess.sessionState != Game::SESS_STATE_PLAYING || !CheatsOk(ent))
 				return;
 
-			Scheduler::Once([ent]
-			{
-				ent->flags &= ~(Game::FL_GODMODE | Game::FL_DEMI_GODMODE);
-				ent->health = 0;
-				ent->client->ps.stats[0] = 0;
-				Game::player_die(ent, ent, ent, 100000, Game::MOD_SUICIDE, 0, nullptr, Game::HITLOC_NONE, 0);
-			}, Scheduler::Pipeline::SERVER);
+			auto** bgs = Game::Sys::GetTls<Game::bgs_t*>(Game::Sys::ThreadOffset::LEVEL_BGS);
+
+			assert(*bgs == nullptr);
+
+			*bgs = Game::level_bgs;
+
+			ent->flags &= ~(Game::FL_GODMODE | Game::FL_DEMI_GODMODE);
+			ent->health = 0;
+			ent->client->ps.stats[0] = 0;
+			Game::player_die(ent, ent, ent, 100000, Game::MOD_SUICIDE, 0, nullptr, Game::HITLOC_NONE, 0);
+
+			assert(*bgs == Game::level_bgs);
+
+			*bgs = nullptr;
 		});
 	}
 

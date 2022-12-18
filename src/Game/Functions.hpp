@@ -15,6 +15,9 @@ namespace Game
 	typedef void(*Cbuf_InsertText_t)(int localClientNum, const char* text);
 	extern Cbuf_InsertText_t Cbuf_InsertText;
 
+	typedef void(*Cbuf_Execute_t)(int localClientNum, int controllerIndex);
+	extern Cbuf_Execute_t Cbuf_Execute;
+
 	typedef void(*CG_DrawDisconnect_t)(int localClientNum);
 	extern CG_DrawDisconnect_t CG_DrawDisconnect;
 
@@ -712,7 +715,9 @@ namespace Game
 
 	extern Material** whiteMaterial;
 
-	extern unsigned long* _tls_index;
+	extern unsigned long* g_dwTlsIndex;
+
+	extern bgs_t* level_bgs;
 
 	constexpr std::size_t PLAYER_CARD_UI_STRING_COUNT = 18;
 	extern unsigned int* playerCardUIStringIndex;

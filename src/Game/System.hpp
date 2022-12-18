@@ -2,7 +2,6 @@
 
 namespace Game
 {
-
 	typedef void(*Sys_Error_t)(const char* error, ...);
 	extern Sys_Error_t Sys_Error;
 
@@ -60,6 +59,9 @@ namespace Game
 	typedef void(*Sys_SuspendOtherThreads_t)();
 	extern Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads;
 
+	typedef void(*Sys_SetValue_t)(int valueIndex, void* data);
+	extern Sys_SetValue_t Sys_SetValue;
+
 	extern char(*sys_exitCmdLine)[1024];
 
 	extern RTL_CRITICAL_SECTION* s_criticalSection;
@@ -68,4 +70,22 @@ namespace Game
 	extern void Sys_UnlockRead(FastCriticalSection* critSect);
 
 	extern bool Sys_TryEnterCriticalSection(CriticalSection critSect);
+
+	class Sys
+	{
+	public:
+		enum ThreadOffset : unsigned int
+		{
+			LEVEL_BGS = 0xC,
+			THREAD_VALUES = 0x14,
+			DVAR_MODIFIED_FLAGS = 0x18,
+		};
+
+		template <typename T>
+		static T* GetTls(ThreadOffset offset)
+		{
+			const auto* tls = reinterpret_cast<std::uintptr_t*>(__readfsdword(0x2C));
+			return reinterpret_cast<T*>(tls[*g_dwTlsIndex] + offset);
+		}
+	};
 }
