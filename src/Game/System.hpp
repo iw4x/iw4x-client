@@ -32,6 +32,9 @@ namespace Game
 	typedef int(*Sys_Milliseconds_t)();
 	extern Sys_Milliseconds_t Sys_Milliseconds;
 
+	typedef void(*Sys_Sleep_t)(int msec);
+	extern Sys_Sleep_t Sys_Sleep;
+
 	typedef void(*Sys_LockWrite_t)(FastCriticalSection* critSect);
 	extern Sys_LockWrite_t Sys_LockWrite;
 
@@ -68,13 +71,14 @@ namespace Game
 
 	extern void Sys_LockRead(FastCriticalSection* critSect);
 	extern void Sys_UnlockRead(FastCriticalSection* critSect);
+	extern void Sys_UnlockWrite(FastCriticalSection* critSect);
 
 	extern bool Sys_TryEnterCriticalSection(CriticalSection critSect);
 
 	class Sys
 	{
 	public:
-		enum ThreadOffset : unsigned int
+		enum class TLS_OFFSET : unsigned int
 		{
 			LEVEL_BGS = 0xC,
 			THREAD_VALUES = 0x14,
@@ -85,10 +89,10 @@ namespace Game
 		};
 
 		template <typename T>
-		static T* GetTls(ThreadOffset offset)
+		static T* GetTls(TLS_OFFSET offset)
 		{
 			const auto* tls = reinterpret_cast<std::uintptr_t*>(__readfsdword(0x2C));
-			return reinterpret_cast<T*>(tls[*g_dwTlsIndex] + offset);
+			return reinterpret_cast<T*>(tls[*g_dwTlsIndex] + static_cast<std::underlying_type_t<TLS_OFFSET>>(offset));
 		}
 	};
 }

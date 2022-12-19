@@ -246,7 +246,7 @@ namespace Components
 			if (ent->client->sess.sessionState != Game::SESS_STATE_PLAYING || !CheatsOk(ent))
 				return;
 
-			auto** bgs = Game::Sys::GetTls<Game::bgs_t*>(Game::Sys::ThreadOffset::LEVEL_BGS);
+			auto** bgs = Game::Sys::GetTls<Game::bgs_t*>(Game::Sys::TLS_OFFSET::LEVEL_BGS);
 
 			assert(*bgs == nullptr);
 

@@ -77,16 +77,16 @@ namespace Game
 	extern const char* Com_LoadInfoString_FastFile(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer);
 }
 
-#define Com_InitThreadData()                                                   \
-{                                                                              \
-	static Game::ProfileStack profile_stack{};                                 \
-	static Game::va_info_t va_info{};                                          \
-	static jmp_buf g_com_error{};                                              \
-	static Game::TraceThreadInfo g_trace_thread_info{};                        \
-	static void* g_thread_values[Game::THREAD_VALUE_COUNT]{};                  \
-	*(Game::Sys::GetTls<void*>(Game::Sys::THREAD_VALUES)) = g_thread_values;   \
-	Game::Sys_SetValue(Game::THREAD_VALUE_PROF_STACK, &profile_stack);         \
-	Game::Sys_SetValue(Game::THREAD_VALUE_VA, &va_info);                       \
-	Game::Sys_SetValue(Game::THREAD_VALUE_COM_ERROR, &g_com_error);            \
-	Game::Sys_SetValue(Game::THREAD_VALUE_TRACE, &g_trace_thread_info);        \
+#define Com_InitThreadData()                                                             \
+{                                                                                        \
+	static Game::ProfileStack profile_stack{};                                           \
+	static Game::va_info_t va_info{};                                                    \
+	static jmp_buf g_com_error{};                                                        \
+	static Game::TraceThreadInfo g_trace_thread_info{};                                  \
+	static void* g_thread_values[Game::THREAD_VALUE_COUNT]{};                            \
+	*(Game::Sys::GetTls<void*>(Game::Sys::TLS_OFFSET::THREAD_VALUES)) = g_thread_values; \
+	Game::Sys_SetValue(Game::THREAD_VALUE_PROF_STACK, &profile_stack);                   \
+	Game::Sys_SetValue(Game::THREAD_VALUE_VA, &va_info);                                 \
+	Game::Sys_SetValue(Game::THREAD_VALUE_COM_ERROR, &g_com_error);                      \
+	Game::Sys_SetValue(Game::THREAD_VALUE_TRACE, &g_trace_thread_info);                  \
 }

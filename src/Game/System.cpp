@@ -12,6 +12,7 @@ namespace Game
 	Sys_ListFiles_t Sys_ListFiles = Sys_ListFiles_t(0x45A660);
 	Sys_Milliseconds_t Sys_Milliseconds = Sys_Milliseconds_t(0x42A660);
 	Sys_Error_t Sys_Error = Sys_Error_t(0x43D570);
+	Sys_Sleep_t Sys_Sleep = Sys_Sleep_t(0x4169C0);
 	Sys_LockWrite_t Sys_LockWrite = Sys_LockWrite_t(0x435880);
 	Sys_TempPriorityAtLeastNormalBegin_t Sys_TempPriorityAtLeastNormalBegin = Sys_TempPriorityAtLeastNormalBegin_t(0x478680);
 	Sys_TempPriorityEnd_t Sys_TempPriorityEnd = Sys_TempPriorityEnd_t(0x4DCF00);
@@ -30,7 +31,7 @@ namespace Game
 	void Sys_LockRead(FastCriticalSection* critSect)
 	{
 		InterlockedIncrement(&critSect->readCount);
-		while (critSect->writeCount) std::this_thread::sleep_for(1ms);
+		while (critSect->writeCount) Sys_Sleep(1);
 	}
 
 	void Sys_UnlockRead(FastCriticalSection* critSect)
@@ -39,10 +40,16 @@ namespace Game
 		InterlockedDecrement(&critSect->readCount);
 	}
 
+	void Sys_UnlockWrite(FastCriticalSection* critSect)
+	{
+		assert(critSect->writeCount > 0);
+		InterlockedDecrement(&critSect->writeCount);
+		Sys_TempPriorityEnd(&critSect->tempPriority);
+	}
+
 	bool Sys_TryEnterCriticalSection(CriticalSection critSect)
 	{
-		assert(static_cast<unsigned int>(critSect) <
-			static_cast<unsigned int>(CRITSECT_COUNT));
+		AssertIn(critSect, CRITSECT_COUNT);
 
 		return TryEnterCriticalSection(&s_criticalSection[critSect]) != FALSE;
 	}
