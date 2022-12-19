@@ -84,9 +84,7 @@ namespace Game
 	static jmp_buf g_com_error{};                                              \
 	static Game::TraceThreadInfo g_trace_thread_info{};                        \
 	static void* g_thread_values[Game::THREAD_VALUE_COUNT]{};                  \
-	auto** thread_data =                                                       \
-	Game::Sys::GetTls<void*>(Game::Sys::ThreadOffset::THREAD_VALUES);          \
-	*thread_data = g_thread_values;                                            \
+	*(Game::Sys::GetTls<void*>(Game::Sys::THREAD_VALUES)) = g_thread_values;   \
 	Game::Sys_SetValue(Game::THREAD_VALUE_PROF_STACK, &profile_stack);         \
 	Game::Sys_SetValue(Game::THREAD_VALUE_VA, &va_info);                       \
 	Game::Sys_SetValue(Game::THREAD_VALUE_COM_ERROR, &g_com_error);            \

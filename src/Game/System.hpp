@@ -78,7 +78,10 @@ namespace Game
 		{
 			LEVEL_BGS = 0xC,
 			THREAD_VALUES = 0x14,
+			HUFFMAN_BLOC = 0x10,
+			DVAR_ALLOWED_MODIFIED_FLAGS = 0x1C,
 			DVAR_MODIFIED_FLAGS = 0x18,
+			ZIP_INFO = 0x20,
 		};
 
 		template <typename T>

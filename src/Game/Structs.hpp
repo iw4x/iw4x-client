@@ -10386,6 +10386,14 @@ namespace Game
 
 	static_assert(sizeof(bgs_t) == 0x82950);
 
+	struct ZipInfo
+	{
+		int offsetCount;
+		int offsets[128];
+		int size;
+		char* buffer;
+	};
+
 #pragma endregion
 
 #ifndef IDA
