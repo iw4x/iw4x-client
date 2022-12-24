@@ -255,7 +255,7 @@ namespace Components
 			true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
 
 		BGClimbAnything = Dvar::Register<bool>("bg_climbAnything",
-			false, Game::DVAR_CODINFO, "Allows to treat any surface as a ladder");
+			false, Game::DVAR_CODINFO, "Treat any surface as a ladder");
 	}
 
 	PlayerMovement::PlayerMovement()
