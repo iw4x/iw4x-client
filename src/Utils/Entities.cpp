@@ -6,13 +6,13 @@ namespace Utils
 	{
 		std::string entityString;
 
-		for (auto& entity : this->entities)
+		for (const auto& entity : this->entities)
 		{
 			entityString.append("{\n");
 
-			for (auto& property : entity)
+			for (const auto& property : entity)
 			{
-				entityString.push_back('"');
+				entityString.append("\"");
 				entityString.append(property.first);
 				entityString.append("\" \"");
 				entityString.append(property.second);
