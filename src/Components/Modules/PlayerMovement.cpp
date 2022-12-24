@@ -7,6 +7,7 @@ namespace Components
 	Dvar::Var PlayerMovement::BGRocketJumpScale;
 	Dvar::Var PlayerMovement::BGPlayerEjection;
 	Dvar::Var PlayerMovement::BGPlayerCollision;
+	Dvar::Var PlayerMovement::BGClimbAnything;
 	const Game::dvar_t* PlayerMovement::CGNoclipScaler;
 	const Game::dvar_t* PlayerMovement::CGUfoScaler;
 	const Game::dvar_t* PlayerMovement::PlayerSpectateSpeedScale;
@@ -14,6 +15,16 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::BGBouncesAllAngles;
 	const Game::dvar_t* PlayerMovement::PlayerDuckedSpeedScale;
 	const Game::dvar_t* PlayerMovement::PlayerProneSpeedScale;
+
+	void PlayerMovement::PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask)
+	{
+		Game::PM_playerTrace(pm, results, start, end, bounds, passEntityNum, contentMask);
+
+		if (results && BGClimbAnything.get<bool>())
+		{
+			results[0].surfaceFlags |= SURF_LADDER;
+		}
+	}
 
 	__declspec(naked) void PlayerMovement::PM_PlayerDuckedSpeedScaleStub()
 	{
@@ -242,6 +253,9 @@ namespace Components
 
 		BGPlayerCollision = Dvar::Register<bool>("bg_playerCollision",
 			true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
+
+		BGClimbAnything = Dvar::Register<bool>("bg_climbAnything",
+			false, Game::DVAR_CODINFO, "Allows to treat any surface as a ladder");
 	}
 
 	PlayerMovement::PlayerMovement()
@@ -288,6 +302,9 @@ namespace Components
 		Utils::Hook(0x5D8153, StuckInClient_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45A5BF, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
 		Utils::Hook(0x5A0CAD, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // CG_ClipMoveToEntity
+
+		Utils::Hook(0x573F39, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x573E93, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
 
 		Script::AddMethod("IsSprinting", GScr_IsSprinting);
 
