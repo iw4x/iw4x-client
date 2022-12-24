@@ -11,6 +11,8 @@ namespace Components
 		using botData = std::pair< std::string, std::string>;
 		static std::vector<botData> BotNames;
 
+		static Dvar::Var SVRandomBotNames;
+
 		static int BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port);
 
 		static void Spawn(unsigned int count);

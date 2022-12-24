@@ -35,8 +35,8 @@ namespace Components
 		Loader::Register(new Exception());
 		Loader::Register(new Auth());
 		Loader::Register(new Bans());
-		Loader::Register(new Bots());
 		Loader::Register(new Dvar());
+		Loader::Register(new Bots());
 		Loader::Register(new Lean());
 		Loader::Register(new Maps());
 		Loader::Register(new News());
