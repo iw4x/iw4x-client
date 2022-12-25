@@ -50,7 +50,7 @@ namespace Components
 
 		static SteamID GenerateLobbyId();
 
-		static Game::dvar_t* RegisterMinPlayers(const char* name, int value, int min, int max, Game::DvarFlags flag, const char* description);
+		static Game::dvar_t* RegisterMinPlayers(const char* name, int value, int min, int max, unsigned __int16 flag, const char* description);
 
 		static DWORD UIDvarIntStub(char* dvar);
 	};

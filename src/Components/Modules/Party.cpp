@@ -77,7 +77,7 @@ namespace Components
 		return Party::Container.motd;
 	}
 
-	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int /*value*/, int /*min*/, int max, Game::DvarFlags flag, const char* description)
+	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int /*value*/, int /*min*/, int max, unsigned __int16 flag, const char* description)
 	{
 		return Dvar::Register<int>(name, 1, 1, max, Game::DVAR_INIT | flag, description).get<Game::dvar_t*>();
 	}

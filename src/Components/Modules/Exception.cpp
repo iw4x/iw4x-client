@@ -169,7 +169,7 @@ namespace Components
 	{
 		SetMiniDumpType(Flags::HasFlag("bigminidumps"), Flags::HasFlag("reallybigminidumps"));
 
-		SetUnhandledExceptionFilter(&Exception::ExceptionFilter);
+		SetUnhandledExceptionFilter(&ExceptionFilter);
 
 		Utils::Hook(0x4B241F, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x61DB44, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();

@@ -27,8 +27,8 @@ namespace Game
 		unsigned __int16 classnum;
 	};
 
-	typedef void(__cdecl* BuiltinFunction)();
-	typedef void(__cdecl* BuiltinMethod)(scr_entref_t);
+	typedef void(*BuiltinFunction)();
+	typedef void(*BuiltinMethod)(scr_entref_t);
 
 	struct BuiltinFunctionDef
 	{
@@ -383,7 +383,7 @@ namespace Game
 		SURF_TYPE_COUNT
 	};
 
-	enum DvarFlags : unsigned __int16
+	enum : unsigned __int16
 	{
 		DVAR_NONE = 0,	// No flags
 		DVAR_ARCHIVE = 1 << 0,	// Set to cause it to be saved to config_mp.cfg of the client
