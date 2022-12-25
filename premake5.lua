@@ -77,11 +77,6 @@ newoption {
 }
 
 newoption {
-	trigger = "force-exception-handler",
-	description = "Install custom unhandled exception handler even for Debug builds."
-}
-
-newoption {
 	trigger = "disable-binary-check",
 	description = "Do not perform integrity checks on the exe."
 }
@@ -256,9 +251,6 @@ workspace "iw4x"
 		-- Debug flags
 		if _OPTIONS["force-unit-tests"] then
 			defines {"FORCE_UNIT_TESTS"}
-		end
-		if _OPTIONS["force-exception-handler"] then
-			defines {"FORCE_EXCEPTION_HANDLER"}
 		end
 		if _OPTIONS["disable-binary-check"] then
 			defines {"DISABLE_BINARY_CHECK"}

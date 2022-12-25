@@ -21,7 +21,6 @@
 | `--copy-to=PATH`            | Optional, copy the DLL to a custom folder after build, define the path here if wanted. |
 | `--copy-pdb`                | Copy debug information for binaries as well to the path given via --copy-to. |
 | `--force-unit-tests`        | Always compile unit tests.                     |
-| `--force-exception-handler` | Install custom unhandled exception handler even for Debug builds. |
 | `--disable-binary-check`    | Do not perform integrity checks on the exe. |
 
 ## Command line arguments

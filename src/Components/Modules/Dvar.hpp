@@ -5,15 +5,6 @@ namespace Components
 	class Dvar : public Component
 	{
 	public:
-		class Flag
-		{
-		public:
-			Flag(Game::DvarFlags flag) : val(flag) {}
-			Flag(std::uint16_t flag) : Flag(static_cast<Game::DvarFlags>(flag)) {}
-
-			Game::DvarFlags val;
-		};
-
 		class Var
 		{
 		public:
@@ -44,8 +35,8 @@ namespace Components
 		~Dvar();
 
 		// Only strings and bools use this type of declaration
-		template<typename T> static Var Register(const char* dvarName, T value, Flag flag, const char* description);
-		template<typename T> static Var Register(const char* dvarName, T value, T min, T max, Flag flag, const char* description);
+		template<typename T> static Var Register(const char* dvarName, T value, std::uint16_t flag, const char* description);
+		template<typename T> static Var Register(const char* dvarName, T value, T min, T max, std::uint16_t flag, const char* description);
 
 		static void ResetDvarsValue();
 

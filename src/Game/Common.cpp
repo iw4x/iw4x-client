@@ -31,6 +31,8 @@ namespace Game
 
 	int* com_errorPrintsCount = reinterpret_cast<int*>(0x1AD7910);
 
+	int* errorcode = reinterpret_cast<int*>(0x1AD7EB4);
+
 	char* Com_GetParseThreadInfo()
 	{
 		if (Sys_IsMainThread())

@@ -15,9 +15,7 @@ namespace Components
 	private:
 		static void SuspendProcess();
 		static LONG WINAPI ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo);
-		static LPTOP_LEVEL_EXCEPTION_FILTER WINAPI SetUnhandledExceptionFilterStub(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter);
-		static __declspec(noreturn) void ErrorLongJmp(jmp_buf _Buf, int _Value);
-		static __declspec(noreturn) void LongJmp(jmp_buf _Buf, int _Value);
+		static __declspec(noreturn) void LongJmp_Internal_Stub(jmp_buf env, int status);
 
 		static void CopyMessageToClipboard(const std::string& error);
 

@@ -319,7 +319,7 @@ namespace Components
 			auto clientCount = 0;
 			auto maxClientCount = *Game::svs_clientCount;
 			const auto securityLevel = Dvar::Var("sv_securityLevel").get<int>();
-			const auto password = Dvar::Var("g_password").get<std::string>();
+			const auto* password = (*Game::g_password)->current.string;
 
 			if (maxClientCount)
 			{
@@ -352,7 +352,7 @@ namespace Components
 			info.set("shortversion", SHORTVERSION);
 			info.set("checksum", std::to_string(Game::Sys_Milliseconds()));
 			info.set("mapname", Dvar::Var("mapname").get<std::string>());
-			info.set("isPrivate", password.empty() ? "0" : "1");
+			info.set("isPrivate", *password ? "1" : "0");
 			info.set("hc", (Dvar::Var("g_hardcore").get<bool>() ? "1" : "0"));
 			info.set("securityLevel", std::to_string(securityLevel));
 			info.set("sv_running", (Dedicated::IsRunning() ? "1" : "0"));

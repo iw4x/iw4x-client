@@ -186,24 +186,24 @@ namespace Components
 		}
 	}
 
-	template<> Dvar::Var Dvar::Register(const char* dvarName, bool value, Flag flag, const char* description)
+	template<> Dvar::Var Dvar::Register(const char* dvarName, bool value, std::uint16_t flag, const char* description)
 	{
-		return Game::Dvar_RegisterBool(dvarName, value, flag.val, description);
+		return Game::Dvar_RegisterBool(dvarName, value, flag, description);
 	}
 
-	template<> Dvar::Var Dvar::Register(const char* dvarName, const char* value, Flag flag, const char* description)
+	template<> Dvar::Var Dvar::Register(const char* dvarName, const char* value, std::uint16_t flag, const char* description)
 	{
-		return Game::Dvar_RegisterString(dvarName, value, flag.val, description);
+		return Game::Dvar_RegisterString(dvarName, value, flag, description);
 	}
 
-	template<> Dvar::Var Dvar::Register(const char* dvarName, int value, int min, int max, Flag flag, const char* description)
+	template<> Dvar::Var Dvar::Register(const char* dvarName, int value, int min, int max, std::uint16_t flag, const char* description)
 	{
-		return Game::Dvar_RegisterInt(dvarName, value, min, max, flag.val, description);
+		return Game::Dvar_RegisterInt(dvarName, value, min, max, flag, description);
 	}
 
-	template<> Dvar::Var Dvar::Register(const char* dvarName, float value, float min, float max, Flag flag, const char* description)
+	template<> Dvar::Var Dvar::Register(const char* dvarName, float value, float min, float max, std::uint16_t flag, const char* description)
 	{
-		return Game::Dvar_RegisterFloat(dvarName, value, min, max, flag.val, description);
+		return Game::Dvar_RegisterFloat(dvarName, value, min, max, flag, description);
 	}
 
 	void Dvar::ResetDvarsValue()

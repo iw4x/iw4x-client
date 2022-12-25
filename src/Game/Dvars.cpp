@@ -52,6 +52,7 @@ namespace Game
 	const dvar_t** g_allowVote = reinterpret_cast<const dvar_t**>(0x19BD644);
 	const dvar_t** g_oldVoting = reinterpret_cast<const dvar_t**>(0x1A45DEC);
 	const dvar_t** g_gametype = reinterpret_cast<const dvar_t**>(0x1A45DC8);
+	const dvar_t** g_password = reinterpret_cast<const dvar_t**>(0x18835C0);
 
 	const dvar_t** version = reinterpret_cast<const dvar_t**>(0x1AD7930);
 

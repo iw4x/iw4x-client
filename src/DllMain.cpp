@@ -49,7 +49,6 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 	if (fdwReason == DLL_PROCESS_ATTACH)
 	{
 		SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
-		Steam::Proxy::RunMod();
 
 		std::srand(std::uint32_t(std::time(nullptr)) ^ ~(GetTickCount() * GetCurrentProcessId()));
 
@@ -72,6 +71,7 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 		}
 #endif
 
+		Steam::Proxy::RunMod();
 		// Install entry point hook
 		Utils::Hook(0x6BAC0F, Main::EntryPoint, HOOK_JUMP).install()->quick();
 	}

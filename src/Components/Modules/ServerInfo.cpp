@@ -131,7 +131,7 @@ namespace Components
 	Utils::InfoString ServerInfo::GetInfo()
 	{
 		auto maxClientCount = *Game::svs_clientCount;
-		const auto password = Dvar::Var("g_password").get<std::string>();
+		const auto* password = (*Game::g_password)->current.string;
 
 		if (!maxClientCount)
 		{
@@ -145,7 +145,7 @@ namespace Components
 		info.set("shortversion", SHORTVERSION);
 		info.set("version", (*Game::version)->current.string);
 		info.set("mapname", (*Game::sv_mapname)->current.string);
-		info.set("isPrivate", password.empty() ? "0" : "1");
+		info.set("isPrivate", *password ? "1" : "0");
 		info.set("checksum", Utils::String::VA("%X", Utils::Cryptography::JenkinsOneAtATime::Compute(Utils::String::VA("%u", Game::Sys_Milliseconds()))));
 		info.set("aimAssist", (Gamepad::sv_allowAimAssist.get<bool>() ? "1" : "0"));
 		info.set("voiceChat", (Voice::SV_VoiceEnabled() ? "1" : "0"));

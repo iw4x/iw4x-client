@@ -593,6 +593,9 @@ namespace Game
 	typedef void(*LargeLocalReset_t)();
 	extern LargeLocalReset_t LargeLocalReset;
 
+	typedef void(*longjmp_internal_t)(jmp_buf env, int status);
+	extern longjmp_internal_t longjmp_internal;
+
 	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_CLIENTS = 18;
@@ -738,6 +741,8 @@ namespace Game
 	extern int* ui_arenaBufPos;
 
 	extern punctuation_s* default_punctuations;
+
+	extern bool* s_havePlaylists;
 
 	constexpr auto MAX_MSGLEN = 0x20000;
 

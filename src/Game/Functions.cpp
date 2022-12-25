@@ -268,6 +268,8 @@ namespace Game
 	LargeLocalBeginRight_t LargeLocalBeginRight = LargeLocalBeginRight_t(0x644140);
 	LargeLocalReset_t LargeLocalReset = LargeLocalReset_t(0x430630);
 
+	longjmp_internal_t longjmp_internal = longjmp_internal_t(0x6B8898);
+
 	CmdArgs* cmd_args = reinterpret_cast<CmdArgs*>(0x1AAC5D0);
 	CmdArgs* sv_cmd_args = reinterpret_cast<CmdArgs*>(0x1ACF8A0);
 
@@ -404,6 +406,8 @@ namespace Game
 	int* ui_arenaBufPos = reinterpret_cast<int*>(0x62D278C);
 
 	punctuation_s* default_punctuations = reinterpret_cast<punctuation_s*>(0x797F80);
+
+	bool* s_havePlaylists = reinterpret_cast<bool*>(0x1AD3680);
 
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{

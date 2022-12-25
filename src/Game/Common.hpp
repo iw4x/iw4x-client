@@ -35,7 +35,7 @@ namespace Game
 	typedef void(*Com_BeginParseSession_t)(const char* filename);
 	extern Com_BeginParseSession_t Com_BeginParseSession;
 
-	typedef char* (*Com_ParseOnLine_t)(const char** data_p);
+	typedef char*(*Com_ParseOnLine_t)(const char** data_p);
 	extern Com_ParseOnLine_t Com_ParseOnLine;
 
 	typedef void(*Com_SkipRestOfLine_t)(const char** data);
@@ -70,6 +70,8 @@ namespace Game
 	extern int* com_fixedConsolePosition;
 
 	extern int* com_errorPrintsCount;
+
+	extern int* errorcode;
 
 	extern char* Com_GetParseThreadInfo();
 	extern void Com_SetParseNegativeNumbers(int parse);
