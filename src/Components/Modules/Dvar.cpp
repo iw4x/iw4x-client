@@ -321,7 +321,7 @@ namespace Components
 		{
 			if (AreArchiveDvarsProtected())
 			{
-				Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Not allowing server to override saved dvar '{}'\n", dvarName);
+				Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Not allowing server to override saved dvar '{}'\n", dvar->name);
 				return;
 			}
 
@@ -329,6 +329,12 @@ namespace Components
 			Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Server is overriding saved dvar '{}'\n", dvarName);
 #endif
 			SaveArchiveDvar(dvar);
+		}
+
+		if (dvar != nullptr && std::strcmp(dvar->name, "com_errorResolveCommand") == 0)
+		{
+			Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Not allowing server to set '{}'\n", dvar->name);
+			return;
 		}
 
 		Utils::Hook::Call<void(const char*, const char*)>(0x4F52E0)(dvarName, value);
