@@ -1,4 +1,7 @@
 #include <STDInclude.hpp>
+#include "Discovery.hpp"
+#include "ServerList.hpp"
+#include "UIFeeder.hpp"
 
 #include <version.hpp>
 

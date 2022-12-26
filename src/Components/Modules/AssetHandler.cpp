@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Weapon.hpp"
 
 #include "AssetInterfaces/IFont_s.hpp"
 #include "AssetInterfaces/IWeapon.hpp"

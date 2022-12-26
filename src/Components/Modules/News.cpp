@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Changelog.hpp"
+#include "News.hpp"
 
 #include <version.hpp>
 

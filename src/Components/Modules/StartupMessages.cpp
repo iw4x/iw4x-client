@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "StartupMessages.hpp"
 
 namespace Components
 {

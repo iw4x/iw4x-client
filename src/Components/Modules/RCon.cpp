@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "RCon.hpp"
 
 namespace Components
 {

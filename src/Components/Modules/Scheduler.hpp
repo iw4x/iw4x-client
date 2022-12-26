@@ -5,7 +5,7 @@ namespace Components
 	class Scheduler : public Component
 	{
 	public:
-		enum Pipeline
+		enum class Pipeline : int
 		{
 			ASYNC,
 			RENDERER,

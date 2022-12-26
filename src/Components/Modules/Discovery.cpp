@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Discovery.hpp"
+#include "ServerList.hpp"
 
 namespace Components
 {

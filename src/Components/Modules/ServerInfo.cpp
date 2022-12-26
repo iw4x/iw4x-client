@@ -1,4 +1,9 @@
 #include <STDInclude.hpp>
+#include "Gamepad.hpp"
+#include "ServerInfo.hpp"
+#include "ServerList.hpp"
+#include "UIFeeder.hpp"
+#include "Voice.hpp"
 
 #include <version.hpp>
 

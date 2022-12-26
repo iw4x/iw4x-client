@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "StringTable.hpp"
 
 namespace Components
 {
@@ -22,8 +23,8 @@ namespace Components
 			if (table)
 			{
 				table->name = allocator->duplicateString(filename);
-				table->columnCount = parsedTable.getColumns();
-				table->rowCount = parsedTable.getRows();
+				table->columnCount = static_cast<int>(parsedTable.getColumns());
+				table->rowCount = static_cast<int>(parsedTable.getRows());
 
 				table->values = allocator->allocateArray<Game::StringTableCell>(table->columnCount * table->rowCount);
 
@@ -45,12 +46,12 @@ namespace Components
 					}
 				}
 
-				StringTable::StringTableMap[filename] = table;
+				StringTableMap[filename] = table;
 			}
 		}
 		else
 		{
-			StringTable::StringTableMap[filename] = nullptr;
+			StringTableMap[filename] = nullptr;
 		}
 
 		return table;
@@ -64,13 +65,13 @@ namespace Components
 
 			std::string filename = Utils::String::ToLower(_filename);
 
-			if (StringTable::StringTableMap.contains(filename))
+			if (StringTableMap.contains(filename))
 			{
-				header.stringTable = StringTable::StringTableMap[filename];
+				header.stringTable = StringTableMap[filename];
 			}
 			else
 			{
-				header.stringTable = StringTable::LoadObject(filename);
+				header.stringTable = LoadObject(filename);
 			}
 
 			return header;

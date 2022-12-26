@@ -1,4 +1,7 @@
 #include <STDInclude.hpp>
+#include "ClientCommand.hpp"
+#include "MapRotation.hpp"
+#include "Vote.hpp"
 
 using namespace Utils::String;
 

@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "NetworkDebug.hpp"
 
 namespace Components
 {

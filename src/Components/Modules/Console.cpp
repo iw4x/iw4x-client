@@ -1,4 +1,5 @@
 ﻿#include <STDInclude.hpp>
+#include "Console.hpp"
 
 #include <version.hpp>
 

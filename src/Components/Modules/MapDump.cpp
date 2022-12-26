@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "MapDump.hpp"
 
 namespace Components
 {
@@ -362,27 +363,8 @@ namespace Components
 				return image;
 			}
 
-			// TODO: This is still wrong.
-			if (image->mapType == 5 && false)
-			{
-				for (auto i = 0; i < 6; ++i)
-				{
-					IDirect3DSurface9* surface = nullptr;
-					image->texture.cubemap->GetCubeMapSurface(D3DCUBEMAP_FACES(i), 0, &surface);
-
-					if (surface)
-					{
-						std::string _name = Utils::String::VA("raw/mapdump/%s/textures/%s_%i.png", this->world_->baseName, image->name, i);
-						D3DXSaveSurfaceToFileA(_name.data(), D3DXIFF_PNG, surface, nullptr, nullptr);
-						surface->Release();
-					}
-				}
-			}
-			else
-			{
-				std::string _name = Utils::String::VA("raw/mapdump/%s/textures/%s.png", this->world_->baseName, image->name);
-				D3DXSaveTextureToFileA(_name.data(), D3DXIFF_PNG, image->texture.map, nullptr);
-			}
+			std::string _name = Utils::String::VA("raw/mapdump/%s/textures/%s.png", this->world_->baseName, image->name);
+			D3DXSaveTextureToFileA(_name.data(), D3DXIFF_PNG, image->texture.map, nullptr);
 
 			return image;
 		}

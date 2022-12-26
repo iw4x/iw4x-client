@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Debug.hpp"
+
 #include "Game/Engine/ScopedCriticalSection.hpp"
 
 namespace Components
@@ -6,7 +8,7 @@ namespace Components
 	const Game::dvar_t* Debug::DebugOverlay;
 	const Game::dvar_t* Debug::BugName;
 
-	Game::dvar_t** Debug::PlayerDebugHealth = reinterpret_cast<Game::dvar_t**>(0x7A9F7C);
+	const Game::dvar_t* Debug::PlayerDebugHealth;
 
 	const char* Debug::PMFlagsValues[] =
 	{
@@ -182,7 +184,7 @@ namespace Components
 		constexpr float color1[] = {0.0f, 0.0f, 0.0f, 1.0f};
 		constexpr float color2[] = {0.0f, 1.0f, 0.0f, 1.0f};
 
-		assert((*PlayerDebugHealth)->current.enabled);
+		assert(PlayerDebugHealth->current.enabled);
 		const auto* cgameGlob = Game::cgArray;
 
 		if (cgameGlob->predictedPlayerState.stats[0] && cgameGlob->predictedPlayerState.stats[2])
@@ -254,7 +256,7 @@ namespace Components
 			break;
 		}
 
-		if ((*PlayerDebugHealth)->current.enabled)
+		if (PlayerDebugHealth->current.enabled)
 		{
 			CG_DrawDebugPlayerHealth(localClientNum);
 		}
@@ -348,6 +350,12 @@ namespace Components
 			Game::DVAR_CHEAT | Game::DVAR_CODINFO, "Name appended to the copied console log");
 	}
 
+	const Game::dvar_t* Debug::Dvar_Register_PlayerDebugHealth(const char* name, bool value, [[maybe_unused]] std::uint16_t flags, const char* description)
+	{
+		PlayerDebugHealth = Game::Dvar_RegisterBool(name, value, Game::DVAR_NONE, description);
+		return PlayerDebugHealth;
+	}
+
 	Debug::Debug()
 	{
 		Scheduler::Once(CL_InitDebugDvars, Scheduler::Pipeline::MAIN);
@@ -356,6 +364,8 @@ namespace Components
 		Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
+
+		Utils::Hook(0x4487F7, Dvar_Register_PlayerDebugHealth, HOOK_CALL).install()->quick();
 
 #ifdef _DEBUG
 		Command::Add("bug", Com_Bug_f);

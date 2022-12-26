@@ -1,4 +1,9 @@
 #include <STDInclude.hpp>
+#include "Download.hpp"
+#include "Gamepad.hpp"
+#include "ServerList.hpp"
+#include "Stats.hpp"
+#include "Voice.hpp"
 
 #include <version.hpp>
 

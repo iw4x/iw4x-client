@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Branding.hpp"
 
 #include <version.hpp>
 

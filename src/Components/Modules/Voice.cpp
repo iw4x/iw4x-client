@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Voice.hpp"
 
 namespace Components
 {

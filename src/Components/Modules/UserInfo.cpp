@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "UserInfo.hpp"
+
 #include "GSC/Script.hpp"
 
 namespace Components

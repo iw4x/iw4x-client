@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Gamepad.hpp"
+#include "RawMouse.hpp"
 
 namespace Components
 {
@@ -80,7 +82,9 @@ namespace Components
 		if (GetForegroundWindow() == Window::GetWindow())
 		{
 			if (r_fullscreen.get<bool>())
+			{
 				IN_ClampMouseMove();
+			}
 
 			static auto oldX = 0, oldY = 0;
 
@@ -109,7 +113,7 @@ namespace Components
 
 	void RawMouse::IN_RawMouse_Init()
 	{
-		if (Window::GetWindow() && RawMouse::M_RawInput.get<bool>())
+		if (Window::GetWindow() && M_RawInput.get<bool>())
 		{
 			Logger::Debug("Raw Mouse Init");
 
@@ -131,7 +135,7 @@ namespace Components
 
 	void RawMouse::IN_MouseMove()
 	{
-		if (RawMouse::M_RawInput.get<bool>())
+		if (M_RawInput.get<bool>())
 		{
 			IN_RawMouseMove();
 		}
@@ -143,15 +147,15 @@ namespace Components
 
 	RawMouse::RawMouse()
 	{
-		Utils::Hook(0x475E65, RawMouse::IN_MouseMove, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x475E8D, RawMouse::IN_MouseMove, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x475E65, IN_MouseMove, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x475E8D, IN_MouseMove, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x467C03, RawMouse::IN_Init, HOOK_CALL).install()->quick();
-		Utils::Hook(0x64D095, RawMouse::IN_Init, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x467C03, IN_Init, HOOK_CALL).install()->quick();
+		Utils::Hook(0x64D095, IN_Init, HOOK_JUMP).install()->quick();
 
-		RawMouse::M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates. Use in_restart to take effect if not enabled.");
+		M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates");
 
-		Window::OnWndMessage(WM_INPUT, RawMouse::OnRawInput);
-		Window::OnCreate(RawMouse::IN_RawMouse_Init);
+		Window::OnWndMessage(WM_INPUT, OnRawInput);
+		Window::OnCreate(IN_RawMouse_Init);
 	}
 }

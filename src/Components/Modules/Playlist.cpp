@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Playlist.hpp"
 
 namespace Components
 {

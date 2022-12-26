@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Bots.hpp"
+
 #include "GSC/Script.hpp"
 
 namespace Components

@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "ConnectProtocol.hpp"
+#include "Console.hpp"
 
 #include <version.hpp>
 

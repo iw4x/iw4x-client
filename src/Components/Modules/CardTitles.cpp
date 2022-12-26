@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "CardTitles.hpp"
+#include "ServerCommands.hpp"
 
 namespace Components
 {

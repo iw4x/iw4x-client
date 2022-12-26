@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include "Chat.hpp"
+#include "PlayerName.hpp"
+#include "Voice.hpp"
+
 #include "GSC/Script.hpp"
 
 namespace Components

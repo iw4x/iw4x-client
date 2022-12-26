@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "ClientCommand.hpp"
+
 #include "GSC/Script.hpp"
 
 using namespace Utils::String;

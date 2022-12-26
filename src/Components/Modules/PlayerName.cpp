@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "ClanTags.hpp"
+#include "PlayerName.hpp"
 
 namespace Components
 {

@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "ConnectProtocol.hpp"
 
 namespace Components
 {

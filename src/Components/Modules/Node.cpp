@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "ServerList.hpp"
+#include "Session.hpp"
 
 namespace Components
 {

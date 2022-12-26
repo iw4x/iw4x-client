@@ -12,7 +12,7 @@ namespace Components
 		static const Game::dvar_t* BugName;
 
 		// Game dvars
-		static Game::dvar_t** PlayerDebugHealth;
+		static const Game::dvar_t* PlayerDebugHealth;
 
 		static const char* PMFlagsValues[];
 		static const char* POFlagsValues[];
@@ -46,5 +46,6 @@ namespace Components
 		static void Com_BugNameInc_f();
 
 		static void CL_InitDebugDvars();
+		static const Game::dvar_t* Dvar_Register_PlayerDebugHealth(const char* name, bool value, std::uint16_t flags, const char* description);
 	};
 }

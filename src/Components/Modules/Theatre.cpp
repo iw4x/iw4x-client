@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Theatre.hpp"
+#include "UIFeeder.hpp"
 
 namespace Components
 {

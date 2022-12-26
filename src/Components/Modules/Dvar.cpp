@@ -230,7 +230,7 @@ namespace Components
 				if (name == lastValidName) return;
 
 				Utils::String::Trim(name);
-				std::string saneName = TextRenderer::StripAllTextIcons(TextRenderer::StripColors(name));
+				auto saneName = TextRenderer::StripAllTextIcons(TextRenderer::StripColors(name));
 				if (saneName.size() < 3 || (saneName[0] == '[' && saneName[1] == '{'))
 				{
 					Logger::PrintError(Game::CON_CHANNEL_ERROR, "Username '{}' is invalid. It must at least be 3 characters long and not appear empty!\n", name);
@@ -241,7 +241,7 @@ namespace Components
 					lastValidName = name;
 					Friends::UpdateName();
 				}
-			}, Scheduler::CLIENT, 3s); // Don't need to do this every frame
+			}, Scheduler::Pipeline::CLIENT, 3s); // Don't need to do this every frame
 		}
 
 		std::string username = "Unknown Soldier";
@@ -393,13 +393,19 @@ namespace Components
 		// un-cheat cg_fovscale and add archive flags
 		Utils::Hook::Xor<std::uint8_t>(0x4F8E68, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 
+		// un-cheat cg_fovMin and add archive flags
+		Utils::Hook::Xor<std::uint8_t>(0x4F8E9D, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+
 		// un-cheat cg_debugInfoCornerOffset and add archive flags
 		Utils::Hook::Xor<std::uint8_t>(0x4F8FC2, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 
 		// un-cheat cg_drawGun
 		Utils::Hook::Set<std::uint8_t>(0x4F8DC6, Game::DVAR_NONE);
 
-		// remove archive flags for cg_hudchatposition
+		// un-cheat cg_draw2D
+		Utils::Hook::Set<std::uint8_t>(0x4F8EEE, Game::DVAR_NONE);
+
+		// remove archive flags for cg_hudChatPosition
 		Utils::Hook::Xor<std::uint8_t>(0x4F9992, Game::DVAR_ARCHIVE);
 
 		// remove write protection from fs_game

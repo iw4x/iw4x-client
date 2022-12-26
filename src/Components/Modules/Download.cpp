@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Download.hpp"
+#include "ServerInfo.hpp"
 
 #include <mongoose.h>
 

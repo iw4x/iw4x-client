@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include "RawFiles.hpp"
+#include "StartupMessages.hpp"
+#include "Theatre.hpp"
+#include "UIFeeder.hpp"
 
 namespace Components
 {

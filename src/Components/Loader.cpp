@@ -1,5 +1,55 @@
 #include <STDInclude.hpp>
 
+#include "Modules/Bans.hpp"
+#include "Modules/Bots.hpp"
+#include "Modules/Branding.hpp"
+#include "Modules/Bullet.hpp"
+#include "Modules/CardTitles.hpp"
+#include "Modules/Ceg.hpp"
+#include "Modules/Changelog.hpp"
+#include "Modules/Chat.hpp"
+#include "Modules/ClanTags.hpp"
+#include "Modules/ClientCommand.hpp"
+#include "Modules/ConnectProtocol.hpp"
+#include "Modules/Console.hpp"
+#include "Modules/D3D9Ex.hpp"
+#include "Modules/Debug.hpp"
+#include "Modules/Discovery.hpp"
+#include "Modules/Download.hpp"
+#include "Modules/Elevators.hpp"
+#include "Modules/Gamepad.hpp"
+#include "Modules/Lean.hpp"
+#include "Modules/MapDump.hpp"
+#include "Modules/MapRotation.hpp"
+#include "Modules/NetworkDebug.hpp"
+#include "Modules/News.hpp"
+#include "Modules/PlayerMovement.hpp"
+#include "Modules/PlayerName.hpp"
+#include "Modules/Playlist.hpp"
+#include "Modules/QuickPatch.hpp"
+#include "Modules/RawFiles.hpp"
+#include "Modules/RawMouse.hpp"
+#include "Modules/RCon.hpp"
+#include "Modules/Security.hpp"
+#include "Modules/ServerCommands.hpp"
+#include "Modules/ServerInfo.hpp"
+#include "Modules/ServerList.hpp"
+#include "Modules/Session.hpp"
+#include "Modules/SlowMotion.hpp"
+#include "Modules/SoundMutexFix.hpp"
+#include "Modules/StartupMessages.hpp"
+#include "Modules/Stats.hpp"
+#include "Modules/StringTable.hpp"
+#include "Modules/StructuredData.hpp"
+#include "Modules/Theatre.hpp"
+#include "Modules/Threading.hpp"
+#include "Modules/UIFeeder.hpp"
+#include "Modules/UserInfo.hpp"
+#include "Modules/VisionFile.hpp"
+#include "Modules/Voice.hpp"
+#include "Modules/Vote.hpp"
+#include "Modules/Weapon.hpp"
+
 namespace Components
 {
 	bool Loader::Pregame = true;
@@ -65,7 +115,6 @@ namespace Components
 		Register(new FileSystem());
 		Register(new Friends());
 		Register(new Gamepad());
-		Register(new Gametypes());
 		Register(new IPCPipe());
 		Register(new Lean());
 		Register(new Localization());
@@ -84,9 +133,9 @@ namespace Components
 		Register(new PlayerName());
 		Register(new Playlist());
 		Register(new QuickPatch());
-		Register(new RCon());
 		Register(new RawFiles());
 		Register(new RawMouse());
+		Register(new RCon());
 		Register(new Renderer());
 		Register(new Scheduler());
 		Register(new Security());

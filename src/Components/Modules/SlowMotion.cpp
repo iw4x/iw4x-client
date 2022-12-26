@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "SlowMotion.hpp"
 
 namespace Components
 {
