@@ -470,11 +470,14 @@ namespace Game
 	typedef void(*Vec3UnpackUnitVec_t)(PackedUnitVec, vec3_t*);
 	extern Vec3UnpackUnitVec_t Vec3UnpackUnitVec;
 	
-	typedef float(*vectoyaw_t)(vec2_t* vec);
-	extern vectoyaw_t vectoyaw;
+	typedef float(*vectoryaw_t)(vec2_t* vec);
+	extern vectoryaw_t vectoryaw;
 	
 	typedef float(*AngleNormalize360_t)(float val);
 	extern AngleNormalize360_t AngleNormalize360;
+
+	typedef void(*_VectorMA_t)(float* va, float scale, float* vb, float* vc);
+	extern _VectorMA_t _VectorMA;
 
 	typedef void(*unzClose_t)(void* handle);
 	extern unzClose_t unzClose;
@@ -508,6 +511,9 @@ namespace Game
 
 	typedef gentity_s*(*Weapon_RocketLauncher_Fire_t)(gentity_s* ent, unsigned int weaponIndex, float spread, weaponParms* wp, const float* gunVel, lockonFireParms* lockParms, bool magicBullet);
 	extern Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire;
+
+	typedef int(*Bullet_Fire_t)(gentity_s* attacker, float spread, weaponParms* wp, gentity_s* weaponEnt, PlayerHandIndex hand, int gameTime);
+	extern Bullet_Fire_t Bullet_Fire;
 
 	typedef void(*Jump_ClearState_t)(playerState_s* ps);
 	extern Jump_ClearState_t Jump_ClearState;

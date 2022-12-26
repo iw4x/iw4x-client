@@ -25,6 +25,7 @@ namespace Game
 	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
 	CL_WriteDemoClientArchive_t CL_WriteDemoClientArchive = CL_WriteDemoClientArchive_t(0x5A8020);
 	CL_WriteDemoMessage_t CL_WriteDemoMessage = CL_WriteDemoMessage_t(0x4707C0);
+	CL_AddDebugStarWithText_t CL_AddDebugStarWithText = CL_AddDebugStarWithText_t(0x4D03C0);
 
 	float* cl_angles = reinterpret_cast<float*>(0xB2F8D0);
 
@@ -78,5 +79,12 @@ namespace Game
 		AssertIn(localClientNum, MAX_LOCAL_CLIENTS);
 		assert(clients[localClientNum].alwaysFalse == false);
 		return &clients[localClientNum];
+	}
+
+	void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer)
+	{
+		static const float MY_NULLTEXTCOLOR[] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		CL_AddDebugStarWithText(point, color, MY_NULLTEXTCOLOR, nullptr, 1.0f, duration, fromServer);
 	}
 }

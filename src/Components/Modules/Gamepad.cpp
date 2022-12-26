@@ -751,7 +751,7 @@ namespace Components
 					-yawRight
 				};
 
-				Game::cgArray[0].selectedLocationAngle = Game::AngleNormalize360(Game::vectoyaw(&vec));
+				Game::cgArray[0].selectedLocationAngle = Game::AngleNormalize360(Game::vectoryaw(&vec));
 				Game::cgArray[0].selectedAngleLocation[0] = Game::cgArray[0].selectedLocation[0];
 				Game::cgArray[0].selectedAngleLocation[1] = Game::cgArray[0].selectedLocation[1];
 			}

@@ -206,8 +206,9 @@ namespace Game
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 
 	Vec3UnpackUnitVec_t Vec3UnpackUnitVec = Vec3UnpackUnitVec_t(0x45CA90);
-	vectoyaw_t vectoyaw = vectoyaw_t(0x45AD10);
+	vectoryaw_t vectoryaw = vectoryaw_t(0x45AD10);
 	AngleNormalize360_t AngleNormalize360 = AngleNormalize360_t(0x438DC0);
+	_VectorMA_t _VectorMA = _VectorMA_t(0x5084D0);
 
 	unzClose_t unzClose = unzClose_t(0x41BF20);
 
@@ -226,6 +227,7 @@ namespace Game
 	AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee = AimAssist_ApplyAutoMelee_t(0x56A360);
 
 	Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x424680);
+	Bullet_Fire_t Bullet_Fire = Bullet_Fire_t(0x4402C0);
 
 	Jump_ClearState_t Jump_ClearState = Jump_ClearState_t(0x04B3890);
 	PM_playerTrace_t PM_playerTrace = PM_playerTrace_t(0x458980);

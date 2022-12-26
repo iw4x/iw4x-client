@@ -71,6 +71,9 @@ namespace Game
 	typedef void(*CL_WriteDemoMessage_t)(void (*write)(const void*, int, int), int serverMessageSequence, unsigned char* data, int len, int localClientNum);
 	extern CL_WriteDemoMessage_t CL_WriteDemoMessage;
 
+	typedef void(*CL_AddDebugStarWithText_t)(const float* point, const float* starColor, const float* textColor, const char* string, float fontsize, int duration, int fromServer);
+	extern CL_AddDebugStarWithText_t CL_AddDebugStarWithText;
+
 	extern float* cl_angles;
 
 	extern clientConnection_t* clientConnections;
@@ -89,4 +92,6 @@ namespace Game
 	extern voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
 	extern clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
 	extern clientActive_t* CL_GetLocalClientGlobals(int localClientNum);
+
+	extern void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer);
 }

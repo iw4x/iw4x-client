@@ -19,8 +19,8 @@ namespace Components
 		static const char* PLFlagsValues[];
 		static const char* PEFlagsValues[];
 
-		static const char strButtons[];
-		static const char strTemplate[];
+		static const char StrButtons[];
+		static const char StrTemplate[];
 
 		static constexpr auto MY_SCALE2 = 0.5f;
 		static constexpr auto MY_SCALE_2 = 0.201f;
@@ -28,7 +28,7 @@ namespace Components
 		static constexpr auto MY_X = -25.0f;
 		static constexpr auto MY_Y = 20.0f;
 
-		static const float colorWhite[];
+		static const float ColorWhite[];
 
 		static std::string BuildPMFlagsString(const Game::playerState_s* ps);
 		static std::string BuildPOFlagsString(const Game::playerState_s* ps);
