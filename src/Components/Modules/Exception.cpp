@@ -116,7 +116,7 @@ namespace Components
 		PathRemoveExtensionA(exeFileName);
 
 		// Generate filename
-		char filenameFriendlyTime[MAX_PATH];
+		char filenameFriendlyTime[MAX_PATH]{};
 		__time64_t time;
 		tm ltime;
 		_time64(&time);
@@ -166,11 +166,22 @@ namespace Components
 		}
 	}
 
+	LPTOP_LEVEL_EXCEPTION_FILTER WINAPI Exception::SetUnhandledExceptionFilter_Stub(LPTOP_LEVEL_EXCEPTION_FILTER)
+	{
+		SetFilterHook.uninstall();
+		LPTOP_LEVEL_EXCEPTION_FILTER result = ::SetUnhandledExceptionFilter(&ExceptionFilter);
+		SetFilterHook.install();
+		return result;
+	}
+
 	Exception::Exception()
 	{
 		SetMiniDumpType(Flags::HasFlag("bigminidumps"), Flags::HasFlag("reallybigminidumps"));
 
-		SetUnhandledExceptionFilter(&ExceptionFilter);
+		SetFilterHook.initialize(::SetUnhandledExceptionFilter, SetUnhandledExceptionFilter_Stub, HOOK_JUMP);
+		SetFilterHook.install();
+
+		::SetUnhandledExceptionFilter(&ExceptionFilter);
 
 		Utils::Hook(0x4B241F, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x61DB44, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();

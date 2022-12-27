@@ -19,6 +19,8 @@ namespace Components
 
 		static void CopyMessageToClipboard(const std::string& error);
 
+		static LPTOP_LEVEL_EXCEPTION_FILTER WINAPI SetUnhandledExceptionFilter_Stub(LPTOP_LEVEL_EXCEPTION_FILTER);
+
 		static int MiniDumpType;
 		static Utils::Hook SetFilterHook;
 	};
