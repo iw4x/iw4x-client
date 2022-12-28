@@ -326,8 +326,6 @@ namespace Components
 
 		Menus::Add("ui_mp/scriptmenus/callvote.menu");
 		Menus::Add("ui_mp/scriptmenus/kickplayer.menu");
-		Menus::Add("ui_mp/scriptmenus/changegametype.menu");
-		Menus::Add("ui_mp/scriptmenus/changemap.menu");
 
 		UIScript::Add("voteKick", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
