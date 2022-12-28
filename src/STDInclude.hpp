@@ -80,7 +80,6 @@
 
 #include <gsl/gsl>
 #include <tomcrypt.h>
-#include <udis86.h>
 #include <zlib.h>
 
 // Enable additional literals
