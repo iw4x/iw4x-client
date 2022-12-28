@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include <udis86.h>
 
 namespace Steam
 {
@@ -6,11 +7,11 @@ namespace Steam
 	::Utils::Library Proxy::Overlay;
 
 	ISteamClient008* Proxy::SteamClient = nullptr;
-	IClientEngine*   Proxy::ClientEngine = nullptr;
-	Interface        Proxy::ClientUser;
-	Interface        Proxy::ClientFriends;
+	IClientEngine* Proxy::ClientEngine = nullptr;
+	Interface Proxy::ClientUser;
+	Interface Proxy::ClientFriends;
 
-	Interface        Proxy::Placeholder;
+	Interface Proxy::Placeholder;
 
 	Proxy::Handle Proxy::SteamPipe = nullptr;
 	Proxy::Handle Proxy::SteamUser = nullptr;
@@ -237,7 +238,7 @@ namespace Steam
 	{
 		std::lock_guard<std::recursive_mutex> _(Proxy::CallMutex);
 
-		for(auto i = Proxy::Calls.begin(); i != Proxy::Calls.end(); ++i)
+		for (auto i = Proxy::Calls.begin(); i != Proxy::Calls.end(); ++i)
 		{
 			if(i->handled)
 			{

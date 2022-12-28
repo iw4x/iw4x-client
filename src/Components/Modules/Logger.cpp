@@ -58,7 +58,7 @@ namespace Components
 		}
 	}
 
-	void Logger::DebugInternal(std::string_view fmt, std::format_args&& args, [[maybe_unused]] const std::source_location& loc)
+	void Logger::DebugInternal(const std::string_view& fmt, std::format_args&& args, [[maybe_unused]] const std::source_location& loc)
 	{
 #ifdef LOGGER_TRACE
 		const auto msg = std::vformat(fmt, args);
@@ -71,14 +71,14 @@ namespace Components
 		MessagePrint(Game::CON_CHANNEL_DONT_FILTER, out);
 	}
 
-	void Logger::PrintInternal(Game::conChannel_t channel, std::string_view fmt, std::format_args&& args)
+	void Logger::PrintInternal(Game::conChannel_t channel, const std::string_view& fmt, std::format_args&& args)
 	{
 		const auto msg = std::vformat(fmt, args);
 
 		MessagePrint(channel, msg);
 	}
 
-	void Logger::ErrorInternal(const Game::errorParm_t error, const std::string_view fmt, std::format_args&& args)
+	void Logger::ErrorInternal(const Game::errorParm_t error, const std::string_view& fmt, std::format_args&& args)
 	{
 #ifdef _DEBUG
 		if (IsDebuggerPresent()) __debugbreak();
@@ -88,7 +88,7 @@ namespace Components
 		Game::Com_Error(error, "%s", msg.data());
 	}
 
-	void Logger::PrintErrorInternal(Game::conChannel_t channel, std::string_view fmt, std::format_args&& args)
+	void Logger::PrintErrorInternal(Game::conChannel_t channel, const std::string_view& fmt, std::format_args&& args)
 	{
 		const auto msg = "^1Error: " + std::vformat(fmt, args);
 
@@ -101,7 +101,7 @@ namespace Components
 		}
 	}
 
-	void Logger::WarningInternal(Game::conChannel_t channel, std::string_view fmt, std::format_args&& args)
+	void Logger::WarningInternal(Game::conChannel_t channel, const std::string_view& fmt, std::format_args&& args)
 	{
 		const auto msg = "^3" + std::vformat(fmt, args);
 
