@@ -12,7 +12,7 @@ namespace Components
 
 		static void Print_Stub(int channel, const char* message, ...);
 
-		static void PipeOutput(const std::function<void(const std::string&)>& callback);
+		static void PipeOutput(void(*callback)(const std::string&));
 
 		static void PrintInternal(Game::conChannel_t channel, const std::string_view& fmt, std::format_args&& args);
 		static void ErrorInternal(Game::errorParm_t error, const std::string_view& fmt, std::format_args&& args);
@@ -112,7 +112,7 @@ namespace Components
 		static std::vector<std::string> MessageQueue;
 		static std::vector<Network::Address> LoggingAddresses[2];
 
-		static std::function<void(const std::string&)> PipeCallback;
+		static void(*PipeCallback)(const std::string&);
 
 		static void MessagePrint(int channel, const std::string& msg);
 

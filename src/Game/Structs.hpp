@@ -6443,7 +6443,7 @@ namespace Game
 	typedef union
 	{
 		unsigned char bytes[4];
-		DWORD full;
+		std::uint32_t full;
 	} netIP_t;
 
 	struct netadr_t

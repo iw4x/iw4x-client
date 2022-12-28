@@ -7,7 +7,7 @@ namespace Components
 	std::vector<std::string> Logger::MessageQueue;
 	std::vector<Network::Address> Logger::LoggingAddresses[2];
 
-	std::function<void(const std::string&)> Logger::PipeCallback;
+	void(*Logger::PipeCallback)(const std::string&) = nullptr;;
 
 	bool Logger::IsConsoleReady()
 	{
@@ -125,7 +125,7 @@ namespace Components
 		}
 	}
 
-	void Logger::PipeOutput(const std::function<void(const std::string&)>& callback)
+	void Logger::PipeOutput(void(*callback)(const std::string&))
 	{
 		PipeCallback = callback;
 	}
