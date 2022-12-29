@@ -20,7 +20,7 @@ namespace Components
 
 		va_list va;
 		va_start(va, message);
-		_vsnprintf_s(buf, _TRUNCATE, message, va);
+		vsnprintf_s(buf, _TRUNCATE, message, va);
 		va_end(va);
 
 		MessagePrint(channel, {buf});

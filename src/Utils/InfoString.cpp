@@ -19,8 +19,7 @@ namespace Utils
 
 	std::string InfoString::get(const std::string& key) const
 	{
-		const auto value = this->keyValuePairs.find(key);
-		if (value != this->keyValuePairs.end())
+		if (const auto value = this->keyValuePairs.find(key); value != this->keyValuePairs.end())
 		{
 			return value->second;
 		}

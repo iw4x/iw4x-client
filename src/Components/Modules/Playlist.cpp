@@ -46,7 +46,7 @@ namespace Components
 
 	void Playlist::PlaylistRequest(const Network::Address& address, [[maybe_unused]] const std::string& data)
 	{
-		const auto* password = (*Game::g_password)->current.string;
+		const auto* password = *Game::g_password ? (*Game::g_password)->current.string : "";
 
 		if (*password)
 		{

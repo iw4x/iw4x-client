@@ -324,7 +324,7 @@ namespace Components
 			auto clientCount = 0;
 			auto maxClientCount = *Game::svs_clientCount;
 			const auto securityLevel = Dvar::Var("sv_securityLevel").get<int>();
-			const auto* password = (*Game::g_password)->current.string;
+			const auto* password = *Game::g_password ? (*Game::g_password)->current.string : "";
 
 			if (maxClientCount)
 			{
