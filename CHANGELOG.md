@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.7] - 2022-12-31
+
+### Added
+
+- Add `r_forceTechnique` Dvar to debug techniques on materials.
+- Add `IsSprinting` GSC method (#587)
+- Add `StorageLoad` GSC function (#595)
+- Add `bg_climbAnything` Dvar (#663)
+- Add ClanTag support for bots (#645)
+- Add `sv_randomBotNames` Dvar (#665)
+- Add support for parsing localized strings files (.str & .json) (#621)
+- Add `callvote` menus (#613)
+- IW3x-port converts Technique Sets between CoD4 and CoD6 properly.
+- Add new map porting utility tool that makes the map porting process between CoD4 to CoD6 easy.
+
+### Changed
+
+- `r_drawModelNames` now uses ground lighting when available.
+- Speculars are now enabled on custom maps.
+- Techset(s) get loaded from disk first rather than memory.
+- Use CSO format for Vertex Shaders & Pixel Shaders on ZoneBuilder to allow replacement/swapping.
+- New map porting utility tool builds teams directly into the map.
+
+### Fixed
+
+- Fix bug where ZoneBuilder would not build loaded sounds correctly.
+- Fix bug where ZoneBuilder no longer differentiates assets depending on their name.
+- Fix building FX with ZoneBuilder.
+- Fix branding in ZoneBuilder generated zones.
+- Fix Script String crash when building zones.
+- Fix the changelog menu (#583)
+- Fix bug when adding commands (#609)
+- Fix bug where some ported maps would either crash or lag (mp_zavod, mp_kowloon, ...)
+- Fix GSC conversion from CoD4 to CoD6 (Specular Scale, Create Exp Fog, Create FX, ...)
+- The map porting process from CoD4 to IW4x has improved.
+- Ported map zones are about 40% lighter than before.
+- Static models are now lit correctly depending on their position and ground lighting.
+- New map porting utility ports sounds and effects properly.
+
+### Known issues
+
+- HTTPS is not supported for fast downloads at the moment.
+- Sound issue fix is experimental as the bug is not fully understood.
+- `reloadmenus` command does not free resources used by custom menus.
+
 ## [0.7.6] - 2022-11-22
 
 ### Added
