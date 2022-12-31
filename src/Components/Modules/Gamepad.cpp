@@ -1865,84 +1865,189 @@ namespace Components
 		} while (v3);
 	}
 
-	int __fastcall LoadRumbleGraph(Game::RumbleGraph* rumbleGraphArray, Game::RumbleInfo* info, const char* highRumbleFileName, const char* lowRumbleFileName)
+	bool ParseRumbleGraph(Game::RumbleGraph* graph, const char* buffer, const char* fileName)
 	{
-		auto v5 = rumbleGraphArray;
+#define MAX_RUMBLE_GRAPH_KNOTS 16
+
+		float* v26; // r30
+		char* v27; // r3
+		double v28; // fp30
+		char* v29; // r3
+		double v30; // fp31
+
+		auto buffer_ = buffer;
+		assert(graph);
+		Game::Com_BeginParseSession(fileName);
+		auto knotCountStr = Game::Com_Parse(&buffer_);
+		auto parsedKnotCount = atoi(knotCountStr);
+		if (parsedKnotCount <= MAX_RUMBLE_GRAPH_KNOTS)
+		{
+			if (parsedKnotCount >= 0)
+			{
+				graph->knotCount = parsedKnotCount;
+
+				if (graph->knotCount)
+				{
+					v26 = reinterpret_cast<float*>(& graph->graphName[60]);
+
+					for (auto i = 0; i < graph->knotCount; i++)
+					{
+						v27 = Game::Com_Parse(&buffer_);
+						if (!*v27)
+							break;
+						if (*v27 == 125)
+							break;
+						v28 = atof(v27);
+						v29 = Game::Com_Parse(&buffer_);
+						if (!*v29 || *v29 == 125)
+							break;
+						v30 = atof(v29);
+						if (i >= MAX_RUMBLE_GRAPH_KNOTS)
+						{
+							Logger::Error(Game::ERR_DROP, "knotCountIndex doesn't index MAX_RUMBLE_GRAPH_KNOTS: {} not in [0, {}])", i, MAX_RUMBLE_GRAPH_KNOTS);
+						}
+
+						v26[1] = v28;
+						++i;
+						v26 += 2;
+						*v26 = v30;
+					};
+				}
+				Game::Com_EndParseSession();
+				return true;
+			}
+			else
+			{
+				Game::Com_EndParseSession();
+				Logger::Error(Game::ERR_DROP, "Negative graph nots on {}", fileName);
+				return false;
+			}
+		}
+		else
+		{
+			Game::Com_EndParseSession();
+			Logger::Error(Game::ERR_DROP, "Too many graph nots on {}", fileName);
+			return false;
+		}
+	}
+
+	void ReadRumbleGraph(Game::RumbleGraph* graph, const char* rumbleFileName)
+	{
+		assert(graph);
+		assert(rumbleFileName);
+
+		char buff[256]{};
+		std::string path = std::format("rumble/{}", rumbleFileName);
+
+		[[maybe_unused]] auto graphBefore = graph;
+
+		auto data = Game::Com_LoadInfoString(path.data(), "rumble graph file", "RUMBLEGRAPHFILE", buff);
+		//auto data = Utils::Hook::Call<char*(const char*, const char*, const char*, char*)>(0x463500)(path.data(), "rumble graph file", "RUMBLEGRAPHFILE", buff);
+
+		assert(graph == graphBefore);
+
+		graph->knotCount = 0;
+		if (!ParseRumbleGraph(graph, data, rumbleFileName))
+		{
+			Logger::Error(Game::ERR_DROP, "Error in parsing rumble file {}", rumbleFileName);
+		}
+
+		strncpy(graph->graphName, rumbleFileName, 64);
+	}
+
+	int LoadRumbleGraph(Game::RumbleGraph* rumbleGraphArray, Game::RumbleInfo* info, const char* highRumbleFileName, const char* lowRumbleFileName)
+	{
 		info->highRumbleGraph = 0;
 		auto highRumbleFileName_ = highRumbleFileName;
 		info->lowRumbleGraph = 0;
 		auto lowRumbleFileName_ = lowRumbleFileName;
-		auto v9 = rumbleGraphArray;
 
 		auto i = 0;
 
 		for (i = 0; i < 64; ++i)
 		{
-			if (!v9->knotCount)
+			auto rumbleGraph = &rumbleGraphArray[i];
+			if (!rumbleGraph->knotCount)
 				break;
-			if (!strnicmp(v9->graphName, highRumbleFileName, 0x7FFFFFFF)) // TODO change that
-				info->highRumbleGraph = v9;
-			if (!strnicmp(v9->graphName, lowRumbleFileName_, 0x7FFFFFFF))
-				info->lowRumbleGraph = v9;
-			++v9;
+			if (!strnicmp(rumbleGraph->graphName, highRumbleFileName, 0x7FFFFFFF)) // TODO change that
+				info->highRumbleGraph = rumbleGraph;
+			if (!strnicmp(rumbleGraph->graphName, lowRumbleFileName_, 0x7FFFFFFF))
+				info->lowRumbleGraph = rumbleGraph;
 		}
 		if (!info->highRumbleGraph || !info->lowRumbleGraph)
 		{
 			if (i == 64)
 				Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
 
-			auto rumbleGraph = &v5[i];
-			if (info->highRumbleGraph)
+			auto rumbleGraph = &rumbleGraphArray[i];
+
+			while (i < 64)
 			{
-				//ReadRumbleGraph(rumbleGraph, v8, lowRumbleFileName, a5, r10_0);
-				info->lowRumbleGraph = rumbleGraph;
-			}
-			else
-			{
-				//ReadRumbleGraph(rumbleGraph, lowRumbleFileName_, lowRumbleFileName, a5, r10_0);
-				info->highRumbleGraph = rumbleGraph;
+				if (i == 64)
+				{
+					Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
+				}
+				else if (!info->highRumbleGraph)
+				{
+					ReadRumbleGraph(rumbleGraph, highRumbleFileName);
+					info->highRumbleGraph = rumbleGraph;
+					i++;
+				}
+				else if (!info->lowRumbleGraph)
+				{
+					ReadRumbleGraph(rumbleGraph, lowRumbleFileName);
+					info->lowRumbleGraph = rumbleGraph;
+					i++;
+				}
+				else
+				{
+					break;
+				}
 			}
 
-			int v15;
-			__int16 v16 = 0;
-			if (!info->highRumbleGraph || !info->lowRumbleGraph)
-			{
-				v15 = 0;
-				v16 = &v5[1].knotCount;
-				do
-				{
-					HIDWORD(v12) = *(v16 - 118);
-					if (!*(v16 - 118))
-						break;
-					HIDWORD(v12) = *v16;
-					if (!*v16)
-					{
-						++v15;
-						break;
-					}
-					HIDWORD(v12) = v16[118];
-					if (!v16[118])
-					{
-						v15 += 2;
-						break;
-					}
-					HIDWORD(v12) = v16[236];
-					if (!v16[236])
-					{
-						v15 += 3;
-						break;
-					}
-					v15 += 4;
-					v16 += 472;
-				} while (v15 < 64);
-				if (v15 == 64)
-					Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
-				
-				auto v17 = &v5[v15];
-				//ReadRumbleGraph(v17, v8, v14, v13, v12);
-				info->lowRumbleGraph = v17;
-			}
+			printf("");
+			//int v12;
+			//int v15;
+			//unsigned short* v16 = nullptr;
+			//if (!info->highRumbleGraph || !info->lowRumbleGraph)
+			//{
+			//	v15 = 0;
+			//	v16 = &rumbleGraphArray[1].knotCount;
+			//	do
+			//	{
+			//		*(&v12 + 1) = *(v16 - 118);
+			//		if (!*(v16 - 118))
+			//			break;
+			//		*(&v12 + 1) = *v16;
+			//		if (!*v16)
+			//		{
+			//			++v15;
+			//			break;
+			//		}
+			//		*(&v12 + 1) = v16[118];
+			//		if (!v16[118])
+			//		{
+			//			v15 += 2;
+			//			break;
+			//		}
+			//		*(&v12 + 1) = v16[236];
+			//		if (!v16[236])
+			//		{
+			//			v15 += 3;
+			//			break;
+			//		}
+			//		v15 += 4;
+			//		v16 += 472;
+			//	} while (v15 < 64);
+			//	if (v15 == 64)
+			//		Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
+			////	
+			//	auto v17 = &rumbleGraphArray[v15];
+			//	ReadRumbleGraph(v17, lowRumbleFileName);
+			//	info->lowRumbleGraph = v17;
+			//}
 		}
+
 		return 1;
 	}
 
@@ -1951,11 +2056,22 @@ namespace Components
 		assert(info);
 		assert(rumbleName);
 
+		///
+		if (rumbleName == "weap_m9_clipout_plr"s)
+		{
+			printf("");
+		}
+		///
+
 		std::string path = std::format("rumble/{}", rumbleName);
-		char buff[64];
-		const char* str = Game::Com_LoadInfoString_FastFile(path.data(), "rumble info file", "RUMBLE", buff);
-		auto highRumbleFile = Game::Info_ValueForKey(str, "highRumbleFile");
-		auto lowRumbleFile = Game::Info_ValueForKey(str, "lowRumbleFile");
+		char buff[256]{}; //64
+		
+		[[maybe_unused]] auto infoPtr = info;
+		const char* str = Game::Com_LoadInfoString(path.data(), "rumble info file", "RUMBLE", buff); // Idk why but this destroys the stack
+		assert(infoPtr == info);
+
+		const std::string highRumbleFile = Game::Info_ValueForKey(str, "highRumbleFile");
+		const std::string lowRumbleFile = Game::Info_ValueForKey(str, "lowRumbleFile");
 
 		if (!Game::ParseConfigStringToStruct(info, rumbleFields, 4, str, 0, 0, Rumble_Strcpy))
 		{
@@ -1969,21 +2085,33 @@ namespace Components
 				Components::Logger::Error(Game::ERR_DROP, "Rumble file {} cannot have broadcast because its range is zero\n", rumbleName);
 			}
 		}
-		if (!LoadRumbleGraph(rumbleGraphArray, info, v26, v27, SHIDWORD(v13)))
+		if (!LoadRumbleGraph(rumbleGraphArray, info, highRumbleFile.data(), lowRumbleFile.data()))
 			return 0;
 
-		v16 = info->duration;
 		info->rumbleNameIndex = rumbleNameIndex;
-		result = 1;
-		info->duration = v16 * 1000.0;
-		updateRumbleDevGuiGlobal = 1;
-		return result;
+		info->duration = info->duration * 1000.0;
 	}
 
+	static Game::RumbleGlobals rumbleGlobArray[4]{}; // We're only gonna use #0 anyway cause only one client
 
 	void CG_RegisterRumbles(int localClientNum)
 	{
+		auto configStringBasePos = 1025;
+		auto myRumbleGlobal = &rumbleGlobArray[localClientNum];
+		auto maxRumbleGraphIndex = 31;
+		auto myRumbleInfo = &rumbleGlobArray[localClientNum].infos[1];
+		do
+		{
+			auto rumbleConf = Game:: CL_GetConfigString(configStringBasePos);
+			if (*rumbleConf)
+			{
+				CG_LoadRumble(myRumbleGlobal->graphs, myRumbleInfo, rumbleConf, configStringBasePos);
+			}
 
+			--maxRumbleGraphIndex;
+			++configStringBasePos;
+			++myRumbleInfo;
+		} while (maxRumbleGraphIndex);
 	}
 
 	void CG_RegisterGraphics_Hk(int localClientNum, int b)
@@ -1992,6 +2120,80 @@ namespace Components
 		Utils::Hook::Call<void(int, int)>(0x5895D0)(localClientNum, b);
 
 		CG_RegisterRumbles(localClientNum);
+
+		printf("");
+	}
+
+	void G_RumbleIndex(const char* name)
+	{
+		assert(name);
+
+		if (*name)
+		{
+			///
+			if (name == "weap_m9_clipout_plr"s)
+			{
+				printf("");
+			}
+			///
+			auto v2 = Game::SL_FindLowercaseString(name);
+			int i;
+
+			for (i = 1; i < 32; ++i)
+			{
+				auto v7 = Game::SV_GetConfigstringConst(i + 1024);
+				if (v7 == Game::scr_const->_)
+					break;
+				if (v7 == v2)
+					return;
+			}
+
+			Game::SV_SetConfigstring(i + 1024, name);
+		}
+	}
+
+	void RegisterWeaponRumbles(Game::WeaponDef* weapDef)
+	{
+		assert(weapDef);
+
+		auto fireRumble = weapDef->fireRumble;
+		if (fireRumble && *fireRumble)
+			G_RumbleIndex(fireRumble);
+
+		auto meleeImpactRumble = weapDef->meleeImpactRumble;
+		if (meleeImpactRumble && *meleeImpactRumble)
+			G_RumbleIndex(meleeImpactRumble);
+
+		auto turretBarrelSpinRumble = weapDef->turretBarrelSpinRumble;
+		if (turretBarrelSpinRumble && *turretBarrelSpinRumble)
+			G_RumbleIndex(turretBarrelSpinRumble);
+
+
+		 //Disabled for now cause it's weird
+		for (auto i = 0; i < 16; ++i)
+		{
+			//
+			weapDef->notetrackRumbleMapKeys[i] = 0;
+			//
+
+			if (!weapDef->notetrackRumbleMapKeys[i])
+				break;
+			auto noteTrackRumbleMap = weapDef->notetrackRumbleMapValues;
+			if (noteTrackRumbleMap[i])
+			{
+				auto str = Game::SL_ConvertToString(noteTrackRumbleMap[i]);
+				G_RumbleIndex(str);
+			}
+		}
+	}
+
+	Game::WeaponDef* BG_GetWeaponDef_Hk(unsigned int weapIndex)
+	{
+		auto weapDef = Game::BG_GetWeaponDef(weapIndex);
+
+		RegisterWeaponRumbles(weapDef);
+
+		return weapDef;
 	}
 
 	const char* Gamepad::GetGamePadCommand(const char* command)
@@ -2167,6 +2369,8 @@ namespace Components
 	{
 		if (ZoneBuilder::IsEnabled())
 			return;
+
+		Utils::Hook(0x43E1F8, BG_GetWeaponDef_Hk, HOOK_CALL).install()->quick();
 
 		// Initialize gamepad environment
 		Utils::Hook(0x4059FE, CG_RegisterDvars_Hk, HOOK_CALL).install()->quick();

@@ -10424,6 +10424,8 @@ namespace Game
 		RumbleDevguiGraphInfo devguiGraphInfo;
 	};
 
+	static_assert(sizeof(RumbleGraph) == 236);
+
 	struct RumbleInfo
 	{
 		int rumbleNameIndex;
@@ -10436,6 +10438,8 @@ namespace Game
 		dvar_t* durationDvar;
 		dvar_t* loopDvar;
 	};
+
+	static_assert(sizeof(RumbleInfo) == 36);
 
 
 	union RumbleSource

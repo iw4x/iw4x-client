@@ -61,7 +61,6 @@ namespace Components
 		static Game::keyname_t combinedLocalizedKeyNamesXenon[];
 		static Game::keyname_t combinedLocalizedKeyNamesPs3[];
 		static ControllerMenuKeyMapping controllerMenuKeyMappings[];
-		static Game::RumbleGlobals rumbleGlobArray[4]; // We're only gonna use #0 anyway cause only one client
 
 		static GamePad gamePads[Game::MAX_GPAD_COUNT];
 		static GamePadGlobals gamePadGlobals[Game::MAX_GPAD_COUNT];
