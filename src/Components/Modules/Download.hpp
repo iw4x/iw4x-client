@@ -13,6 +13,9 @@ namespace Components
 		static void InitiateClientDownload(const std::string& mod, bool needPassword, bool map = false);
 		static void InitiateMapDownload(const std::string& map, bool needPassword);
 
+		static Dvar::Var SV_wwwDownload;
+		static Dvar::Var SV_wwwBaseUrl;
+
 	private:
 		class ClientDownload
 		{

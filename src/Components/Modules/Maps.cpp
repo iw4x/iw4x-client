@@ -583,7 +583,7 @@ namespace Components
 	}
 
 	// dlcIsTrue serves as a check if the map is a custom map and if it's missing
-	bool Maps::CheckMapInstalled(const char* mapname, bool error, bool dlcIsTrue)
+	bool Maps::CheckMapInstalled(const std::string& mapname, bool error, bool dlcIsTrue)
 	{
 		if (FastFiles::Exists(mapname)) return true;
 
@@ -591,12 +591,12 @@ namespace Components
 		{
 			for (auto map : pack.maps)
 			{
-				if (map == std::string(mapname))
+				if (map == mapname)
 				{
 					if (error)
 					{
 						Logger::Error(Game::ERR_DISCONNECT, "Missing DLC pack {} ({}) containing map {} ({}).\nPlease download it to play this map.",
-							pack.name, pack.index, Game::UI_LocalizeMapName(mapname), mapname);
+							pack.name, pack.index, Game::UI_LocalizeMapName(mapname.data()), mapname);
 					}
 
 					return dlcIsTrue;

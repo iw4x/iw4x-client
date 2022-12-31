@@ -8,6 +8,9 @@ namespace Components
 {
 	static mg_mgr Mgr;
 
+	Dvar::Var Download::SV_wwwDownload;
+	Dvar::Var Download::SV_wwwBaseUrl;
+
 	Download::ClientDownload Download::CLDownload;
 
 	std::thread Download::ServerThread;
@@ -138,7 +141,7 @@ namespace Components
 		}
 
 		auto host = "http://" + download->target.getString();
-		auto fastHost = Dvar::Var("sv_wwwBaseUrl").get<std::string>();
+		auto fastHost = SV_wwwBaseUrl.get<std::string>();
 		if (Utils::String::StartsWith(fastHost, "https://"))
 		{
 			download->thread.detach();
@@ -173,7 +176,7 @@ namespace Components
 		//    -mod.ff
 		//  /-mod2
 		//     ...
-		if (Dvar::Var("sv_wwwDownload").get<bool>())
+		if (SV_wwwDownload.get<bool>())
 		{
 			if (!Utils::String::EndsWith(fastHost, "/")) fastHost.append("/");
 			url = fastHost + path;
@@ -720,8 +723,8 @@ namespace Components
 
 		Scheduler::Once([]
 		{
-			Dvar::Register<bool>("sv_wwwDownload", false, Game::DVAR_NONE, "Set to true to enable downloading maps/mods from an external server.");
-			Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::DVAR_NONE, "Set to the base url for the external map download.");
+			SV_wwwDownload = Dvar::Register<bool>("sv_wwwDownload", false, Game::DVAR_NONE, "Set to true to enable downloading maps/mods from an external server.");
+			SV_wwwBaseUrl = Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::DVAR_NONE, "Set to the base url for the external map download.");
 		}, Scheduler::Pipeline::MAIN);
 	}
 

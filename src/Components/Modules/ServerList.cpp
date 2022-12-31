@@ -113,7 +113,7 @@ namespace Components
 		{
 			if (server->svRunning)
 			{
-				if (!sorting && !Maps::CheckMapInstalled(server->mapname.data()))
+				if (!sorting && !Maps::CheckMapInstalled(server->mapname))
 				{
 					return Utils::String::VA("^1%s", Game::UI_LocalizeMapName(server->mapname.data()));
 				}

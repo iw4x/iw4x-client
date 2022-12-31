@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Terminus_4.49.1.ttf.hpp"
-
 #define OUTPUT_HEIGHT 250
 #define OUTPUT_MAX_TOP (OUTPUT_HEIGHT - (Console::Height - 2))
 
@@ -81,21 +79,7 @@ namespace Components
 		static LRESULT CALLBACK ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam);
 		static ATOM CALLBACK RegisterClassHook(WNDCLASSA* lpWndClass);
 		static BOOL CALLBACK ResizeChildWindow(HWND hwndChild, LPARAM lParam);
-		static HFONT CALLBACK ReplaceFont(
-			int    cHeight,
-			int    cWidth,
-			int    cEscapement,
-			int    cOrientation,
-			int    cWeight,
-			DWORD  bItalic,
-			DWORD  bUnderline,
-			DWORD  bStrikeOut,
-			DWORD  iCharSet,
-			DWORD  iOutPrecision,
-			DWORD  iClipPrecision,
-			DWORD  iQuality,
-			DWORD  iPitchAndFamily,
-			LPCSTR pszFaceName);
+		static HFONT CALLBACK ReplaceFont(int cHeight, int cWidth, int cEscapement, int cOrientation, int cWeight, DWORD bItalic, DWORD bUnderline, DWORD bStrikeOut, DWORD iCharSet, DWORD iOutPrecision, DWORD iClipPrecision, DWORD iQuality, DWORD iPitchAndFamily, LPCSTR pszFaceName);
 		static void ApplyConsoleStyle();
 		static void GetWindowPos(HWND hWnd, int* x, int* y);
 		static void Sys_PrintStub();

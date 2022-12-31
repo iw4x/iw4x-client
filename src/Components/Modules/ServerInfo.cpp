@@ -140,7 +140,7 @@ namespace Components
 
 		if (!maxClientCount)
 		{
-			maxClientCount = Dvar::Var("party_maxplayers").get<int>();
+			maxClientCount = *Game::party_maxplayers ? (*Game::party_maxplayers)->current.integer : 18;
 		}
 
 		Utils::InfoString info(Game::Dvar_InfoString_Big(Game::DVAR_SERVERINFO));
@@ -166,7 +166,7 @@ namespace Components
 		// 1 - Party, use Steam_JoinLobby to connect
 		// 2 - Match, use CL_ConnectFromParty to connect
 
-		if (Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>()) // Party hosting
+		if (Party::IsEnabled() && Dvar::Var("party_host").get<bool>()) // Party hosting
 		{
 			info.set("matchtype", "1");
 		}

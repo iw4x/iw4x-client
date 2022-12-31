@@ -9,6 +9,7 @@ namespace Components
 
 		static SteamID PlayerGuids[18][2];
 		static Dvar::Var SVLanOnly;
+		static Dvar::Var SVMOTD;
 		static Dvar::Var COMLogFilter;
 
 		static bool IsEnabled();

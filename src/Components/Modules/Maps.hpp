@@ -54,7 +54,7 @@ namespace Components
 		static std::string CurrentMainZone;
 		static const char* UserMapFiles[4];
 
-		static bool CheckMapInstalled(const char* mapname, bool error = false, bool dlcIsTrue = false);
+		static bool CheckMapInstalled(const std::string& mapname, bool error = false, bool dlcIsTrue = false);
 
 		static UserMapContainer* GetUserMap();
 		static unsigned int GetUsermapHash(const std::string& map);
