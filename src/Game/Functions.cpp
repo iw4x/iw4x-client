@@ -201,6 +201,7 @@ namespace Game
 	UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x4F1700);
 	UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x4E9740);
 	UI_ParseInfos_t UI_ParseInfos = UI_ParseInfos_t(0x4027A0);
+	ParseConfigStringToStruct_t ParseConfigStringToStruct = ParseConfigStringToStruct_t(0x403B60);
 
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 
@@ -347,9 +348,6 @@ namespace Game
 	ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0x10843F0);
 	ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
 	ScreenPlacement* scrPlaceView = reinterpret_cast<ScreenPlacement*>(0x1084378);
-
-	cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
-	cgs_t* cgsArray = reinterpret_cast<cgs_t*>(0x7ED3B8);
 
 	PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
 	kbutton_t* playersKb = reinterpret_cast<kbutton_t*>(0xA1A9A8);

@@ -645,6 +645,13 @@ namespace Game
 		SV_CMD_RELIABLE = 0x1,
 	};
 
+	enum RumbleSourceType
+	{
+		RUMBLESOURCE_INVALID = 0x0,
+		RUMBLESOURCE_ENTITY = 0x1,
+		RUMBLESOURCE_POS = 0x2,
+	};
+
 	struct FxEffectDef;
 	struct pathnode_t;
 	struct pathnode_tree_t;
@@ -652,6 +659,13 @@ namespace Game
 	struct Statement_s;
 	struct MenuEventHandlerSet;
 	struct menuDef_t;
+
+	struct cspField_t
+	{
+		const char* szName;
+		int iOffset;
+		int iFieldType;
+	};
 
 	struct CmdArgs
 	{
@@ -10370,6 +10384,83 @@ namespace Game
 		GfxParticleCloud cloudData[256];
 		GfxDrawSurf drawSurfs[16384];
 		GfxLight sceneLights[253];
+	};
+
+
+	struct RumbleDevguiGraphInfo
+	{
+		struct RumbleInfo* rumbleInfo;
+		struct RumbleGraph* rumbleGraph;
+	};
+
+	enum DevEventType
+	{
+		EVENT_ACTIVATE = 0x0,
+		EVENT_DEACTIVATE = 0x1,
+		EVENT_ACCEPT = 0x2,
+		EVENT_UPDATE = 0x3,
+		EVENT_DRAW = 0x4,
+		EVENT_SAVE = 0x5,
+	};
+
+	struct __declspec(align(4)) DevGraph
+	{
+		float(*knots)[2];
+		unsigned __int16* knotCount;
+		unsigned __int16 knotCountMax;
+		int selectedKnot;
+		void(__cdecl* eventCallback)(DevGraph*, DevEventType, int);
+		void(__cdecl* textCallback)(DevGraph*, const float, const float, char*, const int);
+		void* data;
+		bool disableEditingEndPoints;
+	};
+
+	struct RumbleGraph
+	{
+		char graphName[64];
+		float knots[16][2];
+		unsigned __int16 knotCount;
+		DevGraph devguiGraph;
+		RumbleDevguiGraphInfo devguiGraphInfo;
+	};
+
+	struct RumbleInfo
+	{
+		int rumbleNameIndex;
+		float duration;
+		float range;
+		RumbleGraph* highRumbleGraph;
+		RumbleGraph* lowRumbleGraph;
+		int fadeWithDistance;
+		int broadcast;
+		dvar_t* durationDvar;
+		dvar_t* loopDvar;
+	};
+
+
+	union RumbleSource
+	{
+		int entityNum;
+		float pos[3];
+	};
+
+	struct ActiveRumble
+	{
+		RumbleInfo* rumbleInfo;
+		int startTime;
+		bool loop;
+		RumbleSourceType sourceType;
+		char scale;
+		RumbleSource source;
+	};
+
+	struct RumbleGlobals
+	{
+		RumbleGraph graphs[64];
+		RumbleInfo infos[32];
+		ActiveRumble activeRumbles[32];
+		float receiverPos[3];
+		int receiverEntNum;
 	};
 
 	enum

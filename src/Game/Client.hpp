@@ -88,5 +88,5 @@ namespace Game
 	extern connstate_t CL_GetLocalClientConnectionState(int localClientNum);
 	extern voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
 	extern clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
-	extern clientActive_t* CL_GetLocalClientGlobals(int localClientNum);
+	extern cg_s* CL_GetLocalClientGlobals(int localClientNum);
 }

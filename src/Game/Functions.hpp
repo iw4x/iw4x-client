@@ -202,7 +202,10 @@ namespace Game
 
 	typedef int(*UI_ParseInfos_t)(const char* buf, int max, char** infos);
 	extern UI_ParseInfos_t UI_ParseInfos;
-	
+
+	typedef int(*ParseConfigStringToStruct_t)(void* pStruct, Game::cspField_t* pFieldList, const int iNumFields, const char* pszBuffer, const int iMaxFieldTypes, int(__cdecl* parseSpecialFieldType)(char*, const char*, const int), void(__cdecl* parseStrcpy)(char*, char*));
+	extern ParseConfigStringToStruct_t ParseConfigStringToStruct;
+
 	typedef void(*MSG_Init_t)(msg_t* buf, unsigned char* data, int length);
 	extern MSG_Init_t MSG_Init;
 

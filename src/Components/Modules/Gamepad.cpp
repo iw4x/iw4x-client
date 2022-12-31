@@ -717,10 +717,10 @@ namespace Components
 	bool Gamepad::CG_HandleLocationSelectionInput_GamePad(const int localClientNum, Game::usercmd_s* /*cmd*/)
 	{
 		// Buttons are already handled by keyboard input handler
-
-		const auto frameTime = static_cast<float>(Game::cgArray[0].frametime) * 0.001f;
-		const auto mapAspectRatio = Game::cgArray[0].compassMapWorldSize[0] / Game::cgArray[0].compassMapWorldSize[1];
-		const auto selectionRequiresAngle = (Game::cgArray[0].predictedPlayerState.locationSelectionInfo & 0x80) != 0;
+		const auto clientGlob = Game::CL_GetLocalClientGlobals(localClientNum);
+		const auto frameTime = static_cast<float>(clientGlob->frametime) * 0.001f;
+		const auto mapAspectRatio = clientGlob->compassMapWorldSize[0] / clientGlob->compassMapWorldSize[1];
+		const auto selectionRequiresAngle = (clientGlob->predictedPlayerState.locationSelectionInfo & 0x80) != 0;
 
 		auto up = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_FORWARD);
 		auto right = CL_GamepadAxisValue(localClientNum, Game::GPAD_VIRTAXIS_SIDE);
@@ -1727,6 +1727,62 @@ namespace Components
 		}
 	}
 
+	int GetRumbleInfoIndexFromName(const char* rumbleName)
+	{
+
+		int i = 1;
+		int v7;
+		while (1)
+		{
+			const char* configString = Game::CL_GetConfigString(i + 1024);
+			auto rumbleName_ = rumbleName;
+
+			do
+			{
+				char currentCStringChar = *configString;
+				bool hasReachedEnd = currentCStringChar == 0;
+				v7 = currentCStringChar - *rumbleName_;
+				if (hasReachedEnd)
+					break;
+				++configString;
+				++rumbleName_;
+			} while (!v7);
+
+			if (!v7)
+				break;
+			if (++i >= 32)
+				return -1;
+		}
+		return i;
+	}
+
+	void PlayRumbleInternal(int localClientNum, const char* rumbleName, bool loop, Game::RumbleSourceType type, int entityNum, const float* pos, double scale, bool updateDuplicates)
+	{
+		assert(type != Game::RumbleSourceType::RUMBLESOURCE_INVALID);
+		assert(rumbleName);
+
+		int rumbleIndex = GetRumbleInfoIndexFromName(rumbleName);
+
+		if (rumbleIndex < 0)
+		{
+			Components::Logger::Error(Game::ERR_DROP, "Could not play rumble {} because it was not registered!", rumbleName);
+			return;
+		}
+
+
+	}
+
+	void CG_PlayRumbleOnClient(int localClientNum, const char* rumbleName)
+	{
+		auto clientGlob = Game::CL_GetLocalClientGlobals(localClientNum);
+
+		if (clientGlob->nextSnap)
+		{
+
+		}
+	}
+	
+
 	void Gamepad::InitDvars()
 	{
 		gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_ARCHIVE, "Game pad enabled");
@@ -1785,6 +1841,157 @@ namespace Components
 		Utils::Hook::Call<void()>(0x4F8DC0)();
 
 		InitDvars();
+	}
+
+
+	static Game::cspField_t rumbleFields[4] =
+	{
+		{"duration", 4, 7},
+		{"range", 8, 7},
+		{"fadeWithDistance", 0x14, 5},
+		{"broadcast", 0x18, 5}
+	};
+
+	void Rumble_Strcpy(char* member, char* keyValue)
+	{
+		int v2; // r11
+		char v3; // r10
+
+		v2 = member - keyValue;
+		do
+		{
+			v3 = *keyValue;
+			(keyValue++)[v2] = v3;
+		} while (v3);
+	}
+
+	int __fastcall LoadRumbleGraph(Game::RumbleGraph* rumbleGraphArray, Game::RumbleInfo* info, const char* highRumbleFileName, const char* lowRumbleFileName)
+	{
+		auto v5 = rumbleGraphArray;
+		info->highRumbleGraph = 0;
+		auto highRumbleFileName_ = highRumbleFileName;
+		info->lowRumbleGraph = 0;
+		auto lowRumbleFileName_ = lowRumbleFileName;
+		auto v9 = rumbleGraphArray;
+
+		auto i = 0;
+
+		for (i = 0; i < 64; ++i)
+		{
+			if (!v9->knotCount)
+				break;
+			if (!strnicmp(v9->graphName, highRumbleFileName, 0x7FFFFFFF)) // TODO change that
+				info->highRumbleGraph = v9;
+			if (!strnicmp(v9->graphName, lowRumbleFileName_, 0x7FFFFFFF))
+				info->lowRumbleGraph = v9;
+			++v9;
+		}
+		if (!info->highRumbleGraph || !info->lowRumbleGraph)
+		{
+			if (i == 64)
+				Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
+
+			auto rumbleGraph = &v5[i];
+			if (info->highRumbleGraph)
+			{
+				//ReadRumbleGraph(rumbleGraph, v8, lowRumbleFileName, a5, r10_0);
+				info->lowRumbleGraph = rumbleGraph;
+			}
+			else
+			{
+				//ReadRumbleGraph(rumbleGraph, lowRumbleFileName_, lowRumbleFileName, a5, r10_0);
+				info->highRumbleGraph = rumbleGraph;
+			}
+
+			int v15;
+			__int16 v16 = 0;
+			if (!info->highRumbleGraph || !info->lowRumbleGraph)
+			{
+				v15 = 0;
+				v16 = &v5[1].knotCount;
+				do
+				{
+					HIDWORD(v12) = *(v16 - 118);
+					if (!*(v16 - 118))
+						break;
+					HIDWORD(v12) = *v16;
+					if (!*v16)
+					{
+						++v15;
+						break;
+					}
+					HIDWORD(v12) = v16[118];
+					if (!v16[118])
+					{
+						v15 += 2;
+						break;
+					}
+					HIDWORD(v12) = v16[236];
+					if (!v16[236])
+					{
+						v15 += 3;
+						break;
+					}
+					v15 += 4;
+					v16 += 472;
+				} while (v15 < 64);
+				if (v15 == 64)
+					Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
+				
+				auto v17 = &v5[v15];
+				//ReadRumbleGraph(v17, v8, v14, v13, v12);
+				info->lowRumbleGraph = v17;
+			}
+		}
+		return 1;
+	}
+
+	int CG_LoadRumble(Game::RumbleGraph* rumbleGraphArray, Game::RumbleInfo* info, const char* rumbleName, int rumbleNameIndex)
+	{
+		assert(info);
+		assert(rumbleName);
+
+		std::string path = std::format("rumble/{}", rumbleName);
+		char buff[64];
+		const char* str = Game::Com_LoadInfoString_FastFile(path.data(), "rumble info file", "RUMBLE", buff);
+		auto highRumbleFile = Game::Info_ValueForKey(str, "highRumbleFile");
+		auto lowRumbleFile = Game::Info_ValueForKey(str, "lowRumbleFile");
+
+		if (!Game::ParseConfigStringToStruct(info, rumbleFields, 4, str, 0, 0, Rumble_Strcpy))
+		{
+			return 0;
+		}
+
+		if (info->broadcast)
+		{
+			if (info->range == 0.0)
+			{
+				Components::Logger::Error(Game::ERR_DROP, "Rumble file {} cannot have broadcast because its range is zero\n", rumbleName);
+			}
+		}
+		if (!LoadRumbleGraph(rumbleGraphArray, info, v26, v27, SHIDWORD(v13)))
+			return 0;
+
+		v16 = info->duration;
+		info->rumbleNameIndex = rumbleNameIndex;
+		result = 1;
+		info->duration = v16 * 1000.0;
+		updateRumbleDevGuiGlobal = 1;
+		return result;
+	}
+
+
+	void CG_RegisterRumbles(int localClientNum)
+	{
+
+	}
+
+	void CG_RegisterGraphics_Hk(int localClientNum, int b)
+	{
+		// Call original function
+		Utils::Hook::Call<void(int, int)>(0x5895D0)(localClientNum, b);
+
+		CG_RegisterRumbles(localClientNum);
 	}
 
 	const char* Gamepad::GetGamePadCommand(const char* command)
@@ -1963,6 +2170,7 @@ namespace Components
 
 		// Initialize gamepad environment
 		Utils::Hook(0x4059FE, CG_RegisterDvars_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4E37D3, CG_RegisterGraphics_Hk, HOOK_CALL).install()->quick();
 
 		// package the forward and right move components in the move buttons
 		Utils::Hook(0x60E38D, MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();
